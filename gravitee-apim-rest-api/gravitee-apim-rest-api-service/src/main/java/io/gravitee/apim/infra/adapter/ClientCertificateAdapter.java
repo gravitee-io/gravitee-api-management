@@ -27,8 +27,13 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface ClientCertificateAdapter {
     ClientCertificateAdapter INSTANCE = Mappers.getMapper(ClientCertificateAdapter.class);
+
     ClientCertificate toDomain(io.gravitee.repository.management.model.ClientCertificate clientCertificate);
+
     io.gravitee.repository.management.model.ClientCertificate toRepo(ClientCertificate clientCertificate);
-    io.gravitee.repository.management.model.ClientCertificateStatus[] toRepoStatuses(ClientCertificateStatus[] statuses);
+
+    io.gravitee.repository.management.model.ClientCertificateStatus[] toRepoStatuses(
+            ClientCertificateStatus[] statuses);
+
     io.gravitee.repository.management.model.ClientCertificateStatus toRepoStatus(ClientCertificateStatus status);
 }

@@ -92,37 +92,34 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
         try {
             final Optional<Rating> ratingOptional = ratingRepository.findByReferenceIdAndReferenceTypeAndUser(
-                ratingEntity.getApi(),
-                RatingReferenceType.API,
-                getAuthenticatedUsername()
-            );
+                    ratingEntity.getApi(), RatingReferenceType.API, getAuthenticatedUsername());
             if (ratingOptional.isPresent()) {
                 throw new RatingAlreadyExistsException(ratingEntity.getApi(), getAuthenticatedUsername());
             }
             Rating rating = ratingRepository.create(convert(ratingEntity));
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .event(RATING_CREATED)
-                    .createdAt(rating.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(rating)
-                    .build(),
-                rating.getReferenceId()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .event(RATING_CREATED)
+                            .createdAt(rating.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(rating)
+                            .build(),
+                    rating.getReferenceId());
 
             notifierService.trigger(
-                executionContext,
-                ApiHook.NEW_RATING,
-                rating.getReferenceId(),
-                new NotificationParamsBuilder()
-                    .api(apiSearchService.findGenericById(executionContext, rating.getReferenceId(), false, false, false))
-                    .build()
-            );
+                    executionContext,
+                    ApiHook.NEW_RATING,
+                    rating.getReferenceId(),
+                    new NotificationParamsBuilder()
+                            .api(apiSearchService.findGenericById(
+                                    executionContext, rating.getReferenceId(), false, false, false))
+                            .build());
 
             return convert(executionContext, rating);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to create rating on api " + ratingEntity.getApi(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to create rating on api " + ratingEntity.getApi(), ex);
         }
     }
 
@@ -142,31 +139,29 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingAnswer.setCreatedAt(new Date());
             ratingAnswerRepository.create(ratingAnswer);
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .event(RATING_ANSWER_CREATED)
-                    .createdAt(ratingAnswer.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(ratingAnswer)
-                    .build(),
-                rating.getReferenceId()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .event(RATING_ANSWER_CREATED)
+                            .createdAt(ratingAnswer.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(ratingAnswer)
+                            .build(),
+                    rating.getReferenceId());
 
             notifierService.trigger(
-                executionContext,
-                ApiHook.NEW_RATING_ANSWER,
-                rating.getReferenceId(),
-                new NotificationParamsBuilder()
-                    .api(apiSearchService.findGenericById(executionContext, rating.getReferenceId(), false, false, false))
-                    .build()
-            );
+                    executionContext,
+                    ApiHook.NEW_RATING_ANSWER,
+                    rating.getReferenceId(),
+                    new NotificationParamsBuilder()
+                            .api(apiSearchService.findGenericById(
+                                    executionContext, rating.getReferenceId(), false, false, false))
+                            .build());
 
             return convert(executionContext, rating);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurred while trying to create a rating answer on rating" + answerEntity.getRatingId(),
-                ex
-            );
+                    "An error occurred while trying to create a rating answer on rating" + answerEntity.getRatingId(),
+                    ex);
         }
     }
 
@@ -179,11 +174,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     public RatingAnswerEntity findAnswerById(ExecutionContext executionContext, String answerId) {
         try {
             RatingAnswer ratingAnswer = ratingAnswerRepository
-                .findById(answerId)
-                .orElseThrow(() -> new RatingAnswerNotFoundException(answerId));
+                    .findById(answerId)
+                    .orElseThrow(() -> new RatingAnswerNotFoundException(answerId));
             return convert(executionContext, ratingAnswer);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to find rating answer by answer id " + answerId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to find rating answer by answer id " + answerId, ex);
         }
     }
 
@@ -211,8 +207,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
         try {
             return ratingRepository
-                .findByReferenceIdAndReferenceTypePageable(api, RatingReferenceType.API, convert(pageable))
-                .map(rating -> convert(executionContext, rating));
+                    .findByReferenceIdAndReferenceTypePageable(api, RatingReferenceType.API, convert(pageable))
+                    .map(rating -> convert(executionContext, rating));
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);
         }
@@ -224,11 +220,11 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
-            return ratings
-                .stream()
-                .map(rating -> convert(executionContext, rating))
-                .collect(toList());
+            final List<Rating> ratings =
+                    ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
+            return ratings.stream()
+                    .map(rating -> convert(executionContext, rating))
+                    .collect(toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);
         }
@@ -240,18 +236,21 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
+            final List<Rating> ratings =
+                    ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
             final RatingSummaryEntity ratingSummary = new RatingSummaryEntity();
             ratingSummary.setApi(api);
             ratingSummary.setNumberOfRatings(ratings.size());
-            final OptionalDouble optionalAvg = ratings.stream().mapToInt(Rating::getRate).average();
+            final OptionalDouble optionalAvg =
+                    ratings.stream().mapToInt(Rating::getRate).average();
             if (optionalAvg.isPresent()) {
                 ratingSummary.setAverageRate(optionalAvg.getAsDouble());
             }
             ratingSummary.setNumberOfRatingsByRate(ratings.stream().collect(groupingBy(Rating::getRate, counting())));
             return ratingSummary;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to find summary rating for api " + api, ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to find summary rating for api " + api, ex);
         }
     }
 
@@ -261,9 +260,11 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            return ratingRepository.findReferenceIdsOrderByRate(new RatingCriteria.Builder().referenceIds(apis).build());
+            return ratingRepository.findReferenceIdsOrderByRate(
+                    new RatingCriteria.Builder().referenceIds(apis).build());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to compute ranking for apis " + apis, ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to compute ranking for apis " + apis, ex);
         }
     }
 
@@ -274,17 +275,14 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
         try {
             final Optional<Rating> ratingOptional = ratingRepository.findByReferenceIdAndReferenceTypeAndUser(
-                api,
-                RatingReferenceType.API,
-                getAuthenticatedUsername()
-            );
+                    api, RatingReferenceType.API, getAuthenticatedUsername());
             if (ratingOptional.isPresent()) {
                 return convert(executionContext, ratingOptional.get());
             }
             return null;
         } catch (final TechnicalException ex) {
-            final String message =
-                "An error occurred while trying to find rating for api " + api + " and user " + getAuthenticatedUsername();
+            final String message = "An error occurred while trying to find rating for api " + api + " and user "
+                    + getAuthenticatedUsername();
             throw new TechnicalManagementException(message, ex);
         }
     }
@@ -313,18 +311,18 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             }
             Rating updatedRating = ratingRepository.update(rating);
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .event(RATING_UPDATED)
-                    .createdAt(updatedRating.getUpdatedAt())
-                    .oldValue(oldRating)
-                    .newValue(updatedRating)
-                    .build(),
-                rating.getReferenceId()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .event(RATING_UPDATED)
+                            .createdAt(updatedRating.getUpdatedAt())
+                            .oldValue(oldRating)
+                            .newValue(updatedRating)
+                            .build(),
+                    rating.getReferenceId());
             return convert(executionContext, updatedRating);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to update rating " + ratingEntity.getId(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to update rating " + ratingEntity.getId(), ex);
         }
     }
 
@@ -337,10 +335,14 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             Rating rating = findModelById(executionContext, id);
             ratingRepository.delete(id);
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder().event(RATING_DELETED).createdAt(new Date()).oldValue(rating).newValue(null).build(),
-                rating.getReferenceId()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .event(RATING_DELETED)
+                            .createdAt(new Date())
+                            .oldValue(rating)
+                            .newValue(null)
+                            .build(),
+                    rating.getReferenceId());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete rating " + id, ex);
         }
@@ -355,23 +357,24 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             Rating rating = findModelById(executionContext, ratingId);
             ratingAnswerRepository.delete(answerId);
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .event(RATING_ANSWER_DELETED)
-                    .createdAt(new Date())
-                    .oldValue(rating)
-                    .newValue(null)
-                    .build(),
-                rating.getReferenceId()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .event(RATING_ANSWER_DELETED)
+                            .createdAt(new Date())
+                            .oldValue(rating)
+                            .newValue(null)
+                            .build(),
+                    rating.getReferenceId());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete rating answer " + answerId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete rating answer " + answerId, ex);
         }
     }
 
     @Override
     public boolean isEnabled(ExecutionContext executionContext) {
-        return parameterService.findAsBoolean(executionContext, Key.PORTAL_RATING_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        return parameterService.findAsBoolean(
+                executionContext, Key.PORTAL_RATING_ENABLED, ParameterReferenceType.ENVIRONMENT);
     }
 
     private Rating findModelById(ExecutionContext executionContext, String id) {
@@ -406,21 +409,16 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         try {
             final List<RatingAnswer> ratingAnswers = ratingAnswerRepository.findByRating(rating.getId());
             if (ratingAnswers != null) {
-                ratingEntity.setAnswers(
-                    ratingAnswers
-                        .stream()
+                ratingEntity.setAnswers(ratingAnswers.stream()
                         .map(ratingAnswer -> {
                             return convert(executionContext, ratingAnswer);
                         })
                         .sorted(comparing(RatingAnswerEntity::getCreatedAt, reverseOrder()))
-                        .collect(toList())
-                );
+                        .collect(toList()));
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurred while trying to find rating answers by rating id " + rating.getId(),
-                ex
-            );
+                    "An error occurred while trying to find rating answers by rating id " + rating.getId(), ex);
         }
         return ratingEntity;
     }

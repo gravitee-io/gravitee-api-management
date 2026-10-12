@@ -32,9 +32,9 @@ import java.lang.annotation.Target;
  *
  * @author GraviteeSource Team
  */
-@Target({ ElementType.PARAMETER, ElementType.FIELD })
+@Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RUNTIME)
-@Constraint(validatedBy = { NoDuplicatesValidator.class })
+@Constraint(validatedBy = {NoDuplicatesValidator.class})
 @Documented
 public @interface NoDuplicates {
     String message() default "must not contain duplicates";

@@ -16,8 +16,6 @@
 package io.gravitee.gateway.reactive.v4.flow;
 
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -37,7 +35,8 @@ public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionCont
     private final FlowResolver flowResolver;
     private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
 
-    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
+    public BestMatchFlowResolver(
+            final FlowResolver flowResolver, AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
         this.flowResolver = flowResolver;
         this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
@@ -45,15 +44,18 @@ public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionCont
     @Override
     public Flowable<Flow> resolve(final HttpBaseExecutionContext ctx) {
         return provideFlows(ctx)
-            .toList()
-            .flatMapMaybe(flows -> {
-                ctx
-                    .withLogger(log)
-                    .debug("Resolving best match flow for path [{}] among {} candidate flow(s)", ctx.request().pathInfo(), flows.size());
-                return Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(flows, ctx.request().pathInfo()));
-            })
-            .doOnSuccess(flow -> ctx.withLogger(log).debug("Best match flow resolved: [{}]", flow.getName()))
-            .toFlowable();
+                .toList()
+                .flatMapMaybe(flows -> {
+                    ctx.withLogger(log)
+                            .debug(
+                                    "Resolving best match flow for path [{}] among {} candidate flow(s)",
+                                    ctx.request().pathInfo(),
+                                    flows.size());
+                    return Maybe.fromCallable(() ->
+                            bestMatchFlowSelector.forPath(flows, ctx.request().pathInfo()));
+                })
+                .doOnSuccess(flow -> ctx.withLogger(log).debug("Best match flow resolved: [{}]", flow.getName()))
+                .toFlowable();
     }
 
     @Override

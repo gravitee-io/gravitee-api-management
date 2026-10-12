@@ -21,4 +21,5 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MeasuresQuery(TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics) implements Query {}
+public record MeasuresQuery(TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics)
+        implements Query {}

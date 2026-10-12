@@ -26,7 +26,7 @@ import io.gravitee.gateway.reactor.ReactableApi;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@TemplateVariable(scopes = { TemplateVariableScope.API })
+@TemplateVariable(scopes = {TemplateVariableScope.API})
 public class ApiTemplateVariableProvider implements TemplateVariableProvider {
 
     private final ApiVariables apiVariables;

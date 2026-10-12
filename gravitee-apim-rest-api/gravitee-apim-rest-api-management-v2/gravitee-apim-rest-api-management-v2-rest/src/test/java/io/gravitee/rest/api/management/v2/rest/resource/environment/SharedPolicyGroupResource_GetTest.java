@@ -71,26 +71,33 @@ public class SharedPolicyGroupResource_GetTest extends AbstractResourceTest {
     void should_get_shared_policy_group() {
         // Given
         var sharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
-        when(getSharedPolicyGroupUseCase.execute(any())).thenReturn(new GetSharedPolicyGroupUseCase.Output(sharedPolicyGroup));
+        when(getSharedPolicyGroupUseCase.execute(any()))
+                .thenReturn(new GetSharedPolicyGroupUseCase.Output(sharedPolicyGroup));
 
         // When
         var response = rootTarget().request().get();
 
         // Then
         assertThat(response).hasStatus(200);
-        verify(getSharedPolicyGroupUseCase).execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID));
+        verify(getSharedPolicyGroupUseCase)
+                .execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID));
     }
 
     @Test
     void should_not_get_shared_policy_group_when_not_found() {
         // Given
-        when(getSharedPolicyGroupUseCase.execute(any())).thenThrow(new SharedPolicyGroupNotFoundException(SHARED_POLICY_GROUP_ID));
+        when(getSharedPolicyGroupUseCase.execute(any()))
+                .thenThrow(new SharedPolicyGroupNotFoundException(SHARED_POLICY_GROUP_ID));
 
         // When
         var response = rootTarget().request().get();
 
         // Then
-        assertThat(response).hasStatus(404).asError().hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
-        verify(getSharedPolicyGroupUseCase).execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID));
+        assertThat(response)
+                .hasStatus(404)
+                .asError()
+                .hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
+        verify(getSharedPolicyGroupUseCase)
+                .execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID));
     }
 }

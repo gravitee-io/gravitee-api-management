@@ -33,79 +33,83 @@ class AbstractDebugHookTest {
     @Test
     public void shouldThrowExceptionWithWrongCtxOnPre() {
         DummyDebugHook dummyDebugHook = new DummyDebugHook();
-        dummyDebugHook.pre("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST).test().assertFailure(IllegalArgumentException.class);
+        dummyDebugHook
+                .pre("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST)
+                .test()
+                .assertFailure(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldThrowExceptionWithWrongCtxOnPost() {
         DummyDebugHook dummyDebugHook = new DummyDebugHook();
         dummyDebugHook
-            .post("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST)
-            .test()
-            .assertFailure(IllegalArgumentException.class);
+                .post("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST)
+                .test()
+                .assertFailure(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldThrowExceptionWithWrongCtxOnError() {
         DummyDebugHook dummyDebugHook = new DummyDebugHook();
         dummyDebugHook
-            .error("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST, new RuntimeException())
-            .test()
-            .assertFailure(IllegalArgumentException.class);
+                .error("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST, new RuntimeException())
+                .test()
+                .assertFailure(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldThrowExceptionWithWrongCtxOnInterruptFailure() {
         DummyDebugHook dummyDebugHook = new DummyDebugHook();
         dummyDebugHook
-            .interruptWith("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST, new ExecutionFailure(500))
-            .test()
-            .assertFailure(IllegalArgumentException.class);
+                .interruptWith("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST, new ExecutionFailure(500))
+                .test()
+                .assertFailure(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldThrowExceptionWithWrongCtxOnInterrupt() {
         DummyDebugHook dummyDebugHook = new DummyDebugHook();
         dummyDebugHook
-            .interrupt("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST)
-            .test()
-            .assertFailure(IllegalArgumentException.class);
+                .interrupt("id", mock(ExecutionContext.class), ExecutionPhase.REQUEST)
+                .test()
+                .assertFailure(IllegalArgumentException.class);
     }
 
     public class DummyDebugHook extends AbstractDebugHook {
 
         @Override
-        protected Completable pre(final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase) {
+        protected Completable pre(
+                final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase) {
             return Completable.complete();
         }
 
         @Override
-        protected Completable post(final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase) {
+        protected Completable post(
+                final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase) {
             return Completable.complete();
         }
 
         @Override
         protected Completable error(
-            final String id,
-            final DebugExecutionContext ctx,
-            final ExecutionPhase executionPhase,
-            final Throwable throwable
-        ) {
+                final String id,
+                final DebugExecutionContext ctx,
+                final ExecutionPhase executionPhase,
+                final Throwable throwable) {
             return Completable.complete();
         }
 
         @Override
-        protected Completable interrupt(final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase) {
+        protected Completable interrupt(
+                final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase) {
             return Completable.complete();
         }
 
         @Override
         protected Completable interruptWith(
-            final String id,
-            final DebugExecutionContext ctx,
-            final ExecutionPhase executionPhase,
-            final ExecutionFailure failure
-        ) {
+                final String id,
+                final DebugExecutionContext ctx,
+                final ExecutionPhase executionPhase,
+                final ExecutionFailure failure) {
             return Completable.complete();
         }
 

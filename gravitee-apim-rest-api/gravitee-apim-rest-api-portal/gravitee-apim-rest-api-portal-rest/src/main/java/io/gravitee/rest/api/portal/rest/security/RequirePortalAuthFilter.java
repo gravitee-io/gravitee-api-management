@@ -37,10 +37,8 @@ public class RequirePortalAuthFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        if (
-            requestContext.getSecurityContext().getUserPrincipal() == null &&
-            configService.portalLoginForced(GraviteeContext.getExecutionContext())
-        ) {
+        if (requestContext.getSecurityContext().getUserPrincipal() == null
+                && configService.portalLoginForced(GraviteeContext.getExecutionContext())) {
             throw new UnauthorizedAccessException();
         }
     }

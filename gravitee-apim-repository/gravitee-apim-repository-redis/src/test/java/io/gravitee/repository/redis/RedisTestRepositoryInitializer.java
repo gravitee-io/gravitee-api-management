@@ -55,24 +55,15 @@ public class RedisTestRepositoryInitializer implements TestRepositoryInitializer
         redisClients.forEach(redisClient -> {
             try {
                 redisClient
-                    .redisApi()
-                    .flatMap(redisAPI ->
-                        redisAPI
-                            .send(Command.KEYS, "*")
-                            .onSuccess(event ->
-                                event
-                                    .iterator()
-                                    .forEachRemaining(key ->
-                                        redisAPI
-                                            .send(Command.DEL, key.toString())
-                                            .onFailure(t -> LOGGER.error("unable to delete key {}.", key, t))
-                                            .result()
-                                    )
-                            )
-                    )
-                    .toCompletionStage()
-                    .toCompletableFuture()
-                    .get(500, TimeUnit.MILLISECONDS);
+                        .redisApi()
+                        .flatMap(redisAPI -> redisAPI.send(Command.KEYS, "*")
+                                .onSuccess(event -> event.iterator()
+                                        .forEachRemaining(key -> redisAPI.send(Command.DEL, key.toString())
+                                                .onFailure(t -> LOGGER.error("unable to delete key {}.", key, t))
+                                                .result())))
+                        .toCompletionStage()
+                        .toCompletableFuture()
+                        .get(500, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 LOGGER.error("Error while waiting for RedisApi to be cleaned", e);
                 Thread.currentThread().interrupt();

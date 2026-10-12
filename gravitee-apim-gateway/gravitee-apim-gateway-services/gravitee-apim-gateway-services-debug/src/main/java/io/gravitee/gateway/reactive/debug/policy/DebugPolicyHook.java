@@ -35,37 +35,38 @@ public class DebugPolicyHook extends AbstractDebugHook implements PolicyHook, Se
     }
 
     @Override
-    protected Completable pre(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable pre(
+            final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return debugCtx.prePolicyExecution(id, executionPhase);
     }
 
     @Override
-    protected Completable post(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable post(
+            final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return debugCtx.postPolicyExecution();
     }
 
     @Override
     protected Completable error(
-        final String id,
-        final DebugExecutionContext debugCtx,
-        final ExecutionPhase executionPhase,
-        final Throwable throwable
-    ) {
+            final String id,
+            final DebugExecutionContext debugCtx,
+            final ExecutionPhase executionPhase,
+            final Throwable throwable) {
         return debugCtx.postPolicyExecution(throwable);
     }
 
     @Override
-    protected Completable interrupt(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable interrupt(
+            final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return debugCtx.postPolicyExecution();
     }
 
     @Override
     protected Completable interruptWith(
-        final String id,
-        final DebugExecutionContext debugCtx,
-        final ExecutionPhase executionPhase,
-        final ExecutionFailure failure
-    ) {
+            final String id,
+            final DebugExecutionContext debugCtx,
+            final ExecutionPhase executionPhase,
+            final ExecutionFailure failure) {
         return debugCtx.postPolicyExecution(failure);
     }
 }

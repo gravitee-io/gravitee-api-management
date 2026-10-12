@@ -71,29 +71,28 @@ public class ResourcesResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentOrganization("fake-org");
         license = mock(License.class);
         var fakeResourcePlugins = List.of(
-            io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
-                .id("resource-1")
-                .name("resource-1")
-                .feature("feature-1")
-                .deployed(false)
-                .build(),
-            io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
-                .id("resource-2")
-                .name("resource-2")
-                .feature("feature-2")
-                .description("description")
-                .category("category")
-                .icon("icon")
-                .version("1.0")
-                .deployed(true)
-                .build(),
-            io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
-                .id("resource-3")
-                .name("resource-3")
-                .feature("feature-3")
-                .deployed(true)
-                .build()
-        );
+                io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
+                        .id("resource-1")
+                        .name("resource-1")
+                        .feature("feature-1")
+                        .deployed(false)
+                        .build(),
+                io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
+                        .id("resource-2")
+                        .name("resource-2")
+                        .feature("feature-2")
+                        .description("description")
+                        .category("category")
+                        .icon("icon")
+                        .version("1.0")
+                        .deployed(true)
+                        .build(),
+                io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
+                        .id("resource-3")
+                        .name("resource-3")
+                        .feature("feature-3")
+                        .deployed(true)
+                        .build());
 
         resourcePluginQueryServiceInMemory.initWith(fakeResourcePlugins);
         resourcePluginCrudServiceInMemory.initWith(fakeResourcePlugins);
@@ -130,18 +129,18 @@ public class ResourcesResourceTest extends AbstractResourceTest {
         // Check response content
         final List<ResourcePlugin> resourcePlugins = response.readEntity(new GenericType<>() {});
 
-        assertThat(resourcePlugins).containsExactly(
-            new ResourcePlugin().id("resource-1").name("resource-1").deployed(false),
-            new ResourcePlugin()
-                .id("resource-2")
-                .name("resource-2")
-                .description("description")
-                .category("category")
-                .icon("icon")
-                .version("1.0")
-                .deployed(false),
-            new ResourcePlugin().id("resource-3").name("resource-3").deployed(true)
-        );
+        assertThat(resourcePlugins)
+                .containsExactly(
+                        new ResourcePlugin().id("resource-1").name("resource-1").deployed(false),
+                        new ResourcePlugin()
+                                .id("resource-2")
+                                .name("resource-2")
+                                .description("description")
+                                .category("category")
+                                .icon("icon")
+                                .version("1.0")
+                                .deployed(false),
+                        new ResourcePlugin().id("resource-3").name("resource-3").deployed(true));
     }
 
     @Test
@@ -150,7 +149,8 @@ public class ResourcesResourceTest extends AbstractResourceTest {
         when(licenseManager.getOrganizationLicenseOrPlatform("fake-org")).thenReturn(license);
         when(license.isFeatureEnabled("feature-2")).thenReturn(true);
 
-        final Response response = rootTarget("resource-2").path("schema").request().get();
+        final Response response =
+                rootTarget("resource-2").path("schema").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String resource = response.readEntity(String.class);
         assertNotNull(resource);

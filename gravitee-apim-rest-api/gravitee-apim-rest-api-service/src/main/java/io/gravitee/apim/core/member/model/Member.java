@@ -63,7 +63,8 @@ public class Member {
         private Map<String, char[]> permissions;
 
         public boolean isPrimaryOwner() {
-            return scope == RoleScope.APPLICATION && SystemRole.PRIMARY_OWNER.name().equals(name);
+            return scope == RoleScope.APPLICATION
+                    && SystemRole.PRIMARY_OWNER.name().equals(name);
         }
     }
 }

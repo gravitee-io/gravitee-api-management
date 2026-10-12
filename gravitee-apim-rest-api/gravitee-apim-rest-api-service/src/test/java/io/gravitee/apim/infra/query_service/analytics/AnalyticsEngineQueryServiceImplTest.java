@@ -110,98 +110,107 @@ class AnalyticsEngineQueryServiceImplTest {
 
         @Test
         void should_return_empty_requests_count() {
-            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(Optional.empty());
-            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null)).isEmpty();
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any()))
+                    .thenReturn(Optional.empty());
+            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null))
+                    .isEmpty();
         }
 
         @Test
         void should_map_repository_response_to_requests_count() {
-            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(
-                Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
-            );
-            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null)).hasValueSatisfying(
-                requestsCount -> {
-                    assertThat(requestsCount.getTotal()).isEqualTo(10);
-                    assertThat(requestsCount.getCountsByEntrypoint()).containsAllEntriesOf(Map.of("first", 3L, "second", 4L, "third", 3L));
-                }
-            );
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(CountAggregate.builder()
+                            .total(10)
+                            .countBy(Map.of("first", 3L, "second", 4L, "third", 3L))
+                            .build()));
+            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null))
+                    .hasValueSatisfying(requestsCount -> {
+                        assertThat(requestsCount.getTotal()).isEqualTo(10);
+                        assertThat(requestsCount.getCountsByEntrypoint())
+                                .containsAllEntriesOf(Map.of("first", 3L, "second", 4L, "third", 3L));
+                    });
         }
 
         @Test
         void should_return_request_status_ranges() {
-            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any())).thenReturn(
-                Optional.of(
-                    ResponseStatusRangesAggregate.builder()
-                        .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L))
-                        .statusRangesCountByEntrypoint(
-                            Map.of(
-                                "http-post",
-                                Map.of("100.0-200.0", 1L, "200.0-300.0", 1L),
-                                "http-get",
-                                Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
-                            )
-                        )
-                        .build()
-                )
-            );
-            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), queryParameters)).hasValueSatisfying(
-                responseStatusRanges -> {
-                    assertThat(responseStatusRanges.getRanges()).containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L));
-                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-post")).containsAllEntriesOf(
-                        Map.of("100.0-200.0", 1L, "200.0-300.0", 1L)
-                    );
-                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-get")).containsAllEntriesOf(
-                        Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
-                    );
-                }
-            );
+            var queryParameters =
+                    AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(ResponseStatusRangesAggregate.builder()
+                            .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L))
+                            .statusRangesCountByEntrypoint(Map.of(
+                                    "http-post",
+                                    Map.of("100.0-200.0", 1L, "200.0-300.0", 1L),
+                                    "http-get",
+                                    Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)))
+                            .build()));
+            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), queryParameters))
+                    .hasValueSatisfying(responseStatusRanges -> {
+                        assertThat(responseStatusRanges.getRanges())
+                                .containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L));
+                        assertThat(responseStatusRanges
+                                        .getStatusRangesCountByEntrypoint()
+                                        .get("http-post"))
+                                .containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 1L));
+                        assertThat(responseStatusRanges
+                                        .getStatusRangesCountByEntrypoint()
+                                        .get("http-get"))
+                                .containsAllEntriesOf(Map.of("100.0-200.0", 0L, "200.0-300.0", 1L));
+                    });
         }
 
         @Test
         void should_return_top_hits() {
-            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchTopHitsApi(any(QueryContext.class), any())).thenReturn(
-                Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L)).build())
-            );
+            var queryParameters =
+                    AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchTopHitsApi(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(TopHitsAggregate.builder()
+                            .topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L))
+                            .build()));
 
             var result = cut.searchTopHitsApis(GraviteeContext.getExecutionContext(), queryParameters);
 
-            assertThat(result).hasValueSatisfying(topHits ->
-                assertThat(topHits.getData()).containsExactlyInAnyOrder(
-                    TopHitsApis.TopHitApi.builder().id("api-id-1").count(15L).build(),
-                    TopHitsApis.TopHitApi.builder().id("api-id-2").count(2L).build(),
-                    TopHitsApis.TopHitApi.builder().id("api-id-3").count(17L).build()
-                )
-            );
+            assertThat(result)
+                    .hasValueSatisfying(topHits -> assertThat(topHits.getData())
+                            .containsExactlyInAnyOrder(
+                                    TopHitsApis.TopHitApi.builder()
+                                            .id("api-id-1")
+                                            .count(15L)
+                                            .build(),
+                                    TopHitsApis.TopHitApi.builder()
+                                            .id("api-id-2")
+                                            .count(2L)
+                                            .build(),
+                                    TopHitsApis.TopHitApi.builder()
+                                            .id("api-id-3")
+                                            .count(17L)
+                                            .build()));
         }
 
         @Test
         void should_return_request_response_time() {
-            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchRequestResponseTimes(any(QueryContext.class), any())).thenReturn(
-                RequestResponseTimeAggregate.builder()
-                    .requestsPerSecond(3.7d)
-                    .requestsTotal(25600L)
-                    .responseMinTime(32.5d)
-                    .responseMaxTime(1220.87d)
-                    .responseAvgTime(159.2d)
-                    .build()
-            );
+            var queryParameters =
+                    AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchRequestResponseTimes(any(QueryContext.class), any()))
+                    .thenReturn(RequestResponseTimeAggregate.builder()
+                            .requestsPerSecond(3.7d)
+                            .requestsTotal(25600L)
+                            .responseMinTime(32.5d)
+                            .responseMaxTime(1220.87d)
+                            .responseAvgTime(159.2d)
+                            .build());
 
             var result = cut.searchRequestResponseTime(GraviteeContext.getExecutionContext(), queryParameters);
 
             assertThat(result)
-                .isNotNull()
-                .isEqualTo(
-                    RequestResponseTime.builder()
-                        .requestsPerSecond(3.7d)
-                        .requestsTotal(25600L)
-                        .responseMinTime(32.5d)
-                        .responseMaxTime(1220.87d)
-                        .responseAvgTime(159.2d)
-                        .build()
-                );
+                    .isNotNull()
+                    .isEqualTo(RequestResponseTime.builder()
+                            .requestsPerSecond(3.7d)
+                            .requestsTotal(25600L)
+                            .responseMinTime(32.5d)
+                            .responseMaxTime(1220.87d)
+                            .responseAvgTime(159.2d)
+                            .build());
         }
     }
 
@@ -211,36 +220,32 @@ class AnalyticsEngineQueryServiceImplTest {
         private static final String API_ID = "api#1";
         private static final Instant INSTANT = Instant.parse("2023-10-22T10:15:30Z");
         private static final ResponseStatusOvertime.TimeRange TIME_RANGE = new ResponseStatusOvertime.TimeRange(
-            INSTANT.minus(1, ChronoUnit.DAYS),
-            INSTANT,
-            Duration.ofMinutes(10)
-        );
+                INSTANT.minus(1, ChronoUnit.DAYS), INSTANT, Duration.ofMinutes(10));
 
         @Test
         void should_call_analytics_repository() {
             var queryCaptor = ArgumentCaptor.forClass(ResponseStatusOverTimeQuery.class);
             var expectedMap = Map.of("200", List.of(0L, 0L));
 
-            when(analyticsRepository.searchResponseStatusOvertime(any(), any())).thenReturn(
-                new ResponseStatusOverTimeAggregate(expectedMap)
-            );
+            when(analyticsRepository.searchResponseStatusOvertime(any(), any()))
+                    .thenReturn(new ResponseStatusOverTimeAggregate(expectedMap));
 
             var result = cut.searchResponseStatusOvertime(
-                GraviteeContext.getExecutionContext(),
-                new AnalyticsQueryService.ResponseStatusOverTimeQuery(
-                    List.of(API_ID),
-                    TIME_RANGE.from(),
-                    TIME_RANGE.to(),
-                    TIME_RANGE.interval(),
-                    List.of(DefinitionVersion.V4)
-                )
-            );
+                    GraviteeContext.getExecutionContext(),
+                    new AnalyticsQueryService.ResponseStatusOverTimeQuery(
+                            List.of(API_ID),
+                            TIME_RANGE.from(),
+                            TIME_RANGE.to(),
+                            TIME_RANGE.interval(),
+                            List.of(DefinitionVersion.V4)));
 
-            verify(analyticsRepository).searchResponseStatusOvertime(queryContextCaptor.capture(), queryCaptor.capture());
+            verify(analyticsRepository)
+                    .searchResponseStatusOvertime(queryContextCaptor.capture(), queryCaptor.capture());
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getData()).isSameAs(expectedMap);
                 softly.assertThat(result.getTimeRange()).isEqualTo(TIME_RANGE);
-                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly.assertThat(queryContextCaptor.getValue())
+                        .isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
                 softly.assertThat(queryCaptor.getValue().apiIds()).isEqualTo(List.of(API_ID));
                 softly.assertThat(queryCaptor.getValue().from()).isEqualTo(TIME_RANGE.from());
                 softly.assertThat(queryCaptor.getValue().to()).isEqualTo(TIME_RANGE.to());
@@ -254,20 +259,30 @@ class AnalyticsEngineQueryServiceImplTest {
 
         @Test
         void should_search_top_apps() {
-            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchTopApps(any(QueryContext.class), any())).thenReturn(
-                Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("app-id-1", 15L, "app-id-2", 2L, "app-id-3", 17L)).build())
-            );
+            var queryParameters =
+                    AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchTopApps(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(TopHitsAggregate.builder()
+                            .topHitsCounts(Map.of("app-id-1", 15L, "app-id-2", 2L, "app-id-3", 17L))
+                            .build()));
 
             var result = cut.searchTopHitsApps(GraviteeContext.getExecutionContext(), queryParameters);
 
-            assertThat(result).hasValueSatisfying(topHits ->
-                assertThat(topHits.getData()).containsExactlyInAnyOrder(
-                    TopHitsApps.TopHitApp.builder().id("app-id-1").count(15L).build(),
-                    TopHitsApps.TopHitApp.builder().id("app-id-2").count(2L).build(),
-                    TopHitsApps.TopHitApp.builder().id("app-id-3").count(17L).build()
-                )
-            );
+            assertThat(result)
+                    .hasValueSatisfying(topHits -> assertThat(topHits.getData())
+                            .containsExactlyInAnyOrder(
+                                    TopHitsApps.TopHitApp.builder()
+                                            .id("app-id-1")
+                                            .count(15L)
+                                            .build(),
+                                    TopHitsApps.TopHitApp.builder()
+                                            .id("app-id-2")
+                                            .count(2L)
+                                            .build(),
+                                    TopHitsApps.TopHitApp.builder()
+                                            .id("app-id-3")
+                                            .count(17L)
+                                            .build()));
         }
     }
 
@@ -276,33 +291,39 @@ class AnalyticsEngineQueryServiceImplTest {
 
         @Test
         void should_search_top_failed_apis() {
-            var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchTopFailedApis(any(QueryContext.class), any())).thenReturn(
-                Optional.of(
-                    TopFailedAggregate.builder()
-                        .failedApis(
-                            Map.of(
-                                "app-id-1",
-                                new TopFailedAggregate.FailedApiInfo(13L, 0.3),
-                                "app-id-2",
-                                new TopFailedAggregate.FailedApiInfo(7L, 0.2),
-                                "app-id-3",
-                                new TopFailedAggregate.FailedApiInfo(3L, 0.1)
-                            )
-                        )
-                        .build()
-                )
-            );
+            var queryParameters =
+                    AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
+            when(analyticsRepository.searchTopFailedApis(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(TopFailedAggregate.builder()
+                            .failedApis(Map.of(
+                                    "app-id-1",
+                                    new TopFailedAggregate.FailedApiInfo(13L, 0.3),
+                                    "app-id-2",
+                                    new TopFailedAggregate.FailedApiInfo(7L, 0.2),
+                                    "app-id-3",
+                                    new TopFailedAggregate.FailedApiInfo(3L, 0.1)))
+                            .build()));
 
             var result = cut.searchTopFailedApis(GraviteeContext.getExecutionContext(), queryParameters);
 
-            assertThat(result).hasValueSatisfying(topHits ->
-                assertThat(topHits.getData()).containsExactlyInAnyOrder(
-                    TopFailedApis.TopFailedApi.builder().id("app-id-1").failedCalls(13L).failedCallsRatio(0.3).build(),
-                    TopFailedApis.TopFailedApi.builder().id("app-id-2").failedCalls(7L).failedCallsRatio(0.2).build(),
-                    TopFailedApis.TopFailedApi.builder().id("app-id-3").failedCalls(3L).failedCallsRatio(0.1).build()
-                )
-            );
+            assertThat(result)
+                    .hasValueSatisfying(topHits -> assertThat(topHits.getData())
+                            .containsExactlyInAnyOrder(
+                                    TopFailedApis.TopFailedApi.builder()
+                                            .id("app-id-1")
+                                            .failedCalls(13L)
+                                            .failedCallsRatio(0.3)
+                                            .build(),
+                                    TopFailedApis.TopFailedApi.builder()
+                                            .id("app-id-2")
+                                            .failedCalls(7L)
+                                            .failedCallsRatio(0.2)
+                                            .build(),
+                                    TopFailedApis.TopFailedApi.builder()
+                                            .id("app-id-3")
+                                            .failedCalls(3L)
+                                            .failedCallsRatio(0.1)
+                                            .build()));
         }
     }
 
@@ -316,26 +337,30 @@ class AnalyticsEngineQueryServiceImplTest {
             Duration interval = Duration.ofHours(1);
 
             HistogramAggregate rootAggregate = new HistogramAggregate.Counts(
-                "rootField",
-                "rootName",
-                Map.of("200", List.of(0L, 0L, 1L, 0L), "202", List.of(0L, 0L, 0L, 1L), "404", List.of(0L, 0L, 0L, 2L))
-            );
+                    "rootField",
+                    "rootName",
+                    Map.of(
+                            "200",
+                            List.of(0L, 0L, 1L, 0L),
+                            "202",
+                            List.of(0L, 0L, 0L, 1L),
+                            "404",
+                            List.of(0L, 0L, 0L, 2L)));
 
-            when(analyticsRepository.searchHistogram(any(QueryContext.class), any(HistogramQuery.class))).thenReturn(
-                List.of(rootAggregate)
-            );
+            when(analyticsRepository.searchHistogram(any(QueryContext.class), any(HistogramQuery.class)))
+                    .thenReturn(List.of(rootAggregate));
 
             AnalyticsQueryService.HistogramQuery query = new AnalyticsQueryService.HistogramQuery(
-                AnalyticsQueryService.SearchTermId.forApi("api-1"),
-                from,
-                to,
-                interval,
-                null,
-                Optional.empty(),
-                null
-            );
+                    AnalyticsQueryService.SearchTermId.forApi("api-1"),
+                    from,
+                    to,
+                    interval,
+                    null,
+                    Optional.empty(),
+                    null);
 
-            Optional<HistogramAnalytics> result = cut.searchHistogramAnalytics(GraviteeContext.getExecutionContext(), query);
+            Optional<HistogramAnalytics> result =
+                    cut.searchHistogramAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(result).isPresent();
             HistogramAnalytics analytics = result.get();
@@ -374,19 +399,20 @@ class AnalyticsEngineQueryServiceImplTest {
             var values = Map.of("200", 10L, "404", 2L);
             var order = List.of("200", "404");
 
-            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, values, order);
+            var repoAggregate =
+                    new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, values, order);
 
-            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(repoAggregate));
 
             var groupByQuery = new AnalyticsQueryService.GroupByQuery(
-                AnalyticsQueryService.SearchTermId.forApi(apiId),
-                from,
-                to,
-                field,
-                Collections.emptyList(),
-                Optional.empty(),
-                Optional.empty()
-            );
+                    AnalyticsQueryService.SearchTermId.forApi(apiId),
+                    from,
+                    to,
+                    field,
+                    Collections.emptyList(),
+                    Optional.empty(),
+                    Optional.empty());
 
             var result = cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 
@@ -405,28 +431,23 @@ class AnalyticsEngineQueryServiceImplTest {
             var order = List.of("200");
 
             var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate(
-                "aggName",
-                field,
-                Map.of("200", 10L),
-                order
-            );
-            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+                    "aggName", field, Map.of("200", 10L), order);
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(repoAggregate));
 
             var groupByQuery = new AnalyticsQueryService.GroupByQuery(
-                AnalyticsQueryService.SearchTermId.forApi(apiId),
-                from,
-                to,
-                field,
-                Collections.emptyList(),
-                Optional.empty(),
-                Optional.of(queryString)
-            );
+                    AnalyticsQueryService.SearchTermId.forApi(apiId),
+                    from,
+                    to,
+                    field,
+                    Collections.emptyList(),
+                    Optional.empty(),
+                    Optional.of(queryString));
 
             cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 
-            ArgumentCaptor<io.gravitee.repository.log.v4.model.analytics.GroupByQuery> repoQueryCaptor = ArgumentCaptor.forClass(
-                io.gravitee.repository.log.v4.model.analytics.GroupByQuery.class
-            );
+            ArgumentCaptor<io.gravitee.repository.log.v4.model.analytics.GroupByQuery> repoQueryCaptor =
+                    ArgumentCaptor.forClass(io.gravitee.repository.log.v4.model.analytics.GroupByQuery.class);
             verify(analyticsRepository).searchGroupBy(any(QueryContext.class), repoQueryCaptor.capture());
             assertThat(repoQueryCaptor.getValue().query()).hasValue(queryString);
         }
@@ -437,15 +458,15 @@ class AnalyticsEngineQueryServiceImplTest {
 
         @Test
         void should_return_empty_when_repository_returns_empty() {
-            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.empty());
+            when(analyticsRepository.searchStats(any(QueryContext.class), any()))
+                    .thenReturn(Optional.empty());
 
             var statsQuery = new AnalyticsQueryService.StatsQuery(
-                AnalyticsQueryService.SearchTermId.forApi("api#1"),
-                "field",
-                Instant.now(),
-                Instant.now(),
-                Optional.empty()
-            );
+                    AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                    "field",
+                    Instant.now(),
+                    Instant.now(),
+                    Optional.empty());
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result).isEmpty();
@@ -454,25 +475,16 @@ class AnalyticsEngineQueryServiceImplTest {
         @Test
         void should_map_stats_aggregate_to_stats_analytics() {
             var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
-                "field",
-                10L,
-                100L,
-                10L,
-                1L,
-                20L,
-                2L,
-                3L,
-                4L
-            );
-            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+                    "field", 10L, 100L, 10L, 1L, 20L, 2L, 3L, 4L);
+            when(analyticsRepository.searchStats(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(repoAggregate));
 
             var statsQuery = new AnalyticsQueryService.StatsQuery(
-                AnalyticsQueryService.SearchTermId.forApi("api#1"),
-                "field",
-                Instant.now(),
-                Instant.now(),
-                Optional.empty()
-            );
+                    AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                    "field",
+                    Instant.now(),
+                    Instant.now(),
+                    Optional.empty());
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result).hasValueSatisfying(statsAnalytics -> {
@@ -489,17 +501,18 @@ class AnalyticsEngineQueryServiceImplTest {
 
         @Test
         void should_pass_query_argument_to_repository() {
-            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate("field", 5, 50L, 10L, 2L, 20L, 1L, 2L, 3L);
-            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
+                    "field", 5, 50L, 10L, 2L, 20L, 1L, 2L, 3L);
+            when(analyticsRepository.searchStats(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(repoAggregate));
 
             var queryString = "status:200 AND method:GET";
             var statsQuery = new AnalyticsQueryService.StatsQuery(
-                AnalyticsQueryService.SearchTermId.forApi("api#1"),
-                "field",
-                Instant.now(),
-                Instant.now(),
-                Optional.of(queryString)
-            );
+                    AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                    "field",
+                    Instant.now(),
+                    Instant.now(),
+                    Optional.of(queryString));
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result).hasValueSatisfying(statsAnalytics -> {
@@ -510,10 +523,11 @@ class AnalyticsEngineQueryServiceImplTest {
                 assertThat(statsAnalytics.max()).isEqualTo(20L);
                 assertThat(statsAnalytics.rps()).isEqualTo(1L);
             });
-            verify(analyticsRepository).searchStats(
-                any(QueryContext.class),
-                argThat(arg -> arg.query().isPresent() && arg.query().get().equals(queryString))
-            );
+            verify(analyticsRepository)
+                    .searchStats(
+                            any(QueryContext.class),
+                            argThat(arg ->
+                                    arg.query().isPresent() && arg.query().get().equals(queryString)));
         }
     }
 
@@ -525,13 +539,11 @@ class AnalyticsEngineQueryServiceImplTest {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
             var query = new AnalyticsQueryService.CountQuery(
-                AnalyticsQueryService.SearchTermId.forApi("api#1"),
-                from,
-                to,
-                Optional.empty()
-            );
-            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(Optional.empty());
-            assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query)).isEmpty();
+                    AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to, Optional.empty());
+            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
+                    .thenReturn(Optional.empty());
+            assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
+                    .isEmpty();
         }
 
         @Test
@@ -539,28 +551,23 @@ class AnalyticsEngineQueryServiceImplTest {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
             var query = new AnalyticsQueryService.CountQuery(
-                AnalyticsQueryService.SearchTermId.forApi("api#1"),
-                from,
-                to,
-                Optional.of("host")
-            );
-            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(
-                Optional.of(new CountByAggregate(10))
-            );
-            assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query)).hasValueSatisfying(requestsCount ->
-                assertThat(requestsCount.getTotal()).isEqualTo(10)
-            );
+                    AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to, Optional.of("host"));
+            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(new CountByAggregate(10)));
+            assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
+                    .hasValueSatisfying(requestsCount ->
+                            assertThat(requestsCount.getTotal()).isEqualTo(10));
         }
 
         @Test
         void should_return_empty_requests_count_by_event() {
-            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(Optional.empty());
-            assertThat(
-                cut.searchRequestsCountByEvent(
-                    GraviteeContext.getExecutionContext(),
-                    new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), null, null, null)
-                )
-            ).isEmpty();
+            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
+                    .thenReturn(Optional.empty());
+            assertThat(cut.searchRequestsCountByEvent(
+                            GraviteeContext.getExecutionContext(),
+                            new AnalyticsQueryService.CountQuery(
+                                    AnalyticsQueryService.SearchTermId.forApi("api#1"), null, null, null)))
+                    .isEmpty();
         }
     }
 
@@ -569,7 +576,8 @@ class AnalyticsEngineQueryServiceImplTest {
 
         @Test
         void should_return_empty_when_repository_returns_empty() {
-            when(analyticsRepository.findApiMetricsDetail(any(QueryContext.class), any())).thenReturn(Optional.empty());
+            when(analyticsRepository.findApiMetricsDetail(any(QueryContext.class), any()))
+                    .thenReturn(Optional.empty());
 
             var result = cut.findApiMetricsDetail(GraviteeContext.getExecutionContext(), API_ID, REQUEST_ID);
 
@@ -578,30 +586,27 @@ class AnalyticsEngineQueryServiceImplTest {
 
         @Test
         void should_map_api_metrics_detail() {
-            when(analyticsRepository.findApiMetricsDetail(any(QueryContext.class), any())).thenReturn(
-                Optional.of(
-                    ApiMetricsDetail.builder()
-                        .timestamp("2025-08-01T17:29:20.385+02:00")
-                        .apiId(API_ID)
-                        .requestId(REQUEST_ID)
-                        .transactionId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
-                        .host("localhost:8082")
-                        .applicationId("1")
-                        .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
-                        .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
-                        .status(202)
-                        .uri("/v4/echo")
-                        .requestContentLength(0L)
-                        .responseContentLength(276L)
-                        .remoteAddress("0:0:0:0:0:0:0:1")
-                        .gatewayLatency(3L)
-                        .gatewayResponseTime(276L)
-                        .endpointResponseTime(273L)
-                        .method(HttpMethod.GET)
-                        .endpoint("http://endpoint.example.com/foo")
-                        .build()
-                )
-            );
+            when(analyticsRepository.findApiMetricsDetail(any(QueryContext.class), any()))
+                    .thenReturn(Optional.of(ApiMetricsDetail.builder()
+                            .timestamp("2025-08-01T17:29:20.385+02:00")
+                            .apiId(API_ID)
+                            .requestId(REQUEST_ID)
+                            .transactionId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
+                            .host("localhost:8082")
+                            .applicationId("1")
+                            .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
+                            .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
+                            .status(202)
+                            .uri("/v4/echo")
+                            .requestContentLength(0L)
+                            .responseContentLength(276L)
+                            .remoteAddress("0:0:0:0:0:0:0:1")
+                            .gatewayLatency(3L)
+                            .gatewayResponseTime(276L)
+                            .endpointResponseTime(273L)
+                            .method(HttpMethod.GET)
+                            .endpoint("http://endpoint.example.com/foo")
+                            .build()));
 
             var result = cut.findApiMetricsDetail(GraviteeContext.getExecutionContext(), API_ID, REQUEST_ID);
 
@@ -638,41 +643,44 @@ class AnalyticsEngineQueryServiceImplTest {
         @Test
         void should_search_top_value_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of("downstream-active-connections", List.of(2D), "upstream-active-connections", List.of(2D))
-            );
+                    Map.of("downstream-active-connections", List.of(2D), "upstream-active-connections", List.of(2D)));
             List<Aggregation> aggregations = List.of(
-                new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
-                new Aggregation("upstream-active-connections", Aggregation.AggregationType.VALUE)
-            );
+                    new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
+                    new Aggregation("upstream-active-connections", Aggregation.AggregationType.VALUE));
             AnalyticsQueryService.HistogramQuery params = buildHistogramQuery(aggregations, null);
             when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
 
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().get("downstream-active-connections")).isEqualTo(List.of(2D));
-                assertThat(analytics.values().get("upstream-active-connections")).isEqualTo(List.of(2D));
+                assertThat(analytics.values().get("downstream-active-connections"))
+                        .isEqualTo(List.of(2D));
+                assertThat(analytics.values().get("upstream-active-connections"))
+                        .isEqualTo(List.of(2D));
             });
         }
 
         @Test
         void should_search_top_delta_hits_for_a_given_native_api() {
-            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of("downstream-publish-messages-total", List.of(213D), "upstream-publish-messages-total", List.of(213D))
-            );
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(Map.of(
+                    "downstream-publish-messages-total",
+                    List.of(213D),
+                    "upstream-publish-messages-total",
+                    List.of(213D)));
 
             List<Aggregation> aggregations = List.of(
-                new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.DELTA),
-                new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.DELTA)
-            );
+                    new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.DELTA),
+                    new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.DELTA));
             AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations, null);
             when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
 
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().get("downstream-publish-messages-total")).isEqualTo(List.of(213D));
-                assertThat(analytics.values().get("upstream-publish-messages-total")).isEqualTo(List.of(213D));
+                assertThat(analytics.values().get("downstream-publish-messages-total"))
+                        .isEqualTo(List.of(213D));
+                assertThat(analytics.values().get("upstream-publish-messages-total"))
+                        .isEqualTo(List.of(213D));
             });
         }
 
@@ -683,9 +691,8 @@ class AnalyticsEngineQueryServiceImplTest {
             values.put("upstream-publish-messages-total", List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D));
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(values);
             List<Aggregation> aggregations = List.of(
-                new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.TREND),
-                new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.TREND)
-            );
+                    new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.TREND),
+                    new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.TREND));
             Term appIdFilter = new Term("app-id", "xxx-xxx-xxx");
             Term planIdFilter = new Term("plan-id", "yyy-yyy-yyy");
             List<Term> terms = List.of(appIdFilter, planIdFilter);
@@ -695,25 +702,23 @@ class AnalyticsEngineQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().get("downstream-publish-messages-total")).isEqualTo(
-                    List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D)
-                );
-                assertThat(analytics.values().get("upstream-publish-messages-total")).isEqualTo(
-                    List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D)
-                );
+                assertThat(analytics.values().get("downstream-publish-messages-total"))
+                        .isEqualTo(List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D));
+                assertThat(analytics.values().get("upstream-publish-messages-total"))
+                        .isEqualTo(List.of(0D, 241D, 301D, 441D, 24D, 1931D, 23D, 239D));
             });
         }
 
-        private static AnalyticsQueryService.HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {
+        private static AnalyticsQueryService.HistogramQuery buildHistogramQuery(
+                List<Aggregation> aggregations, List<Term> terms) {
             return new AnalyticsQueryService.HistogramQuery(
-                new AnalyticsQueryService.SearchTermId(AnalyticsQueryService.SearchTerm.API, API_ID),
-                Instant.ofEpochMilli(FROM),
-                Instant.ofEpochMilli(TO),
-                Duration.ofMillis(2 * 60 * 1000),
-                aggregations,
-                null,
-                terms
-            );
+                    new AnalyticsQueryService.SearchTermId(AnalyticsQueryService.SearchTerm.API, API_ID),
+                    Instant.ofEpochMilli(FROM),
+                    Instant.ofEpochMilli(TO),
+                    Duration.ofMillis(2 * 60 * 1000),
+                    aggregations,
+                    null,
+                    terms);
         }
     }
 }

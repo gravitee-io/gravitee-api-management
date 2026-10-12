@@ -55,27 +55,28 @@ public class EnvironmentScoringRulesetsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importRuleset(@Valid ImportScoringRuleset request) {
-        var result = importEnvironmentRulesetUseCase.execute(
-            new ImportEnvironmentRulesetUseCase.Input(
+        var result = importEnvironmentRulesetUseCase.execute(new ImportEnvironmentRulesetUseCase.Input(
                 new ImportEnvironmentRulesetUseCase.NewRuleset(
-                    request.getName(),
-                    request.getDescription(),
-                    request.getPayload(),
-                    ScoringRulesetMapper.INSTANCE.map(request.getFormat())
-                ),
-                getAuditInfo()
-            )
-        );
+                        request.getName(),
+                        request.getDescription(),
+                        request.getPayload(),
+                        ScoringRulesetMapper.INSTANCE.map(request.getFormat())),
+                getAuditInfo()));
 
-        return Response.created(uriInfo.getRequestUri().resolve(result.rulesetId())).build();
+        return Response.created(uriInfo.getRequestUri().resolve(result.rulesetId()))
+                .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ScoringRulesetsResponse listRulesets() {
         var executionContext = GraviteeContext.getExecutionContext();
-        var result = getEnvironmentRulesetsUseCase.execute(new GetEnvironmentRulesetsUseCase.Input(executionContext.getEnvironmentId()));
-        return new ScoringRulesetsResponse().data(result.reports().stream().map(ScoringRulesetMapper.INSTANCE::map).toList());
+        var result = getEnvironmentRulesetsUseCase.execute(
+                new GetEnvironmentRulesetsUseCase.Input(executionContext.getEnvironmentId()));
+        return new ScoringRulesetsResponse()
+                .data(result.reports().stream()
+                        .map(ScoringRulesetMapper.INSTANCE::map)
+                        .toList());
     }
 
     @Path("{rulesetId}")

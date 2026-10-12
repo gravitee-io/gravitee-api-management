@@ -74,13 +74,12 @@ class ApiKeySynchronizerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new ApiKeySynchronizer(
-            apiKeyFetcher,
-            subscriptionService,
-            new ApiKeyMapper(),
-            deployerFactory,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                apiKeyFetcher,
+                subscriptionService,
+                new ApiKeyMapper(),
+                deployerFactory,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
         lenient().when(deployerFactory.createApiKeyDeployer()).thenReturn(apiKeyDeployer);
         lenient().when(apiKeyDeployer.deploy(any())).thenReturn(Completable.complete());
         lenient().when(apiKeyDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
@@ -93,7 +92,9 @@ class ApiKeySynchronizerTest {
 
         @Test
         void should_not_fetch_init_events() {
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env")).test().assertComplete();
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env"))
+                    .test()
+                    .assertComplete();
             verifyNoInteractions(apiKeyFetcher);
         }
 
@@ -107,7 +108,10 @@ class ApiKeySynchronizerTest {
         @Test
         void should_not_synchronize_api_keys_when_no_events() throws InterruptedException {
             when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verifyNoInteractions(apiKeyDeployer);
         }
@@ -131,7 +135,10 @@ class ApiKeySynchronizerTest {
             when(subscriptionService.getById("subscription")).thenReturn(java.util.Optional.of(subscription));
 
             when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verify(apiKeyDeployer).deploy(any());
             verify(apiKeyDeployer).doAfterDeployment(any());
@@ -152,7 +159,10 @@ class ApiKeySynchronizerTest {
             when(subscriptionService.getById("subscription")).thenReturn(java.util.Optional.of(subscription));
 
             when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verify(apiKeyDeployer).undeploy(any());
         }

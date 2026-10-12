@@ -66,10 +66,10 @@ public class OrphanCategoryUpgrader implements Upgrader {
         Set<String> existingCategoryIds = getExistingCategoryIds();
 
         return apiRepository
-            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
-            .filter(api -> hasOrphanCategories(api, existingCategoryIds))
-            .peek(api -> removeOrphanCategories(api, existingCategoryIds))
-            .collect(Collectors.toSet());
+                .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+                .filter(api -> hasOrphanCategories(api, existingCategoryIds))
+                .peek(api -> removeOrphanCategories(api, existingCategoryIds))
+                .collect(Collectors.toSet());
     }
 
     private void removeOrphanCategories(Api api, Set<String> existingCategoryIds) {

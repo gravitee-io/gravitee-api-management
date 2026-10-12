@@ -76,43 +76,40 @@ public class MembershipService_FindUserMembershipMetadataTest {
     @BeforeEach
     public void setUp() throws Exception {
         membershipService = new MembershipServiceImpl(
-            null,
-            null,
-            mockApplicationRepository,
-            null,
-            null,
-            null,
-            mockMembershipRepository,
-            mockRoleService,
-            null,
-            null,
-            null,
-            null,
-            mockApiRepository,
-            null,
-            null,
-            mockGroupService,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+                null,
+                null,
+                mockApplicationRepository,
+                null,
+                null,
+                null,
+                mockMembershipRepository,
+                mockRoleService,
+                null,
+                null,
+                null,
+                null,
+                mockApiRepository,
+                null,
+                null,
+                mockGroupService,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
         USER_MEMBERSHIP = new UserMembership();
         USER_MEMBERSHIP.setReference(USER_MEMBERSHIP_REFERENCE);
     }
 
     @ParameterizedTest
-    @MethodSource({ "emptyMetadataInputs" })
+    @MethodSource({"emptyMetadataInputs"})
     void shouldBeEmpty(List<UserMembership> memberships, MembershipReferenceType type) {
         var result = membershipService.findUserMembershipMetadata(memberships, type);
-        assertThat(result)
-            .isNotNull()
-            .satisfies(res -> assertThat(res.toMap()).isEmpty());
+        assertThat(result).isNotNull().satisfies(res -> assertThat(res.toMap()).isEmpty());
     }
 
     static Stream<Arguments> emptyMetadataInputs() {
@@ -121,60 +118,60 @@ public class MembershipService_FindUserMembershipMetadataTest {
         var validUserMembershipList = List.of(validUserMembership);
 
         return Stream.of(
-            Arguments.of(null, MembershipReferenceType.API),
-            Arguments.of(new ArrayList<UserMembership>(), MembershipReferenceType.API),
-            Arguments.of(validUserMembershipList, null),
-            Arguments.of(validUserMembershipList, MembershipReferenceType.ENVIRONMENT),
-            Arguments.of(validUserMembershipList, MembershipReferenceType.PLATFORM),
-            Arguments.of(validUserMembershipList, MembershipReferenceType.ORGANIZATION),
-            Arguments.of(validUserMembershipList, MembershipReferenceType.API),
-            Arguments.of(validUserMembershipList, MembershipReferenceType.APPLICATION)
-        );
+                Arguments.of(null, MembershipReferenceType.API),
+                Arguments.of(new ArrayList<UserMembership>(), MembershipReferenceType.API),
+                Arguments.of(validUserMembershipList, null),
+                Arguments.of(validUserMembershipList, MembershipReferenceType.ENVIRONMENT),
+                Arguments.of(validUserMembershipList, MembershipReferenceType.PLATFORM),
+                Arguments.of(validUserMembershipList, MembershipReferenceType.ORGANIZATION),
+                Arguments.of(validUserMembershipList, MembershipReferenceType.API),
+                Arguments.of(validUserMembershipList, MembershipReferenceType.APPLICATION));
     }
 
     @Test
     void shouldReturnApiMetadata() {
-        when(
-            mockApiRepository.search(eq(new ApiCriteria.Builder().ids(List.of(USER_MEMBERSHIP_REFERENCE)).build()), any(), any())
-        ).thenReturn(
-            Stream.of(
-                Api.builder()
-                    .id(USER_MEMBERSHIP_REFERENCE)
-                    .name("api-name")
-                    .version("v11")
-                    .visibility(Visibility.PUBLIC)
-                    .environmentId("env-id")
-                    .build()
-            )
-        );
-        var result = membershipService.findUserMembershipMetadata(List.of(USER_MEMBERSHIP), MembershipReferenceType.API);
+        when(mockApiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .ids(List.of(USER_MEMBERSHIP_REFERENCE))
+                                .build()),
+                        any(),
+                        any()))
+                .thenReturn(Stream.of(Api.builder()
+                        .id(USER_MEMBERSHIP_REFERENCE)
+                        .name("api-name")
+                        .version("v11")
+                        .visibility(Visibility.PUBLIC)
+                        .environmentId("env-id")
+                        .build()));
+        var result =
+                membershipService.findUserMembershipMetadata(List.of(USER_MEMBERSHIP), MembershipReferenceType.API);
         assertThat(result)
-            .isNotNull()
-            .satisfies(res ->
-                assertThat(res.toMap())
-                    .isNotEmpty()
-                    .extractingByKey(USER_MEMBERSHIP_REFERENCE)
-                    .hasFieldOrPropertyWithValue("name", "api-name")
-                    .hasFieldOrPropertyWithValue("version", "v11")
-                    .hasFieldOrPropertyWithValue("visibility", Visibility.PUBLIC)
-                    .hasFieldOrPropertyWithValue("environmentId", "env-id")
-            );
+                .isNotNull()
+                .satisfies(res -> assertThat(res.toMap())
+                        .isNotEmpty()
+                        .extractingByKey(USER_MEMBERSHIP_REFERENCE)
+                        .hasFieldOrPropertyWithValue("name", "api-name")
+                        .hasFieldOrPropertyWithValue("version", "v11")
+                        .hasFieldOrPropertyWithValue("visibility", Visibility.PUBLIC)
+                        .hasFieldOrPropertyWithValue("environmentId", "env-id"));
     }
 
     @Test
     void shouldReturnApplicationMetadata() throws TechnicalException {
-        when(mockApplicationRepository.findByIds(eq(List.of(USER_MEMBERSHIP_REFERENCE)))).thenReturn(
-            Set.of(Application.builder().id(USER_MEMBERSHIP_REFERENCE).name("application-name").environmentId("env-id").build())
-        );
-        var result = membershipService.findUserMembershipMetadata(List.of(USER_MEMBERSHIP), MembershipReferenceType.APPLICATION);
+        when(mockApplicationRepository.findByIds(eq(List.of(USER_MEMBERSHIP_REFERENCE))))
+                .thenReturn(Set.of(Application.builder()
+                        .id(USER_MEMBERSHIP_REFERENCE)
+                        .name("application-name")
+                        .environmentId("env-id")
+                        .build()));
+        var result = membershipService.findUserMembershipMetadata(
+                List.of(USER_MEMBERSHIP), MembershipReferenceType.APPLICATION);
         assertThat(result)
-            .isNotNull()
-            .satisfies(res ->
-                assertThat(res.toMap())
-                    .isNotEmpty()
-                    .extractingByKey(USER_MEMBERSHIP_REFERENCE)
-                    .hasFieldOrPropertyWithValue("name", "application-name")
-                    .hasFieldOrPropertyWithValue("environmentId", "env-id")
-            );
+                .isNotNull()
+                .satisfies(res -> assertThat(res.toMap())
+                        .isNotEmpty()
+                        .extractingByKey(USER_MEMBERSHIP_REFERENCE)
+                        .hasFieldOrPropertyWithValue("name", "application-name")
+                        .hasFieldOrPropertyWithValue("environmentId", "env-id"));
     }
 }

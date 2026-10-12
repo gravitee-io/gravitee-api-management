@@ -35,15 +35,7 @@ public enum PlanStatus {
     CLOSED("closed");
 
     private static final Map<String, PlanStatus> maps = Map.of(
-        STAGING.label,
-        STAGING,
-        PUBLISHED.label,
-        PUBLISHED,
-        DEPRECATED.label,
-        DEPRECATED,
-        CLOSED.label,
-        CLOSED
-    );
+            STAGING.label, STAGING, PUBLISHED.label, PUBLISHED, DEPRECATED.label, DEPRECATED, CLOSED.label, CLOSED);
 
     @JsonValue
     private final String label;

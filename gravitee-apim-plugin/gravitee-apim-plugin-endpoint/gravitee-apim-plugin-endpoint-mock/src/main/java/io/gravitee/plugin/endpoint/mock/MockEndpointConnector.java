@@ -47,11 +47,8 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
 
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     static final Set<Qos> SUPPORTED_QOS = Set.of(Qos.NONE, Qos.AUTO, Qos.AT_LEAST_ONCE, Qos.AT_MOST_ONCE);
-    private static final Set<QosCapability> SUPPORTED_QOS_CAPABILITIES = Set.of(
-        QosCapability.AUTO_ACK,
-        QosCapability.MANUAL_ACK,
-        QosCapability.RECOVER
-    );
+    private static final Set<QosCapability> SUPPORTED_QOS_CAPABILITIES =
+            Set.of(QosCapability.AUTO_ACK, QosCapability.MANUAL_ACK, QosCapability.RECOVER);
     private static final String ENDPOINT_ID = "mock";
     protected final MockEndpointConnectorConfiguration configuration;
 
@@ -78,88 +75,86 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
     @Override
     public Completable subscribe(final HttpExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
-            final Integer messagesLimitCount = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
-            final Long messagesLimitDurationMs = ctx.getInternalAttribute(
-                InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS
-            );
+            final Integer messagesLimitCount =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT);
+            final Long messagesLimitDurationMs =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS);
 
-            final String messagesResumeLastId = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID);
+            final String messagesResumeLastId =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID);
 
             final Integer maximumPublishedMessages = configuration.getMessageCount();
 
-            ctx
-                .response()
-                .messages(
-                    generateMessageFlow(ctx, messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId)
-                );
+            ctx.response()
+                    .messages(generateMessageFlow(
+                            ctx,
+                            messagesLimitCount,
+                            maximumPublishedMessages,
+                            messagesLimitDurationMs,
+                            messagesResumeLastId));
         });
     }
 
     @Override
     public Completable publish(final HttpExecutionContext ctx) {
-        return Completable.defer(() ->
-            ctx
-                .request()
-                .onMessage(message -> {
-                    ctx.withLogger(log).info("Received message: {}", message.content() != null ? message.content().toString() : null);
-                    return Maybe.just(message);
-                })
-        );
+        return Completable.defer(() -> ctx.request().onMessage(message -> {
+            ctx.withLogger(log)
+                    .info(
+                            "Received message: {}",
+                            message.content() != null ? message.content().toString() : null);
+            return Maybe.just(message);
+        }));
     }
 
     private Flowable<Message> generateMessageFlow(
-        HttpExecutionContext ctx,
-        final Integer messagesLimitCount,
-        final Integer maximumPublishedMessages,
-        final Long messagesLimitDurationMs,
-        final String lastId
-    ) {
+            HttpExecutionContext ctx,
+            final Integer messagesLimitCount,
+            final Integer maximumPublishedMessages,
+            final Long messagesLimitDurationMs,
+            final String lastId) {
         final long stateInitValue = getStateInitValue(ctx, lastId);
 
-        Flowable<Message> messageFlow = Flowable.<Message, Long>generate(
-            () -> stateInitValue,
-            (state, emitter) -> {
-                if (
+        Flowable<Message> messageFlow = Flowable.<Message, Long>generate(() -> stateInitValue, (state, emitter) -> {
+                    if (
                     // If we have no published message limit or state is before the limit
-                    (maximumPublishedMessages == null || state < maximumPublishedMessages) &&
-                    // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
-                    (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
-                ) {
-                    DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder()
-                        .content(configuration.getMessageContent())
-                        .id(Long.toString(state));
-                    // handle optional params
-                    if (configuration.getHeaders() != null) {
-                        HttpHeaders headers = HttpHeaders.create();
-                        configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
-                        messageBuilder.headers(headers);
+                    (maximumPublishedMessages == null || state < maximumPublishedMessages)
+                            &&
+                            // And the entrypoint has no limit or state minus lastId is less than limit, then emit a
+                            // message
+                            (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)) {
+                        DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder()
+                                .content(configuration.getMessageContent())
+                                .id(Long.toString(state));
+                        // handle optional params
+                        if (configuration.getHeaders() != null) {
+                            HttpHeaders headers = HttpHeaders.create();
+                            configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
+                            messageBuilder.headers(headers);
+                        }
+                        if (configuration.getMetadata() != null) {
+                            messageBuilder.metadata(configuration.getMetadata().stream()
+                                    .collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue)));
+                        }
+                        messageBuilder.tracingAttributes(Map.of(
+                                TracingMessageAttribute.MESSAGING_OPERATION_NAME.key(),
+                                "receive",
+                                TracingMessageAttribute.MESSAGING_OPERATION_TYPE.key(),
+                                TracingMessageOperationType.RECEIVE.value(),
+                                TracingMessageAttribute.MESSAGING_SYSTEM.key(),
+                                "mock",
+                                TracingMessageAttribute.MESSAGING_MESSAGE_BODY_SIZE.key(),
+                                messageBuilder.content() != null
+                                        ? String.valueOf(
+                                                messageBuilder.content().length())
+                                        : "0"));
+                        emitter.onNext(messageBuilder.build());
+                    } else {
+                        emitter.onComplete();
                     }
-                    if (configuration.getMetadata() != null) {
-                        messageBuilder.metadata(
-                            configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
-                        );
-                    }
-                    messageBuilder.tracingAttributes(
-                        Map.of(
-                            TracingMessageAttribute.MESSAGING_OPERATION_NAME.key(),
-                            "receive",
-                            TracingMessageAttribute.MESSAGING_OPERATION_TYPE.key(),
-                            TracingMessageOperationType.RECEIVE.value(),
-                            TracingMessageAttribute.MESSAGING_SYSTEM.key(),
-                            "mock",
-                            TracingMessageAttribute.MESSAGING_MESSAGE_BODY_SIZE.key(),
-                            messageBuilder.content() != null ? String.valueOf(messageBuilder.content().length()) : "0"
-                        )
-                    );
-                    emitter.onNext(messageBuilder.build());
-                } else {
-                    emitter.onComplete();
-                }
-                return state + 1;
-            }
-        )
-            .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
-            .rebatchRequests(1);
+                    return state + 1;
+                })
+                .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
+                .rebatchRequests(1);
 
         if (messagesLimitDurationMs != null) {
             messageFlow = messageFlow.take(messagesLimitDurationMs, TimeUnit.MILLISECONDS);

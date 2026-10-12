@@ -55,22 +55,31 @@ public class ApiAuditsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = { RolePermissionAction.READ }) })
-    public AuditsResponse getApiLogs(@BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchApiAuditsParam params) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_AUDIT,
+                acls = {RolePermissionAction.READ})
+    })
+    public AuditsResponse getApiLogs(
+            @BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchApiAuditsParam params) {
         var input = buildInput(paginationParam, params);
 
         var output = searchApiAuditUseCase.execute(input);
 
         return new AuditsResponse()
-            .data(ApiAuditMapper.INSTANCE.map(output.data(), output.metadata()))
-            .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
-            .links(computePaginationLinks(output.total(), paginationParam));
+                .data(ApiAuditMapper.INSTANCE.map(output.data(), output.metadata()))
+                .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
+                .links(computePaginationLinks(output.total(), paginationParam));
     }
 
     @GET
     @Path("/events")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_AUDIT,
+                acls = {RolePermissionAction.READ})
+    })
     public AuditEventsResponse listAllApiAuditEvent() {
         return new AuditEventsResponse().data(auditEventQueryService.listAllApiAuditEvents());
     }
@@ -78,14 +87,14 @@ public class ApiAuditsResource extends AbstractResource {
     private SearchApiAuditUseCase.Input buildInput(PaginationParam paginationParam, SearchApiAuditsParam params) {
         var executionContext = GraviteeContext.getExecutionContext();
         var query = new ApiAuditQueryFilters(
-            apiId,
-            executionContext.getOrganizationId(),
-            executionContext.getEnvironmentId(),
-            Optional.ofNullable(params.getFrom()),
-            Optional.ofNullable(params.getTo()),
-            params.getEvents(),
-            params.isEncryptedOnly()
-        );
-        return new SearchApiAuditUseCase.Input(query, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
+                apiId,
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                Optional.ofNullable(params.getFrom()),
+                Optional.ofNullable(params.getTo()),
+                params.getEvents(),
+                params.isEncryptedOnly());
+        return new SearchApiAuditUseCase.Input(
+                query, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
     }
 }

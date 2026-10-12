@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  */
 @Size(min = 8, max = 128, message = "Should have length between 8 and 128 characters")
 @Pattern(regexp = "[^#%@/;=?|^~, \\\\]*", message = "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)")
-@Target({ ElementType.PARAMETER, ElementType.FIELD })
+@Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RUNTIME)
 @Constraint(validatedBy = {})
 @Documented

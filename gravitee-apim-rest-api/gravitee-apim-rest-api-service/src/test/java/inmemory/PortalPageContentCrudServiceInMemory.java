@@ -15,7 +15,6 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
@@ -27,7 +26,8 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative<PortalPageContent<?>>, PortalPageContentCrudService {
+public class PortalPageContentCrudServiceInMemory
+        implements InMemoryAlternative<PortalPageContent<?>>, PortalPageContentCrudService {
 
     ArrayList<PortalPageContent<?>> storage = new ArrayList<>();
 
@@ -54,27 +54,24 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
     }
 
     @Override
-    public PortalPageContent<?> createDefault(String organizationId, String environmentId, PortalPageContentType contentType) {
+    public PortalPageContent<?> createDefault(
+            String organizationId, String environmentId, PortalPageContentType contentType) {
         final var pageContentId = PortalPageContentId.random();
         PortalPageContent<?> portalPageContent = switch (contentType) {
             case OPENAPI -> OpenApiPageContent.create(organizationId, environmentId, "openapi: 3.0.3");
             case ASYNCAPI -> AsyncApiPageContent.create(organizationId, environmentId, "asyncapi: '3.0.0'");
-            case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(
-                pageContentId,
-                organizationId,
-                environmentId,
-                new GraviteeMarkdown("default page content")
-            );
+            case GRAVITEE_MARKDOWN ->
+                new GraviteeMarkdownPageContent(
+                        pageContentId, organizationId, environmentId, new GraviteeMarkdown("default page content"));
         };
         return this.create(portalPageContent);
     }
 
     @Override
     public PortalPageContent<?> update(PortalPageContent<?> content) {
-        final var existingContent = storage
-            .stream()
-            .filter(c -> c.getId().id().equals(content.getId().id()))
-            .findFirst();
+        final var existingContent = storage.stream()
+                .filter(c -> c.getId().id().equals(content.getId().id()))
+                .findFirst();
         if (existingContent.isPresent()) {
             storage.remove(existingContent.get());
             storage.add(content);

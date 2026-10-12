@@ -33,7 +33,8 @@ public class CategoryQueryServiceLegacyWrapper implements CategoryQueryService {
     @Override
     public Optional<Category> findByIdOrKey(String idOrKey, String environmentId) {
         try {
-            return Optional.of(CategoryAdapter.INSTANCE.toCoreModel(this.categoryService.findById(idOrKey, environmentId)));
+            return Optional.of(
+                    CategoryAdapter.INSTANCE.toCoreModel(this.categoryService.findById(idOrKey, environmentId)));
         } catch (CategoryNotFoundException e) {
             return Optional.empty();
         }

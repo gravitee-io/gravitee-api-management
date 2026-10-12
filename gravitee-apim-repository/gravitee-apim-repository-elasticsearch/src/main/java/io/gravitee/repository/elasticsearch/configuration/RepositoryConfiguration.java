@@ -18,7 +18,6 @@ package io.gravitee.repository.elasticsearch.configuration;
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -280,15 +279,11 @@ public class RepositoryConfiguration {
 
         // Try new prefix first, fall back to legacy prefix
         Map<String, Object> tenantMapping = EnvironmentUtils.getPropertiesStartingWith(
-            (ConfigurableEnvironment) environment,
-            "repositories.analytics.elasticsearch.cross_cluster.mapping."
-        );
+                (ConfigurableEnvironment) environment, "repositories.analytics.elasticsearch.cross_cluster.mapping.");
 
         if (tenantMapping == null || tenantMapping.isEmpty()) {
             tenantMapping = EnvironmentUtils.getPropertiesStartingWith(
-                (ConfigurableEnvironment) environment,
-                "analytics.elasticsearch.cross_cluster.mapping."
-            );
+                    (ConfigurableEnvironment) environment, "analytics.elasticsearch.cross_cluster.mapping.");
         }
 
         if (tenantMapping != null && !tenantMapping.isEmpty()) {
@@ -421,15 +416,13 @@ public class RepositoryConfiguration {
 
     public boolean isProxyConfigured() {
         boolean configured = !EnvironmentUtils.getPropertiesStartingWith(
-            (ConfigurableEnvironment) environment,
-            "repositories.analytics.elasticsearch.http.proxy"
-        ).isEmpty();
+                        (ConfigurableEnvironment) environment, "repositories.analytics.elasticsearch.http.proxy")
+                .isEmpty();
 
         if (!configured) {
             configured = !EnvironmentUtils.getPropertiesStartingWith(
-                (ConfigurableEnvironment) environment,
-                "analytics.elasticsearch.http.proxy"
-            ).isEmpty();
+                            (ConfigurableEnvironment) environment, "analytics.elasticsearch.http.proxy")
+                    .isEmpty();
         }
 
         return configured;

@@ -48,7 +48,7 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * @throws TechnicalException if an error occurs
      */
     List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
-        throws TechnicalException;
+            throws TechnicalException;
 
     /**
      * Find all client certificates for given application IDs filtered by statuses.
@@ -59,8 +59,8 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * @return a list of client certificates matching the criteria
      * @throws TechnicalException if an error occurs
      */
-    List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
-        throws TechnicalException;
+    List<ClientCertificate> findByApplicationIdsAndStatuses(
+            Collection<String> applicationIds, ClientCertificateStatus... statuses) throws TechnicalException;
 
     /**
      * Find all client certificates matching the given statuses, regardless of application.
@@ -81,7 +81,8 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * @return true if such a certificate exists, false otherwise
      * @throws TechnicalException if an error occurs
      */
-    default boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException {
+    default boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId)
+            throws TechnicalException {
         return existsByFingerprintAndActiveApplication(fingerprint, environmentId, null);
     }
 
@@ -95,8 +96,8 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * @return true if such a certificate exists, false otherwise
      * @throws TechnicalException if an error occurs
      */
-    boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId)
-        throws TechnicalException;
+    boolean existsByFingerprintAndActiveApplication(
+            String fingerprint, String environmentId, String excludeApplicationId) throws TechnicalException;
 
     /**
      * Delete all client certificates for a given application.

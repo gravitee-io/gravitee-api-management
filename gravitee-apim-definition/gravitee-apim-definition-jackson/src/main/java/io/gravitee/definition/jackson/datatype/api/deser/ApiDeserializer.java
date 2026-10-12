@@ -15,8 +15,6 @@
  */
 package io.gravitee.definition.jackson.datatype.api.deser;
 
-import static java.util.Comparator.reverseOrder;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -107,20 +105,19 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
 
         JsonNode resourcesNode = node.get("resources");
         if (resourcesNode != null && resourcesNode.isArray()) {
-            resourcesNode
-                .elements()
-                .forEachRemaining(resourceNode -> {
-                    try {
-                        Resource resource = resourceNode.traverse(jp.getCodec()).readValueAs(Resource.class);
-                        if (!api.getResources().contains(resource)) {
-                            api.getResources().add(resource);
-                        } else {
-                            throw JsonMappingException.from(ctxt, "A resource already exists with name " + resource.getName());
-                        }
-                    } catch (IOException e) {
-                        log.error("An error occurred during api deserialization", e);
+            resourcesNode.elements().forEachRemaining(resourceNode -> {
+                try {
+                    Resource resource = resourceNode.traverse(jp.getCodec()).readValueAs(Resource.class);
+                    if (!api.getResources().contains(resource)) {
+                        api.getResources().add(resource);
+                    } else {
+                        throw JsonMappingException.from(
+                                ctxt, "A resource already exists with name " + resource.getName());
                     }
-                });
+                } catch (IOException e) {
+                    log.error("An error occurred during api deserialization", e);
+                }
+            });
         }
 
         // If no flow mode provided, defaults to "default"
@@ -130,37 +127,33 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             JsonNode flowsNode = node.get("flows");
             if (flowsNode != null) {
                 final List<Flow> flows = new ArrayList<>();
-                flowsNode
-                    .elements()
-                    .forEachRemaining(jsonNode -> {
-                        try {
-                            Flow flow = jsonNode.traverse(jp.getCodec()).readValueAs(Flow.class);
-                            flow.setStage(FlowStage.API);
-                            flows.add(flow);
-                        } catch (IOException e) {
-                            log.error("Flow {} cannot be de-serialized", jsonNode.asText());
-                        }
-                    });
+                flowsNode.elements().forEachRemaining(jsonNode -> {
+                    try {
+                        Flow flow = jsonNode.traverse(jp.getCodec()).readValueAs(Flow.class);
+                        flow.setStage(FlowStage.API);
+                        flows.add(flow);
+                    } catch (IOException e) {
+                        log.error("Flow {} cannot be de-serialized", jsonNode.asText());
+                    }
+                });
                 api.setFlows(flows);
             }
 
             JsonNode plansNode = node.get("plans");
             if (plansNode != null) {
                 final List<Plan> plans = new ArrayList<>();
-                plansNode
-                    .elements()
-                    .forEachRemaining(jsonNode -> {
-                        try {
-                            Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
-                            plan.getFlows().forEach(flow -> flow.setStage(FlowStage.PLAN));
-                            if (plan.getApi() == null) {
-                                plan.setApi(api.getId());
-                            }
-                            plans.add(plan);
-                        } catch (IOException e) {
-                            log.error("Plan {} cannot be de-serialized", jsonNode.asText());
+                plansNode.elements().forEachRemaining(jsonNode -> {
+                    try {
+                        Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
+                        plan.getFlows().forEach(flow -> flow.setStage(FlowStage.PLAN));
+                        if (plan.getApi() == null) {
+                            plan.setApi(api.getId());
                         }
-                    });
+                        plans.add(plan);
+                    } catch (IOException e) {
+                        log.error("Plan {} cannot be de-serialized", jsonNode.asText());
+                    }
+                });
                 api.setPlans(plans);
             }
         }
@@ -179,37 +172,33 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
 
         JsonNode pathMappingsNode = node.get("path_mappings");
         if (pathMappingsNode != null) {
-            pathMappingsNode
-                .elements()
-                .forEachRemaining(jsonNode -> {
-                    String pathMapping = jsonNode.asText();
-                    api.getPathMappings().put(pathMapping, PathMapping.buildPattern(pathMapping));
-                });
+            pathMappingsNode.elements().forEachRemaining(jsonNode -> {
+                String pathMapping = jsonNode.asText();
+                api.getPathMappings().put(pathMapping, PathMapping.buildPattern(pathMapping));
+            });
         }
 
         JsonNode responseTemplatesNode = node.get("response_templates");
         if (responseTemplatesNode != null) {
             final Map<String, Map<String, ResponseTemplate>> responseTemplates = new HashMap<>();
-            responseTemplatesNode
-                .fields()
-                .forEachRemaining(jsonNode -> {
-                    try {
-                        Map<String, ResponseTemplate> templates = jsonNode
-                            .getValue()
+            responseTemplatesNode.fields().forEachRemaining(jsonNode -> {
+                try {
+                    Map<String, ResponseTemplate> templates = jsonNode.getValue()
                             .traverse(jp.getCodec())
                             .readValueAs(new TypeReference<Map<String, ResponseTemplate>>() {});
-                        responseTemplates.put(jsonNode.getKey(), templates);
-                    } catch (IOException e) {
-                        log.error("Response templates {} cannot be de-serialized", jsonNode.getKey());
-                    }
-                });
+                    responseTemplates.put(jsonNode.getKey(), templates);
+                } catch (IOException e) {
+                    log.error("Response templates {} cannot be de-serialized", jsonNode.getKey());
+                }
+            });
 
             api.setResponseTemplates(responseTemplates);
         }
 
         JsonNode definitionContextNode = node.get("definition_context");
         if (definitionContextNode != null) {
-            DefinitionContext definitionContext = definitionContextNode.traverse(jp.getCodec()).readValueAs(DefinitionContext.class);
+            DefinitionContext definitionContext =
+                    definitionContextNode.traverse(jp.getCodec()).readValueAs(DefinitionContext.class);
             api.setDefinitionContext(definitionContext);
         }
 

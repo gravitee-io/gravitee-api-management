@@ -32,23 +32,19 @@ public class UpdateApplicationInvitationUseCase {
 
     public Output execute(Input input) {
         applicationCrudService.findById(input.applicationId(), input.environmentId());
-        return new Output(
-            updateApplicationInvitationDomainService.update(
+        return new Output(updateApplicationInvitationDomainService.update(
                 input.organizationId(),
                 input.applicationId(),
                 input.invitationId(),
-                input.updateApplicationInvitation()
-            )
-        );
+                input.updateApplicationInvitation()));
     }
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        String applicationId,
-        InvitationId invitationId,
-        UpdateApplicationInvitation updateApplicationInvitation
-    ) {}
+            String organizationId,
+            String environmentId,
+            String applicationId,
+            InvitationId invitationId,
+            UpdateApplicationInvitation updateApplicationInvitation) {}
 
     public record Output(ApplicationInvitation invitation) {}
 }

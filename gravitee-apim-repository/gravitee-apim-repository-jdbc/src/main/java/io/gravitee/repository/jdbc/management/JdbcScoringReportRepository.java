@@ -55,15 +55,12 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
 
     static final JdbcHelper.ChildAdder<JdbcScoringRow> CHILD_ADDER = (JdbcScoringRow parent, ResultSet rs) -> {
         if (parent.getSummary() == null) {
-            parent.setSummary(
-                new ScoringReport.Summary(
+            parent.setSummary(new ScoringReport.Summary(
                     rs.getDouble("score"),
                     rs.getLong("errors"),
                     rs.getLong("warnings"),
                     rs.getLong("infos"),
-                    rs.getLong("hints")
-                )
-            );
+                    rs.getLong("hints")));
         }
         if (parent.getCreatedAt() == null) {
             parent.setCreatedAt(new Date(rs.getTimestamp("created_at").getTime()));
@@ -83,35 +80,25 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
             return null;
         }
 
-        var rows = report
-            .getAssets()
-            .stream()
-            .flatMap(a -> {
-                var pageId = a.pageId() == null ? "" : a.pageId();
-                if (!a.diagnostics().isEmpty()) {
-                    return a
-                        .diagnostics()
-                        .stream()
-                        .map(diagnostic -> buildDiagnosticScoringRow(report, a.type(), diagnostic, pageId));
-                } else if (!a.errors().isEmpty()) {
-                    return a
-                        .errors()
-                        .stream()
-                        .map(error -> buildErrorScoringRow(report, a.type(), error, pageId));
-                } else {
-                    return Stream.of(
-                        new JdbcScoringRow(
-                            report.getId(),
-                            report.getApiId(),
-                            report.getEnvironmentId(),
-                            pageId,
-                            a.type(),
-                            report.getCreatedAt()
-                        )
-                    );
-                }
-            })
-            .toList();
+        var rows = report.getAssets().stream()
+                .flatMap(a -> {
+                    var pageId = a.pageId() == null ? "" : a.pageId();
+                    if (!a.diagnostics().isEmpty()) {
+                        return a.diagnostics().stream()
+                                .map(diagnostic -> buildDiagnosticScoringRow(report, a.type(), diagnostic, pageId));
+                    } else if (!a.errors().isEmpty()) {
+                        return a.errors().stream().map(error -> buildErrorScoringRow(report, a.type(), error, pageId));
+                    } else {
+                        return Stream.of(new JdbcScoringRow(
+                                report.getId(),
+                                report.getApiId(),
+                                report.getEnvironmentId(),
+                                pageId,
+                                a.type(),
+                                report.getCreatedAt()));
+                    }
+                })
+                .toList();
 
         storeSummary(report);
         for (var row : rows) {
@@ -122,45 +109,37 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     }
 
     private static JdbcScoringRow buildDiagnosticScoringRow(
-        ScoringReport report,
-        String assetType,
-        ScoringReport.Diagnostic diagnostic,
-        String pageId
-    ) {
+            ScoringReport report, String assetType, ScoringReport.Diagnostic diagnostic, String pageId) {
         return JdbcScoringRow.builder()
-            .reportId(report.getId())
-            .apiId(report.getApiId())
-            .environmentId(report.getEnvironmentId())
-            .pageId(pageId)
-            .type(assetType)
-            .severity(diagnostic.severity())
-            .startLine(diagnostic.range().start().line())
-            .startCharacter(diagnostic.range().start().character())
-            .endLine(diagnostic.range().end().line())
-            .endCharacter(diagnostic.range().end().character())
-            .rule(diagnostic.rule())
-            .message(diagnostic.message())
-            .path(diagnostic.path())
-            .rowType(JdbcScoringRow.RowType.DIAGNOSTIC)
-            .build();
+                .reportId(report.getId())
+                .apiId(report.getApiId())
+                .environmentId(report.getEnvironmentId())
+                .pageId(pageId)
+                .type(assetType)
+                .severity(diagnostic.severity())
+                .startLine(diagnostic.range().start().line())
+                .startCharacter(diagnostic.range().start().character())
+                .endLine(diagnostic.range().end().line())
+                .endCharacter(diagnostic.range().end().character())
+                .rule(diagnostic.rule())
+                .message(diagnostic.message())
+                .path(diagnostic.path())
+                .rowType(JdbcScoringRow.RowType.DIAGNOSTIC)
+                .build();
     }
 
     private static JdbcScoringRow buildErrorScoringRow(
-        ScoringReport report,
-        String assetType,
-        ScoringReport.ScoringError error,
-        String pageId
-    ) {
+            ScoringReport report, String assetType, ScoringReport.ScoringError error, String pageId) {
         return JdbcScoringRow.builder()
-            .reportId(report.getId())
-            .apiId(report.getApiId())
-            .environmentId(report.getEnvironmentId())
-            .pageId(pageId)
-            .type(assetType)
-            .errorCode(error.code())
-            .path(error.path().toString())
-            .rowType(JdbcScoringRow.RowType.ERROR)
-            .build();
+                .reportId(report.getId())
+                .apiId(report.getApiId())
+                .environmentId(report.getEnvironmentId())
+                .pageId(pageId)
+                .type(assetType)
+                .errorCode(error.code())
+                .path(error.path().toString())
+                .rowType(JdbcScoringRow.RowType.ERROR)
+                .build();
     }
 
     @Override
@@ -174,12 +153,10 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     public Optional<ScoringReport> findByReportId(String reportId) {
         log.debug("JdbcScoringRepository.findByReportId({})", reportId);
 
-        var query =
-            "select * from " +
-            SCORING_REPORT_SUMMARY +
-            " r left join " +
-            getOrm().getTableName() +
-            " s on r.report_id = s.report_id where r.report_id = ?";
+        var query = "select * from " + SCORING_REPORT_SUMMARY
+                + " r left join "
+                + getOrm().getTableName()
+                + " s on r.report_id = s.report_id where r.report_id = ?";
 
         var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         jdbcTemplate.query(query, rowMapper, reportId);
@@ -189,12 +166,10 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     @Override
     public Optional<ScoringReport> findLatestFor(String apiId) {
         log.debug("JdbcScoringRepository.findByApi({})", apiId);
-        var query =
-            "select * from " +
-            SCORING_REPORT_SUMMARY +
-            " r left join " +
-            getOrm().getTableName() +
-            " s on r.report_id = s.report_id where r.api_id = ?";
+        var query = "select * from " + SCORING_REPORT_SUMMARY
+                + " r left join "
+                + getOrm().getTableName()
+                + " s on r.report_id = s.report_id where r.api_id = ?";
 
         var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         jdbcTemplate.query(query, rowMapper, apiId);
@@ -204,61 +179,53 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     @Override
     public Stream<ScoringReport> findLatestReports(Collection<String> apiIds) {
         log.debug("JdbcScoringRepository.findLatestReports({})", apiIds);
-        var query =
-            "select * from " +
-            SCORING_REPORT_SUMMARY +
-            " s left join " +
-            getOrm().getTableName() +
-            " r on r.report_id = s.report_id " +
-            " where s.api_id in (" +
-            getOrm().buildInClause(apiIds) +
-            ")";
+        var query = "select * from " + SCORING_REPORT_SUMMARY
+                + " s left join "
+                + getOrm().getTableName()
+                + " r on r.report_id = s.report_id "
+                + " where s.api_id in ("
+                + getOrm().buildInClause(apiIds)
+                + ")";
 
         var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         jdbcTemplate.query(
-            query,
-            (PreparedStatement ps) -> {
-                getOrm().setArguments(ps, apiIds, 1);
-            },
-            rowMapper
-        );
+                query,
+                (PreparedStatement ps) -> {
+                    getOrm().setArguments(ps, apiIds, 1);
+                },
+                rowMapper);
 
         var rowsByApiId = rowMapper.getRows().stream().collect(groupingBy(JdbcScoringRow::getApiId));
 
-        return rowsByApiId
-            .entrySet()
-            .stream()
-            .flatMap(entry -> adaptScoringReport(entry.getValue()).stream());
+        return rowsByApiId.entrySet().stream().flatMap(entry -> adaptScoringReport(entry.getValue()).stream());
     }
 
     @Override
-    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable)
-        throws TechnicalException {
+    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(
+            String environmentId, Collection<ApiType> apiTypes, Pageable pageable) throws TechnicalException {
         // The type filter belongs in the WHERE, not in a post-filter: this query is paginated in
         // memory (getResultAsPage below), so filtering afterwards would leave totalCount counting
         // rows the caller never sees.
         var filtered = apiTypes != null && !apiTypes.isEmpty();
-        var query =
-            "SELECT " +
-            "a.id as api_id, " +
-            "a.name as api_name, " +
-            "a.type as api_type, " +
-            "a.updated_at as api_updated_at, " +
-            "sr.report_id as report_id, " +
-            "sr.created_at as report_created_at, " +
-            "COALESCE(sr.score, 0) as score, " +
-            "sr.errors as errors, " +
-            "sr.warnings as warnings, " +
-            "sr.infos as infos, " +
-            "sr.hints as hints " +
-            "FROM " +
-            getTableNameFor("apis") +
-            " a LEFT JOIN " +
-            SCORING_REPORT_SUMMARY +
-            " sr ON a.id = sr.api_id " +
-            "WHERE a.environment_id = ? " +
-            (filtered ? "AND a.type IN (" + getOrm().buildInClause(apiTypes) + ") " : "") +
-            "ORDER BY score DESC";
+        var query = "SELECT " + "a.id as api_id, "
+                + "a.name as api_name, "
+                + "a.type as api_type, "
+                + "a.updated_at as api_updated_at, "
+                + "sr.report_id as report_id, "
+                + "sr.created_at as report_created_at, "
+                + "COALESCE(sr.score, 0) as score, "
+                + "sr.errors as errors, "
+                + "sr.warnings as warnings, "
+                + "sr.infos as infos, "
+                + "sr.hints as hints "
+                + "FROM "
+                + getTableNameFor("apis")
+                + " a LEFT JOIN "
+                + SCORING_REPORT_SUMMARY
+                + " sr ON a.id = sr.api_id "
+                + "WHERE a.environment_id = ? "
+                + (filtered ? "AND a.type IN (" + getOrm().buildInClause(apiTypes) + ") " : "")
+                + "ORDER BY score DESC";
 
         var arguments = new ArrayList<Object>();
         arguments.add(environmentId);
@@ -274,21 +241,19 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     @Override
     public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) {
         var result = jdbcTemplate.query(
-            "select " +
-                "environment_id, " +
-                "AVG(CASE WHEN score != -1 THEN score ELSE NULL END) AS averageScore," +
-                "SUM(errors) AS totalErrors," +
-                "SUM(warnings) AS totalWarnings," +
-                "SUM(infos) AS totalInfos," +
-                "SUM(hints) AS totalHints" +
-                " from " +
-                SCORING_REPORT_SUMMARY +
-                " where " +
-                " environment_id = ?" +
-                " group by environment_id",
-            ENVIRONMENT_SUMMARY_MAPPER,
-            environmentId
-        );
+                "select " + "environment_id, "
+                        + "AVG(CASE WHEN score != -1 THEN score ELSE NULL END) AS averageScore,"
+                        + "SUM(errors) AS totalErrors,"
+                        + "SUM(warnings) AS totalWarnings,"
+                        + "SUM(infos) AS totalInfos,"
+                        + "SUM(hints) AS totalHints"
+                        + " from "
+                        + SCORING_REPORT_SUMMARY
+                        + " where "
+                        + " environment_id = ?"
+                        + " group by environment_id",
+                ENVIRONMENT_SUMMARY_MAPPER,
+                environmentId);
 
         if (result == null) {
             return new ScoringEnvironmentSummary(environmentId);
@@ -300,49 +265,50 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     @Override
     protected JdbcObjectMapper<JdbcScoringRow> buildOrm() {
         return JdbcObjectMapper.builder(JdbcScoringRow.class, this.tableName, "report_id")
-            .addColumn("report_id", Types.NVARCHAR, String.class)
-            .addColumn("api_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("page_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("severity", Types.NVARCHAR, String.class)
-            .addColumn("start_line", Types.INTEGER, Integer.class)
-            .addColumn("start_character", Types.INTEGER, Integer.class)
-            .addColumn("end_line", Types.INTEGER, Integer.class)
-            .addColumn("end_character", Types.INTEGER, Integer.class)
-            .addColumn("rule", Types.NVARCHAR, String.class)
-            .addColumn("message", Types.NVARCHAR, String.class)
-            .addColumn("path", Types.NVARCHAR, String.class)
-            .addColumn("error_code", Types.NVARCHAR, String.class)
-            .addColumn("row_type", Types.NVARCHAR, JdbcScoringRow.RowType.class)
-            .build();
+                .addColumn("report_id", Types.NVARCHAR, String.class)
+                .addColumn("api_id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("page_id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("severity", Types.NVARCHAR, String.class)
+                .addColumn("start_line", Types.INTEGER, Integer.class)
+                .addColumn("start_character", Types.INTEGER, Integer.class)
+                .addColumn("end_line", Types.INTEGER, Integer.class)
+                .addColumn("end_character", Types.INTEGER, Integer.class)
+                .addColumn("rule", Types.NVARCHAR, String.class)
+                .addColumn("message", Types.NVARCHAR, String.class)
+                .addColumn("path", Types.NVARCHAR, String.class)
+                .addColumn("error_code", Types.NVARCHAR, String.class)
+                .addColumn("row_type", Types.NVARCHAR, JdbcScoringRow.RowType.class)
+                .build();
     }
 
     private void storeSummary(ScoringReport report) {
         jdbcTemplate.batchUpdate(
-            "insert into " +
-                SCORING_REPORT_SUMMARY +
-                " ( report_id, api_id, environment_id, created_at, score, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )",
-            new BatchPreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    ps.setString(1, report.getId());
-                    ps.setString(2, report.getApiId());
-                    ps.setString(3, report.getEnvironmentId());
-                    ps.setTimestamp(4, new java.sql.Timestamp(report.getCreatedAt().toInstant().toEpochMilli()));
-                    ps.setDouble(5, report.getSummary().score());
-                    ps.setLong(6, report.getSummary().errors());
-                    ps.setLong(7, report.getSummary().warnings());
-                    ps.setLong(8, report.getSummary().infos());
-                    ps.setLong(9, report.getSummary().hints());
-                }
+                "insert into " + SCORING_REPORT_SUMMARY
+                        + " ( report_id, api_id, environment_id, created_at, score, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, report.getId());
+                        ps.setString(2, report.getApiId());
+                        ps.setString(3, report.getEnvironmentId());
+                        ps.setTimestamp(
+                                4,
+                                new java.sql.Timestamp(
+                                        report.getCreatedAt().toInstant().toEpochMilli()));
+                        ps.setDouble(5, report.getSummary().score());
+                        ps.setLong(6, report.getSummary().errors());
+                        ps.setLong(7, report.getSummary().warnings());
+                        ps.setLong(8, report.getSummary().infos());
+                        ps.setLong(9, report.getSummary().hints());
+                    }
 
-                @Override
-                public int getBatchSize() {
-                    return 1;
-                }
-            }
-        );
+                    @Override
+                    public int getBatchSize() {
+                        return 1;
+                    }
+                });
     }
 
     private static Optional<ScoringReport> adaptScoringReport(List<JdbcScoringRow> rows) {
@@ -352,68 +318,52 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
 
         if (rows.size() == 1 && rows.get(0).getPageId() == null) {
             // no asset
-            return Optional.of(
-                new ScoringReport(
+            return Optional.of(new ScoringReport(
                     rows.get(0).getReportId(),
                     rows.get(0).getApiId(),
                     rows.get(0).getEnvironmentId(),
                     rows.get(0).getCreatedAt(),
                     rows.get(0).getSummary(),
-                    List.of()
-                )
-            );
+                    List.of()));
         }
 
         var grouped = rows.stream().collect(Collectors.groupingBy(JdbcScoringRow::getPageId));
-        var assets = grouped
-            .entrySet()
-            .stream()
-            .map(entry -> {
-                var pageId = entry.getKey().isEmpty() ? null : entry.getKey();
-                var diagnostics = entry
-                    .getValue()
-                    .stream()
-                    .filter(row -> row.getRowType() == JdbcScoringRow.RowType.DIAGNOSTIC)
-                    .filter(row -> row.getSeverity() != null)
-                    .map(row ->
-                        new ScoringReport.Diagnostic(
-                            row.getSeverity(),
-                            new ScoringReport.Range(
-                                new ScoringReport.Position(row.getStartLine(), row.getStartCharacter()),
-                                new ScoringReport.Position(row.getEndLine(), row.getEndCharacter())
-                            ),
-                            row.getRule(),
-                            row.getMessage(),
-                            row.getPath()
-                        )
-                    )
-                    .toList();
-                var errors = entry
-                    .getValue()
-                    .stream()
-                    .filter(row -> row.getRowType() == JdbcScoringRow.RowType.ERROR)
-                    .map(row ->
-                        new ScoringReport.ScoringError(
-                            row.getErrorCode(),
-                            Arrays.asList(row.getPath().substring(1, row.getPath().length() - 1).split(", "))
-                        )
-                    )
-                    .toList();
+        var assets = grouped.entrySet().stream()
+                .map(entry -> {
+                    var pageId = entry.getKey().isEmpty() ? null : entry.getKey();
+                    var diagnostics = entry.getValue().stream()
+                            .filter(row -> row.getRowType() == JdbcScoringRow.RowType.DIAGNOSTIC)
+                            .filter(row -> row.getSeverity() != null)
+                            .map(row -> new ScoringReport.Diagnostic(
+                                    row.getSeverity(),
+                                    new ScoringReport.Range(
+                                            new ScoringReport.Position(row.getStartLine(), row.getStartCharacter()),
+                                            new ScoringReport.Position(row.getEndLine(), row.getEndCharacter())),
+                                    row.getRule(),
+                                    row.getMessage(),
+                                    row.getPath()))
+                            .toList();
+                    var errors = entry.getValue().stream()
+                            .filter(row -> row.getRowType() == JdbcScoringRow.RowType.ERROR)
+                            .map(row -> new ScoringReport.ScoringError(
+                                    row.getErrorCode(),
+                                    Arrays.asList(row.getPath()
+                                            .substring(1, row.getPath().length() - 1)
+                                            .split(", "))))
+                            .toList();
 
-                return new ScoringReport.Asset(pageId, entry.getValue().get(0).getType(), diagnostics, errors);
-            })
-            .toList();
+                    return new ScoringReport.Asset(
+                            pageId, entry.getValue().get(0).getType(), diagnostics, errors);
+                })
+                .toList();
 
-        return Optional.of(
-            new ScoringReport(
+        return Optional.of(new ScoringReport(
                 rows.get(0).getReportId(),
                 rows.get(0).getApiId(),
                 rows.get(0).getEnvironmentId(),
                 rows.get(0).getCreatedAt(),
                 rows.get(0).getSummary(),
-                assets
-            )
-        );
+                assets));
     }
 
     private static final ResultSetExtractor<ScoringEnvironmentSummary> ENVIRONMENT_SUMMARY_MAPPER = rs -> {
@@ -422,13 +372,15 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
         }
 
         return ScoringEnvironmentSummary.builder()
-            .environmentId(rs.getString(1))
-            .score(BigDecimal.valueOf(rs.getDouble(2)).setScale(2, RoundingMode.HALF_EVEN).doubleValue())
-            .errors(rs.getLong(3))
-            .warnings(rs.getLong(4))
-            .infos(rs.getLong(5))
-            .hints(rs.getLong(6))
-            .build();
+                .environmentId(rs.getString(1))
+                .score(BigDecimal.valueOf(rs.getDouble(2))
+                        .setScale(2, RoundingMode.HALF_EVEN)
+                        .doubleValue())
+                .errors(rs.getLong(3))
+                .warnings(rs.getLong(4))
+                .infos(rs.getLong(5))
+                .hints(rs.getLong(6))
+                .build();
     };
 
     /**
@@ -455,25 +407,28 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
         var result = new ArrayList<ScoringEnvironmentApi>();
         while (rs.next()) {
             var reportId = rs.getString("report_id");
-            result.add(
-                ScoringEnvironmentApi.builder()
+            result.add(ScoringEnvironmentApi.builder()
                     .apiId(rs.getString("api_id"))
                     .apiName(rs.getString("api_name"))
                     .apiType(toApiType(rs.getString("api_type")))
                     .apiUpdatedAt(new Date(rs.getTimestamp("api_updated_at").getTime()))
                     .reportId(reportId)
-                    .reportCreatedAt(reportId != null ? new Date(rs.getTimestamp("report_created_at").getTime()) : null)
+                    .reportCreatedAt(
+                            reportId != null
+                                    ? new Date(
+                                            rs.getTimestamp("report_created_at").getTime())
+                                    : null)
                     .score(
-                        reportId != null
-                            ? BigDecimal.valueOf(rs.getDouble("score")).setScale(2, RoundingMode.HALF_EVEN).doubleValue()
-                            : null
-                    )
+                            reportId != null
+                                    ? BigDecimal.valueOf(rs.getDouble("score"))
+                                            .setScale(2, RoundingMode.HALF_EVEN)
+                                            .doubleValue()
+                                    : null)
                     .errors(reportId != null ? rs.getLong("errors") : null)
                     .warnings(reportId != null ? rs.getLong("warnings") : null)
                     .infos(reportId != null ? rs.getLong("infos") : null)
                     .hints(reportId != null ? rs.getLong("hints") : null)
-                    .build()
-            );
+                    .build());
         }
         return result;
     };

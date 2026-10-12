@@ -16,26 +16,20 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.EnvironmentPermissionsEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -53,18 +47,19 @@ public class EnvironmentsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List available environments for current user organization")
     public Collection<EnvironmentEntity> getEnvironments() {
-        return this.environmentService.findByUser(GraviteeContext.getCurrentOrganization(), getAuthenticatedUserOrNull());
+        return this.environmentService.findByUser(
+                GraviteeContext.getCurrentOrganization(), getAuthenticatedUserOrNull());
     }
 
     @Path("{envId}")
     public EnvironmentResource getEnvironmentResource(
-        @PathParam("envId") @Parameter(
-            name = "envId",
-            required = true,
-            description = "The ID of the environment",
-            schema = @Schema(defaultValue = "DEFAULT")
-        ) String envId
-    ) {
+            @PathParam("envId")
+                    @Parameter(
+                            name = "envId",
+                            required = true,
+                            description = "The ID of the environment",
+                            schema = @Schema(defaultValue = "DEFAULT"))
+                    String envId) {
         return resourceContext.getResource(EnvironmentResource.class);
     }
 }

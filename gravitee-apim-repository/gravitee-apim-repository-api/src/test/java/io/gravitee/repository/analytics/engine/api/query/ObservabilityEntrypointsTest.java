@@ -44,7 +44,9 @@ class ObservabilityEntrypointsTest {
          */
         @Test
         void should_declare_each_entrypoint_id_once() {
-            var ids = Arrays.stream(ObservabilityEntrypoints.values()).map(ObservabilityEntrypoints::id).toList();
+            var ids = Arrays.stream(ObservabilityEntrypoints.values())
+                    .map(ObservabilityEntrypoints::id)
+                    .toList();
 
             assertThat(ids).doesNotHaveDuplicates();
         }
@@ -56,15 +58,8 @@ class ObservabilityEntrypointsTest {
          */
         @Test
         void should_exclude_from_analytics_everything_outside_the_http_scope() {
-            assertThat(ObservabilityEntrypoints.ANALYTICS_EXCLUDED_IDS).containsExactly(
-                "native-kafka",
-                "edge",
-                "authzen",
-                "sse",
-                "webhook",
-                "websocket",
-                "tcp-proxy"
-            );
+            assertThat(ObservabilityEntrypoints.ANALYTICS_EXCLUDED_IDS)
+                    .containsExactly("native-kafka", "edge", "authzen", "sse", "webhook", "websocket", "tcp-proxy");
         }
 
         /**
@@ -103,8 +98,7 @@ class ObservabilityEntrypointsTest {
     class DistributionCoverage {
 
         private static final Pattern ENTRYPOINT_PLUGIN_ARTIFACT = Pattern.compile(
-            "<artifactId>((?:gravitee-entrypoint|gravitee-apim-plugin-entrypoint)-[^<]+)</artifactId>"
-        );
+                "<artifactId>((?:gravitee-entrypoint|gravitee-apim-plugin-entrypoint)-[^<]+)</artifactId>");
 
         /** The plugin SPI every entrypoint is built against, not an entrypoint itself. */
         private static final String ENTRYPOINT_PLUGIN_SPI_ARTIFACT = "gravitee-apim-plugin-entrypoint-handler";
@@ -112,22 +106,22 @@ class ObservabilityEntrypointsTest {
         @Test
         void should_declare_every_entrypoint_plugin_bundled_by_the_distribution() {
             assertThat(bundledEntrypointPluginArtifacts())
-                .as("every bundled entrypoint plugin needs an ObservabilityEntrypoints entry stating its scope")
-                .isSubsetOf(declaredPluginArtifacts());
+                    .as("every bundled entrypoint plugin needs an ObservabilityEntrypoints entry stating its scope")
+                    .isSubsetOf(declaredPluginArtifacts());
         }
 
         @Test
         void should_not_declare_an_entrypoint_plugin_the_distribution_no_longer_bundles() {
             assertThat(declaredPluginArtifacts())
-                .as("a declared entrypoint plugin that is no longer bundled leaves a stale scope decision behind")
-                .isSubsetOf(bundledEntrypointPluginArtifacts());
+                    .as("a declared entrypoint plugin that is no longer bundled leaves a stale scope decision behind")
+                    .isSubsetOf(bundledEntrypointPluginArtifacts());
         }
 
         private Set<String> declaredPluginArtifacts() {
             return Arrays.stream(ObservabilityEntrypoints.values())
-                .map(ObservabilityEntrypoints::pluginArtifactId)
-                .flatMap(Optional::stream)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                    .map(ObservabilityEntrypoints::pluginArtifactId)
+                    .flatMap(Optional::stream)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         private Set<String> bundledEntrypointPluginArtifacts() {
@@ -148,19 +142,23 @@ class ObservabilityEntrypointsTest {
                 }
             }
 
-            assertThat(artifacts).as("no entrypoint plugin found in %s — the parsing is stale", pom).isNotEmpty();
+            assertThat(artifacts)
+                    .as("no entrypoint plugin found in %s — the parsing is stale", pom)
+                    .isNotEmpty();
             return artifacts;
         }
 
         private Path standaloneDistributionPom() {
-            var relativeToRoot = Path.of("gravitee-apim-distribution", "gravitee-apim-distribution-standalone", "pom.xml");
+            var relativeToRoot =
+                    Path.of("gravitee-apim-distribution", "gravitee-apim-distribution-standalone", "pom.xml");
             for (var candidate = Path.of("").toAbsolutePath(); candidate != null; candidate = candidate.getParent()) {
                 var pom = candidate.resolve(relativeToRoot);
                 if (Files.isRegularFile(pom)) {
                     return pom;
                 }
             }
-            throw new IllegalStateException("Unable to locate " + relativeToRoot + " from " + Path.of("").toAbsolutePath());
+            throw new IllegalStateException("Unable to locate " + relativeToRoot + " from "
+                    + Path.of("").toAbsolutePath());
         }
     }
 }

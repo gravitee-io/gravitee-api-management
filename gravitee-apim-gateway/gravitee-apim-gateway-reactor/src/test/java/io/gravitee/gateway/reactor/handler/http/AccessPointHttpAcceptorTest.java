@@ -57,28 +57,14 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_accept_but_with_matching_path() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(),
-                "/test",
-                null,
-                List.of()
-            );
+                    eventManager, httpAcceptorFactory, ENV_ID, List.of(), "/test", null, List.of());
             assertThat(cut.accept("localhost", "/test", SERVER_ID)).isTrue();
         }
 
         @Test
         void should_not_accept_with_non_matching_path() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(),
-                "/test",
-                reactorHandler,
-                List.of()
-            );
+                    eventManager, httpAcceptorFactory, ENV_ID, List.of(), "/test", reactorHandler, List.of());
 
             assertThat(cut.accept("localhost", "/not_matching", SERVER_ID)).isFalse();
         }
@@ -86,28 +72,26 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_accept_with_matching_path_and_server() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
             assertThat(cut.accept("localhost", "/test", SERVER_ID)).isTrue();
         }
 
         @Test
         void should_not_accept_with_matching_path_and_not_matching_server() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", "c")
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", "c"));
 
             assertThat(cut.accept("localhost", "/test", SERVER_ID)).isFalse();
         }
@@ -119,27 +103,25 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_accept_with_matching_path_and_server_and_host_and_target() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder()
-                        .id("id")
-                        .environmentId(ENV_ID)
-                        .host("host")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build(),
-                    ReactableAccessPoint.builder()
-                        .id("id")
-                        .environmentId(ENV_ID)
-                        .host("host")
-                        .target(ReactableAccessPoint.Target.TCP_GATEWAY)
-                        .build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(
+                            ReactableAccessPoint.builder()
+                                    .id("id")
+                                    .environmentId(ENV_ID)
+                                    .host("host")
+                                    .target(ReactableAccessPoint.Target.GATEWAY)
+                                    .build(),
+                            ReactableAccessPoint.builder()
+                                    .id("id")
+                                    .environmentId(ENV_ID)
+                                    .host("host")
+                                    .target(ReactableAccessPoint.Target.TCP_GATEWAY)
+                                    .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.accept("host", "/test", SERVER_ID)).isTrue();
         }
@@ -147,14 +129,17 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_not_accept_with_matching_path_and_server_and_not_matching_host() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(ReactableAccessPoint.builder().id("id").environmentId(ENV_ID).host("host").build()),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(ReactableAccessPoint.builder()
+                            .id("id")
+                            .environmentId(ENV_ID)
+                            .host("host")
+                            .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.accept("other", "/test", SERVER_ID)).isFalse();
         }
@@ -162,14 +147,17 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_not_accept_with_matching_path_and_host_and_server_null() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(ReactableAccessPoint.builder().id("id").environmentId(ENV_ID).host("host").build()),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(ReactableAccessPoint.builder()
+                            .id("id")
+                            .environmentId(ENV_ID)
+                            .host("host")
+                            .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.accept("host", "/test", null)).isFalse();
         }
@@ -177,21 +165,18 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_return_single_host_and_path() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder()
-                        .id("id")
-                        .environmentId(ENV_ID)
-                        .host("host")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(ReactableAccessPoint.builder()
+                            .id("id")
+                            .environmentId(ENV_ID)
+                            .host("host")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             assertThat(cut.host()).isEqualTo("host");
@@ -205,39 +190,37 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_accept_with_matching_path_and_server_and_host_and_target() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder()
-                        .id("id1")
-                        .environmentId(ENV_ID)
-                        .host("host1")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build(),
-                    ReactableAccessPoint.builder()
-                        .id("id2")
-                        .environmentId(ENV_ID)
-                        .host("host2")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build(),
-                    ReactableAccessPoint.builder()
-                        .id("id3")
-                        .environmentId(ENV_ID)
-                        .host("host1")
-                        .target(ReactableAccessPoint.Target.TCP_GATEWAY)
-                        .build(),
-                    ReactableAccessPoint.builder()
-                        .id("id4")
-                        .environmentId(ENV_ID)
-                        .host("host1")
-                        .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
-                        .build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(
+                            ReactableAccessPoint.builder()
+                                    .id("id1")
+                                    .environmentId(ENV_ID)
+                                    .host("host1")
+                                    .target(ReactableAccessPoint.Target.GATEWAY)
+                                    .build(),
+                            ReactableAccessPoint.builder()
+                                    .id("id2")
+                                    .environmentId(ENV_ID)
+                                    .host("host2")
+                                    .target(ReactableAccessPoint.Target.GATEWAY)
+                                    .build(),
+                            ReactableAccessPoint.builder()
+                                    .id("id3")
+                                    .environmentId(ENV_ID)
+                                    .host("host1")
+                                    .target(ReactableAccessPoint.Target.TCP_GATEWAY)
+                                    .build(),
+                            ReactableAccessPoint.builder()
+                                    .id("id4")
+                                    .environmentId(ENV_ID)
+                                    .host("host1")
+                                    .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
+                                    .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.accept("host1", "/test", SERVER_ID)).isTrue();
         }
@@ -245,27 +228,25 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_not_accept_with_matching_path_and_server_and_not_matching_host() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder()
-                        .id("id1")
-                        .environmentId(ENV_ID)
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .host("host1")
-                        .build(),
-                    ReactableAccessPoint.builder()
-                        .id("id2")
-                        .environmentId(ENV_ID)
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .host("host2")
-                        .build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(
+                            ReactableAccessPoint.builder()
+                                    .id("id1")
+                                    .environmentId(ENV_ID)
+                                    .target(ReactableAccessPoint.Target.GATEWAY)
+                                    .host("host1")
+                                    .build(),
+                            ReactableAccessPoint.builder()
+                                    .id("id2")
+                                    .environmentId(ENV_ID)
+                                    .target(ReactableAccessPoint.Target.GATEWAY)
+                                    .host("host2")
+                                    .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.accept("other", "/test", SERVER_ID)).isFalse();
         }
@@ -273,17 +254,23 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_not_accept_with_matching_path_and_host_and_server_null() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build(),
-                    ReactableAccessPoint.builder().id("id2").environmentId(ENV_ID).host("host2").build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(
+                            ReactableAccessPoint.builder()
+                                    .id("id1")
+                                    .environmentId(ENV_ID)
+                                    .host("host1")
+                                    .build(),
+                            ReactableAccessPoint.builder()
+                                    .id("id2")
+                                    .environmentId(ENV_ID)
+                                    .host("host2")
+                                    .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.accept("host1", "/test", null)).isFalse();
         }
@@ -291,27 +278,25 @@ class AccessPointHttpAcceptorTest {
         @Test
         void should_return_first_host_and_path() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder()
-                        .id("id1")
-                        .environmentId(ENV_ID)
-                        .host("host1")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build(),
-                    ReactableAccessPoint.builder()
-                        .id("id2")
-                        .environmentId(ENV_ID)
-                        .host("host2")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(
+                            ReactableAccessPoint.builder()
+                                    .id("id1")
+                                    .environmentId(ENV_ID)
+                                    .host("host1")
+                                    .target(ReactableAccessPoint.Target.GATEWAY)
+                                    .build(),
+                            ReactableAccessPoint.builder()
+                                    .id("id2")
+                                    .environmentId(ENV_ID)
+                                    .host("host2")
+                                    .target(ReactableAccessPoint.Target.GATEWAY)
+                                    .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
 
             assertThat(cut.innerHttpsAcceptors()).hasSize(2);
             assertThat(cut.host()).isEqualTo("host1");
@@ -327,35 +312,31 @@ class AccessPointHttpAcceptorTest {
         @BeforeEach
         public void beforeEach() {
             cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder()
-                        .id("id1")
-                        .environmentId(ENV_ID)
-                        .host("host1")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(ReactableAccessPoint.builder()
+                            .id("id1")
+                            .environmentId(ENV_ID)
+                            .host("host1")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
         }
 
         @Test
         void should_add_new_http_acceptors_on_proper_environmentId() {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
-                AccessPointEvent.DEPLOY,
-                ReactableAccessPoint.builder()
-                    .id("id")
-                    .host("host")
-                    .environmentId(ENV_ID)
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .build()
-            );
+                    AccessPointEvent.DEPLOY,
+                    ReactableAccessPoint.builder()
+                            .id("id")
+                            .host("host")
+                            .environmentId(ENV_ID)
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build());
             assertThat(cut.innerHttpsAcceptors()).hasSize(2);
         }
 
@@ -363,14 +344,13 @@ class AccessPointHttpAcceptorTest {
         void should_not_add_new_http_acceptors_on_wrong_environmentId() {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
-                AccessPointEvent.DEPLOY,
-                ReactableAccessPoint.builder()
-                    .id("id")
-                    .host("host")
-                    .environmentId("other-env")
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .build()
-            );
+                    AccessPointEvent.DEPLOY,
+                    ReactableAccessPoint.builder()
+                            .id("id")
+                            .host("host")
+                            .environmentId("other-env")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build());
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
 
@@ -378,14 +358,13 @@ class AccessPointHttpAcceptorTest {
         void should_not_add_new_http_acceptors_on_wrong_target() {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
-                AccessPointEvent.DEPLOY,
-                ReactableAccessPoint.builder()
-                    .id("id")
-                    .host("host")
-                    .environmentId("other-env")
-                    .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
-                    .build()
-            );
+                    AccessPointEvent.DEPLOY,
+                    ReactableAccessPoint.builder()
+                            .id("id")
+                            .host("host")
+                            .environmentId("other-env")
+                            .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
+                            .build());
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
 
@@ -393,14 +372,13 @@ class AccessPointHttpAcceptorTest {
         void should_remove_http_acceptors_on_proper_environmentId() {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
-                AccessPointEvent.UNDEPLOY,
-                ReactableAccessPoint.builder()
-                    .id("id1")
-                    .host("host1")
-                    .environmentId(ENV_ID)
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .build()
-            );
+                    AccessPointEvent.UNDEPLOY,
+                    ReactableAccessPoint.builder()
+                            .id("id1")
+                            .host("host1")
+                            .environmentId(ENV_ID)
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build());
             assertThat(cut.innerHttpsAcceptors()).isEmpty();
         }
 
@@ -408,14 +386,13 @@ class AccessPointHttpAcceptorTest {
         void should_not_remove_http_acceptors_on_wrong_environmentId() {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
-                AccessPointEvent.UNDEPLOY,
-                ReactableAccessPoint.builder()
-                    .id("id1")
-                    .host("host1")
-                    .environmentId("other-env")
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .build()
-            );
+                    AccessPointEvent.UNDEPLOY,
+                    ReactableAccessPoint.builder()
+                            .id("id1")
+                            .host("host1")
+                            .environmentId("other-env")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build());
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
     }
@@ -428,21 +405,18 @@ class AccessPointHttpAcceptorTest {
         @BeforeEach
         public void beforeEach() {
             cut = new AccessPointHttpAcceptor(
-                eventManager,
-                httpAcceptorFactory,
-                ENV_ID,
-                List.of(
-                    ReactableAccessPoint.builder()
-                        .id("id1")
-                        .environmentId(ENV_ID)
-                        .host("host1")
-                        .target(ReactableAccessPoint.Target.GATEWAY)
-                        .build()
-                ),
-                "/test",
-                reactorHandler,
-                List.of("a", "b", SERVER_ID)
-            );
+                    eventManager,
+                    httpAcceptorFactory,
+                    ENV_ID,
+                    List.of(ReactableAccessPoint.builder()
+                            .id("id1")
+                            .environmentId(ENV_ID)
+                            .host("host1")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build()),
+                    "/test",
+                    reactorHandler,
+                    List.of("a", "b", SERVER_ID));
         }
 
         @Test
@@ -450,14 +424,13 @@ class AccessPointHttpAcceptorTest {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             cut.clear();
             eventManager.publishEvent(
-                AccessPointEvent.DEPLOY,
-                ReactableAccessPoint.builder()
-                    .id("id")
-                    .host("host")
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .environmentId(ENV_ID)
-                    .build()
-            );
+                    AccessPointEvent.DEPLOY,
+                    ReactableAccessPoint.builder()
+                            .id("id")
+                            .host("host")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .environmentId(ENV_ID)
+                            .build());
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
 
@@ -466,14 +439,13 @@ class AccessPointHttpAcceptorTest {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             cut.clear();
             eventManager.publishEvent(
-                AccessPointEvent.UNDEPLOY,
-                ReactableAccessPoint.builder()
-                    .id("id1")
-                    .host("host1")
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .environmentId(ENV_ID)
-                    .build()
-            );
+                    AccessPointEvent.UNDEPLOY,
+                    ReactableAccessPoint.builder()
+                            .id("id1")
+                            .host("host1")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .environmentId(ENV_ID)
+                            .build());
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
     }

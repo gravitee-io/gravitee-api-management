@@ -38,7 +38,8 @@ import lombok.RequiredArgsConstructor;
  * Ancestors are never checked — only a PAGE can be automation-managed, and a PAGE is never a container.
  */
 @RequiredArgsConstructor
-public class SourceAutomationExclusivityRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
+public class SourceAutomationExclusivityRule
+        implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
 
     private final PortalNavigationItemsQueryService queryService;
     private final PortalPageContentQueryService contentQueryService;
@@ -53,8 +54,7 @@ public class SourceAutomationExclusivityRule implements CreatePortalNavigationIt
         // The item does not exist yet, so it owns no subtree: only the content passed in the payload can conflict
         if (item.getType() == PortalNavigationItemType.PAGE && isAutomationManaged(item.getPortalPageContentId())) {
             throw InvalidPortalNavigationItemDataException.sourceNotAllowedOnAutomationManagedItem(
-                item.getPortalPageContentId().toString()
-            );
+                    item.getPortalPageContentId().toString());
         }
     }
 
@@ -64,31 +64,31 @@ public class SourceAutomationExclusivityRule implements CreatePortalNavigationIt
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         if (isAutomationManaged(existingItem)) {
-            throw InvalidPortalNavigationItemDataException.sourceNotAllowedOnAutomationManagedItem(existingItem.getId().json());
+            throw InvalidPortalNavigationItemDataException.sourceNotAllowedOnAutomationManagedItem(
+                    existingItem.getId().json());
         }
-        findAutomationManagedItemBelow(existingItem.getEnvironmentId(), existingItem.getId(), 0).ifPresent(conflicting -> {
-            throw InvalidPortalNavigationItemDataException.sourceNotAllowedOnAutomationManagedItem(conflicting.getId().json());
-        });
+        findAutomationManagedItemBelow(existingItem.getEnvironmentId(), existingItem.getId(), 0)
+                .ifPresent(conflicting -> {
+                    throw InvalidPortalNavigationItemDataException.sourceNotAllowedOnAutomationManagedItem(
+                            conflicting.getId().json());
+                });
     }
 
     private Optional<PortalNavigationItem> findAutomationManagedItemBelow(
-        String environmentId,
-        PortalNavigationItemId parentId,
-        int depth
-    ) {
+            String environmentId, PortalNavigationItemId parentId, int depth) {
         if (ValidationDepth.exceeded(depth, parentId, "the automation exclusivity is not enforced deeper")) {
             return Optional.empty();
         }
         List<PortalNavigationItem> children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
-        return children
-            .stream()
-            .map(child ->
-                isAutomationManaged(child) ? Optional.of(child) : findAutomationManagedItemBelow(environmentId, child.getId(), depth + 1)
-            )
-            .flatMap(Optional::stream)
-            .findFirst();
+        return children.stream()
+                .map(child -> isAutomationManaged(child)
+                        ? Optional.of(child)
+                        : findAutomationManagedItemBelow(environmentId, child.getId(), depth + 1))
+                .flatMap(Optional::stream)
+                .findFirst();
     }
 
     private boolean isAutomationManaged(PortalNavigationItem item) {
@@ -96,12 +96,10 @@ public class SourceAutomationExclusivityRule implements CreatePortalNavigationIt
     }
 
     private boolean isAutomationManaged(PortalPageContentId contentId) {
-        return (
-            contentId != null &&
-            contentQueryService
-                .findById(contentId)
-                .map(content -> content.getAutomationMetadata() != null)
-                .orElse(false)
-        );
+        return (contentId != null
+                && contentQueryService
+                        .findById(contentId)
+                        .map(content -> content.getAutomationMetadata() != null)
+                        .orElse(false));
     }
 }

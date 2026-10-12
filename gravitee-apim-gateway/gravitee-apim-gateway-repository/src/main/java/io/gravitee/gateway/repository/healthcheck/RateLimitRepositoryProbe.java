@@ -20,7 +20,6 @@ import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
-import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleObserver;
 import io.reactivex.rxjava3.disposables.Disposable;
 import java.util.concurrent.CompletableFuture;
@@ -67,22 +66,20 @@ public class RateLimitRepositoryProbe implements Probe {
                 if (NONE_RATE_LIMIT_TYPE.equalsIgnoreCase(rateLimitType) && rateLimitSingle == null) {
                     future.complete(Result.healthy("RateLimit type is none"));
                 } else {
-                    rateLimitSingle.subscribe(
-                        new SingleObserver<>() {
-                            @Override
-                            public void onSubscribe(Disposable d) {}
+                    rateLimitSingle.subscribe(new SingleObserver<>() {
+                        @Override
+                        public void onSubscribe(Disposable d) {}
 
-                            @Override
-                            public void onSuccess(RateLimit rateLimit) {
-                                future.complete(Result.healthy());
-                            }
-
-                            @Override
-                            public void onError(Throwable t) {
-                                future.complete(Result.unhealthy(t));
-                            }
+                        @Override
+                        public void onSuccess(RateLimit rateLimit) {
+                            future.complete(Result.healthy());
                         }
-                    );
+
+                        @Override
+                        public void onError(Throwable t) {
+                            future.complete(Result.unhealthy(t));
+                        }
+                    });
                 }
 
                 try {

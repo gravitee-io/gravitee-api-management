@@ -59,25 +59,24 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { AbstractSecurityConfigurerAdapterTest.TestConfig.class })
+@ContextConfiguration(classes = {AbstractSecurityConfigurerAdapterTest.TestConfig.class})
 @WebAppConfiguration
 @ActiveProfiles("basic")
 @TestPropertySource(
-    properties = {
-        "spring.main.lazy-initialization=true",
-        "jwt.secret=my-secret-for-tests",
-        "http.secureHeaders.xframe.enabled=true",
-        "http.secureHeaders.xframe.action=SAMEORIGIN",
-        "http.secureHeaders.xContentTypeOptions.enabled=true",
-        "http.secureHeaders.csp.policy=frame-ancestors 'self';",
-        "http.secureHeaders.referrerPolicy.policy=strict-origin-when-cross-origin",
-        "http.secureHeaders.permissionsPolicy.policy=camera=(), microphone=(), geolocation=()",
-        "http.secureHeaders.hsts.enabled=true",
-        "http.secureHeaders.hsts.include-sub-domains=true",
-        "http.secureHeaders.hsts.max-age=31536000",
-        "http.secureHeaders.csrf.enabled=true",
-    }
-)
+        properties = {
+            "spring.main.lazy-initialization=true",
+            "jwt.secret=my-secret-for-tests",
+            "http.secureHeaders.xframe.enabled=true",
+            "http.secureHeaders.xframe.action=SAMEORIGIN",
+            "http.secureHeaders.xContentTypeOptions.enabled=true",
+            "http.secureHeaders.csp.policy=frame-ancestors 'self';",
+            "http.secureHeaders.referrerPolicy.policy=strict-origin-when-cross-origin",
+            "http.secureHeaders.permissionsPolicy.policy=camera=(), microphone=(), geolocation=()",
+            "http.secureHeaders.hsts.enabled=true",
+            "http.secureHeaders.hsts.include-sub-domains=true",
+            "http.secureHeaders.hsts.max-age=31536000",
+            "http.secureHeaders.csrf.enabled=true",
+        })
 public abstract class AbstractSecurityConfigurerAdapterTest {
 
     @Autowired
@@ -92,20 +91,20 @@ public abstract class AbstractSecurityConfigurerAdapterTest {
     @BeforeEach
     public void setUp() {
         when(graviteeConfiguration.getProperty("jwt.secret")).thenReturn("my-secret-for-tests");
-        when(cookieGenerator.generate(eq("XSRF-TOKEN"), any(), eq(true))).thenReturn(new Cookie("XSRF-TOKEN", "some-csrf-token"));
+        when(cookieGenerator.generate(eq("XSRF-TOKEN"), any(), eq(true)))
+                .thenReturn(new Cookie("XSRF-TOKEN", "some-csrf-token"));
     }
 
     @Test
     void should_configure_secure_headers() throws Exception {
-        mockMvc
-            .perform(get(getPath()).secure(true))
-            .andExpect(header().string("X-Content-Type-Options", "nosniff"))
-            .andExpect(header().string("X-Frame-Options", "SAMEORIGIN"))
-            .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
-            .andExpect(header().string("Permissions-Policy", "camera=(), microphone=(), geolocation=()"))
-            .andExpect(header().string("Content-Security-Policy", "frame-ancestors 'self';"))
-            .andExpect(header().string("Strict-Transport-Security", "max-age=31536000 ; includeSubDomains"))
-            .andExpect(cookie().exists("XSRF-TOKEN"));
+        mockMvc.perform(get(getPath()).secure(true))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("X-Frame-Options", "SAMEORIGIN"))
+                .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
+                .andExpect(header().string("Permissions-Policy", "camera=(), microphone=(), geolocation=()"))
+                .andExpect(header().string("Content-Security-Policy", "frame-ancestors 'self';"))
+                .andExpect(header().string("Strict-Transport-Security", "max-age=31536000 ; includeSubDomains"))
+                .andExpect(cookie().exists("XSRF-TOKEN"));
     }
 
     protected abstract String getPath();
@@ -116,7 +115,9 @@ public abstract class AbstractSecurityConfigurerAdapterTest {
 
         @Bean
         public MockMvc mockMvc(WebApplicationContext wac) {
-            return MockMvcBuilders.webAppContextSetup(wac).apply(springSecurity()).build();
+            return MockMvcBuilders.webAppContextSetup(wac)
+                    .apply(springSecurity())
+                    .build();
         }
 
         @Bean

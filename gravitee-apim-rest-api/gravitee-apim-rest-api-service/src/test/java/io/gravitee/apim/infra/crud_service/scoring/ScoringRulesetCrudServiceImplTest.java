@@ -83,8 +83,8 @@ public class ScoringRulesetCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when creating Scoring Ruleset: ruleset-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when creating Scoring Ruleset: ruleset-id");
         }
     }
 
@@ -95,26 +95,24 @@ public class ScoringRulesetCrudServiceImplTest {
         @SneakyThrows
         void should_find_a_ruleset_by_id() {
             // Given
-            when(scoringRulesetRepository.findById("ruleset-id")).thenReturn(
-                Optional.of(fixtures.repository.ScoringRulesetFixture.aRuleset())
-            );
+            when(scoringRulesetRepository.findById("ruleset-id"))
+                    .thenReturn(Optional.of(fixtures.repository.ScoringRulesetFixture.aRuleset()));
 
             // When
             var found = service.findById("ruleset-id");
 
             // Then
-            assertThat(found).contains(
-                ScoringRuleset.builder()
-                    .id("ruleset-id")
-                    .name("ruleset-name")
-                    .description("ruleset-description")
-                    .payload("ruleset-payload")
-                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
-                    .referenceId("reference-id")
-                    .build()
-            );
+            assertThat(found)
+                    .contains(ScoringRuleset.builder()
+                            .id("ruleset-id")
+                            .name("ruleset-name")
+                            .description("ruleset-description")
+                            .payload("ruleset-payload")
+                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                            .format(ScoringRuleset.Format.GRAVITEE_PROXY)
+                            .referenceId("reference-id")
+                            .build());
         }
 
         @Test
@@ -127,8 +125,8 @@ public class ScoringRulesetCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when searching for Scoring Ruleset: ruleset-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when searching for Scoring Ruleset: ruleset-id");
         }
     }
 
@@ -157,8 +155,8 @@ public class ScoringRulesetCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when deleting Scoring Ruleset: ruleset-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when deleting Scoring Ruleset: ruleset-id");
         }
     }
 
@@ -183,12 +181,13 @@ public class ScoringRulesetCrudServiceImplTest {
             doThrow(TechnicalException.class).when(scoringRulesetRepository).deleteByReferenceId(any(), any());
 
             // When
-            Throwable throwable = catchThrowable(() -> service.deleteByReference("env-id", ScoringRuleset.ReferenceType.ENVIRONMENT));
+            Throwable throwable =
+                    catchThrowable(() -> service.deleteByReference("env-id", ScoringRuleset.ReferenceType.ENVIRONMENT));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when deleting Scoring Ruleset for [ENVIRONMENT:env-id]");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when deleting Scoring Ruleset for [ENVIRONMENT:env-id]");
         }
     }
 
@@ -220,8 +219,8 @@ public class ScoringRulesetCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when updating Scoring Ruleset: ruleset-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when updating Scoring Ruleset: ruleset-id");
         }
     }
 }

@@ -32,7 +32,8 @@ class EventGroupKeyHelperTest {
         properties.put(Event.EventProperties.API_ID.getValue(), "api-123");
 
         // When
-        EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(EventType.PUBLISH_API, properties);
+        EventRepository.EventToCleanGroup result =
+                EventRepository.EventGroupKeyHelper.determineGroup(EventType.PUBLISH_API, properties);
 
         // Then
         assertThat(result).isNotNull();
@@ -55,7 +56,8 @@ class EventGroupKeyHelperTest {
 
         // When & Then
         for (EventType eventType : dictionaryEventTypes) {
-            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            EventRepository.EventToCleanGroup result =
+                    EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
             assertThat(result).isNotNull();
             assertThat(result.type()).isEqualTo(eventType.name());
             assertThat(result.referenceId()).isEqualTo("dict-789");
@@ -65,14 +67,15 @@ class EventGroupKeyHelperTest {
     @Test
     void should_group_gateway_events_by_gateway_id() {
         // Given
-        EventType[] gatewayEventTypes = { EventType.GATEWAY_STARTED, EventType.GATEWAY_STOPPED };
+        EventType[] gatewayEventTypes = {EventType.GATEWAY_STARTED, EventType.GATEWAY_STOPPED};
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.ID.getValue(), "gw-303");
 
         // When & Then
         for (EventType eventType : gatewayEventTypes) {
-            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            EventRepository.EventToCleanGroup result =
+                    EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
             assertThat(result).isNotNull();
             assertThat(result.type()).isEqualTo(eventType.name());
             assertThat(result.referenceId()).isEqualTo("gw-303");
@@ -112,7 +115,8 @@ class EventGroupKeyHelperTest {
         // Missing API_ID property
 
         // When
-        EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+        EventRepository.EventToCleanGroup result =
+                EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
 
         // Then
         assertThat(result).isNull();
@@ -126,7 +130,8 @@ class EventGroupKeyHelperTest {
         properties.put(Event.EventProperties.API_ID.getValue(), "");
 
         // When
-        EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+        EventRepository.EventToCleanGroup result =
+                EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
 
         // Then
         assertThat(result).isNull();
@@ -140,7 +145,8 @@ class EventGroupKeyHelperTest {
         properties.put(Event.EventProperties.API_ID.getValue(), "   ");
 
         // When
-        EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+        EventRepository.EventToCleanGroup result =
+                EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
 
         // Then
         assertThat(result).isNull();
@@ -155,7 +161,8 @@ class EventGroupKeyHelperTest {
         properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), "org-789");
 
         // When
-        EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(EventType.PUBLISH_API, properties);
+        EventRepository.EventToCleanGroup result =
+                EventRepository.EventGroupKeyHelper.determineGroup(EventType.PUBLISH_API, properties);
 
         // Then
         assertThat(result).isNotNull();
@@ -172,7 +179,8 @@ class EventGroupKeyHelperTest {
         properties.put("another_property", "another_value");
 
         // When
-        EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(EventType.PUBLISH_API, properties);
+        EventRepository.EventToCleanGroup result =
+                EventRepository.EventGroupKeyHelper.determineGroup(EventType.PUBLISH_API, properties);
 
         // Then
         assertThat(result).isNotNull();
@@ -182,12 +190,13 @@ class EventGroupKeyHelperTest {
 
     @Test
     void should_group_authz_policy_events_by_authz_policy_id() {
-        EventType[] policyEventTypes = { EventType.PUBLISH_AUTHZ_POLICY, EventType.UNPUBLISH_AUTHZ_POLICY };
+        EventType[] policyEventTypes = {EventType.PUBLISH_AUTHZ_POLICY, EventType.UNPUBLISH_AUTHZ_POLICY};
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), "policy-1");
 
         for (EventType eventType : policyEventTypes) {
-            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            EventRepository.EventToCleanGroup result =
+                    EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
             assertThat(result).as("non-null group for %s", eventType).isNotNull();
             assertThat(result.type()).isEqualTo(eventType.name());
             assertThat(result.referenceId()).isEqualTo("policy-1");
@@ -196,12 +205,13 @@ class EventGroupKeyHelperTest {
 
     @Test
     void should_group_authz_entity_events_by_authz_entity_id() {
-        EventType[] entityEventTypes = { EventType.PUBLISH_AUTHZ_ENTITY, EventType.UNPUBLISH_AUTHZ_ENTITY };
+        EventType[] entityEventTypes = {EventType.PUBLISH_AUTHZ_ENTITY, EventType.UNPUBLISH_AUTHZ_ENTITY};
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), "api.bookings");
 
         for (EventType eventType : entityEventTypes) {
-            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            EventRepository.EventToCleanGroup result =
+                    EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
             assertThat(result).as("non-null group for %s", eventType).isNotNull();
             assertThat(result.type()).isEqualTo(eventType.name());
             assertThat(result.referenceId()).isEqualTo("api.bookings");
@@ -210,12 +220,13 @@ class EventGroupKeyHelperTest {
 
     @Test
     void should_group_authz_schema_events_by_authz_schema_id() {
-        EventType[] schemaEventTypes = { EventType.PUBLISH_AUTHZ_SCHEMA, EventType.UNPUBLISH_AUTHZ_SCHEMA };
+        EventType[] schemaEventTypes = {EventType.PUBLISH_AUTHZ_SCHEMA, EventType.UNPUBLISH_AUTHZ_SCHEMA};
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.AUTHZ_SCHEMA_ID.getValue(), "schema-1");
 
         for (EventType eventType : schemaEventTypes) {
-            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            EventRepository.EventToCleanGroup result =
+                    EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
             assertThat(result).as("non-null group for %s", eventType).isNotNull();
             assertThat(result.type()).isEqualTo(eventType.name());
             assertThat(result.referenceId()).isEqualTo("schema-1");
@@ -224,12 +235,13 @@ class EventGroupKeyHelperTest {
 
     @Test
     void should_group_credential_events_by_credential_id() {
-        EventType[] credentialEventTypes = { EventType.PUBLISH_CREDENTIAL, EventType.UNPUBLISH_CREDENTIAL };
+        EventType[] credentialEventTypes = {EventType.PUBLISH_CREDENTIAL, EventType.UNPUBLISH_CREDENTIAL};
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.CREDENTIAL_ID.getValue(), "credential-1");
 
         for (EventType eventType : credentialEventTypes) {
-            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            EventRepository.EventToCleanGroup result =
+                    EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
             assertThat(result).as("non-null group for %s", eventType).isNotNull();
             assertThat(result.type()).isEqualTo(eventType.name());
             assertThat(result.referenceId()).isEqualTo("credential-1");

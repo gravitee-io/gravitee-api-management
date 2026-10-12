@@ -96,10 +96,14 @@ class CreatePlanDomainServiceTest {
     private static final String USER_ID = "user-id";
     private static final String TAG = "tag1";
 
-    private static final Api HTTP_PROXY_API_V4 = aProxyApiV4().toBuilder().id(API_ID).build();
-    private static final Api TCP_PROXY_API_V4 = aTcpApiV4().toBuilder().id(API_ID).build();
-    private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
-    private static final Api API_NATIVE_V4 = ApiFixtures.aNativeApi().toBuilder().id(API_ID).build();
+    private static final Api HTTP_PROXY_API_V4 =
+            aProxyApiV4().toBuilder().id(API_ID).build();
+    private static final Api TCP_PROXY_API_V4 =
+            aTcpApiV4().toBuilder().id(API_ID).build();
+    private static final Api API_MESSAGE_V4 =
+            aMessageApiV4().toBuilder().id(API_ID).build();
+    private static final Api API_NATIVE_V4 =
+            ApiFixtures.aNativeApi().toBuilder().id(API_ID).build();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
@@ -127,31 +131,34 @@ class CreatePlanDomainServiceTest {
     void setUp() {
         var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         service = new CreatePlanDomainService(
-            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-            new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
-            planCrudService,
-            flowCrudService,
-            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()),
-            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
-            kafkaPortRanges
-        );
+                new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
+                new FlowValidationDomainService(
+                        policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
+                planCrudService,
+                flowCrudService,
+                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()),
+                new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+                kafkaPortRanges);
 
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(1)
-        );
+        parametersQueryService.initWith(List.of(
+                new Parameter(
+                        Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true"),
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService)
+                .forEach(InMemoryAlternative::reset);
         reset(policyValidationDomainService);
     }
 
@@ -161,13 +168,17 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_invalid_status_change_detected() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder().build();
-            parametersQueryService.initWith(
-                List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
-            );
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .build();
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    "false")));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
+            var throwable =
+                    Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
@@ -176,13 +187,14 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder().build();
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
-                new InvalidDataException("invalid")
-            );
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .build();
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                    .thenThrow(new InvalidDataException("invalid"));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
+            var throwable =
+                    Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
@@ -195,37 +207,39 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
-                .toBuilder()
-                .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4Definition.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build()
-                )
-                .build();
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.aPushPlan().toBuilder()
+                    .planDefinitionHttpV4(PlanFixtures.HttpV4Definition.aPushPlan().toBuilder()
+                            .security(PlanSecurity.builder().build())
+                            .build())
+                    .build();
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
+            var throwable =
+                    Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(PlanInvalidException.class)
-                .hasMessage("Security type is forbidden for plan with 'Push' mode");
+                    .isInstanceOf(PlanInvalidException.class)
+                    .hasMessage("Security type is forbidden for plan with 'Push' mode");
         }
 
         @Test
         void should_throw_when_security_configuration_is_missing() {
             // Given
-            var plan = aPlanHttpV4()
-                .toBuilder()
-                .planDefinitionHttpV4(PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder().security(null).build())
-                .build();
+            var plan = aPlanHttpV4().toBuilder()
+                    .planDefinitionHttpV4(PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder()
+                            .security(null)
+                            .build())
+                    .build();
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
+            var throwable =
+                    Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(PlanInvalidException.class)
-                .hasMessage("Security type is required for plan with 'STANDARD' mode");
+                    .isInstanceOf(PlanInvalidException.class)
+                    .hasMessage("Security type is required for plan with 'STANDARD' mode");
         }
     }
 
@@ -236,7 +250,9 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_throw_when_api_is_deprecated(Api api, Plan plan, List<Flow> flows) {
             // Given
-            var deprecatedApi = api.toBuilder().apiLifecycleState(Api.ApiLifecycleState.DEPRECATED).build();
+            var deprecatedApi = api.toBuilder()
+                    .apiLifecycleState(Api.ApiLifecycleState.DEPRECATED)
+                    .build();
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, deprecatedApi, AUDIT_INFO));
@@ -257,51 +273,47 @@ class CreatePlanDomainServiceTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Plan tags mismatch the tags defined by the API");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Plan tags mismatch the tags defined by the API");
         }
 
         @ParameterizedTest
         @MethodSource("httpPlans")
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
-            List<Flow> invalidFlows = List.of(
-                Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
-            );
+            List<Flow> invalidFlows = List.of(Flow.builder()
+                    .name("invalid")
+                    .selectors(List.of(new HttpSelector(), new ChannelSelector()))
+                    .build());
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, invalidFlows, api, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("The flow [invalid] contains selectors that couldn't apply");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("The flow [invalid] contains selectors that couldn't apply");
         }
 
         @ParameterizedTest
         @MethodSource("plans")
         void should_throw_when_general_conditions_page_is_not_published_while_updating_a_published_plan(
-            Api api,
-            Plan plan,
-            List<Flow> flows
-        ) {
+                Api api, Plan plan, List<Flow> flows) {
             // Given
-            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
+            pageCrudService.initWith(
+                    List.of(Page.builder().id("page-id").published(false).build()));
 
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.create(
+            var throwable = Assertions.catchThrowable(() -> service.create(
                     plan.toBuilder().generalConditions("page-id").build().setPlanStatus(PlanStatus.PUBLISHED),
                     flows,
                     api,
-                    AUDIT_INFO
-                )
-            );
+                    AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Plan references a non published page as general conditions");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Plan references a non published page as general conditions");
         }
 
         @ParameterizedTest
@@ -318,7 +330,10 @@ class CreatePlanDomainServiceTest {
                 soft.assertThat(result.getReferenceId()).isEqualTo(API_ID);
                 soft.assertThat(result.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
-                soft.assertThat(result.getFlows()).hasSize(1).extracting(AbstractFlow::getName).containsExactly("flow");
+                soft.assertThat(result.getFlows())
+                        .hasSize(1)
+                        .extracting(AbstractFlow::getName)
+                        .containsExactly("flow");
                 soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(result.getNeedRedeployAt()).isEqualTo(INSTANT_NOW);
@@ -345,14 +360,16 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("apiProductPlans")
-        void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api_product(ApiProduct api, Plan plan, List<Flow> flows) {
+        void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api_product(
+                ApiProduct api, Plan plan, List<Flow> flows) {
             var apiProductWithoutTags = api.toBuilder().tags(Set.of()).build();
 
-            var throwable = Assertions.catchThrowable(() -> service.createApiProductPlan(plan, apiProductWithoutTags, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(
+                    () -> service.createApiProductPlan(plan, apiProductWithoutTags, AUDIT_INFO));
 
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Plan tags mismatch the tags defined by the API Product");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Plan tags mismatch the tags defined by the API Product");
         }
 
         @ParameterizedTest
@@ -370,7 +387,8 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_create_plan_with_publishedAt_filled_when_creating_a_published_plan(Api api, Plan plan, List<Flow> flows) {
+        void should_create_plan_with_publishedAt_filled_when_creating_a_published_plan(
+                Api api, Plan plan, List<Flow> flows) {
             // Given
             var publishedPlan = plan.toBuilder().generalConditions(null).build().setPlanStatus(PlanStatus.PUBLISHED);
 
@@ -385,7 +403,10 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_create_plan_with_general_condition_and_no_page_linked(Api api, Plan plan, List<Flow> flows) {
             // Given
-            var publishedPlan = plan.toBuilder().generalConditions("page-not-found-id").build().setPlanStatus(PlanStatus.PUBLISHED);
+            var publishedPlan = plan.toBuilder()
+                    .generalConditions("page-not-found-id")
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED);
 
             // When
             var result = service.create(publishedPlan, flows, api, AUDIT_INFO);
@@ -415,42 +436,40 @@ class CreatePlanDomainServiceTest {
             // Then: use created plan id for audit properties (id may be generated when plan.id was null)
             var createdPlanId = result.getId();
             assertThat(auditCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-                .containsExactly(
-                    AuditEntity.builder()
-                        .id("generated-id")
-                        .organizationId(ORGANIZATION_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId(API_ID)
-                        .user(USER_ID)
-                        .properties(Map.of("PLAN", createdPlanId))
-                        .event(PlanAuditEvent.PLAN_CREATED.name())
-                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                    .containsExactly(AuditEntity.builder()
+                            .id("generated-id")
+                            .organizationId(ORGANIZATION_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .referenceType(AuditEntity.AuditReferenceType.API)
+                            .referenceId(API_ID)
+                            .user(USER_ID)
+                            .properties(Map.of("PLAN", createdPlanId))
+                            .event(PlanAuditEvent.PLAN_CREATED.name())
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .build());
         }
 
         @Test
         void should_default_validation_to_auto_when_native_keyless_plan_has_no_validation() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
-                .toBuilder()
-                .referenceId(API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .apiId(API_ID)
-                .validation(null)
-                .build()
-                .setPlanStatus(PlanStatus.STAGING)
-                .setPlanTags(Set.of(TAG));
+            var plan = fixtures.core.model.PlanFixtures.NativeV4.aKeyless().toBuilder()
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .apiId(API_ID)
+                    .validation(null)
+                    .build()
+                    .setPlanStatus(PlanStatus.STAGING)
+                    .setPlanTags(Set.of(TAG));
 
             // When
             var result = service.create(
-                plan,
-                List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build()),
-                API_NATIVE_V4,
-                AUDIT_INFO
-            );
+                    plan,
+                    List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                            .name("flow")
+                            .build()),
+                    API_NATIVE_V4,
+                    AUDIT_INFO);
 
             // Then
             assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
@@ -459,23 +478,24 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_default_validation_to_auto_when_keyless_plan_has_no_validation() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
-                .toBuilder()
-                .referenceId(API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .apiId(API_ID)
-                .validation(null)
-                .build()
-                .setPlanStatus(PlanStatus.STAGING)
-                .setPlanTags(Set.of(TAG));
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .apiId(API_ID)
+                    .validation(null)
+                    .build()
+                    .setPlanStatus(PlanStatus.STAGING)
+                    .setPlanTags(Set.of(TAG));
 
             // When
             var result = service.create(
-                plan,
-                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build()),
-                HTTP_PROXY_API_V4,
-                AUDIT_INFO
-            );
+                    plan,
+                    List.of(Flow.builder()
+                            .name("flow")
+                            .selectors(List.of(new HttpSelector()))
+                            .build()),
+                    HTTP_PROXY_API_V4,
+                    AUDIT_INFO);
 
             // Then
             assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
@@ -484,22 +504,23 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_default_validation_to_manual_when_secured_plan_has_no_validation() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .referenceId(API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .apiId(API_ID)
-                .validation(null)
-                .build()
-                .setPlanStatus(PlanStatus.STAGING);
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .apiId(API_ID)
+                    .validation(null)
+                    .build()
+                    .setPlanStatus(PlanStatus.STAGING);
 
             // When
             var result = service.create(
-                plan,
-                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build()),
-                HTTP_PROXY_API_V4,
-                AUDIT_INFO
-            );
+                    plan,
+                    List.of(Flow.builder()
+                            .name("flow")
+                            .selectors(List.of(new HttpSelector()))
+                            .build()),
+                    HTTP_PROXY_API_V4,
+                    AUDIT_INFO);
 
             // Then
             assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.MANUAL);
@@ -508,17 +529,22 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_default_validation_to_auto_when_v2_keyless_plan_has_no_validation() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.aPlanV2()
-                .toBuilder()
-                .referenceId(API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .apiId(API_ID)
-                .planDefinitionV2(fixtures.core.model.PlanFixtures.aPlanV2().getPlanDefinitionV2().toBuilder().security("KEY_LESS").build())
-                .validation(null)
-                .build();
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2().toBuilder()
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .apiId(API_ID)
+                    .planDefinitionV2(fixtures.core.model.PlanFixtures.aPlanV2().getPlanDefinitionV2().toBuilder()
+                            .security("KEY_LESS")
+                            .build())
+                    .validation(null)
+                    .build();
 
             // When
-            var result = service.create(plan, List.of(), ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build(), AUDIT_INFO);
+            var result = service.create(
+                    plan,
+                    List.of(),
+                    ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build(),
+                    AUDIT_INFO);
 
             // Then
             assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
@@ -527,22 +553,23 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_keep_explicit_validation() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .referenceId(API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .apiId(API_ID)
-                .validation(Plan.PlanValidationType.AUTO)
-                .build()
-                .setPlanStatus(PlanStatus.STAGING);
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .apiId(API_ID)
+                    .validation(Plan.PlanValidationType.AUTO)
+                    .build()
+                    .setPlanStatus(PlanStatus.STAGING);
 
             // When
             var result = service.create(
-                plan,
-                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build()),
-                HTTP_PROXY_API_V4,
-                AUDIT_INFO
-            );
+                    plan,
+                    List.of(Flow.builder()
+                            .name("flow")
+                            .selectors(List.of(new HttpSelector()))
+                            .build()),
+                    HTTP_PROXY_API_V4,
+                    AUDIT_INFO);
 
             // Then
             assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
@@ -551,9 +578,11 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_adding_secured_plan_to_tcp_api() {
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.create(fixtures.core.model.PlanFixtures.HttpV4.anApiKey(), Collections.emptyList(), TCP_PROXY_API_V4, AUDIT_INFO)
-            );
+            var throwable = Assertions.catchThrowable(() -> service.create(
+                    fixtures.core.model.PlanFixtures.HttpV4.anApiKey(),
+                    Collections.emptyList(),
+                    TCP_PROXY_API_V4,
+                    AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
@@ -562,15 +591,17 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_allow_keyless_plan_creation_to_tcp_api() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
-                .toBuilder()
-                .referenceId(API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .apiId(API_ID)
-                .build()
-                .setPlanStatus(PlanStatus.PUBLISHED)
-                .setPlanTags(Set.of(TAG));
-            List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .apiId(API_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
+                    .setPlanTags(Set.of(TAG));
+            List<Flow> flows = List.of(Flow.builder()
+                    .name("flow")
+                    .selectors(List.of(new HttpSelector()))
+                    .build());
 
             // When
             var result = service.create(plan, flows, TCP_PROXY_API_V4, AUDIT_INFO);
@@ -583,131 +614,129 @@ class CreatePlanDomainServiceTest {
                 soft.assertThat(result.getReferenceId()).isEqualTo(API_ID);
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
                 soft.assertThat(result.getType()).isEqualTo(Plan.PlanType.API);
-                soft
-                    .assertThat(result.getPlanSecurity())
-                    .usingRecursiveComparison()
-                    .isEqualTo(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build());
+                soft.assertThat(result.getPlanSecurity())
+                        .usingRecursiveComparison()
+                        .isEqualTo(PlanSecurity.builder()
+                                .type(PlanSecurityType.KEY_LESS.getLabel())
+                                .build());
             });
         }
 
         static Stream<Arguments> plans() {
             return Stream.of(
-                Arguments.of(
-                    HTTP_PROXY_API_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
-                        .toBuilder()
-                        .referenceId(API_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG)),
-                    List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
-                ),
-                Arguments.of(
-                    API_MESSAGE_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
-                        .toBuilder()
-                        .referenceId(API_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .apiId(API_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG)),
-                    List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
-                ),
-                Arguments.of(
-                    API_NATIVE_V4,
-                    fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
-                        .toBuilder()
-                        .referenceId(API_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .apiId(API_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG)),
-                    List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build())
-                )
-            );
+                    Arguments.of(
+                            HTTP_PROXY_API_V4,
+                            fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder()
+                                    .referenceId(API_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG)),
+                            List.of(Flow.builder()
+                                    .name("flow")
+                                    .selectors(List.of(new HttpSelector()))
+                                    .build())),
+                    Arguments.of(
+                            API_MESSAGE_V4,
+                            fixtures.core.model.PlanFixtures.HttpV4.aPushPlan().toBuilder()
+                                    .referenceId(API_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                                    .apiId(API_ID)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG)),
+                            List.of(Flow.builder()
+                                    .name("flow")
+                                    .selectors(List.of(new ChannelSelector()))
+                                    .build())),
+                    Arguments.of(
+                            API_NATIVE_V4,
+                            fixtures.core.model.PlanFixtures.NativeV4.aKeyless().toBuilder()
+                                    .referenceId(API_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                                    .apiId(API_ID)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG)),
+                            List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                    .name("flow")
+                                    .build())));
         }
 
         static Stream<Arguments> apiProductPlans() {
             return Stream.of(
-                Arguments.of(
-                    BASE().build(),
-                    fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
-                        .toBuilder()
-                        .referenceId(API_PRODUCT_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                        .apiId(API_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG)),
-                    List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
-                ),
-                Arguments.of(
-                    BASE().build(),
-                    fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
-                        .toBuilder()
-                        .referenceId(API_PRODUCT_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                        .apiId(API_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG)),
-                    List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
-                ),
-                Arguments.of(
-                    BASE().build(),
-                    fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
-                        .toBuilder()
-                        .referenceId(API_PRODUCT_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                        .apiId(API_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG)),
-                    List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build())
-                )
-            );
+                    Arguments.of(
+                            BASE().build(),
+                            fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder()
+                                    .referenceId(API_PRODUCT_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                                    .apiId(API_ID)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG)),
+                            List.of(Flow.builder()
+                                    .name("flow")
+                                    .selectors(List.of(new HttpSelector()))
+                                    .build())),
+                    Arguments.of(
+                            BASE().build(),
+                            fixtures.core.model.PlanFixtures.HttpV4.aPushPlan().toBuilder()
+                                    .referenceId(API_PRODUCT_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                                    .apiId(API_ID)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG)),
+                            List.of(Flow.builder()
+                                    .name("flow")
+                                    .selectors(List.of(new ChannelSelector()))
+                                    .build())),
+                    Arguments.of(
+                            BASE().build(),
+                            fixtures.core.model.PlanFixtures.NativeV4.aKeyless().toBuilder()
+                                    .referenceId(API_PRODUCT_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                                    .apiId(API_ID)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG)),
+                            List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                    .name("flow")
+                                    .build())));
         }
 
         private static io.gravitee.apim.core.api_product.model.ApiProduct.ApiProductBuilder BASE() {
             return io.gravitee.apim.core.api_product.model.ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("My API Product")
-                .environmentId("environment-id")
-                .description("api-product-description")
-                .version("1.0.0")
-                .tags(Set.of(TAG))
-                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
+                    .id(API_PRODUCT_ID)
+                    .name("My API Product")
+                    .environmentId("environment-id")
+                    .description("api-product-description")
+                    .version("1.0.0")
+                    .tags(Set.of(TAG))
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
         }
 
         static Stream<Arguments> httpPlans() {
             return Stream.of(
-                Arguments.of(
-                    HTTP_PROXY_API_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
-                        .toBuilder()
-                        .referenceId(API_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .apiId(API_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG))
-                ),
-                Arguments.of(
-                    API_MESSAGE_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
-                        .toBuilder()
-                        .referenceId(API_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .apiId(API_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.STAGING)
-                        .setPlanTags(Set.of(TAG))
-                )
-            );
+                    Arguments.of(
+                            HTTP_PROXY_API_V4,
+                            fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder()
+                                    .referenceId(API_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                                    .apiId(API_ID)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG))),
+                    Arguments.of(
+                            API_MESSAGE_V4,
+                            fixtures.core.model.PlanFixtures.HttpV4.aPushPlan().toBuilder()
+                                    .referenceId(API_ID)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                                    .apiId(API_ID)
+                                    .build()
+                                    .setPlanStatus(PlanStatus.STAGING)
+                                    .setPlanTags(Set.of(TAG))));
         }
     }
 }

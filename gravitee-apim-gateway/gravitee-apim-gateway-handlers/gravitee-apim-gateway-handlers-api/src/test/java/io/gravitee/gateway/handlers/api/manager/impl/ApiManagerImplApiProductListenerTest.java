@@ -78,7 +78,8 @@ class ApiManagerImplApiProductListenerTest {
     @BeforeEach
     void setUp() {
         lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenReturn(false);
-        apiManager = new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry);
+        apiManager = new ApiManagerImpl(
+                eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry);
         listenerCaptor = ArgumentCaptor.forClass(EventListener.class);
         verify(eventManager).subscribeForEvents(listenerCaptor.capture(), eq(ApiProductEventType.UNDEPLOY));
     }
@@ -87,26 +88,25 @@ class ApiManagerImplApiProductListenerTest {
     void should_undeploy_product_only_api_on_product_undeploy_event() {
         var api = buildProductOnlyApi();
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-            List.of(
-                new ApiProductRegistry.ApiProductPlanEntry(
-                    "product-1",
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
-                        .id("plan-test")
-                        .name("TestPlan")
-                        .status(PlanStatus.PUBLISHED)
-                        .build()
-                )
-            )
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                        "product-1",
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id("plan-test")
+                                .name("TestPlan")
+                                .status(PlanStatus.PUBLISHED)
+                                .build())));
         apiManager.register(api);
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(List.of());
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of());
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UNDEPLOY,
+                        new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"))));
 
         verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
         assertThat(apiManager.apis()).isEmpty();
@@ -116,19 +116,19 @@ class ApiManagerImplApiProductListenerTest {
     void should_ignore_product_undeploy_event_with_null_api_ids() {
         var api = buildProductOnlyApi();
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-            List.of(
-                new ApiProductRegistry.ApiProductPlanEntry(
-                    "product-1",
-                    io.gravitee.definition.model.v4.plan.Plan.builder().id("plan-test").status(PlanStatus.PUBLISHED).build()
-                )
-            )
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                        "product-1",
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id("plan-test")
+                                .status(PlanStatus.PUBLISHED)
+                                .build())));
         apiManager.register(api);
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", null)));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", null)));
 
         assertThat(apiManager.apis()).hasSize(1);
     }
@@ -137,19 +137,20 @@ class ApiManagerImplApiProductListenerTest {
     void should_keep_api_deployed_when_product_undeploy_does_not_remove_eligibility() {
         var api = buildProductOnlyApi();
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-            List.of(
-                new ApiProductRegistry.ApiProductPlanEntry(
-                    "product-1",
-                    io.gravitee.definition.model.v4.plan.Plan.builder().id("plan-test").status(PlanStatus.PUBLISHED).build()
-                )
-            )
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                        "product-1",
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id("plan-test")
+                                .status(PlanStatus.PUBLISHED)
+                                .build())));
         apiManager.register(api);
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UNDEPLOY,
+                        new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test"))));
 
         verify(eventManager, never()).publishEvent(ReactorEvent.UNDEPLOY, api);
         assertThat(apiManager.apis()).hasSize(1);
@@ -159,18 +160,18 @@ class ApiManagerImplApiProductListenerTest {
     void should_re_evaluate_after_product_change_via_public_api() {
         var api = buildProductOnlyApi();
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-            List.of(
-                new ApiProductRegistry.ApiProductPlanEntry(
-                    "product-1",
-                    io.gravitee.definition.model.v4.plan.Plan.builder().id("plan-test").status(PlanStatus.PUBLISHED).build()
-                )
-            )
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                        "product-1",
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id("plan-test")
+                                .status(PlanStatus.PUBLISHED)
+                                .build())));
         apiManager.register(api);
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(List.of());
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of());
 
         apiManager.reEvaluateAfterProductChange("product-1", Set.of("api-test"));
 
@@ -182,52 +183,49 @@ class ApiManagerImplApiProductListenerTest {
     void should_serialize_product_undeploy_with_concurrent_register() throws Exception {
         var api = buildProductOnlyApi();
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-            List.of(
-                new ApiProductRegistry.ApiProductPlanEntry(
-                    "product-1",
-                    io.gravitee.definition.model.v4.plan.Plan.builder().id("plan-test").status(PlanStatus.PUBLISHED).build()
-                )
-            )
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                        "product-1",
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id("plan-test")
+                                .status(PlanStatus.PUBLISHED)
+                                .build())));
         apiManager.register(api);
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(List.of());
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of());
 
         CountDownLatch undeployInsideHandler = new CountDownLatch(1);
         CountDownLatch releaseUndeploy = new CountDownLatch(1);
         CountDownLatch registerCompleted = new CountDownLatch(1);
 
         doAnswer(invocation -> {
-            if (invocation.getArgument(0) == ReactorEvent.UNDEPLOY) {
-                undeployInsideHandler.countDown();
-                releaseUndeploy.await(5, TimeUnit.SECONDS);
-            }
-            return null;
-        })
-            .when(eventManager)
-            .publishEvent(any(), any());
+                    if (invocation.getArgument(0) == ReactorEvent.UNDEPLOY) {
+                        undeployInsideHandler.countDown();
+                        releaseUndeploy.await(5, TimeUnit.SECONDS);
+                    }
+                    return null;
+                })
+                .when(eventManager)
+                .publishEvent(any(), any());
 
-        Thread productUndeployThread = new Thread(() ->
-            listenerCaptor
+        Thread productUndeployThread = new Thread(() -> listenerCaptor
                 .getValue()
-                .onEvent(
-                    new SimpleEvent<>(ApiProductEventType.UNDEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test")))
-                )
-        );
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UNDEPLOY,
+                        new ApiProductChangedEvent("product-1", "env-1", Set.of("api-test")))));
         productUndeployThread.start();
 
         assertThat(undeployInsideHandler.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(apiManager.apis()).isEmpty();
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-            List.of(
-                new ApiProductRegistry.ApiProductPlanEntry(
-                    "product-1",
-                    io.gravitee.definition.model.v4.plan.Plan.builder().id("plan-test").status(PlanStatus.PUBLISHED).build()
-                )
-            )
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                        "product-1",
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id("plan-test")
+                                .status(PlanStatus.PUBLISHED)
+                                .build())));
 
         Thread registerThread = new Thread(() -> {
             apiManager.register(buildProductOnlyApi());

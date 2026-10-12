@@ -82,8 +82,8 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @org.testcontainers.junit.jupiter.Container
     protected static final VaultContainer vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
-        .withVaultToken(VAULT_TOKEN)
-        .dependsOn(mqtt5);
+            .withVaultToken(VAULT_TOKEN)
+            .dependsOn(mqtt5);
 
     @AfterAll
     static void cleanup() {
@@ -92,7 +92,8 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -109,7 +110,8 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
         configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.host", vaultContainer.getHost());
-        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
+        configurationBuilder.setYamlProperty(
+                "api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", "false");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "token");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.config.token", token);
@@ -122,11 +124,10 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @Override
     public void configureSecretProviders(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins) {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class));
     }
 
     @Override
@@ -137,27 +138,26 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @ParameterizedTest
     @MethodSource("qosParameters")
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json"
+    })
     void should_receive_messages_single(Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
         final int messageCount = 10;
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Single<HttpClientResponse> get = createGetRequest(
-            "/test-qos-" + qos.getLabel(),
-            UUID.random().toString(),
-            httpClient,
-            readyObs
-        );
+        final Single<HttpClientResponse> get =
+                createGetRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
-            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-        )
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
-            .flatMap(response -> response.rxBody().flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(get.doOnSuccess(
+                        response -> assertThat(response.statusCode()).isEqualTo(200)))
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .flatMap(response -> response.rxBody()
+                        .flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
@@ -169,42 +169,38 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @ParameterizedTest
     @MethodSource("qosParameters")
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_sequential(Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json"
+    })
+    void should_receive_messages_sequential(
+            Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
         final int messageCount = 40;
         final List<Completable> readyObs = new ArrayList<>();
         final String clientIdentifier = UUID.random().toString();
 
-        final Single<HttpClientResponse> get = createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
+        final Single<HttpClientResponse> get =
+                createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
-            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-        )
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
-            .flatMap(response ->
-                response
-                    .rxBody()
-                    .flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response)))
-                    .concatWith(
-                        Single.defer(() ->
-                            createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient).delaySubscription(
-                                500,
-                                TimeUnit.MILLISECONDS
-                            )
-                        )
-                            .doOnSuccess(nextResponse -> assertThat(nextResponse.statusCode()).isEqualTo(200))
-                            .flatMapPublisher(nextResponse ->
-                                nextResponse
-                                    .rxBody()
-                                    .flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(nextResponse)))
-                            )
-                            .repeat(3)
-                    )
-            )
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(get.doOnSuccess(
+                        response -> assertThat(response.statusCode()).isEqualTo(200)))
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .flatMap(response -> response.rxBody()
+                        .flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response)))
+                        .concatWith(Single.defer(() -> createGetRequest(
+                                                "/test-qos-" + qos.getLabel(), clientIdentifier, httpClient)
+                                        .delaySubscription(500, TimeUnit.MILLISECONDS))
+                                .doOnSuccess(nextResponse ->
+                                        assertThat(nextResponse.statusCode()).isEqualTo(200))
+                                .flatMapPublisher(nextResponse -> nextResponse
+                                        .rxBody()
+                                        .flatMapPublisher(
+                                                buffer -> extractMessages(buffer, extractTransactionId(nextResponse))))
+                                .repeat(3)))
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
@@ -216,26 +212,32 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @ParameterizedTest
     @MethodSource("qosParameters")
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_parallel(Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json"
+    })
+    void should_receive_messages_parallel(
+            Qos qos, MqttQos publishQos, boolean expectExactRange, HttpClient httpClient) {
         final int messageCount = 20;
         final List<Completable> readyObs = new ArrayList<>();
         final String clientIdentifier = UUID.random().toString();
 
         // Note: use the same client identifier for both requests.
-        final Single<HttpClientResponse> get1 = createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
-        final Single<HttpClientResponse> get2 = createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
+        final Single<HttpClientResponse> get1 =
+                createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
+        final Single<HttpClientResponse> get2 =
+                createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = get1
-            .mergeWith(get2)
-            .doOnNext(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
-            .groupBy(this::extractTransactionId)
-            .flatMap(groups -> groups.flatMapSingle(HttpClientResponse::rxBody).flatMap(buffer -> extractMessages(buffer, groups.getKey())))
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+        final TestSubscriber<JsonObject> obs = get1.mergeWith(get2)
+                .doOnNext(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .groupBy(this::extractTransactionId)
+                .flatMap(groups -> groups.flatMapSingle(HttpClientResponse::rxBody)
+                        .flatMap(buffer -> extractMessages(buffer, groups.getKey())))
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
@@ -245,65 +247,66 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
         }
     }
 
-    @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
+    @EnumSource(
+            value = Qos.class,
+            names = {"AT_MOST_ONCE", "AT_LEAST_ONCE"})
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
-    @DeployApi(
-        { "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json" }
-    )
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json"
+    })
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient httpClient) {
-        final TestObserver<JsonObject> obs = createGetRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
-            .flatMap(HttpClientResponse::body)
-            .map(body -> new JsonObject(body.toString()))
-            .test();
+        final TestObserver<JsonObject> obs = createGetRequest(
+                        "/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient)
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
+                .flatMap(HttpClientResponse::body)
+                .map(body -> new JsonObject(body.toString()))
+                .test();
 
-        obs
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(jsonBody -> {
-                assertThat(jsonBody.getString("message")).isEqualTo(
-                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
-                );
-                assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(400);
-                return true;
-            });
+        obs.awaitDone(30, TimeUnit.SECONDS).assertValue(jsonBody -> {
+            assertThat(jsonBody.getString("message"))
+                    .isEqualTo("Incompatible Qos capabilities between entrypoint requirements and endpoint supports");
+            assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(400);
+            return true;
+        });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-failure.json" })
+    @DeployApi({"/apis/v4/messages/mqtt5/mqtt5-endpoint-failure.json"})
     void should_receive_error_messages_when_error_occurred(HttpClient httpClient) {
-        final TestObserver<JsonObject> obs = createGetRequest("/test-failure", UUID.random().toString(), httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(500))
-            .flatMap(HttpClientResponse::body)
-            .map(body -> new JsonObject(body.toString()))
-            .test();
+        final TestObserver<JsonObject> obs = createGetRequest(
+                        "/test-failure", UUID.random().toString(), httpClient)
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(500))
+                .flatMap(HttpClientResponse::body)
+                .map(body -> new JsonObject(body.toString()))
+                .test();
 
-        obs
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(jsonBody -> {
-                assertThat(jsonBody.getString("message")).isEqualTo("Endpoint connection failed");
-                assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(500);
+        obs.awaitDone(30, TimeUnit.SECONDS).assertValue(jsonBody -> {
+            assertThat(jsonBody.getString("message")).isEqualTo("Endpoint connection failed");
+            assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(500);
 
-                return true;
-            });
+            return true;
+        });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-secret.json" })
+    @DeployApi({"/apis/v4/messages/mqtt5/mqtt5-endpoint-secret.json"})
     void should_receive_messages_with_secret(HttpClient httpClient) {
         final int messageCount = 10;
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Single<HttpClientResponse> get = createGetRequest("/test-secret", UUID.random().toString(), httpClient, readyObs);
+        final Single<HttpClientResponse> get =
+                createGetRequest("/test-secret", UUID.random().toString(), httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
-            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-        )
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-secret", MqttQos.AT_LEAST_ONCE))
-            .flatMap(response -> response.rxBody().flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(get.doOnSuccess(
+                        response -> assertThat(response.statusCode()).isEqualTo(200)))
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-secret", MqttQos.AT_LEAST_ONCE))
+                .flatMap(response -> response.rxBody()
+                        .flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
@@ -328,25 +331,18 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @NonNull
     private Single<HttpClientResponse> createGetRequest(String path, String clientIdentifier, HttpClient httpClient) {
-        return httpClient
-            .rxRequest(HttpMethod.GET, path)
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                request.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
-                return request.rxSend();
-            });
+        return httpClient.rxRequest(HttpMethod.GET, path).flatMap(request -> {
+            request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+            request.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
+            return request.rxSend();
+        });
     }
 
     @NonNull
     private Single<HttpClientResponse> createGetRequest(
-        String path,
-        String clientIdentifier,
-        HttpClient httpClient,
-        List<Completable> readyObs
-    ) {
-        return createGetRequest(path, clientIdentifier, httpClient).doOnSuccess(response ->
-            readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response)))
-        );
+            String path, String clientIdentifier, HttpClient httpClient, List<Completable> readyObs) {
+        return createGetRequest(path, clientIdentifier, httpClient)
+                .doOnSuccess(response -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response))));
     }
 
     private void verifyMessagesAreOrdered(int messageCount, TestSubscriber<JsonObject> obs) {
@@ -355,11 +351,11 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
         for (int i = 0; i < messageCount; i++) {
             obs.assertValueAt(i, jsonObject -> {
                 final Integer messageCounter = jsonObject.getInteger("counter");
-                final AtomicInteger requestCounter = counters.computeIfAbsent(jsonObject.getString("transactionId"), s ->
-                    new AtomicInteger(messageCounter)
-                );
+                final AtomicInteger requestCounter = counters.computeIfAbsent(
+                        jsonObject.getString("transactionId"), s -> new AtomicInteger(messageCounter));
 
-                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
+                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3
+                // then message-1).
                 assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
                 requestCounter.set(messageCounter);
                 assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);

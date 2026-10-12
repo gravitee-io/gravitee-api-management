@@ -22,16 +22,10 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.exceptions.InvalidTokenException;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.jwks.MACJWKSourceResolver;
 import java.security.SecureRandom;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.Date;
-import java.util.HashSet;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -75,7 +69,9 @@ public class HMACKeyProcessorTest extends AbstractKeyProcessorTest {
     private static String generateMacToken(String key) throws JOSEException {
         System.setProperty("auth.external.verificationKey", key);
         System.setProperty("auth.external.algorithm", Algorithm.HS256.alg);
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).type(JOSEObjectType.JWT).build();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
+                .type(JOSEObjectType.JWT)
+                .build();
 
         JWTClaimsSet payload = getJwtClaimsSet();
 

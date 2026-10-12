@@ -63,7 +63,8 @@ public class LoggableClientRequest extends RequestWrapper {
         request.bodyHandler(chunk -> {
             if (buffer == null) {
                 buffer = Buffer.buffer();
-                isContentTypeLoggable = isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
+                isContentTypeLoggable =
+                        isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
             }
             bodyHandler.handle(chunk);
             if (isContentTypeLoggable && LoggingUtils.isRequestPayloadsLoggable(context)) {

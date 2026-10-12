@@ -63,12 +63,10 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
         }
 
         if (criteria.getQuery() != null) {
-            query.addCriteria(
-                new Criteria().orOperator(
-                    where("name").regex(criteria.getQuery(), "i"),
-                    where("description").regex(criteria.getQuery(), "i")
-                )
-            );
+            query.addCriteria(new Criteria()
+                    .orOperator(
+                            where("name").regex(criteria.getQuery(), "i"),
+                            where("description").regex(criteria.getQuery(), "i")));
         }
 
         final long total = mongoQueries.countOrTimeout(mongoTemplate, query, ClusterMongo.class);

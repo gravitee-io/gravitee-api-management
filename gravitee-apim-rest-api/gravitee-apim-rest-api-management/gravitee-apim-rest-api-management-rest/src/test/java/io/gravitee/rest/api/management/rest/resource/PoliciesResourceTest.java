@@ -90,12 +90,10 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         Set<?> entity = response.readEntity(Set.class);
         assertThat(entity)
-            .hasSize(3)
-            .hasToString(
-                "[{id=policy-2, name=Policy 2, onRequest=true, onResponse=false, deployed=true}, " +
-                    "{id=policy-3, name=Policy 3, onRequest=true, onResponse=false, deployed=false}, " +
-                    "{id=policy-1, name=Policy 1, onRequest=true, onResponse=false, deployed=false}]"
-            );
+                .hasSize(3)
+                .hasToString("[{id=policy-2, name=Policy 2, onRequest=true, onResponse=false, deployed=true}, "
+                        + "{id=policy-3, name=Policy 3, onRequest=true, onResponse=false, deployed=false}, "
+                        + "{id=policy-1, name=Policy 1, onRequest=true, onResponse=false, deployed=false}]");
     }
 
     @Test
@@ -106,9 +104,11 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyEntity.setId("my-api");
 
         when(policyService.findAll(null)).thenReturn(policyEntities);
-        when(policyService.getSchema(any(), eq(SchemaDisplayFormat.GV_SCHEMA_FORM))).thenReturn("policy schema");
+        when(policyService.getSchema(any(), eq(SchemaDisplayFormat.GV_SCHEMA_FORM)))
+                .thenReturn("policy schema");
 
-        final Response response = envTarget().queryParam("expand", "schema").request().get();
+        final Response response =
+                envTarget().queryParam("expand", "schema").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         Set entity = response.readEntity(Set.class);
@@ -130,7 +130,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
         when(policyService.findAll(null)).thenReturn(policyEntities);
 
-        final Response response = envTarget().queryParam("expand", "unknown").request().get();
+        final Response response =
+                envTarget().queryParam("expand", "unknown").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         Set entity = response.readEntity(Set.class);

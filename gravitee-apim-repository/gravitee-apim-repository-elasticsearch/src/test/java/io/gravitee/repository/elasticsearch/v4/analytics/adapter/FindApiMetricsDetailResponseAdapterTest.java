@@ -43,44 +43,43 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
         @Test
         void should_build_api_metrics_detail() {
             final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics.json");
-            final Optional<ApiMetricsDetail> apiMetricsDetail = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse);
+            final Optional<ApiMetricsDetail> apiMetricsDetail =
+                    FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse);
 
-            assertThat(apiMetricsDetail).isEqualTo(
-                Optional.of(
-                    ApiMetricsDetail.builder()
-                        .timestamp("2025-08-01T17:29:20.385+02:00")
-                        .apiId("2ebe3deb-1859-4d5b-be3d-eb1859dd5b16")
-                        .requestId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
-                        .transactionId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
-                        .host("localhost:8082")
-                        .applicationId("1")
-                        .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
-                        .subscriptionId("0:0:0:0:0:0:0:1")
-                        .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
-                        .status(202)
-                        .uri("/v4/echo")
-                        .requestContentLength(0L)
-                        .responseContentLength(276L)
-                        .remoteAddress("0:0:0:0:0:0:0:1")
-                        .gatewayLatency(3L)
-                        .gatewayResponseTime(19L)
-                        .endpointResponseTime(16L)
-                        .method(HttpMethod.GET)
-                        .endpoint("https://api.gravitee.io/echo")
-                        .entrypointId("http-proxy")
-                        .warnings(List.of())
-                        .securityType("JWT")
-                        .securityToken("oauth-client-1")
-                        .build()
-                )
-            );
+            assertThat(apiMetricsDetail)
+                    .isEqualTo(Optional.of(ApiMetricsDetail.builder()
+                            .timestamp("2025-08-01T17:29:20.385+02:00")
+                            .apiId("2ebe3deb-1859-4d5b-be3d-eb1859dd5b16")
+                            .requestId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
+                            .transactionId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
+                            .host("localhost:8082")
+                            .applicationId("1")
+                            .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
+                            .subscriptionId("0:0:0:0:0:0:0:1")
+                            .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
+                            .status(202)
+                            .uri("/v4/echo")
+                            .requestContentLength(0L)
+                            .responseContentLength(276L)
+                            .remoteAddress("0:0:0:0:0:0:0:1")
+                            .gatewayLatency(3L)
+                            .gatewayResponseTime(19L)
+                            .endpointResponseTime(16L)
+                            .method(HttpMethod.GET)
+                            .endpoint("https://api.gravitee.io/echo")
+                            .entrypointId("http-proxy")
+                            .warnings(List.of())
+                            .securityType("JWT")
+                            .securityToken("oauth-client-1")
+                            .build()));
         }
 
         @Test
         void should_read_the_api_product_of_a_request_that_went_through_one() {
             final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics-with-api-product.json");
 
-            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse)
+                    .orElseThrow();
 
             assertThat(result.getApiProductId()).isEqualTo("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff");
         }
@@ -93,7 +92,8 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
             // proves the adapter yields null rather than anything about why the fields are absent.
             final SearchResponse searchResponse = buildSearchHit("api-proxy-v2-metrics.json");
 
-            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse)
+                    .orElseThrow();
 
             assertThat(result.getSecurityType()).isNull();
             assertThat(result.getSecurityToken()).isNull();
@@ -103,33 +103,31 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
         void should_build_api_metrics_detail_from_v2_source() {
             final String v2RequestId = "c6b1a2e3-4d5f-6a7b-8c9d-0e1f2a3b4c5d";
             final SearchResponse searchResponse = buildSearchHit("api-proxy-v2-metrics.json", v2RequestId);
-            final Optional<ApiMetricsDetail> apiMetricsDetail = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse);
+            final Optional<ApiMetricsDetail> apiMetricsDetail =
+                    FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse);
 
-            assertThat(apiMetricsDetail).isEqualTo(
-                Optional.of(
-                    ApiMetricsDetail.builder()
-                        .timestamp("2025-07-15T10:00:00.000+02:00")
-                        .apiId("f1608475-dd77-4603-a084-75dd77d60350")
-                        .requestId(v2RequestId)
-                        .transactionId("c6b1a2e3-4d5f-6a7b-8c9d-0e1f2a3b4c5d")
-                        .host("localhost:8082")
-                        .applicationId("1")
-                        .planId("a1b2c3d4-5e6f-7a8b-9c0d-e1f2a3b4c5d6")
-                        .gateway("gw-node-1")
-                        .status(200)
-                        .uri("/v2/echo")
-                        .requestContentLength(0L)
-                        .responseContentLength(140L)
-                        .remoteAddress("127.0.0.1")
-                        .gatewayLatency(5L)
-                        .gatewayResponseTime(42L)
-                        .endpointResponseTime(37L)
-                        .method(HttpMethod.GET)
-                        .endpoint("https://api.gravitee.io/echo")
-                        .warnings(List.of())
-                        .build()
-                )
-            );
+            assertThat(apiMetricsDetail)
+                    .isEqualTo(Optional.of(ApiMetricsDetail.builder()
+                            .timestamp("2025-07-15T10:00:00.000+02:00")
+                            .apiId("f1608475-dd77-4603-a084-75dd77d60350")
+                            .requestId(v2RequestId)
+                            .transactionId("c6b1a2e3-4d5f-6a7b-8c9d-0e1f2a3b4c5d")
+                            .host("localhost:8082")
+                            .applicationId("1")
+                            .planId("a1b2c3d4-5e6f-7a8b-9c0d-e1f2a3b4c5d6")
+                            .gateway("gw-node-1")
+                            .status(200)
+                            .uri("/v2/echo")
+                            .requestContentLength(0L)
+                            .responseContentLength(140L)
+                            .remoteAddress("127.0.0.1")
+                            .gatewayLatency(5L)
+                            .gatewayResponseTime(42L)
+                            .endpointResponseTime(37L)
+                            .method(HttpMethod.GET)
+                            .endpoint("https://api.gravitee.io/echo")
+                            .warnings(List.of())
+                            .build()));
         }
     }
 }

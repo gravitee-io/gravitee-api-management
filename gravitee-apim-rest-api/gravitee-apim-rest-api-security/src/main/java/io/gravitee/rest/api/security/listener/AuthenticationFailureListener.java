@@ -25,7 +25,11 @@ public class AuthenticationFailureListener implements ApplicationListener<Abstra
 
     @Override
     public void onApplicationEvent(AbstractAuthenticationFailureEvent e) {
-        GraviteeAuthenticationDetails auth = (GraviteeAuthenticationDetails) e.getAuthentication().getDetails();
-        log.warn("Authentication failed event for: {} - IP: {}", e.getAuthentication().getPrincipal(), auth.getRemoteAddress());
+        GraviteeAuthenticationDetails auth =
+                (GraviteeAuthenticationDetails) e.getAuthentication().getDetails();
+        log.warn(
+                "Authentication failed event for: {} - IP: {}",
+                e.getAuthentication().getPrincipal(),
+                auth.getRemoteAddress());
     }
 }

@@ -27,41 +27,45 @@ class FetcherConfigurationAddressTest {
     void should_be_the_same_address_when_nothing_changes() {
         var configuration = "{\"url\":\"https://a.example/doc.md\",\"token\":\"secret\"}";
 
-        assertThat(FetcherConfigurationAddress.sameAddress(configuration, configuration)).isTrue();
+        assertThat(FetcherConfigurationAddress.sameAddress(configuration, configuration))
+                .isTrue();
     }
 
     @ParameterizedTest
     @CsvSource(
-        delimiter = '|',
-        value = {
-            "{\"url\":\"https://a.example/doc.md\"}|{\"url\":\"https://b.example/doc.md\"}",
-            "{\"githubUrl\":\"https://api.github.com\"}|{\"githubUrl\":\"https://github.attacker.example\"}",
-            "{\"gitlabUrl\":\"https://gitlab.com/api/v4\"}|{\"gitlabUrl\":\"https://gitlab.attacker.example/api/v4\"}",
-            "{\"bitbucketUrl\":\"https://api.bitbucket.org/2.0\"}|{\"bitbucketUrl\":\"https://bitbucket.attacker.example\"}",
-            "{\"repository\":\"https://git.example/repo.git\"}|{\"repository\":\"https://git.attacker.example/repo.git\"}",
-            "{\"url\":\"https://a.example/doc.md\"}|{}",
-            "{}|{\"url\":\"https://a.example/doc.md\"}",
-        }
-    )
-    void should_not_be_the_same_address_when_an_address_field_changes(String oldConfiguration, String newConfiguration) {
-        assertThat(FetcherConfigurationAddress.sameAddress(oldConfiguration, newConfiguration)).isFalse();
+            delimiter = '|',
+            value = {
+                "{\"url\":\"https://a.example/doc.md\"}|{\"url\":\"https://b.example/doc.md\"}",
+                "{\"githubUrl\":\"https://api.github.com\"}|{\"githubUrl\":\"https://github.attacker.example\"}",
+                "{\"gitlabUrl\":\"https://gitlab.com/api/v4\"}|{\"gitlabUrl\":\"https://gitlab.attacker.example/api/v4\"}",
+                "{\"bitbucketUrl\":\"https://api.bitbucket.org/2.0\"}|{\"bitbucketUrl\":\"https://bitbucket.attacker.example\"}",
+                "{\"repository\":\"https://git.example/repo.git\"}|{\"repository\":\"https://git.attacker.example/repo.git\"}",
+                "{\"url\":\"https://a.example/doc.md\"}|{}",
+                "{}|{\"url\":\"https://a.example/doc.md\"}",
+            })
+    void should_not_be_the_same_address_when_an_address_field_changes(
+            String oldConfiguration, String newConfiguration) {
+        assertThat(FetcherConfigurationAddress.sameAddress(oldConfiguration, newConfiguration))
+                .isFalse();
     }
 
     @Test
     void should_be_the_same_address_when_only_other_fields_change() {
         var oldConfiguration =
-            "{\"githubUrl\":\"https://api.github.com\",\"repository\":\"repo\",\"branchOrTag\":\"main\",\"filepath\":\"/a.md\"," +
-            "\"fetchCron\":null,\"autoFetch\":false,\"editLink\":\"https://a.example\",\"personalAccessToken\":\"secret\"}";
+                "{\"githubUrl\":\"https://api.github.com\",\"repository\":\"repo\",\"branchOrTag\":\"main\",\"filepath\":\"/a.md\","
+                        + "\"fetchCron\":null,\"autoFetch\":false,\"editLink\":\"https://a.example\",\"personalAccessToken\":\"secret\"}";
         var newConfiguration =
-            "{\"githubUrl\":\"https://api.github.com\",\"repository\":\"repo\",\"branchOrTag\":\"dev\",\"filepath\":\"/b.md\"," +
-            "\"fetchCron\":\"0 0 * * * *\",\"autoFetch\":true,\"editLink\":\"https://b.example\",\"personalAccessToken\":\"********\"}";
+                "{\"githubUrl\":\"https://api.github.com\",\"repository\":\"repo\",\"branchOrTag\":\"dev\",\"filepath\":\"/b.md\","
+                        + "\"fetchCron\":\"0 0 * * * *\",\"autoFetch\":true,\"editLink\":\"https://b.example\",\"personalAccessToken\":\"********\"}";
 
-        assertThat(FetcherConfigurationAddress.sameAddress(oldConfiguration, newConfiguration)).isTrue();
+        assertThat(FetcherConfigurationAddress.sameAddress(oldConfiguration, newConfiguration))
+                .isTrue();
     }
 
     @Test
     void should_treat_a_null_address_as_a_missing_one() {
-        assertThat(FetcherConfigurationAddress.sameAddress("{\"url\":null}", "{}")).isTrue();
+        assertThat(FetcherConfigurationAddress.sameAddress("{\"url\":null}", "{}"))
+                .isTrue();
     }
 
     @Test
@@ -71,7 +75,9 @@ class FetcherConfigurationAddressTest {
 
     @Test
     void should_not_be_the_same_address_when_a_configuration_cannot_be_read() {
-        assertThat(FetcherConfigurationAddress.sameAddress("{\"url\":\"https://a.example\"}", "not json")).isFalse();
-        assertThat(FetcherConfigurationAddress.sameAddress(null, "{\"url\":\"https://a.example\"}")).isFalse();
+        assertThat(FetcherConfigurationAddress.sameAddress("{\"url\":\"https://a.example\"}", "not json"))
+                .isFalse();
+        assertThat(FetcherConfigurationAddress.sameAddress(null, "{\"url\":\"https://a.example\"}"))
+                .isFalse();
     }
 }

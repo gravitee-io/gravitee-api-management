@@ -35,7 +35,6 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.el.TemplateVariableProvider;
-import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -47,12 +46,10 @@ import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
-import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
@@ -118,13 +115,20 @@ import lombok.Getter;
 @CustomLog
 public class DefaultApiReactor extends AbstractApiReactor {
 
-    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
-        LogEntryFactory.cached("serverId", DefaultExecutionContext.class, context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
-        LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_CONTEXT_PATH)),
-        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context ->
-            Objects.toString(context.getAttribute(ATTR_REQUEST_METHOD), null)
-        )
-    );
+    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES =
+            Set.of(
+                    LogEntryFactory.cached(
+                            "serverId",
+                            DefaultExecutionContext.class,
+                            context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
+                    LogEntryFactory.refreshable(
+                            "contextPath",
+                            DefaultExecutionContext.class,
+                            context -> context.getAttribute(ATTR_CONTEXT_PATH)),
+                    LogEntryFactory.refreshable(
+                            "requestMethod",
+                            DefaultExecutionContext.class,
+                            context -> Objects.toString(context.getAttribute(ATTR_REQUEST_METHOD), null)));
 
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
     private static final String ATTR_INTERNAL_TRACING_REQUEST_SPAN = "analytics.tracing.request.span";
@@ -177,88 +181,85 @@ public class DefaultApiReactor extends AbstractApiReactor {
      * Backward-compatible constructor for Message Reactor and other plugins that extend DefaultApiReactor.
      */
     public DefaultApiReactor(
-        final Api api,
-        final DeploymentContext deploymentContext,
-        final ComponentProvider componentProvider,
-        final List<TemplateVariableProvider> ctxTemplateVariableProviders,
-        final PolicyManager policyManager,
-        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        final ApiServicePluginManager apiServicePluginManager,
-        final EndpointManager endpointManager,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ApiProcessorChainFactory apiProcessorChainFactory,
-        final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory,
-        final FlowChainFactory v4FlowChainFactory,
-        final Configuration configuration,
-        final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final ReporterService reporterService,
-        final AccessPointManager accessPointManager,
-        final EventManager eventManager,
-        final HttpAcceptorFactory httpAcceptorFactory,
-        final TracingContext tracingContext,
-        final LogGuardService logGuardService
-    ) {
+            final Api api,
+            final DeploymentContext deploymentContext,
+            final ComponentProvider componentProvider,
+            final List<TemplateVariableProvider> ctxTemplateVariableProviders,
+            final PolicyManager policyManager,
+            final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            final ApiServicePluginManager apiServicePluginManager,
+            final EndpointManager endpointManager,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ApiProcessorChainFactory apiProcessorChainFactory,
+            final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory,
+            final FlowChainFactory v4FlowChainFactory,
+            final Configuration configuration,
+            final Node node,
+            final RequestTimeoutConfiguration requestTimeoutConfiguration,
+            final ReporterService reporterService,
+            final AccessPointManager accessPointManager,
+            final EventManager eventManager,
+            final HttpAcceptorFactory httpAcceptorFactory,
+            final TracingContext tracingContext,
+            final LogGuardService logGuardService) {
         this(
-            api,
-            deploymentContext,
-            componentProvider,
-            ctxTemplateVariableProviders,
-            policyManager,
-            entrypointConnectorPluginManager,
-            apiServicePluginManager,
-            endpointManager,
-            resourceLifecycleManager,
-            apiProcessorChainFactory,
-            flowChainFactory,
-            v4FlowChainFactory,
-            configuration,
-            node,
-            requestTimeoutConfiguration,
-            reporterService,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            tracingContext,
-            logGuardService,
-            null,
-            null
-        );
+                api,
+                deploymentContext,
+                componentProvider,
+                ctxTemplateVariableProviders,
+                policyManager,
+                entrypointConnectorPluginManager,
+                apiServicePluginManager,
+                endpointManager,
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                flowChainFactory,
+                v4FlowChainFactory,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                tracingContext,
+                logGuardService,
+                null,
+                null);
     }
 
     public DefaultApiReactor(
-        final Api api,
-        final DeploymentContext deploymentContext,
-        final ComponentProvider componentProvider,
-        final List<TemplateVariableProvider> ctxTemplateVariableProviders,
-        final PolicyManager policyManager,
-        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        final ApiServicePluginManager apiServicePluginManager,
-        final EndpointManager endpointManager,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ApiProcessorChainFactory apiProcessorChainFactory,
-        final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory,
-        final FlowChainFactory v4FlowChainFactory,
-        final Configuration configuration,
-        final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final ReporterService reporterService,
-        final AccessPointManager accessPointManager,
-        final EventManager eventManager,
-        final HttpAcceptorFactory httpAcceptorFactory,
-        final TracingContext tracingContext,
-        final LogGuardService logGuardService,
-        final ApiProductRegistry apiProductRegistry,
-        final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory
-    ) {
+            final Api api,
+            final DeploymentContext deploymentContext,
+            final ComponentProvider componentProvider,
+            final List<TemplateVariableProvider> ctxTemplateVariableProviders,
+            final PolicyManager policyManager,
+            final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            final ApiServicePluginManager apiServicePluginManager,
+            final EndpointManager endpointManager,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ApiProcessorChainFactory apiProcessorChainFactory,
+            final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory,
+            final FlowChainFactory v4FlowChainFactory,
+            final Configuration configuration,
+            final Node node,
+            final RequestTimeoutConfiguration requestTimeoutConfiguration,
+            final ReporterService reporterService,
+            final AccessPointManager accessPointManager,
+            final EventManager eventManager,
+            final HttpAcceptorFactory httpAcceptorFactory,
+            final TracingContext tracingContext,
+            final LogGuardService logGuardService,
+            final ApiProductRegistry apiProductRegistry,
+            final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory) {
         // apiProductRegistry may be null when API Product support is not loaded
         super(
-            configuration,
-            api,
-            new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager),
-            requestTimeoutConfiguration,
-            tracingContext
-        );
+                configuration,
+                api,
+                new DefaultEntrypointConnectorResolver(
+                        api.getDefinition(), deploymentContext, entrypointConnectorPluginManager),
+                requestTimeoutConfiguration,
+                tracingContext);
         this.deploymentContext = deploymentContext;
         this.componentProvider = componentProvider;
         this.ctxTemplateVariableProviders = ctxTemplateVariableProviders;
@@ -291,12 +292,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         this.node = node;
         this.lifecycleState = Lifecycle.State.INITIALIZED;
-        this.validateSubscriptionEnabled = configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true);
-        this.loggingExcludedResponseType = configuration.getProperty(
-            REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY,
-            String.class,
-            null
-        );
+        this.validateSubscriptionEnabled =
+                configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true);
+        this.loggingExcludedResponseType =
+                configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
 
         this.processorChainHooks = new ArrayList<>();
@@ -305,7 +304,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected HttpInvoker endpointInvoker(EndpointManager endpointManager) {
         final HttpEndpointInvoker endpointInvoker = new HttpEndpointInvoker(endpointManager);
         if (api.getDefinition().failoverEnabled()) {
-            return new FailoverInvoker(endpointInvoker, api.getDefinition().getFailover(), api.getId(), endpointManager);
+            return new FailoverInvoker(
+                    endpointInvoker, api.getDefinition().getFailover(), api.getId(), endpointManager);
         }
         return endpointInvoker;
     }
@@ -341,9 +341,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
         prepareCommonAttributes(ctx);
         ctx.setAttribute(ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
+        ctx.setInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
+        ctx.setInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
+        ctx.setInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
         ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
     }
 
@@ -365,62 +368,62 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected Completable handleRequest(final MutableExecutionContext ctx) {
         // Setup all processors before handling the request (ex: logging).
         return new CompletableReactorChain(startPhaseTracing(ctx, REQUEST))
-            .chainWith(executeProcessorChain(ctx, beforeHandleProcessors, REQUEST))
-            // Execute organization flow chain.
-            .chainWith(organizationFlowChain.execute(ctx, REQUEST))
-            // Before Security Chain.
-            .chainWith(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
-            // Execute security chain.
-            .chainWith(httpSecurityChain.execute(ctx))
-            // Before flows processors.
-            .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
-            // Resolve entrypoint and prepare request to be handled.
-            .chainWith(handleEntrypointRequest(ctx))
-            // Execute all flows for request phases (product plan flows first, then API plan and API flows).
-            .chainWith(executeProductPlanFlowChain(ctx, REQUEST))
-            .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
-            .chainWith(apiFlowChain.execute(ctx, REQUEST))
-            .chainWith(upstream -> endRequestPhaseTracing(upstream, ctx))
-            // Invoke the backend.
-            .chainWith(invokeBackend(ctx))
-            // Start RESPONSE traces
-            .chainWith(startPhaseTracing(ctx, RESPONSE))
-            // Execute all flows for response phases (product plan flows first, then API plan and API flows).
-            .chainWith(executeProductPlanFlowChain(ctx, RESPONSE))
-            .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
-            .chainWith(apiFlowChain.execute(ctx, RESPONSE))
-            // After flows processors.
-            .chainWith(executeProcessorChain(ctx, afterApiExecutionProcessors, RESPONSE))
-            .chainWithOnError(error -> processThrowable(ctx, error))
-            .chainWith(upstream -> timeout(upstream, ctx))
-            // Platform post flows must always be executed (whatever timeout or error).
-            .chainWith(
-                new CompletableReactorChain(organizationFlowChain.execute(ctx, RESPONSE)).chainWith(upstream -> timeout(upstream, ctx))
-            )
-            .chainWithOnError(error -> processOrganizationFlowError(ctx, error))
-            // Before entrypoint response
-            // Handle entrypoint response.
-            .chainWith(handleEntrypointResponse(ctx))
-            // Catch possible unexpected errors before executing after Handle Processors
-            .chainWithOnError(t -> handleUnexpectedError(ctx, t))
-            .chainWith(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
-            // Catch all possible unexpected errors
-            .chainWithOnError(t -> handleUnexpectedError(ctx, t))
-            // Finally, end the response.
-            .chainWith(ctx.response().end(ctx))
-            // The response has been written, so the request has ended whichever way it ended. A policy that took
-            // something it must give back registered for this, because the response phase it would otherwise use
-            // is skipped on an interruption. It has to run after the response rather than before it: a response
-            // still being written has reported no usage yet, and a policy reconciling against that would settle
-            // for nothing and leave the real figure unclaimed.
-            .chainWith(new CompletableReactorChain(executeActionsOnTerminate(ctx)).chainWith(upstream -> timeout(upstream, ctx)))
-            .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
-            .doOnEvent(throwable -> endPhaseTracing(ctx, RESPONSE, throwable))
-            .doOnDispose(() -> {
-                endPhaseTracing(ctx, REQUEST, null);
-                endPhaseTracing(ctx, RESPONSE, null);
-            })
-            .doFinally(pendingRequests::decrementAndGet);
+                .chainWith(executeProcessorChain(ctx, beforeHandleProcessors, REQUEST))
+                // Execute organization flow chain.
+                .chainWith(organizationFlowChain.execute(ctx, REQUEST))
+                // Before Security Chain.
+                .chainWith(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
+                // Execute security chain.
+                .chainWith(httpSecurityChain.execute(ctx))
+                // Before flows processors.
+                .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
+                // Resolve entrypoint and prepare request to be handled.
+                .chainWith(handleEntrypointRequest(ctx))
+                // Execute all flows for request phases (product plan flows first, then API plan and API flows).
+                .chainWith(executeProductPlanFlowChain(ctx, REQUEST))
+                .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
+                .chainWith(apiFlowChain.execute(ctx, REQUEST))
+                .chainWith(upstream -> endRequestPhaseTracing(upstream, ctx))
+                // Invoke the backend.
+                .chainWith(invokeBackend(ctx))
+                // Start RESPONSE traces
+                .chainWith(startPhaseTracing(ctx, RESPONSE))
+                // Execute all flows for response phases (product plan flows first, then API plan and API flows).
+                .chainWith(executeProductPlanFlowChain(ctx, RESPONSE))
+                .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
+                .chainWith(apiFlowChain.execute(ctx, RESPONSE))
+                // After flows processors.
+                .chainWith(executeProcessorChain(ctx, afterApiExecutionProcessors, RESPONSE))
+                .chainWithOnError(error -> processThrowable(ctx, error))
+                .chainWith(upstream -> timeout(upstream, ctx))
+                // Platform post flows must always be executed (whatever timeout or error).
+                .chainWith(new CompletableReactorChain(organizationFlowChain.execute(ctx, RESPONSE))
+                        .chainWith(upstream -> timeout(upstream, ctx)))
+                .chainWithOnError(error -> processOrganizationFlowError(ctx, error))
+                // Before entrypoint response
+                // Handle entrypoint response.
+                .chainWith(handleEntrypointResponse(ctx))
+                // Catch possible unexpected errors before executing after Handle Processors
+                .chainWithOnError(t -> handleUnexpectedError(ctx, t))
+                .chainWith(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
+                // Catch all possible unexpected errors
+                .chainWithOnError(t -> handleUnexpectedError(ctx, t))
+                // Finally, end the response.
+                .chainWith(ctx.response().end(ctx))
+                // The response has been written, so the request has ended whichever way it ended. A policy that took
+                // something it must give back registered for this, because the response phase it would otherwise use
+                // is skipped on an interruption. It has to run after the response rather than before it: a response
+                // still being written has reported no usage yet, and a policy reconciling against that would settle
+                // for nothing and leave the real figure unclaimed.
+                .chainWith(new CompletableReactorChain(executeActionsOnTerminate(ctx))
+                        .chainWith(upstream -> timeout(upstream, ctx)))
+                .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
+                .doOnEvent(throwable -> endPhaseTracing(ctx, RESPONSE, throwable))
+                .doOnDispose(() -> {
+                    endPhaseTracing(ctx, REQUEST, null);
+                    endPhaseTracing(ctx, RESPONSE, null);
+                })
+                .doFinally(pendingRequests::decrementAndGet);
     }
 
     protected Completable startPhaseTracing(final MutableExecutionContext ctx, final ExecutionPhase executionPhase) {
@@ -428,14 +431,16 @@ public class DefaultApiReactor extends AbstractApiReactor {
             return Completable.complete();
         }
         return Completable.fromRunnable(() -> {
-            String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
-            if (phaseSpanAttribute != null) {
-                Span executionPhaseSpan = ctx
-                    .getTracer()
-                    .startSpanFrom(InternalRequest.builder().name(executionPhase == REQUEST ? "Request phase" : "Response phase").build());
-                ctx.putInternalAttribute(phaseSpanAttribute, executionPhaseSpan);
-            }
-        }).onErrorComplete();
+                    String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
+                    if (phaseSpanAttribute != null) {
+                        Span executionPhaseSpan = ctx.getTracer()
+                                .startSpanFrom(InternalRequest.builder()
+                                        .name(executionPhase == REQUEST ? "Request phase" : "Response phase")
+                                        .build());
+                        ctx.putInternalAttribute(phaseSpanAttribute, executionPhaseSpan);
+                    }
+                })
+                .onErrorComplete();
     }
 
     protected CompletableSource endRequestPhaseTracing(final Completable upstream, final MutableExecutionContext ctx) {
@@ -445,7 +450,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         return upstream.doOnEvent(throwable -> endPhaseTracing(ctx, REQUEST, throwable));
     }
 
-    protected void endPhaseTracing(final MutableExecutionContext ctx, final ExecutionPhase executionPhase, final Throwable throwable) {
+    protected void endPhaseTracing(
+            final MutableExecutionContext ctx, final ExecutionPhase executionPhase, final Throwable throwable) {
         try {
             if (tracingContext.isEnabled()) {
                 String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
@@ -481,34 +487,33 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected Completable executeProcessorChain(
-        final MutableExecutionContext ctx,
-        final ProcessorChain processorChain,
-        final ExecutionPhase phase
-    ) {
-        return HookHelper.hook(() -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase);
+            final MutableExecutionContext ctx, final ProcessorChain processorChain, final ExecutionPhase phase) {
+        return HookHelper.hook(
+                () -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase);
     }
 
     protected Completable invokeBackend(final MutableExecutionContext ctx) {
         return invokeBackend0(ctx)
-            .doOnSubscribe(disposable -> initEndpointRequestStart(ctx))
-            .doFinally(() -> computeEndpointResponseTtfbMetric(ctx));
+                .doOnSubscribe(disposable -> initEndpointRequestStart(ctx))
+                .doFinally(() -> computeEndpointResponseTtfbMetric(ctx));
     }
 
     protected Completable invokeBackend0(final MutableExecutionContext ctx) {
         return Completable.defer(() -> {
             if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
                 return getInvoker(ctx)
-                    .map(invoker -> {
-                        ComponentScope.push(ctx, ComponentType.ENDPOINT, invoker.getId());
-                        return HookHelper.hook(
-                            () -> invoker.invoke(ctx),
-                            invoker.getId(),
-                            invokerHooks,
-                            ctx,
-                            endpointExecutionPhase()
-                        ).doFinally(() -> ComponentScope.remove(ctx, ComponentType.ENDPOINT, invoker.getId()));
-                    })
-                    .orElse(Completable.complete());
+                        .map(invoker -> {
+                            ComponentScope.push(ctx, ComponentType.ENDPOINT, invoker.getId());
+                            return HookHelper.hook(
+                                            () -> invoker.invoke(ctx),
+                                            invoker.getId(),
+                                            invokerHooks,
+                                            ctx,
+                                            endpointExecutionPhase())
+                                    .doFinally(
+                                            () -> ComponentScope.remove(ctx, ComponentType.ENDPOINT, invoker.getId()));
+                        })
+                        .orElse(Completable.complete());
             }
             return Completable.complete();
         });
@@ -534,12 +539,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
     Completable onTimeout(MutableExecutionContext ctx) {
         return Completable.defer(() -> {
             ComponentScope.push(ctx, ComponentType.SYSTEM, "request-timeout");
-            return ctx
-                .interruptWith(
-                    new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT_KEY).message(REQUEST_TIMEOUT_MESSAGE)
-                )
-                .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
-                .doFinally(() -> ComponentScope.remove(ctx, ComponentType.SYSTEM, "request-timeout"));
+            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504)
+                            .key(REQUEST_TIMEOUT_KEY)
+                            .message(REQUEST_TIMEOUT_MESSAGE))
+                    .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
+                    .doFinally(() -> ComponentScope.remove(ctx, ComponentType.SYSTEM, "request-timeout"));
         });
     }
 
@@ -555,10 +559,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
             // In case of any interruption without failure, execute api post processor chain and resume the execution
             return executeProcessorChain(ctx, afterApiExecutionProcessors, RESPONSE);
         } else if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
-            // In case of any interruption with execution failure, execute api error processor chain and resume the execution
+            // In case of any interruption with execution failure, execute api error processor chain and resume the
+            // execution
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         } else {
-            // In case of any error exception, log original exception, execute api error processor chain and resume the execution
+            // In case of any error exception, log original exception, execute api error processor chain and resume the
+            // execution
             ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
@@ -577,12 +583,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
         return Completable.fromRunnable(() -> {
             // Reports the failure and answers it, so the status the reports name is the one actually sent.
             UnexpectedErrorReporter.recordAndAnswer(
-                ctx,
-                HttpResponseStatus.INTERNAL_SERVER_ERROR.code(),
-                HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(),
-                throwable,
-                log
-            );
+                    ctx,
+                    HttpResponseStatus.INTERNAL_SERVER_ERROR.code(),
+                    HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(),
+                    throwable,
+                    log);
             computeEndpointResponseTtfbMetric(ctx);
         });
     }
@@ -630,24 +635,24 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected List<HttpAcceptor> prepareHttpAcceptors(Listener listener) {
-        return ((HttpListener) listener).getPaths()
-            .stream()
-            .map(path -> {
-                if (path.getHost() != null) {
-                    return httpAcceptorFactory.create(path.getHost(), path.getPath(), this, listener.getServers());
-                } else {
-                    return new AccessPointHttpAcceptor(
-                        eventManager,
-                        httpAcceptorFactory,
-                        api.getEnvironmentId(),
-                        accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
-                        path.getPath(),
-                        this,
-                        listener.getServers()
-                    );
-                }
-            })
-            .toList();
+        return ((HttpListener) listener)
+                .getPaths().stream()
+                        .map(path -> {
+                            if (path.getHost() != null) {
+                                return httpAcceptorFactory.create(
+                                        path.getHost(), path.getPath(), this, listener.getServers());
+                            } else {
+                                return new AccessPointHttpAcceptor(
+                                        eventManager,
+                                        httpAcceptorFactory,
+                                        api.getEnvironmentId(),
+                                        accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
+                                        path.getPath(),
+                                        this,
+                                        listener.getServers());
+                            }
+                        })
+                        .toList();
     }
 
     @Override
@@ -691,14 +696,13 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         endpointManager.start();
 
-        services = apiServicePluginManager
-            .getAllFactories()
-            .stream()
-            .map(apiServiceFactory -> apiServiceFactory.createService(deploymentContext))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+        services = apiServicePluginManager.getAllFactories().stream()
+                .map(apiServiceFactory -> apiServiceFactory.createService(deploymentContext))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-        Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList())).blockingAwait();
+        Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList()))
+                .blockingAwait();
 
         // Subscribe to API Product events for security chain refresh.
         if (apiProductRegistry != null) {
@@ -724,7 +728,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
      */
     public void restartApiProductPlanPolicyManager() {
         if (lifecycleState != Lifecycle.State.STARTED) {
-            log.debug("API [{}] skipping security chain refresh — reactor not started (state: {})", api.getId(), lifecycleState);
+            log.debug(
+                    "API [{}] skipping security chain refresh — reactor not started (state: {})",
+                    api.getId(),
+                    lifecycleState);
             return;
         }
         try {
@@ -752,8 +759,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
      */
     private void onApiProductEvent(Event<ApiProductEventType, ApiProductChangedEvent> event) {
         ApiProductChangedEvent payload = event.content();
-        if (payload != null && payload.getApiIds() != null && payload.getApiIds().contains(api.getId())) {
-            log.debug("API [{}] received ApiProductChangedEvent ({}) for product [{}]", api.getId(), event.type(), payload.getProductId());
+        if (payload != null
+                && payload.getApiIds() != null
+                && payload.getApiIds().contains(api.getId())) {
+            log.debug(
+                    "API [{}] received ApiProductChangedEvent ({}) for product [{}]",
+                    api.getId(),
+                    event.type(),
+                    payload.getProductId());
             restartApiProductPlanPolicyManager();
         }
     }
@@ -762,13 +775,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
         HttpSecurityChain chain;
         if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
             chain = new HttpSecurityChain(
-                api.getDefinition(),
-                policyManager,
-                ExecutionPhase.REQUEST,
-                api.getEnvironmentId(),
-                apiProductRegistry,
-                apiProductPlanPolicyManager
-            );
+                    api.getDefinition(),
+                    policyManager,
+                    ExecutionPhase.REQUEST,
+                    api.getEnvironmentId(),
+                    apiProductRegistry,
+                    apiProductPlanPolicyManager);
         } else {
             chain = new HttpSecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
         }
@@ -781,18 +793,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private void refreshApiProductPlanFlowChain() {
         if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
             io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory productPlanPolicyChainFactory =
-                new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(
-                    api.getId(),
-                    apiProductPlanPolicyManager,
-                    tracingContext != null && tracingContext.isEnabled()
-                );
+                    new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(
+                            api.getId(),
+                            apiProductPlanPolicyManager,
+                            tracingContext != null && tracingContext.isEnabled());
             this.apiProductPlanFlowChain = v4FlowChainFactory.createProductPlanFlow(
-                api,
-                api.getEnvironmentId(),
-                apiProductRegistry,
-                productPlanPolicyChainFactory,
-                tracingContext
-            );
+                    api, api.getEnvironmentId(), apiProductRegistry, productPlanPolicyChainFactory, tracingContext);
         } else {
             this.apiProductPlanFlowChain = null;
         }
@@ -809,15 +815,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
             if (actions.isEmpty()) {
                 return Completable.complete();
             }
-            return Flowable.fromIterable(actions.entrySet()).concatMapCompletable(entry ->
-                entry
-                    .getValue()
-                    .apply(ctx)
-                    .doOnError(throwable ->
-                        ctx.withLogger(log).warn("Action on terminate of policy {} failed", entry.getKey().id(), throwable)
-                    )
-                    .onErrorComplete()
-            );
+            return Flowable.fromIterable(actions.entrySet())
+                    .concatMapCompletable(entry -> entry.getValue()
+                            .apply(ctx)
+                            .doOnError(throwable -> ctx.withLogger(log)
+                                    .warn(
+                                            "Action on terminate of policy {} failed",
+                                            entry.getKey().id(),
+                                            throwable))
+                            .onErrorComplete());
         });
     }
 
@@ -830,15 +836,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected AnalyticsContext createAnalyticsContext() {
         LoggingContext loggingContext = Optional.ofNullable(api.getDefinition().getAnalytics())
-            .map(analytics -> {
-                var context = new LoggingContext(analytics.getLogging());
-                context.setOtelLogsEnabled(AnalyticsUtils.isOtelLogsEnabled(analytics));
-                context.setMaxSizeLogMessage(loggingMaxSize);
-                context.setExcludedResponseTypes(loggingExcludedResponseType);
-                context.setLogGuardService(logGuardService);
-                return context;
-            })
-            .orElse(null);
+                .map(analytics -> {
+                    var context = new LoggingContext(analytics.getLogging());
+                    context.setOtelLogsEnabled(AnalyticsUtils.isOtelLogsEnabled(analytics));
+                    context.setMaxSizeLogMessage(loggingMaxSize);
+                    context.setExcludedResponseTypes(loggingExcludedResponseType);
+                    context.setLogGuardService(logGuardService);
+                    return context;
+                })
+                .orElse(null);
         return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingContext, tracingContext);
     }
 
@@ -854,7 +860,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 log.debug("API reactor [{}] unsubscribed from API Product events", api.getId());
             }
 
-            Completable.concat(services.stream().map(ApiService::stop).collect(Collectors.toList())).blockingAwait();
+            Completable.concat(services.stream().map(ApiService::stop).collect(Collectors.toList()))
+                    .blockingAwait();
 
             entrypointConnectorResolver.preStop();
             endpointManager.preStop();
@@ -894,7 +901,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     @Override
     public String toString() {
-        return "ApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion() + ']';
+        return "ApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion()
+                + ']';
     }
 
     @Override

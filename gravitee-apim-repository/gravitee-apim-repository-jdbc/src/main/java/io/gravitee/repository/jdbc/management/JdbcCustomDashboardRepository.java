@@ -25,14 +25,12 @@ import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.CustomDashboardRepository;
 import io.gravitee.repository.management.model.CustomDashboard;
-import io.gravitee.repository.management.model.CustomDashboardWidget;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,9 +44,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcCustomDashboardRepository
-    extends JdbcAbstractCrudRepository<CustomDashboard, String>
-    implements CustomDashboardRepository {
+public class JdbcCustomDashboardRepository extends JdbcAbstractCrudRepository<CustomDashboard, String>
+        implements CustomDashboardRepository {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
@@ -64,13 +61,13 @@ public class JdbcCustomDashboardRepository
     @Override
     protected JdbcObjectMapper<CustomDashboard> buildOrm() {
         return JdbcObjectMapper.builder(CustomDashboard.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("created_by", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("last_modified", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("created_by", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("last_modified", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -93,7 +90,8 @@ public class JdbcCustomDashboardRepository
     public Optional<CustomDashboard> findById(String id) throws TechnicalException {
         log.debug("JdbcCustomDashboardRepository.findById({})", id);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getRowMapper(), id).stream().findFirst();
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getRowMapper(), id).stream()
+                    .findFirst();
         } catch (Exception ex) {
             log.error("Failed to find custom dashboard by id:", ex);
             throw new TechnicalException("Failed to find custom dashboard by id", ex);
@@ -114,7 +112,8 @@ public class JdbcCustomDashboardRepository
     public List<CustomDashboard> findByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcCustomDashboardRepository.findByEnvironmentId({})", environmentId);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?", getRowMapper(), environmentId);
+            return jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " where environment_id = ?", getRowMapper(), environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find custom dashboards by environment id: " + environmentId, ex);
         }
@@ -197,7 +196,8 @@ public class JdbcCustomDashboardRepository
         private final JdbcObjectMapper<CustomDashboard> orm;
         private final Object[] ids;
 
-        CustomDashboardPsc(String sql, CustomDashboard dashboard, JdbcObjectMapper<CustomDashboard> orm, Object... ids) {
+        CustomDashboardPsc(
+                String sql, CustomDashboard dashboard, JdbcObjectMapper<CustomDashboard> orm, Object... ids) {
             this.sql = sql;
             this.dashboard = dashboard;
             this.orm = orm;

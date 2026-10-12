@@ -64,40 +64,45 @@ public class PortalDocumentationsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_PORTAL,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @PathParam("hrid") String portalHrid,
-        @Valid @NotNull DocumentationSpec spec,
-        @QueryParam("dryRun") boolean dryRun
-    ) {
+            @PathParam("hrid") String portalHrid,
+            @Valid @NotNull DocumentationSpec spec,
+            @QueryParam("dryRun") boolean dryRun) {
         var auditInfo = getAuditInfo();
-        var portalId = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
-        var documentationId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(auditInfo).portal(portalHrid).hrid(spec.getHrid()).id()
-        );
+        var portalId = PortalId.of(
+                HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
+        var documentationId = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+                .context(auditInfo)
+                .portal(portalHrid)
+                .hrid(spec.getHrid())
+                .id());
 
         var input = new CreateOrUpdatePortalDocumentationUseCase.Input(
-            auditInfo,
-            documentationId,
-            portalId,
-            spec.getName(),
-            PortalDocumentationMapper.INSTANCE.toDomainType(spec.getType()),
-            spec.getContent(),
-            spec.getLocation(),
-            spec.getOrder(),
-            PortalDocumentationMapper.INSTANCE.toDomainArea(spec.getArea()),
-            PortalDocumentationMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
-        );
-        var output = dryRun ? validatePortalDocumentationUseCase.execute(input) : createOrUpdatePortalDocumentationUseCase.execute(input);
-
-        return Response.ok(
-            PortalDocumentationMapper.INSTANCE.toDocumentationState(
-                spec,
-                output.id() != null ? output.id().toString() : null,
-                output.errors(),
                 auditInfo,
-                portalHrid
-            )
-        ).build();
+                documentationId,
+                portalId,
+                spec.getName(),
+                PortalDocumentationMapper.INSTANCE.toDomainType(spec.getType()),
+                spec.getContent(),
+                spec.getLocation(),
+                spec.getOrder(),
+                PortalDocumentationMapper.INSTANCE.toDomainArea(spec.getArea()),
+                PortalDocumentationMapper.INSTANCE.toDomainVisibility(spec.getVisibility()));
+        var output = dryRun
+                ? validatePortalDocumentationUseCase.execute(input)
+                : createOrUpdatePortalDocumentationUseCase.execute(input);
+
+        return Response.ok(PortalDocumentationMapper.INSTANCE.toDocumentationState(
+                        spec,
+                        output.id() != null ? output.id().toString() : null,
+                        output.errors(),
+                        auditInfo,
+                        portalHrid))
+                .build();
     }
 }

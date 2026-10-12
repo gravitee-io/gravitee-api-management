@@ -34,7 +34,6 @@ import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.gravitee.reporter.api.v4.log.Log;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,7 +111,8 @@ class LogInitProcessorTest extends AbstractV4ProcessorTest {
 
         cut.execute(ctx).test().assertComplete();
 
-        final List<ExecutionWarn> warnings = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+        final List<ExecutionWarn> warnings =
+                ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
         assertNotNull(warnings);
         assertEquals(1, warnings.size());
         final ExecutionWarn warn = warnings.get(0);
@@ -123,9 +123,12 @@ class LogInitProcessorTest extends AbstractV4ProcessorTest {
 
     @Test
     void should_propagate_a_failure_raised_while_building_the_log_entity() {
-        // Only the condition evaluation may degrade: a failure while building the log is a defect, not an unusable condition.
+        // Only the condition evaluation may degrade: a failure while building the log is a defect, not an unusable
+        // condition.
         when(loggingContext.getCondition()).thenReturn("true");
-        doThrow(new IllegalStateException("log entity failure")).when(mockMetrics).setLog(any(Log.class));
+        doThrow(new IllegalStateException("log entity failure"))
+                .when(mockMetrics)
+                .setLog(any(Log.class));
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
 

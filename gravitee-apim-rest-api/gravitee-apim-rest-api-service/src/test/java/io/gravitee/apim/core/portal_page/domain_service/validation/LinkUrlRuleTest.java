@@ -35,67 +35,71 @@ class LinkUrlRuleTest {
 
     @Test
     void should_accept_an_https_url_on_create() {
-        var item = CreatePortalNavigationItem.builder().url("https://docs.example.com").build();
+        var item = CreatePortalNavigationItem.builder()
+                .url("https://docs.example.com")
+                .build();
 
-        assertThatCode(() -> rule.validate(item, "environment-id", CreateValidationContext.empty())).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(item, "environment-id", CreateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_accept_an_http_url_with_a_path_on_create() {
-        var item = CreatePortalNavigationItem.builder().url("http://example.com/path").build();
+        var item = CreatePortalNavigationItem.builder()
+                .url("http://example.com/path")
+                .build();
 
-        assertThatCode(() -> rule.validate(item, "environment-id", CreateValidationContext.empty())).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(item, "environment-id", CreateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_reject_a_relative_path_on_create() {
         var item = CreatePortalNavigationItem.builder().url("/relative/path").build();
 
-        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty())).isInstanceOf(
-            InvalidUrlFormatException.class
-        );
+        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty()))
+                .isInstanceOf(InvalidUrlFormatException.class);
     }
 
     @Test
     void should_reject_a_string_with_no_scheme_on_create() {
         var item = CreatePortalNavigationItem.builder().url("invalid-url").build();
 
-        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty())).isInstanceOf(
-            InvalidUrlFormatException.class
-        );
+        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty()))
+                .isInstanceOf(InvalidUrlFormatException.class);
     }
 
     @Test
     void should_reject_blank_on_create() {
         var item = CreatePortalNavigationItem.builder().url("  ").build();
 
-        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty())).isInstanceOf(
-            InvalidUrlFormatException.class
-        );
+        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty()))
+                .isInstanceOf(InvalidUrlFormatException.class);
     }
 
     @Test
     void should_reject_null_on_create() {
         var item = CreatePortalNavigationItem.builder().url(null).build();
 
-        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty())).isInstanceOf(
-            InvalidUrlFormatException.class
-        );
+        assertThatThrownBy(() -> rule.validate(item, "environment-id", CreateValidationContext.empty()))
+                .isInstanceOf(InvalidUrlFormatException.class);
     }
 
     @Test
     void should_accept_a_well_formed_url_on_update() {
-        var toUpdate = UpdatePortalNavigationItem.builder().url("https://renamed.example.com").build();
+        var toUpdate = UpdatePortalNavigationItem.builder()
+                .url("https://renamed.example.com")
+                .build();
 
-        assertThatCode(() -> rule.validate(toUpdate, existingLink, UpdateValidationContext.empty())).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(toUpdate, existingLink, UpdateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_reject_a_malformed_url_on_update() {
         var toUpdate = UpdatePortalNavigationItem.builder().url("not-a-url").build();
 
-        assertThatThrownBy(() -> rule.validate(toUpdate, existingLink, UpdateValidationContext.empty())).isInstanceOf(
-            InvalidUrlFormatException.class
-        );
+        assertThatThrownBy(() -> rule.validate(toUpdate, existingLink, UpdateValidationContext.empty()))
+                .isInstanceOf(InvalidUrlFormatException.class);
     }
 }

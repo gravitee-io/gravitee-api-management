@@ -40,8 +40,7 @@ public class EndpointFixtures {
 
     private EndpointFixtures() {}
 
-    private static final Supplier<HttpEndpointV2> BASE_HTTP_ENDPOINT_V2 = () ->
-        new HttpEndpointV2()
+    private static final Supplier<HttpEndpointV2> BASE_HTTP_ENDPOINT_V2 = () -> new HttpEndpointV2()
             .name("Endpoint name")
             .target("http://gravitee.io")
             .weight(1)
@@ -57,8 +56,7 @@ public class EndpointFixtures {
             .httpClientSslOptions(null);
     private static final Supplier<EndpointGroupServicesV2> BASE_SERVICES_V2 = EndpointGroupServicesV2::new;
 
-    private static final Supplier<EndpointGroupV2> BASE_ENDPOINTGROUP_V2 = () ->
-        new EndpointGroupV2()
+    private static final Supplier<EndpointGroupV2> BASE_ENDPOINTGROUP_V2 = () -> new EndpointGroupV2()
             .name("Endpoint group name")
             .endpoints(List.of(new EndpointV2(BASE_HTTP_ENDPOINT_V2.get())))
             .loadBalancer(new LoadBalancer().type(LoadBalancer.TypeEnum.ROUND_ROBIN))
@@ -69,8 +67,7 @@ public class EndpointFixtures {
 
     private static final Supplier<EndpointGroupServices> BASE_ENDPOINTGROUP_SERVICES_V4 = EndpointGroupServices::new;
 
-    private static final Supplier<EndpointV4> BASE_ENDPOINT_V4 = () ->
-        new EndpointV4()
+    private static final Supplier<EndpointV4> BASE_ENDPOINT_V4 = () -> new EndpointV4()
             .name("Endpoint name")
             .type("http-get")
             .weight(1)
@@ -81,8 +78,7 @@ public class EndpointFixtures {
             .sharedConfigurationOverride(new LinkedHashMap<>(Map.of("nice", "configuration")))
             .services(new EndpointServices());
 
-    private static final Supplier<EndpointGroupV4> BASE_ENDPOINTGROUP_V4 = () ->
-        new EndpointGroupV4()
+    private static final Supplier<EndpointGroupV4> BASE_ENDPOINTGROUP_V4 = () -> new EndpointGroupV4()
             .name("Endpoint group name")
             .type("http-get")
             .loadBalancer(new LoadBalancer().type(LoadBalancer.TypeEnum.ROUND_ROBIN))
@@ -90,8 +86,8 @@ public class EndpointFixtures {
             .endpoints(List.of(BASE_ENDPOINT_V4.get()))
             .services(BASE_ENDPOINTGROUP_SERVICES_V4.get());
 
-    private static final Supplier<EndpointHealthCheckService> BASE_HEALTH_CHECK_SERVICE = () ->
-        new EndpointHealthCheckService().enabled(true).schedule("0 */5 * * * *");
+    private static final Supplier<EndpointHealthCheckService> BASE_HEALTH_CHECK_SERVICE =
+            () -> new EndpointHealthCheckService().enabled(true).schedule("0 */5 * * * *");
 
     public static HttpEndpointV2 anHttpEndpointV2() {
         return BASE_HTTP_ENDPOINT_V2.get();

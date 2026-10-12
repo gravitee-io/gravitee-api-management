@@ -65,7 +65,8 @@ class GetIntegrationsUseCaseTest {
     AsyncJobQueryServiceInMemory asyncJobQueryService = new AsyncJobQueryServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
-    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
+    MembershipQueryServiceInMemory membershipQueryService =
+            new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     IntegrationQueryServiceInMemory integrationQueryServiceInMemory = new IntegrationQueryServiceInMemory();
@@ -76,120 +77,110 @@ class GetIntegrationsUseCaseTest {
     @BeforeEach
     void setUp() {
         var integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
-            membershipCrudServiceInMemory,
-            roleQueryServiceInMemory,
-            membershipQueryService,
-            userCrudService
-        );
+                membershipCrudServiceInMemory, roleQueryServiceInMemory, membershipQueryService, userCrudService);
         usecase = new GetIntegrationsUseCase(
-            integrationQueryServiceInMemory,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            integrationAgent,
-            integrationPrimaryOwnerDomainService,
-            asyncJobQueryService
-        );
+                integrationQueryServiceInMemory,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                integrationAgent,
+                integrationPrimaryOwnerDomainService,
+                asyncJobQueryService);
 
         roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
-        givenExistingMemberships(
-            List.of(
-                Membership.builder()
-                    .referenceType(Membership.ReferenceType.INTEGRATION)
-                    .referenceId(INTEGRATION_ID)
-                    .memberType(Membership.Type.USER)
-                    .memberId(USER_ID)
-                    .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
-                    .build()
-            )
-        );
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
+        givenExistingMemberships(List.of(Membership.builder()
+                .referenceType(Membership.ReferenceType.INTEGRATION)
+                .referenceId(INTEGRATION_ID)
+                .memberType(Membership.Type.USER)
+                .memberId(USER_ID)
+                .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .build()));
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(integrationQueryServiceInMemory, integrationQueryServiceInMemory).forEach(InMemoryAlternative::reset);
+        Stream.of(integrationQueryServiceInMemory, integrationQueryServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_return_integrations_with_specific_env_id_and_good_groups() {
-        //Given
+        // Given
         var expected = IntegrationFixture.anApiIntegration();
         expected = IntegrationFixture.withGroups(expected, Set.of("group-1"));
         integrationAgent.configureAgentFor(expected.id(), IntegrationAgent.Status.CONNECTED);
-        integrationQueryServiceInMemory.initWith(
-            List.of(expected, IntegrationFixture.anApiIntegration("falseEnvID"), IntegrationFixture.anApiIntegration("anotherFalseEnvID"))
-        );
+        integrationQueryServiceInMemory.initWith(List.of(
+                expected,
+                IntegrationFixture.anApiIntegration("falseEnvID"),
+                IntegrationFixture.anApiIntegration("anotherFalseEnvID")));
         var input = GetIntegrationsUseCase.Input.builder()
-            .context(new ExecutionContext(ORGANIZATION_ID, ENV_ID))
-            .isAdmin(false)
-            .pageable(of(pageable))
-            .groups(Set.of("group-1"))
-            .build();
+                .context(new ExecutionContext(ORGANIZATION_ID, ENV_ID))
+                .isAdmin(false)
+                .pageable(of(pageable))
+                .groups(Set.of("group-1"))
+                .build();
 
-        //When
+        // When
         var output = usecase.execute(input);
 
-        //Then
+        // Then
         assertThat(output).isNotNull();
         assertThat(output.integrations())
-            .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-            .containsExactly(
-                List.of(
-                    new IntegrationView(
-                        expected,
-                        IntegrationView.AgentStatus.CONNECTED,
-                        null,
-                        new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe")
-                    )
-                ),
-                PAGE_NUMBER,
-                output.integrations().getPageElements(),
-                (long) output.integrations().getContent().size()
-            );
+                .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+                .containsExactly(
+                        List.of(new IntegrationView(
+                                expected,
+                                IntegrationView.AgentStatus.CONNECTED,
+                                null,
+                                new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe"))),
+                        PAGE_NUMBER,
+                        output.integrations().getPageElements(),
+                        (long) output.integrations().getContent().size());
     }
 
     @Test
     void should_return_integrations_with_default_pageable() {
-        //Given
+        // Given
         var expected = IntegrationFixture.anApiIntegration();
         integrationAgent.configureAgentFor(expected.id(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(List.of(expected));
-        var input = new GetIntegrationsUseCase.Input(new ExecutionContext(ORGANIZATION_ID, ENV_ID), "MyUser", Set.of(), true);
+        var input = new GetIntegrationsUseCase.Input(
+                new ExecutionContext(ORGANIZATION_ID, ENV_ID), "MyUser", Set.of(), true);
 
-        //When
+        // When
         var output = usecase.execute(input);
 
-        //Then
+        // Then
         assertThat(output).isNotNull();
         assertThat(output.integrations())
-            .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-            .containsExactly(
-                List.of(
-                    new IntegrationView(
-                        expected,
-                        IntegrationView.AgentStatus.CONNECTED,
-                        null,
-                        new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe")
-                    )
-                ),
-                PAGE_NUMBER,
-                output.integrations().getPageElements(),
-                (long) output.integrations().getContent().size()
-            );
+                .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+                .containsExactly(
+                        List.of(new IntegrationView(
+                                expected,
+                                IntegrationView.AgentStatus.CONNECTED,
+                                null,
+                                new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe"))),
+                        PAGE_NUMBER,
+                        output.integrations().getPageElements(),
+                        (long) output.integrations().getContent().size());
     }
 
     @Test
     void should_throw_when_no_enterprise_license_found() {
         // Given
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anOssLicense());
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            usecase.execute(new GetIntegrationsUseCase.Input(new ExecutionContext(ORGANIZATION_ID, ENV_ID), "MyUser", Set.of(), true))
-        );
+        var throwable = Assertions.catchThrowable(() -> usecase.execute(new GetIntegrationsUseCase.Input(
+                new ExecutionContext(ORGANIZATION_ID, ENV_ID), "MyUser", Set.of(), true)));
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);

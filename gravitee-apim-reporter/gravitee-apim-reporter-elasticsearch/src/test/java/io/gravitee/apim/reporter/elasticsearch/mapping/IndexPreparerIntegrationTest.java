@@ -69,20 +69,19 @@ import org.testcontainers.utility.DockerImageName;
  */
 @SpringJUnitConfig(IndexPreparerIntegrationTest.OpenSearchTestConfig.class)
 @TestPropertySource(
-    properties = {
-        "reporters.elasticsearch.index=gravitee-ism-override",
-        "reporters.elasticsearch.lifecycle.policy_property_name=index.plugins.index_state_management.policy_id",
-        "reporters.elasticsearch.lifecycle.rollover_alias_property_name=index.plugins.index_state_management.rollover_alias",
-        "reporters.elasticsearch.lifecycle.policies.health=policy-health",
-        "reporters.elasticsearch.lifecycle.policies.monitor=policy-monitor",
-        "reporters.elasticsearch.lifecycle.policies.request=policy-request",
-        "reporters.elasticsearch.lifecycle.policies.log=policy-log",
-        // The data-stream types. Every policy has to arrive as a property: the fields are @Value-annotated,
-        // so Spring populates them after the @Bean method has run and overwrites anything set there.
-        "reporters.elasticsearch.lifecycle.policies.event_metrics=policy-event-metrics",
-        "reporters.elasticsearch.lifecycle.policies.decisions=policy-decisions",
-    }
-)
+        properties = {
+            "reporters.elasticsearch.index=gravitee-ism-override",
+            "reporters.elasticsearch.lifecycle.policy_property_name=index.plugins.index_state_management.policy_id",
+            "reporters.elasticsearch.lifecycle.rollover_alias_property_name=index.plugins.index_state_management.rollover_alias",
+            "reporters.elasticsearch.lifecycle.policies.health=policy-health",
+            "reporters.elasticsearch.lifecycle.policies.monitor=policy-monitor",
+            "reporters.elasticsearch.lifecycle.policies.request=policy-request",
+            "reporters.elasticsearch.lifecycle.policies.log=policy-log",
+            // The data-stream types. Every policy has to arrive as a property: the fields are @Value-annotated,
+            // so Spring populates them after the @Bean method has run and overwrites anything set there.
+            "reporters.elasticsearch.lifecycle.policies.event_metrics=policy-event-metrics",
+            "reporters.elasticsearch.lifecycle.policies.decisions=policy-decisions",
+        })
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class IndexPreparerIntegrationTest {
 
@@ -100,7 +99,7 @@ class IndexPreparerIntegrationTest {
 
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
-    private static final String[] DATA_STREAM_TYPES = { "event-metrics", "decisions" };
+    private static final String[] DATA_STREAM_TYPES = {"event-metrics", "decisions"};
 
     static Stream<Arguments> es_preparers() {
         return Stream.of(Arguments.of("es7x"), Arguments.of("es8x"), Arguments.of("es9x"));
@@ -138,13 +137,14 @@ class IndexPreparerIntegrationTest {
     }
 
     private String storedTemplate(String api, String name) throws Exception {
-        HttpResponse<String> response = send(HttpRequest.newBuilder(uri(api, name)).GET());
+        HttpResponse<String> response =
+                send(HttpRequest.newBuilder(uri(api, name)).GET());
         assertThat(response.statusCode()).as("GET %s/%s", api, name).isEqualTo(200);
         return response.body();
     }
 
     private void deleteStoredTemplates() throws Exception {
-        for (String name : new String[] { "event-metrics", "decisions", "request" }) {
+        for (String name : new String[] {"event-metrics", "decisions", "request"}) {
             delete("_index_template", "gravitee-ism-override-" + name);
             delete("_template", "gravitee-ism-override-" + name);
         }
@@ -153,12 +153,14 @@ class IndexPreparerIntegrationTest {
     private void delete(String api, String name) throws Exception {
         // 404 just means this run is the first to create it; anything else means the cleanup did not
         // happen and a later assertion could be satisfied by a previous tree's template.
-        HttpResponse<String> response = send(HttpRequest.newBuilder(uri(api, name)).DELETE());
+        HttpResponse<String> response =
+                send(HttpRequest.newBuilder(uri(api, name)).DELETE());
         assertThat(response.statusCode()).as("DELETE %s/%s", api, name).isIn(200, 404);
     }
 
     private URI uri(String api, String name) {
-        return URI.create("%s/%s/%s".formatted(configuration.getEndpoints().get(0).getUrl(), api, name));
+        return URI.create(
+                "%s/%s/%s".formatted(configuration.getEndpoints().get(0).getUrl(), api, name));
     }
 
     private HttpResponse<String> send(HttpRequest.Builder request) throws Exception {
@@ -186,27 +188,23 @@ class IndexPreparerIntegrationTest {
         @Bean
         public ReporterConfiguration configuration(GenericContainer<?> openSearchContainer) {
             ReporterConfiguration configuration = new ReporterConfiguration();
-            configuration.setEndpoints(
-                Collections.singletonList(
-                    new Endpoint("http://" + openSearchContainer.getHost() + ":" + openSearchContainer.getMappedPort(9200))
-                )
-            );
+            configuration.setEndpoints(Collections.singletonList(new Endpoint(
+                    "http://" + openSearchContainer.getHost() + ":" + openSearchContainer.getMappedPort(9200))));
             return configuration;
         }
 
         @Bean(destroyMethod = "stop")
         public GenericContainer<?> openSearchContainer() {
             final GenericContainer<?> container = new GenericContainer<>(
-                DockerImageName.parse("opensearchproject/opensearch:" + opensearchVersion)
-            )
-                .withExposedPorts(9200)
-                .withEnv("discovery.type", "single-node")
-                .withEnv("DISABLE_SECURITY_PLUGIN", "true")
-                .withEnv("DISABLE_INSTALL_DEMO_CONFIG", "true")
-                // Left alone, the node sizes its heap at half the memory it can see, and it shares the CI
-                // machine with the Elasticsearch node the other integration tests keep running.
-                .withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
-                .waitingFor(Wait.forHttp("/").forStatusCode(200));
+                            DockerImageName.parse("opensearchproject/opensearch:" + opensearchVersion))
+                    .withExposedPorts(9200)
+                    .withEnv("discovery.type", "single-node")
+                    .withEnv("DISABLE_SECURITY_PLUGIN", "true")
+                    .withEnv("DISABLE_INSTALL_DEMO_CONFIG", "true")
+                    // Left alone, the node sizes its heap at half the memory it can see, and it shares the CI
+                    // machine with the Elasticsearch node the other integration tests keep running.
+                    .withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
+                    .waitingFor(Wait.forHttp("/").forStatusCode(200));
             container.start();
             return container;
         }

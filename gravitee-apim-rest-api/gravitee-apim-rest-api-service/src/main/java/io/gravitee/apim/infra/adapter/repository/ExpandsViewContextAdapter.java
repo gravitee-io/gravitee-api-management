@@ -24,7 +24,8 @@ public final class ExpandsViewContextAdapter {
 
     private ExpandsViewContextAdapter() {}
 
-    public static List<ExpandsViewContext> adapt(List<io.gravitee.apim.core.portal_page.model.ExpandsViewContext> values) {
+    public static List<ExpandsViewContext> adapt(
+            List<io.gravitee.apim.core.portal_page.model.ExpandsViewContext> values) {
         if (values == null || values.isEmpty()) {
             return Collections.emptyList();
         }

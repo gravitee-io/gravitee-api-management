@@ -62,16 +62,14 @@ public class PortalMenuLinksResourceNotAuthenticatedTest extends AbstractResourc
     @Test
     public void should_list_public_portal_menu_links_for_environment_only() {
         // Given
-        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .visibility(PortalMenuLinkVisibility.PUBLIC)
-            .environmentId(ENV_ID)
-            .build();
-        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .visibility(PortalMenuLinkVisibility.PRIVATE)
-            .environmentId(ENV_ID)
-            .build();
+        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                .visibility(PortalMenuLinkVisibility.PUBLIC)
+                .environmentId(ENV_ID)
+                .build();
+        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                .visibility(PortalMenuLinkVisibility.PRIVATE)
+                .environmentId(ENV_ID)
+                .build();
         portalMenuLinkCrudServiceInMemory.initWith(List.of(publicPortalMenuLink, privatePortalMenuLink));
 
         // When
@@ -82,13 +80,14 @@ public class PortalMenuLinksResourceNotAuthenticatedTest extends AbstractResourc
         var result = (List<io.gravitee.rest.api.portal.rest.model.PortalMenuLink>) response.readEntity(List.class);
 
         assertThat(result)
-            .isNotNull()
-            .hasSize(1)
-            .first()
-            .hasFieldOrPropertyWithValue("id", publicPortalMenuLink.getId())
-            .hasFieldOrPropertyWithValue("target", publicPortalMenuLink.getTarget())
-            .hasFieldOrPropertyWithValue("name", publicPortalMenuLink.getName())
-            .hasFieldOrPropertyWithValue("type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
-            .hasFieldOrPropertyWithValue("order", publicPortalMenuLink.getOrder());
+                .isNotNull()
+                .hasSize(1)
+                .first()
+                .hasFieldOrPropertyWithValue("id", publicPortalMenuLink.getId())
+                .hasFieldOrPropertyWithValue("target", publicPortalMenuLink.getTarget())
+                .hasFieldOrPropertyWithValue("name", publicPortalMenuLink.getName())
+                .hasFieldOrPropertyWithValue(
+                        "type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
+                .hasFieldOrPropertyWithValue("order", publicPortalMenuLink.getOrder());
     }
 }

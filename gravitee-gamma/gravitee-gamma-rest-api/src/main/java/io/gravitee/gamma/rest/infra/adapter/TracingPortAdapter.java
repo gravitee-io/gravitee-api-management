@@ -47,15 +47,14 @@ public class TracingPortAdapter implements TracingPort {
 
     @Override
     public Page<Trace> searchTraces(
-        String orgId,
-        String envId,
-        Map<String, String> resourceAttributeFilters,
-        Map<String, String> attributeFilters,
-        Instant start,
-        Instant end,
-        int page,
-        int perPage
-    ) {
+            String orgId,
+            String envId,
+            Map<String, String> resourceAttributeFilters,
+            Map<String, String> attributeFilters,
+            Instant start,
+            Instant end,
+            int page,
+            int perPage) {
         QueryContext queryContext = new QueryContext(orgId, envId);
         // ES terms aggs don't support from/size paging natively (only `size` = the first N buckets).
         // Until the tracing SPI grows composite-aggregation support, MVP paging is fetch-and-slice:
@@ -64,11 +63,13 @@ public class TracingPortAdapter implements TracingPort {
         // return an empty slice. Acceptable as a starting point; revisit when traces routinely exceed
         // 200 per query window.
         int fetchSize = (page + 1) * perPage;
-        TraceSearchCriteria criteria = new TraceSearchCriteria(attributeFilters, fetchSize, start, end, resourceAttributeFilters);
+        TraceSearchCriteria criteria =
+                new TraceSearchCriteria(attributeFilters, fetchSize, start, end, resourceAttributeFilters);
         // The SPI is non-blocking (Single) but the use case wants a List — block here, at the boundary
         // between reactive infra and synchronous core. Acceptable trade-off: a REST request is already a
         // blocking unit of work and the trace search is bounded by the indexed window + the agg limit.
-        Page<io.gravitee.repository.tracing.model.Trace> spiPage = tracingRepository.searchTraces(queryContext, criteria).blockingGet();
+        Page<io.gravitee.repository.tracing.model.Trace> spiPage =
+                tracingRepository.searchTraces(queryContext, criteria).blockingGet();
         List<io.gravitee.repository.tracing.model.Trace> fullPage = spiPage.getContent();
         // Total distinct traces matching the filter (from the SPI's cardinality agg), capped by the SPI at what it can
         // actually serve — so pageCount reflects the reachable pages, not just the size of this fetched slice.
@@ -76,57 +77,61 @@ public class TracingPortAdapter implements TracingPort {
 
         int fromIndex = Math.min(page * perPage, fullPage.size());
         int toIndex = Math.min(fromIndex + perPage, fullPage.size());
-        List<Trace> slice = fullPage.subList(fromIndex, toIndex).stream().map(TracingPortAdapter::toCoreTrace).toList();
+        List<Trace> slice = fullPage.subList(fromIndex, toIndex).stream()
+                .map(TracingPortAdapter::toCoreTrace)
+                .toList();
         return new Page<>(slice, page, perPage, total);
     }
 
     @Override
-    public Optional<List<Span>> getTraceSpans(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters) {
+    public Optional<List<Span>> getTraceSpans(
+            String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters) {
         QueryContext queryContext = new QueryContext(orgId, envId);
         // The SPI returns Maybe.empty() when the trace doesn't exist OR the env scope rejected it — both
         // collapse to Optional.empty here. The use case then short-circuits to a 404.
-        return Optional.ofNullable(tracingRepository.getTrace(queryContext, traceId, resourceAttributeFilters).blockingGet()).map(trace ->
-            trace.spans().stream().map(TracingPortAdapter::toCoreSpan).toList()
-        );
+        return Optional.ofNullable(tracingRepository
+                        .getTrace(queryContext, traceId, resourceAttributeFilters)
+                        .blockingGet())
+                .map(trace -> trace.spans().stream()
+                        .map(TracingPortAdapter::toCoreSpan)
+                        .toList());
     }
 
     private static Trace toCoreTrace(io.gravitee.repository.tracing.model.Trace source) {
         return new Trace(
-            source.traceId(),
-            source.startTime(),
-            source.durationNanos(),
-            source.rootService(),
-            source.rootOperation(),
-            // The SPI emits status as a UNSET/OK/ERROR string (matches per-span normalizeStatusCode output); the
-            // core layer lifts it to the typed enum so the use case + DTO don't have to know the string vocabulary.
-            SpanStatus.fromAttribute(source.status()),
-            source.spanCount()
-        );
+                source.traceId(),
+                source.startTime(),
+                source.durationNanos(),
+                source.rootService(),
+                source.rootOperation(),
+                // The SPI emits status as a UNSET/OK/ERROR string (matches per-span normalizeStatusCode output); the
+                // core layer lifts it to the typed enum so the use case + DTO don't have to know the string vocabulary.
+                SpanStatus.fromAttribute(source.status()),
+                source.spanCount());
     }
 
     private static Span toCoreSpan(io.gravitee.repository.tracing.model.TraceSpan source) {
         Map<String, String> attrs = source.attributes();
         return new Span(
-            source.spanId(),
-            source.parentSpanId(),
-            source.operationName(),
-            source.serviceName(),
-            source.startTime(),
-            source.durationNanos(),
-            // The ES adapter normalises status.code into otel.status_code (UNSET/OK/ERROR) on the
-            // attribute map — see ElasticsearchTracingRepository.normalizeStatusCode. The promotion to
-            // a first-class field happens here so consumers don't need to know the attribute key.
-            SpanStatus.fromAttribute(attrs.get("otel.status_code")),
-            // span.kind is not yet surfaced by the tracing repository SPI (TraceSpan record has no
-            // `kind` field). Until that's threaded through, look for an optional `span.kind` attribute
-            // — the OTel default is INTERNAL when missing, which fromAttribute returns for null.
-            SpanKind.fromAttribute(attrs.get("span.kind")),
-            attrs,
-            // Span events on the spans returned by the SPI are usually empty in the OTel-collector path
-            // (events get extracted into the logs data stream — fetched separately via OtelLogPort).
-            // Keep the list shape consistent so the use case can stitch events onto it without nulls.
-            new ArrayList<>(),
-            new ArrayList<>()
-        );
+                source.spanId(),
+                source.parentSpanId(),
+                source.operationName(),
+                source.serviceName(),
+                source.startTime(),
+                source.durationNanos(),
+                // The ES adapter normalises status.code into otel.status_code (UNSET/OK/ERROR) on the
+                // attribute map — see ElasticsearchTracingRepository.normalizeStatusCode. The promotion to
+                // a first-class field happens here so consumers don't need to know the attribute key.
+                SpanStatus.fromAttribute(attrs.get("otel.status_code")),
+                // span.kind is not yet surfaced by the tracing repository SPI (TraceSpan record has no
+                // `kind` field). Until that's threaded through, look for an optional `span.kind` attribute
+                // — the OTel default is INTERNAL when missing, which fromAttribute returns for null.
+                SpanKind.fromAttribute(attrs.get("span.kind")),
+                attrs,
+                // Span events on the spans returned by the SPI are usually empty in the OTel-collector path
+                // (events get extracted into the logs data stream — fetched separately via OtelLogPort).
+                // Keep the list shape consistent so the use case can stitch events onto it without nulls.
+                new ArrayList<>(),
+                new ArrayList<>());
     }
 }

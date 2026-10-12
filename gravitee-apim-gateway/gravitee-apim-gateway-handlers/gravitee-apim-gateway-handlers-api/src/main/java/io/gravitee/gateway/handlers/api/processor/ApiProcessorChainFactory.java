@@ -35,13 +35,15 @@ import java.util.function.Supplier;
  * @author GraviteeSource Team
  */
 public abstract class ApiProcessorChainFactory
-    implements ProcessorChainFactory<StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>>> {
+        implements ProcessorChainFactory<
+                StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>>> {
 
     protected final Api api;
 
     protected final PolicyChainFactory policyChainFactory;
 
-    private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
+    private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers =
+            new ArrayList<>();
 
     protected ApiProcessorChainFactory(final Api api, final PolicyChainFactory policyChainFactory) {
         this.api = api;
@@ -52,7 +54,8 @@ public abstract class ApiProcessorChainFactory
         this.providers.add(provider);
     }
 
-    protected void addAll(List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers) {
+    protected void addAll(
+            List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers) {
         this.providers.addAll(providers);
     }
 

@@ -55,34 +55,22 @@ class DefaultHttpAcceptorTest {
 
     @Test
     void should_accept_with_matching_path_and_server_and_host() {
-        final DefaultHttpAcceptor cut = new DefaultHttpAcceptor(
-            "localhost",
-            "/test",
-            mock(ReactorHandler.class),
-            List.of("a", "b", SERVER_ID)
-        );
+        final DefaultHttpAcceptor cut =
+                new DefaultHttpAcceptor("localhost", "/test", mock(ReactorHandler.class), List.of("a", "b", SERVER_ID));
         assertThat(cut.accept("localhost", "/test", SERVER_ID)).isTrue();
     }
 
     @Test
     void should_not_accept_with_matching_path_and_server_and_not_matching_host() {
-        final DefaultHttpAcceptor cut = new DefaultHttpAcceptor(
-            "localhost",
-            "/test",
-            mock(ReactorHandler.class),
-            List.of("a", "b", SERVER_ID)
-        );
+        final DefaultHttpAcceptor cut =
+                new DefaultHttpAcceptor("localhost", "/test", mock(ReactorHandler.class), List.of("a", "b", SERVER_ID));
         assertThat(cut.accept("other", "/test", SERVER_ID)).isFalse();
     }
 
     @Test
     void should_not_accept_with_matching_path_and_server_null() {
-        final DefaultHttpAcceptor cut = new DefaultHttpAcceptor(
-            "localhost",
-            "/test",
-            mock(ReactorHandler.class),
-            List.of("a", "b", SERVER_ID)
-        );
+        final DefaultHttpAcceptor cut =
+                new DefaultHttpAcceptor("localhost", "/test", mock(ReactorHandler.class), List.of("a", "b", SERVER_ID));
         assertThat(cut.accept("localhost", "/test", null)).isFalse();
     }
 }

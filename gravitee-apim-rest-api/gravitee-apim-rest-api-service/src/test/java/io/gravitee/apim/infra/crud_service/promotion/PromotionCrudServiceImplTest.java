@@ -26,7 +26,6 @@ import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,11 +71,12 @@ class PromotionCrudServiceImplTest {
         void should_throw_technical_exception_when_create_promotion() {
             when(repository.create(any())).thenThrow(TechnicalException.class);
 
-            Throwable throwable = catchThrowable(() -> service.create(fixtures.core.model.PromotionFixtures.aPromotion()));
+            Throwable throwable =
+                    catchThrowable(() -> service.create(fixtures.core.model.PromotionFixtures.aPromotion()));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred while trying to create a Promotion with id promotion-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred while trying to create a Promotion with id promotion-id");
         }
     }
 
@@ -102,11 +102,12 @@ class PromotionCrudServiceImplTest {
         void should_throw_a_technical_exception_when_updating_promotion() {
             when(repository.update(any())).thenThrow(TechnicalException.class);
 
-            Throwable throwable = catchThrowable(() -> service.update(fixtures.core.model.PromotionFixtures.aPromotion()));
+            Throwable throwable =
+                    catchThrowable(() -> service.update(fixtures.core.model.PromotionFixtures.aPromotion()));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred while trying to update the Promotion with id promotion-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred while trying to update the Promotion with id promotion-id");
         }
     }
 
@@ -124,26 +125,30 @@ class PromotionCrudServiceImplTest {
 
             var result = service.getById(id);
 
-            assertThat(result)
-                .isNotNull()
-                .satisfies(promotion -> {
-                    assertThat(promotion.getId()).isEqualTo(id);
-                    assertThat(promotion.getApiId()).isEqualTo(aPromotion.getApiId());
-                    assertThat(promotion.getStatus().name()).isEqualTo(aPromotion.getStatus().name());
-                    assertThat(promotion.getSourceEnvCockpitId()).isEqualTo(aPromotion.getSourceEnvCockpitId());
-                    assertThat(promotion.getSourceEnvName()).isEqualTo(aPromotion.getSourceEnvName());
-                    assertThat(promotion.getTargetEnvCockpitId()).isEqualTo(aPromotion.getTargetEnvCockpitId());
-                    assertThat(promotion.getTargetEnvName()).isEqualTo(aPromotion.getTargetEnvName());
-                    assertThat(promotion.getCreatedAt()).isEqualTo(aPromotion.getCreatedAt());
-                    assertThat(promotion.getUpdatedAt()).isEqualTo(aPromotion.getUpdatedAt());
-                    assertThat(promotion.getAuthor()).satisfies(promotionAuthor -> {
-                        assertThat(promotionAuthor.getUserId()).isEqualTo(aPromotion.getAuthor().getUserId());
-                        assertThat(promotionAuthor.getEmail()).isEqualTo(aPromotion.getAuthor().getEmail());
-                        assertThat(promotionAuthor.getDisplayName()).isEqualTo(aPromotion.getAuthor().getDisplayName());
-                        assertThat(promotionAuthor.getSource()).isEqualTo(aPromotion.getAuthor().getSource());
-                        assertThat(promotionAuthor.getSourceId()).isEqualTo(aPromotion.getAuthor().getSourceId());
-                    });
+            assertThat(result).isNotNull().satisfies(promotion -> {
+                assertThat(promotion.getId()).isEqualTo(id);
+                assertThat(promotion.getApiId()).isEqualTo(aPromotion.getApiId());
+                assertThat(promotion.getStatus().name())
+                        .isEqualTo(aPromotion.getStatus().name());
+                assertThat(promotion.getSourceEnvCockpitId()).isEqualTo(aPromotion.getSourceEnvCockpitId());
+                assertThat(promotion.getSourceEnvName()).isEqualTo(aPromotion.getSourceEnvName());
+                assertThat(promotion.getTargetEnvCockpitId()).isEqualTo(aPromotion.getTargetEnvCockpitId());
+                assertThat(promotion.getTargetEnvName()).isEqualTo(aPromotion.getTargetEnvName());
+                assertThat(promotion.getCreatedAt()).isEqualTo(aPromotion.getCreatedAt());
+                assertThat(promotion.getUpdatedAt()).isEqualTo(aPromotion.getUpdatedAt());
+                assertThat(promotion.getAuthor()).satisfies(promotionAuthor -> {
+                    assertThat(promotionAuthor.getUserId())
+                            .isEqualTo(aPromotion.getAuthor().getUserId());
+                    assertThat(promotionAuthor.getEmail())
+                            .isEqualTo(aPromotion.getAuthor().getEmail());
+                    assertThat(promotionAuthor.getDisplayName())
+                            .isEqualTo(aPromotion.getAuthor().getDisplayName());
+                    assertThat(promotionAuthor.getSource())
+                            .isEqualTo(aPromotion.getAuthor().getSource());
+                    assertThat(promotionAuthor.getSourceId())
+                            .isEqualTo(aPromotion.getAuthor().getSourceId());
                 });
+            });
         }
 
         @Test
@@ -155,8 +160,8 @@ class PromotionCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.getById(id));
 
             assertThat(throwable)
-                .isInstanceOf(DbEntityNotFoundException.class)
-                .hasMessage("Promotion with id promotion-id cannot be found");
+                    .isInstanceOf(DbEntityNotFoundException.class)
+                    .hasMessage("Promotion with id promotion-id cannot be found");
         }
 
         @Test
@@ -168,8 +173,8 @@ class PromotionCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.getById(id));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred while trying to find a Promotion with id promotion-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred while trying to find a Promotion with id promotion-id");
         }
     }
 }

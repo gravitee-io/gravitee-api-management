@@ -31,11 +31,10 @@ public class ApiGetDocumentationPageUseCase {
     private final PageCrudService pageCrudService;
 
     public ApiGetDocumentationPageUseCase(
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        PageSourceDomainService pageSourceDomainService,
-        ApiCrudService apiCrudService,
-        PageCrudService pageCrudService
-    ) {
+            ApiDocumentationDomainService apiDocumentationDomainService,
+            PageSourceDomainService pageSourceDomainService,
+            ApiCrudService apiCrudService,
+            PageCrudService pageCrudService) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.pageSourceDomainService = pageSourceDomainService;
         this.apiCrudService = apiCrudService;
@@ -48,9 +47,8 @@ public class ApiGetDocumentationPageUseCase {
         var page = this.pageCrudService.get(input.pageId);
         this.apiDocumentationDomainService.validatePageAssociatedToApi(page, input.apiId);
 
-        page = page
-            .withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
-            .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api));
+        page = page.withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
+                .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api));
 
         this.pageSourceDomainService.removeSensitiveData(page);
 

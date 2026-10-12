@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.quality;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRulePkMongo;
 import java.util.List;
@@ -29,7 +28,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ApiQualityRuleMongoRepository extends MongoRepository<ApiQualityRuleMongo, ApiQualityRulePkMongo> {
     List<ApiQualityRuleMongo> findByIdApi(String api);
+
     List<ApiQualityRuleMongo> findByIdQualityRule(String qualityRule);
+
     void deleteByIdApi(String api);
+
     void deleteByIdQualityRule(String qualityRule);
 }

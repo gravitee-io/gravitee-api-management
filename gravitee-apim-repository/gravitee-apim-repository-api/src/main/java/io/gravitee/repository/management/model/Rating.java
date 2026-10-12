@@ -141,32 +141,29 @@ public class Rating {
 
     @Override
     public String toString() {
-        return (
-            "Rating{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", user='" +
-            user +
-            '\'' +
-            ", rate=" +
-            rate +
-            ", title='" +
-            title +
-            '\'' +
-            ", comment='" +
-            comment +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("Rating{" + "id='"
+                + id
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", user='"
+                + user
+                + '\''
+                + ", rate="
+                + rate
+                + ", title='"
+                + title
+                + '\''
+                + ", comment='"
+                + comment
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

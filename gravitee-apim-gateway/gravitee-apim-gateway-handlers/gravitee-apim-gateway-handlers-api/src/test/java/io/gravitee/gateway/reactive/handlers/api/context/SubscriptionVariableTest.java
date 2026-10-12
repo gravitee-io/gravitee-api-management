@@ -38,13 +38,12 @@ class SubscriptionVariableTest {
         SubscriptionVariable subscriptionVariable = new SubscriptionVariable(subscription);
 
         assertThat(subscriptionVariable)
-            .extracting(
-                SubscriptionVariable::getId,
-                SubscriptionVariable::getType,
-                SubscriptionVariable::getMetadata,
-                SubscriptionVariable::getApplicationName,
-                SubscriptionVariable::getClientId
-            )
-            .containsExactly("id", Subscription.Type.PUSH, Map.of("key", "value"), "applicationName", "clientId");
+                .extracting(
+                        SubscriptionVariable::getId,
+                        SubscriptionVariable::getType,
+                        SubscriptionVariable::getMetadata,
+                        SubscriptionVariable::getApplicationName,
+                        SubscriptionVariable::getClientId)
+                .containsExactly("id", Subscription.Type.PUSH, Map.of("key", "value"), "applicationName", "clientId");
     }
 }

@@ -47,10 +47,10 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
     // production code that never computes a link id at all (a legacy link's id never changes). Test
     // fixtures still need to derive it, so they use a real AuditInfo like every other navigation test.
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORG)
-        .environmentId(ENV)
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId(ORG)
+            .environmentId(ENV)
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
 
     private FakePortalNavigationItemRepository repository;
     private PortalNavigationItemApiOwnedRekeyUpgrader upgrader;
@@ -63,17 +63,25 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
 
     @Test
     void re_parents_a_legacy_api_link_without_changing_its_id() throws UpgraderException {
-        var linkId = HRIDToUUID.apiLink().context(AUDIT_INFO).api(API_ID).hrid("external-docs").id();
+        var linkId = HRIDToUUID.apiLink()
+                .context(AUDIT_INFO)
+                .api(API_ID)
+                .hrid("external-docs")
+                .id();
         var link = PortalNavigationItem.builder()
-            .id(linkId)
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.LINK)
-            .parentId("stale-parent-id")
-            .rootId("stale-parent-id")
-            // referenceType/referenceId left at their PORTAL/ZERO builder defaults, as a legacy row would have them.
-            .automationMetadata(AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId(API_ID).build())
-            .build();
+                .id(linkId)
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.LINK)
+                .parentId("stale-parent-id")
+                .rootId("stale-parent-id")
+                // referenceType/referenceId left at their PORTAL/ZERO builder defaults, as a legacy row would have
+                // them.
+                .automationMetadata(AutomationMetadata.builder()
+                        .referenceType(AutomationTargetReferenceType.API)
+                        .referenceId(API_ID)
+                        .build())
+                .build();
         repository.initWith(List.of(link));
 
         assertThat(upgrader.upgrade()).isTrue();
@@ -91,14 +99,14 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         var navApiRowId = "nav-api-row-1";
         var apiRow = apiRow(navApiRowId, API_ID);
         var handCreated = PortalNavigationItem.builder()
-            .id("hand-created-folder")
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .parentId(navApiRowId)
-            .segment("notes")
-            .rootId("hand-created-folder")
-            .build();
+                .id("hand-created-folder")
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .parentId(navApiRowId)
+                .segment("notes")
+                .rootId("hand-created-folder")
+                .build();
         repository.initWith(List.of(apiRow, handCreated));
 
         assertThat(upgrader.upgrade()).isTrue();
@@ -113,48 +121,57 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
 
         var folderNewId = newFolderId(API_ID, "/guides");
         var folder = PortalNavigationItem.builder()
-            .id(folderNewId)
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .segment("guides")
-            .rootId(folderNewId)
-            .referenceType(PortalNavigationReferenceType.API)
-            .referenceId(API_ID)
-            .build();
+                .id(folderNewId)
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .segment("guides")
+                .rootId(folderNewId)
+                .referenceType(PortalNavigationReferenceType.API)
+                .referenceId(API_ID)
+                .build();
 
         var contentId = "content-1";
-        var pageNewId = HRIDToUUID.navigation().context(ORG, ENV).api(API_ID).documentation(contentId).id();
+        var pageNewId = HRIDToUUID.navigation()
+                .context(ORG, ENV)
+                .api(API_ID)
+                .documentation(contentId)
+                .id();
         var page = PortalNavigationItem.builder()
-            .id(pageNewId)
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.PAGE)
-            .parentId(folderNewId)
-            .rootId(folderNewId)
-            .referenceType(PortalNavigationReferenceType.API)
-            .referenceId(API_ID)
-            .configuration("{\"portalPageContentId\":\"" + contentId + "\"}")
-            .automationMetadata(
-                AutomationMetadata.builder()
-                    .referenceType(AutomationTargetReferenceType.API)
-                    .referenceId(API_ID)
-                    .location("/guides")
-                    .build()
-            )
-            .build();
+                .id(pageNewId)
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.PAGE)
+                .parentId(folderNewId)
+                .rootId(folderNewId)
+                .referenceType(PortalNavigationReferenceType.API)
+                .referenceId(API_ID)
+                .configuration("{\"portalPageContentId\":\"" + contentId + "\"}")
+                .automationMetadata(AutomationMetadata.builder()
+                        .referenceType(AutomationTargetReferenceType.API)
+                        .referenceId(API_ID)
+                        .location("/guides")
+                        .build())
+                .build();
 
-        var linkId = HRIDToUUID.apiLink().context(AUDIT_INFO).api(API_ID).hrid("external-docs").id();
+        var linkId = HRIDToUUID.apiLink()
+                .context(AUDIT_INFO)
+                .api(API_ID)
+                .hrid("external-docs")
+                .id();
         var link = PortalNavigationItem.builder()
-            .id(linkId)
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.LINK)
-            .rootId(linkId)
-            .referenceType(PortalNavigationReferenceType.API)
-            .referenceId(API_ID)
-            .automationMetadata(AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId(API_ID).build())
-            .build();
+                .id(linkId)
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.LINK)
+                .rootId(linkId)
+                .referenceType(PortalNavigationReferenceType.API)
+                .referenceId(API_ID)
+                .automationMetadata(AutomationMetadata.builder()
+                        .referenceType(AutomationTargetReferenceType.API)
+                        .referenceId(API_ID)
+                        .build())
+                .build();
 
         repository.initWith(List.of(apiRow, folder, page, link));
 
@@ -168,7 +185,8 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
     void realigns_a_legacy_root_folder_that_already_carries_its_api_owned_id() throws UpgraderException {
         var navApiRowId = "nav-api-row-1";
         var folderId = newFolderId(API_ID, "/guides");
-        repository.initWith(List.of(apiRow(navApiRowId, API_ID), legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId)));
+        repository.initWith(
+                List.of(apiRow(navApiRowId, API_ID), legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId)));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -184,13 +202,10 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         var navApiRowId = "nav-api-row-1";
         var guidesId = newFolderId(API_ID, "/guides");
         var advancedId = newFolderId(API_ID, "/guides/advanced");
-        repository.initWith(
-            List.of(
+        repository.initWith(List.of(
                 apiRow(navApiRowId, API_ID),
                 legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId),
-                legacyApiOwnedFolder("/guides/advanced", guidesId, navApiRowId)
-            )
-        );
+                legacyApiOwnedFolder("/guides/advanced", guidesId, navApiRowId)));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -206,7 +221,8 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         var navApiRowId = "nav-api-row-1";
         var contentId = "content-1";
         var pageId = docPageId(contentId);
-        repository.initWith(List.of(apiRow(navApiRowId, API_ID), legacyApiOwnedDocPage(contentId, null, navApiRowId, navApiRowId)));
+        repository.initWith(
+                List.of(apiRow(navApiRowId, API_ID), legacyApiOwnedDocPage(contentId, null, navApiRowId, navApiRowId)));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -222,13 +238,10 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         var navApiRowId = "nav-api-row-1";
         var contentId = "content-1";
         var guidesId = newFolderId(API_ID, "/guides");
-        repository.initWith(
-            List.of(
+        repository.initWith(List.of(
                 apiRow(navApiRowId, API_ID),
                 legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId),
-                legacyApiOwnedDocPage(contentId, "/guides", guidesId, navApiRowId)
-            )
-        );
+                legacyApiOwnedDocPage(contentId, "/guides", guidesId, navApiRowId)));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -260,14 +273,11 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         var contentId = "content-1";
         var guidesId = newFolderId(API_ID, "/guides");
         var advancedId = newFolderId(API_ID, "/guides/advanced");
-        repository.initWith(
-            List.of(
+        repository.initWith(List.of(
                 apiRow(navApiRowId, API_ID),
                 legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId),
                 legacyApiOwnedFolder("/guides/advanced", guidesId, navApiRowId),
-                legacyApiOwnedDocPage(contentId, "/guides/advanced", advancedId, navApiRowId)
-            )
-        );
+                legacyApiOwnedDocPage(contentId, "/guides/advanced", advancedId, navApiRowId)));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -281,19 +291,16 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         // Both listings derive the same forApiFolder id, so there was only ever one folder row —
         // parented under whichever nav-api row reconciled last.
         var folderId = newFolderId(API_ID, "/guides");
-        repository.initWith(
-            List.of(
+        repository.initWith(List.of(
                 apiRow("nav-api-row-a", API_ID),
                 apiRow("nav-api-row-b", API_ID),
-                legacyApiOwnedFolder("/guides", "nav-api-row-b", "nav-api-row-b")
-            )
-        );
+                legacyApiOwnedFolder("/guides", "nav-api-row-b", "nav-api-row-b")));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(repository.storage())
-            .filteredOn(item -> item.getId().equals(folderId))
-            .hasSize(1);
+                .filteredOn(item -> item.getId().equals(folderId))
+                .hasSize(1);
         var folder = repository.get(folderId);
         assertThat(folder.getParentId()).isNull();
         assertThat(folder.getRootId()).isEqualTo(folderId);
@@ -307,45 +314,52 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
      */
     private static PortalNavigationItem legacyApiOwnedFolder(String path, String parentId, String navApiRowId) {
         return PortalNavigationItem.builder()
-            .id(newFolderId(API_ID, path))
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .segment(path.substring(path.lastIndexOf('/') + 1))
-            .parentId(parentId)
-            .rootId(navApiRowId)
-            .build();
+                .id(newFolderId(API_ID, path))
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .segment(path.substring(path.lastIndexOf('/') + 1))
+                .parentId(parentId)
+                .rootId(navApiRowId)
+                .build();
     }
 
     /** As {@link #legacyApiOwnedFolder}, for a doc page: {@code forApiDocumentation} was API-keyed too. */
-    private static PortalNavigationItem legacyApiOwnedDocPage(String contentId, String location, String parentId, String navApiRowId) {
+    private static PortalNavigationItem legacyApiOwnedDocPage(
+            String contentId, String location, String parentId, String navApiRowId) {
         return PortalNavigationItem.builder()
-            .id(docPageId(contentId))
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.PAGE)
-            .parentId(parentId)
-            .rootId(navApiRowId)
-            .configuration("{\"portalPageContentId\":\"" + contentId + "\"}")
-            .automationMetadata(
-                AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId(API_ID).location(location).build()
-            )
-            .build();
+                .id(docPageId(contentId))
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.PAGE)
+                .parentId(parentId)
+                .rootId(navApiRowId)
+                .configuration("{\"portalPageContentId\":\"" + contentId + "\"}")
+                .automationMetadata(AutomationMetadata.builder()
+                        .referenceType(AutomationTargetReferenceType.API)
+                        .referenceId(API_ID)
+                        .location(location)
+                        .build())
+                .build();
     }
 
     private static String docPageId(String contentId) {
-        return HRIDToUUID.navigation().context(ORG, ENV).api(API_ID).documentation(contentId).id();
+        return HRIDToUUID.navigation()
+                .context(ORG, ENV)
+                .api(API_ID)
+                .documentation(contentId)
+                .id();
     }
 
     private static PortalNavigationItem apiRow(String id, String apiId) {
         return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.API)
-            .apiId(apiId)
-            .rootId(id)
-            .build();
+                .id(id)
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.API)
+                .apiId(apiId)
+                .rootId(id)
+                .build();
     }
 
     private static String newFolderId(String apiId, String path) {
@@ -382,10 +396,7 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
 
         @Override
         public Optional<PortalNavigationItem> findById(String id) {
-            return items
-                .stream()
-                .filter(item -> item.getId().equals(id))
-                .findFirst();
+            return items.stream().filter(item -> item.getId().equals(id)).findFirst();
         }
 
         @Override
@@ -408,16 +419,14 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         }
 
         @Override
-        public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId) {
+        public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(
+                String organizationId, String environmentId) {
             return List.of();
         }
 
         @Override
         public List<PortalNavigationItem> findByAutomationReference(
-            String environmentId,
-            AutomationTargetReferenceType referenceType,
-            String referenceId
-        ) {
+                String environmentId, AutomationTargetReferenceType referenceType, String referenceId) {
             return List.of();
         }
 
@@ -428,24 +437,22 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
 
         @Override
         public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(
-            PortalNavigationItem.Area area,
-            String environmentId
-        ) {
+                PortalNavigationItem.Area area, String environmentId) {
             return List.of();
         }
 
         @Override
         public List<PortalNavigationItem> findAllTopLevelByAreaAndEnvironmentAndReference(
-            PortalNavigationItem.Area area,
-            String environmentId,
-            PortalNavigationReferenceType referenceType,
-            String referenceId
-        ) {
+                PortalNavigationItem.Area area,
+                String environmentId,
+                PortalNavigationReferenceType referenceType,
+                String referenceId) {
             return List.of();
         }
 
         @Override
-        public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId) {
+        public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(
+                PortalNavigationItem.Area area, String environmentId) {
             return List.of();
         }
 
@@ -471,15 +478,15 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
 
         @Override
         public boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) {
-            return items
-                .stream()
-                .filter(item -> item.getId().equals(id) && Objects.equals(item.getConfiguration(), expectedConfiguration))
-                .findFirst()
-                .map(item -> {
-                    item.setConfiguration(configuration);
-                    return true;
-                })
-                .orElse(false);
+            return items.stream()
+                    .filter(item ->
+                            item.getId().equals(id) && Objects.equals(item.getConfiguration(), expectedConfiguration))
+                    .findFirst()
+                    .map(item -> {
+                        item.setConfiguration(configuration);
+                        return true;
+                    })
+                    .orElse(false);
         }
 
         @Override

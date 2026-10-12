@@ -53,12 +53,11 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
     public List<TopApiEntity> findAll(final ExecutionContext executionContext) {
         log.debug("Find all top APIs");
         final List<GenericApiEntity> apis = parameterService.findAll(
-            executionContext,
-            PORTAL_TOP_APIS,
-            apiId -> apiSearchService.findGenericById(executionContext, apiId, false, false, false),
-            apiSearchService::exists,
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext,
+                PORTAL_TOP_APIS,
+                apiId -> apiSearchService.findGenericById(executionContext, apiId, false, false, false),
+                apiSearchService::exists,
+                ParameterReferenceType.ENVIRONMENT);
         if (!apis.isEmpty()) {
             final List<TopApiEntity> topApis = new ArrayList<>(apis.size());
             for (int i = 0; i < apis.size(); i++) {
@@ -80,11 +79,8 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
 
     @Override
     public List<TopApiEntity> create(final ExecutionContext executionContext, final NewTopApiEntity topApi) {
-        final List<String> existingTopApis = parameterService.findAll(
-            executionContext,
-            PORTAL_TOP_APIS,
-            ParameterReferenceType.ENVIRONMENT
-        );
+        final List<String> existingTopApis =
+                parameterService.findAll(executionContext, PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT);
         if (existingTopApis.contains(topApi.getApi())) {
             throw new IllegalArgumentException("The API is already defined on top APIs");
         }
@@ -96,25 +92,23 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
 
     @Override
     public List<TopApiEntity> update(final ExecutionContext executionContext, final List<UpdateTopApiEntity> topApis) {
-        final List<String> existingTopApis = parameterService.findAll(
-            executionContext,
-            PORTAL_TOP_APIS,
-            ParameterReferenceType.ENVIRONMENT
-        );
-        final List<String> updatingTopApis = topApis.stream().map(UpdateTopApiEntity::getApi).collect(toList());
-        if (
-            existingTopApis.size() != updatingTopApis.size() ||
-            !updatingTopApis.containsAll(existingTopApis) ||
-            !existingTopApis.containsAll(updatingTopApis)
-        ) {
+        final List<String> existingTopApis =
+                parameterService.findAll(executionContext, PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT);
+        final List<String> updatingTopApis =
+                topApis.stream().map(UpdateTopApiEntity::getApi).collect(toList());
+        if (existingTopApis.size() != updatingTopApis.size()
+                || !updatingTopApis.containsAll(existingTopApis)
+                || !existingTopApis.containsAll(updatingTopApis)) {
             throw new IllegalArgumentException("Invalid content to update");
         }
         parameterService.save(
-            executionContext,
-            PORTAL_TOP_APIS,
-            topApis.stream().sorted(comparing(UpdateTopApiEntity::getOrder)).map(UpdateTopApiEntity::getApi).collect(toList()),
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext,
+                PORTAL_TOP_APIS,
+                topApis.stream()
+                        .sorted(comparing(UpdateTopApiEntity::getOrder))
+                        .map(UpdateTopApiEntity::getApi)
+                        .collect(toList()),
+                ParameterReferenceType.ENVIRONMENT);
         return findAll(executionContext);
     }
 
@@ -124,11 +118,13 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
         if (!topApis.isEmpty()) {
             topApis.removeIf(topApiEntity -> apiId.equals(topApiEntity.getApi()));
             parameterService.save(
-                executionContext,
-                PORTAL_TOP_APIS,
-                topApis.stream().sorted(comparing(TopApiEntity::getOrder)).map(TopApiEntity::getApi).collect(toList()),
-                ParameterReferenceType.ENVIRONMENT
-            );
+                    executionContext,
+                    PORTAL_TOP_APIS,
+                    topApis.stream()
+                            .sorted(comparing(TopApiEntity::getOrder))
+                            .map(TopApiEntity::getApi)
+                            .collect(toList()),
+                    ParameterReferenceType.ENVIRONMENT);
         }
     }
 }

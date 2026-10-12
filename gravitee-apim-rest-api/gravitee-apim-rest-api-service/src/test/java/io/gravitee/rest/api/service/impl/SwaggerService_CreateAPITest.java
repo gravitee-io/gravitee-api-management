@@ -99,13 +99,11 @@ public class SwaggerService_CreateAPITest {
 
         PolicyOperationVisitor oaiPolicyOperationVisitor = mock(PolicyOperationVisitor.class);
         when(oaiPolicyOperationVisitor.getId()).thenReturn("mock");
-        io.gravitee.policy.api.swagger.v3.OAIOperationVisitor oaiPolicyOperationVisitorImpl = mock(
-            io.gravitee.policy.api.swagger.v3.OAIOperationVisitor.class
-        );
+        io.gravitee.policy.api.swagger.v3.OAIOperationVisitor oaiPolicyOperationVisitorImpl =
+                mock(io.gravitee.policy.api.swagger.v3.OAIOperationVisitor.class);
 
-        when(policyOperationVisitorManager.getPolicyVisitors()).thenReturn(
-            asList(swaggerPolicyOperationVisitor, oaiPolicyOperationVisitor)
-        );
+        when(policyOperationVisitorManager.getPolicyVisitors())
+                .thenReturn(asList(swaggerPolicyOperationVisitor, oaiPolicyOperationVisitor));
 
         OAIOperationVisitor op = mock(OAIPolicyOperationVisitor.class);
         when(op.visit(any(), any())).thenReturn(Optional.of(new Policy()));
@@ -115,8 +113,10 @@ public class SwaggerService_CreateAPITest {
         grp1.setId("group1");
         GroupEntity grp2 = new GroupEntity();
         grp2.setId("group2");
-        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "group1")).thenReturn(Arrays.asList(grp1));
-        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "group2")).thenReturn(Arrays.asList(grp2));
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "group1"))
+                .thenReturn(Arrays.asList(grp1));
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "group2"))
+                .thenReturn(Arrays.asList(grp2));
 
         TagEntity tag1 = new TagEntity();
         tag1.setId(UUID.randomUUID().toString());
@@ -153,11 +153,8 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV2_URL_json_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
-            "io/gravitee/rest/api/management/service/swagger-withExtensions-v2.json",
-            true,
-            true
-        );
+        final SwaggerApiEntity swaggerApiEntity =
+                prepareUrl("io/gravitee/rest/api/management/service/swagger-withExtensions-v2.json", true, true);
         validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
@@ -174,11 +171,8 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV2_URL_yaml_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
-            "io/gravitee/rest/api/management/service/swagger-withExtensions-v2.yaml",
-            true,
-            true
-        );
+        final SwaggerApiEntity swaggerApiEntity =
+                prepareUrl("io/gravitee/rest/api/management/service/swagger-withExtensions-v2.yaml", true, true);
         validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
@@ -191,11 +185,8 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithoutBasePath_URL_json() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
-            "io/gravitee/rest/api/management/service/openapi-no-basepath.json",
-            true,
-            true
-        );
+        final SwaggerApiEntity swaggerApiEntity =
+                prepareUrl("io/gravitee/rest/api/management/service/openapi-no-basepath.json", true, true);
         validate(swaggerApiEntity, "https://demo.gravitee.io", "gravitee.ioswaggerapi");
     }
 
@@ -206,11 +197,8 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3_URL_json_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
-            "io/gravitee/rest/api/management/service/openapi-withExtensions.json",
-            true,
-            true
-        );
+        final SwaggerApiEntity swaggerApiEntity =
+                prepareUrl("io/gravitee/rest/api/management/service/openapi-withExtensions.json", true, true);
         validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
@@ -227,11 +215,8 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3_URL_yaml_extensions() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl(
-            "io/gravitee/rest/api/management/service/openapi-withExtensions.yaml",
-            true,
-            true
-        );
+        final SwaggerApiEntity swaggerApiEntity =
+                prepareUrl("io/gravitee/rest/api/management/service/openapi-withExtensions.yaml", true, true);
         validate(swaggerApiEntity, "myPath");
         validateExtensions(swaggerApiEntity);
     }
@@ -260,15 +245,14 @@ public class SwaggerService_CreateAPITest {
         assertEquals(2, tags.size());
         assertTrue(tags.containsAll(asList("tagId1", "tagId2")));
 
-        final Map<String, String> properties = updateApiEntity.getProperties().toDefinition().getValues();
+        final Map<String, String> properties =
+                updateApiEntity.getProperties().toDefinition().getValues();
         assertEquals(2, properties.size());
         assertTrue(properties.keySet().containsAll(asList("prop1", "prop2")));
         assertTrue(properties.values().containsAll(asList("propValue1", "propValue2")));
 
-        final Map<String, String> metadata = updateApiEntity
-            .getMetadata()
-            .stream()
-            .collect(Collectors.toMap(ApiMetadataEntity::getName, ApiMetadataEntity::getValue));
+        final Map<String, String> metadata = updateApiEntity.getMetadata().stream()
+                .collect(Collectors.toMap(ApiMetadataEntity::getName, ApiMetadataEntity::getValue));
         assertEquals(2, metadata.size());
         assertTrue(metadata.keySet().containsAll(asList("meta1", "meta2")));
         assertTrue(metadata.values().containsAll(asList("1234", "metaValue2")));
@@ -293,17 +277,26 @@ public class SwaggerService_CreateAPITest {
     protected void validateApi(SwaggerApiEntity api, String expectedEndpoint, String expectedContextPath) {
         assertEquals("1.2.3", api.getVersion());
         assertEquals("Gravitee.io Swagger API", api.getName());
-        assertEquals(expectedEndpoint, api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
-        assertEquals(expectedContextPath, api.getProxy().getVirtualHosts().iterator().next().getPath());
+        assertEquals(
+                expectedEndpoint,
+                api.getProxy()
+                        .getGroups()
+                        .iterator()
+                        .next()
+                        .getEndpoints()
+                        .iterator()
+                        .next()
+                        .getTarget());
+        assertEquals(
+                expectedContextPath,
+                api.getProxy().getVirtualHosts().iterator().next().getPath());
     }
 
-    protected void validatePolicies(SwaggerApiEntity api, int expectedPathSize, int expectedOperationSize, List<String> expectedPaths) {
+    protected void validatePolicies(
+            SwaggerApiEntity api, int expectedPathSize, int expectedOperationSize, List<String> expectedPaths) {
         if (api.getFlows() != null && !api.getFlows().isEmpty()) {
-            List<String> paths = api
-                .getFlows()
-                .stream()
-                .map(flow -> flow.getPath())
-                .collect(Collectors.toList());
+            List<String> paths =
+                    api.getFlows().stream().map(flow -> flow.getPath()).collect(Collectors.toList());
             assertTrue(paths.containsAll(expectedPaths));
         }
     }
@@ -316,7 +309,8 @@ public class SwaggerService_CreateAPITest {
         return prepareInline(file, withPolicyPaths, false);
     }
 
-    protected SwaggerApiEntity prepareInline(String file, boolean withPolicyPaths, boolean withPolicies) throws IOException {
+    protected SwaggerApiEntity prepareInline(String file, boolean withPolicyPaths, boolean withPolicies)
+            throws IOException {
         URL url = Resources.getResource(file);
         String descriptor = Resources.toString(url, Charsets.UTF_8);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
@@ -350,31 +344,39 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithExamples() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/api-with-examples.yaml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/api-with-examples.yaml", true, true);
         assertEquals("2.0.0", api.getVersion());
         assertEquals("Simple API overview", api.getName());
-        assertEquals("simpleapioverview", api.getProxy().getVirtualHosts().get(0).getPath());
-        assertEquals("/", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
+        assertEquals(
+                "simpleapioverview", api.getProxy().getVirtualHosts().get(0).getPath());
+        assertEquals(
+                "/",
+                api.getProxy()
+                        .getGroups()
+                        .iterator()
+                        .next()
+                        .getEndpoints()
+                        .iterator()
+                        .next()
+                        .getTarget());
 
         validatePolicies(api, 2, 2, asList("/", "/v2"));
         validateRules(api, "/", 2, asList(HttpMethod.GET), "List API versions");
     }
 
     protected void validateRules(
-        SwaggerApiEntity api,
-        String path,
-        int expectedRuleSize,
-        List<HttpMethod> firstRuleMethods,
-        String firstRuleDescription
-    ) {
+            SwaggerApiEntity api,
+            String path,
+            int expectedRuleSize,
+            List<HttpMethod> firstRuleMethods,
+            String firstRuleDescription) {
         // V2 detection: check Flows first
         if (api.getFlows() != null && !api.getFlows().isEmpty()) {
-            io.gravitee.definition.model.flow.Flow flow = api
-                .getFlows()
-                .stream()
-                .filter(f -> f.getPath().equals(path))
-                .findFirst()
-                .orElse(null);
+            io.gravitee.definition.model.flow.Flow flow = api.getFlows().stream()
+                    .filter(f -> f.getPath().equals(path))
+                    .findFirst()
+                    .orElse(null);
 
             if (flow != null) {
                 assertEquals(expectedRuleSize, flow.getPre().size());
@@ -392,11 +394,21 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithSimpleTypedExamples() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/callback-example.yaml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/callback-example.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Callback Example", api.getName());
         assertEquals("callbackexample", api.getProxy().getVirtualHosts().get(0).getPath());
-        assertEquals("/", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
+        assertEquals(
+                "/",
+                api.getProxy()
+                        .getGroups()
+                        .iterator()
+                        .next()
+                        .getEndpoints()
+                        .iterator()
+                        .next()
+                        .getTarget());
 
         validatePolicies(api, 1, 1, asList("/streams"));
         validateRules(api, "/streams", 2, asList(HttpMethod.POST), "subscribes a client to receive out-of-band data");
@@ -404,69 +416,86 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithLinks() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/link-example.yaml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/link-example.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Link Example", api.getName());
         assertEquals("linkexample", api.getProxy().getVirtualHosts().get(0).getPath());
-        assertEquals("/", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
+        assertEquals(
+                "/",
+                api.getProxy()
+                        .getGroups()
+                        .iterator()
+                        .next()
+                        .getEndpoints()
+                        .iterator()
+                        .next()
+                        .getTarget());
 
         validatePolicies(
-            api,
-            6,
-            6,
-            asList(
-                "/2.0/users/:username",
-                "/2.0/repositories/:username/:slug",
-                "/2.0/repositories/:username/:slug/pullrequests",
-                "/2.0/repositories/:username/:slug/pullrequests/:pid",
-                "/2.0/repositories/:username/:slug/pullrequests/:pid/merge"
-            )
-        );
+                api,
+                6,
+                6,
+                asList(
+                        "/2.0/users/:username",
+                        "/2.0/repositories/:username/:slug",
+                        "/2.0/repositories/:username/:slug/pullrequests",
+                        "/2.0/repositories/:username/:slug/pullrequests/:pid",
+                        "/2.0/repositories/:username/:slug/pullrequests/:pid/merge"));
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithPetstore() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/petstore.yaml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/petstore.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("/v1", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("Swagger Petstore", api.getName());
         assertEquals(
-            "http://petstore.swagger.io/v1",
-            api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget()
-        );
+                "http://petstore.swagger.io/v1",
+                api.getProxy()
+                        .getGroups()
+                        .iterator()
+                        .next()
+                        .getEndpoints()
+                        .iterator()
+                        .next()
+                        .getTarget());
 
         validatePolicies(api, 2, 3, asList("/pets", "/pets/:petId"));
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithPetstoreExpanded() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/petstore-expanded.yaml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/petstore-expanded.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Swagger Petstore", api.getName());
         assertEquals("/api", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals(
-            "http://petstore.swagger.io/api",
-            api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget()
-        );
+                "http://petstore.swagger.io/api",
+                api.getProxy()
+                        .getGroups()
+                        .iterator()
+                        .next()
+                        .getEndpoints()
+                        .iterator()
+                        .next()
+                        .getTarget());
         validatePolicies(api, 2, 4, asList("/pets", "/pets/:id"));
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithExample() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/uspto.yaml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/uspto.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("USPTO Data Set API", api.getName());
         assertEquals("/ds-api", api.getProxy().getVirtualHosts().get(0).getPath());
 
-        final List<String> endpoints = api
-            .getProxy()
-            .getGroups()
-            .iterator()
-            .next()
-            .getEndpoints()
-            .stream()
-            .map(Endpoint::getTarget)
-            .collect(Collectors.toList());
+        final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream()
+                .map(Endpoint::getTarget)
+                .collect(Collectors.toList());
         assertEquals(2, 4, endpoints.size());
         assertTrue(endpoints.contains("http://developer.uspto.gov/ds-api"));
         assertTrue(endpoints.contains("https://developer.uspto.gov/ds-api"));
@@ -476,20 +505,17 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithEnumExample() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/enum-example.yml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/enum-example.yml", true, true);
         assertEquals("v1", api.getVersion());
         assertEquals("Gravitee Import Mock Example", api.getName());
-        assertEquals("graviteeimportmockexample", api.getProxy().getVirtualHosts().get(0).getPath());
+        assertEquals(
+                "graviteeimportmockexample",
+                api.getProxy().getVirtualHosts().get(0).getPath());
 
-        final List<String> endpoints = api
-            .getProxy()
-            .getGroups()
-            .iterator()
-            .next()
-            .getEndpoints()
-            .stream()
-            .map(Endpoint::getTarget)
-            .collect(Collectors.toList());
+        final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream()
+                .map(Endpoint::getTarget)
+                .collect(Collectors.toList());
         assertEquals(1, endpoints.size());
         assertTrue(endpoints.contains("/"));
 
@@ -498,36 +524,26 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithMonoServer() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/openapi-monoserver.yaml", true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/openapi-monoserver.yaml", true);
         assertEquals("/v1", api.getProxy().getVirtualHosts().get(0).getPath());
 
-        final List<String> endpoints = api
-            .getProxy()
-            .getGroups()
-            .iterator()
-            .next()
-            .getEndpoints()
-            .stream()
-            .map(Endpoint::getTarget)
-            .collect(Collectors.toList());
+        final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream()
+                .map(Endpoint::getTarget)
+                .collect(Collectors.toList());
         assertEquals(1, 2, endpoints.size());
         assertTrue(endpoints.contains("https://development.gigantic-server.com/v1"));
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithMultiServer() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/openapi-multiserver.yaml", true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/openapi-multiserver.yaml", true);
         assertEquals("/v1", api.getProxy().getVirtualHosts().get(0).getPath());
 
-        final List<String> endpoints = api
-            .getProxy()
-            .getGroups()
-            .iterator()
-            .next()
-            .getEndpoints()
-            .stream()
-            .map(Endpoint::getTarget)
-            .collect(Collectors.toList());
+        final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream()
+                .map(Endpoint::getTarget)
+                .collect(Collectors.toList());
         assertEquals(3, endpoints.size());
         assertTrue(endpoints.contains("https://development.gigantic-server.com/v1"));
         assertTrue(endpoints.contains("https://staging.gigantic-server.com/v1"));
@@ -536,36 +552,26 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithNoServer() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/openapi-noserver.yaml", true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/openapi-noserver.yaml", true);
         assertEquals("noserver", api.getProxy().getVirtualHosts().get(0).getPath());
 
-        final List<String> endpoints = api
-            .getProxy()
-            .getGroups()
-            .iterator()
-            .next()
-            .getEndpoints()
-            .stream()
-            .map(Endpoint::getTarget)
-            .collect(Collectors.toList());
+        final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream()
+                .map(Endpoint::getTarget)
+                .collect(Collectors.toList());
         assertEquals(1, endpoints.size());
         assertTrue(endpoints.contains("/"));
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithVariablesInServer() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/openapi-variables-in-server.yaml", true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/openapi-variables-in-server.yaml", true);
         assertEquals("/v2", api.getProxy().getVirtualHosts().get(0).getPath());
 
-        final List<String> endpoints = api
-            .getProxy()
-            .getGroups()
-            .iterator()
-            .next()
-            .getEndpoints()
-            .stream()
-            .map(Endpoint::getTarget)
-            .collect(Collectors.toList());
+        final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream()
+                .map(Endpoint::getTarget)
+                .collect(Collectors.toList());
         assertEquals(2, endpoints.size());
         assertTrue(endpoints.contains("https://demo.gigantic-server.com:443/v2"));
         assertTrue(endpoints.contains("https://demo.gigantic-server.com:8443/v2"));
@@ -573,13 +579,15 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithComplexReferences() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/json-api.yml", true, true);
+        final SwaggerApiEntity api =
+                prepareInline("io/gravitee/rest/api/management/service/mock/json-api.yml", true, true);
         validatePolicies(api, 2, 5, asList("/drives"));
     }
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithURLAndPathMappingOnly() throws IOException {
-        final SwaggerApiEntity swaggerApiEntity = prepareUrl("io/gravitee/rest/api/management/service/openapi.yaml", false, true);
+        final SwaggerApiEntity swaggerApiEntity =
+                prepareUrl("io/gravitee/rest/api/management/service/openapi.yaml", false, true);
 
         assertTrue(swaggerApiEntity.getPathMappings().containsAll(asList("/pets", "/pets/:petId")));
         validatePathMappings(swaggerApiEntity, asList("/pets", "/pets/:petId"));

@@ -40,20 +40,22 @@ public class CredentialManagerImpl implements CredentialManager {
         var license = licenseManager.getOrganizationLicenseOrPlatform(credential.organizationId());
         if (license == null || !license.isFeatureEnabled(LICENSE_FEATURE)) {
             log.warn(
-                "The credential [{}] can not be deployed because it is not allowed by the current license ({} feature required)",
-                credential.id(),
-                LICENSE_FEATURE
-            );
+                    "The credential [{}] can not be deployed because it is not allowed by the current license ({} feature required)",
+                    credential.id(),
+                    LICENSE_FEATURE);
             return;
         }
 
-        // One atomic step per environment: remove() drops an environment's map once it is empty, so creating the map and
+        // One atomic step per environment: remove() drops an environment's map once it is empty, so creating the map
+        // and
         // writing into it separately could write into a map that has just been dropped.
         credentialsByEnvironment.compute(credential.environmentId(), (environmentId, credentials) -> {
-            Map<String, DeployedCredential> environmentCredentials = credentials != null ? credentials : new ConcurrentHashMap<>();
-            environmentCredentials.merge(credential.id(), credential, (existing, incoming) ->
-                incoming.updatedAt() >= existing.updatedAt() ? incoming : existing
-            );
+            Map<String, DeployedCredential> environmentCredentials =
+                    credentials != null ? credentials : new ConcurrentHashMap<>();
+            environmentCredentials.merge(
+                    credential.id(),
+                    credential,
+                    (existing, incoming) -> incoming.updatedAt() >= existing.updatedAt() ? incoming : existing);
             return environmentCredentials;
         });
         log.debug("Credential [{}] deployed in environment [{}]", credential.id(), credential.environmentId());
@@ -74,7 +76,8 @@ public class CredentialManagerImpl implements CredentialManager {
         if (environmentId == null || credentialId == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(credentialsByEnvironment.getOrDefault(environmentId, Map.of()).get(credentialId));
+        return Optional.ofNullable(
+                credentialsByEnvironment.getOrDefault(environmentId, Map.of()).get(credentialId));
     }
 
     private void remove(String environmentId, String credentialId) {

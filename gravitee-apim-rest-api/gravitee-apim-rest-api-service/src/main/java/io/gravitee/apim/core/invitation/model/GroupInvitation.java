@@ -16,10 +16,5 @@
 package io.gravitee.apim.core.invitation.model;
 
 public record GroupInvitation(
-    InvitationId id,
-    String referenceId,
-    String referenceType,
-    String email,
-    String apiRole,
-    String applicationRole
-) implements Invitation {}
+        InvitationId id, String referenceId, String referenceType, String email, String apiRole, String applicationRole)
+        implements Invitation {}

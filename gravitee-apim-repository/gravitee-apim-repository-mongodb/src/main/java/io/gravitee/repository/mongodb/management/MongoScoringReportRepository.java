@@ -68,7 +68,8 @@ public class MongoScoringReportRepository implements ScoringReportRepository {
     }
 
     @Override
-    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
+    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(
+            String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
         log.debug("Find all latest scoring reports of environment {}", environmentId);
         var result = internalRepository.findEnvironmentLatestReports(environmentId, apiTypes, pageable);
         log.debug("Find all latest scoring reports of environment {} - DONE", environmentId);

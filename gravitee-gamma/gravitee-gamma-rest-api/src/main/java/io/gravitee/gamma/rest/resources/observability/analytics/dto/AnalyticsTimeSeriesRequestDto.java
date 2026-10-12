@@ -23,11 +23,10 @@ import java.util.List;
  * POST body for {@code /observability/analytics/time-series}.
  */
 public record AnalyticsTimeSeriesRequestDto(
-    TimeRangeDto timeRange,
-    List<FilterConditionDto> filters,
-    Long interval,
-    List<FacetMetricQueryDto> metrics,
-    List<String> by,
-    Integer facetSize,
-    List<NumberRangeDto> ranges
-) {}
+        TimeRangeDto timeRange,
+        List<FilterConditionDto> filters,
+        Long interval,
+        List<FacetMetricQueryDto> metrics,
+        List<String> by,
+        Integer facetSize,
+        List<NumberRangeDto> ranges) {}

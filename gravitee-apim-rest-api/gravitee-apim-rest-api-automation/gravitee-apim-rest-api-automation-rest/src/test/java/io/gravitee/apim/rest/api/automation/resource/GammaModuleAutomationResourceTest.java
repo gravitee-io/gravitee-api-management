@@ -101,11 +101,19 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
     }
 
     private static String derivedId(String kindPath, String hrid) {
-        return HRIDToUUID.gamma().context(CONTEXT).module(MODULE).kind(kindPath).hrid(hrid).id();
+        return HRIDToUUID.gamma()
+                .context(CONTEXT)
+                .module(MODULE)
+                .kind(kindPath)
+                .hrid(hrid)
+                .id();
     }
 
     private static ObjectNode view(String hrid) {
-        return MAPPER.createObjectNode().put("hrid", hrid).put("entityId", "mcp-server.github").put("protocolVersion", "2024-11-05");
+        return MAPPER.createObjectNode()
+                .put("hrid", hrid)
+                .put("entityId", "mcp-server.github")
+                .put("protocolVersion", "2024-11-05");
     }
 
     private Response put(String path, String fixture, boolean dryRun) {
@@ -131,7 +139,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_404_module_unavailable_when_no_module_answers_on_the_segment() {
             when(gammaAutomationPorts.module("nope")).thenReturn(Optional.empty());
 
-            try (var response = rootTarget("nope/catalog/mcp-servers/github-mcp").request().get()) {
+            try (var response =
+                    rootTarget("nope/catalog/mcp-servers/github-mcp").request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
                 var error = body(response);
                 assertThat(error.get("technicalCode").asText()).isEqualTo("gamma.module.unavailable");
@@ -143,7 +152,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_404_when_module_serves_nothing_at_the_path() {
             when(port.kind("catalog/unknown")).thenReturn(Optional.empty());
 
-            try (var response = rootTarget(MODULE + "/catalog/unknown/x").request().get()) {
+            try (var response =
+                    rootTarget(MODULE + "/catalog/unknown/x").request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
                 assertThat(body(response).get("technicalCode").asText()).isEqualTo("gamma.resource.kind.notFound");
             }
@@ -151,7 +161,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_leave_literal_sibling_paths_to_their_own_resources() {
-            try (var response = rootTarget("dictionaries/some-dictionary").request().get()) {
+            try (var response =
+                    rootTarget("dictionaries/some-dictionary").request().get()) {
                 assertThat(response.getStatus()).isNotEqualTo(200);
                 verify(gammaAutomationPorts, never()).module(anyString());
             }
@@ -163,9 +174,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_call_validate_with_the_derived_id_and_never_upsert() {
-            when(port.validate(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")), any())).thenReturn(
-                UpsertResult.of(view("github-mcp"))
-            );
+            when(port.validate(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")), any()))
+                    .thenReturn(UpsertResult.of(view("github-mcp")));
 
             try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", true)) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -193,12 +203,10 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_200_with_errors_even_when_severe() {
-            when(port.validate(any(), any(), any(), any())).thenReturn(
-                new UpsertResult<>(
-                    view("github-mcp"),
-                    List.of(AutomationIssue.severe("entityId is taken"), AutomationIssue.warning("slow"))
-                )
-            );
+            when(port.validate(any(), any(), any(), any()))
+                    .thenReturn(new UpsertResult<>(
+                            view("github-mcp"),
+                            List.of(AutomationIssue.severe("entityId is taken"), AutomationIssue.warning("slow"))));
 
             try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", true)) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -237,9 +245,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(context.getValue().organizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(context.getValue().environmentId()).isEqualTo(ENVIRONMENT);
-                soft
-                    .assertThat(context.getValue().hrids().idOf("catalog/sources", "smithery"))
-                    .isEqualTo(derivedId("catalog/sources", "smithery"));
+                soft.assertThat(context.getValue().hrids().idOf("catalog/sources", "smithery"))
+                        .isEqualTo(derivedId("catalog/sources", "smithery"));
             });
         }
     }
@@ -249,9 +256,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_200_with_stamped_state_on_success() {
-            when(port.upsert(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")), any())).thenReturn(
-                UpsertResult.of(view("github-mcp"))
-            );
+            when(port.upsert(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")), any()))
+                    .thenReturn(UpsertResult.of(view("github-mcp")));
 
             try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -264,27 +270,31 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_with_state_and_errors_when_severe() {
-            when(port.upsert(any(), any(), any(), any())).thenReturn(
-                new UpsertResult<>(view("github-mcp"), List.of(AutomationIssue.severe("entityId is taken")))
-            );
+            when(port.upsert(any(), any(), any(), any()))
+                    .thenReturn(new UpsertResult<>(
+                            view("github-mcp"), List.of(AutomationIssue.severe("entityId is taken"))));
 
             try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 var state = body(response);
                 assertThat(state.get("id").asText()).isEqualTo(derivedId(KIND_PATH, "github-mcp"));
-                assertThat(state.get("errors").get("severe")).extracting(JsonNode::asText).containsExactly("entityId is taken");
+                assertThat(state.get("errors").get("severe"))
+                        .extracting(JsonNode::asText)
+                        .containsExactly("entityId is taken");
             }
         }
 
         @Test
         void should_return_200_with_warnings() {
-            when(port.upsert(any(), any(), any(), any())).thenReturn(
-                new UpsertResult<>(view("github-mcp"), List.of(AutomationIssue.warning("discovery failed")))
-            );
+            when(port.upsert(any(), any(), any(), any()))
+                    .thenReturn(new UpsertResult<>(
+                            view("github-mcp"), List.of(AutomationIssue.warning("discovery failed"))));
 
             try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                assertThat(body(response).get("errors").get("warning")).extracting(JsonNode::asText).containsExactly("discovery failed");
+                assertThat(body(response).get("errors").get("warning"))
+                        .extracting(JsonNode::asText)
+                        .containsExactly("discovery failed");
             }
         }
     }
@@ -316,9 +326,9 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_and_never_call_the_module_when_permission_is_denied() {
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), any(), eq(CREATE), eq(UPDATE))
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), any(), eq(CREATE), eq(UPDATE)))
+                    .thenReturn(false);
 
             try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
                 assertThat(response.getStatus()).isEqualTo(403);
@@ -333,20 +343,27 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
             when(port.findById(any(), any(), any())).thenReturn(Optional.of(view("github-mcp")));
             when(port.deleteById(any(), any(), any())).thenReturn(true);
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().get()) {
+            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().delete()) {
+            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
 
-            verify(permissionService).hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), eq(ENVIRONMENT), eq(READ));
-            verify(permissionService).hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), eq(ENVIRONMENT), eq(DELETE));
+            verify(permissionService)
+                    .hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), eq(ENVIRONMENT), eq(READ));
+            verify(permissionService)
+                    .hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), eq(ENVIRONMENT), eq(DELETE));
         }
 
         @Test
         void should_fail_loudly_when_module_declares_a_permission_that_is_not_environment_scoped() {
-            when(port.kind(KIND_PATH)).thenReturn(Optional.of(new ResourceKind(KIND_PATH, RolePermission.API_DEFINITION)));
+            when(port.kind(KIND_PATH))
+                    .thenReturn(Optional.of(new ResourceKind(KIND_PATH, RolePermission.API_DEFINITION)));
 
             try (var response = put(MODULE + "/" + KIND_PATH, "module-spec.json", false)) {
                 assertThat(response.getStatus()).isEqualTo(500);
@@ -363,9 +380,12 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
             // The module's view carries no hrid: the resource stamps it from the path, so modules never store it.
             var viewWithoutHrid = view("github-mcp");
             viewWithoutHrid.remove("hrid");
-            when(port.findById(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")))).thenReturn(Optional.of(viewWithoutHrid));
+            when(port.findById(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp"))))
+                    .thenReturn(Optional.of(viewWithoutHrid));
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().get()) {
+            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = body(response);
                 SoftAssertions.assertSoftly(soft -> {
@@ -382,7 +402,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_404_hrid_not_found_when_absent() {
             when(port.findById(any(), any(), any())).thenReturn(Optional.empty());
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/unknown").request().get()) {
+            try (var response =
+                    rootTarget(MODULE + "/" + KIND_PATH + "/unknown").request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
                 assertThat(body(response).get("technicalCode").asText()).isEqualTo("hrid.notFound");
             }
@@ -394,9 +415,12 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_204_when_deleted() {
-            when(port.deleteById(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")))).thenReturn(true);
+            when(port.deleteById(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp"))))
+                    .thenReturn(true);
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().delete()) {
+            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }
@@ -405,7 +429,8 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_404_when_absent() {
             when(port.deleteById(any(), any(), any())).thenReturn(false);
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/unknown").request().delete()) {
+            try (var response =
+                    rootTarget(MODULE + "/" + KIND_PATH + "/unknown").request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
                 assertThat(body(response).get("technicalCode").asText()).isEqualTo("hrid.notFound");
             }

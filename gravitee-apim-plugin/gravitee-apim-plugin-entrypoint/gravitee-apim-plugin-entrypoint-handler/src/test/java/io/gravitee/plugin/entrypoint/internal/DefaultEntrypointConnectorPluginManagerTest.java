@@ -52,18 +52,14 @@ class DefaultEntrypointConnectorPluginManagerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new DefaultEntrypointConnectorPluginManager(
-            new DefaultEntrypointConnectorConnectorClassLoaderFactory(),
-            new PluginConfigurationHelper(null, new ObjectMapper())
-        );
+                new DefaultEntrypointConnectorConnectorClassLoaderFactory(),
+                new PluginConfigurationHelper(null, new ObjectMapper()));
     }
 
     @Test
     void shouldRegisterNewEntrypointPluginWithoutConfiguration() {
         DefaultEntrypointConnectorPlugin entrypointPlugin = new DefaultEntrypointConnectorPlugin(
-            new FakeEntrypointConnectorPlugin(),
-            FakeEntrypointConnectorFactory.class,
-            null
-        );
+                new FakeEntrypointConnectorPlugin(), FakeEntrypointConnectorFactory.class, null);
         cut.register(entrypointPlugin);
         EntrypointConnectorFactory<?> fake = cut.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();
@@ -73,12 +69,11 @@ class DefaultEntrypointConnectorPluginManagerTest {
 
     @Test
     void shouldRegisterNewEntrypointPluginWithConfiguration() {
-        DefaultEntrypointConnectorPlugin<FakeEntrypointConnectorFactory, EntrypointConnectorConfiguration> entrypointPlugin =
-            new DefaultEntrypointConnectorPlugin(
-                new FakeEntrypointConnectorPlugin(),
-                FakeEntrypointConnectorFactory.class,
-                EntrypointConnectorConfiguration.class
-            );
+        DefaultEntrypointConnectorPlugin<FakeEntrypointConnectorFactory, EntrypointConnectorConfiguration>
+                entrypointPlugin = new DefaultEntrypointConnectorPlugin(
+                        new FakeEntrypointConnectorPlugin(),
+                        FakeEntrypointConnectorFactory.class,
+                        EntrypointConnectorConfiguration.class);
         cut.register(entrypointPlugin);
         EntrypointConnectorFactory<?> fake = cut.getFactoryById("fake-entrypoint");
         assertThat(fake).isNotNull();

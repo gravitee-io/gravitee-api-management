@@ -34,7 +34,8 @@ import lombok.RequiredArgsConstructor;
  */
 @DomainService
 @RequiredArgsConstructor
-public class ValidateCreateSharedPolicyGroupDomainService implements Validator<ValidateCreateSharedPolicyGroupDomainService.Input> {
+public class ValidateCreateSharedPolicyGroupDomainService
+        implements Validator<ValidateCreateSharedPolicyGroupDomainService.Input> {
 
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
     private final PolicyValidationDomainService policyValidationDomainService;
@@ -71,38 +72,36 @@ public class ValidateCreateSharedPolicyGroupDomainService implements Validator<V
         }
         if (!sharedPolicyGroupToCreate.hasValidPhase()) {
             throw new SharedPolicyGroupInvalidPhaseException(
-                sharedPolicyGroupToCreate.getPhase().name(),
-                sharedPolicyGroupToCreate.getApiType().name()
-            );
+                    sharedPolicyGroupToCreate.getPhase().name(),
+                    sharedPolicyGroupToCreate.getApiType().name());
         }
 
         ensureSharedPolicyGroupDoesNotExist(sharedPolicyGroupToCreate, environmentId);
     }
 
-    private void ensureSharedPolicyGroupDoesNotExist(SharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
-        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId()).ifPresent(
-            sharedPolicyGroup -> {
-                throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroupToCreate.getCrossId(), environmentId);
-            }
-        );
+    private void ensureSharedPolicyGroupDoesNotExist(
+            SharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
+        this.sharedPolicyGroupCrudService
+                .findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId())
+                .ifPresent(sharedPolicyGroup -> {
+                    throw new SharedPolicyGroupDuplicateCrossIdException(
+                            sharedPolicyGroupToCreate.getCrossId(), environmentId);
+                });
 
         // Validate and sanitize policies configuration
         if (sharedPolicyGroupToCreate.getSteps() != null) {
-            sharedPolicyGroupToCreate
-                .getSteps()
-                .stream()
-                .filter(Step::isEnabled)
-                .forEach(step ->
-                    step.setConfiguration(
-                        policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
-                    )
-                );
+            sharedPolicyGroupToCreate.getSteps().stream()
+                    .filter(Step::isEnabled)
+                    .forEach(step ->
+                            step.setConfiguration(policyValidationDomainService.validateAndSanitizeConfiguration(
+                                    step.getPolicy(), step.getConfiguration())));
 
             policyValidationDomainService.validatePoliciesFlowPhase(
-                sharedPolicyGroupToCreate.getSteps().stream().map(Step::getPolicy).toList(),
-                sharedPolicyGroupToCreate.getApiType(),
-                sharedPolicyGroupToCreate.getPhase()
-            );
+                    sharedPolicyGroupToCreate.getSteps().stream()
+                            .map(Step::getPolicy)
+                            .toList(),
+                    sharedPolicyGroupToCreate.getApiType(),
+                    sharedPolicyGroupToCreate.getPhase());
         }
     }
 }

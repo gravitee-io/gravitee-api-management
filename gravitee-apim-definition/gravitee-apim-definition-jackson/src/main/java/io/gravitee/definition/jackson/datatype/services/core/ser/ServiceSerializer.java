@@ -38,7 +38,8 @@ public abstract class ServiceSerializer<T extends Service> extends StdScalarSeri
         jgen.writeEndObject();
     }
 
-    protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         jgen.writeBooleanField("enabled", service.isEnabled());
     }
 }

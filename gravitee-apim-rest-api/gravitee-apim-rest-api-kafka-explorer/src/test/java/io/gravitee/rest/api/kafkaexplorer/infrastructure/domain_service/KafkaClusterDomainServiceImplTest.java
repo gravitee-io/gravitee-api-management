@@ -58,22 +58,19 @@ import org.junit.jupiter.api.Test;
 class KafkaClusterDomainServiceImplTest {
 
     private static final KafkaClusterStandaloneConfiguration CONFIG = new KafkaClusterStandaloneConfiguration(
-        "localhost:9092",
-        new SecurityConfig(SecurityProtocol.PLAINTEXT, null, null)
-    );
+            "localhost:9092", new SecurityConfig(SecurityProtocol.PLAINTEXT, null, null));
 
     @Test
     void should_throw_connection_failed_when_admin_client_creation_fails() {
         var service = serviceWithAdminClient(
-            () -> {
-                throw new RuntimeException("Cannot create admin client");
-            },
-            5
-        );
+                () -> {
+                    throw new RuntimeException("Cannot create admin client");
+                },
+                5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .hasMessageContaining("Failed to connect to Kafka cluster")
-            .is(kafkaException(CONNECTION_FAILED));
+                .hasMessageContaining("Failed to connect to Kafka cluster")
+                .is(kafkaException(CONNECTION_FAILED));
     }
 
     @Test
@@ -81,17 +78,18 @@ class KafkaClusterDomainServiceImplTest {
         var service = serviceWithFailingFuture(new TimeoutException("Request timed out"), 5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .hasMessageContaining("timed out")
-            .is(kafkaException(TIMEOUT));
+                .hasMessageContaining("timed out")
+                .is(kafkaException(TIMEOUT));
     }
 
     @Test
     void should_throw_authentication_failed_when_auth_error() throws Exception {
-        var service = serviceWithFailingFuture(new ExecutionException(new AuthenticationException("Bad credentials")), 5);
+        var service =
+                serviceWithFailingFuture(new ExecutionException(new AuthenticationException("Bad credentials")), 5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .hasMessageContaining("Authentication failed")
-            .is(kafkaException(AUTHENTICATION_FAILED));
+                .hasMessageContaining("Authentication failed")
+                .is(kafkaException(AUTHENTICATION_FAILED));
     }
 
     @Test
@@ -99,8 +97,8 @@ class KafkaClusterDomainServiceImplTest {
         var service = serviceWithFailingFuture(new InterruptedException("Thread interrupted"), 5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .hasMessageContaining("interrupted")
-            .is(kafkaException(INTERRUPTED));
+                .hasMessageContaining("interrupted")
+                .is(kafkaException(INTERRUPTED));
 
         // Reset interrupted flag
         Thread.interrupted();
@@ -108,11 +106,12 @@ class KafkaClusterDomainServiceImplTest {
 
     @Test
     void should_throw_connection_failed_when_execution_fails_with_unknown_cause() throws Exception {
-        var service = serviceWithFailingFuture(new ExecutionException(new RuntimeException("Something went wrong")), 30);
+        var service =
+                serviceWithFailingFuture(new ExecutionException(new RuntimeException("Something went wrong")), 30);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
-            .hasMessageContaining("Failed to connect to Kafka cluster")
-            .is(kafkaException(CONNECTION_FAILED));
+                .hasMessageContaining("Failed to connect to Kafka cluster")
+                .is(kafkaException(CONNECTION_FAILED));
     }
 
     @Nested
@@ -135,7 +134,8 @@ class KafkaClusterDomainServiceImplTest {
 
             var properties = captureProperties(config);
 
-            assertThat(properties.get(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG)).isEqualTo("");
+            assertThat(properties.get(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG))
+                    .isEqualTo("");
         }
 
         @Test
@@ -145,26 +145,35 @@ class KafkaClusterDomainServiceImplTest {
 
             var properties = captureProperties(config);
 
-            assertThat(properties.get(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG)).isEqualTo("");
+            assertThat(properties.get(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG))
+                    .isEqualTo("");
         }
 
         @Test
         void should_configure_jks_truststore_with_path() {
-            var trustStore = JKSTrustStore.builder().path("/tmp/truststore.jks").password("changeit").build();
+            var trustStore = JKSTrustStore.builder()
+                    .path("/tmp/truststore.jks")
+                    .password("changeit")
+                    .build();
             var ssl = SslOptions.builder().trustStore(trustStore).build();
             var config = configWith(SecurityProtocol.SSL, null, ssl);
 
             var properties = captureProperties(config);
 
             assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG)).isEqualTo("JKS");
-            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG)).isEqualTo("/tmp/truststore.jks");
-            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG)).isEqualTo("changeit");
+            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG))
+                    .isEqualTo("/tmp/truststore.jks");
+            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG))
+                    .isEqualTo("changeit");
         }
 
         @Test
         void should_configure_jks_truststore_with_base64_content() {
             var base64Content = Base64.getEncoder().encodeToString("fake-jks-content".getBytes());
-            var trustStore = JKSTrustStore.builder().content(base64Content).password("changeit").build();
+            var trustStore = JKSTrustStore.builder()
+                    .content(base64Content)
+                    .password("changeit")
+                    .build();
             var ssl = SslOptions.builder().trustStore(trustStore).build();
             var config = configWith(SecurityProtocol.SSL, null, ssl);
 
@@ -173,20 +182,26 @@ class KafkaClusterDomainServiceImplTest {
             assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG)).isEqualTo("JKS");
             var location = (String) properties.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG);
             assertThat(location).isNotNull().contains("kafka-ssl-").endsWith(".store");
-            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG)).isEqualTo("changeit");
+            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG))
+                    .isEqualTo("changeit");
         }
 
         @Test
         void should_configure_pkcs12_truststore_with_path() {
-            var trustStore = PKCS12TrustStore.builder().path("/tmp/truststore.p12").password("changeit").build();
+            var trustStore = PKCS12TrustStore.builder()
+                    .path("/tmp/truststore.p12")
+                    .password("changeit")
+                    .build();
             var ssl = SslOptions.builder().trustStore(trustStore).build();
             var config = configWith(SecurityProtocol.SSL, null, ssl);
 
             var properties = captureProperties(config);
 
             assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG)).isEqualTo("PKCS12");
-            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG)).isEqualTo("/tmp/truststore.p12");
-            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG)).isEqualTo("changeit");
+            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG))
+                    .isEqualTo("/tmp/truststore.p12");
+            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG))
+                    .isEqualTo("changeit");
         }
 
         @Test
@@ -199,12 +214,15 @@ class KafkaClusterDomainServiceImplTest {
             var properties = captureProperties(config);
 
             assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG)).isEqualTo("PEM");
-            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG)).isEqualTo(pemContent);
+            assertThat(properties.get(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG))
+                    .isEqualTo(pemContent);
         }
 
         @Test
         void should_configure_pem_truststore_with_path() {
-            var certPath = Path.of("src/test/resources/ssl/test-cert.pem").toAbsolutePath().toString();
+            var certPath = Path.of("src/test/resources/ssl/test-cert.pem")
+                    .toAbsolutePath()
+                    .toString();
             var trustStore = PEMTrustStore.builder().path(certPath).build();
             var ssl = SslOptions.builder().trustStore(trustStore).build();
             var config = configWith(SecurityProtocol.SSL, null, ssl);
@@ -218,7 +236,11 @@ class KafkaClusterDomainServiceImplTest {
 
         @Test
         void should_configure_jks_keystore_with_path() {
-            var keyStore = JKSKeyStore.builder().path("/tmp/keystore.jks").password("changeit").keyPassword("keypass").build();
+            var keyStore = JKSKeyStore.builder()
+                    .path("/tmp/keystore.jks")
+                    .password("changeit")
+                    .keyPassword("keypass")
+                    .build();
             var ssl = SslOptions.builder().keyStore(keyStore).build();
             var config = configWith(SecurityProtocol.SSL, null, ssl);
 
@@ -232,7 +254,10 @@ class KafkaClusterDomainServiceImplTest {
 
         @Test
         void should_configure_pkcs12_keystore_with_path() {
-            var keyStore = PKCS12KeyStore.builder().path("/tmp/keystore.p12").password("changeit").build();
+            var keyStore = PKCS12KeyStore.builder()
+                    .path("/tmp/keystore.p12")
+                    .password("changeit")
+                    .build();
             var ssl = SslOptions.builder().keyStore(keyStore).build();
             var config = configWith(SecurityProtocol.SSL, null, ssl);
 
@@ -247,14 +272,18 @@ class KafkaClusterDomainServiceImplTest {
         void should_configure_pem_keystore_with_content() {
             var certContent = "-----BEGIN CERTIFICATE-----\nfake-cert\n-----END CERTIFICATE-----";
             var keyContent = "-----BEGIN PRIVATE KEY-----\nfake-key\n-----END PRIVATE KEY-----";
-            var keyStore = PEMKeyStore.builder().certContent(certContent).keyContent(keyContent).build();
+            var keyStore = PEMKeyStore.builder()
+                    .certContent(certContent)
+                    .keyContent(keyContent)
+                    .build();
             var ssl = SslOptions.builder().keyStore(keyStore).build();
             var config = configWith(SecurityProtocol.SSL, null, ssl);
 
             var properties = captureProperties(config);
 
             assertThat(properties.get(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG)).isEqualTo("PEM");
-            assertThat(properties.get(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG)).isEqualTo(certContent);
+            assertThat(properties.get(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG))
+                    .isEqualTo(certContent);
             assertThat(properties.get(SslConfigs.SSL_KEYSTORE_KEY_CONFIG)).isEqualTo(keyContent);
         }
 
@@ -268,7 +297,8 @@ class KafkaClusterDomainServiceImplTest {
 
             assertThat(properties.get("security.protocol")).isEqualTo("SASL_SSL");
             assertThat(properties.get("sasl.mechanism")).isEqualTo("PLAIN");
-            assertThat(properties.get(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG)).isEqualTo("");
+            assertThat(properties.get(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG))
+                    .isEqualTo("");
         }
 
         @Test
@@ -278,9 +308,7 @@ class KafkaClusterDomainServiceImplTest {
             var properties = captureProperties(config);
 
             assertThat(properties.get("security.protocol")).isEqualTo("PLAINTEXT");
-            assertThat(properties.keySet())
-                .map(Object::toString)
-                .noneMatch(k -> k.startsWith("ssl."));
+            assertThat(properties.keySet()).map(Object::toString).noneMatch(k -> k.startsWith("ssl."));
         }
 
         @Test
@@ -301,13 +329,15 @@ class KafkaClusterDomainServiceImplTest {
             };
             try {
                 service.describeCluster(config);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             assertThat(tempFilePath.get()).isNotNull();
             assertThat(Path.of(tempFilePath.get())).doesNotExist();
         }
 
-        private KafkaClusterStandaloneConfiguration configWith(SecurityProtocol protocol, SaslConfig sasl, SslOptions ssl) {
+        private KafkaClusterStandaloneConfiguration configWith(
+                SecurityProtocol protocol, SaslConfig sasl, SslOptions ssl) {
             return new KafkaClusterStandaloneConfiguration("localhost:9092", new SecurityConfig(protocol, sasl, ssl));
         }
 
@@ -323,7 +353,8 @@ class KafkaClusterDomainServiceImplTest {
             };
             try {
                 service.describeCluster(config);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             return captured.get();
         }
     }
@@ -358,9 +389,8 @@ class KafkaClusterDomainServiceImplTest {
 
     private Condition<Throwable> kafkaException(TechnicalCode technicalCode) {
         return new Condition<>(
-            e -> e instanceof KafkaExplorerException kafkaEx && kafkaEx.getTechnicalCode() == technicalCode,
-            "KafkaExplorerException with code %s",
-            technicalCode
-        );
+                e -> e instanceof KafkaExplorerException kafkaEx && kafkaEx.getTechnicalCode() == technicalCode,
+                "KafkaExplorerException with code %s",
+                technicalCode);
     }
 }

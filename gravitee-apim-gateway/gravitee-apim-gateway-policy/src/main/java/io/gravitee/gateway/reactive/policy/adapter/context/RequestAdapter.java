@@ -156,7 +156,8 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
 
     @Override
     public SSLSession sslSession() {
-        // V3 policies, such as SSLEnforcedPolicy, expect null for the SSLSession when the incoming request is an HTTP (non-SSL) connection.
+        // V3 policies, such as SSLEnforcedPolicy, expect null for the SSLSession when the incoming request is an HTTP
+        // (non-SSL) connection.
         TlsSession tlsSession = request.tlsSession();
         if (tlsSession != null && tlsSession.isSSLConnection()) {
             return tlsSession;

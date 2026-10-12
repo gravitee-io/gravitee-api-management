@@ -40,13 +40,13 @@ public class CachedPolicyConfigurationFactoryTest {
 
     @Test
     public void createPolicyConfigurationFromCache() {
-        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
+        try (InputStream is =
+                PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
-            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(
-                DummyPolicyConfiguration.class,
-                configuration
-            );
+            DummyPolicyConfiguration policyConfiguration =
+                    policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+            DummyPolicyConfiguration policyConfiguration2 =
+                    policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
             Assertions.assertNotNull(policyConfiguration);
             Assertions.assertNotNull(policyConfiguration2);
@@ -59,13 +59,13 @@ public class CachedPolicyConfigurationFactoryTest {
 
     @Test
     public void createNullPolicyConfigurationFromCache() {
-        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
+        try (InputStream is =
+                PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
-            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(
-                DummyPolicyConfiguration.class,
-                configuration
-            );
+            DummyPolicyConfiguration policyConfiguration =
+                    policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
+            DummyPolicyConfiguration policyConfiguration2 =
+                    policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
             Assertions.assertNull(policyConfiguration);
             Assertions.assertNotNull(policyConfiguration2);
@@ -83,8 +83,10 @@ public class CachedPolicyConfigurationFactoryTest {
     @Test
     public void createEmptyPolicyConfigurationDifferentPolicy() {
         String configuration = "{}";
-        DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
-        Dummy2PolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(Dummy2PolicyConfiguration.class, configuration);
+        DummyPolicyConfiguration policyConfiguration =
+                policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+        Dummy2PolicyConfiguration policyConfiguration2 =
+                policyConfigurationFactory.create(Dummy2PolicyConfiguration.class, configuration);
 
         Assertions.assertNotNull(policyConfiguration);
         Assertions.assertNotNull(policyConfiguration2);

@@ -41,7 +41,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @CustomLog
-public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<AccessPoint, String> implements AccessPointRepository {
+public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<AccessPoint, String>
+        implements AccessPointRepository {
 
     static String createdStatusClause = " and status = '" + AccessPointStatus.CREATED.name() + "'";
 
@@ -52,16 +53,16 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     @Override
     protected JdbcObjectMapper<AccessPoint> buildOrm() {
         return JdbcObjectMapper.builder(AccessPoint.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, AccessPointReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("target", Types.NVARCHAR, AccessPointTarget.class)
-            .addColumn("host", Types.NVARCHAR, String.class)
-            .addColumn("secured", Types.BOOLEAN, boolean.class)
-            .addColumn("overriding", Types.BOOLEAN, boolean.class)
-            .addColumn("status", Types.NVARCHAR, AccessPointStatus.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, AccessPointReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("target", Types.NVARCHAR, AccessPointTarget.class)
+                .addColumn("host", Types.NVARCHAR, String.class)
+                .addColumn("secured", Types.BOOLEAN, boolean.class)
+                .addColumn("overriding", Types.BOOLEAN, boolean.class)
+                .addColumn("status", Types.NVARCHAR, AccessPointStatus.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -73,9 +74,12 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     public Optional<AccessPoint> findByHost(final String host) throws TechnicalException {
         try {
             return jdbcTemplate
-                .query(getOrm().getSelectAllSql() + " a where host = ?" + createdStatusClause, getOrm().getRowMapper(), host)
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " a where host = ?" + createdStatusClause,
+                            getOrm().getRowMapper(),
+                            host)
+                    .stream()
+                    .findFirst();
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find access point by host", ex);
         }
@@ -85,10 +89,9 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     public List<AccessPoint> findByTarget(final AccessPointTarget target) throws TechnicalException {
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " t where target = ?" + createdStatusClause,
-                getOrm().getRowMapper(),
-                target.name()
-            );
+                    getOrm().getSelectAllSql() + " t where target = ?" + createdStatusClause,
+                    getOrm().getRowMapper(),
+                    target.name());
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find access point by target", ex);
         }
@@ -96,28 +99,28 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
 
     @Override
     public List<AccessPoint> findByReferenceAndTarget(
-        final AccessPointReferenceType referenceType,
-        final String referenceId,
-        final AccessPointTarget target
-    ) throws TechnicalException {
+            final AccessPointReferenceType referenceType, final String referenceId, final AccessPointTarget target)
+            throws TechnicalException {
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? and target = ?" + createdStatusClause,
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name(),
-                target.name()
-            );
+                    getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? and target = ?"
+                            + createdStatusClause,
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name(),
+                    target.name());
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find access point by reference and target", ex);
         }
     }
 
     @Override
-    public List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException {
+    public List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size)
+            throws TechnicalException {
         try {
             List<Object> args = new ArrayList<>();
-            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql()).append(buildCriteriaClauses(criteria, args));
+            StringBuilder query =
+                    new StringBuilder(getOrm().getSelectAllSql()).append(buildCriteriaClauses(criteria, args));
 
             query.append(" order by updated_at asc ");
             if (page != null && size != null && size > 0) {
@@ -132,22 +135,20 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final AccessPointReferenceType referenceType)
-        throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            final String referenceId, final AccessPointReferenceType referenceType) throws TechnicalException {
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
             return rows;
         } catch (final Exception ex) {
@@ -186,14 +187,10 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
             first = addClause(first, criteriaBuilder);
             criteriaBuilder.append("target IN (");
             criteriaBuilder.append(
-                criteria
-                    .getTargets()
-                    .stream()
-                    .map(target -> "?")
-                    .collect(Collectors.joining(","))
-            );
+                    criteria.getTargets().stream().map(target -> "?").collect(Collectors.joining(",")));
             criteriaBuilder.append(")");
-            args.addAll(criteria.getTargets().stream().map(AccessPointTarget::name).toList());
+            args.addAll(
+                    criteria.getTargets().stream().map(AccessPointTarget::name).toList());
         }
 
         if (criteria.getStatus() != null) {
@@ -206,12 +203,7 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
             first = addClause(first, criteriaBuilder);
             criteriaBuilder.append("reference_id IN (");
             criteriaBuilder.append(
-                criteria
-                    .getReferenceIds()
-                    .stream()
-                    .map(id -> "?")
-                    .collect(Collectors.joining(","))
-            );
+                    criteria.getReferenceIds().stream().map(id -> "?").collect(Collectors.joining(",")));
             criteriaBuilder.append(")");
             args.addAll(criteria.getReferenceIds());
         }

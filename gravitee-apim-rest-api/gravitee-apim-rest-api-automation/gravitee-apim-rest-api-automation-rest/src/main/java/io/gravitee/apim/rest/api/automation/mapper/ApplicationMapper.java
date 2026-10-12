@@ -38,39 +38,34 @@ import org.mapstruct.factory.Mappers;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class, CollectionFactory.class })
+@Mapper(uses = {DateMapper.class, OriginContextMapper.class, ServiceMapper.class, CollectionFactory.class})
 public interface ApplicationMapper {
     ApplicationMapper INSTANCE = Mappers.getMapper(ApplicationMapper.class);
 
     @Mapping(
-        target = "settings.oauth.applicationType",
-        expression = "java(applicationOAuthClientSettings.getApplicationType().name().toLowerCase())"
-    )
+            target = "settings.oauth.applicationType",
+            expression = "java(applicationOAuthClientSettings.getApplicationType().name().toLowerCase())")
     @Mapping(
-        target = "settings.oauth.grantTypes",
-        expression = "java(applicationOAuthClientSettings.getGrantTypes().stream().map(Enum::name).map(String::toLowerCase).toList())"
-    )
+            target = "settings.oauth.grantTypes",
+            expression =
+                    "java(applicationOAuthClientSettings.getGrantTypes().stream().map(Enum::name).map(String::toLowerCase).toList())")
     ApplicationCRDSpec applicationSpecToApplicationCRDSpec(ApplicationSpec applicationSpec);
 
     default ApplicationState applicationSpecToApplicationState(
-        ApplicationSpec applicationSpec,
-        String id,
-        String organizationId,
-        String environmentId
-    ) {
+            ApplicationSpec applicationSpec, String id, String organizationId, String environmentId) {
         var state = new ApplicationState(applicationSpec.getPrimaryOwner(), id, environmentId, organizationId, null);
         mapAppSpecToState(applicationSpec, state);
         return state;
     }
 
-    default ApplicationState applicationSpecAndStatusToApplicationState(ApplicationSpec spec, ApplicationCRDStatus status) {
+    default ApplicationState applicationSpecAndStatusToApplicationState(
+            ApplicationSpec spec, ApplicationCRDStatus status) {
         var state = new ApplicationState(
-            spec.getPrimaryOwner(),
-            status.getId(),
-            status.getEnvironmentId(),
-            status.getOrganizationId(),
-            toErrors(status.getErrors())
-        );
+                spec.getPrimaryOwner(),
+                status.getId(),
+                status.getEnvironmentId(),
+                status.getOrganizationId(),
+                toErrors(status.getErrors()));
         mapAppSpecToState(spec, state);
         return state;
     }
@@ -81,9 +76,9 @@ public interface ApplicationMapper {
     @Mapping(target = "organizationId", ignore = true)
     @Mapping(target = "environmentId", ignore = true)
     @Mapping(
-        target = "settings.tls.clientCertificate",
-        expression = "java(applicationTLSSettings.getClientCertificate() != null ? applicationTLSSettings.getClientCertificate().stripTrailing() : null)"
-    )
+            target = "settings.tls.clientCertificate",
+            expression =
+                    "java(applicationTLSSettings.getClientCertificate() != null ? applicationTLSSettings.getClientCertificate().stripTrailing() : null)")
     void mapAppSpecToState(ApplicationSpec spec, @MappingTarget ApplicationState state);
 
     Errors toErrors(ApplicationCRDStatus.Errors errors);
@@ -97,13 +92,13 @@ public interface ApplicationMapper {
     @Mapping(target = "pictureUrl", source = "picture")
     @Mapping(target = "notifyMembers", expression = "java(!applicationEntity.isDisableMembershipNotifications())")
     @Mapping(
-        target = "settings.oauth.applicationType",
-        expression = "java(ApplicationOAuthClientSettings.ApplicationTypeEnum.fromValue(oAuthClientSettings.getApplicationType()))"
-    )
+            target = "settings.oauth.applicationType",
+            expression =
+                    "java(ApplicationOAuthClientSettings.ApplicationTypeEnum.fromValue(oAuthClientSettings.getApplicationType()))")
     @Mapping(
-        target = "settings.oauth.grantTypes",
-        expression = "java(oAuthClientSettings.getGrantTypes().stream().map(ApplicationOAuthClientSettings.GrantTypesEnum::fromValue).collect(java.util.stream.Collectors.toSet()))"
-    )
+            target = "settings.oauth.grantTypes",
+            expression =
+                    "java(oAuthClientSettings.getGrantTypes().stream().map(ApplicationOAuthClientSettings.GrantTypesEnum::fromValue).collect(java.util.stream.Collectors.toSet()))")
     ApplicationSpec applicationEntityToApplicationSpec(ApplicationEntity applicationEntity);
 
     default String returnNullIfEmpty(String value) {

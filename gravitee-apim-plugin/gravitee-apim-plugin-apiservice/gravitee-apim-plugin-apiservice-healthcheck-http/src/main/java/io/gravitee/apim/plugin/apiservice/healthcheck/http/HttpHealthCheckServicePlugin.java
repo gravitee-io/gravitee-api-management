@@ -24,7 +24,8 @@ import java.nio.file.Path;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpHealthCheckServicePlugin implements ApiServicePlugin<HttpHealthCheckServiceFactory, HttpHealthCheckServiceConfiguration> {
+public class HttpHealthCheckServicePlugin
+        implements ApiServicePlugin<HttpHealthCheckServiceFactory, HttpHealthCheckServiceConfiguration> {
 
     @Override
     public String id() {

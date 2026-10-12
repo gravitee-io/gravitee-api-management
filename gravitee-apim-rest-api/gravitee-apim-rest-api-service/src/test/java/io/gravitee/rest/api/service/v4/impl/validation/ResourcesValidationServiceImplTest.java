@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.ResourceService;

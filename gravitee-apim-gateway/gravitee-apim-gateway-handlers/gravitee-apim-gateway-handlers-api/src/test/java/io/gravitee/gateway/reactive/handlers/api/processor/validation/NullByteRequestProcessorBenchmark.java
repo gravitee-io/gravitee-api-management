@@ -44,11 +44,14 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 public class NullByteRequestProcessorBenchmark {
 
     public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder().include(NullByteRequestProcessorBenchmark.class.getSimpleName()).forks(1).build();
+        Options opt = new OptionsBuilder()
+                .include(NullByteRequestProcessorBenchmark.class.getSimpleName())
+                .forks(1)
+                .build();
         new Runner(opt).run();
     }
 
-    @Param({ "1", "5", "20", "50" })
+    @Param({"1", "5", "20", "50"})
     private int paramCount;
 
     private MultiValueMap<String, String> cleanParams;
@@ -66,12 +69,14 @@ public class NullByteRequestProcessorBenchmark {
 
     @Benchmark
     public boolean scan_uri_clean() {
-        return (NullByteRequestProcessor.containsEncodedNullByte(cleanUri) || NullByteRequestProcessor.containsNullByte(cleanUri));
+        return (NullByteRequestProcessor.containsEncodedNullByte(cleanUri)
+                || NullByteRequestProcessor.containsNullByte(cleanUri));
     }
 
     @Benchmark
     public boolean scan_uri_dirty() {
-        return (NullByteRequestProcessor.containsEncodedNullByte(dirtyUri) || NullByteRequestProcessor.containsNullByte(dirtyUri));
+        return (NullByteRequestProcessor.containsEncodedNullByte(dirtyUri)
+                || NullByteRequestProcessor.containsNullByte(dirtyUri));
     }
 
     @Benchmark

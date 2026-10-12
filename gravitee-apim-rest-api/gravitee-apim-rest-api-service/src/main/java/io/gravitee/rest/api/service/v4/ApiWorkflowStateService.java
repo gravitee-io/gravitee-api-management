@@ -23,7 +23,12 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ApiWorkflowStateService {
-    GenericApiEntity askForReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
-    GenericApiEntity acceptReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
-    GenericApiEntity rejectReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
+    GenericApiEntity askForReview(
+            ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
+
+    GenericApiEntity acceptReview(
+            ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
+
+    GenericApiEntity rejectReview(
+            ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
 }

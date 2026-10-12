@@ -182,29 +182,28 @@ class DefaultApiReactorFactoryTest {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
         lenient().when(policyFactoryManager.get(any())).thenReturn(policyFactory);
         cut = new DefaultApiReactorFactory(
-            applicationContext,
-            configuration,
-            node,
-            policyFactoryManager,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            apiServicePluginManager,
-            organizationPolicyChainFactoryManager,
-            organizationManager,
-            flowResolverFactory,
-            requestTimeoutConfiguration,
-            reporterService,
-            accessPointManager,
-            eventManager,
-            new HttpAcceptorFactory(false),
-            openTelemetryConfiguration,
-            openTelemetryFactory,
-            List.of(),
-            gatewayConfiguration,
-            dictionaryManager,
-            logGuardService,
-            connectionDrainManager
-        );
+                applicationContext,
+                configuration,
+                node,
+                policyFactoryManager,
+                entrypointConnectorPluginManager,
+                endpointConnectorPluginManager,
+                apiServicePluginManager,
+                organizationPolicyChainFactoryManager,
+                organizationManager,
+                flowResolverFactory,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                new HttpAcceptorFactory(false),
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                List.of(),
+                gatewayConfiguration,
+                dictionaryManager,
+                logGuardService,
+                connectionDrainManager);
     }
 
     @Nested
@@ -273,8 +272,11 @@ class DefaultApiReactorFactoryTest {
             globalComponentProvider = registerGlobalComponentProvider();
             resourcePluginManager = registerResourcePluginManager();
             policyPluginManager = registerPolicyPluginManager();
-            registeredApiTemplateVariableProvider = registerApiTemplateVariableProvider(List.of(mock(TemplateVariableProvider.class)));
-            lenient().when(applicationContext.getBeanNamesForType(CredentialResolver.class)).thenReturn(new String[0]);
+            registeredApiTemplateVariableProvider =
+                    registerApiTemplateVariableProvider(List.of(mock(TemplateVariableProvider.class)));
+            lenient()
+                    .when(applicationContext.getBeanNamesForType(CredentialResolver.class))
+                    .thenReturn(new String[0]);
         }
 
         @Test
@@ -283,7 +285,10 @@ class DefaultApiReactorFactoryTest {
             var reactor = cut.create(api);
 
             assertThat(reactor).extracting("node").isSameAs(node);
-            assertThat(reactor).extracting("tracingContext").extracting("enabled", "verbose").containsOnly(false, false);
+            assertThat(reactor)
+                    .extracting("tracingContext")
+                    .extracting("enabled", "verbose")
+                    .containsOnly(false, false);
             assertThat(reactor).extracting("pendingRequestsTimeout").isEqualTo(10_000L);
             assertThat(reactor).extracting("loggingExcludedResponseType").isNull();
             assertThat(reactor).extracting("loggingMaxSize").isNull();
@@ -298,14 +303,15 @@ class DefaultApiReactorFactoryTest {
             var componentProvider = ((DefaultApiReactor) reactor).getComponentProvider();
 
             assertThat(componentProvider)
-                .isInstanceOf(CompositeComponentProvider.class)
-                .extracting("componentProviders")
-                .asInstanceOf(LIST)
-                .contains(globalComponentProvider);
+                    .isInstanceOf(CompositeComponentProvider.class)
+                    .extracting("componentProviders")
+                    .asInstanceOf(LIST)
+                    .contains(globalComponentProvider);
 
             assertThat(componentProvider.getComponent(Api.class)).isSameAs(api);
             assertThat(componentProvider.getComponent(ReactableApi.class)).isSameAs(api);
-            assertThat(componentProvider.getComponent(io.gravitee.definition.model.v4.Api.class)).isSameAs(definition);
+            assertThat(componentProvider.getComponent(io.gravitee.definition.model.v4.Api.class))
+                    .isSameAs(definition);
             assertThat(componentProvider.getComponent(ResourceManager.class)).isNotNull();
             assertThat(componentProvider.getComponent(EndpointManager.class)).isNotNull();
         }
@@ -316,10 +322,10 @@ class DefaultApiReactorFactoryTest {
             var reactor = cut.create(api);
 
             assertThat(reactor)
-                .extracting("resourceLifecycleManager")
-                .isInstanceOf(DefaultResourceManager.class)
-                .extracting("resourcePluginManager")
-                .isSameAs(resourcePluginManager);
+                    .extracting("resourceLifecycleManager")
+                    .isInstanceOf(DefaultResourceManager.class)
+                    .extracting("resourcePluginManager")
+                    .isSameAs(resourcePluginManager);
         }
 
         @Test
@@ -328,19 +334,18 @@ class DefaultApiReactorFactoryTest {
             var reactor = cut.create(api);
 
             assertThat(reactor)
-                .extracting("policyManager")
-                .isInstanceOf(ApiPolicyManager.class)
-                .extracting("policyLoader")
-                .isInstanceOf(PolicyLoader.class)
-                .extracting("policyPluginManager")
-                .isSameAs(policyPluginManager);
+                    .extracting("policyManager")
+                    .isInstanceOf(ApiPolicyManager.class)
+                    .extracting("policyLoader")
+                    .isInstanceOf(PolicyLoader.class)
+                    .extracting("policyPluginManager")
+                    .isSameAs(policyPluginManager);
         }
 
         @Test
         void should_create_api_reactor_with_TemplateVariableProviders() {
-            when(dictionaryManager.createTemplateVariableProvider(any())).thenReturn(
-                mock(EnvironmentDictionaryTemplateVariableProvider.class)
-            );
+            when(dictionaryManager.createTemplateVariableProvider(any()))
+                    .thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
             var api = anApi();
             var reactor = cut.create(api);
 
@@ -348,58 +353,58 @@ class DefaultApiReactorFactoryTest {
             var templateVariableProviders = ((DefaultApiReactor) reactor).getCtxTemplateVariableProviders();
 
             assertThat(templateVariableProviders)
-                .hasSize(3 + registeredApiTemplateVariableProvider.size())
-                .satisfies(list -> {
-                    assertThat(
-                        list
-                            .stream()
-                            .filter(p -> p instanceof ApiTemplateVariableProvider)
-                            .findFirst()
-                    ).isPresent();
-                    assertThat(
-                        list
-                            .stream()
-                            .filter(p -> p instanceof EnvironmentDictionaryTemplateVariableProvider)
-                            .findFirst()
-                    ).isPresent();
-                    assertThat(
-                        list
-                            .stream()
-                            .filter(p -> registeredApiTemplateVariableProvider.contains(p))
-                            .findFirst()
-                    ).isPresent();
-                    assertThat(
-                        list
-                            .stream()
-                            .filter(p -> p instanceof EndpointManager)
-                            .findFirst()
-                    ).isPresent();
-                });
+                    .hasSize(3 + registeredApiTemplateVariableProvider.size())
+                    .satisfies(list -> {
+                        assertThat(list.stream()
+                                        .filter(p -> p instanceof ApiTemplateVariableProvider)
+                                        .findFirst())
+                                .isPresent();
+                        assertThat(list.stream()
+                                        .filter(p -> p instanceof EnvironmentDictionaryTemplateVariableProvider)
+                                        .findFirst())
+                                .isPresent();
+                        assertThat(list.stream()
+                                        .filter(p -> registeredApiTemplateVariableProvider.contains(p))
+                                        .findFirst())
+                                .isPresent();
+                        assertThat(list.stream()
+                                        .filter(p -> p instanceof EndpointManager)
+                                        .findFirst())
+                                .isPresent();
+                    });
         }
 
         @Test
         void should_create_api_reactor_with_a_credentials_TemplateVariableProvider_when_credentials_can_be_resolved() {
-            when(dictionaryManager.createTemplateVariableProvider(any())).thenReturn(
-                mock(EnvironmentDictionaryTemplateVariableProvider.class)
-            );
-            when(applicationContext.getBeanNamesForType(CredentialResolver.class)).thenReturn(new String[] { "credentialResolver" });
-            when(applicationContext.getBean("credentialResolver", CredentialResolver.class)).thenReturn(mock(CredentialResolver.class));
+            when(dictionaryManager.createTemplateVariableProvider(any()))
+                    .thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
+            when(applicationContext.getBeanNamesForType(CredentialResolver.class))
+                    .thenReturn(new String[] {"credentialResolver"});
+            when(applicationContext.getBean("credentialResolver", CredentialResolver.class))
+                    .thenReturn(mock(CredentialResolver.class));
 
             var reactor = cut.create(anApi());
 
             assertThat(reactor).isInstanceOf(DefaultApiReactor.class);
             assertThat(((DefaultApiReactor) reactor).getCtxTemplateVariableProviders())
-                .hasSize(4 + registeredApiTemplateVariableProvider.size())
-                .anyMatch(p -> p instanceof CredentialsTemplateVariableProvider);
+                    .hasSize(4 + registeredApiTemplateVariableProvider.size())
+                    .anyMatch(p -> p instanceof CredentialsTemplateVariableProvider);
         }
 
-        private List<TemplateVariableProvider> registerApiTemplateVariableProvider(List<TemplateVariableProvider> providers) {
-            TemplateVariableProviderFactory apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
-            when(apiTemplateVariableProviderFactory.getTemplateVariableProviders()).thenReturn(providers);
+        private List<TemplateVariableProvider> registerApiTemplateVariableProvider(
+                List<TemplateVariableProvider> providers) {
+            TemplateVariableProviderFactory apiTemplateVariableProviderFactory =
+                    mock(ApiTemplateVariableProviderFactory.class);
+            when(apiTemplateVariableProviderFactory.getTemplateVariableProviders())
+                    .thenReturn(providers);
             when(apiTemplateVariableProviderFactory.getTemplateVariableScope()).thenReturn(TemplateVariableScope.API);
-            String[] providersName = { "apiTemplateVariableProviderFactory" };
-            lenient().when(applicationContext.getBeanNamesForType(TemplateVariableProviderFactory.class)).thenReturn(providersName);
-            lenient().when(applicationContext.getBean("apiTemplateVariableProviderFactory")).thenReturn(apiTemplateVariableProviderFactory);
+            String[] providersName = {"apiTemplateVariableProviderFactory"};
+            lenient()
+                    .when(applicationContext.getBeanNamesForType(TemplateVariableProviderFactory.class))
+                    .thenReturn(providersName);
+            lenient()
+                    .when(applicationContext.getBean("apiTemplateVariableProviderFactory"))
+                    .thenReturn(apiTemplateVariableProviderFactory);
             return providers;
         }
 
@@ -410,24 +415,18 @@ class DefaultApiReactorFactoryTest {
 
         private ConfigurablePluginManager<?> registerResourcePluginManager() {
             lenient()
-                .when(
-                    applicationContextListable.getBeanNamesForType(
-                        ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
-                    )
-                )
-                .thenReturn(new String[] { "resourcePluginManager" });
+                    .when(applicationContextListable.getBeanNamesForType(
+                            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)))
+                    .thenReturn(new String[] {"resourcePluginManager"});
             lenient().when(applicationContext.getBean("resourcePluginManager")).thenReturn(resourcePluginManager);
             return resourcePluginManager;
         }
 
         private ConfigurablePluginManager<?> registerPolicyPluginManager() {
             lenient()
-                .when(
-                    applicationContextListable.getBeanNamesForType(
-                        ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-                    )
-                )
-                .thenReturn(new String[] { "policyPluginManager" });
+                    .when(applicationContextListable.getBeanNamesForType(
+                            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)))
+                    .thenReturn(new String[] {"policyPluginManager"});
             lenient().when(applicationContext.getBean("policyPluginManager")).thenReturn(policyPluginManager);
             return policyPluginManager;
         }
@@ -439,23 +438,18 @@ class DefaultApiReactorFactoryTest {
         @Test
         void should_resolve_policy_plugin_manager_from_ancestor_context() {
             var policyPluginManager = mock(ConfigurablePluginManager.class);
-            when(
-                applicationContextListable.getBeanNamesForType(
-                    ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-                )
-            ).thenReturn(new String[] { "policyPluginManager" });
+            when(applicationContextListable.getBeanNamesForType(
+                            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)))
+                    .thenReturn(new String[] {"policyPluginManager"});
             when(applicationContext.getBean("policyPluginManager")).thenReturn(policyPluginManager);
-            when(applicationContext.getBean(io.gravitee.gateway.core.classloader.DefaultClassLoader.class)).thenReturn(
-                mock(io.gravitee.gateway.core.classloader.DefaultClassLoader.class)
-            );
-            when(applicationContext.getBean(io.gravitee.plugin.policy.PolicyClassLoaderFactory.class)).thenReturn(
-                mock(io.gravitee.plugin.policy.PolicyClassLoaderFactory.class)
-            );
+            when(applicationContext.getBean(io.gravitee.gateway.core.classloader.DefaultClassLoader.class))
+                    .thenReturn(mock(io.gravitee.gateway.core.classloader.DefaultClassLoader.class));
+            when(applicationContext.getBean(io.gravitee.plugin.policy.PolicyClassLoaderFactory.class))
+                    .thenReturn(mock(io.gravitee.plugin.policy.PolicyClassLoaderFactory.class));
 
             var factory = cut.createApiProductPlanPolicyManagerFactory(
-                mock(CompositeComponentProvider.class),
-                mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
-            );
+                    mock(CompositeComponentProvider.class),
+                    mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class));
 
             assertThat(factory).isNotNull();
         }
@@ -490,9 +484,9 @@ class DefaultApiReactorFactoryTest {
             when(api.getOrganizationId()).thenReturn("org-id");
             when(api.getEnvironmentId()).thenReturn("env-id");
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(openTelemetryFactory.createTracer(
+                            any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class)))
+                    .thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api, "test-namespace");
 
@@ -526,29 +520,29 @@ class DefaultApiReactorFactoryTest {
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
             when(node.id()).thenReturn("node-id");
             when(node.application()).thenReturn("apim-gateway");
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(openTelemetryFactory.createTracer(
+                            any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class)))
+                    .thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api, "API_V4");
 
             ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
-            verify(openTelemetryFactory).createTracer(
-                eq("node-id"),
-                eq("apim-gateway"),
-                eq("gravitee"),
-                any(),
-                anyList(),
-                mapCaptor.capture(),
-                any(RedactionConfig.class)
-            );
+            verify(openTelemetryFactory)
+                    .createTracer(
+                            eq("node-id"),
+                            eq("apim-gateway"),
+                            eq("gravitee"),
+                            any(),
+                            anyList(),
+                            mapCaptor.capture(),
+                            any(RedactionConfig.class));
             assertThat(mapCaptor.getValue())
-                .containsEntry("gravitee.module", "apim")
-                .containsEntry("gravitee.api.id", "api-id")
-                .containsEntry("gravitee.api.name", "api-name")
-                .containsEntry("gravitee.api.type", "API_V4")
-                .containsEntry("gravitee.org.id", "org-id")
-                .containsEntry("gravitee.env.id", "env-id");
+                    .containsEntry("gravitee.module", "apim")
+                    .containsEntry("gravitee.api.id", "api-id")
+                    .containsEntry("gravitee.api.name", "api-name")
+                    .containsEntry("gravitee.api.type", "API_V4")
+                    .containsEntry("gravitee.org.id", "org-id")
+                    .containsEntry("gravitee.env.id", "env-id");
         }
     }
 

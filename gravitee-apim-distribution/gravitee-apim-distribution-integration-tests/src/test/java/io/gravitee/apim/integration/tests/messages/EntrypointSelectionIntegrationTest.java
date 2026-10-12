@@ -57,7 +57,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @Testcontainers
 @GatewayTest
-@DeployApi({ "/apis/v4/messages/all-entrypoints-mock-endpoint.json" })
+@DeployApi({"/apis/v4/messages/all-entrypoints-mock-endpoint.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class EntrypointSelectionIntegrationTest extends AbstractGatewayTest {
 
@@ -68,10 +68,13 @@ class EntrypointSelectionIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
         entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -81,95 +84,94 @@ class EntrypointSelectionIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
-        policies.put(ConnectorToHeaderPolicy.ID, PolicyBuilder.build(ConnectorToHeaderPolicy.ID, ConnectorToHeaderPolicy.class));
+        policies.put(
+                ConnectorToHeaderPolicy.ID,
+                PolicyBuilder.build(ConnectorToHeaderPolicy.ID, ConnectorToHeaderPolicy.class));
     }
 
     @Test
     void should_select_httpget_entrypoint_on_get_request(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().get("X-Endpoint-Used")).isEqualTo("mock");
-                assertThat(response.headers().get("X-Entrypoint-Used")).isEqualTo("http-get");
-                assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                return response.body();
-            })
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject content = new JsonObject(body.toString());
+        client.rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
+                        .rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().get("X-Endpoint-Used")).isEqualTo("mock");
+                    assertThat(response.headers().get("X-Entrypoint-Used")).isEqualTo("http-get");
+                    assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject content = new JsonObject(body.toString());
 
-                final JsonObject pagination = content.getJsonObject("pagination");
-                assertThat(pagination.getString("cursor")).isNull();
-                // This value is due to the entrypoint "messagesLimitCount" configuration field
-                assertThat(pagination.getString("nextCursor")).isEqualTo("11");
+                    final JsonObject pagination = content.getJsonObject("pagination");
+                    assertThat(pagination.getString("cursor")).isNull();
+                    // This value is due to the entrypoint "messagesLimitCount" configuration field
+                    assertThat(pagination.getString("nextCursor")).isEqualTo("11");
 
-                final JsonArray items = content.getJsonArray("items");
-                assertThat(items)
-                    .hasSize(12)
-                    .map(json -> Integer.parseInt(((JsonObject) json).getString("id")))
-                    .containsExactly(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-                return true;
-            })
-            .assertComplete()
-            .assertNoErrors();
+                    final JsonArray items = content.getJsonArray("items");
+                    assertThat(items)
+                            .hasSize(12)
+                            .map(json -> Integer.parseInt(((JsonObject) json).getString("id")))
+                            .containsExactly(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+                    return true;
+                })
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
     void should_select_httppost_entrypoint_on_post_request(HttpClient client) {
         final String messageContent = "This is the message content!";
-        client
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(request -> request.rxSend(messageContent))
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                assertThat(response.headers().get("X-Endpoint-Used")).isEqualTo("mock");
-                assertThat(response.headers().get("X-Entrypoint-Used")).isEqualTo("http-post");
-                return response.body();
-            })
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                assertThat(body).hasToString("");
-                return true;
-            })
-            .assertComplete()
-            .assertNoErrors();
+        client.rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> request.rxSend(messageContent))
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    assertThat(response.headers().get("X-Endpoint-Used")).isEqualTo("mock");
+                    assertThat(response.headers().get("X-Entrypoint-Used")).isEqualTo("http-post");
+                    return response.body();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    assertThat(body).hasToString("");
+                    return true;
+                })
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
     void should_select_sse_entrypoint_on_request_matching_sse(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM).rxSend())
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().get("X-Endpoint-Used")).isEqualTo("mock");
-                assertThat(response.headers().get("X-Entrypoint-Used")).isEqualTo("sse");
-                return response.toFlowable();
-            })
-            .test()
-            .awaitDone(15, TimeUnit.SECONDS)
-            // First message is a retry message, then the 15 messages configured for the mock endpoint are sent.
-            .assertValueCount(16)
-            .assertNoErrors()
-            .cancel();
+        client.rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM)
+                        .rxSend())
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().get("X-Endpoint-Used")).isEqualTo("mock");
+                    assertThat(response.headers().get("X-Entrypoint-Used")).isEqualTo("sse");
+                    return response.toFlowable();
+                })
+                .test()
+                .awaitDone(15, TimeUnit.SECONDS)
+                // First message is a retry message, then the 15 messages configured for the mock endpoint are sent.
+                .assertValueCount(16)
+                .assertNoErrors()
+                .cancel();
     }
 
     @Test
     void should_select_websocket_entrypoint_on_websocket_request(WebSocketClient client) {
-        var obs = client
-            .connect("/test")
-            .flatMapPublisher(response -> {
-                assertThat(response.headers().contains("sec-websocket-accept")).isTrue();
-                return response.toFlowable();
-            })
-            .test();
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 15);
+        var obs = client.connect("/test")
+                .flatMapPublisher(response -> {
+                    assertThat(response.headers().contains("sec-websocket-accept"))
+                            .isTrue();
+                    return response.toFlowable();
+                })
+                .test();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 15);
         obs.assertNoErrors().cancel();
     }
 }

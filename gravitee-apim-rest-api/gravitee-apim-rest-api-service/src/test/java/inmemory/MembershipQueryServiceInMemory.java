@@ -35,89 +35,69 @@ public class MembershipQueryServiceInMemory implements MembershipQueryService, I
     }
 
     @Override
-    public Collection<Membership> findByReferenceAndRoleId(Membership.ReferenceType referenceType, String referenceId, String roleId) {
-        return storage
-            .stream()
-            .filter(
-                membership ->
-                    membership.getReferenceType().equals(referenceType) &&
-                    membership.getReferenceId().equals(referenceId) &&
-                    membership.getRoleId().equals(roleId)
-            )
-            .toList();
+    public Collection<Membership> findByReferenceAndRoleId(
+            Membership.ReferenceType referenceType, String referenceId, String roleId) {
+        return storage.stream()
+                .filter(membership -> membership.getReferenceType().equals(referenceType)
+                        && membership.getReferenceId().equals(referenceId)
+                        && membership.getRoleId().equals(roleId))
+                .toList();
     }
 
     @Override
     public Collection<Membership> findByReferencesAndRoleId(
-        Membership.ReferenceType referenceType,
-        List<String> referenceIds,
-        String roleId
-    ) {
-        return storage
-            .stream()
-            .filter(
-                membership ->
-                    membership.getReferenceType().equals(referenceType) &&
-                    referenceIds.contains(membership.getReferenceId()) &&
-                    membership.getRoleId().equals(roleId)
-            )
-            .toList();
+            Membership.ReferenceType referenceType, List<String> referenceIds, String roleId) {
+        return storage.stream()
+                .filter(membership -> membership.getReferenceType().equals(referenceType)
+                        && referenceIds.contains(membership.getReferenceId())
+                        && membership.getRoleId().equals(roleId))
+                .toList();
     }
 
     @Override
     public Collection<Membership> findByReference(Membership.ReferenceType referenceType, String referenceId) {
-        return storage
-            .stream()
-            .filter(membership -> membership.getReferenceType().equals(referenceType) && membership.getReferenceId().equals(referenceId))
-            .toList();
+        return storage.stream()
+                .filter(membership -> membership.getReferenceType().equals(referenceType)
+                        && membership.getReferenceId().equals(referenceId))
+                .toList();
     }
 
     @Override
     public Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        Membership.Type memberType,
-        Membership.ReferenceType referenceType
-    ) {
-        return storage
-            .stream()
-            .filter(
-                membership ->
-                    membership.getMemberId().equals(memberId) &&
-                    membership.getMemberType() == memberType &&
-                    membership.getReferenceType() == referenceType
-            )
-            .toList();
+            String memberId, Membership.Type memberType, Membership.ReferenceType referenceType) {
+        return storage.stream()
+                .filter(membership -> membership.getMemberId().equals(memberId)
+                        && membership.getMemberType() == memberType
+                        && membership.getReferenceType() == referenceType)
+                .toList();
     }
 
     @Override
     public Collection<Membership> findGroupsThatUserBelongsTo(String userId) {
-        return storage
-            .stream()
-            .filter(membership -> membership.isGroupUser() && membership.getMemberId().equals(userId))
-            .toList();
+        return storage.stream()
+                .filter(membership ->
+                        membership.isGroupUser() && membership.getMemberId().equals(userId))
+                .toList();
     }
 
     @Override
     public Collection<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
-        Collection<String> memberIds,
-        Membership.Type memberType,
-        Membership.ReferenceType referenceType
-    ) {
-        return storage
-            .stream()
-            .filter(m -> memberIds.contains(m.getMemberId()) && memberType == m.getMemberType() && referenceType == m.getReferenceType())
-            .toList();
+            Collection<String> memberIds, Membership.Type memberType, Membership.ReferenceType referenceType) {
+        return storage.stream()
+                .filter(m -> memberIds.contains(m.getMemberId())
+                        && memberType == m.getMemberType()
+                        && referenceType == m.getReferenceType())
+                .toList();
     }
 
     @Override
     public List<String> findClustersIdsThatUserBelongsTo(String userId) {
-        return storage
-            .stream()
-            .filter(membership -> membership.getMemberType() == Membership.Type.USER)
-            .filter(membership -> membership.getReferenceType() == Membership.ReferenceType.CLUSTER)
-            .filter(membership -> membership.getMemberId().equals(userId))
-            .map(Membership::getReferenceId)
-            .toList();
+        return storage.stream()
+                .filter(membership -> membership.getMemberType() == Membership.Type.USER)
+                .filter(membership -> membership.getReferenceType() == Membership.ReferenceType.CLUSTER)
+                .filter(membership -> membership.getMemberId().equals(userId))
+                .map(Membership::getReferenceId)
+                .toList();
     }
 
     @Override

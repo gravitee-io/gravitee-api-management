@@ -38,25 +38,23 @@ class ApiProductPlanMapperTest {
     @Test
     void should_map_only_api_product_supported_fields() throws JsonProcessingException {
         var plan = Plan.builder()
-            .id("plan-id")
-            .name("API Key plan")
-            .description("API Product plan")
-            .characteristics(List.of("featured"))
-            .order(2)
-            .commentRequired(true)
-            .commentMessage("Why do you need access?")
-            .generalConditions("terms-page-id")
-            .definitionVersion(DefinitionVersion.V4)
-            .validation(Plan.PlanValidationType.MANUAL)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .mode(PlanMode.STANDARD)
-                    .status(PlanStatus.PUBLISHED)
-                    .security(PlanSecurity.builder().type("api-key").build())
-                    .build()
-            )
-            .build();
+                .id("plan-id")
+                .name("API Key plan")
+                .description("API Product plan")
+                .characteristics(List.of("featured"))
+                .order(2)
+                .commentRequired(true)
+                .commentMessage("Why do you need access?")
+                .generalConditions("terms-page-id")
+                .definitionVersion(DefinitionVersion.V4)
+                .validation(Plan.PlanValidationType.MANUAL)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .security(PlanSecurity.builder().type("api-key").build())
+                        .build())
+                .build();
 
         var result = ApiProductPlanMapper.INSTANCE.map(plan);
 
@@ -72,6 +70,7 @@ class ApiProductPlanMapperTest {
         assertThat(result.getCommentQuestion()).isEqualTo("Why do you need access?");
 
         var json = new ObjectMapper().writeValueAsString(result);
-        assertThat(json).doesNotContain("general_conditions", "generalConditions", "usage_configuration", "usageConfiguration");
+        assertThat(json)
+                .doesNotContain("general_conditions", "generalConditions", "usage_configuration", "usageConfiguration");
     }
 }

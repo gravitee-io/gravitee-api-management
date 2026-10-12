@@ -37,14 +37,13 @@ class MessageTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
 
     private TimeSeriesQuery query(List<Facet> facets) {
         return new TimeSeriesQuery(
-            buildTimeRange(),
-            List.of(),
-            60_000L,
-            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
-            facets,
-            null,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(),
+                60_000L,
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+                facets,
+                null,
+                List.of());
     }
 
     @Test
@@ -83,14 +82,13 @@ class MessageTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
     void should_emit_no_request_id_clause_when_the_join_is_skipped() throws JsonProcessingException {
         var apiFilter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID));
         var query = new TimeSeriesQuery(
-            buildTimeRange(),
-            List.of(apiFilter),
-            60_000L,
-            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
-            List.of(),
-            null,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(apiFilter),
+                60_000L,
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+                List.of(),
+                null,
+                List.of());
 
         var json = JSON.readTree(adapter.adapt(query));
 

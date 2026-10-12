@@ -51,12 +51,12 @@ public class TimeRangeAdapter {
         return MAPPER.createObjectNode().set(RANGE, rangeNode);
     }
 
-    public static ObjectNode createTimestampAggregationNode(io.gravitee.repository.log.v4.model.analytics.HistogramQuery query) {
-        long intervalMillis = query
-            .timeRange()
-            .interval()
-            .orElseThrow(() -> new IllegalArgumentException("Interval is required for Timestamp aggregation"))
-            .toMillis();
+    public static ObjectNode createTimestampAggregationNode(
+            io.gravitee.repository.log.v4.model.analytics.HistogramQuery query) {
+        long intervalMillis = query.timeRange()
+                .interval()
+                .orElseThrow(() -> new IllegalArgumentException("Interval is required for Timestamp aggregation"))
+                .toMillis();
 
         ObjectNode byDate = MAPPER.createObjectNode();
         ObjectNode dateHistogram = MAPPER.createObjectNode();

@@ -50,7 +50,8 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     public Optional<IdentityProvider> findById(String id) throws TechnicalException {
         log.debug("Find identity provider by ID [{}]", id);
 
-        IdentityProviderMongo identityProvider = internalIdentityProviderRepository.findById(id).orElse(null);
+        IdentityProviderMongo identityProvider =
+                internalIdentityProviderRepository.findById(id).orElse(null);
 
         log.debug("Find identity provider by ID [{}] - Done", id);
         return Optional.ofNullable(map(identityProvider));
@@ -61,7 +62,8 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         log.debug("Create identity provider [{}]", identityProvider.getName());
 
         IdentityProviderMongo identityProviderMongo = map(identityProvider);
-        IdentityProviderMongo createdIdentityProviderMongo = internalIdentityProviderRepository.insert(identityProviderMongo);
+        IdentityProviderMongo createdIdentityProviderMongo =
+                internalIdentityProviderRepository.insert(identityProviderMongo);
 
         log.debug("Create identity provider [{}] - Done", identityProvider.getName());
 
@@ -74,9 +76,12 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             throw new IllegalStateException("Identity provider must not be null");
         }
 
-        IdentityProviderMongo identityProviderMongo = internalIdentityProviderRepository.findById(identityProvider.getId()).orElse(null);
+        IdentityProviderMongo identityProviderMongo = internalIdentityProviderRepository
+                .findById(identityProvider.getId())
+                .orElse(null);
         if (identityProviderMongo == null) {
-            throw new IllegalStateException(String.format("No identity provider found with id [%s]", identityProvider.getId()));
+            throw new IllegalStateException(
+                    String.format("No identity provider found with id [%s]", identityProvider.getId()));
         }
 
         try {
@@ -93,7 +98,8 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             identityProviderMongo.setEmailRequired(identityProvider.getEmailRequired());
             identityProviderMongo.setSyncMappings(identityProvider.getSyncMappings());
 
-            IdentityProviderMongo identityProviderMongoUpdated = internalIdentityProviderRepository.save(identityProviderMongo);
+            IdentityProviderMongo identityProviderMongoUpdated =
+                    internalIdentityProviderRepository.save(identityProviderMongo);
             return map(identityProviderMongoUpdated);
         } catch (Exception e) {
             log.error("An error occurs when updating identity provider", e);
@@ -115,7 +121,9 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     public Set<IdentityProvider> findAll() throws TechnicalException {
         log.debug("Find all identity providers");
 
-        Set<IdentityProvider> res = internalIdentityProviderRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
+        Set<IdentityProvider> res = internalIdentityProviderRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
 
         log.debug("Find all identity providers - Done");
         return res;
@@ -129,17 +137,25 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         IdentityProviderMongo identityProviderMongo = mapper.map(identityProvider);
 
         if (identityProvider.getGroupMappings() != null) {
-            Map<String, String[]> groupMappings = new HashMap<>(identityProvider.getGroupMappings().size());
-            for (Map.Entry<String, String[]> groupEntry : identityProvider.getGroupMappings().entrySet()) {
-                groupMappings.put(new String(Base64.getEncoder().encode(groupEntry.getKey().getBytes())), groupEntry.getValue());
+            Map<String, String[]> groupMappings =
+                    new HashMap<>(identityProvider.getGroupMappings().size());
+            for (Map.Entry<String, String[]> groupEntry :
+                    identityProvider.getGroupMappings().entrySet()) {
+                groupMappings.put(
+                        new String(
+                                Base64.getEncoder().encode(groupEntry.getKey().getBytes())),
+                        groupEntry.getValue());
             }
             identityProviderMongo.setGroupMappings(groupMappings);
         }
 
         if (identityProvider.getRoleMappings() != null) {
-            Map<String, String[]> roleMappings = new HashMap<>(identityProvider.getRoleMappings().size());
-            for (Map.Entry<String, String[]> roleEntry : identityProvider.getRoleMappings().entrySet()) {
-                roleMappings.put(new String(Base64.getEncoder().encode(roleEntry.getKey().getBytes())), roleEntry.getValue());
+            Map<String, String[]> roleMappings =
+                    new HashMap<>(identityProvider.getRoleMappings().size());
+            for (Map.Entry<String, String[]> roleEntry :
+                    identityProvider.getRoleMappings().entrySet()) {
+                roleMappings.put(
+                        new String(Base64.getEncoder().encode(roleEntry.getKey().getBytes())), roleEntry.getValue());
             }
             identityProviderMongo.setRoleMappings(roleMappings);
         }
@@ -155,25 +171,25 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         IdentityProvider identityProvider = mapper.map(identityProviderMongo);
 
         if (identityProviderMongo.getGroupMappings() != null) {
-            identityProviderMongo
-                .getGroupMappings()
-                .forEach((condition, groups) -> {
-                    identityProvider
+            identityProviderMongo.getGroupMappings().forEach((condition, groups) -> {
+                identityProvider
                         .getGroupMappings()
-                        .put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getGroupMappings().get(condition));
-                    identityProvider.getGroupMappings().remove(condition);
-                });
+                        .put(
+                                new String(Base64.getDecoder().decode(condition)),
+                                identityProviderMongo.getGroupMappings().get(condition));
+                identityProvider.getGroupMappings().remove(condition);
+            });
         }
 
         if (identityProviderMongo.getRoleMappings() != null) {
-            identityProviderMongo
-                .getRoleMappings()
-                .forEach((condition, roles) -> {
-                    identityProvider
+            identityProviderMongo.getRoleMappings().forEach((condition, roles) -> {
+                identityProvider
                         .getRoleMappings()
-                        .put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getRoleMappings().get(condition));
-                    identityProvider.getRoleMappings().remove(condition);
-                });
+                        .put(
+                                new String(Base64.getDecoder().decode(condition)),
+                                identityProviderMongo.getRoleMappings().get(condition));
+                identityProvider.getRoleMappings().remove(condition);
+            });
         }
 
         return identityProvider;
@@ -183,11 +199,9 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("Find all identity providers by organization {}", organizationId);
 
-        Set<IdentityProvider> res = internalIdentityProviderRepository
-            .findByOrganizationId(organizationId)
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+        Set<IdentityProvider> res = internalIdentityProviderRepository.findByOrganizationId(organizationId).stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
 
         log.debug("Find all identity providers by organization {} - Done", organizationId);
         return res;
@@ -197,11 +211,9 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("Delete all identity providers by organizationId: {}", organizationId);
         try {
-            final var res = internalIdentityProviderRepository
-                .deleteByOrganizationId(organizationId)
-                .stream()
-                .map(IdentityProviderMongo::getId)
-                .toList();
+            final var res = internalIdentityProviderRepository.deleteByOrganizationId(organizationId).stream()
+                    .map(IdentityProviderMongo::getId)
+                    .toList();
             log.debug("Delete all identity providers by organizationId: {} - Done", organizationId);
             return res;
         } catch (Exception ex) {

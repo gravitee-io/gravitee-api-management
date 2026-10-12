@@ -23,20 +23,19 @@ public class SwaggerUiConfigurationFixtures {
 
     public static SwaggerUiConfiguration aSwaggerUiConfiguration() {
         return new SwaggerUiConfiguration(
-            true,
-            "full",
-            false,
-            12,
-            true,
-            false,
-            true,
-            false,
-            true,
-            false,
-            "https://try-it.example.com",
-            true,
-            false,
-            true
-        );
+                true,
+                "full",
+                false,
+                12,
+                true,
+                false,
+                true,
+                false,
+                true,
+                false,
+                "https://try-it.example.com",
+                true,
+                false,
+                true);
     }
 }

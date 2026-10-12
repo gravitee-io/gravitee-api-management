@@ -31,18 +31,18 @@ class DefaultSharedPolicyGroupReactorTest {
 
     @ParameterizedTest
     @MethodSource("providePhases")
-    void should_map_shared_policy_group_phase_to_execution_phase(SharedPolicyGroup.Phase phase, ExecutionPhase expectedPhase) {
+    void should_map_shared_policy_group_phase_to_execution_phase(
+            SharedPolicyGroup.Phase phase, ExecutionPhase expectedPhase) {
         assertThat(DefaultSharedPolicyGroupReactor.toExecutionPhase(phase)).isEqualTo(expectedPhase);
     }
 
     private static Stream<Arguments> providePhases() {
         return Stream.of(
-            Arguments.of(SharedPolicyGroup.Phase.REQUEST, ExecutionPhase.REQUEST),
-            Arguments.of(SharedPolicyGroup.Phase.RESPONSE, ExecutionPhase.RESPONSE),
-            Arguments.of(SharedPolicyGroup.Phase.PUBLISH, ExecutionPhase.MESSAGE_REQUEST),
-            Arguments.of(SharedPolicyGroup.Phase.SUBSCRIBE, ExecutionPhase.MESSAGE_RESPONSE),
-            Arguments.of(SharedPolicyGroup.Phase.MESSAGE_REQUEST, ExecutionPhase.MESSAGE_REQUEST),
-            Arguments.of(SharedPolicyGroup.Phase.MESSAGE_RESPONSE, ExecutionPhase.MESSAGE_RESPONSE)
-        );
+                Arguments.of(SharedPolicyGroup.Phase.REQUEST, ExecutionPhase.REQUEST),
+                Arguments.of(SharedPolicyGroup.Phase.RESPONSE, ExecutionPhase.RESPONSE),
+                Arguments.of(SharedPolicyGroup.Phase.PUBLISH, ExecutionPhase.MESSAGE_REQUEST),
+                Arguments.of(SharedPolicyGroup.Phase.SUBSCRIBE, ExecutionPhase.MESSAGE_RESPONSE),
+                Arguments.of(SharedPolicyGroup.Phase.MESSAGE_REQUEST, ExecutionPhase.MESSAGE_REQUEST),
+                Arguments.of(SharedPolicyGroup.Phase.MESSAGE_RESPONSE, ExecutionPhase.MESSAGE_RESPONSE));
     }
 }

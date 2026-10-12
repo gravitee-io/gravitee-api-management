@@ -33,7 +33,6 @@ import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
-import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessor;
 import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
@@ -57,14 +56,13 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
     private final BestMatchFlowSelector bestMatchFlowSelector;
 
     public ResponseProcessorChainFactory(
-        final Api api,
-        final PolicyChainFactory policyChainFactory,
-        final PolicyChainProviderLoader policyChainProviderLoader,
-        final Node node,
-        FlowPolicyResolverFactory flowPolicyResolverFactory,
-        final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration,
-        BestMatchFlowSelector bestMatchFlowSelector
-    ) {
+            final Api api,
+            final PolicyChainFactory policyChainFactory,
+            final PolicyChainProviderLoader policyChainProviderLoader,
+            final Node node,
+            FlowPolicyResolverFactory flowPolicyResolverFactory,
+            final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration,
+            BestMatchFlowSelector bestMatchFlowSelector) {
         super(api, policyChainFactory);
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.node = node;
@@ -80,51 +78,42 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
         add(() -> new TransactionResponseProcessor(this.transactionResponseProcessorConfiguration));
 
         final ConditionEvaluator<Flow> evaluator = new CompositeConditionEvaluator<>(
-            new HttpMethodConditionEvaluator(),
-            new PathBasedConditionEvaluator(),
-            new ExpressionLanguageFlowConditionEvaluator()
-        );
+                new HttpMethodConditionEvaluator(),
+                new PathBasedConditionEvaluator(),
+                new ExpressionLanguageFlowConditionEvaluator());
 
         if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             if (api.getDefinition().getFlowMode() == null || api.getDefinition().getFlowMode() == FlowMode.DEFAULT) {
-                add(
-                    new SimpleFlowPolicyChainProvider(
+                add(new SimpleFlowPolicyChainProvider(
                         StreamType.ON_RESPONSE,
                         new ApiFlowResolver(api.getDefinition(), evaluator),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
-                add(
-                    new PlanFlowPolicyChainProvider(
+                        flowPolicyResolverFactory));
+                add(new PlanFlowPolicyChainProvider(
                         StreamType.ON_RESPONSE,
                         new PlanFlowResolver(api.getDefinition(), evaluator),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
+                        flowPolicyResolverFactory));
             } else {
-                add(
-                    new SimpleFlowPolicyChainProvider(
+                add(new SimpleFlowPolicyChainProvider(
                         StreamType.ON_RESPONSE,
-                        new BestMatchFlowResolver(new ApiFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
+                        new BestMatchFlowResolver(
+                                new ApiFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
-                add(
-                    new PlanFlowPolicyChainProvider(
+                        flowPolicyResolverFactory));
+                add(new PlanFlowPolicyChainProvider(
                         StreamType.ON_RESPONSE,
-                        new BestMatchFlowResolver(new PlanFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
+                        new BestMatchFlowResolver(
+                                new PlanFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
+                        flowPolicyResolverFactory));
             }
         }
 
-        if (api.getDefinition().getProxy().getCors() != null && api.getDefinition().getProxy().getCors().isEnabled()) {
-            add(() -> new CorsSimpleRequestProcessor(api.getDefinition().getProxy().getCors()));
+        if (api.getDefinition().getProxy().getCors() != null
+                && api.getDefinition().getProxy().getCors().isEnabled()) {
+            add(() -> new CorsSimpleRequestProcessor(
+                    api.getDefinition().getProxy().getCors()));
         }
 
         addAll(policyChainProviderLoader.get(PolicyChainOrder.AFTER_API, StreamType.ON_RESPONSE));

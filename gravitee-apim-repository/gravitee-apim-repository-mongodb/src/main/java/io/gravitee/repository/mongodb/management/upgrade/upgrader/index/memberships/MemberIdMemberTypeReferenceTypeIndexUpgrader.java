@@ -28,11 +28,11 @@ public class MemberIdMemberTypeReferenceTypeIndexUpgrader extends IndexUpgrader 
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("memberships")
-            .name("mi1mt1rt1")
-            .key("memberId", ascending())
-            .key("memberType", ascending())
-            .key("referenceType", ascending())
-            .build();
+                .collection("memberships")
+                .name("mi1mt1rt1")
+                .key("memberId", ascending())
+                .key("memberType", ascending())
+                .key("referenceType", ascending())
+                .build();
     }
 }

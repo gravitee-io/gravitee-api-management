@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = { "id", "cockpitId", "hrids", "name", "description", "organizationId", "domainRestrictions" })
+@EqualsAndHashCode(of = {"id", "cockpitId", "hrids", "name", "description", "organizationId", "domainRestrictions"})
 public class EnvironmentEntity {
 
     private String id;

@@ -25,9 +25,9 @@ public class IntegrationIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("ii1")
-            .key("integrationId", ascending())
-            .build();
+                .collection("apis")
+                .name("ii1")
+                .key("integrationId", ascending())
+                .build();
     }
 }

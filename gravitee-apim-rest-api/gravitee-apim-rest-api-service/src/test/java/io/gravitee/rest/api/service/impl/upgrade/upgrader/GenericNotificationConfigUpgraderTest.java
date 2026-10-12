@@ -54,8 +54,10 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.WARN)
 public class GenericNotificationConfigUpgraderTest {
 
-    private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
-    private static final ZonedDateTime UPDATED_AT = Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT =
+            Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime UPDATED_AT =
+            Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
 
     @Mock
     private EnvironmentRepository environmentRepository;
@@ -72,43 +74,36 @@ public class GenericNotificationConfigUpgraderTest {
 
     @Test
     public void should_upgrade_only_portal_default_notification() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenReturn(
-            Set.of(Environment.builder().id("env#1").build(), Environment.builder().id("env#2").build())
-        );
+        when(environmentRepository.findAll())
+                .thenReturn(Set.of(
+                        Environment.builder().id("env#1").build(),
+                        Environment.builder().id("env#2").build()));
 
         Set<GenericNotificationConfig> genericNotificationConfigs = Set.of(
-            aGenericNotificationConfig("DEFAULT", NotificationReferenceType.PORTAL),
-            aGenericNotificationConfig("api#1", NotificationReferenceType.API),
-            aGenericNotificationConfig("app#1", NotificationReferenceType.APPLICATION)
-        );
+                aGenericNotificationConfig("DEFAULT", NotificationReferenceType.PORTAL),
+                aGenericNotificationConfig("api#1", NotificationReferenceType.API),
+                aGenericNotificationConfig("app#1", NotificationReferenceType.APPLICATION));
         when(genericNotificationConfigRepository.findAll()).thenReturn(genericNotificationConfigs);
 
         assertTrue(upgrader.upgrade());
 
         verify(genericNotificationConfigRepository, times(2)).create(any());
-        verify(genericNotificationConfigRepository).create(
-            argThat(
-                notification ->
-                    notification.getReferenceId().equals("env#1") &&
-                    notification.getReferenceType().equals(NotificationReferenceType.ENVIRONMENT)
-            )
-        );
-        verify(genericNotificationConfigRepository).create(
-            argThat(
-                notification ->
-                    notification.getReferenceId().equals("env#2") &&
-                    notification.getReferenceType().equals(NotificationReferenceType.ENVIRONMENT)
-            )
-        );
+        verify(genericNotificationConfigRepository)
+                .create(argThat(notification -> notification.getReferenceId().equals("env#1")
+                        && notification.getReferenceType().equals(NotificationReferenceType.ENVIRONMENT)));
+        verify(genericNotificationConfigRepository)
+                .create(argThat(notification -> notification.getReferenceId().equals("env#2")
+                        && notification.getReferenceType().equals(NotificationReferenceType.ENVIRONMENT)));
 
         verify(genericNotificationConfigRepository, times(1)).delete(any());
     }
 
     @Test
     public void should_not_create_if_not_find_generic_notification() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenReturn(
-            Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
-        );
+        when(environmentRepository.findAll())
+                .thenReturn(Set.of(
+                        Environment.builder().id("DEFAULT").build(),
+                        Environment.builder().id("env#1").build()));
 
         when(genericNotificationConfigRepository.findAll()).thenReturn(Collections.emptySet());
 
@@ -118,23 +113,21 @@ public class GenericNotificationConfigUpgraderTest {
         verify(genericNotificationConfigRepository, never()).delete(any());
     }
 
-    private GenericNotificationConfig aGenericNotificationConfig(String referenceId, NotificationReferenceType referenceType) {
+    private GenericNotificationConfig aGenericNotificationConfig(
+            String referenceId, NotificationReferenceType referenceType) {
         return aGenericNotificationConfig(referenceId, referenceType, Collections.emptyList());
     }
 
     private GenericNotificationConfig aGenericNotificationConfig(
-        String referenceId,
-        NotificationReferenceType referenceType,
-        List<String> hooks
-    ) {
+            String referenceId, NotificationReferenceType referenceType, List<String> hooks) {
         return GenericNotificationConfig.builder()
-            .id(UuidString.generateRandom())
-            .referenceId(referenceId)
-            .referenceType(referenceType)
-            .hooks(hooks)
-            .createdAt(Date.from(CREATED_AT.toInstant()))
-            .updatedAt(Date.from(UPDATED_AT.toInstant()))
-            .build();
+                .id(UuidString.generateRandom())
+                .referenceId(referenceId)
+                .referenceType(referenceType)
+                .hooks(hooks)
+                .createdAt(Date.from(CREATED_AT.toInstant()))
+                .updatedAt(Date.from(UPDATED_AT.toInstant()))
+                .build();
     }
 
     @Test

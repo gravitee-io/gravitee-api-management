@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.accesspoint.manager;
 
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import java.util.List;
-import java.util.Set;
 
 public interface AccessPointManager {
     void register(ReactableAccessPoint reactableAccessPoint);

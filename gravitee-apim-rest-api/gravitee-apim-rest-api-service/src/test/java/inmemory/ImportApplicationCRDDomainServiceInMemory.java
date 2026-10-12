@@ -32,7 +32,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class ImportApplicationCRDDomainServiceInMemory
-    implements ImportApplicationCRDDomainService, InMemoryAlternative<BaseApplicationEntity> {
+        implements ImportApplicationCRDDomainService, InMemoryAlternative<BaseApplicationEntity> {
 
     private final Map<String, BaseApplicationEntity> storage;
 
@@ -63,7 +63,8 @@ public class ImportApplicationCRDDomainServiceInMemory
     }
 
     @Override
-    public BaseApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo) {
+    public BaseApplicationEntity update(
+            String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo) {
         storage.computeIfPresent(updateApplicationEntity.getName(), (k, application) -> {
             BaseApplicationEntity bae = toBaseApplicationEntity(updateApplicationEntity);
             bae.setCreatedAt(application.getCreatedAt());

@@ -39,43 +39,50 @@ public interface ApiService {
     Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 
     Page<ApiEntity> findByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Sortable sortable,
-        Pageable pageable,
-        boolean manageOnly
-    );
+            ExecutionContext executionContext,
+            String userId,
+            ApiQuery apiQuery,
+            Sortable sortable,
+            Pageable pageable,
+            boolean manageOnly);
 
     Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 
     ApiEntity create(ExecutionContext executionContext, NewApiEntity api, String userId);
+
     ApiEntity createFromSwagger(
-        ExecutionContext executionContext,
-        SwaggerApiEntity api,
-        String userId,
-        ImportSwaggerDescriptorEntity swaggerDescriptor
-    );
-    ApiEntity createWithApiDefinition(ExecutionContext executionContext, UpdateApiEntity api, String userId, JsonNode apiDefinition);
+            ExecutionContext executionContext,
+            SwaggerApiEntity api,
+            String userId,
+            ImportSwaggerDescriptorEntity swaggerDescriptor);
+
+    ApiEntity createWithApiDefinition(
+            ExecutionContext executionContext, UpdateApiEntity api, String userId, JsonNode apiDefinition);
 
     ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api);
+
     ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api, boolean checkPlans);
-    ApiEntity update(ExecutionContext executionContext, String apiId, UpdateApiEntity api, boolean checkPlans, boolean updatePlansAndFlows);
+
     ApiEntity update(
-        ExecutionContext executionContext,
-        String apiId,
-        UpdateApiEntity api,
-        boolean checkPlans,
-        boolean updatePlansAndFlows,
-        boolean skipSearchEngineIndex
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            UpdateApiEntity api,
+            boolean checkPlans,
+            boolean updatePlansAndFlows);
+
+    ApiEntity update(
+            ExecutionContext executionContext,
+            String apiId,
+            UpdateApiEntity api,
+            boolean checkPlans,
+            boolean updatePlansAndFlows,
+            boolean skipSearchEngineIndex);
 
     ApiEntity updateFromSwagger(
-        ExecutionContext executionContext,
-        String apiId,
-        SwaggerApiEntity swaggerApiEntity,
-        ImportSwaggerDescriptorEntity swaggerDescriptor
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            SwaggerApiEntity swaggerApiEntity,
+            ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void delete(ExecutionContext executionContext, String apiId, boolean closePlans);
 
@@ -96,25 +103,21 @@ public interface ApiService {
     boolean isSynchronized(ExecutionContext executionContext, String apiId);
 
     ApiEntity deploy(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        EventType eventType,
-        ApiDeploymentEntity apiDeploymentEntity
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            EventType eventType,
+            ApiDeploymentEntity apiDeploymentEntity);
 
     ApiEntity rollback(ExecutionContext executionContext, String apiId, RollbackApiEntity api);
 
-    String exportAsJson(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
+    String exportAsJson(
+            ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
 
     InlinePictureEntity getPicture(ExecutionContext executionContext, String apiId);
 
     ApiEntity importPathMappingsFromPage(
-        ExecutionContext executionContext,
-        ApiEntity apiEntity,
-        String page,
-        DefinitionVersion definitionVersion
-    );
+            ExecutionContext executionContext, ApiEntity apiEntity, String page, DefinitionVersion definitionVersion);
 
     Page<ApiEntity> search(ExecutionContext executionContext, ApiQuery query, Sortable sortable, Pageable pageable);
 
@@ -122,23 +125,26 @@ public interface ApiService {
 
     Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable);
 
-    Collection<String> searchIds(ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable)
-        throws TechnicalException;
+    Collection<String> searchIds(
+            ExecutionContext executionContext, String query, Map<String, Object> filters, Sortable sortable)
+            throws TechnicalException;
 
     Page<ApiEntity> search(
-        ExecutionContext executionContext,
-        String query,
-        Map<String, Object> filters,
-        Sortable sortable,
-        Pageable pageable
-    );
+            ExecutionContext executionContext,
+            String query,
+            Map<String, Object> filters,
+            Sortable sortable,
+            Pageable pageable);
 
-    Collection<ApiEntity> search(ExecutionContext executionContext, String query, Map<String, Object> filters) throws TechnicalException;
+    Collection<ApiEntity> search(ExecutionContext executionContext, String query, Map<String, Object> filters)
+            throws TechnicalException;
 
     List<ApiHeaderEntity> getPortalHeaders(ExecutionContext executionContext, String apiId);
 
     ApiEntity askForReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
+
     ApiEntity acceptReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
+
     ApiEntity rejectReview(ExecutionContext executionContext, String apiId, String userId, ReviewEntity reviewEntity);
 
     InlinePictureEntity getBackground(ExecutionContext executionContext, String apiId);

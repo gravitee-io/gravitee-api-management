@@ -22,7 +22,6 @@ import io.gravitee.rest.api.management.v2.rest.mapper.GraviteeLicenseMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -46,15 +45,13 @@ public class GraviteeLicenseResource extends AbstractResource {
     public GraviteeLicense get() {
         final License license = licenseManager.getPlatformLicense();
 
-        return GraviteeLicenseMapper.INSTANCE.map(
-            GraviteeLicenseEntity.builder()
+        return GraviteeLicenseMapper.INSTANCE.map(GraviteeLicenseEntity.builder()
                 .tier(license.getTier())
                 .packs(license.getPacks())
                 .features(license.getFeatures())
                 .expiresAt(license.getExpirationDate())
                 .isExpired(license.isExpired())
                 .scope(license.getReferenceType())
-                .build()
-        );
+                .build());
     }
 }

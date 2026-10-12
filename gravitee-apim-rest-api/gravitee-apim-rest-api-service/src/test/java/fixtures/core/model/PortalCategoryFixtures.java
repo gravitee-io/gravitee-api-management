@@ -23,13 +23,18 @@ public class PortalCategoryFixtures {
 
     private PortalCategoryFixtures() {}
 
-    public static final PortalCategoryId PORTAL_CATEGORY_ID = PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
+    public static final PortalCategoryId PORTAL_CATEGORY_ID =
+            PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
 
     public static PortalCategory aPortalCategory() {
         return PortalCategory.of(PORTAL_CATEGORY_ID, "environment-id", "News", "News category", true);
     }
 
     public static UpdatePortalCategory anUpdatePortalCategory() {
-        return UpdatePortalCategory.builder().title("Updated title").description("Updated description").visible(false).build();
+        return UpdatePortalCategory.builder()
+                .title("Updated title")
+                .description("Updated description")
+                .visible(false)
+                .build();
     }
 }

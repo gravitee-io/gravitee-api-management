@@ -28,9 +28,8 @@ import org.springframework.stereotype.Repository;
 
 @CustomLog
 @Repository
-public class JdbcScoringFunctionRepository
-    extends JdbcAbstractCrudRepository<ScoringFunction, String>
-    implements ScoringFunctionRepository {
+public class JdbcScoringFunctionRepository extends JdbcAbstractCrudRepository<ScoringFunction, String>
+        implements ScoringFunctionRepository {
 
     JdbcScoringFunctionRepository(@Value("${management.jdbc.prefix:}") String prefix) {
         super(prefix, "scoring_functions");
@@ -44,17 +43,18 @@ public class JdbcScoringFunctionRepository
     @Override
     protected JdbcObjectMapper<ScoringFunction> buildOrm() {
         return JdbcObjectMapper.builder(ScoringFunction.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("payload", Types.NCLOB, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("payload", Types.NCLOB, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
-    public List<ScoringFunction> findAllByReferenceId(String referenceId, String referenceType) throws TechnicalException {
+    public List<ScoringFunction> findAllByReferenceId(String referenceId, String referenceType)
+            throws TechnicalException {
         var query = "select * from %s where reference_id = ? and reference_type = ?".formatted(this.tableName);
         return jdbcTemplate.query(query, getOrm().getRowMapper(), referenceId, referenceType);
     }
@@ -62,17 +62,15 @@ public class JdbcScoringFunctionRepository
     @Override
     public List<String> deleteByReferenceId(String referenceId, String referenceType) throws TechnicalException {
         var rows = jdbcTemplate.queryForList(
-            "select id from %s where reference_id = ? and reference_type = ?".formatted(this.tableName),
-            String.class,
-            referenceId,
-            referenceType
-        );
+                "select id from %s where reference_id = ? and reference_type = ?".formatted(this.tableName),
+                String.class,
+                referenceId,
+                referenceType);
         if (!rows.isEmpty()) {
             jdbcTemplate.update(
-                "delete from %s where reference_id = ? and reference_type = ?".formatted(this.tableName),
-                referenceId,
-                referenceType
-            );
+                    "delete from %s where reference_id = ? and reference_type = ?".formatted(this.tableName),
+                    referenceId,
+                    referenceType);
         }
         return rows;
     }

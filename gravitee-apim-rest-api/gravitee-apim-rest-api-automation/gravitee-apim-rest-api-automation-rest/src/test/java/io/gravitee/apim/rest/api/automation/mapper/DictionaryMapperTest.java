@@ -46,7 +46,8 @@ class DictionaryMapperTest {
 
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
-        assertThat(dictionary.getProperties()).containsExactly(new DictionaryProperty("hostname", "api.example.com", null, null));
+        assertThat(dictionary.getProperties())
+                .containsExactly(new DictionaryProperty("hostname", "api.example.com", null, null));
     }
 
     @Test
@@ -55,7 +56,8 @@ class DictionaryMapperTest {
 
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
-        assertThat(dictionary.getProperties()).containsExactly(new DictionaryProperty("secret", "plaintext", null, true));
+        assertThat(dictionary.getProperties())
+                .containsExactly(new DictionaryProperty("secret", "plaintext", null, true));
     }
 
     @Test
@@ -64,10 +66,10 @@ class DictionaryMapperTest {
 
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
-        assertThat(dictionary.getProperties()).containsExactlyInAnyOrder(
-            new DictionaryProperty("url", "https://backend", null, null),
-            new DictionaryProperty("apiKey", "plaintext", null, true)
-        );
+        assertThat(dictionary.getProperties())
+                .containsExactlyInAnyOrder(
+                        new DictionaryProperty("url", "https://backend", null, null),
+                        new DictionaryProperty("apiKey", "plaintext", null, true));
     }
 
     @Test
@@ -75,19 +77,22 @@ class DictionaryMapperTest {
         DictionarySpec spec = manualSpec(Map.of("apiKey", "plain"), Map.of("apiKey", secret("plaintext")));
 
         assertThatThrownBy(() -> DictionaryMapper.INSTANCE.toDictionary(spec))
-            .isInstanceOf(InvalidDictionaryPropertyOptionsException.class)
-            .hasMessageContaining("apiKey");
+                .isInstanceOf(InvalidDictionaryPropertyOptionsException.class)
+                .hasMessageContaining("apiKey");
     }
 
     @Test
     void should_split_state_properties_by_encryption() {
-        DictionaryEntity entity = manualEntity(Map.of("plain-key", "plain-value", "secret-key", "cipher"), "secret-key");
+        DictionaryEntity entity =
+                manualEntity(Map.of("plain-key", "plain-value", "secret-key", "cipher"), "secret-key");
 
         DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT);
 
-        assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(Map.of("plain-key", "plain-value"));
+        assertThat(state.getManual().getProperties())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("plain-key", "plain-value"));
         assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("secret-key");
-        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue()).isNull();
+        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue())
+                .isNull();
     }
 
     @Test
@@ -97,30 +102,38 @@ class DictionaryMapperTest {
         DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT);
 
         assertThat(state.getManual().getEncryptedProperties()).isNull();
-        assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(Map.of("plain-key", "plain-value"));
+        assertThat(state.getManual().getProperties())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("plain-key", "plain-value"));
     }
 
     @Test
     void should_round_trip_a_manifest_without_its_secret_values() {
         DictionarySpec spec = manualSpec(Map.of("plain-key", "plain-value"), Map.of("secret-key", secret("plaintext")));
-        DictionaryEntity entity = manualEntity(Map.of("plain-key", "plain-value", "secret-key", "cipher"), "secret-key");
+        DictionaryEntity entity =
+                manualEntity(Map.of("plain-key", "plain-value", "secret-key", "cipher"), "secret-key");
 
         DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT);
 
-        assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(spec.getManual().getProperties());
-        assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys(spec.getManual().getEncryptedProperties().keySet());
-        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue()).isNull();
+        assertThat(state.getManual().getProperties())
+                .containsExactlyInAnyOrderEntriesOf(spec.getManual().getProperties());
+        assertThat(state.getManual().getEncryptedProperties())
+                .containsOnlyKeys(spec.getManual().getEncryptedProperties().keySet());
+        assertThat(state.getManual().getEncryptedProperties().get("secret-key").getValue())
+                .isNull();
     }
 
     @Test
     void should_not_echo_a_submitted_secret_value_on_dry_run() {
-        DictionarySpec spec = manualSpec(Map.of("url", "https://backend"), Map.of("apiKey", secret("my secret API key")));
+        DictionarySpec spec =
+                manualSpec(Map.of("url", "https://backend"), Map.of("apiKey", secret("my secret API key")));
 
         DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(spec);
 
         assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
-        assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
-        assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(Map.of("url", "https://backend"));
+        assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue())
+                .isNull();
+        assertThat(state.getManual().getProperties())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("url", "https://backend"));
     }
 
     @Test
@@ -151,7 +164,8 @@ class DictionaryMapperTest {
         assertThat(policy.getEncryptOnFetch()).isTrue();
     }
 
-    private static DictionarySpec manualSpec(Map<String, String> properties, Map<String, EncryptableValue> encryptedProperties) {
+    private static DictionarySpec manualSpec(
+            Map<String, String> properties, Map<String, EncryptableValue> encryptedProperties) {
         ManualDictionarySpec manual = new ManualDictionarySpec();
         manual.setProperties(properties);
         manual.setEncryptedProperties(encryptedProperties);
@@ -164,13 +178,18 @@ class DictionaryMapperTest {
 
     private static DictionaryEntity manualEntity(Map<String, String> properties, String encryptedKey) {
         return DictionaryEntity.builder()
-            .id("dic-1")
-            .name("My dic")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .properties(properties)
-            .propertyOptions(
-                encryptedKey == null ? Map.of() : Map.of(encryptedKey, DictionaryPropertyOptions.builder().encrypted(true).build())
-            )
-            .build();
+                .id("dic-1")
+                .name("My dic")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .properties(properties)
+                .propertyOptions(
+                        encryptedKey == null
+                                ? Map.of()
+                                : Map.of(
+                                        encryptedKey,
+                                        DictionaryPropertyOptions.builder()
+                                                .encrypted(true)
+                                                .build()))
+                .build();
     }
 }

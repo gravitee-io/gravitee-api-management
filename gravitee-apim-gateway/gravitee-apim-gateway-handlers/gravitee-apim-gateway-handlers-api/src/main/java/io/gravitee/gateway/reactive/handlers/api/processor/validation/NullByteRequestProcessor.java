@@ -77,19 +77,17 @@ public class NullByteRequestProcessor implements Processor {
                 return Completable.complete();
             }
 
-            ctx
-                .withLogger(log)
-                .warn(
-                    "Rejected request: null byte detected in {} '{}' (api={}, txn={})",
-                    detection.source,
-                    detection.name,
-                    ctx.getAttribute(ContextAttributes.ATTR_API),
-                    ctx.request().transactionId()
-                );
+            ctx.withLogger(log)
+                    .warn(
+                            "Rejected request: null byte detected in {} '{}' (api={}, txn={})",
+                            detection.source,
+                            detection.name,
+                            ctx.getAttribute(ContextAttributes.ATTR_API),
+                            ctx.request().transactionId());
 
-            return ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key(NULL_BYTE_REJECTED_KEY).message(NULL_BYTE_REJECTED_MESSAGE)
-            );
+            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                    .key(NULL_BYTE_REJECTED_KEY)
+                    .message(NULL_BYTE_REJECTED_MESSAGE));
         });
     }
 
@@ -108,7 +106,9 @@ public class NullByteRequestProcessor implements Processor {
             return null;
         }
         for (Map.Entry<String, String> entry : headers) {
-            if (containsNullByte(entry.getKey()) || containsNullByte(entry.getValue()) || containsEncodedNullByte(entry.getValue())) {
+            if (containsNullByte(entry.getKey())
+                    || containsNullByte(entry.getValue())
+                    || containsEncodedNullByte(entry.getValue())) {
                 return new Detection(Source.HEADER, entry.getKey());
             }
         }

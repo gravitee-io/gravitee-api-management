@@ -35,20 +35,17 @@ class AuthzPolicyMapperTargetPdpIdsTest {
 
     @Test
     void toDeploy_carries_targetPdpIds_from_payload() {
-        Event e = publishEvent(
-            "{\"id\":\"p1\",\"name\":\"n\",\"kind\":\"GLOBAL\"," +
-                "\"policyText\":\"permit(principal, action, resource);\"," +
-                "\"targetPdpIds\":[\"api-a\",\"api-b\"]}"
-        );
+        Event e = publishEvent("{\"id\":\"p1\",\"name\":\"n\",\"kind\":\"GLOBAL\","
+                + "\"policyText\":\"permit(principal, action, resource);\","
+                + "\"targetPdpIds\":[\"api-a\",\"api-b\"]}");
         AuthzPolicyReactorDeployable d = mapper.toDeploy(e).blockingGet();
         assertThat(d.targetPdpIds()).containsExactlyInAnyOrder("api-a", "api-b");
     }
 
     @Test
     void toDeploy_defaults_to_empty_scope_when_absent() {
-        Event e = publishEvent(
-            "{\"id\":\"p1\",\"name\":\"n\",\"kind\":\"GLOBAL\"," + "\"policyText\":\"permit(principal, action, resource);\"}"
-        );
+        Event e = publishEvent("{\"id\":\"p1\",\"name\":\"n\",\"kind\":\"GLOBAL\","
+                + "\"policyText\":\"permit(principal, action, resource);\"}");
         AuthzPolicyReactorDeployable d = mapper.toDeploy(e).blockingGet();
         assertThat(d.targetPdpIds()).isEmpty();
     }

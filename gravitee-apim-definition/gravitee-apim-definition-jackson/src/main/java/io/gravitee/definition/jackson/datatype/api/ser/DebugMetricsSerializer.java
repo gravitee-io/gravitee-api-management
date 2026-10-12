@@ -28,7 +28,8 @@ public class DebugMetricsSerializer extends StdScalarSerializer<DebugMetrics> {
     }
 
     @Override
-    public void serialize(DebugMetrics metrics, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    public void serialize(DebugMetrics metrics, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeNumberField("proxyLatencyMs", metrics.getProxyLatencyMs());
         jgen.writeNumberField("apiResponseTimeMs", metrics.getApiResponseTimeMs());

@@ -34,8 +34,9 @@ public class DeletePortalListingUseCase {
 
     public void execute(Input input) {
         var listing = portalListingCrudService
-            .findByIdAndEnvironmentId(input.listingId(), input.auditInfo().environmentId())
-            .orElseThrow(() -> new PortalListingNotFoundException(input.listingId().toString()));
+                .findByIdAndEnvironmentId(input.listingId(), input.auditInfo().environmentId())
+                .orElseThrow(() ->
+                        new PortalListingNotFoundException(input.listingId().toString()));
         syncDomainService.dematerialize(input.auditInfo(), listing.getPortalId(), listing);
         portalListingCrudService.delete(input.listingId());
     }

@@ -67,14 +67,13 @@ class AuthzEntitySynchronizerTest {
     @BeforeEach
     void setUp() {
         synchronizer = new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                fetcher,
+                new AuthzEntityMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(deployer);
@@ -94,7 +93,11 @@ class AuthzEntitySynchronizerTest {
     void no_events_still_calls_commit_to_retry_any_pending() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                .test()
+                .await()
+                .assertComplete();
 
         // commit() is always called; it short-circuits internally when nothing is armed, so a previous
         // cycle's failed-and-re-armed commit still gets retried even on a cycle with no new events.
@@ -104,13 +107,16 @@ class AuthzEntitySynchronizerTest {
     @Test
     void publish_event_drives_deployer_then_engine_commit() throws InterruptedException {
         Event publish = event(
-            "evt-1",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-1",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any(AuthzEntityReactorDeployable.class));
         verify(port).commit();
@@ -120,37 +126,48 @@ class AuthzEntitySynchronizerTest {
     void unpublish_without_targetPdpIds_falls_back_to_last_placement_for_eviction() throws InterruptedException {
         // Cycle 1: deploy the entity to scope "api-a" — the synchronizer records the placement.
         Event publish = event(
-            "evt-pub",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"attributes\":{},\"parents\":[],\"environmentId\":\"env-1\",\"targetPdpIds\":[\"api-a\"]}"
-        );
+                "evt-pub",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"attributes\":{},\"parents\":[],\"environmentId\":\"env-1\",\"targetPdpIds\":[\"api-a\"]}");
         // Cycle 2: the UNPUBLISH carries no targetPdpIds, so eviction must fall back to the recorded
         // placement instead of removing from an empty scope set (which would orphan the entity).
         Event unpublish = event(
-            "evt-unpub",
-            EventType.UNPUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\"}"
-        );
+                "evt-unpub",
+                EventType.UNPUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.just(List.of(publish)))
-            .thenReturn(Flowable.just(List.of(unpublish)));
+                .thenReturn(Flowable.just(List.of(publish)))
+                .thenReturn(Flowable.just(List.of(unpublish)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
         verify(deployer).undeploy(captor.capture());
         assertThat(captor.getValue().targetPdpIds()).isEqualTo(Set.of("api-a"));
     }
 
     @Test
     void unpublish_event_on_INIT_is_filtered_out() throws InterruptedException {
-        Event publish = event("evt-1", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"custom.x\", \"kind\": \"RESOURCE\"}");
-        when(fetcher.fetchLatest(any(), any(), any(), any(), eqSet(EventType.PUBLISH_AUTHZ_ENTITY))).thenReturn(
-            Flowable.just(List.of(publish))
-        );
+        Event publish =
+                event("evt-1", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"custom.x\", \"kind\": \"RESOURCE\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), eqSet(EventType.PUBLISH_AUTHZ_ENTITY)))
+                .thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any());
         verify(deployer, never()).undeploy(any());
@@ -158,11 +175,20 @@ class AuthzEntitySynchronizerTest {
 
     @Test
     void incremental_sync_handles_both_publish_and_unpublish() throws InterruptedException {
-        Event publish = event("evt-1", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"custom.x\", \"kind\": \"RESOURCE\"}");
-        Event unpublish = event("evt-2", EventType.UNPUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"custom.y\", \"environmentId\": \"env-1\"}");
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish, unpublish)));
+        Event publish =
+                event("evt-1", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"custom.x\", \"kind\": \"RESOURCE\"}");
+        Event unpublish = event(
+                "evt-2",
+                EventType.UNPUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"custom.y\", \"environmentId\": \"env-1\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(publish, unpublish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any());
         verify(deployer).undeploy(any());
@@ -173,17 +199,19 @@ class AuthzEntitySynchronizerTest {
     void smoke_100_entities_in_one_cycle_yields_single_commit() throws InterruptedException {
         List<Event> events = new java.util.ArrayList<>(100);
         for (int i = 0; i < 100; i++) {
-            events.add(
-                event(
+            events.add(event(
                     "evt-" + i,
                     EventType.PUBLISH_AUTHZ_ENTITY,
-                    "{\"entityId\": \"custom.api-" + i + "\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-                )
-            );
+                    "{\"entityId\": \"custom.api-" + i
+                            + "\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"));
         }
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(events));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(100)).deploy(any(AuthzEntityReactorDeployable.class));
         verify(port, times(1)).commit();
@@ -192,10 +220,15 @@ class AuthzEntitySynchronizerTest {
     @Test
     void unparseable_event_payload_is_dropped_without_failing_the_batch() throws InterruptedException {
         Event bad = event("evt-bad", EventType.PUBLISH_AUTHZ_ENTITY, "not-json");
-        Event good = event("evt-good", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"custom.x\", \"kind\": \"RESOURCE\"}");
+        Event good = event(
+                "evt-good", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"custom.x\", \"kind\": \"RESOURCE\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(bad, good)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any());
         verify(port).commit();
@@ -203,18 +236,22 @@ class AuthzEntitySynchronizerTest {
 
     @Test
     void cold_sync_deploys_auto_derived_resource_entities() throws InterruptedException {
-        Event apiResource = event("evt-api", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\"}");
+        Event apiResource = event(
+                "evt-api", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\"}");
         Event mcpResource = event(
-            "evt-mcp",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\": \"mcp.bookings.get\", \"kind\": \"RESOURCE\"}"
-        );
-        Event agentResource = event("evt-agent", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"agent.bot\", \"kind\": \"RESOURCE\"}");
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
-            Flowable.just(List.of(apiResource, mcpResource, agentResource))
-        );
+                "evt-mcp",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"mcp.bookings.get\", \"kind\": \"RESOURCE\"}");
+        Event agentResource = event(
+                "evt-agent", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"agent.bot\", \"kind\": \"RESOURCE\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(apiResource, mcpResource, agentResource)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(3)).deploy(any());
         verify(port).commit();
@@ -223,15 +260,19 @@ class AuthzEntitySynchronizerTest {
     @Test
     void cold_sync_keeps_principal_entities() throws InterruptedException {
         Event principal = event(
-            "evt-principal",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\": \"idp.am.alice\", \"kind\": \"PRINCIPAL\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-principal",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"idp.am.alice\", \"kind\": \"PRINCIPAL\", \"attributes\": {}, \"parents\": []}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(principal)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().entityId()).isEqualTo("idp.am.alice");
         verify(port).commit();
@@ -240,15 +281,19 @@ class AuthzEntitySynchronizerTest {
     @Test
     void cold_sync_keeps_custom_resource_entities() throws InterruptedException {
         Event customResource = event(
-            "evt-custom",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\": \"team.acme.docs\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-custom",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"team.acme.docs\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(customResource)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().entityId()).isEqualTo("team.acme.docs");
         verify(port).commit();
@@ -257,13 +302,16 @@ class AuthzEntitySynchronizerTest {
     @Test
     void incremental_deploys_auto_derived_resource_regardless_of_hosting() throws InterruptedException {
         Event apiResource = event(
-            "evt-api",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-api",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(apiResource)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any());
         verify(port).commit();
@@ -272,15 +320,19 @@ class AuthzEntitySynchronizerTest {
     @Test
     void incremental_deploys_auto_derived_resource_even_when_api_hosted() throws InterruptedException {
         Event apiResource = event(
-            "evt-api",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-api",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(apiResource)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().entityId()).isEqualTo("api.bookings");
         verify(port).commit();
@@ -288,24 +340,23 @@ class AuthzEntitySynchronizerTest {
 
     @Test
     void retarget_evicts_dropped_scope_via_placement() throws InterruptedException {
-        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
 
         // Cycle 1: entity targets scope-a.
         Event toA = event(
-            "evt-1",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
-        );
+                "evt-1",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toA)));
         synchronizer.synchronize(1L, 2L, Set.of("env-1")).test().await().assertComplete();
 
         // Cycle 2: re-targeted to scope-b. Only the latest PUBLISH survives the fetcher — the fix must
         // still evict scope-a, derived from the applied placement (not from any per-event delta).
         Event toB = event(
-            "evt-2",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-b\"]}"
-        );
+                "evt-2",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-b\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toB)));
         synchronizer.synchronize(2L, 3L, Set.of("env-1")).test().await().assertComplete();
 

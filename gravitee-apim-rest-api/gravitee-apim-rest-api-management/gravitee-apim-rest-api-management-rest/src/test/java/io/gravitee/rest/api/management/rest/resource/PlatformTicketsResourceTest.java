@@ -62,7 +62,8 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldFindTicket() {
-        when(ticketService.findById(eq(GraviteeContext.getExecutionContext()), any(String.class))).thenReturn(fakeTicketEntity);
+        when(ticketService.findById(eq(GraviteeContext.getExecutionContext()), any(String.class)))
+                .thenReturn(fakeTicketEntity);
 
         Response ticket = envTarget(TICKET).request().get();
 
@@ -71,9 +72,8 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFindTicket() {
-        when(ticketService.findById(eq(GraviteeContext.getExecutionContext()), any(String.class))).thenThrow(
-            new TicketNotFoundException("id")
-        );
+        when(ticketService.findById(eq(GraviteeContext.getExecutionContext()), any(String.class)))
+                .thenThrow(new TicketNotFoundException("id"));
 
         Response ticket = envTarget(TICKET).request().get();
 
@@ -85,11 +85,19 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
         ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
         ArgumentCaptor<SortableImpl> sortableCaptor = ArgumentCaptor.forClass(SortableImpl.class);
 
-        when(
-            ticketService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), sortableCaptor.capture(), any())
-        ).thenReturn(new Page<>(singletonList(fakeTicketEntity), 1, 1, 1));
+        when(ticketService.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        queryCaptor.capture(),
+                        sortableCaptor.capture(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(fakeTicketEntity), 1, 1, 1));
 
-        Response response = envTarget().queryParam("page", 1).queryParam("size", 10).queryParam("order", "-subject").request().get();
+        Response response = envTarget()
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .queryParam("order", "-subject")
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
         TicketQuery query = queryCaptor.getValue();
@@ -99,33 +107,36 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
         assertEquals("subject", sortable.getField(), "Sort field");
         assertEquals(false, sortable.isAscOrder(), "Sort order");
 
-        verify(ticketService, Mockito.times(1)).search(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            argThat(o -> o.getField().equals("subject") && !o.isAscOrder()),
-            argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10)
-        );
+        verify(ticketService, Mockito.times(1))
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(),
+                        argThat(o -> o.getField().equals("subject") && !o.isAscOrder()),
+                        argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10));
     }
 
     @Test
     public void shouldSearchTicketsWithoutSorting() {
         ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
 
-        when(ticketService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), any(), any())).thenReturn(
-            new Page<>(singletonList(fakeTicketEntity), 1, 1, 1)
-        );
+        when(ticketService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), any(), any()))
+                .thenReturn(new Page<>(singletonList(fakeTicketEntity), 1, 1, 1));
 
-        Response response = envTarget().queryParam("page", 1).queryParam("size", 10).request().get();
+        Response response = envTarget()
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
         TicketQuery query = queryCaptor.getValue();
         assertEquals(USER_NAME, query.getFromUser(), "Query user");
 
-        verify(ticketService, Mockito.times(1)).search(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            isNull(),
-            argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10)
-        );
+        verify(ticketService, Mockito.times(1))
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(),
+                        isNull(),
+                        argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10));
     }
 }

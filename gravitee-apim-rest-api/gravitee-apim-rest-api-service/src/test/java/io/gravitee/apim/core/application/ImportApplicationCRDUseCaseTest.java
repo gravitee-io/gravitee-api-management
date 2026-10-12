@@ -93,36 +93,38 @@ class ImportApplicationCRDUseCaseTest {
     private static final String TEST_METADATA_DEFAULT_VALUE = "test_metadata_default_value";
     private static final String TEST_METADATA_VALUE = "test_metadata_value";
     private static final Date NOW = new Date();
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
     private static final String MEMBER_SOURCE = "test_source";
     private static final String MEMBER_SOURCE_ID_1 = "mem1@email.com";
     private static final String MEMBER_SOURCE_ID_2 = "mem2@email.com";
 
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final ImportApplicationCRDDomainServiceInMemory importApplicationCRDDomainService =
-        new ImportApplicationCRDDomainServiceInMemory();
-    private final ApplicationMetadataCrudServiceInMemory applicationMetadataCrudService = new ApplicationMetadataCrudServiceInMemory();
-    private final ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService = new ApplicationMetadataQueryServiceInMemory();
+            new ImportApplicationCRDDomainServiceInMemory();
+    private final ApplicationMetadataCrudServiceInMemory applicationMetadataCrudService =
+            new ApplicationMetadataCrudServiceInMemory();
+    private final ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService =
+            new ApplicationMetadataQueryServiceInMemory();
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
     private final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
     private final ParameterService parameterService = mock(ParameterService.class);
-    private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService = mock(MtlsSubscriptionSyncDomainService.class);
+    private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService =
+            mock(MtlsSubscriptionSyncDomainService.class);
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     // Validation
     private final ValidateApplicationCRDDomainService crdValidator = new ValidateApplicationCRDDomainService(
-        new ValidateGroupsDomainService(groupQueryService),
-        new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-        new ValidateApplicationSettingsDomainServiceImpl(
-            applicationRepository,
-            new ApplicationTypeServiceImpl(),
-            parameterService,
-            new ClientCertificateValidationDomainServiceImpl(new ClientCertificateCrudServiceInMemory()),
-            new ClientCertificateCrudServiceInMemory()
-        )
-    );
+            new ValidateGroupsDomainService(groupQueryService),
+            new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
+            new ValidateApplicationSettingsDomainServiceImpl(
+                    applicationRepository,
+                    new ApplicationTypeServiceImpl(),
+                    parameterService,
+                    new ClientCertificateValidationDomainServiceImpl(new ClientCertificateCrudServiceInMemory()),
+                    new ClientCertificateCrudServiceInMemory()));
 
     ImportApplicationCRDUseCase useCase;
 
@@ -132,39 +134,35 @@ class ImportApplicationCRDUseCaseTest {
         userDomainService.initWith(getUsers());
         Mockito.reset(mtlsSubscriptionSyncDomainService);
         useCase = new ImportApplicationCRDUseCase(
-            applicationCrudService,
-            importApplicationCRDDomainService,
-            applicationMetadataCrudService,
-            applicationMetadataQueryService,
-            membersDomainService,
-            crdValidator,
-            mtlsSubscriptionSyncDomainService
-        );
-        roleQueryService.initWith(
-            List.of(
+                applicationCrudService,
+                importApplicationCRDDomainService,
+                applicationMetadataCrudService,
+                applicationMetadataQueryService,
+                membersDomainService,
+                crdValidator,
+                mtlsSubscriptionSyncDomainService);
+        roleQueryService.initWith(List.of(
                 Role.builder()
-                    .name(PRIMARY_OWNER.name())
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .id("primary_owner_id")
-                    .scope(Role.Scope.APPLICATION)
-                    .build(),
+                        .name(PRIMARY_OWNER.name())
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION_ID)
+                        .id("primary_owner_id")
+                        .scope(Role.Scope.APPLICATION)
+                        .build(),
                 Role.builder()
-                    .name("USER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .id("user_role_id")
-                    .scope(Role.Scope.APPLICATION)
-                    .build(),
+                        .name("USER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION_ID)
+                        .id("user_role_id")
+                        .scope(Role.Scope.APPLICATION)
+                        .build(),
                 Role.builder()
-                    .name("OWNER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .id("user_role_id")
-                    .scope(Role.Scope.APPLICATION)
-                    .build()
-            )
-        );
+                        .name("OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION_ID)
+                        .id("user_role_id")
+                        .scope(Role.Scope.APPLICATION)
+                        .build()));
     }
 
     @BeforeAll
@@ -189,7 +187,8 @@ class ImportApplicationCRDUseCaseTest {
             crd.setId(UuidString.generateRandom());
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
-            SoftAssertions.assertSoftly(soft -> soft.assertThat(importApplicationCRDDomainService.storage()).contains(expected));
+            SoftAssertions.assertSoftly(soft ->
+                    soft.assertThat(importApplicationCRDDomainService.storage()).contains(expected));
         }
 
         @Test
@@ -217,10 +216,9 @@ class ImportApplicationCRDUseCaseTest {
         @Test
         void should_create_new_application_and_its_members() {
             var expectedApp = expectedApplication();
-            var expectedMembers = applicationMembers()
-                .stream()
-                .map(member -> member.toBuilder().id(USER_ID).build())
-                .collect(Collectors.toSet());
+            var expectedMembers = applicationMembers().stream()
+                    .map(member -> member.toBuilder().id(USER_ID).build())
+                    .collect(Collectors.toSet());
 
             var crd = anApplicationCRD();
 
@@ -230,7 +228,8 @@ class ImportApplicationCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(Set.copyOf(membersDomainService.getApplicationMembers(APP_ID))).isEqualTo(expectedMembers);
+                soft.assertThat(Set.copyOf(membersDomainService.getApplicationMembers(APP_ID)))
+                        .isEqualTo(expectedMembers);
             });
         }
     }
@@ -253,7 +252,8 @@ class ImportApplicationCRDUseCaseTest {
 
             var expected = expectedApplication();
             expected.setDescription(appDescriptionUpdated);
-            SoftAssertions.assertSoftly(soft -> soft.assertThat(importApplicationCRDDomainService.storage()).contains(expected));
+            SoftAssertions.assertSoftly(soft ->
+                    soft.assertThat(importApplicationCRDDomainService.storage()).contains(expected));
         }
 
         @Test
@@ -268,10 +268,9 @@ class ImportApplicationCRDUseCaseTest {
             var result = useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(importApplicationCRDDomainService.storage())
-                    .extracting(BaseApplicationEntity::getGroups)
-                    .containsExactly(Set.of("console-group"));
+                soft.assertThat(importApplicationCRDDomainService.storage())
+                        .extracting(BaseApplicationEntity::getGroups)
+                        .containsExactly(Set.of("console-group"));
                 soft.assertThat(result.status().getErrors().warning()).isEmpty();
             });
         }
@@ -287,13 +286,12 @@ class ImportApplicationCRDUseCaseTest {
             var result = useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(importApplicationCRDDomainService.storage())
-                    .extracting(BaseApplicationEntity::getGroups)
-                    .containsExactly(Set.of());
-                soft
-                    .assertThat(result.status().getErrors().warning())
-                    .containsExactly("Group [spec-group] could not be found in environment [" + ENVIRONMENT_ID + "]");
+                soft.assertThat(importApplicationCRDDomainService.storage())
+                        .extracting(BaseApplicationEntity::getGroups)
+                        .containsExactly(Set.of());
+                soft.assertThat(result.status().getErrors().warning())
+                        .containsExactly(
+                                "Group [spec-group] could not be found in environment [" + ENVIRONMENT_ID + "]");
             });
         }
 
@@ -319,10 +317,9 @@ class ImportApplicationCRDUseCaseTest {
         @Test
         void should_update_existing_application_and_its_members() {
             var expectedApp = expectedApplication();
-            var expectedMembers = applicationMembers()
-                .stream()
-                .map(member -> member.toBuilder().id(USER_ID).build())
-                .collect(Collectors.toSet());
+            var expectedMembers = applicationMembers().stream()
+                    .map(member -> member.toBuilder().id(USER_ID).build())
+                    .collect(Collectors.toSet());
 
             var crd = anApplicationCRD();
 
@@ -332,40 +329,46 @@ class ImportApplicationCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(importApplicationCRDDomainService.storage()).contains(expectedApp);
-                soft.assertThat(Set.copyOf(membersDomainService.getApplicationMembers(APP_ID))).isEqualTo(expectedMembers);
+                soft.assertThat(Set.copyOf(membersDomainService.getApplicationMembers(APP_ID)))
+                        .isEqualTo(expectedMembers);
             });
         }
     }
 
     private static ApplicationCRDSpec anApplicationCRD() {
         return ApplicationCRDSpec.builder()
-            .id(APP_ID)
-            .name(APP_NAME)
-            .description(APP_DESCRIPTION)
-            .type(APP_TYPE)
-            .createdAt(NOW)
-            .updatedAt(NOW)
-            .settings(new ApplicationSettings(new SimpleApplicationSettings(APP_TYPE, "junit"), null))
-            .metadata(List.of(anApplicationMetadata()))
-            .build();
+                .id(APP_ID)
+                .name(APP_NAME)
+                .description(APP_DESCRIPTION)
+                .type(APP_TYPE)
+                .createdAt(NOW)
+                .updatedAt(NOW)
+                .settings(new ApplicationSettings(new SimpleApplicationSettings(APP_TYPE, "junit"), null))
+                .metadata(List.of(anApplicationMetadata()))
+                .build();
     }
 
     private static ApplicationMetadataCRD anApplicationMetadata() {
         return ApplicationMetadataCRD.builder()
-            .name(TEST_METADATA_NAME)
-            .defaultValue(TEST_METADATA_DEFAULT_VALUE)
-            .format(MetadataFormat.STRING)
-            .value(TEST_METADATA_VALUE)
-            .build();
+                .name(TEST_METADATA_NAME)
+                .defaultValue(TEST_METADATA_DEFAULT_VALUE)
+                .format(MetadataFormat.STRING)
+                .value(TEST_METADATA_VALUE)
+                .build();
     }
 
     private SequencedSet<MemberCRD> applicationMembers() {
-        return new LinkedHashSet<>(
-            Set.of(
-                MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_2).role("USER").build(),
-                MemberCRD.builder().source(MEMBER_SOURCE).sourceId(MEMBER_SOURCE_ID_1).role("OWNER").build()
-            )
-        );
+        return new LinkedHashSet<>(Set.of(
+                MemberCRD.builder()
+                        .source(MEMBER_SOURCE)
+                        .sourceId(MEMBER_SOURCE_ID_2)
+                        .role("USER")
+                        .build(),
+                MemberCRD.builder()
+                        .source(MEMBER_SOURCE)
+                        .sourceId(MEMBER_SOURCE_ID_1)
+                        .role("OWNER")
+                        .build()));
     }
 
     private BaseApplicationEntity expectedApplication() {
@@ -394,30 +397,27 @@ class ImportApplicationCRDUseCaseTest {
 
     private List<BaseUserEntity> getUsers() {
         return List.of(
-            new BaseUserEntity(
-                USER_ID,
-                ORGANIZATION_ID,
-                "test1",
-                "test1",
-                MEMBER_SOURCE_ID_1,
-                new Date(),
-                new Date(),
-                IdpSource.of(MEMBER_SOURCE),
-                MEMBER_SOURCE_ID_1,
-                null
-            ),
-            new BaseUserEntity(
-                USER_ID,
-                ORGANIZATION_ID,
-                "test2",
-                "test2",
-                MEMBER_SOURCE_ID_2,
-                new Date(),
-                new Date(),
-                IdpSource.of(MEMBER_SOURCE),
-                MEMBER_SOURCE_ID_2,
-                null
-            )
-        );
+                new BaseUserEntity(
+                        USER_ID,
+                        ORGANIZATION_ID,
+                        "test1",
+                        "test1",
+                        MEMBER_SOURCE_ID_1,
+                        new Date(),
+                        new Date(),
+                        IdpSource.of(MEMBER_SOURCE),
+                        MEMBER_SOURCE_ID_1,
+                        null),
+                new BaseUserEntity(
+                        USER_ID,
+                        ORGANIZATION_ID,
+                        "test2",
+                        "test2",
+                        MEMBER_SOURCE_ID_2,
+                        new Date(),
+                        new Date(),
+                        IdpSource.of(MEMBER_SOURCE),
+                        MEMBER_SOURCE_ID_2,
+                        null));
     }
 }

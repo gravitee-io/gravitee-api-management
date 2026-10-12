@@ -40,12 +40,10 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     public ObjectMapperResolver() {
         mapper = new GraviteeMapper();
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.registerModule(
-            new SimpleModule()
+        mapper.registerModule(new SimpleModule()
                 // Ser & Deser for ErrorDetailsInner. Avoid to have JsonNullable "present" parameter in the response.
                 .addSerializer(new ErrorDetailsInnerSerializer(ErrorDetailsInner.class))
-                .addDeserializer(ErrorDetailsInner.class, new ErrorDetailsInnerDeserializer(ErrorDetailsInner.class))
-        );
+                .addDeserializer(ErrorDetailsInner.class, new ErrorDetailsInnerDeserializer(ErrorDetailsInner.class)));
     }
 
     @Override
@@ -60,7 +58,8 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
         }
 
         @Override
-        public void serialize(ErrorDetailsInner value, JsonGenerator gen, SerializerProvider serializers) throws java.io.IOException {
+        public void serialize(ErrorDetailsInner value, JsonGenerator gen, SerializerProvider serializers)
+                throws java.io.IOException {
             gen.writeStartObject();
             if (value.getMessage() != null) {
                 gen.writeStringField("message", value.getMessage());

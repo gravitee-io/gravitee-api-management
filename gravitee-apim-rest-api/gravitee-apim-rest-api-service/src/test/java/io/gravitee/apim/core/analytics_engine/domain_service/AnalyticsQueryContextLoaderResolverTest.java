@@ -36,20 +36,22 @@ class AnalyticsQueryContextLoaderResolverTest {
 
     private final AnalyticsQueryContextLoader managementLoader = mock(AnalyticsQueryContextLoader.class);
     private final AnalyticsQueryContextLoader portalLoader = mock(AnalyticsQueryContextLoader.class);
-    private final AuditInfo auditInfo = AuditInfo.builder().organizationId("org").environmentId("env").build();
+    private final AuditInfo auditInfo =
+            AuditInfo.builder().organizationId("org").environmentId("env").build();
 
     private AnalyticsQueryContext aContext(String apiId) {
-        return new AnalyticsQueryContext(auditInfo, new ExecutionContext("org", "env"), Set.of(apiId), Map.of(), Map.of(), Map.of());
+        return new AnalyticsQueryContext(
+                auditInfo, new ExecutionContext("org", "env"), Set.of(apiId), Map.of(), Map.of(), Map.of());
     }
 
     @Test
     void should_route_management_scope_to_management_loader() {
         when(managementLoader.load(auditInfo)).thenReturn(aContext("mgmt-api"));
         var resolver = new AnalyticsQueryContextLoaderResolver(
-            Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader)
-        );
+                Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader));
 
-        assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
+        assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds())
+                .containsExactly("mgmt-api");
         verifyNoInteractions(portalLoader);
     }
 
@@ -57,10 +59,10 @@ class AnalyticsQueryContextLoaderResolverTest {
     void should_route_portal_scope_to_portal_loader() {
         when(portalLoader.load(auditInfo)).thenReturn(aContext("portal-api"));
         var resolver = new AnalyticsQueryContextLoaderResolver(
-            Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader)
-        );
+                Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader));
 
-        assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
+        assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds())
+                .containsExactly("portal-api");
         verifyNoInteractions(managementLoader);
     }
 
@@ -69,7 +71,7 @@ class AnalyticsQueryContextLoaderResolverTest {
         var resolver = new AnalyticsQueryContextLoaderResolver(Map.of(AnalyticsScope.MANAGEMENT, managementLoader));
 
         assertThatThrownBy(() -> resolver.load(auditInfo, AnalyticsScope.PORTAL))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("PORTAL");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("PORTAL");
     }
 }

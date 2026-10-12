@@ -40,16 +40,12 @@ public class PortalCategoryQueryServiceImpl implements PortalCategoryQueryServic
     @Override
     public List<PortalCategory> findByEnvironmentId(String environmentId) {
         try {
-            return portalCategoryRepository
-                .findAllByEnvironmentId(environmentId)
-                .stream()
-                .map(PortalCategoryAdapter.INSTANCE::toModel)
-                .toList();
+            return portalCategoryRepository.findAllByEnvironmentId(environmentId).stream()
+                    .map(PortalCategoryAdapter.INSTANCE::toModel)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                "An error occurred while trying to find portal categories for environment: " + environmentId,
-                e
-            );
+                    "An error occurred while trying to find portal categories for environment: " + environmentId, e);
         }
     }
 }

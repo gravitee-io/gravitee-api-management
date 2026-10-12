@@ -28,9 +28,9 @@ public class ExpiredAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("commands")
-            .name("ea1")
-            .key("expiredAt", ascending())
-            .build();
+                .collection("commands")
+                .name("ea1")
+                .key("expiredAt", ascending())
+                .build();
     }
 }

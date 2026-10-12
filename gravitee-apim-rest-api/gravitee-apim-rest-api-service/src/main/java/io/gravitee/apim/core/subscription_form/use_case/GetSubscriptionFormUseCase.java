@@ -43,13 +43,10 @@ public class GetSubscriptionFormUseCase {
 
     public Output execute(Input input) {
         var subscriptionForm = subscriptionFormQueryService
-            .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
-            .orElseThrow(() ->
-                new SubscriptionFormNotFoundException(
-                    "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
-                    input.subscriptionFormId().toString()
-                )
-            );
+                .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
+                .orElseThrow(() -> new SubscriptionFormNotFoundException(
+                        "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
+                        input.subscriptionFormId().toString()));
         var schema = schemaGenerator.generate(subscriptionForm.getGmdContent());
         return new Output(subscriptionForm, elResolver.resolveSchemaOptions(schema));
     }

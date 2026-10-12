@@ -89,21 +89,18 @@ public class GroupSimpleEntity {
 
     @Override
     public String toString() {
-        return (
-            "GroupSimpleEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", environmentName='" +
-            environmentName +
-            '\'' +
-            ", environmentId='" +
-            environmentId +
-            '\'' +
-            '}'
-        );
+        return ("GroupSimpleEntity{" + "id='"
+                + id
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", environmentName='"
+                + environmentName
+                + '\''
+                + ", environmentId='"
+                + environmentId
+                + '\''
+                + '}');
     }
 }

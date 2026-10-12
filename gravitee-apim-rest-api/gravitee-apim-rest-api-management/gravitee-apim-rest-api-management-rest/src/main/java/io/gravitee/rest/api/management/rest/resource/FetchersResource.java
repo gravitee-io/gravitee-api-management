@@ -56,16 +56,16 @@ public class FetchersResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List of fetcher plugins")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of fetchers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = FetcherListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of fetchers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = FetcherListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Collection<FetcherListItem> getFetchers(@BeanParam FetchersParam params) {
-        Stream<FetcherListItem> stream = fetcherService.findAll(params.isOnlyFilesFetchers()).stream().map(this::convert);
+        Stream<FetcherListItem> stream =
+                fetcherService.findAll(params.isOnlyFilesFetchers()).stream().map(this::convert);
 
         if (params != null && params.getExpand() != null && !params.getExpand().isEmpty()) {
             for (String s : params.getExpand()) {

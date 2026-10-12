@@ -61,25 +61,33 @@ class AssignUserDefaultRolesDomainServiceImplTest {
 
     @Test
     void should_assign_default_organization_and_environment_roles_to_the_user() {
-        var orgRole = RoleEntity.builder().scope(RoleScope.ORGANIZATION).name("ORG_USER").build();
-        var envRole = RoleEntity.builder().scope(RoleScope.ENVIRONMENT).name("ENV_USER").build();
-        when(roleService.findDefaultRoleByScopes("org-id", RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
-            List.of(orgRole, envRole)
-        );
+        var orgRole = RoleEntity.builder()
+                .scope(RoleScope.ORGANIZATION)
+                .name("ORG_USER")
+                .build();
+        var envRole = RoleEntity.builder()
+                .scope(RoleScope.ENVIRONMENT)
+                .name("ENV_USER")
+                .build();
+        when(roleService.findDefaultRoleByScopes("org-id", RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
+                .thenReturn(List.of(orgRole, envRole));
 
         service.assignDefaultRoles(EXECUTION_CONTEXT, "user-1");
 
         var referenceCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
-        verify(membershipService, times(2)).addRoleToMemberOnReference(eq(EXECUTION_CONTEXT), referenceCaptor.capture(), any(), any());
+        verify(membershipService, times(2))
+                .addRoleToMemberOnReference(eq(EXECUTION_CONTEXT), referenceCaptor.capture(), any(), any());
         assertThat(referenceCaptor.getAllValues())
-            .extracting(MembershipService.MembershipReference::getType)
-            .containsExactlyInAnyOrder(MembershipReferenceType.ORGANIZATION, MembershipReferenceType.ENVIRONMENT);
+                .extracting(MembershipService.MembershipReference::getType)
+                .containsExactlyInAnyOrder(MembershipReferenceType.ORGANIZATION, MembershipReferenceType.ENVIRONMENT);
     }
 
     @Test
     void should_throw_when_no_default_role_is_found() {
-        when(roleService.findDefaultRoleByScopes("org-id", RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(List.of());
+        when(roleService.findDefaultRoleByScopes("org-id", RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
+                .thenReturn(List.of());
 
-        assertThatThrownBy(() -> service.assignDefaultRoles(EXECUTION_CONTEXT, "user-1")).isInstanceOf(DefaultRoleNotFoundException.class);
+        assertThatThrownBy(() -> service.assignDefaultRoles(EXECUTION_CONTEXT, "user-1"))
+                .isInstanceOf(DefaultRoleNotFoundException.class);
     }
 }

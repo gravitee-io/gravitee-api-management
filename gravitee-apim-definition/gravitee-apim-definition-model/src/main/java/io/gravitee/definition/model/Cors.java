@@ -69,7 +69,7 @@ public class Cors implements Serializable {
     @JsonProperty("allowHeaders")
     private Set<String> accessControlAllowHeaders;
 
-    //FIXME Should be removed as it is never used, neither by UI or API neither by cors processors
+    // FIXME Should be removed as it is never used, neither by UI or API neither by cors processors
     @JsonIgnore
     private int errorStatusCode = DEFAULT_ERROR_STATUS_CODE;
 

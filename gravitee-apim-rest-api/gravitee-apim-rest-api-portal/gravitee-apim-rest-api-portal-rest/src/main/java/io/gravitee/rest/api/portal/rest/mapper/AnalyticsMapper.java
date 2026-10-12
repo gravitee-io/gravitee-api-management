@@ -30,19 +30,16 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Component
 public class AnalyticsMapper {
 
     public DateHistoAnalytics convert(HistogramAnalytics analytics) {
         DateHistoAnalytics analyticsItem = new DateHistoAnalytics();
         if (analytics != null && analytics.getTimestamp() != null) {
-            analyticsItem.setTimestamp(
-                new Timerange()
+            analyticsItem.setTimestamp(new Timerange()
                     .from(analytics.getTimestamp().getFrom())
                     .to(analytics.getTimestamp().getTo())
-                    .interval(analytics.getTimestamp().getInterval())
-            );
+                    .interval(analytics.getTimestamp().getInterval()));
             List<Bucket> buckets = convertBucketList(analytics.getValues());
             analyticsItem.setValues(buckets);
         }
@@ -52,17 +49,14 @@ public class AnalyticsMapper {
 
     private List<Bucket> convertBucketList(List<io.gravitee.rest.api.model.analytics.Bucket> buckets) {
         if (buckets != null && !buckets.isEmpty()) {
-            return buckets
-                .stream()
-                .map(b ->
-                    new Bucket()
-                        .data(b.getData() == null ? null : Arrays.asList(b.getData()))
-                        .field(b.getField())
-                        .metadata(b.getMetadata() == null ? null : new HashMap(b.getMetadata()))
-                        .name(b.getName())
-                        .buckets(this.convertBucketList(b.getBuckets()))
-                )
-                .collect(Collectors.toList());
+            return buckets.stream()
+                    .map(b -> new Bucket()
+                            .data(b.getData() == null ? null : Arrays.asList(b.getData()))
+                            .field(b.getField())
+                            .metadata(b.getMetadata() == null ? null : new HashMap(b.getMetadata()))
+                            .name(b.getName())
+                            .buckets(this.convertBucketList(b.getBuckets())))
+                    .collect(Collectors.toList());
         }
         return Collections.emptyList();
     }

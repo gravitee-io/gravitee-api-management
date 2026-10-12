@@ -27,7 +27,8 @@ import org.springframework.stereotype.Service;
 public class NotificationCRDDomainServiceInMemory implements NotificationCRDDomainService {
 
     @Override
-    public void syncApiPortalNotifications(String apiId, String user, PortalNotificationConfigEntity notificationConfig) {
+    public void syncApiPortalNotifications(
+            String apiId, String user, PortalNotificationConfigEntity notificationConfig) {
         // no op
     }
 

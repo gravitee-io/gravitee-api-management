@@ -44,12 +44,9 @@ public class OverrideResponseContentGatewayTest extends AbstractWiremockGatewayT
 
         wireMockRule.stubFor(post("/api").willReturn(ok(requestBody)));
 
-        HttpResponse response = execute(
-            Request.Post("http://localhost:8082/api").bodyString(
-                "This content should normally be returned by echo backend",
-                ContentType.TEXT_PLAIN
-            )
-        ).returnResponse();
+        HttpResponse response = execute(Request.Post("http://localhost:8082/api")
+                        .bodyString("This content should normally be returned by echo backend", ContentType.TEXT_PLAIN))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -63,7 +60,8 @@ public class OverrideResponseContentGatewayTest extends AbstractWiremockGatewayT
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin rewriteResponseStreamPolicy = PolicyBuilder.build("override-response-content", OverrideResponseContentPolicy.class);
+        PolicyPlugin rewriteResponseStreamPolicy =
+                PolicyBuilder.build("override-response-content", OverrideResponseContentPolicy.class);
         policyPluginManager.register(rewriteResponseStreamPolicy);
     }
 }

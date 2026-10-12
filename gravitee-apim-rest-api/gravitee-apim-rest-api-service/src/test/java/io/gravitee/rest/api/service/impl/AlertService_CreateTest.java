@@ -49,34 +49,40 @@ public class AlertService_CreateTest extends AlertServiceTest {
         assertThrows(AlertUnavailableException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(
-                false
-            );
+            when(parameterService.findAsBoolean(
+                            executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                    .thenReturn(false);
 
             alertService.create(executionContext, alert);
         });
     }
 
     @Test
-    public void must_throw_TechnicalManagementException_when_create_new_alert_trigger_entity_with_email_notifier_definition()
-        throws TechnicalException {
+    public void
+            must_throw_TechnicalManagementException_when_create_new_alert_trigger_entity_with_email_notifier_definition()
+                    throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                    .thenReturn(true);
             when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
-            when(alertTriggerRepository.create(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.create(any()))
+                    .thenThrow(new TechnicalException("An unexpected error has occurred"));
 
             alertService.create(executionContext, alert);
         });
     }
 
     @Test
-    public void must_create_new_alert_trigger_entity_with_email_notifier_definition() throws TechnicalException, JsonProcessingException {
+    public void must_create_new_alert_trigger_entity_with_email_notifier_definition()
+            throws TechnicalException, JsonProcessingException {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 
@@ -90,7 +96,8 @@ public class AlertService_CreateTest extends AlertServiceTest {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 
@@ -103,13 +110,15 @@ public class AlertService_CreateTest extends AlertServiceTest {
 
     @Test
     public void must_throw_NodeAlertNotAllowedInCloudException_when_create_new_node_alert_on_cloud()
-        throws JsonProcessingException, TechnicalException {
+            throws JsonProcessingException, TechnicalException {
         assertThrows(NodeAlertNotAllowedInCloudException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
             alert.setSource("NODE_HEALTHCHECK");
 
             when(cloudHosted.getEnabled()).thenReturn(true);
-            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                    .thenReturn(true);
             when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
 
             alertService.create(executionContext, alert);

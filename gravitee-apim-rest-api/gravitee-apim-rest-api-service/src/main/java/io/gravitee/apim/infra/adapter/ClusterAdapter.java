@@ -44,12 +44,12 @@ public abstract class ClusterAdapter {
     @Named("mapDefinition")
     public String mapDefinition(Cluster cluster) throws JsonProcessingException {
         var clusterDefinition = ClusterDefinition.builder()
-            .id(cluster.getId())
-            .crossId(cluster.getCrossId())
-            .type(cluster.getType() != null ? cluster.getType().name() : null)
-            .name(cluster.getName())
-            .configuration(cluster.getConfiguration())
-            .build();
+                .id(cluster.getId())
+                .crossId(cluster.getCrossId())
+                .type(cluster.getType() != null ? cluster.getType().name() : null)
+                .name(cluster.getName())
+                .configuration(cluster.getConfiguration())
+                .build();
         return mapper.writeValueAsString(clusterDefinition);
     }
 
@@ -74,7 +74,8 @@ public abstract class ClusterAdapter {
     }
 
     @Named("mapConfiguration")
-    public Object mapConfiguration(io.gravitee.repository.management.model.Cluster cluster) throws JsonProcessingException {
+    public Object mapConfiguration(io.gravitee.repository.management.model.Cluster cluster)
+            throws JsonProcessingException {
         if (cluster.getDefinition() == null || cluster.getDefinition().isEmpty()) {
             return null;
         }

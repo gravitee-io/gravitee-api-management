@@ -30,7 +30,7 @@ public class BestMatchFlowSelector extends AbstractBestMatchFlowSelector<Flow> {
     @Override
     protected Optional<String> providePath(Flow flow) {
         return flow != null
-            ? flow.selectorByType(SelectorType.HTTP).map(selector -> ((HttpSelector) selector).getPath())
-            : Optional.empty();
+                ? flow.selectorByType(SelectorType.HTTP).map(selector -> ((HttpSelector) selector).getPath())
+                : Optional.empty();
     }
 }

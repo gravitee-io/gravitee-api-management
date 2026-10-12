@@ -52,7 +52,10 @@ public class MessageTimeSeriesQueryAdapter {
     }
 
     private JsonObject json(TimeSeriesQuery query, JsonObject boolQuery) {
-        return new JsonObject().put("size", 0).put("query", JsonObject.of("bool", boolQuery)).put("aggs", adaptTimeSeries(query));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", JsonObject.of("bool", boolQuery))
+                .put("aggs", adaptTimeSeries(query));
     }
 
     JsonObject adaptTimeSeries(TimeSeriesQuery query) {

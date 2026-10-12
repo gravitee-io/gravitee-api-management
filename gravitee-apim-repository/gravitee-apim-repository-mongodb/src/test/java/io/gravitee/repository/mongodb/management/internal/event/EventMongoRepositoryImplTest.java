@@ -77,26 +77,24 @@ class EventMongoRepositoryImplTest {
         assertThat(eventsToClean).hasSize(4);
 
         // Check API events are grouped correctly
-        List<EventRepository.EventToClean> apiEvents = eventsToClean
-            .stream()
-            .filter(event -> event.group().type().equals("PUBLISH_API"))
-            .toList();
+        List<EventRepository.EventToClean> apiEvents = eventsToClean.stream()
+                .filter(event -> event.group().type().equals("PUBLISH_API"))
+                .toList();
         assertThat(apiEvents).hasSize(2);
-        assertThat(apiEvents).allSatisfy(event -> assertThat(event.group().referenceId()).isEqualTo("api-123"));
+        assertThat(apiEvents)
+                .allSatisfy(event -> assertThat(event.group().referenceId()).isEqualTo("api-123"));
 
         // Check dictionary events are grouped correctly
-        List<EventRepository.EventToClean> dictEvents = eventsToClean
-            .stream()
-            .filter(event -> event.group().type().equals("PUBLISH_DICTIONARY"))
-            .toList();
+        List<EventRepository.EventToClean> dictEvents = eventsToClean.stream()
+                .filter(event -> event.group().type().equals("PUBLISH_DICTIONARY"))
+                .toList();
         assertThat(dictEvents).hasSize(1);
         assertThat(dictEvents.get(0).group().referenceId()).isEqualTo("dict-456");
 
         // Check organization events are grouped correctly
-        List<EventRepository.EventToClean> orgEvents = eventsToClean
-            .stream()
-            .filter(event -> event.group().type().equals("PUBLISH_ORGANIZATION"))
-            .toList();
+        List<EventRepository.EventToClean> orgEvents = eventsToClean.stream()
+                .filter(event -> event.group().type().equals("PUBLISH_ORGANIZATION"))
+                .toList();
         assertThat(orgEvents).hasSize(1);
         assertThat(orgEvents.get(0).group().referenceId()).isEqualTo("org-789");
     }
@@ -151,7 +149,8 @@ class EventMongoRepositoryImplTest {
         EventMongo apiEvent = createEventMongo("api-event", "PUBLISH_API", Map.of("api_id", "api-1"));
         EventMongo dictEvent = createEventMongo("dict-event", "PUBLISH_DICTIONARY", Map.of("dictionary_id", "dict-1"));
         EventMongo orgEvent = createEventMongo("org-event", "PUBLISH_ORGANIZATION", Map.of("organization_id", "org-1"));
-        EventMongo spgEvent = createEventMongo("spg-event", "DEPLOY_SHARED_POLICY_GROUP", Map.of("shared_policy_group_id", "spg-1"));
+        EventMongo spgEvent =
+                createEventMongo("spg-event", "DEPLOY_SHARED_POLICY_GROUP", Map.of("shared_policy_group_id", "spg-1"));
         EventMongo gwEvent = createEventMongo("gw-event", "GATEWAY_STARTED", Map.of("id", "gw-1"));
 
         Stream<EventMongo> eventStream = Stream.of(apiEvent, dictEvent, orgEvent, spgEvent, gwEvent);
@@ -217,10 +216,17 @@ class EventMongoRepositoryImplTest {
         String environmentId = "DEFAULT";
 
         EventMongo eventWithMultipleProps = createEventMongo(
-            "multi-props-event",
-            "PUBLISH_API",
-            Map.of("api_id", "api-123", "dictionary_id", "dict-456", "organization_id", "org-789", "extra_property", "extra_value")
-        );
+                "multi-props-event",
+                "PUBLISH_API",
+                Map.of(
+                        "api_id",
+                        "api-123",
+                        "dictionary_id",
+                        "dict-456",
+                        "organization_id",
+                        "org-789",
+                        "extra_property",
+                        "extra_value"));
 
         Stream<EventMongo> eventStream = Stream.of(eventWithMultipleProps);
 

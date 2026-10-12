@@ -41,9 +41,9 @@ public class AnalyticsParam {
 
     @QueryParam("query")
     @Parameter(
-        description = "The Lucene query used to filter data",
-        example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test"
-    )
+            description = "The Lucene query used to filter data",
+            example =
+                    "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test")
     private String query;
 
     @QueryParam("field")
@@ -56,31 +56,29 @@ public class AnalyticsParam {
 
     @QueryParam("type")
     @Parameter(
-        description = "The type of data to retrieve",
-        required = true,
-        schema = @Schema(allowableValues = { "group_by", "date_histo", "count" })
-    )
+            description = "The type of data to retrieve",
+            required = true,
+            schema = @Schema(allowableValues = {"group_by", "date_histo", "count"}))
     private AnalyticsTypeParam type;
 
     @QueryParam("ranges")
     @Parameter(
-        description = "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
-        example = "100:199;200:299;300:399;400:499;500:599"
-    )
+            description =
+                    "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
+            example = "100:199;200:299;300:399;400:499;500:599")
     private RangesParam ranges;
 
     @QueryParam("aggs")
     @Parameter(
-        description = "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
-        example = "field:status or avg:response-time;avg:api-response-time"
-    )
+            description =
+                    "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
+            example = "field:status or avg:response-time;avg:api-response-time")
     private AggregationsParam aggs;
 
     @QueryParam("order")
     @Parameter(
-        description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
-        example = "order:-response-time"
-    )
+            description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+            example = "order:-response-time")
     private OrderParam order;
 
     public long getFrom() {
@@ -157,7 +155,8 @@ public class AnalyticsParam {
 
     public void validate() {
         if (type == null) {
-            throw new BadRequestException("Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT");
+            throw new BadRequestException(
+                    "Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT");
         }
 
         if (type.getValue() == null) {
@@ -180,16 +179,18 @@ public class AnalyticsParam {
             throw new BadRequestException("Query parameter 'interval' is not valid");
         }
 
-        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.DATE_HISTO && (interval < 1_000 || interval > 1_000_000_000)) {
-            throw new BadRequestException("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
+        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.DATE_HISTO
+                && (interval < 1_000 || interval > 1_000_000_000)) {
+            throw new BadRequestException(
+                    "Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
         }
 
-        if (
-            (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY || type.getValue() == AnalyticsTypeParam.AnalyticsType.STATS) &&
-            (field == null || field.trim().isEmpty())
-        ) {
+        if ((type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY
+                        || type.getValue() == AnalyticsTypeParam.AnalyticsType.STATS)
+                && (field == null || field.trim().isEmpty())) {
             // we need a field and, optionally, a list of ranges
-            throw new BadRequestException("'field' query parameter is required for '" + type.getValue().name().toLowerCase() + "' request");
+            throw new BadRequestException("'field' query parameter is required for '"
+                    + type.getValue().name().toLowerCase() + "' request");
         }
     }
 }

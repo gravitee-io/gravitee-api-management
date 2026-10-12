@@ -35,7 +35,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ApplicationInvitationNotificationDomainServiceImpl implements ApplicationInvitationNotificationDomainService {
+public class ApplicationInvitationNotificationDomainServiceImpl
+        implements ApplicationInvitationNotificationDomainService {
 
     private static final String PARAM_ROLE = "role";
 
@@ -45,12 +46,11 @@ public class ApplicationInvitationNotificationDomainServiceImpl implements Appli
 
     @Override
     public void dispatchAsync(
-        String organizationId,
-        String environmentId,
-        String applicationId,
-        List<ApplicationInvitation> invitations,
-        URI confirmationPageUrl
-    ) {
+            String organizationId,
+            String environmentId,
+            String applicationId,
+            List<ApplicationInvitation> invitations,
+            URI confirmationPageUrl) {
         if (invitations == null || invitations.isEmpty()) {
             return;
         }
@@ -62,26 +62,24 @@ public class ApplicationInvitationNotificationDomainServiceImpl implements Appli
             var user = new UserEntity();
             user.setEmail(invitation.email());
 
-            var params = new HashMap<>(
-                userService.getTokenRegistrationParams(
+            var params = new HashMap<>(userService.getTokenRegistrationParams(
                     executionContext,
                     user,
                     REGISTRATION_PATH,
                     APPLICATION_INVITATION,
-                    confirmationPageUrl == null ? null : confirmationPageUrl.toString()
-                )
-            );
+                    confirmationPageUrl == null ? null : confirmationPageUrl.toString()));
             params.put(PARAM_APPLICATION, application);
             params.put(PARAM_ROLE, invitation.roleName());
 
             emailService.sendAsyncEmailNotification(
-                executionContext,
-                new EmailNotificationBuilder()
-                    .to(invitation.email())
-                    .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_APPLICATION_INVITATION)
-                    .params(params)
-                    .build()
-            );
+                    executionContext,
+                    new EmailNotificationBuilder()
+                            .to(invitation.email())
+                            .template(
+                                    EmailNotificationBuilder.EmailTemplate
+                                            .TEMPLATES_FOR_ACTION_USER_APPLICATION_INVITATION)
+                            .params(params)
+                            .build());
         });
     }
 }

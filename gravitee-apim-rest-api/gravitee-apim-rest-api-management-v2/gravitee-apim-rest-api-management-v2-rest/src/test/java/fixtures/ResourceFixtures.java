@@ -24,8 +24,11 @@ public class ResourceFixtures {
 
     private ResourceFixtures() {}
 
-    private static final Supplier<Resource> BASE_RESOURCE = () ->
-        new Resource().name("role-name").type("resource-type").enabled(true).configuration(new LinkedHashMap<>(Map.of("key", "value")));
+    private static final Supplier<Resource> BASE_RESOURCE = () -> new Resource()
+            .name("role-name")
+            .type("resource-type")
+            .enabled(true)
+            .configuration(new LinkedHashMap<>(Map.of("key", "value")));
 
     public static Resource aResource() {
         return BASE_RESOURCE.get();

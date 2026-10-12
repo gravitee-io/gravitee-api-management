@@ -24,11 +24,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import lombok.NoArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.IdGenerator;
 
 /**
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
@@ -53,28 +51,25 @@ public class CategoryMapper {
     }
 
     private Set<String> toIdentifier(
-        String environmentId,
-        Set<String> oldCategories,
-        Function<CategoryEntity, String> identifierExtractor
-    ) {
+            String environmentId, Set<String> oldCategories, Function<CategoryEntity, String> identifierExtractor) {
         if (CollectionUtils.isEmpty(oldCategories)) {
             return oldCategories;
         }
 
-        return categoryService
-            .findAll(environmentId)
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(dbCategory -> doesContain(oldCategories, dbCategory))
-            .map(identifierExtractor)
-            .collect(Collectors.toSet());
+        return categoryService.findAll(environmentId).stream()
+                .filter(Objects::nonNull)
+                .filter(dbCategory -> doesContain(oldCategories, dbCategory))
+                .map(identifierExtractor)
+                .collect(Collectors.toSet());
     }
 
     private boolean doesContain(Set<String> categories, CategoryEntity category) {
-        return doesContain(categories, category, CategoryEntity::getId) || doesContain(categories, category, CategoryEntity::getKey);
+        return doesContain(categories, category, CategoryEntity::getId)
+                || doesContain(categories, category, CategoryEntity::getKey);
     }
 
-    private boolean doesContain(Set<String> categories, CategoryEntity category, Function<CategoryEntity, String> function) {
+    private boolean doesContain(
+            Set<String> categories, CategoryEntity category, Function<CategoryEntity, String> function) {
         return nonNull(function.apply(category)) && categories.contains(function.apply(category));
     }
 }

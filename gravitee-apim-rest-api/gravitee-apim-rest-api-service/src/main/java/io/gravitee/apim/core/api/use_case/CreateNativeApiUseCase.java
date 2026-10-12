@@ -36,10 +36,9 @@ public class CreateNativeApiUseCase {
     private final CreateApiDomainService createApiDomainService;
 
     public CreateNativeApiUseCase(
-        ValidateApiDomainService validateApiDomainService,
-        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
-        CreateApiDomainService createApiDomainService
-    ) {
+            ValidateApiDomainService validateApiDomainService,
+            ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+            CreateApiDomainService createApiDomainService) {
         this.validateApiDomainService = validateApiDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.createApiDomainService = createApiDomainService;
@@ -57,24 +56,17 @@ public class CreateNativeApiUseCase {
         var auditInfo = input.auditInfo;
 
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            auditInfo.actor().userId()
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                auditInfo.actor().userId());
 
         var created = createApiDomainService.create(
-            ApiModelFactory.fromNewNativeApi(input.newApi, auditInfo.environmentId()),
-            primaryOwner,
-            auditInfo,
-            api ->
-                validateApiDomainService.validateAndSanitizeForCreation(
-                    api,
-                    primaryOwner,
-                    auditInfo.environmentId(),
-                    auditInfo.organizationId()
-                ),
-            oneShotIndexation(auditInfo)
-        );
+                ApiModelFactory.fromNewNativeApi(input.newApi, auditInfo.environmentId()),
+                primaryOwner,
+                auditInfo,
+                api -> validateApiDomainService.validateAndSanitizeForCreation(
+                        api, primaryOwner, auditInfo.environmentId(), auditInfo.organizationId()),
+                oneShotIndexation(auditInfo));
 
         return new Output(created);
     }

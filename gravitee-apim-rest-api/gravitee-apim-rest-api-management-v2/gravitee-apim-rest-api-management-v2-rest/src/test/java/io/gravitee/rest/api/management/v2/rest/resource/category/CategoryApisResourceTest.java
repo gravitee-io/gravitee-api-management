@@ -88,11 +88,11 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         Stream.of(
-            apiAuthorizationDomainService,
-            categoryApiQueryServiceInMemory,
-            categoryQueryServiceInMemory,
-            apiQueryServiceInMemory
-        ).forEach(InMemoryAlternative::reset);
+                        apiAuthorizationDomainService,
+                        categoryApiQueryServiceInMemory,
+                        categoryQueryServiceInMemory,
+                        apiQueryServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -100,22 +100,20 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_CATEGORY,
-                    ENV_ID,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_CATEGORY,
+                            ENV_ID,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
 
             final Response response = rootTarget().request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -123,108 +121,156 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(NOT_FOUND_404)
-                .asError()
-                .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Category not found.");
+                    .hasStatus(NOT_FOUND_404)
+                    .asError()
+                    .hasHttpStatus(NOT_FOUND_404)
+                    .hasMessage("Category not found.");
         }
 
         @Test
         void should_return_empty_list_when_no_apis_in_category() {
-            categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
+            categoryQueryServiceInMemory.initWith(
+                    List.of(Category.builder().id(CAT_ID).build()));
 
             final Response response = rootTarget().request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(CategoryApisResponse.class)
-                .hasFieldOrPropertyWithValue("data", List.of());
+                    .hasStatus(OK_200)
+                    .asEntity(CategoryApisResponse.class)
+                    .hasFieldOrPropertyWithValue("data", List.of());
         }
 
         @Test
         void should_return_page_of_results() {
-            categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
-            categoryApiQueryServiceInMemory.initWith(
-                List.of(
-                    ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                    ApiCategoryOrder.builder().apiId("api-2").categoryId(CAT_ID).order(1).build()
-                )
-            );
+            categoryQueryServiceInMemory.initWith(
+                    List.of(Category.builder().id(CAT_ID).build()));
+            categoryApiQueryServiceInMemory.initWith(List.of(
+                    ApiCategoryOrder.builder()
+                            .apiId("api-1")
+                            .categoryId(CAT_ID)
+                            .order(0)
+                            .build(),
+                    ApiCategoryOrder.builder()
+                            .apiId("api-2")
+                            .categoryId(CAT_ID)
+                            .order(1)
+                            .build()));
 
-            apiQueryServiceInMemory.initWith(
-                List.of(
-                    Api.builder().id("api-1").definitionVersion(DefinitionVersion.V4).categories(Set.of(CAT_ID)).build(),
-                    Api.builder().id("api-2").definitionVersion(DefinitionVersion.V4).categories(Set.of(CAT_ID)).build()
-                )
-            );
-            final Response response = rootTarget().queryParam("page", 2).queryParam("perPage", 1).request().get();
+            apiQueryServiceInMemory.initWith(List.of(
+                    Api.builder()
+                            .id("api-1")
+                            .definitionVersion(DefinitionVersion.V4)
+                            .categories(Set.of(CAT_ID))
+                            .build(),
+                    Api.builder()
+                            .id("api-2")
+                            .definitionVersion(DefinitionVersion.V4)
+                            .categories(Set.of(CAT_ID))
+                            .build()));
+            final Response response = rootTarget()
+                    .queryParam("page", 2)
+                    .queryParam("perPage", 1)
+                    .request()
+                    .get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(CategoryApisResponse.class)
-                .extracting(CategoryApisResponse::getData)
-                .satisfies(list -> {
-                    assertThat(list).hasSize(1);
-                    assertThat(list.get(0)).hasFieldOrPropertyWithValue("id", "api-2").hasFieldOrPropertyWithValue("order", 1);
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(CategoryApisResponse.class)
+                    .extracting(CategoryApisResponse::getData)
+                    .satisfies(list -> {
+                        assertThat(list).hasSize(1);
+                        assertThat(list.get(0))
+                                .hasFieldOrPropertyWithValue("id", "api-2")
+                                .hasFieldOrPropertyWithValue("order", 1);
+                    });
         }
 
         @Test
         void should_return_all_results() {
-            categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
-            categoryApiQueryServiceInMemory.initWith(
-                List.of(
-                    ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                    ApiCategoryOrder.builder().apiId("api-2").categoryId(CAT_ID).order(1).build()
-                )
-            );
+            categoryQueryServiceInMemory.initWith(
+                    List.of(Category.builder().id(CAT_ID).build()));
+            categoryApiQueryServiceInMemory.initWith(List.of(
+                    ApiCategoryOrder.builder()
+                            .apiId("api-1")
+                            .categoryId(CAT_ID)
+                            .order(0)
+                            .build(),
+                    ApiCategoryOrder.builder()
+                            .apiId("api-2")
+                            .categoryId(CAT_ID)
+                            .order(1)
+                            .build()));
 
-            apiQueryServiceInMemory.initWith(
-                List.of(
-                    Api.builder().id("api-1").definitionVersion(DefinitionVersion.V4).categories(Set.of(CAT_ID)).build(),
-                    Api.builder().id("api-2").definitionVersion(DefinitionVersion.V4).categories(Set.of(CAT_ID)).build()
-                )
-            );
+            apiQueryServiceInMemory.initWith(List.of(
+                    Api.builder()
+                            .id("api-1")
+                            .definitionVersion(DefinitionVersion.V4)
+                            .categories(Set.of(CAT_ID))
+                            .build(),
+                    Api.builder()
+                            .id("api-2")
+                            .definitionVersion(DefinitionVersion.V4)
+                            .categories(Set.of(CAT_ID))
+                            .build()));
             final Response response = rootTarget().request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(CategoryApisResponse.class)
-                .extracting(CategoryApisResponse::getData)
-                .satisfies(list -> {
-                    assertThat(list).hasSize(2);
-                    assertThat(list.get(0)).hasFieldOrPropertyWithValue("id", "api-1").hasFieldOrPropertyWithValue("order", 0);
-                    assertThat(list.get(1)).hasFieldOrPropertyWithValue("id", "api-2").hasFieldOrPropertyWithValue("order", 1);
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(CategoryApisResponse.class)
+                    .extracting(CategoryApisResponse::getData)
+                    .satisfies(list -> {
+                        assertThat(list).hasSize(2);
+                        assertThat(list.get(0))
+                                .hasFieldOrPropertyWithValue("id", "api-1")
+                                .hasFieldOrPropertyWithValue("order", 0);
+                        assertThat(list.get(1))
+                                .hasFieldOrPropertyWithValue("id", "api-2")
+                                .hasFieldOrPropertyWithValue("order", 1);
+                    });
         }
 
         @Test
         void should_order_results_by_category_api_order() {
-            categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
-            categoryApiQueryServiceInMemory.initWith(
-                List.of(
-                    ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(1).build(),
-                    ApiCategoryOrder.builder().apiId("api-2").categoryId(CAT_ID).order(0).build()
-                )
-            );
+            categoryQueryServiceInMemory.initWith(
+                    List.of(Category.builder().id(CAT_ID).build()));
+            categoryApiQueryServiceInMemory.initWith(List.of(
+                    ApiCategoryOrder.builder()
+                            .apiId("api-1")
+                            .categoryId(CAT_ID)
+                            .order(1)
+                            .build(),
+                    ApiCategoryOrder.builder()
+                            .apiId("api-2")
+                            .categoryId(CAT_ID)
+                            .order(0)
+                            .build()));
 
-            apiQueryServiceInMemory.initWith(
-                List.of(
-                    Api.builder().id("api-1").definitionVersion(DefinitionVersion.V4).categories(Set.of(CAT_ID)).build(),
-                    Api.builder().id("api-2").definitionVersion(DefinitionVersion.V4).categories(Set.of(CAT_ID)).build()
-                )
-            );
+            apiQueryServiceInMemory.initWith(List.of(
+                    Api.builder()
+                            .id("api-1")
+                            .definitionVersion(DefinitionVersion.V4)
+                            .categories(Set.of(CAT_ID))
+                            .build(),
+                    Api.builder()
+                            .id("api-2")
+                            .definitionVersion(DefinitionVersion.V4)
+                            .categories(Set.of(CAT_ID))
+                            .build()));
             final Response response = rootTarget().request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(CategoryApisResponse.class)
-                .extracting(CategoryApisResponse::getData)
-                .satisfies(list -> {
-                    assertThat(list).hasSize(2);
-                    assertThat(list.get(0)).hasFieldOrPropertyWithValue("id", "api-2").hasFieldOrPropertyWithValue("order", 0);
-                    assertThat(list.get(1)).hasFieldOrPropertyWithValue("id", "api-1").hasFieldOrPropertyWithValue("order", 1);
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(CategoryApisResponse.class)
+                    .extracting(CategoryApisResponse::getData)
+                    .satisfies(list -> {
+                        assertThat(list).hasSize(2);
+                        assertThat(list.get(0))
+                                .hasFieldOrPropertyWithValue("id", "api-2")
+                                .hasFieldOrPropertyWithValue("order", 0);
+                        assertThat(list.get(1))
+                                .hasFieldOrPropertyWithValue("id", "api-1")
+                                .hasFieldOrPropertyWithValue("order", 1);
+                    });
         }
     }
 }

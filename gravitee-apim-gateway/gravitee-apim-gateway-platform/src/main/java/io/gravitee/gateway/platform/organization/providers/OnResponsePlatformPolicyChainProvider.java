@@ -46,11 +46,7 @@ public class OnResponsePlatformPolicyChainProvider extends ConfigurablePolicyCha
     private FlowProvider getFlowProvider() {
         if (this.flowProvider == null) {
             flowProvider = new OrganizationFlowProvider(
-                streamType,
-                flowResolver,
-                organizationPolicyChainFactoryManager,
-                flowPolicyResolverFactory
-            );
+                    streamType, flowResolver, organizationPolicyChainFactoryManager, flowPolicyResolverFactory);
         }
         return flowProvider;
     }

@@ -41,33 +41,32 @@ class GetUserApplicationsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new GetUserApplicationsUseCase(membershipQueryService, applicationQueryService, environmentCrudService);
+        useCase =
+                new GetUserApplicationsUseCase(membershipQueryService, applicationQueryService, environmentCrudService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(membershipQueryService, applicationQueryService, environmentCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(membershipQueryService, applicationQueryService, environmentCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_return_user_applications_with_correct_fields() {
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("m1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.APPLICATION)
-                    .referenceId("app-1")
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("m1")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId("app-1")
+                .build()));
         var app = new BaseApplicationEntity();
         app.setId("app-1");
         app.setName("My Application");
         app.setEnvironmentId("env-1");
         applicationQueryService.initWith(List.of(app));
-        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Development").build()));
+        environmentCrudService.initWith(
+                List.of(Environment.builder().id("env-1").name("Development").build()));
 
         var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, null, 1, 10));
 
@@ -83,24 +82,21 @@ class GetUserApplicationsUseCaseTest {
 
     @Test
     void should_filter_by_environment_id() {
-        membershipQueryService.initWith(
-            List.of(
+        membershipQueryService.initWith(List.of(
                 Membership.builder()
-                    .id("m1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.APPLICATION)
-                    .referenceId("app-1")
-                    .build(),
+                        .id("m1")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.APPLICATION)
+                        .referenceId("app-1")
+                        .build(),
                 Membership.builder()
-                    .id("m2")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.APPLICATION)
-                    .referenceId("app-2")
-                    .build()
-            )
-        );
+                        .id("m2")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.APPLICATION)
+                        .referenceId("app-2")
+                        .build()));
         var app1 = new BaseApplicationEntity();
         app1.setId("app-1");
         app1.setName("App 1");
@@ -110,9 +106,9 @@ class GetUserApplicationsUseCaseTest {
         app2.setName("App 2");
         app2.setEnvironmentId("env-2");
         applicationQueryService.initWith(List.of(app1, app2));
-        environmentCrudService.initWith(
-            List.of(Environment.builder().id("env-1").name("Dev").build(), Environment.builder().id("env-2").name("Prod").build())
-        );
+        environmentCrudService.initWith(List.of(
+                Environment.builder().id("env-1").name("Dev").build(),
+                Environment.builder().id("env-2").name("Prod").build()));
 
         var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, "env-1", 1, 10));
 
@@ -131,31 +127,28 @@ class GetUserApplicationsUseCaseTest {
 
     @Test
     void should_paginate_correctly() {
-        membershipQueryService.initWith(
-            List.of(
+        membershipQueryService.initWith(List.of(
                 Membership.builder()
-                    .id("m1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.APPLICATION)
-                    .referenceId("app-1")
-                    .build(),
+                        .id("m1")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.APPLICATION)
+                        .referenceId("app-1")
+                        .build(),
                 Membership.builder()
-                    .id("m2")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.APPLICATION)
-                    .referenceId("app-2")
-                    .build(),
+                        .id("m2")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.APPLICATION)
+                        .referenceId("app-2")
+                        .build(),
                 Membership.builder()
-                    .id("m3")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.APPLICATION)
-                    .referenceId("app-3")
-                    .build()
-            )
-        );
+                        .id("m3")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.APPLICATION)
+                        .referenceId("app-3")
+                        .build()));
         var app1 = new BaseApplicationEntity();
         app1.setId("app-1");
         app1.setName("App 1");
@@ -169,7 +162,8 @@ class GetUserApplicationsUseCaseTest {
         app3.setName("App 3");
         app3.setEnvironmentId("env-1");
         applicationQueryService.initWith(List.of(app1, app2, app3));
-        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Dev").build()));
+        environmentCrudService.initWith(
+                List.of(Environment.builder().id("env-1").name("Dev").build()));
 
         var output = useCase.execute(new GetUserApplicationsUseCase.Input(USER_ID, null, 2, 2));
 

@@ -58,13 +58,8 @@ class GetMyAiWorkspaceUseCaseTest {
     private final FlowCrudServiceInMemory flows = new FlowCrudServiceInMemory();
     private final ApiCrudServiceInMemory apis = new ApiCrudServiceInMemory();
     private final ApiKeyQueryServiceInMemory apiKeys = new ApiKeyQueryServiceInMemory();
-    private final GetMyAiWorkspaceUseCase useCase = new GetMyAiWorkspaceUseCase(
-        new AiWorkspaceMembershipQuery(subscriptions),
-        products,
-        flows,
-        apis,
-        apiKeys
-    );
+    private final GetMyAiWorkspaceUseCase useCase =
+            new GetMyAiWorkspaceUseCase(new AiWorkspaceMembershipQuery(subscriptions), products, flows, apis, apiKeys);
 
     @BeforeEach
     void setUp() {
@@ -82,7 +77,8 @@ class GetMyAiWorkspaceUseCaseTest {
         flows.savePlanFlows("plan-1", List.of(budgetFlow()));
         apis.initWith(List.of(proxy("api-1", ENV, "/alpha/", null)));
 
-        var details = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details();
+        var details = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1"))
+                .details();
 
         assertThat(details.id()).isEqualTo("ws-1");
         assertThat(details.name()).isEqualTo("Alpha");
@@ -97,22 +93,26 @@ class GetMyAiWorkspaceUseCaseTest {
     @Test
     void returns_only_the_callers_usable_key() {
         products.initWith(List.of(product("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE, Set.of())));
-        subscriptions.initWith(
-            List.of(subscription("app-1", "ws-1"), subscription("app-2", "ws-1").toBuilder().id("sub-2").application("app-2").build())
-        );
+        subscriptions.initWith(List.of(
+                subscription("app-1", "ws-1"),
+                subscription("app-2", "ws-1").toBuilder()
+                        .id("sub-2")
+                        .application("app-2")
+                        .build()));
         ZonedDateTime older = ZonedDateTime.of(2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         ZonedDateTime newer = ZonedDateTime.of(2026, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-        apiKeys.initWith(
-            List.of(
+        apiKeys.initWith(List.of(
                 key("revoked-key", "sub-1", older, true, false),
                 key("old-key", "sub-1", older, false, false),
                 key("paused-key", "sub-1", newer, false, true),
-                key("other-user-key", "sub-2", newer, false, false)
-            )
-        );
+                key("other-user-key", "sub-2", newer, false, false)));
 
-        var caller = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details().key();
-        var other = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-2"), "ws-1")).details().key();
+        var caller = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1"))
+                .details()
+                .key();
+        var other = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-2"), "ws-1"))
+                .details()
+                .key();
 
         assertThat(caller.value()).isEqualTo("paused-key");
         assertThat(caller.status()).isEqualTo("PAUSED");
@@ -126,7 +126,8 @@ class GetMyAiWorkspaceUseCaseTest {
         products.initWith(List.of(product("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE, Set.of())));
         subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
 
-        var details = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details();
+        var details = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1"))
+                .details();
 
         assertThat(details.endpointUrl()).isNull();
         assertThat(details.budget()).isNull();
@@ -138,56 +139,63 @@ class GetMyAiWorkspaceUseCaseTest {
         products.initWith(List.of(product("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE, Set.of("api-1"))));
         subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
         apis.initWith(
-            List.of(
-                proxy(
-                    "api-1",
-                    ENV,
-                    "/alpha/",
-                    "{\"authentication\":{\"apiKey\":\"sk-secret\"},\"models\":[{\"name\":\"gpt-4o\",\"inputPrice\":1.5}]}"
-                )
-            )
-        );
+                List.of(
+                        proxy(
+                                "api-1",
+                                ENV,
+                                "/alpha/",
+                                "{\"authentication\":{\"apiKey\":\"sk-secret\"},\"models\":[{\"name\":\"gpt-4o\",\"inputPrice\":1.5}]}")));
 
-        var models = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details().models();
+        var models = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1"))
+                .details()
+                .models();
 
-        assertThat(models).containsExactly(new io.gravitee.apim.core.ai_workspace.model.AiWorkspaceModel("gpt-4o", 1.5, null));
+        assertThat(models)
+                .containsExactly(new io.gravitee.apim.core.ai_workspace.model.AiWorkspaceModel("gpt-4o", 1.5, null));
     }
 
     @Test
     void rejects_an_unknown_id_a_non_workspace_and_another_callers_workspace() {
-        products.initWith(
-            List.of(product("catalog", "Catalog", null, Set.of()), product("ws-2", "Beta", ApiProductKind.AI_WORKSPACE, Set.of()))
-        );
-        subscriptions.initWith(List.of(subscription("app-1", "catalog"), subscription("app-2", "ws-2").toBuilder().id("sub-2").build()));
+        products.initWith(List.of(
+                product("catalog", "Catalog", null, Set.of()),
+                product("ws-2", "Beta", ApiProductKind.AI_WORKSPACE, Set.of())));
+        subscriptions.initWith(List.of(
+                subscription("app-1", "catalog"),
+                subscription("app-2", "ws-2").toBuilder().id("sub-2").build()));
 
-        assertThatThrownBy(() -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), " "))).isInstanceOf(
-            AiWorkspaceNotFoundException.class
-        );
-        assertThatThrownBy(() -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "missing"))).isInstanceOf(
-            AiWorkspaceNotFoundException.class
-        );
-        assertThatThrownBy(() -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "catalog"))).isInstanceOf(
-            AiWorkspaceNotFoundException.class
-        );
-        assertThatThrownBy(() -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-2"))).isInstanceOf(
-            AiWorkspaceNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), " ")))
+                .isInstanceOf(AiWorkspaceNotFoundException.class);
+        assertThatThrownBy(
+                        () -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "missing")))
+                .isInstanceOf(AiWorkspaceNotFoundException.class);
+        assertThatThrownBy(
+                        () -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "catalog")))
+                .isInstanceOf(AiWorkspaceNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-2")))
+                .isInstanceOf(AiWorkspaceNotFoundException.class);
     }
 
     private static ApiProduct product(String id, String name, ApiProductKind kind, Set<String> apiIds) {
-        return ApiProduct.builder().id(id).name(name).description("desc").environmentId(ENV).kind(kind).apiIds(apiIds).build();
+        return ApiProduct.builder()
+                .id(id)
+                .name(name)
+                .description("desc")
+                .environmentId(ENV)
+                .kind(kind)
+                .apiIds(apiIds)
+                .build();
     }
 
     private static SubscriptionEntity subscription(String applicationId, String apiProductId) {
         return SubscriptionEntity.builder()
-            .id("sub-1")
-            .application(applicationId)
-            .referenceId(apiProductId)
-            .referenceType("API_PRODUCT")
-            .plan("plan-1")
-            .status(SubscriptionStatus.ACCEPTED)
-            .createdAt(new Date(1_000))
-            .build();
+                .id("sub-1")
+                .application(applicationId)
+                .referenceId(apiProductId)
+                .referenceType("API_PRODUCT")
+                .plan("plan-1")
+                .status(SubscriptionStatus.ACCEPTED)
+                .createdAt(new Date(1_000))
+                .build();
     }
 
     private static Flow budgetFlow() {
@@ -199,31 +207,38 @@ class GetMyAiWorkspaceUseCaseTest {
         return flow;
     }
 
-    private static ApiKeyEntity key(String value, String subscriptionId, ZonedDateTime createdAt, boolean revoked, boolean paused) {
+    private static ApiKeyEntity key(
+            String value, String subscriptionId, ZonedDateTime createdAt, boolean revoked, boolean paused) {
         return ApiKeyEntity.builder()
-            .key(value)
-            .subscriptions(List.of(subscriptionId))
-            .createdAt(createdAt)
-            .revoked(revoked)
-            .paused(paused)
-            .build();
+                .key(value)
+                .subscriptions(List.of(subscriptionId))
+                .createdAt(createdAt)
+                .revoked(revoked)
+                .paused(paused)
+                .build();
     }
 
     private static Api proxy(String id, String environmentId, String path, String configuration) {
-        var definition = io.gravitee.definition.model.v4.Api.builder().listeners(
-            List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build())
-        );
+        var definition = io.gravitee.definition.model.v4.Api.builder()
+                .listeners(List.of(HttpListener.builder()
+                        .paths(List.of(Path.builder().path(path).build()))
+                        .build()));
         if (configuration != null) {
-            definition.endpointGroups(
-                List.of(
-                    EndpointGroup.builder()
-                        .name("provider")
-                        .type("llm")
-                        .endpoints(List.of(Endpoint.builder().name("endpoint").type("llm-proxy").configuration(configuration).build()))
-                        .build()
-                )
-            );
+            definition.endpointGroups(List.of(EndpointGroup.builder()
+                    .name("provider")
+                    .type("llm")
+                    .endpoints(List.of(Endpoint.builder()
+                            .name("endpoint")
+                            .type("llm-proxy")
+                            .configuration(configuration)
+                            .build()))
+                    .build()));
         }
-        return Api.builder().id(id).environmentId(environmentId).type(ApiType.LLM_PROXY).apiDefinitionHttpV4(definition.build()).build();
+        return Api.builder()
+                .id(id)
+                .environmentId(environmentId)
+                .type(ApiType.LLM_PROXY)
+                .apiDefinitionHttpV4(definition.build())
+                .build();
     }
 }

@@ -22,8 +22,12 @@ import java.util.Optional;
 
 public interface ScoringFunctionRepository {
     ScoringFunction create(ScoringFunction report) throws TechnicalException;
+
     Optional<ScoringFunction> findById(String id) throws TechnicalException;
+
     List<ScoringFunction> findAllByReferenceId(String referenceId, String referenceType) throws TechnicalException;
+
     void delete(String id) throws TechnicalException;
+
     List<String> deleteByReferenceId(String referenceId, String referenceType) throws TechnicalException;
 }

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.fetcher;
 
 import io.gravitee.fetcher.api.FetcherConfiguration;
-import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.fetcher.impl.FetcherConfigurationFactoryImpl;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,26 +39,27 @@ public class FetcherConfigurationFactoryTest {
 
     @Test
     public void createFetcherWithConfigurationAndWithoutConfigurationData() {
-        FetcherConfiguration fetcherConfiguration = fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, null);
+        FetcherConfiguration fetcherConfiguration =
+                fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, null);
 
         Assertions.assertNull(fetcherConfiguration);
     }
 
     @Test
     public void createFetcherWithConfigurationAndEmptyConfigurationData() {
-        FetcherConfiguration fetcherConfiguration = fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, "");
+        FetcherConfiguration fetcherConfiguration =
+                fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, "");
 
         Assertions.assertNull(fetcherConfiguration);
     }
 
     @Test
     public void createFetcherWithConfigurationAndConfigurationData01() {
-        try (InputStream is = FetcherConfigurationFactoryTest.class.getResourceAsStream("fetcher-configuration-01.json")) {
+        try (InputStream is =
+                FetcherConfigurationFactoryTest.class.getResourceAsStream("fetcher-configuration-01.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyFetcherConfiguration fetcherConfiguration = fetcherConfigurationFactory.create(
-                DummyFetcherConfiguration.class,
-                configuration
-            );
+            DummyFetcherConfiguration fetcherConfiguration =
+                    fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, configuration);
 
             Assertions.assertNotNull(fetcherConfiguration);
         } catch (IOException e) {
@@ -70,12 +70,11 @@ public class FetcherConfigurationFactoryTest {
 
     @Test
     public void createFetcherWithConfigurationAndConfigurationData02() {
-        try (InputStream is = FetcherConfigurationFactoryTest.class.getResourceAsStream("fetcher-configuration-02.json")) {
+        try (InputStream is =
+                FetcherConfigurationFactoryTest.class.getResourceAsStream("fetcher-configuration-02.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyFetcherConfiguration fetcherConfiguration = fetcherConfigurationFactory.create(
-                DummyFetcherConfiguration.class,
-                configuration
-            );
+            DummyFetcherConfiguration fetcherConfiguration =
+                    fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, configuration);
 
             Assertions.assertNotNull(fetcherConfiguration);
         } catch (IOException e) {

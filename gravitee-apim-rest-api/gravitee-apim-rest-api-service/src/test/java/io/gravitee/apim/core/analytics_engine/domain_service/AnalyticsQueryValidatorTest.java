@@ -43,20 +43,17 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AnalyticsQueryValidatorTest {
 
-    private static final TimeRange VALID_TIME_RANGE = new TimeRange(
-        Instant.parse("2025-01-01T00:00:00Z"),
-        Instant.parse("2025-01-02T00:00:00Z")
-    );
+    private static final TimeRange VALID_TIME_RANGE =
+            new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z"));
 
     private static final MetricSpec HTTP_REQUESTS_SPEC = new MetricSpec(
-        MetricSpec.Name.HTTP_REQUESTS,
-        "HTTP Requests",
-        List.of(),
-        MetricSpec.Unit.NUMBER,
-        List.of(MetricSpec.Measure.COUNT),
-        List.of(),
-        List.of(FacetSpec.Name.HTTP_STATUS)
-    );
+            MetricSpec.Name.HTTP_REQUESTS,
+            "HTTP Requests",
+            List.of(),
+            MetricSpec.Unit.NUMBER,
+            List.of(MetricSpec.Measure.COUNT),
+            List.of(),
+            List.of(FacetSpec.Name.HTTP_STATUS));
 
     private AnalyticsQueryValidator validator;
 
@@ -66,10 +63,13 @@ class AnalyticsQueryValidatorTest {
     @BeforeEach
     void setUp() {
         var definitionQueryService = mock(AnalyticsDefinitionQueryService.class);
-        when(definitionQueryService.findMetric(any())).thenAnswer(invocation -> CATALOG.findMetric(invocation.getArgument(0)));
-        when(definitionQueryService.findMetric(MetricSpec.Name.HTTP_REQUESTS)).thenReturn(Optional.of(HTTP_REQUESTS_SPEC));
+        when(definitionQueryService.findMetric(any()))
+                .thenAnswer(invocation -> CATALOG.findMetric(invocation.getArgument(0)));
+        when(definitionQueryService.findMetric(MetricSpec.Name.HTTP_REQUESTS))
+                .thenReturn(Optional.of(HTTP_REQUESTS_SPEC));
         when(definitionQueryService.getAllFilters()).thenReturn(CATALOG.getAllFilters());
-        when(definitionQueryService.findFilter(any())).thenAnswer(invocation -> CATALOG.findFilter(invocation.getArgument(0)));
+        when(definitionQueryService.findFilter(any()))
+                .thenAnswer(invocation -> CATALOG.findFilter(invocation.getArgument(0)));
         validator = new AnalyticsQueryValidator(definitionQueryService);
     }
 
@@ -80,89 +80,89 @@ class AnalyticsQueryValidatorTest {
         void should_reject_null_filter_value_in_measures_request() {
             var nullValueFilter = new Filter(FilterSpec.Name.HTTP_METHOD, FilterOperator.EQ, null);
             var request = new MeasuresRequest(
-                VALID_TIME_RANGE,
-                List.of(nullValueFilter),
-                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-            );
+                    VALID_TIME_RANGE,
+                    List.of(nullValueFilter),
+                    List.of(new MetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
 
             assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("requires a non-null value");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("requires a non-null value");
         }
 
         @Test
         void should_reject_null_filter_value_in_facets_request() {
             var nullValueFilter = new Filter(FilterSpec.Name.APPLICATION, FilterOperator.EQ, null);
             var request = new FacetsRequest(
-                VALID_TIME_RANGE,
-                List.of(nullValueFilter),
-                List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
-                List.of(FacetSpec.Name.HTTP_STATUS),
-                null,
-                List.of()
-            );
+                    VALID_TIME_RANGE,
+                    List.of(nullValueFilter),
+                    List.of(new FacetMetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                    List.of(FacetSpec.Name.HTTP_STATUS),
+                    null,
+                    List.of());
 
             assertThatThrownBy(() -> validator.validateFacetsRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("requires a non-null value");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("requires a non-null value");
         }
 
         @Test
         void should_reject_null_filter_value_in_time_series_request() {
             var nullValueFilter = new Filter(FilterSpec.Name.GATEWAY, FilterOperator.EQ, null);
             var request = new TimeSeriesRequest(
-                VALID_TIME_RANGE,
-                3600000L,
-                List.of(nullValueFilter),
-                List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
-                List.of(),
-                null,
-                List.of()
-            );
+                    VALID_TIME_RANGE,
+                    3600000L,
+                    List.of(nullValueFilter),
+                    List.of(new FacetMetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                    List.of(),
+                    null,
+                    List.of());
 
             assertThatThrownBy(() -> validator.validateTimeSeriesRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("requires a non-null value");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("requires a non-null value");
         }
 
         @Test
         void should_reject_null_filter_value_in_metric_level_filters() {
             var nullValueFilter = new Filter(FilterSpec.Name.API, FilterOperator.EQ, null);
             var request = new MeasuresRequest(
-                VALID_TIME_RANGE,
-                List.of(),
-                List.of(
-                    new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of(nullValueFilter))
-                )
-            );
+                    VALID_TIME_RANGE,
+                    List.of(),
+                    List.of(new MetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS,
+                            List.of(MetricSpec.Measure.COUNT),
+                            List.of(nullValueFilter))));
 
             assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("requires a non-null value");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("requires a non-null value");
         }
 
         @Test
         void should_reject_null_filter_name() {
             var nullNameFilter = new Filter(null, FilterOperator.EQ, "some-value");
             var request = new MeasuresRequest(
-                VALID_TIME_RANGE,
-                List.of(nullNameFilter),
-                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-            );
+                    VALID_TIME_RANGE,
+                    List.of(nullNameFilter),
+                    List.of(new MetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
 
             assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Filter name cannot be null");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Filter name cannot be null");
         }
 
         @Test
         void should_accept_valid_filters() {
             var validFilter = new Filter(FilterSpec.Name.API, FilterOperator.EQ, "api-1");
             var request = new MeasuresRequest(
-                VALID_TIME_RANGE,
-                List.of(validFilter),
-                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-            );
+                    VALID_TIME_RANGE,
+                    List.of(validFilter),
+                    List.of(new MetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
 
             validator.validateMeasuresRequest(request);
         }
@@ -170,10 +170,10 @@ class AnalyticsQueryValidatorTest {
         @Test
         void should_accept_null_filters_list() {
             var request = new MeasuresRequest(
-                VALID_TIME_RANGE,
-                null,
-                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-            );
+                    VALID_TIME_RANGE,
+                    null,
+                    List.of(new MetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
 
             validator.validateMeasuresRequest(request);
         }
@@ -186,14 +186,14 @@ class AnalyticsQueryValidatorTest {
         void should_reject_payload_filter_in_measures_request() {
             var payloadFilter = new Filter(FilterSpec.Name.PAYLOAD, FilterOperator.CONTAINS, "error");
             var request = new MeasuresRequest(
-                VALID_TIME_RANGE,
-                List.of(payloadFilter),
-                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-            );
+                    VALID_TIME_RANGE,
+                    List.of(payloadFilter),
+                    List.of(new MetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
 
             assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("not supported for analytics queries");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("not supported for analytics queries");
         }
 
         @Test
@@ -203,21 +203,22 @@ class AnalyticsQueryValidatorTest {
             // was among them while the analytics engine had no dimension for it; it now has one
             // (NativeApiFieldResolver), so it is accepted here like any other analytics filter.
             var rejected = Arrays.stream(FilterSpec.Name.values())
-                .filter(name -> !accepts(name))
-                .toList();
+                    .filter(name -> !accepts(name))
+                    .toList();
 
-            assertThat(rejected).containsExactlyInAnyOrder(
-                FilterSpec.Name.PAYLOAD,
-                FilterSpec.Name.ERROR_KEY,
-                FilterSpec.Name.REQUEST_ID,
-                FilterSpec.Name.TRANSACTION_ID,
-                // A version detached from its library is not a readable grouping — several clients share
-                // version numbers — so it narrows a library on the logs screen and has no analytics dimension.
-                FilterSpec.Name.NATIVE_CLIENT_SOFTWARE_VERSION,
-                // The path filter is split by signal: URI reads uri, the only path a log document carries,
-                // and HTTP_PATH reads the templated path-info an analytics query groups by.
-                FilterSpec.Name.URI
-            );
+            assertThat(rejected)
+                    .containsExactlyInAnyOrder(
+                            FilterSpec.Name.PAYLOAD,
+                            FilterSpec.Name.ERROR_KEY,
+                            FilterSpec.Name.REQUEST_ID,
+                            FilterSpec.Name.TRANSACTION_ID,
+                            // A version detached from its library is not a readable grouping — several clients share
+                            // version numbers — so it narrows a library on the logs screen and has no analytics
+                            // dimension.
+                            FilterSpec.Name.NATIVE_CLIENT_SOFTWARE_VERSION,
+                            // The path filter is split by signal: URI reads uri, the only path a log document carries,
+                            // and HTTP_PATH reads the templated path-info an analytics query groups by.
+                            FilterSpec.Name.URI);
         }
 
         @Test
@@ -231,10 +232,10 @@ class AnalyticsQueryValidatorTest {
 
         private boolean accepts(FilterSpec.Name name) {
             var request = new MeasuresRequest(
-                VALID_TIME_RANGE,
-                List.of(new Filter(name, FilterOperator.EQ, "value")),
-                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-            );
+                    VALID_TIME_RANGE,
+                    List.of(new Filter(name, FilterOperator.EQ, "value")),
+                    List.of(new MetricMeasuresRequest(
+                            MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
             try {
                 validator.validateMeasuresRequest(request);
                 return true;
@@ -247,13 +248,13 @@ class AnalyticsQueryValidatorTest {
     @Test
     void should_accept_an_authz_decision_facet_on_the_decisions_metric() {
         var request = new FacetsRequest(
-            VALID_TIME_RANGE,
-            List.of(),
-            List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT), List.of())),
-            List.of(FacetSpec.Name.AUTHZ_DECISION),
-            null,
-            List.of()
-        );
+                VALID_TIME_RANGE,
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(
+                        MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                List.of(FacetSpec.Name.AUTHZ_DECISION),
+                null,
+                List.of());
 
         assertThatCode(() -> validator.validateFacetsRequest(request)).doesNotThrowAnyException();
     }
@@ -261,37 +262,35 @@ class AnalyticsQueryValidatorTest {
     @Test
     void should_accept_the_pdp_facet_on_every_metric_read_from_decisions() {
         for (var metric : List.of(
-            MetricSpec.Name.AUTHZ_DECISIONS,
-            MetricSpec.Name.AUTHZ_PERMITS,
-            MetricSpec.Name.AUTHZ_FORBIDS,
-            MetricSpec.Name.AUTHZ_NOT_APPLICABLE,
-            MetricSpec.Name.AUTHZ_FAILURES
-        )) {
+                MetricSpec.Name.AUTHZ_DECISIONS,
+                MetricSpec.Name.AUTHZ_PERMITS,
+                MetricSpec.Name.AUTHZ_FORBIDS,
+                MetricSpec.Name.AUTHZ_NOT_APPLICABLE,
+                MetricSpec.Name.AUTHZ_FAILURES)) {
             var request = new FacetsRequest(
-                VALID_TIME_RANGE,
-                List.of(new Filter(FilterSpec.Name.AUTHZ_PDP, FilterOperator.IN, List.of("pdp-b"))),
-                List.of(new FacetMetricMeasuresRequest(metric, List.of(MetricSpec.Measure.COUNT), List.of())),
-                List.of(FacetSpec.Name.AUTHZ_PDP),
-                null,
-                List.of()
-            );
+                    VALID_TIME_RANGE,
+                    List.of(new Filter(FilterSpec.Name.AUTHZ_PDP, FilterOperator.IN, List.of("pdp-b"))),
+                    List.of(new FacetMetricMeasuresRequest(metric, List.of(MetricSpec.Measure.COUNT), List.of())),
+                    List.of(FacetSpec.Name.AUTHZ_PDP),
+                    null,
+                    List.of());
 
             assertThatCode(() -> validator.validateFacetsRequest(request))
-                .as("%s by AUTHZ_PDP", metric)
-                .doesNotThrowAnyException();
+                    .as("%s by AUTHZ_PDP", metric)
+                    .doesNotThrowAnyException();
         }
     }
 
     @Test
     void should_reject_an_http_facet_on_an_authz_metric() {
         var request = new FacetsRequest(
-            VALID_TIME_RANGE,
-            List.of(),
-            List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT), List.of())),
-            List.of(FacetSpec.Name.HTTP_STATUS),
-            null,
-            List.of()
-        );
+                VALID_TIME_RANGE,
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(
+                        MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                List.of(FacetSpec.Name.HTTP_STATUS),
+                null,
+                List.of());
 
         assertThatThrownBy(() -> validator.validateFacetsRequest(request)).isInstanceOf(InvalidQueryException.class);
     }

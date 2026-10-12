@@ -34,7 +34,8 @@ import lombok.NoArgsConstructor;
 public class JdbcIntegration {
 
     private static final JsonMapper JSON_MAPPER = new JsonMapper();
-    private static final TypeReference<Collection<A2aWellKnownUrl>> WELL_KNOWN_URLS_TYPE_REFERENCE = new TypeReference<>() {};
+    private static final TypeReference<Collection<A2aWellKnownUrl>> WELL_KNOWN_URLS_TYPE_REFERENCE =
+            new TypeReference<>() {};
     private String id;
     private String name;
     private String description;
@@ -46,25 +47,34 @@ public class JdbcIntegration {
 
     public Integration toIntegration(Collection<String> groups) throws JsonProcessingException {
         Collection<A2aWellKnownUrl> a2aWellKnownUrls = Strings.isNullOrEmpty(wellKnownUrls)
-            ? null
-            : JSON_MAPPER.readValue(wellKnownUrls, WELL_KNOWN_URLS_TYPE_REFERENCE);
+                ? null
+                : JSON_MAPPER.readValue(wellKnownUrls, WELL_KNOWN_URLS_TYPE_REFERENCE);
 
-        return new Integration(id, name, description, provider, environmentId, createdAt, updatedAt, Set.copyOf(groups), a2aWellKnownUrls);
+        return new Integration(
+                id,
+                name,
+                description,
+                provider,
+                environmentId,
+                createdAt,
+                updatedAt,
+                Set.copyOf(groups),
+                a2aWellKnownUrls);
     }
 
     public static JdbcIntegration fromIntegration(Integration integration) throws JsonProcessingException {
-        String wellKnownUrls = integration.getWellKnownUrls() != null && !integration.getWellKnownUrls().isEmpty()
-            ? JSON_MAPPER.writeValueAsString(integration.getWellKnownUrls())
-            : null;
+        String wellKnownUrls = integration.getWellKnownUrls() != null
+                        && !integration.getWellKnownUrls().isEmpty()
+                ? JSON_MAPPER.writeValueAsString(integration.getWellKnownUrls())
+                : null;
         return new JdbcIntegration(
-            integration.getId(),
-            integration.getName(),
-            integration.getDescription(),
-            integration.getProvider(),
-            integration.getEnvironmentId(),
-            integration.getCreatedAt(),
-            integration.getUpdatedAt(),
-            wellKnownUrls
-        );
+                integration.getId(),
+                integration.getName(),
+                integration.getDescription(),
+                integration.getProvider(),
+                integration.getEnvironmentId(),
+                integration.getCreatedAt(),
+                integration.getUpdatedAt(),
+                wellKnownUrls);
     }
 }

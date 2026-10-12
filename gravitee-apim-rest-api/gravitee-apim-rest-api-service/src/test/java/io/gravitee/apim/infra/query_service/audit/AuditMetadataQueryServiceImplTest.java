@@ -86,15 +86,14 @@ class AuditMetadataQueryServiceImplTest {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
 
         service = new AuditMetadataQueryServiceImpl(
-            apiRepository,
-            applicationRepository,
-            groupRepository,
-            metadataRepository,
-            pageRepository,
-            planRepository,
-            userRepository,
-            apiProductRepository
-        );
+                apiRepository,
+                applicationRepository,
+                groupRepository,
+                metadataRepository,
+                pageRepository,
+                planRepository,
+                userRepository,
+                apiProductRepository);
     }
 
     @AfterEach
@@ -111,9 +110,12 @@ class AuditMetadataQueryServiceImplTest {
         @SneakyThrows
         void should_return_user_display_name() {
             // Given
-            when(userRepository.findById(USER_ID)).thenAnswer(invocation ->
-                Optional.of(User.builder().id(invocation.getArgument(0)).firstname("John").lastname("Doe").build())
-            );
+            when(userRepository.findById(USER_ID))
+                    .thenAnswer(invocation -> Optional.of(User.builder()
+                            .id(invocation.getArgument(0))
+                            .firstname("John")
+                            .lastname("Doe")
+                            .build()));
 
             // When
             var result = service.fetchUserNameMetadata(USER_ID);
@@ -158,9 +160,11 @@ class AuditMetadataQueryServiceImplTest {
         @SneakyThrows
         void should_return_api_name() {
             // Given
-            when(apiRepository.findById(API_ID)).thenAnswer(invocation ->
-                Optional.of(Api.builder().id(invocation.getArgument(0)).name("My API").build())
-            );
+            when(apiRepository.findById(API_ID))
+                    .thenAnswer(invocation -> Optional.of(Api.builder()
+                            .id(invocation.getArgument(0))
+                            .name("My API")
+                            .build()));
 
             // When
             var result = service.fetchApiNameMetadata(API_ID);
@@ -218,9 +222,11 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_api_name() {
                 // Given
-                when(apiRepository.findById(API_ID)).thenAnswer(invocation ->
-                    Optional.of(Api.builder().id(invocation.getArgument(0)).name("My API").build())
-                );
+                when(apiRepository.findById(API_ID))
+                        .thenAnswer(invocation -> Optional.of(Api.builder()
+                                .id(invocation.getArgument(0))
+                                .name("My API")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.API.name(), API_ID);
@@ -265,9 +271,11 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_application_name() {
                 // Given
-                when(applicationRepository.findById(APPLICATION_ID)).thenAnswer(invocation ->
-                    Optional.of(Application.builder().id(invocation.getArgument(0)).name("My Application").build())
-                );
+                when(applicationRepository.findById(APPLICATION_ID))
+                        .thenAnswer(invocation -> Optional.of(Application.builder()
+                                .id(invocation.getArgument(0))
+                                .name("My Application")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.APPLICATION.name(), APPLICATION_ID);
@@ -312,9 +320,11 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_group_name() {
                 // Given
-                when(groupRepository.findById(GROUP_ID)).thenAnswer(invocation ->
-                    Optional.of(Group.builder().id(invocation.getArgument(0)).name("My Group").build())
-                );
+                when(groupRepository.findById(GROUP_ID))
+                        .thenAnswer(invocation -> Optional.of(Group.builder()
+                                .id(invocation.getArgument(0))
+                                .name("My Group")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.GROUP.name(), GROUP_ID);
@@ -361,16 +371,20 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_api_metadata_value() {
                 // Given
-                when(metadataRepository.findById(METADATA_KEY, API_ID, MetadataReferenceType.API)).thenAnswer(invocation ->
-                    Optional.of(Metadata.builder().key(invocation.getArgument(0)).name("My API Metadata").build())
-                );
+                when(metadataRepository.findById(METADATA_KEY, API_ID, MetadataReferenceType.API))
+                        .thenAnswer(invocation -> Optional.of(Metadata.builder()
+                                .key(invocation.getArgument(0))
+                                .name("My API Metadata")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(
-                    AUDIT.toBuilder().referenceId(API_ID).referenceType(AuditEntity.AuditReferenceType.API).build(),
-                    AuditProperties.METADATA.name(),
-                    METADATA_KEY
-                );
+                        AUDIT.toBuilder()
+                                .referenceId(API_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .build(),
+                        AuditProperties.METADATA.name(),
+                        METADATA_KEY);
 
                 // Then
                 Assertions.assertThat(result).isEqualTo("My API Metadata");
@@ -380,16 +394,20 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_application_metadata_value() {
                 // Given
-                when(metadataRepository.findById(METADATA_KEY, APPLICATION_ID, MetadataReferenceType.APPLICATION)).thenAnswer(invocation ->
-                    Optional.of(Metadata.builder().key(invocation.getArgument(0)).name("My Application Metadata").build())
-                );
+                when(metadataRepository.findById(METADATA_KEY, APPLICATION_ID, MetadataReferenceType.APPLICATION))
+                        .thenAnswer(invocation -> Optional.of(Metadata.builder()
+                                .key(invocation.getArgument(0))
+                                .name("My Application Metadata")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(
-                    AUDIT.toBuilder().referenceId(APPLICATION_ID).referenceType(AuditEntity.AuditReferenceType.APPLICATION).build(),
-                    AuditProperties.METADATA.name(),
-                    METADATA_KEY
-                );
+                        AUDIT.toBuilder()
+                                .referenceId(APPLICATION_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.APPLICATION)
+                                .build(),
+                        AuditProperties.METADATA.name(),
+                        METADATA_KEY);
 
                 // Then
                 Assertions.assertThat(result).isEqualTo("My Application Metadata");
@@ -399,16 +417,20 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_default_metadata_value() {
                 // Given
-                when(metadataRepository.findById(METADATA_KEY, ENV_ID, MetadataReferenceType.ENVIRONMENT)).thenAnswer(invocation ->
-                    Optional.of(Metadata.builder().key(invocation.getArgument(0)).name("A Default Metadata").build())
-                );
+                when(metadataRepository.findById(METADATA_KEY, ENV_ID, MetadataReferenceType.ENVIRONMENT))
+                        .thenAnswer(invocation -> Optional.of(Metadata.builder()
+                                .key(invocation.getArgument(0))
+                                .name("A Default Metadata")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(
-                    AUDIT.toBuilder().referenceId(ENV_ID).referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT).build(),
-                    AuditProperties.METADATA.name(),
-                    METADATA_KEY
-                );
+                        AUDIT.toBuilder()
+                                .referenceId(ENV_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
+                                .build(),
+                        AuditProperties.METADATA.name(),
+                        METADATA_KEY);
 
                 // Then
                 Assertions.assertThat(result).isEqualTo("A Default Metadata");
@@ -418,14 +440,17 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_metadata_key_when_no_metadata_is_found() {
                 // Given
-                when(metadataRepository.findById(METADATA_KEY, API_ID, MetadataReferenceType.API)).thenReturn(Optional.empty());
+                when(metadataRepository.findById(METADATA_KEY, API_ID, MetadataReferenceType.API))
+                        .thenReturn(Optional.empty());
 
                 // When
                 var result = service.fetchPropertyMetadata(
-                    AUDIT.toBuilder().referenceId(API_ID).referenceType(AuditEntity.AuditReferenceType.API).build(),
-                    AuditProperties.METADATA.name(),
-                    METADATA_KEY
-                );
+                        AUDIT.toBuilder()
+                                .referenceId(API_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .build(),
+                        AuditProperties.METADATA.name(),
+                        METADATA_KEY);
 
                 // Then
                 Assertions.assertThat(result).isEqualTo(METADATA_KEY);
@@ -435,14 +460,17 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_metadata_key_when_technical_exception_occurs() {
                 // Given
-                when(metadataRepository.findById(METADATA_KEY, API_ID, MetadataReferenceType.API)).thenThrow(new TechnicalException());
+                when(metadataRepository.findById(METADATA_KEY, API_ID, MetadataReferenceType.API))
+                        .thenThrow(new TechnicalException());
 
                 // When
                 var result = service.fetchPropertyMetadata(
-                    AUDIT.toBuilder().referenceId(API_ID).referenceType(AuditEntity.AuditReferenceType.API).build(),
-                    AuditProperties.METADATA.name(),
-                    METADATA_KEY
-                );
+                        AUDIT.toBuilder()
+                                .referenceId(API_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .build(),
+                        AuditProperties.METADATA.name(),
+                        METADATA_KEY);
 
                 // Then
                 Assertions.assertThat(result).isEqualTo(METADATA_KEY);
@@ -458,9 +486,11 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_page_name() {
                 // Given
-                when(pageRepository.findById(PAGE_ID)).thenAnswer(invocation ->
-                    Optional.of(Page.builder().id(invocation.getArgument(0)).name("My Page").build())
-                );
+                when(pageRepository.findById(PAGE_ID))
+                        .thenAnswer(invocation -> Optional.of(Page.builder()
+                                .id(invocation.getArgument(0))
+                                .name("My Page")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.PAGE.name(), PAGE_ID);
@@ -505,9 +535,11 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_plan_name() {
                 // Given
-                when(planRepository.findById(PLAN_ID)).thenAnswer(invocation ->
-                    Optional.of(Plan.builder().id(invocation.getArgument(0)).name("My Plan").build())
-                );
+                when(planRepository.findById(PLAN_ID))
+                        .thenAnswer(invocation -> Optional.of(Plan.builder()
+                                .id(invocation.getArgument(0))
+                                .name("My Plan")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.PLAN.name(), PLAN_ID);
@@ -551,9 +583,11 @@ class AuditMetadataQueryServiceImplTest {
             @Test
             @SneakyThrows
             void should_return_api_product_name() {
-                when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(
-                    Optional.of(ApiProduct.builder().id(API_PRODUCT_ID).name("Finance Team").build())
-                );
+                when(apiProductRepository.findById(API_PRODUCT_ID))
+                        .thenReturn(Optional.of(ApiProduct.builder()
+                                .id(API_PRODUCT_ID)
+                                .name("Finance Team")
+                                .build()));
 
                 var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.API_PRODUCT.name(), API_PRODUCT_ID);
 
@@ -590,9 +624,12 @@ class AuditMetadataQueryServiceImplTest {
             @SneakyThrows
             void should_return_user_name() {
                 // Given
-                when(userRepository.findById(USER_ID)).thenAnswer(invocation ->
-                    Optional.of(User.builder().id(invocation.getArgument(0)).firstname("John").lastname("Doe").build())
-                );
+                when(userRepository.findById(USER_ID))
+                        .thenAnswer(invocation -> Optional.of(User.builder()
+                                .id(invocation.getArgument(0))
+                                .firstname("John")
+                                .lastname("Doe")
+                                .build()));
 
                 // When
                 var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.USER.name(), USER_ID);

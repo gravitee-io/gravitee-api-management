@@ -31,7 +31,8 @@ public class MessageMetricsFormatter extends SingleValueFormatter<MessageMetrics
     @Override
     protected Buffer format0(MessageMetrics metrics) {
         ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
-        final Map<String, String> customMetrics = metrics.getCustomMetrics() == null ? Map.of() : metrics.getCustomMetrics();
+        final Map<String, String> customMetrics =
+                metrics.getCustomMetrics() == null ? Map.of() : metrics.getCustomMetrics();
 
         final Buffer buffer = Buffer.buffer();
 
@@ -43,8 +44,11 @@ public class MessageMetricsFormatter extends SingleValueFormatter<MessageMetrics
         appendString(buffer, metrics.getApiName());
         appendString(buffer, metrics.getOrganizationId());
         appendString(buffer, metrics.getEnvironmentId());
-        appendString(buffer, metrics.getOperation() != null ? metrics.getOperation().name() : null);
-        appendString(buffer, metrics.getConnectorType() != null ? metrics.getConnectorType().name() : null);
+        appendString(
+                buffer, metrics.getOperation() != null ? metrics.getOperation().name() : null);
+        appendString(
+                buffer,
+                metrics.getConnectorType() != null ? metrics.getConnectorType().name() : null);
         appendString(buffer, metrics.getConnectorId());
         appendLong(buffer, metrics.getContentLength());
         appendLong(buffer, metrics.getCount());

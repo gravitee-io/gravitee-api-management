@@ -39,8 +39,10 @@ import org.junit.jupiter.params.provider.EnumSource;
 class SubscriptionEntityTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
-    private static final ZonedDateTime STARTING_AT = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
-    private static final ZonedDateTime ENDING_AT = Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime STARTING_AT =
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime ENDING_AT =
+            Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
 
     @BeforeAll
     static void beforeAll() {
@@ -56,7 +58,9 @@ class SubscriptionEntityTest {
     class Close {
 
         @ParameterizedTest
-        @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+        @EnumSource(
+                value = SubscriptionEntity.Status.class,
+                names = {"ACCEPTED", "PAUSED"})
         void should_close_subscription(SubscriptionEntity.Status status) {
             ZonedDateTime now = ZonedDateTime.now();
             var subscription = aSubscription().toBuilder().status(status).build();
@@ -64,13 +68,17 @@ class SubscriptionEntityTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(closedSubscription.getStatus()).isEqualTo(SubscriptionEntity.Status.CLOSED);
-                soft.assertThat(closedSubscription.getClosedAt()).isEqualTo(closedSubscription.getUpdatedAt()).isAfterOrEqualTo(now);
+                soft.assertThat(closedSubscription.getClosedAt())
+                        .isEqualTo(closedSubscription.getUpdatedAt())
+                        .isAfterOrEqualTo(now);
             });
         }
 
         @Test
         void should_throw_exception_when_closing_a_pending_subscription() {
-            var pending = aSubscription().toBuilder().status(SubscriptionEntity.Status.PENDING).build();
+            var pending = aSubscription().toBuilder()
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .build();
 
             Throwable throwable = catchThrowable(pending::close);
 
@@ -78,7 +86,9 @@ class SubscriptionEntityTest {
         }
 
         @ParameterizedTest
-        @EnumSource(value = SubscriptionEntity.Status.class, names = { "REJECTED", "CLOSED" })
+        @EnumSource(
+                value = SubscriptionEntity.Status.class,
+                names = {"REJECTED", "CLOSED"})
         void should_do_nothing_when_closing_a_rejected_or_closed_subscription(SubscriptionEntity.Status status) {
             var subscription = aSubscription().toBuilder().status(status).build();
 
@@ -93,17 +103,19 @@ class SubscriptionEntityTest {
 
         @Test
         void should_accept_subscription_with_no_startingAt() {
-            var subscription = aSubscription().toBuilder().startingAt(null).status(SubscriptionEntity.Status.PENDING).build();
+            var subscription = aSubscription().toBuilder()
+                    .startingAt(null)
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .build();
 
             var acceptedSubscription = subscription.acceptBy("user-id", null, ENDING_AT, "my reason");
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(acceptedSubscription.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
-                soft
-                    .assertThat(acceptedSubscription.getProcessedAt())
-                    .isEqualTo(acceptedSubscription.getUpdatedAt())
-                    .isEqualTo(acceptedSubscription.getStartingAt())
-                    .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(acceptedSubscription.getProcessedAt())
+                        .isEqualTo(acceptedSubscription.getUpdatedAt())
+                        .isEqualTo(acceptedSubscription.getStartingAt())
+                        .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
                 soft.assertThat(acceptedSubscription.getEndingAt()).isEqualTo(ENDING_AT);
                 soft.assertThat(acceptedSubscription.getReasonMessage()).isEqualTo("my reason");
                 soft.assertThat(acceptedSubscription.getProcessedBy()).isEqualTo("user-id");
@@ -112,33 +124,40 @@ class SubscriptionEntityTest {
 
         @Test
         void should_accept_subscription_with_startingAt() {
-            var subscription = aSubscription().toBuilder().status(SubscriptionEntity.Status.PENDING).build();
+            var subscription = aSubscription().toBuilder()
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .build();
 
             var acceptedSubscription = subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason");
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(acceptedSubscription.getStartingAt()).isEqualTo(STARTING_AT);
                 soft.assertThat(acceptedSubscription.getEndingAt()).isEqualTo(ENDING_AT);
-                soft
-                    .assertThat(acceptedSubscription.getProcessedAt())
-                    .isEqualTo(acceptedSubscription.getUpdatedAt())
-                    .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(acceptedSubscription.getProcessedAt())
+                        .isEqualTo(acceptedSubscription.getUpdatedAt())
+                        .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
             });
         }
 
         @ParameterizedTest
-        @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = { "PENDING", "ACCEPTED" })
+        @EnumSource(
+                value = SubscriptionEntity.Status.class,
+                mode = EnumSource.Mode.EXCLUDE,
+                names = {"PENDING", "ACCEPTED"})
         void should_throw_exception_when_accepting_a_non_pending_subscription(SubscriptionEntity.Status status) {
             var pending = aSubscription().toBuilder().status(status).build();
 
-            Throwable throwable = catchThrowable(() -> pending.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason"));
+            Throwable throwable =
+                    catchThrowable(() -> pending.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason"));
 
             assertThat(throwable).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
         void should_do_nothing_when_accepting_an_accepted_subscription() {
-            var subscription = aSubscription().toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build();
+            var subscription = aSubscription().toBuilder()
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .build();
 
             var closedSubscription = subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason");
 
@@ -148,7 +167,10 @@ class SubscriptionEntityTest {
         @Test
         void should_preserve_existing_metadata_when_accepting_without_metadata() {
             var metadata = Map.of("key", "value");
-            var subscription = aSubscription().toBuilder().status(SubscriptionEntity.Status.PENDING).metadata(metadata).build();
+            var subscription = aSubscription().toBuilder()
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .metadata(metadata)
+                    .build();
 
             var acceptedSubscription = subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason");
 
@@ -157,14 +179,14 @@ class SubscriptionEntityTest {
 
         @Test
         void should_override_existing_metadata_when_accepting_with_metadata() {
-            var subscription = aSubscription()
-                .toBuilder()
-                .status(SubscriptionEntity.Status.PENDING)
-                .metadata(Map.of("key", "value"))
-                .build();
+            var subscription = aSubscription().toBuilder()
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .metadata(Map.of("key", "value"))
+                    .build();
             var newMetadata = Map.of("integration-key", "integration-value");
 
-            var acceptedSubscription = subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason", newMetadata);
+            var acceptedSubscription =
+                    subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason", newMetadata);
 
             assertThat(acceptedSubscription.getMetadata()).isEqualTo(newMetadata);
         }

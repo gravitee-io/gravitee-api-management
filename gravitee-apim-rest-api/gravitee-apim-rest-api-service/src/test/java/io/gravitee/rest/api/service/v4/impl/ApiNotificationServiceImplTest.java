@@ -73,17 +73,15 @@ public class ApiNotificationServiceImplTest {
     public void shouldNotNotifyUpdateWhenUserNotAuthenticated() {
         Api api = new Api();
 
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(final Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(final Authentication authentication) {}
+        });
         apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), api);
         verifyNoInteractions(notifierService);
     }
@@ -91,17 +89,15 @@ public class ApiNotificationServiceImplTest {
     @Test
     public void shouldNotNotifyDeprecatedWhenUserNotAuthenticated() {
         Api api = new Api();
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(final Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(final Authentication authentication) {}
+        });
 
         apiNotificationService.triggerUpdateNotification(GraviteeContext.getExecutionContext(), api);
         verifyNoInteractions(notifierService);

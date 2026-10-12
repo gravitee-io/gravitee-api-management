@@ -55,28 +55,28 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
         }
 
         return switch (filterName) {
-            case API -> apiCrudService.findByIds(ids).stream().collect(Collectors.toMap(api -> api.getId(), api -> api.getName()));
+            case API ->
+                apiCrudService.findByIds(ids).stream()
+                        .collect(Collectors.toMap(api -> api.getId(), api -> api.getName()));
             case APPLICATION -> {
-                var names = new HashMap<>(
-                    applicationCrudService
-                        .findByIds(ids, environmentId)
-                        .stream()
-                        .collect(Collectors.toMap(app -> app.getId(), app -> app.getName()))
-                );
+                var names = new HashMap<>(applicationCrudService.findByIds(ids, environmentId).stream()
+                        .collect(Collectors.toMap(app -> app.getId(), app -> app.getName())));
                 names.put(UNKNOWN_APPLICATION_ID, UNKNOWN_APPLICATION_NAME);
                 yield names;
             }
-            case PLAN -> planCrudService.findByIds(ids).stream().collect(Collectors.toMap(plan -> plan.getId(), plan -> plan.getName()));
-            case API_PRODUCT -> apiProductQueryService
-                .findByEnvironmentIdAndIdIn(environmentId, new HashSet<>(ids))
-                .stream()
-                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+            case PLAN ->
+                planCrudService.findByIds(ids).stream()
+                        .collect(Collectors.toMap(plan -> plan.getId(), plan -> plan.getName()));
+            case API_PRODUCT ->
+                apiProductQueryService.findByEnvironmentIdAndIdIn(environmentId, new HashSet<>(ids)).stream()
+                        .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
             default -> Collections.emptyMap();
         };
     }
 
     @Override
-    public List<FilterValue> searchByName(String environmentId, FilterSpec.Name filterName, String query, int page, int perPage) {
+    public List<FilterValue> searchByName(
+            String environmentId, FilterSpec.Name filterName, String query, int page, int perPage) {
         if (query == null || query.isBlank()) {
             return Collections.emptyList();
         }
@@ -88,16 +88,22 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
     }
 
     private List<FilterValue> searchApisByName(String environmentId, String query, int page, int perPage) {
-        var criteria = ApiSearchCriteria.builder().name(query).environmentId(environmentId).build();
+        var criteria = ApiSearchCriteria.builder()
+                .name(query)
+                .environmentId(environmentId)
+                .build();
 
-        var fieldFilter = ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build();
+        var fieldFilter = ApiFieldFilter.builder()
+                .pictureExcluded(true)
+                .definitionExcluded(true)
+                .build();
 
         var skip = (long) (page - 1) * perPage;
         return apiQueryService
-            .search(criteria, null, fieldFilter)
-            .skip(skip)
-            .limit(perPage)
-            .map(api -> new FilterValue(api.getName(), api.getId()))
-            .toList();
+                .search(criteria, null, fieldFilter)
+                .skip(skip)
+                .limit(perPage)
+                .map(api -> new FilterValue(api.getName(), api.getId()))
+                .toList();
     }
 }

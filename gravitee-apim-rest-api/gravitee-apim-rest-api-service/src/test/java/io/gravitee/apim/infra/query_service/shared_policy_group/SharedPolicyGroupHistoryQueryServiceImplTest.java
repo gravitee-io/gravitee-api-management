@@ -62,10 +62,12 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
         void streamByEnvironmentIdAndState_should_return_empty_stream() {
             // Given
             String environmentId = "environmentId";
-            when(repository.searchLatestBySharedPolicyGroupId(eq(environmentId), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+            when(repository.searchLatestBySharedPolicyGroupId(eq(environmentId), any()))
+                    .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             // When
-            List<SharedPolicyGroup> result = service.streamLatestBySharedPolicyGroupId(environmentId).toList();
+            List<SharedPolicyGroup> result =
+                    service.streamLatestBySharedPolicyGroupId(environmentId).toList();
             // Then
             assertThat(result).isEmpty();
         }
@@ -75,42 +77,36 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
         void streamByEnvironmentIdAndState_should_return_stream() {
             // Given
             String environmentId = "environmentId";
-            when(
-                repository.searchLatestBySharedPolicyGroupId(
-                    eq(environmentId),
-                    any(io.gravitee.repository.management.api.search.Pageable.class)
-                )
-            ).thenAnswer(invocation -> {
-                io.gravitee.repository.management.api.search.Pageable pageable = invocation.getArgument(1);
-                if (pageable.pageNumber() == 0) {
-                    return new Page<>(
-                        List.of(
-                            aRepositorySharedPolicyGroup("id"),
-                            aRepositorySharedPolicyGroup("id2"),
-                            aRepositorySharedPolicyGroup("id3")
-                        ),
-                        pageable.pageNumber(),
-                        3,
-                        6
-                    );
-                }
-                if (pageable.pageNumber() == 1) {
-                    return new Page<>(
-                        List.of(
-                            aRepositorySharedPolicyGroup("id4"),
-                            aRepositorySharedPolicyGroup("id5"),
-                            aRepositorySharedPolicyGroup("id6")
-                        ),
-                        pageable.pageNumber(),
-                        3,
-                        6
-                    );
-                }
-                return null;
-            });
+            when(repository.searchLatestBySharedPolicyGroupId(
+                            eq(environmentId), any(io.gravitee.repository.management.api.search.Pageable.class)))
+                    .thenAnswer(invocation -> {
+                        io.gravitee.repository.management.api.search.Pageable pageable = invocation.getArgument(1);
+                        if (pageable.pageNumber() == 0) {
+                            return new Page<>(
+                                    List.of(
+                                            aRepositorySharedPolicyGroup("id"),
+                                            aRepositorySharedPolicyGroup("id2"),
+                                            aRepositorySharedPolicyGroup("id3")),
+                                    pageable.pageNumber(),
+                                    3,
+                                    6);
+                        }
+                        if (pageable.pageNumber() == 1) {
+                            return new Page<>(
+                                    List.of(
+                                            aRepositorySharedPolicyGroup("id4"),
+                                            aRepositorySharedPolicyGroup("id5"),
+                                            aRepositorySharedPolicyGroup("id6")),
+                                    pageable.pageNumber(),
+                                    3,
+                                    6);
+                        }
+                        return null;
+                    });
 
             // When
-            var result = service.streamLatestBySharedPolicyGroupId(environmentId).toList();
+            var result =
+                    service.streamLatestBySharedPolicyGroupId(environmentId).toList();
 
             // Then
             assertThat(result).isNotEmpty();
@@ -132,17 +128,13 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
             // Given
             String sharedPolicyGroupId = "sharedPolicyGroupId";
             String environmentId = "environmentId";
-            when(
-                repository.search(
-                    argThat(
-                        criteria ->
-                            criteria.getSharedPolicyGroupId().equals(sharedPolicyGroupId) &&
-                            criteria.getEnvironmentId().equals(environmentId)
-                    ),
-                    eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
-                    eq(new SortableBuilder().field(null).setAsc(false).build())
-                )
-            ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+            when(repository.search(
+                            argThat(criteria ->
+                                    criteria.getSharedPolicyGroupId().equals(sharedPolicyGroupId)
+                                            && criteria.getEnvironmentId().equals(environmentId)),
+                            eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
+                            eq(new SortableBuilder().field(null).setAsc(false).build())))
+                    .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             // When
             Pageable pageable = new PageableImpl(1, 10);
@@ -160,24 +152,23 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
             // Given
             String sharedPolicyGroupId = "sharedPolicyGroupId";
             String environmentId = "environmentId";
-            when(
-                repository.search(
-                    argThat(
-                        criteria ->
-                            criteria.getSharedPolicyGroupId().equals(sharedPolicyGroupId) &&
-                            criteria.getEnvironmentId().equals(environmentId)
-                    ),
-                    any(),
-                    eq(new SortableBuilder().field("createdAt").setAsc(true).build())
-                )
-            ).thenReturn(
-                new Page<>(
-                    List.of(aRepositorySharedPolicyGroup("id"), aRepositorySharedPolicyGroup("id2"), aRepositorySharedPolicyGroup("id3")),
-                    1,
-                    3,
-                    42
-                )
-            );
+            when(repository.search(
+                            argThat(criteria ->
+                                    criteria.getSharedPolicyGroupId().equals(sharedPolicyGroupId)
+                                            && criteria.getEnvironmentId().equals(environmentId)),
+                            any(),
+                            eq(new SortableBuilder()
+                                    .field("createdAt")
+                                    .setAsc(true)
+                                    .build())))
+                    .thenReturn(new Page<>(
+                            List.of(
+                                    aRepositorySharedPolicyGroup("id"),
+                                    aRepositorySharedPolicyGroup("id2"),
+                                    aRepositorySharedPolicyGroup("id3")),
+                            1,
+                            3,
+                            42));
 
             // When
             Pageable pageable = new PageableImpl(0, 3);
@@ -197,16 +188,16 @@ class SharedPolicyGroupHistoryQueryServiceImplTest {
 
     private io.gravitee.repository.management.model.SharedPolicyGroup aRepositorySharedPolicyGroup(String id) {
         return io.gravitee.repository.management.model.SharedPolicyGroup.builder()
-            .id(id)
-            .name("name")
-            .version(1)
-            .description("description")
-            .crossId("crossId")
-            .apiType(ApiType.PROXY)
-            .definition("{}")
-            .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .environmentId("environmentId")
-            .organizationId("organizationId")
-            .build();
+                .id(id)
+                .name("name")
+                .version(1)
+                .description("description")
+                .crossId("crossId")
+                .apiType(ApiType.PROXY)
+                .definition("{}")
+                .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .environmentId("environmentId")
+                .organizationId("organizationId")
+                .build();
     }
 }

@@ -21,7 +21,8 @@ import io.gravitee.repository.healthcheck.query.AbstractQueryBuilder;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AverageResponseTimeQueryBuilder extends AbstractQueryBuilder<AverageResponseTimeQueryBuilder, AverageResponseTimeQuery> {
+public class AverageResponseTimeQueryBuilder
+        extends AbstractQueryBuilder<AverageResponseTimeQueryBuilder, AverageResponseTimeQuery> {
 
     protected AverageResponseTimeQueryBuilder(AverageResponseTimeQuery query) {
         super(query);

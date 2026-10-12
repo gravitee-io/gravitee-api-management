@@ -62,7 +62,10 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
     void setup() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -93,8 +96,8 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(scoringFunctionCrudService.storage())
-                .extracting(ScoringFunction::name, ScoringFunction::payload)
-                .containsExactly(tuple("function-name.js", "function-payload"));
+                    .extracting(ScoringFunction::name, ScoringFunction::payload)
+                    .containsExactly(tuple("function-name.js", "function-payload"));
         }
 
         @Test
@@ -108,18 +111,18 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.CREATED_201)
-                .hasHeader("Location", target.path("generated-id").getUri().toString());
+                    .hasStatus(HttpStatusCode.CREATED_201)
+                    .hasHeader("Location", target.path("generated-id").getUri().toString());
         }
 
         @Test
         void should_override_function_with_same_name() {
             // Given
-            scoringFunctionCrudService.initWith(
-                List.of(
-                    ScoringFunctionFixture.aFunction().toBuilder().id("function1").name("function-name.js").referenceId(ENVIRONMENT).build()
-                )
-            );
+            scoringFunctionCrudService.initWith(List.of(ScoringFunctionFixture.aFunction().toBuilder()
+                    .id("function1")
+                    .name("function-name.js")
+                    .referenceId(ENVIRONMENT)
+                    .build()));
             var request2 = new ImportScoringFunction().name("function-name.js").payload("function-payload2");
 
             // When
@@ -128,9 +131,9 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
             // Then
             assertThat(response).hasStatus(HttpStatusCode.CREATED_201);
             assertThat(scoringFunctionCrudService.storage())
-                .hasSize(1)
-                .extracting(ScoringFunction::name, ScoringFunction::payload)
-                .containsExactly(tuple("function-name.js", "function-payload2"));
+                    .hasSize(1)
+                    .extracting(ScoringFunction::name, ScoringFunction::payload)
+                    .containsExactly(tuple("function-name.js", "function-payload2"));
         }
     }
 
@@ -140,36 +143,44 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_functions() {
             // Given
-            scoringFunctionCrudService.initWith(
-                List.of(
-                    ScoringFunctionFixture.aFunction().toBuilder().id("function1").referenceId(ENVIRONMENT).build(),
-                    ScoringFunctionFixture.aFunction().toBuilder().id("function2").referenceId(ENVIRONMENT).build()
-                )
-            );
+            scoringFunctionCrudService.initWith(List.of(
+                    ScoringFunctionFixture.aFunction().toBuilder()
+                            .id("function1")
+                            .referenceId(ENVIRONMENT)
+                            .build(),
+                    ScoringFunctionFixture.aFunction().toBuilder()
+                            .id("function2")
+                            .referenceId(ENVIRONMENT)
+                            .build()));
 
             // When
             var response = target.request().get();
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(ScoringFunctionsResponse.class)
-                .extracting(ScoringFunctionsResponse::getData)
-                .asInstanceOf(InstanceOfAssertFactories.LIST)
-                .containsExactly(
-                    new io.gravitee.rest.api.management.v2.rest.model.ScoringFunction()
-                        .name("function-name")
-                        .payload("function-payload")
-                        .referenceId(ENVIRONMENT)
-                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC)),
-                    new io.gravitee.rest.api.management.v2.rest.model.ScoringFunction()
-                        .name("function-name")
-                        .payload("function-payload")
-                        .referenceId(ENVIRONMENT)
-                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(ScoringFunctionsResponse.class)
+                    .extracting(ScoringFunctionsResponse::getData)
+                    .asInstanceOf(InstanceOfAssertFactories.LIST)
+                    .containsExactly(
+                            new io.gravitee.rest.api.management.v2.rest.model.ScoringFunction()
+                                    .name("function-name")
+                                    .payload("function-payload")
+                                    .referenceId(ENVIRONMENT)
+                                    .referenceType(
+                                            io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType
+                                                    .ENVIRONMENT)
+                                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z")
+                                            .atOffset(ZoneOffset.UTC)),
+                            new io.gravitee.rest.api.management.v2.rest.model.ScoringFunction()
+                                    .name("function-name")
+                                    .payload("function-payload")
+                                    .referenceId(ENVIRONMENT)
+                                    .referenceType(
+                                            io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType
+                                                    .ENVIRONMENT)
+                                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z")
+                                            .atOffset(ZoneOffset.UTC)));
         }
     }
 }

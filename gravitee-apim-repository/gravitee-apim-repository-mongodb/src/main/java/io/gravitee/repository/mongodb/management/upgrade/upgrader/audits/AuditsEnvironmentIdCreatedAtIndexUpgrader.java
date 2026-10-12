@@ -24,6 +24,11 @@ public class AuditsEnvironmentIdCreatedAtIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index.builder().collection("audits").name("e1c1").key("environmentId", ascending()).key("createdAt", ascending()).build();
+        return Index.builder()
+                .collection("audits")
+                .name("e1c1")
+                .key("environmentId", ascending())
+                .key("createdAt", ascending())
+                .build();
     }
 }

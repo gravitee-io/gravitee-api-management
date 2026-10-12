@@ -58,14 +58,15 @@ public class IdentityProviderActivationServiceTest {
     private static final String IDENTITY_PROVIDER_ID = "my-identity-provider-id";
     private static final String TARGET_REFERENCE_ID = "my-reference-id";
     private static final IdentityProviderActivationReferenceType TARGET_REFERENCE_TYPE =
-        IdentityProviderActivationReferenceType.ENVIRONMENT;
+            IdentityProviderActivationReferenceType.ENVIRONMENT;
     private static final String ANOTHER_IDENTITY_PROVIDER_ID = "another-identity-provider-id";
     private static final String ANOTHER_TARGET_REFERENCE_ID = "another-reference-id";
     private static final IdentityProviderActivationReferenceType ANOTHER_TARGET_REFERENCE_TYPE =
-        IdentityProviderActivationReferenceType.ORGANIZATION;
+            IdentityProviderActivationReferenceType.ORGANIZATION;
 
     @InjectMocks
-    private IdentityProviderActivationService identityProviderActivationService = new IdentityProviderActivationServiceImpl();
+    private IdentityProviderActivationService identityProviderActivationService =
+            new IdentityProviderActivationServiceImpl();
 
     @Mock
     private IdentityProviderActivationRepository identityProviderActivationRepository;
@@ -90,90 +91,71 @@ public class IdentityProviderActivationServiceTest {
         anotherCreatedIPA.setCreatedAt(now);
 
         doReturn(createdIPA)
-            .when(identityProviderActivationRepository)
-            .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-                )
-            );
+                .when(identityProviderActivationRepository)
+                .create(argThat(
+                        (IdentityProviderActivation ipa) -> IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
         doReturn(anotherCreatedIPA)
-            .when(identityProviderActivationRepository)
-            .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-                )
-            );
+                .when(identityProviderActivationRepository)
+                .create(argThat(
+                        (IdentityProviderActivation ipa) -> IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
 
         // When
-        Set<IdentityProviderActivationEntity> activatedIdentityProviders = this.identityProviderActivationService.activateIdpOnTargets(
-            GraviteeContext.getExecutionContext(),
-            IDENTITY_PROVIDER_ID,
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
-                )
-            ),
-            new ActivationTarget(
-                ANOTHER_TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    ANOTHER_TARGET_REFERENCE_TYPE.name()
-                )
-            )
-        );
+        Set<IdentityProviderActivationEntity> activatedIdentityProviders =
+                this.identityProviderActivationService.activateIdpOnTargets(
+                        GraviteeContext.getExecutionContext(),
+                        IDENTITY_PROVIDER_ID,
+                        new ActivationTarget(
+                                TARGET_REFERENCE_ID,
+                                io.gravitee.rest.api.model.configuration.identity
+                                        .IdentityProviderActivationReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
+                        new ActivationTarget(
+                                ANOTHER_TARGET_REFERENCE_ID,
+                                io.gravitee.rest.api.model.configuration.identity
+                                        .IdentityProviderActivationReferenceType.valueOf(
+                                        ANOTHER_TARGET_REFERENCE_TYPE.name())));
 
         // Then
         assertNotNull(activatedIdentityProviders);
         assertEquals(2, activatedIdentityProviders.size());
 
-        verify(identityProviderActivationRepository).create(
-            argThat(
-                (IdentityProviderActivation ipa) ->
-                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-            )
-        );
-        verify(identityProviderActivationRepository).create(
-            argThat(
-                (IdentityProviderActivation ipa) ->
-                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                    ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                    ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-            )
-        );
+        verify(identityProviderActivationRepository)
+                .create(argThat(
+                        (IdentityProviderActivation ipa) -> IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
+        verify(identityProviderActivationRepository)
+                .create(argThat(
+                        (IdentityProviderActivation ipa) -> IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && ANOTHER_TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && ANOTHER_TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
-                    auditLogData.getCreatedAt().equals(now) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(createdIPA)
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED)
+                                && auditLogData.getCreatedAt().equals(now)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(createdIPA)));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
-                    auditLogData.getCreatedAt().equals(now) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(anotherCreatedIPA)
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED)
+                                && auditLogData.getCreatedAt().equals(now)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(anotherCreatedIPA)));
     }
 
     @Test
@@ -193,85 +175,67 @@ public class IdentityProviderActivationServiceTest {
         anotherCreatedIPA.setCreatedAt(now);
 
         doReturn(createdIPA)
-            .when(identityProviderActivationRepository)
-            .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-                )
-            );
+                .when(identityProviderActivationRepository)
+                .create(argThat(
+                        (IdentityProviderActivation ipa) -> IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
         doReturn(anotherCreatedIPA)
-            .when(identityProviderActivationRepository)
-            .create(
-                argThat(
-                    (IdentityProviderActivation ipa) ->
-                        ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                        TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                        TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-                )
-            );
+                .when(identityProviderActivationRepository)
+                .create(argThat((IdentityProviderActivation ipa) ->
+                        ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
 
         // When
-        Set<IdentityProviderActivationEntity> activatedIdentityProviders = this.identityProviderActivationService.addIdpsOnTarget(
-            GraviteeContext.getExecutionContext(),
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
-                )
-            ),
-            IDENTITY_PROVIDER_ID,
-            ANOTHER_IDENTITY_PROVIDER_ID
-        );
+        Set<IdentityProviderActivationEntity> activatedIdentityProviders =
+                this.identityProviderActivationService.addIdpsOnTarget(
+                        GraviteeContext.getExecutionContext(),
+                        new ActivationTarget(
+                                TARGET_REFERENCE_ID,
+                                io.gravitee.rest.api.model.configuration.identity
+                                        .IdentityProviderActivationReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
+                        IDENTITY_PROVIDER_ID,
+                        ANOTHER_IDENTITY_PROVIDER_ID);
 
         // Then
         assertNotNull(activatedIdentityProviders);
         assertEquals(2, activatedIdentityProviders.size());
 
-        verify(identityProviderActivationRepository).create(
-            argThat(
-                (IdentityProviderActivation ipa) ->
-                    IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-            )
-        );
-        verify(identityProviderActivationRepository).create(
-            argThat(
-                (IdentityProviderActivation ipa) ->
-                    ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId()) &&
-                    TARGET_REFERENCE_ID.equals(ipa.getReferenceId()) &&
-                    TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())
-            )
-        );
+        verify(identityProviderActivationRepository)
+                .create(argThat(
+                        (IdentityProviderActivation ipa) -> IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
+        verify(identityProviderActivationRepository)
+                .create(argThat((IdentityProviderActivation ipa) ->
+                        ANOTHER_IDENTITY_PROVIDER_ID.equals(ipa.getIdentityProviderId())
+                                && TARGET_REFERENCE_ID.equals(ipa.getReferenceId())
+                                && TARGET_REFERENCE_TYPE.equals(ipa.getReferenceType())));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
-                    auditLogData.getCreatedAt().equals(now) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(createdIPA)
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED)
+                                && auditLogData.getCreatedAt().equals(now)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(createdIPA)));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
-                    auditLogData.getCreatedAt().equals(now) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(anotherCreatedIPA)
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED)
+                                && auditLogData.getCreatedAt().equals(now)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(anotherCreatedIPA)));
     }
 
     @Test
@@ -290,12 +254,13 @@ public class IdentityProviderActivationServiceTest {
         anotherIpa.setReferenceType(ANOTHER_TARGET_REFERENCE_TYPE);
         anotherIpa.setCreatedAt(now);
 
-        doReturn(newSet(ipa, anotherIpa)).when(identityProviderActivationRepository).findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
+        doReturn(newSet(ipa, anotherIpa))
+                .when(identityProviderActivationRepository)
+                .findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
 
         // When
-        Set<IdentityProviderActivationEntity> foundIdentityProviders = this.identityProviderActivationService.findAllByIdentityProviderId(
-            IDENTITY_PROVIDER_ID
-        );
+        Set<IdentityProviderActivationEntity> foundIdentityProviders =
+                this.identityProviderActivationService.findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
 
         // Then
         assertNotNull(foundIdentityProviders);
@@ -321,24 +286,22 @@ public class IdentityProviderActivationServiceTest {
         anotherIpa.setCreatedAt(now);
 
         doReturn(newSet(ipa, anotherIpa))
-            .when(identityProviderActivationRepository)
-            .findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+                .when(identityProviderActivationRepository)
+                .findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
         // When
-        Set<IdentityProviderActivationEntity> foundIdentityProviders = this.identityProviderActivationService.findAllByTarget(
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
-                )
-            )
-        );
+        Set<IdentityProviderActivationEntity> foundIdentityProviders =
+                this.identityProviderActivationService.findAllByTarget(new ActivationTarget(
+                        TARGET_REFERENCE_ID,
+                        io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType
+                                .valueOf(TARGET_REFERENCE_TYPE.name())));
 
         // Then
         assertNotNull(foundIdentityProviders);
         assertEquals(2, foundIdentityProviders.size());
 
-        verify(identityProviderActivationRepository).findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
     }
 
     @Test
@@ -358,68 +321,57 @@ public class IdentityProviderActivationServiceTest {
         anotherIpaToRemove.setCreatedAt(now);
 
         doReturn(Optional.of(ipaToRemove))
-            .when(identityProviderActivationRepository)
-            .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+                .when(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
         doReturn(Optional.of(anotherIpaToRemove))
-            .when(identityProviderActivationRepository)
-            .findById(IDENTITY_PROVIDER_ID, ANOTHER_TARGET_REFERENCE_ID, ANOTHER_TARGET_REFERENCE_TYPE);
+                .when(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, ANOTHER_TARGET_REFERENCE_ID, ANOTHER_TARGET_REFERENCE_TYPE);
 
         // When
         this.identityProviderActivationService.deactivateIdpOnTargets(
-            GraviteeContext.getExecutionContext(),
-            IDENTITY_PROVIDER_ID,
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
-                )
-            ),
-            new ActivationTarget(
-                ANOTHER_TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    ANOTHER_TARGET_REFERENCE_TYPE.name()
-                )
-            )
-        );
+                GraviteeContext.getExecutionContext(),
+                IDENTITY_PROVIDER_ID,
+                new ActivationTarget(
+                        TARGET_REFERENCE_ID,
+                        io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType
+                                .valueOf(TARGET_REFERENCE_TYPE.name())),
+                new ActivationTarget(
+                        ANOTHER_TARGET_REFERENCE_ID,
+                        io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType
+                                .valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())));
 
         // Then
-        verify(identityProviderActivationRepository).findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
-        verify(identityProviderActivationRepository).findById(
-            IDENTITY_PROVIDER_ID,
-            ANOTHER_TARGET_REFERENCE_ID,
-            ANOTHER_TARGET_REFERENCE_TYPE
-        );
+        verify(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, ANOTHER_TARGET_REFERENCE_ID, ANOTHER_TARGET_REFERENCE_TYPE);
 
-        verify(identityProviderActivationRepository).delete(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
-        verify(identityProviderActivationRepository).delete(
-            IDENTITY_PROVIDER_ID,
-            ANOTHER_TARGET_REFERENCE_ID,
-            ANOTHER_TARGET_REFERENCE_TYPE
-        );
+        verify(identityProviderActivationRepository)
+                .delete(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .delete(IDENTITY_PROVIDER_ID, ANOTHER_TARGET_REFERENCE_ID, ANOTHER_TARGET_REFERENCE_TYPE);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(ipaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(ipaToRemove)
+                                && auditLogData.getNewValue() == null));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(anotherIpaToRemove)
+                                && auditLogData.getNewValue() == null));
     }
 
     @Test
@@ -439,55 +391,54 @@ public class IdentityProviderActivationServiceTest {
         anotherIpaToRemove.setCreatedAt(now);
 
         doReturn(Optional.of(ipaToRemove))
-            .when(identityProviderActivationRepository)
-            .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+                .when(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
         doReturn(Optional.of(anotherIpaToRemove))
-            .when(identityProviderActivationRepository)
-            .findById(ANOTHER_IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+                .when(identityProviderActivationRepository)
+                .findById(ANOTHER_IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
         // When
         this.identityProviderActivationService.removeIdpsFromTarget(
-            GraviteeContext.getExecutionContext(),
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
-                )
-            ),
-            IDENTITY_PROVIDER_ID,
-            ANOTHER_IDENTITY_PROVIDER_ID
-        );
+                GraviteeContext.getExecutionContext(),
+                new ActivationTarget(
+                        TARGET_REFERENCE_ID,
+                        io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType
+                                .valueOf(TARGET_REFERENCE_TYPE.name())),
+                IDENTITY_PROVIDER_ID,
+                ANOTHER_IDENTITY_PROVIDER_ID);
 
         // Then
-        verify(identityProviderActivationRepository).findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
-        verify(identityProviderActivationRepository).findById(ANOTHER_IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .findById(ANOTHER_IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
-        verify(identityProviderActivationRepository).delete(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
-        verify(identityProviderActivationRepository).delete(ANOTHER_IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .delete(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .delete(ANOTHER_IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(ipaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(ipaToRemove)
+                                && auditLogData.getNewValue() == null));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(anotherIpaToRemove)
+                                && auditLogData.getNewValue() == null));
     }
 
     @Test
@@ -507,40 +458,39 @@ public class IdentityProviderActivationServiceTest {
         anotherIpaToRemove.setCreatedAt(now);
 
         doReturn(newSet(ipaToRemove, anotherIpaToRemove))
-            .when(identityProviderActivationRepository)
-            .findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
+                .when(identityProviderActivationRepository)
+                .findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
 
         // When
-        this.identityProviderActivationService.deactivateIdpOnAllTargets(GraviteeContext.getExecutionContext(), IDENTITY_PROVIDER_ID);
+        this.identityProviderActivationService.deactivateIdpOnAllTargets(
+                GraviteeContext.getExecutionContext(), IDENTITY_PROVIDER_ID);
 
         // Then
         verify(identityProviderActivationRepository).findAllByIdentityProviderId(IDENTITY_PROVIDER_ID);
 
         verify(identityProviderActivationRepository).deleteByIdentityProviderId(IDENTITY_PROVIDER_ID);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(ipaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(ipaToRemove)
+                                && auditLogData.getNewValue() == null));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(anotherIpaToRemove)
+                                && auditLogData.getNewValue() == null));
     }
 
     @Test
@@ -560,48 +510,45 @@ public class IdentityProviderActivationServiceTest {
         anotherIpaToRemove.setCreatedAt(now);
 
         doReturn(newSet(ipaToRemove, anotherIpaToRemove))
-            .when(identityProviderActivationRepository)
-            .findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+                .when(identityProviderActivationRepository)
+                .findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
         // When
         this.identityProviderActivationService.removeAllIdpsFromTarget(
-            GraviteeContext.getExecutionContext(),
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
-                )
-            )
-        );
+                GraviteeContext.getExecutionContext(),
+                new ActivationTarget(
+                        TARGET_REFERENCE_ID,
+                        io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType
+                                .valueOf(TARGET_REFERENCE_TYPE.name())));
 
         // Then
-        verify(identityProviderActivationRepository).findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .findAllByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
-        verify(identityProviderActivationRepository).deleteByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        verify(identityProviderActivationRepository)
+                .deleteByReferenceIdAndReferenceType(TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(ipaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(ipaToRemove)
+                                && auditLogData.getNewValue() == null));
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
-                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
-                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
-                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData
+                                        .getReferenceType()
+                                        .equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name()))
+                                && auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID)
+                                && auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED)
+                                && auditLogData.getOldValue().equals(anotherIpaToRemove)
+                                && auditLogData.getNewValue() == null));
     }
 
     @Test
@@ -609,20 +556,17 @@ public class IdentityProviderActivationServiceTest {
         assertThrows(IdentityProviderActivationNotFoundException.class, () -> {
             // Given
             doReturn(Optional.empty())
-                .when(identityProviderActivationRepository)
-                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+                    .when(identityProviderActivationRepository)
+                    .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
             // When
             this.identityProviderActivationService.deactivateIdpOnTargets(
-                GraviteeContext.getExecutionContext(),
-                IDENTITY_PROVIDER_ID,
-                new ActivationTarget(
-                    TARGET_REFERENCE_ID,
-                    io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                        TARGET_REFERENCE_TYPE.name()
-                    )
-                )
-            );
+                    GraviteeContext.getExecutionContext(),
+                    IDENTITY_PROVIDER_ID,
+                    new ActivationTarget(
+                            TARGET_REFERENCE_ID,
+                            io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType
+                                    .valueOf(TARGET_REFERENCE_TYPE.name())));
         });
     }
 
@@ -631,20 +575,17 @@ public class IdentityProviderActivationServiceTest {
         assertThrows(IdentityProviderActivationNotFoundException.class, () -> {
             // Given
             doReturn(Optional.empty())
-                .when(identityProviderActivationRepository)
-                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+                    .when(identityProviderActivationRepository)
+                    .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
             // When
             this.identityProviderActivationService.removeIdpsFromTarget(
-                GraviteeContext.getExecutionContext(),
-                new ActivationTarget(
-                    TARGET_REFERENCE_ID,
-                    io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                        TARGET_REFERENCE_TYPE.name()
-                    )
-                ),
-                IDENTITY_PROVIDER_ID
-            );
+                    GraviteeContext.getExecutionContext(),
+                    new ActivationTarget(
+                            TARGET_REFERENCE_ID,
+                            io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType
+                                    .valueOf(TARGET_REFERENCE_TYPE.name())),
+                    IDENTITY_PROVIDER_ID);
         });
     }
 }

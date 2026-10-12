@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.portal.rest.provider.domain;
 
 import io.gravitee.apim.core.exception.ConflictDomainException;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
@@ -30,11 +28,11 @@ public class ConflictDomainExceptionMapper extends AbstractDomainExceptionMapper
     @Override
     public Response toResponse(ConflictDomainException exception) {
         final Map<String, String> parameters = Optional.ofNullable(exception.getId())
-            .map(id -> Map.of("id", id))
-            .orElse(null);
+                .map(id -> Map.of("id", id))
+                .orElse(null);
         return Response.status(Response.Status.CONFLICT)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(exception, Response.Status.CONFLICT.getStatusCode(), "conflict", parameters))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(exception, Response.Status.CONFLICT.getStatusCode(), "conflict", parameters))
+                .build();
     }
 }

@@ -77,42 +77,40 @@ public class ApiResource_PatchApiGroupsTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
-        primaryOwnerDomainService.initWith(
-            List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
-        );
-        membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_NAME)
-                    .referenceId(API)
-                    .roleId("api-po-id-" + ORGANIZATION)
-                    .referenceType(Membership.ReferenceType.API)
-                    .memberType(Membership.Type.USER)
-                    .build()
-            )
-        );
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
+                        .id(USER_NAME)
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build())));
+        membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .memberId(USER_NAME)
+                .referenceId(API)
+                .roleId("api-po-id-" + ORGANIZATION)
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .build()));
 
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).updateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).validateV4(any(), any());
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService)
+                .forEach(InMemoryAlternative::reset);
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 
     private void givenApiWithGroups(Set<String> groups) {
-        var api = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(groups)).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .groups(new HashSet<>(groups))
+                .build();
         apiCrudService.initWith(List.of(api));
     }
 
@@ -157,7 +155,9 @@ public class ApiResource_PatchApiGroupsTest extends ApiResourceTest {
 
     @Test
     void patch_with_unknown_group_is_rejected_and_not_persisted() {
-        doThrow(new InvalidDataException("These groups [unknown-group] do not exist")).when(updateApiDomainService).updateV4(any(), any());
+        doThrow(new InvalidDataException("These groups [unknown-group] do not exist"))
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
 
         var body = "{\"groups\":[\"unknown-group\"]}";
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));

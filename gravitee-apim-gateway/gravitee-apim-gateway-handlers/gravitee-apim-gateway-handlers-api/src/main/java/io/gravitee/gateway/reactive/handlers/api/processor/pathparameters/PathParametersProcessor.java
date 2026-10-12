@@ -41,10 +41,8 @@ public class PathParametersProcessor implements Processor {
 
     @Override
     public Completable execute(HttpExecutionContextInternal ctx) {
-        return Completable.fromRunnable(() ->
-            extractor
+        return Completable.fromRunnable(() -> extractor
                 .extract(ctx.request().method().name(), ctx.request().pathInfo())
-                .forEach((key, value) -> ctx.request().pathParameters().set(key, value))
-        );
+                .forEach((key, value) -> ctx.request().pathParameters().set(key, value)));
     }
 }

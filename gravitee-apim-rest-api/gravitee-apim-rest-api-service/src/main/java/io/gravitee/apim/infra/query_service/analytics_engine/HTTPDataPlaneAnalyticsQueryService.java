@@ -48,30 +48,30 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
         this.analyticsRepository = analyticsRepository;
     }
 
-    private static final Set<Name> EDGE_METRICS = Set.of(EDGE_DETECTION_COUNT, EDGE_TOKENS_IN, EDGE_TOKENS_OUT, EDGE_HEARTBEAT_COUNT);
+    private static final Set<Name> EDGE_METRICS =
+            Set.of(EDGE_DETECTION_COUNT, EDGE_TOKENS_IN, EDGE_TOKENS_OUT, EDGE_HEARTBEAT_COUNT);
 
     @Override
     public Set<Name> metrics() {
         return Set.of(
-            HTTP_REQUESTS,
-            HTTP_ERRORS,
-            HTTP_ERROR_RATE,
-            HTTP_REQUEST_CONTENT_LENGTH,
-            HTTP_RESPONSE_CONTENT_LENGTH,
-            HTTP_ENDPOINT_RESPONSE_TIME,
-            HTTP_GATEWAY_RESPONSE_TIME,
-            HTTP_GATEWAY_LATENCY,
-            LLM_PROMPT_TOKEN_SENT,
-            LLM_PROMPT_TOKEN_RECEIVED,
-            LLM_PROMPT_TOKEN_SENT_COST,
-            LLM_PROMPT_TOKEN_RECEIVED_COST,
-            LLM_PROMPT_TOTAL_TOKEN,
-            LLM_PROMPT_TOKEN_TOTAL_COST,
-            EDGE_DETECTION_COUNT,
-            EDGE_TOKENS_IN,
-            EDGE_TOKENS_OUT,
-            EDGE_HEARTBEAT_COUNT
-        );
+                HTTP_REQUESTS,
+                HTTP_ERRORS,
+                HTTP_ERROR_RATE,
+                HTTP_REQUEST_CONTENT_LENGTH,
+                HTTP_RESPONSE_CONTENT_LENGTH,
+                HTTP_ENDPOINT_RESPONSE_TIME,
+                HTTP_GATEWAY_RESPONSE_TIME,
+                HTTP_GATEWAY_LATENCY,
+                LLM_PROMPT_TOKEN_SENT,
+                LLM_PROMPT_TOKEN_RECEIVED,
+                LLM_PROMPT_TOKEN_SENT_COST,
+                LLM_PROMPT_TOKEN_RECEIVED_COST,
+                LLM_PROMPT_TOTAL_TOKEN,
+                LLM_PROMPT_TOKEN_TOTAL_COST,
+                EDGE_DETECTION_COUNT,
+                EDGE_TOKENS_IN,
+                EDGE_TOKENS_OUT,
+                EDGE_HEARTBEAT_COUNT);
     }
 
     @Override
@@ -79,9 +79,8 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchHTTPMeasures(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.HTTP, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.HTTP, query));
     }
 
     @Override
@@ -89,20 +88,15 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var path = isEdgeRequest(request) ? AnalyticsSearchPath.EDGE : AnalyticsSearchPath.HTTP;
         var result = path == AnalyticsSearchPath.EDGE
-            ? analyticsRepository.searchEdgeFacets(context.getQueryContext(), query)
-            : analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
+                ? analyticsRepository.searchEdgeFacets(context.getQueryContext(), query)
+                : analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, path, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, path, query));
     }
 
     private boolean isEdgeRequest(FacetsRequest request) {
-        List<Name> metricNames = request
-            .metrics()
-            .stream()
-            .map(m -> m.name())
-            .toList();
+        List<Name> metricNames = request.metrics().stream().map(m -> m.name()).toList();
         return !metricNames.isEmpty() && EDGE_METRICS.containsAll(metricNames);
     }
 
@@ -111,8 +105,7 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchHTTPTimeSeries(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.HTTP, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.HTTP, query));
     }
 }

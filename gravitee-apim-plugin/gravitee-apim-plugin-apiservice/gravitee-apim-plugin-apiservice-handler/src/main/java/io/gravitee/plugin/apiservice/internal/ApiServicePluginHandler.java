@@ -52,7 +52,8 @@ public class ApiServicePluginHandler extends AbstractSimplePluginHandler<ApiServ
 
     @Override
     protected ApiServicePlugin<?, ?> create(final Plugin plugin, final Class<?> pluginClass) {
-        Class<? extends ApiServiceConfiguration> configurationClass = new ApiServiceConfigurationClassFinder().lookupFirst(pluginClass);
+        Class<? extends ApiServiceConfiguration> configurationClass =
+                new ApiServiceConfigurationClassFinder().lookupFirst(pluginClass);
 
         return new DefaultApiServicePlugin(plugin, pluginClass, configurationClass);
     }
@@ -62,7 +63,8 @@ public class ApiServicePluginHandler extends AbstractSimplePluginHandler<ApiServ
         apiServicePluginManager.register(apiServicePlugin);
 
         // Once registered, the classloader should be released
-        final ClassLoader connectorClassLoader = apiServicePlugin.connectorFactory().getClassLoader();
+        final ClassLoader connectorClassLoader =
+                apiServicePlugin.connectorFactory().getClassLoader();
 
         if (connectorClassLoader instanceof URLClassLoader) {
             URLClassLoader classLoader = (URLClassLoader) connectorClassLoader;

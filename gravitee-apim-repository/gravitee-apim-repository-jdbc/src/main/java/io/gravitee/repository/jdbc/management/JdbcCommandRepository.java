@@ -58,16 +58,16 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     @Override
     protected JdbcObjectMapper<Command> buildOrm() {
         return JdbcObjectMapper.builder(Command.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("from", Types.NVARCHAR, String.class)
-            .addColumn("to", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("expired_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("from", Types.NVARCHAR, String.class)
+                .addColumn("to", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("expired_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     private static void fillCommandTags(Command command, String tag) {
@@ -102,24 +102,23 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         log.debug("JdbcCommandRepository.findById({})", id);
         try {
             // Find the command itself
-            Optional<Command> command = jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id).stream().findFirst();
+            Optional<Command> command = jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id).stream()
+                    .findFirst();
             if (command.isEmpty()) {
                 return command;
             }
 
             // Find the command's acknowledgments and update the command
             jdbcTemplate.query(
-                "select acknowledgment from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?",
-                (PreparedStatement ps) -> ps.setString(1, id),
-                (ResultSet rs) -> fillCommandAcknowledgments(command.get(), rs.getString("acknowledgment"))
-            );
+                    "select acknowledgment from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?",
+                    (PreparedStatement ps) -> ps.setString(1, id),
+                    (ResultSet rs) -> fillCommandAcknowledgments(command.get(), rs.getString("acknowledgment")));
 
             // Find the command's tags and update the command
             jdbcTemplate.query(
-                "select tag from " + COMMAND_TAGS + " where command_id = ?",
-                (PreparedStatement ps) -> ps.setString(1, id),
-                (ResultSet rs) -> fillCommandTags(command.get(), rs.getString("tag"))
-            );
+                    "select tag from " + COMMAND_TAGS + " where command_id = ?",
+                    (PreparedStatement ps) -> ps.setString(1, id),
+                    (ResultSet rs) -> fillCommandTags(command.get(), rs.getString("tag")));
 
             return command;
         } catch (final Exception ex) {
@@ -174,9 +173,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             syncChildRows(COMMAND_ACKNOWLEDGMENTS, "acknowledgment", item.getId(), item.getAcknowledgments());
             syncChildRows(COMMAND_TAGS, "tag", item.getId(), item.getTags());
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
-            return findById(item.getId()).orElseThrow(() ->
-                new IllegalStateException(format("No command found with id [%s]", item.getId()))
-            );
+            return findById(item.getId())
+                    .orElseThrow(
+                            () -> new IllegalStateException(format("No command found with id [%s]", item.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -191,12 +190,11 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql() + " c where 1=1 ");
 
         if (criteria.getNotAckBy() != null) {
-            query
-                .append(" and not exists (")
-                .append("select 1 from " + COMMAND_ACKNOWLEDGMENTS + " cak ")
-                .append("where cak.command_id = c.id ")
-                .append("and cak.acknowledgment = ? ")
-                .append(")");
+            query.append(" and not exists (")
+                    .append("select 1 from " + COMMAND_ACKNOWLEDGMENTS + " cak ")
+                    .append("where cak.command_id = c.id ")
+                    .append("and cak.acknowledgment = ? ")
+                    .append(")");
         }
         if (criteria.getNotFrom() != null) {
             query.append(" and c.").append(escapeReservedWord("from")).append(" != ? ");
@@ -217,30 +215,29 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         List<Command> commands;
         try {
             commands = jdbcTemplate.query(
-                query.toString(),
-                (PreparedStatement ps) -> {
-                    int lastIndex = 1;
-                    if (criteria.getNotAckBy() != null) {
-                        ps.setString(lastIndex++, criteria.getNotAckBy());
-                    }
-                    if (criteria.getNotFrom() != null) {
-                        ps.setString(lastIndex++, criteria.getNotFrom());
-                    }
-                    if (criteria.getTo() != null) {
-                        ps.setString(lastIndex++, criteria.getTo());
-                    }
-                    if (criteria.getOrganizationId() != null) {
-                        ps.setString(lastIndex++, criteria.getOrganizationId());
-                    }
-                    if (criteria.getEnvironmentId() != null) {
-                        ps.setString(lastIndex++, criteria.getEnvironmentId());
-                    }
-                    if (criteria.isNotExpired()) {
-                        ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));
-                    }
-                },
-                getOrm().getRowMapper()
-            );
+                    query.toString(),
+                    (PreparedStatement ps) -> {
+                        int lastIndex = 1;
+                        if (criteria.getNotAckBy() != null) {
+                            ps.setString(lastIndex++, criteria.getNotAckBy());
+                        }
+                        if (criteria.getNotFrom() != null) {
+                            ps.setString(lastIndex++, criteria.getNotFrom());
+                        }
+                        if (criteria.getTo() != null) {
+                            ps.setString(lastIndex++, criteria.getTo());
+                        }
+                        if (criteria.getOrganizationId() != null) {
+                            ps.setString(lastIndex++, criteria.getOrganizationId());
+                        }
+                        if (criteria.getEnvironmentId() != null) {
+                            ps.setString(lastIndex++, criteria.getEnvironmentId());
+                        }
+                        if (criteria.isNotExpired()) {
+                            ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));
+                        }
+                    },
+                    getOrm().getRowMapper());
             loadAcknowledgmentsAndTags(commands);
         } catch (final Exception ex) {
             log.error("Failed to find command records for criteria {}", criteria, ex);
@@ -248,12 +245,10 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         }
 
         if (criteria.getTags() != null && criteria.getTags().length > 0) {
-            commands = commands
-                .stream()
-                .filter(
-                    command -> command.getTags() != null && command.getTags().stream().anyMatch(Arrays.asList(criteria.getTags())::contains)
-                )
-                .collect(Collectors.toList());
+            commands = commands.stream()
+                    .filter(command -> command.getTags() != null
+                            && command.getTags().stream().anyMatch(Arrays.asList(criteria.getTags())::contains))
+                    .collect(Collectors.toList());
         }
 
         log.debug("command records found ({}): {}", commands.size(), commands);
@@ -274,26 +269,25 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         var inClause = getOrm().buildInClause(commandIds);
 
         jdbcTemplate.query(
-            "select command_id, acknowledgment from " + COMMAND_ACKNOWLEDGMENTS + " where command_id in (" + inClause + ")",
-            (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
-            (ResultSet rs) -> {
-                var command = commandsById.get(rs.getString("command_id"));
-                if (command != null) {
-                    fillCommandAcknowledgments(command, rs.getString("acknowledgment"));
-                }
-            }
-        );
+                "select command_id, acknowledgment from " + COMMAND_ACKNOWLEDGMENTS + " where command_id in ("
+                        + inClause + ")",
+                (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
+                (ResultSet rs) -> {
+                    var command = commandsById.get(rs.getString("command_id"));
+                    if (command != null) {
+                        fillCommandAcknowledgments(command, rs.getString("acknowledgment"));
+                    }
+                });
 
         jdbcTemplate.query(
-            "select command_id, tag from " + COMMAND_TAGS + " where command_id in (" + inClause + ")",
-            (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
-            (ResultSet rs) -> {
-                var command = commandsById.get(rs.getString("command_id"));
-                if (command != null) {
-                    fillCommandTags(command, rs.getString("tag"));
-                }
-            }
-        );
+                "select command_id, tag from " + COMMAND_TAGS + " where command_id in (" + inClause + ")",
+                (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
+                (ResultSet rs) -> {
+                    var command = commandsById.get(rs.getString("command_id"));
+                    if (command != null) {
+                        fillCommandTags(command, rs.getString("tag"));
+                    }
+                });
     }
 
     @Override
@@ -301,10 +295,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         log.debug("JdbcCommandRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + this.tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
@@ -323,10 +314,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         log.debug("JdbcCommandRepository.deleteByOrganizationId({})", organizationId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where organization_id = ?",
-                String.class,
-                organizationId
-            );
+                    "select id from " + this.tableName + " where organization_id = ?", String.class, organizationId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where organization_id = ?", organizationId);
@@ -346,18 +334,17 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         try {
             var timestamp = new java.sql.Timestamp(before.toEpochMilli());
             jdbcTemplate.update(
-                "delete from " +
-                    COMMAND_ACKNOWLEDGMENTS +
-                    " where command_id in (select id from " +
-                    this.tableName +
-                    " where expired_at < ?)",
-                timestamp
-            );
+                    "delete from " + COMMAND_ACKNOWLEDGMENTS
+                            + " where command_id in (select id from "
+                            + this.tableName
+                            + " where expired_at < ?)",
+                    timestamp);
             jdbcTemplate.update(
-                "delete from " + COMMAND_TAGS + " where command_id in (select id from " + this.tableName + " where expired_at < ?)",
-                timestamp
-            );
-            int deletedCount = jdbcTemplate.update("delete from " + this.tableName + " where expired_at < ?", timestamp);
+                    "delete from " + COMMAND_TAGS + " where command_id in (select id from " + this.tableName
+                            + " where expired_at < ?)",
+                    timestamp);
+            int deletedCount =
+                    jdbcTemplate.update("delete from " + this.tableName + " where expired_at < ?", timestamp);
             log.debug("JdbcCommandRepository.deleteByExpiredAtBefore({}) - Deleted {} commands", before, deletedCount);
             return deletedCount;
         } catch (final Exception ex) {
@@ -370,9 +357,8 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         List<String> acknowledgments = getOrm().filterStrings(command.getAcknowledgments());
         if (!acknowledgments.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + COMMAND_ACKNOWLEDGMENTS + " ( command_id, acknowledgment ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(command.getId(), acknowledgments)
-            );
+                    "insert into " + COMMAND_ACKNOWLEDGMENTS + " ( command_id, acknowledgment ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(command.getId(), acknowledgments));
         }
     }
 
@@ -381,33 +367,29 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         List<String> tags = getOrm().filterStrings(command.getTags());
         if (!tags.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + COMMAND_TAGS + " ( command_id, tag ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(command.getId(), tags)
-            );
+                    "insert into " + COMMAND_TAGS + " ( command_id, tag ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(command.getId(), tags));
         }
     }
 
     private void syncChildRows(String table, String column, String commandId, Collection<String> values) {
         Set<String> wanted = new LinkedHashSet<>(getOrm().filterStrings(values));
-        Set<String> stored = new HashSet<>(
-            jdbcTemplate.queryForList("select " + column + " from " + table + " where command_id = ?", String.class, commandId)
-        );
+        Set<String> stored = new HashSet<>(jdbcTemplate.queryForList(
+                "select " + column + " from " + table + " where command_id = ?", String.class, commandId));
 
         for (String value : stored) {
             if (!wanted.contains(value)) {
-                jdbcTemplate.update("delete from " + table + " where command_id = ? and " + column + " = ?", commandId, value);
+                jdbcTemplate.update(
+                        "delete from " + table + " where command_id = ? and " + column + " = ?", commandId, value);
             }
         }
 
-        List<String> added = wanted
-            .stream()
-            .filter(value -> !stored.contains(value))
-            .toList();
+        List<String> added =
+                wanted.stream().filter(value -> !stored.contains(value)).toList();
         if (!added.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + table + " ( command_id, " + column + " ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(commandId, added)
-            );
+                    "insert into " + table + " ( command_id, " + column + " ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(commandId, added));
         }
     }
 }

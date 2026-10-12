@@ -93,15 +93,7 @@ public class HttpConnector implements ProxyConnector {
      * Headers that are not allowed to be propagated to the endpoint.
      */
     static final Set<CharSequence> HOP_HEADERS = Set.of(
-        CONNECTION,
-        KEEP_ALIVE,
-        PROXY_AUTHORIZATION,
-        PROXY_AUTHENTICATE,
-        PROXY_CONNECTION,
-        TE,
-        TRAILER,
-        UPGRADE
-    );
+            CONNECTION, KEEP_ALIVE, PROXY_AUTHORIZATION, PROXY_AUTHENTICATE, PROXY_CONNECTION, TE, TRAILER, UPGRADE);
     /**
      * How close the upstream silence has to be to the effective idleTimeout before we attribute the closure to the
      * gateway rather than the backend. A connection cut by the idle timer lands within a few tens of milliseconds of
@@ -114,13 +106,12 @@ public class HttpConnector implements ProxyConnector {
      * POST/PATCH denylist: an unrecognised verb resolves to OTHER, which must not be re-sent either.
      */
     private static final Set<io.gravitee.common.http.HttpMethod> IDEMPOTENT_METHODS = Set.of(
-        io.gravitee.common.http.HttpMethod.GET,
-        io.gravitee.common.http.HttpMethod.HEAD,
-        io.gravitee.common.http.HttpMethod.OPTIONS,
-        io.gravitee.common.http.HttpMethod.TRACE,
-        io.gravitee.common.http.HttpMethod.PUT,
-        io.gravitee.common.http.HttpMethod.DELETE
-    );
+            io.gravitee.common.http.HttpMethod.GET,
+            io.gravitee.common.http.HttpMethod.HEAD,
+            io.gravitee.common.http.HttpMethod.OPTIONS,
+            io.gravitee.common.http.HttpMethod.TRACE,
+            io.gravitee.common.http.HttpMethod.PUT,
+            io.gravitee.common.http.HttpMethod.DELETE);
 
     private final String relativeTarget;
     protected final String defaultHost;
@@ -132,10 +123,9 @@ public class HttpConnector implements ProxyConnector {
     protected final HttpClientFactory httpClientFactory;
 
     public HttpConnector(
-        final HttpProxyEndpointConnectorConfiguration configuration,
-        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
-        final HttpClientFactory httpClientFactory
-    ) {
+            final HttpProxyEndpointConnectorConfiguration configuration,
+            final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
+            final HttpClientFactory httpClientFactory) {
         this.configuration = configuration;
         this.sharedConfiguration = sharedConfiguration;
         this.httpClientFactory = httpClientFactory;
@@ -165,9 +155,11 @@ public class HttpConnector implements ProxyConnector {
             // HTTP Host header — overriding any custom Host header configured on the endpoint or HC.
             // If a custom Host was explicitly set, pin the TCP connection to the actual backend via
             // setServer() so the custom value only affects the HTTP Host header, not the connection address.
-            final String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
+            final String customHost =
+                    options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
             if (customHost != null && !customHost.isBlank()) {
-                options.setServer(io.vertx.core.net.SocketAddress.inetSocketAddress(options.getPort(), options.getHost()));
+                options.setServer(
+                        io.vertx.core.net.SocketAddress.inetSocketAddress(options.getPort(), options.getHost()));
                 options.setHost(customHost);
             }
 
@@ -180,51 +172,55 @@ public class HttpConnector implements ProxyConnector {
             // doOnCancel (see getEndpointResponseChunks).
             final AtomicReference<HttpClientRequest> pendingUpstreamRequest = new AtomicReference<>();
             final AtomicBoolean cancelled = new AtomicBoolean(false);
-            final Single<HttpClientResponse> endpointExchange = acquireUpstreamRequest(ctx, options, pendingUpstreamRequest, absoluteUri)
-                // The upstream request resolves once a connection/stream is acquired from the pool: from here on, a
-                // request-level timeout is a backend read timeout, not a connection-acquisition timeout (APIM-12769).
-                .doOnSuccess(acquiredRequest -> ctx.setInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED, Boolean.TRUE))
-                .map(this::customizeHttpClientRequest)
-                .flatMap(httpClientRequest -> {
-                    observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
-                    return sendEndpointRequestChunks(httpClientRequest, request);
-                });
+            final Single<HttpClientResponse> endpointExchange = acquireUpstreamRequest(
+                            ctx, options, pendingUpstreamRequest, absoluteUri)
+                    // The upstream request resolves once a connection/stream is acquired from the pool: from here on, a
+                    // request-level timeout is a backend read timeout, not a connection-acquisition timeout
+                    // (APIM-12769).
+                    .doOnSuccess(acquiredRequest ->
+                            ctx.setInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED, Boolean.TRUE))
+                    .map(this::customizeHttpClientRequest)
+                    .flatMap(httpClientRequest -> {
+                        observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
+                        return sendEndpointRequestChunks(httpClientRequest, request);
+                    });
 
             return retryOnceOnConnectionClosedByPeer(ctx, absoluteUri, request, endpointExchange, cancelled)
-                .doOnSuccess(endpointResponse -> {
-                    // The response chunks' doOnCancel owns cancellation from here; reset() being a no-op on a
-                    // completed stream makes the race with a concurrent disposal benign.
-                    pendingUpstreamRequest.set(null);
+                    .doOnSuccess(endpointResponse -> {
+                        // The response chunks' doOnCancel owns cancellation from here; reset() being a no-op on a
+                        // completed stream makes the race with a concurrent disposal benign.
+                        pendingUpstreamRequest.set(null);
 
-                    response.status(endpointResponse.statusCode());
+                        response.status(endpointResponse.statusCode());
 
-                    copyHeaders(endpointResponse.headers(), response.headers());
+                        copyHeaders(endpointResponse.headers(), response.headers());
 
-                    if (endpointResponse.version() == HttpVersion.HTTP_2) {
-                        endpointResponse.customFrameHandler(frame ->
-                            ((VertxHttpServerResponse) response).getNativeResponse().writeCustomFrame(frame)
-                        );
-                    }
+                        if (endpointResponse.version() == HttpVersion.HTTP_2) {
+                            endpointResponse.customFrameHandler(frame -> ((VertxHttpServerResponse) response)
+                                    .getNativeResponse()
+                                    .writeCustomFrame(frame));
+                        }
 
-                    // Assign the response chunks from the endpoint's response to the gateway
-                    // response.
-                    response.chunks(getEndpointResponseChunks(ctx, endpointResponse, response, absoluteUri));
+                        // Assign the response chunks from the endpoint's response to the gateway
+                        // response.
+                        response.chunks(getEndpointResponseChunks(ctx, endpointResponse, response, absoluteUri));
 
-                    ObservableHttpClientResponse observableHttpClientResponse = new ObservableHttpClientResponse(
-                        endpointResponse.getDelegate()
-                    );
-                    ctx.getTracer().endWithResponse(httpRequestSpan, observableHttpClientResponse);
-                })
-                .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
-                .ignoreElement()
-                .doOnDispose(() -> {
-                    // Set before the reset below so the retry predicate can tell this self-inflicted stream reset
-                    // (our own cancellation — e.g. a request timeout — tearing down the in-flight request) apart from
-                    // a genuine peer-initiated close/reset; otherwise disposal can race an onError into the still-live
-                    // retry() and send an unwanted extra request on a chain that's already being torn down.
-                    cancelled.set(true);
-                    resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
-                });
+                        ObservableHttpClientResponse observableHttpClientResponse =
+                                new ObservableHttpClientResponse(endpointResponse.getDelegate());
+                        ctx.getTracer().endWithResponse(httpRequestSpan, observableHttpClientResponse);
+                    })
+                    .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
+                    .ignoreElement()
+                    .doOnDispose(() -> {
+                        // Set before the reset below so the retry predicate can tell this self-inflicted stream reset
+                        // (our own cancellation — e.g. a request timeout — tearing down the in-flight request) apart
+                        // from
+                        // a genuine peer-initiated close/reset; otherwise disposal can race an onError into the
+                        // still-live
+                        // retry() and send an unwanted extra request on a chain that's already being torn down.
+                        cancelled.set(true);
+                        resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
+                    });
         } catch (Exception e) {
             return Completable.error(e);
         }
@@ -247,12 +243,11 @@ public class HttpConnector implements ProxyConnector {
      * fails either condition keeps surfacing as it does today.
      */
     private Single<HttpClientResponse> retryOnceOnConnectionClosedByPeer(
-        final HttpExecutionContext ctx,
-        final String absoluteUri,
-        final HttpRequest request,
-        final Single<HttpClientResponse> endpointExchange,
-        final AtomicBoolean cancelled
-    ) {
+            final HttpExecutionContext ctx,
+            final String absoluteUri,
+            final HttpRequest request,
+            final Single<HttpClientResponse> endpointExchange,
+            final AtomicBoolean cancelled) {
         if (sendsRequestBodyBytes(request)) {
             return endpointExchange;
         }
@@ -263,31 +258,31 @@ public class HttpConnector implements ProxyConnector {
         if (!isIdempotentMethod(request)) {
             return requestBodyDrained.andThen(endpointExchange);
         }
-        return requestBodyDrained.andThen(
-            endpointExchange.retry((attempt, throwable) -> {
-                if (attempt > 1) {
-                    return false;
-                }
-                if (cancelled.get()) {
-                    return false;
-                }
-                if (!isConnectionClosedOrResetByPeer(throwable)) {
-                    return false;
-                }
-                // Attempt 1's acquired flag must not survive into attempt 2's failure classification (the same
-                // hazard APIM-12769 addressed at the outer retry boundary).
-                ctx.removeInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
-                ctx
-                    .withLogger(log)
-                    .warn("Pooled connection to [{}] was closed or reset by the peer, retrying once on a fresh connection", absoluteUri);
-                return true;
-            })
-        );
+        return requestBodyDrained.andThen(endpointExchange.retry((attempt, throwable) -> {
+            if (attempt > 1) {
+                return false;
+            }
+            if (cancelled.get()) {
+                return false;
+            }
+            if (!isConnectionClosedOrResetByPeer(throwable)) {
+                return false;
+            }
+            // Attempt 1's acquired flag must not survive into attempt 2's failure classification (the same
+            // hazard APIM-12769 addressed at the outer retry boundary).
+            ctx.removeInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
+            ctx.withLogger(log)
+                    .warn(
+                            "Pooled connection to [{}] was closed or reset by the peer, retrying once on a fresh connection",
+                            absoluteUri);
+            return true;
+        }));
     }
 
     private static boolean isConnectionClosedOrResetByPeer(final Throwable throwable) {
         final String key = ConnectionFailureClassifier.classify(throwable).key();
-        return ConnectionFailureClassifier.CONNECTION_CLOSED.equals(key) || ConnectionFailureClassifier.CONNECTION_RESET.equals(key);
+        return ConnectionFailureClassifier.CONNECTION_CLOSED.equals(key)
+                || ConnectionFailureClassifier.CONNECTION_RESET.equals(key);
     }
 
     /**
@@ -298,47 +293,46 @@ public class HttpConnector implements ProxyConnector {
      * pool collapsed long after the backend has recovered.
      */
     private Single<HttpClientRequest> acquireUpstreamRequest(
-        final HttpExecutionContext ctx,
-        final RequestOptions options,
-        final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
-        final String absoluteUri
-    ) {
+            final HttpExecutionContext ctx,
+            final RequestOptions options,
+            final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
+            final String absoluteUri) {
         return Single.create(emitter -> {
-            final var httpClient = httpClientFactory.getOrBuildHttpClient(ctx, configuration, sharedConfiguration).getDelegate();
+            final var httpClient = httpClientFactory
+                    .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
+                    .getDelegate();
             // Taken once the client is in hand: building it on first use — SSL options, keystore loading, under a lock
             // other requests queue on — is gateway start-up cost, not what the pool and the network contribute.
             final long connectStartNs = System.nanoTime();
-            httpClient
-                .request(options)
-                .onComplete(asyncRequest -> {
-                    if (asyncRequest.succeeded()) {
-                        recordEndpointConnectTime(ctx, connectStartNs);
-                        final HttpClientRequest upstreamRequest = HttpClientRequest.newInstance(asyncRequest.result());
-                        // Publish the request before checking for disposal so a concurrent disposal either sees it
-                        // (doOnDispose resets it) or is detected right below; getAndSet(null) makes the double reset
-                        // a no-op.
-                        pendingUpstreamRequest.set(upstreamRequest);
-                        if (emitter.isDisposed()) {
-                            resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
-                        } else {
-                            emitter.onSuccess(upstreamRequest);
-                        }
+            httpClient.request(options).onComplete(asyncRequest -> {
+                if (asyncRequest.succeeded()) {
+                    recordEndpointConnectTime(ctx, connectStartNs);
+                    final HttpClientRequest upstreamRequest = HttpClientRequest.newInstance(asyncRequest.result());
+                    // Publish the request before checking for disposal so a concurrent disposal either sees it
+                    // (doOnDispose resets it) or is detected right below; getAndSet(null) makes the double reset
+                    // a no-op.
+                    pendingUpstreamRequest.set(upstreamRequest);
+                    if (emitter.isDisposed()) {
+                        resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
                     } else {
-                        emitter.tryOnError(asyncRequest.cause());
+                        emitter.onSuccess(upstreamRequest);
                     }
-                });
+                } else {
+                    emitter.tryOnError(asyncRequest.cause());
+                }
+            });
         });
     }
 
     private void resetPendingUpstreamRequest(
-        final HttpExecutionContext ctx,
-        final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
-        final String absoluteUri
-    ) {
+            final HttpExecutionContext ctx,
+            final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
+            final String absoluteUri) {
         final HttpClientRequest upstreamRequest = pendingUpstreamRequest.getAndSet(null);
         if (upstreamRequest != null) {
             try {
-                ctx.withLogger(log).debug("Downstream request has been disposed, releasing upstream request to [{}]", absoluteUri);
+                ctx.withLogger(log)
+                        .debug("Downstream request has been disposed, releasing upstream request to [{}]", absoluteUri);
                 // Reset closes the upstream connection/stream so its pool slot is released right away instead of
                 // being held until the request timeout; no-op if the request already completed.
                 upstreamRequest.reset();
@@ -348,7 +342,8 @@ public class HttpConnector implements ProxyConnector {
         }
     }
 
-    private Single<HttpClientResponse> sendEndpointRequestChunks(HttpClientRequest httpClientRequest, HttpRequest request) {
+    private Single<HttpClientResponse> sendEndpointRequestChunks(
+            HttpClientRequest httpClientRequest, HttpRequest request) {
         if (hasContentLength(request) && isChunked(request)) {
             // A request-phase policy (e.g. Assign Content) can rewrite the body, set Content-Length, and
             // leave the client's Transfer-Encoding: chunked in place. Forwarding both violates RFC 9112
@@ -356,15 +351,14 @@ public class HttpConnector implements ProxyConnector {
             // it fixed-length: drop Transfer-Encoding and set Content-Length to its actual length. Only
             // chunked is dropped — a content-coding like gzip must stay, or the backend can't decode the body.
             httpClientRequest.headers().remove(HttpHeaders.TRANSFER_ENCODING);
-            return request
-                .bodyOrEmpty()
-                .flatMap(body -> {
-                    httpClientRequest.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
-                    return httpClientRequest.rxSend(BufferInternal.buffer(body.getNativeBuffer()));
-                });
+            return request.bodyOrEmpty().flatMap(body -> {
+                httpClientRequest.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
+                return httpClientRequest.rxSend(BufferInternal.buffer(body.getNativeBuffer()));
+            });
         }
         if (sendsRequestBodyBytes(request)) {
-            return httpClientRequest.rxSend(request.chunks().map(buffer -> BufferInternal.buffer(buffer.getNativeBuffer())));
+            return httpClientRequest.rxSend(
+                    request.chunks().map(buffer -> BufferInternal.buffer(buffer.getNativeBuffer())));
         }
         // The request body has already been consumed by the caller, which owns it so that the send stays replayable.
         return httpClientRequest.rxSend();
@@ -403,11 +397,7 @@ public class HttpConnector implements ProxyConnector {
     }
 
     private @NonNull Flowable<Buffer> getEndpointResponseChunks(
-        HttpExecutionContext ctx,
-        HttpClientResponse endpointResponse,
-        HttpResponse response,
-        String absoluteUri
-    ) {
+            HttpExecutionContext ctx, HttpClientResponse endpointResponse, HttpResponse response, String absoluteUri) {
         // How long the upstream has been silent when the stream breaks is the one measurement that tells a gateway
         // idle timeout apart from a backend hanging up: the idle timer restarts on every byte received, so only the
         // gap since the last one can be compared to it. Starts at the response headers, which is the last thing read
@@ -424,49 +414,51 @@ public class HttpConnector implements ProxyConnector {
         // A backend failure while streaming the response body (after status/headers were committed) is recorded on
         // the metrics below so the truncated response is observable instead of reported as a success.
         return endpointResponse
-            .toFlowable()
-            .doOnNext(chunk -> {
-                lastUpstreamActivityNs.setPlain(System.nanoTime());
-                bytesReceived.addAndGet(chunk.length());
-            })
-            .map(Buffer::buffer)
-            .doOnComplete(() ->
-                // Write trailers when chunks are completed
-                copyHeaders(endpointResponse.trailers(), response.trailers())
-            )
-            .onErrorResumeNext(throwable -> {
-                if (throwable instanceof StreamResetException) {
-                    // Means that we have manually reset the stream because the downstream request has been cancelled (see doOnCancel).
-                    ctx.withLogger(log).debug("Stream reset to the backend [{}]", absoluteUri);
-                } else {
-                    // The response status/headers are already committed to the client, so we cannot change them; record
-                    // the backend failure on the metrics so the (otherwise silent) truncated response is observable.
-                    // That call also logs the failure, with the timeout context needed to interpret it.
-                    final long silenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastUpstreamActivityNs.getPlain());
-                    recordBackendResponseStreamFailure(
-                        ctx,
-                        absoluteUri,
-                        silenceMs,
-                        bytesReceived.getPlain(),
-                        announcedBodyLength,
-                        throwable
-                    );
-                }
-                return Flowable.empty();
-            })
-            .doOnCancel(() -> {
-                try {
-                    ctx.withLogger(log).debug("Downstream request has been cancelled, cancelling upstream request to [{}]", absoluteUri);
+                .toFlowable()
+                .doOnNext(chunk -> {
+                    lastUpstreamActivityNs.setPlain(System.nanoTime());
+                    bytesReceived.addAndGet(chunk.length());
+                })
+                .map(Buffer::buffer)
+                .doOnComplete(() ->
+                        // Write trailers when chunks are completed
+                        copyHeaders(endpointResponse.trailers(), response.trailers()))
+                .onErrorResumeNext(throwable -> {
+                    if (throwable instanceof StreamResetException) {
+                        // Means that we have manually reset the stream because the downstream request has been
+                        // cancelled (see doOnCancel).
+                        ctx.withLogger(log).debug("Stream reset to the backend [{}]", absoluteUri);
+                    } else {
+                        // The response status/headers are already committed to the client, so we cannot change them;
+                        // record
+                        // the backend failure on the metrics so the (otherwise silent) truncated response is
+                        // observable.
+                        // That call also logs the failure, with the timeout context needed to interpret it.
+                        final long silenceMs =
+                                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastUpstreamActivityNs.getPlain());
+                        recordBackendResponseStreamFailure(
+                                ctx, absoluteUri, silenceMs, bytesReceived.getPlain(), announcedBodyLength, throwable);
+                    }
+                    return Flowable.empty();
+                })
+                .doOnCancel(() -> {
+                    try {
+                        ctx.withLogger(log)
+                                .debug(
+                                        "Downstream request has been cancelled, cancelling upstream request to [{}]",
+                                        absoluteUri);
 
-                    // Reset forces the upstream connection to be closed and avoid consuming the response while downstream is already gone.
-                    endpointResponse.request().reset();
-                } catch (Exception e) {
-                    ctx.withLogger(log).debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
-                }
-            })
-            // Last: covers completion, error and cancellation alike, so a truncated response is measured up to the
-            // point it stopped rather than left at the time to first byte.
-            .doFinally(() -> recordEndpointResponseTime(ctx));
+                        // Reset forces the upstream connection to be closed and avoid consuming the response while
+                        // downstream is already gone.
+                        endpointResponse.request().reset();
+                    } catch (Exception e) {
+                        ctx.withLogger(log)
+                                .debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
+                    }
+                })
+                // Last: covers completion, error and cancellation alike, so a truncated response is measured up to the
+                // point it stopped rather than left at the time to first byte.
+                .doFinally(() -> recordEndpointResponseTime(ctx));
     }
 
     /**
@@ -512,31 +504,29 @@ public class HttpConnector implements ProxyConnector {
      * emitted even when the metrics already hold an error, so a truncated body is never silent.
      */
     void recordBackendResponseStreamFailure(
-        final HttpExecutionContext ctx,
-        final String absoluteUri,
-        final long silenceMs,
-        final long bytesReceived,
-        final long announcedBodyLength,
-        final Throwable throwable
-    ) {
+            final HttpExecutionContext ctx,
+            final String absoluteUri,
+            final long silenceMs,
+            final long bytesReceived,
+            final long announcedBodyLength,
+            final Throwable throwable) {
         // The backend delivered every byte it announced before the connection broke, so the caller holds a complete
         // response: only the closure was abrupt, and that costs nothing. Reporting it would raise an error on an
         // exchange that lost no data — the noisiest kind of false positive, since nothing downstream is affected.
         if (announcedBodyLength >= 0 && bytesReceived >= announcedBodyLength) {
-            ctx
-                .withLogger(log)
-                .debug(
-                    "Upstream closed the connection abruptly after a complete response body [target={}, bytesReceived={}, announcedContentLength={}]",
-                    absoluteUri,
-                    bytesReceived,
-                    announcedBodyLength
-                );
+            ctx.withLogger(log)
+                    .debug(
+                            "Upstream closed the connection abruptly after a complete response body [target={}, bytesReceived={}, announcedContentLength={}]",
+                            absoluteUri,
+                            bytesReceived,
+                            announcedBodyLength);
             return;
         }
 
         final var metrics = ctx.metrics();
         final long elapsedMs = elapsedMillis(ctx);
-        final String detail = describeStreamFailure(throwable, elapsedMs, silenceMs, bytesReceived, announcedBodyLength);
+        final String detail =
+                describeStreamFailure(throwable, elapsedMs, silenceMs, bytesReceived, announcedBodyLength);
 
         // An earlier error (e.g. a client abort) already recorded — preserve it: it describes why the exchange ended,
         // and the upstream failure observed here is only its consequence.
@@ -551,8 +541,8 @@ public class HttpConnector implements ProxyConnector {
             // reached", which it could — hence a dedicated key for the case where the upstream simply stopped
             // mid-body. The generic CONNECTION_CLOSED stays in use for the phases where nothing was sent yet.
             errorKey = ConnectionFailureClassifier.CONNECTION_CLOSED.equals(classification.key())
-                ? ConnectionFailureClassifier.STREAM_ENDED_EARLY
-                : classification.key();
+                    ? ConnectionFailureClassifier.STREAM_ENDED_EARLY
+                    : classification.key();
 
             // Nothing more to record: the reporter turns errorKey/errorMessage into the Diagnostic carried by the
             // metrics, attributed to the ENDPOINT component on the GATEWAY_CLIENT_ prefix. Raising an ExecutionWarn
@@ -564,26 +554,24 @@ public class HttpConnector implements ProxyConnector {
 
         // Single technical log holding everything needed to tell a backend problem from a gateway misconfiguration,
         // without having to correlate several sources afterwards. WARN, not ERROR: the caller did get a response.
-        ctx
-            .withLogger(log)
-            .warn(
-                "Upstream ended the response body early [target={}, elapsed={}ms, upstreamSilence={}ms, " +
-                    "bytesReceived={}, announcedContentLength={}, bytesSent={}, " +
-                    "status={}, readTimeout={}ms, idleTimeout={}ms, effectiveIdleTimeout={}ms, errorKey={}]: {}",
-                absoluteUri,
-                elapsedMs,
-                silenceMs,
-                bytesReceived,
-                announcedBodyLength,
-                metrics != null ? metrics.getResponseContentLength() : -1,
-                ctx.response().status(),
-                sharedConfiguration.getHttpOptions().getReadTimeout(),
-                sharedConfiguration.getHttpOptions().getIdleTimeout(),
-                effectiveIdleTimeoutMillis(),
-                errorKey,
-                detail,
-                throwable
-            );
+        ctx.withLogger(log)
+                .warn(
+                        "Upstream ended the response body early [target={}, elapsed={}ms, upstreamSilence={}ms, "
+                                + "bytesReceived={}, announcedContentLength={}, bytesSent={}, "
+                                + "status={}, readTimeout={}ms, idleTimeout={}ms, effectiveIdleTimeout={}ms, errorKey={}]: {}",
+                        absoluteUri,
+                        elapsedMs,
+                        silenceMs,
+                        bytesReceived,
+                        announcedBodyLength,
+                        metrics != null ? metrics.getResponseContentLength() : -1,
+                        ctx.response().status(),
+                        sharedConfiguration.getHttpOptions().getReadTimeout(),
+                        sharedConfiguration.getHttpOptions().getIdleTimeout(),
+                        effectiveIdleTimeoutMillis(),
+                        errorKey,
+                        detail,
+                        throwable);
     }
 
     /**
@@ -632,52 +620,56 @@ public class HttpConnector implements ProxyConnector {
      *   nothing about it.
      */
     private String describeStreamFailure(
-        final Throwable throwable,
-        final long elapsedMs,
-        final long silenceMs,
-        final long bytesReceived,
-        final long announcedBodyLength
-    ) {
-        final String cause = throwable.getMessage() != null ? throwable.getMessage() : throwable.getClass().getSimpleName();
+            final Throwable throwable,
+            final long elapsedMs,
+            final long silenceMs,
+            final long bytesReceived,
+            final long announcedBodyLength) {
+        final String cause = throwable.getMessage() != null
+                ? throwable.getMessage()
+                : throwable.getClass().getSimpleName();
 
-        final StringBuilder message = new StringBuilder("The backend ended the response body before it was complete (" + cause + ")");
+        final StringBuilder message =
+                new StringBuilder("The backend ended the response body before it was complete (" + cause + ")");
         if (elapsedMs >= 0) {
             message.append(", after ").append(elapsedMs).append(" ms");
         }
         if (silenceMs >= 0) {
-            message.append(", having received nothing from it for the last ").append(silenceMs).append(" ms");
+            message.append(", having received nothing from it for the last ")
+                    .append(silenceMs)
+                    .append(" ms");
         }
         // Naming the shortfall turns "the body was incomplete" into a measurable claim, and tells the backend team
         // how much of the response never made it. Absent when the backend announced no Content-Length: the body is
         // then delimited by the stream itself, and its expected size is unknown.
         if (announcedBodyLength >= 0) {
-            message
-                .append(". ")
-                .append(bytesReceived)
-                .append(" of the ")
-                .append(announcedBodyLength)
-                .append(" announced bytes were received, so ")
-                .append(announcedBodyLength - bytesReceived)
-                .append(" are missing");
+            message.append(". ")
+                    .append(bytesReceived)
+                    .append(" of the ")
+                    .append(announcedBodyLength)
+                    .append(" announced bytes were received, so ")
+                    .append(announcedBodyLength - bytesReceived)
+                    .append(" are missing");
         }
 
         final long readTimeout = sharedConfiguration.getHttpOptions().getReadTimeout();
         final long idleTimeout = sharedConfiguration.getHttpOptions().getIdleTimeout();
         final long effectiveIdle = effectiveIdleTimeoutMillis();
 
-        if (silenceMs >= 0 && effectiveIdle > 0 && Math.abs(silenceMs - effectiveIdle) <= IDLE_TIMEOUT_MATCH_TOLERANCE_MS) {
-            message
-                .append(". This matches the endpoint idleTimeout (")
-                .append(idleTimeout)
-                .append(" ms, applied as ")
-                .append(effectiveIdle)
-                .append(" ms), so the gateway itself likely closed this connection");
+        if (silenceMs >= 0
+                && effectiveIdle > 0
+                && Math.abs(silenceMs - effectiveIdle) <= IDLE_TIMEOUT_MATCH_TOLERANCE_MS) {
+            message.append(". This matches the endpoint idleTimeout (")
+                    .append(idleTimeout)
+                    .append(" ms, applied as ")
+                    .append(effectiveIdle)
+                    .append(" ms), so the gateway itself likely closed this connection");
             if (readTimeout >= idleTimeout) {
-                message
-                    .append(". Note that readTimeout (")
-                    .append(readTimeout)
-                    .append(" ms) is not shorter than idleTimeout, so it can never fire: lowering readTimeout below ")
-                    .append("idleTimeout would surface this as a read timeout instead");
+                message.append(". Note that readTimeout (")
+                        .append(readTimeout)
+                        .append(
+                                " ms) is not shorter than idleTimeout, so it can never fire: lowering readTimeout below ")
+                        .append("idleTimeout would surface this as a read timeout instead");
             }
         }
         return message.toString();
@@ -687,7 +679,8 @@ public class HttpConnector implements ProxyConnector {
         return httpClientRequest;
     }
 
-    protected void copyHeaders(io.vertx.core.MultiMap sourceHeaders, io.gravitee.gateway.api.http.HttpHeaders targetHeaders) {
+    protected void copyHeaders(
+            io.vertx.core.MultiMap sourceHeaders, io.gravitee.gateway.api.http.HttpHeaders targetHeaders) {
         if (sourceHeaders != null && !sourceHeaders.isEmpty()) {
             if (targetHeaders instanceof VertxHttpHeaders) {
                 // Optimize header copy by relying on delegate.
@@ -712,15 +705,18 @@ public class HttpConnector implements ProxyConnector {
         }
 
         if (currentRequestHost != null) {
-            if (sharedConfiguration.getHttpOptions().isPropagateClientHost() || !Objects.equals(originalHost, currentRequestHost)) {
-                // 'Host' header must be removed unless it has been set during the request flow (non-null and different from original request's host).
+            if (sharedConfiguration.getHttpOptions().isPropagateClientHost()
+                    || !Objects.equals(originalHost, currentRequestHost)) {
+                // 'Host' header must be removed unless it has been set during the request flow (non-null and different
+                // from original request's host).
                 // If PropagateClientHost is enabled, we set the 'Host' header to the current request's host.
                 requestHeaders.set(HOST, currentRequestHost);
             } else {
                 requestHeaders.remove(HOST);
             }
         }
-        // else: currentRequestHost is null (e.g. health check context); preserve any Host already in requestHeaders from configuration.
+        // else: currentRequestHost is null (e.g. health check context); preserve any Host already in requestHeaders
+        // from configuration.
 
         if (!sharedConfiguration.getHttpOptions().isPropagateClientAcceptEncoding()) {
             // Let the API owner choose the Accept-Encoding between the gateway and the backend.
@@ -745,9 +741,9 @@ public class HttpConnector implements ProxyConnector {
         }
 
         return requestOptions
-            .setMethod(HttpMethod.valueOf(request.method().name()))
-            .setTimeout(sharedConfiguration.getHttpOptions().getReadTimeout())
-            .setFollowRedirects(sharedConfiguration.getHttpOptions().isFollowRedirects());
+                .setMethod(HttpMethod.valueOf(request.method().name()))
+                .setTimeout(sharedConfiguration.getHttpOptions().getReadTimeout())
+                .setFollowRedirects(sharedConfiguration.getHttpOptions().isFollowRedirects());
     }
 
     protected Set<CharSequence> hopHeaders() {
@@ -769,7 +765,8 @@ public class HttpConnector implements ProxyConnector {
             final MultiValueMap<String, String> customEndpointParameters = URIUtils.parameters(customEndpointTarget);
 
             if (!customEndpointParameters.isEmpty()) {
-                customEndpointTarget = customEndpointTarget.substring(0, customEndpointTarget.indexOf(URI_QUERY_DELIMITER_CHAR));
+                customEndpointTarget =
+                        customEndpointTarget.substring(0, customEndpointTarget.indexOf(URI_QUERY_DELIMITER_CHAR));
                 addParameters(requestParameters, customEndpointParameters);
             }
 
@@ -792,9 +789,11 @@ public class HttpConnector implements ProxyConnector {
         }
     }
 
-    private void addParameters(MultiValueMap<String, String> parameters, MultiValueMap<String, String> parametersToAdd) {
+    private void addParameters(
+            MultiValueMap<String, String> parameters, MultiValueMap<String, String> parametersToAdd) {
         if (parametersToAdd != null && !parametersToAdd.isEmpty()) {
-            parametersToAdd.forEach((key, values) -> parameters.computeIfAbsent(key, k -> new ArrayList<>()).addAll(values));
+            parametersToAdd.forEach((key, values) ->
+                    parameters.computeIfAbsent(key, k -> new ArrayList<>()).addAll(values));
         }
     }
 
@@ -808,6 +807,7 @@ public class HttpConnector implements ProxyConnector {
 
     private static boolean isChunked(HttpRequest request) {
         final String transferEncoding = request.headers().get(HttpHeaderNames.TRANSFER_ENCODING);
-        return transferEncoding != null && HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding.trim());
+        return transferEncoding != null
+                && HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding.trim());
     }
 }

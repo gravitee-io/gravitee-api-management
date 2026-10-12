@@ -25,7 +25,6 @@ import io.gravitee.apim.core.specgen.model.ApiSpecGen;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

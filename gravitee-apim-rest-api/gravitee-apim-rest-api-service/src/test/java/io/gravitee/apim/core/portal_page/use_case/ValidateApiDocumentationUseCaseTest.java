@@ -49,42 +49,44 @@ import org.junit.jupiter.api.Test;
 class ValidateApiDocumentationUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String API_HRID = "pets-api";
     private static final String DOC_HRID = "getting-started";
-    private static final String API_ID = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
-    private static final PortalPageContentId DOC_ID = PortalPageContentId.of(
-        HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid(DOC_HRID).id()
-    );
+    private static final String API_ID =
+            HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+    private static final PortalPageContentId DOC_ID = PortalPageContentId.of(HRIDToUUID.apiDocumentation()
+            .context(AUDIT_INFO)
+            .api(API_HRID)
+            .hrid(DOC_HRID)
+            .id());
 
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
     private ValidateApiDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
         var syncDomainService = new ApiDocumentationSyncDomainService(
-            navCrudService,
-            navQueryService,
-            new PortalNavigationItemValidatorService(
+                navCrudService,
                 navQueryService,
-                new PortalPageContentQueryServiceInMemory(),
-                new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory(),
-                new ApiCrudServiceInMemory()
-            )
-        );
+                new PortalNavigationItemValidatorService(
+                        navQueryService,
+                        new PortalPageContentQueryServiceInMemory(),
+                        new ApiProductQueryServiceInMemory(),
+                        new PortalNavigationItemSourceDomainServiceInMemory(),
+                        new ApiCrudServiceInMemory()));
         useCase = new ValidateApiDocumentationUseCase(new ValidateApiDocumentationDomainService(), syncDomainService);
     }
 
     @Test
     void should_return_documentation_id_and_no_errors_for_well_formed_input() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
 
         assertThat(output.id()).isEqualTo(DOC_ID);
         assertThat(output.errors()).isEmpty();
@@ -92,81 +94,73 @@ class ValidateApiDocumentationUseCaseTest {
 
     @Test
     void should_not_block_when_referenced_api_does_not_exist() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
 
         assertThat(output.errors()).isEmpty();
     }
 
     @Test
     void should_surface_location_format_error() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "getting-started", 1));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "getting-started", 1));
 
         assertThat(output.errors()).isNotEmpty();
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("location"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("location"));
     }
 
     @Test
     void should_surface_blank_name_error() {
-        var output = useCase.execute(input("  ", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
+        var output =
+                useCase.execute(input("  ", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
 
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("name"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("name"));
     }
 
     @Test
     void should_surface_null_type_error() {
         var output = useCase.execute(input("Getting Started", null, "# Hello", "/getting-started", 1));
 
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("type"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("type"));
     }
 
     @Test
     void should_surface_null_content_error() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, null, "/getting-started", 1));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, null, "/getting-started", 1));
 
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("content"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("content"));
     }
 
     @Test
     void should_reject_a_parent_that_is_not_a_container_without_persisting_anything() {
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
         var conflictingPage = PortalNavigationPage.builder()
-            .id(folderId)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .title("Not a folder")
-            .segment("not-a-folder")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(folderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .title("Not a folder")
+                .segment("not-a-folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         navCrudService.create(conflictingPage);
         var storageBefore = List.copyOf(navCrudService.storage());
 
-        assertThatThrownBy(() ->
-            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/guides", 1))
-        ).isInstanceOf(ParentTypeMismatchException.class);
+        assertThatThrownBy(() -> useCase.execute(
+                        input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/guides", 1)))
+                .isInstanceOf(ParentTypeMismatchException.class);
 
         assertThat(navCrudService.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
 
     private static CreateOrUpdateApiDocumentationUseCase.Input input(
-        String name,
-        PortalPageContentType type,
-        String content,
-        String location,
-        Integer order
-    ) {
-        return new CreateOrUpdateApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID, API_ID, name, type, content, location, order, null);
+            String name, PortalPageContentType type, String content, String location, Integer order) {
+        return new CreateOrUpdateApiDocumentationUseCase.Input(
+                AUDIT_INFO, DOC_ID, API_ID, name, type, content, location, order, null);
     }
 }

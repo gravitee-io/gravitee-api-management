@@ -24,7 +24,6 @@ import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -45,14 +44,17 @@ public class AsyncJobQueryServiceImpl extends AbstractService implements AsyncJo
         try {
             return asyncJobRepository.findPendingJobFor(sourceId).map(AsyncJobAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred while finding pending AsyncJob for: " + sourceId, e);
+            throw new TechnicalManagementException(
+                    "An error occurred while finding pending AsyncJob for: " + sourceId, e);
         }
     }
 
     @Override
     public Page<AsyncJob> listAsyncJobs(ListQuery query, Pageable pageable) {
         try {
-            return asyncJobRepository.search(toSearchCriteria(query), convert(pageable)).map(AsyncJobAdapter.INSTANCE::toEntity);
+            return asyncJobRepository
+                    .search(toSearchCriteria(query), convert(pageable))
+                    .map(AsyncJobAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurred while searching AsyncJob with: " + query, e);
         }
@@ -60,11 +62,10 @@ public class AsyncJobQueryServiceImpl extends AbstractService implements AsyncJo
 
     private AsyncJobRepository.SearchCriteria toSearchCriteria(ListQuery query) {
         return new AsyncJobRepository.SearchCriteria(
-            query.environmentId(),
-            query.initiatorId(),
-            query.type().map(AsyncJob.Type::name),
-            query.status().map(AsyncJob.Status::name),
-            query.sourceId()
-        );
+                query.environmentId(),
+                query.initiatorId(),
+                query.type().map(AsyncJob.Type::name),
+                query.status().map(AsyncJob.Status::name),
+                query.sourceId());
     }
 }

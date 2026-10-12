@@ -15,12 +15,10 @@
  */
 package io.gravitee.apim.core.portal_menu_link.use_case;
 
-import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_menu_link.crud_service.PortalMenuLinkCrudService;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
-import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -32,10 +30,8 @@ public class DeletePortalMenuLinkUseCase {
     private final PortalMenuLinkQueryService portalMenuLinkQueryService;
 
     public Output execute(Input input) {
-        PortalMenuLink existingPortalMenuLink = this.portalMenuLinkCrudService.getByIdAndEnvironmentId(
-            input.portalMenuLinkId(),
-            input.environmentId()
-        );
+        PortalMenuLink existingPortalMenuLink =
+                this.portalMenuLinkCrudService.getByIdAndEnvironmentId(input.portalMenuLinkId(), input.environmentId());
 
         this.portalMenuLinkCrudService.delete(existingPortalMenuLink.getId());
         this.updatePortalMenuLinkOrder(existingPortalMenuLink.getOrder(), existingPortalMenuLink.getEnvironmentId());
@@ -51,13 +47,13 @@ public class DeletePortalMenuLinkUseCase {
     private void updatePortalMenuLinkOrder(int oldOrder, String environmentId) {
         var orderIncrement = -1;
 
-        this.portalMenuLinkQueryService.findByEnvironmentIdSortByOrder(environmentId)
-            .stream()
-            .filter(menuLink -> this.toBeMovedUp(oldOrder, menuLink.getOrder()))
-            .forEach(menuLink -> {
-                var updatedOrder = menuLink.getOrder() + orderIncrement;
-                this.portalMenuLinkCrudService.update(menuLink.toBuilder().order(updatedOrder).build());
-            });
+        this.portalMenuLinkQueryService.findByEnvironmentIdSortByOrder(environmentId).stream()
+                .filter(menuLink -> this.toBeMovedUp(oldOrder, menuLink.getOrder()))
+                .forEach(menuLink -> {
+                    var updatedOrder = menuLink.getOrder() + orderIncrement;
+                    this.portalMenuLinkCrudService.update(
+                            menuLink.toBuilder().order(updatedOrder).build());
+                });
     }
 
     private boolean toBeMovedUp(int oldOrder, int portalMenuLinkOrder) {

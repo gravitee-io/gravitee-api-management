@@ -17,7 +17,10 @@ package io.gravitee.apim.core.newtai.model;
 
 public interface ELGenFeedback {
     String chatId();
+
     String userMessageId();
+
     String agentMessageId();
+
     boolean answerHelpful();
 }

@@ -41,11 +41,10 @@ public class ClosePlanDomainService {
     private final AuditDomainService auditService;
 
     public ClosePlanDomainService(
-        PlanCrudService planCrudService,
-        SubscriptionQueryService subscriptionQueryService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService,
-        AuditDomainService auditService
-    ) {
+            PlanCrudService planCrudService,
+            SubscriptionQueryService subscriptionQueryService,
+            CloseSubscriptionDomainService closeSubscriptionDomainService,
+            AuditDomainService auditService) {
         this.planCrudService = planCrudService;
         this.subscriptionQueryService = subscriptionQueryService;
         this.closeSubscriptionDomainService = closeSubscriptionDomainService;
@@ -53,15 +52,13 @@ public class ClosePlanDomainService {
     }
 
     public void close(String planId, AuditInfo auditInfo) {
-        subscriptionQueryService
-            .findActiveSubscriptionsByPlan(planId)
-            .forEach(subscription -> {
-                try {
-                    closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
-                } catch (Exception e) {
-                    log.warn("Could not close subscription {} while closing plan {}", subscription.getId(), planId, e);
-                }
-            });
+        subscriptionQueryService.findActiveSubscriptionsByPlan(planId).forEach(subscription -> {
+            try {
+                closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
+            } catch (Exception e) {
+                log.warn("Could not close subscription {} while closing plan {}", subscription.getId(), planId, e);
+            }
+        });
 
         var planToClose = planCrudService.getById(planId);
         final Plan closedPlan = planToClose.close();
@@ -79,8 +76,7 @@ public class ClosePlanDomainService {
     }
 
     private void createApiProductAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiProductId(originalPlan.getReferenceId())
@@ -90,13 +86,11 @@ public class ClosePlanDomainService {
                 .newValue(planUpdated)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.PLAN, originalPlan.getId()))
-                .build()
-        );
+                .build());
     }
 
     private void createApiAuditLog(Plan planToClose, Plan planUpdated, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(planToClose.getReferenceId())
@@ -106,7 +100,6 @@ public class ClosePlanDomainService {
                 .newValue(planUpdated)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.PLAN, planToClose.getId()))
-                .build()
-        );
+                .build());
     }
 }

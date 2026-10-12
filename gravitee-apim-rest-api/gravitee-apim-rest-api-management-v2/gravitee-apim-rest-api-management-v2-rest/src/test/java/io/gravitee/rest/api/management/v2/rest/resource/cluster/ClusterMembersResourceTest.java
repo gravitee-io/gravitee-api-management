@@ -99,7 +99,11 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getClusterMembersUseCase, addClusterMemberUseCase, updateClusterMemberUseCase, deleteClusterMemberUseCase);
+        reset(
+                getClusterMembersUseCase,
+                addClusterMemberUseCase,
+                updateClusterMemberUseCase,
+                deleteClusterMemberUseCase);
     }
 
     @Nested
@@ -108,22 +112,21 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
         @Test
         void should_get_cluster_members() {
             var output = List.of(
-                MemberEntity.builder().id("m1").build(),
-                MemberEntity.builder().id("m2").build(),
-                MemberEntity.builder().id("m3").build(),
-                MemberEntity.builder().id("m4").build(),
-                MemberEntity.builder().id("m5").build(),
-                MemberEntity.builder().id("m6").build(),
-                MemberEntity.builder().id("m7").build(),
-                MemberEntity.builder().id("m8").build(),
-                MemberEntity.builder().id("m9").build(),
-                MemberEntity.builder().id("m10").build(),
-                MemberEntity.builder().id("m11").build(),
-                MemberEntity.builder().id("m12").build(),
-                MemberEntity.builder().id("m13").build(),
-                MemberEntity.builder().id("m14").build(),
-                MemberEntity.builder().id("m15").build()
-            );
+                    MemberEntity.builder().id("m1").build(),
+                    MemberEntity.builder().id("m2").build(),
+                    MemberEntity.builder().id("m3").build(),
+                    MemberEntity.builder().id("m4").build(),
+                    MemberEntity.builder().id("m5").build(),
+                    MemberEntity.builder().id("m6").build(),
+                    MemberEntity.builder().id("m7").build(),
+                    MemberEntity.builder().id("m8").build(),
+                    MemberEntity.builder().id("m9").build(),
+                    MemberEntity.builder().id("m10").build(),
+                    MemberEntity.builder().id("m11").build(),
+                    MemberEntity.builder().id("m12").build(),
+                    MemberEntity.builder().id("m13").build(),
+                    MemberEntity.builder().id("m14").build(),
+                    MemberEntity.builder().id("m15").build());
             when(getClusterMembersUseCase.execute(any())).thenReturn(new GetClusterMembersUseCase.Output(output));
 
             final Response response = rootTarget().request().get();
@@ -131,20 +134,27 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
             MembersResponse membersResponse = response.readEntity(MembersResponse.class);
 
             assertAll(
-                () -> assertThat(response.getStatus()).isEqualTo(OK_200),
-                () -> assertThat(membersResponse.getData().size()).isEqualTo(10),
-                () -> assertThat(membersResponse.getPagination().getPage()).isEqualTo(1),
-                () -> assertThat(membersResponse.getPagination().getPerPage()).isEqualTo(10),
-                () -> assertThat(membersResponse.getPagination().getPageCount()).isEqualTo(2),
-                () -> assertThat(membersResponse.getPagination().getTotalCount()).isEqualTo(15),
-                () -> assertThat(membersResponse.getPagination().getPageItemsCount()).isEqualTo(10),
-                () -> assertThat(membersResponse.getLinks()).isNotNull()
-            );
+                    () -> assertThat(response.getStatus()).isEqualTo(OK_200),
+                    () -> assertThat(membersResponse.getData().size()).isEqualTo(10),
+                    () -> assertThat(membersResponse.getPagination().getPage()).isEqualTo(1),
+                    () -> assertThat(membersResponse.getPagination().getPerPage())
+                            .isEqualTo(10),
+                    () -> assertThat(membersResponse.getPagination().getPageCount())
+                            .isEqualTo(2),
+                    () -> assertThat(membersResponse.getPagination().getTotalCount())
+                            .isEqualTo(15),
+                    () -> assertThat(membersResponse.getPagination().getPageItemsCount())
+                            .isEqualTo(10),
+                    () -> assertThat(membersResponse.getLinks()).isNotNull());
         }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+            shouldReturn403(
+                    RolePermission.CLUSTER_MEMBER,
+                    CLUSTER_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
         }
     }
 
@@ -179,7 +189,11 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, CREATE, () -> rootTarget().request().post(json(new AddMember())));
+            shouldReturn403(
+                    RolePermission.CLUSTER_MEMBER,
+                    CLUSTER_ID,
+                    CREATE,
+                    () -> rootTarget().request().post(json(new AddMember())));
         }
     }
 
@@ -197,18 +211,20 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
         void should_update_cluster_member() {
             UpdateMember updateMember = new UpdateMember();
             updateMember.setRoleName("OWNER");
-            Member updatedMember = Member.builder().roles(List.of(Member.Role.builder().name("OWNER").build())).build();
+            Member updatedMember = Member.builder()
+                    .roles(List.of(Member.Role.builder().name("OWNER").build()))
+                    .build();
 
-            when(updateClusterMemberUseCase.execute(any())).thenReturn(new UpdateClusterMemberUseCase.Output(updatedMember));
+            when(updateClusterMemberUseCase.execute(any()))
+                    .thenReturn(new UpdateClusterMemberUseCase.Output(updatedMember));
 
             Response response = target.request().put(json(updateMember));
 
             Member responseMember = response.readEntity(Member.class);
 
             assertAll(
-                () -> assertThat(response.getStatus()).isEqualTo(OK_200),
-                () -> assertThat(responseMember.getRoles().get(0).getName()).isEqualTo("OWNER")
-            );
+                    () -> assertThat(response.getStatus()).isEqualTo(OK_200),
+                    () -> assertThat(responseMember.getRoles().get(0).getName()).isEqualTo("OWNER"));
         }
 
         @Test
@@ -226,7 +242,11 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, UPDATE, () -> target.request().put(json(new UpdateMember())));
+            shouldReturn403(
+                    RolePermission.CLUSTER_MEMBER,
+                    CLUSTER_ID,
+                    UPDATE,
+                    () -> target.request().put(json(new UpdateMember())));
         }
     }
 
@@ -249,7 +269,11 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, DELETE, () -> target.request().delete());
+            shouldReturn403(
+                    RolePermission.CLUSTER_MEMBER,
+                    CLUSTER_ID,
+                    DELETE,
+                    () -> target.request().delete());
         }
     }
 
@@ -265,16 +289,19 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_transfer_ownership() {
-            when(transferClusterOwnershipUseCase.execute(any())).thenReturn(new TransferClusterOwnershipUseCase.Output());
+            when(transferClusterOwnershipUseCase.execute(any()))
+                    .thenReturn(new TransferClusterOwnershipUseCase.Output());
             Response response = target.request().post(json(new ClusterTransferOwnership()));
             assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
         }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, UPDATE, () ->
-                target.request().post(json(new ClusterTransferOwnership()))
-            );
+            shouldReturn403(
+                    RolePermission.CLUSTER_MEMBER,
+                    CLUSTER_ID,
+                    UPDATE,
+                    () -> target.request().post(json(new ClusterTransferOwnership())));
         }
     }
 }

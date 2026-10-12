@@ -36,13 +36,14 @@ public class SubscriptionTargetSearchQueryServiceImpl implements SubscriptionTar
     private final SearchEngineService searchEngineService;
 
     @Override
-    public MatchingTargetIds search(ExecutionContext executionContext, String query, Set<SubscriptionReferenceType> referenceTypes) {
+    public MatchingTargetIds search(
+            ExecutionContext executionContext, String query, Set<SubscriptionReferenceType> referenceTypes) {
         Set<String> apiIds = referenceTypes.contains(SubscriptionReferenceType.API)
-            ? new LinkedHashSet<>(apiSearchService.searchIds(executionContext, query, Map.of(), null))
-            : Set.of();
+                ? new LinkedHashSet<>(apiSearchService.searchIds(executionContext, query, Map.of(), null))
+                : Set.of();
         Set<String> apiProductIds = referenceTypes.contains(SubscriptionReferenceType.API_PRODUCT)
-            ? searchApiProductIds(executionContext, query)
-            : Set.of();
+                ? searchApiProductIds(executionContext, query)
+                : Set.of();
 
         return new MatchingTargetIds(apiIds, apiProductIds);
     }
@@ -50,6 +51,8 @@ public class SubscriptionTargetSearchQueryServiceImpl implements SubscriptionTar
     private Set<String> searchApiProductIds(ExecutionContext executionContext, String query) {
         QueryBuilder<IndexableApiProduct> queryBuilder = QueryBuilder.create(IndexableApiProduct.class);
         queryBuilder.setQuery(query);
-        return new LinkedHashSet<>(searchEngineService.search(executionContext, queryBuilder.build()).getDocuments());
+        return new LinkedHashSet<>(searchEngineService
+                .search(executionContext, queryBuilder.build())
+                .getDocuments());
     }
 }

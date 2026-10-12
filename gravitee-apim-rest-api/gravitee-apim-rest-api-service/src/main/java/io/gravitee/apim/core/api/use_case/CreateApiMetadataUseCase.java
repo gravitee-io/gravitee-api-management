@@ -32,10 +32,9 @@ public class CreateApiMetadataUseCase {
     private final ApiCrudService apiCrudService;
 
     public CreateApiMetadataUseCase(
-        ValidateApiMetadataDomainService validateApiMetadataDomainService,
-        ApiMetadataDomainService apiMetadataDomainService,
-        ApiCrudService apiCrudService
-    ) {
+            ValidateApiMetadataDomainService validateApiMetadataDomainService,
+            ApiMetadataDomainService apiMetadataDomainService,
+            ApiCrudService apiCrudService) {
         this.validateApiMetadataDomainService = validateApiMetadataDomainService;
         this.apiMetadataDomainService = apiMetadataDomainService;
         this.apiCrudService = apiCrudService;
@@ -52,13 +51,13 @@ public class CreateApiMetadataUseCase {
         }
 
         this.validateApiMetadataDomainService.validateUniqueKey(apiId, input.newApiMetadata.getKey());
-        this.validateApiMetadataDomainService.validateUniqueName(input.auditInfo.environmentId(), apiId, input.newApiMetadata.getName());
+        this.validateApiMetadataDomainService.validateUniqueName(
+                input.auditInfo.environmentId(), apiId, input.newApiMetadata.getName());
         this.validateApiMetadataDomainService.validateValueByFormat(
-            api,
-            input.auditInfo().organizationId(),
-            input.newApiMetadata.getValue(),
-            input.newApiMetadata.getFormat()
-        );
+                api,
+                input.auditInfo().organizationId(),
+                input.newApiMetadata.getValue(),
+                input.newApiMetadata.getFormat());
 
         return new Output(this.apiMetadataDomainService.create(input.newApiMetadata(), input.auditInfo()));
     }

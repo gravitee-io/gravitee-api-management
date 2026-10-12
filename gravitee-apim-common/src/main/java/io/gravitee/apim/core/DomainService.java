@@ -45,6 +45,6 @@ import java.lang.annotation.Target;
  * @see <a href="https://gravitee.slab.com/posts/%E2%9A%92%EF%B8%8F-better-software-architecture-of-the-management-api-yxtcvazk">https://gravitee.slab.com/posts/%E2%9A%92%EF%B8%8F-better-software-architecture-of-the-management-api-yxtcvazk</a>
  * @see <a href="https://enterprisecraftsmanship.com/posts/domain-vs-application-services/">https://enterprisecraftsmanship.com/posts/domain-vs-application-services/</a>
  */
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DomainService {}

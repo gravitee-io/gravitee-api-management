@@ -34,24 +34,24 @@ public class SearchSharedPolicyGroupUseCase {
     private final SharedPolicyGroupQueryService sharedPolicyGroupQueryService;
 
     private static final Set<String> allowedSortableFields = Set.of(
-        "name",
-        "-name",
-        "apiType",
-        "-apiType",
-        "phase",
-        "-phase",
-        "updatedAt",
-        "-updatedAt",
-        "deployedAt",
-        "-deployedAt"
-    );
+            "name",
+            "-name",
+            "apiType",
+            "-apiType",
+            "phase",
+            "-phase",
+            "updatedAt",
+            "-updatedAt",
+            "deployedAt",
+            "-deployedAt");
 
     public Output execute(Input input) {
         var pageable = input.pageable != null ? input.pageable : new PageableImpl(1, 10);
 
         Sortable sortable = toSortable(input.sortBy());
 
-        return new Output(this.sharedPolicyGroupQueryService.searchByEnvironmentId(input.environmentId, input.q, pageable, sortable));
+        return new Output(this.sharedPolicyGroupQueryService.searchByEnvironmentId(
+                input.environmentId, input.q, pageable, sortable));
     }
 
     private static Sortable toSortable(String sortBy) {

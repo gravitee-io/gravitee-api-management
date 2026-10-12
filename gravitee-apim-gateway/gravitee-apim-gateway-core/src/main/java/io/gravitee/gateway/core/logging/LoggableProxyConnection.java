@@ -45,7 +45,8 @@ public class LoggableProxyConnection implements ProxyConnection {
     private Buffer buffer;
     private boolean isContentTypeLoggable;
 
-    public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest, final ExecutionContext context) {
+    public LoggableProxyConnection(
+            final ProxyConnection proxyConnection, final ProxyRequest proxyRequest, final ExecutionContext context) {
         this.proxyConnection = proxyConnection;
         this.proxyRequest = proxyRequest;
         this.context = context;
@@ -98,7 +99,8 @@ public class LoggableProxyConnection implements ProxyConnection {
     public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
-            isContentTypeLoggable = isContentTypeLoggable(proxyRequest.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
+            isContentTypeLoggable =
+                    isContentTypeLoggable(proxyRequest.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
         }
 
         proxyConnection.write(chunk);
@@ -115,11 +117,9 @@ public class LoggableProxyConnection implements ProxyConnection {
     }
 
     protected ProxyConnection responseHandler(
-        ProxyConnection proxyConnection,
-        Handler<ProxyResponse> responseHandler,
-        final ExecutionContext context
-    ) {
-        return proxyConnection.responseHandler(new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler, context));
+            ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler, final ExecutionContext context) {
+        return proxyConnection.responseHandler(
+                new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler, context));
     }
 
     class LoggableProxyResponseHandler implements Handler<ProxyResponse> {
@@ -164,7 +164,8 @@ public class LoggableProxyConnection implements ProxyConnection {
             proxyResponse.bodyHandler(chunk -> {
                 if (buffer == null) {
                     buffer = Buffer.buffer();
-                    isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
+                    isContentTypeLoggable =
+                            isContentTypeLoggable(proxyResponse.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
                 }
 
                 if (isContentTypeLoggable && LoggingUtils.isProxyResponsePayloadsLoggable(context)) {

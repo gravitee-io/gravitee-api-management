@@ -37,10 +37,12 @@ public class GenericApiMapper {
 
     public GenericApiEntity toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
         return switch (getVersionOfDefault(api)) {
-            case V4 -> switch (api.getType()) {
-                case NATIVE -> apiMapper.toNativeEntity(api, primaryOwner);
-                case A2A_PROXY, AUTHZ, EDGE, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY -> apiMapper.toEntity(api, primaryOwner);
-            };
+            case V4 ->
+                switch (api.getType()) {
+                    case NATIVE -> apiMapper.toNativeEntity(api, primaryOwner);
+                    case A2A_PROXY, AUTHZ, EDGE, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY ->
+                        apiMapper.toEntity(api, primaryOwner);
+                };
             case FEDERATED -> apiMapper.federatedToEntity(api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(api, primaryOwner);
             case V2 -> apiConverter.toApiEntity(api, primaryOwner, true);
@@ -49,28 +51,27 @@ public class GenericApiMapper {
     }
 
     public GenericApiEntity toGenericApi(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner,
-        final boolean withApiFlows,
-        final boolean withPlans,
-        final boolean withApiCategories
-    ) {
+            final ExecutionContext executionContext,
+            final Api api,
+            final PrimaryOwnerEntity primaryOwner,
+            final boolean withApiFlows,
+            final boolean withPlans,
+            final boolean withApiCategories) {
         return switch (getVersionOfDefault(api)) {
-            case V4 -> switch (api.getType()) {
-                case NATIVE -> apiMapper.toNativeEntity(executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
-                case A2A_PROXY, AUTHZ, EDGE, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY -> apiMapper.toEntity(
-                    executionContext,
-                    api,
-                    primaryOwner,
-                    withApiFlows,
-                    withPlans,
-                    withApiCategories
-                );
-            };
+            case V4 ->
+                switch (api.getType()) {
+                    case NATIVE ->
+                        apiMapper.toNativeEntity(
+                                executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
+                    case A2A_PROXY, AUTHZ, EDGE, LLM_PROXY, MCP_PROXY, MESSAGE, PROXY ->
+                        apiMapper.toEntity(
+                                executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
+                };
             case FEDERATED -> apiMapper.federatedToEntity(executionContext, api, primaryOwner);
             case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(executionContext, api, primaryOwner);
-            case V2 -> apiConverter.toApiEntity(executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
+            case V2 ->
+                apiConverter.toApiEntity(
+                        executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
             default -> null;
         };
     }

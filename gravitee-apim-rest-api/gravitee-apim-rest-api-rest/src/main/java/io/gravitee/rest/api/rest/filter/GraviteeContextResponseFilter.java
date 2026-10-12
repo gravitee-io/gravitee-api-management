@@ -32,7 +32,8 @@ import java.io.IOException;
 public class GraviteeContextResponseFilter implements ContainerResponseFilter {
 
     @Override
-    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+            throws IOException {
         GraviteeContext.cleanContext();
     }
 }

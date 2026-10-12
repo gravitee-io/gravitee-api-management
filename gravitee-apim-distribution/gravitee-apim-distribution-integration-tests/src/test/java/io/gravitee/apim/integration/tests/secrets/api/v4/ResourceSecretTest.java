@@ -115,13 +115,8 @@ class ResourceSecretTest extends AbstractGatewayTest {
     // not call by JUnit, as needs to be started before API is deployed
     static void startContainers() throws IOException {
         if (redisContainer == null) {
-            redisContainer = new RedisContainer(DockerImageName.parse("redis:7.4.2")).withCommand(
-                "redis-server",
-                "--appendonly",
-                "yes",
-                "--requirepass",
-                REDIS_PASSWORD
-            );
+            redisContainer = new RedisContainer(DockerImageName.parse("redis:7.4.2"))
+                    .withCommand("redis-server", "--appendonly", "yes", "--requirepass", REDIS_PASSWORD);
             redisContainer.start();
         }
         if (kubeContainer == null) {
@@ -132,8 +127,8 @@ class ResourceSecretTest extends AbstractGatewayTest {
         }
         if (ldapServer == null) {
             ldapServer = new GenericContainer<>("ghcr.io/rroemhild/docker-test-openldap:master")
-                .withExposedPorts(LDAP_PORT)
-                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*slapd starting.*"));
+                    .withExposedPorts(LDAP_PORT)
+                    .waitingFor(new LogMessageWaitStrategy().withRegEx(".*slapd starting.*"));
             ldapServer.start();
         }
     }
@@ -141,16 +136,16 @@ class ResourceSecretTest extends AbstractGatewayTest {
     @Override
     public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
         try {
-            kubeConfigFile = Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve(
-                "kube_config.yml"
-            );
+            kubeConfigFile = Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName())
+                    .resolve("kube_config.yml");
 
             startContainers();
             createSecrets();
 
             configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "kubernetes");
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
-            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());
+            configurationBuilder.setYamlProperty(
+                    "api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -158,52 +153,51 @@ class ResourceSecretTest extends AbstractGatewayTest {
 
     @Override
     public void configureSecretProviders(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins) {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class));
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
     public void configureResources(Map<String, ResourcePlugin> resources) {
         resources.putIfAbsent(
-            "cache-redis",
-            ResourceBuilder.build("cache-redis", RedisCacheResource.class, RedisCacheResourceConfiguration.class)
-        );
-        resources.putIfAbsent("oauth2", ResourceBuilder.build("oauth2", OAuth2GenericResource.class, OAuth2ResourceConfiguration.class));
+                "cache-redis",
+                ResourceBuilder.build("cache-redis", RedisCacheResource.class, RedisCacheResourceConfiguration.class));
         resources.putIfAbsent(
-            "auth-provider-ldap-resource",
-            ResourceBuilder.build(
+                "oauth2",
+                ResourceBuilder.build("oauth2", OAuth2GenericResource.class, OAuth2ResourceConfiguration.class));
+        resources.putIfAbsent(
                 "auth-provider-ldap-resource",
-                LdapAuthenticationProviderResource.class,
-                LdapAuthenticationProviderResourceConfiguration.class
-            )
-        );
+                ResourceBuilder.build(
+                        "auth-provider-ldap-resource",
+                        LdapAuthenticationProviderResource.class,
+                        LdapAuthenticationProviderResourceConfiguration.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.putIfAbsent("cache", PolicyBuilder.build("cache", CachePolicy.class, CachePolicyConfiguration.class));
-        policies.putIfAbsent("oauth2", PolicyBuilder.build("oauth2", Oauth2PolicyV3.class, OAuth2PolicyConfiguration.class));
         policies.putIfAbsent(
-            "policy-basic-authentication",
-            PolicyBuilder.build(
+                "oauth2", PolicyBuilder.build("oauth2", Oauth2PolicyV3.class, OAuth2PolicyConfiguration.class));
+        policies.putIfAbsent(
                 "policy-basic-authentication",
-                BasicAuthenticationPolicy.class,
-                BasicAuthenticationPolicyConfiguration.class
-            )
-        );
+                PolicyBuilder.build(
+                        "policy-basic-authentication",
+                        BasicAuthenticationPolicy.class,
+                        BasicAuthenticationPolicyConfiguration.class));
     }
 
     @Override
@@ -215,11 +209,10 @@ class ResourceSecretTest extends AbstractGatewayTest {
         KubernetesHelper.createSecret(kubeContainer, "default", "redis", Map.of("password", REDIS_PASSWORD));
         KubernetesHelper.createSecret(kubeContainer, "default", "oauth", Map.of("clientSecret", CLIENT_SECRET));
         KubernetesHelper.createSecret(
-            kubeContainer,
-            "default",
-            "ldap",
-            Map.of("username", "cn=admin,dc=planetexpress,dc=com", "password", LDAP_PASSWORD)
-        );
+                kubeContainer,
+                "default",
+                "ldap",
+                Map.of("username", "cn=admin,dc=planetexpress,dc=com", "password", LDAP_PASSWORD));
     }
 
     @Override
@@ -243,35 +236,27 @@ class ResourceSecretTest extends AbstractGatewayTest {
     @Test
     @DeployApi("/apis/v4/http/secrets/resources/api-with-gen-oauth2.json")
     void should_call_oauth2_introspect__with_client_secret_and_then_the_backend(HttpClient httpClient) {
-        String jwt = new PlainJWT(
-            new JWTClaimsSet.Builder()
-                .subject("test")
-                .issuer("ITTest")
-                .audience("OAuth")
-                .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
-                .issueTime(new Date())
-                .claim("test", "hello")
-                .build()
-        ).serialize();
+        String jwt = new PlainJWT(new JWTClaimsSet.Builder()
+                        .subject("test")
+                        .issuer("ITTest")
+                        .audience("OAuth")
+                        .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                        .issueTime(new Date())
+                        .claim("test", "hello")
+                        .build())
+                .serialize();
 
         // stub for introspect endpoint (called by oauth policy via oauth2 resource)
-        wiremock.stubFor(
-            get("/oauth/check_token")
+        wiremock.stubFor(get("/oauth/check_token")
                 .withBasicAuth("admin", CLIENT_SECRET)
                 .withHeader("token", equalTo(jwt))
-                .willReturn(
-                    jsonResponse(
-                        """
+                .willReturn(jsonResponse("""
                         {
                             "client_id": "admin",
                             "sub": "the_user",
                             "scope": []
                         }
-                        """,
-                        200
-                    )
-                )
-        );
+                        """, 200)));
 
         // the backend
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
@@ -286,7 +271,9 @@ class ResourceSecretTest extends AbstractGatewayTest {
     @DeployApi("/apis/v4/http/secrets/resources/api-with-ldap.json")
     void should_call_and_authenticate_user_using_ldap(HttpClient httpClient) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
-        callApi(httpClient, Map.of("Authorization", "Basic " + Base64.getEncoder().encodeToString("fry:fry".getBytes())));
+        callApi(
+                httpClient,
+                Map.of("Authorization", "Basic " + Base64.getEncoder().encodeToString("fry:fry".getBytes())));
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
@@ -296,16 +283,16 @@ class ResourceSecretTest extends AbstractGatewayTest {
 
     private static void callApi(HttpClient httpClient, Map<String, String> map) {
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .doOnSuccess(req -> map.forEach(req::putHeader))
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(Buffer.buffer("response from backend"))
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .doOnSuccess(req -> map.forEach(req::putHeader))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(Buffer.buffer("response from backend"))
+                .assertComplete();
     }
 }

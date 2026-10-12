@@ -27,8 +27,12 @@ import java.util.List;
  */
 public interface EntrypointService {
     EntrypointEntity findById(ExecutionContext executionContext, String entrypointId);
+
     List<EntrypointEntity> findAll(ExecutionContext executionContext);
+
     EntrypointEntity create(ExecutionContext executionContext, NewEntryPointEntity entrypoint);
+
     EntrypointEntity update(ExecutionContext executionContext, UpdateEntryPointEntity entrypoint);
+
     void delete(ExecutionContext executionContext, String entrypointId);
 }

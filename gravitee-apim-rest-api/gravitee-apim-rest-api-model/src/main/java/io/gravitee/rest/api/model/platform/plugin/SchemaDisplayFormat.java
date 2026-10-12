@@ -21,12 +21,8 @@ public enum SchemaDisplayFormat {
     GV_SCHEMA_FORM("gv-schema-form"),
     GIO_FORM_JSON_SCHEMA("gio-form-json-schema");
 
-    private static final Map<String, SchemaDisplayFormat> BY_LABEL = Map.of(
-        GV_SCHEMA_FORM.label,
-        GV_SCHEMA_FORM,
-        GIO_FORM_JSON_SCHEMA.label,
-        GIO_FORM_JSON_SCHEMA
-    );
+    private static final Map<String, SchemaDisplayFormat> BY_LABEL =
+            Map.of(GV_SCHEMA_FORM.label, GV_SCHEMA_FORM, GIO_FORM_JSON_SCHEMA.label, GIO_FORM_JSON_SCHEMA);
 
     private final String label;
 

@@ -41,11 +41,11 @@ public class GetApiProductsUseCase {
     public Output execute(Input input) {
         if (input.apiProductId() != null) {
             Optional<ApiProduct> apiProduct = apiProductQueryService
-                .findById(input.apiProductId())
-                .filter(p -> p.getEnvironmentId().equals(input.environmentId()))
-                .filter(input.kindFilter()::matches)
-                .map(product -> addPrimaryOwner(product, input.organizationId()))
-                .map(apiProductDeploymentStateDomainService::computeDeploymentState);
+                    .findById(input.apiProductId())
+                    .filter(p -> p.getEnvironmentId().equals(input.environmentId()))
+                    .filter(input.kindFilter()::matches)
+                    .map(product -> addPrimaryOwner(product, input.organizationId()))
+                    .map(apiProductDeploymentStateDomainService::computeDeploymentState);
             return Output.single(apiProduct);
         }
 
@@ -53,10 +53,9 @@ public class GetApiProductsUseCase {
             throw new IllegalArgumentException("environmentId must be provided for listing API Products");
         }
 
-        Set<ApiProduct> apiProducts = findAccessibleApiProducts(input)
-            .stream()
-            .filter(input.kindFilter()::matches)
-            .collect(Collectors.toSet());
+        Set<ApiProduct> apiProducts = findAccessibleApiProducts(input).stream()
+                .filter(input.kindFilter()::matches)
+                .collect(Collectors.toSet());
         addPrimaryOwners(apiProducts, input.organizationId());
         apiProductDeploymentStateDomainService.computeDeploymentState(apiProducts);
         return Output.multiple(apiProducts);
@@ -66,7 +65,8 @@ public class GetApiProductsUseCase {
         if (input.isAdmin()) {
             return apiProductQueryService.findByEnvironmentId(input.environmentId());
         }
-        Set<String> allowedIds = apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(input.environmentId(), input.userId());
+        Set<String> allowedIds =
+                apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(input.environmentId(), input.userId());
         if (allowedIds.isEmpty()) {
             return Set.of();
         }
@@ -79,21 +79,20 @@ public class GetApiProductsUseCase {
     }
 
     private void addPrimaryOwners(Set<ApiProduct> apiProducts, String organizationId) {
-        Map<String, PrimaryOwnerEntity> primaryOwnersById = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(
-            organizationId,
-            apiProducts.stream().map(ApiProduct::getId).collect(Collectors.toSet())
-        );
+        Map<String, PrimaryOwnerEntity> primaryOwnersById =
+                apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(
+                        organizationId,
+                        apiProducts.stream().map(ApiProduct::getId).collect(Collectors.toSet()));
         apiProducts.forEach(apiProduct -> apiProduct.setPrimaryOwner(primaryOwnersById.get(apiProduct.getId())));
     }
 
     public record Input(
-        String environmentId,
-        String apiProductId,
-        String organizationId,
-        String userId,
-        boolean isAdmin,
-        ApiProductKindFilter kindFilter
-    ) {
+            String environmentId,
+            String apiProductId,
+            String organizationId,
+            String userId,
+            boolean isAdmin,
+            ApiProductKindFilter kindFilter) {
         public Input {
             kindFilter = kindFilter == null ? ApiProductKindFilter.any() : kindFilter;
         }
@@ -103,12 +102,11 @@ public class GetApiProductsUseCase {
         }
 
         public static Input of(
-            String environmentId,
-            String organizationId,
-            String userId,
-            boolean isAdmin,
-            ApiProductKindFilter kindFilter
-        ) {
+                String environmentId,
+                String organizationId,
+                String userId,
+                boolean isAdmin,
+                ApiProductKindFilter kindFilter) {
             return new Input(environmentId, null, organizationId, userId, isAdmin, kindFilter);
         }
 

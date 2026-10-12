@@ -33,7 +33,7 @@ public class JdbcRepositoryProviderTest {
 
     @Test
     public void shouldReturnManagementAndRateLimitScope() {
-        assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT }, provider.scopes());
+        assertArrayEquals(new Scope[] {Scope.MANAGEMENT, Scope.RATE_LIMIT}, provider.scopes());
     }
 
     @Test

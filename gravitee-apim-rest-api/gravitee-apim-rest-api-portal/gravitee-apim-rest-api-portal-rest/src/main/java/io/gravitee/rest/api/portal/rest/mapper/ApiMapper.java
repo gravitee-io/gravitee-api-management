@@ -46,7 +46,6 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -79,14 +78,16 @@ public class ApiMapper {
     public Api convert(ExecutionContext executionContext, GenericApiEntity api) {
         final Api apiItem = new Api();
         if (api.getDefinitionVersion() != null) {
-            apiItem.setDefinitionVersion(DefinitionVersion.valueOf(api.getDefinitionVersion().name()));
+            apiItem.setDefinitionVersion(
+                    DefinitionVersion.valueOf(api.getDefinitionVersion().name()));
         }
         apiItem.setDescription(api.getDescription());
         apiItem.setType(computeApiType(api));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api);
         if (apiEntrypoints != null) {
-            List<String> entrypoints = apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget).collect(Collectors.toList());
+            List<String> entrypoints =
+                    apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget).collect(Collectors.toList());
             apiItem.setEntrypoints(entrypoints);
         }
         if (apiEntrypoints != null && !apiEntrypoints.isEmpty()) {
@@ -94,7 +95,8 @@ public class ApiMapper {
             apiItem.setListenerType(ListenerType.valueOf(apiListenerType));
         }
 
-        apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED || api.getLifecycleState() == ApiLifecycleState.CREATED);
+        apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED
+                || api.getLifecycleState() == ApiLifecycleState.CREATED);
         apiItem.setRunning(api.getState() == Lifecycle.State.STARTED);
         apiItem.setPublic(api.getVisibility() == Visibility.PUBLIC);
         apiItem.setId(api.getId());
@@ -120,10 +122,11 @@ public class ApiMapper {
         apiItem.setPlans(null);
 
         if (ratingService.isEnabled(executionContext)) {
-            final RatingSummaryEntity ratingSummaryEntity = ratingService.findSummaryByApi(executionContext, api.getId());
+            final RatingSummaryEntity ratingSummaryEntity =
+                    ratingService.findSummaryByApi(executionContext, api.getId());
             RatingSummary ratingSummary = new RatingSummary()
-                .average(ratingSummaryEntity.getAverageRate())
-                .count(BigDecimal.valueOf(ratingSummaryEntity.getNumberOfRatings()));
+                    .average(ratingSummaryEntity.getAverageRate())
+                    .count(BigDecimal.valueOf(ratingSummaryEntity.getNumberOfRatings()));
             apiItem.setRatingSummary(ratingSummary);
         }
 
@@ -138,15 +141,9 @@ public class ApiMapper {
         apiItem.setMcp(computeMcp(api));
 
         boolean isCategoryModeEnabled = this.parameterService.findAsBoolean(
-            executionContext,
-            Key.PORTAL_APIS_CATEGORY_ENABLED,
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext, Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
         if (isCategoryModeEnabled && api.getCategories() != null) {
-            apiItem.setCategories(
-                api
-                    .getCategories()
-                    .stream()
+            apiItem.setCategories(api.getCategories().stream()
                     .filter(categoryId -> {
                         try {
                             categoryService.findNotHiddenById(categoryId, executionContext.getEnvironmentId());
@@ -155,8 +152,7 @@ public class ApiMapper {
                             return false;
                         }
                     })
-                    .collect(Collectors.toList())
-            );
+                    .collect(Collectors.toList()));
         } else {
             apiItem.setCategories(new ArrayList<>());
         }
@@ -190,14 +186,10 @@ public class ApiMapper {
 
     private static Map<String, Object> computeMcp(GenericApiEntity api) {
         if (api instanceof ApiEntity asHttpApiEntity) {
-            Entrypoint mcpEntrypoint = asHttpApiEntity
-                .getListeners()
-                .getFirst()
-                .getEntrypoints()
-                .stream()
-                .filter(e -> Objects.equals(e.getType(), "mcp"))
-                .findFirst()
-                .orElse(null);
+            Entrypoint mcpEntrypoint = asHttpApiEntity.getListeners().getFirst().getEntrypoints().stream()
+                    .filter(e -> Objects.equals(e.getType(), "mcp"))
+                    .findFirst()
+                    .orElse(null);
 
             if (mcpEntrypoint == null) {
                 return null;

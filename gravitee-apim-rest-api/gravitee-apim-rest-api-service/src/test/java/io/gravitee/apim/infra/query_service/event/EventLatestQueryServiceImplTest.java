@@ -58,20 +58,17 @@ class EventLatestQueryServiceImplTest {
         repoEvent.setPayload("payload");
         repoEvent.setProperties(Map.of());
 
-        when(
-            eventLatestRepository.search(
-                any(EventCriteria.class),
-                eq(io.gravitee.repository.management.model.Event.EventProperties.CLUSTER_ID),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(List.of(repoEvent));
+        when(eventLatestRepository.search(
+                        any(EventCriteria.class),
+                        eq(io.gravitee.repository.management.model.Event.EventProperties.CLUSTER_ID),
+                        isNull(),
+                        isNull()))
+                .thenReturn(List.of(repoEvent));
 
         List<Event> result = cut.findAllByTypeAndEnvironments(
-            Set.of(io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER),
-            Set.of("env-1"),
-            Event.EventProperties.CLUSTER_ID
-        );
+                Set.of(io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER),
+                Set.of("env-1"),
+                Event.EventProperties.CLUSTER_ID);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getPayload()).isEqualTo("payload");
@@ -79,35 +76,37 @@ class EventLatestQueryServiceImplTest {
 
     @Test
     void should_return_empty_list_when_no_events() {
-        when(eventLatestRepository.search(any(EventCriteria.class), any(), isNull(), isNull())).thenReturn(List.of());
+        when(eventLatestRepository.search(any(EventCriteria.class), any(), isNull(), isNull()))
+                .thenReturn(List.of());
 
         List<Event> result = cut.findAllByTypeAndEnvironments(
-            Set.of(io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER),
-            Set.of("env-1"),
-            Event.EventProperties.CLUSTER_ID
-        );
+                Set.of(io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER),
+                Set.of("env-1"),
+                Event.EventProperties.CLUSTER_ID);
 
         assertThat(result).isEmpty();
     }
 
     @Test
     void should_pass_correct_criteria_to_repository() {
-        when(eventLatestRepository.search(any(EventCriteria.class), any(), isNull(), isNull())).thenReturn(List.of());
+        when(eventLatestRepository.search(any(EventCriteria.class), any(), isNull(), isNull()))
+                .thenReturn(List.of());
 
         var criteriaCaptor = ArgumentCaptor.forClass(EventCriteria.class);
 
         cut.findAllByTypeAndEnvironments(
-            Set.of(io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER, io.gravitee.rest.api.model.EventType.UNDEPLOY_CLUSTER),
-            Set.of("env-1", "env-2"),
-            Event.EventProperties.CLUSTER_ID
-        );
+                Set.of(
+                        io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER,
+                        io.gravitee.rest.api.model.EventType.UNDEPLOY_CLUSTER),
+                Set.of("env-1", "env-2"),
+                Event.EventProperties.CLUSTER_ID);
 
-        org.mockito.Mockito.verify(eventLatestRepository).search(
-            criteriaCaptor.capture(),
-            eq(io.gravitee.repository.management.model.Event.EventProperties.CLUSTER_ID),
-            isNull(),
-            isNull()
-        );
+        org.mockito.Mockito.verify(eventLatestRepository)
+                .search(
+                        criteriaCaptor.capture(),
+                        eq(io.gravitee.repository.management.model.Event.EventProperties.CLUSTER_ID),
+                        isNull(),
+                        isNull());
 
         EventCriteria captured = criteriaCaptor.getValue();
         assertThat(captured.getTypes()).containsExactlyInAnyOrder(EventType.DEPLOY_CLUSTER, EventType.UNDEPLOY_CLUSTER);
@@ -116,16 +115,14 @@ class EventLatestQueryServiceImplTest {
 
     @Test
     void should_throw_technical_exception_on_error() {
-        when(eventLatestRepository.search(any(EventCriteria.class), any(), isNull(), isNull())).thenThrow(new RuntimeException("DB error"));
+        when(eventLatestRepository.search(any(EventCriteria.class), any(), isNull(), isNull()))
+                .thenThrow(new RuntimeException("DB error"));
 
-        assertThatThrownBy(() ->
-            cut.findAllByTypeAndEnvironments(
-                Set.of(io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER),
-                Set.of("env-1"),
-                Event.EventProperties.CLUSTER_ID
-            )
-        )
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining("DB error");
+        assertThatThrownBy(() -> cut.findAllByTypeAndEnvironments(
+                        Set.of(io.gravitee.rest.api.model.EventType.DEPLOY_CLUSTER),
+                        Set.of("env-1"),
+                        Event.EventProperties.CLUSTER_ID))
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining("DB error");
     }
 }

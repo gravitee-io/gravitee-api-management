@@ -44,9 +44,8 @@ import org.springframework.stereotype.Repository;
 
 @CustomLog
 @Repository
-public class JdbcSharedPolicyGroupHistoryRepository
-    extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupHistoryRepository {
+public class JdbcSharedPolicyGroupHistoryRepository extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
+        implements SharedPolicyGroupHistoryRepository {
 
     JdbcSharedPolicyGroupHistoryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "sharedpolicygrouphistories");
@@ -55,22 +54,22 @@ public class JdbcSharedPolicyGroupHistoryRepository
     @Override
     protected JdbcObjectMapper<SharedPolicyGroup> buildOrm() {
         return JdbcObjectMapper.builder(SharedPolicyGroup.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("cross_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("prerequisite_message", Types.NVARCHAR, String.class)
-            .addColumn("version", Types.INTEGER, Integer.class)
-            .addColumn("api_type", Types.NVARCHAR, ApiType.class)
-            .addColumn("phase", Types.NVARCHAR, SharedPolicyGroup.FlowPhase.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("lifecycle_state", Types.NVARCHAR, SharedPolicyGroupLifecycleState.class)
-            .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("cross_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("prerequisite_message", Types.NVARCHAR, String.class)
+                .addColumn("version", Types.INTEGER, Integer.class)
+                .addColumn("api_type", Types.NVARCHAR, ApiType.class)
+                .addColumn("phase", Types.NVARCHAR, SharedPolicyGroup.FlowPhase.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("lifecycle_state", Types.NVARCHAR, SharedPolicyGroupLifecycleState.class)
+                .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -83,7 +82,8 @@ public class JdbcSharedPolicyGroupHistoryRepository
         log.debug("JdbcSharedPolicyGroupHistoryRepository<{}>.create({})", getOrm().getTableName(), item);
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
-            return getLatestBySharedPolicyGroupId(item.getEnvironmentId(), item.getId()).orElse(null);
+            return getLatestBySharedPolicyGroupId(item.getEnvironmentId(), item.getId())
+                    .orElse(null);
         } catch (final Exception ex) {
             log.error("Failed to create SharedPolicyGroup item:", ex);
             throw new TechnicalException("Failed to create SharedPolicyGroup item", ex);
@@ -106,8 +106,8 @@ public class JdbcSharedPolicyGroupHistoryRepository
     }
 
     @Override
-    public Page<SharedPolicyGroup> search(SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+    public Page<SharedPolicyGroup> search(
+            SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
@@ -130,32 +130,31 @@ public class JdbcSharedPolicyGroupHistoryRepository
             }
 
             var total = jdbcTemplate.queryForObject(
-                "select count(*) from " + this.tableName + " WHERE " + andWhere,
-                Long.class,
-                andWhereParams.toArray()
-            );
+                    "select count(*) from " + this.tableName + " WHERE " + andWhere,
+                    Long.class,
+                    andWhereParams.toArray());
 
             if (total == null || total == 0) {
                 return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
             }
 
-            sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
+            sortable = sortable == null
+                    ? new SortableBuilder().field("created_at").setAsc(true).build()
+                    : sortable;
             final var sortOrder = sortable.order() == Order.ASC ? "ASC" : "DESC";
             final var sortField = toSnakeCase(sortable.field());
 
             var result = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " WHERE " +
-                    andWhere +
-                    " ORDER BY " +
-                    sortField +
-                    " " +
-                    sortOrder +
-                    " " +
-                    createPagingClause(pageable.pageSize(), pageable.from()),
-                getOrm().getRowMapper(),
-                andWhereParams.toArray()
-            );
+                    getOrm().getSelectAllSql() + " WHERE "
+                            + andWhere
+                            + " ORDER BY "
+                            + sortField
+                            + " "
+                            + sortOrder
+                            + " "
+                            + createPagingClause(pageable.pageSize(), pageable.from()),
+                    getOrm().getRowMapper(),
+                    andWhereParams.toArray());
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
@@ -165,15 +164,15 @@ public class JdbcSharedPolicyGroupHistoryRepository
     }
 
     @Override
-    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
+    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable)
+            throws TechnicalException {
         try {
             Objects.requireNonNull(pageable, "Pageable must not be null");
             Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
             log.debug(
-                "JdbcSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})",
-                environmentId,
-                pageable.toString()
-            );
+                    "JdbcSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})",
+                    environmentId,
+                    pageable.toString());
             StringJoiner andWhere = new StringJoiner(" AND ");
             List<Object> andWhereParams = new ArrayList<>();
 
@@ -181,33 +180,32 @@ public class JdbcSharedPolicyGroupHistoryRepository
             andWhereParams.add(environmentId);
 
             var totalResult = jdbcTemplate.queryForList(
-                "select count(DISTINCT(id)) as total from " + this.tableName + " WHERE " + andWhere + "",
-                andWhereParams.toArray()
-            );
-            long total = !totalResult.isEmpty() ? Long.parseLong(totalResult.get(0).get("total").toString()) : 0;
+                    "select count(DISTINCT(id)) as total from " + this.tableName + " WHERE " + andWhere + "",
+                    andWhereParams.toArray());
+            long total = !totalResult.isEmpty()
+                    ? Long.parseLong(totalResult.get(0).get("total").toString())
+                    : 0;
             if (total == 0) {
                 return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
             }
 
             var result = jdbcTemplate.query(
-                "SELECT t1.* " +
-                    "FROM " +
-                    this.tableName +
-                    " t1 " +
-                    "JOIN ( " +
-                    "    SELECT id, MAX(updated_at) as max_updated_at " +
-                    "    FROM " +
-                    this.tableName +
-                    " " +
-                    "    WHERE " +
-                    andWhere +
-                    "    GROUP BY id " +
-                    ") t2 ON t1.id = t2.id AND t1.updated_at = t2.max_updated_at" +
-                    " ORDER BY t1.name ASC " +
-                    createPagingClause(pageable.pageSize(), pageable.from()),
-                getOrm().getRowMapper(),
-                andWhereParams.toArray()
-            );
+                    "SELECT t1.* " + "FROM "
+                            + this.tableName
+                            + " t1 "
+                            + "JOIN ( "
+                            + "    SELECT id, MAX(updated_at) as max_updated_at "
+                            + "    FROM "
+                            + this.tableName
+                            + " "
+                            + "    WHERE "
+                            + andWhere
+                            + "    GROUP BY id "
+                            + ") t2 ON t1.id = t2.id AND t1.updated_at = t2.max_updated_at"
+                            + " ORDER BY t1.name ASC "
+                            + createPagingClause(pageable.pageSize(), pageable.from()),
+                    getOrm().getRowMapper(),
+                    andWhereParams.toArray());
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
@@ -218,10 +216,13 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
     @Override
     public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
-        throws TechnicalException {
+            throws TechnicalException {
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
         Objects.requireNonNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
-        log.debug("JdbcSharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId({}, {})", environmentId, sharedPolicyGroupId);
+        log.debug(
+                "JdbcSharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId({}, {})",
+                environmentId,
+                sharedPolicyGroupId);
 
         try {
             StringJoiner andWhere = new StringJoiner(" AND ");
@@ -233,10 +234,10 @@ public class JdbcSharedPolicyGroupHistoryRepository
             andWhereParams.add(sharedPolicyGroupId);
 
             var result = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE " + andWhere + " ORDER BY updated_at DESC " + createPagingClause(1, 0),
-                getOrm().getRowMapper(),
-                andWhereParams.toArray()
-            );
+                    getOrm().getSelectAllSql() + " WHERE " + andWhere + " ORDER BY updated_at DESC "
+                            + createPagingClause(1, 0),
+                    getOrm().getRowMapper(),
+                    andWhereParams.toArray());
 
             return Optional.ofNullable(result.isEmpty() ? null : result.get(0));
         } catch (Exception ex) {
@@ -251,10 +252,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " WHERE environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " WHERE environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);

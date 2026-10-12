@@ -45,13 +45,7 @@ class AnalyticsEngineRoutingConfigurationTest {
 
     private static AnalyticsQueryContext context(String apiId) {
         return new AnalyticsQueryContext(
-            mock(AuditInfo.class),
-            new ExecutionContext("org", "env"),
-            Set.of(apiId),
-            Map.of(),
-            Map.of(),
-            Map.of()
-        );
+                mock(AuditInfo.class), new ExecutionContext("org", "env"), Set.of(apiId), Map.of(), Map.of(), Map.of());
     }
 
     // Mirror the two REST configs: each contributes its loader and imports the routing config.
@@ -81,19 +75,24 @@ class AnalyticsEngineRoutingConfigurationTest {
 
     @Test
     void should_expose_a_single_resolver_bean_when_both_surfaces_are_loaded_together() {
-        try (var ctx = new AnnotationConfigApplicationContext(ManagementSurfaceConfig.class, PortalSurfaceConfig.class)) {
-            assertThat(ctx.getBeanNamesForType(AnalyticsQueryContextLoaderResolver.class)).hasSize(1);
+        try (var ctx =
+                new AnnotationConfigApplicationContext(ManagementSurfaceConfig.class, PortalSurfaceConfig.class)) {
+            assertThat(ctx.getBeanNamesForType(AnalyticsQueryContextLoaderResolver.class))
+                    .hasSize(1);
         }
     }
 
     @Test
     void should_route_each_scope_to_the_matching_surface_loader() {
-        try (var ctx = new AnnotationConfigApplicationContext(ManagementSurfaceConfig.class, PortalSurfaceConfig.class)) {
+        try (var ctx =
+                new AnnotationConfigApplicationContext(ManagementSurfaceConfig.class, PortalSurfaceConfig.class)) {
             var resolver = ctx.getBean(AnalyticsQueryContextLoaderResolver.class);
             var auditInfo = mock(AuditInfo.class);
 
-            assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
-            assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
+            assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds())
+                    .containsExactly("mgmt-api");
+            assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds())
+                    .containsExactly("portal-api");
         }
     }
 }

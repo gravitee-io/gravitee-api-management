@@ -53,13 +53,11 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
 
     @Override
     public Completable pre(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
-        return super
-            .pre(id, ctx, executionPhase)
-            .doOnComplete(() -> {
-                if (isVerboseEnabled(ctx)) {
-                    addPreExecutionEvent(id, ctx, executionPhase);
-                }
-            });
+        return super.pre(id, ctx, executionPhase).doOnComplete(() -> {
+            if (isVerboseEnabled(ctx)) {
+                addPreExecutionEvent(id, ctx, executionPhase);
+            }
+        });
     }
 
     @Override
@@ -100,7 +98,8 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
     }
 
     @Override
-    protected Map<String, String> spanAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+    protected Map<String, String> spanAttributes(
+            final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Map<String, String> spanAttributes = super.spanAttributes(id, ctx, executionPhase);
         spanAttributes.put(SPAN_POLICY_ATTR, id);
         if (isVerboseEnabled(ctx)) {
@@ -117,7 +116,8 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
         return verbose != null && verbose;
     }
 
-    private void addPreExecutionEvent(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+    private void addPreExecutionEvent(
+            final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Span span = getSpan(ctx, id);
         if (span != null) {
             Map<String, Object> eventAttributes = captureEventAttributes(ctx, executionPhase);
@@ -125,7 +125,8 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
         }
     }
 
-    private void addPostExecutionEvent(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+    private void addPostExecutionEvent(
+            final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Span span = getSpan(ctx, id);
         if (span != null) {
             Map<String, Object> eventAttributes = captureEventAttributes(ctx, executionPhase);
@@ -133,14 +134,20 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
         }
     }
 
-    private Map<String, Object> captureEventAttributes(final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+    private Map<String, Object> captureEventAttributes(
+            final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Map<String, Object> eventAttributes = new LinkedHashMap<>();
 
-        if (executionPhase == ExecutionPhase.REQUEST && ctx.request() != null && ctx.request().headers() != null) {
+        if (executionPhase == ExecutionPhase.REQUEST
+                && ctx.request() != null
+                && ctx.request().headers() != null) {
             Map<String, String> headers = captureHeaders(ctx.request().headers().toSingleValueMap());
             headers.forEach((key, value) -> eventAttributes.put(ATTR_HTTP_REQUEST_HEADER_PREFIX + key, value));
-        } else if (executionPhase == ExecutionPhase.RESPONSE && ctx.response() != null && ctx.response().headers() != null) {
-            Map<String, String> headers = captureHeaders(ctx.response().headers().toSingleValueMap());
+        } else if (executionPhase == ExecutionPhase.RESPONSE
+                && ctx.response() != null
+                && ctx.response().headers() != null) {
+            Map<String, String> headers =
+                    captureHeaders(ctx.response().headers().toSingleValueMap());
             headers.forEach((key, value) -> eventAttributes.put(ATTR_HTTP_RESPONSE_HEADER_PREFIX + key, value));
         }
 

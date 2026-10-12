@@ -48,19 +48,14 @@ public class InitializeSharedPolicyGroupUpgrader implements Upgrader {
 
     private boolean applyUpgrade() {
         organizationService
-            .findAll()
-            .forEach(organization ->
-                environmentService
-                    .findByOrganization(organization.getId())
-                    .forEach(environment ->
-                        initializeSharedPolicyGroupUseCase.execute(
-                            InitializeSharedPolicyGroupUseCase.Input.builder()
-                                .organizationId(organization.getId())
-                                .environmentId(environment.getId())
-                                .build()
-                        )
-                    )
-            );
+                .findAll()
+                .forEach(organization -> environmentService
+                        .findByOrganization(organization.getId())
+                        .forEach(environment -> initializeSharedPolicyGroupUseCase.execute(
+                                InitializeSharedPolicyGroupUseCase.Input.builder()
+                                        .organizationId(organization.getId())
+                                        .environmentId(environment.getId())
+                                        .build())));
         return true;
     }
 

@@ -28,7 +28,7 @@ import java.util.Collections;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@TemplateVariable(scopes = { TemplateVariableScope.API })
+@TemplateVariable(scopes = {TemplateVariableScope.API})
 public class NodeTemplateVariableProvider implements TemplateVariableProvider {
 
     private static final String TEMPLATE_VARIABLE_KEY = "node";

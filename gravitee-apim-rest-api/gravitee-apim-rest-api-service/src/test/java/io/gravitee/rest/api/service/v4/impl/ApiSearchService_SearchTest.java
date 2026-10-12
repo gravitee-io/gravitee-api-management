@@ -132,40 +132,36 @@ public class ApiSearchService_SearchTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
     public void setUp() {
         ApiMapper apiMapper = new ApiMapper(
-            new ObjectMapper(),
-            planService,
-            flowService,
-            parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
-        );
+                new ObjectMapper(),
+                planService,
+                flowService,
+                parameterService,
+                workflowService,
+                new CategoryMapper(categoryService));
         apiSearchService = new ApiSearchServiceImpl(
-            apiRepository,
-            apiMapper,
-            new GenericApiMapper(apiMapper, mock(ApiConverter.class)),
-            primaryOwnerService,
-            categoryService,
-            searchEngineService,
-            apiAuthorizationService,
-            integrationRepository,
-            apiMetadataQueryService
-        );
+                apiRepository,
+                apiMapper,
+                new GenericApiMapper(apiMapper, mock(ApiConverter.class)),
+                primaryOwnerService,
+                categoryService,
+                searchEngineService,
+                apiAuthorizationService,
+                integrationRepository,
+                apiMetadataQueryService);
     }
 
     @Test
@@ -177,21 +173,19 @@ public class ApiSearchService_SearchTest {
 
         var filters = Map.<String, Object>of("api", ids);
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture())).thenReturn(
-            new SearchResult(List.of())
-        );
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture()))
+                .thenReturn(new SearchResult(List.of()));
 
         final Page<GenericApiEntity> apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            eq("UnitTests"),
-            eq(true),
-            apiEntityQueryBuilder.setFilters(filters),
-            new PageableImpl(1, 10),
-            false,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                eq("UnitTests"),
+                eq(true),
+                apiEntityQueryBuilder.setFilters(filters),
+                new PageableImpl(1, 10),
+                false,
+                true,
+                null,
+                null);
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent()).isEmpty();
@@ -215,9 +209,10 @@ public class ApiSearchService_SearchTest {
 
         var filters = Map.<String, Object>of("api", ids);
 
-        when(
-            searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build()))
-        ).thenReturn(new SearchResult(ids));
+        when(searchEngineService.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(apiEntityQueryBuilder.setFilters(filters).build())))
+                .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
         apiEntity1.setId("id-1");
@@ -227,19 +222,19 @@ public class ApiSearchService_SearchTest {
         apiEntity2.setId("id-2");
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
-        when(apiRepository.search(apiCriteriaCaptor.capture(), apiFieldFilterCaptor.capture())).thenReturn(List.of());
+        when(apiRepository.search(apiCriteriaCaptor.capture(), apiFieldFilterCaptor.capture()))
+                .thenReturn(List.of());
 
         var apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            true,
-            apiEntityQueryBuilder.setFilters(filters),
-            new PageableImpl(1, 10),
-            false,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                true,
+                apiEntityQueryBuilder.setFilters(filters),
+                new PageableImpl(1, 10),
+                false,
+                true,
+                null,
+                null);
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(0);
@@ -262,9 +257,10 @@ public class ApiSearchService_SearchTest {
 
         var filters = Map.of("api", ids, "definition_version", "4.0.0");
 
-        when(
-            searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build()))
-        ).thenReturn(new SearchResult(ids));
+        when(searchEngineService.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(apiEntityQueryBuilder.setFilters(filters).build())))
+                .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
         apiEntity1.setId("id-3");
@@ -284,21 +280,19 @@ public class ApiSearchService_SearchTest {
         primaryOwnerEntity.setId("id-1");
         primaryOwnerEntity.setDisplayName("Primary Owner 1");
 
-        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList())).thenReturn(
-            Map.of("id-3", primaryOwnerEntity, "id-4", primaryOwnerEntity)
-        );
+        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList()))
+                .thenReturn(Map.of("id-3", primaryOwnerEntity, "id-4", primaryOwnerEntity));
 
         var apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            true,
-            apiEntityQueryBuilder.setFilters(filters),
-            new PageableImpl(2, 2),
-            false,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                true,
+                apiEntityQueryBuilder.setFilters(filters),
+                new PageableImpl(2, 2),
+                false,
+                true,
+                null,
+                null);
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent()).hasSize(2);
@@ -306,12 +300,10 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getTotalElements()).isEqualTo(6);
         assertThat(apis.getPageNumber()).isEqualTo(2);
         assertThat(apis.getPageElements()).isEqualTo(2);
-        assertThat(
-            apis
-                .getContent()
-                .stream()
-                .allMatch(api -> null != api.getPrimaryOwner() && api.getPrimaryOwner().getId().equals(primaryOwnerEntity.getId()))
-        ).isTrue();
+        assertThat(apis.getContent().stream()
+                        .allMatch(api -> null != api.getPrimaryOwner()
+                                && api.getPrimaryOwner().getId().equals(primaryOwnerEntity.getId())))
+                .isTrue();
 
         verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         verify(apiRepository, times(1)).search(any(), any());
@@ -343,23 +335,22 @@ public class ApiSearchService_SearchTest {
         apiEntity2.setType(ApiType.PROXY);
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
-        when(
-            apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true))
-        ).thenReturn(Set.of("id-1"));
+        when(apiAuthorizationService.findApiIdsByUserId(
+                        eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
+                .thenReturn(Set.of("id-1"));
 
         when(apiRepository.search(any(), any())).thenReturn(List.of(apiEntity1));
 
         final Page<GenericApiEntity> apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            false,
-            apiEntityQueryBuilder.setFilters(filters),
-            new PageableImpl(1, 10),
-            false,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                false,
+                apiEntityQueryBuilder.setFilters(filters),
+                new PageableImpl(1, 10),
+                false,
+                true,
+                null,
+                null);
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent()).hasSize(1);
@@ -380,9 +371,10 @@ public class ApiSearchService_SearchTest {
 
         var filters = Map.<String, Object>of("api", ids);
 
-        when(
-            searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build()))
-        ).thenReturn(new SearchResult(ids));
+        when(searchEngineService.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(apiEntityQueryBuilder.setFilters(filters).build())))
+                .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
         apiEntity1.setId("id-1");
@@ -392,21 +384,20 @@ public class ApiSearchService_SearchTest {
         apiEntity2.setId("id-2");
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
-        when(
-            apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true))
-        ).thenReturn(Set.of());
+        when(apiAuthorizationService.findApiIdsByUserId(
+                        eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
+                .thenReturn(Set.of());
 
         final Page<GenericApiEntity> apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            false,
-            apiEntityQueryBuilder.setFilters(filters),
-            new PageableImpl(1, 10),
-            false,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                false,
+                apiEntityQueryBuilder.setFilters(filters),
+                new PageableImpl(1, 10),
+                false,
+                true,
+                null,
+                null);
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent()).isEmpty();
@@ -427,9 +418,10 @@ public class ApiSearchService_SearchTest {
 
         var filters = Map.<String, Object>of("api", ids);
 
-        when(
-            searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build()))
-        ).thenReturn(new SearchResult(ids));
+        when(searchEngineService.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(apiEntityQueryBuilder.setFilters(filters).build())))
+                .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
         apiEntity1.setId("id-1");
@@ -439,21 +431,20 @@ public class ApiSearchService_SearchTest {
         apiEntity2.setId("id-2");
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
-        when(
-            apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true))
-        ).thenReturn(Set.of("id-3"));
+        when(apiAuthorizationService.findApiIdsByUserId(
+                        eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
+                .thenReturn(Set.of("id-3"));
 
         final Page<GenericApiEntity> apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            false,
-            apiEntityQueryBuilder.setFilters(filters),
-            new PageableImpl(1, 10),
-            false,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                false,
+                apiEntityQueryBuilder.setFilters(filters),
+                new PageableImpl(1, 10),
+                false,
+                true,
+                null,
+                null);
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent()).isEmpty();
@@ -472,9 +463,8 @@ public class ApiSearchService_SearchTest {
 
         var ids = List.of("id-1", "id-2");
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
-            new SearchResult(ids)
-        );
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
+                .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
         apiEntity1.setId("id-1");
@@ -494,21 +484,19 @@ public class ApiSearchService_SearchTest {
         primaryOwnerEntity.setId("id-1");
         primaryOwnerEntity.setDisplayName("Primary Owner 1");
 
-        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList())).thenReturn(
-            Map.of("id-1", primaryOwnerEntity, "id-2", primaryOwnerEntity)
-        );
+        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList()))
+                .thenReturn(Map.of("id-1", primaryOwnerEntity, "id-2", primaryOwnerEntity));
 
         var apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            true,
-            apiEntityQueryBuilder,
-            new PageableImpl(1, 2),
-            true,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                true,
+                apiEntityQueryBuilder,
+                new PageableImpl(1, 2),
+                true,
+                true,
+                null,
+                null);
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent()).hasSize(2);
@@ -516,12 +504,10 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getTotalElements()).isEqualTo(2);
         assertThat(apis.getPageNumber()).isEqualTo(1);
         assertThat(apis.getPageElements()).isEqualTo(2);
-        assertThat(
-            apis
-                .getContent()
-                .stream()
-                .allMatch(api -> null != api.getPrimaryOwner() && api.getPrimaryOwner().getId().equals(primaryOwnerEntity.getId()))
-        ).isTrue();
+        assertThat(apis.getContent().stream()
+                        .allMatch(api -> null != api.getPrimaryOwner()
+                                && api.getPrimaryOwner().getId().equals(primaryOwnerEntity.getId())))
+                .isTrue();
 
         verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         verify(apiRepository, times(1)).search(any(), any());
@@ -554,30 +540,36 @@ public class ApiSearchService_SearchTest {
 
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setId("owner-1");
-        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList())).thenReturn(
-            Map.of("id-1", primaryOwnerEntity, "id-2", primaryOwnerEntity)
-        );
+        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList()))
+                .thenReturn(Map.of("id-1", primaryOwnerEntity, "id-2", primaryOwnerEntity));
 
-        when(apiMetadataQueryService.findApiMetadataForApis(any(), any())).thenReturn(
-            Map.of(
-                "id-1",
-                Map.of("team-contact", ApiMetadata.builder().key("team-contact").value("team@gravitee.io").build()),
-                "id-2",
-                Map.of("team-contact", ApiMetadata.builder().key("team-contact").value("other@gravitee.io").build())
-            )
-        );
+        when(apiMetadataQueryService.findApiMetadataForApis(any(), any()))
+                .thenReturn(Map.of(
+                        "id-1",
+                        Map.of(
+                                "team-contact",
+                                ApiMetadata.builder()
+                                        .key("team-contact")
+                                        .value("team@gravitee.io")
+                                        .build()),
+                        "id-2",
+                        Map.of(
+                                "team-contact",
+                                ApiMetadata.builder()
+                                        .key("team-contact")
+                                        .value("other@gravitee.io")
+                                        .build())));
 
         var apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            true,
-            apiEntityQueryBuilder,
-            new PageableImpl(1, 2),
-            false,
-            true,
-            Set.of(ApiService.EXPAND_METADATA),
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                true,
+                apiEntityQueryBuilder,
+                new PageableImpl(1, 2),
+                false,
+                true,
+                Set.of(ApiService.EXPAND_METADATA),
+                null);
 
         assertThat(apis.getContent()).hasSize(2);
         assertThat(apis.getContent().get(0).getMetadata()).containsKey("team-contact");
@@ -599,19 +591,19 @@ public class ApiSearchService_SearchTest {
         repoApi.setLifecycleState(LifecycleState.STARTED);
 
         when(apiRepository.search(any(), any())).thenReturn(List.of(repoApi));
-        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList())).thenReturn(Map.of());
+        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList()))
+                .thenReturn(Map.of());
 
         var apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            true,
-            apiEntityQueryBuilder,
-            new PageableImpl(1, 1),
-            false,
-            true,
-            null,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_ID,
+                true,
+                apiEntityQueryBuilder,
+                new PageableImpl(1, 1),
+                false,
+                true,
+                null,
+                null);
 
         assertThat(apis.getContent()).hasSize(1);
         assertThat(apis.getContent().get(0).getMetadata()).isNullOrEmpty();

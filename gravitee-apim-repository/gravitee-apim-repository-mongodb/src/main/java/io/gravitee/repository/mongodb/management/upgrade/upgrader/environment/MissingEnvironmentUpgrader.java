@@ -52,22 +52,18 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
         var projection = Projections.fields(Projections.include("_id", "environmentId"));
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
         this.getCollection("apis")
-            .find()
-            .projection(projection)
-            .forEach(api ->
-                bulkActions.add(
-                    new UpdateManyModel<>(
+                .find()
+                .projection(projection)
+                .forEach(api -> bulkActions.add(new UpdateManyModel<>(
                         Filters.and(Filters.eq("api", api.getString("_id")), Filters.exists("environmentId", false)),
-                        Updates.set("environmentId", api.getString("environmentId"))
-                    )
-                )
-            );
+                        Updates.set("environmentId", api.getString("environmentId")))));
 
         if (!bulkActions.isEmpty()) {
             // This upgrade is only done on data created before 3.17.0 as ApiKey#api as been deprecated
             upgradeStatus.add(this.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());
             upgradeStatus.add(this.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged());
-            upgradeStatus.add(this.getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged());
+            upgradeStatus.add(
+                    this.getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged());
         }
     }
 
@@ -75,16 +71,13 @@ public class MissingEnvironmentUpgrader extends MongoUpgrader {
         var projection = Projections.fields(Projections.include("_id", "environmentId"));
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
         this.getCollection("subscriptions")
-            .find()
-            .projection(projection)
-            .forEach(subscription ->
-                bulkActions.add(
-                    new UpdateManyModel<>(
-                        Filters.and(Filters.in("subscriptions", subscription.getString("_id")), Filters.exists("environmentId", false)),
-                        Updates.set("environmentId", subscription.getString("environmentId"))
-                    )
-                )
-            );
+                .find()
+                .projection(projection)
+                .forEach(subscription -> bulkActions.add(new UpdateManyModel<>(
+                        Filters.and(
+                                Filters.in("subscriptions", subscription.getString("_id")),
+                                Filters.exists("environmentId", false)),
+                        Updates.set("environmentId", subscription.getString("environmentId")))));
 
         if (!bulkActions.isEmpty()) {
             upgradeStatus.add(this.getCollection("keys").bulkWrite(bulkActions).wasAcknowledged());

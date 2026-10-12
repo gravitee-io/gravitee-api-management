@@ -29,10 +29,9 @@ public class ListConsumerGroupsUseCase {
     private final ObjectMapper objectMapper;
 
     public ListConsumerGroupsUseCase(
-        ClusterCrudService clusterCrudService,
-        KafkaClusterDomainService kafkaClusterDomainService,
-        ObjectMapper objectMapper
-    ) {
+            ClusterCrudService clusterCrudService,
+            KafkaClusterDomainService kafkaClusterDomainService,
+            ObjectMapper objectMapper) {
         this.clusterCrudService = clusterCrudService;
         this.kafkaClusterDomainService = kafkaClusterDomainService;
         this.objectMapper = objectMapper;
@@ -42,27 +41,25 @@ public class ListConsumerGroupsUseCase {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
         var config = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
         var consumerGroupsPage = kafkaClusterDomainService.listConsumerGroups(
-            config,
-            input.nameFilter(),
-            input.topicFilter(),
-            input.page(),
-            input.perPage(),
-            input.sortBy(),
-            input.sortOrder()
-        );
+                config,
+                input.nameFilter(),
+                input.topicFilter(),
+                input.page(),
+                input.perPage(),
+                input.sortBy(),
+                input.sortOrder());
         return new Output(consumerGroupsPage);
     }
 
     public record Input(
-        String clusterId,
-        String environmentId,
-        String nameFilter,
-        String topicFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    ) {}
+            String clusterId,
+            String environmentId,
+            String nameFilter,
+            String topicFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder) {}
 
     public record Output(ConsumerGroupsPage consumerGroupsPage) {}
 }

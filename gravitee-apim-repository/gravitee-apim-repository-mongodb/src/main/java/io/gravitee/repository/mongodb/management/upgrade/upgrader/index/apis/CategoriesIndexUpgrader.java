@@ -28,9 +28,9 @@ public class CategoriesIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("c1")
-            .key("categories", ascending())
-            .build();
+                .collection("apis")
+                .name("c1")
+                .key("categories", ascending())
+                .build();
     }
 }

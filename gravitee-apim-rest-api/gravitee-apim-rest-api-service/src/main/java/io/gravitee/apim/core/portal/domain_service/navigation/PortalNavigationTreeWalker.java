@@ -33,7 +33,8 @@ import java.util.stream.Collectors;
 public final class PortalNavigationTreeWalker {
 
     private static final NavigationPath ROOT = new NavigationPath("", null);
-    private static final Comparator<PortalNavigationItem> BY_ORDER = Comparator.comparingInt(PortalNavigationItem::getOrder);
+    private static final Comparator<PortalNavigationItem> BY_ORDER =
+            Comparator.comparingInt(PortalNavigationItem::getOrder);
 
     private PortalNavigationTreeWalker() {}
 
@@ -42,45 +43,44 @@ public final class PortalNavigationTreeWalker {
     }
 
     public static void walkFrom(
-        List<PortalNavigationItem> items,
-        @Nullable PortalNavigationItemId rootId,
-        PortalNavigationVisitor visitor
-    ) {
+            List<PortalNavigationItem> items,
+            @Nullable PortalNavigationItemId rootId,
+            PortalNavigationVisitor visitor) {
         final var childrenByParent = childrenByParent(items);
-        final List<PortalNavigationItem> startingNodes = rootId == null
-            ? topLevelElements(items)
-            : childrenByParent.getOrDefault(rootId, List.of());
+        final List<PortalNavigationItem> startingNodes =
+                rootId == null ? topLevelElements(items) : childrenByParent.getOrDefault(rootId, List.of());
         startingNodes.forEach(node -> traverse(node, ROOT, childrenByParent, visitor));
     }
 
-    private static Map<PortalNavigationItemId, List<PortalNavigationItem>> childrenByParent(List<PortalNavigationItem> items) {
-        return items
-            .stream()
-            .filter(i -> i.getParentId() != null)
-            .sorted(BY_ORDER)
-            .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
+    private static Map<PortalNavigationItemId, List<PortalNavigationItem>> childrenByParent(
+            List<PortalNavigationItem> items) {
+        return items.stream()
+                .filter(i -> i.getParentId() != null)
+                .sorted(BY_ORDER)
+                .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
     }
 
     private static List<PortalNavigationItem> topLevelElements(List<PortalNavigationItem> items) {
-        return items
-            .stream()
-            .filter(i -> i.getParentId() == null)
-            .sorted(BY_ORDER)
-            .toList();
+        return items.stream()
+                .filter(i -> i.getParentId() == null)
+                .sorted(BY_ORDER)
+                .toList();
     }
 
     private static void traverse(
-        PortalNavigationItem node,
-        NavigationPath parentPath,
-        Map<PortalNavigationItemId, List<PortalNavigationItem>> childrenByParent,
-        PortalNavigationVisitor visitor
-    ) {
+            PortalNavigationItem node,
+            NavigationPath parentPath,
+            Map<PortalNavigationItemId, List<PortalNavigationItem>> childrenByParent,
+            PortalNavigationVisitor visitor) {
         dispatch(node, parentPath, visitor);
         final var nodePath = parentPath.descend(node.getEffectiveSegment());
-        childrenByParent.getOrDefault(node.getId(), List.of()).forEach(child -> traverse(child, nodePath, childrenByParent, visitor));
+        childrenByParent
+                .getOrDefault(node.getId(), List.of())
+                .forEach(child -> traverse(child, nodePath, childrenByParent, visitor));
     }
 
-    private static void dispatch(PortalNavigationItem node, NavigationPath parentPath, PortalNavigationVisitor visitor) {
+    private static void dispatch(
+            PortalNavigationItem node, NavigationPath parentPath, PortalNavigationVisitor visitor) {
         switch (node) {
             case PortalNavigationFolder f -> visitor.visitFolder(f, parentPath);
             case PortalNavigationPage p -> visitor.visitPage(p, parentPath);

@@ -34,7 +34,7 @@ public class RedisRepositoryProviderTest {
 
     @Test
     public void shouldReturnCacheScope() {
-        assertArrayEquals(new Scope[] { Scope.RATE_LIMIT, Scope.DISTRIBUTED_SYNC }, provider.scopes());
+        assertArrayEquals(new Scope[] {Scope.RATE_LIMIT, Scope.DISTRIBUTED_SYNC}, provider.scopes());
     }
 
     @Test

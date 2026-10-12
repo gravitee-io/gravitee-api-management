@@ -40,7 +40,9 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void shouldFindByNodeIdAndType() throws InterruptedException {
-        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("nodeId1", Monitoring.NODE_INFOS).test();
+        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository
+                .findByNodeIdAndType("nodeId1", Monitoring.NODE_INFOS)
+                .test();
 
         awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
@@ -50,7 +52,9 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void shouldFindByUnknownNodeId() throws InterruptedException {
-        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("unknown", Monitoring.NODE_INFOS).test();
+        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository
+                .findByNodeIdAndType("unknown", Monitoring.NODE_INFOS)
+                .test();
 
         awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
@@ -61,8 +65,8 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldFindByTypeAndTimeFrame() throws InterruptedException {
         final TestSubscriber<Monitoring> testObserver = nodeMonitoringRepository
-            .findByTypeAndTimeFrame(Monitoring.HEALTH_CHECK, 1617753600000L, 1617926400000L)
-            .test();
+                .findByTypeAndTimeFrame(Monitoring.HEALTH_CHECK, 1617753600000L, 1617926400000L)
+                .test();
 
         testObserver.await(15, TimeUnit.SECONDS);
         testObserver.assertComplete();
@@ -81,12 +85,14 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
         monitoring.setType(Monitoring.HEALTH_CHECK);
         monitoring.setNodeId("nodeId1");
 
-        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.create(monitoring).test();
+        final TestObserver<Monitoring> testObserver =
+                nodeMonitoringRepository.create(monitoring).test();
 
         awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
-        testObserver.assertValue(createdMonitoring -> createdMonitoring.getNodeId().equals("nodeId1"));
+        testObserver.assertValue(
+                createdMonitoring -> createdMonitoring.getNodeId().equals("nodeId1"));
     }
 
     @Test
@@ -100,12 +106,14 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
         monitoring.setType(Monitoring.NODE_INFOS);
         monitoring.setNodeId("nodeId2");
 
-        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.update(monitoring).test();
+        final TestObserver<Monitoring> testObserver =
+                nodeMonitoringRepository.update(monitoring).test();
 
         awaitTerminalEvent(testObserver);
         testObserver.assertComplete();
         testObserver.assertNoErrors();
-        testObserver.assertValue(createdMonitoring -> createdMonitoring.getNodeId().equals("nodeId2"));
+        testObserver.assertValue(
+                createdMonitoring -> createdMonitoring.getNodeId().equals("nodeId2"));
     }
 
     @Test
@@ -113,7 +121,8 @@ public class NodeMonitoringRepositoryTest extends AbstractManagementRepositoryTe
         final Monitoring monitoring = new Monitoring();
         monitoring.setId("unknown");
 
-        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.update(monitoring).test();
+        final TestObserver<Monitoring> testObserver =
+                nodeMonitoringRepository.update(monitoring).test();
 
         awaitTerminalEvent(testObserver);
         testObserver.assertNotComplete();

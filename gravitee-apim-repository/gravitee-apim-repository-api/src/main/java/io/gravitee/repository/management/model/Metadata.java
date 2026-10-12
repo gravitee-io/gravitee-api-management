@@ -114,11 +114,9 @@ public class Metadata {
         if (this == o) return true;
         if (!(o instanceof Metadata)) return false;
         Metadata metadata = (Metadata) o;
-        return (
-            Objects.equals(key, metadata.key) &&
-            Objects.equals(referenceId, metadata.referenceId) &&
-            referenceType == metadata.referenceType
-        );
+        return (Objects.equals(key, metadata.key)
+                && Objects.equals(referenceId, metadata.referenceId)
+                && referenceType == metadata.referenceType);
     }
 
     @Override
@@ -128,29 +126,26 @@ public class Metadata {
 
     @Override
     public String toString() {
-        return (
-            "Metadata{" +
-            "key='" +
-            key +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", name='" +
-            name +
-            '\'' +
-            ", format=" +
-            format +
-            ", value='" +
-            value +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("Metadata{" + "key='"
+                + key
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", name='"
+                + name
+                + '\''
+                + ", format="
+                + format
+                + ", value='"
+                + value
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

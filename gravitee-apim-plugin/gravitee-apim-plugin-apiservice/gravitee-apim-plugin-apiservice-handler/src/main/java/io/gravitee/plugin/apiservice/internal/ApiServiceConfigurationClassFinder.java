@@ -33,7 +33,10 @@ public class ApiServiceConfigurationClassFinder extends AbstractSingleSubTypesFi
 
     @Override
     public Collection<Class<? extends ApiServiceConfiguration>> lookup(Class<?> clazz, ClassLoader classLoader) {
-        log.debug("Looking for a configuration class for api service {} in package {}", clazz.getName(), clazz.getPackage().getName());
+        log.debug(
+                "Looking for a configuration class for api service {} in package {}",
+                clazz.getName(),
+                clazz.getPackage().getName());
         Collection<Class<? extends ApiServiceConfiguration>> configurations = super.lookup(clazz, classLoader);
 
         if (configurations.isEmpty()) {

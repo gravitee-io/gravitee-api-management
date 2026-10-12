@@ -16,8 +16,6 @@
 package io.gravitee.apim.plugin.reactor.internal.fake;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;

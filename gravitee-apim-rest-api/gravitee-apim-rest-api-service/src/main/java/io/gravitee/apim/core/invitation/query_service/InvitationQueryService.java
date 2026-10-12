@@ -27,8 +27,5 @@ public interface InvitationQueryService {
     List<ApplicationInvitation> findByReference(@Nonnull InvitationReference reference);
 
     Page<ApplicationInvitation> findByApplicationId(
-        String applicationId,
-        @Nonnull SearchApplicationInvitationsCriteria criteria,
-        @Nonnull Pageable pageable
-    );
+            String applicationId, @Nonnull SearchApplicationInvitationsCriteria criteria, @Nonnull Pageable pageable);
 }

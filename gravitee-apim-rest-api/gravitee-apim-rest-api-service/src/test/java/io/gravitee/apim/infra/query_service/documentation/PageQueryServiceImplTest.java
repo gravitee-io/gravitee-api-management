@@ -70,11 +70,13 @@ class PageQueryServiceImplTest {
             assertThat(res.get(0).getId()).isEqualTo("page#1");
             assertThat(res.get(0).getName()).isEqualTo("page 1");
             assertThat(res.get(0).getReferenceId()).isEqualTo(API_ID);
-            assertThat(res.get(0).getReferenceType()).isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
+            assertThat(res.get(0).getReferenceType())
+                    .isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
             assertThat(res.get(1).getId()).isEqualTo("page#2");
             assertThat(res.get(1).getName()).isEqualTo("page 2");
             assertThat(res.get(1).getReferenceId()).isEqualTo(API_ID);
-            assertThat(res.get(1).getReferenceType()).isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
+            assertThat(res.get(1).getReferenceType())
+                    .isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
         }
     }
 
@@ -85,7 +87,12 @@ class PageQueryServiceImplTest {
         void search_should_return_api_homepage() {
             Page page1 = aPage(API_ID, "page#1", "page 1");
             List<Page> pages = List.of(page1);
-            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), pages);
+            givenMatchingPages(
+                    new PageCriteria.Builder()
+                            .referenceId(API_ID)
+                            .referenceType("API")
+                            .homepage(true),
+                    pages);
 
             var res = service.findHomepageByApiId(API_ID).get();
 
@@ -96,7 +103,12 @@ class PageQueryServiceImplTest {
 
         @Test
         void search_should_return_no_api_homepage() {
-            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), List.of());
+            givenMatchingPages(
+                    new PageCriteria.Builder()
+                            .referenceId(API_ID)
+                            .referenceType("API")
+                            .homepage(true),
+                    List.of());
 
             var res = service.findHomepageByApiId(API_ID);
             assertThat(res.isEmpty()).isTrue();
@@ -110,7 +122,12 @@ class PageQueryServiceImplTest {
         void search_should_return_pages_if_parent_is_root() {
             Page page1 = aPage(API_ID, "page#1", "page 1");
             List<Page> pages = List.of(page1);
-            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").rootParent(true), pages);
+            givenMatchingPages(
+                    new PageCriteria.Builder()
+                            .referenceId(API_ID)
+                            .referenceType("API")
+                            .rootParent(true),
+                    pages);
 
             var res = service.searchByApiIdAndParentId(API_ID, null);
 
@@ -121,7 +138,12 @@ class PageQueryServiceImplTest {
         void search_should_return_pages_if_parent_is_not_root() {
             Page page1 = aPage(API_ID, "page#1", "page 1");
             List<Page> pages = List.of(page1);
-            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").parent("nice-parent"), pages);
+            givenMatchingPages(
+                    new PageCriteria.Builder()
+                            .referenceId(API_ID)
+                            .referenceType("API")
+                            .parent("nice-parent"),
+                    pages);
 
             var res = service.searchByApiIdAndParentId(API_ID, "nice-parent");
 
@@ -138,28 +160,23 @@ class PageQueryServiceImplTest {
 
             var repositoryPage = aPage(API_ID, PAGE_ID, "duplicate name");
             var expectedPage = io.gravitee.apim.core.documentation.model.Page.builder()
-                .id(PAGE_ID)
-                .referenceId(API_ID)
-                .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
-                .name(repositoryPage.getName())
-                .build();
+                    .id(PAGE_ID)
+                    .referenceId(API_ID)
+                    .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+                    .name(repositoryPage.getName())
+                    .build();
 
             givenMatchingPages(
-                new PageCriteria.Builder()
-                    .referenceId(API_ID)
-                    .referenceType("API")
-                    .parent(PARENT_ID)
-                    .type("MARKDOWN")
-                    .name("duplicate name"),
-                List.of(repositoryPage)
-            );
+                    new PageCriteria.Builder()
+                            .referenceId(API_ID)
+                            .referenceType("API")
+                            .parent(PARENT_ID)
+                            .type("MARKDOWN")
+                            .name("duplicate name"),
+                    List.of(repositoryPage));
 
             var res = service.findByApiIdAndParentIdAndNameAndType(
-                API_ID,
-                PARENT_ID,
-                "duplicate name",
-                io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
-            );
+                    API_ID, PARENT_ID, "duplicate name", io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN);
 
             assertThat(res.get()).usingRecursiveComparison().isEqualTo(expectedPage);
         }
@@ -170,28 +187,23 @@ class PageQueryServiceImplTest {
 
             var repositoryPage = aPage(API_ID, PAGE_ID, "duplicate name");
             var expectedPage = io.gravitee.apim.core.documentation.model.Page.builder()
-                .id(PAGE_ID)
-                .referenceId(API_ID)
-                .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
-                .name(repositoryPage.getName())
-                .build();
+                    .id(PAGE_ID)
+                    .referenceId(API_ID)
+                    .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+                    .name(repositoryPage.getName())
+                    .build();
 
             givenMatchingPages(
-                new PageCriteria.Builder()
-                    .referenceId(API_ID)
-                    .referenceType("API")
-                    .rootParent(true)
-                    .type("MARKDOWN")
-                    .name("duplicate name"),
-                List.of(repositoryPage)
-            );
+                    new PageCriteria.Builder()
+                            .referenceId(API_ID)
+                            .referenceType("API")
+                            .rootParent(true)
+                            .type("MARKDOWN")
+                            .name("duplicate name"),
+                    List.of(repositoryPage));
 
             var res = service.findByApiIdAndParentIdAndNameAndType(
-                API_ID,
-                PARENT_ID,
-                "duplicate name",
-                io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
-            );
+                    API_ID, PARENT_ID, "duplicate name", io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN);
 
             assertThat(res.get()).usingRecursiveComparison().isEqualTo(expectedPage);
         }
@@ -202,21 +214,16 @@ class PageQueryServiceImplTest {
 
             var page = aPage(API_ID, PAGE_ID, "original name");
             givenMatchingPages(
-                new PageCriteria.Builder()
-                    .referenceId(API_ID)
-                    .referenceType("API")
-                    .parent(PARENT_ID)
-                    .type("MARKDOWN")
-                    .name("different name"),
-                List.of(page)
-            );
+                    new PageCriteria.Builder()
+                            .referenceId(API_ID)
+                            .referenceType("API")
+                            .parent(PARENT_ID)
+                            .type("MARKDOWN")
+                            .name("different name"),
+                    List.of(page));
 
             var res = service.findByApiIdAndParentIdAndNameAndType(
-                API_ID,
-                PARENT_ID,
-                "original name",
-                io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
-            );
+                    API_ID, PARENT_ID, "original name", io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN);
 
             assertThat(res.isEmpty()).isTrue();
         }
@@ -228,55 +235,61 @@ class PageQueryServiceImplTest {
         @Test
         void should_find_a_page() throws TechnicalException {
             var exisitingPage = io.gravitee.repository.management.model.Page.builder()
-                .id(PAGE_ID)
-                .type("MARKDOWN")
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("nice content")
-                .homepage(true)
-                .referenceId("api-id")
-                .referenceType(PageReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility("PRIVATE")
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .build();
+                    .id(PAGE_ID)
+                    .type("MARKDOWN")
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("nice content")
+                    .homepage(true)
+                    .referenceId("api-id")
+                    .referenceType(PageReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility("PRIVATE")
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .build();
 
-            when(
-                pageRepository.search(
-                    new PageCriteria.Builder().name(exisitingPage.getName()).referenceId(exisitingPage.getReferenceId()).build()
-                )
-            ).thenReturn(List.of(exisitingPage));
+            when(pageRepository.search(new PageCriteria.Builder()
+                            .name(exisitingPage.getName())
+                            .referenceId(exisitingPage.getReferenceId())
+                            .build()))
+                    .thenReturn(List.of(exisitingPage));
 
             var expectedPage = io.gravitee.apim.core.documentation.model.Page.builder()
-                .id(PAGE_ID)
-                .type(io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN)
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("nice content")
-                .homepage(true)
-                .referenceId("api-id")
-                .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility(io.gravitee.apim.core.documentation.model.Page.Visibility.PRIVATE)
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .build();
+                    .id(PAGE_ID)
+                    .type(io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN)
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("nice content")
+                    .homepage(true)
+                    .referenceId("api-id")
+                    .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility(io.gravitee.apim.core.documentation.model.Page.Visibility.PRIVATE)
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .build();
 
             var foundPage = service.findByNameAndReferenceId(PAGE_NAME, API_ID);
 
-            Assertions.assertThat(foundPage).isPresent().get().usingRecursiveComparison().isEqualTo(expectedPage);
+            Assertions.assertThat(foundPage)
+                    .isPresent()
+                    .get()
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedPage);
         }
 
         @Test
         void should_return_empty_if_no_page_found() throws TechnicalException {
-            when(pageRepository.search(new PageCriteria.Builder().name(PAGE_NAME).build())).thenReturn(List.of());
+            when(pageRepository.search(
+                            new PageCriteria.Builder().name(PAGE_NAME).build()))
+                    .thenReturn(List.of());
 
             var foundPage = service.findByNameAndReferenceId(PAGE_NAME, API_ID);
 
@@ -286,67 +299,75 @@ class PageQueryServiceImplTest {
         @Test
         void should_throw_exception_if_more_than_one_page_found() throws TechnicalException {
             var exisitingPage = io.gravitee.repository.management.model.Page.builder()
-                .id(PAGE_ID)
-                .type("MARKDOWN")
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("nice content")
-                .homepage(true)
-                .referenceId("api-id")
-                .referenceType(PageReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility("PRIVATE")
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .build();
+                    .id(PAGE_ID)
+                    .type("MARKDOWN")
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("nice content")
+                    .homepage(true)
+                    .referenceId("api-id")
+                    .referenceType(PageReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility("PRIVATE")
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .build();
 
             var anotherExistingPageWithSameName = io.gravitee.repository.management.model.Page.builder()
-                .id(PAGE_ID + "2")
-                .type("MARKDOWN")
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("very nice content")
-                .homepage(true)
-                .referenceId("api-id")
-                .referenceType(PageReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility("PRIVATE")
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .build();
+                    .id(PAGE_ID + "2")
+                    .type("MARKDOWN")
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("very nice content")
+                    .homepage(true)
+                    .referenceId("api-id")
+                    .referenceType(PageReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility("PRIVATE")
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .build();
 
-            when(
-                pageRepository.search(
-                    new PageCriteria.Builder().name(exisitingPage.getName()).referenceId(exisitingPage.getReferenceId()).build()
-                )
-            ).thenReturn(List.of(exisitingPage, anotherExistingPageWithSameName));
+            when(pageRepository.search(new PageCriteria.Builder()
+                            .name(exisitingPage.getName())
+                            .referenceId(exisitingPage.getReferenceId())
+                            .build()))
+                    .thenReturn(List.of(exisitingPage, anotherExistingPageWithSameName));
 
             assertThatThrownBy(() -> service.findByNameAndReferenceId(PAGE_NAME, API_ID))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Found more than one page with name " + PAGE_NAME);
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Found more than one page with name " + PAGE_NAME);
         }
 
         @Test
         void should_throw_exception_if_problem_occurs() throws TechnicalException {
             doThrow(new TechnicalException("exception"))
-                .when(pageRepository)
-                .search(new PageCriteria.Builder().name(PAGE_NAME).referenceId(API_ID).build());
+                    .when(pageRepository)
+                    .search(new PageCriteria.Builder()
+                            .name(PAGE_NAME)
+                            .referenceId(API_ID)
+                            .build());
             assertThatThrownBy(() -> service.findByNameAndReferenceId(PAGE_NAME, API_ID))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("Error when updating Page");
-            verify(pageRepository).search(new PageCriteria.Builder().name(PAGE_NAME).referenceId(API_ID).build());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("Error when updating Page");
+            verify(pageRepository)
+                    .search(new PageCriteria.Builder()
+                            .name(PAGE_NAME)
+                            .referenceId(API_ID)
+                            .build());
         }
     }
 
     @SneakyThrows
     private void givenMatchingPages(String apiId, List<Page> pages) {
-        givenMatchingPages(new PageCriteria.Builder().referenceId(apiId).referenceType(PageReferenceType.API.name()), pages);
+        givenMatchingPages(
+                new PageCriteria.Builder().referenceId(apiId).referenceType(PageReferenceType.API.name()), pages);
     }
 
     @SneakyThrows

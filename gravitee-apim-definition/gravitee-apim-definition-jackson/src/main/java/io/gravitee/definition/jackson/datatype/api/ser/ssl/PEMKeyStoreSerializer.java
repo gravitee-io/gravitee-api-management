@@ -31,7 +31,8 @@ public class PEMKeyStoreSerializer extends KeyStoreSerializer<PEMKeyStore> {
     }
 
     @Override
-    protected void doSerialize(PEMKeyStore keyStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(PEMKeyStore keyStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(keyStore, jgen, serializerProvider);
 
         writeStringField(jgen, "certPath", keyStore.getCertPath());

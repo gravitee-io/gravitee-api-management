@@ -56,10 +56,9 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
 
     @GET
     public Response redirectTo(
-        @QueryParam("version") String version,
-        @QueryParam("token") String token,
-        @Context final HttpServletResponse httpResponse
-    ) {
+            @QueryParam("version") String version,
+            @QueryParam("token") String token,
+            @Context final HttpServletResponse httpResponse) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
             JWTVerifier jwtVerifier = JWT.require(algorithm).build();
@@ -69,8 +68,8 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
             // Initialize execution context from management API token.
             final String organizationId = jwt.getClaim(JWTHelper.Claims.ORG).asString();
             final String environmentId = GraviteeContext.getCurrentEnvironment() != null
-                ? GraviteeContext.getCurrentEnvironment()
-                : GraviteeContext.getDefaultEnvironment();
+                    ? GraviteeContext.getCurrentEnvironment()
+                    : GraviteeContext.getDefaultEnvironment();
 
             ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
             GraviteeContext.fromExecutionContext(executionContext);
@@ -78,13 +77,15 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
             // Retrieve the user.
             final UserEntity user = userService.findById(executionContext, jwt.getSubject());
 
-            //set user to Authentication Context
-            final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
+            // set user to Authentication Context
+            final Set<GrantedAuthority> authorities =
+                    authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
 
             UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
             userDetails.setOrganizationId(user.getOrganizationId());
             userDetails.setEmail(user.getEmail());
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
+            SecurityContextHolder.getContext()
+                    .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
             // connect the user
             super.connectUser(jwt.getSubject(), httpResponse);

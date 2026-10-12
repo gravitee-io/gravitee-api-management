@@ -37,7 +37,8 @@ public class ReferenceMetadataMapper {
         applicationReferenceMetadata.setApplication(applicationMetadataEntity.getApplicationId());
         applicationReferenceMetadata.setDefaultValue(applicationMetadataEntity.getDefaultValue());
         if (applicationMetadataEntity.getFormat() != null) {
-            applicationReferenceMetadata.setFormat(ReferenceMetadataFormatType.valueOf(applicationMetadataEntity.getFormat().name()));
+            applicationReferenceMetadata.setFormat(ReferenceMetadataFormatType.valueOf(
+                    applicationMetadataEntity.getFormat().name()));
         } else {
             applicationReferenceMetadata.setFormat(ReferenceMetadataFormatType.STRING);
         }
@@ -48,13 +49,15 @@ public class ReferenceMetadataMapper {
         return applicationReferenceMetadata;
     }
 
-    public NewApplicationMetadataEntity convert(ReferenceMetadataInput applicationReferenceMetadataInput, String applicationId) {
+    public NewApplicationMetadataEntity convert(
+            ReferenceMetadataInput applicationReferenceMetadataInput, String applicationId) {
         final NewApplicationMetadataEntity newApplicationMetadataEntity = new NewApplicationMetadataEntity();
 
         newApplicationMetadataEntity.setApplicationId(applicationId);
         newApplicationMetadataEntity.setDefaultValue(applicationReferenceMetadataInput.getDefaultValue());
         if (applicationReferenceMetadataInput.getFormat() != null) {
-            newApplicationMetadataEntity.setFormat(MetadataFormat.valueOf(applicationReferenceMetadataInput.getFormat().name()));
+            newApplicationMetadataEntity.setFormat(MetadataFormat.valueOf(
+                    applicationReferenceMetadataInput.getFormat().name()));
         } else {
             newApplicationMetadataEntity.setFormat(MetadataFormat.STRING);
         }
@@ -65,17 +68,15 @@ public class ReferenceMetadataMapper {
     }
 
     public UpdateApplicationMetadataEntity convert(
-        ReferenceMetadataInput applicationReferenceMetadataInput,
-        String applicationId,
-        String metadataId
-    ) {
+            ReferenceMetadataInput applicationReferenceMetadataInput, String applicationId, String metadataId) {
         final UpdateApplicationMetadataEntity updateApplicationMetadataEntity = new UpdateApplicationMetadataEntity();
 
         updateApplicationMetadataEntity.setApplicationId(applicationId);
         updateApplicationMetadataEntity.setKey(metadataId);
         updateApplicationMetadataEntity.setDefaultValue(applicationReferenceMetadataInput.getDefaultValue());
         if (applicationReferenceMetadataInput.getFormat() != null) {
-            updateApplicationMetadataEntity.setFormat(MetadataFormat.valueOf(applicationReferenceMetadataInput.getFormat().name()));
+            updateApplicationMetadataEntity.setFormat(MetadataFormat.valueOf(
+                    applicationReferenceMetadataInput.getFormat().name()));
         } else {
             updateApplicationMetadataEntity.setFormat(MetadataFormat.STRING);
         }

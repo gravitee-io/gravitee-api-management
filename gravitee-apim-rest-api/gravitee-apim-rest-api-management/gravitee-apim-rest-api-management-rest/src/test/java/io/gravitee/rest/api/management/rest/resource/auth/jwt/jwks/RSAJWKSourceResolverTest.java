@@ -55,9 +55,9 @@ public class RSAJWKSourceResolverTest {
     public void shouldNotResolveInvalidPublicKey() throws NoSuchAlgorithmException {
         KeyPair keyPair = generateKeyPair();
 
-        sourceResolver = new RSAJWKSourceResolver<>(() ->
-            Base64.getEncoder().withoutPadding().encodeToString(keyPair.getPublic().getEncoded())
-        );
+        sourceResolver = new RSAJWKSourceResolver<>(() -> Base64.getEncoder()
+                .withoutPadding()
+                .encodeToString(keyPair.getPublic().getEncoded()));
         assertThrows(IllegalArgumentException.class, () -> {
             sourceResolver.resolve();
         });

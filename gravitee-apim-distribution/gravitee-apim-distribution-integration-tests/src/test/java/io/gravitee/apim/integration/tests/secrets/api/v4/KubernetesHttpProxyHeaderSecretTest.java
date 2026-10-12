@@ -89,11 +89,11 @@ class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
 
     @Override
     public void configureSecretProviders(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) throws Exception {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins)
+            throws Exception {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class));
         startK8s();
         createSecrets();
     }
@@ -101,12 +101,12 @@ class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
     @Override
     public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
         try {
-            kubeConfigFile = Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve(
-                "kube_config.yml"
-            );
+            kubeConfigFile = Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName())
+                    .resolve("kube_config.yml");
             configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "kubernetes");
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
-            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());
+            configurationBuilder.setYamlProperty(
+                    "api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -114,12 +114,14 @@ class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
@@ -137,17 +139,20 @@ class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
 
-        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+        wiremock.verify(
+                1,
+                getRequestedFor(urlPathEqualTo("/endpoint"))
+                        .withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
     }
 
     @Test

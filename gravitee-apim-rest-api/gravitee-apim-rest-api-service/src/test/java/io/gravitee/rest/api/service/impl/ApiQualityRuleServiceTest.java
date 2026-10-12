@@ -74,7 +74,8 @@ public class ApiQualityRuleServiceTest {
         when(apiQualityRuleRepository.findByApi(API_ID)).thenReturn(singletonList(aqr));
 
         final List<ApiQualityRuleEntity> apiQualityRules = apiQualityRuleService.findByApi(API_ID);
-        final ApiQualityRuleEntity apiQualityRuleEntity = apiQualityRules.iterator().next();
+        final ApiQualityRuleEntity apiQualityRuleEntity =
+                apiQualityRules.iterator().next();
         assertEquals(API_ID, apiQualityRuleEntity.getApi());
         assertEquals(QUALITY_RULE_ID, apiQualityRuleEntity.getQualityRule());
         assertTrue(apiQualityRuleEntity.isChecked());
@@ -97,10 +98,8 @@ public class ApiQualityRuleServiceTest {
         createdApiQualityRule.setUpdatedAt(new Date());
         when(apiQualityRuleRepository.create(any())).thenReturn(createdApiQualityRule);
 
-        final ApiQualityRuleEntity apiQualityRuleEntity = apiQualityRuleService.create(
-            GraviteeContext.getExecutionContext(),
-            newApiQualityRuleEntity
-        );
+        final ApiQualityRuleEntity apiQualityRuleEntity =
+                apiQualityRuleService.create(GraviteeContext.getExecutionContext(), newApiQualityRuleEntity);
 
         assertEquals(API_ID, apiQualityRuleEntity.getApi());
         assertEquals(QUALITY_RULE_ID, apiQualityRuleEntity.getQualityRule());
@@ -113,25 +112,19 @@ public class ApiQualityRuleServiceTest {
         apiQualityRule.setQualityRule(QUALITY_RULE_ID);
         apiQualityRule.setChecked(true);
 
-        verify(apiQualityRuleRepository, times(1)).create(
-            argThat(
-                argument ->
-                    API_ID.equals(argument.getApi()) &&
-                    QUALITY_RULE_ID.equals(argument.getQualityRule()) &&
-                    argument.isChecked() &&
-                    argument.getCreatedAt() != null &&
-                    argument.getUpdatedAt() != null
-            )
-        );
-        verify(auditService, times(1)).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getProperties().equals(ImmutableMap.of(API_QUALITY_RULE, API_ID)) &&
-                    auditLogData.getEvent().equals(API_QUALITY_RULE_CREATED) &&
-                    auditLogData.getOldValue() == null
-            )
-        );
+        verify(apiQualityRuleRepository, times(1))
+                .create(argThat(argument -> API_ID.equals(argument.getApi())
+                        && QUALITY_RULE_ID.equals(argument.getQualityRule())
+                        && argument.isChecked()
+                        && argument.getCreatedAt() != null
+                        && argument.getUpdatedAt() != null));
+        verify(auditService, times(1))
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData ->
+                                auditLogData.getProperties().equals(ImmutableMap.of(API_QUALITY_RULE, API_ID))
+                                        && auditLogData.getEvent().equals(API_QUALITY_RULE_CREATED)
+                                        && auditLogData.getOldValue() == null));
     }
 
     @Test
@@ -150,10 +143,8 @@ public class ApiQualityRuleServiceTest {
         when(apiQualityRuleRepository.update(any())).thenReturn(updatedApiQualityRule);
         when(apiQualityRuleRepository.findById(API_ID, QUALITY_RULE_ID)).thenReturn(of(updatedApiQualityRule));
 
-        final ApiQualityRuleEntity apiQualityRuleEntity = apiQualityRuleService.update(
-            GraviteeContext.getExecutionContext(),
-            updateApiQualityRuleEntity
-        );
+        final ApiQualityRuleEntity apiQualityRuleEntity =
+                apiQualityRuleService.update(GraviteeContext.getExecutionContext(), updateApiQualityRuleEntity);
 
         assertEquals(API_ID, apiQualityRuleEntity.getApi());
         assertEquals(QUALITY_RULE_ID, apiQualityRuleEntity.getQualityRule());
@@ -166,24 +157,18 @@ public class ApiQualityRuleServiceTest {
         apiQualityRule.setQualityRule(QUALITY_RULE_ID);
         apiQualityRule.setChecked(true);
 
-        verify(apiQualityRuleRepository, times(1)).update(
-            argThat(
-                argument ->
-                    API_ID.equals(argument.getApi()) &&
-                    QUALITY_RULE_ID.equals(argument.getQualityRule()) &&
-                    argument.isChecked() &&
-                    argument.getCreatedAt() != null &&
-                    argument.getUpdatedAt() != null
-            )
-        );
-        verify(auditService, times(1)).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getProperties().equals(ImmutableMap.of(API_QUALITY_RULE, API_ID)) &&
-                    auditLogData.getEvent().equals(API_QUALITY_RULE_UPDATED)
-            )
-        );
+        verify(apiQualityRuleRepository, times(1))
+                .update(argThat(argument -> API_ID.equals(argument.getApi())
+                        && QUALITY_RULE_ID.equals(argument.getQualityRule())
+                        && argument.isChecked()
+                        && argument.getCreatedAt() != null
+                        && argument.getUpdatedAt() != null));
+        verify(auditService, times(1))
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData ->
+                                auditLogData.getProperties().equals(ImmutableMap.of(API_QUALITY_RULE, API_ID))
+                                        && auditLogData.getEvent().equals(API_QUALITY_RULE_UPDATED)));
     }
 
     @Test

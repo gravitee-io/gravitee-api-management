@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
@@ -43,17 +42,19 @@ public class JsonSchemaServiceTest {
 
     @Test
     public void shouldRejectInValidJsonConfigurationWithDependencies() throws IOException {
-        String schema = Files.readString(Path.of("src/test/resources/io/gravitee/rest/api/management/service/http-connector.json"));
+        String schema = Files.readString(
+                Path.of("src/test/resources/io/gravitee/rest/api/management/service/http-connector.json"));
         String configuration = "{\"ssl\": {\n \"trustStore\": {\n \"type\": \"PEM\"\n }\n }}";
 
         assertThatThrownBy(() -> jsonSchemaService.validate(schema, configuration))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("$.ssl.trustStore: must be valid to one and only one schema, but 0 are valid");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("$.ssl.trustStore: must be valid to one and only one schema, but 0 are valid");
     }
 
     @Test
     public void shouldAcceptValidJsonConfigurationWithDependencies() throws IOException {
-        String schema = Files.readString(Path.of("src/test/resources/io/gravitee/rest/api/management/service/http-connector.json"));
+        String schema = Files.readString(
+                Path.of("src/test/resources/io/gravitee/rest/api/management/service/http-connector.json"));
         String configuration = """
             {
               "ssl": {
@@ -67,10 +68,8 @@ public class JsonSchemaServiceTest {
               }
             }""";
         String validate = jsonSchemaService.validate(schema, configuration);
-        assertThatJson(validate).isEqualTo(
-            """
-            {"http":{"keepAliveTimeout":30000,"readTimeout":7777,"idleTimeout":60000,"connectTimeout":5000,"maxConcurrentConnections":100},"ssl":{"trustStore":{"path":"...","type":"PEM"},"hostnameVerifier":false,"trustAll":false}}"""
-        );
+        assertThatJson(validate).isEqualTo("""
+            {"http":{"keepAliveTimeout":30000,"readTimeout":7777,"idleTimeout":60000,"connectTimeout":5000,"maxConcurrentConnections":100},"ssl":{"trustStore":{"path":"...","type":"PEM"},"hostnameVerifier":false,"trustAll":false}}""");
     }
 
     @Test
@@ -103,9 +102,7 @@ public class JsonSchemaServiceTest {
 
         String result = jsonSchemaService.validate(schema, configuration);
 
-        assertThatJson(result).isEqualTo(
-            """
-            {"obj":{"field1":"value1","field2":"default2"}}"""
-        );
+        assertThatJson(result).isEqualTo("""
+            {"obj":{"field1":"value1","field2":"default2"}}""");
     }
 }

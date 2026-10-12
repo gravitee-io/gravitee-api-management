@@ -61,14 +61,12 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificate by ID: {}", clientCertificateId);
             return clientCertificateRepository
-                .findById(clientCertificateId)
-                .map(ClientCertificateAdapter.INSTANCE::toDomain)
-                .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
+                    .findById(clientCertificateId)
+                    .map(ClientCertificateAdapter.INSTANCE::toDomain)
+                    .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find client certificate by ID " + clientCertificateId,
-                e
-            );
+                    "An error occurs while trying to find client certificate by ID " + clientCertificateId, e);
         }
     }
 
@@ -84,24 +82,25 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             clientCertificate.setApplicationId(applicationId);
             clientCertificate.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             clientCertificate.setCreatedAt(new Date());
-            clientCertificate.setStatus(computeStatus(clientCertificateToCreate.startsAt(), clientCertificateToCreate.endsAt()));
+            clientCertificate.setStatus(
+                    computeStatus(clientCertificateToCreate.startsAt(), clientCertificateToCreate.endsAt()));
 
             return ClientCertificateAdapter.INSTANCE.toDomain(clientCertificateRepository.create(clientCertificate));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to create client certificate for application " + applicationId,
-                e
-            );
+                    "An error occurs while trying to create client certificate for application " + applicationId, e);
         }
     }
 
     private void validateDateBounds(ClientCertificate clientCertificate) {
-        if (
-            !Duration.between(
-                Optional.ofNullable(clientCertificate.startsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
-                Optional.ofNullable(clientCertificate.endsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MAX_VALUE))
-            ).isPositive()
-        ) {
+        if (!Duration.between(
+                        Optional.ofNullable(clientCertificate.startsAt())
+                                .map(Date::toInstant)
+                                .orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
+                        Optional.ofNullable(clientCertificate.endsAt())
+                                .map(Date::toInstant)
+                                .orElse(Instant.ofEpochMilli(Long.MAX_VALUE)))
+                .isPositive()) {
             throw new ClientCertificateDateBoundsInvalidException();
         }
     }
@@ -112,8 +111,8 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             log.debug("Update client certificate: {}", clientCertificateId);
 
             var existingCertificate = clientCertificateRepository
-                .findById(clientCertificateId)
-                .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
+                    .findById(clientCertificateId)
+                    .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
 
             validateDateBounds(update);
 
@@ -125,7 +124,8 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
 
             return ClientCertificateAdapter.INSTANCE.toDomain(clientCertificateRepository.update(existingCertificate));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to update client certificate " + clientCertificateId, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update client certificate " + clientCertificateId, e);
         }
     }
 
@@ -135,12 +135,13 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             log.debug("Delete client certificate: {}", clientCertificateId);
 
             clientCertificateRepository
-                .findById(clientCertificateId)
-                .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
+                    .findById(clientCertificateId)
+                    .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
 
             clientCertificateRepository.delete(clientCertificateId);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to delete client certificate " + clientCertificateId, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete client certificate " + clientCertificateId, e);
         }
     }
 
@@ -149,55 +150,65 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by application ID: {}", applicationId);
 
-            var repoPageable = new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
+            var repoPageable = new PageableBuilder()
+                    .pageNumber(pageable.getPageNumber() - 1)
+                    .pageSize(pageable.getPageSize())
+                    .build();
 
             var page = clientCertificateRepository.findByApplicationId(applicationId, repoPageable);
 
             return new Page<>(
-                page.getContent().stream().map(ClientCertificateAdapter.INSTANCE::toDomain).toList(),
-                page.getPageNumber(),
-                (int) page.getPageElements(),
-                page.getTotalElements()
-            );
+                    page.getContent().stream()
+                            .map(ClientCertificateAdapter.INSTANCE::toDomain)
+                            .toList(),
+                    page.getPageNumber(),
+                    (int) page.getPageElements(),
+                    page.getTotalElements());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find client certificates by application ID " + applicationId,
-                e
-            );
+                    "An error occurs while trying to find client certificates by application ID " + applicationId, e);
         }
     }
 
     @Override
-    public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByApplicationIdAndStatuses(
+            String applicationId, ClientCertificateStatus... statuses) {
         try {
-            log.debug("Find client certificates by application ID {} and statuses {}", applicationId, Arrays.toString(statuses));
+            log.debug(
+                    "Find client certificates by application ID {} and statuses {}",
+                    applicationId,
+                    Arrays.toString(statuses));
             return clientCertificateRepository
-                .findByApplicationIdAndStatuses(applicationId, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
-                .stream()
-                .map(ClientCertificateAdapter.INSTANCE::toDomain)
-                .toList();
+                    .findByApplicationIdAndStatuses(
+                            applicationId, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
+                    .stream()
+                    .map(ClientCertificateAdapter.INSTANCE::toDomain)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find client certificates by application ID " + applicationId + " and statuses",
-                e
-            );
+                    "An error occurs while trying to find client certificates by application ID " + applicationId
+                            + " and statuses",
+                    e);
         }
     }
 
     @Override
-    public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
+    public List<ClientCertificate> findByApplicationIdsAndStatuses(
+            Collection<String> applicationIds, ClientCertificateStatus... statuses) {
         try {
-            log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds, Arrays.toString(statuses));
+            log.debug(
+                    "Find client certificates by application IDs {} and statuses {}",
+                    applicationIds,
+                    Arrays.toString(statuses));
             return clientCertificateRepository
-                .findByApplicationIdsAndStatuses(applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
-                .stream()
-                .map(ClientCertificateAdapter.INSTANCE::toDomain)
-                .toList();
+                    .findByApplicationIdsAndStatuses(
+                            applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
+                    .stream()
+                    .map(ClientCertificateAdapter.INSTANCE::toDomain)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find client certificates by application IDs and statuses",
-                e
-            );
+                    "An error occurs while trying to find client certificates by application IDs and statuses", e);
         }
     }
 
@@ -206,12 +217,13 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by statuses {}", Arrays.toString(statuses));
             return clientCertificateRepository
-                .findByStatuses(ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
-                .stream()
-                .map(ClientCertificateAdapter.INSTANCE::toDomain)
-                .toList();
+                    .findByStatuses(ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
+                    .stream()
+                    .map(ClientCertificateAdapter.INSTANCE::toDomain)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to find client certificates by statuses", e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find client certificates by statuses", e);
         }
     }
 
@@ -227,21 +239,21 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             clientCertificateRepository.deleteByApplicationId(applicationId);
         } catch (Exception e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to delete client certificates for application " + applicationId,
-                e
-            );
+                    "An error occurs while trying to delete client certificates for application " + applicationId, e);
         }
     }
 
     @Override
-    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId) {
+    public boolean existsByFingerprintAndActiveApplication(
+            String fingerprint, String environmentId, String excludeApplicationId) {
         try {
-            return clientCertificateRepository.existsByFingerprintAndActiveApplication(fingerprint, environmentId, excludeApplicationId);
+            return clientCertificateRepository.existsByFingerprintAndActiveApplication(
+                    fingerprint, environmentId, excludeApplicationId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while checking if client certificate with fingerprint " + fingerprint + " already exists",
-                e
-            );
+                    "An error occurs while checking if client certificate with fingerprint " + fingerprint
+                            + " already exists",
+                    e);
         }
     }
 
@@ -251,21 +263,19 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             log.debug("Find most recent active client certificate for application: {}", applicationId);
 
             List<io.gravitee.repository.management.model.ClientCertificate> certificates =
-                clientCertificateRepository.findByApplicationIdAndStatuses(
-                    applicationId,
-                    io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
-                    io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
-                );
+                    clientCertificateRepository.findByApplicationIdAndStatuses(
+                            applicationId,
+                            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
+                            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END);
 
-            return certificates
-                .stream()
-                .max(Comparator.comparing(io.gravitee.repository.management.model.ClientCertificate::getCreatedAt))
-                .map(ClientCertificateAdapter.INSTANCE::toDomain);
+            return certificates.stream()
+                    .max(Comparator.comparing(io.gravitee.repository.management.model.ClientCertificate::getCreatedAt))
+                    .map(ClientCertificateAdapter.INSTANCE::toDomain);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find most recent active client certificate for application " + applicationId,
-                e
-            );
+                    "An error occurs while trying to find most recent active client certificate for application "
+                            + applicationId,
+                    e);
         }
     }
 }

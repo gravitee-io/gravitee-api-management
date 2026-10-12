@@ -38,11 +38,10 @@ public class CreatePortalCategoryUseCase {
         portalCategoryDomainService.validateTitleUniqueness(input.environmentId(), createPortalCategory.getTitle());
 
         var portalCategory = PortalCategory.create(
-            input.environmentId(),
-            createPortalCategory.getTitle(),
-            createPortalCategory.getDescription(),
-            createPortalCategory.isVisible()
-        );
+                input.environmentId(),
+                createPortalCategory.getTitle(),
+                createPortalCategory.getDescription(),
+                createPortalCategory.isVisible());
 
         var created = portalCategoryCrudService.create(portalCategory);
         return new Output(created);

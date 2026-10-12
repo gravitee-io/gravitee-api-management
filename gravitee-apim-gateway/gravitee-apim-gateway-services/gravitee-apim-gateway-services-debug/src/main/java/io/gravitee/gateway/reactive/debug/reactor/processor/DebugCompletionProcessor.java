@@ -72,52 +72,55 @@ public class DebugCompletionProcessor implements Processor {
     @Override
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.defer(() -> {
-            final DebugExecutionContext debugContext = (DebugExecutionContext) ctx;
-            ReactableDebugApi<?> debugApi = getDebugApi(debugContext);
+                    final DebugExecutionContext debugContext = (DebugExecutionContext) ctx;
+                    ReactableDebugApi<?> debugApi = getDebugApi(debugContext);
 
-            return Maybe.fromCallable(() -> eventRepository.findById(debugApi.getEventId())).flatMapCompletable(eventOptional -> {
-                if (eventOptional.isPresent()) {
-                    final Event event = eventOptional.get();
-                    return computeDebugApiEventPayload(debugContext, debugApi)
-                        .doOnSuccess(definitionDebugApi -> {
-                            updateEvent(event.updatePayload(objectMapper.writeValueAsString(definitionDebugApi)), ApiDebugStatus.SUCCESS);
-                        })
-                        .ignoreElement()
-                        .onErrorResumeNext(throwable -> {
-                            ctx.withLogger(log).error("Error occurs while saving debug event", throwable);
-                            failEvent(event);
-                            return Completable.complete();
-                        });
-                }
-                return Completable.complete();
-            });
-        }).subscribeOn(Schedulers.io());
+                    return Maybe.fromCallable(() -> eventRepository.findById(debugApi.getEventId()))
+                            .flatMapCompletable(eventOptional -> {
+                                if (eventOptional.isPresent()) {
+                                    final Event event = eventOptional.get();
+                                    return computeDebugApiEventPayload(debugContext, debugApi)
+                                            .doOnSuccess(definitionDebugApi -> {
+                                                updateEvent(
+                                                        event.updatePayload(
+                                                                objectMapper.writeValueAsString(definitionDebugApi)),
+                                                        ApiDebugStatus.SUCCESS);
+                                            })
+                                            .ignoreElement()
+                                            .onErrorResumeNext(throwable -> {
+                                                ctx.withLogger(log)
+                                                        .error("Error occurs while saving debug event", throwable);
+                                                failEvent(event);
+                                                return Completable.complete();
+                                            });
+                                }
+                                return Completable.complete();
+                            });
+                })
+                .subscribeOn(Schedulers.io());
     }
 
     private Single<io.gravitee.definition.model.debug.DebugApiProxy> computeDebugApiEventPayload(
-        DebugExecutionContext debugContext,
-        ReactableDebugApi<?> debugApi
-    ) {
+            DebugExecutionContext debugContext, ReactableDebugApi<?> debugApi) {
         return Single.defer(() -> {
             var definitionDebugApi = convert(debugApi);
             PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
             definitionDebugApi.setPreprocessorStep(preprocessorStep);
             definitionDebugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
             HttpResponse invokerResponse = createResponse(
-                debugContext.getInvokerResponse().getHeaders(),
-                debugContext.getInvokerResponse().getStatus(),
-                debugContext.getInvokerResponse().getBuffer()
-            );
+                    debugContext.getInvokerResponse().getHeaders(),
+                    debugContext.getInvokerResponse().getStatus(),
+                    debugContext.getInvokerResponse().getBuffer());
             definitionDebugApi.setBackendResponse(invokerResponse);
             definitionDebugApi.setMetrics(createMetrics(debugContext.metrics()));
-            return debugContext
-                .response()
-                .bodyOrEmpty()
-                .map(buffer -> {
-                    HttpResponse response = createResponse(debugContext.response().headers(), debugContext.response().status(), buffer);
-                    definitionDebugApi.setResponse(response);
-                    return definitionDebugApi;
-                });
+            return debugContext.response().bodyOrEmpty().map(buffer -> {
+                HttpResponse response = createResponse(
+                        debugContext.response().headers(),
+                        debugContext.response().status(),
+                        buffer);
+                definitionDebugApi.setResponse(response);
+                return definitionDebugApi;
+            });
         });
     }
 
@@ -177,12 +180,14 @@ public class DebugCompletionProcessor implements Processor {
     }
 
     private void updateEvent(@NonNull Event debugEvent, ApiDebugStatus apiDebugStatus) throws TechnicalException {
-        eventRepository.update(debugEvent.updateProperties(Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name()));
+        eventRepository.update(
+                debugEvent.updateProperties(Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name()));
     }
 
     private io.gravitee.definition.model.debug.DebugApiProxy convert(ReactableDebugApi<?> content) {
         if (content instanceof DebugApiV2 debugApiV2) {
-            io.gravitee.definition.model.debug.DebugApiV2 debugAPI = new io.gravitee.definition.model.debug.DebugApiV2();
+            io.gravitee.definition.model.debug.DebugApiV2 debugAPI =
+                    new io.gravitee.definition.model.debug.DebugApiV2();
             debugAPI.setName(debugApiV2.getName());
             debugAPI.setId(debugApiV2.getId());
             debugAPI.setDefinitionVersion(debugApiV2.getDefinitionVersion());
@@ -202,13 +207,11 @@ public class DebugCompletionProcessor implements Processor {
             return debugAPI;
         } else if (content instanceof DebugApiV4 debugApiV4) {
             return new io.gravitee.definition.model.debug.DebugApiV4(
-                debugApiV4.getDefinition(),
-                debugApiV4.getRequest(),
-                debugApiV4.getResponse()
-            );
+                    debugApiV4.getDefinition(), debugApiV4.getRequest(), debugApiV4.getResponse());
         }
 
-        throw new IllegalArgumentException("Unsupported debug API: " + content.getClass().getSimpleName());
+        throw new IllegalArgumentException(
+                "Unsupported debug API: " + content.getClass().getSimpleName());
     }
 
     private List<io.gravitee.definition.model.debug.DebugStep> convert(List<PolicyStep<?>> policySteps) {
@@ -216,7 +219,8 @@ public class DebugCompletionProcessor implements Processor {
     }
 
     private io.gravitee.definition.model.debug.DebugStep convert(PolicyStep<?> ds) {
-        final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
+        final io.gravitee.definition.model.debug.DebugStep debugStep =
+                new io.gravitee.definition.model.debug.DebugStep();
         debugStep.setPolicyInstanceId(ds.getId());
         debugStep.setPolicyId(ds.getPolicyId());
         debugStep.setDuration(ds.elapsedTime().toNanos());
@@ -231,20 +235,18 @@ public class DebugCompletionProcessor implements Processor {
         }
 
         Map<String, Object> result = new HashMap<>();
-        ds
-            .getDiff()
-            .forEach((key, value) -> {
-                if (PolicyStep.DIFF_KEY_HEADERS.equals(key)) {
-                    // Headers are converted to Map<String, List<String>>
-                    result.put(PolicyStep.DIFF_KEY_HEADERS, ((HttpHeaders) value).toListValuesMap());
-                } else if (PolicyStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
-                    // Body is converted from Buffer to String
-                    result.put(PolicyStep.DIFF_KEY_BODY, value.toString());
-                } else {
-                    // Everything else is kept as is
-                    result.put(key, value);
-                }
-            });
+        ds.getDiff().forEach((key, value) -> {
+            if (PolicyStep.DIFF_KEY_HEADERS.equals(key)) {
+                // Headers are converted to Map<String, List<String>>
+                result.put(PolicyStep.DIFF_KEY_HEADERS, ((HttpHeaders) value).toListValuesMap());
+            } else if (PolicyStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
+                // Body is converted from Buffer to String
+                result.put(PolicyStep.DIFF_KEY_BODY, value.toString());
+            } else {
+                // Everything else is kept as is
+                result.put(key, value);
+            }
+        });
 
         debugStep.setResult(result);
         return debugStep;

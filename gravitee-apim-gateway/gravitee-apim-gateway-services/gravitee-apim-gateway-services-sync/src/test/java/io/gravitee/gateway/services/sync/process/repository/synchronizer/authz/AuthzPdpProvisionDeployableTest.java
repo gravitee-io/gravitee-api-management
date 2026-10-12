@@ -25,9 +25,9 @@ class AuthzPdpProvisionDeployableTest {
     @Test
     void exposes_scope_and_action_and_id_is_scope_id() {
         AuthzPdpProvisionDeployable deployable = AuthzPdpProvisionDeployable.builder()
-            .targetPdpId("scope-1")
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .targetPdpId("scope-1")
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         assertThat(deployable.targetPdpId()).isEqualTo("scope-1");
         assertThat(deployable.syncAction()).isEqualTo(SyncAction.DEPLOY);

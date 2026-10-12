@@ -54,28 +54,26 @@ public class ApplicationsResource extends AbstractResource {
     @PUT
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response createApplicationWithCRD(@Valid ApplicationCRDSpec crd, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ImportApplicationCRDUseCase.Input(
-            AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build(),
-            ApplicationMapper.INSTANCE.map(crd)
-        );
+                AuditInfo.builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build(),
+                ApplicationMapper.INSTANCE.map(crd));
 
         return dryRun
-            ? Response.ok(validateCRDUseCase.execute(input).status()).build()
-            : Response.ok(importApplicationCRDUseCase.execute(input).status()).build();
+                ? Response.ok(validateCRDUseCase.execute(input).status()).build()
+                : Response.ok(importApplicationCRDUseCase.execute(input).status())
+                        .build();
     }
 }

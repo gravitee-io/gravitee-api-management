@@ -54,9 +54,8 @@ final class NumericRangeAccumulator<T extends Comparable<T>> {
 
     OpenBounds<T> build() {
         if (gte != null && lte != null && gte.compareTo(lte) > 0) {
-            throw new ValidationDomainException(
-                "Invalid " + filterName + " range: 'gte' (" + gte + ") must not be greater than 'lte' (" + lte + ")."
-            );
+            throw new ValidationDomainException("Invalid " + filterName + " range: 'gte' (" + gte
+                    + ") must not be greater than 'lte' (" + lte + ").");
         }
         return new OpenBounds<>(gte, lte);
     }

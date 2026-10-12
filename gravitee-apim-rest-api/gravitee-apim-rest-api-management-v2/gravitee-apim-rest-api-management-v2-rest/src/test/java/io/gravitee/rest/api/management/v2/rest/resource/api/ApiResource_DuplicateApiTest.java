@@ -77,9 +77,8 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
 
     @Test
     void should_return_404_if_not_found() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenThrow(
-            new ApiNotFoundException(API)
-        );
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenThrow(new ApiNotFoundException(API));
 
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
@@ -90,33 +89,25 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     @ParameterizedTest(name = "[{index}] {arguments}")
-    @CsvSource(
-        delimiterString = "|",
-        useHeadersInDisplayName = true,
-        textBlock = """
+    @CsvSource(delimiterString = "|", useHeadersInDisplayName = true, textBlock = """
            API_DEFINITION[READ] |  ENVIRONMENT_API[CREATE]
            false                  |  false
            true                   |  false
            false                  |  true
-        """
-    )
+        """)
     void should_return_403_if_incorrect_permissions(boolean apiDefinitionRead, boolean currentEnvironmentApiCreate) {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(apiDefinitionRead);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq(ENVIRONMENT),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(currentEnvironmentApiCreate);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(apiDefinitionRead);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq(ENVIRONMENT),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(currentEnvironmentApiCreate);
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
 
@@ -128,16 +119,15 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_return_400_when_duplicate_exception_is_thrown() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
-        when(
-            apiDuplicateService.duplicate(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntity),
-                eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))
-            )
-        ).thenThrow(new ApiDuplicateException("duplication exception message"));
+        when(apiDuplicateService.duplicate(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(apiEntity),
+                        eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))))
+                .thenThrow(new ApiDuplicateException("duplication exception message"));
 
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
@@ -150,7 +140,8 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_return_400_when_duplicating_a_native_api_without_a_host() {
         var apiEntity = ApiFixtures.aModelNativeApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
 
         // the host is part of the gateway's unique Kafka hostname, so a copy cannot share the source's
         var options = new DuplicateApiOptions().filteredFields(Set.of());
@@ -168,16 +159,17 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_duplicate_v4_api() {
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
-        when(
-            apiDuplicateService.duplicate(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntity),
-                eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))
-            )
-        ).thenReturn(ApiFixtures.aModelHttpApiV4().toBuilder().id("duplicate").build());
+        when(apiDuplicateService.duplicate(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(apiEntity),
+                        eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))))
+                .thenReturn(ApiFixtures.aModelHttpApiV4().toBuilder()
+                        .id("duplicate")
+                        .build());
 
         final Response response = rootTarget().request().post(Entity.json(duplicateOptions));
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -190,17 +182,18 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
 
     @Test
     void should_duplicate_v2_api() {
-        io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity =
+                ApiFixtures.aModelApiV2().toBuilder().id(API).build();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
 
         var duplicateOptions = aDuplicateApiOptions();
-        when(
-            apiDuplicatorService.duplicate(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntity),
-                eq(DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions))
-            )
-        ).thenReturn(ApiFixtures.aModelApiV2().toBuilder().id("duplicate").build());
+        when(apiDuplicatorService.duplicate(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(apiEntity),
+                        eq(DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions))))
+                .thenReturn(
+                        ApiFixtures.aModelApiV2().toBuilder().id("duplicate").build());
 
         final Response response = rootTarget().request().post(Entity.json(duplicateOptions));
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -214,65 +207,60 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     @Test
     void should_duplicate_a_native_api_through_the_import_pipeline() {
         var apiEntity = ApiFixtures.aModelNativeApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
 
         var sourceDescriptor = ApiDescriptor.Native.builder()
-            .id(API)
-            .crossId("source-cross-id")
-            .name("source name")
-            .apiVersion("1.0")
-            // real configurations, as every Kafka Service has: an empty definition hid that they did not survive
-            .listeners(
-                List.of(
-                    KafkaListener.builder()
+                .id(API)
+                .crossId("source-cross-id")
+                .name("source name")
+                .apiVersion("1.0")
+                // real configurations, as every Kafka Service has: an empty definition hid that they did not survive
+                .listeners(List.of(KafkaListener.builder()
                         .host("source.kafka")
                         .port(9092)
-                        .entrypoints(
-                            List.of(NativeEntrypoint.builder().type("native-kafka").configuration(ENTRYPOINT_CONFIGURATION).build())
-                        )
-                        .build()
-                )
-            )
-            .endpointGroups(
-                List.of(
-                    NativeEndpointGroup.builder()
+                        .entrypoints(List.of(NativeEntrypoint.builder()
+                                .type("native-kafka")
+                                .configuration(ENTRYPOINT_CONFIGURATION)
+                                .build()))
+                        .build()))
+                .endpointGroups(List.of(NativeEndpointGroup.builder()
                         .name("default-group")
                         .type("native-kafka")
                         .sharedConfiguration(SHARED_CONFIGURATION)
-                        .endpoints(
-                            List.of(
-                                NativeEndpoint.builder().name("default").type("native-kafka").configuration(ENDPOINT_CONFIGURATION).build()
-                            )
-                        )
-                        .build()
-                )
-            )
-            .build();
+                        .endpoints(List.of(NativeEndpoint.builder()
+                                .name("default")
+                                .type("native-kafka")
+                                .configuration(ENDPOINT_CONFIGURATION)
+                                .build()))
+                        .build()))
+                .build();
         // a port-routed plan: its range belongs to the source, so the copy cannot inherit it
         var sourcePlan = PlanDescriptor.Native.builder()
-            .id("source-plan")
-            .name("source plan")
-            .bootstrapPort(9092)
-            .brokerRangeStart(10)
-            .brokerRangeEnd(20)
-            .build();
-        when(exportApiUseCase.execute(any())).thenReturn(
-            new ExportApiUseCase.Output(GraviteeDefinition.from(sourceDescriptor, null, null, null, Set.of(sourcePlan), null, null, null))
-        );
-        when(importApiDefinitionUseCase.execute(any())).thenReturn(
-            new ImportApiDefinitionUseCase.Output(ApiWithFlows.builder().id("duplicate").build())
-        );
+                .id("source-plan")
+                .name("source plan")
+                .bootstrapPort(9092)
+                .brokerRangeStart(10)
+                .brokerRangeEnd(20)
+                .build();
+        when(exportApiUseCase.execute(any()))
+                .thenReturn(new ExportApiUseCase.Output(GraviteeDefinition.from(
+                        sourceDescriptor, null, null, null, Set.of(sourcePlan), null, null, null)));
+        when(importApiDefinitionUseCase.execute(any()))
+                .thenReturn(new ImportApiDefinitionUseCase.Output(
+                        ApiWithFlows.builder().id("duplicate").build()));
 
         var options = new DuplicateApiOptions()
-            .name("copy name")
-            .version("2.0")
-            .host("copy.kafka")
-            .filteredFields(Set.of(DuplicateApiOptions.FilteredFieldsEnum.MEMBERS));
+                .name("copy name")
+                .version("2.0")
+                .host("copy.kafka")
+                .filteredFields(Set.of(DuplicateApiOptions.FilteredFieldsEnum.MEMBERS));
 
         // the branch answers with a read of the freshly created API, so that read has to resolve too
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), "duplicate", true, true, true)).thenReturn(
-            ApiFixtures.aModelNativeApiV4().toBuilder().id("duplicate").build()
-        );
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), "duplicate", true, true, true))
+                .thenReturn(ApiFixtures.aModelNativeApiV4().toBuilder()
+                        .id("duplicate")
+                        .build());
 
         final Response response = rootTarget().request().post(Entity.json(options));
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -290,19 +278,23 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
             softly.assertThat(imported.getName()).isEqualTo("copy name");
             softly.assertThat(imported.getApiVersion()).isEqualTo("2.0");
             // only the host moves; the port and the rest of the listener are kept
-            var listener = (io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener) imported.getListeners().getFirst();
+            var listener = (io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener)
+                    imported.getListeners().getFirst();
             softly.assertThat(listener.getHost()).isEqualTo("copy.kafka");
             softly.assertThat(listener.getPort()).isEqualTo(9092);
             // the configurations travel unchanged
-            softly.assertThat(json(listener.getEntrypoints().getFirst().getConfiguration())).isEqualTo(json(ENTRYPOINT_CONFIGURATION));
+            softly.assertThat(json(listener.getEntrypoints().getFirst().getConfiguration()))
+                    .isEqualTo(json(ENTRYPOINT_CONFIGURATION));
             var group = (NativeEndpointGroup) imported.getEndpointGroups().getFirst();
             softly.assertThat(json(group.getSharedConfiguration())).isEqualTo(json(SHARED_CONFIGURATION));
-            softly.assertThat(json(group.getEndpoints().getFirst().getConfiguration())).isEqualTo(json(ENDPOINT_CONFIGURATION));
+            softly.assertThat(json(group.getEndpoints().getFirst().getConfiguration()))
+                    .isEqualTo(json(ENDPOINT_CONFIGURATION));
         });
 
         // the plan keeps everything but its port range, which the source still owns
         SoftAssertions.assertSoftly(softly -> {
-            var plan = captor.getValue().importDefinition().getPlans().iterator().next();
+            var plan =
+                    captor.getValue().importDefinition().getPlans().iterator().next();
             var planDefinition = plan.getPlanDefinitionNativeV4();
             softly.assertThat(planDefinition.getBootstrapPort()).isNull();
             softly.assertThat(planDefinition.getBrokerRangeStart()).isNull();
@@ -326,6 +318,8 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     private DuplicateApiOptions aDuplicateApiOptions() {
-        return new DuplicateApiOptions().contextPath("/duplicate").filteredFields(Set.of(DuplicateApiOptions.FilteredFieldsEnum.GROUPS));
+        return new DuplicateApiOptions()
+                .contextPath("/duplicate")
+                .filteredFields(Set.of(DuplicateApiOptions.FilteredFieldsEnum.GROUPS));
     }
 }

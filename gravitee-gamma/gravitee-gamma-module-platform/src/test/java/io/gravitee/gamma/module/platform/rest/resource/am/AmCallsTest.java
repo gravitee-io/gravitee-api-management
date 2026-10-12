@@ -40,12 +40,10 @@ class AmCallsTest {
     @Test
     void should_translate_am_not_configured_to_503() {
         WebApplicationException ex = catchThrowableOfType(
-            () ->
-                AmCalls.run(() -> {
+                () -> AmCalls.run(() -> {
                     throw new AmNotConfiguredException("AM is not configured");
                 }),
-            WebApplicationException.class
-        );
+                WebApplicationException.class);
 
         Response response = ex.getResponse();
         assertThat(response.getStatus()).isEqualTo(503);
@@ -57,12 +55,10 @@ class AmCallsTest {
     @Test
     void should_translate_am_upstream_to_underlying_status() {
         WebApplicationException ex = catchThrowableOfType(
-            () ->
-                AmCalls.run(() -> {
+                () -> AmCalls.run(() -> {
                     throw new AmUpstreamException("AM rejected request", 422);
                 }),
-            WebApplicationException.class
-        );
+                WebApplicationException.class);
 
         Response response = ex.getResponse();
         assertThat(response.getStatus()).isEqualTo(422);
@@ -75,12 +71,10 @@ class AmCallsTest {
     @Test
     void should_translate_am_upstream_with_unknown_status_to_502() {
         WebApplicationException ex = catchThrowableOfType(
-            () ->
-                AmCalls.run(() -> {
+                () -> AmCalls.run(() -> {
                     throw new AmUpstreamException("AM unreachable", null);
                 }),
-            WebApplicationException.class
-        );
+                WebApplicationException.class);
 
         assertThat(ex.getResponse().getStatus()).isEqualTo(502);
     }
@@ -88,10 +82,9 @@ class AmCallsTest {
     @Test
     void should_propagate_unknown_exceptions_unchanged() {
         IllegalStateException raw = new IllegalStateException("nope");
-        assertThatThrownBy(() ->
-            AmCalls.run(() -> {
-                throw raw;
-            })
-        ).isSameAs(raw);
+        assertThatThrownBy(() -> AmCalls.run(() -> {
+                    throw raw;
+                }))
+                .isSameAs(raw);
     }
 }

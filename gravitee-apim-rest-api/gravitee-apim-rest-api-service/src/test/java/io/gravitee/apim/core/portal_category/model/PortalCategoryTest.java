@@ -77,7 +77,11 @@ class PortalCategoryTest {
             var id = PortalCategoryId.random();
             var category = PortalCategory.of(id, "env", "News", "News category", true);
 
-            category.update(UpdatePortalCategory.builder().title("Updated").description("Updated description").visible(false).build());
+            category.update(UpdatePortalCategory.builder()
+                    .title("Updated")
+                    .description("Updated description")
+                    .visible(false)
+                    .build());
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(category.getId()).isEqualTo(id);

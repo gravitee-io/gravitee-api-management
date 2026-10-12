@@ -31,8 +31,10 @@ public class ManagementApiLinkHelperTest {
     private static final String BASE_URL = "http://example.com";
     private static final String BASE_URL_APIS = BASE_URL + "/environments/DEFAULT" + "/apis";
     private static final String BASE_URL_APIS_APIID = BASE_URL_APIS + "/" + API_ID;
-    private static final String BASE_URL_APIS_APIID_PICTURE = BASE_URL_APIS_APIID + "/picture?hash=" + UPDATED_AT.getTime();
-    private static final String BASE_URL_APIS_APIID_BACKGROUND = BASE_URL_APIS_APIID + "/background?hash=" + UPDATED_AT.getTime();
+    private static final String BASE_URL_APIS_APIID_PICTURE =
+            BASE_URL_APIS_APIID + "/picture?hash=" + UPDATED_AT.getTime();
+    private static final String BASE_URL_APIS_APIID_BACKGROUND =
+            BASE_URL_APIS_APIID + "/background?hash=" + UPDATED_AT.getTime();
 
     @BeforeEach
     public void setUp() {

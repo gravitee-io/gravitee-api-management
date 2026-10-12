@@ -18,7 +18,6 @@ package io.gravitee.repository.log.v4.model.analytics;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.Builder;
-import lombok.Data;
 
 @Builder(toBuilder = true)
 public record AverageConnectionDurationQuery(Optional<String> apiId, Optional<Instant> from, Optional<Instant> to) {

@@ -38,14 +38,16 @@ import io.reactivex.rxjava3.core.Maybe;
 import lombok.CustomLog;
 
 @CustomLog
-public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRepository implements HealthCheckRepository {
+public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRepository
+        implements HealthCheckRepository {
 
     private final String[] clusters;
 
-    private final AverageHealthCheckResponseTimeAdapter averageHealthCheckResponseTimeAdapter = new AverageHealthCheckResponseTimeAdapter();
+    private final AverageHealthCheckResponseTimeAdapter averageHealthCheckResponseTimeAdapter =
+            new AverageHealthCheckResponseTimeAdapter();
     private final AvailabilityQueryMapper availabilityQueryMapper = new AvailabilityQueryMapper();
     private final AverageHealthCheckResponseTimeOvertimeAdapter averageHealthCheckResponseTimeOvertimeAdapter =
-        new AverageHealthCheckResponseTimeOvertimeAdapter();
+            new AverageHealthCheckResponseTimeOvertimeAdapter();
 
     public HealthCheckElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -63,9 +65,7 @@ public class HealthCheckElasticsearchRepository extends AbstractElasticsearchRep
 
     @Override
     public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
-        QueryContext queryContext,
-        AverageHealthCheckResponseTimeOvertimeQuery query
-    ) {
+            QueryContext queryContext, AverageHealthCheckResponseTimeOvertimeQuery query) {
         return query(queryContext, query, averageHealthCheckResponseTimeOvertimeAdapter);
     }
 

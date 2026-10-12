@@ -15,7 +15,6 @@
  */
 package io.gravitee.definition.model.v4.analytics.sampling;
 
-import com.google.common.base.Splitter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotEmpty;
@@ -57,7 +56,8 @@ public class Sampling implements Serializable {
     public static WindowedCount parseWindowedCount(@Nonnull String value) {
         List<String> parts = List.of(value.split("/"));
         if (parts.size() != 2) {
-            throw new IllegalArgumentException("Invalid windowed count value: " + value + ", must be of the form <count>/<duration>");
+            throw new IllegalArgumentException(
+                    "Invalid windowed count value: " + value + ", must be of the form <count>/<duration>");
         }
         return new WindowedCount(Integer.parseInt(parts.getFirst()), Duration.parse(parts.getLast()));
     }

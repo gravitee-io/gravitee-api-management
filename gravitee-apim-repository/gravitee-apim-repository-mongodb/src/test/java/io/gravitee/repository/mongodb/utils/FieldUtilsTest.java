@@ -28,15 +28,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class FieldUtilsTest {
 
     public static Iterable<Object[]> data() {
-        return Arrays.asList(
-            new Object[][] {
-                { "", "" },
-                { "alreadyCamelCase", "alreadyCamelCase" },
-                { null, null },
-                { "created_at", "createdAt" },
-                { "subject", "subject" },
-            }
-        );
+        return Arrays.asList(new Object[][] {
+            {"", ""},
+            {"alreadyCamelCase", "alreadyCamelCase"},
+            {null, null},
+            {"created_at", "createdAt"},
+            {"subject", "subject"},
+        });
     }
 
     public String actual;

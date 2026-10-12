@@ -76,7 +76,9 @@ public abstract class AbstractSoapBuilder {
     protected void generateXml(Part part, XmlCursor cursor, boolean encoded) {
         // part uses a complex type
         if (part.getElementName() != null) {
-            QName rootName = new QName(part.getElementName().getNamespaceURI(), part.getElementName().getLocalPart());
+            QName rootName = new QName(
+                    part.getElementName().getNamespaceURI(),
+                    part.getElementName().getLocalPart());
 
             SchemaType[] globalElems = schemaTypeSystem.documentTypes();
             SchemaType elem = null;
@@ -108,8 +110,8 @@ public abstract class AbstractSoapBuilder {
 
     private BiConsumer<SchemaType, XmlCursor> resolveTypeContentWriter(boolean encoded) {
         return typeContentWriter != null
-            ? typeContentWriter
-            : (type, cursor) -> new SampleXmlUtil(encoded).createSampleForType(type, cursor);
+                ? typeContentWriter
+                : (type, cursor) -> new SampleXmlUtil(encoded).createSampleForType(type, cursor);
     }
 
     protected String buildPrefixedName(SchemaType type) {

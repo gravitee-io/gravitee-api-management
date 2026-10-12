@@ -26,8 +26,8 @@ class EntityTypeRegistryTest {
     @Test
     void default_registry_is_valid_and_exposes_its_tokens() {
         assertThat(EntityTypeRegistry.DEFAULT.all())
-            .extracting(EntityType::token)
-            .contains("mcp-server", "mcp-tool", "mcp-proxy", "llm-proxy", "a2a-proxy", "agent-identity");
+                .extracting(EntityType::token)
+                .contains("mcp-server", "mcp-tool", "mcp-proxy", "llm-proxy", "a2a-proxy", "agent-identity");
     }
 
     @Test
@@ -37,16 +37,16 @@ class EntityTypeRegistryTest {
             assertThat(type.parentToken()).isEqualTo("mcp-server");
             assertThat(type.isScoped()).isTrue();
         });
-        assertThat(EntityTypeRegistry.DEFAULT.find("agent-identity")).hasValueSatisfying(type ->
-            assertThat(type.family()).isEqualTo(IdentityFamily.RECOMPUTABLE)
-        );
+        assertThat(EntityTypeRegistry.DEFAULT.find("agent-identity"))
+                .hasValueSatisfying(type -> assertThat(type.family()).isEqualTo(IdentityFamily.RECOMPUTABLE));
     }
 
     @Test
     void every_scoped_parent_is_registered() {
         for (EntityType type : EntityTypeRegistry.DEFAULT.all()) {
             if (type.isScoped()) {
-                assertThat(EntityTypeRegistry.DEFAULT.contains(type.parentToken())).isTrue();
+                assertThat(EntityTypeRegistry.DEFAULT.contains(type.parentToken()))
+                        .isTrue();
             }
         }
     }
@@ -58,10 +58,11 @@ class EntityTypeRegistryTest {
 
     @Test
     void resolve_parses_then_looks_up_the_type() {
-        assertThat(EntityTypeRegistry.DEFAULT.resolve("mcp-tool.github.list_pull_request")).hasValueSatisfying(type -> {
-            assertThat(type.token()).isEqualTo("mcp-tool");
-            assertThat(type.parentToken()).isEqualTo("mcp-server");
-        });
+        assertThat(EntityTypeRegistry.DEFAULT.resolve("mcp-tool.github.list_pull_request"))
+                .hasValueSatisfying(type -> {
+                    assertThat(type.token()).isEqualTo("mcp-tool");
+                    assertThat(type.parentToken()).isEqualTo("mcp-server");
+                });
     }
 
     @Test
@@ -71,20 +72,22 @@ class EntityTypeRegistryTest {
 
     @Test
     void resolve_throws_on_a_malformed_id() {
-        assertThatThrownBy(() -> EntityTypeRegistry.DEFAULT.resolve("github")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> EntityTypeRegistry.DEFAULT.resolve("github"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void rejects_duplicate_tokens() {
-        assertThatThrownBy(() -> new EntityTypeRegistry(List.of(EntityType.nameSeeded("model"), EntityType.nameSeeded("model"))))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("duplicate");
+        assertThatThrownBy(() ->
+                        new EntityTypeRegistry(List.of(EntityType.nameSeeded("model"), EntityType.nameSeeded("model"))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("duplicate");
     }
 
     @Test
     void rejects_scoped_type_with_unknown_parent() {
         assertThatThrownBy(() -> new EntityTypeRegistry(List.of(EntityType.scoped("mcp-tool", "mcp-server"))))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("unknown parent");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("unknown parent");
     }
 }

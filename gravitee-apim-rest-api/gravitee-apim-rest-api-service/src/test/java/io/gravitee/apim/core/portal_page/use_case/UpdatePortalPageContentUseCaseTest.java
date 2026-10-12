@@ -26,7 +26,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalPageContentFixtures;
-import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
@@ -34,7 +33,6 @@ import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
-import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
@@ -70,25 +68,25 @@ class UpdatePortalPageContentUseCaseTest {
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(new java.util.ArrayList<>());
 
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService = mock(PortalNavigationItemsQueryService.class);
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService =
+                mock(PortalNavigationItemsQueryService.class);
         when(portalNavigationItemsQueryService.search(any())).thenReturn(java.util.List.of());
         GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(
-            gmdValidator,
-            portalNavigationItemsQueryService,
-            mock(PortalNavigationEnclosingApiDomainService.class),
-            mock(PortalNavigationTemplatingService.class),
-            mock(ApiTemplateModelProvider.class),
-            mock(EnvironmentTemplateModelProvider.class)
-        );
-        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(java.util.List.of(gmdContentValidator));
+                gmdValidator,
+                portalNavigationItemsQueryService,
+                mock(PortalNavigationEnclosingApiDomainService.class),
+                mock(PortalNavigationTemplatingService.class),
+                mock(ApiTemplateModelProvider.class),
+                mock(EnvironmentTemplateModelProvider.class));
+        PortalPageContentValidatorService validatorService =
+                new PortalPageContentValidatorService(java.util.List.of(gmdContentValidator));
 
         useCase = new UpdatePortalPageContentUseCase(
-            queryService,
-            crudService,
-            validatorService,
-            navigationItemsQueryService,
-            new PortalNavigationSourcedItemsDomainService(navigationItemsQueryService)
-        );
+                queryService,
+                crudService,
+                validatorService,
+                navigationItemsQueryService,
+                new PortalNavigationSourcedItemsDomainService(navigationItemsQueryService));
 
         queryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
         crudService.initWith(PortalPageContentFixtures.samplePortalPageContents());
@@ -97,49 +95,51 @@ class UpdatePortalPageContentUseCaseTest {
     @Test
     void should_reject_content_edit_when_page_is_managed_by_a_source() {
         var sourcedPage = io.gravitee.apim.core.portal_page.model.PortalNavigationPage.builder()
-            .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ff01"))
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .title("Sourced Page")
-            .segment("sourced-page")
-            .area(io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
-            .published(true)
-            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
-            .source(
-                io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
-                    .sourceType("http-fetcher")
-                    .sourceConfiguration("{}")
-                    .build()
-            )
-            .build();
+                .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(
+                        "00000000-0000-0000-0000-00000000ff01"))
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .title("Sourced Page")
+                .segment("sourced-page")
+                .area(io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
+                .published(true)
+                .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
+                .source(io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
+                        .sourceType("http-fetcher")
+                        .sourceConfiguration("{}")
+                        .build())
+                .build();
         sourcedPage.markAsRoot();
         navigationItemsQueryService.storage().add(sourcedPage);
 
-        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var updateContent =
+                UpdatePortalPageContent.builder().content("Updated content").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
-            .hasMessageContaining("cannot be edited");
+                .isInstanceOf(
+                        io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("cannot be edited");
     }
 
     @Test
     void should_update_content_when_valid() {
         // Given
-        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var updateContent =
+                UpdatePortalPageContent.builder().content("Updated content").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When
         final var output = useCase.execute(input);
@@ -154,13 +154,15 @@ class UpdatePortalPageContentUseCaseTest {
     @Test
     void should_reject_update_when_content_exceeds_the_max_size() {
         // Given
-        final var updateContent = UpdatePortalPageContent.builder().content("a".repeat(10 * 1024 * 1024 + 1)).build();
+        final var updateContent = UpdatePortalPageContent.builder()
+                .content("a".repeat(10 * 1024 * 1024 + 1))
+                .build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(PortalPageContentTooLargeException.class);
@@ -171,22 +173,23 @@ class UpdatePortalPageContentUseCaseTest {
         // Given
         final var contentId = PortalPageContentId.of("00000000-0000-0000-0000-000000000003");
         final var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
-            contentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            "openapi: 3.0.3\ninfo:\n  title: Initial",
-            aSwaggerUiConfiguration()
-        );
+                contentId,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                "openapi: 3.0.3\ninfo:\n  title: Initial",
+                aSwaggerUiConfiguration());
         queryService.initWith(List.of(openApiContent));
         crudService.initWith(List.of(openApiContent));
 
-        final var updateContent = UpdatePortalPageContent.builder().content("openapi: 3.0.3\ninfo:\n  title: Updated").build();
+        final var updateContent = UpdatePortalPageContent.builder()
+                .content("openapi: 3.0.3\ninfo:\n  title: Updated")
+                .build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(contentId.toString())
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(contentId.toString())
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When
         final var output = useCase.execute(input);
@@ -201,67 +204,70 @@ class UpdatePortalPageContentUseCaseTest {
     @Test
     void should_throw_when_content_not_found() {
         // Given
-        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var updateContent =
+                UpdatePortalPageContent.builder().content("Updated content").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId("00000000-0000-0000-0000-000000000002")
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId("00000000-0000-0000-0000-000000000002")
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found");
+                .isInstanceOf(PageContentNotFoundException.class)
+                .hasMessage("Page content not found");
     }
 
     @Test
     void should_throw_when_organization_id_mismatch() {
         // Given
-        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var updateContent =
+                UpdatePortalPageContent.builder().content("Updated content").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId("different-org")
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId("different-org")
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found");
+                .isInstanceOf(PageContentNotFoundException.class)
+                .hasMessage("Page content not found");
     }
 
     @Test
     void should_throw_when_environment_id_mismatch() {
         // Given
-        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var updateContent =
+                UpdatePortalPageContent.builder().content("Updated content").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId("different-env")
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId("different-env")
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found");
+                .isInstanceOf(PageContentNotFoundException.class)
+                .hasMessage("Page content not found");
     }
 
     @Test
     void should_replace_content_type_when_requested_type_differs() {
         // Given: CONTENT_ID holds a GRAVITEE_MARKDOWN content
         final var updateContent = UpdatePortalPageContent.builder()
-            .content("openapi: 3.0.3\ninfo:\n  title: Imported")
-            .type(PortalPageContentType.OPENAPI)
-            .build();
+                .content("openapi: 3.0.3\ninfo:\n  title: Imported")
+                .type(PortalPageContentType.OPENAPI)
+                .build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When
         final var output = useCase.execute(input);
@@ -277,22 +283,25 @@ class UpdatePortalPageContentUseCaseTest {
     void should_keep_existing_type_when_requested_type_matches() {
         // Given
         final var updateContent = UpdatePortalPageContent.builder()
-            .content("Updated content")
-            .type(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .build();
+                .content("Updated content")
+                .type(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When
         final var output = useCase.execute(input);
 
         // Then
         assertThat(output.portalPageContent()).isInstanceOf(GraviteeMarkdownPageContent.class);
-        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().value()).isEqualTo("Updated content");
+        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent())
+                        .getContent()
+                        .value())
+                .isEqualTo("Updated content");
     }
 
     @Test
@@ -300,27 +309,29 @@ class UpdatePortalPageContentUseCaseTest {
         // Given: an OPENAPI content updated towards GRAVITEE_MARKDOWN with empty content
         final var contentId = PortalPageContentId.of("00000000-0000-0000-0000-000000000003");
         final var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
-            contentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            "openapi: 3.0.3\ninfo:\n  title: Initial",
-            aSwaggerUiConfiguration()
-        );
+                contentId,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                "openapi: 3.0.3\ninfo:\n  title: Initial",
+                aSwaggerUiConfiguration());
         queryService.initWith(List.of(openApiContent));
         crudService.initWith(List.of(openApiContent));
 
-        final var updateContent = UpdatePortalPageContent.builder().content("").type(PortalPageContentType.GRAVITEE_MARKDOWN).build();
+        final var updateContent = UpdatePortalPageContent.builder()
+                .content("")
+                .type(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(contentId.toString())
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(contentId.toString())
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
-            .hasMessage("Content must not be null or empty");
+                .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
+                .hasMessage("Content must not be null or empty");
     }
 
     @Test
@@ -328,15 +339,15 @@ class UpdatePortalPageContentUseCaseTest {
         // Given
         final var updateContent = UpdatePortalPageContent.builder().content("").build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .updatePortalPageContent(updateContent)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .updatePortalPageContent(updateContent)
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
-            .hasMessage("Content must not be null or empty");
+                .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
+                .hasMessage("Content must not be null or empty");
     }
 }

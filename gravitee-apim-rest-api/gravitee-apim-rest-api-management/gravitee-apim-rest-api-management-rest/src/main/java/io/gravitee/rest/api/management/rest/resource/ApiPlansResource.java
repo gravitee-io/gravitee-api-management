@@ -60,12 +60,13 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Tag(
-    name = "API Plans",
-    description = "Manage API plans. Only V2 API definitions are supported on Management API v1. For V4 or Federated APIs, use Management API v2 (/management/v2/environments/{envId}/apis/{apiId}/plans)."
-)
+        name = "API Plans",
+        description =
+                "Manage API plans. Only V2 API definitions are supported on Management API v1. For V4 or Federated APIs, use Management API v2 (/management/v2/environments/{envId}/apis/{apiId}/plans).")
 public class ApiPlansResource extends AbstractResource {
 
-    static final String UNSUPPORTED_DEFINITION_VERSION = "API definition version not supported (use Management API v2 for V4/Federated)";
+    static final String UNSUPPORTED_DEFINITION_VERSION =
+            "API definition version not supported (use Management API v2 for V4/Federated)";
 
     @Inject
     private PlanService planService;
@@ -85,93 +86,99 @@ public class ApiPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List plans for an API", description = "List all the plans accessible to the current user.")
     @ApiResponse(
-        responseCode = "200",
-        description = "List accessible plans for current user",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = PlanEntity.class), uniqueItems = true)
-        )
-    )
+            responseCode = "200",
+            description = "List accessible plans for current user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema = @Schema(implementation = PlanEntity.class),
+                                            uniqueItems = true)))
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<PlanEntity> getApiPlans(
-        @QueryParam("status") @DefaultValue("PUBLISHED") @Parameter(
-            explode = Explode.FALSE,
-            schema = @Schema(type = "array")
-        ) final PlanStatusParam wishedStatus,
-        @QueryParam("security") @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array")) final PlanSecurityParam security
-    ) {
+            @QueryParam("status")
+                    @DefaultValue("PUBLISHED")
+                    @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array"))
+                    final PlanStatusParam wishedStatus,
+            @QueryParam("security") @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array"))
+                    final PlanSecurityParam security) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         assertLegacyApiSupported(executionContext, api);
         ApiEntity apiEntity = apiService.findById(executionContext, api);
 
-        if (
-            !hasPermission(executionContext, RolePermission.API_PLAN, api, RolePermissionAction.READ) &&
-            !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ) &&
-            apiEntity.getVisibility() == Visibility.PRIVATE
-        ) {
+        if (!hasPermission(executionContext, RolePermission.API_PLAN, api, RolePermissionAction.READ)
+                && !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ)
+                && apiEntity.getVisibility() == Visibility.PRIVATE) {
             throw new ForbiddenAccessException();
         }
 
-        return planService
-            .findByApi(executionContext, api)
-            .stream()
-            .filter(
-                plan ->
-                    wishedStatus.contains(plan.getStatus()) &&
-                    ((isAuthenticated() && isAdmin()) ||
-                        groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull()))
-            )
-            .filter(plan -> security == null || security.contains(plan.getSecurity()))
-            .sorted(comparingInt(PlanEntity::getOrder))
-            .map(this::filterSensitiveData)
-            .collect(Collectors.toList());
+        return planService.findByApi(executionContext, api).stream()
+                .filter(plan -> wishedStatus.contains(plan.getStatus())
+                        && ((isAuthenticated() && isAdmin())
+                                || groupService.isUserAuthorizedToAccessApiData(
+                                        apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
+                .filter(plan -> security == null || security.contains(plan.getSecurity()))
+                .sorted(comparingInt(PlanEntity::getOrder))
+                .map(this::filterSensitiveData)
+                .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+            summary = "Create a plan",
+            description = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Plan successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
-    )
+            responseCode = "201",
+            description = "Plan successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlanEntity.class)))
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = API_PLAN, acls = CREATE) })
-    public Response createApiPlan(@Parameter(name = "plan", required = true) @Valid @NotNull NewPlanEntity newPlanEntity) {
+    @Permissions({@Permission(value = API_PLAN, acls = CREATE)})
+    public Response createApiPlan(
+            @Parameter(name = "plan", required = true) @Valid @NotNull NewPlanEntity newPlanEntity) {
         assertLegacyApiSupported(GraviteeContext.getExecutionContext(), api);
         newPlanEntity.setReferenceId(api);
         newPlanEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
         PlanEntity planEntity = planService.create(GraviteeContext.getExecutionContext(), newPlanEntity);
 
-        return Response.created(this.getLocationHeader(planEntity.getId())).entity(planEntity).build();
+        return Response.created(this.getLocationHeader(planEntity.getId()))
+                .entity(planEntity)
+                .build();
     }
 
     @PUT
     @Path("/{plan}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+            summary = "Update a plan",
+            description = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Plan successfully updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
-    )
+            responseCode = "200",
+            description = "Plan successfully updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlanEntity.class)))
     @ApiResponse(responseCode = "400", description = "Bad plan format or " + UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
+    @Permissions({@Permission(value = API_PLAN, acls = UPDATE)})
     public Response updateApiPlan(
-        @PathParam("plan") String plan,
-        @Parameter(name = "plan", required = true) @Valid @NotNull UpdatePlanEntity updatePlanEntity
-    ) {
+            @PathParam("plan") String plan,
+            @Parameter(name = "plan", required = true) @Valid @NotNull UpdatePlanEntity updatePlanEntity) {
         assertLegacyApiSupported(GraviteeContext.getExecutionContext(), api);
         if (updatePlanEntity.getId() != null && !plan.equals(updatePlanEntity.getId())) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("'plan' parameter does not correspond to the plan to update")
-                .build();
+                    .entity("'plan' parameter does not correspond to the plan to update")
+                    .build();
         }
 
         // Force ID
@@ -179,8 +186,11 @@ public class ApiPlansResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API)
+                && !planEntity.getReferenceId().equals(api)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
         }
 
         planEntity = planService.update(executionContext, updatePlanEntity);
@@ -192,24 +202,25 @@ public class ApiPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a plan", description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Plan information",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
-    )
+            responseCode = "200",
+            description = "Plan information",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlanEntity.class)))
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         assertLegacyApiSupported(executionContext, api);
-        if (
-            Visibility.PUBLIC.equals(apiService.findById(executionContext, api).getVisibility()) ||
-            hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, api, READ)
-        ) {
+        if (Visibility.PUBLIC.equals(apiService.findById(executionContext, api).getVisibility())
+                || hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, api, READ)) {
             PlanEntity planEntity = planService.findById(executionContext, plan);
-            if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
+            if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API)
+                    && !planEntity.getReferenceId().equals(api)) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("'plan' parameter does not correspond to the current API")
-                    .build();
+                        .entity("'plan' parameter does not correspond to the current API")
+                        .build();
             }
 
             return Response.ok(planEntity).build();
@@ -220,17 +231,22 @@ public class ApiPlansResource extends AbstractResource {
     @DELETE
     @Path("/{plan}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+            summary = "Delete a plan",
+            description = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponse(responseCode = "204", description = "Plan successfully deleted")
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = API_PLAN, acls = DELETE) })
+    @Permissions({@Permission(value = API_PLAN, acls = DELETE)})
     public Response deleteApiPlan(@PathParam("plan") String plan) {
         assertLegacyApiSupported(GraviteeContext.getExecutionContext(), api);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API)
+                && !planEntity.getReferenceId().equals(api)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
         }
 
         planService.delete(executionContext, plan);
@@ -241,21 +257,28 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_close")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Close  a plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+            summary = "Close  a plan",
+            description = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Plan successfully closed",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
-    )
+            responseCode = "200",
+            description = "Plan successfully closed",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlanEntity.class)))
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
+    @Permissions({@Permission(value = API_PLAN, acls = UPDATE)})
     public Response closeApiPlan(@PathParam("plan") String plan) {
         assertLegacyApiSupported(GraviteeContext.getExecutionContext(), api);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API)
+                && !planEntity.getReferenceId().equals(api)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
         }
 
         PlanEntity closedPlan = planService.close(executionContext, plan);
@@ -266,21 +289,28 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_publish")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Publicly publish plan", description = "User must have the MANAGE_PLANS permission to use this service")
+    @Operation(
+            summary = "Publicly publish plan",
+            description = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponse(
-        responseCode = "204",
-        description = "Plan successfully published",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
-    )
+            responseCode = "204",
+            description = "Plan successfully published",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlanEntity.class)))
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
+    @Permissions({@Permission(value = API_PLAN, acls = UPDATE)})
     public Response publishApiPlan(@PathParam("plan") String plan) {
         assertLegacyApiSupported(GraviteeContext.getExecutionContext(), api);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API)
+                && !planEntity.getReferenceId().equals(api)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
         }
 
         return Response.ok(planService.publish(executionContext, plan)).build();
@@ -291,18 +321,19 @@ public class ApiPlansResource extends AbstractResource {
     @Path("/{plan}/_depreciate")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Deprecated, use '_deprecate' instead. Deprecate a plan",
-        deprecated = true,
-        description = "User must have the API_PLAN[UPDATE] permission to use this service"
-    )
+            summary = "Deprecated, use '_deprecate' instead. Deprecate a plan",
+            deprecated = true,
+            description = "User must have the API_PLAN[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "204",
-        description = "Plan successfully deprecated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
-    )
+            responseCode = "204",
+            description = "Plan successfully deprecated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlanEntity.class)))
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
+    @Permissions({@Permission(value = API_PLAN, acls = UPDATE)})
     public Response depreciateApiPlan(@PathParam("plan") String plan) {
         return this.deprecateApiPlan(plan);
     }
@@ -310,36 +341,44 @@ public class ApiPlansResource extends AbstractResource {
     @POST
     @Path("/{plan}/_deprecate")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Deprecate a plan", description = "User must have the API_PLAN[UPDATE] permission to use this service")
+    @Operation(
+            summary = "Deprecate a plan",
+            description = "User must have the API_PLAN[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "204",
-        description = "Plan successfully deprecated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
-    )
+            responseCode = "204",
+            description = "Plan successfully deprecated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlanEntity.class)))
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
+    @Permissions({@Permission(value = API_PLAN, acls = UPDATE)})
     public Response deprecateApiPlan(@PathParam("plan") String plan) {
         assertLegacyApiSupported(GraviteeContext.getExecutionContext(), api);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         PlanEntity planEntity = planService.findById(executionContext, plan);
-        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API) && !planEntity.getReferenceId().equals(api)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+        if (planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API)
+                && !planEntity.getReferenceId().equals(api)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
         }
 
         return Response.ok(planService.deprecate(executionContext, plan)).build();
     }
 
     private PlanEntity filterSensitiveData(PlanEntity entity) {
-        if (
-            hasPermission(
-                GraviteeContext.getExecutionContext(),
-                API_GATEWAY_DEFINITION,
-                entity.getReferenceId(),
-                RolePermissionAction.READ
-            ) &&
-            hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, entity.getReferenceId(), RolePermissionAction.READ)
-        ) {
+        if (hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        API_GATEWAY_DEFINITION,
+                        entity.getReferenceId(),
+                        RolePermissionAction.READ)
+                && hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        API_PLAN,
+                        entity.getReferenceId(),
+                        RolePermissionAction.READ)) {
             // Return complete information if user has permission.
             return entity;
         }

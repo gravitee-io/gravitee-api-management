@@ -25,8 +25,11 @@ import java.util.stream.Stream;
 
 public interface ApiKeyQueryService {
     Optional<ApiKeyEntity> findById(String apiKeyId);
+
     Stream<ApiKeyEntity> findByApplication(String applicationId);
+
     Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId);
+
     Stream<ApiKeyEntity> findBySubscription(String subscriptionId);
 
     /**
@@ -37,7 +40,8 @@ public interface ApiKeyQueryService {
      */
     Stream<ApiKeyEntity> findBySubscriptions(Collection<String> subscriptionIds);
 
-    Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType);
+    Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(
+            String key, String referenceId, String referenceType);
 
     /**
      * Returns API keys whose {@code expireAt} falls inside any of the per-bucket windows

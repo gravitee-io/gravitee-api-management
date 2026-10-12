@@ -37,30 +37,25 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
     private FacetsQuery sortedQuery(List<Facet> facets, Integer limit) {
         return new FacetsQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(
-                new MetricMeasuresQuery(
-                    Metric.MESSAGES,
-                    Set.of(Measure.COUNT),
-                    List.of(new MetricMeasuresQuery.Sort(Measure.COUNT, MetricMeasuresQuery.Sort.Order.DESC))
-                )
-            ),
-            facets,
-            limit,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(
+                        Metric.MESSAGES,
+                        Set.of(Measure.COUNT),
+                        List.of(new MetricMeasuresQuery.Sort(Measure.COUNT, MetricMeasuresQuery.Sort.Order.DESC)))),
+                facets,
+                limit,
+                List.of());
     }
 
     private FacetsQuery query(List<Facet> facets, Integer limit) {
         return new FacetsQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
-            facets,
-            limit,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+                facets,
+                limit,
+                List.of());
     }
 
     @Test
@@ -131,7 +126,8 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
      */
     @Test
     void should_restrict_the_query_to_the_resolved_request_ids() throws JsonProcessingException {
-        var json = JSON.readTree(adapter.adapt(query(List.of(Facet.MESSAGE_OPERATION_TYPE), null), Set.of("req-1", "req-2")));
+        var json = JSON.readTree(
+                adapter.adapt(query(List.of(Facet.MESSAGE_OPERATION_TYPE), null), Set.of("req-1", "req-2")));
 
         var filters = json.at("/query/bool/filter").toString();
         assertThat(filters).contains("request-id").contains("req-1").contains("req-2");
@@ -145,13 +141,12 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
     void should_emit_no_request_id_clause_when_the_join_is_skipped() throws JsonProcessingException {
         var apiFilter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID));
         var query = new FacetsQuery(
-            buildTimeRange(),
-            List.of(apiFilter),
-            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
-            List.of(Facet.MESSAGE_OPERATION_TYPE),
-            null,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(apiFilter),
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+                List.of(Facet.MESSAGE_OPERATION_TYPE),
+                null,
+                List.of());
 
         var json = JSON.readTree(adapter.adapt(query));
 
@@ -175,13 +170,12 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
     @Test
     void should_scope_the_message_query_to_the_api_itself() throws JsonProcessingException {
         var query = new FacetsQuery(
-            buildTimeRange(),
-            List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, "api-1")),
-            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
-            List.of(Facet.MESSAGE_OPERATION_TYPE),
-            null,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, "api-1")),
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+                List.of(Facet.MESSAGE_OPERATION_TYPE),
+                null,
+                List.of());
 
         var json = JSON.readTree(adapter.adapt(query, Set.of("req-1")));
 

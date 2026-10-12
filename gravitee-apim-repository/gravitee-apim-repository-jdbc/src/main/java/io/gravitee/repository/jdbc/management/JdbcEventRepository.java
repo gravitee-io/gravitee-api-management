@@ -79,13 +79,13 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     @Override
     protected JdbcObjectMapper<Event> buildOrm() {
         return JdbcObjectMapper.builder(Event.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("type", Types.NVARCHAR, EventType.class)
-            .addColumn("payload", Types.NVARCHAR, String.class)
-            .addColumn("parent_id", Types.NVARCHAR, String.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("type", Types.NVARCHAR, EventType.class)
+                .addColumn("payload", Types.NVARCHAR, String.class)
+                .addColumn("parent_id", Types.NVARCHAR, String.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     static final JdbcHelper.ChildAdder<Event> CHILD_ADDER = (Event parent, ResultSet rs) -> {
@@ -122,23 +122,24 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             jdbcTemplate.update("delete from " + EVENT_PROPERTIES + " where event_id = ?", event.getId());
         }
         if (event.getProperties() != null) {
-            List<Entry<String, String>> list = new ArrayList<>(event.getProperties().entrySet());
+            List<Entry<String, String>> list =
+                    new ArrayList<>(event.getProperties().entrySet());
             jdbcTemplate.batchUpdate(
-                "insert into " + EVENT_PROPERTIES + " ( event_id, property_key, property_value ) values ( ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, event.getId());
-                        ps.setString(2, list.get(i).getKey());
-                        ps.setString(3, list.get(i).getValue());
-                    }
+                    "insert into " + EVENT_PROPERTIES
+                            + " ( event_id, property_key, property_value ) values ( ?, ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, event.getId());
+                            ps.setString(2, list.get(i).getKey());
+                            ps.setString(3, list.get(i).getValue());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return list.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return list.size();
+                        }
+                    });
         }
     }
 
@@ -149,20 +150,19 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         if (!CollectionUtils.isEmpty(event.getEnvironments())) {
             List<String> list = new ArrayList<>(event.getEnvironments());
             jdbcTemplate.batchUpdate(
-                "insert into " + EVENT_ENVIRONMENTS + " ( event_id, environment_id) values ( ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, event.getId());
-                        ps.setString(2, list.get(i));
-                    }
+                    "insert into " + EVENT_ENVIRONMENTS + " ( event_id, environment_id) values ( ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, event.getId());
+                            ps.setString(2, list.get(i));
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return list.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return list.size();
+                        }
+                    });
         }
     }
 
@@ -173,20 +173,19 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         if (!CollectionUtils.isEmpty(event.getOrganizations())) {
             List<String> list = new ArrayList<>(event.getOrganizations());
             jdbcTemplate.batchUpdate(
-                "insert into " + EVENT_ORGANIZATIONS + " ( event_id, organization_id) values ( ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, event.getId());
-                        ps.setString(2, list.get(i));
-                    }
+                    "insert into " + EVENT_ORGANIZATIONS + " ( event_id, organization_id) values ( ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, event.getId());
+                            ps.setString(2, list.get(i));
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return list.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return list.size();
+                        }
+                    });
         }
     }
 
@@ -194,24 +193,19 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     public Optional<Event> findById(String id) throws TechnicalException {
         log.debug("JdbcEventRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Event> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                CHILD_ADDER,
-                "id"
-            );
-            String builder =
-                getOrm().getSelectAllSql() +
-                " e " +
-                "left join " +
-                EVENT_PROPERTIES +
-                " ep on e.id = ep.event_id " +
-                "left join " +
-                EVENT_ENVIRONMENTS +
-                " ev on e.id = ev.event_id " +
-                "left join " +
-                EVENT_ORGANIZATIONS +
-                " evo on e.id = evo.event_id " +
-                "where e.id = ?";
+            JdbcHelper.CollatingRowMapper<Event> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            String builder = getOrm().getSelectAllSql() + " e "
+                    + "left join "
+                    + EVENT_PROPERTIES
+                    + " ep on e.id = ep.event_id "
+                    + "left join "
+                    + EVENT_ENVIRONMENTS
+                    + " ev on e.id = ev.event_id "
+                    + "left join "
+                    + EVENT_ORGANIZATIONS
+                    + " evo on e.id = evo.event_id "
+                    + "where e.id = ?";
             jdbcTemplate.query(builder, rowMapper, id);
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
@@ -246,9 +240,8 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             storeProperties(event, true);
             storeEnvironments(event, true);
             storeOrganizations(event, true);
-            return findById(event.getId()).orElseThrow(() ->
-                new IllegalStateException(format("No event found with id [%s]", event.getId()))
-            );
+            return findById(event.getId())
+                    .orElseThrow(() -> new IllegalStateException(format("No event found with id [%s]", event.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -325,18 +318,17 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
 
     private void updateEventProperty(String eventId, String propertyKey, String value) {
         int update = jdbcTemplate.update(
-            "update " + EVENT_PROPERTIES + " set property_value = ? where event_id = ? and property_key = ?",
-            value,
-            eventId,
-            propertyKey
-        );
+                "update " + EVENT_PROPERTIES + " set property_value = ? where event_id = ? and property_key = ?",
+                value,
+                eventId,
+                propertyKey);
         if (update <= 0) {
             jdbcTemplate.update(
-                "insert into " + EVENT_PROPERTIES + " ( event_id, property_key, property_value ) values ( ?, ?, ? )",
-                eventId,
-                propertyKey,
-                value
-            );
+                    "insert into " + EVENT_PROPERTIES
+                            + " ( event_id, property_key, property_value ) values ( ?, ?, ? )",
+                    eventId,
+                    propertyKey,
+                    value);
         }
     }
 
@@ -344,33 +336,34 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     public long deleteApiEvents(String apiId) throws TechnicalException {
         try {
             List<String> eventToDelete = jdbcTemplate.queryForList(
-                "select event_id from " + EVENT_PROPERTIES + " where property_key = ? and property_value = ?",
-                String.class,
-                Event.EventProperties.API_ID.getValue(),
-                apiId
-            );
+                    "select event_id from " + EVENT_PROPERTIES + " where property_key = ? and property_value = ?",
+                    String.class,
+                    Event.EventProperties.API_ID.getValue(),
+                    apiId);
 
             if (eventToDelete.isEmpty()) {
                 return 0;
             }
 
-            String propertiesDeleteQuery =
-                "delete from " + EVENT_PROPERTIES + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
+            String propertiesDeleteQuery = "delete from " + EVENT_PROPERTIES + " where event_id in ("
+                    + getOrm().buildInClause(eventToDelete) + ")";
             jdbcTemplate.update(propertiesDeleteQuery, (PreparedStatement ps) -> {
                 getOrm().setArguments(ps, eventToDelete, 1);
             });
 
-            String environmentsDeleteQuery =
-                "delete from " + EVENT_ENVIRONMENTS + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
+            String environmentsDeleteQuery = "delete from " + EVENT_ENVIRONMENTS + " where event_id in ("
+                    + getOrm().buildInClause(eventToDelete) + ")";
             jdbcTemplate.update(environmentsDeleteQuery, (PreparedStatement ps) -> {
                 getOrm().setArguments(ps, eventToDelete, 1);
             });
 
-            String organizationsDeleteQuery =
-                "delete from " + EVENT_ORGANIZATIONS + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
-            jdbcTemplate.update(organizationsDeleteQuery, (PreparedStatement ps) -> getOrm().setArguments(ps, eventToDelete, 1));
+            String organizationsDeleteQuery = "delete from " + EVENT_ORGANIZATIONS + " where event_id in ("
+                    + getOrm().buildInClause(eventToDelete) + ")";
+            jdbcTemplate.update(
+                    organizationsDeleteQuery, (PreparedStatement ps) -> getOrm().setArguments(ps, eventToDelete, 1));
 
-            String eventsDeleteQuery = "delete from " + this.tableName + " where id in (" + getOrm().buildInClause(eventToDelete) + ")";
+            String eventsDeleteQuery =
+                    "delete from " + this.tableName + " where id in (" + getOrm().buildInClause(eventToDelete) + ")";
             return jdbcTemplate.update(eventsDeleteQuery, (PreparedStatement ps) -> {
                 getOrm().setArguments(ps, eventToDelete, 1);
             });
@@ -411,38 +404,38 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         String sql = builder.toString();
 
         return jdbcTemplate
-            .queryForStream(
-                sql,
-                (rs, rowNum) -> {
-                    // Extract basic event info
-                    String eventId = rs.getString("id");
-                    String type = rs.getString("type");
-                    String propertyKey = rs.getString("property_key");
-                    String propertyValue = rs.getString("property_value");
+                .queryForStream(
+                        sql,
+                        (rs, rowNum) -> {
+                            // Extract basic event info
+                            String eventId = rs.getString("id");
+                            String type = rs.getString("type");
+                            String propertyKey = rs.getString("property_key");
+                            String propertyValue = rs.getString("property_value");
 
-                    // Create event with basic info
-                    Event event = new Event();
-                    event.setId(eventId);
-                    EventType eventType = Arrays.stream(EventType.values())
-                        .filter(e -> e.name().equals(type))
-                        .findFirst()
-                        .orElse(null);
-                    event.setType(eventType);
+                            // Create event with basic info
+                            Event event = new Event();
+                            event.setId(eventId);
+                            EventType eventType = Arrays.stream(EventType.values())
+                                    .filter(e -> e.name().equals(type))
+                                    .findFirst()
+                                    .orElse(null);
+                            event.setType(eventType);
 
-                    // Initialize properties map
-                    Map<String, String> properties = new HashMap<>();
-                    if (propertyKey != null && propertyValue != null) {
-                        properties.put(propertyKey, propertyValue);
-                    }
-                    event.setProperties(properties);
+                            // Initialize properties map
+                            Map<String, String> properties = new HashMap<>();
+                            if (propertyKey != null && propertyValue != null) {
+                                properties.put(propertyKey, propertyValue);
+                            }
+                            event.setProperties(properties);
 
-                    // Determine group and create EventToClean
-                    EventRepository.EventToCleanGroup group = EventGroupKeyHelper.determineGroup(event.getType(), event.getProperties());
-                    return group != null ? new EventToClean(event.getId(), group) : null;
-                },
-                args.toArray()
-            )
-            .filter(Objects::nonNull);
+                            // Determine group and create EventToClean
+                            EventRepository.EventToCleanGroup group =
+                                    EventGroupKeyHelper.determineGroup(event.getType(), event.getProperties());
+                            return group != null ? new EventToClean(event.getId(), group) : null;
+                        },
+                        args.toArray())
+                .filter(Objects::nonNull);
     }
 
     @Override
@@ -461,7 +454,10 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     }
 
     private static List<List<String>> split(List<String> eventsToDelete) {
-        return Observable.fromIterable(eventsToDelete).buffer(1000).blockingStream().toList();
+        return Observable.fromIterable(eventsToDelete)
+                .buffer(1000)
+                .blockingStream()
+                .toList();
     }
 
     private int patchEvent(Event event) {
@@ -496,26 +492,22 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     private List<Event> queryEvents(String sql, List<Object> args) {
         log.debug("SQL: {}", sql);
         log.debug("Args: {}", args);
-        final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            CHILD_ADDER,
-            "id"
-        );
+        final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler =
+                new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         jdbcTemplate.query(
-            (Connection cnctn) -> {
-                PreparedStatement stmt = cnctn.prepareStatement(sql);
-                int idx = 1;
-                for (final Object arg : args) {
-                    if (arg instanceof Date date) {
-                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                    } else {
-                        stmt.setObject(idx++, arg);
+                (Connection cnctn) -> {
+                    PreparedStatement stmt = cnctn.prepareStatement(sql);
+                    int idx = 1;
+                    for (final Object arg : args) {
+                        if (arg instanceof Date date) {
+                            stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                        } else {
+                            stmt.setObject(idx++, arg);
+                        }
                     }
-                }
-                return stmt;
-            },
-            rowCallbackHandler
-        );
+                    return stmt;
+                },
+                rowCallbackHandler);
         final List<Event> events = rowCallbackHandler.getRows();
         log.debug("Events found: {}", events);
         return events;
@@ -530,14 +522,13 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     }
 
     protected static void appendCriteria(
-        StringBuilder builder,
-        EventCriteria filter,
-        List<Object> args,
-        String eventTableAlias,
-        String eventEnvironmentTableAlias,
-        String eventOrganizationTableAlias,
-        String eventPropertiesTable
-    ) {
+            StringBuilder builder,
+            EventCriteria filter,
+            List<Object> args,
+            String eventTableAlias,
+            String eventEnvironmentTableAlias,
+            String eventOrganizationTableAlias,
+            String eventPropertiesTable) {
         boolean started = addPropertiesWhereClause(filter, args, builder, eventPropertiesTable, eventTableAlias);
         if (filter.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
@@ -553,39 +544,33 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         if (!isEmpty(filter.getEnvironments())) {
             started = addStringsWhereClause(
-                filter.getEnvironments(),
-                eventEnvironmentTableAlias + ".environment_id",
-                args,
-                builder,
-                started
-            );
+                    filter.getEnvironments(), eventEnvironmentTableAlias + ".environment_id", args, builder, started);
             builder.insert(builder.lastIndexOf(")"), " or " + eventEnvironmentTableAlias + ".environment_id IS NULL");
         }
 
         if (!isEmpty(filter.getOrganizations())) {
             started = addStringsWhereClause(
-                filter.getOrganizations(),
-                eventOrganizationTableAlias + ".organization_id",
-                args,
-                builder,
-                started
-            );
+                    filter.getOrganizations(),
+                    eventOrganizationTableAlias + ".organization_id",
+                    args,
+                    builder,
+                    started);
             builder.insert(builder.lastIndexOf(")"), " or " + eventOrganizationTableAlias + ".organization_id IS NULL");
         }
 
         if (!isEmpty(filter.getTypes())) {
-            final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
+            final Collection<String> types =
+                    filter.getTypes().stream().map(Enum::name).collect(toList());
             addStringsWhereClause(types, eventTableAlias + ".type", args, builder, started);
         }
     }
 
     private static boolean addPropertiesWhereClause(
-        EventCriteria filter,
-        List<Object> args,
-        StringBuilder builder,
-        String propertiesTableName,
-        String tableAlias
-    ) {
+            EventCriteria filter,
+            List<Object> args,
+            StringBuilder builder,
+            String propertiesTableName,
+            String tableAlias) {
         if (!isEmpty(filter.getProperties())) {
             builder.append(WHERE_CLAUSE);
             int propertyIndex = 0;
@@ -595,18 +580,17 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
                 }
 
                 final String propertyAlias = "prop_filter_" + propertyIndex;
-                builder
-                    .append("exists (select 1 from ")
-                    .append(propertiesTableName)
-                    .append(" ")
-                    .append(propertyAlias)
-                    .append(" where ")
-                    .append(propertyAlias)
-                    .append(".event_id = ")
-                    .append(tableAlias)
-                    .append(".id and ")
-                    .append(propertyAlias)
-                    .append(".property_key = ?");
+                builder.append("exists (select 1 from ")
+                        .append(propertiesTableName)
+                        .append(" ")
+                        .append(propertyAlias)
+                        .append(" where ")
+                        .append(propertyAlias)
+                        .append(".event_id = ")
+                        .append(tableAlias)
+                        .append(".id and ")
+                        .append(propertyAlias)
+                        .append(".property_key = ?");
                 args.add(property.getKey());
 
                 if (property.getValue() instanceof Collection<?> collection) {
@@ -656,24 +640,21 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     }
 
     static String criteriaToString(EventCriteria filter) {
-        return (
-            "{ " +
-            "from: " +
-            filter.getFrom() +
-            ", " +
-            "props: " +
-            filter.getProperties() +
-            ", " +
-            "to: " +
-            filter.getTo() +
-            ", " +
-            "environments: " +
-            filter.getEnvironments() +
-            ", " +
-            "types: " +
-            filter.getTypes() +
-            " }"
-        );
+        return ("{ " + "from: "
+                + filter.getFrom()
+                + ", "
+                + "props: "
+                + filter.getProperties()
+                + ", "
+                + "to: "
+                + filter.getTo()
+                + ", "
+                + "environments: "
+                + filter.getEnvironments()
+                + ", "
+                + "types: "
+                + filter.getTypes()
+                + " }");
     }
 
     @Override

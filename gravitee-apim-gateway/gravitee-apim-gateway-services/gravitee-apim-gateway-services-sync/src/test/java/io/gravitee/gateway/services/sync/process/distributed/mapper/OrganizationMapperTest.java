@@ -55,25 +55,24 @@ class OrganizationMapperTest {
         reactableOrganization = new ReactableOrganization(organization);
 
         distributedEvent = DistributedEvent.builder()
-            .id(organization.getId())
-            .payload(objectMapper.writeValueAsString(reactableOrganization))
-            .updatedAt(new Date())
-            .type(DistributedEventType.ORGANIZATION)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id(organization.getId())
+                .payload(objectMapper.writeValueAsString(reactableOrganization))
+                .updatedAt(new Date())
+                .type(DistributedEventType.ORGANIZATION)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
-        organizationDeployable = OrganizationDeployable.builder().reactableOrganization(reactableOrganization).build();
+        organizationDeployable = OrganizationDeployable.builder()
+                .reactableOrganization(reactableOrganization)
+                .build();
     }
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(organizationDeployable -> {
-                assertThat(organizationDeployable).isEqualTo(this.organizationDeployable);
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(organizationDeployable -> {
+            assertThat(organizationDeployable).isEqualTo(this.organizationDeployable);
+            return true;
+        });
     }
 
     @Test
@@ -83,15 +82,12 @@ class OrganizationMapperTest {
 
     @Test
     void should_map_organization_deployable() {
-        cut
-            .to(organizationDeployable)
-            .test()
-            .assertValue(distributedEvent -> {
-                assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
-                assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
-                assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
-                return true;
-            });
+        cut.to(organizationDeployable).test().assertValue(distributedEvent -> {
+            assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
+            assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
+            assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
+            return true;
+        });
     }
 }

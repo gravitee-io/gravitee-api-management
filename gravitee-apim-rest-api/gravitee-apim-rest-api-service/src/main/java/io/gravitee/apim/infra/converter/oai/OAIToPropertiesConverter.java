@@ -30,15 +30,13 @@ public class OAIToPropertiesConverter {
             return Collections.emptyList();
         }
 
-        return properties
-            .stream()
-            .map(oaiProperty ->
-                Property.builder()
-                    .key(oaiProperty.getKey())
-                    .value(oaiProperty.getValue())
-                    .encrypted(Boolean.parseBoolean(String.valueOf(oaiProperty.getAdditionalProperties().get("encrypted"))))
-                    .build()
-            )
-            .collect(Collectors.toList());
+        return properties.stream()
+                .map(oaiProperty -> Property.builder()
+                        .key(oaiProperty.getKey())
+                        .value(oaiProperty.getValue())
+                        .encrypted(Boolean.parseBoolean(String.valueOf(
+                                oaiProperty.getAdditionalProperties().get("encrypted"))))
+                        .build())
+                .collect(Collectors.toList());
     }
 }

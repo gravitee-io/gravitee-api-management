@@ -56,100 +56,98 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
     private final ApiProductRegistry apiProductRegistry;
 
     public DebugV4ApiReactorHandlerFactory(
-        final ApplicationContext applicationContext,
-        final Configuration configuration,
-        final Node node,
-        final PolicyFactoryManager policyFactoryManager,
-        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        final EndpointConnectorPluginManager endpointConnectorPluginManager,
-        final ApiServicePluginManager apiServicePluginManager,
-        final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
-        final OrganizationManager organizationManager,
-        final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final ReporterService reporterService,
-        final AccessPointManager accessPointManager,
-        final EventManager eventManager,
-        final HttpAcceptorFactory httpAcceptorFactory,
-        final GatewayConfiguration gatewayConfiguration,
-        final DictionaryManager dictionaryManager,
-        final ConnectionDrainManager connectionDrainManager,
-        final ApiProductRegistry apiProductRegistry
-    ) {
+            final ApplicationContext applicationContext,
+            final Configuration configuration,
+            final Node node,
+            final PolicyFactoryManager policyFactoryManager,
+            final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            final EndpointConnectorPluginManager endpointConnectorPluginManager,
+            final ApiServicePluginManager apiServicePluginManager,
+            final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+            final OrganizationManager organizationManager,
+            final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+            final RequestTimeoutConfiguration requestTimeoutConfiguration,
+            final ReporterService reporterService,
+            final AccessPointManager accessPointManager,
+            final EventManager eventManager,
+            final HttpAcceptorFactory httpAcceptorFactory,
+            final GatewayConfiguration gatewayConfiguration,
+            final DictionaryManager dictionaryManager,
+            final ConnectionDrainManager connectionDrainManager,
+            final ApiProductRegistry apiProductRegistry) {
         super(
-            applicationContext,
-            configuration,
-            node,
-            policyFactoryManager,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            apiServicePluginManager,
-            organizationPolicyChainFactoryManager,
-            organizationManager,
-            flowResolverFactory,
-            requestTimeoutConfiguration,
-            reporterService,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            OpenTelemetryConfiguration.builder().tracesEnabled(false).build(),
-            null,
-            null,
-            gatewayConfiguration,
-            dictionaryManager,
-            null,
-            connectionDrainManager
-        );
+                applicationContext,
+                configuration,
+                node,
+                policyFactoryManager,
+                entrypointConnectorPluginManager,
+                endpointConnectorPluginManager,
+                apiServicePluginManager,
+                organizationPolicyChainFactoryManager,
+                organizationManager,
+                flowResolverFactory,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                OpenTelemetryConfiguration.builder().tracesEnabled(false).build(),
+                null,
+                null,
+                gatewayConfiguration,
+                dictionaryManager,
+                null,
+                connectionDrainManager);
         this.apiProductRegistry = apiProductRegistry;
     }
 
     @Override
-    protected io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory policyChainFactory(Api api, PolicyManager policyManager) {
+    protected io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory policyChainFactory(
+            Api api, PolicyManager policyManager) {
         return new DebugV4PolicyChainFactory(api.getId(), policyManager, false);
     }
 
     @Override
     protected ApiReactor<Api> buildApiReactor(
-        Api api,
-        DefaultDeploymentContext deploymentContext,
-        CompositeComponentProvider componentProvider,
-        List<TemplateVariableProvider> ctxTemplateVariableProviders,
-        PolicyManager policyManager,
-        DefaultEndpointManager endpointManager,
-        ResourceLifecycleManager resourceLifecycleManager,
-        FlowChainFactory flowChainFactory,
-        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
-        LogGuardService logGuardService,
-        ConnectionDrainManager connectionDrainManager
-    ) {
+            Api api,
+            DefaultDeploymentContext deploymentContext,
+            CompositeComponentProvider componentProvider,
+            List<TemplateVariableProvider> ctxTemplateVariableProviders,
+            PolicyManager policyManager,
+            DefaultEndpointManager endpointManager,
+            ResourceLifecycleManager resourceLifecycleManager,
+            FlowChainFactory flowChainFactory,
+            io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
+            LogGuardService logGuardService,
+            ConnectionDrainManager connectionDrainManager) {
         ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory = null;
         if (apiProductRegistry != null) {
-            apiProductPlanPolicyManagerFactory = createApiProductPlanPolicyManagerFactory(componentProvider, apiProductRegistry);
+            apiProductPlanPolicyManagerFactory =
+                    createApiProductPlanPolicyManagerFactory(componentProvider, apiProductRegistry);
         }
         return new DebugV4ApiReactor(
-            api,
-            deploymentContext,
-            componentProvider,
-            ctxTemplateVariableProviders,
-            policyManager,
-            entrypointConnectorPluginManager,
-            apiServicePluginManager,
-            endpointManager,
-            resourceLifecycleManager,
-            apiProcessorChainFactory,
-            flowChainFactory,
-            v4FlowChainFactory,
-            configuration,
-            node,
-            requestTimeoutConfiguration,
-            reporterService,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            TracingContext.noop(),
-            logGuardService,
-            apiProductRegistry,
-            apiProductPlanPolicyManagerFactory
-        );
+                api,
+                deploymentContext,
+                componentProvider,
+                ctxTemplateVariableProviders,
+                policyManager,
+                entrypointConnectorPluginManager,
+                apiServicePluginManager,
+                endpointManager,
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                flowChainFactory,
+                v4FlowChainFactory,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                TracingContext.noop(),
+                logGuardService,
+                apiProductRegistry,
+                apiProductPlanPolicyManagerFactory);
     }
 }

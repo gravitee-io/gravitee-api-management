@@ -47,7 +47,8 @@ public class AutomatedApiDomainService {
         var api = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
         if (!canDetach(api)) {
-            throw new ValidationDomainException("The API must be managed by an automation tool in order to be detached.");
+            throw new ValidationDomainException(
+                    "The API must be managed by an automation tool in order to be detached.");
         }
 
         var oldApi = api.toBuilder().build();
@@ -64,8 +65,7 @@ public class AutomatedApiDomainService {
     }
 
     private void createAuditLog(Api oldApi, Api updatedApi, AuditInfo auditInfo) {
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(updatedApi.getId())
@@ -75,7 +75,6 @@ public class AutomatedApiDomainService {
                 .newValue(updatedApi)
                 .createdAt(TimeProvider.now())
                 .properties(Collections.emptyMap())
-                .build()
-        );
+                .build());
     }
 }

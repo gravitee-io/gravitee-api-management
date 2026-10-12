@@ -46,21 +46,21 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
     private final ApiProductSearchService apiProductSearchService;
     private final ApiSearchService apiSearchService;
 
-    public ApiProductSearchQueryServiceImpl(ApiProductSearchService apiProductSearchService, ApiSearchService apiSearchService) {
+    public ApiProductSearchQueryServiceImpl(
+            ApiProductSearchService apiProductSearchService, ApiSearchService apiSearchService) {
         this.apiProductSearchService = apiProductSearchService;
         this.apiSearchService = apiSearchService;
     }
 
     @Override
     public Page<ApiProduct> search(
-        String environmentId,
-        String organizationId,
-        String query,
-        Set<String> ids,
-        Pageable pageable,
-        Sortable sortable,
-        ApiProductKindFilter kindFilter
-    ) {
+            String environmentId,
+            String organizationId,
+            String query,
+            Set<String> ids,
+            Pageable pageable,
+            Sortable sortable,
+            ApiProductKindFilter kindFilter) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         QueryBuilder<IndexableApiProduct> queryBuilder = QueryBuilder.create(IndexableApiProduct.class);
 
@@ -77,9 +77,11 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
         // them. Excluding the other kinds would not: a classic product carries no kind term, and so passes
         // every exclusion, leaving the page padded with products the caller asked not to see.
         if (CollectionUtils.isNotEmpty(kindFilter.requiredKinds())) {
-            queryBuilder.addFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, names(kindFilter.requiredKinds()));
+            queryBuilder.addFilter(
+                    IndexableApiProductDocumentTransformer.FIELD_KIND, names(kindFilter.requiredKinds()));
         } else if (CollectionUtils.isNotEmpty(kindFilter.excludedKinds())) {
-            queryBuilder.addExcludedFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, names(kindFilter.excludedKinds()));
+            queryBuilder.addExcludedFilter(
+                    IndexableApiProductDocumentTransformer.FIELD_KIND, names(kindFilter.excludedKinds()));
         }
 
         return apiProductSearchService.search(executionContext, queryBuilder, pageable);
@@ -91,14 +93,13 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
 
     @Override
     public Page<GenericApiEntity> searchApis(
-        ExecutionContext executionContext,
-        String userId,
-        boolean isAdmin,
-        List<String> apiIds,
-        String query,
-        Sortable sortable,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            boolean isAdmin,
+            List<String> apiIds,
+            String query,
+            Sortable sortable,
+            Pageable pageable) {
         QueryBuilder<ApiEntity> queryBuilder = QueryBuilder.create(ApiEntity.class);
         queryBuilder.addFilter(FIELD_TYPE_VALUE, apiIds);
         if (query != null && !query.isBlank()) {
@@ -108,6 +109,7 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
             queryBuilder.setSort(sortable);
         }
 
-        return apiSearchService.search(executionContext, userId, isAdmin, queryBuilder, pageable, false, true, null, null);
+        return apiSearchService.search(
+                executionContext, userId, isAdmin, queryBuilder, pageable, false, true, null, null);
     }
 }

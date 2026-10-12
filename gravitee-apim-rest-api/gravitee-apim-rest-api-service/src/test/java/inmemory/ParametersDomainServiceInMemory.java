@@ -37,10 +37,9 @@ public class ParametersDomainServiceInMemory implements ParametersDomainService,
             return Collections.emptyMap();
         }
 
-        return parameters
-            .stream()
-            .filter(parameter -> keys.contains(Key.findByKey(parameter.getKey())))
-            .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
+        return parameters.stream()
+                .filter(parameter -> keys.contains(Key.findByKey(parameter.getKey())))
+                .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
     }
 
     @Override
@@ -49,15 +48,11 @@ public class ParametersDomainServiceInMemory implements ParametersDomainService,
             return Collections.emptyMap();
         }
 
-        return parameters
-            .stream()
-            .filter(
-                parameter ->
-                    keys.contains(Key.findByKey(parameter.getKey())) &&
-                    Objects.equals(executionContext.getEnvironmentId(), parameter.getReferenceId()) &&
-                    ParameterReferenceType.ENVIRONMENT.equals(parameter.getReferenceType())
-            )
-            .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
+        return parameters.stream()
+                .filter(parameter -> keys.contains(Key.findByKey(parameter.getKey()))
+                        && Objects.equals(executionContext.getEnvironmentId(), parameter.getReferenceId())
+                        && ParameterReferenceType.ENVIRONMENT.equals(parameter.getReferenceType()))
+                .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
     }
 
     @Override

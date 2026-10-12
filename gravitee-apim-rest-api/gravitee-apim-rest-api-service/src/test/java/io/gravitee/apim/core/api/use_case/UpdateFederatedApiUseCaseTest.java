@@ -87,86 +87,78 @@ class UpdateFederatedApiUseCaseTest {
     @BeforeEach
     void setUp() {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("member-id")
-                    .memberId("my-member-id")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .roleId("api-po-id-organization-id")
-                    .build()
-            )
-        );
-        groupQueryService.initWith(
-            List.of(
-                Group.builder()
-                    .id("group-1")
-                    .environmentId("environment-id")
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .build()
-            )
-        );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("member-id")
+                .memberId("my-member-id")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API_ID)
+                .roleId("api-po-id-organization-id")
+                .build()));
+        groupQueryService.initWith(List.of(Group.builder()
+                .id("group-1")
+                .environmentId("environment-id")
+                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                .build()));
+        userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id("my-member-id")
+                .email("one_valid@email.com")
+                .build()));
 
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
         var updateFederatedApiDomainService = new UpdateFederatedApiDomainService(
-            apiCrudService,
-            auditDomainService,
-            new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
-            categoryDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(
-                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                    new FreemarkerTemplateProcessor()
-                ),
-                apiPrimaryOwnerService,
-                new ApiCategoryQueryServiceInMemory(),
-                indexer
-            )
-        );
+                apiCrudService,
+                auditDomainService,
+                new ValidateFederatedApiDomainService(
+                        new GroupValidationService(groupQueryService), categoryDomainService),
+                categoryDomainService,
+                new ApiIndexerDomainService(
+                        new ApiMetadataDecoderDomainService(
+                                new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                                new FreemarkerTemplateProcessor()),
+                        apiPrimaryOwnerService,
+                        new ApiCategoryQueryServiceInMemory(),
+                        indexer));
         usecase = new UpdateFederatedApiUseCase(apiPrimaryOwnerService, updateFederatedApiDomainService);
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            auditCrudService,
-            apiCrudService,
-            userCrudService,
-            roleQueryService,
-            groupQueryService,
-            membershipCrudService,
-            metadataCrudService,
-            membershipQueryService,
-            indexer
-        ).forEach(InMemoryAlternative::reset);
+                        auditCrudService,
+                        apiCrudService,
+                        userCrudService,
+                        roleQueryService,
+                        groupQueryService,
+                        membershipCrudService,
+                        metadataCrudService,
+                        membershipQueryService,
+                        indexer)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     public void update_federation_api_with_basic_configuration_info() {
-        //given
+        // given
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         String categoryKey = "categoryKey-1";
-        var apiToUpdate = ApiFixtures.aFederatedApi()
-            .toBuilder()
-            .name("updated-name")
-            .description("updated-description")
-            .version("2.0.0")
-            .labels(List.of("label-1"))
-            .categories(Set.of(categoryKey))
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
+        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder()
+                .name("updated-name")
+                .description("updated-description")
+                .version("2.0.0")
+                .labels(List.of("label-1"))
+                .categories(Set.of(categoryKey))
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
 
         CategoryEntity categoryEntity = new CategoryEntity();
         String categoryId = "categoryId-1";
@@ -174,9 +166,12 @@ class UpdateFederatedApiUseCaseTest {
         when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
         when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of("key-1"));
 
-        //when
-        var output = usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
-        //then
+        // when
+        var output = usecase.execute(UpdateFederatedApiUseCase.Input.builder()
+                .apiToUpdate(apiToUpdate)
+                .auditInfo(auditInfo)
+                .build());
+        // then
         SoftAssertions.assertSoftly(soft -> {
             var updatedApi = output.updatedApi();
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
@@ -194,7 +189,10 @@ class UpdateFederatedApiUseCaseTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = ApiFixtures.aFederatedApi();
 
-        usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
+        usecase.execute(UpdateFederatedApiUseCase.Input.builder()
+                .apiToUpdate(apiToUpdate)
+                .auditInfo(auditInfo)
+                .build());
 
         assertThat(auditCrudService.storage()).isNotEmpty().hasSize(1);
     }
@@ -205,7 +203,10 @@ class UpdateFederatedApiUseCaseTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = ApiFixtures.aFederatedApi();
 
-        usecase.execute(UpdateFederatedApiUseCase.Input.builder().apiToUpdate(apiToUpdate).auditInfo(auditInfo).build());
+        usecase.execute(UpdateFederatedApiUseCase.Input.builder()
+                .apiToUpdate(apiToUpdate)
+                .auditInfo(auditInfo)
+                .build());
 
         assertThat(indexer.storage()).isNotEmpty().hasSize(1);
     }
@@ -214,59 +215,60 @@ class UpdateFederatedApiUseCaseTest {
     void updating() {
         ZonedDateTime inputDate = ZonedDateTime.now().plusDays(1);
         Api input = Api.builder()
-            .id("input")
-            .environmentId("input")
-            .crossId("input")
-            .name("input")
-            .description("input")
-            .version("input")
-            .originContext(new OriginContext.Integration("input"))
-            .definitionVersion(DefinitionVersion.V2)
-            .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder().build())
-            .apiDefinition(io.gravitee.definition.model.Api.builder().build())
-            .federatedApiDefinition(null)
-            .type(ApiType.MESSAGE)
-            .deployedAt(inputDate)
-            .createdAt(inputDate)
-            .updatedAt(inputDate)
-            .visibility(Api.Visibility.PRIVATE)
-            .lifecycleState(Api.LifecycleState.STOPPED)
-            .picture("input")
-            .groups(Set.of("input"))
-            .categories(Set.of("input"))
-            .labels(List.of("input"))
-            .disableMembershipNotifications(false)
-            .apiLifecycleState(Api.ApiLifecycleState.DEPRECATED)
-            .background("input")
-            .build();
+                .id("input")
+                .environmentId("input")
+                .crossId("input")
+                .name("input")
+                .description("input")
+                .version("input")
+                .originContext(new OriginContext.Integration("input"))
+                .definitionVersion(DefinitionVersion.V2)
+                .apiDefinitionHttpV4(
+                        io.gravitee.definition.model.v4.Api.builder().build())
+                .apiDefinition(io.gravitee.definition.model.Api.builder().build())
+                .federatedApiDefinition(null)
+                .type(ApiType.MESSAGE)
+                .deployedAt(inputDate)
+                .createdAt(inputDate)
+                .updatedAt(inputDate)
+                .visibility(Api.Visibility.PRIVATE)
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .picture("input")
+                .groups(Set.of("input"))
+                .categories(Set.of("input"))
+                .labels(List.of("input"))
+                .disableMembershipNotifications(false)
+                .apiLifecycleState(Api.ApiLifecycleState.DEPRECATED)
+                .background("input")
+                .build();
         UnaryOperator<Api> update = UpdateFederatedApiUseCase.update(input);
         ZonedDateTime oldDate = ZonedDateTime.now().minusDays(1);
         Api old = Api.builder()
-            .id("old")
-            .environmentId("old")
-            .crossId("old")
-            .name("old")
-            .description("old")
-            .version("old")
-            .originContext(new OriginContext.Integration("old"))
-            .definitionVersion(DefinitionVersion.FEDERATED)
-            .apiDefinitionHttpV4(null)
-            .apiDefinition(null)
-            .federatedApiDefinition(FederatedApi.builder().build())
-            .type(ApiType.PROXY)
-            .deployedAt(oldDate)
-            .createdAt(oldDate)
-            .updatedAt(oldDate)
-            .visibility(Api.Visibility.PUBLIC)
-            .lifecycleState(Api.LifecycleState.STARTED)
-            .picture("old")
-            .groups(Set.of("old"))
-            .categories(Set.of("old"))
-            .labels(List.of("old"))
-            .disableMembershipNotifications(true)
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .background("old")
-            .build();
+                .id("old")
+                .environmentId("old")
+                .crossId("old")
+                .name("old")
+                .description("old")
+                .version("old")
+                .originContext(new OriginContext.Integration("old"))
+                .definitionVersion(DefinitionVersion.FEDERATED)
+                .apiDefinitionHttpV4(null)
+                .apiDefinition(null)
+                .federatedApiDefinition(FederatedApi.builder().build())
+                .type(ApiType.PROXY)
+                .deployedAt(oldDate)
+                .createdAt(oldDate)
+                .updatedAt(oldDate)
+                .visibility(Api.Visibility.PUBLIC)
+                .lifecycleState(Api.LifecycleState.STARTED)
+                .picture("old")
+                .groups(Set.of("old"))
+                .categories(Set.of("old"))
+                .labels(List.of("old"))
+                .disableMembershipNotifications(true)
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .background("old")
+                .build();
 
         Api result = update.apply(old);
 
@@ -278,7 +280,8 @@ class UpdateFederatedApiUseCaseTest {
         assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
         assertThat(result.getApiDefinitionHttpV4()).isEqualTo(null);
         assertThat(result.getApiDefinition()).isEqualTo(null);
-        assertThat(result.getApiDefinitionValue()).isEqualTo(FederatedApi.builder().build());
+        assertThat(result.getApiDefinitionValue())
+                .isEqualTo(FederatedApi.builder().build());
         assertThat(result.getType()).isEqualTo(ApiType.PROXY);
         assertThat(result.getDeployedAt()).isEqualTo(oldDate);
         assertThat(result.getCreatedAt()).isEqualTo(oldDate);

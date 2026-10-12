@@ -36,24 +36,35 @@ public interface NotifierService {
     void trigger(ExecutionContext executionContext, final ApiHook hook, final String apiId, Map<String, Object> params);
 
     void trigger(
-        ExecutionContext executionContext,
-        ApiHook hook,
-        NotificationReferenceType referenceType,
-        String referenceId,
-        Map<String, Object> params
-    );
-    void trigger(ExecutionContext executionContext, ApiProductHook hook, String apiProductId, Map<String, Object> params);
-    void trigger(ExecutionContext executionContext, final ApplicationHook hook, final String applicationId, Map<String, Object> params);
+            ExecutionContext executionContext,
+            ApiHook hook,
+            NotificationReferenceType referenceType,
+            String referenceId,
+            Map<String, Object> params);
+
     void trigger(
-        ExecutionContext executionContext,
-        final ApplicationHook hook,
-        final String applicationId,
-        Map<String, Object> params,
-        List<Recipient> additionalRecipients
-    );
+            ExecutionContext executionContext, ApiProductHook hook, String apiProductId, Map<String, Object> params);
+
+    void trigger(
+            ExecutionContext executionContext,
+            final ApplicationHook hook,
+            final String applicationId,
+            Map<String, Object> params);
+
+    void trigger(
+            ExecutionContext executionContext,
+            final ApplicationHook hook,
+            final String applicationId,
+            Map<String, Object> params,
+            List<Recipient> additionalRecipients);
+
     void trigger(ExecutionContext executionContext, final PortalHook hook, Map<String, Object> params);
+
     List<NotifierEntity> list();
+
     Set<io.gravitee.rest.api.model.NotifierEntity> findAll();
+
     io.gravitee.rest.api.model.NotifierEntity findById(String notifier);
+
     String getSchema(String notifier);
 }

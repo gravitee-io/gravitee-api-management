@@ -25,15 +25,20 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class EntrypointConnectorConfigurationClassFinder extends AbstractSingleSubTypesFinder<EntrypointConnectorConfiguration> {
+public class EntrypointConnectorConfigurationClassFinder
+        extends AbstractSingleSubTypesFinder<EntrypointConnectorConfiguration> {
 
     public EntrypointConnectorConfigurationClassFinder() {
         super(EntrypointConnectorConfiguration.class);
     }
 
     @Override
-    public Collection<Class<? extends EntrypointConnectorConfiguration>> lookup(Class<?> clazz, ClassLoader classLoader) {
-        log.debug("Looking for a configuration class for entrypoint {} in package {}", clazz.getName(), clazz.getPackage().getName());
+    public Collection<Class<? extends EntrypointConnectorConfiguration>> lookup(
+            Class<?> clazz, ClassLoader classLoader) {
+        log.debug(
+                "Looking for a configuration class for entrypoint {} in package {}",
+                clazz.getName(),
+                clazz.getPackage().getName());
         Collection<Class<? extends EntrypointConnectorConfiguration>> configurations = super.lookup(clazz, classLoader);
 
         if (configurations.isEmpty()) {

@@ -24,9 +24,9 @@ public class GraviteeLicenseModelFixtures {
     private GraviteeLicenseModelFixtures() {}
 
     private static final GraviteeLicenseEntityBuilder BASE_GRAVITEE_LICENSE_ENTITY = GraviteeLicenseEntity.builder()
-        .tier("tier-galaxy")
-        .features(Set.of("feature-datadog-reporter"))
-        .packs(Set.of("pack-observability"));
+            .tier("tier-galaxy")
+            .features(Set.of("feature-datadog-reporter"))
+            .packs(Set.of("pack-observability"));
 
     public static GraviteeLicenseEntity aGraviteeLicenseEntity() {
         return BASE_GRAVITEE_LICENSE_ENTITY.build();

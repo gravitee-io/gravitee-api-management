@@ -89,7 +89,8 @@ public class ApiHeaderRepositoryTest extends AbstractManagementRepositoryTest {
         final var beforeDeletion = apiHeaderRepository.findAllByEnvironment("env_id_to_be_deleted");
 
         final var deleted = apiHeaderRepository.deleteByEnvironmentId("env_id_to_be_deleted");
-        final var nbAfterDeletion = apiHeaderRepository.findAllByEnvironment("env_id_to_be_deleted").size();
+        final var nbAfterDeletion =
+                apiHeaderRepository.findAllByEnvironment("env_id_to_be_deleted").size();
 
         assertThat(beforeDeletion.size()).isEqualTo(deleted.size());
         assertThat(deleted).containsOnly("3", "4");

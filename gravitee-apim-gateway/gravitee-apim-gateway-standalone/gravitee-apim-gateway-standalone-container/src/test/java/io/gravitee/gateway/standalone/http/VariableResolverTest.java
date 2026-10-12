@@ -42,10 +42,13 @@ public class VariableResolverTest extends AbstractWiremockGatewayTest {
     public void testVariablesFromResponse() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        final HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
-        assertEquals(Version.RUNTIME_VERSION.MAJOR_VERSION, response.getFirstHeader("node").getValue());
+        assertEquals(
+                Version.RUNTIME_VERSION.MAJOR_VERSION,
+                response.getFirstHeader("node").getValue());
         assertEquals("api-test", response.getFirstHeader("api").getValue());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }

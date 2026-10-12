@@ -78,12 +78,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
-    private final ValidateApiProductService validateApiProductService = new ValidateApiProductService(
-        apiQueryService,
-        apiCrudService,
-        planQueryService,
-        apiProductQueryService
-    );
+    private final ValidateApiProductService validateApiProductService =
+            new ValidateApiProductService(apiQueryService, apiCrudService, planQueryService, apiProductQueryService);
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -92,8 +88,10 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
-    private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
-    private final NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService =
+            mock(ApiProductIndexerDomainService.class);
+    private final NotificationConfigCrudServiceInMemory notificationConfigCrudService =
+            new NotificationConfigCrudServiceInMemory();
     private final ApiProductTagDomainService apiProductTagDomainService = mock(ApiProductTagDomainService.class);
 
     private CreateApiProductUseCase createApiProductUseCase;
@@ -102,74 +100,57 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     void setUp() {
         membershipQueryService.reset();
         groupQueryService.reset();
-        userCrudService.initWith(
-            List.of(
-                io.gravitee.apim.core.user.model.BaseUserEntity.builder()
-                    .id(USER_ID)
-                    .email("user@example.com")
-                    .firstname("Test")
-                    .lastname("User")
-                    .build()
-            )
-        );
+        userCrudService.initWith(List.of(io.gravitee.apim.core.user.model.BaseUserEntity.builder()
+                .id(USER_ID)
+                .email("user@example.com")
+                .firstname("Test")
+                .lastname("User")
+                .build()));
 
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(
-                    Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
-                    ENV_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                )
-            )
-        );
+        parametersQueryService.initWith(List.of(new Parameter(
+                Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
+                ENV_ID,
+                ParameterReferenceType.ENVIRONMENT,
+                ApiPrimaryOwnerMode.USER.name())));
 
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiProductPrimaryOwnerFactory = new ApiProductPrimaryOwnerFactory(
-            membershipQueryService,
-            parametersQueryService,
-            roleQueryService,
-            userCrudService,
-            groupQueryService
-        );
+                membershipQueryService, parametersQueryService, roleQueryService, userCrudService, groupQueryService);
         var apiProductPrimaryOwnerDomainService = new ApiProductPrimaryOwnerDomainService(
-            auditService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
 
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         createApiProductUseCase = new CreateApiProductUseCase(
-            apiProductQueryService,
-            apiProductCrudService,
-            validateApiProductService,
-            auditService,
-            apiProductPrimaryOwnerDomainService,
-            apiProductPrimaryOwnerFactory,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            apiProductIndexerDomainService,
-            notificationConfigCrudService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService, new FlowCrudServiceInMemory()),
-            groupQueryService,
-            apiProductTagDomainService
-        );
+                apiProductQueryService,
+                apiProductCrudService,
+                validateApiProductService,
+                auditService,
+                apiProductPrimaryOwnerDomainService,
+                apiProductPrimaryOwnerFactory,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                apiProductIndexerDomainService,
+                notificationConfigCrudService,
+                new DeployApiProductDomainService(
+                        planQueryService, eventCrudService, eventLatestCrudService, new FlowCrudServiceInMemory()),
+                groupQueryService,
+                apiProductTagDomainService);
 
         initRoles();
     }
 
     private void initRoles() {
-        List<Role> roles = List.of(
-            Role.builder()
+        List<Role> roles = List.of(Role.builder()
                 .id("api-product-po-role-id")
                 .scope(Role.Scope.ENVIRONMENT)
                 .name("PRIMARY_OWNER")
                 .referenceType(Role.ReferenceType.ORGANIZATION)
                 .referenceId(ORG_ID)
-                .build()
-        );
+                .build());
         roleQueryService.initWith(roles);
     }
 
@@ -180,20 +161,20 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         apiCrudService.initWith(List.of(api1, api2));
 
         var toCreate = CreateApiProduct.builder()
-            .name("API Product 1")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(List.of("api-1", "api-2"))
-            .build();
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of("api-1", "api-2"))
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
         assertThat(output.apiProduct())
-            .hasFieldOrPropertyWithValue("id", GENERATED_UUID)
-            .hasFieldOrPropertyWithValue("name", "API Product 1")
-            .hasFieldOrPropertyWithValue("version", "1.0.0")
-            .hasFieldOrPropertyWithValue("description", "desc")
-            .hasFieldOrPropertyWithValue("environmentId", ENV_ID);
+                .hasFieldOrPropertyWithValue("id", GENERATED_UUID)
+                .hasFieldOrPropertyWithValue("name", "API Product 1")
+                .hasFieldOrPropertyWithValue("version", "1.0.0")
+                .hasFieldOrPropertyWithValue("description", "desc")
+                .hasFieldOrPropertyWithValue("environmentId", ENV_ID);
 
         assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
         assertThat(output.apiProduct().getCreatedAt()).isNotNull();
@@ -202,33 +183,34 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(GENERATED_UUID), any());
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
-        assertThat(notificationConfigCrudService.storage())
-            .singleElement()
-            .satisfies(config -> {
-                assertThat(config.getReferenceType()).isEqualTo("API_PRODUCT");
-                assertThat(config.getReferenceId()).isEqualTo(GENERATED_UUID);
-                assertThat(config.getHooks()).containsExactlyInAnyOrderElementsOf(
-                    Arrays.stream(ApiProductHook.values()).map(Enum::name).toList()
-                );
-            });
+        assertThat(notificationConfigCrudService.storage()).singleElement().satisfies(config -> {
+            assertThat(config.getReferenceType()).isEqualTo("API_PRODUCT");
+            assertThat(config.getReferenceId()).isEqualTo(GENERATED_UUID);
+            assertThat(config.getHooks())
+                    .containsExactlyInAnyOrderElementsOf(Arrays.stream(ApiProductHook.values())
+                            .map(Enum::name)
+                            .toList());
+        });
     }
 
     @Test
     void should_throw_exception_when_name_is_null() {
         var toCreate = CreateApiProduct.builder().version("1.0.0").build();
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessageContaining("API Product name is required");
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("API Product name is required");
     }
 
     @Test
     void should_throw_exception_when_version_is_null() {
         var toCreate = CreateApiProduct.builder().name("API Product 1").build();
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessageContaining("API Product version is required");
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("API Product version is required");
     }
 
     @Test
@@ -239,15 +221,14 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         apiCrudService.initWith(List.of(allowedApi, notAllowedApi, nullAllowedApi));
         var toCreate = CreateApiProduct.builder()
-            .name("API Product 1")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(List.of("api-allowed", "api-not-allowed", "api-null-allowed"))
-            .build();
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of("api-allowed", "api-not-allowed", "api-null-allowed"))
+                .build();
 
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
         Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         Assertions.assertThat(throwable.getMessage()).contains("not allowed in API Products");
     }
@@ -258,15 +239,14 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         apiCrudService.initWith(List.of(allowedApi));
 
         var toCreate = CreateApiProduct.builder()
-            .name("API Product 1")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(List.of("api-allowed", "non-existent-1"))
-            .build();
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of("api-allowed", "non-existent-1"))
+                .build();
 
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
         Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         Assertions.assertThat(throwable.getMessage()).contains("do not exist");
         Assertions.assertThat(throwable.getMessage()).contains("non-existent-1");
@@ -280,11 +260,11 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         apiCrudService.initWith(List.of(api1, api2, api3));
         var toCreate = CreateApiProduct.builder()
-            .name("API Product 1")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(List.of("api-1", "api-2", "api-3"))
-            .build();
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of("api-1", "api-2", "api-3"))
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
         assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2", "api-3");
@@ -298,22 +278,26 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         apiCrudService.initWith(List.of(api1, api2));
 
         var toCreate = CreateApiProduct.builder()
-            .name("API Product 1")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(List.of("api-1", "api-2"))
-            .build();
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of("api-1", "api-2"))
+                .build();
 
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
         Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         Assertions.assertThat(throwable.getMessage()).contains("not allowed in API Products");
     }
 
     @Test
     void should_create_product_with_empty_api_ids() {
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of())
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
         assertThat(output.apiProduct().getApiIds()).isEmpty();
@@ -323,31 +307,35 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_throw_exception_when_license_does_not_allow_api_product() {
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anOssLicense());
 
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .build();
 
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
         Assertions.assertThat(throwable).isInstanceOf(ForbiddenFeatureException.class);
     }
 
     @Test
     void should_throw_exception_when_api_is_not_v4() {
         Api v4Api = createV4ProxyApi("api-v4", true);
-        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
+        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder()
+                .id("api-v2")
+                .environmentId(ENV_ID)
+                .build();
 
         apiCrudService.initWith(List.of(v4Api, v2Api));
 
         var toCreate = CreateApiProduct.builder()
-            .name("API Product 1")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(List.of("api-v4", "api-v2"))
-            .build();
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of("api-v4", "api-v2"))
+                .build();
 
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
         Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         Assertions.assertThat(throwable.getMessage()).contains("Only V4 API definition is supported");
         Assertions.assertThat(throwable.getMessage()).contains("api-v2");
@@ -357,20 +345,22 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_throw_exception_with_all_errors_when_multiple_validation_failures() {
         Api validApi = createV4ProxyApi("api-valid", true);
         Api notAllowedApi = createV4ProxyApi("api-not-allowed", false);
-        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
+        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder()
+                .id("api-v2")
+                .environmentId(ENV_ID)
+                .build();
 
         apiCrudService.initWith(List.of(validApi, notAllowedApi, v2Api));
 
         var toCreate = CreateApiProduct.builder()
-            .name("API Product 1")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(List.of("api-valid", "api-not-allowed", "api-v2", "non-existent-1", "non-existent-2"))
-            .build();
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of("api-valid", "api-not-allowed", "api-v2", "non-existent-1", "non-existent-2"))
+                .build();
 
-        var throwable = Assertions.catchThrowable(() ->
-            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO)));
         Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         var message = throwable.getMessage();
         // Should contain all error types
@@ -385,22 +375,24 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_auto_attach_groups_with_api_product_create_event_rule() {
-        groupQueryService.initWith(
-            List.of(
+        groupQueryService.initWith(List.of(
                 Group.builder()
-                    .id("group-1")
-                    .environmentId(ENV_ID)
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
-                    .build(),
+                        .id("group-1")
+                        .environmentId(ENV_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                        .build(),
                 Group.builder()
-                    .id("group-2")
-                    .environmentId(ENV_ID)
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
-                    .build()
-            )
-        );
+                        .id("group-2")
+                        .environmentId(ENV_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                        .build()));
 
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of())
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -409,22 +401,24 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_not_attach_groups_with_only_api_create_event_rule() {
-        groupQueryService.initWith(
-            List.of(
+        groupQueryService.initWith(List.of(
                 Group.builder()
-                    .id("group-api-create")
-                    .environmentId(ENV_ID)
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .build(),
+                        .id("group-api-create")
+                        .environmentId(ENV_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                        .build(),
                 Group.builder()
-                    .id("group-app-create")
-                    .environmentId(ENV_ID)
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.APPLICATION_CREATE)))
-                    .build()
-            )
-        );
+                        .id("group-app-create")
+                        .environmentId(ENV_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.APPLICATION_CREATE)))
+                        .build()));
 
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of())
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -433,7 +427,12 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_create_product_with_no_groups_when_no_groups_have_api_product_create_rule() {
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of())
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -442,22 +441,24 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_only_attach_groups_with_api_product_create_rule_when_mixed_groups_exist() {
-        groupQueryService.initWith(
-            List.of(
+        groupQueryService.initWith(List.of(
                 Group.builder()
-                    .id("group-api-product-create")
-                    .environmentId(ENV_ID)
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
-                    .build(),
+                        .id("group-api-product-create")
+                        .environmentId(ENV_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                        .build(),
                 Group.builder()
-                    .id("group-api-create")
-                    .environmentId(ENV_ID)
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .build()
-            )
-        );
+                        .id("group-api-create")
+                        .environmentId(ENV_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                        .build()));
 
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of())
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -466,23 +467,25 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_not_attach_group_with_api_product_primary_owner_set() {
-        groupQueryService.initWith(
-            List.of(
+        groupQueryService.initWith(List.of(
                 Group.builder()
-                    .id("group-with-po")
-                    .environmentId(ENV_ID)
-                    .apiProductPrimaryOwner("some-user-id")
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
-                    .build(),
+                        .id("group-with-po")
+                        .environmentId(ENV_ID)
+                        .apiProductPrimaryOwner("some-user-id")
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                        .build(),
                 Group.builder()
-                    .id("group-no-po")
-                    .environmentId(ENV_ID)
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
-                    .build()
-            )
-        );
+                        .id("group-no-po")
+                        .environmentId(ENV_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_PRODUCT_CREATE)))
+                        .build()));
 
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of())
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -495,58 +498,55 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         final String designatedPoUserId = "designated-po-user";
 
         roleQueryService.resetSystemRoles(ORG_ID);
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(
-                    Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
-                    ENV_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.GROUP.name()
-                )
-            )
-        );
+        parametersQueryService.initWith(List.of(new Parameter(
+                Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
+                ENV_ID,
+                ParameterReferenceType.ENVIRONMENT,
+                ApiPrimaryOwnerMode.GROUP.name())));
 
-        userCrudService.initWith(
-            List.of(
+        userCrudService.initWith(List.of(
                 io.gravitee.apim.core.user.model.BaseUserEntity.builder()
-                    .id(USER_ID)
-                    .email("user@example.com")
-                    .firstname("Test")
-                    .lastname("User")
-                    .build(),
+                        .id(USER_ID)
+                        .email("user@example.com")
+                        .firstname("Test")
+                        .lastname("User")
+                        .build(),
                 io.gravitee.apim.core.user.model.BaseUserEntity.builder()
-                    .id(designatedPoUserId)
-                    .email("po@example.com")
-                    .firstname("Po")
-                    .lastname("User")
-                    .build()
-            )
-        );
+                        .id(designatedPoUserId)
+                        .email("po@example.com")
+                        .firstname("Po")
+                        .lastname("User")
+                        .build()));
 
-        groupQueryService.initWith(
-            List.of(Group.builder().id(poGroupId).environmentId(ENV_ID).name("PO Group").apiProductPrimaryOwner(designatedPoUserId).build())
-        );
+        groupQueryService.initWith(List.of(Group.builder()
+                .id(poGroupId)
+                .environmentId(ENV_ID)
+                .name("PO Group")
+                .apiProductPrimaryOwner(designatedPoUserId)
+                .build()));
 
-        membershipQueryService.initWith(
-            List.of(
+        membershipQueryService.initWith(List.of(
                 Membership.builder()
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId(poGroupId)
-                    .memberType(Membership.Type.USER)
-                    .memberId(designatedPoUserId)
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .build(),
+                        .referenceType(Membership.ReferenceType.GROUP)
+                        .referenceId(poGroupId)
+                        .memberType(Membership.Type.USER)
+                        .memberId(designatedPoUserId)
+                        .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                        .build(),
                 Membership.builder()
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId(poGroupId)
-                    .memberType(Membership.Type.USER)
-                    .memberId(USER_ID)
-                    .roleId(groupAdminRoleId(ORG_ID))
-                    .build()
-            )
-        );
+                        .referenceType(Membership.ReferenceType.GROUP)
+                        .referenceId(poGroupId)
+                        .memberType(Membership.Type.USER)
+                        .memberId(USER_ID)
+                        .roleId(groupAdminRoleId(ORG_ID))
+                        .build()));
 
-        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+        var toCreate = CreateApiProduct.builder()
+                .name("API Product 1")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(List.of())
+                .build();
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -556,8 +556,15 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private Api createV4ProxyApi(String id, Boolean allowedInApiProducts) {
         var apiDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionValue();
         if (apiDefinition instanceof io.gravitee.definition.model.v4.Api v4Api) {
-            var updatedApiDefinition = v4Api.toBuilder().id(id).allowedInApiProducts(allowedInApiProducts).build();
-            return ApiFixtures.aProxyApiV4().toBuilder().id(id).environmentId(ENV_ID).apiDefinitionValue(updatedApiDefinition).build();
+            var updatedApiDefinition = v4Api.toBuilder()
+                    .id(id)
+                    .allowedInApiProducts(allowedInApiProducts)
+                    .build();
+            return ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(id)
+                    .environmentId(ENV_ID)
+                    .apiDefinitionValue(updatedApiDefinition)
+                    .build();
         }
         throw new IllegalStateException("Expected V4 API definition");
     }

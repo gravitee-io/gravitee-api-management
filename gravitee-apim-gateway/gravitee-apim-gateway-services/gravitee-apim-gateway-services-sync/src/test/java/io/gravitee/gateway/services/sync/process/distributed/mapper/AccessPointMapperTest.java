@@ -20,7 +20,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
@@ -46,34 +45,31 @@ public class AccessPointMapperTest {
         cut = new AccessPointMapper(objectMapper);
 
         ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
-            .id("id")
-            .environmentId("environmentId")
-            .host("host")
-            .build();
+                .id("id")
+                .environmentId("environmentId")
+                .host("host")
+                .build();
 
         distributedEvent = DistributedEvent.builder()
-            .id(reactableAccessPoint.getId())
-            .payload(objectMapper.writeValueAsString(reactableAccessPoint))
-            .updatedAt(new Date())
-            .type(DistributedEventType.ACCESS_POINT)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id(reactableAccessPoint.getId())
+                .payload(objectMapper.writeValueAsString(reactableAccessPoint))
+                .updatedAt(new Date())
+                .type(DistributedEventType.ACCESS_POINT)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
         accessPointDeployable = AccessPointDeployable.builder()
-            .reactableAccessPoint(reactableAccessPoint)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .reactableAccessPoint(reactableAccessPoint)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(deployable -> {
-                assertThat(deployable).isEqualTo(accessPointDeployable);
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(deployable -> {
+            assertThat(deployable).isEqualTo(accessPointDeployable);
+            return true;
+        });
     }
 
     @Test
@@ -83,15 +79,12 @@ public class AccessPointMapperTest {
 
     @Test
     void should_map_accesspoint_deployable() {
-        cut
-            .to(accessPointDeployable)
-            .test()
-            .assertValue(distributedEvent -> {
-                assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
-                assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
-                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.ACCESS_POINT);
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                return true;
-            });
+        cut.to(accessPointDeployable).test().assertValue(distributedEvent -> {
+            assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
+            assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
+            assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.ACCESS_POINT);
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+            return true;
+        });
     }
 }

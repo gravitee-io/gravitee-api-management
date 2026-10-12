@@ -52,32 +52,27 @@ class PortalNavigationApiProductVisibilityDomainServiceTest {
         apiProductQueryService = new ApiProductQueryServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory();
         domainService = new PortalNavigationApiProductVisibilityDomainService(
-            navigationItemsQueryService,
-            new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService)
-        );
+                navigationItemsQueryService,
+                new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService));
     }
 
     @Test
     void should_show_public_api_product_to_anonymous_user() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemFixtures.API_PRODUCT_ID,
-            "Public product",
-            null,
-            API_PRODUCT_ID
-        );
+                PortalNavigationItemFixtures.API_PRODUCT_ID, "Public product", null, API_PRODUCT_ID);
 
-        assertThat(
-            domainService.isApiProductItemHidden(ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(false))
-        ).isFalse();
+        assertThat(domainService.isApiProductItemHidden(
+                        ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(false)))
+                .isFalse();
     }
 
     @Test
     void should_hide_private_api_product_from_anonymous_user() {
         var apiProduct = privateApiProduct();
 
-        assertThat(
-            domainService.isApiProductItemHidden(ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(false))
-        ).isTrue();
+        assertThat(domainService.isApiProductItemHidden(
+                        ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(false)))
+                .isTrue();
     }
 
     @Test
@@ -85,56 +80,48 @@ class PortalNavigationApiProductVisibilityDomainServiceTest {
         var apiProduct = privateApiProduct();
         membershipQueryService.initWith(List.of(apiProductMembership()));
 
-        assertThat(
-            domainService.isApiProductItemHidden(ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(USER_ID))
-        ).isFalse();
+        assertThat(domainService.isApiProductItemHidden(
+                        ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(USER_ID)))
+                .isFalse();
     }
 
     @Test
     void should_show_private_api_product_to_group_member() {
         var groupId = "group-id";
         var apiProduct = privateApiProduct();
-        apiProductQueryService.initWith(
-            List.of(
-                ApiProduct.builder()
-                    .id(API_PRODUCT_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .name("Private product")
-                    .groups(Set.of(groupId))
-                    .build()
-            )
-        );
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-id")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId(groupId)
-                    .build()
-            )
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name("Private product")
+                .groups(Set.of(groupId))
+                .build()));
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("membership-id")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId(groupId)
+                .build()));
 
-        assertThat(
-            domainService.isApiProductItemHidden(ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(USER_ID))
-        ).isFalse();
+        assertThat(domainService.isApiProductItemHidden(
+                        ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(USER_ID)))
+                .isFalse();
     }
 
     @Test
     void should_hide_private_api_product_from_authenticated_non_member() {
         var apiProduct = privateApiProduct();
 
-        assertThat(
-            domainService.isApiProductItemHidden(ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(USER_ID))
-        ).isTrue();
+        assertThat(domainService.isApiProductItemHidden(
+                        ENVIRONMENT_ID, apiProduct, PortalNavigationItemViewerContext.forPortal(USER_ID)))
+                .isTrue();
     }
 
     @Test
     void should_not_apply_portal_access_filter_in_console() {
-        assertThat(
-            domainService.isApiProductItemHidden(ENVIRONMENT_ID, privateApiProduct(), PortalNavigationItemViewerContext.forConsole())
-        ).isFalse();
+        assertThat(domainService.isApiProductItemHidden(
+                        ENVIRONMENT_ID, privateApiProduct(), PortalNavigationItemViewerContext.forConsole()))
+                .isFalse();
     }
 
     @Test
@@ -144,9 +131,9 @@ class PortalNavigationApiProductVisibilityDomainServiceTest {
         childFolder.updateParent(apiProduct);
         navigationItemsQueryService.initWith(List.of(apiProduct, childFolder));
 
-        assertThat(
-            domainService.hasHiddenApiProductAncestor(ENVIRONMENT_ID, childFolder, PortalNavigationItemViewerContext.forPortal(USER_ID))
-        ).isTrue();
+        assertThat(domainService.hasHiddenApiProductAncestor(
+                        ENVIRONMENT_ID, childFolder, PortalNavigationItemViewerContext.forPortal(USER_ID)))
+                .isTrue();
     }
 
     @Test
@@ -157,29 +144,25 @@ class PortalNavigationApiProductVisibilityDomainServiceTest {
         var second = PortalNavigationItemFixtures.aFolder(secondId.json(), "Second", firstId);
         navigationItemsQueryService.initWith(List.of(first, second));
 
-        assertThat(
-            domainService.hasHiddenApiProductAncestor(ENVIRONMENT_ID, first, PortalNavigationItemViewerContext.forPortal(USER_ID))
-        ).isFalse();
+        assertThat(domainService.hasHiddenApiProductAncestor(
+                        ENVIRONMENT_ID, first, PortalNavigationItemViewerContext.forPortal(USER_ID)))
+                .isFalse();
     }
 
     private static io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct privateApiProduct() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemFixtures.API_PRODUCT_ID,
-            "Private product",
-            null,
-            API_PRODUCT_ID
-        );
+                PortalNavigationItemFixtures.API_PRODUCT_ID, "Private product", null, API_PRODUCT_ID);
         apiProduct.setVisibility(PortalVisibility.PRIVATE);
         return apiProduct;
     }
 
     private static Membership apiProductMembership() {
         return Membership.builder()
-            .id("membership-id")
-            .memberId(USER_ID)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.API_PRODUCT)
-            .referenceId(API_PRODUCT_ID)
-            .build();
+                .id("membership-id")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId(API_PRODUCT_ID)
+                .build();
     }
 }

@@ -40,20 +40,28 @@ class TLSUtilsTest {
         TLSUtils.X509Pair localhost = TLSUtils.createKeyPair("localhost");
         assertThat(localhost.certificate()).isNotNull();
         assertThat(localhost.certificate().data()).isNotNull();
-        assertThat(localhost.certificate().data().getSubjectX500Principal().getName()).startsWith("CN=localhost");
+        assertThat(localhost.certificate().data().getSubjectX500Principal().getName())
+                .startsWith("CN=localhost");
         assertThat(localhost.privateKey()).isNotNull();
         assertThat(localhost.privateKey().data()).isNotNull();
         assertThat(localhost.privateKey().data().getAlgorithm()).isEqualTo("RSA");
 
-        assertThat(localhost.certificate().toPem()).startsWith("-----BEGIN CERTIFICATE").endsWith("END CERTIFICATE-----\n");
-        assertThat(localhost.privateKey().toPem()).startsWith("-----BEGIN RSA PRIVATE KEY").endsWith("END RSA PRIVATE KEY-----\n");
+        assertThat(localhost.certificate().toPem())
+                .startsWith("-----BEGIN CERTIFICATE")
+                .endsWith("END CERTIFICATE-----\n");
+        assertThat(localhost.privateKey().toPem())
+                .startsWith("-----BEGIN RSA PRIVATE KEY")
+                .endsWith("END RSA PRIVATE KEY-----\n");
 
         Path certTempFile = Files.createTempFile("test", "pem");
         localhost.certificate().writeToDisk(certTempFile);
         assertThat(certTempFile).content().startsWith("-----BEGIN CERTIFICATE").endsWith("END CERTIFICATE-----\n");
         Path keyTempFile = Files.createTempFile("test", "pem");
         localhost.privateKey().writeToDisk(keyTempFile);
-        assertThat(keyTempFile).content().startsWith("-----BEGIN RSA PRIVATE KEY").endsWith("END RSA PRIVATE KEY-----\n");
+        assertThat(keyTempFile)
+                .content()
+                .startsWith("-----BEGIN RSA PRIVATE KEY")
+                .endsWith("END RSA PRIVATE KEY-----\n");
     }
 
     @Test
@@ -77,11 +85,11 @@ class TLSUtilsTest {
         assertThat(keyStore.isKeyEntry("barCert")).isFalse();
 
         assertThatCode(() -> TLSUtils.appendToKeyStore(keyStore, "error", "a simple string", PASSWORD))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("a simple string");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("a simple string");
         assertThatCode(() -> TLSUtils.appendToKeyStore(keyStore, "bar", bar, PASSWORD))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("bar");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("bar");
     }
 
     @Test
@@ -119,10 +127,14 @@ class TLSUtilsTest {
 
         assertThat(client.certificate()).isNotNull();
         assertThat(client.certificate().data()).isNotNull();
-        assertThat(client.certificate().data().getSubjectX500Principal().getName()).contains("CN=client");
+        assertThat(client.certificate().data().getSubjectX500Principal().getName())
+                .contains("CN=client");
         assertThat(client.privateKey()).isNotNull();
 
-        assertThatCode(() -> client.certificate().data().verify(ca.certificate().data().getPublicKey())).doesNotThrowAnyException();
+        assertThatCode(() -> client.certificate()
+                        .data()
+                        .verify(ca.certificate().data().getPublicKey()))
+                .doesNotThrowAnyException();
 
         assertThat(client.certificate().data().getBasicConstraints()).isEqualTo(-1);
     }
@@ -133,7 +145,8 @@ class TLSUtilsTest {
         var crl = TLSUtils.generateCRL(ca);
 
         assertThat(crl).isNotNull();
-        assertThat(crl.getIssuerX500Principal()).isEqualTo(ca.certificate().data().getSubjectX500Principal());
+        assertThat(crl.getIssuerX500Principal())
+                .isEqualTo(ca.certificate().data().getSubjectX500Principal());
         assertThat(crl.getRevokedCertificates()).isNullOrEmpty();
 
         assertThatCode(() -> crl.verify(ca.certificate().data().getPublicKey())).doesNotThrowAnyException();
@@ -145,7 +158,8 @@ class TLSUtilsTest {
         TLSUtils.X509Pair client1 = TLSUtils.createCASignedCertificate(ca, "client1");
         TLSUtils.X509Pair client2 = TLSUtils.createCASignedCertificate(ca, "client2");
 
-        var crl = TLSUtils.generateCRL(ca, client1.certificate().data(), client2.certificate().data());
+        var crl = TLSUtils.generateCRL(
+                ca, client1.certificate().data(), client2.certificate().data());
 
         assertThat(crl).isNotNull();
         assertThat(crl.getRevokedCertificates()).hasSize(2);

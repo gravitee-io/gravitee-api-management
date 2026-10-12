@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.resource.param;
 
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.management.v2.rest.resource.param.AbstractListParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.ws.rs.WebApplicationException;
 

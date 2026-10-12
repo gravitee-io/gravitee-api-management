@@ -59,19 +59,12 @@ class ResendApplicationInvitationUseCaseTest {
     @Test
     void should_validate_application_existence_before_resending_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
-        assertThatThrownBy(() ->
-            cut.execute(
-                new ResendApplicationInvitationUseCase.Input(
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    APPLICATION_ID,
-                    invitationId,
-                    CONFIRMATION_PAGE_URL
-                )
-            )
-        ).isInstanceOf(ApplicationNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(new ResendApplicationInvitationUseCase.Input(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL)))
+                .isInstanceOf(ApplicationNotFoundException.class);
 
         verifyNoInteractions(resendApplicationInvitationDomainService);
     }
@@ -80,36 +73,20 @@ class ResendApplicationInvitationUseCaseTest {
     void should_resend_application_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID);
         var invitation = anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", "USER");
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build()
-        );
-        when(
-            resendApplicationInvitationDomainService.resend(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                APPLICATION_ID,
-                invitationId,
-                CONFIRMATION_PAGE_URL
-            )
-        ).thenReturn(invitation);
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenReturn(BaseApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build());
+        when(resendApplicationInvitationDomainService.resend(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL))
+                .thenReturn(invitation);
 
-        var output = cut.execute(
-            new ResendApplicationInvitationUseCase.Input(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                APPLICATION_ID,
-                invitationId,
-                CONFIRMATION_PAGE_URL
-            )
-        );
+        var output = cut.execute(new ResendApplicationInvitationUseCase.Input(
+                ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL));
 
         assertThat(output.invitation()).isEqualTo(invitation);
-        verify(resendApplicationInvitationDomainService).resend(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            invitationId,
-            CONFIRMATION_PAGE_URL
-        );
+        verify(resendApplicationInvitationDomainService)
+                .resend(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL);
     }
 }

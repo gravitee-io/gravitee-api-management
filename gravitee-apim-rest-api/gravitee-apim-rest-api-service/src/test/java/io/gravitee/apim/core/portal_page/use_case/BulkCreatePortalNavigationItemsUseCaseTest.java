@@ -46,7 +46,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultP
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -89,103 +88,117 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         apiProductQueryService = new ApiProductQueryServiceInMemory();
         apiCrudService = new ApiCrudServiceInMemory();
         validatorService = new PortalNavigationItemValidatorService(
-            queryService,
-            pageContentQueryService,
-            apiProductQueryService,
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiCrudService
-        );
+                queryService,
+                pageContentQueryService,
+                apiProductQueryService,
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                apiCrudService);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
 
         final var domainService = new PortalNavigationItemDomainService(
-            crudService,
-            queryService,
-            pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            apiCrudService,
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(queryService, crudService)
-        );
+                crudService,
+                queryService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService,
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiOwnedNavigationDomainService(queryService, crudService));
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(
-            apiProductQueryService,
-            apiCrudService,
-            queryService
-        );
+                apiProductQueryService, apiCrudService, queryService);
         defaultPageDomainService = new PortalNavigationDefaultPageDomainService(
-            queryService,
-            domainService,
-            pageContentCrudService,
-            apiCrudService
-        );
+                queryService, domainService, pageContentCrudService, apiCrudService);
         useCase = new BulkCreatePortalNavigationItemUseCase(
-            domainService,
-            validatorService,
-            creationExpansionDomainService,
-            defaultPageDomainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
-        );
+                domainService,
+                validatorService,
+                creationExpansionDomainService,
+                defaultPageDomainService,
+                new PortalNavigationItemSourceDomainServiceInMemory());
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
 
     @Test
-    void should_bootstrap_multiple_products_with_default_product_and_api_pages_and_return_only_requested_roots_in_request_order() {
-        apiProductQueryService.initWith(
-            List.of(
-                ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of("shared-api")).build(),
-                ApiProduct.builder().id("product-2").environmentId(ENV_ID).apiIds(Set.of("shared-api")).build()
-            )
-        );
-        apiCrudService.initWith(List.of(Api.builder().id("shared-api").name("Shared API").environmentId(ENV_ID).build()));
+    void
+            should_bootstrap_multiple_products_with_default_product_and_api_pages_and_return_only_requested_roots_in_request_order() {
+        apiProductQueryService.initWith(List.of(
+                ApiProduct.builder()
+                        .id("product-1")
+                        .environmentId(ENV_ID)
+                        .apiIds(Set.of("shared-api"))
+                        .build(),
+                ApiProduct.builder()
+                        .id("product-2")
+                        .environmentId(ENV_ID)
+                        .apiIds(Set.of("shared-api"))
+                        .build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id("shared-api")
+                .name("Shared API")
+                .environmentId(ENV_ID)
+                .build()));
         var firstProduct = productItem("product-1", "First product", 0);
         var secondProduct = productItem("product-2", "Second product", 1);
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstProduct, secondProduct)));
+        var output = useCase.execute(
+                new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstProduct, secondProduct)));
 
         assertThat(output.items())
-            .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct) item).getApiProductId())
-            .containsExactly("product-1", "product-2");
+                .extracting(item ->
+                        ((io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct) item).getApiProductId())
+                .containsExactly("product-1", "product-2");
         assertDefaultProductAndApiPages(output.items().get(0).getId());
         assertDefaultProductAndApiPages(output.items().get(1).getId());
     }
 
     @Test
     void should_create_default_product_page_when_product_has_no_apis() {
-        apiProductQueryService.initWith(List.of(ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of()).build()));
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id("product-1")
+                .environmentId(ENV_ID)
+                .apiIds(Set.of())
+                .build()));
         var product = productItem("product-1", "Product without APIs", 0);
 
         var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(product)));
 
         assertThat(output.items()).singleElement();
-        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().getFirst().getId()))
-            .singleElement()
-            .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
-                assertThat(page.getTitle()).isEqualTo("Overview");
-                assertThat(page.getOrder()).isZero();
-                assertThat(page.getPublished()).isFalse();
-            });
+        assertThat(queryService.findByParentIdAndEnvironmentId(
+                        ENV_ID, output.items().getFirst().getId()))
+                .singleElement()
+                .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
+                    assertThat(page.getTitle()).isEqualTo("Overview");
+                    assertThat(page.getOrder()).isZero();
+                    assertThat(page.getPublished()).isFalse();
+                });
     }
 
     @Test
     void should_inherit_pending_api_ownership_and_visibility_through_pending_folders_in_request_order() {
-        apiCrudService.initWith(List.of(Api.builder().id("pending-api").name("Pending API").environmentId(ENV_ID).build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id("pending-api")
+                .name("Pending API")
+                .environmentId(ENV_ID)
+                .build()));
         var api = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.API)
-            .apiId("pending-api")
-            .area(PortalArea.TOP_NAVBAR)
-            .parentId(PortalNavigationItemId.of(APIS_ID))
-            .visibility(PortalVisibility.PRIVATE)
-            .order(0)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.API)
+                .apiId("pending-api")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .visibility(PortalVisibility.PRIVATE)
+                .order(0)
+                .build();
         var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId());
         var page = documentation(PortalNavigationItemType.PAGE, "Overview", folder.getId());
-        var link = documentation(PortalNavigationItemType.LINK, "Reference", api.getId()).toBuilder().order(1).build();
+        var link = documentation(PortalNavigationItemType.LINK, "Reference", api.getId()).toBuilder()
+                .order(1)
+                .build();
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, page, link)));
+        var output = useCase.execute(
+                new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, page, link)));
 
         assertThat(output.items())
-            .extracting(PortalNavigationItem::getId)
-            .containsExactly(api.getId(), folder.getId(), page.getId(), link.getId());
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(api.getId(), folder.getId(), page.getId(), link.getId());
         assertThat(output.items().getFirst().getReference()).isEqualTo(NavigationItemReference.defaultReference());
         assertThat(output.items().subList(1, 4)).allSatisfy(item -> {
             assertThat(item.getReference()).isEqualTo(new NavigationItemReference.ApiReference("pending-api"));
@@ -196,41 +209,38 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         assertThat(output.items().get(2).getParentId()).isEqualTo(folder.getId());
         assertThat(output.items().get(2).getRootId()).isEqualTo(folder.getId());
         assertThat(output.items().get(3).getParentId()).isNull();
-        assertThat(
-            queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-                ENV_ID,
-                PortalArea.TOP_NAVBAR,
-                new NavigationItemReference.ApiReference("pending-api")
-            )
-        )
-            .extracting(PortalNavigationItem::getOrder)
-            .containsExactly(0, 1);
+        assertThat(queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                        ENV_ID, PortalArea.TOP_NAVBAR, new NavigationItemReference.ApiReference("pending-api")))
+                .extracting(PortalNavigationItem::getOrder)
+                .containsExactly(0, 1);
         assertThat(pageContentCrudService.storage()).hasSize(1);
     }
 
     @Test
     void should_distinguish_standalone_and_product_listing_of_same_api_in_one_batch() {
-        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
+        apiCrudService.initWith(List.of(
+                Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
         var standaloneApi = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
-        var product = PortalNavigationItemFixtures.anApiProduct(PortalNavigationItemId.random().toString(), "Product", null, "product-id");
+        var product = PortalNavigationItemFixtures.anApiProduct(
+                PortalNavigationItemId.random().toString(), "Product", null, "product-id");
         product.markAsRoot();
         var productFolder = PortalNavigationItemFixtures.aFolder("Product APIs", product.getId());
         productFolder.updateParent(product);
         var productApi = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Product API",
-            productFolder.getId(),
-            "api-1"
-        );
+                PortalNavigationItemId.random().toString(), "Product API", productFolder.getId(), "api-1");
         productApi.updateParent(productFolder);
         queryService.storage().addAll(List.of(product, productFolder, productApi));
         var standalonePage = documentation(PortalNavigationItemType.PAGE, "Standalone overview", standaloneApi.getId());
         var productPage = documentation(PortalNavigationItemType.PAGE, "Product overview", productApi.getId());
 
-        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(standalonePage, productPage)));
+        var output = useCase.execute(
+                new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(standalonePage, productPage)));
 
-        assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(standalonePage.getId(), productPage.getId());
-        assertThat(output.items().getFirst().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+        assertThat(output.items())
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(standalonePage.getId(), productPage.getId());
+        assertThat(output.items().getFirst().getReference())
+                .isEqualTo(new NavigationItemReference.ApiReference("api-1"));
         assertThat(output.items().getFirst().getParentId()).isNull();
         assertThat(output.items().getLast().getReference()).isEqualTo(NavigationItemReference.defaultReference());
         assertThat(output.items().getLast().getParentId()).isEqualTo(productApi.getId());
@@ -238,30 +248,48 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = PortalNavigationItemType.class, names = { "API", "API_PRODUCT" })
+    @EnumSource(
+            value = PortalNavigationItemType.class,
+            names = {"API", "API_PRODUCT"})
     void should_reject_api_or_product_under_pending_api_owned_folder_before_writes(PortalNavigationItemType type) {
-        apiCrudService.initWith(
-            List.of(
-                Api.builder().id("pending-api").name("Pending API").environmentId(ENV_ID).build(),
-                Api.builder().id("nested-api").name("Nested API").environmentId(ENV_ID).build()
-            )
-        );
-        apiProductQueryService.initWith(List.of(ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of()).build()));
-        var api = PortalNavigationItemFixtures.aCreatePortalNavigationApi("pending-api", PortalNavigationItemId.of(APIS_ID))
-            .toBuilder()
-            .id(PortalNavigationItemId.random())
-            .build();
+        apiCrudService.initWith(List.of(
+                Api.builder()
+                        .id("pending-api")
+                        .name("Pending API")
+                        .environmentId(ENV_ID)
+                        .build(),
+                Api.builder()
+                        .id("nested-api")
+                        .name("Nested API")
+                        .environmentId(ENV_ID)
+                        .build()));
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id("product-1")
+                .environmentId(ENV_ID)
+                .apiIds(Set.of())
+                .build()));
+        var api =
+                PortalNavigationItemFixtures.aCreatePortalNavigationApi(
+                                "pending-api", PortalNavigationItemId.of(APIS_ID))
+                        .toBuilder()
+                        .id(PortalNavigationItemId.random())
+                        .build();
         var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId());
         var nestedItem = type == PortalNavigationItemType.API
-            ? PortalNavigationItemFixtures.aCreatePortalNavigationApi("nested-api", folder.getId())
-            : productItem("product-1", "Nested product", 0).toBuilder().parentId(folder.getId()).build();
+                ? PortalNavigationItemFixtures.aCreatePortalNavigationApi("nested-api", folder.getId())
+                : productItem("product-1", "Nested product", 0).toBuilder()
+                        .parentId(folder.getId())
+                        .build();
         var existingItems = List.copyOf(queryService.storage());
 
-        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(api, folder, nestedItem)))
-        );
+        var exception = assertThrows(
+                InvalidPortalNavigationItemDataException.class,
+                () -> useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(
+                        ORG_ID, ENV_ID, List.of(api, folder, nestedItem))));
 
-        assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi().getMessage());
+        assertThat(exception.getMessage())
+                .isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi()
+                        .getMessage());
         assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
         assertThat(pageContentCrudService.storage()).isEmpty();
     }
@@ -269,20 +297,23 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     @Test
     void should_reject_pending_cycle_before_canonicalization_can_hide_it_and_before_writes() {
         var api = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.API)
-            .apiId("pending-api")
-            .area(PortalArea.TOP_NAVBAR)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.API)
+                .apiId("pending-api")
+                .area(PortalArea.TOP_NAVBAR)
+                .build();
         var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId());
         api.setParentId(folder.getId());
         var existingItems = List.copyOf(queryService.storage());
 
-        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, api)))
-        );
+        var exception = assertThrows(
+                InvalidPortalNavigationItemDataException.class,
+                () -> useCase.execute(
+                        new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(folder, api))));
 
-        assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.cyclicParentHierarchy().getMessage());
+        assertThat(exception.getMessage())
+                .isEqualTo(InvalidPortalNavigationItemDataException.cyclicParentHierarchy()
+                        .getMessage());
         assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
         assertThat(pageContentCrudService.storage()).isEmpty();
     }
@@ -293,9 +324,10 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var duplicate = first.toBuilder().title("Second page").build();
         var existingItems = List.copyOf(queryService.storage());
 
-        assertThrows(ItemAlreadyExistsException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(first, duplicate)))
-        );
+        assertThrows(
+                ItemAlreadyExistsException.class,
+                () -> useCase.execute(
+                        new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(first, duplicate))));
 
         assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
         assertThat(pageContentCrudService.storage()).isEmpty();
@@ -305,39 +337,40 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     void should_create_list_of_portal_navigation_items_if_validation_succeeds() {
         // Given
         final var firstItem = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.FOLDER)
-            .title("Folder 1")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Folder 1")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
         firstItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
         final var secondItem = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.FOLDER)
-            .title("Folder 2")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Folder 2")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .build();
         secondItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
         // When
-        final var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstItem, secondItem)));
+        final var output = useCase.execute(
+                new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstItem, secondItem)));
 
         // Then
         assertThat(output.items()).hasSize(2);
-        assertThat(output.items()).extracting(PortalNavigationItem::getId).containsExactly(firstItem.getId(), secondItem.getId());
+        assertThat(output.items())
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(firstItem.getId(), secondItem.getId());
 
         final var items = queryService.findByParentIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(APIS_ID));
-        final var createdFirstItem = items
-            .stream()
-            .filter(item -> item.getId().equals(firstItem.getId()))
-            .findFirst();
-        final var createdSecondItem = items
-            .stream()
-            .filter(item -> item.getId().equals(secondItem.getId()))
-            .findFirst();
+        final var createdFirstItem = items.stream()
+                .filter(item -> item.getId().equals(firstItem.getId()))
+                .findFirst();
+        final var createdSecondItem = items.stream()
+                .filter(item -> item.getId().equals(secondItem.getId()))
+                .findFirst();
 
         assertThat(createdFirstItem).isPresent();
         assertThat(createdFirstItem.get()).satisfies(item -> {
@@ -361,35 +394,35 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         // Given
         final var domainService = mock(PortalNavigationItemDomainService.class);
         final var useCase = new BulkCreatePortalNavigationItemUseCase(
-            domainService,
-            validatorService,
-            creationExpansionDomainService,
-            defaultPageDomainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
-        );
+                domainService,
+                validatorService,
+                creationExpansionDomainService,
+                defaultPageDomainService,
+                new PortalNavigationItemSourceDomainServiceInMemory());
 
         final var validItem = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.FOLDER)
-            .title("Folder 1")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(PortalNavigationItemId.of(APIS_ID))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Folder 1")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .build();
 
         final var invalidApiItem = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.API)
-            .title("API without parent")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-2")
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.API)
+                .title("API without parent")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-2")
+                .build();
 
         // When
-        final var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(validItem, invalidApiItem)))
-        );
+        final var exception = assertThrows(
+                InvalidPortalNavigationItemDataException.class,
+                () -> useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(
+                        ORG_ID, ENV_ID, List.of(validItem, invalidApiItem))));
 
         // Then
         assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
@@ -405,36 +438,33 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var rootId = PortalNavigationItemId.random();
         var root = productItem("product-1", "Product", 0).toBuilder().id(rootId).build();
         var firstChild = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.API)
-            .apiId("api-1")
-            .parentId(rootId)
-            .build();
-        var secondChild = firstChild.toBuilder().id(PortalNavigationItemId.random()).apiId("api-2").build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.API)
+                .apiId("api-1")
+                .parentId(rootId)
+                .build();
+        var secondChild = firstChild.toBuilder()
+                .id(PortalNavigationItemId.random())
+                .apiId("api-2")
+                .build();
         var expansion = new PortalNavigationItemCreationExpansionDomainService.Expansion(
-            List.of(root, firstChild, secondChild),
-            List.of(rootId)
-        );
+                List.of(root, firstChild, secondChild), List.of(rootId));
         var persistedRoot = PortalNavigationItemFixtures.anApiProduct(
-            rootId.toString(),
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            "product-1"
-        );
+                rootId.toString(), "Product", PortalNavigationItemId.of(APIS_ID), "product-1");
         when(creationExpansionDomainService.expand(List.of(root), ENV_ID)).thenReturn(expansion);
         when(domainService.create(ORG_ID, ENV_ID, root)).thenReturn(persistedRoot);
-        when(domainService.create(ORG_ID, ENV_ID, firstChild)).thenThrow(new IllegalStateException("persistence failure"));
+        when(domainService.create(ORG_ID, ENV_ID, firstChild))
+                .thenThrow(new IllegalStateException("persistence failure"));
         var useCase = new BulkCreatePortalNavigationItemUseCase(
-            domainService,
-            validatorService,
-            creationExpansionDomainService,
-            defaultPageDomainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
-        );
+                domainService,
+                validatorService,
+                creationExpansionDomainService,
+                defaultPageDomainService,
+                new PortalNavigationItemSourceDomainServiceInMemory());
 
-        assertThrows(IllegalStateException.class, () ->
-            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(root)))
-        );
+        assertThrows(
+                IllegalStateException.class,
+                () -> useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(root))));
 
         verify(domainService).create(ORG_ID, ENV_ID, root);
         verify(domainService).create(ORG_ID, ENV_ID, firstChild);
@@ -443,46 +473,49 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
 
     private static CreatePortalNavigationItem productItem(String apiProductId, String title, int order) {
         return CreatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .apiProductId(apiProductId)
-            .title(title)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(order)
-            .parentId(PortalNavigationItemId.of(APIS_ID))
-            .build();
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .apiProductId(apiProductId)
+                .title(title)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(order)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .build();
     }
 
-    private static CreatePortalNavigationItem documentation(PortalNavigationItemType type, String title, PortalNavigationItemId parentId) {
+    private static CreatePortalNavigationItem documentation(
+            PortalNavigationItemType type, String title, PortalNavigationItemId parentId) {
         return CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(type)
-            .title(title)
-            .area(PortalArea.TOP_NAVBAR)
-            .parentId(parentId)
-            .order(0)
-            .url(type == PortalNavigationItemType.LINK ? "https://gravitee.io" : null)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(type)
+                .title(title)
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(parentId)
+                .order(0)
+                .url(type == PortalNavigationItemType.LINK ? "https://gravitee.io" : null)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
     }
 
     private void assertDefaultProductAndApiPages(PortalNavigationItemId productNavigationItemId) {
         var productChildren = queryService.findByParentIdAndEnvironmentId(ENV_ID, productNavigationItemId);
         assertThat(productChildren)
-            .filteredOn(PortalNavigationPage.class::isInstance)
-            .singleElement()
-            .satisfies(page -> {
-                assertThat(page.getTitle()).isEqualTo("Overview");
-                assertThat(page.getOrder()).isZero();
-                assertThat(page.getPublished()).isFalse();
-            });
+                .filteredOn(PortalNavigationPage.class::isInstance)
+                .singleElement()
+                .satisfies(page -> {
+                    assertThat(page.getTitle()).isEqualTo("Overview");
+                    assertThat(page.getOrder()).isZero();
+                    assertThat(page.getPublished()).isFalse();
+                });
         assertThat(productChildren)
-            .filteredOn(PortalNavigationApi.class::isInstance)
-            .singleElement()
-            .satisfies(apiItem -> {
-                assertThat(apiItem.getOrder()).isEqualTo(1);
-                assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
-                    .singleElement()
-                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"));
-            });
+                .filteredOn(PortalNavigationApi.class::isInstance)
+                .singleElement()
+                .satisfies(apiItem -> {
+                    assertThat(apiItem.getOrder()).isEqualTo(1);
+                    assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
+                            .singleElement()
+                            .isInstanceOfSatisfying(
+                                    PortalNavigationPage.class,
+                                    page -> assertThat(page.getTitle()).isEqualTo("Overview"));
+                });
     }
 }

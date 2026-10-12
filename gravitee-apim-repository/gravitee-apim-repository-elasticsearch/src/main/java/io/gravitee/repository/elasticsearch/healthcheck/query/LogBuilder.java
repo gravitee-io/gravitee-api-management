@@ -73,9 +73,10 @@ public final class LogBuilder {
         log.setGateway(node.get(FIELD_GATEWAY).asText());
 
         try {
-            log.setTimestamp(
-                LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            );
+            log.setTimestamp(LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf)
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli());
         } catch (final DateTimeParseException e) {
             LogBuilder.log.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
@@ -116,9 +117,10 @@ public final class LogBuilder {
         log.setGateway(node.get(FIELD_GATEWAY).asText());
 
         try {
-            log.setTimestamp(
-                LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            );
+            log.setTimestamp(LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf)
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli());
         } catch (final DateTimeParseException e) {
             LogBuilder.log.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
@@ -150,7 +152,8 @@ public final class LogBuilder {
                     // Ensure backward compatibility
                     Request request = new Request();
                     request.setUri(stepNode.get(FIELD_URI).asText());
-                    request.setMethod(HttpMethod.valueOf(stepNode.get(FIELD_METHOD).asText().toUpperCase()));
+                    request.setMethod(HttpMethod.valueOf(
+                            stepNode.get(FIELD_METHOD).asText().toUpperCase()));
                     step.setRequest(request);
 
                     Response response = new Response();

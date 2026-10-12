@@ -74,24 +74,24 @@ class RedisClusterRateLimitRepositoryTest {
 
     @BeforeAll
     void startCluster() throws Exception {
-        assumeTrue(DockerClientFactory.instance().isDockerAvailable(), "Docker not available — skipping Redis cluster integration test");
+        assumeTrue(
+                DockerClientFactory.instance().isDockerAvailable(),
+                "Docker not available — skipping Redis cluster integration test");
         redis = new GenericContainer<>(DockerImageName.parse("redis:7.4"))
-            .withExposedPorts(CLUSTER_PORT)
-            .withCreateContainerCmdModifier(cmd ->
-                cmd.getHostConfig().withPortBindings(new PortBinding(Ports.Binding.bindPort(CLUSTER_PORT), new ExposedPort(CLUSTER_PORT)))
-            )
-            .withCommand(
-                "redis-server --port " +
-                    CLUSTER_PORT +
-                    " --cluster-enabled yes --cluster-node-timeout 5000" +
-                    " --cluster-announce-ip 127.0.0.1 --cluster-announce-port " +
-                    CLUSTER_PORT
-            )
-            .waitingFor(Wait.forListeningPort());
+                .withExposedPorts(CLUSTER_PORT)
+                .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig()
+                        .withPortBindings(
+                                new PortBinding(Ports.Binding.bindPort(CLUSTER_PORT), new ExposedPort(CLUSTER_PORT))))
+                .withCommand("redis-server --port " + CLUSTER_PORT
+                        + " --cluster-enabled yes --cluster-node-timeout 5000"
+                        + " --cluster-announce-ip 127.0.0.1 --cluster-announce-port "
+                        + CLUSTER_PORT)
+                .waitingFor(Wait.forListeningPort());
         redis.start();
 
         // A single node owning all 16384 slots forms a healthy single-node cluster.
-        redis.execInContainer("redis-cli", "-p", String.valueOf(CLUSTER_PORT), "cluster", "addslotsrange", "0", "16383");
+        redis.execInContainer(
+                "redis-cli", "-p", String.valueOf(CLUSTER_PORT), "cluster", "addslotsrange", "0", "16383");
         awaitClusterStateOk();
 
         String prefix = Scope.RATE_LIMIT.getName() + ".redis.";
@@ -100,11 +100,8 @@ class RedisClusterRateLimitRepositoryTest {
         env.setProperty(prefix + "cluster.nodes[0].port", String.valueOf(CLUSTER_PORT));
 
         redisClient = new RedisConnectionFactory(
-            env,
-            vertx,
-            Scope.RATE_LIMIT.getName(),
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-        ).createRedisClient();
+                        env, vertx, Scope.RATE_LIMIT.getName(), Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA))
+                .createRedisClient();
         awaitConnected(redisClient);
 
         repository = new RedisRateLimitRepository(redisClient, 5000);
@@ -161,14 +158,14 @@ class RedisClusterRateLimitRepositoryTest {
 
     private RateLimit increment(String key, long weight, long reset, String subscription) {
         return repository
-            .incrementAndGet(key, weight, () -> {
-                RateLimit rate = new RateLimit(key);
-                rate.setLimit(1000);
-                rate.setResetTime(reset);
-                rate.setSubscription(subscription);
-                return rate;
-            })
-            .blockingGet();
+                .incrementAndGet(key, weight, () -> {
+                    RateLimit rate = new RateLimit(key);
+                    rate.setLimit(1000);
+                    rate.setResetTime(reset);
+                    rate.setSubscription(subscription);
+                    return rate;
+                })
+                .blockingGet();
     }
 
     // Scan an explicit low range rather than ServerSocket(0): Redis cluster's bus port is

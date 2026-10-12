@@ -75,12 +75,10 @@ public class CustomUserFieldEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CustomUserFieldEntity that = (CustomUserFieldEntity) o;
-        return (
-            required == that.required &&
-            Objects.equals(key, that.key) &&
-            Objects.equals(label, that.label) &&
-            Objects.equals(values, that.values)
-        );
+        return (required == that.required
+                && Objects.equals(key, that.key)
+                && Objects.equals(label, that.label)
+                && Objects.equals(values, that.values));
     }
 
     @Override
@@ -90,19 +88,16 @@ public class CustomUserFieldEntity {
 
     @Override
     public String toString() {
-        return (
-            "CustomUserFieldEntity{" +
-            "key='" +
-            key +
-            '\'' +
-            ", label='" +
-            label +
-            '\'' +
-            ", values=" +
-            values +
-            ", required=" +
-            required +
-            '}'
-        );
+        return ("CustomUserFieldEntity{" + "key='"
+                + key
+                + '\''
+                + ", label='"
+                + label
+                + '\''
+                + ", values="
+                + values
+                + ", required="
+                + required
+                + '}');
     }
 }

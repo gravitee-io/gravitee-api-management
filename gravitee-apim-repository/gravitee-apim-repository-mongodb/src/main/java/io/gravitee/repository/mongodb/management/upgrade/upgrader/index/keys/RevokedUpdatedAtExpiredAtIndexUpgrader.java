@@ -28,11 +28,11 @@ public class RevokedUpdatedAtExpiredAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("keys")
-            .name("r1ua-1ea1")
-            .key("revoked", ascending())
-            .key("updatedAt", descending())
-            .key("expireAt", ascending())
-            .build();
+                .collection("keys")
+                .name("r1ua-1ea1")
+                .key("revoked", ascending())
+                .key("updatedAt", descending())
+                .key("expireAt", ascending())
+                .build();
     }
 }

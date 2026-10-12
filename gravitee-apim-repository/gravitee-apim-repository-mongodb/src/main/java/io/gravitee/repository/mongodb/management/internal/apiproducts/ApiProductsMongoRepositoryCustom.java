@@ -26,9 +26,14 @@ import java.util.Set;
 
 public interface ApiProductsMongoRepositoryCustom {
     Set<ApiProductMongo> findByApiId(String apiId);
+
     void removeApiFromAllApiProducts(String apiId);
+
     Set<ApiProductMongo> findApiProductsByApiIds(Collection<String> apiIds);
+
     List<ApiProductMongo> search(ApiProductCriteria criteria);
+
     Page<ApiProductMongo> search(ApiProductCriteria criteria, Pageable pageable, Sortable sortable);
+
     Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable);
 }

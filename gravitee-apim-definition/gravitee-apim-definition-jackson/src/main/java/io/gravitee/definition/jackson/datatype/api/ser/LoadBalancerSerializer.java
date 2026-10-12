@@ -32,7 +32,8 @@ public class LoadBalancerSerializer extends StdScalarSerializer<LoadBalancer> {
     }
 
     @Override
-    public void serialize(LoadBalancer loadBalancer, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(LoadBalancer loadBalancer, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("type", loadBalancer.getType().name());
         jgen.writeEndObject();

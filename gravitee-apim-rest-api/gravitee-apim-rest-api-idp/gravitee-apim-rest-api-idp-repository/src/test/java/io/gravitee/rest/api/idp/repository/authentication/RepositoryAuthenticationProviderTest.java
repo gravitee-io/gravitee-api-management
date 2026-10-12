@@ -60,31 +60,30 @@ class RepositoryAuthenticationProviderTest {
 
     @Test
     void should_reject_a_user_whose_registration_is_awaiting_approval_as_an_authentication_failure() {
-        when(
-            userService.findBySource(nullable(String.class), eq(RepositoryIdentityProvider.PROVIDER_TYPE), eq(USERNAME), eq(true))
-        ).thenReturn(aUser("PENDING"));
+        when(userService.findBySource(
+                        nullable(String.class), eq(RepositoryIdentityProvider.PROVIDER_TYPE), eq(USERNAME), eq(true)))
+                .thenReturn(aUser("PENDING"));
 
         assertThatThrownBy(() -> provider.authenticate(new UsernamePasswordAuthenticationToken(USERNAME, "password")))
-            .isInstanceOf(DisabledException.class)
-            .isInstanceOf(AuthenticationException.class);
+                .isInstanceOf(DisabledException.class)
+                .isInstanceOf(AuthenticationException.class);
     }
 
     @Test
     void should_report_an_unknown_user_as_a_bad_credentials_failure() {
-        when(
-            userService.findBySource(nullable(String.class), eq(RepositoryIdentityProvider.PROVIDER_TYPE), eq(USERNAME), eq(true))
-        ).thenThrow(new UserNotFoundException(USERNAME));
+        when(userService.findBySource(
+                        nullable(String.class), eq(RepositoryIdentityProvider.PROVIDER_TYPE), eq(USERNAME), eq(true)))
+                .thenThrow(new UserNotFoundException(USERNAME));
 
-        assertThatThrownBy(() -> provider.authenticate(new UsernamePasswordAuthenticationToken(USERNAME, "password"))).isInstanceOf(
-            BadCredentialsException.class
-        );
+        assertThatThrownBy(() -> provider.authenticate(new UsernamePasswordAuthenticationToken(USERNAME, "password")))
+                .isInstanceOf(BadCredentialsException.class);
     }
 
     @Test
     void should_authenticate_an_active_user() {
-        when(
-            userService.findBySource(nullable(String.class), eq(RepositoryIdentityProvider.PROVIDER_TYPE), eq(USERNAME), eq(true))
-        ).thenReturn(aUser("ACTIVE"));
+        when(userService.findBySource(
+                        nullable(String.class), eq(RepositoryIdentityProvider.PROVIDER_TYPE), eq(USERNAME), eq(true)))
+                .thenReturn(aUser("ACTIVE"));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
         var authentication = provider.authenticate(new UsernamePasswordAuthenticationToken(USERNAME, "password"));

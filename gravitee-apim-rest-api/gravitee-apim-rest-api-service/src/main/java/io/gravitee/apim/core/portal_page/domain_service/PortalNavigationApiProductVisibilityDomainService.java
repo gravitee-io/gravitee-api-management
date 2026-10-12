@@ -42,18 +42,14 @@ public class PortalNavigationApiProductVisibilityDomainService implements Portal
 
     @Override
     public Predicate<PortalNavigationItem> prepareVisibilityPredicate(
-        String environmentId,
-        PortalNavigationItemViewerContext viewerContext
-    ) {
+            String environmentId, PortalNavigationItemViewerContext viewerContext) {
         Set<String> accessibleApiProductIds = resolveAccessibleApiProductIds(environmentId, viewerContext);
-        return item -> !isApiProductItemHidden((PortalNavigationApiProduct) item, viewerContext, accessibleApiProductIds);
+        return item ->
+                !isApiProductItemHidden((PortalNavigationApiProduct) item, viewerContext, accessibleApiProductIds);
     }
 
     public boolean isApiProductItemHidden(
-        String environmentId,
-        PortalNavigationApiProduct item,
-        PortalNavigationItemViewerContext viewerContext
-    ) {
+            String environmentId, PortalNavigationApiProduct item, PortalNavigationItemViewerContext viewerContext) {
         if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(item.getVisibility())) {
             return false;
         }
@@ -61,28 +57,28 @@ public class PortalNavigationApiProductVisibilityDomainService implements Portal
             return true;
         }
         return viewerContext
-            .userId()
-            .map(userId ->
-                !apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(environmentId, userId).contains(item.getApiProductId())
-            )
-            .orElse(true);
+                .userId()
+                .map(userId -> !apiProductAccessibleIdsDomainService
+                        .findAccessibleApiProductIds(environmentId, userId)
+                        .contains(item.getApiProductId()))
+                .orElse(true);
     }
 
-    public Set<String> resolveAccessibleApiProductIds(String environmentId, PortalNavigationItemViewerContext viewerContext) {
+    public Set<String> resolveAccessibleApiProductIds(
+            String environmentId, PortalNavigationItemViewerContext viewerContext) {
         if (!viewerContext.isPortalMode()) {
             return Set.of();
         }
         return viewerContext
-            .userId()
-            .map(userId -> apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(environmentId, userId))
-            .orElse(Set.of());
+                .userId()
+                .map(userId -> apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(environmentId, userId))
+                .orElse(Set.of());
     }
 
     public boolean isApiProductItemHidden(
-        PortalNavigationApiProduct item,
-        PortalNavigationItemViewerContext viewerContext,
-        Set<String> accessibleApiProductIds
-    ) {
+            PortalNavigationApiProduct item,
+            PortalNavigationItemViewerContext viewerContext,
+            Set<String> accessibleApiProductIds) {
         if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(item.getVisibility())) {
             return false;
         }
@@ -90,32 +86,32 @@ public class PortalNavigationApiProductVisibilityDomainService implements Portal
     }
 
     public boolean hasHiddenApiProductAncestor(
-        String environmentId,
-        PortalNavigationItem item,
-        PortalNavigationItemViewerContext viewerContext
-    ) {
-        return hasHiddenApiProductAncestor(environmentId, item, viewerContext, apiProductAncestor ->
-            isApiProductItemHidden(environmentId, apiProductAncestor, viewerContext)
-        );
+            String environmentId, PortalNavigationItem item, PortalNavigationItemViewerContext viewerContext) {
+        return hasHiddenApiProductAncestor(
+                environmentId,
+                item,
+                viewerContext,
+                apiProductAncestor -> isApiProductItemHidden(environmentId, apiProductAncestor, viewerContext));
     }
 
     public boolean hasHiddenApiProductAncestor(
-        String environmentId,
-        PortalNavigationItem item,
-        PortalNavigationItemViewerContext viewerContext,
-        Set<String> accessibleApiProductIds
-    ) {
-        return hasHiddenApiProductAncestor(environmentId, item, viewerContext, apiProductAncestor ->
-            isApiProductItemHidden(apiProductAncestor, viewerContext, accessibleApiProductIds)
-        );
+            String environmentId,
+            PortalNavigationItem item,
+            PortalNavigationItemViewerContext viewerContext,
+            Set<String> accessibleApiProductIds) {
+        return hasHiddenApiProductAncestor(
+                environmentId,
+                item,
+                viewerContext,
+                apiProductAncestor ->
+                        isApiProductItemHidden(apiProductAncestor, viewerContext, accessibleApiProductIds));
     }
 
     private boolean hasHiddenApiProductAncestor(
-        String environmentId,
-        PortalNavigationItem item,
-        PortalNavigationItemViewerContext viewerContext,
-        Predicate<PortalNavigationApiProduct> isHidden
-    ) {
+            String environmentId,
+            PortalNavigationItem item,
+            PortalNavigationItemViewerContext viewerContext,
+            Predicate<PortalNavigationApiProduct> isHidden) {
         if (!viewerContext.isPortalMode()) {
             return false;
         }

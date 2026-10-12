@@ -70,37 +70,34 @@ class FetchPortalNavigationItemUseCaseTest {
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
 
         var domainService = new PortalNavigationItemDomainService(
-            crudService,
-            queryService,
-            pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            new ApiCrudServiceInMemory(),
-            sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
-        );
+                crudService,
+                queryService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                new ApiCrudServiceInMemory(),
+                sourceDomainService,
+                new ApiOwnedNavigationDomainService(queryService, crudService));
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
-            sourceDomainService,
-            new PortalNavigationManifestParserInMemory(),
-            domainService,
-            queryService,
-            crudService,
-            pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
-        );
+                sourceDomainService,
+                new PortalNavigationManifestParserInMemory(),
+                domainService,
+                queryService,
+                crudService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()));
         useCase = new FetchPortalNavigationItemUseCase(
-            queryService,
-            new PortalNavigationSourcedItemsDomainService(queryService),
-            domainService,
-            sourceDomainService,
-            bulkImportDomainService
-        );
+                queryService,
+                new PortalNavigationSourcedItemsDomainService(queryService),
+                domainService,
+                sourceDomainService,
+                bulkImportDomainService);
     }
 
     @Test
     void should_throw_when_item_not_found() {
-        assertThatThrownBy(() ->
-            useCase.execute(new FetchPortalNavigationItemUseCase.Input(ENV_ID, "00000000-0000-0000-0000-000000000099"))
-        ).isInstanceOf(PortalNavigationItemNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(
+                        new FetchPortalNavigationItemUseCase.Input(ENV_ID, "00000000-0000-0000-0000-000000000099")))
+                .isInstanceOf(PortalNavigationItemNotFoundException.class);
     }
 
     @Nested
@@ -108,7 +105,10 @@ class FetchPortalNavigationItemUseCaseTest {
 
         @Test
         void should_fetch_content_overwrite_page_content_and_clear_previous_error() {
-            var page = aPage("Sourced Page", null, aSource().lastFetchError("previous error").build());
+            var page = aPage(
+                    "Sourced Page",
+                    null,
+                    aSource().lastFetchError("previous error").build());
 
             var output = execute(page);
 
@@ -124,7 +124,8 @@ class FetchPortalNavigationItemUseCaseTest {
         void should_refresh_a_page_owned_by_an_api_without_changing_its_owner_or_publishing_it() {
             var apiReference = new NavigationItemReference.ApiReference("api-id");
             var page = aPage("Sourced Page", null, aSource().build());
-            crudService.update(page.toBuilder().reference(apiReference).published(false).build());
+            crudService.update(
+                    page.toBuilder().reference(apiReference).published(false).build());
 
             execute(page);
 
@@ -163,8 +164,8 @@ class FetchPortalNavigationItemUseCaseTest {
             var page = aPage("Inline Page", null, null);
 
             assertThatThrownBy(() -> execute(page))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining("has no external source configured");
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining("has no external source configured");
         }
     }
 
@@ -176,23 +177,27 @@ class FetchPortalNavigationItemUseCaseTest {
             var folder = aFolder("Guides", null);
             var subFolder = aFolder("Advanced", folder.getId());
             var sourcedPage = aPage("Sourced Page", folder.getId(), aSource().build());
-            var nestedSourcedPage = aPage("Nested Sourced Page", subFolder.getId(), aSource().build());
+            var nestedSourcedPage =
+                    aPage("Nested Sourced Page", subFolder.getId(), aSource().build());
             aPage("Inline Page", folder.getId(), null);
 
             var summary = execute(folder).summary();
 
             assertThat(summary.results())
-                .extracting(
-                    FetchPortalNavigationItemUseCase.PageFetchResult::navigationItemId,
-                    FetchPortalNavigationItemUseCase.PageFetchResult::success
-                )
-                .containsExactlyInAnyOrder(tuple(sourcedPage.getId().id(), true), tuple(nestedSourcedPage.getId().id(), true));
+                    .extracting(
+                            FetchPortalNavigationItemUseCase.PageFetchResult::navigationItemId,
+                            FetchPortalNavigationItemUseCase.PageFetchResult::success)
+                    .containsExactlyInAnyOrder(
+                            tuple(sourcedPage.getId().id(), true),
+                            tuple(nestedSourcedPage.getId().id(), true));
             assertThat(summary.succeeded()).isEqualTo(2);
             assertThat(summary.failed()).isZero();
             assertThat(sourcedPage.getSource().getLastFetchedAt()).isNotNull();
             assertThat(nestedSourcedPage.getSource().getLastFetchedAt()).isNotNull();
-            assertThat(fetchedContentOf(sourcedPage)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
-            assertThat(fetchedContentOf(nestedSourcedPage)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+            assertThat(fetchedContentOf(sourcedPage))
+                    .isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+            assertThat(fetchedContentOf(nestedSourcedPage))
+                    .isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
         }
 
         @Test
@@ -207,12 +212,12 @@ class FetchPortalNavigationItemUseCaseTest {
             assertThat(summary.succeeded()).isEqualTo(1);
             assertThat(summary.failed()).isEqualTo(1);
             assertThat(summary.results())
-                .filteredOn(result -> !result.success())
-                .singleElement()
-                .satisfies(result -> {
-                    assertThat(result.error()).isEqualTo("Unable to fetch content from source type http-fetcher.");
-                    assertThat(result.error()).doesNotContain("example.com");
-                });
+                    .filteredOn(result -> !result.success())
+                    .singleElement()
+                    .satisfies(result -> {
+                        assertThat(result.error()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+                        assertThat(result.error()).doesNotContain("example.com");
+                    });
         }
 
         @Test
@@ -221,8 +226,8 @@ class FetchPortalNavigationItemUseCaseTest {
             aPage("Inline Page", folder.getId(), null);
 
             assertThatThrownBy(() -> execute(folder))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining("No page below navigation item");
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining("No page below navigation item");
         }
 
         @Test
@@ -230,9 +235,9 @@ class FetchPortalNavigationItemUseCaseTest {
             var folder = aFolder("Guides", null, aSource().build());
 
             assertThatThrownBy(() -> execute(folder))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining("No page below navigation item")
-                .hasMessageNotContaining("has no external source configured");
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining("No page below navigation item")
+                    .hasMessageNotContaining("has no external source configured");
         }
     }
 
@@ -241,7 +246,8 @@ class FetchPortalNavigationItemUseCaseTest {
 
         @Test
         void should_reimport_the_subtree_of_an_import_managed_folder() {
-            var folder = aFolder("Imported Docs", null, aSource().subtreeImport(true).build());
+            var folder =
+                    aFolder("Imported Docs", null, aSource().subtreeImport(true).build());
             sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
             var summary = execute(folder).summary();
@@ -249,17 +255,15 @@ class FetchPortalNavigationItemUseCaseTest {
             assertThat(summary.succeeded()).isEqualTo(1);
             assertThat(summary.failed()).isZero();
             assertThat(summary.results())
-                .singleElement()
-                .satisfies(result -> assertThat(result.title()).isEqualTo("guide"));
-            var docsFolder = queryService
-                .findByParentIdAndEnvironmentId(ENV_ID, folder.getId())
-                .stream()
-                .filter(item -> "docs".equals(item.getTitle()))
-                .findFirst()
-                .orElseThrow();
+                    .singleElement()
+                    .satisfies(result -> assertThat(result.title()).isEqualTo("guide"));
+            var docsFolder = queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId()).stream()
+                    .filter(item -> "docs".equals(item.getTitle()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, docsFolder.getId()))
-                .singleElement()
-                .satisfies(item -> assertThat(item.getTitle()).isEqualTo("guide"));
+                    .singleElement()
+                    .satisfies(item -> assertThat(item.getTitle()).isEqualTo("guide"));
         }
 
         @Test
@@ -273,73 +277,76 @@ class FetchPortalNavigationItemUseCaseTest {
             var summary = execute(folder).summary();
 
             assertThat(summary.results())
-                .singleElement()
-                .satisfies(result -> assertThat(result.title()).isEqualTo("Sourced Child"));
-            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId())).containsExactly(child);
+                    .singleElement()
+                    .satisfies(result -> assertThat(result.title()).isEqualTo("Sourced Child"));
+            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId()))
+                    .containsExactly(child);
         }
     }
 
     private FetchPortalNavigationItemUseCase.Output execute(PortalNavigationItem item) {
-        return useCase.execute(new FetchPortalNavigationItemUseCase.Input(ENV_ID, item.getId().toString()));
+        return useCase.execute(
+                new FetchPortalNavigationItemUseCase.Input(ENV_ID, item.getId().toString()));
     }
 
     private PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId) {
         return aFolder(title, parentId, null);
     }
 
-    private PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
+    private PortalNavigationFolder aFolder(
+            String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
         var folder = PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .source(source)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .source(source)
+                .build();
         crudService.create(folder);
         return folder;
     }
 
-    private PortalNavigationPage aPage(String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
+    private PortalNavigationPage aPage(
+            String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
         var content = GraviteeMarkdownPageContent.create(ORG_ID, ENV_ID, "# Default content");
         pageContentCrudService.create(content);
 
         var page = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(content.getId())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .source(source)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(content.getId())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .source(source)
+                .build();
         crudService.create(page);
         return page;
     }
 
     private PortalNavigationItemSource.PortalNavigationItemSourceBuilder aSource() {
         return PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}");
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}");
     }
 
     private String fetchedContentOf(PortalNavigationPage page) {
-        return pageContentCrudService
-            .storage()
-            .stream()
-            .filter(content -> content.getId().equals(page.getPortalPageContentId()))
-            .findFirst()
-            .map(content -> ((GraviteeMarkdownPageContent) content).getContent().value())
-            .orElseThrow();
+        return pageContentCrudService.storage().stream()
+                .filter(content -> content.getId().equals(page.getPortalPageContentId()))
+                .findFirst()
+                .map(content ->
+                        ((GraviteeMarkdownPageContent) content).getContent().value())
+                .orElseThrow();
     }
 }

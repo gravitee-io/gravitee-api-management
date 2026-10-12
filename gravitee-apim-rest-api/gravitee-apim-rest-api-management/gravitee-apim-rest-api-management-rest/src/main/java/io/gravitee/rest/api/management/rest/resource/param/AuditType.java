@@ -29,11 +29,10 @@ public enum AuditType {
     API;
 
     private static final Map<AuditType, AuditReferenceType> AUDIT_TYPE_AUDIT_REFERENCE_TYPE_MAP = Map.ofEntries(
-        entry(AuditType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
-        entry(AuditType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
-        entry(AuditType.APPLICATION, AuditReferenceType.APPLICATION),
-        entry(AuditType.API, AuditReferenceType.API)
-    );
+            entry(AuditType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
+            entry(AuditType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
+            entry(AuditType.APPLICATION, AuditReferenceType.APPLICATION),
+            entry(AuditType.API, AuditReferenceType.API));
 
     public static AuditReferenceType fromAuditType(AuditType auditType) {
         return AUDIT_TYPE_AUDIT_REFERENCE_TYPE_MAP.get(auditType);

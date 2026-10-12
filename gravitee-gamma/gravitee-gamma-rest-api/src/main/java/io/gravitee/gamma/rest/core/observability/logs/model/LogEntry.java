@@ -30,49 +30,48 @@ import lombok.Builder;
  */
 @Builder(toBuilder = true)
 public record LogEntry(
-    String apiId,
-    String apiName,
-    String apiType,
-    Instant timestamp,
-    String requestId,
-    String method,
-    String clientIdentifier,
-    String planId,
-    String planName,
-    String applicationId,
-    String applicationName,
-    String transactionId,
-    Integer status,
-    Boolean requestEnded,
-    Integer gatewayResponseTime,
-    String gateway,
-    String gatewayHostname,
-    String uri,
-    String endpoint,
-    /**
-     * Entrypoint plugin id of the connection. On a Message API this is the protocol the client used —
-     * http-post to publish, sse / websocket / http-get to subscribe — and one API commonly exposes
-     * several at once, which makes it the column that tells its rows apart.
-     */
-    String entrypointId,
-    String host,
-    String subscriptionId,
-    String message,
-    String errorKey,
-    String errorComponentName,
-    String errorComponentType,
-    List<LogEntryWarning> warnings,
-    Map<String, Object> additionalMetrics,
-    String mcpMethod,
-    String apiProductId,
-    String apiProductName,
-    // Native Kafka fields, hoisted from additional-metrics; failureOrigin is derived, not stored.
-    String connectionStatus,
-    FailureOrigin failureOrigin,
-    String clientId,
-    String clientSoftwareName,
-    String clientSoftwareVersion,
-    String brokerId,
-    Long connectionDurationMs,
-    AuthzDecision authz
-) {}
+        String apiId,
+        String apiName,
+        String apiType,
+        Instant timestamp,
+        String requestId,
+        String method,
+        String clientIdentifier,
+        String planId,
+        String planName,
+        String applicationId,
+        String applicationName,
+        String transactionId,
+        Integer status,
+        Boolean requestEnded,
+        Integer gatewayResponseTime,
+        String gateway,
+        String gatewayHostname,
+        String uri,
+        String endpoint,
+        /**
+         * Entrypoint plugin id of the connection. On a Message API this is the protocol the client used —
+         * http-post to publish, sse / websocket / http-get to subscribe — and one API commonly exposes
+         * several at once, which makes it the column that tells its rows apart.
+         */
+        String entrypointId,
+        String host,
+        String subscriptionId,
+        String message,
+        String errorKey,
+        String errorComponentName,
+        String errorComponentType,
+        List<LogEntryWarning> warnings,
+        Map<String, Object> additionalMetrics,
+        String mcpMethod,
+        String apiProductId,
+        String apiProductName,
+        // Native Kafka fields, hoisted from additional-metrics; failureOrigin is derived, not stored.
+        String connectionStatus,
+        FailureOrigin failureOrigin,
+        String clientId,
+        String clientSoftwareName,
+        String clientSoftwareVersion,
+        String brokerId,
+        Long connectionDurationMs,
+        AuthzDecision authz) {}

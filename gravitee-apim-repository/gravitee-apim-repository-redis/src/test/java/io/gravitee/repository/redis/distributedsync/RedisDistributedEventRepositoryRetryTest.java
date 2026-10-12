@@ -48,41 +48,54 @@ class RedisDistributedEventRepositoryRetryTest {
 
     @Test
     void should_classify_dropped_connections_as_retryable() {
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("Connection is closed"))).isTrue();
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("Connection reset by peer"))).isTrue();
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new ClosedChannelException())).isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(
+                        new RuntimeException("Connection is closed")))
+                .isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(
+                        new RuntimeException("Connection reset by peer")))
+                .isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new ClosedChannelException()))
+                .isTrue();
     }
 
     @Test
     void should_classify_readonly_as_retryable() {
-        assertThat(
-            RedisDistributedEventRepository.isRetryableWriteFailure(
-                new RuntimeException("READONLY You can't write against a read only replica.")
-            )
-        ).isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(
+                        new RuntimeException("READONLY You can't write against a read only replica.")))
+                .isTrue();
     }
 
     @Test
     void should_classify_timeout_reconnect_window_and_queue_saturation_as_retryable() {
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new TimeoutException())).isTrue();
-        assertThat(
-            RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("Redis connection is not available"))
-        ).isTrue();
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("Timeout on HSET command"))).isTrue();
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("Connection was closed"))).isTrue();
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("Redis waiting queue is full"))).isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new TimeoutException()))
+                .isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(
+                        new RuntimeException("Redis connection is not available")))
+                .isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(
+                        new RuntimeException("Timeout on HSET command")))
+                .isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(
+                        new RuntimeException("Connection was closed")))
+                .isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(
+                        new RuntimeException("Redis waiting queue is full")))
+                .isTrue();
     }
 
     @Test
     void should_classify_a_wrapped_recoverable_cause_as_retryable() {
         Throwable wrapped = new RuntimeException("distribution failed", new TimeoutException("Timeout on command"));
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(wrapped)).isTrue();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(wrapped))
+                .isTrue();
     }
 
     @Test
     void should_not_classify_permanent_failures_as_retryable() {
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("malformed payload"))).isFalse();
-        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new IllegalStateException())).isFalse();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new RuntimeException("malformed payload")))
+                .isFalse();
+        assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new IllegalStateException()))
+                .isFalse();
     }
 
     @Test
@@ -90,13 +103,16 @@ class RedisDistributedEventRepositoryRetryTest {
         RedisAPI redisAPI = mock(RedisAPI.class);
         RedisClient redisClient = redisClientReturning(redisAPI);
         AtomicInteger hsetCalls = new AtomicInteger();
-        when(redisAPI.hset(any())).thenAnswer(invocation ->
-            hsetCalls.incrementAndGet() <= 2
-                ? Future.failedFuture(new RuntimeException("Connection is closed"))
-                : Future.succeededFuture(mock(Response.class))
-        );
+        when(redisAPI.hset(any()))
+                .thenAnswer(invocation -> hsetCalls.incrementAndGet() <= 2
+                        ? Future.failedFuture(new RuntimeException("Connection is closed"))
+                        : Future.succeededFuture(mock(Response.class)));
 
-        new RedisDistributedEventRepository(redisClient).createOrUpdate(anEvent()).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+        new RedisDistributedEventRepository(redisClient)
+                .createOrUpdate(anEvent())
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
 
         verify(redisAPI, times(3)).hset(any()); // 2 failures + 1 success
     }
@@ -108,10 +124,10 @@ class RedisDistributedEventRepositoryRetryTest {
         when(redisAPI.hset(any())).thenReturn(Future.failedFuture(new RuntimeException("malformed payload")));
 
         new RedisDistributedEventRepository(redisClient)
-            .createOrUpdate(anEvent())
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertError(error -> "malformed payload".equals(error.getMessage()));
+                .createOrUpdate(anEvent())
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> "malformed payload".equals(error.getMessage()));
 
         verify(redisAPI, times(1)).hset(any());
     }
@@ -126,13 +142,13 @@ class RedisDistributedEventRepositoryRetryTest {
 
     private static DistributedEvent anEvent() {
         return DistributedEvent.builder()
-            .id("event-1")
-            .clusterId("cluster-1")
-            .refId("api-1")
-            .refType(DistributedEventType.API)
-            .type(DistributedEventType.API)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .updatedAt(new Date())
-            .build();
+                .id("event-1")
+                .clusterId("cluster-1")
+                .refId("api-1")
+                .refType(DistributedEventType.API)
+                .type(DistributedEventType.API)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .updatedAt(new Date())
+                .build();
     }
 }

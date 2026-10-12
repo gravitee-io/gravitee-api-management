@@ -31,7 +31,8 @@ import org.springframework.stereotype.Service;
 @CustomLog
 @Service("integrationWebsocketControllerAuthentication")
 @RequiredArgsConstructor
-public class IntegrationWebsocketControllerAuthentication implements WebSocketControllerAuthentication<IntegrationCommandContext> {
+public class IntegrationWebsocketControllerAuthentication
+        implements WebSocketControllerAuthentication<IntegrationCommandContext> {
 
     static final String AUTHORIZATION_HEADER = HttpHeaderNames.AUTHORIZATION.toString();
     static final String ORGANIZATION_HEADER = "X-Gravitee-Organization-Id";
@@ -44,20 +45,21 @@ public class IntegrationWebsocketControllerAuthentication implements WebSocketCo
     @Override
     public IntegrationCommandContext authenticate(final HttpServerRequest httpServerRequest) {
         var headers = httpServerRequest.headers();
-        var tokenValue = Optional.ofNullable(headers.get(AUTHORIZATION_HEADER)).map(authorizationHeader ->
-            authorizationHeader.substring(AUTHORIZATION_HEADER_BEARER.length()).trim()
-        );
+        var tokenValue = Optional.ofNullable(headers.get(AUTHORIZATION_HEADER))
+                .map(authorizationHeader -> authorizationHeader
+                        .substring(AUTHORIZATION_HEADER_BEARER.length())
+                        .trim());
 
         if (tokenValue.isPresent()) {
             try {
                 var token = tokenService.findByToken(tokenValue.get());
 
                 return userCrudService
-                    .findBaseUserById(token.getReferenceId())
-                    .map(user -> Map.entry(user.getOrganizationId(), user.getId()))
-                    .filter(entry -> licenseDomainService.isFederationFeatureAllowed(entry.getKey()))
-                    .map(entry -> new IntegrationCommandContext(true, entry.getKey(), entry.getValue()))
-                    .orElse(new IntegrationCommandContext(false));
+                        .findBaseUserById(token.getReferenceId())
+                        .map(user -> Map.entry(user.getOrganizationId(), user.getId()))
+                        .filter(entry -> licenseDomainService.isFederationFeatureAllowed(entry.getKey()))
+                        .map(entry -> new IntegrationCommandContext(true, entry.getKey(), entry.getValue()))
+                        .orElse(new IntegrationCommandContext(false));
             } catch (Exception e) {
                 log.warn("Token found, but unable to authenticate incoming websocket controller request");
                 log.debug("Token found, but unable to authenticate incoming websocket controller request", e);

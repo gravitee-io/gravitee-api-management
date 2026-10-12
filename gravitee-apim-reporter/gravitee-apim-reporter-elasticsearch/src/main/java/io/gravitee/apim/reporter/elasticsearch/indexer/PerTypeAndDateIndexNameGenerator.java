@@ -17,7 +17,6 @@ package io.gravitee.apim.reporter.elasticsearch.indexer;
 
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import java.time.Instant;
-import javax.annotation.PostConstruct;
 
 /**
  * @author GraviteeSource Team

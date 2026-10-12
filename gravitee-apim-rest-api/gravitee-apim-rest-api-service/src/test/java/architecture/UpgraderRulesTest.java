@@ -39,20 +39,19 @@ public class UpgraderRulesTest extends AbstractApimArchitectureTest {
     @Test
     public void upgraders_should_not_branch_on_page_total_elements() {
         noClasses()
-            .that()
-            .resideInAPackage(UPGRADER_PACKAGE)
-            .should()
-            .callMethod(Page.class, "getTotalElements")
-            .because(
-                "Upgraders must complete fully even when the repository count times out (Page.totalElements may be -1). " +
-                    "Use PageUtils.forEachPage(...) or rely on page-fullness (page.getContent().size() == pageSize) instead."
-            )
-            .check(upgraderClassesWithoutTests());
+                .that()
+                .resideInAPackage(UPGRADER_PACKAGE)
+                .should()
+                .callMethod(Page.class, "getTotalElements")
+                .because(
+                        "Upgraders must complete fully even when the repository count times out (Page.totalElements may be -1). "
+                                + "Use PageUtils.forEachPage(...) or rely on page-fullness (page.getContent().size() == pageSize) instead.")
+                .check(upgraderClassesWithoutTests());
     }
 
     private JavaClasses upgraderClassesWithoutTests() {
         return new ClassFileImporter()
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("io.gravitee.rest.api.service.impl.upgrade.upgrader");
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("io.gravitee.rest.api.service.impl.upgrade.upgrader");
     }
 }

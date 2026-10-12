@@ -28,16 +28,14 @@ import java.util.List;
  */
 public interface ListenerValidationService {
     List<Listener> validateAndSanitizeHttpV4(
-        ExecutionContext executionContext,
-        String apiId,
-        List<Listener> listeners,
-        List<EndpointGroup> endpointGroups
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            List<Listener> listeners,
+            List<EndpointGroup> endpointGroups);
 
     List<NativeListener> validateAndSanitizeNativeV4(
-        ExecutionContext executionContext,
-        String apiId,
-        List<NativeListener> listeners,
-        List<NativeEndpointGroup> endpointGroups
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            List<NativeListener> listeners,
+            List<NativeEndpointGroup> endpointGroups);
 }

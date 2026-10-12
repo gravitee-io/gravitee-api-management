@@ -61,7 +61,8 @@ class ApplicationMetadataCrudServiceLegacyWrapperTest {
 
         service.create(newApplicationEntity);
 
-        verify(applicationMetadataService).create(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), newApplicationEntity);
+        verify(applicationMetadataService)
+                .create(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), newApplicationEntity);
     }
 
     @Test
@@ -72,7 +73,8 @@ class ApplicationMetadataCrudServiceLegacyWrapperTest {
 
         service.update(updateApplicationMetadataEntity);
 
-        verify(applicationMetadataService).update(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), updateApplicationMetadataEntity);
+        verify(applicationMetadataService)
+                .update(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), updateApplicationMetadataEntity);
     }
 
     @Test
@@ -85,10 +87,10 @@ class ApplicationMetadataCrudServiceLegacyWrapperTest {
 
         service.delete(metadata);
 
-        verify(applicationMetadataService).delete(
-            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-            metadata.getKey(),
-            metadata.getApplicationId()
-        );
+        verify(applicationMetadataService)
+                .delete(
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                        metadata.getKey(),
+                        metadata.getApplicationId());
     }
 }

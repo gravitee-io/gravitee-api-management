@@ -33,16 +33,15 @@ import lombok.Builder;
  */
 @Builder(toBuilder = true)
 public record MessageLog(
-    String requestId,
-    String apiId,
-    String timestamp,
-    String clientIdentifier,
-    String correlationId,
-    String parentCorrelationId,
-    String operation,
-    Message entrypoint,
-    Message endpoint
-) {
+        String requestId,
+        String apiId,
+        String timestamp,
+        String clientIdentifier,
+        String correlationId,
+        String parentCorrelationId,
+        String operation,
+        Message entrypoint,
+        Message endpoint) {
     /**
      * One leg of a message. {@code connectorId} names the plugin that handled it — an entrypoint id
      * (http-post, sse, webhook…) on the client side, a connector type (kafka, mqtt5…) on the broker
@@ -50,12 +49,11 @@ public record MessageLog(
      */
     @Builder(toBuilder = true)
     public record Message(
-        String id,
-        String timestamp,
-        String connectorId,
-        String payload,
-        boolean error,
-        Map<String, List<String>> headers,
-        Map<String, String> metadata
-    ) {}
+            String id,
+            String timestamp,
+            String connectorId,
+            String payload,
+            boolean error,
+            Map<String, List<String>> headers,
+            Map<String, String> metadata) {}
 }

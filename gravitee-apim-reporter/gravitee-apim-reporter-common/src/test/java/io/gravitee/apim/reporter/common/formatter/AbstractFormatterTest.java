@@ -42,20 +42,31 @@ public abstract class AbstractFormatterTest {
 
     private static final String BASE_API_PACKAGE = "io.gravitee.reporter.api.";
 
-    private static final Node NODE = when(mock(Node.class).id()).thenReturn("gateway-id").getMock();
+    private static final Node NODE =
+            when(mock(Node.class).id()).thenReturn("gateway-id").getMock();
 
     private static final FormatterFactory FACTORY = new FormatterFactory(
-        NODE,
-        FormatterFactoryConfiguration.builder()
-            .rule(
-                MetricsType.REQUEST_LOG,
-                rules(Set.of("*"), Set.of("clientRequest.uri", "clientResponse.status", "timestamp"), Map.of("timestamp", "date"))
-            )
-            .rule(MetricsType.REQUEST, rules(Set.of("*"), Set.of("timestamp", "api", "proxyLatencyMs"), Map.of("timestamp", "date")))
-            .rule(MetricsType.NODE_MONITOR, rules(Set.of("*"), Set.of("timestamp", "os"), Map.of("timestamp", "date")))
-            .rule(MetricsType.HEALTH_CHECK, rules(Set.of("*"), Set.of("timestamp", "api", "success"), Map.of("timestamp", "date")))
-            .build()
-    );
+            NODE,
+            FormatterFactoryConfiguration.builder()
+                    .rule(
+                            MetricsType.REQUEST_LOG,
+                            rules(
+                                    Set.of("*"),
+                                    Set.of("clientRequest.uri", "clientResponse.status", "timestamp"),
+                                    Map.of("timestamp", "date")))
+                    .rule(
+                            MetricsType.REQUEST,
+                            rules(
+                                    Set.of("*"),
+                                    Set.of("timestamp", "api", "proxyLatencyMs"),
+                                    Map.of("timestamp", "date")))
+                    .rule(
+                            MetricsType.NODE_MONITOR,
+                            rules(Set.of("*"), Set.of("timestamp", "os"), Map.of("timestamp", "date")))
+                    .rule(
+                            MetricsType.HEALTH_CHECK,
+                            rules(Set.of("*"), Set.of("timestamp", "api", "success"), Map.of("timestamp", "date")))
+                    .build());
 
     protected Formatter<Reportable> formatter;
 

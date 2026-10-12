@@ -62,9 +62,9 @@ public class ApplicationAnalyticsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ)})
     public Response hits(@PathParam("applicationId") String applicationId, @BeanParam AnalyticsParam analyticsParam) {
-        //Does application exists ?
+        // Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         analyticsParam.validate();
@@ -72,7 +72,8 @@ public class ApplicationAnalyticsResource extends AbstractResource {
         Object analytics = null;
         switch (analyticsParam.getTypeParam().getValue()) {
             case DATE_HISTO:
-                analytics = analyticsMapper.convert((HistogramAnalytics) executeDateHisto(applicationId, analyticsParam));
+                analytics =
+                        analyticsMapper.convert((HistogramAnalytics) executeDateHisto(applicationId, analyticsParam));
                 break;
             case GROUP_BY:
                 analytics = analyticsMapper.convert((TopHitsAnalytics) executeGroupBy(applicationId, analyticsParam));
@@ -122,23 +123,21 @@ public class ApplicationAnalyticsResource extends AbstractResource {
         query.setRootIdentifier(application);
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
-            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
-                .stream()
-                .map(
-                    (Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation ->
-                        new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-                            @Override
-                            public AggregationType type() {
-                                return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
-                            }
+            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations.stream()
+                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>)
+                            aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                                @Override
+                                public AggregationType type() {
+                                    return AggregationType.valueOf(
+                                            aggregation.getType().name().toUpperCase());
+                                }
 
-                            @Override
-                            public String field() {
-                                return aggregation.getField();
-                            }
-                        }
-                )
-                .collect(Collectors.toList());
+                                @Override
+                                public String field() {
+                                    return aggregation.getField();
+                                }
+                            })
+                    .collect(Collectors.toList());
 
             query.setAggregations(aggregationList);
         }

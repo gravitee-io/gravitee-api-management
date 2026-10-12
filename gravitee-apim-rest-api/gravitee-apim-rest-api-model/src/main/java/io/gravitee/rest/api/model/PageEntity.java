@@ -45,6 +45,7 @@ public class PageEntity implements Indexable {
      * Pages promoted between environments will share the same crossId.
      */
     private String crossId;
+
     private String hrid;
 
     private String name;
@@ -353,73 +354,70 @@ public class PageEntity implements Indexable {
 
     @Override
     public String toString() {
-        return (
-            "PageEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", crossId='" +
-            crossId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", type='" +
-            type +
-            '\'' +
-            ", content='" +
-            content +
-            '\'' +
-            ", order=" +
-            order +
-            ", lastContributor='" +
-            lastContributor +
-            '\'' +
-            ", published=" +
-            published +
-            ", visibility=" +
-            visibility +
-            ", lastModificationDate=" +
-            lastModificationDate +
-            ", contentType='" +
-            contentType +
-            '\'' +
-            ", source=" +
-            source +
-            ", configuration=" +
-            configuration +
-            ", homepage=" +
-            homepage +
-            ", parentId='" +
-            parentId +
-            '\'' +
-            ", parentPath='" +
-            parentPath +
-            '\'' +
-            ", excludedGroups=" +
-            excludedGroups +
-            ", excludedAccessControls='" +
-            excludedAccessControls +
-            '\'' +
-            ", accessControls='" +
-            accessControls +
-            '\'' +
-            ", attachedMedia=" +
-            attachedMedia +
-            ", metadata='" +
-            metadata +
-            '\'' +
-            ", translations='" +
-            translations +
-            '\'' +
-            ", generalConditions='" +
-            generalConditions +
-            '\'' +
-            ", contentRevisionId='" +
-            contentRevisionId +
-            '\'' +
-            '}'
-        );
+        return ("PageEntity{" + "id='"
+                + id
+                + '\''
+                + ", crossId='"
+                + crossId
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", type='"
+                + type
+                + '\''
+                + ", content='"
+                + content
+                + '\''
+                + ", order="
+                + order
+                + ", lastContributor='"
+                + lastContributor
+                + '\''
+                + ", published="
+                + published
+                + ", visibility="
+                + visibility
+                + ", lastModificationDate="
+                + lastModificationDate
+                + ", contentType='"
+                + contentType
+                + '\''
+                + ", source="
+                + source
+                + ", configuration="
+                + configuration
+                + ", homepage="
+                + homepage
+                + ", parentId='"
+                + parentId
+                + '\''
+                + ", parentPath='"
+                + parentPath
+                + '\''
+                + ", excludedGroups="
+                + excludedGroups
+                + ", excludedAccessControls='"
+                + excludedAccessControls
+                + '\''
+                + ", accessControls='"
+                + accessControls
+                + '\''
+                + ", attachedMedia="
+                + attachedMedia
+                + ", metadata='"
+                + metadata
+                + '\''
+                + ", translations='"
+                + translations
+                + '\''
+                + ", generalConditions='"
+                + generalConditions
+                + '\''
+                + ", contentRevisionId='"
+                + contentRevisionId
+                + '\''
+                + '}');
     }
 
     public static class PageRevisionId {

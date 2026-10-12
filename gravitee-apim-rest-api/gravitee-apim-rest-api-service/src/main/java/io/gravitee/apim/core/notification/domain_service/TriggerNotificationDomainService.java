@@ -25,18 +25,19 @@ import java.util.List;
 public interface TriggerNotificationDomainService {
     void triggerApiNotification(String organizationId, String environmentId, final ApiHookContext context);
 
-    void triggerApiSubscriptionNotification(String organizationId, String environmentId, String referenceId, ApiHookContext context);
+    void triggerApiSubscriptionNotification(
+            String organizationId, String environmentId, String referenceId, ApiHookContext context);
 
     void triggerApiProductNotification(String organizationId, String environmentId, ApiProductHookContext context);
 
-    void triggerApplicationNotification(String organizationId, String environmentId, final ApplicationHookContext context);
+    void triggerApplicationNotification(
+            String organizationId, String environmentId, final ApplicationHookContext context);
 
     void triggerApplicationNotification(
-        String organizationId,
-        String environmentId,
-        final ApplicationHookContext context,
-        List<Recipient> additionalRecipients
-    );
+            String organizationId,
+            String environmentId,
+            final ApplicationHookContext context,
+            List<Recipient> additionalRecipients);
 
     void triggerPortalNotification(String organizationId, String environmentId, final PortalHookContext context);
 }

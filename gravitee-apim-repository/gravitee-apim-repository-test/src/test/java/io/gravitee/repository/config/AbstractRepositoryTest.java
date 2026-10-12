@@ -45,14 +45,16 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class, initializers = { PropertySourceRepositoryInitializer.class })
+@ContextConfiguration(
+        loader = AnnotationConfigContextLoader.class,
+        initializers = {PropertySourceRepositoryInitializer.class})
 @ActiveProfiles("test")
 public abstract class AbstractRepositoryTest {
 
     private static final String JSON_EXTENSION = "json";
     private static final ObjectMapper MAPPER = new ObjectMapper()
-        .registerModule(new JavaTimeModule())
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .registerModule(new JavaTimeModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Inject
     private TestRepositoryInitializer testRepositoryInitializer;
@@ -76,9 +78,8 @@ public abstract class AbstractRepositoryTest {
 
             final File directory = new File(testCaseResource.toURI());
 
-            final File[] files = directory.listFiles(
-                pathname -> pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
-            );
+            final File[] files = directory.listFiles(pathname -> pathname.isFile()
+                    && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString())));
 
             for (final File file : getSortedFilesList(files)) {
                 createModels(file);
@@ -106,8 +107,8 @@ public abstract class AbstractRepositoryTest {
 
     private List<File> getSortedFilesList(File[] files) {
         return Stream.of(files)
-            .sorted((o1, o2) -> o2.getName().compareTo(o1.getName()))
-            .collect(Collectors.toList());
+                .sorted((o1, o2) -> o2.getName().compareTo(o1.getName()))
+                .collect(Collectors.toList());
     }
 
     private void createModels(File file) throws Exception {
@@ -120,9 +121,8 @@ public abstract class AbstractRepositoryTest {
 
     @Configuration
     @ComponentScan(
-        value = "io.gravitee.repository",
-        includeFilters = @ComponentScan.Filter(pattern = ".*TestRepository.*", type = FilterType.REGEX),
-        useDefaultFilters = false
-    )
+            value = "io.gravitee.repository",
+            includeFilters = @ComponentScan.Filter(pattern = ".*TestRepository.*", type = FilterType.REGEX),
+            useDefaultFilters = false)
     static class ContextConfiguration {}
 }

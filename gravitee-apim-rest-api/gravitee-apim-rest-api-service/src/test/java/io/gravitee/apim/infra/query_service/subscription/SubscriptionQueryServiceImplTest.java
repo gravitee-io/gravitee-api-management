@@ -98,28 +98,28 @@ public class SubscriptionQueryServiceImplTest {
         @Test
         void should_return_subscriptions_and_adapt_them() throws TechnicalException {
             // Given
-            when(subscriptionRepository.searchUnordered(any())).thenAnswer(invocation ->
-                List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build())
-            );
+            when(subscriptionRepository.searchUnordered(any()))
+                    .thenAnswer(invocation -> List.of(aSubscription("s1")
+                            .status(Subscription.Status.ACCEPTED)
+                            .build()));
 
             // When
             var result = service.findExpiredSubscriptions();
 
             // Then
-            assertThat(result).containsExactly(
-                SubscriptionEntity.builder()
-                    .id("s1")
-                    .apiId("api-id")
-                    .planId("plan-id")
-                    .applicationId("application-id")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
-                    .type(SubscriptionEntity.Type.STANDARD)
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+            assertThat(result)
+                    .containsExactly(SubscriptionEntity.builder()
+                            .id("s1")
+                            .apiId("api-id")
+                            .planId("plan-id")
+                            .applicationId("application-id")
+                            .status(SubscriptionEntity.Status.ACCEPTED)
+                            .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                            .type(SubscriptionEntity.Type.STANDARD)
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .build());
         }
 
         @Test
@@ -144,8 +144,8 @@ public class SubscriptionQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find expired subscription");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find expired subscription");
         }
     }
 
@@ -164,17 +164,17 @@ public class SubscriptionQueryServiceImplTest {
 
             // When
             service.findExpiringSubscriptions(
-                now,
-                List.of(90, 45, 30),
-                ONE_HOUR_MS,
-                List.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED)
-            );
+                    now,
+                    List.of(90, 45, 30),
+                    ONE_HOUR_MS,
+                    List.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
 
             // Then
             var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
             verify(subscriptionRepository).searchUnordered(captor.capture());
             assertThat(captor.getValue()).satisfies(criteria -> {
-                assertThat(criteria.getStatuses()).containsExactly(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PAUSED.name());
+                assertThat(criteria.getStatuses())
+                        .containsExactly(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PAUSED.name());
                 // endingAtAfter = now + min(daysBuckets) days
                 assertThat(criteria.getEndingAtAfter()).isEqualTo(1_700_000_000_000L + 30L * ONE_DAY_MS);
                 // endingAtBefore = now + max(daysBuckets) days + windowMs
@@ -184,7 +184,8 @@ public class SubscriptionQueryServiceImplTest {
 
         @Test
         void should_return_empty_when_no_buckets_given() throws TechnicalException {
-            var result = service.findExpiringSubscriptions(Instant.now(), List.of(), ONE_HOUR_MS, List.of(SubscriptionStatus.ACCEPTED));
+            var result = service.findExpiringSubscriptions(
+                    Instant.now(), List.of(), ONE_HOUR_MS, List.of(SubscriptionStatus.ACCEPTED));
             assertThat(result).isEmpty();
             verify(subscriptionRepository, org.mockito.Mockito.never()).searchUnordered(any());
         }
@@ -205,11 +206,11 @@ public class SubscriptionQueryServiceImplTest {
             var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
             verify(subscriptionRepository).search(captor.capture());
             assertThat(captor.getValue()).satisfies(criteria -> {
-                assertThat(criteria.getStatuses()).containsExactly(
-                    Subscription.Status.ACCEPTED.name(),
-                    Subscription.Status.PENDING.name(),
-                    Subscription.Status.PAUSED.name()
-                );
+                assertThat(criteria.getStatuses())
+                        .containsExactly(
+                                Subscription.Status.ACCEPTED.name(),
+                                Subscription.Status.PENDING.name(),
+                                Subscription.Status.PAUSED.name());
                 assertThat(criteria.getEndingAtBefore()).isEqualTo(-1);
                 assertThat(criteria.getFrom()).isEqualTo(-1);
                 assertThat(criteria.getTo()).isEqualTo(-1);
@@ -228,28 +229,28 @@ public class SubscriptionQueryServiceImplTest {
         @Test
         void should_return_subscriptions_and_adapt_them() throws TechnicalException {
             // Given
-            when(subscriptionRepository.search(any())).thenAnswer(invocation ->
-                List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build())
-            );
+            when(subscriptionRepository.search(any()))
+                    .thenAnswer(invocation -> List.of(aSubscription("s1")
+                            .status(Subscription.Status.ACCEPTED)
+                            .build()));
 
             // When
             var result = service.findActiveSubscriptionsByPlan("plan-id");
 
             // Then
-            assertThat(result).containsExactly(
-                SubscriptionEntity.builder()
-                    .id("s1")
-                    .apiId("api-id")
-                    .planId("plan-id")
-                    .applicationId("application-id")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
-                    .type(SubscriptionEntity.Type.STANDARD)
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+            assertThat(result)
+                    .containsExactly(SubscriptionEntity.builder()
+                            .id("s1")
+                            .apiId("api-id")
+                            .planId("plan-id")
+                            .applicationId("application-id")
+                            .status(SubscriptionEntity.Status.ACCEPTED)
+                            .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                            .type(SubscriptionEntity.Type.STANDARD)
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .build());
         }
 
         @Test
@@ -274,8 +275,8 @@ public class SubscriptionQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find active plan's subscription");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find active plan's subscription");
         }
     }
 
@@ -288,19 +289,22 @@ public class SubscriptionQueryServiceImplTest {
             var id = "s1";
             var apiId = "api-id";
             var appId = "app-id";
-            when(subscriptionRepository.search(any())).thenAnswer(invocation ->
-                List.of(aSubscription(id).api(apiId).application(appId).build())
-            );
+            when(subscriptionRepository.search(any()))
+                    .thenAnswer(invocation -> List.of(
+                            aSubscription(id).api(apiId).application(appId).build()));
 
             // When
             var result = service.findActiveByApplicationIdAndApiId(appId, apiId);
 
             // Then
             assertThat(result)
-                .hasSize(1)
-                .element(0)
-                .extracting(SubscriptionEntity::getId, SubscriptionEntity::getApiId, SubscriptionEntity::getApplicationId)
-                .containsExactly(id, apiId, appId);
+                    .hasSize(1)
+                    .element(0)
+                    .extracting(
+                            SubscriptionEntity::getId,
+                            SubscriptionEntity::getApiId,
+                            SubscriptionEntity::getApplicationId)
+                    .containsExactly(id, apiId, appId);
         }
 
         @Test
@@ -313,8 +317,8 @@ public class SubscriptionQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find subscriptions");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find subscriptions");
         }
     }
 
@@ -324,26 +328,27 @@ public class SubscriptionQueryServiceImplTest {
         @Test
         void should_return_subscription_for_specific_plan() throws TechnicalException {
             // Given
-            when(subscriptionRepository.search(any())).thenAnswer(invocation -> List.of(aSubscription("subscription-id").build()));
+            when(subscriptionRepository.search(any()))
+                    .thenAnswer(invocation ->
+                            List.of(aSubscription("subscription-id").build()));
 
             // When
             var result = service.findActiveSubscriptionsByPlan("plan-id");
 
             // Then
-            assertThat(result).containsExactly(
-                SubscriptionEntity.builder()
-                    .id("subscription-id")
-                    .apiId("api-id")
-                    .planId("plan-id")
-                    .applicationId("application-id")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
-                    .type(SubscriptionEntity.Type.STANDARD)
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+            assertThat(result)
+                    .containsExactly(SubscriptionEntity.builder()
+                            .id("subscription-id")
+                            .apiId("api-id")
+                            .planId("plan-id")
+                            .applicationId("application-id")
+                            .status(SubscriptionEntity.Status.ACCEPTED)
+                            .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                            .type(SubscriptionEntity.Type.STANDARD)
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .build());
         }
 
         @Test
@@ -368,8 +373,8 @@ public class SubscriptionQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find plan's subscription");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find plan's subscription");
         }
     }
 
@@ -381,73 +386,67 @@ public class SubscriptionQueryServiceImplTest {
             var subscriptionId = "sub-1";
             var referenceId = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
             var repoSubscription = aSubscription(subscriptionId)
-                .referenceId(referenceId)
-                .referenceType(SubscriptionReferenceType.API_PRODUCT)
-                .build();
-            when(
-                subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
-                    subscriptionId,
-                    referenceId,
-                    io.gravitee.repository.management.model.SubscriptionReferenceType.API_PRODUCT
-                )
-            ).thenReturn(Optional.of(repoSubscription));
+                    .referenceId(referenceId)
+                    .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                    .build();
+            when(subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+                            subscriptionId,
+                            referenceId,
+                            io.gravitee.repository.management.model.SubscriptionReferenceType.API_PRODUCT))
+                    .thenReturn(Optional.of(repoSubscription));
 
             var result = service.findByIdAndReferenceIdAndReferenceType(
-                subscriptionId,
-                referenceId,
-                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
-            );
+                    subscriptionId,
+                    referenceId,
+                    io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT);
 
             assertThat(result).isPresent();
             assertThat(result.get().getId()).isEqualTo(subscriptionId);
             assertThat(result.get().getReferenceId()).isEqualTo(referenceId);
-            assertThat(result.get().getReferenceType()).isEqualTo(
-                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
-            );
+            assertThat(result.get().getReferenceType())
+                    .isEqualTo(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT);
         }
 
         @Test
         void should_return_empty_when_not_found() throws TechnicalException {
-            when(subscriptionRepository.findByIdAndReferenceIdAndReferenceType(any(), any(), any())).thenReturn(Optional.empty());
+            when(subscriptionRepository.findByIdAndReferenceIdAndReferenceType(any(), any(), any()))
+                    .thenReturn(Optional.empty());
 
             var result = service.findByIdAndReferenceIdAndReferenceType(
-                "sub-1",
-                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
-            );
+                    "sub-1",
+                    "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+                    io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT);
 
             assertThat(result).isEmpty();
         }
 
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
-            when(subscriptionRepository.findByIdAndReferenceIdAndReferenceType(any(), any(), any())).thenThrow(TechnicalException.class);
+            when(subscriptionRepository.findByIdAndReferenceIdAndReferenceType(any(), any(), any()))
+                    .thenThrow(TechnicalException.class);
 
-            var throwable = catchThrowable(() ->
-                service.findByIdAndReferenceIdAndReferenceType(
+            var throwable = catchThrowable(() -> service.findByIdAndReferenceIdAndReferenceType(
                     "sub-1",
                     "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-                    io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
-                )
-            );
+                    io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find subscription by id and reference");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find subscription by id and reference");
         }
     }
 
     private Subscription.SubscriptionBuilder aSubscription(String subscriptionId) {
         return Subscription.builder()
-            .id(subscriptionId)
-            .api("api-id")
-            .plan("plan-id")
-            .application("application-id")
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .endingAt(Date.from(Instant.parse("2021-02-02T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .consumerStatus(Subscription.ConsumerStatus.STARTED)
-            .status(Subscription.Status.ACCEPTED)
-            .type(Subscription.Type.STANDARD);
+                .id(subscriptionId)
+                .api("api-id")
+                .plan("plan-id")
+                .application("application-id")
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .endingAt(Date.from(Instant.parse("2021-02-02T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .consumerStatus(Subscription.ConsumerStatus.STARTED)
+                .status(Subscription.Status.ACCEPTED)
+                .type(Subscription.Type.STANDARD);
     }
 }

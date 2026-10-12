@@ -35,14 +35,12 @@ public class UpdatePortalPageContentConfigurationUseCase {
 
     public Output execute(Input input) {
         PortalPageContent<?> existingContent = portalPageContentQueryService
-            .findById(PortalPageContentId.of(input.portalPageContentId()))
-            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId()));
+                .findById(PortalPageContentId.of(input.portalPageContentId()))
+                .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId()));
 
-        if (
-            !existingContent.getOrganizationId().equals(input.organizationId()) ||
-            !existingContent.getEnvironmentId().equals(input.environmentId()) ||
-            !(existingContent instanceof OpenApiPageContent)
-        ) {
+        if (!existingContent.getOrganizationId().equals(input.organizationId())
+                || !existingContent.getEnvironmentId().equals(input.environmentId())
+                || !(existingContent instanceof OpenApiPageContent)) {
             throw new PageContentNotFoundException(input.portalPageContentId());
         }
 
@@ -54,7 +52,11 @@ public class UpdatePortalPageContentConfigurationUseCase {
     }
 
     @Builder
-    public record Input(String organizationId, String environmentId, String portalPageContentId, OpenApiConfiguration configuration) {}
+    public record Input(
+            String organizationId,
+            String environmentId,
+            String portalPageContentId,
+            OpenApiConfiguration configuration) {}
 
     public record Output(OpenApiPageContent portalPageContent) {}
 }

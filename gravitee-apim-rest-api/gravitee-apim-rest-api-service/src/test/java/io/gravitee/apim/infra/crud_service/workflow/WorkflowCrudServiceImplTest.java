@@ -61,19 +61,17 @@ class WorkflowCrudServiceImplTest {
             verify(workflowRepository).create(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.Workflow.builder()
-                        .id("workflow-id")
-                        .referenceType("API")
-                        .referenceId("api-id")
-                        .type("REVIEW")
-                        .state("DRAFT")
-                        .user("user-id")
-                        .comment("my-comment")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.Workflow.builder()
+                            .id("workflow-id")
+                            .referenceType("API")
+                            .referenceId("api-id")
+                            .type("REVIEW")
+                            .state("DRAFT")
+                            .user("user-id")
+                            .comment("my-comment")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .build());
         }
 
         @Test
@@ -97,21 +95,21 @@ class WorkflowCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to create the REVIEW workflow of [apiId=api-id]");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to create the REVIEW workflow of [apiId=api-id]");
         }
     }
 
     private static Workflow aWorkflow() {
         return Workflow.builder()
-            .id("workflow-id")
-            .referenceType(Workflow.ReferenceType.API)
-            .referenceId("api-id")
-            .type(Workflow.Type.REVIEW)
-            .state(Workflow.State.DRAFT)
-            .user("user-id")
-            .comment("my-comment")
-            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .build();
+                .id("workflow-id")
+                .referenceType(Workflow.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Workflow.Type.REVIEW)
+                .state(Workflow.State.DRAFT)
+                .user("user-id")
+                .comment("my-comment")
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .build();
     }
 }

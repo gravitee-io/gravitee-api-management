@@ -24,5 +24,6 @@ public interface EnvironmentAdapter {
     EnvironmentAdapter INSTANCE = Mappers.getMapper(EnvironmentAdapter.class);
 
     Environment toModel(io.gravitee.repository.management.model.Environment environment);
+
     io.gravitee.repository.management.model.Environment toRepository(Environment environment);
 }

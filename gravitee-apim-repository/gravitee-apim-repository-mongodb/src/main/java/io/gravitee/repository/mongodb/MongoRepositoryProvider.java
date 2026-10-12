@@ -35,7 +35,7 @@ public class MongoRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT };
+        return new Scope[] {Scope.MANAGEMENT, Scope.RATE_LIMIT};
     }
 
     @Override

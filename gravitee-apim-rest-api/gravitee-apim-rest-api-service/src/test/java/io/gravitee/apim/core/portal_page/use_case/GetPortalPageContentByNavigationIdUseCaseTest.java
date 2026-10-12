@@ -42,7 +42,6 @@ import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
-import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteeMarkdownContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentRenderer;
@@ -110,17 +109,15 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         apiExposedEntrypointDomainService = new ApiExposedEntrypointDomainServiceInMemory();
         openApiContentTransformer = new OpenApiContentTransformerSpy();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
-            navigationItemsQueryService,
-            new ApiPortalMembershipDomainService(
-                new MembershipQueryServiceInMemory(),
-                new SubscriptionQueryServiceInMemory(),
-                new ApiQueryServiceInMemory()
-            )
-        );
+                navigationItemsQueryService,
+                new ApiPortalMembershipDomainService(
+                        new MembershipQueryServiceInMemory(),
+                        new SubscriptionQueryServiceInMemory(),
+                        new ApiQueryServiceInMemory()));
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
-            navigationItemsQueryService,
-            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), new MembershipQueryServiceInMemory())
-        );
+                navigationItemsQueryService,
+                new ApiProductAccessibleIdsDomainService(
+                        new ApiProductQueryServiceInMemory(), new MembershipQueryServiceInMemory()));
         var enclosingApiDomainService = new PortalNavigationEnclosingApiDomainService(navigationItemsQueryService);
         when(portalNavigationTemplatingService.renderGraviteeMarkdown(any())).thenAnswer(invocation -> {
             var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
@@ -128,44 +125,32 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         });
         when(environmentTemplateModelProvider.getEnvironmentMetadata(any())).thenReturn(Map.of());
         var gmdRenderer = new GraviteeMarkdownContentRenderer(
-            enclosingApiDomainService,
-            portalNavigationTemplatingService,
-            apiTemplateModelProvider,
-            environmentTemplateModelProvider
-        );
+                enclosingApiDomainService,
+                portalNavigationTemplatingService,
+                apiTemplateModelProvider,
+                environmentTemplateModelProvider);
         useCase = new GetPortalPageContentByNavigationIdUseCase(
-            navigationItemsQueryService,
-            pageContentQueryService,
-            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
-            List.of(
-                gmdRenderer,
-                new OpenApiContentRenderer(
-                    enclosingApiDomainService,
-                    apiCrudService,
-                    apiExposedEntrypointDomainService,
-                    openApiContentTransformer
-                ),
-                new DefaultContentRenderer()
-            )
-        );
+                navigationItemsQueryService,
+                pageContentQueryService,
+                List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
+                List.of(
+                        gmdRenderer,
+                        new OpenApiContentRenderer(
+                                enclosingApiDomainService,
+                                apiCrudService,
+                                apiExposedEntrypointDomainService,
+                                openApiContentTransformer),
+                        new DefaultContentRenderer()));
 
         clearInvocations(portalNavigationTemplatingService);
         var supportContentId = PortalPageContentId.of(PortalNavigationItemFixtures.SUPPORT_CONTENT_ID);
         var page11ContentId = PortalPageContentId.of(PortalNavigationItemFixtures.PAGE11_CONTENT_ID);
 
         var supportContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-            supportContentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            "Support page content"
-        );
+                supportContentId, ORGANIZATION_ID, ENVIRONMENT_ID, "Support page content");
 
         var page11Content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-            page11ContentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            "Page 11 content"
-        );
+                page11ContentId, ORGANIZATION_ID, ENVIRONMENT_ID, "Page 11 content");
 
         pageContentQueryService.initWith(List.of(supportContent, page11Content));
         navigationItemsQueryService.initWith(PortalNavigationItemFixtures.navigationItemsForContentTest());
@@ -174,11 +159,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_return_portal_page_content_when_navigation_page_found() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                PAGE11_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole());
 
         var output = useCase.execute(input);
 
@@ -197,19 +178,14 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         var content = "asyncapi: '3.0.0'\ninfo:\n  title: Test";
         var page = PortalNavigationItemFixtures.aPage(pageId, "AsyncAPI page", null, contentId);
         page.markAsRoot();
-        var asyncApiContent = PortalPageContentFixtures.anAsyncApiPageContent(contentId, ORGANIZATION_ID, ENVIRONMENT_ID, content);
+        var asyncApiContent =
+                PortalPageContentFixtures.anAsyncApiPageContent(contentId, ORGANIZATION_ID, ENVIRONMENT_ID, content);
 
         pageContentQueryService.initWith(List.of(asyncApiContent));
         navigationItemsQueryService.initWith(List.of(page));
 
-        var output = useCase.execute(
-            new GetPortalPageContentByNavigationIdUseCase.Input(
-                pageId,
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forConsole()
-            )
-        );
+        var output = useCase.execute(new GetPortalPageContentByNavigationIdUseCase.Input(
+                pageId, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole()));
 
         assertThat(output.renderedContent()).isNotNull();
         assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.ASYNCAPI);
@@ -222,42 +198,30 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         var pageId = "00000000-0000-0000-0000-000000000096";
         var content = "openapi: 3.0.3\ninfo:\n  title: Test";
         var configuration = new SwaggerUiConfiguration(
-            true,
-            "list",
-            true,
-            12,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            "https://sandbox.example.com",
-            true,
-            false,
-            false
-        );
+                true,
+                "list",
+                true,
+                12,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                "https://sandbox.example.com",
+                true,
+                false,
+                false);
         var page = PortalNavigationItemFixtures.aPage(pageId, "OpenAPI page", null, contentId);
         page.markAsRoot();
         var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
-            contentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            content,
-            configuration
-        );
+                contentId, ORGANIZATION_ID, ENVIRONMENT_ID, content, configuration);
 
         pageContentQueryService.initWith(List.of(openApiContent));
         navigationItemsQueryService.initWith(List.of(page));
 
-        var output = useCase.execute(
-            new GetPortalPageContentByNavigationIdUseCase.Input(
-                pageId,
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forConsole()
-            )
-        );
+        var output = useCase.execute(new GetPortalPageContentByNavigationIdUseCase.Input(
+                pageId, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole()));
 
         assertThat(output.renderedContent()).isNotNull();
         assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.OPENAPI);
@@ -269,25 +233,23 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_apply_portal_navigation_templating_to_gravitee_markdown() {
         doReturn(RenderedPageContent.of("templated", PortalPageContentType.GRAVITEE_MARKDOWN))
-            .when(portalNavigationTemplatingService)
-            .renderGraviteeMarkdown(any());
+                .when(portalNavigationTemplatingService)
+                .renderGraviteeMarkdown(any());
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                PAGE11_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole());
 
         var output = useCase.execute(input);
 
         assertThat(output.renderedContent().value()).isEqualTo("templated");
-        assertThat(
-            ((GraviteeMarkdownPageContent) pageContentQueryService
-                    .findById(PortalPageContentId.of(PAGE11_CONTENT_ID))
-                    .orElseThrow()).getContent().value()
-        ).isEqualTo("Page 11 content");
-        var captor = ArgumentCaptor.forClass(PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput.class);
+        assertThat(((GraviteeMarkdownPageContent) pageContentQueryService
+                                .findById(PortalPageContentId.of(PAGE11_CONTENT_ID))
+                                .orElseThrow())
+                        .getContent()
+                        .value())
+                .isEqualTo("Page 11 content");
+        var captor =
+                ArgumentCaptor.forClass(PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput.class);
         verify(portalNavigationTemplatingService).renderGraviteeMarkdown(captor.capture());
         assertThat(captor.getValue().rawMarkdown().value()).isEqualTo("Page 11 content");
         assertThat(captor.getValue().model()).containsKey("metadata");
@@ -296,18 +258,16 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_pass_environment_metadata_when_page_has_no_api_ancestor() {
         var envMetadata = Map.of("supportEmail", "support@example.com");
-        when(environmentTemplateModelProvider.getEnvironmentMetadata(eq(ENVIRONMENT_ID))).thenReturn(envMetadata);
+        when(environmentTemplateModelProvider.getEnvironmentMetadata(eq(ENVIRONMENT_ID)))
+                .thenReturn(envMetadata);
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                PAGE11_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole());
 
         useCase.execute(input);
 
-        var captor = ArgumentCaptor.forClass(PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput.class);
+        var captor =
+                ArgumentCaptor.forClass(PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput.class);
         verify(portalNavigationTemplatingService).renderGraviteeMarkdown(captor.capture());
         assertThat(captor.getValue().model()).containsEntry("metadata", envMetadata);
     }
@@ -315,49 +275,44 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     @Test
     void should_throw_when_template_rendering_fails() {
         doThrow(new PortalPageContentTemplateException("Invalid expression or value is missing"))
-            .when(portalNavigationTemplatingService)
-            .renderGraviteeMarkdown(any());
+                .when(portalNavigationTemplatingService)
+                .renderGraviteeMarkdown(any());
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                PAGE11_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole());
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(PortalPageContentTemplateException.class);
     }
 
     @Test
     void should_pass_api_model_when_page_is_under_api_branch() {
-        var apiNav = PortalNavigationItemFixtures.anApi(PortalNavigationItemFixtures.API1_ID, "API One", null, "api-technical-id");
+        var apiNav = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemFixtures.API1_ID, "API One", null, "api-technical-id");
         apiNav.markAsRoot();
-        var folderUnderApi = PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.API1_FOLDER_ID, "Docs", apiNav.getId());
+        var folderUnderApi = PortalNavigationItemFixtures.aFolder(
+                PortalNavigationItemFixtures.API1_FOLDER_ID, "Docs", apiNav.getId());
         folderUnderApi.updateParent(apiNav);
         var contentId = PortalPageContentId.random();
         var pageId = "00000000-0000-0000-0000-000000000097";
-        var pageUnderFolder = PortalNavigationItemFixtures.aPage(pageId, "API doc page", folderUnderApi.getId(), contentId);
+        var pageUnderFolder =
+                PortalNavigationItemFixtures.aPage(pageId, "API doc page", folderUnderApi.getId(), contentId);
         pageUnderFolder.updateParent(folderUnderApi);
 
-        var md = PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, ORGANIZATION_ID, ENVIRONMENT_ID, "Hello");
+        var md = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                contentId, ORGANIZATION_ID, ENVIRONMENT_ID, "Hello");
         pageContentQueryService.initWith(List.of(md));
         navigationItemsQueryService.initWith(List.of(apiNav, folderUnderApi, pageUnderFolder));
 
         var fakeApiModel = new Object();
-        when(apiTemplateModelProvider.getApiTemplateModel(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), eq("api-technical-id"))).thenReturn(
-            fakeApiModel
-        );
+        when(apiTemplateModelProvider.getApiTemplateModel(
+                        eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), eq("api-technical-id")))
+                .thenReturn(fakeApiModel);
 
-        useCase.execute(
-            new GetPortalPageContentByNavigationIdUseCase.Input(
-                pageId,
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forConsole()
-            )
-        );
+        useCase.execute(new GetPortalPageContentByNavigationIdUseCase.Input(
+                pageId, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole()));
 
-        var captor = ArgumentCaptor.forClass(PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput.class);
+        var captor =
+                ArgumentCaptor.forClass(PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput.class);
         verify(portalNavigationTemplatingService).renderGraviteeMarkdown(captor.capture());
         assertThat(captor.getValue().model()).containsEntry("api", fakeApiModel);
     }
@@ -366,29 +321,24 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     void should_throw_when_navigation_item_not_found() {
         var unknownId = "00000000-0000-0000-0000-000000000099";
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            unknownId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                unknownId, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_navigation_item_is_not_a_page() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PortalNavigationItemFixtures.APIS_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                PortalNavigationItemFixtures.APIS_ID,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                PortalNavigationItemViewerContext.forConsole());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessageContaining("Navigation item type cannot be changed or is mismatched");
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("Navigation item type cannot be changed or is mismatched");
     }
 
     @Test
@@ -396,88 +346,63 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         pageContentQueryService.initWith(List.of());
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                PAGE11_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forConsole());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found");
+                .isInstanceOf(PageContentNotFoundException.class)
+                .hasMessage("Page content not found");
     }
 
     @Test
     void should_throw_when_navigation_item_exists_in_different_environment() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
-            ORGANIZATION_ID,
-            "different-env",
-            PortalNavigationItemViewerContext.forConsole()
-        );
+                PAGE11_ID, ORGANIZATION_ID, "different-env", PortalNavigationItemViewerContext.forConsole());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_navigation_item_not_visible_in_portal() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            UNPUBLISHED_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(true)
-        );
+                UNPUBLISHED_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal(true));
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_navigation_item_private_and_user_not_authenticated() {
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PRIVATE_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
-        );
+                PRIVATE_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal(false));
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_page_is_a_descendant_of_private_api_product_inaccessible_to_viewer() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            "00000000-0000-0000-0000-000000000091",
-            "Private product",
-            null,
-            "00000000-0000-0000-0000-000000000092"
-        );
+                "00000000-0000-0000-0000-000000000091",
+                "Private product",
+                null,
+                "00000000-0000-0000-0000-000000000092");
         apiProduct.markAsRoot();
         apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         var page = PortalNavigationItemFixtures.aPage(
-            PAGE11_ID,
-            "Product documentation",
-            apiProduct.getId(),
-            PortalPageContentId.of(PAGE11_CONTENT_ID)
-        );
+                PAGE11_ID, "Product documentation", apiProduct.getId(), PortalPageContentId.of(PAGE11_CONTENT_ID));
         page.updateParent(apiProduct);
         navigationItemsQueryService.initWith(List.of(apiProduct, page));
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
-            PAGE11_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("non-member")
-        );
+                PAGE11_ID, ORGANIZATION_ID, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal("non-member"));
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     private static class OpenApiContentTransformerSpy implements OpenApiContentTransformer {

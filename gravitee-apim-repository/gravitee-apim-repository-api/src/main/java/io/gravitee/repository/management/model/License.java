@@ -43,11 +43,9 @@ public class License {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         License license1 = (License) o;
-        return (
-            Objects.equals(referenceId, license1.referenceId) &&
-            referenceType == license1.referenceType &&
-            Objects.equals(license, license1.license)
-        );
+        return (Objects.equals(referenceId, license1.referenceId)
+                && referenceType == license1.referenceType
+                && Objects.equals(license, license1.license));
     }
 
     @Override

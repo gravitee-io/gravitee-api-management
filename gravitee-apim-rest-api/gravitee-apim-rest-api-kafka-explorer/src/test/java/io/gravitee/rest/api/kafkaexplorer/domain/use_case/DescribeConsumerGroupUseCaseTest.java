@@ -57,18 +57,25 @@ class DescribeConsumerGroupUseCaseTest {
     @Test
     void should_return_consumer_group_detail() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var expectedDetail = new ConsumerGroupDetail(
-            "my-group",
-            "STABLE",
-            new KafkaNode(0, "broker-host", 9092),
-            "range",
-            List.of(
-                new ConsumerGroupMember("member-1", "client-1", "/127.0.0.1", List.of(new MemberAssignment("my-topic", List.of(0, 1))))
-            ),
-            List.of(new ConsumerGroupOffset("my-topic", 0, 50, 100, 50), new ConsumerGroupOffset("my-topic", 1, 80, 100, 20))
-        );
+                "my-group",
+                "STABLE",
+                new KafkaNode(0, "broker-host", 9092),
+                "range",
+                List.of(new ConsumerGroupMember(
+                        "member-1",
+                        "client-1",
+                        "/127.0.0.1",
+                        List.of(new MemberAssignment("my-topic", List.of(0, 1))))),
+                List.of(
+                        new ConsumerGroupOffset("my-topic", 0, 50, 100, 50),
+                        new ConsumerGroupOffset("my-topic", 1, 80, 100, 20)));
         clusterDomainService.givenConsumerGroupDetail(expectedDetail);
 
         var result = useCase.execute(new DescribeConsumerGroupUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-group"));
@@ -79,12 +86,19 @@ class DescribeConsumerGroupUseCaseTest {
     @Test
     void should_propagate_kafka_explorer_exception() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
-        clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
+        clusterDomainService.givenException(
+                new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
-        assertThatThrownBy(() -> useCase.execute(new DescribeConsumerGroupUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-group")))
-            .isInstanceOf(KafkaExplorerException.class)
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+        assertThatThrownBy(() ->
+                        useCase.execute(new DescribeConsumerGroupUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-group")))
+                .isInstanceOf(KafkaExplorerException.class)
+                .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode())
+                        .isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 }

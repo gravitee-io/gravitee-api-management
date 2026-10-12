@@ -28,12 +28,14 @@ public class ImportApiDefinitionFromUrlUseCase {
 
     private final FetchApiDefinitionFromUrlDomainService fetchApiDefinitionFromUrlDomainService;
 
-    public ImportApiDefinitionFromUrlUseCase(FetchApiDefinitionFromUrlDomainService fetchApiDefinitionFromUrlDomainService) {
+    public ImportApiDefinitionFromUrlUseCase(
+            FetchApiDefinitionFromUrlDomainService fetchApiDefinitionFromUrlDomainService) {
         this.fetchApiDefinitionFromUrlDomainService = fetchApiDefinitionFromUrlDomainService;
     }
 
     public Output execute(Input input) {
-        String apiDefinitionContent = fetchApiDefinitionFromUrlDomainService.fetch(input.url(), input.whitelist(), input.allowPrivate());
+        String apiDefinitionContent =
+                fetchApiDefinitionFromUrlDomainService.fetch(input.url(), input.whitelist(), input.allowPrivate());
         return new Output(apiDefinitionContent);
     }
 }

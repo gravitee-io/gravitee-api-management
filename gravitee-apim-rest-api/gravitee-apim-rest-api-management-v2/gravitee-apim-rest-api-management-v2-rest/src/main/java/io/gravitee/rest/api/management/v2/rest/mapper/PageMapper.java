@@ -49,7 +49,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class})
 public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
     ObjectMapper mapper = new GraviteeMapper();
@@ -110,62 +110,41 @@ public interface PageMapper {
     PageSource mapSourceConfigurationToPageSource(SourceConfiguration sourceConfiguration);
 
     io.gravitee.apim.core.documentation.model.Page map(
-        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown createDocumentationMarkdown
-    );
-    io.gravitee.apim.core.documentation.model.Page map(
-        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder createDocumentationFolder
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown createDocumentationMarkdown);
 
     io.gravitee.apim.core.documentation.model.Page map(
-        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationSwagger createDocumentationSwagger
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder createDocumentationFolder);
+
     io.gravitee.apim.core.documentation.model.Page map(
-        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsyncApi createDocumentationAsyncApi
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationSwagger createDocumentationSwagger);
+
     io.gravitee.apim.core.documentation.model.Page map(
-        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsciiDoc createDocumentationAsciiDoc
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsyncApi createDocumentationAsyncApi);
+
+    io.gravitee.apim.core.documentation.model.Page map(
+            io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsciiDoc createDocumentationAsciiDoc);
 
     Breadcrumb map(io.gravitee.apim.core.documentation.model.Breadcrumb breadcrumb);
+
     List<Breadcrumb> map(List<io.gravitee.apim.core.documentation.model.Breadcrumb> breadcrumbList);
 
     io.gravitee.apim.core.documentation.model.Page map(PageCRD pageCRD);
 
     // UPDATE
     ApiUpdateDocumentationPageUseCase.Input map(
-        UpdateDocumentationMarkdown updateDocumentationMarkdown,
-        String apiId,
-        String pageId,
-        AuditInfo auditInfo
-    );
+            UpdateDocumentationMarkdown updateDocumentationMarkdown, String apiId, String pageId, AuditInfo auditInfo);
 
     ApiUpdateDocumentationPageUseCase.Input map(
-        UpdateDocumentationSwagger updateDocumentationSwagger,
-        String apiId,
-        String pageId,
-        AuditInfo auditInfo
-    );
+            UpdateDocumentationSwagger updateDocumentationSwagger, String apiId, String pageId, AuditInfo auditInfo);
 
     ApiUpdateDocumentationPageUseCase.Input map(
-        UpdateDocumentationAsyncApi updateDocumentationAsyncApi,
-        String apiId,
-        String pageId,
-        AuditInfo auditInfo
-    );
+            UpdateDocumentationAsyncApi updateDocumentationAsyncApi, String apiId, String pageId, AuditInfo auditInfo);
 
     ApiUpdateDocumentationPageUseCase.Input map(
-        UpdateDocumentationAsciiDoc updateDocumentationAsciiDoc,
-        String apiId,
-        String pageId,
-        AuditInfo auditInfo
-    );
+            UpdateDocumentationAsciiDoc updateDocumentationAsciiDoc, String apiId, String pageId, AuditInfo auditInfo);
 
     ApiUpdateDocumentationPageUseCase.Input map(
-        UpdateDocumentationFolder updateDocumentationFolder,
-        String apiId,
-        String pageId,
-        AuditInfo auditInfo
-    );
+            UpdateDocumentationFolder updateDocumentationFolder, String apiId, String pageId, AuditInfo auditInfo);
 
     @Named("deserializeJsonConfiguration")
     default JsonNode deserializeJsonConfiguration(Object configuration) throws JsonProcessingException {
@@ -176,7 +155,8 @@ public interface PageMapper {
             try {
                 return mapper.valueToTree(configuration);
             } catch (IllegalArgumentException e) {
-                throw new TechnicalManagementException("An error occurred while trying to parse connector configuration " + e);
+                throw new TechnicalManagementException(
+                        "An error occurred while trying to parse connector configuration " + e);
             }
         }
         return null;

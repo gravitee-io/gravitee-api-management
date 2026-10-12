@@ -28,9 +28,9 @@ public class ApplicationIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("client_certificates")
-            .name("a1")
-            .key("applicationId", ascending())
-            .build();
+                .collection("client_certificates")
+                .name("a1")
+                .key("applicationId", ascending())
+                .build();
     }
 }

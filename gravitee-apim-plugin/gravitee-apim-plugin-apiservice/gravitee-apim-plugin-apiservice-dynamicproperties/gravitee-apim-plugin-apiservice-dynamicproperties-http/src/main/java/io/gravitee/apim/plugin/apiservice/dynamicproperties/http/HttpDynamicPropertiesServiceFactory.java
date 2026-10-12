@@ -19,7 +19,6 @@ import io.gravitee.apim.plugin.apiservice.dynamicproperties.http.helper.HttpDyna
 import io.gravitee.apim.rest.api.common.apiservices.DefaultManagementDeploymentContext;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory;
 import io.gravitee.definition.model.v4.AbstractApi;
-import io.gravitee.definition.model.v4.Api;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
 

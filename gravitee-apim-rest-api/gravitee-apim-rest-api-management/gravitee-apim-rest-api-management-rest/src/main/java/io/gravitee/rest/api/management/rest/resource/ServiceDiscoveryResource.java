@@ -50,15 +50,19 @@ public class ServiceDiscoveryResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a service discovery", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "Get a service discovery",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Service discovery plugin",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlatformPluginEntity.class))
-    )
+            responseCode = "200",
+            description = "Service discovery plugin",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlatformPluginEntity.class)))
     @ApiResponse(responseCode = "404", description = "Resource not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public PlatformPluginEntity getServiceDiscovery(@PathParam("plugin") String pluginId) {
         return serviceDiscoveryService.findById(pluginId);
     }
@@ -67,17 +71,15 @@ public class ServiceDiscoveryResource {
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get a service discovery's schema",
-        description = "User must have the MANAGEMENT_API[READ] permission to use this service"
-    )
+            summary = "Get a service discovery's schema",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Service discovery plugin's schema",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Service discovery plugin's schema",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "404", description = "Service discovery not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getServiceDiscoverySchema(@PathParam("plugin") String pluginId) {
         // Check that the service discovery exists
         serviceDiscoveryService.findById(pluginId);

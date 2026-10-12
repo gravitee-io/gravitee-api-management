@@ -58,7 +58,8 @@ import org.junit.jupiter.api.Test;
  */
 class EarlyResponseUnreadBodyIntegrationTest {
 
-    // Large enough to overflow the socket and Netty buffers, so that TCP back-pressure kicks in when the body is not read.
+    // Large enough to overflow the socket and Netty buffers, so that TCP back-pressure kicks in when the body is not
+    // read.
     static final int LARGE_BODY = 400_000;
     static final int SMALL_BODY = 1_000;
     static final int BODY_OVER_DISCARD_LIMIT = 2 * 1024 * 1024;
@@ -81,23 +82,26 @@ class EarlyResponseUnreadBodyIntegrationTest {
     class NoApiMatches extends AbstractGatewayTest {
 
         @Test
-        void should_keep_connection_alive_when_404_response_leaves_large_body_unread(Vertx vertx, GatewayDynamicConfig.Config config)
-            throws Exception {
-            var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/no-api-here", LARGE_BODY));
+        void should_keep_connection_alive_when_404_response_leaves_large_body_unread(
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+            var outcome =
+                    sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/no-api-here", LARGE_BODY));
 
             assertConnectionKeptAlive(outcome, 404);
         }
 
         @Test
-        void should_keep_connection_alive_when_404_response_leaves_small_body_unread(Vertx vertx, GatewayDynamicConfig.Config config)
-            throws Exception {
-            var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/no-api-here", SMALL_BODY));
+        void should_keep_connection_alive_when_404_response_leaves_small_body_unread(
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+            var outcome =
+                    sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/no-api-here", SMALL_BODY));
 
             assertConnectionKeptAlive(outcome, 404);
         }
 
         @Test
-        void should_keep_connection_alive_when_404_get_has_no_body(Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+        void should_keep_connection_alive_when_404_get_has_no_body(Vertx vertx, GatewayDynamicConfig.Config config)
+                throws Exception {
             var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.get("/no-api-here"));
 
             assertConnectionKeptAlive(outcome, 404);
@@ -105,62 +109,56 @@ class EarlyResponseUnreadBodyIntegrationTest {
 
         @Test
         void should_close_connection_when_404_response_leaves_body_over_discard_limit_unread(
-            Vertx vertx,
-            GatewayDynamicConfig.Config config
-        ) throws Exception {
-            var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/no-api-here", BODY_OVER_DISCARD_LIMIT));
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+            var outcome = sendTwoRequestsOnSameConnection(
+                    vertx, config.httpPort(), Request.post("/no-api-here", BODY_OVER_DISCARD_LIMIT));
 
             assertConnectionAnnouncedAndClosed(outcome, 404);
         }
 
         @Test
-        void should_close_connection_when_404_response_leaves_chunked_body_unread(Vertx vertx, GatewayDynamicConfig.Config config)
-            throws Exception {
-            var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/no-api-here", LARGE_BODY).chunked());
+        void should_close_connection_when_404_response_leaves_chunked_body_unread(
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+            var outcome = sendTwoRequestsOnSameConnection(
+                    vertx,
+                    config.httpPort(),
+                    Request.post("/no-api-here", LARGE_BODY).chunked());
 
             assertConnectionAnnouncedAndClosed(outcome, 404);
         }
 
         @Test
         void should_close_connection_when_404_response_leaves_body_expecting_100_continue_unread(
-            Vertx vertx,
-            GatewayDynamicConfig.Config config
-        ) throws Exception {
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
             var outcome = sendTwoRequestsOnSameConnection(
-                vertx,
-                config.httpPort(),
-                Request.post("/no-api-here", LARGE_BODY).withHeader("Expect", "100-continue")
-            );
+                    vertx,
+                    config.httpPort(),
+                    Request.post("/no-api-here", LARGE_BODY).withHeader("Expect", "100-continue"));
 
             assertConnectionAnnouncedAndClosed(outcome, 404);
         }
 
         @Test
         void should_keep_http_1_0_connection_alive_when_404_response_leaves_large_body_unread(
-            Vertx vertx,
-            GatewayDynamicConfig.Config config
-        ) throws Exception {
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
             var outcome = sendTwoRequestsOnSameConnection(
-                vertx,
-                config.httpPort(),
-                Request.post("/no-api-here", LARGE_BODY).http10KeepAlive()
-            );
+                    vertx,
+                    config.httpPort(),
+                    Request.post("/no-api-here", LARGE_BODY).http10KeepAlive());
 
             assertConnectionKeptAlive(outcome, 404);
         }
 
         @Test
         void should_close_http_1_0_connection_when_404_response_leaves_body_over_discard_limit_unread(
-            Vertx vertx,
-            GatewayDynamicConfig.Config config
-        ) throws Exception {
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
             var outcome = sendTwoRequestsOnSameConnection(
-                vertx,
-                config.httpPort(),
-                Request.post("/no-api-here", BODY_OVER_DISCARD_LIMIT).http10KeepAlive()
-            );
+                    vertx,
+                    config.httpPort(),
+                    Request.post("/no-api-here", BODY_OVER_DISCARD_LIMIT).http10KeepAlive());
 
-            // Vert.x answers "Connection: keep-alive" to an HTTP/1.0 keep-alive request whatever the response headers say.
+            // Vert.x answers "Connection: keep-alive" to an HTTP/1.0 keep-alive request whatever the response headers
+            // say.
             assertThat(outcome.first().status()).isEqualTo(404);
             assertThat(outcome.second()).isEqualTo(SecondOutcome.CLOSED_AFTER_FIRST);
         }
@@ -194,9 +192,10 @@ class EarlyResponseUnreadBodyIntegrationTest {
         }
 
         @Test
-        void should_keep_connection_alive_when_401_response_leaves_large_body_unread(Vertx vertx, GatewayDynamicConfig.Config config)
-            throws Exception {
-            var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/v4-proxy-api", LARGE_BODY));
+        void should_keep_connection_alive_when_401_response_leaves_large_body_unread(
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+            var outcome = sendTwoRequestsOnSameConnection(
+                    vertx, config.httpPort(), Request.post("/v4-proxy-api", LARGE_BODY));
 
             assertConnectionKeptAlive(outcome, 401);
         }
@@ -208,9 +207,10 @@ class EarlyResponseUnreadBodyIntegrationTest {
     class ApiKeyPlanRejectedV4Emulation extends AbstractV2ApiKeyPlanTest {
 
         @Test
-        void should_keep_connection_alive_when_401_response_leaves_large_body_unread(Vertx vertx, GatewayDynamicConfig.Config config)
-            throws Exception {
-            var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/v2-api", LARGE_BODY));
+        void should_keep_connection_alive_when_401_response_leaves_large_body_unread(
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+            var outcome =
+                    sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/v2-api", LARGE_BODY));
 
             assertConnectionKeptAlive(outcome, 401);
         }
@@ -222,11 +222,13 @@ class EarlyResponseUnreadBodyIntegrationTest {
     class ApiKeyPlanRejectedV3 extends AbstractV2ApiKeyPlanTest {
 
         @Test
-        void should_keep_connection_alive_when_401_response_leaves_large_body_unread(Vertx vertx, GatewayDynamicConfig.Config config)
-            throws Exception {
-            var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/v2-api", LARGE_BODY));
+        void should_keep_connection_alive_when_401_response_leaves_large_body_unread(
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
+            var outcome =
+                    sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/v2-api", LARGE_BODY));
 
-            // The V3 engine always sets "Connection: close" on errors, which Vert.x never applies: only reuse is checked.
+            // The V3 engine always sets "Connection: close" on errors, which Vert.x never applies: only reuse is
+            // checked.
             assertThat(outcome.first().status()).isEqualTo(401);
             assertThat(outcome.second()).isEqualTo(SecondOutcome.RESPONDED);
             assertThat(outcome.secondResponse().status()).isEqualTo(401);
@@ -249,8 +251,8 @@ class EarlyResponseUnreadBodyIntegrationTest {
         }
 
         @Test
-        void should_keep_connection_alive_when_large_body_is_forwarded_to_backend(Vertx vertx, GatewayDynamicConfig.Config config)
-            throws Exception {
+        void should_keep_connection_alive_when_large_body_is_forwarded_to_backend(
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
             wiremock.stubFor(post("/endpoint").willReturn(ok("backend response")));
 
             var outcome = sendTwoRequestsOnSameConnection(vertx, config.httpPort(), Request.post("/test", LARGE_BODY));
@@ -266,7 +268,9 @@ class EarlyResponseUnreadBodyIntegrationTest {
 
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
-            policies.put("read-body-then-interrupt", PolicyBuilder.build("read-body-then-interrupt", ReadBodyThenInterruptPolicy.class));
+            policies.put(
+                    "read-body-then-interrupt",
+                    PolicyBuilder.build("read-body-then-interrupt", ReadBodyThenInterruptPolicy.class));
         }
 
         @Override
@@ -281,14 +285,9 @@ class EarlyResponseUnreadBodyIntegrationTest {
 
         @Test
         void should_keep_connection_alive_when_body_over_discard_limit_was_read_before_rejection(
-            Vertx vertx,
-            GatewayDynamicConfig.Config config
-        ) throws Exception {
+                Vertx vertx, GatewayDynamicConfig.Config config) throws Exception {
             var outcome = sendTwoRequestsOnSameConnection(
-                vertx,
-                config.httpPort(),
-                Request.post("/read-body-then-interrupt", BODY_OVER_DISCARD_LIMIT)
-            );
+                    vertx, config.httpPort(), Request.post("/read-body-then-interrupt", BODY_OVER_DISCARD_LIMIT));
 
             assertConnectionKeptAlive(outcome, 400);
         }
@@ -309,16 +308,18 @@ class EarlyResponseUnreadBodyIntegrationTest {
 
     static void registerApiKeyPolicy(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
+                "api-key",
+                PolicyBuilder.build(
+                        "api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class));
     }
 
     static void registerHttpProxyEntrypoint(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     static void registerHttpProxyEndpoint(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 }

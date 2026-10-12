@@ -20,24 +20,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.util.DataEncryptor;
-import io.gravitee.definition.model.v4.nativeapi.NativePlan;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
-import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import lombok.SneakyThrows;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -66,7 +58,8 @@ class NativeApiDeployerTest {
 
     @Test
     void should_set_empty_list_of_plans_on_initialize() {
-        final NativeApi nativeApi = new NativeApi(io.gravitee.definition.model.v4.nativeapi.NativeApi.builder().build());
+        final NativeApi nativeApi = new NativeApi(
+                io.gravitee.definition.model.v4.nativeapi.NativeApi.builder().build());
         assertThat(nativeApi.getDefinition().getPlans()).isNull();
         cut.initialize(nativeApi);
         assertThat(nativeApi.getDefinition().getPlans()).isEmpty();
@@ -75,39 +68,60 @@ class NativeApiDeployerTest {
     @SneakyThrows
     @Test
     void should_decrypt_properties_on_initialize() {
-        final NativeApi nativeApi = new NativeApi(
-            io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
-                .properties(
-                    List.of(
-                        Property.builder().key("key1").value("value1").encrypted(true).build(),
-                        Property.builder().key("key2").value("value2").encrypted(true).build(),
-                        Property.builder().key("key3").value("value3").encrypted(false).build()
-                    )
-                )
-                .build()
-        );
-        when(dataEncryptor.decrypt(any())).thenAnswer(invocation -> invocation.getArguments()[0].toString().toUpperCase());
+        final NativeApi nativeApi = new NativeApi(io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
+                .properties(List.of(
+                        Property.builder()
+                                .key("key1")
+                                .value("value1")
+                                .encrypted(true)
+                                .build(),
+                        Property.builder()
+                                .key("key2")
+                                .value("value2")
+                                .encrypted(true)
+                                .build(),
+                        Property.builder()
+                                .key("key3")
+                                .value("value3")
+                                .encrypted(false)
+                                .build()))
+                .build());
+        when(dataEncryptor.decrypt(any()))
+                .thenAnswer(
+                        invocation -> invocation.getArguments()[0].toString().toUpperCase());
         cut.initialize(nativeApi);
-        assertThat(nativeApi.getDefinition().getProperties()).contains(
-            Property.builder().key("key1").value("VALUE1").encrypted(false).build(),
-            Property.builder().key("key2").value("VALUE2").encrypted(false).build(),
-            Property.builder().key("key3").value("value3").encrypted(false).build()
-        );
+        assertThat(nativeApi.getDefinition().getProperties())
+                .contains(
+                        Property.builder()
+                                .key("key1")
+                                .value("VALUE1")
+                                .encrypted(false)
+                                .build(),
+                        Property.builder()
+                                .key("key2")
+                                .value("VALUE2")
+                                .encrypted(false)
+                                .build(),
+                        Property.builder()
+                                .key("key3")
+                                .value("value3")
+                                .encrypted(false)
+                                .build());
     }
 
     @SneakyThrows
     @Test
     void should_expose_the_decrypted_value_to_the_expression_language() {
-        final NativeApi nativeApi = new NativeApi(
-            io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
-                .properties(
-                    List.of(
-                        Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build(),
-                        Property.builder().key("plain").value("value").build()
-                    )
-                )
-                .build()
-        );
+        final NativeApi nativeApi = new NativeApi(io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
+                .properties(List.of(
+                        Property.builder()
+                                .key("secret")
+                                .value("ciphertext")
+                                .encrypted(true)
+                                .dynamic(true)
+                                .build(),
+                        Property.builder().key("plain").value("value").build()))
+                .build());
         when(dataEncryptor.decrypt("ciphertext")).thenReturn("s3cr3t");
 
         cut.initialize(nativeApi);
@@ -127,27 +141,38 @@ class NativeApiDeployerTest {
         // so it throws an unchecked IllegalArgumentException rather than a GeneralSecurityException. This must not
         // escape decryptProperties: otherwise the whole API deployment fails and, on the initial sync, the node
         // stays not-ready forever (see fix #18650).
-        final NativeApi nativeApi = new NativeApi(
-            io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
-                .properties(
-                    List.of(
-                        Property.builder().key("bad").value("***").encrypted(true).build(),
-                        Property.builder().key("good").value("value2").encrypted(true).build()
-                    )
-                )
-                .build()
-        );
+        final NativeApi nativeApi = new NativeApi(io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
+                .properties(List.of(
+                        Property.builder()
+                                .key("bad")
+                                .value("***")
+                                .encrypted(true)
+                                .build(),
+                        Property.builder()
+                                .key("good")
+                                .value("value2")
+                                .encrypted(true)
+                                .build()))
+                .build());
         when(dataEncryptor.decrypt("***")).thenThrow(new IllegalArgumentException("Illegal base64 character 2a"));
         when(dataEncryptor.decrypt("value2")).thenReturn("VALUE2");
 
         // Must not throw.
         cut.initialize(nativeApi);
 
-        assertThat(nativeApi.getDefinition().getProperties()).containsExactly(
-            // Malformed property is left untouched (still encrypted) instead of breaking the deployment.
-            Property.builder().key("bad").value("***").encrypted(true).build(),
-            // Other properties are still decrypted normally.
-            Property.builder().key("good").value("VALUE2").encrypted(false).build()
-        );
+        assertThat(nativeApi.getDefinition().getProperties())
+                .containsExactly(
+                        // Malformed property is left untouched (still encrypted) instead of breaking the deployment.
+                        Property.builder()
+                                .key("bad")
+                                .value("***")
+                                .encrypted(true)
+                                .build(),
+                        // Other properties are still decrypted normally.
+                        Property.builder()
+                                .key("good")
+                                .value("VALUE2")
+                                .encrypted(false)
+                                .build());
     }
 }

@@ -29,9 +29,10 @@ class AiWorkspaceEndpointReaderTest {
     @Test
     void returns_the_llm_proxy_listener_path() {
         var path = AiWorkspaceEndpointReader.read(
-            "DEFAULT",
-            List.of(proxy("api-1", "DEFAULT", ApiType.LLM_PROXY, "/test-local-spf/"), proxy("other", "DEFAULT", ApiType.PROXY, "/ignored/"))
-        );
+                "DEFAULT",
+                List.of(
+                        proxy("api-1", "DEFAULT", ApiType.LLM_PROXY, "/test-local-spf/"),
+                        proxy("other", "DEFAULT", ApiType.PROXY, "/ignored/")));
 
         assertThat(path).isEqualTo("/test-local-spf/");
     }
@@ -39,48 +40,41 @@ class AiWorkspaceEndpointReaderTest {
     @Test
     void skips_a_blank_path_and_returns_the_next_one() {
         Api api = Api.builder()
-            .id("api-1")
-            .environmentId("DEFAULT")
-            .type(ApiType.LLM_PROXY)
-            .apiDefinitionHttpV4(
-                io.gravitee.definition.model.v4.Api.builder()
-                    .listeners(
-                        List.of(
-                            HttpListener.builder()
-                                .paths(
-                                    List.of(
+                .id("api-1")
+                .environmentId("DEFAULT")
+                .type(ApiType.LLM_PROXY)
+                .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder()
+                        .listeners(List.of(HttpListener.builder()
+                                .paths(List.of(
                                         Path.builder().path(" ").build(),
                                         Path.builder().path(null).build(),
-                                        Path.builder().path("/alpha/").build()
-                                    )
-                                )
-                                .build()
-                        )
-                    )
-                    .build()
-            )
-            .build();
+                                        Path.builder().path("/alpha/").build()))
+                                .build()))
+                        .build())
+                .build();
 
         assertThat(AiWorkspaceEndpointReader.read("DEFAULT", List.of(api))).isEqualTo("/alpha/");
     }
 
     @Test
     void ignores_a_proxy_from_another_environment_and_a_missing_path() {
-        assertThat(AiWorkspaceEndpointReader.read("DEFAULT", List.of(proxy("api-1", "OTHER", ApiType.LLM_PROXY, "/elsewhere/")))).isNull();
+        assertThat(AiWorkspaceEndpointReader.read(
+                        "DEFAULT", List.of(proxy("api-1", "OTHER", ApiType.LLM_PROXY, "/elsewhere/"))))
+                .isNull();
         assertThat(AiWorkspaceEndpointReader.read("DEFAULT", List.of())).isNull();
         assertThat(AiWorkspaceEndpointReader.read("DEFAULT", null)).isNull();
     }
 
     private static Api proxy(String id, String environmentId, ApiType type, String path) {
         return Api.builder()
-            .id(id)
-            .environmentId(environmentId)
-            .type(type)
-            .apiDefinitionHttpV4(
-                io.gravitee.definition.model.v4.Api.builder()
-                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build()))
-                    .build()
-            )
-            .build();
+                .id(id)
+                .environmentId(environmentId)
+                .type(type)
+                .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder()
+                        .listeners(List.of(HttpListener.builder()
+                                .paths(List.of(Path.builder().path(path).build()))
+                                .build()))
+                        .build())
+                .build();
     }
 }

@@ -36,10 +36,9 @@ public class WorkflowCrudServiceInMemory implements WorkflowCrudService, InMemor
 
     @Override
     public Collection<Workflow> findByApiId(String apiId) {
-        return storage
-            .stream()
-            .filter(w -> w.getReferenceType() == Workflow.ReferenceType.API && apiId.equals(w.getReferenceId()))
-            .toList();
+        return storage.stream()
+                .filter(w -> w.getReferenceType() == Workflow.ReferenceType.API && apiId.equals(w.getReferenceId()))
+                .toList();
     }
 
     @Override

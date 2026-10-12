@@ -63,7 +63,8 @@ public class TagsValidationServiceImplTest {
     public void shouldReturnValidatedTagsWithSameTags() {
         Set<String> oldTags = Set.of("public");
         Set<String> newTags = Set.of("public");
-        Set<String> tags = tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags);
+        Set<String> tags =
+                tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags);
 
         assertEquals(newTags, tags);
     }
@@ -74,7 +75,8 @@ public class TagsValidationServiceImplTest {
         Set<String> newTags = Set.of("private");
         when(tagService.findByUser(any(), any(), any())).thenReturn(Set.of("public", "private"));
 
-        Set<String> tags = tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags);
+        Set<String> tags =
+                tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags);
 
         assertEquals(newTags, tags);
     }
@@ -85,7 +87,8 @@ public class TagsValidationServiceImplTest {
         Set<String> newTags = Set.of("public", "private");
         when(tagService.findByUser(any(), any(), any())).thenReturn(Set.of("public", "private"));
 
-        Set<String> tags = tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags);
+        Set<String> tags =
+                tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags);
 
         assertEquals(newTags, tags);
     }
@@ -95,9 +98,9 @@ public class TagsValidationServiceImplTest {
         Set<String> oldTags = Set.of("public");
         Set<String> newTags = Set.of("private");
         when(tagService.findByUser(any(), any(), any())).thenReturn(Set.of());
-        assertThatExceptionOfType(TagNotAllowedException.class).isThrownBy(() ->
-            tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags)
-        );
+        assertThatExceptionOfType(TagNotAllowedException.class)
+                .isThrownBy(() -> tagsValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(), oldTags, newTags));
     }
 
     @Test
@@ -105,9 +108,9 @@ public class TagsValidationServiceImplTest {
         Set<String> oldTags = Set.of("public");
         Set<String> newTags = Set.of("private");
         when(tagService.findByUser(any(), any(), any())).thenReturn(Set.of("public"));
-        assertThatExceptionOfType(TagNotAllowedException.class).isThrownBy(() ->
-            tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags)
-        );
+        assertThatExceptionOfType(TagNotAllowedException.class)
+                .isThrownBy(() -> tagsValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(), oldTags, newTags));
     }
 
     @Test
@@ -115,9 +118,9 @@ public class TagsValidationServiceImplTest {
         Set<String> oldTags = Set.of("public", "private");
         Set<String> newTags = Set.of("private");
         when(tagService.findByUser(any(), any(), any())).thenReturn(Set.of("private"));
-        assertThatExceptionOfType(TagNotAllowedException.class).isThrownBy(() ->
-            tagsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), oldTags, newTags)
-        );
+        assertThatExceptionOfType(TagNotAllowedException.class)
+                .isThrownBy(() -> tagsValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(), oldTags, newTags));
     }
 
     @Test
@@ -129,33 +132,29 @@ public class TagsValidationServiceImplTest {
     @Test
     public void shouldAcceptPlanTagsWithAtLeastOneApiTag() throws Exception {
         tagsValidationService.validatePlanTagsAgainstApiTags(
-            Set.of("planTag1", "apiTag1"),
-            mockApi(DefinitionVersion.V4, Set.of("apiTag1", "apiTag2"))
-        );
+                Set.of("planTag1", "apiTag1"), mockApi(DefinitionVersion.V4, Set.of("apiTag1", "apiTag2")));
         tagsValidationService.validatePlanTagsAgainstApiTags(
-            Set.of("planTag1", "apiTag1"),
-            mockApi(DefinitionVersion.V2, Set.of("apiTag1", "apiTag2"))
-        );
+                Set.of("planTag1", "apiTag1"), mockApi(DefinitionVersion.V2, Set.of("apiTag1", "apiTag2")));
     }
 
     @Test
     public void shouldRejectPlanTagsIfApiNoTags() throws Exception {
-        assertThatExceptionOfType(TagNotAllowedException.class).isThrownBy(() ->
-            tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V4, emptySet()))
-        );
-        assertThatExceptionOfType(TagNotAllowedException.class).isThrownBy(() ->
-            tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("tag1"), mockApi(DefinitionVersion.V2, emptySet()))
-        );
+        assertThatExceptionOfType(TagNotAllowedException.class)
+                .isThrownBy(() -> tagsValidationService.validatePlanTagsAgainstApiTags(
+                        Set.of("tag1"), mockApi(DefinitionVersion.V4, emptySet())));
+        assertThatExceptionOfType(TagNotAllowedException.class)
+                .isThrownBy(() -> tagsValidationService.validatePlanTagsAgainstApiTags(
+                        Set.of("tag1"), mockApi(DefinitionVersion.V2, emptySet())));
     }
 
     @Test
     public void shouldRejectPlanTagsIfNoCommonApiTags() throws Exception {
-        assertThatExceptionOfType(TagNotAllowedException.class).isThrownBy(() ->
-            tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("planTag1"), mockApi(DefinitionVersion.V4, Set.of("apiTag1")))
-        );
-        assertThatExceptionOfType(TagNotAllowedException.class).isThrownBy(() ->
-            tagsValidationService.validatePlanTagsAgainstApiTags(Set.of("planTag1"), mockApi(DefinitionVersion.V2, Set.of("apiTag1")))
-        );
+        assertThatExceptionOfType(TagNotAllowedException.class)
+                .isThrownBy(() -> tagsValidationService.validatePlanTagsAgainstApiTags(
+                        Set.of("planTag1"), mockApi(DefinitionVersion.V4, Set.of("apiTag1"))));
+        assertThatExceptionOfType(TagNotAllowedException.class)
+                .isThrownBy(() -> tagsValidationService.validatePlanTagsAgainstApiTags(
+                        Set.of("planTag1"), mockApi(DefinitionVersion.V2, Set.of("apiTag1"))));
     }
 
     private Api mockApi(DefinitionVersion version, Set<String> tags) throws Exception {
@@ -166,14 +165,18 @@ public class TagsValidationServiceImplTest {
             apiDefinition.setTags(tags);
             api.setDefinitionVersion(version);
             api.setDefinition(version.name());
-            doReturn(apiDefinition).when(objectMapper).readValue(version.name(), io.gravitee.definition.model.v4.Api.class);
+            doReturn(apiDefinition)
+                    .when(objectMapper)
+                    .readValue(version.name(), io.gravitee.definition.model.v4.Api.class);
         } else {
             var apiDefinition = new io.gravitee.definition.model.Api();
             apiDefinition.setDefinitionVersion(version);
             apiDefinition.setTags(tags);
             api.setDefinitionVersion(version);
             api.setDefinition(version.name());
-            doReturn(apiDefinition).when(objectMapper).readValue(version.name(), io.gravitee.definition.model.Api.class);
+            doReturn(apiDefinition)
+                    .when(objectMapper)
+                    .readValue(version.name(), io.gravitee.definition.model.Api.class);
         }
         return api;
     }

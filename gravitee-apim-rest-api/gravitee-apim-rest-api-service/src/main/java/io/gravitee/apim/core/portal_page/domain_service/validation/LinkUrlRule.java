@@ -46,7 +46,8 @@ public class LinkUrlRule implements CreatePortalNavigationItemValidationRule, Up
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         validateUrl(toUpdate.getUrl());
     }
 

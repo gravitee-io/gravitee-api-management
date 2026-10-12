@@ -111,32 +111,31 @@ public class ImportApiCRDUseCase {
     private final PropertyDomainService propertyDomainService;
 
     public ImportApiCRDUseCase(
-        ApiCrudService apiCrudService,
-        ApiQueryService apiQueryService,
-        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
-        ValidateApiDomainService validateApiDomainService,
-        CreateApiDomainService createApiDomainService,
-        CreatePlanDomainService createPlanDomainService,
-        ApiStateDomainService apiStateDomainService,
-        UpdateApiDomainService updateApiDomainService,
-        UpdateNativeApiUseCase updateNativeApiUseCase,
-        PlanQueryService planQueryService,
-        UpdatePlanDomainService updatePlanDomainService,
-        DeletePlanDomainService deletePlanDomainService,
-        SubscriptionQueryService subscriptionQueryService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService,
-        ReorderPlanDomainService reorderPlanDomainService,
-        CRDMembersDomainService membersDomainService,
-        ApiMetadataDomainService apiMetadataDomainService,
-        PageQueryService pageQueryService,
-        PageCrudService pageCrudService,
-        CreateApiDocumentationDomainService createApiDocumentationDomainService,
-        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        ValidateApiCRDDomainService validateCRDDomainService,
-        NotificationCRDDomainService notificationCRDService,
-        PortalListingSyncDomainService portalListingSyncDomainService,
-        PropertyDomainService propertyDomainService
-    ) {
+            ApiCrudService apiCrudService,
+            ApiQueryService apiQueryService,
+            ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+            ValidateApiDomainService validateApiDomainService,
+            CreateApiDomainService createApiDomainService,
+            CreatePlanDomainService createPlanDomainService,
+            ApiStateDomainService apiStateDomainService,
+            UpdateApiDomainService updateApiDomainService,
+            UpdateNativeApiUseCase updateNativeApiUseCase,
+            PlanQueryService planQueryService,
+            UpdatePlanDomainService updatePlanDomainService,
+            DeletePlanDomainService deletePlanDomainService,
+            SubscriptionQueryService subscriptionQueryService,
+            CloseSubscriptionDomainService closeSubscriptionDomainService,
+            ReorderPlanDomainService reorderPlanDomainService,
+            CRDMembersDomainService membersDomainService,
+            ApiMetadataDomainService apiMetadataDomainService,
+            PageQueryService pageQueryService,
+            PageCrudService pageCrudService,
+            CreateApiDocumentationDomainService createApiDocumentationDomainService,
+            UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
+            ValidateApiCRDDomainService validateCRDDomainService,
+            NotificationCRDDomainService notificationCRDService,
+            PortalListingSyncDomainService portalListingSyncDomainService,
+            PropertyDomainService propertyDomainService) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
@@ -170,26 +169,27 @@ public class ImportApiCRDUseCase {
 
     public Output execute(Input input) {
         var validationResult = validateCRDDomainService
-            .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
-            .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
+                .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
+                .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(
+                            ",",
+                            errors.stream().map(Validator.Error::getMessage).toList())));
+        });
 
         var warnings = validationResult.warning().orElseGet(List::of);
-        var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+        var sanitizedInput = validationResult
+                .value()
+                .orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
-        var api = apiQueryService.findByEnvironmentIdAndCrossId(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getCrossId());
+        var api = apiQueryService.findByEnvironmentIdAndCrossId(
+                sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getCrossId());
 
-        var status = api.map(exiting -> this.update(sanitizedInput, exiting)).orElseGet(() -> this.create(sanitizedInput));
+        var status =
+                api.map(exiting -> this.update(sanitizedInput, exiting)).orElseGet(() -> this.create(sanitizedInput));
         status.setErrors(ApiCRDStatus.Errors.fromErrorList(warnings));
 
         return new Output(status);
@@ -202,55 +202,46 @@ public class ImportApiCRDUseCase {
 
             // Reject when navigation paths would collide with manually-managed content, before any API persistence.
             portalListingSyncDomainService.validateApiFolderConflictsForApi(
-                input.auditInfo,
-                input.spec().getId(),
-                input.spec().getPortalNavigation()
-            );
+                    input.auditInfo, input.spec().getId(), input.spec().getPortalNavigation());
 
-            var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
+            var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
+                    organizationId, environmentId, input.auditInfo.actor().userId());
 
             var apiToCreate = ApiModelFactory.fromCrd(input.spec, environmentId);
             encryptProperties(apiToCreate, input.spec.getProperties());
             var createdApi = createApiDomainService.create(
-                apiToCreate,
-                primaryOwner,
-                input.auditInfo,
-                api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId),
-                oneShotIndexation(input.auditInfo)
-            );
+                    apiToCreate,
+                    primaryOwner,
+                    input.auditInfo,
+                    api -> validateApiDomainService.validateAndSanitizeForCreation(
+                            api, primaryOwner, environmentId, organizationId),
+                    oneShotIndexation(input.auditInfo));
 
             createOrUpdatePages(input.spec.getPages(), createdApi.getId(), input.auditInfo);
 
-            var planNameIdMapping = input.spec
-                .getPlans()
-                .entrySet()
-                .stream()
-                .map(entry ->
-                    Map.entry(
-                        entry.getKey(),
-                        createPlanDomainService
-                            .create(
-                                initPlanFromCRD(entry.getKey(), entry.getValue(), createdApi),
-                                entry.getValue().getFlows(),
-                                createdApi,
-                                input.auditInfo
-                            )
-                            .getId()
-                    )
-                )
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var planNameIdMapping = input.spec.getPlans().entrySet().stream()
+                    .map(entry -> Map.entry(
+                            entry.getKey(),
+                            createPlanDomainService
+                                    .create(
+                                            initPlanFromCRD(entry.getKey(), entry.getValue(), createdApi),
+                                            entry.getValue().getFlows(),
+                                            createdApi,
+                                            input.auditInfo)
+                                    .getId()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             portalListingSyncDomainService.syncApiFolders(input.auditInfo, createdApi.getId(), List.of());
 
-            membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), input.spec().getMembers());
+            membersDomainService.updateApiMembers(
+                    input.auditInfo, createdApi.getId(), input.spec().getMembers());
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), input.spec.getMetadata(), input.auditInfo);
 
             notificationCRDService.syncApiPortalNotifications(
-                createdApi.getId(),
-                input.auditInfo.actor().userId(),
-                input.spec.getConsoleNotificationConfiguration()
-            );
+                    createdApi.getId(),
+                    input.auditInfo.actor().userId(),
+                    input.spec.getConsoleNotificationConfiguration());
 
             if (shouldDeploy(input.spec())) {
                 // This will also DEPLOYS the API because it is the first time it has been started
@@ -258,13 +249,13 @@ public class ImportApiCRDUseCase {
             }
 
             return ApiCRDStatus.builder()
-                .id(createdApi.getId())
-                .crossId(createdApi.getCrossId())
-                .environmentId(environmentId)
-                .organizationId(organizationId)
-                .state(createdApi.getLifecycleState().name())
-                .plans(planNameIdMapping)
-                .build();
+                    .id(createdApi.getId())
+                    .crossId(createdApi.getCrossId())
+                    .environmentId(environmentId)
+                    .organizationId(organizationId)
+                    .state(createdApi.getLifecycleState().name())
+                    .plans(planNameIdMapping)
+                    .build();
         } catch (AbstractDomainException e) {
             throw e;
         } catch (Exception e) {
@@ -278,42 +269,36 @@ public class ImportApiCRDUseCase {
                 // The platform owns the API's groups: keep them whatever the spec says
                 input.spec().setGroups(existingApi.getGroups());
             }
-            List<NavigationPath> previousNavigation = existingApi.getPortalNavigation() != null
-                ? existingApi.getPortalNavigation()
-                : List.of();
+            List<NavigationPath> previousNavigation =
+                    existingApi.getPortalNavigation() != null ? existingApi.getPortalNavigation() : List.of();
             // Reject when navigation paths would collide with manually-managed content, before any API persistence.
             portalListingSyncDomainService.validateApiFolderConflictsForApi(
-                input.auditInfo,
-                existingApi.getId(),
-                input.spec().getPortalNavigation()
-            );
+                    input.auditInfo, existingApi.getId(), input.spec().getPortalNavigation());
             // Persist pages first so plan general-condition references are resolvable during API update.
             createOrUpdatePages(input.spec.getPages(), existingApi.getId(), input.auditInfo);
 
             Api updatedApi;
             if (existingApi.isNative()) {
                 updatedApi = updateNativeApiUseCase
-                    .execute(new UpdateNativeApiUseCase.Input(ApiModelFactory.toUpdateNativeApi(input.spec), input.auditInfo))
-                    .updatedApi();
+                        .execute(new UpdateNativeApiUseCase.Input(
+                                ApiModelFactory.toUpdateNativeApi(input.spec), input.auditInfo))
+                        .updatedApi();
             } else {
                 updatedApi = updateApiDomainService.update(existingApi.getId(), input.spec, input.auditInfo);
             }
             // update state and definition context because legacy service does not update it
             // portalNavigation is restored from the spec because the legacy update path does not carry it
             // Why are we getting MANAGEMENT as an origin here ? the API has been saved as kubernetes before
-            var api = apiCrudService.update(
-                updatedApi
-                    .toBuilder()
-                    .originContext(
-                        new OriginContext.Kubernetes(
-                            OriginContext.Kubernetes.Mode.valueOf(input.spec().getDefinitionContext().getMode().toUpperCase()),
-                            input.spec().getDefinitionContext().getSyncFrom().toUpperCase()
-                        )
-                    )
+            var api = apiCrudService.update(updatedApi.toBuilder()
+                    .originContext(new OriginContext.Kubernetes(
+                            OriginContext.Kubernetes.Mode.valueOf(input.spec()
+                                    .getDefinitionContext()
+                                    .getMode()
+                                    .toUpperCase()),
+                            input.spec().getDefinitionContext().getSyncFrom().toUpperCase()))
                     .lifecycleState(Api.LifecycleState.valueOf(input.spec().getState()))
                     .portalNavigation(input.spec().getPortalNavigation())
-                    .build()
-            );
+                    .build());
 
             portalListingSyncDomainService.syncApiFolders(input.auditInfo, api.getId(), previousNavigation);
 
@@ -328,26 +313,24 @@ public class ImportApiCRDUseCase {
             handleLifeCycle(input, existingApi, api);
 
             // Members
-            membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), input.spec().getMembers());
+            membersDomainService.updateApiMembers(
+                    input.auditInfo, updatedApi.getId(), input.spec().getMembers());
 
             // Metadata
             apiMetadataDomainService.importApiMetadata(api.getId(), input.spec.getMetadata(), input.auditInfo);
 
             // Notifications
             notificationCRDService.syncApiPortalNotifications(
-                api.getId(),
-                input.auditInfo.actor().userId(),
-                input.spec.getConsoleNotificationConfiguration()
-            );
+                    api.getId(), input.auditInfo.actor().userId(), input.spec.getConsoleNotificationConfiguration());
 
             return ApiCRDStatus.builder()
-                .id(api.getId())
-                .crossId(api.getCrossId())
-                .environmentId(api.getEnvironmentId())
-                .organizationId(input.auditInfo.organizationId())
-                .state(api.getLifecycleState().name())
-                .plans(planKeyIdMapping)
-                .build();
+                    .id(api.getId())
+                    .crossId(api.getCrossId())
+                    .environmentId(api.getEnvironmentId())
+                    .organizationId(input.auditInfo.organizationId())
+                    .state(api.getLifecycleState().name())
+                    .plans(planKeyIdMapping)
+                    .build();
         } catch (AbstractDomainException e) {
             throw e;
         } catch (Exception e) {
@@ -371,47 +354,35 @@ public class ImportApiCRDUseCase {
 
     private Map<String, String> handlePlanUpdate(Input input, Api api) {
         List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
-        Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+        Map<String, PlanStatus> existingPlanStatuses =
+                existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
         Map<String, String> keyToIdMapping = new HashMap<>();
 
         Map<String, List<? extends AbstractFlow>> updateFlows = new HashMap<>();
-        var plansToUpdate = input
-            .spec()
-            .getPlans()
-            .entrySet()
-            .stream()
-            .filter(e -> existingPlanStatuses.containsKey(e.getValue().getId()))
-            .map(e -> {
-                updateFlows.put(e.getValue().getId(), e.getValue().getFlows());
-                keyToIdMapping.put(e.getKey(), e.getValue().getId());
-                return initPlanFromCRD(e.getKey(), e.getValue(), api);
-            })
-            .toList();
+        var plansToUpdate = input.spec().getPlans().entrySet().stream()
+                .filter(e -> existingPlanStatuses.containsKey(e.getValue().getId()))
+                .map(e -> {
+                    updateFlows.put(e.getValue().getId(), e.getValue().getFlows());
+                    keyToIdMapping.put(e.getKey(), e.getValue().getId());
+                    return initPlanFromCRD(e.getKey(), e.getValue(), api);
+                })
+                .toList();
         updatePlanDomainService.bulkUpdate(plansToUpdate, existingPlanStatuses, updateFlows, api, input.auditInfo);
 
-        input
-            .spec()
-            .getPlans()
-            .entrySet()
-            .stream()
-            .filter(e -> !existingPlanStatuses.containsKey(e.getValue().getId()))
-            .forEach(e -> {
-                var plan = initPlanFromCRD(e.getKey(), e.getValue(), api);
-                var created = createPlanDomainService.create(plan, e.getValue().getFlows(), api, input.auditInfo);
-                keyToIdMapping.put(e.getKey(), created.getId());
-            });
+        input.spec().getPlans().entrySet().stream()
+                .filter(e -> !existingPlanStatuses.containsKey(e.getValue().getId()))
+                .forEach(e -> {
+                    var plan = initPlanFromCRD(e.getKey(), e.getValue(), api);
+                    var created =
+                            createPlanDomainService.create(plan, e.getValue().getFlows(), api, input.auditInfo);
+                    keyToIdMapping.put(e.getKey(), created.getId());
+                });
 
-        var plansToDelete = existingPlans
-            .stream()
-            // retain plans that cannot be found in the CRD spec
-            .filter(plan ->
-                input.spec
-                    .getPlans()
-                    .values()
-                    .stream()
-                    .noneMatch(p -> p.getId().equals(plan.getId()))
-            )
-            .toList();
+        var plansToDelete = existingPlans.stream()
+                // retain plans that cannot be found in the CRD spec
+                .filter(plan -> input.spec.getPlans().values().stream()
+                        .noneMatch(p -> p.getId().equals(plan.getId())))
+                .toList();
         deletePlans(plansToDelete, api, input.auditInfo);
 
         return keyToIdMapping;
@@ -420,8 +391,9 @@ public class ImportApiCRDUseCase {
     private void deletePlans(List<Plan> plansToDelete, Api api, AuditInfo auditInfo) {
         plansToDelete.forEach(plan -> {
             subscriptionQueryService
-                .findActiveSubscriptionsByPlan(plan.getId())
-                .forEach(subscription -> closeSubscriptionDomainService.closeSubscription(subscription.getId(), api, auditInfo));
+                    .findActiveSubscriptionsByPlan(plan.getId())
+                    .forEach(subscription ->
+                            closeSubscriptionDomainService.closeSubscription(subscription.getId(), api, auditInfo));
 
             deletePlanDomainService.delete(plan, auditInfo);
         });
@@ -431,28 +403,27 @@ public class ImportApiCRDUseCase {
 
     private Plan initPlanFromCRD(String hrid, PlanCRD planCRD, Api api) {
         Plan plan = Plan.builder()
-            .id(planCRD.getId())
-            .hrid(hrid)
-            .name(planCRD.getName())
-            .description(planCRD.getDescription())
-            .characteristics(planCRD.getCharacteristics())
-            .definitionVersion(api.getDefinitionVersion())
-            .crossId(planCRD.getCrossId())
-            .excludedGroups(planCRD.getExcludedGroups())
-            .generalConditions(planCRD.getGeneralConditions())
-            .generalConditionsHrid(planCRD.getGeneralConditionsHrid())
-            .order(planCRD.getOrder())
-            .type(planCRD.getType())
-            .validation(planCRD.getValidation())
-            .apiType(api.getType())
-            .apiId(api.getId())
-            .referenceId(api.getId())
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .build();
+                .id(planCRD.getId())
+                .hrid(hrid)
+                .name(planCRD.getName())
+                .description(planCRD.getDescription())
+                .characteristics(planCRD.getCharacteristics())
+                .definitionVersion(api.getDefinitionVersion())
+                .crossId(planCRD.getCrossId())
+                .excludedGroups(planCRD.getExcludedGroups())
+                .generalConditions(planCRD.getGeneralConditions())
+                .generalConditionsHrid(planCRD.getGeneralConditionsHrid())
+                .order(planCRD.getOrder())
+                .type(planCRD.getType())
+                .validation(planCRD.getValidation())
+                .apiType(api.getType())
+                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build();
 
         if (ApiType.NATIVE.equals(api.getType())) {
-            plan.setPlanDefinitionNativeV4(
-                NativePlan.builder()
+            plan.setPlanDefinitionNativeV4(NativePlan.builder()
                     .security(planCRD.getSecurity())
                     .selectionRule(planCRD.getSelectionRule())
                     .status(planCRD.getStatus())
@@ -462,26 +433,24 @@ public class ImportApiCRDUseCase {
                     .bootstrapPort(planCRD.getBootstrapPort())
                     .brokerRangeStart(planCRD.getBrokerRangeStart())
                     .brokerRangeEnd(planCRD.getBrokerRangeEnd())
-                    .build()
-            );
+                    .build());
         } else {
-            plan.setPlanDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan.builder()
+            plan.setPlanDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
                     .security(planCRD.getSecurity())
                     .selectionRule(planCRD.getSelectionRule())
                     .status(planCRD.getStatus())
                     .tags(planCRD.getTags())
                     .mode(planCRD.getMode())
                     .name(planCRD.getName())
-                    .build()
-            );
+                    .build());
         }
 
         return plan;
     }
 
     private void deleteRemovedPages(Map<String, PageCRD> pages, String apiId) {
-        var existingPageIds = pageQueryService.searchByApiId(apiId).stream().map(Page::getId).collect(toSet());
+        var existingPageIds =
+                pageQueryService.searchByApiId(apiId).stream().map(Page::getId).collect(toSet());
         if (pages != null && !pages.isEmpty()) {
             var givenPageIds = pages.values().stream().map(PageCRD::getId).collect(toSet());
             existingPageIds.removeIf(givenPageIds::contains);
@@ -502,11 +471,9 @@ public class ImportApiCRDUseCase {
         }
 
         var now = Date.from(TimeProvider.now().toInstant());
-        var pages = pageCRDs
-            .entrySet()
-            .stream()
-            .map(entry -> PageModelFactory.fromCRDSpec(entry.getKey(), entry.getValue()))
-            .toList();
+        var pages = pageCRDs.entrySet().stream()
+                .map(entry -> PageModelFactory.fromCRDSpec(entry.getKey(), entry.getValue()))
+                .toList();
 
         pages.forEach(page -> {
             page.setReferenceId(apiId);
@@ -516,41 +483,38 @@ public class ImportApiCRDUseCase {
             }
 
             pageCrudService
-                .findById(page.getId())
-                .ifPresentOrElse(
-                    oldPage ->
-                        updateApiDocumentationDomainService.updatePage(
-                            page.toBuilder().createdAt(oldPage.getCreatedAt()).updatedAt(now).build(),
-                            oldPage,
-                            auditInfo
-                        ),
-                    () -> createApiDocumentationDomainService.createPage(page.toBuilder().createdAt(now).updatedAt(now).build(), auditInfo)
-                );
+                    .findById(page.getId())
+                    .ifPresentOrElse(
+                            oldPage -> updateApiDocumentationDomainService.updatePage(
+                                    page.toBuilder()
+                                            .createdAt(oldPage.getCreatedAt())
+                                            .updatedAt(now)
+                                            .build(),
+                                    oldPage,
+                                    auditInfo),
+                            () -> createApiDocumentationDomainService.createPage(
+                                    page.toBuilder()
+                                            .createdAt(now)
+                                            .updatedAt(now)
+                                            .build(),
+                                    auditInfo));
         });
     }
 
     private void validatePageParent(List<Page> pages, String parentId) {
-        pages
-            .stream()
-            .filter(page -> parentId.equals(page.getId()))
-            .findFirst()
-            .ifPresent(parent -> {
-                if (!(parent.isFolder() || parent.isRoot())) {
-                    throw new InvalidPageParentException(parent.getId());
-                }
-            });
+        pages.stream().filter(page -> parentId.equals(page.getId())).findFirst().ifPresent(parent -> {
+            if (!(parent.isFolder() || parent.isRoot())) {
+                throw new InvalidPageParentException(parent.getId());
+            }
+        });
     }
 
     private static boolean shouldDeploy(ApiCRDSpec spec) {
-        return (
-            spec.getDefinitionContext().isSyncFromManagement() &&
-            Api.LifecycleState.STARTED.name().equalsIgnoreCase(spec.getState()) &&
-            spec
-                .getPlans()
-                .values()
-                .stream()
-                .anyMatch(plan -> plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED)
-        );
+        return (spec.getDefinitionContext().isSyncFromManagement()
+                && Api.LifecycleState.STARTED.name().equalsIgnoreCase(spec.getState())
+                && spec.getPlans().values().stream()
+                        .anyMatch(plan ->
+                                plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED));
     }
 
     private void encryptProperties(Api api, List<EncryptableProperty> properties) {

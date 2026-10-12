@@ -99,9 +99,8 @@ public class ApiService_FindByIdTest {
 
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService)
-    );
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter(
+            objectMapper, planService, flowService, categoryMapper, parameterService, workflowService));
 
     @Mock
     private RoleService roleService;
@@ -113,8 +112,7 @@ public class ApiService_FindByIdTest {
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         GraviteeContext.setCurrentEnvironment("DEFAULT");
     }
 
@@ -157,7 +155,8 @@ public class ApiService_FindByIdTest {
 
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
-        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
+        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID)))
+                .thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         final ApiEntity apiEntity = apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
 

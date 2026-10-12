@@ -20,15 +20,15 @@ import static java.util.Collections.emptyList;
 import java.util.List;
 
 public record ScoreRequest(
-    String jobId,
-    String organizationId,
-    String environmentId,
-    String apiId,
-    List<AssetToScore> assets,
-    List<CustomRuleset> customRulesets,
-    List<Function> customFunctions
-) {
-    public ScoreRequest(String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
+        String jobId,
+        String organizationId,
+        String environmentId,
+        String apiId,
+        List<AssetToScore> assets,
+        List<CustomRuleset> customRulesets,
+        List<Function> customFunctions) {
+    public ScoreRequest(
+            String jobId, String organizationId, String environmentId, String apiId, List<AssetToScore> assets) {
         this(jobId, organizationId, environmentId, apiId, assets, emptyList(), emptyList());
     }
 

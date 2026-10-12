@@ -45,8 +45,8 @@ public class SharedPolicyGroupIdHelper {
         CollectionUtils.stream(spec.getFlows()).forEach(f -> addSharedPolicyGroupIdFromHrid(f, audit));
         if (spec.getPlans() != null) {
             CollectionUtils.stream(spec.getPlans())
-                .flatMap(p -> CollectionUtils.stream(p.getFlows()))
-                .forEach(f -> addSharedPolicyGroupIdFromHrid(f, audit));
+                    .flatMap(p -> CollectionUtils.stream(p.getFlows()))
+                    .forEach(f -> addSharedPolicyGroupIdFromHrid(f, audit));
         }
     }
 
@@ -67,7 +67,12 @@ public class SharedPolicyGroupIdHelper {
                 Map<String, Object> struct = (Map<String, Object>) rawMap;
                 String hrid = (String) struct.get(HRID_FIELD);
                 if (hrid != null && !hrid.isEmpty()) {
-                    struct.put(SHARED_POLICY_GROUP_ID_FIELD, HRIDToUUID.sharedPolicyGroup().context(auditInfo).hrid(hrid).crossId());
+                    struct.put(
+                            SHARED_POLICY_GROUP_ID_FIELD,
+                            HRIDToUUID.sharedPolicyGroup()
+                                    .context(auditInfo)
+                                    .hrid(hrid)
+                                    .crossId());
                 }
             }
         }
@@ -77,8 +82,8 @@ public class SharedPolicyGroupIdHelper {
         CollectionUtils.stream(spec.getFlows()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
         if (spec.getPlans() != null) {
             CollectionUtils.stream(spec.getPlans())
-                .flatMap(p -> CollectionUtils.stream(p.getFlows()))
-                .forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+                    .flatMap(p -> CollectionUtils.stream(p.getFlows()))
+                    .forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
         }
     }
 
@@ -86,8 +91,8 @@ public class SharedPolicyGroupIdHelper {
         CollectionUtils.stream(spec.getFlows()).forEach(SharedPolicyGroupIdHelper::addHRID);
         if (spec.getPlans() != null) {
             CollectionUtils.stream(spec.getPlans())
-                .flatMap(p -> CollectionUtils.stream(p.getFlows()))
-                .forEach(SharedPolicyGroupIdHelper::addHRID);
+                    .flatMap(p -> CollectionUtils.stream(p.getFlows()))
+                    .forEach(SharedPolicyGroupIdHelper::addHRID);
         }
     }
 
@@ -96,7 +101,8 @@ public class SharedPolicyGroupIdHelper {
         CollectionUtils.stream(flowV4.getResponse()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
         CollectionUtils.stream(flowV4.getSubscribe()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
         CollectionUtils.stream(flowV4.getPublish()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
-        CollectionUtils.stream(flowV4.getEntrypointConnect()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
+        CollectionUtils.stream(flowV4.getEntrypointConnect())
+                .forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
         CollectionUtils.stream(flowV4.getInteract()).forEach(SharedPolicyGroupIdHelper::removeSharedPolicyGroupId);
     }
 
@@ -114,7 +120,9 @@ public class SharedPolicyGroupIdHelper {
     }
 
     private static void addHRID(StepV4 stepV4) {
-        getConfiguration(stepV4).ifPresent(configuration -> configuration.computeIfAbsent(HRID_FIELD, k -> nameToHRID(stepV4.getName())));
+        getConfiguration(stepV4)
+                .ifPresent(
+                        configuration -> configuration.computeIfAbsent(HRID_FIELD, k -> nameToHRID(stepV4.getName())));
     }
 
     private static Optional<Map<Object, Object>> getConfiguration(StepV4 stepV4) {

@@ -34,7 +34,8 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
     protected static final String SECURITY_POLICY_STAGE = "SECURITY";
     private final AuthenticationHandlerSelector authenticationHandlerSelector;
 
-    public SecurityPolicyResolver(final PolicyManager policyManager, final AuthenticationHandlerSelector authenticationHandlerSelector) {
+    public SecurityPolicyResolver(
+            final PolicyManager policyManager, final AuthenticationHandlerSelector authenticationHandlerSelector) {
         super(policyManager);
         this.authenticationHandlerSelector = authenticationHandlerSelector;
     }
@@ -46,51 +47,47 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
         if (authenticationHandler == null) {
             // No authentication method selected, must send a 401
             logger.debug(
-                "No authentication handler has been selected to process request {}. Returning an unauthorized status (401)",
-                context.request().id()
-            );
+                    "No authentication handler has been selected to process request {}. Returning an unauthorized status (401)",
+                    context.request().id());
 
             // TODO: it's probably better to throw an exception ?
             return null;
         }
 
         logger.debug(
-            "Authentication handler [{}] has been selected to secure incoming request {}",
-            authenticationHandler.name(),
-            context.request().id()
-        );
+                "Authentication handler [{}] has been selected to secure incoming request {}",
+                authenticationHandler.name(),
+                context.request().id());
 
         List<AuthenticationPolicy> policies = authenticationHandler.handle(context);
         return createAuthenticationChain(policies);
     }
 
     private List<Policy> createAuthenticationChain(List<AuthenticationPolicy> securityPolicies) {
-        return securityPolicies
-            .stream()
-            .map(securityPolicy -> {
-                if (securityPolicy instanceof HookAuthenticationPolicy) {
-                    try {
-                        return createHookAuthenticationPolicy((HookAuthenticationPolicy) securityPolicy);
-                    } catch (Exception ex) {
-                        logger.error("Unexpected error while loading authentication policy", ex);
+        return securityPolicies.stream()
+                .map(securityPolicy -> {
+                    if (securityPolicy instanceof HookAuthenticationPolicy) {
+                        try {
+                            return createHookAuthenticationPolicy((HookAuthenticationPolicy) securityPolicy);
+                        } catch (Exception ex) {
+                            logger.error("Unexpected error while loading authentication policy", ex);
+                        }
+                    } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
+                        final PolicyMetadata policyMetadata = new PolicyMetadata(
+                                ((PluginAuthenticationPolicy) securityPolicy).name(),
+                                ((PluginAuthenticationPolicy) securityPolicy).configuration());
+                        policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, SECURITY_POLICY_STAGE);
+                        return create(StreamType.ON_REQUEST, policyMetadata);
                     }
-                } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
-                    final PolicyMetadata policyMetadata = new PolicyMetadata(
-                        ((PluginAuthenticationPolicy) securityPolicy).name(),
-                        ((PluginAuthenticationPolicy) securityPolicy).configuration()
-                    );
-                    policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, SECURITY_POLICY_STAGE);
-                    return create(StreamType.ON_REQUEST, policyMetadata);
-                }
 
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     protected Policy createHookAuthenticationPolicy(HookAuthenticationPolicy securityPolicy)
-        throws InstantiationException, IllegalAccessException {
+            throws InstantiationException, IllegalAccessException {
         return (Policy) securityPolicy.clazz().newInstance();
     }
 }

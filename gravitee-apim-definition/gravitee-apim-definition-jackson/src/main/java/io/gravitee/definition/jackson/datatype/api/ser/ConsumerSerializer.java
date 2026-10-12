@@ -18,12 +18,8 @@ package io.gravitee.definition.jackson.datatype.api.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Consumer;
-import io.gravitee.definition.model.plugins.resources.Resource;
 import java.io.IOException;
-import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,7 +37,8 @@ public class ConsumerSerializer extends StdScalarSerializer<Consumer> {
         jgen.writeStringField("consumerId", consumer.getConsumerId());
 
         if (consumer.getConsumerType() != null) {
-            jgen.writeObjectField("consumerType", consumer.getConsumerType().toString().toUpperCase());
+            jgen.writeObjectField(
+                    "consumerType", consumer.getConsumerType().toString().toUpperCase());
         }
 
         jgen.writeEndObject();

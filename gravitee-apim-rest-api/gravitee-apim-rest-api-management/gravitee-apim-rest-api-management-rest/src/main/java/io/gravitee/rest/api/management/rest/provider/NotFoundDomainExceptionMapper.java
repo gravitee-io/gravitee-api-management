@@ -24,6 +24,9 @@ public class NotFoundDomainExceptionMapper extends AbstractExceptionMapper<NotFo
     @Override
     public Response toResponse(NotFoundDomainException exception) {
         final Response.Status error = Response.Status.NOT_FOUND;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(exception, error.getStatusCode())).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(exception, error.getStatusCode()))
+                .build();
     }
 }

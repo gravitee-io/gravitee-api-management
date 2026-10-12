@@ -54,7 +54,8 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
             log.debug("API Product created successfully: {}", createdDomainModel.getId());
             return createdDomainModel;
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to create the API Product: " + apiProduct.getId(), e);
+            throw new TechnicalDomainException(
+                    "An error occurred while trying to create the API Product: " + apiProduct.getId(), e);
         }
     }
 
@@ -72,7 +73,8 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
         try {
             var repositoryModel = ApiProductAdapter.INSTANCE.toRepository(updateApiProduct);
             if (repositoryModel.getUpdatedAt() == null) {
-                repositoryModel.setUpdatedAt(java.util.Date.from(java.time.ZonedDateTime.now().toInstant()));
+                repositoryModel.setUpdatedAt(
+                        java.util.Date.from(java.time.ZonedDateTime.now().toInstant()));
             }
             if (updateApiProduct.getApiIds() != null) {
                 repositoryModel.setApiIds(new ArrayList<>(updateApiProduct.getApiIds()));
@@ -106,7 +108,9 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
             return List.of();
         }
         try {
-            return apiProductsRepository.findByIds(ids).stream().map(ApiProductAdapter.INSTANCE::toModel).collect(Collectors.toList());
+            return apiProductsRepository.findByIds(ids).stream()
+                    .map(ApiProductAdapter.INSTANCE::toModel)
+                    .collect(Collectors.toList());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to find API Products by ids", e);
         }

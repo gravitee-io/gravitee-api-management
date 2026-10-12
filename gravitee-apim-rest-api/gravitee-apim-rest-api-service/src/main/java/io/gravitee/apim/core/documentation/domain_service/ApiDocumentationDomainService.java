@@ -69,10 +69,7 @@ public class ApiDocumentationDomainService {
             return null;
         }
         var results = this.planQueryService.findAllByApiIdAndGeneralConditionsAndIsActive(
-            api.getId(),
-            api.getDefinitionVersion(),
-            page.getId()
-        );
+                api.getId(), api.getDefinitionVersion(), page.getId());
         return !results.isEmpty();
     }
 }

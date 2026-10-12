@@ -34,20 +34,19 @@ public class RedisDistributedSyncRepositoryConfiguration {
 
     @Bean("redisDistributedSyncClient")
     public RedisClient redisRedisClient(Environment environment, Vertx vertx) {
-        return new RedisConnectionFactory(environment, vertx, Scope.DISTRIBUTED_SYNC.getName(), Map.of()).createRedisClient();
+        return new RedisConnectionFactory(environment, vertx, Scope.DISTRIBUTED_SYNC.getName(), Map.of())
+                .createRedisClient();
     }
 
     @Bean
     public RedisDistributedEventRepository redisDistributedEventRepository(
-        @Qualifier("redisDistributedSyncClient") RedisClient redisClient
-    ) {
+            @Qualifier("redisDistributedSyncClient") RedisClient redisClient) {
         return new RedisDistributedEventRepository(redisClient);
     }
 
     @Bean
     public RedisDistributedSyncStateRepository redisDistributedSyncStateRepository(
-        @Qualifier("redisDistributedSyncClient") RedisClient redisClient
-    ) {
+            @Qualifier("redisDistributedSyncClient") RedisClient redisClient) {
         return new RedisDistributedSyncStateRepository(redisClient);
     }
 }

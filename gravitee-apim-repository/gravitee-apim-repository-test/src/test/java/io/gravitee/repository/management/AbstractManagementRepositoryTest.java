@@ -291,10 +291,10 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case Rating rating -> ratingRepository.create(rating);
             case RatingAnswer ratingAnswer -> ratingAnswerRepository.create(ratingAnswer);
             case PortalNotification portalNotification -> portalNotificationRepository.create(portalNotification);
-            case PortalNotificationConfig portalNotificationConfig -> portalNotificationConfigRepository.create(portalNotificationConfig);
-            case GenericNotificationConfig genericNotificationConfig -> genericNotificationConfigRepository.create(
-                genericNotificationConfig
-            );
+            case PortalNotificationConfig portalNotificationConfig ->
+                portalNotificationConfigRepository.create(portalNotificationConfig);
+            case GenericNotificationConfig genericNotificationConfig ->
+                genericNotificationConfigRepository.create(genericNotificationConfig);
             case Parameter parameter -> parameterRepository.create(parameter);
             case Dictionary dictionary -> dictionaryRepository.create(dictionary);
             case ApiHeader apiHeader -> apiHeaderRepository.create(apiHeader);
@@ -305,9 +305,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case Entrypoint entrypoint -> entrypointRepository.create(entrypoint);
             case Invitation invitation -> invitationRepository.create(invitation);
             case KafkaPortRange kafkaPortRange -> kafkaPortRangeRepository.create(kafkaPortRange);
-            case ClientRegistrationProvider clientRegistrationProvider -> clientRegistrationProviderRepository.create(
-                clientRegistrationProvider
-            );
+            case ClientRegistrationProvider clientRegistrationProvider ->
+                clientRegistrationProviderRepository.create(clientRegistrationProvider);
             case Workflow workflow -> workflowRepository.create(workflow);
             case QualityRule qualityRule -> qualityRuleRepository.create(qualityRule);
             case ApiQualityRule apiQualityRule -> apiQualityRuleRepository.create(apiQualityRule);
@@ -323,13 +322,13 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case Organization organization -> organizationRepository.create(organization);
             case License license -> licenseRepository.create(license);
             case Theme theme -> themeRepository.create(theme);
-            case IdentityProviderActivation identityProviderActivation -> identityProviderActivationRepository.create(
-                identityProviderActivation
-            );
+            case IdentityProviderActivation identityProviderActivation ->
+                identityProviderActivationRepository.create(identityProviderActivation);
             case Token token -> tokenRepository.create(token);
             case PageRevision pageRevision -> pageRevisionRepository.create(pageRevision);
             case CustomUserField customUserField -> customUserFieldsRepository.create(customUserField);
-            case NotificationTemplate notificationTemplate -> notificationTemplateRepository.create(notificationTemplate);
+            case NotificationTemplate notificationTemplate ->
+                notificationTemplateRepository.create(notificationTemplate);
             case Ticket ticket -> ticketRepository.create(ticket);
             case Installation installation -> installationRepository.create(installation);
             case Monitoring monitoring -> {
@@ -353,14 +352,13 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case Cluster cluster -> clusterRepository.create(cluster);
             case PortalPage portalPage -> portalPageRepository.create(portalPage);
             case PortalPageContext portalPageContext -> portalPageContextRepository.create(portalPageContext);
-            case io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem -> portalNavigationItemRepository.create(
-                portalNavigationItem
-            );
-            case io.gravitee.repository.management.model.PortalPageContent portalPageContent -> portalPageContentRepository.create(
-                portalPageContent
-            );
+            case io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem ->
+                portalNavigationItemRepository.create(portalNavigationItem);
+            case io.gravitee.repository.management.model.PortalPageContent portalPageContent ->
+                portalPageContentRepository.create(portalPageContent);
             case ApiProduct apiProduct -> apiProductsRepository.create(apiProduct);
-            case AiWorkspaceComponent aiWorkspaceComponent -> aiWorkspaceComponentRepository.create(aiWorkspaceComponent);
+            case AiWorkspaceComponent aiWorkspaceComponent ->
+                aiWorkspaceComponentRepository.create(aiWorkspaceComponent);
             case SubscriptionForm subscriptionForm -> subscriptionFormRepository.create(subscriptionForm);
             case null, default -> {}
         }

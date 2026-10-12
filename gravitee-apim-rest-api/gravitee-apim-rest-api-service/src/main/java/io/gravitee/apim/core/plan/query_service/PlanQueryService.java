@@ -22,15 +22,15 @@ import java.util.List;
 import java.util.Set;
 
 public interface PlanQueryService {
-    List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId);
+    List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(
+            String apiId, DefinitionVersion definitionVersion, String pageId);
 
     List<Plan> findAllByApiId(String apiId);
+
     List<Plan> findAllByApiIds(Set<String> apiIds, Set<String> environmentIds);
 
     List<Plan> findAllByReferenceIdAndReferenceType(String referenceId, GenericPlanEntity.ReferenceType referenceType);
+
     List<Plan> findAllByReferenceIdsAndEnvironments(
-        Set<String> referenceIds,
-        Set<String> environmentIds,
-        GenericPlanEntity.ReferenceType referenceType
-    );
+            Set<String> referenceIds, Set<String> environmentIds, GenericPlanEntity.ReferenceType referenceType);
 }

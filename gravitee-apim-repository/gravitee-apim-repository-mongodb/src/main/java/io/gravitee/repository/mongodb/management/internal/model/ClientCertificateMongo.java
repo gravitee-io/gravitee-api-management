@@ -32,7 +32,9 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Setter
 @Getter
 @ToString
-@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@EqualsAndHashCode(
+        of = {"id"},
+        callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}client_certificates")
 public class ClientCertificateMongo {
 

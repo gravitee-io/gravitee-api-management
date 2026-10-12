@@ -24,21 +24,15 @@ import java.util.Objects;
  */
 public record FacetsResponse(List<MetricFacetsResponse> metrics) {
     public static FacetsResponse merge(List<FacetsResponse> responses) {
-        return new FacetsResponse(
-            responses
-                .stream()
+        return new FacetsResponse(responses.stream()
                 .filter(Objects::nonNull)
                 .flatMap(metricResponse -> metricResponse.metrics().stream())
-                .toList()
-        );
+                .toList());
     }
 
     public FacetsResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
-        return new FacetsResponse(
-            metrics
-                .stream()
+        return new FacetsResponse(metrics.stream()
                 .map(metric -> metric.withIgnoredFilters(ignoredFilters))
-                .toList()
-        );
+                .toList());
     }
 }

@@ -47,28 +47,25 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
 
     @Override
     public Event createEvent(
-        String organizationId,
-        String environmentId,
-        Set<String> environmentIds,
-        EventType eventType,
-        Object content,
-        Map<Event.EventProperties, String> properties
-    ) {
-        return EventAdapter.INSTANCE.fromEntity(
-            eventService.createEvent(
+            String organizationId,
+            String environmentId,
+            Set<String> environmentIds,
+            EventType eventType,
+            Object content,
+            Map<Event.EventProperties, String> properties) {
+        return EventAdapter.INSTANCE.fromEntity(eventService.createEvent(
                 new ExecutionContext(organizationId, environmentId),
                 environmentIds,
                 organizationId,
                 eventType,
                 content,
-                EventAdapter.INSTANCE.toStringEventPropertiesMap(properties)
-            )
-        );
+                EventAdapter.INSTANCE.toStringEventPropertiesMap(properties)));
     }
 
     @Override
     public Event get(String organizationId, String environmentId, String eventId) {
-        return EventAdapter.INSTANCE.fromEntity(eventService.findById(new ExecutionContext(organizationId, environmentId), eventId));
+        return EventAdapter.INSTANCE.fromEntity(
+                eventService.findById(new ExecutionContext(organizationId, environmentId), eventId));
     }
 
     @Override
@@ -76,11 +73,10 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
         var counters = AtomicLongMap.<EventRepository.EventToCleanGroup>create();
 
         log.info(
-            "Starting cleanup for environment: {} (keep {} events per type, max duration: {}s)",
-            environmentId,
-            nbEventsToKeep,
-            timeToLive.toSeconds()
-        );
+                "Starting cleanup for environment: {} (keep {} events per type, max duration: {}s)",
+                environmentId,
+                nbEventsToKeep,
+                timeToLive.toSeconds());
 
         long startTime = System.currentTimeMillis();
         AtomicLong processedCount = new AtomicLong(0);
@@ -89,64 +85,61 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
 
         try {
             Flowable.fromStream(eventRepository.findEventsToClean(environmentId))
-                .filter(eventToClean -> {
-                    long currentProcessed = processedCount.incrementAndGet();
+                    .filter(eventToClean -> {
+                        long currentProcessed = processedCount.incrementAndGet();
 
-                    if (currentProcessed % 1000 == 0) {
-                        log.info(
-                            "Processed {} events, deleted {} events, skipped {} events",
-                            currentProcessed,
-                            deletedCount.get(),
-                            skippedCount.get()
-                        );
-                    }
+                        if (currentProcessed % 1000 == 0) {
+                            log.info(
+                                    "Processed {} events, deleted {} events, skipped {} events",
+                                    currentProcessed,
+                                    deletedCount.get(),
+                                    skippedCount.get());
+                        }
 
-                    // Use the structured group directly for safe counting
-                    EventRepository.EventToCleanGroup group = eventToClean.group();
-                    if (group == null) {
-                        skippedCount.incrementAndGet();
-                        return false;
-                    }
+                        // Use the structured group directly for safe counting
+                        EventRepository.EventToCleanGroup group = eventToClean.group();
+                        if (group == null) {
+                            skippedCount.incrementAndGet();
+                            return false;
+                        }
 
-                    // Check if we've already seen enough events for this group
-                    long currentGroupCount = counters.get(group);
+                        // Check if we've already seen enough events for this group
+                        long currentGroupCount = counters.get(group);
 
-                    if (currentGroupCount >= nbEventsToKeep) {
-                        // We've already seen enough events for this group, this one should be deleted
-                        deletedCount.incrementAndGet();
-                        return true;
-                    } else {
-                        // We haven't seen enough events yet, keep this one
-                        counters.incrementAndGet(group);
-                        skippedCount.incrementAndGet();
-                        return false;
-                    }
-                })
-                .map(EventRepository.EventToClean::id)
-                .buffer(20)
-                .takeUntil(Flowable.timer(timeToLive.toSeconds(), TimeUnit.SECONDS))
-                .blockingForEach(eventRepository::delete);
+                        if (currentGroupCount >= nbEventsToKeep) {
+                            // We've already seen enough events for this group, this one should be deleted
+                            deletedCount.incrementAndGet();
+                            return true;
+                        } else {
+                            // We haven't seen enough events yet, keep this one
+                            counters.incrementAndGet(group);
+                            skippedCount.incrementAndGet();
+                            return false;
+                        }
+                    })
+                    .map(EventRepository.EventToClean::id)
+                    .buffer(20)
+                    .takeUntil(Flowable.timer(timeToLive.toSeconds(), TimeUnit.SECONDS))
+                    .blockingForEach(eventRepository::delete);
 
             long duration = System.currentTimeMillis() - startTime;
             log.info(
-                "Cleanup completed for environment: {}. Processed: {} events, Deleted: {} events, Skipped: {} events, Duration: {}ms",
-                environmentId,
-                processedCount.get(),
-                deletedCount.get(),
-                skippedCount.get(),
-                duration
-            );
+                    "Cleanup completed for environment: {}. Processed: {} events, Deleted: {} events, Skipped: {} events, Duration: {}ms",
+                    environmentId,
+                    processedCount.get(),
+                    deletedCount.get(),
+                    skippedCount.get(),
+                    duration);
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
             log.error(
-                "Cleanup failed for environment: {} after {}ms. Processed: {} events, Deleted: {} events, Skipped: {} events",
-                environmentId,
-                duration,
-                processedCount.get(),
-                deletedCount.get(),
-                skippedCount.get(),
-                e
-            );
+                    "Cleanup failed for environment: {} after {}ms. Processed: {} events, Deleted: {} events, Skipped: {} events",
+                    environmentId,
+                    duration,
+                    processedCount.get(),
+                    deletedCount.get(),
+                    skippedCount.get(),
+                    e);
             throw e;
         }
     }

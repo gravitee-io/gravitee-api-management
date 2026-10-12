@@ -37,7 +37,8 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
     public EndpointRuleCronHandler(Vertx vertx, EndpointRule<T> rule, long jitterMs) {
         this.vertx = vertx;
         this.endpoint = rule.endpoint();
-        this.spreadOffsetMs = Math.floorMod(Objects.hash(rule.api().getId(), rule.endpoint().getName()), (int) (jitterMs + 1));
+        this.spreadOffsetMs =
+                Math.floorMod(Objects.hash(rule.api().getId(), rule.endpoint().getName()), (int) (jitterMs + 1));
     }
 
     public EndpointRuleCronHandler<T> schedule(EndpointRuleHandler<T> handler) {
@@ -45,7 +46,8 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
             throw new IllegalArgumentException("Handler is null.");
         }
         this.handler = handler;
-        handler.setRescheduleHandler(v -> this.timerId = vertx.setTimer(handler.getDelayMillis() + spreadOffsetMs, this));
+        handler.setRescheduleHandler(
+                v -> this.timerId = vertx.setTimer(handler.getDelayMillis() + spreadOffsetMs, this));
         timerId = vertx.setTimer(handler.getDelayMillis() + spreadOffsetMs, this);
         return this;
     }

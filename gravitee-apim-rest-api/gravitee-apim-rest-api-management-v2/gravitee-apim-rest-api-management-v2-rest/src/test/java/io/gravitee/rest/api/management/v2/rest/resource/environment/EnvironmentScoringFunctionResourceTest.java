@@ -19,12 +19,9 @@ import static assertions.MAPIAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 
-import assertions.MAPIAssertions;
-import assertions.RestApiAssertions;
 import fixtures.core.model.ScoringFunctionFixture;
 import inmemory.InMemoryAlternative;
 import inmemory.ScoringFunctionCrudServiceInMemory;
-import io.gravitee.apim.core.scoring.model.ScoringFunction;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -57,7 +54,10 @@ class EnvironmentScoringFunctionResourceTest extends AbstractResourceTest {
     void setup() {
         rootTarget = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
         doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 

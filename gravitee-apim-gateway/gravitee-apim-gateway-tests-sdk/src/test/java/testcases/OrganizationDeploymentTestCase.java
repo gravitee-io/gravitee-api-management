@@ -36,7 +36,9 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployOrganization(organization = "/organizations/organization-add-header-1.json", apis = { "/apis/nothing.json" })
+@DeployOrganization(
+        organization = "/organizations/organization-add-header-1.json",
+        apis = {"/apis/nothing.json"})
 @EnableForGatewayTestingExtensionTesting
 public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
@@ -45,18 +47,19 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .await()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header1");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .await()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header1");
+                    return true;
+                })
+                .assertNoErrors();
 
-        wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header1")));
+        wiremock.verify(
+                getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header1")));
     }
 
     @Test
@@ -65,18 +68,19 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test2")
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .await()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test2")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .await()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
+                    return true;
+                })
+                .assertNoErrors();
 
-        wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
+        wiremock.verify(
+                getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
     }
 
     @Test
@@ -84,7 +88,8 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
     void should_fail_deploying_a_already_deployed_organization() {}
 
     @Test
-    void should_execute_organization_flow_deployed_at_test_level_with_update(HttpClient httpClient) throws InterruptedException {
+    void should_execute_organization_flow_deployed_at_test_level_with_update(HttpClient httpClient)
+            throws InterruptedException {
         super.updateOrganization("ORGA-1", organization -> {
             organization.getFlows().getFirst().getPre().getFirst().setPolicy("header-policy2");
             organization.getFlows().getFirst().getPost().getFirst().setPolicy("header-policy2");
@@ -93,18 +98,19 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .await()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .await()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().get("X-Gravitee-Policy")).isEqualTo("response-header2");
+                    return true;
+                })
+                .assertNoErrors();
 
-        wiremock.verify(getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
+        wiremock.verify(
+                getRequestedFor(urlPathEqualTo("/team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
     }
 
     @Override

@@ -22,13 +22,12 @@ import lombok.Builder;
 
 @Builder
 public record ApiProductAuditLogEntity(
-    String apiProductId,
-    String organizationId,
-    String environmentId,
-    AuditActor actor,
-    Map<AuditProperties, String> properties,
-    AuditEvent event,
-    ZonedDateTime createdAt,
-    Object oldValue,
-    Object newValue
-) {}
+        String apiProductId,
+        String organizationId,
+        String environmentId,
+        AuditActor actor,
+        Map<AuditProperties, String> properties,
+        AuditEvent event,
+        ZonedDateTime createdAt,
+        Object oldValue,
+        Object newValue) {}

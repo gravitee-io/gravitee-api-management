@@ -36,22 +36,20 @@ public class OrganizationPolicyManager extends AbstractPolicyManager {
     private final ReactableOrganization reactableOrganization;
 
     public OrganizationPolicyManager(
-        final DefaultClassLoader classLoader,
-        final PolicyFactoryManager policyFactoryManager,
-        final PolicyConfigurationFactory policyConfigurationFactory,
-        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        final PolicyClassLoaderFactory policyClassLoaderFactory,
-        final ComponentProvider componentProvider,
-        final ReactableOrganization reactableOrganization
-    ) {
+            final DefaultClassLoader classLoader,
+            final PolicyFactoryManager policyFactoryManager,
+            final PolicyConfigurationFactory policyConfigurationFactory,
+            final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            final PolicyClassLoaderFactory policyClassLoaderFactory,
+            final ComponentProvider componentProvider,
+            final ReactableOrganization reactableOrganization) {
         super(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider);
         this.reactableOrganization = reactableOrganization;
     }
 

@@ -32,24 +32,30 @@ import java.util.Map;
  */
 public class DebugRequestStep extends DebugStep<Request> {
 
-    public DebugRequestStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope, PolicyMetadata policyMetadata) {
+    public DebugRequestStep(
+            String policyId,
+            StreamType streamType,
+            String uuid,
+            PolicyScope policyScope,
+            PolicyMetadata policyMetadata) {
         super(policyId, streamType, uuid, policyScope, policyMetadata);
     }
 
     @Override
     public void snapshotInputData(Request request, Map<String, Serializable> attributes) {
         policyInputContent
-            .contextPath(request.contextPath())
-            .parameters(request.parameters())
-            .method(request.method())
-            .path(request.path())
-            .pathParameters(request.pathParameters())
-            .headers(request.headers())
-            .attributes(attributes);
+                .contextPath(request.contextPath())
+                .parameters(request.parameters())
+                .method(request.method())
+                .path(request.path())
+                .pathParameters(request.pathParameters())
+                .headers(request.headers())
+                .attributes(attributes);
     }
 
     @Override
-    public void generateDiffMap(Request request, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {
+    public void generateDiffMap(
+            Request request, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {
         if (!policyInputContent.getHeaders().deeplyEquals(request.headers())) {
             diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(request.headers()));
         }

@@ -96,20 +96,19 @@ class HeartbeatServiceTest {
         when(clusterManager.topic(HEARTBEATS)).thenReturn(topic);
 
         heartbeatStrategyConfiguration = new HeartbeatStrategyConfiguration(
-            true,
-            1,
-            TimeUnit.SECONDS,
-            true,
-            "8888",
-            new ObjectMapper(),
-            node,
-            environmentRepository,
-            organizationRepository,
-            clusterManager,
-            eventRepository,
-            gatewayConfiguration,
-            pluginRegistry
-        );
+                true,
+                1,
+                TimeUnit.SECONDS,
+                true,
+                "8888",
+                new ObjectMapper(),
+                node,
+                environmentRepository,
+                organizationRepository,
+                clusterManager,
+                eventRepository,
+                gatewayConfiguration,
+                pluginRegistry);
         cut = new HeartbeatService(heartbeatStrategyConfiguration);
     }
 
@@ -129,20 +128,20 @@ class HeartbeatServiceTest {
         assertThat(gatewayStartedEvent.getPayload()).isNotBlank();
         assertThat(gatewayStartedEvent.getOrganizations()).isNull();
         assertThat(gatewayStartedEvent.getEnvironments()).isNull();
-        assertThat(gatewayStartedEvent.getProperties().keySet()).allMatch(k -> !k.toUpperCase(Locale.ROOT).startsWith("GRAVITEE"));
+        assertThat(gatewayStartedEvent.getProperties().keySet())
+                .allMatch(k -> !k.toUpperCase(Locale.ROOT).startsWith("GRAVITEE"));
     }
 
     @Test
     @SneakyThrows
-    void should_create_gateway_start_event_with_org_and_env_ids_and_hrids_when_gateway_is_configured_with_org_and_env_hrids() {
-        when(node.metadata()).thenReturn(
-            Map.of(
-                Node.META_ORGANIZATIONS,
-                new TreeSet<>(List.of("org-id1", "org-id2")),
-                Node.META_ENVIRONMENTS,
-                new TreeSet<>(List.of("env-id1", "env-id2"))
-            )
-        );
+    void
+            should_create_gateway_start_event_with_org_and_env_ids_and_hrids_when_gateway_is_configured_with_org_and_env_hrids() {
+        when(node.metadata())
+                .thenReturn(Map.of(
+                        Node.META_ORGANIZATIONS,
+                        new TreeSet<>(List.of("org-id1", "org-id2")),
+                        Node.META_ENVIRONMENTS,
+                        new TreeSet<>(List.of("env-id1", "env-id2"))));
 
         cut.doStart();
 

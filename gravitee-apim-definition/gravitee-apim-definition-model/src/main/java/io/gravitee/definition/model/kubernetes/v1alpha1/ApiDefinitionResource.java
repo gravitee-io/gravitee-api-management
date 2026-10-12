@@ -32,33 +32,25 @@ import java.util.Optional;
  */
 public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
-    private static final List<String> UNSUPPORTED_API_FIELDS = List.of(
-        "definition_context",
-        "primaryOwner",
-        "createdAt",
-        "updatedAt",
-        "picture",
-        "apiMedia"
-    );
+    private static final List<String> UNSUPPORTED_API_FIELDS =
+            List.of("definition_context", "primaryOwner", "createdAt", "updatedAt", "picture", "apiMedia");
 
     private static final List<String> UNSUPPORTED_PLAN_FIELDS = List.of(
-        "created_at",
-        "updated_at",
-        "published_at",
-        "definitionVersion",
-        "environmentId",
-        "comment_message",
-        "general_conditions"
-    );
+            "created_at",
+            "updated_at",
+            "published_at",
+            "definitionVersion",
+            "environmentId",
+            "comment_message",
+            "general_conditions");
 
     private static final List<String> UNSUPPORTED_PAGE_FIELDS = List.of(
-        "lastContributor",
-        "lastModificationDate",
-        "parentPath",
-        "attached_media",
-        "contentType",
-        "excluded_groups"
-    );
+            "lastContributor",
+            "lastModificationDate",
+            "parentPath",
+            "attached_media",
+            "contentType",
+            "excluded_groups");
 
     private static final String PLANS_FIELD = "plans";
 
@@ -106,7 +98,8 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
     public void setContextPath(String contextPath) {
         ObjectNode proxy = getSpec().get(PROXY_FIELD).deepCopy();
         ArrayNode virtualHosts = (ArrayNode) proxy.get((VIRTUAL_HOSTS_FIELD));
-        ObjectNode virtualHost = ((ObjectNode) virtualHosts.iterator().next()).put(VIRTUAL_HOST_PATH_FIELD, contextPath);
+        ObjectNode virtualHost =
+                ((ObjectNode) virtualHosts.iterator().next()).put(VIRTUAL_HOST_PATH_FIELD, contextPath);
         virtualHost.put(VIRTUAL_HOST_PATH_FIELD, contextPath);
         getSpec().set(PROXY_FIELD, proxy);
     }

@@ -29,7 +29,8 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class PageConfigurationOAITransformer extends AbstractPageConfigurationSwaggerTransformer<OAIDescriptor> implements OAITransformer {
+public class PageConfigurationOAITransformer extends AbstractPageConfigurationSwaggerTransformer<OAIDescriptor>
+        implements OAITransformer {
 
     public PageConfigurationOAITransformer(PageEntity page) {
         super(page);
@@ -40,31 +41,28 @@ public class PageConfigurationOAITransformer extends AbstractPageConfigurationSw
         String tryItUrl = asString(SwaggerProperties.TRY_IT);
         if (tryItUrl != null && !tryItUrl.isEmpty()) {
             URI newURI = URI.create(tryItUrl);
-            descriptor
-                .getSpecification()
-                .getServers()
-                .forEach(server -> {
-                    try {
-                        server.setUrl(
-                            new URI(
-                                newURI.getScheme(),
-                                newURI.getUserInfo(),
-                                newURI.getHost(),
-                                newURI.getPort(),
-                                newURI.getPath(),
-                                newURI.getQuery(),
-                                newURI.getFragment()
-                            ).toString()
-                        );
-                    } catch (URISyntaxException e) {
-                        log.error(e.getMessage(), e);
-                    }
-                });
+            descriptor.getSpecification().getServers().forEach(server -> {
+                try {
+                    server.setUrl(new URI(
+                                    newURI.getScheme(),
+                                    newURI.getUserInfo(),
+                                    newURI.getHost(),
+                                    newURI.getPort(),
+                                    newURI.getPath(),
+                                    newURI.getQuery(),
+                                    newURI.getFragment())
+                            .toString());
+                } catch (URISyntaxException e) {
+                    log.error(e.getMessage(), e);
+                }
+            });
 
             // Remove possible server duplicates.
             descriptor
-                .getSpecification()
-                .servers(descriptor.getSpecification().getServers().stream().distinct().collect(Collectors.toList()));
+                    .getSpecification()
+                    .servers(descriptor.getSpecification().getServers().stream()
+                            .distinct()
+                            .collect(Collectors.toList()));
         }
     }
 }

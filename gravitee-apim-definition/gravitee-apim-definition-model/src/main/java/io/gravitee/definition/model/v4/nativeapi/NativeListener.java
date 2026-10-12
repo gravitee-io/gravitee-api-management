@@ -41,13 +41,12 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL) })
+@JsonSubTypes({@JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL)})
 @Schema(
-    name = "NativeListenerV4",
-    discriminatorProperty = "type",
-    discriminatorMapping = { @DiscriminatorMapping(value = KAFKA_LABEL, schema = KafkaListener.class) },
-    oneOf = { KafkaListener.class }
-)
+        name = "NativeListenerV4",
+        discriminatorProperty = "type",
+        discriminatorMapping = {@DiscriminatorMapping(value = KAFKA_LABEL, schema = KafkaListener.class)},
+        oneOf = {KafkaListener.class})
 @SuperBuilder(toBuilder = true)
 public abstract class NativeListener extends AbstractListener<NativeEntrypoint> {
 

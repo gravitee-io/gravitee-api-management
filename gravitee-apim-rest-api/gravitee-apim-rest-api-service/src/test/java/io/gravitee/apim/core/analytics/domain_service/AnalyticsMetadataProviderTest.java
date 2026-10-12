@@ -26,7 +26,9 @@ class AnalyticsMetadataProviderTest {
         assertEquals(AnalyticsMetadataProvider.Field.API, AnalyticsMetadataProvider.Field.of("api-id"));
         assertEquals(AnalyticsMetadataProvider.Field.APPLICATION, AnalyticsMetadataProvider.Field.of("application-id"));
         assertEquals(AnalyticsMetadataProvider.Field.PLAN, AnalyticsMetadataProvider.Field.of("plan-id"));
-        assertEquals(AnalyticsMetadataProvider.Field.GEOIP_COUNTRY_ISO_CODE, AnalyticsMetadataProvider.Field.of("geoip.country_iso_code"));
+        assertEquals(
+                AnalyticsMetadataProvider.Field.GEOIP_COUNTRY_ISO_CODE,
+                AnalyticsMetadataProvider.Field.of("geoip.country_iso_code"));
     }
 
     @Test

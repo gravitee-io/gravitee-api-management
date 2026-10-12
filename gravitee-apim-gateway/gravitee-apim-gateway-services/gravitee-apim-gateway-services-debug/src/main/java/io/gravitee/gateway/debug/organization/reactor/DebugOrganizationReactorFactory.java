@@ -36,20 +36,25 @@ import org.springframework.context.ApplicationContext;
 public class DebugOrganizationReactorFactory extends DefaultOrganizationReactorFactory {
 
     public DebugOrganizationReactorFactory(
-        final DefaultClassLoader defaultClassLoader,
-        final ApplicationContext applicationContext,
-        final PolicyFactoryManager policyFactoryManager,
-        final PolicyClassLoaderFactory policyClassLoaderFactory,
-        final ComponentProvider componentProvider,
-        final OpenTelemetryConfiguration configuration
-    ) {
-        super(defaultClassLoader, applicationContext, policyFactoryManager, policyClassLoaderFactory, componentProvider, configuration);
+            final DefaultClassLoader defaultClassLoader,
+            final ApplicationContext applicationContext,
+            final PolicyFactoryManager policyFactoryManager,
+            final PolicyClassLoaderFactory policyClassLoaderFactory,
+            final ComponentProvider componentProvider,
+            final OpenTelemetryConfiguration configuration) {
+        super(
+                defaultClassLoader,
+                applicationContext,
+                policyFactoryManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                configuration);
     }
 
     protected HttpPolicyChainFactory policyChainFactory(
-        final ReactableOrganization reactableOrganization,
-        final OrganizationPolicyManager organizationPolicyManager
-    ) {
-        return new DebugPolicyChainFactory("platform-" + reactableOrganization.getId(), organizationPolicyManager, false);
+            final ReactableOrganization reactableOrganization,
+            final OrganizationPolicyManager organizationPolicyManager) {
+        return new DebugPolicyChainFactory(
+                "platform-" + reactableOrganization.getId(), organizationPolicyManager, false);
     }
 }

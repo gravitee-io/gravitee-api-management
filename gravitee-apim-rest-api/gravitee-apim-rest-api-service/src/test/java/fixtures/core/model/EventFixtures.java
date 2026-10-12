@@ -27,17 +27,14 @@ public class EventFixtures {
 
     private EventFixtures() {}
 
-    private static final Supplier<Event.EventBuilder> BASE = () ->
-        Event.builder()
+    private static final Supplier<Event.EventBuilder> BASE = () -> Event.builder()
             .id("event-id")
             .payload("event-payload")
             .environments(Set.of("environment-id"))
             .type(io.gravitee.rest.api.model.EventType.PUBLISH_API)
-            .properties(
-                new EnumMap<>(
-                    Map.ofEntries(Map.entry(Event.EventProperties.API_ID, "api-id"), Map.entry(Event.EventProperties.USER, "user-id"))
-                )
-            )
+            .properties(new EnumMap<>(Map.ofEntries(
+                    Map.entry(Event.EventProperties.API_ID, "api-id"),
+                    Map.entry(Event.EventProperties.USER, "user-id"))))
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 

@@ -31,69 +31,69 @@ class PlanUpdatesTest {
 
     @Test
     void applyTo_should_update_port_routing_fields_on_native_plan() {
-        var oldPlan = PlanFixtures.NativeV4.aKeyless()
-            .toBuilder()
-            .planDefinitionNativeV4(
-                NativePlan.builder()
-                    .security(PlanSecurity.builder().type("key-less").build())
-                    .mode(PlanMode.STANDARD)
-                    .status(PlanStatus.PUBLISHED)
-                    .bootstrapPort(9092)
-                    .brokerRangeStart(9100)
-                    .brokerRangeEnd(9102)
-                    .build()
-            )
-            .build();
+        var oldPlan = PlanFixtures.NativeV4.aKeyless().toBuilder()
+                .planDefinitionNativeV4(NativePlan.builder()
+                        .security(PlanSecurity.builder().type("key-less").build())
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .bootstrapPort(9092)
+                        .brokerRangeStart(9100)
+                        .brokerRangeEnd(9102)
+                        .build())
+                .build();
 
         var updates = PlanUpdates.builder()
-            .name("new-name")
-            .description("new-description")
-            .order(1)
-            .validation(Plan.PlanValidationType.MANUAL)
-            .bootstrapPort(19092)
-            .brokerRangeStart(19100)
-            .brokerRangeEnd(19102)
-            .build();
+                .name("new-name")
+                .description("new-description")
+                .order(1)
+                .validation(Plan.PlanValidationType.MANUAL)
+                .bootstrapPort(19092)
+                .brokerRangeStart(19100)
+                .brokerRangeEnd(19102)
+                .build();
 
         var result = updates.applyTo(oldPlan);
 
         SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.getPlanDefinitionNativeV4().getBootstrapPort()).isEqualTo(19092);
-            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeStart()).isEqualTo(19100);
-            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeEnd()).isEqualTo(19102);
+            soft.assertThat(result.getPlanDefinitionNativeV4().getBootstrapPort())
+                    .isEqualTo(19092);
+            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeStart())
+                    .isEqualTo(19100);
+            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeEnd())
+                    .isEqualTo(19102);
         });
     }
 
     @Test
     void applyTo_should_clear_port_routing_fields_when_updates_are_null() {
         // Switching from port-based routing to host/SNI routing mode
-        var oldPlan = PlanFixtures.NativeV4.aKeyless()
-            .toBuilder()
-            .planDefinitionNativeV4(
-                NativePlan.builder()
-                    .security(PlanSecurity.builder().type("key-less").build())
-                    .mode(PlanMode.STANDARD)
-                    .status(PlanStatus.PUBLISHED)
-                    .bootstrapPort(9092)
-                    .brokerRangeStart(9100)
-                    .brokerRangeEnd(9102)
-                    .build()
-            )
-            .build();
+        var oldPlan = PlanFixtures.NativeV4.aKeyless().toBuilder()
+                .planDefinitionNativeV4(NativePlan.builder()
+                        .security(PlanSecurity.builder().type("key-less").build())
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .bootstrapPort(9092)
+                        .brokerRangeStart(9100)
+                        .brokerRangeEnd(9102)
+                        .build())
+                .build();
 
         var updates = PlanUpdates.builder()
-            .name("new-name")
-            .description("new-description")
-            .order(1)
-            .validation(Plan.PlanValidationType.MANUAL)
-            .build();
+                .name("new-name")
+                .description("new-description")
+                .order(1)
+                .validation(Plan.PlanValidationType.MANUAL)
+                .build();
 
         var result = updates.applyTo(oldPlan);
 
         SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.getPlanDefinitionNativeV4().getBootstrapPort()).isNull();
-            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeStart()).isNull();
-            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeEnd()).isNull();
+            soft.assertThat(result.getPlanDefinitionNativeV4().getBootstrapPort())
+                    .isNull();
+            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeStart())
+                    .isNull();
+            soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeEnd())
+                    .isNull();
         });
     }
 
@@ -101,7 +101,11 @@ class PlanUpdatesTest {
     void applyTo_should_preserve_plan_tags_when_updates_tags_are_null() {
         var oldPlan = PlanFixtures.HttpV4.anApiKey().setPlanTags(Set.of("internal"));
 
-        var updates = PlanUpdates.builder().name("new-name").description("new-description").order(1).build();
+        var updates = PlanUpdates.builder()
+                .name("new-name")
+                .description("new-description")
+                .order(1)
+                .build();
 
         var result = updates.applyTo(oldPlan);
 
@@ -125,14 +129,14 @@ class PlanUpdatesTest {
         var oldPlan = PlanFixtures.HttpV4.anApiKey();
 
         var updates = PlanUpdates.builder()
-            .name("new-name")
-            .description("new-description")
-            .order(1)
-            .validation(Plan.PlanValidationType.MANUAL)
-            .bootstrapPort(9092)
-            .brokerRangeStart(9100)
-            .brokerRangeEnd(9102)
-            .build();
+                .name("new-name")
+                .description("new-description")
+                .order(1)
+                .validation(Plan.PlanValidationType.MANUAL)
+                .bootstrapPort(9092)
+                .brokerRangeStart(9100)
+                .brokerRangeEnd(9102)
+                .build();
 
         var result = updates.applyTo(oldPlan);
 

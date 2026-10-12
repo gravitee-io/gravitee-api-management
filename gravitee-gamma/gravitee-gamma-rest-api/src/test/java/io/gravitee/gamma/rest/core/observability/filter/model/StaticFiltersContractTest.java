@@ -34,36 +34,35 @@ class StaticFiltersContractTest {
     @Test
     void status_code_group_enum_values_should_all_be_valid_canonical_groups() {
         var spec = StaticFilters.HTTP_STATUS_CODE_GROUP.toSpec();
-        var catalogKeys = spec.enumValues().stream().map(FilterSpec.EnumValue::value).toList();
+        var catalogKeys =
+                spec.enumValues().stream().map(FilterSpec.EnumValue::value).toList();
 
         assertThat(catalogKeys)
-            .isNotEmpty()
-            .allSatisfy(key ->
-                assertThat(HttpStatusCodeGroups.GROUP_BOUNDS)
-                    .as("Catalog key '%s' must exist in HttpStatusCodeGroups.GROUP_BOUNDS", key)
-                    .containsKey(key)
-            );
+                .isNotEmpty()
+                .allSatisfy(key -> assertThat(HttpStatusCodeGroups.GROUP_BOUNDS)
+                        .as("Catalog key '%s' must exist in HttpStatusCodeGroups.GROUP_BOUNDS", key)
+                        .containsKey(key));
     }
 
     @Test
     void canonical_groups_should_all_be_in_status_code_group_catalog() {
         var spec = StaticFilters.HTTP_STATUS_CODE_GROUP.toSpec();
-        var catalogKeys = spec.enumValues().stream().map(FilterSpec.EnumValue::value).toList();
+        var catalogKeys =
+                spec.enumValues().stream().map(FilterSpec.EnumValue::value).toList();
 
         assertThat(HttpStatusCodeGroups.GROUP_BOUNDS.keySet())
-            .as("All canonical groups must be present in the StaticFilters catalog")
-            .allSatisfy(canonicalKey -> assertThat(catalogKeys).contains(canonicalKey));
+                .as("All canonical groups must be present in the StaticFilters catalog")
+                .allSatisfy(canonicalKey -> assertThat(catalogKeys).contains(canonicalKey));
     }
 
     @Test
     void status_code_group_labels_should_match_friendly_labels() {
         var spec = StaticFilters.HTTP_STATUS_CODE_GROUP.toSpec();
 
-        assertThat(spec.enumValues()).allSatisfy(enumValue ->
-            assertThat(HttpStatusCodeGroups.FRIENDLY_LABELS.get(enumValue.value()))
-                .as("Catalog label for '%s' must match HttpStatusCodeGroups.FRIENDLY_LABELS", enumValue.value())
-                .isEqualTo(enumValue.label())
-        );
+        assertThat(spec.enumValues())
+                .allSatisfy(enumValue -> assertThat(HttpStatusCodeGroups.FRIENDLY_LABELS.get(enumValue.value()))
+                        .as("Catalog label for '%s' must match HttpStatusCodeGroups.FRIENDLY_LABELS", enumValue.value())
+                        .isEqualTo(enumValue.label()));
     }
 
     /**
@@ -77,21 +76,21 @@ class StaticFiltersContractTest {
 
     @Test
     void authz_caller_labels_should_name_what_writes_each_value() {
-        assertThat(StaticFilters.AUTHZ_CALLER.toSpec().enumValues()).containsExactly(
-            new FilterSpec.EnumValue("pep", "PEP policy"),
-            new FilterSpec.EnumValue("gateway", "AuthZEN endpoint"),
-            new FilterSpec.EnumValue("authzen", "AuthZEN policy"),
-            new FilterSpec.EnumValue("unknown", "Unknown")
-        );
+        assertThat(StaticFilters.AUTHZ_CALLER.toSpec().enumValues())
+                .containsExactly(
+                        new FilterSpec.EnumValue("pep", "PEP policy"),
+                        new FilterSpec.EnumValue("gateway", "AuthZEN endpoint"),
+                        new FilterSpec.EnumValue("authzen", "AuthZEN policy"),
+                        new FilterSpec.EnumValue("unknown", "Unknown"));
     }
 
     @Test
     void authz_search_type_labels_should_read_like_the_operation_labels() {
-        assertThat(StaticFilters.AUTHZ_SEARCH_TYPE.toSpec().enumValues()).containsExactly(
-            new FilterSpec.EnumValue("subject", "Subject"),
-            new FilterSpec.EnumValue("resource", "Resource"),
-            new FilterSpec.EnumValue("action", "Action")
-        );
+        assertThat(StaticFilters.AUTHZ_SEARCH_TYPE.toSpec().enumValues())
+                .containsExactly(
+                        new FilterSpec.EnumValue("subject", "Subject"),
+                        new FilterSpec.EnumValue("resource", "Resource"),
+                        new FilterSpec.EnumValue("action", "Action"));
     }
 
     @Test
@@ -103,11 +102,11 @@ class StaticFiltersContractTest {
         assertThat(spec.operators()).containsExactly(FilterOperator.EQ, FilterOperator.IN);
         assertThat(spec.signals()).containsExactly(Signal.LOGS);
         assertThat(spec.apiTypes()).containsExactly(ApiType.AUTHZ_DECISION);
-        assertThat(spec.enumValues()).containsExactly(
-            new FilterSpec.EnumValue("evaluation_timeout", "Evaluation timeout"),
-            new FilterSpec.EnumValue("pdp_unavailable", "PDP unavailable"),
-            new FilterSpec.EnumValue("evaluation_failed", "Evaluation failed"),
-            new FilterSpec.EnumValue("agent_unresolved", "Agent unresolved")
-        );
+        assertThat(spec.enumValues())
+                .containsExactly(
+                        new FilterSpec.EnumValue("evaluation_timeout", "Evaluation timeout"),
+                        new FilterSpec.EnumValue("pdp_unavailable", "PDP unavailable"),
+                        new FilterSpec.EnumValue("evaluation_failed", "Evaluation failed"),
+                        new FilterSpec.EnumValue("agent_unresolved", "Agent unresolved"));
     }
 }

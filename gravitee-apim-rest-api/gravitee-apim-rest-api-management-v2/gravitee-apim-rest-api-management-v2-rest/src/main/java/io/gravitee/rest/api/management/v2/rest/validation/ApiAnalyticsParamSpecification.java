@@ -101,12 +101,11 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
     static ApiAnalyticsParamSpecification aggregationsNotBlank() {
         return new ApiAnalyticsParamSpecification() {
             public boolean satisfies(ApiAnalyticsParam param) {
-                return param
-                    .getAggregations()
-                    .stream()
-                    .allMatch(
-                        agg -> agg.getField() != null && !agg.getField().isBlank() && agg.getType() != null && !agg.getType().isBlank()
-                    );
+                return param.getAggregations().stream()
+                        .allMatch(agg -> agg.getField() != null
+                                && !agg.getField().isBlank()
+                                && agg.getType() != null
+                                && !agg.getType().isBlank());
             }
 
             public String getErrorMessage() {
@@ -118,12 +117,12 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
     static ApiAnalyticsParamSpecification aggregationsOfValidType() {
         return new ApiAnalyticsParamSpecification() {
             public boolean satisfies(ApiAnalyticsParam param) {
-                return param
-                    .getAggregations()
-                    .stream()
-                    .map(ApiAnalyticsParam.Aggregation::getType)
-                    .map(String::toUpperCase)
-                    .allMatch(at -> Arrays.stream(Aggregation.AggregationType.values()).map(Enum::name).anyMatch(at::equals));
+                return param.getAggregations().stream()
+                        .map(ApiAnalyticsParam.Aggregation::getType)
+                        .map(String::toUpperCase)
+                        .allMatch(at -> Arrays.stream(Aggregation.AggregationType.values())
+                                .map(Enum::name)
+                                .anyMatch(at::equals));
             }
 
             public String getErrorMessage() {
@@ -158,11 +157,10 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
             }
 
             public String getErrorMessage() {
-                return specs
-                    .stream()
-                    .map(ApiAnalyticsParamSpecification::getErrorMessage)
-                    .reduce("", (a, b) -> a + " " + b)
-                    .trim();
+                return specs.stream()
+                        .map(ApiAnalyticsParamSpecification::getErrorMessage)
+                        .reduce("", (a, b) -> a + " " + b)
+                        .trim();
             }
         };
     }

@@ -50,42 +50,37 @@ import org.junit.jupiter.params.provider.MethodSource;
 class FilterAdapterOutcomeTest {
 
     private static final JsonObject MATCH_NONE = JsonObject.of("match_none", JsonObject.of());
-    private static final TimeRange TIME_RANGE = new TimeRange(Instant.ofEpochMilli(1756104349879L), Instant.ofEpochMilli(1756190749879L));
+    private static final TimeRange TIME_RANGE =
+            new TimeRange(Instant.ofEpochMilli(1756104349879L), Instant.ofEpochMilli(1756190749879L));
 
     // TODO(GMA-932): allow-listed for messages but MessageFieldResolver cannot resolve them, so the query
     // fails instead of being filtered. Must only shrink: the test fails once one of them resolves.
-    private static final Set<Filter.Name> KNOWN_UNRESOLVABLE_ON_MESSAGE = Set.of(
-        Filter.Name.MESSAGE_SIZE,
-        Filter.Name.MESSAGE_COUNT,
-        Filter.Name.MESSAGE_ERROR_COUNT
-    );
+    private static final Set<Filter.Name> KNOWN_UNRESOLVABLE_ON_MESSAGE =
+            Set.of(Filter.Name.MESSAGE_SIZE, Filter.Name.MESSAGE_COUNT, Filter.Name.MESSAGE_ERROR_COUNT);
 
     /** The adapt calls each path makes, with the field resolver its query adapter uses. */
     private static final Map<AnalyticsSearchPath, List<Function<Query, JsonArray>>> PHASES = Map.of(
-        AnalyticsSearchPath.HTTP,
-        List.of(new FilterAdapter(new HTTPFieldResolver())::adaptForHTTP),
-        AnalyticsSearchPath.EDGE,
-        List.of(new FilterAdapter(new HTTPFieldResolver())::adaptForEdge),
-        // The join: connections through the HTTP facets adapter, then the messages themselves.
-        AnalyticsSearchPath.MESSAGE,
-        List.of(
-            new FilterAdapter(new HTTPFieldResolver())::adaptForMessageConnexion,
-            new FilterAdapter(new MessageFieldResolver())::adaptForMessage
-        ),
-        AnalyticsSearchPath.NATIVE,
-        List.of(new FilterAdapter(new NativeApiFieldResolver())::adaptForNative),
-        AnalyticsSearchPath.EVENT_METRICS,
-        List.of(new FilterAdapter(new EventMetricsFieldResolver())::adaptForEventMetrics),
-        AnalyticsSearchPath.AUTHZ,
-        List.of(new FilterAdapter(new AuthzFieldResolver())::adaptForAuthz),
-        AnalyticsSearchPath.AUTHZ_TRAFFIC,
-        List.of(new FilterAdapter(new AuthzTrafficFieldResolver())::adaptForAuthzTraffic)
-    );
+            AnalyticsSearchPath.HTTP,
+            List.of(new FilterAdapter(new HTTPFieldResolver())::adaptForHTTP),
+            AnalyticsSearchPath.EDGE,
+            List.of(new FilterAdapter(new HTTPFieldResolver())::adaptForEdge),
+            // The join: connections through the HTTP facets adapter, then the messages themselves.
+            AnalyticsSearchPath.MESSAGE,
+            List.of(
+                    new FilterAdapter(new HTTPFieldResolver())::adaptForMessageConnexion,
+                    new FilterAdapter(new MessageFieldResolver())::adaptForMessage),
+            AnalyticsSearchPath.NATIVE,
+            List.of(new FilterAdapter(new NativeApiFieldResolver())::adaptForNative),
+            AnalyticsSearchPath.EVENT_METRICS,
+            List.of(new FilterAdapter(new EventMetricsFieldResolver())::adaptForEventMetrics),
+            AnalyticsSearchPath.AUTHZ,
+            List.of(new FilterAdapter(new AuthzFieldResolver())::adaptForAuthz),
+            AnalyticsSearchPath.AUTHZ_TRAFFIC,
+            List.of(new FilterAdapter(new AuthzTrafficFieldResolver())::adaptForAuthzTraffic));
 
     static Stream<Arguments> everyPathAndName() {
-        return Arrays.stream(AnalyticsSearchPath.values()).flatMap(path ->
-            Arrays.stream(Filter.Name.values()).map(name -> Arguments.of(path, name))
-        );
+        return Arrays.stream(AnalyticsSearchPath.values())
+                .flatMap(path -> Arrays.stream(Filter.Name.values()).map(name -> Arguments.of(path, name)));
     }
 
     @ParameterizedTest(name = "{0} / {1}")
@@ -110,9 +105,9 @@ class FilterAdapterOutcomeTest {
      */
     @Test
     void should_apply_on_the_message_path_every_condition_the_direct_read_carries() {
-        assertThat(FilterAdapter.ENRICHED_MESSAGE_FILTER_NAMES).allSatisfy(name ->
-            assertThat(FilterAdapter.outcome(AnalyticsSearchPath.MESSAGE, name)).isEqualTo(FilterOutcome.APPLIED)
-        );
+        assertThat(FilterAdapter.ENRICHED_MESSAGE_FILTER_NAMES)
+                .allSatisfy(name -> assertThat(FilterAdapter.outcome(AnalyticsSearchPath.MESSAGE, name))
+                        .isEqualTo(FilterOutcome.APPLIED));
     }
 
     private static FilterOutcome observed(AnalyticsSearchPath path, Filter.Name name) {
@@ -129,7 +124,8 @@ class FilterAdapterOutcomeTest {
     }
 
     private static Query query(List<Filter> filters) {
-        return new MeasuresQuery(TIME_RANGE, filters, List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))));
+        return new MeasuresQuery(
+                TIME_RANGE, filters, List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))));
     }
 
     /** A value each name's own translation accepts; only whether the condition lands matters here. */

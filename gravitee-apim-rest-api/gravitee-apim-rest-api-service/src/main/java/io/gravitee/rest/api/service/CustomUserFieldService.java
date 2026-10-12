@@ -25,7 +25,10 @@ import java.util.List;
  */
 public interface CustomUserFieldService {
     CustomUserFieldEntity create(final ExecutionContext executionContext, CustomUserFieldEntity newFieldEntity);
+
     CustomUserFieldEntity update(final ExecutionContext executionContext, CustomUserFieldEntity updateFieldEntity);
+
     void delete(final ExecutionContext executionContext, String key);
+
     List<CustomUserFieldEntity> listAllFields(final ExecutionContext executionContext);
 }

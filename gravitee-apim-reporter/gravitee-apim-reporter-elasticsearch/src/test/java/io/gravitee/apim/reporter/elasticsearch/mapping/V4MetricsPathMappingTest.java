@@ -49,13 +49,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 class V4MetricsPathMappingTest {
 
     @ParameterizedTest(name = "{0} declares path-info with the keyword sub-field the engine queries")
-    @ValueSource(strings = { "es7x", "es8x", "es9x", "opensearch" })
+    @ValueSource(strings = {"es7x", "es8x", "es9x", "opensearch"})
     void should_declare_path_info_with_a_keyword_sub_field(String tree) {
         assertThat(pathInfoKeywordOf(tree)).containsEntry("type", "keyword");
     }
 
     @ParameterizedTest(name = "{0} indexes a path of any length into path-info.keyword")
-    @ValueSource(strings = { "es7x", "es8x", "es9x", "opensearch" })
+    @ValueSource(strings = {"es7x", "es8x", "es9x", "opensearch"})
     void should_not_cap_the_indexed_path_length(String tree) {
         // ignore_above drops the value from the sub-field altogether, so a long path stops matching the
         // HTTP_PATH filter and disappears from its facet buckets, with nothing reported.
@@ -71,7 +71,7 @@ class V4MetricsPathMappingTest {
     }
 
     @ParameterizedTest(name = "{0} does not declare the path field v4 never writes")
-    @ValueSource(strings = { "es7x", "es8x", "es9x", "opensearch" })
+    @ValueSource(strings = {"es7x", "es8x", "es9x", "opensearch"})
     void should_not_declare_the_unwritten_path_field(String tree) {
         // v4 reports the path after the context path as path-info; `path` belongs to the v2 request index.
         // Declared here but empty on every document, it read as a usable dimension and cost APIM-15072 to
@@ -104,17 +104,17 @@ class V4MetricsPathMappingTest {
     private static JsonObject propertiesOf(String tree) {
         var root = new JsonObject(render(tree));
         var mappings = root.containsKey("mappings")
-            ? root.getJsonObject("mappings")
-            : root.getJsonObject("template").getJsonObject("mappings");
+                ? root.getJsonObject("mappings")
+                : root.getJsonObject("template").getJsonObject("mappings");
 
         return mappings.getJsonObject("properties");
     }
 
     private static String render(String tree) {
         var freeMarkerComponent = FreeMarkerComponent.builder()
-            .classLoader(V4MetricsPathMappingTest.class.getClassLoader())
-            .classLoaderTemplateBase("freemarker")
-            .build();
+                .classLoader(V4MetricsPathMappingTest.class.getClassLoader())
+                .classLoaderTemplateBase("freemarker")
+                .build();
         var pipelineConfiguration = new PipelineConfiguration(freeMarkerComponent);
         var configuration = new ReporterConfiguration();
 
@@ -123,7 +123,8 @@ class V4MetricsPathMappingTest {
             case "es7x" -> new ES7IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es8x" -> new ES8IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es9x" -> new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
-            case "opensearch" -> new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
+            case "opensearch" ->
+                new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             default -> throw new IllegalArgumentException("Unknown template tree: " + tree);
         };
 

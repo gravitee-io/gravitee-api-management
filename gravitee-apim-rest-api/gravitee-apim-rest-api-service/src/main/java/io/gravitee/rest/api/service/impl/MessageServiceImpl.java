@@ -177,16 +177,15 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             int msgSize = send(executionContext, api, message, getRecipientsId(executionContext, api, message));
 
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.emptyMap())
-                    .event(MESSAGE_SENT)
-                    .createdAt(new Date())
-                    .oldValue(null)
-                    .newValue(message)
-                    .build(),
-                apiId
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.emptyMap())
+                            .event(MESSAGE_SENT)
+                            .createdAt(new Date())
+                            .oldValue(null)
+                            .newValue(message)
+                            .build(),
+                    apiId);
             return msgSize;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to create a message", ex);
@@ -200,15 +199,14 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         int msgSize = send(executionContext, null, message, getRecipientsId(executionContext, message));
 
         auditService.createAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(Collections.emptyMap())
-                .event(MESSAGE_SENT)
-                .createdAt(new Date())
-                .oldValue(null)
-                .newValue(message)
-                .build()
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(Collections.emptyMap())
+                        .event(MESSAGE_SENT)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(message)
+                        .build());
         return msgSize;
     }
 
@@ -218,20 +216,21 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 Set<String> mails = getRecipientsEmails(executionContext, recipientsId);
                 if (!mails.isEmpty()) {
                     emailService.sendAsyncEmailNotification(
-                        executionContext,
-                        new EmailNotificationBuilder()
-                            .to(EmailService.DEFAULT_MAIL_TO)
-                            .bcc(mails.toArray(new String[0]))
-                            .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GENERIC_MESSAGE)
-                            .param("message", message.getText())
-                            .param("messageSubject", message.getTitle())
-                            .build()
-                    );
+                            executionContext,
+                            new EmailNotificationBuilder()
+                                    .to(EmailService.DEFAULT_MAIL_TO)
+                                    .bcc(mails.toArray(new String[0]))
+                                    .template(
+                                            EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GENERIC_MESSAGE)
+                                    .param("message", message.getText())
+                                    .param("messageSubject", message.getTitle())
+                                    .build());
                 }
                 return mails.size();
             case PORTAL:
                 Hook hook = api == null ? PortalHook.MESSAGE : ApiHook.MESSAGE;
-                portalNotificationService.create(executionContext, hook, new ArrayList<>(recipientsId), getPortalParams(api, message));
+                portalNotificationService.create(
+                        executionContext, hook, new ArrayList<>(recipientsId), getPortalParams(api, message));
                 return recipientsId.size();
             case HTTP:
                 if (!httpEnabled) {
@@ -244,26 +243,20 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
                 if (httpWhitelist != null && !httpWhitelist.isEmpty()) {
                     // Check the provided url is allowed.
-                    if (
-                        httpWhitelist
-                            .stream()
-                            .noneMatch(whitelistUrl ->
-                                whitelistUrl.endsWith("/")
+                    if (httpWhitelist.stream()
+                            .noneMatch(whitelistUrl -> whitelistUrl.endsWith("/")
                                     ? url.startsWith(whitelistUrl)
-                                    : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
-                            )
-                    ) {
+                                    : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/')))) {
                         throw new MessageUrlForbiddenException();
                     }
                 }
 
                 httpClientService.request(
-                    HttpMethod.POST,
-                    url,
-                    message.getParams(),
-                    getPostMessage(executionContext, api, message, executionContext.getOrganizationId()),
-                    Boolean.valueOf(message.isUseSystemProxy())
-                );
+                        HttpMethod.POST,
+                        url,
+                        message.getParams(),
+                        getPostMessage(executionContext, api, message, executionContext.getOrganizationId()),
+                        Boolean.valueOf(message.isUseSystemProxy()));
                 return 1;
             default:
                 return 0;
@@ -296,22 +289,16 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             if (api == null && RoleScope.ENVIRONMENT.name().equals(recipientEntity.getRoleScope())) {
                 for (String roleName : recipientEntity.getRoleValues()) {
                     Optional<RoleEntity> optRole = roleService.findByScopeAndName(
-                        RoleScope.valueOf(recipientEntity.getRoleScope()),
-                        roleName,
-                        context.getOrganizationId()
-                    );
+                            RoleScope.valueOf(recipientEntity.getRoleScope()), roleName, context.getOrganizationId());
                     if (optRole.isPresent()) {
-                        recipientIds.addAll(
-                            membershipService
+                        recipientIds.addAll(membershipService
                                 .getMembershipsByReferenceAndRole(
-                                    MembershipReferenceType.ENVIRONMENT,
-                                    context.getEnvironmentId(),
-                                    optRole.get().getId()
-                                )
+                                        MembershipReferenceType.ENVIRONMENT,
+                                        context.getEnvironmentId(),
+                                        optRole.get().getId())
                                 .stream()
                                 .map(MembershipEntity::getMemberId)
-                                .collect(Collectors.toSet())
-                        );
+                                .collect(Collectors.toSet()));
                     }
                 }
             }
@@ -319,45 +306,37 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             else if (api != null && RoleScope.APPLICATION.name().equals(recipientEntity.getRoleScope())) {
                 // Get apps allowed to consume the api
                 List<String> applicationIds = subscriptionRepository
-                    .search(
-                        SubscriptionCriteria.builder()
-                            .apis(Collections.singleton(api.getId()))
-                            .statuses(List.of(Subscription.Status.ACCEPTED.name()))
-                            .build()
-                    )
-                    .stream()
-                    .map(Subscription::getApplication)
-                    .collect(Collectors.toList());
+                        .search(SubscriptionCriteria.builder()
+                                .apis(Collections.singleton(api.getId()))
+                                .statuses(List.of(Subscription.Status.ACCEPTED.name()))
+                                .build())
+                        .stream()
+                        .map(Subscription::getApplication)
+                        .collect(Collectors.toList());
 
                 // Get members of the applications (direct members and group members)
                 for (String roleName : recipientEntity.getRoleValues()) {
                     Optional<RoleEntity> optRole = roleService.findByScopeAndName(
-                        RoleScope.APPLICATION,
-                        roleName,
-                        context.getOrganizationId()
-                    );
+                            RoleScope.APPLICATION, roleName, context.getOrganizationId());
                     if (optRole.isPresent()) {
                         // get all directs members
-                        recipientIds.addAll(
-                            membershipService
+                        recipientIds.addAll(membershipService
                                 .getMembershipsByReferencesAndRole(
-                                    MembershipReferenceType.APPLICATION,
-                                    applicationIds,
-                                    optRole.get().getId()
-                                )
+                                        MembershipReferenceType.APPLICATION,
+                                        applicationIds,
+                                        optRole.get().getId())
                                 .stream()
                                 .map(MembershipEntity::getMemberId)
-                                .collect(Collectors.toSet())
-                        );
+                                .collect(Collectors.toSet()));
 
                         recipientIds.addAll(this.getIndirectMemberIds(context, applicationIds, optRole.get()));
                     } else if (roleName.equals(API_SUBSCRIBERS)) {
-                        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(context, api.getId());
-                        List<String> subscribersId = subscriptions
-                            .stream()
-                            .map(SubscriptionEntity::getSubscribedBy)
-                            .distinct()
-                            .collect(Collectors.toList());
+                        Collection<SubscriptionEntity> subscriptions =
+                                subscriptionService.findByApi(context, api.getId());
+                        List<String> subscribersId = subscriptions.stream()
+                                .map(SubscriptionEntity::getSubscribedBy)
+                                .distinct()
+                                .collect(Collectors.toList());
 
                         recipientIds.addAll(subscribersId);
                     }
@@ -369,29 +348,30 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         }
     }
 
-    private Set<String> getIndirectMemberIds(ExecutionContext context, List<String> applicationIds, RoleEntity roleEntity) {
+    private Set<String> getIndirectMemberIds(
+            ExecutionContext context, List<String> applicationIds, RoleEntity roleEntity) {
         if (applicationIds.isEmpty() || SystemRole.PRIMARY_OWNER.name().equals(roleEntity.getName())) {
             return Collections.emptySet();
         }
 
         // get all indirect members
-        List<String> applicationsGroups = applicationService
-            .findByIdsAndStatus(context, applicationIds, ApplicationStatus.ACTIVE)
-            .stream()
-            .filter(application -> application.getGroups() != null)
-            .flatMap((ApplicationListItem applicationListItem) -> applicationListItem.getGroups().stream())
-            .distinct()
-            .collect(Collectors.toList());
+        List<String> applicationsGroups =
+                applicationService.findByIdsAndStatus(context, applicationIds, ApplicationStatus.ACTIVE).stream()
+                        .filter(application -> application.getGroups() != null)
+                        .flatMap((ApplicationListItem applicationListItem) -> applicationListItem.getGroups().stream())
+                        .distinct()
+                        .collect(Collectors.toList());
 
         if (applicationsGroups.isEmpty()) {
             return Collections.emptySet();
         }
 
         return membershipService
-            .getMembershipsByReferencesAndRole(MembershipReferenceType.GROUP, applicationsGroups, roleEntity.getId())
-            .stream()
-            .map(MembershipEntity::getMemberId)
-            .collect(Collectors.toSet());
+                .getMembershipsByReferencesAndRole(
+                        MembershipReferenceType.GROUP, applicationsGroups, roleEntity.getId())
+                .stream()
+                .map(MembershipEntity::getMemberId)
+                .collect(Collectors.toSet());
     }
 
     private Set<String> getRecipientsEmails(ExecutionContext executionContext, Set<String> recipientsId) {
@@ -399,33 +379,32 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             return Collections.emptySet();
         }
 
-        final boolean isTrialInstance = parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM);
-        final Predicate<UserEntity> excludeIfTrialAndNotOptedIn = userEntity -> !isTrialInstance || userEntity.optedIn();
+        final boolean isTrialInstance =
+                parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM);
+        final Predicate<UserEntity> excludeIfTrialAndNotOptedIn =
+                userEntity -> !isTrialInstance || userEntity.optedIn();
 
-        return userService
-            .findByIds(executionContext, new ArrayList<>(recipientsId))
-            .stream()
-            .filter(userEntity -> !StringUtils.isEmpty(userEntity.getEmail()))
-            .filter(excludeIfTrialAndNotOptedIn)
-            .map(UserEntity::getEmail)
-            .collect(Collectors.toSet());
+        return userService.findByIds(executionContext, new ArrayList<>(recipientsId)).stream()
+                .filter(userEntity -> !StringUtils.isEmpty(userEntity.getEmail()))
+                .filter(excludeIfTrialAndNotOptedIn)
+                .map(UserEntity::getEmail)
+                .collect(Collectors.toSet());
     }
 
     private void assertMessageNotEmpty(MessageEntity messageEntity) {
-        if (messageEntity == null || (StringUtils.isEmpty(messageEntity.getTitle()) && StringUtils.isEmpty(messageEntity.getText()))) {
+        if (messageEntity == null
+                || (StringUtils.isEmpty(messageEntity.getTitle()) && StringUtils.isEmpty(messageEntity.getText()))) {
             throw new MessageEmptyException();
         }
     }
 
     private void assertRecipientsNotEmpty(MessageEntity messageEntity) {
-        if (
-            messageEntity == null ||
-            messageEntity.getRecipient() == null ||
-            messageEntity.getChannel() == null ||
-            messageEntity.getRecipient().getRoleScope() == null ||
-            messageEntity.getRecipient().getRoleValues() == null ||
-            messageEntity.getRecipient().getRoleValues().isEmpty()
-        ) {
+        if (messageEntity == null
+                || messageEntity.getRecipient() == null
+                || messageEntity.getChannel() == null
+                || messageEntity.getRecipient().getRoleScope() == null
+                || messageEntity.getRecipient().getRoleValues() == null
+                || messageEntity.getRecipient().getRoleValues().isEmpty()) {
             throw new MessageRecipientFormatException();
         }
     }
@@ -444,7 +423,8 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         return params;
     }
 
-    private String getPostMessage(ExecutionContext executionContext, Api api, MessageEntity message, String organizationId) {
+    private String getPostMessage(
+            ExecutionContext executionContext, Api api, MessageEntity message, String organizationId) {
         if (message.getText() == null || api == null) {
             return message.getText();
         }
@@ -454,11 +434,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         model.put("api", genericApiModel);
 
         return this.notificationTemplateService.resolveInlineTemplateWithParam(
-            organizationId,
-            new Date().toString(),
-            message.getText(),
-            model
-        );
+                organizationId, new Date().toString(), message.getText(), model);
     }
 
     public enum MessageEvent implements Audit.AuditEvent {

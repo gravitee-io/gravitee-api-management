@@ -36,14 +36,17 @@ public class EndpointDiscoveryServiceSerializerTest extends AbstractTest {
     @Test
     public void definition_withoutEndpointDiscovery() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/discovery/api-withoutservice.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/discovery/api-withoutservice-expected.json";
+        String expectedDefinition =
+                "/io/gravitee/definition/jackson/services/discovery/api-withoutservice-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
 
         EndpointDiscoveryService endpointDiscoveryService = api.getService(EndpointDiscoveryService.class);
         Assertions.assertNull(endpointDiscoveryService);
@@ -53,7 +56,8 @@ public class EndpointDiscoveryServiceSerializerTest extends AbstractTest {
     @Disabled("Service discovery service has been moved from API to group")
     public void definition_withEndpointDiscovery_consul() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/discovery/api-withservice-consul.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/discovery/api-withservice-consul-expected.json";
+        String expectedDefinition =
+                "/io/gravitee/definition/jackson/services/discovery/api-withservice-consul-expected.json";
 
         Api api = load(definition, Api.class);
 
@@ -61,6 +65,8 @@ public class EndpointDiscoveryServiceSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
     }
 }

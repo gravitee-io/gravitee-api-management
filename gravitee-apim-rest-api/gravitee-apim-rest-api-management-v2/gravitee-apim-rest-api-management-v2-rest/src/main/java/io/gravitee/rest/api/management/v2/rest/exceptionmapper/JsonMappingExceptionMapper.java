@@ -32,18 +32,22 @@ public class JsonMappingExceptionMapper extends AbstractExceptionMapper<JsonMapp
 
     @Override
     public Response toResponse(JsonMappingException exception) {
-        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(buildError(exception)).build();
+        return Response.status(Response.Status.BAD_REQUEST)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(buildError(exception))
+                .build();
     }
 
     private Error buildError(JsonMappingException exception) {
         var error = new Error()
-            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-            .technicalCode("invalidValue")
-            .message(sanitizeMessage(exception));
+                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                .technicalCode("invalidValue")
+                .message(sanitizeMessage(exception));
 
         var location = buildFieldLocation(exception);
         if (location != null) {
-            error.details(List.of(new ErrorDetailsInner().message(sanitizeMessage(exception)).location(location)));
+            error.details(List.of(
+                    new ErrorDetailsInner().message(sanitizeMessage(exception)).location(location)));
         }
 
         return error;
@@ -66,10 +70,9 @@ public class JsonMappingExceptionMapper extends AbstractExceptionMapper<JsonMapp
         if (path == null || path.isEmpty()) {
             return null;
         }
-        return path
-            .stream()
-            .map(ref -> ref.getFieldName() != null ? ref.getFieldName() : "[" + ref.getIndex() + "]")
-            .collect(Collectors.joining("."))
-            .replace(".[", "[");
+        return path.stream()
+                .map(ref -> ref.getFieldName() != null ? ref.getFieldName() : "[" + ref.getIndex() + "]")
+                .collect(Collectors.joining("."))
+                .replace(".[", "[");
     }
 }

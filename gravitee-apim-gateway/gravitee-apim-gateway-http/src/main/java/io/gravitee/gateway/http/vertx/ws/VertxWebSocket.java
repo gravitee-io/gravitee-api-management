@@ -44,24 +44,20 @@ class VertxWebSocket implements WebSocket {
     @Override
     public CompletableFuture<WebSocket> upgrade() {
         return httpServerRequest
-            .toWebSocket()
-            .map(
-                (Function<ServerWebSocket, WebSocket>) serverWebSocket -> {
+                .toWebSocket()
+                .map((Function<ServerWebSocket, WebSocket>) serverWebSocket -> {
                     websocket = serverWebSocket;
                     upgraded = true;
                     return VertxWebSocket.this;
-                }
-            )
-            .onFailure(
-                new io.vertx.core.Handler<Throwable>() {
+                })
+                .onFailure(new io.vertx.core.Handler<Throwable>() {
                     @Override
                     public void handle(Throwable event) {
                         System.out.println("Error:" + event);
                     }
-                }
-            )
-            .toCompletionStage()
-            .toCompletableFuture();
+                })
+                .toCompletionStage()
+                .toCompletableFuture();
     }
 
     @Override
@@ -76,19 +72,20 @@ class VertxWebSocket implements WebSocket {
     public WebSocket write(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
         if (upgraded) {
             if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY) {
-                websocket.writeFrame(
-                    io.vertx.core.http.WebSocketFrame.binaryFrame(BufferInternal.buffer(frame.data().getNativeBuffer()), frame.isFinal())
-                );
+                websocket.writeFrame(io.vertx.core.http.WebSocketFrame.binaryFrame(
+                        BufferInternal.buffer(frame.data().getNativeBuffer()), frame.isFinal()));
             } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT) {
-                websocket.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame.data().toString(), frame.isFinal()));
-            } else if (frame.type() == WebSocketFrame.Type.CONTINUATION) {
                 websocket.writeFrame(
-                    io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(frame.data().toString()), frame.isFinal())
-                );
+                        io.vertx.core.http.WebSocketFrame.textFrame(frame.data().toString(), frame.isFinal()));
+            } else if (frame.type() == WebSocketFrame.Type.CONTINUATION) {
+                websocket.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(
+                        Buffer.buffer(frame.data().toString()), frame.isFinal()));
             } else if (frame.type() == WebSocketFrame.Type.PING) {
-                websocket.writeFrame(io.vertx.core.http.WebSocketFrame.pingFrame(Buffer.buffer(frame.data().toString())));
+                websocket.writeFrame(io.vertx.core.http.WebSocketFrame.pingFrame(
+                        Buffer.buffer(frame.data().toString())));
             } else if (frame.type() == WebSocketFrame.Type.PONG) {
-                websocket.writeFrame(io.vertx.core.http.WebSocketFrame.pongFrame(Buffer.buffer(frame.data().toString())));
+                websocket.writeFrame(io.vertx.core.http.WebSocketFrame.pongFrame(
+                        Buffer.buffer(frame.data().toString())));
             }
         }
         return this;

@@ -55,9 +55,9 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         var portalPage = found.get();
         assertThat(portalPage.getId()).isEqualTo("test-portal-page-id");
         assertThat(portalPage.getName()).isEqualTo("Test Portal Page");
-        assertThat(portalPage.getContent()).isEqualTo(
-            "This is a test portal page content with some sample text to verify the repository functionality."
-        );
+        assertThat(portalPage.getContent())
+                .isEqualTo(
+                        "This is a test portal page content with some sample text to verify the repository functionality.");
         assertThat(portalPage.getCreatedAt()).isEqualTo(new Date(1486771200000L));
         assertThat(portalPage.getUpdatedAt()).isEqualTo(new Date(1486771200000L));
     }
@@ -72,9 +72,12 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(allPages.size()).isEqualTo(3);
 
         // Verify specific pages exist
-        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("test-portal-page-id"))).isTrue();
-        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("update-portal-page"))).isTrue();
-        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("delete-portal-page"))).isTrue();
+        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("test-portal-page-id")))
+                .isTrue();
+        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("update-portal-page")))
+                .isTrue();
+        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("delete-portal-page")))
+                .isTrue();
     }
 
     @Test
@@ -138,9 +141,8 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         nonExisting.setCreatedAt(new Date());
         nonExisting.setUpdatedAt(new Date());
 
-        assertThatThrownBy(() -> portalPageRepository.update(nonExisting)).matches(
-            th -> th instanceof IllegalStateException || th instanceof TechnicalException
-        );
+        assertThatThrownBy(() -> portalPageRepository.update(nonExisting))
+                .matches(th -> th instanceof IllegalStateException || th instanceof TechnicalException);
     }
 
     @Test
@@ -172,9 +174,12 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         // Then
         assertThat(pages).isNotNull();
         assertThat(pages.size()).isEqualTo(3);
-        assertThat(pages.stream().anyMatch(p -> p.getId().equals("test-portal-page-id"))).isTrue();
-        assertThat(pages.stream().anyMatch(p -> p.getId().equals("update-portal-page"))).isTrue();
-        assertThat(pages.stream().anyMatch(p -> p.getId().equals("delete-portal-page"))).isTrue();
+        assertThat(pages.stream().anyMatch(p -> p.getId().equals("test-portal-page-id")))
+                .isTrue();
+        assertThat(pages.stream().anyMatch(p -> p.getId().equals("update-portal-page")))
+                .isTrue();
+        assertThat(pages.stream().anyMatch(p -> p.getId().equals("delete-portal-page")))
+                .isTrue();
     }
 
     @Test
@@ -200,14 +205,13 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(pages.size()).isEqualTo(3);
 
         // Content should be present when explicitly expanded
-        var page = pages
-            .stream()
-            .filter(p -> p.getId().equals("test-portal-page-id"))
-            .findFirst();
+        var page = pages.stream()
+                .filter(p -> p.getId().equals("test-portal-page-id"))
+                .findFirst();
         assertThat(page).isPresent();
-        assertThat(page.get().getContent()).isEqualTo(
-            "This is a test portal page content with some sample text to verify the repository functionality."
-        );
+        assertThat(page.get().getContent())
+                .isEqualTo(
+                        "This is a test portal page content with some sample text to verify the repository functionality.");
     }
 
     @Test
@@ -233,8 +237,8 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         Set<PortalPage> allPagesBeforeDelete = portalPageRepository.findAll();
         assertThat(allPagesBeforeDelete).hasSize(3);
         assertThat(allPagesBeforeDelete)
-            .filteredOn(page -> page.getEnvironmentId().equals(environmentToDelete))
-            .hasSize(2);
+                .filteredOn(page -> page.getEnvironmentId().equals(environmentToDelete))
+                .hasSize(2);
 
         // When
         portalPageRepository.deleteByEnvironmentId(environmentToDelete);
@@ -242,6 +246,7 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         // Then
         Set<PortalPage> allPagesAfterDelete = portalPageRepository.findAll();
         assertThat(allPagesAfterDelete).hasSize(1);
-        assertThat(allPagesAfterDelete).noneMatch(page -> page.getEnvironmentId().equals(environmentToDelete));
+        assertThat(allPagesAfterDelete)
+                .noneMatch(page -> page.getEnvironmentId().equals(environmentToDelete));
     }
 }

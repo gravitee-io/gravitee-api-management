@@ -37,7 +37,8 @@ import org.springframework.test.context.TestPropertySource;
  * shared with the analytics engine tests so both signals are proven on the same documents).
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@TestPropertySource(properties = "reporters.elasticsearch.template_mapping.path=src/test/resources/freemarker-v4-analytics")
+@TestPropertySource(
+        properties = "reporters.elasticsearch.template_mapping.path=src/test/resources/freemarker-v4-analytics")
 public class MetricsElasticsearchRepositoryEntrypointScopeTest extends AbstractElasticsearchRepositoryTest {
 
     private static final String SCOPE_API = "entrypoint-scope-api-001";
@@ -49,12 +50,15 @@ public class MetricsElasticsearchRepositoryEntrypointScopeTest extends AbstractE
 
     private long total(Filter.FilterBuilder filter) {
         return metricsV4Repository
-            .searchMetrics(
-                queryContext,
-                MetricsQuery.builder().page(1).size(20).filter(filter.apiIds(Set.of(SCOPE_API)).build()).build(),
-                List.of(DefinitionVersion.V4)
-            )
-            .total();
+                .searchMetrics(
+                        queryContext,
+                        MetricsQuery.builder()
+                                .page(1)
+                                .size(20)
+                                .filter(filter.apiIds(Set.of(SCOPE_API)).build())
+                                .build(),
+                        List.of(DefinitionVersion.V4))
+                .total();
     }
 
     @Test
@@ -62,19 +66,21 @@ public class MetricsElasticsearchRepositoryEntrypointScopeTest extends AbstractE
         // Everything but the Edge report: the six HTTP-scope entrypoints, the sse subscription the logs screen
         // lists and analytics does not, the native connection, the unknown entrypoint, and the request refused
         // before an entrypoint was selected.
-        assertThat(
-            total(Filter.builder().entrypointScope(Filter.EntrypointScope.excluding(ObservabilityEntrypoints.LOGS_EXCLUDED_IDS)))
-        ).isEqualTo(10L);
+        assertThat(total(Filter.builder()
+                        .entrypointScope(Filter.EntrypointScope.excluding(ObservabilityEntrypoints.LOGS_EXCLUDED_IDS))))
+                .isEqualTo(10L);
     }
 
     @Test
     void should_select_exactly_the_given_entrypoint() {
-        assertThat(total(Filter.builder().entrypointScope(Filter.EntrypointScope.exactly(List.of("llm-proxy"))))).isEqualTo(1L);
+        assertThat(total(Filter.builder().entrypointScope(Filter.EntrypointScope.exactly(List.of("llm-proxy")))))
+                .isEqualTo(1L);
     }
 
     @Test
     void should_reach_requests_without_an_entrypoint_only_through_the_synthetic_value() {
-        assertThat(total(Filter.builder().entrypointScope(Filter.EntrypointScope.exactly(List.of("(none)"))))).isEqualTo(1L);
+        assertThat(total(Filter.builder().entrypointScope(Filter.EntrypointScope.exactly(List.of("(none)")))))
+                .isEqualTo(1L);
     }
 
     @Test

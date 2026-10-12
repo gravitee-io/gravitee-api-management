@@ -32,16 +32,15 @@ class ConditionsNotAppliedEnricherTest {
 
     @Test
     void should_append_after_what_the_engine_reported_each_name_once() throws Exception {
-        var response = json(
-            """
+        var response = json("""
             { "metrics": [
               { "name": "HTTP_REQUESTS", "ignoredFilters": ["NATIVE_CLIENT_ID"] },
               { "name": "HTTP_ERRORS" }
             ] }
-            """
-        );
+            """);
 
-        ConditionsNotAppliedEnricher.enrichMeasures(response, Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE", "NATIVE_CLIENT_ID")));
+        ConditionsNotAppliedEnricher.enrichMeasures(
+                response, Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE", "NATIVE_CLIENT_ID")));
 
         assertThat(response.at("/metrics/0/ignoredFilters")).isEqualTo(json("[\"NATIVE_CLIENT_ID\", \"RECORD_TYPE\"]"));
         assertThat(response.at("/metrics/1").has("ignoredFilters")).isFalse();

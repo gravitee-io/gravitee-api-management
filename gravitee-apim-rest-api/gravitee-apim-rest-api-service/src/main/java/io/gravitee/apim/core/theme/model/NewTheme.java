@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.theme.model;
 
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
-import java.time.ZonedDateTime;
 import lombok.Builder;
 import lombok.Data;
 

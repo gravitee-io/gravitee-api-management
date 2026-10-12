@@ -30,14 +30,14 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface TicketService {
     TicketEntity create(
-        ExecutionContext executionContext,
-        String username,
-        NewTicketEntity ticketEntity,
-        final String referenceId,
-        final ParameterReferenceType referenceType
-    );
+            ExecutionContext executionContext,
+            String username,
+            NewTicketEntity ticketEntity,
+            final String referenceId,
+            final ParameterReferenceType referenceType);
 
-    Page<TicketEntity> search(ExecutionContext executionContext, TicketQuery query, Sortable sortable, Pageable pageable);
+    Page<TicketEntity> search(
+            ExecutionContext executionContext, TicketQuery query, Sortable sortable, Pageable pageable);
 
     TicketEntity findById(ExecutionContext executionContext, String ticketId);
 }

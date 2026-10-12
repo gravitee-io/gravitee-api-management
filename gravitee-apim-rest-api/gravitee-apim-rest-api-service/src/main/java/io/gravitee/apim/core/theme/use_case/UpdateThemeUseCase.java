@@ -21,10 +21,8 @@ import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.domain_service.ThemeDomainService;
 import io.gravitee.apim.core.theme.domain_service.ValidateThemeDomainService;
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.core.theme.model.UpdateTheme;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.time.ZonedDateTime;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 

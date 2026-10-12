@@ -26,44 +26,47 @@ import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 
 public interface KafkaClusterDomainService {
     KafkaClusterInfo describeCluster(KafkaClusterStandaloneConfiguration config);
+
     TopicsPage listTopics(
-        KafkaClusterStandaloneConfiguration config,
-        String nameFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    );
+            KafkaClusterStandaloneConfiguration config,
+            String nameFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder);
+
     TopicDetail describeTopic(KafkaClusterStandaloneConfiguration config, String topicName);
+
     BrokerInfo describeBroker(KafkaClusterStandaloneConfiguration config, int brokerId);
+
     ConsumerGroupsPage listConsumerGroups(
-        KafkaClusterStandaloneConfiguration config,
-        String nameFilter,
-        String topicFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    );
+            KafkaClusterStandaloneConfiguration config,
+            String nameFilter,
+            String topicFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder);
+
     ConsumerGroupDetail describeConsumerGroup(KafkaClusterStandaloneConfiguration config, String groupId);
+
     BrowseMessagesResult browseMessages(
-        KafkaClusterStandaloneConfiguration config,
-        String topicName,
-        Integer partition,
-        String offsetMode,
-        Long offsetValue,
-        String keyFilter,
-        String valueFilter,
-        int limit
-    );
+            KafkaClusterStandaloneConfiguration config,
+            String topicName,
+            Integer partition,
+            String offsetMode,
+            Long offsetValue,
+            String keyFilter,
+            String valueFilter,
+            int limit);
+
     void tailMessages(
-        KafkaClusterStandaloneConfiguration config,
-        String topicName,
-        Integer partition,
-        String keyFilter,
-        String valueFilter,
-        int maxMessages,
-        int durationSeconds,
-        MessageConsumer consumer
-    );
+            KafkaClusterStandaloneConfiguration config,
+            String topicName,
+            Integer partition,
+            String keyFilter,
+            String valueFilter,
+            int maxMessages,
+            int durationSeconds,
+            MessageConsumer consumer);
 }

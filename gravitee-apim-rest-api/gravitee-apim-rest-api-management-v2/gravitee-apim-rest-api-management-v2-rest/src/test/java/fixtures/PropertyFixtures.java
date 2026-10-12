@@ -23,8 +23,8 @@ public class PropertyFixtures {
 
     private PropertyFixtures() {}
 
-    private static final Supplier<Property> BASE_PROPERTY = () ->
-        new Property().dynamic(false).encrypted(false).key("prop-key").value("prop-value");
+    private static final Supplier<Property> BASE_PROPERTY =
+            () -> new Property().dynamic(false).encrypted(false).key("prop-key").value("prop-value");
 
     public static Property aProperty() {
         return BASE_PROPERTY.get();

@@ -25,10 +25,16 @@ public class ValidationDomainMapper extends AbstractDomainExceptionMapper<Valida
 
     @Override
     public Response toResponse(ValidationDomainException ve) {
-        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(validationDomainError(ve)).build();
+        return Response.status(Response.Status.BAD_REQUEST)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(validationDomainError(ve))
+                .build();
     }
 
     private Error validationDomainError(ValidationDomainException vde) {
-        return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).technicalCode("invalid").message(vde.getMessage());
+        return new Error()
+                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                .technicalCode("invalid")
+                .message(vde.getMessage());
     }
 }

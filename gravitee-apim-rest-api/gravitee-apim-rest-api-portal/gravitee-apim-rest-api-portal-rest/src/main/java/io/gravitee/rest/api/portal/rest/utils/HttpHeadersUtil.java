@@ -26,11 +26,10 @@ public interface HttpHeadersUtil {
         if (acceptLanguageHeader == null) {
             return Collections.emptyList();
         }
-        return LanguageRange.parse(acceptLanguageHeader)
-            .stream()
-            .map(l -> Locale.forLanguageTag(l.getRange()).getLanguage())
-            .distinct()
-            .collect(Collectors.toList());
+        return LanguageRange.parse(acceptLanguageHeader).stream()
+                .map(l -> Locale.forLanguageTag(l.getRange()).getLanguage())
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public static String getFirstAcceptedLocaleName(String acceptLanguageHeader) {

@@ -47,18 +47,19 @@ import org.junit.jupiter.api.Test;
 class ValidatePortalLinkUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String PORTAL_HRID = "default-portal";
-    private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
+    private static final PortalId PORTAL_ID = PortalId.of(
+            HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
     private static final String LINK_HRID = "external-docs";
 
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
 
     private ValidatePortalLinkUseCase useCase;
@@ -66,24 +67,21 @@ class ValidatePortalLinkUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new ValidatePortalLinkUseCase(
-            navQueryService,
-            new PortalNavigationItemValidatorService(
                 navQueryService,
-                new PortalPageContentQueryServiceInMemory(),
-                new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory(),
-                new ApiCrudServiceInMemory()
-            ),
-            new PortalLinkSyncDomainService(navCrudService, navQueryService),
-            new PortalAutomationScopeDomainService(portalCrudService, () -> false)
-        );
+                new PortalNavigationItemValidatorService(
+                        navQueryService,
+                        new PortalPageContentQueryServiceInMemory(),
+                        new ApiProductQueryServiceInMemory(),
+                        new PortalNavigationItemSourceDomainServiceInMemory(),
+                        new ApiCrudServiceInMemory()),
+                new PortalLinkSyncDomainService(navCrudService, navQueryService),
+                new PortalAutomationScopeDomainService(portalCrudService, () -> false));
     }
 
     @Test
     void should_return_no_errors_and_no_link_for_well_formed_input() {
-        portalCrudService.initWith(
-            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
-        );
+        portalCrudService.initWith(List.of(
+                Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal")));
 
         var output = useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 1));
 
@@ -96,68 +94,57 @@ class ValidatePortalLinkUseCaseTest {
         var output = useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 1));
 
         assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .contains("the portal to attach the link to does not exist in this environment");
+                .extracting(Validator.Error::getMessage)
+                .contains("the portal to attach the link to does not exist in this environment");
     }
 
     @Test
     void should_surface_href_format_error() {
         var output = useCase.execute(input("External Docs", "not-a-url", "/projects/alpha", 1));
 
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("url"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("url"));
     }
 
     @Test
     void should_surface_blank_name_error() {
         var output = useCase.execute(input("  ", "https://docs.example.com", "/projects/alpha", 1));
 
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("title"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("title"));
     }
 
     @Test
     void should_surface_location_format_error() {
         var output = useCase.execute(input("External Docs", "https://docs.example.com", "projects/alpha", 1));
 
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("location"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("location"));
     }
 
     @Test
     void should_surface_segment_conflict_without_throwing_so_dry_run_can_predict_the_apply_failure() {
-        portalCrudService.initWith(
-            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
-        );
-        navCrudService.initWith(
-            List.of(
-                PortalNavigationFolder.builder()
-                    .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title(LINK_HRID)
-                    .segment(LINK_HRID)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .build()
-            )
-        );
+        portalCrudService.initWith(List.of(
+                Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal")));
+        navCrudService.initWith(List.of(PortalNavigationFolder.builder()
+                .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title(LINK_HRID)
+                .segment(LINK_HRID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build()));
 
         var output = useCase.execute(input("External Docs", "https://docs.example.com", null, 1));
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("path segment"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("path segment"));
     }
 
-    private static CreateOrUpdatePortalLinkUseCase.Input input(String name, String href, String location, Integer order) {
-        return new CreateOrUpdatePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID, name, href, location, order, null);
+    private static CreateOrUpdatePortalLinkUseCase.Input input(
+            String name, String href, String location, Integer order) {
+        return new CreateOrUpdatePortalLinkUseCase.Input(
+                AUDIT_INFO, PORTAL_ID, LINK_HRID, name, href, location, order, null);
     }
 }

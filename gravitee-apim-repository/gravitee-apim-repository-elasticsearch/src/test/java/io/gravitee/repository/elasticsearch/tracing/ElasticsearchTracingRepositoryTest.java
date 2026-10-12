@@ -69,12 +69,11 @@ class ElasticsearchTracingRepositoryTest {
         // go to resource.attributes.* — no key-prefix heuristics. Service identity (a resource concept) must
         // be declared explicitly by the caller via resourceAttributeFilters.
         TraceSearchCriteria criteria = new TraceSearchCriteria(
-            Map.of("http.status_code", "200"),
-            5,
-            Instant.parse("2026-04-30T09:00:00Z"),
-            Instant.parse("2026-04-30T11:00:00Z"),
-            Map.of("service.name", "test-service", "gravitee.environment.id", "test-env")
-        );
+                Map.of("http.status_code", "200"),
+                5,
+                Instant.parse("2026-04-30T09:00:00Z"),
+                Instant.parse("2026-04-30T11:00:00Z"),
+                Map.of("service.name", "test-service", "gravitee.environment.id", "test-env"));
 
         repository.searchTraces(QUERY_CONTEXT, criteria).blockingGet();
 
@@ -90,23 +89,37 @@ class ElasticsearchTracingRepositoryTest {
         JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
         JsonNode filter = body.path("query").path("bool").path("filter");
         // Clause order: time range, then attribute filters, then resource-attribute filters.
-        assertThat(filter.get(0).path("range").path("@timestamp").path("gte").asText()).isEqualTo("2026-04-30T09:00:00Z");
-        assertThat(filter.get(1).path("term").path("attributes.http.status_code").asText()).isEqualTo("200");
+        assertThat(filter.get(0).path("range").path("@timestamp").path("gte").asText())
+                .isEqualTo("2026-04-30T09:00:00Z");
+        assertThat(filter.get(1)
+                        .path("term")
+                        .path("attributes.http.status_code")
+                        .asText())
+                .isEqualTo("200");
         // service.name + gravitee.environment.id both land on resource.attributes.* — gather both into a set
         // since the resource-filter iteration order is the criteria map's iteration order (unspecified for
         // Map.of) and we only care about contents, not order.
         java.util.Map<String, String> resourceClauses = new java.util.HashMap<>();
         for (int i = 2; i < 4; i++) {
             JsonNode term = filter.get(i).path("term");
-            term.fields().forEachRemaining(e -> resourceClauses.put(e.getKey(), e.getValue().asText()));
+            term.fields()
+                    .forEachRemaining(
+                            e -> resourceClauses.put(e.getKey(), e.getValue().asText()));
         }
         assertThat(resourceClauses)
-            .containsEntry("resource.attributes.service.name", "test-service")
-            .containsEntry("resource.attributes.gravitee.environment.id", "test-env");
-        assertThat(body.path("aggs").path("traces").path("terms").path("field").asText()).isEqualTo("trace_id");
-        assertThat(body.path("aggs").path("traces").path("terms").path("size").asInt()).isEqualTo(5);
+                .containsEntry("resource.attributes.service.name", "test-service")
+                .containsEntry("resource.attributes.gravitee.environment.id", "test-env");
+        assertThat(body.path("aggs").path("traces").path("terms").path("field").asText())
+                .isEqualTo("trace_id");
+        assertThat(body.path("aggs").path("traces").path("terms").path("size").asInt())
+                .isEqualTo(5);
         // Sibling cardinality agg drives the distinct-trace total used for pagination.
-        assertThat(body.path("aggs").path("total_traces").path("cardinality").path("field").asText()).isEqualTo("trace_id");
+        assertThat(body.path("aggs")
+                        .path("total_traces")
+                        .path("cardinality")
+                        .path("field")
+                        .asText())
+                .isEqualTo("trace_id");
     }
 
     @Test
@@ -122,13 +135,15 @@ class ElasticsearchTracingRepositoryTest {
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
         JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
-        assertThat(body.path("aggs").path("traces").path("terms").path("size").asInt()).isEqualTo(200);
+        assertThat(body.path("aggs").path("traces").path("terms").path("size").asInt())
+                .isEqualTo(200);
     }
 
     @Test
     void searchTraces_should_map_aggregation_buckets_to_traces() {
         SearchResponse response = new SearchResponse();
-        response.setAggregations(Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(1.0f)));
+        response.setAggregations(
+                Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(1.0f)));
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
         TraceSearchCriteria criteria = new TraceSearchCriteria(Map.of(), 20, null, null, Map.of());
@@ -161,7 +176,9 @@ class ElasticsearchTracingRepositoryTest {
         response.setSearchHits(hits);
         stubBackends(response);
 
-        Trace trace = repository.getTrace(QUERY_CONTEXT, "a1b2c3d4", Map.of("gravitee.environment.id", "test-env")).blockingGet();
+        Trace trace = repository
+                .getTrace(QUERY_CONTEXT, "a1b2c3d4", Map.of("gravitee.environment.id", "test-env"))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
@@ -170,7 +187,11 @@ class ElasticsearchTracingRepositoryTest {
         // and the resource clauses land in the same query.
         JsonNode filter = body.path("query").path("bool").path("filter");
         assertThat(filter.get(0).path("term").path("trace_id").asText()).isEqualTo("a1b2c3d4");
-        assertThat(filter.get(1).path("term").path("resource.attributes.gravitee.environment.id").asText()).isEqualTo("test-env");
+        assertThat(filter.get(1)
+                        .path("term")
+                        .path("resource.attributes.gravitee.environment.id")
+                        .asText())
+                .isEqualTo("test-env");
 
         assertThat(trace).isNotNull();
         assertThat(trace.traceId()).isEqualTo("a1b2c3d4");
@@ -261,9 +282,11 @@ class ElasticsearchTracingRepositoryTest {
         // OTel collectors write to lowercase data-stream names (ES data streams require lowercase), so the index
         // must resolve to traces-apim.otel-default regardless of input casing.
         QueryContext upperCase = new QueryContext("DEFAULT", "PROD");
-        ElasticsearchTracingRepository repo = new ElasticsearchTracingRepository("traces-apim.otel-{orgId}-{envId}", client);
+        ElasticsearchTracingRepository repo =
+                new ElasticsearchTracingRepository("traces-apim.otel-{orgId}-{envId}", client);
 
-        repo.searchTraces(upperCase, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of())).blockingGet();
+        repo.searchTraces(upperCase, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
+                .blockingGet();
 
         ArgumentCaptor<String> indexCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(indexCaptor.capture(), eq(null), any());
@@ -276,12 +299,7 @@ class ElasticsearchTracingRepositoryTest {
         // without any prefix heuristic or hardcoded key list. Span tags stay on attributes.*.
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
         TraceSearchCriteria criteria = new TraceSearchCriteria(
-            Map.of("http.method", "GET"),
-            20,
-            null,
-            null,
-            Map.of("gravitee.module", "apim")
-        );
+                Map.of("http.method", "GET"), 20, null, null, Map.of("gravitee.module", "apim"));
 
         repository.searchTraces(QUERY_CONTEXT, criteria).blockingGet();
 
@@ -293,18 +311,25 @@ class ElasticsearchTracingRepositoryTest {
         boolean hasSpanHttpMethodFilter = false;
         for (JsonNode clause : filter) {
             JsonNode term = clause.path("term");
-            if ("apim".equals(term.path("resource.attributes.gravitee.module").asText(null))) hasResourceModuleFilter = true;
+            if ("apim".equals(term.path("resource.attributes.gravitee.module").asText(null)))
+                hasResourceModuleFilter = true;
             if ("GET".equals(term.path("attributes.http.method").asText(null))) hasSpanHttpMethodFilter = true;
         }
-        assertThat(hasResourceModuleFilter).as("gravitee.module → resource.attributes.gravitee.module").isTrue();
-        assertThat(hasSpanHttpMethodFilter).as("http.method → attributes.http.method").isTrue();
+        assertThat(hasResourceModuleFilter)
+                .as("gravitee.module → resource.attributes.gravitee.module")
+                .isTrue();
+        assertThat(hasSpanHttpMethodFilter)
+                .as("http.method → attributes.http.method")
+                .isTrue();
     }
 
     @Test
     void searchTraces_should_match_all_when_no_filters_provided() throws Exception {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
-        repository.searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of())).blockingGet();
+        repository
+                .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
@@ -338,8 +363,8 @@ class ElasticsearchTracingRepositoryTest {
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
         Page<Trace> page = repository
-            .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
-            .blockingGet();
+                .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
+                .blockingGet();
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isZero();
@@ -348,12 +373,13 @@ class ElasticsearchTracingRepositoryTest {
     @Test
     void searchTraces_should_report_distinct_trace_total_from_cardinality_agg() {
         SearchResponse response = new SearchResponse();
-        response.setAggregations(Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(75.0f)));
+        response.setAggregations(
+                Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(75.0f)));
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
         Page<Trace> page = repository
-            .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
-            .blockingGet();
+                .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
+                .blockingGet();
 
         // The total is the distinct-trace cardinality (75) — not the size of the returned slice — so callers can
         // derive the real page count.
@@ -363,12 +389,13 @@ class ElasticsearchTracingRepositoryTest {
     @Test
     void searchTraces_should_cap_reported_total_at_max_search_results() {
         SearchResponse response = new SearchResponse();
-        response.setAggregations(Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(500.0f)));
+        response.setAggregations(
+                Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(500.0f)));
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
         Page<Trace> page = repository
-            .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
-            .blockingGet();
+                .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
+                .blockingGet();
 
         // 500 distinct traces exist, but the terms agg / fetch-and-slice can only serve 200 — cap the reported total
         // so the UI never advertises pages it can't fill.

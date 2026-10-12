@@ -83,16 +83,18 @@ class PolicyRequestStepTest {
     @Test
     public void shouldComputeHeadersDiff() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .doOnComplete(() -> httpHeaders.set("X-Header-New", "value"))
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .doOnComplete(() -> httpHeaders.set("X-Header-New", "value"))
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
 
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_HEADERS)).isTrue();
-        assertThat(HttpHeaders.create(httpHeaders).deeplyEquals((HttpHeaders) resultDiff.get(DebugStep.DIFF_KEY_HEADERS))).isTrue();
+        assertThat(HttpHeaders.create(httpHeaders)
+                        .deeplyEquals((HttpHeaders) resultDiff.get(DebugStep.DIFF_KEY_HEADERS)))
+                .isTrue();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PARAMETERS)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_PATH_PARAMETERS)).isFalse();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_METHOD)).isFalse();
@@ -108,11 +110,11 @@ class PolicyRequestStepTest {
         updatedParameters.add("parameters", "value");
 
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .doOnComplete(() -> when(mockRequest.parameters()).thenReturn(updatedParameters))
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .doOnComplete(() -> when(mockRequest.parameters()).thenReturn(updatedParameters))
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
 
@@ -133,11 +135,11 @@ class PolicyRequestStepTest {
         final LinkedMultiValueMap<String, String> updatedPathParameters = new LinkedMultiValueMap<>();
         updatedPathParameters.add("path_parameters", "value");
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .doOnComplete(() -> when(mockRequest.pathParameters()).thenReturn(updatedPathParameters))
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .doOnComplete(() -> when(mockRequest.pathParameters()).thenReturn(updatedPathParameters))
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
 
@@ -156,11 +158,11 @@ class PolicyRequestStepTest {
     @Test
     public void shouldComputeMethodDiff() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .doOnComplete(() -> when(mockRequest.method()).thenReturn(HttpMethod.POST))
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .doOnComplete(() -> when(mockRequest.method()).thenReturn(HttpMethod.POST))
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
 
@@ -179,11 +181,11 @@ class PolicyRequestStepTest {
     @Test
     public void shouldComputePathDiff() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .doOnComplete(() -> when(mockRequest.path()).thenReturn("updated_path"))
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .doOnComplete(() -> when(mockRequest.path()).thenReturn("updated_path"))
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
 
@@ -202,11 +204,11 @@ class PolicyRequestStepTest {
     @Test
     public void shouldComputeContextPathDiff() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .doOnComplete(() -> when(mockRequest.contextPath()).thenReturn("contextPathUpdated"))
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .doOnComplete(() -> when(mockRequest.contextPath()).thenReturn("contextPathUpdated"))
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
 
@@ -225,10 +227,10 @@ class PolicyRequestStepTest {
     @Test
     public void shouldComputeAttributesDiff() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of("A-Key", "value"))))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of("A-Key", "value"))))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
 
@@ -247,11 +249,11 @@ class PolicyRequestStepTest {
     @Test
     public void shouldComputeBufferDiff() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .doOnComplete(() -> when(mockRequest.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("outPut"))))
-            .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .doOnComplete(() -> when(mockRequest.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("outPut"))))
+                .andThen(Completable.defer(() -> policyRequestStep.post(mockRequest, Map.of())))
+                .test()
+                .assertResult();
 
         final Map<String, Object> resultDiff = policyRequestStep.getDiff();
         assertThat(resultDiff.containsKey(DebugStep.DIFF_KEY_BODY_BUFFER)).isTrue();
@@ -269,10 +271,10 @@ class PolicyRequestStepTest {
     @Test
     public void shouldNotComputeDiffWhenStepIsInError() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .andThen(Completable.defer(() -> policyRequestStep.error(new RuntimeException("error"))))
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .andThen(Completable.defer(() -> policyRequestStep.error(new RuntimeException("error"))))
+                .test()
+                .assertResult();
 
         assertThat(policyRequestStep.getDiff()).isEmpty();
         assertThat(policyRequestStep.getStatus()).isEqualTo(DebugStepStatus.ERROR);
@@ -284,14 +286,11 @@ class PolicyRequestStepTest {
     @Test
     public void shouldNotComputeDiffWhenStepIsInErrorWithFailure() {
         policyRequestStep
-            .pre(mockRequest, Map.of())
-            .andThen(
-                Completable.defer(() ->
-                    policyRequestStep.error(new ExecutionFailure(500).key("key").message("error").contentType("contentType"))
-                )
-            )
-            .test()
-            .assertResult();
+                .pre(mockRequest, Map.of())
+                .andThen(Completable.defer(() -> policyRequestStep.error(
+                        new ExecutionFailure(500).key("key").message("error").contentType("contentType"))))
+                .test()
+                .assertResult();
 
         assertThat(policyRequestStep.getDiff()).isEmpty();
         assertThat(policyRequestStep.getStatus()).isEqualTo(DebugStepStatus.ERROR);

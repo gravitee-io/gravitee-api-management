@@ -69,7 +69,10 @@ public class PortalNavigationItemSource {
      * leaves the stored one untouched: a failed fetch never erases a past success, not even one that
      * another fetch stamped meanwhile.
      */
-    public record FetchState(@Nonnull Instant lastFetchAttemptAt, @Nullable Instant lastFetchedAt, @Nullable String lastFetchError) {
+    public record FetchState(
+            @Nonnull Instant lastFetchAttemptAt,
+            @Nullable Instant lastFetchedAt,
+            @Nullable String lastFetchError) {
         public static FetchState succeeded(Instant attemptedAt, Instant fetchedAt) {
             return new FetchState(attemptedAt, fetchedAt, null);
         }
@@ -99,11 +102,9 @@ public class PortalNavigationItemSource {
 
     /** Two sources share an origin when they point at the same thing, whatever the fetch state around them. */
     public boolean sameOriginAs(@Nullable PortalNavigationItemSource other) {
-        return (
-            other != null &&
-            Objects.equals(sourceType, other.sourceType) &&
-            sameConfiguration(sourceConfiguration, other.sourceConfiguration)
-        );
+        return (other != null
+                && Objects.equals(sourceType, other.sourceType)
+                && sameConfiguration(sourceConfiguration, other.sourceConfiguration));
     }
 
     // JSON comparison: formatting and key order must not count as an origin change

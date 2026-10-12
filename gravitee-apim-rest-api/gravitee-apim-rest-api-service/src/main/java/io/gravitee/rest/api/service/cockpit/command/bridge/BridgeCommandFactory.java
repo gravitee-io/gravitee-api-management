@@ -34,62 +34,42 @@ public class BridgeCommandFactory {
     }
 
     public BridgeCommand createListEnvironmentCommand(String organizationId, String environmentId) {
-        BridgeCommandPayload.BridgeTarget target = new BridgeCommandPayload.BridgeTarget(
-            Collections.singletonList(BRIDGE_SCOPE_APIM),
-            null
-        );
-        return new BridgeCommand(
-            BridgeCommandPayload.builder()
+        BridgeCommandPayload.BridgeTarget target =
+                new BridgeCommandPayload.BridgeTarget(Collections.singletonList(BRIDGE_SCOPE_APIM), null);
+        return new BridgeCommand(BridgeCommandPayload.builder()
                 .environmentId(environmentId)
                 .organizationId(organizationId)
                 .installationId(installationService.get().getId())
                 .operation(BridgeOperation.LIST_ENVIRONMENT.name())
                 .target(target)
-                .build()
-        );
+                .build());
     }
 
     public BridgeCommand createPromoteApiCommand(
-        String organizationId,
-        String environmentId,
-        String targetEnvironmentId,
-        String serializedPromotion
-    ) {
+            String organizationId, String environmentId, String targetEnvironmentId, String serializedPromotion) {
         BridgeCommandPayload.BridgeTarget target = new BridgeCommandPayload.BridgeTarget(
-            Collections.singletonList(BRIDGE_SCOPE_APIM),
-            targetEnvironmentId
-        );
-        return new BridgeCommand(
-            BridgeCommandPayload.builder()
+                Collections.singletonList(BRIDGE_SCOPE_APIM), targetEnvironmentId);
+        return new BridgeCommand(BridgeCommandPayload.builder()
                 .environmentId(environmentId)
                 .organizationId(organizationId)
                 .installationId(installationService.get().getId())
                 .operation(BridgeOperation.PROMOTE_API.name())
                 .target(target)
                 .content(serializedPromotion)
-                .build()
-        );
+                .build());
     }
 
     public BridgeCommand createProcessPromotionCommand(
-        String organizationId,
-        String environmentId,
-        String sourceEnvCockpitId,
-        String serializedPromotion
-    ) {
-        BridgeCommandPayload.BridgeTarget target = new BridgeCommandPayload.BridgeTarget(
-            Collections.singletonList(BRIDGE_SCOPE_APIM),
-            sourceEnvCockpitId
-        );
-        return new BridgeCommand(
-            BridgeCommandPayload.builder()
+            String organizationId, String environmentId, String sourceEnvCockpitId, String serializedPromotion) {
+        BridgeCommandPayload.BridgeTarget target =
+                new BridgeCommandPayload.BridgeTarget(Collections.singletonList(BRIDGE_SCOPE_APIM), sourceEnvCockpitId);
+        return new BridgeCommand(BridgeCommandPayload.builder()
                 .environmentId(environmentId)
                 .organizationId(organizationId)
                 .installationId(installationService.get().getId())
                 .operation(BridgeOperation.PROCESS_API_PROMOTION.name())
                 .target(target)
                 .content(serializedPromotion)
-                .build()
-        );
+                .build());
     }
 }

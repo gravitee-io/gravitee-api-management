@@ -53,8 +53,10 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     private final SubscriptionFormElResolverDomainService subscriptionFormElResolver;
 
     @Override
-    public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription) {
-        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
+    public void validateAndSanitize(
+            final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription) {
+        subscription.setConfiguration(
+                validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
         var metadata = subscription.getMetadata();
         if (metadata != null) {
             metadata = subscriptionMetadataSanitizer.sanitizeAndValidate(metadata);
@@ -67,11 +69,11 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
 
     @Override
     public void validateAndSanitize(
-        final GenericPlanEntity genericPlanEntity,
-        final UpdateSubscriptionEntity subscription,
-        String applicationId
-    ) {
-        subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
+            final GenericPlanEntity genericPlanEntity,
+            final UpdateSubscriptionEntity subscription,
+            String applicationId) {
+        subscription.setConfiguration(
+                validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
         var metadata = subscription.getMetadata();
         if (metadata != null) {
             metadata = subscriptionMetadataSanitizer.sanitizeAndValidate(metadata);
@@ -84,12 +86,10 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
 
     @Override
     public void validateAndSanitize(
-        final GenericPlanEntity genericPlanEntity,
-        final UpdateSubscriptionConfigurationEntity subscriptionConfiguration
-    ) {
-        subscriptionConfiguration.setConfiguration(
-            validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscriptionConfiguration.getConfiguration())
-        );
+            final GenericPlanEntity genericPlanEntity,
+            final UpdateSubscriptionConfigurationEntity subscriptionConfiguration) {
+        subscriptionConfiguration.setConfiguration(validateAndSanitizeSubscriptionConfiguration(
+                genericPlanEntity, subscriptionConfiguration.getConfiguration()));
         var metadata = subscriptionConfiguration.getMetadata();
         if (metadata != null) {
             metadata = subscriptionMetadataSanitizer.sanitizeAndValidate(metadata);
@@ -101,52 +101,39 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     }
 
     private void validateSubscriptionFormMetadataIfApplicable(
-        final GenericPlanEntity genericPlanEntity,
-        final Map<String, String> metadata
-    ) {
+            final GenericPlanEntity genericPlanEntity, final Map<String, String> metadata) {
         var submitted = ofNullable(metadata).orElseGet(Map::of);
 
         resolveSubscriptionForm(genericPlanEntity)
-            .map(SubscriptionForm::getValidationConstraints)
-            .filter(constraints -> !constraints.isEmpty())
-            .map(constraints ->
-                GenericPlanEntity.ReferenceType.API.equals(genericPlanEntity.getReferenceType())
-                    ? subscriptionFormElResolver.resolveConstraints(
-                        constraints,
-                        genericPlanEntity.getEnvironmentId(),
-                        genericPlanEntity.getReferenceId()
-                    )
-                    : subscriptionFormElResolver.resolveConstraints(constraints)
-            )
-            .map(SubscriptionFormSubmissionValidator::new)
-            .ifPresent(validator -> validator.validate(submitted));
+                .map(SubscriptionForm::getValidationConstraints)
+                .filter(constraints -> !constraints.isEmpty())
+                .map(constraints -> GenericPlanEntity.ReferenceType.API.equals(genericPlanEntity.getReferenceType())
+                        ? subscriptionFormElResolver.resolveConstraints(
+                                constraints, genericPlanEntity.getEnvironmentId(), genericPlanEntity.getReferenceId())
+                        : subscriptionFormElResolver.resolveConstraints(constraints))
+                .map(SubscriptionFormSubmissionValidator::new)
+                .ifPresent(validator -> validator.validate(submitted));
     }
 
     private Optional<SubscriptionForm> resolveSubscriptionForm(final GenericPlanEntity genericPlanEntity) {
         // Only an API has a dedicated form: an API Product subscription skips the form, as it does in the portal.
         return GenericPlanEntity.ReferenceType.API.equals(genericPlanEntity.getReferenceType())
-            ? subscriptionFormResolutionDomainService.resolveForApi(
-                genericPlanEntity.getEnvironmentId(),
-                genericPlanEntity.getReferenceId()
-            )
-            : Optional.empty();
+                ? subscriptionFormResolutionDomainService.resolveForApi(
+                        genericPlanEntity.getEnvironmentId(), genericPlanEntity.getReferenceId())
+                : Optional.empty();
     }
 
     private SubscriptionConfigurationEntity validateAndSanitizeSubscriptionConfiguration(
-        final GenericPlanEntity genericPlanEntity,
-        final SubscriptionConfigurationEntity configuration
-    ) {
+            final GenericPlanEntity genericPlanEntity, final SubscriptionConfigurationEntity configuration) {
         if (genericPlanEntity.getPlanMode() != null && genericPlanEntity.getPlanMode() == PlanMode.PUSH) {
-            if (configuration == null || configuration.getEntrypointId() == null || configuration.getEntrypointId().isEmpty()) {
+            if (configuration == null
+                    || configuration.getEntrypointId() == null
+                    || configuration.getEntrypointId().isEmpty()) {
                 throw new SubscriptionEntrypointIdMissingException();
             }
 
-            configuration.setEntrypointConfiguration(
-                entrypointService.validateEntrypointSubscriptionConfiguration(
-                    configuration.getEntrypointId(),
-                    configuration.getEntrypointConfiguration()
-                )
-            );
+            configuration.setEntrypointConfiguration(entrypointService.validateEntrypointSubscriptionConfiguration(
+                    configuration.getEntrypointId(), configuration.getEntrypointConfiguration()));
         }
         return configuration;
     }

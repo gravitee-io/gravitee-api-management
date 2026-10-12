@@ -49,10 +49,12 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
     public List<ApplicationInvitation> findByReference(@Nonnull InvitationReference reference) {
         try {
             return invitationRepository
-                .findByReferenceIdAndReferenceType(reference.id(), InvitationReferenceType.valueOf(reference.type().name()))
-                .stream()
-                .map(InvitationAdapter.INSTANCE::toApplicationInvitation)
-                .toList();
+                    .findByReferenceIdAndReferenceType(
+                            reference.id(),
+                            InvitationReferenceType.valueOf(reference.type().name()))
+                    .stream()
+                    .map(InvitationAdapter.INSTANCE::toApplicationInvitation)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find invitations by reference", e);
         }
@@ -60,25 +62,26 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
 
     @Override
     public Page<ApplicationInvitation> findByApplicationId(
-        String applicationId,
-        @Nonnull SearchApplicationInvitationsCriteria criteria,
-        @Nonnull Pageable pageable
-    ) {
+            String applicationId, @Nonnull SearchApplicationInvitationsCriteria criteria, @Nonnull Pageable pageable) {
         try {
             var resolvedPageable = pageable == null ? new PageableImpl(1, Integer.MAX_VALUE) : pageable;
             var repositoryPage = invitationRepository.search(
-                new InvitationCriteria(
-                    applicationId,
-                    InvitationReferenceType.APPLICATION,
-                    criteria != null ? criteria.email().orElse(null) : null
-                ),
-                new SortableBuilder().field("email").order(Order.ASC).build(),
-                new PageableBuilder().pageNumber(resolvedPageable.getPageNumber() - 1).pageSize(resolvedPageable.getPageSize()).build()
-            );
+                    new InvitationCriteria(
+                            applicationId,
+                            InvitationReferenceType.APPLICATION,
+                            criteria != null ? criteria.email().orElse(null) : null),
+                    new SortableBuilder().field("email").order(Order.ASC).build(),
+                    new PageableBuilder()
+                            .pageNumber(resolvedPageable.getPageNumber() - 1)
+                            .pageSize(resolvedPageable.getPageSize())
+                            .build());
 
-            var content = repositoryPage.getContent().stream().map(InvitationAdapter.INSTANCE::toApplicationInvitation).toList();
+            var content = repositoryPage.getContent().stream()
+                    .map(InvitationAdapter.INSTANCE::toApplicationInvitation)
+                    .toList();
 
-            return new Page<>(content, resolvedPageable.getPageNumber(), content.size(), repositoryPage.getTotalElements());
+            return new Page<>(
+                    content, resolvedPageable.getPageNumber(), content.size(), repositoryPage.getTotalElements());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find application invitations", e);
         }

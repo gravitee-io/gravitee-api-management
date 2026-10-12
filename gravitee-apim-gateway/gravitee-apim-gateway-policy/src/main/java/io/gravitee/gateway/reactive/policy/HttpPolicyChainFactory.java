@@ -58,9 +58,9 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
-            .maxSize(CACHE_MAX_SIZE)
-            .timeToIdleInMs(CACHE_TIME_TO_IDLE_MS)
-            .build();
+                .maxSize(CACHE_MAX_SIZE)
+                .timeToIdleInMs(CACHE_TIME_TO_IDLE_MS)
+                .build();
 
         this.policyChains = new InMemoryCache<>(id + "-policyChainFactory", cacheConfiguration);
         initPolicyHooks(tracing);
@@ -110,7 +110,8 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
     }
 
     private PolicyMetadata buildPolicyMetadata(Step step) {
-        final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
+        final PolicyMetadata policyMetadata =
+                new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
 
         return policyMetadata;
@@ -138,7 +139,9 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
             if (flow.getMethods().isEmpty()) {
                 flowNameBuilder.append("ALL").append(ID_SEPARATOR);
             } else {
-                flow.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
+                flow.getMethods()
+                        .forEach(
+                                httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
             }
             flowNameBuilder.append(flow.getPath());
         } else {

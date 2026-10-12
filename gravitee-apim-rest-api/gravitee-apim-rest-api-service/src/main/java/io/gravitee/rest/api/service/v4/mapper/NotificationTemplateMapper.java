@@ -22,24 +22,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationTemplateMapper {
 
-    public NotificationTemplateCommandEntity toNotificationTemplateCommandEntity(NotificationTemplateEntity notificationTemplate) {
+    public NotificationTemplateCommandEntity toNotificationTemplateCommandEntity(
+            NotificationTemplateEntity notificationTemplate) {
         return NotificationTemplateCommandEntity.builder()
-            .id(notificationTemplate.getId())
-            .hook(notificationTemplate.getHook())
-            .scope(notificationTemplate.getScope())
-            .name(notificationTemplate.getName())
-            .description(notificationTemplate.getDescription())
-            .title(notificationTemplate.getTitle())
-            .content(notificationTemplate.getContent())
-            .type(notificationTemplate.getType())
-            .createdAt(notificationTemplate.getCreatedAt())
-            .updatedAt(notificationTemplate.getUpdatedAt())
-            .enabled(notificationTemplate.isEnabled())
-            .templateName(notificationTemplate.getTemplateName())
-            .build();
+                .id(notificationTemplate.getId())
+                .hook(notificationTemplate.getHook())
+                .scope(notificationTemplate.getScope())
+                .name(notificationTemplate.getName())
+                .description(notificationTemplate.getDescription())
+                .title(notificationTemplate.getTitle())
+                .content(notificationTemplate.getContent())
+                .type(notificationTemplate.getType())
+                .createdAt(notificationTemplate.getCreatedAt())
+                .updatedAt(notificationTemplate.getUpdatedAt())
+                .enabled(notificationTemplate.isEnabled())
+                .templateName(notificationTemplate.getTemplateName())
+                .build();
     }
 
-    public NotificationTemplateEntity toNotificationTemplateEntity(NotificationTemplateCommandEntity notificationTemplate) {
+    public NotificationTemplateEntity toNotificationTemplateEntity(
+            NotificationTemplateCommandEntity notificationTemplate) {
         var notificationTemplateEntity = new NotificationTemplateEntity();
         notificationTemplateEntity.setId(notificationTemplate.getId());
         notificationTemplateEntity.setHook(notificationTemplate.getHook());

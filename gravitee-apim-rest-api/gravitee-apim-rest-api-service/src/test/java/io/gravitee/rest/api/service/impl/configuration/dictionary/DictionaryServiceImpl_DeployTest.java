@@ -68,25 +68,21 @@ public class DictionaryServiceImpl_DeployTest {
 
     @Test
     public void should_audit_encrypted_properties_access_when_deploying_a_dictionary_holding_an_encrypted_property()
-        throws TechnicalException {
-        Dictionary stored = given_stored_dictionary(
-            Map.of("secret", new DictionaryProperty("cipher", true), "plain", new DictionaryProperty("value", false))
-        );
+            throws TechnicalException {
+        Dictionary stored = given_stored_dictionary(Map.of(
+                "secret", new DictionaryProperty("cipher", true), "plain", new DictionaryProperty("value", false)));
 
         dictionaryService.deploy(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED &&
-                    auditLogData.getProperties().equals(Map.of(DICTIONARY, "my-dict", ENCRYPTED, "true")) &&
-                    auditLogData.getCreatedAt().equals(stored.getDeployedAt()) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue() == null &&
-                    ACCESS_PATCH.equals(auditLogData.getPatch())
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED
+                                && auditLogData.getProperties().equals(Map.of(DICTIONARY, "my-dict", ENCRYPTED, "true"))
+                                && auditLogData.getCreatedAt().equals(stored.getDeployedAt())
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue() == null
+                                && ACCESS_PATCH.equals(auditLogData.getPatch())));
     }
 
     @Test
@@ -113,9 +109,9 @@ public class DictionaryServiceImpl_DeployTest {
         stored.setEnvironmentId("another-environment");
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(stored));
 
-        assertThrows(DictionaryNotFoundException.class, () ->
-            dictionaryService.deploy(GraviteeContext.getExecutionContext(), DICTIONARY_ID)
-        );
+        assertThrows(
+                DictionaryNotFoundException.class,
+                () -> dictionaryService.deploy(GraviteeContext.getExecutionContext(), DICTIONARY_ID));
 
         verify(auditService, never()).createAuditLog(any(), any());
     }

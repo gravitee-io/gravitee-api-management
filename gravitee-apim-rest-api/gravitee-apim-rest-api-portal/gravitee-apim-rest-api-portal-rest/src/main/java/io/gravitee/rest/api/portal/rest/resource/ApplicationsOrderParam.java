@@ -56,9 +56,10 @@ public class ApplicationsOrderParam extends AbstractParam<ApplicationsOrderParam
             boolean isAsc = !order.startsWith("-");
             String field = order.replace("-", "");
             return Arrays.stream(ApplicationsOrder.values())
-                .filter(applicationsOrder -> applicationsOrder.field.equalsIgnoreCase(field) && applicationsOrder.isAsc == isAsc)
-                .findFirst()
-                .orElse(null);
+                    .filter(applicationsOrder ->
+                            applicationsOrder.field.equalsIgnoreCase(field) && applicationsOrder.isAsc == isAsc)
+                    .findFirst()
+                    .orElse(null);
         }
 
         public final String field;

@@ -48,13 +48,12 @@ public class DeleteApiDocumentationDomainService {
     private final Indexer indexer;
 
     public DeleteApiDocumentationDomainService(
-        PageCrudService pageCrudService,
-        PageQueryService pageQueryService,
-        AuditDomainService auditDomainService,
-        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        PlanQueryService planQueryService,
-        Indexer indexer
-    ) {
+            PageCrudService pageCrudService,
+            PageQueryService pageQueryService,
+            AuditDomainService auditDomainService,
+            UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
+            PlanQueryService planQueryService,
+            Indexer indexer) {
         this.pageCrudService = pageCrudService;
         this.pageQueryService = pageQueryService;
         this.auditDomainService = auditDomainService;
@@ -76,10 +75,11 @@ public class DeleteApiDocumentationDomainService {
         // TODO: remove revisions ?
         // TODO: delete LINK and TRANSLATION associated pages
 
-        indexer.delete(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(pageToDelete));
+        indexer.delete(
+                new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()),
+                new IndexablePage(pageToDelete));
 
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .apiId(pageToDelete.getReferenceId())
                 .event(PageAuditEvent.PAGE_DELETED)
                 .createdAt(Instant.now().atZone(ZoneId.of("UTC")))
@@ -89,31 +89,29 @@ public class DeleteApiDocumentationDomainService {
                 .properties(Map.of(AuditProperties.PAGE, pageId))
                 .oldValue(pageToDelete)
                 .newValue(null)
-                .build()
-        );
+                .build());
     }
 
     private void throwIfDeletingNonEmptyFolder(Api api, Page pageToDelete) {
         if (pageToDelete.isFolder()) {
-            pageQueryService
-                .searchByApiIdAndParentId(api.getId(), pageToDelete.getId())
-                .stream()
-                .findAny()
-                .ifPresent(childPage -> {
-                    throw new ApiFolderNotEmptyException(pageToDelete.getId());
-                });
+            pageQueryService.searchByApiIdAndParentId(api.getId(), pageToDelete.getId()).stream()
+                    .findAny()
+                    .ifPresent(childPage -> {
+                        throw new ApiFolderNotEmptyException(pageToDelete.getId());
+                    });
         }
     }
 
     private void throwIfPageUsedAsGeneralCondition(Api api, Page pageToDelete) {
         if (!pageToDelete.isFolder()) {
             planQueryService
-                .findAllByApiIdAndGeneralConditionsAndIsActive(api.getId(), api.getDefinitionVersion(), pageToDelete.getId())
-                .stream()
-                .findFirst()
-                .ifPresent(plan -> {
-                    throw new ApiPageUsedAsGeneralConditionException(pageToDelete.getId(), plan.getId());
-                });
+                    .findAllByApiIdAndGeneralConditionsAndIsActive(
+                            api.getId(), api.getDefinitionVersion(), pageToDelete.getId())
+                    .stream()
+                    .findFirst()
+                    .ifPresent(plan -> {
+                        throw new ApiPageUsedAsGeneralConditionException(pageToDelete.getId(), plan.getId());
+                    });
         }
     }
 
@@ -124,14 +122,14 @@ public class DeleteApiDocumentationDomainService {
     }
 
     private void updatePageOrders(Page deletedPage, AuditInfo auditInfo) {
-        this.pageQueryService.searchByApiIdAndParentId(deletedPage.getReferenceId(), deletedPage.getParentId())
-            .stream()
-            .filter(page -> areDifferentPages(deletedPage, page))
-            .filter(page -> isAfterDeletedPagePosition(deletedPage, page))
-            .forEach(page -> {
-                var updatedOrder = page.getOrder() - 1;
-                this.updateApiDocumentationDomainService.updatePage(page.toBuilder().order(updatedOrder).build(), page, auditInfo);
-            });
+        this.pageQueryService.searchByApiIdAndParentId(deletedPage.getReferenceId(), deletedPage.getParentId()).stream()
+                .filter(page -> areDifferentPages(deletedPage, page))
+                .filter(page -> isAfterDeletedPagePosition(deletedPage, page))
+                .forEach(page -> {
+                    var updatedOrder = page.getOrder() - 1;
+                    this.updateApiDocumentationDomainService.updatePage(
+                            page.toBuilder().order(updatedOrder).build(), page, auditInfo);
+                });
     }
 
     private static boolean areDifferentPages(Page deletedPage, Page page) {

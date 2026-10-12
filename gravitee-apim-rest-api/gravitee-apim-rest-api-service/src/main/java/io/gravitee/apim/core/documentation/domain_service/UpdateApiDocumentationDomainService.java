@@ -45,9 +45,8 @@ public class UpdateApiDocumentationDomainService {
         var updatedPage = pageCrudService.updateDocumentationPage(page);
 
         if (updatedPage.isSwaggerOrMarkdown() || updatedPage.isAsyncApi()) {
-            if (
-                !Objects.equals(updatedPage.getName(), oldPage.getName()) || !Objects.equals(updatedPage.getContent(), oldPage.getContent())
-            ) {
+            if (!Objects.equals(updatedPage.getName(), oldPage.getName())
+                    || !Objects.equals(updatedPage.getContent(), oldPage.getContent())) {
                 pageRevisionCrudService.create(updatedPage);
             }
             var context = new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId());
@@ -58,8 +57,7 @@ public class UpdateApiDocumentationDomainService {
             }
         }
 
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .apiId(page.getReferenceId())
                 .event(PageAuditEvent.PAGE_UPDATED)
                 .createdAt(page.getUpdatedAt().toInstant().atZone(ZoneId.of("UTC")))
@@ -69,8 +67,7 @@ public class UpdateApiDocumentationDomainService {
                 .properties(Map.of(AuditProperties.PAGE, page.getId()))
                 .oldValue(oldPage)
                 .newValue(updatedPage)
-                .build()
-        );
+                .build());
 
         return updatedPage;
     }

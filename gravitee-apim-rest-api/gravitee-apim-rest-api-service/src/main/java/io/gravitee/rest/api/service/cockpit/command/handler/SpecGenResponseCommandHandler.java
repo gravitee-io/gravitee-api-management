@@ -43,10 +43,9 @@ public class SpecGenResponseCommandHandler implements CommandHandler<SpecGenResp
     private final NotifySpecGenResponseUseCase notifySpecGenResponseUseCase;
 
     public SpecGenResponseCommandHandler(
-        @Lazy BuildSpecGenPageResponseUseCase saveSpecGenResponseUseCase,
-        @Lazy ApiCreateDocumentationPageUseCase createDocumentationPageUseCase,
-        @Lazy NotifySpecGenResponseUseCase NotifySpecGenResponseUseCase
-    ) {
+            @Lazy BuildSpecGenPageResponseUseCase saveSpecGenResponseUseCase,
+            @Lazy ApiCreateDocumentationPageUseCase createDocumentationPageUseCase,
+            @Lazy NotifySpecGenResponseUseCase NotifySpecGenResponseUseCase) {
         this.saveSpecGenResponseUseCase = saveSpecGenResponseUseCase;
         this.createDocumentationPageUseCase = createDocumentationPageUseCase;
         this.notifySpecGenResponseUseCase = NotifySpecGenResponseUseCase;
@@ -61,29 +60,29 @@ public class SpecGenResponseCommandHandler implements CommandHandler<SpecGenResp
     public Single<SpecGenResponseReply> handle(SpecGenResponseCommand command) {
         var payload = command.getPayload().payload();
         return saveSpecGenResponseUseCase
-            .execute(new Input(payload.apiId(), payload.result()))
-            .map(page ->
-                createDocumentationPageUseCase.execute(new ApiCreateDocumentationPageUseCase.Input(page, getAuditInfo(payload.userId())))
-            )
-            .doOnError(t ->
-                log.error("An error has occurred while trying to save generated specification for api: [{}]", payload.apiId(), t)
-            )
-            .ignoreElement()
-            .andThen(Single.just(new SpecGenResponseReply(command.getId(), SUCCEEDED)))
-            .onErrorResumeNext(t -> Single.just(new SpecGenResponseReply(command.getId(), t.getMessage())))
-            .doOnSuccess(reply -> {
-                if (SUCCEEDED.equals(reply.getCommandStatus())) {
-                    notifySpecGenResponseUseCase.notify(payload.apiId(), payload.userId());
-                }
-            });
+                .execute(new Input(payload.apiId(), payload.result()))
+                .map(page -> createDocumentationPageUseCase.execute(
+                        new ApiCreateDocumentationPageUseCase.Input(page, getAuditInfo(payload.userId()))))
+                .doOnError(t -> log.error(
+                        "An error has occurred while trying to save generated specification for api: [{}]",
+                        payload.apiId(),
+                        t))
+                .ignoreElement()
+                .andThen(Single.just(new SpecGenResponseReply(command.getId(), SUCCEEDED)))
+                .onErrorResumeNext(t -> Single.just(new SpecGenResponseReply(command.getId(), t.getMessage())))
+                .doOnSuccess(reply -> {
+                    if (SUCCEEDED.equals(reply.getCommandStatus())) {
+                        notifySpecGenResponseUseCase.notify(payload.apiId(), payload.userId());
+                    }
+                });
     }
 
     private static AuditInfo getAuditInfo(String userId) {
         var context = getExecutionContext();
         return AuditInfo.builder()
-            .environmentId(context.getEnvironmentId())
-            .organizationId(context.getOrganizationId())
-            .actor(AuditActor.builder().userId(userId).build())
-            .build();
+                .environmentId(context.getEnvironmentId())
+                .organizationId(context.getOrganizationId())
+                .actor(AuditActor.builder().userId(userId).build())
+                .build();
     }
 }

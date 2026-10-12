@@ -28,9 +28,7 @@ public class ApiDeleteDocumentationPageUseCase {
     private final ApiCrudService apiCrudService;
 
     public ApiDeleteDocumentationPageUseCase(
-        DeleteApiDocumentationDomainService deleteApiDocumentationDomainService,
-        ApiCrudService apiCrudService
-    ) {
+            DeleteApiDocumentationDomainService deleteApiDocumentationDomainService, ApiCrudService apiCrudService) {
         this.deleteApiDocumentationDomainService = deleteApiDocumentationDomainService;
         this.apiCrudService = apiCrudService;
     }

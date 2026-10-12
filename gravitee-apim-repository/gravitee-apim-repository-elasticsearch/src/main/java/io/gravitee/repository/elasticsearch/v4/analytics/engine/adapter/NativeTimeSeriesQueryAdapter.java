@@ -46,7 +46,10 @@ public class NativeTimeSeriesQueryAdapter {
     }
 
     private JsonObject json(TimeSeriesQuery query) {
-        return new JsonObject().put("size", 0).put("query", boolAdapter.adaptForNative(query)).put("aggs", adaptTimeSeries(query));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", boolAdapter.adaptForNative(query))
+                .put("aggs", adaptTimeSeries(query));
     }
 
     public JsonObject adaptTimeSeries(TimeSeriesQuery query) {
@@ -55,7 +58,8 @@ public class NativeTimeSeriesQueryAdapter {
             // the first facet as a terms bucket. AnalyticsQueryValidator allows up to 2 time-series facets,
             // so a 2nd would otherwise be silently dropped — reject it loudly instead of returning a chart
             // grouped by the first facet only. Recurse here only if Gamma ever needs two native dimensions.
-            throw new UnsupportedOperationException("Native time series supports a single facet, got: " + query.facets());
+            throw new UnsupportedOperationException(
+                    "Native time series supports a single facet, got: " + query.facets());
         }
         var aggs = new JsonObject();
         for (var metric : query.metrics()) {

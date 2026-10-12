@@ -46,28 +46,28 @@ class GetUserApisUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(membershipQueryService, apiQueryService, environmentCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(membershipQueryService, apiQueryService, environmentCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_return_user_apis_with_correct_fields() {
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("m1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId("api-1")
-                    .build()
-            )
-        );
-        apiQueryService.initWith(
-            List.of(
-                Api.builder().id("api-1").name("My API").version("1.0").visibility(Api.Visibility.PUBLIC).environmentId("env-1").build()
-            )
-        );
-        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Development").build()));
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("m1")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId("api-1")
+                .build()));
+        apiQueryService.initWith(List.of(Api.builder()
+                .id("api-1")
+                .name("My API")
+                .version("1.0")
+                .visibility(Api.Visibility.PUBLIC)
+                .environmentId("env-1")
+                .build()));
+        environmentCrudService.initWith(
+                List.of(Environment.builder().id("env-1").name("Development").build()));
 
         var output = useCase.execute(new GetUserApisUseCase.Input(USER_ID, null, 1, 10));
 
@@ -85,33 +85,27 @@ class GetUserApisUseCaseTest {
 
     @Test
     void should_filter_by_environment_id() {
-        membershipQueryService.initWith(
-            List.of(
+        membershipQueryService.initWith(List.of(
                 Membership.builder()
-                    .id("m1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId("api-1")
-                    .build(),
+                        .id("m1")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId("api-1")
+                        .build(),
                 Membership.builder()
-                    .id("m2")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId("api-2")
-                    .build()
-            )
-        );
-        apiQueryService.initWith(
-            List.of(
+                        .id("m2")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId("api-2")
+                        .build()));
+        apiQueryService.initWith(List.of(
                 Api.builder().id("api-1").name("API 1").environmentId("env-1").build(),
-                Api.builder().id("api-2").name("API 2").environmentId("env-2").build()
-            )
-        );
-        environmentCrudService.initWith(
-            List.of(Environment.builder().id("env-1").name("Dev").build(), Environment.builder().id("env-2").name("Prod").build())
-        );
+                Api.builder().id("api-2").name("API 2").environmentId("env-2").build()));
+        environmentCrudService.initWith(List.of(
+                Environment.builder().id("env-1").name("Dev").build(),
+                Environment.builder().id("env-2").name("Prod").build()));
 
         var output = useCase.execute(new GetUserApisUseCase.Input(USER_ID, "env-1", 1, 10));
 
@@ -130,39 +124,34 @@ class GetUserApisUseCaseTest {
 
     @Test
     void should_paginate_correctly() {
-        membershipQueryService.initWith(
-            List.of(
+        membershipQueryService.initWith(List.of(
                 Membership.builder()
-                    .id("m1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId("api-1")
-                    .build(),
+                        .id("m1")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId("api-1")
+                        .build(),
                 Membership.builder()
-                    .id("m2")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId("api-2")
-                    .build(),
+                        .id("m2")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId("api-2")
+                        .build(),
                 Membership.builder()
-                    .id("m3")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId("api-3")
-                    .build()
-            )
-        );
-        apiQueryService.initWith(
-            List.of(
+                        .id("m3")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId("api-3")
+                        .build()));
+        apiQueryService.initWith(List.of(
                 Api.builder().id("api-1").name("API 1").environmentId("env-1").build(),
                 Api.builder().id("api-2").name("API 2").environmentId("env-1").build(),
-                Api.builder().id("api-3").name("API 3").environmentId("env-1").build()
-            )
-        );
-        environmentCrudService.initWith(List.of(Environment.builder().id("env-1").name("Dev").build()));
+                Api.builder().id("api-3").name("API 3").environmentId("env-1").build()));
+        environmentCrudService.initWith(
+                List.of(Environment.builder().id("env-1").name("Dev").build()));
 
         var output = useCase.execute(new GetUserApisUseCase.Input(USER_ID, null, 2, 2));
 

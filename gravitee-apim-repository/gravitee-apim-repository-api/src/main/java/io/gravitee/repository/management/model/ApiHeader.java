@@ -147,28 +147,25 @@ public class ApiHeader {
     }
 
     public String toString() {
-        return (
-            "ApiHeader{" +
-            "id='" +
-            id +
-            '\'' +
-            ", environmentId='" +
-            environmentId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", value='" +
-            value +
-            '\'' +
-            ", order='" +
-            order +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("ApiHeader{" + "id='"
+                + id
+                + '\''
+                + ", environmentId='"
+                + environmentId
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", value='"
+                + value
+                + '\''
+                + ", order='"
+                + order
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

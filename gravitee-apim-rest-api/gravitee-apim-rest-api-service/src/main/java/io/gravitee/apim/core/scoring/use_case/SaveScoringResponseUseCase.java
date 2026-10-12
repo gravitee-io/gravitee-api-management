@@ -51,85 +51,75 @@ public class SaveScoringResponseUseCase {
 
     public Completable execute(Input input) {
         return Maybe.defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(input.jobId)))
-            .subscribeOn(Schedulers.computation())
-            .flatMapCompletable(job -> {
-                if (!input.success) {
-                    // The scoring provider failed: keep the previous report and surface the failure on the job.
-                    var errorMessage = StringUtils.isEmpty(input.errorMessage) ? UNKNOWN_FAILURE_MESSAGE : input.errorMessage;
-                    return Completable.fromRunnable(() -> {
-                        log.warn("Scoring failed for API [{}]: {}", job.getSourceId(), errorMessage);
-                        asyncJobCrudService.update(job.error(errorMessage));
-                    });
-                }
+                .subscribeOn(Schedulers.computation())
+                .flatMapCompletable(job -> {
+                    if (!input.success) {
+                        // The scoring provider failed: keep the previous report and surface the failure on the job.
+                        var errorMessage =
+                                StringUtils.isEmpty(input.errorMessage) ? UNKNOWN_FAILURE_MESSAGE : input.errorMessage;
+                        return Completable.fromRunnable(() -> {
+                            log.warn("Scoring failed for API [{}]: {}", job.getSourceId(), errorMessage);
+                            asyncJobCrudService.update(job.error(errorMessage));
+                        });
+                    }
 
-                String apiId = job.getSourceId();
-                String environmentId = job.getEnvironmentId();
+                    String apiId = job.getSourceId();
+                    String environmentId = job.getEnvironmentId();
 
-                var report = ScoringReport.builder()
-                    .id(job.getId())
-                    .apiId(apiId)
-                    .environmentId(environmentId)
-                    .createdAt(TimeProvider.now())
-                    .summary(processSummary(input.analyzedAssets))
-                    .assets(input.analyzedAssets)
-                    .build();
+                    var report = ScoringReport.builder()
+                            .id(job.getId())
+                            .apiId(apiId)
+                            .environmentId(environmentId)
+                            .createdAt(TimeProvider.now())
+                            .summary(processSummary(input.analyzedAssets))
+                            .assets(input.analyzedAssets)
+                            .build();
 
-                return Completable.fromRunnable(() -> scoringReportCrudService.deleteByApi(apiId))
-                    .andThen(Completable.fromRunnable(() -> scoringReportCrudService.create(report)))
-                    .doOnComplete(() -> asyncJobCrudService.update(job.complete()))
-                    .doOnError(throwable -> log.error("Fail to save scoring report for API [{}]", apiId, throwable));
-            })
-            .onErrorComplete();
+                    return Completable.fromRunnable(() -> scoringReportCrudService.deleteByApi(apiId))
+                            .andThen(Completable.fromRunnable(() -> scoringReportCrudService.create(report)))
+                            .doOnComplete(() -> asyncJobCrudService.update(job.complete()))
+                            .doOnError(throwable ->
+                                    log.error("Fail to save scoring report for API [{}]", apiId, throwable));
+                })
+                .onErrorComplete();
     }
 
     private ScoringReport.Summary processSummary(List<ScoringReport.Asset> assets) {
         var assetsSummary = new ArrayList<ScoringReport.Summary>();
-        assets
-            .stream()
-            .filter(asset -> asset.errors().isEmpty())
-            .forEach(asset -> {
-                var counters = asset
-                    .diagnostics()
-                    .stream()
+        assets.stream().filter(asset -> asset.errors().isEmpty()).forEach(asset -> {
+            var counters = asset.diagnostics().stream()
                     .collect(Collectors.groupingBy(ScoringReport.Diagnostic::severity, Collectors.counting()));
 
-                var nbErrors = counters.getOrDefault(ScoringReport.Severity.ERROR, 0L);
-                var nbWarnings = counters.getOrDefault(ScoringReport.Severity.WARN, 0L);
-                var nbInfos = counters.getOrDefault(ScoringReport.Severity.INFO, 0L);
-                var nbHints = counters.getOrDefault(ScoringReport.Severity.HINT, 0L);
+            var nbErrors = counters.getOrDefault(ScoringReport.Severity.ERROR, 0L);
+            var nbWarnings = counters.getOrDefault(ScoringReport.Severity.WARN, 0L);
+            var nbInfos = counters.getOrDefault(ScoringReport.Severity.INFO, 0L);
+            var nbHints = counters.getOrDefault(ScoringReport.Severity.HINT, 0L);
 
-                assetsSummary.add(
-                    new ScoringReport.Summary(
-                        scoreComputingDomainService.computeScore(nbErrors, nbWarnings, nbInfos, nbHints),
-                        nbErrors,
-                        nbWarnings,
-                        nbInfos,
-                        nbHints
-                    )
-                );
-            });
+            assetsSummary.add(new ScoringReport.Summary(
+                    scoreComputingDomainService.computeScore(nbErrors, nbWarnings, nbInfos, nbHints),
+                    nbErrors,
+                    nbWarnings,
+                    nbInfos,
+                    nbHints));
+        });
 
         var SCORING_NOT_AVAILABLE = -1.0;
-        var averageScore = BigDecimal.valueOf(
-            assetsSummary
-                .stream()
-                .filter(summary -> summary.score() != null)
-                .mapToDouble(ScoringReport.Summary::score)
-                .average()
-                .orElse(SCORING_NOT_AVAILABLE)
-        ).setScale(2, RoundingMode.HALF_EVEN);
+        var averageScore = BigDecimal.valueOf(assetsSummary.stream()
+                        .filter(summary -> summary.score() != null)
+                        .mapToDouble(ScoringReport.Summary::score)
+                        .average()
+                        .orElse(SCORING_NOT_AVAILABLE))
+                .setScale(2, RoundingMode.HALF_EVEN);
 
-        return assetsSummary
-            .stream()
-            .reduce(new ScoringReport.Summary(averageScore.doubleValue(), 0L, 0L, 0L, 0L), (s1, s2) ->
-                new ScoringReport.Summary(
-                    averageScore.doubleValue(),
-                    s1.errors() + s2.errors(),
-                    s1.warnings() + s2.warnings(),
-                    s1.infos() + s2.infos(),
-                    s1.hints() + s2.hints()
-                )
-            );
+        return assetsSummary.stream()
+                .reduce(
+                        new ScoringReport.Summary(averageScore.doubleValue(), 0L, 0L, 0L, 0L),
+                        (s1, s2) -> new ScoringReport.Summary(
+                                averageScore.doubleValue(),
+                                s1.errors() + s2.errors(),
+                                s1.warnings() + s2.warnings(),
+                                s1.infos() + s2.infos(),
+                                s1.hints() + s2.hints()));
     }
 
     public record Input(String jobId, List<ScoringReport.Asset> analyzedAssets, boolean success, String errorMessage) {

@@ -18,7 +18,6 @@ package io.gravitee.gateway.handlers.sharedpolicygroup.registry;
 import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
-import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactory;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactorFactoryManager;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,27 +39,25 @@ public class SharedPolicyGroupRegistry {
 
     public void create(ReactableSharedPolicyGroup reactable) {
         try {
-            final SharedPolicyGroupReactor sharedPolicyGroupReactor = sharedPolicyGroupReactorFactoryManager.create(reactable);
+            final SharedPolicyGroupReactor sharedPolicyGroupReactor =
+                    sharedPolicyGroupReactorFactoryManager.create(reactable);
             sharedPolicyGroupReactor.start();
             final SharedPolicyGroupReactor previousReactor = registry.put(
-                new SharedPolicyGroupRegistryKey(reactable.getId(), reactable.getEnvironmentId()),
-                sharedPolicyGroupReactor
-            );
+                    new SharedPolicyGroupRegistryKey(reactable.getId(), reactable.getEnvironmentId()),
+                    sharedPolicyGroupReactor);
             if (previousReactor != null) {
                 log.debug(
-                    "The ReactableSharedPolicyGroup was already deployed; stopping previous SharedPolicyGroupReactor for shared policy group: {} of environment {}",
-                    reactable.getId(),
-                    reactable.getEnvironmentId()
-                );
+                        "The ReactableSharedPolicyGroup was already deployed; stopping previous SharedPolicyGroupReactor for shared policy group: {} of environment {}",
+                        reactable.getId(),
+                        reactable.getEnvironmentId());
                 previousReactor.stop();
             }
         } catch (Exception e) {
             log.error(
-                "Unable to create and start the new shared policy group '{}' reactor for environment {}",
-                reactable.getId(),
-                reactable.getEnvironmentId(),
-                e
-            );
+                    "Unable to create and start the new shared policy group '{}' reactor for environment {}",
+                    reactable.getId(),
+                    reactable.getEnvironmentId(),
+                    e);
         }
     }
 
@@ -70,39 +67,37 @@ public class SharedPolicyGroupRegistry {
     }
 
     public void remove(ReactableSharedPolicyGroup reactable) {
-        log.debug("Removing an SharedPolicyGroupReactor {} for organization: {}", reactable.getId(), reactable.getEnvironmentId());
+        log.debug(
+                "Removing an SharedPolicyGroupReactor {} for organization: {}",
+                reactable.getId(),
+                reactable.getEnvironmentId());
         try {
-            SharedPolicyGroupReactor sharedPolicyGroupReactor = registry.remove(
-                new SharedPolicyGroupRegistryKey(reactable.getId(), reactable.getEnvironmentId())
-            );
+            SharedPolicyGroupReactor sharedPolicyGroupReactor =
+                    registry.remove(new SharedPolicyGroupRegistryKey(reactable.getId(), reactable.getEnvironmentId()));
             if (sharedPolicyGroupReactor != null) {
                 sharedPolicyGroupReactor.stop();
             }
         } catch (Exception ex) {
             log.error(
-                "Unable to remove and stop the shared policy group reactor '{}' for environment {}",
-                reactable.getId(),
-                reactable.getEnvironmentId(),
-                ex
-            );
+                    "Unable to remove and stop the shared policy group reactor '{}' for environment {}",
+                    reactable.getId(),
+                    reactable.getEnvironmentId(),
+                    ex);
         }
     }
 
     public void clear() {
-        registry
-            .values()
-            .forEach(reactor -> {
-                try {
-                    reactor.stop();
-                } catch (Exception ex) {
-                    log.error(
+        registry.values().forEach(reactor -> {
+            try {
+                reactor.stop();
+            } catch (Exception ex) {
+                log.error(
                         "Unable to remove and stop shared policy group {} for environment {}",
                         reactor.id(),
                         reactor.reactableSharedPolicyGroup().getEnvironmentId(),
-                        ex
-                    );
-                }
-            });
+                        ex);
+            }
+        });
         registry.clear();
     }
 

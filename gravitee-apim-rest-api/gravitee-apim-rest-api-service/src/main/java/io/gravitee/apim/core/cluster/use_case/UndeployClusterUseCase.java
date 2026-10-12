@@ -45,7 +45,8 @@ public class UndeployClusterUseCase {
     public record Output(Cluster cluster) {}
 
     public Output execute(Input input) {
-        Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.auditInfo().environmentId());
+        Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(
+                input.clusterId(), input.auditInfo().environmentId());
 
         requireNonNull(cluster.getCrossId(), "Cluster crossId must not be null to undeploy");
 
@@ -53,30 +54,22 @@ public class UndeployClusterUseCase {
         // undeployed cluster. Block the undeploy and ask the operator to stop those APIs first.
         if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
             List<Api> startedApis = virtualClusterBoundApisQueryService.findStartedBoundApis(
-                input.auditInfo().environmentId(),
-                cluster.getCrossId()
-            );
+                    input.auditInfo().environmentId(), cluster.getCrossId());
             if (!startedApis.isEmpty()) {
-                throw new InvalidDataException(
-                    "Cannot undeploy virtual cluster '" +
-                        cluster.getName() +
-                        "': " +
-                        startedApis.size() +
-                        " started API(s) are bound to it. Stop them first: " +
-                        startedApis.stream().map(Api::getName).collect(Collectors.joining(", ")) +
-                        "."
-                );
+                throw new InvalidDataException("Cannot undeploy virtual cluster '" + cluster.getName()
+                        + "': "
+                        + startedApis.size()
+                        + " started API(s) are bound to it. Stop them first: "
+                        + startedApis.stream().map(Api::getName).collect(Collectors.joining(", "))
+                        + ".");
             }
         }
 
         Cluster updatedCluster = undeployClusterDomainService.undeploy(cluster, input.auditInfo());
 
-        return new Output(
-            clusterConfigurationAccessDomainService.visibleTo(
+        return new Output(clusterConfigurationAccessDomainService.visibleTo(
                 updatedCluster,
                 input.auditInfo().organizationId(),
-                input.auditInfo().actor().userId()
-            )
-        );
+                input.auditInfo().actor().userId()));
     }
 }

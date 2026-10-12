@@ -22,34 +22,63 @@ import java.util.Map;
 import java.util.Optional;
 
 public record UserContext(
-    AuditInfo auditInfo,
-    Optional<Map<String, String>> apiNameById,
-    Optional<Map<String, String>> applicationNameById,
-    Optional<Map<String, String>> planNameById,
-    Optional<Map<String, String>> gatewayHostnameById,
-    Optional<List<Api>> apis
-) {
+        AuditInfo auditInfo,
+        Optional<Map<String, String>> apiNameById,
+        Optional<Map<String, String>> applicationNameById,
+        Optional<Map<String, String>> planNameById,
+        Optional<Map<String, String>> gatewayHostnameById,
+        Optional<List<Api>> apis) {
     public UserContext(AuditInfo auditInfo) {
         this(auditInfo, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     public UserContext withApiNamesById(Map<String, String> apiNameById) {
-        return new UserContext(auditInfo, Optional.ofNullable(apiNameById), applicationNameById, planNameById, gatewayHostnameById, apis);
+        return new UserContext(
+                auditInfo,
+                Optional.ofNullable(apiNameById),
+                applicationNameById,
+                planNameById,
+                gatewayHostnameById,
+                apis);
     }
 
     public UserContext withApplicationNameById(Map<String, String> applicationNameById) {
-        return new UserContext(auditInfo, apiNameById, Optional.ofNullable(applicationNameById), planNameById, gatewayHostnameById, apis);
+        return new UserContext(
+                auditInfo,
+                apiNameById,
+                Optional.ofNullable(applicationNameById),
+                planNameById,
+                gatewayHostnameById,
+                apis);
     }
 
     public UserContext withPlanNameById(Map<String, String> planNameById) {
-        return new UserContext(auditInfo, apiNameById, applicationNameById, Optional.ofNullable(planNameById), gatewayHostnameById, apis);
+        return new UserContext(
+                auditInfo,
+                apiNameById,
+                applicationNameById,
+                Optional.ofNullable(planNameById),
+                gatewayHostnameById,
+                apis);
     }
 
     public UserContext withGatewayHostnameById(Map<String, String> gatewayHostnameById) {
-        return new UserContext(auditInfo, apiNameById, applicationNameById, planNameById, Optional.ofNullable(gatewayHostnameById), apis);
+        return new UserContext(
+                auditInfo,
+                apiNameById,
+                applicationNameById,
+                planNameById,
+                Optional.ofNullable(gatewayHostnameById),
+                apis);
     }
 
     public UserContext withApis(List<Api> apis) {
-        return new UserContext(auditInfo, apiNameById, applicationNameById, planNameById, gatewayHostnameById, Optional.ofNullable(apis));
+        return new UserContext(
+                auditInfo,
+                apiNameById,
+                applicationNameById,
+                planNameById,
+                gatewayHostnameById,
+                Optional.ofNullable(apis));
     }
 }

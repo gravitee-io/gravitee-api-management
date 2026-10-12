@@ -32,18 +32,20 @@ class PortalNavigationItemTest {
     @Test
     void should_create_unpublished_api_product_container() {
         var create = CreatePortalNavigationItem.builder()
-            .title("Product documentation")
-            .segment("product-documentation")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .apiProductId("00000000-0000-0000-0000-000000000020")
-            .build();
+                .title("Product documentation")
+                .segment("product-documentation")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .apiProductId("00000000-0000-0000-0000-000000000020")
+                .build();
 
         var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
 
-        assertThat(item).isInstanceOf(PortalNavigationApiProduct.class).isInstanceOf(PortalNavigationItemContainer.class);
+        assertThat(item)
+                .isInstanceOf(PortalNavigationApiProduct.class)
+                .isInstanceOf(PortalNavigationItemContainer.class);
         var apiProduct = (PortalNavigationApiProduct) item;
         assertThat(apiProduct.getApiProductId()).isEqualTo("00000000-0000-0000-0000-000000000020");
         assertThat(apiProduct.getPublished()).isFalse();
@@ -56,15 +58,15 @@ class PortalNavigationItemTest {
     void should_create_api_product_with_category_ids() {
         var categoryIds = List.of(PortalCategoryId.random(), PortalCategoryId.random());
         var create = CreatePortalNavigationItem.builder()
-            .title("Product documentation")
-            .segment("product-documentation")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .apiProductId("00000000-0000-0000-0000-000000000020")
-            .categoryIds(categoryIds)
-            .build();
+                .title("Product documentation")
+                .segment("product-documentation")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .apiProductId("00000000-0000-0000-0000-000000000020")
+                .categoryIds(categoryIds)
+                .build();
 
         var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
 
@@ -77,12 +79,12 @@ class PortalNavigationItemTest {
         var apiProduct = fixtures.core.model.PortalNavigationItemFixtures.anApiProduct();
         var originalApiProductId = apiProduct.getApiProductId();
         var update = UpdatePortalNavigationItem.builder()
-            .title("Updated product documentation")
-            .order(1)
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .published(false)
-            .visibility(PortalVisibility.PRIVATE)
-            .build();
+                .title("Updated product documentation")
+                .order(1)
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .published(false)
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
 
         apiProduct.update(update);
 
@@ -95,13 +97,13 @@ class PortalNavigationItemTest {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct();
         var categoryId = PortalCategoryId.random();
         var update = UpdatePortalNavigationItem.builder()
-            .title("Updated product documentation")
-            .order(1)
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .published(false)
-            .visibility(PortalVisibility.PRIVATE)
-            .categoryIds(List.of(categoryId))
-            .build();
+                .title("Updated product documentation")
+                .order(1)
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .published(false)
+                .visibility(PortalVisibility.PRIVATE)
+                .categoryIds(List.of(categoryId))
+                .build();
 
         apiProduct.update(update);
 
@@ -111,23 +113,21 @@ class PortalNavigationItemTest {
     @Test
     void should_reset_api_product_category_ids_to_empty_list_when_update_omits_them() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct();
-        apiProduct.update(
-            UpdatePortalNavigationItem.builder()
+        apiProduct.update(UpdatePortalNavigationItem.builder()
                 .title("Updated product documentation")
                 .order(1)
                 .type(PortalNavigationItemType.API_PRODUCT)
                 .published(false)
                 .visibility(PortalVisibility.PRIVATE)
                 .categoryIds(List.of(PortalCategoryId.random()))
-                .build()
-        );
+                .build());
         var update = UpdatePortalNavigationItem.builder()
-            .title("Updated product documentation")
-            .order(1)
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .published(false)
-            .visibility(PortalVisibility.PRIVATE)
-            .build();
+                .title("Updated product documentation")
+                .order(1)
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .published(false)
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
 
         apiProduct.update(update);
 

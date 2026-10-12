@@ -19,7 +19,6 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
-import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
@@ -40,11 +39,10 @@ public class FlowChainFactory {
     private final TracingHook tracingHook;
 
     public FlowChainFactory(
-        final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
-        final PolicyChainFactory policyChainFactory,
-        final OrganizationManager organizationManager,
-        final FlowResolverFactory flowResolverFactory
-    ) {
+            final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+            final PolicyChainFactory policyChainFactory,
+            final OrganizationManager organizationManager,
+            final FlowResolverFactory flowResolverFactory) {
         this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
         this.policyChainFactory = policyChainFactory;
         this.organizationManager = organizationManager;
@@ -58,26 +56,25 @@ public class FlowChainFactory {
      * (and its policy-chain cache) is needed.
      */
     public FlowChainFactory(
-        final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
-        final OrganizationManager organizationManager,
-        final FlowResolverFactory flowResolverFactory
-    ) {
+            final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+            final OrganizationManager organizationManager,
+            final FlowResolverFactory flowResolverFactory) {
         this(organizationPolicyChainFactoryManager, null, organizationManager, flowResolverFactory);
     }
 
     public FlowChain createOrganizationFlow(final ReactableApi<?> api, final TracingContext tracingContext) {
         String organizationId = api.getOrganizationId();
         FlowChain flowOrganizationChain = new FlowChain(
-            "organization",
-            flowResolverFactory.forOrganization(organizationId, organizationManager),
-            organizationPolicyChainFactoryManager.get(organizationId)
-        );
+                "organization",
+                flowResolverFactory.forOrganization(organizationId, organizationManager),
+                organizationPolicyChainFactoryManager.get(organizationId));
         flowOrganizationChain.addHooks(flowHooks(tracingContext));
         return flowOrganizationChain;
     }
 
     public FlowChain createPlanFlow(final Api api, final TracingContext tracingContext) {
-        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), requirePolicyChainFactory());
+        FlowChain flowPlanChain =
+                new FlowChain("plan", flowResolverFactory.forApiPlan(api), requirePolicyChainFactory());
         flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
     }

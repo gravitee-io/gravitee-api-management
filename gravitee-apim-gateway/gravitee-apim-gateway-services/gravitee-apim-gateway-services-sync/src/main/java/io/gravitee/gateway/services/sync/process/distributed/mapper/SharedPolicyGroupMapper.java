@@ -40,20 +40,17 @@ public class SharedPolicyGroupMapper {
     public Maybe<SharedPolicyGroupReactorDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
             try {
-                ReactableSharedPolicyGroup reactableSharedPolicyGroup = objectMapper.readValue(
-                    event.getPayload(),
-                    ReactableSharedPolicyGroup.class
-                );
+                ReactableSharedPolicyGroup reactableSharedPolicyGroup =
+                        objectMapper.readValue(event.getPayload(), ReactableSharedPolicyGroup.class);
 
                 return SharedPolicyGroupReactorDeployable.builder()
-                    .sharedPolicyGroupId(event.getId())
-                    .environmentId(reactableSharedPolicyGroup.getEnvironmentId())
-                    .allEnvironments(
-                        event.getSyncAction() == DistributedSyncAction.UNDEPLOY && reactableSharedPolicyGroup.getEnvironmentId() == null
-                    )
-                    .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
-                    .syncAction(SyncActionMapper.to(event.getSyncAction()))
-                    .build();
+                        .sharedPolicyGroupId(event.getId())
+                        .environmentId(reactableSharedPolicyGroup.getEnvironmentId())
+                        .allEnvironments(event.getSyncAction() == DistributedSyncAction.UNDEPLOY
+                                && reactableSharedPolicyGroup.getEnvironmentId() == null)
+                        .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
+                        .syncAction(SyncActionMapper.to(event.getSyncAction()))
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while determining shared policy group into event payload", e);
                 return null;
@@ -65,23 +62,24 @@ public class SharedPolicyGroupMapper {
         return Flowable.concatArray(toSharedPolicyGroupDistributedEvent(deployable));
     }
 
-    private Flowable<DistributedEvent> toSharedPolicyGroupDistributedEvent(final SharedPolicyGroupReactorDeployable deployable) {
+    private Flowable<DistributedEvent> toSharedPolicyGroupDistributedEvent(
+            final SharedPolicyGroupReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
             try {
                 ReactableSharedPolicyGroup payloadSource = deployable.reactableSharedPolicyGroup();
                 if (payloadSource == null) {
                     payloadSource = ReactableSharedPolicyGroup.builder()
-                        .id(deployable.sharedPolicyGroupId())
-                        .environmentId(deployable.environmentId())
-                        .build();
+                            .id(deployable.sharedPolicyGroupId())
+                            .environmentId(deployable.environmentId())
+                            .build();
                 }
                 return DistributedEvent.builder()
-                    .id(deployable.sharedPolicyGroupId())
-                    .type(DistributedEventType.SHARED_POLICY_GROUP)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date())
-                    .payload(objectMapper.writeValueAsString(payloadSource))
-                    .build();
+                        .id(deployable.sharedPolicyGroupId())
+                        .type(DistributedEventType.SHARED_POLICY_GROUP)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date())
+                        .payload(objectMapper.writeValueAsString(payloadSource))
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while building distributed event from shared policy group reactor", e);
                 return null;

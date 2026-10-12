@@ -27,7 +27,12 @@ import org.junit.jupiter.api.Test;
 class NativePlanSecurityValidatorTest {
 
     private static Plan plan(String id, ApiType apiType, Plan.PlanSecurityType security, Plan.Status status) {
-        return Plan.builder().id(id).apiType(apiType).security(security).status(status).build();
+        return Plan.builder()
+                .id(id)
+                .apiType(apiType)
+                .security(security)
+                .status(status)
+                .build();
     }
 
     private static Plan nativePlanToPublish(Plan.PlanSecurityType security) {
@@ -39,18 +44,17 @@ class NativePlanSecurityValidatorTest {
         var proxyKeyless = plan("to-publish", ApiType.PROXY, Plan.PlanSecurityType.KEY_LESS, Plan.Status.STAGING);
         var existingApiKey = plan("existing", ApiType.PROXY, Plan.PlanSecurityType.API_KEY, Plan.Status.PUBLISHED);
 
-        assertThatCode(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(proxyKeyless, Set.of(proxyKeyless, existingApiKey))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(
+                        proxyKeyless, Set.of(proxyKeyless, existingApiKey)))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_not_conflict_with_itself() {
         var keyless = plan("to-publish", ApiType.NATIVE, Plan.PlanSecurityType.KEY_LESS, Plan.Status.PUBLISHED);
 
-        assertThatCode(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(keyless, Set.of(keyless))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(keyless, Set.of(keyless)))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -58,9 +62,9 @@ class NativePlanSecurityValidatorTest {
         var toPublish = nativePlanToPublish(Plan.PlanSecurityType.KEY_LESS);
         var existing = plan("existing", ApiType.NATIVE, Plan.PlanSecurityType.API_KEY, Plan.Status.PUBLISHED);
 
-        assertThatThrownBy(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(toPublish, Set.of(toPublish, existing))
-        ).isInstanceOf(NativePlanAuthenticationConflictException.class);
+        assertThatThrownBy(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(
+                        toPublish, Set.of(toPublish, existing)))
+                .isInstanceOf(NativePlanAuthenticationConflictException.class);
     }
 
     @Test
@@ -68,9 +72,9 @@ class NativePlanSecurityValidatorTest {
         var toPublish = nativePlanToPublish(Plan.PlanSecurityType.KEY_LESS);
         var existing = plan("existing", ApiType.NATIVE, Plan.PlanSecurityType.API_KEY, Plan.Status.DEPRECATED);
 
-        assertThatThrownBy(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(toPublish, Set.of(toPublish, existing))
-        ).isInstanceOf(NativePlanAuthenticationConflictException.class);
+        assertThatThrownBy(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(
+                        toPublish, Set.of(toPublish, existing)))
+                .isInstanceOf(NativePlanAuthenticationConflictException.class);
     }
 
     @Test
@@ -78,9 +82,9 @@ class NativePlanSecurityValidatorTest {
         var toPublish = nativePlanToPublish(Plan.PlanSecurityType.MTLS);
         var existing = plan("existing", ApiType.NATIVE, Plan.PlanSecurityType.OAUTH2, Plan.Status.PUBLISHED);
 
-        assertThatThrownBy(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(toPublish, Set.of(toPublish, existing))
-        ).isInstanceOf(NativePlanAuthenticationConflictException.class);
+        assertThatThrownBy(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(
+                        toPublish, Set.of(toPublish, existing)))
+                .isInstanceOf(NativePlanAuthenticationConflictException.class);
     }
 
     @Test
@@ -88,9 +92,9 @@ class NativePlanSecurityValidatorTest {
         var toPublish = nativePlanToPublish(Plan.PlanSecurityType.JWT);
         var existing = plan("existing", ApiType.NATIVE, Plan.PlanSecurityType.MTLS, Plan.Status.PUBLISHED);
 
-        assertThatThrownBy(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(toPublish, Set.of(toPublish, existing))
-        ).isInstanceOf(NativePlanAuthenticationConflictException.class);
+        assertThatThrownBy(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(
+                        toPublish, Set.of(toPublish, existing)))
+                .isInstanceOf(NativePlanAuthenticationConflictException.class);
     }
 
     @Test
@@ -98,9 +102,9 @@ class NativePlanSecurityValidatorTest {
         var toPublish = nativePlanToPublish(Plan.PlanSecurityType.API_KEY);
         var existing = plan("existing", ApiType.NATIVE, Plan.PlanSecurityType.JWT, Plan.Status.PUBLISHED);
 
-        assertThatCode(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(toPublish, Set.of(toPublish, existing))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(
+                        toPublish, Set.of(toPublish, existing)))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -108,8 +112,8 @@ class NativePlanSecurityValidatorTest {
         var toPublish = nativePlanToPublish(Plan.PlanSecurityType.KEY_LESS);
         var existing = plan("existing", ApiType.NATIVE, Plan.PlanSecurityType.API_KEY, Plan.Status.CLOSED);
 
-        assertThatCode(() ->
-            NativePlanSecurityValidator.validateNoConflictingSecurity(toPublish, Set.of(toPublish, existing))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> NativePlanSecurityValidator.validateNoConflictingSecurity(
+                        toPublish, Set.of(toPublish, existing)))
+                .doesNotThrowAnyException();
     }
 }

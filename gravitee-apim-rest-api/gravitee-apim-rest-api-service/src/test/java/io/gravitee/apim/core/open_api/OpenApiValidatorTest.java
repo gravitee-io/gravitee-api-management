@@ -36,21 +36,25 @@ class OpenApiValidatorTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = { "openapi: 3.0.0\ninfo:\n  title: Test API", "swagger: \"2.0\"\ninfo:\n  title: Test", "  \n  openapi: 3.0.0  \n  " }
-        )
+                strings = {
+                    "openapi: 3.0.0\ninfo:\n  title: Test API",
+                    "swagger: \"2.0\"\ninfo:\n  title: Test",
+                    "  \n  openapi: 3.0.0  \n  "
+                })
         void should_accept_valid_content(String validContent) {
             // When / Then
-            assertThatCode(() -> validator.validateNotEmpty(new OpenApi(validContent))).doesNotThrowAnyException();
+            assertThatCode(() -> validator.validateNotEmpty(new OpenApi(validContent)))
+                    .doesNotThrowAnyException();
         }
 
         @ParameterizedTest
         @NullAndEmptySource
-        @ValueSource(strings = { "   ", "  \n  \t  " })
+        @ValueSource(strings = {"   ", "  \n  \t  "})
         void should_throw_exception_when_content_is_invalid(String invalidContent) {
             // When / Then
             assertThatThrownBy(() -> validator.validateNotEmpty(new OpenApi(invalidContent)))
-                .isInstanceOf(OpenApiContentEmptyException.class)
-                .hasMessage("Content must not be null or empty");
+                    .isInstanceOf(OpenApiContentEmptyException.class)
+                    .hasMessage("Content must not be null or empty");
         }
     }
 }

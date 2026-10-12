@@ -71,15 +71,21 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.v4.Ap
     @Override
     public Set<String> getSubscribablePlans() {
         return definition.getPlans() != null
-            ? definition.getPlans().stream().filter(Plan::isSubscribable).map(Plan::getId).collect(Collectors.toSet())
-            : Set.of();
+                ? definition.getPlans().stream()
+                        .filter(Plan::isSubscribable)
+                        .map(Plan::getId)
+                        .collect(Collectors.toSet())
+                : Set.of();
     }
 
     @Override
     public Set<String> getApiKeyPlans() {
         return definition.getPlans() != null
-            ? definition.getPlans().stream().filter(Plan::isApiKey).map(Plan::getId).collect(Collectors.toSet())
-            : Set.of();
+                ? definition.getPlans().stream()
+                        .filter(Plan::isApiKey)
+                        .map(Plan::getId)
+                        .collect(Collectors.toSet())
+                : Set.of();
     }
 
     @Override
@@ -98,25 +104,23 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.v4.Ap
 
         // Load policies from Plans
         if (definition.getPlans() != null) {
-            definition
-                .getPlans()
-                .forEach(plan -> {
-                    // TODO: associate plan security with its policy (https://github.com/gravitee-io/issues/issues/8427)
-                    if (plan.useStandardMode()) {
-                        PlanSecurity security = plan.getSecurity();
-                        Policy secPolicy = new Policy();
-                        secPolicy.setName(security.getType());
+            definition.getPlans().forEach(plan -> {
+                // TODO: associate plan security with its policy (https://github.com/gravitee-io/issues/issues/8427)
+                if (plan.useStandardMode()) {
+                    PlanSecurity security = plan.getSecurity();
+                    Policy secPolicy = new Policy();
+                    secPolicy.setName(security.getType());
 
-                        if (secPolicy.getName() != null) {
-                            policies.add(secPolicy);
-                        }
+                    if (secPolicy.getName() != null) {
+                        policies.add(secPolicy);
                     }
+                }
 
-                    if (plan.getFlows() != null) {
-                        List<Flow> flows = plan.getFlows();
-                        addFlowsPolicies(policies, flows);
-                    }
-                });
+                if (plan.getFlows() != null) {
+                    List<Flow> flows = plan.getFlows();
+                    addFlowsPolicies(policies, flows);
+                }
+            });
         }
 
         // Load policies from flows
@@ -129,30 +133,26 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.v4.Ap
     }
 
     private void addFlowsPolicies(final Set<Policy> policies, final List<Flow> flows) {
-        flows
-            .stream()
-            .filter(Flow::isEnabled)
-            .forEach(flow -> {
-                policies.addAll(getPolicies(flow.getRequest()));
-                policies.addAll(getPolicies(flow.getResponse()));
-                policies.addAll(getPolicies(flow.getSubscribe()));
-                policies.addAll(getPolicies(flow.getPublish()));
-            });
+        flows.stream().filter(Flow::isEnabled).forEach(flow -> {
+            policies.addAll(getPolicies(flow.getRequest()));
+            policies.addAll(getPolicies(flow.getResponse()));
+            policies.addAll(getPolicies(flow.getSubscribe()));
+            policies.addAll(getPolicies(flow.getPublish()));
+        });
     }
 
     private List<Policy> getPolicies(List<Step> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return List.of();
         }
-        return flowStep
-            .stream()
-            .filter(Step::isEnabled)
-            .map(step -> {
-                Policy policy = new Policy();
-                policy.setName(step.getPolicy());
-                policy.setConfiguration(step.getConfiguration());
-                return policy;
-            })
-            .collect(Collectors.toList());
+        return flowStep.stream()
+                .filter(Step::isEnabled)
+                .map(step -> {
+                    Policy policy = new Policy();
+                    policy.setName(step.getPolicy());
+                    policy.setConfiguration(step.getConfiguration());
+                    return policy;
+                })
+                .collect(Collectors.toList());
     }
 }

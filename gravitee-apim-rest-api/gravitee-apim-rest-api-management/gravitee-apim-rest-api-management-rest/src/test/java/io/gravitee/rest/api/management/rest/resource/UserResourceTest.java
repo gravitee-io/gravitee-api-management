@@ -75,7 +75,8 @@ public class UserResourceTest extends AbstractResourceTest {
         group.setName("Env Group");
         when(groupService.findByUserAndEnvironment(USER_ID, ENV_ID)).thenReturn(Set.of(group));
 
-        final Response response = orgTarget().queryParam("environmentId", ENV_ID).request().get();
+        final Response response =
+                orgTarget().queryParam("environmentId", ENV_ID).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         List<UserGroupEntity> result = response.readEntity(new GenericType<>() {});

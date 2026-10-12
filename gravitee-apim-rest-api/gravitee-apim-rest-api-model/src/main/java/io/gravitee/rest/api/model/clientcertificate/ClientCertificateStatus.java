@@ -22,8 +22,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Status of a client certificate.
  */
 @Schema(
-    description = "Status of the certificate. ACTIVE means it is available. ACTIVE_WITH_END means it is available but will be removed when endsAt is reached. SCHEDULED means that startsAt is not yet passed. REVOKED means endsAt is passed."
-)
+        description =
+                "Status of the certificate. ACTIVE means it is available. ACTIVE_WITH_END means it is available but will be removed when endsAt is reached. SCHEDULED means that startsAt is not yet passed. REVOKED means endsAt is passed.")
 public enum ClientCertificateStatus {
     ACTIVE,
     ACTIVE_WITH_END,

@@ -25,5 +25,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface ApiProductNotificationService {
     void triggerDeployNotification(ExecutionContext executionContext, ApiProduct apiProduct);
+
     void triggerUpdateNotification(ExecutionContext executionContext, ApiProduct apiProduct);
 }

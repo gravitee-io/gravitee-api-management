@@ -43,6 +43,7 @@ public final class EvaluatedCredentialsMethods implements DeferredFunctionHolder
 
     @Override
     public Single<String> get(String credentialId, String field, SecretFieldAccessControl accessControl) {
-        return Single.fromCallable(() -> credentialResolver.resolve(environmentId, apiId, credentialId, field, accessControl));
+        return Single.fromCallable(
+                () -> credentialResolver.resolve(environmentId, apiId, credentialId, field, accessControl));
     }
 }

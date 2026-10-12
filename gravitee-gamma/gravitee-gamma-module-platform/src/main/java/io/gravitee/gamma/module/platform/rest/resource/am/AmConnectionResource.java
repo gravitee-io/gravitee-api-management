@@ -52,32 +52,31 @@ public class AmConnectionResource {
     private TestAmConnectionUseCase testAmConnectionUseCase;
 
     @GET
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AM_CONFIGURATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
+                acls = {RolePermissionAction.READ})
+    })
     public AmConnectionResponse get(@PathParam("orgId") String orgId) {
         var output = getAmConnectionUseCase.execute(new GetAmConnectionUseCase.Input(orgId));
         return new AmConnectionResponse(
-            output.baseUrl(),
-            output.hasAccessToken(),
-            output.amOrganizationId(),
-            output.environmentId(),
-            output.defaultDomainId(),
-            output.defaultDomainHrid(),
-            output.gatewayUrl()
-        );
+                output.baseUrl(),
+                output.hasAccessToken(),
+                output.amOrganizationId(),
+                output.environmentId(),
+                output.defaultDomainId(),
+                output.defaultDomainHrid(),
+                output.gatewayUrl());
     }
 
     @PUT
-    @Permissions(
-        {
-            @Permission(
+    @Permissions({
+        @Permission(
                 value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
-                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
-            ),
-        }
-    )
+                acls = {RolePermissionAction.CREATE, RolePermissionAction.UPDATE}),
+    })
     public AmConnectionResponse save(@PathParam("orgId") String orgId, @Valid @NotNull AmConnectionRequest req) {
-        var output = saveAmConnectionUseCase.execute(
-            new SaveAmConnectionUseCase.Input(
+        var output = saveAmConnectionUseCase.execute(new SaveAmConnectionUseCase.Input(
                 orgId,
                 req.baseUrl(),
                 req.serviceAccountAccessToken(),
@@ -85,38 +84,31 @@ public class AmConnectionResource {
                 req.environmentId(),
                 req.defaultDomainId(),
                 req.defaultDomainHrid(),
-                req.gatewayUrl()
-            )
-        );
+                req.gatewayUrl()));
         return new AmConnectionResponse(
-            output.baseUrl(),
-            output.hasAccessToken(),
-            output.amOrganizationId(),
-            output.environmentId(),
-            output.defaultDomainId(),
-            output.defaultDomainHrid(),
-            output.gatewayUrl()
-        );
+                output.baseUrl(),
+                output.hasAccessToken(),
+                output.amOrganizationId(),
+                output.environmentId(),
+                output.defaultDomainId(),
+                output.defaultDomainHrid(),
+                output.gatewayUrl());
     }
 
     @POST
     @Path("/_test")
-    @Permissions(
-        {
-            @Permission(
+    @Permissions({
+        @Permission(
                 value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
-                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
-            ),
-        }
-    )
+                acls = {RolePermissionAction.CREATE, RolePermissionAction.UPDATE}),
+    })
     public AmConnectionTestResultResponse test(@PathParam("orgId") String orgId, AmConnectionRequest req) {
         String inboundBaseUrl = req == null ? null : req.baseUrl();
         String inboundToken = req == null ? null : req.serviceAccountAccessToken();
         String inboundAmOrganizationId = req == null ? null : req.amOrganizationId();
-        return AmDtoMapper.toDto(
-            testAmConnectionUseCase
-                .execute(new TestAmConnectionUseCase.Input(orgId, inboundBaseUrl, inboundToken, inboundAmOrganizationId))
-                .result()
-        );
+        return AmDtoMapper.toDto(testAmConnectionUseCase
+                .execute(
+                        new TestAmConnectionUseCase.Input(orgId, inboundBaseUrl, inboundToken, inboundAmOrganizationId))
+                .result());
     }
 }

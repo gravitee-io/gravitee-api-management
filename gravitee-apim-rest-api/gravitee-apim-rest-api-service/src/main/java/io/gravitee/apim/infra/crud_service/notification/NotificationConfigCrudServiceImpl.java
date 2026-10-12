@@ -40,13 +40,10 @@ public class NotificationConfigCrudServiceImpl implements NotificationConfigCrud
             return NotificationConfigAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurs while trying to create the %s notification config of %s",
-                    config.getReferenceType(),
-                    config.getReferenceId()
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to create the %s notification config of %s",
+                            config.getReferenceType(), config.getReferenceId()),
+                    e);
         }
     }
 }

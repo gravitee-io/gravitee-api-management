@@ -109,13 +109,10 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
 
         try {
             this.configuration = pluginConfigurationHelper.readConfiguration(
-                HttpDynamicPropertiesServiceConfiguration.class,
-                this.dynamicPropertyService.getConfiguration()
-            );
+                    HttpDynamicPropertiesServiceConfiguration.class, this.dynamicPropertyService.getConfiguration());
         } catch (PluginConfigurationException e) {
-            return Completable.error(
-                new IllegalArgumentException("Unable to start http-dynamic-properties service for api: [" + api.getId() + "]")
-            );
+            return Completable.error(new IllegalArgumentException(
+                    "Unable to start http-dynamic-properties service for api: [" + api.getId() + "]"));
         }
         this.httpClient = HttpClientFactory.createClient(deploymentContext, configuration);
         this.joltMapper = new JoltMapper(configuration.getTransformation());
@@ -138,8 +135,10 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
         log.debug("Restarting dynamic properties service for api: {}", updatedApi.getId());
 
         final Disposable currentJob = scheduledJob.get();
-        final Service currentDynamicPropertiesService = this.dynamicPropertyService.toBuilder().build();
-        final Service updatedDynamicPropertiesService = extractDynamicPropertyService(updatedApi).toBuilder().build();
+        final Service currentDynamicPropertiesService =
+                this.dynamicPropertyService.toBuilder().build();
+        final Service updatedDynamicPropertiesService =
+                extractDynamicPropertyService(updatedApi).toBuilder().build();
         this.api = updatedApi;
         this.dynamicPropertyService = updatedDynamicPropertiesService;
         if ((currentJob == null || currentJob.isDisposed()) && updatedDynamicPropertiesService.isEnabled()) {
@@ -162,21 +161,19 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
         final AtomicLong errorCount = new AtomicLong(0);
 
         return Observable.defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
-            .observeOn(Schedulers.computation())
-            .filter(aLong -> clusterManager.self().primary())
-            .switchMapCompletable(aLong -> fetchProperties())
-            .onErrorResumeNext(throwable -> logOnError(errorCount, throwable))
-            .repeat()
-            .subscribe(() -> {}, throwable -> log.error("Unable to run Dynamic Properties for Api: {}", api.getId()));
+                .observeOn(Schedulers.computation())
+                .filter(aLong -> clusterManager.self().primary())
+                .switchMapCompletable(aLong -> fetchProperties())
+                .onErrorResumeNext(throwable -> logOnError(errorCount, throwable))
+                .repeat()
+                .subscribe(
+                        () -> {}, throwable -> log.error("Unable to run Dynamic Properties for Api: {}", api.getId()));
     }
 
     private Completable fetchProperties() {
         if (!URIUtils.isAbsolute(configuration.getUrl())) {
-            return Completable.error(
-                new IllegalArgumentException(
-                    "Target url [" + configuration.getUrl() + "] must be absolute to perform dynamic properties fetching against."
-                )
-            );
+            return Completable.error(new IllegalArgumentException("Target url [" + configuration.getUrl()
+                    + "] must be absolute to perform dynamic properties fetching against."));
         }
         final RequestOptions requestOptions = new RequestOptions();
         final MultiMap headers = HeadersMultiMap.httpHeaders();
@@ -186,49 +183,57 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
         final boolean isSsl = HttpClientFactory.isSecureProtocol(target.getProtocol());
 
         requestOptions
-            .setMethod(HttpMethod.valueOf(configuration.getMethod().name()))
-            .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + "?" + target.getQuery())
-            .setPort(HttpClientFactory.getPort(target, isSsl))
-            .setSsl(isSsl)
-            .setHeaders(headers)
-            .setHost(target.getHost());
+                .setMethod(HttpMethod.valueOf(configuration.getMethod().name()))
+                .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + "?" + target.getQuery())
+                .setPort(HttpClientFactory.getPort(target, isSsl))
+                .setSsl(isSsl)
+                .setHeaders(headers)
+                .setHost(target.getHost());
 
         return httpClient
-            .rxRequest(requestOptions)
-            .observeOn(Schedulers.io())
-            .flatMap(request -> configuration.getBody() != null ? request.rxSend(configuration.getBody()) : request.rxSend())
-            .flatMapCompletable(response -> {
-                if (response.statusCode() != HttpStatusCode.OK_200) {
-                    // Properly end the response
-                    return response.toFlowable().ignoreElements();
-                }
-                return response.body().flatMapCompletable(this::evaluateAndDispatchProperties);
-            });
+                .rxRequest(requestOptions)
+                .observeOn(Schedulers.io())
+                .flatMap(request ->
+                        configuration.getBody() != null ? request.rxSend(configuration.getBody()) : request.rxSend())
+                .flatMapCompletable(response -> {
+                    if (response.statusCode() != HttpStatusCode.OK_200) {
+                        // Properly end the response
+                        return response.toFlowable().ignoreElements();
+                    }
+                    return response.body().flatMapCompletable(this::evaluateAndDispatchProperties);
+                });
     }
 
     private Completable logOnError(AtomicLong errorCount, Throwable throwable) {
         if (errorCount.incrementAndGet() == 1) {
-            log.warn("Unable to run dynamic properties for api [{}] on URL [{}].", api.getId(), configuration.getUrl(), throwable);
+            log.warn(
+                    "Unable to run dynamic properties for api [{}] on URL [{}].",
+                    api.getId(),
+                    configuration.getUrl(),
+                    throwable);
         } else if ((errorCount.get() % LOG_ERROR_COUNT == 0)) {
             log.warn(
-                "Unable to run dynamic properties for api [{}] on URL [{}] (times: {}, see previous log report for details).",
-                api.getId(),
-                configuration.getUrl(),
-                errorCount.get()
-            );
+                    "Unable to run dynamic properties for api [{}] on URL [{}] (times: {}, see previous log report for details).",
+                    api.getId(),
+                    configuration.getUrl(),
+                    errorCount.get());
         }
         return Completable.complete();
     }
 
     private Completable evaluateAndDispatchProperties(Buffer bodyBuffer) {
         return Completable.fromRunnable(() -> {
-            final List<Property> properties = joltMapper.map(bodyBuffer.toString());
-            final DynamicPropertiesEncryptionPolicy encryption = configuration.getEncryption();
-            eventManager.publishEvent(
-                ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE,
-                new DynamicPropertiesEvent(api.getId(), this.id(), properties, encryption != null && encryption.isEncryptOnFetch())
-            );
-        }).subscribeOn(Schedulers.io());
+                    final List<Property> properties = joltMapper.map(bodyBuffer.toString());
+                    final DynamicPropertiesEncryptionPolicy encryption = configuration.getEncryption();
+                    eventManager.publishEvent(
+                            ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE,
+                            new DynamicPropertiesEvent(
+                                    api.getId(),
+                                    this.id(),
+                                    properties,
+                                    encryption != null && encryption.isEncryptOnFetch()));
+                })
+                .subscribeOn(Schedulers.io());
     }
 
     /**

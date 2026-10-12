@@ -54,7 +54,8 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     private MongoQueries mongoQueries;
 
     @Override
-    public Page<ApplicationMongo> search(final ApplicationCriteria criteria, final Pageable pageable, Sortable sortable) {
+    public Page<ApplicationMongo> search(
+            final ApplicationCriteria criteria, final Pageable pageable, Sortable sortable) {
         final Query query = buildSearchCriteria(criteria);
 
         query.fields().exclude("background");
@@ -78,7 +79,8 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
         List<ApplicationMongo> apps = mongoTemplate.find(query, ApplicationMongo.class);
 
-        return new Page<>(apps, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+        return new Page<>(
+                apps, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
     }
 
     @Override
@@ -93,9 +95,10 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
         if (criteria != null) {
             if (StringUtils.isNotBlank(criteria.getQuery())) {
-                query.addCriteria(
-                    new Criteria().orOperator(where("id").is(criteria.getQuery()), where("name").regex(criteria.getQuery(), "i"))
-                );
+                query.addCriteria(new Criteria()
+                        .orOperator(
+                                where("id").is(criteria.getQuery()),
+                                where("name").regex(criteria.getQuery(), "i")));
             }
 
             if (!isEmpty(criteria.getRestrictedToIds())) {
@@ -132,7 +135,9 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         Query query = new Query();
         query.addCriteria(Criteria.where("id").in(ids));
         if (sortable != null && StringUtils.isNotEmpty(sortable.field())) {
-            query.with(Sort.by(Order.DESC.equals(sortable.order()) ? Sort.Direction.DESC : ASC, FieldUtils.toCamelCase(sortable.field())));
+            query.with(Sort.by(
+                    Order.DESC.equals(sortable.order()) ? Sort.Direction.DESC : ASC,
+                    FieldUtils.toCamelCase(sortable.field())));
         }
         List<ApplicationMongo> applications = mongoTemplate.find(query, ApplicationMongo.class);
         return new LinkedHashSet<>(applications);

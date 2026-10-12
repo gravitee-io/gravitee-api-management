@@ -74,39 +74,49 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         newSubscriptionEntity.setRequest("request");
         newSubscriptionEntity.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
 
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(PlanEntity.class));
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mock(PlanEntity.class));
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setPlan(PLAN);
         createdSubscription.setId(SUBSCRIPTION);
-        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(createdSubscription);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean()))
+                .thenReturn(mock(UserEntity.class));
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
-        when(
-            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
-        ).thenReturn(foundApi);
+        when(apiSearchServiceV4.findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false)))
+                .thenReturn(foundApi);
 
         PlanEntity foundPlan = new PlanEntity();
         foundPlan.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN)))
+                .thenReturn(foundPlan);
 
         final Response response = envTarget()
-            .path(APPLICATION)
-            .path("subscriptions")
-            .queryParam("plan", PLAN)
-            .request()
-            .post(Entity.json(newSubscriptionEntity));
+                .path(APPLICATION)
+                .path("subscriptions")
+                .queryParam("plan", PLAN)
+                .request()
+                .post(Entity.json(newSubscriptionEntity));
 
         assertEquals(CREATED_201, response.getStatus());
         assertEquals(
-            envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
+                envTarget()
+                        .path(APPLICATION)
+                        .path("subscriptions")
+                        .path(SUBSCRIPTION)
+                        .getUri()
+                        .toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         JsonNode responseBody = response.readEntity(JsonNode.class);
-        assertEquals(PlanSecurityType.OAUTH2.name(), responseBody.get("plan").get("security").asText());
+        assertEquals(
+                PlanSecurityType.OAUTH2.name(),
+                responseBody.get("plan").get("security").asText());
     }
 
     @Test
@@ -118,41 +128,47 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         newSubscriptionEntity.setPlan(PLAN);
         newSubscriptionEntity.setRequest("request");
 
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
-            mock(io.gravitee.rest.api.model.v4.plan.PlanEntity.class)
-        );
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mock(io.gravitee.rest.api.model.v4.plan.PlanEntity.class));
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setPlan(PLAN);
         createdSubscription.setId(SUBSCRIPTION);
-        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(createdSubscription);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean()))
+                .thenReturn(mock(UserEntity.class));
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
-        when(
-            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false))
-        ).thenReturn(foundApi);
+        when(apiSearchServiceV4.findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(false), eq(false), eq(false)))
+                .thenReturn(foundApi);
 
         io.gravitee.rest.api.model.v4.plan.PlanEntity foundPlan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         PlanSecurity planSecurity = new PlanSecurity();
         planSecurity.setType("oauth2");
         foundPlan.setSecurity(planSecurity);
         foundPlan.setMode(PlanMode.STANDARD);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN)))
+                .thenReturn(foundPlan);
 
         final Response response = envTarget()
-            .path(APPLICATION)
-            .path("subscriptions")
-            .queryParam("plan", PLAN)
-            .request()
-            .post(Entity.json(newSubscriptionEntity));
+                .path(APPLICATION)
+                .path("subscriptions")
+                .queryParam("plan", PLAN)
+                .request()
+                .post(Entity.json(newSubscriptionEntity));
 
         assertEquals(CREATED_201, response.getStatus());
         assertEquals(
-            envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
+                envTarget()
+                        .path(APPLICATION)
+                        .path("subscriptions")
+                        .path(SUBSCRIPTION)
+                        .getUri()
+                        .toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         JsonNode responseBody = response.readEntity(JsonNode.class);
         assertEquals("oauth2", responseBody.get("plan").get("security").asText());
@@ -162,12 +178,17 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
     public void shouldGetSubscriptions_expandingSecurity() {
         reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
-        when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true))).thenReturn(
-            new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1)
-        );
-        when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(Metadata.class));
+        when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true)))
+                .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mock(Metadata.class));
 
-        final Response response = envTarget().path(APPLICATION).path("subscriptions").queryParam("expand", "security").request().get();
+        final Response response = envTarget()
+                .path(APPLICATION)
+                .path("subscriptions")
+                .queryParam("expand", "security")
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -176,67 +197,72 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         ArrayNode data = (ArrayNode) responseBody.get("data");
         assertEquals(1, data.size());
 
-        verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true));
+        verify(subscriptionService, times(1))
+                .search(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false), eq(true));
     }
 
     @Test
     public void shouldGetSubscriptions_WithDefaultStatus() {
         reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
-        when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean())).thenReturn(
-            new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1)
-        );
-        when(subscriptionService.getMetadata(any(ExecutionContext.class), any())).thenReturn(mock(Metadata.class));
+        when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any(ExecutionContext.class), any()))
+                .thenReturn(mock(Metadata.class));
 
-        final Response response = envTarget().path(APPLICATION).path("subscriptions").request().get();
+        final Response response =
+                envTarget().path(APPLICATION).path("subscriptions").request().get();
 
         assertEquals(OK_200, response.getStatus());
 
         ArgumentCaptor<SubscriptionQuery> subscriptionQueryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
 
-        verify(subscriptionService, times(1)).search(
-            any(ExecutionContext.class),
-            subscriptionQueryCaptor.capture(),
-            any(),
-            anyBoolean(),
-            anyBoolean()
-        );
+        verify(subscriptionService, times(1))
+                .search(
+                        any(ExecutionContext.class),
+                        subscriptionQueryCaptor.capture(),
+                        any(),
+                        anyBoolean(),
+                        anyBoolean());
 
         SubscriptionQuery subscriptionQuery = subscriptionQueryCaptor.getValue();
-        assertThat(subscriptionQuery).extracting(SubscriptionQuery::getStatuses).isEqualTo(List.of(SubscriptionStatus.ACCEPTED));
+        assertThat(subscriptionQuery)
+                .extracting(SubscriptionQuery::getStatuses)
+                .isEqualTo(List.of(SubscriptionStatus.ACCEPTED));
     }
 
     @Test
     public void shouldGetSubscriptions_WithStatusFromQueryParams() {
         reset(apiSearchServiceV4, planSearchService, subscriptionService, userService);
 
-        when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean())).thenReturn(
-            new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1)
-        );
-        when(subscriptionService.getMetadata(any(ExecutionContext.class), any())).thenReturn(mock(Metadata.class));
+        when(subscriptionService.search(any(ExecutionContext.class), any(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any(ExecutionContext.class), any()))
+                .thenReturn(mock(Metadata.class));
 
         final Response response = envTarget()
-            .path(APPLICATION)
-            .path("subscriptions")
-            .queryParam("status", "PENDING, REJECTED, ACCEPTED")
-            .request()
-            .get();
+                .path(APPLICATION)
+                .path("subscriptions")
+                .queryParam("status", "PENDING, REJECTED, ACCEPTED")
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
 
         ArgumentCaptor<SubscriptionQuery> subscriptionQueryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
 
-        verify(subscriptionService, times(1)).search(
-            any(ExecutionContext.class),
-            subscriptionQueryCaptor.capture(),
-            any(),
-            anyBoolean(),
-            anyBoolean()
-        );
+        verify(subscriptionService, times(1))
+                .search(
+                        any(ExecutionContext.class),
+                        subscriptionQueryCaptor.capture(),
+                        any(),
+                        anyBoolean(),
+                        anyBoolean());
 
         SubscriptionQuery subscriptionQuery = subscriptionQueryCaptor.getValue();
         assertThat(subscriptionQuery)
-            .extracting(SubscriptionQuery::getStatuses)
-            .isEqualTo(List.of(SubscriptionStatus.PENDING, SubscriptionStatus.REJECTED, SubscriptionStatus.ACCEPTED));
+                .extracting(SubscriptionQuery::getStatuses)
+                .isEqualTo(
+                        List.of(SubscriptionStatus.PENDING, SubscriptionStatus.REJECTED, SubscriptionStatus.ACCEPTED));
     }
 }

@@ -71,22 +71,19 @@ public class CommandCriteria {
 
     @Override
     public String toString() {
-        return (
-            "criteria {" +
-            "to: " +
-            to +
-            "tags: " +
-            Arrays.toString(tags) +
-            "notExpired: " +
-            notExpired +
-            "notFrom: " +
-            notFrom +
-            "notAckBy:" +
-            notAckBy +
-            "environmentId:" +
-            environmentId +
-            "}"
-        );
+        return ("criteria {" + "to: "
+                + to
+                + "tags: "
+                + Arrays.toString(tags)
+                + "notExpired: "
+                + notExpired
+                + "notFrom: "
+                + notFrom
+                + "notAckBy:"
+                + notAckBy
+                + "environmentId:"
+                + environmentId
+                + "}");
     }
 
     public static class Builder {

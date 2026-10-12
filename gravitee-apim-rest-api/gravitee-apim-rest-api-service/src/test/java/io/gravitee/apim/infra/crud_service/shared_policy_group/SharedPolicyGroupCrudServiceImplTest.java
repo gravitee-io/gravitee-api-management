@@ -52,7 +52,8 @@ import org.mockito.ArgumentCaptor;
 
 public class SharedPolicyGroupCrudServiceImplTest {
 
-    private static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
+    private static final String ENV_ID =
+            SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
     SharedPolicyGroupRepository repository;
     SharedPolicyGroupAdapter mapper;
@@ -101,9 +102,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
         void should_return_SharedPolicyGroup_and_adapt_it() {
             // Given
             var sharedPolicyGroupId = "sharedPolicyGroup-id";
-            when(repository.findById(sharedPolicyGroupId)).thenAnswer(invocation ->
-                Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build())
-            );
+            when(repository.findById(sharedPolicyGroupId))
+                    .thenAnswer(invocation -> Optional.of(
+                            aSharedPolicyGroup().id(invocation.getArgument(0)).build()));
 
             // When
             var result = service.getByEnvironmentId(ENV_ID, sharedPolicyGroupId);
@@ -118,19 +119,25 @@ public class SharedPolicyGroupCrudServiceImplTest {
                 soft.assertThat(result.getDescription()).isEqualTo("sharedPolicyGroup-description");
                 soft.assertThat(result.getVersion()).isEqualTo(1);
                 soft.assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
-                soft
-                    .assertThat(result.getSteps())
-                    .isEqualTo(
-                        List.of(
-                            Step.builder().policy("my-policy").name("my-step-1").build(),
-                            Step.builder().policy("my-policy").name("my-step-2").build()
-                        )
-                    );
+                soft.assertThat(result.getSteps())
+                        .isEqualTo(List.of(
+                                Step.builder()
+                                        .policy("my-policy")
+                                        .name("my-step-1")
+                                        .build(),
+                                Step.builder()
+                                        .policy("my-policy")
+                                        .name("my-step-2")
+                                        .build()));
                 soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);
-                soft.assertThat(result.getDeployedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
+                soft.assertThat(result.getDeployedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getLifecycleState())
+                        .isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
             });
         }
 
@@ -146,8 +153,8 @@ public class SharedPolicyGroupCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(SharedPolicyGroupNotFoundException.class)
-                .hasMessage("SharedPolicyGroup [" + sharedPolicyGroupId + "] cannot be found.");
+                    .isInstanceOf(SharedPolicyGroupNotFoundException.class)
+                    .hasMessage("SharedPolicyGroup [" + sharedPolicyGroupId + "] cannot be found.");
         }
 
         @Test
@@ -155,17 +162,17 @@ public class SharedPolicyGroupCrudServiceImplTest {
         void should_throw_when_environmentId_not_match() {
             // Given
             var sharedPolicyGroupId = "sharedPolicyGroup-id";
-            when(repository.findById(sharedPolicyGroupId)).thenAnswer(invocation ->
-                Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build())
-            );
+            when(repository.findById(sharedPolicyGroupId))
+                    .thenAnswer(invocation -> Optional.of(
+                            aSharedPolicyGroup().id(invocation.getArgument(0)).build()));
 
             // When
             Throwable throwable = catchThrowable(() -> service.getByEnvironmentId("otherEnvId", sharedPolicyGroupId));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(SharedPolicyGroupNotFoundException.class)
-                .hasMessage("SharedPolicyGroup [" + sharedPolicyGroupId + "] cannot be found.");
+                    .isInstanceOf(SharedPolicyGroupNotFoundException.class)
+                    .hasMessage("SharedPolicyGroup [" + sharedPolicyGroupId + "] cannot be found.");
         }
 
         @Test
@@ -180,8 +187,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find a SharedPolicyGroup with id: " + sharedPolicyGroupId);
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage(
+                            "An error occurs while trying to find a SharedPolicyGroup with id: " + sharedPolicyGroupId);
         }
     }
 
@@ -192,12 +200,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
         @SneakyThrows
         void should_update_an_existing_SharedPolicyGroup() {
             SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
-            sharedPolicyGroup.setSteps(
-                List.of(
+            sharedPolicyGroup.setSteps(List.of(
                     Step.builder().policy("my-policy").name("my-step-1").build(),
-                    Step.builder().policy("my-policy").name("my-step-2").build()
-                )
-            );
+                    Step.builder().policy("my-policy").name("my-step-2").build()));
             service.update(sharedPolicyGroup);
 
             var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.SharedPolicyGroup.class);
@@ -232,8 +237,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to update the SharedPolicyGroup with id: sharedPolicyGroupId");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage(
+                            "An error occurs while trying to update the SharedPolicyGroup with id: sharedPolicyGroupId");
         }
     }
 
@@ -252,8 +258,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
             var sharedPolicyGroupId = "sharedPolicyGroup-id";
             doThrow(new TechnicalException("exception")).when(repository).delete(sharedPolicyGroupId);
             assertThatThrownBy(() -> service.delete(sharedPolicyGroupId))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to delete the SharedPolicyGroup with id: " + sharedPolicyGroupId);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to delete the SharedPolicyGroup with id: "
+                            + sharedPolicyGroupId);
             verify(repository).delete(sharedPolicyGroupId);
         }
     }
@@ -267,9 +274,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
             // Given
             var environmentId = "environment-id";
             var crossId = "cross-id";
-            when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenAnswer(invocation ->
-                Optional.of(aSharedPolicyGroup().id("sharedPolicyGroup-id").build())
-            );
+            when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId))
+                    .thenAnswer(invocation -> Optional.of(
+                            aSharedPolicyGroup().id("sharedPolicyGroup-id").build()));
 
             // When
             var optional = service.findByEnvironmentIdAndCrossId(environmentId, crossId);
@@ -287,36 +294,41 @@ public class SharedPolicyGroupCrudServiceImplTest {
                 soft.assertThat(result.getDescription()).isEqualTo("sharedPolicyGroup-description");
                 soft.assertThat(result.getVersion()).isEqualTo(1);
                 soft.assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
-                soft
-                    .assertThat(result.getSteps())
-                    .isEqualTo(
-                        List.of(
-                            Step.builder().policy("my-policy").name("my-step-1").build(),
-                            Step.builder().policy("my-policy").name("my-step-2").build()
-                        )
-                    );
+                soft.assertThat(result.getSteps())
+                        .isEqualTo(List.of(
+                                Step.builder()
+                                        .policy("my-policy")
+                                        .name("my-step-1")
+                                        .build(),
+                                Step.builder()
+                                        .policy("my-policy")
+                                        .name("my-step-2")
+                                        .build()));
                 soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);
-                soft.assertThat(result.getDeployedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
+                soft.assertThat(result.getDeployedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getLifecycleState())
+                        .isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
             });
         }
     }
 
     private io.gravitee.repository.management.model.SharedPolicyGroup.SharedPolicyGroupBuilder aSharedPolicyGroup() {
         return io.gravitee.repository.management.model.SharedPolicyGroup.builder()
-            .id("sharedPolicyGroup-id")
-            .crossId("cross-id")
-            .organizationId("organizationId")
-            .environmentId("environmentId")
-            .name("sharedPolicyGroup-name")
-            .description("sharedPolicyGroup-description")
-            .version(1)
-            .apiType(ApiType.PROXY)
-            .phase(io.gravitee.repository.management.model.SharedPolicyGroup.FlowPhase.REQUEST)
-            .definition(
-                """
+                .id("sharedPolicyGroup-id")
+                .crossId("cross-id")
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .name("sharedPolicyGroup-name")
+                .description("sharedPolicyGroup-description")
+                .version(1)
+                .apiType(ApiType.PROXY)
+                .phase(io.gravitee.repository.management.model.SharedPolicyGroup.FlowPhase.REQUEST)
+                .definition("""
                 {
                     "steps": [
                         { "policy": "my-policy", "name": "my-step-1" },
@@ -324,12 +336,11 @@ public class SharedPolicyGroupCrudServiceImplTest {
                     ],
                     "phase": "REQUEST"
                 }
-                """
-            )
-            .deployedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .createdAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED);
+                """)
+                .deployedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .createdAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED);
     }
 
     @Test
@@ -337,29 +348,35 @@ public class SharedPolicyGroupCrudServiceImplTest {
         String environmentId = "envId";
         String crossId = "crossId";
         var currentSharedPolicyGroup = io.gravitee.repository.management.model.SharedPolicyGroup.builder()
-            .id("spg1")
-            .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
-            .build();
-        when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenReturn(Optional.of(currentSharedPolicyGroup));
-        SharedPolicyGroup sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId).orElseThrow();
+                .id("spg1")
+                .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
+                .build();
+        when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId))
+                .thenReturn(Optional.of(currentSharedPolicyGroup));
+        SharedPolicyGroup sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId)
+                .orElseThrow();
         assertThat(sharedPolicyGroup.getId()).isEqualTo(currentSharedPolicyGroup.getId());
     }
 
     @Test
-    public void getLastDeployedByEnvironmentIdAndCrossId_currentIsNotDeployed_historyPresent() throws TechnicalException {
+    public void getLastDeployedByEnvironmentIdAndCrossId_currentIsNotDeployed_historyPresent()
+            throws TechnicalException {
         String environmentId = "envId";
         String crossId = "crossId";
         io.gravitee.repository.management.model.SharedPolicyGroup currentSharedPolicyGroup =
-            io.gravitee.repository.management.model.SharedPolicyGroup.builder()
-                .id("spg1")
-                .lifecycleState(SharedPolicyGroupLifecycleState.PENDING)
-                .build();
-        when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenReturn(Optional.of(currentSharedPolicyGroup));
-        var historySharedPolicyGroup = SharedPolicyGroup.builder().id("spg1").name("previous_spg").build();
-        when(
-            sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(environmentId, currentSharedPolicyGroup.getId())
-        ).thenReturn(Optional.of(historySharedPolicyGroup));
-        SharedPolicyGroup sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId).orElseThrow();
+                io.gravitee.repository.management.model.SharedPolicyGroup.builder()
+                        .id("spg1")
+                        .lifecycleState(SharedPolicyGroupLifecycleState.PENDING)
+                        .build();
+        when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId))
+                .thenReturn(Optional.of(currentSharedPolicyGroup));
+        var historySharedPolicyGroup =
+                SharedPolicyGroup.builder().id("spg1").name("previous_spg").build();
+        when(sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(
+                        environmentId, currentSharedPolicyGroup.getId()))
+                .thenReturn(Optional.of(historySharedPolicyGroup));
+        SharedPolicyGroup sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId)
+                .orElseThrow();
         assertThat(sharedPolicyGroup.getId()).isEqualTo(historySharedPolicyGroup.getId());
         assertThat(sharedPolicyGroup.getId()).isEqualTo(historySharedPolicyGroup.getId());
     }
@@ -369,7 +386,8 @@ public class SharedPolicyGroupCrudServiceImplTest {
         String environmentId = "envId";
         String crossId = "crossId";
         when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenReturn(Optional.empty());
-        Optional<SharedPolicyGroup> sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId);
+        Optional<SharedPolicyGroup> sharedPolicyGroup =
+                service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId);
         assertThat(sharedPolicyGroup).isEmpty();
     }
 }

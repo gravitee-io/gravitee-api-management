@@ -54,7 +54,8 @@ class CockpitUserHelperTest {
     void should_resolve_apim_user_id_when_user_found_in_repository() throws TechnicalException {
         // Given
         User user = User.builder().id(APIM_USER_ID).build();
-        when(userRepository.findBySource(CockpitUserHelper.COCKPIT_SOURCE, COCKPIT_USER_ID, ORGANIZATION_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findBySource(CockpitUserHelper.COCKPIT_SOURCE, COCKPIT_USER_ID, ORGANIZATION_ID))
+                .thenReturn(Optional.of(user));
 
         // When
         String result = CockpitUserHelper.resolveApimUserId(userRepository, executionContext, COCKPIT_USER_ID);
@@ -66,7 +67,8 @@ class CockpitUserHelperTest {
     @Test
     void should_return_cockpit_user_id_when_user_not_found_in_repository() throws TechnicalException {
         // Given
-        when(userRepository.findBySource(CockpitUserHelper.COCKPIT_SOURCE, COCKPIT_USER_ID, ORGANIZATION_ID)).thenReturn(Optional.empty());
+        when(userRepository.findBySource(CockpitUserHelper.COCKPIT_SOURCE, COCKPIT_USER_ID, ORGANIZATION_ID))
+                .thenReturn(Optional.empty());
 
         // When
         String result = CockpitUserHelper.resolveApimUserId(userRepository, executionContext, COCKPIT_USER_ID);
@@ -78,9 +80,8 @@ class CockpitUserHelperTest {
     @Test
     void should_return_cockpit_user_id_when_technical_exception_occurs() throws TechnicalException {
         // Given
-        when(userRepository.findBySource(CockpitUserHelper.COCKPIT_SOURCE, COCKPIT_USER_ID, ORGANIZATION_ID)).thenThrow(
-            new TechnicalException("Database error")
-        );
+        when(userRepository.findBySource(CockpitUserHelper.COCKPIT_SOURCE, COCKPIT_USER_ID, ORGANIZATION_ID))
+                .thenThrow(new TechnicalException("Database error"));
 
         // When
         String result = CockpitUserHelper.resolveApimUserId(userRepository, executionContext, COCKPIT_USER_ID);

@@ -71,12 +71,10 @@ public class ExplorerRolesUpgraderTest {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
         ExecutionContext expectedExecutionContext = new ExecutionContext(organization);
-        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_OWNER.getName()), eq(organizationId))).thenReturn(
-            Optional.empty()
-        );
-        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_USER.getName()), eq(organizationId))).thenReturn(
-            Optional.empty()
-        );
+        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_OWNER.getName()), eq(organizationId)))
+                .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_USER.getName()), eq(organizationId)))
+                .thenReturn(Optional.empty());
 
         upgrader.upgrade();
 
@@ -92,12 +90,10 @@ public class ExplorerRolesUpgraderTest {
         when(organization.getId()).thenReturn(organizationId);
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
-        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_OWNER.getName()), eq(organizationId))).thenReturn(
-            Optional.of(new RoleEntity())
-        );
-        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_USER.getName()), eq(organizationId))).thenReturn(
-            Optional.of(new RoleEntity())
-        );
+        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_OWNER.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(eq(EXPLORER), eq(EXPLORER_ROLE_USER.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(new RoleEntity()));
 
         upgrader.upgrade();
 

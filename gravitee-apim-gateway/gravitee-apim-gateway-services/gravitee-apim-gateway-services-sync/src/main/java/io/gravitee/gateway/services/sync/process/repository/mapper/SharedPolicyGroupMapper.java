@@ -50,15 +50,16 @@ public class SharedPolicyGroupMapper {
     public Maybe<ReactableSharedPolicyGroup> to(Event sharedPolicyGroupEvent) {
         return Maybe.fromCallable(() -> {
             try {
-                var sharedPolicyGroupDefinition = objectMapper.readValue(sharedPolicyGroupEvent.getPayload(), SharedPolicyGroup.class);
+                var sharedPolicyGroupDefinition =
+                        objectMapper.readValue(sharedPolicyGroupEvent.getPayload(), SharedPolicyGroup.class);
 
                 final ReactableSharedPolicyGroup reactableSharedPolicyGroup = ReactableSharedPolicyGroup.builder()
-                    .id(sharedPolicyGroupDefinition.getId())
-                    .name(sharedPolicyGroupDefinition.getName())
-                    .environmentId(sharedPolicyGroupDefinition.getEnvironmentId())
-                    .definition(sharedPolicyGroupDefinition)
-                    .deployedAt(sharedPolicyGroupDefinition.getDeployedAt())
-                    .build();
+                        .id(sharedPolicyGroupDefinition.getId())
+                        .name(sharedPolicyGroupDefinition.getName())
+                        .environmentId(sharedPolicyGroupDefinition.getEnvironmentId())
+                        .definition(sharedPolicyGroupDefinition)
+                        .deployedAt(sharedPolicyGroupDefinition.getDeployedAt())
+                        .build();
 
                 environmentService.fill(sharedPolicyGroupDefinition.getEnvironmentId(), reactableSharedPolicyGroup);
 
@@ -68,7 +69,10 @@ public class SharedPolicyGroupMapper {
                 throw e;
             } catch (Exception e) {
                 // Log the error and ignore this event.
-                log.error("Unable to extract shared policy group definition from event [{}].", sharedPolicyGroupEvent.getId(), e);
+                log.error(
+                        "Unable to extract shared policy group definition from event [{}].",
+                        sharedPolicyGroupEvent.getId(),
+                        e);
                 return null;
             }
         });

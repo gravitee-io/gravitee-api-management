@@ -17,4 +17,5 @@ package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
 import java.util.List;
 
-public record TopicPartitionDetail(int id, KafkaNode leader, List<KafkaNode> replicas, List<KafkaNode> isr, List<KafkaNode> offline) {}
+public record TopicPartitionDetail(
+        int id, KafkaNode leader, List<KafkaNode> replicas, List<KafkaNode> isr, List<KafkaNode> offline) {}

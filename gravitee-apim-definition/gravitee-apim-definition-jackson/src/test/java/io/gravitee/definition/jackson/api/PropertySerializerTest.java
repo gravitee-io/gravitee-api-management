@@ -30,6 +30,7 @@ public class PropertySerializerTest extends AbstractTest {
     public void serialize() throws Exception {
         Property property = new Property("key1", "myvalue", true);
         String generatedJsonDefinition = objectMapper().writeValueAsString(property);
-        assertThatJson(generatedJsonDefinition).isEqualTo("{\"key\" : \"key1\", \"value\" : \"myvalue\", \"encrypted\" : true}");
+        assertThatJson(generatedJsonDefinition)
+                .isEqualTo("{\"key\" : \"key1\", \"value\" : \"myvalue\", \"encrypted\" : true}");
     }
 }

@@ -90,15 +90,14 @@ public class Plan implements Serializable {
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return Optional.ofNullable(this.getFlows())
-            .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
-            .orElse(List.of());
+                .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of());
     }
 
     @JsonIgnore
     public final boolean isApiKey() {
-        return (
-            this.getSecurity() != null && ("API_KEY".equalsIgnoreCase(this.getSecurity()) || "api-key".equalsIgnoreCase(this.getSecurity()))
-        );
+        return (this.getSecurity() != null
+                && ("API_KEY".equalsIgnoreCase(this.getSecurity()) || "api-key".equalsIgnoreCase(this.getSecurity())));
     }
 
     public Plan flows(List<Flow> flows) {

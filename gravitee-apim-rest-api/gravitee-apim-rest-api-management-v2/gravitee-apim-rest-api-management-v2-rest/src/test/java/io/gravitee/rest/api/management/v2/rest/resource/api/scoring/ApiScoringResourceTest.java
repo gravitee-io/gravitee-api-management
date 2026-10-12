@@ -110,25 +110,25 @@ public class ApiScoringResourceTest extends ApiResourceTest {
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(NOT_FOUND_404)
-                .asError()
-                .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Api not found.");
+                    .hasStatus(NOT_FOUND_404)
+                    .asError()
+                    .hasHttpStatus(NOT_FOUND_404)
+                    .hasMessage("Api not found.");
         }
 
         @Test
         void should_return_202_response() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
-            when(exportDomainService.export(eq(API), any(AuditInfo.class), eq(EnumSet.noneOf(Excludable.class)))).thenReturn(
-                GraviteeDefinitionFixtures.aGraviteeDefinitionProxy()
-            );
+            apiCrudService.initWith(
+                    List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            when(exportDomainService.export(eq(API), any(AuditInfo.class), eq(EnumSet.noneOf(Excludable.class))))
+                    .thenReturn(GraviteeDefinitionFixtures.aGraviteeDefinitionProxy());
 
             final Response response = evaluateTarget.request().post(null);
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(ACCEPTED_202)
-                .asEntity(ApiScoringTriggerResponse.class)
-                .isEqualTo(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING));
+                    .hasStatus(ACCEPTED_202)
+                    .asEntity(ApiScoringTriggerResponse.class)
+                    .isEqualTo(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING));
         }
     }
 
@@ -144,74 +144,81 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_200_response_with_diagnostics_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
-            pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
-            scoringReportQueryService.initWith(List.of(ScoringReportFixture.aScoringReport().toBuilder().apiId(API).build()));
+            apiCrudService.initWith(
+                    List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            pageCrudService.initWith(
+                    List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
+            scoringReportQueryService.initWith(List.of(
+                    ScoringReportFixture.aScoringReport().toBuilder().apiId(API).build()));
 
             final Response response = latestReportTarget.request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiScoring.class)
-                .isEqualTo(
-                    new ApiScoring()
-                        .summary(new ApiScoringSummary().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1))
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                        .assets(
-                            List.of(
-                                new ApiScoringAsset()
-                                    .name("parent")
-                                    .type(ApiScoringAssetType.SWAGGER)
-                                    .diagnostics(
-                                        List.of(
-                                            new ApiScoringDiagnostic()
-                                                .severity(ApiScoringSeverity.WARN)
-                                                .range(
-                                                    new ApiScoringDiagnosticRange()
-                                                        .start(new ApiScoringPosition().line(17).character(12))
-                                                        .end(new ApiScoringPosition().line(38).character(25))
-                                                )
-                                                .rule("operation-operationId")
-                                                .message("Operation must have \"operationId\".")
-                                                .path("paths./echo.options")
-                                        )
-                                    )
-                                    .errors(List.of()),
-                                new ApiScoringAsset().type(ApiScoringAssetType.GRAVITEE_DEFINITION).diagnostics(List.of()).errors(List.of())
-                            )
-                        )
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiScoring.class)
+                    .isEqualTo(new ApiScoring()
+                            .summary(new ApiScoringSummary()
+                                    .score(0.9)
+                                    .all(1)
+                                    .errors(0)
+                                    .hints(0)
+                                    .infos(0)
+                                    .warnings(1))
+                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                            .assets(List.of(
+                                    new ApiScoringAsset()
+                                            .name("parent")
+                                            .type(ApiScoringAssetType.SWAGGER)
+                                            .diagnostics(List.of(new ApiScoringDiagnostic()
+                                                    .severity(ApiScoringSeverity.WARN)
+                                                    .range(new ApiScoringDiagnosticRange()
+                                                            .start(new ApiScoringPosition()
+                                                                    .line(17)
+                                                                    .character(12))
+                                                            .end(new ApiScoringPosition()
+                                                                    .line(38)
+                                                                    .character(25)))
+                                                    .rule("operation-operationId")
+                                                    .message("Operation must have \"operationId\".")
+                                                    .path("paths./echo.options")))
+                                            .errors(List.of()),
+                                    new ApiScoringAsset()
+                                            .type(ApiScoringAssetType.GRAVITEE_DEFINITION)
+                                            .diagnostics(List.of())
+                                            .errors(List.of()))));
         }
 
         @Test
         void should_return_200_response_with_errors_asset() {
-            apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
-            pageCrudService.initWith(List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
-            scoringReportQueryService.initWith(List.of(ScoringReportFixture.anErrorAssertScoringReport().toBuilder().apiId(API).build()));
+            apiCrudService.initWith(
+                    List.of(ApiFixtures.aFederatedApi().toBuilder().id(API).build()));
+            pageCrudService.initWith(
+                    List.of(PageFixtures.aPage().toBuilder().referenceId(API).build()));
+            scoringReportQueryService.initWith(List.of(ScoringReportFixture.anErrorAssertScoringReport().toBuilder()
+                    .apiId(API)
+                    .build()));
 
             final Response response = latestReportTarget.request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiScoring.class)
-                .isEqualTo(
-                    new ApiScoring()
-                        .summary(new ApiScoringSummary().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1))
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                        .assets(
-                            List.of(
-                                new ApiScoringAsset()
+                    .hasStatus(OK_200)
+                    .asEntity(ApiScoring.class)
+                    .isEqualTo(new ApiScoring()
+                            .summary(new ApiScoringSummary()
+                                    .score(0.9)
+                                    .all(1)
+                                    .errors(0)
+                                    .hints(0)
+                                    .infos(0)
+                                    .warnings(1))
+                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                            .assets(List.of(new ApiScoringAsset()
                                     .name("parent")
                                     .type(ApiScoringAssetType.SWAGGER)
                                     .diagnostics(List.of())
-                                    .errors(
-                                        List.of(
-                                            new ApiScoringError().code("some-error-code").path(List.of("path", "to", "the", "property"))
-                                        )
-                                    )
-                            )
-                        )
-                );
+                                    .errors(List.of(new ApiScoringError()
+                                            .code("some-error-code")
+                                            .path(List.of("path", "to", "the", "property")))))));
         }
     }
 }

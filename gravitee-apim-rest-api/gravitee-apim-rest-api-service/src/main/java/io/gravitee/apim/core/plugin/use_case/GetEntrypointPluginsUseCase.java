@@ -28,20 +28,15 @@ public class GetEntrypointPluginsUseCase {
     private final PluginFilterByLicenseDomainService pluginFilterByLicenseDomainService;
 
     public GetEntrypointPluginsUseCase(
-        EntrypointPluginQueryService entrypointPluginQueryService,
-        PluginFilterByLicenseDomainService pluginFilterByLicenseDomainService
-    ) {
+            EntrypointPluginQueryService entrypointPluginQueryService,
+            PluginFilterByLicenseDomainService pluginFilterByLicenseDomainService) {
         this.entrypointPluginQueryService = entrypointPluginQueryService;
         this.pluginFilterByLicenseDomainService = pluginFilterByLicenseDomainService;
     }
 
     public Output getEntrypointPluginsByOrganization(Input input) {
-        return new Output(
-            this.pluginFilterByLicenseDomainService.setPluginDeployedStatusDependingOnLicense(
-                this.entrypointPluginQueryService.findAll(),
-                input.organizationId
-            )
-        );
+        return new Output(this.pluginFilterByLicenseDomainService.setPluginDeployedStatusDependingOnLicense(
+                this.entrypointPluginQueryService.findAll(), input.organizationId));
     }
 
     public record Input(String organizationId) {}

@@ -52,54 +52,47 @@ class SseEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpointI
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/sse/sse-entrypoint-solace-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/sse/sse-entrypoint-solace-endpoint.json"})
     void should_receive_messages(HttpClient httpClient) {
         OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
 
         final TestSubscriber<Buffer> obs = httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
-                return request.rxSend();
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response
-                    .toFlowable()
-                    .mergeWith(
-                        publishToSolace(
-                            topic,
-                            List.of(
-                                messageBuilder.build("message1".getBytes()),
-                                messageBuilder.build("message2".getBytes()),
-                                messageBuilder.build("message3".getBytes())
-                            )
-                        ).toFlowable()
-                    );
-            })
-            .test();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
+                    return request.rxSend();
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable()
+                            .mergeWith(publishToSolace(
+                                            topic,
+                                            List.of(
+                                                    messageBuilder.build("message1".getBytes()),
+                                                    messageBuilder.build("message2".getBytes()),
+                                                    messageBuilder.build("message3".getBytes())))
+                                    .toFlowable());
+                })
+                .test();
 
         // We expect 4 chunks, 1 retry message and 3 messages
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 4);
-        obs
-            .assertValueAt(0, chunk -> {
-                SseAssertions.assertRetry(chunk);
-                return true;
-            })
-            .assertValueAt(1, chunk -> {
-                SseAssertions.assertOnMessage(chunk, "message1");
-                return true;
-            })
-            .assertValueAt(2, chunk -> {
-                SseAssertions.assertOnMessage(chunk, "message2");
-                return true;
-            })
-            .assertValueAt(3, chunk -> {
-                SseAssertions.assertOnMessage(chunk, "message3");
-                return true;
-            })
-            .assertNoErrors();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 4);
+        obs.assertValueAt(0, chunk -> {
+                    SseAssertions.assertRetry(chunk);
+                    return true;
+                })
+                .assertValueAt(1, chunk -> {
+                    SseAssertions.assertOnMessage(chunk, "message1");
+                    return true;
+                })
+                .assertValueAt(2, chunk -> {
+                    SseAssertions.assertOnMessage(chunk, "message2");
+                    return true;
+                })
+                .assertValueAt(3, chunk -> {
+                    SseAssertions.assertOnMessage(chunk, "message3");
+                    return true;
+                })
+                .assertNoErrors();
     }
 }

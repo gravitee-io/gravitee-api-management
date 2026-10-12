@@ -118,14 +118,17 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
         if (enabled) {
             try {
-                // Initialize the JWT processor which will handle JWT signature verification and assertions such as expiration time.
-                final RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) getPublicKey()).keyID(KID).build();
-                final JWSAlgorithmFamilyJWSKeySelector<SecurityContext> jwsKeySelector = new JWSAlgorithmFamilyJWSKeySelector<>(
-                    JWSAlgorithm.Family.RSA,
-                    new ImmutableJWKSet<>(new JWKSet(rsaKey))
-                );
+                // Initialize the JWT processor which will handle JWT signature verification and assertions such as
+                // expiration time.
+                final RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) getPublicKey())
+                        .keyID(KID)
+                        .build();
+                final JWSAlgorithmFamilyJWSKeySelector<SecurityContext> jwsKeySelector =
+                        new JWSAlgorithmFamilyJWSKeySelector<>(
+                                JWSAlgorithm.Family.RSA, new ImmutableJWKSet<>(new JWKSet(rsaKey)));
 
-                // Note that the JWT processor can be configured with custom verifiers if we want more assertions (ex: validate iss, check org claims is defined, ...)
+                // Note that the JWT processor can be configured with custom verifiers if we want more assertions (ex:
+                // validate iss, check org claims is defined, ...)
                 final ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
                 jwtProcessor.setJWSKeySelector(jwsKeySelector);
                 this.jwtProcessor = jwtProcessor;
@@ -137,10 +140,9 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     @GET
     public Response tokenExchange(
-        @Context final HttpServletRequest httpServletRequest,
-        @QueryParam(value = "token") final String token,
-        @Context final HttpServletResponse httpResponse
-    ) {
+            @Context final HttpServletRequest httpServletRequest,
+            @QueryParam(value = "token") final String token,
+            @Context final HttpServletResponse httpResponse) {
         if (!enabled) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -155,15 +157,18 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             GraviteeContext.fromExecutionContext(new ExecutionContext(organizationId, environmentId));
 
             // Retrieve the user.
-            final UserEntity user = userService.findBySource(organizationId, COCKPIT_SOURCE, jwtClaimsSet.getSubject(), true);
+            final UserEntity user =
+                    userService.findBySource(organizationId, COCKPIT_SOURCE, jwtClaimsSet.getSubject(), true);
 
-            //set user to Authentication Context
-            final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
+            // set user to Authentication Context
+            final Set<GrantedAuthority> authorities =
+                    authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
 
             UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
             userDetails.setOrganizationId(user.getOrganizationId());
             userDetails.setEmail(user.getEmail());
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
+            SecurityContextHolder.getContext()
+                    .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
             // Cockpit user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
@@ -175,30 +180,34 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 if (url == null) {
                     ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
                     UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request)
-                        .replacePath(getProperty(PROPERTY_HTTP_API_PORTAL_ENTRYPOINT, PROPERTY_HTTP_API_PORTAL_PROXY_PATH, "/portal"))
-                        .replaceQuery(null)
-                        .build();
+                            .replacePath(getProperty(
+                                    PROPERTY_HTTP_API_PORTAL_ENTRYPOINT,
+                                    PROPERTY_HTTP_API_PORTAL_PROXY_PATH,
+                                    "/portal"))
+                            .replaceQuery(null)
+                            .build();
                     url = uriComponents.toUriString();
                 }
 
-                return Response.temporaryRedirect(
-                    new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
-                ).build();
+                return Response.temporaryRedirect(new URI("%s/environments/%s/auth/console?token=%s"
+                                .formatted(url, environmentId, tokenEntity.getToken())))
+                        .build();
             } else if (APPLICATION_GAMMA.equalsIgnoreCase(application)) {
                 final String gammaUrl = installationAccessQueryService.getGammaUrl(organizationId);
-                return Response.temporaryRedirect(new URI("%s/environments/%s".formatted(gammaUrl, environmentId))).build();
+                return Response.temporaryRedirect(new URI("%s/environments/%s".formatted(gammaUrl, environmentId)))
+                        .build();
             } else {
                 final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
                 final String apiId = Optional.ofNullable(apiCrossId)
-                    .flatMap(crossId -> this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
-                    .orElse(null);
+                        .flatMap(crossId ->
+                                this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
+                        .orElse(null);
 
                 String url = String.format(
-                    "%s/#!/%s/%s",
-                    installationAccessQueryService.getConsoleUrl(organizationId),
-                    environmentId,
-                    apiId == null ? "" : String.format("apis/%s", apiId)
-                );
+                        "%s/#!/%s/%s",
+                        installationAccessQueryService.getConsoleUrl(organizationId),
+                        environmentId,
+                        apiId == null ? "" : String.format("apis/%s", apiId));
 
                 // Redirect the user.
                 return Response.temporaryRedirect(new URI(url)).build();
@@ -216,23 +225,24 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     private Key getPublicKey() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         final KeyStore trustStore = loadTrustStore();
-        final Certificate cert = trustStore.getCertificate(
-            getProperty("cockpit.keystore.key.alias", "cloud.connector.ws.ssl.keystore.key.alias", "cockpit-client")
-        );
+        final Certificate cert = trustStore.getCertificate(getProperty(
+                "cockpit.keystore.key.alias", "cloud.connector.ws.ssl.keystore.key.alias", "cockpit-client"));
 
         return cert.getPublicKey();
     }
 
-    private KeyStore loadTrustStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
-        final KeyStore keystore = KeyStore.getInstance(getProperty("cockpit.keystore.type", "cloud.connector.ws.ssl.keystore.type", null));
+    private KeyStore loadTrustStore()
+            throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+        final KeyStore keystore = KeyStore.getInstance(
+                getProperty("cockpit.keystore.type", "cloud.connector.ws.ssl.keystore.type", null));
 
-        try (
-            InputStream is = new File(getProperty("cockpit.keystore.path", "cloud.connector.ws.ssl.keystore.path", null))
+        try (InputStream is = new File(
+                        getProperty("cockpit.keystore.path", "cloud.connector.ws.ssl.keystore.path", null))
                 .toURI()
                 .toURL()
-                .openStream()
-        ) {
-            final String password = getProperty("cockpit.keystore.password", "cloud.connector.ws.ssl.keystore.password", null);
+                .openStream()) {
+            final String password =
+                    getProperty("cockpit.keystore.password", "cloud.connector.ws.ssl.keystore.password", null);
             keystore.load(is, null == password ? null : password.toCharArray());
         }
         return keystore;

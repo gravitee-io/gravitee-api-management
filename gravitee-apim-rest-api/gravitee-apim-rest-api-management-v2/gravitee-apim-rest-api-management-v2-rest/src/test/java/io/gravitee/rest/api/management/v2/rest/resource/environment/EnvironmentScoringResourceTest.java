@@ -52,7 +52,8 @@ import org.junit.jupiter.api.Test;
 class EnvironmentScoringResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "my-env";
-    private static final ZonedDateTime CREATED_AT = Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT =
+            Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
 
     WebTarget scoringApisTarget;
     WebTarget scoringOverviewTarget;
@@ -78,7 +79,10 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         scoringOverviewTarget = rootTarget().path("scoring").path("overview");
         apisTarget = rootTarget().path("apis");
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -93,7 +97,8 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         UuidString.reset();
         GraviteeContext.cleanContext();
 
-        Stream.of(scoringReportQueryService, scoringRulesetCrudService, scoringFunctionCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(scoringReportQueryService, scoringRulesetCrudService, scoringFunctionCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -110,27 +115,34 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(EnvironmentApisScoringResponse.class)
-                .satisfies(result -> {
-                    assertThat(result.getData())
-                        .hasSize(1)
-                        .containsOnly(
-                            new EnvironmentApiScore()
-                                .id("api1")
-                                .name("api-name")
-                                .type(ApiType.MESSAGE)
-                                .pictureUrl(apisTarget.path("api1").path("picture").queryParam("hash", "1697969730000").getUri().toString())
-                                .score(0.84)
-                                .errors(1)
-                                .warnings(1)
-                                .infos(1)
-                                .hints(1)
-                        );
-                    assertThat(result.getPagination()).isEqualTo(
-                        new Pagination().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L)
-                    );
-                });
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(EnvironmentApisScoringResponse.class)
+                    .satisfies(result -> {
+                        assertThat(result.getData())
+                                .hasSize(1)
+                                .containsOnly(new EnvironmentApiScore()
+                                        .id("api1")
+                                        .name("api-name")
+                                        .type(ApiType.MESSAGE)
+                                        .pictureUrl(apisTarget
+                                                .path("api1")
+                                                .path("picture")
+                                                .queryParam("hash", "1697969730000")
+                                                .getUri()
+                                                .toString())
+                                        .score(0.84)
+                                        .errors(1)
+                                        .warnings(1)
+                                        .infos(1)
+                                        .hints(1));
+                        assertThat(result.getPagination())
+                                .isEqualTo(new Pagination()
+                                        .page(1)
+                                        .perPage(10)
+                                        .pageItemsCount(1)
+                                        .pageCount(1)
+                                        .totalCount(1L));
+                    });
         }
 
         @Test
@@ -140,29 +152,29 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var pageNumber = 2;
             var pageSize = 5;
 
-            scoringReportQueryService.initWith(
-                IntStream.range(0, expectedTotal)
+            scoringReportQueryService.initWith(IntStream.range(0, expectedTotal)
                     .mapToObj(String::valueOf)
                     .map(id -> aReport(id).withApiId(id))
-                    .toList()
-            );
+                    .toList());
 
             // When
-            Response response = scoringApisTarget.queryParam("page", pageNumber).queryParam("perPage", pageSize).request().get();
+            Response response = scoringApisTarget
+                    .queryParam("page", pageNumber)
+                    .queryParam("perPage", pageSize)
+                    .request()
+                    .get();
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(EnvironmentApisScoringResponse.class)
-                .extracting(EnvironmentApisScoringResponse::getPagination)
-                .isEqualTo(
-                    new Pagination()
-                        .page(pageNumber)
-                        .perPage(pageSize)
-                        .pageItemsCount(pageSize)
-                        .pageCount(3)
-                        .totalCount((long) expectedTotal)
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(EnvironmentApisScoringResponse.class)
+                    .extracting(EnvironmentApisScoringResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(pageNumber)
+                            .perPage(pageSize)
+                            .pageItemsCount(pageSize)
+                            .pageCount(3)
+                            .totalCount((long) expectedTotal));
         }
 
         @Test
@@ -172,37 +184,58 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var page = 2;
             var pageSize = 5;
 
-            scoringReportQueryService.initWith(
-                IntStream.range(0, expectedTotal)
+            scoringReportQueryService.initWith(IntStream.range(0, expectedTotal)
                     .mapToObj(String::valueOf)
                     .map(id -> aReport(id).withApiId(id))
-                    .toList()
-            );
+                    .toList());
 
             // When
-            Response response = scoringApisTarget.queryParam("page", page).queryParam("perPage", pageSize).request().get();
+            Response response = scoringApisTarget
+                    .queryParam("page", page)
+                    .queryParam("perPage", pageSize)
+                    .request()
+                    .get();
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(EnvironmentApisScoringResponse.class)
-                .extracting(EnvironmentApisScoringResponse::getLinks)
-                .isEqualTo(
-                    new Links()
-                        .self(scoringApisTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
-                        .first(scoringApisTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .last(scoringApisTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
-                        .previous(scoringApisTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .next(scoringApisTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(EnvironmentApisScoringResponse.class)
+                    .extracting(EnvironmentApisScoringResponse::getLinks)
+                    .isEqualTo(new Links()
+                            .self(scoringApisTarget
+                                    .queryParam("page", page)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .first(scoringApisTarget
+                                    .queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .last(scoringApisTarget
+                                    .queryParam("page", 4)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .previous(scoringApisTarget
+                                    .queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .next(scoringApisTarget
+                                    .queryParam("page", 3)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString()));
         }
 
         @Test
         void should_restrict_the_result_to_the_requested_api_types() {
             // Given
-            scoringReportQueryService.initWith(
-                List.of(aReport("report1").withApiId("api1"), aReport("report2").withApiId("api2"), aReport("report3").withApiId("api3"))
-            );
+            scoringReportQueryService.initWith(List.of(
+                    aReport("report1").withApiId("api1"),
+                    aReport("report2").withApiId("api2"),
+                    aReport("report3").withApiId("api3")));
             scoringReportQueryService.giveApiType("api1", io.gravitee.definition.model.v4.ApiType.MESSAGE);
             scoringReportQueryService.giveApiType("api2", io.gravitee.definition.model.v4.ApiType.NATIVE);
             scoringReportQueryService.giveApiType("api3", io.gravitee.definition.model.v4.ApiType.PROXY);
@@ -211,25 +244,28 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             // Multi-value query params are comma-separated in Management v2, not repeated:
             // CommaSeparatedQueryParamConverterProvider binds a List<T> from a single CSV value.
             Response response = scoringApisTarget
-                .queryParam("apiTypes", ApiType.MESSAGE.getValue() + "," + ApiType.NATIVE.getValue())
-                .request()
-                .get();
+                    .queryParam("apiTypes", ApiType.MESSAGE.getValue() + "," + ApiType.NATIVE.getValue())
+                    .request()
+                    .get();
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(EnvironmentApisScoringResponse.class)
-                .satisfies(result -> {
-                    assertThat(result.getData()).extracting(EnvironmentApiScore::getId).containsExactlyInAnyOrder("api1", "api2");
-                    // The page total must count the filtered set, not the whole environment.
-                    assertThat(result.getPagination().getTotalCount()).isEqualTo(2L);
-                });
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(EnvironmentApisScoringResponse.class)
+                    .satisfies(result -> {
+                        assertThat(result.getData())
+                                .extracting(EnvironmentApiScore::getId)
+                                .containsExactlyInAnyOrder("api1", "api2");
+                        // The page total must count the filtered set, not the whole environment.
+                        assertThat(result.getPagination().getTotalCount()).isEqualTo(2L);
+                    });
         }
 
         @Test
         void should_return_every_api_type_when_no_type_is_requested() {
             // Given
-            scoringReportQueryService.initWith(List.of(aReport("report1").withApiId("api1"), aReport("report2").withApiId("api2")));
+            scoringReportQueryService.initWith(List.of(
+                    aReport("report1").withApiId("api1"), aReport("report2").withApiId("api2")));
             scoringReportQueryService.giveApiType("api1", io.gravitee.definition.model.v4.ApiType.MESSAGE);
             scoringReportQueryService.giveApiType("api2", io.gravitee.definition.model.v4.ApiType.PROXY);
 
@@ -238,11 +274,11 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(EnvironmentApisScoringResponse.class)
-                .satisfies(result ->
-                    assertThat(result.getData()).extracting(EnvironmentApiScore::getId).containsExactlyInAnyOrder("api1", "api2")
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(EnvironmentApisScoringResponse.class)
+                    .satisfies(result -> assertThat(result.getData())
+                            .extracting(EnvironmentApiScore::getId)
+                            .containsExactlyInAnyOrder("api1", "api2"));
         }
     }
 
@@ -252,33 +288,44 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         @Test
         void should_return_environment_overview() {
             // Given
-            scoringReportQueryService.initWith(
-                List.of(
-                    aReport("report1").toBuilder().apiId("api1").environmentId(ENVIRONMENT).build(),
-                    aReport("report2").toBuilder().apiId("api2").environmentId(ENVIRONMENT).build(),
-                    aReport("report3").toBuilder().apiId("api3").environmentId(ENVIRONMENT).build()
-                )
-            );
+            scoringReportQueryService.initWith(List.of(
+                    aReport("report1").toBuilder()
+                            .apiId("api1")
+                            .environmentId(ENVIRONMENT)
+                            .build(),
+                    aReport("report2").toBuilder()
+                            .apiId("api2")
+                            .environmentId(ENVIRONMENT)
+                            .build(),
+                    aReport("report3").toBuilder()
+                            .apiId("api3")
+                            .environmentId(ENVIRONMENT)
+                            .build()));
 
             // When
             Response response = scoringOverviewTarget.request().get();
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(EnvironmentScoringOverview.class)
-                .isEqualTo(new EnvironmentScoringOverview().id(ENVIRONMENT).score(0.84).errors(3).warnings(3).infos(3).hints(3));
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(EnvironmentScoringOverview.class)
+                    .isEqualTo(new EnvironmentScoringOverview()
+                            .id(ENVIRONMENT)
+                            .score(0.84)
+                            .errors(3)
+                            .warnings(3)
+                            .infos(3)
+                            .hints(3));
         }
     }
 
     private static ScoringReport aReport(String id) {
-        return ScoringReportFixture.aScoringReport()
-            .toBuilder()
-            .id(id)
-            .environmentId(ENVIRONMENT)
-            .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
-            .assets(List.of())
-            .build();
+        return ScoringReportFixture.aScoringReport().toBuilder()
+                .id(id)
+                .environmentId(ENVIRONMENT)
+                .createdAt(CREATED_AT)
+                .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
+                .assets(List.of())
+                .build();
     }
 }

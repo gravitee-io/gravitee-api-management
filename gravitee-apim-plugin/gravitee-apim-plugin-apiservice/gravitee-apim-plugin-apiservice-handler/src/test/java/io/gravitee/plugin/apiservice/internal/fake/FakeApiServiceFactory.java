@@ -15,9 +15,6 @@
  */
 package io.gravitee.plugin.apiservice.internal.fake;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 

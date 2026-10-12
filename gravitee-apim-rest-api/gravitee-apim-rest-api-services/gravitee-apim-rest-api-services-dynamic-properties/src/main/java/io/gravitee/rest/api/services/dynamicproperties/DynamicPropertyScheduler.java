@@ -65,13 +65,12 @@ public class DynamicPropertyScheduler {
 
     @Builder
     public DynamicPropertyScheduler(
-        final ClusterManager clusterManager,
-        final ApiService apiService,
-        final ApiConverter apiConverter,
-        final String schedule,
-        final ApiEntity api,
-        final ExecutionContext executionContext
-    ) {
+            final ClusterManager clusterManager,
+            final ApiService apiService,
+            final ApiConverter apiConverter,
+            final String schedule,
+            final ApiEntity api,
+            final ExecutionContext executionContext) {
         this.clusterManager = clusterManager;
         this.apiService = apiService;
         this.apiConverter = apiConverter;
@@ -85,31 +84,27 @@ public class DynamicPropertyScheduler {
         log.debug("[{}] Running dynamic properties scheduler", api.getId());
 
         disposable = Observable.defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
-            .observeOn(Schedulers.computation())
-            .filter(aLong -> clusterManager.self().primary())
-            .switchMapCompletable(aLong ->
-                provider
-                    .get()
-                    .flatMapCompletable(dynamicProperties ->
-                        Completable.fromRunnable(() -> {
-                            log.debug("[{}] Got {} dynamic properties to update", api.getId(), dynamicProperties.size());
+                .observeOn(Schedulers.computation())
+                .filter(aLong -> clusterManager.self().primary())
+                .switchMapCompletable(aLong -> provider.get()
+                        .flatMapCompletable(dynamicProperties -> Completable.fromRunnable(() -> {
+                            log.debug(
+                                    "[{}] Got {} dynamic properties to update", api.getId(), dynamicProperties.size());
                             authenticateAsAdmin();
                             update(dynamicProperties);
-                        })
-                    )
-                    .doOnComplete(() -> log.debug("[{}] Dynamic properties updated", api.getId()))
-            )
-            .onErrorResumeNext(throwable -> {
-                log.error(
-                    "[{}] Unexpected error while getting dynamic properties from provider: {}",
-                    api.getId(),
-                    provider.name(),
-                    throwable
-                );
-                return Completable.complete();
-            })
-            .repeat()
-            .subscribe(() -> {}, throwable -> log.error("Unable to run Dynamic Properties for Api: {}", api.getId()));
+                        }))
+                        .doOnComplete(() -> log.debug("[{}] Dynamic properties updated", api.getId())))
+                .onErrorResumeNext(throwable -> {
+                    log.error(
+                            "[{}] Unexpected error while getting dynamic properties from provider: {}",
+                            api.getId(),
+                            provider.name(),
+                            throwable);
+                    return Completable.complete();
+                })
+                .repeat()
+                .subscribe(
+                        () -> {}, throwable -> log.error("Unable to run Dynamic Properties for Api: {}", api.getId()));
     }
 
     public void cancel() {
@@ -130,14 +125,13 @@ public class DynamicPropertyScheduler {
         ApiEntity latestApi = apiService.findById(executionContext, api.getId());
 
         List<Property> properties = (latestApi.getProperties() != null)
-            ? latestApi.getProperties().getProperties()
-            : Collections.emptyList();
-        List<Property> userDefinedProperties = properties
-            .stream()
-            .filter(property -> !property.isDynamic())
-            .toList();
+                ? latestApi.getProperties().getProperties()
+                : Collections.emptyList();
+        List<Property> userDefinedProperties =
+                properties.stream().filter(property -> !property.isDynamic()).toList();
 
-        Map<String, Property> propertyMap = properties.stream().collect(Collectors.toMap(Property::getKey, property -> property));
+        Map<String, Property> propertyMap =
+                properties.stream().collect(Collectors.toMap(Property::getKey, property -> property));
 
         List<Property> updatedProperties = new ArrayList<>();
         boolean needToBeSaved = false;
@@ -147,7 +141,8 @@ public class DynamicPropertyScheduler {
                 updatedProperties.add(dynamicProperty);
             }
             // save properties only if there's something new
-            if (property == null || (property.isDynamic() && !property.getValue().equals(dynamicProperty.getValue()))) {
+            if (property == null
+                    || (property.isDynamic() && !property.getValue().equals(dynamicProperty.getValue()))) {
                 needToBeSaved = true;
             }
         }
@@ -161,10 +156,9 @@ public class DynamicPropertyScheduler {
             updatedProperties.addAll(userDefinedProperties);
 
             // Sort properties alphabetically to avoid redeploy if just the order has changed.
-            List<Property> sortedUpdatedProperties = updatedProperties
-                .stream()
-                .sorted(Comparator.comparing(Property::getKey))
-                .collect(Collectors.toList());
+            List<Property> sortedUpdatedProperties = updatedProperties.stream()
+                    .sorted(Comparator.comparing(Property::getKey))
+                    .collect(Collectors.toList());
             // Create properties container
             Properties apiProperties = new Properties();
             try {
@@ -179,10 +173,18 @@ public class DynamicPropertyScheduler {
             // Update API
             try {
                 log.debug("[{}] Updating API", latestApi.getId());
-                apiService.update(executionContext, latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi), false, false, true);
+                apiService.update(
+                        executionContext,
+                        latestApi.getId(),
+                        apiConverter.toUpdateApiEntity(latestApi),
+                        false,
+                        false,
+                        true);
                 log.debug("[{}] API has been updated", latestApi.getId());
             } catch (TechnicalManagementException e) {
-                log.error("An error occurred while updating the API with new values of dynamic properties, deployment will be skipped.", e);
+                log.error(
+                        "An error occurred while updating the API with new values of dynamic properties, deployment will be skipped.",
+                        e);
                 throw e;
             }
 
@@ -193,18 +195,24 @@ public class DynamicPropertyScheduler {
                     log.debug("[{}] Property change detected, API is about to be deployed", api.getId());
                     ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
                     deployEntity.setDeploymentLabel("Dynamic properties sync");
-                    apiService.deploy(executionContext, latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API, deployEntity);
+                    apiService.deploy(
+                            executionContext,
+                            latestApi.getId(),
+                            "dynamic-property-updater",
+                            EventType.PUBLISH_API,
+                            deployEntity);
                     log.debug("[{}] API as been deployed", api.getId());
                 }
             }
         }
     }
 
-    private static boolean hasRemovedDynamicProperty(List<DynamicProperty> dynamicProperties, List<Property> properties) {
-        Set<String> providedKeys = dynamicProperties.stream().map(DynamicProperty::getKey).collect(Collectors.toSet());
-        return properties
-            .stream()
-            .filter(Property::isDynamic)
-            .anyMatch(property -> !providedKeys.contains(property.getKey()));
+    private static boolean hasRemovedDynamicProperty(
+            List<DynamicProperty> dynamicProperties, List<Property> properties) {
+        Set<String> providedKeys =
+                dynamicProperties.stream().map(DynamicProperty::getKey).collect(Collectors.toSet());
+        return properties.stream()
+                .filter(Property::isDynamic)
+                .anyMatch(property -> !providedKeys.contains(property.getKey()));
     }
 }

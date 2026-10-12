@@ -46,9 +46,8 @@ public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
 
             if (policies == null) {
                 return new DirectPolicyChain(
-                    PolicyResult.failure(PLAN_UNRESOLVABLE, HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"),
-                    context
-                );
+                        PolicyResult.failure(PLAN_UNRESOLVABLE, HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"),
+                        context);
             }
 
             return OrderedPolicyChain.create(policies, context);

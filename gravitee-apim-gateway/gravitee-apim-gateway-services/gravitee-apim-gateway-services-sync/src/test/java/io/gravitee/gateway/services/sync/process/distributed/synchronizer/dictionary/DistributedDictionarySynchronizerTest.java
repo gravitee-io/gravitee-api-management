@@ -71,12 +71,11 @@ class DistributedDictionarySynchronizerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new DistributedDictionarySynchronizer(
-            eventsFetcher,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            deployerFactory,
-            new DictionaryMapper(objectMapper)
-        );
+                eventsFetcher,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                deployerFactory,
+                new DictionaryMapper(objectMapper));
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createDictionaryDeployer()).thenReturn(dictionaryDeployer);
         lenient().when(dictionaryDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -90,7 +89,8 @@ class DistributedDictionarySynchronizerTest {
 
         @Test
         void should_not_synchronize_dictionaries_when_no_events() throws InterruptedException {
-            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.DICTIONARY), any())).thenReturn(Flowable.empty());
+            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.DICTIONARY), any()))
+                    .thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(dictionaryDeployer);
         }
@@ -99,24 +99,27 @@ class DistributedDictionarySynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                eq(-1L),
-                any(),
-                eq(DistributedEventType.DICTIONARY),
-                eq(Set.of(DistributedSyncAction.DEPLOY))
-            );
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            eq(-1L),
+                            any(),
+                            eq(DistributedEventType.DICTIONARY),
+                            eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                any(),
-                any(),
-                eq(DistributedEventType.DICTIONARY),
-                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-            );
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(DistributedEventType.DICTIONARY),
+                            eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY)));
         }
     }
 
@@ -132,14 +135,15 @@ class DistributedDictionarySynchronizerTest {
         }
 
         @Test
-        void should_deploy_dictionary_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
+        void should_deploy_dictionary_when_fetching_deployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("dictionary")
-                .payload(objectMapper.writeValueAsString(dictionary))
-                .type(DistributedEventType.DICTIONARY)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("dictionary")
+                    .payload(objectMapper.writeValueAsString(dictionary))
+                    .type(DistributedEventType.DICTIONARY)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
@@ -149,14 +153,15 @@ class DistributedDictionarySynchronizerTest {
         }
 
         @Test
-        void should_undeploy_dictionary_when_fetching_undeployed_events() throws InterruptedException, JsonProcessingException {
+        void should_undeploy_dictionary_when_fetching_undeployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("dictionary")
-                .payload(objectMapper.writeValueAsString(dictionary))
-                .type(DistributedEventType.DICTIONARY)
-                .syncAction(DistributedSyncAction.UNDEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("dictionary")
+                    .payload(objectMapper.writeValueAsString(dictionary))
+                    .type(DistributedEventType.DICTIONARY)
+                    .syncAction(DistributedSyncAction.UNDEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();

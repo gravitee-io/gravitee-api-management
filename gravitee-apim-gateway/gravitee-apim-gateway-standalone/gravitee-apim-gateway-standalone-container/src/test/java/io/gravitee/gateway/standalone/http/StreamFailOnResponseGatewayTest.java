@@ -43,13 +43,17 @@ public class StreamFailOnResponseGatewayTest extends AbstractWiremockGatewayTest
     public void shouldStreamFailOnResponse() throws Exception {
         wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
+        org.apache.http.client.fluent.Request request =
+                org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
         HttpResponse response = execute(request).returnResponse();
 
-        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
-        assertEquals(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(), response.getStatusLine().getReasonPhrase());
+        assertEquals(
+                HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
+        assertEquals(
+                HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(),
+                response.getStatusLine().getReasonPhrase());
         wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api")));
     }
 
@@ -57,10 +61,8 @@ public class StreamFailOnResponseGatewayTest extends AbstractWiremockGatewayTest
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build(
-            "transform-response-content-fail",
-            TransformResponseStreamFailPolicy.class
-        );
+        PolicyPlugin transformRequestContentPolicy =
+                PolicyBuilder.build("transform-response-content-fail", TransformResponseStreamFailPolicy.class);
         policyPluginManager.register(transformRequestContentPolicy);
     }
 }

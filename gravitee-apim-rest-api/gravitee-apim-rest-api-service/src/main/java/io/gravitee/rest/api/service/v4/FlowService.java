@@ -31,6 +31,7 @@ public interface FlowService {
     String getPlatformFlowSchemaForm(final ExecutionContext executionContext);
 
     List<Flow> findByReference(final FlowReferenceType flowReferenceType, final String referenceId);
+
     List<NativeFlow> findNativeFlowByReference(final FlowReferenceType flowReferenceType, final String referenceId);
 
     Map<String, List<Flow>> findByReferences(final FlowReferenceType flowReferenceType, final Set<String> referenceIds);

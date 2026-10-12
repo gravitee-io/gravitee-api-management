@@ -43,29 +43,33 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
     @Override
     public Optional<PortalPageContext> findById(String id) throws TechnicalException {
         log.debug("Find PortalPageContext by id [{}]", id);
-        Optional<PortalPageContext> portalPageContext = internalRepo.findById(id).map(this::map);
+        Optional<PortalPageContext> portalPageContext =
+                internalRepo.findById(id).map(this::map);
         log.debug("Find PortalPageContext by id [{}] - Done", id);
         return portalPageContext;
     }
 
     @Override
-    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId) {
+    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(
+            PortalPageContextType contextType, String environmentId) {
         log.debug("Find all PortalPageContexts by contextType [{}] and environmentId [{}]", contextType, environmentId);
-        Set<PortalPageContextMongo> mongoPortalPageContexts = internalRepo.findAllByContextTypeAndEnvironmentId(contextType, environmentId);
-        List<PortalPageContext> portalPageContexts = mongoPortalPageContexts.stream().map(this::map).collect(Collectors.toList());
+        Set<PortalPageContextMongo> mongoPortalPageContexts =
+                internalRepo.findAllByContextTypeAndEnvironmentId(contextType, environmentId);
+        List<PortalPageContext> portalPageContexts =
+                mongoPortalPageContexts.stream().map(this::map).collect(Collectors.toList());
         log.debug(
-            "Find all PortalPageContexts by contextType [{}] and environmentId [{}] - Done, found {} contexts",
-            contextType,
-            environmentId,
-            portalPageContexts.size()
-        );
+                "Find all PortalPageContexts by contextType [{}] and environmentId [{}] - Done, found {} contexts",
+                contextType,
+                environmentId,
+                portalPageContexts.size());
         return portalPageContexts;
     }
 
     @Override
     public PortalPageContext findByPageId(String string) {
         log.debug("Find PortalPageContext by pageId [{}]", string);
-        Optional<PortalPageContext> portalPageContext = internalRepo.findByPageId(string).map(this::map);
+        Optional<PortalPageContext> portalPageContext =
+                internalRepo.findByPageId(string).map(this::map);
         log.debug("Find PortalPageContext by pageId [{}] - Done", string);
         return portalPageContext.orElse(null);
     }
@@ -96,8 +100,9 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
         }
 
         internalRepo
-            .findById(portalPageContext.getId())
-            .orElseThrow(() -> new TechnicalException("Unable to find PortalPageContext with id " + portalPageContext.getId()));
+                .findById(portalPageContext.getId())
+                .orElseThrow(() -> new TechnicalException(
+                        "Unable to find PortalPageContext with id " + portalPageContext.getId()));
 
         log.debug("Update PortalPageContext [{}]", portalPageContext.getId());
         PortalPageContextMongo portalPageContextMongo = map(portalPageContext);
@@ -117,7 +122,8 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
     @Override
     public Set<PortalPageContext> findAll() throws TechnicalException {
         log.debug("Find all PortalPageContexts");
-        Set<PortalPageContext> portalPageContexts = internalRepo.findAll().stream().map(this::map).collect(Collectors.toSet());
+        Set<PortalPageContext> portalPageContexts =
+                internalRepo.findAll().stream().map(this::map).collect(Collectors.toSet());
         log.debug("Find all PortalPageContexts - Done");
         return portalPageContexts;
     }
@@ -147,11 +153,11 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
 
     private PortalPageContext map(PortalPageContextMongo portalPageContextMongo) {
         return PortalPageContext.builder()
-            .id(portalPageContextMongo.getId())
-            .pageId(portalPageContextMongo.getPageId())
-            .contextType(portalPageContextMongo.getContextType())
-            .environmentId(portalPageContextMongo.getEnvironmentId())
-            .published(portalPageContextMongo.isPublished())
-            .build();
+                .id(portalPageContextMongo.getId())
+                .pageId(portalPageContextMongo.getPageId())
+                .contextType(portalPageContextMongo.getContextType())
+                .environmentId(portalPageContextMongo.getEnvironmentId())
+                .published(portalPageContextMongo.isPublished())
+                .build();
     }
 }

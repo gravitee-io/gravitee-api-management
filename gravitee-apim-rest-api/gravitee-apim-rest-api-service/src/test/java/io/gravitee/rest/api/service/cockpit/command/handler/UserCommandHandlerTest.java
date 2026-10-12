@@ -73,44 +73,41 @@ public class UserCommandHandlerTest {
         additionalInformation.put("info1", "value1");
         additionalInformation.put("info2", "value2");
         UserCommandPayload userPayload = UserCommandPayload.builder()
-            .id(sourceId)
-            .organizationId("orga#1")
-            .username("Username")
-            .firstName("Firstname")
-            .lastName("Lastname")
-            .picture("https://gravitee.io/my-picture")
-            .email("email@gravitee.io")
-            .additionalInformation(additionalInformation)
-            .build();
+                .id(sourceId)
+                .organizationId("orga#1")
+                .username("Username")
+                .firstName("Firstname")
+                .lastName("Lastname")
+                .picture("https://gravitee.io/my-picture")
+                .email("email@gravitee.io")
+                .additionalInformation(additionalInformation)
+                .build();
 
         UserCommand command = new UserCommand(userPayload);
 
-        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenThrow(new UserNotFoundException(sourceId));
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false)))
+                .thenThrow(new UserNotFoundException(sourceId));
 
-        when(
-            userService.create(
-                any(),
-                argThat(
-                    newUser ->
-                        newUser.getSourceId().equals(userPayload.id()) &&
-                        newUser.getSource().equals("cockpit") &&
-                        newUser.getFirstname().equals(userPayload.firstName()) &&
-                        newUser.getLastname().equals(userPayload.lastName()) &&
-                        newUser.getEmail().equals(userPayload.email()) &&
-                        newUser.getPicture().equals(userPayload.picture()) &&
-                        newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
-                        newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2")) &&
-                        newUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
-                        newUser.getCustomFields().get(SUB).equals(userPayload.username())
-                ),
-                eq(false)
-            )
-        ).thenReturn(new UserEntity());
+        when(userService.create(
+                        any(),
+                        argThat(newUser -> newUser.getSourceId().equals(userPayload.id())
+                                && newUser.getSource().equals("cockpit")
+                                && newUser.getFirstname().equals(userPayload.firstName())
+                                && newUser.getLastname().equals(userPayload.lastName())
+                                && newUser.getEmail().equals(userPayload.email())
+                                && newUser.getPicture().equals(userPayload.picture())
+                                && newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1"))
+                                && newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2"))
+                                && newUser.getCustomFields().get(PICTURE).equals(userPayload.picture())
+                                && newUser.getCustomFields().get(SUB).equals(userPayload.username())),
+                        eq(false)))
+                .thenReturn(new UserEntity());
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
@@ -120,15 +117,15 @@ public class UserCommandHandlerTest {
         additionalInformation.put("info1", "new_value1");
         additionalInformation.put("new_info3", "new_value3");
         UserCommandPayload userPayload = UserCommandPayload.builder()
-            .id(sourceId)
-            .organizationId("orga#1")
-            .username("New Username")
-            .firstName("New Firstname")
-            .lastName("New Lastname")
-            .picture("https://gravitee.io/my-new-picture")
-            .email("my-new-email@gravitee.io")
-            .additionalInformation(additionalInformation)
-            .build();
+                .id(sourceId)
+                .organizationId("orga#1")
+                .username("New Username")
+                .firstName("New Firstname")
+                .lastName("New Lastname")
+                .picture("https://gravitee.io/my-new-picture")
+                .email("my-new-email@gravitee.io")
+                .additionalInformation(additionalInformation)
+                .build();
         UserCommand command = new UserCommand(userPayload);
 
         UserEntity existingCockpitUser = new UserEntity();
@@ -144,59 +141,71 @@ public class UserCommandHandlerTest {
         customFields.put("info2", "value2");
         existingCockpitUser.setCustomFields(customFields);
 
-        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenReturn(existingCockpitUser);
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false)))
+                .thenReturn(existingCockpitUser);
 
-        when(
-            userService.update(
-                any(),
-                eq("apim_user#1"),
-                argThat(
-                    updatedUser ->
-                        updatedUser.getFirstname().equals(userPayload.firstName()) &&
-                        updatedUser.getLastname().equals(userPayload.lastName()) &&
-                        updatedUser.getEmail().equals(userPayload.email()) &&
-                        updatedUser.getPicture().equals(userPayload.picture()) &&
-                        updatedUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
-                        updatedUser.getCustomFields().get("new_info3").equals(additionalInformation.get("new_info3")) &&
-                        updatedUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
-                        updatedUser.getCustomFields().get(SUB).equals(userPayload.username())
-                )
-            )
-        ).thenReturn(new UserEntity());
+        when(userService.update(
+                        any(),
+                        eq("apim_user#1"),
+                        argThat(updatedUser -> updatedUser.getFirstname().equals(userPayload.firstName())
+                                && updatedUser.getLastname().equals(userPayload.lastName())
+                                && updatedUser.getEmail().equals(userPayload.email())
+                                && updatedUser.getPicture().equals(userPayload.picture())
+                                && updatedUser.getCustomFields().get("info1").equals(additionalInformation.get("info1"))
+                                && updatedUser
+                                        .getCustomFields()
+                                        .get("new_info3")
+                                        .equals(additionalInformation.get("new_info3"))
+                                && updatedUser.getCustomFields().get(PICTURE).equals(userPayload.picture())
+                                && updatedUser.getCustomFields().get(SUB).equals(userPayload.username()))))
+                .thenReturn(new UserEntity());
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
     public void handleWithCreateException() throws InterruptedException {
         final String sourceId = "user#1";
-        UserCommandPayload userPayload = UserCommandPayload.builder().id(sourceId).organizationId("orga#1").build();
+        UserCommandPayload userPayload = UserCommandPayload.builder()
+                .id(sourceId)
+                .organizationId("orga#1")
+                .build();
         UserCommand command = new UserCommand(userPayload);
 
-        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenThrow(new UserNotFoundException(sourceId));
-        when(userService.create(any(), any(NewExternalUserEntity.class), eq(false))).thenThrow(new RuntimeException("fake error"));
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false)))
+                .thenThrow(new UserNotFoundException(sourceId));
+        when(userService.create(any(), any(NewExternalUserEntity.class), eq(false)))
+                .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     @Test
     public void handleWithUpdateException() throws InterruptedException {
         final String sourceId = "user#1";
-        UserCommandPayload userPayload = UserCommandPayload.builder().id(sourceId).organizationId("orga#1").build();
+        UserCommandPayload userPayload = UserCommandPayload.builder()
+                .id(sourceId)
+                .organizationId("orga#1")
+                .build();
         UserCommand command = new UserCommand(userPayload);
 
-        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenReturn(new UserEntity());
-        when(userService.update(any(), any(), any(UpdateUserEntity.class))).thenThrow(new RuntimeException("fake error"));
+        when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false)))
+                .thenReturn(new UserEntity());
+        when(userService.update(any(), any(), any(UpdateUserEntity.class)))
+                .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 }

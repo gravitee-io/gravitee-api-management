@@ -46,7 +46,8 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     public Optional<Organization> findById(String organizationId) throws TechnicalException {
         log.debug("Find organization by ID [{}]", organizationId);
 
-        final OrganizationMongo organization = internalOrganizationRepo.findById(organizationId).orElse(null);
+        final OrganizationMongo organization =
+                internalOrganizationRepo.findById(organizationId).orElse(null);
 
         log.debug("Find organization by ID [{}] - Done", organization);
         return Optional.ofNullable(mapper.map(organization));
@@ -72,14 +73,15 @@ public class MongoOrganizationRepository implements OrganizationRepository {
             throw new IllegalStateException("Organization to update must have a name");
         }
 
-        final OrganizationMongo organizationMongo = internalOrganizationRepo.findById(organization.getId()).orElse(null);
+        final OrganizationMongo organizationMongo =
+                internalOrganizationRepo.findById(organization.getId()).orElse(null);
 
         if (organizationMongo == null) {
             throw new IllegalStateException(String.format("No organization found with id [%s]", organization.getId()));
         }
 
         try {
-            //Update
+            // Update
             organizationMongo.setName(organization.getName());
             organizationMongo.setCockpitId(organization.getCockpitId());
             organizationMongo.setDescription(organization.getDescription());
@@ -117,11 +119,9 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findAll() throws TechnicalException {
         try {
-            return internalOrganizationRepo
-                .findAll()
-                .stream()
-                .map(organization -> mapper.map(organization))
-                .collect(Collectors.toSet());
+            return internalOrganizationRepo.findAll().stream()
+                    .map(organization -> mapper.map(organization))
+                    .collect(Collectors.toSet());
         } catch (Exception e) {
             log.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
@@ -131,17 +131,17 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findByHrids(Set<String> hrids) {
         final Set<OrganizationMongo> organizations = internalOrganizationRepo.findByHrids(hrids);
-        return organizations
-            .stream()
-            .map(organizationMongo -> mapper.map(organizationMongo))
-            .collect(Collectors.toSet());
+        return organizations.stream()
+                .map(organizationMongo -> mapper.map(organizationMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException {
         log.debug("Find organization by cockpit ID [{}]", cockpitId);
 
-        final OrganizationMongo organization = internalOrganizationRepo.findByCockpitId(cockpitId).orElse(null);
+        final OrganizationMongo organization =
+                internalOrganizationRepo.findByCockpitId(cockpitId).orElse(null);
 
         log.debug("Find organization by cockpit ID [{}] - Done", organization);
         return Optional.ofNullable(mapper.map(organization));

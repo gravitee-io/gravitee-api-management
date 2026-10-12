@@ -28,7 +28,6 @@ import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.Membership;
@@ -65,12 +64,11 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
 
     @Autowired
     public IntegrationPrimaryOwnerUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy IntegrationRepository integrationRepository,
-        @Lazy ApiRepository apiRepository,
-        @Lazy MembershipRepository membershipRepository,
-        @Lazy RoleRepository roleRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy IntegrationRepository integrationRepository,
+            @Lazy ApiRepository apiRepository,
+            @Lazy MembershipRepository membershipRepository,
+            @Lazy RoleRepository roleRepository) {
         this.environmentRepository = environmentRepository;
         this.integrationRepository = integrationRepository;
         this.apiRepository = apiRepository;
@@ -84,16 +82,14 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() throws TechnicalException {
-        environmentRepository
-            .findAll()
-            .forEach(environment -> {
-                ExecutionContext executionContext = new ExecutionContext(environment);
-                try {
-                    setPrimaryOwnersForIntegrations(executionContext);
-                } catch (TechnicalException e) {
-                    log.error("An error occurs while updating primary owner for integrations", e);
-                }
-            });
+        environmentRepository.findAll().forEach(environment -> {
+            ExecutionContext executionContext = new ExecutionContext(environment);
+            try {
+                setPrimaryOwnersForIntegrations(executionContext);
+            } catch (TechnicalException e) {
+                log.error("An error occurs while updating primary owner for integrations", e);
+            }
+        });
         return true;
     }
 
@@ -101,10 +97,9 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
         log.info("Start to set primary owners for integrations");
 
         PageUtils.forEachPage(
-            pageable -> integrationRepository.findAllByEnvironment(executionContext.getEnvironmentId(), pageable),
-            PAGE_SIZE,
-            integrationPage -> setPrimaryOwnersForIntegrations(integrationPage, executionContext)
-        );
+                pageable -> integrationRepository.findAllByEnvironment(executionContext.getEnvironmentId(), pageable),
+                PAGE_SIZE,
+                integrationPage -> setPrimaryOwnersForIntegrations(integrationPage, executionContext));
 
         log.info("Finish to set primary owners for integrations");
     }
@@ -114,18 +109,13 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
 
         List<String> integrationsIdsWithNoApis = new ArrayList<>();
 
-        integrationPage
-            .getContent()
-            .stream()
-            .map(Integration::getId)
-            .forEach(id ->
-                findAssociatedApis(id)
-                    .findFirst()
-                    .ifPresentOrElse(
-                        api -> setPrimaryOwnerForIntegration(api, id, executionContext),
-                        () -> integrationsIdsWithNoApis.add(id)
-                    )
-            );
+        integrationPage.getContent().stream()
+                .map(Integration::getId)
+                .forEach(id -> findAssociatedApis(id)
+                        .findFirst()
+                        .ifPresentOrElse(
+                                api -> setPrimaryOwnerForIntegration(api, id, executionContext),
+                                () -> integrationsIdsWithNoApis.add(id)));
 
         if (!integrationsIdsWithNoApis.isEmpty()) {
             log.info("Integrations with no associated APIs have been found and will be deleted");
@@ -148,10 +138,12 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
         log.info("Set primary owner for integration {} inherited from API {}", integrationId, api.getId());
         try {
             var apiPrimaryOwnerRoleId = findPrimaryOwnerRoleId(executionContext.getOrganizationId(), RoleScope.API);
-            var integrationPrimaryOwnerRoleId = findPrimaryOwnerRoleId(executionContext.getOrganizationId(), RoleScope.INTEGRATION);
+            var integrationPrimaryOwnerRoleId =
+                    findPrimaryOwnerRoleId(executionContext.getOrganizationId(), RoleScope.INTEGRATION);
             var membership = findPrimaryOwnerMembership(apiPrimaryOwnerRoleId, List.of(api.getId()))
-                .map(m -> integrationMembership(m.getMemberId(), m.getMemberType(), integrationPrimaryOwnerRoleId, integrationId))
-                .orElseThrow(() -> new TechnicalException("No membership found"));
+                    .map(m -> integrationMembership(
+                            m.getMemberId(), m.getMemberType(), integrationPrimaryOwnerRoleId, integrationId))
+                    .orElseThrow(() -> new TechnicalException("No membership found"));
             membershipRepository.create(membership);
         } catch (TechnicalException e) {
             throw new RuntimeException(e);
@@ -160,44 +152,41 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
 
     private String findPrimaryOwnerRoleId(String organizationId, RoleScope roleScope) throws TechnicalException {
         return roleRepository
-            .findByScopeAndNameAndReferenceIdAndReferenceType(
-                roleScope,
-                SystemRole.PRIMARY_OWNER.name(),
-                organizationId,
-                RoleReferenceType.ORGANIZATION
-            )
-            .map(Role::getId)
-            .orElseThrow(() ->
-                new TechnicalException("Unable to find " + roleScope + " Primary Owner role for organization: " + organizationId)
-            );
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                        roleScope, SystemRole.PRIMARY_OWNER.name(), organizationId, RoleReferenceType.ORGANIZATION)
+                .map(Role::getId)
+                .orElseThrow(() -> new TechnicalException(
+                        "Unable to find " + roleScope + " Primary Owner role for organization: " + organizationId));
     }
 
     private Stream<Api> findAssociatedApis(String integrationId) {
-        var searchCriteria = new ApiCriteria.Builder().integrationId(integrationId).build();
+        var searchCriteria =
+                new ApiCriteria.Builder().integrationId(integrationId).build();
         var fieldFilter = new io.gravitee.repository.management.api.search.ApiFieldFilter.Builder()
-            .excludeDefinition()
-            .excludePicture()
-            .build();
+                .excludeDefinition()
+                .excludePicture()
+                .build();
 
         return apiRepository.search(searchCriteria, fieldFilter).stream();
     }
 
-    private Optional<Membership> findPrimaryOwnerMembership(String apiPrimaryOwnerRoleId, List<String> apiIds) throws TechnicalException {
+    private Optional<Membership> findPrimaryOwnerMembership(String apiPrimaryOwnerRoleId, List<String> apiIds)
+            throws TechnicalException {
         return membershipRepository
-            .findByReferencesAndRoleId(MembershipReferenceType.API, apiIds, apiPrimaryOwnerRoleId)
-            .stream()
-            .findFirst();
+                .findByReferencesAndRoleId(MembershipReferenceType.API, apiIds, apiPrimaryOwnerRoleId)
+                .stream()
+                .findFirst();
     }
 
-    private static Membership integrationMembership(String memberId, MembershipMemberType memberType, String roleId, String integrationId) {
+    private static Membership integrationMembership(
+            String memberId, MembershipMemberType memberType, String roleId, String integrationId) {
         var membership = new Membership(
-            UuidString.generateRandom(),
-            memberId,
-            memberType,
-            integrationId,
-            MembershipReferenceType.INTEGRATION,
-            roleId
-        );
+                UuidString.generateRandom(),
+                memberId,
+                memberType,
+                integrationId,
+                MembershipReferenceType.INTEGRATION,
+                roleId);
         var now = new Date();
         membership.setCreatedAt(now);
         membership.setUpdatedAt(now);

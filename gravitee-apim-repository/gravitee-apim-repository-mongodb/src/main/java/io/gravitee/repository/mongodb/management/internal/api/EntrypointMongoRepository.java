@@ -32,10 +32,7 @@ public interface EntrypointMongoRepository extends MongoRepository<EntrypointMon
     List<EntrypointMongo> findByReferenceIdAndReferenceType(String referenceId, EntrypointReferenceType referenceType);
 
     Optional<EntrypointMongo> findByIdAndReferenceIdAndReferenceType(
-        String entrypointId,
-        String referenceId,
-        EntrypointReferenceType referenceType
-    );
+            String entrypointId, String referenceId, EntrypointReferenceType referenceType);
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", delete = true)
     List<EntrypointMongo> deleteByReferenceIdAndReferenceType(String referenceId, String name);

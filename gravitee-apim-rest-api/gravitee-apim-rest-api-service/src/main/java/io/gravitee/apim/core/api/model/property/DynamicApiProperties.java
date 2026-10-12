@@ -39,12 +39,14 @@ public class DynamicApiProperties {
     private final List<Property> currentUserDefinedProperties;
 
     public DynamicApiProperties(List<Property> currentProperties) {
-        this.currentPropertiesByKey = currentProperties.stream().collect(Collectors.toMap(Property::getKey, identity()));
-        this.currentUserDefinedProperties = currentProperties.stream().filter(not(Property::isDynamic)).toList();
+        this.currentPropertiesByKey =
+                currentProperties.stream().collect(Collectors.toMap(Property::getKey, identity()));
+        this.currentUserDefinedProperties =
+                currentProperties.stream().filter(not(Property::isDynamic)).toList();
     }
 
-    public record DynamicPropertiesResult(List<Property> orderedProperties, boolean needToUpdate) implements
-        ApiDefinition.UpdateDynamicPropertiesResult {}
+    public record DynamicPropertiesResult(List<Property> orderedProperties, boolean needToUpdate)
+            implements ApiDefinition.UpdateDynamicPropertiesResult {}
 
     public DynamicPropertiesResult updateDynamicProperties(List<Property> dynamicProperties) {
         List<Property> updatedDynamicProperties = new ArrayList<>();
@@ -56,28 +58,28 @@ public class DynamicApiProperties {
                 updatedDynamicProperties.add(dynamicProperty);
                 // Need to update if property is new or differ from existing one
                 needToBeSaved.compareAndSet(
-                    false,
-                    isNewProperty(existingMatchingProperty) || isUpdatingPreviousProperty(dynamicProperty, existingMatchingProperty)
-                );
+                        false,
+                        isNewProperty(existingMatchingProperty)
+                                || isUpdatingPreviousProperty(dynamicProperty, existingMatchingProperty));
             }
         });
 
         needToBeSaved.compareAndSet(false, hasRemovedDynamicProperty(dynamicProperties));
 
-        final List<Property> orderedProperties = Stream.concat(currentUserDefinedProperties.stream(), updatedDynamicProperties.stream())
-            .sorted(Comparator.comparing(Property::getKey))
-            .toList();
+        final List<Property> orderedProperties = Stream.concat(
+                        currentUserDefinedProperties.stream(), updatedDynamicProperties.stream())
+                .sorted(Comparator.comparing(Property::getKey))
+                .toList();
 
         return new DynamicPropertiesResult(orderedProperties, needToBeSaved.get());
     }
 
     private boolean hasRemovedDynamicProperty(List<Property> dynamicProperties) {
-        final Set<String> providedKeys = dynamicProperties.stream().map(Property::getKey).collect(Collectors.toSet());
-        return currentPropertiesByKey
-            .values()
-            .stream()
-            .filter(Property::isDynamic)
-            .anyMatch(currentProperty -> !providedKeys.contains(currentProperty.getKey()));
+        final Set<String> providedKeys =
+                dynamicProperties.stream().map(Property::getKey).collect(Collectors.toSet());
+        return currentPropertiesByKey.values().stream()
+                .filter(Property::isDynamic)
+                .anyMatch(currentProperty -> !providedKeys.contains(currentProperty.getKey()));
     }
 
     private static boolean isNewProperty(Property previousProperty) {

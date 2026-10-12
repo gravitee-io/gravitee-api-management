@@ -51,7 +51,8 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
 
     private AtomicReference<String> customClientIdClaimRef;
 
-    public JwtPlanBasedAuthenticationHandler(AuthenticationHandler handler, Plan plan, SubscriptionService subscriptionService) {
+    public JwtPlanBasedAuthenticationHandler(
+            AuthenticationHandler handler, Plan plan, SubscriptionService subscriptionService) {
         super(handler, plan);
         this.subscriptionService = subscriptionService;
     }
@@ -72,19 +73,16 @@ public class JwtPlanBasedAuthenticationHandler extends PlanBasedAuthenticationHa
     }
 
     private boolean preCheckSubscription(String api, String clientId, AuthenticationContext authenticationContext) {
-        if (
-            Boolean.TRUE.equals(authenticationContext.getInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE))
-        ) {
-            // Last handler (jwt or oauth), no need to check the subscription, let the CheckSubscriptionPolicy do the job and return an appropriate error.
+        if (Boolean.TRUE.equals(authenticationContext.getInternalAttribute(
+                ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE))) {
+            // Last handler (jwt or oauth), no need to check the subscription, let the CheckSubscriptionPolicy do the
+            // job and return an appropriate error.
             return true;
         }
 
         // Find a matching subscription to try to target the good plan.
-        Optional<io.gravitee.gateway.api.service.Subscription> subscriptionOpt = subscriptionService.getByApiAndClientIdAndPlan(
-            api,
-            clientId,
-            plan.getId()
-        );
+        Optional<io.gravitee.gateway.api.service.Subscription> subscriptionOpt =
+                subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan.getId());
 
         if (subscriptionOpt.isPresent()) {
             final Subscription subscription = subscriptionOpt.get();

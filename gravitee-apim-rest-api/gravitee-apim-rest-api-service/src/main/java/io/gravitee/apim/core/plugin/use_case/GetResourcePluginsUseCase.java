@@ -31,19 +31,16 @@ public class GetResourcePluginsUseCase {
     private final PluginFilterByLicenseDomainService licenseChecker;
 
     public GetResourcePluginsUseCase(
-        ResourcePluginQueryService resourcePluginQueryService,
-        PluginFilterByLicenseDomainService licenseChecker
-    ) {
+            ResourcePluginQueryService resourcePluginQueryService, PluginFilterByLicenseDomainService licenseChecker) {
         this.resourcePluginQueryService = resourcePluginQueryService;
         this.licenseChecker = licenseChecker;
     }
 
     public Output getResourcesByOrganization(Input input) {
-        return new Output(
-            this.licenseChecker.setPluginDeployedStatusDependingOnLicense(resourcePluginQueryService.findAll(), input.organizationId)
+        return new Output(this.licenseChecker
+                .setPluginDeployedStatusDependingOnLicense(resourcePluginQueryService.findAll(), input.organizationId)
                 .stream()
-                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ResourcePlugin::getName))))
-        );
+                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ResourcePlugin::getName)))));
     }
 
     public record Input(String organizationId) {}

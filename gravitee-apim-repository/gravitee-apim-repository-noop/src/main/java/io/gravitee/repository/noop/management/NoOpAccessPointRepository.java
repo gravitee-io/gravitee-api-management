@@ -24,7 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<AccessPoint, String> implements AccessPointRepository {
+public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<AccessPoint, String>
+        implements AccessPointRepository {
 
     @Override
     public Optional<AccessPoint> findByHost(String host) {
@@ -38,10 +39,7 @@ public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<
 
     @Override
     public List<AccessPoint> findByReferenceAndTarget(
-        AccessPointReferenceType referenceType,
-        String referenceId,
-        AccessPointTarget target
-    ) {
+            AccessPointReferenceType referenceType, String referenceId, AccessPointTarget target) {
         return List.of();
     }
 
@@ -51,7 +49,8 @@ public class NoOpAccessPointRepository extends AbstractNoOpManagementRepository<
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, AccessPointReferenceType referenceType) {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            String referenceId, AccessPointReferenceType referenceType) {
         return Collections.emptyList();
     }
 }

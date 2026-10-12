@@ -50,7 +50,8 @@ public class ApiSpecGenCrudServiceImpl implements ApiSpecGenCrudService {
     private final ObjectMapper objectMapper;
     private final ApiService apiService;
 
-    public ApiSpecGenCrudServiceImpl(@Lazy ApiRepository apiRepository, @Lazy ApiService apiService, ObjectMapper objectMapper) {
+    public ApiSpecGenCrudServiceImpl(
+            @Lazy ApiRepository apiRepository, @Lazy ApiService apiService, ObjectMapper objectMapper) {
         this.apiRepository = apiRepository;
         this.objectMapper = objectMapper;
         this.apiService = apiService;
@@ -59,7 +60,8 @@ public class ApiSpecGenCrudServiceImpl implements ApiSpecGenCrudService {
     @Override
     public void enableAnalyticsLogging(ApiSpecGen apiSpecGen, String userId) {
         try {
-            var apiDefinition = objectMapper.readValue(apiSpecGen.definition(), io.gravitee.definition.model.v4.Api.class);
+            var apiDefinition =
+                    objectMapper.readValue(apiSpecGen.definition(), io.gravitee.definition.model.v4.Api.class);
 
             boolean deploy = false;
 
@@ -99,18 +101,15 @@ public class ApiSpecGenCrudServiceImpl implements ApiSpecGenCrudService {
     }
 
     private void deploy(Api api, String userId) {
-        Completable.defer(() ->
-            Completable.fromRunnable(() -> {
-                var apiDeploymentEntity = new ApiDeploymentEntity();
-                apiDeploymentEntity.setDeploymentLabel("Analytics enabled by spec-gen");
-                apiService.deploy(getExecutionContext(), api.getId(), userId, PUBLISH_API, apiDeploymentEntity);
-            })
-        )
-            .subscribeOn(Schedulers.io())
-            .subscribe(
-                () -> log.debug("Api [{}] successfully deployed by user [{}]", api.getId(), userId),
-                t -> log.error("Could not deploy api [{}], userId: [{}]", api.getId(), userId, t)
-            );
+        Completable.defer(() -> Completable.fromRunnable(() -> {
+                    var apiDeploymentEntity = new ApiDeploymentEntity();
+                    apiDeploymentEntity.setDeploymentLabel("Analytics enabled by spec-gen");
+                    apiService.deploy(getExecutionContext(), api.getId(), userId, PUBLISH_API, apiDeploymentEntity);
+                }))
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        () -> log.debug("Api [{}] successfully deployed by user [{}]", api.getId(), userId),
+                        t -> log.error("Could not deploy api [{}], userId: [{}]", api.getId(), userId, t));
     }
 
     private static boolean enableResponse(LoggingPhase phase, boolean deploy) {

@@ -43,29 +43,30 @@ class DecisionFilterAllowlistTest {
         // they are offered without ever being checked against it.
         Set<String> scopeFilters = Set.of("API", "API_TYPE", ExtensibleFilters.RECORD_TYPE.filterName());
         Set<String> offered = Arrays.stream(StaticFilters.values())
-            .map(StaticFilters::toSpec)
-            .filter(spec -> spec.signals().contains(Signal.LOGS))
-            .filter(spec -> spec.apiTypes().contains(ApiType.AUTHZ_DECISION))
-            .map(FilterSpec::name)
-            .filter(name -> !scopeFilters.contains(name))
-            .collect(Collectors.toSet());
+                .map(StaticFilters::toSpec)
+                .filter(spec -> spec.signals().contains(Signal.LOGS))
+                .filter(spec -> spec.apiTypes().contains(ApiType.AUTHZ_DECISION))
+                .map(FilterSpec::name)
+                .filter(name -> !scopeFilters.contains(name))
+                .collect(Collectors.toSet());
 
         assertThat(SearchObservabilityLogsUseCase.DECISION_SUPPORTED_FILTERS)
-            .as("every filter the decisions screen offers must be applicable by the decision search")
-            .containsExactlyInAnyOrderElementsOf(offered);
+                .as("every filter the decisions screen offers must be applicable by the decision search")
+                .containsExactlyInAnyOrderElementsOf(offered);
     }
 
     @Test
     void should_hold_exactly_the_filters_only_decision_records_carry() {
         Set<String> decisionOnly = Arrays.stream(StaticFilters.values())
-            .map(StaticFilters::toSpec)
-            .filter(spec -> spec.signals().contains(Signal.LOGS))
-            .filter(spec -> spec.apiTypes().equals(Set.of(ApiType.AUTHZ_DECISION)))
-            .map(FilterSpec::name)
-            .collect(Collectors.toSet());
+                .map(StaticFilters::toSpec)
+                .filter(spec -> spec.signals().contains(Signal.LOGS))
+                .filter(spec -> spec.apiTypes().equals(Set.of(ApiType.AUTHZ_DECISION)))
+                .map(FilterSpec::name)
+                .collect(Collectors.toSet());
 
         assertThat(SearchObservabilityLogsUseCase.DECISION_ONLY_FILTERS)
-            .as("a filter only decision records carry must be refused on a request search with a message naming RECORD_TYPE")
-            .containsExactlyInAnyOrderElementsOf(decisionOnly);
+                .as(
+                        "a filter only decision records carry must be refused on a request search with a message naming RECORD_TYPE")
+                .containsExactlyInAnyOrderElementsOf(decisionOnly);
     }
 }

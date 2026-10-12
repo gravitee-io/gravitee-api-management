@@ -62,7 +62,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String> implements SubscriptionRepository {
+public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String>
+        implements SubscriptionRepository {
 
     private static final JdbcHelper.ChildAdder<Subscription> METADATA_ADDER = (Subscription parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
@@ -86,38 +87,38 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     @Override
     protected JdbcObjectMapper<Subscription> buildOrm() {
         return JdbcObjectMapper.builder(Subscription.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("plan", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("application_name", Types.NVARCHAR, String.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("starting_at", Types.TIMESTAMP, Date.class)
-            .addColumn("ending_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("processed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("processed_by", Types.NVARCHAR, String.class)
-            .addColumn("subscribed_by", Types.NVARCHAR, String.class)
-            .addColumn("client_id", Types.NVARCHAR, String.class)
-            .addColumn("client_certificate", Types.NVARCHAR, String.class)
-            .addColumn("request", Types.NVARCHAR, String.class)
-            .addColumn("reason", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
-            .addColumn("consumer_status", Types.NVARCHAR, Subscription.ConsumerStatus.class)
-            .addColumn("consumer_paused_at", Types.TIMESTAMP, Date.class)
-            .addColumn("failure_cause", Types.NVARCHAR, String.class)
-            .addColumn("paused_at", Types.TIMESTAMP, Date.class)
-            .addColumn("general_conditions_content_page_id", Types.NVARCHAR, String.class)
-            .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
-            .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
-            .addColumn("days_to_expiration_on_last_notification", Types.INTEGER, Integer.class)
-            .addColumn("configuration", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, Subscription.Type.class)
-            .addColumn("origin", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, SubscriptionReferenceType.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("plan", Types.NVARCHAR, String.class)
+                .addColumn("application", Types.NVARCHAR, String.class)
+                .addColumn("application_name", Types.NVARCHAR, String.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("starting_at", Types.TIMESTAMP, Date.class)
+                .addColumn("ending_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("processed_at", Types.TIMESTAMP, Date.class)
+                .addColumn("processed_by", Types.NVARCHAR, String.class)
+                .addColumn("subscribed_by", Types.NVARCHAR, String.class)
+                .addColumn("client_id", Types.NVARCHAR, String.class)
+                .addColumn("client_certificate", Types.NVARCHAR, String.class)
+                .addColumn("request", Types.NVARCHAR, String.class)
+                .addColumn("reason", Types.NVARCHAR, String.class)
+                .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
+                .addColumn("consumer_status", Types.NVARCHAR, Subscription.ConsumerStatus.class)
+                .addColumn("consumer_paused_at", Types.TIMESTAMP, Date.class)
+                .addColumn("failure_cause", Types.NVARCHAR, String.class)
+                .addColumn("paused_at", Types.TIMESTAMP, Date.class)
+                .addColumn("general_conditions_content_page_id", Types.NVARCHAR, String.class)
+                .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
+                .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
+                .addColumn("days_to_expiration_on_last_notification", Types.INTEGER, Integer.class)
+                .addColumn("configuration", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, Subscription.Type.class)
+                .addColumn("origin", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, SubscriptionReferenceType.class)
+                .build();
     }
 
     @Override
@@ -141,9 +142,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(subscription, subscription.getId()));
             storeMetadata(subscription, true);
-            return findById(subscription.getId()).orElseThrow(() ->
-                new IllegalStateException(format("No subscription found with id [%s]", subscription.getId()))
-            );
+            return findById(subscription.getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            format("No subscription found with id [%s]", subscription.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -177,16 +178,13 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         log.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
         try {
             List<String> rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + metadataTableName + " where subscription_id IN (" + getOrm().buildInClause(rows) + ")",
-                    rows.toArray()
-                );
+                        "delete from " + metadataTableName + " where subscription_id IN ("
+                                + getOrm().buildInClause(rows) + ")",
+                        rows.toArray());
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
@@ -198,10 +196,12 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     @Override
-    public List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
-        throws TechnicalException {
+    public List<Subscription> searchAfter(
+            SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+            throws TechnicalException {
         if (!isEmpty(criteria.getPlanSecurityTypes()) || !isEmpty(criteria.getExcludedApis())) {
-            throw new TechnicalException("searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
+            throw new TechnicalException(
+                    "searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
         }
         final SubscriptionSearchSort sort;
         try {
@@ -211,11 +211,8 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         }
 
         final List<Object> argsList = new ArrayList<>();
-        JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            METADATA_ADDER,
-            "id"
-        );
+        JdbcHelper.CollatingRowMapper<Subscription> rowMapper =
+                new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), METADATA_ADDER, "id");
 
         // The pageSize limit must apply BEFORE the metadata LEFT JOIN, otherwise a subscription
         // with multiple metadata rows consumes more than one row of the limit (partial metadata +
@@ -225,11 +222,10 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         boolean started = false;
         if (!isEmpty(criteria.getEnvironments())) {
-            inner
-                .append(WHERE_CLAUSE)
-                .append(" ( environment_id in ( ")
-                .append(getOrm().buildInClause(criteria.getEnvironments()))
-                .append(" ) )");
+            inner.append(WHERE_CLAUSE)
+                    .append(" ( environment_id in ( ")
+                    .append(getOrm().buildInClause(criteria.getEnvironments()))
+                    .append(" ) )");
             argsList.addAll(criteria.getEnvironments());
             started = true;
         }
@@ -274,21 +270,21 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                 }
                 case PLAN_ID -> {
                     if (after.plan() == null) {
-                        throw new TechnicalException("PLAN_ID sort requires a (plan, id) cursor, but the cursor has no plan");
+                        throw new TechnicalException(
+                                "PLAN_ID sort requires a (plan, id) cursor, but the cursor has no plan");
                     }
                     // (plan, id) keyset. The OR-form is the portable, correct comparison (works on all
                     // JDBC dialects incl. SQL Server, which rejects row-value comparisons). The extra
                     // redundant `plan >= ?` is a sargable lower bound that lets the planner start the
                     // index scan at the cursor's plan instead of filtering the whole plan range — on
                     // Postgres this becomes the index range condition.
-                    inner
-                        .append("( ( ")
-                        .append(planColumn)
-                        .append(" > ? or ( ")
-                        .append(planColumn)
-                        .append(" = ? and id > ? ) ) and ")
-                        .append(planColumn)
-                        .append(" >= ? )");
+                    inner.append("( ( ")
+                            .append(planColumn)
+                            .append(" > ? or ( ")
+                            .append(planColumn)
+                            .append(" = ? and id > ? ) ) and ")
+                            .append(planColumn)
+                            .append(" >= ? )");
                     argsList.add(after.plan());
                     argsList.add(after.plan());
                     argsList.add(after.id());
@@ -316,13 +312,11 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             case PLAN_ID -> "order by s." + planColumn + " asc, s.id asc";
             case ID -> "order by s.id asc";
         };
-        final String query =
-            "select s.*, sm.k as sm_k, sm.v as sm_v from (" +
-            inner +
-            ") s left join " +
-            this.metadataTableName +
-            " sm on s.id = sm.subscription_id " +
-            outerOrderBy;
+        final String query = "select s.*, sm.k as sm_k, sm.v as sm_v from (" + inner
+                + ") s left join "
+                + this.metadataTableName
+                + " sm on s.id = sm.subscription_id "
+                + outerOrderBy;
 
         try {
             jdbcTemplate.query(query, rowMapper, argsList.toArray());
@@ -333,13 +327,15 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     @Override
-    public List<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable) throws TechnicalException {
+    public List<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable)
+            throws TechnicalException {
         return searchPage(criteria, sortable, null, true).getContent();
     }
 
     @Override
-    public Page<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable)
-        throws TechnicalException {
+    public Page<Subscription> search(
+            final SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable)
+            throws TechnicalException {
         return searchPage(criteria, sortable, pageable, true);
     }
 
@@ -352,34 +348,37 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
             group = "application";
             data = criteria.getApplications();
-        } else if (
-            criteria.getReferenceType() != null &&
-            criteria.getReferenceType() == SubscriptionReferenceType.API &&
-            !isEmpty(criteria.getReferenceIds())
-        ) {
+        } else if (criteria.getReferenceType() != null
+                && criteria.getReferenceType() == SubscriptionReferenceType.API
+                && !isEmpty(criteria.getReferenceIds())) {
             data = criteria.getReferenceIds();
         }
 
-        builder
-            .append(group)
-            .append(", count(*) as numberOfSubscriptions, max(updated_at) as lastUpdatedAt from ")
-            .append(this.tableName)
-            .append(" where ")
-            .append(group)
-            .append(" is not null");
+        builder.append(group)
+                .append(", count(*) as numberOfSubscriptions, max(updated_at) as lastUpdatedAt from ")
+                .append(this.tableName)
+                .append(" where ")
+                .append(group)
+                .append(" is not null");
 
         if (data != null) {
-            builder.append(" and ").append(group).append(" in (").append(getOrm().buildInClause(data)).append(")");
+            builder.append(" and ")
+                    .append(group)
+                    .append(" in (")
+                    .append(getOrm().buildInClause(data))
+                    .append(")");
         }
 
         if (!isEmpty(criteria.getStatuses())) {
-            builder.append(" and status ").append(" in (").append(getOrm().buildInClause(criteria.getStatuses())).append(")");
+            builder.append(" and status ")
+                    .append(" in (")
+                    .append(getOrm().buildInClause(criteria.getStatuses()))
+                    .append(")");
         }
         String orderAsString = order == null ? "asc" : order.name();
-        builder
-            .append(" group by ")
-            .append(group)
-            .append(" order by numberOfSubscriptions " + orderAsString + ", lastUpdatedAt " + orderAsString);
+        builder.append(" group by ")
+                .append(group)
+                .append(" order by numberOfSubscriptions " + orderAsString + ", lastUpdatedAt " + orderAsString);
         return jdbcTemplate.query(builder.toString(), fillPreparedStatement(data, criteria), resultSet -> {
             Set<String> ranking = new LinkedHashSet();
             while (resultSet.next()) {
@@ -403,25 +402,18 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     private Page<Subscription> searchPage(
-        final SubscriptionCriteria criteria,
-        final Sortable sortable,
-        final Pageable pageable,
-        final boolean applyDefaultSort
-    ) {
+            final SubscriptionCriteria criteria,
+            final Sortable sortable,
+            final Pageable pageable,
+            final boolean applyDefaultSort) {
         final List<Object> argsList = new ArrayList<>();
-        JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            METADATA_ADDER,
-            "id"
-        );
+        JdbcHelper.CollatingRowMapper<Subscription> rowMapper =
+                new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), METADATA_ADDER, "id");
 
-        final StringBuilder builder = new StringBuilder(
-            "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                this.tableName +
-                " s left join " +
-                this.metadataTableName +
-                " sm on s.id = sm.subscription_id "
-        );
+        final StringBuilder builder = new StringBuilder("select s.*, sm.k as sm_k, sm.v as sm_v from " + this.tableName
+                + " s left join "
+                + this.metadataTableName
+                + " sm on s.id = sm.subscription_id ");
 
         boolean started = false;
 
@@ -432,7 +424,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         if (!isEmpty(criteria.getEnvironments())) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append(" ( s.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+            builder.append(" ( s.environment_id in ( ")
+                    .append(getOrm().buildInClause(criteria.getEnvironments()))
+                    .append(" ) )");
             argsList.addAll(criteria.getEnvironments());
             started = true;
         }
@@ -476,7 +470,8 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             started = true;
         }
 
-        started = addStringsWhereClause(criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
+        started = addStringsWhereClause(
+                criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "s.application", argsList, builder, started);
         if (!isEmpty(criteria.getReferenceTypes())) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
@@ -484,17 +479,15 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             started = true;
         } else if (criteria.getReferenceType() != null) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            if (
-                isEmpty(criteria.getReferenceIds()) &&
-                criteria.getReferenceType() == io.gravitee.repository.management.model.SubscriptionReferenceType.API
-            ) {
+            if (isEmpty(criteria.getReferenceIds())
+                    && criteria.getReferenceType()
+                            == io.gravitee.repository.management.model.SubscriptionReferenceType.API) {
                 // Filter by API only (e.g. Portal): include legacy subscriptions with null reference_type
                 builder.append("( s.reference_type = ? OR s.reference_type IS NULL )");
                 argsList.add(criteria.getReferenceType().name());
-            } else if (
-                !isEmpty(criteria.getReferenceIds()) &&
-                criteria.getReferenceType() == io.gravitee.repository.management.model.SubscriptionReferenceType.API
-            ) {
+            } else if (!isEmpty(criteria.getReferenceIds())
+                    && criteria.getReferenceType()
+                            == io.gravitee.repository.management.model.SubscriptionReferenceType.API) {
                 appendApiReferenceIdsFilter(criteria.getReferenceIds(), builder, argsList);
             } else {
                 // API_PRODUCT and other reference types: strict filter (no legacy fallback needed)
@@ -502,7 +495,8 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                 argsList.add(criteria.getReferenceType().name());
                 started = true;
                 if (!isEmpty(criteria.getReferenceIds())) {
-                    started = addStringsWhereClause(criteria.getReferenceIds(), "s.reference_id", argsList, builder, started);
+                    started = addStringsWhereClause(
+                            criteria.getReferenceIds(), "s.reference_id", argsList, builder, started);
                 }
             }
             started = true;
@@ -532,20 +526,15 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     public Optional<Subscription> findById(String id) throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                METADATA_ADDER,
-                "id"
-            );
+            JdbcHelper.CollatingRowMapper<Subscription> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), METADATA_ADDER, "id");
             jdbcTemplate.query(
-                "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                    this.tableName +
-                    " s left join " +
-                    this.metadataTableName +
-                    " sm on s.id = sm.subscription_id where s.id = ?",
-                rowMapper,
-                id
-            );
+                    "select s.*, sm.k as sm_k, sm.v as sm_v from " + this.tableName
+                            + " s left join "
+                            + this.metadataTableName
+                            + " sm on s.id = sm.subscription_id where s.id = ?",
+                    rowMapper,
+                    id);
             Optional<Subscription> result = rowMapper.getRows().stream().findFirst();
             log.debug("JdbcSubscriptionRepository.findById({}) = {}", id, result);
             return result;
@@ -557,20 +546,15 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     public Set<Subscription> findAll() throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.findAll()", getOrm().getTableName());
         try {
-            JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                METADATA_ADDER,
-                "id"
-            );
+            JdbcHelper.CollatingRowMapper<Subscription> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), METADATA_ADDER, "id");
 
             jdbcTemplate.query(
-                "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                    this.tableName +
-                    " s left join " +
-                    this.metadataTableName +
-                    " sm on s.id = sm.subscription_id",
-                rowMapper
-            );
+                    "select s.*, sm.k as sm_k, sm.v as sm_v from " + this.tableName
+                            + " s left join "
+                            + this.metadataTableName
+                            + " sm on s.id = sm.subscription_id",
+                    rowMapper);
             log.debug("Found {} subscriptions: {}", rowMapper.getRows().size(), rowMapper.getRows());
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
@@ -585,21 +569,17 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         }
 
         try {
-            StringBuilder queryBuilder = new StringBuilder(
-                "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                    this.tableName +
-                    " s left join " +
-                    this.metadataTableName +
-                    " sm on s.id = sm.subscription_id"
-            );
+            StringBuilder queryBuilder =
+                    new StringBuilder("select s.*, sm.k as sm_k, sm.v as sm_v from " + this.tableName
+                            + " s left join "
+                            + this.metadataTableName
+                            + " sm on s.id = sm.subscription_id");
             getOrm().buildInCondition(true, queryBuilder, "s.id", ids);
 
-            JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                METADATA_ADDER,
-                "id"
-            );
-            jdbcTemplate.query(queryBuilder.toString(), (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1), rowMapper);
+            JdbcHelper.CollatingRowMapper<Subscription> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), METADATA_ADDER, "id");
+            jdbcTemplate.query(
+                    queryBuilder.toString(), (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1), rowMapper);
             return new ArrayList<>(rowMapper.getRows());
         } catch (final Exception e) {
             throw new TechnicalException("Failed to find subscriptions by ids", e);
@@ -610,20 +590,21 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
      * Appends an OR filter covering both migrated subscriptions (reference_type/reference_id) and legacy ones
      * (reference_type IS NULL, api field set) created by old nodes during a rolling upgrade.
      */
-    private void appendApiReferenceIdsFilter(Collection<String> referenceIds, StringBuilder builder, List<Object> argsList) {
+    private void appendApiReferenceIdsFilter(
+            Collection<String> referenceIds, StringBuilder builder, List<Object> argsList) {
         String inClause = getOrm().buildInClause(referenceIds);
-        builder
-            .append("( ( s.reference_type = ? AND s.reference_id IN (")
-            .append(inClause)
-            .append(") ) OR ( s.reference_type IS NULL AND s.api IN (")
-            .append(inClause)
-            .append(") ) )");
+        builder.append("( ( s.reference_type = ? AND s.reference_id IN (")
+                .append(inClause)
+                .append(") ) OR ( s.reference_type IS NULL AND s.api IN (")
+                .append(inClause)
+                .append(") ) )");
         argsList.add(io.gravitee.repository.management.model.SubscriptionReferenceType.API.name());
         argsList.addAll(referenceIds); // for reference_id IN
         argsList.addAll(referenceIds); // for api IN
     }
 
-    private void appendReferenceTypesFilter(SubscriptionCriteria criteria, StringBuilder builder, List<Object> argsList) {
+    private void appendReferenceTypesFilter(
+            SubscriptionCriteria criteria, StringBuilder builder, List<Object> argsList) {
         boolean filterByReferenceIds = !isEmpty(criteria.getApis()) || !isEmpty(criteria.getApiProducts());
         builder.append("(");
         boolean appended = false;
@@ -648,7 +629,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
                 builder.append("( s.reference_type = ?");
                 argsList.add(SubscriptionReferenceType.API_PRODUCT.name());
                 if (filterByReferenceIds) {
-                    builder.append(" AND s.reference_id IN (").append(getOrm().buildInClause(criteria.getApiProducts())).append(")");
+                    builder.append(" AND s.reference_id IN (")
+                            .append(getOrm().buildInClause(criteria.getApiProducts()))
+                            .append(")");
                     argsList.addAll(criteria.getApiProducts());
                 }
                 builder.append(" )");
@@ -663,49 +646,45 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     private void storeMetadata(Subscription subscription, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from " + metadataTableName + " where subscription_id = ?", subscription.getId());
+            jdbcTemplate.update(
+                    "delete from " + metadataTableName + " where subscription_id = ?", subscription.getId());
         }
         if (subscription.getMetadata() != null && !subscription.getMetadata().isEmpty()) {
-            List<Map.Entry<String, String>> entries = new ArrayList<>(subscription.getMetadata().entrySet());
+            List<Map.Entry<String, String>> entries =
+                    new ArrayList<>(subscription.getMetadata().entrySet());
             jdbcTemplate.batchUpdate(
-                "insert into " + metadataTableName + " ( subscription_id, k, v ) values ( ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, subscription.getId());
-                        ps.setString(2, entries.get(i).getKey());
-                        ps.setString(3, entries.get(i).getValue());
-                    }
+                    "insert into " + metadataTableName + " ( subscription_id, k, v ) values ( ?, ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, subscription.getId());
+                            ps.setString(2, entries.get(i).getKey());
+                            ps.setString(3, entries.get(i).getValue());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return entries.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return entries.size();
+                        }
+                    });
         }
     }
 
     @Override
-    public Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
-        throws TechnicalException {
+    public Set<Subscription> findByReferenceIdAndReferenceType(
+            String referenceId, SubscriptionReferenceType referenceType) throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                METADATA_ADDER,
-                "id"
-            );
+            JdbcHelper.CollatingRowMapper<Subscription> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), METADATA_ADDER, "id");
             jdbcTemplate.query(
-                "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                    this.tableName +
-                    " s left join " +
-                    this.metadataTableName +
-                    " sm on s.id = sm.subscription_id where s.reference_id = ? and s.reference_type = ?",
-                rowMapper,
-                referenceId,
-                referenceType.name()
-            );
+                    "select s.*, sm.k as sm_k, sm.v as sm_v from " + this.tableName
+                            + " s left join "
+                            + this.metadataTableName
+                            + " sm on s.id = sm.subscription_id where s.reference_id = ? and s.reference_type = ?",
+                    rowMapper,
+                    referenceId,
+                    referenceType.name());
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find subscriptions by reference", ex);
@@ -714,41 +693,32 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     @Override
     public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) throws TechnicalException {
+            String subscriptionId, String referenceId, SubscriptionReferenceType referenceType)
+            throws TechnicalException {
         log.debug(
-            "JdbcSubscriptionRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})",
-            subscriptionId,
-            referenceId,
-            referenceType
-        );
-        try {
-            JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                METADATA_ADDER,
-                "id"
-            );
-            jdbcTemplate.query(
-                "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                    this.tableName +
-                    " s left join " +
-                    this.metadataTableName +
-                    " sm on s.id = sm.subscription_id where s.id = ? and s.reference_id = ? and s.reference_type = ?",
-                rowMapper,
+                "JdbcSubscriptionRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})",
                 subscriptionId,
                 referenceId,
-                referenceType.name()
-            );
+                referenceType);
+        try {
+            JdbcHelper.CollatingRowMapper<Subscription> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), METADATA_ADDER, "id");
+            jdbcTemplate.query(
+                    "select s.*, sm.k as sm_k, sm.v as sm_v from " + this.tableName
+                            + " s left join "
+                            + this.metadataTableName
+                            + " sm on s.id = sm.subscription_id where s.id = ? and s.reference_id = ? and s.reference_type = ?",
+                    rowMapper,
+                    subscriptionId,
+                    referenceId,
+                    referenceType.name());
             Optional<Subscription> result = rowMapper.getRows().stream().findFirst();
             log.debug(
-                "JdbcSubscriptionRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {}) = {}",
-                subscriptionId,
-                referenceId,
-                referenceType,
-                result
-            );
+                    "JdbcSubscriptionRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {}) = {}",
+                    subscriptionId,
+                    referenceId,
+                    referenceType,
+                    result);
             return result;
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find subscription by id and reference", ex);

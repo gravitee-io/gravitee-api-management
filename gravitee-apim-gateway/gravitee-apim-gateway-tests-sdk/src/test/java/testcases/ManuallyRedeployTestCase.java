@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package testcases; /**
+package testcases;
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,6 @@ package testcases; /**
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -71,26 +71,27 @@ public class ManuallyRedeployTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should modify and redeploy an API")
-    @DeployApi({ "/apis/success-flow.json" })
-    void shouldRedeployAnApi(HttpClient httpClient, @InjectApi(apiId = "my-api") ReactableApi<?> reactableApi) throws InterruptedException {
+    @DeployApi({"/apis/success-flow.json"})
+    void shouldRedeployAnApi(HttpClient httpClient, @InjectApi(apiId = "my-api") ReactableApi<?> reactableApi)
+            throws InterruptedException {
         wiremock.stubFor(get("/team/my_team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test/my_team")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
+                    return true;
+                })
+                .assertNoErrors();
 
         if (isLegacyApi(reactableApi.getDefinition().getClass())) {
             Api api = (Api) reactableApi.getDefinition();
@@ -99,72 +100,68 @@ public class ManuallyRedeployTestCase extends AbstractGatewayTest {
         }
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(request -> request.rxSend())
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(404);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("No context-path matches the request URI.");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test/my_team")
+                .flatMap(request -> request.rxSend())
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(404);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("No context-path matches the request URI.");
+                    return true;
+                })
+                .assertNoErrors();
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/new_test/my_team")
-            .flatMap(request -> request.rxSend())
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/new_test/my_team")
+                .flatMap(request -> request.rxSend())
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
+                    return true;
+                })
+                .assertNoErrors();
 
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/team/my_team"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
                 .withHeader("X-Gravitee-Policy", equalTo("request-header1"))
-                .withHeader(ON_REQUEST_POLICY, equalTo("invoked"))
-        );
+                .withHeader(ON_REQUEST_POLICY, equalTo("invoked")));
     }
 
     @ParameterizedTest
     @MethodSource("provideParameters")
     @DisplayName("Should modify and redeploy all APIs without conflicts for parameter resolution")
-    @DeployApi({ "/apis/success-flow.json" })
+    @DeployApi({"/apis/success-flow.json"})
     void shouldRedeployAllApisWithoutParameterConflict(
-        Map<String, String> injectedParams,
-        HttpClient httpClient,
-        Map<String, ReactableApi<?>> reactableApis
-    ) throws InterruptedException {
+            Map<String, String> injectedParams, HttpClient httpClient, Map<String, ReactableApi<?>> reactableApis)
+            throws InterruptedException {
         wiremock.stubFor(get("/team/my_team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(request -> request.rxSend())
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test/my_team")
+                .flatMap(request -> request.rxSend())
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
+                    return true;
+                })
+                .assertNoErrors();
 
         reactableApis.forEach((name, reactableApi) -> {
             if (isLegacyApi(reactableApi.getDefinition().getClass())) {
@@ -175,43 +172,41 @@ public class ManuallyRedeployTestCase extends AbstractGatewayTest {
         });
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(request -> request.rxSend())
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(404);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("No context-path matches the request URI.");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test/my_team")
+                .flatMap(request -> request.rxSend())
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(404);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("No context-path matches the request URI.");
+                    return true;
+                })
+                .assertNoErrors();
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/new_test/my_team")
-            .flatMap(request -> request.rxSend())
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/new_test/my_team")
+                .flatMap(request -> request.rxSend())
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
+                    return true;
+                })
+                .assertNoErrors();
 
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/team/my_team"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
                 .withHeader("X-Gravitee-Policy", equalTo("request-header1"))
-                .withHeader(ON_REQUEST_POLICY, equalTo("invoked"))
-        );
+                .withHeader(ON_REQUEST_POLICY, equalTo("invoked")));
     }
 
     @Override
@@ -224,9 +219,8 @@ public class ManuallyRedeployTestCase extends AbstractGatewayTest {
 
     public Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of(Map.of()),
-            Arguments.of(Map.of("key", "value")),
-            Arguments.of(Map.of("key", "value", "key2", "value2"))
-        );
+                Arguments.of(Map.of()),
+                Arguments.of(Map.of("key", "value")),
+                Arguments.of(Map.of("key", "value", "key2", "value2")));
     }
 }

@@ -46,7 +46,8 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionAdapter subscriptionAdapter;
 
-    public SubscriptionQueryServiceImpl(@Lazy SubscriptionRepository subscriptionRepository, SubscriptionAdapter subscriptionAdapter) {
+    public SubscriptionQueryServiceImpl(
+            @Lazy SubscriptionRepository subscriptionRepository, SubscriptionAdapter subscriptionAdapter) {
         this.subscriptionRepository = subscriptionRepository;
         this.subscriptionAdapter = subscriptionAdapter;
     }
@@ -54,12 +55,14 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     @Override
     public List<SubscriptionEntity> findExpiredSubscriptions() {
         SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-            .statuses(List.of(SubscriptionStatus.ACCEPTED.name()))
-            .endingAtBefore(new Date().getTime())
-            .build();
+                .statuses(List.of(SubscriptionStatus.ACCEPTED.name()))
+                .endingAtBefore(new Date().getTime())
+                .build();
 
         try {
-            return subscriptionRepository.searchUnordered(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+            return subscriptionRepository.searchUnordered(criteria).stream()
+                    .map(subscriptionAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find expired subscription", e);
         }
@@ -67,11 +70,7 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public List<ExpiringSubscription> findExpiringSubscriptions(
-        Instant now,
-        List<Integer> daysBuckets,
-        long windowMs,
-        List<SubscriptionStatus> statuses
-    ) {
+            Instant now, List<Integer> daysBuckets, long windowMs, List<SubscriptionStatus> statuses) {
         if (daysBuckets == null || daysBuckets.isEmpty()) {
             return List.of();
         }
@@ -83,37 +82,42 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
         long endingBefore = nowMs + max * oneDayMs + windowMs;
 
         SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-            .statuses(statuses.stream().map(SubscriptionStatus::name).toList())
-            .endingAtAfter(endingAfter)
-            .endingAtBefore(endingBefore)
-            .build();
+                .statuses(statuses.stream().map(SubscriptionStatus::name).toList())
+                .endingAtAfter(endingAfter)
+                .endingAtBefore(endingBefore)
+                .build();
 
         try {
-            return subscriptionRepository.searchUnordered(criteria).stream().map(SubscriptionQueryServiceImpl::toExpiring).toList();
+            return subscriptionRepository.searchUnordered(criteria).stream()
+                    .map(SubscriptionQueryServiceImpl::toExpiring)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find expiring subscriptions", e);
         }
     }
 
     private static ExpiringSubscription toExpiring(Subscription s) {
-        ZonedDateTime ending = s.getEndingAt() == null ? null : s.getEndingAt().toInstant().atZone(ZoneOffset.UTC);
+        ZonedDateTime ending =
+                s.getEndingAt() == null ? null : s.getEndingAt().toInstant().atZone(ZoneOffset.UTC);
         return new ExpiringSubscription(
-            s.getId(),
-            s.getApi(),
-            s.getPlan(),
-            s.getApplication(),
-            s.getSubscribedBy(),
-            ending,
-            s.getDaysToExpirationOnLastNotification()
-        );
+                s.getId(),
+                s.getApi(),
+                s.getPlan(),
+                s.getApplication(),
+                s.getSubscribedBy(),
+                ending,
+                s.getDaysToExpirationOnLastNotification());
     }
 
     @Override
     public List<SubscriptionEntity> findSubscriptionsByPlan(String planId) {
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(List.of(planId)).build();
+        SubscriptionCriteria criteria =
+                SubscriptionCriteria.builder().plans(List.of(planId)).build();
 
         try {
-            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+            return subscriptionRepository.search(criteria).stream()
+                    .map(subscriptionAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find plan's subscription", e);
         }
@@ -122,12 +126,17 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     @Override
     public List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId) {
         SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-            .plans(List.of(planId))
-            .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
-            .build();
+                .plans(List.of(planId))
+                .statuses(List.of(
+                        SubscriptionStatus.ACCEPTED.name(),
+                        SubscriptionStatus.PENDING.name(),
+                        SubscriptionStatus.PAUSED.name()))
+                .build();
 
         try {
-            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+            return subscriptionRepository.search(criteria).stream()
+                    .map(subscriptionAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find active plan's subscription", e);
         }
@@ -139,14 +148,20 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     }
 
     @Override
-    public List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(Set<String> applicationIds, Set<String> apiIds) {
+    public List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(
+            Set<String> applicationIds, Set<String> apiIds) {
         var criteria = SubscriptionCriteria.builder()
-            .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
-            .apis(List.copyOf(apiIds))
-            .applications(List.copyOf(applicationIds))
-            .build();
+                .statuses(List.of(
+                        SubscriptionStatus.ACCEPTED.name(),
+                        SubscriptionStatus.PENDING.name(),
+                        SubscriptionStatus.PAUSED.name()))
+                .apis(List.copyOf(apiIds))
+                .applications(List.copyOf(applicationIds))
+                .build();
         try {
-            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+            return subscriptionRepository.search(criteria).stream()
+                    .map(subscriptionAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
         }
@@ -154,55 +169,60 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public List<SubscriptionEntity> findActiveByApplicationIdAndPlanSecurityTypes(
-        String applicationId,
-        Collection<String> planSecurityTypes
-    ) {
+            String applicationId, Collection<String> planSecurityTypes) {
         var criteria = SubscriptionCriteria.builder()
-            .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
-            .applications(List.of(applicationId))
-            .planSecurityTypes(planSecurityTypes)
-            .build();
+                .statuses(List.of(
+                        SubscriptionStatus.ACCEPTED.name(),
+                        SubscriptionStatus.PENDING.name(),
+                        SubscriptionStatus.PAUSED.name()))
+                .applications(List.of(applicationId))
+                .planSecurityTypes(planSecurityTypes)
+                .build();
 
         try {
-            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+            return subscriptionRepository.search(criteria).stream()
+                    .map(subscriptionAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to find subscriptions by plan security types", e);
+            throw new TechnicalDomainException(
+                    "An error occurs while trying to find subscriptions by plan security types", e);
         }
     }
 
     @Override
     public List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
-        String applicationId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) {
+            String applicationId, String referenceId, SubscriptionReferenceType referenceType) {
         try {
             io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
-                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+                    io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
             var criteria = SubscriptionCriteria.builder()
-                .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
-                .referenceIds(List.of(referenceId))
-                .referenceType(repoReferenceType)
-                .applications(List.of(applicationId))
-                .build();
+                    .statuses(List.of(
+                            SubscriptionStatus.ACCEPTED.name(),
+                            SubscriptionStatus.PENDING.name(),
+                            SubscriptionStatus.PAUSED.name()))
+                    .referenceIds(List.of(referenceId))
+                    .referenceType(repoReferenceType)
+                    .applications(List.of(applicationId))
+                    .build();
 
-            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+            return subscriptionRepository.search(criteria).stream()
+                    .map(subscriptionAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
         }
     }
 
     @Override
-    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
+    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(
+            String referenceId, SubscriptionReferenceType referenceType) {
         try {
             // Convert core enum to repository enum
             io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
-                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
-            return subscriptionRepository
-                .findByReferenceIdAndReferenceType(referenceId, repoReferenceType)
-                .stream()
-                .map(subscriptionAdapter::toEntity)
-                .toList();
+                    io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+            return subscriptionRepository.findByReferenceIdAndReferenceType(referenceId, repoReferenceType).stream()
+                    .map(subscriptionAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find subscriptions by reference", e);
         }
@@ -210,18 +230,16 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) {
+            String subscriptionId, String referenceId, SubscriptionReferenceType referenceType) {
         try {
             io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
-                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+                    io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
             return subscriptionRepository
-                .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, repoReferenceType)
-                .map(subscriptionAdapter::toEntity);
+                    .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, repoReferenceType)
+                    .map(subscriptionAdapter::toEntity);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to find subscription by id and reference", e);
+            throw new TechnicalDomainException(
+                    "An error occurs while trying to find subscription by id and reference", e);
         }
     }
 }

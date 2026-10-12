@@ -33,9 +33,8 @@ public interface BeanFactory {
     FormatterFactoryConfiguration createFormatterFactoryConfiguration();
 
     IndexPreparer createIndexPreparer(
-        final ReporterConfiguration configuration,
-        final PipelineConfiguration pipelineConfiguration,
-        final FreeMarkerComponent freeMarkerComponent,
-        final Client client
-    );
+            final ReporterConfiguration configuration,
+            final PipelineConfiguration pipelineConfiguration,
+            final FreeMarkerComponent freeMarkerComponent,
+            final Client client);
 }

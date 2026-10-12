@@ -92,54 +92,45 @@ class UpdateFederatedApiDomainServiceTest {
     @BeforeEach
     void setUp() {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("member-id")
-                    .memberId("my-member-id")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .roleId("api-po-id-organization-id")
-                    .build()
-            )
-        );
-        groupQueryService.initWith(
-            List.of(
-                Group.builder()
-                    .id("group-1")
-                    .environmentId("environment-id")
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .build()
-            )
-        );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id(MY_MEMBER_ID).email(MEMBER_EMAIL).build()));
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("member-id")
+                .memberId("my-member-id")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API_ID)
+                .roleId("api-po-id-organization-id")
+                .build()));
+        groupQueryService.initWith(List.of(Group.builder()
+                .id("group-1")
+                .environmentId("environment-id")
+                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                .build()));
+        userCrudService.initWith(List.of(
+                BaseUserEntity.builder().id(MY_MEMBER_ID).email(MEMBER_EMAIL).build()));
 
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
 
         usecase = new UpdateFederatedApiDomainService(
-            apiCrudService,
-            auditDomainService,
-            new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
-            categoryDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(
-                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                    new FreemarkerTemplateProcessor()
-                ),
-                apiPrimaryOwnerService,
-                new ApiCategoryQueryServiceInMemory(),
-                indexer
-            )
-        );
+                apiCrudService,
+                auditDomainService,
+                new ValidateFederatedApiDomainService(
+                        new GroupValidationService(groupQueryService), categoryDomainService),
+                categoryDomainService,
+                new ApiIndexerDomainService(
+                        new ApiMetadataDecoderDomainService(
+                                new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                                new FreemarkerTemplateProcessor()),
+                        apiPrimaryOwnerService,
+                        new ApiCategoryQueryServiceInMemory(),
+                        indexer));
     }
 
     @BeforeAll
@@ -156,28 +147,28 @@ class UpdateFederatedApiDomainServiceTest {
 
     @Test
     public void update_federation_api_with_basic_configuration_info() {
-        //given
+        // given
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         String categoryKey = "categoryKey-1";
-        var apiToUpdate = ApiFixtures.aFederatedApi()
-            .toBuilder()
-            .name("updated-name")
-            .description("updated-description")
-            .version("2.0.0")
-            .labels(List.of("label-1"))
-            .categories(Set.of(categoryKey))
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
+        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder()
+                .name("updated-name")
+                .description("updated-description")
+                .version("2.0.0")
+                .labels(List.of("label-1"))
+                .categories(Set.of(categoryKey))
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
 
         String categoryId = "categoryId-1";
         when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
         when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of(categoryKey));
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        //when
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
-        //then
+        // when
+        var updatedApi = usecase.update(
+                apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
+        // then
         assertThat(apiCrudService.storage()).map(Api::getApiDefinitionValue).doesNotContainNull();
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
@@ -192,23 +183,23 @@ class UpdateFederatedApiDomainServiceTest {
 
     @Test
     public void update_federation_api_with_basic_configuration_info_without_category() {
-        //given
+        // given
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aFederatedApi()
-            .toBuilder()
-            .name("updated-name")
-            .description("updated-description")
-            .version("2.0.0")
-            .labels(List.of("label-1"))
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
+        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder()
+                .name("updated-name")
+                .description("updated-description")
+                .version("2.0.0")
+                .labels(List.of("label-1"))
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
 
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        //when
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
-        //then
+        // when
+        var updatedApi = usecase.update(
+                apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
+        // then
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
@@ -221,40 +212,48 @@ class UpdateFederatedApiDomainServiceTest {
     @Test
     public void update_throws_an_exception_when_update_federation_api_not_found() {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
+        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(ApiNotFoundException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
-            .withMessage("Api not found.");
+                .isThrownBy(() -> usecase.update(
+                        apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
+                .withMessage("Api not found.");
     }
 
     @Test
     public void update_throws_an_exception_when_validation_not_passed() {
-        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.ARCHIVED).build()));
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.ARCHIVED)
+                .build()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
+        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(LifecycleStateChangeNotAllowedException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
-            .withMessage("The API lifecycle state cannot be changed to PUBLISHED.");
+                .isThrownBy(() -> usecase.update(
+                        apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
+                .withMessage("The API lifecycle state cannot be changed to PUBLISHED.");
     }
 
     @Test
     public void update_throws_an_exception_when_group_not_exist() {
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().build()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aFederatedApi()
-            .toBuilder()
-            .groups(Set.of("not-existing-group"))
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
+        var apiToUpdate = ApiFixtures.aFederatedApi().toBuilder()
+                .groups(Set.of("not-existing-group"))
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(InvalidDataException.class)
-            .isThrownBy(() -> usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
-            .withMessage("These groupIds [[not-existing-group]] do not exist");
+                .isThrownBy(() -> usecase.update(
+                        apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo)))
+                .withMessage("These groupIds [[not-existing-group]] do not exist");
     }
 
     @Test
@@ -267,21 +266,20 @@ class UpdateFederatedApiDomainServiceTest {
         usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
 
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .contains(
-                // API Audit
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId("my-api")
-                    .user(USER_ID)
-                    .properties(Collections.emptyMap())
-                    .event(ApiAuditEvent.API_UPDATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .contains(
+                        // API Audit
+                        AuditEntity.builder()
+                                .id("generated-id")
+                                .organizationId(ORGANIZATION_ID)
+                                .environmentId(ENVIRONMENT_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .referenceId("my-api")
+                                .user(USER_ID)
+                                .properties(Collections.emptyMap())
+                                .event(ApiAuditEvent.API_UPDATED.name())
+                                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                                .build());
     }
 
     @Test
@@ -291,18 +289,16 @@ class UpdateFederatedApiDomainServiceTest {
         var apiToUpdate = ApiFixtures.aFederatedApi();
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
+        var updatedApi = usecase.update(
+                apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
 
         assertThat(indexer.storage())
-            .isNotEmpty()
-            .containsExactly(
-                new IndexableApi(
-                    updatedApi,
-                    new PrimaryOwnerEntity(MY_MEMBER_ID, MEMBER_EMAIL, MEMBER_EMAIL, PrimaryOwnerEntity.Type.USER),
-                    Map.of(),
-                    Collections.emptySet()
-                )
-            );
+                .isNotEmpty()
+                .containsExactly(new IndexableApi(
+                        updatedApi,
+                        new PrimaryOwnerEntity(MY_MEMBER_ID, MEMBER_EMAIL, MEMBER_EMAIL, PrimaryOwnerEntity.Type.USER),
+                        Map.of(),
+                        Collections.emptySet()));
     }
 
     PrimaryOwnerEntity buildPrimaryOwnerEntity() {

@@ -46,7 +46,13 @@ public final class FilterSpecFixtures {
     }
 
     public static FilterSpec number(FilterSpec.Name name, String label, NumberRange range) {
-        return of(name, label, FilterType.NUMBER, null, range, List.of(FilterOperator.EQ, FilterOperator.LTE, FilterOperator.GTE));
+        return of(
+                name,
+                label,
+                FilterType.NUMBER,
+                null,
+                range,
+                List.of(FilterOperator.EQ, FilterOperator.LTE, FilterOperator.GTE));
     }
 
     public static FilterSpec string(FilterSpec.Name name, String label) {
@@ -56,25 +62,23 @@ public final class FilterSpecFixtures {
     /** Same spec, narrowed to the given signals — for tests asserting on catalog narrowing. */
     public static FilterSpec withSignals(FilterSpec spec, Signal... signals) {
         return new FilterSpec(
-            spec.name(),
-            spec.label(),
-            spec.type(),
-            spec.enumValues(),
-            spec.range(),
-            spec.operators(),
-            spec.apis(),
-            Set.of(signals)
-        );
+                spec.name(),
+                spec.label(),
+                spec.type(),
+                spec.enumValues(),
+                spec.range(),
+                spec.operators(),
+                spec.apis(),
+                Set.of(signals));
     }
 
     private static FilterSpec of(
-        FilterSpec.Name name,
-        String label,
-        FilterType type,
-        List<String> enumValues,
-        NumberRange range,
-        List<FilterOperator> operators
-    ) {
+            FilterSpec.Name name,
+            String label,
+            FilterType type,
+            List<String> enumValues,
+            NumberRange range,
+            List<FilterOperator> operators) {
         // apis null and signals null mirror an unannotated catalog entry: apis are derived from the metrics
         // referencing the filter, signals fall back to Signal.DEFAULT.
         return new FilterSpec(name, label, type, enumValues, range, operators, (List<ApiSpec.Name>) null, null);

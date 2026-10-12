@@ -25,7 +25,8 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
  * Ensures the payload has a non-null, non-blank title (create and update).
  * On create, API items are excluded because the domain sets title from the API name.
  */
-public class TitleRequiredRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
+public class TitleRequiredRule
+        implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
 
     @Override
     public boolean appliesTo(CreatePortalNavigationItem item) {
@@ -43,7 +44,8 @@ public class TitleRequiredRule implements CreatePortalNavigationItemValidationRu
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         requireNonBlankTitle(toUpdate.getTitle());
     }
 

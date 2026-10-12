@@ -55,9 +55,10 @@ public class InstanceResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a gateway instance")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)})
     public InstanceEntity getInstance() {
-        InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
+        InstanceEntity instanceEntity =
+                instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
         if (isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment())) {
             return instanceEntity;
         }

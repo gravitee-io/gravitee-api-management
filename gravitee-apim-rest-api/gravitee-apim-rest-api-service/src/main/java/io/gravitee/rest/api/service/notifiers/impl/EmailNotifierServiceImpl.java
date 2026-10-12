@@ -42,11 +42,10 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
     }
 
     public void trigger(
-        ExecutionContext executionContext,
-        final Hook hook,
-        final Map<String, Object> templateData,
-        Collection<String> recipients
-    ) {
+            ExecutionContext executionContext,
+            final Hook hook,
+            final Map<String, Object> templateData,
+            Collection<String> recipients) {
         var emailTemplate = getEmailTemplateOptional(hook);
         if (emailTemplate.isEmpty()) {
             log.error("Email template not found for hook {}", hook);
@@ -58,7 +57,8 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             return;
         }
 
-        EmailNotificationBuilder template = new EmailNotificationBuilder().template(emailTemplate.get()).params(templateData);
+        EmailNotificationBuilder template =
+                new EmailNotificationBuilder().template(emailTemplate.get()).params(templateData);
         if (recipients.size() == 1) {
             template.to(recipients.toArray(new String[0]));
         } else {

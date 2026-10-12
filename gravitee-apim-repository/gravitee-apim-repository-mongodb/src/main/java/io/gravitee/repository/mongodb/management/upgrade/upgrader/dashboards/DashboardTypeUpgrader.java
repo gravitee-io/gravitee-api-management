@@ -42,14 +42,13 @@ public class DashboardTypeUpgrader extends MongoUpgrader {
     public boolean upgrade() {
         var dashboardsTypeNotExistsQuery = new Document("type", new Document("$exists", false));
 
-        // Because of DocumentDB which does not support latest aggregation APIs of MongoDB, we need to use this kind of update method.
-        this.getCollection("dashboards")
-            .find(dashboardsTypeNotExistsQuery)
-            .forEach(dashboard -> {
-                dashboard.append("type", dashboard.getString("referenceType"));
-                dashboard.put("referenceType", "ENVIRONMENT");
-                this.getCollection("dashboards").replaceOne(Filters.eq("_id", dashboard.getString("_id")), dashboard);
-            });
+        // Because of DocumentDB which does not support latest aggregation APIs of MongoDB, we need to use this kind of
+        // update method.
+        this.getCollection("dashboards").find(dashboardsTypeNotExistsQuery).forEach(dashboard -> {
+            dashboard.append("type", dashboard.getString("referenceType"));
+            dashboard.put("referenceType", "ENVIRONMENT");
+            this.getCollection("dashboards").replaceOne(Filters.eq("_id", dashboard.getString("_id")), dashboard);
+        });
         return true;
     }
 

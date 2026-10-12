@@ -36,44 +36,38 @@ class DefaultTcpAcceptorTest {
 
     public static Stream<Arguments> combinations() {
         return Stream.of(
-            arguments("acme.com", List.of("1"), "acme.com", "1", true),
-            arguments("acme.com", List.of("1", "2"), "acme.com", "1", true),
-            arguments("acme.com", List.of(), "acme.com", "1", true),
-            arguments("acme.com", null, "acme.com", "1", true),
-            arguments("acme.com", List.of("1"), "acme.com", "2", false),
-            arguments("acme.com", List.of("1"), "acme.net", "1", false),
-            arguments("acme.com", List.of(), "acme.net", "1", false),
-            arguments("acme.com", null, "acme.net", "1", false)
-        );
+                arguments("acme.com", List.of("1"), "acme.com", "1", true),
+                arguments("acme.com", List.of("1", "2"), "acme.com", "1", true),
+                arguments("acme.com", List.of(), "acme.com", "1", true),
+                arguments("acme.com", null, "acme.com", "1", true),
+                arguments("acme.com", List.of("1"), "acme.com", "2", false),
+                arguments("acme.com", List.of("1"), "acme.net", "1", false),
+                arguments("acme.com", List.of(), "acme.net", "1", false),
+                arguments("acme.com", null, "acme.net", "1", false));
     }
 
     @ParameterizedTest
     @MethodSource("combinations")
     void should_match_without_serverIds(
-        String acceptedHost,
-        List<String> acceptedServerIds,
-        String apiHost,
-        String apiServerId,
-        boolean match
-    ) {
-        assertThat(new DefaultTcpAcceptor(null, acceptedHost, acceptedServerIds).accept(apiHost, apiServerId)).isEqualTo(match);
+            String acceptedHost, List<String> acceptedServerIds, String apiHost, String apiServerId, boolean match) {
+        assertThat(new DefaultTcpAcceptor(null, acceptedHost, acceptedServerIds).accept(apiHost, apiServerId))
+                .isEqualTo(match);
     }
 
     // repeat it to make sure the shuffle don't actually shuffle
     @RepeatedTest(5)
     void should_sort_acceptors_on_host() {
         var inOrder = List.of(
-            new DefaultTcpAcceptor(null, "0.org", null),
-            new DefaultTcpAcceptor(null, "1.org", null),
-            new DefaultTcpAcceptor(null, "2.org", null),
-            // mind that comparing host is done in lowercase
-            new DefaultTcpAcceptor(null, "A.com", null),
-            new DefaultTcpAcceptor(null, "a.net", null),
-            new DefaultTcpAcceptor(null, "B.com", null),
-            new DefaultTcpAcceptor(null, "b.net", null),
-            new DefaultTcpAcceptor(null, "C.com", null),
-            new DefaultTcpAcceptor(null, "c.net", null)
-        );
+                new DefaultTcpAcceptor(null, "0.org", null),
+                new DefaultTcpAcceptor(null, "1.org", null),
+                new DefaultTcpAcceptor(null, "2.org", null),
+                // mind that comparing host is done in lowercase
+                new DefaultTcpAcceptor(null, "A.com", null),
+                new DefaultTcpAcceptor(null, "a.net", null),
+                new DefaultTcpAcceptor(null, "B.com", null),
+                new DefaultTcpAcceptor(null, "b.net", null),
+                new DefaultTcpAcceptor(null, "C.com", null),
+                new DefaultTcpAcceptor(null, "c.net", null));
         var test = new ArrayList<>(inOrder);
         assertThat(test).isEqualTo(inOrder);
         Collections.shuffle(test);

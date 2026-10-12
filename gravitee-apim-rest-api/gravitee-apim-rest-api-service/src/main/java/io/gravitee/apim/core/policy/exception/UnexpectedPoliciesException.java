@@ -21,6 +21,8 @@ import java.util.List;
 public class UnexpectedPoliciesException extends ValidationDomainException {
 
     public UnexpectedPoliciesException(List<String> policyNames, String apiType, String phase) {
-        super(String.format("Unexpected policies [%s] for API type %s and phase %s", String.join(", ", policyNames), apiType, phase));
+        super(String.format(
+                "Unexpected policies [%s] for API type %s and phase %s",
+                String.join(", ", policyNames), apiType, phase));
     }
 }

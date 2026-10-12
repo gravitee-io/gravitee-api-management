@@ -95,17 +95,16 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
         portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicItem, unpublishedItem, privateItem));
 
         // When
-        Response response = target()
-            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
-            .queryParam("loadChildren", true)
-            .request()
-            .get();
+        Response response = target().queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(
-            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
-        );
+                new jakarta.ws.rs.core.GenericType<
+                        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {});
         assertThat(result).hasSize(1);
     }
 
@@ -113,31 +112,28 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     void should_not_return_private_api_product_in_catalog_search() {
         var apiProductId = "00000000-0000-0000-0000-000000000101";
         var item = PortalNavigationApiProduct.builder()
-            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Private Product")
-            .segment("private-product")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiProductId(apiProductId)
-            .published(true)
-            .visibility(PortalVisibility.PRIVATE)
-            .build();
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Private Product")
+                .segment("private-product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiProductId(apiProductId)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(item));
-        apiProductQueryService.initWith(
-            List.of(
-                ApiProduct.builder()
-                    .id(apiProductId)
-                    .environmentId(ENV_ID)
-                    .name("Private Product")
-                    .version("1.0.0")
-                    .apiIds(Set.of())
-                    .build()
-            )
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(apiProductId)
+                .environmentId(ENV_ID)
+                .name("Private Product")
+                .version("1.0.0")
+                .apiIds(Set.of())
+                .build()));
 
-        Response response = target("/_search").queryParam("type", "catalog").request().get();
+        Response response =
+                target("/_search").queryParam("type", "catalog").request().get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
@@ -150,32 +146,32 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     void should_not_return_private_api_product_in_category_filtered_catalog_search() {
         var apiProductId = "00000000-0000-0000-0000-000000000101";
         var item = PortalNavigationApiProduct.builder()
-            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Private Product")
-            .segment("private-product")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiProductId(apiProductId)
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID)))
-            .published(true)
-            .visibility(PortalVisibility.PRIVATE)
-            .build();
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Private Product")
+                .segment("private-product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiProductId(apiProductId)
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID)))
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(item));
-        apiProductQueryService.initWith(
-            List.of(
-                ApiProduct.builder()
-                    .id(apiProductId)
-                    .environmentId(ENV_ID)
-                    .name("Private Product")
-                    .version("1.0.0")
-                    .apiIds(Set.of())
-                    .build()
-            )
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(apiProductId)
+                .environmentId(ENV_ID)
+                .name("Private Product")
+                .version("1.0.0")
+                .apiIds(Set.of())
+                .build()));
 
-        Response response = target("/_search").queryParam("type", "catalog").queryParam("categoryId", CATEGORY_ID).request().get();
+        Response response = target("/_search")
+                .queryParam("type", "catalog")
+                .queryParam("categoryId", CATEGORY_ID)
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
@@ -188,35 +184,41 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     void should_return_public_api_product_in_category_filtered_catalog_search() {
         var apiProductId = "00000000-0000-0000-0000-000000000201";
         var item = PortalNavigationApiProduct.builder()
-            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202"))
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Public Product")
-            .segment("public-product")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiProductId(apiProductId)
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID)))
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202"))
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Public Product")
+                .segment("public-product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiProductId(apiProductId)
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID)))
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(item));
-        apiProductQueryService.initWith(
-            List.of(
-                ApiProduct.builder().id(apiProductId).environmentId(ENV_ID).name("Public Product").version("1.0.0").apiIds(Set.of()).build()
-            )
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(apiProductId)
+                .environmentId(ENV_ID)
+                .name("Public Product")
+                .version("1.0.0")
+                .apiIds(Set.of())
+                .build()));
 
-        Response response = target("/_search").queryParam("type", "catalog").queryParam("categoryId", CATEGORY_ID).request().get();
+        Response response = target("/_search")
+                .queryParam("type", "catalog")
+                .queryParam("categoryId", CATEGORY_ID)
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
         @SuppressWarnings("unchecked")
         var data = (List<Map<String, Object>>) result.get("data");
         assertThat(data)
-            .singleElement()
-            .satisfies(product ->
-                assertThat(product).containsEntry("id", item.getId().json()).containsEntry("categoryIds", List.of(CATEGORY_ID))
-            );
+                .singleElement()
+                .satisfies(product -> assertThat(product)
+                        .containsEntry("id", item.getId().json())
+                        .containsEntry("categoryIds", List.of(CATEGORY_ID)));
     }
 }

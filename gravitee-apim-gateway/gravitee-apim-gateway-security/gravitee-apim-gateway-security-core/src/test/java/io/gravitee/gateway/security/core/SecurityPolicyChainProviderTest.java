@@ -57,9 +57,8 @@ public class SecurityPolicyChainProviderTest {
 
     @Test
     public void shouldReturnRequestPolicyChain() {
-        Mockito.when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext)).thenReturn(
-            Collections.singletonList(Mockito.mock(Policy.class))
-        );
+        Mockito.when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext))
+                .thenReturn(Collections.singletonList(Mockito.mock(Policy.class)));
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
         Assertions.assertEquals(OrderedPolicyChain.class, processor.getClass());
@@ -67,12 +66,15 @@ public class SecurityPolicyChainProviderTest {
 
     @Test
     public void shouldReturnUnauthorizedPolicyChain_onRequest() {
-        Mockito.when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext)).thenReturn(null);
+        Mockito.when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext))
+                .thenReturn(null);
 
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
         Assertions.assertEquals(DirectPolicyChain.class, processor.getClass());
         Assertions.assertNotNull(((DirectPolicyChain) processor).policyResult());
-        Assertions.assertEquals(SecurityPolicyChainProvider.PLAN_UNRESOLVABLE, ((DirectPolicyChain) processor).policyResult().key());
+        Assertions.assertEquals(
+                SecurityPolicyChainProvider.PLAN_UNRESOLVABLE,
+                ((DirectPolicyChain) processor).policyResult().key());
     }
 }

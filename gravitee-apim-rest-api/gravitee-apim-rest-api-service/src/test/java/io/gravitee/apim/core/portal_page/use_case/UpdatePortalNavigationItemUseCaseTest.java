@@ -46,7 +46,6 @@ import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
@@ -100,31 +99,25 @@ class UpdatePortalNavigationItemUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
 
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        PortalPageContentQueryServiceInMemory pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(
-            pageContentCrudService.storage()
-        );
+        PortalPageContentQueryServiceInMemory pageContentQueryService =
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
 
         // A single instance shared by the three collaborators, so that a test can observe what the
         // validation was given and in which order masking and merging happened.
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
 
         validatorService = new PortalNavigationItemValidatorService(
-            queryService,
-            pageContentQueryService,
-            apiProductQueryService,
-            sourceDomainService,
-            apiCrudService
-        );
+                queryService, pageContentQueryService, apiProductQueryService, sourceDomainService, apiCrudService);
         domainService = new PortalNavigationItemDomainService(
-            crudService,
-            queryService,
-            pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            apiCrudService,
-            sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
-        );
-        useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService, sourceDomainService);
+                crudService,
+                queryService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService,
+                sourceDomainService,
+                new ApiOwnedNavigationDomainService(queryService, crudService));
+        useCase = new UpdatePortalNavigationItemUseCase(
+                queryService, validatorService, domainService, sourceDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -139,33 +132,33 @@ class UpdatePortalNavigationItemUseCaseTest {
         private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
 
         private PortalNavigationPage anOwnedPage(String title, int order) {
-            var page = PortalNavigationItemFixtures.aPage(title, null).toBuilder().reference(API_REFERENCE).order(order).build();
+            var page = PortalNavigationItemFixtures.aPage(title, null).toBuilder()
+                    .reference(API_REFERENCE)
+                    .order(order)
+                    .build();
             page.markAsRoot();
             crudService.create(page);
             return page;
         }
 
         private PortalNavigationItem update(PortalNavigationItem existing, UpdatePortalNavigationItem toUpdate) {
-            return useCase
-                .execute(
-                    UpdatePortalNavigationItemUseCase.Input.builder()
-                        .organizationId(ORG_ID)
-                        .environmentId(ENV_ID)
-                        .navigationItemId(existing.getId().json())
-                        .updatePortalNavigationItem(toUpdate)
-                        .build()
-                )
-                .updatedItem();
+            return useCase.execute(UpdatePortalNavigationItemUseCase.Input.builder()
+                            .organizationId(ORG_ID)
+                            .environmentId(ENV_ID)
+                            .navigationItemId(existing.getId().json())
+                            .updatePortalNavigationItem(toUpdate)
+                            .build())
+                    .updatedItem();
         }
 
         private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder anUpdateOf(PortalNavigationItem existing) {
             return UpdatePortalNavigationItem.builder()
-                .type(existing.getType())
-                .title(existing.getTitle())
-                .order(existing.getOrder())
-                .parentId(existing.getParentId())
-                .published(existing.getPublished())
-                .visibility(existing.getVisibility());
+                    .type(existing.getType())
+                    .title(existing.getTitle())
+                    .order(existing.getOrder())
+                    .parentId(existing.getParentId())
+                    .published(existing.getPublished())
+                    .visibility(existing.getVisibility());
         }
 
         @Test
@@ -187,8 +180,14 @@ class UpdatePortalNavigationItemUseCaseTest {
 
             update(page, anUpdateOf(page).published(false).build());
 
-            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId()).getPublished()).isFalse();
-            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, sibling.getId()).getPublished()).isTrue();
+            assertThat(queryService
+                            .findByIdAndEnvironmentId(ENV_ID, page.getId())
+                            .getPublished())
+                    .isFalse();
+            assertThat(queryService
+                            .findByIdAndEnvironmentId(ENV_ID, sibling.getId())
+                            .getPublished())
+                    .isTrue();
         }
 
         @Test
@@ -199,51 +198,51 @@ class UpdatePortalNavigationItemUseCaseTest {
 
             update(second, anUpdateOf(second).order(0).build());
 
-            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, second.getId()).getOrder()).isZero();
-            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, first.getId()).getOrder()).isEqualTo(1);
+            assertThat(queryService
+                            .findByIdAndEnvironmentId(ENV_ID, second.getId())
+                            .getOrder())
+                    .isZero();
+            assertThat(queryService
+                            .findByIdAndEnvironmentId(ENV_ID, first.getId())
+                            .getOrder())
+                    .isEqualTo(1);
             assertThat(topLevelPortalOrders()).isEqualTo(portalRootOrders);
         }
 
         private Map<PortalNavigationItemId, Integer> topLevelPortalOrders() {
-            return queryService
-                .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
-                .stream()
-                .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
-                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
+            return queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR).stream()
+                    .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+                    .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
         }
     }
 
     @Test
     void should_move_api_below_product_when_api_belongs_to_product() {
         var productReferenceId = "00000000-0000-0000-0000-000000000019";
-        apiProductQueryService.initWith(
-            List.of(ApiProduct.builder().id(productReferenceId).environmentId(ENV_ID).apiIds(Set.of("api-1")).build())
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(productReferenceId)
+                .environmentId(ENV_ID)
+                .apiIds(Set.of("api-1"))
+                .build()));
         var product = PortalNavigationItemFixtures.anApiProduct(
-            API_PRODUCT_ID,
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            productReferenceId
-        );
+                API_PRODUCT_ID, "Product", PortalNavigationItemId.of(APIS_ID), productReferenceId);
         queryService.storage().add(product);
         var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API)
-            .title(existing.getTitle())
-            .order(0)
-            .parentId(product.getId())
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.API)
+                .title(existing.getTitle())
+                .order(0)
+                .parentId(product.getId())
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
 
-        var output = useCase.execute(
-            UpdatePortalNavigationItemUseCase.Input.builder()
+        var output = useCase.execute(UpdatePortalNavigationItemUseCase.Input.builder()
                 .organizationId(ORG_ID)
                 .environmentId(ENV_ID)
                 .navigationItemId(existing.getId().toString())
                 .updatePortalNavigationItem(toUpdate)
-                .build()
-        );
+                .build());
 
         assertThat(output.updatedItem().getParentId()).isEqualTo(product.getId());
     }
@@ -251,46 +250,41 @@ class UpdatePortalNavigationItemUseCaseTest {
     @Test
     void should_reject_moving_api_below_product_when_api_does_not_belong_to_product() {
         var productReferenceId = "00000000-0000-0000-0000-000000000019";
-        apiProductQueryService.initWith(
-            List.of(ApiProduct.builder().id(productReferenceId).environmentId(ENV_ID).apiIds(Set.of("other-api")).build())
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(productReferenceId)
+                .environmentId(ENV_ID)
+                .apiIds(Set.of("other-api"))
+                .build()));
         var product = PortalNavigationItemFixtures.anApiProduct(
-            API_PRODUCT_ID,
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            productReferenceId
-        );
+                API_PRODUCT_ID, "Product", PortalNavigationItemId.of(APIS_ID), productReferenceId);
         queryService.storage().add(product);
         var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API)
-            .title(existing.getTitle())
-            .order(0)
-            .parentId(product.getId())
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.API)
+                .title(existing.getTitle())
+                .order(0)
+                .parentId(product.getId())
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
 
-        assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(
-                UpdatePortalNavigationItemUseCase.Input.builder()
-                    .organizationId(ORG_ID)
-                    .environmentId(ENV_ID)
-                    .navigationItemId(existing.getId().toString())
-                    .updatePortalNavigationItem(toUpdate)
-                    .build()
-            )
-        );
+        assertThrows(
+                InvalidPortalNavigationItemDataException.class,
+                () -> useCase.execute(UpdatePortalNavigationItemUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .navigationItemId(existing.getId().toString())
+                        .updatePortalNavigationItem(toUpdate)
+                        .build()));
     }
 
     @Test
     void should_move_api_product_between_regular_folders() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            "00000000-0000-0000-0000-000000000203",
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            "00000000-0000-0000-0000-000000000204"
-        );
+                "00000000-0000-0000-0000-000000000203",
+                "Product",
+                PortalNavigationItemId.of(APIS_ID),
+                "00000000-0000-0000-0000-000000000204");
         queryService.storage().add(apiProduct);
         var targetParentId = PortalNavigationItemId.of(CATEGORY1_ID);
 
@@ -302,16 +296,15 @@ class UpdatePortalNavigationItemUseCaseTest {
     @Test
     void should_reject_moving_api_product_to_root() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            "00000000-0000-0000-0000-000000000205",
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            "00000000-0000-0000-0000-000000000206"
-        );
+                "00000000-0000-0000-0000-000000000205",
+                "Product",
+                PortalNavigationItemId.of(APIS_ID),
+                "00000000-0000-0000-0000-000000000206");
         queryService.storage().add(apiProduct);
 
-        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(updateApiProductInput(apiProduct, null))
-        );
+        var exception = assertThrows(
+                InvalidPortalNavigationItemDataException.class,
+                () -> useCase.execute(updateApiProductInput(apiProduct, null)));
 
         assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
     }
@@ -319,27 +312,22 @@ class UpdatePortalNavigationItemUseCaseTest {
     @Test
     void should_reject_moving_api_product_into_another_api_product_subtree() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            "00000000-0000-0000-0000-000000000207",
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            "00000000-0000-0000-0000-000000000208"
-        );
+                "00000000-0000-0000-0000-000000000207",
+                "Product",
+                PortalNavigationItemId.of(APIS_ID),
+                "00000000-0000-0000-0000-000000000208");
         var parentApiProduct = PortalNavigationItemFixtures.anApiProduct(
-            "00000000-0000-0000-0000-000000000209",
-            "Parent product",
-            PortalNavigationItemId.of(APIS_ID),
-            "00000000-0000-0000-0000-000000000210"
-        );
+                "00000000-0000-0000-0000-000000000209",
+                "Parent product",
+                PortalNavigationItemId.of(APIS_ID),
+                "00000000-0000-0000-0000-000000000210");
         var nestedFolder = PortalNavigationItemFixtures.aFolder(
-            "00000000-0000-0000-0000-000000000211",
-            "Nested folder",
-            parentApiProduct.getId()
-        );
+                "00000000-0000-0000-0000-000000000211", "Nested folder", parentApiProduct.getId());
         queryService.storage().addAll(List.of(apiProduct, parentApiProduct, nestedFolder));
 
-        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(updateApiProductInput(apiProduct, nestedFolder.getId()))
-        );
+        var exception = assertThrows(
+                InvalidPortalNavigationItemDataException.class,
+                () -> useCase.execute(updateApiProductInput(apiProduct, nestedFolder.getId())));
 
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API Product items.");
     }
@@ -347,31 +335,32 @@ class UpdatePortalNavigationItemUseCaseTest {
     @Test
     void should_reject_moving_api_product_into_api_subtree() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            "00000000-0000-0000-0000-000000000212",
-            "Product",
-            PortalNavigationItemId.of(APIS_ID),
-            "00000000-0000-0000-0000-000000000213"
-        );
+                "00000000-0000-0000-0000-000000000212",
+                "Product",
+                PortalNavigationItemId.of(APIS_ID),
+                "00000000-0000-0000-0000-000000000213");
         queryService.storage().add(apiProduct);
 
-        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-            useCase.execute(updateApiProductInput(apiProduct, PortalNavigationItemId.of(API1_FOLDER_ID)))
-        );
+        var exception = assertThrows(
+                InvalidPortalNavigationItemDataException.class,
+                () -> useCase.execute(updateApiProductInput(apiProduct, PortalNavigationItemId.of(API1_FOLDER_ID))));
 
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
     }
 
     @ParameterizedTest
-    @CsvSource({ "API, 0", "API, 2", "API_PRODUCT, 0", "API_PRODUCT, 2" })
-    void should_reject_moving_api_or_api_product_under_persisted_api_owned_folder(PortalNavigationItemType type, int nestedFolderCount) {
-        var parent = PortalNavigationItemFixtures.aFolder("API documentation").toBuilder().reference(new ApiReference("api-1")).build();
+    @CsvSource({"API, 0", "API, 2", "API_PRODUCT, 0", "API_PRODUCT, 2"})
+    void should_reject_moving_api_or_api_product_under_persisted_api_owned_folder(
+            PortalNavigationItemType type, int nestedFolderCount) {
+        var parent = PortalNavigationItemFixtures.aFolder("API documentation").toBuilder()
+                .reference(new ApiReference("api-1"))
+                .build();
         parent.markAsRoot();
         crudService.create(parent);
         for (int depth = 0; depth < nestedFolderCount; depth++) {
-            var nestedFolder = PortalNavigationItemFixtures.aFolder("Section " + depth)
-                .toBuilder()
-                .reference(parent.getReference())
-                .build();
+            var nestedFolder = PortalNavigationItemFixtures.aFolder("Section " + depth).toBuilder()
+                    .reference(parent.getReference())
+                    .build();
             nestedFolder.updateParent(parent);
             crudService.create(nestedFolder);
             parent = nestedFolder;
@@ -381,37 +370,36 @@ class UpdatePortalNavigationItemUseCaseTest {
             existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API2_ID));
         } else {
             existing = PortalNavigationItemFixtures.anApiProduct(
-                API_PRODUCT_ID,
-                "Product",
-                PortalNavigationItemId.of(APIS_ID),
-                "product-id"
-            );
+                    API_PRODUCT_ID, "Product", PortalNavigationItemId.of(APIS_ID), "product-id");
             crudService.create(existing);
         }
         var originalParentId = existing.getParentId();
         var originalRootId = existing.getRootId();
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(type)
-            .title(existing.getTitle())
-            .order(existing.getOrder())
-            .parentId(parent.getId())
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(type)
+                .title(existing.getTitle())
+                .order(existing.getOrder())
+                .parentId(parent.getId())
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().json())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().json())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
-        assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi().getMessage());
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId())).satisfies(item -> {
-            assertThat(item.getParentId()).isEqualTo(originalParentId);
-            assertThat(item.getRootId()).isEqualTo(originalRootId);
-        });
+        assertThat(exception.getMessage())
+                .isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi()
+                        .getMessage());
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId()))
+                .satisfies(item -> {
+                    assertThat(item.getParentId()).isEqualTo(originalParentId);
+                    assertThat(item.getRootId()).isEqualTo(originalRootId);
+                });
     }
 
     @Test
@@ -422,19 +410,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         var originalId = existing.getId();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.PAGE) // must match existing type
-            .title("  New Title  ")
-            .order(1)
-            .published(true)
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.PAGE) // must match existing type
+                .title("  New Title  ")
+                .order(1)
+                .published(true)
+                .visibility(existing.getVisibility())
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(originalId.toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(originalId.toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         // When
         var output = useCase.execute(input);
@@ -456,14 +444,17 @@ class UpdatePortalNavigationItemUseCaseTest {
     void should_throw_when_item_does_not_exist() {
         // Given
         var nonExistingId = PortalNavigationItemId.random();
-        var toUpdate = UpdatePortalNavigationItem.builder().type(PortalNavigationItemType.PAGE).title("Whatever").build();
+        var toUpdate = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.PAGE)
+                .title("Whatever")
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(nonExistingId.toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(nonExistingId.toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         // When / Then
         assertThrows(PortalNavigationItemNotFoundException.class, () -> useCase.execute(input));
@@ -476,14 +467,18 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(existing).isNotNull();
         var originalTitle = existing.getTitle();
 
-        var toUpdate = UpdatePortalNavigationItem.builder().type(PortalNavigationItemType.LINK).title("New Title").order(-1).build();
+        var toUpdate = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.LINK)
+                .title("New Title")
+                .order(-1)
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         // When / Then
         assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
@@ -503,19 +498,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         // Given a non-existing parent ID
         var nonExistingParentId = PortalNavigationItemId.random();
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.PAGE)
-            .title("New Title")
-            .parentId(nonExistingParentId)
-            .build();
+                .type(PortalNavigationItemType.PAGE)
+                .title("New Title")
+                .parentId(nonExistingParentId)
+                .build();
 
         // Make validator throw ParentNotFoundException
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         // When / Then
         assertThrows(ParentNotFoundException.class, () -> useCase.execute(input));
@@ -533,19 +528,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         var originalId = existing.getId();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.PAGE) // must match existing type
-            .title("  New Title  ")
-            .order(1)
-            .published(true)
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.PAGE) // must match existing type
+                .title("  New Title  ")
+                .order(1)
+                .published(true)
+                .visibility(existing.getVisibility())
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(originalId.toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(originalId.toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         // When
         var output = useCase.execute(input);
@@ -567,99 +562,138 @@ class UpdatePortalNavigationItemUseCaseTest {
 
     @Test
     void should_publish_only_selected_folder_when_propagation_is_omitted() {
-        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000010", "Parent")
-            .toBuilder()
-            .published(false)
-            .build();
-        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000011", "Child", parentFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
-        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000012", "Grand Child", childFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
+        var parentFolder =
+                PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000010", "Parent").toBuilder()
+                        .published(false)
+                        .build();
+        var childFolder =
+                PortalNavigationItemFixtures.aFolder(
+                                "20000000-0000-4000-8000-000000000011", "Child", parentFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
+        var grandChildPage =
+                PortalNavigationItemFixtures.aPage(
+                                "20000000-0000-4000-8000-000000000012", "Grand Child", childFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
         crudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
         queryService.initWith(List.copyOf(crudService.storage()));
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(parentFolder.getId().toString())
-            .updatePortalNavigationItem(updateFolderPublished(parentFolder, true))
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(parentFolder.getId().toString())
+                .updatePortalNavigationItem(updateFolderPublished(parentFolder, true))
+                .build();
 
         var output = useCase.execute(input);
 
         assertThat(output.updatedItem().getPublished()).isTrue();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, parentFolder.getId()).getPublished()).isTrue();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, childFolder.getId()).getPublished()).isFalse();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId()).getPublished()).isFalse();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, parentFolder.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, childFolder.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId())
+                        .getPublished())
+                .isFalse();
     }
 
     @Test
     void should_publish_folder_descendants_when_propagation_is_enabled() {
-        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000013", "Parent")
-            .toBuilder()
-            .published(false)
-            .build();
-        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000014", "Child", parentFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
-        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000015", "Grand Child", childFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
+        var parentFolder =
+                PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000013", "Parent").toBuilder()
+                        .published(false)
+                        .build();
+        var childFolder =
+                PortalNavigationItemFixtures.aFolder(
+                                "20000000-0000-4000-8000-000000000014", "Child", parentFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
+        var grandChildPage =
+                PortalNavigationItemFixtures.aPage(
+                                "20000000-0000-4000-8000-000000000015", "Grand Child", childFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
         crudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
         queryService.initWith(List.copyOf(crudService.storage()));
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(parentFolder.getId().toString())
-            .updatePortalNavigationItem(updateFolderPublished(parentFolder, true))
-            .propagatePublishToChildren(true)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(parentFolder.getId().toString())
+                .updatePortalNavigationItem(updateFolderPublished(parentFolder, true))
+                .propagatePublishToChildren(true)
+                .build();
 
         var output = useCase.execute(input);
 
         assertThat(output.updatedItem().getPublished()).isTrue();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, parentFolder.getId()).getPublished()).isTrue();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, childFolder.getId()).getPublished()).isTrue();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId()).getPublished()).isTrue();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, parentFolder.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, childFolder.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId())
+                        .getPublished())
+                .isTrue();
     }
 
     @Test
     void should_unpublish_folder_descendants_when_propagation_is_omitted() {
-        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000016", "Parent")
-            .toBuilder()
-            .published(true)
-            .build();
-        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000017", "Child", parentFolder.getId())
-            .toBuilder()
-            .published(true)
-            .build();
-        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000018", "Grand Child", childFolder.getId())
-            .toBuilder()
-            .published(true)
-            .build();
+        var parentFolder =
+                PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000016", "Parent").toBuilder()
+                        .published(true)
+                        .build();
+        var childFolder =
+                PortalNavigationItemFixtures.aFolder(
+                                "20000000-0000-4000-8000-000000000017", "Child", parentFolder.getId())
+                        .toBuilder()
+                        .published(true)
+                        .build();
+        var grandChildPage =
+                PortalNavigationItemFixtures.aPage(
+                                "20000000-0000-4000-8000-000000000018", "Grand Child", childFolder.getId())
+                        .toBuilder()
+                        .published(true)
+                        .build();
         crudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
         queryService.initWith(List.copyOf(crudService.storage()));
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(parentFolder.getId().toString())
-            .updatePortalNavigationItem(updateFolderPublished(parentFolder, false))
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(parentFolder.getId().toString())
+                .updatePortalNavigationItem(updateFolderPublished(parentFolder, false))
+                .build();
 
         var output = useCase.execute(input);
 
         assertThat(output.updatedItem().getPublished()).isFalse();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, parentFolder.getId()).getPublished()).isFalse();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, childFolder.getId()).getPublished()).isFalse();
-        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId()).getPublished()).isFalse();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, parentFolder.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, childFolder.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(queryService
+                        .findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId())
+                        .getPublished())
+                .isFalse();
     }
 
     @Test
@@ -669,19 +703,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         var originalId = existing.getId();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.PAGE) // must match existing type
-            .title(existing.getTitle())
-            .order(existing.getOrder())
-            .published(existing.getPublished())
-            .visibility(PortalVisibility.PRIVATE)
-            .build();
+                .type(PortalNavigationItemType.PAGE) // must match existing type
+                .title(existing.getTitle())
+                .order(existing.getOrder())
+                .published(existing.getPublished())
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(originalId.toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(originalId.toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         // When
         var output = useCase.execute(input);
@@ -708,19 +742,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         var originalId = existing.getId();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.PAGE) // must match existing type
-            .title(existing.getTitle())
-            .order(2)
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.PAGE) // must match existing type
+                .title(existing.getTitle())
+                .order(2)
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(originalId.toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(originalId.toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         // When
         var output = useCase.execute(input);
@@ -742,19 +776,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(existing).isNotNull();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API)
-            .title("Title")
-            .parentId(null)
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.API)
+                .title("Title")
+                .parentId(null)
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
         assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
@@ -766,19 +800,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(existing).isNotNull();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.PAGE)
-            .title("Title")
-            .parentId(PortalNavigationItemId.of(API1_ID))
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.PAGE)
+                .title("Title")
+                .parentId(PortalNavigationItemId.of(API1_ID))
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         var result = useCase.execute(input);
         assertThat(result).isNotNull();
@@ -796,19 +830,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(existing).isNotNull();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.FOLDER)
-            .title("Title")
-            .parentId(PortalNavigationItemId.of(API1_ID))
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Title")
+                .parentId(PortalNavigationItemId.of(API1_ID))
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         var result = useCase.execute(input);
         assertThat(result).isNotNull();
@@ -826,20 +860,20 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(existing).isNotNull();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.LINK)
-            .title("Title")
-            .parentId(PortalNavigationItemId.of(API1_ID))
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .url("https://gravitee.io")
-            .build();
+                .type(PortalNavigationItemType.LINK)
+                .title("Title")
+                .parentId(PortalNavigationItemId.of(API1_ID))
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .url("https://gravitee.io")
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         var result = useCase.execute(input);
         assertThat(result).isNotNull();
@@ -859,27 +893,25 @@ class UpdatePortalNavigationItemUseCaseTest {
 
         @Test
         void should_reject_moving_container_below_its_descendant() {
-            var parentFolder = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-000000000214", "Parent folder");
+            var parentFolder =
+                    PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-000000000214", "Parent folder");
             var childFolder = PortalNavigationItemFixtures.aFolder(
-                "00000000-0000-0000-0000-000000000215",
-                "Child folder",
-                parentFolder.getId()
-            );
+                    "00000000-0000-0000-0000-000000000215", "Child folder", parentFolder.getId());
             crudService.initWith(List.of(parentFolder, childFolder));
             queryService.initWith(List.copyOf(crudService.storage()));
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title(parentFolder.getTitle())
-                .parentId(childFolder.getId())
-                .published(parentFolder.getPublished())
-                .visibility(parentFolder.getVisibility())
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title(parentFolder.getTitle())
+                    .parentId(childFolder.getId())
+                    .published(parentFolder.getPublished())
+                    .visibility(parentFolder.getVisibility())
+                    .build();
             var input = UpdatePortalNavigationItemUseCase.Input.builder()
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .navigationItemId(parentFolder.getId().toString())
-                .updatePortalNavigationItem(toUpdate)
-                .build();
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(parentFolder.getId().toString())
+                    .updatePortalNavigationItem(toUpdate)
+                    .build();
 
             var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -890,29 +922,30 @@ class UpdatePortalNavigationItemUseCaseTest {
         void should_update_rootId_and_propagate_to_children_when_non_root_item_moves_to_different_non_root_parent() {
             // Given — sampleNavigationItems: APIS (root) → CATEGORY1 (child, rootId=APIS_ID, has children incl. PAGE11)
             // Find the second root folder (guides) which has a different rootId
-            var targetParent = queryService
-                .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
-                .stream()
-                .filter(item -> item instanceof PortalNavigationFolder && !item.getId().equals(PortalNavigationItemId.of(APIS_ID)))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Expected a second root folder in sample data"));
+            var targetParent =
+                    queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR).stream()
+                            .filter(item -> item instanceof PortalNavigationFolder
+                                    && !item.getId().equals(PortalNavigationItemId.of(APIS_ID)))
+                            .findFirst()
+                            .orElseThrow(
+                                    () -> new IllegalStateException("Expected a second root folder in sample data"));
 
             var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(CATEGORY1_ID));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title(existing.getTitle())
-                .parentId(targetParent.getId()) // move CATEGORY1 under the other root folder
-                .published(existing.getPublished())
-                .visibility(existing.getVisibility())
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title(existing.getTitle())
+                    .parentId(targetParent.getId()) // move CATEGORY1 under the other root folder
+                    .published(existing.getPublished())
+                    .visibility(existing.getVisibility())
+                    .build();
 
             var input = UpdatePortalNavigationItemUseCase.Input.builder()
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .navigationItemId(CATEGORY1_ID)
-                .updatePortalNavigationItem(toUpdate)
-                .build();
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(CATEGORY1_ID)
+                    .updatePortalNavigationItem(toUpdate)
+                    .build();
 
             // When
             var result = useCase.execute(input);
@@ -932,26 +965,27 @@ class UpdatePortalNavigationItemUseCaseTest {
             assertThat(existing.getParentId()).isNotNull(); // confirm it's currently non-root
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title(existing.getTitle())
-                .parentId(null) // move to root level
-                .published(existing.getPublished())
-                .visibility(existing.getVisibility())
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title(existing.getTitle())
+                    .parentId(null) // move to root level
+                    .published(existing.getPublished())
+                    .visibility(existing.getVisibility())
+                    .build();
 
             var input = UpdatePortalNavigationItemUseCase.Input.builder()
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .navigationItemId(CATEGORY1_ID)
-                .updatePortalNavigationItem(toUpdate)
-                .build();
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(CATEGORY1_ID)
+                    .updatePortalNavigationItem(toUpdate)
+                    .build();
 
             // When
             var result = useCase.execute(input);
 
             // Then — CATEGORY1's rootId equals its own id (it is now a root)
             assertThat(result.updatedItem().getParentId()).isNull();
-            assertThat(result.updatedItem().getRootId()).isEqualTo(result.updatedItem().getId());
+            assertThat(result.updatedItem().getRootId())
+                    .isEqualTo(result.updatedItem().getId());
 
             // And its child PAGE11 has rootId propagated to CATEGORY1's id
             var page11 = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
@@ -961,29 +995,30 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_update_rootId_when_root_item_moves_to_non_root_parent() {
             // Given — find the second root folder (guides, rootId=guides.id) to move under CATEGORY1 (rootId=APIS_ID)
-            var rootItem = queryService
-                .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
-                .stream()
-                .filter(item -> item instanceof PortalNavigationFolder && !item.getId().equals(PortalNavigationItemId.of(APIS_ID)))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Expected a second root folder in sample data"));
+            var rootItem =
+                    queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR).stream()
+                            .filter(item -> item instanceof PortalNavigationFolder
+                                    && !item.getId().equals(PortalNavigationItemId.of(APIS_ID)))
+                            .findFirst()
+                            .orElseThrow(
+                                    () -> new IllegalStateException("Expected a second root folder in sample data"));
 
             assertThat(rootItem.getParentId()).isNull(); // confirm it's currently a root
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title(rootItem.getTitle())
-                .parentId(PortalNavigationItemId.of(CATEGORY1_ID)) // move under non-root folder
-                .published(rootItem.getPublished())
-                .visibility(rootItem.getVisibility())
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title(rootItem.getTitle())
+                    .parentId(PortalNavigationItemId.of(CATEGORY1_ID)) // move under non-root folder
+                    .published(rootItem.getPublished())
+                    .visibility(rootItem.getVisibility())
+                    .build();
 
             var input = UpdatePortalNavigationItemUseCase.Input.builder()
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .navigationItemId(rootItem.getId().toString())
-                .updatePortalNavigationItem(toUpdate)
-                .build();
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(rootItem.getId().toString())
+                    .updatePortalNavigationItem(toUpdate)
+                    .build();
 
             // When
             var result = useCase.execute(input);
@@ -1000,19 +1035,19 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(existing).isNotNull();
 
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API)
-            .title("Title")
-            .parentId(PortalNavigationItemId.of(API2_ID)) // parent cannot be API
-            .published(existing.getPublished())
-            .visibility(existing.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.API)
+                .title("Title")
+                .parentId(PortalNavigationItemId.of(API2_ID)) // parent cannot be API
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(existing.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
 
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
@@ -1020,33 +1055,31 @@ class UpdatePortalNavigationItemUseCaseTest {
 
     private UpdatePortalNavigationItem updateFolderPublished(PortalNavigationFolder folder, boolean published) {
         return UpdatePortalNavigationItem.builder()
-            .type(folder.getType())
-            .title(folder.getTitle())
-            .order(folder.getOrder())
-            .parentId(folder.getParentId())
-            .published(published)
-            .visibility(folder.getVisibility())
-            .build();
+                .type(folder.getType())
+                .title(folder.getTitle())
+                .order(folder.getOrder())
+                .parentId(folder.getParentId())
+                .published(published)
+                .visibility(folder.getVisibility())
+                .build();
     }
 
     private UpdatePortalNavigationItemUseCase.Input updateApiProductInput(
-        PortalNavigationApiProduct apiProduct,
-        PortalNavigationItemId parentId
-    ) {
+            PortalNavigationApiProduct apiProduct, PortalNavigationItemId parentId) {
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .title(apiProduct.getTitle())
-            .order(apiProduct.getOrder())
-            .parentId(parentId)
-            .published(apiProduct.getPublished())
-            .visibility(apiProduct.getVisibility())
-            .build();
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .title(apiProduct.getTitle())
+                .order(apiProduct.getOrder())
+                .parentId(parentId)
+                .published(apiProduct.getPublished())
+                .visibility(apiProduct.getVisibility())
+                .build();
         return UpdatePortalNavigationItemUseCase.Input.builder()
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .navigationItemId(apiProduct.getId().toString())
-            .updatePortalNavigationItem(toUpdate)
-            .build();
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(apiProduct.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
     }
 
     @Nested
@@ -1058,10 +1091,14 @@ class UpdatePortalNavigationItemUseCaseTest {
         private final ApiReference owner = new ApiReference("api-1");
 
         @ParameterizedTest
-        @EnumSource(value = PortalNavigationItemType.class, names = { "PAGE", "FOLDER", "LINK" })
+        @EnumSource(
+                value = PortalNavigationItemType.class,
+                names = {"PAGE", "FOLDER", "LINK"})
         void should_keep_api_owned_root_when_renamed_from_navigation(PortalNavigationItemType type) {
             var document = givenRoot(type);
-            var command = updateUnder(document, PortalNavigationItemId.of(API1_ID)).title("Renamed").build();
+            var command = updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                    .title("Renamed")
+                    .build();
 
             var saved = execute(document, command);
 
@@ -1071,14 +1108,17 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         @ParameterizedTest
-        @CsvSource({ "false, PUBLIC", "true, PRIVATE" })
-        void should_keep_api_owned_root_when_publication_or_visibility_changes(boolean published, PortalVisibility visibility) {
+        @CsvSource({"false, PUBLIC", "true, PRIVATE"})
+        void should_keep_api_owned_root_when_publication_or_visibility_changes(
+                boolean published, PortalVisibility visibility) {
             var document = givenRoot(PortalNavigationItemType.PAGE);
 
             var saved = execute(
-                document,
-                updateUnder(document, PortalNavigationItemId.of(API1_ID)).published(published).visibility(visibility).build()
-            );
+                    document,
+                    updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                            .published(published)
+                            .visibility(visibility)
+                            .build());
 
             assertThat(saved.getPublished()).isEqualTo(published);
             assertThat(saved.getVisibility()).isEqualTo(visibility);
@@ -1088,21 +1128,28 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_reorder_only_roots_of_the_same_api() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
-            var sibling = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Sibling").toBuilder().reference(owner).order(1).build();
+            var sibling = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Sibling").toBuilder()
+                    .reference(owner)
+                    .order(1)
+                    .build();
             sibling.markAsRoot();
-            var otherApiRoot = PortalNavigationItemFixtures.aFolder(OTHER_DOCUMENT_ID, "Other API")
-                .toBuilder()
-                .reference(new ApiReference("api-2"))
-                .order(0)
-                .build();
+            var otherApiRoot = PortalNavigationItemFixtures.aFolder(OTHER_DOCUMENT_ID, "Other API").toBuilder()
+                    .reference(new ApiReference("api-2"))
+                    .order(0)
+                    .build();
             otherApiRoot.markAsRoot();
             queryService.storage().addAll(List.of(sibling, otherApiRoot));
-            var physicalChild = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_FOLDER_ID));
+            var physicalChild =
+                    queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_FOLDER_ID));
             var physicalChildOrder = physicalChild.getOrder();
             var portalRoot = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(APIS_ID));
             var portalRootOrder = portalRoot.getOrder();
 
-            execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).order(1).build());
+            execute(
+                    document,
+                    updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                            .order(1)
+                            .build());
 
             assertRoot(document);
             assertThat(document.getOrder()).isEqualTo(1);
@@ -1116,11 +1163,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         void should_accept_another_listing_of_the_same_api_without_reparenting() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
             var listing = PortalNavigationItemFixtures.anApi(
-                OTHER_DOCUMENT_ID,
-                "Another listing",
-                PortalNavigationItemId.of(CATEGORY1_ID),
-                owner.apiId()
-            );
+                    OTHER_DOCUMENT_ID, "Another listing", PortalNavigationItemId.of(CATEGORY1_ID), owner.apiId());
             queryService.storage().add(listing);
 
             execute(document, updateUnder(document, listing.getId()).build());
@@ -1131,13 +1174,18 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_validate_segments_in_the_api_root_namespace() {
             var document = givenRoot(PortalNavigationItemType.FOLDER);
-            var sibling = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Sibling").toBuilder().reference(owner).build();
+            var sibling = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Sibling").toBuilder()
+                    .reference(owner)
+                    .build();
             sibling.markAsRoot();
             queryService.storage().add(sibling);
 
-            assertThatThrownBy(() ->
-                execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).segment(sibling.getSegment()).build())
-            ).isInstanceOf(PathConflictException.class);
+            assertThatThrownBy(() -> execute(
+                            document,
+                            updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                                    .segment(sibling.getSegment())
+                                    .build()))
+                    .isInstanceOf(PathConflictException.class);
 
             assertRoot(document);
             assertThat(document.getSegment()).isEqualTo("document");
@@ -1147,8 +1195,8 @@ class UpdatePortalNavigationItemUseCaseTest {
         void should_discard_a_rendered_parent_not_resolved_by_the_server() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
             var command = updateUnder(document, null)
-                .renderedParentId(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ffff"))
-                .build();
+                    .renderedParentId(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ffff"))
+                    .build();
 
             execute(document, command);
 
@@ -1158,16 +1206,21 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_move_nested_documentation_to_the_api_root() {
             var folder = givenRoot(PortalNavigationItemType.FOLDER);
-            var document = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Nested folder").toBuilder().reference(owner).build();
+            var document = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Nested folder").toBuilder()
+                    .reference(owner)
+                    .build();
             document.updateParent((PortalNavigationFolder) folder);
-            var child = PortalNavigationItemFixtures.aPage(OTHER_DOCUMENT_ID, "Child", document.getId())
-                .toBuilder()
-                .reference(owner)
-                .build();
+            var child = PortalNavigationItemFixtures.aPage(OTHER_DOCUMENT_ID, "Child", document.getId()).toBuilder()
+                    .reference(owner)
+                    .build();
             child.updateParent(document);
             queryService.storage().addAll(List.of(document, child));
 
-            execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).order(0).build());
+            execute(
+                    document,
+                    updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                            .order(0)
+                            .build());
 
             assertRoot(document);
             assertThat(document.getOrder()).isZero();
@@ -1180,7 +1233,10 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_keep_a_real_move_into_an_api_owned_folder() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
-            var folder = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Target").toBuilder().reference(owner).order(1).build();
+            var folder = PortalNavigationItemFixtures.aFolder(FOLDER_ID, "Target").toBuilder()
+                    .reference(owner)
+                    .order(1)
+                    .build();
             folder.markAsRoot();
             queryService.storage().add(folder);
 
@@ -1195,64 +1251,89 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_validate_publication_against_the_displayed_parent() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
-            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setPublished(false);
+            queryService
+                    .findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID))
+                    .setPublished(false);
 
-            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build()))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining("published");
+            assertThatThrownBy(() -> execute(
+                            document,
+                            updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                                    .build()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining("published");
             assertRoot(document);
         }
 
         @Test
         void should_validate_visibility_against_the_displayed_parent() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
-            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setVisibility(PortalVisibility.PRIVATE);
+            queryService
+                    .findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID))
+                    .setVisibility(PortalVisibility.PRIVATE);
 
-            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build()))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining("public");
+            assertThatThrownBy(() -> execute(
+                            document,
+                            updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                                    .build()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining("public");
             assertRoot(document);
         }
 
         @Test
         void should_validate_area_against_the_displayed_parent() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
-            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setArea(PortalArea.HOMEPAGE);
+            queryService
+                    .findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID))
+                    .setArea(PortalArea.HOMEPAGE);
 
-            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build())).isInstanceOf(
-                ParentAreaMismatchException.class
-            );
+            assertThatThrownBy(() -> execute(
+                            document,
+                            updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                                    .build()))
+                    .isInstanceOf(ParentAreaMismatchException.class);
             assertRoot(document);
         }
 
         @Test
         void should_not_resolve_a_listing_from_another_environment() {
             var document = givenRoot(PortalNavigationItemType.PAGE);
-            queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID)).setEnvironmentId("other-env");
+            queryService
+                    .findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID))
+                    .setEnvironmentId("other-env");
 
-            assertThatThrownBy(() -> execute(document, updateUnder(document, PortalNavigationItemId.of(API1_ID)).build())).isInstanceOf(
-                ParentNotFoundException.class
-            );
+            assertThatThrownBy(() -> execute(
+                            document,
+                            updateUnder(document, PortalNavigationItemId.of(API1_ID))
+                                    .build()))
+                    .isInstanceOf(ParentNotFoundException.class);
             assertRoot(document);
         }
 
         private PortalNavigationItem givenRoot(PortalNavigationItemType type) {
             PortalNavigationItem document = switch (type) {
-                case PAGE -> PortalNavigationItemFixtures.aPage(DOCUMENT_ID, "Document", null).toBuilder().reference(owner).build();
-                case FOLDER -> PortalNavigationItemFixtures.aFolder(DOCUMENT_ID, "Document").toBuilder().reference(owner).build();
-                case LINK -> PortalNavigationLink.builder()
-                    .id(PortalNavigationItemId.of(DOCUMENT_ID))
-                    .organizationId(ORG_ID)
-                    .environmentId(ENV_ID)
-                    .reference(owner)
-                    .title("Document")
-                    .segment("document")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .url("https://example.com")
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .build();
+                case PAGE ->
+                    PortalNavigationItemFixtures.aPage(DOCUMENT_ID, "Document", null).toBuilder()
+                            .reference(owner)
+                            .build();
+                case FOLDER ->
+                    PortalNavigationItemFixtures.aFolder(DOCUMENT_ID, "Document").toBuilder()
+                            .reference(owner)
+                            .build();
+                case LINK ->
+                    PortalNavigationLink.builder()
+                            .id(PortalNavigationItemId.of(DOCUMENT_ID))
+                            .organizationId(ORG_ID)
+                            .environmentId(ENV_ID)
+                            .reference(owner)
+                            .title("Document")
+                            .segment("document")
+                            .area(PortalArea.TOP_NAVBAR)
+                            .order(0)
+                            .url("https://example.com")
+                            .published(true)
+                            .visibility(PortalVisibility.PUBLIC)
+                            .build();
                 default -> throw new IllegalArgumentException("Not a documentation type: " + type);
             };
             document.markAsRoot();
@@ -1261,32 +1342,27 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder updateUnder(
-            PortalNavigationItem document,
-            PortalNavigationItemId parentId
-        ) {
+                PortalNavigationItem document, PortalNavigationItemId parentId) {
             return UpdatePortalNavigationItem.builder()
-                .type(document.getType())
-                .title(document.getTitle())
-                .segment(document.getSegment())
-                .order(document.getOrder())
-                .parentId(parentId)
-                .published(document.getPublished())
-                .visibility(document.getVisibility())
-                .source(document.getSource())
-                .url(document instanceof PortalNavigationLink link ? link.getUrl() : null);
+                    .type(document.getType())
+                    .title(document.getTitle())
+                    .segment(document.getSegment())
+                    .order(document.getOrder())
+                    .parentId(parentId)
+                    .published(document.getPublished())
+                    .visibility(document.getVisibility())
+                    .source(document.getSource())
+                    .url(document instanceof PortalNavigationLink link ? link.getUrl() : null);
         }
 
         private PortalNavigationItem execute(PortalNavigationItem document, UpdatePortalNavigationItem command) {
-            return useCase
-                .execute(
-                    UpdatePortalNavigationItemUseCase.Input.builder()
-                        .organizationId(ORG_ID)
-                        .environmentId(ENV_ID)
-                        .navigationItemId(document.getId().json())
-                        .updatePortalNavigationItem(command)
-                        .build()
-                )
-                .updatedItem();
+            return useCase.execute(UpdatePortalNavigationItemUseCase.Input.builder()
+                            .organizationId(ORG_ID)
+                            .environmentId(ENV_ID)
+                            .navigationItemId(document.getId().json())
+                            .updatePortalNavigationItem(command)
+                            .build())
+                    .updatedItem();
         }
 
         private void assertRoot(PortalNavigationItem document) {
@@ -1306,16 +1382,16 @@ class UpdatePortalNavigationItemUseCaseTest {
 
         private PortalNavigationItemSource aSource() {
             return PortalNavigationItemSource.builder()
-                .sourceType("http-fetcher")
-                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
-                .build();
+                    .sourceType("http-fetcher")
+                    .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                    .build();
         }
 
         private PortalNavigationItemSource aSourceWithSecret(String token) {
             return PortalNavigationItemSource.builder()
-                .sourceType("http-fetcher")
-                .sourceConfiguration("{\"token\":\"" + token + "\"}")
-                .build();
+                    .sourceType("http-fetcher")
+                    .sourceConfiguration("{\"token\":\"" + token + "\"}")
+                    .build();
         }
 
         /** What the client sends back after a read: the secret replaced by its placeholder. */
@@ -1324,24 +1400,27 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         private PortalNavigationItem givenASourcedPageWithSecret() {
-            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced Page", null)
-                .toBuilder()
-                .source(aSourceWithSecret(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA))
-                .build();
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced Page", null).toBuilder()
+                    .source(aSourceWithSecret(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA))
+                    .build();
             page.markAsRoot();
             queryService.storage().add(page);
             return page;
         }
 
         private PortalNavigationItem givenASourcedPage() {
-            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced Page", null).toBuilder().source(aSource()).build();
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced Page", null).toBuilder()
+                    .source(aSource())
+                    .build();
             page.markAsRoot();
             queryService.storage().add(page);
             return page;
         }
 
         private PortalNavigationItem givenAChildOfSourcedFolder() {
-            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Sourced Folder").toBuilder().source(aSource()).build();
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Sourced Folder").toBuilder()
+                    .source(aSource())
+                    .build();
             folder.markAsRoot();
             var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Child Page", folder.getId());
             queryService.storage().add(folder);
@@ -1349,29 +1428,33 @@ class UpdatePortalNavigationItemUseCaseTest {
             return child;
         }
 
-        private UpdatePortalNavigationItemUseCase.Input anUpdateInput(PortalNavigationItem item, UpdatePortalNavigationItem toUpdate) {
+        private UpdatePortalNavigationItemUseCase.Input anUpdateInput(
+                PortalNavigationItem item, UpdatePortalNavigationItem toUpdate) {
             return UpdatePortalNavigationItemUseCase.Input.builder()
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .navigationItemId(item.getId().toString())
-                .updatePortalNavigationItem(toUpdate)
-                .build();
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(item.getId().toString())
+                    .updatePortalNavigationItem(toUpdate)
+                    .build();
         }
 
-        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder anUpdateKeeping(PortalNavigationItem item) {
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder anUpdateKeeping(
+                PortalNavigationItem item) {
             return UpdatePortalNavigationItem.builder()
-                .type(item.getType())
-                .title(item.getTitle())
-                .order(item.getOrder())
-                .parentId(item.getParentId())
-                .published(item.getPublished())
-                .visibility(item.getVisibility());
+                    .type(item.getType())
+                    .title(item.getTitle())
+                    .order(item.getOrder())
+                    .parentId(item.getParentId())
+                    .published(item.getPublished())
+                    .visibility(item.getVisibility());
         }
 
         @Test
         void should_reject_rename_of_sourced_item() {
             var page = givenASourcedPage();
-            var input = anUpdateInput(page, anUpdateKeeping(page).title("Renamed").source(aSource()).build());
+            var input = anUpdateInput(
+                    page,
+                    anUpdateKeeping(page).title("Renamed").source(aSource()).build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1382,51 +1465,52 @@ class UpdatePortalNavigationItemUseCaseTest {
         void should_update_publication_of_a_sourced_api_root_without_moving_it() {
             var source = aSourceWithSecret(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
             source.setSubtreeImport(true);
-            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced API page", null)
-                .toBuilder()
-                .reference(new ApiReference("api-1"))
-                .source(source)
-                .build();
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced API page", null).toBuilder()
+                    .reference(new ApiReference("api-1"))
+                    .source(source)
+                    .build();
             page.markAsRoot();
             queryService.storage().add(page);
 
-            var output = useCase.execute(
-                anUpdateInput(
+            var output = useCase.execute(anUpdateInput(
                     page,
-                    anUpdateKeeping(page).parentId(PortalNavigationItemId.of(API1_ID)).published(false).source(aMaskedSource()).build()
-                )
-            );
+                    anUpdateKeeping(page)
+                            .parentId(PortalNavigationItemId.of(API1_ID))
+                            .published(false)
+                            .source(aMaskedSource())
+                            .build()));
 
             assertThat(output.updatedItem().getParentId()).isNull();
             assertThat(output.updatedItem().getRootId()).isEqualTo(page.getId());
             assertThat(output.updatedItem().getReference()).isEqualTo(new ApiReference("api-1"));
             assertThat(output.updatedItem().getPublished()).isFalse();
-            assertThat(sourceDomainService.lastValidatedConfiguration()).contains(
-                PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA
-            );
+            assertThat(sourceDomainService.lastValidatedConfiguration())
+                    .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
             assertThat(output.updatedItem().getSource().getSourceConfiguration())
-                .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT)
-                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+                    .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT)
+                    .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
             assertThat(output.updatedItem().getSource().isSubtreeImport()).isTrue();
         }
 
         @Test
         void should_still_reject_renaming_a_sourced_api_root() {
-            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced API page", null)
-                .toBuilder()
-                .reference(new ApiReference("api-1"))
-                .source(aSource())
-                .build();
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced API page", null).toBuilder()
+                    .reference(new ApiReference("api-1"))
+                    .source(aSource())
+                    .build();
             page.markAsRoot();
             queryService.storage().add(page);
             var input = anUpdateInput(
-                page,
-                anUpdateKeeping(page).parentId(PortalNavigationItemId.of(API1_ID)).title("Renamed").source(aSource()).build()
-            );
+                    page,
+                    anUpdateKeeping(page)
+                            .parentId(PortalNavigationItemId.of(API1_ID))
+                            .title("Renamed")
+                            .source(aSource())
+                            .build());
 
             assertThatThrownBy(() -> useCase.execute(input))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining("cannot be renamed or moved");
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining("cannot be renamed or moved");
 
             assertThat(page.getParentId()).isNull();
             assertThat(page.getTitle()).isEqualTo("Sourced API page");
@@ -1436,9 +1520,11 @@ class UpdatePortalNavigationItemUseCaseTest {
         void should_reject_move_of_sourced_item() {
             var page = givenASourcedPage();
             var input = anUpdateInput(
-                page,
-                anUpdateKeeping(page).parentId(PortalNavigationItemId.of(CATEGORY1_ID)).source(aSource()).build()
-            );
+                    page,
+                    anUpdateKeeping(page)
+                            .parentId(PortalNavigationItemId.of(CATEGORY1_ID))
+                            .source(aSource())
+                            .build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1448,7 +1534,9 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_allow_rename_when_source_is_removed_in_same_update() {
             var page = givenASourcedPage();
-            var input = anUpdateInput(page, anUpdateKeeping(page).title("Renamed").segment("renamed").build());
+            var input = anUpdateInput(
+                    page,
+                    anUpdateKeeping(page).title("Renamed").segment("renamed").build());
 
             var output = useCase.execute(input);
 
@@ -1459,36 +1547,41 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_restore_the_masked_secret_before_the_configuration_is_validated() {
             var page = givenASourcedPageWithSecret();
-            var input = anUpdateInput(page, anUpdateKeeping(page).source(aMaskedSource()).build());
+            var input = anUpdateInput(
+                    page, anUpdateKeeping(page).source(aMaskedSource()).build());
 
             useCase.execute(input);
 
             assertThat(sourceDomainService.lastValidatedConfiguration())
-                .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
-                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
+                    .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
+                    .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
         }
 
         @Test
         void should_mask_the_secret_again_in_the_response() {
             var page = givenASourcedPageWithSecret();
-            var input = anUpdateInput(page, anUpdateKeeping(page).source(aMaskedSource()).build());
+            var input = anUpdateInput(
+                    page, anUpdateKeeping(page).source(aMaskedSource()).build());
 
             var output = useCase.execute(input);
 
             assertThat(output.updatedItem().getSource().getSourceConfiguration())
-                .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT)
-                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+                    .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT)
+                    .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
         }
 
         @Test
         void should_reject_moving_an_item_below_a_sourced_folder() {
-            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Sourced Folder").toBuilder().source(aSource()).build();
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Sourced Folder").toBuilder()
+                    .source(aSource())
+                    .build();
             folder.markAsRoot();
             var rootPage = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Root Page", null);
             rootPage.markAsRoot();
             queryService.storage().addAll(List.of(folder, rootPage));
 
-            var input = anUpdateInput(rootPage, anUpdateKeeping(rootPage).parentId(folder.getId()).build());
+            var input = anUpdateInput(
+                    rootPage, anUpdateKeeping(rootPage).parentId(folder.getId()).build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1503,7 +1596,8 @@ class UpdatePortalNavigationItemUseCaseTest {
             rootPage.markAsRoot();
             queryService.storage().addAll(List.of(folder, rootPage));
 
-            var input = anUpdateInput(rootPage, anUpdateKeeping(rootPage).parentId(folder.getId()).build());
+            var input = anUpdateInput(
+                    rootPage, anUpdateKeeping(rootPage).parentId(folder.getId()).build());
 
             var output = useCase.execute(input);
 
@@ -1513,7 +1607,8 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_reject_update_of_child_of_sourced_folder() {
             var child = givenAChildOfSourcedFolder();
-            var input = anUpdateInput(child, anUpdateKeeping(child).title("Renamed child").build());
+            var input = anUpdateInput(
+                    child, anUpdateKeeping(child).title("Renamed child").build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1522,12 +1617,16 @@ class UpdatePortalNavigationItemUseCaseTest {
 
         private GraviteeMarkdownPageContent givenAnAutomationManagedContent() {
             var content = new GraviteeMarkdownPageContent(
-                PortalPageContentId.random(),
-                ORG_ID,
-                ENV_ID,
-                GraviteeMarkdown.of("# automation content"),
-                new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, "portal-id", "page", Optional.empty(), Optional.empty())
-            );
+                    PortalPageContentId.random(),
+                    ORG_ID,
+                    ENV_ID,
+                    GraviteeMarkdown.of("# automation content"),
+                    new AutomationMetadata(
+                            AutomationMetadata.ReferenceType.PORTAL,
+                            "portal-id",
+                            "page",
+                            Optional.empty(),
+                            Optional.empty()));
             pageContentCrudService.create(content);
             return content;
         }
@@ -1535,15 +1634,15 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_reject_adding_source_on_automation_managed_page() {
             var page = PortalNavigationItemFixtures.aPage(
-                SOURCED_PAGE_ID,
-                "Automation Page",
-                null,
-                givenAnAutomationManagedContent().getId()
-            );
+                    SOURCED_PAGE_ID,
+                    "Automation Page",
+                    null,
+                    givenAnAutomationManagedContent().getId());
             page.markAsRoot();
             queryService.storage().add(page);
 
-            var input = anUpdateInput(page, anUpdateKeeping(page).source(aSource()).build());
+            var input =
+                    anUpdateInput(page, anUpdateKeeping(page).source(aSource()).build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1554,16 +1653,17 @@ class UpdatePortalNavigationItemUseCaseTest {
         void should_reject_adding_source_on_a_folder_whose_subtree_contains_an_automation_managed_page() {
             var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Folder");
             folder.markAsRoot();
-            var intermediate = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-00000000f010", "Intermediate", folder.getId());
+            var intermediate = PortalNavigationItemFixtures.aFolder(
+                    "00000000-0000-0000-0000-00000000f010", "Intermediate", folder.getId());
             var automationPage = PortalNavigationItemFixtures.aPage(
-                "00000000-0000-0000-0000-00000000f011",
-                "Automation Page",
-                intermediate.getId(),
-                givenAnAutomationManagedContent().getId()
-            );
+                    "00000000-0000-0000-0000-00000000f011",
+                    "Automation Page",
+                    intermediate.getId(),
+                    givenAnAutomationManagedContent().getId());
             queryService.storage().addAll(List.of(folder, intermediate, automationPage));
 
-            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+            var input = anUpdateInput(
+                    folder, anUpdateKeeping(folder).source(aSource()).build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1575,15 +1675,15 @@ class UpdatePortalNavigationItemUseCaseTest {
             var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Folder");
             folder.markAsRoot();
             var sibling = PortalNavigationItemFixtures.aPage(
-                "00000000-0000-0000-0000-00000000f012",
-                "Automation Page",
-                null,
-                givenAnAutomationManagedContent().getId()
-            );
+                    "00000000-0000-0000-0000-00000000f012",
+                    "Automation Page",
+                    null,
+                    givenAnAutomationManagedContent().getId());
             sibling.markAsRoot();
             queryService.storage().addAll(List.of(folder, sibling));
 
-            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+            var input = anUpdateInput(
+                    folder, anUpdateKeeping(folder).source(aSource()).build());
 
             assertDoesNotThrow(() -> useCase.execute(input));
         }
@@ -1597,7 +1697,8 @@ class UpdatePortalNavigationItemUseCaseTest {
             var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Child Page", folder.getId());
             queryService.storage().addAll(List.of(folder, child));
 
-            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+            var input = anUpdateInput(
+                    folder, anUpdateKeeping(folder).source(aSource()).build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1612,7 +1713,8 @@ class UpdatePortalNavigationItemUseCaseTest {
             var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Child Page", folder.getId());
             queryService.storage().addAll(List.of(folder, child));
 
-            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+            var input = anUpdateInput(
+                    folder, anUpdateKeeping(folder).source(aSource()).build());
 
             assertDoesNotThrow(() -> useCase.execute(input));
         }
@@ -1620,15 +1722,15 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_accept_updating_the_source_of_an_import_managed_folder_and_keep_its_marker() {
             sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
-            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Imported Docs")
-                .toBuilder()
-                .source(aSource().toBuilder().subtreeImport(true).build())
-                .build();
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Imported Docs").toBuilder()
+                    .source(aSource().toBuilder().subtreeImport(true).build())
+                    .build();
             folder.markAsRoot();
             var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Imported Page", folder.getId());
             queryService.storage().addAll(List.of(folder, child));
 
-            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+            var input = anUpdateInput(
+                    folder, anUpdateKeeping(folder).source(aSource()).build());
 
             var output = useCase.execute(input);
 
@@ -1639,15 +1741,15 @@ class UpdatePortalNavigationItemUseCaseTest {
         @Test
         void should_reject_updating_an_import_managed_folder_to_a_source_that_cannot_list_files() {
             // The in-memory source is not files-capable by default: such a source cannot re-run the import
-            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Imported Docs")
-                .toBuilder()
-                .source(aSource().toBuilder().subtreeImport(true).build())
-                .build();
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Imported Docs").toBuilder()
+                    .source(aSource().toBuilder().subtreeImport(true).build())
+                    .build();
             folder.markAsRoot();
             var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Imported Page", folder.getId());
             queryService.storage().addAll(List.of(folder, child));
 
-            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+            var input = anUpdateInput(
+                    folder, anUpdateKeeping(folder).source(aSource()).build());
 
             var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
@@ -1658,16 +1760,17 @@ class UpdatePortalNavigationItemUseCaseTest {
         void should_reject_invalid_cron_expression_on_update() {
             var page = givenASourcedPage();
             var invalidSource = PortalNavigationItemSource.builder()
-                .sourceType("http-fetcher")
-                .sourceConfiguration("{}")
-                .useAutoFetch(true)
-                .fetchCron("not-a-cron")
-                .build();
-            var input = anUpdateInput(page, anUpdateKeeping(page).source(invalidSource).build());
+                    .sourceType("http-fetcher")
+                    .sourceConfiguration("{}")
+                    .useAutoFetch(true)
+                    .fetchCron("not-a-cron")
+                    .build();
+            var input = anUpdateInput(
+                    page, anUpdateKeeping(page).source(invalidSource).build());
 
-            var error = assertThrows(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException.class, () ->
-                useCase.execute(input)
-            );
+            var error = assertThrows(
+                    io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException.class,
+                    () -> useCase.execute(input));
 
             assertThat(error).hasMessageContaining("not-a-cron");
         }

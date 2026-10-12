@@ -33,10 +33,9 @@ public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
     private final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration;
 
     public OnErrorProcessorChainFactory(
-        final Api api,
-        final PolicyChainFactory policyChainFactory,
-        final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration
-    ) {
+            final Api api,
+            final PolicyChainFactory policyChainFactory,
+            final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration) {
         super(api, policyChainFactory);
         this.transactionResponseProcessorConfiguration = transactionResponseProcessorConfiguration;
         this.initialize();
@@ -45,16 +44,21 @@ public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
     private void initialize() {
         add(() -> new TransactionResponseProcessor(this.transactionResponseProcessorConfiguration));
 
-        if (api.getDefinition().getProxy().getCors() != null && api.getDefinition().getProxy().getCors().isEnabled()) {
-            add(() -> new CorsSimpleRequestProcessor(api.getDefinition().getProxy().getCors()));
+        if (api.getDefinition().getProxy().getCors() != null
+                && api.getDefinition().getProxy().getCors().isEnabled()) {
+            add(() -> new CorsSimpleRequestProcessor(
+                    api.getDefinition().getProxy().getCors()));
         }
 
-        if (api.getDefinition().getPathMappings() != null && !api.getDefinition().getPathMappings().isEmpty()) {
+        if (api.getDefinition().getPathMappings() != null
+                && !api.getDefinition().getPathMappings().isEmpty()) {
             add(() -> new PathMappingProcessor(api.getDefinition().getPathMappings()));
         }
 
-        if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
-            add(() -> new ResponseTemplateBasedFailureProcessor(api.getDefinition().getResponseTemplates()));
+        if (api.getDefinition().getResponseTemplates() != null
+                && !api.getDefinition().getResponseTemplates().isEmpty()) {
+            add(() -> new ResponseTemplateBasedFailureProcessor(
+                    api.getDefinition().getResponseTemplates()));
         } else {
             add(SimpleFailureProcessor::new);
         }

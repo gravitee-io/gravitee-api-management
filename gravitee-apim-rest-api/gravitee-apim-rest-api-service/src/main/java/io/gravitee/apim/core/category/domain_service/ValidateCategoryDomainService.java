@@ -43,8 +43,9 @@ public class ValidateCategoryDomainService {
             throw new CategoryNotFoundException(null);
         }
 
-        return this.categoryQueryService.findByIdOrKey(categoryIdOrKey, environmentId)
-            .map(Category::getId)
-            .orElseThrow(() -> new CategoryNotFoundException(categoryIdOrKey));
+        return this.categoryQueryService
+                .findByIdOrKey(categoryIdOrKey, environmentId)
+                .map(Category::getId)
+                .orElseThrow(() -> new CategoryNotFoundException(categoryIdOrKey));
     }
 }

@@ -31,13 +31,9 @@ class EntrypointScopeClauseTest {
     void should_exclude_the_ids_on_the_field_and_on_its_keyword_sub_field() {
         var clause = EntrypointScopeClause.excluding(List.of("sse", "native-kafka"));
 
-        assertThat(clause).isEqualTo(
-            new JsonObject(
-                """
+        assertThat(clause).isEqualTo(new JsonObject("""
                 {"bool":{"must_not":[{"terms":{"entrypoint-id":["sse","native-kafka"]}},{"terms":{"entrypoint-id.keyword":["sse","native-kafka"]}}]}}
-                """
-            )
-        );
+                """));
     }
 
     @Test
@@ -62,29 +58,29 @@ class EntrypointScopeClauseTest {
     void should_build_the_analytics_default_from_the_registry() {
         var clause = EntrypointScopeClause.analyticsDefault();
 
-        assertThat(
-            clause.getJsonObject("bool").getJsonArray("must_not").getJsonObject(0).getJsonObject("terms").getJsonArray("entrypoint-id")
-        ).containsExactlyElementsOf(ObservabilityEntrypoints.ANALYTICS_EXCLUDED_IDS);
+        assertThat(clause.getJsonObject("bool")
+                        .getJsonArray("must_not")
+                        .getJsonObject(0)
+                        .getJsonObject("terms")
+                        .getJsonArray("entrypoint-id"))
+                .containsExactlyElementsOf(ObservabilityEntrypoints.ANALYTICS_EXCLUDED_IDS);
     }
 
     @Test
     void should_select_the_given_ids_on_the_field_and_on_its_keyword_sub_field() {
         var clause = EntrypointScopeClause.exactly(List.of("mcp", "mcp-studio"));
 
-        assertThat(clause).isEqualTo(
-            new JsonObject(
-                """
+        assertThat(clause).isEqualTo(new JsonObject("""
                 {"bool":{"should":[{"terms":{"entrypoint-id":["mcp","mcp-studio"]}},{"terms":{"entrypoint-id.keyword":["mcp","mcp-studio"]}}],"minimum_should_match":1}}
-                """
-            )
-        );
+                """));
     }
 
     @Test
     void should_select_documents_without_an_entrypoint_for_the_synthetic_value_alone() {
         var clause = EntrypointScopeClause.exactly(List.of("(none)"));
 
-        assertThat(clause).isEqualTo(new JsonObject("{\"bool\":{\"must_not\":{\"exists\":{\"field\":\"entrypoint-id\"}}}}"));
+        assertThat(clause)
+                .isEqualTo(new JsonObject("{\"bool\":{\"must_not\":{\"exists\":{\"field\":\"entrypoint-id\"}}}}"));
     }
 
     @Test
@@ -93,7 +89,8 @@ class EntrypointScopeClauseTest {
 
         var alternatives = clause.getJsonObject("bool").getJsonArray("should");
         assertThat(alternatives).hasSize(3);
-        assertThat(clause.getJsonObject("bool").getInteger("minimum_should_match")).isEqualTo(1);
+        assertThat(clause.getJsonObject("bool").getInteger("minimum_should_match"))
+                .isEqualTo(1);
         assertThat(clause.encode()).contains("\"exists\":{\"field\":\"entrypoint-id\"}");
     }
 

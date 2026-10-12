@@ -50,17 +50,15 @@ import org.springframework.core.env.Environment;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(
-    {
-        AnalyticsConfiguration.class,
-        HealthCheckConfiguration.class,
-        LogConfiguration.class,
-        io.gravitee.repository.elasticsearch.v4.log.spring.LogConfiguration.class,
-        io.gravitee.repository.elasticsearch.v4.analytics.spring.AnalyticsConfiguration.class,
-        io.gravitee.repository.elasticsearch.v4.healthcheck.spring.HealthCheckConfiguration.class,
-        MonitoringConfiguration.class,
-    }
-)
+@Import({
+    AnalyticsConfiguration.class,
+    HealthCheckConfiguration.class,
+    LogConfiguration.class,
+    io.gravitee.repository.elasticsearch.v4.log.spring.LogConfiguration.class,
+    io.gravitee.repository.elasticsearch.v4.analytics.spring.AnalyticsConfiguration.class,
+    io.gravitee.repository.elasticsearch.v4.healthcheck.spring.HealthCheckConfiguration.class,
+    MonitoringConfiguration.class,
+})
 @CustomLog
 public class ElasticsearchRepositoryConfiguration {
 
@@ -88,7 +86,8 @@ public class ElasticsearchRepositoryConfiguration {
     }
 
     @Bean
-    public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
+    public IndexNameGenerator indexNameGenerator(
+            RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
         if (info.getVersion().canUseIlmManagedIndex() && repositoryConfiguration.isILMIndex()) {
             return new ILMIndexNameGenerator(repositoryConfiguration.getIndexName());
         } else if (!info.getVersion().canUseMultiTypeIndex() || repositoryConfiguration.isPerTypeIndex()) {
@@ -101,19 +100,18 @@ public class ElasticsearchRepositoryConfiguration {
     @Bean
     public ElasticsearchInfo elasticsearchInfo(Client client) {
         // Wait for a connection to ES and retry each 5 seconds
-        Single<ElasticsearchInfo> singleVersion = client
-            .getInfo()
-            .retryWhen(error ->
-                error.flatMap(throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST))
-            );
+        Single<ElasticsearchInfo> singleVersion = client.getInfo()
+                .retryWhen(error -> error.flatMap(throwable -> Observable.just(new Object())
+                        .delay(5, TimeUnit.SECONDS)
+                        .toFlowable(BackpressureStrategy.LATEST)));
 
         singleVersion.subscribe();
 
         final ElasticsearchInfo elasticsearchInfo = singleVersion.blockingGet();
         if (elasticsearchInfo.getStatus() != null && elasticsearchInfo.getStatus() != 200) {
-            throw new ElasticsearchException(
-                format("Status '%d', reason: %s", elasticsearchInfo.getStatus(), elasticsearchInfo.getError().getReason())
-            );
+            throw new ElasticsearchException(format(
+                    "Status '%d', reason: %s",
+                    elasticsearchInfo.getStatus(), elasticsearchInfo.getError().getReason()));
         }
 
         return elasticsearchInfo;

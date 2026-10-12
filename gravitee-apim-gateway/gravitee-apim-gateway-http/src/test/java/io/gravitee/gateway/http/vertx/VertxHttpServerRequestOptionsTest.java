@@ -75,10 +75,9 @@ class VertxHttpServerRequestOptionsTest {
         @Test
         void should_be_the_one_the_acceptor_matched_when_the_dispatcher_supplies_it() {
             var request = new VertxHttpServerRequest(
-                serverRequest,
-                idGenerator,
-                VertxHttpServerRequestOptions.builder().path(RESOLVED_PATH).build()
-            );
+                    serverRequest,
+                    idGenerator,
+                    VertxHttpServerRequestOptions.builder().path(RESOLVED_PATH).build());
 
             assertThat(request.path()).isEqualTo(RESOLVED_PATH);
         }
@@ -86,10 +85,9 @@ class VertxHttpServerRequestOptionsTest {
         @Test
         void should_keep_reporting_the_untouched_uri_whatever_the_path_becomes() {
             var request = new VertxHttpServerRequest(
-                serverRequest,
-                idGenerator,
-                VertxHttpServerRequestOptions.builder().path(RESOLVED_PATH).build()
-            );
+                    serverRequest,
+                    idGenerator,
+                    VertxHttpServerRequestOptions.builder().path(RESOLVED_PATH).build());
 
             // The received bytes stay available, which is what an operator correlates with the
             // logs of whatever sits in front of the gateway.
@@ -98,7 +96,10 @@ class VertxHttpServerRequestOptionsTest {
 
         @Test
         void should_fall_back_to_the_native_path_when_nothing_is_supplied() {
-            var request = new VertxHttpServerRequest(serverRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+            var request = new VertxHttpServerRequest(
+                    serverRequest,
+                    idGenerator,
+                    VertxHttpServerRequestOptions.builder().build());
 
             assertThat(request.path()).isEqualTo(NATIVE_PATH);
         }
@@ -114,10 +115,11 @@ class VertxHttpServerRequestOptionsTest {
             final long receivedAt = System.currentTimeMillis() - 60_000;
 
             var request = new VertxHttpServerRequest(
-                serverRequest,
-                idGenerator,
-                VertxHttpServerRequestOptions.builder().timestamp(receivedAt).build()
-            );
+                    serverRequest,
+                    idGenerator,
+                    VertxHttpServerRequestOptions.builder()
+                            .timestamp(receivedAt)
+                            .build());
 
             assertThat(request.timestamp()).isEqualTo(receivedAt);
         }
@@ -127,10 +129,11 @@ class VertxHttpServerRequestOptionsTest {
             final long receivedAt = System.currentTimeMillis() - 60_000;
 
             var request = new VertxHttpServerRequest(
-                serverRequest,
-                idGenerator,
-                VertxHttpServerRequestOptions.builder().timestamp(receivedAt).build()
-            );
+                    serverRequest,
+                    idGenerator,
+                    VertxHttpServerRequestOptions.builder()
+                            .timestamp(receivedAt)
+                            .build());
 
             // This is the link that makes the decision worth anything: whatever the dispatcher did
             // before the wrapper existed now falls inside the window the metrics measure.
@@ -141,7 +144,10 @@ class VertxHttpServerRequestOptionsTest {
         void should_stamp_the_clock_itself_when_nothing_is_supplied() {
             final long before = System.currentTimeMillis();
 
-            var request = new VertxHttpServerRequest(serverRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+            var request = new VertxHttpServerRequest(
+                    serverRequest,
+                    idGenerator,
+                    VertxHttpServerRequestOptions.builder().build());
 
             // The historical behaviour, kept so that every existing caller of the deprecated
             // constructors keeps working exactly as it did.

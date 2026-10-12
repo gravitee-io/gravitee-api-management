@@ -198,8 +198,10 @@ class FlowableProxyResponseTest {
     public void shouldCancelProxyResponseWhenSubscriberCancels() {
         final AtomicInteger chunkCount = new AtomicInteger(0);
 
-        // Generated one chunk, mark the context interrupted then generate another chunk (the second one should not be propagated).
-        setupChunkProducer(() -> bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk" + chunkCount.getAndIncrement())));
+        // Generated one chunk, mark the context interrupted then generate another chunk (the second one should not be
+        // propagated).
+        setupChunkProducer(
+                () -> bodyHandlerCaptor.getValue().handle(Buffer.buffer("chunk" + chunkCount.getAndIncrement())));
 
         final TestScheduler scheduler = new TestScheduler();
         final TestSubscriber<Buffer> obs = cut.subscribeOn(scheduler).test(REQUEST_COUNT);
@@ -239,10 +241,10 @@ class FlowableProxyResponseTest {
         // Client disconnects, cancel() throws exception
         lenient().when(response.ended()).thenReturn(true);
         doAnswer(invocation -> {
-            throw new RuntimeException("Cancel failed");
-        })
-            .when(proxyConnection)
-            .cancel();
+                    throw new RuntimeException("Cancel failed");
+                })
+                .when(proxyConnection)
+                .cancel();
 
         final TestSubscriber<Buffer> obs = cut.test();
         verify(proxyResponse).bodyHandler(bodyHandlerCaptor.capture());
@@ -277,13 +279,14 @@ class FlowableProxyResponseTest {
     }
 
     private void setupChunkProducer(Runnable runnable) {
-        // Generated one chunk, mark the context interrupted then generate another chunk (the second one should not be propagated).
+        // Generated one chunk, mark the context interrupted then generate another chunk (the second one should not be
+        // propagated).
         doAnswer(invocation -> {
-            runnable.run();
+                    runnable.run();
 
-            return null;
-        })
-            .when(proxyResponse)
-            .resume();
+                    return null;
+                })
+                .when(proxyResponse)
+                .resume();
     }
 }

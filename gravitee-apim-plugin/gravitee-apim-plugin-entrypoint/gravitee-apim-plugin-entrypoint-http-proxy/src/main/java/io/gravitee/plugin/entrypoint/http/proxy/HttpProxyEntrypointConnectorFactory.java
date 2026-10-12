@@ -40,11 +40,11 @@ public class HttpProxyEntrypointConnectorFactory implements HttpEntrypointSyncCo
     }
 
     @Override
-    public HttpProxyEntrypointConnector createConnector(final DeploymentContext deploymentContext, final String configuration) {
+    public HttpProxyEntrypointConnector createConnector(
+            final DeploymentContext deploymentContext, final String configuration) {
         try {
-            return new HttpProxyEntrypointConnector(
-                connectorFactoryHelper.readConfiguration(HttpProxyEntrypointConnectorConfiguration.class, configuration)
-            );
+            return new HttpProxyEntrypointConnector(connectorFactoryHelper.readConfiguration(
+                    HttpProxyEntrypointConnectorConfiguration.class, configuration));
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);
             return null;

@@ -79,8 +79,8 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .setYamlProperty("foo", "secret://vault/secret/foo:password")
-                .setYamlProperty("bar", "secret://vault/secret/bar:password");
+                    .setYamlProperty("foo", "secret://vault/secret/foo:password")
+                    .setYamlProperty("bar", "secret://vault/secret/bar:password");
         }
 
         @Override
@@ -106,13 +106,12 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
             var appRoleIDs = vaultContainer.newAppRoleSecretId();
             return Map.of(
-                "secrets.vault.auth.method",
-                "approle",
-                "secrets.vault.auth.config.roleId",
-                appRoleIDs.roleId(),
-                "secrets.vault.auth.config.secretId",
-                appRoleIDs.secretId()
-            );
+                    "secrets.vault.auth.method",
+                    "approle",
+                    "secrets.vault.auth.config.roleId",
+                    appRoleIDs.roleId(),
+                    "secrets.vault.auth.config.secretId",
+                    appRoleIDs.secretId());
         }
     }
 
@@ -123,7 +122,10 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @SneakyThrows
         @Override
         protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
-            String token = rootVault.auth().createToken(new Auth.TokenRequest().polices(List.of(TEST_POLICY_NAME))).getAuthClientToken();
+            String token = rootVault
+                    .auth()
+                    .createToken(new Auth.TokenRequest().polices(List.of(TEST_POLICY_NAME)))
+                    .getAuthClientToken();
             return Map.of("secrets.vault.auth.method", "token", "secrets.vault.auth.config.token", token);
         }
     }
@@ -135,15 +137,14 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
             return Map.of(
-                "secrets.vault.auth.method",
-                "cert",
-                "secrets.vault.auth.config.format",
-                "pem",
-                "secrets.vault.auth.config.cert",
-                clientCertAndKey.cert(),
-                "secrets.vault.auth.config.key",
-                clientCertAndKey.privateKey()
-            );
+                    "secrets.vault.auth.method",
+                    "cert",
+                    "secrets.vault.auth.config.format",
+                    "pem",
+                    "secrets.vault.auth.config.cert",
+                    clientCertAndKey.cert(),
+                    "secrets.vault.auth.config.key",
+                    clientCertAndKey.privateKey());
         }
     }
 
@@ -161,38 +162,43 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         void createSecrets() throws VaultException, IOException {
             sslPairs = SSLUtils.createPairs();
-            writeSecret("secret/tls-test", Map.of("certificate", sslPairs.cert(), "private_key", sslPairs.privateKey()));
+            writeSecret(
+                    "secret/tls-test", Map.of("certificate", sslPairs.cert(), "private_key", sslPairs.privateKey()));
         }
 
         @Override
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder.httpSecured(true).httpSslKeystoreType("pem").httpSslSecret("secret://vault/secret/tls-test");
+            configurationBuilder
+                    .httpSecured(true)
+                    .httpSslKeystoreType("pem")
+                    .httpSslSecret("secret://vault/secret/tls-test");
         }
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
+            options.setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
         @Test
         void should_be_able_to_call_on_https(HttpClient httpClient) {
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .doOnError(Throwable::printStackTrace)
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors), no need for an API.
-                    assertThat(response.statusCode()).isEqualTo(404);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .doOnError(Throwable::printStackTrace)
+                    .flatMap(response -> {
+                        // just asserting we get a response (hence no SSL errors), no need for an API.
+                        assertThat(response.statusCode()).isEqualTo(404);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
         }
     }
 
@@ -203,9 +209,9 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .setYamlProperty("watched", "secret://vault/secret/test:password?watch")
-                .setYamlProperty("secrets.vault.watch.enabled", true)
-                .setYamlProperty("secrets.vault.watch.pollIntervalSec", "1");
+                    .setYamlProperty("watched", "secret://vault/secret/test:password?watch")
+                    .setYamlProperty("secrets.vault.watch.enabled", true)
+                    .setYamlProperty("secrets.vault.watch.pollIntervalSec", "1");
         }
 
         @Override
@@ -218,9 +224,9 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
             Environment environment = getBean(Environment.class);
             assertThat(environment.getProperty("watched")).isEqualTo("changeme");
             writeSecret("secret/test", Map.of("password", "okiamchanged"));
-            await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> assertThat(environment.getProperty("watched")).isEqualTo("okiamchanged"));
+            await().atMost(Duration.ofSeconds(5))
+                    .untilAsserted(
+                            () -> assertThat(environment.getProperty("watched")).isEqualTo("okiamchanged"));
         }
     }
 
@@ -238,12 +244,12 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .httpSecured(true)
-                .httpSslKeystoreType("pem")
-                .httpSslSecret("secret://vault/secret/tls-test?keymap=certificate:crt&keymap=private_key:key")
-                .setSystemProperty("http.ssl.keystore.watch", true)
-                .setSystemProperty("secrets.vault.watch.enabled", true)
-                .setSystemProperty("secrets.vault.watch.pollIntervalSec", "1");
+                    .httpSecured(true)
+                    .httpSslKeystoreType("pem")
+                    .httpSslSecret("secret://vault/secret/tls-test?keymap=certificate:crt&keymap=private_key:key")
+                    .setSystemProperty("http.ssl.keystore.watch", true)
+                    .setSystemProperty("secrets.vault.watch.enabled", true)
+                    .setSystemProperty("secrets.vault.watch.pollIntervalSec", "1");
         }
 
         @Override
@@ -254,70 +260,69 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
+            options.setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/api.json" })
+        @DeployApi({"/apis/v4/http/api.json"})
         void should_be_able_to_call_on_https_then_not(HttpClient httpClient, GatewayDynamicConfig.HttpConfig httpConfig)
-            throws VaultException, IOException {
+                throws VaultException, IOException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors)
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .flatMapCompletable(body -> {
-                    assertThat(body).hasToString("response from backend");
-                    return Completable.complete();
-                })
-                .test()
-                .awaitDone(5, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // just asserting we get a response (hence no SSL errors)
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .flatMapCompletable(body -> {
+                        assertThat(body).hasToString("response from backend");
+                        return Completable.complete();
+                    })
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertComplete();
 
             var newSSLPairs = SSLUtils.createPairs();
             writeSecret("secret/tls-test", Map.of("crt", newSSLPairs.cert(), "key", newSSLPairs.privateKey()));
 
             // create a new client to avoid sharing the connection
-            var newHttpClient = getBean(Vertx.class).createHttpClient(
-                new HttpClientOptions()
-                    .setDefaultPort(httpConfig.httpPort())
-                    .setDefaultHost("localhost")
-                    .setSsl(true)
-                    .setVerifyHost(false)
-                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())))
-            );
+            var newHttpClient = getBean(Vertx.class)
+                    .createHttpClient(new HttpClientOptions()
+                            .setDefaultPort(httpConfig.httpPort())
+                            .setDefaultHost("localhost")
+                            .setSsl(true)
+                            .setVerifyHost(false)
+                            .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert()))));
 
-            await()
-                .pollInterval(1, TimeUnit.SECONDS)
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() ->
-                    newHttpClient
-                        .rxRequest(HttpMethod.GET, "/test")
-                        .flatMap(HttpClientRequest::rxSend)
-                        .test()
-                        .awaitDone(2, TimeUnit.SECONDS)
-                        .assertError(SSLHandshakeException.class)
-                );
+            await().pollInterval(1, TimeUnit.SECONDS)
+                    .atMost(10, TimeUnit.SECONDS)
+                    .untilAsserted(() -> newHttpClient
+                            .rxRequest(HttpMethod.GET, "/test")
+                            .flatMap(HttpClientRequest::rxSend)
+                            .test()
+                            .awaitDone(2, TimeUnit.SECONDS)
+                            .assertError(SSLHandshakeException.class));
         }
     }
 
@@ -338,9 +343,8 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @BeforeAll
         void setupAdditionalSecrets() {
             ConfigurableEnvironment environment = (ConfigurableEnvironment) getBean(Environment.class);
-            GraviteeYamlPropertySource graviteeProperties = (GraviteeYamlPropertySource) environment
-                .getPropertySources()
-                .get("graviteeYamlConfiguration");
+            GraviteeYamlPropertySource graviteeProperties = (GraviteeYamlPropertySource)
+                    environment.getPropertySources().get("graviteeYamlConfiguration");
             if (graviteeProperties != null) {
                 graviteeProperties.getSource().put("missing", "secret://vault/test:pass");
                 graviteeProperties.getSource().put("missing2", "secret://vault/test:pass?namespace=test");

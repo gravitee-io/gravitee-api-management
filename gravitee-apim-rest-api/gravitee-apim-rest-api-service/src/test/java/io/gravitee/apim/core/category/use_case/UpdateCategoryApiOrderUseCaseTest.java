@@ -59,39 +59,36 @@ public class UpdateCategoryApiOrderUseCaseTest {
         updateCategoryApiDomainService = new UpdateCategoryApiDomainServiceInMemory(categoryApiCrudService);
         validateCategoryDomainService = new ValidateCategoryDomainService(categoryQueryService);
         useCase = new UpdateCategoryApiOrderUseCase(
-            validateCategoryDomainService,
-            apiAuthorizationDomainService,
-            updateCategoryApiDomainService,
-            apiCrudServiceInMemory,
-            categoryApiCrudService
-        );
+                validateCategoryDomainService,
+                apiAuthorizationDomainService,
+                updateCategoryApiDomainService,
+                apiCrudServiceInMemory,
+                categoryApiCrudService);
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiAuthorizationDomainService,
-            updateCategoryApiDomainService,
-            categoryQueryService,
-            apiCrudServiceInMemory,
-            categoryApiCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiAuthorizationDomainService,
+                        updateCategoryApiDomainService,
+                        categoryQueryService,
+                        apiCrudServiceInMemory,
+                        categoryApiCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_throw_error_when_category_id_is_null() {
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, null, API_ID, USER_ID, false, 99))
-        );
+        var throwable = Assertions.catchThrowable(() -> useCase.execute(
+                new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, null, API_ID, USER_ID, false, 99)));
 
         Assertions.assertThat(throwable).isInstanceOf(CategoryNotFoundException.class);
     }
 
     @Test
     void should_throw_error_when_category_id_not_found() {
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, false, 99))
-        );
+        var throwable = Assertions.catchThrowable(() -> useCase.execute(
+                new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, false, 99)));
 
         Assertions.assertThat(throwable).isInstanceOf(CategoryNotFoundException.class);
     }
@@ -100,9 +97,8 @@ public class UpdateCategoryApiOrderUseCaseTest {
     void should_throw_error_if_api_not_in_user_scope() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
 
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, false, 99))
-        );
+        var throwable = Assertions.catchThrowable(() -> useCase.execute(
+                new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, false, 99)));
 
         Assertions.assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
@@ -111,9 +107,8 @@ public class UpdateCategoryApiOrderUseCaseTest {
     void should_throw_error_if_admin_and_api_not_found() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
 
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, true, 99))
-        );
+        var throwable = Assertions.catchThrowable(() -> useCase.execute(
+                new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, true, 99)));
 
         Assertions.assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
@@ -122,9 +117,8 @@ public class UpdateCategoryApiOrderUseCaseTest {
     void should_throw_error_if_api_category_order_not_found() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
         apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, true, 99))
-        );
+        var throwable = Assertions.catchThrowable(() -> useCase.execute(
+                new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, true, 99)));
 
         Assertions.assertThat(throwable).isInstanceOf(ApiAndCategoryNotAssociatedException.class);
     }
@@ -133,15 +127,20 @@ public class UpdateCategoryApiOrderUseCaseTest {
     void should_return_changed_api_category_order() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
         apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
-        categoryApiCrudService.initWith(List.of(ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(0).build()));
+        categoryApiCrudService.initWith(List.of(ApiCategoryOrder.builder()
+                .apiId(API_ID)
+                .categoryId(CAT_ID)
+                .order(0)
+                .build()));
 
-        var result = useCase.execute(new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, true, 99));
+        var result = useCase.execute(
+                new UpdateCategoryApiOrderUseCase.Input(EXECUTION_CONTEXT, CAT_ID, API_ID, USER_ID, true, 99));
 
         assertThat(result)
-            .isNotNull()
-            .extracting(UpdateCategoryApiOrderUseCase.Output::result)
-            .extracting(UpdateCategoryApiOrderUseCase.Result::apiCategoryOrder)
-            .extracting(ApiCategoryOrder::getOrder)
-            .isEqualTo(99);
+                .isNotNull()
+                .extracting(UpdateCategoryApiOrderUseCase.Output::result)
+                .extracting(UpdateCategoryApiOrderUseCase.Result::apiCategoryOrder)
+                .extracting(ApiCategoryOrder::getOrder)
+                .isEqualTo(99);
     }
 }

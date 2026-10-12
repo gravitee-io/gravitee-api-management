@@ -147,10 +147,12 @@ public class CurrentUserResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the authenticated user")
     @ApiResponse(
-        responseCode = "200",
-        description = "Authenticated user",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = UserDetails.class))
-    )
+            responseCode = "200",
+            description = "Authenticated user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = UserDetails.class)))
     @ApiResponse(responseCode = "401", description = "Unauthorized user")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCurrentUser() {
@@ -176,17 +178,16 @@ public class CurrentUserResource extends AbstractResource {
 
             UserDetails userDetails = new UserDetails(userEntity.getId(), password, authorities);
             userDetails.setId(userEntity.getId());
-            // in case of memory user, look at the repository layer to get value updated by the user through the MyAccount page
+            // in case of memory user, look at the repository layer to get value updated by the user through the
+            // MyAccount page
             userDetails.setFirstname(
-                IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getFirstname() != null
-                    ? userEntity.getFirstname()
-                    : details.getFirstname()
-            );
+                    IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getFirstname() != null
+                            ? userEntity.getFirstname()
+                            : details.getFirstname());
             userDetails.setLastname(
-                IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getLastname() != null
-                    ? userEntity.getLastname()
-                    : details.getLastname()
-            );
+                    IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getLastname() != null
+                            ? userEntity.getLastname()
+                            : details.getLastname());
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
             userDetails.setPrimaryOwner(userEntity.isPrimaryOwner());
@@ -195,26 +196,28 @@ public class CurrentUserResource extends AbstractResource {
             userDetails.setLastConnectionAt(userEntity.getLastConnectionAt());
             userDetails.setOrganizationId(userEntity.getOrganizationId());
 
-            if (details.getEmail() == null && IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getEmail() != null) {
+            if (details.getEmail() == null
+                    && IDP_SOURCE_MEMORY.equals(userEntity.getSource())
+                    && userEntity.getEmail() != null) {
                 userDetails.setEmail(userEntity.getEmail());
             } else {
                 userDetails.setEmail(details.getEmail());
             }
 
             boolean newsletterEnabled = environment.getProperty("newsletter.enabled", boolean.class, true);
-            if (newsletterEnabled && userEntity.getNewsletterSubscribed() == null && userEntity.getFirstConnectionAt() != null) {
-                long diffInMs = Math.abs(new Date().getTime() - userEntity.getFirstConnectionAt().getTime());
+            if (newsletterEnabled
+                    && userEntity.getNewsletterSubscribed() == null
+                    && userEntity.getFirstConnectionAt() != null) {
+                long diffInMs = Math.abs(
+                        new Date().getTime() - userEntity.getFirstConnectionAt().getTime());
                 long diff = TimeUnit.DAYS.convert(diffInMs, TimeUnit.MILLISECONDS);
                 userDetails.setDisplayNewsletterSubscription(diff >= 7);
             } else {
                 userDetails.setDisplayNewsletterSubscription(false);
             }
 
-            //convert UserEntityRoles to UserDetailsRoles
-            userDetails.setRoles(
-                userEntity
-                    .getRoles()
-                    .stream()
+            // convert UserEntityRoles to UserDetailsRoles
+            userDetails.setRoles(userEntity.getRoles().stream()
                     .map(userEntityRole -> {
                         UserDetailRole userDetailRole = new UserDetailRole();
                         userDetailRole.setScope(userEntityRole.getScope().name());
@@ -222,37 +225,33 @@ public class CurrentUserResource extends AbstractResource {
                         userDetailRole.setPermissions(userEntityRole.getPermissions());
                         return userDetailRole;
                     })
-                    .collect(Collectors.toList())
-            );
+                    .collect(Collectors.toList()));
 
             final Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(
-                MembershipMemberType.USER,
-                userId,
-                MembershipReferenceType.GROUP
-            );
+                    MembershipMemberType.USER, userId, MembershipReferenceType.GROUP);
             if (!memberships.isEmpty()) {
                 final Map<String, Set<String>> userGroups = new HashMap<>();
                 environmentService
-                    .findByUser(GraviteeContext.getCurrentOrganization(), userId)
-                    .forEach(environment -> {
-                        try {
-                            final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
-                            userGroups.put(environment.getId(), new HashSet<>());
-                            memberships
-                                .stream()
-                                .map(MembershipEntity::getReferenceId)
-                                .forEach(groupId -> {
-                                    final Optional<Group> optionalGroup = groups
-                                        .stream()
-                                        .filter(group -> groupId.equals(group.getId()))
-                                        .findFirst();
-                                    optionalGroup.ifPresent(entity -> userGroups.get(environment.getId()).add(entity.getName()));
-                                });
-                            userDetails.setGroupsByEnvironment(userGroups);
-                        } catch (TechnicalException e) {
-                            log.error("Error while trying to get groups of the user " + userId, e);
-                        }
-                    });
+                        .findByUser(GraviteeContext.getCurrentOrganization(), userId)
+                        .forEach(environment -> {
+                            try {
+                                final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
+                                userGroups.put(environment.getId(), new HashSet<>());
+                                memberships.stream()
+                                        .map(MembershipEntity::getReferenceId)
+                                        .forEach(groupId -> {
+                                            final Optional<Group> optionalGroup = groups.stream()
+                                                    .filter(group -> groupId.equals(group.getId()))
+                                                    .findFirst();
+                                            optionalGroup.ifPresent(entity -> userGroups
+                                                    .get(environment.getId())
+                                                    .add(entity.getName()));
+                                        });
+                                userDetails.setGroupsByEnvironment(userGroups);
+                            } catch (TechnicalException e) {
+                                log.error("Error while trying to get groups of the user " + userId, e);
+                            }
+                        });
             }
 
             userDetails.setFirstLogin(1 == userEntity.getLoginCount());
@@ -285,10 +284,12 @@ public class CurrentUserResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Update the authenticated user")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated user",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = UserEntity.class)))
     @ApiResponse(responseCode = "400", description = "Invalid user profile")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -308,26 +309,28 @@ public class CurrentUserResource extends AbstractResource {
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
-        return ok(userService.update(executionContext, userEntity.getId(), user)).build();
+        return ok(userService.update(executionContext, userEntity.getId(), user))
+                .build();
     }
 
     @GET
     @Path("avatar")
     @Operation(summary = "Get user's avatar")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's avatar",
-        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
-    )
+            responseCode = "200",
+            description = "User's avatar",
+            content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCurrentUserPicture(@Context Request request) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        String userId = userService.findById(executionContext, getAuthenticatedUser()).getId();
+        String userId =
+                userService.findById(executionContext, getAuthenticatedUser()).getId();
         PictureEntity picture = userService.getPicture(executionContext, userId);
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl()))
+                    .build();
         }
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
@@ -362,67 +365,64 @@ public class CurrentUserResource extends AbstractResource {
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
             // Manage authorities, initialize it with dynamic permissions from the IDP
-            List<Map<String, String>> authorities = userDetails
-                .getAuthorities()
-                .stream()
-                .map(authority -> Maps.<String, String>builder().put("authority", authority.getAuthority()).build())
-                .collect(Collectors.toList());
+            List<Map<String, String>> authorities = userDetails.getAuthorities().stream()
+                    .map(authority -> Maps.<String, String>builder()
+                            .put("authority", authority.getAuthority())
+                            .build())
+                    .collect(Collectors.toList());
 
             // We must also load permissions from repository for configured management or portal role
             Set<RoleEntity> roles = membershipService.getRoles(
-                MembershipReferenceType.ORGANIZATION,
-                GraviteeContext.getCurrentOrganization(),
-                MembershipMemberType.USER,
-                userDetails.getUsername()
-            );
+                    MembershipReferenceType.ORGANIZATION,
+                    GraviteeContext.getCurrentOrganization(),
+                    MembershipMemberType.USER,
+                    userDetails.getUsername());
             if (!roles.isEmpty()) {
-                roles.forEach(role ->
-                    authorities.add(
-                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
-                    )
-                );
+                roles.forEach(role -> authorities.add(Maps.<String, String>builder()
+                        .put("authority", role.getScope().toString() + ':' + role.getName())
+                        .build()));
             }
 
-            this.environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())
-                .stream()
-                .flatMap(env ->
-                    membershipService
-                        .getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, userDetails.getUsername())
-                        .stream()
-                )
-                .filter(Objects::nonNull)
-                .forEach(role ->
-                    authorities.add(
-                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
-                    )
-                );
+            this.environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()).stream()
+                    .flatMap(env -> membershipService
+                            .getRoles(
+                                    MembershipReferenceType.ENVIRONMENT,
+                                    env.getId(),
+                                    MembershipMemberType.USER,
+                                    userDetails.getUsername())
+                            .stream())
+                    .filter(Objects::nonNull)
+                    .forEach(role -> authorities.add(Maps.<String, String>builder()
+                            .put("authority", role.getScope().toString() + ':' + role.getName())
+                            .build()));
 
             // JWT signer
             Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
 
             Date issueAt = new Date();
-            Instant expireAt = issueAt
-                .toInstant()
-                .plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
+            Instant expireAt = issueAt.toInstant()
+                    .plus(Duration.ofSeconds(
+                            environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
 
             final String token = JWT.create()
-                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
-                .withIssuedAt(issueAt)
-                .withExpiresAt(Date.from(expireAt))
-                .withSubject(userDetails.getUsername())
-                .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
-                .withClaim(JWTHelper.Claims.EMAIL, userDetails.getEmail())
-                .withClaim(JWTHelper.Claims.FIRSTNAME, userDetails.getFirstname())
-                .withClaim(JWTHelper.Claims.LASTNAME, userDetails.getLastname())
-                .withClaim(JWTHelper.Claims.ORG, userDetails.getOrganizationId())
-                .withJWTId(UUID.randomUUID().toString())
-                .sign(algorithm);
+                    .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                    .withIssuedAt(issueAt)
+                    .withExpiresAt(Date.from(expireAt))
+                    .withSubject(userDetails.getUsername())
+                    .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
+                    .withClaim(JWTHelper.Claims.EMAIL, userDetails.getEmail())
+                    .withClaim(JWTHelper.Claims.FIRSTNAME, userDetails.getFirstname())
+                    .withClaim(JWTHelper.Claims.LASTNAME, userDetails.getLastname())
+                    .withClaim(JWTHelper.Claims.ORG, userDetails.getOrganizationId())
+                    .withJWTId(UUID.randomUUID().toString())
+                    .sign(algorithm);
 
             final TokenEntity tokenEntity = new TokenEntity();
             tokenEntity.setType(BEARER);
             tokenEntity.setToken(token);
 
-            final Cookie bearerCookie = cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + token);
+            final Cookie bearerCookie =
+                    cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + token);
             servletResponse.addCookie(bearerCookie);
 
             return ok(tokenEntity).build();
@@ -443,16 +443,19 @@ public class CurrentUserResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the user's tasks")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's tasks",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TaskEntityPagedResult.class))
-    )
+            responseCode = "200",
+            description = "User's tasks",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = TaskEntityPagedResult.class)))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public TaskEntityPagedResult getUserTasks() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         List<TaskEntity> tasks = taskService.findAll(executionContext, getAuthenticatedUserOrNull());
-        Map<String, Map<String, Object>> metadata = taskService.getMetadata(executionContext, tasks).toMap();
+        Map<String, Map<String, Object>> metadata =
+                taskService.getMetadata(executionContext, tasks).toMap();
         TaskEntityPagedResult pagedResult = new TaskEntityPagedResult(tasks);
         pagedResult.setMetadata(metadata);
         return pagedResult;
@@ -462,20 +465,21 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/tags")
     @Operation(summary = "Get the user's allowed sharding tags")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's sharding tags",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = String.class), uniqueItems = true)
-        )
-    )
+            responseCode = "200",
+            description = "User's sharding tags",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = String.class), uniqueItems = true)))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserShardingTags() {
-        return ok(
-            tagService.findByUser(getAuthenticatedUser(), GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
-        ).build();
+        return ok(tagService.findByUser(
+                        getAuthenticatedUser(),
+                        GraviteeContext.getCurrentOrganization(),
+                        TagReferenceType.ORGANIZATION))
+                .build();
     }
 
     @Path("/notifications")

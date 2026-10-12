@@ -35,13 +35,13 @@ public class OrganizationsResource extends AbstractResource {
 
     @Path("/{orgId}")
     public OrganizationResource getOrganizationResource(
-        @PathParam("orgId") @Parameter(
-            name = "orgId",
-            required = true,
-            description = "The ID of the Organization",
-            schema = @Schema(defaultValue = "DEFAULT")
-        ) String orgId
-    ) {
+            @PathParam("orgId")
+                    @Parameter(
+                            name = "orgId",
+                            required = true,
+                            description = "The ID of the Organization",
+                            schema = @Schema(defaultValue = "DEFAULT"))
+                    String orgId) {
         return resourceContext.getResource(OrganizationResource.class);
     }
 }

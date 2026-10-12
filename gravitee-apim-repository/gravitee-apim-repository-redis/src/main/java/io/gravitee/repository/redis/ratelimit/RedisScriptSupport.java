@@ -43,7 +43,8 @@ final class RedisScriptSupport {
         int depth = 0;
         for (Throwable cause = t; cause != null && depth < 20; cause = cause.getCause(), depth++) {
             String message = cause.getMessage();
-            if (message != null && message.stripLeading().regionMatches(true, 0, NOSCRIPT_PREFIX, 0, NOSCRIPT_PREFIX.length())) {
+            if (message != null
+                    && message.stripLeading().regionMatches(true, 0, NOSCRIPT_PREFIX, 0, NOSCRIPT_PREFIX.length())) {
                 return true;
             }
         }

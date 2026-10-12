@@ -51,31 +51,37 @@ public class CategoryApiMapperTest {
         virtualHost2.setPath("/great-path");
 
         var definition = io.gravitee.definition.model.Api.builder()
-            .definitionVersion(DefinitionVersion.V2)
-            .proxy(Proxy.builder().virtualHosts(List.of(virtualHost1, virtualHost2)).build())
-            .build();
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(Proxy.builder()
+                        .virtualHosts(List.of(virtualHost1, virtualHost2))
+                        .build())
+                .build();
 
         var apiV2 = Api.builder()
-            .id(API_ID)
-            .definitionVersion(DefinitionVersion.V2)
-            .name(API_NAME)
-            .description(API_DESCRIPTION)
-            .version(API_VERSION)
-            .apiDefinition(definition)
-            .build();
+                .id(API_ID)
+                .definitionVersion(DefinitionVersion.V2)
+                .name(API_NAME)
+                .description(API_DESCRIPTION)
+                .version(API_VERSION)
+                .apiDefinition(definition)
+                .build();
 
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId(API_ID)
+                .categoryId(CAT_ID)
+                .order(11)
+                .build();
 
         var mappedResult = mapper.map(apiCategoryOrder, apiV2);
 
         var expectedResult = new CategoryApi()
-            .id(API_ID)
-            .name(API_NAME)
-            .apiVersion(API_VERSION)
-            .description(API_DESCRIPTION)
-            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2)
-            .order(11)
-            .accessPaths(List.of("host-1/path-2", "/great-path"));
+                .id(API_ID)
+                .name(API_NAME)
+                .apiVersion(API_VERSION)
+                .description(API_DESCRIPTION)
+                .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2)
+                .order(11)
+                .accessPaths(List.of("host-1/path-2", "/great-path"));
 
         assertThat(mappedResult).isNotNull().usingRecursiveAssertion().isEqualTo(expectedResult);
     }
@@ -83,66 +89,75 @@ public class CategoryApiMapperTest {
     @Test
     void should_map_v2_api_without_virtual_hosts() {
         var definition = io.gravitee.definition.model.Api.builder()
-            .definitionVersion(DefinitionVersion.V2)
-            .proxy(Proxy.builder().virtualHosts(List.of()).build())
-            .build();
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(Proxy.builder().virtualHosts(List.of()).build())
+                .build();
 
         var apiV2 = Api.builder()
-            .id(API_ID)
-            .definitionVersion(DefinitionVersion.V2)
-            .name(API_NAME)
-            .description(API_DESCRIPTION)
-            .version(API_VERSION)
-            .apiDefinition(definition)
-            .build();
+                .id(API_ID)
+                .definitionVersion(DefinitionVersion.V2)
+                .name(API_NAME)
+                .description(API_DESCRIPTION)
+                .version(API_VERSION)
+                .apiDefinition(definition)
+                .build();
 
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId(API_ID)
+                .categoryId(CAT_ID)
+                .order(11)
+                .build();
 
         var mappedResult = mapper.map(apiCategoryOrder, apiV2);
 
         var expectedResult = new CategoryApi()
-            .id(API_ID)
-            .name(API_NAME)
-            .apiVersion(API_VERSION)
-            .description(API_DESCRIPTION)
-            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2)
-            .order(11)
-            .accessPaths(List.of());
+                .id(API_ID)
+                .name(API_NAME)
+                .apiVersion(API_VERSION)
+                .description(API_DESCRIPTION)
+                .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2)
+                .order(11)
+                .accessPaths(List.of());
 
         assertThat(mappedResult).isNotNull().usingRecursiveAssertion().isEqualTo(expectedResult);
     }
 
     @Test
     void should_map_v4_api_with_tcp_listeners() {
-        var tcpListener = TcpListener.builder().hosts(List.of("one-host", "two-host")).build();
+        var tcpListener =
+                TcpListener.builder().hosts(List.of("one-host", "two-host")).build();
 
         var definition = io.gravitee.definition.model.v4.Api.builder()
-            .id(API_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .listeners(List.of(tcpListener))
-            .build();
+                .id(API_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .listeners(List.of(tcpListener))
+                .build();
 
         var apiV4 = Api.builder()
-            .id(API_ID)
-            .name(API_NAME)
-            .description(API_DESCRIPTION)
-            .version(API_VERSION)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(definition)
-            .build();
+                .id(API_ID)
+                .name(API_NAME)
+                .description(API_DESCRIPTION)
+                .version(API_VERSION)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .build();
 
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId(API_ID)
+                .categoryId(CAT_ID)
+                .order(11)
+                .build();
 
         var mappedResult = mapper.map(apiCategoryOrder, apiV4);
 
         var expectedResult = new CategoryApi()
-            .id(API_ID)
-            .name(API_NAME)
-            .apiVersion(API_VERSION)
-            .description(API_DESCRIPTION)
-            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
-            .order(11)
-            .accessPaths(List.of("one-host", "two-host"));
+                .id(API_ID)
+                .name(API_NAME)
+                .apiVersion(API_VERSION)
+                .description(API_DESCRIPTION)
+                .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+                .order(11)
+                .accessPaths(List.of("one-host", "two-host"));
 
         assertThat(mappedResult).isNotNull().usingRecursiveAssertion().isEqualTo(expectedResult);
     }
@@ -150,75 +165,88 @@ public class CategoryApiMapperTest {
     @Test
     void should_map_v4_api_with_http_listeners() {
         var httpListener = HttpListener.builder()
-            .paths(List.of(Path.builder().host("host-1").path("/path-2").build(), Path.builder().host(null).path("/great-path").build()))
-            .build();
+                .paths(List.of(
+                        Path.builder().host("host-1").path("/path-2").build(),
+                        Path.builder().host(null).path("/great-path").build()))
+                .build();
 
         var definition = io.gravitee.definition.model.v4.Api.builder()
-            .id(API_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .listeners(List.of(httpListener))
-            .build();
+                .id(API_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .listeners(List.of(httpListener))
+                .build();
 
         var apiV4 = Api.builder()
-            .id(API_ID)
-            .name(API_NAME)
-            .description(API_DESCRIPTION)
-            .version(API_VERSION)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(definition)
-            .build();
+                .id(API_ID)
+                .name(API_NAME)
+                .description(API_DESCRIPTION)
+                .version(API_VERSION)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .build();
 
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId(API_ID)
+                .categoryId(CAT_ID)
+                .order(11)
+                .build();
 
         var mappedResult = mapper.map(apiCategoryOrder, apiV4);
 
         var expectedResult = new CategoryApi()
-            .id(API_ID)
-            .name(API_NAME)
-            .apiVersion(API_VERSION)
-            .description(API_DESCRIPTION)
-            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
-            .order(11)
-            .accessPaths(List.of("host-1/path-2", "/great-path"));
+                .id(API_ID)
+                .name(API_NAME)
+                .apiVersion(API_VERSION)
+                .description(API_DESCRIPTION)
+                .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+                .order(11)
+                .accessPaths(List.of("host-1/path-2", "/great-path"));
 
         assertThat(mappedResult).isNotNull().usingRecursiveAssertion().isEqualTo(expectedResult);
     }
 
     @Test
     void should_map_v4_api_with_tcp_and_http_listeners() {
-        var tcpListener = TcpListener.builder().hosts(List.of("one-host", "two-host")).build();
+        var tcpListener =
+                TcpListener.builder().hosts(List.of("one-host", "two-host")).build();
 
         var httpListener = HttpListener.builder()
-            .paths(List.of(Path.builder().host("host-1").path("/path-2").build(), Path.builder().host(null).path("/great-path").build()))
-            .build();
+                .paths(List.of(
+                        Path.builder().host("host-1").path("/path-2").build(),
+                        Path.builder().host(null).path("/great-path").build()))
+                .build();
 
         var definition = io.gravitee.definition.model.v4.Api.builder()
-            .id(API_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .listeners(List.of(tcpListener, httpListener))
-            .build();
+                .id(API_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .listeners(List.of(tcpListener, httpListener))
+                .build();
 
         var apiV4 = Api.builder()
-            .id(API_ID)
-            .name(API_NAME)
-            .description(API_DESCRIPTION)
-            .version(API_VERSION)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(definition)
-            .build();
+                .id(API_ID)
+                .name(API_NAME)
+                .description(API_DESCRIPTION)
+                .version(API_VERSION)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .build();
 
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId(API_ID)
+                .categoryId(CAT_ID)
+                .order(11)
+                .build();
 
         var mappedResult = mapper.map(apiCategoryOrder, apiV4);
 
         var expectedResult = new CategoryApi()
-            .id(API_ID)
-            .name(API_NAME)
-            .apiVersion(API_VERSION)
-            .description(API_DESCRIPTION)
-            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
-            .order(11)
-            .accessPaths(List.of("one-host", "two-host", "host-1/path-2", "/great-path"));
+                .id(API_ID)
+                .name(API_NAME)
+                .apiVersion(API_VERSION)
+                .description(API_DESCRIPTION)
+                .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+                .order(11)
+                .accessPaths(List.of("one-host", "two-host", "host-1/path-2", "/great-path"));
 
         assertThat(mappedResult).isNotNull().usingRecursiveAssertion().isEqualTo(expectedResult);
     }
@@ -226,32 +254,36 @@ public class CategoryApiMapperTest {
     @Test
     void should_map_v4_api_with_no_tcp_or_http_listeners() {
         var definition = io.gravitee.definition.model.v4.Api.builder()
-            .id(API_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .listeners(List.of())
-            .build();
+                .id(API_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .listeners(List.of())
+                .build();
 
         var apiV4 = Api.builder()
-            .id(API_ID)
-            .name(API_NAME)
-            .description(API_DESCRIPTION)
-            .version(API_VERSION)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(definition)
-            .build();
+                .id(API_ID)
+                .name(API_NAME)
+                .description(API_DESCRIPTION)
+                .version(API_VERSION)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .build();
 
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(11).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId(API_ID)
+                .categoryId(CAT_ID)
+                .order(11)
+                .build();
 
         var mappedResult = mapper.map(apiCategoryOrder, apiV4);
 
         var expectedResult = new CategoryApi()
-            .id(API_ID)
-            .name(API_NAME)
-            .apiVersion(API_VERSION)
-            .description(API_DESCRIPTION)
-            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
-            .order(11)
-            .accessPaths(List.of());
+                .id(API_ID)
+                .name(API_NAME)
+                .apiVersion(API_VERSION)
+                .description(API_DESCRIPTION)
+                .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+                .order(11)
+                .accessPaths(List.of());
 
         assertThat(mappedResult).isNotNull().usingRecursiveAssertion().isEqualTo(expectedResult);
     }

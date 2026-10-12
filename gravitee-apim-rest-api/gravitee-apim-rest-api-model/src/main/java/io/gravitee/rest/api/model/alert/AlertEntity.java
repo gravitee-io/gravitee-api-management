@@ -176,42 +176,39 @@ public class AlertEntity {
 
     @Override
     public String toString() {
-        return (
-            "AlertEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", type=" +
-            type +
-            ", enabled=" +
-            enabled +
-            ", metricType=" +
-            metricType +
-            ", metric=" +
-            metric +
-            ", thresholdType=" +
-            thresholdType +
-            ", threshold=" +
-            threshold +
-            ", plan='" +
-            plan +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("AlertEntity{" + "id='"
+                + id
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", type="
+                + type
+                + ", enabled="
+                + enabled
+                + ", metricType="
+                + metricType
+                + ", metric="
+                + metric
+                + ", thresholdType="
+                + thresholdType
+                + ", threshold="
+                + threshold
+                + ", plan='"
+                + plan
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

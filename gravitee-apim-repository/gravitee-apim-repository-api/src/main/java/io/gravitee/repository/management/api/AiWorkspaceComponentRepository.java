@@ -26,8 +26,8 @@ import java.util.List;
 public interface AiWorkspaceComponentRepository extends CrudRepository<AiWorkspaceComponent, String> {
     List<AiWorkspaceComponent> findByApiProductId(String apiProductId) throws TechnicalException;
 
-    List<AiWorkspaceComponent> findByApiProductIdAndComponentType(String apiProductId, AiWorkspaceComponentType componentType)
-        throws TechnicalException;
+    List<AiWorkspaceComponent> findByApiProductIdAndComponentType(
+            String apiProductId, AiWorkspaceComponentType componentType) throws TechnicalException;
 
     List<AiWorkspaceComponent> findByRefId(String refId) throws TechnicalException;
 

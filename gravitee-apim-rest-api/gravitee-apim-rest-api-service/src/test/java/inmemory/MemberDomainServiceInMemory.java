@@ -17,7 +17,6 @@ package inmemory;
 
 import static java.util.stream.Collectors.toSet;
 
-import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.member.domain_service.MemberDomainService;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -28,14 +27,10 @@ public class MemberDomainServiceInMemory extends AbstractServiceInMemory<MemberE
 
     @Override
     public Set<MemberEntity> getMembersByReference(
-        ExecutionContext executionContext,
-        MembershipReferenceType referenceType,
-        String referenceId
-    ) {
-        return storage
-            .stream()
-            .filter(member -> member.getReferenceType().equals(referenceType))
-            .filter(member -> member.getReferenceId().equals(referenceId))
-            .collect(toSet());
+            ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId) {
+        return storage.stream()
+                .filter(member -> member.getReferenceType().equals(referenceType))
+                .filter(member -> member.getReferenceId().equals(referenceId))
+                .collect(toSet());
     }
 }

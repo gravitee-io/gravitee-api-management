@@ -56,122 +56,118 @@ import lombok.Builder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 public class DebugSyncApiReactor extends SyncApiReactor {
 
     public DebugSyncApiReactor(
-        final Api api,
-        final ComponentProvider componentProvider,
-        final List<TemplateVariableProvider> templateVariableProviders,
-        final HttpInvoker defaultInvoker,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ApiProcessorChainFactory apiProcessorChainFactory,
-        final PolicyManager policyManager,
-        final FlowChainFactory flowChainFactory,
-        final GroupLifecycleManager groupLifecycleManager,
-        final Configuration configuration,
-        final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final AccessPointManager accessPointManager,
-        final EventManager eventManager,
-        final HttpAcceptorFactory httpAcceptorFactory,
-        final TracingContext tracingContext
-    ) {
+            final Api api,
+            final ComponentProvider componentProvider,
+            final List<TemplateVariableProvider> templateVariableProviders,
+            final HttpInvoker defaultInvoker,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ApiProcessorChainFactory apiProcessorChainFactory,
+            final PolicyManager policyManager,
+            final FlowChainFactory flowChainFactory,
+            final GroupLifecycleManager groupLifecycleManager,
+            final Configuration configuration,
+            final Node node,
+            final RequestTimeoutConfiguration requestTimeoutConfiguration,
+            final AccessPointManager accessPointManager,
+            final EventManager eventManager,
+            final HttpAcceptorFactory httpAcceptorFactory,
+            final TracingContext tracingContext) {
         super(
-            api,
-            componentProvider,
-            templateVariableProviders,
-            defaultInvoker,
-            resourceLifecycleManager,
-            apiProcessorChainFactory,
-            policyManager,
-            flowChainFactory,
-            groupLifecycleManager,
-            configuration,
-            node,
-            requestTimeoutConfiguration,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            tracingContext,
-            null
-        );
+                api,
+                componentProvider,
+                templateVariableProviders,
+                defaultInvoker,
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                policyManager,
+                flowChainFactory,
+                groupLifecycleManager,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                tracingContext,
+                null);
         invokerHooks.add(new DebugInvokerHook());
     }
 
     @Builder(access = AccessLevel.MODULE)
     DebugSyncApiReactor(
-        Api api,
-        List<ChainHook> processorChainHooks,
-        List<InvokerHook> invokerHooks,
-        ComponentProvider componentProvider,
-        List<TemplateVariableProvider> templateVariableProviders,
-        HttpInvoker defaultInvoker,
-        ResourceLifecycleManager resourceLifecycleManager,
-        PolicyManager policyManager,
-        GroupLifecycleManager groupLifecycleManager,
-        FlowChain organizationFlowChain,
-        FlowChain apiPlanFlowChain,
-        FlowChain apiFlowChain,
-        ProcessorChain beforeHandleProcessors,
-        ProcessorChain afterHandleProcessors,
-        ProcessorChain beforeSecurityChainProcessors,
-        ProcessorChain beforeApiFlowsProcessors,
-        ProcessorChain afterApiFlowsProcessors,
-        ProcessorChain onErrorProcessors,
-        Configuration configuration,
-        Node node,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        TracingContext tracingContext,
-        String loggingExcludedResponseType,
-        String loggingMaxSize,
-        HttpAcceptorFactory httpAcceptorFactory,
-        long pendingRequestsTimeout,
-        AnalyticsContext analyticsContext,
-        HttpSecurityChain httpSecurityChain,
-        List<Acceptor<?>> acceptors
-    ) {
+            Api api,
+            List<ChainHook> processorChainHooks,
+            List<InvokerHook> invokerHooks,
+            ComponentProvider componentProvider,
+            List<TemplateVariableProvider> templateVariableProviders,
+            HttpInvoker defaultInvoker,
+            ResourceLifecycleManager resourceLifecycleManager,
+            PolicyManager policyManager,
+            GroupLifecycleManager groupLifecycleManager,
+            FlowChain organizationFlowChain,
+            FlowChain apiPlanFlowChain,
+            FlowChain apiFlowChain,
+            ProcessorChain beforeHandleProcessors,
+            ProcessorChain afterHandleProcessors,
+            ProcessorChain beforeSecurityChainProcessors,
+            ProcessorChain beforeApiFlowsProcessors,
+            ProcessorChain afterApiFlowsProcessors,
+            ProcessorChain onErrorProcessors,
+            Configuration configuration,
+            Node node,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            TracingContext tracingContext,
+            String loggingExcludedResponseType,
+            String loggingMaxSize,
+            HttpAcceptorFactory httpAcceptorFactory,
+            long pendingRequestsTimeout,
+            AnalyticsContext analyticsContext,
+            HttpSecurityChain httpSecurityChain,
+            List<Acceptor<?>> acceptors) {
         super(
-            api,
-            processorChainHooks,
-            invokerHooks,
-            componentProvider,
-            templateVariableProviders,
-            defaultInvoker,
-            resourceLifecycleManager,
-            policyManager,
-            groupLifecycleManager,
-            organizationFlowChain,
-            apiPlanFlowChain,
-            apiFlowChain,
-            beforeHandleProcessors,
-            afterHandleProcessors,
-            beforeSecurityChainProcessors,
-            beforeApiFlowsProcessors,
-            afterApiFlowsProcessors,
-            onErrorProcessors,
-            configuration,
-            node,
-            requestTimeoutConfiguration,
-            accessPointManager,
-            eventManager,
-            tracingContext,
-            loggingExcludedResponseType,
-            loggingMaxSize,
-            httpAcceptorFactory,
-            pendingRequestsTimeout,
-            analyticsContext,
-            httpSecurityChain,
-            acceptors,
-            null
-        );
+                api,
+                processorChainHooks,
+                invokerHooks,
+                componentProvider,
+                templateVariableProviders,
+                defaultInvoker,
+                resourceLifecycleManager,
+                policyManager,
+                groupLifecycleManager,
+                organizationFlowChain,
+                apiPlanFlowChain,
+                apiFlowChain,
+                beforeHandleProcessors,
+                afterHandleProcessors,
+                beforeSecurityChainProcessors,
+                beforeApiFlowsProcessors,
+                afterApiFlowsProcessors,
+                onErrorProcessors,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager,
+                tracingContext,
+                loggingExcludedResponseType,
+                loggingMaxSize,
+                httpAcceptorFactory,
+                pendingRequestsTimeout,
+                analyticsContext,
+                httpSecurityChain,
+                acceptors,
+                null);
     }
 
     void handleProcess(final MutableExecutionContext ctx) {
         String debugContextPath = ctx.request().contextPath();
-        String cleanContextPath = PathTransformer.removeEventIdFromPath(((DebugApiV2) api).getEventId(), debugContextPath);
+        String cleanContextPath =
+                PathTransformer.removeEventIdFromPath(((DebugApiV2) api).getEventId(), debugContextPath);
         ctx.request().debugContextPath(cleanContextPath);
     }
 
@@ -195,13 +191,9 @@ public class DebugSyncApiReactor extends SyncApiReactor {
     public List<Acceptor<?>> acceptors() {
         try {
             if (acceptors == null) {
-                acceptors = api
-                    .getDefinition()
-                    .getProxy()
-                    .getVirtualHosts()
-                    .stream()
-                    .map(virtualHost -> new DefaultHttpAcceptor(null, virtualHost.getPath(), this, null))
-                    .collect(Collectors.toList());
+                acceptors = api.getDefinition().getProxy().getVirtualHosts().stream()
+                        .map(virtualHost -> new DefaultHttpAcceptor(null, virtualHost.getPath(), this, null))
+                        .collect(Collectors.toList());
             }
             return acceptors;
         } catch (Exception ex) {

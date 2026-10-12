@@ -56,7 +56,8 @@ public class DebugStepDeserializer extends StdScalarDeserializer<DebugStep> {
         debugStep.setDuration(node.get("duration").asLong());
         JsonNode resultNode = node.get("result");
         if (resultNode != null && !resultNode.isEmpty(null)) {
-            Map<String, Object> result = resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, Object>>() {});
+            Map<String, Object> result =
+                    resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, Object>>() {});
             debugStep.setResult(result);
         }
         debugStep.setStage(readStringValue(node, "stage"));

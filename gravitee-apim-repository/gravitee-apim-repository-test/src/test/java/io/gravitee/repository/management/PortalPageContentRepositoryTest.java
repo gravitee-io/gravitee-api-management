@@ -39,7 +39,8 @@ public class PortalPageContentRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_find_all_page_contents_for_type() throws Exception {
-        List<PortalPageContent> contents = portalPageContentRepository.findAllByType(PortalPageContent.Type.GRAVITEE_MARKDOWN);
+        List<PortalPageContent> contents =
+                portalPageContentRepository.findAllByType(PortalPageContent.Type.GRAVITEE_MARKDOWN);
 
         assertThat(contents).isNotNull();
         assertThat(contents).hasSize(2);
@@ -50,13 +51,13 @@ public class PortalPageContentRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_create_and_delete_page_content() throws Exception {
         PortalPageContent content = PortalPageContent.builder()
-            .id("new-page-content")
-            .organizationId("DEFAULT_ORGANIZATION")
-            .environmentId("DEFAULT_ENVIRONMENT")
-            .type(PortalPageContent.Type.GRAVITEE_MARKDOWN)
-            .configuration("{ \"pageId\": \"contact\" }")
-            .content("# Contact us")
-            .build();
+                .id("new-page-content")
+                .organizationId("DEFAULT_ORGANIZATION")
+                .environmentId("DEFAULT_ENVIRONMENT")
+                .type(PortalPageContent.Type.GRAVITEE_MARKDOWN)
+                .configuration("{ \"pageId\": \"contact\" }")
+                .content("# Contact us")
+                .build();
 
         PortalPageContent created = portalPageContentRepository.create(content);
         assertThat(created).isNotNull();
@@ -69,21 +70,23 @@ public class PortalPageContentRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_update_page_content() throws Exception {
-        PortalPageContent existing = portalPageContentRepository.findById("page-content-1").orElse(null);
+        PortalPageContent existing =
+                portalPageContentRepository.findById("page-content-1").orElse(null);
         assertThat(existing).isNotNull();
 
         PortalPageContent toUpdate = PortalPageContent.builder()
-            .id(existing.getId())
-            .type(existing.getType())
-            .organizationId(existing.getOrganizationId())
-            .environmentId(existing.getEnvironmentId())
-            .configuration(existing.getConfiguration())
-            .content("# Updated content")
-            .build();
+                .id(existing.getId())
+                .type(existing.getType())
+                .organizationId(existing.getOrganizationId())
+                .environmentId(existing.getEnvironmentId())
+                .configuration(existing.getConfiguration())
+                .content("# Updated content")
+                .build();
 
         portalPageContentRepository.update(toUpdate);
 
-        PortalPageContent updated = portalPageContentRepository.findById(existing.getId()).orElse(null);
+        PortalPageContent updated =
+                portalPageContentRepository.findById(existing.getId()).orElse(null);
         assertThat(updated).isNotNull();
         assertThat(updated.getContent()).isEqualTo("# Updated content");
     }

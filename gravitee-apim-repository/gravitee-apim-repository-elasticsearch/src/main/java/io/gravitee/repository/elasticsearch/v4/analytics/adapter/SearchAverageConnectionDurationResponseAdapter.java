@@ -43,24 +43,24 @@ public class SearchAverageConnectionDurationResponseAdapter {
         }
 
         final var globalAverage = new AtomicDouble(0);
-        final var averageConnectionDuration = entrypointsAggregation
-            .getBuckets()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    jsonNode -> jsonNode.get("key").asText(),
-                    jsonNode -> {
-                        final double docCount = jsonNode.get(AVG_ENDED_REQUEST_DURATION_MS).get("value").asDouble();
-                        globalAverage.addAndGet(docCount);
-                        return docCount;
-                    }
-                )
-            );
+        final var averageConnectionDuration = entrypointsAggregation.getBuckets().stream()
+                .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> {
+                    final double docCount = jsonNode.get(AVG_ENDED_REQUEST_DURATION_MS)
+                            .get("value")
+                            .asDouble();
+                    globalAverage.addAndGet(docCount);
+                    return docCount;
+                }));
 
-        return Optional.of(buildFromSource(averageConnectionDuration, globalAverage.get() / averageConnectionDuration.size()));
+        return Optional.of(
+                buildFromSource(averageConnectionDuration, globalAverage.get() / averageConnectionDuration.size()));
     }
 
-    private static AverageAggregate buildFromSource(Map<String, Double> averageConnectionDuration, double globalAverage) {
-        return AverageAggregate.builder().average(globalAverage).averageBy(averageConnectionDuration).build();
+    private static AverageAggregate buildFromSource(
+            Map<String, Double> averageConnectionDuration, double globalAverage) {
+        return AverageAggregate.builder()
+                .average(globalAverage)
+                .averageBy(averageConnectionDuration)
+                .build();
     }
 }

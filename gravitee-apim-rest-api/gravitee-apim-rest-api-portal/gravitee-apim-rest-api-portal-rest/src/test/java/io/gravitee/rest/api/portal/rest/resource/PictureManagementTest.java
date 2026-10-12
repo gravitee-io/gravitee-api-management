@@ -49,7 +49,8 @@ public class PictureManagementTest {
         doReturn(null).when(request).evaluatePreconditions(any(EntityTag.class));
 
         InlinePictureEntity mockImage = new InlinePictureEntity();
-        byte[] imageContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
+        byte[] imageContent = Files.readAllBytes(Paths.get(
+                this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(imageContent);
         mockImage.setType("image/svg");
 

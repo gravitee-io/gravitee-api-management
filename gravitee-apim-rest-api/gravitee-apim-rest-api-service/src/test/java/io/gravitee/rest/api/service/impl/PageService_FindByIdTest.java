@@ -30,7 +30,6 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,9 +85,8 @@ public class PageService_FindByIdTest {
         when(page1.getReferenceId()).thenReturn("envId");
         when(page1.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(pageRepository.search(argThat(p -> "TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent())))).thenReturn(
-            Arrays.asList(translationPage)
-        );
+        when(pageRepository.search(argThat(p -> "TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent()))))
+                .thenReturn(Arrays.asList(translationPage));
 
         final PageRevisionEntity pageRevision = new PageRevisionEntity();
         pageRevision.setRevision(5);

@@ -27,7 +27,8 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface ParameterRepository extends FindAllRepository<Parameter> {
-    Optional<Parameter> findById(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
+    Optional<Parameter> findById(String key, String referenceId, ParameterReferenceType referenceType)
+            throws TechnicalException;
 
     Parameter create(Parameter item) throws TechnicalException;
 
@@ -35,7 +36,8 @@ public interface ParameterRepository extends FindAllRepository<Parameter> {
 
     void delete(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
 
-    List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
+    List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType)
+            throws TechnicalException;
 
     List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
 
@@ -47,5 +49,6 @@ public interface ParameterRepository extends FindAllRepository<Parameter> {
      * @return List of keys for deleted parameter
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, ParameterReferenceType referenceType)
+            throws TechnicalException;
 }

@@ -101,21 +101,20 @@ public class ApiCRDService_UpdateTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID)).thenReturn(
-            MembershipEntity.builder().memberId(USER_NAME).build()
-        );
+        when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID))
+                .thenReturn(MembershipEntity.builder().memberId(USER_NAME).build());
     }
 
     @Test
     public void shouldUpdate() throws JsonProcessingException {
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID)).thenReturn(Optional.of(toApiEntity(apiCRD)));
+        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID))
+                .thenReturn(Optional.of(toApiEntity(apiCRD)));
 
         apiCRD.setName("update_name");
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD))).thenReturn(
-            toApiEntity(apiCRD)
-        );
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
+                .thenReturn(toApiEntity(apiCRD));
 
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
 
@@ -138,16 +137,15 @@ public class ApiCRDService_UpdateTest {
     public void shouldTransferOwnership() throws JsonProcessingException {
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID)).thenReturn(Optional.of(toApiEntity(apiCRD)));
+        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID))
+                .thenReturn(Optional.of(toApiEntity(apiCRD)));
 
         apiCRD.setName("update_name");
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD))).thenReturn(
-            toApiEntity(apiCRD)
-        );
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
+                .thenReturn(toApiEntity(apiCRD));
 
-        when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID)).thenReturn(
-            MembershipEntity.builder().memberId("other-po").build()
-        );
+        when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID))
+                .thenReturn(MembershipEntity.builder().memberId("other-po").build());
 
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
 
@@ -157,25 +155,25 @@ public class ApiCRDService_UpdateTest {
         assertEquals(DEFAULT_ENVIRONMENT_ID, apiCRDStatus.getEnvironmentId());
         assertEquals(apiCRD.getState(), apiCRDStatus.getState());
 
-        verify(membershipService).transferApiOwnership(
-            new ExecutionContext(DEFAULT_ORGANIZATION_ID, DEFAULT_ENVIRONMENT_ID),
-            API_ID,
-            new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
-            List.of()
-        );
+        verify(membershipService)
+                .transferApiOwnership(
+                        new ExecutionContext(DEFAULT_ORGANIZATION_ID, DEFAULT_ENVIRONMENT_ID),
+                        API_ID,
+                        new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
+                        List.of());
     }
 
     @Test
     public void shouldUpdateAndDeployApi() throws JsonProcessingException {
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID)).thenReturn(Optional.of(toApiEntity(apiCRD)));
+        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID))
+                .thenReturn(Optional.of(toApiEntity(apiCRD)));
 
         apiCRD.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_MANAGEMENT));
         apiCRD.setName("update_name");
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD))).thenReturn(
-            toApiEntity(apiCRD)
-        );
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
+                .thenReturn(toApiEntity(apiCRD));
 
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
 
@@ -197,14 +195,14 @@ public class ApiCRDService_UpdateTest {
     public void shouldUpdateDeployAndStopApi() throws JsonProcessingException {
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID)).thenReturn(Optional.of(toApiEntity(apiCRD)));
+        when(apiService.findByEnvironmentIdAndCrossId(DEFAULT_ENVIRONMENT_ID, API_CROSS_ID))
+                .thenReturn(Optional.of(toApiEntity(apiCRD)));
 
         apiCRD.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_MANAGEMENT));
         apiCRD.setName("update_name");
         apiCRD.setState(STOPPED);
-        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD))).thenReturn(
-            toApiEntity(apiCRD)
-        );
+        when(apiDuplicatorService.updateWithImportedDefinition(ec, null, objectMapper.writeValueAsString(apiCRD)))
+                .thenReturn(toApiEntity(apiCRD));
 
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
 

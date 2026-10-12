@@ -54,7 +54,8 @@ public final class XmlValidationPolicyChecker {
      * @return {@code null} if the step does not require validation or passes all checks;
      *         a non-null error message otherwise.
      */
-    public static String validateRegistryConfiguration(ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
+    public static String validateRegistryConfiguration(
+            ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
         if (!XML_VALIDATION_POLICY_ID.equals(step.getPolicy())) {
             return null;
         }
@@ -67,12 +68,10 @@ public final class XmlValidationPolicyChecker {
             if (!SUPPORTED_API_TYPES.contains(apiType)) {
                 return "XML Validation with schemaSource=registry is only supported on HTTP proxy APIs";
             }
-            if (
-                isBlank(config, "registryResource") ||
-                isBlank(config, "groupId") ||
-                isBlank(config, "artifactId") ||
-                isBlank(config, "version")
-            ) {
+            if (isBlank(config, "registryResource")
+                    || isBlank(config, "groupId")
+                    || isBlank(config, "artifactId")
+                    || isBlank(config, "version")) {
                 return "XML Validation registry source requires registryResource, groupId, artifactId, and version";
             }
             if (apiResourceNames != null) {
@@ -81,7 +80,8 @@ public final class XmlValidationPolicyChecker {
                     return "XML Validation references unknown resource '" + resourceName + "'";
                 }
             }
-            if (config.hasNonNull("xsdSchema") && !config.get("xsdSchema").asText("").isBlank()) {
+            if (config.hasNonNull("xsdSchema")
+                    && !config.get("xsdSchema").asText("").isBlank()) {
                 return "XML Validation schemaSource=registry cannot be combined with inline xsdSchema";
             }
             return null;

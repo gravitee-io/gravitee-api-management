@@ -160,7 +160,10 @@ public class JdbcObjectMapper<T> {
                 T item = constructor.newInstance();
                 setFromResultSet(item, rs);
                 return item;
-            } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | InvocationTargetException ex) {
+            } catch (IllegalAccessException
+                    | IllegalArgumentException
+                    | InstantiationException
+                    | InvocationTargetException ex) {
                 log.error("Failed to construct {}", tableName);
                 throw new IllegalStateException("Failed to construct " + tableName, ex);
             }
@@ -193,13 +196,13 @@ public class JdbcObjectMapper<T> {
         }
 
         public <V> Builder<T> addColumn(
-            String name,
-            int jdbcType,
-            Class<V> fieldType,
-            Function<V, String> serializer,
-            Function<String, V> deserializer
-        ) {
-            this.columns.add(new JdbcColumn(name, jdbcType, clazz, fieldType, v -> serializer.apply((V) v), deserializer::apply));
+                String name,
+                int jdbcType,
+                Class<V> fieldType,
+                Function<V, String> serializer,
+                Function<String, V> deserializer) {
+            this.columns.add(new JdbcColumn(
+                    name, jdbcType, clazz, fieldType, v -> serializer.apply((V) v), deserializer::apply));
             return this;
         }
 
@@ -217,18 +220,18 @@ public class JdbcObjectMapper<T> {
         return builder(clazz, tableName, null);
     }
 
-    public static <T> JdbcObjectMapper.Builder<T> builder(final Class<T> clazz, final String tableName, final String idColumn) {
+    public static <T> JdbcObjectMapper.Builder<T> builder(
+            final Class<T> clazz, final String tableName, final String idColumn) {
         return new JdbcObjectMapper.Builder<>(clazz, tableName, idColumn);
     }
 
     private JdbcObjectMapper(
-        final Class<T> clazz,
-        final String idColumn,
-        final List<JdbcColumn> columns,
-        final List<MirroredColumnDef<T>> mirroredColumns,
-        final String updateSql,
-        final String tableName
-    ) {
+            final Class<T> clazz,
+            final String idColumn,
+            final List<JdbcColumn> columns,
+            final List<MirroredColumnDef<T>> mirroredColumns,
+            final String updateSql,
+            final String tableName) {
         try {
             this.constructor = clazz.getConstructor();
         } catch (final Exception e) {
@@ -241,8 +244,10 @@ public class JdbcObjectMapper<T> {
         this.idColumn = idColumn;
         this.insertSql = buildInsertStatement();
         this.updateSql = updateSql == null ? buildUpdateStatement() : updateSql;
-        this.deleteSql = "delete from " + escapeReservedWord(tableName) + WHERE_CLAUSE + escapeReservedWord(idColumn) + " = ?";
-        this.selectByIdSql = "select * from " + escapeReservedWord(tableName) + WHERE_CLAUSE + escapeReservedWord(idColumn) + " = ?";
+        this.deleteSql =
+                "delete from " + escapeReservedWord(tableName) + WHERE_CLAUSE + escapeReservedWord(idColumn) + " = ?";
+        this.selectByIdSql =
+                "select * from " + escapeReservedWord(tableName) + WHERE_CLAUSE + escapeReservedWord(idColumn) + " = ?";
         this.selectAllSql = "select * from " + escapeReservedWord(tableName);
         this.countSql = "SELECT COUNT(*) FROM " + escapeReservedWord(tableName);
         this.rowMapper = new Rm();
@@ -342,7 +347,12 @@ public class JdbcObjectMapper<T> {
     }
 
     private Object checkTypeAndConvert(final T item, final JdbcColumn column, final Object value) {
-        log.trace("Converted {}.{} from {} to {}", getDBName(item.getClass().getSimpleName()), getDBName(column.name), value, value);
+        log.trace(
+                "Converted {}.{} from {} to {}",
+                getDBName(item.getClass().getSimpleName()),
+                getDBName(column.name),
+                value,
+                value);
         if (column.javaType.isEnum() && (value instanceof String)) {
             final String stringValue = (String) value;
             if (hasText(stringValue)) {
@@ -414,7 +424,11 @@ public class JdbcObjectMapper<T> {
                     stmt.setNull(idx, nullType(column.jdbcType));
                 } else if (column.serializer != null) {
                     stmt.setString(idx, ((Function<Object, String>) column.serializer).apply(value));
-                    log.debug("Setting {}/{} via custom serializer for the type {}", idx, getDBName(column.name), column.jdbcType);
+                    log.debug(
+                            "Setting {}/{} via custom serializer for the type {}",
+                            idx,
+                            getDBName(column.name),
+                            column.jdbcType);
                 } else if (column.javaType.isEnum() && (column.jdbcType == Types.NVARCHAR)) {
                     stmt.setString(idx, value.toString());
                 } else if (value instanceof Date) {
@@ -430,7 +444,8 @@ public class JdbcObjectMapper<T> {
                     stmt.setObject(idx, value);
                 }
                 if (value != null) {
-                    log.debug("Setting {}/{} to {} for the type {}", idx, getDBName(column.name), value, column.jdbcType);
+                    log.debug(
+                            "Setting {}/{} to {} for the type {}", idx, getDBName(column.name), value, column.jdbcType);
                 }
             } catch (Exception ex) {
                 log.error("Failed to invoke getter {} on {} : ", column.setter, item, ex);

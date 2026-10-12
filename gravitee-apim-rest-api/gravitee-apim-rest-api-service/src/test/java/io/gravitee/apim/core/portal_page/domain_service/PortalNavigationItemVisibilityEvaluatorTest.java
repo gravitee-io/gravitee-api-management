@@ -52,11 +52,7 @@ class PortalNavigationItemVisibilityEvaluatorTest {
     @Test
     void should_use_matching_visibility_service() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemFixtures.API_PRODUCT_ID,
-            "API Product",
-            null,
-            "api-product-id"
-        );
+                PortalNavigationItemFixtures.API_PRODUCT_ID, "API Product", null, "api-product-id");
         var evaluator = evaluatorWith(new HiddenApiProductVisibilityService());
 
         assertThat(evaluator.isVisible(apiProduct)).isFalse();
@@ -73,11 +69,7 @@ class PortalNavigationItemVisibilityEvaluatorTest {
     @Test
     void should_detect_hidden_ancestor_using_matching_visibility_service() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemFixtures.API_PRODUCT_ID,
-            "API Product",
-            null,
-            "api-product-id"
-        );
+                PortalNavigationItemFixtures.API_PRODUCT_ID, "API Product", null, "api-product-id");
         var page = PortalNavigationItemFixtures.aPage("Page", apiProduct.getId());
         page.updateParent(apiProduct);
         queryService.initWith(List.of(apiProduct, page));
@@ -88,50 +80,50 @@ class PortalNavigationItemVisibilityEvaluatorTest {
 
     @Test
     void should_detect_hidden_ancestor_when_the_enclosing_api_of_a_spliced_subtree_root_is_hidden() {
-        var privateApiRow = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-00000000b001", "Private API", null, "api-x");
+        var privateApiRow = PortalNavigationItemFixtures.anApi(
+                "00000000-0000-0000-0000-00000000b001", "Private API", null, "api-x");
         privateApiRow.markAsRoot();
         privateApiRow.setVisibility(PortalVisibility.PRIVATE);
         queryService.initWith(List.of(privateApiRow));
 
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
-            new MembershipQueryServiceInMemory(),
-            new SubscriptionQueryServiceInMemory(),
-            new ApiQueryServiceInMemory()
-        );
-        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
+                new MembershipQueryServiceInMemory(),
+                new SubscriptionQueryServiceInMemory(),
+                new ApiQueryServiceInMemory());
+        var apiVisibilityDomainService =
+                new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
 
         var splicedRoot = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(PortalNavigationItemFixtures.ORG_ID)
-            .environmentId(PortalNavigationItemFixtures.ENV_ID)
-            .title("Doc")
-            .segment("doc")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(new NavigationItemReference.ApiReference("api-x"))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title("Doc")
+                .segment("doc")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference("api-x"))
+                .build();
         splicedRoot.markAsRoot();
 
         var evaluator = new PortalNavigationItemVisibilityEvaluator(
-            PortalNavigationItemFixtures.ENV_ID,
-            PortalNavigationItemViewerContext.forPortal(false),
-            queryService,
-            List.of(apiVisibilityDomainService)
-        );
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalNavigationItemViewerContext.forPortal(false),
+                queryService,
+                List.of(apiVisibilityDomainService));
 
         assertThat(evaluator.hasHiddenAncestor(splicedRoot)).isTrue();
     }
 
-    private PortalNavigationItemVisibilityEvaluator evaluatorWith(PortalNavigationItemVisibilityService visibilityService) {
+    private PortalNavigationItemVisibilityEvaluator evaluatorWith(
+            PortalNavigationItemVisibilityService visibilityService) {
         return new PortalNavigationItemVisibilityEvaluator(
-            PortalNavigationItemFixtures.ENV_ID,
-            PortalNavigationItemViewerContext.forPortal("user-id"),
-            queryService,
-            List.of(visibilityService)
-        );
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalNavigationItemViewerContext.forPortal("user-id"),
+                queryService,
+                List.of(visibilityService));
     }
 
     private static class HiddenApiProductVisibilityService implements PortalNavigationItemVisibilityService {
@@ -143,9 +135,7 @@ class PortalNavigationItemVisibilityEvaluatorTest {
 
         @Override
         public Predicate<PortalNavigationItem> prepareVisibilityPredicate(
-            String environmentId,
-            PortalNavigationItemViewerContext viewerContext
-        ) {
+                String environmentId, PortalNavigationItemViewerContext viewerContext) {
             return item -> false;
         }
     }

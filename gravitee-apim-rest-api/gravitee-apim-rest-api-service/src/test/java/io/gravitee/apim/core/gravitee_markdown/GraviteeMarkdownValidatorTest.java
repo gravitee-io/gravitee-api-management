@@ -36,23 +36,25 @@ class GraviteeMarkdownValidatorTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "# Valid GMD Content\n\nSome markdown text", "<gmd-input name=\"test\" />\n\nSome content", "  \n  Valid content  \n  ",
-            }
-        )
+                strings = {
+                    "# Valid GMD Content\n\nSome markdown text",
+                    "<gmd-input name=\"test\" />\n\nSome content",
+                    "  \n  Valid content  \n  ",
+                })
         void should_accept_valid_content(String validContent) {
             // When / Then
-            assertThatCode(() -> validator.validateNotEmpty(new GraviteeMarkdown(validContent))).doesNotThrowAnyException();
+            assertThatCode(() -> validator.validateNotEmpty(new GraviteeMarkdown(validContent)))
+                    .doesNotThrowAnyException();
         }
 
         @ParameterizedTest
         @NullAndEmptySource
-        @ValueSource(strings = { "   ", "  \n  \t  " })
+        @ValueSource(strings = {"   ", "  \n  \t  "})
         void should_throw_exception_when_content_is_invalid(String invalidContent) {
             // When / Then
             assertThatThrownBy(() -> validator.validateNotEmpty(new GraviteeMarkdown(invalidContent)))
-                .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
-                .hasMessage("Content must not be null or empty");
+                    .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
+                    .hasMessage("Content must not be null or empty");
         }
     }
 }

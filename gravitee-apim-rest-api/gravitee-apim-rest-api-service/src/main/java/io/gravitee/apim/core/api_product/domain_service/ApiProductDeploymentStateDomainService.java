@@ -66,38 +66,29 @@ public class ApiProductDeploymentStateDomainService {
             return;
         }
         Set<String> productIds = apiProducts.stream().map(ApiProduct::getId).collect(Collectors.toSet());
-        Set<String> environmentIds = apiProducts
-            .stream()
-            .map(ApiProduct::getEnvironmentId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+        Set<String> environmentIds = apiProducts.stream()
+                .map(ApiProduct::getEnvironmentId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         Map<String, Event> latestDeployEvents = findLatestDeployEvents(productIds);
         Map<String, List<Plan>> plansByProductId = findPlansByProductId(productIds, environmentIds);
 
-        apiProducts.forEach(product ->
-            product.setDeploymentState(
-                deploymentStateOf(
-                    product,
-                    latestDeployEvents.get(product.getId()),
-                    plansByProductId.getOrDefault(product.getId(), List.of())
-                )
-            )
-        );
+        apiProducts.forEach(product -> product.setDeploymentState(deploymentStateOf(
+                product,
+                latestDeployEvents.get(product.getId()),
+                plansByProductId.getOrDefault(product.getId(), List.of()))));
     }
 
     private Map<String, Event> findLatestDeployEvents(Set<String> productIds) {
         return eventLatestQueryService
-            .findLatestByEntityIds(productIds, EventType.DEPLOY_API_PRODUCT, Event.EventProperties.API_PRODUCT_ID)
-            .stream()
-            .filter(event -> event.getProperties() != null)
-            .filter(event -> event.getProperties().get(Event.EventProperties.API_PRODUCT_ID) != null)
-            .collect(
-                Collectors.toMap(
-                    event -> event.getProperties().get(Event.EventProperties.API_PRODUCT_ID),
-                    Function.identity(),
-                    (first, second) -> first
-                )
-            );
+                .findLatestByEntityIds(productIds, EventType.DEPLOY_API_PRODUCT, Event.EventProperties.API_PRODUCT_ID)
+                .stream()
+                .filter(event -> event.getProperties() != null)
+                .filter(event -> event.getProperties().get(Event.EventProperties.API_PRODUCT_ID) != null)
+                .collect(Collectors.toMap(
+                        event -> event.getProperties().get(Event.EventProperties.API_PRODUCT_ID),
+                        Function.identity(),
+                        (first, second) -> first));
     }
 
     private Map<String, List<Plan>> findPlansByProductId(Set<String> productIds, Set<String> environmentIds) {
@@ -105,32 +96,34 @@ public class ApiProductDeploymentStateDomainService {
             return Map.of();
         }
         return planQueryService
-            .findAllByReferenceIdsAndEnvironments(productIds, environmentIds, GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .stream()
-            .collect(Collectors.groupingBy(Plan::getReferenceId));
+                .findAllByReferenceIdsAndEnvironments(
+                        productIds, environmentIds, GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .stream()
+                .collect(Collectors.groupingBy(Plan::getReferenceId));
     }
 
-    private ApiProduct.DeploymentState deploymentStateOf(ApiProduct product, Event latestDeployEvent, List<Plan> plans) {
+    private ApiProduct.DeploymentState deploymentStateOf(
+            ApiProduct product, Event latestDeployEvent, List<Plan> plans) {
         try {
             if (latestDeployEvent == null || latestDeployEvent.getUpdatedAt() == null) {
                 return ApiProduct.DeploymentState.NEED_REDEPLOY;
             }
             ApiProduct deployedProduct = readPayload(latestDeployEvent, product.getId());
-            if (
-                deployedProduct == null ||
-                !setsEqual(product.getApiIds(), deployedProduct.getApiIds()) ||
-                !setsEqual(product.getTags(), deployedProduct.getTags())
-            ) {
+            if (deployedProduct == null
+                    || !setsEqual(product.getApiIds(), deployedProduct.getApiIds())
+                    || !setsEqual(product.getTags(), deployedProduct.getTags())) {
                 return ApiProduct.DeploymentState.NEED_REDEPLOY;
             }
 
             Instant lastDeployedAt = latestDeployEvent.getUpdatedAt().toInstant();
-            boolean anyPlanModifiedAfterDeploy = plans
-                .stream()
-                .filter(plan -> plan.getPlanStatus() != PlanStatus.STAGING)
-                .anyMatch(plan -> plan.getNeedRedeployAt() != null && plan.getNeedRedeployAt().toInstant().isAfter(lastDeployedAt));
+            boolean anyPlanModifiedAfterDeploy = plans.stream()
+                    .filter(plan -> plan.getPlanStatus() != PlanStatus.STAGING)
+                    .anyMatch(plan -> plan.getNeedRedeployAt() != null
+                            && plan.getNeedRedeployAt().toInstant().isAfter(lastDeployedAt));
 
-            return anyPlanModifiedAfterDeploy ? ApiProduct.DeploymentState.NEED_REDEPLOY : ApiProduct.DeploymentState.DEPLOYED;
+            return anyPlanModifiedAfterDeploy
+                    ? ApiProduct.DeploymentState.NEED_REDEPLOY
+                    : ApiProduct.DeploymentState.DEPLOYED;
         } catch (Exception e) {
             log.warn("Failed to compute deployment state for API Product [{}]: {}", product.getId(), e.getMessage());
             return ApiProduct.DeploymentState.NEED_REDEPLOY;

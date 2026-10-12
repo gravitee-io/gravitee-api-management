@@ -51,12 +51,11 @@ class TimeRangeAdapterTest {
         Instant to = Instant.parse("2025-07-02T00:00:00Z");
         Duration interval = Duration.ofHours(1);
         var query = new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-            new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
-            new TimeRange(from, to, interval),
-            java.util.List.of(),
-            Optional.empty(),
-            null
-        );
+                new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
+                new TimeRange(from, to, interval),
+                java.util.List.of(),
+                Optional.empty(),
+                null);
         ObjectNode node = TimeRangeAdapter.createTimestampAggregationNode(query);
         assertNotNull(node);
         assertTrue(node.has("date_histogram"));
@@ -74,12 +73,11 @@ class TimeRangeAdapterTest {
         Instant from = Instant.parse("2025-07-01T00:00:00Z");
         Instant to = Instant.parse("2025-07-02T00:00:00Z");
         var query = new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-            new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
-            new TimeRange(from, to),
-            java.util.List.of(),
-            Optional.empty(),
-            null
-        );
+                new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
+                new TimeRange(from, to),
+                java.util.List.of(),
+                Optional.empty(),
+                null);
         assertThrows(IllegalArgumentException.class, () -> TimeRangeAdapter.createTimestampAggregationNode(query));
     }
 

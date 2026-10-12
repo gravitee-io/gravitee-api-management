@@ -35,10 +35,10 @@ public abstract class AbstractProcessorChain<T, P extends Processor<T>> implemen
         if (hasNext()) {
             P processor = next(data);
             processor
-                .handler(__ -> handle(data))
-                .errorHandler(failure -> errorHandler.handle(failure))
-                .exitHandler(stream -> exitHandler.handle(null))
-                .handle(data);
+                    .handler(__ -> handle(data))
+                    .errorHandler(failure -> errorHandler.handle(failure))
+                    .exitHandler(stream -> exitHandler.handle(null))
+                    .handle(data);
         } else {
             resultHandler.handle(data);
         }

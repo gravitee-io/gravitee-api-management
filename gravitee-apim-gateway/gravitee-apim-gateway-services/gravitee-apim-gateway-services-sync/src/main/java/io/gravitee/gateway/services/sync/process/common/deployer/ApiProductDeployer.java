@@ -52,32 +52,27 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
         // API can no longer reach it. Only the product's own undeployment evicts.
         Completable doBeforeEmit = Completable.fromRunnable(() -> registerApiProductPlans(deployable));
         if (!newApiIds.isEmpty()) {
-            doBeforeEmit = doBeforeEmit.andThen(
-                subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
-            );
+            doBeforeEmit = doBeforeEmit.andThen(subscriptionRefresher.refresh(
+                    deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId())));
         }
 
         return apiProductManager
-            .register(reactableApiProduct, doBeforeEmit)
-            .doOnComplete(() -> log.debug("API Product [{}] deployed successfully", apiProductId))
-            .onErrorResumeNext(e ->
-                Completable.error(
-                    new SyncException(
+                .register(reactableApiProduct, doBeforeEmit)
+                .doOnComplete(() -> log.debug("API Product [{}] deployed successfully", apiProductId))
+                .onErrorResumeNext(e -> Completable.error(new SyncException(
                         String.format(
-                            "An error occurred when trying to deploy API Product %s [%s].",
-                            reactableApiProduct.getName(),
-                            apiProductId
-                        ),
-                        e
-                    )
-                )
-            );
+                                "An error occurred when trying to deploy API Product %s [%s].",
+                                reactableApiProduct.getName(), apiProductId),
+                        e)));
     }
 
     private void registerApiProductPlans(ApiProductReactorDeployable deployable) {
         String apiProductId = deployable.apiProductId();
         planService.register(deployable);
-        log.debug("Registered {} plans for API Product [{}]", deployable.subscribablePlans().size(), apiProductId);
+        log.debug(
+                "Registered {} plans for API Product [{}]",
+                deployable.subscribablePlans().size(),
+                apiProductId);
     }
 
     private void unregisterApiProductPlans(ApiProductReactorDeployable deployable) {
@@ -112,13 +107,10 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
                 throw e;
             } catch (Exception e) {
                 throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to undeploy API Product %s [%s].",
-                        reactableApiProduct != null ? reactableApiProduct.getName() : "unknown",
-                        apiProductId
-                    ),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to undeploy API Product %s [%s].",
+                                reactableApiProduct != null ? reactableApiProduct.getName() : "unknown", apiProductId),
+                        e);
             }
         });
     }

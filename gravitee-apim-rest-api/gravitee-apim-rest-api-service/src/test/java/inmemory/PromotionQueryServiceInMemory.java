@@ -56,26 +56,27 @@ public class PromotionQueryServiceInMemory implements PromotionQueryService, InM
             return new Page<>(storage, 0, storage.size(), storage.size());
         }
 
-        List<Promotion> matches = storage
-            .stream()
-            .filter(promotion -> {
-                boolean matchesApiId = promotionQuery.apiId() == null || promotionQuery.apiId().equals(promotion.getApiId());
+        List<Promotion> matches = storage.stream()
+                .filter(promotion -> {
+                    boolean matchesApiId = promotionQuery.apiId() == null
+                            || promotionQuery.apiId().equals(promotion.getApiId());
 
-                boolean matchesStatuses =
-                    promotionQuery.statuses() == null ||
-                    (promotion.getStatus() != null && promotionQuery.statuses().contains(promotion.getStatus()));
+                    boolean matchesStatuses = promotionQuery.statuses() == null
+                            || (promotion.getStatus() != null
+                                    && promotionQuery.statuses().contains(promotion.getStatus()));
 
-                boolean matchesTargetEnvCockpitIds =
-                    promotionQuery.targetEnvCockpitIds() == null ||
-                    (promotion.getTargetEnvCockpitId() != null &&
-                        promotionQuery.targetEnvCockpitIds().contains(promotion.getTargetEnvCockpitId()));
+                    boolean matchesTargetEnvCockpitIds = promotionQuery.targetEnvCockpitIds() == null
+                            || (promotion.getTargetEnvCockpitId() != null
+                                    && promotionQuery
+                                            .targetEnvCockpitIds()
+                                            .contains(promotion.getTargetEnvCockpitId()));
 
-                boolean matchesTargetApiExists =
-                    promotionQuery.targetApiExists() == null || (promotionQuery.targetApiExists() == (promotion.getTargetApiId() != null));
+                    boolean matchesTargetApiExists = promotionQuery.targetApiExists() == null
+                            || (promotionQuery.targetApiExists() == (promotion.getTargetApiId() != null));
 
-                return matchesApiId && matchesStatuses && matchesTargetEnvCockpitIds && matchesTargetApiExists;
-            })
-            .toList();
+                    return matchesApiId && matchesStatuses && matchesTargetEnvCockpitIds && matchesTargetApiExists;
+                })
+                .toList();
 
         return new Page<>(matches, 0, matches.size(), matches.size());
     }

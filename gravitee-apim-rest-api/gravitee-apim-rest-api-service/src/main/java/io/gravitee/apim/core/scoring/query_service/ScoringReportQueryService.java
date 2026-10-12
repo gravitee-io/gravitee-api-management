@@ -26,6 +26,9 @@ import java.util.Optional;
 
 public interface ScoringReportQueryService {
     Optional<ScoringReport> findLatestByApiId(String apiId);
-    Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable);
+
+    Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(
+            String environmentId, Collection<ApiType> apiTypes, Pageable pageable);
+
     EnvironmentOverview getEnvironmentScoringSummary(String environmentId);
 }

@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 

@@ -24,9 +24,13 @@ public class AuditInfoFixtures {
 
     public static AuditInfo anAuditInfo(String organizationId, String environmentId, String userId) {
         return AuditInfo.builder()
-            .organizationId(organizationId)
-            .environmentId(environmentId)
-            .actor(AuditActor.builder().userSource("test").userSourceId(userId).userId(userId).build())
-            .build();
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .actor(AuditActor.builder()
+                        .userSource("test")
+                        .userSourceId(userId)
+                        .userId(userId)
+                        .build())
+                .build();
     }
 }

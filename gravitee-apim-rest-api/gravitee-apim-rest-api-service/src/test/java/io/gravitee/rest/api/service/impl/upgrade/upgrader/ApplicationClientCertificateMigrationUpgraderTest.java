@@ -82,7 +82,8 @@ class ApplicationClientCertificateMigrationUpgraderTest {
     @Mock
     private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
-    private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unused", "CN=unused", "SHA256:abc");
+    private static final CertificateInfo VALID_CERT_INFO =
+            new CertificateInfo(new Date(), "CN=unused", "CN=unused", "SHA256:abc");
 
     @BeforeEach
     void setUp() {
@@ -98,7 +99,8 @@ class ApplicationClientCertificateMigrationUpgraderTest {
     void should_succeed_when_no_applications_exist() throws Exception {
         // Given
         Page<Application> emptyPage = new Page<>(List.of(), 1, 100, 0);
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(emptyPage);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(emptyPage);
 
         // When
         boolean result = upgrader.upgrade();
@@ -111,19 +113,30 @@ class ApplicationClientCertificateMigrationUpgraderTest {
     @Test
     void should_succeed_when_no_applications_have_certificate() throws Exception {
         // Given
-        Application appWithoutCert = Application.builder().id("app-1").name("App 1").environmentId("env-1").metadata(Map.of()).build();
+        Application appWithoutCert = Application.builder()
+                .id("app-1")
+                .name("App 1")
+                .environmentId("env-1")
+                .metadata(Map.of())
+                .build();
 
-        Application appWithNullMetadata = Application.builder().id("app-2").name("App 2").environmentId("env-1").metadata(null).build();
+        Application appWithNullMetadata = Application.builder()
+                .id("app-2")
+                .name("App 2")
+                .environmentId("env-1")
+                .metadata(null)
+                .build();
 
         Application appWithBlankCert = Application.builder()
-            .id("app-3")
-            .name("App 3")
-            .environmentId("env-1")
-            .metadata(Map.of(METADATA_CLIENT_CERTIFICATE, "   "))
-            .build();
+                .id("app-3")
+                .name("App 3")
+                .environmentId("env-1")
+                .metadata(Map.of(METADATA_CLIENT_CERTIFICATE, "   "))
+                .build();
 
         Page<Application> page = new Page<>(List.of(appWithoutCert, appWithNullMetadata, appWithBlankCert), 1, 100, 3);
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(page);
 
         // When
         boolean result = upgrader.upgrade();
@@ -140,25 +153,33 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
 
-        Application appWithCert = Application.builder().id("app-1").name("App 1").environmentId("env-1").metadata(metadata).build();
+        Application appWithCert = Application.builder()
+                .id("app-1")
+                .name("App 1")
+                .environmentId("env-1")
+                .metadata(metadata)
+                .build();
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(page);
         when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
-        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
+        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class)))
+                .thenReturn(mock(ClientCertificate.class));
 
         // When
         boolean result = upgrader.upgrade();
 
         // Then
         assertThat(result).isTrue();
-        verify(clientCertificateCrudService).create(
-            eq("app-1"),
-            argThat(createCert -> createCert.name().equals("App 1") && createCert.certificate().equals(VALID_PEM_CERTIFICATE))
-        );
-        verify(applicationRepository).update(
-            argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))
-        );
+        verify(clientCertificateCrudService)
+                .create(
+                        eq("app-1"),
+                        argThat(createCert -> createCert.name().equals("App 1")
+                                && createCert.certificate().equals(VALID_PEM_CERTIFICATE)));
+        verify(applicationRepository)
+                .update(argThat(app ->
+                        app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE)));
     }
 
     @Test
@@ -172,24 +193,32 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         for (int i = 0; i < ApplicationClientCertificateMigrationUpgrader.PAGE_SIZE; i++) {
             Map<String, String> metadata = new HashMap<>();
             metadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
-            firstPageApps.add(Application.builder().id("app-" + i).name("App " + i).environmentId("env-1").metadata(metadata).build());
+            firstPageApps.add(Application.builder()
+                    .id("app-" + i)
+                    .name("App " + i)
+                    .environmentId("env-1")
+                    .metadata(metadata)
+                    .build());
         }
 
         Map<String, String> lastMetadata = new HashMap<>();
         lastMetadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
         Application appOnSecondPage = Application.builder()
-            .id("app-last")
-            .name("App last")
-            .environmentId("env-1")
-            .metadata(lastMetadata)
-            .build();
+                .id("app-last")
+                .name("App last")
+                .environmentId("env-1")
+                .metadata(lastMetadata)
+                .build();
 
         Page<Application> page1 = new Page<>(firstPageApps, 0, firstPageApps.size(), firstPageApps.size() + 1);
         Page<Application> page2 = new Page<>(List.of(appOnSecondPage), 1, 1, firstPageApps.size() + 1);
 
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page1).thenReturn(page2);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(page1)
+                .thenReturn(page2);
         when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
-        when(clientCertificateCrudService.create(any(), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
+        when(clientCertificateCrudService.create(any(), any(ClientCertificate.class)))
+                .thenReturn(mock(ClientCertificate.class));
 
         // When
         boolean result = upgrader.upgrade();
@@ -207,10 +236,16 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put(METADATA_CLIENT_CERTIFICATE, "not-valid-base64!!!");
 
-        Application appWithInvalidCert = Application.builder().id("app-1").name("App 1").environmentId("env-1").metadata(metadata).build();
+        Application appWithInvalidCert = Application.builder()
+                .id("app-1")
+                .name("App 1")
+                .environmentId("env-1")
+                .metadata(metadata)
+                .build();
 
         Page<Application> page = new Page<>(List.of(appWithInvalidCert), 1, 100, 1);
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(page);
 
         // When
         boolean result = upgrader.upgrade();
@@ -218,9 +253,9 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         // Then
         assertThat(result).isTrue();
         verify(clientCertificateCrudService, never()).create(any(), any(ClientCertificate.class));
-        verify(applicationRepository).update(
-            argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))
-        );
+        verify(applicationRepository)
+                .update(argThat(app ->
+                        app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE)));
     }
 
     @Test
@@ -231,11 +266,18 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put(METADATA_CLIENT_CERTIFICATE, base64InvalidPem);
 
-        Application appWithInvalidPem = Application.builder().id("app-1").name("App 1").environmentId("env-1").metadata(metadata).build();
+        Application appWithInvalidPem = Application.builder()
+                .id("app-1")
+                .name("App 1")
+                .environmentId("env-1")
+                .metadata(metadata)
+                .build();
 
         Page<Application> page = new Page<>(List.of(appWithInvalidPem), 1, 100, 1);
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
-        when(clientCertificateValidationDomainService.validate(any())).thenThrow(new ClientCertificateInvalidException());
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(page);
+        when(clientCertificateValidationDomainService.validate(any()))
+                .thenThrow(new ClientCertificateInvalidException());
 
         // When
         boolean result = upgrader.upgrade();
@@ -243,9 +285,9 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         // Then
         assertThat(result).isTrue();
         verify(clientCertificateCrudService, never()).create(any(), any(ClientCertificate.class));
-        verify(applicationRepository).update(
-            argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))
-        );
+        verify(applicationRepository)
+                .update(argThat(app ->
+                        app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE)));
     }
 
     @Test
@@ -255,14 +297,19 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
 
-        Application appWithCert = Application.builder().id("app-1").name("App 1").environmentId("env-1").metadata(metadata).build();
+        Application appWithCert = Application.builder()
+                .id("app-1")
+                .name("App 1")
+                .environmentId("env-1")
+                .metadata(metadata)
+                .build();
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(page);
         when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
-        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenThrow(
-            new RuntimeException("Database connection failed")
-        );
+        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class)))
+                .thenThrow(new RuntimeException("Database connection failed"));
 
         // When / Then
         assertThatThrownBy(() -> upgrader.upgrade()).isInstanceOf(UpgraderException.class);
@@ -276,13 +323,21 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
 
-        Application appWithCert = Application.builder().id("app-1").name("App 1").environmentId("env-1").metadata(metadata).build();
+        Application appWithCert = Application.builder()
+                .id("app-1")
+                .name("App 1")
+                .environmentId("env-1")
+                .metadata(metadata)
+                .build();
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+                .thenReturn(page);
         when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
-        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
-        when(applicationRepository.update(any(Application.class))).thenThrow(new TechnicalException("Database update failed"));
+        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class)))
+                .thenReturn(mock(ClientCertificate.class));
+        when(applicationRepository.update(any(Application.class)))
+                .thenThrow(new TechnicalException("Database update failed"));
 
         // When / Then
         assertThatThrownBy(() -> upgrader.upgrade()).isInstanceOf(UpgraderException.class);

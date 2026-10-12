@@ -52,10 +52,8 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -110,7 +108,7 @@ public class ApiServiceImplTest {
 
     @Test
     public void encryptProperties_should_call_data_encryptor_for_each_encryptable_property_not_yet_encrypted()
-        throws GeneralSecurityException {
+            throws GeneralSecurityException {
         List<PropertyEntity> properties = buildProperties();
 
         apiService.encryptProperties(null, properties);
@@ -121,7 +119,8 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void encryptProperties_should_set_encrypted_boolean_true_for_each_encrypted_property() throws GeneralSecurityException {
+    public void encryptProperties_should_set_encrypted_boolean_true_for_each_encrypted_property()
+            throws GeneralSecurityException {
         List<PropertyEntity> properties = buildProperties();
 
         apiService.encryptProperties(null, properties);
@@ -147,7 +146,8 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void encryptProperties_should_keep_the_stored_encrypted_value_when_the_mask_is_resubmitted() throws GeneralSecurityException {
+    public void encryptProperties_should_keep_the_stored_encrypted_value_when_the_mask_is_resubmitted()
+            throws GeneralSecurityException {
         Property storedProperty = new Property("key1", "ciphertext", true);
         PropertyEntity resubmittedMaskedProperty = new PropertyEntity("key1", ENCRYPTED_VALUE_MASK, true, false);
 
@@ -162,7 +162,9 @@ public class ApiServiceImplTest {
     public void encryptProperties_should_reject_the_mask_when_no_stored_encrypted_value_exists_for_the_key() {
         PropertyEntity resubmittedMaskedProperty = new PropertyEntity("key1", ENCRYPTED_VALUE_MASK, true, false);
 
-        assertThrows(MaskedApiPropertyValueException.class, () -> apiService.encryptProperties(null, List.of(resubmittedMaskedProperty)));
+        assertThrows(
+                MaskedApiPropertyValueException.class,
+                () -> apiService.encryptProperties(null, List.of(resubmittedMaskedProperty)));
     }
 
     @Test
@@ -192,10 +194,14 @@ public class ApiServiceImplTest {
         when(apiRepository.findById("api-id")).thenReturn(Optional.of(api));
         when(currentApi.getDefinitionContext()).thenReturn(new DefinitionContext());
         when(eventLatestRepository.search(any(), any(), anyLong(), anyLong())).thenReturn(List.of(event));
-        when(apiEntrypointService.getApiEntrypoints(executionContext, currentApi)).thenReturn(entrypointEntityList);
-        when(apiConverter.toApiEntity(executionContext, api, primaryOwnerEntity, true, true, true)).thenReturn(currentApi);
-        when(apiConverter.toApiEntity(executionContext, null, null, false, false, false)).thenReturn(currentApi);
-        when(primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())).thenReturn(primaryOwnerEntity);
+        when(apiEntrypointService.getApiEntrypoints(executionContext, currentApi))
+                .thenReturn(entrypointEntityList);
+        when(apiConverter.toApiEntity(executionContext, api, primaryOwnerEntity, true, true, true))
+                .thenReturn(currentApi);
+        when(apiConverter.toApiEntity(executionContext, null, null, false, false, false))
+                .thenReturn(currentApi);
+        when(primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId()))
+                .thenReturn(primaryOwnerEntity);
         when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(true);
         when(currentApi.getId()).thenReturn("api-id");
         when(planService.findByApi(executionContext, "api-id")).thenReturn(Set.of());
@@ -219,7 +225,8 @@ public class ApiServiceImplTest {
 
         Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2, groupWithApiPrimaryOwner));
 
-        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE)))
+                .thenReturn(defaultGroupEntities);
 
         // When
         Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
@@ -235,7 +242,8 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void createWithApiDefinition_should_filter_out_groups_with_api_primary_owner_when_primary_owner_exists() throws Exception {
+    public void createWithApiDefinition_should_filter_out_groups_with_api_primary_owner_when_primary_owner_exists()
+            throws Exception {
         // Given
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
         primaryOwner.setId("primary-owner-id");
@@ -248,7 +256,8 @@ public class ApiServiceImplTest {
 
         Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2, groupWithApiPrimaryOwner));
 
-        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE)))
+                .thenReturn(defaultGroupEntities);
 
         // When
         Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
@@ -277,7 +286,8 @@ public class ApiServiceImplTest {
 
         Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2, groupWithApiPrimaryOwner));
 
-        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE)))
+                .thenReturn(defaultGroupEntities);
 
         // When
         Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
@@ -301,7 +311,8 @@ public class ApiServiceImplTest {
 
         Set<GroupEntity> defaultGroupEntities = new HashSet<>(); // Empty set
 
-        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE)))
+                .thenReturn(defaultGroupEntities);
 
         // When
         Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
@@ -314,8 +325,9 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void createWithApiDefinition_should_include_all_groups_when_primary_owner_is_null_and_groups_have_api_primary_owner()
-        throws Exception {
+    public void
+            createWithApiDefinition_should_include_all_groups_when_primary_owner_is_null_and_groups_have_api_primary_owner()
+                    throws Exception {
         // Given
         PrimaryOwnerEntity primaryOwner = null;
 
@@ -325,7 +337,8 @@ public class ApiServiceImplTest {
 
         Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2));
 
-        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE)))
+                .thenReturn(defaultGroupEntities);
 
         // When
         Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
@@ -343,18 +356,19 @@ public class ApiServiceImplTest {
      * Helper method to simulate the default groups logic from createWithApiDefinition method
      */
     private Set<String> getDefaultGroupsForApiCreation(PrimaryOwnerEntity primaryOwner) {
-        Set<GroupEntity> defaultGroupEntities = groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE);
+        Set<GroupEntity> defaultGroupEntities =
+                groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE);
 
         Set<String> defaultGroups;
         // Filter out groups with apiPrimaryOwner if primaryOwner is not null and has a value
         if (primaryOwner != null && !org.apache.commons.lang3.StringUtils.isEmpty(primaryOwner.getId())) {
-            defaultGroups = defaultGroupEntities
-                .stream()
-                .filter(group -> org.apache.commons.lang3.StringUtils.isEmpty(group.getApiPrimaryOwner()))
-                .map(GroupEntity::getId)
-                .collect(java.util.stream.Collectors.toSet());
+            defaultGroups = defaultGroupEntities.stream()
+                    .filter(group -> org.apache.commons.lang3.StringUtils.isEmpty(group.getApiPrimaryOwner()))
+                    .map(GroupEntity::getId)
+                    .collect(java.util.stream.Collectors.toSet());
         } else {
-            defaultGroups = defaultGroupEntities.stream().map(GroupEntity::getId).collect(java.util.stream.Collectors.toSet());
+            defaultGroups =
+                    defaultGroupEntities.stream().map(GroupEntity::getId).collect(java.util.stream.Collectors.toSet());
         }
 
         return defaultGroups;
@@ -373,10 +387,9 @@ public class ApiServiceImplTest {
 
     private List<PropertyEntity> buildProperties() {
         return List.of(
-            new PropertyEntity("key1", "value1", false, false),
-            new PropertyEntity("key2", "value2", true, false),
-            new PropertyEntity("key3", "value3", true, true),
-            new PropertyEntity("key4", "value4", true, false)
-        );
+                new PropertyEntity("key1", "value1", false, false),
+                new PropertyEntity("key2", "value2", true, false),
+                new PropertyEntity("key3", "value3", true, true),
+                new PropertyEntity("key4", "value4", true, false));
     }
 }

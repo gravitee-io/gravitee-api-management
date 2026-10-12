@@ -39,11 +39,10 @@ public class ApplicationPrimaryOwnerDomainService {
     private final UserCrudService userCrudService;
 
     public ApplicationPrimaryOwnerDomainService(
-        GroupQueryService groupQueryService,
-        MembershipQueryService membershipQueryService,
-        RoleQueryService roleQueryService,
-        UserCrudService userCrudService
-    ) {
+            GroupQueryService groupQueryService,
+            MembershipQueryService membershipQueryService,
+            RoleQueryService roleQueryService,
+            UserCrudService userCrudService) {
         this.groupQueryService = groupQueryService;
         this.membershipQueryService = membershipQueryService;
         this.roleQueryService = roleQueryService;
@@ -51,66 +50,60 @@ public class ApplicationPrimaryOwnerDomainService {
     }
 
     public PrimaryOwnerEntity getApplicationPrimaryOwner(final String organizationId, String applicationId)
-        throws ApiPrimaryOwnerNotFoundException {
+            throws ApiPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(organizationId)
-            .flatMap(role ->
-                findApplicationPrimaryOwnerMembership(applicationId, role).flatMap(membership ->
-                    switch (membership.getMemberType()) {
-                        case USER -> findUserPrimaryOwner(membership);
-                        case GROUP -> findGroupPrimaryOwner(membership, role.getId());
-                    }
-                )
-            )
-            .orElseThrow(() -> new ApplicationPrimaryOwnerNotFoundException(applicationId));
+                .flatMap(role -> findApplicationPrimaryOwnerMembership(applicationId, role)
+                        .flatMap(membership -> switch (membership.getMemberType()) {
+                            case USER -> findUserPrimaryOwner(membership);
+                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                        }))
+                .orElseThrow(() -> new ApplicationPrimaryOwnerNotFoundException(applicationId));
     }
 
     private Optional<Role> findPrimaryOwnerRole(String organizationId) {
         return roleQueryService.findApplicationRole(
-            SystemRole.PRIMARY_OWNER.name(),
-            ReferenceContext.builder().referenceType(ReferenceContext.Type.ORGANIZATION).referenceId(organizationId).build()
-        );
+                SystemRole.PRIMARY_OWNER.name(),
+                ReferenceContext.builder()
+                        .referenceType(ReferenceContext.Type.ORGANIZATION)
+                        .referenceId(organizationId)
+                        .build());
     }
 
     private Optional<Membership> findApplicationPrimaryOwnerMembership(String apiId, Role role) {
         return membershipQueryService
-            .findByReferenceAndRoleId(Membership.ReferenceType.APPLICATION, apiId, role.getId())
-            .stream()
-            .findFirst();
+                .findByReferenceAndRoleId(Membership.ReferenceType.APPLICATION, apiId, role.getId())
+                .stream()
+                .findFirst();
     }
 
     private Optional<PrimaryOwnerEntity> findUserPrimaryOwner(Membership membership) {
         return userCrudService
-            .findBaseUserById(membership.getMemberId())
-            .map(user ->
-                PrimaryOwnerEntity.builder()
-                    .id(user.getId())
-                    .displayName(user.displayName())
-                    .email(user.getEmail())
-                    .type(PrimaryOwnerEntity.Type.USER)
-                    .build()
-            );
+                .findBaseUserById(membership.getMemberId())
+                .map(user -> PrimaryOwnerEntity.builder()
+                        .id(user.getId())
+                        .displayName(user.displayName())
+                        .email(user.getEmail())
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build());
     }
 
     private Optional<PrimaryOwnerEntity> findGroupPrimaryOwner(Membership membership, String primaryOwnerRoleId) {
         var group = groupQueryService.findById(membership.getMemberId());
-        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId).flatMap(m ->
-            userCrudService.findBaseUserById(m.getMemberId())
-        );
+        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId)
+                .flatMap(m -> userCrudService.findBaseUserById(m.getMemberId()));
 
-        return group.map(value ->
-            PrimaryOwnerEntity.builder()
+        return group.map(value -> PrimaryOwnerEntity.builder()
                 .id(value.getId())
                 .displayName(value.getName())
                 .type(PrimaryOwnerEntity.Type.GROUP)
                 .email(user.map(BaseUserEntity::getEmail).orElse(null))
-                .build()
-        );
+                .build());
     }
 
     private Optional<Membership> findPrimaryOwnerGroupMember(String groupId, String primaryOwnerRoleId) {
         return membershipQueryService
-            .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, groupId, primaryOwnerRoleId)
-            .stream()
-            .findFirst();
+                .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, groupId, primaryOwnerRoleId)
+                .stream()
+                .findFirst();
     }
 }

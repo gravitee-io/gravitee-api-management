@@ -41,7 +41,8 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
     }
 
     @Override
-    public Object resolve(ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
+    public Object resolve(
+            ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
         Vertx vertx = getStoredVertx(extensionContext);
         var gatewayConfig = getStoredGatewayConfig(extensionContext);
 
@@ -53,22 +54,23 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
         final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(5).setHttp2MaxSize(1);
         gatewayTest.configureHttpClient(httpClientOptions, poolOptions, gatewayConfig, parameterContext);
         HttpClient httpClient = vertx.createHttpClient(httpClientOptions, poolOptions);
-        gatewayTest.registerATearDownHandler("HTTP client", () -> httpClient.close().onErrorComplete().subscribe());
+        gatewayTest.registerATearDownHandler(
+                "HTTP client", () -> httpClient.close().onErrorComplete().subscribe());
         return httpClient;
     }
 
     private Vertx getStoredVertx(ExtensionContext extensionContext) {
         ExtensionContext.Store store = extensionContext.getStore(ExtensionContext.Namespace.GLOBAL);
         ScopedObject scopedObject = store.get(VertxExtension.VERTX_INSTANCE_KEY, ScopedObject.class);
-        Objects.requireNonNull(scopedObject, "A Vertx instance must exist, try adding the Vertx parameter as the first method argument");
+        Objects.requireNonNull(
+                scopedObject,
+                "A Vertx instance must exist, try adding the Vertx parameter as the first method argument");
         return (Vertx) scopedObject.get();
     }
 
     private GatewayDynamicConfig.GatewayDynamicConfigImpl getStoredGatewayConfig(ExtensionContext extensionContext) {
-        if (
-            extensionContext.getStore(ExtensionContext.Namespace.GLOBAL).get(GATEWAY_DYNAMIC_CONFIG_KEY) instanceof
-                GatewayDynamicConfig.GatewayDynamicConfigImpl config
-        ) {
+        if (extensionContext.getStore(ExtensionContext.Namespace.GLOBAL).get(GATEWAY_DYNAMIC_CONFIG_KEY)
+                instanceof GatewayDynamicConfig.GatewayDynamicConfigImpl config) {
             return config;
         }
         throw new IllegalArgumentException("Gateway seems not deployed");

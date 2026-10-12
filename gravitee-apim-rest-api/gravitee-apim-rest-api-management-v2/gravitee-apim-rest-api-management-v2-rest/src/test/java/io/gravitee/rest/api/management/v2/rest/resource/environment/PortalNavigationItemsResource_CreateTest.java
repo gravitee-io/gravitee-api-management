@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -82,21 +81,22 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
     }
 
     @AfterEach
@@ -108,15 +108,14 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
     @Test
     void should_not_create_portal_navigation_items_when_no_permission() {
         // Given
-        final var folder = PortalNavigationItemFixtures.aFolder(UUID.randomUUID().toString(), "My Folder");
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        final var folder =
+                PortalNavigationItemFixtures.aFolder(UUID.randomUUID().toString(), "My Folder");
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
 
         // When
         Response response = target.request().post(json(folder));
@@ -128,9 +127,9 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
     @Test
     void should_ignore_the_page_content_id_of_the_request_so_that_a_new_content_is_always_created() {
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(
-            new CreatePortalNavigationItemUseCase.Output(PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT))
-        );
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(
+                        PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT)));
 
         Response response = target.request().post(json(page));
 
@@ -146,7 +145,8 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
 
         final var output = PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT);
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
         Response response = target.request().post(json(page));
@@ -156,30 +156,34 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
 
         final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
         assertThat(item)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", page.getId())
-            .hasFieldOrPropertyWithValue("title", page.getTitle())
-            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
-            .hasFieldOrPropertyWithValue("portalPageContentId", ((CreatePortalNavigationPage) page).getPortalPageContentId())
-            .hasFieldOrPropertyWithValue("parentId", page.getParentId())
-            .hasFieldOrPropertyWithValue("order", page.getOrder())
-            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false)
-            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", page.getId())
+                .hasFieldOrPropertyWithValue("title", page.getTitle())
+                .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
+                .hasFieldOrPropertyWithValue(
+                        "portalPageContentId", ((CreatePortalNavigationPage) page).getPortalPageContentId())
+                .hasFieldOrPropertyWithValue("parentId", page.getParentId())
+                .hasFieldOrPropertyWithValue("order", page.getOrder())
+                .hasFieldOrPropertyWithValue(
+                        "area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue(
+                        "visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 
     @Test
     void should_return_canonical_api_documentation_from_the_use_case() {
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
-        final var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference("api-id"))
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .published(false)
-            .build();
+        final var output =
+                PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null).toBuilder()
+                        .reference(new NavigationItemReference.ApiReference("api-id"))
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .published(false)
+                        .build();
         output.markAsRoot();
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         Response response = target.request().post(json(page));
 
@@ -194,38 +198,34 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         assertThat(item.getId()).isEqualTo(output.getId().id());
         assertThat(item.getParentId()).isNull();
         assertThat(item.getRootId()).isEqualTo(output.getId().id());
-        assertThat(item.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
+        assertThat(item.getPortalPageContentId())
+                .isEqualTo(output.getPortalPageContentId().id());
     }
 
     @Test
     void should_create_portal_navigation_page_with_source() {
         // Given
         final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
-        page.setSource(
-            new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
+        page.setSource(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
                 .type("github-fetcher")
                 .configuration(Map.of("repository", "docs"))
                 .useAutoFetch(true)
-                .fetchCron("0 */10 * * * *")
-        );
+                .fetchCron("0 */10 * * * *"));
 
-        final var output =
-            ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage) PortalNavigationItemsFixtures.aPortalNavigationPage(
-                    ORGANIZATION,
-                    ENVIRONMENT
-                )).toBuilder()
-                .source(
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
-                        .sourceType("github-fetcher")
-                        .sourceConfiguration("{\"repository\":\"docs\"}")
-                        .useAutoFetch(true)
-                        .fetchCron("0 */10 * * * *")
-                        .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
-                        .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
-                        .build()
-                )
-                .build();
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        final var output = ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage)
+                        PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT))
+                .toBuilder()
+                        .source(io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
+                                .sourceType("github-fetcher")
+                                .sourceConfiguration("{\"repository\":\"docs\"}")
+                                .useAutoFetch(true)
+                                .fetchCron("0 */10 * * * *")
+                                .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                                .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
+                                .build())
+                        .build();
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
         Response response = target.request().post(json(page));
@@ -239,12 +239,10 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         assertThat(mappedSource).isNotNull();
         assertThat(mappedSource.getSourceType()).isEqualTo("github-fetcher");
         // pin the exact stored format: sameOrigin comparisons rely on it, a format change must fail here
-        assertThat(mappedSource.getSourceConfiguration()).isEqualTo(
-            """
+        assertThat(mappedSource.getSourceConfiguration()).isEqualTo("""
             {
               "repository" : "docs"
-            }"""
-        );
+            }""");
         assertThat(mappedSource.isUseAutoFetch()).isTrue();
         assertThat(mappedSource.getFetchCron()).isEqualTo("0 */10 * * * *");
 
@@ -254,8 +252,10 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         assertThat(item.getSource().getConfiguration()).isEqualTo(Map.of("repository", "docs"));
         assertThat(item.getSource().getUseAutoFetch()).isTrue();
         assertThat(item.getSource().getFetchCron()).isEqualTo("0 */10 * * * *");
-        assertThat(item.getSource().getLastFetchedAt()).isEqualTo(java.time.OffsetDateTime.parse("2026-07-17T10:00:00Z"));
-        assertThat(item.getSource().getLastFetchAttemptAt()).isEqualTo(java.time.OffsetDateTime.parse("2026-07-17T11:00:00Z"));
+        assertThat(item.getSource().getLastFetchedAt())
+                .isEqualTo(java.time.OffsetDateTime.parse("2026-07-17T10:00:00Z"));
+        assertThat(item.getSource().getLastFetchAttemptAt())
+                .isEqualTo(java.time.OffsetDateTime.parse("2026-07-17T11:00:00Z"));
     }
 
     @Test
@@ -264,7 +264,8 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         final var folder = PortalNavigationItemsFixtures.aCreatePortalNavigationFolder();
 
         final var output = PortalNavigationItemsFixtures.aPortalNavigationFolder(ORGANIZATION, ENVIRONMENT);
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
         Response response = target.request().post(json(folder));
@@ -272,17 +273,20 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Then
         assertThat(response).hasStatus(CREATED_201);
 
-        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder.class);
+        final var item =
+                response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder.class);
         assertThat(item)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", folder.getId())
-            .hasFieldOrPropertyWithValue("title", folder.getTitle())
-            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.FOLDER)
-            .hasFieldOrPropertyWithValue("parentId", folder.getParentId())
-            .hasFieldOrPropertyWithValue("order", folder.getOrder())
-            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false)
-            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", folder.getId())
+                .hasFieldOrPropertyWithValue("title", folder.getTitle())
+                .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.FOLDER)
+                .hasFieldOrPropertyWithValue("parentId", folder.getParentId())
+                .hasFieldOrPropertyWithValue("order", folder.getOrder())
+                .hasFieldOrPropertyWithValue(
+                        "area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue(
+                        "visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 
     @Test
@@ -291,7 +295,8 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         final var link = PortalNavigationItemsFixtures.aCreatePortalNavigationLink();
 
         final var output = PortalNavigationItemsFixtures.aPortalNavigationLink(ORGANIZATION, ENVIRONMENT);
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
         Response response = target.request().post(json(link));
@@ -301,16 +306,18 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
 
         final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink.class);
         assertThat(item)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", link.getId())
-            .hasFieldOrPropertyWithValue("title", link.getTitle())
-            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.LINK)
-            .hasFieldOrPropertyWithValue("url", ((CreatePortalNavigationLink) link).getUrl())
-            .hasFieldOrPropertyWithValue("parentId", link.getParentId())
-            .hasFieldOrPropertyWithValue("order", link.getOrder())
-            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false)
-            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", link.getId())
+                .hasFieldOrPropertyWithValue("title", link.getTitle())
+                .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.LINK)
+                .hasFieldOrPropertyWithValue("url", ((CreatePortalNavigationLink) link).getUrl())
+                .hasFieldOrPropertyWithValue("parentId", link.getParentId())
+                .hasFieldOrPropertyWithValue("order", link.getOrder())
+                .hasFieldOrPropertyWithValue(
+                        "area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue(
+                        "visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 
     @Test
@@ -319,7 +326,8 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
 
         final var output = PortalNavigationItemsFixtures.aPortalNavigationApi(ORGANIZATION, ENVIRONMENT);
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
         Response response = target.request().post(json(api));
@@ -329,36 +337,41 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
 
         final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi.class);
         assertThat(item)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", api.getId())
-            .hasFieldOrPropertyWithValue("title", api.getTitle())
-            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.API)
-            .hasFieldOrPropertyWithValue("apiId", ((CreatePortalNavigationApi) api).getApiId())
-            .hasFieldOrPropertyWithValue("parentId", api.getParentId())
-            .hasFieldOrPropertyWithValue("order", api.getOrder())
-            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false)
-            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", api.getId())
+                .hasFieldOrPropertyWithValue("title", api.getTitle())
+                .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.API)
+                .hasFieldOrPropertyWithValue("apiId", ((CreatePortalNavigationApi) api).getApiId())
+                .hasFieldOrPropertyWithValue("parentId", api.getParentId())
+                .hasFieldOrPropertyWithValue("order", api.getOrder())
+                .hasFieldOrPropertyWithValue(
+                        "area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue(
+                        "visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 
     @Test
     void should_create_portal_navigation_api_product_and_return_only_the_product_root() {
         final var apiProduct = PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct();
         final var output = PortalNavigationItemsFixtures.aPortalNavigationApiProduct(ORGANIZATION, ENVIRONMENT);
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         Response response = target.request().post(json(apiProduct));
 
         assertThat(response).hasStatus(CREATED_201);
-        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct.class);
+        final var item =
+                response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct.class);
         assertThat(item)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", apiProduct.getId())
-            .hasFieldOrPropertyWithValue("title", apiProduct.getTitle())
-            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.API_PRODUCT)
-            .hasFieldOrPropertyWithValue("apiProductId", ((CreatePortalNavigationApiProduct) apiProduct).getApiProductId())
-            .hasFieldOrPropertyWithValue("parentId", apiProduct.getParentId())
-            .hasFieldOrPropertyWithValue("published", false);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", apiProduct.getId())
+                .hasFieldOrPropertyWithValue("title", apiProduct.getTitle())
+                .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.API_PRODUCT)
+                .hasFieldOrPropertyWithValue(
+                        "apiProductId", ((CreatePortalNavigationApiProduct) apiProduct).getApiProductId())
+                .hasFieldOrPropertyWithValue("parentId", apiProduct.getParentId())
+                .hasFieldOrPropertyWithValue("published", false);
     }
 
     @Test
@@ -381,7 +394,8 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         final var page = PortalNavigationItemsFixtures.aPrivateCreatePortalNavigationPage();
 
         final var output = PortalNavigationItemsFixtures.aPrivatePortalNavigationPage(ORGANIZATION, ENVIRONMENT);
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
         Response response = target.request().post(json(page));
@@ -391,16 +405,18 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
 
         final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
         assertThat(item)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", page.getId())
-            .hasFieldOrPropertyWithValue("title", page.getTitle())
-            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
-            .hasFieldOrPropertyWithValue("portalPageContentId", ((CreatePortalNavigationPage) page).getPortalPageContentId())
-            .hasFieldOrPropertyWithValue("parentId", page.getParentId())
-            .hasFieldOrPropertyWithValue("order", page.getOrder())
-            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .hasFieldOrPropertyWithValue("published", false)
-            .hasFieldOrPropertyWithValue("visibility", PortalVisibility.PRIVATE);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", page.getId())
+                .hasFieldOrPropertyWithValue("title", page.getTitle())
+                .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.PAGE)
+                .hasFieldOrPropertyWithValue(
+                        "portalPageContentId", ((CreatePortalNavigationPage) page).getPortalPageContentId())
+                .hasFieldOrPropertyWithValue("parentId", page.getParentId())
+                .hasFieldOrPropertyWithValue("order", page.getOrder())
+                .hasFieldOrPropertyWithValue(
+                        "area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue("visibility", PortalVisibility.PRIVATE);
     }
 
     @Test

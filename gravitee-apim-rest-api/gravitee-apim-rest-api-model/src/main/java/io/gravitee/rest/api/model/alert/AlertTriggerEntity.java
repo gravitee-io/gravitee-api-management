@@ -152,23 +152,20 @@ public class AlertTriggerEntity extends Trigger {
 
     @Override
     public String toString() {
-        return (
-            "AlertTriggerEntity{" +
-            "description='" +
-            description +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", createdAt=" +
-            getCreatedAt() +
-            ", updatedAt=" +
-            getUpdatedAt() +
-            ", environmentId=" +
-            environmentId +
-            '}'
-        );
+        return ("AlertTriggerEntity{" + "description='"
+                + description
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", createdAt="
+                + getCreatedAt()
+                + ", updatedAt="
+                + getUpdatedAt()
+                + ", environmentId="
+                + environmentId
+                + '}');
     }
 }

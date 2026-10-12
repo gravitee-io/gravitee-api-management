@@ -39,11 +39,10 @@ public class RevokeApiSubscriptionApiKeyUseCase {
     private final RevokeApiKeyDomainService revokeApiKeyDomainService;
 
     public RevokeApiSubscriptionApiKeyUseCase(
-        SubscriptionCrudService subscriptionCrudService,
-        ApplicationCrudService applicationCrudService,
-        ApiKeyQueryService apiKeyQueryService,
-        RevokeApiKeyDomainService revokeApiKeyDomainService
-    ) {
+            SubscriptionCrudService subscriptionCrudService,
+            ApplicationCrudService applicationCrudService,
+            ApiKeyQueryService apiKeyQueryService,
+            RevokeApiKeyDomainService revokeApiKeyDomainService) {
         this.subscriptionCrudService = subscriptionCrudService;
         this.applicationCrudService = applicationCrudService;
         this.apiKeyQueryService = apiKeyQueryService;
@@ -60,30 +59,26 @@ public class RevokeApiSubscriptionApiKeyUseCase {
         }
 
         var subscription = subscriptionCrudService.get(input.subscriptionId);
-        if (
-            !subscription.getReferenceId().equals(input.referenceId) || !subscription.getReferenceType().name().equals(input.referenceType)
-        ) {
+        if (!subscription.getReferenceId().equals(input.referenceId)
+                || !subscription.getReferenceType().name().equals(input.referenceType)) {
             throw new SubscriptionNotFoundException(input.subscriptionId);
         }
 
         var application = applicationCrudService.findById(
-            new ExecutionContext(input.auditInfo().organizationId(), input.auditInfo().environmentId()),
-            apiKey.get().getApplicationId()
-        );
+                new ExecutionContext(
+                        input.auditInfo().organizationId(), input.auditInfo().environmentId()),
+                apiKey.get().getApplicationId());
         if (application.hasApiKeySharedMode()) {
-            throw new InvalidApplicationApiKeyModeException(
-                String.format(
+            throw new InvalidApplicationApiKeyModeException(String.format(
                     "Invalid operation for API Key mode [%s] of application [%s]",
-                    application.getApiKeyMode(),
-                    application.getId()
-                )
-            );
+                    application.getApiKeyMode(), application.getId()));
         }
 
         return new Output(revokeApiKeyDomainService.revoke(apiKey.get(), input.auditInfo()));
     }
 
-    public record Input(String apiKeyId, String referenceId, String referenceType, String subscriptionId, AuditInfo auditInfo) {}
+    public record Input(
+            String apiKeyId, String referenceId, String referenceType, String subscriptionId, AuditInfo auditInfo) {}
 
     public record Output(ApiKeyEntity apiKey) {}
 }

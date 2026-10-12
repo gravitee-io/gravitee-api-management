@@ -44,11 +44,8 @@ class ListMyAiWorkspacesUseCaseTest {
     private final SubscriptionSearchQueryServiceInMemory subscriptions = new SubscriptionSearchQueryServiceInMemory();
     private final ApiProductQueryServiceInMemory products = new ApiProductQueryServiceInMemory();
     private final FlowCrudServiceInMemory flows = new FlowCrudServiceInMemory();
-    private final ListMyAiWorkspacesUseCase useCase = new ListMyAiWorkspacesUseCase(
-        new AiWorkspaceMembershipQuery(subscriptions),
-        products,
-        flows
-    );
+    private final ListMyAiWorkspacesUseCase useCase =
+            new ListMyAiWorkspacesUseCase(new AiWorkspaceMembershipQuery(subscriptions), products, flows);
 
     @BeforeEach
     void setUp() {
@@ -59,31 +56,24 @@ class ListMyAiWorkspacesUseCaseTest {
 
     @Test
     void lists_mapped_workspaces_with_budget() {
-        products.initWith(
-            List.of(
+        products.initWith(List.of(
                 product("ws-1", "Alpha Workspace", ENV, ApiProductKind.AI_WORKSPACE),
                 product("ws-2", "Beta", ENV, ApiProductKind.AI_WORKSPACE),
                 product("other", "Alpha Catalog", ENV, null),
-                product("elsewhere", "Alpha Elsewhere", "OTHER", ApiProductKind.AI_WORKSPACE)
-            )
-        );
+                product("elsewhere", "Alpha Elsewhere", "OTHER", ApiProductKind.AI_WORKSPACE)));
         flows.savePlanFlows("plan-1", List.of(budgetFlow(10_000_000, 1440)));
-        subscriptions.initWith(
-            List.of(
+        subscriptions.initWith(List.of(
                 subscription("sub-new", "app-1", "ws-1", "plan-1", SubscriptionStatus.ACCEPTED, new Date(2_000)),
                 subscription("sub-old", "app-1", "ws-1", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)),
                 subscription("sub-beta", "app-1", "ws-2", "missing-plan", SubscriptionStatus.ACCEPTED, new Date(1_000)),
                 subscription("sub-pending", "app-1", "ws-1", "plan-1", SubscriptionStatus.PENDING, new Date(1_000)),
                 subscription("sub-catalog", "app-1", "other", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)),
-                subscription("sub-env", "app-1", "elsewhere", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000))
-            )
-        );
+                subscription("sub-env", "app-1", "elsewhere", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000))));
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null))
+                .workspaces();
 
-        assertThat(workspaces)
-            .extracting(summary -> summary.id())
-            .containsExactly("ws-1", "ws-2");
+        assertThat(workspaces).extracting(summary -> summary.id()).containsExactly("ws-1", "ws-2");
         assertThat(workspaces.get(0).budget().amount()).isEqualByComparingTo(new BigDecimal("10.00"));
         assertThat(workspaces.get(0).budget().period()).isEqualTo("DAY");
         assertThat(workspaces.get(1).budget()).isNull();
@@ -92,11 +82,11 @@ class ListMyAiWorkspacesUseCaseTest {
     @Test
     void ignores_products_that_are_not_ai_workspaces() {
         products.initWith(List.of(product("other", "Catalog", ENV, null)));
-        subscriptions.initWith(
-            List.of(subscription("sub-catalog", "app-1", "other", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)))
-        );
+        subscriptions.initWith(List.of(
+                subscription("sub-catalog", "app-1", "other", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000))));
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null))
+                .workspaces();
 
         assertThat(workspaces).isEmpty();
     }
@@ -104,94 +94,94 @@ class ListMyAiWorkspacesUseCaseTest {
     @Test
     void does_not_list_another_callers_workspace() {
         products.initWith(List.of(product("ws-2", "Beta", ENV, ApiProductKind.AI_WORKSPACE)));
-        subscriptions.initWith(
-            List.of(subscription("sub-other-user", "app-2", "ws-2", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)))
-        );
+        subscriptions.initWith(List.of(subscription(
+                "sub-other-user", "app-2", "ws-2", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000))));
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null))
+                .workspaces();
 
         assertThat(workspaces).isEmpty();
     }
 
     @Test
     void reads_workspaces_past_the_first_subscription_page() {
-        products.initWith(
-            List.of(product("ws-1", "Alpha", ENV, ApiProductKind.AI_WORKSPACE), product("ws-2", "Beta", ENV, ApiProductKind.AI_WORKSPACE))
-        );
+        products.initWith(List.of(
+                product("ws-1", "Alpha", ENV, ApiProductKind.AI_WORKSPACE),
+                product("ws-2", "Beta", ENV, ApiProductKind.AI_WORKSPACE)));
         List<SubscriptionEntity> page = new ArrayList<>();
         for (int index = 0; index < 500; index++) {
-            page.add(subscription("sub-" + index, "app-1", "ws-1", "plan-1", SubscriptionStatus.ACCEPTED, new Date(index)));
+            page.add(subscription(
+                    "sub-" + index, "app-1", "ws-1", "plan-1", SubscriptionStatus.ACCEPTED, new Date(index)));
         }
         page.add(subscription("sub-last", "app-1", "ws-2", "plan-1", SubscriptionStatus.ACCEPTED, new Date(501)));
         subscriptions.initWith(page);
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null))
+                .workspaces();
 
-        assertThat(workspaces)
-            .extracting(summary -> summary.id())
-            .containsExactly("ws-1", "ws-2");
+        assertThat(workspaces).extracting(summary -> summary.id()).containsExactly("ws-1", "ws-2");
     }
 
     @Test
     void filters_by_a_case_insensitive_name_fragment() {
-        products.initWith(
-            List.of(
+        products.initWith(List.of(
                 product("ws-1", "Alpha", ENV, ApiProductKind.AI_WORKSPACE),
                 product("ws-2", "Alpine", ENV, ApiProductKind.AI_WORKSPACE),
-                product("ws-3", "Bravo", ENV, ApiProductKind.AI_WORKSPACE)
-            )
-        );
-        subscriptions.initWith(
-            List.of(
+                product("ws-3", "Bravo", ENV, ApiProductKind.AI_WORKSPACE)));
+        subscriptions.initWith(List.of(
                 subscription("sub-1", "app-1", "ws-1", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)),
                 subscription("sub-2", "app-1", "ws-2", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)),
-                subscription("sub-3", "app-1", "ws-3", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000))
-            )
-        );
+                subscription("sub-3", "app-1", "ws-3", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000))));
 
-        var matched = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "ALP")).workspaces();
-        var padded = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), " alp ")).workspaces();
-        var blank = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "  ")).workspaces();
-        var none = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "zzzz")).workspaces();
+        var matched = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "ALP"))
+                .workspaces();
+        var padded = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), " alp "))
+                .workspaces();
+        var blank = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "  "))
+                .workspaces();
+        var none = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "zzzz"))
+                .workspaces();
 
-        assertThat(matched)
-            .extracting(summary -> summary.name())
-            .containsExactly("Alpha", "Alpine");
-        assertThat(padded)
-            .extracting(summary -> summary.name())
-            .containsExactly("Alpha", "Alpine");
+        assertThat(matched).extracting(summary -> summary.name()).containsExactly("Alpha", "Alpine");
+        assertThat(padded).extracting(summary -> summary.name()).containsExactly("Alpha", "Alpine");
         assertThat(blank).hasSize(3);
         assertThat(none).isEmpty();
     }
 
     @Test
     void empty_when_the_caller_has_no_applications() {
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of(), null)).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of(), null))
+                .workspaces();
 
         assertThat(workspaces).isEmpty();
     }
 
     private static ApiProduct product(String id, String name, String environmentId, ApiProductKind kind) {
-        return ApiProduct.builder().id(id).name(name).description(name + " description").environmentId(environmentId).kind(kind).build();
+        return ApiProduct.builder()
+                .id(id)
+                .name(name)
+                .description(name + " description")
+                .environmentId(environmentId)
+                .kind(kind)
+                .build();
     }
 
     private static SubscriptionEntity subscription(
-        String id,
-        String applicationId,
-        String apiProductId,
-        String planId,
-        SubscriptionStatus status,
-        Date createdAt
-    ) {
+            String id,
+            String applicationId,
+            String apiProductId,
+            String planId,
+            SubscriptionStatus status,
+            Date createdAt) {
         return SubscriptionEntity.builder()
-            .id(id)
-            .application(applicationId)
-            .referenceId(apiProductId)
-            .referenceType("API_PRODUCT")
-            .plan(planId)
-            .status(status)
-            .createdAt(createdAt)
-            .build();
+                .id(id)
+                .application(applicationId)
+                .referenceId(apiProductId)
+                .referenceType("API_PRODUCT")
+                .plan(planId)
+                .status(status)
+                .createdAt(createdAt)
+                .build();
     }
 
     private static Flow budgetFlow(long microDollars, int minutes) {

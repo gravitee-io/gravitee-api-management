@@ -36,7 +36,8 @@ public class FlowChainFactory {
     private final FlowResolverFactory flowResolverFactory;
     private TracingHook tracingHook;
 
-    public FlowChainFactory(final PolicyChainFactory policyChainFactory, final FlowResolverFactory flowResolverFactory) {
+    public FlowChainFactory(
+            final PolicyChainFactory policyChainFactory, final FlowResolverFactory flowResolverFactory) {
         this.policyChainFactory = policyChainFactory;
         this.flowResolverFactory = flowResolverFactory;
         this.tracingHook = new TracingHook("flow");
@@ -44,32 +45,29 @@ public class FlowChainFactory {
 
     public FlowChain createPlanFlow(final Api api, final TracingContext tracingContext) {
         FlowChain flowPlanChain = new FlowChain(
-            "plan",
-            flowResolverFactory.forApiPlan(api),
-            policyChainFactory,
-            flowResolverFactory.deferredConditionFilter(api),
-            true,
-            false
-        );
+                "plan",
+                flowResolverFactory.forApiPlan(api),
+                policyChainFactory,
+                flowResolverFactory.deferredConditionFilter(api),
+                true,
+                false);
         flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
     }
 
     public FlowChain createProductPlanFlow(
-        final Api api,
-        final String environmentId,
-        final ApiProductRegistry apiProductRegistry,
-        final PolicyChainFactory productPlanPolicyChainFactory,
-        final TracingContext tracingContext
-    ) {
+            final Api api,
+            final String environmentId,
+            final ApiProductRegistry apiProductRegistry,
+            final PolicyChainFactory productPlanPolicyChainFactory,
+            final TracingContext tracingContext) {
         FlowChain flowProductPlanChain = new FlowChain(
-            "product-plan",
-            flowResolverFactory.forApiProductPlan(api, environmentId, apiProductRegistry),
-            productPlanPolicyChainFactory,
-            flowResolverFactory.deferredConditionFilter(api),
-            true,
-            false
-        );
+                "product-plan",
+                flowResolverFactory.forApiProductPlan(api, environmentId, apiProductRegistry),
+                productPlanPolicyChainFactory,
+                flowResolverFactory.deferredConditionFilter(api),
+                true,
+                false);
         flowProductPlanChain.addHooks(flowHooks(tracingContext));
         return flowProductPlanChain;
     }
@@ -77,13 +75,12 @@ public class FlowChainFactory {
     public FlowChain createApiFlow(final Api api, final TracingContext tracingContext) {
         FlowExecution flowExecution = api.getDefinition().getFlowExecution();
         FlowChain flowApiChain = new FlowChain(
-            "api",
-            flowResolverFactory.forApi(api),
-            policyChainFactory,
-            flowResolverFactory.deferredConditionFilter(api),
-            true,
-            flowExecution != null && flowExecution.isMatchRequired()
-        );
+                "api",
+                flowResolverFactory.forApi(api),
+                policyChainFactory,
+                flowResolverFactory.deferredConditionFilter(api),
+                true,
+                flowExecution != null && flowExecution.isMatchRequired());
         flowApiChain.addHooks(flowHooks(tracingContext));
         return flowApiChain;
     }

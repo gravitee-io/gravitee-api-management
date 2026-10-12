@@ -17,5 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment.param.valid
 
 public interface TimeRange {
     Long getFrom();
+
     Long getTo();
 }

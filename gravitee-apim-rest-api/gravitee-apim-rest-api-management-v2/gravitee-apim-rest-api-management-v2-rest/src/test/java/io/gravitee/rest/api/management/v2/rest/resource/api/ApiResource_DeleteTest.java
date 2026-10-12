@@ -50,7 +50,9 @@ public class ApiResource_DeleteTest extends ApiResourceTest {
 
     @Test
     public void shouldNotDeleteApiBecauseNotfound() {
-        doThrow(ApiNotFoundException.class).when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), UNKNOWN_API, false);
+        doThrow(ApiNotFoundException.class)
+                .when(apiServiceV4)
+                .delete(GraviteeContext.getExecutionContext(), UNKNOWN_API, false);
 
         final Response response = rootTarget(UNKNOWN_API).request().delete();
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -58,9 +60,9 @@ public class ApiResource_DeleteTest extends ApiResourceTest {
 
     @Test
     public void shouldNotDeleteApiWithInsufficientRights() {
-        when(
-            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+                .thenReturn(false);
         final Response response = rootTarget(API).request().delete();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

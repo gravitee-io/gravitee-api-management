@@ -39,41 +39,43 @@ class ApiTest {
     @Test
     void does_not_need_to_update() {
         final Api api = ApiFixtures.aProxyApiV4();
-        api
-            .getApiDefinitionHttpV4()
-            .setProperties(List.of(new Property("key", "value", false, false), new Property("dynamic", "value", false, true)));
-        assertThat(
-            api.updateDynamicProperties(List.of(new Property("key", "value", false, true), new Property("dynamic", "value", false, true)))
-        ).isFalse();
+        api.getApiDefinitionHttpV4()
+                .setProperties(List.of(
+                        new Property("key", "value", false, false), new Property("dynamic", "value", false, true)));
+        assertThat(api.updateDynamicProperties(List.of(
+                        new Property("key", "value", false, true), new Property("dynamic", "value", false, true))))
+                .isFalse();
         // keys must be sorted by natural order
-        assertThat(api.getApiDefinitionHttpV4().getProperties()).extracting(Property::getKey).containsExactly("dynamic", "key");
+        assertThat(api.getApiDefinitionHttpV4().getProperties())
+                .extracting(Property::getKey)
+                .containsExactly("dynamic", "key");
     }
 
     @Test
     void needs_to_update() {
         final Api api = ApiFixtures.aProxyApiV4();
         api.getApiDefinitionHttpV4().setProperties(List.of(new Property("key", "value", false, false)));
-        assertThat(
-            api.updateDynamicProperties(
-                List.of(
-                    new Property("key", "value", false, true),
-                    new Property("dynamic", "value", false, true),
-                    new Property("X-Other", "value", false, true)
-                )
-            )
-        ).isTrue();
+        assertThat(api.updateDynamicProperties(List.of(
+                        new Property("key", "value", false, true),
+                        new Property("dynamic", "value", false, true),
+                        new Property("X-Other", "value", false, true))))
+                .isTrue();
         // keys must be sorted by natural order
-        assertThat(api.getApiDefinitionHttpV4().getProperties()).extracting(Property::getKey).containsExactly("X-Other", "dynamic", "key");
+        assertThat(api.getApiDefinitionHttpV4().getProperties())
+                .extracting(Property::getKey)
+                .containsExactly("X-Other", "dynamic", "key");
     }
 
     @Test
     void needs_to_update_native_api() {
         final Api api = ApiFixtures.aNativeApi();
         api.getApiDefinitionNativeV4().setProperties(List.of(new Property("key", "value", false, false)));
-        assertThat(
-            api.updateDynamicProperties(List.of(new Property("key", "value", false, true), new Property("dynamic", "value", false, true)))
-        ).isTrue();
+        assertThat(api.updateDynamicProperties(List.of(
+                        new Property("key", "value", false, true), new Property("dynamic", "value", false, true))))
+                .isTrue();
         // keys must be sorted by natural order
-        assertThat(api.getApiDefinitionNativeV4().getProperties()).extracting(Property::getKey).containsExactly("dynamic", "key");
+        assertThat(api.getApiDefinitionNativeV4().getProperties())
+                .extracting(Property::getKey)
+                .containsExactly("dynamic", "key");
     }
 }

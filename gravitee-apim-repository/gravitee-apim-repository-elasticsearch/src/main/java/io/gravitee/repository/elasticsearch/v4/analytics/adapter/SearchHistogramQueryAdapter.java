@@ -33,27 +33,26 @@ import java.util.Map;
 public class SearchHistogramQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final List<String> ENTRYPOINT_IDS = List.of("http-post", "http-get", "http-proxy", "llm-proxy", "mcp-proxy");
+    private static final List<String> ENTRYPOINT_IDS =
+            List.of("http-post", "http-get", "http-proxy", "llm-proxy", "mcp-proxy");
     private static final Map<AggregationType, String> AGGREGATION_PREFIX = Map.of(
-        AggregationType.FIELD,
-        "by_",
-        AggregationType.AVG,
-        "avg_",
-        AggregationType.MAX,
-        "max_",
-        AggregationType.MIN,
-        "min_"
-    );
+            AggregationType.FIELD,
+            "by_",
+            AggregationType.AVG,
+            "avg_",
+            AggregationType.MAX,
+            "max_",
+            AggregationType.MIN,
+            "min_");
     private static final Map<AggregationType, String> AGGREGATION_NAME = Map.of(
-        AggregationType.FIELD,
-        "terms",
-        AggregationType.AVG,
-        "avg",
-        AggregationType.MAX,
-        "max",
-        AggregationType.MIN,
-        "min"
-    );
+            AggregationType.FIELD,
+            "terms",
+            AggregationType.AVG,
+            "avg",
+            AggregationType.MAX,
+            "max",
+            AggregationType.MIN,
+            "min");
     private final Map<String, String> aggFieldMap = new LinkedHashMap<>();
     private final Map<String, AggregationType> aggTypeMap = new LinkedHashMap<>();
 
@@ -80,13 +79,11 @@ public class SearchHistogramQueryAdapter {
         filterArray.add(createTimeRangeFilterNode(query));
 
         // Add query string filter if present
-        query
-            .query()
-            .ifPresent(queryString -> {
-                if (!queryString.trim().isEmpty()) {
-                    filterArray.add(createQueryStringFilterNode(queryString));
-                }
-            });
+        query.query().ifPresent(queryString -> {
+            if (!queryString.trim().isEmpty()) {
+                filterArray.add(createQueryStringFilterNode(queryString));
+            }
+        });
 
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);
@@ -112,11 +109,13 @@ public class SearchHistogramQueryAdapter {
         // V4 path: match by api-id + entrypoint-id
         var mustArray = MAPPER.createArrayNode();
         var apiTerms = MAPPER.createObjectNode();
-        apiTerms.set("term", MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id()));
+        apiTerms.set(
+                "term", MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id()));
         mustArray.add(apiTerms);
 
         var entrypointIdTerms = MAPPER.createObjectNode();
-        entrypointIdTerms.set("terms", MAPPER.createObjectNode().set("entrypoint-id", MAPPER.valueToTree(ENTRYPOINT_IDS)));
+        entrypointIdTerms.set(
+                "terms", MAPPER.createObjectNode().set("entrypoint-id", MAPPER.valueToTree(ENTRYPOINT_IDS)));
         mustArray.add(entrypointIdTerms);
 
         var boolMust = MAPPER.createObjectNode();
@@ -126,7 +125,8 @@ public class SearchHistogramQueryAdapter {
         shouldArray.add(MAPPER.createObjectNode().set("bool", boolMust));
 
         // V2 path: match by legacy "api" field (no entrypoint-id on v2 indices)
-        shouldArray.add(MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put("api", searchTermId.id())));
+        shouldArray.add(
+                MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put("api", searchTermId.id())));
 
         var boolShould = MAPPER.createObjectNode();
         boolShould.put("minimum_should_match", 1);
@@ -179,20 +179,18 @@ public class SearchHistogramQueryAdapter {
         var histogramSize = histogramAgg.getBuckets().size();
         for (var aggType : aggTypeMap.entrySet()) {
             if (aggType.getValue() == AggregationType.FIELD) {
-                result.add(parseCountsHistogramAggregate(histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
+                result.add(parseCountsHistogramAggregate(
+                        histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
             } else {
-                result.add(parseMetricHistogramAggregate(histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
+                result.add(parseMetricHistogramAggregate(
+                        histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
             }
         }
         return result;
     }
 
     private HistogramAggregate parseCountsHistogramAggregate(
-        Aggregation histogramAgg,
-        String aggName,
-        String fieldName,
-        int histogramSize
-    ) {
+            Aggregation histogramAgg, String aggName, String fieldName, int histogramSize) {
         var counts = new HashMap<String, List<Long>>();
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
@@ -212,11 +210,7 @@ public class SearchHistogramQueryAdapter {
     }
 
     private HistogramAggregate parseMetricHistogramAggregate(
-        Aggregation histogramAgg,
-        String aggName,
-        String fieldName,
-        int histogramSize
-    ) {
+            Aggregation histogramAgg, String aggName, String fieldName, int histogramSize) {
         List<Double> values = new ArrayList<>(Collections.nCopies(histogramSize, 0D));
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {

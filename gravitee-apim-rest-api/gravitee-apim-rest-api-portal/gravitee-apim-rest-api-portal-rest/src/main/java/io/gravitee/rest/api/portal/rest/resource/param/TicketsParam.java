@@ -33,7 +33,9 @@ public class TicketsParam {
     private String application;
 
     @QueryParam("order")
-    @Parameter(description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-subject")
+    @Parameter(
+            description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+            example = "-subject")
     private OrderParam order;
 
     public String getApi() {

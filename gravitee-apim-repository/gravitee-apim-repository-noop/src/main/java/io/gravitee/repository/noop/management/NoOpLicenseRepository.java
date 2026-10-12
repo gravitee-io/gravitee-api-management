@@ -27,7 +27,8 @@ import java.util.Optional;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpLicenseRepository extends AbstractNoOpManagementRepository<License, String> implements LicenseRepository {
+public class NoOpLicenseRepository extends AbstractNoOpManagementRepository<License, String>
+        implements LicenseRepository {
 
     @Override
     public Optional<License> findById(String referenceId, License.ReferenceType referenceType) {

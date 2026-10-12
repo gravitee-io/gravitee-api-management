@@ -71,13 +71,12 @@ class CredentialSynchronizerTest {
     @BeforeEach
     void setUp() {
         synchronizer = new CredentialSynchronizer(
-            fetcher,
-            new CredentialMapper(new ObjectMapper()),
-            environmentService,
-            deployerFactory,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                fetcher,
+                new CredentialMapper(new ObjectMapper()),
+                environmentService,
+                deployerFactory,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(deployerFactory.createCredentialDeployer()).thenReturn(deployer);
         lenient().when(deployer.deploy(any())).thenReturn(Completable.complete());
@@ -96,37 +95,50 @@ class CredentialSynchronizerTest {
     void should_only_fetch_publish_events_on_initial_sync() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        verify(fetcher).fetchLatest(
-            eq(-1L),
-            any(),
-            eq(Event.EventProperties.CREDENTIAL_ID),
-            eq(Set.of("env-1")),
-            eq(Set.of(EventType.PUBLISH_CREDENTIAL))
-        );
+        verify(fetcher)
+                .fetchLatest(
+                        eq(-1L),
+                        any(),
+                        eq(Event.EventProperties.CREDENTIAL_ID),
+                        eq(Set.of("env-1")),
+                        eq(Set.of(EventType.PUBLISH_CREDENTIAL)));
     }
 
     @Test
     void should_fetch_publish_and_unpublish_events_on_incremental_sync() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        verify(fetcher).fetchLatest(
-            eq(123L),
-            any(),
-            eq(Event.EventProperties.CREDENTIAL_ID),
-            eq(Set.of("env-1")),
-            eq(Set.of(EventType.PUBLISH_CREDENTIAL, EventType.UNPUBLISH_CREDENTIAL))
-        );
+        verify(fetcher)
+                .fetchLatest(
+                        eq(123L),
+                        any(),
+                        eq(Event.EventProperties.CREDENTIAL_ID),
+                        eq(Set.of("env-1")),
+                        eq(Set.of(EventType.PUBLISH_CREDENTIAL, EventType.UNPUBLISH_CREDENTIAL)));
     }
 
     @Test
     void should_deploy_a_published_credential_with_its_organization() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent("credential-1"))));
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(publishEvent("credential-1"))));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         ArgumentCaptor<CredentialDeployable> captor = ArgumentCaptor.forClass(CredentialDeployable.class);
         verify(deployer).deploy(captor.capture());
@@ -137,11 +149,17 @@ class CredentialSynchronizerTest {
 
     @Test
     void should_undeploy_an_unpublished_credential() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
-            Flowable.just(List.of(event("evt-u", EventType.UNPUBLISH_CREDENTIAL, "{\"id\":\"credential-1\",\"environmentId\":\"env-1\"}")))
-        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(event(
+                        "evt-u",
+                        EventType.UNPUBLISH_CREDENTIAL,
+                        "{\"id\":\"credential-1\",\"environmentId\":\"env-1\"}"))));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         ArgumentCaptor<CredentialDeployable> captor = ArgumentCaptor.forClass(CredentialDeployable.class);
         verify(deployer).undeploy(captor.capture());
@@ -152,21 +170,29 @@ class CredentialSynchronizerTest {
     @Test
     void should_drop_an_unreadable_event_without_breaking_the_batch() throws InterruptedException {
         Event bad = event("evt-bad", EventType.PUBLISH_CREDENTIAL, "not-json");
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(bad, publishEvent("credential-1"))));
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(bad, publishEvent("credential-1"))));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(1)).deploy(any());
     }
 
     @Test
     void should_complete_when_a_deploy_fails() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
-            Flowable.just(List.of(publishEvent("credential-1"), publishEvent("credential-2")))
-        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(publishEvent("credential-1"), publishEvent("credential-2"))));
         when(deployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("error")));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).deploy(any());
     }
@@ -175,15 +201,17 @@ class CredentialSynchronizerTest {
     void should_skip_a_credential_whose_environment_cannot_be_found() throws InterruptedException {
         when(environmentService.organizationIdOf("env-unknown")).thenReturn(null);
         Event unknownEnvironment = event(
-            "evt-unknown",
-            EventType.PUBLISH_CREDENTIAL,
-            "{\"id\":\"credential-unknown\",\"environmentId\":\"env-unknown\",\"encryptedSecret\":\"ciphertext\"}"
-        );
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
-            Flowable.just(List.of(unknownEnvironment, publishEvent("credential-1")))
-        );
+                "evt-unknown",
+                EventType.PUBLISH_CREDENTIAL,
+                "{\"id\":\"credential-unknown\",\"environmentId\":\"env-unknown\",\"encryptedSecret\":\"ciphertext\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(unknownEnvironment, publishEvent("credential-1"))));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1", "env-unknown")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1", "env-unknown"))
+                .test()
+                .await()
+                .assertComplete();
 
         ArgumentCaptor<CredentialDeployable> captor = ArgumentCaptor.forClass(CredentialDeployable.class);
         verify(deployer, times(1)).deploy(captor.capture());
@@ -192,10 +220,9 @@ class CredentialSynchronizerTest {
 
     private static Event publishEvent(String credentialId) {
         return event(
-            "evt-" + credentialId,
-            EventType.PUBLISH_CREDENTIAL,
-            "{\"id\":\"" + credentialId + "\",\"environmentId\":\"env-1\",\"encryptedSecret\":\"ciphertext\"}"
-        );
+                "evt-" + credentialId,
+                EventType.PUBLISH_CREDENTIAL,
+                "{\"id\":\"" + credentialId + "\",\"environmentId\":\"env-1\",\"encryptedSecret\":\"ciphertext\"}");
     }
 
     private static Event event(String id, EventType type, String payload) {

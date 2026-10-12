@@ -34,17 +34,17 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindAllByReference() throws Exception {
-        final Set<Entrypoint> entrypoints = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION);
+        final Set<Entrypoint> entrypoints =
+                entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION);
 
         assertNotNull(entrypoints);
         assertEquals(3, entrypoints.size());
         assertEquals("HTTP", entrypoints.iterator().next().getTarget());
 
         // Verify environmentIds is loaded for the entrypoint that has it
-        Optional<Entrypoint> withEnvIds = entrypoints
-            .stream()
-            .filter(e -> "fa29c012-a0d2-4721-a9c0-12a0d26721db".equals(e.getId()))
-            .findFirst();
+        Optional<Entrypoint> withEnvIds = entrypoints.stream()
+                .filter(e -> "fa29c012-a0d2-4721-a9c0-12a0d26721db".equals(e.getId()))
+                .findFirst();
         assertTrue(withEnvIds.isPresent(), "Entrypoint with environmentIds not found");
         assertEquals("env1;env2", withEnvIds.get().getEnvironmentIds());
 
@@ -53,10 +53,9 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(EntrypointReferenceType.ORGANIZATION, withEnvIds.get().getReferenceType());
 
         // Verify environmentIds is null for entrypoints that don't have it
-        Optional<Entrypoint> withoutEnvIds = entrypoints
-            .stream()
-            .filter(e -> "aaeddaec-0e94-4f49-adda-ec0e947f4965".equals(e.getId()))
-            .findFirst();
+        Optional<Entrypoint> withoutEnvIds = entrypoints.stream()
+                .filter(e -> "aaeddaec-0e94-4f49-adda-ec0e947f4965".equals(e.getId()))
+                .findFirst();
         assertTrue(withoutEnvIds.isPresent(), "Entrypoint without environmentIds not found");
         assertNull(withoutEnvIds.get().getEnvironmentIds());
     }
@@ -72,9 +71,13 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         entrypoint.setTags("internal;product");
         entrypoint.setEnvironmentIds("env1;env3");
 
-        int nbEntryPointsBeforeCreation = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
+        int nbEntryPointsBeforeCreation = entrypointRepository
+                .findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)
+                .size();
         entrypointRepository.create(entrypoint);
-        int nbEntryPointsAfterCreation = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
+        int nbEntryPointsAfterCreation = entrypointRepository
+                .findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)
+                .size();
 
         Assertions.assertEquals(nbEntryPointsBeforeCreation + 1, nbEntryPointsAfterCreation);
 
@@ -106,7 +109,8 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldUpdate() throws Exception {
         Optional<Entrypoint> optional = entrypointRepository.findById("fa29c012-a0d2-4721-a9c0-12a0d26721db");
         Assertions.assertTrue(optional.isPresent(), "EntryPoint to update not found");
-        Assertions.assertEquals("https://public-api.company.com", optional.get().getValue(), "Invalid saved entrypoint value.");
+        Assertions.assertEquals(
+                "https://public-api.company.com", optional.get().getValue(), "Invalid saved entrypoint value.");
         Assertions.assertEquals("env1;env2", optional.get().getEnvironmentIds(), "Invalid saved environmentIds.");
 
         final Entrypoint entrypoint = optional.get();
@@ -116,9 +120,13 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         entrypoint.setTags("New tags");
         entrypoint.setEnvironmentIds("env3");
 
-        int nbEntryPointsBeforeUpdate = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
+        int nbEntryPointsBeforeUpdate = entrypointRepository
+                .findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)
+                .size();
         entrypointRepository.update(entrypoint);
-        int nbEntryPointsAfterUpdate = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
+        int nbEntryPointsAfterUpdate = entrypointRepository
+                .findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)
+                .size();
 
         Assertions.assertEquals(nbEntryPointsBeforeUpdate, nbEntryPointsAfterUpdate);
 
@@ -132,23 +140,27 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbEntryPointsBeforeDeletion = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
+        int nbEntryPointsBeforeDeletion = entrypointRepository
+                .findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)
+                .size();
         entrypointRepository.delete("fa29c012-a0d2-4721-a9c0-12a0d26721db");
-        int nbEntryPointsAfterDeletion = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
+        int nbEntryPointsAfterDeletion = entrypointRepository
+                .findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)
+                .size();
 
         Assertions.assertEquals(nbEntryPointsBeforeDeletion - 1, nbEntryPointsAfterDeletion);
     }
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        final Set<Entrypoint> beforeDelete = entrypointRepository.findByReference("ToBeDeleted", EntrypointReferenceType.ORGANIZATION);
+        final Set<Entrypoint> beforeDelete =
+                entrypointRepository.findByReference("ToBeDeleted", EntrypointReferenceType.ORGANIZATION);
 
         final List<String> deleted = entrypointRepository.deleteByReferenceIdAndReferenceType(
-            "ToBeDeleted",
-            EntrypointReferenceType.ORGANIZATION
-        );
+                "ToBeDeleted", EntrypointReferenceType.ORGANIZATION);
 
-        final Set<Entrypoint> afterDelete = entrypointRepository.findByReference("ToBeDeleted", EntrypointReferenceType.ORGANIZATION);
+        final Set<Entrypoint> afterDelete =
+                entrypointRepository.findByReference("ToBeDeleted", EntrypointReferenceType.ORGANIZATION);
 
         assertNotNull(beforeDelete);
         assertEquals(2, beforeDelete.size());

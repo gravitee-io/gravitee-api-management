@@ -29,9 +29,8 @@ import java.util.Optional;
 /**
  * @author GraviteeSource Team
  */
-public class NoOpSharedPolicyGroupRepository
-    extends AbstractNoOpManagementRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupRepository {
+public class NoOpSharedPolicyGroupRepository extends AbstractNoOpManagementRepository<SharedPolicyGroup, String>
+        implements SharedPolicyGroupRepository {
 
     @Override
     public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable) {
@@ -39,12 +38,14 @@ public class NoOpSharedPolicyGroupRepository
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId)
+            throws TechnicalException {
         return Optional.empty();
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String crossId) throws TechnicalException {
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String crossId)
+            throws TechnicalException {
         return Optional.empty();
     }
 

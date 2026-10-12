@@ -31,7 +31,8 @@ public interface ApiPathIndexReader {
      * {@code excludeApiId}, and returns the conflicts together with the watermark up to which observer updates have
      * been applied. Triggers a lazy seed via {@code seeder} on first access for the env.
      */
-    ApiPathIndex.FindResult findConflicts(String envId, String excludeApiId, List<Path> candidatePaths, Supplier<Stream<Api>> seeder);
+    ApiPathIndex.FindResult findConflicts(
+            String envId, String excludeApiId, List<Path> candidatePaths, Supplier<Stream<Api>> seeder);
 
     /**
      * Returns an immutable point-in-time view of the env's snapshot together with the watermark up to which observer

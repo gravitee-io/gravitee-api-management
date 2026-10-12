@@ -38,7 +38,8 @@ public class GroupValidationServiceTest {
 
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String GROUP_1 = "group-1";
-    private static final PrimaryOwnerEntity PRIMARY_OWNER = PrimaryOwnerEntity.builder().id("user-id").build();
+    private static final PrimaryOwnerEntity PRIMARY_OWNER =
+            PrimaryOwnerEntity.builder().id("user-id").build();
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
 
@@ -57,8 +58,7 @@ public class GroupValidationServiceTest {
     @Test
     public void should_throw_when_groups_provided_do_not_exist() {
         var throwable = catchThrowable(() ->
-            groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, false)
-        );
+                groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, false));
 
         assertThat(throwable).isInstanceOf(InvalidDataException.class);
     }
@@ -67,21 +67,19 @@ public class GroupValidationServiceTest {
     void should_add_default_groups() {
         // Given
         givenExistingGroups(
-            GroupFixtures.aGroup(GROUP_1),
-            GroupFixtures.aGroup("default-group-1")
-                .toBuilder()
-                .environmentId(ENVIRONMENT_ID)
-                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                .build(),
-            GroupFixtures.aGroup("default-group-2")
-                .toBuilder()
-                .environmentId(ENVIRONMENT_ID)
-                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                .build()
-        );
+                GroupFixtures.aGroup(GROUP_1),
+                GroupFixtures.aGroup("default-group-1").toBuilder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                        .build(),
+                GroupFixtures.aGroup("default-group-2").toBuilder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                        .build());
 
         // When
-        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, true);
+        var sanitized =
+                groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, true);
 
         // Then
         assertThat(sanitized).containsExactlyInAnyOrder(GROUP_1, "default-group-1", "default-group-2");
@@ -91,18 +89,19 @@ public class GroupValidationServiceTest {
     void should_filter_any_groups_having_PrimaryOwner_users() {
         // Given
         givenExistingGroups(
-            GroupFixtures.aGroup("group-1").toBuilder().build(),
-            GroupFixtures.aGroup("group-2").toBuilder().apiPrimaryOwner("user-2").build(),
-            GroupFixtures.aGroup("default-group-1")
-                .toBuilder()
-                .environmentId(ENVIRONMENT_ID)
-                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                .apiPrimaryOwner("user-3")
-                .build()
-        );
+                GroupFixtures.aGroup("group-1").toBuilder().build(),
+                GroupFixtures.aGroup("group-2").toBuilder()
+                        .apiPrimaryOwner("user-2")
+                        .build(),
+                GroupFixtures.aGroup("default-group-1").toBuilder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                        .apiPrimaryOwner("user-3")
+                        .build());
 
         // When
-        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, false);
+        var sanitized =
+                groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, false);
 
         // Then
         assertThat(sanitized).containsExactlyInAnyOrder(GROUP_1);
@@ -118,10 +117,14 @@ public class GroupValidationServiceTest {
     void should_add_current_primary_owner_when_it_is_a_group() {
         // Given
         givenExistingGroups(GroupFixtures.aGroup(GROUP_1).toBuilder().build());
-        var primaryOwner = PRIMARY_OWNER.toBuilder().id("group-id").type(PrimaryOwnerEntity.Type.GROUP).build();
+        var primaryOwner = PRIMARY_OWNER.toBuilder()
+                .id("group-id")
+                .type(PrimaryOwnerEntity.Type.GROUP)
+                .build();
 
         // When
-        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, primaryOwner, false);
+        var sanitized =
+                groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, primaryOwner, false);
 
         // Then
         assertThat(sanitized).containsExactlyInAnyOrder(GROUP_1, "group-id");

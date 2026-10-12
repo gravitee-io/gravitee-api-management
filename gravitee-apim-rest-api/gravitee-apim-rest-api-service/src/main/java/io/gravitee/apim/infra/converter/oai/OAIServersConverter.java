@@ -33,46 +33,44 @@ public class OAIServersConverter {
             return Collections.emptyList();
         }
 
-        return servers
-            .stream()
-            .flatMap(server -> {
-                var serverVariables = server.getVariables();
-                var serverUrl = server.getUrl();
-                if (CollectionUtils.isEmpty(serverVariables)) {
-                    return Stream.of(serverUrl);
-                } else {
-                    var evaluatedUrls = Collections.singletonList(serverUrl);
-                    for (var serverVar : serverVariables.entrySet()) {
-                        evaluatedUrls = evaluateServerUrlsForOneVar(serverVar.getKey(), serverVar.getValue(), evaluatedUrls);
+        return servers.stream()
+                .flatMap(server -> {
+                    var serverVariables = server.getVariables();
+                    var serverUrl = server.getUrl();
+                    if (CollectionUtils.isEmpty(serverVariables)) {
+                        return Stream.of(serverUrl);
+                    } else {
+                        var evaluatedUrls = Collections.singletonList(serverUrl);
+                        for (var serverVar : serverVariables.entrySet()) {
+                            evaluatedUrls = evaluateServerUrlsForOneVar(
+                                    serverVar.getKey(), serverVar.getValue(), evaluatedUrls);
+                        }
+                        return evaluatedUrls.stream();
                     }
-                    return evaluatedUrls.stream();
-                }
-            })
-            .collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 
-    private List<String> evaluateServerUrlsForOneVar(String varName, ServerVariable serverVar, List<String> templateUrls) {
+    private List<String> evaluateServerUrlsForOneVar(
+            String varName, ServerVariable serverVar, List<String> templateUrls) {
         if (varName == null || serverVar == null || CollectionUtils.isEmpty(templateUrls)) {
             return Collections.emptyList();
         }
 
-        return templateUrls
-            .stream()
-            .flatMap(templateUrl -> {
-                var matcher = Pattern.compile("\\{" + varName + "\\}").matcher(templateUrl);
-                if (matcher.find()) {
-                    if (CollectionUtils.isEmpty(serverVar.getEnum()) && serverVar.getDefault() != null) {
-                        return Stream.of(templateUrl.replace(matcher.group(0), serverVar.getDefault()));
+        return templateUrls.stream()
+                .flatMap(templateUrl -> {
+                    var matcher = Pattern.compile("\\{" + varName + "\\}").matcher(templateUrl);
+                    if (matcher.find()) {
+                        if (CollectionUtils.isEmpty(serverVar.getEnum()) && serverVar.getDefault() != null) {
+                            return Stream.of(templateUrl.replace(matcher.group(0), serverVar.getDefault()));
+                        } else {
+                            return serverVar.getEnum().stream()
+                                    .map(enumValue -> templateUrl.replace(matcher.group(0), enumValue));
+                        }
                     } else {
-                        return serverVar
-                            .getEnum()
-                            .stream()
-                            .map(enumValue -> templateUrl.replace(matcher.group(0), enumValue));
+                        return Stream.of(templateUrl);
                     }
-                } else {
-                    return Stream.of(templateUrl);
-                }
-            })
-            .collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 }

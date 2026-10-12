@@ -45,15 +45,15 @@ class KafkaPortRangeCrudServiceImplTest {
 
     private static KafkaPortRange aPortRange() {
         return KafkaPortRange.builder()
-            .planId("plan-1")
-            .apiId("api-1")
-            .environmentId("env-1")
-            .bootstrapPort(9092)
-            .rangeStart(9100)
-            .rangeEnd(9102)
-            .createdAt(ZonedDateTime.of(2026, 4, 23, 12, 0, 0, 0, ZoneOffset.UTC))
-            .updatedAt(ZonedDateTime.of(2026, 4, 23, 12, 0, 0, 0, ZoneOffset.UTC))
-            .build();
+                .planId("plan-1")
+                .apiId("api-1")
+                .environmentId("env-1")
+                .bootstrapPort(9092)
+                .rangeStart(9100)
+                .rangeEnd(9102)
+                .createdAt(ZonedDateTime.of(2026, 4, 23, 12, 0, 0, 0, ZoneOffset.UTC))
+                .updatedAt(ZonedDateTime.of(2026, 4, 23, 12, 0, 0, 0, ZoneOffset.UTC))
+                .build();
     }
 
     @Nested
@@ -108,26 +108,21 @@ class KafkaPortRangeCrudServiceImplTest {
 
         @Test
         void should_return_mapped_range() throws TechnicalException {
-            when(repository.findById("plan-1")).thenReturn(
-                Optional.of(
-                    io.gravitee.repository.management.model.KafkaPortRange.builder()
-                        .planId("plan-1")
-                        .apiId("api-1")
-                        .environmentId("env-1")
-                        .bootstrapPort(9092)
-                        .rangeStart(9100)
-                        .rangeEnd(9102)
-                        .createdAt(Instant.parse("2026-04-23T12:00:00Z"))
-                        .updatedAt(Instant.parse("2026-04-23T12:00:00Z"))
-                        .build()
-                )
-            );
-            assertThat(cut.findByPlanId("plan-1"))
-                .isPresent()
-                .hasValueSatisfying(r -> {
-                    assertThat(r.getPlanId()).isEqualTo("plan-1");
-                    assertThat(r.getBootstrapPort()).isEqualTo(9092);
-                });
+            when(repository.findById("plan-1"))
+                    .thenReturn(Optional.of(io.gravitee.repository.management.model.KafkaPortRange.builder()
+                            .planId("plan-1")
+                            .apiId("api-1")
+                            .environmentId("env-1")
+                            .bootstrapPort(9092)
+                            .rangeStart(9100)
+                            .rangeEnd(9102)
+                            .createdAt(Instant.parse("2026-04-23T12:00:00Z"))
+                            .updatedAt(Instant.parse("2026-04-23T12:00:00Z"))
+                            .build()));
+            assertThat(cut.findByPlanId("plan-1")).isPresent().hasValueSatisfying(r -> {
+                assertThat(r.getPlanId()).isEqualTo("plan-1");
+                assertThat(r.getBootstrapPort()).isEqualTo(9092);
+            });
         }
 
         @Test
@@ -148,7 +143,9 @@ class KafkaPortRangeCrudServiceImplTest {
 
         @Test
         void should_wrap_technical_exception() throws TechnicalException {
-            org.mockito.Mockito.doThrow(new TechnicalException("boom")).when(repository).delete("plan-1");
+            org.mockito.Mockito.doThrow(new TechnicalException("boom"))
+                    .when(repository)
+                    .delete("plan-1");
             assertThatThrownBy(() -> cut.delete("plan-1")).isInstanceOf(TechnicalManagementException.class);
         }
     }
@@ -164,7 +161,9 @@ class KafkaPortRangeCrudServiceImplTest {
 
         @Test
         void should_wrap_technical_exception() throws TechnicalException {
-            org.mockito.Mockito.doThrow(new TechnicalException("boom")).when(repository).deleteByApiId("api-1");
+            org.mockito.Mockito.doThrow(new TechnicalException("boom"))
+                    .when(repository)
+                    .deleteByApiId("api-1");
             assertThatThrownBy(() -> cut.deleteByApiId("api-1")).isInstanceOf(TechnicalManagementException.class);
         }
     }
@@ -174,18 +173,15 @@ class KafkaPortRangeCrudServiceImplTest {
 
         @Test
         void should_delegate_to_repository_and_map_results() throws TechnicalException {
-            when(repository.findConflicting("env-1", 9092, 9100, 9102, null)).thenReturn(
-                List.of(
-                    io.gravitee.repository.management.model.KafkaPortRange.builder()
-                        .planId("other-plan")
-                        .apiId("other-api")
-                        .environmentId("env-1")
-                        .bootstrapPort(9092)
-                        .rangeStart(9100)
-                        .rangeEnd(9102)
-                        .build()
-                )
-            );
+            when(repository.findConflicting("env-1", 9092, 9100, 9102, null))
+                    .thenReturn(List.of(io.gravitee.repository.management.model.KafkaPortRange.builder()
+                            .planId("other-plan")
+                            .apiId("other-api")
+                            .environmentId("env-1")
+                            .bootstrapPort(9092)
+                            .rangeStart(9100)
+                            .rangeEnd(9102)
+                            .build()));
 
             var result = cut.findConflicting("env-1", 9092, 9100, 9102, null);
 
@@ -195,16 +191,15 @@ class KafkaPortRangeCrudServiceImplTest {
 
         @Test
         void should_wrap_technical_exception() throws TechnicalException {
-            when(
-                repository.findConflicting(
-                    any(),
-                    org.mockito.ArgumentMatchers.anyInt(),
-                    org.mockito.ArgumentMatchers.anyInt(),
-                    org.mockito.ArgumentMatchers.anyInt(),
-                    any()
-                )
-            ).thenThrow(new TechnicalException("boom"));
-            assertThatThrownBy(() -> cut.findConflicting("env-1", 9092, 9100, 9102, null)).isInstanceOf(TechnicalManagementException.class);
+            when(repository.findConflicting(
+                            any(),
+                            org.mockito.ArgumentMatchers.anyInt(),
+                            org.mockito.ArgumentMatchers.anyInt(),
+                            org.mockito.ArgumentMatchers.anyInt(),
+                            any()))
+                    .thenThrow(new TechnicalException("boom"));
+            assertThatThrownBy(() -> cut.findConflicting("env-1", 9092, 9100, 9102, null))
+                    .isInstanceOf(TechnicalManagementException.class);
         }
     }
 
@@ -213,18 +208,15 @@ class KafkaPortRangeCrudServiceImplTest {
 
         @Test
         void should_delegate_to_repository_locking_variant_and_map_results() throws TechnicalException {
-            when(repository.findConflictingForUpdate("env-1", 9092, 9100, 9102, null)).thenReturn(
-                List.of(
-                    io.gravitee.repository.management.model.KafkaPortRange.builder()
-                        .planId("other-plan")
-                        .apiId("other-api")
-                        .environmentId("env-1")
-                        .bootstrapPort(9092)
-                        .rangeStart(9100)
-                        .rangeEnd(9102)
-                        .build()
-                )
-            );
+            when(repository.findConflictingForUpdate("env-1", 9092, 9100, 9102, null))
+                    .thenReturn(List.of(io.gravitee.repository.management.model.KafkaPortRange.builder()
+                            .planId("other-plan")
+                            .apiId("other-api")
+                            .environmentId("env-1")
+                            .bootstrapPort(9092)
+                            .rangeStart(9100)
+                            .rangeEnd(9102)
+                            .build()));
 
             var result = cut.findConflictingForUpdate("env-1", 9092, 9100, 9102, null);
 
@@ -235,18 +227,15 @@ class KafkaPortRangeCrudServiceImplTest {
 
         @Test
         void should_wrap_technical_exception() throws TechnicalException {
-            when(
-                repository.findConflictingForUpdate(
-                    any(),
-                    org.mockito.ArgumentMatchers.anyInt(),
-                    org.mockito.ArgumentMatchers.anyInt(),
-                    org.mockito.ArgumentMatchers.anyInt(),
-                    any()
-                )
-            ).thenThrow(new TechnicalException("boom"));
-            assertThatThrownBy(() -> cut.findConflictingForUpdate("env-1", 9092, 9100, 9102, null)).isInstanceOf(
-                TechnicalManagementException.class
-            );
+            when(repository.findConflictingForUpdate(
+                            any(),
+                            org.mockito.ArgumentMatchers.anyInt(),
+                            org.mockito.ArgumentMatchers.anyInt(),
+                            org.mockito.ArgumentMatchers.anyInt(),
+                            any()))
+                    .thenThrow(new TechnicalException("boom"));
+            assertThatThrownBy(() -> cut.findConflictingForUpdate("env-1", 9092, 9100, 9102, null))
+                    .isInstanceOf(TechnicalManagementException.class);
         }
     }
 }

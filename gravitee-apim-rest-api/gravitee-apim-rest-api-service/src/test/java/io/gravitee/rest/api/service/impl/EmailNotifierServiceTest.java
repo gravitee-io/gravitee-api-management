@@ -67,16 +67,14 @@ public class EmailNotifierServiceTest {
             service.trigger(executionContext, ApiHook.API_STARTED, templateData, List.of(recipientEmail));
 
             // Then
-            verify(mockEmailService).sendAsyncEmailNotification(
-                same(executionContext),
-                eq(
-                    new EmailNotificationBuilder()
-                        .to(recipientEmail)
-                        .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
-                        .params(templateData)
-                        .build()
-                )
-            );
+            verify(mockEmailService)
+                    .sendAsyncEmailNotification(
+                            same(executionContext),
+                            eq(new EmailNotificationBuilder()
+                                    .to(recipientEmail)
+                                    .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
+                                    .params(templateData)
+                                    .build()));
         }
 
         @Test
@@ -85,18 +83,17 @@ public class EmailNotifierServiceTest {
             var templateData = Map.<String, Object>of();
             var recipientEmail = "recipient1@gravitee.io";
 
-            service.trigger(executionContext, ApiProductHook.API_PRODUCT_UPDATED, templateData, List.of(recipientEmail));
+            service.trigger(
+                    executionContext, ApiProductHook.API_PRODUCT_UPDATED, templateData, List.of(recipientEmail));
 
-            verify(mockEmailService).sendAsyncEmailNotification(
-                same(executionContext),
-                eq(
-                    new EmailNotificationBuilder()
-                        .to(recipientEmail)
-                        .template(EmailNotificationBuilder.EmailTemplate.API_PRODUCT_UPDATED)
-                        .params(templateData)
-                        .build()
-                )
-            );
+            verify(mockEmailService)
+                    .sendAsyncEmailNotification(
+                            same(executionContext),
+                            eq(new EmailNotificationBuilder()
+                                    .to(recipientEmail)
+                                    .template(EmailNotificationBuilder.EmailTemplate.API_PRODUCT_UPDATED)
+                                    .params(templateData)
+                                    .build()));
         }
 
         @Test

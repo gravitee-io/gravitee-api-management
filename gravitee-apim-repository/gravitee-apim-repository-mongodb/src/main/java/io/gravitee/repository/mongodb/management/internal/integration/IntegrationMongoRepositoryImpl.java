@@ -41,21 +41,23 @@ public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositor
 
     @Override
     public Page<IntegrationMongo> findAllByEnvironmentIdAndGroups(
-        String environmentId,
-        Pageable pageable,
-        Collection<String> integrationIds,
-        Collection<String> groups
-    ) {
+            String environmentId, Pageable pageable, Collection<String> integrationIds, Collection<String> groups) {
         if (groups.isEmpty()) {
             return new Page<>(List.of(), 0, 0, 0);
         }
         Query query = new Query();
         Criteria envCriteria = Criteria.where("environmentId").is(environmentId);
-        var groupCriteria = groups.stream().map(group -> Criteria.where("groups").is(group));
-        Stream<Criteria> idCriteria = integrationIds.isEmpty() ? Stream.empty() : Stream.of(Criteria.where("_id").in(integrationIds));
-        query.addCriteria(
-            new Criteria().andOperator(envCriteria, new Criteria().orOperator(Stream.concat(idCriteria, groupCriteria).toList()))
-        );
+        var groupCriteria =
+                groups.stream().map(group -> Criteria.where("groups").is(group));
+        Stream<Criteria> idCriteria = integrationIds.isEmpty()
+                ? Stream.empty()
+                : Stream.of(Criteria.where("_id").in(integrationIds));
+        query.addCriteria(new Criteria()
+                .andOperator(
+                        envCriteria,
+                        new Criteria()
+                                .orOperator(
+                                        Stream.concat(idCriteria, groupCriteria).toList())));
         query.with(Sort.by(Sort.Direction.DESC, "updatedAt"));
 
         long total = mongoQueries.countOrTimeout(mongoTemplate, query, IntegrationMongo.class);

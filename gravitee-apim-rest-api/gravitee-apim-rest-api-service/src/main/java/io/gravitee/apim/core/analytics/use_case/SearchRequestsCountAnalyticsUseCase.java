@@ -41,9 +41,9 @@ public class SearchRequestsCountAnalyticsUseCase {
         validateApiRequirements(input);
 
         return analyticsQueryService
-            .searchRequestsCount(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
-            .map(Output::new)
-            .orElse(new Output());
+                .searchRequestsCount(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
+                .map(Output::new)
+                .orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {

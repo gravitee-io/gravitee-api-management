@@ -92,14 +92,12 @@ public class Tenant {
         if (this == o) return true;
         if (!(o instanceof Tenant)) return false;
         Tenant view = (Tenant) o;
-        return (
-            Objects.equals(id, view.id) &&
-            Objects.equals(key, view.key) &&
-            Objects.equals(name, view.name) &&
-            Objects.equals(description, view.description) &&
-            Objects.equals(referenceId, view.referenceId) &&
-            Objects.equals(referenceType, view.referenceType)
-        );
+        return (Objects.equals(id, view.id)
+                && Objects.equals(key, view.key)
+                && Objects.equals(name, view.name)
+                && Objects.equals(description, view.description)
+                && Objects.equals(referenceId, view.referenceId)
+                && Objects.equals(referenceType, view.referenceType));
     }
 
     @Override
@@ -109,27 +107,24 @@ public class Tenant {
 
     @Override
     public String toString() {
-        return (
-            "Tenant{" +
-            "id='" +
-            id +
-            '\'' +
-            ", key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            '}'
-        );
+        return ("Tenant{" + "id='"
+                + id
+                + '\''
+                + ", key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + '}');
     }
 }

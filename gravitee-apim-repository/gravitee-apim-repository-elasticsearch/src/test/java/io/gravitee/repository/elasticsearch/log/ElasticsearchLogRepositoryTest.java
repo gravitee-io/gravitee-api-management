@@ -47,10 +47,9 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     public void testFindById() throws Exception {
         // 29381bce-df59-47b2-b81b-cedf59c7b23e request is stored in the yesterday index
         ExtendedLog log = logRepository.findById(
-            queryContext,
-            "29381bce-df59-47b2-b81b-cedf59c7b23e",
-            TimeProvider.now().minus(1, ChronoUnit.DAYS).toEpochMilli()
-        );
+                queryContext,
+                "29381bce-df59-47b2-b81b-cedf59c7b23e",
+                TimeProvider.now().minus(1, ChronoUnit.DAYS).toEpochMilli());
 
         assertThat(log).isNotNull();
     }
@@ -58,14 +57,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withQuery() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
-                .page(1)
-                .size(20)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                        .page(1)
+                        .size(20)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isGreaterThan(0);
@@ -74,9 +72,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(6);
@@ -86,9 +88,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery_page1() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(5).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(5)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(6);
@@ -98,9 +104,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery_termWithCurrency() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*10$*").page(1).size(5).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*10$*")
+                        .page(1)
+                        .size(5)
+                        .build());
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isOne();
         assertThat(response.getLogs()).hasSize(1);
@@ -109,9 +119,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery_termWithEmail() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*john@yopmail.com*").page(1).size(5).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*john@yopmail.com*")
+                        .page(1)
+                        .size(5)
+                        .build());
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isOne();
         assertThat(response.getLogs()).hasSize(1);
@@ -120,9 +134,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withLogQuery_page2() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(2).size(5).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid or is expired*")
+                        .page(2)
+                        .size(5)
+                        .build());
 
         assertThat(response).isNotNull();
 
@@ -132,7 +150,9 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
 
     @Test
     public void testTabular_withoutQuery() throws Exception {
-        TabularResponse response = logRepository.query(queryContext, tabular().timeRange(lastDays(60), hours(1)).page(1).size(100).build());
+        TabularResponse response = logRepository.query(
+                queryContext,
+                tabular().timeRange(lastDays(60), hours(1)).page(1).size(100).build());
 
         assertThat(response).isNotNull();
         assertThat(response.getLogs().size()).isEqualTo(response.getSize());
@@ -141,14 +161,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withCombinedFilters_statusAndBody() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(10)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isLessThanOrEqualTo(6);
@@ -158,14 +177,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withCombinedFilters_pagination_page1() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(3)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(3)
+                        .build());
 
         assertThat(response).isNotNull();
         long totalSize = response.getSize();
@@ -176,24 +194,22 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withCombinedFilters_pagination_page2() throws Exception {
         TabularResponse responsePage1 = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(3)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(3)
+                        .build());
 
         TabularResponse responsePage2 = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(2)
-                .size(3)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(2)
+                        .size(3)
+                        .build());
 
         assertThat(responsePage2).isNotNull();
         assertThat(responsePage2.getSize()).isEqualTo(responsePage1.getSize());
@@ -204,34 +220,31 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_withCombinedFilters_differentPageSizes() throws Exception {
         TabularResponse responseSize10 = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(10)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         TabularResponse responseSize15 = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(15)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(15)
+                        .build());
 
         TabularResponse responseSize100 = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(100)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(100)
+                        .build());
         assertThat(responseSize10.getSize()).isEqualTo(responseSize15.getSize()).isEqualTo(responseSize100.getSize());
     }
 
@@ -240,14 +253,22 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
         String bodyQuery = "client-response.body:*not valid or is expired*";
 
         TabularResponse response1 = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query(bodyQuery).page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query(bodyQuery)
+                        .page(1)
+                        .size(10)
+                        .build());
 
         TabularResponse response2 = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query(bodyQuery).page(1).size(15).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query(bodyQuery)
+                        .page(1)
+                        .size(15)
+                        .build());
 
         // Total should be consistent
         assertThat(response1.getSize()).isEqualTo(response2.getSize());
@@ -257,14 +278,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_emptyResults_withCombinedFilters() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:999 AND client-response.body:*nonexistent-text-12345*")
-                .page(1)
-                .size(10)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:999 AND client-response.body:*nonexistent-text-12345*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isZero();
@@ -274,9 +294,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_statusFilterOnly() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("status:200").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isGreaterThan(0);
@@ -286,14 +310,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_multipleStatusFilters_withBody() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular()
-                .timeRange(lastDays(60), hours(1))
-                .query("status:200 AND client-response.body:*not valid or is expired*")
-                .page(1)
-                .size(10)
-                .build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getLogs()).hasSizeLessThanOrEqualTo((int) response.getSize());
@@ -302,15 +325,23 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_paginationBeyondResults() throws Exception {
         TabularResponse responsePage1 = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         // Request page 10 when we only have 6 results
         TabularResponse responsePage10 = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(10).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid or is expired*")
+                        .page(10)
+                        .size(10)
+                        .build());
 
         assertThat(responsePage10).isNotNull();
         assertThat(responsePage10.getSize()).isEqualTo(responsePage1.getSize()); // Total should be same
@@ -320,9 +351,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_largePaginationSize() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid or is expired*").page(1).size(1000).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(1000)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(6);
@@ -340,9 +375,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
         // createElasticsearchJsonQuery() leaves the rendered JSON untouched, preserving the intended
         // "\*.body" field wildcard and returning the expected results.
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("body:*not valid or is expired*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("body:*not valid or is expired*")
+                        .page(1)
+                        .size(10)
+                        .build());
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(6);
         assertThat(response.getLogs()).hasSize(6);
@@ -351,14 +390,22 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_caseInsensitiveBodySearch() throws Exception {
         TabularResponse responseLower = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*not valid*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         TabularResponse responseUpper = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("client-response.body:*NOT VALID*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*NOT VALID*")
+                        .page(1)
+                        .size(10)
+                        .build());
         assertThat(responseLower).isNotNull();
         assertThat(responseUpper).isNotNull();
     }
@@ -368,9 +415,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_bodyFilterWithEscapedQuotes() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("body:*john@yopmail.com\\\\\"*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("body:*john@yopmail.com\\\\\"*")
+                        .page(1)
+                        .size(10)
+                        .build());
         assertThat(response.getSize()).isOne();
         assertThat(response.getLogs()).hasSize(1);
     }
@@ -378,9 +429,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_bodyFilterWithEscapedColon() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("body:*\\\\:*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("body:*\\\\:*")
+                        .page(1)
+                        .size(10)
+                        .build());
         assertThat(response.getSize()).isEqualTo(7);
         assertThat(response.getLogs()).hasSize(7);
     }
@@ -388,9 +443,13 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     @Test
     public void testTabular_complexQuery_multipleConditions() throws Exception {
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("status:200 AND client-response.body:*valid*").page(1).size(10).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("status:200 AND client-response.body:*valid*")
+                        .page(1)
+                        .size(10)
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getLogs()).hasSizeLessThanOrEqualTo((int) response.getSize());
@@ -401,16 +460,14 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
         // APIM-13402: the legacy developer portal emits api:(\"uuid\") with literal \" pairs.
         // Pre-fix, escapeForJsonLucene quadrupled the backslashes, corrupted the rendered JSON
         // and Elasticsearch rejected it with a 400 — surfaced to the portal as a 500.
-        assertThatCode(() ->
-            logRepository.query(
-                queryContext,
-                tabular()
-                    .timeRange(lastDays(60), hours(1))
-                    .query("api:(\\\"be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab\\\")")
-                    .page(1)
-                    .size(20)
-                    .build()
-            )
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> logRepository.query(
+                        queryContext,
+                        tabular()
+                                .timeRange(lastDays(60), hours(1))
+                                .query("api:(\\\"be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab\\\")")
+                                .page(1)
+                                .size(20)
+                                .build()))
+                .doesNotThrowAnyException();
     }
 }

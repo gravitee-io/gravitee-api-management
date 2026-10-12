@@ -51,14 +51,12 @@ class ApiResource_UpdateApiWithDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_return_403_when_no_definition_update_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
 
         Response response = rootTarget().request().put(Entity.json(new ExportApiV4()));
 
@@ -77,9 +75,8 @@ class ApiResource_UpdateApiWithDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_return_400_when_definition_version_not_supported() {
-        when(updateApiDefinitionUseCase.execute(any())).thenThrow(
-            new ApiDefinitionVersionNotSupportedException(DefinitionVersion.V2.getLabel())
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenThrow(new ApiDefinitionVersionNotSupportedException(DefinitionVersion.V2.getLabel()));
 
         var exportApiV4 = buildMinimalExportApiV4();
         Response response = rootTarget().request().put(Entity.entity(exportApiV4, MediaType.APPLICATION_JSON));
@@ -89,15 +86,22 @@ class ApiResource_UpdateApiWithDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_return_200_and_updated_api_on_success() {
-        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .build();
         var apiWithFlows = new ApiWithFlows(existingApi, java.util.List.of());
 
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(apiWithFlows));
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(apiWithFlows));
 
         // mock getGenericApiEntityById used for isSynchronized check
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("Test API").apiVersion("1.0").build()
-        );
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+                        .id(API)
+                        .name("Test API")
+                        .apiVersion("1.0")
+                        .build());
 
         var exportApiV4 = buildMinimalExportApiV4();
         Response response = rootTarget().request().put(Entity.entity(exportApiV4, MediaType.APPLICATION_JSON));
@@ -110,22 +114,33 @@ class ApiResource_UpdateApiWithDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_return_resources_in_response_on_success() {
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .configuration("{\"key\":\"value\"}")
+                .build();
         var baseApi = ApiFixtures.aProxyApiV4();
-        var existingApi = baseApi
-            .toBuilder()
-            .id(API)
-            .environmentId(ENVIRONMENT)
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-            .build();
+        var existingApi = baseApi.toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
         var apiWithFlows = new ApiWithFlows(existingApi, List.of());
 
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(apiWithFlows));
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("Test API").apiVersion("1.0").build()
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(apiWithFlows));
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+                        .id(API)
+                        .name("Test API")
+                        .apiVersion("1.0")
+                        .build());
 
-        Response response = rootTarget().request().put(Entity.entity(buildMinimalExportApiV4(), MediaType.APPLICATION_JSON));
+        Response response =
+                rootTarget().request().put(Entity.entity(buildMinimalExportApiV4(), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var body = response.readEntity(ApiV4.class);
@@ -135,7 +150,8 @@ class ApiResource_UpdateApiWithDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_return_400_when_invalid_paths_exception() {
-        when(updateApiDefinitionUseCase.execute(any())).thenThrow(new InvalidPathsException("Path [/foo] already exists"));
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenThrow(new InvalidPathsException("Path [/foo] already exists"));
 
         var exportApiV4 = buildMinimalExportApiV4();
         Response response = rootTarget().request().put(Entity.entity(exportApiV4, MediaType.APPLICATION_JSON));

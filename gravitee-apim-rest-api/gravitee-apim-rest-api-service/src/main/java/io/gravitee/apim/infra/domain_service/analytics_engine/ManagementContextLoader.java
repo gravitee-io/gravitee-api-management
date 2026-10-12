@@ -54,13 +54,9 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
     private final PermissionService permissionService;
 
     private boolean isAdmin() {
-        return SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getAuthorities()
-            .stream()
-            .anyMatch(
-                (Predicate<GrantedAuthority>) grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase(ORGANIZATION_ADMIN)
-            );
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch((Predicate<GrantedAuthority>)
+                        grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase(ORGANIZATION_ADMIN));
     }
 
     @Override
@@ -79,28 +75,30 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
                 // Align with ApiServiceImpl.findAll: empty scope must not widen to "all APIs in environment"
                 // (ApiCriteria with empty ids does not apply an id filter in the repository).
                 return new AnalyticsQueryContext(
-                    auditInfo,
-                    executionContext,
-                    Collections.emptySet(),
-                    Collections.emptyMap(),
-                    Collections.emptyMap(),
-                    Collections.emptyMap()
-                );
+                        auditInfo,
+                        executionContext,
+                        Collections.emptySet(),
+                        Collections.emptyMap(),
+                        Collections.emptyMap(),
+                        Collections.emptyMap());
             }
             apiCriteriaBuilder.ids(userApiIds);
         }
 
-        var apis = ApiMapper.INSTANCE.map(apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.defaultFields()));
+        var apis = ApiMapper.INSTANCE.map(
+                apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.defaultFields()));
         var authorizedApiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
         var apiNamesById = mapApiIdsToNames(apis);
         var apiIdsByType = groupApiIdsByType(apis);
 
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
+        return new AnalyticsQueryContext(
+                auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
     }
 
     /** Users with the environment-level API READ permission (e.g. API_PUBLISHER) are scoped to all environment APIs. */
     private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
-        return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+        return permissionService.hasPermission(
+                executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {
@@ -108,9 +106,8 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
     }
 
     private static Map<ApiType, Set<String>> groupApiIdsByType(Collection<Api> apis) {
-        return apis
-            .stream()
-            .filter(api -> api.getType() != null)
-            .collect(Collectors.groupingBy(Api::getType, Collectors.mapping(Api::getId, Collectors.toSet())));
+        return apis.stream()
+                .filter(api -> api.getType() != null)
+                .collect(Collectors.groupingBy(Api::getType, Collectors.mapping(Api::getId, Collectors.toSet())));
     }
 }

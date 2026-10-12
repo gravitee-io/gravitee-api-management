@@ -97,21 +97,22 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
 
         ((PortalNavigationItemsQueryServiceInMemory) portalNavigationItemsQueryService).initWith(List.of());
         ((PortalNavigationItemsCrudServiceInMemory) portalNavigationItemCrudService).initWith(List.of());
@@ -126,40 +127,43 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
 
     private PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId) {
         var folder = PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
         seed(folder);
         return folder;
     }
 
-    private PortalNavigationPage aPage(String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
+    private PortalNavigationPage aPage(
+            String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
         var content = GraviteeMarkdownPageContent.create(ORGANIZATION, ENVIRONMENT, "# Default content");
         portalPageContentCrudService.create(content);
-        ((PortalPageContentQueryServiceInMemory) portalPageContentQueryService).storage().add(content);
+        ((PortalPageContentQueryServiceInMemory) portalPageContentQueryService)
+                .storage()
+                .add(content);
 
         var page = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(content.getId())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .source(source)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(content.getId())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .source(source)
+                .build();
         seed(page);
         return page;
     }
@@ -171,13 +175,10 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
 
     private PortalNavigationItemSource aSource() {
         return PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration(
-                "{\"url\":\"https://example.com/doc.md\",\"token\":\"%s\"}".formatted(
-                    PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA
-                )
-            )
-            .build();
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\",\"token\":\"%s\"}"
+                        .formatted(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA))
+                .build();
     }
 
     private Response fetch(String navId) {
@@ -193,14 +194,13 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
         assertThat(response).hasStatus(OK_200);
         var body = response.readEntity(FetchPortalNavigationItemResponse.class);
         assertThat(body.getSummary()).isNull();
-        var item = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage) body.getItem().getActualInstance();
+        var item = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage)
+                body.getItem().getActualInstance();
         assertThat(item.getSource()).isNotNull();
         assertThat(item.getSource().getLastFetchedAt()).isNotNull();
         assertThat(item.getSource().getLastFetchError()).isNull();
-        assertThat((Map<String, Object>) item.getSource().getConfiguration()).containsEntry(
-            "token",
-            PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT
-        );
+        assertThat((Map<String, Object>) item.getSource().getConfiguration())
+                .containsEntry("token", PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
 
         assertThat(storedContentOf(page)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
     }
@@ -208,23 +208,23 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
     @Test
     void should_return_the_item_with_a_masked_source_and_a_server_built_error_when_the_page_fetch_fails() {
         var page = aPage("Sourced Page", null, aSource());
-        ((PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService).failNextFetchWith(
-            new TechnicalDomainException("fetch went wrong")
-        );
+        ((PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService)
+                .failNextFetchWith(new TechnicalDomainException("fetch went wrong"));
 
         Response response = fetch(page.getId().toString());
 
         assertThat(response).hasStatus(OK_200);
         var body = response.readEntity(FetchPortalNavigationItemResponse.class);
         assertThat(body.getSummary()).isNull();
-        var item = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage) body.getItem().getActualInstance();
+        var item = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage)
+                body.getItem().getActualInstance();
         assertThat(item.getSource().getLastFetchedAt()).isNull();
-        assertThat(item.getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
-        assertThat(item.getSource().getLastFetchError()).doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
-        assertThat((Map<String, Object>) item.getSource().getConfiguration()).containsEntry(
-            "token",
-            PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT
-        );
+        assertThat(item.getSource().getLastFetchError())
+                .isEqualTo("Unable to fetch content from source type http-fetcher.");
+        assertThat(item.getSource().getLastFetchError())
+                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+        assertThat((Map<String, Object>) item.getSource().getConfiguration())
+                .containsEntry("token", PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
 
         assertThat(storedContentOf(page)).isEqualTo("# Default content");
     }
@@ -246,11 +246,16 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
         assertThat(summary.getSucceeded()).isEqualTo(2);
         assertThat(summary.getFailed()).isZero();
         assertThat(summary.getResults())
-            .extracting(PortalNavigationItemFetchResult::getNavigationItemId, PortalNavigationItemFetchResult::getSuccess)
-            .containsExactlyInAnyOrder(tuple(sourcedPage.getId().id(), true), tuple(nestedSourcedPage.getId().id(), true));
+                .extracting(
+                        PortalNavigationItemFetchResult::getNavigationItemId,
+                        PortalNavigationItemFetchResult::getSuccess)
+                .containsExactlyInAnyOrder(
+                        tuple(sourcedPage.getId().id(), true),
+                        tuple(nestedSourcedPage.getId().id(), true));
 
         assertThat(storedContentOf(sourcedPage)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
-        assertThat(storedContentOf(nestedSourcedPage)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+        assertThat(storedContentOf(nestedSourcedPage))
+                .isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
     }
 
     @Test
@@ -258,23 +263,24 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
         var folder = aFolder("Guides", null);
         aPage("Failing Page", folder.getId(), aSource());
         aPage("Working Page", folder.getId(), aSource());
-        ((PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService).failNextFetchWith(
-            new TechnicalDomainException("fetch went wrong")
-        );
+        ((PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService)
+                .failNextFetchWith(new TechnicalDomainException("fetch went wrong"));
 
         Response response = fetch(folder.getId().toString());
 
         assertThat(response).hasStatus(OK_200);
-        var summary = response.readEntity(FetchPortalNavigationItemResponse.class).getSummary();
+        var summary =
+                response.readEntity(FetchPortalNavigationItemResponse.class).getSummary();
         assertThat(summary.getSucceeded()).isEqualTo(1);
         assertThat(summary.getFailed()).isEqualTo(1);
         assertThat(summary.getResults())
-            .filteredOn(result -> !result.getSuccess())
-            .singleElement()
-            .satisfies(result -> {
-                assertThat(result.getError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
-                assertThat(result.getError()).doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
-            });
+                .filteredOn(result -> !result.getSuccess())
+                .singleElement()
+                .satisfies(result -> {
+                    assertThat(result.getError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+                    assertThat(result.getError())
+                            .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+                });
     }
 
     @Test
@@ -300,24 +306,24 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
     @Test
     void should_return_403_when_user_lacks_update_permission() {
         var page = aPage("Sourced Page", null, aSource());
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
 
         assertThat(fetch(page.getId().toString())).hasStatus(FORBIDDEN_403);
     }
 
     private String storedContentOf(PortalNavigationPage page) {
-        return ((PortalPageContentCrudServiceInMemory) portalPageContentCrudService).storage()
-            .stream()
-            .filter(content -> content.getId().equals(page.getPortalPageContentId()))
-            .findFirst()
-            .map(content -> ((GraviteeMarkdownPageContent) content).getContent().value())
-            .orElseThrow();
+        return ((PortalPageContentCrudServiceInMemory) portalPageContentCrudService)
+                .storage().stream()
+                        .filter(content -> content.getId().equals(page.getPortalPageContentId()))
+                        .findFirst()
+                        .map(content -> ((GraviteeMarkdownPageContent) content)
+                                .getContent()
+                                .value())
+                        .orElseThrow();
     }
 }

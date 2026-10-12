@@ -25,7 +25,6 @@ import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
-import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
@@ -49,12 +48,11 @@ class UpdatePortalPageContentConfigurationUseCaseTest {
         useCase = new UpdatePortalPageContentConfigurationUseCase(queryService, crudService);
 
         var content = PortalPageContentFixtures.anOpenApiPageContent(
-            PortalPageContentId.of(CONTENT_ID),
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            OPENAPI_CONTENT,
-            new RedocConfiguration()
-        );
+                PortalPageContentId.of(CONTENT_ID),
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                OPENAPI_CONTENT,
+                new RedocConfiguration());
 
         queryService.initWith(List.of(content));
         crudService.initWith(List.of(content));
@@ -64,27 +62,13 @@ class UpdatePortalPageContentConfigurationUseCaseTest {
     void should_update_configuration_without_changing_content() {
         // Given
         var configuration = new SwaggerUiConfiguration(
-            true,
-            "full",
-            true,
-            10,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            "https://example.com",
-            true,
-            true,
-            true
-        );
+                true, "full", true, 10, true, true, true, true, true, true, "https://example.com", true, true, true);
         var input = UpdatePortalPageContentConfigurationUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .configuration(configuration)
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .configuration(configuration)
+                .build();
 
         // When
         var output = useCase.execute(input);
@@ -98,16 +82,16 @@ class UpdatePortalPageContentConfigurationUseCaseTest {
     void should_throw_when_content_not_found() {
         // Given
         var input = UpdatePortalPageContentConfigurationUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId("00000000-0000-0000-0000-000000000002")
-            .configuration(new RedocConfiguration())
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId("00000000-0000-0000-0000-000000000002")
+                .configuration(new RedocConfiguration())
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found");
+                .isInstanceOf(PageContentNotFoundException.class)
+                .hasMessage("Page content not found");
     }
 
     @Test
@@ -121,15 +105,15 @@ class UpdatePortalPageContentConfigurationUseCaseTest {
         crudService.initWith(List.of(content));
 
         var input = UpdatePortalPageContentConfigurationUseCase.Input.builder()
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .portalPageContentId(CONTENT_ID)
-            .configuration(new RedocConfiguration())
-            .build();
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .portalPageContentId(CONTENT_ID)
+                .configuration(new RedocConfiguration())
+                .build();
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found");
+                .isInstanceOf(PageContentNotFoundException.class)
+                .hasMessage("Page content not found");
     }
 }

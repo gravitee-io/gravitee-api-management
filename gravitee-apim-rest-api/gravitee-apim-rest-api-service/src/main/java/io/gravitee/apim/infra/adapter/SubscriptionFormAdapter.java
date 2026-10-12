@@ -46,9 +46,9 @@ public interface SubscriptionFormAdapter {
             return "{}";
         }
         try {
-            return FIELD_CONSTRAINTS_JSON.writerFor(new TypeReference<Map<String, List<Constraint>>>() {}).writeValueAsString(
-                constraints.byFieldKey()
-            );
+            return FIELD_CONSTRAINTS_JSON
+                    .writerFor(new TypeReference<Map<String, List<Constraint>>>() {})
+                    .writeValueAsString(constraints.byFieldKey());
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Failed to serialize subscription form field constraints", e);
         }
@@ -68,12 +68,18 @@ public interface SubscriptionFormAdapter {
 
     @Mapping(target = "id", source = "id", qualifiedByName = "idToSubscriptionFormId")
     @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "stringToGraviteeMarkdown")
-    @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "jsonToFieldConstraints")
+    @Mapping(
+            target = "validationConstraints",
+            source = "validationConstraints",
+            qualifiedByName = "jsonToFieldConstraints")
     SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm subscriptionForm);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "subscriptionFormIdToId")
     @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
-    @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "fieldConstraintsToJson")
+    @Mapping(
+            target = "validationConstraints",
+            source = "validationConstraints",
+            qualifiedByName = "fieldConstraintsToJson")
     io.gravitee.repository.management.model.SubscriptionForm toRepository(SubscriptionForm subscriptionForm);
 
     @Named("idToSubscriptionFormId")

@@ -53,7 +53,8 @@ public class AuditMongoRepositoryImplTest {
         batchSizeField.setAccessible(true);
         batchSizeField.setInt(repository, 2);
 
-        when(mongoTemplate.remove(any(Query.class), eq(AuditMongo.class))).thenReturn(DeleteResult.acknowledged(Long.MAX_VALUE));
+        when(mongoTemplate.remove(any(Query.class), eq(AuditMongo.class)))
+                .thenReturn(DeleteResult.acknowledged(Long.MAX_VALUE));
     }
 
     @Test
@@ -63,13 +64,11 @@ public class AuditMongoRepositoryImplTest {
         AuditMongo c = auditWithId("c");
 
         when(mongoTemplate.find(any(Query.class), eq(AuditMongo.class)))
-            .thenReturn(List.of(a, b))
-            .thenReturn(List.of(c))
-            .thenReturn(Collections.emptyList());
-        when(mongoTemplate.remove(any(Query.class), eq(AuditMongo.class))).thenReturn(
-            DeleteResult.acknowledged(2),
-            DeleteResult.acknowledged(1)
-        );
+                .thenReturn(List.of(a, b))
+                .thenReturn(List.of(c))
+                .thenReturn(Collections.emptyList());
+        when(mongoTemplate.remove(any(Query.class), eq(AuditMongo.class)))
+                .thenReturn(DeleteResult.acknowledged(2), DeleteResult.acknowledged(1));
 
         repository.deleteByEnvironmentIdAndAge("env-1", Instant.parse("2026-01-01T00:00:00Z"));
 
@@ -92,14 +91,18 @@ public class AuditMongoRepositoryImplTest {
         AuditMongo a = auditWithId("a");
         AuditMongo b = auditWithId("b");
 
-        when(mongoTemplate.find(any(Query.class), eq(AuditMongo.class))).thenReturn(List.of(a, b)).thenReturn(Collections.emptyList());
+        when(mongoTemplate.find(any(Query.class), eq(AuditMongo.class)))
+                .thenReturn(List.of(a, b))
+                .thenReturn(Collections.emptyList());
         when(mongoTemplate.remove(any(Query.class), eq(AuditMongo.class))).thenReturn(DeleteResult.acknowledged(2));
 
         repository.deleteByEnvironmentIdAndAge("env-1", Instant.parse("2026-01-01T00:00:00Z"));
 
         ArgumentCaptor<Query> deleteQueryCaptor = ArgumentCaptor.forClass(Query.class);
         verify(mongoTemplate).remove(deleteQueryCaptor.capture(), eq(AuditMongo.class));
-        assertThat(deleteQueryCaptor.getValue().getQueryObject().toJson()).contains("\"a\"").contains("\"b\"");
+        assertThat(deleteQueryCaptor.getValue().getQueryObject().toJson())
+                .contains("\"a\"")
+                .contains("\"b\"");
     }
 
     @Test

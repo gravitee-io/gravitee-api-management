@@ -66,16 +66,15 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
     private final ThreadPoolExecutor syncLocalExecutor;
 
     public LocalApiSynchronizer(
-        final ApiKeyMapper apiKeyMapper,
-        final ApiKeyService apiKeyService,
-        final ApiManager apiManager,
-        final ApiMapper apiMapper,
-        final EnvironmentService environmentService,
-        final ObjectMapper objectMapper,
-        final SubscriptionMapper subscriptionMapper,
-        final SubscriptionService subscriptionService,
-        final ThreadPoolExecutor syncLocalExecutor
-    ) {
+            final ApiKeyMapper apiKeyMapper,
+            final ApiKeyService apiKeyService,
+            final ApiManager apiManager,
+            final ApiMapper apiMapper,
+            final EnvironmentService environmentService,
+            final ObjectMapper objectMapper,
+            final SubscriptionMapper subscriptionMapper,
+            final SubscriptionService subscriptionService,
+            final ThreadPoolExecutor syncLocalExecutor) {
         this.apiKeyMapper = apiKeyMapper;
         this.apiKeyService = apiKeyService;
         this.apiManager = apiManager;
@@ -89,14 +88,15 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
 
     public Completable synchronize(final File localRegistryDir) {
         return Flowable.fromArray(localRegistryDir.listFiles((dir, name) -> name.endsWith(".json")))
-            .map(this::deployApi)
-            .doOnError(throwable -> log.error("Error synchronizing API", throwable))
-            .doOnNext(api -> log.debug("api {} synchronized from local registry", api.getId()))
-            .ignoreElements();
+                .map(this::deployApi)
+                .doOnError(throwable -> log.error("Error synchronizing API", throwable))
+                .doOnNext(api -> log.debug("api {} synchronized from local registry", api.getId()))
+                .ignoreElements();
     }
 
     private ReactableApi<?> deployApi(File apiDefinitionFile) throws IOException {
-        LocalSyncFileDefinition fileDefinition = objectMapper.readValue(apiDefinitionFile, LocalSyncFileDefinition.class);
+        LocalSyncFileDefinition fileDefinition =
+                objectMapper.readValue(apiDefinitionFile, LocalSyncFileDefinition.class);
         ReactableApi<?> apiToDeploy;
         if (fileDefinition.getRepositoryApiEvent() != null) {
             apiToDeploy = apiMapper.to(fileDefinition.getRepositoryApiEvent());
@@ -104,16 +104,17 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
             if (successfulRegistration) {
                 this.definitions.put(Paths.get(apiDefinitionFile.toURI()), apiToDeploy);
 
-                if (fileDefinition.getRepositorySubscriptionList() != null && !fileDefinition.getRepositorySubscriptionList().isEmpty()) {
-                    Set<Subscription> subscriptionsToDeploy = fileDefinition
-                        .getRepositorySubscriptionList()
-                        .stream()
-                        .flatMap(sub -> subscriptionMapper.to(sub).stream())
-                        .collect(Collectors.toSet());
+                if (fileDefinition.getRepositorySubscriptionList() != null
+                        && !fileDefinition.getRepositorySubscriptionList().isEmpty()) {
+                    Set<Subscription> subscriptionsToDeploy = fileDefinition.getRepositorySubscriptionList().stream()
+                            .flatMap(sub -> subscriptionMapper.to(sub).stream())
+                            .collect(Collectors.toSet());
                     subscriptionsToDeploy.forEach(subscriptionService::register);
 
-                    if (fileDefinition.getRepositoryApiKeyList() != null && !fileDefinition.getRepositoryApiKeyList().isEmpty()) {
-                        for (io.gravitee.repository.management.model.ApiKey apiKeyModel : fileDefinition.getRepositoryApiKeyList()) {
+                    if (fileDefinition.getRepositoryApiKeyList() != null
+                            && !fileDefinition.getRepositoryApiKeyList().isEmpty()) {
+                        for (io.gravitee.repository.management.model.ApiKey apiKeyModel :
+                                fileDefinition.getRepositoryApiKeyList()) {
                             apiKeyService.register(apiKeyMapper.to(apiKeyModel, subscriptionsToDeploy));
                         }
                     }
@@ -130,43 +131,44 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
     @Override
     public Completable watch(final Path localRegistryPath, final WatchService watchService) {
         return Flowable.interval(5, TimeUnit.SECONDS)
-            .subscribeOn(Schedulers.from(this.syncLocalExecutor))
-            .map(t -> {
-                WatchKey key = watchService.poll();
-                if (key != null) {
-                    for (WatchEvent<?> event : key.pollEvents()) {
-                        WatchEvent.Kind<?> kind = event.kind();
-                        Path fileName = localRegistryPath.resolve(((Path) event.context()).getFileName());
-                        log.debug("An event occurs for file {}: {}", fileName, kind.name());
-                        if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                            Api existingDefinition = (Api) this.definitions.get(fileName);
-                            if (existingDefinition != null) {
-                                this.apiManager.unregister(existingDefinition.getId());
-                                this.subscriptionService.unregisterByApiId(existingDefinition.getId());
-                                this.apiKeyService.unregisterByApiId(existingDefinition.getId());
-                                this.definitions.remove(fileName);
+                .subscribeOn(Schedulers.from(this.syncLocalExecutor))
+                .map(t -> {
+                    WatchKey key = watchService.poll();
+                    if (key != null) {
+                        for (WatchEvent<?> event : key.pollEvents()) {
+                            WatchEvent.Kind<?> kind = event.kind();
+                            Path fileName = localRegistryPath.resolve(((Path) event.context()).getFileName());
+                            log.debug("An event occurs for file {}: {}", fileName, kind.name());
+                            if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                Api existingDefinition = (Api) this.definitions.get(fileName);
+                                if (existingDefinition != null) {
+                                    this.apiManager.unregister(existingDefinition.getId());
+                                    this.subscriptionService.unregisterByApiId(existingDefinition.getId());
+                                    this.apiKeyService.unregisterByApiId(existingDefinition.getId());
+                                    this.definitions.remove(fileName);
+                                    deployApi(fileName.toFile());
+                                }
+                            } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                                 deployApi(fileName.toFile());
+                            } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                                Api existingDefinition = (Api) this.definitions.get(fileName);
+                                if (existingDefinition != null
+                                        && this.apiManager.get(existingDefinition.getId()) != null) {
+                                    this.apiManager.unregister(existingDefinition.getId());
+                                    this.subscriptionService.unregisterByApiId(existingDefinition.getId());
+                                    this.apiKeyService.unregisterByApiId(existingDefinition.getId());
+                                    this.definitions.remove(fileName);
+                                }
                             }
-                        } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                            deployApi(fileName.toFile());
-                        } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                            Api existingDefinition = (Api) this.definitions.get(fileName);
-                            if (existingDefinition != null && this.apiManager.get(existingDefinition.getId()) != null) {
-                                this.apiManager.unregister(existingDefinition.getId());
-                                this.subscriptionService.unregisterByApiId(existingDefinition.getId());
-                                this.apiKeyService.unregisterByApiId(existingDefinition.getId());
-                                this.definitions.remove(fileName);
-                            }
-                        }
 
-                        boolean valid = key.reset();
-                        if (!valid) {
-                            break;
+                            boolean valid = key.reset();
+                            if (!valid) {
+                                break;
+                            }
                         }
                     }
-                }
-                return t;
-            })
-            .ignoreElements();
+                    return t;
+                })
+                .ignoreElements();
     }
 }

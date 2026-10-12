@@ -39,31 +39,38 @@ public class SharedPolicyGroupQueryServiceImpl implements SharedPolicyGroupQuery
     private final SharedPolicyGroupAdapter sharedPolicyGroupAdapter;
 
     public SharedPolicyGroupQueryServiceImpl(
-        @Lazy final SharedPolicyGroupRepository sharedPolicyGroupRepository,
-        SharedPolicyGroupAdapter sharedPolicyGroupAdapter
-    ) {
+            @Lazy final SharedPolicyGroupRepository sharedPolicyGroupRepository,
+            SharedPolicyGroupAdapter sharedPolicyGroupAdapter) {
         this.sharedPolicyGroupRepository = sharedPolicyGroupRepository;
         this.sharedPolicyGroupAdapter = sharedPolicyGroupAdapter;
     }
 
     @Override
-    public Page<SharedPolicyGroup> searchByEnvironmentId(String environmentId, String q, Pageable pageable, Sortable sortable) {
+    public Page<SharedPolicyGroup> searchByEnvironmentId(
+            String environmentId, String q, Pageable pageable, Sortable sortable) {
         try {
-            var criteria = SharedPolicyGroupCriteria.builder().query(q).environmentId(environmentId).build();
+            var criteria = SharedPolicyGroupCriteria.builder()
+                    .query(q)
+                    .environmentId(environmentId)
+                    .build();
 
             var result = sharedPolicyGroupRepository.search(
-                criteria,
-                new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build(),
-                new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build()
-            );
+                    criteria,
+                    new PageableBuilder()
+                            .pageNumber(pageable.getPageNumber() - 1)
+                            .pageSize(pageable.getPageSize())
+                            .build(),
+                    new SortableBuilder()
+                            .field(sortable.getField())
+                            .setAsc(sortable.isAscOrder())
+                            .build());
 
             return result.map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
             log.error("An error occurred while searching shared policy groups by environment ID {}", environmentId, e);
             throw new TechnicalDomainException(
-                "An error occurred while trying to search shared policy groups by environment ID: " + environmentId,
-                e
-            );
+                    "An error occurred while trying to search shared policy groups by environment ID: " + environmentId,
+                    e);
         }
     }
 }

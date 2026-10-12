@@ -47,14 +47,17 @@ public class ImportSwaggerDescriptorEntity {
     private boolean withDocumentation;
 
     @JsonProperty("with_path_mapping")
-    @Schema(description = "Do you want to create a path mapping for each declared swagger paths in addition to the API ?", example = "true")
+    @Schema(
+            description =
+                    "Do you want to create a path mapping for each declared swagger paths in addition to the API ?",
+            example = "true")
     private boolean withPathMapping;
 
     @JsonProperty("with_policy_paths")
     @Schema(
-        description = "Do you want to create a path (in order to add policies under) for each declared swagger paths in addition to the API ?",
-        example = "true"
-    )
+            description =
+                    "Do you want to create a path (in order to add policies under) for each declared swagger paths in addition to the API ?",
+            example = "true")
     private boolean withPolicyPaths;
 
     @JsonProperty("with_policies")

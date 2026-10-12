@@ -39,7 +39,8 @@ public class ApiKeyCrudServiceImpl implements ApiKeyCrudService {
             var result = apiKeyRepository.create(ApiKeyAdapter.INSTANCE.fromEntity(apiKey));
             return ApiKeyAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to create the api key: " + apiKey.getId(), e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create the api key: " + apiKey.getId(), e);
         }
     }
 
@@ -49,7 +50,8 @@ public class ApiKeyCrudServiceImpl implements ApiKeyCrudService {
             var result = apiKeyRepository.update(ApiKeyAdapter.INSTANCE.fromEntity(apiKey));
             return ApiKeyAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to update the api key: " + apiKey.getId(), e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update the api key: " + apiKey.getId(), e);
         }
     }
 }

@@ -70,13 +70,11 @@ class PortalsResourceTest extends AbstractResourceTest {
                 return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), null, List.of());
             });
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdatePortalUseCase);
 
@@ -98,33 +96,32 @@ class PortalsResourceTest extends AbstractResourceTest {
                 return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), null, List.of());
             });
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-with-navigation.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-with-navigation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdatePortalUseCase);
 
                 var state = response.readEntity(PortalState.class);
                 assertThat(state.getNavigation())
-                    .extracting(PortalNavigationPath::getPath)
-                    .containsExactly("/projects/alpha", "/projects/alpha/docs");
-                assertThat(state.getNavigation()).first().extracting(PortalNavigationPath::getDisplayName).isEqualTo("Alpha");
+                        .extracting(PortalNavigationPath::getPath)
+                        .containsExactly("/projects/alpha", "/projects/alpha/docs");
+                assertThat(state.getNavigation())
+                        .first()
+                        .extracting(PortalNavigationPath::getDisplayName)
+                        .isEqualTo("Alpha");
             }
         }
 
         @Test
         void should_return_400_when_hrid_is_missing() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("invalid-portal.json")))
-            ) {
+                    .put(Entity.json(readJSON("invalid-portal.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdatePortalUseCase);
                 verifyNoInteractions(validatePortalUseCase);
@@ -137,12 +134,16 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_portal() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
-            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.empty(), null, List.of())
-            );
+            var persisted = Portal.of(
+                    PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            when(createOrUpdatePortalUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalUseCase.Output(
+                            persisted, PortalNavigationStructure.empty(), null, List.of()));
 
-            try (var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal.json")))) {
+            try (var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdatePortalUseCase).execute(any(CreateOrUpdatePortalUseCase.Input.class));
 
@@ -160,75 +161,79 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_navigation_to_use_case_and_echo_in_response() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = Portal.of(
+                    PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
             var echoed = List.of(
-                new NavigationPath("/projects", null),
-                new NavigationPath("/projects/alpha", "Alpha"),
-                new NavigationPath("/projects/alpha/docs", null)
-            );
-            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(echoed), null, List.of())
-            );
+                    new NavigationPath("/projects", null),
+                    new NavigationPath("/projects/alpha", "Alpha"),
+                    new NavigationPath("/projects/alpha/docs", null));
+            when(createOrUpdatePortalUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalUseCase.Output(
+                            persisted, PortalNavigationStructure.ofTopNavbar(echoed), null, List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-with-navigation.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-with-navigation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
 
                 var inputCaptor = ArgumentCaptor.forClass(CreateOrUpdatePortalUseCase.Input.class);
                 verify(createOrUpdatePortalUseCase).execute(inputCaptor.capture());
                 assertThat(inputCaptor.getValue().structure().forArea(PortalArea.TOP_NAVBAR))
-                    .extracting(NavigationPath::path)
-                    .containsExactly("/projects/alpha", "/projects/alpha/docs");
-                assertThat(inputCaptor.getValue().structure().forArea(PortalArea.TOP_NAVBAR).get(0).displayName()).isEqualTo("Alpha");
+                        .extracting(NavigationPath::path)
+                        .containsExactly("/projects/alpha", "/projects/alpha/docs");
+                assertThat(inputCaptor
+                                .getValue()
+                                .structure()
+                                .forArea(PortalArea.TOP_NAVBAR)
+                                .get(0)
+                                .displayName())
+                        .isEqualTo("Alpha");
 
                 var state = response.readEntity(PortalState.class);
                 assertThat(state.getNavigation())
-                    .extracting(PortalNavigationPath::getPath)
-                    .containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
-                assertThat(state.getNavigation()).element(1).extracting(PortalNavigationPath::getDisplayName).isEqualTo("Alpha");
+                        .extracting(PortalNavigationPath::getPath)
+                        .containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
+                assertThat(state.getNavigation())
+                        .element(1)
+                        .extracting(PortalNavigationPath::getDisplayName)
+                        .isEqualTo("Alpha");
                 assertThat(state.getStructure()).isNotNull();
                 assertThat(state.getStructure().getTopNavbar())
-                    .extracting(PortalNavigationPath::getPath)
-                    .containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
+                        .extracting(PortalNavigationPath::getPath)
+                        .containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
             }
         }
 
         @Test
         void should_accept_structure_field_and_use_it_as_top_navbar() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = Portal.of(
+                    PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
             when(createOrUpdatePortalUseCase.execute(any())).thenAnswer(inv -> {
                 var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
                 return new CreateOrUpdatePortalUseCase.Output(persisted, input.structure(), null, List.of());
             });
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-with-structure.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-with-structure.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
 
                 var inputCaptor = ArgumentCaptor.forClass(CreateOrUpdatePortalUseCase.Input.class);
                 verify(createOrUpdatePortalUseCase).execute(inputCaptor.capture());
                 assertThat(inputCaptor.getValue().structure().forArea(PortalArea.TOP_NAVBAR))
-                    .extracting(NavigationPath::path)
-                    .containsExactly("/projects/alpha", "/projects/alpha/docs");
+                        .extracting(NavigationPath::path)
+                        .containsExactly("/projects/alpha", "/projects/alpha/docs");
             }
         }
 
         @Test
         void should_reject_when_both_structure_and_navigation_are_present() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-with-both-structure-and-navigation.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-with-both-structure-and-navigation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdatePortalUseCase);
                 verifyNoInteractions(validatePortalUseCase);
@@ -237,22 +242,25 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_echo_both_structure_and_deprecated_navigation_in_response() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var persisted = Portal.of(
+                    PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
             var echoed = List.of(new NavigationPath("/x", null));
-            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(echoed), null, List.of())
-            );
+            when(createOrUpdatePortalUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalUseCase.Output(
+                            persisted, PortalNavigationStructure.ofTopNavbar(echoed), null, List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-with-structure.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-with-structure.json")))) {
                 var state = response.readEntity(PortalState.class);
-                assertThat(state.getNavigation()).extracting(PortalNavigationPath::getPath).containsExactly("/x");
+                assertThat(state.getNavigation())
+                        .extracting(PortalNavigationPath::getPath)
+                        .containsExactly("/x");
                 assertThat(state.getStructure()).isNotNull();
-                assertThat(state.getStructure().getTopNavbar()).extracting(PortalNavigationPath::getPath).containsExactly("/x");
+                assertThat(state.getStructure().getTopNavbar())
+                        .extracting(PortalNavigationPath::getPath)
+                        .containsExactly("/x");
             }
         }
     }

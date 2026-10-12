@@ -33,16 +33,15 @@ public final class PortalNavigationPage extends PortalNavigationItem {
     private PortalPageContentId portalPageContentId;
 
     PortalNavigationPage(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull PortalPageContentId portalPageContentId,
-        @Nonnull Boolean published,
-        @Nonnull PortalVisibility visibility
-    ) {
+            @Nonnull PortalNavigationItemId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String title,
+            @Nonnull PortalArea area,
+            @Nonnull Integer order,
+            @Nonnull PortalPageContentId portalPageContentId,
+            @Nonnull Boolean published,
+            @Nonnull PortalVisibility visibility) {
         super(id, organizationId, environmentId, title, area, order, published, visibility);
         this.portalPageContentId = portalPageContentId;
     }

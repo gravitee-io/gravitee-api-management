@@ -63,12 +63,11 @@ class DistributedNodeMetadataSynchronizerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new DistributedNodeMetadataSynchronizer(
-            eventsFetcher,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            deployerFactory,
-            new NodeMetadataMapper(objectMapper)
-        );
+                eventsFetcher,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                deployerFactory,
+                new NodeMetadataMapper(objectMapper));
         lenient().when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createNodeMetadataDeployer()).thenReturn(nodeMetadataDeployer);
         lenient().when(nodeMetadataDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -82,7 +81,8 @@ class DistributedNodeMetadataSynchronizerTest {
 
         @Test
         void should_not_synchronize_node_metadata_when_no_events() throws InterruptedException {
-            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.NODE_METADATA), any())).thenReturn(Flowable.empty());
+            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.NODE_METADATA), any()))
+                    .thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(nodeMetadataDeployer);
         }
@@ -91,23 +91,26 @@ class DistributedNodeMetadataSynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                eq(-1L),
-                any(),
-                eq(DistributedEventType.NODE_METADATA),
-                eq(Set.of(DistributedSyncAction.DEPLOY))
-            );
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            eq(-1L),
+                            any(),
+                            eq(DistributedEventType.NODE_METADATA),
+                            eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
 
         @Test
         void should_not_fetch_incremental_events() throws InterruptedException {
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher, never()).fetchLatest(
-                any(),
-                any(),
-                eq(DistributedEventType.NODE_METADATA),
-                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-            );
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(eventsFetcher, never())
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(DistributedEventType.NODE_METADATA),
+                            eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY)));
         }
     }
 
@@ -118,18 +121,20 @@ class DistributedNodeMetadataSynchronizerTest {
 
         @BeforeEach
         public void init() {
-            metadataDeployable = new NodeMetadataMapper.DistributedNodeMetadataDeployable(Set.of("orga1", "orga2"), "installation");
+            metadataDeployable =
+                    new NodeMetadataMapper.DistributedNodeMetadataDeployable(Set.of("orga1", "orga2"), "installation");
         }
 
         @Test
-        void should_deploy_dictionary_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
+        void should_deploy_dictionary_when_fetching_deployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("id")
-                .payload(objectMapper.writeValueAsString(metadataDeployable))
-                .type(DistributedEventType.NODE_METADATA)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("id")
+                    .payload(objectMapper.writeValueAsString(metadataDeployable))
+                    .type(DistributedEventType.NODE_METADATA)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
@@ -141,14 +146,15 @@ class DistributedNodeMetadataSynchronizerTest {
         }
 
         @Test
-        void should_ignore_undeploy_node_metadata_when_fetching_undeployed_events() throws InterruptedException, JsonProcessingException {
+        void should_ignore_undeploy_node_metadata_when_fetching_undeployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("id")
-                .payload(objectMapper.writeValueAsString(metadataDeployable))
-                .type(DistributedEventType.NODE_METADATA)
-                .syncAction(DistributedSyncAction.UNDEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("id")
+                    .payload(objectMapper.writeValueAsString(metadataDeployable))
+                    .type(DistributedEventType.NODE_METADATA)
+                    .syncAction(DistributedSyncAction.UNDEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();

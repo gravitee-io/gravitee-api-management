@@ -46,7 +46,8 @@ public class TracingPolicy implements Policy {
 
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        Span span = context.getTracer().startSpanFrom(new InternalRequest(this.policy.id(), Map.of(SPAN_ATTRIBUTE, this.policy.id())));
+        Span span = context.getTracer()
+                .startSpanFrom(new InternalRequest(this.policy.id(), Map.of(SPAN_ATTRIBUTE, this.policy.id())));
 
         try {
             // The policy is ending once doNext or failWith are called from the chain

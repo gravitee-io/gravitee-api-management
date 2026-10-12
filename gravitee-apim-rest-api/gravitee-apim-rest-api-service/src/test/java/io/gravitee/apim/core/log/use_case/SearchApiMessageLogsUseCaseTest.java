@@ -42,20 +42,22 @@ class SearchApiMessageLogsUseCaseTest {
     @BeforeEach
     void setup() {
         messageLogsCrudService = new MessageLogsCrudServiceInMemory();
-        messageLogsCrudService.initWith(List.of(MessageLog.builder().apiId("api-id").build()));
+        messageLogsCrudService.initWith(
+                List.of(MessageLog.builder().apiId("api-id").build()));
         underTest = new SearchApiMessageLogsUseCase(messageLogsCrudService);
     }
 
     @Test
     void should_search_message_metrics() {
         SearchApiMessageLogsUseCase.Output output = underTest.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiMessageLogsUseCase.Input("api-id", SearchMessageLogsFilters.builder().build(), new PageableImpl(1, 10))
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiMessageLogsUseCase.Input(
+                        "api-id", SearchMessageLogsFilters.builder().build(), new PageableImpl(1, 10)));
         assertThat(output.total()).isEqualTo(1);
         assertThat(output.data()).hasSize(1);
         assertThat(output.data())
-            .first()
-            .satisfies(messageMetrics -> assertThat(messageMetrics.getApiId()).isEqualTo("api-id"));
+                .first()
+                .satisfies(
+                        messageMetrics -> assertThat(messageMetrics.getApiId()).isEqualTo("api-id"));
     }
 }

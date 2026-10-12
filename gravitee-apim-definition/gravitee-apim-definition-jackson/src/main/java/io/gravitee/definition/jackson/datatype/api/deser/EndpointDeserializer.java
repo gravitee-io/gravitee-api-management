@@ -99,11 +99,9 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         final JsonNode tenantsNode = node.get("tenants");
         if (tenantsNode != null && tenantsNode.isArray()) {
             List<String> tenants = new ArrayList<>(tenantsNode.size());
-            tenantsNode
-                .elements()
-                .forEachRemaining(tenantNode -> {
-                    tenants.add(tenantNode.asText());
-                });
+            tenantsNode.elements().forEachRemaining(tenantNode -> {
+                tenants.add(tenantNode.asText());
+            });
 
             endpoint.setTenants(tenants);
         }
@@ -118,17 +116,15 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         if (headersNode != null && !headersNode.isEmpty(null)) {
             if (headersNode.isObject()) {
                 Map<String, String> headers = headersNode
-                    .traverse(ctxt.getParser().getCodec())
-                    .readValueAs(new TypeReference<HashMap<String, String>>() {});
+                        .traverse(ctxt.getParser().getCodec())
+                        .readValueAs(new TypeReference<HashMap<String, String>>() {});
                 ArrayNode headersUpdated = mapper.createArrayNode();
-                headers
-                    .keySet()
-                    .forEach(key -> {
-                        ObjectNode objectNode = mapper.createObjectNode();
-                        objectNode.put("name", key);
-                        objectNode.put("value", headers.get(key));
-                        headersUpdated.add(objectNode);
-                    });
+                headers.keySet().forEach(key -> {
+                    ObjectNode objectNode = mapper.createObjectNode();
+                    objectNode.put("name", key);
+                    objectNode.put("value", headers.get(key));
+                    headersUpdated.add(objectNode);
+                });
 
                 ((ObjectNode) node).set("headers", headersUpdated);
             }
@@ -177,7 +173,9 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         // HttpClientOptions model, whose own isClearTextUpgrade() masking never applies to this per-endpoint
         // override), so the invariant must be enforced here, directly on the raw JSON, before it is persisted.
         JsonNode httpNode = node.get("http");
-        if (httpNode != null && httpNode.isObject() && httpNode.path("clearTextUpgrade").asBoolean(false)) {
+        if (httpNode != null
+                && httpNode.isObject()
+                && httpNode.path("clearTextUpgrade").asBoolean(false)) {
             String version = httpNode.path("version").asText(ProtocolVersion.HTTP_1_1.name());
             if (ProtocolVersion.HTTP_1_1.name().equals(version)) {
                 ((ObjectNode) httpNode).put("clearTextUpgrade", false);
@@ -191,7 +189,8 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
     }
 
     @Override
-    public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException {
+    public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer)
+            throws IOException {
         return this.deserialize(p, ctxt);
     }
 }

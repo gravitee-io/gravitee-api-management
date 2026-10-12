@@ -53,6 +53,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
      * Add 30s delay before and after to avoid problem with "out of sync" clocks.
      */
     public static final int TIMEFRAME_DELAY = 30000;
+
     public static final int RETRY_DELAY_MS = 3_000;
     public static final int INITIAL_RETRY_DELAY_MS = 3_000;
     public static final int MAX_RETRY_DELAY_MS = 10_000;
@@ -69,6 +70,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private final AtomicLong syncCounter = new AtomicLong(0);
     /** Set after any successful sync; used only by {@link #syncDone()} for the sync-process health probe. */
     private final AtomicBoolean syncReadyForProbe = new AtomicBoolean(false);
+
     private final AtomicLong totalSyncOnErrorCounter = new AtomicLong(0);
     private final AtomicBoolean lastSyncOnError = new AtomicBoolean(false);
 
@@ -80,15 +82,14 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private Route routeHandler;
 
     public DefaultSyncManager(
-        final Router router,
-        final Node node,
-        final List<RepositorySynchronizer> synchronizers,
-        final List<DistributedSynchronizer> distributedSynchronizers,
-        final DistributedSyncService distributedSyncService,
-        final int delay,
-        final TimeUnit unit,
-        final int retryAttempt
-    ) {
+            final Router router,
+            final Node node,
+            final List<RepositorySynchronizer> synchronizers,
+            final List<DistributedSynchronizer> distributedSynchronizers,
+            final DistributedSyncService distributedSyncService,
+            final int delay,
+            final TimeUnit unit,
+            final int retryAttempt) {
         this.router = router;
         this.node = node;
         this.synchronizers = synchronizers;
@@ -119,25 +120,21 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
 
         // force synchronization and then schedule next ones
         synchronize()
-            .retryWhen(RxHelper.retryExponentialBackoff(INITIAL_RETRY_DELAY_MS, MAX_RETRY_DELAY_MS, MILLISECONDS, 1.5))
-            .andThen(
-                Completable.fromRunnable(() -> {
+                .retryWhen(
+                        RxHelper.retryExponentialBackoff(INITIAL_RETRY_DELAY_MS, MAX_RETRY_DELAY_MS, MILLISECONDS, 1.5))
+                .andThen(Completable.fromRunnable(() -> {
                     log.info("Sync service has been scheduled with delay [{} {}]", delay, unit.name());
-                    refreshDisposable = Flowable.<Long, Long>generate(
-                        () -> 0L,
-                        (state, emitter) -> {
-                            emitter.onNext(state);
-                            return state + 1;
-                        }
-                    )
-                        .delay(delay, unit)
-                        .rebatchRequests(1)
-                        .concatMapCompletable(interval -> synchronize())
-                        .retry()
-                        .subscribe();
-                })
-            )
-            .subscribe();
+                    refreshDisposable = Flowable.<Long, Long>generate(() -> 0L, (state, emitter) -> {
+                                emitter.onNext(state);
+                                return state + 1;
+                            })
+                            .delay(delay, unit)
+                            .rebatchRequests(1)
+                            .concatMapCompletable(interval -> synchronize())
+                            .retry()
+                            .subscribe();
+                }))
+                .subscribe();
     }
 
     @Override
@@ -154,11 +151,10 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
 
     private Completable synchronize() {
         return Completable.defer(() -> {
-            log.debug("Running synchronization process...");
-            return distributedSyncService.ready();
-        })
-            .andThen(
-                Single.defer(() -> {
+                    log.debug("Running synchronization process...");
+                    return distributedSyncService.ready();
+                })
+                .andThen(Single.defer(() -> {
                     // Only a secondary promoted to primary after completing at least one sync can
                     // resume from the stored distributed sync state: its memory is already warm
                     // from the distributed sync. A node with nothing deployed yet (cold-started
@@ -166,83 +162,83 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                     // and perform a full initial sync (nextFromTime stays at -1). The CAS runs
                     // before the nextFromTime check so an early promotion consumes it and never
                     // resumes from the state on a later cycle.
-                    if (
-                        distributedSyncService.isEnabled() &&
-                        distributedSyncService.isPrimaryNode() &&
-                        isClusterPrimaryNode.compareAndSet(false, true) &&
-                        nextFromTime != -1
-                    ) {
+                    if (distributedSyncService.isEnabled()
+                            && distributedSyncService.isPrimaryNode()
+                            && isClusterPrimaryNode.compareAndSet(false, true)
+                            && nextFromTime != -1) {
                         return distributedSyncService
-                            .state()
-                            .map(distributedSyncState -> {
-                                log.debug("Retrieving distributed sync state");
-                                nextFromTime = distributedSyncState.getFrom();
-                                return distributedSyncState.getTo();
-                            })
-                            .switchIfEmpty(Single.just(System.currentTimeMillis()));
+                                .state()
+                                .map(distributedSyncState -> {
+                                    log.debug("Retrieving distributed sync state");
+                                    nextFromTime = distributedSyncState.getFrom();
+                                    return distributedSyncState.getTo();
+                                })
+                                .switchIfEmpty(Single.just(System.currentTimeMillis()));
                     }
                     return Single.just(System.currentTimeMillis());
-                })
-            )
-            .flatMapCompletable(nextToTime -> {
-                log.debug("Synchronization #{} started at {}", syncCounter.incrementAndGet(), Instant.now());
-                log.debug(
-                    "Events from {} to {} would be synchronized.",
-                    Instant.ofEpochMilli(nextFromTime - TIMEFRAME_DELAY),
-                    Instant.ofEpochMilli(nextToTime + TIMEFRAME_DELAY)
-                );
-                Completable synchronizationCompletable;
-                if (distributedSyncService.isEnabled() && !distributedSyncService.isPrimaryNode()) {
-                    log.debug("Distributed synchronizers will be used as distributed sync is enabled, and current node is secondary.");
-                    if (distributedSynchronizers != null) {
-                        synchronizationCompletable = Flowable.fromIterable(distributedSynchronizers).concatMapCompletable(synchronizer ->
-                            synchronizer
-                                .synchronize(nextFromTime, nextToTime)
-                                .compose(upstream -> retrySynchronizer(upstream, synchronizer.getClass().getSimpleName()))
-                        );
-                    } else {
-                        synchronizationCompletable = Completable.complete();
-                    }
-                } else {
-                    synchronizationCompletable = Flowable.fromIterable(synchronizers).concatMapCompletable(synchronizer ->
-                        synchronizer
-                            .synchronize(nextFromTime, nextToTime, (Set<String>) node.metadata().get(Node.META_ENVIRONMENTS))
-                            .compose(upstream -> retrySynchronizer(upstream, synchronizer.getClass().getSimpleName()))
-                    );
-                }
-                return synchronizationCompletable
-                    .andThen(distributedSyncService.storeState(nextFromTime, nextToTime))
-                    .doOnComplete(() -> {
-                        lastSyncOnError.set(false);
-                        lastSyncErrorMessage.set(null);
-                        syncReadyForProbe.set(true);
-                        nextFromTime = nextToTime;
-
+                }))
+                .flatMapCompletable(nextToTime -> {
+                    log.debug("Synchronization #{} started at {}", syncCounter.incrementAndGet(), Instant.now());
+                    log.debug(
+                            "Events from {} to {} would be synchronized.",
+                            Instant.ofEpochMilli(nextFromTime - TIMEFRAME_DELAY),
+                            Instant.ofEpochMilli(nextToTime + TIMEFRAME_DELAY));
+                    Completable synchronizationCompletable;
+                    if (distributedSyncService.isEnabled() && !distributedSyncService.isPrimaryNode()) {
                         log.debug(
-                            "Synchronization #{} ended at {} (took {}ms}",
-                            syncCounter.get(),
-                            Instant.now().toString(),
-                            System.currentTimeMillis() - nextToTime
-                        );
-                    });
-            })
-            .doOnError(throwable -> {
-                // This condition is only to avoid printing the stacktrace on every loop
-                if (!lastSyncOnError.get()) {
-                    log.error("Synchronization process has failed", throwable);
-                } else {
-                    log.error("Synchronization process is still failing.");
-                }
-                lastSyncOnError.set(true);
-                lastSyncErrorMessage.set(throwable.getMessage());
-            });
+                                "Distributed synchronizers will be used as distributed sync is enabled, and current node is secondary.");
+                        if (distributedSynchronizers != null) {
+                            synchronizationCompletable = Flowable.fromIterable(distributedSynchronizers)
+                                    .concatMapCompletable(synchronizer -> synchronizer
+                                            .synchronize(nextFromTime, nextToTime)
+                                            .compose(upstream -> retrySynchronizer(
+                                                    upstream,
+                                                    synchronizer.getClass().getSimpleName())));
+                        } else {
+                            synchronizationCompletable = Completable.complete();
+                        }
+                    } else {
+                        synchronizationCompletable = Flowable.fromIterable(synchronizers)
+                                .concatMapCompletable(synchronizer -> synchronizer
+                                        .synchronize(nextFromTime, nextToTime, (Set<String>)
+                                                node.metadata().get(Node.META_ENVIRONMENTS))
+                                        .compose(upstream -> retrySynchronizer(
+                                                upstream,
+                                                synchronizer.getClass().getSimpleName())));
+                    }
+                    return synchronizationCompletable
+                            .andThen(distributedSyncService.storeState(nextFromTime, nextToTime))
+                            .doOnComplete(() -> {
+                                lastSyncOnError.set(false);
+                                lastSyncErrorMessage.set(null);
+                                syncReadyForProbe.set(true);
+                                nextFromTime = nextToTime;
+
+                                log.debug(
+                                        "Synchronization #{} ended at {} (took {}ms}",
+                                        syncCounter.get(),
+                                        Instant.now().toString(),
+                                        System.currentTimeMillis() - nextToTime);
+                            });
+                })
+                .doOnError(throwable -> {
+                    // This condition is only to avoid printing the stacktrace on every loop
+                    if (!lastSyncOnError.get()) {
+                        log.error("Synchronization process has failed", throwable);
+                    } else {
+                        log.error("Synchronization process is still failing.");
+                    }
+                    lastSyncOnError.set(true);
+                    lastSyncErrorMessage.set(throwable.getMessage());
+                });
     }
 
     private Completable retrySynchronizer(final Completable upstream, final String synchronizerClazz) {
-        return upstream
-            .doOnError(throwable -> log.warn("An error occurs while executing synchronizer {}, retrying...", synchronizerClazz, throwable))
-            .compose(RxHelper.retry(retryAttempt, RETRY_DELAY_MS, MILLISECONDS))
-            .doOnError(throwable -> log.error("Latest attempt of synchronizer {} has failed", synchronizerClazz, throwable));
+        return upstream.doOnError(throwable -> log.warn(
+                        "An error occurs while executing synchronizer {}, retrying...", synchronizerClazz, throwable))
+                .compose(RxHelper.retry(retryAttempt, RETRY_DELAY_MS, MILLISECONDS))
+                .doOnError(throwable ->
+                        log.error("Latest attempt of synchronizer {} has failed", synchronizerClazz, throwable));
     }
 
     public long nextSyncTime() {

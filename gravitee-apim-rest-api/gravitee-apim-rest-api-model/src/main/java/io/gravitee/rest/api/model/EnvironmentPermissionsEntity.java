@@ -85,20 +85,17 @@ public class EnvironmentPermissionsEntity {
 
     @Override
     public String toString() {
-        return (
-            "EnvironmentEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", hrids=" +
-            hrids +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", permissions='" +
-            permissions +
-            '}'
-        );
+        return ("EnvironmentEntity{" + "id='"
+                + id
+                + '\''
+                + ", hrids="
+                + hrids
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", permissions='"
+                + permissions
+                + '}');
     }
 }

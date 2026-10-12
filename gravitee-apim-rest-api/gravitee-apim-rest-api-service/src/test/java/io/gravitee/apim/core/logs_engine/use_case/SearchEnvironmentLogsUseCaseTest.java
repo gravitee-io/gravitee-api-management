@@ -83,11 +83,8 @@ class SearchEnvironmentLogsUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo("org-id", "env-id", "user-id");
     private static final Api API1 = ApiFixtures.aProxyApiV4();
-    private static final BaseConnectionLog LOG1 = new ConnectionLogFixtures(
-        API1.getId(),
-        "1",
-        UUID.randomUUID().toString()
-    ).aConnectionLog();
+    private static final BaseConnectionLog LOG1 =
+            new ConnectionLogFixtures(API1.getId(), "1", UUID.randomUUID().toString()).aConnectionLog();
 
     private ConnectionLogsCrudService connectionLogsCrudService;
     private UserContextLoader userContextLoader;
@@ -108,14 +105,13 @@ class SearchEnvironmentLogsUseCaseTest {
         instanceQueryService = mock(InstanceQueryService.class);
         apiProductQueryService = mock(ApiProductQueryService.class);
         useCase = new SearchEnvironmentLogsUseCase(
-            connectionLogsCrudService,
-            userContextLoader,
-            logNamesPostProcessor,
-            planCrudService,
-            applicationCrudService,
-            instanceQueryService,
-            apiProductQueryService
-        );
+                connectionLogsCrudService,
+                userContextLoader,
+                logNamesPostProcessor,
+                planCrudService,
+                applicationCrudService,
+                instanceQueryService,
+                apiProductQueryService);
     }
 
     @Nested
@@ -124,9 +120,8 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_build_filters_with_time_range() {
             var timeRange = new TimeRange(
-                OffsetDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC),
-                OffsetDateTime.of(2024, 1, 1, 11, 0, 0, 0, ZoneOffset.UTC)
-            );
+                    OffsetDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC),
+                    OffsetDateTime.of(2024, 1, 1, 11, 0, 0, 0, ZoneOffset.UTC));
             var request = new SearchLogsRequest(timeRange, null, 1, 10);
 
             var response = when_searching(request);
@@ -135,8 +130,10 @@ class SearchEnvironmentLogsUseCaseTest {
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
             assertThat(filtersCaptor.getValue())
-                .extracting(SearchLogsFilters::from, SearchLogsFilters::to)
-                .containsExactly(timeRange.from().toInstant().toEpochMilli(), timeRange.to().toInstant().toEpochMilli());
+                    .extracting(SearchLogsFilters::from, SearchLogsFilters::to)
+                    .containsExactly(
+                            timeRange.from().toInstant().toEpochMilli(),
+                            timeRange.to().toInstant().toEpochMilli());
 
             assertThat(response.response().pagination().totalCount()).isEqualTo(1);
         }
@@ -160,17 +157,15 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_map_basic_string_and_array_filters() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId())),
-                    new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.IN, List.of("app-A", "app-B"))),
-                    new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "http")),
-                    new Filter(new ArrayFilter(FilterName.PLAN, Operator.IN, List.of("premium"))),
-                    new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "200"))
-                ),
-                1,
-                10
-            );
+                    null,
+                    List.of(
+                            new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId())),
+                            new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.IN, List.of("app-A", "app-B"))),
+                            new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "http")),
+                            new Filter(new ArrayFilter(FilterName.PLAN, Operator.IN, List.of("premium"))),
+                            new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "200"))),
+                    1,
+                    10);
 
             var response = when_searching(request);
 
@@ -191,11 +186,11 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_ignore_string_filter_with_wrong_operator() {
             // StringFilter only supports EQ
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new StringFilter(FilterName.API, Operator.IN, API1.getId()))), // Should be ignored
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(
+                            new StringFilter(FilterName.API, Operator.IN, API1.getId()))), // Should be ignored
+                    1,
+                    10);
 
             var response = when_searching(request);
 
@@ -206,13 +201,13 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_ignore_array_filter_with_wrong_operator() {
             // ArrayFilter only supports IN
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.EQ, List.of("app-1")))), // Should
-                // be
-                // ignored
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(
+                            new ArrayFilter(FilterName.APPLICATION, Operator.EQ, List.of("app-1")))), // Should
+                    // be
+                    // ignored
+                    1,
+                    10);
 
             var response = when_searching(request);
 
@@ -226,7 +221,8 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @ParameterizedTest
         @MethodSource("httpMethodFiltersProvider")
-        void should_intersect_http_method_filters(List<Filter> filters, io.gravitee.common.http.HttpMethod[] expectedMethods) {
+        void should_intersect_http_method_filters(
+                List<Filter> filters, io.gravitee.common.http.HttpMethod[] expectedMethods) {
             var request = new SearchLogsRequest(null, filters, 1, 10);
 
             when_searching(request);
@@ -239,53 +235,47 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> httpMethodFiltersProvider() {
             return Stream.of(
-                // Intersection: EQ GET && IN [GET, POST] -> GET
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "GET")),
-                        new Filter(new ArrayFilter(FilterName.HTTP_METHOD, Operator.IN, List.of("POST", "GET")))
-                    ),
-                    new io.gravitee.common.http.HttpMethod[] { io.gravitee.common.http.HttpMethod.GET }
-                ),
-                // Intersection: IN [GET, POST] && IN [POST, PUT] -> POST
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.HTTP_METHOD, Operator.IN, List.of("GET", "POST"))),
-                        new Filter(new ArrayFilter(FilterName.HTTP_METHOD, Operator.IN, List.of("POST", "PUT")))
-                    ),
-                    new io.gravitee.common.http.HttpMethod[] { io.gravitee.common.http.HttpMethod.POST }
-                ),
-                // Intersection: EQ GET && EQ POST -> EMPTY
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "GET")),
-                        new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "POST"))
-                    ),
-                    new io.gravitee.common.http.HttpMethod[] {}
-                ),
-                // Intersection: IN [GET, POST] && EQ PUT -> EMPTY
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.HTTP_METHOD, Operator.IN, List.of("GET", "POST"))),
-                        new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "PUT"))
-                    ),
-                    new io.gravitee.common.http.HttpMethod[] {}
-                ),
-                // No intersection logic needed for single filter
-                Arguments.of(
-                    List.of(new Filter(new ArrayFilter(FilterName.HTTP_METHOD, Operator.IN, List.of("GET", "POST", "PUT")))),
-                    new io.gravitee.common.http.HttpMethod[] {
-                        io.gravitee.common.http.HttpMethod.GET,
-                        io.gravitee.common.http.HttpMethod.POST,
-                        io.gravitee.common.http.HttpMethod.PUT,
-                    }
-                ),
-                // Invalid Method mapping
-                Arguments.of(
-                    List.of(new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "INVALID_VERB"))),
-                    new io.gravitee.common.http.HttpMethod[] { io.gravitee.common.http.HttpMethod.OTHER }
-                )
-            );
+                    // Intersection: EQ GET && IN [GET, POST] -> GET
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "GET")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.HTTP_METHOD, Operator.IN, List.of("POST", "GET")))),
+                            new io.gravitee.common.http.HttpMethod[] {io.gravitee.common.http.HttpMethod.GET}),
+                    // Intersection: IN [GET, POST] && IN [POST, PUT] -> POST
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.HTTP_METHOD, Operator.IN, List.of("GET", "POST"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.HTTP_METHOD, Operator.IN, List.of("POST", "PUT")))),
+                            new io.gravitee.common.http.HttpMethod[] {io.gravitee.common.http.HttpMethod.POST}),
+                    // Intersection: EQ GET && EQ POST -> EMPTY
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "GET")),
+                                    new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "POST"))),
+                            new io.gravitee.common.http.HttpMethod[] {}),
+                    // Intersection: IN [GET, POST] && EQ PUT -> EMPTY
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.HTTP_METHOD, Operator.IN, List.of("GET", "POST"))),
+                                    new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "PUT"))),
+                            new io.gravitee.common.http.HttpMethod[] {}),
+                    // No intersection logic needed for single filter
+                    Arguments.of(
+                            List.of(new Filter(new ArrayFilter(
+                                    FilterName.HTTP_METHOD, Operator.IN, List.of("GET", "POST", "PUT")))),
+                            new io.gravitee.common.http.HttpMethod[] {
+                                io.gravitee.common.http.HttpMethod.GET,
+                                io.gravitee.common.http.HttpMethod.POST,
+                                io.gravitee.common.http.HttpMethod.PUT,
+                            }),
+                    // Invalid Method mapping
+                    Arguments.of(
+                            List.of(new Filter(new StringFilter(FilterName.HTTP_METHOD, Operator.EQ, "INVALID_VERB"))),
+                            new io.gravitee.common.http.HttpMethod[] {io.gravitee.common.http.HttpMethod.OTHER}));
         }
 
         @ParameterizedTest
@@ -303,25 +293,23 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> apiFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId())),
-                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-2")))
-                    ),
-                    new String[] { API1.getId() }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-2"))),
-                        new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-3")))
-                    ),
-                    new String[] { API1.getId() }
-                ),
-                Arguments.of(
-                    List.of(new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(API1.getId(), "api-2", "api-3")))),
-                    new String[] { API1.getId() }
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId())),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.API, Operator.IN, List.of(API1.getId(), "api-2")))),
+                            new String[] {API1.getId()}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.API, Operator.IN, List.of(API1.getId(), "api-2"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.API, Operator.IN, List.of(API1.getId(), "api-3")))),
+                            new String[] {API1.getId()}),
+                    Arguments.of(
+                            List.of(new Filter(new ArrayFilter(
+                                    FilterName.API, Operator.IN, List.of(API1.getId(), "api-2", "api-3")))),
+                            new String[] {API1.getId()}));
         }
 
         @ParameterizedTest
@@ -339,28 +327,24 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> applicationFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.APPLICATION, Operator.EQ, "app-1")),
-                        new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.IN, List.of("app-1", "app-2")))
-                    ),
-                    new String[] { "app-1" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.IN, List.of("app-1", "app-2"))),
-                        new Filter(new ArrayFilter(FilterName.APPLICATION, Operator.IN, List.of("app-2", "app-3")))
-                    ),
-                    new String[] { "app-2" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.APPLICATION, Operator.EQ, "app-1")),
-                        new Filter(new StringFilter(FilterName.APPLICATION, Operator.EQ, "app-2"))
-                    ),
-                    new String[] {}
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.APPLICATION, Operator.EQ, "app-1")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.APPLICATION, Operator.IN, List.of("app-1", "app-2")))),
+                            new String[] {"app-1"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.APPLICATION, Operator.IN, List.of("app-1", "app-2"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.APPLICATION, Operator.IN, List.of("app-2", "app-3")))),
+                            new String[] {"app-2"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.APPLICATION, Operator.EQ, "app-1")),
+                                    new Filter(new StringFilter(FilterName.APPLICATION, Operator.EQ, "app-2"))),
+                            new String[] {}));
         }
 
         @ParameterizedTest
@@ -378,28 +362,24 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> planFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.PLAN, Operator.EQ, "plan-1")),
-                        new Filter(new ArrayFilter(FilterName.PLAN, Operator.IN, List.of("plan-1", "plan-2")))
-                    ),
-                    new String[] { "plan-1" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.PLAN, Operator.IN, List.of("plan-1", "plan-2"))),
-                        new Filter(new ArrayFilter(FilterName.PLAN, Operator.IN, List.of("plan-2", "plan-3")))
-                    ),
-                    new String[] { "plan-2" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.PLAN, Operator.EQ, "plan-1")),
-                        new Filter(new StringFilter(FilterName.PLAN, Operator.EQ, "plan-2"))
-                    ),
-                    new String[] {}
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.PLAN, Operator.EQ, "plan-1")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.PLAN, Operator.IN, List.of("plan-1", "plan-2")))),
+                            new String[] {"plan-1"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(
+                                            new ArrayFilter(FilterName.PLAN, Operator.IN, List.of("plan-1", "plan-2"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.PLAN, Operator.IN, List.of("plan-2", "plan-3")))),
+                            new String[] {"plan-2"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.PLAN, Operator.EQ, "plan-1")),
+                                    new Filter(new StringFilter(FilterName.PLAN, Operator.EQ, "plan-2"))),
+                            new String[] {}));
         }
 
         @ParameterizedTest
@@ -417,28 +397,30 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> entrypointFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "entrypoint-1")),
-                        new Filter(new ArrayFilter(FilterName.ENTRYPOINT, Operator.IN, List.of("entrypoint-1", "entrypoint-2")))
-                    ),
-                    new String[] { "entrypoint-1" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.ENTRYPOINT, Operator.IN, List.of("entrypoint-1", "entrypoint-2"))),
-                        new Filter(new ArrayFilter(FilterName.ENTRYPOINT, Operator.IN, List.of("entrypoint-2", "entrypoint-3")))
-                    ),
-                    new String[] { "entrypoint-2" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "entrypoint-1")),
-                        new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "entrypoint-2"))
-                    ),
-                    new String[] {}
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "entrypoint-1")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.ENTRYPOINT,
+                                            Operator.IN,
+                                            List.of("entrypoint-1", "entrypoint-2")))),
+                            new String[] {"entrypoint-1"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.ENTRYPOINT,
+                                            Operator.IN,
+                                            List.of("entrypoint-1", "entrypoint-2"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.ENTRYPOINT,
+                                            Operator.IN,
+                                            List.of("entrypoint-2", "entrypoint-3")))),
+                            new String[] {"entrypoint-2"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "entrypoint-1")),
+                                    new Filter(new StringFilter(FilterName.ENTRYPOINT, Operator.EQ, "entrypoint-2"))),
+                            new String[] {}));
         }
 
         @ParameterizedTest
@@ -456,38 +438,34 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> apiProductFiltersProvider() {
             return Stream.of(
-                // EQ intersected with IN: only the common value survives
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-1")),
-                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2")))
-                    ),
-                    new String[] { "product-1" }
-                ),
-                // Two IN filters: intersection is returned
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2"))),
-                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-2", "product-3")))
-                    ),
-                    new String[] { "product-2" }
-                ),
-                // Two conflicting EQ filters: empty result
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-1")),
-                        new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-2"))
-                    ),
-                    new String[] {}
-                ),
-                // Single IN filter: all values pass through
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2", "product-3")))
-                    ),
-                    new String[] { "product-1", "product-2", "product-3" }
-                )
-            );
+                    // EQ intersected with IN: only the common value survives
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-1")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2")))),
+                            new String[] {"product-1"}),
+                    // Two IN filters: intersection is returned
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.API_PRODUCT, Operator.IN, List.of("product-1", "product-2"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.API_PRODUCT, Operator.IN, List.of("product-2", "product-3")))),
+                            new String[] {"product-2"}),
+                    // Two conflicting EQ filters: empty result
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-1")),
+                                    new Filter(new StringFilter(FilterName.API_PRODUCT, Operator.EQ, "product-2"))),
+                            new String[] {}),
+                    // Single IN filter: all values pass through
+                    Arguments.of(
+                            List.of(new Filter(new ArrayFilter(
+                                    FilterName.API_PRODUCT,
+                                    Operator.IN,
+                                    List.of("product-1", "product-2", "product-3")))),
+                            new String[] {"product-1", "product-2", "product-3"}));
         }
 
         @ParameterizedTest
@@ -505,29 +483,24 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> tenantFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1"))),
-                    new String[] { "tenant-1" }
-                ),
-                Arguments.of(
-                    List.of(new Filter(new ArrayFilter(FilterName.TENANT, Operator.IN, List.of("tenant-1", "tenant-2")))),
-                    new String[] { "tenant-1", "tenant-2" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1")),
-                        new Filter(new ArrayFilter(FilterName.TENANT, Operator.IN, List.of("tenant-1", "tenant-2")))
-                    ),
-                    new String[] { "tenant-1" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1")),
-                        new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-2"))
-                    ),
-                    new String[] {}
-                )
-            );
+                    Arguments.of(
+                            List.of(new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1"))),
+                            new String[] {"tenant-1"}),
+                    Arguments.of(
+                            List.of(new Filter(
+                                    new ArrayFilter(FilterName.TENANT, Operator.IN, List.of("tenant-1", "tenant-2")))),
+                            new String[] {"tenant-1", "tenant-2"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.TENANT, Operator.IN, List.of("tenant-1", "tenant-2")))),
+                            new String[] {"tenant-1"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1")),
+                                    new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-2"))),
+                            new String[] {}));
         }
 
         @Test
@@ -555,28 +528,24 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> httpStatusFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "200")),
-                        new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("200", "201")))
-                    ),
-                    new Integer[] { 200 }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("200", "201"))),
-                        new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("201", "204")))
-                    ),
-                    new Integer[] { 201 }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "200")),
-                        new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "400"))
-                    ),
-                    new Integer[] {}
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "200")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.HTTP_STATUS, Operator.IN, List.of("200", "201")))),
+                            new Integer[] {200}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.HTTP_STATUS, Operator.IN, List.of("200", "201"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.HTTP_STATUS, Operator.IN, List.of("201", "204")))),
+                            new Integer[] {201}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "200")),
+                                    new Filter(new StringFilter(FilterName.HTTP_STATUS, Operator.EQ, "400"))),
+                            new Integer[] {}));
         }
 
         @ParameterizedTest
@@ -594,32 +563,30 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> mcpMethodFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "initialize")),
-                        new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "tools/list")))
-                    ),
-                    new String[] { "initialize" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "tools/list"))),
-                        new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("tools/list", "resources/read")))
-                    ),
-                    new String[] { "tools/list" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "initialize")),
-                        new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "ping"))
-                    ),
-                    new String[] {}
-                ),
-                Arguments.of(
-                    List.of(new Filter(new ArrayFilter(FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "ping", "tools/list")))),
-                    new String[] { "initialize", "ping", "tools/list" }
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "initialize")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "tools/list")))),
+                            new String[] {"initialize"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "tools/list"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.MCP_METHOD,
+                                            Operator.IN,
+                                            List.of("tools/list", "resources/read")))),
+                            new String[] {"tools/list"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "initialize")),
+                                    new Filter(new StringFilter(FilterName.MCP_METHOD, Operator.EQ, "ping"))),
+                            new String[] {}),
+                    Arguments.of(
+                            List.of(new Filter(new ArrayFilter(
+                                    FilterName.MCP_METHOD, Operator.IN, List.of("initialize", "ping", "tools/list")))),
+                            new String[] {"initialize", "ping", "tools/list"}));
         }
 
         @ParameterizedTest
@@ -637,32 +604,28 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> transactionIdFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-123")),
-                        new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456")))
-                    ),
-                    new String[] { "txn-123" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456"))),
-                        new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-456", "txn-789")))
-                    ),
-                    new String[] { "txn-456" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-123")),
-                        new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-456"))
-                    ),
-                    new String[] {}
-                ),
-                Arguments.of(
-                    List.of(new Filter(new ArrayFilter(FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456", "txn-789")))),
-                    new String[] { "txn-123", "txn-456", "txn-789" }
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-123")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456")))),
+                            new String[] {"txn-123"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-456", "txn-789")))),
+                            new String[] {"txn-456"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-123")),
+                                    new Filter(new StringFilter(FilterName.TRANSACTION_ID, Operator.EQ, "txn-456"))),
+                            new String[] {}),
+                    Arguments.of(
+                            List.of(new Filter(new ArrayFilter(
+                                    FilterName.TRANSACTION_ID, Operator.IN, List.of("txn-123", "txn-456", "txn-789")))),
+                            new String[] {"txn-123", "txn-456", "txn-789"}));
         }
 
         @ParameterizedTest
@@ -680,32 +643,28 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> requestIdFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-123")),
-                        new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456")))
-                    ),
-                    new String[] { "req-123" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456"))),
-                        new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-456", "req-789")))
-                    ),
-                    new String[] { "req-456" }
-                ),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-123")),
-                        new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-456"))
-                    ),
-                    new String[] {}
-                ),
-                Arguments.of(
-                    List.of(new Filter(new ArrayFilter(FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456", "req-789")))),
-                    new String[] { "req-123", "req-456", "req-789" }
-                )
-            );
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-123")),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456")))),
+                            new String[] {"req-123"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new ArrayFilter(
+                                            FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456"))),
+                                    new Filter(new ArrayFilter(
+                                            FilterName.REQUEST_ID, Operator.IN, List.of("req-456", "req-789")))),
+                            new String[] {"req-456"}),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-123")),
+                                    new Filter(new StringFilter(FilterName.REQUEST_ID, Operator.EQ, "req-456"))),
+                            new String[] {}),
+                    Arguments.of(
+                            List.of(new Filter(new ArrayFilter(
+                                    FilterName.REQUEST_ID, Operator.IN, List.of("req-123", "req-456", "req-789")))),
+                            new String[] {"req-123", "req-456", "req-789"}));
         }
 
         @ParameterizedTest
@@ -727,41 +686,39 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> uriFiltersProvider() {
             return Stream.of(
-                Arguments.of(List.of(new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/users"))), "/api/users"),
-                Arguments.of(
-                    List.of(
-                        new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/users")),
-                        new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/products"))
-                    ),
-                    "/api/products" // Last EQ wins
-                )
-            );
+                    Arguments.of(
+                            List.of(new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/users"))),
+                            "/api/users"),
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/users")),
+                                    new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/products"))),
+                            "/api/products" // Last EQ wins
+                            ));
         }
 
         @Test
         void should_reject_a_path_filter_with_the_in_operator() {
             // The engine holds a single path pattern. This used to return early and leave the search
             // unfiltered, which is the APIM-14817 failure mode.
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new ArrayFilter(FilterName.URI, Operator.IN, List.of("/api/users", "/api/products")))),
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(
+                            new ArrayFilter(FilterName.URI, Operator.IN, List.of("/api/users", "/api/products")))),
+                    1,
+                    10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Filter URI does not support operator IN.");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Filter URI does not support operator IN.");
         }
 
         @Test
@@ -770,25 +727,23 @@ class SearchEnvironmentLogsUseCaseTest {
             // and pick a different one between runs. The catalog advertises EQ/GTE/LTE, but the API is reachable
             // without it.
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new ArrayFilter(FilterName.RESPONSE_TIME, Operator.IN, List.of("100", "200")))),
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(new ArrayFilter(FilterName.RESPONSE_TIME, Operator.IN, List.of("100", "200")))),
+                    1,
+                    10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Filter RESPONSE_TIME does not support operator IN.");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Filter RESPONSE_TIME does not support operator IN.");
         }
 
         @Test
         void should_map_payload_contains_filter_to_body_text() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error 500"))),
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error 500"))),
+                    1,
+                    10);
 
             when_searching(request);
 
@@ -801,11 +756,7 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_set_body_text_to_null_when_no_payload_filter() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))), 1, 10);
 
             when_searching(request);
 
@@ -818,14 +769,12 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_use_last_payload_value_when_multiple_payload_filters() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "first")),
-                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "second"))
-                ),
-                1,
-                10
-            );
+                    null,
+                    List.of(
+                            new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "first")),
+                            new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "second"))),
+                    1,
+                    10);
 
             when_searching(request);
 
@@ -838,15 +787,13 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_combine_payload_with_other_filters() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error")),
-                    new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("500", "502"))),
-                    new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/test"))
-                ),
-                1,
-                10
-            );
+                    null,
+                    List.of(
+                            new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error")),
+                            new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("500", "502"))),
+                            new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/test"))),
+                    1,
+                    10);
 
             when_searching(request);
 
@@ -862,38 +809,35 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_combine_payload_with_other_filters_on_later_pages() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error")),
-                    new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("500", "502")))
-                ),
-                3,
-                5
-            );
+                    null,
+                    List.of(
+                            new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error")),
+                            new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("500", "502")))),
+                    3,
+                    5);
 
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(25, List.of(LOG1))
-            );
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(25, List.of(LOG1)));
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
             when(planCrudService.findByIds(any())).thenReturn(List.of());
             when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
-            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any()))
+                    .thenReturn(Set.of());
 
             var output = useCase.execute(new Input(AUDIT_INFO, request));
 
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), pageableCaptor.capture(), any());
+            verify(connectionLogsCrudService)
+                    .searchApiConnectionLogs(any(), filtersCaptor.capture(), pageableCaptor.capture(), any());
 
             assertThat(filtersCaptor.getValue().bodyText()).isEqualTo("error");
             assertThat(filtersCaptor.getValue().statuses()).containsExactlyInAnyOrder(500, 502);
@@ -905,39 +849,31 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_reject_blank_payload_value() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "   "))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "   "))), 1, 10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("non-blank");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("non-blank");
         }
 
         @Test
         void should_reject_invalid_payload_operator() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.EQ, "error"))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.EQ, "error"))), 1, 10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("CONTAINS");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("CONTAINS");
         }
 
         @Test
         void should_map_status_code_group_filter() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new ArrayFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.IN, List.of("4XX", "5XX")))),
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(
+                            new ArrayFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.IN, List.of("4XX", "5XX")))),
+                    1,
+                    10);
 
             when_searching(request);
 
@@ -950,11 +886,10 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_normalise_status_code_group_case() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new StringFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.EQ, "5xx"))),
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(new StringFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.EQ, "5xx"))),
+                    1,
+                    10);
 
             when_searching(request);
 
@@ -966,76 +901,69 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_reject_unknown_status_code_group() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
             // A typo must not silently widen the search back to every status.
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new StringFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.EQ, "6XX"))),
-                1,
-                10
-            );
+                    null,
+                    List.of(new Filter(new StringFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.EQ, "6XX"))),
+                    1,
+                    10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("Unknown HTTP status code group '6XX'");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("Unknown HTTP status code group '6XX'");
         }
 
         @Test
         void should_map_http_status_bounds_to_a_status_range() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.GTE, 400)),
-                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.LTE, 499))
-                ),
-                1,
-                10
-            );
+                    null,
+                    List.of(
+                            new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.GTE, 400)),
+                            new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.LTE, 499))),
+                    1,
+                    10);
 
             when_searching(request);
 
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
-            assertThat(filtersCaptor.getValue().statusRanges()).containsExactly(
-                SearchLogsFilters.StatusRange.builder().gte(400).lte(499).build()
-            );
+            assertThat(filtersCaptor.getValue().statusRanges())
+                    .containsExactly(SearchLogsFilters.StatusRange.builder()
+                            .gte(400)
+                            .lte(499)
+                            .build());
         }
 
         @Test
         void should_reject_an_inverted_http_status_range() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.GTE, 500)),
-                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.LTE, 400))
-                ),
-                1,
-                10
-            );
+                    null,
+                    List.of(
+                            new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.GTE, 500)),
+                            new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.LTE, 400))),
+                    1,
+                    10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("Invalid HTTP_STATUS range");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("Invalid HTTP_STATUS range");
         }
 
         @ParameterizedTest
@@ -1053,52 +981,43 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> responseTimeFiltersProvider() {
             return Stream.of(
-                // Single GTE filter -> range with from only
-                Arguments.of(
-                    List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100))),
-                    List.of(new Range(100L, null))
-                ),
-                // Single LTE filter -> range with to only
-                Arguments.of(
-                    List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500))),
-                    List.of(new Range(null, 500L))
-                ),
-                // GTE + LTE -> range with both bounds
-                Arguments.of(
-                    List.of(
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100)),
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500))
-                    ),
-                    List.of(new Range(100L, 500L))
-                ),
-                // Overlapping GTE: GTE 100 then GTE 200 -> last wins (200)
-                Arguments.of(
-                    List.of(
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100)),
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 200))
-                    ),
-                    List.of(new Range(200L, null))
-                ),
-                // Overlapping LTE: LTE 500 then LTE 300 -> last wins (300)
-                Arguments.of(
-                    List.of(
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500)),
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 300))
-                    ),
-                    List.of(new Range(null, 300L))
-                ),
-                // Overlapping GTE + LTE combined: GTE 100, GTE 200, LTE 500 -> last GTE wins
-                Arguments.of(
-                    List.of(
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100)),
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 200)),
-                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500))
-                    ),
-                    List.of(new Range(200L, 500L))
-                ),
-                // No response time filters -> empty list
-                Arguments.of(List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))), List.of())
-            );
+                    // Single GTE filter -> range with from only
+                    Arguments.of(
+                            List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100))),
+                            List.of(new Range(100L, null))),
+                    // Single LTE filter -> range with to only
+                    Arguments.of(
+                            List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500))),
+                            List.of(new Range(null, 500L))),
+                    // GTE + LTE -> range with both bounds
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100)),
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500))),
+                            List.of(new Range(100L, 500L))),
+                    // Overlapping GTE: GTE 100 then GTE 200 -> last wins (200)
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100)),
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 200))),
+                            List.of(new Range(200L, null))),
+                    // Overlapping LTE: LTE 500 then LTE 300 -> last wins (300)
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500)),
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 300))),
+                            List.of(new Range(null, 300L))),
+                    // Overlapping GTE + LTE combined: GTE 100, GTE 200, LTE 500 -> last GTE wins
+                    Arguments.of(
+                            List.of(
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 100)),
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 200)),
+                                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 500))),
+                            List.of(new Range(200L, 500L))),
+                    // No response time filters -> empty list
+                    Arguments.of(
+                            List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))),
+                            List.of()));
         }
 
         @Test
@@ -1106,11 +1025,7 @@ class SearchEnvironmentLogsUseCaseTest {
             // The catalog advertises EQ on response time, and the engine can only bound — so EQ collapses to
             // [v, v]. It used to be dropped silently, which is the APIM-14817 class of bug.
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.EQ, 100))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.EQ, 100))), 1, 10);
 
             when_searching(request);
 
@@ -1122,75 +1037,60 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_reject_numeric_filter_with_unsupported_operator() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.IN, 200))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.IN, 200))), 1, 10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Filter RESPONSE_TIME does not support operator IN.");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Filter RESPONSE_TIME does not support operator IN.");
         }
 
         @Test
         void should_throw_validation_exception_when_response_time_filter_value_is_null() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
 
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, null))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, null))), 1, 10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Filter RESPONSE_TIME requires a non-null value");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Filter RESPONSE_TIME requires a non-null value");
         }
 
         @Test
         void should_throw_validation_exception_when_time_range_from_is_after_to() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
 
             var timeRange = new TimeRange(
-                OffsetDateTime.of(2024, 1, 2, 10, 0, 0, 0, ZoneOffset.UTC),
-                OffsetDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC)
-            );
+                    OffsetDateTime.of(2024, 1, 2, 10, 0, 0, 0, ZoneOffset.UTC),
+                    OffsetDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC));
             var request = new SearchLogsRequest(timeRange, null, 1, 10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Invalid time range: 'from' must be before 'to'.");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Invalid time range: 'from' must be before 'to'.");
         }
 
         @Test
@@ -1204,99 +1104,83 @@ class SearchEnvironmentLogsUseCaseTest {
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
-            assertThat(filtersCaptor.getValue().from()).isEqualTo(sameTime.toInstant().toEpochMilli());
-            assertThat(filtersCaptor.getValue().to()).isEqualTo(sameTime.toInstant().toEpochMilli());
+            assertThat(filtersCaptor.getValue().from())
+                    .isEqualTo(sameTime.toInstant().toEpochMilli());
+            assertThat(filtersCaptor.getValue().to())
+                    .isEqualTo(sameTime.toInstant().toEpochMilli());
         }
 
         @Test
         void should_throw_validation_exception_when_response_time_gte_is_negative() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
 
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, -1))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, -1))), 1, 10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Filter RESPONSE_TIME does not accept negative values.");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Filter RESPONSE_TIME does not accept negative values.");
         }
 
         @Test
         void should_throw_validation_exception_when_response_time_lte_is_negative() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
 
             var request = new SearchLogsRequest(
-                null,
-                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, -5))),
-                1,
-                10
-            );
+                    null, List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, -5))), 1, 10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Filter RESPONSE_TIME does not accept negative values.");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Filter RESPONSE_TIME does not accept negative values.");
         }
 
         @Test
         void should_throw_validation_exception_when_response_time_gte_is_greater_than_lte() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
 
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 500)),
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 100))
-                ),
-                1,
-                10
-            );
+                    null,
+                    List.of(
+                            new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 500)),
+                            new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 100))),
+                    1,
+                    10);
 
             assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Invalid RESPONSE_TIME range: 'from' (gte) must not be greater than 'to' (lte).");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Invalid RESPONSE_TIME range: 'from' (gte) must not be greater than 'to' (lte).");
         }
 
         @Test
         void should_allow_response_time_filter_with_zero_value() {
             var request = new SearchLogsRequest(
-                null,
-                List.of(
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 0)),
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 0))
-                ),
-                1,
-                10
-            );
+                    null,
+                    List.of(
+                            new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 0)),
+                            new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 0))),
+                    1,
+                    10);
 
             when_searching(request);
 
@@ -1309,19 +1193,16 @@ class SearchEnvironmentLogsUseCaseTest {
         @ParameterizedTest
         @MethodSource("nonProxyApiProvider")
         void should_exclude_non_proxy_api_ids_from_filters(Api nonProxyApi) {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1, nonProxyApi))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1, nonProxyApi))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1)));
             when(planCrudService.findByIds(any())).thenReturn(List.of());
             when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
@@ -1332,32 +1213,34 @@ class SearchEnvironmentLogsUseCaseTest {
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
-            assertThat(filtersCaptor.getValue().apiIds()).containsExactly(API1.getId()).doesNotContain(nonProxyApi.getId());
+            assertThat(filtersCaptor.getValue().apiIds())
+                    .containsExactly(API1.getId())
+                    .doesNotContain(nonProxyApi.getId());
         }
 
         static Stream<Arguments> nonProxyApiProvider() {
             return Stream.of(
-                Arguments.of(ApiFixtures.aMessageApiV4().toBuilder().id("message-api").build()),
-                Arguments.of(ApiFixtures.aNativeApi().toBuilder().id("native-api").build())
-            );
+                    Arguments.of(ApiFixtures.aMessageApiV4().toBuilder()
+                            .id("message-api")
+                            .build()),
+                    Arguments.of(ApiFixtures.aNativeApi().toBuilder()
+                            .id("native-api")
+                            .build()));
         }
 
         @ParameterizedTest
         @MethodSource("proxyLikeApiProvider")
         void should_include_llm_and_mcp_proxy_api_ids_in_filters(Api proxyLikeApi) {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1, proxyLikeApi))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1, proxyLikeApi))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1)));
             when(planCrudService.findByIds(any())).thenReturn(List.of());
             when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
@@ -1373,26 +1256,30 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> proxyLikeApiProvider() {
             return Stream.of(
-                Arguments.of(ApiFixtures.aLLMProxyApiV4().toBuilder().id("llm-api").build()),
-                Arguments.of(ApiFixtures.aMCPProxyApiV4().toBuilder().id("mcp-api").build()),
-                Arguments.of(ApiFixtures.aProxyApiV4().toBuilder().id("v4-api").build())
-            );
+                    Arguments.of(ApiFixtures.aLLMProxyApiV4().toBuilder()
+                            .id("llm-api")
+                            .build()),
+                    Arguments.of(ApiFixtures.aMCPProxyApiV4().toBuilder()
+                            .id("mcp-api")
+                            .build()),
+                    Arguments.of(
+                            ApiFixtures.aProxyApiV4().toBuilder().id("v4-api").build()));
         }
 
         @Test
         void should_return_empty_when_only_non_proxy_apis_exist() {
-            var messageApi = ApiFixtures.aMessageApiV4().toBuilder().id("message-api").build();
-            var nativeApi = ApiFixtures.aNativeApi().toBuilder().id("native-api").build();
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(messageApi, nativeApi))
-                )
-            );
+            var messageApi =
+                    ApiFixtures.aMessageApiV4().toBuilder().id("message-api").build();
+            var nativeApi =
+                    ApiFixtures.aNativeApi().toBuilder().id("native-api").build();
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(messageApi, nativeApi))));
 
             var request = new SearchLogsRequest(null, null, 1, 10);
             var output = useCase.execute(new Input(AUDIT_INFO, request));
@@ -1455,90 +1342,82 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_return_empty_response_when_service_returns_no_logs() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of())
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of()));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             assertThat(response.data()).isEmpty();
             assertThat(response.pagination())
-                .extracting(
-                    Pagination::page,
-                    Pagination::perPage,
-                    Pagination::pageCount,
-                    Pagination::pageItemsCount,
-                    Pagination::totalCount
-                )
-                .containsExactly(1, 10, 0, 0, 0L);
+                    .extracting(
+                            Pagination::page,
+                            Pagination::perPage,
+                            Pagination::pageCount,
+                            Pagination::pageItemsCount,
+                            Pagination::totalCount)
+                    .containsExactly(1, 10, 0, 0, 0L);
         }
 
         @Test
         void should_map_response_payload_fully() {
             var timestamp = OffsetDateTime.parse("2024-01-01T10:00:00Z");
             var connectionLog = BaseConnectionLog.builder()
-                .apiId("my-api-id")
-                .timestamp(timestamp.toString())
-                .requestId("req-id")
-                .clientIdentifier("client-id")
-                .method(HttpMethod.GET)
-                .status(200)
-                .requestEnded(true)
-                .transactionId("tx-id")
-                .planId("plan-id")
-                .applicationId("app-id")
-                .uri("/uri")
-                .endpoint("http://backend")
-                .gatewayResponseTime(100L)
-                .message("error message")
-                .errorKey("error-key")
-                .errorComponentName("error-component")
-                .errorComponentType("error-type")
-                .warnings(List.of(new ConnectionDiagnosticModel("type", "name", "key", "msg")))
-                .additionalMetrics(Map.of("custom", "metric"))
-                .mcpMethod("tools/list")
-                .apiProductId("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff")
-                .build();
+                    .apiId("my-api-id")
+                    .timestamp(timestamp.toString())
+                    .requestId("req-id")
+                    .clientIdentifier("client-id")
+                    .method(HttpMethod.GET)
+                    .status(200)
+                    .requestEnded(true)
+                    .transactionId("tx-id")
+                    .planId("plan-id")
+                    .applicationId("app-id")
+                    .uri("/uri")
+                    .endpoint("http://backend")
+                    .gatewayResponseTime(100L)
+                    .message("error message")
+                    .errorKey("error-key")
+                    .errorComponentName("error-component")
+                    .errorComponentType("error-type")
+                    .warnings(List.of(new ConnectionDiagnosticModel("type", "name", "key", "msg")))
+                    .additionalMetrics(Map.of("custom", "metric"))
+                    .mcpMethod("tools/list")
+                    .apiProductId("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff")
+                    .build();
 
-            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(
-                Set.of(
-                    ApiProduct.builder()
-                        .id("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff")
-                        .name("My Partner Product")
-                        .environmentId("env-id")
-                        .build()
-                )
-            );
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any()))
+                    .thenReturn(Set.of(ApiProduct.builder()
+                            .id("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff")
+                            .name("My Partner Product")
+                            .environmentId("env-id")
+                            .build()));
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
             when(planCrudService.findByIds(any())).thenReturn(List.of());
             when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             assertThat(response.data()).hasSize(1);
             var log = response.data().getFirst();
@@ -1573,26 +1452,27 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_cap_gateway_response_time_to_integer_max() {
-            var log = BaseConnectionLog.builder().timestamp(OffsetDateTime.now().toString()).gatewayResponseTime(Long.MAX_VALUE).build();
+            var log = BaseConnectionLog.builder()
+                    .timestamp(OffsetDateTime.now().toString())
+                    .gatewayResponseTime(Long.MAX_VALUE)
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log)));
             when(planCrudService.findByIds(any())).thenReturn(List.of());
             when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             assertThat(response.data()).hasSize(1);
             assertThat(response.data().getFirst().gatewayResponseTime()).isEqualTo(Integer.MAX_VALUE);
@@ -1601,30 +1481,28 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_handle_null_fields_in_mapping() {
             var log = BaseConnectionLog.builder()
-                .timestamp(null)
-                .planId(null)
-                .applicationId(null)
-                .method(null)
-                .warnings(null)
-                .additionalMetrics(null)
-                .build();
+                    .timestamp(null)
+                    .planId(null)
+                    .applicationId(null)
+                    .method(null)
+                    .warnings(null)
+                    .additionalMetrics(null)
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log)));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             var apiLog = response.data().getFirst();
             assertThat(apiLog.timestamp()).isNull();
@@ -1639,32 +1517,32 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_calculate_pagination_metadata_correctly() {
             // Case 1: Total 11, PerPage 10 -> 2 pages
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(11, Collections.emptyList())
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(
+                            new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(11, Collections.emptyList()));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-            var result = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var result = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             assertThat(result.pagination().pageCount()).isEqualTo(2);
             assertThat(result.pagination().totalCount()).isEqualTo(11);
 
             // Case 2: Total 10, PerPage 10 -> 1 page
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(10, Collections.emptyList())
-            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(
+                            new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(10, Collections.emptyList()));
 
-            result = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            result = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
             assertThat(result.pagination().pageCount()).isEqualTo(1);
         }
     }
@@ -1675,30 +1553,31 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_batch_load_plan_and_application_names() {
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .planId("plan-1")
-                .applicationId("app-1")
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .planId("plan-1")
+                    .applicationId("app-1")
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
-            when(planCrudService.findByIds(List.of("plan-1"))).thenReturn(List.of(Plan.builder().id("plan-1").name("Gold Plan").build()));
-            when(applicationCrudService.findByIds(List.of("app-1"), "env-id")).thenReturn(
-                List.of(io.gravitee.rest.api.model.BaseApplicationEntity.builder().id("app-1").name("My App").build())
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
+            when(planCrudService.findByIds(List.of("plan-1")))
+                    .thenReturn(List.of(
+                            Plan.builder().id("plan-1").name("Gold Plan").build()));
+            when(applicationCrudService.findByIds(List.of("app-1"), "env-id"))
+                    .thenReturn(List.of(io.gravitee.rest.api.model.BaseApplicationEntity.builder()
+                            .id("app-1")
+                            .name("My App")
+                            .build()));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
@@ -1716,26 +1595,23 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_not_load_names_when_plan_and_application_are_null() {
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .planId(null)
-                .applicationId(null)
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .planId(null)
+                    .applicationId(null)
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
@@ -1747,28 +1623,27 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_batch_load_gateway_hostnames() {
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .gateway("gw-1")
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .gateway("gw-1")
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
-            when(instanceQueryService.findByIds(any(), eq(List.of("gw-1")))).thenReturn(
-                List.of(BaseInstance.builder().id("gw-1").hostname("gateway-host-1").build())
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
+            when(instanceQueryService.findByIds(any(), eq(List.of("gw-1"))))
+                    .thenReturn(List.of(BaseInstance.builder()
+                            .id("gw-1")
+                            .hostname("gateway-host-1")
+                            .build()));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
@@ -1784,25 +1659,22 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_not_load_gateway_hostnames_when_gateway_is_null() {
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .gateway(null)
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .gateway(null)
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
@@ -1813,26 +1685,24 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_gracefully_handle_instance_not_found() {
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .gateway("gw-unknown")
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .gateway("gw-unknown")
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
-            when(instanceQueryService.findByIds(any(), eq(List.of("gw-unknown")))).thenReturn(List.of());
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
+            when(instanceQueryService.findByIds(any(), eq(List.of("gw-unknown"))))
+                    .thenReturn(List.of());
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
@@ -1847,19 +1717,16 @@ class SearchEnvironmentLogsUseCaseTest {
 
         @Test
         void should_delegate_to_log_names_post_processor() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of())
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of()));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
@@ -1871,31 +1738,32 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_batch_enrich_api_product_names() {
             var productId = "f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff";
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .apiProductId(productId)
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .apiProductId(productId)
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
-            when(apiProductQueryService.findByEnvironmentIdAndIdIn(eq("env-id"), eq(Set.of(productId)))).thenReturn(
-                Set.of(ApiProduct.builder().id(productId).name("My Partner Product").environmentId("env-id").build())
-            );
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(eq("env-id"), eq(Set.of(productId))))
+                    .thenReturn(Set.of(ApiProduct.builder()
+                            .id(productId)
+                            .name("My Partner Product")
+                            .environmentId("env-id")
+                            .build()));
 
-            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             assertThat(response.data()).hasSize(1);
             assertThat(response.data().getFirst().apiProductId()).isEqualTo(productId);
@@ -1905,28 +1773,26 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_set_standalone_api_label_and_skip_db_query_when_no_logs_have_a_product_id() {
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .apiProductId(null)
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .apiProductId(null)
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             verify(apiProductQueryService, never()).findByEnvironmentIdAndIdIn(any(), any());
             assertThat(response.data().getFirst().apiProductName()).isEqualTo("Standalone API");
@@ -1936,29 +1802,28 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_leave_api_product_name_null_when_product_id_not_found_in_service() {
             var unknownProductId = UUID.randomUUID().toString();
             var connectionLog = BaseConnectionLog.builder()
-                .apiId(API1.getId())
-                .timestamp(OffsetDateTime.now().toString())
-                .requestId("req-id")
-                .apiProductId(unknownProductId)
-                .build();
+                    .apiId(API1.getId())
+                    .timestamp(OffsetDateTime.now().toString())
+                    .requestId("req-id")
+                    .apiProductId(unknownProductId)
+                    .build();
 
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog)));
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
-            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any()))
+                    .thenReturn(Set.of());
 
-            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
+            var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)))
+                    .response();
 
             assertThat(response.data()).hasSize(1);
             assertThat(response.data().getFirst().apiProductId()).isEqualTo(unknownProductId);
@@ -1973,30 +1838,27 @@ class SearchEnvironmentLogsUseCaseTest {
     @Nested
     class ApiTypeFilter {
 
-        private static final Api LLM_API = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("llm-api")
-            .type(io.gravitee.definition.model.v4.ApiType.LLM_PROXY)
-            .build();
+        private static final Api LLM_API = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("llm-api")
+                .type(io.gravitee.definition.model.v4.ApiType.LLM_PROXY)
+                .build();
 
         @BeforeEach
         void stubTwoApiKinds() {
-            when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(
-                    AUDIT_INFO,
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.empty(),
-                    Optional.of(List.of(API1, LLM_API))
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
-            );
+            when(userContextLoader.loadApis(any()))
+                    .thenReturn(new UserContext(
+                            AUDIT_INFO,
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.of(List.of(API1, LLM_API))));
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                    .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1)));
             when(planCrudService.findByIds(any())).thenReturn(List.of());
             when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
-            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any()))
+                    .thenReturn(Set.of());
             when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         }
 
@@ -2036,33 +1898,35 @@ class SearchEnvironmentLogsUseCaseTest {
             // A name no kind answers to cannot mean anything. Narrowing to nothing would read as "no data"
             // rather than "you asked for something that does not exist" — the same reason an unknown status
             // code group is refused rather than quietly dropped.
-            assertThatThrownBy(() -> search(new Filter(new StringFilter(FilterName.API_TYPE, Operator.EQ, "NOT_A_KIND"))))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("Unknown API type 'NOT_A_KIND'");
+            assertThatThrownBy(
+                            () -> search(new Filter(new StringFilter(FilterName.API_TYPE, Operator.EQ, "NOT_A_KIND"))))
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("Unknown API type 'NOT_A_KIND'");
 
             verify(connectionLogsCrudService, never()).searchApiConnectionLogs(any(), any(), any(), any());
         }
 
         @Test
         void should_reject_an_unknown_kind_among_valid_ones() {
-            assertThatThrownBy(() -> search(new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY", "TYPO")))))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("Unknown API type 'TYPO'");
+            assertThatThrownBy(() -> search(new Filter(
+                            new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY", "TYPO")))))
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("Unknown API type 'TYPO'");
         }
 
         @Test
         void should_know_every_api_type_the_catalog_advertises() {
             // The use case cannot read the catalog, so its vocabulary is pinned here instead: a kind added to
             // analytics-definition.yaml must be either served or explicitly listed as unserved, never a 400.
-            assertThat(SearchEnvironmentLogsUseCase.knownApiTypes()).containsExactlyInAnyOrderElementsOf(catalogApiTypeValues());
+            assertThat(SearchEnvironmentLogsUseCase.knownApiTypes())
+                    .containsExactlyInAnyOrderElementsOf(catalogApiTypeValues());
         }
 
         @Test
         void should_intersect_two_api_type_conditions() {
             search(
-                new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY"))),
-                new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("LLM")))
-            );
+                    new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY"))),
+                    new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("LLM"))));
 
             // Conditions on the same field accumulate, matching how the other multi-valued filters behave.
             assertThat(capturedFilters().apiIds()).containsExactlyInAnyOrder(API1.getId(), LLM_API.getId());
@@ -2071,9 +1935,8 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_combine_with_an_api_filter() {
             search(
-                new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY", "LLM"))),
-                new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(LLM_API.getId())))
-            );
+                    new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY", "LLM"))),
+                    new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(LLM_API.getId()))));
 
             assertThat(capturedFilters().apiIds()).containsExactly(LLM_API.getId());
         }
@@ -2091,19 +1954,23 @@ class SearchEnvironmentLogsUseCaseTest {
         /** The {@code API_TYPE} values the real catalog advertises. */
         private List<String> catalogApiTypeValues() {
             return new AnalyticsDefinitionYAMLQueryService()
-                .findFilter(FilterSpec.Name.API_TYPE)
-                .orElseThrow(() -> new AssertionError("API_TYPE is missing from the catalog"))
-                .enumValues();
+                    .findFilter(FilterSpec.Name.API_TYPE)
+                    .orElseThrow(() -> new AssertionError("API_TYPE is missing from the catalog"))
+                    .enumValues();
         }
     }
 
     private SearchEnvironmentLogsUseCase.Output when_searching(SearchLogsRequest request) {
-        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-            new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
-        );
-        when(userContextLoader.loadApis(any())).thenReturn(
-            new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
-        );
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1)));
+        when(userContextLoader.loadApis(any()))
+                .thenReturn(new UserContext(
+                        AUDIT_INFO,
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of(List.of(API1))));
         when(planCrudService.findByIds(any())).thenReturn(List.of());
         when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
         when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));

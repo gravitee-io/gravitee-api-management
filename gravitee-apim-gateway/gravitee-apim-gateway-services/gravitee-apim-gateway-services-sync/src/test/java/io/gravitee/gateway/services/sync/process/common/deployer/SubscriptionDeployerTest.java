@@ -84,13 +84,12 @@ class SubscriptionDeployerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new SubscriptionDeployer(
-            subscriptionService,
-            subscriptionDispatcher,
-            commandRepository,
-            node,
-            new ObjectMapper(),
-            new NoopDistributedSyncService()
-        );
+                subscriptionService,
+                subscriptionDispatcher,
+                commandRepository,
+                node,
+                new ObjectMapper(),
+                new NoopDistributedSyncService());
     }
 
     @Nested
@@ -98,14 +97,18 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_deploy_subscriptions_with_subscribable_plan() {
-            Subscription subscription1 = Subscription.builder().plan("plan").id("subscription1").build();
-            Subscription subscription2 = Subscription.builder().plan("unsubscribablePlan").id("subscription2").build();
+            Subscription subscription1 =
+                    Subscription.builder().plan("plan").id("subscription1").build();
+            Subscription subscription2 = Subscription.builder()
+                    .plan("unsubscribablePlan")
+                    .id("subscription2")
+                    .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscription1, subscription2))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscription1, subscription2))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscription1);
             verify(subscriptionService, never()).register(subscription2);
@@ -114,14 +117,16 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_ignore_subscription_in_error() {
-            Subscription subscription1 = Subscription.builder().plan("plan").id("subscription1").build();
-            Subscription subscription2 = Subscription.builder().plan("plan").id("subscription2").build();
+            Subscription subscription1 =
+                    Subscription.builder().plan("plan").id("subscription1").build();
+            Subscription subscription2 =
+                    Subscription.builder().plan("plan").id("subscription2").build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscription1, subscription2))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscription1, subscription2))
+                    .build();
             doThrow(new SyncException("error")).when(subscriptionService).register(subscription1);
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscription1);
@@ -136,15 +141,19 @@ class SubscriptionDeployerTest {
          */
         @Test
         void should_ignore_subscription_failing_with_an_assertion_error() {
-            Subscription subscription1 = Subscription.builder().plan("plan").id("subscription1").build();
-            Subscription subscription2 = Subscription.builder().plan("plan").id("subscription2").build();
+            Subscription subscription1 =
+                    Subscription.builder().plan("plan").id("subscription1").build();
+            Subscription subscription2 =
+                    Subscription.builder().plan("plan").id("subscription2").build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscription1, subscription2))
-                .build();
-            doThrow(new AssertionError("attempt to use unapproved algorithm")).when(subscriptionService).register(subscription1);
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscription1, subscription2))
+                    .build();
+            doThrow(new AssertionError("attempt to use unapproved algorithm"))
+                    .when(subscriptionService)
+                    .register(subscription1);
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscription1);
             verify(subscriptionService).register(subscription2);
@@ -159,15 +168,19 @@ class SubscriptionDeployerTest {
          */
         @Test
         void should_ignore_subscription_failing_with_a_linkage_error() {
-            Subscription subscription1 = Subscription.builder().plan("plan").id("subscription1").build();
-            Subscription subscription2 = Subscription.builder().plan("plan").id("subscription2").build();
+            Subscription subscription1 =
+                    Subscription.builder().plan("plan").id("subscription1").build();
+            Subscription subscription2 =
+                    Subscription.builder().plan("plan").id("subscription2").build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscription1, subscription2))
-                .build();
-            doThrow(new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3")).when(subscriptionService).register(subscription1);
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscription1, subscription2))
+                    .build();
+            doThrow(new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3"))
+                    .when(subscriptionService)
+                    .register(subscription1);
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscription1);
             verify(subscriptionService).register(subscription2);
@@ -177,17 +190,17 @@ class SubscriptionDeployerTest {
         @Test
         void should_dispatch_when_subscription_registered_to_be_dispatched() {
             Subscription subscriptionToDispatch = Subscription.builder()
-                .api("apiId")
-                .plan("plan")
-                .type(Subscription.Type.PUSH)
-                .id("subscription1")
-                .build();
+                    .api("apiId")
+                    .plan("plan")
+                    .type(Subscription.Type.PUSH)
+                    .id("subscription1")
+                    .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscriptionToDispatch))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscriptionToDispatch))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscriptionToDispatch);
             verifyNoMoreInteractions(subscriptionService);
@@ -199,13 +212,17 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_do_nothing_when_no_subscription_registered_to_be_dispatched() {
-            Subscription subscription = Subscription.builder().api("apiId").plan("plan").id("subscription").build();
+            Subscription subscription = Subscription.builder()
+                    .api("apiId")
+                    .plan("plan")
+                    .id("subscription")
+                    .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscription))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscription))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscription);
             verifyNoMoreInteractions(subscriptionService);
@@ -216,31 +233,32 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_ignore_when_dispatching_in_error_when_subscription_registered_to_be_dispatched()
-            throws InterruptedException, TechnicalException {
+                throws InterruptedException, TechnicalException {
             Subscription subscriptionToDispatch1 = Subscription.builder()
-                .api("apiId")
-                .plan("plan")
-                .type(Subscription.Type.PUSH)
-                .id("subscription1")
-                .build();
+                    .api("apiId")
+                    .plan("plan")
+                    .type(Subscription.Type.PUSH)
+                    .id("subscription1")
+                    .build();
             Subscription subscriptionToDispatch2 = Subscription.builder()
-                .api("apiId")
-                .plan("plan")
-                .type(Subscription.Type.PUSH)
-                .id("subscription2")
-                .build();
+                    .api("apiId")
+                    .plan("plan")
+                    .type(Subscription.Type.PUSH)
+                    .id("subscription2")
+                    .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscriptionToDispatch1, subscriptionToDispatch2))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscriptionToDispatch1, subscriptionToDispatch2))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscriptionToDispatch1);
             verify(subscriptionService).register(subscriptionToDispatch2);
             verifyNoMoreInteractions(subscriptionService);
 
-            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1)).thenReturn(Completable.error(new SyncException("error")));
+            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1))
+                    .thenReturn(Completable.error(new SyncException("error")));
             when(subscriptionDispatcher.dispatch(subscriptionToDispatch2)).thenReturn(Completable.complete());
             cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
 
@@ -254,24 +272,23 @@ class SubscriptionDeployerTest {
         @Test
         void should_create_SubscriptionFailureCommand_for_random_error() throws InterruptedException {
             Subscription subscriptionToDispatch1 = Subscription.builder()
-                .api("apiId")
-                .plan("plan")
-                .type(Subscription.Type.PUSH)
-                .id("subscription1")
-                .build();
+                    .api("apiId")
+                    .plan("plan")
+                    .type(Subscription.Type.PUSH)
+                    .id("subscription1")
+                    .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscriptionToDispatch1))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscriptionToDispatch1))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscriptionToDispatch1);
             verifyNoMoreInteractions(subscriptionService);
 
-            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1)).thenReturn(
-                Completable.error(new SyncException("my-random-error"))
-            );
+            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1))
+                    .thenReturn(Completable.error(new SyncException("my-random-error")));
             cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
 
             await().untilAsserted(() -> {
@@ -284,78 +301,77 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_create_SubscriptionFailureCommand_for_InterruptionFailureException_with_no_webhook_response_body()
-            throws InterruptedException {
+                throws InterruptedException {
             Subscription subscriptionToDispatch1 = Subscription.builder()
-                .api("apiId")
-                .plan("plan")
-                .type(Subscription.Type.PUSH)
-                .id("subscription1")
-                .build();
+                    .api("apiId")
+                    .plan("plan")
+                    .type(Subscription.Type.PUSH)
+                    .id("subscription1")
+                    .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscriptionToDispatch1))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscriptionToDispatch1))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscriptionToDispatch1);
             verifyNoMoreInteractions(subscriptionService);
 
-            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1)).thenReturn(
-                Completable.error(
-                    new InterruptionFailureException(
-                        new ExecutionFailure(500)
+            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1))
+                    .thenReturn(Completable.error(new InterruptionFailureException(new ExecutionFailure(500)
                             .key("failure-key")
                             .message("failure-message")
-                            .parameters(Map.of("exception", new RuntimeException("my-cause-error")))
-                    )
-                )
-            );
+                            .parameters(Map.of("exception", new RuntimeException("my-cause-error"))))));
             cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
 
             await().untilAsserted(() -> {
                 verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
                 verify(commandRepository).create(commandCaptor.capture());
 
-                Assertions.assertThat(commandCaptor.getValue().getContent()).contains("failure-message").contains("my-cause-error");
+                Assertions.assertThat(commandCaptor.getValue().getContent())
+                        .contains("failure-message")
+                        .contains("my-cause-error");
             });
         }
 
         @Test
-        void should_create_SubscriptionFailureCommand_for_InterruptionFailureException_with_detailed_message() throws InterruptedException {
+        void should_create_SubscriptionFailureCommand_for_InterruptionFailureException_with_detailed_message()
+                throws InterruptedException {
             Subscription subscriptionToDispatch1 = Subscription.builder()
-                .api("apiId")
-                .plan("plan")
-                .type(Subscription.Type.PUSH)
-                .id("subscription1")
-                .build();
+                    .api("apiId")
+                    .plan("plan")
+                    .type(Subscription.Type.PUSH)
+                    .id("subscription1")
+                    .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(mock(ReactableApi.class))
-                .subscribablePlans(Set.of("plan"))
-                .subscriptions(List.of(subscriptionToDispatch1))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(mock(ReactableApi.class))
+                    .subscribablePlans(Set.of("plan"))
+                    .subscriptions(List.of(subscriptionToDispatch1))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).register(subscriptionToDispatch1);
             verifyNoMoreInteractions(subscriptionService);
 
-            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1)).thenReturn(
-                Completable.error(
-                    new InterruptionFailureException(
-                        new ExecutionFailure(500)
+            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1))
+                    .thenReturn(Completable.error(new InterruptionFailureException(new ExecutionFailure(500)
                             .key("failure-key")
                             .message("failure-message")
-                            .parameters(Map.of("exception", new RuntimeException("my-cause-error"), "detailedMessage", "detailed-message"))
-                    )
-                )
-            );
+                            .parameters(Map.of(
+                                    "exception",
+                                    new RuntimeException("my-cause-error"),
+                                    "detailedMessage",
+                                    "detailed-message")))));
             cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
 
             await().untilAsserted(() -> {
                 verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
                 verify(commandRepository).create(commandCaptor.capture());
 
-                Assertions.assertThat(commandCaptor.getValue().getContent()).contains("failure-message").contains("detailed-message");
+                Assertions.assertThat(commandCaptor.getValue().getContent())
+                        .contains("failure-message")
+                        .contains("detailed-message");
             });
         }
     }
@@ -365,7 +381,8 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_undeploy_subscriptions_from_api_id() {
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").build();
+            ApiReactorDeployable apiReactorDeployable =
+                    ApiReactorDeployable.builder().apiId("apiId").build();
             cut.undeploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).unregisterByApiId("apiId");
             verifyNoMoreInteractions(subscriptionService);
@@ -373,7 +390,8 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_ignore_undeploy_subscriptions_from_api_in_error() {
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").build();
+            ApiReactorDeployable apiReactorDeployable =
+                    ApiReactorDeployable.builder().apiId("apiId").build();
             doThrow(new SyncException("error")).when(subscriptionService).unregisterByApiId("apiId");
             cut.undeploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).unregisterByApiId("apiId");
@@ -382,8 +400,14 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_undeploy_from_subscription() {
-            Subscription subscription = Subscription.builder().api("apiId").plan("plan").id("subscription").build();
-            SingleSubscriptionDeployable subscriptionDeployable = SingleSubscriptionDeployable.builder().subscription(subscription).build();
+            Subscription subscription = Subscription.builder()
+                    .api("apiId")
+                    .plan("plan")
+                    .id("subscription")
+                    .build();
+            SingleSubscriptionDeployable subscriptionDeployable = SingleSubscriptionDeployable.builder()
+                    .subscription(subscription)
+                    .build();
             cut.undeploy(subscriptionDeployable).test().assertComplete();
             verify(subscriptionService).unregister(subscription);
             verifyNoMoreInteractions(subscriptionService);
@@ -391,8 +415,14 @@ class SubscriptionDeployerTest {
 
         @Test
         void should_ignore_undeploy_from_subscription_in_error() {
-            Subscription subscription = Subscription.builder().api("apiId").plan("plan").id("subscription").build();
-            SingleSubscriptionDeployable subscriptionDeployable = SingleSubscriptionDeployable.builder().subscription(subscription).build();
+            Subscription subscription = Subscription.builder()
+                    .api("apiId")
+                    .plan("plan")
+                    .id("subscription")
+                    .build();
+            SingleSubscriptionDeployable subscriptionDeployable = SingleSubscriptionDeployable.builder()
+                    .subscription(subscription)
+                    .build();
             doThrow(new SyncException("error")).when(subscriptionService).unregister(subscription);
             cut.undeploy(subscriptionDeployable).test().assertComplete();
             verify(subscriptionService).unregister(subscription);
@@ -402,14 +432,14 @@ class SubscriptionDeployerTest {
         @Test
         void should_dispatch_when_subscription_undeployed() {
             Subscription subscriptionToDispatch = Subscription.builder()
-                .api("apiId")
-                .plan("plan")
-                .type(Subscription.Type.PUSH)
-                .id("subscription1")
-                .build();
+                    .api("apiId")
+                    .plan("plan")
+                    .type(Subscription.Type.PUSH)
+                    .id("subscription1")
+                    .build();
             SingleSubscriptionDeployable apiReactorDeployable = SingleSubscriptionDeployable.builder()
-                .subscription(subscriptionToDispatch)
-                .build();
+                    .subscription(subscriptionToDispatch)
+                    .build();
             when(subscriptionDispatcher.dispatch(subscriptionToDispatch)).thenReturn(Completable.complete());
             cut.undeploy(apiReactorDeployable).test().assertComplete();
             verify(subscriptionService).unregister(subscriptionToDispatch);

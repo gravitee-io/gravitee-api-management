@@ -71,47 +71,46 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     @Test
     public void should_not_create_category_having_unsupported_picture() {
         var entity = NewCategoryEntity.builder()
-            .name("My beautiful category")
-            .description("my description")
-            .picture("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .build();
+                .name("My beautiful category")
+                .description("my description")
+                .picture("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .build();
 
         final Response response = envTarget().request().post(Entity.json(entity));
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            soft
-                .assertThat(response.readEntity(String.class))
-                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+            soft.assertThat(response.readEntity(String.class))
+                    .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
         });
     }
 
     @Test
     public void should_not_create_category_having_unsupported_background() {
         var entity = NewCategoryEntity.builder()
-            .name("My beautiful category")
-            .description("my description")
-            .background("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .build();
+                .name("My beautiful category")
+                .description("my description")
+                .background("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .build();
 
         final Response response = envTarget().request().post(Entity.json(entity));
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            soft
-                .assertThat(response.readEntity(String.class))
-                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+            soft.assertThat(response.readEntity(String.class))
+                    .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
         });
     }
 
     @Test
     public void should_create_category() {
         var entity = NewCategoryEntity.builder()
-            .name("My beautiful category")
-            .description("my description")
-            .picture("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .background("data:image/jpeg;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .build();
+                .name("My beautiful category")
+                .description("my description")
+                .picture("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .background("data:image/jpeg;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .build();
 
-        when(categoryService.create(any(), eq(entity))).thenReturn(CategoryEntity.builder().id("123").build());
+        when(categoryService.create(any(), eq(entity)))
+                .thenReturn(CategoryEntity.builder().id("123").build());
 
         final Response response = envTarget().request().post(Entity.json(entity));
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -124,8 +123,8 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
         final List<CategoryEntity> categories = response.readEntity(new GenericType<>() {});
         assertThat(categories)
-            .hasSize(2)
-            .extracting(CategoryEntity::getId, CategoryEntity::getTotalApis)
-            .containsExactly(tuple("cat2-id", 0L), tuple("cat1-id", 0L));
+                .hasSize(2)
+                .extracting(CategoryEntity::getId, CategoryEntity::getTotalApis)
+                .containsExactly(tuple("cat2-id", 0L), tuple("cat1-id", 0L));
     }
 }

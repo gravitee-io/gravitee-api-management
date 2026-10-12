@@ -46,15 +46,15 @@ public class SearchEventsUseCase {
     }
 
     private List<EventWithInitiator> toEventWithInitiator(List<Event> events) {
-        return events
-            .stream()
-            .map(event -> {
-                var initiator = Optional.ofNullable(event.getProperties().get(Event.EventProperties.USER)).map(userId ->
-                    userCrudService.findBaseUserById(userId).orElse(BaseUserEntity.builder().id(userId).build())
-                );
-                return new EventWithInitiator(event, initiator.orElse(null));
-            })
-            .toList();
+        return events.stream()
+                .map(event -> {
+                    var initiator = Optional.ofNullable(event.getProperties().get(Event.EventProperties.USER))
+                            .map(userId -> userCrudService
+                                    .findBaseUserById(userId)
+                                    .orElse(BaseUserEntity.builder().id(userId).build()));
+                    return new EventWithInitiator(event, initiator.orElse(null));
+                })
+                .toList();
     }
 
     public record Input(EventQueryService.SearchQuery query, Optional<Pageable> pageable) {

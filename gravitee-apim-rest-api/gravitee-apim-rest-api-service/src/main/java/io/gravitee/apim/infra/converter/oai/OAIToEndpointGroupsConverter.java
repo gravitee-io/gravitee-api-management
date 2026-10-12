@@ -38,27 +38,25 @@ public class OAIToEndpointGroupsConverter {
             return Collections.emptyList();
         }
 
-        return singletonList(
-            EndpointGroup.builder()
+        return singletonList(EndpointGroup.builder()
                 .name(DEFAULT_ENDPOINT_GROUP_NAME)
                 .type("http-proxy")
-                .endpoints(
-                    serverUrls
-                        .stream()
+                .endpoints(serverUrls.stream()
                         .map(url -> {
                             var configurationNode = new ObjectMapper().createObjectNode();
                             configurationNode.put("target", url);
                             return Endpoint.builder()
-                                .name(serverUrls.size() == 1 ? DEFAULT_ENDPOINT_NAME : "server" + (serverUrls.indexOf(url) + 1))
-                                .configuration(configurationNode.toString())
-                                .weight(1)
-                                .inheritConfiguration(true)
-                                .type(DEFAULT_ENDPOINT_TYPE)
-                                .build();
+                                    .name(
+                                            serverUrls.size() == 1
+                                                    ? DEFAULT_ENDPOINT_NAME
+                                                    : "server" + (serverUrls.indexOf(url) + 1))
+                                    .configuration(configurationNode.toString())
+                                    .weight(1)
+                                    .inheritConfiguration(true)
+                                    .type(DEFAULT_ENDPOINT_TYPE)
+                                    .build();
                         })
-                        .collect(Collectors.toList())
-                )
-                .build()
-        );
+                        .collect(Collectors.toList()))
+                .build());
     }
 }

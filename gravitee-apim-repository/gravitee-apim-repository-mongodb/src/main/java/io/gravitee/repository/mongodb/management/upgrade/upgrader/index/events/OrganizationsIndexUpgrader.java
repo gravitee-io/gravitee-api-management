@@ -29,9 +29,9 @@ public class OrganizationsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events")
-            .name("eo1")
-            .key("organizations", ascending())
-            .build();
+                .collection("events")
+                .name("eo1")
+                .key("organizations", ascending())
+                .build();
     }
 }

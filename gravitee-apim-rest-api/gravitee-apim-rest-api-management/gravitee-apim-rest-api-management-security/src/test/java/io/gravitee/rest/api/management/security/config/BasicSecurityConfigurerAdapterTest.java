@@ -23,12 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @ContextConfiguration(
-    classes = {
-        BasicSecurityConfigurerAdapter.class,
-        AbstractSecurityConfigurerAdapterTest.TestConfig.class,
-        BasicSecurityConfigurerAdapterTest.DummyController.class,
-    }
-)
+        classes = {
+            BasicSecurityConfigurerAdapter.class,
+            AbstractSecurityConfigurerAdapterTest.TestConfig.class,
+            BasicSecurityConfigurerAdapterTest.DummyController.class,
+        })
 class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapterTest {
 
     @Override
@@ -41,7 +40,7 @@ class BasicSecurityConfigurerAdapterTest extends AbstractSecurityConfigurerAdapt
     @RestController
     static class DummyController {
 
-        @GetMapping(path = { "/openapi.json" })
+        @GetMapping(path = {"/openapi.json"})
         public void handle() {}
     }
 }

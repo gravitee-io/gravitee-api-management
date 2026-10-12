@@ -42,7 +42,8 @@ import lombok.RequiredArgsConstructor;
 public class CredentialSynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.PUBLISH_CREDENTIAL);
-    private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(EventType.PUBLISH_CREDENTIAL, EventType.UNPUBLISH_CREDENTIAL);
+    private static final Set<EventType> INCREMENTAL_EVENT_TYPES =
+            Set.of(EventType.PUBLISH_CREDENTIAL, EventType.UNPUBLISH_CREDENTIAL);
 
     private final LatestEventFetcher eventsFetcher;
     private final CredentialMapper credentialMapper;
@@ -55,56 +56,52 @@ public class CredentialSynchronizer implements RepositorySynchronizer {
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return eventsFetcher
-            .fetchLatest(from, to, CREDENTIAL_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            // fetch per page
-            .flatMap(events ->
-                Flowable.just(events)
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.PUBLISH_CREDENTIAL) {
-                            return prepareForDeployment(eventsByType);
-                        } else if (eventsByType.getKey() == EventType.UNPUBLISH_CREDENTIAL) {
-                            return prepareForUndeployment(eventsByType);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-            )
-            // per deployable
-            .compose(upstream -> {
-                CredentialDeployer credentialDeployer = deployerFactory.createCredentialDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(credentialDeployer, deployable);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploy(credentialDeployer, deployable);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-                    .sequential(eventsFetcher.bulkItems());
-            })
-            .count()
-            .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                String logMsg = String.format(
-                    "%s credentials synchronized in %sms",
-                    count,
-                    (System.currentTimeMillis() - launchTime.get())
-                );
-                if (from == -1) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
-                }
-            })
-            .ignoreElement();
+                .fetchLatest(
+                        from, to, CREDENTIAL_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+                // fetch per page
+                .flatMap(events -> Flowable.just(events)
+                        .flatMapIterable(e -> e)
+                        .groupBy(Event::getType)
+                        .flatMap(eventsByType -> {
+                            if (eventsByType.getKey() == EventType.PUBLISH_CREDENTIAL) {
+                                return prepareForDeployment(eventsByType);
+                            } else if (eventsByType.getKey() == EventType.UNPUBLISH_CREDENTIAL) {
+                                return prepareForUndeployment(eventsByType);
+                            } else {
+                                return Flowable.empty();
+                            }
+                        }))
+                // per deployable
+                .compose(upstream -> {
+                    CredentialDeployer credentialDeployer = deployerFactory.createCredentialDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> {
+                                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                    return deploy(credentialDeployer, deployable);
+                                } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                    return undeploy(credentialDeployer, deployable);
+                                } else {
+                                    return Flowable.empty();
+                                }
+                            })
+                            .sequential(eventsFetcher.bulkItems());
+                })
+                .count()
+                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(count -> {
+                    String logMsg = String.format(
+                            "%s credentials synchronized in %sms",
+                            count, (System.currentTimeMillis() - launchTime.get()));
+                    if (from == -1) {
+                        log.info(logMsg);
+                    } else {
+                        log.debug(logMsg);
+                    }
+                })
+                .ignoreElement();
     }
 
     private Flowable<CredentialDeployable> prepareForDeployment(final Flowable<Event> eventsByType) {
@@ -114,7 +111,10 @@ public class CredentialSynchronizer implements RepositorySynchronizer {
     private Maybe<CredentialDeployable> withOrganization(final CredentialDeployable deployable) {
         String organizationId = environmentService.organizationIdOf(deployable.environmentId());
         if (organizationId == null) {
-            log.warn("Skipping credential [{}]: its environment [{}] could not be found", deployable.id(), deployable.environmentId());
+            log.warn(
+                    "Skipping credential [{}]: its environment [{}] could not be found",
+                    deployable.id(),
+                    deployable.environmentId());
             return Maybe.empty();
         }
         return Maybe.just(deployable.organizationId(organizationId));
@@ -125,31 +125,27 @@ public class CredentialSynchronizer implements RepositorySynchronizer {
     }
 
     private static Flowable<CredentialDeployable> deploy(
-        final CredentialDeployer credentialDeployer,
-        final CredentialDeployable deployable
-    ) {
+            final CredentialDeployer credentialDeployer, final CredentialDeployable deployable) {
         return credentialDeployer
-            .deploy(deployable)
-            .andThen(credentialDeployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .deploy(deployable)
+                .andThen(credentialDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     private static Flowable<CredentialDeployable> undeploy(
-        final CredentialDeployer credentialDeployer,
-        final CredentialDeployable deployable
-    ) {
+            final CredentialDeployer credentialDeployer, final CredentialDeployable deployable) {
         return credentialDeployer
-            .undeploy(deployable)
-            .andThen(credentialDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .undeploy(deployable)
+                .andThen(credentialDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     @Override

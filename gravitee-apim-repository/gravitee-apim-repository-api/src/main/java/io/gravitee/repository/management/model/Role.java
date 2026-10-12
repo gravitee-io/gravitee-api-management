@@ -165,30 +165,27 @@ public class Role {
 
     @Override
     public String toString() {
-        return (
-            "Role{" +
-            "id='" +
-            id +
-            '\'' +
-            ",name='" +
-            name +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", scope='" +
-            scope +
-            '\'' +
-            ", defaultRole='" +
-            defaultRole +
-            '\'' +
-            ", system='" +
-            system +
-            '\'' +
-            '}'
-        );
+        return ("Role{" + "id='"
+                + id
+                + '\''
+                + ",name='"
+                + name
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", scope='"
+                + scope
+                + '\''
+                + ", defaultRole='"
+                + defaultRole
+                + '\''
+                + ", system='"
+                + system
+                + '\''
+                + '}');
     }
 }

@@ -27,7 +27,8 @@ import java.util.Map;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TracingHook extends AbstractTracingHook implements ProcessorHook, ChainHook, InvokerHook, SecurityPlanHook {
+public class TracingHook extends AbstractTracingHook
+        implements ProcessorHook, ChainHook, InvokerHook, SecurityPlanHook {
 
     private final String key;
 

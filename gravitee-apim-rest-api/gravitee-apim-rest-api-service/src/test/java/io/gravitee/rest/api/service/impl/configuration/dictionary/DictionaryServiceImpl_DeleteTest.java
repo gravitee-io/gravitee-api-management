@@ -75,15 +75,12 @@ public class DictionaryServiceImpl_DeleteTest {
 
         dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(DICTIONARY_DELETED) &&
-                    "my-dict".equals(auditLogData.getProperties().get(DICTIONARY)) &&
-                    auditLogData.getNewValue() == null
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(DICTIONARY_DELETED)
+                                && "my-dict".equals(auditLogData.getProperties().get(DICTIONARY))
+                                && auditLogData.getNewValue() == null));
     }
 
     @Test
@@ -92,10 +89,11 @@ public class DictionaryServiceImpl_DeleteTest {
 
         dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> "true".equals(auditLogData.getProperties().get(ENCRYPTED)))
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData ->
+                                "true".equals(auditLogData.getProperties().get(ENCRYPTED))));
     }
 
     @Test
@@ -104,10 +102,10 @@ public class DictionaryServiceImpl_DeleteTest {
 
         dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        verify(auditService).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> !auditLogData.getProperties().containsKey(ENCRYPTED))
-        );
+        verify(auditService)
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> !auditLogData.getProperties().containsKey(ENCRYPTED)));
     }
 
     @Test
@@ -116,9 +114,9 @@ public class DictionaryServiceImpl_DeleteTest {
         stored.setEnvironmentId("another-environment");
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(stored));
 
-        assertThrows(DictionaryNotFoundException.class, () ->
-            dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID)
-        );
+        assertThrows(
+                DictionaryNotFoundException.class,
+                () -> dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID));
 
         verify(auditService, never()).createAuditLog(any(), any());
     }

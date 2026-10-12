@@ -45,7 +45,8 @@ class SearchAverageMessagesPerRequestResponseAdapterTest {
     void should_return_empty_result_if_no_aggregation() {
         final SearchResponse searchResponse = new SearchResponse();
 
-        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse)).isEmpty();
+        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse))
+                .isEmpty();
     }
 
     @Test
@@ -53,7 +54,8 @@ class SearchAverageMessagesPerRequestResponseAdapterTest {
         final SearchResponse searchResponse = new SearchResponse();
         searchResponse.setAggregations(Map.of());
 
-        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse)).isEmpty();
+        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse))
+                .isEmpty();
     }
 
     @ParameterizedTest
@@ -63,30 +65,28 @@ class SearchAverageMessagesPerRequestResponseAdapterTest {
         final Aggregation aggregation = new Aggregation();
         searchResponse.setAggregations(Map.of(ENTRYPOINTS_AGG, aggregation));
 
-        aggregation.setBuckets(
-            buckets
-                .entrySet()
-                .stream()
-                .map(bucket ->
-                    (JsonNode) objectMapper
+        aggregation.setBuckets(buckets.entrySet().stream()
+                .map(bucket -> (JsonNode) objectMapper
                         .createObjectNode()
                         .put("key", bucket.getKey())
-                        .set(AVG_MESSAGES_PER_REQUEST, objectMapper.createObjectNode().put("value", bucket.getValue()))
-                )
-                .toList()
-        );
+                        .set(
+                                AVG_MESSAGES_PER_REQUEST,
+                                objectMapper.createObjectNode().put("value", bucket.getValue())))
+                .toList());
 
-        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
-            assertThat(countAggregate.getAverage()).isEqualTo(expectedAverage);
-            assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
-        });
+        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse))
+                .hasValueSatisfying(countAggregate -> {
+                    assertThat(countAggregate.getAverage()).isEqualTo(expectedAverage);
+                    assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
+                });
     }
 
     private static Stream<Arguments> provideSearchData() {
         return Stream.of(
-            Arguments.of(Map.of("http-get", 1.0), 1.0),
-            Arguments.of(Map.of("sse", 0.0), 0.0),
-            Arguments.of(Map.of("http-get", 11.0, "http-post", 200.0, "websocket", 5.0, "the-unknown-endpoint", 10000.0), 2554.0)
-        );
+                Arguments.of(Map.of("http-get", 1.0), 1.0),
+                Arguments.of(Map.of("sse", 0.0), 0.0),
+                Arguments.of(
+                        Map.of("http-get", 11.0, "http-post", 200.0, "websocket", 5.0, "the-unknown-endpoint", 10000.0),
+                        2554.0));
     }
 }

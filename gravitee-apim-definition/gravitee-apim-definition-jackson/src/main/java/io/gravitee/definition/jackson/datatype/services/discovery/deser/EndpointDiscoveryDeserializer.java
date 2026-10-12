@@ -35,8 +35,9 @@ public class EndpointDiscoveryDeserializer extends ServiceDeserializer<EndpointD
     }
 
     @Override
-    protected void deserialize(EndpointDiscoveryService service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
-        throws IOException {
+    protected void deserialize(
+            EndpointDiscoveryService service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
+            throws IOException {
         super.deserialize(service, jsonParser, node, ctxt);
 
         if (service.isEnabled()) {

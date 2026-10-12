@@ -65,36 +65,32 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             newEnvironment.setDescription(environmentPayload.description());
 
             final EnvironmentEntity environment = environmentService.createOrUpdate(
-                existingEnvironment != null ? existingEnvironment.getOrganizationId() : environmentPayload.organizationId(),
-                existingEnvironment != null ? existingEnvironment.getId() : environmentPayload.id(),
-                newEnvironment
-            );
+                    existingEnvironment != null
+                            ? existingEnvironment.getOrganizationId()
+                            : environmentPayload.organizationId(),
+                    existingEnvironment != null ? existingEnvironment.getId() : environmentPayload.id(),
+                    newEnvironment);
             List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
             if (environmentPayload.accessPoints() != null) {
-                accessPointsToCreate = environmentPayload
-                    .accessPoints()
-                    .stream()
-                    .map(cockpitAccessPoint ->
-                        io.gravitee.apim.core.access_point.model.AccessPoint.builder()
-                            .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT)
-                            .referenceId(environment.getId())
-                            .target(
-                                io.gravitee.apim.core.access_point.model.AccessPoint.Target.valueOf(cockpitAccessPoint.getTarget().name())
-                            )
-                            .host(cockpitAccessPoint.getHost())
-                            .secured(cockpitAccessPoint.isSecured())
-                            .overriding(cockpitAccessPoint.isOverriding())
-                            .build()
-                    )
-                    .toList();
+                accessPointsToCreate = environmentPayload.accessPoints().stream()
+                        .map(cockpitAccessPoint -> io.gravitee.apim.core.access_point.model.AccessPoint.builder()
+                                .referenceType(
+                                        io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT)
+                                .referenceId(environment.getId())
+                                .target(io.gravitee.apim.core.access_point.model.AccessPoint.Target.valueOf(
+                                        cockpitAccessPoint.getTarget().name()))
+                                .host(cockpitAccessPoint.getHost())
+                                .secured(cockpitAccessPoint.isSecured())
+                                .overriding(cockpitAccessPoint.isOverriding())
+                                .build())
+                        .toList();
             } else {
                 accessPointsToCreate = new ArrayList<>();
             }
             accessPointService.updateAccessPoints(
-                io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT,
-                environment.getId(),
-                accessPointsToCreate
-            );
+                    io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT,
+                    environment.getId(),
+                    accessPointsToCreate);
 
             // Seed defaults only when Cockpit registers this environment for the first time
             if (existingEnvironment == null) {
@@ -104,10 +100,8 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId()));
         } catch (Exception e) {
-            String errorDetails = "Error occurred when handling environment [%s] with id [%s]".formatted(
-                environmentPayload.name(),
-                environmentPayload.id()
-            );
+            String errorDetails = "Error occurred when handling environment [%s] with id [%s]"
+                    .formatted(environmentPayload.name(), environmentPayload.id());
             log.error(errorDetails, e);
             return Single.just(new EnvironmentReply(command.getId(), errorDetails));
         }

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.services.dictionary;
 
 import io.gravitee.definition.model.Property;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
-import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryNotFoundException;
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
@@ -46,47 +45,36 @@ public class DictionaryRefresher implements Handler<Long> {
     public void handle(Long event) {
         log.debug("Running dictionary refresher task for {}", dictionary);
 
-        provider
-            .get()
-            .whenComplete((dynamicProperties, throwable) -> {
-                if (throwable != null) {
-                    log.error(
+        provider.get().whenComplete((dynamicProperties, throwable) -> {
+            if (throwable != null) {
+                log.error(
                         "[{}] Unexpected error while getting dictionary's properties from provider: {}",
                         dictionary.getId(),
                         provider.name(),
-                        throwable
-                    );
-                } else if (dynamicProperties != null) {
-                    updateDictionary(dynamicProperties);
-                }
-            });
+                        throwable);
+            } else if (dynamicProperties != null) {
+                updateDictionary(dynamicProperties);
+            }
+        });
     }
 
     private void updateDictionary(Collection<DynamicProperty> dynProperties) {
-        Map<String, String> properties = dynProperties
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    Property::getKey,
-                    dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue(),
-                    (oldValue, newValue) -> {
-                        log.error(
-                            "Duplicate key found (attempted merging values {} and {}) for dictionary {}",
-                            oldValue,
-                            newValue,
-                            dictionary.getName()
-                        );
-                        throw new IllegalStateException(
-                            String.format(
-                                "Duplicate key found (attempted merging values {} and {}) for dictionary {}",
-                                oldValue,
-                                newValue,
-                                dictionary.getName()
-                            )
-                        );
-                    }
-                )
-            );
+        Map<String, String> properties = dynProperties.stream()
+                .collect(Collectors.toMap(
+                        Property::getKey,
+                        dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue(),
+                        (oldValue, newValue) -> {
+                            log.error(
+                                    "Duplicate key found (attempted merging values {} and {}) for dictionary {}",
+                                    oldValue,
+                                    newValue,
+                                    dictionary.getName());
+                            throw new IllegalStateException(String.format(
+                                    "Duplicate key found (attempted merging values {} and {}) for dictionary {}",
+                                    oldValue,
+                                    newValue,
+                                    dictionary.getName()));
+                        }));
 
         try {
             dictionary = dictionaryService.updateProperties(dictionary.getId(), properties);
@@ -97,7 +85,8 @@ public class DictionaryRefresher implements Handler<Long> {
         }
     }
 
-    public void setDictionaryService(io.gravitee.rest.api.service.configuration.dictionary.DictionaryService dictionaryService) {
+    public void setDictionaryService(
+            io.gravitee.rest.api.service.configuration.dictionary.DictionaryService dictionaryService) {
         this.dictionaryService = dictionaryService;
     }
 

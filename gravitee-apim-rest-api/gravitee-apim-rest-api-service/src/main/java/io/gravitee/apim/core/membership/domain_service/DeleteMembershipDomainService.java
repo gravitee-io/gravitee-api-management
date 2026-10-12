@@ -34,10 +34,9 @@ public class DeleteMembershipDomainService {
     AuditDomainService auditDomainService;
 
     public DeleteMembershipDomainService(
-        MembershipQueryService membershipQueryService,
-        MembershipCrudService membershipCrudService,
-        AuditDomainService auditDomainService
-    ) {
+            MembershipQueryService membershipQueryService,
+            MembershipCrudService membershipCrudService,
+            AuditDomainService auditDomainService) {
         this.membershipQueryService = membershipQueryService;
         this.membershipCrudService = membershipCrudService;
         this.auditDomainService = auditDomainService;
@@ -59,8 +58,7 @@ public class DeleteMembershipDomainService {
     }
 
     private void createAuditLog(AuditInfo auditInfo, Membership membership, String apiId) {
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(apiId)
@@ -69,7 +67,6 @@ public class DeleteMembershipDomainService {
                 .oldValue(membership)
                 .createdAt(TimeProvider.now())
                 .properties(Collections.emptyMap())
-                .build()
-        );
+                .build());
     }
 }

@@ -28,14 +28,13 @@ public class PathMapping {
     public static Pattern buildPattern(String mappingExpression) {
         if (mappingExpression == null || mappingExpression.isBlank()) return Pattern.compile(".*");
 
-        var regex =
-            mappingExpression
-                .replaceAll("([+?^$\\[\\]{}|])", "\\\\$1")
-                .replace("(", "\\(")
-                .replace(")", "\\)")
-                .replaceAll("\\.(?!\\*)", "\\\\.")
-                .replaceAll(":[^/]*", "[^/]*") +
-            "/*";
+        var regex = mappingExpression
+                        .replaceAll("([+?^$\\[\\]{}|])", "\\\\$1")
+                        .replace("(", "\\(")
+                        .replace(")", "\\)")
+                        .replaceAll("\\.(?!\\*)", "\\\\.")
+                        .replaceAll(":[^/]*", "[^/]*")
+                + "/*";
 
         return Pattern.compile(regex);
     }

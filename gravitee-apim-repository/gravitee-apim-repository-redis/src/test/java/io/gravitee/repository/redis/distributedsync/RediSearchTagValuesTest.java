@@ -28,8 +28,7 @@ class RediSearchTagValuesTest {
 
     @Test
     void should_leave_alphanumeric_cluster_id_unchanged() {
-        assertThat(RediSearchTagValues.escapeTagValue("my-release-apim-gateway-external-hz57")).isEqualTo(
-            "my\\-release\\-apim\\-gateway\\-external\\-hz57"
-        );
+        assertThat(RediSearchTagValues.escapeTagValue("my-release-apim-gateway-external-hz57"))
+                .isEqualTo("my\\-release\\-apim\\-gateway\\-external\\-hz57");
     }
 }

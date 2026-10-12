@@ -31,7 +31,7 @@ public class OperationEventMetricsFormatter extends BaseEventMetricsFormatter<Op
         final Buffer buffer = super.format0(data);
         appendString(buffer, data.getOperation());
 
-        //Append operation event metrics
+        // Append operation event metrics
         appendLong(buffer, data.getUpstreamDurationsNanos());
         appendLong(buffer, data.getEndpointDurationsNanos());
         appendLong(buffer, data.getDownstreamDurationsNanos());

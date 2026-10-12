@@ -22,8 +22,12 @@ import java.util.List;
 
 public interface FlowService {
     String getConfigurationSchemaForm();
+
     String getApiFlowSchemaForm();
+
     String getPlatformFlowSchemaForm(ExecutionContext executionContext);
+
     List<Flow> findByReference(FlowReferenceType flowReferenceType, String referenceId);
+
     List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows);
 }

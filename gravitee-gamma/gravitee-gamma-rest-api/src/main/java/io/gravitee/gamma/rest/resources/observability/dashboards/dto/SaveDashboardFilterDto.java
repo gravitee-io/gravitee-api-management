@@ -45,6 +45,9 @@ public record SaveDashboardFilterDto(String name, String label, String operator,
         } catch (IllegalArgumentException e) {
             throw UnsupportedObservabilityFilterException.unsupportedOperator(name, operator);
         }
-        return new DashboardFilter(new FilterCondition(name, op, FilterValues.normalize(name, value)), label, editable != null && editable);
+        return new DashboardFilter(
+                new FilterCondition(name, op, FilterValues.normalize(name, value)),
+                label,
+                editable != null && editable);
     }
 }

@@ -45,133 +45,106 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
     @Test
     public void should_transfer_ownership_to_cluster_member() {
         assertAll(
-            () ->
-                assertThat(
-                    membershipDomainService
-                        .storage()
-                        .stream()
-                        .filter(m -> m.getId().equals("user-1"))
-                        .findFirst()
-                        .orElseThrow()
-                        .getRoles()
-                        .get(0)
-                        .getName()
-                ).isEqualTo("PRIMARY_OWNER"),
-            () ->
-                assertThat(
-                    membershipDomainService
-                        .storage()
-                        .stream()
-                        .filter(m -> m.getId().equals("user-2"))
-                        .findFirst()
-                        .orElseThrow()
-                        .getRoles()
-                        .get(0)
-                        .getName()
-                ).isEqualTo("USER")
-        );
+                () -> assertThat(membershipDomainService.storage().stream()
+                                .filter(m -> m.getId().equals("user-1"))
+                                .findFirst()
+                                .orElseThrow()
+                                .getRoles()
+                                .get(0)
+                                .getName())
+                        .isEqualTo("PRIMARY_OWNER"),
+                () -> assertThat(membershipDomainService.storage().stream()
+                                .filter(m -> m.getId().equals("user-2"))
+                                .findFirst()
+                                .orElseThrow()
+                                .getRoles()
+                                .get(0)
+                                .getName())
+                        .isEqualTo("USER"));
 
-        transferClusterOwnershipUseCase.execute(
-            new TransferClusterOwnershipUseCase.Input(
-                TransferOwnership.builder().currentPrimaryOwnerNewRole("USER").newPrimaryOwnerId("user-2").build(),
-                CLUSTER_ID
-            )
-        );
+        transferClusterOwnershipUseCase.execute(new TransferClusterOwnershipUseCase.Input(
+                TransferOwnership.builder()
+                        .currentPrimaryOwnerNewRole("USER")
+                        .newPrimaryOwnerId("user-2")
+                        .build(),
+                CLUSTER_ID));
 
         assertAll(
-            () ->
-                assertThat(
-                    membershipDomainService
-                        .storage()
-                        .stream()
-                        .filter(m -> m.getId().equals("user-1"))
-                        .findFirst()
-                        .orElseThrow()
-                        .getRoles()
-                        .get(0)
-                        .getName()
-                ).isEqualTo("USER"),
-            () ->
-                assertThat(
-                    membershipDomainService
-                        .storage()
-                        .stream()
-                        .filter(m -> m.getId().equals("user-2"))
-                        .findFirst()
-                        .orElseThrow()
-                        .getRoles()
-                        .get(0)
-                        .getName()
-                ).isEqualTo("PRIMARY_OWNER")
-        );
+                () -> assertThat(membershipDomainService.storage().stream()
+                                .filter(m -> m.getId().equals("user-1"))
+                                .findFirst()
+                                .orElseThrow()
+                                .getRoles()
+                                .get(0)
+                                .getName())
+                        .isEqualTo("USER"),
+                () -> assertThat(membershipDomainService.storage().stream()
+                                .filter(m -> m.getId().equals("user-2"))
+                                .findFirst()
+                                .orElseThrow()
+                                .getRoles()
+                                .get(0)
+                                .getName())
+                        .isEqualTo("PRIMARY_OWNER"));
     }
 
     @Test
     public void should_transfer_ownership_to_other_user() {
-        assertAll(() ->
-            assertThat(
-                membershipDomainService
-                    .storage()
-                    .stream()
-                    .filter(m -> m.getId().equals("user-1"))
-                    .findFirst()
-                    .orElseThrow()
-                    .getRoles()
-                    .get(0)
-                    .getName()
-            ).isEqualTo("PRIMARY_OWNER")
-        );
-
-        transferClusterOwnershipUseCase.execute(
-            new TransferClusterOwnershipUseCase.Input(
-                TransferOwnership.builder().currentPrimaryOwnerNewRole("USER").newPrimaryOwnerId("user-3").build(),
-                CLUSTER_ID
-            )
-        );
-
-        assertAll(
-            () ->
-                assertThat(
-                    membershipDomainService
-                        .storage()
-                        .stream()
+        assertAll(() -> assertThat(membershipDomainService.storage().stream()
                         .filter(m -> m.getId().equals("user-1"))
                         .findFirst()
                         .orElseThrow()
                         .getRoles()
                         .get(0)
-                        .getName()
-                ).isEqualTo("USER"),
-            () ->
-                assertThat(
-                    membershipDomainService
-                        .storage()
-                        .stream()
-                        .filter(m -> m.getId().equals("user-3"))
-                        .findFirst()
-                        .orElseThrow()
-                        .getRoles()
-                        .get(0)
-                        .getName()
-                ).isEqualTo("PRIMARY_OWNER")
-        );
+                        .getName())
+                .isEqualTo("PRIMARY_OWNER"));
+
+        transferClusterOwnershipUseCase.execute(new TransferClusterOwnershipUseCase.Input(
+                TransferOwnership.builder()
+                        .currentPrimaryOwnerNewRole("USER")
+                        .newPrimaryOwnerId("user-3")
+                        .build(),
+                CLUSTER_ID));
+
+        assertAll(
+                () -> assertThat(membershipDomainService.storage().stream()
+                                .filter(m -> m.getId().equals("user-1"))
+                                .findFirst()
+                                .orElseThrow()
+                                .getRoles()
+                                .get(0)
+                                .getName())
+                        .isEqualTo("USER"),
+                () -> assertThat(membershipDomainService.storage().stream()
+                                .filter(m -> m.getId().equals("user-3"))
+                                .findFirst()
+                                .orElseThrow()
+                                .getRoles()
+                                .get(0)
+                                .getName())
+                        .isEqualTo("PRIMARY_OWNER"));
     }
 
     private void initData() {
         List<MemberEntity> memberEntities = List.of(
-            MemberEntity.builder()
-                .id("user-1")
-                .referenceId(CLUSTER_ID)
-                .referenceType(MembershipReferenceType.CLUSTER)
-                .roles(List.of(RoleEntity.builder().name("PRIMARY_OWNER").scope(RoleScope.CLUSTER).build()))
-                .build(),
-            MemberEntity.builder()
-                .id("user-2")
-                .referenceId(CLUSTER_ID)
-                .referenceType(MembershipReferenceType.CLUSTER)
-                .roles(List.of(RoleEntity.builder().name("USER").scope(RoleScope.CLUSTER).build()))
-                .build()
-        );
+                MemberEntity.builder()
+                        .id("user-1")
+                        .referenceId(CLUSTER_ID)
+                        .referenceType(MembershipReferenceType.CLUSTER)
+                        .roles(List.of(RoleEntity.builder()
+                                .name("PRIMARY_OWNER")
+                                .scope(RoleScope.CLUSTER)
+                                .build()))
+                        .build(),
+                MemberEntity.builder()
+                        .id("user-2")
+                        .referenceId(CLUSTER_ID)
+                        .referenceType(MembershipReferenceType.CLUSTER)
+                        .roles(List.of(RoleEntity.builder()
+                                .name("USER")
+                                .scope(RoleScope.CLUSTER)
+                                .build()))
+                        .build());
         membershipDomainService.initWith(memberEntities);
     }
 }

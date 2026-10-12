@@ -39,7 +39,8 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @throws TechnicalException
      * @Deprecated since 4.11.0, use {@link #findByReferenceIdsAndReferenceTypeAndEnvironment(List, Plan.PlanReferenceType, Set)}
      */
-    default List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments) throws TechnicalException {
+    default List<Plan> findByApisAndEnvironments(List<String> apiIds, Set<String> environments)
+            throws TechnicalException {
         return findByReferenceIdsAndReferenceTypeAndEnvironment(apiIds, Plan.PlanReferenceType.API, environments);
     }
 
@@ -98,7 +99,8 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @return a set of plans matching the given reference ID and reference type.
      * @throws TechnicalException if an error occurs during the retrieval of the plans.
      */
-    Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType) throws TechnicalException;
+    Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType)
+            throws TechnicalException;
 
     /**
      * WARNING: this method should only be called by the gatway.
@@ -111,10 +113,8 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @throws TechnicalException If an error occurs during the retrieval of plans.
      */
     List<Plan> findByReferenceIdsAndReferenceTypeAndEnvironment(
-        List<String> referenceIds,
-        Plan.PlanReferenceType planReferenceType,
-        Set<String> environments
-    ) throws TechnicalException;
+            List<String> referenceIds, Plan.PlanReferenceType planReferenceType, Set<String> environments)
+            throws TechnicalException;
 
     /**
      * Finds a plan by its ID, reference ID, and reference type.
@@ -125,8 +125,8 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @return an Optional containing the plan if found, or an empty Optional if not found.
      * @throws TechnicalException if an error occurs during the retrieval of the plan.
      */
-    Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, Plan.PlanReferenceType planReferenceType)
-        throws TechnicalException;
+    Optional<Plan> findByIdAndReferenceIdAndReferenceType(
+            String plan, String referenceId, Plan.PlanReferenceType planReferenceType) throws TechnicalException;
 
     /**
      * Finds plans whose crossId is in the given collection.

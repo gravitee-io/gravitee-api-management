@@ -47,7 +47,8 @@ class DictionaryPropertyTest {
 
     @Test
     void should_deserialize_typed_object() throws Exception {
-        DictionaryProperty property = mapper.readValue("{\"value\":\"cipher\",\"encrypted\":true}", DictionaryProperty.class);
+        DictionaryProperty property =
+                mapper.readValue("{\"value\":\"cipher\",\"encrypted\":true}", DictionaryProperty.class);
 
         assertThat(property.value()).isEqualTo("cipher");
         assertThat(property.encrypted()).isTrue();
@@ -71,46 +72,48 @@ class DictionaryPropertyTest {
     void should_round_trip_an_unencrypted_value_through_serialize_then_deserialize() throws Exception {
         DictionaryProperty original = new DictionaryProperty("plain-value", false);
 
-        DictionaryProperty roundTripped = mapper.readValue(mapper.writeValueAsString(original), DictionaryProperty.class);
+        DictionaryProperty roundTripped =
+                mapper.readValue(mapper.writeValueAsString(original), DictionaryProperty.class);
 
         assertThat(roundTripped).isEqualTo(original);
     }
 
     @Test
     void should_fail_to_deserialize_an_object_missing_the_value_field() {
-        assertThatThrownBy(() -> mapper.readValue("{\"encrypted\":true}", DictionaryProperty.class)).isInstanceOf(
-            JsonMappingException.class
-        );
+        assertThatThrownBy(() -> mapper.readValue("{\"encrypted\":true}", DictionaryProperty.class))
+                .isInstanceOf(JsonMappingException.class);
     }
 
     @Test
     void should_fail_to_deserialize_an_object_whose_value_field_is_not_a_string() {
-        assertThatThrownBy(() -> mapper.readValue("{\"value\":5,\"encrypted\":true}", DictionaryProperty.class)).isInstanceOf(
-            JsonMappingException.class
-        );
-        assertThatThrownBy(() -> mapper.readValue("{\"value\":{},\"encrypted\":true}", DictionaryProperty.class)).isInstanceOf(
-            JsonMappingException.class
-        );
+        assertThatThrownBy(() -> mapper.readValue("{\"value\":5,\"encrypted\":true}", DictionaryProperty.class))
+                .isInstanceOf(JsonMappingException.class);
+        assertThatThrownBy(() -> mapper.readValue("{\"value\":{},\"encrypted\":true}", DictionaryProperty.class))
+                .isInstanceOf(JsonMappingException.class);
     }
 
     @Test
     void should_fail_to_deserialize_a_null_property_inside_a_properties_map() {
-        assertThatThrownBy(() -> mapper.readValue("{\"key\": null}", new TypeReference<Map<String, DictionaryProperty>>() {})).isInstanceOf(
-            JsonProcessingException.class
-        );
+        assertThatThrownBy(() ->
+                        mapper.readValue("{\"key\": null}", new TypeReference<Map<String, DictionaryProperty>>() {}))
+                .isInstanceOf(JsonProcessingException.class);
     }
 
     @Test
     void should_not_leak_the_malformed_payload_content_in_the_exception_message() {
-        assertThatThrownBy(() -> mapper.readValue("{\"encrypted\":true,\"api-key\":\"super-secret-value\"}", DictionaryProperty.class))
-            .isInstanceOf(JsonMappingException.class)
-            .hasMessageNotContaining("super-secret-value");
+        assertThatThrownBy(() -> mapper.readValue(
+                        "{\"encrypted\":true,\"api-key\":\"super-secret-value\"}", DictionaryProperty.class))
+                .isInstanceOf(JsonMappingException.class)
+                .hasMessageNotContaining("super-secret-value");
     }
 
     @Test
     void should_redact_the_value_from_to_string() {
         String result = new DictionaryProperty("super-secret", true).toString();
 
-        assertThat(result).doesNotContain("super-secret").contains("value=<redacted>").contains("encrypted=true");
+        assertThat(result)
+                .doesNotContain("super-secret")
+                .contains("value=<redacted>")
+                .contains("encrypted=true");
     }
 }

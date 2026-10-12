@@ -28,10 +28,10 @@ public class OrganizationIdEmailIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("users")
-            .name("oi1e1")
-            .key("organizationId", ascending())
-            .key("email", ascending())
-            .build();
+                .collection("users")
+                .name("oi1e1")
+                .key("organizationId", ascending())
+                .key("email", ascending())
+                .build();
     }
 }

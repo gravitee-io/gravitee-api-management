@@ -43,11 +43,10 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
 
     @Override
     public Map<String, char[]> getUserMemberPermissions(
-        ExecutionContext executionContext,
-        MembershipReferenceType referenceType,
-        String referenceId,
-        String userId
-    ) {
+            ExecutionContext executionContext,
+            MembershipReferenceType referenceType,
+            String referenceId,
+            String userId) {
         return legacyService.getUserMemberPermissions(executionContext, referenceType, referenceId, userId);
     }
 
@@ -56,94 +55,79 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
         validateTransferOwnership(transferOwnership);
         List<RoleEntity> newRoles = new ArrayList<>();
         roleService
-            .findByScopeAndName(
-                roleScope,
-                transferOwnership.getCurrentPrimaryOwnerNewRole(),
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            )
-            .ifPresent(newRoles::add);
+                .findByScopeAndName(
+                        roleScope,
+                        transferOwnership.getCurrentPrimaryOwnerNewRole(),
+                        GraviteeContext.getExecutionContext().getOrganizationId())
+                .ifPresent(newRoles::add);
         MembershipMemberType memberType = transferOwnership.getMemberType() != null
-            ? MembershipMemberType.valueOf(transferOwnership.getMemberType().name())
-            : MembershipMemberType.USER;
+                ? MembershipMemberType.valueOf(transferOwnership.getMemberType().name())
+                : MembershipMemberType.USER;
         MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(
-            transferOwnership.getNewPrimaryOwnerId(),
-            transferOwnership.getUserReference(),
-            memberType
-        );
+                transferOwnership.getNewPrimaryOwnerId(), transferOwnership.getUserReference(), memberType);
         legacyService.transferOwnership(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.valueOf(roleScope.name()),
-            roleScope,
-            itemId,
-            membershipMember,
-            newRoles
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.valueOf(roleScope.name()),
+                roleScope,
+                itemId,
+                membershipMember,
+                newRoles);
     }
 
     @Override
     public MemberEntity createNewMembership(
-        ExecutionContext executionContext,
-        io.gravitee.apim.core.member.model.MembershipReferenceType referenceType,
-        String referenceId,
-        String userId,
-        String externalReference,
-        String roleName
-    ) {
+            ExecutionContext executionContext,
+            io.gravitee.apim.core.member.model.MembershipReferenceType referenceType,
+            String referenceId,
+            String userId,
+            String externalReference,
+            String roleName) {
         return legacyService.createNewMembership(
-            executionContext,
-            MembershipReferenceType.valueOf(referenceType.name()),
-            referenceId,
-            userId,
-            externalReference,
-            roleName
-        );
+                executionContext,
+                MembershipReferenceType.valueOf(referenceType.name()),
+                referenceId,
+                userId,
+                externalReference,
+                roleName);
     }
 
     @Override
     public void addGroupMemberships(
-        ExecutionContext executionContext,
-        String groupId,
-        String userId,
-        String apiRole,
-        String applicationRole
-    ) {
+            ExecutionContext executionContext, String groupId, String userId, String apiRole, String applicationRole) {
         addRoleToMemberOnGroupReference(executionContext, groupId, userId, RoleScope.API, apiRole);
         addRoleToMemberOnGroupReference(executionContext, groupId, userId, RoleScope.APPLICATION, applicationRole);
         addRoleToMemberOnGroupReference(executionContext, groupId, userId, RoleScope.GROUP);
     }
 
     private void addRoleToMemberOnGroupReference(
-        ExecutionContext executionContext,
-        String groupId,
-        String userId,
-        RoleScope roleScope,
-        String roleName
-    ) {
+            ExecutionContext executionContext, String groupId, String userId, RoleScope roleScope, String roleName) {
         legacyService.addRoleToMemberOnReference(
-            executionContext,
-            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupId),
-            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(roleScope, roleName)
-        );
+                executionContext,
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupId),
+                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(roleScope, roleName));
     }
 
-    private void addRoleToMemberOnGroupReference(ExecutionContext executionContext, String groupId, String userId, RoleScope roleScope) {
-        roleService
-            .findDefaultRoleByScopes(executionContext.getOrganizationId(), roleScope)
-            .stream()
-            .findFirst()
-            .map(RoleEntity::getName)
-            .ifPresent(roleName -> addRoleToMemberOnGroupReference(executionContext, groupId, userId, roleScope, roleName));
+    private void addRoleToMemberOnGroupReference(
+            ExecutionContext executionContext, String groupId, String userId, RoleScope roleScope) {
+        roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), roleScope).stream()
+                .findFirst()
+                .map(RoleEntity::getName)
+                .ifPresent(roleName ->
+                        addRoleToMemberOnGroupReference(executionContext, groupId, userId, roleScope, roleName));
     }
 
     private void validateTransferOwnership(TransferOwnership transferOwnership) {
         if ("PRIMARY_OWNER".equals(transferOwnership.getCurrentPrimaryOwnerNewRole())) {
             throw new TransferOwnershipNotAllowedException(transferOwnership.getCurrentPrimaryOwnerNewRole());
         }
-        boolean hasOwnerId = transferOwnership.getNewPrimaryOwnerId() != null && !transferOwnership.getNewPrimaryOwnerId().isBlank();
-        boolean hasUserRef = transferOwnership.getUserReference() != null && !transferOwnership.getUserReference().isBlank();
+        boolean hasOwnerId = transferOwnership.getNewPrimaryOwnerId() != null
+                && !transferOwnership.getNewPrimaryOwnerId().isBlank();
+        boolean hasUserRef = transferOwnership.getUserReference() != null
+                && !transferOwnership.getUserReference().isBlank();
         if (!hasOwnerId && !hasUserRef) {
-            throw new InvalidDataException("Transfer ownership requires either newPrimaryOwnerId or userReference to be provided.");
+            throw new InvalidDataException(
+                    "Transfer ownership requires either newPrimaryOwnerId or userReference to be provided.");
         }
     }
 }

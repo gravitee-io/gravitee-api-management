@@ -55,7 +55,8 @@ class ApiModelFactoryTest {
 
     @Test
     void fromNewHttpApi_should_use_the_supplied_id_on_the_api_and_its_definition() {
-        var newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder().id("supplied-id").build();
+        var newHttpApi =
+                NewApiFixtures.aProxyApiV4().toBuilder().id("supplied-id").build();
 
         Api api = ApiModelFactory.fromNewHttpApi(newHttpApi, ENVIRONMENT_ID);
 
@@ -66,12 +67,12 @@ class ApiModelFactoryTest {
     @Test
     void fromApiExport_should_leave_allowedInApiProducts_null_for_v4_http_proxy_export_when_flag_missing() {
         ApiExport apiExport = ApiExport.builder()
-            .name("my-api")
-            .apiVersion("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            // no allowedInApiProducts explicitly set
-            .build();
+                .name("my-api")
+                .apiVersion("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                // no allowedInApiProducts explicitly set
+                .build();
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
@@ -84,12 +85,12 @@ class ApiModelFactoryTest {
     @Test
     void fromApiExport_should_keep_true_when_allowedInApiProducts_true_in_export() {
         ApiExport apiExport = ApiExport.builder()
-            .name("my-api")
-            .apiVersion("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .allowedInApiProducts(true)
-            .build();
+                .name("my-api")
+                .apiVersion("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .allowedInApiProducts(true)
+                .build();
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
@@ -100,12 +101,12 @@ class ApiModelFactoryTest {
     @Test
     void fromApiExport_should_keep_false_when_allowedInApiProducts_false_in_export() {
         ApiExport apiExport = ApiExport.builder()
-            .name("my-api")
-            .apiVersion("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .allowedInApiProducts(false)
-            .build();
+                .name("my-api")
+                .apiVersion("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .allowedInApiProducts(false)
+                .build();
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
@@ -117,11 +118,11 @@ class ApiModelFactoryTest {
     void fromApiExport_should_not_set_allowedInApiProducts_for_non_proxy_http_types() {
         // Given a V4 HTTP API of type MESSAGE
         ApiExport apiExport = ApiExport.builder()
-            .name("my-api")
-            .apiVersion("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.MESSAGE)
-            .build();
+                .name("my-api")
+                .apiVersion("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.MESSAGE)
+                .build();
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
@@ -135,11 +136,11 @@ class ApiModelFactoryTest {
     void fromApiExport_should_not_set_allowedInApiProducts_when_definition_version_is_not_v4() {
         // Given a non‑V4 PROXY API export
         ApiExport apiExport = ApiExport.builder()
-            .name("my-api")
-            .apiVersion("1.0.0")
-            .definitionVersion(DefinitionVersion.V2)
-            .type(ApiType.PROXY)
-            .build();
+                .name("my-api")
+                .apiVersion("1.0.0")
+                .definitionVersion(DefinitionVersion.V2)
+                .type(ApiType.PROXY)
+                .build();
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
@@ -163,7 +164,9 @@ class ApiModelFactoryTest {
         var flowExecution = new FlowExecution();
         flowExecution.setMode(FlowMode.BEST_MATCH);
         flowExecution.setMatchRequired(true);
-        var crd = minimalProxyCrd(true, true).toBuilder().flowExecution(flowExecution).build();
+        var crd = minimalProxyCrd(true, true).toBuilder()
+                .flowExecution(flowExecution)
+                .build();
 
         Api api = ApiModelFactory.fromCrd(crd, ENVIRONMENT_ID);
 
@@ -181,36 +184,38 @@ class ApiModelFactoryTest {
 
     private static ApiCRDSpec minimalProxyCrd(boolean allowedInApiProducts, boolean allowMultiJwtOauth2Subscriptions) {
         return ApiCRDSpec.builder()
-            .id("api-id")
-            .name("api")
-            .version("1.0.0")
-            .type("PROXY")
-            .lifecycleState("CREATED")
-            .state("STARTED")
-            .visibility("PRIVATE")
-            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
-            .listeners(
-                List.of(
-                    HttpListener.builder()
+                .id("api-id")
+                .name("api")
+                .version("1.0.0")
+                .type("PROXY")
+                .lifecycleState("CREATED")
+                .state("STARTED")
+                .visibility("PRIVATE")
+                .definitionContext(DefinitionContext.builder()
+                        .origin("KUBERNETES")
+                        .syncFrom("KUBERNETES")
+                        .build())
+                .listeners(List.of(HttpListener.builder()
                         .paths(List.of(Path.builder().path("/").build()))
-                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                        .build()
-                )
-            )
-            .endpointGroups(
-                List.of(
-                    EndpointGroup.builder()
+                        .entrypoints(List.of(Entrypoint.builder()
+                                .type("http-proxy")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .endpointGroups(List.of(EndpointGroup.builder()
                         .name("default")
                         .type("http-proxy")
-                        .endpoints(List.of(Endpoint.builder().name("default").type("http-proxy").configuration("{}").build()))
-                        .build()
-                )
-            )
-            .properties(List.of())
-            .flows(List.of())
-            .plans(Map.of())
-            .allowedInApiProducts(allowedInApiProducts)
-            .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions)
-            .build();
+                        .endpoints(List.of(Endpoint.builder()
+                                .name("default")
+                                .type("http-proxy")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .properties(List.of())
+                .flows(List.of())
+                .plans(Map.of())
+                .allowedInApiProducts(allowedInApiProducts)
+                .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions)
+                .build();
     }
 }

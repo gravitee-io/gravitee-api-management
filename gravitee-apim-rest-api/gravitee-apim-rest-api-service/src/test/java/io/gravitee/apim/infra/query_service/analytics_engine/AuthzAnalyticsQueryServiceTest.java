@@ -33,14 +33,14 @@ class AuthzAnalyticsQueryServiceTest {
 
     @Test
     void should_declare_every_authz_metric() {
-        assertThat(service.metrics()).containsExactlyInAnyOrder(
-            MetricSpec.Name.AUTHZ_DECISIONS,
-            MetricSpec.Name.AUTHZ_PERMITS,
-            MetricSpec.Name.AUTHZ_FORBIDS,
-            MetricSpec.Name.AUTHZ_NOT_APPLICABLE,
-            MetricSpec.Name.AUTHZ_FAILURES,
-            MetricSpec.Name.AUTHZ_EVAL_DURATION
-        );
+        assertThat(service.metrics())
+                .containsExactlyInAnyOrder(
+                        MetricSpec.Name.AUTHZ_DECISIONS,
+                        MetricSpec.Name.AUTHZ_PERMITS,
+                        MetricSpec.Name.AUTHZ_FORBIDS,
+                        MetricSpec.Name.AUTHZ_NOT_APPLICABLE,
+                        MetricSpec.Name.AUTHZ_FAILURES,
+                        MetricSpec.Name.AUTHZ_EVAL_DURATION);
     }
 
     @Test
@@ -75,12 +75,12 @@ class AuthzAnalyticsQueryServiceTest {
 
     @Test
     void should_not_claim_a_metric_from_another_domain() {
-        var foreign = service
-            .metrics()
-            .stream()
-            .filter(name -> !name.name().startsWith("AUTHZ_"))
-            .toList();
+        var foreign = service.metrics().stream()
+                .filter(name -> !name.name().startsWith("AUTHZ_"))
+                .toList();
 
-        assertThat(foreign).as("claiming a non-authz metric would steal it from its own query service").isEmpty();
+        assertThat(foreign)
+                .as("claiming a non-authz metric would steal it from its own query service")
+                .isEmpty();
     }
 }

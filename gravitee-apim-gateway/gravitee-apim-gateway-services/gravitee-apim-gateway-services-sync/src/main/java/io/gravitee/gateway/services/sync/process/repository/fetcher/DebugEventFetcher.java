@@ -40,13 +40,13 @@ public class DebugEventFetcher {
     public Flowable<List<Event>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         return Flowable.generate(emitter -> {
             EventCriteria eventCriteria = EventCriteria.builder()
-                .type(EventType.DEBUG_API)
-                .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
-                .property(Event.EventProperties.GATEWAY_ID.getValue(), node.id())
-                .from(from == null ? 0 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-                .to(to == null ? 0 : to + DefaultSyncManager.TIMEFRAME_DELAY)
-                .environments(environments)
-                .build();
+                    .type(EventType.DEBUG_API)
+                    .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
+                    .property(Event.EventProperties.GATEWAY_ID.getValue(), node.id())
+                    .from(from == null ? 0 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+                    .to(to == null ? 0 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                    .environments(environments)
+                    .build();
             try {
                 List<Event> events = eventRepository.search(eventCriteria);
                 if (events != null && !events.isEmpty()) {

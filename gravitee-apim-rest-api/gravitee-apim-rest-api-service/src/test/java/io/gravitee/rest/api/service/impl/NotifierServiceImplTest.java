@@ -96,16 +96,15 @@ class NotifierServiceImplTest {
     @BeforeEach
     void setUp() {
         cut = new NotifierServiceImpl(
-            notifierManager,
-            portalNotificationConfigRepository,
-            portalNotificationService,
-            genericNotificationConfigRepository,
-            emailNotifierService,
-            webhookNotifierService,
-            emailRecipientsService,
-            parameterService,
-            membershipService
-        );
+                notifierManager,
+                portalNotificationConfigRepository,
+                portalNotificationService,
+                genericNotificationConfigRepository,
+                emailNotifierService,
+                webhookNotifierService,
+                emailRecipientsService,
+                parameterService,
+                membershipService);
     }
 
     @Nested
@@ -117,41 +116,35 @@ class NotifierServiceImplTest {
             final Map<String, Object> params = Map.of();
             final ExecutionContext executionContext = new ExecutionContext();
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    ApiHook.API_STARTED.name(),
-                    NotificationReferenceType.API,
-                    "api-id"
-                )
-            ).thenReturn(
-                List.of(
-                    GenericNotificationConfig.builder()
-                        .notifier("default-email")
-                        .id(DEFAULT_EMAIL_NOTIFIER_ID)
-                        .config("${(api.primaryOwner.email)!''};second.mail@gio.test")
-                        .build()
-                )
-            );
-            when(
-                emailRecipientsService.processTemplatedRecipients(List.of("${(api.primaryOwner.email)!''};second.mail@gio.test"), params)
-            ).thenReturn(Set.of("recipient@gio.test", "second.mail@gio.test"));
-            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(false);
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            ApiHook.API_STARTED.name(), NotificationReferenceType.API, "api-id"))
+                    .thenReturn(List.of(GenericNotificationConfig.builder()
+                            .notifier("default-email")
+                            .id(DEFAULT_EMAIL_NOTIFIER_ID)
+                            .config("${(api.primaryOwner.email)!''};second.mail@gio.test")
+                            .build()));
+            when(emailRecipientsService.processTemplatedRecipients(
+                            List.of("${(api.primaryOwner.email)!''};second.mail@gio.test"), params))
+                    .thenReturn(Set.of("recipient@gio.test", "second.mail@gio.test"));
+            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM))
+                    .thenReturn(false);
 
             cut.triggerGenericNotifications(
-                executionContext,
-                NotifierServiceImpl.TriggerNotificationsData.builder()
-                    .hook(ApiHook.API_STARTED)
-                    .referenceType(NotificationReferenceType.API)
-                    .referenceId("api-id")
-                    .params(params)
-                    .recipients(List.of())
-                    .build()
-            );
+                    executionContext,
+                    NotifierServiceImpl.TriggerNotificationsData.builder()
+                            .hook(ApiHook.API_STARTED)
+                            .referenceType(NotificationReferenceType.API)
+                            .referenceId("api-id")
+                            .params(params)
+                            .recipients(List.of())
+                            .build());
 
             verify(emailRecipientsService, never()).filterRegisteredUser(any(), any());
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
-            verify(emailNotifierService).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(params), recipientsCaptor.capture());
-            assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("recipient@gio.test", "second.mail@gio.test");
+            verify(emailNotifierService)
+                    .trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(params), recipientsCaptor.capture());
+            assertThat(recipientsCaptor.getValue())
+                    .containsExactlyInAnyOrder("recipient@gio.test", "second.mail@gio.test");
         }
 
         @Test
@@ -160,48 +153,35 @@ class NotifierServiceImplTest {
             final Map<String, Object> params = Map.of();
             final ExecutionContext executionContext = new ExecutionContext();
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    ApiHook.API_STARTED.name(),
-                    NotificationReferenceType.API,
-                    "api-id"
-                )
-            ).thenReturn(
-                List.of(
-                    GenericNotificationConfig.builder()
-                        .notifier("default-email")
-                        .id(DEFAULT_EMAIL_NOTIFIER_ID)
-                        .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
-                        .build()
-                )
-            );
-            when(
-                emailRecipientsService.processTemplatedRecipients(
-                    List.of("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test"),
-                    params
-                )
-            ).thenReturn(Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test"));
-            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(true);
-            when(
-                emailRecipientsService.filterRegisteredUser(
-                    executionContext,
-                    Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test")
-                )
-            ).thenReturn(Set.of("recipient@gio.test"));
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            ApiHook.API_STARTED.name(), NotificationReferenceType.API, "api-id"))
+                    .thenReturn(List.of(GenericNotificationConfig.builder()
+                            .notifier("default-email")
+                            .id(DEFAULT_EMAIL_NOTIFIER_ID)
+                            .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
+                            .build()));
+            when(emailRecipientsService.processTemplatedRecipients(
+                            List.of("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test"), params))
+                    .thenReturn(Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test"));
+            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM))
+                    .thenReturn(true);
+            when(emailRecipientsService.filterRegisteredUser(
+                            executionContext, Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test")))
+                    .thenReturn(Set.of("recipient@gio.test"));
 
             cut.triggerGenericNotifications(
-                executionContext,
-                NotifierServiceImpl.TriggerNotificationsData.builder()
-                    .hook(ApiHook.API_STARTED)
-                    .referenceType(NotificationReferenceType.API)
-                    .referenceId("api-id")
-                    .params(params)
-                    .recipients(List.of())
-                    .build()
-            );
+                    executionContext,
+                    NotifierServiceImpl.TriggerNotificationsData.builder()
+                            .hook(ApiHook.API_STARTED)
+                            .referenceType(NotificationReferenceType.API)
+                            .referenceId("api-id")
+                            .params(params)
+                            .recipients(List.of())
+                            .build());
 
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
-            verify(emailNotifierService).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(params), recipientsCaptor.capture());
+            verify(emailNotifierService)
+                    .trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(params), recipientsCaptor.capture());
             assertThat(recipientsCaptor.getValue()).containsExactly("recipient@gio.test");
         }
 
@@ -211,51 +191,45 @@ class NotifierServiceImplTest {
             final Map<String, Object> params = Map.of();
             final ExecutionContext executionContext = new ExecutionContext();
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    ApiHook.API_STARTED.name(),
-                    NotificationReferenceType.API,
-                    "api-id"
-                )
-            ).thenReturn(
-                List.of(
-                    GenericNotificationConfig.builder()
-                        .notifier("default-email")
-                        .id(DEFAULT_EMAIL_NOTIFIER_ID)
-                        .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
-                        .build()
-                )
-            );
-            when(
-                emailRecipientsService.processTemplatedRecipients(
-                    argThat(a ->
-                        a.containsAll(List.of("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test", "additional@gio.test"))
-                    ),
-                    eq(params)
-                )
-            ).thenReturn(Set.of("additional@gio.test", "recipient@gio.test", "second.mail-not-opted-in@gio.test"));
-            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(true);
-            when(
-                emailRecipientsService.filterRegisteredUser(
-                    eq(executionContext),
-                    argThat(a -> a.containsAll(List.of("recipient@gio.test", "additional@gio.test", "second.mail-not-opted-in@gio.test")))
-                )
-            ).thenReturn(Set.of("additional@gio.test", "recipient@gio.test"));
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            ApiHook.API_STARTED.name(), NotificationReferenceType.API, "api-id"))
+                    .thenReturn(List.of(GenericNotificationConfig.builder()
+                            .notifier("default-email")
+                            .id(DEFAULT_EMAIL_NOTIFIER_ID)
+                            .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
+                            .build()));
+            when(emailRecipientsService.processTemplatedRecipients(
+                            argThat(a -> a.containsAll(List.of(
+                                    "${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test",
+                                    "additional@gio.test"))),
+                            eq(params)))
+                    .thenReturn(
+                            Set.of("additional@gio.test", "recipient@gio.test", "second.mail-not-opted-in@gio.test"));
+            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM))
+                    .thenReturn(true);
+            when(emailRecipientsService.filterRegisteredUser(
+                            eq(executionContext),
+                            argThat(a -> a.containsAll(List.of(
+                                    "recipient@gio.test",
+                                    "additional@gio.test",
+                                    "second.mail-not-opted-in@gio.test")))))
+                    .thenReturn(Set.of("additional@gio.test", "recipient@gio.test"));
 
             cut.triggerGenericNotifications(
-                executionContext,
-                NotifierServiceImpl.TriggerNotificationsData.builder()
-                    .hook(ApiHook.API_STARTED)
-                    .referenceType(NotificationReferenceType.API)
-                    .referenceId("api-id")
-                    .params(params)
-                    .recipients(List.of(new Recipient("default-email", "additional@gio.test")))
-                    .build()
-            );
+                    executionContext,
+                    NotifierServiceImpl.TriggerNotificationsData.builder()
+                            .hook(ApiHook.API_STARTED)
+                            .referenceType(NotificationReferenceType.API)
+                            .referenceId("api-id")
+                            .params(params)
+                            .recipients(List.of(new Recipient("default-email", "additional@gio.test")))
+                            .build());
 
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
-            verify(emailNotifierService).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(params), recipientsCaptor.capture());
-            assertThat(recipientsCaptor.getValue()).containsExactlyInAnyOrder("additional@gio.test", "recipient@gio.test");
+            verify(emailNotifierService)
+                    .trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(params), recipientsCaptor.capture());
+            assertThat(recipientsCaptor.getValue())
+                    .containsExactlyInAnyOrder("additional@gio.test", "recipient@gio.test");
         }
 
         @Test
@@ -264,24 +238,19 @@ class NotifierServiceImplTest {
             final Map<String, Object> params = Map.of();
             final ExecutionContext executionContext = new ExecutionContext();
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    ApiHook.API_STARTED.name(),
-                    NotificationReferenceType.API,
-                    "api-id"
-                )
-            ).thenReturn(Collections.emptyList());
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            ApiHook.API_STARTED.name(), NotificationReferenceType.API, "api-id"))
+                    .thenReturn(Collections.emptyList());
 
             cut.triggerGenericNotifications(
-                executionContext,
-                NotifierServiceImpl.TriggerNotificationsData.builder()
-                    .hook(ApiHook.API_STARTED)
-                    .referenceType(NotificationReferenceType.API)
-                    .referenceId("api-id")
-                    .params(params)
-                    .recipients(List.of())
-                    .build()
-            );
+                    executionContext,
+                    NotifierServiceImpl.TriggerNotificationsData.builder()
+                            .hook(ApiHook.API_STARTED)
+                            .referenceType(NotificationReferenceType.API)
+                            .referenceId("api-id")
+                            .params(params)
+                            .recipients(List.of())
+                            .build());
 
             verifyNoInteractions(emailNotifierService);
             verifyNoInteractions(webhookNotifierService);
@@ -298,41 +267,36 @@ class NotifierServiceImplTest {
             final ExecutionContext executionContext = new ExecutionContext();
 
             GenericNotificationConfig webhookConfig = GenericNotificationConfig.builder()
-                .notifier("default-webhook")
-                .id("wh-1")
-                .config("{\"url\":\"https://hooks.example.com/notify\"}")
-                .build();
+                    .notifier("default-webhook")
+                    .id("wh-1")
+                    .config("{\"url\":\"https://hooks.example.com/notify\"}")
+                    .build();
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    ApiHook.API_STARTED.name(),
-                    NotificationReferenceType.API,
-                    "api-id"
-                )
-            ).thenReturn(List.of(webhookConfig));
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            ApiHook.API_STARTED.name(), NotificationReferenceType.API, "api-id"))
+                    .thenReturn(List.of(webhookConfig));
 
-            when(emailRecipientsService.processTemplatedRecipients(eq(Collections.emptyList()), eq(params))).thenReturn(
-                Collections.emptySet()
-            );
-            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(false);
+            when(emailRecipientsService.processTemplatedRecipients(eq(Collections.emptyList()), eq(params)))
+                    .thenReturn(Collections.emptySet());
+            when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM))
+                    .thenReturn(false);
 
             cut.triggerGenericNotifications(
-                executionContext,
-                NotifierServiceImpl.TriggerNotificationsData.builder()
-                    .hook(ApiHook.API_STARTED)
-                    .referenceType(NotificationReferenceType.API)
-                    .referenceId("api-id")
-                    .params(params)
-                    .build()
-            );
+                    executionContext,
+                    NotifierServiceImpl.TriggerNotificationsData.builder()
+                            .hook(ApiHook.API_STARTED)
+                            .referenceType(NotificationReferenceType.API)
+                            .referenceId("api-id")
+                            .params(params)
+                            .build());
 
             verify(webhookNotifierService).trigger(eq(ApiHook.API_STARTED), eq(webhookConfig), eq(params));
-            verify(emailNotifierService).trigger(
-                eq(executionContext),
-                eq(ApiHook.API_STARTED),
-                eq(params),
-                argThat(c -> c != null && c.isEmpty())
-            );
+            verify(emailNotifierService)
+                    .trigger(
+                            eq(executionContext),
+                            eq(ApiHook.API_STARTED),
+                            eq(params),
+                            argThat(c -> c != null && c.isEmpty()));
         }
     }
 
@@ -346,35 +310,27 @@ class NotifierServiceImplTest {
             final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
 
             PortalNotificationConfig portalCfg = PortalNotificationConfig.builder()
-                .user("user-direct")
-                .referenceType(NotificationReferenceType.ENVIRONMENT)
-                .referenceId("env-1")
-                .build();
+                    .user("user-direct")
+                    .referenceType(NotificationReferenceType.ENVIRONMENT)
+                    .referenceId("env-1")
+                    .build();
 
-            when(
-                portalNotificationConfigRepository.findByReferenceAndHook(
-                    PortalHook.GROUP_INVITATION.name(),
-                    NotificationReferenceType.ENVIRONMENT,
-                    "env-1"
-                )
-            ).thenReturn(List.of(portalCfg));
+            when(portalNotificationConfigRepository.findByReferenceAndHook(
+                            PortalHook.GROUP_INVITATION.name(), NotificationReferenceType.ENVIRONMENT, "env-1"))
+                    .thenReturn(List.of(portalCfg));
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    PortalHook.GROUP_INVITATION.name(),
-                    NotificationReferenceType.ENVIRONMENT,
-                    "env-1"
-                )
-            ).thenReturn(Collections.emptyList());
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            PortalHook.GROUP_INVITATION.name(), NotificationReferenceType.ENVIRONMENT, "env-1"))
+                    .thenReturn(Collections.emptyList());
 
             cut.trigger(executionContext, PortalHook.GROUP_INVITATION, params);
 
-            verify(portalNotificationService).create(
-                eq(executionContext),
-                eq(PortalHook.GROUP_INVITATION),
-                argThat(users -> users.equals(List.of("user-direct"))),
-                eq(params)
-            );
+            verify(portalNotificationService)
+                    .create(
+                            eq(executionContext),
+                            eq(PortalHook.GROUP_INVITATION),
+                            argThat(users -> users.equals(List.of("user-direct"))),
+                            eq(params));
         }
 
         @Test
@@ -383,24 +339,25 @@ class NotifierServiceImplTest {
             final Map<String, Object> params = Map.of();
             final ExecutionContext executionContext = new ExecutionContext("org-1");
 
-            PortalNotificationConfig portalCfg = PortalNotificationConfig.builder().user("org-user").build();
+            PortalNotificationConfig portalCfg =
+                    PortalNotificationConfig.builder().user("org-user").build();
 
-            when(portalNotificationConfigRepository.findByHookAndOrganizationId(PortalHook.USER_REGISTERED.name(), "org-1")).thenReturn(
-                List.of(portalCfg)
-            );
+            when(portalNotificationConfigRepository.findByHookAndOrganizationId(
+                            PortalHook.USER_REGISTERED.name(), "org-1"))
+                    .thenReturn(List.of(portalCfg));
 
-            when(genericNotificationConfigRepository.findByHookAndOrganizationId(PortalHook.USER_REGISTERED.name(), "org-1")).thenReturn(
-                Collections.emptyList()
-            );
+            when(genericNotificationConfigRepository.findByHookAndOrganizationId(
+                            PortalHook.USER_REGISTERED.name(), "org-1"))
+                    .thenReturn(Collections.emptyList());
 
             cut.trigger(executionContext, PortalHook.USER_REGISTERED, params);
 
-            verify(portalNotificationService).create(
-                eq(executionContext),
-                eq(PortalHook.USER_REGISTERED),
-                argThat(users -> users.equals(List.of("org-user"))),
-                eq(params)
-            );
+            verify(portalNotificationService)
+                    .create(
+                            eq(executionContext),
+                            eq(PortalHook.USER_REGISTERED),
+                            argThat(users -> users.equals(List.of("org-user"))),
+                            eq(params));
         }
 
         @Test
@@ -410,42 +367,34 @@ class NotifierServiceImplTest {
             final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
 
             PortalNotificationConfig portalCfg = PortalNotificationConfig.builder()
-                .user("user-direct")
-                .groups(Set.of("group-a"))
-                .referenceType(NotificationReferenceType.ENVIRONMENT)
-                .referenceId("env-1")
-                .build();
+                    .user("user-direct")
+                    .groups(Set.of("group-a"))
+                    .referenceType(NotificationReferenceType.ENVIRONMENT)
+                    .referenceId("env-1")
+                    .build();
 
-            when(
-                portalNotificationConfigRepository.findByReferenceAndHook(
-                    PortalHook.GROUP_INVITATION.name(),
-                    NotificationReferenceType.ENVIRONMENT,
-                    "env-1"
-                )
-            ).thenReturn(List.of(portalCfg));
+            when(portalNotificationConfigRepository.findByReferenceAndHook(
+                            PortalHook.GROUP_INVITATION.name(), NotificationReferenceType.ENVIRONMENT, "env-1"))
+                    .thenReturn(List.of(portalCfg));
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    PortalHook.GROUP_INVITATION.name(),
-                    NotificationReferenceType.ENVIRONMENT,
-                    "env-1"
-                )
-            ).thenReturn(Collections.emptyList());
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            PortalHook.GROUP_INVITATION.name(), NotificationReferenceType.ENVIRONMENT, "env-1"))
+                    .thenReturn(Collections.emptyList());
 
             MemberEntity fromGroup = new MemberEntity();
             fromGroup.setId("user-from-group");
-            when(
-                membershipService.getMembersByReferencesAndRole(executionContext, MembershipReferenceType.GROUP, List.of("group-a"), null)
-            ).thenReturn(Set.of(fromGroup));
+            when(membershipService.getMembersByReferencesAndRole(
+                            executionContext, MembershipReferenceType.GROUP, List.of("group-a"), null))
+                    .thenReturn(Set.of(fromGroup));
 
             cut.trigger(executionContext, PortalHook.GROUP_INVITATION, params);
 
-            verify(portalNotificationService).create(
-                eq(executionContext),
-                eq(PortalHook.GROUP_INVITATION),
-                argThat(users -> new HashSet<>(users).equals(Set.of("user-direct", "user-from-group"))),
-                eq(params)
-            );
+            verify(portalNotificationService)
+                    .create(
+                            eq(executionContext),
+                            eq(PortalHook.GROUP_INVITATION),
+                            argThat(users -> new HashSet<>(users).equals(Set.of("user-direct", "user-from-group"))),
+                            eq(params));
         }
     }
 
@@ -458,34 +407,23 @@ class NotifierServiceImplTest {
             final Map<String, Object> params = Map.of();
             final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
 
-            when(
-                portalNotificationConfigRepository.findByReferenceAndHook(
-                    ApiHook.API_UPDATED.name(),
-                    NotificationReferenceType.API_PRODUCT,
-                    "product-1"
-                )
-            ).thenReturn(Collections.emptyList());
+            when(portalNotificationConfigRepository.findByReferenceAndHook(
+                            ApiHook.API_UPDATED.name(), NotificationReferenceType.API_PRODUCT, "product-1"))
+                    .thenReturn(Collections.emptyList());
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    ApiHook.API_UPDATED.name(),
-                    NotificationReferenceType.API_PRODUCT,
-                    "product-1"
-                )
-            ).thenReturn(Collections.emptyList());
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            ApiHook.API_UPDATED.name(), NotificationReferenceType.API_PRODUCT, "product-1"))
+                    .thenReturn(Collections.emptyList());
 
-            cut.trigger(executionContext, ApiHook.API_UPDATED, NotificationReferenceType.API_PRODUCT, "product-1", params);
+            cut.trigger(
+                    executionContext, ApiHook.API_UPDATED, NotificationReferenceType.API_PRODUCT, "product-1", params);
 
-            verify(genericNotificationConfigRepository).findByReferenceAndHook(
-                ApiHook.API_UPDATED.name(),
-                NotificationReferenceType.API_PRODUCT,
-                "product-1"
-            );
-            verify(portalNotificationConfigRepository).findByReferenceAndHook(
-                ApiHook.API_UPDATED.name(),
-                NotificationReferenceType.API_PRODUCT,
-                "product-1"
-            );
+            verify(genericNotificationConfigRepository)
+                    .findByReferenceAndHook(
+                            ApiHook.API_UPDATED.name(), NotificationReferenceType.API_PRODUCT, "product-1");
+            verify(portalNotificationConfigRepository)
+                    .findByReferenceAndHook(
+                            ApiHook.API_UPDATED.name(), NotificationReferenceType.API_PRODUCT, "product-1");
         }
     }
 
@@ -498,34 +436,30 @@ class NotifierServiceImplTest {
             final Map<String, Object> params = Map.of();
             final ExecutionContext executionContext = new ExecutionContext("org-1", "env-1");
 
-            when(
-                portalNotificationConfigRepository.findByReferenceAndHook(
-                    ApiProductHook.API_PRODUCT_UPDATED.name(),
-                    NotificationReferenceType.API_PRODUCT,
-                    "product-1"
-                )
-            ).thenReturn(Collections.emptyList());
+            when(portalNotificationConfigRepository.findByReferenceAndHook(
+                            ApiProductHook.API_PRODUCT_UPDATED.name(),
+                            NotificationReferenceType.API_PRODUCT,
+                            "product-1"))
+                    .thenReturn(Collections.emptyList());
 
-            when(
-                genericNotificationConfigRepository.findByReferenceAndHook(
-                    ApiProductHook.API_PRODUCT_UPDATED.name(),
-                    NotificationReferenceType.API_PRODUCT,
-                    "product-1"
-                )
-            ).thenReturn(Collections.emptyList());
+            when(genericNotificationConfigRepository.findByReferenceAndHook(
+                            ApiProductHook.API_PRODUCT_UPDATED.name(),
+                            NotificationReferenceType.API_PRODUCT,
+                            "product-1"))
+                    .thenReturn(Collections.emptyList());
 
             cut.trigger(executionContext, ApiProductHook.API_PRODUCT_UPDATED, "product-1", params);
 
-            verify(genericNotificationConfigRepository).findByReferenceAndHook(
-                ApiProductHook.API_PRODUCT_UPDATED.name(),
-                NotificationReferenceType.API_PRODUCT,
-                "product-1"
-            );
-            verify(portalNotificationConfigRepository).findByReferenceAndHook(
-                ApiProductHook.API_PRODUCT_UPDATED.name(),
-                NotificationReferenceType.API_PRODUCT,
-                "product-1"
-            );
+            verify(genericNotificationConfigRepository)
+                    .findByReferenceAndHook(
+                            ApiProductHook.API_PRODUCT_UPDATED.name(),
+                            NotificationReferenceType.API_PRODUCT,
+                            "product-1");
+            verify(portalNotificationConfigRepository)
+                    .findByReferenceAndHook(
+                            ApiProductHook.API_PRODUCT_UPDATED.name(),
+                            NotificationReferenceType.API_PRODUCT,
+                            "product-1");
         }
     }
 }

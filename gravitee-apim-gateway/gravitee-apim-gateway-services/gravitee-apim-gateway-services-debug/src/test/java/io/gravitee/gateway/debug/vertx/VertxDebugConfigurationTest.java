@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
@@ -40,7 +39,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class VertxDebugConfigurationTest {
@@ -151,25 +150,27 @@ class VertxDebugConfigurationTest {
     @Test
     void should_create_debug_client_configuration_from_debug_server_options_and_default_timeouts() {
         final VertxHttpServerOptions debugServerOptions = VertxHttpServerOptions.builder()
-            .port(1234)
-            .host("somewhere.com")
-            .secured(true)
-            .openssl(true)
-            .compressionSupported(true)
-            .alpn(true)
-            .build();
+                .port(1234)
+                .host("somewhere.com")
+                .secured(true)
+                .openssl(true)
+                .compressionSupported(true)
+                .alpn(true)
+                .build();
 
         final VertxHttpServer debugServer = mock(VertxHttpServer.class);
         when(debugServer.options()).thenReturn(debugServerOptions);
 
-        final VertxDebugHttpClientConfiguration debugClientConfiguration = cut.debugHttpClientConfiguration(debugServer, environment);
+        final VertxDebugHttpClientConfiguration debugClientConfiguration =
+                cut.debugHttpClientConfiguration(debugServer, environment);
 
         assertThat(debugClientConfiguration).isNotNull();
         assertThat(debugClientConfiguration.getPort()).isEqualTo(debugServerOptions.getPort());
         assertThat(debugClientConfiguration.getHost()).isEqualTo(debugServerOptions.getHost());
         assertThat(debugClientConfiguration.isSecured()).isEqualTo(debugServerOptions.isSecured());
         assertThat(debugClientConfiguration.isOpenssl()).isEqualTo(debugServerOptions.isOpenssl());
-        assertThat(debugClientConfiguration.isCompressionSupported()).isEqualTo(debugServerOptions.isCompressionSupported());
+        assertThat(debugClientConfiguration.isCompressionSupported())
+                .isEqualTo(debugServerOptions.isCompressionSupported());
         assertThat(debugClientConfiguration.isAlpn()).isEqualTo(debugServerOptions.isAlpn());
         assertThat(debugClientConfiguration.getConnectTimeout()).isEqualTo(5000);
         assertThat(debugClientConfiguration.getRequestTimeout()).isEqualTo(30000);
@@ -183,7 +184,8 @@ class VertxDebugConfigurationTest {
         final VertxHttpServer debugServer = mock(VertxHttpServer.class);
         when(debugServer.options()).thenReturn(VertxHttpServerOptions.builder().build());
 
-        final VertxDebugHttpClientConfiguration debugClientConfiguration = cut.debugHttpClientConfiguration(debugServer, environment);
+        final VertxDebugHttpClientConfiguration debugClientConfiguration =
+                cut.debugHttpClientConfiguration(debugServer, environment);
 
         assertThat(debugClientConfiguration).isNotNull();
         assertThat(debugClientConfiguration.getConnectTimeout()).isEqualTo(1234);
@@ -198,7 +200,8 @@ class VertxDebugConfigurationTest {
         final VertxHttpServer debugServer = mock(VertxHttpServer.class);
         when(debugServer.options()).thenReturn(VertxHttpServerOptions.builder().build());
 
-        final VertxDebugHttpClientConfiguration debugClientConfiguration = cut.debugHttpClientConfiguration(debugServer, environment);
+        final VertxDebugHttpClientConfiguration debugClientConfiguration =
+                cut.debugHttpClientConfiguration(debugServer, environment);
 
         assertThat(debugClientConfiguration).isNotNull();
         assertThat(debugClientConfiguration.getConnectTimeout()).isEqualTo(MAX_CONNECTION_TIMEOUT);

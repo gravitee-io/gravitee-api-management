@@ -70,8 +70,8 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
             final String template = generateIndexTemplate(type);
 
             final Completable templateCreationCompletable = useOldClient(dataStream)
-                ? client.putTemplate(templateName, template)
-                : client.putIndexTemplate(templateName, template);
+                    ? client.putTemplate(templateName, template)
+                    : client.putIndexTemplate(templateName, template);
 
             if (configuration.isIlmManagedIndex() && !dataStream) {
                 return templateCreationCompletable.andThen(ensureAlias(aliasName));
@@ -84,7 +84,8 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         String pipelineTemplate = pipelineConfiguration.createPipeline();
 
         if (pipelineTemplate != null && pipelineConfiguration.getPipelineName() != null) {
-            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate).doOnComplete(pipelineConfiguration::valid);
+            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
+                    .doOnComplete(pipelineConfiguration::valid);
         }
 
         return Completable.complete();
@@ -95,7 +96,8 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         Map<String, Object> data = getTemplateData();
         data.put("indexName", configuration.getIndexName() + '-' + typeName);
 
-        return freeMarkerComponent.generateFromTemplate(templatePathPrefix + TEMPLATE_PATH + typeName + FTL_EXTENSION, data);
+        return freeMarkerComponent.generateFromTemplate(
+                templatePathPrefix + TEMPLATE_PATH + typeName + FTL_EXTENSION, data);
     }
 
     protected Map<String, Object> getTemplateData() {
@@ -107,7 +109,9 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         data.put("refreshInterval", this.configuration.getRefreshInterval());
         data.put("indexBody", this.configuration.isIndexBody());
         data.put("indexLifecyclePolicyPropertyName", this.configuration.getIndexLifecyclePolicyPropertyName());
-        data.put("indexLifecycleRolloverAliasPropertyName", this.configuration.getIndexLifecycleRolloverAliasPropertyName());
+        data.put(
+                "indexLifecycleRolloverAliasPropertyName",
+                this.configuration.getIndexLifecycleRolloverAliasPropertyName());
         data.put("indexLifecyclePolicyHealth", this.configuration.getIndexLifecyclePolicyHealth());
         data.put("indexLifecyclePolicyMonitor", this.configuration.getIndexLifecyclePolicyMonitor());
         data.put("indexLifecyclePolicyRequest", this.configuration.getIndexLifecyclePolicyRequest());
@@ -121,14 +125,12 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
 
     protected Completable ensureAlias(String aliasName) {
         final String aliasTemplate = freeMarkerComponent.generateFromTemplate(
-            "/common/alias/alias.ftl",
-            Collections.singletonMap("aliasName", aliasName)
-        );
+                "/common/alias/alias.ftl", Collections.singletonMap("aliasName", aliasName));
 
-        return client
-            .getAlias(aliasName)
-            .switchIfEmpty(client.createIndexWithAlias(aliasName + "-000001", aliasTemplate).toMaybe())
-            .ignoreElement();
+        return client.getAlias(aliasName)
+                .switchIfEmpty(client.createIndexWithAlias(aliasName + "-000001", aliasTemplate)
+                        .toMaybe())
+                .ignoreElement();
     }
 
     protected boolean useOldClient(boolean dataStream) {

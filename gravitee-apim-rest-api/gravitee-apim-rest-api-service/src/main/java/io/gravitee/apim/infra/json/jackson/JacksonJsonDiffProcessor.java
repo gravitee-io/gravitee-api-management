@@ -46,7 +46,8 @@ public class JacksonJsonDiffProcessor implements JsonDiffProcessor {
         String newJson = convertToString(object2);
 
         try {
-            return JsonDiff.asJson(mapper.readTree(oldJson), mapper.readTree(newJson)).toString();
+            return JsonDiff.asJson(mapper.readTree(oldJson), mapper.readTree(newJson))
+                    .toString();
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Error while computing JSON diff", e);
         }
@@ -58,11 +59,12 @@ public class JacksonJsonDiffProcessor implements JsonDiffProcessor {
         }
 
         if (obj.getClass().isArray() || obj instanceof Iterable) {
-            return EncryptedPropertyAuditRedaction.redact(mapper.convertValue(obj, ArrayNode.class)).toString();
+            return EncryptedPropertyAuditRedaction.redact(mapper.convertValue(obj, ArrayNode.class))
+                    .toString();
         }
 
         return EncryptedPropertyAuditRedaction.redact(
-            mapper.convertValue(obj, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"))
-        ).toString();
+                        mapper.convertValue(obj, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt")))
+                .toString();
     }
 }

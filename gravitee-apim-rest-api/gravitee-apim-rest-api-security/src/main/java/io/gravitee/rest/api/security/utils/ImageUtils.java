@@ -33,9 +33,11 @@ import javax.imageio.stream.ImageInputStream;
  */
 public final class ImageUtils {
 
-    private static final Pattern DATA_IMAGE_PATTERN = Pattern.compile("data:(image/([a-zA-Z+]*));base64,(.*)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern DATA_IMAGE_PATTERN =
+            Pattern.compile("data:(image/([a-zA-Z+]*));base64,(.*)", Pattern.CASE_INSENSITIVE);
 
-    private static final Set<String> ALLOWED_MIMETYPE = new HashSet<>(Arrays.asList("gif", "jpeg", "webmp", "bmp", "png", "tiff"));
+    private static final Set<String> ALLOWED_MIMETYPE =
+            new HashSet<>(Arrays.asList("gif", "jpeg", "webmp", "bmp", "png", "tiff"));
 
     private static final int IMAGE_MAX_SIZE = 500_000;
     private static final int IMAGE_DEFAULT_WIDTH = 200;
@@ -73,7 +75,8 @@ public final class ImageUtils {
         return verifyAndRescale(picture, IMAGE_MAX_SIZE, IMAGE_DEFAULT_WIDTH, IMAGE_DEFAULT_HEIGHT);
     }
 
-    public static Image verifyAndRescale(String picture, int maxSize, int width, int height) throws InvalidImageException {
+    public static Image verifyAndRescale(String picture, int maxSize, int width, int height)
+            throws InvalidImageException {
         // First check that the image is in a valid format to prevent from XSS attack
         final Image image = decodePicture(picture);
 
@@ -97,7 +100,10 @@ public final class ImageUtils {
             if (matcher.matches()) {
                 if (ALLOWED_MIMETYPE.contains(matcher.group(2).toLowerCase())) {
                     try {
-                        return new Image(matcher.group(2), matcher.group(1), Base64.getDecoder().decode(matcher.group(3)));
+                        return new Image(
+                                matcher.group(2),
+                                matcher.group(1),
+                                Base64.getDecoder().decode(matcher.group(3)));
                     } catch (IllegalArgumentException iae) {
                         throw new InvalidImageException("Image is not a valid base64 format");
                     }
@@ -128,7 +134,8 @@ public final class ImageUtils {
                 reader.setInput(imageInputStream);
                 reader.getNumImages(true);
                 BufferedImage bufferedImage = reader.read(0);
-                java.awt.Image scaledImage = bufferedImage.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+                java.awt.Image scaledImage =
+                        bufferedImage.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
                 BufferedImage bufferedScaledImage = new BufferedImage(width, height, bufferedImage.getType());
 
                 Graphics2D g2 = bufferedScaledImage.createGraphics();

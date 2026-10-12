@@ -18,7 +18,8 @@ package io.gravitee.apim.core.invitation.model;
 import jakarta.annotation.Nonnull;
 import java.util.Objects;
 
-public record InvitationReference(@Nonnull InvitationReferenceType type, @Nonnull String id) {
+public record InvitationReference(
+        @Nonnull InvitationReferenceType type, @Nonnull String id) {
     public InvitationReference {
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(id, "id");

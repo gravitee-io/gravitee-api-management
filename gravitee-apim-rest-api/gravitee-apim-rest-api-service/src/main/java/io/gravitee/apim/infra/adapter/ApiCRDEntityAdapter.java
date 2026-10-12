@@ -39,6 +39,7 @@ public interface ApiCRDEntityAdapter {
     ApiCRDEntityAdapter INSTANCE = Mappers.getMapper(ApiCRDEntityAdapter.class);
 
     MemberCRD map(Member member);
+
     Member map(MemberCRD crd);
 
     @Mapping(target = "configuration", expression = "java(convertToJsonNode(source))")
@@ -48,11 +49,15 @@ public interface ApiCRDEntityAdapter {
     PageCRD.PageSource map(PageSourceEntity source);
 
     PageCRD map(ApiCRDEntity.PageCRD crd);
+
     ApiCRDEntity.PageCRD map(PageCRD crd);
 
     Set<MemberCRD> toMemberCRDs(List<Member> member);
+
     List<Member> toApiCRDMembers(Set<MemberCRD> crd);
+
     Map<String, PageCRD> toCoreApiCRDPages(Map<String, ApiCRDEntity.PageCRD> crd);
+
     Map<String, ApiCRDEntity.PageCRD> toRestApiCRDPages(Map<String, PageCRD> crd);
 
     default JsonNode convertToJsonNode(PageCRD.PageSource source) {

@@ -40,12 +40,11 @@ public interface ApiSearchService {
     ApiEntity findById(ExecutionContext executionContext, String apiId);
 
     GenericApiEntity findGenericById(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final boolean withApiFlows,
-        final boolean withPlans,
-        final boolean withApiCategories
-    );
+            final ExecutionContext executionContext,
+            final String apiId,
+            final boolean withApiFlows,
+            final boolean withPlans,
+            final boolean withApiCategories);
 
     Api findV4RepositoryApiById(ExecutionContext executionContext, String apiId);
 
@@ -62,23 +61,21 @@ public interface ApiSearchService {
     Collection<GenericApiEntity> search(ExecutionContext executionContext, ApiQuery query, boolean excludeDefinitionV4);
 
     Page<GenericApiEntity> search(
-        final ExecutionContext executionContext,
-        final String userId,
-        final boolean isAdmin,
-        final QueryBuilder<ApiEntity> queryBuilder,
-        final Pageable pageable,
-        final boolean mapToFullGenericApiEntity,
-        final boolean manageOnly,
-        final Set<String> expands,
-        final Boolean hasOpenApiDocumentation
-    );
+            final ExecutionContext executionContext,
+            final String userId,
+            final boolean isAdmin,
+            final QueryBuilder<ApiEntity> queryBuilder,
+            final Pageable pageable,
+            final boolean mapToFullGenericApiEntity,
+            final boolean manageOnly,
+            final Set<String> expands,
+            final Boolean hasOpenApiDocumentation);
 
     default Collection<String> searchIds(
-        final ExecutionContext executionContext,
-        final String query,
-        Map<String, Object> filters,
-        final Sortable sortable
-    ) {
+            final ExecutionContext executionContext,
+            final String query,
+            Map<String, Object> filters,
+            final Sortable sortable) {
         return searchIds(executionContext, query, filters, sortable, EnumSet.noneOf(DefinitionVersion.class), false);
     }
 
@@ -86,33 +83,30 @@ public interface ApiSearchService {
      * @param typoTolerance when true, Lucene API search adds programmable fuzzy clauses for eligible tokens (portal setting).
      */
     Collection<String> searchIds(
-        ExecutionContext executionContext,
-        String query,
-        Map<String, Object> filters,
-        Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions,
-        boolean typoTolerance
-    );
+            ExecutionContext executionContext,
+            String query,
+            Map<String, Object> filters,
+            Sortable sortable,
+            Collection<DefinitionVersion> excludeDefinitionVersions,
+            boolean typoTolerance);
 
     default Collection<String> searchIds(
-        ExecutionContext executionContext,
-        String query,
-        Map<String, Object> filters,
-        Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions,
-        boolean typoTolerance,
-        SearchSortStrategy searchSortStrategy
-    ) {
+            ExecutionContext executionContext,
+            String query,
+            Map<String, Object> filters,
+            Sortable sortable,
+            Collection<DefinitionVersion> excludeDefinitionVersions,
+            boolean typoTolerance,
+            SearchSortStrategy searchSortStrategy) {
         return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, typoTolerance);
     }
 
     default Collection<String> searchIds(
-        final ExecutionContext executionContext,
-        final String query,
-        Map<String, Object> filters,
-        final Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions
-    ) {
+            final ExecutionContext executionContext,
+            final String query,
+            Map<String, Object> filters,
+            final Sortable sortable,
+            Collection<DefinitionVersion> excludeDefinitionVersions) {
         return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, false);
     }
 }

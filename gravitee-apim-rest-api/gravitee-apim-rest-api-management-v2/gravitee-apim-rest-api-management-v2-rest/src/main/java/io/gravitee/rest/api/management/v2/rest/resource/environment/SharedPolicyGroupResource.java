@@ -81,68 +81,70 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getSharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
 
         var output = getSharedPolicyGroupUseCase.execute(
-            new GetSharedPolicyGroupUseCase.Input(executionContext.getEnvironmentId(), sharedPolicyGroupId)
-        );
+                new GetSharedPolicyGroupUseCase.Input(executionContext.getEnvironmentId(), sharedPolicyGroupId));
 
         return Response.ok(this.getLocationHeader(output.sharedPolicyGroup().getId()))
-            .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
-            .build();
+                .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
+                .build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateSharedPolicyGroup(@Valid @NotNull final UpdateSharedPolicyGroup updateSharedPolicyGroup) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
-        var output = updateSharedPolicyGroupUseCase.execute(
-            new UpdateSharedPolicyGroupUseCase.Input(
-                sharedPolicyGroupId,
-                SharedPolicyGroupMapper.INSTANCE.map(updateSharedPolicyGroup),
-                audit
-            )
-        );
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
+        var output = updateSharedPolicyGroupUseCase.execute(new UpdateSharedPolicyGroupUseCase.Input(
+                sharedPolicyGroupId, SharedPolicyGroupMapper.INSTANCE.map(updateSharedPolicyGroup), audit));
 
         return Response.ok(this.getLocationHeader(output.sharedPolicyGroup().getId()))
-            .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
-            .build();
+                .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
+                .build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deleteSharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroupId, audit));
 
@@ -152,95 +154,94 @@ public class SharedPolicyGroupResource extends AbstractResource {
     @GET
     @Path("/histories")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.READ})
+    })
     public SharedPolicyGroupHistoriesResponse getSharedPolicyGroupHistories(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("sortBy") String sortBy
-    ) {
+            @BeanParam @Valid PaginationParam paginationParam, @QueryParam("sortBy") String sortBy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var result = searchSharedPolicyGroupHistoryUseCase.execute(
-            new SearchSharedPolicyGroupHistoryUseCase.Input(
-                executionContext.getEnvironmentId(),
-                sharedPolicyGroupId,
-                paginationParam.toPageable(),
-                sortBy
-            )
-        );
+        var result = searchSharedPolicyGroupHistoryUseCase.execute(new SearchSharedPolicyGroupHistoryUseCase.Input(
+                executionContext.getEnvironmentId(), sharedPolicyGroupId, paginationParam.toPageable(), sortBy));
 
         return new SharedPolicyGroupHistoriesResponse()
-            .data(SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent()))
-            .pagination(
-                PaginationInfo.computePaginationInfo(
-                    result.result().getTotalElements(),
-                    result.result().getContent().size(),
-                    paginationParam
-                )
-            )
-            .links(computePaginationLinks(result.result().getTotalElements(), paginationParam));
+                .data(SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent()))
+                .pagination(PaginationInfo.computePaginationInfo(
+                        result.result().getTotalElements(),
+                        result.result().getContent().size(),
+                        paginationParam))
+                .links(computePaginationLinks(result.result().getTotalElements(), paginationParam));
     }
 
     @POST
     @Path("/_deploy")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response deploySharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
-        var output = deploySharedPolicyGroupUseCase.execute(
-            new DeploySharedPolicyGroupUseCase.Input(sharedPolicyGroupId, executionContext.getEnvironmentId(), audit)
-        );
+        var output = deploySharedPolicyGroupUseCase.execute(new DeploySharedPolicyGroupUseCase.Input(
+                sharedPolicyGroupId, executionContext.getEnvironmentId(), audit));
 
         return Response.accepted()
-            .tag(Long.toString(output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
-            .lastModified(Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
-            .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
-            .build();
+                .tag(Long.toString(
+                        output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
+                .lastModified(
+                        Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
+                .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
+                .build();
     }
 
     @POST
     @Path("/_undeploy")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response undeploySharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
-        var output = undeploySharedPolicyGroupUseCase.execute(
-            new UndeploySharedPolicyGroupUseCase.Input(sharedPolicyGroupId, executionContext.getEnvironmentId(), audit)
-        );
+        var output = undeploySharedPolicyGroupUseCase.execute(new UndeploySharedPolicyGroupUseCase.Input(
+                sharedPolicyGroupId, executionContext.getEnvironmentId(), audit));
 
         return Response.accepted()
-            .tag(Long.toString(output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
-            .lastModified(Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
-            .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
-            .build();
+                .tag(Long.toString(
+                        output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
+                .lastModified(
+                        Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
+                .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
+                .build();
     }
 }

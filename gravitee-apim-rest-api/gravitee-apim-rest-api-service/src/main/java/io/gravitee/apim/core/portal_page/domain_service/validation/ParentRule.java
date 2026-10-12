@@ -56,13 +56,12 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             return;
         }
         validateParent(
-            parentId,
-            item.getArea(),
-            environmentId,
-            item.getPublished() != null ? item.getPublished() : false,
-            item.getVisibility(),
-            item.getAutomationMetadata() != null
-        );
+                parentId,
+                item.getArea(),
+                environmentId,
+                item.getPublished() != null ? item.getPublished() : false,
+                item.getVisibility(),
+                item.getAutomationMetadata() != null);
     }
 
     private static PortalNavigationItemId validationParentId(CreatePortalNavigationItem item) {
@@ -70,11 +69,10 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
     }
 
     private void validatePendingParent(
-        CreatePortalNavigationItem item,
-        CreatePortalNavigationItem parentItem,
-        String environmentId,
-        CreateValidationContext ctx
-    ) {
+            CreatePortalNavigationItem item,
+            CreatePortalNavigationItem parentItem,
+            String environmentId,
+            CreateValidationContext ctx) {
         var parentId = parentItem.getId().toString();
         if (!parentItem.getType().isContainer()) {
             throw new ParentTypeMismatchException(parentId);
@@ -97,10 +95,7 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
     }
 
     private PortalVisibility resolvePendingParentVisibility(
-        CreatePortalNavigationItem parentItem,
-        String environmentId,
-        CreateValidationContext ctx
-    ) {
+            CreatePortalNavigationItem parentItem, String environmentId, CreateValidationContext ctx) {
         var visited = new HashSet<PortalNavigationItemId>();
         var currentItem = parentItem;
         while (true) {
@@ -135,9 +130,11 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         var parentId = validationParentId(toUpdate);
-        ParentHierarchyValidation.ensureAcyclic(existingItem.getId(), parentId, ctx.itemsById(), ctx.pendingItemsById());
+        ParentHierarchyValidation.ensureAcyclic(
+                existingItem.getId(), parentId, ctx.itemsById(), ctx.pendingItemsById());
 
         var pendingParent = ctx.pendingItemsById().get(parentId);
         if (pendingParent != null) {
@@ -146,19 +143,19 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         }
 
         var pendingParentUpdate = ctx.pendingUpdatesByExistingId().get(parentId);
-        if (pendingParentUpdate != null && !Objects.equals(pendingParentUpdate.existing().getId(), existingItem.getId())) {
+        if (pendingParentUpdate != null
+                && !Objects.equals(pendingParentUpdate.existing().getId(), existingItem.getId())) {
             validatePendingParentUpdate(toUpdate, existingItem, pendingParentUpdate);
             return;
         }
 
         validateParent(
-            parentId,
-            existingItem.getArea(),
-            existingItem.getEnvironmentId(),
-            toUpdate.getPublished() != null ? toUpdate.getPublished() : false,
-            toUpdate.getVisibility(),
-            existingItem.getAutomationMetadata() != null
-        );
+                parentId,
+                existingItem.getArea(),
+                existingItem.getEnvironmentId(),
+                toUpdate.getPublished() != null ? toUpdate.getPublished() : false,
+                toUpdate.getVisibility(),
+                existingItem.getAutomationMetadata() != null);
     }
 
     private static PortalNavigationItemId validationParentId(UpdatePortalNavigationItem toUpdate) {
@@ -166,10 +163,10 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
     }
 
     private void validatePendingParentUpdate(
-        UpdatePortalNavigationItem toUpdate,
-        PortalNavigationItem existingItem,
-        io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate parentUpdate
-    ) {
+            UpdatePortalNavigationItem toUpdate,
+            PortalNavigationItem existingItem,
+            io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate
+                    parentUpdate) {
         var parentExisting = parentUpdate.existing();
         var parentToUpdate = parentUpdate.toUpdate();
         var parentId = parentExisting.getId().toString();
@@ -182,13 +179,13 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
         boolean itemPublished = Boolean.TRUE.equals(toUpdate.getPublished());
         boolean parentPublished = Boolean.TRUE.equals(
-            parentToUpdate.getPublished() != null ? parentToUpdate.getPublished() : parentExisting.getPublished()
-        );
+                parentToUpdate.getPublished() != null ? parentToUpdate.getPublished() : parentExisting.getPublished());
         if (itemPublished && !parentPublished) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId);
         }
 
-        var parentVisibility = Optional.ofNullable(parentToUpdate.getVisibility()).orElse(parentExisting.getVisibility());
+        var parentVisibility =
+                Optional.ofNullable(parentToUpdate.getVisibility()).orElse(parentExisting.getVisibility());
         var effectiveVisibility = PortalVisibility.resolve(toUpdate.getVisibility(), parentVisibility);
         if (PortalVisibility.PUBLIC.equals(effectiveVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId);
@@ -196,10 +193,9 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
     }
 
     private void validatePendingParent(
-        UpdatePortalNavigationItem toUpdate,
-        PortalNavigationItem existingItem,
-        CreatePortalNavigationItem parentItem
-    ) {
+            UpdatePortalNavigationItem toUpdate,
+            PortalNavigationItem existingItem,
+            CreatePortalNavigationItem parentItem) {
         var parentId = parentItem.getId().toString();
         if (!parentItem.getType().isContainer()) {
             throw new ParentTypeMismatchException(parentId);
@@ -225,19 +221,18 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
      * Shared logic for validating parent; can be used from create and update flows.
      */
     private void validateParent(
-        PortalNavigationItemId parentId,
-        PortalArea itemArea,
-        String environmentId,
-        boolean itemPublished,
-        PortalVisibility itemVisibility,
-        boolean automation
-    ) {
+            PortalNavigationItemId parentId,
+            PortalArea itemArea,
+            String environmentId,
+            boolean itemPublished,
+            PortalVisibility itemVisibility,
+            boolean automation) {
         if (parentId == null) {
             return;
         }
         var parentItem = Optional.of(parentId)
-            .map(parentIdVal -> navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, parentIdVal))
-            .orElse(null);
+                .map(parentIdVal -> navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, parentIdVal))
+                .orElse(null);
         if (parentItem == null) {
             if (automation) {
                 // Phantom-parent tolerance: automation may declare a parent that hasn't materialized yet.
@@ -255,7 +250,8 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId.toString());
         }
         var effectiveVisibility = PortalVisibility.resolve(itemVisibility, parentItem.getVisibility());
-        if (PortalVisibility.PUBLIC.equals(effectiveVisibility) && PortalVisibility.PRIVATE.equals(parentItem.getVisibility())) {
+        if (PortalVisibility.PUBLIC.equals(effectiveVisibility)
+                && PortalVisibility.PRIVATE.equals(parentItem.getVisibility())) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId.toString());
         }
     }

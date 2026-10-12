@@ -39,10 +39,10 @@ import org.junit.jupiter.api.Test;
 class CreateOrUpdatePortalThemeUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String THEME_HRID = "my-theme";
 
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
@@ -51,10 +51,9 @@ class CreateOrUpdatePortalThemeUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CreateOrUpdatePortalThemeUseCase(
-            new ValidateThemeDomainService(themeCrudService),
-            new ThemeDomainService(themeCrudService),
-            themeCrudService
-        );
+                new ValidateThemeDomainService(themeCrudService),
+                new ThemeDomainService(themeCrudService),
+                themeCrudService);
     }
 
     @AfterEach
@@ -67,7 +66,8 @@ class CreateOrUpdatePortalThemeUseCaseTest {
         var definition = new ThemeDefinition();
         var output = useCase.execute(specWith(THEME_HRID, "My Theme", definition));
 
-        var expectedId = HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id();
+        var expectedId =
+                HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id();
         assertThat(output.theme().getId()).isEqualTo(expectedId);
         assertThat(output.theme().getName()).isEqualTo("My Theme");
         assertThat(output.theme().getType()).isEqualTo(ThemeType.PORTAL_NEXT);
@@ -81,15 +81,14 @@ class CreateOrUpdatePortalThemeUseCaseTest {
     @Test
     void persists_assets_from_spec() {
         var input = new ValidateThemeDomainService.Input(
-            AUDIT_INFO,
-            THEME_HRID,
-            "My Theme",
-            new ThemeDefinition(),
-            "data:image/png;base64,LOGO",
-            "data:image/png;base64,OPT",
-            "data:image/png;base64,FAV",
-            "data:image/png;base64,BG"
-        );
+                AUDIT_INFO,
+                THEME_HRID,
+                "My Theme",
+                new ThemeDefinition(),
+                "data:image/png;base64,LOGO",
+                "data:image/png;base64,OPT",
+                "data:image/png;base64,FAV",
+                "data:image/png;base64,BG");
 
         var output = useCase.execute(input);
 
@@ -101,7 +100,10 @@ class CreateOrUpdatePortalThemeUseCaseTest {
 
     @Test
     void updates_existing_theme_when_id_matches() {
-        var existing = anEnvironmentTheme("Old", false, HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id());
+        var existing = anEnvironmentTheme(
+                "Old",
+                false,
+                HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id());
         themeCrudService.initWith(List.of(existing));
 
         var newDefinition = new ThemeDefinition();
@@ -122,10 +124,10 @@ class CreateOrUpdatePortalThemeUseCaseTest {
         useCase.execute(specWith(THEME_HRID, "New", new ThemeDefinition()));
 
         assertThat(themeCrudService.storage())
-            .filteredOn(t -> t.getId().equals(otherEnabled.getId()))
-            .singleElement()
-            .extracting(Theme::isEnabled)
-            .isEqualTo(true);
+                .filteredOn(t -> t.getId().equals(otherEnabled.getId()))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(true);
     }
 
     @Test
@@ -133,36 +135,39 @@ class CreateOrUpdatePortalThemeUseCaseTest {
         useCase.execute(specWith(THEME_HRID, "My Theme", new ThemeDefinition()));
 
         assertThat(themeCrudService.storage())
-            .singleElement()
-            .satisfies(t -> assertThat(t.getAutomationMetadata().hrid()).isEqualTo(THEME_HRID));
+                .singleElement()
+                .satisfies(t -> assertThat(t.getAutomationMetadata().hrid()).isEqualTo(THEME_HRID));
     }
 
     @Test
     void trims_name_before_persisting() {
         useCase.execute(specWith(THEME_HRID, "  Padded  ", new ThemeDefinition()));
 
-        assertThat(themeCrudService.storage()).singleElement().extracting(Theme::getName).isEqualTo("Padded");
+        assertThat(themeCrudService.storage())
+                .singleElement()
+                .extracting(Theme::getName)
+                .isEqualTo("Padded");
     }
 
     @Test
     void throws_validation_error_when_name_is_blank() {
         assertThatThrownBy(() -> useCase.execute(specWith(THEME_HRID, "  ", new ThemeDefinition())))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("spec.name");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("spec.name");
     }
 
     @Test
     void throws_validation_error_when_definition_is_null() {
         assertThatThrownBy(() -> useCase.execute(specWith(THEME_HRID, "Ok", null)))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("spec.definitionPortalNext");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("spec.definitionPortalNext");
     }
 
     @Test
     void throws_validation_error_when_hrid_is_blank() {
         assertThatThrownBy(() -> useCase.execute(specWith("", "Ok", new ThemeDefinition())))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("spec.hrid");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("spec.hrid");
     }
 
     private static ValidateThemeDomainService.Input specWith(String hrid, String name, ThemeDefinition definition) {
@@ -171,13 +176,13 @@ class CreateOrUpdatePortalThemeUseCaseTest {
 
     private static Theme anEnvironmentTheme(String name, boolean enabled, String id) {
         return Theme.builder()
-            .id(id)
-            .name(name)
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(AUDIT_INFO.environmentId())
-            .definitionPortalNext(new ThemeDefinition())
-            .enabled(enabled)
-            .build();
+                .id(id)
+                .name(name)
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(AUDIT_INFO.environmentId())
+                .definitionPortalNext(new ThemeDefinition())
+                .enabled(enabled)
+                .build();
     }
 }

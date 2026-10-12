@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @RequiredArgsConstructor
 public class ListenerEntrypointUnsupportedListenerTypeException extends AbstractManagementException {
 

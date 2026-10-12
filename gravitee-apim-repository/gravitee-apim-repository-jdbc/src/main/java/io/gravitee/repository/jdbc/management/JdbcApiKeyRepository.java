@@ -76,22 +76,22 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     protected JdbcObjectMapper<ApiKey> buildOrm() {
         return JdbcObjectMapper.builder(ApiKey.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("subscription", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("plan", Types.NVARCHAR, String.class)
-            .addColumn("expire_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("revoked", Types.BOOLEAN, boolean.class)
-            .addColumn("paused", Types.BOOLEAN, boolean.class)
-            .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
-            .addColumn("federated", Types.BOOLEAN, boolean.class)
-            .addColumn("days_to_expiration_on_last_notification", Types.INTEGER, Integer.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("subscription", Types.NVARCHAR, String.class)
+                .addColumn("application", Types.NVARCHAR, String.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("plan", Types.NVARCHAR, String.class)
+                .addColumn("expire_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("revoked", Types.BOOLEAN, boolean.class)
+                .addColumn("paused", Types.BOOLEAN, boolean.class)
+                .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
+                .addColumn("federated", Types.BOOLEAN, boolean.class)
+                .addColumn("days_to_expiration_on_last_notification", Types.INTEGER, Integer.class)
+                .build();
     }
 
     @Override
@@ -120,7 +120,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
 
         try {
-            findById(apiKey.getId()).orElseThrow(() -> new IllegalStateException("Trying to update a non existing key")); //NOSONAR It's just an existence check so we will not use the result of this call
+            findById(apiKey.getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Trying to update a non existing key")); // NOSONAR It's just an existence check so
+            // we will not use the result of this call
 
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(apiKey, apiKey.getId()));
             if (!isEmpty(apiKey.getSubscriptions())) {
@@ -142,7 +145,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
-    public List<ApiKey> findByCriteria(final ApiKeyCriteria criteria, final Sortable sortable) throws TechnicalException {
+    public List<ApiKey> findByCriteria(final ApiKeyCriteria criteria, final Sortable sortable)
+            throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findByCriteria({})", criteria);
         try {
             List<Object> args = new ArrayList<>();
@@ -177,15 +181,17 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
-    public List<ApiKey> searchAfter(final ApiKeyCriteria criteria, final Sortable sortable, final ApiKeyCursor after, final int pageSize)
-        throws TechnicalException {
+    public List<ApiKey> searchAfter(
+            final ApiKeyCriteria criteria, final Sortable sortable, final ApiKeyCursor after, final int pageSize)
+            throws TechnicalException {
         boolean sortByUpdatedAt;
         if (sortable == null || sortable.field() == null || "updatedAt".equals(sortable.field())) {
             sortByUpdatedAt = true;
         } else if ("id".equals(sortable.field())) {
             sortByUpdatedAt = false;
         } else {
-            throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
+            throw new TechnicalException(
+                    "searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
         }
 
         final List<Object> argsList = new ArrayList<>();
@@ -199,18 +205,19 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         boolean started = false;
         if (!isEmpty(criteria.getSubscriptions())) {
             inner.append(" where ");
-            inner
-                .append("id in ( select key_id from ")
-                .append(keySubscriptions)
-                .append(" where subscription_id in ( ")
-                .append(getOrm().buildInClause(criteria.getSubscriptions()))
-                .append(" ) )");
+            inner.append("id in ( select key_id from ")
+                    .append(keySubscriptions)
+                    .append(" where subscription_id in ( ")
+                    .append(getOrm().buildInClause(criteria.getSubscriptions()))
+                    .append(" ) )");
             argsList.addAll(criteria.getSubscriptions());
             started = true;
         }
         if (!isEmpty(criteria.getEnvironments())) {
             inner.append(started ? " and " : " where ");
-            inner.append("( environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+            inner.append("( environment_id in ( ")
+                    .append(getOrm().buildInClause(criteria.getEnvironments()))
+                    .append(" ) )");
             argsList.addAll(criteria.getEnvironments());
             started = true;
         }
@@ -279,13 +286,11 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
         inner.append(createPagingClause(pageSize, 0));
 
-        final String query =
-            "select k.*, ks.subscription_id as subscription_id from (" +
-            inner +
-            ") k left join " +
-            keySubscriptions +
-            " ks on ks.key_id = k.id " +
-            (sortByUpdatedAt ? "order by k.updated_at asc, k.id asc" : "order by k.id asc");
+        final String query = "select k.*, ks.subscription_id as subscription_id from (" + inner
+                + ") k left join "
+                + keySubscriptions
+                + " ks on ks.key_id = k.id "
+                + (sortByUpdatedAt ? "order by k.updated_at asc, k.id asc" : "order by k.id asc");
 
         try {
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
@@ -298,26 +303,27 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     private StringBuilder buildCriteriaQuery(final ApiKeyCriteria criteria, final List<Object> args) {
         StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
-            .append(" k left join ")
-            .append(keySubscriptions)
-            .append(" ks on ks.key_id = k.id");
+                .append(" k left join ")
+                .append(keySubscriptions)
+                .append(" ks on ks.key_id = k.id");
 
         boolean first = true;
 
         if (!isEmpty(criteria.getSubscriptions())) {
             first = addClause(first, query);
-            query
-                .append("k.id in ( select key_id from ")
-                .append(keySubscriptions)
-                .append(" where subscription_id in ( ")
-                .append(getOrm().buildInClause(criteria.getSubscriptions()))
-                .append(" ) )");
+            query.append("k.id in ( select key_id from ")
+                    .append(keySubscriptions)
+                    .append(" where subscription_id in ( ")
+                    .append(getOrm().buildInClause(criteria.getSubscriptions()))
+                    .append(" ) )");
             args.addAll(criteria.getSubscriptions());
         }
 
         if (!isEmpty(criteria.getEnvironments())) {
             first = addClause(first, query);
-            query.append(" ( k.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+            query.append(" ( k.environment_id in ( ")
+                    .append(getOrm().buildInClause(criteria.getEnvironments()))
+                    .append(" ) )");
             args.addAll(criteria.getEnvironments());
         }
 
@@ -380,8 +386,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         if (apiKey.isEmpty()) {
             return apiKey;
         }
-        jdbcTemplate.update("insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )", id, subscriptionId);
-        jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id);
+        jdbcTemplate.update(
+                "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )", id, subscriptionId);
+        jdbcTemplate.update(
+                "update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id);
         return findById(id);
     }
 
@@ -390,17 +398,16 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var keyIds = jdbcTemplate.queryForList(
-                "select id from " + escapeReservedWord(this.tableName) + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + escapeReservedWord(this.tableName) + " where environment_id = ?",
+                    String.class,
+                    environmentId);
 
             if (!keyIds.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
-                    keyIds.toArray()
-                );
-                jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
+                        "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
+                        keyIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
             }
             log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return keyIds;
@@ -424,11 +431,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         log.debug("JdbcApiKeyRepository.findBySubscription({})", subscription);
         try {
             String query = String.format(
-                "%s k join %s ks on ks.key_id = k.id where k.id in ( select key_id from %s where subscription_id = ?)",
-                getOrm().getSelectAllSql(),
-                keySubscriptions,
-                keySubscriptions
-            );
+                    "%s k join %s ks on ks.key_id = k.id where k.id in ( select key_id from %s where subscription_id = ?)",
+                    getOrm().getSelectAllSql(), keySubscriptions, keySubscriptions);
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -445,17 +449,15 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findByPlan({})", plan);
         try {
-            String query =
-                getOrm().getSelectAllSql() +
-                " k" +
-                " join " +
-                keySubscriptions +
-                " ks on ks.key_id = k.id" +
-                " join " +
-                subscription +
-                " s on ks.subscription_id = s.id and s." +
-                escapeReservedWord("plan") +
-                " = ?";
+            String query = getOrm().getSelectAllSql() + " k"
+                    + " join "
+                    + keySubscriptions
+                    + " ks on ks.key_id = k.id"
+                    + " join "
+                    + subscription
+                    + " s on ks.subscription_id = s.id and s."
+                    + escapeReservedWord("plan")
+                    + " = ?";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -472,16 +474,14 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public List<ApiKey> findByKey(String key) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findByKey(****)");
         try {
-            String query =
-                getOrm().getSelectAllSql() +
-                " k" +
-                " left join " +
-                keySubscriptions +
-                " ks on ks.key_id = k.id " +
-                "where k." +
-                escapeReservedWord("key") +
-                " = ?" +
-                " order by k.updated_at desc ";
+            String query = getOrm().getSelectAllSql() + " k"
+                    + " left join "
+                    + keySubscriptions
+                    + " ks on ks.key_id = k.id "
+                    + "where k."
+                    + escapeReservedWord("key")
+                    + " = ?"
+                    + " order by k.updated_at desc ";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -498,14 +498,12 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findByApplication({})", applicationId);
         try {
-            String query =
-                getOrm().getSelectAllSql() +
-                " k" +
-                " left join " +
-                keySubscriptions +
-                " ks on ks.key_id = k.id " +
-                "where k.application = ?" +
-                " order by k.updated_at desc ";
+            String query = getOrm().getSelectAllSql() + " k"
+                    + " left join "
+                    + keySubscriptions
+                    + " ks on ks.key_id = k.id "
+                    + "where k.application = ?"
+                    + " order by k.updated_at desc ";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -522,19 +520,17 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findByKeyAndEnvironmentId(*****, {})", environmentId);
         try {
-            String query =
-                getOrm().getSelectAllSql() +
-                " k" +
-                " left join " +
-                keySubscriptions +
-                " ks on ks.key_id = k.id " +
-                "where k." +
-                escapeReservedWord("key") +
-                " = ?" +
-                " and k." +
-                escapeReservedWord("environment_id") +
-                " = ?" +
-                " order by k.updated_at desc ";
+            String query = getOrm().getSelectAllSql() + " k"
+                    + " left join "
+                    + keySubscriptions
+                    + " ks on ks.key_id = k.id "
+                    + "where k."
+                    + escapeReservedWord("key")
+                    + " = ?"
+                    + " and k."
+                    + escapeReservedWord("environment_id")
+                    + " = ?"
+                    + " order by k.updated_at desc ";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -551,19 +547,17 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findByKeyAndApi(****, {})", api);
         try {
-            String query =
-                getOrm().getSelectAllSql() +
-                " k" +
-                " join " +
-                keySubscriptions +
-                " ks on ks.key_id = k.id" +
-                " join " +
-                subscription +
-                " s on ks.subscription_id = s.id " +
-                " where k." +
-                escapeReservedWord("key") +
-                " = ?" +
-                " and s.api = ?";
+            String query = getOrm().getSelectAllSql() + " k"
+                    + " join "
+                    + keySubscriptions
+                    + " ks on ks.key_id = k.id"
+                    + " join "
+                    + subscription
+                    + " s on ks.subscription_id = s.id "
+                    + " where k."
+                    + escapeReservedWord("key")
+                    + " = ?"
+                    + " and s.api = ?";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -577,24 +571,25 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
-        throws TechnicalException {
-        log.debug("JdbcApiKeyRepository.findByKeyAndReferenceIdAndReferenceType(****, {}, {})", referenceId, referenceType);
+    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(
+            String key, String referenceId, String referenceType) throws TechnicalException {
+        log.debug(
+                "JdbcApiKeyRepository.findByKeyAndReferenceIdAndReferenceType(****, {}, {})",
+                referenceId,
+                referenceType);
         try {
-            String query =
-                getOrm().getSelectAllSql() +
-                " k" +
-                " join " +
-                keySubscriptions +
-                " ks on ks.key_id = k.id" +
-                " join " +
-                subscription +
-                " s on ks.subscription_id = s.id " +
-                " where k." +
-                escapeReservedWord("key") +
-                " = ?" +
-                " and s.reference_id = ?" +
-                " and s.reference_type = ?";
+            String query = getOrm().getSelectAllSql() + " k"
+                    + " join "
+                    + keySubscriptions
+                    + " ks on ks.key_id = k.id"
+                    + " join "
+                    + subscription
+                    + " s on ks.subscription_id = s.id "
+                    + " where k."
+                    + escapeReservedWord("key")
+                    + " = ?"
+                    + " and s.reference_id = ?"
+                    + " and s.reference_type = ?";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -610,8 +605,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public Optional<ApiKey> findById(String id) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findById({})", id);
         try {
-            String query =
-                getOrm().getSelectAllSql() + " k " + " left join " + keySubscriptions + " ks on ks.key_id = k.id" + " where k.id = ?";
+            String query = getOrm().getSelectAllSql() + " k " + " left join " + keySubscriptions
+                    + " ks on ks.key_id = k.id" + " where k.id = ?";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -628,13 +623,11 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public Set<ApiKey> findAll() throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findAll()");
         try {
-            String query =
-                getOrm().getSelectAllSql() +
-                " k" +
-                " left join " +
-                keySubscriptions +
-                " ks on ks.key_id = k.id" +
-                " order by k.updated_at desc ";
+            String query = getOrm().getSelectAllSql() + " k"
+                    + " left join "
+                    + keySubscriptions
+                    + " ks on ks.key_id = k.id"
+                    + " order by k.updated_at desc ";
 
             CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
@@ -653,19 +646,18 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         jdbcTemplate.update("delete from " + keySubscriptions + " where key_id = ?", key.getId());
 
         jdbcTemplate.batchUpdate(
-            "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )",
-            new BatchPreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    ps.setString(1, key.getId());
-                    ps.setString(2, subscriptions.get(i));
-                }
+                "insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, key.getId());
+                        ps.setString(2, subscriptions.get(i));
+                    }
 
-                @Override
-                public int getBatchSize() {
-                    return subscriptions.size();
-                }
-            }
-        );
+                    @Override
+                    public int getBatchSize() {
+                        return subscriptions.size();
+                    }
+                });
     }
 }

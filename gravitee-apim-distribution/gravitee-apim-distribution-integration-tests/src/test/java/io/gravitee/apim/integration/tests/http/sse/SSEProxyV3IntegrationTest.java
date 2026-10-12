@@ -30,7 +30,7 @@ class SSEProxyV3IntegrationTest extends SSEProxyIntegrationTest {
 
     @Test
     @Override
-    @DeployApi({ "/apis/http/sse/api-sse-proxy-v2.json", "/apis/v4/http/sse/api-mock-sse-backend.json" })
+    @DeployApi({"/apis/http/sse/api-sse-proxy-v2.json", "/apis/v4/http/sse/api-mock-sse-backend.json"})
     void should_proxy_sse_and_close_backend_connection_when_client_closes_the_connection(HttpClient httpClient) {
         super.should_proxy_sse_and_close_backend_connection_when_client_closes_the_connection(httpClient);
     }

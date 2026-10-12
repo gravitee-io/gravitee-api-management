@@ -16,8 +16,6 @@
 package io.gravitee.repository.healthcheck.query.log;
 
 import io.gravitee.common.http.HttpHeaders;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

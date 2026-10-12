@@ -48,26 +48,23 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
 
     @Override
     public Optional<Portal> findByIdAndEnvironmentId(PortalId portalId, String environmentId) {
-        return storage
-            .stream()
-            .filter(p -> portalId.equals(p.getId()) && environmentId.equals(p.getEnvironmentId()))
-            .findFirst();
+        return storage.stream()
+                .filter(p -> portalId.equals(p.getId()) && environmentId.equals(p.getEnvironmentId()))
+                .findFirst();
     }
 
     @Override
     public List<Portal> findByEnvironmentId(String environmentId) {
-        return storage
-            .stream()
-            .filter(p -> environmentId.equals(p.getEnvironmentId()))
-            .toList();
+        return storage.stream()
+                .filter(p -> environmentId.equals(p.getEnvironmentId()))
+                .toList();
     }
 
     @Override
     public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) {
-        return findByEnvironmentId(environmentId)
-            .stream()
-            .filter(p -> Objects.equals(activeThemeId, p.getActiveThemeId()))
-            .toList();
+        return findByEnvironmentId(environmentId).stream()
+                .filter(p -> Objects.equals(activeThemeId, p.getActiveThemeId()))
+                .toList();
     }
 
     @Override

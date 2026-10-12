@@ -56,7 +56,8 @@ class MediaQueryServiceImplTest {
             List<Media> allByApiId = sut.findAllByApiId("api-id");
 
             // Then
-            assertThat(allByApiId).containsOnly(new Media("ID", null, "type", "sub type", "file name", null, 12L, null, "api-id"));
+            assertThat(allByApiId)
+                    .containsOnly(new Media("ID", null, "type", "sub type", "file name", null, 12L, null, "api-id"));
         }
 
         @Test

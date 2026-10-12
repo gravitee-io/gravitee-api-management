@@ -39,12 +39,14 @@ public class PathParametersV4IntegrationTest extends PathParametersV3Integration
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
@@ -64,14 +66,16 @@ public class PathParametersV4IntegrationTest extends PathParametersV3Integration
     @Override
     @ParameterizedTest
     @DeployApi("/apis/v4/http/pathparams/api-path-param.json")
-    @MethodSource("io.gravitee.apim.integration.tests.http.pathparams.PathParametersV3IntegrationTest#provideParameters")
+    @MethodSource(
+            "io.gravitee.apim.integration.tests.http.pathparams.PathParametersV3IntegrationTest#provideParameters")
     void should_add_path_param_to_headers_when_no_param(
-        String method,
-        String path,
-        Map<String, String> expectedHeaders,
-        Set<String> excludedHeaders,
-        HttpClient httpClient
-    ) throws InterruptedException {
-        super.should_add_path_param_to_headers_when_no_param(method, path, expectedHeaders, excludedHeaders, httpClient);
+            String method,
+            String path,
+            Map<String, String> expectedHeaders,
+            Set<String> excludedHeaders,
+            HttpClient httpClient)
+            throws InterruptedException {
+        super.should_add_path_param_to_headers_when_no_param(
+                method, path, expectedHeaders, excludedHeaders, httpClient);
     }
 }

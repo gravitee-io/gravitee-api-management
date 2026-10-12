@@ -55,15 +55,18 @@ class DescribeKafkaClusterUseCaseTest {
     @Test
     void should_return_cluster_info() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var expectedInfo = new KafkaClusterInfo(
-            "cluster-1",
-            new KafkaNode(0, "broker-host", 9092),
-            List.of(new BrokerDetail(0, "broker-host", 9092, null, 5, 10, 1024L)),
-            1,
-            5
-        );
+                "cluster-1",
+                new KafkaNode(0, "broker-host", 9092),
+                List.of(new BrokerDetail(0, "broker-host", 9092, null, 5, 10, 1024L)),
+                1,
+                5);
         clusterDomainService.givenClusterInfo(expectedInfo);
 
         var result = useCase.execute(new DescribeKafkaClusterUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID));
@@ -74,12 +77,18 @@ class DescribeKafkaClusterUseCaseTest {
     @Test
     void should_propagate_kafka_explorer_exception() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
-        clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
+        clusterDomainService.givenException(
+                new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
         assertThatThrownBy(() -> useCase.execute(new DescribeKafkaClusterUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID)))
-            .isInstanceOf(KafkaExplorerException.class)
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+                .isInstanceOf(KafkaExplorerException.class)
+                .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode())
+                        .isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 }

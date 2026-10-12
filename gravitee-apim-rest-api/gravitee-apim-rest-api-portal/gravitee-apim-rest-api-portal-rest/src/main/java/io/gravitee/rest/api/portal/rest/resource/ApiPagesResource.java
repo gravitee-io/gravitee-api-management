@@ -60,12 +60,11 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPagesByApiId(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @PathParam("apiId") String apiId,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("homepage") Boolean homepage,
-        @QueryParam("parent") String parent
-    ) {
+            @HeaderParam("Accept-Language") String acceptLang,
+            @PathParam("apiId") String apiId,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("homepage") Boolean homepage,
+            @QueryParam("parent") String parent) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -73,33 +72,32 @@ public class ApiPagesResource extends AbstractResource {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
             Stream<Page> pageStream = pageService
-                .search(
-                    GraviteeContext.getCurrentEnvironment(),
-                    new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(),
-                    acceptedLocale
-                )
-                .stream()
-                .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, apiId, page))
-                .filter(
-                    pageEntity ->
-                        !Objects.equals(pageEntity.getType(), "FOLDER") || pageService.folderHasPublishedChildren(pageEntity.getId())
-                )
-                .map(pageMapper::convert)
-                .map(page -> this.addPageLink(apiId, page));
+                    .search(
+                            GraviteeContext.getCurrentEnvironment(),
+                            new PageQuery.Builder()
+                                    .api(apiId)
+                                    .homepage(homepage)
+                                    .published(true)
+                                    .build(),
+                            acceptedLocale)
+                    .stream()
+                    .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, apiId, page))
+                    .filter(pageEntity -> !Objects.equals(pageEntity.getType(), "FOLDER")
+                            || pageService.folderHasPublishedChildren(pageEntity.getId()))
+                    .map(pageMapper::convert)
+                    .map(page -> this.addPageLink(apiId, page));
 
             List<Page> pages;
             if (parent != null) {
                 pages = new ArrayList<>();
 
                 Map<String, Page> pagesMap = pageStream.collect(Collectors.toMap(Page::getId, page -> page));
-                pagesMap
-                    .values()
-                    .forEach(page -> {
-                        List<String> ancestors = this.getAncestors(pagesMap, page);
-                        if (ancestors.contains(parent)) {
-                            pages.add(page);
-                        }
-                    });
+                pagesMap.values().forEach(page -> {
+                    List<String> ancestors = this.getAncestors(pagesMap, page);
+                    if (ancestors.contains(parent)) {
+                        pages.add(page);
+                    }
+                });
             } else {
                 pages = pageStream.collect(Collectors.toList());
             }
@@ -130,11 +128,8 @@ public class ApiPagesResource extends AbstractResource {
     }
 
     private Page addPageLink(String apiId, Page page) {
-        return page.links(
-            pageMapper.computePageLinks(
+        return page.links(pageMapper.computePageLinks(
                 PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getId()),
-                PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())
-            )
-        );
+                PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())));
     }
 }

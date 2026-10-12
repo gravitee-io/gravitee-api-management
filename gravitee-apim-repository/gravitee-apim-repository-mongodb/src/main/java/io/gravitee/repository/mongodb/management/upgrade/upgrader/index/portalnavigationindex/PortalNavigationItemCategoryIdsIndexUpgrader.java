@@ -26,10 +26,10 @@ public class PortalNavigationItemCategoryIdsIndexUpgrader extends IndexUpgrader 
     protected Index buildIndex() {
         // Build a composite index on environmentId + categoryIds to support the _search categoryId filter
         return Index.builder()
-            .collection("portal_navigation_items")
-            .key("environmentId", ascending())
-            .key("categoryIds", ascending())
-            .name("e1c1")
-            .build();
+                .collection("portal_navigation_items")
+                .key("environmentId", ascending())
+                .key("categoryIds", ascending())
+                .name("e1c1")
+                .build();
     }
 }

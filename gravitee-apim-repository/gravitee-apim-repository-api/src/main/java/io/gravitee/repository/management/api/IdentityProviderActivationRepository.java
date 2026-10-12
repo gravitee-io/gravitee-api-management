@@ -27,25 +27,21 @@ import java.util.Set;
  */
 public interface IdentityProviderActivationRepository extends FindAllRepository<IdentityProviderActivation> {
     Optional<IdentityProviderActivation> findById(
-        String identityProviderId,
-        String referenceId,
-        IdentityProviderActivationReferenceType referenceType
-    ) throws TechnicalException;
+            String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
+            throws TechnicalException;
 
     Set<IdentityProviderActivation> findAllByIdentityProviderId(String identityProviderId) throws TechnicalException;
 
     Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(
-        String referenceId,
-        IdentityProviderActivationReferenceType referenceType
-    ) throws TechnicalException;
+            String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException;
 
     IdentityProviderActivation create(IdentityProviderActivation identityProviderActivation) throws TechnicalException;
 
     void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
-        throws TechnicalException;
+            throws TechnicalException;
 
     void deleteByIdentityProviderId(String identityProviderId) throws TechnicalException;
 
     void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType)
-        throws TechnicalException;
+            throws TechnicalException;
 }

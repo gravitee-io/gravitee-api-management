@@ -57,9 +57,12 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(mediaCreated);
 
         Optional<Media> optionalAfter = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .mediaType("image")
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .build());
         assertTrue(optionalAfter.isPresent(), "Image saved not found");
 
         final Media imageDataSaved = optionalAfter.get();
@@ -87,9 +90,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, "22334455", "apiId");
 
         Optional<Media> optionalAfter = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().api("apiId").organization(ORG_ID).environment(ENV_ID).mediaType("image").build()
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .api("apiId")
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .mediaType("image")
+                        .build());
 
         assertTrue(optionalAfter.isPresent(), "Image saved not found");
 
@@ -101,9 +108,12 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         // test search ignoring type
         optionalAfter = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().api("apiId").organization(ORG_ID).environment(ENV_ID).build()
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .api("apiId")
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .build());
         assertTrue(optionalAfter.isPresent(), "Image saved not found");
     }
 
@@ -121,10 +131,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, mediaId, apiId);
 
         Optional<Media> optionalAfter = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().api(apiId).organization(ORG_ID).environment(ENV_ID).build(),
-            false
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .api(apiId)
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .build(),
+                false);
         assertTrue(optionalAfter.isPresent());
         assertNull(optionalAfter.get().getData());
     }
@@ -168,9 +181,12 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, mediaId, apiId);
 
         Optional<Media> media = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().api(apiId).organization(ORG_ID).environment(ENV_ID).build()
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .api(apiId)
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .build());
         assertFalse(media.isEmpty(), "Should find by hash and API");
     }
 
@@ -188,9 +204,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         createMedia(ORG_ID, ENV_ID, fileName, fileBytes, size, hashString, mediaId, apiId);
 
         Optional<Media> media = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().api(apiId).mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .api(apiId)
+                        .mediaType("image")
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .build());
         assertFalse(media.isEmpty(), "Should find by hash and API");
     }
 
@@ -208,9 +228,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         createMedia(null, null, fileName, fileBytes, size, hashString, mediaId, apiId);
 
         Optional<Media> media = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().api(apiId).mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .api(apiId)
+                        .mediaType("image")
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .build());
         assertFalse(media.isEmpty(), "Should find by hash and API");
         assertEquals(mediaId, media.get().getId());
     }
@@ -235,9 +259,12 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         mediaRepository.deleteAllByApi(apiId);
 
         Optional<Media> image = mediaRepository.findByHash(
-            hashString,
-            MediaCriteria.builder().mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
-        );
+                hashString,
+                MediaCriteria.builder()
+                        .mediaType("image")
+                        .organization(ORG_ID)
+                        .environment(ENV_ID)
+                        .build());
         assertFalse(image.isPresent(), "Invalid asset found");
     }
 
@@ -256,7 +283,8 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         mediaRepository.deleteByHashAndApi(hashString, apiId);
 
-        Optional<Media> media = mediaRepository.findByHash(hashString, MediaCriteria.builder().api(apiId).build());
+        Optional<Media> media = mediaRepository.findByHash(
+                hashString, MediaCriteria.builder().api(apiId).build());
 
         assertFalse(media.isPresent(), "Should not find media after deletion");
     }
@@ -320,17 +348,21 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         createMedia(ORG_ID, environment, fileName, fileBytes, size, hash, "media1", null);
 
         Optional<Media> mediaBeforeDelete = mediaRepository.findByHash(
-            hash,
-            MediaCriteria.builder().organization(ORG_ID).environment(environment).build()
-        );
+                hash,
+                MediaCriteria.builder()
+                        .organization(ORG_ID)
+                        .environment(environment)
+                        .build());
         assertTrue(mediaBeforeDelete.isPresent(), "Media should exist before deletion");
 
         mediaRepository.deleteByHashAndEnvironment(hash, environment);
 
         Optional<Media> mediaAfterDelete = mediaRepository.findByHash(
-            hash,
-            MediaCriteria.builder().organization(ORG_ID).environment(environment).build()
-        );
+                hash,
+                MediaCriteria.builder()
+                        .organization(ORG_ID)
+                        .environment(environment)
+                        .build());
         assertFalse(mediaAfterDelete.isPresent(), "Media should not exist after deletion");
     }
 
@@ -345,17 +377,15 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         mediaRepository.deleteByHashAndEnvironment(null, ENV_ID);
 
         Optional<Media> mediaAfterDeleteAttempt1 = mediaRepository.findByHash(
-            "validHash",
-            MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build()
-        );
+                "validHash",
+                MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build());
         assertTrue(mediaAfterDeleteAttempt1.isPresent(), "Media should still exist when hash is null");
 
         mediaRepository.deleteByHashAndEnvironment("validHash", null);
 
         Optional<Media> mediaAfterDeleteAttempt2 = mediaRepository.findByHash(
-            "validHash",
-            MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build()
-        );
+                "validHash",
+                MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build());
         assertTrue(mediaAfterDeleteAttempt2.isPresent(), "Media should still exist when environment is null");
     }
 
@@ -374,28 +404,32 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         mediaRepository.deleteByHashAndEnvironment(hash, environment1);
 
         Optional<Media> mediaAfterDeleteEnv1 = mediaRepository.findByHash(
-            hash,
-            MediaCriteria.builder().organization(ORG_ID).environment(environment1).build()
-        );
+                hash,
+                MediaCriteria.builder()
+                        .organization(ORG_ID)
+                        .environment(environment1)
+                        .build());
         assertFalse(mediaAfterDeleteEnv1.isPresent(), "Media with environment1 should be deleted");
 
         Optional<Media> mediaAfterDeleteEnv2 = mediaRepository.findByHash(
-            hash,
-            MediaCriteria.builder().organization(ORG_ID).environment(environment2).build()
-        );
+                hash,
+                MediaCriteria.builder()
+                        .organization(ORG_ID)
+                        .environment(environment2)
+                        .build());
         assertTrue(mediaAfterDeleteEnv2.isPresent(), "Media with environment2 should still exist");
     }
 
     private Media createMedia(
-        String organization,
-        String environment,
-        String fileName,
-        byte[] fileBytes,
-        long size,
-        String hashString,
-        String id,
-        String api
-    ) throws TechnicalException {
+            String organization,
+            String environment,
+            String fileName,
+            byte[] fileBytes,
+            long size,
+            String hashString,
+            String id,
+            String api)
+            throws TechnicalException {
         Media imageData = new Media();
         imageData.setId(id);
         imageData.setType("image");
@@ -422,7 +456,9 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     private byte[] getFileBytes(String fileName) throws URISyntaxException, IOException {
-        File file = new File(MediaRepositoryTest.class.getResource(getTestCasesPath() + fileName).toURI());
+        File file = new File(MediaRepositoryTest.class
+                .getResource(getTestCasesPath() + fileName)
+                .toURI());
         InputStream fileInputStream = new FileInputStream(file);
         return IOUtils.toByteArray(fileInputStream);
     }

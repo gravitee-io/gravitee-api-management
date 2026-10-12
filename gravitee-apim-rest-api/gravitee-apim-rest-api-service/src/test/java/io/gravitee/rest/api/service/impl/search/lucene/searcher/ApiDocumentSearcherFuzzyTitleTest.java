@@ -47,11 +47,9 @@ class ApiDocumentSearcherFuzzyTitleTest {
 
     @Test
     void should_match_typo_against_name_token_when_title_has_suffix() throws Exception {
-        try (
-            ByteBuffersDirectory directory = new ByteBuffersDirectory();
-            StandardAnalyzer analyzer = new StandardAnalyzer();
-            IndexWriter indexWriter = new IndexWriter(directory, new IndexWriterConfig(analyzer))
-        ) {
+        try (ByteBuffersDirectory directory = new ByteBuffersDirectory();
+                StandardAnalyzer analyzer = new StandardAnalyzer();
+                IndexWriter indexWriter = new IndexWriter(directory, new IndexWriterConfig(analyzer))) {
             ApiDocumentTransformer transformer = new ApiDocumentTransformer(mock(ApiService.class));
             indexWriter.addDocument(transformer.transform(apiNamed("management #1")));
             indexWriter.commit();
@@ -60,15 +58,19 @@ class ApiDocumentSearcherFuzzyTitleTest {
             ExecutionContext ctx = new ExecutionContext(ORG, ENV);
 
             SearchResult withoutTypo = searcher.search(
-                ctx,
-                QueryBuilder.create(ApiEntity.class).setQuery("managment").setTypoTolerance(false).build()
-            );
+                    ctx,
+                    QueryBuilder.create(ApiEntity.class)
+                            .setQuery("managment")
+                            .setTypoTolerance(false)
+                            .build());
             assertThat(withoutTypo.getHits()).isZero();
 
             SearchResult withTypo = searcher.search(
-                ctx,
-                QueryBuilder.create(ApiEntity.class).setQuery("managment").setTypoTolerance(true).build()
-            );
+                    ctx,
+                    QueryBuilder.create(ApiEntity.class)
+                            .setQuery("managment")
+                            .setTypoTolerance(true)
+                            .build());
             assertThat(withTypo.getHits()).isEqualTo(1);
             assertThat(withTypo.getDocuments()).containsExactly("api-fuzzy-title");
         }

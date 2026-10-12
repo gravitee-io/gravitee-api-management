@@ -55,59 +55,58 @@ public class ApiKeySynchronizer implements RepositorySynchronizer {
         } else {
             AtomicLong launchTime = new AtomicLong();
             return apiKeyFetcher
-                .fetchLatest(from, to, environments)
-                .subscribeOn(Schedulers.from(syncFetcherExecutor))
-                // append per page
-                .flatMap(apiKeys ->
-                    Flowable.just(apiKeys)
-                        .flatMapIterable(s -> s)
-                        .flatMap(apiKey ->
-                            Flowable.fromIterable(apiKey.getSubscriptions())
-                                .mapOptional(subscriptionService::getById)
-                                .map(subscription -> apiKeyMapper.to(apiKey, java.util.Optional.of(subscription)))
-                        )
-                        .map(apiKey ->
-                            SingleApiKeyDeployable.builder()
-                                .apiKey(apiKey)
-                                .syncAction(apiKey.isActive() ? SyncAction.DEPLOY : SyncAction.UNDEPLOY)
-                                .build()
-                        )
-                )
-                // per deployable
-                .compose(upstream -> {
-                    ApiKeyDeployer apiKeyDeployer = deployerFactory.createApiKeyDeployer();
-                    return upstream
-                        .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                        .runOn(Schedulers.from(syncDeployerExecutor))
-                        .flatMap(deployable -> {
-                            if (deployable.syncAction() == SyncAction.DEPLOY) {
-                                return deploy(apiKeyDeployer, deployable);
-                            } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                                return undeploy(apiKeyDeployer, deployable);
-                            } else {
-                                return Flowable.empty();
-                            }
-                        })
-                        .sequential();
-                })
-                .count()
-                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-                .doOnSuccess(count ->
-                    log.debug("ApiKeys of {} apis refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
-                )
-                .ignoreElement();
+                    .fetchLatest(from, to, environments)
+                    .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                    // append per page
+                    .flatMap(apiKeys -> Flowable.just(apiKeys)
+                            .flatMapIterable(s -> s)
+                            .flatMap(apiKey -> Flowable.fromIterable(apiKey.getSubscriptions())
+                                    .mapOptional(subscriptionService::getById)
+                                    .map(subscription -> apiKeyMapper.to(apiKey, java.util.Optional.of(subscription))))
+                            .map(apiKey -> SingleApiKeyDeployable.builder()
+                                    .apiKey(apiKey)
+                                    .syncAction(apiKey.isActive() ? SyncAction.DEPLOY : SyncAction.UNDEPLOY)
+                                    .build()))
+                    // per deployable
+                    .compose(upstream -> {
+                        ApiKeyDeployer apiKeyDeployer = deployerFactory.createApiKeyDeployer();
+                        return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                                .runOn(Schedulers.from(syncDeployerExecutor))
+                                .flatMap(deployable -> {
+                                    if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                        return deploy(apiKeyDeployer, deployable);
+                                    } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                        return undeploy(apiKeyDeployer, deployable);
+                                    } else {
+                                        return Flowable.empty();
+                                    }
+                                })
+                                .sequential();
+                    })
+                    .count()
+                    .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                    .doOnSuccess(count -> log.debug(
+                            "ApiKeys of {} apis refreshed in {}ms",
+                            count,
+                            (System.currentTimeMillis() - launchTime.get())))
+                    .ignoreElement();
         }
     }
 
-    private Flowable<SingleApiKeyDeployable> deploy(final ApiKeyDeployer apiKeyDeployer, final SingleApiKeyDeployable deployable) {
-        return apiKeyDeployer.deploy(deployable).andThen(apiKeyDeployer.doAfterDeployment(deployable)).andThen(Flowable.just(deployable));
+    private Flowable<SingleApiKeyDeployable> deploy(
+            final ApiKeyDeployer apiKeyDeployer, final SingleApiKeyDeployable deployable) {
+        return apiKeyDeployer
+                .deploy(deployable)
+                .andThen(apiKeyDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable));
     }
 
-    private Flowable<SingleApiKeyDeployable> undeploy(final ApiKeyDeployer apiKeyDeployer, final SingleApiKeyDeployable deployable) {
+    private Flowable<SingleApiKeyDeployable> undeploy(
+            final ApiKeyDeployer apiKeyDeployer, final SingleApiKeyDeployable deployable) {
         return apiKeyDeployer
-            .undeploy(deployable)
-            .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable));
+                .undeploy(deployable)
+                .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable));
     }
 
     @Override

@@ -28,70 +28,44 @@ class EncryptedPropertyAuditRedactionTest {
 
     @Test
     void should_replace_the_value_of_an_encrypted_property_at_any_depth_by_its_fingerprint() {
-        var node = json(
-            """
-            {"definition":{"properties":[{"key":"secret","value":"CIPHER","encrypted":true,"dynamic":false},{"key":"plain","value":"plain-value","encrypted":false}]}}"""
-        );
+        var node = json("""
+            {"definition":{"properties":[{"key":"secret","value":"CIPHER","encrypted":true,"dynamic":false},{"key":"plain","value":"plain-value","encrypted":false}]}}""");
 
-        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
-            json(
-                """
-                {"definition":{"properties":[{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true,"dynamic":false},{"key":"plain","value":"plain-value","encrypted":false}]}}"""
-            )
-        );
+        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(json("""
+                {"definition":{"properties":[{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true,"dynamic":false},{"key":"plain","value":"plain-value","encrypted":false}]}}"""));
     }
 
     @Test
     void should_replace_the_value_of_an_encrypted_property_in_a_top_level_array_by_its_fingerprint() {
-        var node = json(
-            """
-            [{"key":"secret","value":"CIPHER","encrypted":true}]"""
-        );
+        var node = json("""
+            [{"key":"secret","value":"CIPHER","encrypted":true}]""");
 
-        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
-            json(
-                """
-                [{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}]"""
-            )
-        );
+        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(json("""
+                [{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}]"""));
     }
 
     @Test
     void should_replace_the_value_by_its_fingerprint_when_encrypted_is_written_as_text() {
-        var node = json(
-            """
-            {"key":"secret","value":"CIPHER","encrypted":"true"}"""
-        );
+        var node = json("""
+            {"key":"secret","value":"CIPHER","encrypted":"true"}""");
 
-        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
-            json(
-                """
-                {"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":"true"}"""
-            )
-        );
+        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(json("""
+                {"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":"true"}"""));
     }
 
     @Test
     void should_remove_a_null_value_of_an_encrypted_property() {
-        var node = json(
-            """
-            {"key":"secret","value":null,"encrypted":true}"""
-        );
+        var node = json("""
+            {"key":"secret","value":null,"encrypted":true}""");
 
-        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
-            json(
-                """
-                {"key":"secret","encrypted":true}"""
-            )
-        );
+        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(json("""
+                {"key":"secret","encrypted":true}"""));
     }
 
     @Test
     void should_keep_the_value_of_a_node_without_key() {
-        var node = json(
-            """
-            {"properties":{"secret":{"value":"CIPHER","encrypted":true}}}"""
-        );
+        var node = json("""
+            {"properties":{"secret":{"value":"CIPHER","encrypted":true}}}""");
 
         JsonNode redacted = EncryptedPropertyAuditRedaction.redact(node.deepCopy());
 
@@ -100,10 +74,8 @@ class EncryptedPropertyAuditRedactionTest {
 
     @Test
     void should_keep_a_tree_without_encrypted_property_unchanged() {
-        var node = json(
-            """
-            {"name":"my-api","tags":["a","b"],"properties":[{"key":"plain","value":"plain-value","encrypted":false}]}"""
-        );
+        var node = json("""
+            {"name":"my-api","tags":["a","b"],"properties":[{"key":"plain","value":"plain-value","encrypted":false}]}""");
 
         JsonNode redacted = EncryptedPropertyAuditRedaction.redact(node.deepCopy());
 

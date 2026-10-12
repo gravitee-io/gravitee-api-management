@@ -59,48 +59,41 @@ public class FlowValidationDomainService {
     private final EntrypointPluginQueryService entrypointConnectorPluginService;
 
     public FlowValidationDomainService(
-        PolicyValidationDomainService policyValidationDomainService,
-        EntrypointPluginQueryService entrypointConnectorPluginService
-    ) {
+            PolicyValidationDomainService policyValidationDomainService,
+            EntrypointPluginQueryService entrypointConnectorPluginService) {
         this.policyValidationDomainService = policyValidationDomainService;
         this.entrypointConnectorPluginService = entrypointConnectorPluginService;
     }
 
-    public static final Predicate<Selector> HTTP_SELECTOR_WITH_NULL_PATH_OPERATOR = selector ->
-        selector instanceof HttpSelector httpSelector && httpSelector.getPathOperator() == null;
+    public static final Predicate<Selector> HTTP_SELECTOR_WITH_NULL_PATH_OPERATOR =
+            selector -> selector instanceof HttpSelector httpSelector && httpSelector.getPathOperator() == null;
 
-    private static final Function<Flow, Optional<String>> HTTP_PATH_EXTRACTOR = flow ->
-        flow
-            .selectorByType(SelectorType.HTTP)
-            .stream()
-            .map(selector -> ((HttpSelector) selector).getPath())
-            .filter(Objects::nonNull)
-            .findFirst();
+    private static final Function<Flow, Optional<String>> HTTP_PATH_EXTRACTOR =
+            flow -> flow.selectorByType(SelectorType.HTTP).stream()
+                    .map(selector -> ((HttpSelector) selector).getPath())
+                    .filter(Objects::nonNull)
+                    .findFirst();
 
-    public static final Predicate<Selector> HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH = selector ->
-        selector instanceof HttpSelector httpSelector && hasInvalidWildcardPath(httpSelector.getPath());
+    public static final Predicate<Selector> HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH =
+            selector -> selector instanceof HttpSelector httpSelector && hasInvalidWildcardPath(httpSelector.getPath());
 
     public static boolean hasInvalidWildcardPath(final String path) {
         return path != null && path.contains("**");
     }
 
     private static final Map<ApiType, Function<Flow, Optional<String>>> PATH_EXTRACTOR = Map.of(
-        ApiType.PROXY,
-        HTTP_PATH_EXTRACTOR,
-        ApiType.MESSAGE,
-        flow ->
-            flow
-                .selectorByType(SelectorType.CHANNEL)
-                .stream()
-                .map(selector -> ((ChannelSelector) selector).getChannel())
-                .findFirst(),
-        ApiType.MCP_PROXY,
-        flow -> Optional.empty(),
-        ApiType.LLM_PROXY,
-        HTTP_PATH_EXTRACTOR,
-        ApiType.A2A_PROXY,
-        HTTP_PATH_EXTRACTOR
-    );
+            ApiType.PROXY,
+            HTTP_PATH_EXTRACTOR,
+            ApiType.MESSAGE,
+            flow -> flow.selectorByType(SelectorType.CHANNEL).stream()
+                    .map(selector -> ((ChannelSelector) selector).getChannel())
+                    .findFirst(),
+            ApiType.MCP_PROXY,
+            flow -> Optional.empty(),
+            ApiType.LLM_PROXY,
+            HTTP_PATH_EXTRACTOR,
+            ApiType.A2A_PROXY,
+            HTTP_PATH_EXTRACTOR);
 
     public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
         return validateAndSanitizeHttpV4(apiType, flows, null);
@@ -113,7 +106,8 @@ public class FlowValidationDomainService {
      * @param apiResourceNames names of resources declared on the API; {@code null} to skip
      *                         resource-existence checks.
      */
-    public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows, @Nullable Set<String> apiResourceNames) {
+    public List<Flow> validateAndSanitizeHttpV4(
+            final ApiType apiType, List<Flow> flows, @Nullable Set<String> apiResourceNames) {
         if (flows != null) {
             flows.forEach(flow -> {
                 // Check duplicated selectors
@@ -130,9 +124,9 @@ public class FlowValidationDomainService {
 
                 // Validate policy
                 var steps = Stream.of(flow.getRequest(), flow.getResponse(), flow.getPublish(), flow.getSubscribe())
-                    .filter(Objects::nonNull)
-                    .flatMap(Collection::stream)
-                    .toList();
+                        .filter(Objects::nonNull)
+                        .flatMap(Collection::stream)
+                        .toList();
 
                 checkPolicyConfiguration(apiType, steps, apiResourceNames);
             });
@@ -147,10 +141,11 @@ public class FlowValidationDomainService {
             }
             flows.forEach(flow -> {
                 // Validate policy configuration
-                var steps = Stream.of(flow.getEntrypointConnect(), flow.getInteract(), flow.getPublish(), flow.getSubscribe())
-                    .filter(Objects::nonNull)
-                    .flatMap(Collection::stream)
-                    .toList();
+                var steps = Stream.of(
+                                flow.getEntrypointConnect(), flow.getInteract(), flow.getPublish(), flow.getSubscribe())
+                        .filter(Objects::nonNull)
+                        .flatMap(Collection::stream)
+                        .toList();
 
                 checkPolicyConfiguration(ApiType.NATIVE, steps, null);
             });
@@ -169,49 +164,44 @@ public class FlowValidationDomainService {
 
     private void checkHttpSelectorsInvalidWildcardPath(final Flow flow) {
         if (flow.getSelectors() != null) {
-            flow
-                .getSelectors()
-                .stream()
-                .filter(HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
-                .map(HttpSelector.class::cast)
-                .findFirst()
-                .ifPresent(httpSelector -> {
-                    throw InvalidFlowException.invalidWildcardPath(flow.getName(), httpSelector.getPath());
-                });
+            flow.getSelectors().stream()
+                    .filter(HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
+                    .map(HttpSelector.class::cast)
+                    .findFirst()
+                    .ifPresent(httpSelector -> {
+                        throw InvalidFlowException.invalidWildcardPath(flow.getName(), httpSelector.getPath());
+                    });
         }
     }
 
     private void checkSelectorsForType(final ApiType apiType, final Flow flow) {
         if (flow.getSelectors() != null) {
             if (ApiType.PROXY == apiType || ApiType.LLM_PROXY == apiType || ApiType.A2A_PROXY == apiType) {
-                Set<String> invalidSelectors = flow
-                    .getSelectors()
-                    .stream()
-                    .filter(selector -> !(selector.getType() == SelectorType.HTTP || selector.getType() == SelectorType.CONDITION))
-                    .map(selector -> selector.getType().getLabel())
-                    .collect(Collectors.toSet());
+                Set<String> invalidSelectors = flow.getSelectors().stream()
+                        .filter(selector -> !(selector.getType() == SelectorType.HTTP
+                                || selector.getType() == SelectorType.CONDITION))
+                        .map(selector -> selector.getType().getLabel())
+                        .collect(Collectors.toSet());
                 if (!invalidSelectors.isEmpty()) {
                     throw InvalidFlowException.invalidSelector(flow.getName(), apiType, invalidSelectors);
                 }
             } else if (ApiType.MESSAGE == apiType) {
-                Set<String> invalidSelectors = flow
-                    .getSelectors()
-                    .stream()
-                    .filter(selector -> !(selector.getType() == SelectorType.CHANNEL || selector.getType() == SelectorType.CONDITION))
-                    .map(selector -> selector.getType().getLabel())
-                    .collect(Collectors.toSet());
+                Set<String> invalidSelectors = flow.getSelectors().stream()
+                        .filter(selector -> !(selector.getType() == SelectorType.CHANNEL
+                                || selector.getType() == SelectorType.CONDITION))
+                        .map(selector -> selector.getType().getLabel())
+                        .collect(Collectors.toSet());
                 if (!invalidSelectors.isEmpty()) {
                     throw InvalidFlowException.invalidSelector(flow.getName(), apiType, invalidSelectors);
                 }
 
                 checkChannelAsyncEntrypoint(flow);
             } else if (ApiType.MCP_PROXY == apiType) {
-                Set<String> invalidSelectors = flow
-                    .getSelectors()
-                    .stream()
-                    .filter(selector -> !(selector.getType() == SelectorType.MCP || selector.getType() == SelectorType.CONDITION))
-                    .map(selector -> selector.getType().getLabel())
-                    .collect(Collectors.toSet());
+                Set<String> invalidSelectors = flow.getSelectors().stream()
+                        .filter(selector -> !(selector.getType() == SelectorType.MCP
+                                || selector.getType() == SelectorType.CONDITION))
+                        .map(selector -> selector.getType().getLabel())
+                        .collect(Collectors.toSet());
                 if (!invalidSelectors.isEmpty()) {
                     throw InvalidFlowException.invalidSelector(flow.getName(), apiType, invalidSelectors);
                 }
@@ -220,26 +210,21 @@ public class FlowValidationDomainService {
     }
 
     private void checkChannelAsyncEntrypoint(final Flow flow) {
-        Optional<ChannelSelector> channelSelectorOpt = flow
-            .getSelectors()
-            .stream()
-            .filter(selector -> selector.getType() == SelectorType.CHANNEL)
-            .map(ChannelSelector.class::cast)
-            .findFirst();
+        Optional<ChannelSelector> channelSelectorOpt = flow.getSelectors().stream()
+                .filter(selector -> selector.getType() == SelectorType.CHANNEL)
+                .map(ChannelSelector.class::cast)
+                .findFirst();
         if (channelSelectorOpt.isPresent()) {
             ChannelSelector channelSelector = channelSelectorOpt.get();
             if (channelSelector.getEntrypoints() != null) {
-                Set<String> asyncEntrypoints = entrypointConnectorPluginService
-                    .findBySupportedApi(ApiType.MESSAGE)
-                    .stream()
-                    .map(PlatformPlugin::getId)
-                    .collect(Collectors.toSet());
+                Set<String> asyncEntrypoints =
+                        entrypointConnectorPluginService.findBySupportedApi(ApiType.MESSAGE).stream()
+                                .map(PlatformPlugin::getId)
+                                .collect(Collectors.toSet());
 
-                Set<String> invalidEntrypoints = channelSelector
-                    .getEntrypoints()
-                    .stream()
-                    .filter(entrypointId -> !asyncEntrypoints.contains(entrypointId))
-                    .collect(Collectors.toSet());
+                Set<String> invalidEntrypoints = channelSelector.getEntrypoints().stream()
+                        .filter(entrypointId -> !asyncEntrypoints.contains(entrypointId))
+                        .collect(Collectors.toSet());
 
                 if (!invalidEntrypoints.isEmpty()) {
                     throw InvalidFlowException.invalidEntrypoint(flow.getName(), invalidEntrypoints);
@@ -248,19 +233,19 @@ public class FlowValidationDomainService {
         }
     }
 
-    private void checkPolicyConfiguration(final ApiType apiType, final List<Step> steps, @Nullable Set<String> apiResourceNames) {
-        steps
-            .stream()
-            .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
-            .forEach(step -> {
-                validateXmlValidationStructuralConfiguration(apiType, step, apiResourceNames);
-                step.setConfiguration(
-                    policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
-                );
-            });
+    private void checkPolicyConfiguration(
+            final ApiType apiType, final List<Step> steps, @Nullable Set<String> apiResourceNames) {
+        steps.stream()
+                .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
+                .forEach(step -> {
+                    validateXmlValidationStructuralConfiguration(apiType, step, apiResourceNames);
+                    step.setConfiguration(policyValidationDomainService.validateAndSanitizeConfiguration(
+                            step.getPolicy(), step.getConfiguration()));
+                });
     }
 
-    private void validateXmlValidationStructuralConfiguration(ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
+    private void validateXmlValidationStructuralConfiguration(
+            ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
         String error = XmlValidationPolicyChecker.validateRegistryConfiguration(apiType, step, apiResourceNames);
         if (error != null) {
             throw new ValidationDomainException(error);
@@ -270,12 +255,10 @@ public class FlowValidationDomainService {
     private void checkDuplicatedSelectors(final Flow flow) {
         if (flow.getSelectors() != null) {
             Set<Selector> seenSelectors = new HashSet<>();
-            Set<String> duplicatedSelectors = flow
-                .getSelectors()
-                .stream()
-                .filter(e -> !seenSelectors.add(e))
-                .map(selector -> selector.getType().getLabel())
-                .collect(Collectors.toSet());
+            Set<String> duplicatedSelectors = flow.getSelectors().stream()
+                    .filter(e -> !seenSelectors.add(e))
+                    .map(selector -> selector.getType().getLabel())
+                    .collect(Collectors.toSet());
             if (!duplicatedSelectors.isEmpty()) {
                 throw InvalidFlowException.duplicatedSelector(flow.getName(), duplicatedSelectors);
             }
@@ -292,9 +275,9 @@ public class FlowValidationDomainService {
 
     private static void checkForInvalidSelectors(List<Flow> apiFlowList, List<Flow> planFlowList) {
         var httpSelectors = Stream.concat(apiFlowList.stream(), planFlowList.stream())
-            .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-            .map(HttpSelector.class::cast)
-            .toList();
+                .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+                .map(HttpSelector.class::cast)
+                .toList();
 
         if (httpSelectors.stream().anyMatch(selector -> selector.getPath() == null)) {
             throw new InvalidDataException("flows[].selectors[].path is required");
@@ -306,18 +289,17 @@ public class FlowValidationDomainService {
 
     private Stream<Flow> filterFlowsWithPathParam(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
         return Stream.concat(apiFlows, planFlows)
-            .filter(Flow::isEnabled)
-            .filter(flow -> containsPathParam(apiType, flow));
+                .filter(Flow::isEnabled)
+                .filter(flow -> containsPathParam(apiType, flow));
     }
 
     private void checkOverlappingPaths(ApiType apiType, Stream<Flow> flows) {
         // Extract unique, non-empty paths from enabled flows
-        List<String> uniquePaths = flows
-            .map(flow -> extractPath(apiType, flow))
-            .map(this::normalizePath) // normalize to avoid ambiguity due to slashes/case
-            .filter(path -> !path.isEmpty())
-            .distinct()
-            .toList();
+        List<String> uniquePaths = flows.map(flow -> extractPath(apiType, flow))
+                .map(this::normalizePath) // normalize to avoid ambiguity due to slashes/case
+                .filter(path -> !path.isEmpty())
+                .distinct()
+                .toList();
 
         Map<String, Set<String>> overlappingPaths = new HashMap<>();
         int pathCount = uniquePaths.size();
@@ -344,16 +326,12 @@ public class FlowValidationDomainService {
 
         if (!overlappingPaths.isEmpty()) {
             // Sort lists for stable output
-            Map<String, String> payload = overlappingPaths
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, entry -> {
+            Map<String, String> payload = overlappingPaths.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
                         List<String> sortedPaths = new ArrayList<>(entry.getValue());
                         sortedPaths.sort(String::compareTo);
                         return sortedPaths.toString();
-                    })
-                );
+                    }));
 
             throw new ValidationDomainException("Invalid path parameters", payload);
         }
@@ -409,8 +387,8 @@ public class FlowValidationDomainService {
      */
     private String[] splitPathSegments(String path) {
         return Arrays.stream(SEPARATOR_SPLITTER.split(path))
-            .filter(s -> !s.isEmpty())
-            .toArray(String[]::new);
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
     }
 
     /**
@@ -418,12 +396,10 @@ public class FlowValidationDomainService {
      * Example: /users/:id/orders -> /users/:/orders
      */
     private String buildAmbiguitySignature(String[] segments) {
-        return (
-            PATH_SEPARATOR +
-            Arrays.stream(segments)
-                .map(s -> s.startsWith(PATH_PARAM_PREFIX) ? PATH_PARAM_PREFIX : s)
-                .collect(Collectors.joining(PATH_SEPARATOR))
-        );
+        return (PATH_SEPARATOR
+                + Arrays.stream(segments)
+                        .map(s -> s.startsWith(PATH_PARAM_PREFIX) ? PATH_PARAM_PREFIX : s)
+                        .collect(Collectors.joining(PATH_SEPARATOR)));
     }
 
     private static Boolean containsPathParam(ApiType apiType, Flow flow) {

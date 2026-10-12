@@ -18,7 +18,6 @@ package io.gravitee.repository.management.model;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -88,13 +87,12 @@ public class Membership {
     }
 
     public Membership(
-        String id,
-        String memberId,
-        MembershipMemberType memberType,
-        String referenceId,
-        MembershipReferenceType referenceType,
-        String roleId
-    ) {
+            String id,
+            String memberId,
+            MembershipMemberType memberType,
+            String referenceId,
+            MembershipReferenceType referenceType,
+            String roleId) {
         this.id = id;
         this.memberId = memberId;
         this.memberType = memberType;
@@ -200,34 +198,31 @@ public class Membership {
     }
 
     public String toString() {
-        return (
-            "Membership{" +
-            "id='" +
-            id +
-            '\'' +
-            ", memberId='" +
-            memberId +
-            '\'' +
-            ", memberType='" +
-            memberType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", roleId='" +
-            roleId +
-            '\'' +
-            ", source='" +
-            source +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("Membership{" + "id='"
+                + id
+                + '\''
+                + ", memberId='"
+                + memberId
+                + '\''
+                + ", memberType='"
+                + memberType
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", roleId='"
+                + roleId
+                + '\''
+                + ", source='"
+                + source
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

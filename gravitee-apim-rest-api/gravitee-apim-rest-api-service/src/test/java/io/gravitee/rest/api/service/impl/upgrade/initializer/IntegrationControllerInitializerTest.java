@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
 import io.gravitee.exchange.api.controller.ExchangeController;
-import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -31,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mock.env.MockEnvironment;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,9 +45,7 @@ class IntegrationControllerInitializerTest {
     @BeforeEach
     void setUp() {
         initializer = new IntegrationControllerInitializer(
-            Optional.of(exchangeController),
-            Optional.of(new IdentifyConfiguration(environment, "integration"))
-        );
+                Optional.of(exchangeController), Optional.of(new IdentifyConfiguration(environment, "integration")));
     }
 
     @Test

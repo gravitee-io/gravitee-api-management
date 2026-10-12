@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.theme.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InMemoryAlternative;
 import inmemory.ParametersDomainServiceInMemory;
@@ -29,12 +28,8 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.theme.domain_service.DefaultThemeDomainService;
 import io.gravitee.apim.core.theme.domain_service.ThemeDomainService;
-import io.gravitee.apim.core.theme.domain_service.ThemePortalNextAssetsDomainService;
-import io.gravitee.apim.core.theme.exception.ThemeTypeNotSupportedException;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
-import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
-import io.gravitee.apim.infra.domain_service.theme.ThemePortalNextAssetsDomainServiceImpl;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -52,24 +47,26 @@ public class GetCurrentThemeUseCaseTest {
     private final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
 
     private final ThemeDefinition EXPECTED_PORTAL_NEXT_THEME_DEFINITION = ThemeDefinition.builder()
-        .color(
-            ThemeDefinition.Color.builder()
-                .primary("#fff")
-                .secondary("#000")
-                .tertiary("#111")
-                .error("#222")
-                .background(ThemeDefinition.Background.builder().page("#333").card("#444").build())
-                .build()
-        )
-        .font(ThemeDefinition.Font.builder().fontFamily("Comic Sans").build())
-        .customCss(".style { }")
-        .build();
+            .color(ThemeDefinition.Color.builder()
+                    .primary("#fff")
+                    .secondary("#000")
+                    .tertiary("#111")
+                    .error("#222")
+                    .background(ThemeDefinition.Background.builder()
+                            .page("#333")
+                            .card("#444")
+                            .build())
+                    .build())
+            .font(ThemeDefinition.Font.builder().fontFamily("Comic Sans").build())
+            .customCss(".style { }")
+            .build();
 
     ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     ParametersDomainServiceInMemory parametersDomainService = new ParametersDomainServiceInMemory();
     ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper = new ThemeServiceLegacyWrapperInMemory();
     ThemeQueryServiceInMemory themeQueryServiceInMemory = new ThemeQueryServiceInMemory(themeCrudService);
-    ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainService = new ThemePortalNextAssetsDomainServiceInMemory();
+    ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainService =
+            new ThemePortalNextAssetsDomainServiceInMemory();
     PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
 
     DefaultThemeDomainService defaultThemeDomainService;
@@ -77,77 +74,80 @@ public class GetCurrentThemeUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        parametersDomainService.initWith(
-            List.of(
+        parametersDomainService.initWith(List.of(
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getPrimary())
-                    .build(),
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getPrimary())
+                        .build(),
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_COLOR_SECONDARY.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getSecondary())
-                    .build(),
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_COLOR_SECONDARY.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getSecondary())
+                        .build(),
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_COLOR_TERTIARY.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getTertiary())
-                    .build(),
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_COLOR_TERTIARY.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getTertiary())
+                        .build(),
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_COLOR_ERROR.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getError())
-                    .build(),
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_COLOR_ERROR.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getError())
+                        .build(),
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getBackground().getPage())
-                    .build(),
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION
+                                .getColor()
+                                .getBackground()
+                                .getPage())
+                        .build(),
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getBackground().getCard())
-                    .build(),
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION
+                                .getColor()
+                                .getBackground()
+                                .getCard())
+                        .build(),
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_CUSTOM_CSS.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getCustomCss())
-                    .build(),
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_CUSTOM_CSS.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getCustomCss())
+                        .build(),
                 Parameter.builder()
-                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-                    .referenceType(ParameterReferenceType.ENVIRONMENT)
-                    .key(Key.PORTAL_NEXT_THEME_FONT_FAMILY.key())
-                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getFont().getFontFamily())
-                    .build()
-            )
-        );
+                        .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                        .referenceType(ParameterReferenceType.ENVIRONMENT)
+                        .key(Key.PORTAL_NEXT_THEME_FONT_FAMILY.key())
+                        .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getFont().getFontFamily())
+                        .build()));
 
         defaultThemeDomainService = new DefaultThemeDomainService(
-            parametersDomainService,
-            new ThemeDomainService(themeCrudService),
-            themeServiceLegacyWrapper,
-            themePortalNextAssetsDomainService
-        );
-        cut = new GetCurrentThemeUseCase(themeQueryServiceInMemory, defaultThemeDomainService, portalCrudService, themeCrudService);
+                parametersDomainService,
+                new ThemeDomainService(themeCrudService),
+                themeServiceLegacyWrapper,
+                themePortalNextAssetsDomainService);
+        cut = new GetCurrentThemeUseCase(
+                themeQueryServiceInMemory, defaultThemeDomainService, portalCrudService, themeCrudService);
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            parametersDomainService,
-            themeCrudService,
-            themeServiceLegacyWrapper,
-            themeQueryServiceInMemory,
-            portalCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        parametersDomainService,
+                        themeCrudService,
+                        themeServiceLegacyWrapper,
+                        themeQueryServiceInMemory,
+                        portalCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -171,18 +171,17 @@ public class GetCurrentThemeUseCaseTest {
         themeCrudService.initWith(List.of(aPortalNextTheme(false)));
 
         var result = cut.execute(new GetCurrentThemeUseCase.Input(ThemeType.PORTAL_NEXT, EXECUTION_CONTEXT));
-        assertThat(result)
-            .extracting(GetCurrentThemeUseCase.Output::result)
-            .satisfies(res -> {
-                var defaultPortalTheme = defaultThemeDomainService.getDefaultTheme(ThemeType.PORTAL_NEXT, EXECUTION_CONTEXT);
+        assertThat(result).extracting(GetCurrentThemeUseCase.Output::result).satisfies(res -> {
+            var defaultPortalTheme =
+                    defaultThemeDomainService.getDefaultTheme(ThemeType.PORTAL_NEXT, EXECUTION_CONTEXT);
 
-                assertThat(res.getId()).isNotBlank();
-                assertThat(res.getName()).isEqualTo(defaultPortalTheme.getName());
-                assertThat(res.getDefinitionPortalNext()).isEqualTo(defaultPortalTheme.getDefinitionPortalNext());
-                assertThat(res.isEnabled()).isEqualTo(true);
-                assertThat(res.getCreatedAt()).isNotNull();
-                assertThat(res.getUpdatedAt()).isNotNull();
-            });
+            assertThat(res.getId()).isNotBlank();
+            assertThat(res.getName()).isEqualTo(defaultPortalTheme.getName());
+            assertThat(res.getDefinitionPortalNext()).isEqualTo(defaultPortalTheme.getDefinitionPortalNext());
+            assertThat(res.isEnabled()).isEqualTo(true);
+            assertThat(res.getCreatedAt()).isNotNull();
+            assertThat(res.getUpdatedAt()).isNotNull();
+        });
 
         assertThat(themeCrudService.storage()).hasSize(2).contains(result.result());
     }
@@ -192,28 +191,26 @@ public class GetCurrentThemeUseCaseTest {
         themeCrudService.initWith(List.of(aPortalTheme(false)));
 
         var result = cut.execute(new GetCurrentThemeUseCase.Input(ThemeType.PORTAL, EXECUTION_CONTEXT));
-        assertThat(result)
-            .extracting(GetCurrentThemeUseCase.Output::result)
-            .satisfies(res -> {
-                assertThat(res.getId()).isEqualTo("portal-default-theme");
-            });
+        assertThat(result).extracting(GetCurrentThemeUseCase.Output::result).satisfies(res -> {
+            assertThat(res.getId()).isEqualTo("portal-default-theme");
+        });
     }
 
     @Test
     void should_return_portal_referenced_theme_when_portal_id_provided() {
-        var portalTheme = aPortalNextTheme(false).toBuilder().id("portal-attached-theme").build();
-        var envWideTheme = aPortalNextTheme(true).toBuilder().id("env-enabled-theme").build();
+        var portalTheme =
+                aPortalNextTheme(false).toBuilder().id("portal-attached-theme").build();
+        var envWideTheme =
+                aPortalNextTheme(true).toBuilder().id("env-enabled-theme").build();
         themeCrudService.initWith(List.of(portalTheme, envWideTheme));
         var portal = aPortalIn(EXECUTION_CONTEXT.getEnvironmentId()).withActiveThemeId("portal-attached-theme");
         portalCrudService.initWith(List.of(portal));
 
-        var result = cut.execute(
-            GetCurrentThemeUseCase.Input.builder()
+        var result = cut.execute(GetCurrentThemeUseCase.Input.builder()
                 .type(ThemeType.PORTAL_NEXT)
                 .executionContext(EXECUTION_CONTEXT)
                 .portalId(portal.getId())
-                .build()
-        );
+                .build());
 
         assertThat(result.result().getId()).isEqualTo("portal-attached-theme");
     }
@@ -225,13 +222,11 @@ public class GetCurrentThemeUseCaseTest {
         var portal = aPortalIn(EXECUTION_CONTEXT.getEnvironmentId());
         portalCrudService.initWith(List.of(portal));
 
-        var result = cut.execute(
-            GetCurrentThemeUseCase.Input.builder()
+        var result = cut.execute(GetCurrentThemeUseCase.Input.builder()
                 .type(ThemeType.PORTAL_NEXT)
                 .executionContext(EXECUTION_CONTEXT)
                 .portalId(portal.getId())
-                .build()
-        );
+                .build());
 
         assertThat(result.result()).isEqualTo(envWideTheme);
     }
@@ -241,19 +236,21 @@ public class GetCurrentThemeUseCaseTest {
         var envWideTheme = aPortalNextTheme(true);
         themeCrudService.initWith(List.of(envWideTheme));
 
-        var result = cut.execute(
-            GetCurrentThemeUseCase.Input.builder()
+        var result = cut.execute(GetCurrentThemeUseCase.Input.builder()
                 .type(ThemeType.PORTAL_NEXT)
                 .executionContext(EXECUTION_CONTEXT)
                 .portalId(PortalId.of("00000000-0000-0000-0000-0000000000ff"))
-                .build()
-        );
+                .build());
 
         assertThat(result.result()).isEqualTo(envWideTheme);
     }
 
     private Portal aPortalIn(String environmentId) {
-        return Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), environmentId, "organization-id", "Default Portal");
+        return Portal.of(
+                PortalId.of("00000000-0000-0000-0000-0000000000a1"),
+                environmentId,
+                "organization-id",
+                "Default Portal");
     }
 
     private Theme aPortalTheme(boolean enabled) {
@@ -261,25 +258,27 @@ public class GetCurrentThemeUseCaseTest {
         portalDefinition.setData(List.of());
 
         return Theme.builder()
-            .id("portal-theme")
-            .name("a portal theme")
-            .type(ThemeType.PORTAL)
-            .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .definitionPortal(portalDefinition)
-            .enabled(enabled)
-            .build();
+                .id("portal-theme")
+                .name("a portal theme")
+                .type(ThemeType.PORTAL)
+                .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .definitionPortal(portalDefinition)
+                .enabled(enabled)
+                .build();
     }
 
     private Theme aPortalNextTheme(boolean enabled) {
         return Theme.builder()
-            .id("portal-next-theme")
-            .name("a portal next theme")
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .definitionPortalNext(ThemeDefinition.builder().color(ThemeDefinition.Color.builder().primary("#fff").build()).build())
-            .enabled(enabled)
-            .build();
+                .id("portal-next-theme")
+                .name("a portal next theme")
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .definitionPortalNext(ThemeDefinition.builder()
+                        .color(ThemeDefinition.Color.builder().primary("#fff").build())
+                        .build())
+                .enabled(enabled)
+                .build();
     }
 }

@@ -37,23 +37,24 @@ public final class PlanMapper {
         }
 
         PlanSecurity security = PlanSecurity.builder()
-            .type(repoPlan.getSecurity() != null ? repoPlan.getSecurity().name() : "api-key")
-            .configuration(repoPlan.getSecurityDefinition())
-            .build();
+                .type(repoPlan.getSecurity() != null ? repoPlan.getSecurity().name() : "api-key")
+                .configuration(repoPlan.getSecurityDefinition())
+                .build();
 
         PlanStatus status = toPlanStatus(repoPlan.getStatus());
-        PlanMode mode = repoPlan.getMode() != null ? PlanMode.valueOf(repoPlan.getMode().name()) : PlanMode.STANDARD;
+        PlanMode mode =
+                repoPlan.getMode() != null ? PlanMode.valueOf(repoPlan.getMode().name()) : PlanMode.STANDARD;
 
         return Plan.builder()
-            .id(repoPlan.getId())
-            .name(repoPlan.getName())
-            .security(security)
-            .mode(mode)
-            .selectionRule(repoPlan.getSelectionRule())
-            .tags(repoPlan.getTags() != null ? Set.copyOf(repoPlan.getTags()) : null)
-            .status(status)
-            .flows(List.of())
-            .build();
+                .id(repoPlan.getId())
+                .name(repoPlan.getName())
+                .security(security)
+                .mode(mode)
+                .selectionRule(repoPlan.getSelectionRule())
+                .tags(repoPlan.getTags() != null ? Set.copyOf(repoPlan.getTags()) : null)
+                .status(status)
+                .flows(List.of())
+                .build();
     }
 
     private static PlanStatus toPlanStatus(io.gravitee.repository.management.model.Plan.Status repoStatus) {

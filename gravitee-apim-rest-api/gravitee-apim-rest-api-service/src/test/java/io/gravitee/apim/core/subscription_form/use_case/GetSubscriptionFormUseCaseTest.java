@@ -50,7 +50,8 @@ class GetSubscriptionFormUseCaseTest {
         var disabledForm = SubscriptionFormFixtures.aSubscriptionForm();
         queryService.initWith(List.of(disabledForm));
 
-        var result = useCase.execute(new GetSubscriptionFormUseCase.Input(disabledForm.getEnvironmentId(), disabledForm.getId()));
+        var result = useCase.execute(
+                new GetSubscriptionFormUseCase.Input(disabledForm.getEnvironmentId(), disabledForm.getId()));
 
         assertThat(result.subscriptionForm()).isEqualTo(disabledForm);
         assertThat(result.resolvedOptions()).isEmpty();
@@ -64,13 +65,14 @@ class GetSubscriptionFormUseCaseTest {
         var input = new GetSubscriptionFormUseCase.Input("other-env", form.getId());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(SubscriptionFormNotFoundException.class)
-            .hasMessageContaining(form.getId().toString());
+                .isInstanceOf(SubscriptionFormNotFoundException.class)
+                .hasMessageContaining(form.getId().toString());
     }
 
     @Test
     void should_throw_when_the_form_does_not_exist() {
-        var input = new GetSubscriptionFormUseCase.Input(SubscriptionFormFixtures.ENVIRONMENT_ID, SubscriptionFormId.random());
+        var input = new GetSubscriptionFormUseCase.Input(
+                SubscriptionFormFixtures.ENVIRONMENT_ID, SubscriptionFormId.random());
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
@@ -78,8 +80,9 @@ class GetSubscriptionFormUseCaseTest {
     @Test
     void should_return_fallback_options_when_no_resolved_options_configured() {
         var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
-            .build();
+                .gmdContent(GraviteeMarkdown.of(
+                        "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
+                .build();
         queryService.initWith(List.of(form));
 
         var result = useCase.execute(new GetSubscriptionFormUseCase.Input(form.getEnvironmentId(), form.getId()));

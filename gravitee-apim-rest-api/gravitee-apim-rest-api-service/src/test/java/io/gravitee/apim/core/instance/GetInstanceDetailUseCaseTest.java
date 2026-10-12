@@ -34,7 +34,8 @@ class GetInstanceDetailUseCaseTest {
     private static final String environmentId = "env-id";
 
     FakeInstanceService fakeInstanceService = new FakeInstanceService();
-    InstanceQueryServiceLegacyWrapper instanceQueryServiceLegacyWrapper = new InstanceQueryServiceLegacyWrapper(fakeInstanceService);
+    InstanceQueryServiceLegacyWrapper instanceQueryServiceLegacyWrapper =
+            new InstanceQueryServiceLegacyWrapper(fakeInstanceService);
     GetInstanceDetailUseCase useCase;
 
     @BeforeEach
@@ -51,12 +52,13 @@ class GetInstanceDetailUseCaseTest {
     @Test
     void should_return_instance_details() {
         fakeInstanceService.instanceEntity = io.gravitee.rest.api.model.InstanceEntity.builder()
-            .id(instanceId)
-            .hostname(hostname)
-            .ip(ip)
-            .environments(Set.of(environmentId))
-            .build();
-        var result = useCase.execute(new GetInstanceDetailUseCase.Input(GraviteeContext.getExecutionContext(), instanceId));
+                .id(instanceId)
+                .hostname(hostname)
+                .ip(ip)
+                .environments(Set.of(environmentId))
+                .build();
+        var result =
+                useCase.execute(new GetInstanceDetailUseCase.Input(GraviteeContext.getExecutionContext(), instanceId));
 
         var instance = result.instance();
         assertThat(instance).isNotEmpty();
@@ -69,7 +71,8 @@ class GetInstanceDetailUseCaseTest {
 
     @Test
     void should_return_empty_if_not_found() {
-        var result = useCase.execute(new GetInstanceDetailUseCase.Input(GraviteeContext.getExecutionContext(), "unknown-id"));
+        var result = useCase.execute(
+                new GetInstanceDetailUseCase.Input(GraviteeContext.getExecutionContext(), "unknown-id"));
         assertThat(result.instance()).isEmpty();
     }
 }

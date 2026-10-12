@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @RequiredArgsConstructor
 public class DefaultTcpAcceptorResolver implements TcpAcceptorResolver {
 
@@ -31,11 +30,9 @@ public class DefaultTcpAcceptorResolver implements TcpAcceptorResolver {
 
     @Override
     public TcpAcceptor resolve(String sni, String serverId) {
-        return handlerRegistry
-            .getAcceptors(TcpAcceptor.class)
-            .stream()
-            .filter(tcpAcceptor -> tcpAcceptor.accept(sni, serverId))
-            .findFirst()
-            .orElse(null);
+        return handlerRegistry.getAcceptors(TcpAcceptor.class).stream()
+                .filter(tcpAcceptor -> tcpAcceptor.accept(sni, serverId))
+                .findFirst()
+                .orElse(null);
     }
 }

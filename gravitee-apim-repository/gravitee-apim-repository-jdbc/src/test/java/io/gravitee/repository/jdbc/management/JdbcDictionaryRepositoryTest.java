@@ -73,7 +73,8 @@ class JdbcDictionaryRepositoryTest {
 
         assertThat(thrown).isNull();
 
-        ArgumentCaptor<BatchPreparedStatementSetter> setter = ArgumentCaptor.forClass(BatchPreparedStatementSetter.class);
+        ArgumentCaptor<BatchPreparedStatementSetter> setter =
+                ArgumentCaptor.forClass(BatchPreparedStatementSetter.class);
         verify(jdbcTemplate).batchUpdate(anyString(), setter.capture());
 
         assertThat(setter.getValue().getBatchSize()).isEqualTo(1);
@@ -131,9 +132,8 @@ class JdbcDictionaryRepositoryTest {
         PreparedStatement statement = mock(PreparedStatement.class);
         when(connection.prepareStatement(anyString())).thenReturn(statement);
 
-        Throwable thrown = catchThrowable(() ->
-            repository.buildInsertPreparedStatementCreator(dictionary).createPreparedStatement(connection)
-        );
+        Throwable thrown = catchThrowable(
+                () -> repository.buildInsertPreparedStatementCreator(dictionary).createPreparedStatement(connection));
 
         assertThat(thrown).isNull();
         verify(statement).setBoolean(anyInt(), eq(false));

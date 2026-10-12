@@ -30,14 +30,31 @@ class DashboardModuleTest {
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = { "aim", "apim", "module-2", "a", "0123456789012345678901234567890123456789012345678901234567890123" })
+    @ValueSource(
+            strings = {
+                "aim",
+                "apim",
+                "module-2",
+                "a",
+                "0123456789012345678901234567890123456789012345678901234567890123"
+            })
     void should_accept_an_absent_module_or_a_well_formed_one(String module) {
         assertThatCode(() -> DashboardModule.requireValidOrAbsent(module)).doesNotThrowAnyException();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "", " ", "AIM", "a_im", "a.im", "aim ", "01234567890123456789012345678901234567890123456789012345678901234" })
+    @ValueSource(
+            strings = {
+                "",
+                " ",
+                "AIM",
+                "a_im",
+                "a.im",
+                "aim ",
+                "01234567890123456789012345678901234567890123456789012345678901234"
+            })
     void should_reject_a_malformed_module(String module) {
-        assertThatThrownBy(() -> DashboardModule.requireValidOrAbsent(module)).isInstanceOf(InvalidDashboardException.class);
+        assertThatThrownBy(() -> DashboardModule.requireValidOrAbsent(module))
+                .isInstanceOf(InvalidDashboardException.class);
     }
 }

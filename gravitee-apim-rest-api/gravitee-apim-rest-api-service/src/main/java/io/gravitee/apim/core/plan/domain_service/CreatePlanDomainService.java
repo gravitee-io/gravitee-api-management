@@ -59,14 +59,13 @@ public class CreatePlanDomainService {
     private final KafkaPortRangeCrudService kafkaPortRangeCrudService;
 
     public CreatePlanDomainService(
-        PlanValidatorDomainService planValidatorDomainService,
-        FlowValidationDomainService flowValidationDomainService,
-        PlanCrudService planCrudService,
-        FlowCrudService flowCrudService,
-        AuditDomainService auditDomainService,
-        VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService,
-        KafkaPortRangeCrudService kafkaPortRangeCrudService
-    ) {
+            PlanValidatorDomainService planValidatorDomainService,
+            FlowValidationDomainService flowValidationDomainService,
+            PlanCrudService planCrudService,
+            FlowCrudService flowCrudService,
+            AuditDomainService auditDomainService,
+            VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService,
+            KafkaPortRangeCrudService kafkaPortRangeCrudService) {
         this.planValidatorDomainService = planValidatorDomainService;
         this.flowValidationDomainService = flowValidationDomainService;
         this.planCrudService = planCrudService;
@@ -94,12 +93,12 @@ public class CreatePlanDomainService {
 
         if (!listeners.isEmpty()) {
             planValidatorDomainService.validatePlanSecurityAgainstEntrypoints(
-                plan.getPlanSecurity(),
-                listeners.stream().map(AbstractListener::getType).toList()
-            );
+                    plan.getPlanSecurity(),
+                    listeners.stream().map(AbstractListener::getType).toList());
         }
 
-        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
+        planValidatorDomainService.validatePlanSecurity(
+                plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
@@ -114,9 +113,7 @@ public class CreatePlanDomainService {
         validatePortRoutingIfConfigured(plan, api, auditInfo);
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
-        var createdPlan = planCrudService.create(
-            plan
-                .toBuilder()
+        var createdPlan = planCrudService.create(plan.toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .referenceType(GenericPlanEntity.ReferenceType.API)
                 .referenceId(api.getId())
@@ -128,8 +125,7 @@ public class CreatePlanDomainService {
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
                 .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
-                .build()
-        );
+                .build());
 
         var createdFlows = flowCrudService.saveNativePlanFlows(createdPlan.getId(), sanitizedFlows);
 
@@ -141,16 +137,16 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows, ApiResourceNames.fromHttpV4(api));
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(
+                api.getType(), flows, ApiResourceNames.fromHttpV4(api));
         flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
-            sanitizedFlows.stream()
-        );
+                api.getType(),
+                api.getApiDefinitionHttpV4().getFlows() != null
+                        ? api.getApiDefinitionHttpV4().getFlows().stream()
+                        : Stream.empty(),
+                sanitizedFlows.stream());
 
-        var createdPlan = planCrudService.create(
-            plan
-                .toBuilder()
+        var createdPlan = planCrudService.create(plan.toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiType(api.getType())
                 .referenceType(GenericPlanEntity.ReferenceType.API)
@@ -161,8 +157,7 @@ public class CreatePlanDomainService {
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
                 .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
-                .build()
-        );
+                .build());
 
         var createdFlows = flowCrudService.savePlanFlows(createdPlan.getId(), sanitizedFlows);
 
@@ -182,15 +177,14 @@ public class CreatePlanDomainService {
             throw new ApiDeprecatedException(plan.getReferenceId());
         }
 
-        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
+        planValidatorDomainService.validatePlanSecurity(
+                plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
         // TODO handle flows
 
-        var createdPlan = planCrudService.create(
-            plan
-                .toBuilder()
+        var createdPlan = planCrudService.create(plan.toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiType(api.getType())
                 .referenceType(GenericPlanEntity.ReferenceType.API)
@@ -202,8 +196,7 @@ public class CreatePlanDomainService {
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
                 .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
-                .build()
-        );
+                .build());
 
         createAuditLog(createdPlan, auditInfo);
 
@@ -211,19 +204,22 @@ public class CreatePlanDomainService {
     }
 
     public Plan createApiProductPlan(Plan plan, ApiProduct apiProduct, AuditInfo auditInfo) {
-        //TODO handle deprecated api product
+        // TODO handle deprecated api product
         /*if (apiProduct.isDeprecated()) {
             throw new ApiDeprecatedException(plan.getApiId());
         }*/
 
-        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanSecurity(
+                plan, auditInfo.organizationId(), auditInfo.environmentId(), null);
         planValidatorDomainService.validatePlanTagsAgainstApiProductTags(plan.getTags(), apiProduct.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
-        var incomingFlows = plan.getPlanDefinitionHttpV4() != null ? plan.getPlanDefinitionHttpV4().getFlows() : null;
-        var sanitizedFlows = incomingFlows == null ? null : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
-        var createdPlan = planCrudService.create(
-            plan
-                .toBuilder()
+        var incomingFlows = plan.getPlanDefinitionHttpV4() != null
+                ? plan.getPlanDefinitionHttpV4().getFlows()
+                : null;
+        var sanitizedFlows = incomingFlows == null
+                ? null
+                : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
+        var createdPlan = planCrudService.create(plan.toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                 .referenceId(apiProduct.getId())
@@ -231,8 +227,7 @@ public class CreatePlanDomainService {
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
                 .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
-                .build()
-        );
+                .build());
         flowCrudService.savePlanFlows(createdPlan.getId(), sanitizedFlows);
         createApiProductAuditLog(createdPlan, auditInfo);
         return createdPlan;
@@ -248,8 +243,8 @@ public class CreatePlanDomainService {
         }
         var security = plan.getPlanSecurity();
         return security != null && PlanSecurityType.valueOfLabel(security.getType()) == PlanSecurityType.KEY_LESS
-            ? Plan.PlanValidationType.AUTO
-            : Plan.PlanValidationType.MANUAL;
+                ? Plan.PlanValidationType.AUTO
+                : Plan.PlanValidationType.MANUAL;
     }
 
     /**
@@ -262,12 +257,11 @@ public class CreatePlanDomainService {
             return;
         }
         verifyPlanPortRangesDomainService.verify(
-            auditInfo.environmentId(),
-            null, // new plan — nothing to exclude from the conflict check
-            nativeDefinition.getBootstrapPort(),
-            nativeDefinition.getBrokerRangeStart(),
-            nativeDefinition.getBrokerRangeEnd()
-        );
+                auditInfo.environmentId(),
+                null, // new plan — nothing to exclude from the conflict check
+                nativeDefinition.getBootstrapPort(),
+                nativeDefinition.getBrokerRangeStart(),
+                nativeDefinition.getBrokerRangeEnd());
     }
 
     /**
@@ -280,8 +274,7 @@ public class CreatePlanDomainService {
         if (nativeDefinition == null || nativeDefinition.getBootstrapPort() == null) {
             return;
         }
-        kafkaPortRangeCrudService.create(
-            KafkaPortRange.builder()
+        kafkaPortRangeCrudService.create(KafkaPortRange.builder()
                 .planId(createdPlan.getId())
                 .apiId(api.getId())
                 .environmentId(auditInfo.environmentId())
@@ -290,13 +283,11 @@ public class CreatePlanDomainService {
                 .rangeEnd(nativeDefinition.getBrokerRangeEnd())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
-                .build()
-        );
+                .build());
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(createdPlan.getReferenceId())
@@ -305,13 +296,11 @@ public class CreatePlanDomainService {
                 .newValue(createdPlan)
                 .createdAt(createdPlan.getCreatedAt())
                 .properties(Map.of(AuditProperties.PLAN, createdPlan.getId()))
-                .build()
-        );
+                .build());
     }
 
     private void createApiProductAuditLog(Plan createdPlan, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiProductId(createdPlan.getReferenceId())
@@ -320,7 +309,6 @@ public class CreatePlanDomainService {
                 .newValue(createdPlan)
                 .createdAt(createdPlan.getCreatedAt())
                 .properties(Map.of(AuditProperties.PLAN, createdPlan.getId()))
-                .build()
-        );
+                .build());
     }
 }

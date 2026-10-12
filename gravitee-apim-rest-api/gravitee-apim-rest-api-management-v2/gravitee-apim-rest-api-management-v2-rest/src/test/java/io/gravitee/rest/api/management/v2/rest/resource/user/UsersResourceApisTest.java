@@ -50,9 +50,9 @@ class UsersResourceApisTest extends AbstractResourceTest {
 
     @Test
     void should_return_403_when_missing_permission() {
-        when(
-            permissionService.hasPermission(any(), eq(RolePermission.ORGANIZATION_USERS), eq(ORGANIZATION), eq(RolePermissionAction.READ))
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        any(), eq(RolePermission.ORGANIZATION_USERS), eq(ORGANIZATION), eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
 
@@ -61,16 +61,14 @@ class UsersResourceApisTest extends AbstractResourceTest {
 
     @Test
     void should_return_200_with_paginated_response() {
-        var apis = List.of(
-            UserApi.builder()
+        var apis = List.of(UserApi.builder()
                 .id("api-1")
                 .name("My API")
                 .version("1.0")
                 .visibility("PUBLIC")
                 .environmentId("env-1")
                 .environmentName("Development")
-                .build()
-        );
+                .build());
 
         when(getUserApisUseCase.execute(any())).thenReturn(new GetUserApisUseCase.Output(apis, 1));
 
@@ -94,7 +92,8 @@ class UsersResourceApisTest extends AbstractResourceTest {
     void should_pass_environment_id_query_param() {
         when(getUserApisUseCase.execute(any())).thenReturn(new GetUserApisUseCase.Output(List.of(), 0));
 
-        final Response response = rootTarget().queryParam("environmentId", "env-1").request().get();
+        final Response response =
+                rootTarget().queryParam("environmentId", "env-1").request().get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
     }

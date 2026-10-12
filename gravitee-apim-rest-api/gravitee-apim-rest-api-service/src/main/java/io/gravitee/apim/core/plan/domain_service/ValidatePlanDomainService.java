@@ -47,8 +47,8 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
     private final PlanValidatorDomainService planValidator;
     private final VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService;
 
-    public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans, List<Page> pages) implements
-        Validator.Input {
+    public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans, List<Page> pages)
+            implements Validator.Input {
         ValidatePlanDomainService.Input sanitized(Map<String, PlanCRD> sanitizedPlans) {
             return new ValidatePlanDomainService.Input(auditInfo, apiCRDSpec, sanitizedPlans, pages);
         }
@@ -70,27 +70,26 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                 Plan plan = PlanModelFactory.fromCRDSpec(planCRD, input.apiCRDSpec);
 
                 planValidator.validatePlanSecurity(
-                    plan,
-                    input.auditInfo.organizationId(),
-                    input.auditInfo.environmentId(),
-                    ApiType.valueOf(input.apiCRDSpec.getType())
-                );
+                        plan,
+                        input.auditInfo.organizationId(),
+                        input.auditInfo.environmentId(),
+                        ApiType.valueOf(input.apiCRDSpec.getType()));
                 planValidator.validatePlanTagsAgainstApiTags(plan.getPlanTags(), input.apiCRDSpec.getTags());
                 planValidator.validateGeneralConditionsPage(plan, input.pages);
                 planValidator.validatePlanSecurityAgainstEntrypoints(
-                    plan.getPlanSecurity(),
-                    input.apiCRDSpec.getListeners().stream().map(AbstractListener::getType).toList()
-                );
+                        plan.getPlanSecurity(),
+                        input.apiCRDSpec.getListeners().stream()
+                                .map(AbstractListener::getType)
+                                .toList());
                 if (input.apiCRDSpec.isNative()) {
                     NativePlan nativePlan = plan.getPlanDefinitionNativeV4();
                     if (nativePlan != null && nativePlan.getBootstrapPort() != null) {
                         verifyPlanPortRangesDomainService.verify(
-                            input.auditInfo.environmentId(),
-                            plan.getId(),
-                            nativePlan.getBootstrapPort(),
-                            nativePlan.getBrokerRangeStart(),
-                            nativePlan.getBrokerRangeEnd()
-                        );
+                                input.auditInfo.environmentId(),
+                                plan.getId(),
+                                nativePlan.getBootstrapPort(),
+                                nativePlan.getBrokerRangeStart(),
+                                nativePlan.getBrokerRangeEnd());
                     }
                 }
 
@@ -112,21 +111,18 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
      * here over the whole imported plan set. Keep both in sync via {@link NativePlanSecurityCategory}.
      */
     private static void validateNoConflictingNativeSecurity(Map<String, PlanCRD> plans, List<Error> errors) {
-        long distinctSecurityCategories = plans
-            .values()
-            .stream()
-            .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED)
-            .filter(plan -> plan.getSecurity() != null)
-            .map(plan -> NativePlanSecurityCategory.fromSecurityTypeLabel(plan.getSecurity().getType()))
-            .distinct()
-            .count();
+        long distinctSecurityCategories = plans.values().stream()
+                .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED)
+                .filter(plan -> plan.getSecurity() != null)
+                .map(plan -> NativePlanSecurityCategory.fromSecurityTypeLabel(
+                        plan.getSecurity().getType()))
+                .distinct()
+                .count();
 
         if (distinctSecurityCategories > 1) {
             errors.add(
-                Error.severe(
-                    "a Native API cannot combine Keyless, mTLS and authentication plans: keyless, mTLS and authentication plans are mutually exclusive"
-                )
-            );
+                    Error.severe(
+                            "a Native API cannot combine Keyless, mTLS and authentication plans: keyless, mTLS and authentication plans are mutually exclusive"));
         }
     }
 }

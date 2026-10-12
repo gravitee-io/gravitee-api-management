@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import com.mongodb.client.result.DeleteResult;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -79,7 +78,9 @@ public class AlertEventMongoRepositoryImpl implements AlertEventMongoRepositoryC
         }
 
         if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
-            query.addCriteria(Criteria.where("createdAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
+            query.addCriteria(Criteria.where("createdAt")
+                    .gte(new Date(criteria.getFrom()))
+                    .lt(new Date(criteria.getTo())));
         }
         return query;
     }

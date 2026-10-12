@@ -52,12 +52,10 @@ public class ValidateCategoryIdsDomainService implements Validator<ValidateCateg
         var notFound = computeNotFound(idOrKeyToId, input.idOrKeys());
 
         return Result.ofBoth(
-            input.sanitized(idOrKeyToId.values()),
-            notFound
-                .stream()
-                .map(idOrKey -> warning(WARNING_FORMAT, idOrKey, input.environmentId))
-                .toList()
-        );
+                input.sanitized(idOrKeyToId.values()),
+                notFound.stream()
+                        .map(idOrKey -> warning(WARNING_FORMAT, idOrKey, input.environmentId))
+                        .toList());
     }
 
     private Map<String, String> mapToIds(Input input) {
@@ -65,8 +63,8 @@ public class ValidateCategoryIdsDomainService implements Validator<ValidateCateg
         var idOrKeyToId = new HashMap<String, String>();
         for (var idOrKey : idOrKeys) {
             categoryQueryService
-                .findByIdOrKey(idOrKey, input.environmentId)
-                .ifPresent(category -> idOrKeyToId.put(idOrKey, category.getId()));
+                    .findByIdOrKey(idOrKey, input.environmentId)
+                    .ifPresent(category -> idOrKeyToId.put(idOrKey, category.getId()));
         }
         return idOrKeyToId;
     }

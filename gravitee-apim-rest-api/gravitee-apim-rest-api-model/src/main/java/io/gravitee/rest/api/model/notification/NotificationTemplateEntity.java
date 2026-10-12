@@ -56,15 +56,14 @@ public class NotificationTemplateEntity {
     public NotificationTemplateEntity() {}
 
     public NotificationTemplateEntity(
-        String hook,
-        String scope,
-        String templateName,
-        String name,
-        String description,
-        String title,
-        String content,
-        NotificationTemplateType type
-    ) {
+            String hook,
+            String scope,
+            String templateName,
+            String name,
+            String description,
+            String title,
+            String content,
+            NotificationTemplateType type) {
         this.hook = hook;
         this.scope = scope;
         this.templateName = templateName;
@@ -187,7 +186,10 @@ public class NotificationTemplateEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NotificationTemplateEntity that = (NotificationTemplateEntity) o;
-        return Objects.equals(hook, that.hook) && Objects.equals(name, that.name) && scope.equals(that.scope) && type == that.type;
+        return Objects.equals(hook, that.hook)
+                && Objects.equals(name, that.name)
+                && scope.equals(that.scope)
+                && type == that.type;
     }
 
     @Override

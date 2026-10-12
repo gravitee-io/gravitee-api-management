@@ -25,12 +25,14 @@ public class TechnicalDomainExceptionMapper extends AbstractDomainExceptionMappe
     @Override
     public Response toResponse(TechnicalDomainException ve) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(technicalDomainError(ve))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(technicalDomainError(ve))
+                .build();
     }
 
     private Error technicalDomainError(TechnicalDomainException tde) {
-        return new Error().httpStatus(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).message(tde.getMessage());
+        return new Error()
+                .httpStatus(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .message(tde.getMessage());
     }
 }

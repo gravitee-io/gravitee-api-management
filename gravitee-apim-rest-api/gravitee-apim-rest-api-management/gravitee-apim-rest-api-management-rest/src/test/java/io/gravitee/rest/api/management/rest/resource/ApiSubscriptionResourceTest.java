@@ -127,26 +127,26 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeApplicationEntity.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
         fakeApplicationEntity.setPrimaryOwner(primaryOwner);
 
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(fakeUserEntity);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean()))
+                .thenReturn(fakeUserEntity);
         when(planService.findById(any(), any())).thenReturn(fakePlanEntity);
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeApplicationEntity);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(fakeApplicationEntity);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
-        when(applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(any(), any())).thenReturn(
-            io.gravitee.apim.core.membership.model.PrimaryOwnerEntity.builder()
-                .id(fakeUserEntity.getId())
-                .displayName(fakeUserEntity.getDisplayName())
-                .email(fakeUserEntity.getEmail())
-                .build()
-        );
+        when(applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(any(), any()))
+                .thenReturn(io.gravitee.apim.core.membership.model.PrimaryOwnerEntity.builder()
+                        .id(fakeUserEntity.getId())
+                        .displayName(fakeUserEntity.getDisplayName())
+                        .email(fakeUserEntity.getEmail())
+                        .build());
     }
 
     @Test
     public void shouldReject() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .apiId(API_NAME)
                 .referenceId(API_NAME)
@@ -155,30 +155,33 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 .planId(plan.getId())
                 .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.PENDING)
                 .applicationId(APPLICATION_ID)
-                .build()
-        );
-        when(planSearchService.findById(any(), any())).thenReturn(PlanEntity.builder().id(plan.getId()).name(plan.getName()).build());
+                .build());
+        when(planSearchService.findById(any(), any()))
+                .thenReturn(PlanEntity.builder()
+                        .id(plan.getId())
+                        .name(plan.getName())
+                        .build());
 
         ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
         processSubscriptionEntity.setId(subscription.getId());
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response =
+                envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         MAPIAssertions.assertThat(response)
-            .hasStatus(OK_200)
-            .asJson()
-            .extracting(json -> json.getString("status"))
-            .isEqualTo("REJECTED");
+                .hasStatus(OK_200)
+                .asJson()
+                .extracting(json -> json.getString("status"))
+                .isEqualTo("REJECTED");
     }
 
     @Test
     public void shouldAccept() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_ID).build().setPlanStatus(PlanStatus.PUBLISHED));
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .apiId(API_NAME)
                 .referenceId(API_NAME)
@@ -187,22 +190,26 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 .planId(plan.getId())
                 .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.PENDING)
                 .applicationId(APPLICATION_ID)
-                .build()
-        );
-        when(planSearchService.findById(any(), any())).thenReturn(PlanEntity.builder().id(plan.getId()).name(plan.getName()).build());
+                .build());
+        when(planSearchService.findById(any(), any()))
+                .thenReturn(PlanEntity.builder()
+                        .id(plan.getId())
+                        .name(plan.getName())
+                        .build());
 
         ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
         processSubscriptionEntity.setId(subscription.getId());
         processSubscriptionEntity.setAccepted(true);
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response =
+                envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         MAPIAssertions.assertThat(response)
-            .hasStatus(OK_200)
-            .asJson()
-            .extracting(json -> json.getString("status"))
-            .isEqualTo("ACCEPTED");
+                .hasStatus(OK_200)
+                .asJson()
+                .extracting(json -> json.getString("status"))
+                .isEqualTo("ACCEPTED");
     }
 
     @Test
@@ -211,7 +218,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId("badId");
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response =
+                envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -222,7 +230,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId(SUBSCRIPTION_ID);
         processSubscriptionEntity.setCustomApiKey("customApiKey;^");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response =
+                envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -233,13 +242,16 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         PlanEntity planV3 = new PlanEntity();
         planV3.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV3);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID)))
+                .thenReturn(planV3);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         JsonNode responseBody = response.readEntity(JsonNode.class);
-        assertEquals(PlanSecurityType.OAUTH2.name(), responseBody.get("plan").get("security").asText());
+        assertEquals(
+                PlanSecurityType.OAUTH2.name(),
+                responseBody.get("plan").get("security").asText());
     }
 
     @Test
@@ -251,7 +263,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         planSecurity.setType("oauth2");
         planV4.setSecurity(planSecurity);
         planV4.setMode(PlanMode.STANDARD);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID)))
+                .thenReturn(planV4);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
 
@@ -266,7 +279,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setMode(PlanMode.PUSH);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID)))
+                .thenReturn(planV4);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
 
@@ -294,7 +308,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeSubscriptionEntity.setApi("Another_api");
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_transfer").request().post(Entity.json(transferSubscriptionEntity));
+        Response response =
+                envTarget(SUBSCRIPTION_ID + "/_transfer").request().post(Entity.json(transferSubscriptionEntity));
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
@@ -313,8 +328,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     }
 
     private io.gravitee.apim.core.subscription.model.SubscriptionEntity givenExistingSubscription(
-        io.gravitee.apim.core.subscription.model.SubscriptionEntity subscription
-    ) {
+            io.gravitee.apim.core.subscription.model.SubscriptionEntity subscription) {
         subscriptionCrudService.initWith(List.of(subscription));
         return subscription;
     }

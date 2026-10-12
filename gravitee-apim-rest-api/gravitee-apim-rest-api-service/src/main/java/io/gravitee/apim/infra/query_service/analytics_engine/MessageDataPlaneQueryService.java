@@ -47,11 +47,10 @@ public class MessageDataPlaneQueryService implements AnalyticsEngineQueryService
     @Override
     public Set<MetricSpec.Name> metrics() {
         return Set.of(
-            MetricSpec.Name.MESSAGE_PAYLOAD_SIZE,
-            MetricSpec.Name.MESSAGE_ERRORS,
-            MetricSpec.Name.MESSAGES,
-            MetricSpec.Name.MESSAGE_GATEWAY_LATENCY
-        );
+                MetricSpec.Name.MESSAGE_PAYLOAD_SIZE,
+                MetricSpec.Name.MESSAGE_ERRORS,
+                MetricSpec.Name.MESSAGES,
+                MetricSpec.Name.MESSAGE_GATEWAY_LATENCY);
     }
 
     @Override
@@ -59,9 +58,8 @@ public class MessageDataPlaneQueryService implements AnalyticsEngineQueryService
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchMessageMeasures(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.MESSAGE, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.MESSAGE, query));
     }
 
     @Override
@@ -69,9 +67,8 @@ public class MessageDataPlaneQueryService implements AnalyticsEngineQueryService
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchMessageFacets(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.MESSAGE, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.MESSAGE, query));
     }
 
     @Override
@@ -79,8 +76,7 @@ public class MessageDataPlaneQueryService implements AnalyticsEngineQueryService
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchMessageTimeSeries(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.MESSAGE, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.MESSAGE, query));
     }
 }

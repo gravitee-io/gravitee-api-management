@@ -15,14 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.rest.api.model.common.PageableImpl;
-import java.util.List;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -49,7 +46,10 @@ public class PageHRIDUpgrader implements Upgrader {
 
         try {
             while (true) {
-                Pageable pageable = new PageableBuilder().pageNumber(pageNumber).pageSize(PAGE_SIZE).build();
+                Pageable pageable = new PageableBuilder()
+                        .pageNumber(pageNumber)
+                        .pageSize(PAGE_SIZE)
+                        .build();
 
                 var pagedResult = pageRepository.findAll(pageable);
                 var pages = pagedResult.getContent();

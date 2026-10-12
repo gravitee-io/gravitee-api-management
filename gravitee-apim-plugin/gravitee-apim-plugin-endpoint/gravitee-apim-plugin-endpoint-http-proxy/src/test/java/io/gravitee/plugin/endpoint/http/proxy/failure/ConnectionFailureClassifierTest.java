@@ -38,8 +38,7 @@ class ConnectionFailureClassifierTest {
     @Test
     void should_classify_pool_wait_queue_saturation_as_retryable_service_unavailable() {
         Classification classification = ConnectionFailureClassifier.classify(
-            new ConnectionPoolTooBusyException("Connection pool reached max wait queue size of 0")
-        );
+                new ConnectionPoolTooBusyException("Connection pool reached max wait queue size of 0"));
         // Load-shedding is a retryable 503 with its own key, distinct from the 502 backend-connection umbrella.
         assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.SERVICE_UNAVAILABLE_503);
         assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED");
@@ -48,7 +47,8 @@ class ConnectionFailureClassifierTest {
 
     @Test
     void should_classify_connection_refused_as_bad_gateway() {
-        Classification classification = ConnectionFailureClassifier.classify(new ConnectException("Connection refused"));
+        Classification classification =
+                ConnectionFailureClassifier.classify(new ConnectException("Connection refused"));
 
         assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
         assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_REFUSED");
@@ -57,7 +57,8 @@ class ConnectionFailureClassifierTest {
 
     @Test
     void should_classify_unknown_host_as_dns_resolution_error() {
-        Classification classification = ConnectionFailureClassifier.classify(new UnknownHostException("api.example.invalid"));
+        Classification classification =
+                ConnectionFailureClassifier.classify(new UnknownHostException("api.example.invalid"));
 
         assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
         assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_DNS_RESOLUTION_ERROR");
@@ -67,7 +68,8 @@ class ConnectionFailureClassifierTest {
     @Test
     void should_classify_connect_timeout_distinctly_from_its_connect_exception_supertype() {
         // ConnectTimeoutException extends ConnectException: ordering must keep it out of the "refused" bucket.
-        Classification classification = ConnectionFailureClassifier.classify(new ConnectTimeoutException("connection timed out"));
+        Classification classification =
+                ConnectionFailureClassifier.classify(new ConnectTimeoutException("connection timed out"));
 
         assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
         assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_CONNECT_TIMEOUT");
@@ -89,7 +91,8 @@ class ConnectionFailureClassifierTest {
 
     @Test
     void should_classify_circuit_breaker_timeout_as_read_timeout() {
-        Classification classification = ConnectionFailureClassifier.classify(io.vertx.circuitbreaker.TimeoutException.INSTANCE);
+        Classification classification =
+                ConnectionFailureClassifier.classify(io.vertx.circuitbreaker.TimeoutException.INSTANCE);
 
         assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
         assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
@@ -98,7 +101,8 @@ class ConnectionFailureClassifierTest {
 
     @Test
     void should_classify_tls_handshake_failure_before_generic_io() {
-        Classification classification = ConnectionFailureClassifier.classify(new SSLHandshakeException("PKIX path building failed"));
+        Classification classification =
+                ConnectionFailureClassifier.classify(new SSLHandshakeException("PKIX path building failed"));
 
         assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
         assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
@@ -107,7 +111,8 @@ class ConnectionFailureClassifierTest {
 
     @Test
     void should_classify_connection_reset_via_message_fallback() {
-        Classification classification = ConnectionFailureClassifier.classify(new IOException("Connection reset by peer"));
+        Classification classification =
+                ConnectionFailureClassifier.classify(new IOException("Connection reset by peer"));
 
         assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
         assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_RESET");
@@ -127,7 +132,8 @@ class ConnectionFailureClassifierTest {
     @Test
     void should_disambiguate_native_transport_connect_exceptions_by_message() {
         // Netty epoll/kqueue surface these as plain ConnectException: they must not be filed under "refused".
-        Classification noRoute = ConnectionFailureClassifier.classify(new ConnectException("connect(..) failed: No route to host"));
+        Classification noRoute =
+                ConnectionFailureClassifier.classify(new ConnectException("connect(..) failed: No route to host"));
         Classification osTimeout = ConnectionFailureClassifier.classify(new ConnectException("Connection timed out"));
 
         assertThat(noRoute.key()).isEqualTo("GATEWAY_CLIENT_UNREACHABLE");
@@ -147,7 +153,8 @@ class ConnectionFailureClassifierTest {
 
     @Test
     void should_classify_premature_backend_close_by_type_and_by_message() {
-        Classification byHttpClosed = ConnectionFailureClassifier.classify(new HttpClosedException("Connection was closed"));
+        Classification byHttpClosed =
+                ConnectionFailureClassifier.classify(new HttpClosedException("Connection was closed"));
         Classification byChannel = ConnectionFailureClassifier.classify(new ClosedChannelException());
         Classification byMessage = ConnectionFailureClassifier.classify(new IOException("Connection was closed"));
 
@@ -196,11 +203,12 @@ class ConnectionFailureClassifierTest {
     void should_not_classify_arbitrary_message_text_as_a_specific_key() {
         // The message fallback matches anchored phrases only: a bare word like "reset" or "unreachable" embedded in
         // unrelated text (e.g. a backend error body) must degrade to the umbrella, not a confident wrong 502 key.
-        assertThat(ConnectionFailureClassifier.classify(new IOException("failed to reset cache entry")).key()).isEqualTo(
-            "GATEWAY_CLIENT_CONNECTION_ERROR"
-        );
-        assertThat(
-            ConnectionFailureClassifier.classify(new IOException("upstream marked service unreachable in registry")).key()
-        ).isEqualTo("GATEWAY_CLIENT_CONNECTION_ERROR");
+        assertThat(ConnectionFailureClassifier.classify(new IOException("failed to reset cache entry"))
+                        .key())
+                .isEqualTo("GATEWAY_CLIENT_CONNECTION_ERROR");
+        assertThat(ConnectionFailureClassifier.classify(
+                                new IOException("upstream marked service unreachable in registry"))
+                        .key())
+                .isEqualTo("GATEWAY_CLIENT_CONNECTION_ERROR");
     }
 }

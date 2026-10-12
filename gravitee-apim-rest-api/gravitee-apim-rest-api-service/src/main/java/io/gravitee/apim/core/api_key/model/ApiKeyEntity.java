@@ -102,7 +102,10 @@ public class ApiKeyEntity {
     public ApiKeyEntity addSubscription(String subscriptionId) {
         var list = new ArrayList<>(subscriptions);
         list.add(subscriptionId);
-        return this.toBuilder().subscriptions(list).updatedAt(TimeProvider.now()).build();
+        return this.toBuilder()
+                .subscriptions(list)
+                .updatedAt(TimeProvider.now())
+                .build();
     }
 
     public ApiKeyEntity revoke() {
@@ -127,23 +130,24 @@ public class ApiKeyEntity {
         return subscriptions.contains(subscriptionId);
     }
 
-    private static ApiKeyEntity generateForSubscription(SubscriptionEntity subscription, String customApiKey, boolean federated) {
+    private static ApiKeyEntity generateForSubscription(
+            SubscriptionEntity subscription, String customApiKey, boolean federated) {
         var now = TimeProvider.now();
         if (subscription.getEndingAt() != null && subscription.getEndingAt().isBefore(now)) {
             throw new SubscriptionClosedException(subscription.getId());
         }
 
         return ApiKeyEntity.builder()
-            .id(UuidString.generateRandom())
-            .applicationId(subscription.getApplicationId())
-            .createdAt(now)
-            .updatedAt(now)
-            .key(customApiKey)
-            .subscriptions(List.of(subscription.getId()))
-            .environmentId(subscription.getEnvironmentId())
-            // By default, the API Key will expire when subscription is closed
-            .expireAt(subscription.getEndingAt())
-            .federated(federated)
-            .build();
+                .id(UuidString.generateRandom())
+                .applicationId(subscription.getApplicationId())
+                .createdAt(now)
+                .updatedAt(now)
+                .key(customApiKey)
+                .subscriptions(List.of(subscription.getId()))
+                .environmentId(subscription.getEnvironmentId())
+                // By default, the API Key will expire when subscription is closed
+                .expireAt(subscription.getEndingAt())
+                .federated(federated)
+                .build();
     }
 }

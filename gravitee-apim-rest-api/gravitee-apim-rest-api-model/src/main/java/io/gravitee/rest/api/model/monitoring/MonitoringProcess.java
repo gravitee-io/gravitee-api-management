@@ -72,6 +72,7 @@ public class MonitoringProcess {
 
     @Override
     public String toString() {
-        return "MonitoringProcess{" + "openFileDescriptors=" + openFileDescriptors + ", maxFileDescriptors=" + maxFileDescriptors + '}';
+        return "MonitoringProcess{" + "openFileDescriptors=" + openFileDescriptors + ", maxFileDescriptors="
+                + maxFileDescriptors + '}';
     }
 }

@@ -59,7 +59,7 @@ public class SubscriptionMapperTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        //init
+        // init
         subscriptionEntity = new SubscriptionEntity();
 
         subscriptionEntity.setApi(SUBSCRIPTION_API);
@@ -81,7 +81,7 @@ public class SubscriptionMapperTest {
         subscriptionEntity.setUpdatedAt(nowDate);
         subscriptionEntity.setOrigin("KUBERNETES");
 
-        //Test
+        // Test
         Subscription subscription = subscriptionMapper.map(subscriptionEntity);
         assertNotNull(subscription);
 
@@ -91,7 +91,8 @@ public class SubscriptionMapperTest {
         assertEquals(now.toEpochMilli(), subscription.getEndAt().toInstant().toEpochMilli());
         assertEquals(SUBSCRIPTION_ID, subscription.getId());
         assertEquals(SUBSCRIPTION_PLAN, subscription.getPlan());
-        assertEquals(now.toEpochMilli(), subscription.getProcessedAt().toInstant().toEpochMilli());
+        assertEquals(
+                now.toEpochMilli(), subscription.getProcessedAt().toInstant().toEpochMilli());
         assertEquals(SUBSCRIPTION_REQUEST, subscription.getRequest());
         assertEquals(now.toEpochMilli(), subscription.getStartAt().toInstant().toEpochMilli());
         assertEquals(StatusEnum.ACCEPTED, subscription.getStatus());
@@ -103,13 +104,13 @@ public class SubscriptionMapperTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        //init
+        // init
         subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setApi(SUBSCRIPTION_API);
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
         subscriptionEntity.setOrigin(null);
 
-        //Test
+        // Test
         Subscription subscription = subscriptionMapper.map(subscriptionEntity);
         assertNotNull(subscription);
 
@@ -138,13 +139,13 @@ public class SubscriptionMapperTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        //init
+        // init
         subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setApi(SUBSCRIPTION_API);
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
         subscriptionEntity.setOrigin("unicorn");
 
-        //Test
+        // Test
         Subscription subscription = subscriptionMapper.map(subscriptionEntity);
         assertNotNull(subscription);
 
@@ -157,7 +158,7 @@ public class SubscriptionMapperTest {
     public void should_handle_entrypoint_configuration() {
         var entrypointId = "entrypointId";
         var configuration =
-            "{\"auth\":{\"type\":\"none\"},\"callbackUrl\":\"https://webhook.example/1234\",\"ssl\":{\"keyStore\":{\"type\":\"\"},\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"\"},\"trustAll\":true},\"retry\":{\"retryOption\":\"No Retry\"}}";
+                "{\"auth\":{\"type\":\"none\"},\"callbackUrl\":\"https://webhook.example/1234\",\"ssl\":{\"keyStore\":{\"type\":\"\"},\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"\"},\"trustAll\":true},\"retry\":{\"retryOption\":\"No Retry\"}}";
         var channel = "channel";
 
         SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();

@@ -28,7 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class LoadBalancer implements LoadBalancerStrategy, EndpointAvailabilityListener, ChangeListener<Endpoint> {
+public abstract class LoadBalancer
+        implements LoadBalancerStrategy, EndpointAvailabilityListener, ChangeListener<Endpoint> {
 
     /**
      * Primary endpoints

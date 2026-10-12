@@ -30,11 +30,10 @@ public class OAIToImportApiUseCase {
 
     @Builder
     public record Input(
-        ImportSwaggerDescriptorEntity importSwaggerDescriptor,
-        boolean withDocumentation,
-        boolean withOASValidationPolicy,
-        AuditInfo auditInfo
-    ) {
+            ImportSwaggerDescriptorEntity importSwaggerDescriptor,
+            boolean withDocumentation,
+            boolean withOASValidationPolicy,
+            AuditInfo auditInfo) {
         Input(ImportSwaggerDescriptorEntity importSwaggerDescriptor, AuditInfo auditInfo) {
             this(importSwaggerDescriptor, false, false, auditInfo);
         }
@@ -46,9 +45,8 @@ public class OAIToImportApiUseCase {
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
 
     public OAIToImportApiUseCase(
-        OAIDomainService oaiDomainService,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService
-    ) {
+            OAIDomainService oaiDomainService,
+            ImportDefinitionCreateDomainService importDefinitionCreateDomainService) {
         this.oaiDomainService = oaiDomainService;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
     }
@@ -57,15 +55,15 @@ public class OAIToImportApiUseCase {
         var organizationId = input.auditInfo.organizationId();
         var environmentId = input.auditInfo.environmentId();
         var importDefinition = oaiDomainService.convert(
-            organizationId,
-            environmentId,
-            input.importSwaggerDescriptor,
-            input.withDocumentation(),
-            input.withOASValidationPolicy()
-        );
+                organizationId,
+                environmentId,
+                input.importSwaggerDescriptor,
+                input.withDocumentation(),
+                input.withOASValidationPolicy());
 
         if (importDefinition != null) {
-            final ApiWithFlows apiWithFlows = importDefinitionCreateDomainService.create(input.auditInfo, importDefinition);
+            final ApiWithFlows apiWithFlows =
+                    importDefinitionCreateDomainService.create(input.auditInfo, importDefinition);
             return new Output(apiWithFlows);
         }
 

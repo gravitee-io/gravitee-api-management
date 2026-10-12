@@ -57,7 +57,8 @@ class SubscriptionTargetSearchQueryServiceImplTest {
 
     @Test
     void should_search_api_names_only_when_api_type_is_selected() {
-        when(apiSearchService.searchIds(EXECUTION_CONTEXT, "payment", Map.of(), null)).thenReturn(List.of("api-1"));
+        when(apiSearchService.searchIds(EXECUTION_CONTEXT, "payment", Map.of(), null))
+                .thenReturn(List.of("api-1"));
 
         var result = queryService.search(EXECUTION_CONTEXT, "payment", Set.of(SubscriptionReferenceType.API));
 
@@ -68,7 +69,8 @@ class SubscriptionTargetSearchQueryServiceImplTest {
 
     @Test
     void should_search_api_product_names_only_when_api_product_type_is_selected() {
-        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(new SearchResult(List.of("product-1")));
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any()))
+                .thenReturn(new SearchResult(List.of("product-1")));
 
         var result = queryService.search(EXECUTION_CONTEXT, "payment", Set.of(SubscriptionReferenceType.API_PRODUCT));
 
@@ -79,14 +81,15 @@ class SubscriptionTargetSearchQueryServiceImplTest {
 
     @Test
     void should_search_both_target_types() {
-        when(apiSearchService.searchIds(EXECUTION_CONTEXT, "payment", Map.of(), null)).thenReturn(List.of("api-1"));
-        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(new SearchResult(List.of("product-1")));
+        when(apiSearchService.searchIds(EXECUTION_CONTEXT, "payment", Map.of(), null))
+                .thenReturn(List.of("api-1"));
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any()))
+                .thenReturn(new SearchResult(List.of("product-1")));
 
         var result = queryService.search(
-            EXECUTION_CONTEXT,
-            "payment",
-            Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT)
-        );
+                EXECUTION_CONTEXT,
+                "payment",
+                Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT));
 
         assertThat(result.apiIds()).containsExactly("api-1");
         assertThat(result.apiProductIds()).containsExactly("product-1");

@@ -30,7 +30,8 @@ public class LimitedLoggableClientResponse extends LoggableClientResponse {
 
     private final int maxSizeLogMessage;
 
-    public LimitedLoggableClientResponse(Request request, Response response, final ExecutionContext context, int maxSizeLogMessage) {
+    public LimitedLoggableClientResponse(
+            Request request, Response response, final ExecutionContext context, int maxSizeLogMessage) {
         super(request, response, context);
         this.maxSizeLogMessage = maxSizeLogMessage;
     }

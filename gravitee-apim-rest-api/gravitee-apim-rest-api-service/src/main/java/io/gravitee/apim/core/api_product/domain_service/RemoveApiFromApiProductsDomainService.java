@@ -50,10 +50,10 @@ public class RemoveApiFromApiProductsDomainService {
         }
 
         AuditInfo auditInfo = AuditInfo.builder()
-            .organizationId(organizationId)
-            .environmentId(environmentId)
-            .actor(AuditActor.builder().userId(userId).build())
-            .build();
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .actor(AuditActor.builder().userId(userId).build())
+                .build();
 
         affectedProducts.forEach(apiProduct -> apiProduct.removeApiId(apiId));
 
@@ -65,14 +65,17 @@ public class RemoveApiFromApiProductsDomainService {
                 validateApiProductService.validateForDeploy(updated);
                 deployApiProductDomainService.deploy(auditInfo, updated);
             } catch (ValidationDomainException e) {
-                log.warn("API Product [{}] cannot be auto-deployed after API [{}] removal: {}", updated.getId(), apiId, e.getMessage());
+                log.warn(
+                        "API Product [{}] cannot be auto-deployed after API [{}] removal: {}",
+                        updated.getId(),
+                        apiId,
+                        e.getMessage());
             }
         });
     }
 
     private void createAuditLog(AuditInfo auditInfo, ApiProduct after) {
-        auditDomainService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditDomainService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ApiProductAuditEvent.API_PRODUCT_UPDATED)
@@ -81,7 +84,6 @@ public class RemoveApiFromApiProductsDomainService {
                 .newValue(after)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.API_PRODUCT, after.getId()))
-                .build()
-        );
+                .build());
     }
 }

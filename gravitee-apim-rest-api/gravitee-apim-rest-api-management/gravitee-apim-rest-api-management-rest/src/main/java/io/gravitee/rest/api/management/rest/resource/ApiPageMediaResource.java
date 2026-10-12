@@ -72,30 +72,29 @@ public class ApiPageMediaResource extends AbstractResource {
 
     @POST
     @Operation(
-        summary = "Attach a media to an API page ",
-        description = "User must have the API_DOCUMENTATION[UPDATE] permission to use this service"
-    )
+            summary = "Attach a media to an API page ",
+            description = "User must have the API_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Media successfully added",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MediaEntity.class))
-    )
+            responseCode = "201",
+            description = "Media successfully added",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = MediaEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Response attachApiPageMedia(
-        @Context final HttpServletRequest request,
-        @FormDataParam("file") InputStream uploadedInputStream,
-        @FormDataParam("file") FormDataContentDisposition fileDetail,
-        @FormDataParam("file") final FormDataBodyPart body,
-        @FormDataParam("fileName") final String fileName
-    ) throws IOException {
+            @Context final HttpServletRequest request,
+            @FormDataParam("file") InputStream uploadedInputStream,
+            @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("file") final FormDataBodyPart body,
+            @FormDataParam("fileName") final String fileName)
+            throws IOException {
         final PageEntity currentPage = pageService.findById(page);
-        if (
-            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
-            !currentPage.getReferenceId().equalsIgnoreCase(api)
-        ) {
+        if (!currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name())
+                || !currentPage.getReferenceId().equalsIgnoreCase(api)) {
             throw new PageNotFoundException(page);
         }
 
@@ -103,12 +102,10 @@ public class ApiPageMediaResource extends AbstractResource {
 
         if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
             throw new UploadUnauthorized(
-                "Max size is " +
-                    this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext()) +
-                    "bytes. Actual size is " +
-                    request.getContentLength() +
-                    "bytes."
-            );
+                    "Max size is " + this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())
+                            + "bytes. Actual size is "
+                            + request.getContentLength()
+                            + "bytes.");
         }
         final String originalFileName = fileDetail.getFileName();
         MediaEntity mediaEntity = new MediaEntity();
@@ -120,20 +117,16 @@ public class ApiPageMediaResource extends AbstractResource {
 
         mediaId = mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), api, mediaEntity);
         pageService
-            .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
-            .flatMap(pageEntity ->
-                pageEntity
-                    .getAttachedMedia()
-                    .stream()
-                    .filter(media -> media.getMediaHash().equals(mediaId))
-                    .findFirst()
-            )
-            .ifPresent(createdMedia -> {
-                mediaEntity.setCreateAt(createdMedia.getAttachedAt());
-                mediaEntity.setHash(createdMedia.getMediaHash());
-            });
+                .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
+                .flatMap(pageEntity -> pageEntity.getAttachedMedia().stream()
+                        .filter(media -> media.getMediaHash().equals(mediaId))
+                        .findFirst())
+                .ifPresent(createdMedia -> {
+                    mediaEntity.setCreateAt(createdMedia.getAttachedAt());
+                    mediaEntity.setHash(createdMedia.getMediaHash());
+                });
 
-        //remove data before sending entity
+        // remove data before sending entity
         mediaEntity.setData(null);
         URI location = URI.create(uriInfo.getPath());
         return Response.created(location).entity(mediaEntity).build();
@@ -142,16 +135,13 @@ public class ApiPageMediaResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Retrieve all media for an API page",
-        description = "User must have the API_DOCUMENTATION[READ] permission to use this service"
-    )
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ) })
+            summary = "Retrieve all media for an API page",
+            description = "User must have the API_DOCUMENTATION[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public Response getApiPageMedia() {
         final PageEntity currentPage = pageService.findById(page);
-        if (
-            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
-            !currentPage.getReferenceId().equalsIgnoreCase(api)
-        ) {
+        if (!currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name())
+                || !currentPage.getReferenceId().equalsIgnoreCase(api)) {
             throw new PageNotFoundException(page);
         }
 

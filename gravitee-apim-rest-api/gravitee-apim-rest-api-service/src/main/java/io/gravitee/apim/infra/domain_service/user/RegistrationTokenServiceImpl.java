@@ -43,13 +43,14 @@ public class RegistrationTokenServiceImpl implements TokenService {
         }
 
         var algorithm = Algorithm.HMAC256(jwtSecret);
-        var verifier = JWT.require(algorithm).withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER)).build();
+        var verifier = JWT.require(algorithm)
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .build();
         var jwt = verifier.verify(token);
 
         return new DecodedToken(
-            jwt.getClaim(Claims.ACTION).asString(),
-            jwt.getClaim(Claims.EMAIL).asString(),
-            Optional.ofNullable(jwt.getSubject())
-        );
+                jwt.getClaim(Claims.ACTION).asString(),
+                jwt.getClaim(Claims.EMAIL).asString(),
+                Optional.ofNullable(jwt.getSubject()));
     }
 }

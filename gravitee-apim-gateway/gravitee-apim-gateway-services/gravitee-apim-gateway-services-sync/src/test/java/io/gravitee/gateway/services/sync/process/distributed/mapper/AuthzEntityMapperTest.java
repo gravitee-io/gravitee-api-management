@@ -32,8 +32,7 @@ class AuthzEntityMapperTest {
 
     @Test
     void to_typed_entityType_payload_produces_deployable_with_typed_engine_uid() {
-        DistributedEvent event = event(
-            """
+        DistributedEvent event = event("""
             {
               "entityId": "alice",
               "kind": "PRINCIPAL",
@@ -41,8 +40,7 @@ class AuthzEntityMapperTest {
               "attributes": {"email": "alice@example.com"},
               "parents": []
             }
-            """
-        );
+            """);
 
         AuthzEntityReactorDeployable deployable = mapper.to(event).blockingGet();
 
@@ -56,16 +54,14 @@ class AuthzEntityMapperTest {
 
     @Test
     void to_legacy_payload_without_entityType_falls_back_to_kind_default() {
-        DistributedEvent event = event(
-            """
+        DistributedEvent event = event("""
             {
               "entityId": "custom.bookings",
               "kind": "RESOURCE",
               "attributes": {},
               "parents": []
             }
-            """
-        );
+            """);
 
         AuthzEntityReactorDeployable deployable = mapper.to(event).blockingGet();
 
@@ -78,12 +74,12 @@ class AuthzEntityMapperTest {
     @Test
     void to_roundtrip_preserves_entityType_through_distributed_event() throws Exception {
         AuthzEntityReactorDeployable source = AuthzEntityReactorDeployable.builder()
-            .entityId("doc-1")
-            .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
-            .entityType("Doc")
-            .engineUid("Doc::\"doc-1\"")
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .entityId("doc-1")
+                .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
+                .entityType("Doc")
+                .engineUid("Doc::\"doc-1\"")
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         DistributedEvent emitted = mapper.to(source).blockingFirst();
         AuthzEntityReactorDeployable decoded = mapper.to(emitted).blockingGet();
@@ -113,11 +109,11 @@ class AuthzEntityMapperTest {
 
     private static DistributedEvent event(String payload) {
         return DistributedEvent.builder()
-            .id("evt")
-            .type(DistributedEventType.AUTHZ_ENTITY)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .payload(payload)
-            .updatedAt(new Date())
-            .build();
+                .id("evt")
+                .type(DistributedEventType.AUTHZ_ENTITY)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .payload(payload)
+                .updatedAt(new Date())
+                .build();
     }
 }

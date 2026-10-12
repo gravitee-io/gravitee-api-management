@@ -50,14 +50,15 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void checkAllowed_disallowPrivate() {
-        assertThrows(UrlForbiddenException.class, () ->
-            UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), false)
-        );
+        assertThrows(
+                UrlForbiddenException.class,
+                () -> UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), false));
     }
 
     @Test
     public void checkAllowed_whitelisted() {
-        UrlSanitizerUtils.checkAllowed("http://localhost:8080/test", Collections.singletonList("http://localhost:8080"), false);
+        UrlSanitizerUtils.checkAllowed(
+                "http://localhost:8080/test", Collections.singletonList("http://localhost:8080"), false);
     }
 
     @Test
@@ -67,17 +68,20 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void checkAllowed_invalidUrl() {
-        RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('a', 'z').build();
-        assertThrows(InvalidDataException.class, () ->
-            UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + generator.generate(5), Collections.emptyList(), false)
-        );
+        RandomStringGenerator generator =
+                new RandomStringGenerator.Builder().withinRange('a', 'z').build();
+        assertThrows(
+                InvalidDataException.class,
+                () -> UrlSanitizerUtils.checkAllowed(
+                        "https://invalid-url.not-exist" + generator.generate(5), Collections.emptyList(), false));
     }
 
     @Test
     public void checkAllowed_notWhitelisted() {
-        assertThrows(UrlForbiddenException.class, () ->
-            UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.singletonList("http://localhost:8080"), false)
-        );
+        assertThrows(
+                UrlForbiddenException.class,
+                () -> UrlSanitizerUtils.checkAllowed(
+                        "https://www.gravitee.io/", Collections.singletonList("http://localhost:8080"), false));
     }
 
     @Test
@@ -111,18 +115,18 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void UriSyntaxNotValid() {
-        assertThrows(UrlForbiddenException.class, () ->
-            UrlSanitizerUtils.checkAllowed(
-                "http://localhost:8080/user/registration/confirm\"> href=\"http://unsecure.com/token=",
-                Collections.emptyList(),
-                true
-            )
-        );
+        assertThrows(
+                UrlForbiddenException.class,
+                () -> UrlSanitizerUtils.checkAllowed(
+                        "http://localhost:8080/user/registration/confirm\"> href=\"http://unsecure.com/token=",
+                        Collections.emptyList(),
+                        true));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "https://g.io/%0Drestoftheurl", "https://g.io/%0Arestoftheurl" })
+    @ValueSource(strings = {"https://g.io/%0Drestoftheurl", "https://g.io/%0Arestoftheurl"})
     public void checkUrlForbiddenCharacters(String url) {
-        assertThrows(UrlForbiddenException.class, () -> UrlSanitizerUtils.checkAllowed(url, Collections.emptyList(), false));
+        assertThrows(
+                UrlForbiddenException.class, () -> UrlSanitizerUtils.checkAllowed(url, Collections.emptyList(), false));
     }
 }

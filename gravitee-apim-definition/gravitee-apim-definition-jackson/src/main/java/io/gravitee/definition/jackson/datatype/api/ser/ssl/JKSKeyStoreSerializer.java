@@ -31,7 +31,8 @@ public class JKSKeyStoreSerializer extends KeyStoreSerializer<JKSKeyStore> {
     }
 
     @Override
-    protected void doSerialize(JKSKeyStore keyStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(JKSKeyStore keyStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(keyStore, jgen, serializerProvider);
 
         writeStringField(jgen, "path", keyStore.getPath());

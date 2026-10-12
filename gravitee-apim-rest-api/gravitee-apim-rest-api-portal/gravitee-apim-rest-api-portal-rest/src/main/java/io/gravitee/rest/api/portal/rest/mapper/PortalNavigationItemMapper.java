@@ -50,11 +50,13 @@ public interface PortalNavigationItemMapper {
 
     PortalArea map(io.gravitee.rest.api.portal.rest.model.PortalArea area);
 
-    default List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> map(@Nonnull List<PortalNavigationItem> items) {
+    default List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> map(
+            @Nonnull List<PortalNavigationItem> items) {
         return items.stream().map(this::getBasePortalNavigationItem).toList();
     }
 
-    default io.gravitee.rest.api.portal.rest.model.PortalNavigationItem getBasePortalNavigationItem(PortalNavigationItem item) {
+    default io.gravitee.rest.api.portal.rest.model.PortalNavigationItem getBasePortalNavigationItem(
+            PortalNavigationItem item) {
         var baseItem = switch (item) {
             case PortalNavigationFolder folder -> map(folder);
             case PortalNavigationLink link -> map(link);
@@ -68,9 +70,13 @@ public interface PortalNavigationItemMapper {
     }
 
     io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder map(PortalNavigationFolder folder);
+
     io.gravitee.rest.api.portal.rest.model.PortalNavigationLink map(PortalNavigationLink link);
+
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
+
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
+
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct map(PortalNavigationApiProduct apiProduct);
 
     @Mapping(source = "value", target = "content")
@@ -152,19 +158,16 @@ public interface PortalNavigationItemMapper {
     }
 
     default Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> map(
-        Set<io.gravitee.rest.api.portal.rest.model.PortalNavigationSearchInclude> includes
-    ) {
+            Set<io.gravitee.rest.api.portal.rest.model.PortalNavigationSearchInclude> includes) {
         if (includes == null) {
             return Set.of();
         }
-        return includes
-            .stream()
-            .map(i ->
-                switch (i) {
+        return includes.stream()
+                .map(i -> switch (i) {
                     case API -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API;
-                    case API_PRODUCT -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API_PRODUCT;
-                }
-            )
-            .collect(Collectors.toSet());
+                    case API_PRODUCT ->
+                        io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API_PRODUCT;
+                })
+                .collect(Collectors.toSet());
     }
 }

@@ -170,11 +170,13 @@ public class SampleXmlUtil {
             case SchemaType.BTC_BOOLEAN:
                 return pick(2) == 0 ? "true" : "false";
             case SchemaType.BTC_BASE_64_BINARY:
-                return Base64.getEncoder().encodeToString(formatToLength(pick(WORDS), sType).getBytes(StandardCharsets.UTF_8));
+                return Base64.getEncoder()
+                        .encodeToString(formatToLength(pick(WORDS), sType).getBytes(StandardCharsets.UTF_8));
             case SchemaType.BTC_HEX_BINARY:
                 return HexBin.encode(formatToLength(pick(WORDS), sType));
             case SchemaType.BTC_ANY_URI:
-                return formatToLength("http://www." + pick(DNS1) + "." + pick(DNS2) + "/" + pick(WORDS) + "/" + pick(WORDS), sType);
+                return formatToLength(
+                        "http://www." + pick(DNS1) + "." + pick(DNS2) + "/" + pick(WORDS) + "/" + pick(WORDS), sType);
             case SchemaType.BTC_QNAME:
                 return formatToLength("qname", sType);
             case SchemaType.BTC_NOTATION:
@@ -393,8 +395,8 @@ public class SampleXmlUtil {
         "habenas",
     };
 
-    private static final String[] DNS1 = new String[] { "corp", "your", "my", "sample", "company", "test", "any" };
-    private static final String[] DNS2 = new String[] { "com", "org", "com", "gov", "org", "com", "org", "com", "edu" };
+    private static final String[] DNS1 = new String[] {"corp", "your", "my", "sample", "company", "test", "any"};
+    private static final String[] DNS2 = new String[] {"com", "org", "com", "gov", "org", "com", "org", "com", "edu"};
 
     private int pick(int n) {
         return picker.nextInt(n);
@@ -476,8 +478,7 @@ public class SampleXmlUtil {
         BigDecimal min = xmlD != null ? xmlD.getBigDecimalValue() : null;
         xmlD = (XmlDecimal) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
         BigDecimal max = xmlD != null ? xmlD.getBigDecimalValue() : null;
-        boolean minInclusive = true,
-            maxInclusive = true;
+        boolean minInclusive = true, maxInclusive = true;
         xmlD = (XmlDecimal) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
         if (xmlD != null) {
             BigDecimal minExcl = xmlD.getBigDecimalValue();
@@ -553,8 +554,9 @@ public class SampleXmlUtil {
         BigDecimal ONE = new BigDecimal(BigInteger.ONE);
         for (BigDecimal n = result; n.abs().compareTo(ONE) >= 0; digits++) n = n.movePointLeft(1);
 
-        if (fractionDigits > 0) if (totalDigits >= 0) result = result.setScale(Math.max(fractionDigits, totalDigits - digits));
-        else result = result.setScale(fractionDigits);
+        if (fractionDigits > 0)
+            if (totalDigits >= 0) result = result.setScale(Math.max(fractionDigits, totalDigits - digits));
+            else result = result.setScale(fractionDigits);
         else if (fractionDigits == 0) result = result.setScale(0);
 
         return result.toString();
@@ -597,7 +599,8 @@ public class SampleXmlUtil {
             if (gdurb.getHour() < minInclusive.getHour()) gdurb.setHour(minInclusive.getHour());
             if (gdurb.getMinute() < minInclusive.getMinute()) gdurb.setMinute(minInclusive.getMinute());
             if (gdurb.getSecond() < minInclusive.getSecond()) gdurb.setSecond(minInclusive.getSecond());
-            if (gdurb.getFraction().compareTo(minInclusive.getFraction()) < 0) gdurb.setFraction(minInclusive.getFraction());
+            if (gdurb.getFraction().compareTo(minInclusive.getFraction()) < 0)
+                gdurb.setFraction(minInclusive.getFraction());
         }
 
         if (maxInclusive != null) {
@@ -607,7 +610,8 @@ public class SampleXmlUtil {
             if (gdurb.getHour() > maxInclusive.getHour()) gdurb.setHour(maxInclusive.getHour());
             if (gdurb.getMinute() > maxInclusive.getMinute()) gdurb.setMinute(maxInclusive.getMinute());
             if (gdurb.getSecond() > maxInclusive.getSecond()) gdurb.setSecond(maxInclusive.getSecond());
-            if (gdurb.getFraction().compareTo(maxInclusive.getFraction()) > 0) gdurb.setFraction(maxInclusive.getFraction());
+            if (gdurb.getFraction().compareTo(maxInclusive.getFraction()) > 0)
+                gdurb.setFraction(maxInclusive.getFraction());
         }
 
         if (minExclusive != null) {
@@ -617,9 +621,8 @@ public class SampleXmlUtil {
             if (gdurb.getHour() <= minExclusive.getHour()) gdurb.setHour(minExclusive.getHour() + 1);
             if (gdurb.getMinute() <= minExclusive.getMinute()) gdurb.setMinute(minExclusive.getMinute() + 1);
             if (gdurb.getSecond() <= minExclusive.getSecond()) gdurb.setSecond(minExclusive.getSecond() + 1);
-            if (gdurb.getFraction().compareTo(minExclusive.getFraction()) <= 0) gdurb.setFraction(
-                minExclusive.getFraction().add(new BigDecimal(0.001))
-            );
+            if (gdurb.getFraction().compareTo(minExclusive.getFraction()) <= 0)
+                gdurb.setFraction(minExclusive.getFraction().add(new BigDecimal(0.001)));
         }
 
         if (maxExclusive != null) {
@@ -629,7 +632,8 @@ public class SampleXmlUtil {
             if (gdurb.getHour() > maxExclusive.getHour()) gdurb.setHour(maxExclusive.getHour());
             if (gdurb.getMinute() > maxExclusive.getMinute()) gdurb.setMinute(maxExclusive.getMinute());
             if (gdurb.getSecond() > maxExclusive.getSecond()) gdurb.setSecond(maxExclusive.getSecond());
-            if (gdurb.getFraction().compareTo(maxExclusive.getFraction()) > 0) gdurb.setFraction(maxExclusive.getFraction());
+            if (gdurb.getFraction().compareTo(maxExclusive.getFraction()) > 0)
+                gdurb.setFraction(maxExclusive.getFraction());
         }
 
         gdurb.normalize();
@@ -637,9 +641,9 @@ public class SampleXmlUtil {
     }
 
     private String formatDate(SchemaType sType) {
-        GDateBuilder gdateb = new GDateBuilder(new Date(1000L * pick(365 * 24 * 60 * 60) + (30L + pick(20)) * 365 * 24 * 60 * 60 * 1000));
-        GDate min = null,
-            max = null;
+        GDateBuilder gdateb = new GDateBuilder(
+                new Date(1000L * pick(365 * 24 * 60 * 60) + (30L + pick(20)) * 365 * 24 * 60 * 60 * 1000));
+        GDate min = null, max = null;
         GDate temp;
 
         // Find the min and the max according to the type
@@ -855,7 +859,8 @@ public class SampleXmlUtil {
         // it probably only makes sense to put comments in front of individual elements that repeat
 
         if (sp.getMaxOccurs() == null) {
-            // xmlc.insertComment("The next " + getItemNameOrType(sp, xmlc) + " may be repeated " + minOccurs + " or more times");
+            // xmlc.insertComment("The next " + getItemNameOrType(sp, xmlc) + " may be repeated " + minOccurs + " or
+            // more times");
             if (minOccurs == 0) xmlc.insertComment("Zero or more repetitions:");
             else xmlc.insertComment(minOccurs + " or more repetitions:");
         } else if (sp.getIntMaxOccurs() > 1) {
@@ -885,7 +890,9 @@ public class SampleXmlUtil {
         /// ^  -> <elemenname></elem>^
         if (_soapEnc) xmlc.insertElement(element.getName().getLocalPart());
         // soap encoded? drop namespaces.
-        else xmlc.insertElement(element.getName().getLocalPart(), element.getName().getNamespaceURI());
+        else
+            xmlc.insertElement(
+                    element.getName().getLocalPart(), element.getName().getNamespaceURI());
         _nElements++;
         /// -> <elem>^</elem>
         xmlc.toPrevToken();
@@ -923,7 +930,7 @@ public class SampleXmlUtil {
     private static final QName ENC_ARRAYTYPE = new QName("http://schemas.xmlsoap.org/soap/encoding/", "arrayType");
     private static final QName ENC_OFFSET = new QName("http://schemas.xmlsoap.org/soap/encoding/", "offset");
 
-    private static final Set SKIPPED_SOAP_ATTRS = new HashSet(Arrays.asList(new QName[] { HREF, ID, ENC_OFFSET }));
+    private static final Set SKIPPED_SOAP_ATTRS = new HashSet(Arrays.asList(new QName[] {HREF, ID, ENC_OFFSET}));
 
     private void processAttributes(SchemaType stype, XmlCursor xmlc) {
         if (_soapEnc) {
@@ -939,18 +946,19 @@ public class SampleXmlUtil {
             if (_soapEnc) {
                 if (SKIPPED_SOAP_ATTRS.contains(attr.getName())) continue;
                 if (ENC_ARRAYTYPE.equals(attr.getName())) {
-                    SOAPArrayType arrayType = ((SchemaWSDLArrayType) stype
-                            .getAttributeModel()
-                            .getAttribute(attr.getName())).getWSDLArrayType();
-                    if (arrayType != null) xmlc.insertAttributeWithValue(
-                        attr.getName(),
-                        formatQName(xmlc, arrayType.getQName()) + arrayType.soap11DimensionString()
-                    );
+                    SOAPArrayType arrayType = ((SchemaWSDLArrayType)
+                                    stype.getAttributeModel().getAttribute(attr.getName()))
+                            .getWSDLArrayType();
+                    if (arrayType != null)
+                        xmlc.insertAttributeWithValue(
+                                attr.getName(),
+                                formatQName(xmlc, arrayType.getQName()) + arrayType.soap11DimensionString());
                     continue;
                 }
             }
             String defaultValue = attr.getDefaultText();
-            xmlc.insertAttributeWithValue(attr.getName(), defaultValue == null ? sampleDataForSimpleType(attr.getType()) : defaultValue);
+            xmlc.insertAttributeWithValue(
+                    attr.getName(), defaultValue == null ? sampleDataForSimpleType(attr.getType()) : defaultValue);
         }
     }
 
@@ -959,7 +967,7 @@ public class SampleXmlUtil {
         for (int i = 0; i < spc.length; i++) {
             /// <parent>maybestuff^</parent>
             processParticle(spc[i], xmlc, mixed);
-            //<parent>maybestuff...morestuff^</parent>
+            // <parent>maybestuff...morestuff^</parent>
             if (mixed && i < spc.length - 1) xmlc.insertChars(pick(WORDS));
         }
     }
@@ -989,7 +997,6 @@ public class SampleXmlUtil {
     /**
      * This method will get the base type for the schema type
      */
-
     private static QName getClosestName(SchemaType sType) {
         while (sType.getName() == null) sType = sType.getBaseType();
 

@@ -31,31 +31,27 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent<Gravite
     private GraviteeMarkdown content;
 
     public GraviteeMarkdownPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull GraviteeMarkdown content
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull GraviteeMarkdown content) {
         this(id, organizationId, environmentId, content, null);
     }
 
     public GraviteeMarkdownPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull GraviteeMarkdown content,
-        @Nullable AutomationMetadata automationMetadata
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull GraviteeMarkdown content,
+            @Nullable AutomationMetadata automationMetadata) {
         super(id, organizationId, environmentId, automationMetadata);
         this.content = content;
     }
 
     public static GraviteeMarkdownPageContent create(
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String content
-    ) {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.random(), organizationId, environmentId, GraviteeMarkdown.of(content));
+            @Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
+        return new GraviteeMarkdownPageContent(
+                PortalPageContentId.random(), organizationId, environmentId, GraviteeMarkdown.of(content));
     }
 
     public PortalPageContentType getType() {

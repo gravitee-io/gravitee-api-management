@@ -35,14 +35,14 @@ class HttpProxyOptionsMapperTest {
     @Test
     void should_build_http_client_options_with_defined_values() {
         final HttpProxyOptions httpProxyOptions = HttpProxyOptions.builder()
-            .enabled(true)
-            .useSystemProxy(false)
-            .host("host")
-            .port(5555)
-            .username("username")
-            .password("password")
-            .type(HttpProxyType.SOCKS4)
-            .build();
+                .enabled(true)
+                .useSystemProxy(false)
+                .host("host")
+                .port(5555)
+                .username("username")
+                .password("password")
+                .type(HttpProxyType.SOCKS4)
+                .build();
 
         final VertxHttpProxyOptions result = HttpProxyOptionsMapper.INSTANCE.map(httpProxyOptions);
         assertThat(result.isEnabled()).isTrue();

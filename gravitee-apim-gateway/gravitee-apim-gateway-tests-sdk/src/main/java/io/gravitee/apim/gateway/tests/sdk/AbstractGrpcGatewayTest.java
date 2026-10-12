@@ -68,7 +68,8 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     }
 
     protected HttpServer createHttpServer(GrpcServer grpcServer) {
-        vertxServer = vertx.createHttpServer(new HttpServerOptions().setPort(grpcServerPort).setHost(LOCALHOST));
+        vertxServer = vertx.createHttpServer(
+                new HttpServerOptions().setPort(grpcServerPort).setHost(LOCALHOST));
         vertxServer.requestHandler(grpcServer);
         return vertxServer;
     }

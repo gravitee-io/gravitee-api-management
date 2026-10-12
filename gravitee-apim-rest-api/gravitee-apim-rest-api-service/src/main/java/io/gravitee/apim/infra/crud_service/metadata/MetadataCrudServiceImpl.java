@@ -49,14 +49,12 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
             return MetadataAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurs while trying to create the %s metadata of [%sId=%s]",
-                    metadata.getKey(),
-                    metadata.getReferenceType().name().toLowerCase(),
-                    metadata.getReferenceId()
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to create the %s metadata of [%sId=%s]",
+                            metadata.getKey(),
+                            metadata.getReferenceType().name().toLowerCase(),
+                            metadata.getReferenceId()),
+                    e);
         }
     }
 
@@ -64,27 +62,29 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
     public Optional<Metadata> findById(MetadataId id) {
         try {
             return metadataRepository
-                .findById(id.getKey(), id.getReferenceId(), MetadataReferenceType.valueOf(id.getReferenceType().name()))
-                .map(MetadataAdapter.INSTANCE::toEntity);
+                    .findById(
+                            id.getKey(),
+                            id.getReferenceId(),
+                            MetadataReferenceType.valueOf(id.getReferenceType().name()))
+                    .map(MetadataAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while finding metadata by id [%s, %s, %s]",
-                    id.getReferenceId(),
-                    id.getReferenceType().name(),
-                    id.getKey()
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurred while finding metadata by id [%s, %s, %s]",
+                            id.getReferenceId(), id.getReferenceType().name(), id.getKey()),
+                    e);
         }
     }
 
     @Override
     public Collection<Metadata> findByApiId(String id) {
         try {
-            return stream(metadataRepository.findByReferenceTypeAndReferenceId(API, id)).map(MetadataAdapter.INSTANCE::toEntity).toList();
+            return stream(metadataRepository.findByReferenceTypeAndReferenceId(API, id))
+                    .map(MetadataAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while finding metadata by API id [%s]".formatted(id), e);
+            throw new TechnicalDomainException(
+                    "An error occurred while finding metadata by API id [%s]".formatted(id), e);
         }
     }
 
@@ -92,10 +92,11 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
     public Collection<Metadata> findByEnvId(String id) {
         try {
             return stream(metadataRepository.findByReferenceTypeAndReferenceId(ENVIRONMENT, id))
-                .map(MetadataAdapter.INSTANCE::toEntity)
-                .toList();
+                    .map(MetadataAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while finding metadata by API id [%s]".formatted(id), e);
+            throw new TechnicalDomainException(
+                    "An error occurred while finding metadata by API id [%s]".formatted(id), e);
         }
     }
 
@@ -106,26 +107,25 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
             return MetadataAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurs while trying to update the %s metadata of [%sId=%s]",
-                    metadata.getKey(),
-                    metadata.getReferenceType().name().toLowerCase(),
-                    metadata.getReferenceId()
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to update the %s metadata of [%sId=%s]",
+                            metadata.getKey(),
+                            metadata.getReferenceType().name().toLowerCase(),
+                            metadata.getReferenceId()),
+                    e);
         }
     }
 
     @Override
     public void delete(MetadataId id) {
         try {
-            metadataRepository.delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.valueOf(id.getReferenceType().name()));
+            metadataRepository.delete(
+                    id.getKey(),
+                    id.getReferenceId(),
+                    MetadataReferenceType.valueOf(id.getReferenceType().name()));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurs while trying to delete the metadata with key: %s", id.getKey()),
-                e
-            );
+                    String.format("An error occurs while trying to delete the metadata with key: %s", id.getKey()), e);
         }
     }
 }

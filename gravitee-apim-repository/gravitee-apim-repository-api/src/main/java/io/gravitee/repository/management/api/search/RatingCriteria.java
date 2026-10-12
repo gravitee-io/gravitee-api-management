@@ -56,11 +56,9 @@ public class RatingCriteria {
         if (this == o) return true;
         if (!(o instanceof RatingCriteria)) return false;
         RatingCriteria that = (RatingCriteria) o;
-        return (
-            Objects.equals(referenceIds, that.referenceIds) &&
-            Objects.equals(referenceType, that.referenceType) &&
-            Objects.equals(gt, that.gt)
-        );
+        return (Objects.equals(referenceIds, that.referenceIds)
+                && Objects.equals(referenceType, that.referenceType)
+                && Objects.equals(gt, that.gt));
     }
 
     @Override

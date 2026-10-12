@@ -36,7 +36,9 @@ class ApiPathExtractorTest {
 
         var paths = ApiPathExtractor.extractPaths(api);
 
-        assertThat(paths).extracting("host", "path", "overrideAccess").containsExactly(tuple(null, "/http_proxy/", false));
+        assertThat(paths)
+                .extracting("host", "path", "overrideAccess")
+                .containsExactly(tuple(null, "/http_proxy/", false));
     }
 
     @Test
@@ -78,10 +80,9 @@ class ApiPathExtractorTest {
     @Test
     void getPathsWithoutHost_filters_paths_with_no_host() {
         var paths = List.of(
-            Path.builder().path("/a").build(),
-            Path.builder().host("h1").path("/b").build(),
-            Path.builder().host("").path("/c").build()
-        );
+                Path.builder().path("/a").build(),
+                Path.builder().host("h1").path("/b").build(),
+                Path.builder().host("").path("/c").build());
 
         var result = ApiPathExtractor.getPathsWithoutHost(paths);
 
@@ -91,11 +92,10 @@ class ApiPathExtractorTest {
     @Test
     void getPathsWithHost_groups_by_host_excluding_empty_host() {
         var paths = List.of(
-            Path.builder().host("h1").path("/a").build(),
-            Path.builder().host("h1").path("/b").build(),
-            Path.builder().host("h2").path("/c").build(),
-            Path.builder().path("/no-host").build()
-        );
+                Path.builder().host("h1").path("/a").build(),
+                Path.builder().host("h1").path("/b").build(),
+                Path.builder().host("h2").path("/c").build(),
+                Path.builder().path("/no-host").build());
 
         var result = ApiPathExtractor.getPathsWithHost(paths);
 
@@ -134,14 +134,16 @@ class ApiPathExtractorTest {
         var paths = ApiPathExtractor.extractPathsFromVirtualHosts(List.of(vh1, vh2));
 
         assertThat(paths)
-            .extracting("host", "path", "overrideAccess")
-            .containsExactly(tuple(null, "/a/", false), tuple("domain.com", "/b/", true));
+                .extracting("host", "path", "overrideAccess")
+                .containsExactly(tuple(null, "/a/", false), tuple("domain.com", "/b/", true));
     }
 
     @Test
     void extractPaths_returns_empty_for_v2_api_with_null_proxy() {
         var apiDef = io.gravitee.definition.model.Api.builder().build();
-        var api = io.gravitee.apim.core.api.model.Api.builder().apiDefinition(apiDef).build();
+        var api = io.gravitee.apim.core.api.model.Api.builder()
+                .apiDefinition(apiDef)
+                .build();
 
         var paths = ApiPathExtractor.extractPaths(api);
 
@@ -151,7 +153,9 @@ class ApiPathExtractorTest {
     @Test
     void extractPaths_returns_empty_for_v4_api_with_null_listeners() {
         var apiDef = io.gravitee.definition.model.v4.Api.builder().build();
-        var api = io.gravitee.apim.core.api.model.Api.builder().apiDefinitionHttpV4(apiDef).build();
+        var api = io.gravitee.apim.core.api.model.Api.builder()
+                .apiDefinitionHttpV4(apiDef)
+                .build();
 
         var paths = ApiPathExtractor.extractPaths(api);
 
@@ -161,17 +165,21 @@ class ApiPathExtractorTest {
     @Test
     void extractPathsFromV4Listeners_picks_only_http_listeners() {
         var httpListener = HttpListener.builder()
-            .paths(
-                List.of(
-                    io.gravitee.definition.model.v4.listener.http.Path.builder().path("/x").build(),
-                    io.gravitee.definition.model.v4.listener.http.Path.builder().host("h").path("/y").build()
-                )
-            )
-            .build();
+                .paths(List.of(
+                        io.gravitee.definition.model.v4.listener.http.Path.builder()
+                                .path("/x")
+                                .build(),
+                        io.gravitee.definition.model.v4.listener.http.Path.builder()
+                                .host("h")
+                                .path("/y")
+                                .build()))
+                .build();
         var tcpListener = TcpListener.builder().build();
 
         var paths = ApiPathExtractor.extractPathsFromV4Listeners(List.<Listener>of(tcpListener, httpListener));
 
-        assertThat(paths).extracting("host", "path", "overrideAccess").containsExactly(tuple(null, "/x/", false), tuple("h", "/y/", false));
+        assertThat(paths)
+                .extracting("host", "path", "overrideAccess")
+                .containsExactly(tuple(null, "/x/", false), tuple("h", "/y/", false));
     }
 }

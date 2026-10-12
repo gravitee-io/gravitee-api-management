@@ -36,21 +36,23 @@ class AsyncApiValidatorTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "asyncapi: '3.0.0'\ninfo:\n  title: Test", "asyncapi: '2.6.0'\ninfo:\n  title: Test", "  \n  asyncapi: '3.0.0'  \n  ",
-            }
-        )
+                strings = {
+                    "asyncapi: '3.0.0'\ninfo:\n  title: Test",
+                    "asyncapi: '2.6.0'\ninfo:\n  title: Test",
+                    "  \n  asyncapi: '3.0.0'  \n  ",
+                })
         void should_accept_valid_content(String validContent) {
-            assertThatCode(() -> validator.validateNotEmpty(new AsyncApi(validContent))).doesNotThrowAnyException();
+            assertThatCode(() -> validator.validateNotEmpty(new AsyncApi(validContent)))
+                    .doesNotThrowAnyException();
         }
 
         @ParameterizedTest
         @NullAndEmptySource
-        @ValueSource(strings = { "   ", "  \n  \t  " })
+        @ValueSource(strings = {"   ", "  \n  \t  "})
         void should_throw_exception_when_content_is_invalid(String invalidContent) {
             assertThatThrownBy(() -> validator.validateNotEmpty(new AsyncApi(invalidContent)))
-                .isInstanceOf(AsyncApiContentEmptyException.class)
-                .hasMessage("Content must not be null or empty");
+                    .isInstanceOf(AsyncApiContentEmptyException.class)
+                    .hasMessage("Content must not be null or empty");
         }
     }
 }

@@ -35,28 +35,16 @@ public class PortalPageContentFixtures {
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent() {
         return new GraviteeMarkdownPageContent(
-            PortalPageContentId.of(CONTENT_ID),
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            new GraviteeMarkdown(CONTENT)
-        );
+                PortalPageContentId.of(CONTENT_ID), ORGANIZATION_ID, ENVIRONMENT_ID, new GraviteeMarkdown(CONTENT));
     }
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(String content) {
         return new GraviteeMarkdownPageContent(
-            PortalPageContentId.of(CONTENT_ID),
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            new GraviteeMarkdown(content)
-        );
+                PortalPageContentId.of(CONTENT_ID), ORGANIZATION_ID, ENVIRONMENT_ID, new GraviteeMarkdown(content));
     }
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(
-        PortalPageContentId id,
-        String organizationId,
-        String environmentId,
-        String content
-    ) {
+            PortalPageContentId id, String organizationId, String environmentId, String content) {
         return new GraviteeMarkdownPageContent(id, organizationId, environmentId, new GraviteeMarkdown(content));
     }
 
@@ -66,29 +54,23 @@ public class PortalPageContentFixtures {
 
     public static AsyncApiPageContent anAsyncApiPageContent() {
         return new AsyncApiPageContent(
-            PortalPageContentId.of(CONTENT_ID),
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            new AsyncApi("asyncapi: '3.0.0'\ninfo:\n  title: Test")
-        );
+                PortalPageContentId.of(CONTENT_ID),
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                new AsyncApi("asyncapi: '3.0.0'\ninfo:\n  title: Test"));
     }
 
     public static AsyncApiPageContent anAsyncApiPageContent(
-        PortalPageContentId id,
-        String organizationId,
-        String environmentId,
-        String content
-    ) {
+            PortalPageContentId id, String organizationId, String environmentId, String content) {
         return new AsyncApiPageContent(id, organizationId, environmentId, new AsyncApi(content));
     }
 
     public static OpenApiPageContent anOpenApiPageContent(
-        PortalPageContentId id,
-        String organizationId,
-        String environmentId,
-        String content,
-        OpenApiConfiguration viewerSettings
-    ) {
+            PortalPageContentId id,
+            String organizationId,
+            String environmentId,
+            String content,
+            OpenApiConfiguration viewerSettings) {
         return new OpenApiPageContent(id, organizationId, environmentId, OpenApi.of(content), viewerSettings);
     }
 }

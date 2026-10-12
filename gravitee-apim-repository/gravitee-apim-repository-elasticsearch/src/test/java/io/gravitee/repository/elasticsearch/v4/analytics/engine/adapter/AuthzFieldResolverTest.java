@@ -42,32 +42,36 @@ class AuthzFieldResolverTest {
     @Test
     void should_reject_a_metric_that_is_not_an_authz_metric() {
         assertThatThrownBy(() -> resolver.fromMetric(Metric.HTTP_REQUESTS))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("HTTP_REQUESTS");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("HTTP_REQUESTS");
     }
 
     @Test
     void should_reject_operations_and_searches_now_that_they_are_served_from_pdp_api_traffic() {
-        assertThatThrownBy(() -> resolver.fromMetric(Metric.AUTHZ_OPERATIONS)).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> resolver.fromMetric(Metric.AUTHZ_SEARCHES)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> resolver.fromMetric(Metric.AUTHZ_OPERATIONS))
+                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> resolver.fromMetric(Metric.AUTHZ_SEARCHES))
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
     void should_scope_permits_and_forbids_by_the_verdict_of_the_pdp() {
-        assertThat(resolver.scopeTerm(Metric.AUTHZ_PERMITS)).contains(new AuthzFieldResolver.ScopeTerm("verdict", "PERMIT"));
-        assertThat(resolver.scopeTerm(Metric.AUTHZ_FORBIDS)).contains(new AuthzFieldResolver.ScopeTerm("verdict", "FORBID"));
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_PERMITS))
+                .contains(new AuthzFieldResolver.ScopeTerm("verdict", "PERMIT"));
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_FORBIDS))
+                .contains(new AuthzFieldResolver.ScopeTerm("verdict", "FORBID"));
     }
 
     @Test
     void should_scope_not_applicable_by_the_indeterminate_cause() {
-        assertThat(resolver.scopeTerm(Metric.AUTHZ_NOT_APPLICABLE)).contains(
-            new AuthzFieldResolver.ScopeTerm("indeterminate-cause", "NOT_APPLICABLE")
-        );
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_NOT_APPLICABLE))
+                .contains(new AuthzFieldResolver.ScopeTerm("indeterminate-cause", "NOT_APPLICABLE"));
     }
 
     @Test
     void should_scope_failures_by_the_error_status() {
-        assertThat(resolver.scopeTerm(Metric.AUTHZ_FAILURES)).contains(new AuthzFieldResolver.ScopeTerm("status", "error"));
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_FAILURES))
+                .contains(new AuthzFieldResolver.ScopeTerm("status", "error"));
     }
 
     @Test
@@ -91,7 +95,8 @@ class AuthzFieldResolverTest {
 
     @Test
     void should_reject_the_operation_facet_now_that_decisions_no_longer_carry_it() {
-        assertThatThrownBy(() -> resolver.fromFacet(Facet.AUTHZ_OPERATION)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> resolver.fromFacet(Facet.AUTHZ_OPERATION))
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -107,7 +112,8 @@ class AuthzFieldResolverTest {
     void should_reject_the_type_field_of_a_filter_that_names_no_entity() {
         var action = new Filter(Filter.Name.AUTHZ_ACTION, Filter.Operator.EQ, "read");
 
-        assertThatThrownBy(() -> resolver.entityTypeFromFilter(action)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> resolver.entityTypeFromFilter(action))
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -123,66 +129,71 @@ class AuthzFieldResolverTest {
         assertThatThrownBy(() -> resolver.fromFilter(filter)).isInstanceOf(UnsupportedOperationException.class);
     }
 
-    private static final List<Metric> DECISION_UNSUPPORTED_METRICS = List.of(Metric.AUTHZ_OPERATIONS, Metric.AUTHZ_SEARCHES);
+    private static final List<Metric> DECISION_UNSUPPORTED_METRICS =
+            List.of(Metric.AUTHZ_OPERATIONS, Metric.AUTHZ_SEARCHES);
 
     @Test
     void should_resolve_every_authz_metric_declared_on_the_enum() {
         var unresolved = Arrays.stream(Metric.values())
-            .filter(metric -> metric.name().startsWith("AUTHZ_"))
-            .filter(metric -> !DECISION_UNSUPPORTED_METRICS.contains(metric))
-            .filter(metric -> {
-                try {
-                    return resolver.fromMetric(metric) == null;
-                } catch (UnsupportedOperationException e) {
-                    return true;
-                }
-            })
-            .toList();
+                .filter(metric -> metric.name().startsWith("AUTHZ_"))
+                .filter(metric -> !DECISION_UNSUPPORTED_METRICS.contains(metric))
+                .filter(metric -> {
+                    try {
+                        return resolver.fromMetric(metric) == null;
+                    } catch (UnsupportedOperationException e) {
+                        return true;
+                    }
+                })
+                .toList();
 
-        assertThat(unresolved).as("every AUTHZ_ metric on the enum needs a field here, or it throws at query time").isEmpty();
+        assertThat(unresolved)
+                .as("every AUTHZ_ metric on the enum needs a field here, or it throws at query time")
+                .isEmpty();
     }
 
-    private static final List<Facet> DECISION_UNSUPPORTED_FACETS = List.of(Facet.AUTHZ_SEARCH_TYPE, Facet.AUTHZ_OPERATION);
+    private static final List<Facet> DECISION_UNSUPPORTED_FACETS =
+            List.of(Facet.AUTHZ_SEARCH_TYPE, Facet.AUTHZ_OPERATION);
 
     @Test
     void should_resolve_every_authz_facet_declared_on_the_enum() {
         var unresolved = Arrays.stream(Facet.values())
-            .filter(facet -> facet.name().startsWith("AUTHZ_"))
-            .filter(facet -> !DECISION_UNSUPPORTED_FACETS.contains(facet))
-            .filter(facet -> {
-                try {
-                    return resolver.fromFacet(facet) == null;
-                } catch (UnsupportedOperationException e) {
-                    return true;
-                }
-            })
-            .toList();
+                .filter(facet -> facet.name().startsWith("AUTHZ_"))
+                .filter(facet -> !DECISION_UNSUPPORTED_FACETS.contains(facet))
+                .filter(facet -> {
+                    try {
+                        return resolver.fromFacet(facet) == null;
+                    } catch (UnsupportedOperationException e) {
+                        return true;
+                    }
+                })
+                .toList();
 
-        assertThat(unresolved).as("every AUTHZ_ facet on the enum needs a field here").isEmpty();
+        assertThat(unresolved)
+                .as("every AUTHZ_ facet on the enum needs a field here")
+                .isEmpty();
     }
 
-    private static final List<Filter.Name> DECISION_UNSUPPORTED_FILTERS = List.of(
-        Filter.Name.AUTHZ_OPERATION,
-        Filter.Name.AUTHZ_SEARCH_TYPE
-    );
+    private static final List<Filter.Name> DECISION_UNSUPPORTED_FILTERS =
+            List.of(Filter.Name.AUTHZ_OPERATION, Filter.Name.AUTHZ_SEARCH_TYPE);
 
     @Test
     void should_resolve_every_authz_filter_to_the_same_field_as_its_facet() {
         var mismatched = Arrays.stream(Filter.Name.values())
-            .filter(name -> name.name().startsWith("AUTHZ_"))
-            .filter(name -> !DECISION_UNSUPPORTED_FILTERS.contains(name))
-            .filter(name -> {
-                var filter = new Filter(name, Filter.Operator.EQ, List.of("x"));
-                try {
-                    return !resolver.fromFilter(filter).equals(resolver.fromFacet(Facet.valueOf(name.name())));
-                } catch (RuntimeException e) {
-                    return true;
-                }
-            })
-            .toList();
+                .filter(name -> name.name().startsWith("AUTHZ_"))
+                .filter(name -> !DECISION_UNSUPPORTED_FILTERS.contains(name))
+                .filter(name -> {
+                    var filter = new Filter(name, Filter.Operator.EQ, List.of("x"));
+                    try {
+                        return !resolver.fromFilter(filter).equals(resolver.fromFacet(Facet.valueOf(name.name())));
+                    } catch (RuntimeException e) {
+                        return true;
+                    }
+                })
+                .toList();
 
         assertThat(mismatched)
-            .as("a filter and the facet of the same name must read the same field, or the two switches have drifted")
-            .isEmpty();
+                .as(
+                        "a filter and the facet of the same name must read the same field, or the two switches have drifted")
+                .isEmpty();
     }
 }

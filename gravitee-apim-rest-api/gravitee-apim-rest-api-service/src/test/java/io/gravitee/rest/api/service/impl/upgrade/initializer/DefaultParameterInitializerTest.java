@@ -47,7 +47,8 @@ public class DefaultParameterInitializerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        initializer = new DefaultParameterInitializer(parameterRepository, new MockEnvironment().withProperty("portalURL", PORTAL_URL));
+        initializer = new DefaultParameterInitializer(
+                parameterRepository, new MockEnvironment().withProperty("portalURL", PORTAL_URL));
     }
 
     @Test
@@ -56,7 +57,8 @@ public class DefaultParameterInitializerTest {
 
         initializer.initialize();
 
-        verify(parameterRepository, times(1)).create(argThat(param -> param.getValue().equals(PORTAL_URL)));
+        verify(parameterRepository, times(1))
+                .create(argThat(param -> param.getValue().equals(PORTAL_URL)));
     }
 
     @Test
@@ -65,7 +67,8 @@ public class DefaultParameterInitializerTest {
 
         initializer.initialize();
 
-        verify(parameterRepository, times(1)).update(argThat(param -> param.getValue().equals(PORTAL_URL)));
+        verify(parameterRepository, times(1))
+                .update(argThat(param -> param.getValue().equals(PORTAL_URL)));
     }
 
     @Test

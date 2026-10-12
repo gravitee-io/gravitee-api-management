@@ -24,7 +24,8 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
  */
 public class JettyQueuedThreadPool extends QueuedThreadPool {
 
-    public JettyQueuedThreadPool(int poolMaxThreads, int poolMinThreads, int poolIdleTimeout, ArrayBlockingQueue<Runnable> queue) {
+    public JettyQueuedThreadPool(
+            int poolMaxThreads, int poolMinThreads, int poolIdleTimeout, ArrayBlockingQueue<Runnable> queue) {
         super(poolMaxThreads, poolMinThreads, poolIdleTimeout, queue);
     }
 

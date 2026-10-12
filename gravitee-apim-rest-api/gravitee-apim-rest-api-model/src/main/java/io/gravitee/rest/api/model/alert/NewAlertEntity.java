@@ -137,69 +137,63 @@ public class NewAlertEntity {
         if (this == o) return true;
         if (!(o instanceof NewAlertEntity)) return false;
         NewAlertEntity that = (NewAlertEntity) o;
-        return (
-            enabled == that.enabled &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(description, that.description) &&
-            referenceType == that.referenceType &&
-            Objects.equals(referenceId, that.referenceId) &&
-            type == that.type &&
-            metricType == that.metricType &&
-            Objects.equals(metric, that.metric) &&
-            thresholdType == that.thresholdType &&
-            Objects.equals(threshold, that.threshold) &&
-            Objects.equals(plan, that.plan)
-        );
+        return (enabled == that.enabled
+                && Objects.equals(name, that.name)
+                && Objects.equals(description, that.description)
+                && referenceType == that.referenceType
+                && Objects.equals(referenceId, that.referenceId)
+                && type == that.type
+                && metricType == that.metricType
+                && Objects.equals(metric, that.metric)
+                && thresholdType == that.thresholdType
+                && Objects.equals(threshold, that.threshold)
+                && Objects.equals(plan, that.plan));
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-            name,
-            description,
-            referenceType,
-            referenceId,
-            type,
-            enabled,
-            metricType,
-            metric,
-            thresholdType,
-            threshold,
-            plan
-        );
+                name,
+                description,
+                referenceType,
+                referenceId,
+                type,
+                enabled,
+                metricType,
+                metric,
+                thresholdType,
+                threshold,
+                plan);
     }
 
     @Override
     public String toString() {
-        return (
-            "NewAlertEntity{" +
-            "name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", type=" +
-            type +
-            ", enabled=" +
-            enabled +
-            ", metricType=" +
-            metricType +
-            ", metric=" +
-            metric +
-            ", thresholdType=" +
-            thresholdType +
-            ", threshold=" +
-            threshold +
-            ", plan='" +
-            plan +
-            '\'' +
-            '}'
-        );
+        return ("NewAlertEntity{" + "name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", type="
+                + type
+                + ", enabled="
+                + enabled
+                + ", metricType="
+                + metricType
+                + ", metric="
+                + metric
+                + ", thresholdType="
+                + thresholdType
+                + ", threshold="
+                + threshold
+                + ", plan='"
+                + plan
+                + '\''
+                + '}');
     }
 }

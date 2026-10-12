@@ -58,24 +58,23 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
     private static final String GITHUB_PERSONAL_ACCESS_TOKEN = "personalAccessToken";
     private static final String DEFAULT_GITHUB_API_URL = "https://api.github.com";
 
-    private static final Set<String> REQUIRED_GITHUB_PROPERTIES = new HashSet<>(
-        Set.of(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY, GITHUB_FILEPATH)
-    );
+    private static final Set<String> REQUIRED_GITHUB_PROPERTIES =
+            new HashSet<>(Set.of(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY, GITHUB_FILEPATH));
     private static final Set<String> OPTIONAL_GITHUB_PROPERTIES = Set.of(
-        GITHUB_USERNAME,
-        GITHUB_PERSONAL_ACCESS_TOKEN,
-        GITHUB_URL_PROPERTY,
-        FETCH_CRON_PROPERTY,
-        GITHUB_REPOSITORY_BRANCH_OR_TAG,
-        "autoFetch",
-        "useSystemProxy"
-    );
+            GITHUB_USERNAME,
+            GITHUB_PERSONAL_ACCESS_TOKEN,
+            GITHUB_URL_PROPERTY,
+            FETCH_CRON_PROPERTY,
+            GITHUB_REPOSITORY_BRANCH_OR_TAG,
+            "autoFetch",
+            "useSystemProxy");
 
     private static final String HTTP_URL_PROPERTY = "url";
 
     private static final Set<String> REQUIRED_HTTP_PROPERTIES = Set.of(HTTP_URL_PROPERTY);
 
-    private static final Set<String> OPTIONAL_HTTP_PROPERTIES = Set.of(FETCH_CRON_PROPERTY, "autoFetch", "useSystemProxy");
+    private static final Set<String> OPTIONAL_HTTP_PROPERTIES =
+            Set.of(FETCH_CRON_PROPERTY, "autoFetch", "useSystemProxy");
 
     private final ObjectMapper objectMapper;
     private final Vertx vertx;
@@ -86,7 +85,8 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
     }
 
     @Override
-    public Validator.Result<ValidatePageSourceDomainService.Input> validateAndSanitize(ValidatePageSourceDomainService.Input input) {
+    public Validator.Result<ValidatePageSourceDomainService.Input> validateAndSanitize(
+            ValidatePageSourceDomainService.Input input) {
         if (input.source() == null) {
             log.debug("Returning empty result as there is no source to validate");
             return Result.empty();
@@ -100,8 +100,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
     }
 
     private Validator.Result<ValidatePageSourceDomainService.Input> validateAndSanitizeGithubSource(
-        ValidatePageSourceDomainService.Input input
-    ) {
+            ValidatePageSourceDomainService.Input input) {
         try {
             var sanitizedBuilder = input.source().toBuilder();
             var errors = new ArrayList<Error>();
@@ -110,35 +109,34 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
 
             config.putIfAbsent(GITHUB_URL_PROPERTY, DEFAULT_GITHUB_API_URL);
 
-            validatePageSourceURL(input.pageName(), GITHUB_URL_PROPERTY, GITHUB_SOURCE_TYPE, config).errors().ifPresent(errors::addAll);
+            validatePageSourceURL(input.pageName(), GITHUB_URL_PROPERTY, GITHUB_SOURCE_TYPE, config)
+                    .errors()
+                    .ifPresent(errors::addAll);
 
-            checkRequiredProperties(input.pageName(), config, GITHUB_SOURCE_TYPE, REQUIRED_GITHUB_PROPERTIES).peek(
-                sanitizedBuilder::configurationMap,
-                errors::addAll
-            );
+            checkRequiredProperties(input.pageName(), config, GITHUB_SOURCE_TYPE, REQUIRED_GITHUB_PROPERTIES)
+                    .peek(sanitizedBuilder::configurationMap, errors::addAll);
 
             if (errors.stream().anyMatch(Error::isSevere)) {
                 return Result.ofBoth(input.sanitized(sanitizedBuilder.build()), errors);
             }
 
             if (!canAccessResource(config)) {
-                errors.add(
-                    Error.severe(
+                errors.add(Error.severe(
                         "Page [%s] cannot be fetched, this can come from either invalid / missing github credentials or an invalid file path",
-                        input.pageName()
-                    )
-                );
+                        input.pageName()));
             }
 
             checkUnknownProperties(
-                input.pageName(),
-                config,
-                GITHUB_SOURCE_TYPE,
-                REQUIRED_GITHUB_PROPERTIES,
-                OPTIONAL_GITHUB_PROPERTIES
-            ).peek(sanitizedBuilder::configurationMap, errors::addAll);
+                            input.pageName(),
+                            config,
+                            GITHUB_SOURCE_TYPE,
+                            REQUIRED_GITHUB_PROPERTIES,
+                            OPTIONAL_GITHUB_PROPERTIES)
+                    .peek(sanitizedBuilder::configurationMap, errors::addAll);
 
-            validateFetchCronProperty(input.pageName(), GITHUB_SOURCE_TYPE, config).errors().ifPresent(errors::addAll);
+            validateFetchCronProperty(input.pageName(), GITHUB_SOURCE_TYPE, config)
+                    .errors()
+                    .ifPresent(errors::addAll);
 
             sanitizedBuilder.configuration(objectMapper.writeValueAsString(config));
             sanitizedBuilder.configurationMap(config);
@@ -157,98 +155,93 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
             reqOptions.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()));
         }
 
-        return vertx
-            .createHttpClient()
-            .rxRequest(reqOptions)
-            .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() == 200)))
-            .blockingGet();
+        return vertx.createHttpClient()
+                .rxRequest(reqOptions)
+                .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() == 200)))
+                .blockingGet();
     }
 
     private RequestOptions getGithubRequestOptions(Map<String, Object> config) {
         Object branchOrTag = config.get(GITHUB_REPOSITORY_BRANCH_OR_TAG);
-        String url =
-            config.get(GITHUB_URL_PROPERTY) +
-            "/repos" +
-            "/" +
-            config.get(GITHUB_REPOSITORY_OWNER) +
-            "/" +
-            config.get(GITHUB_REPOSITORY) +
-            "/contents" +
-            config.get(GITHUB_FILEPATH) +
-            (branchOrTag != null && StringUtils.isNotEmpty(branchOrTag.toString()) ? ("?ref=" + branchOrTag) : "");
+        String url = config.get(GITHUB_URL_PROPERTY) + "/repos"
+                + "/"
+                + config.get(GITHUB_REPOSITORY_OWNER)
+                + "/"
+                + config.get(GITHUB_REPOSITORY)
+                + "/contents"
+                + config.get(GITHUB_FILEPATH)
+                + (branchOrTag != null && StringUtils.isNotEmpty(branchOrTag.toString())
+                        ? ("?ref=" + branchOrTag)
+                        : "");
 
         return new RequestOptions()
-            .setMethod(HttpMethod.GET)
-            .setAbsoluteURI(url)
-            .putHeader("User-Agent", config.get(GITHUB_REPOSITORY_OWNER).toString())
-            .putHeader("Accept", VERSION_HEADER)
-            .setFollowRedirects(true);
+                .setMethod(HttpMethod.GET)
+                .setAbsoluteURI(url)
+                .putHeader("User-Agent", config.get(GITHUB_REPOSITORY_OWNER).toString())
+                .putHeader("Accept", VERSION_HEADER)
+                .setFollowRedirects(true);
     }
 
     private Validator.Result<ValidatePageSourceDomainService.Input> validateAndSanitizeHTTPSource(
-        ValidatePageSourceDomainService.Input input
-    ) {
+            ValidatePageSourceDomainService.Input input) {
         var sanitizedBuilder = input.source().toBuilder();
         var errors = new ArrayList<Error>();
 
         var config = new HashMap<>(input.source().getConfigurationMap());
 
-        checkRequiredProperties(input.pageName(), config, HTTP_SOURCE_TYPE, REQUIRED_HTTP_PROPERTIES).peek(
-            sanitizedBuilder::configurationMap,
-            errors::addAll
-        );
+        checkRequiredProperties(input.pageName(), config, HTTP_SOURCE_TYPE, REQUIRED_HTTP_PROPERTIES)
+                .peek(sanitizedBuilder::configurationMap, errors::addAll);
 
-        checkUnknownProperties(input.pageName(), config, HTTP_SOURCE_TYPE, REQUIRED_HTTP_PROPERTIES, OPTIONAL_HTTP_PROPERTIES).peek(
-            sanitizedBuilder::configurationMap,
-            errors::addAll
-        );
+        checkUnknownProperties(
+                        input.pageName(), config, HTTP_SOURCE_TYPE, REQUIRED_HTTP_PROPERTIES, OPTIONAL_HTTP_PROPERTIES)
+                .peek(sanitizedBuilder::configurationMap, errors::addAll);
 
-        validatePageSourceURL(input.pageName(), HTTP_URL_PROPERTY, HTTP_SOURCE_TYPE, config).errors().ifPresent(errors::addAll);
+        validatePageSourceURL(input.pageName(), HTTP_URL_PROPERTY, HTTP_SOURCE_TYPE, config)
+                .errors()
+                .ifPresent(errors::addAll);
 
-        validateFetchCronProperty(input.pageName(), HTTP_SOURCE_TYPE, config).errors().ifPresent(errors::addAll);
+        validateFetchCronProperty(input.pageName(), HTTP_SOURCE_TYPE, config)
+                .errors()
+                .ifPresent(errors::addAll);
 
         return Result.ofBoth(input.sanitized(sanitizedBuilder.build()), errors);
     }
 
-    private Validator.Result<ValidatePageSourceDomainService.Input> bypassValidation(ValidatePageSourceDomainService.Input input) {
-        log.debug("Bypassing validation for source {} as it has not been implemented", input.source().getType());
+    private Validator.Result<ValidatePageSourceDomainService.Input> bypassValidation(
+            ValidatePageSourceDomainService.Input input) {
+        log.debug(
+                "Bypassing validation for source {} as it has not been implemented",
+                input.source().getType());
         return Result.ofValue(input);
     }
 
     private Validator.Result<String> validatePageSourceURL(
-        String pageName,
-        String urlFieldName,
-        String sourceType,
-        Map<String, Object> config
-    ) {
+            String pageName, String urlFieldName, String sourceType, Map<String, Object> config) {
         try {
             var property = (String) config.get(urlFieldName);
             return Result.ofValue(URI.create(property).toURL().toString());
         } catch (Exception e) {
-            return Result.withError(
-                Error.severe("property [%s] of source [%s] must be a valid URL for page [%s]", urlFieldName, sourceType, pageName)
-            );
+            return Result.withError(Error.severe(
+                    "property [%s] of source [%s] must be a valid URL for page [%s]",
+                    urlFieldName, sourceType, pageName));
         }
     }
 
-    private Validator.Result<String> validateFetchCronProperty(String pageName, String sourceType, Map<String, Object> config) {
+    private Validator.Result<String> validateFetchCronProperty(
+            String pageName, String sourceType, Map<String, Object> config) {
         var cronExpression = (String) config.get(FETCH_CRON_PROPERTY);
         if (StringUtils.isEmpty(cronExpression)) {
             return Result.empty();
         }
         return CronExpression.isValidExpression(cronExpression)
-            ? Result.ofValue(cronExpression)
-            : Result.withError(
-                Error.severe("property [fetchCron] of source [%s] must be a valid cron expression for page [%s]", sourceType, pageName)
-            );
+                ? Result.ofValue(cronExpression)
+                : Result.withError(Error.severe(
+                        "property [fetchCron] of source [%s] must be a valid cron expression for page [%s]",
+                        sourceType, pageName));
     }
 
     private Validator.Result<Map<String, Object>> checkRequiredProperties(
-        String pageName,
-        Map<String, Object> config,
-        String sourceType,
-        Set<String> required
-    ) {
+            String pageName, Map<String, Object> config, String sourceType, Set<String> required) {
         var errors = new ArrayList<Error>();
 
         var requiredFields = new HashSet<>(required);
@@ -256,26 +249,20 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
         requiredFields.removeAll(config.keySet());
 
         if (CollectionUtils.isNotEmpty(requiredFields)) {
-            errors.add(
-                Error.severe(
+            errors.add(Error.severe(
                     "property [%s] is required in [%s] configuration for page [%s]",
-                    requiredFields.iterator().next(),
-                    sourceType,
-                    pageName
-                )
-            );
+                    requiredFields.iterator().next(), sourceType, pageName));
         }
 
         return Result.ofBoth(config, errors);
     }
 
     private Validator.Result<Map<String, Object>> checkUnknownProperties(
-        String pageName,
-        Map<String, Object> config,
-        String sourceType,
-        Set<String> required,
-        Set<String> optional
-    ) {
+            String pageName,
+            Map<String, Object> config,
+            String sourceType,
+            Set<String> required,
+            Set<String> optional) {
         var errors = new ArrayList<Error>();
 
         var givenFields = new HashMap<>(config);
@@ -284,9 +271,9 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
         givenFields.keySet().removeAll(optional);
 
         for (var field : givenFields.keySet()) {
-            errors.add(
-                Error.warning("page [%s] contains unknown configuration property [%s] for [%s] source", pageName, field, sourceType)
-            );
+            errors.add(Error.warning(
+                    "page [%s] contains unknown configuration property [%s] for [%s] source",
+                    pageName, field, sourceType));
             config.remove(field);
         }
 

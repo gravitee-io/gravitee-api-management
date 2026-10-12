@@ -25,8 +25,12 @@ import java.util.Set;
  */
 public interface PortalNotificationConfigService {
     PortalNotificationConfigEntity save(PortalNotificationConfigEntity notification);
+
     PortalNotificationConfigEntity findById(String user, NotificationReferenceType referenceType, String referenceId);
+
     void deleteByUser(String user);
+
     void deleteReference(NotificationReferenceType referenceType, String referenceId);
+
     void removeGroupIds(String apiId, Set<String> groupIds);
 }

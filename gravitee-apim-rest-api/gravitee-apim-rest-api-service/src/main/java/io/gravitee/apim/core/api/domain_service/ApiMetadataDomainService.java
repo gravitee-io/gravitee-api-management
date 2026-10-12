@@ -66,8 +66,7 @@ public class ApiMetadataDomainService {
      */
     public void createDefaultApiMetadata(String apiId, AuditInfo auditInfo) {
         var now = TimeProvider.now();
-        var emailSupportMetadata = metadataCrudService.create(
-            Metadata.builder()
+        var emailSupportMetadata = metadataCrudService.create(Metadata.builder()
                 .key(IdGenerator.generate(EMAIL_SUPPORT_NAME))
                 .format(Metadata.MetadataFormat.MAIL)
                 .name(EMAIL_SUPPORT_NAME)
@@ -76,8 +75,7 @@ public class ApiMetadataDomainService {
                 .referenceId(apiId)
                 .createdAt(now)
                 .updatedAt(now)
-                .build()
-        );
+                .build());
         createAuditLog(emailSupportMetadata, ApiAuditEvent.METADATA_CREATED, auditInfo);
     }
 
@@ -96,51 +94,63 @@ public class ApiMetadataDomainService {
         importOrSave(apiId, metadata, auditInfo, Set.of());
     }
 
-    private void importOrSave(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo, Collection<String> previousMetadataKeys) {
+    private void importOrSave(
+            String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo, Collection<String> previousMetadataKeys) {
         var updated = stream(metadata)
-            .map(metadataEntry -> {
-                metadataEntry.setApiId(apiId);
-                createOrUpdateApiMetadataEntry(apiId, metadataEntry, auditInfo);
-                return metadataEntry.getKey();
-            })
-            .collect(Collectors.toSet());
+                .map(metadataEntry -> {
+                    metadataEntry.setApiId(apiId);
+                    createOrUpdateApiMetadataEntry(apiId, metadataEntry, auditInfo);
+                    return metadataEntry.getKey();
+                })
+                .collect(Collectors.toSet());
 
         Set<String> toRemove = new HashSet<>(previousMetadataKeys);
 
         toRemove.removeAll(updated);
         toRemove.remove(EMAIL_SUPPORT_NAME);
 
-        toRemove
-            .stream()
-            .map(old -> MetadataId.builder().key(old).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build())
-            .forEach(metadataCrudService::delete);
+        toRemove.stream()
+                .map(old -> MetadataId.builder()
+                        .key(old)
+                        .referenceId(apiId)
+                        .referenceType(Metadata.ReferenceType.API)
+                        .build())
+                .forEach(metadataCrudService::delete);
     }
 
     private void createOrUpdateApiMetadataEntry(String apiId, ApiMetadata metadataEntry, AuditInfo auditInfo) {
-        var id = MetadataId.builder().key(metadataEntry.getKey()).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build();
+        var id = MetadataId.builder()
+                .key(metadataEntry.getKey())
+                .referenceId(apiId)
+                .referenceType(Metadata.ReferenceType.API)
+                .build();
         metadataCrudService
-            .findById(id)
-            .ifPresentOrElse(
-                existing -> update(existing.toBuilder().name(metadataEntry.getName()).value(metadataEntry.getValue()).build(), auditInfo),
-                () ->
-                    create(
-                        NewApiMetadata.builder()
-                            .apiId(apiId)
-                            .key(metadataEntry.getKey())
-                            .value(metadataEntry.getValue())
-                            .name(metadataEntry.getName())
-                            .format(metadataEntry.getFormat())
-                            .build(),
-                        auditInfo
-                    )
-            );
+                .findById(id)
+                .ifPresentOrElse(
+                        existing -> update(
+                                existing.toBuilder()
+                                        .name(metadataEntry.getName())
+                                        .value(metadataEntry.getValue())
+                                        .build(),
+                                auditInfo),
+                        () -> create(
+                                NewApiMetadata.builder()
+                                        .apiId(apiId)
+                                        .key(metadataEntry.getKey())
+                                        .value(metadataEntry.getValue())
+                                        .name(metadataEntry.getName())
+                                        .format(metadataEntry.getFormat())
+                                        .build(),
+                                auditInfo));
     }
 
     public ApiMetadata create(NewApiMetadata newApiMetadata, AuditInfo auditInfo) {
         var now = TimeProvider.now();
-        var createdMetadata = metadataCrudService.create(
-            Metadata.builder()
-                .key(newApiMetadata.getKey() != null ? newApiMetadata.getKey() : IdGenerator.generate(newApiMetadata.getName()))
+        var createdMetadata = metadataCrudService.create(Metadata.builder()
+                .key(
+                        newApiMetadata.getKey() != null
+                                ? newApiMetadata.getKey()
+                                : IdGenerator.generate(newApiMetadata.getName()))
                 .format(newApiMetadata.getFormat())
                 .name(newApiMetadata.getName())
                 .value(newApiMetadata.getValue())
@@ -148,8 +158,7 @@ public class ApiMetadataDomainService {
                 .referenceId(newApiMetadata.getApiId())
                 .createdAt(now)
                 .updatedAt(now)
-                .build()
-        );
+                .build());
 
         createAuditLog(createdMetadata, ApiAuditEvent.METADATA_CREATED, auditInfo);
         return toApiMetadata(auditInfo.environmentId(), createdMetadata);
@@ -157,14 +166,14 @@ public class ApiMetadataDomainService {
 
     public ApiMetadata update(Metadata metadata, AuditInfo auditInfo) {
         log.info("Update metadata [{}] for API [{}]", metadata.getKey(), metadata.getReferenceId());
-        var updatedMetadata = metadataCrudService.update(metadata.toBuilder().updatedAt(TimeProvider.now()).build());
+        var updatedMetadata = metadataCrudService.update(
+                metadata.toBuilder().updatedAt(TimeProvider.now()).build());
         createAuditLog(updatedMetadata, ApiAuditEvent.METADATA_UPDATED, auditInfo);
         return toApiMetadata(auditInfo.environmentId(), updatedMetadata);
     }
 
     private void createAuditLog(Metadata created, ApiAuditEvent apiAuditEvent, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(created.getReferenceId())
@@ -173,27 +182,29 @@ public class ApiMetadataDomainService {
                 .newValue(created)
                 .createdAt(created.getCreatedAt())
                 .properties(Map.of(AuditProperties.METADATA, created.getKey()))
-                .build()
-        );
+                .build());
     }
 
     private String findDefaultValue(String environmentId, String key) {
-        return this.metadataCrudService.findById(
-                MetadataId.builder().key(key).referenceId(environmentId).referenceType(Metadata.ReferenceType.ENVIRONMENT).build()
-            )
-            .map(Metadata::getValue)
-            .orElse(null);
+        return this.metadataCrudService
+                .findById(MetadataId.builder()
+                        .key(key)
+                        .referenceId(environmentId)
+                        .referenceType(Metadata.ReferenceType.ENVIRONMENT)
+                        .build())
+                .map(Metadata::getValue)
+                .orElse(null);
     }
 
     private ApiMetadata toApiMetadata(String environmentId, Metadata metadata) {
         return ApiMetadata.builder()
-            .key(metadata.getKey())
-            .format(metadata.getFormat())
-            .name(metadata.getName())
-            .value(metadata.getValue())
-            .defaultValue(findDefaultValue(environmentId, metadata.getKey()))
-            .apiId(metadata.getReferenceId())
-            .build();
+                .key(metadata.getKey())
+                .format(metadata.getFormat())
+                .name(metadata.getName())
+                .value(metadata.getValue())
+                .defaultValue(findDefaultValue(environmentId, metadata.getKey()))
+                .apiId(metadata.getReferenceId())
+                .build();
     }
 
     public void deleteApiMetadata(String apiId, AuditInfo auditInfo) {
@@ -206,15 +217,14 @@ public class ApiMetadataDomainService {
 
     private MetadataId toMetadataId(ApiMetadata apiMetadata) {
         return MetadataId.builder()
-            .key(apiMetadata.getKey())
-            .referenceId(apiMetadata.getApiId())
-            .referenceType(Metadata.ReferenceType.API)
-            .build();
+                .key(apiMetadata.getKey())
+                .referenceId(apiMetadata.getApiId())
+                .referenceType(Metadata.ReferenceType.API)
+                .build();
     }
 
     private void createMetadataDeletedAuditLog(ApiMetadata apiMetadata, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(apiMetadata.getApiId())
@@ -223,7 +233,6 @@ public class ApiMetadataDomainService {
                 .oldValue(apiMetadata)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.METADATA, apiMetadata.getKey()))
-                .build()
-        );
+                .build());
     }
 }

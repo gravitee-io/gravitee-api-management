@@ -44,12 +44,14 @@ public class ApiKeyAppender {
     private final int bulkItems;
     private final int subscriptionsChunkSize;
 
-    public ApiKeyAppender(ApiKeyRepository apiKeyRepository, ApiKeyMapper apiKeyMapper, int bulkItems, int subscriptionsChunkSize) {
+    public ApiKeyAppender(
+            ApiKeyRepository apiKeyRepository, ApiKeyMapper apiKeyMapper, int bulkItems, int subscriptionsChunkSize) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
         }
         if (subscriptionsChunkSize <= 0) {
-            throw new IllegalArgumentException("subscriptionsChunkSize must be > 0 (got " + subscriptionsChunkSize + ")");
+            throw new IllegalArgumentException(
+                    "subscriptionsChunkSize must be > 0 (got " + subscriptionsChunkSize + ")");
         }
         this.apiKeyRepository = apiKeyRepository;
         this.apiKeyMapper = apiKeyMapper;
@@ -63,24 +65,15 @@ public class ApiKeyAppender {
      * @return the deployables updated with API Keys
      */
     public List<ApiReactorDeployable> appends(
-        final boolean initialSync,
-        final List<ApiReactorDeployable> deployables,
-        final Set<String> environments
-    ) {
-        final Map<String, ApiReactorDeployable> deployableByApi = deployables
-            .stream()
-            .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
-        List<Subscription> allApiKeySubscriptions = deployableByApi
-            .values()
-            .stream()
-            .filter(deployable -> deployable.subscriptions() != null && deployable.apiKeyPlans() != null)
-            .flatMap(deployable ->
-                deployable
-                    .subscriptions()
-                    .stream()
-                    .filter(subscription -> subscription.getPlan() != null && deployable.apiKeyPlans().contains(subscription.getPlan()))
-            )
-            .collect(Collectors.toList());
+            final boolean initialSync, final List<ApiReactorDeployable> deployables, final Set<String> environments) {
+        final Map<String, ApiReactorDeployable> deployableByApi =
+                deployables.stream().collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
+        List<Subscription> allApiKeySubscriptions = deployableByApi.values().stream()
+                .filter(deployable -> deployable.subscriptions() != null && deployable.apiKeyPlans() != null)
+                .flatMap(deployable -> deployable.subscriptions().stream()
+                        .filter(subscription -> subscription.getPlan() != null
+                                && deployable.apiKeyPlans().contains(subscription.getPlan())))
+                .collect(Collectors.toList());
         if (!allApiKeySubscriptions.isEmpty()) {
             Map<String, List<ApiKey>> apiKeyByApi = loadApiKey(initialSync, allApiKeySubscriptions, environments);
             apiKeyByApi.forEach((api, apiKeys) -> {
@@ -92,12 +85,11 @@ public class ApiKeyAppender {
     }
 
     private Map<String, List<ApiKey>> loadApiKey(
-        final boolean initialSync,
-        final List<Subscription> subscriptions,
-        final Set<String> environments
-    ) {
-        // Group subscriptions by ID to handle exploded API Product subscriptions (multiple subscriptions with same ID for different APIs)
-        Map<String, List<Subscription>> subscriptionsByIdMulti = subscriptions.stream().collect(groupingBy(Subscription::getId));
+            final boolean initialSync, final List<Subscription> subscriptions, final Set<String> environments) {
+        // Group subscriptions by ID to handle exploded API Product subscriptions (multiple subscriptions with same ID
+        // for different APIs)
+        Map<String, List<Subscription>> subscriptionsByIdMulti =
+                subscriptions.stream().collect(groupingBy(Subscription::getId));
         // Sort for deterministic chunk boundaries. Without this, HashMap iteration order picks the
         // chunk split, which is JDK-version-dependent — same input set could produce different
         // chunks across JVM upgrades, complicating reproducing customer incidents and silently
@@ -114,19 +106,13 @@ public class ApiKeyAppender {
         try {
             for (int chunkStart = 0; chunkStart < subscriptionIds.size(); chunkStart += subscriptionsChunkSize) {
                 List<String> chunk = subscriptionIds.subList(
-                    chunkStart,
-                    Math.min(chunkStart + subscriptionsChunkSize, subscriptionIds.size())
-                );
+                        chunkStart, Math.min(chunkStart + subscriptionsChunkSize, subscriptionIds.size()));
                 ApiKeyCriteria criteria = buildCriteria(initialSync, chunk, environments);
 
                 ApiKeyCursor cursor = null;
                 while (true) {
-                    List<io.gravitee.repository.management.model.ApiKey> page = apiKeyRepository.searchAfter(
-                        criteria,
-                        sortable,
-                        cursor,
-                        bulkItems
-                    );
+                    List<io.gravitee.repository.management.model.ApiKey> page =
+                            apiKeyRepository.searchAfter(criteria, sortable, cursor, bulkItems);
                     if (page == null || page.isEmpty()) {
                         break;
                     }
@@ -134,17 +120,17 @@ public class ApiKeyAppender {
                         if (!seenKeyIds.add(record.getId())) {
                             continue;
                         }
-                        record
-                            .getSubscriptions()
-                            .stream()
-                            .flatMap(subscriptionId -> {
-                                List<Subscription> subsForId = subscriptionsByIdMulti.get(subscriptionId);
-                                if (subsForId == null || subsForId.isEmpty()) {
-                                    return java.util.stream.Stream.empty();
-                                }
-                                return subsForId.stream().map(subscription -> apiKeyMapper.to(record, subscription));
-                            })
-                            .forEach(apiKey -> grouped.computeIfAbsent(apiKey.getApi(), k -> new ArrayList<>()).add(apiKey));
+                        record.getSubscriptions().stream()
+                                .flatMap(subscriptionId -> {
+                                    List<Subscription> subsForId = subscriptionsByIdMulti.get(subscriptionId);
+                                    if (subsForId == null || subsForId.isEmpty()) {
+                                        return java.util.stream.Stream.empty();
+                                    }
+                                    return subsForId.stream()
+                                            .map(subscription -> apiKeyMapper.to(record, subscription));
+                                })
+                                .forEach(apiKey -> grouped.computeIfAbsent(apiKey.getApi(), k -> new ArrayList<>())
+                                        .add(apiKey));
                     }
                     if (page.size() < bulkItems) {
                         break;
@@ -158,12 +144,15 @@ public class ApiKeyAppender {
         }
     }
 
-    private static ApiKeyCriteria buildCriteria(boolean initialSync, List<String> subscriptionIds, Set<String> environments) {
-        ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria.builder()
-            .subscriptions(subscriptionIds)
-            .environments(environments);
+    private static ApiKeyCriteria buildCriteria(
+            boolean initialSync, List<String> subscriptionIds, Set<String> environments) {
+        ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder =
+                ApiKeyCriteria.builder().subscriptions(subscriptionIds).environments(environments);
         if (initialSync) {
-            criteriaBuilder.includeRevoked(false).expireAfter(Instant.now().toEpochMilli()).includeWithoutExpiration(true);
+            criteriaBuilder
+                    .includeRevoked(false)
+                    .expireAfter(Instant.now().toEpochMilli())
+                    .includeWithoutExpiration(true);
         } else {
             criteriaBuilder.includeRevoked(true);
         }

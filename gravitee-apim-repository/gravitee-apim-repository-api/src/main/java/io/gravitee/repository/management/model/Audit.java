@@ -122,33 +122,30 @@ public class Audit {
 
     @Override
     public String toString() {
-        return (
-            "Audit{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", event='" +
-            event +
-            '\'' +
-            ", properties='" +
-            properties +
-            '\'' +
-            ", user='" +
-            user +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            ", patch='" +
-            patch +
-            '\'' +
-            '}'
-        );
+        return ("Audit{" + "id='"
+                + id
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", event='"
+                + event
+                + '\''
+                + ", properties='"
+                + properties
+                + '\''
+                + ", user='"
+                + user
+                + '\''
+                + ", createdAt='"
+                + createdAt
+                + '\''
+                + ", patch='"
+                + patch
+                + '\''
+                + '}');
     }
 }

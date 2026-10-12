@@ -41,7 +41,9 @@ public final class AiWorkspaceEndpointReader {
                     continue;
                 }
                 for (Path path : http.getPaths()) {
-                    if (path != null && path.getPath() != null && !path.getPath().isBlank()) {
+                    if (path != null
+                            && path.getPath() != null
+                            && !path.getPath().isBlank()) {
                         return path.getPath();
                     }
                 }

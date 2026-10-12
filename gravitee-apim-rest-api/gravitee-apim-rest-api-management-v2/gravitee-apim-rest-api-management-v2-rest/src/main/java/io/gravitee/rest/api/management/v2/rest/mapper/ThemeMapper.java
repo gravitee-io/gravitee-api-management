@@ -27,7 +27,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface ThemeMapper {
     ThemeMapper INSTANCE = Mappers.getMapper(ThemeMapper.class);
 

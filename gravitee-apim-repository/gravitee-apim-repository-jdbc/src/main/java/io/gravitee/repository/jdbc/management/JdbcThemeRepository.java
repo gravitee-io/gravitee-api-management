@@ -56,27 +56,26 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
     @Override
     protected JdbcObjectMapper<Theme> buildOrm() {
         return JdbcObjectMapper.builder(Theme.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, ThemeType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("enabled", Types.BIT, boolean.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("logo", Types.NVARCHAR, String.class)
-            .addColumn("optional_logo", Types.NVARCHAR, String.class)
-            .addColumn("background_image", Types.NVARCHAR, String.class)
-            .addColumn("favicon", Types.NVARCHAR, String.class)
-            .addColumn(
-                "automation_metadata",
-                Types.NCLOB,
-                ThemeAutomationMetadata.class,
-                JdbcThemeRepository::serializeAutomationMetadata,
-                JdbcThemeRepository::deserializeAutomationMetadata
-            )
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, ThemeType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("enabled", Types.BIT, boolean.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("logo", Types.NVARCHAR, String.class)
+                .addColumn("optional_logo", Types.NVARCHAR, String.class)
+                .addColumn("background_image", Types.NVARCHAR, String.class)
+                .addColumn("favicon", Types.NVARCHAR, String.class)
+                .addColumn(
+                        "automation_metadata",
+                        Types.NCLOB,
+                        ThemeAutomationMetadata.class,
+                        JdbcThemeRepository::serializeAutomationMetadata,
+                        JdbcThemeRepository::deserializeAutomationMetadata)
+                .build();
     }
 
     static String serializeAutomationMetadata(ThemeAutomationMetadata meta) {
@@ -107,21 +106,17 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
 
     @Override
     public Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcThemeRepository.findByReference({})", referenceType);
         try {
-            return new HashSet(
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() +
-                        " where reference_id = ? and reference_type = ? and " +
-                        escapeReservedWord("type") +
-                        " = ?",
+            return new HashSet(jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ? and "
+                            + escapeReservedWord("type")
+                            + " = ?",
                     getOrm().getRowMapper(),
                     referenceId,
                     referenceType,
-                    type.name()
-                )
-            );
+                    type.name()));
         } catch (final Exception ex) {
             final String error = "Failed to find themes by reference type";
             log.error(error, ex);
@@ -152,18 +147,18 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
                 query.append(" order by name ");
 
                 result = jdbcTemplate.query(
-                    query.toString(),
-                    (PreparedStatement ps) -> {
-                        int idx = 1;
-                        if (criteria.getEnabled() != null) {
-                            idx = getOrm().setArguments(ps, List.of(criteria.getEnabled()), idx);
-                        }
-                        if (criteria.getType() != null) {
-                            getOrm().setArguments(ps, List.of(criteria.getType().name()), idx);
-                        }
-                    },
-                    getOrm().getRowMapper()
-                );
+                        query.toString(),
+                        (PreparedStatement ps) -> {
+                            int idx = 1;
+                            if (criteria.getEnabled() != null) {
+                                idx = getOrm().setArguments(ps, List.of(criteria.getEnabled()), idx);
+                            }
+                            if (criteria.getType() != null) {
+                                getOrm().setArguments(
+                                                ps, List.of(criteria.getType().name()), idx);
+                            }
+                        },
+                        getOrm().getRowMapper());
             }
             return getResultAsPage(pageable, result);
         } catch (final Exception ex) {
@@ -175,25 +170,26 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcThemeRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " WHERE reference_id = ? AND reference_type = ?",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " WHERE reference_id = ? AND reference_type = ?",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? AND reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + tableName + " where reference_id = ? AND reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
 
-            log.debug("JdbcThemeRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            log.debug(
+                    "JdbcThemeRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                    referenceType,
+                    referenceId);
             return rows;
         } catch (Exception ex) {
             log.error("Failed to delete themes for refId: {}/{}", referenceId, referenceType, ex);

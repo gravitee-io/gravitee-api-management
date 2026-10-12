@@ -29,10 +29,8 @@ public class TransactionPreProcessorFactoryTest {
 
     @Test
     public void shouldTransactionProcessorHaveDefaultHeader() {
-        TransactionPreProcessorFactory transactionPreProcessorFactory = new TransactionPreProcessorFactory(
-            DEFAULT_TRANSACTION_ID_HEADER,
-            DEFAULT_REQUEST_ID_HEADER
-        );
+        TransactionPreProcessorFactory transactionPreProcessorFactory =
+                new TransactionPreProcessorFactory(DEFAULT_TRANSACTION_ID_HEADER, DEFAULT_REQUEST_ID_HEADER);
         TransactionPreProcessor transactionPreProcessor = transactionPreProcessorFactory.create();
         assertThat(transactionPreProcessor.transactionHeader()).isEqualTo(DEFAULT_TRANSACTION_ID_HEADER);
         assertThat(transactionPreProcessor.requestHeader()).isEqualTo(DEFAULT_REQUEST_ID_HEADER);
@@ -40,10 +38,8 @@ public class TransactionPreProcessorFactoryTest {
 
     @Test
     public void shouldTransactionProcessorHaveCustomHeader() {
-        TransactionPreProcessorFactory transactionPreProcessorFactory = new TransactionPreProcessorFactory(
-            "CUSTOM_TRANSACTION_ID_HEADER",
-            "CUSTOM_REQUEST_ID_HEADER"
-        );
+        TransactionPreProcessorFactory transactionPreProcessorFactory =
+                new TransactionPreProcessorFactory("CUSTOM_TRANSACTION_ID_HEADER", "CUSTOM_REQUEST_ID_HEADER");
         TransactionPreProcessor transactionPreProcessor = transactionPreProcessorFactory.create();
         assertThat(transactionPreProcessor.transactionHeader()).isEqualTo("CUSTOM_TRANSACTION_ID_HEADER");
         assertThat(transactionPreProcessor.requestHeader()).isEqualTo("CUSTOM_REQUEST_ID_HEADER");

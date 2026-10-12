@@ -65,10 +65,7 @@ public interface SubscriptionFormElResolverDomainService {
      * @return a new {@link SubscriptionFormFieldConstraints} with all dynamic options resolved
      */
     SubscriptionFormFieldConstraints resolveConstraints(
-        @Nonnull SubscriptionFormFieldConstraints constraints,
-        String environmentId,
-        String apiId
-    );
+            @Nonnull SubscriptionFormFieldConstraints constraints, String environmentId, String apiId);
 
     /**
      * No-context variant — resolves dynamic options using configured fallback values when context-based resolution is not possible.

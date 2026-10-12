@@ -23,15 +23,14 @@ import java.util.Set;
 
 public interface FilterValuesQueryService {
     FilterValuesPage searchFilterValues(
-        String organizationId,
-        String environmentId,
-        FilterSpec.Name filterName,
-        Instant from,
-        Instant to,
-        int page,
-        int size,
-        Map<String, Object> afterKey,
-        String searchPattern,
-        Set<String> authorizedApiIds
-    );
+            String organizationId,
+            String environmentId,
+            FilterSpec.Name filterName,
+            Instant from,
+            Instant to,
+            int page,
+            int size,
+            Map<String, Object> afterKey,
+            String searchPattern,
+            Set<String> authorizedApiIds);
 }

@@ -40,10 +40,8 @@ public class NotificationTemplateEvent extends AbstractOrganizationEvent {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NotificationTemplateEvent that = (NotificationTemplateEvent) o;
-        return (
-            Objects.equals(this.getOrganizationId(), that.getOrganizationId()) &&
-            Objects.equals(notificationTemplateEntity, that.notificationTemplateEntity)
-        );
+        return (Objects.equals(this.getOrganizationId(), that.getOrganizationId())
+                && Objects.equals(notificationTemplateEntity, that.notificationTemplateEntity));
     }
 
     @Override

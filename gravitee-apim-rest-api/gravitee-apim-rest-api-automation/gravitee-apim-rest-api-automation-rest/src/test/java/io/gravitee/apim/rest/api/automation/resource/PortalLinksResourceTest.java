@@ -50,13 +50,14 @@ import org.junit.jupiter.api.Test;
 class PortalLinksResourceTest extends AbstractResourceTest {
 
     private static final String PORTAL_HRID = "default-portal";
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
-    private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
-    private static final PortalNavigationItemId LINK_ID = PortalNavigationItemId.forPortalLink(
-        AUDIT_INFO,
-        PORTAL_ID.toString(),
-        "external-docs"
-    );
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
+    private static final PortalId PORTAL_ID = PortalId.of(
+            HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
+    private static final PortalNavigationItemId LINK_ID =
+            PortalNavigationItemId.forPortalLink(AUDIT_INFO, PORTAL_ID.toString(), "external-docs");
 
     @Inject
     private CreateOrUpdatePortalLinkUseCase createOrUpdatePortalLinkUseCase;
@@ -79,15 +80,14 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_populated_state_when_validation_passes() {
-            when(validatePortalLinkUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalLinkUseCase.Output(null, List.of()));
+            when(validatePortalLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalLinkUseCase.Output(null, List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-link.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(validatePortalLinkUseCase).execute(any(CreateOrUpdatePortalLinkUseCase.Input.class));
                 verifyNoInteractions(createOrUpdatePortalLinkUseCase);
@@ -110,17 +110,15 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_errors_when_validation_fails() {
-            when(validatePortalLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalLinkUseCase.Output(null, List.of(Validator.Error.severe("href must be a well-formed absolute URL")))
-            );
+            when(validatePortalLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalLinkUseCase.Output(
+                            null, List.of(Validator.Error.severe("href must be a well-formed absolute URL"))));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-link.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdatePortalLinkUseCase);
 
@@ -133,13 +131,11 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_hrid_is_missing() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("invalid-portal-link.json")))
-            ) {
+                    .put(Entity.json(readJSON("invalid-portal-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(validatePortalLinkUseCase);
                 verifyNoInteractions(createOrUpdatePortalLinkUseCase);
@@ -152,13 +148,13 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_portal_link() {
-            when(createOrUpdatePortalLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalLinkUseCase.Output(aPersistedLink("External Docs"), List.of())
-            );
+            when(createOrUpdatePortalLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalLinkUseCase.Output(aPersistedLink("External Docs"), List.of()));
 
-            try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal-link.json")))
-            ) {
+            try (var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdatePortalLinkUseCase).execute(any(CreateOrUpdatePortalLinkUseCase.Input.class));
 
@@ -173,16 +169,14 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
         @Test
         void should_build_the_response_from_the_persisted_link_not_from_the_submitted_spec() {
-            when(createOrUpdatePortalLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalLinkUseCase.Output(aPersistedLink("Normalized Name"), List.of())
-            );
+            when(createOrUpdatePortalLinkUseCase.execute(any()))
+                    .thenReturn(
+                            new CreateOrUpdatePortalLinkUseCase.Output(aPersistedLink("Normalized Name"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(aLinkSpec("  Normalized Name  ")))
-            ) {
+                    .put(Entity.json(aLinkSpec("  Normalized Name  ")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 assertThat(response.readEntity(PortalLinkState.class).getName()).isEqualTo("Normalized Name");
             }
@@ -190,13 +184,14 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_with_severe_errors_when_apply_fails_validation() {
-            when(createOrUpdatePortalLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalLinkUseCase.Output(null, List.of(Validator.Error.severe("href must be a well-formed absolute URL")))
-            );
+            when(createOrUpdatePortalLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalLinkUseCase.Output(
+                            null, List.of(Validator.Error.severe("href must be a well-formed absolute URL"))));
 
-            try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal-link.json")))
-            ) {
+            try (var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
 
                 var state = response.readEntity(PortalLinkState.class);
@@ -213,16 +208,16 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
     private static PortalNavigationLink aPersistedLink(String name) {
         return PortalNavigationLink.builder()
-            .id(LINK_ID)
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .title(name)
-            .segment("external-docs")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(LINK_ID)
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .title(name)
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 }

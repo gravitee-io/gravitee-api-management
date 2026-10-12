@@ -32,8 +32,8 @@ public class InterruptMessageRequestPhasePolicy implements Policy {
 
     @Override
     public Completable onMessageRequest(MessageExecutionContext ctx) {
-        return ctx
-            .request()
-            .onMessage(message -> ctx.interruptMessageWith(new ExecutionFailure(412).key("FAKE_KEY").message("An error occurred")));
+        return ctx.request()
+                .onMessage(message -> ctx.interruptMessageWith(
+                        new ExecutionFailure(412).key("FAKE_KEY").message("An error occurred")));
     }
 }

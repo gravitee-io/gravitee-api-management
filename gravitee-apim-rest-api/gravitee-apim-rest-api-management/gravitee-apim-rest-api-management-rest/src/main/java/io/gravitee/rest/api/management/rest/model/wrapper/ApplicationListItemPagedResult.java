@@ -25,7 +25,8 @@ public class ApplicationListItemPagedResult extends PagedResult<ApplicationListI
         super();
     }
 
-    public ApplicationListItemPagedResult(Collection<ApplicationListItem> data, int pageNumber, int perPage, int totalElements) {
+    public ApplicationListItemPagedResult(
+            Collection<ApplicationListItem> data, int pageNumber, int perPage, int totalElements) {
         super(data, pageNumber, perPage, totalElements);
     }
 

@@ -64,11 +64,10 @@ public class ApiRatingsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApiRatingsByApiId(
-        @PathParam("apiId") String apiId,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("mine") Boolean mine,
-        @QueryParam("order") String order
-    ) {
+            @PathParam("apiId") String apiId,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("mine") Boolean mine,
+            @QueryParam("order") String order) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             List<Rating> ratings;
@@ -81,9 +80,9 @@ public class ApiRatingsResource extends AbstractResource {
                 }
             } else {
                 final List<RatingEntity> ratingEntities = ratingService.findByApi(executionContext, apiId);
-                Stream<Rating> ratingStream = ratingEntities
-                    .stream()
-                    .map((RatingEntity ratingEntity) -> ratingMapper.convert(executionContext, ratingEntity, uriInfo));
+                Stream<Rating> ratingStream = ratingEntities.stream()
+                        .map((RatingEntity ratingEntity) ->
+                                ratingMapper.convert(executionContext, ratingEntity, uriInfo));
                 if (order != null) {
                     ratingStream = ratingStream.sorted(new RatingComparator(order));
                 }
@@ -98,7 +97,7 @@ public class ApiRatingsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)})
     public Response createApiRating(@PathParam("apiId") String apiId, @Valid RatingInput ratingInput) {
         if (ratingInput == null) {
             throw new BadRequestException("Input must not be null.");
@@ -114,8 +113,8 @@ public class ApiRatingsResource extends AbstractResource {
             RatingEntity createdRating = ratingService.create(GraviteeContext.getExecutionContext(), rating);
 
             return Response.status(Status.CREATED)
-                .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), createdRating, uriInfo))
-                .build();
+                    .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), createdRating, uriInfo))
+                    .build();
         }
         throw new ApiNotFoundException(apiId);
     }
@@ -158,7 +157,8 @@ public class ApiRatingsResource extends AbstractResource {
             }
 
             if (order.contains("answers")) {
-                compare = Integer.compare(r1.getAnswers().size(), r2.getAnswers().size());
+                compare =
+                        Integer.compare(r1.getAnswers().size(), r2.getAnswers().size());
             }
 
             if (!order.startsWith("-")) {

@@ -22,5 +22,6 @@ import java.util.function.Predicate;
 public interface PortalNavigationItemVisibilityService {
     boolean appliesTo(PortalNavigationItem item);
 
-    Predicate<PortalNavigationItem> prepareVisibilityPredicate(String environmentId, PortalNavigationItemViewerContext viewerContext);
+    Predicate<PortalNavigationItem> prepareVisibilityPredicate(
+            String environmentId, PortalNavigationItemViewerContext viewerContext);
 }

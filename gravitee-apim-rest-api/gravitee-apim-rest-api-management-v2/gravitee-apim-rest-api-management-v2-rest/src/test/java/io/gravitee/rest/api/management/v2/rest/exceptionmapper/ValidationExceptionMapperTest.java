@@ -46,32 +46,26 @@ class ValidationExceptionMapperTest {
         try (Response response = cut.toResponse(exception)) {
             assertThat(response.getStatus()).isEqualTo(exception.getHttpStatusCode());
             assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
-            assertThat(response.getEntity())
-                .isInstanceOf(Error.class)
-                .satisfies(errorObject -> {
-                    Error error = ((Error) errorObject);
-                    assertThat(error.getHttpStatus()).isEqualTo(exception.getHttpStatusCode());
-                    assertThat(error.getMessage()).isEqualTo(exception.getMessage());
-                    assertThat(error.getDetails())
-                        .hasSize(2)
-                        .satisfies(listErrorDetails -> {
-                            final ErrorDetailsInner firstDetail = listErrorDetails
-                                .stream()
-                                .filter(detail -> JsonNullable.of("key1").equals(detail.getInvalidValue()))
-                                .findFirst()
-                                .get();
-                            assertThat(firstDetail.getMessage()).isEqualTo("fake detail message");
-                            assertThat(firstDetail.getLocation()).isEqualTo("value1");
+            assertThat(response.getEntity()).isInstanceOf(Error.class).satisfies(errorObject -> {
+                Error error = ((Error) errorObject);
+                assertThat(error.getHttpStatus()).isEqualTo(exception.getHttpStatusCode());
+                assertThat(error.getMessage()).isEqualTo(exception.getMessage());
+                assertThat(error.getDetails()).hasSize(2).satisfies(listErrorDetails -> {
+                    final ErrorDetailsInner firstDetail = listErrorDetails.stream()
+                            .filter(detail -> JsonNullable.of("key1").equals(detail.getInvalidValue()))
+                            .findFirst()
+                            .get();
+                    assertThat(firstDetail.getMessage()).isEqualTo("fake detail message");
+                    assertThat(firstDetail.getLocation()).isEqualTo("value1");
 
-                            final ErrorDetailsInner secondDetail = listErrorDetails
-                                .stream()
-                                .filter(detail -> JsonNullable.of("key2").equals(detail.getInvalidValue()))
-                                .findFirst()
-                                .get();
-                            assertThat(secondDetail.getMessage()).isEqualTo("fake detail message");
-                            assertThat(secondDetail.getLocation()).isEqualTo("value2");
-                        });
+                    final ErrorDetailsInner secondDetail = listErrorDetails.stream()
+                            .filter(detail -> JsonNullable.of("key2").equals(detail.getInvalidValue()))
+                            .findFirst()
+                            .get();
+                    assertThat(secondDetail.getMessage()).isEqualTo("fake detail message");
+                    assertThat(secondDetail.getLocation()).isEqualTo("value2");
                 });
+            });
         }
     }
 

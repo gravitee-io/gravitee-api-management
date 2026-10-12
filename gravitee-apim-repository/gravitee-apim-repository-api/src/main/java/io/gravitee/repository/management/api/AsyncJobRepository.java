@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 
 public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
     Logger log = NodeLoggerFactory.getLogger(AsyncJobRepository.class);
+
     Optional<AsyncJob> findPendingJobFor(String sourceId) throws TechnicalException;
 
     Page<AsyncJob> search(SearchCriteria criteria, Pageable pageable) throws TechnicalException;
@@ -40,12 +41,11 @@ public interface AsyncJobRepository extends CrudRepository<AsyncJob, String> {
     }
 
     record SearchCriteria(
-        String environmentId,
-        Optional<String> initiatorId,
-        Optional<String> type,
-        Optional<String> status,
-        Optional<String> sourceId
-    ) {}
+            String environmentId,
+            Optional<String> initiatorId,
+            Optional<String> type,
+            Optional<String> status,
+            Optional<String> sourceId) {}
 
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 

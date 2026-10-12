@@ -36,10 +36,9 @@ public class RevokeApplicationApiKeyUseCase {
     private final RevokeApiKeyDomainService revokeApiKeyDomainService;
 
     public RevokeApplicationApiKeyUseCase(
-        ApplicationCrudService applicationCrudService,
-        ApiKeyQueryService apiKeyQueryService,
-        RevokeApiKeyDomainService revokeApiKeyDomainService
-    ) {
+            ApplicationCrudService applicationCrudService,
+            ApiKeyQueryService apiKeyQueryService,
+            RevokeApiKeyDomainService revokeApiKeyDomainService) {
         this.applicationCrudService = applicationCrudService;
         this.apiKeyQueryService = apiKeyQueryService;
         this.revokeApiKeyDomainService = revokeApiKeyDomainService;
@@ -47,9 +46,9 @@ public class RevokeApplicationApiKeyUseCase {
 
     public Output execute(Input input) {
         var application = applicationCrudService.findById(
-            new ExecutionContext(input.auditInfo().organizationId(), input.auditInfo().environmentId()),
-            input.applicationId()
-        );
+                new ExecutionContext(
+                        input.auditInfo().organizationId(), input.auditInfo().environmentId()),
+                input.applicationId());
 
         var apiKey = apiKeyQueryService.findById(input.apiKeyId());
         if (apiKey.isEmpty()) {
@@ -61,13 +60,9 @@ public class RevokeApplicationApiKeyUseCase {
         }
 
         if (!application.hasApiKeySharedMode()) {
-            throw new InvalidApplicationApiKeyModeException(
-                String.format(
+            throw new InvalidApplicationApiKeyModeException(String.format(
                     "Invalid operation for API Key mode [%s] of application [%s]",
-                    application.getApiKeyMode(),
-                    application.getId()
-                )
-            );
+                    application.getApiKeyMode(), application.getId()));
         }
 
         return new Output(revokeApiKeyDomainService.revoke(apiKey.get(), input.auditInfo()));

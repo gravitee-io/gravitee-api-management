@@ -111,15 +111,16 @@ public class PageService_ImportDirectoryTest {
         pageEntity.setSource(pageSource);
         pageEntity.setPublished(true);
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportDirectoryMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportDirectoryMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockFilesFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportDirectoryMockFetcher> mockFetcherClass = PageService_ImportDirectoryMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockFilesFetcherConfiguration fetcherConfiguration = new PageService_MockFilesFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockFilesFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockFilesFetcherConfiguration fetcherConfiguration =
+                new PageService_MockFilesFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockFilesFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         Page newPage = mock(Page.class);
@@ -149,80 +150,56 @@ public class PageService_ImportDirectoryTest {
         verify(pageRepository, times(3)).create(argThat(pageToCreate -> "FOLDER".equals(pageToCreate.getType())));
 
         // /src
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "src".equals(pageToCreate.getName()) && "FOLDER".equals(pageToCreate.getType()) && null == pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "src".equals(pageToCreate.getName())
+                        && "FOLDER".equals(pageToCreate.getType())
+                        && null == pageToCreate.getParentId()));
         // /src/doc
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "doc".equals(pageToCreate.getName()) && "FOLDER".equals(pageToCreate.getType()) && null != pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "doc".equals(pageToCreate.getName())
+                        && "FOLDER".equals(pageToCreate.getType())
+                        && null != pageToCreate.getParentId()));
         // /src/folder.with.dot/
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "folder.with.dot".equals(pageToCreate.getName()) &&
-                    "FOLDER".equals(pageToCreate.getType()) &&
-                    null != pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "folder.with.dot".equals(pageToCreate.getName())
+                        && "FOLDER".equals(pageToCreate.getType())
+                        && null != pageToCreate.getParentId()));
 
         // //////////////////////
         // verify files creation
         // //////////////////////
-        verify(pageRepository, times(5)).create(
-            argThat(pageToCreate -> pageToCreate.getType() != null && !"FOLDER".equals(pageToCreate.getType()))
-        );
+        verify(pageRepository, times(5))
+                .create(argThat(
+                        pageToCreate -> pageToCreate.getType() != null && !"FOLDER".equals(pageToCreate.getType())));
 
         // /src/doc/m1.md
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "m1".equals(pageToCreate.getName()) && "MARKDOWN".equals(pageToCreate.getType()) && null != pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "m1".equals(pageToCreate.getName())
+                        && "MARKDOWN".equals(pageToCreate.getType())
+                        && null != pageToCreate.getParentId()));
 
         // /swagger.json
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "asciidoc".equals(pageToCreate.getName()) &&
-                    "ASCIIDOC".equals(pageToCreate.getType()) &&
-                    null == pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "asciidoc".equals(pageToCreate.getName())
+                        && "ASCIIDOC".equals(pageToCreate.getType())
+                        && null == pageToCreate.getParentId()));
 
         // /src/doc/sub.m11.md
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "sub.m11".equals(pageToCreate.getName()) &&
-                    "MARKDOWN".equals(pageToCreate.getType()) &&
-                    null != pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "sub.m11".equals(pageToCreate.getName())
+                        && "MARKDOWN".equals(pageToCreate.getType())
+                        && null != pageToCreate.getParentId()));
 
         // /src/doc/m2.yaml
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "asciidoc2".equals(pageToCreate.getName()) &&
-                    "ASCIIDOC".equals(pageToCreate.getType()) &&
-                    null != pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "asciidoc2".equals(pageToCreate.getName())
+                        && "ASCIIDOC".equals(pageToCreate.getType())
+                        && null != pageToCreate.getParentId()));
         // /src/folder.with.dot/m2.MD
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    "m2".equals(pageToCreate.getName()) && "MARKDOWN".equals(pageToCreate.getType()) && null != pageToCreate.getParentId()
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> "m2".equals(pageToCreate.getName())
+                        && "MARKDOWN".equals(pageToCreate.getType())
+                        && null != pageToCreate.getParentId()));
 
         verify(pageRevisionService, times(3)).create(any());
     }

@@ -38,11 +38,16 @@ public class HomepageReconciler {
     private final PortalPageContentCrudService pageContentCrudService;
 
     /** Homepages that {@link #dropStaleHomepages} would remove, without removing them. */
-    public List<PortalNavigationItem> findStaleHomepages(String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
+    public List<PortalNavigationItem> findStaleHomepages(
+            String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
         return Stream.concat(
-            staleHomepagesMatching(environmentId, new NavigationItemReference.PortalReference(PortalId.of(portalId)), activeHomepageId),
-            staleHomepagesMatching(environmentId, NavigationItemReference.defaultReference(), activeHomepageId)
-        ).toList();
+                        staleHomepagesMatching(
+                                environmentId,
+                                new NavigationItemReference.PortalReference(PortalId.of(portalId)),
+                                activeHomepageId),
+                        staleHomepagesMatching(
+                                environmentId, NavigationItemReference.defaultReference(), activeHomepageId))
+                .toList();
     }
 
     public void dropStaleHomepages(String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
@@ -50,15 +55,13 @@ public class HomepageReconciler {
     }
 
     private Stream<PortalNavigationItem> staleHomepagesMatching(
-        String environmentId,
-        NavigationItemReference reference,
-        PortalNavigationItemId activeHomepageId
-    ) {
+            String environmentId, NavigationItemReference reference, PortalNavigationItemId activeHomepageId) {
         return navigationItemsQueryService
-            .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.HOMEPAGE, reference)
-            .stream()
-            .filter(item -> !item.getId().equals(activeHomepageId))
-            .filter(item -> item.getAutomationMetadata() == null);
+                .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                        environmentId, PortalArea.HOMEPAGE, reference)
+                .stream()
+                .filter(item -> !item.getId().equals(activeHomepageId))
+                .filter(item -> item.getAutomationMetadata() == null);
     }
 
     private void deleteItemAndContent(PortalNavigationItem item) {

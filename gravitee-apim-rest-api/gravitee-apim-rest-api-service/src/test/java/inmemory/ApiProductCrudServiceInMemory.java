@@ -23,18 +23,19 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
-public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<ApiProduct> implements ApiProductCrudService {
+public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<ApiProduct>
+        implements ApiProductCrudService {
 
     public Optional<ApiProduct> findById(String id) {
-        return storage
-            .stream()
-            .filter(apiProduct -> id.equals(apiProduct.getId()))
-            .findFirst();
+        return storage.stream()
+                .filter(apiProduct -> id.equals(apiProduct.getId()))
+                .findFirst();
     }
 
     @Override
     public ApiProduct update(ApiProduct apiProductToUpdate) {
-        OptionalInt index = this.findIndex(this.storage, apiProduct -> apiProduct.getId().equals(apiProductToUpdate.getId()));
+        OptionalInt index =
+                this.findIndex(this.storage, apiProduct -> apiProduct.getId().equals(apiProductToUpdate.getId()));
         if (index.isPresent()) {
             storage.set(index.getAsInt(), apiProductToUpdate);
             return apiProductToUpdate;
@@ -49,11 +50,10 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
 
     @Override
     public ApiProduct get(String id) {
-        return storage
-            .stream()
-            .filter(apiProduct -> id.equals(apiProduct.getId()))
-            .findFirst()
-            .get();
+        return storage.stream()
+                .filter(apiProduct -> id.equals(apiProduct.getId()))
+                .findFirst()
+                .get();
     }
 
     @Override
@@ -61,10 +61,9 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
-        return storage
-            .stream()
-            .filter(apiProduct -> ids.contains(apiProduct.getId()))
-            .collect(Collectors.toList());
+        return storage.stream()
+                .filter(apiProduct -> ids.contains(apiProduct.getId()))
+                .collect(Collectors.toList());
     }
 
     @Override

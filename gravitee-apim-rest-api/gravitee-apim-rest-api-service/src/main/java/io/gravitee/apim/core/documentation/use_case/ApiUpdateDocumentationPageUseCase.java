@@ -65,7 +65,8 @@ public class ApiUpdateDocumentationPageUseCase {
 
         var name = documentationValidationDomainService.sanitizeDocumentationName(input.name);
         if (!Objects.equals(oldPage.getName(), name)) {
-            this.apiDocumentationDomainService.validateNameIsUnique(input.apiId, oldPage.getParentId(), name, oldPage.getType());
+            this.apiDocumentationDomainService.validateNameIsUnique(
+                    input.apiId, oldPage.getParentId(), name, oldPage.getType());
             newPage.name(name);
         }
 
@@ -74,7 +75,8 @@ public class ApiUpdateDocumentationPageUseCase {
         }
 
         if (Objects.nonNull(input.accessControls)) {
-            newPage.accessControls(this.documentationValidationDomainService.sanitizeAccessControls(input.accessControls));
+            newPage.accessControls(
+                    this.documentationValidationDomainService.sanitizeAccessControls(input.accessControls));
         }
 
         var pageToUpdate = newPage.build();
@@ -83,12 +85,10 @@ public class ApiUpdateDocumentationPageUseCase {
             this.pageSourceDomainService.mergeSensitiveData(oldPage, pageToUpdate);
         }
 
-        if (!Objects.equals(oldPage.getContent(), input.content) || !Objects.equals(oldPage.getSource(), input.source)) {
+        if (!Objects.equals(oldPage.getContent(), input.content)
+                || !Objects.equals(oldPage.getSource(), input.source)) {
             pageToUpdate = this.documentationValidationDomainService.validateAndSanitizeForUpdate(
-                pageToUpdate,
-                input.auditInfo().organizationId(),
-                true
-            );
+                    pageToUpdate, input.auditInfo().organizationId(), true);
         }
 
         var updatedPage = this.updateApiDocumentationDomainService.updatePage(pageToUpdate, oldPage, input.auditInfo);
@@ -102,27 +102,27 @@ public class ApiUpdateDocumentationPageUseCase {
         }
 
         updatedPage = updatedPage
-            .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
-            .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(updatedPage, api));
+                .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
+                .withGeneralConditions(
+                        this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(updatedPage, api));
 
         return new Output(updatedPage);
     }
 
     @Builder
     public record Input(
-        String apiId,
-        String pageId,
-        String name,
-        int order,
-        Page.Visibility visibility,
-        String content,
-        boolean homepage,
-        AuditInfo auditInfo,
-        Set<AccessControl> accessControls,
-        Boolean excludedAccessControls,
-        Map<String, String> configuration,
-        PageSource source
-    ) {}
+            String apiId,
+            String pageId,
+            String name,
+            int order,
+            Page.Visibility visibility,
+            String content,
+            boolean homepage,
+            AuditInfo auditInfo,
+            Set<AccessControl> accessControls,
+            Boolean excludedAccessControls,
+            Map<String, String> configuration,
+            PageSource source) {}
 
     public record Output(Page page) {}
 
@@ -131,18 +131,16 @@ public class ApiUpdateDocumentationPageUseCase {
         var shouldMoveDown = newOrder < oldOrder;
         var orderIncrement = shouldMoveDown ? 1 : -1;
 
-        this.pageQueryService.searchByApiIdAndParentId(updatedPage.getReferenceId(), updatedPage.getParentId())
-            .stream()
-            .filter(page -> !Objects.equals(page.getId(), updatedPage.getId()))
-            .filter(page ->
-                shouldMoveDown
-                    ? this.toBeMovedDown(oldOrder, newOrder, page.getOrder())
-                    : this.toBeMovedUp(oldOrder, newOrder, page.getOrder())
-            )
-            .forEach(page -> {
-                var updatedOrder = page.getOrder() + orderIncrement;
-                this.updateApiDocumentationDomainService.updatePage(page.toBuilder().order(updatedOrder).build(), page, auditInfo);
-            });
+        this.pageQueryService.searchByApiIdAndParentId(updatedPage.getReferenceId(), updatedPage.getParentId()).stream()
+                .filter(page -> !Objects.equals(page.getId(), updatedPage.getId()))
+                .filter(page -> shouldMoveDown
+                        ? this.toBeMovedDown(oldOrder, newOrder, page.getOrder())
+                        : this.toBeMovedUp(oldOrder, newOrder, page.getOrder()))
+                .forEach(page -> {
+                    var updatedOrder = page.getOrder() + orderIncrement;
+                    this.updateApiDocumentationDomainService.updatePage(
+                            page.toBuilder().order(updatedOrder).build(), page, auditInfo);
+                });
     }
 
     private boolean toBeMovedUp(int oldOrder, int newOrder, int pageOrder) {

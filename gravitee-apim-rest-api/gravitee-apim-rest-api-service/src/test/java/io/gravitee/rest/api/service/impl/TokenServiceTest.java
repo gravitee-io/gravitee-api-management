@@ -76,14 +76,14 @@ public class TokenServiceTest {
     private AuditService auditService;
 
     Token token = Token.builder()
-        .id(TOKEN_ID)
-        .name("name")
-        .token("token")
-        .createdAt(new Date(1486771200000L))
-        .expiresAt(new Date(1486772200000L))
-        .lastUseAt(new Date(1486773200000L))
-        .referenceId(USER_ID)
-        .build();
+            .id(TOKEN_ID)
+            .name("name")
+            .token("token")
+            .createdAt(new Date(1486771200000L))
+            .expiresAt(new Date(1486772200000L))
+            .lastUseAt(new Date(1486773200000L))
+            .referenceId(USER_ID)
+            .build();
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -91,17 +91,15 @@ public class TokenServiceTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
         GraviteeContext.cleanContext();
     }
 
@@ -112,50 +110,48 @@ public class TokenServiceTest {
 
         lenient().when(tokenRepository.findById(TOKEN_ID)).thenReturn(of(token));
 
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return new Authentication() {
-                        @Override
-                        public Collection<? extends GrantedAuthority> getAuthorities() {
-                            return null;
-                        }
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return new Authentication() {
+                    @Override
+                    public Collection<? extends GrantedAuthority> getAuthorities() {
+                        return null;
+                    }
 
-                        @Override
-                        public Object getCredentials() {
-                            return null;
-                        }
+                    @Override
+                    public Object getCredentials() {
+                        return null;
+                    }
 
-                        @Override
-                        public Object getDetails() {
-                            return null;
-                        }
+                    @Override
+                    public Object getDetails() {
+                        return null;
+                    }
 
-                        @Override
-                        public Object getPrincipal() {
-                            return new UserDetails(USER_ID, "", Collections.emptyList());
-                        }
+                    @Override
+                    public Object getPrincipal() {
+                        return new UserDetails(USER_ID, "", Collections.emptyList());
+                    }
 
-                        @Override
-                        public boolean isAuthenticated() {
-                            return false;
-                        }
+                    @Override
+                    public boolean isAuthenticated() {
+                        return false;
+                    }
 
-                        @Override
-                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
+                    @Override
+                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
-                        @Override
-                        public String getName() {
-                            return null;
-                        }
-                    };
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+                    @Override
+                    public String getName() {
+                        return null;
+                    }
+                };
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
         GraviteeContext.setCurrentOrganization(CURRENT_ORGANIZATION);
         GraviteeContext.setCurrentEnvironment(CURRENT_ENVIRONMENT);
     }
@@ -170,7 +166,9 @@ public class TokenServiceTest {
 
         assertThat(tokens.getFirst().getId()).isEqualTo(TOKEN_ID);
         assertThat(tokens.getFirst().getName()).isEqualTo("name");
-        assertThat(tokens.getFirst().getToken()).as("Token cannot be read after creation").isNull();
+        assertThat(tokens.getFirst().getToken())
+                .as("Token cannot be read after creation")
+                .isNull();
         assertThat(tokens.getFirst().getCreatedAt()).isEqualTo(new Date(1486771200000L));
         assertThat(tokens.getFirst().getExpiresAt()).isEqualTo(new Date(1486772200000L));
         assertThat(tokens.getFirst().getLastUseAt()).isEqualTo(new Date(1486773200000L));
@@ -196,10 +194,11 @@ public class TokenServiceTest {
 
         tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
 
-        verify(auditService).createOrganizationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(TOKEN_CREATED) && auditLogData.getOldValue() == null)
-        );
+        verify(auditService)
+                .createOrganizationAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData ->
+                                auditLogData.getEvent().equals(TOKEN_CREATED) && auditLogData.getOldValue() == null));
         verify(tokenRepository).create(any());
         verify(tokenRepository).findByReference(eq(USER.name()), eq(USER_ID));
     }
@@ -211,7 +210,8 @@ public class TokenServiceTest {
 
         when(tokenRepository.findByReference(eq(USER.name()), eq(USER_ID))).thenReturn(List.of(token));
 
-        Throwable throwable = catchThrowable(() -> tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID));
+        Throwable throwable =
+                catchThrowable(() -> tokenService.create(GraviteeContext.getExecutionContext(), newToken, USER_ID));
 
         assertThat(throwable).isInstanceOf(TokenNameAlreadyExistsException.class);
     }
@@ -220,15 +220,12 @@ public class TokenServiceTest {
     public void should_revoke() throws TechnicalException {
         tokenService.revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
 
-        verify(auditService).createOrganizationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(TOKEN_DELETED) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(token)
-            )
-        );
+        verify(auditService)
+                .createOrganizationAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(TOKEN_DELETED)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(token)));
         verify(tokenRepository).delete(TOKEN_ID);
     }
 
@@ -238,26 +235,28 @@ public class TokenServiceTest {
 
         tokenService.revokeByUser(GraviteeContext.getExecutionContext(), USER_ID);
 
-        verify(auditService).createOrganizationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(TOKEN_DELETED) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(token)
-            )
-        );
+        verify(auditService)
+                .createOrganizationAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(TOKEN_DELETED)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(token)));
         verify(tokenRepository).delete(TOKEN_ID);
     }
 
     @Test
     public void findByToken_should_prioritize_last_used_token() throws TechnicalException {
         List<Token> tokens = List.of(
-            Token.builder().lastUseAt(null).build(),
-            Token.builder().lastUseAt(new Date(1486772200000L)).token("encodedToken1").build(),
-            Token.builder().lastUseAt(new Date(1486772200999L)).token("encodedToken2").build(),
-            Token.builder().lastUseAt(null).build()
-        );
+                Token.builder().lastUseAt(null).build(),
+                Token.builder()
+                        .lastUseAt(new Date(1486772200000L))
+                        .token("encodedToken1")
+                        .build(),
+                Token.builder()
+                        .lastUseAt(new Date(1486772200999L))
+                        .token("encodedToken2")
+                        .build(),
+                Token.builder().lastUseAt(null).build());
 
         when(tokenRepository.findAll()).thenReturn(new HashSet<>(tokens));
         doAnswer(returnsFirstArg()).when(tokenRepository).update(any());
@@ -283,9 +282,14 @@ public class TokenServiceTest {
     @Test
     public void findByToken_should_not_failed_if_matcher_failed() throws TechnicalException {
         // Given
-        when(tokenRepository.findAll()).thenReturn(
-            Set.of(Token.builder().id("failed").lastUseAt(new Date()).token("a").build(), Token.builder().token("b").build())
-        );
+        when(tokenRepository.findAll())
+                .thenReturn(Set.of(
+                        Token.builder()
+                                .id("failed")
+                                .lastUseAt(new Date())
+                                .token("a")
+                                .build(),
+                        Token.builder().token("b").build()));
         doAnswer(returnsFirstArg()).when(tokenRepository).update(any());
 
         when(passwordEncoder.matches(anyString(), eq("a"))).thenThrow(new RuntimeException("Mocked exception"));
@@ -301,11 +305,10 @@ public class TokenServiceTest {
     @Test
     public void findByToken_should_throw_TokenNotFound_when_no_token_matches() throws TechnicalException {
         var tokens = Set.of(
-            Token.builder().id(UUID.randomUUID().toString()).build(),
-            Token.builder().id(UUID.randomUUID().toString()).build(),
-            Token.builder().id(UUID.randomUUID().toString()).build(),
-            Token.builder().id(UUID.randomUUID().toString()).build()
-        );
+                Token.builder().id(UUID.randomUUID().toString()).build(),
+                Token.builder().id(UUID.randomUUID().toString()).build(),
+                Token.builder().id(UUID.randomUUID().toString()).build(),
+                Token.builder().id(UUID.randomUUID().toString()).build());
         when(tokenRepository.findAll()).thenReturn(tokens);
         when(passwordEncoder.matches(any(), any())).thenReturn(false);
 

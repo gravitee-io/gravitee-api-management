@@ -71,22 +71,19 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipReference.class
-        );
-        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipRole.class
-        );
-        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipMember.class
-        );
+        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
+        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
-        Mockito.verify(membershipService).addRoleToMemberOnReference(
-            eq(GraviteeContext.getExecutionContext()),
-            memberShipRefCaptor.capture(),
-            memberShipUserCaptor.capture(),
-            memberShipRoleCaptor.capture()
-        );
+        Mockito.verify(membershipService)
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()),
+                        memberShipRefCaptor.capture(),
+                        memberShipUserCaptor.capture(),
+                        memberShipRoleCaptor.capture());
         assertEquals(API, memberShipRefCaptor.getValue().getId());
         assertEquals("my-api-membership-role", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
@@ -99,15 +96,19 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
         transferOwnership.setReference("USER");
         transferOwnership.setPoRole("PRIMARY_OWNER");
 
-        Response response = envTarget(API).path("members").path("transfer_ownership").request().post(Entity.json(transferOwnership));
+        Response response = envTarget(API)
+                .path("members")
+                .path("transfer_ownership")
+                .request()
+                .post(Entity.json(transferOwnership));
 
         Map<String, Object> error = response.readEntity(new GenericType<>() {});
 
         assertAll(
-            () -> assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus()),
-            () -> assertEquals("The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner.", error.get("message")),
-            () -> assertEquals("role.transferNotAllowed", error.get("technicalCode")),
-            () -> assertEquals("PRIMARY_OWNER", ((Map<?, ?>) error.get("parameters")).get("role"))
-        );
+                () -> assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus()),
+                () -> assertEquals(
+                        "The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner.", error.get("message")),
+                () -> assertEquals("role.transferNotAllowed", error.get("technicalCode")),
+                () -> assertEquals("PRIMARY_OWNER", ((Map<?, ?>) error.get("parameters")).get("role")));
     }
 }

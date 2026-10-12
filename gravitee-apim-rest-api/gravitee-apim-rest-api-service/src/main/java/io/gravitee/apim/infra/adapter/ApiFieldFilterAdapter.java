@@ -23,7 +23,8 @@ public class ApiFieldFilterAdapter {
 
     private ApiFieldFilterAdapter() {}
 
-    public io.gravitee.repository.management.api.search.ApiFieldFilter toApiFieldFilterForRepository(ApiFieldFilter filter) {
+    public io.gravitee.repository.management.api.search.ApiFieldFilter toApiFieldFilterForRepository(
+            ApiFieldFilter filter) {
         var builder = new io.gravitee.repository.management.api.search.ApiFieldFilter.Builder();
         if (filter != null) {
             if (filter.isPictureExcluded()) {

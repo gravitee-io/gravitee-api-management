@@ -74,34 +74,27 @@ class PlanValidationServiceImplTest {
         Flow flow1Plan3 = new Flow();
         Flow flow2Plan3 = new Flow();
         plan3.setFlows(List.of(flow1Plan3, flow2Plan3));
-        when(flowValidationService.validateAndSanitize(any(), anyList(), nullable(Set.class))).thenAnswer(invocation ->
-            invocation.getArguments()[1]
-        );
+        when(flowValidationService.validateAndSanitize(any(), anyList(), nullable(Set.class)))
+                .thenAnswer(invocation -> invocation.getArguments()[1]);
         final Set<PlanEntity> result = cut.validateAndSanitize(ApiType.PROXY, Set.of(plan1, plan2, plan3));
         assertThat(result).isNotNull().hasSize(3);
-        assertThat(
-            result
-                .stream()
-                .filter(p -> p.getId().equals("plan1"))
-                .findFirst()
-                .get()
-                .getFlows()
-        ).isEmpty();
-        assertThat(
-            result
-                .stream()
-                .filter(p -> p.getId().equals("plan2"))
-                .findFirst()
-                .get()
-                .getFlows()
-        ).hasSize(1);
-        assertThat(
-            result
-                .stream()
-                .filter(p -> p.getId().equals("plan3"))
-                .findFirst()
-                .get()
-                .getFlows()
-        ).hasSize(2);
+        assertThat(result.stream()
+                        .filter(p -> p.getId().equals("plan1"))
+                        .findFirst()
+                        .get()
+                        .getFlows())
+                .isEmpty();
+        assertThat(result.stream()
+                        .filter(p -> p.getId().equals("plan2"))
+                        .findFirst()
+                        .get()
+                        .getFlows())
+                .hasSize(1);
+        assertThat(result.stream()
+                        .filter(p -> p.getId().equals("plan3"))
+                        .findFirst()
+                        .get()
+                        .getFlows())
+                .hasSize(2);
     }
 }

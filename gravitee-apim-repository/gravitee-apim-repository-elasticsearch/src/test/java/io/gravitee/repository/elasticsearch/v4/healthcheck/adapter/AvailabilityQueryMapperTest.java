@@ -51,15 +51,14 @@ class AvailabilityQueryMapperTest {
 
         @Test
         void adapt_query() {
-            //Given
+            // Given
             var apiFieldPeriod = new ApiFieldPeriod(API_ID, FIELD, TO, FROM);
 
-            //When
+            // When
             var result = availabilityQueryMapper.adaptQuery(apiFieldPeriod);
 
-            //Then
-            assertThatJson(result).isEqualTo(
-                """
+            // Then
+            assertThatJson(result).isEqualTo("""
                 {
                   "size": 0,
                   "query": {
@@ -86,8 +85,7 @@ class AvailabilityQueryMapperTest {
                     }
                   }
                 }
-                """
-            );
+                """);
         }
     }
 
@@ -104,17 +102,16 @@ class AvailabilityQueryMapperTest {
 
         @Test
         void adapt__correct_response() throws JsonProcessingException {
-            //Given
+            // Given
             var searchResponse = objectMapper.readValue(response(), SearchResponse.class);
             AvailabilityResponse expectedResponse = new AvailabilityResponse(
-                0.4476F,
-                Map.of("api-1", 0.0F, "api-2", 1.0F, "api-3", 0.0F, "api-4", 1.0F)
-            );
+                    0.4476F, Map.of("api-1", 0.0F, "api-2", 1.0F, "api-3", 0.0F, "api-4", 1.0F));
 
-            //When
-            TestObserver<AvailabilityResponse> result = availabilityQueryMapper.adaptResponse(searchResponse).test();
+            // When
+            TestObserver<AvailabilityResponse> result =
+                    availabilityQueryMapper.adaptResponse(searchResponse).test();
 
-            //Then
+            // Then
             result.assertNoErrors();
             result.assertValue(expectedResponse);
         }
@@ -212,10 +209,11 @@ class AvailabilityQueryMapperTest {
 
         @Test
         void should_return_empty_result_if_aggregations_is_null() {
-            //When
-            TestObserver<AvailabilityResponse> result = availabilityQueryMapper.adaptResponse(searchResponse).test();
+            // When
+            TestObserver<AvailabilityResponse> result =
+                    availabilityQueryMapper.adaptResponse(searchResponse).test();
 
-            //Then
+            // Then
             result.assertNoErrors();
             result.assertNoValues();
         }
@@ -224,10 +222,11 @@ class AvailabilityQueryMapperTest {
         void should_return_empty_result_if_no_aggregation_exist() {
             searchResponse.setAggregations(Map.of());
 
-            //When
-            TestObserver<AvailabilityResponse> result = availabilityQueryMapper.adaptResponse(searchResponse).test();
+            // When
+            TestObserver<AvailabilityResponse> result =
+                    availabilityQueryMapper.adaptResponse(searchResponse).test();
 
-            //Then
+            // Then
             result.assertNoErrors();
             result.assertNoValues();
         }
@@ -236,10 +235,11 @@ class AvailabilityQueryMapperTest {
         void should_return_empty_result_if_no_by_field_aggregation_exist() {
             searchResponse.setAggregations(Map.of("fake_aggregation", new Aggregation()));
 
-            //When
-            TestObserver<AvailabilityResponse> result = availabilityQueryMapper.adaptResponse(searchResponse).test();
+            // When
+            TestObserver<AvailabilityResponse> result =
+                    availabilityQueryMapper.adaptResponse(searchResponse).test();
 
-            //Then
+            // Then
             result.assertNoErrors();
             result.assertNoValues();
         }

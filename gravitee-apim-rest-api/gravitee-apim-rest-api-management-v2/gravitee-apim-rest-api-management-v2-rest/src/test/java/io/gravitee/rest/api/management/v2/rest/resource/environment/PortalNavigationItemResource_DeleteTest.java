@@ -64,7 +64,10 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -72,14 +75,12 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         // Default permission for DELETE on documentation
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.DELETE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.DELETE))
+                .thenReturn(true);
 
         // In this test we mock the Delete use case; no need to seed in-memory CRUD/query services
     }
@@ -94,41 +95,35 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
     void should_delete_item_and_return_204() {
         String navId = PAGE11_ID;
 
-        when(deletePortalNavigationItemUseCase.execute(any())).thenReturn(new DeletePortalNavigationItemUseCase.Output());
+        when(deletePortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new DeletePortalNavigationItemUseCase.Output());
 
         Response response = target.path(navId).request().delete();
 
         assertThat(response).hasStatus(NO_CONTENT_204);
 
-        verify(deletePortalNavigationItemUseCase).execute(
-            org.mockito.ArgumentMatchers.argThat(
-                input ->
-                    input != null &&
-                    input.environmentId().equals(ENVIRONMENT) &&
-                    input.navigationItemId() != null &&
-                    input.navigationItemId().toString().equals(navId)
-            )
-        );
+        verify(deletePortalNavigationItemUseCase)
+                .execute(org.mockito.ArgumentMatchers.argThat(input -> input != null
+                        && input.environmentId().equals(ENVIRONMENT)
+                        && input.navigationItemId() != null
+                        && input.navigationItemId().toString().equals(navId)));
     }
 
     @Test
     void should_return_404_when_item_not_found() {
         String unknownId = PortalNavigationItemId.random().toString();
 
-        when(deletePortalNavigationItemUseCase.execute(any())).thenThrow(new PortalNavigationItemNotFoundException(unknownId));
+        when(deletePortalNavigationItemUseCase.execute(any()))
+                .thenThrow(new PortalNavigationItemNotFoundException(unknownId));
 
         Response response = target.path(unknownId).request().delete();
 
         assertThat(response).hasStatus(NOT_FOUND_404);
 
-        verify(deletePortalNavigationItemUseCase).execute(
-            org.mockito.ArgumentMatchers.argThat(
-                input ->
-                    input != null &&
-                    input.environmentId().equals(ENVIRONMENT) &&
-                    input.navigationItemId() != null &&
-                    input.navigationItemId().toString().equals(unknownId)
-            )
-        );
+        verify(deletePortalNavigationItemUseCase)
+                .execute(org.mockito.ArgumentMatchers.argThat(input -> input != null
+                        && input.environmentId().equals(ENVIRONMENT)
+                        && input.navigationItemId() != null
+                        && input.navigationItemId().toString().equals(unknownId)));
     }
 }

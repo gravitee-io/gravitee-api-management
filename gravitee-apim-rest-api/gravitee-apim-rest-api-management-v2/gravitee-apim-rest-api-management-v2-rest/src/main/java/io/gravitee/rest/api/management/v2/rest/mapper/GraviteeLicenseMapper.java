@@ -24,7 +24,7 @@ import org.mapstruct.factory.Mappers;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface GraviteeLicenseMapper {
     GraviteeLicenseMapper INSTANCE = Mappers.getMapper(GraviteeLicenseMapper.class);
 

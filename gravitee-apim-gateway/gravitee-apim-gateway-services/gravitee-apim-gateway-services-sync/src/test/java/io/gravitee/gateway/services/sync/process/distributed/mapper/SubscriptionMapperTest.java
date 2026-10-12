@@ -53,28 +53,25 @@ class SubscriptionMapperTest {
         subscription.setId("id");
 
         distributedEvent = DistributedEvent.builder()
-            .id(subscription.getId())
-            .payload(objectMapper.writeValueAsString(subscription))
-            .updatedAt(new Date())
-            .type(DistributedEventType.SUBSCRIPTION)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id(subscription.getId())
+                .payload(objectMapper.writeValueAsString(subscription))
+                .updatedAt(new Date())
+                .type(DistributedEventType.SUBSCRIPTION)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
         singleSubscriptionDeployable = SingleSubscriptionDeployable.builder()
-            .subscription(subscription)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .subscription(subscription)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(singleSubscriptionDeployable -> {
-                assertThat(singleSubscriptionDeployable).isEqualTo(this.singleSubscriptionDeployable);
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(singleSubscriptionDeployable -> {
+            assertThat(singleSubscriptionDeployable).isEqualTo(this.singleSubscriptionDeployable);
+            return true;
+        });
     }
 
     @Test
@@ -84,15 +81,12 @@ class SubscriptionMapperTest {
 
     @Test
     void should_map_subscription_deployable() {
-        cut
-            .to(singleSubscriptionDeployable)
-            .test()
-            .assertValue(distributedEvent -> {
-                assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
-                assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
-                assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
-                return true;
-            });
+        cut.to(singleSubscriptionDeployable).test().assertValue(distributedEvent -> {
+            assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
+            assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
+            assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
+            return true;
+        });
     }
 }

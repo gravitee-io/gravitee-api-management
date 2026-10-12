@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.exceptions;
 import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import java.util.Map;
 
 /**

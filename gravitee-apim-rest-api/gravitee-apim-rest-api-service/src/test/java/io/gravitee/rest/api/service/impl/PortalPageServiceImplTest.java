@@ -62,9 +62,9 @@ class PortalPageServiceImplTest {
         @Test
         @SneakyThrows
         void should_do_nothing_when_default_page_is_already_created() {
-            when(
-                portalPageContextRepository.findAllByContextTypeAndEnvironmentId(eq(PortalPageContextType.HOMEPAGE), anyString())
-            ).thenReturn(List.of(PortalPageContext.builder().build()));
+            when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(
+                            eq(PortalPageContextType.HOMEPAGE), anyString()))
+                    .thenReturn(List.of(PortalPageContext.builder().build()));
 
             cut.createDefaultPortalHomePage("envId");
 
@@ -77,14 +77,16 @@ class PortalPageServiceImplTest {
         void should_create_context_and_page_when_no_default_page_is_created() {
             String envId = "envId";
             String portalPageId = "portalPageId";
-            when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, envId)).thenReturn(
-                Collections.emptyList()
-            );
-            when(portalPageRepository.create(any(PortalPage.class))).thenReturn(PortalPage.builder().id(portalPageId).build());
+            when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(
+                            PortalPageContextType.HOMEPAGE, envId))
+                    .thenReturn(Collections.emptyList());
+            when(portalPageRepository.create(any(PortalPage.class)))
+                    .thenReturn(PortalPage.builder().id(portalPageId).build());
 
             cut.createDefaultPortalHomePage(envId);
 
-            ArgumentCaptor<PortalPageContext> portalPageContextCaptor = ArgumentCaptor.forClass(PortalPageContext.class);
+            ArgumentCaptor<PortalPageContext> portalPageContextCaptor =
+                    ArgumentCaptor.forClass(PortalPageContext.class);
             verify(portalPageContextRepository).create(portalPageContextCaptor.capture());
 
             ArgumentCaptor<PortalPage> portalPageCaptor = ArgumentCaptor.forClass(PortalPage.class);
@@ -92,16 +94,16 @@ class PortalPageServiceImplTest {
 
             var portalPage = portalPageCaptor.getValue();
             assertThat(portalPage)
-                .hasFieldOrPropertyWithValue("environmentId", envId)
-                .hasFieldOrPropertyWithValue("name", "Default Portal Page")
-                .hasNoNullFieldsOrProperties();
+                    .hasFieldOrPropertyWithValue("environmentId", envId)
+                    .hasFieldOrPropertyWithValue("name", "Default Portal Page")
+                    .hasNoNullFieldsOrProperties();
 
             assertThat(portalPageContextCaptor.getValue())
-                .hasFieldOrPropertyWithValue("pageId", portalPageId)
-                .hasFieldOrPropertyWithValue("contextType", PortalPageContextType.HOMEPAGE)
-                .hasFieldOrPropertyWithValue("environmentId", envId)
-                .hasFieldOrPropertyWithValue("published", true)
-                .hasNoNullFieldsOrProperties();
+                    .hasFieldOrPropertyWithValue("pageId", portalPageId)
+                    .hasFieldOrPropertyWithValue("contextType", PortalPageContextType.HOMEPAGE)
+                    .hasFieldOrPropertyWithValue("environmentId", envId)
+                    .hasFieldOrPropertyWithValue("published", true)
+                    .hasNoNullFieldsOrProperties();
         }
     }
 }

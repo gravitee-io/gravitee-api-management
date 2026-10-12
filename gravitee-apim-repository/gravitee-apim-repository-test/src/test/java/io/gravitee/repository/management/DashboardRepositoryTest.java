@@ -50,10 +50,7 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByReferenceAndId() throws Exception {
         final Optional<Dashboard> dashboard = dashboardRepository.findByReferenceAndId(
-            ENVIRONMENT,
-            "OTHER_ENV",
-            "c9d5390e-6387-4943-a123-613df16a419f"
-        );
+                ENVIRONMENT, "OTHER_ENV", "c9d5390e-6387-4943-a123-613df16a419f");
 
         assertThat(dashboard).hasValueSatisfying(result -> {
             assertThat(result.getName()).isEqualTo("Geo dashboard - the only one of OTHER_ENV");
@@ -62,14 +59,14 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferenceType() throws Exception {
-        final List<Dashboard> dashboards = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "PLATFORM");
+        final List<Dashboard> dashboards =
+                dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "PLATFORM");
 
         assertThat(dashboards).hasSize(3);
-        final Dashboard dashboardProduct = dashboards
-            .stream()
-            .filter(dashboard -> "4eeb1c56-6f4a-4925-ab1c-566f4aa925b8".equals(dashboard.getId()))
-            .findAny()
-            .get();
+        final Dashboard dashboardProduct = dashboards.stream()
+                .filter(dashboard -> "4eeb1c56-6f4a-4925-ab1c-566f4aa925b8".equals(dashboard.getId()))
+                .findAny()
+                .get();
         assertThat(dashboardProduct.getName()).isEqualTo("Geo dashboard");
         final Iterator<Dashboard> iterator = dashboards.iterator();
         assertThat(iterator.next().getName()).isEqualTo("Global dashboard");
@@ -92,9 +89,13 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
         dashboard.setCreatedAt(new Date(1000000000000L));
         dashboard.setUpdatedAt(new Date(1111111111111L));
 
-        int nbDashboardsBeforeCreation = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API").size();
+        int nbDashboardsBeforeCreation = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API")
+                .size();
         dashboardRepository.create(dashboard);
-        int nbDashboardsAfterCreation = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API").size();
+        int nbDashboardsAfterCreation = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API")
+                .size();
 
         assertThat(nbDashboardsAfterCreation).isEqualTo(nbDashboardsBeforeCreation + 1);
 
@@ -102,15 +103,27 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(optional).isPresent();
         final Dashboard dashboardSaved = optional.get();
         assertThat(dashboard.getId()).as("Invalid saved dashboard id.").isEqualTo(dashboardSaved.getId());
-        assertThat(dashboard.getReferenceId()).as("Invalid saved dashboard reference id.").isEqualTo(dashboardSaved.getReferenceId());
-        assertThat(dashboard.getReferenceType()).as("Invalid saved dashboard reference type.").isEqualTo(dashboardSaved.getReferenceType());
+        assertThat(dashboard.getReferenceId())
+                .as("Invalid saved dashboard reference id.")
+                .isEqualTo(dashboardSaved.getReferenceId());
+        assertThat(dashboard.getReferenceType())
+                .as("Invalid saved dashboard reference type.")
+                .isEqualTo(dashboardSaved.getReferenceType());
         assertThat(dashboard.getName()).as("Invalid saved dashboard name.").isEqualTo(dashboardSaved.getName());
-        assertThat(dashboard.getQueryFilter()).as("Invalid saved dashboard query filter.").isEqualTo(dashboardSaved.getQueryFilter());
+        assertThat(dashboard.getQueryFilter())
+                .as("Invalid saved dashboard query filter.")
+                .isEqualTo(dashboardSaved.getQueryFilter());
         assertThat(dashboard.getOrder()).as("Invalid saved dashboard order.").isEqualTo(dashboardSaved.getOrder());
         assertThat(dashboard.isEnabled()).as("Invalid saved dashboard enabled.").isEqualTo(dashboardSaved.isEnabled());
-        assertThat(dashboard.getDefinition()).as("Invalid saved dashboard definition.").isEqualTo(dashboardSaved.getDefinition());
-        assertThat(compareDate(dashboard.getCreatedAt(), dashboardSaved.getCreatedAt())).as("Invalid saved dashboard created at.").isTrue();
-        assertThat(compareDate(dashboard.getUpdatedAt(), dashboardSaved.getUpdatedAt())).as("Invalid saved dashboard updated at.").isTrue();
+        assertThat(dashboard.getDefinition())
+                .as("Invalid saved dashboard definition.")
+                .isEqualTo(dashboardSaved.getDefinition());
+        assertThat(compareDate(dashboard.getCreatedAt(), dashboardSaved.getCreatedAt()))
+                .as("Invalid saved dashboard created at.")
+                .isTrue();
+        assertThat(compareDate(dashboard.getUpdatedAt(), dashboardSaved.getUpdatedAt()))
+                .as("Invalid saved dashboard updated at.")
+                .isTrue();
     }
 
     @Test
@@ -131,21 +144,21 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
         dashboard.setCreatedAt(new Date(1111111111111L));
         dashboard.setUpdatedAt(new Date(1000000000000L));
 
-        int nbDashboardsBeforeUpdate = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "PLATFORM").size();
-        int nbAllDashboardsBeforeUpdate = dashboardRepository
-            .findAll()
-            .stream()
-            .filter(d -> d.getType().equals("PLATFORM"))
-            .toList()
-            .size();
+        int nbDashboardsBeforeUpdate = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "DEFAULT", "PLATFORM")
+                .size();
+        int nbAllDashboardsBeforeUpdate = dashboardRepository.findAll().stream()
+                .filter(d -> d.getType().equals("PLATFORM"))
+                .toList()
+                .size();
         dashboardRepository.update(dashboard);
-        int nbDashboardsAfterUpdate = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "PLATFORM").size();
-        int nbAllDashboardsAfterUpdate = dashboardRepository
-            .findAll()
-            .stream()
-            .filter(d -> d.getType().equals("PLATFORM"))
-            .toList()
-            .size();
+        int nbDashboardsAfterUpdate = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "DEFAULT", "PLATFORM")
+                .size();
+        int nbAllDashboardsAfterUpdate = dashboardRepository.findAll().stream()
+                .filter(d -> d.getType().equals("PLATFORM"))
+                .toList()
+                .size();
 
         assertThat(nbDashboardsAfterUpdate).isEqualTo(nbDashboardsBeforeUpdate - 1);
         assertThat(nbAllDashboardsBeforeUpdate).isEqualTo(nbAllDashboardsAfterUpdate);
@@ -154,30 +167,54 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(optionalUpdated).as("Dashboard to update not found").isPresent();
 
         final Dashboard dashboardSaved = optionalUpdated.get();
-        assertThat(dashboardSaved.getReferenceId()).as("Invalid saved dashboard reference id.").isEqualTo("1");
+        assertThat(dashboardSaved.getReferenceId())
+                .as("Invalid saved dashboard reference id.")
+                .isEqualTo("1");
         assertThat(dashboardSaved.getName()).as("Invalid saved dashboard name.").isEqualTo("New dashboard");
-        assertThat(dashboardSaved.getQueryFilter()).as("Invalid saved dashboard query filter.").isEqualTo("api:apiId");
-        assertThat(dashboardSaved.getOrder()).as("Invalid saved dashboard order.", 3).isEqualTo(3);
-        assertThat(dashboardSaved.isEnabled()).as("Invalid saved dashboard enabled.").isTrue();
-        assertThat(dashboardSaved.getDefinition()).as("Invalid saved dashboard definition.").isEqualTo("{\"def\": \"new value\"}");
-        assertThat(compareDate(new Date(1111111111111L), dashboardSaved.getCreatedAt())).as("Invalid saved dashboard created at.").isTrue();
-        assertThat(compareDate(new Date(1000000000000L), dashboardSaved.getUpdatedAt())).as("Invalid saved dashboard updated at.").isTrue();
+        assertThat(dashboardSaved.getQueryFilter())
+                .as("Invalid saved dashboard query filter.")
+                .isEqualTo("api:apiId");
+        assertThat(dashboardSaved.getOrder())
+                .as("Invalid saved dashboard order.", 3)
+                .isEqualTo(3);
+        assertThat(dashboardSaved.isEnabled())
+                .as("Invalid saved dashboard enabled.")
+                .isTrue();
+        assertThat(dashboardSaved.getDefinition())
+                .as("Invalid saved dashboard definition.")
+                .isEqualTo("{\"def\": \"new value\"}");
+        assertThat(compareDate(new Date(1111111111111L), dashboardSaved.getCreatedAt()))
+                .as("Invalid saved dashboard created at.")
+                .isTrue();
+        assertThat(compareDate(new Date(1000000000000L), dashboardSaved.getUpdatedAt()))
+                .as("Invalid saved dashboard updated at.")
+                .isTrue();
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbDashboardsBeforeDeletion = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API").size();
+        int nbDashboardsBeforeDeletion = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API")
+                .size();
         dashboardRepository.delete("7589ef82-02ae-4fc7-89ef-8202ae3fc7cf");
-        int nbDashboardsAfterDeletion = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API").size();
+        int nbDashboardsAfterDeletion = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "DEFAULT", "API")
+                .size();
 
         assertThat(nbDashboardsAfterDeletion).isEqualTo(nbDashboardsBeforeDeletion - 1);
     }
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        var nbBeforeDeletion = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "ToBeDeleted", "API").size();
-        var deleted = dashboardRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", DashboardReferenceType.ENVIRONMENT).size();
-        var nbAfterDeletion = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "ToBeDeleted", "API").size();
+        var nbBeforeDeletion = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "ToBeDeleted", "API")
+                .size();
+        var deleted = dashboardRepository
+                .deleteByReferenceIdAndReferenceType("ToBeDeleted", DashboardReferenceType.ENVIRONMENT)
+                .size();
+        var nbAfterDeletion = dashboardRepository
+                .findByReferenceAndType(ENVIRONMENT, "ToBeDeleted", "API")
+                .size();
 
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted);

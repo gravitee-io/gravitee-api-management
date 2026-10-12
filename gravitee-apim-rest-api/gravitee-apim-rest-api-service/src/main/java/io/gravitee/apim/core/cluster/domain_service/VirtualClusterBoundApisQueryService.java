@@ -46,6 +46,7 @@ public class VirtualClusterBoundApisQueryService {
 
     /** Endpoint plugin id a Kafka Native API uses to target a virtual cluster. */
     public static final String NATIVE_KAFKA_VIRTUAL_CLUSTER_ENDPOINT_TYPE = "native-kafka-virtual-cluster";
+
     private static final String VIRTUAL_CLUSTER_CROSS_ID_FIELD = "virtualClusterCrossId";
 
     private final ApiQueryService apiQueryService;
@@ -64,18 +65,21 @@ public class VirtualClusterBoundApisQueryService {
             return List.of();
         }
         var criteria = ApiSearchCriteria.builder()
-            .environmentId(environmentId)
-            .definitionVersion(List.of(DefinitionVersion.V4))
-            .state(Api.LifecycleState.STARTED)
-            .build();
+                .environmentId(environmentId)
+                .definitionVersion(List.of(DefinitionVersion.V4))
+                .state(Api.LifecycleState.STARTED)
+                .build();
         return apiQueryService
-            .search(criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build())
-            .filter(Api::isNative)
-            .filter(api -> api.getLifecycleState() == Api.LifecycleState.STARTED)
-            .filter(api ->
-                extractVirtualClusterCrossId(api.getApiDefinitionNativeV4(), objectMapper).filter(virtualClusterCrossId::equals).isPresent()
-            )
-            .toList();
+                .search(
+                        criteria,
+                        null,
+                        ApiFieldFilter.builder().pictureExcluded(true).build())
+                .filter(Api::isNative)
+                .filter(api -> api.getLifecycleState() == Api.LifecycleState.STARTED)
+                .filter(api -> extractVirtualClusterCrossId(api.getApiDefinitionNativeV4(), objectMapper)
+                        .filter(virtualClusterCrossId::equals)
+                        .isPresent())
+                .toList();
     }
 
     /**
@@ -117,7 +121,9 @@ public class VirtualClusterBoundApisQueryService {
         } catch (JsonProcessingException e) {
             // Malformed endpoint configuration: treat as "not bound" rather than failing the caller,
             // but trace it — such an API becomes invisible to the lifecycle guards.
-            log.warn("Unable to parse native-kafka-virtual-cluster endpoint configuration; treating API as not bound", e);
+            log.warn(
+                    "Unable to parse native-kafka-virtual-cluster endpoint configuration; treating API as not bound",
+                    e);
         }
         return Optional.empty();
     }

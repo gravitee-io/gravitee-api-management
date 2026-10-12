@@ -22,10 +22,7 @@ import inmemory.WorkflowQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.InvalidApiLifecycleStateException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.workflow.model.Workflow;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -46,70 +43,100 @@ public class ApiLifecycleStateDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        workflowQueryService.initWith(
-            List.of(
+        workflowQueryService.initWith(List.of(
                 Workflow.builder()
-                    .id("workflow-draft")
-                    .referenceId(API_ID_DRAFT)
-                    .referenceType(Workflow.ReferenceType.API)
-                    .type(Workflow.Type.REVIEW)
-                    .state(Workflow.State.DRAFT)
-                    .build(),
+                        .id("workflow-draft")
+                        .referenceId(API_ID_DRAFT)
+                        .referenceType(Workflow.ReferenceType.API)
+                        .type(Workflow.Type.REVIEW)
+                        .state(Workflow.State.DRAFT)
+                        .build(),
                 Workflow.builder()
-                    .id("workflow-review")
-                    .referenceId(API_ID_REVIEW)
-                    .referenceType(Workflow.ReferenceType.API)
-                    .type(Workflow.Type.REVIEW)
-                    .state(Workflow.State.IN_REVIEW)
-                    .build()
-            )
-        );
+                        .id("workflow-review")
+                        .referenceId(API_ID_REVIEW)
+                        .referenceType(Workflow.ReferenceType.API)
+                        .type(Workflow.Type.REVIEW)
+                        .state(Workflow.State.IN_REVIEW)
+                        .build()));
         cut = new ApiLifecycleStateDomainService(workflowQueryService);
     }
 
     @ParameterizedTest
     @MethodSource("provideParametersNoError")
     void can_validate_and_sanitize_without_errors(
-        Api.ApiLifecycleState currentState,
-        Api.ApiLifecycleState newState,
-        Api.ApiLifecycleState expectedResult
-    ) {
+            Api.ApiLifecycleState currentState, Api.ApiLifecycleState newState, Api.ApiLifecycleState expectedResult) {
         var result = cut.validateAndSanitizeForUpdate(API_ID_DRAFT, currentState, newState);
         assertThat(result).isEqualTo(expectedResult);
     }
 
     public static Stream<Arguments> provideParametersNoError() {
         return Stream.of(
-            // CREATED
-            Arguments.of(Api.ApiLifecycleState.CREATED, null, Api.ApiLifecycleState.CREATED),
-            Arguments.of(Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.CREATED),
-            Arguments.of(Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.PUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.UNPUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED),
-            Arguments.of(Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.DEPRECATED),
-            // UNPUBLISHED
-            Arguments.of(Api.ApiLifecycleState.UNPUBLISHED, null, Api.ApiLifecycleState.UNPUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.PUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.UNPUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED),
-            Arguments.of(Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.DEPRECATED),
-            // PUBLISHED
-            Arguments.of(Api.ApiLifecycleState.PUBLISHED, null, Api.ApiLifecycleState.PUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.PUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.UNPUBLISHED),
-            Arguments.of(Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED),
-            Arguments.of(Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.DEPRECATED),
-            // ARCHIVED
-            Arguments.of(Api.ApiLifecycleState.ARCHIVED, null, Api.ApiLifecycleState.ARCHIVED),
-            Arguments.of(Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED),
-            // DEPRECATED
-            Arguments.of(Api.ApiLifecycleState.DEPRECATED, null, Api.ApiLifecycleState.DEPRECATED)
-        );
+                // CREATED
+                Arguments.of(Api.ApiLifecycleState.CREATED, null, Api.ApiLifecycleState.CREATED),
+                Arguments.of(
+                        Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.CREATED),
+                Arguments.of(
+                        Api.ApiLifecycleState.CREATED,
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.ApiLifecycleState.PUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.CREATED,
+                        Api.ApiLifecycleState.UNPUBLISHED,
+                        Api.ApiLifecycleState.UNPUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED),
+                Arguments.of(
+                        Api.ApiLifecycleState.CREATED,
+                        Api.ApiLifecycleState.DEPRECATED,
+                        Api.ApiLifecycleState.DEPRECATED),
+                // UNPUBLISHED
+                Arguments.of(Api.ApiLifecycleState.UNPUBLISHED, null, Api.ApiLifecycleState.UNPUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.UNPUBLISHED,
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.ApiLifecycleState.PUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.UNPUBLISHED,
+                        Api.ApiLifecycleState.UNPUBLISHED,
+                        Api.ApiLifecycleState.UNPUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.UNPUBLISHED,
+                        Api.ApiLifecycleState.ARCHIVED,
+                        Api.ApiLifecycleState.ARCHIVED),
+                Arguments.of(
+                        Api.ApiLifecycleState.UNPUBLISHED,
+                        Api.ApiLifecycleState.DEPRECATED,
+                        Api.ApiLifecycleState.DEPRECATED),
+                // PUBLISHED
+                Arguments.of(Api.ApiLifecycleState.PUBLISHED, null, Api.ApiLifecycleState.PUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.ApiLifecycleState.PUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.ApiLifecycleState.UNPUBLISHED,
+                        Api.ApiLifecycleState.UNPUBLISHED),
+                Arguments.of(
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.ApiLifecycleState.ARCHIVED,
+                        Api.ApiLifecycleState.ARCHIVED),
+                Arguments.of(
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.ApiLifecycleState.DEPRECATED,
+                        Api.ApiLifecycleState.DEPRECATED),
+                // ARCHIVED
+                Arguments.of(Api.ApiLifecycleState.ARCHIVED, null, Api.ApiLifecycleState.ARCHIVED),
+                Arguments.of(
+                        Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.ARCHIVED),
+                // DEPRECATED
+                Arguments.of(Api.ApiLifecycleState.DEPRECATED, null, Api.ApiLifecycleState.DEPRECATED));
     }
 
     @ParameterizedTest
     @MethodSource("provideParametersWithError")
-    void validate_and_sanitize_throw_error(String apiId, Api.ApiLifecycleState currentState, Api.ApiLifecycleState newState) {
+    void validate_and_sanitize_throw_error(
+            String apiId, Api.ApiLifecycleState currentState, Api.ApiLifecycleState newState) {
         var throwable = catchThrowable(() -> cut.validateAndSanitizeForUpdate(apiId, currentState, newState));
         assertThat(throwable).isInstanceOf(InvalidApiLifecycleStateException.class);
         assertThat(throwable.getMessage()).contains(newState.name());
@@ -117,23 +144,22 @@ public class ApiLifecycleStateDomainServiceTest {
 
     public static Stream<Arguments> provideParametersWithError() {
         return Stream.of(
-            // CREATED
-            Arguments.of(API_ID_REVIEW, Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.UNPUBLISHED),
-            // UNPUBLISHED
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.CREATED),
-            // PUBLISHED
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.CREATED),
-            // ARCHIVED
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.CREATED),
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.UNPUBLISHED),
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.PUBLISHED),
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.DEPRECATED),
-            // DEPRECATED
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.CREATED),
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.UNPUBLISHED),
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.PUBLISHED),
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.ARCHIVED),
-            Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.DEPRECATED)
-        );
+                // CREATED
+                Arguments.of(API_ID_REVIEW, Api.ApiLifecycleState.CREATED, Api.ApiLifecycleState.UNPUBLISHED),
+                // UNPUBLISHED
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.UNPUBLISHED, Api.ApiLifecycleState.CREATED),
+                // PUBLISHED
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.PUBLISHED, Api.ApiLifecycleState.CREATED),
+                // ARCHIVED
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.CREATED),
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.UNPUBLISHED),
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.PUBLISHED),
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.ARCHIVED, Api.ApiLifecycleState.DEPRECATED),
+                // DEPRECATED
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.CREATED),
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.UNPUBLISHED),
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.PUBLISHED),
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.ARCHIVED),
+                Arguments.of(API_ID_DRAFT, Api.ApiLifecycleState.DEPRECATED, Api.ApiLifecycleState.DEPRECATED));
     }
 }

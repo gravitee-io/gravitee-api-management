@@ -26,15 +26,15 @@ public class EntrypointFixtures {
 
     private EntrypointFixtures() {}
 
-    private static final Supplier<Entrypoint> BASE_ENTRYPOINT_HTTP_V4 = () ->
-        new Entrypoint()
+    private static final Supplier<Entrypoint> BASE_ENTRYPOINT_HTTP_V4 = () -> new Entrypoint()
             .type("Entrypoint type")
             .qos(Qos.AT_LEAST_ONCE)
             .dlq(new Dlq().endpoint("my-endpoint"))
             .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
 
-    private static final Supplier<Entrypoint> BASE_ENTRYPOINT_NATIVE_V4 = () ->
-        new Entrypoint().type("Entrypoint type").configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
+    private static final Supplier<Entrypoint> BASE_ENTRYPOINT_NATIVE_V4 = () -> new Entrypoint()
+            .type("Entrypoint type")
+            .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
 
     public static Entrypoint anEntrypointHttpV4() {
         return BASE_ENTRYPOINT_HTTP_V4.get();

@@ -62,7 +62,8 @@ public class AuthenticationHandlerManagerTest {
         when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.order()).thenReturn(500);
 
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
+        when(securityProviderLoader.getSecurityProviders())
+                .thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
         authenticationHandlerManager.afterPropertiesSet();
         List<AuthenticationHandler> securityProviders = authenticationHandlerManager.getAuthenticationHandlers();
@@ -82,12 +83,12 @@ public class AuthenticationHandlerManagerTest {
         when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.order()).thenReturn(500);
 
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
+        when(securityProviderLoader.getSecurityProviders())
+                .thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
         AuthenticationHandlerEnhancer securityProviderFilter = mock(AuthenticationHandlerEnhancer.class);
-        when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders())).thenReturn(
-            Arrays.asList(securityProvider1, securityProvider2)
-        );
+        when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
+                .thenReturn(Arrays.asList(securityProvider1, securityProvider2));
         authenticationHandlerManager.setAuthenticationHandlerEnhancer(securityProviderFilter);
         authenticationHandlerManager.afterPropertiesSet();
 
@@ -108,12 +109,12 @@ public class AuthenticationHandlerManagerTest {
         when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.order()).thenReturn(500);
 
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
+        when(securityProviderLoader.getSecurityProviders())
+                .thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
         AuthenticationHandlerEnhancer securityProviderFilter = mock(AuthenticationHandlerEnhancer.class);
-        when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders())).thenReturn(
-            Collections.singletonList(securityProvider1)
-        );
+        when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
+                .thenReturn(Collections.singletonList(securityProvider1));
         authenticationHandlerManager.setAuthenticationHandlerEnhancer(securityProviderFilter);
         authenticationHandlerManager.afterPropertiesSet();
         List<AuthenticationHandler> securityProviders = authenticationHandlerManager.getAuthenticationHandlers();

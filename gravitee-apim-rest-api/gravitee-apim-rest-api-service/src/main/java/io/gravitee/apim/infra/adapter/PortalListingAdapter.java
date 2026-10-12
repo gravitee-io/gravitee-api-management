@@ -36,12 +36,11 @@ public interface PortalListingAdapter {
             return null;
         }
         return PortalListing.of(
-            PortalListingId.of(portalListing.getId()),
-            portalListing.getEnvironmentId(),
-            portalListing.getOrganizationId(),
-            PortalId.of(portalListing.getPortalId()),
-            deserializeApis(portalListing.getApis())
-        );
+                PortalListingId.of(portalListing.getId()),
+                portalListing.getEnvironmentId(),
+                portalListing.getOrganizationId(),
+                PortalId.of(portalListing.getPortalId()),
+                deserializeApis(portalListing.getApis()));
     }
 
     default io.gravitee.repository.management.model.PortalListing toRepository(PortalListing portalListing) {
@@ -49,12 +48,12 @@ public interface PortalListingAdapter {
             return null;
         }
         return io.gravitee.repository.management.model.PortalListing.builder()
-            .id(portalListing.getId().toString())
-            .environmentId(portalListing.getEnvironmentId())
-            .organizationId(portalListing.getOrganizationId())
-            .portalId(portalListing.getPortalId().toString())
-            .apis(serializeApis(portalListing.getApis()))
-            .build();
+                .id(portalListing.getId().toString())
+                .environmentId(portalListing.getEnvironmentId())
+                .organizationId(portalListing.getOrganizationId())
+                .portalId(portalListing.getPortalId().toString())
+                .apis(serializeApis(portalListing.getApis()))
+                .build();
     }
 
     static String serializeApis(List<PortalListingApiEntry> apis) {

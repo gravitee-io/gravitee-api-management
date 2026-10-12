@@ -44,9 +44,10 @@ public class SearchAverageMessagesPerRequestAnalyticsUseCase {
 
         // Verify v4 api
         return analyticsQueryService
-            .searchAverageMessagesPerRequest(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
-            .map(Output::new)
-            .orElse(new Output());
+                .searchAverageMessagesPerRequest(
+                        executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
+                .map(Output::new)
+                .orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {

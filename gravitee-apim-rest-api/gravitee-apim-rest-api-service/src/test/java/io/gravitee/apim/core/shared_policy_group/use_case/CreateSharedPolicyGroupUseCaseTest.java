@@ -61,17 +61,20 @@ public class CreateSharedPolicyGroupUseCaseTest {
     private final String ENV_ID = "env-id";
     private final String USER_ID = "user-id";
     private final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORG_ID)
-        .environmentId(ENV_ID)
-        .actor(AuditActor.builder().userId(USER_ID).build())
-        .build();
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .actor(AuditActor.builder().userId(USER_ID).build())
+            .build();
 
-    private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory();
+    private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService =
+            new SharedPolicyGroupCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
-    private final FakePolicyValidationDomainService policyValidationDomainService = new FakePolicyValidationDomainService();
+    private final FakePolicyValidationDomainService policyValidationDomainService =
+            new FakePolicyValidationDomainService();
     private final ValidateCreateSharedPolicyGroupDomainService validateCreateSharedPolicyGroupDomainService =
-        new ValidateCreateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
+            new ValidateCreateSharedPolicyGroupDomainService(
+                    sharedPolicyGroupCrudService, policyValidationDomainService);
     private CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -91,10 +94,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
         createSharedPolicyGroupUseCase = new CreateSharedPolicyGroupUseCase(
-            sharedPolicyGroupCrudService,
-            validateCreateSharedPolicyGroupDomainService,
-            auditService
-        );
+                sharedPolicyGroupCrudService, validateCreateSharedPolicyGroupDomainService, auditService);
     }
 
     @Test
@@ -103,24 +103,24 @@ public class CreateSharedPolicyGroupUseCaseTest {
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
 
         // When
-        var createdSharedPolicyGroup = createSharedPolicyGroupUseCase.execute(
-            new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)
-        );
+        var createdSharedPolicyGroup =
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO));
 
         // Then
-        var expected = SharedPolicyGroup.from(toCreate)
-            .toBuilder()
-            .id("generated-id")
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .crossId("generated-id")
-            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .version(0)
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .build();
+        var expected = SharedPolicyGroup.from(toCreate).toBuilder()
+                .id("generated-id")
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .crossId("generated-id")
+                .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .version(0)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build();
         assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
-        assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
+        assertThat(createdSharedPolicyGroup.sharedPolicyGroup())
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 
     @Test
@@ -129,26 +129,26 @@ public class CreateSharedPolicyGroupUseCaseTest {
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroupWithAllFields();
 
         // When
-        var createdSharedPolicyGroup = createSharedPolicyGroupUseCase.execute(
-            new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)
-        );
+        var createdSharedPolicyGroup =
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO));
 
         // Then
-        var expected = SharedPolicyGroup.from(toCreate)
-            .toBuilder()
-            .id("generated-id")
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .crossId(toCreate.getCrossId())
-            .description(toCreate.getDescription())
-            .steps(toCreate.getSteps())
-            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .version(0)
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .build();
+        var expected = SharedPolicyGroup.from(toCreate).toBuilder()
+                .id("generated-id")
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .crossId(toCreate.getCrossId())
+                .description(toCreate.getDescription())
+                .steps(toCreate.getSteps())
+                .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .version(0)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build();
         assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
-        assertThat(createdSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
+        assertThat(createdSharedPolicyGroup.sharedPolicyGroup())
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 
     @Test
@@ -161,62 +161,69 @@ public class CreateSharedPolicyGroupUseCaseTest {
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORG_ID)
-                    .environmentId(ENV_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
-                    .referenceId(ENV_ID)
-                    .user(USER_ID)
-                    .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP.name(), "generated-id"))
-                    .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_CREATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id("generated-id")
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
+                        .referenceId(ENV_ID)
+                        .user(USER_ID)
+                        .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP.name(), "generated-id"))
+                        .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_CREATED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_throw_exception_when_name_is_null() {
         // Given
-        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup().toBuilder().name(null).build();
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup().toBuilder()
+                .name(null)
+                .build();
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
-        );
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Name is required.");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Name is required.");
     }
 
     @Test
     void should_throw_exception_when_apiType_is_null() {
         // Given
-        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup().toBuilder().apiType(null).build();
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup().toBuilder()
+                .apiType(null)
+                .build();
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
-        );
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("ApiType is required.");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("ApiType is required.");
     }
 
     @Test
     void should_throw_exception_when_phase_is_null() {
         // Given
-        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup().toBuilder().phase(null).build();
+        var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup().toBuilder()
+                .phase(null)
+                .build();
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
-        );
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Phase is required.");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Phase is required.");
     }
 
     @Test
@@ -232,20 +239,22 @@ public class CreateSharedPolicyGroupUseCaseTest {
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
-        );
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(SharedPolicyGroupDuplicateCrossIdException.class)
-            .hasMessage("SharedPolicyGroup with crossId [crossId] already exists for environment [env-id].");
+                .isInstanceOf(SharedPolicyGroupDuplicateCrossIdException.class)
+                .hasMessage("SharedPolicyGroup with crossId [crossId] already exists for environment [env-id].");
     }
 
     @Test
     void should_validate_and_sanitize_configuration() {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
-        toCreate.setSteps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"value\" }").build()));
+        toCreate.setSteps(List.of(Step.builder()
+                .policy("policy")
+                .configuration("{ \"key\": \"value\" }")
+                .build()));
 
         // When
         createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO));
@@ -255,38 +264,39 @@ public class CreateSharedPolicyGroupUseCaseTest {
     void should_throw_exception_when_policy_validation_fails() {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
-        toCreate.setSteps(
-            List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
-        );
+        toCreate.setSteps(List.of(Step.builder()
+                .policy("policy_throw_invalid_data_exception")
+                .configuration("{ \"key\": \"value\" }")
+                .build()));
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
-        );
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("Invalid configuration for policy policy_throw_invalid_data_exception");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Invalid configuration for policy policy_throw_invalid_data_exception");
     }
 
     @Test
     void should_throw_exception_when_policy_execution_phase_validation_fails() {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
-        toCreate.setSteps(
-            List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
-        );
+        toCreate.setSteps(List.of(Step.builder()
+                .policy("policy_throw_unexpected_policy_exception")
+                .configuration("{ \"key\": \"value\" }")
+                .build()));
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
-        );
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(UnexpectedPoliciesException.class)
-            .hasMessage("Unexpected policies [policy_throw_unexpected_policy_exception] for API type MESSAGE and phase REQUEST");
+                .isInstanceOf(UnexpectedPoliciesException.class)
+                .hasMessage(
+                        "Unexpected policies [policy_throw_unexpected_policy_exception] for API type MESSAGE and phase REQUEST");
     }
 
     @Test
@@ -298,12 +308,11 @@ public class CreateSharedPolicyGroupUseCaseTest {
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO))
-        );
+                createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(SharedPolicyGroupInvalidPhaseException.class)
-            .hasMessage("Invalid phase SUBSCRIBE for API type PROXY");
+                .isInstanceOf(SharedPolicyGroupInvalidPhaseException.class)
+                .hasMessage("Invalid phase SUBSCRIBE for API type PROXY");
     }
 }

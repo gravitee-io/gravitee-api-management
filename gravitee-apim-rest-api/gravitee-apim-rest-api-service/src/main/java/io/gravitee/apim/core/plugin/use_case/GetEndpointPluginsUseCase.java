@@ -28,17 +28,14 @@ public class GetEndpointPluginsUseCase {
     private final PluginFilterByLicenseDomainService licenseChecker;
 
     public GetEndpointPluginsUseCase(
-        EndpointPluginQueryService endpointPluginQueryService,
-        PluginFilterByLicenseDomainService licenseChecker
-    ) {
+            EndpointPluginQueryService endpointPluginQueryService, PluginFilterByLicenseDomainService licenseChecker) {
         this.endpointPluginQueryService = endpointPluginQueryService;
         this.licenseChecker = licenseChecker;
     }
 
     public Output getEndpointPluginsByOrganization(Input input) {
-        return new Output(
-            this.licenseChecker.setPluginDeployedStatusDependingOnLicense(this.endpointPluginQueryService.findAll(), input.organizationId)
-        );
+        return new Output(this.licenseChecker.setPluginDeployedStatusDependingOnLicense(
+                this.endpointPluginQueryService.findAll(), input.organizationId));
     }
 
     public record Input(String organizationId) {}

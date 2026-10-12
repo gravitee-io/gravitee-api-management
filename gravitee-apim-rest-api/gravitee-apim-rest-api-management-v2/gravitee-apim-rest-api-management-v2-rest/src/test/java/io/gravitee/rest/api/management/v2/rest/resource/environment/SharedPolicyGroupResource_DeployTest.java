@@ -74,7 +74,8 @@ public class SharedPolicyGroupResource_DeployTest extends AbstractResourceTest {
     void should_deploy_shared_policy_group() {
         // Given
         var sharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
-        when(deploySharedPolicyGroupUseCase.execute(any())).thenReturn(new DeploySharedPolicyGroupUseCase.Output(sharedPolicyGroup));
+        when(deploySharedPolicyGroupUseCase.execute(any()))
+                .thenReturn(new DeploySharedPolicyGroupUseCase.Output(sharedPolicyGroup));
 
         // When
         var response = rootTarget().request().post(null);
@@ -94,13 +95,17 @@ public class SharedPolicyGroupResource_DeployTest extends AbstractResourceTest {
     @Test
     void should_not_deploy_shared_policy_group_when_not_found() {
         // Given
-        when(deploySharedPolicyGroupUseCase.execute(any())).thenThrow(new SharedPolicyGroupNotFoundException(SHARED_POLICY_GROUP_ID));
+        when(deploySharedPolicyGroupUseCase.execute(any()))
+                .thenThrow(new SharedPolicyGroupNotFoundException(SHARED_POLICY_GROUP_ID));
 
         // When
         var response = rootTarget().request().post(null);
 
         // Then
-        assertThat(response).hasStatus(404).asError().hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
+        assertThat(response)
+                .hasStatus(404)
+                .asError()
+                .hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
         var captor = ArgumentCaptor.forClass(DeploySharedPolicyGroupUseCase.Input.class);
         verify(deploySharedPolicyGroupUseCase).execute(captor.capture());
         SoftAssertions.assertSoftly(soft -> {

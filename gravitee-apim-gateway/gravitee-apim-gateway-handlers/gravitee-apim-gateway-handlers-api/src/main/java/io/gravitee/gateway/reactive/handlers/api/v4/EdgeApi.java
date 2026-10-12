@@ -60,8 +60,11 @@ public class EdgeApi extends AbstractReactableApi<io.gravitee.definition.model.v
     @Override
     public Set<String> getSubscribablePlans() {
         return definition.getPlans() != null
-            ? definition.getPlans().stream().filter(AbstractPlan::isSubscribable).map(AbstractPlan::getId).collect(Collectors.toSet())
-            : Set.of();
+                ? definition.getPlans().stream()
+                        .filter(AbstractPlan::isSubscribable)
+                        .map(AbstractPlan::getId)
+                        .collect(Collectors.toSet())
+                : Set.of();
     }
 
     /**

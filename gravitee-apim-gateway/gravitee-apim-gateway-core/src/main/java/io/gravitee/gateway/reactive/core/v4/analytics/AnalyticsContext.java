@@ -32,7 +32,8 @@ public class AnalyticsContext {
     protected LoggingContext loggingContext;
     protected TracingContext tracingContext;
 
-    public AnalyticsContext(final Analytics analytics, final LoggingContext loggingContext, final TracingContext tracingContext) {
+    public AnalyticsContext(
+            final Analytics analytics, final LoggingContext loggingContext, final TracingContext tracingContext) {
         this.analytics = analytics;
         if (isEnabled()) {
             initLoggingContext(loggingContext);

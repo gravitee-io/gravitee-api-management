@@ -75,10 +75,10 @@ class SubscriptionFormResolutionDomainServiceTest {
 
     private static SubscriptionForm aDedicatedForm(boolean enabled) {
         return SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .id(SubscriptionFormId.random())
-            .name("Dedicated")
-            .enabled(enabled)
-            .apiIds(List.of(API_ID))
-            .build();
+                .id(SubscriptionFormId.random())
+                .name("Dedicated")
+                .enabled(enabled)
+                .apiIds(List.of(API_ID))
+                .build();
     }
 }

@@ -31,7 +31,7 @@ public class DebugMetricsDeserializer extends StdScalarDeserializer<DebugMetrics
 
     @Override
     public DebugMetrics deserialize(JsonParser jp, DeserializationContext deserializationContext)
-        throws IOException, JsonProcessingException {
+            throws IOException, JsonProcessingException {
         JsonNode node = jp.getCodec().readTree(jp);
         DebugMetrics debugMetrics = new DebugMetrics();
         if (node.has("proxyLatencyMs")) {

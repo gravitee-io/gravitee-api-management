@@ -18,7 +18,6 @@ package io.gravitee.apim.infra.query_service.plugin;
 import io.gravitee.apim.core.plugin.model.ConnectorPlugin;
 import io.gravitee.apim.core.plugin.query_service.EndpointPluginQueryService;
 import io.gravitee.apim.infra.adapter.ConnectorPluginAdapter;
-import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,6 +34,8 @@ public class EndpointPluginQueryServiceLegacyWrapper implements EndpointPluginQu
 
     @Override
     public Set<ConnectorPlugin> findAll() {
-        return endpointPluginQueryService.findAll().stream().map(ConnectorPluginAdapter.INSTANCE::map).collect(Collectors.toSet());
+        return endpointPluginQueryService.findAll().stream()
+                .map(ConnectorPluginAdapter.INSTANCE::map)
+                .collect(Collectors.toSet());
     }
 }

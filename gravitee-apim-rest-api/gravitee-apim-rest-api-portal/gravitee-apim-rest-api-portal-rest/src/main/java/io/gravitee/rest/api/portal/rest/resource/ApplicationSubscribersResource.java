@@ -69,12 +69,11 @@ public class ApplicationSubscribersResource extends AbstractResource {
     private ApiAuthorizationService apiAuthorizationService;
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response getSubscriberApisByApplicationId(
-        @BeanParam PaginationParam paginationParam,
-        @PathParam("applicationId") String applicationId,
-        @QueryParam("statuses") List<SubscriptionStatus> statuses
-    ) {
+            @BeanParam PaginationParam paginationParam,
+            @PathParam("applicationId") String applicationId,
+            @QueryParam("statuses") List<SubscriptionStatus> statuses) {
         String currentUser = getAuthenticatedUserOrNull();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (currentUser == null) {
@@ -82,16 +81,12 @@ public class ApplicationSubscribersResource extends AbstractResource {
         }
 
         ApplicationQuery applicationQuery = ApplicationQuery.builder()
-            .ids(Collections.singleton(applicationId))
-            .user(currentUser)
-            .status(ApplicationStatus.ACTIVE.name())
-            .build();
-        Page<ApplicationListItem> userApplications = applicationService.search(
-            executionContext,
-            applicationQuery,
-            null,
-            new PageableImpl(1, 1)
-        );
+                .ids(Collections.singleton(applicationId))
+                .user(currentUser)
+                .status(ApplicationStatus.ACTIVE.name())
+                .build();
+        Page<ApplicationListItem> userApplications =
+                applicationService.search(executionContext, applicationQuery, null, new PageableImpl(1, 1));
 
         if (userApplications != null && userApplications.getContent().size() > 0) {
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
@@ -101,7 +96,8 @@ public class ApplicationSubscribersResource extends AbstractResource {
 
             ApplicationListItem application = userApplications.getContent().get(0);
             if (!application.getPrimaryOwner().getId().equals(currentUser)) {
-                Set<String> userApis = this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, currentUser);
+                Set<String> userApis =
+                        this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, currentUser);
                 if (userApis == null || userApis.isEmpty()) {
                     return createListResponse(executionContext, Collections.emptyList(), paginationParam);
                 }
@@ -110,29 +106,28 @@ public class ApplicationSubscribersResource extends AbstractResource {
 
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(applicationId);
 
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
+            Collection<SubscriptionEntity> subscriptions =
+                    subscriptionService.search(executionContext, subscriptionQuery);
             // TODO: Include API Product on Portal. Use referenceId with api fallback for legacy/e2e compatibility.
-            List<String> apiIds = subscriptions
-                .stream()
-                .filter(sub -> !SubscriptionReferenceType.API_PRODUCT.name().equals(sub.getReferenceType()))
-                .map(sub -> sub.getReferenceId() != null ? sub.getReferenceId() : sub.getApi())
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-            List<Api> subscribersApis = apiIds
-                .stream()
-                .map(apiId -> apiSearchService.findGenericById(executionContext, apiId, false, false, true))
-                .filter(Objects::nonNull)
-                .map(api1 -> apiMapper.convert(executionContext, api1))
-                .peek(api -> {
-                    String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
-                    OffsetDateTime updatedAt = api.getUpdatedAt();
-                    if (updatedAt != null) {
-                        api.setLinks(apiMapper.computeApiLinks(apisURL, Date.from(updatedAt.toInstant())));
-                    }
-                })
-                .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
-                .collect(Collectors.toList());
+            List<String> apiIds = subscriptions.stream()
+                    .filter(sub -> !SubscriptionReferenceType.API_PRODUCT.name().equals(sub.getReferenceType()))
+                    .map(sub -> sub.getReferenceId() != null ? sub.getReferenceId() : sub.getApi())
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            List<Api> subscribersApis = apiIds.stream()
+                    .map(apiId -> apiSearchService.findGenericById(executionContext, apiId, false, false, true))
+                    .filter(Objects::nonNull)
+                    .map(api1 -> apiMapper.convert(executionContext, api1))
+                    .peek(api -> {
+                        String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
+                        OffsetDateTime updatedAt = api.getUpdatedAt();
+                        if (updatedAt != null) {
+                            api.setLinks(apiMapper.computeApiLinks(apisURL, Date.from(updatedAt.toInstant())));
+                        }
+                    })
+                    .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
+                    .collect(Collectors.toList());
 
             return createListResponse(executionContext, subscribersApis, paginationParam);
         }

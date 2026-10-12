@@ -33,7 +33,9 @@ class RedisScriptSupportTest {
         Future<Response> future = RedisScriptSupport.mapTimeout(new TimeoutException("timed out"), 50);
 
         assertThat(future.failed()).isTrue();
-        assertThat(future.cause()).isInstanceOf(RedisOperationTimeoutException.class).hasMessage("Operation on Redis took more than 50ms");
+        assertThat(future.cause())
+                .isInstanceOf(RedisOperationTimeoutException.class)
+                .hasMessage("Operation on Redis took more than 50ms");
     }
 
     @Test
@@ -48,9 +50,14 @@ class RedisScriptSupportTest {
 
     @Test
     void isNoScript_matches_through_the_cause_chain_only() {
-        assertThat(RedisScriptSupport.isNoScript(new RuntimeException("NOSCRIPT No matching script"))).isTrue();
-        assertThat(RedisScriptSupport.isNoScript(new RuntimeException("wrapper", new IllegalStateException("NOSCRIPT x")))).isTrue();
-        assertThat(RedisScriptSupport.isNoScript(new RuntimeException("LOADING dataset"))).isFalse();
-        assertThat(RedisScriptSupport.isNoScript(new RuntimeException((String) null))).isFalse();
+        assertThat(RedisScriptSupport.isNoScript(new RuntimeException("NOSCRIPT No matching script")))
+                .isTrue();
+        assertThat(RedisScriptSupport.isNoScript(
+                        new RuntimeException("wrapper", new IllegalStateException("NOSCRIPT x"))))
+                .isTrue();
+        assertThat(RedisScriptSupport.isNoScript(new RuntimeException("LOADING dataset")))
+                .isFalse();
+        assertThat(RedisScriptSupport.isNoScript(new RuntimeException((String) null)))
+                .isFalse();
     }
 }

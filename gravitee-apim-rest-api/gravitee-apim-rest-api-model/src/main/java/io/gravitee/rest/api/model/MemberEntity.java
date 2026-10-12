@@ -69,9 +69,10 @@ public class MemberEntity {
 
         MemberEntity that = (MemberEntity) o;
 
-        return (
-            id.equals(that.id) && type.equals(that.type) && referenceType.equals(that.referenceType) && referenceId.equals(that.referenceId)
-        );
+        return (id.equals(that.id)
+                && type.equals(that.type)
+                && referenceType.equals(that.referenceType)
+                && referenceId.equals(that.referenceId));
     }
 
     @Override

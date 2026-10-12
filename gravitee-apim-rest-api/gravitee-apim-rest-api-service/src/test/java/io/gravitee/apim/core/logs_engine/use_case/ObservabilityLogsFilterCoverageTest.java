@@ -86,26 +86,25 @@ class ObservabilityLogsFilterCoverageTest {
      * accessible set rather than adding a clause, so with a single API — or a single kind — the filtered and
      * unfiltered queries would be indistinguishable and the coverage assertion would be vacuous.
      */
-    private static final Api OTHER_API = ApiFixtures.aProxyApiV4()
-        .toBuilder()
-        .id("other-api")
-        .type(io.gravitee.definition.model.v4.ApiType.LLM_PROXY)
-        .build();
+    private static final Api OTHER_API = ApiFixtures.aProxyApiV4().toBuilder()
+            .id("other-api")
+            .type(io.gravitee.definition.model.v4.ApiType.LLM_PROXY)
+            .build();
 
-    private static final BaseConnectionLog LOG = new ConnectionLogFixtures(API.getId(), "1", UUID.randomUUID().toString()).aConnectionLog();
+    private static final BaseConnectionLog LOG =
+            new ConnectionLogFixtures(API.getId(), "1", UUID.randomUUID().toString()).aConnectionLog();
 
     /**
      * Catalog names that the logs engine knows under a different spelling. The v2 wire layer aliases them
      * ({@code LogsEngineMapper#mapFilterName}); this test drives the engine directly, so it aliases them too.
      */
     private static final Map<String, FilterName> ENGINE_ALIASES = Map.of(
-        "HTTP_PATH",
-        FilterName.URI,
-        "HTTP_GATEWAY_RESPONSE_TIME",
-        FilterName.RESPONSE_TIME,
-        "MCP_PROXY_METHOD",
-        FilterName.MCP_METHOD
-    );
+            "HTTP_PATH",
+            FilterName.URI,
+            "HTTP_GATEWAY_RESPONSE_TIME",
+            FilterName.RESPONSE_TIME,
+            "MCP_PROXY_METHOD",
+            FilterName.MCP_METHOD);
 
     private final AnalyticsDefinitionYAMLQueryService catalog = new AnalyticsDefinitionYAMLQueryService();
 
@@ -123,27 +122,23 @@ class ObservabilityLogsFilterCoverageTest {
         var instanceQueryService = mock(InstanceQueryService.class);
         var apiProductQueryService = mock(ApiProductQueryService.class);
         useCase = new SearchEnvironmentLogsUseCase(
-            connectionLogsCrudService,
-            userContextLoader,
-            logNamesPostProcessor,
-            planCrudService,
-            applicationCrudService,
-            instanceQueryService,
-            apiProductQueryService
-        );
-        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
-            new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG))
-        );
-        when(userContextLoader.loadApis(any())).thenReturn(
-            new UserContext(
-                AUDIT_INFO,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(List.of(API, OTHER_API))
-            )
-        );
+                connectionLogsCrudService,
+                userContextLoader,
+                logNamesPostProcessor,
+                planCrudService,
+                applicationCrudService,
+                instanceQueryService,
+                apiProductQueryService);
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any()))
+                .thenReturn(new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG)));
+        when(userContextLoader.loadApis(any()))
+                .thenReturn(new UserContext(
+                        AUDIT_INFO,
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of(List.of(API, OTHER_API))));
         when(planCrudService.findByIds(any())).thenReturn(List.of());
         when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
         when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
@@ -153,7 +148,9 @@ class ObservabilityLogsFilterCoverageTest {
     @Test
     void every_logs_filter_in_the_catalog_should_reach_the_search_query() {
         var logsFilters = catalog.getFilters(Set.of(Signal.LOGS));
-        assertThat(logsFilters).as("the catalog must advertise filters for the LOGS signal").isNotEmpty();
+        assertThat(logsFilters)
+                .as("the catalog must advertise filters for the LOGS signal")
+                .isNotEmpty();
 
         var unfiltered = searchWith(List.of());
         var softly = new SoftAssertions();
@@ -161,16 +158,13 @@ class ObservabilityLogsFilterCoverageTest {
         for (FilterSpec spec : logsFilters) {
             for (FilterOperator operator : spec.operators()) {
                 var filter = buildFilter(spec, operator);
-                softly
-                    .assertThat(searchWith(List.of(filter)))
-                    .as(
-                        "Filter %s is advertised for LOGS with operator %s but does not reach the search query. " +
-                            "Either translate it in SearchEnvironmentLogsUseCase, or drop LOGS from its signals in " +
-                            "analytics-definition.yaml.",
-                        spec.name(),
-                        operator
-                    )
-                    .isNotEqualTo(unfiltered);
+                softly.assertThat(searchWith(List.of(filter)))
+                        .as(
+                                "Filter %s is advertised for LOGS with operator %s but does not reach the search query. "
+                                        + "Either translate it in SearchEnvironmentLogsUseCase, or drop LOGS from its signals in "
+                                        + "analytics-definition.yaml.",
+                                spec.name(), operator)
+                        .isNotEqualTo(unfiltered);
             }
         }
 
@@ -179,37 +173,35 @@ class ObservabilityLogsFilterCoverageTest {
 
     @Test
     void the_logs_signal_should_only_carry_filters_the_engine_knows() {
-        var engineNames = java.util.Arrays.stream(FilterName.values()).map(Enum::name).collect(java.util.stream.Collectors.toSet());
+        var engineNames = java.util.Arrays.stream(FilterName.values())
+                .map(Enum::name)
+                .collect(java.util.stream.Collectors.toSet());
 
         assertThat(catalog.getFilters(Set.of(Signal.LOGS)))
-            .as("every LOGS filter must resolve to a logs engine filter name, directly or through an alias")
-            .allSatisfy(spec -> {
-                var name = spec.name().name();
-                assertThat(engineNames.contains(name) || ENGINE_ALIASES.containsKey(name))
-                    .as("%s has no counterpart in the logs engine FilterName", name)
-                    .isTrue();
-            });
+                .as("every LOGS filter must resolve to a logs engine filter name, directly or through an alias")
+                .allSatisfy(spec -> {
+                    var name = spec.name().name();
+                    assertThat(engineNames.contains(name) || ENGINE_ALIASES.containsKey(name))
+                            .as("%s has no counterpart in the logs engine FilterName", name)
+                            .isTrue();
+                });
     }
 
     @Test
     void analytics_only_filters_should_not_be_advertised_on_the_logs_signal() {
         // The set APIM-14817 reported as offered-but-ignored on the logs screen, less TENANT: OBS-37 wired it
         // through to the search rather than dropping it from the screen.
-        assertThat(
-            catalog
-                .getFilters(Set.of(Signal.LOGS))
-                .stream()
-                .map(spec -> spec.name().name())
-        ).doesNotContain(
-            "GATEWAY",
-            "ZONE",
-            "HOST",
-            "HTTP_ENDPOINT_RESPONSE_TIME",
-            "HTTP_GATEWAY_LATENCY",
-            "GEO_IP_COUNTRY",
-            "MESSAGE_SIZE",
-            "EDGE_PROVIDER"
-        );
+        assertThat(catalog.getFilters(Set.of(Signal.LOGS)).stream()
+                        .map(spec -> spec.name().name()))
+                .doesNotContain(
+                        "GATEWAY",
+                        "ZONE",
+                        "HOST",
+                        "HTTP_ENDPOINT_RESPONSE_TIME",
+                        "HTTP_GATEWAY_LATENCY",
+                        "GEO_IP_COUNTRY",
+                        "MESSAGE_SIZE",
+                        "EDGE_PROVIDER");
     }
 
     /**
@@ -241,7 +233,8 @@ class ObservabilityLogsFilterCoverageTest {
         var value = sampleValue(spec);
         return switch (operator) {
             case IN -> new Filter(new ArrayFilter(name, Operator.IN, List.of(value)));
-            case GTE, LTE -> new Filter(new NumericFilter(name, Operator.valueOf(operator.name()), Integer.valueOf(value)));
+            case GTE, LTE ->
+                new Filter(new NumericFilter(name, Operator.valueOf(operator.name()), Integer.valueOf(value)));
             case EQ, CONTAINS -> new Filter(new StringFilter(name, Operator.valueOf(operator.name()), value));
         };
     }

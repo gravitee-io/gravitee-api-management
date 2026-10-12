@@ -40,41 +40,36 @@ public class GetUserApiProductsUseCase {
 
     public Output execute(Input input) {
         var memberships = membershipQueryService.findByMemberIdAndMemberTypeAndReferenceType(
-            input.userId,
-            Membership.Type.USER,
-            Membership.ReferenceType.API_PRODUCT
-        );
+                input.userId, Membership.Type.USER, Membership.ReferenceType.API_PRODUCT);
 
-        Set<String> apiProductIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
+        Set<String> apiProductIds =
+                memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
 
         if (apiProductIds.isEmpty()) {
             return new Output(List.of(), 0);
         }
 
-        var page = apiProductQueryService.searchByIds(apiProductIds, input.environmentId, new PageableImpl(input.page, input.perPage));
+        var page = apiProductQueryService.searchByIds(
+                apiProductIds, input.environmentId, new PageableImpl(input.page, input.perPage));
 
-        Set<String> environmentIds = page
-            .getContent()
-            .stream()
-            .map(ApiProduct::getEnvironmentId)
-            .filter(envId -> envId != null)
-            .collect(Collectors.toSet());
+        Set<String> environmentIds = page.getContent().stream()
+                .map(ApiProduct::getEnvironmentId)
+                .filter(envId -> envId != null)
+                .collect(Collectors.toSet());
         Map<String, String> environmentNames = resolveEnvironmentNames(environmentIds);
 
-        List<UserApiProduct> data = page
-            .getContent()
-            .stream()
-            .map(apiProduct -> {
-                String envId = apiProduct.getEnvironmentId();
-                return UserApiProduct.builder()
-                    .id(apiProduct.getId())
-                    .name(apiProduct.getName())
-                    .version(apiProduct.getVersion())
-                    .environmentId(envId)
-                    .environmentName(envId != null ? environmentNames.get(envId) : null)
-                    .build();
-            })
-            .toList();
+        List<UserApiProduct> data = page.getContent().stream()
+                .map(apiProduct -> {
+                    String envId = apiProduct.getEnvironmentId();
+                    return UserApiProduct.builder()
+                            .id(apiProduct.getId())
+                            .name(apiProduct.getName())
+                            .version(apiProduct.getVersion())
+                            .environmentId(envId)
+                            .environmentName(envId != null ? environmentNames.get(envId) : null)
+                            .build();
+                })
+                .toList();
 
         return new Output(data, page.getTotalElements());
     }

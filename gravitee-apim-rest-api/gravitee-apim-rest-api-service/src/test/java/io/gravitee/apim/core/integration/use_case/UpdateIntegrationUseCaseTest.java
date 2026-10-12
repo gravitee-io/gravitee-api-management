@@ -63,7 +63,8 @@ class UpdateIntegrationUseCaseTest {
     private static final String ENV_ID = "my-env";
     private static final String USER_ID = "my-user";
     private static final String GROUP_ID = "group-id";
-    private static final ZonedDateTime CREATED_DATE = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_DATE =
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENV_ID, USER_ID);
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
@@ -85,12 +86,12 @@ class UpdateIntegrationUseCaseTest {
         var validateGroupDomainService = new ValidateGroupsDomainService(queryServiceInMemory);
 
         usecase = new UpdateIntegrationUseCase(
-            integrationCrudService,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            validateGroupDomainService
-        );
+                integrationCrudService,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                validateGroupDomainService);
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterAll
@@ -105,28 +106,25 @@ class UpdateIntegrationUseCaseTest {
 
     @Test
     void should_update_integration() {
-        //Given
+        // Given
         var updateIntegration = new Input.UpdateFields("updated-integration", "updated-description", null, null);
 
-        //When
+        // When
         var output = usecase.execute(new Input(INTEGRATION_ID, updateIntegration, AUDIT_INFO));
 
-        //Then
+        // Then
         assertThat(output.integration()).isNotNull();
         assertThat(output.integration())
-            .isNotNull()
-            .isEqualTo(
-                new Integration.ApiIntegration(
-                    INTEGRATION_ID,
-                    "updated-integration",
-                    "updated-description",
-                    PROVIDER,
-                    ENV_ID,
-                    CREATED_DATE,
-                    ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
-                    null
-                )
-            );
+                .isNotNull()
+                .isEqualTo(new Integration.ApiIntegration(
+                        INTEGRATION_ID,
+                        "updated-integration",
+                        "updated-description",
+                        PROVIDER,
+                        ENV_ID,
+                        CREATED_DATE,
+                        ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
+                        null));
     }
 
     @Nested
@@ -134,68 +132,66 @@ class UpdateIntegrationUseCaseTest {
 
         @Test
         void should_add_group_to_an_integration() {
-            //Given
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
-            var updateIntegration = new Input.UpdateFields("updated-integration", "updated-description", Set.of("group-id"), null);
+            // Given
+            givenExistingGroup(
+                    List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
+            var updateIntegration =
+                    new Input.UpdateFields("updated-integration", "updated-description", Set.of("group-id"), null);
 
-            //When
+            // When
             var output = usecase.execute(new Input(INTEGRATION_ID, updateIntegration, AUDIT_INFO));
 
-            //Then
+            // Then
             assertThat(output.integration()).isNotNull();
             assertThat(output.integration())
-                .isNotNull()
-                .isEqualTo(
-                    new Integration.ApiIntegration(
-                        INTEGRATION_ID,
-                        "updated-integration",
-                        "updated-description",
-                        PROVIDER,
-                        ENV_ID,
-                        CREATED_DATE,
-                        ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
-                        Set.of(GROUP_ID)
-                    )
-                );
+                    .isNotNull()
+                    .isEqualTo(new Integration.ApiIntegration(
+                            INTEGRATION_ID,
+                            "updated-integration",
+                            "updated-description",
+                            PROVIDER,
+                            ENV_ID,
+                            CREATED_DATE,
+                            ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
+                            Set.of(GROUP_ID)));
         }
 
         @Test
         void should_remove_group_from_an_integration() {
-            //Given
+            // Given
             var apiIntegration = IntegrationFixture.anApiIntegration();
             apiIntegration = IntegrationFixture.withGroups(apiIntegration, Set.of(GROUP_ID));
             integrationCrudServiceInMemory.initWith(List.of(apiIntegration));
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
+            givenExistingGroup(
+                    List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
             var updateIntegration = new Input.UpdateFields("updated-integration", "updated-description", null, null);
 
-            //When
+            // When
             var output = usecase.execute(new Input(INTEGRATION_ID, updateIntegration, AUDIT_INFO));
 
-            //Then
+            // Then
             assertThat(output.integration()).isNotNull();
             assertThat(output.integration())
-                .isNotNull()
-                .isEqualTo(
-                    new Integration.ApiIntegration(
-                        INTEGRATION_ID,
-                        "updated-integration",
-                        "updated-description",
-                        PROVIDER,
-                        ENV_ID,
-                        CREATED_DATE,
-                        ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
-                        null
-                    )
-                );
+                    .isNotNull()
+                    .isEqualTo(new Integration.ApiIntegration(
+                            INTEGRATION_ID,
+                            "updated-integration",
+                            "updated-description",
+                            PROVIDER,
+                            ENV_ID,
+                            CREATED_DATE,
+                            ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
+                            null));
         }
 
         @Test
         void should_throw_an_exception_when_group_not_found() {
-            var updateIntegration = new Input.UpdateFields("updated-integration", "updated-description", Set.of("group-id"), null);
+            var updateIntegration =
+                    new Input.UpdateFields("updated-integration", "updated-description", Set.of("group-id"), null);
 
             assertThatExceptionOfType(IntegrationGroupValidationException.class)
-                .isThrownBy(() -> usecase.execute(new Input(INTEGRATION_ID, updateIntegration, AUDIT_INFO)))
-                .withMessage("Group validation failed during integration integration-id update");
+                    .isThrownBy(() -> usecase.execute(new Input(INTEGRATION_ID, updateIntegration, AUDIT_INFO)))
+                    .withMessage("Group validation failed during integration integration-id update");
         }
     }
 
@@ -204,19 +200,19 @@ class UpdateIntegrationUseCaseTest {
         var updateIntegration = new Input.UpdateFields("updated-integration", "updated-description", null, null);
 
         assertThatExceptionOfType(IntegrationNotFoundException.class)
-            .isThrownBy(() -> usecase.execute(new Input("not-existing-integration", updateIntegration, AUDIT_INFO)))
-            .withMessage("Integration not found.");
+                .isThrownBy(() -> usecase.execute(new Input("not-existing-integration", updateIntegration, AUDIT_INFO)))
+                .withMessage("Integration not found.");
     }
 
     @Test
     void should_throw_when_no_enterprise_license_found() {
         // Given
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anOssLicense());
 
         // When
         var throwable = Assertions.catchThrowable(() ->
-            usecase.execute(new Input(INTEGRATION_ID, new Input.UpdateFields(null, null, null, null), AUDIT_INFO))
-        );
+                usecase.execute(new Input(INTEGRATION_ID, new Input.UpdateFields(null, null, null, null), AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);

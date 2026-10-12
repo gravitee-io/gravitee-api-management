@@ -42,26 +42,24 @@ public class SearchAverageMessagesPerRequestResponseAdapter {
         }
 
         final var globalAverage = new AtomicDouble(0);
-        final var averageMessagesPerRequestPerEntrypoint = entrypointsAggregation
-            .getBuckets()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    jsonNode -> jsonNode.get("key").asText(),
-                    jsonNode -> {
-                        final double docCount = jsonNode.get(AVG_MESSAGES_PER_REQUEST).get("value").asDouble();
-                        globalAverage.addAndGet(docCount);
-                        return docCount;
-                    }
-                )
-            );
+        final var averageMessagesPerRequestPerEntrypoint = entrypointsAggregation.getBuckets().stream()
+                .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> {
+                    final double docCount =
+                            jsonNode.get(AVG_MESSAGES_PER_REQUEST).get("value").asDouble();
+                    globalAverage.addAndGet(docCount);
+                    return docCount;
+                }));
 
-        return Optional.of(
-            buildFromSource(averageMessagesPerRequestPerEntrypoint, globalAverage.get() / averageMessagesPerRequestPerEntrypoint.size())
-        );
+        return Optional.of(buildFromSource(
+                averageMessagesPerRequestPerEntrypoint,
+                globalAverage.get() / averageMessagesPerRequestPerEntrypoint.size()));
     }
 
-    private static AverageAggregate buildFromSource(Map<String, Double> averageMessagesPerRequestPerEntrypoint, double globalAverage) {
-        return AverageAggregate.builder().average(globalAverage).averageBy(averageMessagesPerRequestPerEntrypoint).build();
+    private static AverageAggregate buildFromSource(
+            Map<String, Double> averageMessagesPerRequestPerEntrypoint, double globalAverage) {
+        return AverageAggregate.builder()
+                .average(globalAverage)
+                .averageBy(averageMessagesPerRequestPerEntrypoint)
+                .build();
     }
 }

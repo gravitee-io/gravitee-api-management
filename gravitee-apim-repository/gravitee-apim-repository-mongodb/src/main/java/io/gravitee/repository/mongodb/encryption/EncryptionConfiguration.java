@@ -17,8 +17,6 @@ package io.gravitee.repository.mongodb.encryption;
 
 import com.mongodb.ClientEncryptionSettings;
 import com.mongodb.ErrorCategory;
-import com.mongodb.MongoClientException;
-import com.mongodb.MongoWriteConcernException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.model.vault.DataKeyOptions;
 import com.mongodb.client.vault.ClientEncryption;
@@ -126,7 +124,8 @@ public class EncryptionConfiguration {
     private String getDatabaseName() {
         String uri = environment.getProperty("management.mongodb.uri");
         if (uri != null && !uri.isEmpty()) {
-            // Remove user:password from the URI as it can contain special characters and isn't needed for the database name
+            // Remove user:password from the URI as it can contain special characters and isn't needed for the database
+            // name
             String uriWithoutCredentials = uri.replaceAll("://.*@", "://");
             return URI.create(uriWithoutCredentials).getPath().substring(1);
         }
@@ -141,10 +140,10 @@ public class EncryptionConfiguration {
         Map<String, Map<String, Object>> kmsProviders = loadKmsProvidersFromConfig();
 
         ClientEncryptionSettings.Builder builder = ClientEncryptionSettings.builder()
-            // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
-            .keyVaultNamespace(getDatabaseName() + "." + tablePrefix + keyVaultCollectionName)
-            .keyVaultMongoClientSettings(mongoFactory.buildMongoClientSettings(false))
-            .kmsProviders(kmsProviders);
+                // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
+                .keyVaultNamespace(getDatabaseName() + "." + tablePrefix + keyVaultCollectionName)
+                .keyVaultMongoClientSettings(mongoFactory.buildMongoClientSettings(false))
+                .kmsProviders(kmsProviders);
 
         ClientEncryption clientEncryption = ClientEncryptions.create(builder.build());
 
@@ -161,9 +160,8 @@ public class EncryptionConfiguration {
         if (keyByAltName == null) {
             try {
                 clientEncryption.createDataKey(
-                    KEY_MANAGEMENT_SYSTEM_LOCAL_TYPE,
-                    new DataKeyOptions().keyAltNames(List.of(keyAlternativeName))
-                );
+                        KEY_MANAGEMENT_SYSTEM_LOCAL_TYPE,
+                        new DataKeyOptions().keyAltNames(List.of(keyAlternativeName)));
             } catch (MongoWriteException mwe) {
                 if (ErrorCategory.fromErrorCode(mwe.getError().getCode()) == ErrorCategory.DUPLICATE_KEY) {
                     log.debug("KeyAlternativeName has already been created: {}", keyAlternativeName);
@@ -178,7 +176,8 @@ public class EncryptionConfiguration {
     @Conditional(EncryptionEnabledCondition.class)
     public MongoEncryptionConverter encryptingConverter(ClientEncryption clientEncryption) {
         Encryption<BsonValue, BsonBinary> encryption = MongoClientEncryption.just(clientEncryption);
-        EncryptionKeyResolver keyResolver = EncryptionKeyResolver.annotated(ctx -> EncryptionKey.keyAltName(keyAlternativeName));
+        EncryptionKeyResolver keyResolver =
+                EncryptionKeyResolver.annotated(ctx -> EncryptionKey.keyAltName(keyAlternativeName));
 
         return new MongoEncryptionConverter(encryption, keyResolver);
     }

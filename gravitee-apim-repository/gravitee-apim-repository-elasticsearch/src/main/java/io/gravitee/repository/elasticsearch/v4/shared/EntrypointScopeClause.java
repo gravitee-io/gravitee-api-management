@@ -93,10 +93,9 @@ public final class EntrypointScopeClause {
     }
 
     private static List<String> withoutSyntheticValue(Collection<String> values) {
-        return values
-            .stream()
-            .filter(value -> !ObservabilityEntrypoints.NO_ENTRYPOINT_VALUE.equals(value))
-            .toList();
+        return values.stream()
+                .filter(value -> !ObservabilityEntrypoints.NO_ENTRYPOINT_VALUE.equals(value))
+                .toList();
     }
 
     private static JsonObject withoutEntrypoint() {

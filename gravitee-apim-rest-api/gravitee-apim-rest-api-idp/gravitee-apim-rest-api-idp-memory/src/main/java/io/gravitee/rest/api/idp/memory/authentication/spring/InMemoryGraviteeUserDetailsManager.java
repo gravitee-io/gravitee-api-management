@@ -98,7 +98,8 @@ public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager, U
     }
 
     @Override
-    public UserDetails updatePassword(org.springframework.security.core.userdetails.UserDetails user, String newPassword) {
+    public UserDetails updatePassword(
+            org.springframework.security.core.userdetails.UserDetails user, String newPassword) {
         throw new UnsupportedOperationException();
     }
 
@@ -109,8 +110,9 @@ public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager, U
             throw new UsernameNotFoundException(username);
         }
 
-        //return a copy of the user 'cause spring will erase credentials in the security process
-        UserDetails userDetails = new UserDetails(user.getUsername(), user.getPassword(), user.getEmail(), user.getAuthorities());
+        // return a copy of the user 'cause spring will erase credentials in the security process
+        UserDetails userDetails =
+                new UserDetails(user.getUsername(), user.getPassword(), user.getEmail(), user.getAuthorities());
         userDetails.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
         userDetails.setSourceId(user.getUsername());
         userDetails.setFirstname(user.getFirstname());

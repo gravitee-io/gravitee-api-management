@@ -45,12 +45,9 @@ public class ApiProductPrimaryOwnerFactory {
     private final GroupQueryService groupQueryService;
 
     public PrimaryOwnerEntity createForNewApiProduct(String organizationId, String environmentId, String userId) {
-        var mode = ApiPrimaryOwnerMode.valueOf(
-            parametersQueryService.findAsString(
+        var mode = ApiPrimaryOwnerMode.valueOf(parametersQueryService.findAsString(
                 Key.API_PRODUCT_PRIMARY_OWNER_MODE,
-                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
-            )
-        );
+                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)));
         return switch (mode) {
             case HYBRID, USER -> initUserPrimaryOwner(userId);
             case GROUP -> initWithFirstGroupWhereUserIsPrimaryOwner(userId, organizationId);
@@ -63,37 +60,33 @@ public class ApiProductPrimaryOwnerFactory {
     }
 
     private PrimaryOwnerEntity initWithFirstGroupWhereUserIsPrimaryOwner(String userId, String organizationId) {
-        var userGroupIds = membershipQueryService
-            .findGroupsThatUserBelongsTo(userId)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(Collectors.toSet());
-        var group = groupQueryService
-            .findByIds(userGroupIds)
-            .stream()
-            .filter(g -> g.getApiProductPrimaryOwner() != null && !g.getApiProductPrimaryOwner().isBlank())
-            .findFirst();
+        var userGroupIds = membershipQueryService.findGroupsThatUserBelongsTo(userId).stream()
+                .map(Membership::getReferenceId)
+                .collect(Collectors.toSet());
+        var group = groupQueryService.findByIds(userGroupIds).stream()
+                .filter(g -> g.getApiProductPrimaryOwner() != null
+                        && !g.getApiProductPrimaryOwner().isBlank())
+                .findFirst();
 
-        return group
-            .flatMap(g ->
-                membershipQueryService
-                    .findByReferenceAndRoleId(
-                        Membership.ReferenceType.GROUP,
-                        g.getId(),
-                        getApiProductPrimaryOwnerRole(organizationId).getId()
-                    )
-                    .stream()
-                    .findFirst()
-                    .map(membership -> userCrudService.getBaseUser(membership.getMemberId()))
-                    .map(user -> new PrimaryOwnerEntity(g.getId(), user.getEmail(), g.getName(), PrimaryOwnerEntity.Type.GROUP))
-            )
-            .orElseThrow(() -> new NoPrimaryOwnerGroupForUserException(userId));
+        return group.flatMap(g -> membershipQueryService
+                        .findByReferenceAndRoleId(
+                                Membership.ReferenceType.GROUP,
+                                g.getId(),
+                                getApiProductPrimaryOwnerRole(organizationId).getId())
+                        .stream()
+                        .findFirst()
+                        .map(membership -> userCrudService.getBaseUser(membership.getMemberId()))
+                        .map(user -> new PrimaryOwnerEntity(
+                                g.getId(), user.getEmail(), g.getName(), PrimaryOwnerEntity.Type.GROUP)))
+                .orElseThrow(() -> new NoPrimaryOwnerGroupForUserException(userId));
     }
 
     private Role getApiProductPrimaryOwnerRole(String organizationId) {
         return roleQueryService.getApiProductRole(
-            SystemRole.PRIMARY_OWNER.name(),
-            ReferenceContext.builder().referenceType(ReferenceContext.Type.ORGANIZATION).referenceId(organizationId).build()
-        );
+                SystemRole.PRIMARY_OWNER.name(),
+                ReferenceContext.builder()
+                        .referenceType(ReferenceContext.Type.ORGANIZATION)
+                        .referenceId(organizationId)
+                        .build());
     }
 }

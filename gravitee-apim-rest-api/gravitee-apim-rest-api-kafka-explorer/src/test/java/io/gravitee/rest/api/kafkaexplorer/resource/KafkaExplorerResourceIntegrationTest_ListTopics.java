@@ -47,7 +47,9 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
         var props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(props)) {
-            admin.createTopics(List.of(new NewTopic(TEST_TOPIC, 1, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin.createTopics(List.of(new NewTopic(TEST_TOPIC, 1, (short) 1)))
+                    .all()
+                    .get(10, TimeUnit.SECONDS);
         }
 
         var producerProps = new Properties();
@@ -56,14 +58,16 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
         producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         try (var producer = new KafkaProducer<String, String>(producerProps)) {
             for (int i = 0; i < TEST_MESSAGES_COUNT; i++) {
-                producer.send(new ProducerRecord<>(TEST_TOPIC, "key-" + i, "value-" + i)).get();
+                producer.send(new ProducerRecord<>(TEST_TOPIC, "key-" + i, "value-" + i))
+                        .get();
             }
         }
     }
 
     @Test
     void should_return_200_with_topics() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
 
@@ -78,13 +82,15 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
         assertThat(body.getPagination().getTotalCount()).isGreaterThan(0);
         assertThat(body.getPagination().getPage()).isEqualTo(1);
         assertThat(body.getPagination().getPerPage()).isEqualTo(10);
-        assertThat(body.getPagination().getPageItemsCount()).isEqualTo(body.getData().size());
+        assertThat(body.getPagination().getPageItemsCount())
+                .isEqualTo(body.getData().size());
         assertThat(body.getPagination().getPageCount()).isGreaterThanOrEqualTo(1);
     }
 
     @Test
     void should_return_topics_with_size_and_message_count() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID).nameFilter(TEST_TOPIC);
 
@@ -93,11 +99,9 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
         assertThat(response.getStatus()).isEqualTo(200);
         var body = (ListTopicsResponse) response.getEntity();
         assertThat(body.getData()).isNotEmpty();
-        var testTopic = body
-            .getData()
-            .stream()
-            .filter(t -> TEST_TOPIC.equals(t.getName()))
-            .findFirst();
+        var testTopic = body.getData().stream()
+                .filter(t -> TEST_TOPIC.equals(t.getName()))
+                .findFirst();
         assertThat(testTopic).isPresent();
         assertThat(testTopic.get().getSize()).isNotNull().isGreaterThan(0);
         assertThat(testTopic.get().getMessageCount()).isNotNull().isEqualTo((long) TEST_MESSAGES_COUNT);
@@ -114,7 +118,8 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
 
     @Test
     void should_return_400_when_page_is_less_than_1() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
 
@@ -127,7 +132,8 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
 
     @Test
     void should_return_502_when_broker_unreachable() {
-        givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
 

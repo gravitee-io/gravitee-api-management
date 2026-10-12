@@ -82,17 +82,16 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
     private final ParameterService parameterService;
 
     public ApiWorkflowStateServiceImpl(
-        final AuditService auditService,
-        @Lazy final ApiMetadataService apiMetadataService,
-        final WorkflowService workflowService,
-        @Lazy final RoleService roleService,
-        final UserService userService,
-        final NotifierService notifierService,
-        final MembershipService membershipService,
-        final EmailService emailService,
-        final ApiSearchService apiSearchService,
-        final ParameterService parameterService
-    ) {
+            final AuditService auditService,
+            @Lazy final ApiMetadataService apiMetadataService,
+            final WorkflowService workflowService,
+            @Lazy final RoleService roleService,
+            final UserService userService,
+            final NotifierService notifierService,
+            final MembershipService membershipService,
+            final EmailService emailService,
+            final ApiSearchService apiSearchService,
+            final ParameterService parameterService) {
         this.auditService = auditService;
         this.apiMetadataService = apiMetadataService;
         this.workflowService = workflowService;
@@ -107,79 +106,79 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
 
     @Override
     public GenericApiEntity askForReview(
-        ExecutionContext executionContext,
-        final String apiId,
-        final String userId,
-        final ReviewEntity reviewEntity
-    ) {
+            ExecutionContext executionContext,
+            final String apiId,
+            final String userId,
+            final ReviewEntity reviewEntity) {
         log.debug("Ask for review API {}", apiId);
-        return updateWorkflowReview(executionContext, apiId, userId, ApiHook.ASK_FOR_REVIEW, WorkflowState.IN_REVIEW, reviewEntity);
+        return updateWorkflowReview(
+                executionContext, apiId, userId, ApiHook.ASK_FOR_REVIEW, WorkflowState.IN_REVIEW, reviewEntity);
     }
 
     @Override
     public GenericApiEntity acceptReview(
-        ExecutionContext executionContext,
-        final String apiId,
-        final String userId,
-        final ReviewEntity reviewEntity
-    ) {
+            ExecutionContext executionContext,
+            final String apiId,
+            final String userId,
+            final ReviewEntity reviewEntity) {
         log.debug("Accept review API {}", apiId);
-        return updateWorkflowReview(executionContext, apiId, userId, ApiHook.REVIEW_OK, WorkflowState.REVIEW_OK, reviewEntity);
+        return updateWorkflowReview(
+                executionContext, apiId, userId, ApiHook.REVIEW_OK, WorkflowState.REVIEW_OK, reviewEntity);
     }
 
     @Override
     public GenericApiEntity rejectReview(
-        ExecutionContext executionContext,
-        final String apiId,
-        final String userId,
-        final ReviewEntity reviewEntity
-    ) {
+            ExecutionContext executionContext,
+            final String apiId,
+            final String userId,
+            final ReviewEntity reviewEntity) {
         log.debug("Reject review API {}", apiId);
         return updateWorkflowReview(
-            executionContext,
-            apiId,
-            userId,
-            ApiHook.REQUEST_FOR_CHANGES,
-            WorkflowState.REQUEST_FOR_CHANGES,
-            reviewEntity
-        );
+                executionContext,
+                apiId,
+                userId,
+                ApiHook.REQUEST_FOR_CHANGES,
+                WorkflowState.REQUEST_FOR_CHANGES,
+                reviewEntity);
     }
 
     private GenericApiEntity updateWorkflowReview(
-        ExecutionContext executionContext,
-        final String apiId,
-        final String userId,
-        final ApiHook hook,
-        final WorkflowState workflowState,
-        final ReviewEntity reviewEntity
-    ) {
+            ExecutionContext executionContext,
+            final String apiId,
+            final String userId,
+            final ApiHook hook,
+            final WorkflowState workflowState,
+            final ReviewEntity reviewEntity) {
         final String workflowMessage = reviewEntity == null ? null : reviewEntity.getMessage();
-        Workflow workflow = workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
+        Workflow workflow = workflowService.create(
+                WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
 
         // Get updated API with new workflow state for notification
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+        GenericApiEntity genericApiEntity =
+                apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
         final UserEntity user = userService.findById(executionContext, userId);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, genericApiEntity);
         notifierService.trigger(
-            executionContext,
-            hook,
-            genericApiEntity.getId(),
-            new NotificationParamsBuilder().api(apiWithMetadata).user(user).build()
-        );
+                executionContext,
+                hook,
+                genericApiEntity.getId(),
+                new NotificationParamsBuilder().api(apiWithMetadata).user(user).build());
 
         // Find all reviewers of the API and send them a notification email
         if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
             List<String> reviewersEmail = findAllReviewersEmail(executionContext, genericApiEntity);
             if (reviewersEmail.size() > 0) {
                 this.emailService.sendAsyncEmailNotification(
-                    executionContext,
-                    new EmailNotificationBuilder()
-                        .params(new NotificationParamsBuilder().api(genericApiEntity).user(user).build())
-                        .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
-                        .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
-                        .build()
-                );
+                        executionContext,
+                        new EmailNotificationBuilder()
+                                .params(new NotificationParamsBuilder()
+                                        .api(genericApiEntity)
+                                        .user(user)
+                                        .build())
+                                .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
+                                .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
+                                .build());
             }
         }
 
@@ -201,61 +200,34 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         }
 
         auditService.createApiAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(properties)
-                .event(evtType)
-                .createdAt(new Date())
-                .oldValue(null)
-                .newValue(workflow)
-                .build(),
-            genericApiEntity.getId()
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(evtType)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(workflow)
+                        .build(),
+                genericApiEntity.getId());
         return genericApiEntity;
     }
 
     private List<String> findAllReviewersEmail(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
-        final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
-        final boolean isTrialInstance = parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM);
-        final Predicate<UserEntity> excludeIfTrialAndNotOptedIn = userEntity -> !isTrialInstance || userEntity.optedIn();
+        final RolePermissionAction[] acls = {RolePermissionAction.UPDATE};
+        final boolean isTrialInstance =
+                parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM);
+        final Predicate<UserEntity> excludeIfTrialAndNotOptedIn =
+                userEntity -> !isTrialInstance || userEntity.optedIn();
 
         // find direct members of the API
-        Set<String> reviewerEmails = roleService
-            .findByScope(RoleScope.API, executionContext.getOrganizationId())
-            .stream()
-            .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
-            .flatMap(role ->
-                this.membershipService.getMembershipsByReferenceAndRole(
-                    MembershipReferenceType.API,
-                    genericApiEntity.getId(),
-                    role.getId()
-                ).stream()
-            )
-            .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
-            .map(MembershipEntity::getMemberId)
-            .distinct()
-            .map(id -> this.userService.findById(executionContext, id))
-            .filter(excludeIfTrialAndNotOptedIn)
-            .map(UserEntity::getEmail)
-            .filter(Objects::nonNull)
-            .collect(toSet());
-
-        // find reviewers in group attached to the API
-        final Set<String> groups = genericApiEntity.getGroups();
-        if (groups != null && !groups.isEmpty()) {
-            groups.forEach(group -> {
-                reviewerEmails.addAll(
-                    roleService
-                        .findByScope(RoleScope.API, executionContext.getOrganizationId())
-                        .stream()
-                        .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
-                        .flatMap(role ->
-                            this.membershipService.getMembershipsByReferenceAndRole(
-                                MembershipReferenceType.GROUP,
-                                group,
-                                role.getId()
-                            ).stream()
-                        )
+        Set<String> reviewerEmails =
+                roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()).stream()
+                        .filter(role ->
+                                this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
+                        .flatMap(role -> this.membershipService
+                                .getMembershipsByReferenceAndRole(
+                                        MembershipReferenceType.API, genericApiEntity.getId(), role.getId())
+                                .stream())
                         .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
                         .map(MembershipEntity::getMemberId)
                         .distinct()
@@ -263,8 +235,28 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
                         .filter(excludeIfTrialAndNotOptedIn)
                         .map(UserEntity::getEmail)
                         .filter(Objects::nonNull)
-                        .collect(toSet())
-                );
+                        .collect(toSet());
+
+        // find reviewers in group attached to the API
+        final Set<String> groups = genericApiEntity.getGroups();
+        if (groups != null && !groups.isEmpty()) {
+            groups.forEach(group -> {
+                reviewerEmails.addAll(
+                        roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()).stream()
+                                .filter(role -> this.roleService.hasPermission(
+                                        role.getPermissions(), ApiPermission.REVIEWS, acls))
+                                .flatMap(role -> this.membershipService
+                                        .getMembershipsByReferenceAndRole(
+                                                MembershipReferenceType.GROUP, group, role.getId())
+                                        .stream())
+                                .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
+                                .map(MembershipEntity::getMemberId)
+                                .distinct()
+                                .map(id -> this.userService.findById(executionContext, id))
+                                .filter(excludeIfTrialAndNotOptedIn)
+                                .map(UserEntity::getEmail)
+                                .filter(Objects::nonNull)
+                                .collect(toSet()));
             });
         }
 

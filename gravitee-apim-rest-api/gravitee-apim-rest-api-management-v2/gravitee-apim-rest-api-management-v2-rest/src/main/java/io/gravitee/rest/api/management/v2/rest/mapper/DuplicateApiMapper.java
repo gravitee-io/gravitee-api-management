@@ -19,7 +19,6 @@ import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.v4.api.DuplicateOptions;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -32,14 +31,11 @@ public interface DuplicateApiMapper {
         }
 
         return new DuplicateApiEntity(
-            duplicateApiOptions.getContextPath(),
-            duplicateApiOptions
-                .getFilteredFields()
-                .stream()
-                .map(filteredFieldsEnum -> filteredFieldsEnum.getValue().toLowerCase())
-                .toList(),
-            duplicateApiOptions.getVersion()
-        );
+                duplicateApiOptions.getContextPath(),
+                duplicateApiOptions.getFilteredFields().stream()
+                        .map(filteredFieldsEnum -> filteredFieldsEnum.getValue().toLowerCase())
+                        .toList(),
+                duplicateApiOptions.getVersion());
     }
 
     DuplicateOptions map(DuplicateApiOptions duplicateApiOptions);

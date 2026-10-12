@@ -56,11 +56,16 @@ public class FlowMapper {
         definitionFlow.setId(repositoryFlow.getId());
         definitionFlow.setName(repositoryFlow.getName());
         definitionFlow.setEnabled(repositoryFlow.isEnabled());
-        definitionFlow.setRequest(repositoryFlow.getRequest().stream().map(this::toDefinition).collect(Collectors.toList()));
-        definitionFlow.setResponse(repositoryFlow.getResponse().stream().map(this::toDefinition).collect(Collectors.toList()));
-        definitionFlow.setPublish(repositoryFlow.getPublish().stream().map(this::toDefinition).collect(Collectors.toList()));
-        definitionFlow.setSubscribe(repositoryFlow.getSubscribe().stream().map(this::toDefinition).collect(Collectors.toList()));
-        definitionFlow.setSelectors(repositoryFlow.getSelectors().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setRequest(
+                repositoryFlow.getRequest().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setResponse(
+                repositoryFlow.getResponse().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setPublish(
+                repositoryFlow.getPublish().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setSubscribe(
+                repositoryFlow.getSubscribe().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setSelectors(
+                repositoryFlow.getSelectors().stream().map(this::toDefinition).collect(Collectors.toList()));
         definitionFlow.setTags(repositoryFlow.getTags());
         return definitionFlow;
     }
@@ -73,26 +78,29 @@ public class FlowMapper {
         definitionFlow.setId(repositoryFlow.getId());
         definitionFlow.setName(repositoryFlow.getName());
         definitionFlow.setEnabled(repositoryFlow.isEnabled());
-        definitionFlow.setPublish(repositoryFlow.getPublish().stream().map(this::toDefinition).collect(Collectors.toList()));
-        definitionFlow.setSubscribe(repositoryFlow.getSubscribe().stream().map(this::toDefinition).collect(Collectors.toList()));
-        definitionFlow.setInteract(repositoryFlow.getInteract().stream().map(this::toDefinition).collect(Collectors.toList()));
-        definitionFlow.setEntrypointConnect(
-            repositoryFlow.getEntrypointConnect().stream().map(this::toDefinition).collect(Collectors.toList())
-        );
+        definitionFlow.setPublish(
+                repositoryFlow.getPublish().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setSubscribe(
+                repositoryFlow.getSubscribe().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setInteract(
+                repositoryFlow.getInteract().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setEntrypointConnect(repositoryFlow.getEntrypointConnect().stream()
+                .map(this::toDefinition)
+                .collect(Collectors.toList()));
         definitionFlow.setTags(repositoryFlow.getTags());
         return definitionFlow;
     }
 
     public io.gravitee.repository.management.model.flow.Flow toRepository(
-        final Flow definitionFlow,
-        final FlowReferenceType referenceType,
-        final String referenceId,
-        final int order
-    ) {
+            final Flow definitionFlow,
+            final FlowReferenceType referenceType,
+            final String referenceId,
+            final int order) {
         if (definitionFlow == null) {
             throw new IllegalArgumentException(FLOW_TO_MAP_CANNOT_BE_NULL);
         }
-        io.gravitee.repository.management.model.flow.Flow repositoryFlow = new io.gravitee.repository.management.model.flow.Flow();
+        io.gravitee.repository.management.model.flow.Flow repositoryFlow =
+                new io.gravitee.repository.management.model.flow.Flow();
         repositoryFlow.setId(UuidString.generateRandom());
         repositoryFlow.setName(definitionFlow.getName());
         repositoryFlow.setEnabled(definitionFlow.isEnabled());
@@ -103,19 +111,27 @@ public class FlowMapper {
         repositoryFlow.setReferenceId(referenceId);
 
         if (definitionFlow.getRequest() != null) {
-            repositoryFlow.setRequest(definitionFlow.getRequest().stream().map(this::toRepository).collect(Collectors.toList()));
+            repositoryFlow.setRequest(
+                    definitionFlow.getRequest().stream().map(this::toRepository).collect(Collectors.toList()));
         }
         if (definitionFlow.getResponse() != null) {
-            repositoryFlow.setResponse(definitionFlow.getResponse().stream().map(this::toRepository).collect(Collectors.toList()));
+            repositoryFlow.setResponse(definitionFlow.getResponse().stream()
+                    .map(this::toRepository)
+                    .collect(Collectors.toList()));
         }
         if (definitionFlow.getPublish() != null) {
-            repositoryFlow.setPublish(definitionFlow.getPublish().stream().map(this::toRepository).collect(Collectors.toList()));
+            repositoryFlow.setPublish(
+                    definitionFlow.getPublish().stream().map(this::toRepository).collect(Collectors.toList()));
         }
         if (definitionFlow.getSubscribe() != null) {
-            repositoryFlow.setSubscribe(definitionFlow.getSubscribe().stream().map(this::toRepository).collect(Collectors.toList()));
+            repositoryFlow.setSubscribe(definitionFlow.getSubscribe().stream()
+                    .map(this::toRepository)
+                    .collect(Collectors.toList()));
         }
         if (definitionFlow.getSelectors() != null) {
-            repositoryFlow.setSelectors(definitionFlow.getSelectors().stream().map(this::toRepository).collect(Collectors.toList()));
+            repositoryFlow.setSelectors(definitionFlow.getSelectors().stream()
+                    .map(this::toRepository)
+                    .collect(Collectors.toList()));
         }
         repositoryFlow.setTags(definitionFlow.getTags() != null ? definitionFlow.getTags() : Set.of());
 
@@ -155,21 +171,19 @@ public class FlowMapper {
             if (definitionHttpSelector.getPathOperator() == null) {
                 throw new InvalidDataException("flows[].selectors[].pathOperator is required");
             }
-            repositoryFlowHttpSelector.setPathOperator(FlowOperator.valueOf(definitionHttpSelector.getPathOperator().name()));
+            repositoryFlowHttpSelector.setPathOperator(FlowOperator.valueOf(
+                    definitionHttpSelector.getPathOperator().name()));
             return repositoryFlowHttpSelector;
         } else if (definitionSelector instanceof ChannelSelector) {
             ChannelSelector definitionChannelSelector = (ChannelSelector) definitionSelector;
             FlowChannelSelector repositoryFlowChannelSelector = new FlowChannelSelector();
             repositoryFlowChannelSelector.setChannel(definitionChannelSelector.getChannel());
-            repositoryFlowChannelSelector.setChannelOperator(FlowOperator.valueOf(definitionChannelSelector.getChannelOperator().name()));
+            repositoryFlowChannelSelector.setChannelOperator(FlowOperator.valueOf(
+                    definitionChannelSelector.getChannelOperator().name()));
             if (definitionChannelSelector.getOperations() != null) {
-                repositoryFlowChannelSelector.setOperations(
-                    definitionChannelSelector
-                        .getOperations()
-                        .stream()
+                repositoryFlowChannelSelector.setOperations(definitionChannelSelector.getOperations().stream()
                         .map(operation -> FlowChannelSelector.Operation.valueOf(operation.name()))
-                        .collect(Collectors.toSet())
-                );
+                        .collect(Collectors.toSet()));
             }
             repositoryFlowChannelSelector.setEntrypoints(definitionChannelSelector.getEntrypoints());
             return repositoryFlowChannelSelector;
@@ -194,24 +208,21 @@ public class FlowMapper {
             definitionHttpSelector.setMethods(repositoryFlowHttpSelector.getMethods());
             definitionHttpSelector.setPath(repositoryFlowHttpSelector.getPath());
             definitionHttpSelector.setPathOperator(
-                repositoryFlowHttpSelector.getPathOperator() == null
-                    ? Operator.STARTS_WITH
-                    : Operator.valueOf(repositoryFlowHttpSelector.getPathOperator().name())
-            );
+                    repositoryFlowHttpSelector.getPathOperator() == null
+                            ? Operator.STARTS_WITH
+                            : Operator.valueOf(
+                                    repositoryFlowHttpSelector.getPathOperator().name()));
             return definitionHttpSelector;
         } else if (repositoryFlowSelector instanceof FlowChannelSelector) {
             FlowChannelSelector repositoryFlowChannelSelector = (FlowChannelSelector) repositoryFlowSelector;
             ChannelSelector definitionChannelSelector = new ChannelSelector();
             definitionChannelSelector.setChannel(repositoryFlowChannelSelector.getChannel());
-            definitionChannelSelector.setChannelOperator(Operator.valueOf(repositoryFlowChannelSelector.getChannelOperator().name()));
+            definitionChannelSelector.setChannelOperator(Operator.valueOf(
+                    repositoryFlowChannelSelector.getChannelOperator().name()));
             if (repositoryFlowChannelSelector.getOperations() != null) {
-                definitionChannelSelector.setOperations(
-                    repositoryFlowChannelSelector
-                        .getOperations()
-                        .stream()
+                definitionChannelSelector.setOperations(repositoryFlowChannelSelector.getOperations().stream()
                         .map(operation -> ChannelSelector.Operation.valueOf(operation.name()))
-                        .collect(Collectors.toSet())
-                );
+                        .collect(Collectors.toSet()));
             }
             definitionChannelSelector.setEntrypoints(repositoryFlowChannelSelector.getEntrypoints());
             return definitionChannelSelector;

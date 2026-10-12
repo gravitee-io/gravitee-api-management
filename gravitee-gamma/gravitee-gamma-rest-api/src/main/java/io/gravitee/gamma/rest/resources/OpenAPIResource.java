@@ -44,7 +44,9 @@ public class OpenAPIResource {
     public Response redirectToDomain(@PathParam("domain") String domain, @Context UriInfo uriInfo) {
         validateSegment(domain);
         URI redirectUri = uriInfo.getAbsolutePathBuilder().path("/").build();
-        return Response.status(Response.Status.MOVED_PERMANENTLY).location(redirectUri).build();
+        return Response.status(Response.Status.MOVED_PERMANENTLY)
+                .location(redirectUri)
+                .build();
     }
 
     @GET

@@ -55,13 +55,16 @@ public class FlowsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the global flow configuration of the organization")
     @ApiResponse(
-        responseCode = "200",
-        description = "Platform flows configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = OrganizationFlowConfiguration.class))
-    )
+            responseCode = "200",
+            description = "Platform flows configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = OrganizationFlowConfiguration.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response hasPolicies() {
-        boolean hasPlatformPolicies = !organizationService.findById(orgId).getFlows().isEmpty();
+        boolean hasPlatformPolicies =
+                !organizationService.findById(orgId).getFlows().isEmpty();
 
         OrganizationFlowConfiguration flowConfiguration = new OrganizationFlowConfiguration();
         flowConfiguration.setHasPolicies(hasPlatformPolicies);
@@ -80,6 +83,7 @@ public class FlowsResource extends AbstractResource {
     @Path("flow-schema")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPlatformFlowSchemaForm() {
-        return Response.ok(flowService.getPlatformFlowSchemaForm(GraviteeContext.getExecutionContext())).build();
+        return Response.ok(flowService.getPlatformFlowSchemaForm(GraviteeContext.getExecutionContext()))
+                .build();
     }
 }

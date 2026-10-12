@@ -42,33 +42,25 @@ public class AuthoritiesProvider {
     public Set<GrantedAuthority> retrieveAuthorities(String userId) {
         final String currentEnvironment = GraviteeContext.getCurrentEnvironment();
         return this.retrieveAuthorities(
-            userId,
-            GraviteeContext.getCurrentOrganization(),
-            currentEnvironment == null ? GraviteeContext.getDefaultEnvironment() : currentEnvironment
-        );
+                userId,
+                GraviteeContext.getCurrentOrganization(),
+                currentEnvironment == null ? GraviteeContext.getDefaultEnvironment() : currentEnvironment);
     }
 
     public Set<GrantedAuthority> retrieveAuthorities(String userId, String organizationId, String environmentId) {
         final Set<GrantedAuthority> authorities = new HashSet<>();
 
         final Set<RoleEntity> roles = membershipService.getRoles(
-            MembershipReferenceType.PLATFORM,
-            "DEFAULT",
-            MembershipMemberType.USER,
-            userId
-        );
-        roles.addAll(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, organizationId, MembershipMemberType.USER, userId));
-        roles.addAll(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, environmentId, MembershipMemberType.USER, userId));
+                MembershipReferenceType.PLATFORM, "DEFAULT", MembershipMemberType.USER, userId);
+        roles.addAll(membershipService.getRoles(
+                MembershipReferenceType.ORGANIZATION, organizationId, MembershipMemberType.USER, userId));
+        roles.addAll(membershipService.getRoles(
+                MembershipReferenceType.ENVIRONMENT, environmentId, MembershipMemberType.USER, userId));
 
         if (!roles.isEmpty()) {
-            authorities.addAll(
-                commaSeparatedStringToAuthorityList(
-                    roles
-                        .stream()
-                        .map(r -> r.getScope().name() + ':' + r.getName())
-                        .collect(Collectors.joining(","))
-                )
-            );
+            authorities.addAll(commaSeparatedStringToAuthorityList(roles.stream()
+                    .map(r -> r.getScope().name() + ':' + r.getName())
+                    .collect(Collectors.joining(","))));
         }
 
         return authorities;

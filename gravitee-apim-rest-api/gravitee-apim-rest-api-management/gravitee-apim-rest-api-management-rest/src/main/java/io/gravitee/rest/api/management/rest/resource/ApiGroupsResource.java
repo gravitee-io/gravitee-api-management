@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,22 +47,22 @@ public class ApiGroupsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get API groups mapped to members",
-        description = "User must have the MANAGE_MEMBERS permission to use this service"
-    )
-    @ApiResponses(
-        {
-            @ApiResponse(
+            summary = "Get API groups mapped to members",
+            description = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses({
+        @ApiResponse(
                 responseCode = "200",
                 description = "API groups with members",
-                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiGroupsWithMembersMap.class))
-            ),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error"),
-        }
-    )
-    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ) })
+                content =
+                        @Content(
+                                mediaType = MediaType.APPLICATION_JSON,
+                                schema = @Schema(implementation = ApiGroupsWithMembersMap.class))),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error"),
+    })
+    @Permissions({@Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ)})
     public ApiGroupsWithMembersMap getApiGroupsWithMembers() {
-        return new ApiGroupsWithMembersMap(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId));
+        return new ApiGroupsWithMembersMap(
+                apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId));
     }
 }

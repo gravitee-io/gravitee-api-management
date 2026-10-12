@@ -52,13 +52,13 @@ class LoggingUtilsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "application/json", "foo/bar" })
+    @ValueSource(strings = {"application/json", "foo/bar"})
     void shouldLogImageByDefault(String input) {
         assertThat(LoggingUtils.isContentTypeLoggable(input, executionContext)).isTrue();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "image/png", "audio/ogg", "video/ogg", "application/pdf" })
+    @ValueSource(strings = {"image/png", "audio/ogg", "video/ogg", "application/pdf"})
     void shouldNotLogImageByDefault(String input) {
         assertThat(LoggingUtils.isContentTypeLoggable(input, executionContext)).isFalse();
     }
@@ -67,7 +67,8 @@ class LoggingUtilsTest {
     void shouldNotLogCustom() {
         when(loggingContext.getExcludedResponseTypes()).thenReturn("foo/bar");
         when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(loggingContext);
-        assertThat(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext)).isFalse();
+        assertThat(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext))
+                .isFalse();
     }
 
     @Test
@@ -164,7 +165,8 @@ class LoggingUtilsTest {
 
     @Test
     void shouldReturnInfiniteMaxSizeLogMessageWhenExceptionOccurs() {
-        when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenThrow(new RuntimeException("Mock Exception"));
+        when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE))
+                .thenThrow(new RuntimeException("Mock Exception"));
         assertThat(LoggingUtils.getMaxSizeLogMessage(executionContext)).isEqualTo(-1);
     }
 }

@@ -62,23 +62,17 @@ class PageMongoRepositoryImplTest {
         // Then
         verify(mongoTemplate).upsert(queryCaptor.capture(), updateCaptor.capture(), eq(PageMongo.class));
 
-        JsonNode jsonQuery = MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery).isEqualTo(
-            MAPPER.readTree(
-                """
+        JsonNode jsonQuery =
+                MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
+        assertThat(jsonQuery).isEqualTo(MAPPER.readTree("""
                 {"_id":{"$in":["id1","id2","id3"]}}
-                """
-            )
-        );
+                """));
 
-        JsonNode jsonUpd = MAPPER.readTree(updateCaptor.getValue().getUpdateObject().toJson());
-        assertThat(jsonUpd).isEqualTo(
-            MAPPER.readTree(
-                """
+        JsonNode jsonUpd =
+                MAPPER.readTree(updateCaptor.getValue().getUpdateObject().toJson());
+        assertThat(jsonUpd).isEqualTo(MAPPER.readTree("""
                 {"$set":{"homepage":false}}
-                """
-            )
-        );
+                """));
     }
 
     @Test
@@ -87,19 +81,19 @@ class PageMongoRepositoryImplTest {
         PageMongoRepositoryImpl repository = buildRepository();
         when(mongoTemplate.find(any(Query.class), eq(PageMongo.class))).thenReturn(Collections.emptyList());
 
-        PageCriteria criteria = new PageCriteria.Builder().referenceType("API").accessControlGroupId("my-group").build();
+        PageCriteria criteria = new PageCriteria.Builder()
+                .referenceType("API")
+                .accessControlGroupId("my-group")
+                .build();
         repository.search(criteria);
 
         verify(mongoTemplate).find(queryCaptor.capture(), eq(PageMongo.class));
 
-        JsonNode jsonQuery = MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery).isEqualTo(
-            MAPPER.readTree(
-                """
+        JsonNode jsonQuery =
+                MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
+        assertThat(jsonQuery).isEqualTo(MAPPER.readTree("""
                 {"referenceType":"API","accessControls":{"$elemMatch":{"$and":[{"referenceId":"my-group"},{"referenceType":"GROUP"}]}}}
-                """
-            )
-        );
+                """));
     }
 
     @SneakyThrows

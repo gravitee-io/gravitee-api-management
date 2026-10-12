@@ -60,11 +60,7 @@ public class ApiProductTagDomainService {
 
     private void validateTags(AuditInfo auditInfo, Set<String> existingTags, Set<String> newTags) {
         apiProductTagsValidationDomainService.validateAndSanitize(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            existingTags,
-            newTags
-        );
+                auditInfo.organizationId(), auditInfo.environmentId(), existingTags, newTags);
     }
 
     /**
@@ -95,18 +91,19 @@ public class ApiProductTagDomainService {
     }
 
     private void removeTagFromProductPlans(String productId, String tagKey) {
-        var plans = planQueryService.findAllByReferenceIdAndReferenceType(productId, GenericPlanEntity.ReferenceType.API_PRODUCT);
+        var plans = planQueryService.findAllByReferenceIdAndReferenceType(
+                productId, GenericPlanEntity.ReferenceType.API_PRODUCT);
 
         for (var plan : plans) {
             var planDef = plan.getPlanDefinitionHttpV4();
-            if (planDef == null || planDef.getTags() == null || !planDef.getTags().contains(tagKey)) {
+            if (planDef == null
+                    || planDef.getTags() == null
+                    || !planDef.getTags().contains(tagKey)) {
                 continue;
             }
-            Set<String> updatedTags = planDef
-                .getTags()
-                .stream()
-                .filter(tagToRemove -> !tagToRemove.equals(tagKey))
-                .collect(Collectors.toSet());
+            Set<String> updatedTags = planDef.getTags().stream()
+                    .filter(tagToRemove -> !tagToRemove.equals(tagKey))
+                    .collect(Collectors.toSet());
             log.info("Removing deleted tag [{}] from plan [{}] of API Product [{}]", tagKey, plan.getId(), productId);
             planDef.setTags(updatedTags.isEmpty() ? null : updatedTags);
             planCrudService.update(plan);

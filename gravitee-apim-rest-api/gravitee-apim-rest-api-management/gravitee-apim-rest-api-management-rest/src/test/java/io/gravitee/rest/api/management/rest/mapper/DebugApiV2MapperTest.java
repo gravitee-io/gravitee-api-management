@@ -26,9 +26,11 @@ class DebugApiMapperTest {
 
     @Test
     void test() {
-        DebugApiV2 debugApi = DebugApiMapper.INSTANCE.fromEntity(
-            DebugApiEntity.builder().id("api-id").name("api-name").plans(Set.of()).build()
-        );
+        DebugApiV2 debugApi = DebugApiMapper.INSTANCE.fromEntity(DebugApiEntity.builder()
+                .id("api-id")
+                .name("api-name")
+                .plans(Set.of())
+                .build());
         assertThat(debugApi).isNotNull();
         assertThat(debugApi.getId()).isEqualTo("api-id");
         assertThat(debugApi.getName()).isEqualTo("api-name");

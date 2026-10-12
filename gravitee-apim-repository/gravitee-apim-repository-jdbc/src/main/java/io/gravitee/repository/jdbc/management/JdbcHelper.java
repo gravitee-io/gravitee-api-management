@@ -70,12 +70,11 @@ public class JdbcHelper {
     }
 
     static boolean addCondition(
-        final boolean first,
-        final StringBuilder builder,
-        final String propName,
-        final Object propVal,
-        final List<Object> args
-    ) {
+            final boolean first,
+            final StringBuilder builder,
+            final String propName,
+            final Object propVal,
+            final List<Object> args) {
         if (!first) {
             builder.append(" or ");
         }
@@ -91,12 +90,11 @@ public class JdbcHelper {
     }
 
     static boolean addStringsWhereClause(
-        final Collection<String> collection,
-        final String columnName,
-        final List<Object> argsList,
-        final StringBuilder builder,
-        boolean started
-    ) {
+            final Collection<String> collection,
+            final String columnName,
+            final List<Object> argsList,
+            final StringBuilder builder,
+            boolean started) {
         if (!isEmpty(collection)) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("( ");

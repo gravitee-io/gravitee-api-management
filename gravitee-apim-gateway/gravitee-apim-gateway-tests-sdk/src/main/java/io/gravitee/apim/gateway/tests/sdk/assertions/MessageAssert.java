@@ -45,7 +45,8 @@ public class MessageAssert extends AbstractAssert<MessageAssert, Message> {
     public MessageAssert hasCorrelationId(String correlationId) {
         isNotNull();
 
-        return hasNullableProperties(actual.correlationId(), correlationId, "\nExpecting CorrelationId to be:\n  <%s>\nbut was:\n  <%s>");
+        return hasNullableProperties(
+                actual.correlationId(), correlationId, "\nExpecting CorrelationId to be:\n  <%s>\nbut was:\n  <%s>");
     }
 
     public MessageAssert hasId(String id) {
@@ -56,14 +57,12 @@ public class MessageAssert extends AbstractAssert<MessageAssert, Message> {
 
     public MessageAssert hasHeaders(Map<String, Object> expectedHeaders) {
         var actualHeaders = new HashMap<String, Object>();
-        actual
-            .headers()
-            .iterator()
-            .forEachRemaining(h -> actualHeaders.put(h.getKey(), h.getValue()));
+        actual.headers().iterator().forEachRemaining(h -> actualHeaders.put(h.getKey(), h.getValue()));
 
         Assertions.assertThat(actualHeaders)
-            .describedAs("\nExpecting headers to contains:\n  <%s>\nbut was:\n  <%s>", expectedHeaders, actualHeaders)
-            .containsAllEntriesOf(expectedHeaders);
+                .describedAs(
+                        "\nExpecting headers to contains:\n  <%s>\nbut was:\n  <%s>", expectedHeaders, actualHeaders)
+                .containsAllEntriesOf(expectedHeaders);
         return this;
     }
 
@@ -71,8 +70,9 @@ public class MessageAssert extends AbstractAssert<MessageAssert, Message> {
         var actualMetadata = actual.metadata();
 
         Assertions.assertThat(actual.metadata())
-            .describedAs("\nExpecting metadata to contains:\n  <%s>\nbut was:\n  <%s>", expectedMetadata, actualMetadata)
-            .containsAllEntriesOf(expectedMetadata);
+                .describedAs(
+                        "\nExpecting metadata to contains:\n  <%s>\nbut was:\n  <%s>", expectedMetadata, actualMetadata)
+                .containsAllEntriesOf(expectedMetadata);
         return this;
     }
 
@@ -80,12 +80,10 @@ public class MessageAssert extends AbstractAssert<MessageAssert, Message> {
         var actualMetadata = actual.metadata();
 
         Assertions.assertThat(actual.metadata())
-            .describedAs(
-                "\nExpecting metadata to contains only the keys:\n  <%s>\nbut was:\n  <%s>",
-                expectedMetadataKey,
-                actualMetadata.keySet()
-            )
-            .containsOnlyKeys(expectedMetadataKey);
+                .describedAs(
+                        "\nExpecting metadata to contains only the keys:\n  <%s>\nbut was:\n  <%s>",
+                        expectedMetadataKey, actualMetadata.keySet())
+                .containsOnlyKeys(expectedMetadataKey);
         return this;
     }
 

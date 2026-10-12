@@ -62,31 +62,26 @@ class PlanSearchQueryServiceImplTest {
     @Test
     void findByPlanIdAndReferenceIdAndReferenceType_should_map_repository_plan() throws Exception {
         var repositoryPlan = io.gravitee.repository.management.model.Plan.builder()
-            .id("plan-1")
-            .name("Gold")
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.PROXY)
-            .mode(io.gravitee.repository.management.model.Plan.PlanMode.STANDARD)
-            .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .securityDefinition("{\"x\":1}")
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            .build();
+                .id("plan-1")
+                .name("Gold")
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.PROXY)
+                .mode(io.gravitee.repository.management.model.Plan.PlanMode.STANDARD)
+                .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .securityDefinition("{\"x\":1}")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
+                .build();
 
-        when(
-            planRepository.findByIdAndReferenceIdAndReferenceType(
-                eq("plan-1"),
-                eq(API_PRODUCT_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            )
-        ).thenReturn(Optional.of(repositoryPlan));
+        when(planRepository.findByIdAndReferenceIdAndReferenceType(
+                        eq("plan-1"),
+                        eq(API_PRODUCT_ID),
+                        eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)))
+                .thenReturn(Optional.of(repositoryPlan));
 
         Plan result = service.findByPlanIdAndReferenceIdAndReferenceType(
-            "plan-1",
-            API_PRODUCT_ID,
-            GenericPlanEntity.ReferenceType.API_PRODUCT
-        );
+                "plan-1", API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT);
 
         assertThat(result.getId()).isEqualTo("plan-1");
         assertThat(result.getName()).isEqualTo("Gold");
@@ -94,96 +89,91 @@ class PlanSearchQueryServiceImplTest {
 
     @Test
     void findByPlanIdAndReferenceIdAndReferenceType_should_throw_when_missing() throws Exception {
-        when(
-            planRepository.findByIdAndReferenceIdAndReferenceType(
-                eq("plan-404"),
-                eq(API_PRODUCT_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            )
-        ).thenReturn(Optional.empty());
+        when(planRepository.findByIdAndReferenceIdAndReferenceType(
+                        eq("plan-404"),
+                        eq(API_PRODUCT_ID),
+                        eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)))
+                .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-            service.findByPlanIdAndReferenceIdAndReferenceType("plan-404", API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT)
-        ).isInstanceOf(PlanNotFoundException.class);
+        assertThatThrownBy(() -> service.findByPlanIdAndReferenceIdAndReferenceType(
+                        "plan-404", API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT))
+                .isInstanceOf(PlanNotFoundException.class);
     }
 
     @Test
     void searchPlans_should_filter_by_name_security_status_and_mode() throws Exception {
         // matches all filters
         var plan1 = io.gravitee.repository.management.model.Plan.builder()
-            .id("p1")
-            .name("Gold")
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.PROXY)
-            .mode(io.gravitee.repository.management.model.Plan.PlanMode.STANDARD)
-            .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .securityDefinition("{\"x\":1}")
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            .build();
+                .id("p1")
+                .name("Gold")
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.PROXY)
+                .mode(io.gravitee.repository.management.model.Plan.PlanMode.STANDARD)
+                .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .securityDefinition("{\"x\":1}")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
+                .build();
 
         // filtered by name
         var plan2 = io.gravitee.repository.management.model.Plan.builder()
-            .id("p2")
-            .name("Silver")
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.PROXY)
-            .mode(io.gravitee.repository.management.model.Plan.PlanMode.STANDARD)
-            .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .securityDefinition("{\"x\":1}")
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            .build();
+                .id("p2")
+                .name("Silver")
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.PROXY)
+                .mode(io.gravitee.repository.management.model.Plan.PlanMode.STANDARD)
+                .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .securityDefinition("{\"x\":1}")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
+                .build();
 
         // mode PUSH => PlanSecurity becomes null via adapter => filtered out by securityType check
         var plan3 = io.gravitee.repository.management.model.Plan.builder()
-            .id("p3")
-            .name("Gold")
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.PROXY)
-            .mode(io.gravitee.repository.management.model.Plan.PlanMode.PUSH)
-            .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .securityDefinition("{\"x\":1}")
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            .build();
+                .id("p3")
+                .name("Gold")
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.PROXY)
+                .mode(io.gravitee.repository.management.model.Plan.PlanMode.PUSH)
+                .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .securityDefinition("{\"x\":1}")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
+                .build();
 
-        when(
-            planRepository.findByReferenceIdAndReferenceType(
-                eq(API_PRODUCT_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            )
-        ).thenReturn(Set.of(plan1, plan2, plan3));
+        when(planRepository.findByReferenceIdAndReferenceType(
+                        eq(API_PRODUCT_ID),
+                        eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)))
+                .thenReturn(Set.of(plan1, plan2, plan3));
 
         var query = PlanQuery.builder()
-            .referenceId(API_PRODUCT_ID)
-            .name("Gold")
-            .securityType(List.of(PlanSecurityType.API_KEY))
-            .status(List.of(PlanStatus.PUBLISHED))
-            .mode(PlanMode.STANDARD)
-            .build();
+                .referenceId(API_PRODUCT_ID)
+                .name("Gold")
+                .securityType(List.of(PlanSecurityType.API_KEY))
+                .status(List.of(PlanStatus.PUBLISHED))
+                .mode(PlanMode.STANDARD)
+                .build();
 
-        var result = service.searchPlans(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, query, "user", true);
+        var result =
+                service.searchPlans(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, query, "user", true);
 
         assertThat(result).extracting(Plan::getId).containsExactly("p1");
     }
 
     @Test
     void searchPlans_should_wrap_repository_exception() throws Exception {
-        when(
-            planRepository.findByReferenceIdAndReferenceType(
-                eq(API_PRODUCT_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            )
-        ).thenThrow(new TechnicalException("boom"));
+        when(planRepository.findByReferenceIdAndReferenceType(
+                        eq(API_PRODUCT_ID),
+                        eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)))
+                .thenThrow(new TechnicalException("boom"));
 
         var query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
 
-        assertThatThrownBy(() ->
-            service.searchPlans(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, query, "user", true)
-        ).isInstanceOf(TechnicalManagementException.class);
+        assertThatThrownBy(() -> service.searchPlans(
+                        API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, query, "user", true))
+                .isInstanceOf(TechnicalManagementException.class);
     }
 }

@@ -34,7 +34,8 @@ public class OpenApiPortalPageContentConfigurationUpgrader implements Upgrader {
 
     private final PortalPageContentRepository portalPageContentRepository;
 
-    public OpenApiPortalPageContentConfigurationUpgrader(@Lazy PortalPageContentRepository portalPageContentRepository) {
+    public OpenApiPortalPageContentConfigurationUpgrader(
+            @Lazy PortalPageContentRepository portalPageContentRepository) {
         this.portalPageContentRepository = portalPageContentRepository;
     }
 
@@ -62,7 +63,10 @@ public class OpenApiPortalPageContentConfigurationUpgrader implements Upgrader {
             updated++;
         }
 
-        log.info("OpenAPI portal page content configuration upgrader completed. Updated {}/{} contents.", updated, openApiContents.size());
+        log.info(
+                "OpenAPI portal page content configuration upgrader completed. Updated {}/{} contents.",
+                updated,
+                openApiContents.size());
         return true;
     }
 

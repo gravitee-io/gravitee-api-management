@@ -49,35 +49,35 @@ public class ApiMapper {
         this.apiKeyMapper = apiKeyMapper;
 
         parsers = List.of(
-            payload -> parseAndAssert(payload, Api.class, reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V2),
-            payload ->
-                parseAndAssert(
-                    payload,
-                    io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
-                    reactableApi ->
-                        reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
-                        (((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.PROXY ||
-                            ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.LLM_PROXY ||
-                            ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MCP_PROXY ||
-                            ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MESSAGE)
-                ),
-            payload ->
-                parseAndAssert(
-                    payload,
-                    io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
-                    reactableApi ->
-                        reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
-                        ((NativeApi) reactableApi.getDefinition()).getType() == ApiType.NATIVE
-                ),
-            payload ->
-                parseAndAssert(
-                    payload,
-                    io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi.class,
-                    reactableApi ->
-                        reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
-                        ((EdgeApi) reactableApi.getDefinition()).getType() == ApiType.EDGE
-                )
-        );
+                payload -> parseAndAssert(
+                        payload,
+                        Api.class,
+                        reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V2),
+                payload -> parseAndAssert(
+                        payload,
+                        io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
+                        reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V4
+                                && (((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType()
+                                                == ApiType.PROXY
+                                        || ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition())
+                                                        .getType()
+                                                == ApiType.LLM_PROXY
+                                        || ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition())
+                                                        .getType()
+                                                == ApiType.MCP_PROXY
+                                        || ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition())
+                                                        .getType()
+                                                == ApiType.MESSAGE)),
+                payload -> parseAndAssert(
+                        payload,
+                        io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
+                        reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V4
+                                && ((NativeApi) reactableApi.getDefinition()).getType() == ApiType.NATIVE),
+                payload -> parseAndAssert(
+                        payload,
+                        io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi.class,
+                        reactableApi -> reactableApi.getDefinitionVersion() == DefinitionVersion.V4
+                                && ((EdgeApi) reactableApi.getDefinition()).getType() == ApiType.EDGE));
     }
 
     public Maybe<ApiReactorDeployable> to(final DistributedEvent event) {
@@ -86,10 +86,10 @@ public class ApiMapper {
                 ReactableApi<?> reactableApi = toReactable(event.getPayload());
 
                 return ApiReactorDeployable.builder()
-                    .apiId(event.getId())
-                    .reactableApi(reactableApi)
-                    .syncAction(SyncActionMapper.to(event.getSyncAction()))
-                    .build();
+                        .apiId(event.getId())
+                        .reactableApi(reactableApi)
+                        .syncAction(SyncActionMapper.to(event.getSyncAction()))
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while determining api into event payload", e);
                 return null;
@@ -115,17 +115,18 @@ public class ApiMapper {
     }
 
     public Flowable<DistributedEvent> to(final ApiReactorDeployable deployable) {
-        return Flowable.concatArray(toApiDistributedEvent(deployable), subscriptionMapper.to(deployable), apiKeyMapper.to(deployable));
+        return Flowable.concatArray(
+                toApiDistributedEvent(deployable), subscriptionMapper.to(deployable), apiKeyMapper.to(deployable));
     }
 
     private Flowable<DistributedEvent> toApiDistributedEvent(final ApiReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
             try {
                 DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
-                    .id(deployable.id())
-                    .type(DistributedEventType.API)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date());
+                        .id(deployable.id())
+                        .type(DistributedEventType.API)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date());
                 if (deployable.syncAction() == SyncAction.DEPLOY) {
                     builder.payload(objectMapper.writeValueAsString(deployable.reactableApi()));
                 }
@@ -143,10 +144,7 @@ public class ApiMapper {
      * @return the payload parsed into the expected type
      */
     private ReactableApi<?> parseAndAssert(
-        String payload,
-        Class<? extends ReactableApi<?>> parseToClass,
-        Predicate<ReactableApi<?>> assertion
-    ) {
+            String payload, Class<? extends ReactableApi<?>> parseToClass, Predicate<ReactableApi<?>> assertion) {
         ReactableApi<?> result;
         // try to map the payload into expected type
         try {

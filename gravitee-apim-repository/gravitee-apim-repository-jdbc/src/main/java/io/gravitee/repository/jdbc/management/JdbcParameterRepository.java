@@ -52,26 +52,23 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
     @Override
     protected JdbcObjectMapper<Parameter> buildOrm() {
         return JdbcObjectMapper.builder(Parameter.class, this.tableName)
-            .updateSql(
-                "update " +
-                    this.tableName +
-                    " set " +
-                    escapeReservedWord("key") +
-                    " = ?" +
-                    " , reference_type = ?" +
-                    " , reference_id = ?" +
-                    " , value = ?" +
-                    " where " +
-                    escapeReservedWord("key") +
-                    " = ? " +
-                    "and reference_type = ? " +
-                    "and reference_id = ? "
-            )
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, ParameterReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("value", Types.NVARCHAR, String.class)
-            .build();
+                .updateSql("update " + this.tableName
+                        + " set "
+                        + escapeReservedWord("key")
+                        + " = ?"
+                        + " , reference_type = ?"
+                        + " , reference_id = ?"
+                        + " , value = ?"
+                        + " where "
+                        + escapeReservedWord("key")
+                        + " = ? "
+                        + "and reference_type = ? "
+                        + "and reference_id = ? ")
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, ParameterReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .build();
     }
 
     //    @Override
@@ -84,7 +81,8 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
         log.debug("JdbcParameterRepository.create({})", parameter);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(parameter));
-            return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType()).orElse(null);
+            return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType())
+                    .orElse(null);
         } catch (final Exception ex) {
             log.error("Failed to create parameter", ex);
             throw new TechnicalException("Failed to create parameter", ex);
@@ -99,23 +97,16 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
         }
         try {
             final PreparedStatementCreator psc = getOrm().buildUpdatePreparedStatementCreator(
-                parameter,
-                parameter.getKey(),
-                parameter.getReferenceType().name(),
-                parameter.getReferenceId()
-            );
+                            parameter,
+                            parameter.getKey(),
+                            parameter.getReferenceType().name(),
+                            parameter.getReferenceId());
             jdbcTemplate.update(psc);
 
-            return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType()).orElseThrow(() ->
-                new IllegalStateException(
-                    format(
-                        "No parameter found with id [%s, %s, %s]",
-                        parameter.getKey(),
-                        parameter.getReferenceId(),
-                        parameter.getReferenceType()
-                    )
-                )
-            );
+            return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType())
+                    .orElseThrow(() -> new IllegalStateException(format(
+                            "No parameter found with id [%s, %s, %s]",
+                            parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -129,15 +120,13 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
         log.debug("JdbcParameterRepository.delete({}, {}, {})", key, referenceId, referenceType);
         try {
             jdbcTemplate.update(
-                "delete from " +
-                    this.tableName +
-                    " where " +
-                    escapeReservedWord("key") +
-                    " = ? and reference_type = ? and reference_id = ? ",
-                key,
-                referenceType.name(),
-                referenceId
-            );
+                    "delete from " + this.tableName
+                            + " where "
+                            + escapeReservedWord("key")
+                            + " = ? and reference_type = ? and reference_id = ? ",
+                    key,
+                    referenceType.name(),
+                    referenceId);
         } catch (final Exception ex) {
             log.error("Failed to delete parameter", ex);
             throw new TechnicalException("Failed to delete parameter", ex);
@@ -145,16 +134,17 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
     }
 
     @Override
-    public Optional<Parameter> findById(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+    public Optional<Parameter> findById(String key, String referenceId, ParameterReferenceType referenceType)
+            throws TechnicalException {
         log.debug("JdbcParameterRepository.findById({}, {}, {})", key, referenceId, referenceType);
         try {
             final List<Parameter> items = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ?",
-                getOrm().getRowMapper(),
-                key,
-                referenceType.name(),
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("key")
+                            + " = ? and reference_type = ? and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    key,
+                    referenceType.name(),
+                    referenceId);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find parameter by id", ex);
@@ -164,26 +154,24 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
 
     @Override
     public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcParameterRepository.findByKeys({}, {}, {})", keys, referenceId, referenceType);
         try {
             if (isEmpty(keys)) {
                 return Collections.emptyList();
             }
             List<Parameter> parameters = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " where reference_id = ? and reference_type = ? and " +
-                    escapeReservedWord("key") +
-                    " in ( " +
-                    getOrm().buildInClause(keys) +
-                    " )",
-                (PreparedStatement ps) -> {
-                    ps.setString(1, referenceId);
-                    ps.setString(2, referenceType.name());
-                    getOrm().setArguments(ps, keys, 3);
-                },
-                getOrm().getRowMapper()
-            );
+                    getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ? and "
+                            + escapeReservedWord("key")
+                            + " in ( "
+                            + getOrm().buildInClause(keys)
+                            + " )",
+                    (PreparedStatement ps) -> {
+                        ps.setString(1, referenceId);
+                        ps.setString(2, referenceType.name());
+                        getOrm().setArguments(ps, keys, 3);
+                    },
+                    getOrm().getRowMapper());
             return new ArrayList<>(parameters);
         } catch (final Exception ex) {
             log.error("Failed to find parameters by keys:", ex);
@@ -196,11 +184,10 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
         log.debug("JdbcParameterRepository.findAll({}, {})", referenceId, referenceType);
         try {
             List<Parameter> parameters = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?",
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name()
-            );
+                    getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name());
             return new ArrayList<>(parameters);
         } catch (final Exception ex) {
             log.error("Failed to find all parameters :", ex);
@@ -210,25 +197,27 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ParameterReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcParameterRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select " + escapeReservedWord("key") + " from " + this.tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType.name(),
-                referenceId
-            );
+                    "select " + escapeReservedWord("key") + " from " + this.tableName
+                            + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType.name(),
+                    referenceId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + this.tableName + " where reference_type = ? and reference_id = ? ",
-                    referenceType.name(),
-                    referenceId
-                );
+                        "delete from " + this.tableName + " where reference_type = ? and reference_id = ? ",
+                        referenceType.name(),
+                        referenceId);
             }
 
-            log.debug("JdbcParameterRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcParameterRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                    referenceId,
+                    referenceType);
             return rows;
         } catch (final Exception ex) {
             log.error("Failed to delete parameter for refId: {}/{}", referenceId, referenceType, ex);

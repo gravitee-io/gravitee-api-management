@@ -55,20 +55,27 @@ class BrowseMessagesUseCaseTest {
     @Test
     void should_return_browse_messages_result() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var expectedResult = new BrowseMessagesResult(
-            List.of(
-                new KafkaMessage(0, 42L, 1700000000000L, "key-1", "{\"hello\":\"world\"}", List.of(new KafkaHeader("h1", "v1"))),
-                new KafkaMessage(1, 10L, 1700000001000L, "key-2", "plain text", List.of())
-            ),
-            2
-        );
+                List.of(
+                        new KafkaMessage(
+                                0,
+                                42L,
+                                1700000000000L,
+                                "key-1",
+                                "{\"hello\":\"world\"}",
+                                List.of(new KafkaHeader("h1", "v1"))),
+                        new KafkaMessage(1, 10L, 1700000001000L, "key-2", "plain text", List.of())),
+                2);
         clusterDomainService.givenBrowseMessagesResult(expectedResult);
 
-        var result = useCase.execute(
-            new BrowseMessagesUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-topic", null, "NEWEST", null, null, null, 50)
-        );
+        var result = useCase.execute(new BrowseMessagesUseCase.Input(
+                CLUSTER_ID, ENVIRONMENT_ID, "my-topic", null, "NEWEST", null, null, null, 50));
 
         assertThat(result.browseMessagesResult()).isEqualTo(expectedResult);
         assertThat(result.browseMessagesResult().messages()).hasSize(2);
@@ -78,16 +85,19 @@ class BrowseMessagesUseCaseTest {
     @Test
     void should_propagate_kafka_explorer_exception() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
-        clusterDomainService.givenException(new KafkaExplorerException("Topic not found", TechnicalCode.TOPIC_NOT_FOUND));
+        clusterDomainService.givenException(
+                new KafkaExplorerException("Topic not found", TechnicalCode.TOPIC_NOT_FOUND));
 
-        assertThatThrownBy(() ->
-            useCase.execute(
-                new BrowseMessagesUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "missing-topic", null, "NEWEST", null, null, null, 50)
-            )
-        )
-            .isInstanceOf(KafkaExplorerException.class)
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.TOPIC_NOT_FOUND));
+        assertThatThrownBy(() -> useCase.execute(new BrowseMessagesUseCase.Input(
+                        CLUSTER_ID, ENVIRONMENT_ID, "missing-topic", null, "NEWEST", null, null, null, 50)))
+                .isInstanceOf(KafkaExplorerException.class)
+                .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode())
+                        .isEqualTo(TechnicalCode.TOPIC_NOT_FOUND));
     }
 }

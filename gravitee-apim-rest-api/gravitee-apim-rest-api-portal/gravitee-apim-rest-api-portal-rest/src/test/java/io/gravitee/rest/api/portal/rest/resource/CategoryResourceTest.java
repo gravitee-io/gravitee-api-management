@@ -64,19 +64,21 @@ public class CategoryResourceTest extends AbstractResourceTest {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
-        when(categoryService.findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment())).thenReturn(categoryEntity);
+        when(categoryService.findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment()))
+                .thenReturn(categoryEntity);
 
-        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(USER_NAME)).thenReturn(cat ->
-            CATEGORY_ID.equals(cat) ? 1L : 0L
-        );
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(USER_NAME))
+                .thenReturn(cat -> CATEGORY_ID.equals(cat) ? 1L : 0L);
 
         when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
         mockImage = new InlinePictureEntity();
-        apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
+        apiLogoContent = Files.readAllBytes(Paths.get(
+                this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
-        when(categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), CATEGORY_ID)).thenReturn(mockImage);
+        when(categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), CATEGORY_ID))
+                .thenReturn(mockImage);
     }
 
     @Test
@@ -95,9 +97,8 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetCategory() {
-        when(categoryService.findNotHiddenById(UNKNOWN_CATEGORY, GraviteeContext.getCurrentEnvironment())).thenThrow(
-            new CategoryNotFoundException(UNKNOWN_CATEGORY)
-        );
+        when(categoryService.findNotHiddenById(UNKNOWN_CATEGORY, GraviteeContext.getCurrentEnvironment()))
+                .thenThrow(new CategoryNotFoundException(UNKNOWN_CATEGORY));
 
         final Response response = target(UNKNOWN_CATEGORY).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -133,10 +134,10 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
         // test Cache
         final Response cachedResponse = target(CATEGORY_ID)
-            .path("picture")
-            .request()
-            .header(HttpHeader.IF_NONE_MATCH.asString(), etag)
-            .get();
+                .path("picture")
+                .request()
+                .header(HttpHeader.IF_NONE_MATCH.asString(), etag)
+                .get();
         assertEquals(NOT_MODIFIED_304, cachedResponse.getStatus());
     }
 }

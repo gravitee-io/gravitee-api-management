@@ -43,12 +43,15 @@ public interface ConnectionLogAdapter {
 
     List<BaseConnectionLog> toEntitiesList(List<Metrics> connectionLogs);
 
-    ConnectionLogDetail toEntity(io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail);
+    ConnectionLogDetail toEntity(
+            io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail);
 
     MetricsQuery.Filter.ResponseTimeRange convert(Range range);
+
     List<MetricsQuery.Filter.ResponseTimeRange> convert(List<Range> range);
 
     MetricsQuery.Filter.StatusRange convertStatusRange(SearchLogsFilters.StatusRange statusRange);
+
     List<MetricsQuery.Filter.StatusRange> convertStatusRanges(List<SearchLogsFilters.StatusRange> statusRanges);
 
     MetricsQuery.Filter.EntrypointScope convertEntrypointScope(SearchLogsFilters.EntrypointScope entrypointScope);

@@ -35,14 +35,16 @@ public class DefaultV3ExecutionContextFactory implements V3ExecutionContextFacto
 
     private final ComponentProvider componentProvider;
 
-    public DefaultV3ExecutionContextFactory(ComponentProvider componentProvider, List<TemplateVariableProvider> providers) {
+    public DefaultV3ExecutionContextFactory(
+            ComponentProvider componentProvider, List<TemplateVariableProvider> providers) {
         this.componentProvider = componentProvider;
         this.providers = providers;
     }
 
     @Override
     public ExecutionContext create(ExecutionContext wrapped) {
-        ReactableExecutionContext context = new ReactableExecutionContext((MutableExecutionContext) wrapped, componentProvider);
+        ReactableExecutionContext context =
+                new ReactableExecutionContext((MutableExecutionContext) wrapped, componentProvider);
         context.setProviders(providers);
         return context;
     }

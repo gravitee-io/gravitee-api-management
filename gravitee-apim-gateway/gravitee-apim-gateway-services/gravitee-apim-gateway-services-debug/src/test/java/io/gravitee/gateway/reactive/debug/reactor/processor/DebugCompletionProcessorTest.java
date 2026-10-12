@@ -143,7 +143,8 @@ class DebugCompletionProcessorTest {
         verify(eventRepository).update(captor.capture());
         Event updatedEvent = captor.getValue();
         assertThat(updatedEvent.getId()).isEqualTo("event-id");
-        assertThat(updatedEvent.getProperties()).isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.SUCCESS.name()));
+        assertThat(updatedEvent.getProperties())
+                .isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.SUCCESS.name()));
         assertThat(updatedEvent.getPayload()).isNotBlank();
     }
 
@@ -156,8 +157,8 @@ class DebugCompletionProcessorTest {
 
         when(eventRepository.findById("event-id")).thenReturn(Optional.of(event));
         when(eventRepository.update(any()))
-            .thenThrow(new TechnicalException("error"))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenThrow(new TechnicalException("error"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         TestObserver<Void> obs = debugCompletionProcessor.execute(debugCtx).test();
         obs.awaitDone(10, TimeUnit.SECONDS).assertComplete();
@@ -165,9 +166,8 @@ class DebugCompletionProcessorTest {
         ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository, times(2)).update(captor.capture());
         assertThat(captor.getAllValues().get(1).getId()).isEqualTo("event-id");
-        assertThat(captor.getAllValues().get(1).getProperties()).isEqualTo(
-            Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name())
-        );
+        assertThat(captor.getAllValues().get(1).getProperties())
+                .isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name()));
     }
 
     @Test

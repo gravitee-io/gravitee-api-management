@@ -54,7 +54,7 @@ public abstract class SingleValueFormatter<T extends Reportable> extends Abstrac
      */
     private static final char CR = '\r';
 
-    static final byte[] END_OF_LINE = new byte[] { CR, LF };
+    static final byte[] END_OF_LINE = new byte[] {CR, LF};
 
     private static final byte FIELD_SEPARATOR = (byte) CSV_DELIMITER;
 
@@ -62,7 +62,7 @@ public abstract class SingleValueFormatter<T extends Reportable> extends Abstrac
 
     private static final String CSV_QUOTE_STR = String.valueOf(CSV_QUOTE);
 
-    private static final char[] CSV_SEARCH_CHARS = { CSV_DELIMITER, CSV_QUOTE, CR, LF };
+    private static final char[] CSV_SEARCH_CHARS = {CSV_DELIMITER, CSV_QUOTE, CR, LF};
 
     protected void appendEmpty(Buffer buffer) {
         appendString(buffer, null, false);
@@ -208,7 +208,9 @@ public abstract class SingleValueFormatter<T extends Reportable> extends Abstrac
         }
         Map<String, List<String>> keywordListAdditionalMetrics = withAdditional.keywordListAdditionalMetrics();
         if (keywordListAdditionalMetrics != null) {
-            keywordListAdditionalMetrics.values().forEach(values -> appendString(buffer, String.join(LIST_SEPARATOR, values), true, false));
+            keywordListAdditionalMetrics
+                    .values()
+                    .forEach(values -> appendString(buffer, String.join(LIST_SEPARATOR, values), true, false));
         }
         Map<String, Boolean> boolAdditionalMetrics = withAdditional.boolAdditionalMetrics();
         if (boolAdditionalMetrics != null) {

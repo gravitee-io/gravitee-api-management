@@ -51,9 +51,10 @@ class ManagementUIResourceTest extends AbstractResourceTest {
         when(licenseManager.getPlatformLicense()).thenReturn(license);
         GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
 
-        parametersDomainServiceInMemory.initWith(
-            List.of(Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build())
-        );
+        parametersDomainServiceInMemory.initWith(List.of(Parameter.builder()
+                .key(Key.CONSOLE_CUSTOMIZATION_TITLE.key())
+                .value("title")
+                .build()));
     }
 
     @Override

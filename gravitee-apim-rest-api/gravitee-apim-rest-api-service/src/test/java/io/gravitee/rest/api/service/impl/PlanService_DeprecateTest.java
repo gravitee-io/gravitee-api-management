@@ -107,33 +107,35 @@ public class PlanService_DeprecateTest {
     @Test
     public void shouldDepreciateWithStagingPlanAndAllowStaging() throws TechnicalException {
         var plan = Plan.builder()
-            .status(Plan.Status.STAGING)
-            .type(Plan.PlanType.API)
-            .validation(Plan.PlanValidationType.AUTO)
-            .referenceId(API_ID)
-            .build();
+                .status(Plan.Status.STAGING)
+                .type(Plan.PlanType.API)
+                .validation(Plan.PlanValidationType.AUTO)
+                .referenceId(API_ID)
+                .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
         planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, true);
 
-        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
+        verify(planRepository, times(1))
+                .update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
     }
 
     @Test
     public void shouldNotDepreciateWithStagingPlanAndNotAllowStaging() throws TechnicalException {
         assertThrows(PlanNotYetPublishedException.class, () -> {
             var plan = Plan.builder()
-                .status(Plan.Status.STAGING)
-                .type(Plan.PlanType.API)
-                .validation(Plan.PlanValidationType.AUTO)
-                .referenceId(API_ID)
-                .build();
+                    .status(Plan.Status.STAGING)
+                    .type(Plan.PlanType.API)
+                    .validation(Plan.PlanValidationType.AUTO)
+                    .referenceId(API_ID)
+                    .build();
             when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
             planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, false);
 
-            verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
+            verify(planRepository, times(1))
+                    .update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
         });
     }
 
@@ -149,16 +151,17 @@ public class PlanService_DeprecateTest {
     @Test
     public void shouldDepreciate() throws TechnicalException {
         var plan = Plan.builder()
-            .status(Plan.Status.PUBLISHED)
-            .type(Plan.PlanType.API)
-            .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
-            .build();
+                .status(Plan.Status.PUBLISHED)
+                .type(Plan.PlanType.API)
+                .validation(Plan.PlanValidationType.AUTO)
+                .api(API_ID)
+                .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
         planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
+        verify(planRepository, times(1))
+                .update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
     }
 }

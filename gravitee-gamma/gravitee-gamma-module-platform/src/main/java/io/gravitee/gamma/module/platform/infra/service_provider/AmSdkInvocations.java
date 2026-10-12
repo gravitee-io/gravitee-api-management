@@ -49,7 +49,8 @@ final class AmSdkInvocations {
             Thread.currentThread().interrupt();
             throw new AmUpstreamException("Interrupted while contacting the identity service", null, e);
         } catch (TimeoutException e) {
-            throw new AmUpstreamException("The identity service did not respond within " + timeout.toMillis() + "ms", 504, e);
+            throw new AmUpstreamException(
+                    "The identity service did not respond within " + timeout.toMillis() + "ms", 504, e);
         } catch (ExecutionException | CompletionException e) {
             throw translate(e.getCause());
         }
@@ -71,7 +72,7 @@ final class AmSdkInvocations {
             }
             return trimmed;
         }
-        for (String field : new String[] { "message", "error_description", "error" }) {
+        for (String field : new String[] {"message", "error_description", "error"}) {
             JsonNode node = root.get(field);
             if (node != null && node.isTextual() && !node.asText().isBlank()) {
                 return node.asText();

@@ -83,23 +83,24 @@ public class PortalApplicationClientCertificatesResource extends AbstractResourc
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List client certificates for an application",
-        description = "User must have the APPLICATION_DEFINITION[READ] permission to use this service"
-    )
+            summary = "List client certificates for an application",
+            description = "User must have the APPLICATION_DEFINITION[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Paginated list of client certificates",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalClientCertificate.class))
-    )
+            responseCode = "200",
+            description = "Paginated list of client certificates",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalClientCertificate.class)))
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response listCertificates(@Valid @BeanParam PaginationParam paginationParam) {
-        var output = getClientCertificatesUseCase.execute(
-            new GetClientCertificatesUseCase.Input(applicationId, new PageableImpl(paginationParam.getPage(), paginationParam.getSize()))
-        );
+        var output = getClientCertificatesUseCase.execute(new GetClientCertificatesUseCase.Input(
+                applicationId, new PageableImpl(paginationParam.getPage(), paginationParam.getSize())));
 
-        List<PortalClientCertificate> certs = mapper.toDto(output.clientCertificates().getContent());
+        List<PortalClientCertificate> certs =
+                mapper.toDto(output.clientCertificates().getContent());
 
         Map<String, Object> paginateMetadata = new HashMap<>();
         paginateMetadata.put("totalElements", output.clientCertificates().getTotalElements());
@@ -113,22 +114,25 @@ public class PortalApplicationClientCertificatesResource extends AbstractResourc
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create a client certificate for an application",
-        description = "User must have the APPLICATION_DEFINITION[UPDATE] permission to use this service"
-    )
+            summary = "Create a client certificate for an application",
+            description = "User must have the APPLICATION_DEFINITION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Client certificate successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalClientCertificate.class))
-    )
+            responseCode = "201",
+            description = "Client certificate successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalClientCertificate.class)))
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response createCertificate(@Valid @NotNull final CreatePortalClientCertificateInput input) {
         var created = createClientCertificateUseCase
-            .execute(new CreateClientCertificateUseCase.Input(applicationId, mapper.toDomain(input)))
-            .clientCertificate();
-        return Response.created(this.getLocationHeader(created.id())).entity(mapper.toDto(created)).build();
+                .execute(new CreateClientCertificateUseCase.Input(applicationId, mapper.toDomain(input)))
+                .clientCertificate();
+        return Response.created(this.getLocationHeader(created.id()))
+                .entity(mapper.toDto(created))
+                .build();
     }
 
     @POST
@@ -136,23 +140,26 @@ public class PortalApplicationClientCertificatesResource extends AbstractResourc
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Validate a PEM-encoded client certificate",
-        description = "Parses the certificate and returns its metadata without persisting it. User must have the APPLICATION_DEFINITION[READ] permission to use this service."
-    )
+            summary = "Validate a PEM-encoded client certificate",
+            description =
+                    "Parses the certificate and returns its metadata without persisting it. User must have the APPLICATION_DEFINITION[READ] permission to use this service.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Certificate is valid",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidateCertificateResponse.class))
-    )
+            responseCode = "200",
+            description = "Certificate is valid",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ValidateCertificateResponse.class)))
     @ApiResponse(responseCode = "400", description = "Certificate is invalid, empty, or is a CA certificate")
     @ApiResponse(responseCode = "403", description = "Forbidden")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response validateCertificate(@Valid @NotNull final ValidateCertificateRequest request) {
-        var result = validateClientCertificateUseCase.execute(new ValidateClientCertificateUseCase.Input(request.certificate()));
+        var result = validateClientCertificateUseCase.execute(
+                new ValidateClientCertificateUseCase.Input(request.certificate()));
         var certificateInfo = result.certificateInfo();
-        return Response.ok(
-            new ValidateCertificateResponse(certificateInfo.certificateExpiration(), certificateInfo.subject(), certificateInfo.issuer())
-        ).build();
+        return Response.ok(new ValidateCertificateResponse(
+                        certificateInfo.certificateExpiration(), certificateInfo.subject(), certificateInfo.issuer()))
+                .build();
     }
 
     @Path("{certId}")

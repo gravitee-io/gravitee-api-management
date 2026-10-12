@@ -24,7 +24,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface ApiAggregatedMessageLogsMapper {
     Logger log = NodeLoggerFactory.getLogger(ApiAggregatedMessageLogsMapper.class);
     ApiAggregatedMessageLogsMapper INSTANCE = Mappers.getMapper(ApiAggregatedMessageLogsMapper.class);

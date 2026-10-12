@@ -48,14 +48,11 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public io.gravitee.rest.api.idp.api.identity.User retrieve(IdentityReference identityReference) {
         try {
-            return new RepositoryUser(
-                userService.findBySource(
+            return new RepositoryUser(userService.findBySource(
                     GraviteeContext.getCurrentOrganization(),
                     identityReference.getSource(),
                     identityReference.getReference(),
-                    false
-                )
-            );
+                    false));
         } catch (UserNotFoundException te) {
             log.error("Unexpected error while looking for a user with id {}", identityReference.getReference(), te);
         }
@@ -81,11 +78,11 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public Collection<User> search(String query) {
         return userService
-            .search(GraviteeContext.getExecutionContext(), query, new PageableImpl(1, 20))
-            .getContent()
-            .stream()
-            .map(RepositoryUser::new)
-            .collect(Collectors.toList());
+                .search(GraviteeContext.getExecutionContext(), query, new PageableImpl(1, 20))
+                .getContent()
+                .stream()
+                .map(RepositoryUser::new)
+                .collect(Collectors.toList());
     }
 
     @Override

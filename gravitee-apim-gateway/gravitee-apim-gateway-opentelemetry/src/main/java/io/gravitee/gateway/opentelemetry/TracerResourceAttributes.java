@@ -47,13 +47,12 @@ public final class TracerResourceAttributes {
      * @param envId     {@code gravitee.env.id} value, or {@code null} to omit.
      */
     public static Map<String, String> of(
-        final String module,
-        final String apiId,
-        final String apiName,
-        final String apiType,
-        final String orgId,
-        final String envId
-    ) {
+            final String module,
+            final String apiId,
+            final String apiName,
+            final String apiType,
+            final String orgId,
+            final String envId) {
         // Enforce the documented non-null contract at the boundary: a null module would silently insert
         // "gravitee.module" → null otherwise, which downstream OTel SDK code would only surface as a
         // confusing NPE deep in the exporter pipeline.

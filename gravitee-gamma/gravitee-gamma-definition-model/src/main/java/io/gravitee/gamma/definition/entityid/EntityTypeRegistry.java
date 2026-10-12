@@ -30,8 +30,7 @@ import java.util.Optional;
  */
 public final class EntityTypeRegistry {
 
-    public static final EntityTypeRegistry DEFAULT = new EntityTypeRegistry(
-        List.of(
+    public static final EntityTypeRegistry DEFAULT = new EntityTypeRegistry(List.of(
             // Catalog kinds.
             EntityType.nameSeeded("model"),
             EntityType.nameSeeded("knowledge"),
@@ -48,9 +47,7 @@ public final class EntityTypeRegistry {
             EntityType.nameSeeded("llm-proxy"),
             EntityType.nameSeeded("a2a-proxy"),
             // Workload identity, rebuilt by the gateway PEP from the clientId.
-            EntityType.recomputable("agent-identity")
-        )
-    );
+            EntityType.recomputable("agent-identity")));
 
     private final Map<String, EntityType> byToken;
 
@@ -64,8 +61,7 @@ public final class EntityTypeRegistry {
         for (EntityType type : map.values()) {
             if (type.isScoped() && !map.containsKey(type.parentToken())) {
                 throw new IllegalArgumentException(
-                    "scoped type '" + type.token() + "' references unknown parent '" + type.parentToken() + "'"
-                );
+                        "scoped type '" + type.token() + "' references unknown parent '" + type.parentToken() + "'");
             }
         }
         this.byToken = Map.copyOf(map);

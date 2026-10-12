@@ -60,21 +60,22 @@ public class CountClustersByLifecycleStateUseCase {
         }
 
         return new Output(
-            count(input, readableIds, null),
-            count(input, readableIds, List.of(ClusterLifecycleState.DEPLOYED.name())),
-            count(input, readableIds, List.of(ClusterLifecycleState.PENDING.name())),
-            count(input, readableIds, List.of(ClusterLifecycleState.UNDEPLOYED.name()))
-        );
+                count(input, readableIds, null),
+                count(input, readableIds, List.of(ClusterLifecycleState.DEPLOYED.name())),
+                count(input, readableIds, List.of(ClusterLifecycleState.PENDING.name())),
+                count(input, readableIds, List.of(ClusterLifecycleState.UNDEPLOYED.name())));
     }
 
     private long count(Input input, List<String> ids, List<String> lifecycleStates) {
         var criteria = ClusterSearchCriteria.builder()
-            .environmentId(input.environmentId())
-            .type(input.type())
-            .ids(ids)
-            .lifecycleStates(lifecycleStates)
-            .build();
+                .environmentId(input.environmentId())
+                .type(input.type())
+                .ids(ids)
+                .lifecycleStates(lifecycleStates)
+                .build();
         // pageSize 1 — only the total count is read, the page content is ignored
-        return clusterQueryService.search(criteria, new PageableImpl(1, 1), Optional.empty()).getTotalElements();
+        return clusterQueryService
+                .search(criteria, new PageableImpl(1, 1), Optional.empty())
+                .getTotalElements();
     }
 }

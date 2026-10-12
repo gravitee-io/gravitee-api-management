@@ -39,13 +39,15 @@ public class ApplicationsResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetArchivedApplications() {
-        final Response response = envTarget().queryParam("status", "ARCHIVED").request().get();
+        final Response response =
+                envTarget().queryParam("status", "ARCHIVED").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void shouldGetArchivedApplicationsPaged() {
-        final Response response = envTarget("/_paged").queryParam("status", "ARCHIVED").request().get();
+        final Response response =
+                envTarget("/_paged").queryParam("status", "ARCHIVED").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }

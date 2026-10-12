@@ -57,56 +57,37 @@ public class OrganizationIdSourceSourceIdUniqueIndexUpgrader extends MongoUpgrad
         if (duplicates.isEmpty()) {
             final var nonUniqueIndexName = "oi1s1si1";
             final var nonUniqueIndexExists = StreamSupport.stream(
-                usersCollection.listIndexes().spliterator(),
-                false
-            ).anyMatch(index -> index.getString("name").equals(nonUniqueIndexName));
+                            usersCollection.listIndexes().spliterator(), false)
+                    .anyMatch(index -> index.getString("name").equals(nonUniqueIndexName));
             if (nonUniqueIndexExists) {
                 log.info(
-                    "Non unique index found on triplet (organizationId, source, sourceId), dropping non unique index and replacing by unique one."
-                );
+                        "Non unique index found on triplet (organizationId, source, sourceId), dropping non unique index and replacing by unique one.");
                 usersCollection.dropIndex(nonUniqueIndexName);
             }
 
-            final var indexOptions = new IndexOptions()
-                .unique(true)
-                .name(nonUniqueIndexName + "_unique");
-            usersCollection.createIndex(
-                Indexes.ascending("organizationId", "source", "sourceId"),
-                indexOptions
-            );
+            final var indexOptions = new IndexOptions().unique(true).name(nonUniqueIndexName + "_unique");
+            usersCollection.createIndex(Indexes.ascending("organizationId", "source", "sourceId"), indexOptions);
         } else {
             log.warn(
-                "Cannot create unique index on triplet (organizationId, source, sourceId): duplicate values found in collection."
-            );
+                    "Cannot create unique index on triplet (organizationId, source, sourceId): duplicate values found in collection.");
             for (final var entry : duplicates.entrySet()) {
-                log.warn(
-                    "Duplicate group: {}. Document IDs: {}",
-                    entry.getKey(),
-                    entry.getValue()
-                );
+                log.warn("Duplicate group: {}. Document IDs: {}", entry.getKey(), entry.getValue());
             }
         }
 
         return true;
     }
 
-    private Map<Object, Object> searchDuplicateValues(
-        MongoCollection<Document> collection
-    ) {
-        final var duplicatesAggregated = collection.aggregate(
-            Arrays.asList(
+    private Map<Object, Object> searchDuplicateValues(MongoCollection<Document> collection) {
+        final var duplicatesAggregated = collection.aggregate(Arrays.asList(
                 Aggregates.group(
-                    new Document("organizationId", "$organizationId")
-                        .append("source", "$source")
-                        .append("sourceId", "$sourceId"),
-                    Accumulators.push("docs", "$_id"),
-                    Accumulators.sum("count", 1)
-                ),
-                Aggregates.match(Filters.gt("count", 1))
-            )
-        );
-        return StreamSupport.stream(duplicatesAggregated.spliterator(), false).collect(
-            Collectors.toMap(doc -> doc.get("_id"), doc -> doc.get("docs"))
-        );
+                        new Document("organizationId", "$organizationId")
+                                .append("source", "$source")
+                                .append("sourceId", "$sourceId"),
+                        Accumulators.push("docs", "$_id"),
+                        Accumulators.sum("count", 1)),
+                Aggregates.match(Filters.gt("count", 1))));
+        return StreamSupport.stream(duplicatesAggregated.spliterator(), false)
+                .collect(Collectors.toMap(doc -> doc.get("_id"), doc -> doc.get("docs")));
     }
 }

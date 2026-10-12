@@ -54,11 +54,12 @@ class DeleteApplicationInvitationUseCaseTest {
     @Test
     void should_validate_application_existence_before_deleting_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
-        assertThatThrownBy(() ->
-            cut.execute(new DeleteApplicationInvitationUseCase.Input(ENVIRONMENT_ID, APPLICATION_ID, invitationId))
-        ).isInstanceOf(ApplicationNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(
+                        new DeleteApplicationInvitationUseCase.Input(ENVIRONMENT_ID, APPLICATION_ID, invitationId)))
+                .isInstanceOf(ApplicationNotFoundException.class);
 
         verifyNoInteractions(deleteApplicationInvitationDomainService);
     }
@@ -66,9 +67,11 @@ class DeleteApplicationInvitationUseCaseTest {
     @Test
     void should_delete_application_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenReturn(BaseApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build());
 
         cut.execute(new DeleteApplicationInvitationUseCase.Input(ENVIRONMENT_ID, APPLICATION_ID, invitationId));
 

@@ -57,7 +57,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-        throws IOException, ServletException {
+            throws IOException, ServletException {
         log.debug("Initializing GraviteeContext from incoming request");
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
@@ -75,7 +75,8 @@ public class GraviteeContextFilter extends GenericFilterBean {
             if (resolvedCtx != null) {
                 GraviteeContext.fromExecutionContext(resolvedCtx);
             } else {
-                log.warn("No execution context resolved from the request %s".formatted(((HttpServletRequest) request).getPathInfo()));
+                log.warn("No execution context resolved from the request %s"
+                        .formatted(((HttpServletRequest) request).getPathInfo()));
                 ErrorHelper.sendError(httpServletResponse, HttpStatusCode.BAD_REQUEST_400, ERROR_MSG);
                 return;
             }
@@ -95,9 +96,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
             if (pathExecutionContext.hasEnvironmentId()) {
                 try {
                     EnvironmentEntity environment = environmentService.findByOrgAndIdOrHrid(
-                        organizationId,
-                        pathExecutionContext.getEnvironmentId()
-                    );
+                            organizationId, pathExecutionContext.getEnvironmentId());
                     return new ExecutionContext(environment);
                 } catch (Exception e) {
                     return null;
@@ -108,7 +107,8 @@ public class GraviteeContextFilter extends GenericFilterBean {
         } else {
             if (pathExecutionContext.hasEnvironmentId()) {
                 try {
-                    EnvironmentEntity environment = environmentService.findById(pathExecutionContext.getEnvironmentId());
+                    EnvironmentEntity environment =
+                            environmentService.findById(pathExecutionContext.getEnvironmentId());
                     return new ExecutionContext(environment);
                 } catch (Exception e) {
                     return null;
@@ -120,24 +120,21 @@ public class GraviteeContextFilter extends GenericFilterBean {
     }
 
     private ExecutionContext resolveFromAccessPoint(
-        final ExecutionContext accessPointContext,
-        final ExecutionContext pathExecutionContext
-    ) {
-        // Validate if path execution context contains an organization id that it is the same as the one from access point
-        if (
-            pathExecutionContext.hasOrganizationId() &&
-            !accessPointContext.getOrganizationId().equals(pathExecutionContext.getOrganizationId())
-        ) {
+            final ExecutionContext accessPointContext, final ExecutionContext pathExecutionContext) {
+        // Validate if path execution context contains an organization id that it is the same as the one from access
+        // point
+        if (pathExecutionContext.hasOrganizationId()
+                && !accessPointContext.getOrganizationId().equals(pathExecutionContext.getOrganizationId())) {
             return null;
         }
         if (pathExecutionContext.hasEnvironmentId()) {
             try {
                 EnvironmentEntity environment = environmentService.findByOrgAndIdOrHrid(
-                    accessPointContext.getOrganizationId(),
-                    pathExecutionContext.getEnvironmentId()
-                );
-                // Validate if access point execution context contains an environment id that it is the same as the one from path
-                if (accessPointContext.hasEnvironmentId() && !accessPointContext.getEnvironmentId().equals(environment.getId())) {
+                        accessPointContext.getOrganizationId(), pathExecutionContext.getEnvironmentId());
+                // Validate if access point execution context contains an environment id that it is the same as the one
+                // from path
+                if (accessPointContext.hasEnvironmentId()
+                        && !accessPointContext.getEnvironmentId().equals(environment.getId())) {
                     return null;
                 }
                 return new ExecutionContext(environment);
@@ -155,9 +152,8 @@ public class GraviteeContextFilter extends GenericFilterBean {
     private ExecutionContext getFromAccessPoints(final HttpServletRequest httpServletRequest) {
         ExecutionContext accessPointContext = null;
         if (installationTypeDomainService.isMultiTenant()) {
-            Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest).or(() ->
-                getReferenceContextFromReferer(httpServletRequest)
-            );
+            Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest)
+                    .or(() -> getReferenceContextFromReferer(httpServletRequest));
             if (optionalReferenceContext.isPresent()) {
                 ReferenceContext referenceContext = optionalReferenceContext.get();
                 if (referenceContext.getReferenceType() == ReferenceContext.Type.ENVIRONMENT) {
@@ -166,7 +162,8 @@ public class GraviteeContextFilter extends GenericFilterBean {
                 } else if (referenceContext.getReferenceType() == ReferenceContext.Type.ORGANIZATION) {
                     accessPointContext = new ExecutionContext(referenceContext.getReferenceId());
                 } else {
-                    throw new IllegalStateException(String.format("Unsupported reference type '%s'", referenceContext.getReferenceType()));
+                    throw new IllegalStateException(
+                            String.format("Unsupported reference type '%s'", referenceContext.getReferenceType()));
                 }
             }
         }
@@ -177,7 +174,8 @@ public class GraviteeContextFilter extends GenericFilterBean {
         return getReferenceContext(httpServletRequest.getServerName(), httpServletRequest.getServerPort());
     }
 
-    private Optional<? extends ReferenceContext> getReferenceContextFromReferer(final HttpServletRequest httpServletRequest) {
+    private Optional<? extends ReferenceContext> getReferenceContextFromReferer(
+            final HttpServletRequest httpServletRequest) {
         // Find related api access points
         String refererHeaderValue = httpServletRequest.getHeader(HttpHeaderNames.REFERER);
         if (refererHeaderValue != null) {
@@ -194,7 +192,9 @@ public class GraviteeContextFilter extends GenericFilterBean {
 
     @NonNull
     private Optional<ReferenceContext> getReferenceContext(final String host, final int port) {
-        return accessPointQueryService.getReferenceContext(host).or(() -> accessPointQueryService.getReferenceContext(host + ":" + port));
+        return accessPointQueryService
+                .getReferenceContext(host)
+                .or(() -> accessPointQueryService.getReferenceContext(host + ":" + port));
     }
 
     private ExecutionContext getFromRequest(final HttpServletRequest httpServletRequest) {

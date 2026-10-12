@@ -44,13 +44,15 @@ public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<Group
     }
 
     @Override
-    public GroupByResponse executeQuery(QueryContext queryContext, Query<GroupByResponse> query) throws AnalyticsException {
+    public GroupByResponse executeQuery(QueryContext queryContext, Query<GroupByResponse> query)
+            throws AnalyticsException {
         final GroupByQuery groupByQuery = (GroupByQuery) query;
 
         final String sQuery = this.createQuery(TEMPLATE, query);
 
         try {
-            SearchResponse searchResponse = execute(queryContext, groupByQuery, Type.REQUEST, sQuery).blockingGet();
+            SearchResponse searchResponse =
+                    execute(queryContext, groupByQuery, Type.REQUEST, sQuery).blockingGet();
             return this.toGroupByResponse(searchResponse);
         } catch (Exception eex) {
             log.error("Impossible to perform GroupByQuery", eex);
@@ -65,7 +67,8 @@ public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<Group
             return groupByresponse;
         }
 
-        final String aggregationName = response.getAggregations().keySet().iterator().next();
+        final String aggregationName =
+                response.getAggregations().keySet().iterator().next();
         final Aggregation aggregation = response.getAggregations().get(aggregationName);
 
         final String fieldName = aggregationName.substring(aggregationName.indexOf('_') + 1);
@@ -104,9 +107,9 @@ public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<Group
         for (final Iterator<String> it = bucket.fieldNames(); it.hasNext(); ) {
             final String fieldName = it.next();
             final JsonNode subAggregation = bucket.get(fieldName);
-            if (
-                subAggregation != null && subAggregation.get("value") != null && !subAggregation.get("value").asText().equals("null")
-            ) return subAggregation;
+            if (subAggregation != null
+                    && subAggregation.get("value") != null
+                    && !subAggregation.get("value").asText().equals("null")) return subAggregation;
         }
         return null;
     }

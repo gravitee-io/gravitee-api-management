@@ -133,10 +133,14 @@ public class PageServiceImplTests {
         var mediaHash = "media-hash";
         var executionContext = new ExecutionContext("org-id", "env-id");
 
-        var page = createPage("page-id", List.of(new PageMedia("other-media-hash", "media-name", null)), "Content without the media hash");
+        var page = createPage(
+                "page-id",
+                List.of(new PageMedia("other-media-hash", "media-name", null)),
+                "Content without the media hash");
 
         var pages = new io.gravitee.common.data.domain.Page<>(List.of(page), 0, 1, 1);
-        io.gravitee.common.data.domain.Page<Page> emptyPages = new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0);
+        io.gravitee.common.data.domain.Page<Page> emptyPages =
+                new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0);
 
         when(pageRepository.findAll(any())).thenReturn(pages).thenReturn(emptyPages);
 
@@ -166,9 +170,8 @@ public class PageServiceImplTests {
 
         when(pageRepository.findAll(any())).thenThrow(TechnicalException.class);
 
-        assertThatThrownBy(() -> pageService.isMediaUsedInPages(executionContext, mediaHash)).isInstanceOf(
-            TechnicalManagementException.class
-        );
+        assertThatThrownBy(() -> pageService.isMediaUsedInPages(executionContext, mediaHash))
+                .isInstanceOf(TechnicalManagementException.class);
     }
 
     @Test
@@ -213,7 +216,8 @@ public class PageServiceImplTests {
         Page auditPage = (Page) auditLogData.getNewValue();
         assertThat(auditPage).isNotNull();
         assertThat(auditPage.getContent()).isNotNull();
-        assertThat(auditPage.getContent().length()).isEqualTo(aNewPageEntity.getContent().length());
+        assertThat(auditPage.getContent().length())
+                .isEqualTo(aNewPageEntity.getContent().length());
     }
 
     @Test
@@ -231,11 +235,9 @@ public class PageServiceImplTests {
         assertThat(auditLogData.getOldValue()).isNull();
         Page auditPage = (Page) auditLogData.getNewValue();
         assertThat(auditPage).isNotNull();
-        assertThat(auditPage.getContent()).isEqualTo(
-            """
+        assertThat(auditPage.getContent()).isEqualTo("""
             {
-              "opena..."""
-        );
+              "opena...""");
     }
 
     @Test
@@ -276,11 +278,11 @@ public class PageServiceImplTests {
 
     private Page aPage(NewPageEntity newPageEntity) {
         return Page.builder()
-            .type(newPageEntity.getType().name())
-            .visibility(newPageEntity.getVisibility().name())
-            .name(newPageEntity.getName())
-            .content(newPageEntity.getContent())
-            .referenceType(PageReferenceType.API)
-            .build();
+                .type(newPageEntity.getType().name())
+                .visibility(newPageEntity.getVisibility().name())
+                .name(newPageEntity.getName())
+                .content(newPageEntity.getContent())
+                .referenceType(PageReferenceType.API)
+                .build();
     }
 }

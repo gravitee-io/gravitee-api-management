@@ -43,9 +43,12 @@ public class ElPlaceholderXmlUtil {
             // The document type wraps a root element (e.g. AddRequest).
             // Insert the root element in XML but start the JSON path at "$"
             // so children get "$.a", "$.b" instead of "$.AddRequest.a".
-            if (stype.getContentModel() != null && stype.getContentModel().getParticleType() == SchemaParticle.ELEMENT) {
+            if (stype.getContentModel() != null
+                    && stype.getContentModel().getParticleType() == SchemaParticle.ELEMENT) {
                 SchemaLocalElement rootElement = (SchemaLocalElement) stype.getContentModel();
-                xmlc.insertElement(rootElement.getName().getLocalPart(), rootElement.getName().getNamespaceURI());
+                xmlc.insertElement(
+                        rootElement.getName().getLocalPart(),
+                        rootElement.getName().getNamespaceURI());
                 xmlc.toPrevToken();
                 createPlaceholderForType(rootElement.getType(), xmlc, "$");
                 xmlc.toNextToken();

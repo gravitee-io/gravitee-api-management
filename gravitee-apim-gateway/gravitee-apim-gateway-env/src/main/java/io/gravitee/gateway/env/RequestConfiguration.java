@@ -32,30 +32,30 @@ public class RequestConfiguration {
 
     @Bean
     public RequestTimeoutConfiguration httpRequestTimeoutConfiguration(
-        @Value("${http.requestTimeout:#{null}}") Long httpRequestTimeout,
-        @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay,
-        @Value(
-            "${gateway.policy.v3.timeoutMs:#{T(io.gravitee.gateway.env.RequestTimeoutConfiguration).DEFAULT_POLICY_TIMEOUT_MS}}"
-        ) long policyTimeoutMs
-    ) {
+            @Value("${http.requestTimeout:#{null}}") Long httpRequestTimeout,
+            @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay,
+            @Value(
+                            "${gateway.policy.v3.timeoutMs:#{T(io.gravitee.gateway.env.RequestTimeoutConfiguration).DEFAULT_POLICY_TIMEOUT_MS}}")
+                    long policyTimeoutMs) {
         if (httpRequestTimeout == null) {
             log.warn("Http request timeout cannot be unset. Setting it to default value: 30_000 ms");
             httpRequestTimeout = 30_000L;
         } else if (httpRequestTimeout <= 0) {
-            log.warn("A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms");
+            log.warn(
+                    "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms");
         }
         return new RequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay, policyTimeoutMs);
     }
 
     @Bean
     public RequestClientAuthConfiguration httpRequestClientAuthConfiguration(
-        @Value("${http.ssl.clientAuthHeader.name:#{null}}") String headerName
-    ) {
+            @Value("${http.ssl.clientAuthHeader.name:#{null}}") String headerName) {
         return new RequestClientAuthConfiguration(headerName);
     }
 
     @Bean
-    public RequestPathConfiguration httpRequestPathConfiguration(@Value("${http.pathHandling:NORMALIZE}") String pathHandling) {
+    public RequestPathConfiguration httpRequestPathConfiguration(
+            @Value("${http.pathHandling:NORMALIZE}") String pathHandling) {
         RequestPathHandling handling;
         try {
             // Locale.ROOT, and not the JVM default: in Turkish 🇹🇷 (and Azerbaijani) a lowercase "i"
@@ -66,11 +66,10 @@ public class RequestConfiguration {
             handling = RequestPathHandling.valueOf(pathHandling.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             log.warn(
-                "Unknown value [{}] for http.pathHandling, falling back to {}. Expected one of {}.",
-                pathHandling,
-                RequestPathHandling.NORMALIZE,
-                Arrays.toString(RequestPathHandling.values())
-            );
+                    "Unknown value [{}] for http.pathHandling, falling back to {}. Expected one of {}.",
+                    pathHandling,
+                    RequestPathHandling.NORMALIZE,
+                    Arrays.toString(RequestPathHandling.values()));
             // The default, not RAW: a value nobody can read is not a reason to drop the gateway back
             // to the behaviour this default exists to replace. An operator who meant RAW and mistyped
             // it gets a warning and the safe mode; the reverse would hand them the bypass in silence.
@@ -86,7 +85,8 @@ public class RequestConfiguration {
     private static String describe(final RequestPathHandling handling) {
         return switch (handling) {
             case RAW -> "the request path is used exactly as received";
-            case REJECT -> "a path that is not already in its normalized form is answered 400, and nothing is rewritten";
+            case REJECT ->
+                "a path that is not already in its normalized form is answered 400, and nothing is rewritten";
             case NORMALIZE -> "dot segments are resolved before the listener is resolved";
         };
     }

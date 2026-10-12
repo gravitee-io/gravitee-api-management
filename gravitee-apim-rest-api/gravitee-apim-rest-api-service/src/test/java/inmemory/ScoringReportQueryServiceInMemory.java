@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ScoringReportQueryServiceInMemory implements ScoringReportQueryService, InMemoryAlternative<ScoringReport> {
+public class ScoringReportQueryServiceInMemory
+        implements ScoringReportQueryService, InMemoryAlternative<ScoringReport> {
 
     private final List<ScoringReport> storage;
 
@@ -59,81 +60,66 @@ public class ScoringReportQueryServiceInMemory implements ScoringReportQueryServ
 
     @Override
     public Optional<ScoringReport> findLatestByApiId(String apiId) {
-        return storage
-            .stream()
-            .filter(report -> report.apiId().equals(apiId))
-            .max(Comparator.comparing(ScoringReport::createdAt));
+        return storage.stream()
+                .filter(report -> report.apiId().equals(apiId))
+                .max(Comparator.comparing(ScoringReport::createdAt));
     }
 
     @Override
     public Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(
-        String environmentId,
-        Collection<ApiType> apiTypes,
-        Pageable pageable
-    ) {
+            String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
         var filtered = apiTypes != null && !apiTypes.isEmpty();
 
-        var matches = storage
-            .stream()
-            .filter(report -> environmentId.equals(report.environmentId()))
-            .filter(report -> !filtered || apiTypes.contains(apiTypeByApiId.get(report.apiId())))
-            .sorted(Comparator.comparing((ScoringReport r) -> r.summary().score()).reversed())
-            .map(report ->
-                new EnvironmentApiScoringReport(
-                    new EnvironmentApiScoringReport.Api(
-                        report.apiId(),
-                        "api-name",
-                        apiTypeByApiId.get(report.apiId()),
-                        Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault())
-                    ),
-                    new EnvironmentApiScoringReport.Summary(
-                        report.id(),
-                        report.createdAt(),
-                        report.summary().score(),
-                        report.summary().errors(),
-                        report.summary().warnings(),
-                        report.summary().infos(),
-                        report.summary().hints()
-                    )
-                )
-            )
-            .toList();
+        var matches = storage.stream()
+                .filter(report -> environmentId.equals(report.environmentId()))
+                .filter(report -> !filtered || apiTypes.contains(apiTypeByApiId.get(report.apiId())))
+                .sorted(Comparator.comparing((ScoringReport r) -> r.summary().score())
+                        .reversed())
+                .map(report -> new EnvironmentApiScoringReport(
+                        new EnvironmentApiScoringReport.Api(
+                                report.apiId(),
+                                "api-name",
+                                apiTypeByApiId.get(report.apiId()),
+                                Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault())),
+                        new EnvironmentApiScoringReport.Summary(
+                                report.id(),
+                                report.createdAt(),
+                                report.summary().score(),
+                                report.summary().errors(),
+                                report.summary().warnings(),
+                                report.summary().infos(),
+                                report.summary().hints())))
+                .toList();
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 
     @Override
     public EnvironmentOverview getEnvironmentScoringSummary(String environmentId) {
-        return storage
-            .stream()
-            .filter(report -> report.environmentId().equals(environmentId))
-            .reduce(
-                new EnvironmentOverview(environmentId, 0.84, 0L, 0L, 0L, 0L),
-                (summary, report) ->
-                    new EnvironmentOverview(
-                        environmentId,
-                        0.84,
-                        summary.errors() + report.summary().errors(),
-                        summary.warnings() + report.summary().warnings(),
-                        summary.infos() + report.summary().infos(),
-                        summary.hints() + report.summary().hints()
-                    ),
-                (summary1, summary2) ->
-                    new EnvironmentOverview(
-                        environmentId,
-                        0.84,
-                        summary1.errors() + summary2.errors(),
-                        summary1.warnings() + summary2.warnings(),
-                        summary1.infos() + summary2.infos(),
-                        summary1.hints() + summary2.hints()
-                    )
-            );
+        return storage.stream()
+                .filter(report -> report.environmentId().equals(environmentId))
+                .reduce(
+                        new EnvironmentOverview(environmentId, 0.84, 0L, 0L, 0L, 0L),
+                        (summary, report) -> new EnvironmentOverview(
+                                environmentId,
+                                0.84,
+                                summary.errors() + report.summary().errors(),
+                                summary.warnings() + report.summary().warnings(),
+                                summary.infos() + report.summary().infos(),
+                                summary.hints() + report.summary().hints()),
+                        (summary1, summary2) -> new EnvironmentOverview(
+                                environmentId,
+                                0.84,
+                                summary1.errors() + summary2.errors(),
+                                summary1.warnings() + summary2.warnings(),
+                                summary1.infos() + summary2.infos(),
+                                summary1.hints() + summary2.hints()));
     }
 
     @Override

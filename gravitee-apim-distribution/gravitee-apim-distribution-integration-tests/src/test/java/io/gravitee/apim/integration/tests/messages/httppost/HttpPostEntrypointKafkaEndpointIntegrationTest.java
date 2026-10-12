@@ -47,19 +47,19 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "interrupt-message-request-phase",
-            PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class)
-        );
+                "interrupt-message-request-phase",
+                PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class));
         policies.put(
-            "assign-attributes",
-            PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
-        );
+                "assign-attributes",
+                PolicyBuilder.build(
+                        "assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class));
     }
 
     @Test
@@ -68,36 +68,37 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        client
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(request -> {
-                request.putHeader("X-Test-Header", "header-value");
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.toFlowable();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertNoErrors();
+        client.rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> {
+                    request.putHeader("X-Test-Header", "header-value");
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.toFlowable();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertNoErrors();
 
         // Configure a KafkaConsumer to read messages published on topic test-topic.
         KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
 
         subscribeToKafka(kafkaConsumer)
-            // We expect one message for this test
-            .take(1)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(0, message -> {
-                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                return true;
-            })
-            .assertComplete();
+                // We expect one message for this test
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(0, message -> {
+                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord =
+                            message.getDelegate();
+                    assertThat(kafkaConsumerRecord.value())
+                            .isEqualTo(requestBody.toBuffer().getBytes());
+                    return true;
+                })
+                .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
     }
@@ -108,51 +109,54 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        client
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(request -> {
-                request.putHeader("X-Test-Header", "header-value");
-                // Override topic from header: topic is set on request phase
-                request.putHeader("X-Topic-Override-Request-Level", "test-topic-attribute,another-topic-override");
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.toFlowable();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertNoErrors();
+        client.rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> {
+                    request.putHeader("X-Test-Header", "header-value");
+                    // Override topic from header: topic is set on request phase
+                    request.putHeader("X-Topic-Override-Request-Level", "test-topic-attribute,another-topic-override");
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.toFlowable();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertNoErrors();
 
         // Configure a KafkaConsumer to read messages published on topic test-topic.
         KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
 
         subscribeToKafka(kafkaConsumer, "test-topic-attribute")
-            // We expect one message for this test
-            .take(1)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(0, message -> {
-                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                return true;
-            })
-            .assertComplete();
+                // We expect one message for this test
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(0, message -> {
+                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord =
+                            message.getDelegate();
+                    assertThat(kafkaConsumerRecord.value())
+                            .isEqualTo(requestBody.toBuffer().getBytes());
+                    return true;
+                })
+                .assertComplete();
 
         subscribeToKafka(kafkaConsumer, "another-topic-override")
-            // We expect one message for this test
-            .take(1)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(0, message -> {
-                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                return true;
-            })
-            .assertComplete();
+                // We expect one message for this test
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(0, message -> {
+                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord =
+                            message.getDelegate();
+                    assertThat(kafkaConsumerRecord.value())
+                            .isEqualTo(requestBody.toBuffer().getBytes());
+                    return true;
+                })
+                .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
     }
@@ -163,53 +167,58 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        client
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(request -> {
-                request.putHeader("X-Test-Header", "header-value");
-                // Override topic from header: topic is set on request phase
-                request.putHeader("X-Topic-Override-Request-Level", "test-topic-attribute");
-                // Override topic from header: topic is set on message publish and override the one set on request phase
-                request.putHeader("X-Topic-Override-Message-Level", "test-topic-message-attribute, another-topic-override");
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.toFlowable();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertNoErrors();
+        client.rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> {
+                    request.putHeader("X-Test-Header", "header-value");
+                    // Override topic from header: topic is set on request phase
+                    request.putHeader("X-Topic-Override-Request-Level", "test-topic-attribute");
+                    // Override topic from header: topic is set on message publish and override the one set on request
+                    // phase
+                    request.putHeader(
+                            "X-Topic-Override-Message-Level", "test-topic-message-attribute, another-topic-override");
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.toFlowable();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertNoErrors();
 
         // Configure a KafkaConsumer to read messages published on topic test-topic.
         KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
 
         subscribeToKafka(kafkaConsumer, "test-topic-message-attribute")
-            // We expect one message for this test
-            .take(1)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(0, message -> {
-                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                return true;
-            })
-            .assertComplete();
+                // We expect one message for this test
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(0, message -> {
+                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord =
+                            message.getDelegate();
+                    assertThat(kafkaConsumerRecord.value())
+                            .isEqualTo(requestBody.toBuffer().getBytes());
+                    return true;
+                })
+                .assertComplete();
 
         subscribeToKafka(kafkaConsumer, "another-topic-override")
-            // We expect one message for this test
-            .take(1)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(0, message -> {
-                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                return true;
-            })
-            .assertComplete();
+                // We expect one message for this test
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(0, message -> {
+                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord =
+                            message.getDelegate();
+                    assertThat(kafkaConsumerRecord.value())
+                            .isEqualTo(requestBody.toBuffer().getBytes());
+                    return true;
+                })
+                .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
     }
@@ -220,19 +229,18 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        client
-            .rxRequest(HttpMethod.POST, "/http-post-entrypoint-kafka-endpoint-failure")
-            .flatMap(request -> request.rxSend(requestBody.toString()))
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(412);
-                return response.body();
-            })
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(buffer -> {
-                assertThat(buffer).hasToString("An error occurred");
-                return true;
-            });
+        client.rxRequest(HttpMethod.POST, "/http-post-entrypoint-kafka-endpoint-failure")
+                .flatMap(request -> request.rxSend(requestBody.toString()))
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(412);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(buffer -> {
+                    assertThat(buffer).hasToString("An error occurred");
+                    return true;
+                });
     }
 }

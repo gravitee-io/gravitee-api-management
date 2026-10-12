@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Group.AuditEvent.GROUP_CREATED;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.timeout;
@@ -77,7 +76,8 @@ class AuditService_AuthenticatedUserTest {
     void setUp() {
         reset(auditRepository);
         UserDetails userDetails = new UserDetails(USERNAME, "", Collections.emptyList());
-        SecurityContextHolder.setContext(new SecurityContextImpl(new UsernamePasswordAuthenticationToken(userDetails, null)));
+        SecurityContextHolder.setContext(
+                new SecurityContextImpl(new UsernamePasswordAuthenticationToken(userDetails, null)));
     }
 
     @AfterEach
@@ -88,15 +88,14 @@ class AuditService_AuthenticatedUserTest {
     @Test
     void should_record_authenticated_user_when_called_through_proxy() throws Exception {
         auditService.createAuditLog(
-            new ExecutionContext("DEFAULT", "DEFAULT"),
-            AuditService.AuditLogData.builder()
-                .properties(Collections.singletonMap(Audit.AuditProperties.GROUP, "group-id"))
-                .event(GROUP_CREATED)
-                .createdAt(new Date())
-                .oldValue(null)
-                .newValue(Collections.singletonMap("name", "group"))
-                .build()
-        );
+                new ExecutionContext("DEFAULT", "DEFAULT"),
+                AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(Audit.AuditProperties.GROUP, "group-id"))
+                        .event(GROUP_CREATED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(Collections.singletonMap("name", "group"))
+                        .build());
 
         ArgumentCaptor<Audit> audit = ArgumentCaptor.forClass(Audit.class);
         verify(auditRepository, timeout(5000)).create(audit.capture());
@@ -106,15 +105,14 @@ class AuditService_AuthenticatedUserTest {
     @Test
     void should_record_authenticated_user_for_organization_audit() throws Exception {
         auditService.createOrganizationAuditLog(
-            new ExecutionContext("DEFAULT", null),
-            AuditService.AuditLogData.builder()
-                .properties(Collections.singletonMap(Audit.AuditProperties.GROUP, "group-id"))
-                .event(GROUP_CREATED)
-                .createdAt(new Date())
-                .oldValue(null)
-                .newValue(Collections.singletonMap("name", "group"))
-                .build()
-        );
+                new ExecutionContext("DEFAULT", null),
+                AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(Audit.AuditProperties.GROUP, "group-id"))
+                        .event(GROUP_CREATED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(Collections.singletonMap("name", "group"))
+                        .build());
 
         ArgumentCaptor<Audit> audit = ArgumentCaptor.forClass(Audit.class);
         verify(auditRepository, timeout(5000)).create(audit.capture());

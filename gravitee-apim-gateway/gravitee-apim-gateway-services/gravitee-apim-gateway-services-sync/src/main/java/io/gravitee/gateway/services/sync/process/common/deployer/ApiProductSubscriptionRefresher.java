@@ -59,7 +59,8 @@ import lombok.CustomLog;
 @CustomLog
 public class ApiProductSubscriptionRefresher {
 
-    private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
+    private static final List<String> INCREMENTAL_STATUS =
+            List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
 
     private final SubscriptionRepository subscriptionRepository;
     private final ApiKeyRepository apiKeyRepository;
@@ -71,20 +72,20 @@ public class ApiProductSubscriptionRefresher {
     private final int subscriptionsChunkSize;
 
     public ApiProductSubscriptionRefresher(
-        SubscriptionRepository subscriptionRepository,
-        ApiKeyRepository apiKeyRepository,
-        SubscriptionMapper subscriptionMapper,
-        ApiKeyMapper apiKeyMapper,
-        SubscriptionCacheService subscriptionService,
-        ApiKeyCacheService apiKeyService,
-        int bulkItems,
-        int subscriptionsChunkSize
-    ) {
+            SubscriptionRepository subscriptionRepository,
+            ApiKeyRepository apiKeyRepository,
+            SubscriptionMapper subscriptionMapper,
+            ApiKeyMapper apiKeyMapper,
+            SubscriptionCacheService subscriptionService,
+            ApiKeyCacheService apiKeyService,
+            int bulkItems,
+            int subscriptionsChunkSize) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
         }
         if (subscriptionsChunkSize <= 0) {
-            throw new IllegalArgumentException("subscriptionsChunkSize must be > 0 (got " + subscriptionsChunkSize + ")");
+            throw new IllegalArgumentException(
+                    "subscriptionsChunkSize must be > 0 (got " + subscriptionsChunkSize + ")");
         }
         this.subscriptionRepository = subscriptionRepository;
         this.apiKeyRepository = apiKeyRepository;
@@ -115,12 +116,11 @@ public class ApiProductSubscriptionRefresher {
         return Completable.fromRunnable(() -> {
             try {
                 forEachSubscriptionPage(subscribablePlans, environments, page -> {
-                    page.forEach(subscription ->
-                        quietly(() -> subscriptionService.register(subscription), subscription.getId(), "subscription")
-                    );
-                    loadApiKeys(page, environments).forEach(apiKey ->
-                        quietly(() -> apiKeyService.register(apiKey), apiKey.getId(), "API key")
-                    );
+                    page.forEach(subscription -> quietly(
+                            () -> subscriptionService.register(subscription), subscription.getId(), "subscription"));
+                    loadApiKeys(page, environments)
+                            .forEach(
+                                    apiKey -> quietly(() -> apiKeyService.register(apiKey), apiKey.getId(), "API key"));
                 });
             } catch (SyncException ex) {
                 throw ex;
@@ -146,24 +146,19 @@ public class ApiProductSubscriptionRefresher {
         // Only Errors are trapped here, and translated rather than swallowed: ApiProductDeployer#undeploy
         // turns a failure into a SyncException and stops, so absorbing one would mark the product gone while
         // its subscription certificates are still in the trust store and its API keys still cached.
-        return Completable.fromRunnable(() ->
-            SyncIsolation.translateErrors(
-                () -> "unregister subscriptions and API keys of API Product [%s]".formatted(apiProductId),
-                () -> {
+        return Completable.fromRunnable(() -> SyncIsolation.translateErrors(
+                () -> "unregister subscriptions and API keys of API Product [%s]".formatted(apiProductId), () -> {
                     subscriptionService.unregisterByApiProductId(apiProductId);
                     apiKeyService.unregisterByApiProductId(apiProductId);
                     log.debug("Unregistered subscriptions and API keys of API Product [{}]", apiProductId);
-                }
-            )
-        );
+                }));
     }
 
     private void quietly(final Runnable action, final String itemId, final String type) {
         SyncIsolation.isolate(
-            () -> "deploy %s [%s]".formatted(type, itemId),
-            action,
-            t -> log.warn("Failed to deploy {} [{}]", type, itemId, t)
-        );
+                () -> "deploy %s [%s]".formatted(type, itemId),
+                action,
+                t -> log.warn("Failed to deploy {} [{}]", type, itemId, t));
     }
 
     /**
@@ -173,39 +168,32 @@ public class ApiProductSubscriptionRefresher {
      * repository's order and keyset seek agree — same contract as {@code SubscriptionAppender}.</p>
      */
     private void forEachSubscriptionPage(
-        final Set<String> plans,
-        final Set<String> environments,
-        final Consumer<List<Subscription>> pageConsumer
-    ) {
+            final Set<String> plans, final Set<String> environments, final Consumer<List<Subscription>> pageConsumer) {
         SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-            .plans(List.copyOf(plans))
-            .environments(environments)
-            .statuses(INCREMENTAL_STATUS)
-            .build();
+                .plans(List.copyOf(plans))
+                .environments(environments)
+                .statuses(INCREMENTAL_STATUS)
+                .build();
         var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
         SubscriptionCursor cursor = null;
         try {
             while (true) {
-                List<io.gravitee.repository.management.model.Subscription> page = subscriptionRepository.searchAfter(
-                    criteria,
-                    sortable,
-                    cursor,
-                    bulkItems
-                );
+                List<io.gravitee.repository.management.model.Subscription> page =
+                        subscriptionRepository.searchAfter(criteria, sortable, cursor, bulkItems);
                 if (page == null || page.isEmpty()) {
                     return;
                 }
-                List<Subscription> converted = page
-                    .stream()
-                    .flatMap(record -> subscriptionMapper.to(record).stream())
-                    .peek(subscription -> subscription.setForceDispatch(true))
-                    .toList();
+                List<Subscription> converted = page.stream()
+                        .flatMap(record -> subscriptionMapper.to(record).stream())
+                        .peek(subscription -> subscription.setForceDispatch(true))
+                        .toList();
                 pageConsumer.accept(converted);
                 if (page.size() < bulkItems) {
                     return;
                 }
-                cursor = SubscriptionCursor.byPlanAndId(page.getLast().getPlan(), page.getLast().getId());
+                cursor = SubscriptionCursor.byPlanAndId(
+                        page.getLast().getPlan(), page.getLast().getId());
             }
         } catch (SyncException ex) {
             throw ex;
@@ -219,7 +207,8 @@ public class ApiProductSubscriptionRefresher {
             return List.of();
         }
 
-        Map<String, List<Subscription>> subscriptionsById = subscriptions.stream().collect(Collectors.groupingBy(Subscription::getId));
+        Map<String, List<Subscription>> subscriptionsById =
+                subscriptions.stream().collect(Collectors.groupingBy(Subscription::getId));
         // Sort for deterministic chunk boundaries — same rationale as ApiKeyAppender.
         List<String> subscriptionIds = new ArrayList<>(subscriptionsById.keySet());
         subscriptionIds.sort(Comparator.naturalOrder());
@@ -233,23 +222,17 @@ public class ApiProductSubscriptionRefresher {
         try {
             for (int chunkStart = 0; chunkStart < subscriptionIds.size(); chunkStart += subscriptionsChunkSize) {
                 List<String> chunk = subscriptionIds.subList(
-                    chunkStart,
-                    Math.min(chunkStart + subscriptionsChunkSize, subscriptionIds.size())
-                );
+                        chunkStart, Math.min(chunkStart + subscriptionsChunkSize, subscriptionIds.size()));
                 ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-                    .subscriptions(chunk)
-                    .environments(environments)
-                    .includeRevoked(true)
-                    .build();
+                        .subscriptions(chunk)
+                        .environments(environments)
+                        .includeRevoked(true)
+                        .build();
 
                 ApiKeyCursor cursor = null;
                 while (true) {
-                    List<io.gravitee.repository.management.model.ApiKey> page = apiKeyRepository.searchAfter(
-                        criteria,
-                        sortable,
-                        cursor,
-                        bulkItems
-                    );
+                    List<io.gravitee.repository.management.model.ApiKey> page =
+                            apiKeyRepository.searchAfter(criteria, sortable, cursor, bulkItems);
                     if (page == null || page.isEmpty()) {
                         break;
                     }
@@ -257,17 +240,16 @@ public class ApiProductSubscriptionRefresher {
                         if (!seenKeyIds.add(record.getId())) {
                             continue;
                         }
-                        record
-                            .getSubscriptions()
-                            .stream()
-                            .flatMap(subscriptionId -> {
-                                List<Subscription> subsForId = subscriptionsById.get(subscriptionId);
-                                if (subsForId == null || subsForId.isEmpty()) {
-                                    return Stream.<ApiKey>empty();
-                                }
-                                return subsForId.stream().map(subscription -> apiKeyMapper.to(record, subscription));
-                            })
-                            .forEach(result::add);
+                        record.getSubscriptions().stream()
+                                .flatMap(subscriptionId -> {
+                                    List<Subscription> subsForId = subscriptionsById.get(subscriptionId);
+                                    if (subsForId == null || subsForId.isEmpty()) {
+                                        return Stream.<ApiKey>empty();
+                                    }
+                                    return subsForId.stream()
+                                            .map(subscription -> apiKeyMapper.to(record, subscription));
+                                })
+                                .forEach(result::add);
                     }
                     if (page.size() < bulkItems) {
                         break;

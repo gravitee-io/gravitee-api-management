@@ -55,9 +55,8 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     private final Map<VertxHttpServer, HttpServer> httpServerMap;
 
     public HttpProtocolVerticle(
-        final ServerManager serverManager,
-        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
-    ) {
+            final ServerManager serverManager,
+            @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher) {
         this.serverManager = serverManager;
         this.requestDispatcher = requestDispatcher;
         this.httpServerMap = new HashMap<>();
@@ -83,35 +82,37 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         Vertx.currentContext().exceptionHandler(this::logGlobalErrors);
 
         return Flowable.fromIterable(servers)
-            .concatMapCompletable(gioServer -> {
-                final HttpServer rxHttpServer = gioServer.newInstance();
-                httpServerMap.put(gioServer, rxHttpServer);
+                .concatMapCompletable(gioServer -> {
+                    final HttpServer rxHttpServer = gioServer.newInstance();
+                    httpServerMap.put(gioServer, rxHttpServer);
 
-                // Listen and dispatch http requests.
-                return rxHttpServer
-                    // In Vert.x 5, channel() was removed; use channelHandlerContext().channel()
-                    // instead
-                    .connectionHandler(connection -> {
-                        HttpServerConnection delegate = (HttpServerConnection) connection.getDelegate();
-                        delegate
-                            .channelHandlerContext()
-                            .channel()
-                            .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
-                            .set(System.currentTimeMillis());
-                    })
-                    .requestHandler(request -> dispatchRequest(request, gioServer.id()))
-                    .rxListen()
-                    .ignoreElement()
-                    .doOnComplete(() ->
-                        log.info("HTTP server [{}] ready to accept requests on port {}", gioServer.id(), rxHttpServer.actualPort())
-                    )
-                    .doOnError(throwable -> log.error("Unable to start HTTP server [{}]", gioServer.id(), throwable.getCause()));
-            })
-            .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."));
+                    // Listen and dispatch http requests.
+                    return rxHttpServer
+                            // In Vert.x 5, channel() was removed; use channelHandlerContext().channel()
+                            // instead
+                            .connectionHandler(connection -> {
+                                HttpServerConnection delegate = (HttpServerConnection) connection.getDelegate();
+                                delegate.channelHandlerContext()
+                                        .channel()
+                                        .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
+                                        .set(System.currentTimeMillis());
+                            })
+                            .requestHandler(request -> dispatchRequest(request, gioServer.id()))
+                            .rxListen()
+                            .ignoreElement()
+                            .doOnComplete(() -> log.info(
+                                    "HTTP server [{}] ready to accept requests on port {}",
+                                    gioServer.id(),
+                                    rxHttpServer.actualPort()))
+                            .doOnError(throwable -> log.error(
+                                    "Unable to start HTTP server [{}]", gioServer.id(), throwable.getCause()));
+                })
+                .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."));
     }
 
     private void logGlobalErrors(Throwable throwable) {
-        if (throwable instanceof IllegalStateException && "Response has already been written".equals(throwable.getMessage())) {
+        if (throwable instanceof IllegalStateException
+                && "Response has already been written".equals(throwable.getMessage())) {
             log.debug("Client has prematurely closed the connection before the response is fully written. Ignoring.");
         } else {
             log.warn("An unexpected error occurred.", throwable);
@@ -133,11 +134,11 @@ public class HttpProtocolVerticle extends AbstractVerticle {
      */
     private void dispatchRequest(HttpServerRequest request, String serverId) {
         requestDispatcher
-            .dispatch(request, serverId)
-            .doOnComplete(() -> log.debug("Request properly dispatched"))
-            .onErrorResumeNext(t -> handleError(t, request.response()))
-            .doOnSubscribe(dispatchDisposable -> configureConnectionHandlers(request, dispatchDisposable))
-            .subscribe();
+                .dispatch(request, serverId)
+                .doOnComplete(() -> log.debug("Request properly dispatched"))
+                .onErrorResumeNext(t -> handleError(t, request.response()))
+                .doOnSubscribe(dispatchDisposable -> configureConnectionHandlers(request, dispatchDisposable))
+                .subscribe();
     }
 
     /**
@@ -170,10 +171,9 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                 }
 
                 // Try to end the response and complete normally in case of error.
-                return response
-                    .rxEnd()
-                    .doOnError(throwable -> log.warn("Failed to properly end response after error", throwable))
-                    .onErrorComplete();
+                return response.rxEnd()
+                        .doOnError(throwable -> log.warn("Failed to properly end response after error", throwable))
+                        .onErrorComplete();
             }
 
             return Completable.complete();
@@ -184,12 +184,11 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     }
 
     private void configureConnectionHandlers(HttpServerRequest request, Disposable dispatchDisposable) {
-        request
-            .connection()
-            // Must be added to ensure closed connection or error disposes underlying
-            // subscription.
-            .exceptionHandler(event -> gracefulDispose(dispatchDisposable))
-            .closeHandler(event -> gracefulDispose(dispatchDisposable));
+        request.connection()
+                // Must be added to ensure closed connection or error disposes underlying
+                // subscription.
+                .exceptionHandler(event -> gracefulDispose(dispatchDisposable))
+                .closeHandler(event -> gracefulDispose(dispatchDisposable));
     }
 
     private void gracefulDispose(Disposable dispatchDisposable) {
@@ -205,11 +204,14 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     @Override
     public Completable rxStop() {
         return Flowable.fromIterable(httpServerMap.entrySet())
-            .flatMapCompletable(entry -> {
-                final VertxHttpServer gioServer = entry.getKey();
-                final HttpServer rxHttpServer = entry.getValue();
-                return rxHttpServer.rxClose().doOnComplete(() -> log.info("HTTP server [{}] has been correctly stopped", gioServer.id()));
-            })
-            .doOnSubscribe(disposable -> log.info("Stopping HTTP servers..."));
+                .flatMapCompletable(entry -> {
+                    final VertxHttpServer gioServer = entry.getKey();
+                    final HttpServer rxHttpServer = entry.getValue();
+                    return rxHttpServer
+                            .rxClose()
+                            .doOnComplete(
+                                    () -> log.info("HTTP server [{}] has been correctly stopped", gioServer.id()));
+                })
+                .doOnSubscribe(disposable -> log.info("Stopping HTTP servers..."));
     }
 }

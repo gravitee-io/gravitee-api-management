@@ -47,7 +47,9 @@ public class AsyncJob {
     Long upperLimit;
 
     public boolean isLate() {
-        return "PENDING".equalsIgnoreCase(status) && deadLine != null && deadLine.before(Date.from(TimeProvider.instantNow()));
+        return "PENDING".equalsIgnoreCase(status)
+                && deadLine != null
+                && deadLine.before(Date.from(TimeProvider.instantNow()));
     }
 
     public boolean isTimedOut() {

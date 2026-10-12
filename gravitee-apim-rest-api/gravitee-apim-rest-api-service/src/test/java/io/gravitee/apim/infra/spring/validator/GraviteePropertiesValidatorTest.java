@@ -56,64 +56,73 @@ class GraviteePropertiesValidatorTest {
 
     @Test
     void should_not_throw_if_configuration_from_properties_is_valid() {
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), Double.class)).thenReturn(0.1);
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), Double.class)).thenReturn(0.15);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), Double.class))
+                .thenReturn(0.1);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), Double.class))
+                .thenReturn(0.15);
 
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), Integer.class)).thenReturn(100);
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), Integer.class)).thenReturn(20);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), Integer.class))
+                .thenReturn(100);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), Integer.class))
+                .thenReturn(20);
 
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class)).thenReturn("PT10S");
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class)).thenReturn("PT5S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class))
+                .thenReturn("PT10S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class))
+                .thenReturn("PT5S");
 
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class)).thenReturn("1/PT10S");
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class)).thenReturn("1/PT1S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class))
+                .thenReturn("1/PT10S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class))
+                .thenReturn("1/PT1S");
 
         assertWithMockedValidation(() -> assertDoesNotThrow(() -> cut.validateProperties()));
     }
 
     @Test
     void should_throw_if_configuration_invalid() {
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), Double.class)).thenReturn(0.1);
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), Double.class)).thenReturn(0.015);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), Double.class))
+                .thenReturn(0.1);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), Double.class))
+                .thenReturn(0.015);
 
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), Integer.class)).thenReturn(100);
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), Integer.class)).thenReturn(200);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), Integer.class))
+                .thenReturn(100);
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), Integer.class))
+                .thenReturn(200);
 
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class)).thenReturn("PT10S");
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class)).thenReturn("PT50S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class))
+                .thenReturn("PT10S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class))
+                .thenReturn("PT50S");
 
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class)).thenReturn("2/PT1S");
-        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class)).thenReturn("1/PT1S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class))
+                .thenReturn("2/PT1S");
+        when(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class))
+                .thenReturn("1/PT1S");
 
         assertWithMockedValidation(() -> {
             final ConstraintViolation constraintViolationTemporal = prepareConstraintViolation(
-                "Invalid temporal default value, 'default' should be greater than 'limit'"
-            );
-            final ConstraintViolation constraintViolationCount = prepareConstraintViolation(
-                "Invalid count default value, 'default' should be greater than 'limit'"
-            );
+                    "Invalid temporal default value, 'default' should be greater than 'limit'");
+            final ConstraintViolation constraintViolationCount =
+                    prepareConstraintViolation("Invalid count default value, 'default' should be greater than 'limit'");
             final ConstraintViolation constraintViolationProbabilistic = prepareConstraintViolation(
-                "Invalid probabilistic default value, 'default' should be lower than 'limit'"
-            );
+                    "Invalid probabilistic default value, 'default' should be lower than 'limit'");
             final ConstraintViolation constraintViolationWindowedCount = prepareConstraintViolation(
-                "Invalid windowed count default value, 'default' should have a lower rate than 'limit'"
-            );
-            when(validator.validate(any())).thenReturn(
-                Set.of(
-                    constraintViolationTemporal,
-                    constraintViolationCount,
-                    constraintViolationProbabilistic,
-                    constraintViolationWindowedCount
-                )
-            );
+                    "Invalid windowed count default value, 'default' should have a lower rate than 'limit'");
+            when(validator.validate(any()))
+                    .thenReturn(Set.of(
+                            constraintViolationTemporal,
+                            constraintViolationCount,
+                            constraintViolationProbabilistic,
+                            constraintViolationWindowedCount));
             assertThatThrownBy(() -> cut.validateProperties())
-                .isInstanceOf(ConstraintViolationException.class)
-                .hasMessageContainingAll(
-                    "Invalid temporal default value, 'default' should be greater than 'limit'",
-                    "Invalid count default value, 'default' should be greater than 'limit'",
-                    "Invalid probabilistic default value, 'default' should be lower than 'limit'",
-                    "Invalid windowed count default value, 'default' should have a lower rate than 'limit'"
-                );
+                    .isInstanceOf(ConstraintViolationException.class)
+                    .hasMessageContainingAll(
+                            "Invalid temporal default value, 'default' should be greater than 'limit'",
+                            "Invalid count default value, 'default' should be greater than 'limit'",
+                            "Invalid probabilistic default value, 'default' should be lower than 'limit'",
+                            "Invalid windowed count default value, 'default' should have a lower rate than 'limit'");
         });
     }
 

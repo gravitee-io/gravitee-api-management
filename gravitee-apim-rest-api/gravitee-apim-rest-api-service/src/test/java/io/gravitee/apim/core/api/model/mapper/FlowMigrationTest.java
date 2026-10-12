@@ -63,14 +63,16 @@ class FlowMigrationTest {
             assertThat(v4Flow.getRequest()).isEmpty();
             assertThat(v4Flow.getResponse()).isEmpty();
             assertThat(v4Flow.getSelectors())
-                .hasSize(1)
-                .first()
-                .isInstanceOf(HttpSelector.class)
-                .satisfies(httpSelector -> {
-                    assertThat(((HttpSelector) httpSelector).getPath()).isEqualTo("/");
-                    assertThat(((HttpSelector) httpSelector).getPathOperator()).isEqualTo(Operator.STARTS_WITH);
-                    assertThat(((HttpSelector) httpSelector).getMethods()).containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
-                });
+                    .hasSize(1)
+                    .first()
+                    .isInstanceOf(HttpSelector.class)
+                    .satisfies(httpSelector -> {
+                        assertThat(((HttpSelector) httpSelector).getPath()).isEqualTo("/");
+                        assertThat(((HttpSelector) httpSelector).getPathOperator())
+                                .isEqualTo(Operator.STARTS_WITH);
+                        assertThat(((HttpSelector) httpSelector).getMethods())
+                                .containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
+                    });
         });
         assertThat(result.issues()).isEmpty();
     }
@@ -94,11 +96,23 @@ class FlowMigrationTest {
 
         assertThat(get(result)).satisfies(v4Flow -> {
             assertThat(v4Flow.getRequest()).hasSize(1);
-            assertThat(v4Flow.getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getName).first().isEqualTo("pre-step");
-            assertThat(v4Flow.getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy).first().isEqualTo("rate-limit");
+            assertThat(v4Flow.getRequest())
+                    .map(io.gravitee.definition.model.v4.flow.step.Step::getName)
+                    .first()
+                    .isEqualTo("pre-step");
+            assertThat(v4Flow.getRequest())
+                    .map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy)
+                    .first()
+                    .isEqualTo("rate-limit");
             assertThat(v4Flow.getResponse()).hasSize(1);
-            assertThat(v4Flow.getResponse()).map(io.gravitee.definition.model.v4.flow.step.Step::getName).first().isEqualTo("post-step");
-            assertThat(v4Flow.getResponse()).map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy).first().isEqualTo("mock");
+            assertThat(v4Flow.getResponse())
+                    .map(io.gravitee.definition.model.v4.flow.step.Step::getName)
+                    .first()
+                    .isEqualTo("post-step");
+            assertThat(v4Flow.getResponse())
+                    .map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy)
+                    .first()
+                    .isEqualTo("mock");
         });
         assertThat(result.issues()).isEmpty();
     }
@@ -114,8 +128,8 @@ class FlowMigrationTest {
 
         assertThrows(NullPointerException.class, () -> get(result));
         assertThat(result.issues())
-            .map(MigrationResult.Issue::message)
-            .containsExactly(MigrationWarnings.POLICY_NOT_COMPATIBLE.formatted("cloud-events"));
+                .map(MigrationResult.Issue::message)
+                .containsExactly(MigrationWarnings.POLICY_NOT_COMPATIBLE.formatted("cloud-events"));
         assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.IMPOSSIBLE);
     }
 
@@ -130,9 +144,11 @@ class FlowMigrationTest {
 
         assertThat(get(result)).isNotNull();
         assertThat(result.issues())
-            .map(MigrationResult.Issue::message)
-            .containsExactly(MigrationWarnings.NON_GRAVITEE_POLICY.formatted("unknown-policy"));
-        assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.CAN_BE_FORCED);
+                .map(MigrationResult.Issue::message)
+                .containsExactly(MigrationWarnings.NON_GRAVITEE_POLICY.formatted("unknown-policy"));
+        assertThat(result.issues())
+                .map(MigrationResult.Issue::state)
+                .containsExactly(MigrationResult.State.CAN_BE_FORCED);
     }
 
     @Test
@@ -142,14 +158,14 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(get(result)).satisfies(v4Flow ->
-            assertThat(v4Flow.getSelectors())
-                .hasSize(2)
-                .anySatisfy(selector -> {
-                    assertThat(selector).isInstanceOf(ConditionSelector.class);
-                    assertThat(((ConditionSelector) selector).getCondition()).isEqualTo("{#context.attribute['condition'] == 'true'}");
-                })
-        );
+        assertThat(get(result))
+                .satisfies(v4Flow -> assertThat(v4Flow.getSelectors())
+                        .hasSize(2)
+                        .anySatisfy(selector -> {
+                            assertThat(selector).isInstanceOf(ConditionSelector.class);
+                            assertThat(((ConditionSelector) selector).getCondition())
+                                    .isEqualTo("{#context.attribute['condition'] == 'true'}");
+                        }));
         assertThat(result.issues()).isEmpty();
     }
 
@@ -177,8 +193,14 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(get(result).getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getDescription).first().isNull();
-        assertThat(get(result).getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getCondition).first().isNull();
+        assertThat(get(result).getRequest())
+                .map(io.gravitee.definition.model.v4.flow.step.Step::getDescription)
+                .first()
+                .isNull();
+        assertThat(get(result).getRequest())
+                .map(io.gravitee.definition.model.v4.flow.step.Step::getCondition)
+                .first()
+                .isNull();
     }
 
     @Test
@@ -199,40 +221,32 @@ class FlowMigrationTest {
 
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
         private static final String GROOVY_SCRIPT = "println(Hello World);";
-        private static final Collection<String> OLD_KEYS = List.of(
-            "onRequestContentScript",
-            "onResponseContentScript",
-            "onRequestScript",
-            "onResponseScript"
-        );
+        private static final Collection<String> OLD_KEYS =
+                List.of("onRequestContentScript", "onResponseContentScript", "onRequestScript", "onResponseScript");
 
         @ParameterizedTest
-        @CsvSource(
-            delimiterString = "|",
-            textBlock = """
+        @CsvSource(delimiterString = "|", textBlock = """
             onRequestContentScript  | true        | true
             onRequestScript         | false       | false
             onResponseContentScript | true        | true
             onResponseScript        | false       | false
-            """
-        )
-        void should_map_the_configuration(String inputField, boolean expectedReadContent, boolean expectedOverrideContent)
-            throws Exception {
+            """)
+        void should_map_the_configuration(
+                String inputField, boolean expectedReadContent, boolean expectedOverrideContent) throws Exception {
             // Given
-            var v2Flow = buildV2Flow(
-                """
+            var v2Flow = buildV2Flow("""
                 {
                   "%s" : "%s",
                   "scope" : "REQUEST"
                 }
-                """.formatted(inputField, GROOVY_SCRIPT)
-            );
+                """.formatted(inputField, GROOVY_SCRIPT));
 
             // When
             var result = get(cut.mapFlow(v2Flow));
 
             // Then
-            JsonNode jsonNode = OBJECT_MAPPER.readTree(result.getRequest().getFirst().getConfiguration());
+            JsonNode jsonNode =
+                    OBJECT_MAPPER.readTree(result.getRequest().getFirst().getConfiguration());
             assertThat(jsonNode.get("scope").asText()).isEqualTo("REQUEST");
             assertThat(jsonNode.get("script").asText()).isEqualTo(GROOVY_SCRIPT);
             assertThat(jsonNode.get("readContent").asBoolean()).isEqualTo(expectedReadContent);
@@ -245,12 +259,10 @@ class FlowMigrationTest {
         @Test
         void impossible_to_parse_configuration() {
             // Given
-            var v2Flow = buildV2Flow(
-                """
+            var v2Flow = buildV2Flow("""
                 {
                   "%s" : "%s
-                """
-            );
+                """);
 
             // When
             var result = cut.mapFlow(v2Flow);
@@ -264,22 +276,21 @@ class FlowMigrationTest {
         @Test
         void bad_policy_configuration() {
             // Given
-            var v2Flow = buildV2Flow(
-                """
+            var v2Flow = buildV2Flow("""
                 {
                   "onRequestContentScript" : "%s",
                   "onRequestScript" : "%s",
                   "scope" : "REQUEST"
                 }
-                """.formatted(GROOVY_SCRIPT, GROOVY_SCRIPT)
-            );
+                """.formatted(GROOVY_SCRIPT, GROOVY_SCRIPT));
 
             // When
             var result = cut.mapFlow(v2Flow);
 
             // Then
             assertThat(result.issues()).hasSize(1);
-            assertThat(result.issues().iterator().next().message()).startsWith(MigrationWarnings.GROOVY_MULTIPLE_SCRIPTS);
+            assertThat(result.issues().iterator().next().message())
+                    .startsWith(MigrationWarnings.GROOVY_MULTIPLE_SCRIPTS);
             assertThat(result.issues().iterator().next().state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         }
 

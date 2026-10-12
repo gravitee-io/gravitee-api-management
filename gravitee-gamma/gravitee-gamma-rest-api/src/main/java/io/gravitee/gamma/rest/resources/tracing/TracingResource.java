@@ -107,10 +107,9 @@ public class TracingResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public PaginatedResponseDto<TraceSummaryDto> searchTraces(
-        @QueryParam("page") @DefaultValue("1") int page,
-        @QueryParam("perPage") @DefaultValue("20") int perPage,
-        SearchTracesRequestDto request
-    ) {
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("perPage") @DefaultValue("20") int perPage,
+            SearchTracesRequestDto request) {
         if (request == null) {
             // Defensive: a totally empty body still requires the apiId scope param.
             throw new MissingTracingScopeException("apiId");
@@ -118,12 +117,11 @@ public class TracingResource {
         requireParam("apiId", request.apiId());
 
         List<FilterCondition> filters = request.filters() == null
-            ? List.of()
-            : request.filters().stream().map(FilterConditionDto::toCore).toList();
+                ? List.of()
+                : request.filters().stream().map(FilterConditionDto::toCore).toList();
 
         var ctx = GraviteeContext.getExecutionContext();
-        var output = searchTracesUseCase.execute(
-            new SearchTracesUseCase.Input(
+        var output = searchTracesUseCase.execute(new SearchTracesUseCase.Input(
                 ctx.getOrganizationId(),
                 ctx.getEnvironmentId(),
                 request.apiId(),
@@ -131,11 +129,10 @@ public class TracingResource {
                 request.timeRange() != null ? request.timeRange().from() : null,
                 request.timeRange() != null ? request.timeRange().to() : null,
                 page,
-                perPage
-            )
-        );
+                perPage));
         Page<io.gravitee.gamma.rest.core.tracing.model.Trace> tracesPage = output.traces();
-        List<TraceSummaryDto> data = tracesPage.getContent().stream().map(TraceSummaryDto::from).toList();
+        List<TraceSummaryDto> data =
+                tracesPage.getContent().stream().map(TraceSummaryDto::from).toList();
         return PaginatedResponseDto.of(data, tracesPage.getTotalElements(), page, perPage);
     }
 
@@ -151,7 +148,8 @@ public class TracingResource {
     @Produces(MediaType.APPLICATION_JSON)
     public TraceFilterSpecsResponseDto getTraceFilterDefinitions(@QueryParam("module") String module) {
         var output = getTraceFilterDefinitionsUseCase.execute(new GetTraceFilterDefinitionsUseCase.Input(module));
-        return new TraceFilterSpecsResponseDto(output.filters().stream().map(TraceFilterSpecDto::from).toList());
+        return new TraceFilterSpecsResponseDto(
+                output.filters().stream().map(TraceFilterSpecDto::from).toList());
     }
 
     /**
@@ -167,14 +165,15 @@ public class TracingResource {
     @Path("/filters/{filterName}/values")
     @Produces(MediaType.APPLICATION_JSON)
     public PaginatedResponseDto<TraceFilterValueDto> getTraceFilterValues(
-        @PathParam("filterName") String filterName,
-        @QueryParam("module") String module,
-        @QueryParam("query") String query,
-        @QueryParam("page") @DefaultValue("1") int page,
-        @QueryParam("perPage") @DefaultValue("10") int perPage
-    ) {
-        var output = getTraceFilterValuesUseCase.execute(new GetTraceFilterValuesUseCase.Input(module, filterName, query, page, perPage));
-        List<TraceFilterValueDto> data = output.page().data().stream().map(TraceFilterValueDto::from).toList();
+            @PathParam("filterName") String filterName,
+            @QueryParam("module") String module,
+            @QueryParam("query") String query,
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("perPage") @DefaultValue("10") int perPage) {
+        var output = getTraceFilterValuesUseCase.execute(
+                new GetTraceFilterValuesUseCase.Input(module, filterName, query, page, perPage));
+        List<TraceFilterValueDto> data =
+                output.page().data().stream().map(TraceFilterValueDto::from).toList();
         return PaginatedResponseDto.of(data, output.page().totalElements(), page, perPage);
     }
 
@@ -185,12 +184,10 @@ public class TracingResource {
         requireParam("apiId", apiId);
         var ctx = GraviteeContext.getExecutionContext();
         var output = getTraceDetailUseCase.execute(
-            new GetTraceDetailUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, traceId)
-        );
-        return output
-            .trace()
-            .map(detail -> Response.ok(TraceDetailDto.from(detail)).build())
-            .orElseThrow(() -> new TraceNotFoundException(traceId, apiId));
+                new GetTraceDetailUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, traceId));
+        return output.trace()
+                .map(detail -> Response.ok(TraceDetailDto.from(detail)).build())
+                .orElseThrow(() -> new TraceNotFoundException(traceId, apiId));
     }
 
     /**

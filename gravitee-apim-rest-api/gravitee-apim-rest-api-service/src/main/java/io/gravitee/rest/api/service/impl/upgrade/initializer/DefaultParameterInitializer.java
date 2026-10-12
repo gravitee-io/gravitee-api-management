@@ -43,7 +43,8 @@ public class DefaultParameterInitializer implements Initializer {
     private final ConfigurableEnvironment environment;
 
     @Autowired
-    public DefaultParameterInitializer(@Lazy ParameterRepository parameterRepository, ConfigurableEnvironment environment) {
+    public DefaultParameterInitializer(
+            @Lazy ParameterRepository parameterRepository, ConfigurableEnvironment environment) {
         this.parameterRepository = parameterRepository;
         this.environment = environment;
     }
@@ -54,10 +55,9 @@ public class DefaultParameterInitializer implements Initializer {
             String envPortalURL = environment.getProperty("portalURL", Key.MANAGEMENT_URL.defaultValue());
             if (envPortalURL != null) {
                 final Optional<Parameter> optionalParameter = parameterRepository.findById(
-                    Key.MANAGEMENT_URL.key(),
-                    GraviteeContext.getDefaultOrganization(),
-                    ParameterReferenceType.ORGANIZATION
-                );
+                        Key.MANAGEMENT_URL.key(),
+                        GraviteeContext.getDefaultOrganization(),
+                        ParameterReferenceType.ORGANIZATION);
                 if (!optionalParameter.isPresent()) {
                     Parameter managementURLParam = new Parameter();
                     managementURLParam.setKey(Key.MANAGEMENT_URL.key());

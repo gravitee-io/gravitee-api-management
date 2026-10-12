@@ -28,9 +28,9 @@ public class LifeCycleStateIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("ls1")
-            .key("lifecycleState", ascending())
-            .build();
+                .collection("apis")
+                .name("ls1")
+                .key("lifecycleState", ascending())
+                .build();
     }
 }

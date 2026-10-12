@@ -30,31 +30,36 @@ public class InstanceQueryServiceInMemory implements InstanceQueryService, InMem
 
     @Override
     public List<Instance> findAllStarted(String organizationId, String environmentId) {
-        return storage
-            .stream()
-            .filter(instance -> instance.getStartedAt() != null)
-            .toList();
+        return storage.stream()
+                .filter(instance -> instance.getStartedAt() != null)
+                .toList();
     }
 
     @Override
     public BaseInstance findById(ExecutionContext executionContext, String instanceId) {
-        return storage
-            .stream()
-            .filter(
-                instance -> instanceId.equals(instance.getId()) && instance.getEnvironments().contains(executionContext.getEnvironmentId())
-            )
-            .findFirst()
-            .map(instance -> BaseInstance.builder().ip(instance.getIp()).id(instance.getId()).hostname(instance.getHostname()).build())
-            .orElseThrow(() -> new InstanceNotFoundException(instanceId));
+        return storage.stream()
+                .filter(instance -> instanceId.equals(instance.getId())
+                        && instance.getEnvironments().contains(executionContext.getEnvironmentId()))
+                .findFirst()
+                .map(instance -> BaseInstance.builder()
+                        .ip(instance.getIp())
+                        .id(instance.getId())
+                        .hostname(instance.getHostname())
+                        .build())
+                .orElseThrow(() -> new InstanceNotFoundException(instanceId));
     }
 
     @Override
     public List<BaseInstance> findByIds(ExecutionContext executionContext, Collection<String> instanceIds) {
-        return storage
-            .stream()
-            .filter(i -> instanceIds.contains(i.getId()) && i.getEnvironments().contains(executionContext.getEnvironmentId()))
-            .map(i -> BaseInstance.builder().id(i.getId()).hostname(i.getHostname()).ip(i.getIp()).build())
-            .toList();
+        return storage.stream()
+                .filter(i -> instanceIds.contains(i.getId())
+                        && i.getEnvironments().contains(executionContext.getEnvironmentId()))
+                .map(i -> BaseInstance.builder()
+                        .id(i.getId())
+                        .hostname(i.getHostname())
+                        .ip(i.getIp())
+                        .build())
+                .toList();
     }
 
     @Override

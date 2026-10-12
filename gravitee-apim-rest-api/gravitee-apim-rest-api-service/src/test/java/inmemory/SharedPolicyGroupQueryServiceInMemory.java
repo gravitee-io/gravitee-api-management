@@ -26,22 +26,23 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SharedPolicyGroupQueryServiceInMemory implements SharedPolicyGroupQueryService, InMemoryAlternative<SharedPolicyGroup> {
+public class SharedPolicyGroupQueryServiceInMemory
+        implements SharedPolicyGroupQueryService, InMemoryAlternative<SharedPolicyGroup> {
 
     final ArrayList<SharedPolicyGroup> storage = new ArrayList<>();
 
     @Override
-    public Page<SharedPolicyGroup> searchByEnvironmentId(String environmentId, String q, Pageable pageable, Sortable sortable) {
+    public Page<SharedPolicyGroup> searchByEnvironmentId(
+            String environmentId, String q, Pageable pageable, Sortable sortable) {
         // Search, sort, and paginate the shared policy groups from storage
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
         var sortableField = sortable.getField();
         var isAscending = sortable.isAscOrder();
 
-        var stream = storage
-            .stream()
-            .filter(spg -> spg.getEnvironmentId().equals(environmentId))
-            .filter(spg -> q == null || spg.getName().contains(q));
+        var stream = storage.stream()
+                .filter(spg -> spg.getEnvironmentId().equals(environmentId))
+                .filter(spg -> q == null || spg.getName().contains(q));
 
         stream = switch (sortableField) {
             case "name" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getName));
@@ -57,8 +58,8 @@ public class SharedPolicyGroupQueryServiceInMemory implements SharedPolicyGroupQ
         }
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }

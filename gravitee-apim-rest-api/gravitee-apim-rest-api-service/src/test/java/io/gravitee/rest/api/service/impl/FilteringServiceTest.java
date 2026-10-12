@@ -95,17 +95,15 @@ public class FilteringServiceTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeAll
@@ -140,20 +138,19 @@ public class FilteringServiceTest {
         publishedApi5.setName("6");
         publishedApi5.setId("6");
 
-        mockApis = new HashSet<>(
-            Arrays.asList(publishedApi5.getId(), publishedApi2.getId(), publishedApi1.getId(), publishedApi3.getId(), publishedApi4.getId())
-        );
+        mockApis = new HashSet<>(Arrays.asList(
+                publishedApi5.getId(),
+                publishedApi2.getId(),
+                publishedApi1.getId(),
+                publishedApi3.getId(),
+                publishedApi4.getId()));
     }
 
     @Test
     public void shouldNotApplyAnyFilterIfEmptyApiList() {
         Set<String> apis = emptySet();
         Collection<String> filteredList = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            apis,
-            FilteringService.FilterType.TRENDINGS,
-            null
-        );
+                GraviteeContext.getExecutionContext(), apis, FilteringService.FilterType.TRENDINGS, null);
         assertSame(apis, filteredList);
 
         verifyNoInteractions(subscriptionService);
@@ -161,29 +158,22 @@ public class FilteringServiceTest {
 
     @Test
     public void shouldNotApplyAnyFilterIfNoFilter() {
-        Collection<String> filteredList = filteringService.filterApis(GraviteeContext.getExecutionContext(), mockApis, null, null);
+        Collection<String> filteredList =
+                filteringService.filterApis(GraviteeContext.getExecutionContext(), mockApis, null, null);
         assertSame(mockApis, filteredList);
     }
 
     @Test
     public void shouldNotApplyAnyFilterIfAllFilter() {
         Collection<String> filteredList = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            mockApis,
-            FilteringService.FilterType.ALL,
-            null
-        );
+                GraviteeContext.getExecutionContext(), mockApis, FilteringService.FilterType.ALL, null);
         assertSame(mockApis, filteredList);
     }
 
     @Test
     public void shouldNotGetMineApi() {
         Collection<String> apiEntityFilteredEntities = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            mockApis,
-            FilteringService.FilterType.MINE,
-            null
-        );
+                GraviteeContext.getExecutionContext(), mockApis, FilteringService.FilterType.MINE, null);
 
         Collection<String> filteredItems = apiEntityFilteredEntities;
         assertEquals(0, filteredItems.size());
@@ -198,8 +188,8 @@ public class FilteringServiceTest {
         SecurityContextHolder.setContext(securityContext);
 
         doReturn(new HashSet<>(Arrays.asList("C", "B", "A")))
-            .when(applicationService)
-            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any());
+                .when(applicationService)
+                .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
@@ -217,15 +207,11 @@ public class FilteringServiceTest {
         subC8.setApplication("C");
         subC8.setApi("8");
         doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1))
-            .when(subscriptionService)
-            .search(eq(GraviteeContext.getExecutionContext()), any());
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            mockApis,
-            FilteringService.FilterType.MINE,
-            null
-        );
+                GraviteeContext.getExecutionContext(), mockApis, FilteringService.FilterType.MINE, null);
 
         assertEquals(2, filteredItems.size());
         assertEquals(Arrays.asList("1", "4"), filteredItems);
@@ -236,11 +222,7 @@ public class FilteringServiceTest {
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            mockApis,
-            FilteringService.FilterType.STARRED,
-            null
-        );
+                GraviteeContext.getExecutionContext(), mockApis, FilteringService.FilterType.STARRED, null);
 
         assertEquals(0, filteredItems.size());
     }
@@ -250,15 +232,11 @@ public class FilteringServiceTest {
         Set<String> apis = new LinkedHashSet<>(Arrays.asList("5", "4", "2", "1"));
         doReturn(true).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
         doReturn(new LinkedHashSet<>(Arrays.asList("3", "4", "1", "5")))
-            .when(ratingService)
-            .findReferenceIdsOrderByRate(GraviteeContext.getExecutionContext(), apis);
+                .when(ratingService)
+                .findReferenceIdsOrderByRate(GraviteeContext.getExecutionContext(), apis);
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            apis,
-            FilteringService.FilterType.STARRED,
-            null
-        );
+                GraviteeContext.getExecutionContext(), apis, FilteringService.FilterType.STARRED, null);
 
         assertEquals(5, filteredItems.size());
         assertEquals(new LinkedHashSet<>(Arrays.asList("3", "4", "1", "5", "2")), filteredItems);
@@ -269,15 +247,11 @@ public class FilteringServiceTest {
         Set<String> apis = new LinkedHashSet<>(Arrays.asList("5", "4", "2", "1"));
         doReturn(true).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
         doReturn(new LinkedHashSet<>(Arrays.asList("3", "4", "1", "5")))
-            .when(ratingService)
-            .findReferenceIdsOrderByRate(GraviteeContext.getExecutionContext(), apis);
+                .when(ratingService)
+                .findReferenceIdsOrderByRate(GraviteeContext.getExecutionContext(), apis);
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            apis,
-            null,
-            FilteringService.FilterType.STARRED
-        );
+                GraviteeContext.getExecutionContext(), apis, null, FilteringService.FilterType.STARRED);
 
         assertEquals(1, filteredItems.size());
         assertEquals(new LinkedHashSet<>(Arrays.asList("2")), filteredItems);
@@ -291,15 +265,11 @@ public class FilteringServiceTest {
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
         subscriptionQuery.setApis(apis);
         doReturn(new LinkedHashSet<>(Arrays.asList("1", "4")))
-            .when(subscriptionService)
-            .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, Order.DESC);
+                .when(subscriptionService)
+                .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, Order.DESC);
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            apis,
-            FilteringService.FilterType.TRENDINGS,
-            null
-        );
+                GraviteeContext.getExecutionContext(), apis, FilteringService.FilterType.TRENDINGS, null);
 
         assertEquals(4, filteredItems.size());
         assertEquals(new LinkedHashSet<>(Arrays.asList("1", "4", "5", "2")), filteredItems);
@@ -313,15 +283,11 @@ public class FilteringServiceTest {
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
         subscriptionQuery.setApis(apis);
         doReturn(new LinkedHashSet<>(Arrays.asList("1", "4")))
-            .when(subscriptionService)
-            .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, Order.DESC);
+                .when(subscriptionService)
+                .findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, Order.DESC);
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            apis,
-            null,
-            FilteringService.FilterType.TRENDINGS
-        );
+                GraviteeContext.getExecutionContext(), apis, null, FilteringService.FilterType.TRENDINGS);
 
         assertEquals(2, filteredItems.size());
         assertEquals(new LinkedHashSet<>(Arrays.asList("5", "2")), filteredItems);
@@ -338,11 +304,7 @@ public class FilteringServiceTest {
         doReturn(Arrays.asList(topApi5, topApi6)).when(topApiService).findAll(GraviteeContext.getExecutionContext());
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            mockApis,
-            FilteringService.FilterType.FEATURED,
-            null
-        );
+                GraviteeContext.getExecutionContext(), mockApis, FilteringService.FilterType.FEATURED, null);
 
         assertEquals(2, filteredItems.size());
         assertEquals(Arrays.asList("6", "5"), filteredItems);
@@ -359,11 +321,7 @@ public class FilteringServiceTest {
         doReturn(Arrays.asList(topApi5, topApi6)).when(topApiService).findAll(GraviteeContext.getExecutionContext());
 
         Collection<String> filteredItems = filteringService.filterApis(
-            GraviteeContext.getExecutionContext(),
-            mockApis,
-            null,
-            FilteringService.FilterType.FEATURED
-        );
+                GraviteeContext.getExecutionContext(), mockApis, null, FilteringService.FilterType.FEATURED);
 
         assertEquals(3, filteredItems.size());
         assertEquals(Arrays.asList("1", "3", "4"), filteredItems);
@@ -374,21 +332,23 @@ public class FilteringServiceTest {
         String aQuery = "a Query";
 
         doReturn(Set.of("api-#1", "api-#2", "api-#3"))
-            .when(apiAuthorizationService)
-            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"), nullable(ApiQuery.class));
+                .when(apiAuthorizationService)
+                .findAccessibleApiIdsForUser(
+                        eq(GraviteeContext.getExecutionContext()), eq("user-#1"), nullable(ApiQuery.class));
         doReturn(Set.of("api-#3"))
-            .when(apiSearchService)
-            .searchIds(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(aQuery),
-                argThat(map -> ((List<String>) map.get("api")).containsAll(Set.of("api-#1", "api-#2", "api-#3"))),
-                isNull(),
-                eq(EnumSet.noneOf(DefinitionVersion.class)),
-                eq(false),
-                eq(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS)
-            );
+                .when(apiSearchService)
+                .searchIds(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(aQuery),
+                        argThat(map ->
+                                ((List<String>) map.get("api")).containsAll(Set.of("api-#1", "api-#2", "api-#3"))),
+                        isNull(),
+                        eq(EnumSet.noneOf(DefinitionVersion.class)),
+                        eq(false),
+                        eq(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS));
 
-        Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery);
+        Collection<String> searchItems =
+                filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery);
 
         assertThat(searchItems).singleElement().isEqualTo("api-#3");
     }
@@ -398,10 +358,12 @@ public class FilteringServiceTest {
         String aQuery = "a Query";
 
         doReturn(Set.of())
-            .when(apiAuthorizationService)
-            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"), nullable(ApiQuery.class));
+                .when(apiAuthorizationService)
+                .findAccessibleApiIdsForUser(
+                        eq(GraviteeContext.getExecutionContext()), eq("user-#1"), nullable(ApiQuery.class));
 
-        Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery);
+        Collection<String> searchItems =
+                filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery);
 
         assertThat(searchItems).isEmpty();
         verifyNoInteractions(apiSearchService);
@@ -415,30 +377,24 @@ public class FilteringServiceTest {
         var apiQuery = new ApiQuery();
         apiQuery.setCategory(category);
 
-        doReturn(
-            new GetCategoryApisUseCase.Output(
-                List.of(resultForApi("api-#1", 1, category), resultForApi("api-#3", 2, category), resultForApi("api-#2", 3, category))
-            )
-        )
-            .when(getCategoryApisUseCase)
-            .execute(
-                argThat(input -> input.categoryIdOrKey().equals(category) && input.onlyPublishedApiLifecycleState() && !input.isAdmin())
-            );
+        doReturn(new GetCategoryApisUseCase.Output(List.of(
+                        resultForApi("api-#1", 1, category),
+                        resultForApi("api-#3", 2, category),
+                        resultForApi("api-#2", 3, category))))
+                .when(getCategoryApisUseCase)
+                .execute(argThat(input -> input.categoryIdOrKey().equals(category)
+                        && input.onlyPublishedApiLifecycleState()
+                        && !input.isAdmin()));
         doReturn(Set.of("api-#3", "api-#1", "api-#2"))
-            .when(apiSearchService)
-            .searchIds(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(aQuery),
-                eq(Map.of("api", List.of("api-#1", "api-#3", "api-#2"))),
-                isNull()
-            );
+                .when(apiSearchService)
+                .searchIds(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(aQuery),
+                        eq(Map.of("api", List.of("api-#1", "api-#3", "api-#2"))),
+                        isNull());
 
         Collection<String> searchItems = filteringService.searchApisWithCategory(
-            GraviteeContext.getExecutionContext(),
-            "user-#1",
-            aQuery,
-            category
-        );
+                GraviteeContext.getExecutionContext(), "user-#1", aQuery, category);
 
         assertThat(searchItems).containsExactly("api-#1", "api-#3", "api-#2");
     }
@@ -452,17 +408,13 @@ public class FilteringServiceTest {
         apiQuery.setCategory(category);
 
         doReturn(new GetCategoryApisUseCase.Output(List.of()))
-            .when(getCategoryApisUseCase)
-            .execute(
-                argThat(input -> input.categoryIdOrKey().equals(category) && input.onlyPublishedApiLifecycleState() && !input.isAdmin())
-            );
+                .when(getCategoryApisUseCase)
+                .execute(argThat(input -> input.categoryIdOrKey().equals(category)
+                        && input.onlyPublishedApiLifecycleState()
+                        && !input.isAdmin()));
 
         Collection<String> searchItems = filteringService.searchApisWithCategory(
-            GraviteeContext.getExecutionContext(),
-            "user-#1",
-            aQuery,
-            category
-        );
+                GraviteeContext.getExecutionContext(), "user-#1", aQuery, category);
 
         assertThat(searchItems).isEmpty();
         verify(apiSearchService, never()).searchIds(any(), any(), any(), any());
@@ -470,8 +422,11 @@ public class FilteringServiceTest {
 
     private static GetCategoryApisUseCase.Result resultForApi(String apiId, int order, String category) {
         return new GetCategoryApisUseCase.Result(
-            ApiCategoryOrder.builder().apiId(apiId).categoryId(category).order(order).build(),
-            Api.builder().id(apiId).categories(Set.of(category)).build()
-        );
+                ApiCategoryOrder.builder()
+                        .apiId(apiId)
+                        .categoryId(category)
+                        .order(order)
+                        .build(),
+                Api.builder().id(apiId).categories(Set.of(category)).build());
     }
 }

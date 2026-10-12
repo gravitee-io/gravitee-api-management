@@ -38,7 +38,8 @@ import org.springframework.stereotype.Repository;
 
 @CustomLog
 @Repository
-public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIntegration, String> implements IntegrationRepository {
+public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIntegration, String>
+        implements IntegrationRepository {
 
     private final String INTEGRATION_GROUPS;
 
@@ -53,14 +54,13 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
         final List<Integration> integrations;
         try {
             integrations = jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
-                    getOrm().getRowMapper(),
-                    environmentId
-                )
-                .stream()
-                .flatMap(this::toEntityIntegration)
-                .toList();
+                    .query(
+                            getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
+                            getOrm().getRowMapper(),
+                            environmentId)
+                    .stream()
+                    .flatMap(this::toEntityIntegration)
+                    .toList();
 
             integrations.forEach(this::addGroups);
         } catch (final Exception ex) {
@@ -73,32 +73,24 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
 
     @Override
     public Page<Integration> findAllByEnvironmentAndGroups(
-        String environmentId,
-        Collection<String> integrationIds,
-        Collection<String> groups,
-        Pageable pageable
-    ) throws TechnicalException {
+            String environmentId, Collection<String> integrationIds, Collection<String> groups, Pageable pageable)
+            throws TechnicalException {
         log.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {}, {})", environmentId, groups, pageable);
         List<Integration> integrations;
         try {
             String query = "%s where environment_id = ? order by updated_at desc".formatted(getOrm().getSelectAllSql());
-            integrations = jdbcTemplate
-                .query(query, getOrm().getRowMapper(), environmentId)
-                .stream()
-                .flatMap(this::toEntityIntegration)
-                .toList();
+            integrations = jdbcTemplate.query(query, getOrm().getRowMapper(), environmentId).stream()
+                    .flatMap(this::toEntityIntegration)
+                    .toList();
 
-            integrations = integrations
-                .stream()
-                .peek(this::addGroups)
-                .filter(
-                    integration ->
-                        integrationIds.contains(integration.getId()) || stream(integration.getGroups()).anyMatch(groups::contains)
-                )
-                .toList();
+            integrations = integrations.stream()
+                    .peek(this::addGroups)
+                    .filter(integration -> integrationIds.contains(integration.getId())
+                            || stream(integration.getGroups()).anyMatch(groups::contains))
+                    .toList();
         } catch (final Exception ex) {
-            final String message =
-                "Failed to find integrations of environment: " + environmentId + " and groups: " + groups + ": " + ex.getMessage();
+            final String message = "Failed to find integrations of environment: " + environmentId + " and groups: "
+                    + groups + ": " + ex.getMessage();
             log.error(message, ex);
             throw new TechnicalException(message, ex);
         }
@@ -110,16 +102,13 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
         log.debug("JdbcIntegrationRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + INTEGRATION_GROUPS + " where integration_id IN ( " + getOrm().buildInClause(rows) + ")",
-                    rows.toArray()
-                );
+                        "delete from " + INTEGRATION_GROUPS + " where integration_id IN ( "
+                                + getOrm().buildInClause(rows) + ")",
+                        rows.toArray());
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
@@ -132,16 +121,14 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
     }
 
     public Optional<Integration> findByIntegrationId(String id) throws TechnicalException {
-        var integration = super
-            .findById(id)
-            .flatMap(jdbcIntegration -> {
-                try {
-                    return Optional.of(jdbcIntegration.toIntegration(getGroups(jdbcIntegration.getId())));
-                } catch (JsonProcessingException e) {
-                    log.warn("Failed to convert Integration from db to Integration id = " + id, e);
-                    return Optional.empty();
-                }
-            });
+        var integration = super.findById(id).flatMap(jdbcIntegration -> {
+            try {
+                return Optional.of(jdbcIntegration.toIntegration(getGroups(jdbcIntegration.getId())));
+            } catch (JsonProcessingException e) {
+                log.warn("Failed to convert Integration from db to Integration id = " + id, e);
+                return Optional.empty();
+            }
+        });
         integration.ifPresent(this::addGroups);
         return integration;
     }
@@ -160,10 +147,9 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
 
     private List<String> getGroups(String integrationId) {
         return jdbcTemplate.queryForList(
-            "select group_id from " + INTEGRATION_GROUPS + " where integration_id = ?",
-            String.class,
-            integrationId
-        );
+                "select group_id from " + INTEGRATION_GROUPS + " where integration_id = ?",
+                String.class,
+                integrationId);
     }
 
     @Override
@@ -196,9 +182,8 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
         List<String> filteredGroups = getOrm().filterStrings(integration.getGroups());
         if (!filteredGroups.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + INTEGRATION_GROUPS + " ( integration_id, group_id ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(integration.getId(), filteredGroups)
-            );
+                    "insert into " + INTEGRATION_GROUPS + " ( integration_id, group_id ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(integration.getId(), filteredGroups));
         }
     }
 
@@ -216,15 +201,15 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
     @Override
     protected JdbcObjectMapper<JdbcIntegration> buildOrm() {
         return JdbcObjectMapper.builder(JdbcIntegration.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("provider", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("wellKnownUrls", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("provider", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("wellKnownUrls", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     private Stream<Integration> toEntityIntegration(JdbcIntegration jdbcIntegration) {

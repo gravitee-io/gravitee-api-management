@@ -50,20 +50,14 @@ class SearchResponseStatusOverTimeAdapterTest {
         void adapt_query_for_ElasticSearch() {
             // Given
             ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(
-                List.of(API_ID),
-                FROM,
-                TO,
-                INTERVAL,
-                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
-            );
+                    List.of(API_ID), FROM, TO, INTERVAL, EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2));
             ElasticsearchInfo esInfo = anElasticsearchInfo();
 
             // When
             var result = cut.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result).isEqualTo(
-                """
+            assertThatJson(result).isEqualTo("""
                 {
                    "aggregations": {
                      "by_date": {
@@ -93,28 +87,21 @@ class SearchResponseStatusOverTimeAdapterTest {
                      }
                    },
                    "size": 0
-                 }"""
-            );
+                 }""");
         }
 
         @Test
         void adapt_query_for_ElasticSearch_V4_only() {
             // Given
             ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(
-                List.of(API_ID),
-                FROM,
-                TO,
-                INTERVAL,
-                EnumSet.of(DefinitionVersion.V4)
-            );
+                    List.of(API_ID), FROM, TO, INTERVAL, EnumSet.of(DefinitionVersion.V4));
             ElasticsearchInfo esInfo = anElasticsearchInfo();
 
             // When
             var result = cut.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result).isEqualTo(
-                """
+            assertThatJson(result).isEqualTo("""
                 {
                    "aggregations": {
                      "by_date": {
@@ -144,28 +131,21 @@ class SearchResponseStatusOverTimeAdapterTest {
                      }
                    },
                    "size": 0
-                 }"""
-            );
+                 }""");
         }
 
         @Test
         void adapt_query_for_OpenSearch() {
             // Given
             ResponseStatusOverTimeQuery query = new ResponseStatusOverTimeQuery(
-                List.of(API_ID),
-                FROM,
-                TO,
-                INTERVAL,
-                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
-            );
+                    List.of(API_ID), FROM, TO, INTERVAL, EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2));
             ElasticsearchInfo esInfo = anOpenSearchInfo();
 
             // When
             var result = cut.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result).isEqualTo(
-                """
+            assertThatJson(result).isEqualTo("""
                 {
                    "aggregations": {
                      "by_date": {
@@ -195,8 +175,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                      }
                    },
                    "size": 0
-                 }"""
-            );
+                 }""");
         }
     }
 

@@ -29,7 +29,9 @@ class OrderTest {
     void every_order_index_is_unique() {
         Set<Integer> seen = new HashSet<>();
         for (Order order : Order.values()) {
-            assertThat(seen.add(order.index())).as("duplicate Order index for %s (%d)", order.name(), order.index()).isTrue();
+            assertThat(seen.add(order.index()))
+                    .as("duplicate Order index for %s (%d)", order.name(), order.index())
+                    .isTrue();
         }
     }
 
@@ -71,23 +73,23 @@ class OrderTest {
     @Test
     void enum_contains_all_expected_orders_with_no_silent_removal() {
         Set<String> names = Arrays.stream(Order.values()).map(Order::name).collect(Collectors.toUnmodifiableSet());
-        assertThat(names).contains(
-            "NODE_METADATA",
-            "LICENSE",
-            "ACCESS_POINT",
-            "ORGANIZATION",
-            "DICTIONARY",
-            "CLUSTER",
-            "SHARED_POLICY_GROUP",
-            "API_PRODUCT",
-            "API",
-            "SUBSCRIPTION",
-            "API_KEY",
-            "DEBUG",
-            "AUTHZ_PDP",
-            "AUTHZ_ENTITY",
-            "AUTHZ_POLICY",
-            "CREDENTIAL"
-        );
+        assertThat(names)
+                .contains(
+                        "NODE_METADATA",
+                        "LICENSE",
+                        "ACCESS_POINT",
+                        "ORGANIZATION",
+                        "DICTIONARY",
+                        "CLUSTER",
+                        "SHARED_POLICY_GROUP",
+                        "API_PRODUCT",
+                        "API",
+                        "SUBSCRIPTION",
+                        "API_KEY",
+                        "DEBUG",
+                        "AUTHZ_PDP",
+                        "AUTHZ_ENTITY",
+                        "AUTHZ_POLICY",
+                        "CREDENTIAL");
     }
 }

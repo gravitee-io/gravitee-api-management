@@ -15,4 +15,5 @@
  */
 package io.gravitee.apim.core.scoring.model;
 
-public record EnvironmentOverview(String environmentId, Double score, Long errors, Long warnings, Long infos, Long hints) {}
+public record EnvironmentOverview(
+        String environmentId, Double score, Long errors, Long warnings, Long infos, Long hints) {}

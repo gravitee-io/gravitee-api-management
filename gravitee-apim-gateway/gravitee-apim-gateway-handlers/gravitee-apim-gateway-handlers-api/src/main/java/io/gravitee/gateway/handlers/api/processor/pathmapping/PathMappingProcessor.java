@@ -39,16 +39,15 @@ public class PathMappingProcessor extends AbstractProcessor<ExecutionContext> {
         String path = result.request().pathInfo();
         String finalPath = path.endsWith("/") ? path : path + '/';
 
-        mapping
-            .entrySet()
-            .stream()
-            .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
-            .map(Map.Entry::getKey)
-            .min(comparing(o -> countOccurrencesOf(o, ":")))
-            .ifPresent(resolvedMappedPath -> {
-                result.request().metrics().setMappedPath(resolvedMappedPath);
-                result.setAttribute(ExecutionContext.ATTR_MAPPED_PATH, resolvedMappedPath);
-            });
+        mapping.entrySet().stream()
+                .filter(regexMappedPath ->
+                        regexMappedPath.getValue().matcher(finalPath).matches())
+                .map(Map.Entry::getKey)
+                .min(comparing(o -> countOccurrencesOf(o, ":")))
+                .ifPresent(resolvedMappedPath -> {
+                    result.request().metrics().setMappedPath(resolvedMappedPath);
+                    result.setAttribute(ExecutionContext.ATTR_MAPPED_PATH, resolvedMappedPath);
+                });
 
         next.handle(null);
     }

@@ -54,13 +54,12 @@ class ComputeMeasuresUseCaseTest {
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("org-id", "env-id");
 
     private static final AnalyticsQueryContext ANALYTICS_CONTEXT = new AnalyticsQueryContext(
-        AUDIT_INFO,
-        EXECUTION_CONTEXT,
-        Set.of("api-1", "api-2"),
-        Map.of("api-1", "My API 1", "api-2", "My API 2"),
-        Map.of(),
-        Map.of()
-    );
+            AUDIT_INFO,
+            EXECUTION_CONTEXT,
+            Set.of("api-1", "api-2"),
+            Map.of("api-1", "My API 1", "api-2", "My API 2"),
+            Map.of(),
+            Map.of());
 
     @Mock
     private AnalyticsQueryContextProvider queryContextProvider;
@@ -86,12 +85,14 @@ class ComputeMeasuresUseCaseTest {
     @BeforeEach
     void setUp() {
         when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
-        when(unitEnrichmentPostProcessor.enrichUnits(any(MeasuresResponse.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(unitEnrichmentPostProcessor.enrichUnits(any(MeasuresResponse.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
     void should_load_context_from_audit_info() {
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
+        var useCase = new ComputeMeasuresUseCase(
+                queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of());
@@ -103,7 +104,8 @@ class ComputeMeasuresUseCaseTest {
 
     @Test
     void should_forward_input_scope_to_context_loader() {
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
+        var useCase = new ComputeMeasuresUseCase(
+                queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of());
@@ -119,12 +121,7 @@ class ComputeMeasuresUseCaseTest {
         when(transformer1.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(apiFilter));
 
         var useCase = new ComputeMeasuresUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1),
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider, validator, List.of(transformer1), unitEnrichmentPostProcessor, contextLoader);
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -147,12 +144,11 @@ class ComputeMeasuresUseCaseTest {
         when(transformer2.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(filter1, filter2));
 
         var useCase = new ComputeMeasuresUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1, transformer2),
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(transformer1, transformer2),
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -171,12 +167,7 @@ class ComputeMeasuresUseCaseTest {
         when(transformer1.transform(any(), any())).thenAnswer(inv -> inv.getArgument(1));
 
         var useCase = new ComputeMeasuresUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1),
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider, validator, List.of(transformer1), unitEnrichmentPostProcessor, contextLoader);
         var request = aMeasuresRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -197,30 +188,25 @@ class ComputeMeasuresUseCaseTest {
         var service2 = mock(AnalyticsEngineQueryService.class);
 
         var measure1 = new MetricMeasuresResponse(
-            MetricSpec.Name.HTTP_REQUESTS,
-            null,
-            List.of(new Measure(MetricSpec.Measure.COUNT, 42)),
-            List.of()
-        );
+                MetricSpec.Name.HTTP_REQUESTS, null, List.of(new Measure(MetricSpec.Measure.COUNT, 42)), List.of());
         var measure2 = new MetricMeasuresResponse(
-            MetricSpec.Name.MESSAGES,
-            null,
-            List.of(new Measure(MetricSpec.Measure.COUNT, 10)),
-            List.of()
-        );
+                MetricSpec.Name.MESSAGES, null, List.of(new Measure(MetricSpec.Measure.COUNT, 10)), List.of());
 
         when(service1.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of(measure1)));
         when(service2.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of(measure2)));
 
-        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
+        var useCase = new ComputeMeasuresUseCase(
+                queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
         var request = aMeasuresRequest();
 
-        var request1 = new MeasuresRequest(request.timeRange(), request.filters(), List.of(request.metrics().getFirst()));
+        var request1 = new MeasuresRequest(
+                request.timeRange(),
+                request.filters(),
+                List.of(request.metrics().getFirst()));
         var request2 = new MeasuresRequest(
-            request.timeRange(),
-            request.filters(),
-            List.of(new MetricMeasuresRequest(MetricSpec.Name.MESSAGES, List.of(MetricSpec.Measure.COUNT)))
-        );
+                request.timeRange(),
+                request.filters(),
+                List.of(new MetricMeasuresRequest(MetricSpec.Name.MESSAGES, List.of(MetricSpec.Measure.COUNT))));
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(service1, request1, service2, request2));
 
@@ -231,9 +217,8 @@ class ComputeMeasuresUseCaseTest {
 
     private static MeasuresRequest aMeasuresRequest() {
         return new MeasuresRequest(
-            new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
-            List.of(),
-            List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-        );
+                new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
+                List.of(),
+                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
     }
 }

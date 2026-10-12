@@ -33,7 +33,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<PortalMenuLink, String> implements PortalMenuLinkRepository {
+public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<PortalMenuLink, String>
+        implements PortalMenuLinkRepository {
 
     JdbcPortalMenuLinkRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_menu_links");
@@ -42,14 +43,14 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
     @Override
     protected JdbcObjectMapper<PortalMenuLink> buildOrm() {
         return JdbcObjectMapper.builder(PortalMenuLink.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, PortalMenuLink.PortalMenuLinkType.class)
-            .addColumn("visibility", Types.NVARCHAR, PortalMenuLink.PortalMenuLinkVisibility.class)
-            .addColumn("target", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, PortalMenuLink.PortalMenuLinkType.class)
+                .addColumn("visibility", Types.NVARCHAR, PortalMenuLink.PortalMenuLinkVisibility.class)
+                .addColumn("target", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .build();
     }
 
     @Override
@@ -58,24 +59,23 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
     }
 
     @Override
-    public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) throws TechnicalException {
+    public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId)
+            throws TechnicalException {
         log.debug("JdbcPortalMenuLinkRepository.findByIdAndEnvironmentId({})", environmentId);
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() + " WHERE id = ? and environment_id = ? ORDER BY " + escapeReservedWord("order"),
-                    getOrm().getRowMapper(),
-                    portalMenuLinkId,
-                    environmentId
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " WHERE id = ? and environment_id = ? ORDER BY "
+                                    + escapeReservedWord("order"),
+                            getOrm().getRowMapper(),
+                            portalMenuLinkId,
+                            environmentId)
+                    .stream()
+                    .findFirst();
         } catch (final Exception ex) {
             final String error = String.format(
-                "Failed to find portal menu links by id (%s) and environment id (%s)",
-                portalMenuLinkId,
-                environmentId
-            );
+                    "Failed to find portal menu links by id (%s) and environment id (%s)",
+                    portalMenuLinkId, environmentId);
             log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
@@ -86,10 +86,9 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
         log.debug("JdbcPortalMenuLinkRepository.findByEnvironmentIdSortByOrder({})", environmentId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE environment_id = ? ORDER BY " + escapeReservedWord("order"),
-                getOrm().getRowMapper(),
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " WHERE environment_id = ? ORDER BY " + escapeReservedWord("order"),
+                    getOrm().getRowMapper(),
+                    environmentId);
         } catch (final Exception ex) {
             final String error = "Failed to find portal menu links by environment id: " + environmentId;
             log.error(error, ex);
@@ -99,17 +98,15 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
 
     @Override
     public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
-        String environmentId,
-        PortalMenuLink.PortalMenuLinkVisibility visibility
-    ) throws TechnicalException {
+            String environmentId, PortalMenuLink.PortalMenuLinkVisibility visibility) throws TechnicalException {
         log.debug("JdbcPortalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder({})", environmentId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND visibility = ? ORDER BY " + escapeReservedWord("order"),
-                getOrm().getRowMapper(),
-                environmentId,
-                visibility.name()
-            );
+                    getOrm().getSelectAllSql() + " WHERE environment_id = ? AND visibility = ? ORDER BY "
+                            + escapeReservedWord("order"),
+                    getOrm().getRowMapper(),
+                    environmentId,
+                    visibility.name());
         } catch (final Exception ex) {
             final String error = "Failed to find portal menu links by environment id: " + environmentId;
             log.error(error, ex);

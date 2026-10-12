@@ -42,10 +42,8 @@ public class SecurityContextHelperTest {
         return role;
     }
 
-    private static final Set<UserRoleEntity> USER_ROLES = Set.of(
-        userRole(RoleScope.ENVIRONMENT, "ADMIN"),
-        userRole(RoleScope.ORGANIZATION, "ADMIN")
-    );
+    private static final Set<UserRoleEntity> USER_ROLES =
+            Set.of(userRole(RoleScope.ENVIRONMENT, "ADMIN"), userRole(RoleScope.ORGANIZATION, "ADMIN"));
 
     @Test
     public void shouldAuthenticateAsUser() {
@@ -80,6 +78,8 @@ public class SecurityContextHelperTest {
         final UserDetails userDetails = (UserDetails) principal;
         assertThat(userDetails.getUsername()).isEqualTo(userName);
         assertThat(userDetails.getEmail()).isEqualTo(userEmail);
-        assertThat(userDetails.getAuthorities()).extracting(GrantedAuthority::getAuthority).containsExactly(authorities);
+        assertThat(userDetails.getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactly(authorities);
     }
 }

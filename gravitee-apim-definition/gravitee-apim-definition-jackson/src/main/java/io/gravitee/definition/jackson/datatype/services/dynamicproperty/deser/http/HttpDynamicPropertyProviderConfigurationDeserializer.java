@@ -31,14 +31,16 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpDynamicPropertyProviderConfigurationDeserializer extends StdScalarDeserializer<HttpDynamicPropertyProviderConfiguration> {
+public class HttpDynamicPropertyProviderConfigurationDeserializer
+        extends StdScalarDeserializer<HttpDynamicPropertyProviderConfiguration> {
 
     public HttpDynamicPropertyProviderConfigurationDeserializer(Class<HttpDynamicPropertyProviderConfiguration> vc) {
         super(vc);
     }
 
     @Override
-    public HttpDynamicPropertyProviderConfiguration deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public HttpDynamicPropertyProviderConfiguration deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
         HttpDynamicPropertyProviderConfiguration configuration = new HttpDynamicPropertyProviderConfiguration();
@@ -67,23 +69,22 @@ public class HttpDynamicPropertyProviderConfigurationDeserializer extends StdSca
         if (methodNode != null) {
             try {
                 method = HttpMethod.valueOf(methodNode.asText());
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException ignored) {
+            }
         }
         configuration.setMethod(method);
 
         final JsonNode headersNode = node.get("headers");
         if (headersNode != null) {
             final List<HttpHeader> headers = new ArrayList<>();
-            headersNode
-                .elements()
-                .forEachRemaining(headerNode -> {
-                    if ((headerNode.findValue("name") != null) & (headerNode.findValue("value") != null)) {
-                        HttpHeader header = new HttpHeader();
-                        header.setName(headerNode.findValue("name").asText());
-                        header.setValue(headerNode.findValue("value").asText());
-                        headers.add(header);
-                    }
-                });
+            headersNode.elements().forEachRemaining(headerNode -> {
+                if ((headerNode.findValue("name") != null) & (headerNode.findValue("value") != null)) {
+                    HttpHeader header = new HttpHeader();
+                    header.setName(headerNode.findValue("name").asText());
+                    header.setValue(headerNode.findValue("value").asText());
+                    headers.add(header);
+                }
+            });
             configuration.setHeaders(headers);
         }
 

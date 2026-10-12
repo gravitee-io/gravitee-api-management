@@ -31,5 +31,6 @@ public class SubmitFeedbackUseCase {
         return newtAIProvider.submitFeedback(input);
     }
 
-    public record Input(String chatId, String userMessageId, String agentMessageId, boolean answerHelpful) implements ELGenFeedback {}
+    public record Input(String chatId, String userMessageId, String agentMessageId, boolean answerHelpful)
+            implements ELGenFeedback {}
 }

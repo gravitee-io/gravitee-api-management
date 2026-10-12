@@ -46,7 +46,8 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/" + SUBSCRIPTION + "/api-keys/" + API_KEY_ID;
+        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/" + SUBSCRIPTION + "/api-keys/"
+                + API_KEY_ID;
     }
 
     @Test
@@ -63,12 +64,11 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .referenceId("ANOTHER-API")
-            .referenceType("API")
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .referenceId("ANOTHER-API")
+                .referenceType("API")
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
@@ -83,10 +83,12 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
     @Test
     public void should_return_404_if_api_key_not_found() {
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
-        );
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenThrow(new ApiKeyNotFoundException());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .build());
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID))
+                .thenThrow(new ApiKeyNotFoundException());
 
         final Response response = rootTarget().request().put(Entity.json(SubscriptionFixtures.anUpdateApiKey()));
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -98,17 +100,20 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
 
     @Test
     public void should_return_404_if_api_key_associated_to_another_subscription() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build()))
-            .build();
+        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                .id(API_KEY_ID)
+                .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("ANOTHER-SUBSCRIPTION")
+                        .build()))
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
-        );
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKeyEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .build());
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID))
+                .thenReturn(apiKeyEntity);
 
         final Response response = rootTarget().request().put(Entity.json(SubscriptionFixtures.anUpdateApiKey()));
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -121,28 +126,29 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
     @Test
     public void should_return_400_if_application_is_in_shared_api_key_mode() {
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build()
-        );
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .apiKeyMode(ApiKeyMode.SHARED)
+                        .build());
 
         final Response response = rootTarget().request().put(Entity.json(SubscriptionFixtures.anUpdateApiKey()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
         assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
-        assertEquals("Invalid operation for API Key mode [SHARED] of application [my-application].", error.getMessage());
+        assertEquals(
+                "Invalid operation for API Key mode [SHARED] of application [my-application].", error.getMessage());
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().put(Entity.json(SubscriptionFixtures.anUpdateApiKey()));
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -154,22 +160,24 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
 
     @Test
     public void should_update_api_key() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(
-                Set.of(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build(),
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()
-                )
-            )
-            .build();
+        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                .id(API_KEY_ID)
+                .subscriptions(Set.of(
+                        SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                .id("ANOTHER-SUBSCRIPTION")
+                                .build(),
+                        SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                .id(SUBSCRIPTION)
+                                .build()))
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
-        );
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKeyEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .build());
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID))
+                .thenReturn(apiKeyEntity);
         when(apiKeyService.update(any(), any())).thenAnswer(i -> i.getArgument(1));
 
         final UpdateApiKey updateApiKey = SubscriptionFixtures.anUpdateApiKey();
@@ -179,27 +187,31 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends AbstractApiSubscr
 
         var apiKey = response.readEntity(ApiKey.class);
         assertEquals(API_KEY_ID, apiKey.getId());
-        assertEquals(updateApiKey.getExpireAt().toInstant().toEpochMilli(), apiKey.getExpireAt().toInstant().toEpochMilli());
+        assertEquals(
+                updateApiKey.getExpireAt().toInstant().toEpochMilli(),
+                apiKey.getExpireAt().toInstant().toEpochMilli());
     }
 
     @Test
     void should_remove_expiration_date_of_api_key() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(
-                Set.of(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build(),
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()
-                )
-            )
-            .build();
+        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                .id(API_KEY_ID)
+                .subscriptions(Set.of(
+                        SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                .id("ANOTHER-SUBSCRIPTION")
+                                .build(),
+                        SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                .id(SUBSCRIPTION)
+                                .build()))
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
-        );
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKeyEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .build());
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID))
+                .thenReturn(apiKeyEntity);
         when(apiKeyService.update(any(), any())).thenAnswer(i -> i.getArgument(1));
 
         final UpdateApiKey updateApiKey = new UpdateApiKey().expireAt(null);

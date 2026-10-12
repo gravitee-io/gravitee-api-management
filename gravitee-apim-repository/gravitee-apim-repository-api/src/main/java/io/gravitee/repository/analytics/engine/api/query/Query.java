@@ -23,6 +23,8 @@ import java.util.List;
  */
 public interface Query {
     TimeRange timeRange();
+
     List<Filter> filters();
+
     List<MetricMeasuresQuery> metrics();
 }

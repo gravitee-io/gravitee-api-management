@@ -38,17 +38,15 @@ public class GetPortalNavigationItemUseCase {
 
     public Output execute(Input input) {
         final PortalNavigationItem foundItem = Optional.ofNullable(
-            portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.portalNavigationItemId())
-        ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId().id().toString()));
+                        portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                                input.environmentId(), input.portalNavigationItemId()))
+                .orElseThrow(() -> new PortalNavigationItemNotFoundException(
+                        input.portalNavigationItemId().id().toString()));
 
         input.viewerContext().validateAccess(foundItem);
 
         var visibilityEvaluator = new PortalNavigationItemVisibilityEvaluator(
-            input.environmentId(),
-            input.viewerContext(),
-            portalNavigationItemsQueryService,
-            visibilityServices
-        );
+                input.environmentId(), input.viewerContext(), portalNavigationItemsQueryService, visibilityServices);
         if (!visibilityEvaluator.isVisible(foundItem) || visibilityEvaluator.hasHiddenAncestor(foundItem)) {
             throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
         }
@@ -61,10 +59,9 @@ public class GetPortalNavigationItemUseCase {
     }
 
     public record Input(
-        PortalNavigationItemId portalNavigationItemId,
-        String environmentId,
-        PortalNavigationItemViewerContext viewerContext
-    ) {}
+            PortalNavigationItemId portalNavigationItemId,
+            String environmentId,
+            PortalNavigationItemViewerContext viewerContext) {}
 
     public record Output(PortalNavigationItem portalNavigationItem) {}
 }

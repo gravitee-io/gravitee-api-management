@@ -28,23 +28,21 @@ class PermissionDomainServiceTest {
     PermissionDomainService permissionDomainService = new PermissionDomainService() {
         @Override
         public boolean hasExactPermissions(
-            String organizationId,
-            String userId,
-            RolePermission permission,
-            String referenceId,
-            RolePermissionAction... acls
-        ) {
+                String organizationId,
+                String userId,
+                RolePermission permission,
+                String referenceId,
+                RolePermissionAction... acls) {
             return false;
         }
 
         @Override
         public boolean hasPermission(
-            String organizationId,
-            String userId,
-            RolePermission permission,
-            String referenceId,
-            RolePermissionAction... acls
-        ) {
+                String organizationId,
+                String userId,
+                RolePermission permission,
+                String referenceId,
+                RolePermissionAction... acls) {
             return false;
         }
     };
@@ -56,17 +54,16 @@ class PermissionDomainServiceTest {
         void should_return_true_when_user_permissions_contains_requested_permission_with_exact_acls() {
             // Given
             var requestedPermission = RolePermission.INTEGRATION_DEFINITION.getPermission();
-            var userPermissions = Map.of(requestedPermission.getName(), new char[] { 'C', 'R', 'U', 'D' });
+            var userPermissions = Map.of(requestedPermission.getName(), new char[] {'C', 'R', 'U', 'D'});
 
             // When
             var result = permissionDomainService.checkForExactPermissions(
-                userPermissions,
-                requestedPermission,
-                RolePermissionAction.CREATE,
-                RolePermissionAction.READ,
-                RolePermissionAction.UPDATE,
-                RolePermissionAction.DELETE
-            );
+                    userPermissions,
+                    requestedPermission,
+                    RolePermissionAction.CREATE,
+                    RolePermissionAction.READ,
+                    RolePermissionAction.UPDATE,
+                    RolePermissionAction.DELETE);
 
             // Then
             assertThat(result).isTrue();
@@ -76,15 +73,11 @@ class PermissionDomainServiceTest {
         void should_return_false_when_user_permissions_contains_requested_permission_but_acls_not_match_exactly() {
             // Given
             var requestedPermission = RolePermission.INTEGRATION_DEFINITION.getPermission();
-            var userPermissions = Map.of(requestedPermission.getName(), new char[] { 'C', 'R', 'U', 'D' });
+            var userPermissions = Map.of(requestedPermission.getName(), new char[] {'C', 'R', 'U', 'D'});
 
             // When
             var result = permissionDomainService.checkForExactPermissions(
-                userPermissions,
-                requestedPermission,
-                RolePermissionAction.CREATE,
-                RolePermissionAction.UPDATE
-            );
+                    userPermissions, requestedPermission, RolePermissionAction.CREATE, RolePermissionAction.UPDATE);
 
             // Then
             assertThat(result).isFalse();
@@ -100,15 +93,12 @@ class PermissionDomainServiceTest {
         @Test
         void should_return_false_when_user_permissions_does_not_contain_requested_permission() {
             // Given
-            var userPermissions = Map.of("permission", new char[] { 'C', 'R', 'U', 'D' });
+            var userPermissions = Map.of("permission", new char[] {'C', 'R', 'U', 'D'});
             var requestedPermission = RolePermission.INTEGRATION_DEFINITION.getPermission();
 
             // When
             var result = permissionDomainService.checkForExactPermissions(
-                userPermissions,
-                requestedPermission,
-                RolePermissionAction.CREATE
-            );
+                    userPermissions, requestedPermission, RolePermissionAction.CREATE);
 
             // Then
             assertThat(result).isFalse();

@@ -65,11 +65,10 @@ public class AlertsEnvironmentUpgrader implements Upgrader {
 
     @Autowired
     public AlertsEnvironmentUpgrader(
-        @Lazy AlertTriggerRepository alertTriggerRepository,
-        AlertTriggerConverter alertTriggerConverter,
-        @Lazy ApiRepository apiRepository,
-        @Lazy ApplicationRepository applicationRepository
-    ) {
+            @Lazy AlertTriggerRepository alertTriggerRepository,
+            AlertTriggerConverter alertTriggerConverter,
+            @Lazy ApiRepository apiRepository,
+            @Lazy ApplicationRepository applicationRepository) {
         this.alertTriggerRepository = alertTriggerRepository;
         this.alertTriggerConverter = alertTriggerConverter;
         this.apiRepository = apiRepository;
@@ -117,15 +116,15 @@ public class AlertsEnvironmentUpgrader implements Upgrader {
 
     private void handleApiAlert(AlertTrigger alertTrigger) throws TechnicalException {
         Api api = apiRepository
-            .findById(alertTrigger.getReferenceId())
-            .orElseThrow(() -> new ApiNotFoundException(alertTrigger.getReferenceId()));
+                .findById(alertTrigger.getReferenceId())
+                .orElseThrow(() -> new ApiNotFoundException(alertTrigger.getReferenceId()));
         updateAlertEnvironment(api.getEnvironmentId(), alertTrigger);
     }
 
     private void handleApplicationAlert(AlertTrigger alertTrigger) throws TechnicalException {
         Application application = applicationRepository
-            .findById(alertTrigger.getReferenceId())
-            .orElseThrow(() -> new ApplicationNotFoundException(alertTrigger.getReferenceId()));
+                .findById(alertTrigger.getReferenceId())
+                .orElseThrow(() -> new ApplicationNotFoundException(alertTrigger.getReferenceId()));
         updateAlertEnvironment(application.getEnvironmentId(), alertTrigger);
     }
 
@@ -135,7 +134,8 @@ public class AlertsEnvironmentUpgrader implements Upgrader {
         alertTriggerRepository.update(alertTriggerConverter.toAlertTrigger(alertTriggerEntity));
     }
 
-    private void updateEnvironmentAlertReferences(String environmentId, AlertTrigger alertTrigger) throws TechnicalException {
+    private void updateEnvironmentAlertReferences(String environmentId, AlertTrigger alertTrigger)
+            throws TechnicalException {
         alertTrigger.setReferenceType(AlertReferenceType.ENVIRONMENT.name());
         AlertTriggerEntity alertTriggerEntity = alertTriggerConverter.toAlertTriggerEntity(alertTrigger);
         alertTriggerEntity.setReferenceType(AlertReferenceType.ENVIRONMENT);

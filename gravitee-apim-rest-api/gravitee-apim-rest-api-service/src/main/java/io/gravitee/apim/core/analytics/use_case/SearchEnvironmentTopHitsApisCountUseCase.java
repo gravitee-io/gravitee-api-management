@@ -28,7 +28,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -51,40 +50,41 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
         log.debug("Searching top API hits, found: {} APIs for env: {}", apiIds.size(), envId);
 
         return analyticsQueryService
-            .searchTopHitsApis(input.executionContext(), input.parameters().withApiIds(apiIds))
-            .map(topHitsApis -> sortByCountAndUpdateTopHitsWithApiNames(apis, topHitsApis))
-            .map(Output::new)
-            .orElse(new Output(TopHitsApis.builder().data(List.of()).build()));
+                .searchTopHitsApis(input.executionContext(), input.parameters().withApiIds(apiIds))
+                .map(topHitsApis -> sortByCountAndUpdateTopHitsWithApiNames(apis, topHitsApis))
+                .map(Output::new)
+                .orElse(new Output(TopHitsApis.builder().data(List.of()).build()));
     }
 
     private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(Collectors.toMap(Api::getId, value -> value));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(envId)
+                                .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .collect(Collectors.toMap(Api::getId, value -> value));
     }
 
     private TopHitsApis sortByCountAndUpdateTopHitsWithApiNames(Map<String, Api> apis, TopHitsApis topHitsApis) {
-        var data = topHitsApis
-            .getData()
-            .stream()
-            .sorted(Comparator.comparingLong(TopHitsApis.TopHitApi::count).reversed())
-            .map(topHitApi -> {
-                var api = apis.get(topHitApi.id());
-                return TopHitsApis.TopHitApi.builder()
-                    .id(topHitApi.id())
-                    .name(api.getName())
-                    .count(topHitApi.count())
-                    .definitionVersion(Optional.ofNullable(api.getDefinitionVersion()).orElse(DefinitionVersion.V2))
-                    .build();
-            })
-            .toList();
+        var data = topHitsApis.getData().stream()
+                .sorted(Comparator.comparingLong(TopHitsApis.TopHitApi::count).reversed())
+                .map(topHitApi -> {
+                    var api = apis.get(topHitApi.id());
+                    return TopHitsApis.TopHitApi.builder()
+                            .id(topHitApi.id())
+                            .name(api.getName())
+                            .count(topHitApi.count())
+                            .definitionVersion(Optional.ofNullable(api.getDefinitionVersion())
+                                    .orElse(DefinitionVersion.V2))
+                            .build();
+                })
+                .toList();
         return TopHitsApis.builder().data(data).build();
     }
 

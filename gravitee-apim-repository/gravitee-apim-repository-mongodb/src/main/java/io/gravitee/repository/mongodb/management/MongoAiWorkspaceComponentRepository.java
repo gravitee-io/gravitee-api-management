@@ -47,18 +47,25 @@ public class MongoAiWorkspaceComponentRepository implements AiWorkspaceComponent
     public List<AiWorkspaceComponent> findByApiProductId(String apiProductId) throws TechnicalException {
         log.debug("MongoAiWorkspaceComponentRepository.findByApiProductId({})", apiProductId);
         try {
-            return internalRepo.findByApiProductId(apiProductId).stream().map(mapper::map).toList();
+            return internalRepo.findByApiProductId(apiProductId).stream()
+                    .map(mapper::map)
+                    .toList();
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find ai workspace components by api product id", ex);
         }
     }
 
     @Override
-    public List<AiWorkspaceComponent> findByApiProductIdAndComponentType(String apiProductId, AiWorkspaceComponentType componentType)
-        throws TechnicalException {
-        log.debug("MongoAiWorkspaceComponentRepository.findByApiProductIdAndComponentType({}, {})", apiProductId, componentType);
+    public List<AiWorkspaceComponent> findByApiProductIdAndComponentType(
+            String apiProductId, AiWorkspaceComponentType componentType) throws TechnicalException {
+        log.debug(
+                "MongoAiWorkspaceComponentRepository.findByApiProductIdAndComponentType({}, {})",
+                apiProductId,
+                componentType);
         try {
-            return internalRepo.findByApiProductIdAndComponentType(apiProductId, componentType).stream().map(mapper::map).toList();
+            return internalRepo.findByApiProductIdAndComponentType(apiProductId, componentType).stream()
+                    .map(mapper::map)
+                    .toList();
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find ai workspace components by api product id and type", ex);
         }
@@ -112,7 +119,9 @@ public class MongoAiWorkspaceComponentRepository implements AiWorkspaceComponent
             if (component.getId() == null) {
                 throw new IllegalArgumentException("AiWorkspaceComponent id is null");
             }
-            internalRepo.findById(component.getId()).orElseThrow(() -> new TechnicalException("AiWorkspaceComponent not found"));
+            internalRepo
+                    .findById(component.getId())
+                    .orElseThrow(() -> new TechnicalException("AiWorkspaceComponent not found"));
             AiWorkspaceComponentMongo updated = internalRepo.save(mapper.map(component));
             return mapper.map(updated);
         } catch (TechnicalException te) {

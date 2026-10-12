@@ -38,11 +38,7 @@ public class CockpitApiPermissionCheckerImpl implements CockpitApiPermissionChec
 
     @Override
     public Optional<String> checkCreatePermission(
-        ExecutionContext executionContext,
-        String userId,
-        String environmentId,
-        DeploymentMode mode
-    ) {
+            ExecutionContext executionContext, String userId, String environmentId, DeploymentMode mode) {
         if (isNotAllowedToCreateApi(executionContext, userId, environmentId)) {
             return Optional.of("You are not allowed to create APIs on this environment.");
         }
@@ -51,12 +47,7 @@ public class CockpitApiPermissionCheckerImpl implements CockpitApiPermissionChec
 
     @Override
     public Optional<String> checkUpdatePermission(
-        ExecutionContext executionContext,
-        String userId,
-        String environmentId,
-        String apiId,
-        DeploymentMode mode
-    ) {
+            ExecutionContext executionContext, String userId, String environmentId, String apiId, DeploymentMode mode) {
         if (isNotAllowedToUpdateApi(executionContext, userId, environmentId)) {
             return Optional.of("You are not allowed to update APIs on this environment.");
         }
@@ -65,50 +56,47 @@ public class CockpitApiPermissionCheckerImpl implements CockpitApiPermissionChec
             return Optional.of("You are not allowed to update the documentation of this API.");
         }
 
-        if (mode != DeploymentMode.API_DOCUMENTED && isNotAllowedToUpdateApiDefinition(executionContext, userId, apiId)) {
+        if (mode != DeploymentMode.API_DOCUMENTED
+                && isNotAllowedToUpdateApiDefinition(executionContext, userId, apiId)) {
             return Optional.of("You are not allowed to mock and deploy this API.");
         }
         return Optional.empty();
     }
 
     private boolean isNotAllowedToCreateApi(ExecutionContext executionContext, String userId, String environmentId) {
-        return (
-            !isAdmin(executionContext, userId) &&
-            !permissionService.hasPermission(
-                executionContext,
-                userId,
-                RolePermission.ENVIRONMENT_API,
-                environmentId,
-                RolePermissionAction.CREATE
-            )
-        );
+        return (!isAdmin(executionContext, userId)
+                && !permissionService.hasPermission(
+                        executionContext,
+                        userId,
+                        RolePermission.ENVIRONMENT_API,
+                        environmentId,
+                        RolePermissionAction.CREATE));
     }
 
     private boolean isNotAllowedToUpdateApi(ExecutionContext executionContext, String userId, String environmentId) {
-        return (
-            !isAdmin(executionContext, userId) &&
-            !permissionService.hasPermission(
-                executionContext,
-                userId,
-                RolePermission.ENVIRONMENT_API,
-                environmentId,
-                RolePermissionAction.UPDATE
-            )
-        );
+        return (!isAdmin(executionContext, userId)
+                && !permissionService.hasPermission(
+                        executionContext,
+                        userId,
+                        RolePermission.ENVIRONMENT_API,
+                        environmentId,
+                        RolePermissionAction.UPDATE));
     }
 
     private boolean isNotAllowedToUpdateDocumentation(ExecutionContext executionContext, String userId, String apiId) {
-        return (
-            !isAdmin(executionContext, userId) &&
-            !permissionService.hasPermission(executionContext, userId, RolePermission.API_DOCUMENTATION, apiId, RolePermissionAction.UPDATE)
-        );
+        return (!isAdmin(executionContext, userId)
+                && !permissionService.hasPermission(
+                        executionContext,
+                        userId,
+                        RolePermission.API_DOCUMENTATION,
+                        apiId,
+                        RolePermissionAction.UPDATE));
     }
 
     private boolean isNotAllowedToUpdateApiDefinition(ExecutionContext executionContext, String userId, String apiId) {
-        return (
-            !isAdmin(executionContext, userId) &&
-            !permissionService.hasPermission(executionContext, userId, RolePermission.API_DEFINITION, apiId, RolePermissionAction.UPDATE)
-        );
+        return (!isAdmin(executionContext, userId)
+                && !permissionService.hasPermission(
+                        executionContext, userId, RolePermission.API_DEFINITION, apiId, RolePermissionAction.UPDATE));
     }
 
     protected boolean isAdmin(ExecutionContext executionContext, String userId) {

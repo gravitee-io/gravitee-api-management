@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
-import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -71,12 +70,7 @@ class FilterValueNameResolverImplTest {
     @BeforeEach
     void setUp() {
         resolver = new FilterValueNameResolverImpl(
-            apiCrudService,
-            apiQueryService,
-            applicationCrudService,
-            planCrudService,
-            apiProductQueryService
-        );
+                apiCrudService, apiQueryService, applicationCrudService, planCrudService, apiProductQueryService);
     }
 
     @Nested
@@ -99,13 +93,17 @@ class FilterValueNameResolverImplTest {
         @Test
         void should_resolve_api_names() {
             var ids = List.of("api-1", "api-2");
-            when(apiCrudService.findByIds(ids)).thenReturn(
-                List.of(Api.builder().id("api-1").name("My API 1").build(), Api.builder().id("api-2").name("My API 2").build())
-            );
+            when(apiCrudService.findByIds(ids))
+                    .thenReturn(List.of(
+                            Api.builder().id("api-1").name("My API 1").build(),
+                            Api.builder().id("api-2").name("My API 2").build()));
 
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.API, ids);
 
-            assertThat(result).containsEntry("api-1", "My API 1").containsEntry("api-2", "My API 2").hasSize(2);
+            assertThat(result)
+                    .containsEntry("api-1", "My API 1")
+                    .containsEntry("api-2", "My API 2")
+                    .hasSize(2);
         }
 
         @Test
@@ -123,37 +121,42 @@ class FilterValueNameResolverImplTest {
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.APPLICATION, ids);
 
             assertThat(result)
-                .containsEntry("app-1", "My App 1")
-                .containsEntry("app-2", "My App 2")
-                .containsEntry("1", "Unknown")
-                .hasSize(3);
+                    .containsEntry("app-1", "My App 1")
+                    .containsEntry("app-2", "My App 2")
+                    .containsEntry("1", "Unknown")
+                    .hasSize(3);
         }
 
         @Test
         void should_resolve_plan_names() {
             var ids = List.of("plan-1", "plan-2");
-            when(planCrudService.findByIds(ids)).thenReturn(
-                List.of(Plan.builder().id("plan-1").name("Gold Plan").build(), Plan.builder().id("plan-2").name("Silver Plan").build())
-            );
+            when(planCrudService.findByIds(ids))
+                    .thenReturn(List.of(
+                            Plan.builder().id("plan-1").name("Gold Plan").build(),
+                            Plan.builder().id("plan-2").name("Silver Plan").build()));
 
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.PLAN, ids);
 
-            assertThat(result).containsEntry("plan-1", "Gold Plan").containsEntry("plan-2", "Silver Plan").hasSize(2);
+            assertThat(result)
+                    .containsEntry("plan-1", "Gold Plan")
+                    .containsEntry("plan-2", "Silver Plan")
+                    .hasSize(2);
         }
 
         @Test
         void should_resolve_api_product_names() {
             var ids = List.of("prod-1", "prod-2");
-            when(apiProductQueryService.findByEnvironmentIdAndIdIn(ENVIRONMENT_ID, Set.copyOf(ids))).thenReturn(
-                Set.of(
-                    ApiProduct.builder().id("prod-1").name("Product 1").build(),
-                    ApiProduct.builder().id("prod-2").name("Product 2").build()
-                )
-            );
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(ENVIRONMENT_ID, Set.copyOf(ids)))
+                    .thenReturn(Set.of(
+                            ApiProduct.builder().id("prod-1").name("Product 1").build(),
+                            ApiProduct.builder().id("prod-2").name("Product 2").build()));
 
             var result = resolver.resolveNames(ENVIRONMENT_ID, FilterSpec.Name.API_PRODUCT, ids);
 
-            assertThat(result).containsEntry("prod-1", "Product 1").containsEntry("prod-2", "Product 2").hasSize(2);
+            assertThat(result)
+                    .containsEntry("prod-1", "Product 1")
+                    .containsEntry("prod-2", "Product 2")
+                    .hasSize(2);
         }
 
         @Test
@@ -186,34 +189,32 @@ class FilterValueNameResolverImplTest {
             var api1 = Api.builder().id("api-1").name("My API Alpha").build();
             var api2 = Api.builder().id("api-2").name("My API Beta").build();
 
-            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(
-                Stream.of(api1, api2)
-            );
+            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class)))
+                    .thenReturn(Stream.of(api1, api2));
 
             var result = resolver.searchByName(ENVIRONMENT_ID, FilterSpec.Name.API, "My API", 1, 10);
 
             assertThat(result)
-                .hasSize(2)
-                .satisfiesExactly(
-                    v -> {
-                        assertThat(v.value()).isEqualTo("My API Alpha");
-                        assertThat(v.id()).isEqualTo("api-1");
-                    },
-                    v -> {
-                        assertThat(v.value()).isEqualTo("My API Beta");
-                        assertThat(v.id()).isEqualTo("api-2");
-                    }
-                );
+                    .hasSize(2)
+                    .satisfiesExactly(
+                            v -> {
+                                assertThat(v.value()).isEqualTo("My API Alpha");
+                                assertThat(v.id()).isEqualTo("api-1");
+                            },
+                            v -> {
+                                assertThat(v.value()).isEqualTo("My API Beta");
+                                assertThat(v.id()).isEqualTo("api-2");
+                            });
         }
 
         @Test
         void should_limit_api_search_results_to_per_page() {
             var apis = Stream.of(
-                Api.builder().id("api-1").name("API 1").build(),
-                Api.builder().id("api-2").name("API 2").build(),
-                Api.builder().id("api-3").name("API 3").build()
-            );
-            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(apis);
+                    Api.builder().id("api-1").name("API 1").build(),
+                    Api.builder().id("api-2").name("API 2").build(),
+                    Api.builder().id("api-3").name("API 3").build());
+            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class)))
+                    .thenReturn(apis);
 
             var result = resolver.searchByName(ENVIRONMENT_ID, FilterSpec.Name.API, "API", 1, 2);
 
@@ -223,20 +224,18 @@ class FilterValueNameResolverImplTest {
         @Test
         void should_skip_results_for_second_page_of_api_search() {
             var apis = Stream.of(
-                Api.builder().id("api-1").name("API 1").build(),
-                Api.builder().id("api-2").name("API 2").build(),
-                Api.builder().id("api-3").name("API 3").build()
-            );
-            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(apis);
+                    Api.builder().id("api-1").name("API 1").build(),
+                    Api.builder().id("api-2").name("API 2").build(),
+                    Api.builder().id("api-3").name("API 3").build());
+            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class)))
+                    .thenReturn(apis);
 
             var result = resolver.searchByName(ENVIRONMENT_ID, FilterSpec.Name.API, "API", 2, 2);
 
-            assertThat(result)
-                .hasSize(1)
-                .satisfiesExactly(v -> {
-                    assertThat(v.value()).isEqualTo("API 3");
-                    assertThat(v.id()).isEqualTo("api-3");
-                });
+            assertThat(result).hasSize(1).satisfiesExactly(v -> {
+                assertThat(v.value()).isEqualTo("API 3");
+                assertThat(v.id()).isEqualTo("api-3");
+            });
         }
 
         @Test
@@ -248,7 +247,8 @@ class FilterValueNameResolverImplTest {
 
         @Test
         void should_return_empty_list_when_no_apis_match() {
-            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.empty());
+            when(apiQueryService.search(any(ApiSearchCriteria.class), eq(null), any(ApiFieldFilter.class)))
+                    .thenReturn(Stream.empty());
 
             var result = resolver.searchByName(ENVIRONMENT_ID, FilterSpec.Name.API, "nonexistent", 1, 10);
 

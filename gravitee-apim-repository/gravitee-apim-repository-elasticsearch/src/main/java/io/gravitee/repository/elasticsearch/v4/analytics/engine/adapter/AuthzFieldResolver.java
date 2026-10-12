@@ -91,7 +91,9 @@ public class AuthzFieldResolver implements FieldResolver {
             case Filter.Name.AUTHZ_RESOURCE_ID -> RESOURCE_ID;
             case Filter.Name.AUTHZ_REASON -> REASONS;
             case Filter.Name.AUTHZ_PDP -> PDP_ID;
-            default -> throw new UnsupportedOperationException("AuthzFieldResolver does not support filter '" + filter.name() + "'");
+            default ->
+                throw new UnsupportedOperationException(
+                        "AuthzFieldResolver does not support filter '" + filter.name() + "'");
         };
     }
 
@@ -117,7 +119,8 @@ public class AuthzFieldResolver implements FieldResolver {
             case AUTHZ_RESOURCE_ID -> RESOURCE_ID;
             case AUTHZ_REASON -> REASONS;
             case AUTHZ_PDP -> PDP_ID;
-            default -> throw new UnsupportedOperationException("AuthzFieldResolver does not support facet '" + facet + "'");
+            default ->
+                throw new UnsupportedOperationException("AuthzFieldResolver does not support facet '" + facet + "'");
         };
     }
 }

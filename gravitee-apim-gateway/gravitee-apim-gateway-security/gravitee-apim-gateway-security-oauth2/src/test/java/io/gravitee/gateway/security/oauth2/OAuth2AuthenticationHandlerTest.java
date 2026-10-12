@@ -97,7 +97,9 @@ public class OAuth2AuthenticationHandlerTest {
         HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
-        headers.add(HttpHeaderNames.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
+        headers.add(
+                HttpHeaderNames.AUTHORIZATION,
+                OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assertions.assertTrue(handle);

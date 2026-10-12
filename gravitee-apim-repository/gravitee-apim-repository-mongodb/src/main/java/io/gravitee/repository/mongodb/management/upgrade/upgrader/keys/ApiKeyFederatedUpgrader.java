@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 public class ApiKeyFederatedUpgrader extends MongoUpgrader {
 
     public static final int API_KEY_FEDERATED_UPGRADER_ORDER =
-        MissingOrganizationsOnEventsUpgrader.MISSING_ORGANIZATION_ON_EVENT_UPGRADER_ORDER + 1;
+            MissingOrganizationsOnEventsUpgrader.MISSING_ORGANIZATION_ON_EVENT_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
@@ -39,7 +39,9 @@ public class ApiKeyFederatedUpgrader extends MongoUpgrader {
         var unsetFederatedApiKeyQuery = new Document("federated", new Document("$exists", false));
         var updateOperation = new Document("$set", new Document("federated", false));
 
-        return this.getCollection("keys").updateMany(unsetFederatedApiKeyQuery, updateOperation).wasAcknowledged();
+        return this.getCollection("keys")
+                .updateMany(unsetFederatedApiKeyQuery, updateOperation)
+                .wasAcknowledged();
     }
 
     @Override

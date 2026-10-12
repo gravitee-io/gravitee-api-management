@@ -71,24 +71,28 @@ class ELIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "policy-assign-attributes",
-            PolicyBuilder.build("policy-assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
-        );
+                "policy-assign-attributes",
+                PolicyBuilder.build(
+                        "policy-assign-attributes",
+                        AssignAttributesPolicy.class,
+                        AssignAttributesPolicyConfiguration.class));
         policies.put(
-            "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-        );
+                "transform-headers",
+                PolicyBuilder.build(
+                        "transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class));
     }
 
     @Test
@@ -98,27 +102,25 @@ class ELIntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .subscribe(
-                response ->
-                    vertxTestContext.verify(() -> {
-                        // just asserting we get a response (hence no SSL errors), no need for an API.
-                        assertThat(response.statusCode()).isEqualTo(200);
-                        assertThat(response.headers().get("X-Response-Content")).isEqualTo("response from backend");
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .subscribe(
+                        response -> vertxTestContext.verify(() -> {
+                            // just asserting we get a response (hence no SSL errors), no need for an API.
+                            assertThat(response.statusCode()).isEqualTo(200);
+                            assertThat(response.headers().get("X-Response-Content"))
+                                    .isEqualTo("response from backend");
 
-                        wiremock.verify(
-                            1,
-                            getRequestedFor(urlPathEqualTo("/endpoint"))
-                                .withHeader("X-Node-Version", matching("^\\d+\\.\\d+\\.\\d+.*"))
-                                .withHeader("X-Dictionary", equalTo(DICTIONARY_VALUE))
-                                .withHeader("X-Api-Property", equalTo("this is an API property"))
-                                .withHeader("X-Context-Attributes", equalTo("this is an attribute"))
-                                .withHeader("X-Request-Path", equalTo("/test/"))
-                        );
-                        vertxTestContext.completeNow();
-                    }),
-                vertxTestContext::failNow
-            );
+                            wiremock.verify(
+                                    1,
+                                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                                            .withHeader("X-Node-Version", matching("^\\d+\\.\\d+\\.\\d+.*"))
+                                            .withHeader("X-Dictionary", equalTo(DICTIONARY_VALUE))
+                                            .withHeader("X-Api-Property", equalTo("this is an API property"))
+                                            .withHeader("X-Context-Attributes", equalTo("this is an attribute"))
+                                            .withHeader("X-Request-Path", equalTo("/test/")));
+                            vertxTestContext.completeNow();
+                        }),
+                        vertxTestContext::failNow);
     }
 }

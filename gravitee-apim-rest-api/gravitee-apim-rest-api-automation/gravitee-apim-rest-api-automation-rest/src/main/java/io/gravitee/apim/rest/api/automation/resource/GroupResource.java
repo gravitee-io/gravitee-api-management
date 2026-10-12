@@ -72,30 +72,38 @@ public class GroupResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }) })
-    public Response getGroupByHRID(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_GROUP,
+                acls = {RolePermissionAction.READ})
+    })
+    public Response getGroupByHRID(
+            @PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var groupId = hridContainsUUID ? hrid : HRIDToUUID.group().context(executionContext).hrid(hrid).id();
+        var groupId = hridContainsUUID
+                ? hrid
+                : HRIDToUUID.group().context(executionContext).hrid(hrid).id();
         var group = groupQueryService.findById(groupId).orElseThrow(() -> new HRIDNotFoundException(hrid));
 
-        Set<MemberEntity> memberEntities = membershipService.getMembersByReference(
-            executionContext,
-            MembershipReferenceType.GROUP,
-            groupId
-        );
+        Set<MemberEntity> memberEntities =
+                membershipService.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId);
 
         var members = buildGroupMembers(executionContext, memberEntities);
         var defaultMemberRoles = buildDefaultMemberRoles(executionContext, groupId);
 
-        return Response.ok(GroupMapper.INSTANCE.groupToGroupState(group, members, defaultMemberRoles, executionContext)).build();
+        return Response.ok(GroupMapper.INSTANCE.groupToGroupState(group, members, defaultMemberRoles, executionContext))
+                .build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE) })
-    public Response deleteGroupByHrid(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE)})
+    public Response deleteGroupByHrid(
+            @PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            String groupId = hridContainsUUID ? hrid : HRIDToUUID.group().context(executionContext).hrid(hrid).id();
+            String groupId = hridContainsUUID
+                    ? hrid
+                    : HRIDToUUID.group().context(executionContext).hrid(hrid).id();
             groupService.delete(executionContext, groupId);
         } catch (GroupNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
@@ -103,7 +111,8 @@ public class GroupResource extends AbstractResource {
         return Response.noContent().build();
     }
 
-    private SequencedSet<GroupCRDSpec.Member> buildGroupMembers(ExecutionContext executionContext, Set<MemberEntity> memberEntities) {
+    private SequencedSet<GroupCRDSpec.Member> buildGroupMembers(
+            ExecutionContext executionContext, Set<MemberEntity> memberEntities) {
         if (memberEntities.isEmpty()) {
             return new LinkedHashSet<>();
         }
@@ -114,28 +123,22 @@ public class GroupResource extends AbstractResource {
             var roles = memberRolesById.computeIfAbsent(member.getId(), k -> new LinkedHashMap<>());
 
             Optional.ofNullable(member.getRoles())
-                .orElse(List.of())
-                .forEach(role -> roles.put(RoleScope.valueOf(role.getScope().name()), role.getName()));
+                    .orElse(List.of())
+                    .forEach(role -> roles.put(RoleScope.valueOf(role.getScope().name()), role.getName()));
         }
 
-        var usersByIds = userService
-            .findByIds(executionContext, memberRolesById.keySet())
-            .stream()
-            .collect(Collectors.groupingBy(UserEntity::getId));
+        var usersByIds = userService.findByIds(executionContext, memberRolesById.keySet()).stream()
+                .collect(Collectors.groupingBy(UserEntity::getId));
 
-        return memberRolesById
-            .keySet()
-            .stream()
-            .map(usersByIds::get)
-            .map(List::getFirst)
-            .map(user ->
-                GroupCRDSpec.Member.builder()
-                    .source(user.getSource())
-                    .sourceId(user.getSourceId())
-                    .roles(memberRolesById.getOrDefault(user.getId(), Map.of()))
-                    .build()
-            )
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        return memberRolesById.keySet().stream()
+                .map(usersByIds::get)
+                .map(List::getFirst)
+                .map(user -> GroupCRDSpec.Member.builder()
+                        .source(user.getSource())
+                        .sourceId(user.getSourceId())
+                        .roles(memberRolesById.getOrDefault(user.getId(), Map.of()))
+                        .build())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private GroupDefaultMemberRoles buildDefaultMemberRoles(ExecutionContext executionContext, String groupId) {

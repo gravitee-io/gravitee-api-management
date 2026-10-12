@@ -38,11 +38,12 @@ public class TimeProvider {
      */
     private static final ZoneId ZONE = ZoneOffset.UTC;
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER_WITH_DASH = DateTimeFormatter.ofPattern(
-        "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"
-    ).withZone(ZONE);
-    private static final DateTimeFormatter DATE_FORMATTER_WITH_DASH = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZONE);
-    private static final DateTimeFormatter DATE_FORMATTER_WITH_DOT = DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZONE);
+    private static final DateTimeFormatter DATE_TIME_FORMATTER_WITH_DASH =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxxx").withZone(ZONE);
+    private static final DateTimeFormatter DATE_FORMATTER_WITH_DASH =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZONE);
+    private static final DateTimeFormatter DATE_FORMATTER_WITH_DOT =
+            DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZONE);
 
     /**
      * How far in the past the reference instant sits, so that sample data projecting timestamps forward
@@ -102,7 +103,12 @@ public class TimeProvider {
         // today's index off the system clock (MonitoringRepository, the v2 analytics commands), so the
         // sample data has to sit on the day the system clock is on. Left unclamped, any run starting within
         // BACKDATE of midnight indexes a dataset dated the day before and fails wholesale.
-        Instant floor = systemNow.atZone(ZONE).toLocalDate().atStartOfDay(ZONE).toInstant().plus(START_OF_DAY_MARGIN);
+        Instant floor = systemNow
+                .atZone(ZONE)
+                .toLocalDate()
+                .atStartOfDay(ZONE)
+                .toInstant()
+                .plus(START_OF_DAY_MARGIN);
         return backdated.isBefore(floor) ? floor : backdated;
     }
 
@@ -139,7 +145,12 @@ public class TimeProvider {
      *         from this rather than from {@link #now()}.
      */
     public static Instant trafficSampleInstant() {
-        return REFERENCE.atZone(ZONE).toLocalDate().atTime(TRAFFIC_SAMPLE_TIME).atZone(ZONE).toInstant();
+        return REFERENCE
+                .atZone(ZONE)
+                .toLocalDate()
+                .atTime(TRAFFIC_SAMPLE_TIME)
+                .atZone(ZONE)
+                .toInstant();
     }
 
     /**
@@ -159,7 +170,11 @@ public class TimeProvider {
 
     public void setTimestamps(Map<String, Object> data) {
         data.put("now", now.toEpochMilli());
-        IntStream.rangeClosed(1, 15).forEach(i -> data.putIfAbsent("nowMinus" + i, now.minusSeconds(i * 60L).toEpochMilli()));
-        IntStream.rangeClosed(1, 15).forEach(i -> data.putIfAbsent("nowPlus" + i, now.plusSeconds(i * 60L).toEpochMilli()));
+        IntStream.rangeClosed(1, 15)
+                .forEach(i -> data.putIfAbsent(
+                        "nowMinus" + i, now.minusSeconds(i * 60L).toEpochMilli()));
+        IntStream.rangeClosed(1, 15)
+                .forEach(i ->
+                        data.putIfAbsent("nowPlus" + i, now.plusSeconds(i * 60L).toEpochMilli()));
     }
 }

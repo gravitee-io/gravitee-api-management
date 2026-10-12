@@ -49,38 +49,34 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
     @Override
     public OrganizationReactor create(final ReactableOrganization reactableOrganization) {
         OrganizationPolicyManager organizationPolicyManager = platformPolicyManager(reactableOrganization);
-        HttpPolicyChainFactory policyChainFactory = policyChainFactory(reactableOrganization, organizationPolicyManager);
+        HttpPolicyChainFactory policyChainFactory =
+                policyChainFactory(reactableOrganization, organizationPolicyManager);
         return new DefaultOrganizationReactor(reactableOrganization, policyChainFactory, organizationPolicyManager);
     }
 
     protected HttpPolicyChainFactory policyChainFactory(
-        final ReactableOrganization reactableOrganization,
-        final OrganizationPolicyManager organizationPolicyManager
-    ) {
+            final ReactableOrganization reactableOrganization,
+            final OrganizationPolicyManager organizationPolicyManager) {
         return new HttpPolicyChainFactory(
-            "organization-" + reactableOrganization.getId(),
-            organizationPolicyManager,
-            configuration.isTracesEnabled()
-        );
+                "organization-" + reactableOrganization.getId(),
+                organizationPolicyManager,
+                configuration.isTracesEnabled());
     }
 
     protected OrganizationPolicyManager platformPolicyManager(ReactableOrganization reactableOrganization) {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-        );
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager = (ConfigurablePluginManager<
-            PolicyPlugin<?>
-        >) applicationContext.getBean(beanNamesForType[0]);
+        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager =
+                (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
 
         return new OrganizationPolicyManager(
-            defaultClassLoader,
-            policyFactoryManager,
-            new CachedPolicyConfigurationFactory(),
-            configurablePluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            reactableOrganization
-        );
+                defaultClassLoader,
+                policyFactoryManager,
+                new CachedPolicyConfigurationFactory(),
+                configurablePluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                reactableOrganization);
     }
 }

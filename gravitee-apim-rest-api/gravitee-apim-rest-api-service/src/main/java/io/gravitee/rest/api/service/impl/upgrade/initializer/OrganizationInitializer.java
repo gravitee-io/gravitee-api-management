@@ -41,13 +41,11 @@ public abstract class OrganizationInitializer implements Initializer {
     @Override
     public final boolean initialize() {
         try {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    log.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
-                    initializeOrganization(executionContext);
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                log.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
+                initializeOrganization(executionContext);
+            });
         } catch (TechnicalException e) {
             log.error("{} execution failed", this.getClass().getSimpleName(), e);
             return false;

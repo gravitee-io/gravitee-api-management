@@ -91,19 +91,18 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     }
 
     @Override
-    public Maybe<Trace> getTrace(QueryContext queryContext, String traceId, Map<String, String> resourceAttributeFilters) {
+    public Maybe<Trace> getTrace(
+            QueryContext queryContext, String traceId, Map<String, String> resourceAttributeFilters) {
         Map<String, String> safeFilters = resourceAttributeFilters == null ? Map.of() : resourceAttributeFilters;
         String index = resolveIndex(indexTemplate, queryContext);
         String body = buildGetTraceBody(traceId, safeFilters);
         // Span events live in a separate OTel "logs" data stream (the collector elasticsearch exporter forces
         // {@code data_stream.type = logs} for events regardless of the pipeline they arrived on). Fetching and
         // stitching them is the LogsRepository's job — handled in a follow-up PR; this repo only returns spans.
-        return client
-            .search(index, null, body)
-            .flatMapMaybe(response -> {
-                Trace trace = parseGetTraceResponse(traceId, response);
-                return trace == null ? Maybe.empty() : Maybe.just(trace);
-            });
+        return client.search(index, null, body).flatMapMaybe(response -> {
+            Trace trace = parseGetTraceResponse(traceId, response);
+            return trace == null ? Maybe.empty() : Maybe.just(trace);
+        });
     }
 
     private String resolveIndex(String template, QueryContext queryContext) {
@@ -224,7 +223,8 @@ public class ElasticsearchTracingRepository implements TracingRepository {
 
         // Caller-declared resource-attribute filters are emitted on resource.attributes.<key> unconditionally —
         // no prefix heuristics or hardcoded key lists. Anything the caller says is a resource filter, is one.
-        for (Map.Entry<String, String> entry : criteria.resourceAttributeFilters().entrySet()) {
+        for (Map.Entry<String, String> entry :
+                criteria.resourceAttributeFilters().entrySet()) {
             filter.add(buildResourceTermFilter(entry.getKey(), entry.getValue()));
         }
 
@@ -338,7 +338,9 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         // Distinct-trace total from the cardinality agg, capped at what this backend can actually serve — the terms
         // agg / fetch-and-slice can't reach past MAX_SEARCH_RESULTS, so callers never page past reachable results.
         Aggregation totalAgg = response.getAggregations().get("total_traces");
-        long distinct = totalAgg != null && totalAgg.getValue() != null ? totalAgg.getValue().longValue() : traces.size();
+        long distinct = totalAgg != null && totalAgg.getValue() != null
+                ? totalAgg.getValue().longValue()
+                : traces.size();
         long total = Math.min(distinct, MAX_SEARCH_RESULTS);
 
         return new Page<>(traces, 0, traces.size(), total);
@@ -378,13 +380,14 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     }
 
     private static Trace parseGetTraceResponse(String traceId, SearchResponse response) {
-        if (
-            response.getSearchHits() == null || response.getSearchHits().getHits() == null || response.getSearchHits().getHits().isEmpty()
-        ) {
+        if (response.getSearchHits() == null
+                || response.getSearchHits().getHits() == null
+                || response.getSearchHits().getHits().isEmpty()) {
             return null;
         }
 
-        List<TraceSpan> spans = new ArrayList<>(response.getSearchHits().getHits().size());
+        List<TraceSpan> spans =
+                new ArrayList<>(response.getSearchHits().getHits().size());
         boolean anyError = false;
         TraceSpan rootSpan = null;
         for (SearchHit hit : response.getSearchHits().getHits()) {
@@ -394,7 +397,8 @@ public class ElasticsearchTracingRepository implements TracingRepository {
             }
             TraceSpan span = parseSpan(source);
             spans.add(span);
-            if (rootSpan == null && (span.parentSpanId() == null || span.parentSpanId().isEmpty())) {
+            if (rootSpan == null
+                    && (span.parentSpanId() == null || span.parentSpanId().isEmpty())) {
                 rootSpan = span;
             }
             if ("ERROR".equals(span.attributes().get(OTEL_STATUS_CODE_ATTR))) {
@@ -403,11 +407,11 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         }
 
         if (rootSpan == null) {
-            // No span has an empty parent — fall back to the earliest by start time so the trace summary still resolves.
-            rootSpan = spans
-                .stream()
-                .min(Comparator.comparing(TraceSpan::startTime, Comparator.nullsLast(Comparator.naturalOrder())))
-                .orElse(null);
+            // No span has an empty parent — fall back to the earliest by start time so the trace summary still
+            // resolves.
+            rootSpan = spans.stream()
+                    .min(Comparator.comparing(TraceSpan::startTime, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .orElse(null);
         }
 
         Instant traceStart = rootSpan != null ? rootSpan.startTime() : null;
@@ -443,7 +447,16 @@ public class ElasticsearchTracingRepository implements TracingRepository {
             attributes.put(OTEL_STATUS_CODE_ATTR, statusCode);
         }
         List<TraceSpanEvent> events = parseEvents(source.path("events"));
-        return TraceSpan.of(traceId, spanId, parentSpanId, operationName, serviceName, startTime, durationNanos, attributes, events);
+        return TraceSpan.of(
+                traceId,
+                spanId,
+                parentSpanId,
+                operationName,
+                serviceName,
+                startTime,
+                durationNanos,
+                attributes,
+                events);
     }
 
     /**
@@ -557,7 +570,8 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         if (flat != null && !flat.isMissingNode() && !flat.isNull()) {
             return flat.asText();
         }
-        return textOrNull(source.path("resource").path("attributes").path("service").path("name"));
+        return textOrNull(
+                source.path("resource").path("attributes").path("service").path("name"));
     }
 
     private static String textOrNull(JsonNode node) {

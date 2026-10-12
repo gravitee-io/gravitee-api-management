@@ -38,16 +38,15 @@ import org.junit.jupiter.api.Test;
 class GetApiLinkUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     private final PortalNavigationItemsCrudServiceInMemory navItemCrud = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navItemQuery = new PortalNavigationItemsQueryServiceInMemory(
-        navItemCrud.storage()
-    );
+    private final PortalNavigationItemsQueryServiceInMemory navItemQuery =
+            new PortalNavigationItemsQueryServiceInMemory(navItemCrud.storage());
 
     private GetApiLinkUseCase useCase;
 
@@ -87,29 +86,36 @@ class GetApiLinkUseCaseTest {
     }
 
     private PortalNavigationLink apiLinkRow(PortalNavigationItemId id) {
-        return linkRow(id, new AutomationMetadata(AutomationMetadata.ReferenceType.API, API_ID, null, Optional.empty(), Optional.empty()));
+        return linkRow(
+                id,
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.API, API_ID, null, Optional.empty(), Optional.empty()));
     }
 
     private PortalNavigationLink portalLinkRow(PortalNavigationItemId id) {
         return linkRow(
-            id,
-            new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, "some-portal-id", null, Optional.empty(), Optional.empty())
-        );
+                id,
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        "some-portal-id",
+                        null,
+                        Optional.empty(),
+                        Optional.empty()));
     }
 
     private PortalNavigationLink linkRow(PortalNavigationItemId id, AutomationMetadata automationMetadata) {
         return PortalNavigationLink.builder()
-            .id(id)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("external-docs")
-            .segment("external-docs")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .url("https://example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .automationMetadata(automationMetadata)
-            .build();
+                .id(id)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("external-docs")
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url("https://example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .automationMetadata(automationMetadata)
+                .build();
     }
 }

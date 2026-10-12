@@ -48,15 +48,19 @@ class ApiProductAdapterTest {
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
 
                 soft.assertThat(api.getName()).isEqualTo("api-product-name");
-                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getAnalytics()).isNull();
             });
         }
 
         @Test
         void should_deserialize_analytics() {
-            var repository = apiProduct().analytics("{\"enabled\":true,\"logging\":{\"content\":{\"headers\":true}}}").build();
+            var repository = apiProduct()
+                    .analytics("{\"enabled\":true,\"logging\":{\"content\":{\"headers\":true}}}")
+                    .build();
 
             var analytics = ApiProductAdapter.INSTANCE.toModel(repository).getAnalytics();
 
@@ -71,14 +75,16 @@ class ApiProductAdapterTest {
         void should_read_unparseable_analytics_as_absent_rather_than_failing() {
             var repository = apiProduct().analytics("not json").build();
 
-            assertThat(ApiProductAdapter.INSTANCE.toModel(repository).getAnalytics()).isNull();
+            assertThat(ApiProductAdapter.INSTANCE.toModel(repository).getAnalytics())
+                    .isNull();
         }
 
         @Test
         void should_ignore_unknown_properties_rather_than_dropping_the_whole_analytics_config() {
             var repository = apiProduct()
-                .analytics("{\"enabled\":true,\"logging\":{\"content\":{\"headers\":true}},\"someFutureField\":{\"any\":\"thing\"}}")
-                .build();
+                    .analytics(
+                            "{\"enabled\":true,\"logging\":{\"content\":{\"headers\":true}},\"someFutureField\":{\"any\":\"thing\"}}")
+                    .build();
 
             var analytics = ApiProductAdapter.INSTANCE.toModel(repository).getAnalytics();
 
@@ -116,29 +122,30 @@ class ApiProductAdapterTest {
             var analytics = Analytics.builder().enabled(true).build();
             var model = BASE().analytics(analytics).build();
 
-            assertThat(ApiProductAdapter.INSTANCE.toRepository(model).getAnalytics()).contains("\"enabled\":true");
+            assertThat(ApiProductAdapter.INSTANCE.toRepository(model).getAnalytics())
+                    .contains("\"enabled\":true");
         }
     }
 
     private ApiProduct.ApiProductBuilder apiProduct() {
         return ApiProduct.builder()
-            .id("my-id")
-            .environmentId("env-id")
-            .name("api-product-name")
-            .description("api-product-description")
-            .version("1.0.0")
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+                .id("my-id")
+                .environmentId("env-id")
+                .name("api-product-name")
+                .description("api-product-description")
+                .version("1.0.0")
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
     }
 
     private io.gravitee.apim.core.api_product.model.ApiProduct.ApiProductBuilder BASE() {
         return io.gravitee.apim.core.api_product.model.ApiProduct.builder()
-            .id("my-api-product")
-            .name("my-api-product")
-            .environmentId("environment-id")
-            .description("api-product-description")
-            .version("1.0.0")
-            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
+                .id("my-api-product")
+                .name("my-api-product")
+                .environmentId("environment-id")
+                .description("api-product-description")
+                .version("1.0.0")
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
     }
 }

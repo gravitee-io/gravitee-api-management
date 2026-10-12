@@ -66,8 +66,8 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
     @Override
     public SubscriptionEntity createOrUpdate(AuditInfo auditInfo, SubscriptionCRDSpec spec) {
         return find(spec.getId())
-            .map(existing -> update(auditInfo, existing, spec))
-            .orElseGet(() -> create(auditInfo, spec));
+                .map(existing -> update(auditInfo, existing, spec))
+                .orElseGet(() -> create(auditInfo, spec));
     }
 
     @Override
@@ -92,11 +92,7 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
         String initialCustomKey = firstKeyOrNull(spec.getApiKeys());
 
         var subscription = subscriptionService.create(
-            toExecutionContext(auditInfo),
-            adapter.fromCoreForCreate(entity),
-            initialCustomKey,
-            spec.getId()
-        );
+                toExecutionContext(auditInfo), adapter.fromCoreForCreate(entity), initialCustomKey, spec.getId());
 
         if (entity.getEndingAt() != null) {
             subscriptionService.update(toExecutionContext(auditInfo), adapter.fromCoreForUpdate(entity));
@@ -149,12 +145,14 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
         return update;
     }
 
-    private SubscriptionEntity restoreAsAccepted(AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
+    private SubscriptionEntity restoreAsAccepted(
+            AuditInfo auditInfo, SubscriptionEntity existing, SubscriptionCRDSpec spec) {
         log.debug("Restoring closed subscription [{}]", spec.getId());
         subscriptionService.restore(toExecutionContext(auditInfo), existing.getId());
         if (hasApiKeys(spec)) {
             var pending = subscriptionCrudService.get(existing.getId());
-            var accepted = pending.acceptBy(auditInfo.actor().userId(), ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON);
+            var accepted = pending.acceptBy(
+                    auditInfo.actor().userId(), ZonedDateTime.now(), spec.getEndingAt(), ACCEPT_REASON);
             return subscriptionCrudService.update(accepted);
         }
         return getAutoAccept(auditInfo, spec, existing.getId());
@@ -166,13 +164,12 @@ public class SubscriptionCRDDomainServiceImpl implements SubscriptionCRDDomainSe
 
     private SubscriptionEntity getAutoAccept(AuditInfo auditInfo, SubscriptionCRDSpec spec, String id) {
         return acceptService.autoAccept(
-            id,
-            ZonedDateTime.now(),
-            spec.getEndingAt(),
-            ACCEPT_REASON,
-            firstKeyOrNull(spec.getApiKeys()),
-            auditInfo
-        );
+                id,
+                ZonedDateTime.now(),
+                spec.getEndingAt(),
+                ACCEPT_REASON,
+                firstKeyOrNull(spec.getApiKeys()),
+                auditInfo);
     }
 
     private static void rejectImmutableFieldChanges(SubscriptionEntity existing, SubscriptionCRDSpec spec) {

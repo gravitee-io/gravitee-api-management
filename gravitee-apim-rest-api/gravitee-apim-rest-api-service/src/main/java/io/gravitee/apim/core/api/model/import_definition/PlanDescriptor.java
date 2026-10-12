@@ -32,6 +32,7 @@ import lombok.Builder;
 
 public sealed interface PlanDescriptor {
     String id();
+
     String name();
 
     PlanStatus status();
@@ -43,38 +44,38 @@ public sealed interface PlanDescriptor {
 
     @Builder
     record V4(
-        String id,
-        String crossId,
-        String name,
-        DefinitionVersion definitionVersion,
-        String description,
+            String id,
+            String crossId,
+            String name,
+            DefinitionVersion definitionVersion,
+            String description,
 
-        Instant createdAt,
-        Instant updatedAt,
-        Instant publishedAt,
-        Instant closedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant publishedAt,
+            Instant closedAt,
 
-        Plan.PlanValidationType validation,
-        Plan.PlanType type,
-        PlanMode mode,
-        PlanSecurity security,
+            Plan.PlanValidationType validation,
+            Plan.PlanType type,
+            PlanMode mode,
+            PlanSecurity security,
 
-        Set<String> tags,
+            Set<String> tags,
 
-        String selectionRule,
-        PlanStatus status,
-        String apiId,
-        String environmentId,
+            String selectionRule,
+            PlanStatus status,
+            String apiId,
+            String environmentId,
 
-        int order,
-        List<String> characteristics,
-        List<String> excludedGroups,
-        boolean commentRequired,
-        String commentMessage,
-        String generalConditions,
+            int order,
+            List<String> characteristics,
+            List<String> excludedGroups,
+            boolean commentRequired,
+            String commentMessage,
+            String generalConditions,
 
-        Collection<io.gravitee.definition.model.v4.flow.Flow> flows
-    ) implements PlanDescriptor {
+            Collection<io.gravitee.definition.model.v4.flow.Flow> flows)
+            implements PlanDescriptor {
         @JsonProperty("tags")
         public Set<String> tags() {
             return tags != null ? tags : Set.of();
@@ -82,103 +83,102 @@ public sealed interface PlanDescriptor {
 
         public PlanDescriptor.V4 withFlow(Collection<io.gravitee.definition.model.v4.flow.Flow> newFlow) {
             return new PlanDescriptor.V4(
-                id,
-                crossId,
-                name,
-                definitionVersion,
-                description,
-                createdAt,
-                updatedAt,
-                publishedAt,
-                closedAt,
-                validation,
-                type,
-                mode,
-                security,
-                tags,
-                selectionRule,
-                status,
-                apiId,
-                environmentId,
-                order,
-                characteristics,
-                excludedGroups,
-                commentRequired,
-                commentMessage,
-                generalConditions,
-                newFlow
-            );
+                    id,
+                    crossId,
+                    name,
+                    definitionVersion,
+                    description,
+                    createdAt,
+                    updatedAt,
+                    publishedAt,
+                    closedAt,
+                    validation,
+                    type,
+                    mode,
+                    security,
+                    tags,
+                    selectionRule,
+                    status,
+                    apiId,
+                    environmentId,
+                    order,
+                    characteristics,
+                    excludedGroups,
+                    commentRequired,
+                    commentMessage,
+                    generalConditions,
+                    newFlow);
         }
     }
 
     @Builder
     record Federated(
-        String id,
-        String crossId,
-        String name,
-        DefinitionVersion definitionVersion,
-        String description,
+            String id,
+            String crossId,
+            String name,
+            DefinitionVersion definitionVersion,
+            String description,
 
-        Instant createdAt,
-        Instant updatedAt,
-        Instant publishedAt,
-        Instant closedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant publishedAt,
+            Instant closedAt,
 
-        Plan.PlanValidationType validation,
-        Plan.PlanType type,
-        PlanMode mode,
-        PlanSecurity security,
+            Plan.PlanValidationType validation,
+            Plan.PlanType type,
+            PlanMode mode,
+            PlanSecurity security,
 
-        String selectionRule,
-        PlanStatus status,
-        String apiId,
-        String environmentId,
+            String selectionRule,
+            PlanStatus status,
+            String apiId,
+            String environmentId,
 
-        int order,
-        List<String> characteristics,
-        List<String> excludedGroups,
-        boolean commentRequired,
-        String commentMessage,
-        String generalConditions,
+            int order,
+            List<String> characteristics,
+            List<String> excludedGroups,
+            boolean commentRequired,
+            String commentMessage,
+            String generalConditions,
 
-        String providerId
-    ) implements PlanDescriptor {}
+            String providerId)
+            implements PlanDescriptor {}
 
     @Builder
     record V2(
-        String id,
-        String crossId,
-        String name,
-        DefinitionVersion definitionVersion,
-        String description,
+            String id,
+            String crossId,
+            String name,
+            DefinitionVersion definitionVersion,
+            String description,
 
-        Instant createdAt,
-        Instant updatedAt,
-        Instant publishedAt,
-        Instant closedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant publishedAt,
+            Instant closedAt,
 
-        Plan.PlanValidationType validation,
-        Plan.PlanType type,
-        PlanMode mode,
-        PlanSecurity security,
+            Plan.PlanValidationType validation,
+            Plan.PlanType type,
+            PlanMode mode,
+            PlanSecurity security,
 
-        Set<String> tags,
+            Set<String> tags,
 
-        String selectionRule,
-        PlanStatus status,
-        String apiId,
-        String environmentId,
+            String selectionRule,
+            PlanStatus status,
+            String apiId,
+            String environmentId,
 
-        int order,
-        List<String> characteristics,
-        List<String> excludedGroups,
-        boolean commentRequired,
-        String commentMessage,
-        String generalConditions,
+            int order,
+            List<String> characteristics,
+            List<String> excludedGroups,
+            boolean commentRequired,
+            String commentMessage,
+            String generalConditions,
 
-        String securityDefinition,
-        Collection<Flow> flows
-    ) implements PlanDescriptor {
+            String securityDefinition,
+            Collection<Flow> flows)
+            implements PlanDescriptor {
         @JsonProperty("tags")
         public Set<String> tags() {
             return tags != null ? tags : Set.of();
@@ -186,74 +186,73 @@ public sealed interface PlanDescriptor {
 
         public PlanDescriptor.V2 withFlow(Collection<Flow> newFlow) {
             return new PlanDescriptor.V2(
-                id,
-                crossId,
-                name,
-                definitionVersion,
-                description,
-                createdAt,
-                updatedAt,
-                publishedAt,
-                closedAt,
-                validation,
-                type,
-                mode,
-                security,
-                tags,
-                selectionRule,
-                status,
-                apiId,
-                environmentId,
-                order,
-                characteristics,
-                excludedGroups,
-                commentRequired,
-                commentMessage,
-                generalConditions,
-                securityDefinition,
-                newFlow
-            );
+                    id,
+                    crossId,
+                    name,
+                    definitionVersion,
+                    description,
+                    createdAt,
+                    updatedAt,
+                    publishedAt,
+                    closedAt,
+                    validation,
+                    type,
+                    mode,
+                    security,
+                    tags,
+                    selectionRule,
+                    status,
+                    apiId,
+                    environmentId,
+                    order,
+                    characteristics,
+                    excludedGroups,
+                    commentRequired,
+                    commentMessage,
+                    generalConditions,
+                    securityDefinition,
+                    newFlow);
         }
     }
 
     @Builder
     record Native(
-        String id,
-        String crossId,
-        String name,
-        DefinitionVersion definitionVersion,
-        String description,
+            String id,
+            String crossId,
+            String name,
+            DefinitionVersion definitionVersion,
+            String description,
 
-        Instant createdAt,
-        Instant updatedAt,
-        Instant publishedAt,
-        Instant closedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant publishedAt,
+            Instant closedAt,
 
-        Plan.PlanValidationType validation,
-        Plan.PlanType type,
-        PlanMode mode,
-        PlanSecurity security,
+            Plan.PlanValidationType validation,
+            Plan.PlanType type,
+            PlanMode mode,
+            PlanSecurity security,
 
-        Set<String> tags,
+            Set<String> tags,
 
-        String selectionRule,
-        PlanStatus status,
-        String apiId,
-        String environmentId,
+            String selectionRule,
+            PlanStatus status,
+            String apiId,
+            String environmentId,
 
-        int order,
-        List<String> characteristics,
-        List<String> excludedGroups,
-        boolean commentRequired,
-        String commentMessage,
-        String generalConditions,
+            int order,
+            List<String> characteristics,
+            List<String> excludedGroups,
+            boolean commentRequired,
+            String commentMessage,
+            String generalConditions,
 
-        Collection<NativeFlow> flows,
+            Collection<NativeFlow> flows,
 
-        Integer bootstrapPort,
-        Integer brokerRangeStart,
-        Integer brokerRangeEnd
-    ) implements PlanDescriptor {
+            Integer bootstrapPort,
+            Integer brokerRangeStart,
+            Integer brokerRangeEnd)
+            implements PlanDescriptor {
         @JsonProperty("tags")
         public Set<String> tags() {
             return tags != null ? tags : Set.of();
@@ -261,35 +260,34 @@ public sealed interface PlanDescriptor {
 
         public PlanDescriptor.Native withFlow(Collection<NativeFlow> newFlow) {
             return new PlanDescriptor.Native(
-                id,
-                crossId,
-                name,
-                definitionVersion,
-                description,
-                createdAt,
-                updatedAt,
-                publishedAt,
-                closedAt,
-                validation,
-                type,
-                mode,
-                security,
-                tags,
-                selectionRule,
-                status,
-                apiId,
-                environmentId,
-                order,
-                characteristics,
-                excludedGroups,
-                commentRequired,
-                commentMessage,
-                generalConditions,
-                newFlow,
-                bootstrapPort,
-                brokerRangeStart,
-                brokerRangeEnd
-            );
+                    id,
+                    crossId,
+                    name,
+                    definitionVersion,
+                    description,
+                    createdAt,
+                    updatedAt,
+                    publishedAt,
+                    closedAt,
+                    validation,
+                    type,
+                    mode,
+                    security,
+                    tags,
+                    selectionRule,
+                    status,
+                    apiId,
+                    environmentId,
+                    order,
+                    characteristics,
+                    excludedGroups,
+                    commentRequired,
+                    commentMessage,
+                    generalConditions,
+                    newFlow,
+                    bootstrapPort,
+                    brokerRangeStart,
+                    brokerRangeEnd);
         }
     }
 }

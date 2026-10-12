@@ -60,8 +60,9 @@ public final class OpenApiFragmentMerger {
         if (fragmentComponents != null && fragmentComponents.isObject()) {
             ObjectNode components = document.withObject("/" + COMPONENTS);
             fragmentComponents
-                .properties()
-                .forEach(section -> mergeMap(components, (ObjectNode) fragmentComponents, section.getKey(), module, "component"));
+                    .properties()
+                    .forEach(section -> mergeMap(
+                            components, (ObjectNode) fragmentComponents, section.getKey(), module, "component"));
         }
         JsonNode fragmentTags = fragment.get(TAGS);
         if (fragmentTags != null && fragmentTags.isArray()) {
@@ -84,16 +85,13 @@ public final class OpenApiFragmentMerger {
             return;
         }
         ObjectNode into = target.withObject("/" + field);
-        entries
-            .properties()
-            .forEach(entry -> {
-                if (into.has(entry.getKey())) {
-                    throw new IllegalStateException(
-                        "Automation OpenAPI fragment of module [" + module + "] redefines " + what + " [" + entry.getKey() + "]"
-                    );
-                }
-                into.set(entry.getKey(), entry.getValue());
-            });
+        entries.properties().forEach(entry -> {
+            if (into.has(entry.getKey())) {
+                throw new IllegalStateException("Automation OpenAPI fragment of module [" + module + "] redefines "
+                        + what + " [" + entry.getKey() + "]");
+            }
+            into.set(entry.getKey(), entry.getValue());
+        });
     }
 
     private static ObjectNode readObject(InputStream yaml) throws IOException {

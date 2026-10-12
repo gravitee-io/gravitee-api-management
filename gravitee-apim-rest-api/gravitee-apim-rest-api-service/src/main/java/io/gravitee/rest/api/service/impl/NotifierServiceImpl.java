@@ -81,6 +81,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
      * Default Notifier IDs
      */
     public static final String DEFAULT_EMAIL_NOTIFIER_ID = "default-email";
+
     private static final String DEFAULT_WEBHOOK_NOTIFIER_ID = "default-webhook";
 
     private static final io.gravitee.rest.api.model.NotifierEntity DEFAULT_EMAIL_NOTIFIER;
@@ -103,16 +104,15 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     private final MembershipService membershipService;
 
     public NotifierServiceImpl(
-        ConfigurablePluginManager<NotifierPlugin> notifierManager,
-        @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
-        PortalNotificationService portalNotificationService,
-        @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
-        @Lazy EmailNotifierService emailNotifierService,
-        @Lazy WebhookNotifierService webhookNotifierService,
-        @Lazy EmailRecipientsService emailRecipientsService,
-        @Lazy ParameterService parameterService,
-        @Lazy MembershipService membershipService
-    ) {
+            ConfigurablePluginManager<NotifierPlugin> notifierManager,
+            @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
+            PortalNotificationService portalNotificationService,
+            @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
+            @Lazy EmailNotifierService emailNotifierService,
+            @Lazy WebhookNotifierService webhookNotifierService,
+            @Lazy EmailRecipientsService emailRecipientsService,
+            @Lazy ParameterService parameterService,
+            @Lazy MembershipService membershipService) {
         this.notifierManager = notifierManager;
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
         this.portalNotificationService = portalNotificationService;
@@ -137,31 +137,35 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
         @Override
         public String toString() {
-            return "{ hook=" + hook + ", referenceType=" + referenceType + ", referenceId=" + referenceId + ", orgId=" + orgId + " }";
+            return "{ hook=" + hook + ", referenceType=" + referenceType + ", referenceId=" + referenceId + ", orgId="
+                    + orgId + " }";
         }
     }
 
     @Override
     @Async
-    public void trigger(final ExecutionContext executionContext, final ApiHook hook, final String apiId, Map<String, Object> params) {
+    public void trigger(
+            final ExecutionContext executionContext,
+            final ApiHook hook,
+            final String apiId,
+            Map<String, Object> params) {
         trigger(executionContext, hook, NotificationReferenceType.API, apiId, params);
     }
 
     @Override
     @Async
     public void trigger(
-        final ExecutionContext executionContext,
-        final ApiHook hook,
-        final NotificationReferenceType referenceType,
-        final String referenceId,
-        Map<String, Object> params
-    ) {
+            final ExecutionContext executionContext,
+            final ApiHook hook,
+            final NotificationReferenceType referenceType,
+            final String referenceId,
+            Map<String, Object> params) {
         var triggerNotificationsData = TriggerNotificationsData.builder()
-            .hook(hook)
-            .referenceType(referenceType)
-            .referenceId(referenceId)
-            .params(params)
-            .build();
+                .hook(hook)
+                .referenceType(referenceType)
+                .referenceId(referenceId)
+                .params(params)
+                .build();
         triggerPortalNotifications(executionContext, triggerNotificationsData);
         triggerGenericNotifications(executionContext, triggerNotificationsData);
     }
@@ -169,17 +173,16 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Override
     @Async
     public void trigger(
-        final ExecutionContext executionContext,
-        final ApiProductHook hook,
-        final String apiProductId,
-        final Map<String, Object> params
-    ) {
+            final ExecutionContext executionContext,
+            final ApiProductHook hook,
+            final String apiProductId,
+            final Map<String, Object> params) {
         var triggerNotificationsData = TriggerNotificationsData.builder()
-            .hook(hook)
-            .referenceType(NotificationReferenceType.API_PRODUCT)
-            .referenceId(apiProductId)
-            .params(params)
-            .build();
+                .hook(hook)
+                .referenceType(NotificationReferenceType.API_PRODUCT)
+                .referenceId(apiProductId)
+                .params(params)
+                .build();
         triggerPortalNotifications(executionContext, triggerNotificationsData);
         triggerGenericNotifications(executionContext, triggerNotificationsData);
     }
@@ -187,17 +190,16 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Override
     @Async
     public void trigger(
-        final ExecutionContext executionContext,
-        final ApplicationHook hook,
-        final String applicationId,
-        Map<String, Object> params
-    ) {
+            final ExecutionContext executionContext,
+            final ApplicationHook hook,
+            final String applicationId,
+            Map<String, Object> params) {
         var data = TriggerNotificationsData.builder()
-            .hook(hook)
-            .referenceType(NotificationReferenceType.APPLICATION)
-            .referenceId(applicationId)
-            .params(params)
-            .build();
+                .hook(hook)
+                .referenceType(NotificationReferenceType.APPLICATION)
+                .referenceId(applicationId)
+                .params(params)
+                .build();
         triggerPortalNotifications(executionContext, data);
         triggerGenericNotifications(executionContext, data);
     }
@@ -205,18 +207,17 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Override
     @Async
     public void trigger(
-        final ExecutionContext executionContext,
-        final ApplicationHook hook,
-        final String applicationId,
-        Map<String, Object> params,
-        List<Recipient> recipients
-    ) {
+            final ExecutionContext executionContext,
+            final ApplicationHook hook,
+            final String applicationId,
+            Map<String, Object> params,
+            List<Recipient> recipients) {
         var data = TriggerNotificationsData.builder()
-            .hook(hook)
-            .referenceType(NotificationReferenceType.APPLICATION)
-            .referenceId(applicationId)
-            .params(params)
-            .build();
+                .hook(hook)
+                .referenceType(NotificationReferenceType.APPLICATION)
+                .referenceId(applicationId)
+                .params(params)
+                .build();
         triggerPortalNotifications(executionContext, data);
         triggerGenericNotifications(executionContext, data);
     }
@@ -226,7 +227,9 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     public void trigger(final ExecutionContext executionContext, final PortalHook hook, Map<String, Object> params) {
         var dataBuilder = TriggerNotificationsData.builder().hook(hook).params(params);
         if (executionContext.hasEnvironmentId()) {
-            dataBuilder.referenceType(NotificationReferenceType.ENVIRONMENT).referenceId(executionContext.getEnvironmentId());
+            dataBuilder
+                    .referenceType(NotificationReferenceType.ENVIRONMENT)
+                    .referenceId(executionContext.getEnvironmentId());
         } else {
             dataBuilder.orgId(executionContext.getOrganizationId());
         }
@@ -235,23 +238,21 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         triggerGenericNotifications(executionContext, data);
     }
 
-    private void triggerPortalNotifications(final ExecutionContext executionContext, final TriggerNotificationsData data) {
+    private void triggerPortalNotifications(
+            final ExecutionContext executionContext, final TriggerNotificationsData data) {
         try {
             List<PortalNotificationConfig> portalNotificationConfigs;
             if (data.referenceId != null) {
                 portalNotificationConfigs = portalNotificationConfigRepository.findByReferenceAndHook(
-                    data.hook.name(),
-                    data.referenceType,
-                    data.referenceId
-                );
+                        data.hook.name(), data.referenceType, data.referenceId);
             } else {
-                portalNotificationConfigs = portalNotificationConfigRepository.findByHookAndOrganizationId(data.hook.name(), data.orgId);
+                portalNotificationConfigs =
+                        portalNotificationConfigRepository.findByHookAndOrganizationId(data.hook.name(), data.orgId);
             }
-            List<String> userIds = portalNotificationConfigs
-                .stream()
-                .flatMap(n -> users(executionContext, n))
-                .distinct()
-                .collect(Collectors.toList());
+            List<String> userIds = portalNotificationConfigs.stream()
+                    .flatMap(n -> users(executionContext, n))
+                    .distinct()
+                    .collect(Collectors.toList());
             if (!userIds.isEmpty()) {
                 portalNotificationService.create(executionContext, data.hook, userIds, data.params);
             }
@@ -260,20 +261,20 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         }
     }
 
-    private Stream<String> users(final ExecutionContext executionContext, final PortalNotificationConfig portalNotificationConfig) {
+    private Stream<String> users(
+            final ExecutionContext executionContext, final PortalNotificationConfig portalNotificationConfig) {
         List<String> userIds = new ArrayList<>();
         userIds.add(portalNotificationConfig.getUser());
         if (portalNotificationConfig.getGroups() != null) {
             membershipService
-                .getMembersByReferencesAndRole(
-                    executionContext,
-                    MembershipReferenceType.GROUP,
-                    List.copyOf(portalNotificationConfig.getGroups()),
-                    null
-                )
-                .stream()
-                .map(MemberEntity::getId)
-                .forEach(userIds::add);
+                    .getMembersByReferencesAndRole(
+                            executionContext,
+                            MembershipReferenceType.GROUP,
+                            List.copyOf(portalNotificationConfig.getGroups()),
+                            null)
+                    .stream()
+                    .map(MemberEntity::getId)
+                    .forEach(userIds::add);
         }
         return userIds.stream();
     }
@@ -283,61 +284,53 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         try {
             List<GenericNotificationConfig> genericNotificationConfigs;
             if (data.orgId != null) {
-                genericNotificationConfigs = genericNotificationConfigRepository.findByHookAndOrganizationId(data.hook.name(), data.orgId);
+                genericNotificationConfigs =
+                        genericNotificationConfigRepository.findByHookAndOrganizationId(data.hook.name(), data.orgId);
             } else {
                 genericNotificationConfigs = genericNotificationConfigRepository.findByReferenceAndHook(
-                    data.hook.name(),
-                    data.referenceType,
-                    data.referenceId
-                );
+                        data.hook.name(), data.referenceType, data.referenceId);
             }
-            var notificationConfigs = genericNotificationConfigs
-                .stream()
-                .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
+            var notificationConfigs = genericNotificationConfigs.stream()
+                    .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
             if (notificationConfigs.isEmpty()) {
                 log.debug(
-                    "No GenericNotificationConfig for hook {} (referenceType={}, referenceId={}); email/webhook notifiers are skipped",
-                    data.hook.name(),
-                    data.referenceType,
-                    data.referenceId
-                );
+                        "No GenericNotificationConfig for hook {} (referenceType={}, referenceId={}); email/webhook notifiers are skipped",
+                        data.hook.name(),
+                        data.referenceType,
+                        data.referenceId);
                 return;
             }
             list().forEach(notifier -> {
                 switch (notifier.type()) {
                     case EMAIL -> {
-                        var recipients = notificationConfigs
-                            .getOrDefault(notifier.getId(), Collections.emptyList())
-                            .stream()
-                            .map(GenericNotificationConfig::getConfig)
-                            .collect(Collectors.toList());
+                        var recipients =
+                                notificationConfigs.getOrDefault(notifier.getId(), Collections.emptyList()).stream()
+                                        .map(GenericNotificationConfig::getConfig)
+                                        .collect(Collectors.toList());
 
                         if (!CollectionUtils.isEmpty(data.recipients)) {
-                            var emailAdditionalRecipients = data.recipients
-                                .stream()
-                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
-                                .map(Recipient::value)
-                                .toList();
+                            var emailAdditionalRecipients = data.recipients.stream()
+                                    .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
+                                    .map(Recipient::value)
+                                    .toList();
                             recipients.addAll(emailAdditionalRecipients);
                         }
 
                         // extract emails from templated string (eg: ${api.primaryOwner.email})
-                        var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, data.params);
+                        var processedRecipients =
+                                emailRecipientsService.processTemplatedRecipients(recipients, data.params);
                         // extract emails of opted-in users if trial instance
                         var validRecipients = parameterService.findAsBoolean(
-                                executionContext,
-                                Key.TRIAL_INSTANCE,
-                                ParameterReferenceType.SYSTEM
-                            )
-                            ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
-                            : processedRecipients;
+                                        executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)
+                                ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
+                                : processedRecipients;
 
                         emailNotifierService.trigger(executionContext, data.hook, data.params, validRecipients);
                     }
                     case WEBHOOK -> {
                         notificationConfigs
-                            .getOrDefault(notifier.getId(), Collections.emptyList())
-                            .forEach(config -> webhookNotifierService.trigger(data.hook, config, data.params));
+                                .getOrDefault(notifier.getId(), Collections.emptyList())
+                                .forEach(config -> webhookNotifierService.trigger(data.hook, config, data.params));
                     }
                     default -> log.error("Unknown notifier {}", notifier.getType());
                 }
@@ -350,9 +343,9 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Override
     public List<NotifierEntity> list() {
         return Arrays.asList(
-            new NotifierEntity(DEFAULT_EMAIL_NOTIFIER_ID, NotifierEntity.Type.EMAIL, "Default Email Notifier"),
-            new NotifierEntity(DEFAULT_WEBHOOK_NOTIFIER_ID, NotifierEntity.Type.WEBHOOK, "Default Webhook Notifier")
-        );
+                new NotifierEntity(DEFAULT_EMAIL_NOTIFIER_ID, NotifierEntity.Type.EMAIL, "Default Email Notifier"),
+                new NotifierEntity(
+                        DEFAULT_WEBHOOK_NOTIFIER_ID, NotifierEntity.Type.WEBHOOK, "Default Webhook Notifier"));
     }
 
     @Override
@@ -361,10 +354,8 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
             log.debug("List all notifiers");
             final Collection<NotifierPlugin> plugins = notifierManager.findAll();
 
-            Set<io.gravitee.rest.api.model.NotifierEntity> notifiers = plugins
-                .stream()
-                .map(plugin -> convert(plugin, false))
-                .collect(Collectors.toSet());
+            Set<io.gravitee.rest.api.model.NotifierEntity> notifiers =
+                    plugins.stream().map(plugin -> convert(plugin, false)).collect(Collectors.toSet());
             notifiers.add(DEFAULT_EMAIL_NOTIFIER);
 
             return notifiers;
@@ -401,17 +392,17 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                     throw new IOException("Resource not found for: /notifiers/" + DEFAULT_EMAIL_NOTIFIER_ID + ".json");
                 }
 
-                try (
-                    final InputStream notifierInputStream = url.openStream();
-                    final BufferedReader reader = new BufferedReader(new InputStreamReader(notifierInputStream, StandardCharsets.UTF_8))
-                ) {
+                try (final InputStream notifierInputStream = url.openStream();
+                        final BufferedReader reader = new BufferedReader(
+                                new InputStreamReader(notifierInputStream, StandardCharsets.UTF_8))) {
                     return reader.lines().collect(Collectors.joining(System.lineSeparator()));
                 }
             } else {
                 return notifierManager.getSchema(notifier);
             }
         } catch (IOException ioex) {
-            throw new TechnicalManagementException("An error occurs while trying to get notifier schema for notifier " + notifier, ioex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to get notifier schema for notifier " + notifier, ioex);
         }
     }
 

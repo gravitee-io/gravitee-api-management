@@ -52,19 +52,18 @@ class EventBusAuthzEnginePortScopeTest {
     }
 
     private void recordAndReplyOn(String address) {
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(address, msg -> {
-                hits.add(address);
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        vertx.eventBus().<JsonObject>consumer(address, msg -> {
+            hits.add(address);
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
     }
 
     @Test
     void scoped_policy_is_sent_to_its_env_namespaced_scope_address_only() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L, null).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L, null)
+                .blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:api-a");
     }
 
@@ -74,7 +73,9 @@ class EventBusAuthzEnginePortScopeTest {
         // must land on the base engine address ":scope:env-1:orders", NOT ":scope:env-1:orders@us".
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders@us");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("orders@us"), 1L, null).blockingAwait();
+        port.addOrUpdatePolicy(
+                        "env-1", "p1", "n", "permit(principal, action, resource);", Set.of("orders@us"), 1L, null)
+                .blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:orders");
     }
 
@@ -82,7 +83,8 @@ class EventBusAuthzEnginePortScopeTest {
     void same_scope_id_in_two_envs_does_not_co_mingle() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-2:api-a");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L, null).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L, null)
+                .blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:api-a");
     }
 
@@ -97,12 +99,14 @@ class EventBusAuthzEnginePortScopeTest {
         recordAndReplyOn("service:authz-pdp:sync");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
-        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null).blockingAwait();
-        assertThat(hits).containsExactlyInAnyOrder(
-            "service:authz-pdp:sync",
-            "service:authz-pdp:sync:scope:env-1:api-a",
-            "service:authz-pdp:sync:scope:env-1:api-b"
-        );
+        scopedPort
+                .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null)
+                .blockingAwait();
+        assertThat(hits)
+                .containsExactlyInAnyOrder(
+                        "service:authz-pdp:sync",
+                        "service:authz-pdp:sync:scope:env-1:api-a",
+                        "service:authz-pdp:sync:scope:env-1:api-b");
     }
 
     @Test
@@ -114,8 +118,11 @@ class EventBusAuthzEnginePortScopeTest {
         EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions());
         recordAndReplyOn("service:authz-pdp:sync");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders");
-        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null).blockingAwait();
-        assertThat(hits).containsExactlyInAnyOrder("service:authz-pdp:sync", "service:authz-pdp:sync:scope:env-1:orders");
+        scopedPort
+                .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null)
+                .blockingAwait();
+        assertThat(hits)
+                .containsExactlyInAnyOrder("service:authz-pdp:sync", "service:authz-pdp:sync:scope:env-1:orders");
     }
 
     @Test
@@ -128,7 +135,8 @@ class EventBusAuthzEnginePortScopeTest {
         recordAndReplyOn("service:authz-pdp:sync");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders");
         scopedPort.removePolicy("env-1", "p1", Set.of("*")).blockingAwait();
-        assertThat(hits).containsExactlyInAnyOrder("service:authz-pdp:sync", "service:authz-pdp:sync:scope:env-1:orders");
+        assertThat(hits)
+                .containsExactlyInAnyOrder("service:authz-pdp:sync", "service:authz-pdp:sync:scope:env-1:orders");
     }
 
     @Test
@@ -140,28 +148,33 @@ class EventBusAuthzEnginePortScopeTest {
         EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions());
         recordAndReplyOn("service:authz-pdp:sync");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-2:other");
-        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null).blockingAwait();
+        scopedPort
+                .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null)
+                .blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
     }
 
     @Test
     void default_scope_is_sent_unicast_to_the_bare_sync_address() {
         recordAndReplyOn("service:authz-pdp:sync");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L, null).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L, null)
+                .blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
     }
 
     @Test
     void default_scope_ignores_environment_id() {
         recordAndReplyOn("service:authz-pdp:sync");
-        port.addOrUpdatePolicy("env-9", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L, null).blockingAwait();
+        port.addOrUpdatePolicy("env-9", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L, null)
+                .blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
     }
 
     @Test
     void commit_to_default_scope_uses_unicast_request_reply() {
         recordAndReplyOn("service:authz-pdp:sync");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L, null).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L, null)
+                .blockingAwait();
         hits.clear();
         port.commit().blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
@@ -170,7 +183,8 @@ class EventBusAuthzEnginePortScopeTest {
     @Test
     void empty_scope_set_sends_nothing() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of(), 1L, null).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of(), 1L, null)
+                .blockingAwait();
         assertThat(hits).isEmpty();
     }
 
@@ -183,16 +197,29 @@ class EventBusAuthzEnginePortScopeTest {
         EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
         FakeEngine engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
         sharedPort
-            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu", "stock@us"), 100L, null)
-            .andThen(sharedPort.commit())
-            .blockingAwait();
+                .addOrUpdatePolicy(
+                        "env-1",
+                        "p1",
+                        "n",
+                        "permit(principal, action, resource);",
+                        Set.of("stock@eu", "stock@us"),
+                        100L,
+                        null)
+                .andThen(sharedPort.commit())
+                .blockingAwait();
         engine.ops().clear();
 
-        sharedPort.removePolicy("env-1", "p1", Set.of("stock@us")).andThen(sharedPort.commit()).blockingAwait();
+        sharedPort
+                .removePolicy("env-1", "p1", Set.of("stock@us"))
+                .andThen(sharedPort.commit())
+                .blockingAwait();
         assertThat(engine.ops()).as("stock@eu still applies p1").doesNotContain("removePolicy:p1");
         assertThat(engine.served()).containsExactly("p1");
 
-        sharedPort.removePolicy("env-1", "p1", Set.of("stock@eu")).andThen(sharedPort.commit()).blockingAwait();
+        sharedPort
+                .removePolicy("env-1", "p1", Set.of("stock@eu"))
+                .andThen(sharedPort.commit())
+                .blockingAwait();
         assertThat(engine.ops()).as("the last replica's removal is relayed").contains("removePolicy:p1");
         assertThat(engine.served()).isEmpty();
     }
@@ -203,18 +230,24 @@ class EventBusAuthzEnginePortScopeTest {
         EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
         FakeEngine engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
         sharedPort
-            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu", "stock@us"), 100L, null)
-            .andThen(sharedPort.commit())
-            .blockingAwait();
+                .addOrUpdatePolicy(
+                        "env-1",
+                        "p1",
+                        "n",
+                        "permit(principal, action, resource);",
+                        Set.of("stock@eu", "stock@us"),
+                        100L,
+                        null)
+                .andThen(sharedPort.commit())
+                .blockingAwait();
         engine.ops().clear();
 
         sharedPort
-            .removePolicy("env-1", "p1", Set.of("stock@us"))
-            .andThen(
-                sharedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu"), 300L, null)
-            )
-            .andThen(sharedPort.commit())
-            .blockingAwait();
+                .removePolicy("env-1", "p1", Set.of("stock@us"))
+                .andThen(sharedPort.addOrUpdatePolicy(
+                        "env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu"), 300L, null))
+                .andThen(sharedPort.commit())
+                .blockingAwait();
 
         // The served set alone would pass without the skip: the re-stage at 300 puts p1 back before the
         // single commit. Only the op log shows that the removal never reached the engine.
@@ -227,11 +260,21 @@ class EventBusAuthzEnginePortScopeTest {
         EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
         FakeEngine engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
         sharedPort
-            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu", "stock@us"), 100L, null)
-            .andThen(sharedPort.commit())
-            .blockingAwait();
+                .addOrUpdatePolicy(
+                        "env-1",
+                        "p1",
+                        "n",
+                        "permit(principal, action, resource);",
+                        Set.of("stock@eu", "stock@us"),
+                        100L,
+                        null)
+                .andThen(sharedPort.commit())
+                .blockingAwait();
 
-        sharedPort.removePolicy("env-1", "p1", Set.of("stock@eu", "stock@us")).andThen(sharedPort.commit()).blockingAwait();
+        sharedPort
+                .removePolicy("env-1", "p1", Set.of("stock@eu", "stock@us"))
+                .andThen(sharedPort.commit())
+                .blockingAwait();
 
         assertThat(engine.ops()).contains("removePolicy:p1");
         assertThat(engine.served()).isEmpty();
@@ -243,12 +286,16 @@ class EventBusAuthzEnginePortScopeTest {
         EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
         FakeEngine engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
         sharedPort
-            .addOrUpdateEntity("env-1", "Resource::\"stock\"", Map.of(), List.of(), Set.of("stock@eu", "stock@us"), 100L)
-            .andThen(sharedPort.commit())
-            .blockingAwait();
+                .addOrUpdateEntity(
+                        "env-1", "Resource::\"stock\"", Map.of(), List.of(), Set.of("stock@eu", "stock@us"), 100L)
+                .andThen(sharedPort.commit())
+                .blockingAwait();
         engine.ops().clear();
 
-        sharedPort.removeEntity("env-1", "Resource::\"stock\"", Set.of("stock@us")).andThen(sharedPort.commit()).blockingAwait();
+        sharedPort
+                .removeEntity("env-1", "Resource::\"stock\"", Set.of("stock@us"))
+                .andThen(sharedPort.commit())
+                .blockingAwait();
 
         assertThat(engine.ops()).doesNotContain("removeEntity:Resource::\"stock\"");
         assertThat(engine.served()).containsExactly("Resource::\"stock\"");
@@ -261,12 +308,15 @@ class EventBusAuthzEnginePortScopeTest {
         EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
         FakeEngine engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
         sharedPort
-            .addOrUpdateSchema("env-1", "s1", "n", "entity User;", Set.of("stock@eu", "stock@us"), 100L)
-            .andThen(sharedPort.commit())
-            .blockingAwait();
+                .addOrUpdateSchema("env-1", "s1", "n", "entity User;", Set.of("stock@eu", "stock@us"), 100L)
+                .andThen(sharedPort.commit())
+                .blockingAwait();
         engine.ops().clear();
 
-        sharedPort.removeSchema("env-1", "s1", Set.of("stock@us")).andThen(sharedPort.commit()).blockingAwait();
+        sharedPort
+                .removeSchema("env-1", "s1", Set.of("stock@us"))
+                .andThen(sharedPort.commit())
+                .blockingAwait();
 
         assertThat(engine.ops()).doesNotContain("removeSchema:s1");
         assertThat(engine.served()).containsExactly("s1");
@@ -290,25 +340,23 @@ class EventBusAuthzEnginePortScopeTest {
         Set<String> staged = ConcurrentHashMap.newKeySet();
         Set<String> served = ConcurrentHashMap.newKeySet();
         List<String> ops = Collections.synchronizedList(new ArrayList<>());
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(address, msg -> {
-                JsonObject body = msg.body();
-                String op = body.getString("op");
-                // Entities are addressed by uid, policies and schemas by docId.
-                String docId = body.getString("docId", body.getString("uid"));
-                ops.add(docId == null ? op : op + ":" + docId);
-                switch (op) {
-                    case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
-                    case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
-                    case "commit" -> {
-                        served.clear();
-                        served.addAll(staged);
-                    }
-                    default -> {}
+        vertx.eventBus().<JsonObject>consumer(address, msg -> {
+            JsonObject body = msg.body();
+            String op = body.getString("op");
+            // Entities are addressed by uid, policies and schemas by docId.
+            String docId = body.getString("docId", body.getString("uid"));
+            ops.add(docId == null ? op : op + ":" + docId);
+            switch (op) {
+                case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
+                case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
+                case "commit" -> {
+                    served.clear();
+                    served.addAll(staged);
                 }
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+                default -> {}
+            }
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
         return new FakeEngine(served, ops);
     }
 
@@ -316,11 +364,15 @@ class EventBusAuthzEnginePortScopeTest {
     void commit_targets_every_touched_scope_then_clears() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L, null).blockingAwait();
-        port.addOrUpdateEntity("env-1", "User::\"alice\"", java.util.Map.of(), java.util.List.of(), Set.of("api-b"), 1L).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L, null)
+                .blockingAwait();
+        port.addOrUpdateEntity("env-1", "User::\"alice\"", java.util.Map.of(), java.util.List.of(), Set.of("api-b"), 1L)
+                .blockingAwait();
         hits.clear();
         port.commit().blockingAwait();
-        assertThat(hits).containsExactlyInAnyOrder("service:authz-pdp:sync:scope:env-1:api-a", "service:authz-pdp:sync:scope:env-1:api-b");
+        assertThat(hits)
+                .containsExactlyInAnyOrder(
+                        "service:authz-pdp:sync:scope:env-1:api-a", "service:authz-pdp:sync:scope:env-1:api-b");
         hits.clear();
         port.commit().blockingAwait();
         assertThat(hits).isEmpty();

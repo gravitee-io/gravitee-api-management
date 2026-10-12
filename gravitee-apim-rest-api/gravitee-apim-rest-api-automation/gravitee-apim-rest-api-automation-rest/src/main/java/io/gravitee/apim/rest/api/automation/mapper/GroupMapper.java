@@ -41,7 +41,7 @@ import org.mapstruct.factory.Mappers;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { CollectionFactory.class })
+@Mapper(uses = {CollectionFactory.class})
 public interface GroupMapper {
     GroupMapper INSTANCE = Mappers.getMapper(GroupMapper.class);
 
@@ -63,14 +63,14 @@ public interface GroupMapper {
 
     Errors toErrors(GroupCRDStatus.Errors errors);
 
-    default GroupState groupSpecAndStatusToGroupState(GroupSpec spec, GroupCRDStatus status, ExecutionContext executionContext) {
+    default GroupState groupSpecAndStatusToGroupState(
+            GroupSpec spec, GroupCRDStatus status, ExecutionContext executionContext) {
         var state = new GroupState(
-            status.getId(),
-            executionContext.getEnvironmentId(),
-            executionContext.getOrganizationId(),
-            toErrors(status.getErrors()),
-            status.getMembers()
-        );
+                status.getId(),
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                toErrors(status.getErrors()),
+                status.getMembers());
         mapSpecToState(spec, state);
         return state;
     }
@@ -83,20 +83,21 @@ public interface GroupMapper {
     void mapSpecToState(GroupSpec spec, @MappingTarget GroupState state);
 
     default GroupState groupToGroupState(
-        Group group,
-        Set<GroupCRDSpec.Member> members,
-        GroupDefaultMemberRoles defaultMemberRoles,
-        ExecutionContext executionContext
-    ) {
+            Group group,
+            Set<GroupCRDSpec.Member> members,
+            GroupDefaultMemberRoles defaultMemberRoles,
+            ExecutionContext executionContext) {
         var state = new GroupState(
-            group.getId(),
-            executionContext.getEnvironmentId(),
-            executionContext.getOrganizationId(),
-            null,
-            members != null ? (long) members.size() : 0L
-        );
+                group.getId(),
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                null,
+                members != null ? (long) members.size() : 0L);
         mapGroupToState(group, state);
-        state.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : null);
+        state.setMembers(
+                members != null
+                        ? members.stream().map(this::memberToGroupMember).toList()
+                        : null);
         state.setDefaultMemberRoles(defaultMemberRoles);
         return state;
     }
@@ -140,12 +141,12 @@ public interface GroupMapper {
     @Named("groupEntityToDefaultMemberRoles")
     default GroupDefaultMemberRoles groupEntityToDefaultMemberRoles(GroupEntity group) {
         var roles = Optional.ofNullable(group)
-            .map(GroupEntity::getRoles)
-            .orElse(Map.<io.gravitee.rest.api.model.permissions.RoleScope, String>of());
+                .map(GroupEntity::getRoles)
+                .orElse(Map.<io.gravitee.rest.api.model.permissions.RoleScope, String>of());
         return new GroupDefaultMemberRoles()
-            .api(roles.get(io.gravitee.rest.api.model.permissions.RoleScope.API))
-            .application(roles.get(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION))
-            .apiProduct(roles.get(io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT));
+                .api(roles.get(io.gravitee.rest.api.model.permissions.RoleScope.API))
+                .application(roles.get(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION))
+                .apiProduct(roles.get(io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT));
     }
 
     @Named("stringMapToRoleScopeMap")
@@ -153,7 +154,8 @@ public interface GroupMapper {
         if (roles == null) {
             return null;
         }
-        return roles.entrySet().stream().collect(Collectors.toMap(e -> RoleScope.valueOf(e.getKey()), Map.Entry::getValue));
+        return roles.entrySet().stream()
+                .collect(Collectors.toMap(e -> RoleScope.valueOf(e.getKey()), Map.Entry::getValue));
     }
 
     @Named("roleScopeMapToStringMap")
@@ -161,6 +163,7 @@ public interface GroupMapper {
         if (roles == null) {
             return null;
         }
-        return roles.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
+        return roles.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
     }
 }

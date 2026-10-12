@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain;
 
 import io.gravitee.apim.core.exception.NotFoundDomainException;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -26,13 +25,16 @@ public class NotFoundDomainExceptionMapper extends AbstractDomainExceptionMapper
 
     @Override
     public Response toResponse(NotFoundDomainException nfe) {
-        return Response.status(Response.Status.NOT_FOUND).type(MediaType.APPLICATION_JSON_TYPE).entity(notFoundDomainError(nfe)).build();
+        return Response.status(Response.Status.NOT_FOUND)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(notFoundDomainError(nfe))
+                .build();
     }
 
     private Error notFoundDomainError(NotFoundDomainException nfe) {
         return new Error()
-            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
-            .message(nfe.getMessage())
-            .parameters(nfe.getId() != null ? Map.of("id", nfe.getId()) : null);
+                .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+                .message(nfe.getMessage())
+                .parameters(nfe.getId() != null ? Map.of("id", nfe.getId()) : null);
     }
 }

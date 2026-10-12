@@ -20,9 +20,7 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @UseCase
@@ -44,7 +42,8 @@ public class GetApiMetadataUseCase {
             throw new ApiNotFoundException(input.apiId);
         }
 
-        Map<String, ApiMetadata> apiMetadataMap = apiMetadataQueryService.findApiMetadata(api.getEnvironmentId(), input.apiId);
+        Map<String, ApiMetadata> apiMetadataMap =
+                apiMetadataQueryService.findApiMetadata(api.getEnvironmentId(), input.apiId);
         var sortedApiMetadataList = this.sortApiMetadata(apiMetadataMap.values(), input.sortBy);
         var filteredApiMetadataList = this.filterApiMetadata(sortedApiMetadataList, input.filterBy);
 
@@ -54,15 +53,13 @@ public class GetApiMetadataUseCase {
     private List<ApiMetadata> filterApiMetadata(List<ApiMetadata> apiMetadataList, String filterBy) {
         if (filterBy != null) {
             if (filterBy.equals("GLOBAL")) {
-                return apiMetadataList
-                    .stream()
-                    .filter(apiMetadata -> apiMetadata.getDefaultValue() != null)
-                    .toList();
+                return apiMetadataList.stream()
+                        .filter(apiMetadata -> apiMetadata.getDefaultValue() != null)
+                        .toList();
             } else if (filterBy.equals("API")) {
-                return apiMetadataList
-                    .stream()
-                    .filter(apiMetadata -> apiMetadata.getDefaultValue() == null)
-                    .toList();
+                return apiMetadataList.stream()
+                        .filter(apiMetadata -> apiMetadata.getDefaultValue() == null)
+                        .toList();
             }
         }
         return apiMetadataList;
@@ -77,12 +74,23 @@ public class GetApiMetadataUseCase {
 
         return switch (sortBy) {
             case ("value") -> stream.sorted(new ApiMetadataValueComparator()).toList();
-            case ("-value") -> stream.sorted(Collections.reverseOrder(new ApiMetadataValueComparator())).toList();
-            case ("name") -> stream.sorted(Comparator.comparing(ApiMetadata::getName)).toList();
-            case ("-name") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getName))).toList();
-            case ("format") -> stream.sorted(Comparator.comparing(ApiMetadata::getFormatToString)).toList();
-            case ("-format") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getFormatToString))).toList();
-            case ("-key") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getKey))).toList();
+            case ("-value") ->
+                stream.sorted(Collections.reverseOrder(new ApiMetadataValueComparator()))
+                        .toList();
+            case ("name") ->
+                stream.sorted(Comparator.comparing(ApiMetadata::getName)).toList();
+            case ("-name") ->
+                stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getName)))
+                        .toList();
+            case ("format") ->
+                stream.sorted(Comparator.comparing(ApiMetadata::getFormatToString))
+                        .toList();
+            case ("-format") ->
+                stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getFormatToString)))
+                        .toList();
+            case ("-key") ->
+                stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getKey)))
+                        .toList();
             default -> stream.sorted(Comparator.comparing(ApiMetadata::getKey)).toList();
         };
     }

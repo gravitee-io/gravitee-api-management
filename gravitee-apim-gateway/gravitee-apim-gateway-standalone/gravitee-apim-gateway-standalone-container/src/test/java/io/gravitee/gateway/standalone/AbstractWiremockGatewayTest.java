@@ -39,7 +39,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -70,15 +69,14 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     protected WireMockExtension getWiremockRule() {
         FileSource fs = new ClasspathFileSource("src/test/resources/");
         return WireMockExtension.newInstance()
-            .options(
-                wireMockConfig()
-                    .dynamicPort()
-                    .extensions(new ResponseTemplateTransformer(TemplateEngine.defaultTemplateEngine(), true, fs, Collections.emptyList()))
-            )
-            // Point the static WireMock DSL (stubFor(...), verify(...)) at this instance, as the JUnit 4
-            // WireMockRule used to. Without this, static-import tests target the default localhost:8080.
-            .configureStaticDsl(true)
-            .build();
+                .options(wireMockConfig()
+                        .dynamicPort()
+                        .extensions(new ResponseTemplateTransformer(
+                                TemplateEngine.defaultTemplateEngine(), true, fs, Collections.emptyList())))
+                // Point the static WireMock DSL (stubFor(...), verify(...)) at this instance, as the JUnit 4
+                // WireMockRule used to. Without this, static-import tests target the default localhost:8080.
+                .configureStaticDsl(true)
+                .build();
     }
 
     @Override
@@ -98,14 +96,14 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     public String exchangePort(URL url, int port) {
         try {
             return new URI(
-                url.getProtocol(),
-                url.getUserInfo(),
-                url.getHost(),
-                port,
-                url.getPath(),
-                url.getQuery(),
-                url.getRef()
-            ).toString();
+                            url.getProtocol(),
+                            url.getUserInfo(),
+                            url.getHost(),
+                            port,
+                            url.getPath(),
+                            url.getQuery(),
+                            url.getRef())
+                    .toString();
         } catch (URISyntaxException e) {
             return null;
         }

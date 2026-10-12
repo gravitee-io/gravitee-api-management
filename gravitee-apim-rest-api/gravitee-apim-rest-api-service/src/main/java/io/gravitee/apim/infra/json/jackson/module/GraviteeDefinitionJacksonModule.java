@@ -48,7 +48,9 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
     public GraviteeDefinitionJacksonModule() {
         super();
         addSerializer(ApiType.class, new ApiTypeSerializer(ApiType.class));
-        addSerializer(ChannelSelector.Operation.class, new ChannelSelectorOperationSerializer(ChannelSelector.Operation.class));
+        addSerializer(
+                ChannelSelector.Operation.class,
+                new ChannelSelectorOperationSerializer(ChannelSelector.Operation.class));
         addSerializer(ConnectorFeature.class, new ConnectorFeatureSerializer(ConnectorFeature.class));
         addSerializer(ConnectorMode.class, new ConnectorModeSerializer(ConnectorMode.class));
         addSerializer(DefinitionVersion.class, new DefinitionVersionSerializer(DefinitionVersion.class));
@@ -101,7 +103,8 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
         }
 
         @Override
-        public void serialize(ChannelSelector.Operation value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        public void serialize(ChannelSelector.Operation value, JsonGenerator gen, SerializerProvider provider)
+                throws IOException {
             gen.writeString(value.name());
         }
     }
@@ -113,7 +116,8 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
         }
 
         @Override
-        public void serialize(ConnectorFeature value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        public void serialize(ConnectorFeature value, JsonGenerator gen, SerializerProvider provider)
+                throws IOException {
             gen.writeString(value.name());
         }
     }
@@ -221,7 +225,8 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
         }
 
         @Override
-        public void serialize(LoadBalancerType value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        public void serialize(LoadBalancerType value, JsonGenerator gen, SerializerProvider provider)
+                throws IOException {
             gen.writeString(value.name());
         }
     }
@@ -236,7 +241,8 @@ public class GraviteeDefinitionJacksonModule extends SimpleModule {
         }
 
         @Override
-        public void serialize(DefinitionVersion value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        public void serialize(DefinitionVersion value, JsonGenerator gen, SerializerProvider provider)
+                throws IOException {
             gen.writeString(value.name());
         }
     }

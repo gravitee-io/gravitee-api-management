@@ -26,31 +26,32 @@ public class ApiKeyMapper {
 
     public ApiKey to(io.gravitee.repository.management.model.ApiKey apiKeyModel, Subscription subscription) {
         ApiKey.ApiKeyBuilder apiKeyBuilder = ApiKey.builder()
-            .id(apiKeyModel.getId())
-            .key(apiKeyModel.getKey())
-            .application(apiKeyModel.getApplication())
-            .expireAt(apiKeyModel.getExpireAt())
-            .revoked(apiKeyModel.isRevoked())
-            .paused(apiKeyModel.isPaused());
+                .id(apiKeyModel.getId())
+                .key(apiKeyModel.getKey())
+                .application(apiKeyModel.getApplication())
+                .expireAt(apiKeyModel.getExpireAt())
+                .revoked(apiKeyModel.isRevoked())
+                .paused(apiKeyModel.isPaused());
         if (subscription != null) {
             apiKeyBuilder
-                // The key is cached under the subscription's scope: the product for a product
-                // subscription, so one entry instead of one per member API.
-                .api(SubscriptionScope.of(subscription))
-                .plan(subscription.getPlan())
-                .subscription(subscription.getId())
-                .active(
-                    !apiKeyModel.isPaused() &&
-                        !apiKeyModel.isRevoked() &&
-                        io.gravitee.repository.management.model.Subscription.Status.ACCEPTED.name().equals(subscription.getStatus())
-                );
+                    // The key is cached under the subscription's scope: the product for a product
+                    // subscription, so one entry instead of one per member API.
+                    .api(SubscriptionScope.of(subscription))
+                    .plan(subscription.getPlan())
+                    .subscription(subscription.getId())
+                    .active(!apiKeyModel.isPaused()
+                            && !apiKeyModel.isRevoked()
+                            && io.gravitee.repository.management.model.Subscription.Status.ACCEPTED
+                                    .name()
+                                    .equals(subscription.getStatus()));
         } else {
             apiKeyBuilder.active(false);
         }
         return apiKeyBuilder.build();
     }
 
-    public ApiKey to(io.gravitee.repository.management.model.ApiKey apiKeyModel, Optional<Subscription> optionalSubscription) {
+    public ApiKey to(
+            io.gravitee.repository.management.model.ApiKey apiKeyModel, Optional<Subscription> optionalSubscription) {
         return to(apiKeyModel, optionalSubscription.orElse(null));
     }
 }

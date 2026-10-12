@@ -36,7 +36,8 @@ import java.io.Serializable;
  * @param subscriptionId id of the subscription to {@code planId} the route obtains its OAuth2 client from, or
  *                       {@code null}. Read by the Edge reactor, never sent to the daemon.
  */
-public record RouteMapping(String path, String apiPath, String apiId, String planId, String subscriptionId) implements Serializable {
+public record RouteMapping(String path, String apiPath, String apiId, String planId, String subscriptionId)
+        implements Serializable {
     public RouteMapping(String path, String apiPath) {
         this(path, apiPath, null, null, null);
     }

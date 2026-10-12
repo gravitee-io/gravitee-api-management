@@ -53,9 +53,8 @@ public class UpdateApplicationEntity {
 
     @NotNull(message = "Application's description must not be null")
     @Schema(
-        description = "Application's description. A short description of your App.",
-        example = "I can use a hundred characters to describe this App."
-    )
+            description = "Application's description. A short description of your App.",
+            example = "I can use a hundred characters to describe this App.")
     @ToString.Include
     private String description;
 
@@ -75,7 +74,9 @@ public class UpdateApplicationEntity {
     private ApplicationSettings settings;
 
     @Setter
-    @Schema(description = "Application groups. Used to add teams to your application.", example = "['Test Group 1', 'Test Group 2']")
+    @Schema(
+            description = "Application groups. Used to add teams to your application.",
+            example = "['Test Group 1', 'Test Group 2']")
     @ToString.Include
     private Set<String> groups;
 

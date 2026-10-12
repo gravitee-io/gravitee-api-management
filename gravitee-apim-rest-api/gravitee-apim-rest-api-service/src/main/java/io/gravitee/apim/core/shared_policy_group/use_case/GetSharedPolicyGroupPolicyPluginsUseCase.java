@@ -34,10 +34,10 @@ public class GetSharedPolicyGroupPolicyPluginsUseCase {
      */
     public Output execute(Input input) {
         var result = sharedPolicyGroupHistoryQueryService
-            .streamLatestBySharedPolicyGroupId(input.environmentId())
-            .filter(SharedPolicyGroup::isDeployed)
-            .map(SharedPolicyGroupPolicyPlugin::fromSharedPolicyGroup)
-            .toList();
+                .streamLatestBySharedPolicyGroupId(input.environmentId())
+                .filter(SharedPolicyGroup::isDeployed)
+                .map(SharedPolicyGroupPolicyPlugin::fromSharedPolicyGroup)
+                .toList();
 
         return new Output(result);
     }

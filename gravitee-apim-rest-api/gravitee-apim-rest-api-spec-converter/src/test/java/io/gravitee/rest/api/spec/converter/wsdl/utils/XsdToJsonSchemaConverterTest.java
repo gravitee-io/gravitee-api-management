@@ -65,8 +65,14 @@ public class XsdToJsonSchemaConverterTest {
         assertThat(op.getRequestBody()).isNotNull();
         assertThat(op.getRequestBody().getRequired()).isTrue();
         assertThat(op.getRequestBody().getContent()).containsKey("application/json");
-        assertThat(op.getRequestBody().getContent().get("application/json").getSchema()).isNotNull();
-        assertThat(op.getRequestBody().getContent().get("application/json").getSchema().getType()).isEqualTo("object");
+        assertThat(op.getRequestBody().getContent().get("application/json").getSchema())
+                .isNotNull();
+        assertThat(op.getRequestBody()
+                        .getContent()
+                        .get("application/json")
+                        .getSchema()
+                        .getType())
+                .isEqualTo("object");
     }
 
     private Schema<?> getRequestBodySchema(OpenAPI api, String path) {

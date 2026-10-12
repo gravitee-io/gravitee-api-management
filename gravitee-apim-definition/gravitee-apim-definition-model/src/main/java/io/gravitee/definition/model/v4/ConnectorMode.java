@@ -35,19 +35,18 @@ public enum ConnectorMode {
     SOCKET("socket");
 
     private static final Map<String, ConnectorMode> LABELS_MAP = Map.of(
-        ENTRYPOINT_CONNECT.label,
-        ENTRYPOINT_CONNECT,
-        INTERACT.label,
-        INTERACT,
-        SUBSCRIBE.label,
-        SUBSCRIBE,
-        PUBLISH.label,
-        PUBLISH,
-        REQUEST_RESPONSE.label,
-        REQUEST_RESPONSE,
-        SOCKET.label,
-        SOCKET
-    );
+            ENTRYPOINT_CONNECT.label,
+            ENTRYPOINT_CONNECT,
+            INTERACT.label,
+            INTERACT,
+            SUBSCRIBE.label,
+            SUBSCRIBE,
+            PUBLISH.label,
+            PUBLISH,
+            REQUEST_RESPONSE.label,
+            REQUEST_RESPONSE,
+            SOCKET.label,
+            SOCKET);
 
     @JsonValue
     private final String label;

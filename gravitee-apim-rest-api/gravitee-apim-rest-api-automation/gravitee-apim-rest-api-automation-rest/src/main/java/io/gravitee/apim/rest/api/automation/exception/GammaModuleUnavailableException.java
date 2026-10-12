@@ -35,11 +35,8 @@ public class GammaModuleUnavailableException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return (
-            "No automation module [" +
-            module +
-            "] is available: it is not installed, gamma is disabled (gamma.enabled=false) or the license does not include it."
-        );
+        return ("No automation module [" + module
+                + "] is available: it is not installed, gamma is disabled (gamma.enabled=false) or the license does not include it.");
     }
 
     @Override

@@ -49,15 +49,12 @@ public class MaintenanceFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         final boolean maintenanceModeEnabled = parameterService.findAsBoolean(
-            GraviteeContext.getExecutionContext(),
-            MAINTENANCE_MODE_ENABLED,
-            ParameterReferenceType.ORGANIZATION
-        );
-        if (
-            maintenanceModeEnabled &&
-            organizationSettings.matcher(requestContext.getUriInfo().getPath()).matches() &&
-            "POST".equals(requestContext.getRequest().getMethod())
-        ) {
+                GraviteeContext.getExecutionContext(), MAINTENANCE_MODE_ENABLED, ParameterReferenceType.ORGANIZATION);
+        if (maintenanceModeEnabled
+                && organizationSettings
+                        .matcher(requestContext.getUriInfo().getPath())
+                        .matches()
+                && "POST".equals(requestContext.getRequest().getMethod())) {
             return;
         }
 

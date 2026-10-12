@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,24 +24,15 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
-import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
-import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.HttpClientService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
-import org.apache.http.client.HttpClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -69,11 +59,12 @@ public class ClientRegistrationService_FindAllTest {
 
     @Test
     public void shouldFindAll() throws TechnicalException {
-        when(
-            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
-        ).thenReturn(newSet(new ClientRegistrationProvider()));
+        when(mockClientRegistrationProviderRepository.findAllByEnvironment(
+                        eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+                .thenReturn(newSet(new ClientRegistrationProvider()));
 
-        Set<ClientRegistrationProviderEntity> providers = clientRegistrationService.findAll(GraviteeContext.getExecutionContext());
+        Set<ClientRegistrationProviderEntity> providers =
+                clientRegistrationService.findAll(GraviteeContext.getExecutionContext());
         assertNotNull(providers, "Result is null");
         assertThat(providers).hasSize(1);
         verify(mockClientRegistrationProviderRepository, times(1)).findAllByEnvironment(any());
@@ -82,9 +73,9 @@ public class ClientRegistrationService_FindAllTest {
     @Test
     public void shouldThrowException() throws Exception {
         assertThrows(TechnicalManagementException.class, () -> {
-            when(
-                mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            ).thenThrow(TechnicalException.class);
+            when(mockClientRegistrationProviderRepository.findAllByEnvironment(
+                            eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+                    .thenThrow(TechnicalException.class);
             clientRegistrationService.findAll(GraviteeContext.getExecutionContext());
         });
     }

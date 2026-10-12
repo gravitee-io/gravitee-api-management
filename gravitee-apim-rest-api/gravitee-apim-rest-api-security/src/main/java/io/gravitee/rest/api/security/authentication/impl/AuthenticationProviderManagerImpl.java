@@ -52,25 +52,20 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
 
     @Override
     public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
-        return identityProviders
-            .stream()
-            .filter(provider -> provider.type().equalsIgnoreCase(type))
-            .findFirst();
+        return identityProviders.stream()
+                .filter(provider -> provider.type().equalsIgnoreCase(type))
+                .findFirst();
     }
 
     private Map<String, Object> getConfiguration(AuthenticationProvider provider) {
         String prefix = "security.providers[" + provider.index() + "].";
         Map<String, Object> properties = EnvironmentUtils.getPropertiesStartingWith(environment, prefix);
         Map<String, Object> unprefixedProperties = new HashMap<>(properties.size());
-        properties
-            .entrySet()
-            .stream()
-            .forEach(propEntry ->
-                unprefixedProperties.put(
-                    EnvironmentUtils.encodedKey(propEntry.getKey()).substring(EnvironmentUtils.encodedKey(prefix).length()),
-                    propEntry.getValue()
-                )
-            );
+        properties.entrySet().stream()
+                .forEach(propEntry -> unprefixedProperties.put(
+                        EnvironmentUtils.encodedKey(propEntry.getKey())
+                                .substring(EnvironmentUtils.encodedKey(prefix).length()),
+                        propEntry.getValue()));
         return unprefixedProperties;
     }
 

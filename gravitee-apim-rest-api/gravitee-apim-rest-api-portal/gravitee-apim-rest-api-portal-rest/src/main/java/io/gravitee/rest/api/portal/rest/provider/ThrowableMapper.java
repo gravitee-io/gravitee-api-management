@@ -32,6 +32,9 @@ public class ThrowableMapper extends AbstractExceptionMapper<Throwable> {
     public Response toResponse(Throwable e) {
         log.error("Internal error", e);
         Status status = Response.Status.INTERNAL_SERVER_ERROR;
-        return Response.status(status).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, status.getStatusCode())).build();
+        return Response.status(status)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(e, status.getStatusCode()))
+                .build();
     }
 }

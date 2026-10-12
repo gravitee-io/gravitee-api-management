@@ -67,16 +67,15 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     private final BestMatchFlowSelector bestMatchFlowSelector;
 
     public RequestProcessorChainFactory(
-        final Api api,
-        final PolicyChainFactory policyChainFactory,
-        final PolicyManager policyManager,
-        final RequestProcessorChainFactoryOptions requestProcessorChainFactoryOptions,
-        final PolicyChainProviderLoader policyChainProviderLoader,
-        final AuthenticationHandlerSelector authenticationHandlerSelector,
-        final FlowPolicyResolverFactory flowPolicyResolverFactory,
-        SecurityPolicyResolver securityPolicyResolver,
-        BestMatchFlowSelector bestMatchFlowSelector
-    ) {
+            final Api api,
+            final PolicyChainFactory policyChainFactory,
+            final PolicyManager policyManager,
+            final RequestProcessorChainFactoryOptions requestProcessorChainFactoryOptions,
+            final PolicyChainProviderLoader policyChainProviderLoader,
+            final AuthenticationHandlerSelector authenticationHandlerSelector,
+            final FlowPolicyResolverFactory flowPolicyResolverFactory,
+            SecurityPolicyResolver securityPolicyResolver,
+            BestMatchFlowSelector bestMatchFlowSelector) {
         super(api, policyChainFactory);
         this.policyManager = policyManager;
         this.requestProcessorChainFactoryOptions = requestProcessorChainFactoryOptions;
@@ -93,11 +92,11 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_REQUEST));
 
         StreamableProcessorSupplier<ExecutionContext, Buffer> loggingDecoratorSupplier = null;
-        if (
-            api.getDefinition().getProxy().getLogging() != null && api.getDefinition().getProxy().getLogging().getMode() != LoggingMode.NONE
-        ) {
+        if (api.getDefinition().getProxy().getLogging() != null
+                && api.getDefinition().getProxy().getLogging().getMode() != LoggingMode.NONE) {
             loggingDecoratorSupplier = new StreamableProcessorSupplier<>(() -> {
-                ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getDefinition().getProxy().getLogging());
+                ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(
+                        api.getDefinition().getProxy().getLogging());
                 processor.setMaxSizeLogMessage(requestProcessorChainFactoryOptions.getMaxSizeLogMessage());
                 processor.setExcludedResponseTypes(requestProcessorChainFactoryOptions.getExcludedResponseTypes());
 
@@ -107,18 +106,19 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(loggingDecoratorSupplier);
         }
 
-        if (api.getDefinition().getProxy().getCors() != null && api.getDefinition().getProxy().getCors().isEnabled()) {
-            add(() -> new CorsPreflightRequestProcessor(api.getDefinition().getProxy().getCors()));
+        if (api.getDefinition().getProxy().getCors() != null
+                && api.getDefinition().getProxy().getCors().isEnabled()) {
+            add(() -> new CorsPreflightRequestProcessor(
+                    api.getDefinition().getProxy().getCors()));
         }
 
         // Prepare security policy chain
         add(new SecurityPolicyChainProvider(securityPolicyResolver));
 
         final ConditionEvaluator<Flow> evaluator = new CompositeConditionEvaluator<>(
-            new HttpMethodConditionEvaluator(),
-            new PathBasedConditionEvaluator(),
-            new ExpressionLanguageFlowConditionEvaluator()
-        );
+                new HttpMethodConditionEvaluator(),
+                new PathBasedConditionEvaluator(),
+                new ExpressionLanguageFlowConditionEvaluator());
 
         if (loggingDecoratorSupplier != null) {
             add(loggingDecoratorSupplier);
@@ -135,43 +135,34 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             }
 
             if (api.getDefinition().getFlowMode() == null || api.getDefinition().getFlowMode() == FlowMode.DEFAULT) {
-                add(
-                    new PlanFlowPolicyChainProvider(
+                add(new PlanFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
                         new PlanFlowResolver(api.getDefinition(), evaluator),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
-                add(
-                    new SimpleFlowPolicyChainProvider(
+                        flowPolicyResolverFactory));
+                add(new SimpleFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
                         new ApiFlowResolver(api.getDefinition(), evaluator),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
+                        flowPolicyResolverFactory));
             } else {
-                add(
-                    new PlanFlowPolicyChainProvider(
+                add(new PlanFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new BestMatchFlowResolver(new PlanFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
+                        new BestMatchFlowResolver(
+                                new PlanFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
-                add(
-                    new SimpleFlowPolicyChainProvider(
+                        flowPolicyResolverFactory));
+                add(new SimpleFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new BestMatchFlowResolver(new ApiFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
+                        new BestMatchFlowResolver(
+                                new ApiFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
                         policyChainFactory,
-                        flowPolicyResolverFactory
-                    )
-                );
+                        flowPolicyResolverFactory));
             }
         }
 
-        if (api.getDefinition().getPathMappings() != null && !api.getDefinition().getPathMappings().isEmpty()) {
+        if (api.getDefinition().getPathMappings() != null
+                && !api.getDefinition().getPathMappings().isEmpty()) {
             add(() -> new PathMappingProcessor(api.getDefinition().getPathMappings()));
         }
     }

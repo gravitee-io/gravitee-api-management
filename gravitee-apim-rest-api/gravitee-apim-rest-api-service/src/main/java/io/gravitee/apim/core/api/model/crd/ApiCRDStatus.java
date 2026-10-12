@@ -38,11 +38,18 @@ public class ApiCRDStatus {
 
         public static Errors fromErrorList(List<Validator.Error> errors) {
             return errors == null
-                ? null
-                : new Errors(
-                    errors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).sorted().toList(),
-                    errors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).sorted().toList()
-                );
+                    ? null
+                    : new Errors(
+                            errors.stream()
+                                    .filter(Validator.Error::isSevere)
+                                    .map(Validator.Error::getMessage)
+                                    .sorted()
+                                    .toList(),
+                            errors.stream()
+                                    .filter(Validator.Error::isWarning)
+                                    .map(Validator.Error::getMessage)
+                                    .sorted()
+                                    .toList());
         }
     }
 

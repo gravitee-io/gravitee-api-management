@@ -44,8 +44,8 @@ public class ResponseAssert extends AbstractObjectAssert<ResponseAssert, Respons
         isNotNull();
 
         assertThat(actual.getHeaders())
-            .describedAs("Expected response headers to contains <%s> but was <%s>", header, actual.getHeaders())
-            .containsEntry(header.getKey(), List.of(header.getValue()));
+                .describedAs("Expected response headers to contains <%s> but was <%s>", header, actual.getHeaders())
+                .containsEntry(header.getKey(), List.of(header.getValue()));
 
         return this;
     }

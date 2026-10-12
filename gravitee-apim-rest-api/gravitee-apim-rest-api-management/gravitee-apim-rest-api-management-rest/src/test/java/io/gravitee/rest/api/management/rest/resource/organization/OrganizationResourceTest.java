@@ -97,7 +97,8 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         final Response response = rootTarget("").request().put(Entity.json(new UpdateOrganizationEntity()));
 
         assertThat(response.getStatus()).isEqualTo(403);
-        verify(organizationService, never()).updateOrganizationAndFlows(anyString(), any(UpdateOrganizationEntity.class));
+        verify(organizationService, never())
+                .updateOrganizationAndFlows(anyString(), any(UpdateOrganizationEntity.class));
     }
 
     /**
@@ -105,21 +106,20 @@ public class OrganizationResourceTest extends AbstractResourceTest {
      * the endpoint declares is one it actually holds, so an acl the endpoint omits can never be granted.
      */
     private void givenUserHolds(RolePermissionAction... held) {
-        Set<RolePermissionAction> heldAcls = held.length == 0
-            ? EnumSet.noneOf(RolePermissionAction.class)
-            : EnumSet.copyOf(Arrays.asList(held));
+        Set<RolePermissionAction> heldAcls =
+                held.length == 0 ? EnumSet.noneOf(RolePermissionAction.class) : EnumSet.copyOf(Arrays.asList(held));
 
-        when(
-            permissionService.hasPermission(
-                any(ExecutionContext.class),
-                eq(RolePermission.ORGANIZATION_POLICIES),
-                anyString(),
-                any(RolePermissionAction[].class)
-            )
-        ).thenAnswer(invocation -> {
-            // Mockito expands varargs, so the declared acls are the arguments after the reference id.
-            Object[] arguments = invocation.getArguments();
-            return Arrays.stream(arguments, 3, arguments.length).map(RolePermissionAction.class::cast).anyMatch(heldAcls::contains);
-        });
+        when(permissionService.hasPermission(
+                        any(ExecutionContext.class),
+                        eq(RolePermission.ORGANIZATION_POLICIES),
+                        anyString(),
+                        any(RolePermissionAction[].class)))
+                .thenAnswer(invocation -> {
+                    // Mockito expands varargs, so the declared acls are the arguments after the reference id.
+                    Object[] arguments = invocation.getArguments();
+                    return Arrays.stream(arguments, 3, arguments.length)
+                            .map(RolePermissionAction.class::cast)
+                            .anyMatch(heldAcls::contains);
+                });
     }
 }

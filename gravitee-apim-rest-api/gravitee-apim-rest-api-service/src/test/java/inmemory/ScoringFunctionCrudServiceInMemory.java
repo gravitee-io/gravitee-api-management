@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-public class ScoringFunctionCrudServiceInMemory implements ScoringFunctionCrudService, InMemoryAlternative<ScoringFunction> {
+public class ScoringFunctionCrudServiceInMemory
+        implements ScoringFunctionCrudService, InMemoryAlternative<ScoringFunction> {
 
     final ArrayList<ScoringFunction> storage = new ArrayList<>();
 
@@ -36,10 +37,7 @@ public class ScoringFunctionCrudServiceInMemory implements ScoringFunctionCrudSe
 
     @Override
     public Optional<ScoringFunction> findById(String id) {
-        return storage
-            .stream()
-            .filter(i -> i.id().equals(id))
-            .findFirst();
+        return storage.stream().filter(i -> i.id().equals(id)).findFirst();
     }
 
     @Override
@@ -53,9 +51,8 @@ public class ScoringFunctionCrudServiceInMemory implements ScoringFunctionCrudSe
     @Override
     public void deleteByReference(String referenceId, ScoringFunction.ReferenceType referenceType) {
         OptionalInt index = this.findIndex(
-            this.storage,
-            i -> i.referenceId().equals(referenceId) && i.referenceType().equals(referenceType)
-        );
+                this.storage,
+                i -> i.referenceId().equals(referenceId) && i.referenceType().equals(referenceType));
         if (index.isPresent()) {
             storage.remove(index.getAsInt());
         }
@@ -63,9 +60,9 @@ public class ScoringFunctionCrudServiceInMemory implements ScoringFunctionCrudSe
 
     @Override
     public void deleteByReferenceAndName(String referenceId, ScoringFunction.ReferenceType referenceType, String name) {
-        storage.removeIf(
-            fct -> name.equals(fct.name()) && referenceId.equals(fct.referenceId()) && referenceType.equals(fct.referenceType())
-        );
+        storage.removeIf(fct -> name.equals(fct.name())
+                && referenceId.equals(fct.referenceId())
+                && referenceType.equals(fct.referenceType()));
     }
 
     @Override

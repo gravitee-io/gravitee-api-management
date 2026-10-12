@@ -56,9 +56,9 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
             contextSourceBuilder.ldif("classpath:/ldap/gravitee-io-management-rest-api-ldap-test.ldif");
         } else {
             contextSourceBuilder
-                .managerDn(environment.getProperty("context.username"))
-                .managerPassword(environment.getProperty("context.password"))
-                .url(environment.getProperty("context.url"));
+                    .managerDn(environment.getProperty("context.username"))
+                    .managerPassword(environment.getProperty("context.password"))
+                    .url(environment.getProperty("context.url"));
         }
 
         ldapContextSource = contextSourceBuilder.build();

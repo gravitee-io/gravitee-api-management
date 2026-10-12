@@ -63,20 +63,21 @@ public class NewHttpApi extends AbstractNewApi {
      * @return An instance of {@link io.gravitee.definition.model.v4.Api.ApiBuilder} based on the current state of this NewV4Api.
      */
     public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
-        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
+        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to
+        // allow MapStruct in core.
         var builder = io.gravitee.definition.model.v4.Api.builder()
-            .name(name)
-            .type(type)
-            .apiVersion(apiVersion)
-            .definitionVersion(definitionVersion)
-            .analytics(analytics)
-            .tags(tags)
-            .listeners(listeners)
-            .endpointGroups(endpointGroups)
-            .flows(flows)
-            .flowExecution(flowExecution)
-            .failover(failover)
-            .allowedInApiProducts(allowedInApiProducts);
+                .name(name)
+                .type(type)
+                .apiVersion(apiVersion)
+                .definitionVersion(definitionVersion)
+                .analytics(analytics)
+                .tags(tags)
+                .listeners(listeners)
+                .endpointGroups(endpointGroups)
+                .flows(flows)
+                .flowExecution(flowExecution)
+                .failover(failover)
+                .allowedInApiProducts(allowedInApiProducts);
 
         return builder;
     }

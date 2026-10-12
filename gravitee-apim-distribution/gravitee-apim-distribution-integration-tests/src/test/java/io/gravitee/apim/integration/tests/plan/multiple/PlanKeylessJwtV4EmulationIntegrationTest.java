@@ -54,12 +54,10 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
     public static void configureApi(Api api) {
         configurePlans(api, Set.of("KEY_LESS", "JWT"));
         if (api.getId().endsWith("-selection-rule")) {
-            Plan jwtPlan = api
-                .getPlans()
-                .stream()
-                .filter(plan -> plan.getSecurity().equals("JWT"))
-                .findFirst()
-                .get();
+            Plan jwtPlan = api.getPlans().stream()
+                    .filter(plan -> plan.getSecurity().equals("JWT"))
+                    .findFirst()
+                    .get();
             jwtPlan.setSelectionRule("#context.attributes['jwt'].claims['aud'][0] != '" + CUSTOM_AUDIENCE + "'");
         }
     }
@@ -85,10 +83,9 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
             return provideApis().flatMap(arguments -> {
                 String apiId = (String) arguments.get()[0];
                 return Stream.of(
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                );
+                        Arguments.of(apiId, "Authorization", "Bearer"),
+                        Arguments.of(apiId, "Authorization", "Bearer "),
+                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"));
             });
         }
     }
@@ -115,10 +112,9 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
                 String path = (String) arguments.get()[0];
                 boolean requireWiremock = (boolean) arguments.get()[1];
                 return Stream.of(
-                    Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(path, requireWiremock, "Authorization", ""),
-                    Arguments.of(path, requireWiremock, "Authorization", "Basic 123456789")
-                );
+                        Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", "an-api-key"),
+                        Arguments.of(path, requireWiremock, "Authorization", ""),
+                        Arguments.of(path, requireWiremock, "Authorization", "Basic 123456789"));
             });
         }
 
@@ -132,35 +128,35 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
         @ParameterizedTest
         @MethodSource("provideSelectionRuleApis")
         @DeployApi("/apis/plan/v2-api-selection-rule.json")
-        void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client) throws Exception {
+        void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client)
+                throws Exception {
             expect_return_200_success_when_selection_rules_on_jwt_doesnt_match(apiId, client);
         }
 
         /**
          * This method is free of any JUnit annotations to avoid annotation conflicts when used in tests of subclasses.
          */
-        protected void expect_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client)
-            throws Exception {
+        protected void expect_return_200_success_when_selection_rules_on_jwt_doesnt_match(
+                String apiId, HttpClient client) throws Exception {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
             String jwtToken = PlanHelper.generateJWT(5000, Map.of("aud", CUSTOM_AUDIENCE));
 
-            client
-                .rxRequest(GET, getApiPath(apiId))
-                .flatMap(request -> {
-                    request.putHeader("Authorization", "Bearer " + jwtToken);
-                    return request.rxSend();
-                })
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body.toString()).contains("endpoint response");
-                    return true;
-                });
+            client.rxRequest(GET, getApiPath(apiId))
+                    .flatMap(request -> {
+                        request.putHeader("Authorization", "Bearer " + jwtToken);
+                        return request.rxSend();
+                    })
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body.toString()).contains("endpoint response");
+                        return true;
+                    });
         }
     }
 }

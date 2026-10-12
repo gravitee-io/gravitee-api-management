@@ -30,17 +30,17 @@ import io.gravitee.policy.api.PolicyConfiguration;
  */
 public class TracingPolicyPluginFactory extends PolicyFactoryImpl {
 
-    public TracingPolicyPluginFactory(PolicyPluginFactory policyPluginFactory, ConditionEvaluator<String> conditionEvaluator) {
+    public TracingPolicyPluginFactory(
+            PolicyPluginFactory policyPluginFactory, ConditionEvaluator<String> conditionEvaluator) {
         super(policyPluginFactory, conditionEvaluator);
     }
 
     @Override
     public Policy create(
-        StreamType streamType,
-        PolicyManifest policyManifest,
-        PolicyConfiguration policyConfiguration,
-        PolicyMetadata policyMetadata
-    ) {
+            StreamType streamType,
+            PolicyManifest policyManifest,
+            PolicyConfiguration policyConfiguration,
+            PolicyMetadata policyMetadata) {
         Policy policy = super.create(streamType, policyManifest, policyConfiguration, policyMetadata);
 
         return new TracingPolicy(policy);

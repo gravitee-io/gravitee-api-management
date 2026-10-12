@@ -28,35 +28,39 @@ import org.junit.jupiter.api.Test;
 public class WebsocketCloseTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
-    @DeployApi({ "/apis/v4/http/api.json" })
-    public void websocket_closed_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
+    @DeployApi({"/apis/v4/http/api.json"})
+    public void websocket_closed_request(VertxTestContext testContext, WebSocketClient webSocketClient)
+            throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverClosed = testContext.checkpoint();
         var clientClosed = testContext.checkpoint();
 
         Promise<Void> clientReady = Promise.promise();
 
-        websocketServerHandler = serverWebSocket ->
-            Completable.fromRunnable(() -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
+        websocketServerHandler = serverWebSocket -> Completable.fromRunnable(() -> {
+                    serverConnected.flag();
+                    serverWebSocket.exceptionHandler(testContext::failNow);
 
-                clientReady
-                    .future()
-                    .onSuccess(__ -> serverWebSocket.close().doOnComplete(serverClosed::flag).doOnError(testContext::failNow).subscribe());
-            })
+                    clientReady
+                            .future()
+                            .onSuccess(__ -> serverWebSocket
+                                    .close()
+                                    .doOnComplete(serverClosed::flag)
+                                    .doOnError(testContext::failNow)
+                                    .subscribe());
+                })
                 .subscribeOn(Schedulers.io())
                 .subscribe();
 
         webSocketClient
-            .connect("/test")
-            .doOnSuccess(webSocket -> {
-                webSocket.exceptionHandler(testContext::failNow);
-                webSocket.closeHandler(__ -> clientClosed.flag());
-                clientReady.complete();
-            })
-            .doOnError(testContext::failNow)
-            .test()
-            .await();
+                .connect("/test")
+                .doOnSuccess(webSocket -> {
+                    webSocket.exceptionHandler(testContext::failNow);
+                    webSocket.closeHandler(__ -> clientClosed.flag());
+                    clientReady.complete();
+                })
+                .doOnError(testContext::failNow)
+                .test()
+                .await();
     }
 }

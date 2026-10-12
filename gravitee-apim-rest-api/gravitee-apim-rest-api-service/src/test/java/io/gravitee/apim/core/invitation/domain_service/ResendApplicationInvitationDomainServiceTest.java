@@ -66,7 +66,8 @@ class ResendApplicationInvitationDomainServiceTest {
     @BeforeEach
     void setUp() {
         TimeProvider.overrideClock(Clock.fixed(RESEND_TIME, ZoneId.systemDefault()));
-        cut = new ResendApplicationInvitationDomainService(invitationCrudService, applicationInvitationNotificationDomainService);
+        cut = new ResendApplicationInvitationDomainService(
+                invitationCrudService, applicationInvitationNotificationDomainService);
     }
 
     @AfterEach
@@ -79,7 +80,8 @@ class ResendApplicationInvitationDomainServiceTest {
         var invitationId = InvitationId.of(INVITATION_ID);
         var invitation = anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", "USER");
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.of(invitation));
-        when(invitationCrudService.update(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(invitationCrudService.update(any(ApplicationInvitation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var result = cut.resend(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL);
 
@@ -93,13 +95,14 @@ class ResendApplicationInvitationDomainServiceTest {
         var invitationCaptor = ArgumentCaptor.forClass(ApplicationInvitation.class);
         verify(invitationCrudService).update(invitationCaptor.capture());
         assertThat(invitationCaptor.getValue().updatedAt()).isEqualTo(RESEND_TIME.atZone(ZoneId.systemDefault()));
-        verify(applicationInvitationNotificationDomainService).dispatchAsync(
-            eq(ORGANIZATION_ID),
-            eq(ENVIRONMENT_ID),
-            eq(APPLICATION_ID),
-            argThat(invitations -> invitations.size() == 1 && invitations.get(0).updatedAt().equals(result.updatedAt())),
-            eq(CONFIRMATION_PAGE_URL)
-        );
+        verify(applicationInvitationNotificationDomainService)
+                .dispatchAsync(
+                        eq(ORGANIZATION_ID),
+                        eq(ENVIRONMENT_ID),
+                        eq(APPLICATION_ID),
+                        argThat(invitations -> invitations.size() == 1
+                                && invitations.get(0).updatedAt().equals(result.updatedAt())),
+                        eq(CONFIRMATION_PAGE_URL));
     }
 
     @Test
@@ -107,9 +110,9 @@ class ResendApplicationInvitationDomainServiceTest {
         var invitationId = InvitationId.of(INVITATION_ID);
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-            cut.resend(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL)
-        ).isInstanceOf(ApplicationInvitationNotFoundException.class);
+        assertThatThrownBy(() -> cut.resend(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL))
+                .isInstanceOf(ApplicationInvitationNotFoundException.class);
 
         verify(invitationCrudService, never()).update(any());
         verifyNoInteractions(applicationInvitationNotificationDomainService);
@@ -118,13 +121,13 @@ class ResendApplicationInvitationDomainServiceTest {
     @Test
     void should_throw_when_invitation_belongs_to_another_application() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anApplicationInvitation(INVITATION_ID, OTHER_APPLICATION_ID, "alice@example.com", "USER"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(
+                        anApplicationInvitation(INVITATION_ID, OTHER_APPLICATION_ID, "alice@example.com", "USER")));
 
-        assertThatThrownBy(() ->
-            cut.resend(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL)
-        ).isInstanceOf(ApplicationInvitationNotFoundException.class);
+        assertThatThrownBy(() -> cut.resend(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, CONFIRMATION_PAGE_URL))
+                .isInstanceOf(ApplicationInvitationNotFoundException.class);
 
         verify(invitationCrudService, never()).update(any());
         verifyNoInteractions(applicationInvitationNotificationDomainService);

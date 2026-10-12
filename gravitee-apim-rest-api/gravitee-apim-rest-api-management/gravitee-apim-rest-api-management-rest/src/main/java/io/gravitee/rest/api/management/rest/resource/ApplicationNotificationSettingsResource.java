@@ -61,12 +61,15 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @GET
     @Operation(summary = "Get notification settings")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = APPLICATION_NOTIFICATION, acls = READ) })
+    @Permissions({@Permission(value = APPLICATION_NOTIFICATION, acls = READ)})
     public List<Object> getApplicationNotificationSettings() {
         List<Object> settings = new ArrayList<>();
-        settings.add(portalNotificationConfigService.findById(getAuthenticatedUser(), NotificationReferenceType.APPLICATION, application));
-        if (hasPermission(GraviteeContext.getExecutionContext(), APPLICATION_NOTIFICATION, application, CREATE, UPDATE, DELETE)) {
-            settings.addAll(genericNotificationConfigService.findByReference(NotificationReferenceType.APPLICATION, application));
+        settings.add(portalNotificationConfigService.findById(
+                getAuthenticatedUser(), NotificationReferenceType.APPLICATION, application));
+        if (hasPermission(
+                GraviteeContext.getExecutionContext(), APPLICATION_NOTIFICATION, application, CREATE, UPDATE, DELETE)) {
+            settings.addAll(genericNotificationConfigService.findByReference(
+                    NotificationReferenceType.APPLICATION, application));
         }
         return settings;
     }
@@ -76,21 +79,16 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Object createApplicationNotificationSettings(GenericNotificationConfigEntity config) {
-        if (
-            !application.equals(config.getReferenceId()) || !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType())
-        ) {
+        if (!application.equals(config.getReferenceId())
+                || !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType())) {
             throw new ForbiddenAccessException();
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            config.getConfigType().equals(NotificationConfigType.GENERIC) &&
-            hasPermission(executionContext, APPLICATION_NOTIFICATION, application, CREATE)
-        ) {
+        if (config.getConfigType().equals(NotificationConfigType.GENERIC)
+                && hasPermission(executionContext, APPLICATION_NOTIFICATION, application, CREATE)) {
             return genericNotificationConfigService.create(config);
-        } else if (
-            config.getConfigType().equals(NotificationConfigType.PORTAL) &&
-            hasPermission(executionContext, APPLICATION_NOTIFICATION, application, READ)
-        ) {
+        } else if (config.getConfigType().equals(NotificationConfigType.PORTAL)
+                && hasPermission(executionContext, APPLICATION_NOTIFICATION, application, READ)) {
             return portalNotificationConfigService.save(convert(config));
         }
         throw new ForbiddenAccessException();
@@ -101,17 +99,13 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Update generic notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = APPLICATION_NOTIFICATION, acls = UPDATE) })
+    @Permissions({@Permission(value = APPLICATION_NOTIFICATION, acls = UPDATE)})
     public GenericNotificationConfigEntity updateApplicationGeneralNotificationSettings(
-        @PathParam("notificationId") String notificationId,
-        GenericNotificationConfigEntity config
-    ) {
-        if (
-            !application.equals(config.getReferenceId()) ||
-            !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType()) ||
-            !config.getConfigType().equals(NotificationConfigType.GENERIC) ||
-            !notificationId.equals(config.getId())
-        ) {
+            @PathParam("notificationId") String notificationId, GenericNotificationConfigEntity config) {
+        if (!application.equals(config.getReferenceId())
+                || !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType())
+                || !config.getConfigType().equals(NotificationConfigType.GENERIC)
+                || !notificationId.equals(config.getId())) {
             throw new ForbiddenAccessException();
         }
         return genericNotificationConfigService.update(config);
@@ -121,13 +115,12 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Update portal notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = APPLICATION_NOTIFICATION, acls = READ) })
-    public PortalNotificationConfigEntity updateApplicationPortalNotificationSettings(PortalNotificationConfigEntity config) {
-        if (
-            !application.equals(config.getReferenceId()) ||
-            !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType()) ||
-            !config.getConfigType().equals(NotificationConfigType.PORTAL)
-        ) {
+    @Permissions({@Permission(value = APPLICATION_NOTIFICATION, acls = READ)})
+    public PortalNotificationConfigEntity updateApplicationPortalNotificationSettings(
+            PortalNotificationConfigEntity config) {
+        if (!application.equals(config.getReferenceId())
+                || !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType())
+                || !config.getConfigType().equals(NotificationConfigType.PORTAL)) {
             throw new ForbiddenAccessException();
         }
         config.setUser(getAuthenticatedUser());
@@ -139,7 +132,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Delete notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = APPLICATION_NOTIFICATION, acls = DELETE) })
+    @Permissions({@Permission(value = APPLICATION_NOTIFICATION, acls = DELETE)})
     public Response deleteApplicationNotificationSettings(@PathParam("notificationId") String notificationId) {
         genericNotificationConfigService.delete(notificationId);
         return Response.noContent().build();

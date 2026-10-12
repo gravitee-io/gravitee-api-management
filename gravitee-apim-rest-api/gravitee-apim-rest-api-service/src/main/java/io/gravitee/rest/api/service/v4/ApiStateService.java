@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
@@ -35,11 +34,10 @@ public interface ApiStateService {
      * @return the deployed API
      */
     GenericApiEntity deploy(
-        ExecutionContext executionContext,
-        Api apiToDeploy,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity
-    );
+            ExecutionContext executionContext,
+            Api apiToDeploy,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity);
 
     /**
      * Deploys an API fetched from database thanks to its id.
@@ -50,11 +48,10 @@ public interface ApiStateService {
      * @return the deployed API
      */
     GenericApiEntity deploy(
-        ExecutionContext executionContext,
-        String apiId,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity);
 
     /**
      * Redeploys an API right after its dynamic properties were synchronized. Unlike {@code deploy}, it records an
@@ -66,11 +63,10 @@ public interface ApiStateService {
      * @return the deployed API
      */
     GenericApiEntity redeployWithSyncedDynamicProperties(
-        ExecutionContext executionContext,
-        Api apiToDeploy,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity
-    );
+            ExecutionContext executionContext,
+            Api apiToDeploy,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity);
 
     GenericApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 

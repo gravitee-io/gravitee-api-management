@@ -48,15 +48,14 @@ public class CreateOrUpdatePortalLinkUseCase {
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        String linkHrid,
-        String name,
-        String href,
-        String location,
-        Integer order,
-        PortalVisibility visibility
-    ) {}
+            AuditInfo auditInfo,
+            PortalId portalId,
+            String linkHrid,
+            String name,
+            String href,
+            String location,
+            Integer order,
+            PortalVisibility visibility) {}
 
     public record Output(PortalNavigationLink link, List<Validator.Error> errors) {}
 
@@ -70,53 +69,57 @@ public class CreateOrUpdatePortalLinkUseCase {
         var sanitizedName = input.name() != null ? input.name().trim() : null;
         var sanitizedHref = input.href() != null ? input.href().trim() : null;
 
-        var errors = new ArrayList<>(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "portalHrid"));
+        var errors = new ArrayList<>(
+                portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "portalHrid"));
         if (input.location() != null) {
             errors.addAll(NavigationPathValidator.validate(input.location(), "location"));
         }
 
-        var linkId = PortalNavigationItemId.forPortalLink(input.auditInfo(), input.portalId().toString(), input.linkHrid());
-        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), linkId);
-        var parentId = syncDomainService.parentIdFor(input.auditInfo(), input.portalId().toString(), input.location());
+        var linkId = PortalNavigationItemId.forPortalLink(
+                input.auditInfo(), input.portalId().toString(), input.linkHrid());
+        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), linkId);
+        var parentId = syncDomainService.parentIdFor(
+                input.auditInfo(), input.portalId().toString(), input.location());
 
         // The shared validator throws on its first failing rule, so at most one error surfaces here.
         try {
             if (existing instanceof PortalNavigationLink existingLink) {
                 var toUpdate = UpdatePortalNavigationItem.builder()
-                    .type(PortalNavigationItemType.LINK)
-                    .title(sanitizedName)
-                    .url(sanitizedHref)
-                    .parentId(parentId)
-                    .visibility(input.visibility())
-                    .published(true)
-                    .build();
+                        .type(PortalNavigationItemType.LINK)
+                        .title(sanitizedName)
+                        .url(sanitizedHref)
+                        .parentId(parentId)
+                        .visibility(input.visibility())
+                        .published(true)
+                        .build();
                 navigationItemValidatorService.validateToUpdate(toUpdate, existingLink);
             } else {
                 var toCreate = CreatePortalNavigationItem.builder()
-                    .id(linkId)
-                    .type(PortalNavigationItemType.LINK)
-                    .title(sanitizedName)
-                    .url(sanitizedHref)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .parentId(parentId)
-                    .visibility(input.visibility())
-                    .published(true)
-                    .automationMetadata(
-                        new AutomationMetadata(
-                            AutomationMetadata.ReferenceType.PORTAL,
-                            input.portalId().toString(),
-                            null,
-                            Optional.ofNullable(input.location()),
-                            Optional.empty()
-                        )
-                    )
-                    .build();
-                navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
+                        .id(linkId)
+                        .type(PortalNavigationItemType.LINK)
+                        .title(sanitizedName)
+                        .url(sanitizedHref)
+                        .area(PortalArea.TOP_NAVBAR)
+                        .parentId(parentId)
+                        .visibility(input.visibility())
+                        .published(true)
+                        .automationMetadata(new AutomationMetadata(
+                                AutomationMetadata.ReferenceType.PORTAL,
+                                input.portalId().toString(),
+                                null,
+                                Optional.ofNullable(input.location()),
+                                Optional.empty()))
+                        .build();
+                navigationItemValidatorService.validateOne(
+                        toCreate, input.auditInfo().environmentId());
             }
             if (portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), input.portalId())) {
-                syncDomainService.validateForConflicts(input.auditInfo(), input.portalId().toString(), input.linkHrid(), input.location());
+                syncDomainService.validateForConflicts(
+                        input.auditInfo(), input.portalId().toString(), input.linkHrid(), input.location());
             } else {
-                errors.add(Validator.Error.severe("the portal to attach the link to does not exist in this environment"));
+                errors.add(
+                        Validator.Error.severe("the portal to attach the link to does not exist in this environment"));
             }
         } catch (AbstractDomainException e) {
             errors.add(Validator.Error.severe("%s", e.getMessage()));
@@ -127,15 +130,14 @@ public class CreateOrUpdatePortalLinkUseCase {
         }
 
         var link = syncDomainService.materialize(
-            input.auditInfo(),
-            input.portalId().toString(),
-            input.linkHrid(),
-            sanitizedName,
-            sanitizedHref,
-            input.location(),
-            input.order(),
-            input.visibility()
-        );
+                input.auditInfo(),
+                input.portalId().toString(),
+                input.linkHrid(),
+                sanitizedName,
+                sanitizedHref,
+                input.location(),
+                input.order(),
+                input.visibility());
 
         return new Output(link, errors);
     }

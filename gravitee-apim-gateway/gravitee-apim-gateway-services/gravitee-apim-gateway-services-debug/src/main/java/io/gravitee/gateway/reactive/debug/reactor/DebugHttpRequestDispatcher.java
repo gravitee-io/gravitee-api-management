@@ -30,7 +30,6 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugCompletionProcessor;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
@@ -42,9 +41,6 @@ import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFact
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
-import io.gravitee.node.api.Node;
-import io.gravitee.node.api.opentelemetry.Tracer;
-import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
@@ -63,37 +59,35 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     private final DebugCompletionProcessor debugCompletionProcessor;
 
     public DebugHttpRequestDispatcher(
-        GatewayConfiguration gatewayConfiguration,
-        HttpAcceptorResolver httpAcceptorResolver,
-        IdGenerator idGenerator,
-        ComponentProvider globalComponentProvider,
-        RequestProcessorChainFactory requestProcessorChainFactory,
-        ResponseProcessorChainFactory responseProcessorChainFactory,
-        DebugPlatformProcessorChainFactory platformProcessorChainFactory,
-        NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        RequestClientAuthConfiguration requestClientAuthConfiguration,
-        RequestPathConfiguration requestPathConfiguration,
-        DebugCompletionProcessor debugCompletionProcessor,
-        Vertx vertx,
-        boolean warningsEnabled
-    ) {
+            GatewayConfiguration gatewayConfiguration,
+            HttpAcceptorResolver httpAcceptorResolver,
+            IdGenerator idGenerator,
+            ComponentProvider globalComponentProvider,
+            RequestProcessorChainFactory requestProcessorChainFactory,
+            ResponseProcessorChainFactory responseProcessorChainFactory,
+            DebugPlatformProcessorChainFactory platformProcessorChainFactory,
+            NotFoundProcessorChainFactory notFoundProcessorChainFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            RequestClientAuthConfiguration requestClientAuthConfiguration,
+            RequestPathConfiguration requestPathConfiguration,
+            DebugCompletionProcessor debugCompletionProcessor,
+            Vertx vertx,
+            boolean warningsEnabled) {
         super(
-            gatewayConfiguration,
-            httpAcceptorResolver,
-            idGenerator,
-            globalComponentProvider,
-            requestProcessorChainFactory,
-            responseProcessorChainFactory,
-            platformProcessorChainFactory,
-            notFoundProcessorChainFactory,
-            TracingContext.noop(),
-            requestTimeoutConfiguration,
-            requestClientAuthConfiguration,
-            requestPathConfiguration,
-            vertx,
-            warningsEnabled
-        );
+                gatewayConfiguration,
+                httpAcceptorResolver,
+                idGenerator,
+                globalComponentProvider,
+                requestProcessorChainFactory,
+                responseProcessorChainFactory,
+                platformProcessorChainFactory,
+                notFoundProcessorChainFactory,
+                TracingContext.noop(),
+                requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
+                requestPathConfiguration,
+                vertx,
+                warningsEnabled);
         this.httpAcceptorResolver = httpAcceptorResolver;
         this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
         this.requestPathConfiguration = requestPathConfiguration;
@@ -128,7 +122,10 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
 
         if (debugApi == null) {
             // Nothing identifies the session, so there is nothing to close. Answering is still right.
-            ctx.withLogger(log).warn("Rejected debug request on path {} could not be matched to a debug API", ctx.request().path());
+            ctx.withLogger(log)
+                    .warn(
+                            "Rejected debug request on path {} could not be matched to a debug API",
+                            ctx.request().path());
             return rejection;
         }
 
@@ -143,11 +140,11 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             // API's own analytics configuration instead of handlers.rejected.analytics.enabled.
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, debugApi);
             debugCompletionProcessor
-                .execute((HttpExecutionContextInternal) ctx)
-                .subscribe(
-                    () -> {},
-                    throwable -> ctx.withLogger(log).error("Failed to close the debug session for a rejected path", throwable)
-                );
+                    .execute((HttpExecutionContextInternal) ctx)
+                    .subscribe(
+                            () -> {},
+                            throwable -> ctx.withLogger(log)
+                                    .error("Failed to close the debug session for a rejected path", throwable));
         });
     }
 
@@ -161,10 +158,9 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
      */
     private ReactableDebugApi<?> resolveDebugApi(final MutableExecutionContext ctx) {
         final HttpAcceptor acceptor = httpAcceptorResolver.resolve(
-            ctx.request().host(),
-            ctx.request().path(),
-            ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SERVER_ID)
-        );
+                ctx.request().host(),
+                ctx.request().path(),
+                ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SERVER_ID));
         if (acceptor == null) {
             return null;
         }
@@ -182,11 +178,11 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
 
     @Override
     protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
-        final HttpServerRequest httpServerRequest,
-        final IdGenerator idGenerator,
-        final VertxHttpServerRequestOptions options
-    ) {
-        io.gravitee.gateway.http.vertx.VertxHttpServerRequest v3Request = super.createV3Request(httpServerRequest, idGenerator, options);
+            final HttpServerRequest httpServerRequest,
+            final IdGenerator idGenerator,
+            final VertxHttpServerRequestOptions options) {
+        io.gravitee.gateway.http.vertx.VertxHttpServerRequest v3Request =
+                super.createV3Request(httpServerRequest, idGenerator, options);
         return new VertxHttpServerRequestDebugDecorator(v3Request, idGenerator);
     }
 }

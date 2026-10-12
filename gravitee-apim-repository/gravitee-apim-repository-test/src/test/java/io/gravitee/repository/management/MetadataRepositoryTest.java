@@ -46,7 +46,8 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferenceTypeAndId() throws Exception {
-        final List<Metadata> metadataList = metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "apiId");
+        final List<Metadata> metadataList =
+                metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "apiId");
 
         assertNotNull(metadataList);
         assertEquals(1, metadataList.size());
@@ -56,9 +57,7 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByReferenceTypeAndReferenceIdIn() throws Exception {
         // apiId has 1 entry, api-delete has 2 entries — total 3
         final List<Metadata> metadataList = metadataRepository.findByReferenceTypeAndReferenceIdIn(
-            MetadataReferenceType.API,
-            List.of("apiId", "api-delete")
-        );
+                MetadataReferenceType.API, List.of("apiId", "api-delete"));
 
         assertNotNull(metadataList);
         assertEquals(3, metadataList.size());
@@ -68,9 +67,7 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldReturnEmptyListWhenNoMatchForReferenceTypeAndReferenceIdIn() throws Exception {
         final List<Metadata> metadataList = metadataRepository.findByReferenceTypeAndReferenceIdIn(
-            MetadataReferenceType.API,
-            List.of("unknown-api-1", "unknown-api-2")
-        );
+                MetadataReferenceType.API, List.of("unknown-api-1", "unknown-api-2"));
 
         assertNotNull(metadataList);
         assertTrue(metadataList.isEmpty());
@@ -78,7 +75,8 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByKeyAndReferenceType() throws Exception {
-        final List<Metadata> metadataList = metadataRepository.findByKeyAndReferenceType("string", MetadataReferenceType.API);
+        final List<Metadata> metadataList =
+                metadataRepository.findByKeyAndReferenceType("string", MetadataReferenceType.API);
 
         assertNotNull(metadataList);
         assertEquals(1, metadataList.size());
@@ -94,13 +92,18 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         metadata.setFormat(MetadataFormat.STRING);
         metadata.setValue("String");
 
-        int nbMetadataListBeforeCreation = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
+        int nbMetadataListBeforeCreation = metadataRepository
+                .findByReferenceType(MetadataReferenceType.ENVIRONMENT)
+                .size();
         metadataRepository.create(metadata);
-        int nbMetadataListAfterCreation = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
+        int nbMetadataListAfterCreation = metadataRepository
+                .findByReferenceType(MetadataReferenceType.ENVIRONMENT)
+                .size();
 
         Assertions.assertEquals(nbMetadataListBeforeCreation + 1, nbMetadataListAfterCreation);
 
-        Optional<Metadata> optional = metadataRepository.findById("new-metadata", ENV_ID, MetadataReferenceType.ENVIRONMENT);
+        Optional<Metadata> optional =
+                metadataRepository.findById("new-metadata", ENV_ID, MetadataReferenceType.ENVIRONMENT);
         Assertions.assertTrue(optional.isPresent(), "Metadata saved not found");
 
         final Metadata metadataSaved = optional.get();
@@ -123,13 +126,18 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         metadata.setValue("New value");
         metadata.setUpdatedAt(updatedDate);
 
-        int nbMetadataListBeforeUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
+        int nbMetadataListBeforeUpdate = metadataRepository
+                .findByReferenceType(MetadataReferenceType.ENVIRONMENT)
+                .size();
         metadataRepository.update(metadata);
-        int nbMetadataListAfterUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
+        int nbMetadataListAfterUpdate = metadataRepository
+                .findByReferenceType(MetadataReferenceType.ENVIRONMENT)
+                .size();
 
         Assertions.assertEquals(nbMetadataListBeforeUpdate, nbMetadataListAfterUpdate);
 
-        Optional<Metadata> optionalUpdated = metadataRepository.findById("boolean", ENV_ID, MetadataReferenceType.ENVIRONMENT);
+        Optional<Metadata> optionalUpdated =
+                metadataRepository.findById("boolean", ENV_ID, MetadataReferenceType.ENVIRONMENT);
         Assertions.assertTrue(optionalUpdated.isPresent(), "Metadata to update not found");
 
         final Metadata metadataUpdated = optionalUpdated.get();
@@ -142,12 +150,12 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldDelete() throws Exception {
         int nbMetadataListBeforeDeletion = metadataRepository
-            .findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")
-            .size();
+                .findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")
+                .size();
         metadataRepository.delete("mail", "applicationId", MetadataReferenceType.APPLICATION);
         int nbMetadataListAfterDeletion = metadataRepository
-            .findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")
-            .size();
+                .findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")
+                .size();
 
         Assertions.assertEquals(nbMetadataListBeforeDeletion - 1, nbMetadataListAfterDeletion);
     }
@@ -174,26 +182,33 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_type_and_reference_id() throws Exception {
-        Assertions.assertEquals(2, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
+        Assertions.assertEquals(
+                2,
+                metadataRepository
+                        .findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete")
+                        .size());
 
-        List<String> metadataIds = metadataRepository.deleteByReferenceIdAndReferenceType("api-delete", MetadataReferenceType.API);
+        List<String> metadataIds =
+                metadataRepository.deleteByReferenceIdAndReferenceType("api-delete", MetadataReferenceType.API);
 
         assertEquals(2, metadataIds.size());
-        Assertions.assertEquals(0, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
+        Assertions.assertEquals(
+                0,
+                metadataRepository
+                        .findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete")
+                        .size());
     }
 
     @Test
     public void should_not_create_an_existing_key() throws Exception {
-        assertThrows(DuplicateKeyException.class, () ->
-            metadataRepository.create(
-                Metadata.builder()
-                    .key("boolean")
-                    .referenceId("DEFAULT")
-                    .referenceType(MetadataReferenceType.ENVIRONMENT)
-                    .format(MetadataFormat.BOOLEAN)
-                    .name("boolean")
-                    .build()
-            )
-        );
+        assertThrows(
+                DuplicateKeyException.class,
+                () -> metadataRepository.create(Metadata.builder()
+                        .key("boolean")
+                        .referenceId("DEFAULT")
+                        .referenceType(MetadataReferenceType.ENVIRONMENT)
+                        .format(MetadataFormat.BOOLEAN)
+                        .name("boolean")
+                        .build()));
     }
 }

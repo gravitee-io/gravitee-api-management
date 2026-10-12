@@ -36,31 +36,38 @@ import org.junit.jupiter.params.provider.ValueSource;
 class DecisionReportAdditionalMetricsTest {
 
     private static final ObjectMapper JSON = new ObjectMapper();
-    private static final Node NODE = when(mock(Node.class).id()).thenReturn("gateway-id").getMock();
+    private static final Node NODE =
+            when(mock(Node.class).id()).thenReturn("gateway-id").getMock();
 
     @ParameterizedTest(name = "es{0}x")
-    @ValueSource(ints = { 7, 8, 9 })
-    void should_render_a_report_that_carries_only_multi_valued_keyword_metrics(int elasticsearchVersion) throws Exception {
+    @ValueSource(ints = {7, 8, 9})
+    void should_render_a_report_that_carries_only_multi_valued_keyword_metrics(int elasticsearchVersion)
+            throws Exception {
         var report = DecisionReport.builder()
-            .timestamp(1751015211866L)
-            .gatewayId("gw")
-            .organizationId("org")
-            .environmentId("env")
-            .apiId("api")
-            .eventId("evt-1")
-            .phase(DecisionReport.Phase.RESOLVED)
-            .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
-            .decisionPointId("default")
-            .outcome(DecisionReport.Outcome.ALLOW)
-            .enforced(DecisionReport.Enforced.ALLOW)
-            .status(DecisionReport.Status.SUCCESS)
-            .additionalMetrics(Set.of(new AdditionalMetric.KeywordListMetric("keyword_authz_tools", List.of("search", "the \"book\""))))
-            .build();
+                .timestamp(1751015211866L)
+                .gatewayId("gw")
+                .organizationId("org")
+                .environmentId("env")
+                .apiId("api")
+                .eventId("evt-1")
+                .phase(DecisionReport.Phase.RESOLVED)
+                .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
+                .decisionPointId("default")
+                .outcome(DecisionReport.Outcome.ALLOW)
+                .enforced(DecisionReport.Enforced.ALLOW)
+                .status(DecisionReport.Status.SUCCESS)
+                .additionalMetrics(Set.of(new AdditionalMetric.KeywordListMetric(
+                        "keyword_authz_tools", List.of("search", "the \"book\""))))
+                .build();
 
-        String rendered = new ElasticsearchFormatter<Reportable>(NODE, elasticsearchVersion).format0(report, Map.of()).toString();
+        String rendered = new ElasticsearchFormatter<Reportable>(NODE, elasticsearchVersion)
+                .format0(report, Map.of())
+                .toString();
         var tools = JSON.readTree(rendered).at("/additional-metrics/keyword_authz_tools");
 
-        assertThat(tools.isArray()).as("additional-metrics.keyword_authz_tools in %s", rendered).isTrue();
+        assertThat(tools.isArray())
+                .as("additional-metrics.keyword_authz_tools in %s", rendered)
+                .isTrue();
         assertThat(JSON.convertValue(tools, List.class)).containsExactly("search", "the \"book\"");
     }
 }

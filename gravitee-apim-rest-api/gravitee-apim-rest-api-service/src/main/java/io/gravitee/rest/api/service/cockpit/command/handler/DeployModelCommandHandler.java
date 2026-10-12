@@ -79,68 +79,55 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         final var labels = payload.labels();
         final var executionContext = new ExecutionContext(getEnvironment(environmentId));
         final var user = userService.findBySource(executionContext.getOrganizationId(), "cockpit", userId, true);
-        final var optApiId = apiSearchService.findIdByEnvironmentIdAndCrossId(executionContext.getEnvironmentId(), apiCrossId);
+        final var optApiId =
+                apiSearchService.findIdByEnvironmentIdAndCrossId(executionContext.getEnvironmentId(), apiCrossId);
 
         try {
             authenticateAs(user);
 
             var audit = AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(AuditActor.builder().userId(user.getId()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
-                .build();
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(AuditActor.builder()
+                            .userId(user.getId())
+                            .userSource(user.getSource())
+                            .userSourceId(user.getSourceId())
+                            .build())
+                    .build();
 
             if (optApiId.isPresent()) {
                 var apiId = optApiId.get();
                 var message = permissionChecker.checkUpdatePermission(
-                    executionContext,
-                    user.getId(),
-                    executionContext.getEnvironmentId(),
-                    apiId,
-                    mode
-                );
+                        executionContext, user.getId(), executionContext.getEnvironmentId(), apiId, mode);
 
-                return message
-                    .map(s -> Single.just(new DeployModelReply(command.getId(), s)))
-                    .orElseGet(() -> {
-                        final Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
+                return message.map(s -> Single.just(new DeployModelReply(command.getId(), s)))
+                        .orElseGet(() -> {
+                            final Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
 
-                        if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-                            return updateV2Api(command, apiId, executionContext, user, mode, swaggerDefinition, labels);
-                        }
+                            if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+                                return updateV2Api(
+                                        command, apiId, executionContext, user, mode, swaggerDefinition, labels);
+                            }
 
-                        deployModelToApiUpdateUseCase.execute(
-                            new DeployModelToApiUpdateUseCase.Input(
-                                swaggerDefinition,
-                                audit,
-                                apiId,
-                                apiCrossId,
-                                fromDeploymentModel(mode),
-                                labels
-                            )
-                        );
-                        return Single.just(new DeployModelReply(command.getId()));
-                    });
+                            deployModelToApiUpdateUseCase.execute(new DeployModelToApiUpdateUseCase.Input(
+                                    swaggerDefinition, audit, apiId, apiCrossId, fromDeploymentModel(mode), labels));
+                            return Single.just(new DeployModelReply(command.getId()));
+                        });
             } else {
                 var message = permissionChecker.checkCreatePermission(
-                    executionContext,
-                    user.getId(),
-                    executionContext.getEnvironmentId(),
-                    mode
-                );
+                        executionContext, user.getId(), executionContext.getEnvironmentId(), mode);
 
-                return message
-                    .map(error -> Single.just(new DeployModelReply(command.getId(), error)))
-                    .orElseGet(() -> {
-                        deployModelToApiCreateUseCase.execute(
-                            new DeployModelToApiCreateUseCase.Input(swaggerDefinition, audit, apiCrossId, fromDeploymentModel(mode), labels)
-                        );
-                        return Single.just(new DeployModelReply(command.getId()));
-                    });
+                return message.map(error -> Single.just(new DeployModelReply(command.getId(), error)))
+                        .orElseGet(() -> {
+                            deployModelToApiCreateUseCase.execute(new DeployModelToApiCreateUseCase.Input(
+                                    swaggerDefinition, audit, apiCrossId, fromDeploymentModel(mode), labels));
+                            return Single.just(new DeployModelReply(command.getId()));
+                        });
             }
         } catch (InvalidPathsException ipe) {
             log.error("Context path already used, API [crossId: {}] can be imported", apiCrossId, ipe);
-            return Single.just(new DeployModelReply(command.getId(), "Failed to import API [context path not available]."));
+            return Single.just(
+                    new DeployModelReply(command.getId(), "Failed to import API [context path not available]."));
         } catch (Exception e) {
             log.error("Error occurred when importing API [crossId: {}]", apiCrossId, e);
             return Single.just(new DeployModelReply(command.getId(), "Error occurred when importing API"));
@@ -156,25 +143,26 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
     }
 
     private Single<DeployModelReply> updateV2Api(
-        DeployModelCommand command,
-        String apiId,
-        ExecutionContext executionContext,
-        UserEntity user,
-        DeploymentMode mode,
-        String swaggerDefinition,
-        List<String> labels
-    ) {
+            DeployModelCommand command,
+            String apiId,
+            ExecutionContext executionContext,
+            UserEntity user,
+            DeploymentMode mode,
+            String swaggerDefinition,
+            List<String> labels) {
         var result = cockpitApiService.updateApi(
-            executionContext,
-            apiId,
-            user.getId(),
-            swaggerDefinition,
-            executionContext.getEnvironmentId(),
-            mode,
-            labels
-        );
+                executionContext,
+                apiId,
+                user.getId(),
+                swaggerDefinition,
+                executionContext.getEnvironmentId(),
+                mode,
+                labels);
 
-        log.info("API [id: {} / crossId: {}] v2 updated.", result.getApi().getId(), result.getApi().getCrossId());
+        log.info(
+                "API [id: {} / crossId: {}] v2 updated.",
+                result.getApi().getId(),
+                result.getApi().getCrossId());
         return Single.just(new DeployModelReply(command.getId()));
     }
 

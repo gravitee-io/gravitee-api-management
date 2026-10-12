@@ -30,9 +30,9 @@ public class DeleteApplicationInvitationDomainService {
 
     public void delete(@Nonnull String applicationId, @Nonnull InvitationId invitationId) {
         var invitation = invitationCrudService
-            .findApplicationInvitationById(invitationId)
-            .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
-            .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
+                .findApplicationInvitationById(invitationId)
+                .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
+                .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
 
         invitationCrudService.delete(invitation.id());
     }

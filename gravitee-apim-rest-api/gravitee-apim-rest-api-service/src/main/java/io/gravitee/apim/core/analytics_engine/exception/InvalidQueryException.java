@@ -69,9 +69,7 @@ public class InvalidQueryException extends ValidationDomainException {
 
     public static InvalidQueryException forUnsupportedAnalyticsFilter(String filterName) {
         return new InvalidQueryException(
-            "Filter '" + filterName + "' is not supported for analytics queries",
-            "analytics.filter.unsupported"
-        );
+                "Filter '" + filterName + "' is not supported for analytics queries", "analytics.filter.unsupported");
     }
 
     public static InvalidQueryException forUnknownAPIType(String apiType) {

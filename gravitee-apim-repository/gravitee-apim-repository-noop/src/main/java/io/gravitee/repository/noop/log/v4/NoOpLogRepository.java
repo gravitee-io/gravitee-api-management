@@ -28,17 +28,20 @@ import java.util.Optional;
 public class NoOpLogRepository implements LogRepository {
 
     @Override
-    public Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query) {
+    public Optional<ConnectionLogDetail> searchConnectionLogDetail(
+            QueryContext queryContext, ConnectionLogDetailQuery query) {
         return Optional.empty();
     }
 
     @Override
-    public LogResponse<ConnectionLogDetail> searchConnectionLogDetails(QueryContext queryContext, ConnectionLogDetailQuery query) {
+    public LogResponse<ConnectionLogDetail> searchConnectionLogDetails(
+            QueryContext queryContext, ConnectionLogDetailQuery query) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
 
     @Override
-    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(QueryContext queryContext, MessageLogQuery query) {
+    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(
+            QueryContext queryContext, MessageLogQuery query) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
 }

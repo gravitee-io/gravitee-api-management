@@ -25,13 +25,10 @@ public class PropertiesEntityTest {
 
     @Test
     public void should_convert_to_definition_model_properties() {
-        PropertiesEntity propertiesEntity = new PropertiesEntity(
-            List.of(
+        PropertiesEntity propertiesEntity = new PropertiesEntity(List.of(
                 new PropertyEntity("key1", "value1", true, false),
                 new PropertyEntity("key2", "value2", false, true),
-                new PropertyEntity("key3", "value3", true, true)
-            )
-        );
+                new PropertyEntity("key3", "value3", true, true)));
 
         Properties properties = propertiesEntity.toDefinition();
 

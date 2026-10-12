@@ -70,10 +70,10 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     private Analyzer userFieldAnalyzer() {
         try {
             return CustomAnalyzer.builder()
-                .withTokenizer(SingleTokenTokenizerFactory.class)
-                .addTokenFilter(LowerCaseFilterFactory.class)
-                .addTokenFilter(ASCIIFoldingFilterFactory.class)
-                .build();
+                    .withTokenizer(SingleTokenTokenizerFactory.class)
+                    .addTokenFilter(LowerCaseFilterFactory.class)
+                    .addTokenFilter(ASCIIFoldingFilterFactory.class)
+                    .build();
         } catch (IOException e) {
             return defaultAnalyzer;
         }
@@ -108,29 +108,25 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
 
         if (user.getDisplayName() != null) {
             TextField displayName = new TextField(
-                FIELD_DISPLAYNAME,
-                userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName()))
-            );
+                    FIELD_DISPLAYNAME,
+                    userFieldAnalyzer()
+                            .tokenStream(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName())));
             doc.add(displayName);
 
             if (!StringUtils.isEmpty(user.getLastname()) && !StringUtils.isEmpty(user.getFirstname())) {
-                String lastnameFirstname = toLowerCaseAndStripAccents(String.format("%s %s", user.getLastname(), user.getFirstname()));
+                String lastnameFirstname =
+                        toLowerCaseAndStripAccents(String.format("%s %s", user.getLastname(), user.getFirstname()));
                 TextField lastnameFirstnameTextField = new TextField(
-                    FIELD_LASTNAME_FIRSTNAME,
-                    userFieldAnalyzer().tokenStream(FIELD_LASTNAME_FIRSTNAME, lastnameFirstname)
-                );
+                        FIELD_LASTNAME_FIRSTNAME,
+                        userFieldAnalyzer().tokenStream(FIELD_LASTNAME_FIRSTNAME, lastnameFirstname));
                 doc.add(lastnameFirstnameTextField);
 
-                SortedDocValuesField lastnameFirstnameSortedField = new SortedDocValuesField(
-                    FIELD_LASTNAME_FIRSTNAME_SORTED,
-                    new BytesRef(lastnameFirstname)
-                );
+                SortedDocValuesField lastnameFirstnameSortedField =
+                        new SortedDocValuesField(FIELD_LASTNAME_FIRSTNAME_SORTED, new BytesRef(lastnameFirstname));
                 doc.add(lastnameFirstnameSortedField);
             } else {
-                SortedDocValuesField lastnameFirstnameSortedField = new SortedDocValuesField(
-                    FIELD_LASTNAME_FIRSTNAME_SORTED,
-                    new BytesRef(user.getDisplayName())
-                );
+                SortedDocValuesField lastnameFirstnameSortedField =
+                        new SortedDocValuesField(FIELD_LASTNAME_FIRSTNAME_SORTED, new BytesRef(user.getDisplayName()));
                 doc.add(lastnameFirstnameSortedField);
             }
         }
@@ -140,24 +136,25 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
                 log.warn("Email of the user {} is not valid", user.getId());
             } else {
                 // For security reasons, we remove the domain part of the email
-                doc.add(
-                    new StringField(FIELD_EMAIL, user.getEmail().substring(0, user.getEmail().indexOf('@')).toLowerCase(), Field.Store.NO)
-                );
+                doc.add(new StringField(
+                        FIELD_EMAIL,
+                        user.getEmail()
+                                .substring(0, user.getEmail().indexOf('@'))
+                                .toLowerCase(),
+                        Field.Store.NO));
             }
         }
 
         if (user.getCustomFields() != null && !user.getCustomFields().isEmpty()) {
-            user
-                .getCustomFields()
-                .values()
-                .stream()
-                .filter(Objects::nonNull)
-                .map(Object::toString)
-                .filter(Predicate.not(String::isEmpty).and(value -> !value.startsWith("data:")))
-                .forEach(customValue -> {
-                    doc.add(new StringField(FIELD_CUSTOM, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
-                    doc.add(new TextField(FIELD_CUSTOM_SPLIT, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
-                });
+            user.getCustomFields().values().stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .filter(Predicate.not(String::isEmpty).and(value -> !value.startsWith("data:")))
+                    .forEach(customValue -> {
+                        doc.add(new StringField(FIELD_CUSTOM, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
+                        doc.add(new TextField(
+                                FIELD_CUSTOM_SPLIT, toLowerCaseAndStripAccents(customValue), Field.Store.NO));
+                    });
         }
 
         return doc;

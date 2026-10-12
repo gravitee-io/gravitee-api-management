@@ -78,9 +78,8 @@ public class ApiListItem {
 
     @JsonProperty(value = "picture_url")
     @Schema(
-        description = "the API logo url.",
-        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
-    )
+            description = "the API logo url.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture")
     private String pictureUrl;
 
     @JsonProperty(value = "virtual_hosts")

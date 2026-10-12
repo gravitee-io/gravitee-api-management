@@ -42,11 +42,9 @@ public class HttpHeadersTest extends AbstractWiremockGatewayTest {
         String cookie1 = "JSESSIONID=ABSCDEDASDSSDSSE.oai007; path=/; Secure; HttpOnly";
         String cookie2 = "JSESSIONID=BASCDEDASDSSDSSE.oai008; path=/another; Secure; HttpOnly";
 
-        wireMockRule.stubFor(
-            get(urlPathEqualTo("/team/my_team")).willReturn(
-                ok().withHeader(HttpHeaderNames.SET_COOKIE, cookie1).withHeader(HttpHeaderNames.SET_COOKIE, cookie2)
-            )
-        );
+        wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team"))
+                .willReturn(ok().withHeader(HttpHeaderNames.SET_COOKIE, cookie1)
+                        .withHeader(HttpHeaderNames.SET_COOKIE, cookie2)));
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team").build();
 
@@ -56,9 +54,9 @@ public class HttpHeadersTest extends AbstractWiremockGatewayTest {
         wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
 
         List<String> cookieHeaders = Arrays.stream(response.getAllHeaders())
-            .filter(header -> header.getName().equals(HttpHeaderNames.SET_COOKIE))
-            .map(h -> h.getValue())
-            .collect(Collectors.toList());
+                .filter(header -> header.getName().equals(HttpHeaderNames.SET_COOKIE))
+                .map(h -> h.getValue())
+                .collect(Collectors.toList());
 
         assertEquals(2, cookieHeaders.size());
         assertEquals(cookie1, cookieHeaders.get(0));
@@ -77,9 +75,9 @@ public class HttpHeadersTest extends AbstractWiremockGatewayTest {
         wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
 
         List<String> customHeaders = Arrays.stream(response.getAllHeaders())
-            .filter(header -> header.getName().equals("custom"))
-            .map(h -> h.getValue())
-            .collect(Collectors.toList());
+                .filter(header -> header.getName().equals("custom"))
+                .map(h -> h.getValue())
+                .collect(Collectors.toList());
 
         assertEquals(1, customHeaders.size());
     }

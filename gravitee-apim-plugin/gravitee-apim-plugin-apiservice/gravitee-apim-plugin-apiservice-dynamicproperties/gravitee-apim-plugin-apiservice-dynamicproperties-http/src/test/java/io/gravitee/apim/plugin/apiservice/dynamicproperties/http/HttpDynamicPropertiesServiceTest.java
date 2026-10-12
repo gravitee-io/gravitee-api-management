@@ -92,7 +92,7 @@ import testhelpers.TestEventListener;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@ExtendWith({ VertxExtension.class, MockitoExtension.class })
+@ExtendWith({VertxExtension.class, MockitoExtension.class})
 class HttpDynamicPropertiesServiceTest {
 
     /**
@@ -106,14 +106,17 @@ class HttpDynamicPropertiesServiceTest {
      * Will generate a list of 2 properties: [<key1, value 1>, <key2, value 2>]
      */
     public static final String EXTRACT_JSON_KEYS_TRANSFORMATION =
-        "[ { \"operation\": \"shift\", \"spec\": { \"props\": { \"*\": {  \"$\": \"[#2].key\", \"@\": \"[#2].value\"}}}}]";
+            "[ { \"operation\": \"shift\", \"spec\": { \"props\": { \"*\": {  \"$\": \"[#2].key\", \"@\": \"[#2].value\"}}}}]";
+
     public static final String X_HEADER = "X-Header";
     public static final String HEADER_VALUE = "header-value";
 
     private static final Instant INSTANT_NOW = Instant.parse("2024-02-01T10:15:12Z");
 
     @RegisterExtension
-    static WireMockExtension wiremock = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+    static WireMockExtension wiremock = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
 
     private GenericApplicationContext applicationContext;
     private EventManager eventManager;
@@ -163,27 +166,26 @@ class HttpDynamicPropertiesServiceTest {
             api.getServices().getDynamicProperty().setConfiguration("invalid configuration");
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            cut
-                .start()
-                .test()
-                .assertError(
-                    e ->
-                        e instanceof IllegalArgumentException &&
-                        e.getMessage().contains("Unable to start http-dynamic-properties service for api: [" + MY_API + "]")
-                );
+            cut.start()
+                    .test()
+                    .assertError(e -> e instanceof IllegalArgumentException
+                            && e.getMessage()
+                                    .contains("Unable to start http-dynamic-properties service for api: [" + MY_API
+                                            + "]"));
         }
 
         @Test
         void should_not_publish_dynamic_properties_on_invalid_url() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
             final String badUrl = String.format("h://localhost:%d/propertiesBackend", wiremock.getPort());
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(badUrl)
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(badUrl)
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
@@ -203,49 +205,50 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            await()
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    wiremock.verify(0, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
-                });
+            await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+                wiremock.verify(
+                        0,
+                        getRequestedFor(urlPathEqualTo("/propertiesBackend"))
+                                .withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            });
 
-            TestEventListener.with(eventManager).completeImmediatly().test().assertNoValues().assertComplete();
+            TestEventListener.with(eventManager)
+                    .completeImmediatly()
+                    .test()
+                    .assertNoValues()
+                    .assertComplete();
 
-            List<ILoggingEvent> logList = listAppender.list
-                .stream()
-                .filter(log -> log.getLevel().equals(Level.WARN))
-                .toList();
+            List<ILoggingEvent> logList = listAppender.list.stream()
+                    .filter(log -> log.getLevel().equals(Level.WARN))
+                    .toList();
             assertThat(logList)
-                .hasSize(1)
-                .element(0)
-                .extracting(ILoggingEvent::getFormattedMessage)
-                .isEqualTo("Unable to run dynamic properties for api [my-api] on URL [" + badUrl + "].");
+                    .hasSize(1)
+                    .element(0)
+                    .extracting(ILoggingEvent::getFormattedMessage)
+                    .isEqualTo("Unable to run dynamic properties for api [my-api] on URL [" + badUrl + "].");
 
             // Wait for the retry
             testScheduler.advanceTimeBy(5_000, TimeUnit.MILLISECONDS);
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            await()
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    wiremock.verify(0, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
-                });
+            await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+                wiremock.verify(
+                        0,
+                        getRequestedFor(urlPathEqualTo("/propertiesBackend"))
+                                .withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            });
 
             // As LOG_ERROR_COUNT has been set to 2, the second call will trigger the other error message
-            logList = listAppender.list
-                .stream()
-                .filter(log -> log.getLevel().equals(Level.WARN))
-                .toList();
+            logList = listAppender.list.stream()
+                    .filter(log -> log.getLevel().equals(Level.WARN))
+                    .toList();
             assertThat(logList)
-                .hasSize(2)
-                .element(1)
-                .extracting(ILoggingEvent::getFormattedMessage)
-                .isEqualTo(
-                    "Unable to run dynamic properties for api [my-api] on URL [" +
-                        badUrl +
-                        "] (times: 2, see previous log report for details)."
-                );
+                    .hasSize(2)
+                    .element(1)
+                    .extracting(ILoggingEvent::getFormattedMessage)
+                    .isEqualTo("Unable to run dynamic properties for api [my-api] on URL [" + badUrl
+                            + "] (times: 2, see previous log report for details).");
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -259,29 +262,23 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_publish_computed_dynamic_properties_for_http_api() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend").willReturn(
-                    ok(
-                        Fixtures.backendResponseForProperties(
+            wiremock.stubFor(get("/propertiesBackend")
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
                             List.of(
-                                new Fixtures.BackendProperty("key1", "initial val 1"),
-                                new Fixtures.BackendProperty("key2", "initial val 2")
-                            ),
-                            objectMapper
-                        )
-                    )
-                )
-            );
+                                    new Fixtures.BackendProperty("key1", "initial val 1"),
+                                    new Fixtures.BackendProperty("key2", "initial val 2")),
+                            objectMapper))));
 
             var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
 
@@ -293,21 +290,29 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValueCount(1)
-                .assertValue(propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(30, TimeUnit.SECONDS)
+                    .assertValueCount(1)
+                    .assertValue(propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1")
+                                                .value("initial val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2")
+                                                .value("initial val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertComplete();
 
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(
+                    getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -317,22 +322,23 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_publish_the_encrypt_on_fetch_flag_from_configuration() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .encryption(DynamicPropertiesEncryptionPolicy.builder().encryptOnFetch(true).build())
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .encryption(DynamicPropertiesEncryptionPolicy.builder()
+                                    .encryptOnFetch(true)
+                                    .build())
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend").willReturn(
-                    ok(Fixtures.backendResponseForProperties(List.of(new Fixtures.BackendProperty("key1", "initial val 1")), objectMapper))
-                )
-            );
+            wiremock.stubFor(get("/propertiesBackend")
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
+                            List.of(new Fixtures.BackendProperty("key1", "initial val 1")), objectMapper))));
 
             var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
 
@@ -344,14 +350,13 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValueCount(1)
-                .assertValue(propertyEvent -> {
-                    assertThat(propertyEvent.content().encryptOnFetch()).isTrue();
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(30, TimeUnit.SECONDS)
+                    .assertValueCount(1)
+                    .assertValue(propertyEvent -> {
+                        assertThat(propertyEvent.content().encryptOnFetch()).isTrue();
+                        return true;
+                    })
+                    .assertComplete();
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -361,29 +366,23 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_publish_computed_dynamic_properties_for_native_api() {
             NativeApi api = Fixtures.nativeApiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend").willReturn(
-                    ok(
-                        Fixtures.backendResponseForProperties(
+            wiremock.stubFor(get("/propertiesBackend")
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
                             List.of(
-                                new Fixtures.BackendProperty("key1", "initial val 1"),
-                                new Fixtures.BackendProperty("key2", "initial val 2")
-                            ),
-                            objectMapper
-                        )
-                    )
-                )
-            );
+                                    new Fixtures.BackendProperty("key1", "initial val 1"),
+                                    new Fixtures.BackendProperty("key2", "initial val 2")),
+                            objectMapper))));
 
             var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
 
@@ -395,21 +394,29 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValueCount(1)
-                .assertValue(propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(30, TimeUnit.SECONDS)
+                    .assertValueCount(1)
+                    .assertValue(propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1")
+                                                .value("initial val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2")
+                                                .value("initial val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertComplete();
 
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(
+                    getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -419,31 +426,25 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_not_publish_dynamic_properties_if_backend_does_not_answer_with_ok_200() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend").willReturn(
-                    aResponse()
-                        .withStatus(201)
-                        .withBody(
-                            Fixtures.backendResponseForProperties(
-                                List.of(
-                                    new Fixtures.BackendProperty("key1", "initial val 1"),
-                                    new Fixtures.BackendProperty("key2", "initial val 2")
-                                ),
-                                objectMapper
-                            )
-                        )
-                )
-            );
+            wiremock.stubFor(get("/propertiesBackend")
+                    .willReturn(aResponse()
+                            .withStatus(201)
+                            .withBody(Fixtures.backendResponseForProperties(
+                                    List.of(
+                                            new Fixtures.BackendProperty("key1", "initial val 1"),
+                                            new Fixtures.BackendProperty("key2", "initial val 2")),
+                                    objectMapper))));
 
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
@@ -453,13 +454,18 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            await()
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    wiremock.verify(1, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
-                });
+            await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+                wiremock.verify(
+                        1,
+                        getRequestedFor(urlPathEqualTo("/propertiesBackend"))
+                                .withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            });
 
-            TestEventListener.with(eventManager).completeImmediatly().test().assertNoValues().assertComplete();
+            TestEventListener.with(eventManager)
+                    .completeImmediatly()
+                    .test()
+                    .assertNoValues()
+                    .assertComplete();
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -469,71 +475,50 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_publish_dynamic_properties_multiple_times() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend")
+            wiremock.stubFor(get("/propertiesBackend")
                     .inScenario("multiple")
                     .whenScenarioStateIs(Scenario.STARTED)
-                    .willReturn(
-                        ok(
-                            Fixtures.backendResponseForProperties(
-                                List.of(
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
+                            List.of(
                                     new Fixtures.BackendProperty("key1", "initial val 1"),
-                                    new Fixtures.BackendProperty("key2", "initial val 2")
-                                ),
-                                objectMapper
-                            )
-                        )
-                    )
-                    .willSetStateTo("firstCall")
-            );
-            wiremock.stubFor(
-                get("/propertiesBackend")
+                                    new Fixtures.BackendProperty("key2", "initial val 2")),
+                            objectMapper)))
+                    .willSetStateTo("firstCall"));
+            wiremock.stubFor(get("/propertiesBackend")
                     .inScenario("multiple")
                     .whenScenarioStateIs("firstCall")
-                    .willReturn(
-                        ok(
-                            Fixtures.backendResponseForProperties(
-                                List.of(
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
+                            List.of(
                                     new Fixtures.BackendProperty("key1-updated", "updated val 1"),
                                     new Fixtures.BackendProperty("key2-updated", "updated val 2"),
-                                    new Fixtures.BackendProperty("key3", "initial val 3")
-                                ),
-                                objectMapper
-                            )
-                        )
-                    )
-                    .willSetStateTo("secondCall")
-            );
-            wiremock.stubFor(
-                get("/propertiesBackend")
+                                    new Fixtures.BackendProperty("key3", "initial val 3")),
+                            objectMapper)))
+                    .willSetStateTo("secondCall"));
+            wiremock.stubFor(get("/propertiesBackend")
                     .inScenario("multiple")
                     .whenScenarioStateIs("secondCall")
-                    .willReturn(
-                        ok(Fixtures.backendResponseForProperties(List.of(new Fixtures.BackendProperty("key4", "value 4")), objectMapper))
-                    )
-                    .willSetStateTo("thirdCall")
-            );
-            wiremock.stubFor(
-                get("/propertiesBackend")
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
+                            List.of(new Fixtures.BackendProperty("key4", "value 4")), objectMapper)))
+                    .willSetStateTo("thirdCall"));
+            wiremock.stubFor(get("/propertiesBackend")
                     .inScenario("multiple")
                     .whenScenarioStateIs("thirdCall")
                     .willReturn(ok(Fixtures.backendResponseForProperties(List.of(), objectMapper)))
-                    .willSetStateTo("fourthCall")
-            );
+                    .willSetStateTo("fourthCall"));
 
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener.with(eventManager)
-                .completeAfter(4)
-                .test();
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs =
+                    TestEventListener.with(eventManager).completeAfter(4).test();
 
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
@@ -561,41 +546,67 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValueCount(4)
-                .assertValueAt(0, propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertValueAt(1, propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1-updated").value("updated val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2-updated").value("updated val 2").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key3").value("initial val 3").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertValueAt(2, propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(Property.builder().key("key4").value("value 4").dynamic(true).encrypted(false).build())
-                    );
-                    return true;
-                })
-                .assertValueAt(3, propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(List.of());
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(30, TimeUnit.SECONDS)
+                    .assertValueCount(4)
+                    .assertValueAt(0, propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1")
+                                                .value("initial val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2")
+                                                .value("initial val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertValueAt(1, propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1-updated")
+                                                .value("updated val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2-updated")
+                                                .value("updated val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key3")
+                                                .value("initial val 3")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertValueAt(2, propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(Property.builder()
+                                        .key("key4")
+                                        .value("value 4")
+                                        .dynamic(true)
+                                        .encrypted(false)
+                                        .build()));
+                        return true;
+                    })
+                    .assertValueAt(3, propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of());
+                        return true;
+                    })
+                    .assertComplete();
 
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(
+                    getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -605,29 +616,23 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_not_publish_dynamic_properties_if_secondary_node_then_start_publish_if_primary() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend").willReturn(
-                    ok(
-                        Fixtures.backendResponseForProperties(
+            wiremock.stubFor(get("/propertiesBackend")
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
                             List.of(
-                                new Fixtures.BackendProperty("key1", "initial val 1"),
-                                new Fixtures.BackendProperty("key2", "initial val 2")
-                            ),
-                            objectMapper
-                        )
-                    )
-                )
-            );
+                                    new Fixtures.BackendProperty("key1", "initial val 1"),
+                                    new Fixtures.BackendProperty("key2", "initial val 2")),
+                            objectMapper))));
 
             var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
 
@@ -645,21 +650,30 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValueCount(1)
-                .assertValue(propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(10, TimeUnit.SECONDS)
+                    .assertValueCount(1)
+                    .assertValue(propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1")
+                                                .value("initial val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2")
+                                                .value("initial val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertComplete();
 
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(
+                    1,
+                    getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -673,29 +687,23 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_start_service_if_not_done_and_publish_computed_dynamic_properties() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend").willReturn(
-                    ok(
-                        Fixtures.backendResponseForProperties(
+            wiremock.stubFor(get("/propertiesBackend")
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
                             List.of(
-                                new Fixtures.BackendProperty("key1", "initial val 1"),
-                                new Fixtures.BackendProperty("key2", "initial val 2")
-                            ),
-                            objectMapper
-                        )
-                    )
-                )
-            );
+                                    new Fixtures.BackendProperty("key1", "initial val 1"),
+                                    new Fixtures.BackendProperty("key2", "initial val 2")),
+                            objectMapper))));
 
             var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
 
@@ -707,21 +715,29 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValueCount(1)
-                .assertValue(propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(10, TimeUnit.SECONDS)
+                    .assertValueCount(1)
+                    .assertValue(propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1")
+                                                .value("initial val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2")
+                                                .value("initial val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertComplete();
 
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(
+                    getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -731,54 +747,38 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_publish_dynamic_with_a_configuration_update() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend")
+            wiremock.stubFor(get("/propertiesBackend")
                     .inScenario("multiple")
                     .whenScenarioStateIs(Scenario.STARTED)
-                    .willReturn(
-                        ok(
-                            Fixtures.backendResponseForProperties(
-                                List.of(
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
+                            List.of(
                                     new Fixtures.BackendProperty("key1", "initial val 1"),
-                                    new Fixtures.BackendProperty("key2", "initial val 2")
-                                ),
-                                objectMapper
-                            )
-                        )
-                    )
-                    .willSetStateTo("firstCall")
-            );
-            wiremock.stubFor(
-                get("/propertiesOtherBackend")
+                                    new Fixtures.BackendProperty("key2", "initial val 2")),
+                            objectMapper)))
+                    .willSetStateTo("firstCall"));
+            wiremock.stubFor(get("/propertiesOtherBackend")
                     .inScenario("multiple")
                     .whenScenarioStateIs("firstCall")
-                    .willReturn(
-                        ok(
-                            Fixtures.backendResponseForProperties(
-                                List.of(
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
+                            List.of(
                                     new Fixtures.BackendProperty("key1-otherbackend", "value 1"),
-                                    new Fixtures.BackendProperty("key2-otherbackend", "value 2")
-                                ),
-                                objectMapper
-                            )
-                        )
-                    )
-                    .willSetStateTo("secondCall")
-            );
+                                    new Fixtures.BackendProperty("key2-otherbackend", "value 2")),
+                            objectMapper)))
+                    .willSetStateTo("secondCall"));
 
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener.with(eventManager)
-                .completeAfter(2)
-                .test();
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs =
+                    TestEventListener.with(eventManager).completeAfter(2).test();
 
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
@@ -789,14 +789,17 @@ class HttpDynamicPropertiesServiceTest {
             // Ensure first event has been published
             awaitEventCount(eventObs, 1);
 
-            final HttpDynamicPropertiesServiceConfiguration updatedConfiguration = configuration
-                .toBuilder()
-                .url(String.format("http://localhost:%d/propertiesOtherBackend", wiremock.getPort()))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration updatedConfiguration = configuration.toBuilder()
+                    .url(String.format("http://localhost:%d/propertiesOtherBackend", wiremock.getPort()))
+                    .build();
             // create new api to not share same object references
             final Api updatedApi = apiWithDynamicPropertiesEnabled();
             Fixtures.configureDynamicPropertiesForApi(updatedConfiguration, updatedApi, objectMapper);
-            cut.update(updatedApi).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
+            cut.update(updatedApi)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertNoErrors();
 
             // Wait for the second http call
             advanceTimeBy(5_000, cut, configuration);
@@ -805,31 +808,48 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValueCount(2)
-                .assertValueAt(0, propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertValueAt(1, propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1-otherbackend").value("value 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2-otherbackend").value("value 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(10, TimeUnit.SECONDS)
+                    .assertValueCount(2)
+                    .assertValueAt(0, propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1")
+                                                .value("initial val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2")
+                                                .value("initial val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertValueAt(1, propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1-otherbackend")
+                                                .value("value 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2-otherbackend")
+                                                .value("value 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertComplete();
 
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesOtherBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(
+                    getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesOtherBackend"))
+                    .withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -839,37 +859,29 @@ class HttpDynamicPropertiesServiceTest {
         @Test
         void should_stop_dynamic_with_a_configuration_update() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
-            final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration.builder()
-                .schedule("*/5 * * * * *")
-                .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
-                .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
-                .method(HttpMethod.GET)
-                .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
-                .build();
+            final HttpDynamicPropertiesServiceConfiguration configuration =
+                    HttpDynamicPropertiesServiceConfiguration.builder()
+                            .schedule("*/5 * * * * *")
+                            .url(String.format("http://localhost:%d/propertiesBackend", wiremock.getPort()))
+                            .transformation(EXTRACT_JSON_KEYS_TRANSFORMATION)
+                            .method(HttpMethod.GET)
+                            .headers(List.of(new HttpHeader(X_HEADER, HEADER_VALUE)))
+                            .build();
             Fixtures.configureDynamicPropertiesForApi(configuration, api, objectMapper);
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            wiremock.stubFor(
-                get("/propertiesBackend")
+            wiremock.stubFor(get("/propertiesBackend")
                     .inScenario("multiple")
                     .whenScenarioStateIs(Scenario.STARTED)
-                    .willReturn(
-                        ok(
-                            Fixtures.backendResponseForProperties(
-                                List.of(
+                    .willReturn(ok(Fixtures.backendResponseForProperties(
+                            List.of(
                                     new Fixtures.BackendProperty("key1", "initial val 1"),
-                                    new Fixtures.BackendProperty("key2", "initial val 2")
-                                ),
-                                objectMapper
-                            )
-                        )
-                    )
-                    .willSetStateTo("firstCall")
-            );
+                                    new Fixtures.BackendProperty("key2", "initial val 2")),
+                            objectMapper)))
+                    .willSetStateTo("firstCall"));
 
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener.with(eventManager)
-                .completeAfter(1)
-                .test();
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs =
+                    TestEventListener.with(eventManager).completeAfter(1).test();
 
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
@@ -884,25 +896,37 @@ class HttpDynamicPropertiesServiceTest {
             final Api updatedApi = apiWithDynamicPropertiesEnabled();
             updatedApi.getServices().getDynamicProperty().setEnabled(false);
             Fixtures.configureDynamicPropertiesForApi(configuration, updatedApi, objectMapper);
-            cut.update(updatedApi).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
+            cut.update(updatedApi)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertNoErrors();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
 
-            eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValueCount(1)
-                .assertValue(propertyEvent -> {
-                    Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
-                        List.of(
-                            Property.builder().key("key1").value("initial val 1").dynamic(true).encrypted(false).build(),
-                            Property.builder().key("key2").value("initial val 2").dynamic(true).encrypted(false).build()
-                        )
-                    );
-                    return true;
-                })
-                .assertComplete();
+            eventObs.awaitDone(10, TimeUnit.SECONDS)
+                    .assertValueCount(1)
+                    .assertValue(propertyEvent -> {
+                        Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent)
+                                .contains(List.of(
+                                        Property.builder()
+                                                .key("key1")
+                                                .value("initial val 1")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build(),
+                                        Property.builder()
+                                                .key("key2")
+                                                .value("initial val 2")
+                                                .dynamic(true)
+                                                .encrypted(false)
+                                                .build()));
+                        return true;
+                    })
+                    .assertComplete();
 
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+            wiremock.verify(
+                    getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
         }
     }
 
@@ -916,10 +940,9 @@ class HttpDynamicPropertiesServiceTest {
      * @param eventObs the observer collecting the published events
      * @param count    the number of events to wait for
      */
-    private static void awaitEventCount(TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs, int count) {
-        await()
-            .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> eventObs.assertValueCount(count));
+    private static void awaitEventCount(
+            TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs, int count) {
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> eventObs.assertValueCount(count));
     }
 
     /**
@@ -932,11 +955,13 @@ class HttpDynamicPropertiesServiceTest {
      * @param cut           the class under test
      * @param configuration the configuration needed to build the {@link CronTrigger}
      */
-    private void advanceTimeBy(final int delay, HttpDynamicPropertiesService cut, HttpDynamicPropertiesServiceConfiguration configuration) {
+    private void advanceTimeBy(
+            final int delay,
+            HttpDynamicPropertiesService cut,
+            HttpDynamicPropertiesServiceConfiguration configuration) {
         awaitNextTimerScheduled();
-        TimeProvider.overrideClock(
-            Clock.fixed(Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS) + delay), ZoneId.systemDefault())
-        );
+        TimeProvider.overrideClock(Clock.fixed(
+                Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS) + delay), ZoneId.systemDefault()));
         cut.cronTrigger = new CronTrigger(configuration.getSchedule());
         testScheduler.advanceTimeBy(delay, TimeUnit.MILLISECONDS);
     }
@@ -950,9 +975,7 @@ class HttpDynamicPropertiesServiceTest {
      */
     private void awaitNextTimerScheduled() {
         final long expected = timersConsumed.incrementAndGet();
-        await()
-            .atMost(10, TimeUnit.SECONDS)
-            .until(() -> countingScheduler.scheduledTimers.get() >= expected);
+        await().atMost(10, TimeUnit.SECONDS).until(() -> countingScheduler.scheduledTimers.get() >= expected);
     }
 
     /**
@@ -989,10 +1012,11 @@ class HttpDynamicPropertiesServiceTest {
 
     private HttpDynamicPropertiesService buildServiceFor(AbstractApi api) {
         return switch (api) {
-            case Api asHttpApi -> new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(asHttpApi, applicationContext));
-            case NativeApi asNativeApi -> new HttpDynamicPropertiesService(
-                new DefaultManagementDeploymentContext(asNativeApi, applicationContext)
-            );
+            case Api asHttpApi ->
+                new HttpDynamicPropertiesService(new DefaultManagementDeploymentContext(asHttpApi, applicationContext));
+            case NativeApi asNativeApi ->
+                new HttpDynamicPropertiesService(
+                        new DefaultManagementDeploymentContext(asNativeApi, applicationContext));
             case null, default -> throw new IllegalArgumentException("Api must be an instance of Api or NativeApi");
         };
     }

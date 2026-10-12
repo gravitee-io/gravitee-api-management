@@ -74,12 +74,15 @@ public interface ApiCRDAdapter {
     @Mapping(target = "plans", expression = "java(mapPlans(exportEntity))")
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
-    @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
+    @Mapping(
+            target = "notifyMembers",
+            expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
     @Mapping(target = "consoleNotificationConfiguration", source = "portalNotificationConfig")
     @Mapping(target = "groups", source = "apiEntity.groups")
     @Mapping(target = "allowedInApiProducts", source = "apiEntity.allowedInApiProducts")
     @Mapping(target = "allowMultiJwtOauth2Subscriptions", source = "apiEntity.allowMultiJwtOauth2Subscriptions")
-    ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
+    ApiCRDSpec toCRDSpec(
+            ExportApiEntity exportEntity, ApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
     @Mapping(target = "metadata", source = "exportEntity.metadata")
@@ -87,18 +90,22 @@ public interface ApiCRDAdapter {
     @Mapping(target = "plans", expression = "java(mapPlans(exportEntity))")
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
-    @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
+    @Mapping(
+            target = "notifyMembers",
+            expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
     @Mapping(target = "consoleNotificationConfiguration", source = "portalNotificationConfig")
     @Mapping(target = "groups", source = "apiEntity.groups")
     @Mapping(target = "allowMultiJwtOauth2Subscriptions", source = "apiEntity.allowMultiJwtOauth2Subscriptions")
     @Mapping(target = "nativeAnalytics", source = "apiEntity.analytics")
-    ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
+    ApiCRDSpec toCRDSpec(
+            ExportApiEntity exportEntity,
+            NativeApiEntity apiEntity,
+            PortalNotificationConfigEntity portalNotificationConfig);
 
     default ApiCRDSpec toCRDSpec(
-        ExportApiEntity exportEntity,
-        GenericApiEntity apiEntity,
-        PortalNotificationConfigEntity portalNotificationConfig
-    ) {
+            ExportApiEntity exportEntity,
+            GenericApiEntity apiEntity,
+            PortalNotificationConfigEntity portalNotificationConfig) {
         if (apiEntity instanceof ApiEntity entity) {
             return toCRDSpec(exportEntity, entity, portalNotificationConfig);
         } else if (apiEntity instanceof NativeApiEntity nativeApiEntity) {
@@ -108,6 +115,7 @@ public interface ApiCRDAdapter {
     }
 
     PlanCRD toCRDPlan(PlanEntity planEntity);
+
     PlanCRD toCRDPlan(NativePlanEntity planEntity);
 
     default PlanCRD toCRDPlan(GenericPlanEntity genericPlanEntity) {
@@ -121,11 +129,8 @@ public interface ApiCRDAdapter {
 
     default Map<String, PlanCRD> mapPlans(ExportApiEntity definition) {
         var plansMap = new HashMap<String, PlanCRD>();
-        var nonClosedPlans = definition
-            .getPlans()
-            .stream()
-            .filter(plan -> !plan.isClosed())
-            .toList();
+        var nonClosedPlans =
+                definition.getPlans().stream().filter(plan -> !plan.isClosed()).toList();
         for (var plan : nonClosedPlans) {
             var key = planKey(plan);
             if (plansMap.containsKey(key)) {
@@ -141,14 +146,12 @@ public interface ApiCRDAdapter {
 
     default Map<String, PageCRD> mapPages(ExportApiEntity definition) {
         return definition.getPages() != null
-            ? definition
-                .getPages()
-                .stream()
-                .map(this::clearAutoFetchedContent)
-                .filter(Objects::nonNull)
-                .map(this::toCRDPage)
-                .collect(toMap(this::pageKey, identity(), (a, b) -> a, LinkedHashMap::new))
-            : null;
+                ? definition.getPages().stream()
+                        .map(this::clearAutoFetchedContent)
+                        .filter(Objects::nonNull)
+                        .map(this::toCRDPage)
+                        .collect(toMap(this::pageKey, identity(), (a, b) -> a, LinkedHashMap::new))
+                : null;
     }
 
     private PageEntity clearAutoFetchedContent(PageEntity page) {
@@ -158,17 +161,18 @@ public interface ApiCRDAdapter {
         }
 
         String pageType = source.getType();
-        boolean isMarkdownOrSwagger = PageType.SWAGGER.name().equals(page.getType()) || PageType.MARKDOWN.name().equals(page.getType());
-        boolean isAutoFetch =
-            "github-fetcher".equals(pageType) ||
-            "gitlab-fetcher".equals(pageType) ||
-            "git-fetcher".equals(pageType) ||
-            "http-fetcher".equals(pageType) ||
-            "bitbucket-fetcher".equals(pageType);
+        boolean isMarkdownOrSwagger = PageType.SWAGGER.name().equals(page.getType())
+                || PageType.MARKDOWN.name().equals(page.getType());
+        boolean isAutoFetch = "github-fetcher".equals(pageType)
+                || "gitlab-fetcher".equals(pageType)
+                || "git-fetcher".equals(pageType)
+                || "http-fetcher".equals(pageType)
+                || "bitbucket-fetcher".equals(pageType);
 
         if (isMarkdownOrSwagger && isAutoFetch) {
             // Remove auto-fetched pages that was generated from ROOT github source
-            if (page.getMetadata() != null && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
+            if (page.getMetadata() != null
+                    && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
                 return null;
             } else {
                 page.setContent(null);
@@ -192,12 +196,11 @@ public interface ApiCRDAdapter {
 
     default SequencedSet<MemberCRD> mapMembers(ExportApiEntity definition) {
         return definition.getMembers() != null
-            ? definition
-                .getMembers()
-                .stream()
-                .map(me -> new MemberCRD(me.getId(), null, null, me.getRoles().getFirst().getName()))
-                .collect(Collectors.toCollection(LinkedHashSet::new))
-            : null;
+                ? definition.getMembers().stream()
+                        .map(me -> new MemberCRD(
+                                me.getId(), null, null, me.getRoles().getFirst().getName()))
+                        .collect(Collectors.toCollection(LinkedHashSet::new))
+                : null;
     }
 
     @Named("deserializeConfig")

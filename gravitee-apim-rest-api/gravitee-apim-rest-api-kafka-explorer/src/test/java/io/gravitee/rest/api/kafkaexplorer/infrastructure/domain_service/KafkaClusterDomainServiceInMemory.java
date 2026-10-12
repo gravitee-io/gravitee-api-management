@@ -98,13 +98,12 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public TopicsPage listTopics(
-        KafkaClusterStandaloneConfiguration config,
-        String nameFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String nameFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder) {
         if (exception != null) {
             throw exception;
         }
@@ -113,11 +112,12 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         if ("desc".equalsIgnoreCase(sortOrder)) {
             comparator = comparator.reversed();
         }
-        List<KafkaTopic> filtered = topics
-            .stream()
-            .filter(t -> nameFilter == null || nameFilter.isBlank() || t.name().toLowerCase().contains(nameFilter.toLowerCase()))
-            .sorted(comparator)
-            .toList();
+        List<KafkaTopic> filtered = topics.stream()
+                .filter(t -> nameFilter == null
+                        || nameFilter.isBlank()
+                        || t.name().toLowerCase().contains(nameFilter.toLowerCase()))
+                .sorted(comparator)
+                .toList();
 
         int totalCount = filtered.size();
         int fromIndex = Math.min(page * perPage, totalCount);
@@ -144,14 +144,13 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public ConsumerGroupsPage listConsumerGroups(
-        KafkaClusterStandaloneConfiguration config,
-        String nameFilter,
-        String topicFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String nameFilter,
+            String topicFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder) {
         if (exception != null) {
             throw exception;
         }
@@ -160,11 +159,12 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         if ("desc".equalsIgnoreCase(sortOrder)) {
             comparator = comparator.reversed();
         }
-        List<ConsumerGroup> filtered = consumerGroups
-            .stream()
-            .filter(g -> nameFilter == null || nameFilter.isBlank() || g.groupId().toLowerCase().contains(nameFilter.toLowerCase()))
-            .sorted(comparator)
-            .toList();
+        List<ConsumerGroup> filtered = consumerGroups.stream()
+                .filter(g -> nameFilter == null
+                        || nameFilter.isBlank()
+                        || g.groupId().toLowerCase().contains(nameFilter.toLowerCase()))
+                .sorted(comparator)
+                .toList();
 
         int totalCount = filtered.size();
         int fromIndex = Math.min(page * perPage, totalCount);
@@ -183,15 +183,14 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public BrowseMessagesResult browseMessages(
-        KafkaClusterStandaloneConfiguration config,
-        String topicName,
-        Integer partition,
-        String offsetMode,
-        Long offsetValue,
-        String keyFilter,
-        String valueFilter,
-        int limit
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String topicName,
+            Integer partition,
+            String offsetMode,
+            Long offsetValue,
+            String keyFilter,
+            String valueFilter,
+            int limit) {
         if (exception != null) {
             throw exception;
         }
@@ -200,15 +199,14 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     @Override
     public void tailMessages(
-        KafkaClusterStandaloneConfiguration config,
-        String topicName,
-        Integer partition,
-        String keyFilter,
-        String valueFilter,
-        int maxMessages,
-        int durationSeconds,
-        MessageConsumer consumer
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String topicName,
+            Integer partition,
+            String keyFilter,
+            String valueFilter,
+            int maxMessages,
+            int durationSeconds,
+            MessageConsumer consumer) {
         if (exception != null) {
             throw exception;
         }

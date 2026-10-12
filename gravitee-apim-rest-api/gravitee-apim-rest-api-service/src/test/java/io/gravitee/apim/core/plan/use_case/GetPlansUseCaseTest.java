@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -72,11 +71,10 @@ class GetPlansUseCaseTest {
     @BeforeEach
     void setUp() {
         getPlansUseCase = new GetPlansUseCase(
-            planSearchQueryService,
-            subscriptionQueryService,
-            apiProductCrudService,
-            planExcludedGroupsDomainService
-        );
+                planSearchQueryService,
+                subscriptionQueryService,
+                apiProductCrudService,
+                planExcludedGroupsDomainService);
     }
 
     @Nested
@@ -85,23 +83,25 @@ class GetPlansUseCaseTest {
         @Test
         void should_return_plans_list_sorted_by_order() {
             // use fixtures so Plan has a V4 definition (avoid NPE on getPlanStatus())
-            Plan planOrder2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan-2").order(2).build();
-            Plan planOrder1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan-1").order(1).build();
-            Plan planOrder3 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan-3").order(3).build();
+            Plan planOrder2 =
+                    PlanFixtures.aPlanHttpV4().toBuilder().id("plan-2").order(2).build();
+            Plan planOrder1 =
+                    PlanFixtures.aPlanHttpV4().toBuilder().id("plan-1").order(1).build();
+            Plan planOrder3 =
+                    PlanFixtures.aPlanHttpV4().toBuilder().id("plan-3").order(3).build();
 
             PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
 
-            when(
-                planSearchQueryService.searchPlans(
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                    eq(query),
-                    eq(USER),
-                    eq(true)
-                )
-            ).thenReturn(List.of(planOrder2, planOrder1, planOrder3));
+            when(planSearchQueryService.searchPlans(
+                            eq(API_PRODUCT_ID),
+                            eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                            eq(query),
+                            eq(USER),
+                            eq(true)))
+                    .thenReturn(List.of(planOrder2, planOrder1, planOrder3));
 
-            var input = GetPlansUseCase.Input.of(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, true, query, null);
+            var input = GetPlansUseCase.Input.of(
+                    API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, true, query, null);
             var output = getPlansUseCase.execute(input);
 
             assertThat(output.plans()).hasSize(3);
@@ -109,22 +109,24 @@ class GetPlansUseCaseTest {
             assertThat(output.plans()).extracting(Plan::getOrder).containsExactly(1, 2, 3);
             assertThat(output.plans()).extracting(Plan::getId).containsExactly("plan-1", "plan-2", "plan-3");
 
-            verify(planSearchQueryService).searchPlans(
-                eq(API_PRODUCT_ID),
-                eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                eq(query),
-                eq(USER),
-                eq(true)
-            );
+            verify(planSearchQueryService)
+                    .searchPlans(
+                            eq(API_PRODUCT_ID),
+                            eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                            eq(query),
+                            eq(USER),
+                            eq(true));
         }
 
         @Test
         void should_return_empty_list_when_no_plans() {
             PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
 
-            when(planSearchQueryService.searchPlans(anyString(), any(), any(), anyString(), anyBoolean())).thenReturn(List.of());
+            when(planSearchQueryService.searchPlans(anyString(), any(), any(), anyString(), anyBoolean()))
+                    .thenReturn(List.of());
 
-            var input = GetPlansUseCase.Input.of(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, false, query, null);
+            var input = GetPlansUseCase.Input.of(
+                    API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, false, query, null);
             var output = getPlansUseCase.execute(input);
 
             assertThat(output.plans()).isEmpty();
@@ -135,62 +137,57 @@ class GetPlansUseCaseTest {
         void should_pass_authenticated_user_and_is_admin_to_search() {
             PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
 
-            when(planSearchQueryService.searchPlans(anyString(), any(), any(), anyString(), anyBoolean())).thenReturn(List.of());
+            when(planSearchQueryService.searchPlans(anyString(), any(), any(), anyString(), anyBoolean()))
+                    .thenReturn(List.of());
 
             var input = new GetPlansUseCase.Input(
-                API_PRODUCT_ID,
-                "custom-user",
-                false,
-                query,
-                null,
-                null,
-                GenericPlanEntity.ReferenceType.API_PRODUCT
-            );
+                    API_PRODUCT_ID,
+                    "custom-user",
+                    false,
+                    query,
+                    null,
+                    null,
+                    GenericPlanEntity.ReferenceType.API_PRODUCT);
             getPlansUseCase.execute(input);
 
-            verify(planSearchQueryService).searchPlans(
-                eq(API_PRODUCT_ID),
-                eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                eq(query),
-                eq("custom-user"),
-                eq(false)
-            );
+            verify(planSearchQueryService)
+                    .searchPlans(
+                            eq(API_PRODUCT_ID),
+                            eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                            eq(query),
+                            eq("custom-user"),
+                            eq(false));
         }
 
         @Test
         void should_filter_out_subscribed_plans_when_subscribableBy_provided() {
-            Plan subscribedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder().id("subscribed-plan").order(1).build();
-            Plan availablePlan = PlanFixtures.HttpV4.anApiKey().toBuilder().id("available-plan").order(2).build();
+            Plan subscribedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("subscribed-plan")
+                    .order(1)
+                    .build();
+            Plan availablePlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("available-plan")
+                    .order(2)
+                    .build();
 
             PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
 
-            when(
-                planSearchQueryService.searchPlans(
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                    eq(query),
-                    eq(USER),
-                    eq(true)
-                )
-            ).thenReturn(List.of(subscribedPlan, availablePlan));
+            when(planSearchQueryService.searchPlans(
+                            eq(API_PRODUCT_ID),
+                            eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                            eq(query),
+                            eq(USER),
+                            eq(true)))
+                    .thenReturn(List.of(subscribedPlan, availablePlan));
 
-            SubscriptionEntity subscription = SubscriptionEntity.builder().planId("subscribed-plan").build();
-            when(
-                subscriptionQueryService.findActiveByApplicationIdAndReferenceIdAndReferenceType(
-                    eq(APPLICATION_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(SubscriptionReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(List.of(subscription));
+            SubscriptionEntity subscription =
+                    SubscriptionEntity.builder().planId("subscribed-plan").build();
+            when(subscriptionQueryService.findActiveByApplicationIdAndReferenceIdAndReferenceType(
+                            eq(APPLICATION_ID), eq(API_PRODUCT_ID), eq(SubscriptionReferenceType.API_PRODUCT)))
+                    .thenReturn(List.of(subscription));
 
             var input = GetPlansUseCase.Input.of(
-                API_PRODUCT_ID,
-                GenericPlanEntity.ReferenceType.API_PRODUCT,
-                USER,
-                true,
-                query,
-                APPLICATION_ID
-            );
+                    API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, true, query, APPLICATION_ID);
             var output = getPlansUseCase.execute(input);
 
             assertThat(output.plans()).hasSize(1);
@@ -199,37 +196,31 @@ class GetPlansUseCaseTest {
 
         @Test
         void should_return_all_plans_when_no_subscriptions_exist() {
-            Plan plan1 = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-1").order(1).build();
-            Plan plan2 = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-2").order(2).build();
+            Plan plan1 = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("plan-1")
+                    .order(1)
+                    .build();
+            Plan plan2 = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("plan-2")
+                    .order(2)
+                    .build();
 
             PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
 
-            when(
-                planSearchQueryService.searchPlans(
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                    eq(query),
-                    eq(USER),
-                    eq(true)
-                )
-            ).thenReturn(List.of(plan1, plan2));
+            when(planSearchQueryService.searchPlans(
+                            eq(API_PRODUCT_ID),
+                            eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                            eq(query),
+                            eq(USER),
+                            eq(true)))
+                    .thenReturn(List.of(plan1, plan2));
 
-            when(
-                subscriptionQueryService.findActiveByApplicationIdAndReferenceIdAndReferenceType(
-                    eq(APPLICATION_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(SubscriptionReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(List.of());
+            when(subscriptionQueryService.findActiveByApplicationIdAndReferenceIdAndReferenceType(
+                            eq(APPLICATION_ID), eq(API_PRODUCT_ID), eq(SubscriptionReferenceType.API_PRODUCT)))
+                    .thenReturn(List.of());
 
             var input = GetPlansUseCase.Input.of(
-                API_PRODUCT_ID,
-                GenericPlanEntity.ReferenceType.API_PRODUCT,
-                USER,
-                true,
-                query,
-                APPLICATION_ID
-            );
+                    API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, true, query, APPLICATION_ID);
             var output = getPlansUseCase.execute(input);
 
             assertThat(output.plans()).hasSize(2);
@@ -238,35 +229,39 @@ class GetPlansUseCaseTest {
 
         @Test
         void should_filter_plans_by_excluded_groups_for_non_admin_api_product() {
-            Plan allowedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder().id("allowed-plan").order(1).build();
-            Plan restrictedPlan = PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .id("restricted-plan")
-                .order(2)
-                .excludedGroups(List.of("grp-excluded"))
-                .build();
+            Plan allowedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("allowed-plan")
+                    .order(1)
+                    .build();
+            Plan restrictedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("restricted-plan")
+                    .order(2)
+                    .excludedGroups(List.of("grp-excluded"))
+                    .build();
 
             PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
-            ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId("DEFAULT").build();
+            ApiProduct apiProduct = ApiProduct.builder()
+                    .id(API_PRODUCT_ID)
+                    .environmentId("DEFAULT")
+                    .build();
 
-            when(
-                planSearchQueryService.searchPlans(
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                    eq(query),
-                    eq(USER),
-                    eq(false)
-                )
-            ).thenReturn(List.of(allowedPlan, restrictedPlan));
+            when(planSearchQueryService.searchPlans(
+                            eq(API_PRODUCT_ID),
+                            eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                            eq(query),
+                            eq(USER),
+                            eq(false)))
+                    .thenReturn(List.of(allowedPlan, restrictedPlan));
             when(apiProductCrudService.get(API_PRODUCT_ID)).thenReturn(apiProduct);
-            when(planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(eq(apiProduct), any(), eq(USER))).thenAnswer(
-                invocation -> {
-                    List<String> excludedGroups = invocation.getArgument(1);
-                    return excludedGroups == null || excludedGroups.isEmpty();
-                }
-            );
+            when(planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(
+                            eq(apiProduct), any(), eq(USER)))
+                    .thenAnswer(invocation -> {
+                        List<String> excludedGroups = invocation.getArgument(1);
+                        return excludedGroups == null || excludedGroups.isEmpty();
+                    });
 
-            var input = GetPlansUseCase.Input.of(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, false, query, null);
+            var input = GetPlansUseCase.Input.of(
+                    API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, false, query, null);
             var output = getPlansUseCase.execute(input);
 
             assertThat(output.plans()).hasSize(1);
@@ -275,26 +270,32 @@ class GetPlansUseCaseTest {
 
         @Test
         void should_not_filter_when_subscribableBy_is_null() {
-            Plan plan1 = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-1").order(1).build();
-            Plan plan2 = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-2").order(2).build();
+            Plan plan1 = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("plan-1")
+                    .order(1)
+                    .build();
+            Plan plan2 = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .id("plan-2")
+                    .order(2)
+                    .build();
 
             PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
 
-            when(
-                planSearchQueryService.searchPlans(
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                    eq(query),
-                    eq(USER),
-                    eq(true)
-                )
-            ).thenReturn(List.of(plan1, plan2));
+            when(planSearchQueryService.searchPlans(
+                            eq(API_PRODUCT_ID),
+                            eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                            eq(query),
+                            eq(USER),
+                            eq(true)))
+                    .thenReturn(List.of(plan1, plan2));
 
-            var input = GetPlansUseCase.Input.of(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, true, query, null);
+            var input = GetPlansUseCase.Input.of(
+                    API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, true, query, null);
             var output = getPlansUseCase.execute(input);
 
             assertThat(output.plans()).hasSize(2);
-            verify(subscriptionQueryService, never()).findActiveByApplicationIdAndReferenceIdAndReferenceType(any(), any(), any());
+            verify(subscriptionQueryService, never())
+                    .findActiveByApplicationIdAndReferenceIdAndReferenceType(any(), any(), any());
         }
     }
 
@@ -305,13 +306,9 @@ class GetPlansUseCaseTest {
         void should_return_single_plan_by_id() {
             Plan plan = Plan.builder().id(PLAN_ID).name("My Plan").build();
 
-            when(
-                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-                    eq(PLAN_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(plan);
+            when(planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT)))
+                    .thenReturn(plan);
 
             var input = GetPlansUseCase.Input.of(API_PRODUCT_ID, PLAN_ID, GenericPlanEntity.ReferenceType.API_PRODUCT);
             var output = getPlansUseCase.execute(input);
@@ -321,33 +318,25 @@ class GetPlansUseCaseTest {
             assertThat(output.plan().get().getId()).isEqualTo(PLAN_ID);
             assertThat(output.plan().get().getName()).isEqualTo("My Plan");
 
-            verify(planSearchQueryService).findByPlanIdAndReferenceIdAndReferenceType(
-                eq(PLAN_ID),
-                eq(API_PRODUCT_ID),
-                eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            );
+            verify(planSearchQueryService)
+                    .findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT));
         }
 
         @Test
         void should_use_input_of_factory_for_single_plan() {
             Plan plan = Plan.builder().id(PLAN_ID).build();
 
-            when(
-                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-                    eq(PLAN_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(plan);
+            when(planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT)))
+                    .thenReturn(plan);
 
             var input = GetPlansUseCase.Input.of(API_PRODUCT_ID, PLAN_ID, GenericPlanEntity.ReferenceType.API_PRODUCT);
             getPlansUseCase.execute(input);
 
-            verify(planSearchQueryService).findByPlanIdAndReferenceIdAndReferenceType(
-                eq(PLAN_ID),
-                eq(API_PRODUCT_ID),
-                eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            );
+            verify(planSearchQueryService)
+                    .findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT));
         }
     }
 }

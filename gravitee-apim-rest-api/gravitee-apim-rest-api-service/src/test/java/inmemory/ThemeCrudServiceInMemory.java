@@ -65,21 +65,19 @@ public class ThemeCrudServiceInMemory implements ThemeCrudService, InMemoryAlter
 
     @Override
     public Theme get(String id) {
-        return storage
-            .stream()
-            .filter(theme -> Objects.equals(id, theme.getId()))
-            .findAny()
-            .orElseThrow(() -> new ThemeNotFoundException(id));
+        return storage.stream()
+                .filter(theme -> Objects.equals(id, theme.getId()))
+                .findAny()
+                .orElseThrow(() -> new ThemeNotFoundException(id));
     }
 
     @Override
     public Optional<Theme> findByIdAndEnvironmentId(String id, String environmentId) {
-        return storage
-            .stream()
-            .filter(theme -> Objects.equals(id, theme.getId()))
-            .filter(theme -> theme.getReferenceType() == Theme.ReferenceType.ENVIRONMENT)
-            .filter(theme -> Objects.equals(environmentId, theme.getReferenceId()))
-            .findAny();
+        return storage.stream()
+                .filter(theme -> Objects.equals(id, theme.getId()))
+                .filter(theme -> theme.getReferenceType() == Theme.ReferenceType.ENVIRONMENT)
+                .filter(theme -> Objects.equals(environmentId, theme.getReferenceId()))
+                .findAny();
     }
 
     @Override

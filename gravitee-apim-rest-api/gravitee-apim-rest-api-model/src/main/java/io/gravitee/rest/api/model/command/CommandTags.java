@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @RequiredArgsConstructor
 @Schema(enumAsRef = true)
 public enum CommandTags {

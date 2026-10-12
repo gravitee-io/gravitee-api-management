@@ -38,11 +38,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface LogMapper {
     LogMapper INSTANCE = Mappers.getMapper(LogMapper.class);
 
     Log convert(ApplicationRequest applicationRequest);
+
     Log convert(ApplicationRequestItem applicationRequestItem);
 
     @Mapping(target = "plan", source = "plan.id")
@@ -62,6 +63,7 @@ public interface LogMapper {
     SearchLogsFilters convert(SearchApplicationLogsParam searchLogsParam);
 
     Range convert(ResponseTimeRange responseTimeRange);
+
     List<Range> convertResponseTimeRanges(List<ResponseTimeRange> responseTimeRanges);
 
     @Mapping(target = "timestamp", qualifiedByName = "mapTimestamp")
@@ -72,14 +74,15 @@ public interface LogMapper {
     MessageLogContent convert(AggregatedMessageLog.Message messageLog);
 
     default SearchLogsFilters convert(String applicationId, SearchApplicationLogsParam searchLogsParam) {
-        return convert(searchLogsParam).toBuilder().applicationIds(Set.of(applicationId)).build();
+        return convert(searchLogsParam).toBuilder()
+                .applicationIds(Set.of(applicationId))
+                .build();
     }
 
     default Log convert(
-        ConnectionLog connectionLog,
-        Optional<ConnectionLogDetail> connectionLogDetail,
-        Map<String, Map<String, Object>> metadata
-    ) {
+            ConnectionLog connectionLog,
+            Optional<ConnectionLogDetail> connectionLogDetail,
+            Map<String, Map<String, Object>> metadata) {
         var log = convert(connectionLog);
         log.setMetadata(metadata);
 
@@ -95,7 +98,8 @@ public interface LogMapper {
         if (value == null) {
             return new HashMap<>();
         }
-        return value.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapToObjectMap(e.getValue())));
+        return value.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> mapToObjectMap(e.getValue())));
     }
 
     default Map<String, Object> mapToObjectMap(Map<String, String> value) {

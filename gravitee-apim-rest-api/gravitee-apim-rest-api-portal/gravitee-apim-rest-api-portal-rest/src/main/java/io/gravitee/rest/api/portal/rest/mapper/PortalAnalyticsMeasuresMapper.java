@@ -82,53 +82,48 @@ public interface PortalAnalyticsMeasuresMapper {
 
     default MeasuresRequest toCoreRequest(AnalyticsMeasuresRequest request) {
         return new MeasuresRequest(
-            toCoreTimeRange(request.getTimeRange()),
-            toCoreFilters(request.getFilters()),
-            request.getMetrics().stream().map(this::toCoreMetric).toList()
-        );
+                toCoreTimeRange(request.getTimeRange()),
+                toCoreFilters(request.getFilters()),
+                request.getMetrics().stream().map(this::toCoreMetric).toList());
     }
 
     default FacetsRequest toCoreRequest(AnalyticsFacetsRequest request) {
         return new FacetsRequest(
-            toCoreTimeRange(request.getTimeRange()),
-            toCoreFilters(request.getFilters()),
-            request.getMetrics().stream().map(this::toCoreMetric).toList(),
-            toCoreFacets(request.getBy()),
-            request.getLimit(),
-            toCoreNumberRanges(request.getRanges())
-        );
+                toCoreTimeRange(request.getTimeRange()),
+                toCoreFilters(request.getFilters()),
+                request.getMetrics().stream().map(this::toCoreMetric).toList(),
+                toCoreFacets(request.getBy()),
+                request.getLimit(),
+                toCoreNumberRanges(request.getRanges()));
     }
 
     default TimeSeriesRequest toCoreRequest(AnalyticsTimeSeriesRequest request) {
         return new TimeSeriesRequest(
-            toCoreTimeRange(request.getTimeRange()),
-            request.getInterval().toMillis(),
-            toCoreFilters(request.getFilters()),
-            request.getMetrics().stream().map(this::toCoreMetric).toList(),
-            toCoreFacets(request.getBy()),
-            request.getLimit(),
-            toCoreNumberRanges(request.getRanges())
-        );
+                toCoreTimeRange(request.getTimeRange()),
+                request.getInterval().toMillis(),
+                toCoreFilters(request.getFilters()),
+                request.getMetrics().stream().map(this::toCoreMetric).toList(),
+                toCoreFacets(request.getBy()),
+                request.getLimit(),
+                toCoreNumberRanges(request.getRanges()));
     }
 
     default MetricMeasuresRequest toCoreMetric(AnalyticsComputationMetricRequest metric) {
         return new MetricMeasuresRequest(
-            MetricSpec.Name.valueOf(metric.getName().name()),
-            toCoreMeasures(metric.getMeasures()),
-            toCoreFilters(metric.getFilters())
-        );
+                MetricSpec.Name.valueOf(metric.getName().name()),
+                toCoreMeasures(metric.getMeasures()),
+                toCoreFilters(metric.getFilters()));
     }
 
     default FacetMetricMeasuresRequest toCoreMetric(AnalyticsFacetMetricRequest metric) {
         var sorts = metric.getSorts() == null
-            ? List.<FacetMetricMeasuresRequest.Sort>of()
-            : metric.getSorts().stream().map(this::toCoreSort).toList();
+                ? List.<FacetMetricMeasuresRequest.Sort>of()
+                : metric.getSorts().stream().map(this::toCoreSort).toList();
         return new FacetMetricMeasuresRequest(
-            MetricSpec.Name.valueOf(metric.getName().name()),
-            toCoreMeasures(metric.getMeasures()),
-            toCoreFilters(metric.getFilters()),
-            sorts
-        );
+                MetricSpec.Name.valueOf(metric.getName().name()),
+                toCoreMeasures(metric.getMeasures()),
+                toCoreFilters(metric.getFilters()),
+                sorts);
     }
 
     AnalyticsMeasuresResponse toPortalResponse(MeasuresResponse response);
@@ -143,21 +138,21 @@ public interface PortalAnalyticsMeasuresMapper {
 
     default Filter toCoreFilter(AnalyticsFilter filter) {
         return switch (filter.getActualInstance()) {
-            case AnalyticsStringFilter s -> new Filter(
-                FilterSpec.Name.valueOf(s.getName().name()),
-                FilterOperator.valueOf(s.getOperator().name()),
-                s.getValue()
-            );
-            case AnalyticsNumberFilter n -> new Filter(
-                FilterSpec.Name.valueOf(n.getName().name()),
-                FilterOperator.valueOf(n.getOperator().name()),
-                n.getValue()
-            );
-            case AnalyticsArrayFilter a -> new Filter(
-                FilterSpec.Name.valueOf(a.getName().name()),
-                FilterOperator.valueOf(a.getOperator().name()),
-                a.getValue()
-            );
+            case AnalyticsStringFilter s ->
+                new Filter(
+                        FilterSpec.Name.valueOf(s.getName().name()),
+                        FilterOperator.valueOf(s.getOperator().name()),
+                        s.getValue());
+            case AnalyticsNumberFilter n ->
+                new Filter(
+                        FilterSpec.Name.valueOf(n.getName().name()),
+                        FilterOperator.valueOf(n.getOperator().name()),
+                        n.getValue());
+            case AnalyticsArrayFilter a ->
+                new Filter(
+                        FilterSpec.Name.valueOf(a.getName().name()),
+                        FilterOperator.valueOf(a.getOperator().name()),
+                        a.getValue());
             case null, default -> throw new BadRequestException("Unknown or unsupported analytics filter shape");
         };
     }
@@ -168,35 +163,34 @@ public interface PortalAnalyticsMeasuresMapper {
 
     default FacetMetricMeasuresRequest.Sort toCoreSort(AnalyticsSort sort) {
         return new FacetMetricMeasuresRequest.Sort(
-            MetricSpec.Measure.valueOf(sort.getMeasure().name()),
-            FacetMetricMeasuresRequest.Sort.Order.valueOf(sort.getOrder().name())
-        );
+                MetricSpec.Measure.valueOf(sort.getMeasure().name()),
+                FacetMetricMeasuresRequest.Sort.Order.valueOf(sort.getOrder().name()));
     }
 
     default List<Filter> toCoreFilters(List<AnalyticsFilter> filters) {
-        return filters == null ? List.of() : filters.stream().map(this::toCoreFilter).toList();
+        return filters == null
+                ? List.of()
+                : filters.stream().map(this::toCoreFilter).toList();
     }
 
     default List<NumberRange> toCoreNumberRanges(List<AnalyticsNumberRange> ranges) {
-        return ranges == null ? List.of() : ranges.stream().map(this::toCoreNumberRange).toList();
+        return ranges == null
+                ? List.of()
+                : ranges.stream().map(this::toCoreNumberRange).toList();
     }
 
     default List<MetricSpec.Measure> toCoreMeasures(List<AnalyticsMeasureName> measures) {
         return measures == null
-            ? List.of()
-            : measures
-                .stream()
-                .map(m -> MetricSpec.Measure.valueOf(m.name()))
-                .toList();
+                ? List.of()
+                : measures.stream()
+                        .map(m -> MetricSpec.Measure.valueOf(m.name()))
+                        .toList();
     }
 
     default List<FacetSpec.Name> toCoreFacets(List<AnalyticsFacetName> by) {
         return by == null
-            ? List.of()
-            : by
-                .stream()
-                .map(f -> FacetSpec.Name.valueOf(f.name()))
-                .toList();
+                ? List.of()
+                : by.stream().map(f -> FacetSpec.Name.valueOf(f.name())).toList();
     }
 
     default AnalyticsMeasuresResponseMetric toPortalMetric(MetricMeasuresResponse metric) {
@@ -216,7 +210,8 @@ public interface PortalAnalyticsMeasuresMapper {
             dto.setUnit(AnalyticsUnitName.fromValue(metric.unit().name()));
         }
         if (metric.buckets() != null) {
-            dto.setBuckets(metric.buckets().stream().map(this::toPortalFacetBucket).toList());
+            dto.setBuckets(
+                    metric.buckets().stream().map(this::toPortalFacetBucket).toList());
         }
         return dto;
     }
@@ -228,7 +223,9 @@ public interface PortalAnalyticsMeasuresMapper {
             dto.setUnit(AnalyticsUnitName.fromValue(metric.unit().name()));
         }
         if (metric.buckets() != null) {
-            dto.setBuckets(metric.buckets().stream().map(this::toPortalTimeSeriesBucket).toList());
+            dto.setBuckets(metric.buckets().stream()
+                    .map(this::toPortalTimeSeriesBucket)
+                    .toList());
         }
         return dto;
     }
@@ -237,18 +234,19 @@ public interface PortalAnalyticsMeasuresMapper {
         var wrapper = new AnalyticsFacetBucket();
         if (bucket.buckets() == null) {
             var leaf = new AnalyticsFacetBucketLeaf()
-                .type(AnalyticsFacetBucketLeaf.TypeEnum.LEAF)
-                .key(bucket.key())
-                .name(bucket.name() != null ? bucket.name() : bucket.key())
-                .measures(toPortalMeasures(bucket.measures()));
+                    .type(AnalyticsFacetBucketLeaf.TypeEnum.LEAF)
+                    .key(bucket.key())
+                    .name(bucket.name() != null ? bucket.name() : bucket.key())
+                    .measures(toPortalMeasures(bucket.measures()));
             wrapper.setActualInstance(leaf);
             return wrapper;
         }
         var group = new AnalyticsFacetBucketGroup()
-            .type(AnalyticsFacetBucketGroup.TypeEnum.GROUP)
-            .key(bucket.key())
-            .name(bucket.name() != null ? bucket.name() : bucket.key());
-        group.setBuckets(bucket.buckets().stream().map(this::toPortalFacetBucket).toList());
+                .type(AnalyticsFacetBucketGroup.TypeEnum.GROUP)
+                .key(bucket.key())
+                .name(bucket.name() != null ? bucket.name() : bucket.key());
+        group.setBuckets(
+                bucket.buckets().stream().map(this::toPortalFacetBucket).toList());
         wrapper.setActualInstance(group);
         return wrapper;
     }
@@ -257,24 +255,27 @@ public interface PortalAnalyticsMeasuresMapper {
         var wrapper = new AnalyticsTimeSeriesBucket();
         if (bucket.buckets() == null) {
             var leaf = new AnalyticsTimeSeriesBucketLeaf()
-                .type(AnalyticsTimeSeriesBucketLeaf.TypeEnum.LEAF)
-                .key(OffsetDateTime.parse(bucket.key()))
-                .timestamp(bucket.timestamp())
-                .measures(toPortalMeasures(bucket.measures()));
+                    .type(AnalyticsTimeSeriesBucketLeaf.TypeEnum.LEAF)
+                    .key(OffsetDateTime.parse(bucket.key()))
+                    .timestamp(bucket.timestamp())
+                    .measures(toPortalMeasures(bucket.measures()));
             wrapper.setActualInstance(leaf);
             return wrapper;
         }
         var group = new AnalyticsTimeSeriesBucketGroup()
-            .type(AnalyticsTimeSeriesBucketGroup.TypeEnum.GROUP)
-            .key(OffsetDateTime.parse(bucket.key()))
-            .timestamp(bucket.timestamp());
-        group.setBuckets(bucket.buckets().stream().map(this::toPortalFacetBucket).toList());
+                .type(AnalyticsTimeSeriesBucketGroup.TypeEnum.GROUP)
+                .key(OffsetDateTime.parse(bucket.key()))
+                .timestamp(bucket.timestamp());
+        group.setBuckets(
+                bucket.buckets().stream().map(this::toPortalFacetBucket).toList());
         wrapper.setActualInstance(group);
         return wrapper;
     }
 
     default AnalyticsMeasure toPortalMeasure(Measure measure) {
-        return new AnalyticsMeasure().name(AnalyticsMeasureName.fromValue(measure.name().name())).value(measure.value());
+        return new AnalyticsMeasure()
+                .name(AnalyticsMeasureName.fromValue(measure.name().name()))
+                .value(measure.value());
     }
 
     List<AnalyticsMeasure> toPortalMeasures(List<Measure> measures);

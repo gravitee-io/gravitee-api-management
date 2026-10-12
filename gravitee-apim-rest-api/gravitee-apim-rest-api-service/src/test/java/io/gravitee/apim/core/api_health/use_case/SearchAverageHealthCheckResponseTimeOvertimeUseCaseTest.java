@@ -84,20 +84,20 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         // Given
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         var expectedData = new AverageHealthCheckResponseTimeOvertime(
-            new AverageHealthCheckResponseTimeOvertime.TimeRange(FROM, TO, INTERVAL),
-            List.of(3L)
-        );
+                new AverageHealthCheckResponseTimeOvertime.TimeRange(FROM, TO, INTERVAL), List.of(3L));
         apiHealthQueryService.averageHealthCheckResponseTimeOvertime = expectedData;
 
         // When
-        var output = useCase
-            .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
-            .blockingGet();
+        var output = useCase.execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(
+                        ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
+                .blockingGet();
 
         // Then
-        assertThat(requireNonNull(output).averageHealthCheckResponseTimeOvertime()).isEqualTo(expectedData);
+        assertThat(requireNonNull(output).averageHealthCheckResponseTimeOvertime())
+                .isEqualTo(expectedData);
 
-        var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery.class);
+        var queryCaptor =
+                ArgumentCaptor.forClass(ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery.class);
         verify(apiHealthQueryService).averageResponseTimeOvertime(queryCaptor.capture());
         assertThat(queryCaptor.getValue()).satisfies(query -> {
             assertSoftly(softly -> {
@@ -116,11 +116,10 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         // Given
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
-                .blockingGet()
-        );
+        var throwable =
+                catchThrowable(() -> useCase.execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(
+                                ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
+                        .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -132,11 +131,10 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aMessageApiV4()));
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, "another", MY_API, FROM, TO))
-                .blockingGet()
-        );
+        var throwable =
+                catchThrowable(() -> useCase.execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(
+                                ORGANIZATION_ID, "another", MY_API, FROM, TO))
+                        .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -148,11 +146,10 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
-                .blockingGet()
-        );
+        var throwable =
+                catchThrowable(() -> useCase.execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(
+                                ORGANIZATION_ID, ENV_ID, MY_API, FROM, TO))
+                        .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);

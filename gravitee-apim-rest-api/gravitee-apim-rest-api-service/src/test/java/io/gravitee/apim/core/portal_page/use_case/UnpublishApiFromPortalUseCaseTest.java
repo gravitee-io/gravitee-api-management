@@ -55,18 +55,18 @@ class UnpublishApiFromPortalUseCaseTest {
 
     private PortalNavigationItemId failingUpdateOf;
 
-    private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory() {
-        @Override
-        public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
-            if (portalNavigationItem.getId().equals(failingUpdateOf)) {
-                throw new IllegalStateException("update failed");
-            }
-            return super.update(portalNavigationItem);
-        }
-    };
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory(
-        crudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory crudService =
+            new PortalNavigationItemsCrudServiceInMemory() {
+                @Override
+                public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
+                    if (portalNavigationItem.getId().equals(failingUpdateOf)) {
+                        throw new IllegalStateException("update failed");
+                    }
+                    return super.update(portalNavigationItem);
+                }
+            };
+    private final PortalNavigationItemsQueryServiceInMemory queryService =
+            new PortalNavigationItemsQueryServiceInMemory(crudService.storage());
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private UnpublishApiFromPortalUseCase useCase;
     private PublishApiToPortalUseCase publishUseCase;
@@ -78,24 +78,24 @@ class UnpublishApiFromPortalUseCaseTest {
         var sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         var apiOwnedNavigationDomainService = new ApiOwnedNavigationDomainService(queryService, crudService);
         var domainService = new PortalNavigationItemDomainService(
-            crudService,
-            queryService,
-            pageContentCrudService,
-            pageContentQueryService,
-            apiCrudService,
-            sourceDomainService,
-            apiOwnedNavigationDomainService
-        );
+                crudService,
+                queryService,
+                pageContentCrudService,
+                pageContentQueryService,
+                apiCrudService,
+                sourceDomainService,
+                apiOwnedNavigationDomainService);
         var validatorService = new PortalNavigationItemValidatorService(
-            queryService,
-            pageContentQueryService,
-            new ApiProductQueryServiceInMemory(),
-            sourceDomainService,
-            apiCrudService
-        );
+                queryService,
+                pageContentQueryService,
+                new ApiProductQueryServiceInMemory(),
+                sourceDomainService,
+                apiCrudService);
         useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
-        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
+        publishUseCase =
+                new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
+        apiCrudService.initWith(List.of(
+                Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
 
     @Test
@@ -121,7 +121,9 @@ class UnpublishApiFromPortalUseCaseTest {
         var listing = aListing(section, API_ID);
         var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
         folder.markAsRoot();
-        var nestedPage = aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+        var nestedPage = aPage("Setup", folder.getId()).toBuilder()
+                .reference(ownedBy(API_ID))
+                .build();
         nestedPage.updateParent(folder);
         queryService.initWith(List.of(section, listing, folder, nestedPage));
 
@@ -159,7 +161,9 @@ class UnpublishApiFromPortalUseCaseTest {
         var section = aSection();
         var listing = aListing(section, API_ID);
         var otherListing = aListing(section, OTHER_API_ID);
-        var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+        var foreign = aPage("Other overview", null).toBuilder()
+                .reference(ownedBy(OTHER_API_ID))
+                .build();
         foreign.markAsRoot();
         queryService.initWith(List.of(section, listing, otherListing, foreign));
 
@@ -187,7 +191,8 @@ class UnpublishApiFromPortalUseCaseTest {
 
     @Test
     void should_reject_when_api_is_not_listed() {
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        var page =
+                aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
         page.markAsRoot();
         queryService.initWith(List.of(page));
 
@@ -227,7 +232,10 @@ class UnpublishApiFromPortalUseCaseTest {
     @Test
     void should_publish_again_by_showing_the_same_listing_row() {
         var section = aSection();
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+        var page = aPage("Overview", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(false)
+                .build();
         page.markAsRoot();
         queryService.initWith(List.of(section, page));
         var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId());
@@ -250,7 +258,8 @@ class UnpublishApiFromPortalUseCaseTest {
     void should_leave_the_listing_visible_when_hiding_the_items_fails_so_that_a_retry_succeeds() {
         var section = aSection();
         var listing = aListing(section, API_ID);
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        var page =
+                aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
         page.markAsRoot();
         queryService.initWith(List.of(section, listing, page));
         failingUpdateOf = page.getId();

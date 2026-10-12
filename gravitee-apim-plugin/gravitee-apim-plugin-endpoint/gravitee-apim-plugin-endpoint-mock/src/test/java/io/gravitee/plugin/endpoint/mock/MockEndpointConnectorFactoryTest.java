@@ -57,14 +57,14 @@ class MockEndpointConnectorFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
+    @ValueSource(strings = {"wrong", "", "  ", "{\"unknown-key\":\"value\"}"})
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
         MockEndpointConnector connector = cut.createConnector(deploymentContext, configuration, "");
         assertThat(connector).isNull();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "{}", "{\"messageContent\":\"my message content\"}" })
+    @ValueSource(strings = {"{}", "{\"messageContent\":\"my message content\"}"})
     void shouldCreateConnectorWithRightConfiguration(String configuration) {
         MockEndpointConnector connector = cut.createConnector(deploymentContext, configuration, "");
         assertThat(connector).isNotNull();

@@ -67,10 +67,17 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
 
     @Override
     public void run() {
-        log.debug("Refresh subscriptions #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        log.debug(
+                "Refresh subscriptions #{} started at {}",
+                counter.incrementAndGet(),
+                Instant.now().toString());
 
-        closeExpiredSubscriptionsUsecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AuditActor.builder().userId("system").build()));
+        closeExpiredSubscriptionsUsecase.execute(new CloseExpiredSubscriptionsUseCase.Input(
+                AuditActor.builder().userId("system").build()));
 
-        log.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
+        log.debug(
+                "Refresh subscriptions #{} ended at {}",
+                counter.get(),
+                Instant.now().toString());
     }
 }

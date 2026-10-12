@@ -30,7 +30,8 @@ public class OrganizationIdsFetcher {
     public Maybe<Set<String>> fetch(final Set<String> environments) {
         if (!configuration.useLegacyEnvironmentHrids() && environments != null) {
             return Maybe.defer(() -> {
-                Set<String> organizationIdsByEnvironments = environmentRepository.findOrganizationIdsByEnvironments(environments);
+                Set<String> organizationIdsByEnvironments =
+                        environmentRepository.findOrganizationIdsByEnvironments(environments);
                 if (organizationIdsByEnvironments != null) {
                     return Maybe.just(organizationIdsByEnvironments);
                 } else {

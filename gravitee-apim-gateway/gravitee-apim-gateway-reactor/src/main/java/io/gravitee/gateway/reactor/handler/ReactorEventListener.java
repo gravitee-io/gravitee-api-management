@@ -26,7 +26,8 @@ import io.gravitee.gateway.reactor.ReactorEvent;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ReactorEventListener extends AbstractService<ReactorEventListener> implements EventListener<ReactorEvent, Reactable> {
+public class ReactorEventListener extends AbstractService<ReactorEventListener>
+        implements EventListener<ReactorEvent, Reactable> {
 
     protected final EventManager eventManager;
     protected final ReactorHandlerRegistry reactorHandlerRegistry;

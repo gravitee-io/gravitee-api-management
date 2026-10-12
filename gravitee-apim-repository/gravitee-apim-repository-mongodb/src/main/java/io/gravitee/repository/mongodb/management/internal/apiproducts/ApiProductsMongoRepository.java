@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.apiproducts;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
 import java.util.Optional;
 import java.util.Set;
@@ -24,7 +23,9 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ApiProductsMongoRepository extends MongoRepository<ApiProductMongo, String>, ApiProductsMongoRepositoryCustom {
+public interface ApiProductsMongoRepository
+        extends MongoRepository<ApiProductMongo, String>, ApiProductsMongoRepositoryCustom {
     Optional<ApiProductMongo> findByEnvironmentIdAndName(String environmentId, String name);
+
     Set<ApiProductMongo> findByEnvironmentId(String environmentId) throws TechnicalException;
 }

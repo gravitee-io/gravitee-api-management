@@ -29,10 +29,7 @@ public class ApiLifecycleStateDomainService {
     private final WorkflowQueryService workflowQueryService;
 
     public Api.ApiLifecycleState validateAndSanitizeForUpdate(
-        String apiId,
-        Api.ApiLifecycleState currentState,
-        Api.ApiLifecycleState newState
-    ) {
+            String apiId, Api.ApiLifecycleState currentState, Api.ApiLifecycleState newState) {
         if (newState == null || (Api.ApiLifecycleState.DEPRECATED != currentState && currentState == newState)) {
             return currentState;
         }
@@ -46,7 +43,8 @@ public class ApiLifecycleStateDomainService {
             }
             case CREATED -> {
                 var status = workflowQueryService.findAllByApiIdAndType(apiId, Workflow.Type.REVIEW);
-                if (!status.isEmpty() && Workflow.State.IN_REVIEW == status.get(0).getState()) {
+                if (!status.isEmpty()
+                        && Workflow.State.IN_REVIEW == status.get(0).getState()) {
                     throw new InvalidApiLifecycleStateException(newState.name());
                 }
             }

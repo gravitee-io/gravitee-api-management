@@ -41,6 +41,7 @@ public class AuthzEntityReactorDeployable implements AuthzScopedDeployable {
     /** Engine type name (e.g. "User", "Doc"). Optional — null on legacy publishers, in which
      *  case the kind-default is used to build the engine UID. */
     private String entityType;
+
     private Map<String, Object> attributes;
     private List<String> parents;
     private String environmentId;

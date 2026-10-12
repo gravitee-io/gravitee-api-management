@@ -83,7 +83,8 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
         // Read load-balancing
         JsonNode loadBalancingNode = node.get("load_balancing");
         if (loadBalancingNode != null) {
-            LoadBalancer loadBalancer = loadBalancingNode.traverse(jp.getCodec()).readValueAs(LoadBalancer.class);
+            LoadBalancer loadBalancer =
+                    loadBalancingNode.traverse(jp.getCodec()).readValueAs(LoadBalancer.class);
             group.setLoadBalancer(loadBalancer);
         }
 
@@ -101,7 +102,8 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
 
         JsonNode httpClientOptionsNode = node.get("http");
         if (httpClientOptionsNode != null) {
-            HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
+            HttpClientOptions httpClientOptions =
+                    httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
             group.setHttpClientOptions(httpClientOptions);
         } else {
             group.setHttpClientOptions(new HttpClientOptions());
@@ -109,9 +111,8 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
 
         JsonNode httpClientSslOptionsNode = node.get("ssl");
         if (httpClientSslOptionsNode != null) {
-            HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode
-                .traverse(jp.getCodec())
-                .readValueAs(HttpClientSslOptions.class);
+            HttpClientSslOptions httpClientSslOptions =
+                    httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
             group.setHttpClientSslOptions(httpClientSslOptions);
         }
 
@@ -119,20 +120,16 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
         if (headersNode != null && !headersNode.isEmpty(null)) {
             if (headersNode.isArray()) {
                 List<HttpHeader> headers = headersNode
-                    .traverse(ctxt.getParser().getCodec())
-                    .readValueAs(new TypeReference<ArrayList<HttpHeader>>() {});
+                        .traverse(ctxt.getParser().getCodec())
+                        .readValueAs(new TypeReference<ArrayList<HttpHeader>>() {});
                 group.setHeaders(headers);
             } else {
                 Map<String, String> headers = headersNode
-                    .traverse(ctxt.getParser().getCodec())
-                    .readValueAs(new TypeReference<HashMap<String, String>>() {});
-                group.setHeaders(
-                    headers
-                        .entrySet()
-                        .stream()
+                        .traverse(ctxt.getParser().getCodec())
+                        .readValueAs(new TypeReference<HashMap<String, String>>() {});
+                group.setHeaders(headers.entrySet().stream()
                         .map(entry -> new HttpHeader(entry.getKey(), entry.getValue()))
-                        .collect(Collectors.toList())
-                );
+                        .collect(Collectors.toList()));
             }
         }
 
@@ -143,11 +140,9 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
                 if (group.getHeaders() == null) {
                     group.setHeaders(Collections.singletonList(new HttpHeader(HttpHeaders.HOST, hostHeader)));
                 } else {
-                    Optional<HttpHeader> first = group
-                        .getHeaders()
-                        .stream()
-                        .filter(httpHeader -> HttpHeaders.HOST.equals(httpHeader.getName()))
-                        .findFirst();
+                    Optional<HttpHeader> first = group.getHeaders().stream()
+                            .filter(httpHeader -> HttpHeaders.HOST.equals(httpHeader.getName()))
+                            .findFirst();
                     if (first.isPresent()) {
                         first.get().setValue(hostHeader);
                     } else {

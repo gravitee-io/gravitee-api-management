@@ -168,16 +168,15 @@ public class PageTypeTest {
 
     private static Stream<Arguments> providePageType() {
         return Stream.of(
-            Arguments.of(ASCIIDOC, true),
-            Arguments.of(ASYNCAPI, true),
-            Arguments.of(MARKDOWN, true),
-            Arguments.of(MARKDOWN_TEMPLATE, true),
-            Arguments.of(SWAGGER, true),
-            Arguments.of(FOLDER, false),
-            Arguments.of(LINK, false),
-            Arguments.of(ROOT, false),
-            Arguments.of(SYSTEM_FOLDER, false),
-            Arguments.of(TRANSLATION, true)
-        );
+                Arguments.of(ASCIIDOC, true),
+                Arguments.of(ASYNCAPI, true),
+                Arguments.of(MARKDOWN, true),
+                Arguments.of(MARKDOWN_TEMPLATE, true),
+                Arguments.of(SWAGGER, true),
+                Arguments.of(FOLDER, false),
+                Arguments.of(LINK, false),
+                Arguments.of(ROOT, false),
+                Arguments.of(SYSTEM_FOLDER, false),
+                Arguments.of(TRANSLATION, true));
     }
 }

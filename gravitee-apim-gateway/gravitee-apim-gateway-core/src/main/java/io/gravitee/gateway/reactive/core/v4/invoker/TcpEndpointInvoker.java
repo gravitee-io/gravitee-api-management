@@ -66,7 +66,8 @@ public class TcpEndpointInvoker implements TcpInvoker {
         return null;
     }
 
-    // Do not remove this signature until all connectors are migrated to HttpEndpointConnectors#connect(HttpExecutionContext ctx)
+    // Do not remove this signature until all connectors are migrated to
+    // HttpEndpointConnectors#connect(HttpExecutionContext ctx)
     protected Completable connect(final TcpEndpointConnector endpointConnector, final TcpExecutionContext ctx) {
         return endpointConnector.connect(ctx);
     }

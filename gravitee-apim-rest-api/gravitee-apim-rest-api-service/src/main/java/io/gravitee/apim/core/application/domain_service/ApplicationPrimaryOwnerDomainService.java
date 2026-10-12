@@ -20,5 +20,5 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 
 public interface ApplicationPrimaryOwnerDomainService {
     PrimaryOwnerEntity getApplicationPrimaryOwner(String organizationId, String applicationId)
-        throws ApplicationPrimaryOwnerNotFoundException;
+            throws ApplicationPrimaryOwnerNotFoundException;
 }

@@ -41,7 +41,8 @@ public class IndexablePageDocumentTransformer implements DocumentTransformer<Ind
         document.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
         if (indexable.getReferenceId() != null) {
-            document.add(new StringField(FIELD_REFERENCE_TYPE, indexable.getReferenceType().toLowerCase(), Field.Store.NO));
+            document.add(new StringField(
+                    FIELD_REFERENCE_TYPE, indexable.getReferenceType().toLowerCase(), Field.Store.NO));
             document.add(new StringField(FIELD_REFERENCE_ID, indexable.getReferenceId(), Field.Store.YES));
         }
 

@@ -115,43 +115,41 @@ public class MembershipService_IntegrationMembershipTest {
     @BeforeEach
     public void setUp() throws Exception {
         reset(
-            membershipRepository,
-            apiSearchService,
-            userService,
-            auditService,
-            roleService,
-            identityService,
-            apiRepository,
-            integrationRepository
-        );
+                membershipRepository,
+                apiSearchService,
+                userService,
+                auditService,
+                roleService,
+                identityService,
+                apiRepository,
+                integrationRepository);
 
         membershipService = new MembershipServiceImpl(
-            identityService,
-            userService,
-            null,
-            null,
-            null,
-            null,
-            membershipRepository,
-            roleService,
-            null,
-            null,
-            apiSearchService,
-            null,
-            apiRepository,
-            null,
-            null,
-            null,
-            auditService,
-            null,
-            integrationRepository,
-            node,
-            objectMapper,
-            commandRepository,
-            null,
-            null,
-            null
-        );
+                identityService,
+                userService,
+                null,
+                null,
+                null,
+                null,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                apiSearchService,
+                null,
+                apiRepository,
+                null,
+                null,
+                null,
+                auditService,
+                null,
+                integrationRepository,
+                node,
+                objectMapper,
+                commandRepository,
+                null,
+                null,
+                null);
     }
 
     @Nested
@@ -176,24 +174,16 @@ public class MembershipService_IntegrationMembershipTest {
 
             when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
-            when(
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    existingUserId,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.INTEGRATION,
-                    INTEGRATION_ID
-                )
-            )
-                .thenReturn(Set.of())
-                .thenReturn(Set.of(newMembership));
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            existingUserId,
+                            MembershipMemberType.USER,
+                            MembershipReferenceType.INTEGRATION,
+                            INTEGRATION_ID))
+                    .thenReturn(Set.of())
+                    .thenReturn(Set.of(newMembership));
 
             MemberEntity createdMember = membershipService.createNewMembershipForIntegration(
-                GraviteeContext.getExecutionContext(),
-                INTEGRATION_ID,
-                existingUserId,
-                null,
-                INTEGRATION_OWNER
-            );
+                    GraviteeContext.getExecutionContext(), INTEGRATION_ID, existingUserId, null, INTEGRATION_OWNER);
 
             assertThat(createdMember).isNotNull();
         }
@@ -209,26 +199,22 @@ public class MembershipService_IntegrationMembershipTest {
             existingMembership.setReferenceId(INTEGRATION_ID);
             existingMembership.setMemberId(existingUserId);
             existingMembership.setMemberType(MembershipMemberType.USER);
-            when(
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    existingUserId,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.INTEGRATION,
-                    INTEGRATION_ID
-                )
-            ).thenReturn(Set.of(existingMembership));
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            existingUserId,
+                            MembershipMemberType.USER,
+                            MembershipReferenceType.INTEGRATION,
+                            INTEGRATION_ID))
+                    .thenReturn(Set.of(existingMembership));
 
             when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
-            assertThatThrownBy(() ->
-                membershipService.createNewMembershipForIntegration(
-                    GraviteeContext.getExecutionContext(),
-                    INTEGRATION_ID,
-                    existingUserId,
-                    null,
-                    INTEGRATION_OWNER
-                )
-            ).isInstanceOf(MembershipAlreadyExistsException.class);
+            assertThatThrownBy(() -> membershipService.createNewMembershipForIntegration(
+                            GraviteeContext.getExecutionContext(),
+                            INTEGRATION_ID,
+                            existingUserId,
+                            null,
+                            INTEGRATION_OWNER))
+                    .isInstanceOf(MembershipAlreadyExistsException.class);
         }
 
         @Test
@@ -242,24 +228,17 @@ public class MembershipService_IntegrationMembershipTest {
             newMembership.setReferenceId(INTEGRATION_ID);
             newMembership.setMemberId(EXTERNAL_USER_ID);
             newMembership.setMemberType(MembershipMemberType.USER);
-            when(
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    EXTERNAL_USER_ID,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.INTEGRATION,
-                    INTEGRATION_ID
-                )
-            ).thenReturn(Set.of(newMembership));
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            EXTERNAL_USER_ID,
+                            MembershipMemberType.USER,
+                            MembershipReferenceType.INTEGRATION,
+                            INTEGRATION_ID))
+                    .thenReturn(Set.of(newMembership));
 
             when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity createdMember = membershipService.createNewMembershipForIntegration(
-                GraviteeContext.getExecutionContext(),
-                INTEGRATION_ID,
-                null,
-                externalReference,
-                INTEGRATION_OWNER
-            );
+                    GraviteeContext.getExecutionContext(), INTEGRATION_ID, null, externalReference, INTEGRATION_OWNER);
 
             assertThat(createdMember).isNotNull();
         }
@@ -289,66 +268,49 @@ public class MembershipService_IntegrationMembershipTest {
             updatedMembership.setReferenceId(INTEGRATION_ID);
             updatedMembership.setMemberId(userId);
             updatedMembership.setMemberType(MembershipMemberType.USER);
-            when(
-                roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    userId,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.INTEGRATION,
-                    INTEGRATION_ID
-                )
-            )
-                .thenReturn(Set.of(existingMembership))
-                .thenReturn(Set.of(existingMembership))
-                .thenReturn(Set.of(updatedMembership));
+            when(roleService.findByScopeAndName(
+                            RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            userId, MembershipMemberType.USER, MembershipReferenceType.INTEGRATION, INTEGRATION_ID))
+                    .thenReturn(Set.of(existingMembership))
+                    .thenReturn(Set.of(existingMembership))
+                    .thenReturn(Set.of(updatedMembership));
             when(membershipRepository.findById("existing-membership-id")).thenReturn(Optional.of(existingMembership));
-            when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())).thenReturn(
-                Optional.of(new RoleEntity())
-            );
-            when(
-                roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
             when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
-                GraviteeContext.getExecutionContext(),
-                INTEGRATION_ID,
-                userId,
-                INTEGRATION_OWNER
-            );
+                    GraviteeContext.getExecutionContext(), INTEGRATION_ID, userId, INTEGRATION_OWNER);
 
             assertThat(updatedMember).isNotNull();
-            assertThat(updatedMember.getRoles()).flatExtracting(RoleEntity::getId).contains(INTEGRATION_OWNER);
+            assertThat(updatedMember.getRoles())
+                    .flatExtracting(RoleEntity::getId)
+                    .contains(INTEGRATION_OWNER);
         }
 
         @Test
         public void should_not_update_membership_for_user_without_existing_membership() throws Exception {
             String userId = "user-id";
-            when(
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    userId,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.INTEGRATION,
-                    INTEGRATION_ID
-                )
-            ).thenReturn(Set.of());
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            userId, MembershipMemberType.USER, MembershipReferenceType.INTEGRATION, INTEGRATION_ID))
+                    .thenReturn(Set.of());
 
             when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
-                GraviteeContext.getExecutionContext(),
-                INTEGRATION_ID,
-                userId,
-                INTEGRATION_OWNER
-            );
+                    GraviteeContext.getExecutionContext(), INTEGRATION_ID, userId, INTEGRATION_OWNER);
             assertThat(updatedMember).isNull();
         }
     }
@@ -363,30 +325,28 @@ public class MembershipService_IntegrationMembershipTest {
             membership.setRoleId(INTEGRATION_PRIMARY_OWNER);
             membership.setReferenceType(MembershipReferenceType.INTEGRATION);
 
-            when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())).thenReturn(
-                Optional.of(new RoleEntity())
-            );
-            when(
-                roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(role(INTEGRATION_PRIMARY_OWNER)));
-            when(
-                roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    EXISTING_USER_ID,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.INTEGRATION,
-                    INTEGRATION_ID
-                )
-            ).thenReturn(Set.of(membership));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(role(INTEGRATION_PRIMARY_OWNER)));
+            when(roleService.findByScopeAndName(
+                            RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            EXISTING_USER_ID,
+                            MembershipMemberType.USER,
+                            MembershipReferenceType.INTEGRATION,
+                            INTEGRATION_ID))
+                    .thenReturn(Set.of(membership));
 
-            assertThatThrownBy(() ->
-                membershipService.deleteMemberForIntegration(GraviteeContext.getExecutionContext(), INTEGRATION_ID, EXISTING_USER_ID)
-            ).isInstanceOf(PrimaryOwnerRemovalException.class);
+            assertThatThrownBy(() -> membershipService.deleteMemberForIntegration(
+                            GraviteeContext.getExecutionContext(), INTEGRATION_ID, EXISTING_USER_ID))
+                    .isInstanceOf(PrimaryOwnerRemovalException.class);
         }
 
         @Test
@@ -400,35 +360,34 @@ public class MembershipService_IntegrationMembershipTest {
             membership.setReferenceId(INTEGRATION_ID);
             membership.setMemberType(MembershipMemberType.USER);
 
-            when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())).thenReturn(
-                Optional.of(new RoleEntity())
-            );
-            when(
-                roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                roleService.findByScopeAndName(RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
-            ).thenReturn(Optional.of(new RoleEntity()));
-            when(
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                    EXISTING_USER_ID,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.INTEGRATION,
-                    INTEGRATION_ID
-                )
-            ).thenReturn(Set.of(membership));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API_PRODUCT, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Optional.of(new RoleEntity()));
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            EXISTING_USER_ID,
+                            MembershipMemberType.USER,
+                            MembershipReferenceType.INTEGRATION,
+                            INTEGRATION_ID))
+                    .thenReturn(Set.of(membership));
 
-            membershipService.deleteMemberForIntegration(GraviteeContext.getExecutionContext(), INTEGRATION_ID, EXISTING_USER_ID);
+            membershipService.deleteMemberForIntegration(
+                    GraviteeContext.getExecutionContext(), INTEGRATION_ID, EXISTING_USER_ID);
 
-            verify(membershipRepository).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                EXISTING_USER_ID,
-                MembershipMemberType.USER,
-                MembershipReferenceType.INTEGRATION,
-                INTEGRATION_ID
-            );
+            verify(membershipRepository)
+                    .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            EXISTING_USER_ID,
+                            MembershipMemberType.USER,
+                            MembershipReferenceType.INTEGRATION,
+                            INTEGRATION_ID);
             verify(membershipRepository).delete(deletedUserId.capture());
             assertThat(deletedUserId.getValue()).contains(membership.getId());
         }
@@ -437,21 +396,23 @@ public class MembershipService_IntegrationMembershipTest {
     private void mockExistingUser(String existingUserId) {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(existingUserId);
-        when(userService.findById(GraviteeContext.getExecutionContext(), existingUserId)).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), existingUserId))
+                .thenReturn(userEntity);
     }
 
     private void mockRole(String roleId) {
         var role = role(roleId);
         lenient()
-            .when(roleService.findByScopeAndName(RoleScope.INTEGRATION, roleId, GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(role));
+                .when(roleService.findByScopeAndName(
+                        RoleScope.INTEGRATION, roleId, GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(role));
         when(roleService.findByIds(Set.of(roleId))).thenReturn(Map.of(roleId, role));
     }
 
     private static RoleEntity role(String roleId) {
         Map<String, char[]> perms = new HashMap<>();
         for (Permission perm : OrganizationPermission.values()) {
-            perms.put(perm.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() });
+            perms.put(perm.getName(), new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
         }
         RoleEntity role = new RoleEntity();
         role.setScope(RoleScope.INTEGRATION);
@@ -472,7 +433,8 @@ public class MembershipService_IntegrationMembershipTest {
         userEntity.setId(EXTERNAL_USER_ID);
         userEntity.setSource("source");
         userEntity.setSourceId(externalReference);
-        when(userService.findBySource(anyString(), anyString(), anyString(), eq(false))).thenReturn(userEntity);
+        when(userService.findBySource(anyString(), anyString(), anyString(), eq(false)))
+                .thenReturn(userEntity);
 
         mockExistingUser(EXTERNAL_USER_ID);
     }

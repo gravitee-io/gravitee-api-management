@@ -33,25 +33,39 @@ import java.util.*;
  */
 public interface RoleService {
     RoleEntity create(ExecutionContext executionContext, final NewRoleEntity roleEntity);
+
     void createOrUpdateSystemRole(
-        ExecutionContext executionContext,
-        SystemRole roleName,
-        RoleScope roleScope,
-        Permission[] permissions,
-        String organizationId
-    );
+            ExecutionContext executionContext,
+            SystemRole roleName,
+            RoleScope roleScope,
+            Permission[] permissions,
+            String organizationId);
+
     void createOrUpdateSystemRoles(ExecutionContext executionContext, String organizationId);
+
     void delete(ExecutionContext executionContext, String roleId);
+
     List<RoleEntity> findAllByOrganization(String organizationId);
+
     RoleEntity findById(String roleId);
+
     Map<String, RoleEntity> findByIds(Set<String> roleIds);
+
     Optional<RoleEntity> findByIdAndOrganizationId(String roleId, String organizationId);
+
     List<RoleEntity> findByScope(RoleScope scope, String organizationId);
+
     Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name, String organizationId);
+
     List<RoleEntity> findDefaultRoleByScopes(String organizationId, RoleScope... scopes);
+
     boolean hasPermission(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
+
     void initialize(ExecutionContext executionContext, String organizationId);
+
     RoleEntity update(ExecutionContext executionContext, UpdateRoleEntity role);
+
     RoleScope findScopeByMembershipReferenceType(MembershipReferenceType type);
+
     RoleEntity findPrimaryOwnerRoleByOrganization(String organizationId, RoleScope roleScope);
 }

@@ -39,11 +39,10 @@ class JsonMappingExceptionMapperTest {
     void should_sanitize_class_name_from_value_instantiation_exception() {
         var cause = new IllegalArgumentException("Unexpected value 'UNSUPPORTED_METRIC'");
         var exception = ValueInstantiationException.from(
-            null,
-            "Cannot construct instance of io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName, problem: Unexpected value 'UNSUPPORTED_METRIC'",
-            (JavaType) null,
-            cause
-        );
+                null,
+                "Cannot construct instance of io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName, problem: Unexpected value 'UNSUPPORTED_METRIC'",
+                (JavaType) null,
+                cause);
 
         try (Response response = mapper.toResponse(exception)) {
             assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -61,9 +60,8 @@ class JsonMappingExceptionMapperTest {
     @Test
     void should_use_original_message_for_regular_json_mapping_exception() {
         var exception = JsonMappingException.from(
-            (com.fasterxml.jackson.core.JsonParser) null,
-            "Cannot deserialize value of type `String` from Array value"
-        );
+                (com.fasterxml.jackson.core.JsonParser) null,
+                "Cannot deserialize value of type `String` from Array value");
 
         try (Response response = mapper.toResponse(exception)) {
             assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());

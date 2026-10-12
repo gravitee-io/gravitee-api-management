@@ -39,6 +39,12 @@ public class ApiKeyRevokedApiHookContext extends ApiHookContext {
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of(HookContextEntry.APPLICATION_ID, applicationId, HookContextEntry.PLAN_ID, planId, HookContextEntry.API_KEY, apiKey);
+        return Map.of(
+                HookContextEntry.APPLICATION_ID,
+                applicationId,
+                HookContextEntry.PLAN_ID,
+                planId,
+                HookContextEntry.API_KEY,
+                apiKey);
     }
 }

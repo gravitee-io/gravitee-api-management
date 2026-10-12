@@ -94,204 +94,174 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+    public Optional<RequestsCount> searchRequestsCount(
+            ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return analyticsRepository
-            .searchRequestsCount(executionContext.getQueryContext(), new RequestsCountQuery(apiId, from, to))
-            .map(countAggregate ->
-                RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
-            );
+                .searchRequestsCount(executionContext.getQueryContext(), new RequestsCountQuery(apiId, from, to))
+                .map(countAggregate -> RequestsCount.builder()
+                        .total(countAggregate.getTotal())
+                        .countsByEntrypoint(countAggregate.getCountBy())
+                        .build());
     }
 
     @Override
     public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
-    ) {
+            ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return analyticsRepository
-            .searchAverageMessagesPerRequest(executionContext.getQueryContext(), new AverageMessagesPerRequestQuery(apiId, from, to))
-            .map(averageAggregate ->
-                AverageMessagesPerRequest.builder()
-                    .globalAverage(averageAggregate.getAverage())
-                    .averagesByEntrypoint(averageAggregate.getAverageBy())
-                    .build()
-            );
+                .searchAverageMessagesPerRequest(
+                        executionContext.getQueryContext(), new AverageMessagesPerRequestQuery(apiId, from, to))
+                .map(averageAggregate -> AverageMessagesPerRequest.builder()
+                        .globalAverage(averageAggregate.getAverage())
+                        .averagesByEntrypoint(averageAggregate.getAverageBy())
+                        .build());
     }
 
     @Override
     public Optional<ResponseStatusRanges> searchResponseStatusRanges(
-        ExecutionContext executionContext,
-        AnalyticsQueryParameters queryParameters
-    ) {
+            ExecutionContext executionContext, AnalyticsQueryParameters queryParameters) {
         var responseStatusQueryParameters = ResponseStatusQueryCriteriaAdapter.INSTANCE.map(queryParameters);
 
         final var queryResult = analyticsRepository.searchResponseStatusRanges(
-            executionContext.getQueryContext(),
-            responseStatusQueryParameters
-        );
-        return queryResult.map(analytics ->
-            ResponseStatusRanges.builder()
+                executionContext.getQueryContext(), responseStatusQueryParameters);
+        return queryResult.map(analytics -> ResponseStatusRanges.builder()
                 .ranges(analytics.getRanges())
                 .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
-                .build()
-        );
+                .build());
     }
 
     @Override
-    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+    public Optional<TopHitsApis> searchTopHitsApis(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return analyticsRepository
-            .searchTopHitsApi(
-                executionContext.getQueryContext(),
-                new TopHitsQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
-            )
-            .map(TopHitsAggregate::getTopHitsCounts)
-            .map(topHitCounts ->
-                topHitCounts
-                    .entrySet()
-                    .stream()
-                    .map(entry -> TopHitsApis.TopHitApi.builder().id(entry.getKey()).count(entry.getValue()).build())
-                    .toList()
-            )
-            .map(topHitApis -> TopHitsApis.builder().data(topHitApis).build());
+                .searchTopHitsApi(
+                        executionContext.getQueryContext(),
+                        new TopHitsQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo()))
+                .map(TopHitsAggregate::getTopHitsCounts)
+                .map(topHitCounts -> topHitCounts.entrySet().stream()
+                        .map(entry -> TopHitsApis.TopHitApi.builder()
+                                .id(entry.getKey())
+                                .count(entry.getValue())
+                                .build())
+                        .toList())
+                .map(topHitApis -> TopHitsApis.builder().data(topHitApis).build());
     }
 
     @Override
     public Optional<AverageConnectionDuration> searchAverageConnectionDuration(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
-    ) {
+            ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return analyticsRepository
-            .searchAverageConnectionDuration(executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId, from, to))
-            .map(averageAggregate ->
-                AverageConnectionDuration.builder()
-                    .globalAverage(averageAggregate.getAverage())
-                    .averagesByEntrypoint(averageAggregate.getAverageBy())
-                    .build()
-            );
+                .searchAverageConnectionDuration(
+                        executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId, from, to))
+                .map(averageAggregate -> AverageConnectionDuration.builder()
+                        .globalAverage(averageAggregate.getAverage())
+                        .averagesByEntrypoint(averageAggregate.getAverageBy())
+                        .build());
     }
 
     @Override
     public Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
-        ExecutionContext executionContext,
-        List<String> apiIds,
-        Instant startTime,
-        Instant endTime,
-        Duration interval,
-        Collection<DefinitionVersion> versions
-    ) {
+            ExecutionContext executionContext,
+            List<String> apiIds,
+            Instant startTime,
+            Instant endTime,
+            Duration interval,
+            Collection<DefinitionVersion> versions) {
         return analyticsRepository
-            .searchResponseTimeOverTime(
-                executionContext.getQueryContext(),
-                new ResponseTimeRangeQuery(apiIds, startTime, endTime, interval, versions)
-            )
-            .map(AverageAggregate::getAverageBy);
+                .searchResponseTimeOverTime(
+                        executionContext.getQueryContext(),
+                        new ResponseTimeRangeQuery(apiIds, startTime, endTime, interval, versions))
+                .map(AverageAggregate::getAverageBy);
     }
 
     @Override
-    public ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query) {
+    public ResponseStatusOvertime searchResponseStatusOvertime(
+            ExecutionContext executionContext, ResponseStatusOverTimeQuery query) {
         var result = analyticsRepository.searchResponseStatusOvertime(
-            executionContext.getQueryContext(),
-            new io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery(
-                query.apiIds(),
-                query.from(),
-                query.to(),
-                query.interval(),
-                query.versions()
-            )
-        );
-        return ResponseStatusOvertime.builder()
-            .data(result.getStatusCount())
-            .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
-            .build();
-    }
-
-    @Override
-    public Optional<TopHitsApps> searchTopHitsApps(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
-        return analyticsRepository
-            .searchTopApps(
                 executionContext.getQueryContext(),
-                new TopHitsQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
-            )
-            .map(TopHitsAggregate::getTopHitsCounts)
-            .map(topHitCounts ->
-                topHitCounts
-                    .entrySet()
-                    .stream()
-                    .map(entry -> TopHitsApps.TopHitApp.builder().id(entry.getKey()).count(entry.getValue()).build())
-                    .toList()
-            )
-            .map(topHitApp -> TopHitsApps.builder().data(topHitApp).build());
+                new io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery(
+                        query.apiIds(), query.from(), query.to(), query.interval(), query.versions()));
+        return ResponseStatusOvertime.builder()
+                .data(result.getStatusCount())
+                .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
+                .build();
     }
 
     @Override
-    public RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+    public Optional<TopHitsApps> searchTopHitsApps(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+        return analyticsRepository
+                .searchTopApps(
+                        executionContext.getQueryContext(),
+                        new TopHitsQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo()))
+                .map(TopHitsAggregate::getTopHitsCounts)
+                .map(topHitCounts -> topHitCounts.entrySet().stream()
+                        .map(entry -> TopHitsApps.TopHitApp.builder()
+                                .id(entry.getKey())
+                                .count(entry.getValue())
+                                .build())
+                        .toList())
+                .map(topHitApp -> TopHitsApps.builder().data(topHitApp).build());
+    }
+
+    @Override
+    public RequestResponseTime searchRequestResponseTime(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         var result = analyticsRepository.searchRequestResponseTimes(
-            executionContext.getQueryContext(),
-            new RequestResponseTimeQueryCriteria(
-                parameters.getApiIds(),
-                parameters.getFrom(),
-                parameters.getTo(),
-                parameters.getDefinitionVersions()
-            )
-        );
+                executionContext.getQueryContext(),
+                new RequestResponseTimeQueryCriteria(
+                        parameters.getApiIds(),
+                        parameters.getFrom(),
+                        parameters.getTo(),
+                        parameters.getDefinitionVersions()));
 
         return RequestResponseTime.builder()
-            .requestsPerSecond(result.getRequestsPerSecond())
-            .requestsTotal(result.getRequestsTotal())
-            .responseMinTime(result.getResponseMinTime())
-            .responseMaxTime(result.getResponseMaxTime())
-            .responseAvgTime(result.getResponseAvgTime())
-            .build();
+                .requestsPerSecond(result.getRequestsPerSecond())
+                .requestsTotal(result.getRequestsTotal())
+                .responseMinTime(result.getResponseMinTime())
+                .responseMaxTime(result.getResponseMaxTime())
+                .responseAvgTime(result.getResponseAvgTime())
+                .build();
     }
 
     @Override
-    public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+    public Optional<TopFailedApis> searchTopFailedApis(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return analyticsRepository
-            .searchTopFailedApis(
-                executionContext.getQueryContext(),
-                new TopFailedQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
-            )
-            .map(TopFailedAggregate::failedApis)
-            .map(topFailedApis ->
-                topFailedApis
-                    .entrySet()
-                    .stream()
-                    .map(entry ->
-                        TopFailedApis.TopFailedApi.builder()
-                            .id(entry.getKey())
-                            .failedCalls(entry.getValue().failedCalls())
-                            .failedCallsRatio(entry.getValue().failedCallsRatio())
-                            .build()
-                    )
-                    .toList()
-            )
-            .map(topFailedApi -> TopFailedApis.builder().data(topFailedApi).build());
+                .searchTopFailedApis(
+                        executionContext.getQueryContext(),
+                        new TopFailedQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo()))
+                .map(TopFailedAggregate::failedApis)
+                .map(topFailedApis -> topFailedApis.entrySet().stream()
+                        .map(entry -> TopFailedApis.TopFailedApi.builder()
+                                .id(entry.getKey())
+                                .failedCalls(entry.getValue().failedCalls())
+                                .failedCallsRatio(entry.getValue().failedCallsRatio())
+                                .build())
+                        .toList())
+                .map(topFailedApi -> TopFailedApis.builder().data(topFailedApi).build());
     }
 
     @Override
-    public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
+    public Optional<HistogramAnalytics> searchHistogramAnalytics(
+            ExecutionContext executionContext, HistogramQuery histogramParameters) {
         List<Aggregation> repoAggregations = null;
         if (histogramParameters.aggregations() != null) {
-            repoAggregations = histogramParameters
-                .aggregations()
-                .stream()
-                .map(agg -> new Aggregation(agg.getField(), AggregationType.valueOf(agg.getAggregationType().name())))
-                .collect(Collectors.toList());
+            repoAggregations = histogramParameters.aggregations().stream()
+                    .map(agg -> new Aggregation(
+                            agg.getField(),
+                            AggregationType.valueOf(agg.getAggregationType().name())))
+                    .collect(Collectors.toList());
         }
 
         List<HistogramAggregate> repoResult = analyticsRepository.searchHistogram(
-            executionContext.getQueryContext(),
-            new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-                toModelSearchTermId(histogramParameters.searchTermId()),
-                new TimeRange(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval()),
-                repoAggregations,
-                histogramParameters.query(),
-                null
-            )
-        );
+                executionContext.getQueryContext(),
+                new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
+                        toModelSearchTermId(histogramParameters.searchTermId()),
+                        new TimeRange(
+                                histogramParameters.from(), histogramParameters.to(), histogramParameters.interval()),
+                        repoAggregations,
+                        histogramParameters.query(),
+                        null));
 
         if (repoResult == null || repoResult.isEmpty()) {
             return Optional.empty();
@@ -300,93 +270,89 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return Optional.of(mapHistogramAggregatesToHistogramAnalytics(repoResult, histogramParameters));
     }
 
-    private static io.gravitee.repository.log.v4.model.analytics.SearchTermId toModelSearchTermId(SearchTermId searchTermId) {
+    private static io.gravitee.repository.log.v4.model.analytics.SearchTermId toModelSearchTermId(
+            SearchTermId searchTermId) {
         return new io.gravitee.repository.log.v4.model.analytics.SearchTermId(
-            io.gravitee.repository.log.v4.model.analytics.SearchTermId.SearchTerm.valueOf(searchTermId.searchTerm().name()),
-            searchTermId.id()
-        );
+                io.gravitee.repository.log.v4.model.analytics.SearchTermId.SearchTerm.valueOf(
+                        searchTermId.searchTerm().name()),
+                searchTermId.id());
     }
 
     @Override
-    public Optional<GroupByAnalytics> searchGroupByAnalytics(ExecutionContext executionContext, GroupByQuery groupByQuery) {
-        var repoGroups = groupByQuery
-            .groups()
-            .stream()
-            .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
-            .toList();
+    public Optional<GroupByAnalytics> searchGroupByAnalytics(
+            ExecutionContext executionContext, GroupByQuery groupByQuery) {
+        var repoGroups = groupByQuery.groups().stream()
+                .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
+                .toList();
         var repoQuery = getGroupByQuery(groupByQuery, repoGroups);
         return analyticsRepository
-            .searchGroupBy(executionContext.getQueryContext(), repoQuery)
-            .map(groupByAggregate -> {
-                GroupByAnalytics analytics = new GroupByAnalytics();
-                analytics.setValues(groupByAggregate.values());
-                analytics.setOrder(groupByAggregate.order());
-                return analytics;
-            });
+                .searchGroupBy(executionContext.getQueryContext(), repoQuery)
+                .map(groupByAggregate -> {
+                    GroupByAnalytics analytics = new GroupByAnalytics();
+                    analytics.setValues(groupByAggregate.values());
+                    analytics.setOrder(groupByAggregate.order());
+                    return analytics;
+                });
     }
 
     private static io.gravitee.repository.log.v4.model.analytics.GroupByQuery getGroupByQuery(
-        GroupByQuery groupByQuery,
-        List<io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group> repoGroups
-    ) {
+            GroupByQuery groupByQuery,
+            List<io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group> repoGroups) {
         var repoOrder = groupByQuery
-            .order()
-            .map(order -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(order.field(), order.order(), order.type()));
+                .order()
+                .map(order -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(
+                        order.field(), order.order(), order.type()));
 
         return new io.gravitee.repository.log.v4.model.analytics.GroupByQuery(
-            toModelSearchTermId(groupByQuery.searchTermId()),
-            groupByQuery.field(),
-            repoGroups,
-            repoOrder,
-            new TimeRange(groupByQuery.from(), groupByQuery.to()),
-            groupByQuery.query()
-        );
+                toModelSearchTermId(groupByQuery.searchTermId()),
+                groupByQuery.field(),
+                repoGroups,
+                repoOrder,
+                new TimeRange(groupByQuery.from(), groupByQuery.to()),
+                groupByQuery.query());
     }
 
     @Override
     public Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery) {
         var repoQuery = new io.gravitee.repository.log.v4.model.analytics.StatsQuery(
-            statsQuery.field(),
-            toModelSearchTermId(statsQuery.searchTermId()),
-            new TimeRange(statsQuery.from(), statsQuery.to()),
-            statsQuery.query()
-        );
+                statsQuery.field(),
+                toModelSearchTermId(statsQuery.searchTermId()),
+                new TimeRange(statsQuery.from(), statsQuery.to()),
+                statsQuery.query());
 
         return analyticsRepository
-            .searchStats(executionContext.getQueryContext(), repoQuery)
-            .map(statsAggregate ->
-                new StatsAnalytics(
-                    statsAggregate.avg(),
-                    statsAggregate.min(),
-                    statsAggregate.max(),
-                    statsAggregate.sum(),
-                    statsAggregate.count(),
-                    statsAggregate.rps(),
-                    statsAggregate.rpm(),
-                    statsAggregate.rph()
-                )
-            );
+                .searchStats(executionContext.getQueryContext(), repoQuery)
+                .map(statsAggregate -> new StatsAnalytics(
+                        statsAggregate.avg(),
+                        statsAggregate.min(),
+                        statsAggregate.max(),
+                        statsAggregate.sum(),
+                        statsAggregate.count(),
+                        statsAggregate.rps(),
+                        statsAggregate.rpm(),
+                        statsAggregate.rph()));
     }
 
     @Override
-    public Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery countParameters) {
+    public Optional<RequestsCount> searchRequestsCountByEvent(
+            ExecutionContext executionContext, CountQuery countParameters) {
         return analyticsRepository
-            .searchRequestsCountByEvent(
-                executionContext.getQueryContext(),
-                new RequestsCountByEventQuery(
-                    toModelSearchTermId(countParameters.searchTermId()),
-                    new TimeRange(countParameters.from(), countParameters.to()),
-                    countParameters.query()
-                )
-            )
-            .map(countAggregate -> RequestsCount.builder().total(countAggregate.total()).build());
+                .searchRequestsCountByEvent(
+                        executionContext.getQueryContext(),
+                        new RequestsCountByEventQuery(
+                                toModelSearchTermId(countParameters.searchTermId()),
+                                new TimeRange(countParameters.from(), countParameters.to()),
+                                countParameters.query()))
+                .map(countAggregate ->
+                        RequestsCount.builder().total(countAggregate.total()).build());
     }
 
     @Override
-    public Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId) {
+    public Optional<ApiMetricsDetail> findApiMetricsDetail(
+            ExecutionContext executionContext, String apiId, String requestId) {
         return analyticsRepository
-            .findApiMetricsDetail(executionContext.getQueryContext(), new ApiMetricsDetailQuery(apiId, requestId))
-            .map(ApiMetricsDetailAdapter.INSTANCE::map);
+                .findApiMetricsDetail(executionContext.getQueryContext(), new ApiMetricsDetailQuery(apiId, requestId))
+                .map(ApiMetricsDetailAdapter.INSTANCE::map);
     }
 
     @Override
@@ -395,18 +361,15 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         mapAggregations(query, aggregations);
         List<Term> terms = mapTerms(query);
         io.gravitee.repository.log.v4.model.analytics.HistogramQuery histogramQuery =
-            new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-                toModelSearchTermId(query.searchTermId()),
-                new TimeRange(query.from(), query.to(), query.interval()),
-                aggregations,
-                query.query(),
-                terms
-            );
+                new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
+                        toModelSearchTermId(query.searchTermId()),
+                        new TimeRange(query.from(), query.to(), query.interval()),
+                        aggregations,
+                        query.query(),
+                        terms);
 
-        Optional<EventAnalyticsAggregate> aggregate = analyticsRepository.searchEventAnalytics(
-            executionContext.getQueryContext(),
-            histogramQuery
-        );
+        Optional<EventAnalyticsAggregate> aggregate =
+                analyticsRepository.searchEventAnalytics(executionContext.getQueryContext(), histogramQuery);
 
         return aggregate.map(analyticsAggregate -> new EventAnalytics(analyticsAggregate.values()));
     }
@@ -415,30 +378,25 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         List<io.gravitee.apim.core.analytics.model.Term> terms = query.terms();
 
         return (terms != null && !terms.isEmpty())
-            ? terms
-                .stream()
-                .map(t -> new Term(t.key(), t.value()))
-                .toList()
-            : List.of();
+                ? terms.stream().map(t -> new Term(t.key(), t.value())).toList()
+                : List.of();
     }
 
     private static void mapAggregations(HistogramQuery query, List<Aggregation> aggregations) {
-        query
-            .aggregations()
-            .forEach(aggregation ->
-                Arrays.stream(AggregationType.values())
-                    .filter(value -> value.name().equals(aggregation.getAggregationType().name()))
-                    .findFirst()
-                    .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type)))
-            );
+        query.aggregations()
+                .forEach(aggregation -> Arrays.stream(AggregationType.values())
+                        .filter(value -> value.name()
+                                .equals(aggregation.getAggregationType().name()))
+                        .findFirst()
+                        .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type))));
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(
-        List<HistogramAggregate> aggregates,
-        HistogramQuery histogramParameters
-    ) {
-        Timestamp timestamp = new Timestamp(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval());
-        List<HistogramAnalytics.Bucket> values = aggregates.stream().map(AnalyticsQueryServiceImpl::mapBuckets).toList();
+            List<HistogramAggregate> aggregates, HistogramQuery histogramParameters) {
+        Timestamp timestamp =
+                new Timestamp(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval());
+        List<HistogramAnalytics.Bucket> values =
+                aggregates.stream().map(AnalyticsQueryServiceImpl::mapBuckets).toList();
         return new HistogramAnalytics(timestamp, values);
     }
 }

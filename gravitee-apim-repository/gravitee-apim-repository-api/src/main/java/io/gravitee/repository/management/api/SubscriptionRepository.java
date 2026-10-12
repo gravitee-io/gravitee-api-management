@@ -36,7 +36,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface SubscriptionRepository extends CrudRepository<Subscription, String> {
-    Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
+    Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException;
 
     List<Subscription> search(SubscriptionCriteria criteria, Sortable sortable) throws TechnicalException;
 
@@ -71,12 +72,14 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
      * @throws TechnicalException if {@code criteria} carries an unsupported filter or if
      *         {@code sortable.field()} is not one of the documented values.
      */
-    List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
-        throws TechnicalException;
+    List<Subscription> searchAfter(
+            SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+            throws TechnicalException;
 
     List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException;
 
-    Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException;
+    Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order)
+            throws TechnicalException;
 
     /**
      * Delete subscription by environment ID
@@ -88,11 +91,9 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
     Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
-        throws TechnicalException;
+            throws TechnicalException;
 
     Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) throws TechnicalException;
+            String subscriptionId, String referenceId, SubscriptionReferenceType referenceType)
+            throws TechnicalException;
 }

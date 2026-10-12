@@ -47,15 +47,14 @@ public class GetTraceDetailUseCase {
     private final OtelLogPort otelLogPort;
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        // Required — same reasoning as SearchTracesUseCase.Input.apiId. Also defends against trace-id
-        // guessing: a user with access to API A can't fetch trace details from API B by knowing its id,
-        // because the resource-attribute filter on gravitee.api.id rejects spans from the other API
-        // server-side (the endpoint returns 404, collapsing "doesn't exist" and "wrong scope").
-        String apiId,
-        String traceId
-    ) {}
+            String organizationId,
+            String environmentId,
+            // Required — same reasoning as SearchTracesUseCase.Input.apiId. Also defends against trace-id
+            // guessing: a user with access to API A can't fetch trace details from API B by knowing its id,
+            // because the resource-attribute filter on gravitee.api.id rejects spans from the other API
+            // server-side (the endpoint returns 404, collapsing "doesn't exist" and "wrong scope").
+            String apiId,
+            String traceId) {}
 
     public record Output(Optional<TraceDetail> trace) {}
 
@@ -68,24 +67,22 @@ public class GetTraceDetailUseCase {
         Map<String, String> logAttributeFilters = TraceScopeFilters.forApi(input.environmentId, input.apiId);
 
         Optional<List<Span>> spansOpt = tracingPort.getTraceSpans(
-            input.organizationId,
-            input.environmentId,
-            input.traceId,
-            traceResourceFilters
-        );
+                input.organizationId, input.environmentId, input.traceId, traceResourceFilters);
         if (spansOpt.isEmpty()) {
             return new Output(Optional.empty());
         }
-        OtelLogPort.TraceLogs logs = otelLogPort.findLogs(input.organizationId, input.environmentId, input.traceId, logAttributeFilters);
+        OtelLogPort.TraceLogs logs =
+                otelLogPort.findLogs(input.organizationId, input.environmentId, input.traceId, logAttributeFilters);
 
         // Group by spanId once, then look up per span — O(events + spans) instead of nested-loop O(n*m).
-        Map<String, List<SpanEvent>> eventsBySpan = logs.events().stream().collect(Collectors.groupingBy(SpanEvent::spanId));
-        Map<String, List<PayloadLog>> payloadsBySpan = logs.payloadLogs().stream().collect(Collectors.groupingBy(PayloadLog::spanId));
+        Map<String, List<SpanEvent>> eventsBySpan =
+                logs.events().stream().collect(Collectors.groupingBy(SpanEvent::spanId));
+        Map<String, List<PayloadLog>> payloadsBySpan =
+                logs.payloadLogs().stream().collect(Collectors.groupingBy(PayloadLog::spanId));
 
         List<Span> stitchedSpans = new ArrayList<>(spansOpt.get().size());
         for (Span span : spansOpt.get()) {
-            stitchedSpans.add(
-                new Span(
+            stitchedSpans.add(new Span(
                     span.spanId(),
                     span.parentSpanId(),
                     span.operationName(),
@@ -96,9 +93,7 @@ public class GetTraceDetailUseCase {
                     span.kind(),
                     span.attributes(),
                     sortByTimestamp(eventsBySpan.getOrDefault(span.spanId(), List.of()), SpanEvent::timestamp),
-                    sortByTimestamp(payloadsBySpan.getOrDefault(span.spanId(), List.of()), PayloadLog::timestamp)
-                )
-            );
+                    sortByTimestamp(payloadsBySpan.getOrDefault(span.spanId(), List.of()), PayloadLog::timestamp)));
         }
 
         Span rootSpan = pickRootSpan(stitchedSpans);
@@ -112,15 +107,14 @@ public class GetTraceDetailUseCase {
             traceStatus = rootSpan != null ? rootSpan.status() : SpanStatus.UNSET;
         }
         TraceDetail detail = new TraceDetail(
-            input.traceId,
-            rootSpan != null ? rootSpan.startTime() : null,
-            rootSpan != null ? rootSpan.durationNanos() : 0L,
-            rootSpan != null ? rootSpan.serviceName() : null,
-            rootSpan != null ? rootSpan.operationName() : null,
-            traceStatus,
-            stitchedSpans.size(),
-            stitchedSpans
-        );
+                input.traceId,
+                rootSpan != null ? rootSpan.startTime() : null,
+                rootSpan != null ? rootSpan.durationNanos() : 0L,
+                rootSpan != null ? rootSpan.serviceName() : null,
+                rootSpan != null ? rootSpan.operationName() : null,
+                traceStatus,
+                stitchedSpans.size(),
+                stitchedSpans);
         return new Output(Optional.of(detail));
     }
 
@@ -129,16 +123,18 @@ public class GetTraceDetailUseCase {
      * exists (e.g. the trace's root span wasn't ingested) so the summary fields still resolve.
      */
     private static Span pickRootSpan(List<Span> spans) {
-        return spans
-            .stream()
-            .filter(s -> s.parentSpanId() == null || s.parentSpanId().isEmpty())
-            .findFirst()
-            .orElseGet(() ->
-                spans.stream().min(Comparator.comparing(Span::startTime, Comparator.nullsLast(Comparator.naturalOrder()))).orElse(null)
-            );
+        return spans.stream()
+                .filter(s -> s.parentSpanId() == null || s.parentSpanId().isEmpty())
+                .findFirst()
+                .orElseGet(() -> spans.stream()
+                        .min(Comparator.comparing(Span::startTime, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .orElse(null));
     }
 
-    private static <T> List<T> sortByTimestamp(List<T> items, java.util.function.Function<T, java.time.Instant> timestampOf) {
-        return items.stream().sorted(Comparator.comparing(timestampOf, Comparator.nullsLast(Comparator.naturalOrder()))).toList();
+    private static <T> List<T> sortByTimestamp(
+            List<T> items, java.util.function.Function<T, java.time.Instant> timestampOf) {
+        return items.stream()
+                .sorted(Comparator.comparing(timestampOf, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
     }
 }

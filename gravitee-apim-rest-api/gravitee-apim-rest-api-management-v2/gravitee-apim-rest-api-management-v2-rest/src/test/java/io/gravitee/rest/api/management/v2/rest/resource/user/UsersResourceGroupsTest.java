@@ -51,9 +51,9 @@ class UsersResourceGroupsTest extends AbstractResourceTest {
 
     @Test
     void should_return_403_when_missing_permission() {
-        when(
-            permissionService.hasPermission(any(), eq(RolePermission.ORGANIZATION_USERS), eq(ORGANIZATION), eq(RolePermissionAction.READ))
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        any(), eq(RolePermission.ORGANIZATION_USERS), eq(ORGANIZATION), eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
 
@@ -62,15 +62,13 @@ class UsersResourceGroupsTest extends AbstractResourceTest {
 
     @Test
     void should_return_200_with_paginated_response() {
-        var groups = List.of(
-            UserGroup.builder()
+        var groups = List.of(UserGroup.builder()
                 .id("group-1")
                 .name("My Group")
                 .environmentId("env-1")
                 .environmentName("Development")
                 .roles(Map.of("API", "USER", "APPLICATION", "ADMIN"))
-                .build()
-        );
+                .build());
 
         when(getUserGroupsUseCase.execute(any())).thenReturn(new GetUserGroupsUseCase.Output(groups, 1));
 
@@ -84,7 +82,9 @@ class UsersResourceGroupsTest extends AbstractResourceTest {
         assertThat(body.getData().get(0).getName()).isEqualTo("My Group");
         assertThat(body.getData().get(0).getEnvironmentId()).isEqualTo("env-1");
         assertThat(body.getData().get(0).getEnvironmentName()).isEqualTo("Development");
-        assertThat(body.getData().get(0).getRoles()).containsEntry("API", "USER").containsEntry("APPLICATION", "ADMIN");
+        assertThat(body.getData().get(0).getRoles())
+                .containsEntry("API", "USER")
+                .containsEntry("APPLICATION", "ADMIN");
         assertThat(body.getPagination()).isNotNull();
         assertThat(body.getLinks()).isNotNull();
     }
@@ -93,7 +93,8 @@ class UsersResourceGroupsTest extends AbstractResourceTest {
     void should_pass_environment_id_query_param() {
         when(getUserGroupsUseCase.execute(any())).thenReturn(new GetUserGroupsUseCase.Output(List.of(), 0));
 
-        final Response response = rootTarget().queryParam("environmentId", "env-1").request().get();
+        final Response response =
+                rootTarget().queryParam("environmentId", "env-1").request().get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
     }

@@ -62,7 +62,8 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         ApiKeyEntity apiKeyFromService = new ApiKeyEntity();
         apiKeyFromService.setId("test-id");
         List<ApiKeyEntity> apiKeysFromService = List.of(apiKeyFromService);
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(apiKeysFromService);
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID))
+                .thenReturn(apiKeysFromService);
 
         Response response = envTarget().request().get();
 
@@ -90,13 +91,16 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         ApiKeyEntity renewedApiKey = new ApiKeyEntity();
         renewedApiKey.setId("test-id");
 
-        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(renewedApiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(), any()))
+                .thenReturn(renewedApiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(renewedApiKey, response.readEntity(ApiKeyEntity.class));
-        assertTrue(response.getLocation().toString().endsWith("/apis/my-api/subscriptions/my-subscription/apikeys/test-id"));
+        assertTrue(response.getLocation()
+                .toString()
+                .endsWith("/apis/my-api/subscriptions/my-subscription/apikeys/test-id"));
     }
 
     @Test
@@ -132,6 +136,7 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
 
         ApplicationEntity application = new ApplicationEntity();
         application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+                .thenReturn(application);
     }
 }

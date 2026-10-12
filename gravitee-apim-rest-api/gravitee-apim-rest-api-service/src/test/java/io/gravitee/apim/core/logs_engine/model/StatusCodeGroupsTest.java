@@ -35,13 +35,13 @@ class StatusCodeGroupsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "5xx", " 5XX ", "5XX" })
+    @ValueSource(strings = {"5xx", " 5XX ", "5XX"})
     void should_canonicalise_a_known_group(String raw) {
         assertThat(StatusCodeGroups.canonicalise(raw)).contains("5XX");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "6XX", "5", "", "XX5" })
+    @ValueSource(strings = {"6XX", "5", "", "XX5"})
     void should_reject_an_unknown_group(String raw) {
         assertThat(StatusCodeGroups.canonicalise(raw)).isEmpty();
     }

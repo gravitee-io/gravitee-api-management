@@ -37,22 +37,20 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class MetricsElasticsearchRepositorySearchNativeApiMetricsTest extends AbstractElasticsearchRepositoryTest {
 
-    private static final long FROM_MILLIS =
-        ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
-            .withHour(9)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0)
-            .toEpochSecond() *
-        1000;
-    private static final long TO_MILLIS =
-        ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
-            .withHour(11)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0)
-            .toEpochSecond() *
-        1000;
+    private static final long FROM_MILLIS = ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(9)
+                    .withMinute(0)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond()
+            * 1000;
+    private static final long TO_MILLIS = ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(11)
+                    .withMinute(0)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond()
+            * 1000;
 
     private static final String API_ID = "kafka-api-001";
 
@@ -74,27 +72,35 @@ public class MetricsElasticsearchRepositorySearchNativeApiMetricsTest extends Ab
     @Test
     void searchNativeApiMetrics_return_filtered_metrics_by_time_range() throws AnalyticsException {
         var result = metricsV4Repository.searchNativeApiMetrics(
-            queryContext,
-            NativeApiMetricsQuery.builder().apiId(API_ID).from(FROM_MILLIS).to(TO_MILLIS).page(1).size(10).build()
-        );
+                queryContext,
+                NativeApiMetricsQuery.builder()
+                        .apiId(API_ID)
+                        .from(FROM_MILLIS)
+                        .to(TO_MILLIS)
+                        .page(1)
+                        .size(10)
+                        .build());
 
         assertThat(result.total()).isEqualTo(4);
         assertThat(result.data())
-            .extracting(NativeApiMetrics::getRequestId, NativeApiMetrics::getTimestamp)
-            .containsExactly(
-                tuple("conn-disconnect-001", today + "T10:30:00.000Z"),
-                tuple("conn-error-001", today + "T10:05:00.000Z"),
-                tuple("conn-connected-002", today + "T10:01:00.000Z"),
-                tuple("conn-connected-001", today + "T10:00:00.000Z")
-            );
+                .extracting(NativeApiMetrics::getRequestId, NativeApiMetrics::getTimestamp)
+                .containsExactly(
+                        tuple("conn-disconnect-001", today + "T10:30:00.000Z"),
+                        tuple("conn-error-001", today + "T10:05:00.000Z"),
+                        tuple("conn-connected-002", today + "T10:01:00.000Z"),
+                        tuple("conn-connected-001", today + "T10:00:00.000Z"));
     }
 
     @Test
     void searchNativeApiMetrics_return_filtered_metrics_by_application_ids() throws AnalyticsException {
         var result = metricsV4Repository.searchNativeApiMetrics(
-            queryContext,
-            NativeApiMetricsQuery.builder().apiId(API_ID).from(FROM_MILLIS).to(TO_MILLIS).applicationIds(Set.of("kafka-app-002")).build()
-        );
+                queryContext,
+                NativeApiMetricsQuery.builder()
+                        .apiId(API_ID)
+                        .from(FROM_MILLIS)
+                        .to(TO_MILLIS)
+                        .applicationIds(Set.of("kafka-app-002"))
+                        .build());
 
         assertThat(result.total()).isEqualTo(1);
         assertThat(result.data()).extracting(NativeApiMetrics::getRequestId).containsExactly("conn-connected-002");
@@ -103,9 +109,13 @@ public class MetricsElasticsearchRepositorySearchNativeApiMetricsTest extends Ab
     @Test
     void searchNativeApiMetrics_return_filtered_metrics_by_plan_ids() throws AnalyticsException {
         var result = metricsV4Repository.searchNativeApiMetrics(
-            queryContext,
-            NativeApiMetricsQuery.builder().apiId(API_ID).from(FROM_MILLIS).to(TO_MILLIS).planIds(Set.of("kafka-plan-002")).build()
-        );
+                queryContext,
+                NativeApiMetricsQuery.builder()
+                        .apiId(API_ID)
+                        .from(FROM_MILLIS)
+                        .to(TO_MILLIS)
+                        .planIds(Set.of("kafka-plan-002"))
+                        .build());
 
         assertThat(result.total()).isEqualTo(1);
         assertThat(result.data()).extracting(NativeApiMetrics::getRequestId).containsExactly("conn-connected-002");
@@ -114,18 +124,17 @@ public class MetricsElasticsearchRepositorySearchNativeApiMetricsTest extends Ab
     @Test
     void searchNativeApiMetrics_return_filtered_metrics_by_connection_status() throws AnalyticsException {
         var result = metricsV4Repository.searchNativeApiMetrics(
-            queryContext,
-            NativeApiMetricsQuery.builder()
-                .apiId(API_ID)
-                .from(FROM_MILLIS)
-                .to(TO_MILLIS)
-                .connectionStatuses(Set.of("CONNECTION_ERROR", "DISCONNECTED"))
-                .build()
-        );
+                queryContext,
+                NativeApiMetricsQuery.builder()
+                        .apiId(API_ID)
+                        .from(FROM_MILLIS)
+                        .to(TO_MILLIS)
+                        .connectionStatuses(Set.of("CONNECTION_ERROR", "DISCONNECTED"))
+                        .build());
 
         assertThat(result.total()).isEqualTo(2);
         assertThat(result.data())
-            .extracting(NativeApiMetrics::getRequestId)
-            .containsExactlyInAnyOrder("conn-error-001", "conn-disconnect-001");
+                .extracting(NativeApiMetrics::getRequestId)
+                .containsExactlyInAnyOrder("conn-error-001", "conn-disconnect-001");
     }
 }

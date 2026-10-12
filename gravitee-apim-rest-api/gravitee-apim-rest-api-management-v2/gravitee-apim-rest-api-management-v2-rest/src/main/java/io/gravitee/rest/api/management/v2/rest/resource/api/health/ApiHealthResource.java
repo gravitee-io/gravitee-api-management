@@ -40,8 +40,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.container.AsyncResponse;
-import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
 import java.util.List;
@@ -67,108 +65,94 @@ public class ApiHealthResource extends AbstractResource {
     @Path("/average-response-time")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
     public ApiHealthAverageResponseTimeResponse getAverageResponseTime(
-        @QueryParam("field") String field,
-        @QueryParam("from") Long from,
-        @QueryParam("to") Long to
-    ) {
+            @QueryParam("field") String field, @QueryParam("from") Long from, @QueryParam("to") Long to) {
         var context = GraviteeContext.getExecutionContext();
         return searchAverageHealthCheckResponseTimeUseCase
-            .execute(
-                new SearchAverageHealthCheckResponseTimeUseCase.Input(
-                    context.getOrganizationId(),
-                    context.getEnvironmentId(),
-                    apiId,
-                    field,
-                    Instant.ofEpochMilli(from),
-                    Instant.ofEpochMilli(to)
-                )
-            )
-            .map(SearchAverageHealthCheckResponseTimeUseCase.Output::averageHealthCheckResponseTime)
-            .map(ApiHealthMapper.INSTANCE::map)
-            .blockingGet();
+                .execute(new SearchAverageHealthCheckResponseTimeUseCase.Input(
+                        context.getOrganizationId(),
+                        context.getEnvironmentId(),
+                        apiId,
+                        field,
+                        Instant.ofEpochMilli(from),
+                        Instant.ofEpochMilli(to)))
+                .map(SearchAverageHealthCheckResponseTimeUseCase.Output::averageHealthCheckResponseTime)
+                .map(ApiHealthMapper.INSTANCE::map)
+                .blockingGet();
     }
 
     @Path("/average-response-time-overtime")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
     public ApiHealthAverageResponseTimeOvertimeResponse getAverageResponseTimeOvertime(
-        @QueryParam("from") Long from,
-        @QueryParam("to") Long to
-    ) {
+            @QueryParam("from") Long from, @QueryParam("to") Long to) {
         var context = GraviteeContext.getExecutionContext();
         return searchAverageHealthCheckResponseTimeOvertimeUseCase
-            .execute(
-                new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(
-                    context.getOrganizationId(),
-                    context.getEnvironmentId(),
-                    apiId,
-                    Instant.ofEpochMilli(from),
-                    Instant.ofEpochMilli(to)
-                )
-            )
-            .map(SearchAverageHealthCheckResponseTimeOvertimeUseCase.Output::averageHealthCheckResponseTimeOvertime)
-            .map(ApiHealthMapper.INSTANCE::map)
-            .blockingGet();
+                .execute(new SearchAverageHealthCheckResponseTimeOvertimeUseCase.Input(
+                        context.getOrganizationId(),
+                        context.getEnvironmentId(),
+                        apiId,
+                        Instant.ofEpochMilli(from),
+                        Instant.ofEpochMilli(to)))
+                .map(SearchAverageHealthCheckResponseTimeOvertimeUseCase.Output::averageHealthCheckResponseTimeOvertime)
+                .map(ApiHealthMapper.INSTANCE::map)
+                .blockingGet();
     }
 
     @Path("availability")
     @GET
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
     public ApiHealthAvailabilityResponse getApiById(
-        @QueryParam("from") long from,
-        @QueryParam("to") long to,
-        @QueryParam("field") String field
-    ) {
+            @QueryParam("from") long from, @QueryParam("to") long to, @QueryParam("field") String field) {
         Instant since = Instant.ofEpochMilli(from);
         Instant until = Instant.ofEpochMilli(to);
         return availabilityUseCase
-            .execute(new AvailabilityUseCase.Input(GraviteeContext.getExecutionContext(), since, until, apiId, field))
-            .map(output -> new ApiHealthAvailabilityResponse().global(output.global()).group(output.byField()))
-            .blockingGet();
+                .execute(new AvailabilityUseCase.Input(
+                        GraviteeContext.getExecutionContext(), since, until, apiId, field))
+                .map(output -> new ApiHealthAvailabilityResponse()
+                        .global(output.global())
+                        .group(output.byField()))
+                .blockingGet();
     }
 
     @Path("/logs")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
     public ApiHealthLogsResponse getHealthCheckLogs(
-        @QueryParam("from") Long from,
-        @QueryParam("to") Long to,
-        @QueryParam("success") Boolean success,
-        @BeanParam @Valid PaginationParam paginationParam
-    ) {
+            @QueryParam("from") Long from,
+            @QueryParam("to") Long to,
+            @QueryParam("success") Boolean success,
+            @BeanParam @Valid PaginationParam paginationParam) {
         var context = GraviteeContext.getExecutionContext();
         var result = searchHealthCheckLogsUseCase
-            .execute(
-                new SearchHealthCheckLogsUseCase.Input(
-                    context.getOrganizationId(),
-                    context.getEnvironmentId(),
-                    apiId,
-                    Instant.ofEpochMilli(from),
-                    Instant.ofEpochMilli(to),
-                    Optional.ofNullable(success),
-                    Optional.ofNullable(paginationParam).map(PaginationParam::toPageable)
-                )
-            )
-            .blockingGet();
+                .execute(new SearchHealthCheckLogsUseCase.Input(
+                        context.getOrganizationId(),
+                        context.getEnvironmentId(),
+                        apiId,
+                        Instant.ofEpochMilli(from),
+                        Instant.ofEpochMilli(to),
+                        Optional.ofNullable(success),
+                        Optional.ofNullable(paginationParam).map(PaginationParam::toPageable)))
+                .blockingGet();
 
         if (result == null) {
             return new ApiHealthLogsResponse()
-                .data(List.of())
-                .pagination(PaginationInfo.computePaginationInfo(0, 0, paginationParam))
-                .links(computePaginationLinks(0, paginationParam));
+                    .data(List.of())
+                    .pagination(PaginationInfo.computePaginationInfo(0, 0, paginationParam))
+                    .links(computePaginationLinks(0, paginationParam));
         }
 
         var page = result.logs();
         return new ApiHealthLogsResponse()
-            .data(page.getContent().stream().map(ApiHealthMapper.INSTANCE::map).toList())
-            .pagination(
-                PaginationInfo.computePaginationInfo(page.getTotalElements(), Math.toIntExact(page.getPageElements()), paginationParam)
-            )
-            .links(computePaginationLinks(page.getTotalElements(), paginationParam));
+                .data(page.getContent().stream()
+                        .map(ApiHealthMapper.INSTANCE::map)
+                        .toList())
+                .pagination(PaginationInfo.computePaginationInfo(
+                        page.getTotalElements(), Math.toIntExact(page.getPageElements()), paginationParam))
+                .links(computePaginationLinks(page.getTotalElements(), paginationParam));
     }
 }

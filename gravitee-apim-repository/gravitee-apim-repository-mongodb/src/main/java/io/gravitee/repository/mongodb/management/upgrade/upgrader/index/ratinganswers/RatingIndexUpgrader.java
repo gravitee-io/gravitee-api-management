@@ -28,9 +28,9 @@ public class RatingIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("ratingAnswers")
-            .name("r1")
-            .key("rating", ascending())
-            .build();
+                .collection("ratingAnswers")
+                .name("r1")
+                .key("rating", ascending())
+                .build();
     }
 }

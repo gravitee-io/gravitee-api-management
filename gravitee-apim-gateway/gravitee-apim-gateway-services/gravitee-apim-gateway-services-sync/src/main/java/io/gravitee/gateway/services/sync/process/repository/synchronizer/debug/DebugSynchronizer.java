@@ -52,40 +52,37 @@ public class DebugSynchronizer implements RepositorySynchronizer {
         } else {
             AtomicLong launchTime = new AtomicLong();
             return debugEventFetcher
-                .fetchLatest(from, to, environments)
-                .subscribeOn(Schedulers.from(syncFetcherExecutor))
-                .flatMap(events ->
-                    Flowable.just(events)
-                        .flatMapIterable(e -> e)
-                        .flatMapMaybe(event ->
-                            debugMapperMapper
-                                .to(event)
-                                .map(reactable -> DebugDeployable.builder().id(event.getId()).reactable(reactable).build())
-                        )
-                )
-                .compose(upstream -> {
-                    DebugDeployer debugDeployer = deployerFactory.createDebugDeployer();
-                    return upstream
-                        .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                        .runOn(Schedulers.from(syncDeployerExecutor))
-                        .flatMap(debugDeployable ->
-                            debugDeployer
-                                .deploy(debugDeployable)
-                                .andThen(debugDeployer.doAfterDeployment(debugDeployable))
-                                .andThen(Flowable.just(debugDeployable))
-                                .onErrorResumeNext(throwable -> {
-                                    log.error(throwable.getMessage(), throwable);
-                                    return Flowable.empty();
-                                })
-                        )
-                        .sequential();
-                })
-                .count()
-                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-                .doOnSuccess(count ->
-                    log.debug("{} debug events refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
-                )
-                .ignoreElement();
+                    .fetchLatest(from, to, environments)
+                    .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                    .flatMap(events -> Flowable.just(events)
+                            .flatMapIterable(e -> e)
+                            .flatMapMaybe(event -> debugMapperMapper
+                                    .to(event)
+                                    .map(reactable -> DebugDeployable.builder()
+                                            .id(event.getId())
+                                            .reactable(reactable)
+                                            .build())))
+                    .compose(upstream -> {
+                        DebugDeployer debugDeployer = deployerFactory.createDebugDeployer();
+                        return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                                .runOn(Schedulers.from(syncDeployerExecutor))
+                                .flatMap(debugDeployable -> debugDeployer
+                                        .deploy(debugDeployable)
+                                        .andThen(debugDeployer.doAfterDeployment(debugDeployable))
+                                        .andThen(Flowable.just(debugDeployable))
+                                        .onErrorResumeNext(throwable -> {
+                                            log.error(throwable.getMessage(), throwable);
+                                            return Flowable.empty();
+                                        }))
+                                .sequential();
+                    })
+                    .count()
+                    .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                    .doOnSuccess(count -> log.debug(
+                            "{} debug events refreshed in {}ms",
+                            count,
+                            (System.currentTimeMillis() - launchTime.get())))
+                    .ignoreElement();
         }
     }
 

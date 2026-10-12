@@ -58,8 +58,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetPortalApiProductSubscriptionDetailsUseCase {
 
-    private static final Comparator<String> NULL_SAFE_STRING_COMPARATOR = Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
-    private static final ApiFieldFilter API_FIELD_FILTER = ApiFieldFilter.builder().pictureExcluded(true).build();
+    private static final Comparator<String> NULL_SAFE_STRING_COMPARATOR =
+            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
+    private static final ApiFieldFilter API_FIELD_FILTER =
+            ApiFieldFilter.builder().pictureExcluded(true).build();
 
     private final ApiProductQueryService apiProductQueryService;
     private final PlanCrudService planCrudService;
@@ -71,41 +73,35 @@ public class GetPortalApiProductSubscriptionDetailsUseCase {
     public Output execute(Input input) {
         var plan = resolvePlan(input);
         var apiProduct = apiProductQueryService
-            .findById(input.apiProductId())
-            .filter(product -> input.environmentId().equals(product.getEnvironmentId()))
-            .orElse(null);
+                .findById(input.apiProductId())
+                .filter(product -> input.environmentId().equals(product.getEnvironmentId()))
+                .orElse(null);
 
         if (apiProduct == null) {
-            return new Output(
-                new PortalApiProductSubscriptionDetails(input.apiProductId(), null, null, Availability.UNAVAILABLE, plan, List.of())
-            );
+            return new Output(new PortalApiProductSubscriptionDetails(
+                    input.apiProductId(), null, null, Availability.UNAVAILABLE, plan, List.of()));
         }
 
-        return new Output(
-            new PortalApiProductSubscriptionDetails(
+        return new Output(new PortalApiProductSubscriptionDetails(
                 apiProduct.getId(),
                 apiProduct.getName(),
                 apiProduct.getVersion(),
                 Availability.AVAILABLE,
                 plan,
-                resolveApis(apiProduct, input)
-            )
-        );
+                resolveApis(apiProduct, input)));
     }
 
     private PlanSummary resolvePlan(Input input) {
         return planCrudService
-            .findByPlanIdAndReferenceIdAndReferenceType(
-                input.planId(),
-                input.apiProductId(),
-                GenericPlanEntity.ReferenceType.API_PRODUCT.name()
-            )
-            .map(this::toPlanSummary)
-            .orElseGet(() -> new PlanSummary(input.planId(), null, null, null));
+                .findByPlanIdAndReferenceIdAndReferenceType(
+                        input.planId(), input.apiProductId(), GenericPlanEntity.ReferenceType.API_PRODUCT.name())
+                .map(this::toPlanSummary)
+                .orElseGet(() -> new PlanSummary(input.planId(), null, null, null));
     }
 
     private PlanSummary toPlanSummary(Plan plan) {
-        var security = plan.getPlanSecurity() == null ? null : plan.getPlanSecurity().getType();
+        var security =
+                plan.getPlanSecurity() == null ? null : plan.getPlanSecurity().getType();
         var mode = plan.getPlanMode() == null ? null : plan.getPlanMode().name();
         return new PlanSummary(plan.getId(), plan.getName(), security, mode);
     }
@@ -117,62 +113,51 @@ public class GetPortalApiProductSubscriptionDetailsUseCase {
         }
 
         Map<String, Api> apisById = apiQueryService
-            .search(
-                ApiSearchCriteria.builder().environmentId(input.environmentId()).ids(List.copyOf(apiIds)).build(),
-                null,
-                API_FIELD_FILTER
-            )
-            .collect(Collectors.toMap(Api::getId, Function.identity(), (left, right) -> left));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(input.environmentId())
+                                .ids(List.copyOf(apiIds))
+                                .build(),
+                        null,
+                        API_FIELD_FILTER)
+                .collect(Collectors.toMap(Api::getId, Function.identity(), (left, right) -> left));
 
         Map<String, List<PortalNavigationApi>> navigationItemsByApiId = portalNavigationItemsQueryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(input.environmentId())
-                    .published(true)
-                    .type(PortalNavigationItemType.API)
-                    .apiIds(apiIds)
-                    .build()
-            )
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .collect(Collectors.groupingBy(PortalNavigationApi::getApiId));
+                .search(PortalNavigationItemQueryCriteria.builder()
+                        .environmentId(input.environmentId())
+                        .published(true)
+                        .type(PortalNavigationItemType.API)
+                        .apiIds(apiIds)
+                        .build())
+                .stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .collect(Collectors.groupingBy(PortalNavigationApi::getApiId));
         Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById = new HashMap<>();
         var visibilityEvaluator = new PortalNavigationItemVisibilityEvaluator(
-            input.environmentId(),
-            input.viewerContext(),
-            portalNavigationItemsQueryService,
-            visibilityServices
-        );
+                input.environmentId(), input.viewerContext(), portalNavigationItemsQueryService, visibilityServices);
 
-        return apiIds
-            .stream()
-            .map(apiId ->
-                toApiSummary(
-                    apiId,
-                    apisById.get(apiId),
-                    navigationItemsByApiId.getOrDefault(apiId, List.of()),
-                    input,
-                    navigationAncestorsById,
-                    visibilityEvaluator
-                )
-            )
-            .sorted(
-                Comparator.comparing(ApiSummary::name, NULL_SAFE_STRING_COMPARATOR)
-                    .thenComparing(ApiSummary::version, NULL_SAFE_STRING_COMPARATOR)
-                    .thenComparing(ApiSummary::id, NULL_SAFE_STRING_COMPARATOR)
-            )
-            .toList();
+        return apiIds.stream()
+                .map(apiId -> toApiSummary(
+                        apiId,
+                        apisById.get(apiId),
+                        navigationItemsByApiId.getOrDefault(apiId, List.of()),
+                        input,
+                        navigationAncestorsById,
+                        visibilityEvaluator))
+                .sorted(Comparator.comparing(ApiSummary::name, NULL_SAFE_STRING_COMPARATOR)
+                        .thenComparing(ApiSummary::version, NULL_SAFE_STRING_COMPARATOR)
+                        .thenComparing(ApiSummary::id, NULL_SAFE_STRING_COMPARATOR))
+                .toList();
     }
 
     private ApiSummary toApiSummary(
-        String apiId,
-        Api api,
-        List<PortalNavigationApi> navigationItems,
-        Input input,
-        Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
+            String apiId,
+            Api api,
+            List<PortalNavigationApi> navigationItems,
+            Input input,
+            Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
         if (api == null) {
             return new ApiSummary(apiId, null, null, null, ApiAvailability.UNAVAILABLE, List.of(), null);
         }
@@ -180,36 +165,33 @@ public class GetPortalApiProductSubscriptionDetailsUseCase {
         var availability = apiAvailability(api);
         if (availability != ApiAvailability.AVAILABLE) {
             return new ApiSummary(
+                    api.getId(),
+                    api.getName(),
+                    api.getVersion(),
+                    api.getType() == null ? null : api.getType().name(),
+                    availability,
+                    List.of(),
+                    null);
+        }
+
+        var entrypoints = Objects.requireNonNullElse(
+                        apiExposedEntrypointDomainService.get(input.organizationId(), input.environmentId(), api),
+                        List.<ExposedEntrypoint>of())
+                .stream()
+                .map(ExposedEntrypoint::value)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+
+        return new ApiSummary(
                 api.getId(),
                 api.getName(),
                 api.getVersion(),
                 api.getType() == null ? null : api.getType().name(),
                 availability,
-                List.of(),
-                null
-            );
-        }
-
-        var entrypoints = Objects.requireNonNullElse(
-            apiExposedEntrypointDomainService.get(input.organizationId(), input.environmentId(), api),
-            List.<ExposedEntrypoint>of()
-        )
-            .stream()
-            .map(ExposedEntrypoint::value)
-            .filter(Objects::nonNull)
-            .distinct()
-            .sorted(String.CASE_INSENSITIVE_ORDER)
-            .toList();
-
-        return new ApiSummary(
-            api.getId(),
-            api.getName(),
-            api.getVersion(),
-            api.getType() == null ? null : api.getType().name(),
-            availability,
-            entrypoints,
-            resolveDocumentationTarget(navigationItems, input, navigationAncestorsById, visibilityEvaluator)
-        );
+                entrypoints,
+                resolveDocumentationTarget(navigationItems, input, navigationAncestorsById, visibilityEvaluator));
     }
 
     private ApiAvailability apiAvailability(Api api) {
@@ -224,26 +206,26 @@ public class GetPortalApiProductSubscriptionDetailsUseCase {
     }
 
     private DocumentationTarget resolveDocumentationTarget(
-        List<PortalNavigationApi> navigationItems,
-        Input input,
-        Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
-        return navigationItems
-            .stream()
-            .filter(item -> isAccessibleFromSubscribedProduct(item, input, navigationAncestorsById, visibilityEvaluator))
-            .sorted(Comparator.comparing(PortalNavigationItem::getOrder).thenComparing(item -> item.getId().json()))
-            .findFirst()
-            .map(item -> new DocumentationTarget(item.getRootId().json(), item.getId().json()))
-            .orElse(null);
+            List<PortalNavigationApi> navigationItems,
+            Input input,
+            Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
+        return navigationItems.stream()
+                .filter(item ->
+                        isAccessibleFromSubscribedProduct(item, input, navigationAncestorsById, visibilityEvaluator))
+                .sorted(Comparator.comparing(PortalNavigationItem::getOrder)
+                        .thenComparing(item -> item.getId().json()))
+                .findFirst()
+                .map(item -> new DocumentationTarget(
+                        item.getRootId().json(), item.getId().json()))
+                .orElse(null);
     }
 
     private boolean isAccessibleFromSubscribedProduct(
-        PortalNavigationApi item,
-        Input input,
-        Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
+            PortalNavigationApi item,
+            Input input,
+            Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
         Set<PortalNavigationItemId> visited = new HashSet<>();
         PortalNavigationItem current = item;
         boolean subscribedProductFound = false;
@@ -252,10 +234,8 @@ public class GetPortalApiProductSubscriptionDetailsUseCase {
             if (input.viewerContext().shouldNotShow(current) || !visibilityEvaluator.isVisible(current)) {
                 return false;
             }
-            if (
-                current instanceof PortalNavigationApiProduct apiProductItem &&
-                input.apiProductId().equals(apiProductItem.getApiProductId())
-            ) {
+            if (current instanceof PortalNavigationApiProduct apiProductItem
+                    && input.apiProductId().equals(apiProductItem.getApiProductId())) {
                 subscribedProductFound = true;
             }
             if (current.getParentId() == null) {
@@ -268,26 +248,23 @@ public class GetPortalApiProductSubscriptionDetailsUseCase {
     }
 
     private PortalNavigationItem findNavigationAncestor(
-        PortalNavigationItemId ancestorId,
-        Input input,
-        Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById
-    ) {
+            PortalNavigationItemId ancestorId,
+            Input input,
+            Map<PortalNavigationItemId, PortalNavigationItem> navigationAncestorsById) {
         if (!navigationAncestorsById.containsKey(ancestorId)) {
             navigationAncestorsById.put(
-                ancestorId,
-                portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), ancestorId)
-            );
+                    ancestorId,
+                    portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), ancestorId));
         }
         return navigationAncestorsById.get(ancestorId);
     }
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        String apiProductId,
-        String planId,
-        PortalNavigationItemViewerContext viewerContext
-    ) {}
+            String organizationId,
+            String environmentId,
+            String apiProductId,
+            String planId,
+            PortalNavigationItemViewerContext viewerContext) {}
 
     public record Output(PortalApiProductSubscriptionDetails apiProduct) {}
 }

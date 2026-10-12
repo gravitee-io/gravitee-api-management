@@ -38,13 +38,16 @@ class SingleSubscriptionDeployableTest {
         subscription.setId("id");
         subscription.setApi("api");
         subscription.setPlan("plan");
-        SingleSubscriptionDeployable subscriptionDeployable = SingleSubscriptionDeployable.builder().subscription(subscription).build();
+        SingleSubscriptionDeployable subscriptionDeployable = SingleSubscriptionDeployable.builder()
+                .subscription(subscription)
+                .build();
 
         assertThat(subscriptionDeployable.id()).isEqualTo("id");
         assertThat(subscriptionDeployable.apiId()).isEqualTo("api");
         assertThat(subscriptionDeployable.subscription()).isEqualTo(subscription);
         assertThat(subscriptionDeployable.subscriptions()).isEqualTo(List.of(subscription));
         assertThat(subscriptionDeployable.subscribablePlans()).isEqualTo(Set.of("plan"));
-        assertThatThrownBy(() -> subscriptionDeployable.subscriptions(List.of())).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> subscriptionDeployable.subscriptions(List.of()))
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 }

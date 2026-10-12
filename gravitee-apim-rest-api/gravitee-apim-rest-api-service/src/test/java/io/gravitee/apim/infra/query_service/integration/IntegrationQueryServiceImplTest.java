@@ -57,17 +57,17 @@ public class IntegrationQueryServiceImplTest {
     @Test
     @SneakyThrows
     void should_list_integrations_matching_environment_id() {
-        //Given
+        // Given
         var envId = "my-env";
         var pageable = new PageableImpl(1, 5);
         var expectedIntegration = IntegrationFixture.anApiIntegration();
         var page = integrationPage(pageable, expectedIntegration);
         when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(page);
 
-        //When
+        // When
         Page<Integration> responsePage = service.findByEnvironment(envId, pageable);
 
-        //Then
+        // Then
         assertThat(responsePage).isNotNull();
         assertThat(responsePage.getPageNumber()).isEqualTo(1);
         assertThat(responsePage.getPageElements()).isEqualTo(1);
@@ -88,8 +88,8 @@ public class IntegrationQueryServiceImplTest {
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessage("An error occurred while finding Integrations by environment id: different-env");
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurred while finding Integrations by environment id: different-env");
     }
 
     @Nested
@@ -98,7 +98,7 @@ public class IntegrationQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_list_integrations_matching_environment_of_admin() {
-            //Given
+            // Given
             String usr = null;
             Collection<String> grp = Set.of();
             boolean admin = true;
@@ -107,10 +107,10 @@ public class IntegrationQueryServiceImplTest {
             var page = integrationPage(pageable, expectedIntegration);
             when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(page);
 
-            //When
+            // When
             Page<Integration> responsePage = service.findByEnvironmentAndContext("my-env", usr, grp, admin, pageable);
 
-            //Then
+            // Then
             assertThat(responsePage).isNotNull();
             assertThat(responsePage.getPageNumber()).isEqualTo(1);
             assertThat(responsePage.getPageElements()).isEqualTo(1);
@@ -121,22 +121,22 @@ public class IntegrationQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_list_integrations_matching_environment_and_user() {
-            //Given
+            // Given
             String usr = null;
             Collection<String> grp = Set.of();
             boolean admin = false;
             var pageable = new PageableImpl(1, 5);
             var expectedIntegration = IntegrationFixture.anApiIntegration();
             var page = integrationPage(pageable, expectedIntegration);
-            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(
-                Set.of(MembershipEntity.builder().id("My-ID").build())
-            );
-            when(integrationRepository.findAllByEnvironmentAndGroups(any(), any(), any(), any())).thenReturn(page);
+            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
+                    .thenReturn(Set.of(MembershipEntity.builder().id("My-ID").build()));
+            when(integrationRepository.findAllByEnvironmentAndGroups(any(), any(), any(), any()))
+                    .thenReturn(page);
 
-            //When
+            // When
             Page<Integration> responsePage = service.findByEnvironmentAndContext("my-env", usr, grp, admin, pageable);
 
-            //Then
+            // Then
             assertThat(responsePage).isNotNull();
             assertThat(responsePage.getPageNumber()).isEqualTo(1);
             assertThat(responsePage.getPageElements()).isEqualTo(1);
@@ -145,7 +145,8 @@ public class IntegrationQueryServiceImplTest {
         }
     }
 
-    Page<io.gravitee.repository.management.model.Integration> integrationPage(Pageable pageable, Integration integration) {
+    Page<io.gravitee.repository.management.model.Integration> integrationPage(
+            Pageable pageable, Integration integration) {
         var repositoryIntegration = IntegrationAdapter.INSTANCE.toRepository(integration);
         var integrations = List.of(repositoryIntegration);
         return new Page<>(integrations, pageable.getPageNumber(), integrations.size(), integrations.size());

@@ -84,7 +84,7 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
         // Given
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
-        givenEdgeManagerRole(organizationId, edgeManagerRole("edge-manager-id", new char[] { READ.getId() }));
+        givenEdgeManagerRole(organizationId, edgeManagerRole("edge-manager-id", new char[] {READ.getId()}));
 
         // When
         assertThat(upgrader.upgrade()).isTrue();
@@ -95,13 +95,10 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
         assertThat(update.getName()).isEqualTo(ROLE_ENVIRONMENT_EDGE_MANAGER.getName());
         assertThat(update.getScope()).isEqualTo(ENVIRONMENT);
         assertThat(update.getPermissions().get(API_PERMISSION)).containsExactlyInAnyOrder(READ.getId(), CREATE.getId());
-        assertThat(update.getPermissions().get(EnvironmentPermission.EDGE_CONFIGURATION.getName())).containsExactlyInAnyOrder(
-            CREATE.getId(),
-            READ.getId(),
-            UPDATE.getId(),
-            DELETE.getId()
-        );
-        assertThat(update.getPermissions().get(EnvironmentPermission.PLATFORM.getName())).containsExactly(READ.getId());
+        assertThat(update.getPermissions().get(EnvironmentPermission.EDGE_CONFIGURATION.getName()))
+                .containsExactlyInAnyOrder(CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId());
+        assertThat(update.getPermissions().get(EnvironmentPermission.PLATFORM.getName()))
+                .containsExactly(READ.getId());
     }
 
     @Test
@@ -109,7 +106,8 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
         // Given
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
-        givenEdgeManagerRole(organizationId, edgeManagerRole("edge-manager-id", new char[] { CREATE.getId(), READ.getId() }));
+        givenEdgeManagerRole(
+                organizationId, edgeManagerRole("edge-manager-id", new char[] {CREATE.getId(), READ.getId()}));
 
         // When
         assertThat(upgrader.upgrade()).isTrue();
@@ -123,9 +121,8 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
         // Given
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
-        when(roleService.findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_EDGE_MANAGER.getName(), organizationId)).thenReturn(
-            Optional.empty()
-        );
+        when(roleService.findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_EDGE_MANAGER.getName(), organizationId))
+                .thenReturn(Optional.empty());
 
         // When
         assertThat(upgrader.upgrade()).isTrue();
@@ -154,11 +151,11 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
         RoleEntity role = RoleEntity.builder()
-            .id("edge-manager-id")
-            .name(ROLE_ENVIRONMENT_EDGE_MANAGER.getName())
-            .scope(ENVIRONMENT)
-            .permissions(null)
-            .build();
+                .id("edge-manager-id")
+                .name(ROLE_ENVIRONMENT_EDGE_MANAGER.getName())
+                .scope(ENVIRONMENT)
+                .permissions(null)
+                .build();
         givenEdgeManagerRole(organizationId, role);
 
         // When
@@ -174,8 +171,8 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
     public void should_process_each_organization() throws TechnicalException, UpgraderException {
         // Given
         givenOrganizations("org-a", "org-b");
-        givenEdgeManagerRole("org-a", edgeManagerRole("edge-manager-org-a", new char[] { READ.getId() }));
-        givenEdgeManagerRole("org-b", edgeManagerRole("edge-manager-org-b", new char[] { READ.getId() }));
+        givenEdgeManagerRole("org-a", edgeManagerRole("edge-manager-org-a", new char[] {READ.getId()}));
+        givenEdgeManagerRole("org-b", edgeManagerRole("edge-manager-org-b", new char[] {READ.getId()}));
 
         // When
         assertThat(upgrader.upgrade()).isTrue();
@@ -200,9 +197,9 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
     }
 
     private void givenEdgeManagerRole(String organizationId, RoleEntity role) {
-        when(roleService.findByScopeAndName(eq(ENVIRONMENT), eq(ROLE_ENVIRONMENT_EDGE_MANAGER.getName()), eq(organizationId))).thenReturn(
-            Optional.of(role)
-        );
+        when(roleService.findByScopeAndName(
+                        eq(ENVIRONMENT), eq(ROLE_ENVIRONMENT_EDGE_MANAGER.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(role));
     }
 
     private static RoleEntity edgeManagerRole(String id, char[] apiAcls) {
@@ -213,11 +210,11 @@ public class EdgeManagerApiCreatePermissionUpgraderTest {
             permissions.put(API_PERMISSION, apiAcls);
         }
         return RoleEntity.builder()
-            .id(id)
-            .name(ROLE_ENVIRONMENT_EDGE_MANAGER.getName())
-            .scope(ENVIRONMENT)
-            .permissions(permissions)
-            .build();
+                .id(id)
+                .name(ROLE_ENVIRONMENT_EDGE_MANAGER.getName())
+                .scope(ENVIRONMENT)
+                .permissions(permissions)
+                .build();
     }
 
     private UpdateRoleEntity captureSingleUpdate() {

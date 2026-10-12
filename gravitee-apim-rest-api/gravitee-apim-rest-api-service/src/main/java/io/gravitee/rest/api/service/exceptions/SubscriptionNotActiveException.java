@@ -34,7 +34,8 @@ public class SubscriptionNotActiveException extends AbstractManagementException 
 
     @Override
     public String getMessage() {
-        return "Subscription [" + subscription.getId() + "] should be paused or accepted. Currently it is " + subscription.getStatus();
+        return "Subscription [" + subscription.getId() + "] should be paused or accepted. Currently it is "
+                + subscription.getStatus();
     }
 
     @Override

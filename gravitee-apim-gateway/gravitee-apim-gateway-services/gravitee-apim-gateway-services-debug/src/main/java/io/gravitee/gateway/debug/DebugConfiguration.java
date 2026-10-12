@@ -112,10 +112,9 @@ public class DebugConfiguration {
     private final io.gravitee.node.api.configuration.Configuration configuration;
 
     public DebugConfiguration(
-        ApplicationContext applicationContext,
-        Node node,
-        io.gravitee.node.api.configuration.Configuration configuration
-    ) {
+            ApplicationContext applicationContext,
+            Node node,
+            io.gravitee.node.api.configuration.Configuration configuration) {
         this.applicationContext = applicationContext;
         this.node = node;
         this.configuration = configuration;
@@ -123,182 +122,168 @@ public class DebugConfiguration {
 
     @Bean
     public DebugOrganizationEventListener debugOrganizationEventListener(
-        final EventManager eventManager,
-        final OrganizationReactorRegistry debugV3OrganizationReactorRegistry,
-        final OrganizationReactorRegistry debugOrganizationReactorRegistry
-    ) {
-        return new DebugOrganizationEventListener(eventManager, debugV3OrganizationReactorRegistry, debugOrganizationReactorRegistry);
+            final EventManager eventManager,
+            final OrganizationReactorRegistry debugV3OrganizationReactorRegistry,
+            final OrganizationReactorRegistry debugOrganizationReactorRegistry) {
+        return new DebugOrganizationEventListener(
+                eventManager, debugV3OrganizationReactorRegistry, debugOrganizationReactorRegistry);
     }
 
     /*******************
      *  V3 Beans
      ******************/
-
     @Bean
-    public io.gravitee.gateway.policy.PolicyFactoryCreator debugV3PolicyFactoryCreator(final PolicyPluginFactory policyPluginFactory) {
-        return new PolicyDebugDecoratorFactoryCreator(
-            new PolicyFactoryCreatorImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator(), false)
-        );
+    public io.gravitee.gateway.policy.PolicyFactoryCreator debugV3PolicyFactoryCreator(
+            final PolicyPluginFactory policyPluginFactory) {
+        return new PolicyDebugDecoratorFactoryCreator(new PolicyFactoryCreatorImpl(
+                policyPluginFactory, new ExpressionLanguageStringConditionEvaluator(), false));
     }
 
     @Bean
     public V3OrganizationReactorFactory debugV3OrganizationReactorFactory(
-        DefaultClassLoader classLoader,
-        @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator factoryCreator,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider,
-        ResourceClassLoaderFactory resourceClassLoaderFactory
-    ) {
+            DefaultClassLoader classLoader,
+            @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator factoryCreator,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider,
+            ResourceClassLoaderFactory resourceClassLoaderFactory) {
         return new V3OrganizationReactorFactory(
-            configuration.getProperty("classloader.legacy.enabled", Boolean.class, false),
-            classLoader,
-            applicationContext.getParent(),
-            factoryCreator,
-            policyClassLoaderFactory,
-            componentProvider,
-            resourceClassLoaderFactory
-        );
+                configuration.getProperty("classloader.legacy.enabled", Boolean.class, false),
+                classLoader,
+                applicationContext.getParent(),
+                factoryCreator,
+                policyClassLoaderFactory,
+                componentProvider,
+                resourceClassLoaderFactory);
     }
 
     @Bean
     public OrganizationReactorRegistry debugV3OrganizationReactorRegistry(
-        @Qualifier("debugV3OrganizationReactorFactory") V3OrganizationReactorFactory debugV3OrganizationReactorFactory
-    ) {
+            @Qualifier("debugV3OrganizationReactorFactory")
+                    V3OrganizationReactorFactory debugV3OrganizationReactorFactory) {
         return new OrganizationReactorRegistry(debugV3OrganizationReactorFactory);
     }
 
     @Bean
     public OrganizationPolicyChainFactoryManager debugV3OrganizationPolicyChainFactoryManager(
-        @Qualifier("debugV3OrganizationReactorRegistry") OrganizationReactorRegistry debugV3OrganizationReactorRegistry
-    ) {
+            @Qualifier("debugV3OrganizationReactorRegistry")
+                    OrganizationReactorRegistry debugV3OrganizationReactorRegistry) {
         return new V3OrganizationPolicyChainFactoryManager(debugV3OrganizationReactorRegistry);
     }
 
     @Bean
     @Qualifier("debugV3ConfigurablePolicyChainProvider")
     public OnRequestPlatformPolicyChainProvider debugV3OnRequestPlatformPolicyChainProvider(
-        OrganizationFlowResolver organizationFlowResolver,
-        @Qualifier(
-            "debugV3OrganizationPolicyChainFactoryManager"
-        ) OrganizationPolicyChainFactoryManager debugV3OrganizationPolicyChainFactoryManager
-    ) {
+            OrganizationFlowResolver organizationFlowResolver,
+            @Qualifier("debugV3OrganizationPolicyChainFactoryManager")
+                    OrganizationPolicyChainFactoryManager debugV3OrganizationPolicyChainFactoryManager) {
         return new OnRequestPlatformPolicyChainProvider(
-            organizationFlowResolver,
-            debugV3OrganizationPolicyChainFactoryManager,
-            new FlowPolicyResolverFactory()
-        );
+                organizationFlowResolver,
+                debugV3OrganizationPolicyChainFactoryManager,
+                new FlowPolicyResolverFactory());
     }
 
     @Bean
     @Qualifier("debugV3ConfigurablePolicyChainProvider")
     public OnResponsePlatformPolicyChainProvider debugV3OnResponsePlatformPolicyChainProvider(
-        OrganizationFlowResolver organizationFlowResolver,
-        @Qualifier(
-            "debugV3OrganizationPolicyChainFactoryManager"
-        ) OrganizationPolicyChainFactoryManager debugV3OrganizationPolicyChainFactoryManager
-    ) {
+            OrganizationFlowResolver organizationFlowResolver,
+            @Qualifier("debugV3OrganizationPolicyChainFactoryManager")
+                    OrganizationPolicyChainFactoryManager debugV3OrganizationPolicyChainFactoryManager) {
         return new OnResponsePlatformPolicyChainProvider(
-            organizationFlowResolver,
-            debugV3OrganizationPolicyChainFactoryManager,
-            new FlowPolicyResolverFactory()
-        );
+                organizationFlowResolver,
+                debugV3OrganizationPolicyChainFactoryManager,
+                new FlowPolicyResolverFactory());
     }
 
     @Bean
     public AcceptorResolver debugV3EntrypointResolver(
-        @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry
-    ) {
+            @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry reactorHandlerRegistry) {
         return new DefaultAcceptorResolver(reactorHandlerRegistry);
     }
 
     @Bean
     public Reactor debugReactor(
-        final @Qualifier("debugV3EntrypointResolver") AcceptorResolver acceptorResolver,
-        final GatewayConfiguration gatewayConfiguration,
-        final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
-        final @Qualifier("debugV3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
-        final @Qualifier(
-            "v3NotFoundProcessorChainFactory"
-        ) io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory notFoundProcessorChainFactory
-    ) {
+            final @Qualifier("debugV3EntrypointResolver") AcceptorResolver acceptorResolver,
+            final GatewayConfiguration gatewayConfiguration,
+            final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory
+                            requestProcessorChainFactory,
+            final @Qualifier("debugV3ResponseProcessorChainFactory") ResponseProcessorChainFactory
+                            responseProcessorChainFactory,
+            final @Qualifier("v3NotFoundProcessorChainFactory") io.gravitee.gateway.reactor.processor
+                                    .NotFoundProcessorChainFactory
+                            notFoundProcessorChainFactory) {
         return new DebugReactor(
-            acceptorResolver,
-            gatewayConfiguration,
-            requestProcessorChainFactory,
-            responseProcessorChainFactory,
-            notFoundProcessorChainFactory
-        );
+                acceptorResolver,
+                gatewayConfiguration,
+                requestProcessorChainFactory,
+                responseProcessorChainFactory,
+                notFoundProcessorChainFactory);
     }
 
     @Bean
     public PolicyChainProviderLoader debugV3PolicyChainProviderLoader(
-        @Qualifier("debugV3ConfigurablePolicyChainProvider") List<ConfigurablePolicyChainProvider> providers
-    ) {
+            @Qualifier("debugV3ConfigurablePolicyChainProvider") List<ConfigurablePolicyChainProvider> providers) {
         return new PolicyChainProviderLoader(providers);
     }
 
     @Bean
-    public ResponseProcessorChainFactory debugV3ResponseProcessorChainFactory(EventRepository eventRepository, ObjectMapper objectMapper) {
+    public ResponseProcessorChainFactory debugV3ResponseProcessorChainFactory(
+            EventRepository eventRepository, ObjectMapper objectMapper) {
         return new DebugResponseProcessorChainFactory(eventRepository, objectMapper);
     }
 
     /*******************
      *  V4 emulation engine Beans
      ******************/
-
     @Bean
     public DefaultOrganizationReactorFactory debugOrganizationReactorFactory(
-        DefaultClassLoader classLoader,
-        PolicyFactoryManager policyFactoryManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider,
-        OpenTelemetryConfiguration configuration
-    ) {
+            DefaultClassLoader classLoader,
+            PolicyFactoryManager policyFactoryManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider,
+            OpenTelemetryConfiguration configuration) {
         return new DebugOrganizationReactorFactory(
-            classLoader,
-            applicationContext.getParent(),
-            policyFactoryManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            configuration
-        );
+                classLoader,
+                applicationContext.getParent(),
+                policyFactoryManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                configuration);
     }
 
     @Bean
     public OrganizationReactorRegistry debugOrganizationReactorRegistry(
-        @Qualifier("debugOrganizationReactorFactory") OrganizationReactorFactory defaultOrganizationReactorFactory
-    ) {
+            @Qualifier("debugOrganizationReactorFactory")
+                    OrganizationReactorFactory defaultOrganizationReactorFactory) {
         return new OrganizationReactorRegistry(defaultOrganizationReactorFactory);
     }
 
     @Bean
-    public io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager debugOrganizationPolicyChainFactoryManager(
-        @Qualifier("debugOrganizationReactorRegistry") OrganizationReactorRegistry platformPolicyManagerRegistry
-    ) {
+    public io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager
+            debugOrganizationPolicyChainFactoryManager(
+                    @Qualifier("debugOrganizationReactorRegistry")
+                            OrganizationReactorRegistry platformPolicyManagerRegistry) {
         return new DefaultPlatformPolicyChainFactoryManager(platformPolicyManagerRegistry);
     }
 
     @Bean
     public DebugReactorEventListener debugReactorEventListener(
-        final io.vertx.rxjava3.core.Vertx vertx,
-        final EventManager eventManager,
-        final EventRepository eventRepository,
-        final ObjectMapper objectMapper,
-        final VertxDebugHttpClientConfiguration debugHttpClientConfiguration,
-        @Qualifier("debugReactorHandlerRegistry") final ReactorHandlerRegistry reactorHandlerRegistry,
-        final AccessPointManager accessPointManager,
-        final DataEncryptor dataEncryptor
-    ) {
+            final io.vertx.rxjava3.core.Vertx vertx,
+            final EventManager eventManager,
+            final EventRepository eventRepository,
+            final ObjectMapper objectMapper,
+            final VertxDebugHttpClientConfiguration debugHttpClientConfiguration,
+            @Qualifier("debugReactorHandlerRegistry") final ReactorHandlerRegistry reactorHandlerRegistry,
+            final AccessPointManager accessPointManager,
+            final DataEncryptor dataEncryptor) {
         return new DebugReactorEventListener(
-            vertx,
-            eventManager,
-            eventRepository,
-            objectMapper,
-            debugHttpClientConfiguration,
-            reactorHandlerRegistry,
-            accessPointManager,
-            dataEncryptor
-        );
+                vertx,
+                eventManager,
+                eventRepository,
+                objectMapper,
+                debugHttpClientConfiguration,
+                reactorHandlerRegistry,
+                accessPointManager,
+                dataEncryptor);
     }
 
     @Bean
@@ -313,43 +298,42 @@ public class DebugConfiguration {
 
     @Bean
     public HttpRequestDispatcher debugHttpRequestDispatcher(
-        GatewayConfiguration gatewayConfiguration,
-        @Qualifier("debugHttpAcceptorResolver") HttpAcceptorResolver httpAcceptorResolver,
-        IdGenerator idGenerator,
-        ComponentProvider globalComponentProvider,
-        RequestProcessorChainFactory v3RequestProcessorChainFactory,
-        @Qualifier("debugV3ResponseProcessorChainFactory") ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
-        @Qualifier("debugPlatformProcessorChainFactory") DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory,
-        NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        RequestClientAuthConfiguration requestClientAuthConfiguration,
-        RequestPathConfiguration requestPathConfiguration,
-        DebugCompletionProcessor debugCompletionProcessor,
-        Vertx vertx,
-        @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
-    ) {
+            GatewayConfiguration gatewayConfiguration,
+            @Qualifier("debugHttpAcceptorResolver") HttpAcceptorResolver httpAcceptorResolver,
+            IdGenerator idGenerator,
+            ComponentProvider globalComponentProvider,
+            RequestProcessorChainFactory v3RequestProcessorChainFactory,
+            @Qualifier("debugV3ResponseProcessorChainFactory")
+                    ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
+            @Qualifier("debugPlatformProcessorChainFactory")
+                    DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory,
+            NotFoundProcessorChainFactory notFoundProcessorChainFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            RequestClientAuthConfiguration requestClientAuthConfiguration,
+            RequestPathConfiguration requestPathConfiguration,
+            DebugCompletionProcessor debugCompletionProcessor,
+            Vertx vertx,
+            @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled) {
         return new DebugHttpRequestDispatcher(
-            gatewayConfiguration,
-            httpAcceptorResolver,
-            idGenerator,
-            globalComponentProvider,
-            v3RequestProcessorChainFactory,
-            v3ResponseProcessorChainFactory,
-            debugPlatformProcessorChainFactory,
-            notFoundProcessorChainFactory,
-            requestTimeoutConfiguration,
-            requestClientAuthConfiguration,
-            requestPathConfiguration,
-            debugCompletionProcessor,
-            vertx,
-            warningsEnabled
-        );
+                gatewayConfiguration,
+                httpAcceptorResolver,
+                idGenerator,
+                globalComponentProvider,
+                v3RequestProcessorChainFactory,
+                v3ResponseProcessorChainFactory,
+                debugPlatformProcessorChainFactory,
+                notFoundProcessorChainFactory,
+                requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
+                requestPathConfiguration,
+                debugCompletionProcessor,
+                vertx,
+                warningsEnabled);
     }
 
     @Bean
     public HttpAcceptorResolver debugHttpAcceptorResolver(
-        @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry debugReactorHandlerRegistry
-    ) {
+            @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry debugReactorHandlerRegistry) {
         return new DefaultHttpAcceptorResolver(debugReactorHandlerRegistry);
     }
 
@@ -359,44 +343,42 @@ public class DebugConfiguration {
      * state, so the two instances are interchangeable.
      */
     @Bean
-    public DebugCompletionProcessor debugCompletionProcessor(EventRepository eventRepository, ObjectMapper objectMapper) {
+    public DebugCompletionProcessor debugCompletionProcessor(
+            EventRepository eventRepository, ObjectMapper objectMapper) {
         return new DebugCompletionProcessor(eventRepository, objectMapper);
     }
 
     @Bean
     public DebugPlatformProcessorChainFactory debugPlatformProcessorChainFactory(
-        TransactionPreProcessorFactory transactionHandlerFactory,
-        @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
-        @Value("${handlers.request.x-forward.enabled:false}") boolean xForwardProcessor,
-        ReporterService reporterService,
-        AlertEventProducer eventProducer,
-        Node node,
-        @Value("${debug.http.port:8482}") String httpPort,
-        GatewayConfiguration gatewayConfiguration,
-        EventRepository eventRepository,
-        ObjectMapper objectMapper,
-        ConnectionDrainManager connectionDrainManager
-    ) {
+            TransactionPreProcessorFactory transactionHandlerFactory,
+            @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
+            @Value("${handlers.request.x-forward.enabled:false}") boolean xForwardProcessor,
+            ReporterService reporterService,
+            AlertEventProducer eventProducer,
+            Node node,
+            @Value("${debug.http.port:8482}") String httpPort,
+            GatewayConfiguration gatewayConfiguration,
+            EventRepository eventRepository,
+            ObjectMapper objectMapper,
+            ConnectionDrainManager connectionDrainManager) {
         return new DebugPlatformProcessorChainFactory(
-            transactionHandlerFactory,
-            traceContext,
-            xForwardProcessor,
-            reporterService,
-            eventProducer,
-            node,
-            httpPort,
-            false,
-            gatewayConfiguration,
-            eventRepository,
-            objectMapper,
-            connectionDrainManager
-        );
+                transactionHandlerFactory,
+                traceContext,
+                xForwardProcessor,
+                reporterService,
+                eventProducer,
+                node,
+                httpPort,
+                false,
+                gatewayConfiguration,
+                eventRepository,
+                objectMapper,
+                connectionDrainManager);
     }
 
     /*******************
      *  Commons Beans
      ******************/
-
     @Bean
     public VertxDebugService vertxDebugService() {
         return new VertxDebugService();
@@ -404,95 +386,90 @@ public class DebugConfiguration {
 
     @Bean
     public ReactorFactory<Api> debugReactorHandlerFactory(
-        @Qualifier("debugV3PolicyFactoryCreator") io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
-        @Qualifier("debugPolicyFactoryManager") PolicyFactoryManager policyFactoryManager,
-        @Qualifier(
-            "debugOrganizationPolicyChainFactoryManager"
-        ) io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager debugOrganizationPolicyChainFactoryManager,
-        OrganizationManager organizationManager,
-        @Qualifier("debugV3PolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
-        ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        HttpAcceptorFactory httpAcceptorFactory,
-        DictionaryManager dictionaryManager
-    ) {
+            @Qualifier("debugV3PolicyFactoryCreator")
+                    io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
+            @Qualifier("debugPolicyFactoryManager") PolicyFactoryManager policyFactoryManager,
+            @Qualifier("debugOrganizationPolicyChainFactoryManager")
+                    io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager
+                            debugOrganizationPolicyChainFactoryManager,
+            OrganizationManager organizationManager,
+            @Qualifier("debugV3PolicyChainProviderLoader") PolicyChainProviderLoader policyChainProviderLoader,
+            ApiProcessorChainFactory apiProcessorChainFactory,
+            FlowResolverFactory flowResolverFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            HttpAcceptorFactory httpAcceptorFactory,
+            DictionaryManager dictionaryManager) {
         return new DebugApiReactorHandlerFactory(
-            applicationContext.getParent(),
-            configuration,
-            node,
-            v3PolicyFactoryCreator,
-            policyFactoryManager,
-            debugOrganizationPolicyChainFactoryManager,
-            organizationManager,
-            policyChainProviderLoader,
-            apiProcessorChainFactory,
-            flowResolverFactory,
-            requestTimeoutConfiguration,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            dictionaryManager
-        );
+                applicationContext.getParent(),
+                configuration,
+                node,
+                v3PolicyFactoryCreator,
+                policyFactoryManager,
+                debugOrganizationPolicyChainFactoryManager,
+                organizationManager,
+                policyChainProviderLoader,
+                apiProcessorChainFactory,
+                flowResolverFactory,
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                dictionaryManager);
     }
 
     @Bean
     public ReactorFactoryManager debugReactorHandlerFactoryManager(
-        @Qualifier("debugReactorHandlerFactory") ReactorFactory<?> debugReactorHandlerFactory,
-        @Qualifier("debugV4ReactorHandlerFactory") ReactorFactory<?> debugV4ReactorHandlerFactory
-    ) {
+            @Qualifier("debugReactorHandlerFactory") ReactorFactory<?> debugReactorHandlerFactory,
+            @Qualifier("debugV4ReactorHandlerFactory") ReactorFactory<?> debugV4ReactorHandlerFactory) {
         return new ReactorFactoryManager(List.of(debugReactorHandlerFactory, debugV4ReactorHandlerFactory));
     }
 
     @Bean
     public ReactorHandlerRegistry debugReactorHandlerRegistry(
-        @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager
-    ) {
+            @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager) {
         return new DefaultReactorHandlerRegistry(reactorFactoryManager);
     }
 
     @Bean
     public DebugV4ApiReactorHandlerFactory debugV4ReactorHandlerFactory(
-        @Qualifier("debugPolicyFactoryManager") PolicyFactoryManager policyFactoryManager,
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointConnectorPluginManager endpointConnectorPluginManager,
-        ApiServicePluginManager apiServicePluginManager,
-        @Qualifier(
-            "debugOrganizationPolicyChainFactoryManager"
-        ) io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager debugOrganizationPolicyChainFactoryManager,
-        OrganizationManager organizationManager,
-        io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        ReporterService reporterService,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        GatewayConfiguration gatewayConfiguration,
-        final DictionaryManager dictionaryManager,
-        ConnectionDrainManager connectionDrainManager,
-        @Autowired(required = false) ApiProductRegistry apiProductRegistry
-    ) {
+            @Qualifier("debugPolicyFactoryManager") PolicyFactoryManager policyFactoryManager,
+            EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            EndpointConnectorPluginManager endpointConnectorPluginManager,
+            ApiServicePluginManager apiServicePluginManager,
+            @Qualifier("debugOrganizationPolicyChainFactoryManager")
+                    io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager
+                            debugOrganizationPolicyChainFactoryManager,
+            OrganizationManager organizationManager,
+            io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            ReporterService reporterService,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            GatewayConfiguration gatewayConfiguration,
+            final DictionaryManager dictionaryManager,
+            ConnectionDrainManager connectionDrainManager,
+            @Autowired(required = false) ApiProductRegistry apiProductRegistry) {
         return new DebugV4ApiReactorHandlerFactory(
-            applicationContext.getParent(),
-            configuration,
-            node,
-            policyFactoryManager,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            apiServicePluginManager,
-            debugOrganizationPolicyChainFactoryManager,
-            organizationManager,
-            flowResolverFactory,
-            requestTimeoutConfiguration,
-            reporterService,
-            accessPointManager,
-            eventManager,
-            new HttpAcceptorFactory(false),
-            gatewayConfiguration,
-            dictionaryManager,
-            connectionDrainManager,
-            apiProductRegistry
-        );
+                applicationContext.getParent(),
+                configuration,
+                node,
+                policyFactoryManager,
+                entrypointConnectorPluginManager,
+                endpointConnectorPluginManager,
+                apiServicePluginManager,
+                debugOrganizationPolicyChainFactoryManager,
+                organizationManager,
+                flowResolverFactory,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                new HttpAcceptorFactory(false),
+                gatewayConfiguration,
+                dictionaryManager,
+                connectionDrainManager,
+                apiProductRegistry);
     }
 }

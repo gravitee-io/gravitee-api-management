@@ -26,24 +26,23 @@ public final class PropertyClassificationValidator {
 
     private PropertyClassificationValidator() {}
 
-    public static void rejectEncryptedToPlain(List<Property> storedProperties, List<EncryptableProperty> incomingProperties) {
+    public static void rejectEncryptedToPlain(
+            List<Property> storedProperties, List<EncryptableProperty> incomingProperties) {
         if (storedProperties == null || incomingProperties == null) {
             return;
         }
-        Set<String> encryptedKeys = storedProperties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(Property::isEncrypted)
-            .map(Property::getKey)
-            .collect(Collectors.toSet());
-        incomingProperties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(incoming -> encryptedKeys.contains(incoming.getKey()))
-            .filter(incoming -> !incoming.isEncrypted() && !incoming.isEncryptable())
-            .findFirst()
-            .ifPresent(incoming -> {
-                throw new ApiPropertyEncryptedToPlainException(incoming.getKey());
-            });
+        Set<String> encryptedKeys = storedProperties.stream()
+                .filter(Objects::nonNull)
+                .filter(Property::isEncrypted)
+                .map(Property::getKey)
+                .collect(Collectors.toSet());
+        incomingProperties.stream()
+                .filter(Objects::nonNull)
+                .filter(incoming -> encryptedKeys.contains(incoming.getKey()))
+                .filter(incoming -> !incoming.isEncrypted() && !incoming.isEncryptable())
+                .findFirst()
+                .ifPresent(incoming -> {
+                    throw new ApiPropertyEncryptedToPlainException(incoming.getKey());
+                });
     }
 }

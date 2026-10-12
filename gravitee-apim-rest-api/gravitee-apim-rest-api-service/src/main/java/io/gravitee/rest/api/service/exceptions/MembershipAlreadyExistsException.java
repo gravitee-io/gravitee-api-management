@@ -33,11 +33,10 @@ public class MembershipAlreadyExistsException extends AbstractManagementExceptio
     private final MembershipReferenceType referenceType;
 
     public MembershipAlreadyExistsException(
-        String memberId,
-        MembershipMemberType memberType,
-        String referenceId,
-        MembershipReferenceType referenceType
-    ) {
+            String memberId,
+            MembershipMemberType memberType,
+            String referenceId,
+            MembershipReferenceType referenceType) {
         super();
         this.memberId = memberId;
         this.memberType = memberType;
@@ -52,17 +51,14 @@ public class MembershipAlreadyExistsException extends AbstractManagementExceptio
 
     @Override
     public String getMessage() {
-        return (
-            "A Membership for member : " +
-            memberType +
-            " " +
-            memberId +
-            " and ref : " +
-            referenceType +
-            " " +
-            referenceId +
-            " already exists."
-        );
+        return ("A Membership for member : " + memberType
+                + " "
+                + memberId
+                + " and ref : "
+                + referenceType
+                + " "
+                + referenceId
+                + " already exists.");
     }
 
     @Override

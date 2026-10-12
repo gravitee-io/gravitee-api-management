@@ -47,7 +47,8 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiDeleteDocumentationPageUseCaseTest {
 
-    private static final Api API = Api.builder().id("api-id").definitionVersion(DefinitionVersion.V4).build();
+    private static final Api API =
+            Api.builder().id("api-id").definitionVersion(DefinitionVersion.V4).build();
     public static final String PAGE_ID = "page-id";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -66,46 +67,47 @@ class ApiDeleteDocumentationPageUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        final AuditDomainService auditDomainService = new AuditDomainService(
-            auditCrudService,
-            userCrudService,
-            new JacksonJsonDiffProcessor()
-        );
+        final AuditDomainService auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         cut = new ApiDeleteDocumentationPageUseCase(
-            new DeleteApiDocumentationDomainService(
-                pageCrudService,
-                pageQueryService,
-                auditDomainService,
-                new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer),
-                planQueryService,
-                indexer
-            ),
-            apiCrudService
-        );
+                new DeleteApiDocumentationDomainService(
+                        pageCrudService,
+                        pageQueryService,
+                        auditDomainService,
+                        new UpdateApiDocumentationDomainService(
+                                pageCrudService, pageRevisionCrudService, auditDomainService, indexer),
+                        planQueryService,
+                        indexer),
+                apiCrudService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(pageCrudService, pageRevisionCrudService, pageQueryService, planQueryService, auditCrudService, userCrudService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+                        pageCrudService,
+                        pageRevisionCrudService,
+                        pageQueryService,
+                        planQueryService,
+                        auditCrudService,
+                        userCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_throw_if_api_not_found() {
-        assertThatThrownBy(() -> cut.execute(new ApiDeleteDocumentationPageUseCase.Input(API.getId(), PAGE_ID, AUDIT_INFO))).isInstanceOf(
-            ApiNotFoundException.class
-        );
+        assertThatThrownBy(() ->
+                        cut.execute(new ApiDeleteDocumentationPageUseCase.Input(API.getId(), PAGE_ID, AUDIT_INFO)))
+                .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_delete_page() {
         final Page page = Page.builder()
-            .id(PAGE_ID)
-            .referenceId(API.getId())
-            .referenceType(Page.ReferenceType.API)
-            .type(Page.Type.MARKDOWN)
-            .build();
+                .id(PAGE_ID)
+                .referenceId(API.getId())
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .build();
         pageCrudService.initWith(List.of(page));
         pageQueryService.initWith(List.of(page));
         apiCrudService.initWith(List.of(API));

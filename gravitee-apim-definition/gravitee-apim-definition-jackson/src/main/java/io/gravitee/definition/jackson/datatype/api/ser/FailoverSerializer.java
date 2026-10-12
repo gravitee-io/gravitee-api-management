@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.FailoverCase;
-import io.gravitee.definition.model.LoadBalancer;
 import java.io.IOException;
 
 /**

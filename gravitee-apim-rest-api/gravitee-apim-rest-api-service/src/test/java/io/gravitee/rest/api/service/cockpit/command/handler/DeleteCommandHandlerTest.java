@@ -38,18 +38,17 @@ import org.junit.jupiter.api.Test;
 public class DeleteCommandHandlerTest {
 
     private Set<Class> EXCLUDED_CLASSES = Set.of(
-        CrudRepository.class,
-        FindAllRepository.class,
-        // Repositories that must not be removed
-        EventRepository.class,
-        EventLatestRepository.class,
-        InstallationRepository.class,
-        // We use the services for deletion
-        OrganizationRepository.class,
-        EnvironmentRepository.class,
-        AlertTriggerRepository.class,
-        AlertEventRepository.class
-    );
+            CrudRepository.class,
+            FindAllRepository.class,
+            // Repositories that must not be removed
+            EventRepository.class,
+            EventLatestRepository.class,
+            InstallationRepository.class,
+            // We use the services for deletion
+            OrganizationRepository.class,
+            EnvironmentRepository.class,
+            AlertTriggerRepository.class,
+            AlertEventRepository.class);
 
     /**
      * If a new repository is added, the dev team may forget to add it in the delete commands.
@@ -58,17 +57,16 @@ public class DeleteCommandHandlerTest {
     @Test
     public void should_check_if_we_use_all_repositories_when_delete_an_organization() throws Exception {
         Set<Class> deleteCommandRepositories = Stream.concat(
-            Arrays.stream(DeleteOrganizationCommandHandler.class.getDeclaredFields()),
-            Arrays.stream(DeleteEnvironmentCommandHandler.class.getDeclaredFields())
-        )
-            .map(Field::getType)
-            .collect(Collectors.toSet());
+                        Arrays.stream(DeleteOrganizationCommandHandler.class.getDeclaredFields()),
+                        Arrays.stream(DeleteEnvironmentCommandHandler.class.getDeclaredFields()))
+                .map(Field::getType)
+                .collect(Collectors.toSet());
 
-        Set<Class> repositoriesToAddToDeleteCommand = findAllClassesUsingClassLoader("io.gravitee.repository.management.api")
-            .stream()
-            .filter(c -> !EXCLUDED_CLASSES.contains(c))
-            .filter(c -> !deleteCommandRepositories.contains(c))
-            .collect(Collectors.toSet());
+        Set<Class> repositoriesToAddToDeleteCommand =
+                findAllClassesUsingClassLoader("io.gravitee.repository.management.api").stream()
+                        .filter(c -> !EXCLUDED_CLASSES.contains(c))
+                        .filter(c -> !deleteCommandRepositories.contains(c))
+                        .collect(Collectors.toSet());
 
         assertEquals(repositoriesToAddToDeleteCommand, Set.of());
     }
@@ -77,17 +75,16 @@ public class DeleteCommandHandlerTest {
         ClassFileImporter classFileImporter = new ClassFileImporter();
         JavaClasses javaClasses = classFileImporter.importPackages(packageName);
 
-        return javaClasses
-            .stream()
-            .filter(javaClass -> javaClass.getSimpleName().endsWith("Repository"))
-            .map(javaClass -> {
-                try {
-                    return Class.forName(javaClass.getName());
-                } catch (ClassNotFoundException e) {
-                    return null;
-                }
-            })
-            .filter(clazz -> clazz != null)
-            .collect(Collectors.toSet());
+        return javaClasses.stream()
+                .filter(javaClass -> javaClass.getSimpleName().endsWith("Repository"))
+                .map(javaClass -> {
+                    try {
+                        return Class.forName(javaClass.getName());
+                    } catch (ClassNotFoundException e) {
+                        return null;
+                    }
+                })
+                .filter(clazz -> clazz != null)
+                .collect(Collectors.toSet());
     }
 }

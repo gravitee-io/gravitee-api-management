@@ -55,23 +55,20 @@ class CreateApplicationInvitationsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        cut = new CreateApplicationInvitationsUseCase(applicationCrudService, createApplicationInvitationsDomainService);
+        cut = new CreateApplicationInvitationsUseCase(
+                applicationCrudService, createApplicationInvitationsDomainService);
     }
 
     @Test
     void should_validate_application_existence_before_creating_invitations() {
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
-        Throwable throwable = catchThrowable(() ->
-            cut.execute(
-                new CreateApplicationInvitationsUseCase.Input(
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    APPLICATION_ID,
-                    new CreateApplicationInvitations(Set.of("alice@example.com"), ROLE_NAME, false, null)
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> cut.execute(new CreateApplicationInvitationsUseCase.Input(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                new CreateApplicationInvitations(Set.of("alice@example.com"), ROLE_NAME, false, null))));
 
         assertThat(throwable).isInstanceOf(ApplicationNotFoundException.class).hasMessageContaining(APPLICATION_ID);
         verifyNoInteractions(createApplicationInvitationsDomainService);
@@ -80,79 +77,75 @@ class CreateApplicationInvitationsUseCaseTest {
     @Test
     void should_create_application_invitations() {
         var recipients = Set.of("alice@example.com", "bob@example.com");
-        var application = BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build();
+        var application = BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         var invitations = List.of(anInvitation("alice@example.com"), anInvitation("bob@example.com"));
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(
-            createApplicationInvitationsDomainService.create(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                APPLICATION_ID,
-                recipients,
-                ROLE_NAME,
-                false,
-                CONFIRMATION_PAGE_URL
-            )
-        ).thenReturn(invitations);
+        when(createApplicationInvitationsDomainService.create(
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        APPLICATION_ID,
+                        recipients,
+                        ROLE_NAME,
+                        false,
+                        CONFIRMATION_PAGE_URL))
+                .thenReturn(invitations);
 
-        var result = cut.execute(
-            new CreateApplicationInvitationsUseCase.Input(
+        var result = cut.execute(new CreateApplicationInvitationsUseCase.Input(
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
                 APPLICATION_ID,
-                new CreateApplicationInvitations(recipients, ROLE_NAME, false, CONFIRMATION_PAGE_URL)
-            )
-        );
+                new CreateApplicationInvitations(recipients, ROLE_NAME, false, CONFIRMATION_PAGE_URL)));
 
         assertThat(result.invitations()).isEqualTo(invitations);
-        verify(createApplicationInvitationsDomainService).create(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            recipients,
-            ROLE_NAME,
-            false,
-            CONFIRMATION_PAGE_URL
-        );
+        verify(createApplicationInvitationsDomainService)
+                .create(
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        APPLICATION_ID,
+                        recipients,
+                        ROLE_NAME,
+                        false,
+                        CONFIRMATION_PAGE_URL);
     }
 
     @Test
     void should_create_application_invitations_with_notifications() {
         var recipients = Set.of("alice@example.com");
-        var application = BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build();
+        var application = BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         var invitations = List.of(anInvitation("alice@example.com"));
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(
-            createApplicationInvitationsDomainService.create(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                APPLICATION_ID,
-                recipients,
-                ROLE_NAME,
-                true,
-                CONFIRMATION_PAGE_URL
-            )
-        ).thenReturn(invitations);
+        when(createApplicationInvitationsDomainService.create(
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        APPLICATION_ID,
+                        recipients,
+                        ROLE_NAME,
+                        true,
+                        CONFIRMATION_PAGE_URL))
+                .thenReturn(invitations);
 
-        var result = cut.execute(
-            new CreateApplicationInvitationsUseCase.Input(
+        var result = cut.execute(new CreateApplicationInvitationsUseCase.Input(
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
                 APPLICATION_ID,
-                new CreateApplicationInvitations(recipients, ROLE_NAME, true, CONFIRMATION_PAGE_URL)
-            )
-        );
+                new CreateApplicationInvitations(recipients, ROLE_NAME, true, CONFIRMATION_PAGE_URL)));
 
         assertThat(result.invitations()).isEqualTo(invitations);
-        verify(createApplicationInvitationsDomainService).create(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            recipients,
-            ROLE_NAME,
-            true,
-            CONFIRMATION_PAGE_URL
-        );
+        verify(createApplicationInvitationsDomainService)
+                .create(
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        APPLICATION_ID,
+                        recipients,
+                        ROLE_NAME,
+                        true,
+                        CONFIRMATION_PAGE_URL);
     }
 
     private ApplicationInvitation anInvitation(String email) {

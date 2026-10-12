@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.PathMapping;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
-import io.gravitee.reporter.api.v4.log.Log;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +61,8 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
     @Test
     public void shouldAddShortestMappedPathWithTwoMapping() {
         String shorterPath = "/path";
-        api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/"), shorterPath, Pattern.compile("/path.*")));
+        api.setPathMappings(
+                Map.of(PATH_INFO, Pattern.compile("/path/.*/info/"), shorterPath, Pattern.compile("/path.*")));
         pathMappingProcessor.execute(spyCtx).test().assertResult();
         assertThat(spyCtx.metrics().getMappedPath()).isEqualTo(shorterPath);
     }

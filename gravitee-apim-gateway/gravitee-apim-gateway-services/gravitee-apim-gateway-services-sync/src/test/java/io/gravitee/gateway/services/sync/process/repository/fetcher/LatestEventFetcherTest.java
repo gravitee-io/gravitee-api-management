@@ -28,7 +28,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -59,25 +58,27 @@ class LatestEventFetcherTest {
     @Test
     void should_fetch_latest_event() {
         Event event = new Event();
-        when(eventLatestRepository.search(any(), any(), any(), any())).thenReturn(List.of(event)).thenReturn(null);
-        cut
-            .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
-            .test()
-            .assertValueCount(1)
-            .assertValue(events -> events.contains(event));
+        when(eventLatestRepository.search(any(), any(), any(), any()))
+                .thenReturn(List.of(event))
+                .thenReturn(null);
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
+                .test()
+                .assertValueCount(1)
+                .assertValue(events -> events.contains(event));
     }
 
     @Test
     void should_fetch_latest_event_and_complete_if_page_size_is_higher_than_results() {
         cut = new LatestEventFetcher(eventLatestRepository, 10);
         Event event = new Event();
-        when(eventLatestRepository.search(any(), any(), any(), any())).thenReturn(List.of(event)).thenReturn(null);
-        cut
-            .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
-            .test()
-            .assertValueCount(1)
-            .assertValue(events -> events.contains(event))
-            .assertComplete();
+        when(eventLatestRepository.search(any(), any(), any(), any()))
+                .thenReturn(List.of(event))
+                .thenReturn(null);
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
+                .test()
+                .assertValueCount(1)
+                .assertValue(events -> events.contains(event))
+                .assertComplete();
     }
 
     @Test
@@ -85,26 +86,25 @@ class LatestEventFetcherTest {
         Instant to = Instant.now();
         Instant from = to.minus(1000, ChronoUnit.MILLIS);
         Event event = new Event();
-        when(
-            eventLatestRepository.search(
-                argThat(
-                    argument ->
-                        argument.getTypes().size() == 1 &&
-                        argument.getTypes().contains(EventType.PUBLISH_API) &&
-                        argument.getEnvironments().contains("env") &&
-                        argument.getFrom() < from.toEpochMilli() &&
-                        argument.getTo() > to.toEpochMilli()
-                ),
-                eq(Event.EventProperties.API_ID),
-                eq(0L),
-                eq(1L)
-            )
-        ).thenReturn(List.of(event));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Event.EventProperties.API_ID, Set.of("env"), Set.of(EventType.PUBLISH_API))
-            .test()
-            .assertValueCount(1)
-            .assertValue(apiKeys -> apiKeys.contains(event));
+        when(eventLatestRepository.search(
+                        argThat(argument -> argument.getTypes().size() == 1
+                                && argument.getTypes().contains(EventType.PUBLISH_API)
+                                && argument.getEnvironments().contains("env")
+                                && argument.getFrom() < from.toEpochMilli()
+                                && argument.getTo() > to.toEpochMilli()),
+                        eq(Event.EventProperties.API_ID),
+                        eq(0L),
+                        eq(1L)))
+                .thenReturn(List.of(event));
+        cut.fetchLatest(
+                        from.toEpochMilli(),
+                        to.toEpochMilli(),
+                        Event.EventProperties.API_ID,
+                        Set.of("env"),
+                        Set.of(EventType.PUBLISH_API))
+                .test()
+                .assertValueCount(1)
+                .assertValue(apiKeys -> apiKeys.contains(event));
     }
 
     @Test
@@ -113,63 +113,72 @@ class LatestEventFetcherTest {
         Event event2 = new Event();
         Event event3 = new Event();
         when(eventLatestRepository.search(any(), any(), any(), any()))
-            .thenReturn(List.of(event1))
-            .thenReturn(List.of(event2))
-            .thenReturn(List.of(event3))
-            .thenReturn(null);
-        cut
-            .fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
-            .test(0)
-            .requestMore(1)
-            .assertValueAt(0, List.of(event1))
-            .requestMore(1)
-            .assertValueAt(1, List.of(event2))
-            .requestMore(1)
-            .assertValueAt(2, List.of(event3))
-            .requestMore(1)
-            .assertComplete()
-            .assertValueCount(3);
+                .thenReturn(List.of(event1))
+                .thenReturn(List.of(event2))
+                .thenReturn(List.of(event3))
+                .thenReturn(null);
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
+                .test(0)
+                .requestMore(1)
+                .assertValueAt(0, List.of(event1))
+                .requestMore(1)
+                .assertValueAt(1, List.of(event2))
+                .requestMore(1)
+                .assertValueAt(2, List.of(event3))
+                .requestMore(1)
+                .assertComplete()
+                .assertValueCount(3);
         verify(eventLatestRepository, times(4)).search(any(), any(), any(), any());
     }
 
     @Test
     void should_not_fetch_new_latest_event_without_downstream_request() {
-        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test(0).assertNotComplete();
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
+                .test(0)
+                .assertNotComplete();
         verifyNoInteractions(eventLatestRepository);
     }
 
     @Test
     void should_emit_on_error_when_repository_thrown_exception() {
         when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException());
-        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test().assertError(RuntimeException.class);
+        cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of())
+                .test()
+                .assertError(RuntimeException.class);
     }
 
     @Test
     void fetchLatest_with_property_adds_property_to_criteria() {
         LatestEventFetcher fetcher = new LatestEventFetcher(eventLatestRepository, 10);
         ArgumentCaptor<EventCriteria> captor = ArgumentCaptor.forClass(EventCriteria.class);
-        when(eventLatestRepository.search(captor.capture(), any(), anyLong(), anyLong())).thenReturn(List.of());
+        when(eventLatestRepository.search(captor.capture(), any(), anyLong(), anyLong()))
+                .thenReturn(List.of());
 
-        fetcher
-            .fetchLatest(
-                -1L,
-                null,
-                Event.EventProperties.AUTHZ_PDP_ID,
-                Event.EventProperties.GATEWAY_ID,
-                "gw-1",
-                Set.of("env-1"),
-                Set.of(EventType.PUBLISH_AUTHZ_PDP)
-            )
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS);
+        fetcher.fetchLatest(
+                        -1L,
+                        null,
+                        Event.EventProperties.AUTHZ_PDP_ID,
+                        Event.EventProperties.GATEWAY_ID,
+                        "gw-1",
+                        Set.of("env-1"),
+                        Set.of(EventType.PUBLISH_AUTHZ_PDP))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS);
 
-        assertThat(captor.getValue().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID.getValue(), "gw-1");
+        assertThat(captor.getValue().getProperties())
+                .containsEntry(Event.EventProperties.GATEWAY_ID.getValue(), "gw-1");
     }
 
     @Test
     void should_emit_nothing_when_fetching_events_for_empty_api_ids() {
-        cut.fetchLatestForApiIds(Set.of(), Set.of("env"), Set.of(EventType.PUBLISH_API)).test().assertComplete().assertNoValues();
-        cut.fetchLatestForApiIds(null, Set.of("env"), Set.of(EventType.PUBLISH_API)).test().assertComplete().assertNoValues();
+        cut.fetchLatestForApiIds(Set.of(), Set.of("env"), Set.of(EventType.PUBLISH_API))
+                .test()
+                .assertComplete()
+                .assertNoValues();
+        cut.fetchLatestForApiIds(null, Set.of("env"), Set.of(EventType.PUBLISH_API))
+                .test()
+                .assertComplete()
+                .assertNoValues();
         verifyNoInteractions(eventLatestRepository);
     }
 
@@ -177,13 +186,13 @@ class LatestEventFetcherTest {
     void should_fetch_latest_events_for_specific_api_ids() {
         LatestEventFetcher fetcher = new LatestEventFetcher(eventLatestRepository, 2);
         Event event = new Event();
-        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(2L))).thenReturn(List.of(event));
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(2L)))
+                .thenReturn(List.of(event));
 
-        fetcher
-            .fetchLatestForApiIds(Set.of("api-1", "api-2"), Set.of("env"), Set.of(EventType.START_API))
-            .test()
-            .assertComplete()
-            .assertValue(List.of(event));
+        fetcher.fetchLatestForApiIds(Set.of("api-1", "api-2"), Set.of("env"), Set.of(EventType.START_API))
+                .test()
+                .assertComplete()
+                .assertValue(List.of(event));
     }
 
     @Test
@@ -193,20 +202,24 @@ class LatestEventFetcherTest {
         LatestEventFetcher fetcher = new LatestEventFetcher(eventLatestRepository, 2);
         List<Event> fullPage = List.of(new Event(), new Event());
         List<Event> lastPage = List.of(new Event());
-        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(2L))).thenReturn(fullPage);
-        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(1L), eq(2L))).thenReturn(lastPage);
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(2L)))
+                .thenReturn(fullPage);
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(1L), eq(2L)))
+                .thenReturn(lastPage);
 
-        fetcher
-            .fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API))
-            .test()
-            .assertComplete()
-            .assertValues(fullPage, lastPage);
+        fetcher.fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API))
+                .test()
+                .assertComplete()
+                .assertValues(fullPage, lastPage);
     }
 
     @Test
     void should_end_the_stream_when_repository_search_fails_for_api_ids() {
         when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException("db down"));
 
-        cut.fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API)).test().assertComplete().assertNoValues();
+        cut.fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API))
+                .test()
+                .assertComplete()
+                .assertNoValues();
     }
 }

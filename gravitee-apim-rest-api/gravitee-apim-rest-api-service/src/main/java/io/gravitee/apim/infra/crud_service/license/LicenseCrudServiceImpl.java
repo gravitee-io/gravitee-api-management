@@ -23,7 +23,6 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -45,10 +44,10 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
         try {
             log.debug("Find license by organization id: {}", organizationId);
 
-            return this.licenseRepository.findById(
-                organizationId,
-                io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION
-            ).map(LicenseAdapter.INSTANCE::toModel);
+            return this.licenseRepository
+                    .findById(
+                            organizationId, io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
+                    .map(LicenseAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -62,15 +61,14 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
             var currentTime = TimeProvider.now();
 
             var organizationLicense = License.builder()
-                .referenceType(License.ReferenceType.ORGANIZATION)
-                .referenceId(organizationId)
-                .license(license)
-                .createdAt(currentTime)
-                .updatedAt(currentTime)
-                .build();
+                    .referenceType(License.ReferenceType.ORGANIZATION)
+                    .referenceId(organizationId)
+                    .license(license)
+                    .createdAt(currentTime)
+                    .updatedAt(currentTime)
+                    .build();
             return LicenseAdapter.INSTANCE.toModel(
-                this.licenseRepository.create(LicenseAdapter.INSTANCE.toRepository(organizationLicense))
-            );
+                    this.licenseRepository.create(LicenseAdapter.INSTANCE.toRepository(organizationLicense)));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -82,15 +80,13 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
             log.debug("Update license for organization id: {}", organizationId);
 
             var organizationLicense = this.licenseRepository.findById(
-                organizationId,
-                io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION
-            );
+                    organizationId, io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION);
             if (organizationLicense.isPresent()) {
                 return LicenseAdapter.INSTANCE.toModel(
-                    this.licenseRepository.update(
-                        organizationLicense.get().toBuilder().license(license).updatedAt(Date.from(TimeProvider.instantNow())).build()
-                    )
-                );
+                        this.licenseRepository.update(organizationLicense.get().toBuilder()
+                                .license(license)
+                                .updatedAt(Date.from(TimeProvider.instantNow()))
+                                .build()));
             } else {
                 throw new LicenseNotFound(License.ReferenceType.ORGANIZATION.name(), organizationId);
             }

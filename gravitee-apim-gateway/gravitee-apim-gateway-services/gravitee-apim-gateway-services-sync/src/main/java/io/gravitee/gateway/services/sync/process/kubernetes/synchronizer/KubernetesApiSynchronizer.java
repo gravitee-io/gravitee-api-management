@@ -40,48 +40,46 @@ public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implement
     private final ConfigMapEventFetcher configMapEventFetcher;
 
     public KubernetesApiSynchronizer(
-        final ConfigMapEventFetcher configMapEventFetcher,
-        final ApiManager apiManager,
-        final ApiMapper apiMapper,
-        final PlanAppender planAppender,
-        final SubscriptionAppender subscriptionAppender,
-        final ApiKeyAppender apiKeyAppender,
-        final AuthzAppender authzAppender,
-        final DeployerFactory deployerFactory,
-        final ThreadPoolExecutor syncKubernetesExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final int appenderParallelism
-    ) {
+            final ConfigMapEventFetcher configMapEventFetcher,
+            final ApiManager apiManager,
+            final ApiMapper apiMapper,
+            final PlanAppender planAppender,
+            final SubscriptionAppender subscriptionAppender,
+            final ApiKeyAppender apiKeyAppender,
+            final AuthzAppender authzAppender,
+            final DeployerFactory deployerFactory,
+            final ThreadPoolExecutor syncKubernetesExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final int appenderParallelism) {
         super(
-            apiManager,
-            apiMapper,
-            planAppender,
-            subscriptionAppender,
-            apiKeyAppender,
-            authzAppender,
-            deployerFactory,
-            syncKubernetesExecutor,
-            syncDeployerExecutor,
-            appenderParallelism
-        );
+                apiManager,
+                apiMapper,
+                planAppender,
+                subscriptionAppender,
+                apiKeyAppender,
+                authzAppender,
+                deployerFactory,
+                syncKubernetesExecutor,
+                syncDeployerExecutor,
+                appenderParallelism);
         this.configMapEventFetcher = configMapEventFetcher;
     }
 
     public Completable synchronize(final Set<String> environments) {
         return configMapEventFetcher
-            .fetchAll(ConfigMapEventFetcher.API_DEFINITIONS_KIND)
-            .compose(upstream -> processEvents(true, upstream, environments))
-            .doOnNext(apiReactor -> log.debug("api {} synchronized from kubernetes", apiReactor.apiId()))
-            .ignoreElements();
+                .fetchAll(ConfigMapEventFetcher.API_DEFINITIONS_KIND)
+                .compose(upstream -> processEvents(true, upstream, environments))
+                .doOnNext(apiReactor -> log.debug("api {} synchronized from kubernetes", apiReactor.apiId()))
+                .ignoreElements();
     }
 
     @Override
     public Completable watch(Set<String> environments) {
         return configMapEventFetcher
-            .fetchLatest(ConfigMapEventFetcher.API_DEFINITIONS_KIND)
-            .compose(upstream -> processEvents(false, upstream, environments))
-            .doOnNext(apiReactor -> log.debug("api {} synchronized from kubernetes", apiReactor.apiId()))
-            .ignoreElements();
+                .fetchLatest(ConfigMapEventFetcher.API_DEFINITIONS_KIND)
+                .compose(upstream -> processEvents(false, upstream, environments))
+                .doOnNext(apiReactor -> log.debug("api {} synchronized from kubernetes", apiReactor.apiId()))
+                .ignoreElements();
     }
 
     @Override

@@ -24,8 +24,10 @@ class IdpOAuthTokenResponseUtilsTest {
 
     @Test
     void should_not_add_access_token_when_not_an_oauth_login() {
-        assertThat(IdpOAuthTokenResponseUtils.accessTokenField(null, null, true)).isEmpty();
-        assertThat(IdpOAuthTokenResponseUtils.accessTokenField(null, null, false)).isEmpty();
+        assertThat(IdpOAuthTokenResponseUtils.accessTokenField(null, null, true))
+                .isEmpty();
+        assertThat(IdpOAuthTokenResponseUtils.accessTokenField(null, null, false))
+                .isEmpty();
     }
 
     @Test
@@ -39,7 +41,8 @@ class IdpOAuthTokenResponseUtilsTest {
 
     @Test
     void should_not_expose_access_token_without_id_token() {
-        assertThat(IdpOAuthTokenResponseUtils.accessTokenField("secret", null, true)).isEmpty();
+        assertThat(IdpOAuthTokenResponseUtils.accessTokenField("secret", null, true))
+                .isEmpty();
         assertThat(IdpOAuthTokenResponseUtils.idTokenField(null, true)).isEmpty();
     }
 

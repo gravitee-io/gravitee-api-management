@@ -27,7 +27,8 @@ public class BaseUserEntityTest {
 
         @Test
         void should_return_display_name_when_user_has_firstname_and_lastname() {
-            var user = BaseUserEntity.builder().firstname("Jane").lastname("Doe").build();
+            var user =
+                    BaseUserEntity.builder().firstname("Jane").lastname("Doe").build();
             assertThat(user.displayName()).isEqualTo("Jane Doe");
         }
 
@@ -45,19 +46,28 @@ public class BaseUserEntityTest {
 
         @Test
         void should_return_email_when_user_coming_from_idp() {
-            var user = BaseUserEntity.builder().email("jane.doe@gravitee.io").source(IdpSource.of("google")).build();
+            var user = BaseUserEntity.builder()
+                    .email("jane.doe@gravitee.io")
+                    .source(IdpSource.of("google"))
+                    .build();
             assertThat(user.displayName()).isEqualTo("jane.doe@gravitee.io");
         }
 
         @Test
         void should_return_sourceId_when_user_coming_from_idp_without_email() {
-            var user = BaseUserEntity.builder().sourceId("google-user-id").source(IdpSource.of("google")).build();
+            var user = BaseUserEntity.builder()
+                    .sourceId("google-user-id")
+                    .source(IdpSource.of("google"))
+                    .build();
             assertThat(user.displayName()).isEqualTo("google-user-id");
         }
 
         @Test
         void should_return_sourceId_when_user_is_in_memory_user() {
-            var user = BaseUserEntity.builder().sourceId("source-id").source(IdpSource.MEMORY).build();
+            var user = BaseUserEntity.builder()
+                    .sourceId("source-id")
+                    .source(IdpSource.MEMORY)
+                    .build();
             assertThat(user.displayName()).isEqualTo("source-id");
         }
     }

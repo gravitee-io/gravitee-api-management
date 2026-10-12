@@ -37,9 +37,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -70,13 +68,11 @@ class DictionariesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_spec_without_calling_use_case() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdateDictionaryUseCase);
             }
@@ -84,13 +80,11 @@ class DictionariesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_not_echo_a_submitted_secret_value() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("mixed-manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("mixed-manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 assertThat(response.readEntity(String.class)).doesNotContain("my secret API key");
                 verifyNoInteractions(createOrUpdateDictionaryUseCase);
@@ -99,13 +93,11 @@ class DictionariesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_dictionary_is_invalid() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("invalid-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("invalid-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdateDictionaryUseCase);
             }
@@ -118,24 +110,23 @@ class DictionariesResourceTest extends AbstractResourceTest {
         @Test
         void should_create_or_update_manual_dictionary() throws Exception {
             var entity = DictionaryEntity.builder()
-                .id("dict-id")
-                .name("My Dictionary")
-                .key("my-dict")
-                .type(DictionaryType.MANUAL)
-                .state(Lifecycle.State.STOPPED)
-                .properties(Map.of("key1", "value1"))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .deployedAt(new Date())
-                .build();
-            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+                    .id("dict-id")
+                    .name("My Dictionary")
+                    .key("my-dict")
+                    .type(DictionaryType.MANUAL)
+                    .state(Lifecycle.State.STOPPED)
+                    .properties(Map.of("key1", "value1"))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .deployedAt(new Date())
+                    .build();
+            when(createOrUpdateDictionaryUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(validateDictionaryDomainService).validate(any());
                 verify(createOrUpdateDictionaryUseCase).execute(any(CreateOrUpdateDictionaryUseCase.Input.class));
@@ -151,7 +142,8 @@ class DictionariesResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                     soft.assertThat(state.getDeployed()).isTrue();
                     soft.assertThat(state.getManual()).isNotNull();
-                    soft.assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("key1", "value1"));
+                    soft.assertThat(state.getManual().getProperties())
+                            .containsExactlyEntriesOf(Map.of("key1", "value1"));
                 });
             }
         }
@@ -159,87 +151,72 @@ class DictionariesResourceTest extends AbstractResourceTest {
         @Test
         void should_apply_a_manifest_written_before_encrypted_properties_existed() {
             var entity = DictionaryEntity.builder()
-                .id("dict-id")
-                .name("My Dictionary")
-                .key("my-dict")
-                .type(DictionaryType.MANUAL)
-                .state(Lifecycle.State.STOPPED)
-                .properties(Map.of("key1", "value1"))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
-            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+                    .id("dict-id")
+                    .name("My Dictionary")
+                    .key("my-dict")
+                    .type(DictionaryType.MANUAL)
+                    .state(Lifecycle.State.STOPPED)
+                    .properties(Map.of("key1", "value1"))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            when(createOrUpdateDictionaryUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
 
             // manual-dictionary.json is the 4.12.0 shape: `manual.properties` as a key/value object.
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                verify(createOrUpdateDictionaryUseCase).execute(
-                    argThat(input ->
-                        input
-                            .dictionary()
-                            .getProperties()
-                            .stream()
-                            .anyMatch(
-                                property ->
-                                    "key1".equals(property.getKey()) &&
-                                    "value1".equals(property.getValue()) &&
-                                    property.getEncrypted() == null &&
-                                    property.getEncryptable() == null
-                            )
-                    )
-                );
+                verify(createOrUpdateDictionaryUseCase)
+                        .execute(argThat(input -> input.dictionary().getProperties().stream()
+                                .anyMatch(property -> "key1".equals(property.getKey())
+                                        && "value1".equals(property.getValue())
+                                        && property.getEncrypted() == null
+                                        && property.getEncryptable() == null)));
             }
         }
 
         @Test
         void should_apply_a_manifest_mixing_plain_and_encrypted_properties() throws Exception {
             var entity = DictionaryEntity.builder()
-                .id("dict-id")
-                .name("Mixed Dictionary")
-                .key("mixed-dict")
-                .type(DictionaryType.MANUAL)
-                .state(Lifecycle.State.STOPPED)
-                .properties(Map.of("url", "https://backend", "apiKey", "cipher"))
-                .propertyOptions(Map.of("apiKey", DictionaryPropertyOptions.builder().encrypted(true).build()))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
-            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+                    .id("dict-id")
+                    .name("Mixed Dictionary")
+                    .key("mixed-dict")
+                    .type(DictionaryType.MANUAL)
+                    .state(Lifecycle.State.STOPPED)
+                    .properties(Map.of("url", "https://backend", "apiKey", "cipher"))
+                    .propertyOptions(Map.of(
+                            "apiKey",
+                            DictionaryPropertyOptions.builder().encrypted(true).build()))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            when(createOrUpdateDictionaryUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("mixed-manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("mixed-manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                verify(createOrUpdateDictionaryUseCase).execute(
-                    argThat(input -> {
-                        var properties = input.dictionary().getProperties();
-                        var plain = properties
-                            .stream()
+                verify(createOrUpdateDictionaryUseCase).execute(argThat(input -> {
+                    var properties = input.dictionary().getProperties();
+                    var plain = properties.stream()
                             .filter(property -> "url".equals(property.getKey()))
                             .findFirst()
                             .orElseThrow();
-                        var encrypted = properties
-                            .stream()
+                    var encrypted = properties.stream()
                             .filter(property -> "apiKey".equals(property.getKey()))
                             .findFirst()
                             .orElseThrow();
-                        return (
-                            plain.getEncrypted() == null &&
-                            plain.getEncryptable() == null &&
-                            "https://backend".equals(plain.getValue()) &&
-                            Boolean.TRUE.equals(encrypted.getEncryptable()) &&
-                            "my secret API key".equals(encrypted.getValue())
-                        );
-                    })
-                );
+                    return (plain.getEncrypted() == null
+                            && plain.getEncryptable() == null
+                            && "https://backend".equals(plain.getValue())
+                            && Boolean.TRUE.equals(encrypted.getEncryptable())
+                            && "my secret API key".equals(encrypted.getValue()));
+                }));
 
                 var body = response.readEntity(String.class);
                 assertThat(body).doesNotContain("my secret API key").doesNotContain("cipher");
@@ -247,29 +224,32 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 var state = MAPPER.readValue(body, DictionaryState.class);
                 assertThat(state.getManual().getProperties()).containsOnlyKeys("url");
                 assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
-                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
+                assertThat(state.getManual()
+                                .getEncryptedProperties()
+                                .get("apiKey")
+                                .getValue())
+                        .isNull();
             }
         }
 
         @Test
         void should_create_or_update_dynamic_dictionary() {
             var entity = DictionaryEntity.builder()
-                .id("dyn-dict-id")
-                .name("My Dynamic Dictionary")
-                .key("my-dynamic-dict")
-                .type(DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STOPPED)
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
-            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+                    .id("dyn-dict-id")
+                    .name("My Dynamic Dictionary")
+                    .key("my-dynamic-dict")
+                    .type(DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STOPPED)
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            when(createOrUpdateDictionaryUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("dynamic-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("dynamic-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdateDictionaryUseCase).execute(any(CreateOrUpdateDictionaryUseCase.Input.class));
             }
@@ -278,50 +258,40 @@ class DictionariesResourceTest extends AbstractResourceTest {
         @Test
         void should_create_or_update_a_dictionary_with_only_encrypted_properties() {
             var entity = DictionaryEntity.builder()
-                .id("dict-id")
-                .name("Encrypted-only Dictionary")
-                .key("encrypted-only-dict")
-                .type(DictionaryType.MANUAL)
-                .state(Lifecycle.State.STOPPED)
-                .properties(Map.of("secret-key", "cipher"))
-                .propertyOptions(Map.of("secret-key", DictionaryPropertyOptions.builder().encrypted(true).build()))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
-            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+                    .id("dict-id")
+                    .name("Encrypted-only Dictionary")
+                    .key("encrypted-only-dict")
+                    .type(DictionaryType.MANUAL)
+                    .state(Lifecycle.State.STOPPED)
+                    .properties(Map.of("secret-key", "cipher"))
+                    .propertyOptions(Map.of(
+                            "secret-key",
+                            DictionaryPropertyOptions.builder().encrypted(true).build()))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            when(createOrUpdateDictionaryUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("encrypted-only-manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("encrypted-only-manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                verify(createOrUpdateDictionaryUseCase).execute(
-                    argThat(input ->
-                        input
-                            .dictionary()
-                            .getProperties()
-                            .stream()
-                            .anyMatch(
-                                property ->
-                                    "secret-key".equals(property.getKey()) &&
-                                    Boolean.TRUE.equals(property.getEncryptable()) &&
-                                    "my secret API key".equals(property.getValue())
-                            )
-                    )
-                );
+                verify(createOrUpdateDictionaryUseCase)
+                        .execute(argThat(input -> input.dictionary().getProperties().stream()
+                                .anyMatch(property -> "secret-key".equals(property.getKey())
+                                        && Boolean.TRUE.equals(property.getEncryptable())
+                                        && "my secret API key".equals(property.getValue()))));
             }
         }
 
         @Test
         void should_return_400_when_a_key_is_declared_in_both_property_maps() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("both-maps-manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("both-maps-manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdateDictionaryUseCase);
             }
@@ -329,12 +299,10 @@ class DictionariesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_an_encrypted_property_has_no_value() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("valueless-encrypted-manual-dictionary.json")))
-            ) {
+                    .put(Entity.json(readJSON("valueless-encrypted-manual-dictionary.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdateDictionaryUseCase);
             }

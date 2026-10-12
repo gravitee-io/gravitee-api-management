@@ -69,10 +69,9 @@ public class ClientIdUniqueIndexUpgrader extends MongoUpgrader {
             createIndex();
         } catch (Exception e) {
             log.error(
-                "Unexpected error while creating index {} on applications, client_id uniqueness stays unenforced",
-                INDEX_NAME,
-                e
-            );
+                    "Unexpected error while creating index {} on applications, client_id uniqueness stays unenforced",
+                    INDEX_NAME,
+                    e);
         }
         return true;
     }
@@ -83,57 +82,43 @@ public class ClientIdUniqueIndexUpgrader extends MongoUpgrader {
 
         if (!duplicates.isEmpty()) {
             log.warn(
-                "Index {} has not been created on applications: {} client_id(s) are shared by several active " +
-                    "applications, and client_id uniqueness stays unenforced until they are resolved.",
-                INDEX_NAME,
-                duplicates.size()
-            );
+                    "Index {} has not been created on applications: {} client_id(s) are shared by several active "
+                            + "applications, and client_id uniqueness stays unenforced until they are resolved.",
+                    INDEX_NAME,
+                    duplicates.size());
             duplicates.forEach(duplicate -> {
                 Document group = duplicate.get("_id", Document.class);
                 log.warn(
-                    "Duplicated client_id [{}] in environment [{}] used by applications {}",
-                    group.getString(METADATA_CLIENT_ID),
-                    group.getString("environmentId"),
-                    duplicate.get("applicationIds")
-                );
+                        "Duplicated client_id [{}] in environment [{}] used by applications {}",
+                        group.getString(METADATA_CLIENT_ID),
+                        group.getString("environmentId"),
+                        duplicate.get("applicationIds"));
             });
             return;
         }
 
         applicationsCollection.createIndex(
-            Indexes.ascending("environmentId", CLIENT_ID_FIELD),
-            new IndexOptions()
-                .name(INDEX_NAME)
-                .unique(true)
-                .partialFilterExpression(activeApplicationsHavingAClientId())
-        );
+                Indexes.ascending("environmentId", CLIENT_ID_FIELD),
+                new IndexOptions()
+                        .name(INDEX_NAME)
+                        .unique(true)
+                        .partialFilterExpression(activeApplicationsHavingAClientId()));
         log.info("Index {} has been created successfully on applications", INDEX_NAME);
     }
 
-    private List<Document> searchDuplicateClientIds(
-        MongoCollection<Document> collection
-    ) {
-        final var duplicatesAggregated = collection.aggregate(
-            Arrays.asList(
+    private List<Document> searchDuplicateClientIds(MongoCollection<Document> collection) {
+        final var duplicatesAggregated = collection.aggregate(Arrays.asList(
                 Aggregates.match(activeApplicationsHavingAClientId()),
                 Aggregates.group(
-                    new Document("environmentId", "$environmentId").append(
-                        METADATA_CLIENT_ID,
-                        "$" + CLIENT_ID_FIELD
-                    ),
-                    Accumulators.push("applicationIds", "$_id"),
-                    Accumulators.sum("count", 1)
-                ),
-                Aggregates.match(Filters.gt("count", 1))
-            )
-        );
+                        new Document("environmentId", "$environmentId")
+                                .append(METADATA_CLIENT_ID, "$" + CLIENT_ID_FIELD),
+                        Accumulators.push("applicationIds", "$_id"),
+                        Accumulators.sum("count", 1)),
+                Aggregates.match(Filters.gt("count", 1))));
         return StreamSupport.stream(duplicatesAggregated.spliterator(), false).toList();
     }
 
     private static Bson activeApplicationsHavingAClientId() {
-        return Filters.and(
-            Filters.eq("status", ApplicationStatus.ACTIVE.name()),
-            Filters.exists(CLIENT_ID_FIELD)
-        );
+        return Filters.and(Filters.eq("status", ApplicationStatus.ACTIVE.name()), Filters.exists(CLIENT_ID_FIELD));
     }
 }

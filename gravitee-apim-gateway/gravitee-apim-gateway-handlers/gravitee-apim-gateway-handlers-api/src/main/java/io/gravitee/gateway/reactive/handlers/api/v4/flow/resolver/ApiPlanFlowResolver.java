@@ -19,7 +19,6 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
@@ -64,16 +63,13 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
     }
 
     private Flowable<Flow> getFlows(List<Plan> plans, String planId) {
-        return this.flowsByPlanId.computeIfAbsent(planId, id ->
-            Flowable.fromIterable(
-                plans
-                    .stream()
-                    .filter(plan -> Objects.equals(plan.getId(), id))
-                    .filter(plan -> Objects.nonNull(plan.getFlows()))
-                    .flatMap(plan -> plan.getFlows().stream())
-                    .filter(Flow::isEnabled)
-                    .collect(Collectors.toList())
-            )
-        );
+        return this.flowsByPlanId.computeIfAbsent(
+                planId,
+                id -> Flowable.fromIterable(plans.stream()
+                        .filter(plan -> Objects.equals(plan.getId(), id))
+                        .filter(plan -> Objects.nonNull(plan.getFlows()))
+                        .flatMap(plan -> plan.getFlows().stream())
+                        .filter(Flow::isEnabled)
+                        .collect(Collectors.toList())));
     }
 }

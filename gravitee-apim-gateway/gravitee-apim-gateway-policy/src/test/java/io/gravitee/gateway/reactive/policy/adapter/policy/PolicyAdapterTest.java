@@ -124,8 +124,8 @@ class PolicyAdapterTest {
 
         when(policy.isRunnable()).thenReturn(true);
         doThrow(new PolicyException(MOCK_EXCEPTION_MESSAGE))
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                .when(policy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
@@ -140,7 +140,8 @@ class PolicyAdapterTest {
         final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
 
         when(policy.isStreamable()).thenReturn(true);
-        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(null);
+        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class)))
+                .thenReturn(null);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
@@ -163,25 +164,26 @@ class PolicyAdapterTest {
         when(ctx.request()).thenReturn(request);
         when(request.body()).thenReturn(Maybe.just(requestBody));
         when(policy.isStreamable()).thenReturn(true);
-        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
+        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class)))
+                .thenReturn(stream);
 
         // Simulate a policy that produces multiple buffers in the stream.
         doAnswer(invocation -> {
-            Handler<Buffer> bodyHandler = invocation.getArgument(0);
-            bodyHandler.handle(policyChunk1);
-            bodyHandler.handle(policyChunk2);
-            return null;
-        })
-            .when(stream)
-            .bodyHandler(any(Handler.class));
+                    Handler<Buffer> bodyHandler = invocation.getArgument(0);
+                    bodyHandler.handle(policyChunk1);
+                    bodyHandler.handle(policyChunk2);
+                    return null;
+                })
+                .when(stream)
+                .bodyHandler(any(Handler.class));
 
         doAnswer(invocation -> {
-            Handler<Void> endHandler = invocation.getArgument(0);
-            endHandler.handle(null);
-            return null;
-        })
-            .when(stream)
-            .endHandler(any(Handler.class));
+                    Handler<Void> endHandler = invocation.getArgument(0);
+                    endHandler.handle(null);
+                    return null;
+                })
+                .when(stream)
+                .endHandler(any(Handler.class));
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
@@ -210,25 +212,26 @@ class PolicyAdapterTest {
         when(ctx.response()).thenReturn(response);
         when(response.body()).thenReturn(Maybe.just(responseBody));
         when(policy.isStreamable()).thenReturn(true);
-        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
+        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class)))
+                .thenReturn(stream);
 
         // Simulate a policy that produces multiple buffers in the stream.
         doAnswer(invocation -> {
-            Handler<Buffer> bodyHandler = invocation.getArgument(0);
-            bodyHandler.handle(policyChunk1);
-            bodyHandler.handle(policyChunk2);
-            return null;
-        })
-            .when(stream)
-            .bodyHandler(any(Handler.class));
+                    Handler<Buffer> bodyHandler = invocation.getArgument(0);
+                    bodyHandler.handle(policyChunk1);
+                    bodyHandler.handle(policyChunk2);
+                    return null;
+                })
+                .when(stream)
+                .bodyHandler(any(Handler.class));
 
         doAnswer(invocation -> {
-            Handler<Void> endHandler = invocation.getArgument(0);
-            endHandler.handle(null);
-            return null;
-        })
-            .when(stream)
-            .endHandler(any(Handler.class));
+                    Handler<Void> endHandler = invocation.getArgument(0);
+                    endHandler.handle(null);
+                    return null;
+                })
+                .when(stream)
+                .endHandler(any(Handler.class));
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
@@ -253,7 +256,8 @@ class PolicyAdapterTest {
 
         when(ctx.request()).thenReturn(request);
         when(policy.isStreamable()).thenReturn(true);
-        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
+        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class)))
+                .thenReturn(stream);
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE)).when(stream).endHandler(any(Handler.class));
 
@@ -269,7 +273,8 @@ class PolicyAdapterTest {
         final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
 
@@ -287,7 +292,8 @@ class PolicyAdapterTest {
         final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
@@ -306,13 +312,15 @@ class PolicyAdapterTest {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
         final ReadWriteStream<Buffer> stream = mock(ReadWriteStream.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
 
         when(ctx.request()).thenReturn(request);
         when(policy.isStreamable()).thenReturn(true);
-        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class))).thenReturn(stream);
+        when(policy.stream(any(PolicyChainAdapter.class), any(ExecutionContext.class)))
+                .thenReturn(stream);
 
         // Error during stream.
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE)).when(stream).endHandler(any(Handler.class));
@@ -345,13 +353,13 @@ class PolicyAdapterTest {
 
         when(policy.isRunnable()).thenReturn(true);
         doAnswer(invocation -> {
-            policyThread.set(Thread.currentThread().getName());
-            PolicyChainAdapter chain = invocation.getArgument(0);
-            chain.doNext(mock(Request.class), mock(Response.class));
-            return null;
-        })
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                    policyThread.set(Thread.currentThread().getName());
+                    PolicyChainAdapter chain = invocation.getArgument(0);
+                    chain.doNext(mock(Request.class), mock(Response.class));
+                    return null;
+                })
+                .when(policy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
         final String callerThread = Thread.currentThread().getName();
@@ -362,8 +370,8 @@ class PolicyAdapterTest {
         // BUG: policy ran on the exact same thread that called subscribe().
         // In production this is the Vert.x I/O event loop thread.
         assertThat(policyThread.get())
-            .as("PEN-88 root cause: policy.execute() blocks the caller (event loop) thread")
-            .isEqualTo(callerThread);
+                .as("PEN-88 root cause: policy.execute() blocks the caller (event loop) thread")
+                .isEqualTo(callerThread);
     }
 
     /**
@@ -381,15 +389,15 @@ class PolicyAdapterTest {
 
         when(policy.isRunnable()).thenReturn(true);
         doAnswer(invocation -> {
-            policyStarted.countDown();
-            // Simulate an infinite / very long blocking script
-            releasePolicy.await(10, TimeUnit.SECONDS);
-            PolicyChainAdapter chain = invocation.getArgument(0);
-            chain.doNext(mock(Request.class), mock(Response.class));
-            return null;
-        })
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                    policyStarted.countDown();
+                    // Simulate an infinite / very long blocking script
+                    releasePolicy.await(10, TimeUnit.SECONDS);
+                    PolicyChainAdapter chain = invocation.getArgument(0);
+                    chain.doNext(mock(Request.class), mock(Response.class));
+                    return null;
+                })
+                .when(policy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
@@ -398,15 +406,17 @@ class PolicyAdapterTest {
         cut.onRequest(ctx).subscribeOn(eventLoopSimulator).subscribe();
 
         // Wait for the policy to start occupying the "event loop" thread
-        assertThat(policyStarted.await(2, TimeUnit.SECONDS)).as("Policy should have started").isTrue();
+        assertThat(policyStarted.await(2, TimeUnit.SECONDS))
+                .as("Policy should have started")
+                .isTrue();
 
         // BUG: try to submit another task to the same "event loop" — it is blocked
         CountDownLatch otherTaskLatch = new CountDownLatch(1);
         eventLoopSimulator.scheduleDirect(otherTaskLatch::countDown);
 
         assertThat(otherTaskLatch.await(200, TimeUnit.MILLISECONDS))
-            .as("PEN-88: event loop is blocked — no other task can run while policy spins")
-            .isFalse();
+                .as("PEN-88: event loop is blocked — no other task can run while policy spins")
+                .isFalse();
 
         // Cleanup: release the policy so the test thread can exit cleanly
         releasePolicy.countDown();
@@ -417,20 +427,21 @@ class PolicyAdapterTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void pen88_shouldRunPolicyOnWorkerThread_whenWorkerSchedulerConfigured() throws PolicyException, InterruptedException {
+    void pen88_shouldRunPolicyOnWorkerThread_whenWorkerSchedulerConfigured()
+            throws PolicyException, InterruptedException {
         final Policy policy = mock(Policy.class);
         final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
         final AtomicReference<String> policyThread = new AtomicReference<>();
 
         when(policy.isRunnable()).thenReturn(true);
         doAnswer(invocation -> {
-            policyThread.set(Thread.currentThread().getName());
-            PolicyChainAdapter chain = invocation.getArgument(0);
-            chain.doNext(mock(Request.class), mock(Response.class));
-            return null;
-        })
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                    policyThread.set(Thread.currentThread().getName());
+                    PolicyChainAdapter chain = invocation.getArgument(0);
+                    chain.doNext(mock(Request.class), mock(Response.class));
+                    return null;
+                })
+                .when(policy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         // Use the production 3-arg constructor with a worker scheduler
         final PolicyAdapter cut = new PolicyAdapter(policy, Schedulers.io());
@@ -440,8 +451,8 @@ class PolicyAdapterTest {
 
         // FIX: policy no longer runs on the event loop (caller) thread
         assertThat(policyThread.get())
-            .as("PEN-88 fix: policy.execute() should run on a worker thread, not the event loop")
-            .isNotEqualTo(callerThread);
+                .as("PEN-88 fix: policy.execute() should run on a worker thread, not the event loop")
+                .isNotEqualTo(callerThread);
     }
 
     @Test
@@ -454,14 +465,14 @@ class PolicyAdapterTest {
 
         when(policy.isRunnable()).thenReturn(true);
         doAnswer(invocation -> {
-            policyStarted.countDown();
-            releasePolicy.await(10, TimeUnit.SECONDS);
-            PolicyChainAdapter chain = invocation.getArgument(0);
-            chain.doNext(mock(Request.class), mock(Response.class));
-            return null;
-        })
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                    policyStarted.countDown();
+                    releasePolicy.await(10, TimeUnit.SECONDS);
+                    PolicyChainAdapter chain = invocation.getArgument(0);
+                    chain.doNext(mock(Request.class), mock(Response.class));
+                    return null;
+                })
+                .when(policy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         var eventLoopSimulator = Schedulers.single();
 
@@ -469,15 +480,17 @@ class PolicyAdapterTest {
         final PolicyAdapter cut = new PolicyAdapter(policy, Schedulers.io());
         cut.onRequest(ctx).subscribeOn(eventLoopSimulator).subscribe();
 
-        assertThat(policyStarted.await(2, TimeUnit.SECONDS)).as("Policy should have started on worker thread").isTrue();
+        assertThat(policyStarted.await(2, TimeUnit.SECONDS))
+                .as("Policy should have started on worker thread")
+                .isTrue();
 
         // The event loop thread is now FREE — another task can run immediately
         CountDownLatch otherTaskLatch = new CountDownLatch(1);
         eventLoopSimulator.scheduleDirect(otherTaskLatch::countDown);
 
         assertThat(otherTaskLatch.await(2, TimeUnit.SECONDS))
-            .as("PEN-88 fix: event loop is free while V3 policy runs on worker thread")
-            .isTrue();
+                .as("PEN-88 fix: event loop is free while V3 policy runs on worker thread")
+                .isTrue();
 
         releasePolicy.countDown();
     }
@@ -489,22 +502,21 @@ class PolicyAdapterTest {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
         final List<String> events = new ArrayList<>();
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
         doAnswer(invocation -> {
-            events.add("restore");
-            return null;
-        })
-            .when(adaptedExecutionContext)
-            .restore();
+                    events.add("restore");
+                    return null;
+                })
+                .when(adaptedExecutionContext)
+                .restore();
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
-        final TestObserver<Void> obs = cut
-            .onRequest(ctx)
-            .doOnComplete(() -> events.add("downstream"))
-            .test();
+        final TestObserver<Void> obs =
+                cut.onRequest(ctx).doOnComplete(() -> events.add("downstream")).test();
 
         obs.assertComplete();
         assertThat(events).containsExactly("restore", "downstream");
@@ -517,24 +529,23 @@ class PolicyAdapterTest {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
         final List<String> events = new ArrayList<>();
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         doThrow(new PolicyException(MOCK_EXCEPTION_MESSAGE))
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                .when(policy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
         doAnswer(invocation -> {
-            events.add("restore");
-            return null;
-        })
-            .when(adaptedExecutionContext)
-            .restore();
+                    events.add("restore");
+                    return null;
+                })
+                .when(adaptedExecutionContext)
+                .restore();
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
-        final TestObserver<Void> obs = cut
-            .onRequest(ctx)
-            .doOnError(t -> events.add("downstream"))
-            .test();
+        final TestObserver<Void> obs =
+                cut.onRequest(ctx).doOnError(t -> events.add("downstream")).test();
 
         obs.assertError(e -> e.getCause().getMessage().equals(MOCK_EXCEPTION_MESSAGE));
         assertThat(events).containsExactly("restore", "downstream");
@@ -546,12 +557,12 @@ class PolicyAdapterTest {
         final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
-        // The policy never calls the chain back: the request is cancelled (client abort, timeout) while it is in flight.
-        doAnswer(invocation -> null)
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+        // The policy never calls the chain back: the request is cancelled (client abort, timeout) while it is in
+        // flight.
+        doAnswer(invocation -> null).when(policy).execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         final PolicyAdapter cut = new PolicyAdapter(policy);
 
@@ -569,7 +580,8 @@ class PolicyAdapterTest {
         final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(policy.isRunnable()).thenReturn(true);
         mockPolicyExecution(policy);
 
@@ -593,12 +605,13 @@ class PolicyAdapterTest {
         final Map<String, Object> variables = new ConcurrentHashMap<>();
         final TemplateContext templateContext = mock(TemplateContext.class);
         doAnswer(invocation -> {
-            variables.put(invocation.getArgument(0), invocation.getArgument(1));
-            return null;
-        })
-            .when(templateContext)
-            .setVariable(anyString(), any());
-        when(templateContext.lookupVariable(anyString())).thenAnswer(invocation -> variables.get(invocation.getArgument(0)));
+                    variables.put(invocation.getArgument(0), invocation.getArgument(1));
+                    return null;
+                })
+                .when(templateContext)
+                .setVariable(anyString(), any());
+        when(templateContext.lookupVariable(anyString()))
+                .thenAnswer(invocation -> variables.get(invocation.getArgument(0)));
 
         final TemplateEngine templateEngine = mock(TemplateEngine.class);
         when(templateEngine.getTemplateContext()).thenReturn(templateContext);
@@ -607,64 +620,67 @@ class PolicyAdapterTest {
         final AtomicReference<Object> cachedAdaptedContext = new AtomicReference<>();
         final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenAnswer(invocation ->
-            cachedAdaptedContext.get()
-        );
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenAnswer(invocation -> cachedAdaptedContext.get());
         final ExecutionContextAdapter adaptedContext = spy(ExecutionContextAdapter.create(ctx));
         cachedAdaptedContext.set(adaptedContext);
 
         final CountDownLatch secondPolicyOverrodeGroup = new CountDownLatch(1);
         final CountDownLatch previousPolicyRestored = new CountDownLatch(1);
         doAnswer(invocation -> {
-            // Best-effort head start for the second policy; it cannot be asserted because, once fixed, the restore runs
-            // before the second policy is subscribed and this await always times out. The await below carries the test.
-            secondPolicyOverrodeGroup.await(RESTORE_HEAD_START_MS, TimeUnit.MILLISECONDS);
-            invocation.callRealMethod();
-            previousPolicyRestored.countDown();
-            return null;
-        })
-            .when(adaptedContext)
-            .restore();
+                    // Best-effort head start for the second policy; it cannot be asserted because, once fixed, the
+                    // restore runs
+                    // before the second policy is subscribed and this await always times out. The await below carries
+                    // the test.
+                    secondPolicyOverrodeGroup.await(RESTORE_HEAD_START_MS, TimeUnit.MILLISECONDS);
+                    invocation.callRealMethod();
+                    previousPolicyRestored.countDown();
+                    return null;
+                })
+                .when(adaptedContext)
+                .restore();
 
         final Policy firstPolicy = mock(Policy.class);
         when(firstPolicy.isRunnable()).thenReturn(true);
         doAnswer(invocation -> {
-            templateContextOf(invocation).setVariable(variableName, firstGroup);
-            invocation.<PolicyChainAdapter>getArgument(0).doNext(mock(Request.class), mock(Response.class));
-            return null;
-        })
-            .when(firstPolicy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                    templateContextOf(invocation).setVariable(variableName, firstGroup);
+                    invocation.<PolicyChainAdapter>getArgument(0).doNext(mock(Request.class), mock(Response.class));
+                    return null;
+                })
+                .when(firstPolicy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         final AtomicBoolean previousPolicyRestoredBeforeLookup = new AtomicBoolean();
         final AtomicReference<Object> groupSeenByTheSecondPolicy = new AtomicReference<>();
         final Policy secondPolicy = mock(Policy.class);
         when(secondPolicy.isRunnable()).thenReturn(true);
         doAnswer(invocation -> {
-            final TemplateContext policyContext = templateContextOf(invocation);
-            policyContext.setVariable(variableName, secondGroup);
-            secondPolicyOverrodeGroup.countDown();
-            // Evaluate the template only once a restore of the previous policy could have landed.
-            previousPolicyRestoredBeforeLookup.set(previousPolicyRestored.await(RESTORE_AWAIT_TIMEOUT_MS, TimeUnit.MILLISECONDS));
-            groupSeenByTheSecondPolicy.set(policyContext.lookupVariable(variableName));
-            invocation.<PolicyChainAdapter>getArgument(0).doNext(mock(Request.class), mock(Response.class));
-            return null;
-        })
-            .when(secondPolicy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                    final TemplateContext policyContext = templateContextOf(invocation);
+                    policyContext.setVariable(variableName, secondGroup);
+                    secondPolicyOverrodeGroup.countDown();
+                    // Evaluate the template only once a restore of the previous policy could have landed.
+                    previousPolicyRestoredBeforeLookup.set(
+                            previousPolicyRestored.await(RESTORE_AWAIT_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+                    groupSeenByTheSecondPolicy.set(policyContext.lookupVariable(variableName));
+                    invocation.<PolicyChainAdapter>getArgument(0).doNext(mock(Request.class), mock(Response.class));
+                    return null;
+                })
+                .when(secondPolicy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
 
         final PolicyAdapter first = new PolicyAdapter(firstPolicy, Schedulers.io());
         final PolicyAdapter second = new PolicyAdapter(secondPolicy, Schedulers.io());
 
         first.onRequest(ctx).andThen(second.onRequest(ctx)).blockingAwait();
 
-        // Without this the test would pass vacuously if the restore never ran at all: nothing would clobber the variable.
+        // Without this the test would pass vacuously if the restore never ran at all: nothing would clobber the
+        // variable.
         assertThat(previousPolicyRestoredBeforeLookup)
-            .as("the previous policy must have restored before the template is evaluated")
-            .isTrue();
+                .as("the previous policy must have restored before the template is evaluated")
+                .isTrue();
         assertThat(groupSeenByTheSecondPolicy.get())
-            .as("the policy must evaluate its template with its own capture group")
-            .isEqualTo(secondGroup);
+                .as("the policy must evaluate its template with its own capture group")
+                .isEqualTo(secondGroup);
     }
 
     private TemplateContext templateContextOf(InvocationOnMock invocation) {
@@ -673,11 +689,11 @@ class PolicyAdapterTest {
 
     private void mockPolicyExecution(Policy policy) throws PolicyException {
         doAnswer(invocation -> {
-            PolicyChainAdapter policyChain = invocation.getArgument(0);
-            policyChain.doNext(mock(Request.class), mock(Response.class));
-            return null;
-        })
-            .when(policy)
-            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+                    PolicyChainAdapter policyChain = invocation.getArgument(0);
+                    policyChain.doNext(mock(Request.class), mock(Response.class));
+                    return null;
+                })
+                .when(policy)
+                .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
     }
 }

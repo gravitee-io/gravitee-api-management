@@ -37,29 +37,57 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
 
         assertEquals(subscriptionEntity.getId(), subscription.getId());
         assertEquals(subscriptionEntity.getApi(), subscription.getApi().getId());
-        assertEquals(subscriptionEntity.getApplication(), subscription.getApplication().getId());
-        assertEquals(subscriptionEntity.getCreatedAt().getTime(), subscription.getCreatedAt().toInstant().toEpochMilli());
-        assertEquals(subscriptionEntity.getUpdatedAt().getTime(), subscription.getUpdatedAt().toInstant().toEpochMilli());
-        assertEquals(subscriptionEntity.getClosedAt().getTime(), subscription.getClosedAt().toInstant().toEpochMilli());
-        assertEquals(subscriptionEntity.getEndingAt().getTime(), subscription.getEndingAt().toInstant().toEpochMilli());
-        assertEquals(subscriptionEntity.getPausedAt().getTime(), subscription.getPausedAt().toInstant().toEpochMilli());
-        assertEquals(subscriptionEntity.getProcessedAt().getTime(), subscription.getProcessedAt().toInstant().toEpochMilli());
-        assertEquals(subscriptionEntity.getStatus().name(), subscription.getStatus().name());
-        assertEquals(subscriptionEntity.getConsumerStatus().name(), subscription.getConsumerStatus().name());
-        assertEquals(subscriptionEntity.getConsumerPausedAt().getTime(), subscription.getConsumerPausedAt().toInstant().toEpochMilli());
-        assertEquals(subscriptionEntity.getDaysToExpirationOnLastNotification(), subscription.getDaysToExpirationOnLastNotification());
-        assertEquals(subscriptionEntity.getSubscribedBy(), subscription.getSubscribedBy().getId());
-        assertEquals(subscriptionEntity.getProcessedBy(), subscription.getProcessedBy().getId());
+        assertEquals(
+                subscriptionEntity.getApplication(),
+                subscription.getApplication().getId());
+        assertEquals(
+                subscriptionEntity.getCreatedAt().getTime(),
+                subscription.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                subscriptionEntity.getUpdatedAt().getTime(),
+                subscription.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                subscriptionEntity.getClosedAt().getTime(),
+                subscription.getClosedAt().toInstant().toEpochMilli());
+        assertEquals(
+                subscriptionEntity.getEndingAt().getTime(),
+                subscription.getEndingAt().toInstant().toEpochMilli());
+        assertEquals(
+                subscriptionEntity.getPausedAt().getTime(),
+                subscription.getPausedAt().toInstant().toEpochMilli());
+        assertEquals(
+                subscriptionEntity.getProcessedAt().getTime(),
+                subscription.getProcessedAt().toInstant().toEpochMilli());
+        assertEquals(
+                subscriptionEntity.getStatus().name(), subscription.getStatus().name());
+        assertEquals(
+                subscriptionEntity.getConsumerStatus().name(),
+                subscription.getConsumerStatus().name());
+        assertEquals(
+                subscriptionEntity.getConsumerPausedAt().getTime(),
+                subscription.getConsumerPausedAt().toInstant().toEpochMilli());
+        assertEquals(
+                subscriptionEntity.getDaysToExpirationOnLastNotification(),
+                subscription.getDaysToExpirationOnLastNotification());
+        assertEquals(
+                subscriptionEntity.getSubscribedBy(),
+                subscription.getSubscribedBy().getId());
+        assertEquals(
+                subscriptionEntity.getProcessedBy(),
+                subscription.getProcessedBy().getId());
         assertEquals(subscriptionEntity.getRequest(), subscription.getConsumerMessage());
         assertEquals(subscriptionEntity.getReason(), subscription.getPublisherMessage());
         assertEquals(subscriptionEntity.getMetadata(), subscription.getMetadata());
 
-        assertEquals(subscriptionEntity.getConfiguration().getEntrypointId(), subscription.getConsumerConfiguration().getEntrypointId());
-        assertEquals(subscriptionEntity.getConfiguration().getChannel(), subscription.getConsumerConfiguration().getChannel());
+        assertEquals(
+                subscriptionEntity.getConfiguration().getEntrypointId(),
+                subscription.getConsumerConfiguration().getEntrypointId());
+        assertEquals(
+                subscriptionEntity.getConfiguration().getChannel(),
+                subscription.getConsumerConfiguration().getChannel());
         assertConfigurationEquals(
-            subscriptionEntity.getConfiguration().getEntrypointConfiguration(),
-            subscription.getConsumerConfiguration().getEntrypointConfiguration()
-        );
+                subscriptionEntity.getConfiguration().getEntrypointConfiguration(),
+                subscription.getConsumerConfiguration().getEntrypointConfiguration());
     }
 
     @Test
@@ -71,13 +99,16 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
         assertEquals(createSubscription.getApplicationId(), newSubscriptionEntity.getApplication());
         assertEquals(createSubscription.getMetadata(), newSubscriptionEntity.getMetadata());
         SubscriptionConsumerConfiguration consumerConfig =
-            (SubscriptionConsumerConfiguration) createSubscription.getConsumerConfiguration();
-        assertEquals(consumerConfig.getEntrypointId(), newSubscriptionEntity.getConfiguration().getEntrypointId());
-        assertEquals(consumerConfig.getChannel(), newSubscriptionEntity.getConfiguration().getChannel());
+                (SubscriptionConsumerConfiguration) createSubscription.getConsumerConfiguration();
+        assertEquals(
+                consumerConfig.getEntrypointId(),
+                newSubscriptionEntity.getConfiguration().getEntrypointId());
+        assertEquals(
+                consumerConfig.getChannel(),
+                newSubscriptionEntity.getConfiguration().getChannel());
         assertConfigurationEquals(
-            consumerConfig.getEntrypointConfiguration(),
-            newSubscriptionEntity.getConfiguration().getEntrypointConfiguration()
-        );
+                consumerConfig.getEntrypointConfiguration(),
+                newSubscriptionEntity.getConfiguration().getEntrypointConfiguration());
     }
 
     @Test
@@ -88,13 +119,16 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
         assertEquals("subscriptionId", updateSubscriptionEntity.getId());
         assertEquals(updateSubscription.getMetadata(), updateSubscriptionEntity.getMetadata());
         SubscriptionConsumerConfiguration consumerConfig =
-            (SubscriptionConsumerConfiguration) updateSubscription.getConsumerConfiguration();
-        assertEquals(consumerConfig.getEntrypointId(), updateSubscriptionEntity.getConfiguration().getEntrypointId());
-        assertEquals(consumerConfig.getChannel(), updateSubscriptionEntity.getConfiguration().getChannel());
+                (SubscriptionConsumerConfiguration) updateSubscription.getConsumerConfiguration();
+        assertEquals(
+                consumerConfig.getEntrypointId(),
+                updateSubscriptionEntity.getConfiguration().getEntrypointId());
+        assertEquals(
+                consumerConfig.getChannel(),
+                updateSubscriptionEntity.getConfiguration().getChannel());
         assertConfigurationEquals(
-            consumerConfig.getEntrypointConfiguration(),
-            updateSubscriptionEntity.getConfiguration().getEntrypointConfiguration()
-        );
+                consumerConfig.getEntrypointConfiguration(),
+                updateSubscriptionEntity.getConfiguration().getEntrypointConfiguration());
     }
 
     @Test
@@ -122,19 +156,19 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
     @Test
     void should_map_core_SubscriptionEntity_to_Subscription() {
         io.gravitee.apim.core.subscription.model.SubscriptionEntity coreEntity =
-            io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
-                .id("sub-1")
-                .apiId("api-1")
-                .planId("plan-1")
-                .applicationId("app-1")
-                .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
-                .requestMessage("request")
-                .reasonMessage("reason")
-                .subscribedBy("user-1")
-                .processedBy("admin-1")
-                .createdAt(java.time.ZonedDateTime.now())
-                .updatedAt(java.time.ZonedDateTime.now())
-                .build();
+                io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
+                        .id("sub-1")
+                        .apiId("api-1")
+                        .planId("plan-1")
+                        .applicationId("app-1")
+                        .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                        .requestMessage("request")
+                        .reasonMessage("reason")
+                        .subscribedBy("user-1")
+                        .processedBy("admin-1")
+                        .createdAt(java.time.ZonedDateTime.now())
+                        .updatedAt(java.time.ZonedDateTime.now())
+                        .build();
 
         final var subscription = subscriptionMapper.map(coreEntity);
 
@@ -156,21 +190,37 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
 
         assertEquals(apiKeyEntity.getId(), apiKey.getId());
         assertEquals(apiKeyEntity.getKey(), apiKey.getKey());
-        assertEquals(apiKeyEntity.getApplication().getId(), apiKey.getApplication().getId());
-        assertEquals(apiKeyEntity.getApplication().getName(), apiKey.getApplication().getName());
-        assertEquals(apiKeyEntity.getApplication().getDescription(), apiKey.getApplication().getDescription());
-        assertEquals(apiKeyEntity.getDaysToExpirationOnLastNotification(), apiKey.getDaysToExpirationOnLastNotification());
+        assertEquals(
+                apiKeyEntity.getApplication().getId(), apiKey.getApplication().getId());
+        assertEquals(
+                apiKeyEntity.getApplication().getName(), apiKey.getApplication().getName());
+        assertEquals(
+                apiKeyEntity.getApplication().getDescription(),
+                apiKey.getApplication().getDescription());
+        assertEquals(
+                apiKeyEntity.getDaysToExpirationOnLastNotification(), apiKey.getDaysToExpirationOnLastNotification());
 
         assertEquals(apiKeyEntity.isRevoked(), apiKey.getRevoked());
         assertEquals(apiKeyEntity.isExpired(), apiKey.getExpired());
         assertEquals(apiKeyEntity.isPaused(), apiKey.getPaused());
 
-        final List<String> subscriptionIds = apiKey.getSubscriptions().stream().map(BaseSubscription::getId).collect(Collectors.toList());
-        assertTrue(apiKeyEntity.getSubscriptions().stream().map(SubscriptionEntity::getId).allMatch(subscriptionIds::contains));
+        final List<String> subscriptionIds =
+                apiKey.getSubscriptions().stream().map(BaseSubscription::getId).collect(Collectors.toList());
+        assertTrue(apiKeyEntity.getSubscriptions().stream()
+                .map(SubscriptionEntity::getId)
+                .allMatch(subscriptionIds::contains));
 
-        assertEquals(apiKeyEntity.getCreatedAt().getTime(), apiKey.getCreatedAt().toInstant().toEpochMilli());
-        assertEquals(apiKeyEntity.getUpdatedAt().getTime(), apiKey.getUpdatedAt().toInstant().toEpochMilli());
-        assertEquals(apiKeyEntity.getExpireAt().getTime(), apiKey.getExpireAt().toInstant().toEpochMilli());
-        assertEquals(apiKeyEntity.getRevokedAt().getTime(), apiKey.getRevokedAt().toInstant().toEpochMilli());
+        assertEquals(
+                apiKeyEntity.getCreatedAt().getTime(),
+                apiKey.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                apiKeyEntity.getUpdatedAt().getTime(),
+                apiKey.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                apiKeyEntity.getExpireAt().getTime(),
+                apiKey.getExpireAt().toInstant().toEpochMilli());
+        assertEquals(
+                apiKeyEntity.getRevokedAt().getTime(),
+                apiKey.getRevokedAt().toInstant().toEpochMilli());
     }
 }

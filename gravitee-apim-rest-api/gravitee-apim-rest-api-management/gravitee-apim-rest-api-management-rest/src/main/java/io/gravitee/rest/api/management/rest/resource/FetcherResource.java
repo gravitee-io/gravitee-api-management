@@ -49,10 +49,12 @@ public class FetcherResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a fetcher plugin")
     @ApiResponse(
-        responseCode = "200",
-        description = "Fetcher",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = FetcherEntity.class))
-    )
+            responseCode = "200",
+            description = "Fetcher",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = FetcherEntity.class)))
     @ApiResponse(responseCode = "404", description = "Fetcher not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public FetcherEntity getFetcher(@PathParam("fetcher") String fetcher) {
@@ -64,10 +66,9 @@ public class FetcherResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a fetcher plugin's schema")
     @ApiResponse(
-        responseCode = "200",
-        description = "Fetcher's schema",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Fetcher's schema",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "404", description = "Fetcher not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public String getFetcherSchema(@PathParam("fetcher") String fetcher) {

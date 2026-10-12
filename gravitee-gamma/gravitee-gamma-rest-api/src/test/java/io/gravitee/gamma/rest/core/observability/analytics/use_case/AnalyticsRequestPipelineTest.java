@@ -71,50 +71,46 @@ class AnalyticsRequestPipelineTest {
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
         pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope);
 
-        when(filterRegistry.getFilters(any(), any())).thenReturn(
-            List.of(
-                new FilterSpec(
-                    "API",
-                    "API",
-                    FilterType.KEYWORD,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    null,
-                    null,
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    ApiType.ALL
-                ),
-                new FilterSpec(
-                    "HTTP_STATUS",
-                    "Status Code",
-                    FilterType.NUMBER,
-                    List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
-                    null,
-                    new FilterSpec.Range(100, 599),
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    Set.of(ApiType.HTTP_PROXY)
-                ),
-                new FilterSpec(
-                    "ENTRYPOINT",
-                    "Entrypoint",
-                    FilterType.KEYWORD,
-                    List.of(FilterOperator.IN),
-                    null,
-                    null,
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    ApiType.ALL
-                ),
-                new FilterSpec(
-                    "RECORD_TYPE",
-                    "Record Type",
-                    FilterType.ENUM,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    List.of(new FilterSpec.EnumValue("REQUEST", "Request"), new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision")),
-                    null,
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    ApiType.API_KINDS
-                )
-            )
-        );
+        when(filterRegistry.getFilters(any(), any()))
+                .thenReturn(List.of(
+                        new FilterSpec(
+                                "API",
+                                "API",
+                                FilterType.KEYWORD,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                null,
+                                null,
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                ApiType.ALL),
+                        new FilterSpec(
+                                "HTTP_STATUS",
+                                "Status Code",
+                                FilterType.NUMBER,
+                                List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
+                                null,
+                                new FilterSpec.Range(100, 599),
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                Set.of(ApiType.HTTP_PROXY)),
+                        new FilterSpec(
+                                "ENTRYPOINT",
+                                "Entrypoint",
+                                FilterType.KEYWORD,
+                                List.of(FilterOperator.IN),
+                                null,
+                                null,
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                ApiType.ALL),
+                        new FilterSpec(
+                                "RECORD_TYPE",
+                                "Record Type",
+                                FilterType.ENUM,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                List.of(
+                                        new FilterSpec.EnumValue("REQUEST", "Request"),
+                                        new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision")),
+                                null,
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                ApiType.API_KINDS)));
     }
 
     @Nested
@@ -122,12 +118,10 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_compute_scope_from_accessible_apis() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(
-                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM)
-                )
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-llm", "LLM API", ApiType.LLM)));
 
             var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort);
 
@@ -136,9 +130,10 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_intersect_user_api_filter_with_accessible_apis() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY), new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY))
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY)));
 
             var filters = List.of(new FilterCondition("API", FilterOperator.EQ, List.of("api-1")));
             var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort);
@@ -167,9 +162,8 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_return_empty_scope_when_user_filters_unknown_api() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
 
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("non-existent-api")));
             var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort);
@@ -186,18 +180,16 @@ class AnalyticsRequestPipelineTest {
         void should_reject_unknown_filter_name() {
             var filters = List.of(new FilterCondition("UNKNOWN", FilterOperator.EQ, List.of("val")));
 
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort)).isInstanceOf(
-                UnsupportedObservabilityFilterException.class
-            );
+            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class);
         }
 
         @Test
         void should_reject_unsupported_operator() {
             var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.CONTAINS, List.of("200")));
 
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort)).isInstanceOf(
-                UnsupportedObservabilityFilterException.class
-            );
+            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class);
         }
     }
 
@@ -210,28 +202,30 @@ class AnalyticsRequestPipelineTest {
             var to = Instant.parse("2026-06-10T12:00:00Z");
 
             assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, analyticsDataPort))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("from")
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.invalid_time_range");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .hasMessageContaining("from")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.invalid_time_range");
         }
 
         @ParameterizedTest
-        @CsvSource(value = { "null, 2026-06-11T00:00:00Z, from", "2026-06-10T00:00:00Z, null, to" }, nullValues = "null")
-        void should_reject_a_missing_bound_before_loading_the_accessible_apis(Instant from, Instant to, String missingBound) {
+        @CsvSource(
+                value = {"null, 2026-06-11T00:00:00Z, from", "2026-06-10T00:00:00Z, null, to"},
+                nullValues = "null")
+        void should_reject_a_missing_bound_before_loading_the_accessible_apis(
+                Instant from, Instant to, String missingBound) {
             assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, analyticsDataPort))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("'" + missingBound + "'")
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.time_range_required");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .hasMessageContaining("'" + missingBound + "'")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.time_range_required");
             verifyNoInteractions(analyticsDataPort);
         }
 
         @Test
         void should_preserve_valid_time_range() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
 
             var from = Instant.parse("2026-06-10T00:00:00Z");
             var to = Instant.parse("2026-06-11T00:00:00Z");
@@ -247,9 +241,8 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_add_no_entrypoint_condition_and_leave_the_default_scope_to_the_engine() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
 
             var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort);
 
@@ -258,18 +251,15 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_preserve_user_entrypoint_filter_when_provided() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
 
             var filters = List.of(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("http-proxy")));
             var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort);
 
-            var entrypoints = scope
-                .filters()
-                .stream()
-                .filter(c -> "ENTRYPOINT".equals(c.name()))
-                .toList();
+            var entrypoints = scope.filters().stream()
+                    .filter(c -> "ENTRYPOINT".equals(c.name()))
+                    .toList();
             assertThat(entrypoints).hasSize(1);
             assertThat(entrypoints.getFirst().values()).containsExactly("http-proxy");
         }
@@ -289,9 +279,8 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_scope_decision_records_to_the_accessible_apis() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
 
             var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort);
@@ -301,9 +290,8 @@ class AnalyticsRequestPipelineTest {
 
         @Test
         void should_strip_a_record_type_request_condition_before_it_reaches_the_analytics_engine() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("REQUEST")));
 
             var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort);

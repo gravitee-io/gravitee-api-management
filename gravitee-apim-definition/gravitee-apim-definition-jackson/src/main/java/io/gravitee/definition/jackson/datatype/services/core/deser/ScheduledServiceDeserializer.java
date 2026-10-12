@@ -16,7 +16,6 @@
 package io.gravitee.definition.jackson.datatype.services.core.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,7 +36,8 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
     }
 
     @Override
-    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException {
+    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
+            throws IOException {
         super.deserialize(service, jsonParser, node, ctxt);
 
         final JsonNode scheduleNode = node.get("schedule");

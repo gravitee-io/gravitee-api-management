@@ -36,18 +36,21 @@ public class DefaultAuthenticationHandlerSelector implements AuthenticationHandl
     public AuthenticationHandler select(ExecutionContext executionContext) {
         // Prepare the authentication context
         final SimpleAuthenticationContext authenticationContext = new SimpleAuthenticationContext(executionContext);
-        final List<AuthenticationHandler> authenticationHandlers = authenticationHandlerManager.getAuthenticationHandlers();
+        final List<AuthenticationHandler> authenticationHandlers =
+                authenticationHandlerManager.getAuthenticationHandlers();
 
         for (int i = 0; i < authenticationHandlers.size(); i++) {
             final AuthenticationHandler authenticationHandler = authenticationHandlers.get(i);
-            authenticationContext.setInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE, true);
+            authenticationContext.setInternalAttribute(
+                    ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE, true);
 
             if (i < authenticationHandlers.size() - 1) {
                 // Check whether the next authentication handler works on the same type of token or not.
                 authenticationContext.setInternalAttribute(
-                    ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE,
-                    !authenticationHandler.tokenType().equals(authenticationHandlers.get(i + 1).tokenType())
-                );
+                        ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE,
+                        !authenticationHandler
+                                .tokenType()
+                                .equals(authenticationHandlers.get(i + 1).tokenType()));
             }
 
             if (authenticationHandler.canHandle(authenticationContext)) {

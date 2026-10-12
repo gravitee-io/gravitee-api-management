@@ -46,14 +46,22 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getCors()).isNotNull();
 
-        assertThat(result.getCors().getEnabled()).isEqualTo(httpListener.getCors().isEnabled());
-        assertThat(result.getCors().getAllowOrigin()).isEqualTo(httpListener.getCors().getAccessControlAllowOrigin());
-        assertThat(result.getCors().getAllowHeaders()).isEqualTo(httpListener.getCors().getAccessControlAllowHeaders());
-        assertThat(result.getCors().getAllowMethods()).isEqualTo(httpListener.getCors().getAccessControlAllowMethods());
-        assertThat(result.getCors().getAllowCredentials()).isEqualTo(httpListener.getCors().isAccessControlAllowCredentials());
-        assertThat(result.getCors().getExposeHeaders()).isEqualTo(httpListener.getCors().getAccessControlExposeHeaders());
-        assertThat(result.getCors().getMaxAge()).isEqualTo(httpListener.getCors().getAccessControlMaxAge());
-        assertThat(result.getCors().getRunPolicies()).isEqualTo(httpListener.getCors().isRunPolicies());
+        assertThat(result.getCors().getEnabled())
+                .isEqualTo(httpListener.getCors().isEnabled());
+        assertThat(result.getCors().getAllowOrigin())
+                .isEqualTo(httpListener.getCors().getAccessControlAllowOrigin());
+        assertThat(result.getCors().getAllowHeaders())
+                .isEqualTo(httpListener.getCors().getAccessControlAllowHeaders());
+        assertThat(result.getCors().getAllowMethods())
+                .isEqualTo(httpListener.getCors().getAccessControlAllowMethods());
+        assertThat(result.getCors().getAllowCredentials())
+                .isEqualTo(httpListener.getCors().isAccessControlAllowCredentials());
+        assertThat(result.getCors().getExposeHeaders())
+                .isEqualTo(httpListener.getCors().getAccessControlExposeHeaders());
+        assertThat(result.getCors().getMaxAge())
+                .isEqualTo(httpListener.getCors().getAccessControlMaxAge());
+        assertThat(result.getCors().getRunPolicies())
+                .isEqualTo(httpListener.getCors().isRunPolicies());
     }
 
     @Test
@@ -89,7 +97,11 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
     @Test
     void shouldMapPrimaryOwnerAndMediaFields() {
         // Given
-        var po = new PrimaryOwner().id("po-id").email("po@gravitee.io").displayName("John Doe").type(MembershipMemberType.USER);
+        var po = new PrimaryOwner()
+                .id("po-id")
+                .email("po@gravitee.io")
+                .displayName("John Doe")
+                .type(MembershipMemberType.USER);
 
         var api = new ApiV4();
         api.setPrimaryOwner(po);
@@ -173,15 +185,23 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
         definitionResponseTemplate.setBody("I am a teapot");
         // A promoted API definition is serialized from the definition model, which writes the
         // status under "status" while this REST model names the property "statusCode".
-        var promotedDefinition = new ObjectMapper().writeValueAsString(
-            Map.of(
-                "api",
-                Map.of("definitionVersion", "V4", "responseTemplates", Map.of("DEFAULT", Map.of("*/*", definitionResponseTemplate)))
-            )
-        );
+        var promotedDefinition = new ObjectMapper()
+                .writeValueAsString(Map.of(
+                        "api",
+                        Map.of(
+                                "definitionVersion",
+                                "V4",
+                                "responseTemplates",
+                                Map.of("DEFAULT", Map.of("*/*", definitionResponseTemplate)))));
 
         var exportApiV4 = importExportApiMapper.definitionToExportApiV4(promotedDefinition);
 
-        assertThat(exportApiV4.getApi().getResponseTemplates().get("DEFAULT").get("*/*").getStatusCode()).isEqualTo(418);
+        assertThat(exportApiV4
+                        .getApi()
+                        .getResponseTemplates()
+                        .get("DEFAULT")
+                        .get("*/*")
+                        .getStatusCode())
+                .isEqualTo(418);
     }
 }

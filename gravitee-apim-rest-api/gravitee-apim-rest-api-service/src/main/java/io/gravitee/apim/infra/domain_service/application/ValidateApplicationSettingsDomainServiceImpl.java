@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import joptsimple.internal.Strings;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -72,12 +71,11 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
     private final ClientCertificateCrudService clientCertificateCrudService;
 
     public ValidateApplicationSettingsDomainServiceImpl(
-        @Lazy ApplicationRepository applicationRepository,
-        ApplicationTypeService applicationTypeService,
-        ParameterService parameterService,
-        ClientCertificateValidationDomainService clientCertificateValidationDomainService,
-        ClientCertificateCrudService clientCertificateCrudService
-    ) {
+            @Lazy ApplicationRepository applicationRepository,
+            ApplicationTypeService applicationTypeService,
+            ParameterService parameterService,
+            ClientCertificateValidationDomainService clientCertificateValidationDomainService,
+            ClientCertificateCrudService clientCertificateCrudService) {
         this.applicationRepository = applicationRepository;
         this.applicationTypeService = applicationTypeService;
         this.parameterService = parameterService;
@@ -89,7 +87,9 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
     public Result<Input> validateAndSanitize(Input input) {
         if (input.settings() == null) {
             // treat missing settings as a valid simple application to allow creation without explicit configuration
-            return Result.ofValue(input.sanitized(ApplicationSettings.builder().app(new SimpleApplicationSettings()).build()));
+            return Result.ofValue(input.sanitized(ApplicationSettings.builder()
+                    .app(new SimpleApplicationSettings())
+                    .build()));
         }
 
         var errors = new ArrayList<Error>();
@@ -108,7 +108,8 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         return Result.ofBoth(input.sanitized(sanitizedBuilder.build()), errors);
     }
 
-    private void validateSimpleSettings(Input input, ApplicationSettings.ApplicationSettingsBuilder sanitizedBuilder, List<Error> errors) {
+    private void validateSimpleSettings(
+            Input input, ApplicationSettings.ApplicationSettingsBuilder sanitizedBuilder, List<Error> errors) {
         var simpleSettings = input.settings().getApp().toBuilder().build();
 
         if (StringUtils.isNotEmpty(simpleSettings.getClientId())) {
@@ -118,16 +119,14 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         sanitizedBuilder.app(simpleSettings);
     }
 
-    private void validateOAuthSettings(Input input, ApplicationSettings.ApplicationSettingsBuilder sanitizedBuilder, List<Error> errors) {
+    private void validateOAuthSettings(
+            Input input, ApplicationSettings.ApplicationSettingsBuilder sanitizedBuilder, List<Error> errors) {
         var oauthSettings = input.settings().getOauth().toBuilder().build();
 
         if (!isClientRegistrationEnabled(input.auditInfo())) {
-            errors.add(
-                Error.severe(
+            errors.add(Error.severe(
                     "configuring OAuth requires client registration to be enabled on environment [%s]",
-                    input.auditInfo().environmentId()
-                )
-            );
+                    input.auditInfo().environmentId()));
         }
 
         var appType = applicationTypeService.getApplicationType(oauthSettings.getApplicationType());
@@ -143,7 +142,8 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         boolean hasList = CollectionUtils.isNotEmpty(tls.getClientCertificates());
 
         if (hasSingle && hasList) {
-            errors.add(Error.severe("cannot set both clientCertificate and clientCertificates, use clientCertificates only"));
+            errors.add(Error.severe(
+                    "cannot set both clientCertificate and clientCertificates, use clientCertificates only"));
             return errors;
         }
 
@@ -155,13 +155,10 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
 
         if (hasSingle) {
             errors.add(Error.warning("clientCertificate is deprecated, use clientCertificates instead"));
-            errors.addAll(
-                validateCertificateCreation(
+            errors.addAll(validateCertificateCreation(
                     input,
                     new CreateClientCertificate("certificate", null, null, tls.getClientCertificate()),
-                    existingCerts
-                )
-            );
+                    existingCerts));
         } else {
             Set<String> fingerprints = new java.util.HashSet<>();
             for (var cert : tls.getClientCertificates()) {
@@ -187,13 +184,11 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
             return List.of();
         }
         return clientCertificateCrudService.findByApplicationIdAndStatuses(
-            input.applicationId(),
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
+                input.applicationId(), ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END);
     }
 
-    private List<Error> validateCertificateCreation(Input input, CreateClientCertificate cert, List<ClientCertificate> existingCerts) {
+    private List<Error> validateCertificateCreation(
+            Input input, CreateClientCertificate cert, List<ClientCertificate> existingCerts) {
         var errors = new ArrayList<>(validateCertificateEntry(cert));
         if (errors.stream().anyMatch(Error::isSevere)) {
             return errors;
@@ -203,10 +198,9 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         }
         try {
             clientCertificateValidationDomainService.validateForCreation(
-                new ClientCertificate(cert.name(), cert.certificate(), cert.startsAt(), cert.endsAt()),
-                input.auditInfo().environmentId(),
-                input.applicationId()
-            );
+                    new ClientCertificate(cert.name(), cert.certificate(), cert.startsAt(), cert.endsAt()),
+                    input.auditInfo().environmentId(),
+                    input.applicationId());
         } catch (AbstractManagementException e) {
             errors.add(Error.severe(e.getMessage()));
         }
@@ -241,7 +235,9 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
             errors.add(Error.severe("certificate [%s]: startsAt must be before endsAt", cert.name()));
         }
 
-        if (cert.endsAt() != null && parsed.certificate() != null && cert.endsAt().after(parsed.certificate().getNotAfter())) {
+        if (cert.endsAt() != null
+                && parsed.certificate() != null
+                && cert.endsAt().after(parsed.certificate().getNotAfter())) {
             errors.add(Error.warning("certificate [%s]: endsAt is after certificate expiration date", cert.name()));
         }
 
@@ -283,28 +279,20 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         var mandatoryGrantTypes = getMandatoryGrantTypes(type);
         var grantTypes = new ArrayList<>(settings.getGrantTypes());
         if (CollectionUtils.isEmpty(grantTypes)) {
-            return List.of(
-                Error.severe(
+            return List.of(Error.severe(
                     "OAuth application of type [%s] must have at least one of [%s] as a grant type",
-                    type.getName(),
-                    Strings.join(allowedGrantTypes, ",")
-                )
-            );
+                    type.getName(), Strings.join(allowedGrantTypes, ",")));
         }
         if (!grantTypes.containsAll(mandatoryGrantTypes)) {
-            return List.of(
-                Error.severe(
+            return List.of(Error.severe(
                     "OAuth application of type [%s] must have at least [%s] as a grant type",
-                    type.getName(),
-                    Strings.join(mandatoryGrantTypes, ",")
-                )
-            );
+                    type.getName(), Strings.join(mandatoryGrantTypes, ",")));
         }
         grantTypes.removeAll(allowedGrantTypes);
         if (CollectionUtils.isNotEmpty(grantTypes)) {
-            return List.of(
-                Error.severe("unknown grant types [%s] for OAuth application of type [%s]", Strings.join(grantTypes, ","), type.getName())
-            );
+            return List.of(Error.severe(
+                    "unknown grant types [%s] for OAuth application of type [%s]",
+                    Strings.join(grantTypes, ","), type.getName()));
         }
         return List.of();
     }
@@ -336,57 +324,52 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
 
     private List<String> getAllowedGrantTypes(ApplicationTypeEntity type) {
         return type.getAllowed_grant_types() == null
-            ? List.of()
-            : type.getAllowed_grant_types().stream().map(ApplicationGrantTypeEntity::getType).toList();
+                ? List.of()
+                : type.getAllowed_grant_types().stream()
+                        .map(ApplicationGrantTypeEntity::getType)
+                        .toList();
     }
 
     private List<String> getMandatoryGrantTypes(ApplicationTypeEntity type) {
         return type.getMandatory_grant_types() == null
-            ? List.of()
-            : type.getMandatory_grant_types().stream().map(ApplicationGrantTypeEntity::getType).toList();
+                ? List.of()
+                : type.getMandatory_grant_types().stream()
+                        .map(ApplicationGrantTypeEntity::getType)
+                        .toList();
     }
 
     private List<String> getResponseTypes(ApplicationTypeEntity type, OAuthClientSettings settings) {
-        return type
-            .getAllowed_grant_types()
-            .stream()
-            .filter(grantType -> settings.getGrantTypes().contains(grantType.getType()))
-            .map(ApplicationGrantTypeEntity::getResponse_types)
-            .flatMap(Collection::stream)
-            .distinct()
-            .toList();
+        return type.getAllowed_grant_types().stream()
+                .filter(grantType -> settings.getGrantTypes().contains(grantType.getType()))
+                .map(ApplicationGrantTypeEntity::getResponse_types)
+                .flatMap(Collection::stream)
+                .distinct()
+                .toList();
     }
 
     private boolean isClientRegistrationEnabled(AuditInfo auditInfo) {
         return parameterService.findAsBoolean(
-            new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
-            Key.APPLICATION_REGISTRATION_ENABLED,
-            auditInfo.environmentId(),
-            ParameterReferenceType.ENVIRONMENT
-        );
+                new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+                Key.APPLICATION_REGISTRATION_ENABLED,
+                auditInfo.environmentId(),
+                ParameterReferenceType.ENVIRONMENT);
     }
 
-    private List<Error> validateClientId(String environmentId, String applicationId, SimpleApplicationSettings settings) {
+    private List<Error> validateClientId(
+            String environmentId, String applicationId, SimpleApplicationSettings settings) {
         try {
             var clientId = settings.getClientId();
 
-            var activeApps = applicationRepository
-                .findAllByEnvironment(environmentId, ACTIVE)
-                .stream()
-                .filter(app -> !app.getId().equals(applicationId))
-                .toList();
+            var activeApps = applicationRepository.findAllByEnvironment(environmentId, ACTIVE).stream()
+                    .filter(app -> !app.getId().equals(applicationId))
+                    .toList();
 
             for (var app : activeApps) {
-                if (app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID))) {
-                    return List.of(
-                        Error.severe(
+                if (app.getMetadata() != null
+                        && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID))) {
+                    return List.of(Error.severe(
                             "client id [%s] is already defined for application [%s] with id [%s] on environment [%s]",
-                            settings.getClientId(),
-                            app.getName(),
-                            app.getId(),
-                            environmentId
-                        )
-                    );
+                            settings.getClientId(), app.getName(), app.getId(), environmentId));
                 }
             }
             return List.of();

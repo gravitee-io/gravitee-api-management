@@ -110,23 +110,26 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
     @Inject
     private TicketRepository ticketRepository;
 
-    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().allowElements("br").toFactory();
+    private static final PolicyFactory HTML_SANITIZER =
+            new HtmlPolicyBuilder().allowElements("br").toFactory();
 
-    private boolean isEnabled(ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
+    private boolean isEnabled(
+            ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
         if (referenceType == ParameterReferenceType.ENVIRONMENT) {
-            return parameterService.findAsBoolean(executionContext, Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
+            return parameterService.findAsBoolean(
+                    executionContext, Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
         }
-        return parameterService.findAsBoolean(executionContext, Key.CONSOLE_SUPPORT_ENABLED, referenceId, referenceType);
+        return parameterService.findAsBoolean(
+                executionContext, Key.CONSOLE_SUPPORT_ENABLED, referenceId, referenceType);
     }
 
     @Override
     public TicketEntity create(
-        final ExecutionContext executionContext,
-        final String userId,
-        final NewTicketEntity ticketEntity,
-        final String referenceId,
-        final ParameterReferenceType referenceType
-    ) {
+            final ExecutionContext executionContext,
+            final String userId,
+            final NewTicketEntity ticketEntity,
+            final String referenceId,
+            final ParameterReferenceType referenceType) {
         try {
             if (!isEnabled(executionContext, referenceId, referenceType)) {
                 throw new SupportUnavailableException();
@@ -147,17 +150,17 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
             if (ticketEntity.getApi() == null || ticketEntity.getApi().isEmpty()) {
                 api = null;
                 final MetadataEntity emailMetadata = metadataService.findByKeyAndReferenceTypeAndReferenceId(
-                    MetadataService.METADATA_EMAIL_SUPPORT_KEY,
-                    MetadataReferenceType.ENVIRONMENT,
-                    executionContext.getEnvironmentId()
-                );
+                        MetadataService.METADATA_EMAIL_SUPPORT_KEY,
+                        MetadataReferenceType.ENVIRONMENT,
+                        executionContext.getEnvironmentId());
                 if (emailMetadata == null) {
                     throw new IllegalStateException("The support email metadata has not been found");
                 }
                 emailTo = emailMetadata.getValue();
             } else {
                 api = apiTemplateService.findByIdForTemplates(executionContext, ticketEntity.getApi(), true);
-                final String apiMetadataEmailSupport = api.getMetadata().get(MetadataService.METADATA_EMAIL_SUPPORT_KEY);
+                final String apiMetadataEmailSupport =
+                        api.getMetadata().get(MetadataService.METADATA_EMAIL_SUPPORT_KEY);
                 if (apiMetadataEmailSupport == null) {
                     throw new IllegalStateException("The support email API metadata has not been found");
                 }
@@ -169,28 +172,30 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 throw new IllegalStateException("The support email API metadata has not been changed");
             }
 
-            if (ticketEntity.getApplication() != null && !ticketEntity.getApplication().isEmpty()) {
+            if (ticketEntity.getApplication() != null
+                    && !ticketEntity.getApplication().isEmpty()) {
                 applicationEntity = applicationService.findById(executionContext, ticketEntity.getApplication());
                 parameters.put("application", applicationEntity);
             } else {
                 applicationEntity = null;
             }
 
-            final String content = HTML_SANITIZER.sanitize(ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
+            final String content =
+                    HTML_SANITIZER.sanitize(ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
             parameters.put("content", content);
             parameters.put("ticketSubject", ticketEntity.getSubject());
-            final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
+            final String fromName =
+                    user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
             emailService.sendEmailNotification(
-                executionContext,
-                new EmailNotificationBuilder()
-                    .replyTo(user.getEmail())
-                    .fromName(fromName)
-                    .to(emailTo)
-                    .copyToSender(ticketEntity.isCopyToSender())
-                    .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
-                    .params(parameters)
-                    .build()
-            );
+                    executionContext,
+                    new EmailNotificationBuilder()
+                            .replyTo(user.getEmail())
+                            .fromName(fromName)
+                            .to(emailTo)
+                            .copyToSender(ticketEntity.isCopyToSender())
+                            .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
+                            .params(parameters)
+                            .build());
             sendUserNotification(executionContext, user, api, applicationEntity);
 
             Ticket ticket = convert(ticketEntity);
@@ -202,34 +207,39 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
 
             return convert(createdTicket);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to create a ticket " + ticketEntity, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create a ticket " + ticketEntity, ex);
         }
     }
 
     @Override
-    public Page<TicketEntity> search(final ExecutionContext executionContext, TicketQuery query, Sortable sortable, Pageable pageable) {
+    public Page<TicketEntity> search(
+            final ExecutionContext executionContext, TicketQuery query, Sortable sortable, Pageable pageable) {
         try {
             log.debug("search tickets");
 
             TicketCriteria criteria = queryToCriteriaBuilder(query).build();
 
             var tickets = ticketRepository
-                .search(
-                    criteria,
-                    buildSortable(sortable),
-                    new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
-                )
-                .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
-                .map(this::convert);
+                    .search(
+                            criteria,
+                            buildSortable(sortable),
+                            new PageableBuilder()
+                                    .pageNumber(pageable.getPageNumber() - 1)
+                                    .pageSize(pageable.getPageSize())
+                                    .build())
+                    .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
+                    .map(this::convert);
 
-            log.debug("search tickets - Done with {} elements", tickets.getContent().size());
+            log.debug(
+                    "search tickets - Done with {} elements",
+                    tickets.getContent().size());
 
             return new Page<>(
-                tickets.getContent(),
-                tickets.getPageNumber() + 1,
-                (int) tickets.getPageElements(),
-                tickets.getTotalElements()
-            );
+                    tickets.getContent(),
+                    tickets.getPageNumber() + 1,
+                    (int) tickets.getPageElements(),
+                    tickets.getTotalElements());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to search tickets", ex);
         }
@@ -239,44 +249,52 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
     public TicketEntity findById(final ExecutionContext executionContext, String ticketId) {
         try {
             return ticketRepository
-                .findById(ticketId)
-                .filter(t -> t.getFromUser().equalsIgnoreCase(getAuthenticatedUsername()))
-                .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
-                .map(this::convert)
-                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+                    .findById(ticketId)
+                    .filter(t -> t.getFromUser().equalsIgnoreCase(getAuthenticatedUsername()))
+                    .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
+                    .map(this::convert)
+                    .orElseThrow(() -> new TicketNotFoundException(ticketId));
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to search ticket " + ticketId, ex);
         }
     }
 
     private void sendUserNotification(
-        ExecutionContext executionContext,
-        final UserEntity user,
-        final GenericApiModel genericApiModel,
-        final ApplicationEntity application
-    ) {
+            ExecutionContext executionContext,
+            final UserEntity user,
+            final GenericApiModel genericApiModel,
+            final ApplicationEntity application) {
         notifierService.trigger(
-            executionContext,
-            PortalHook.NEW_SUPPORT_TICKET,
-            new NotificationParamsBuilder().user(user).api(genericApiModel).application(application).build()
-        );
+                executionContext,
+                PortalHook.NEW_SUPPORT_TICKET,
+                new NotificationParamsBuilder()
+                        .user(user)
+                        .api(genericApiModel)
+                        .application(application)
+                        .build());
 
         if (genericApiModel != null) {
             notifierService.trigger(
-                executionContext,
-                ApiHook.NEW_SUPPORT_TICKET,
-                genericApiModel.getId(),
-                new NotificationParamsBuilder().user(user).api(genericApiModel).application(application).build()
-            );
+                    executionContext,
+                    ApiHook.NEW_SUPPORT_TICKET,
+                    genericApiModel.getId(),
+                    new NotificationParamsBuilder()
+                            .user(user)
+                            .api(genericApiModel)
+                            .application(application)
+                            .build());
         }
 
         if (application != null) {
             notifierService.trigger(
-                executionContext,
-                ApplicationHook.NEW_SUPPORT_TICKET,
-                application.getId(),
-                new NotificationParamsBuilder().user(user).api(genericApiModel).application(application).build()
-            );
+                    executionContext,
+                    ApplicationHook.NEW_SUPPORT_TICKET,
+                    application.getId(),
+                    new NotificationParamsBuilder()
+                            .user(user)
+                            .api(genericApiModel)
+                            .application(application)
+                            .build());
         }
     }
 
@@ -325,7 +343,8 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
         // Retrieve API name
         if (StringUtils.isNotEmpty(ticket.getApi())) {
             try {
-                GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi(), false, false, false);
+                GenericApiEntity api =
+                        apiSearchService.findGenericById(executionContext, ticket.getApi(), false, false, false);
                 ticket.setApi(api.getName());
             } catch (ApiNotFoundException e) {
                 ticket.setApi(UNKNOWN_REFERENCE);
@@ -352,6 +371,9 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
         if (sortable == null) {
             return null;
         }
-        return new SortableBuilder().field(sortable.getField()).order(sortable.isAscOrder() ? Order.ASC : Order.DESC).build();
+        return new SortableBuilder()
+                .field(sortable.getField())
+                .order(sortable.isAscOrder() ? Order.ASC : Order.DESC)
+                .build();
     }
 }

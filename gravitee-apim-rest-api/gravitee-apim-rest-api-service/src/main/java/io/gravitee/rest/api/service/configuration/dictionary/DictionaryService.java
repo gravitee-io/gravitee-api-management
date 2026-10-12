@@ -31,6 +31,7 @@ public interface DictionaryService {
     DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity dictionary);
 
     DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity dictionary);
+
     DictionaryEntity updateProperties(String id, Map<String, String> properties);
 
     DictionaryEntity findById(ExecutionContext executionContext, String id);

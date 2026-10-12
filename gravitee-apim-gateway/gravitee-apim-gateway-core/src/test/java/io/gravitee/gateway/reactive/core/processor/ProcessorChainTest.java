@@ -45,47 +45,64 @@ class ProcessorChainTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(mockExecutionContext.withLogger(any())).thenReturn(LoggerFactory.getLogger(ProcessorChain.class));
+        lenient()
+                .when(mockExecutionContext.withLogger(any()))
+                .thenReturn(LoggerFactory.getLogger(ProcessorChain.class));
     }
 
     @Test
     public void shouldCompleteWithNullProcessors() {
         ProcessorChain processorChain = new ProcessorChain("id", null);
-        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
+        processorChain
+                .execute(mockExecutionContext, ExecutionPhase.REQUEST)
+                .test()
+                .assertResult();
     }
 
     @Test
     public void shouldCompleteWithEmptyProcessors() {
         ProcessorChain processorChain = new ProcessorChain("id", List.of());
-        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
+        processorChain
+                .execute(mockExecutionContext, ExecutionPhase.REQUEST)
+                .test()
+                .assertResult();
     }
 
     @Test
     public void shouldCompleteWithCompleteProcessor() {
         when(mockProcessor.execute(any())).thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor));
-        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
+        processorChain
+                .execute(mockExecutionContext, ExecutionPhase.REQUEST)
+                .test()
+                .assertResult();
     }
 
     @Test
     public void shouldCompleteWithCompleteProcessors() {
         when(mockProcessor.execute(any()))
-            .thenReturn(Completable.complete())
-            .thenReturn(Completable.complete())
-            .thenReturn(Completable.complete());
+                .thenReturn(Completable.complete())
+                .thenReturn(Completable.complete())
+                .thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor, mockProcessor, mockProcessor));
-        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertResult();
+        processorChain
+                .execute(mockExecutionContext, ExecutionPhase.REQUEST)
+                .test()
+                .assertResult();
         verify(mockProcessor, times(3)).execute(any());
     }
 
     @Test
     public void shouldFailImmediatelyWithFailedProcessor() {
         when(mockProcessor.execute(any()))
-            .thenReturn(Completable.complete())
-            .thenReturn(Completable.error(new RuntimeException()))
-            .thenReturn(Completable.complete());
+                .thenReturn(Completable.complete())
+                .thenReturn(Completable.error(new RuntimeException()))
+                .thenReturn(Completable.complete());
         ProcessorChain processorChain = new ProcessorChain("id", List.of(mockProcessor, mockProcessor, mockProcessor));
-        processorChain.execute(mockExecutionContext, ExecutionPhase.REQUEST).test().assertError(RuntimeException.class);
+        processorChain
+                .execute(mockExecutionContext, ExecutionPhase.REQUEST)
+                .test()
+                .assertError(RuntimeException.class);
 
         verify(mockProcessor, times(2)).execute(any());
     }

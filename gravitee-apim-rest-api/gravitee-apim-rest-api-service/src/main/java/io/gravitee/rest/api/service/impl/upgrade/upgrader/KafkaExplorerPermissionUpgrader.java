@@ -54,7 +54,8 @@ public class KafkaExplorerPermissionUpgrader implements Upgrader {
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public KafkaExplorerPermissionUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public KafkaExplorerPermissionUpgrader(
+            RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -62,35 +63,30 @@ public class KafkaExplorerPermissionUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    String organizationId = executionContext.getOrganizationId();
-                    log.info("Applying Kafka explorer permission for organization {}", organizationId);
-                    roleService
-                        .findByScope(RoleScope.ENVIRONMENT, organizationId)
-                        .stream()
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                String organizationId = executionContext.getOrganizationId();
+                log.info("Applying Kafka explorer permission for organization {}", organizationId);
+                roleService.findByScope(RoleScope.ENVIRONMENT, organizationId).stream()
                         .filter(role -> !role.isSystem())
                         .forEach(role -> copyClusterAcls(executionContext, role));
-                    roleService.createOrUpdateSystemRoles(executionContext, organizationId);
-                });
+                roleService.createOrUpdateSystemRoles(executionContext, organizationId);
+            });
             return true;
         });
     }
 
     private void copyClusterAcls(ExecutionContext executionContext, RoleEntity role) {
         Map<String, char[]> actualPermissions = role.getPermissions();
-        if (
-            actualPermissions == null ||
-            !actualPermissions.containsKey(CLUSTER_PERMISSION) ||
-            actualPermissions.containsKey(EXPLORER_PERMISSION)
-        ) {
+        if (actualPermissions == null
+                || !actualPermissions.containsKey(CLUSTER_PERMISSION)
+                || actualPermissions.containsKey(EXPLORER_PERMISSION)) {
             return;
         }
 
         Map<String, char[]> expectedPermissions = new HashMap<>(actualPermissions);
-        expectedPermissions.put(EXPLORER_PERMISSION, actualPermissions.get(CLUSTER_PERMISSION).clone());
+        expectedPermissions.put(
+                EXPLORER_PERMISSION, actualPermissions.get(CLUSTER_PERMISSION).clone());
 
         UpdateRoleEntity expectedRole = UpdateRoleEntity.from(role);
         expectedRole.setPermissions(expectedPermissions);

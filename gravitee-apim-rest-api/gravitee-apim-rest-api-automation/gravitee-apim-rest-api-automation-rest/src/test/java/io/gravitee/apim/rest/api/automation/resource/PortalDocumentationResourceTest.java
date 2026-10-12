@@ -59,7 +59,8 @@ class PortalDocumentationResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID + "/documentations";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID
+                + "/documentations";
     }
 
     @Nested
@@ -67,11 +68,14 @@ class PortalDocumentationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_portal_documentation() {
-            when(getPortalDocumentationUseCase.execute(any())).thenReturn(
-                new GetPortalDocumentationUseCase.Output(aPageContent(), io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR, null)
-            );
+            when(getPortalDocumentationUseCase.execute(any()))
+                    .thenReturn(new GetPortalDocumentationUseCase.Output(
+                            aPageContent(), io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR, null));
 
-            try (var response = rootTarget(DOC_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(DOC_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(getPortalDocumentationUseCase).execute(any(GetPortalDocumentationUseCase.Input.class));
 
@@ -91,9 +95,13 @@ class PortalDocumentationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_documentation_is_missing() {
-            when(getPortalDocumentationUseCase.execute(any())).thenThrow(new PortalDocumentationNotFoundException(DOC_HRID));
+            when(getPortalDocumentationUseCase.execute(any()))
+                    .thenThrow(new PortalDocumentationNotFoundException(DOC_HRID));
 
-            try (var response = rootTarget(DOC_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(DOC_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
@@ -113,8 +121,8 @@ class PortalDocumentationResourceTest extends AbstractResourceTest {
         @Test
         void should_return_404_when_documentation_is_missing() {
             org.mockito.Mockito.doThrow(new PortalDocumentationNotFoundException(DOC_HRID))
-                .when(deletePortalDocumentationUseCase)
-                .execute(any());
+                    .when(deletePortalDocumentationUseCase)
+                    .execute(any());
 
             try (var response = rootTarget(DOC_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -124,17 +132,15 @@ class PortalDocumentationResourceTest extends AbstractResourceTest {
 
     private static GraviteeMarkdownPageContent aPageContent() {
         return new GraviteeMarkdownPageContent(
-            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
-            ORGANIZATION,
-            ENVIRONMENT,
-            GraviteeMarkdown.of("# Hello\n\nMarkdown"),
-            new AutomationMetadata(
-                AutomationMetadata.ReferenceType.PORTAL,
-                "00000000-0000-0000-0000-0000000000a1",
-                "Getting Started",
-                Optional.of("/projects/alpha"),
-                Optional.of(1)
-            )
-        );
+                PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
+                ORGANIZATION,
+                ENVIRONMENT,
+                GraviteeMarkdown.of("# Hello\n\nMarkdown"),
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        "00000000-0000-0000-0000-0000000000a1",
+                        "Getting Started",
+                        Optional.of("/projects/alpha"),
+                        Optional.of(1)));
     }
 }

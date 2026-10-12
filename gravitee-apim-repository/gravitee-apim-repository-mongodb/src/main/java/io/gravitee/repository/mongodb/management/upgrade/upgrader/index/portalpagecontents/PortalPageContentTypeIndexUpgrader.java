@@ -25,9 +25,9 @@ public class PortalPageContentTypeIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_page_contents")
-            .key("type", ascending())
-            .name("t1")
-            .build();
+                .collection("portal_page_contents")
+                .key("type", ascending())
+                .name("t1")
+                .build();
     }
 }

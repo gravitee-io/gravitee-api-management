@@ -107,28 +107,31 @@ public class IntegrationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.INTEGRATION_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getIntegrationById(@PathParam("integrationId") String integrationId) {
         var integration = getIntegrationUsecase
-            .execute(
-                new GetIntegrationUseCase.Input(
-                    integrationId,
-                    GraviteeContext.getCurrentOrganization(),
-                    GraviteeContext.getCurrentEnvironment()
-                )
-            )
-            .integration();
+                .execute(new GetIntegrationUseCase.Input(
+                        integrationId,
+                        GraviteeContext.getCurrentOrganization(),
+                        GraviteeContext.getCurrentEnvironment()))
+                .integration();
 
         return Response.ok(IntegrationMapper.INSTANCE.map(integration)).build();
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.INTEGRATION_DEFINITION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateIntegration(
-        @PathParam("integrationId") String integrationId,
-        @Valid @NotNull UpdateIntegration updateIntegration
-    ) {
+            @PathParam("integrationId") String integrationId, @Valid @NotNull UpdateIntegration updateIntegration) {
         AuditInfo auditInfo = getAuditInfo();
 
         var integrationToUpdate = IntegrationMapper.INSTANCE.map(updateIntegration);
@@ -139,49 +142,64 @@ public class IntegrationResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.INTEGRATION_DEFINITION,
+                acls = {RolePermissionAction.DELETE})
+    })
     public void deleteIntegrationById(@PathParam("integrationId") String integrationId) {
-        var input = DeleteIntegrationUseCase.Input.builder().integrationId(integrationId).build();
+        var input = DeleteIntegrationUseCase.Input.builder()
+                .integrationId(integrationId)
+                .build();
         deleteIntegrationUseCase.execute(input);
     }
 
     @POST
     @Path("/_ingest")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.CREATE }))
+    @Permissions(
+            @Permission(
+                    value = RolePermission.INTEGRATION_DEFINITION,
+                    acls = {RolePermissionAction.CREATE}))
     public void ingestApis(
-        @PathParam("integrationId") String integrationId,
-        @Valid @NotNull ApisIngest apisIngest,
-        @Suspended final AsyncResponse response
-    ) {
+            @PathParam("integrationId") String integrationId,
+            @Valid @NotNull ApisIngest apisIngest,
+            @Suspended final AsyncResponse response) {
         AuditInfo audit = getAuditInfo();
 
         startIngestIntegrationApisUseCase
-            .execute(new StartIngestIntegrationApisUseCase.Input(integrationId, apisIngest.getApiIds(), audit))
-            .subscribe(status -> response.resume(new IntegrationIngestionResponse().status(AsyncJobStatus.PENDING)), response::resume);
+                .execute(new StartIngestIntegrationApisUseCase.Input(integrationId, apisIngest.getApiIds(), audit))
+                .subscribe(
+                        status -> response.resume(new IntegrationIngestionResponse().status(AsyncJobStatus.PENDING)),
+                        response::resume);
     }
 
     @GET
     @Path("/_preview")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.CREATE }))
-    public void previewNewIntegrationApis(@PathParam("integrationId") String integrationId, @Suspended final AsyncResponse response) {
+    @Permissions(
+            @Permission(
+                    value = RolePermission.INTEGRATION_DEFINITION,
+                    acls = {RolePermissionAction.CREATE}))
+    public void previewNewIntegrationApis(
+            @PathParam("integrationId") String integrationId, @Suspended final AsyncResponse response) {
         AuditInfo audit = getAuditInfo();
 
         discoveryUseCase
-            .execute(new DiscoveryUseCase.Input(integrationId, audit))
-            .map(IntegrationMapper::mapper)
-            .subscribe(response::resume, response::resume);
+                .execute(new DiscoveryUseCase.Input(integrationId, audit))
+                .map(IntegrationMapper::mapper)
+                .subscribe(response::resume, response::resume);
     }
 
     @GET
     @Path("/apis")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.READ }))
+    @Permissions(
+            @Permission(
+                    value = RolePermission.INTEGRATION_DEFINITION,
+                    acls = {RolePermissionAction.READ}))
     public IngestedApisResponse getIngestedApis(
-        @PathParam("integrationId") String integrationId,
-        @BeanParam @Valid PaginationParam paginationParam
-    ) {
+            @PathParam("integrationId") String integrationId, @BeanParam @Valid PaginationParam paginationParam) {
         var pageable = new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage());
         var input = new GetIngestedApisUseCase.Input(integrationId, pageable);
 
@@ -189,57 +207,61 @@ public class IntegrationResource extends AbstractResource {
 
         var totalElements = ingestedApis.getTotalElements();
         return new IngestedApisResponse()
-            .data(ingestedApis.getContent().stream().map(ApiMapper.INSTANCE::map).toList())
-            .pagination(
-                PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(ingestedApis.getPageElements()), paginationParam)
-            )
-            .links(computePaginationLinks(totalElements, paginationParam));
+                .data(ingestedApis.getContent().stream()
+                        .map(ApiMapper.INSTANCE::map)
+                        .toList())
+                .pagination(PaginationInfo.computePaginationInfo(
+                        totalElements, Math.toIntExact(ingestedApis.getPageElements()), paginationParam))
+                .links(computePaginationLinks(totalElements, paginationParam));
     }
 
     @DELETE
     @Path("/apis")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.DELETE }),
-            @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.DELETE }),
-        }
-    )
+    @Permissions({
+        @Permission(
+                value = RolePermission.INTEGRATION_DEFINITION,
+                acls = {RolePermissionAction.DELETE}),
+        @Permission(
+                value = RolePermission.ENVIRONMENT_INTEGRATION,
+                acls = {RolePermissionAction.DELETE}),
+    })
     public DeletedIngestedApisResponse deleteIngestedApis(@PathParam("integrationId") String integrationId) {
         AuditInfo audit = getAuditInfo();
 
-        var input = DeleteIngestedApisUseCase.Input.builder().integrationId(integrationId).auditInfo(audit).build();
+        var input = DeleteIngestedApisUseCase.Input.builder()
+                .integrationId(integrationId)
+                .auditInfo(audit)
+                .build();
         var output = deleteIngestedApisUseCase.execute(input);
 
-        return new DeletedIngestedApisResponse().deleted(output.deleted()).skipped(output.skipped()).errors(output.errors());
+        return new DeletedIngestedApisResponse()
+                .deleted(output.deleted())
+                .skipped(output.skipped())
+                .errors(output.errors());
     }
 
     @GET
     @Path("/permissions")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(
-        responseCode = "200",
-        description = "Integration permissions",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = MemberEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "Integration permissions",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = MemberEntity.class))))
     public Map<String, char[]> getPermissions(@PathParam("integrationId") String integrationId) {
         if (isAdmin()) {
-            final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), RolePermissionAction.DELETE.getId() };
-            return Arrays.stream(IntegrationPermission.values()).collect(
-                Collectors.toMap(IntegrationPermission::getName, ignored -> rights)
-            );
+            final char[] rights =
+                    new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), RolePermissionAction.DELETE.getId()};
+            return Arrays.stream(IntegrationPermission.values())
+                    .collect(Collectors.toMap(IntegrationPermission::getName, ignored -> rights));
         } else if (isAuthenticated()) {
             final String username = getAuthenticatedUser();
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             return membershipService.getUserMemberPermissions(
-                executionContext,
-                MembershipReferenceType.INTEGRATION,
-                integrationId,
-                username
-            );
+                    executionContext, MembershipReferenceType.INTEGRATION, integrationId, username);
         } else {
             return Map.of();
         }

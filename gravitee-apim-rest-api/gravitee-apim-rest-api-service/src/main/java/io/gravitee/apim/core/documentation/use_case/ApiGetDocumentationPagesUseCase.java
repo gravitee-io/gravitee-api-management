@@ -35,11 +35,10 @@ public class ApiGetDocumentationPagesUseCase {
     private final PageCrudService pageCrudService;
 
     public ApiGetDocumentationPagesUseCase(
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        PageSourceDomainService pageSourceDomainService,
-        ApiCrudService apiCrudService,
-        PageCrudService pageCrudService
-    ) {
+            ApiDocumentationDomainService apiDocumentationDomainService,
+            PageSourceDomainService pageSourceDomainService,
+            ApiCrudService apiCrudService,
+            PageCrudService pageCrudService) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.pageSourceDomainService = pageSourceDomainService;
         this.apiCrudService = apiCrudService;
@@ -63,19 +62,19 @@ public class ApiGetDocumentationPagesUseCase {
             var pageBreadcrumbList = this.constructBreadcrumbs(page).toList();
             for (int i = 0; i < pageBreadcrumbList.size(); i++) {
                 var pageBreadcrumb = pageBreadcrumbList.get(i);
-                breadcrumbList.add(Breadcrumb.builder().id(pageBreadcrumb.getId()).name(pageBreadcrumb.getName()).position(i + 1).build());
+                breadcrumbList.add(Breadcrumb.builder()
+                        .id(pageBreadcrumb.getId())
+                        .name(pageBreadcrumb.getName())
+                        .position(i + 1)
+                        .build());
             }
         }
 
-        var pages = apiDocumentationDomainService
-            .getApiPages(input.apiId, input.parentId)
-            .stream()
-            .map(page ->
-                page
-                    .withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
-                    .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api))
-            )
-            .toList();
+        var pages = apiDocumentationDomainService.getApiPages(input.apiId, input.parentId).stream()
+                .map(page -> page.withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
+                        .withGeneralConditions(
+                                this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api)))
+                .toList();
 
         pages.forEach(this.pageSourceDomainService::removeSensitiveData);
         return new Output(pages, breadcrumbList);

@@ -27,12 +27,8 @@ public record ResolveFilterLabelsResponseDto(List<EntryDto> entries) {
     public record EntryDto(String filterName, Map<String, String> labels) {}
 
     public static ResolveFilterLabelsResponseDto from(ResolveObservabilityFilterLabelsUseCase.Output output) {
-        return new ResolveFilterLabelsResponseDto(
-            output
-                .entries()
-                .stream()
+        return new ResolveFilterLabelsResponseDto(output.entries().stream()
                 .map(e -> new EntryDto(e.filterName(), e.labels()))
-                .toList()
-        );
+                .toList());
     }
 }

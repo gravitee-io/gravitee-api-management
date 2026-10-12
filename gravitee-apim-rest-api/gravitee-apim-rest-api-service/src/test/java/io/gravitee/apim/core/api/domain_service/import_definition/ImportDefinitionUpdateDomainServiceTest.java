@@ -56,7 +56,6 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -78,41 +77,39 @@ class ImportDefinitionUpdateDomainServiceTest {
     private static final String USER = "user";
     private static final String USER_EMAIL = "example@mail.com";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORGANIZATION_ID)
-        .environmentId(TARGET_ENVIRONMENT_ID)
-        .actor(AuditActor.builder().userId(USER).build())
-        .build();
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .actor(AuditActor.builder().userId(USER).build())
+            .build();
     private static final String PROMOTED_API_ID = "promoted-api-id";
     private static final String PROMOTED_API_CROSS_ID = "promoted-api-cross-id";
 
     private final ImportDefinitionUpdateDomainServiceTestInitializer importDefinitionUpdateInitializer =
-        new ImportDefinitionUpdateDomainServiceTestInitializer();
+            new ImportDefinitionUpdateDomainServiceTestInitializer();
 
     private final ApiService apiService = importDefinitionUpdateInitializer.apiService;
     private final FakeApiImagesService apiImagesService = importDefinitionUpdateInitializer.apiImagesServiceProvider;
-    private final ApiCrudServiceInMemory apiCrudServiceInMemory = importDefinitionUpdateInitializer.apiCrudServiceInMemory;
-    private final ApiQueryServiceInMemory apiQueryServiceInMemory = importDefinitionUpdateInitializer.apiQueryServiceInMemory;
+    private final ApiCrudServiceInMemory apiCrudServiceInMemory =
+            importDefinitionUpdateInitializer.apiCrudServiceInMemory;
+    private final ApiQueryServiceInMemory apiQueryServiceInMemory =
+            importDefinitionUpdateInitializer.apiQueryServiceInMemory;
 
-    private final ImportDefinitionUpdateDomainService service = importDefinitionUpdateInitializer.initialize(TARGET_ENVIRONMENT_ID);
+    private final ImportDefinitionUpdateDomainService service =
+            importDefinitionUpdateInitializer.initialize(TARGET_ENVIRONMENT_ID);
 
     @BeforeEach
     void setUp() {
         importDefinitionUpdateInitializer.roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
-        importDefinitionUpdateInitializer.membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .id("member-id")
-                    .memberId(USER)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(PROMOTED_API_ID)
-                    .roleId("api-po-id-organization-id")
-                    .build()
-            )
-        );
+        importDefinitionUpdateInitializer.membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .id("member-id")
+                .memberId(USER)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(PROMOTED_API_ID)
+                .roleId("api-po-id-organization-id")
+                .build()));
         importDefinitionUpdateInitializer.userCrudServiceInMemory.initWith(
-            List.of(BaseUserEntity.builder().id(USER).email(USER_EMAIL).build())
-        );
+                List.of(BaseUserEntity.builder().id(USER).email(USER_EMAIL).build()));
     }
 
     @AfterEach
@@ -124,40 +121,37 @@ class ImportDefinitionUpdateDomainServiceTest {
     public void should_update_api_proxy_v4() {
         var picture = "picture";
         var background = "background";
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("api name")
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("api name")
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var updatedName = "updated name";
         var importDefinition = ImportDefinition.builder()
-            .apiExport(
-                ApiExport.builder()
-                    .id(PROMOTED_API_ID)
-                    .crossId(PROMOTED_API_CROSS_ID)
-                    .name(updatedName)
-                    .picture(picture)
-                    .background(background)
-                    .build()
-            )
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name(updatedName)
+                        .picture(picture)
+                        .background(background)
+                        .build())
+                .build();
 
         var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
 
         var executionContext = new ExecutionContext(ORGANIZATION_ID, TARGET_ENVIRONMENT_ID);
         assertThat(updated).isNotNull();
-        verify(apiService).update(
-            eq(executionContext),
-            eq(PROMOTED_API_ID),
-            argThat(update -> updatedName.equals(update.getName())),
-            eq(false),
-            eq(USER)
-        );
+        verify(apiService)
+                .update(
+                        eq(executionContext),
+                        eq(PROMOTED_API_ID),
+                        argThat(update -> updatedName.equals(update.getName())),
+                        eq(false),
+                        eq(USER));
         assertThat(apiImagesService.apiPictures.get(PROMOTED_API_ID)).isEqualTo(picture);
         assertThat(apiImagesService.apiBackgrounds.get(PROMOTED_API_ID)).isEqualTo(background);
     }
@@ -165,48 +159,55 @@ class ImportDefinitionUpdateDomainServiceTest {
     @Test
     public void should_update_the_given_api_when_definition_has_no_id_and_cross_id_does_not_match() {
         // Promotion case: definition exported without ids, target API resolved by another mean than crossId.
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId("cross-id-of-the-existing-api")
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId("cross-id-of-the-existing-api")
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .build())
+                .build();
 
         var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
 
         assertThat(updated).isNotNull();
         assertThat(updated.getId()).isEqualTo(PROMOTED_API_ID);
         assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
-        verify(apiService).update(
-            eq(new ExecutionContext(ORGANIZATION_ID, TARGET_ENVIRONMENT_ID)),
-            eq(PROMOTED_API_ID),
-            // The crossId of the definition is applied so that the next promotion is resolved by crossId again.
-            argThat(update -> "updated name".equals(update.getName()) && PROMOTED_API_CROSS_ID.equals(update.getCrossId())),
-            eq(false),
-            eq(USER)
-        );
+        verify(apiService)
+                .update(
+                        eq(new ExecutionContext(ORGANIZATION_ID, TARGET_ENVIRONMENT_ID)),
+                        eq(PROMOTED_API_ID),
+                        // The crossId of the definition is applied so that the next promotion is resolved by crossId
+                        // again.
+                        argThat(update -> "updated name".equals(update.getName())
+                                && PROMOTED_API_CROSS_ID.equals(update.getCrossId())),
+                        eq(false),
+                        eq(USER));
     }
 
     @Test
     public void should_update_the_given_api_when_definition_carries_the_id_of_another_api() {
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().id("source-api-id").crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id("source-api-id")
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .build())
+                .build();
 
         var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
 
@@ -218,8 +219,11 @@ class ImportDefinitionUpdateDomainServiceTest {
     @Test
     public void should_fail_fast_when_no_existing_api_is_given() {
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .build())
+                .build();
 
         var throwable = catchThrowable(() -> service.update(importDefinition, null, AUDIT_INFO));
 
@@ -230,28 +234,31 @@ class ImportDefinitionUpdateDomainServiceTest {
     @Test
     public void should_reject_import_that_makes_an_encrypted_property_plain() {
         var baseProxyApi = ApiFixtures.aProxyApiV4();
-        ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue()).setProperties(
-            List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build())
-        );
-        var existingApi = baseProxyApi
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue())
+                .setProperties(List.of(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build()));
+        var existingApi = baseProxyApi.toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(
-                ApiExport.builder()
-                    .id(PROMOTED_API_ID)
-                    .crossId(PROMOTED_API_CROSS_ID)
-                    .name("updated name")
-                    .properties(List.of(Property.builder().key("secret").value("plaintext-from-source-env").build()))
-                    .build()
-            )
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .properties(List.of(Property.builder()
+                                .key("secret")
+                                .value("plaintext-from-source-env")
+                                .build()))
+                        .build())
+                .build();
 
         var throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
 
@@ -262,31 +269,34 @@ class ImportDefinitionUpdateDomainServiceTest {
     @Test
     public void should_reject_import_of_a_changed_plaintext_flagged_encrypted() throws GeneralSecurityException {
         var baseProxyApi = ApiFixtures.aProxyApiV4();
-        ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue()).setProperties(
-            List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build())
-        );
-        var existingApi = baseProxyApi
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue())
+                .setProperties(List.of(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build()));
+        var existingApi = baseProxyApi.toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
-        when(importDefinitionUpdateInitializer.dataEncryptor.decrypt("plaintext-from-source-env")).thenThrow(
-            new GeneralSecurityException("bad padding")
-        );
+        when(importDefinitionUpdateInitializer.dataEncryptor.decrypt("plaintext-from-source-env"))
+                .thenThrow(new GeneralSecurityException("bad padding"));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(
-                ApiExport.builder()
-                    .id(PROMOTED_API_ID)
-                    .crossId(PROMOTED_API_CROSS_ID)
-                    .name("updated name")
-                    .properties(List.of(Property.builder().key("secret").value("plaintext-from-source-env").encrypted(true).build()))
-                    .build()
-            )
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .properties(List.of(Property.builder()
+                                .key("secret")
+                                .value("plaintext-from-source-env")
+                                .encrypted(true)
+                                .build()))
+                        .build())
+                .build();
 
         var throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
 
@@ -295,118 +305,125 @@ class ImportDefinitionUpdateDomainServiceTest {
     }
 
     @Test
-    public void should_reject_native_import_of_a_changed_plaintext_flagged_encrypted_without_auditing() throws GeneralSecurityException {
+    public void should_reject_native_import_of_a_changed_plaintext_flagged_encrypted_without_auditing()
+            throws GeneralSecurityException {
         var baseNativeApi = ApiFixtures.aNativeApi();
-        ((NativeApi) baseNativeApi.getApiDefinitionValue()).setProperties(
-            List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build())
-        );
-        var existingApi = baseNativeApi
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        ((NativeApi) baseNativeApi.getApiDefinitionValue())
+                .setProperties(List.of(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build()));
+        var existingApi = baseNativeApi.toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
-        when(importDefinitionUpdateInitializer.dataEncryptor.decrypt("plaintext-from-source-env")).thenThrow(
-            new GeneralSecurityException("bad padding")
-        );
+        when(importDefinitionUpdateInitializer.dataEncryptor.decrypt("plaintext-from-source-env"))
+                .thenThrow(new GeneralSecurityException("bad padding"));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(
-                ApiExport.builder()
-                    .id(PROMOTED_API_ID)
-                    .crossId(PROMOTED_API_CROSS_ID)
-                    .name("updated name")
-                    .properties(List.of(Property.builder().key("secret").value("plaintext-from-source-env").encrypted(true).build()))
-                    .type(ApiType.NATIVE)
-                    .build()
-            )
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .properties(List.of(Property.builder()
+                                .key("secret")
+                                .value("plaintext-from-source-env")
+                                .encrypted(true)
+                                .build()))
+                        .type(ApiType.NATIVE)
+                        .build())
+                .build();
 
         var throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
 
         assertThat(throwable).isInstanceOf(ApiPropertyNotCiphertextException.class);
-        assertThat(importDefinitionUpdateInitializer.auditCrudServiceInMemory.storage()).isEmpty();
+        assertThat(importDefinitionUpdateInitializer.auditCrudServiceInMemory.storage())
+                .isEmpty();
     }
 
     @Test
     public void should_preserve_existing_properties_when_proxy_api_updated_with_oas_import_having_no_properties() {
-        List<Property> existingProperties = new ArrayList<>(
-            List.of(Property.builder().key("existing-key").value("existing-value").build())
-        );
+        List<Property> existingProperties = new ArrayList<>(List.of(
+                Property.builder().key("existing-key").value("existing-value").build()));
         var baseProxyApi = ApiFixtures.aProxyApiV4();
         ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue()).setProperties(existingProperties);
-        var existingApi = baseProxyApi
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = baseProxyApi.toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         // OAS import produces no Gravitee-specific properties
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .build())
+                .build();
 
         var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
 
         assertThat(updated).isNotNull();
         assertThat(((io.gravitee.definition.model.v4.Api) updated.getApiDefinitionValue()).getProperties())
-            .usingRecursiveComparison()
-            .isEqualTo(existingProperties);
+                .usingRecursiveComparison()
+                .isEqualTo(existingProperties);
     }
 
     @Test
     public void should_preserve_existing_properties_when_native_api_updated_with_oas_import_having_no_properties() {
-        List<Property> existingProperties = new ArrayList<>(
-            List.of(Property.builder().key("existing-key").value("existing-value").build())
-        );
+        List<Property> existingProperties = new ArrayList<>(List.of(
+                Property.builder().key("existing-key").value("existing-value").build()));
         var baseNativeApi = ApiFixtures.aNativeApi();
         ((NativeApi) baseNativeApi.getApiDefinitionValue()).setProperties(existingProperties);
-        var existingApi = baseNativeApi
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = baseNativeApi.toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .type(ApiType.NATIVE)
-            // No properties — simulating OAS import
-            .build();
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("updated name")
+                .type(ApiType.NATIVE)
+                // No properties — simulating OAS import
+                .build();
 
-        when(
-            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
-                any(),
-                any(),
-                any(),
-                eq(TARGET_ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenAnswer(invocation -> invocation.getArgument(1));
+        when(importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
+                        any(), any(), any(), eq(TARGET_ENVIRONMENT_ID), eq(ORGANIZATION_ID)))
+                .thenAnswer(invocation -> invocation.getArgument(1));
 
         var importDefinition = ImportDefinition.builder().apiExport(apiExport).build();
 
         var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
 
         assertThat(updated).isNotNull();
-        assertThat(updated.getApiDefinitionNativeV4().getProperties()).usingRecursiveComparison().isEqualTo(existingProperties);
+        assertThat(updated.getApiDefinitionNativeV4().getProperties())
+                .usingRecursiveComparison()
+                .isEqualTo(existingProperties);
     }
 
     @Test
     void should_throw_an_exception_when_api_not_supported() {
-        var existingApi = ApiFixtures.aLLMProxyApiV4().toBuilder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).build();
+        var existingApi = ApiFixtures.aLLMProxyApiV4().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .build();
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .build())
+                .build();
         Throwable throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
         assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Unsupported API type: LLM_PROXY");
     }
@@ -414,172 +431,165 @@ class ImportDefinitionUpdateDomainServiceTest {
     @Test
     void should_resolve_existing_group_by_name_and_create_missing_group_on_update() {
         importDefinitionUpdateInitializer.groupQueryServiceInMemory.initWith(
-            List.of(GroupFixtures.aGroup("developers-id").toBuilder().name("Developers").environmentId(TARGET_ENVIRONMENT_ID).build())
-        );
+                List.of(GroupFixtures.aGroup("developers-id").toBuilder()
+                        .name("Developers")
+                        .environmentId(TARGET_ENVIRONMENT_ID)
+                        .build()));
 
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("api name")
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("api name")
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(
-                ApiExport.builder()
-                    .id(PROMOTED_API_ID)
-                    .crossId(PROMOTED_API_CROSS_ID)
-                    .name("updated name")
-                    .groups(Set.of("Developers", "Helios"))
-                    .build()
-            )
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .groups(Set.of("Developers", "Helios"))
+                        .build())
+                .build();
 
         service.update(importDefinition, existingApi, AUDIT_INFO);
 
         var groupsCaptor = ArgumentCaptor.forClass(UpdateApiEntity.class);
         verify(apiService).update(any(), eq(PROMOTED_API_ID), groupsCaptor.capture(), eq(false), eq(USER));
         assertThat(groupsCaptor.getValue().getGroups()).hasSize(2).contains("developers-id");
-        assertThat(
-            importDefinitionUpdateInitializer.groupQueryServiceInMemory.findByNames(TARGET_ENVIRONMENT_ID, Set.of("Helios"))
-        ).hasSize(1);
+        assertThat(importDefinitionUpdateInitializer.groupQueryServiceInMemory.findByNames(
+                        TARGET_ENVIRONMENT_ID, Set.of("Helios")))
+                .hasSize(1);
     }
 
     @Test
     void should_resolve_existing_group_by_name_and_create_missing_group_on_native_update() {
         importDefinitionUpdateInitializer.groupQueryServiceInMemory.initWith(
-            List.of(GroupFixtures.aGroup("developers-id").toBuilder().name("Developers").environmentId(TARGET_ENVIRONMENT_ID).build())
-        );
+                List.of(GroupFixtures.aGroup("developers-id").toBuilder()
+                        .name("Developers")
+                        .environmentId(TARGET_ENVIRONMENT_ID)
+                        .build()));
 
-        var existingApi = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = ApiFixtures.aNativeApi().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .type(ApiType.NATIVE)
-            .groups(Set.of("Developers", "Helios"))
-            .build();
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("updated name")
+                .type(ApiType.NATIVE)
+                .groups(Set.of("Developers", "Helios"))
+                .build();
 
-        when(
-            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
-                any(),
-                any(),
-                any(),
-                eq(TARGET_ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenAnswer(invocation -> invocation.getArgument(1));
+        when(importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
+                        any(), any(), any(), eq(TARGET_ENVIRONMENT_ID), eq(ORGANIZATION_ID)))
+                .thenAnswer(invocation -> invocation.getArgument(1));
 
-        var updated = service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
+        var updated =
+                service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
 
         // Old API membership groups are not carried over; only resolved import groups land
         assertThat(updated.getGroups()).hasSize(2).contains("developers-id").doesNotContain("group-1");
-        assertThat(
-            importDefinitionUpdateInitializer.groupQueryServiceInMemory.findByNames(TARGET_ENVIRONMENT_ID, Set.of("Helios"))
-        ).hasSize(1);
-        assertThat(updated.getGroups()).anySatisfy(groupId ->
-            assertThat(
-                importDefinitionUpdateInitializer.groupQueryServiceInMemory
-                    .findByIds(Set.of(groupId))
-                    .stream()
-                    .anyMatch(group -> "Helios".equals(group.getName()) && TARGET_ENVIRONMENT_ID.equals(group.getEnvironmentId()))
-            ).isTrue()
-        );
+        assertThat(importDefinitionUpdateInitializer.groupQueryServiceInMemory.findByNames(
+                        TARGET_ENVIRONMENT_ID, Set.of("Helios")))
+                .hasSize(1);
+        assertThat(updated.getGroups())
+                .anySatisfy(groupId -> assertThat(
+                                importDefinitionUpdateInitializer
+                                        .groupQueryServiceInMemory
+                                        .findByIds(Set.of(groupId))
+                                        .stream()
+                                        .anyMatch(group -> "Helios".equals(group.getName())
+                                                && TARGET_ENVIRONMENT_ID.equals(group.getEnvironmentId())))
+                        .isTrue());
     }
 
     @Test
     void should_merge_validation_added_groups_when_native_update_has_groups() {
         importDefinitionUpdateInitializer.groupQueryServiceInMemory.initWith(
-            List.of(GroupFixtures.aGroup("developers-id").toBuilder().name("Developers").environmentId(TARGET_ENVIRONMENT_ID).build())
-        );
+                List.of(GroupFixtures.aGroup("developers-id").toBuilder()
+                        .name("Developers")
+                        .environmentId(TARGET_ENVIRONMENT_ID)
+                        .build()));
 
-        var existingApi = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .groups(Set.of("old-group-id"))
-            .build();
+        var existingApi = ApiFixtures.aNativeApi().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .groups(Set.of("old-group-id"))
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .type(ApiType.NATIVE)
-            .groups(Set.of("Developers"))
-            .build();
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("updated name")
+                .type(ApiType.NATIVE)
+                .groups(Set.of("Developers"))
+                .build();
 
         var primaryOwnerGroupId = "primary-owner-group-id";
-        when(
-            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
-                any(),
-                any(),
-                any(),
-                eq(TARGET_ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenAnswer(invocation -> {
-            var apiToUpdate = (Api) invocation.getArgument(1);
-            // Simulate GroupValidationService adding the primary-owner group after groups were cleared for replace
-            return apiToUpdate.toBuilder().groups(Set.of(primaryOwnerGroupId)).build();
-        });
+        when(importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
+                        any(), any(), any(), eq(TARGET_ENVIRONMENT_ID), eq(ORGANIZATION_ID)))
+                .thenAnswer(invocation -> {
+                    var apiToUpdate = (Api) invocation.getArgument(1);
+                    // Simulate GroupValidationService adding the primary-owner group after groups were cleared for
+                    // replace
+                    return apiToUpdate.toBuilder()
+                            .groups(Set.of(primaryOwnerGroupId))
+                            .build();
+                });
 
-        var updated = service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
+        var updated =
+                service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
 
-        assertThat(updated.getGroups()).containsExactlyInAnyOrder(primaryOwnerGroupId, "developers-id").doesNotContain("old-group-id");
+        assertThat(updated.getGroups())
+                .containsExactlyInAnyOrder(primaryOwnerGroupId, "developers-id")
+                .doesNotContain("old-group-id");
     }
 
     @Test
     void should_preserve_existing_groups_when_native_update_has_no_groups_field() {
         // Given: existing API with groups
-        var existingApi = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .groups(Set.of("existing-group-1", "existing-group-2"))
-            .build();
+        var existingApi = ApiFixtures.aNativeApi().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .groups(Set.of("existing-group-1", "existing-group-2"))
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         // Import definition with NO groups field (null) - should preserve existing
         var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .type(ApiType.NATIVE)
-            .groups(null) // No groups in import
-            .build();
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("updated name")
+                .type(ApiType.NATIVE)
+                .groups(null) // No groups in import
+                .build();
 
-        when(
-            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
-                any(),
-                any(),
-                any(),
-                eq(TARGET_ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenAnswer(invocation -> {
-            // Validation returns API with existing groups preserved
-            var apiToUpdate = (Api) invocation.getArgument(1);
-            return apiToUpdate.toBuilder().groups(Set.of("existing-group-1", "existing-group-2")).build();
-        });
+        when(importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
+                        any(), any(), any(), eq(TARGET_ENVIRONMENT_ID), eq(ORGANIZATION_ID)))
+                .thenAnswer(invocation -> {
+                    // Validation returns API with existing groups preserved
+                    var apiToUpdate = (Api) invocation.getArgument(1);
+                    return apiToUpdate.toBuilder()
+                            .groups(Set.of("existing-group-1", "existing-group-2"))
+                            .build();
+                });
 
         // When
-        var updated = service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
+        var updated =
+                service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
 
         // Then: existing groups are preserved (not wiped)
         assertThat(updated.getGroups()).hasSize(2).containsExactlyInAnyOrder("existing-group-1", "existing-group-2");
@@ -588,58 +598,58 @@ class ImportDefinitionUpdateDomainServiceTest {
     @Test
     void should_preserve_existing_groups_when_native_update_has_empty_groups() {
         // OpenAPI models default a missing groups array to [], which must not wipe membership on update.
-        var existingApi = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .groups(Set.of("existing-group-1", "existing-group-2"))
-            .build();
+        var existingApi = ApiFixtures.aNativeApi().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .groups(Set.of("existing-group-1", "existing-group-2"))
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .type(ApiType.NATIVE)
-            .groups(Set.of())
-            .build();
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("updated name")
+                .type(ApiType.NATIVE)
+                .groups(Set.of())
+                .build();
 
-        when(
-            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
-                any(),
-                any(),
-                any(),
-                eq(TARGET_ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenAnswer(invocation -> {
-            var apiToUpdate = (Api) invocation.getArgument(1);
-            return apiToUpdate.toBuilder().groups(Set.of("existing-group-1", "existing-group-2")).build();
-        });
+        when(importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
+                        any(), any(), any(), eq(TARGET_ENVIRONMENT_ID), eq(ORGANIZATION_ID)))
+                .thenAnswer(invocation -> {
+                    var apiToUpdate = (Api) invocation.getArgument(1);
+                    return apiToUpdate.toBuilder()
+                            .groups(Set.of("existing-group-1", "existing-group-2"))
+                            .build();
+                });
 
-        var updated = service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
+        var updated =
+                service.update(ImportDefinition.builder().apiExport(apiExport).build(), existingApi, AUDIT_INFO);
 
         assertThat(updated.getGroups()).containsExactlyInAnyOrder("existing-group-1", "existing-group-2");
     }
 
     @Test
     void should_preserve_existing_groups_when_proxy_update_has_no_groups_field() {
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("api name")
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .groups(Set.of("existing-group-1", "existing-group-2"))
-            .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("api name")
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .groups(Set.of("existing-group-1", "existing-group-2"))
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("updated name").groups(null).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .groups(null)
+                        .build())
+                .build();
 
         service.update(importDefinition, existingApi, AUDIT_INFO);
 
@@ -652,20 +662,24 @@ class ImportDefinitionUpdateDomainServiceTest {
     @Test
     void should_preserve_existing_groups_when_proxy_update_has_empty_groups() {
         // OpenAPI models default a missing groups array to [], which must not wipe membership on update.
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("api name")
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .groups(Set.of("existing-group-1"))
-            .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("api name")
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .groups(Set.of("existing-group-1"))
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("updated name").groups(Set.of()).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(PROMOTED_API_ID)
+                        .crossId(PROMOTED_API_CROSS_ID)
+                        .name("updated name")
+                        .groups(Set.of())
+                        .build())
+                .build();
 
         service.update(importDefinition, existingApi, AUDIT_INFO);
 
@@ -678,43 +692,43 @@ class ImportDefinitionUpdateDomainServiceTest {
     public void should_update_v4_native_api() {
         var picture = "picture";
         var background = "background";
-        var existingApi = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
+        var existingApi = ApiFixtures.aNativeApi().toBuilder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
         var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .description("updated description")
-            .apiVersion("updated version")
-            .visibility(Visibility.PUBLIC)
-            .labels(List.of("label updated"))
-            .disableMembershipNotifications(true)
-            .picture(picture)
-            .background(background)
-            .properties(List.of(Property.builder().key("foo").value("bar").encrypted(true).dynamic(false).build()))
-            .resources(List.of(Resource.builder().name("updated resource").build()))
-            .listeners(List.of(KafkaListener.builder().host("updated listener").build()))
-            .endpointGroups(List.of(NativeEndpointGroup.builder().type("updated group").build()))
-            .tags(Set.of("tag updated"))
-            .type(ApiType.NATIVE)
-            .build();
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("updated name")
+                .description("updated description")
+                .apiVersion("updated version")
+                .visibility(Visibility.PUBLIC)
+                .labels(List.of("label updated"))
+                .disableMembershipNotifications(true)
+                .picture(picture)
+                .background(background)
+                .properties(List.of(Property.builder()
+                        .key("foo")
+                        .value("bar")
+                        .encrypted(true)
+                        .dynamic(false)
+                        .build()))
+                .resources(List.of(Resource.builder().name("updated resource").build()))
+                .listeners(
+                        List.of(KafkaListener.builder().host("updated listener").build()))
+                .endpointGroups(List.of(
+                        NativeEndpointGroup.builder().type("updated group").build()))
+                .tags(Set.of("tag updated"))
+                .type(ApiType.NATIVE)
+                .build();
 
-        when(
-            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
-                any(),
-                any(),
-                any(),
-                eq(TARGET_ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenReturn(ApiModelFactory.fromApiExport(apiExport, TARGET_ENVIRONMENT_ID));
+        when(importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
+                        any(), any(), any(), eq(TARGET_ENVIRONMENT_ID), eq(ORGANIZATION_ID)))
+                .thenReturn(ApiModelFactory.fromApiExport(apiExport, TARGET_ENVIRONMENT_ID));
 
         var importDefinition = ImportDefinition.builder().apiExport(apiExport).build();
 
@@ -722,13 +736,9 @@ class ImportDefinitionUpdateDomainServiceTest {
 
         assertThat(updated).isNotNull();
         var sanitizationCaptor = ArgumentCaptor.forClass(Api.class);
-        verify(importDefinitionUpdateInitializer.validateApiDomainService).validateAndSanitizeForUpdate(
-            any(),
-            sanitizationCaptor.capture(),
-            any(),
-            eq(TARGET_ENVIRONMENT_ID),
-            eq(ORGANIZATION_ID)
-        );
+        verify(importDefinitionUpdateInitializer.validateApiDomainService)
+                .validateAndSanitizeForUpdate(
+                        any(), sanitizationCaptor.capture(), any(), eq(TARGET_ENVIRONMENT_ID), eq(ORGANIZATION_ID));
 
         var capturedApi = sanitizationCaptor.getValue();
         assertNativeApiMatchExport(capturedApi, apiExport);
@@ -737,160 +747,165 @@ class ImportDefinitionUpdateDomainServiceTest {
         assertThat(apiImagesService.apiBackgrounds.get(PROMOTED_API_ID)).isEqualTo(background);
         assertNativeApiMatchExport(updated, apiExport);
         assertThat(importDefinitionUpdateInitializer.auditCrudServiceInMemory.storage())
-            .filteredOn(audit -> audit.getEvent().equals("API_UPDATED"))
-            .singleElement()
-            .satisfies(audit -> assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true"));
+                .filteredOn(audit -> audit.getEvent().equals("API_UPDATED"))
+                .singleElement()
+                .satisfies(audit -> assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true"));
     }
 
     @Nested
     class PlansUpsert {
 
         private final PlanWithFlows anApiKeyPlan = PlanWithFlows.builder()
-            .crossId("api-key-cross-id")
-            .name("API Key Plan")
-            .apiId(PROMOTED_API_ID)
-            .type(Plan.PlanType.API)
-            .referenceType(Plan.ReferenceType.API)
-            .referenceId(PROMOTED_API_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .security(PlanSecurity.builder().type("api-key").build())
-                    .mode(PlanMode.STANDARD)
-                    .build()
-            )
-            .flows(List.of())
-            .build();
+                .crossId("api-key-cross-id")
+                .name("API Key Plan")
+                .apiId(PROMOTED_API_ID)
+                .type(Plan.PlanType.API)
+                .referenceType(Plan.ReferenceType.API)
+                .referenceId(PROMOTED_API_ID)
+                .environmentId(TARGET_ENVIRONMENT_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .security(PlanSecurity.builder().type("api-key").build())
+                        .mode(PlanMode.STANDARD)
+                        .build())
+                .flows(List.of())
+                .build();
 
         @BeforeEach
         void stubApiService() {
-            when(apiService.update(any(), eq(PROMOTED_API_ID), any(), any(Boolean.class), any())).thenAnswer(inv ->
-                io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(PROMOTED_API_ID).name("api name").apiVersion("1.0").build()
-            );
+            when(apiService.update(any(), eq(PROMOTED_API_ID), any(), any(Boolean.class), any()))
+                    .thenAnswer(inv -> io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+                            .id(PROMOTED_API_ID)
+                            .name("api name")
+                            .apiVersion("1.0")
+                            .build());
         }
 
         @Test
         void should_create_plan_when_not_present_in_saved_plans() {
-            var existingApi = ApiFixtures.aProxyApiV4()
-                .toBuilder()
-                .id(PROMOTED_API_ID)
-                .crossId(PROMOTED_API_CROSS_ID)
-                .environmentId(TARGET_ENVIRONMENT_ID)
-                .build();
+            var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(PROMOTED_API_ID)
+                    .crossId(PROMOTED_API_CROSS_ID)
+                    .environmentId(TARGET_ENVIRONMENT_ID)
+                    .build();
             apiCrudServiceInMemory.initWith(List.of(existingApi));
             apiQueryServiceInMemory.initWith(List.of(existingApi));
             // no saved plans
 
             var importDefinition = ImportDefinition.builder()
-                .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("api name").build())
-                .plans(Set.of(anApiKeyPlan))
-                .build();
+                    .apiExport(ApiExport.builder()
+                            .id(PROMOTED_API_ID)
+                            .crossId(PROMOTED_API_CROSS_ID)
+                            .name("api name")
+                            .build())
+                    .plans(Set.of(anApiKeyPlan))
+                    .build();
 
             service.update(importDefinition, existingApi, AUDIT_INFO);
 
-            var savedPlans = importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
-                PROMOTED_API_ID
-            );
-            assertThat(savedPlans)
-                .hasSize(1)
-                .first()
-                .satisfies(p -> {
-                    assertThat(p.getCrossId()).isEqualTo("api-key-cross-id");
-                    assertThat(p.getName()).isEqualTo("API Key Plan");
-                    assertThat(p.getApiId()).isEqualTo(PROMOTED_API_ID);
-                });
+            var savedPlans =
+                    importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
+                            PROMOTED_API_ID);
+            assertThat(savedPlans).hasSize(1).first().satisfies(p -> {
+                assertThat(p.getCrossId()).isEqualTo("api-key-cross-id");
+                assertThat(p.getName()).isEqualTo("API Key Plan");
+                assertThat(p.getApiId()).isEqualTo(PROMOTED_API_ID);
+            });
         }
 
         @Test
         void should_update_plan_when_matching_by_crossId() {
-            var existingApi = ApiFixtures.aProxyApiV4()
-                .toBuilder()
-                .id(PROMOTED_API_ID)
-                .crossId(PROMOTED_API_CROSS_ID)
-                .environmentId(TARGET_ENVIRONMENT_ID)
-                .build();
+            var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(PROMOTED_API_ID)
+                    .crossId(PROMOTED_API_CROSS_ID)
+                    .environmentId(TARGET_ENVIRONMENT_ID)
+                    .build();
             apiCrudServiceInMemory.initWith(List.of(existingApi));
             apiQueryServiceInMemory.initWith(List.of(existingApi));
 
-            var savedPlan = PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .crossId("api-key-cross-id")
-                .apiId(PROMOTED_API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .referenceId(PROMOTED_API_ID)
-                .environmentId(TARGET_ENVIRONMENT_ID)
-                .name("Old Name")
-                .build();
-            importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.initWith(List.of(savedPlan));
-            importDefinitionUpdateInitializer.planDomainServiceInitializer.planQueryServiceInMemory.initWith(List.of(savedPlan));
+            var savedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .crossId("api-key-cross-id")
+                    .apiId(PROMOTED_API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .referenceId(PROMOTED_API_ID)
+                    .environmentId(TARGET_ENVIRONMENT_ID)
+                    .name("Old Name")
+                    .build();
+            importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.initWith(
+                    List.of(savedPlan));
+            importDefinitionUpdateInitializer.planDomainServiceInitializer.planQueryServiceInMemory.initWith(
+                    List.of(savedPlan));
 
-            var incomingPlan = anApiKeyPlan.toBuilder().id(savedPlan.getId()).name("Updated Name").build();
+            var incomingPlan = anApiKeyPlan.toBuilder()
+                    .id(savedPlan.getId())
+                    .name("Updated Name")
+                    .build();
             var importDefinition = ImportDefinition.builder()
-                .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("api name").build())
-                .plans(Set.of(incomingPlan))
-                .build();
+                    .apiExport(ApiExport.builder()
+                            .id(PROMOTED_API_ID)
+                            .crossId(PROMOTED_API_CROSS_ID)
+                            .name("api name")
+                            .build())
+                    .plans(Set.of(incomingPlan))
+                    .build();
 
             service.update(importDefinition, existingApi, AUDIT_INFO);
 
-            var savedPlans = importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
-                PROMOTED_API_ID
-            );
-            assertThat(savedPlans)
-                .hasSize(1)
-                .first()
-                .satisfies(p -> {
-                    assertThat(p.getId()).isEqualTo(savedPlan.getId());
-                    assertThat(p.getCrossId()).isEqualTo("api-key-cross-id");
-                    assertThat(p.getName()).isEqualTo("Updated Name");
-                });
+            var savedPlans =
+                    importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
+                            PROMOTED_API_ID);
+            assertThat(savedPlans).hasSize(1).first().satisfies(p -> {
+                assertThat(p.getId()).isEqualTo(savedPlan.getId());
+                assertThat(p.getCrossId()).isEqualTo("api-key-cross-id");
+                assertThat(p.getName()).isEqualTo("Updated Name");
+            });
         }
 
         @Test
         void should_delete_plan_absent_from_import_definition() {
-            var existingApi = ApiFixtures.aProxyApiV4()
-                .toBuilder()
-                .id(PROMOTED_API_ID)
-                .crossId(PROMOTED_API_CROSS_ID)
-                .environmentId(TARGET_ENVIRONMENT_ID)
-                .build();
+            var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(PROMOTED_API_ID)
+                    .crossId(PROMOTED_API_CROSS_ID)
+                    .environmentId(TARGET_ENVIRONMENT_ID)
+                    .build();
             apiCrudServiceInMemory.initWith(List.of(existingApi));
             apiQueryServiceInMemory.initWith(List.of(existingApi));
 
-            var planToKeep = PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .crossId("api-key-cross-id")
-                .apiId(PROMOTED_API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .referenceId(PROMOTED_API_ID)
-                .environmentId(TARGET_ENVIRONMENT_ID)
-                .build();
-            var planToDelete = PlanFixtures.HttpV4.aKeyless()
-                .toBuilder()
-                .crossId("keyless-to-delete")
-                .apiId(PROMOTED_API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .referenceId(PROMOTED_API_ID)
-                .environmentId(TARGET_ENVIRONMENT_ID)
-                .build();
+            var planToKeep = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .crossId("api-key-cross-id")
+                    .apiId(PROMOTED_API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .referenceId(PROMOTED_API_ID)
+                    .environmentId(TARGET_ENVIRONMENT_ID)
+                    .build();
+            var planToDelete = PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .crossId("keyless-to-delete")
+                    .apiId(PROMOTED_API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .referenceId(PROMOTED_API_ID)
+                    .environmentId(TARGET_ENVIRONMENT_ID)
+                    .build();
             importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.initWith(
-                List.of(planToKeep, planToDelete)
-            );
+                    List.of(planToKeep, planToDelete));
             importDefinitionUpdateInitializer.planDomainServiceInitializer.planQueryServiceInMemory.initWith(
-                List.of(planToKeep, planToDelete)
-            );
+                    List.of(planToKeep, planToDelete));
 
             // import only contains planToKeep — planToDelete is absent
             var importDefinition = ImportDefinition.builder()
-                .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("api name").build())
-                .plans(Set.of(anApiKeyPlan.toBuilder().id(planToKeep.getId()).build()))
-                .build();
+                    .apiExport(ApiExport.builder()
+                            .id(PROMOTED_API_ID)
+                            .crossId(PROMOTED_API_CROSS_ID)
+                            .name("api name")
+                            .build())
+                    .plans(Set.of(
+                            anApiKeyPlan.toBuilder().id(planToKeep.getId()).build()))
+                    .build();
 
             service.update(importDefinition, existingApi, AUDIT_INFO);
 
-            var savedPlans = importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
-                PROMOTED_API_ID
-            );
+            var savedPlans =
+                    importDefinitionUpdateInitializer.planDomainServiceInitializer.planCrudServiceInMemory.findByApiId(
+                            PROMOTED_API_ID);
             assertThat(savedPlans).hasSize(1).extracting(Plan::getCrossId).containsOnly("api-key-cross-id");
         }
     }

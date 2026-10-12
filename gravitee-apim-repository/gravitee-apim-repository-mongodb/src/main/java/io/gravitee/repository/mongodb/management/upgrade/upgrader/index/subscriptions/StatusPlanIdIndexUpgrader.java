@@ -31,11 +31,11 @@ public class StatusPlanIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscriptions")
-            .name("s1p1i1")
-            .key("status", ascending())
-            .key("plan", ascending())
-            .key("_id", ascending())
-            .build();
+                .collection("subscriptions")
+                .name("s1p1i1")
+                .key("status", ascending())
+                .key("plan", ascending())
+                .key("_id", ascending())
+                .build();
     }
 }

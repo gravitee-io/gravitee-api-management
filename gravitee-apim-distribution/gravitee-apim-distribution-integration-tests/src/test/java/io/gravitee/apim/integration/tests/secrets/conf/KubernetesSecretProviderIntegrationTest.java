@@ -140,9 +140,8 @@ class KubernetesSecretProviderIntegrationTest {
         kubeContainer = new KindContainer<>(KindContainerVersion.VERSION_1_29_1);
         kubeContainer.start();
         // write config so the secret provider can pick it up
-        kubeConfigFile = Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve(
-            "kube_config.yml"
-        );
+        kubeConfigFile = Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName())
+                .resolve("kube_config.yml");
         Files.writeString(kubeConfigFile, kubeContainer.getKubeconfig());
     }
 
@@ -170,11 +169,11 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void configureSecretProviders(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) throws Exception {
-            secretProviderPlugins.add(
-                SecretProviderBuilder.build(KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class)
-            );
+                Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                        secretProviderPlugins)
+                throws Exception {
+            secretProviderPlugins.add(SecretProviderBuilder.build(
+                    KubernetesSecretProvider.PLUGIN_ID, KubernetesSecretProviderFactory.class, K8sConfig.class));
             createSecrets();
         }
 
@@ -231,10 +230,10 @@ class KubernetesSecretProviderIntegrationTest {
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             // setting secret refs to yaml as it is not supported in system props
             configurationBuilder
-                .setYamlProperty("barNonDefault", "secret://kubernetes/bar:password?namespace=nondefaultns")
-                .setYamlProperty("bar", "secret://kubernetes/bar:password")
-                .setYamlProperty("foo", "secret://kubernetes/foo:password")
-                .setYamlProperty("watched", "secret://kubernetes/watched:password?watch");
+                    .setYamlProperty("barNonDefault", "secret://kubernetes/bar:password?namespace=nondefaultns")
+                    .setYamlProperty("bar", "secret://kubernetes/bar:password")
+                    .setYamlProperty("foo", "secret://kubernetes/foo:password")
+                    .setYamlProperty("watched", "secret://kubernetes/watched:password?watch");
         }
 
         // occurs after Gateway has started, otherwise it won't start
@@ -243,7 +242,9 @@ class KubernetesSecretProviderIntegrationTest {
             final GraviteeYamlPropertySource graviteeProperties = getGraviteeYamlProperties();
             if (graviteeProperties != null) {
                 graviteeProperties.getSource().put("missing", "secret://kubernetes/missing:pass");
-                graviteeProperties.getSource().put("missing2", "secret://kubernetes/missing:pass?namespace=nondefaultns");
+                graviteeProperties
+                        .getSource()
+                        .put("missing2", "secret://kubernetes/missing:pass?namespace=nondefaultns");
                 graviteeProperties.getSource().put("no_plugin", "secret://foo/test:pass");
             }
         }
@@ -257,20 +258,20 @@ class KubernetesSecretProviderIntegrationTest {
             assertThat(environment.getProperty("watched")).isEqualTo("iwillchange");
 
             KubernetesHelper.updateSecret(kubeContainer, "default", "watched", Map.of("password", "iamchanged"), false);
-            await()
-                .atMost(Duration.ofSeconds(2))
-                .untilAsserted(() -> assertThat(environment.getProperty("watched")).isEqualTo("iamchanged"));
+            await().atMost(Duration.ofSeconds(2))
+                    .untilAsserted(
+                            () -> assertThat(environment.getProperty("watched")).isEqualTo("iamchanged"));
         }
 
         @Test
         void should_fail_resolve_secrets() {
             final Environment environment = getBean(Environment.class);
             assertThatCode(() -> environment.getProperty("missing"))
-                .isInstanceOf(SecretManagerException.class)
-                .hasMessageContaining("secret not found");
+                    .isInstanceOf(SecretManagerException.class)
+                    .hasMessageContaining("secret not found");
             assertThatCode(() -> environment.getProperty("missing2"))
-                .isInstanceOf(SecretManagerException.class)
-                .hasMessageContaining("secret not found");
+                    .isInstanceOf(SecretManagerException.class)
+                    .hasMessageContaining("secret not found");
             assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a
             // secret does not
             // return value
@@ -288,38 +289,43 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder.httpSecured(true).httpSslKeystoreType("pem").httpSslSecret("secret://kubernetes/tls-test-default");
+            configurationBuilder
+                    .httpSecured(true)
+                    .httpSslKeystoreType("pem")
+                    .httpSslSecret("secret://kubernetes/tls-test-default");
         }
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
+            options.setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(kubeContainer, "default", "tls-test-default", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(
+                    kubeContainer, "default", "tls-test-default", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Test
         void should_be_able_to_call_on_https(HttpClient httpClient) {
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .doOnError(Throwable::printStackTrace)
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors), no need for an API.
-                    assertThat(response.statusCode()).isEqualTo(404);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .doOnError(Throwable::printStackTrace)
+                    .flatMap(response -> {
+                        // just asserting we get a response (hence no SSL errors), no need for an API.
+                        assertThat(response.statusCode()).isEqualTo(404);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
         }
     }
 
@@ -335,41 +341,43 @@ class KubernetesSecretProviderIntegrationTest {
         @Override
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .httpSecured(true)
-                .httpSslKeystoreType("pem")
-                .httpSslSecret("secret://kubernetes/tls-test-late?resolveBeforeWatch=false");
+                    .httpSecured(true)
+                    .httpSslKeystoreType("pem")
+                    .httpSslSecret("secret://kubernetes/tls-test-late?resolveBeforeWatch=false");
         }
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
+            options.setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
         @Override
         public void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(kubeContainer, "default", "tls-test-late", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(
+                    kubeContainer, "default", "tls-test-late", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Test
         void should_be_able_to_call_on_https(HttpClient httpClient) {
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .doOnError(Throwable::printStackTrace)
-                .retry()
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors), no need for an API.
-                    assertThat(response.statusCode()).isEqualTo(404);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .doOnError(Throwable::printStackTrace)
+                    .retry()
+                    .flatMap(response -> {
+                        // just asserting we get a response (hence no SSL errors), no need for an API.
+                        assertThat(response.statusCode()).isEqualTo(404);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
         }
     }
 
@@ -380,19 +388,21 @@ class KubernetesSecretProviderIntegrationTest {
         @Override
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .httpSecured(true)
-                .httpSslSecret("secret://kubernetes/tls-test-custom?namespace=test&keymap=certificate:cert&keymap=private_key:key")
-                .httpSslKeystoreType("pem");
+                    .httpSecured(true)
+                    .httpSslSecret(
+                            "secret://kubernetes/tls-test-custom?namespace=test&keymap=certificate:cert&keymap=private_key:key")
+                    .httpSslKeystoreType("pem");
         }
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
+            options.setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
         @Override
@@ -404,16 +414,16 @@ class KubernetesSecretProviderIntegrationTest {
         @Test
         void should_be_able_to_call_on_https(HttpClient httpClient) {
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors), no need for an API.
-                    assertThat(response.statusCode()).isEqualTo(404);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // just asserting we get a response (hence no SSL errors), no need for an API.
+                        assertThat(response.statusCode()).isEqualTo(404);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
         }
     }
 
@@ -479,82 +489,83 @@ class KubernetesSecretProviderIntegrationTest {
         @Override
         void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .httpSecured(true)
-                .httpSslKeystoreType("pem")
-                .httpSslSecret("secret://kubernetes/tls-test")
-                .setSystemProperty("http.ssl.keystore.watch", true);
+                    .httpSecured(true)
+                    .httpSslKeystoreType("pem")
+                    .httpSslSecret("secret://kubernetes/tls-test")
+                    .setSystemProperty("http.ssl.keystore.watch", true);
         }
 
         @Override
         void createSecrets() throws IOException, InterruptedException {
-            KubernetesHelper.createSecret(kubeContainer, "default", "tls-test", Map.of("tls.crt", CERT, "tls.key", KEY), true);
+            KubernetesHelper.createSecret(
+                    kubeContainer, "default", "tls-test", Map.of("tls.crt", CERT, "tls.key", KEY), true);
         }
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
+            options.setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/api.json" })
+        @DeployApi({"/apis/v4/http/api.json"})
         void should_be_able_to_call_on_https_then_not(HttpClient httpClient, GatewayDynamicConfig.HttpConfig httpConfig)
-            throws IOException, InterruptedException {
+                throws IOException, InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors)
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .flatMapCompletable(body -> {
-                    assertThat(body).hasToString("response from backend");
-                    return Completable.complete();
-                })
-                .test()
-                .awaitDone(5, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // just asserting we get a response (hence no SSL errors)
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .flatMapCompletable(body -> {
+                        assertThat(body).hasToString("response from backend");
+                        return Completable.complete();
+                    })
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertComplete();
 
-            KubernetesHelper.updateSecret(kubeContainer, "default", "tls-test", Map.of("tls.crt", NEW_CERT, "tls.key", NEW_KEY), true);
+            KubernetesHelper.updateSecret(
+                    kubeContainer, "default", "tls-test", Map.of("tls.crt", NEW_CERT, "tls.key", NEW_KEY), true);
 
             // create a new client to avoid sharing the connection
-            var newHttpClient = getBean(Vertx.class).createHttpClient(
-                new HttpClientOptions()
-                    .setDefaultPort(httpConfig.httpPort())
-                    .setDefaultHost("localhost")
-                    .setSsl(true)
-                    .setVerifyHost(false)
-                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)))
-            );
+            var newHttpClient = getBean(Vertx.class)
+                    .createHttpClient(new HttpClientOptions()
+                            .setDefaultPort(httpConfig.httpPort())
+                            .setDefaultHost("localhost")
+                            .setSsl(true)
+                            .setVerifyHost(false)
+                            .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT))));
 
-            await()
-                .pollInterval(1, TimeUnit.SECONDS)
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted(() ->
-                    newHttpClient
-                        .rxRequest(HttpMethod.GET, "/test")
-                        .flatMap(HttpClientRequest::rxSend)
-                        .test()
-                        .awaitDone(2, TimeUnit.SECONDS)
-                        .assertError(SSLHandshakeException.class)
-                );
+            await().pollInterval(1, TimeUnit.SECONDS)
+                    .atMost(10, TimeUnit.SECONDS)
+                    .untilAsserted(() -> newHttpClient
+                            .rxRequest(HttpMethod.GET, "/test")
+                            .flatMap(HttpClientRequest::rxSend)
+                            .test()
+                            .awaitDone(2, TimeUnit.SECONDS)
+                            .assertError(SSLHandshakeException.class));
         }
     }
 }

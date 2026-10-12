@@ -35,7 +35,8 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
 
     @Test
     public void should_find_by_id_and_environment() throws Exception {
-        Optional<PortalListing> listing = portalListingRepository.findByIdAndEnvironmentId("portal-listing-1", "environment1");
+        Optional<PortalListing> listing =
+                portalListingRepository.findByIdAndEnvironmentId("portal-listing-1", "environment1");
 
         assertThat(listing).isPresent();
         assertThat(listing.get().getPortalId()).isEqualTo("portal1");
@@ -45,35 +46,42 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
 
     @Test
     public void should_not_find_by_id_when_environment_differs() throws Exception {
-        Optional<PortalListing> listing = portalListingRepository.findByIdAndEnvironmentId("portal-listing-1", "environment2");
+        Optional<PortalListing> listing =
+                portalListingRepository.findByIdAndEnvironmentId("portal-listing-1", "environment2");
 
         assertThat(listing).isNotPresent();
     }
 
     @Test
     public void should_find_all_by_portal_and_environment() throws Exception {
-        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal1", "environment1");
+        List<PortalListing> listings =
+                portalListingRepository.findAllByPortalIdAndEnvironmentId("portal1", "environment1");
 
-        assertThat(listings).extracting(PortalListing::getId).containsExactlyInAnyOrder("portal-listing-1", "portal-listing-2");
+        assertThat(listings)
+                .extracting(PortalListing::getId)
+                .containsExactlyInAnyOrder("portal-listing-1", "portal-listing-2");
     }
 
     @Test
     public void should_find_single_portal_listing_by_portal_and_environment() throws Exception {
-        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal2", "environment1");
+        List<PortalListing> listings =
+                portalListingRepository.findAllByPortalIdAndEnvironmentId("portal2", "environment1");
 
         assertThat(listings).extracting(PortalListing::getId).containsExactly("portal-listing-3");
     }
 
     @Test
     public void should_not_find_listings_when_environment_differs() throws Exception {
-        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal1", "environment2");
+        List<PortalListing> listings =
+                portalListingRepository.findAllByPortalIdAndEnvironmentId("portal1", "environment2");
 
         assertThat(listings).isEmpty();
     }
 
     @Test
     public void should_not_find_listings_for_unknown_portal() throws Exception {
-        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal-nope", "environment1");
+        List<PortalListing> listings =
+                portalListingRepository.findAllByPortalIdAndEnvironmentId("portal-nope", "environment1");
 
         assertThat(listings).isEmpty();
     }
@@ -81,12 +89,12 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
     @Test
     public void should_create() throws Exception {
         PortalListing toCreate = PortalListing.builder()
-            .id("new-listing")
-            .environmentId("environment1")
-            .organizationId("organization1")
-            .portalId("portal1")
-            .apis("[{\"apiHrid\":\"new-api\",\"location\":\"/projects/new\",\"order\":1}]")
-            .build();
+                .id("new-listing")
+                .environmentId("environment1")
+                .organizationId("organization1")
+                .portalId("portal1")
+                .apis("[{\"apiHrid\":\"new-api\",\"location\":\"/projects/new\",\"order\":1}]")
+                .build();
 
         PortalListing created = portalListingRepository.create(toCreate);
 
@@ -97,12 +105,12 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
     @Test
     public void should_update() throws Exception {
         PortalListing toUpdate = PortalListing.builder()
-            .id("portal-listing-1")
-            .environmentId("environment1")
-            .organizationId("organization1")
-            .portalId("portal1")
-            .apis("[{\"apiHrid\":\"pets-api\",\"location\":\"/projects/alpha\",\"order\":2}]")
-            .build();
+                .id("portal-listing-1")
+                .environmentId("environment1")
+                .organizationId("organization1")
+                .portalId("portal1")
+                .apis("[{\"apiHrid\":\"pets-api\",\"location\":\"/projects/alpha\",\"order\":2}]")
+                .build();
 
         PortalListing updated = portalListingRepository.update(toUpdate);
 
@@ -122,7 +130,9 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
         portalListingRepository.deleteByEnvironmentId("environment1");
 
         Set<PortalListing> remaining = portalListingRepository.findAll();
-        assertThat(remaining).extracting(PortalListing::getId).containsExactlyInAnyOrder("portal-listing-4", "portal-listing-5");
+        assertThat(remaining)
+                .extracting(PortalListing::getId)
+                .containsExactlyInAnyOrder("portal-listing-4", "portal-listing-5");
     }
 
     @Test

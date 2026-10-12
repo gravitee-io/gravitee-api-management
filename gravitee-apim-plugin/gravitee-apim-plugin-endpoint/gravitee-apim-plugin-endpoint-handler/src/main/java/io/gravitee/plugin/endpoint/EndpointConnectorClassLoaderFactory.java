@@ -24,6 +24,7 @@ import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 public interface EndpointConnectorClassLoaderFactory extends PluginClassLoaderFactory<EndpointConnectorPlugin<?, ?>> {
     @Override
     default PluginClassLoader getOrCreateClassLoader(EndpointConnectorPlugin<?, ?> endpointConnectorPlugin) {
-        return getOrCreateClassLoader(endpointConnectorPlugin, endpointConnectorPlugin.getClass().getClassLoader());
+        return getOrCreateClassLoader(
+                endpointConnectorPlugin, endpointConnectorPlugin.getClass().getClassLoader());
     }
 }

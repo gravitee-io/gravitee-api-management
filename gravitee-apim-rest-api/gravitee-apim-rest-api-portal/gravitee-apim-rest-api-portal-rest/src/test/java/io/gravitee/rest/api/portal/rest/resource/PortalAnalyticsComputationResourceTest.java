@@ -99,9 +99,9 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
     void setUp() {
         resetAllMocks();
         reset(computeMeasuresUseCase, computeFacetsUseCase, computeTimeSeriesUseCase);
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
     }
 
     /**
@@ -115,33 +115,22 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
     protected void decorate(ResourceConfig resourceConfig) {
         super.decorate(resourceConfig);
         resourceConfig.register(
-            (ContainerRequestFilter) requestContext -> {
-                final var principal = new UsernamePasswordAuthenticationToken(
-                    new UserDetails(USER_NAME, "", Collections.emptyList()),
-                    new Object()
-                );
-                SecurityContextHolder.getContext().setAuthentication(principal);
-            },
-            10
-        );
+                (ContainerRequestFilter) requestContext -> {
+                    final var principal = new UsernamePasswordAuthenticationToken(
+                            new UserDetails(USER_NAME, "", Collections.emptyList()), new Object());
+                    SecurityContextHolder.getContext().setAuthentication(principal);
+                },
+                10);
     }
 
     @Test
     void post_measures_returns_response_and_delegates_to_compute_measures_use_case() {
-        when(computeMeasuresUseCase.execute(any())).thenReturn(
-            new ComputeMeasuresUseCase.Output(
-                new MeasuresResponse(
-                    List.of(
-                        new MetricMeasuresResponse(
-                            MetricSpec.Name.HTTP_REQUESTS,
-                            MetricSpec.Unit.NUMBER,
-                            List.of(new Measure(MetricSpec.Measure.COUNT, 42)),
-                            List.of()
-                        )
-                    )
-                )
-            )
-        );
+        when(computeMeasuresUseCase.execute(any()))
+                .thenReturn(new ComputeMeasuresUseCase.Output(new MeasuresResponse(List.of(new MetricMeasuresResponse(
+                        MetricSpec.Name.HTTP_REQUESTS,
+                        MetricSpec.Unit.NUMBER,
+                        List.of(new Measure(MetricSpec.Measure.COUNT, 42)),
+                        List.of())))));
 
         final var response = target().path("measures").request().post(Entity.json(aMeasuresRequest()));
 
@@ -151,15 +140,16 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
         assertThat(body.getMetrics().getFirst().getName()).isEqualTo(AnalyticsMetricName.HTTP_REQUESTS);
         assertThat(body.getMetrics().getFirst().getUnit()).isEqualTo(AnalyticsUnitName.NUMBER);
         assertThat(body.getMetrics().getFirst().getMeasures()).hasSize(1);
-        assertThat(body.getMetrics().getFirst().getMeasures().getFirst().getName()).isEqualTo(AnalyticsMeasureName.COUNT);
+        assertThat(body.getMetrics().getFirst().getMeasures().getFirst().getName())
+                .isEqualTo(AnalyticsMeasureName.COUNT);
         verify(computeMeasuresUseCase).execute(any());
     }
 
     @Test
     void post_measures_forbidden_when_portal_next_analytics_disabled() {
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(false);
 
         final var response = target().path("measures").request().post(Entity.json(aMeasuresRequest()));
 
@@ -169,7 +159,8 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_facets_returns_response_and_delegates_to_compute_facets_use_case() {
-        when(computeFacetsUseCase.execute(any())).thenReturn(new ComputeFacetsUseCase.Output(new FacetsResponse(List.of())));
+        when(computeFacetsUseCase.execute(any()))
+                .thenReturn(new ComputeFacetsUseCase.Output(new FacetsResponse(List.of())));
 
         final var response = target().path("facets").request().post(Entity.json(aFacetsRequest()));
 
@@ -181,9 +172,9 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_facets_forbidden_when_portal_next_analytics_disabled() {
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(false);
 
         final var response = target().path("facets").request().post(Entity.json(aFacetsRequest()));
 
@@ -193,7 +184,8 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_time_series_returns_response_and_delegates_to_compute_time_series_use_case() {
-        when(computeTimeSeriesUseCase.execute(any())).thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
+        when(computeTimeSeriesUseCase.execute(any()))
+                .thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
 
         final var response = target().path("time-series").request().post(Entity.json(aTimeSeriesRequest()));
 
@@ -205,9 +197,9 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_time_series_forbidden_when_portal_next_analytics_disabled() {
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(false);
 
         final var response = target().path("time-series").request().post(Entity.json(aTimeSeriesRequest()));
 
@@ -217,25 +209,24 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_measures_maps_string_filter_to_core_filter() {
-        when(computeMeasuresUseCase.execute(any())).thenReturn(new ComputeMeasuresUseCase.Output(new MeasuresResponse(List.of())));
+        when(computeMeasuresUseCase.execute(any()))
+                .thenReturn(new ComputeMeasuresUseCase.Output(new MeasuresResponse(List.of())));
 
         final var apiId = "7b6ebef3-6236-4ac5-815e-d3dcef83df5d";
-        final var request = aMeasuresRequest().filters(
-            List.of(
-                new AnalyticsFilter(
-                    new AnalyticsStringFilter().name(AnalyticsFilterName.API).operator(AnalyticsFilterOperator.EQ).value(apiId)
-                )
-            )
-        );
+        final var request = aMeasuresRequest()
+                .filters(List.of(new AnalyticsFilter(new AnalyticsStringFilter()
+                        .name(AnalyticsFilterName.API)
+                        .operator(AnalyticsFilterOperator.EQ)
+                        .value(apiId))));
 
         final var response = target().path("measures").request().post(Entity.json(request));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         final var captor = ArgumentCaptor.forClass(ComputeMeasuresUseCase.Input.class);
         verify(computeMeasuresUseCase).execute(captor.capture());
-        assertThat(captor.getValue().request().filters()).containsExactly(
-            new io.gravitee.apim.core.analytics_engine.model.Filter(FilterSpec.Name.API, FilterOperator.EQ, apiId)
-        );
+        assertThat(captor.getValue().request().filters())
+                .containsExactly(new io.gravitee.apim.core.analytics_engine.model.Filter(
+                        FilterSpec.Name.API, FilterOperator.EQ, apiId));
     }
 
     @Test
@@ -256,7 +247,8 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_time_series_accepts_interval_as_milliseconds() {
-        when(computeTimeSeriesUseCase.execute(any())).thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
+        when(computeTimeSeriesUseCase.execute(any()))
+                .thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
 
         final var request = aTimeSeriesRequest().interval(new CustomInterval(3_600_000L));
 
@@ -270,7 +262,8 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_time_series_accepts_interval_as_duration_shorthand() {
-        when(computeTimeSeriesUseCase.execute(any())).thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
+        when(computeTimeSeriesUseCase.execute(any()))
+                .thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
 
         final var json = """
             {
@@ -290,22 +283,20 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     @Test
     void post_facets_maps_leaf_and_group_buckets_in_response() {
-        final var leaf = new FacetBucketResponse("/api-x", null, null, List.of(new Measure(MetricSpec.Measure.COUNT, 5)));
+        final var leaf =
+                new FacetBucketResponse("/api-x", null, null, List.of(new Measure(MetricSpec.Measure.COUNT, 5)));
         final var group = new FacetBucketResponse("APP-1", null, List.of(leaf), null);
-        when(computeFacetsUseCase.execute(any())).thenReturn(
-            new ComputeFacetsUseCase.Output(
-                new FacetsResponse(
-                    List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(group), List.of()))
-                )
-            )
-        );
+        when(computeFacetsUseCase.execute(any()))
+                .thenReturn(new ComputeFacetsUseCase.Output(new FacetsResponse(List.of(new MetricFacetsResponse(
+                        MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(group), List.of())))));
 
         final var response = target().path("facets").request().post(Entity.json(aFacetsRequest()));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         final var body = response.readEntity(AnalyticsFacetsResponse.class);
         assertThat(body.getMetrics()).hasSize(1);
-        final var topBucket = body.getMetrics().getFirst().getBuckets().getFirst().getActualInstance();
+        final var topBucket =
+                body.getMetrics().getFirst().getBuckets().getFirst().getActualInstance();
         assertThat(topBucket).isInstanceOf(AnalyticsFacetBucketGroup.class);
         final var topGroup = (AnalyticsFacetBucketGroup) topBucket;
         assertThat(topGroup.getType()).isEqualTo(AnalyticsFacetBucketGroup.TypeEnum.GROUP);
@@ -322,19 +313,15 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
     @Test
     void post_time_series_maps_leaf_bucket_in_response() {
         final var bucket = new TimeSeriesBucketResponse(
-            "2026-01-01T00:00:00Z",
-            null,
-            1_735_689_600_000L,
-            null,
-            List.of(new Measure(MetricSpec.Measure.COUNT, 7))
-        );
-        when(computeTimeSeriesUseCase.execute(any())).thenReturn(
-            new ComputeTimeSeriesUseCase.Output(
-                new TimeSeriesResponse(
-                    List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(bucket), List.of()))
-                )
-            )
-        );
+                "2026-01-01T00:00:00Z",
+                null,
+                1_735_689_600_000L,
+                null,
+                List.of(new Measure(MetricSpec.Measure.COUNT, 7)));
+        when(computeTimeSeriesUseCase.execute(any()))
+                .thenReturn(
+                        new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                                MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(bucket), List.of())))));
 
         final var response = target().path("time-series").request().post(Entity.json(aTimeSeriesRequest()));
 
@@ -351,35 +338,27 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
 
     private static AnalyticsMeasuresRequest aMeasuresRequest() {
         return new AnalyticsMeasuresRequest()
-            .timeRange(aTimeRange())
-            .metrics(
-                List.of(
-                    new AnalyticsComputationMetricRequest()
+                .timeRange(aTimeRange())
+                .metrics(List.of(new AnalyticsComputationMetricRequest()
                         .name(AnalyticsMetricName.HTTP_REQUESTS)
-                        .measures(List.of(AnalyticsMeasureName.COUNT))
-                )
-            );
+                        .measures(List.of(AnalyticsMeasureName.COUNT))));
     }
 
     private static AnalyticsFacetsRequest aFacetsRequest() {
         return new AnalyticsFacetsRequest()
-            .timeRange(aTimeRange())
-            .by(List.of(AnalyticsFacetName.API))
-            .metrics(
-                List.of(
-                    new AnalyticsFacetMetricRequest().name(AnalyticsMetricName.HTTP_REQUESTS).measures(List.of(AnalyticsMeasureName.COUNT))
-                )
-            );
+                .timeRange(aTimeRange())
+                .by(List.of(AnalyticsFacetName.API))
+                .metrics(List.of(new AnalyticsFacetMetricRequest()
+                        .name(AnalyticsMetricName.HTTP_REQUESTS)
+                        .measures(List.of(AnalyticsMeasureName.COUNT))));
     }
 
     private static AnalyticsTimeSeriesRequest aTimeSeriesRequest() {
         return new AnalyticsTimeSeriesRequest()
-            .timeRange(aTimeRange())
-            .interval(new CustomInterval(60_000L))
-            .metrics(
-                List.of(
-                    new AnalyticsFacetMetricRequest().name(AnalyticsMetricName.HTTP_REQUESTS).measures(List.of(AnalyticsMeasureName.COUNT))
-                )
-            );
+                .timeRange(aTimeRange())
+                .interval(new CustomInterval(60_000L))
+                .metrics(List.of(new AnalyticsFacetMetricRequest()
+                        .name(AnalyticsMetricName.HTTP_REQUESTS)
+                        .measures(List.of(AnalyticsMeasureName.COUNT))));
     }
 }

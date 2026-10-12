@@ -40,6 +40,7 @@ public interface PlanService {
     PlanEntity create(ExecutionContext executionContext, NewPlanEntity plan);
 
     PlanEntity update(ExecutionContext executionContext, UpdatePlanEntity plan);
+
     PlanEntity update(ExecutionContext executionContext, UpdatePlanEntity plan, boolean fromImport);
 
     PlanEntity close(ExecutionContext executionContext, String plan);

@@ -33,18 +33,16 @@ public class ApiAuthorizationDomainServiceLegacyWrapper implements ApiAuthorizat
 
     @Override
     public Set<String> findIdsByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQueryCriteria apiQueryCriteria,
-        Sortable sortable,
-        boolean manageOnly
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            ApiQueryCriteria apiQueryCriteria,
+            Sortable sortable,
+            boolean manageOnly) {
         return this.delegate.findIdsByUser(
-            executionContext,
-            userId,
-            ApiQueryCriteriaAdapter.INSTANCE.toRestModel(apiQueryCriteria),
-            sortable,
-            manageOnly
-        );
+                executionContext,
+                userId,
+                ApiQueryCriteriaAdapter.INSTANCE.toRestModel(apiQueryCriteria),
+                sortable,
+                manageOnly);
     }
 }

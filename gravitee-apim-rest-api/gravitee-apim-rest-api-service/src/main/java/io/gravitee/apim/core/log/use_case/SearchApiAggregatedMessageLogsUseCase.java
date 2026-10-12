@@ -41,7 +41,8 @@ public class SearchApiAggregatedMessageLogsUseCase {
     public Output execute(ExecutionContext executionContext, Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = messageLogCrudService.searchApiAggregatedMessageLog(executionContext, input.apiId(), input.requestId(), pageable);
+        var response = messageLogCrudService.searchApiAggregatedMessageLog(
+                executionContext, input.apiId(), input.requestId(), pageable);
         return mapToResponse(response);
     }
 

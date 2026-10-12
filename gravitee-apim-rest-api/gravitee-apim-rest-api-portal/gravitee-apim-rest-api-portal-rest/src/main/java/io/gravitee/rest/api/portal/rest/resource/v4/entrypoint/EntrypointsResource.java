@@ -50,23 +50,19 @@ public class EntrypointsResource extends AbstractConnectorsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Response getEntrypoints(@QueryParam("expand") List<String> expands) {
         final Collection<ConnectorExpandPluginEntity> connectors = super.expand(entrypointService.findAll(), expands);
         if (expands != null && expands.contains("subscriptionSchema")) {
-            connectors.forEach(connector ->
-                connector.setSubscriptionSchema(
-                    entrypointService.getSubscriptionSchema(connector.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM)
-                )
-            );
+            connectors.forEach(connector -> connector.setSubscriptionSchema(
+                    entrypointService.getSubscriptionSchema(connector.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM)));
         }
         return createListResponse(
-            GraviteeContext.getExecutionContext(),
-            connectorMapper.convert(connectors),
-            PaginationParam.builder().page(1).size(-1).build(),
-            null,
-            false
-        );
+                GraviteeContext.getExecutionContext(),
+                connectorMapper.convert(connectors),
+                PaginationParam.builder().page(1).size(-1).build(),
+                null,
+                false);
     }
 
     @Override

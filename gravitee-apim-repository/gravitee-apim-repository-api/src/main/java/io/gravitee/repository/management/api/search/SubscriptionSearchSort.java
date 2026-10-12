@@ -47,9 +47,9 @@ public enum SubscriptionSearchSort {
         return switch (sortable.field()) {
             case "plan" -> PLAN_ID;
             case "id" -> ID;
-            default -> throw new IllegalArgumentException(
-                "searchAfter supports sort field 'updatedAt', 'plan' or 'id' only, got: " + sortable.field()
-            );
+            default ->
+                throw new IllegalArgumentException(
+                        "searchAfter supports sort field 'updatedAt', 'plan' or 'id' only, got: " + sortable.field());
         };
     }
 }

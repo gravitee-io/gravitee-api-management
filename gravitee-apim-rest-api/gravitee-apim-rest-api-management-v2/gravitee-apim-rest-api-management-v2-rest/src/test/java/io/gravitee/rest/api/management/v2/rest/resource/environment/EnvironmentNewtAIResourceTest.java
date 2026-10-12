@@ -87,12 +87,10 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
                 """;
 
             var expectedReply = new TestELGenReply(
-                "Generated expression: {#context.attributes['user-id']}",
-                new TestELGenReply.TestFeedbackId("chat-123", "user-msg-456", "agent-msg-789")
-            );
-            newtAIProvider.initWith(
-                List.of(new NewtAIProviderInMemory.Tuple.Success("Generate an expression to get the user ID", expectedReply))
-            );
+                    "Generated expression: {#context.attributes['user-id']}",
+                    new TestELGenReply.TestFeedbackId("chat-123", "user-msg-456", "agent-msg-789"));
+            newtAIProvider.initWith(List.of(new NewtAIProviderInMemory.Tuple.Success(
+                    "Generate an expression to get the user ID", expectedReply)));
 
             // When
             final Response response = rootTarget("el/_generate").request().post(Entity.json(requestJson));
@@ -118,10 +116,10 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
                 """;
 
             var expectedReply = new TestELGenReply(
-                "Simple expression: {#request.timestamp}",
-                new TestELGenReply.TestFeedbackId("chat-456", "user-msg-789", "agent-msg-012")
-            );
-            newtAIProvider.initWith(List.of(new NewtAIProviderInMemory.Tuple.Success("Generate a simple expression", expectedReply)));
+                    "Simple expression: {#request.timestamp}",
+                    new TestELGenReply.TestFeedbackId("chat-456", "user-msg-789", "agent-msg-012"));
+            newtAIProvider.initWith(
+                    List.of(new NewtAIProviderInMemory.Tuple.Success("Generate a simple expression", expectedReply)));
 
             // When
             final Response response = rootTarget("el/_generate").request().post(Entity.json(requestJson));
@@ -205,6 +203,7 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
     }
 
     private record TestELGenReply(String message, TestFeedbackId feedbackId) implements ELGenReply {
-        private record TestFeedbackId(String chatId, String userMessageId, String agentMessageId) implements ELGenReply.FeedbackId {}
+        private record TestFeedbackId(String chatId, String userMessageId, String agentMessageId)
+                implements ELGenReply.FeedbackId {}
     }
 }

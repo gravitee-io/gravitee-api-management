@@ -59,9 +59,8 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
 
         reset(apiKeyCrudServiceInMemory);
         GraviteeContext.cleanContext();
@@ -69,12 +68,15 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void revoke_should_return_http_400_if_application_doesnt_use_shared_api_key() {
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().id(APIKEY_ID).key("my-api-key-value").applicationId(APPLICATION_ID).build())
-        );
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .id(APPLICATION_ID)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id(APIKEY_ID)
+                .key("my-api-key-value")
+                .applicationId(APPLICATION_ID)
+                .build()));
 
         Response response = envTarget().request().delete();
 
@@ -83,12 +85,15 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void revoke_should_return_http_400_if_application_doesnt_match_api_key() {
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.SHARED).id(APPLICATION_ID).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().id(APIKEY_ID).key("my-api-key-value").applicationId("another-app").build())
-        );
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .apiKeyMode(ApiKeyMode.SHARED)
+                .id(APPLICATION_ID)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id(APIKEY_ID)
+                .key("my-api-key-value")
+                .applicationId("another-app")
+                .build()));
 
         Response response = envTarget().request().delete();
 
@@ -97,29 +102,24 @@ public class ApplicationApiKeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void revoke_should_revoke_and_return_http_204() {
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.SHARED).id(APPLICATION_ID).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(
-                ApiKeyFixtures.anApiKey()
-                    .toBuilder()
-                    .id(APIKEY_ID)
-                    .key("my-api-key-value")
-                    .applicationId(APPLICATION_ID)
-                    .subscriptions(List.of())
-                    .build()
-            )
-        );
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .apiKeyMode(ApiKeyMode.SHARED)
+                .id(APPLICATION_ID)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id(APIKEY_ID)
+                .key("my-api-key-value")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of())
+                .build()));
 
         Response response = envTarget().request().delete();
 
         Assertions.assertThat(apiKeyCrudServiceInMemory.storage())
-            .extracting(
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked
-            )
-            .containsExactly(tuple(APIKEY_ID, true));
+                .extracting(
+                        io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
+                        io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked)
+                .containsExactly(tuple(APIKEY_ID, true));
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 }

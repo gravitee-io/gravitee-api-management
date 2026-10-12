@@ -46,17 +46,14 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     @Override
     public List<PortalNotification> findByUser(String user) {
         log.debug("Find notifications by user: {}", user);
-        return internalRepo
-            .findByUser(user)
-            .stream()
-            .map(n -> mapper.map(n))
-            .collect(Collectors.toList());
+        return internalRepo.findByUser(user).stream().map(n -> mapper.map(n)).collect(Collectors.toList());
     }
 
     @Override
     public Optional<PortalNotification> findById(String id) throws TechnicalException {
         log.debug("Find notification by id: {}", id);
-        PortalNotificationMongo portalNotificationMongo = internalRepo.findById(id).orElse(null);
+        PortalNotificationMongo portalNotificationMongo =
+                internalRepo.findById(id).orElse(null);
         return Optional.ofNullable(mapPortalNotification(portalNotificationMongo));
     }
 
@@ -73,10 +70,8 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     @Override
     public void create(List<PortalNotification> notifications) throws TechnicalException {
         log.debug("Create notifications : {}", notifications);
-        List<PortalNotificationMongo> notificationMongos = notifications
-            .stream()
-            .map(n -> mapper.map(n))
-            .collect(Collectors.toList());
+        List<PortalNotificationMongo> notificationMongos =
+                notifications.stream().map(n -> mapper.map(n)).collect(Collectors.toList());
         internalRepo.insert(notificationMongos);
     }
 

@@ -60,61 +60,65 @@ public class GetIntegrationsUseCase {
         }
 
         Page<Integration> page = integrationQueryService.findByEnvironmentAndContext(
-            input.context().getEnvironmentId(),
-            input.userId(),
-            input.groups(),
-            input.isAdmin,
-            pageable
-        );
+                input.context().getEnvironmentId(), input.userId(), input.groups(), input.isAdmin, pageable);
 
         var pageContent = Flowable.fromIterable(page.getContent())
-            .flatMapSingle(integration ->
-                switch (integration) {
-                    case Integration.ApiIntegration apiIntegration -> enrichApiIntegration(
-                        input.context().getOrganizationId(),
-                        apiIntegration
-                    );
-                    case Integration.A2aIntegration a2aIntegration -> enrichA2aIntegration(
-                        input.context().getOrganizationId(),
-                        a2aIntegration
-                    );
-                }
-            )
-            .toList()
-            .blockingGet();
+                .flatMapSingle(integration -> switch (integration) {
+                    case Integration.ApiIntegration apiIntegration ->
+                        enrichApiIntegration(input.context().getOrganizationId(), apiIntegration);
+                    case Integration.A2aIntegration a2aIntegration ->
+                        enrichA2aIntegration(input.context().getOrganizationId(), a2aIntegration);
+                })
+                .toList()
+                .blockingGet();
 
         return new GetIntegrationsUseCase.Output(
-            new Page<>(pageContent, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements())
-        );
+                new Page<>(pageContent, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements()));
     }
 
-    private Single<IntegrationView> enrichApiIntegration(String organisationId, Integration.ApiIntegration integration) {
+    private Single<IntegrationView> enrichApiIntegration(
+            String organisationId, Integration.ApiIntegration integration) {
         return Single.zip(
-            integrationAgent.getAgentStatusFor(integration.id()).map(status -> IntegrationView.AgentStatus.valueOf(status.name())),
-            Maybe.fromOptional(asyncJobQueryService.findPendingJobFor(integration.id())).map(Optional::of).defaultIfEmpty(Optional.empty()),
-            integrationPrimaryOwnerDomainService
-                .getIntegrationPrimaryOwner(organisationId, integration.id())
-                .map(po -> Optional.of(new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
-                .defaultIfEmpty(Optional.empty()),
-            (agentStatus, pendingJob, primaryOwner) ->
-                new IntegrationView(integration, agentStatus, pendingJob.orElse(null), primaryOwner.orElse(null))
-        );
+                integrationAgent
+                        .getAgentStatusFor(integration.id())
+                        .map(status -> IntegrationView.AgentStatus.valueOf(status.name())),
+                Maybe.fromOptional(asyncJobQueryService.findPendingJobFor(integration.id()))
+                        .map(Optional::of)
+                        .defaultIfEmpty(Optional.empty()),
+                integrationPrimaryOwnerDomainService
+                        .getIntegrationPrimaryOwner(organisationId, integration.id())
+                        .map(po -> Optional.of(new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
+                        .defaultIfEmpty(Optional.empty()),
+                (agentStatus, pendingJob, primaryOwner) -> new IntegrationView(
+                        integration, agentStatus, pendingJob.orElse(null), primaryOwner.orElse(null)));
     }
 
-    private Single<IntegrationView> enrichA2aIntegration(String organisationId, Integration.A2aIntegration integration) {
+    private Single<IntegrationView> enrichA2aIntegration(
+            String organisationId, Integration.A2aIntegration integration) {
         return integrationPrimaryOwnerDomainService
-            .getIntegrationPrimaryOwner(organisationId, integration.id())
-            .map(po -> new IntegrationView(integration, new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
-            .defaultIfEmpty(new IntegrationView(integration, null));
+                .getIntegrationPrimaryOwner(organisationId, integration.id())
+                .map(po -> new IntegrationView(
+                        integration, new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
+                .defaultIfEmpty(new IntegrationView(integration, null));
     }
 
     @Builder
-    public record Input(ExecutionContext context, String userId, Collection<String> groups, boolean isAdmin, Optional<Pageable> pageable) {
+    public record Input(
+            ExecutionContext context,
+            String userId,
+            Collection<String> groups,
+            boolean isAdmin,
+            Optional<Pageable> pageable) {
         public Input(ExecutionContext context, String userId, Collection<String> groups, boolean isAdmin) {
             this(context, userId, groups, isAdmin, Optional.empty());
         }
 
-        public Input(ExecutionContext context, String userId, Collection<String> groups, boolean isAdmin, Pageable pageable) {
+        public Input(
+                ExecutionContext context,
+                String userId,
+                Collection<String> groups,
+                boolean isAdmin,
+                Pageable pageable) {
             this(context, userId, groups, isAdmin, Optional.of(pageable));
         }
     }

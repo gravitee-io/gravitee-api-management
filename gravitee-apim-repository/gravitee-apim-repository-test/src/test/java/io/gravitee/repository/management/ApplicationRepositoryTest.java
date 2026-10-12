@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Test;
 public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest {
 
     public static final String APP_WITH_LONG_NAME =
-        "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012";
+            "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012";
 
     @Override
     protected String getTestCasesPath() {
@@ -75,8 +75,9 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertNotNull(applications);
         assertEquals(3, applications.size(), "Fail to resolve application in findAll with application status");
         assertThat(applications)
-            .extracting(Application::getId)
-            .containsExactlyInAnyOrder("grouped-app2", "app-with-client-id-archived", "app-with-certificate-archived");
+                .extracting(Application::getId)
+                .containsExactlyInAnyOrder(
+                        "grouped-app2", "app-with-client-id-archived", "app-with-certificate-archived");
     }
 
     @Test
@@ -115,7 +116,10 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(application.getStatus(), appSaved.getStatus(), "Invalid application status.");
         assertTrue(compareDate(application.getCreatedAt(), appSaved.getCreatedAt()), "Invalid application createdAt.");
         assertTrue(compareDate(application.getUpdatedAt(), appSaved.getUpdatedAt()), "Invalid application updateAt.");
-        assertEquals(application.getMetadata().get("type"), appSaved.getMetadata().get("type"), "Invalid application metadata.");
+        assertEquals(
+                application.getMetadata().get("type"),
+                appSaved.getMetadata().get("type"),
+                "Invalid application metadata.");
         assertTrue(appSaved.isDisableMembershipNotifications(), "Invalid application disable membership notifications");
     }
 
@@ -150,15 +154,25 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
         assertEquals(application.getEnvironmentId(), appUpdated.getEnvironmentId(), "Invalid updated environment id.");
         assertEquals(application.getName(), appUpdated.getName(), "Invalid updated application name.");
-        assertEquals(application.getDescription(), appUpdated.getDescription(), "Invalid updated application description.");
+        assertEquals(
+                application.getDescription(), appUpdated.getDescription(), "Invalid updated application description.");
         assertEquals(application.getDomain(), appUpdated.getDomain(), "Invalid updated application domain.");
         assertEquals(application.getStatus(), appUpdated.getStatus(), "Invalid updated application status.");
-        assertTrue(compareDate(application.getCreatedAt(), appUpdated.getCreatedAt()), "Invalid updated application createdAt.");
-        assertTrue(compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()), "Invalid updated application updateAt.");
-        assertEquals(application.getMetadata().get("type"), appUpdated.getMetadata().get("type"), "Invalid application metadata.");
-        assertTrue(appUpdated.isDisableMembershipNotifications(), "Invalid application disable membership notifications");
+        assertTrue(
+                compareDate(application.getCreatedAt(), appUpdated.getCreatedAt()),
+                "Invalid updated application createdAt.");
+        assertTrue(
+                compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()),
+                "Invalid updated application updateAt.");
+        assertEquals(
+                application.getMetadata().get("type"),
+                appUpdated.getMetadata().get("type"),
+                "Invalid application metadata.");
+        assertTrue(
+                appUpdated.isDisableMembershipNotifications(), "Invalid application disable membership notifications");
         assertEquals(application.getPicture(), appUpdated.getPicture(), "Invalid updated application picture.");
-        assertEquals(application.getBackground(), appUpdated.getBackground(), "Invalid updated application background.");
+        assertEquals(
+                application.getBackground(), appUpdated.getBackground(), "Invalid updated application background.");
     }
 
     @Test
@@ -187,18 +201,21 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> apps = applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"));
         assertNotNull(apps);
         assertEquals(2, apps.size());
-        assertEquals(Arrays.asList("searched-app1", "searched-app2"), apps.stream().map(Application::getId).toList());
+        assertEquals(
+                Arrays.asList("searched-app1", "searched-app2"),
+                apps.stream().map(Application::getId).toList());
     }
 
     @Test
     public void findByIdsTestOrderByNameDesc() throws Exception {
         Set<Application> apps = applicationRepository.findByIds(
-            Arrays.asList("searched-app1", "searched-app2"),
-            new SortableBuilder().field("name").setAsc(false).build()
-        );
+                Arrays.asList("searched-app1", "searched-app2"),
+                new SortableBuilder().field("name").setAsc(false).build());
         assertNotNull(apps);
         assertEquals(2, apps.size());
-        assertEquals(Arrays.asList("searched-app2", "searched-app1"), apps.stream().map(Application::getId).toList());
+        assertEquals(
+                Arrays.asList("searched-app2", "searched-app1"),
+                apps.stream().map(Application::getId).toList());
     }
 
     @Test
@@ -206,7 +223,8 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Optional<Application> application = applicationRepository.findById("grouped-app1");
         assertTrue(application.isPresent());
         assertNotNull(application.get().getGroups());
-        assertEquals(Collections.singleton("application-group"), application.get().getGroups());
+        assertEquals(
+                Collections.singleton("application-group"), application.get().getGroups());
     }
 
     @Test
@@ -270,9 +288,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldFindByGroupsAndStatus() throws Exception {
         Set<Application> apps = applicationRepository.findByGroups(
-            Collections.singletonList("application-group"),
-            ApplicationStatus.ARCHIVED
-        );
+                Collections.singletonList("application-group"), ApplicationStatus.ARCHIVED);
 
         assertNotNull(apps);
         assertEquals(1, apps.size());
@@ -289,12 +305,16 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldFindByIds() throws Exception {
-        Set<Application> apps = applicationRepository.findByIds(Arrays.asList("application-sample", "updated-app", "unknown"));
+        Set<Application> apps =
+                applicationRepository.findByIds(Arrays.asList("application-sample", "updated-app", "unknown"));
 
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
         assertEquals(2, apps.size());
-        assertTrue(apps.stream().map(Application::getId).toList().containsAll(Arrays.asList("application-sample", "updated-app")));
+        assertTrue(apps.stream()
+                .map(Application::getId)
+                .toList()
+                .containsAll(Arrays.asList("application-sample", "updated-app")));
     }
 
     @Test
@@ -317,7 +337,8 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldSearchByName() throws Exception {
-        final Page<Application> appsPage = applicationRepository.search(ApplicationCriteria.builder().name("dElETed-a").build(), null);
+        final Page<Application> appsPage = applicationRepository.search(
+                ApplicationCriteria.builder().name("dElETed-a").build(), null);
         final List<Application> apps = appsPage.getContent();
 
         assertEquals(1, apps.size());
@@ -327,31 +348,25 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldSearchByQuery_matchesName() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            ApplicationCriteria.builder().query("Application test query").build(),
-            null
-        );
+                ApplicationCriteria.builder().query("Application test query").build(), null);
         final List<Application> apps = appsPage.getContent();
 
         assertEquals(2, apps.size());
-        assertTrue(
-            apps
-                .stream()
+        assertTrue(apps.stream()
                 .map(Application::getId)
                 .toList()
-                .containsAll(List.of("dbc12b15-e975-4fa1-812b-15e975bfa13c", "74e34cc3-000f-492e-a34c-c3000f192e32"))
-        );
+                .containsAll(List.of("dbc12b15-e975-4fa1-812b-15e975bfa13c", "74e34cc3-000f-492e-a34c-c3000f192e32")));
     }
 
     @Test
     public void shouldSearchByQueryAndNameAndRestrictedIds() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            ApplicationCriteria.builder()
-                .query("app")
-                .name("Application test")
-                .restrictedToIds(Set.of("app-with-long-name", "dbc12b15-e975-4fa1-812b-15e975bfa13c"))
-                .build(),
-            null
-        );
+                ApplicationCriteria.builder()
+                        .query("app")
+                        .name("Application test")
+                        .restrictedToIds(Set.of("app-with-long-name", "dbc12b15-e975-4fa1-812b-15e975bfa13c"))
+                        .build(),
+                null);
         final List<Application> apps = appsPage.getContent();
 
         assertEquals(1, apps.size());
@@ -361,34 +376,36 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldSearchByEnvironmentIds() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).build(),
-            null
-        );
+                ApplicationCriteria.builder()
+                        .environmentIds(Set.of("DEV", "TEST", "PROD"))
+                        .build(),
+                null);
 
         final List<Application> apps = appsPage.getContent();
 
         assertThat(apps)
-            .map(Application::getName)
-            .containsExactlyInAnyOrder(
-                APP_WITH_LONG_NAME,
-                "Application test query 1",
-                "Application test query 2",
-                "app-with-client-id",
-                "app-with-client-id-archived",
-                "app-with-long-client-id",
-                "searched-app1",
-                "searched-app2"
-            );
+                .map(Application::getName)
+                .containsExactlyInAnyOrder(
+                        APP_WITH_LONG_NAME,
+                        "Application test query 1",
+                        "Application test query 2",
+                        "app-with-client-id",
+                        "app-with-client-id-archived",
+                        "app-with-long-client-id",
+                        "searched-app1",
+                        "searched-app2");
     }
 
     @Test
     public void shouldSearchByEnvironmentIdsWithSort() throws Exception {
-        Sortable sortable = new SortableBuilder().field("updated_at").order(Order.ASC).build();
+        Sortable sortable =
+                new SortableBuilder().field("updated_at").order(Order.ASC).build();
         final Page<Application> appsPage = applicationRepository.search(
-            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).build(),
-            null,
-            sortable
-        );
+                ApplicationCriteria.builder()
+                        .environmentIds(Set.of("DEV", "TEST", "PROD"))
+                        .build(),
+                null,
+                sortable);
 
         final List<Application> apps = appsPage.getContent();
 
@@ -398,27 +415,26 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         List<String> names = apps.stream().map(Application::getName).toList();
 
         assertEquals(
-            List.of(
-                "searched-app1",
-                "searched-app2",
-                "app-with-client-id",
-                "app-with-client-id-archived",
-                "app-with-long-client-id",
-                APP_WITH_LONG_NAME,
-                "Application test query 1",
-                "Application test query 2"
-            ),
-            names
-        );
+                List.of(
+                        "searched-app1",
+                        "searched-app2",
+                        "app-with-client-id",
+                        "app-with-client-id-archived",
+                        "app-with-long-client-id",
+                        APP_WITH_LONG_NAME,
+                        "Application test query 1",
+                        "Application test query 2"),
+                names);
     }
 
     @Test
     public void shouldSearchWithPagination() throws Exception {
         Pageable pageable = new PageableBuilder().pageSize(1).pageNumber(2).build();
         final Page<Application> appsPage = applicationRepository.search(
-            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).build(),
-            pageable
-        );
+                ApplicationCriteria.builder()
+                        .environmentIds(Set.of("DEV", "TEST", "PROD"))
+                        .build(),
+                pageable);
 
         final List<Application> apps = appsPage.getContent();
 
@@ -433,9 +449,10 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldSearchByGroups() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            ApplicationCriteria.builder().groups(Set.of("application-group")).build(),
-            null
-        );
+                ApplicationCriteria.builder()
+                        .groups(Set.of("application-group"))
+                        .build(),
+                null);
 
         final List<Application> apps = appsPage.getContent();
 
@@ -448,19 +465,15 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
-        final var beforeDeletion = applicationRepository
-            .findAll()
-            .stream()
-            .filter(app -> "DEFAULT".equals(app.getEnvironmentId()))
-            .map(Application::getId)
-            .toList();
+        final var beforeDeletion = applicationRepository.findAll().stream()
+                .filter(app -> "DEFAULT".equals(app.getEnvironmentId()))
+                .map(Application::getId)
+                .toList();
 
         final var deleted = applicationRepository.deleteByEnvironmentId("DEFAULT");
-        final var nbAfterDeletion = applicationRepository
-            .findAll()
-            .stream()
-            .filter(app -> "DEFAULT".equals(app.getEnvironmentId()))
-            .count();
+        final var nbAfterDeletion = applicationRepository.findAll().stream()
+                .filter(app -> "DEFAULT".equals(app.getEnvironmentId()))
+                .count();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(beforeDeletion.containsAll(deleted));

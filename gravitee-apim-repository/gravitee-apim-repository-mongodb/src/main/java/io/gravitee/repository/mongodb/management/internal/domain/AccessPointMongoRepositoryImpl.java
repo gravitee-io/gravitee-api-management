@@ -43,7 +43,8 @@ public class AccessPointMongoRepositoryImpl implements AccessPointMongoRepositor
         if (criteria != null) {
             List<Criteria> criteriaList = buildDBCriteria(criteria);
             if (!criteriaList.isEmpty()) {
-                aggregationOperations.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
+                aggregationOperations.add(
+                        Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
             }
         }
 
@@ -58,7 +59,8 @@ public class AccessPointMongoRepositoryImpl implements AccessPointMongoRepositor
         }
 
         aggregation = Aggregation.newAggregation(aggregationOperations);
-        final AggregationResults<AccessPointMongo> results = mongoTemplate.aggregate(aggregation, collectionName, AccessPointMongo.class);
+        final AggregationResults<AccessPointMongo> results =
+                mongoTemplate.aggregate(aggregation, collectionName, AccessPointMongo.class);
         return results.getMappedResults();
     }
 
@@ -66,7 +68,8 @@ public class AccessPointMongoRepositoryImpl implements AccessPointMongoRepositor
         List<Criteria> criteriaList = new ArrayList<>();
 
         if (criteria.getReferenceType() != null) {
-            criteriaList.add(Criteria.where("referenceType").is(criteria.getReferenceType().name()));
+            criteriaList.add(Criteria.where("referenceType")
+                    .is(criteria.getReferenceType().name()));
         }
 
         if (criteria.getTarget() != null) {
@@ -78,7 +81,8 @@ public class AccessPointMongoRepositoryImpl implements AccessPointMongoRepositor
         }
 
         if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
-            criteriaList.add(Criteria.where("updatedAt").gt(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
+            criteriaList.add(
+                    Criteria.where("updatedAt").gt(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
         } else {
             if (criteria.getFrom() > 0) {
                 criteriaList.add(Criteria.where("updatedAt").gt(new Date(criteria.getFrom())));

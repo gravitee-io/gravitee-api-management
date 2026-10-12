@@ -72,9 +72,12 @@ public class ApiMapperTest {
     @Test
     void should_map_to_update_api_entity_v4() {
         var updateApi = ApiFixtures.anUpdateApiV4();
-        updateApi.failover(
-            new FailoverV4().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000L).slowCallDuration(500L)
-        );
+        updateApi.failover(new FailoverV4()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000L)
+                .slowCallDuration(500L));
 
         var updateApiEntity = apiMapper.map(updateApi, "api-id");
         assertThat(updateApiEntity).isNotNull();
@@ -82,8 +85,10 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getCrossId()).isNull();
         assertThat(updateApiEntity.getName()).isEqualTo(updateApi.getName());
         assertThat(updateApiEntity.getApiVersion()).isEqualTo(updateApi.getApiVersion());
-        assertThat(updateApiEntity.getDefinitionVersion().name()).isEqualTo(updateApi.getDefinitionVersion().name());
-        assertThat(updateApiEntity.getType().name()).isEqualTo(updateApi.getType().name());
+        assertThat(updateApiEntity.getDefinitionVersion().name())
+                .isEqualTo(updateApi.getDefinitionVersion().name());
+        assertThat(updateApiEntity.getType().name())
+                .isEqualTo(updateApi.getType().name());
         assertThat(updateApiEntity.getDescription()).isEqualTo(updateApi.getDescription());
         assertThat(new ArrayList<>(updateApiEntity.getTags())).isEqualTo(updateApi.getTags());
         assertThat(updateApiEntity.getListeners()).isNotNull(); // Tested in ListenerMapperTest
@@ -92,20 +97,30 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getProperties()).isNotNull(); // Tested in PropertiesMapperTest
         assertThat(updateApiEntity.getResources()).isNotNull(); // Tested in ResourceMapperTest
         assertThat(updateApiEntity.getPlans().size()).isEqualTo(0);
-        assertThat(updateApiEntity.getFlowExecution()).usingRecursiveAssertion().isEqualTo(updateApi.getFlowExecution());
+        assertThat(updateApiEntity.getFlowExecution())
+                .usingRecursiveAssertion()
+                .isEqualTo(updateApi.getFlowExecution());
         assertThat(updateApiEntity.getFlows()).isNotNull(); // Tested in FlowMapperTest
         assertThat(updateApiEntity.getResponseTemplates()).isNotNull();
         assertThat(updateApiEntity.getServices()).isNotNull(); // Tested in ServiceMapperTest
         assertThat(new ArrayList<>(updateApiEntity.getGroups())).isEqualTo(updateApi.getGroups());
-        assertThat(updateApiEntity.getVisibility().name()).isEqualTo(updateApi.getVisibility().name());
+        assertThat(updateApiEntity.getVisibility().name())
+                .isEqualTo(updateApi.getVisibility().name());
         assertThat(new ArrayList<>(updateApiEntity.getCategories())).isEqualTo(updateApi.getCategories());
         assertThat(updateApiEntity.getLabels()).isEqualTo(updateApi.getLabels());
         assertThat(updateApiEntity.getMetadata()).isNull();
-        assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
-        assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
-        assertThat(updateApiEntity.getFailover()).isEqualTo(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        assertThat(updateApiEntity.getLifecycleState().name())
+                .isEqualTo(updateApi.getLifecycleState().name());
+        assertThat(updateApiEntity.isDisableMembershipNotifications())
+                .isEqualTo(updateApi.getDisableMembershipNotifications());
+        assertThat(updateApiEntity.getFailover())
+                .isEqualTo(Failover.builder()
+                        .enabled(true)
+                        .perSubscription(false)
+                        .maxFailures(3)
+                        .openStateDuration(11000)
+                        .slowCallDuration(500)
+                        .build());
     }
 
     @Test
@@ -124,18 +139,23 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getProperties()).isNotNull(); // Tested in PropertiesMapperTest
         assertThat(updateApiEntity.getResources()).isNotNull(); // Tested in ResourceMapperTest
         assertThat(updateApiEntity.getPlans().size()).isEqualTo(0);
-        assertThat(updateApiEntity.getFlowMode().name()).isEqualTo(updateApi.getFlowMode().getValue());
+        assertThat(updateApiEntity.getFlowMode().name())
+                .isEqualTo(updateApi.getFlowMode().getValue());
         assertThat(updateApiEntity.getFlows()).isNotNull(); // Tested in FlowMapperTest
         assertThat(updateApiEntity.getResponseTemplates()).isNotNull();
         assertThat(updateApiEntity.getServices()).isNotNull(); // Tested in ServiceMapperTest
         assertThat(new ArrayList<>(updateApiEntity.getGroups())).isEqualTo(updateApi.getGroups());
-        assertThat(updateApiEntity.getVisibility().name()).isEqualTo(updateApi.getVisibility().name());
+        assertThat(updateApiEntity.getVisibility().name())
+                .isEqualTo(updateApi.getVisibility().name());
         assertThat(new ArrayList<>(updateApiEntity.getCategories())).isEqualTo(updateApi.getCategories());
         assertThat(updateApiEntity.getLabels()).isEqualTo(updateApi.getLabels());
         assertThat(updateApiEntity.getMetadata()).isNull();
-        assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
-        assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
-        assertThat(updateApiEntity.getExecutionMode().name()).isEqualTo(updateApi.getExecutionMode().getValue());
+        assertThat(updateApiEntity.getLifecycleState().name())
+                .isEqualTo(updateApi.getLifecycleState().name());
+        assertThat(updateApiEntity.isDisableMembershipNotifications())
+                .isEqualTo(updateApi.getDisableMembershipNotifications());
+        assertThat(updateApiEntity.getExecutionMode().name())
+                .isEqualTo(updateApi.getExecutionMode().getValue());
     }
 
     @ParameterizedTest
@@ -194,18 +214,14 @@ public class ApiMapperTest {
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
 
         var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
-        var api = baseApi
-            .toBuilder()
-            .apiDefinitionValue(
-                baseApi
-                    .getApiDefinitionHttpV4()
-                    .toBuilder()
-                    .failover(Failover.builder().enabled(true).maxFailures(3).build())
-                    .services(new ApiServices())
-                    .allowedInApiProducts(true)
-                    .build()
-            )
-            .build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .failover(
+                                Failover.builder().enabled(true).maxFailures(3).build())
+                        .services(new ApiServices())
+                        .allowedInApiProducts(true)
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
 
@@ -220,13 +236,18 @@ public class ApiMapperTest {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
 
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .build();
 
         var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
-        var api = baseApi
-            .toBuilder()
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-            .build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
 
@@ -239,20 +260,28 @@ public class ApiMapperTest {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
 
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .configuration("{\"key\":\"value\"}")
+                .build();
 
         var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
-        var api = baseApi
-            .toBuilder()
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-            .build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
 
         Assertions.assertThat(apiV4.getResources()).hasSize(1);
         var configuration = apiV4.getResources().get(0).getConfiguration();
         assertThat(configuration).isInstanceOf(Map.class);
-        Assertions.assertThat(configuration).asInstanceOf(InstanceOfAssertFactories.MAP).containsEntry("key", "value");
+        Assertions.assertThat(configuration)
+                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                .containsEntry("key", "value");
     }
 
     @Test
@@ -260,13 +289,18 @@ public class ApiMapperTest {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
 
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .build();
 
         var baseApi = fixtures.core.model.ApiFixtures.aNativeApi();
-        var api = baseApi
-            .toBuilder()
-            .apiDefinitionValue(baseApi.getApiDefinitionNativeV4().toBuilder().resources(List.of(resource)).build())
-            .build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionNativeV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToNativeV4(api, uriInfo, null);
 
@@ -280,23 +314,22 @@ public class ApiMapperTest {
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
 
         var dynamicProperty = io.gravitee.definition.model.v4.service.Service.builder()
-            .type("http-dynamic-properties")
-            .enabled(true)
-            .build();
-        var property = io.gravitee.definition.model.v4.property.Property.builder().key("dyn-one").value("value-1").dynamic(true).build();
+                .type("http-dynamic-properties")
+                .enabled(true)
+                .build();
+        var property = io.gravitee.definition.model.v4.property.Property.builder()
+                .key("dyn-one")
+                .value("value-1")
+                .dynamic(true)
+                .build();
 
         var baseApi = fixtures.core.model.ApiFixtures.aNativeApi();
-        var api = baseApi
-            .toBuilder()
-            .apiDefinitionValue(
-                baseApi
-                    .getApiDefinitionNativeV4()
-                    .toBuilder()
-                    .properties(List.of(property))
-                    .services(new io.gravitee.definition.model.v4.nativeapi.NativeApiServices(dynamicProperty))
-                    .build()
-            )
-            .build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionNativeV4().toBuilder()
+                        .properties(List.of(property))
+                        .services(new io.gravitee.definition.model.v4.nativeapi.NativeApiServices(dynamicProperty))
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToNativeV4(api, uriInfo, null);
 
@@ -313,7 +346,11 @@ public class ApiMapperTest {
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
 
         var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
-        var api = baseApi.toBuilder().apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(null).build()).build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(null)
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
 
@@ -326,10 +363,11 @@ public class ApiMapperTest {
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
 
         var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
-        var api = baseApi
-            .toBuilder()
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().responseTemplates(null).build())
-            .build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .responseTemplates(null)
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
 
@@ -346,10 +384,11 @@ public class ApiMapperTest {
         var templates = java.util.Map.of("FOO", java.util.Map.of("application/json", template));
 
         var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
-        var api = baseApi
-            .toBuilder()
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().responseTemplates(templates).build())
-            .build();
+        var api = baseApi.toBuilder()
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .responseTemplates(templates)
+                        .build())
+                .build();
 
         var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
 
@@ -371,10 +410,11 @@ public class ApiMapperTest {
         @Test
         void coalesces_null_to_false() {
             var base = fixtures.core.model.ApiFixtures.aProxyApiV4();
-            var api = base
-                .toBuilder()
-                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(null).build())
-                .build();
+            var api = base.toBuilder()
+                    .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder()
+                            .allowedInApiProducts(null)
+                            .build())
+                    .build();
 
             var result = apiMapper.mapToV4(api, uriInfo, null);
 
@@ -384,10 +424,11 @@ public class ApiMapperTest {
         @Test
         void preserves_true() {
             var base = fixtures.core.model.ApiFixtures.aProxyApiV4();
-            var api = base
-                .toBuilder()
-                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(true).build())
-                .build();
+            var api = base.toBuilder()
+                    .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder()
+                            .allowedInApiProducts(true)
+                            .build())
+                    .build();
 
             var result = apiMapper.mapToV4(api, uriInfo, null);
 
@@ -397,10 +438,11 @@ public class ApiMapperTest {
         @Test
         void preserves_false() {
             var base = fixtures.core.model.ApiFixtures.aProxyApiV4();
-            var api = base
-                .toBuilder()
-                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(false).build())
-                .build();
+            var api = base.toBuilder()
+                    .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder()
+                            .allowedInApiProducts(false)
+                            .build())
+                    .build();
 
             var result = apiMapper.mapToV4(api, uriInfo, null);
 
@@ -413,41 +455,39 @@ public class ApiMapperTest {
 
         static Stream<Arguments> computeOriginContext() {
             return Stream.of(
-                arguments(new OriginContext.Management(), new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT)),
-                arguments(
-                    new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED),
-                    new KubernetesOriginContext()
-                        .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
-                        .syncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES)
-                        .origin(BaseOriginContext.OriginEnum.KUBERNETES)
-                ),
-                arguments(
-                    new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "MANAGEMENT"),
-                    new KubernetesOriginContext()
-                        .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
-                        .syncFrom(KubernetesOriginContext.SyncFromEnum.MANAGEMENT)
-                        .origin(BaseOriginContext.OriginEnum.KUBERNETES)
-                ),
-                arguments(
-                    new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "KUBERNETES"),
-                    new KubernetesOriginContext()
-                        .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
-                        .syncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES)
-                        .origin(BaseOriginContext.OriginEnum.KUBERNETES)
-                ),
-                arguments(
-                    new OriginContext.Integration("integID"),
-                    new IntegrationOriginContext().integrationId("integID").origin(BaseOriginContext.OriginEnum.INTEGRATION)
-                ),
-                arguments(
-                    new OriginContext.Integration("integID", "inte name", "provider"),
-                    new IntegrationOriginContext()
-                        .integrationId("integID")
-                        .provider("provider")
-                        .integrationName("inte name")
-                        .origin(BaseOriginContext.OriginEnum.INTEGRATION)
-                )
-            );
+                    arguments(
+                            new OriginContext.Management(),
+                            new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT)),
+                    arguments(
+                            new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED),
+                            new KubernetesOriginContext()
+                                    .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
+                                    .syncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES)
+                                    .origin(BaseOriginContext.OriginEnum.KUBERNETES)),
+                    arguments(
+                            new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "MANAGEMENT"),
+                            new KubernetesOriginContext()
+                                    .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
+                                    .syncFrom(KubernetesOriginContext.SyncFromEnum.MANAGEMENT)
+                                    .origin(BaseOriginContext.OriginEnum.KUBERNETES)),
+                    arguments(
+                            new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, "KUBERNETES"),
+                            new KubernetesOriginContext()
+                                    .mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED)
+                                    .syncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES)
+                                    .origin(BaseOriginContext.OriginEnum.KUBERNETES)),
+                    arguments(
+                            new OriginContext.Integration("integID"),
+                            new IntegrationOriginContext()
+                                    .integrationId("integID")
+                                    .origin(BaseOriginContext.OriginEnum.INTEGRATION)),
+                    arguments(
+                            new OriginContext.Integration("integID", "inte name", "provider"),
+                            new IntegrationOriginContext()
+                                    .integrationId("integID")
+                                    .provider("provider")
+                                    .integrationName("inte name")
+                                    .origin(BaseOriginContext.OriginEnum.INTEGRATION)));
         }
 
         @ParameterizedTest
@@ -487,15 +527,19 @@ public class ApiMapperTest {
                 var firstListener = result.getListeners().getFirst();
                 softly.assertThat(firstListener).isNotNull();
                 softly.assertThat(firstListener.getType()).isEqualTo(ListenerType.KAFKA);
-                softly.assertThat(firstListener.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+                softly.assertThat(firstListener.getPlugins())
+                        .isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
 
                 var firstEntrypoint = firstListener.getEntrypoints().getFirst();
                 softly.assertThat(firstEntrypoint).isNotNull();
                 softly.assertThat(firstEntrypoint.getType()).isEqualTo("Entrypoint type");
                 softly.assertThat(firstEntrypoint.getConfiguration()).isEqualTo("{\n  \"nice\" : \"configuration\"\n}");
-                softly.assertThat(firstEntrypoint.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+                softly.assertThat(firstEntrypoint.getPlugins())
+                        .isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
 
-                var expectedFlow = FlowFixtures.aModelFlowNativeV4().toBuilder().tags(Set.of("tag1", "tag2")).build();
+                var expectedFlow = FlowFixtures.aModelFlowNativeV4().toBuilder()
+                        .tags(Set.of("tag1", "tag2"))
+                        .build();
                 softly.assertThat(result.getFlows()).isNotNull().first().isEqualTo(expectedFlow);
                 io.gravitee.definition.model.v4.analytics.Analytics mappedAnalytics = result.getAnalytics();
                 softly.assertThat(mappedAnalytics.isEnabled()).isTrue();
@@ -510,9 +554,9 @@ public class ApiMapperTest {
          */
         @Test
         void should_map_a_chosen_connection_event_selection() {
-            var wire = new Analytics().connectionEvents(
-                Set.of(Analytics.ConnectionEventsEnum.CONNECTED, Analytics.ConnectionEventsEnum.DISCONNECTED)
-            );
+            var wire = new Analytics()
+                    .connectionEvents(Set.of(
+                            Analytics.ConnectionEventsEnum.CONNECTED, Analytics.ConnectionEventsEnum.DISCONNECTED));
 
             var core = ApiMapper.INSTANCE.map(wire);
 
@@ -556,15 +600,19 @@ public class ApiMapperTest {
                 var firstListener = result.getListeners().getFirst();
                 softly.assertThat(firstListener).isNotNull();
                 softly.assertThat(firstListener.getType()).isEqualTo(ListenerType.HTTP);
-                softly.assertThat(firstListener.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+                softly.assertThat(firstListener.getPlugins())
+                        .isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
 
                 var firstEntrypoint = firstListener.getEntrypoints().getFirst();
                 softly.assertThat(firstEntrypoint).isNotNull();
                 softly.assertThat(firstEntrypoint.getType()).isEqualTo("Entrypoint type");
                 softly.assertThat(firstEntrypoint.getConfiguration()).isEqualTo("{\n  \"nice\" : \"configuration\"\n}");
-                softly.assertThat(firstEntrypoint.getPlugins()).isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
+                softly.assertThat(firstEntrypoint.getPlugins())
+                        .isEqualTo(List.of(new Plugin("entrypoint-connector", "Entrypoint type")));
 
-                var expectedFlow = FlowFixtures.aModelFlowHttpV4().toBuilder().tags(Set.of("tag1", "tag2")).build();
+                var expectedFlow = FlowFixtures.aModelFlowHttpV4().toBuilder()
+                        .tags(Set.of("tag1", "tag2"))
+                        .build();
                 softly.assertThat(result.getFlows()).isNotNull().first().isEqualTo(expectedFlow);
             });
         }

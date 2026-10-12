@@ -87,8 +87,8 @@ public class RollbackApiUseCase {
 
     public void execute(Input input) {
         Api api = eventQueryService
-            .findApiFromPublishApiEvent(input.eventId)
-            .orElseThrow(() -> new IllegalStateException("Cannot rollback an event that is not a publish event!"));
+                .findApiFromPublishApiEvent(input.eventId)
+                .orElseThrow(() -> new IllegalStateException("Cannot rollback an event that is not a publish event!"));
         var apiUpdated = switch (api.getApiDefinitionValue()) {
             case io.gravitee.definition.model.v4.Api apiDefinition -> {
                 var toRollback = apiCrudService.get(apiDefinition.getId());
@@ -96,7 +96,7 @@ public class RollbackApiUseCase {
                 // Rollback API from API definition without plans
                 var rollbackedApi = toRollback.rollbackTo(apiDefinition);
 
-                //update the description since the description is not stored in the definition
+                // update the description since the description is not stored in the definition
                 rollbackedApi.setDescription(api.getDescription());
 
                 keepStoredEncryption(toRollback.getApiDefinitionHttpV4(), rollbackedApi.getApiDefinitionHttpV4());
@@ -110,17 +110,20 @@ public class RollbackApiUseCase {
             case io.gravitee.definition.model.Api apiDefinition -> {
                 var toRollback = apiCrudService.get(api.getId());
                 if (toRollback.getDefinitionVersion() != io.gravitee.definition.model.DefinitionVersion.V4) {
-                    throw new IllegalStateException("The migration is only built for rollback migration from V2 to V4.");
+                    throw new IllegalStateException(
+                            "The migration is only built for rollback migration from V2 to V4.");
                 }
-                if (
-                    apiDefinition.getServices().getDynamicPropertyService() != null &&
-                    apiDefinition.getServices().getDynamicPropertyService().isEnabled()
-                ) {
+                if (apiDefinition.getServices().getDynamicPropertyService() != null
+                        && apiDefinition
+                                .getServices()
+                                .getDynamicPropertyService()
+                                .isEnabled()) {
                     apiStateService.stopV4DynamicProperties(api.getId());
                 }
                 Api rollbackedApi = ROLLBACK_OPERATOR.rollback(toRollback, apiDefinition);
 
-                var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), api.getId());
+                var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(
+                        input.auditInfo().organizationId(), api.getId());
                 var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
                 apiIndexerDomainService.delete(indexerContext, toRollback);
                 apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
@@ -136,54 +139,53 @@ public class RollbackApiUseCase {
                 for (String planId : plans.closedPlans()) {
                     flowCrudService.savePlanFlowsV2(planId, List.of());
                 }
-                if (
-                    apiDefinition.getServices().getDynamicPropertyService() != null &&
-                    apiDefinition.getServices().getDynamicPropertyService().isEnabled()
-                ) {
+                if (apiDefinition.getServices().getDynamicPropertyService() != null
+                        && apiDefinition
+                                .getServices()
+                                .getDynamicPropertyService()
+                                .isEnabled()) {
                     apiStateService.startV2DynamicProperties(rollbackedApi.getId());
                 }
                 yield apiUpdatedV2;
             }
             case NativeApi apiDefinition -> {
                 var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(
-                    input.auditInfo().organizationId(),
-                    apiDefinition.getId()
-                );
+                        input.auditInfo().organizationId(), apiDefinition.getId());
 
                 var apiUpdatedNativeV4 = updateNativeApiDomainService.update(
-                    apiDefinition.getId(),
-                    toRollback -> {
-                        // Rollback API from API definition without plans
-                        var rollbackedApi = toRollback.rollbackTo(apiDefinition);
-                        // update the description since the description is not stored in the definition
-                        rollbackedApi.setDescription(api.getDescription());
-                        keepStoredEncryption(toRollback.getApiDefinitionNativeV4(), rollbackedApi.getApiDefinitionNativeV4());
-                        return rollbackedApi;
-                    },
-                    // no sanitizing: a rollback restores a definition that was already validated when it was deployed,
-                    // which is what the HTTP branch gets too
-                    (existing, updated) -> updated,
-                    input.auditInfo,
-                    primaryOwner,
-                    new ApiIndexerDomainService.Context(input.auditInfo(), false)
-                );
+                        apiDefinition.getId(),
+                        toRollback -> {
+                            // Rollback API from API definition without plans
+                            var rollbackedApi = toRollback.rollbackTo(apiDefinition);
+                            // update the description since the description is not stored in the definition
+                            rollbackedApi.setDescription(api.getDescription());
+                            keepStoredEncryption(
+                                    toRollback.getApiDefinitionNativeV4(), rollbackedApi.getApiDefinitionNativeV4());
+                            return rollbackedApi;
+                        },
+                        // no sanitizing: a rollback restores a definition that was already validated when it was
+                        // deployed,
+                        // which is what the HTTP branch gets too
+                        (existing, updated) -> updated,
+                        input.auditInfo,
+                        primaryOwner,
+                        new ApiIndexerDomainService.Context(input.auditInfo(), false));
 
                 // Rollback plans from API definition plans
                 rollbackPlansV4(apiDefinition.getPlans(), apiUpdatedNativeV4, input.auditInfo);
                 yield apiUpdatedNativeV4;
             }
-            case null, default -> throw new IllegalStateException(
-                "Cannot rollback this API: only V2 and V4 APIs are supported (%s)".formatted(input.eventId)
-            );
+            case null, default ->
+                throw new IllegalStateException(
+                        "Cannot rollback this API: only V2 and V4 APIs are supported (%s)".formatted(input.eventId));
         };
 
         createAuditLog(input.auditInfo, apiUpdated.getId(), apiUpdated.getUpdatedAt());
     }
 
     private void keepStoredEncryption(AbstractApi storedDefinition, AbstractApi restoredDefinition) {
-        restoredDefinition.setProperties(
-            propertyDomainService.encryptRestoredValuesOfEncryptedKeys(storedDefinition.getProperties(), restoredDefinition.getProperties())
-        );
+        restoredDefinition.setProperties(propertyDomainService.encryptRestoredValuesOfEncryptedKeys(
+                storedDefinition.getProperties(), restoredDefinition.getProperties()));
     }
 
     public record Input(String eventId, AuditInfo auditInfo) {}
@@ -200,15 +202,13 @@ public class RollbackApiUseCase {
         Set<io.gravitee.apim.core.plan.model.Plan> plansToAdd = new HashSet<>();
         Set<io.gravitee.apim.core.plan.model.Plan> plansToUpdate = new HashSet<>();
 
-        Map<String, io.gravitee.apim.core.plan.model.Plan> existingPlans = planQueryService
-            .findAllByApiId(api.getId())
-            .stream()
-            .collect(toMap(io.gravitee.apim.core.plan.model.Plan::getId, Function.identity()));
+        Map<String, io.gravitee.apim.core.plan.model.Plan> existingPlans =
+                planQueryService.findAllByApiId(api.getId()).stream()
+                        .collect(toMap(io.gravitee.apim.core.plan.model.Plan::getId, Function.identity()));
 
         for (AbstractPlan apiDefinitionPlan : apiDefinitionPlans) {
-            io.gravitee.apim.core.plan.model.Plan existingPlan = apiDefinitionPlan.getId() != null
-                ? existingPlans.get(apiDefinitionPlan.getId())
-                : null;
+            io.gravitee.apim.core.plan.model.Plan existingPlan =
+                    apiDefinitionPlan.getId() != null ? existingPlans.get(apiDefinitionPlan.getId()) : null;
 
             if (existingPlan == null) {
                 // If plan not exist create new plan from API definition plan
@@ -219,47 +219,42 @@ public class RollbackApiUseCase {
         }
 
         // Add new plans
-        plansToAdd.forEach(planToAdd -> createPlanDomainService.create(planToAdd, planFlowsOf(planToAdd), api, auditInfo));
+        plansToAdd.forEach(
+                planToAdd -> createPlanDomainService.create(planToAdd, planFlowsOf(planToAdd), api, auditInfo));
 
         // Update existing plans
-        // Set existingPlanStatuses to empty map because we don't check status for rollback. Allowing to rollback closed plans
+        // Set existingPlanStatuses to empty map because we don't check status for rollback. Allowing to rollback closed
+        // plans
         Map<String, PlanStatus> existingPlanStatuses = Map.of();
-        plansToUpdate.forEach(planToUpdate ->
-            updatePlanDomainService.update(planToUpdate, planFlowsOf(planToUpdate), existingPlanStatuses, api, auditInfo)
-        );
+        plansToUpdate.forEach(planToUpdate -> updatePlanDomainService.update(
+                planToUpdate, planFlowsOf(planToUpdate), existingPlanStatuses, api, auditInfo));
 
         // Close plans that are not in the API definition
-        existingPlans
-            .values()
-            .stream()
-            .filter(
-                existingPlan ->
-                    existingPlan.getPlanStatus() != PlanStatus.CLOSED &&
-                    !plansToUpdate
-                        .stream()
-                        .map(io.gravitee.apim.core.plan.model.Plan::getId)
-                        .collect(toSet())
-                        .contains(existingPlan.getId())
-            )
-            .forEach(existingPlan -> closePlanDomainService.close(existingPlan.getId(), auditInfo));
+        existingPlans.values().stream()
+                .filter(existingPlan -> existingPlan.getPlanStatus() != PlanStatus.CLOSED
+                        && !plansToUpdate.stream()
+                                .map(io.gravitee.apim.core.plan.model.Plan::getId)
+                                .collect(toSet())
+                                .contains(existingPlan.getId()))
+                .forEach(existingPlan -> closePlanDomainService.close(existingPlan.getId(), auditInfo));
     }
 
     private static io.gravitee.apim.core.plan.model.Plan corePlanOf(String apiId, AbstractPlan apiDefinitionPlan) {
         return switch (apiDefinitionPlan) {
             case Plan httpV4 -> new io.gravitee.apim.core.plan.model.Plan(apiId, httpV4);
             case NativePlan nativeV4 -> new io.gravitee.apim.core.plan.model.Plan(apiId, nativeV4);
-            default -> throw new IllegalStateException("Unsupported V4 plan definition: " + apiDefinitionPlan.getClass());
+            default ->
+                throw new IllegalStateException("Unsupported V4 plan definition: " + apiDefinitionPlan.getClass());
         };
     }
 
     private static io.gravitee.apim.core.plan.model.Plan rollbackPlanTo(
-        io.gravitee.apim.core.plan.model.Plan existingPlan,
-        AbstractPlan apiDefinitionPlan
-    ) {
+            io.gravitee.apim.core.plan.model.Plan existingPlan, AbstractPlan apiDefinitionPlan) {
         return switch (apiDefinitionPlan) {
             case Plan httpV4 -> existingPlan.rollbackTo(httpV4);
             case NativePlan nativeV4 -> existingPlan.rollbackTo(nativeV4);
-            default -> throw new IllegalStateException("Unsupported V4 plan definition: " + apiDefinitionPlan.getClass());
+            default ->
+                throw new IllegalStateException("Unsupported V4 plan definition: " + apiDefinitionPlan.getClass());
         };
     }
 
@@ -273,8 +268,7 @@ public class RollbackApiUseCase {
     }
 
     private void createAuditLog(AuditInfo auditInfo, String apiId, ZonedDateTime auditCreatedAt) {
-        this.auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        this.auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(apiId)
@@ -282,76 +276,60 @@ public class RollbackApiUseCase {
                 .actor(auditInfo.actor())
                 .createdAt(auditCreatedAt)
                 .properties(Collections.emptyMap())
-                .build()
-        );
+                .build());
     }
 
-    private Plans rollbackPlansV2(List<io.gravitee.definition.model.Plan> apiDefinitionPlans, Api api, AuditInfo auditInfo) {
+    private Plans rollbackPlansV2(
+            List<io.gravitee.definition.model.Plan> apiDefinitionPlans, Api api, AuditInfo auditInfo) {
         if (apiDefinitionPlans == null) {
             return new Plans(List.of(), List.of());
         }
 
-        var plansToUpdateById = stream(apiDefinitionPlans).collect(
-            Collectors.toMap(io.gravitee.definition.model.Plan::getId, Function.identity())
-        );
+        var plansToUpdateById = stream(apiDefinitionPlans)
+                .collect(Collectors.toMap(io.gravitee.definition.model.Plan::getId, Function.identity()));
 
-        var existingPlansMustBeRollbackOrClose = planQueryService
-            .findAllByApiId(api.getId())
-            .stream()
-            .collect(
-                Collectors.groupingBy(currentPlan -> {
+        var existingPlansMustBeRollbackOrClose = planQueryService.findAllByApiId(api.getId()).stream()
+                .collect(Collectors.groupingBy(currentPlan -> {
                     var targetOfRollback = plansToUpdateById.get(currentPlan.getId());
                     if (targetOfRollback == null) {
                         return CLOSE;
-                    } else if (
-                        PlanStatus.valueOf(targetOfRollback.getStatus()) != PlanStatus.CLOSED &&
-                        currentPlan.getPlanStatus() == PlanStatus.CLOSED
-                    ) {
+                    } else if (PlanStatus.valueOf(targetOfRollback.getStatus()) != PlanStatus.CLOSED
+                            && currentPlan.getPlanStatus() == PlanStatus.CLOSED) {
                         currentPlan.setPlanStatus(PlanStatus.valueOf(targetOfRollback.getStatus()));
                         return REOPEN;
                     }
                     return ROLLBACK;
-                })
-            );
-        if (
-            Stream.of(ROLLBACK, REOPEN)
-                .mapToInt(c -> size(existingPlansMustBeRollbackOrClose.get(c)))
-                .sum() <
-            apiDefinitionPlans.size()
-        ) {
+                }));
+        if (Stream.of(ROLLBACK, REOPEN)
+                        .mapToInt(c -> size(existingPlansMustBeRollbackOrClose.get(c)))
+                        .sum()
+                < apiDefinitionPlans.size()) {
             throw new IllegalStateException("Cannot rollback plans because some plans have been removed");
         }
 
         // Close plans
-        existingPlansMustBeRollbackOrClose
-            .getOrDefault(CLOSE, List.of())
-            .forEach(plan -> {
-                if (plan.getPlanStatus() != PlanStatus.CLOSED) {
-                    closePlanDomainService.close(plan.getId(), auditInfo);
-                }
-            });
+        existingPlansMustBeRollbackOrClose.getOrDefault(CLOSE, List.of()).forEach(plan -> {
+            if (plan.getPlanStatus() != PlanStatus.CLOSED) {
+                closePlanDomainService.close(plan.getId(), auditInfo);
+            }
+        });
 
         // Rollback plans
-        existingPlansMustBeRollbackOrClose
-            .getOrDefault(ROLLBACK, List.of())
-            .forEach(planToUpdate -> {
-                var plan = plansToUpdateById.get(planToUpdate.getId());
-                planCrudService.update(ROLLBACK_OPERATOR.rollback(planToUpdate, plan));
-            });
+        existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).forEach(planToUpdate -> {
+            var plan = plansToUpdateById.get(planToUpdate.getId());
+            planCrudService.update(ROLLBACK_OPERATOR.rollback(planToUpdate, plan));
+        });
 
         // Reopen plans
         existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).forEach(planCrudService::update);
         var opens = Stream.concat(
-            existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).stream(),
-            existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).stream()
-        )
-            .map(io.gravitee.apim.core.plan.model.Plan::getId)
-            .toList();
-        var closes = existingPlansMustBeRollbackOrClose
-            .getOrDefault(CLOSE, List.of())
-            .stream()
-            .map(io.gravitee.apim.core.plan.model.Plan::getId)
-            .toList();
+                        existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).stream(),
+                        existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).stream())
+                .map(io.gravitee.apim.core.plan.model.Plan::getId)
+                .toList();
+        var closes = existingPlansMustBeRollbackOrClose.getOrDefault(CLOSE, List.of()).stream()
+                .map(io.gravitee.apim.core.plan.model.Plan::getId)
+                .toList();
         return new Plans(opens, closes);
     }
 

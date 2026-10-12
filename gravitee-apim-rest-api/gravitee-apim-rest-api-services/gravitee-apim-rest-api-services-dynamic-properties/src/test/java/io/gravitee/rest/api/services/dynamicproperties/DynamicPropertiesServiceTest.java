@@ -91,16 +91,13 @@ public class DynamicPropertiesServiceTest {
     private ObjectMapper objectMapper = Mockito.spy(new GraviteeMapper());
 
     @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter(
             objectMapper,
             mock(PlanService.class),
             mock(FlowService.class),
             categoryMapper,
             mock(ParameterService.class),
-            mock(WorkflowService.class)
-        )
-    );
+            mock(WorkflowService.class)));
 
     @InjectMocks
     private DynamicPropertiesService cut;
@@ -116,10 +113,9 @@ public class DynamicPropertiesServiceTest {
         lenient().when(environmentService.findById(environment.getId())).thenReturn(environment);
         lenient().doCallRealMethod().when(apiConverter).toApiEntity(any(), any(), eq(false));
         lenient()
-            .when(objectMapper.readValue(any(String.class), (Class<Object>) any()))
-            .thenAnswer(i ->
-                graviteeMapper.readValue((String) i.getArgument(0), (Class<io.gravitee.definition.model.Api>) i.getArgument(1))
-            );
+                .when(objectMapper.readValue(any(String.class), (Class<Object>) any()))
+                .thenAnswer(i -> graviteeMapper.readValue(
+                        (String) i.getArgument(0), (Class<io.gravitee.definition.model.Api>) i.getArgument(1)));
     }
 
     @Test
@@ -127,7 +123,8 @@ public class DynamicPropertiesServiceTest {
         // Used by the Serializer when converting the Api to ApiEntity
         HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
         providerConfiguration.setUrl("http://localhost:8080/success");
-        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        providerConfiguration.setSpecification(
+                IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
         final Api api = createApi(providerConfiguration);
 
         cut.onEvent(new SimpleEvent<>(ApiEvent.DEPLOY, api));
@@ -152,7 +149,8 @@ public class DynamicPropertiesServiceTest {
         // Used by the Serializer when converting the Api to ApiEntity
         HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
         providerConfiguration.setUrl("http://localhost:8080/success");
-        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        providerConfiguration.setSpecification(
+                IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
         final Api api = createApi(providerConfiguration);
 
         cut.onEvent(new SimpleEvent<>(ApiEvent.START_DYNAMIC_PROPERTY_V2, api));
@@ -203,7 +201,8 @@ public class DynamicPropertiesServiceTest {
     public void should_restart_when_update_api_and_scheduler_already_running() throws Exception {
         HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
         providerConfiguration.setUrl("http://localhost:8080/success");
-        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        providerConfiguration.setSpecification(
+                IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
         final ApiEntity previous = createApiEntity(providerConfiguration);
         previous.getServices().put(DynamicPropertyService.class, mock(DynamicPropertyService.class));
 
@@ -225,23 +224,28 @@ public class DynamicPropertiesServiceTest {
         // Used by the Serializer when converting the Api to ApiEntity
         HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
         providerConfiguration.setUrl("http://localhost:8080/success");
-        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        providerConfiguration.setSpecification(
+                IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
         final Api api = createApi(providerConfiguration);
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, api));
 
-        assertThat(cut.schedulers).anySatisfy(((apiEntity, scheduler) -> assertThat(apiEntity.getId()).isEqualTo(api.getId())));
+        assertThat(cut.schedulers)
+                .anySatisfy(
+                        ((apiEntity, scheduler) -> assertThat(apiEntity.getId()).isEqualTo(api.getId())));
     }
 
     @Test
     public void should_do_nothing_when_update_api_and_no_changes() throws Exception {
         HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
         providerConfiguration.setUrl("http://localhost:8080/success");
-        final String joltSpec = IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset());
+        final String joltSpec =
+                IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset());
         providerConfiguration.setSpecification(joltSpec);
 
         final ApiEntity previous = createApiEntity(providerConfiguration);
         final DynamicPropertyService previousService = previous.getServices().getDynamicPropertyService();
-        final HttpDynamicPropertyProviderConfiguration previousConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        final HttpDynamicPropertyProviderConfiguration previousConfiguration =
+                new HttpDynamicPropertyProviderConfiguration();
         previousConfiguration.setUrl("http://localhost:8080/success");
         previousConfiguration.setSpecification(joltSpec);
         previousService.setConfiguration(previousConfiguration);
@@ -262,10 +266,8 @@ public class DynamicPropertiesServiceTest {
         HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
         final ApiEntity previous = createApiEntity(providerConfiguration);
         final Api api = createApi(providerConfiguration);
-        final io.gravitee.definition.model.Api apiDefinition = graviteeMapper.readValue(
-            api.getDefinition(),
-            io.gravitee.definition.model.Api.class
-        );
+        final io.gravitee.definition.model.Api apiDefinition =
+                graviteeMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
         apiDefinition.getServices().getDynamicPropertyService().setEnabled(false);
         api.setDefinition(graviteeMapper.writeValueAsString(apiDefinition));
 

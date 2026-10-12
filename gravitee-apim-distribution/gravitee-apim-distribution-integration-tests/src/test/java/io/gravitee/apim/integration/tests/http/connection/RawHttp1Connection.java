@@ -50,7 +50,13 @@ class RawHttp1Connection {
         STALLED,
     }
 
-    record Request(String method, String path, String version, int bodySize, boolean chunkedEncoding, Map<String, String> headers) {
+    record Request(
+            String method,
+            String path,
+            String version,
+            int bodySize,
+            boolean chunkedEncoding,
+            Map<String, String> headers) {
         static Request get(String path) {
             return new Request("GET", path, "HTTP/1.1", 0, false, Map.of());
         }
@@ -124,14 +130,15 @@ class RawHttp1Connection {
         RawHttp1Connection connection = open(vertx, port);
         try {
             connection.write(first);
-            Response firstResponse = connection.awaitResponses(1, FIRST_RESPONSE_TIMEOUT).get(0);
+            Response firstResponse =
+                    connection.awaitResponses(1, FIRST_RESPONSE_TIMEOUT).get(0);
 
             connection.write(first.withoutBody());
             try {
-                await()
-                    .atMost(SECOND_OUTCOME_TIMEOUT)
-                    .pollInterval(Duration.ofMillis(20))
-                    .until(() -> connection.closed || connection.parseResponses().size() >= 2);
+                await().atMost(SECOND_OUTCOME_TIMEOUT)
+                        .pollInterval(Duration.ofMillis(20))
+                        .until(() ->
+                                connection.closed || connection.parseResponses().size() >= 2);
             } catch (ConditionTimeoutException e) {
                 return new Outcome(firstResponse, SecondOutcome.STALLED, null);
             }
@@ -148,26 +155,30 @@ class RawHttp1Connection {
 
     void write(Request request) {
         StringBuilder head = new StringBuilder()
-            .append(request.method())
-            .append(' ')
-            .append(request.path())
-            .append(' ')
-            .append(request.version())
-            .append("\r\n")
-            .append("Host: localhost\r\n");
+                .append(request.method())
+                .append(' ')
+                .append(request.path())
+                .append(' ')
+                .append(request.version())
+                .append("\r\n")
+                .append("Host: localhost\r\n");
         if (request.chunkedEncoding()) {
             head.append("Transfer-Encoding: chunked\r\n");
         } else if (request.bodySize() > 0 || !"GET".equals(request.method())) {
             head.append("Content-Length: ").append(request.bodySize()).append("\r\n");
         }
-        request.headers().forEach((name, value) -> head.append(name).append(": ").append(value).append("\r\n"));
+        request.headers()
+                .forEach((name, value) ->
+                        head.append(name).append(": ").append(value).append("\r\n"));
         head.append("\r\n");
 
         Buffer bytes = Buffer.buffer(head.toString());
         if (request.chunkedEncoding()) {
             for (int remaining = request.bodySize(); remaining > 0; remaining -= CHUNK_SIZE) {
                 int size = Math.min(CHUNK_SIZE, remaining);
-                bytes.appendString(Integer.toHexString(size) + "\r\n").appendBytes(new byte[size]).appendString("\r\n");
+                bytes.appendString(Integer.toHexString(size) + "\r\n")
+                        .appendBytes(new byte[size])
+                        .appendString("\r\n");
             }
             bytes.appendString("0\r\n\r\n");
         } else if (request.bodySize() > 0) {
@@ -178,10 +189,9 @@ class RawHttp1Connection {
     }
 
     List<Response> awaitResponses(int count, Duration timeout) {
-        await()
-            .atMost(timeout)
-            .pollInterval(Duration.ofMillis(20))
-            .until(() -> parseResponses().size() >= count);
+        await().atMost(timeout)
+                .pollInterval(Duration.ofMillis(20))
+                .until(() -> parseResponses().size() >= count);
         return parseResponses();
     }
 
@@ -213,7 +223,9 @@ class RawHttp1Connection {
             for (int i = 1; i < lines.length; i++) {
                 int colon = lines[i].indexOf(':');
                 if (colon > 0) {
-                    responseHeaders.put(lines[i].substring(0, colon).trim().toLowerCase(Locale.ROOT), lines[i].substring(colon + 1).trim());
+                    responseHeaders.put(
+                            lines[i].substring(0, colon).trim().toLowerCase(Locale.ROOT),
+                            lines[i].substring(colon + 1).trim());
                 }
             }
 
@@ -258,7 +270,8 @@ class RawHttp1Connection {
     }
 
     private static int indexOf(byte[] bytes, byte[] pattern, int from) {
-        outer: for (int i = from; i <= bytes.length - pattern.length; i++) {
+        outer:
+        for (int i = from; i <= bytes.length - pattern.length; i++) {
             for (int j = 0; j < pattern.length; j++) {
                 if (bytes[i + j] != pattern[j]) {
                     continue outer;

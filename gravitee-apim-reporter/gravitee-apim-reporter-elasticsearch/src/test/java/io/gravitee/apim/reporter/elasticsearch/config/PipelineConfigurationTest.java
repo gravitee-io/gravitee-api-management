@@ -18,7 +18,6 @@ package io.gravitee.apim.reporter.elasticsearch.config;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.apim.reporter.elasticsearch.UnitTestConfiguration;
-import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -39,7 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Guillaume Gillon
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { UnitTestConfiguration.class })
+@ContextConfiguration(classes = {UnitTestConfiguration.class})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PipelineConfigurationTest {
@@ -60,43 +59,29 @@ public class PipelineConfigurationTest {
     @Test
     public void should_create_default_pipeline() {
         String pipeline = pipelineConfiguration.createPipeline();
-        assertThat(new JsonObject(pipeline)).isEqualTo(
-            new JsonObject(
-                Map.of(
-                    "description",
-                    "Gravitee pipeline",
-                    "processors",
-                    new JsonArray(
-                        Stream.concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream()).collect(
-                            Collectors.toList()
-                        )
-                    )
-                )
-            )
-        );
+        assertThat(new JsonObject(pipeline))
+                .isEqualTo(new JsonObject(Map.of(
+                        "description",
+                        "Gravitee pipeline",
+                        "processors",
+                        new JsonArray(Stream.concat(
+                                        expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream())
+                                .collect(Collectors.toList())))));
     }
 
     @Test
     public void should_ignore_unknown_plugins() {
         String pipeline = new PipelineConfiguration(
-            "geoip, testAnother, unknown, user_agent, this does not exists",
-            null,
-            freeMarkerComponent
-        ).createPipeline();
-        assertThat(new JsonObject(pipeline)).isEqualTo(
-            new JsonObject(
-                Map.of(
-                    "description",
-                    "Gravitee pipeline",
-                    "processors",
-                    new JsonArray(
-                        Stream.concat(expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream()).collect(
-                            Collectors.toList()
-                        )
-                    )
-                )
-            )
-        );
+                        "geoip, testAnother, unknown, user_agent, this does not exists", null, freeMarkerComponent)
+                .createPipeline();
+        assertThat(new JsonObject(pipeline))
+                .isEqualTo(new JsonObject(Map.of(
+                        "description",
+                        "Gravitee pipeline",
+                        "processors",
+                        new JsonArray(Stream.concat(
+                                        expectedGeoIpProcessors().stream(), expectedUserAgentProcessors(null).stream())
+                                .collect(Collectors.toList())))));
     }
 
     @Nested
@@ -104,10 +89,13 @@ public class PipelineConfigurationTest {
 
         @Test
         public void should_create_pipeline_with_regex_file() {
-            String pipeline = new PipelineConfiguration("user_agent", "regexes_custom.yml", freeMarkerComponent).createPipeline();
-            JsonObject expectedPipeline = new JsonObject(
-                Map.of("description", "Gravitee pipeline", "processors", new JsonArray(expectedUserAgentProcessors("regexes_custom.yml")))
-            );
+            String pipeline =
+                    new PipelineConfiguration("user_agent", "regexes_custom.yml", freeMarkerComponent).createPipeline();
+            JsonObject expectedPipeline = new JsonObject(Map.of(
+                    "description",
+                    "Gravitee pipeline",
+                    "processors",
+                    new JsonArray(expectedUserAgentProcessors("regexes_custom.yml"))));
             assertThat(new JsonObject(pipeline)).isEqualTo(expectedPipeline);
         }
     }
@@ -125,48 +113,31 @@ public class PipelineConfigurationTest {
 
     List<JsonObject> expectedGeoIpProcessors() {
         return List.of(
-            new JsonObject(Map.of("geoip", new JsonObject(Map.of("field", "remote-address")))),
-            new JsonObject(
-                Map.of(
-                    "set",
-                    new JsonObject(
-                        Map.ofEntries(Map.entry("field", "geoip.city_name"), Map.entry("value", "Unknown"), Map.entry("override", false))
-                    )
-                )
-            ),
-            new JsonObject(
-                Map.of(
-                    "set",
-                    new JsonObject(
-                        Map.ofEntries(
-                            Map.entry("field", "geoip.continent_name"),
-                            Map.entry("value", "Unknown"),
-                            Map.entry("override", false)
-                        )
-                    )
-                )
-            ),
-            new JsonObject(
-                Map.of(
-                    "set",
-                    new JsonObject(
-                        Map.ofEntries(
-                            Map.entry("field", "geoip.country_iso_code"),
-                            Map.entry("value", "Unknown"),
-                            Map.entry("override", false)
-                        )
-                    )
-                )
-            ),
-            new JsonObject(
-                Map.of(
-                    "set",
-                    new JsonObject(
-                        Map.ofEntries(Map.entry("field", "geoip.region_name"), Map.entry("value", "Unknown"), Map.entry("override", false))
-                    )
-                )
-            )
-        );
+                new JsonObject(Map.of("geoip", new JsonObject(Map.of("field", "remote-address")))),
+                new JsonObject(Map.of(
+                        "set",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("field", "geoip.city_name"),
+                                Map.entry("value", "Unknown"),
+                                Map.entry("override", false))))),
+                new JsonObject(Map.of(
+                        "set",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("field", "geoip.continent_name"),
+                                Map.entry("value", "Unknown"),
+                                Map.entry("override", false))))),
+                new JsonObject(Map.of(
+                        "set",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("field", "geoip.country_iso_code"),
+                                Map.entry("value", "Unknown"),
+                                Map.entry("override", false))))),
+                new JsonObject(Map.of(
+                        "set",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("field", "geoip.region_name"),
+                                Map.entry("value", "Unknown"),
+                                Map.entry("override", false))))));
     }
 
     List<JsonObject> expectedUserAgentProcessors(String regexFile) {
@@ -177,35 +148,24 @@ public class PipelineConfigurationTest {
         }
 
         return List.of(
-            new JsonObject(Map.of("user_agent", new JsonObject(userAgentProps))),
-            new JsonObject(
-                Map.of(
-                    "set",
-                    new JsonObject(
-                        Map.ofEntries(Map.entry("field", "user_agent.name"), Map.entry("value", "Unknown"), Map.entry("override", false))
-                    )
-                )
-            ),
-            new JsonObject(
-                Map.of(
-                    "set",
-                    new JsonObject(
-                        Map.ofEntries(
-                            Map.entry("field", "user_agent.os_name"),
-                            Map.entry("value", "{{user_agent.os.name}}"),
-                            Map.entry("override", false)
-                        )
-                    )
-                )
-            ),
-            new JsonObject(
-                Map.of(
-                    "set",
-                    new JsonObject(
-                        Map.ofEntries(Map.entry("field", "user_agent.os_name"), Map.entry("value", "Unknown"), Map.entry("override", false))
-                    )
-                )
-            )
-        );
+                new JsonObject(Map.of("user_agent", new JsonObject(userAgentProps))),
+                new JsonObject(Map.of(
+                        "set",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("field", "user_agent.name"),
+                                Map.entry("value", "Unknown"),
+                                Map.entry("override", false))))),
+                new JsonObject(Map.of(
+                        "set",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("field", "user_agent.os_name"),
+                                Map.entry("value", "{{user_agent.os.name}}"),
+                                Map.entry("override", false))))),
+                new JsonObject(Map.of(
+                        "set",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("field", "user_agent.os_name"),
+                                Map.entry("value", "Unknown"),
+                                Map.entry("override", false))))));
     }
 }

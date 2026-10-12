@@ -70,7 +70,10 @@ public class ApiTest {
 
         Set<Policy> result = api.dependencies(Policy.class);
 
-        assertThat(result).hasSize(2).extracting(Policy::getName).containsExactlyInAnyOrder("enabledPolicy", "key-less");
+        assertThat(result)
+                .hasSize(2)
+                .extracting(Policy::getName)
+                .containsExactlyInAnyOrder("enabledPolicy", "key-less");
     }
 
     @Test
@@ -84,7 +87,10 @@ public class ApiTest {
 
         Set<Policy> result = api.dependencies(Policy.class);
 
-        assertThat(result).hasSize(2).extracting(Policy::getName).containsExactlyInAnyOrder("enabledPolicy", "key-less");
+        assertThat(result)
+                .hasSize(2)
+                .extracting(Policy::getName)
+                .containsExactlyInAnyOrder("enabledPolicy", "key-less");
     }
 
     @Test

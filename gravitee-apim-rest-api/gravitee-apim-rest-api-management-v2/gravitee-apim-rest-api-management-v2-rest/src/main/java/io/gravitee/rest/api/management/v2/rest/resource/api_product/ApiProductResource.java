@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
-import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
@@ -78,23 +77,35 @@ public class ApiProductResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiProductById() {
         var executionContext = GraviteeContext.getExecutionContext();
-        var input = GetApiProductsUseCase.Input.of(executionContext.getEnvironmentId(), apiProductId, executionContext.getOrganizationId());
+        var input = GetApiProductsUseCase.Input.of(
+                executionContext.getEnvironmentId(), apiProductId, executionContext.getOrganizationId());
         log.debug("Get API Product by id: {}", apiProductId);
         var output = getApiProductByIdUseCase.execute(input);
         var apiProductOpt = output.apiProduct();
         if (apiProductOpt.isEmpty()) {
             log.debug("API Product not found: {}", apiProductId);
-            return Response.status(Response.Status.NOT_FOUND).entity("API Product not found").build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("API Product not found")
+                    .build();
         }
-        log.debug("API Product found: {} - {}", apiProductId, apiProductOpt.get().getName());
+        log.debug(
+                "API Product found: {} - {}", apiProductId, apiProductOpt.get().getName());
         return Response.ok(apiProductOpt.get()).build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_DEFINITION,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deleteApiProductById() {
         requireClassicApiProductInCurrentEnvironment();
         AuditInfo audit = getAuditInfo();
@@ -105,20 +116,31 @@ public class ApiProductResource extends AbstractResource {
     @GET
     @Path("/deployments/_verify")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response verifyApiProductDeployment() {
         verifyApiProductInCurrentEnvironment();
         var executionContext = GraviteeContext.getExecutionContext();
         log.debug("Verify deployment for API Product [{}]", apiProductId);
-        var output = verifyApiProductDeployUseCase.execute(new VerifyApiProductDeployUseCase.Input(executionContext.getOrganizationId()));
-        return Response.ok(new VerifyApiProductDeploymentResponse().ok(output.ok()).reason(output.reason())).build();
+        var output = verifyApiProductDeployUseCase.execute(
+                new VerifyApiProductDeployUseCase.Input(executionContext.getOrganizationId()));
+        return Response.ok(
+                        new VerifyApiProductDeploymentResponse().ok(output.ok()).reason(output.reason()))
+                .build();
     }
 
     @POST
     @Path("/deployments")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_DEFINITION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response deployApiProduct() {
         requireClassicApiProductInCurrentEnvironment();
         AuditInfo audit = getAuditInfo();
@@ -132,14 +154,21 @@ public class ApiProductResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_DEFINITION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateApiProductById(@Valid @NotNull UpdateApiProduct updateApiProduct) {
         requireClassicApiProductInCurrentEnvironment();
         AuditInfo audit = getAuditInfo();
         var input = new UpdateApiProductUseCase.Input(apiProductId, updateApiProduct, audit);
         log.debug("Update API Product by id: {}", apiProductId);
         var output = updateApiProductUseCase.execute(input);
-        log.debug("API Product updated: {} - {}", apiProductId, output.apiProduct().getName());
+        log.debug(
+                "API Product updated: {} - {}",
+                apiProductId,
+                output.apiProduct().getName());
         return Response.ok(output.apiProduct()).build();
     }
 
@@ -175,7 +204,8 @@ public class ApiProductResource extends AbstractResource {
     /** Existence alone, for a read: this surface does not manage every kind, but it may report on them. */
     private void verifyApiProductInCurrentEnvironment() {
         var ctx = GraviteeContext.getExecutionContext();
-        verifyApiProductExistsUseCase.execute(new VerifyApiProductExistsUseCase.Input(ctx.getEnvironmentId(), apiProductId));
+        verifyApiProductExistsUseCase.execute(
+                new VerifyApiProductExistsUseCase.Input(ctx.getEnvironmentId(), apiProductId));
     }
 
     /**
@@ -192,8 +222,7 @@ public class ApiProductResource extends AbstractResource {
      */
     private void requireClassicApiProductInCurrentEnvironment() {
         var ctx = GraviteeContext.getExecutionContext();
-        verifyApiProductExistsUseCase.execute(
-            new VerifyApiProductExistsUseCase.Input(ctx.getEnvironmentId(), apiProductId, ApiProductKindFilter.classicOnly())
-        );
+        verifyApiProductExistsUseCase.execute(new VerifyApiProductExistsUseCase.Input(
+                ctx.getEnvironmentId(), apiProductId, ApiProductKindFilter.classicOnly()));
     }
 }

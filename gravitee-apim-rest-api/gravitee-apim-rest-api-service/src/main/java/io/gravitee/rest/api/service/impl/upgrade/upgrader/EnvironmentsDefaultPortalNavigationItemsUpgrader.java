@@ -37,10 +37,9 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgrader implements Upgrade
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     public EnvironmentsDefaultPortalNavigationItemsUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase,
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase,
+            PortalNavigationItemsQueryService portalNavigationItemsQueryService) {
         this.environmentRepository = environmentRepository;
         this.createDefaultPortalNavigationItemsUseCase = createDefaultPortalNavigationItemsUseCase;
         this.portalNavigationItemsQueryService = portalNavigationItemsQueryService;
@@ -72,9 +71,7 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgrader implements Upgrade
             // that has a Home Page was fully seeded at some point; if a user later deliberately removed
             // e.g. the "Guides" folder, re-running here must not resurrect it.
             var existingHomepage = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
-                environment.getId(),
-                PortalArea.HOMEPAGE
-            );
+                    environment.getId(), PortalArea.HOMEPAGE);
             if (existingHomepage.isEmpty()) {
                 createDefaultPortalNavigationItemsUseCase.execute(environment.getOrganizationId(), environment.getId());
             }

@@ -45,34 +45,41 @@ public class Fixtures {
 
     public static Api apiWithDynamicPropertiesEnabled() {
         return Api.builder()
-            .id(MY_API)
-            .services(
-                ApiServices.builder().dynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build()).build()
-            )
-            .build();
+                .id(MY_API)
+                .services(ApiServices.builder()
+                        .dynamicProperty(Service.builder()
+                                .enabled(true)
+                                .type(HTTP_DYNAMIC_PROPERTIES_TYPE)
+                                .build())
+                        .build())
+                .build();
     }
 
     public static NativeApi nativeApiWithDynamicPropertiesEnabled() {
         return NativeApi.builder()
-            .id(MY_API)
-            .services(
-                NativeApiServices.builder()
-                    .dynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build())
-                    .build()
-            )
-            .build();
+                .id(MY_API)
+                .services(NativeApiServices.builder()
+                        .dynamicProperty(Service.builder()
+                                .enabled(true)
+                                .type(HTTP_DYNAMIC_PROPERTIES_TYPE)
+                                .build())
+                        .build())
+                .build();
     }
 
     @SneakyThrows
     public static void configureDynamicPropertiesForApi(
-        HttpDynamicPropertiesServiceConfiguration configuration,
-        AbstractApi api,
-        ObjectMapper objectMapper
-    ) {
+            HttpDynamicPropertiesServiceConfiguration configuration, AbstractApi api, ObjectMapper objectMapper) {
         if (api instanceof Api asHttpApi) {
-            asHttpApi.getServices().getDynamicProperty().setConfiguration(objectMapper.writeValueAsString(configuration));
+            asHttpApi
+                    .getServices()
+                    .getDynamicProperty()
+                    .setConfiguration(objectMapper.writeValueAsString(configuration));
         } else if (api instanceof NativeApi asNativeApi) {
-            asNativeApi.getServices().getDynamicProperty().setConfiguration(objectMapper.writeValueAsString(configuration));
+            asNativeApi
+                    .getServices()
+                    .getDynamicProperty()
+                    .setConfiguration(objectMapper.writeValueAsString(configuration));
         }
     }
 
@@ -117,11 +124,12 @@ public class Fixtures {
     }
 
     @SneakyThrows
-    public static String backendResponseForProperties(List<BackendProperty> returnedProperties, ObjectMapper objectMapper) {
+    public static String backendResponseForProperties(
+            List<BackendProperty> returnedProperties, ObjectMapper objectMapper) {
         // Convert list into a LinkedHashMap to keep the insertion order
-        final Map<String, String> collect = returnedProperties
-            .stream()
-            .collect(Collectors.toMap(BackendProperty::key, BackendProperty::value, (oldVal, newVal) -> newVal, LinkedHashMap::new));
+        final Map<String, String> collect = returnedProperties.stream()
+                .collect(Collectors.toMap(
+                        BackendProperty::key, BackendProperty::value, (oldVal, newVal) -> newVal, LinkedHashMap::new));
         final String propertiesAsJson = new ObjectMapper().writeValueAsString(collect);
         return "{\n" + "     \"props\": " + propertiesAsJson + "}\n";
     }

@@ -36,13 +36,11 @@ public class PortalNavigationListingDomainService {
 
     public List<NavigationPath> listAsNavigationPaths(String environmentId, PortalArea area) {
         rejectUnsupportedArea(area);
-        final var folders = queryService.search(
-            PortalNavigationItemQueryCriteria.builder()
+        final var folders = queryService.search(PortalNavigationItemQueryCriteria.builder()
                 .environmentId(environmentId)
                 .area(area)
                 .type(PortalNavigationItemType.FOLDER)
-                .build()
-        );
+                .build());
         final var collector = new PathCollector();
         PortalNavigationTreeWalker.walk(folders, collector);
         return collector.paths;

@@ -28,20 +28,32 @@ import java.util.Set;
  */
 public interface DebugApiProxy {
     HttpRequest getRequest();
+
     HttpResponse getResponse();
+
     List<DebugStep> getDebugSteps();
+
     HttpResponse getBackendResponse();
+
     PreprocessorStep getPreprocessorStep();
+
     DebugMetrics getMetrics();
 
     String getId();
+
     DefinitionVersion getDefinitionVersion();
+
     ApiType getType();
+
     Set<String> getTags();
 
     void setPreprocessorStep(PreprocessorStep preprocessorStep);
+
     void setDebugSteps(List<DebugStep> debugSteps);
+
     void setBackendResponse(HttpResponse backendResponse);
+
     void setMetrics(DebugMetrics metrics);
+
     void setResponse(HttpResponse response);
 }

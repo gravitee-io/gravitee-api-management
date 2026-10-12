@@ -64,20 +64,18 @@ class NotificationConfigCrudServiceImplTest {
             verify(notificationConfigRepository).create(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.GenericNotificationConfig.builder()
-                        .id("config-id")
-                        .name("Default Mail Notifications")
-                        .notifier("default-email")
-                        .config("${(api.primaryOwner.email)!''}")
-                        .hooks(List.of("hook1"))
-                        .referenceType(NotificationReferenceType.API)
-                        .referenceId("api-id")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.GenericNotificationConfig.builder()
+                            .id("config-id")
+                            .name("Default Mail Notifications")
+                            .notifier("default-email")
+                            .config("${(api.primaryOwner.email)!''}")
+                            .hooks(List.of("hook1"))
+                            .referenceType(NotificationReferenceType.API)
+                            .referenceId("api-id")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .build());
         }
 
         @Test
@@ -101,18 +99,17 @@ class NotificationConfigCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to create the API notification config of api-id");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to create the API notification config of api-id");
         }
     }
 
     private static NotificationConfig aNotificationConfig() {
-        return NotificationConfig.defaultMailNotificationConfigFor("api-id")
-            .toBuilder()
-            .id("config-id")
-            .hooks(List.of("hook1"))
-            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .build();
+        return NotificationConfig.defaultMailNotificationConfigFor("api-id").toBuilder()
+                .id("config-id")
+                .hooks(List.of("hook1"))
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .build();
     }
 }

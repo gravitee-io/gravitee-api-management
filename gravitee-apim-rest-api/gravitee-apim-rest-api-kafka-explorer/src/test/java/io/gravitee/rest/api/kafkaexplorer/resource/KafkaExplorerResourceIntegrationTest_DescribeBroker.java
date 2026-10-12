@@ -30,7 +30,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeBroker extends AbstractKafkaE
 
     @Test
     void should_return_200_with_broker_detail() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID).brokerId(0);
 
@@ -50,7 +51,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeBroker extends AbstractKafkaE
 
     @Test
     void should_return_400_when_broker_id_is_null() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID);
 
@@ -63,7 +65,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeBroker extends AbstractKafkaE
 
     @Test
     void should_return_400_when_broker_id_is_negative() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID).brokerId(-1);
 
@@ -76,7 +79,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeBroker extends AbstractKafkaE
 
     @Test
     void should_return_502_when_broker_unreachable() {
-        givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID).brokerId(0);
 

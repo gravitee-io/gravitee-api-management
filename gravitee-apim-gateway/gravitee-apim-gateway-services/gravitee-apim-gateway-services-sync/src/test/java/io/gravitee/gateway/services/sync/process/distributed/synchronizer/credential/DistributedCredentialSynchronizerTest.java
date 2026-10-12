@@ -67,12 +67,11 @@ class DistributedCredentialSynchronizerTest {
     @BeforeEach
     void beforeEach() {
         cut = new DistributedCredentialSynchronizer(
-            eventsFetcher,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            deployerFactory,
-            credentialMapper
-        );
+                eventsFetcher,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                deployerFactory,
+                credentialMapper);
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createCredentialDeployer()).thenReturn(credentialDeployer);
         lenient().when(credentialDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -83,7 +82,8 @@ class DistributedCredentialSynchronizerTest {
 
     @Test
     void should_not_synchronize_credentials_when_no_events() throws InterruptedException {
-        when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.CREDENTIAL), any())).thenReturn(Flowable.empty());
+        when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.CREDENTIAL), any()))
+                .thenReturn(Flowable.empty());
 
         cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
 
@@ -96,34 +96,39 @@ class DistributedCredentialSynchronizerTest {
 
         cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
 
-        verify(eventsFetcher).fetchLatest(eq(-1L), any(), eq(DistributedEventType.CREDENTIAL), eq(Set.of(DistributedSyncAction.DEPLOY)));
+        verify(eventsFetcher)
+                .fetchLatest(
+                        eq(-1L), any(), eq(DistributedEventType.CREDENTIAL), eq(Set.of(DistributedSyncAction.DEPLOY)));
     }
 
     @Test
     void should_fetch_deploy_and_undeploy_events_on_incremental_sync() throws InterruptedException {
         when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
+        cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                .test()
+                .await()
+                .assertComplete();
 
-        verify(eventsFetcher).fetchLatest(
-            any(),
-            any(),
-            eq(DistributedEventType.CREDENTIAL),
-            eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-        );
+        verify(eventsFetcher)
+                .fetchLatest(
+                        any(),
+                        any(),
+                        eq(DistributedEventType.CREDENTIAL),
+                        eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY)));
     }
 
     @Test
     void should_deploy_a_distributed_credential() throws InterruptedException {
         CredentialDeployable deployable = CredentialDeployable.builder()
-            .credentialId("credential-1")
-            .environmentId("env-1")
-            .organizationId("org-1")
-            .allowedApiIds(Set.of("api-1"))
-            .encryptedSecret("ciphertext")
-            .updatedAt(1234L)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .credentialId("credential-1")
+                .environmentId("env-1")
+                .organizationId("org-1")
+                .allowedApiIds(Set.of("api-1"))
+                .encryptedSecret("ciphertext")
+                .updatedAt(1234L)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
         DistributedEvent event = credentialMapper.to(deployable).blockingGet();
         when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(event));
 
@@ -136,13 +141,16 @@ class DistributedCredentialSynchronizerTest {
     @Test
     void should_undeploy_a_distributed_credential() throws InterruptedException {
         CredentialDeployable deployable = CredentialDeployable.builder()
-            .credentialId("credential-1")
-            .syncAction(SyncAction.UNDEPLOY)
-            .build();
+                .credentialId("credential-1")
+                .syncAction(SyncAction.UNDEPLOY)
+                .build();
         DistributedEvent event = credentialMapper.to(deployable).blockingGet();
         when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(event));
 
-        cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
+        cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                .test()
+                .await()
+                .assertComplete();
 
         verify(credentialDeployer).undeploy(deployable);
         verify(credentialDeployer).doAfterUndeployment(deployable);

@@ -93,16 +93,21 @@ public class ApiLicenseServiceImplTest {
         when(repositoryApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
         when(repositoryApi.getDefinition()).thenReturn("dummy definition");
 
-        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.Api.class)).thenReturn(apiV4);
-        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.nativeapi.NativeApi.class)).thenReturn(nativeApiV4);
-        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.edge.EdgeApi.class)).thenReturn(edgeApi);
-        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.Api.class)).thenReturn(apiV2);
+        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.Api.class))
+                .thenReturn(apiV4);
+        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.nativeapi.NativeApi.class))
+                .thenReturn(nativeApiV4);
+        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.edge.EdgeApi.class))
+                .thenReturn(edgeApi);
+        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.Api.class))
+                .thenReturn(apiV2);
 
-        when(apiV4.getPlugins()).thenReturn(List.of(new Plugin("apiV4-type", "apiV4-id"), new Plugin("another", "plugin")));
-        when(nativeApiV4.getPlugins()).thenReturn(
-            List.of(new Plugin("apiV4-kafka-type", "apiV4-kafka-id"), new Plugin("another", "plugin"))
-        );
-        when(apiV2.getPlugins()).thenReturn(List.of(new Plugin("apiV2-type", "apiV2-id"), new Plugin("another", "plugin")));
+        when(apiV4.getPlugins())
+                .thenReturn(List.of(new Plugin("apiV4-type", "apiV4-id"), new Plugin("another", "plugin")));
+        when(nativeApiV4.getPlugins())
+                .thenReturn(List.of(new Plugin("apiV4-kafka-type", "apiV4-kafka-id"), new Plugin("another", "plugin")));
+        when(apiV2.getPlugins())
+                .thenReturn(List.of(new Plugin("apiV2-type", "apiV2-id"), new Plugin("another", "plugin")));
 
         lenient().when(licenseManager.getPlatformLicense()).thenReturn(license);
         apiLicenseService = new ApiLicenseServiceImpl(licenseManager, apiSearchService, objectMapper);
@@ -111,8 +116,10 @@ public class ApiLicenseServiceImplTest {
     @Test
     public void should_verify_v4_definition() throws Exception {
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
-        var v4LicensePlugins = List.of(new LicenseManager.Plugin("apiV4-type", "apiV4-id"), new LicenseManager.Plugin("another", "plugin"));
-        verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v4LicensePlugins));
+        var v4LicensePlugins = List.of(
+                new LicenseManager.Plugin("apiV4-type", "apiV4-id"), new LicenseManager.Plugin("another", "plugin"));
+        verify(licenseManager, times(1))
+                .validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v4LicensePlugins));
     }
 
     @Test
@@ -120,10 +127,10 @@ public class ApiLicenseServiceImplTest {
         when(repositoryApi.getType()).thenReturn(ApiType.NATIVE);
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
         var v4LicensePlugins = List.of(
-            new LicenseManager.Plugin("apiV4-kafka-type", "apiV4-kafka-id"),
-            new LicenseManager.Plugin("another", "plugin")
-        );
-        verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v4LicensePlugins));
+                new LicenseManager.Plugin("apiV4-kafka-type", "apiV4-kafka-id"),
+                new LicenseManager.Plugin("another", "plugin"));
+        verify(licenseManager, times(1))
+                .validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v4LicensePlugins));
     }
 
     @Test
@@ -131,42 +138,47 @@ public class ApiLicenseServiceImplTest {
         when(repositoryApi.getType()).thenReturn(ApiType.EDGE);
         when(edgeApi.getPlugins()).thenReturn(List.of());
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
-        verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(List.of()));
+        verify(licenseManager, times(1))
+                .validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(List.of()));
     }
 
     @Test
     public void should_verify_v2_definition()
-        throws io.gravitee.node.api.license.ForbiddenFeatureException, io.gravitee.node.api.license.InvalidLicenseException {
+            throws io.gravitee.node.api.license.ForbiddenFeatureException,
+                    io.gravitee.node.api.license.InvalidLicenseException {
         when(repositoryApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
-        var v2LicensePlugins = List.of(new LicenseManager.Plugin("apiV2-type", "apiV2-id"), new LicenseManager.Plugin("another", "plugin"));
-        verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v2LicensePlugins));
+        var v2LicensePlugins = List.of(
+                new LicenseManager.Plugin("apiV2-type", "apiV2-id"), new LicenseManager.Plugin("another", "plugin"));
+        verify(licenseManager, times(1))
+                .validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v2LicensePlugins));
     }
 
     @Test
     public void should_throw_invalid_license_exception()
-        throws io.gravitee.node.api.license.ForbiddenFeatureException, io.gravitee.node.api.license.InvalidLicenseException {
+            throws io.gravitee.node.api.license.ForbiddenFeatureException,
+                    io.gravitee.node.api.license.InvalidLicenseException {
         doThrow(new io.gravitee.node.api.license.InvalidLicenseException("invalid license"))
-            .when(licenseManager)
-            .validatePluginFeatures(anyString(), anyCollection());
+                .when(licenseManager)
+                .validatePluginFeatures(anyString(), anyCollection());
         assertThrows(InvalidLicenseException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void should_throw_forbidden_feature_exception()
-        throws io.gravitee.node.api.license.ForbiddenFeatureException, io.gravitee.node.api.license.InvalidLicenseException {
+            throws io.gravitee.node.api.license.ForbiddenFeatureException,
+                    io.gravitee.node.api.license.InvalidLicenseException {
         var forbiddenFeature = new LicenseManager.ForbiddenFeature("feature", "plugin");
         doThrow(new io.gravitee.node.api.license.ForbiddenFeatureException(Set.of(forbiddenFeature)))
-            .when(licenseManager)
-            .validatePluginFeatures(anyString(), anyCollection());
+                .when(licenseManager)
+                .validatePluginFeatures(anyString(), anyCollection());
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void should_transform_parsing_error_to_technical_management_exception() throws JsonProcessingException {
-        when(objectMapper.readValue(anyString(), any(io.gravitee.definition.model.v4.Api.class.getClass()))).thenThrow(
-            JsonMappingException.class
-        );
+        when(objectMapper.readValue(anyString(), any(io.gravitee.definition.model.v4.Api.class.getClass())))
+                .thenThrow(JsonMappingException.class);
         assertThrows(TechnicalManagementException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 }

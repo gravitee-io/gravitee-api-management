@@ -61,7 +61,8 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     }
 
     @Override
-    public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows, @Nullable Set<String> apiResourceNames) {
+    public List<Flow> validateAndSanitize(
+            final ApiType apiType, List<Flow> flows, @Nullable Set<String> apiResourceNames) {
         if (flows != null) {
             flows.forEach(flow -> {
                 // Check duplicated selectors
@@ -80,22 +81,20 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     private void checkSelectorsForType(final ApiType apiType, final Flow flow) {
         if (flow.getSelectors() != null) {
             if (ApiType.PROXY == apiType) {
-                Set<String> invalidSelectors = flow
-                    .getSelectors()
-                    .stream()
-                    .filter(selector -> !(selector.getType() == SelectorType.HTTP || selector.getType() == SelectorType.CONDITION))
-                    .map(selector -> selector.getType().getLabel())
-                    .collect(Collectors.toSet());
+                Set<String> invalidSelectors = flow.getSelectors().stream()
+                        .filter(selector -> !(selector.getType() == SelectorType.HTTP
+                                || selector.getType() == SelectorType.CONDITION))
+                        .map(selector -> selector.getType().getLabel())
+                        .collect(Collectors.toSet());
                 if (!invalidSelectors.isEmpty()) {
                     throw new FlowSelectorsInvalidException(flow.getName(), apiType, invalidSelectors);
                 }
             } else if (ApiType.MESSAGE == apiType) {
-                Set<String> invalidSelectors = flow
-                    .getSelectors()
-                    .stream()
-                    .filter(selector -> !(selector.getType() == SelectorType.CHANNEL || selector.getType() == SelectorType.CONDITION))
-                    .map(selector -> selector.getType().getLabel())
-                    .collect(Collectors.toSet());
+                Set<String> invalidSelectors = flow.getSelectors().stream()
+                        .filter(selector -> !(selector.getType() == SelectorType.CHANNEL
+                                || selector.getType() == SelectorType.CONDITION))
+                        .map(selector -> selector.getType().getLabel())
+                        .collect(Collectors.toSet());
                 if (!invalidSelectors.isEmpty()) {
                     throw new FlowSelectorsInvalidException(flow.getName(), apiType, invalidSelectors);
                 }
@@ -106,26 +105,21 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     }
 
     private void checkChannelAsyncEntrypoint(final Flow flow) {
-        Optional<ChannelSelector> channelSelectorOpt = flow
-            .getSelectors()
-            .stream()
-            .filter(selector -> selector.getType() == SelectorType.CHANNEL)
-            .map(ChannelSelector.class::cast)
-            .findFirst();
+        Optional<ChannelSelector> channelSelectorOpt = flow.getSelectors().stream()
+                .filter(selector -> selector.getType() == SelectorType.CHANNEL)
+                .map(ChannelSelector.class::cast)
+                .findFirst();
         if (channelSelectorOpt.isPresent()) {
             ChannelSelector channelSelector = channelSelectorOpt.get();
             if (channelSelector.getEntrypoints() != null) {
-                Set<String> asyncEntrypoints = entrypointConnectorPluginService
-                    .findBySupportedApi(ApiType.MESSAGE)
-                    .stream()
-                    .map(PlatformPluginEntity::getId)
-                    .collect(Collectors.toSet());
+                Set<String> asyncEntrypoints =
+                        entrypointConnectorPluginService.findBySupportedApi(ApiType.MESSAGE).stream()
+                                .map(PlatformPluginEntity::getId)
+                                .collect(Collectors.toSet());
 
-                Set<String> invalidEntrypoints = channelSelector
-                    .getEntrypoints()
-                    .stream()
-                    .filter(entrypointId -> !asyncEntrypoints.contains(entrypointId))
-                    .collect(Collectors.toSet());
+                Set<String> invalidEntrypoints = channelSelector.getEntrypoints().stream()
+                        .filter(entrypointId -> !asyncEntrypoints.contains(entrypointId))
+                        .collect(Collectors.toSet());
                 if (!invalidEntrypoints.isEmpty()) {
                     throw new FlowSelectorsEntrypointInvalidException(flow.getName(), invalidEntrypoints);
                 }
@@ -133,18 +127,21 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
         }
     }
 
-    private void checkPolicyConfiguration(final ApiType apiType, final Flow flow, @Nullable Set<String> apiResourceNames) {
+    private void checkPolicyConfiguration(
+            final ApiType apiType, final Flow flow, @Nullable Set<String> apiResourceNames) {
         Stream.of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
-            .forEach(step -> {
-                validateXmlValidationStructuralConfiguration(apiType, step, apiResourceNames);
-                step.setConfiguration(policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()));
-            });
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
+                .forEach(step -> {
+                    validateXmlValidationStructuralConfiguration(apiType, step, apiResourceNames);
+                    step.setConfiguration(
+                            policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()));
+                });
     }
 
-    private void validateXmlValidationStructuralConfiguration(ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
+    private void validateXmlValidationStructuralConfiguration(
+            ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
         String error = XmlValidationPolicyChecker.validateRegistryConfiguration(apiType, step, apiResourceNames);
         if (error != null) {
             throw new InvalidDataException(error);
@@ -154,12 +151,10 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     private void checkDuplicatedSelectors(final Flow flow) {
         if (flow.getSelectors() != null) {
             Set<Selector> seenSelectors = new HashSet<>();
-            Set<String> duplicatedSelectors = flow
-                .getSelectors()
-                .stream()
-                .filter(e -> !seenSelectors.add(e))
-                .map(selector -> selector.getType().getLabel())
-                .collect(Collectors.toSet());
+            Set<String> duplicatedSelectors = flow.getSelectors().stream()
+                    .filter(e -> !seenSelectors.add(e))
+                    .map(selector -> selector.getType().getLabel())
+                    .collect(Collectors.toSet());
             if (!duplicatedSelectors.isEmpty()) {
                 throw new FlowSelectorsDuplicatedException(flow.getName(), duplicatedSelectors);
             }

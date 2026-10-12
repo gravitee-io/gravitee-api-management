@@ -33,10 +33,8 @@ public class UpdatePortalMenuLinkUseCase {
     private final PortalMenuLinkQueryService portalMenuLinkQueryService;
 
     public Output execute(Input input) {
-        PortalMenuLink existingPortalMenuLink = this.portalMenuLinkCrudService.getByIdAndEnvironmentId(
-            input.portalMenuLinkId(),
-            input.environmentId()
-        );
+        PortalMenuLink existingPortalMenuLink =
+                this.portalMenuLinkCrudService.getByIdAndEnvironmentId(input.portalMenuLinkId(), input.environmentId());
 
         var portalMenuLinkToUpdate = existingPortalMenuLink.update(input.portalMenuLinkToUpdate());
         validatePortalMenuLinkToUpdate(portalMenuLinkToUpdate);
@@ -60,18 +58,18 @@ public class UpdatePortalMenuLinkUseCase {
         var shouldMoveDown = newOrder < oldOrder;
         var orderIncrement = shouldMoveDown ? 1 : -1;
 
-        this.portalMenuLinkQueryService.findByEnvironmentIdSortByOrder(updatedPortalMenuLink.getEnvironmentId())
-            .stream()
-            .filter(menuLink -> !Objects.equals(menuLink.getId(), updatedPortalMenuLink.getId()))
-            .filter(menuLink ->
-                shouldMoveDown
-                    ? this.toBeMovedDown(oldOrder, newOrder, menuLink.getOrder())
-                    : this.toBeMovedUp(oldOrder, newOrder, menuLink.getOrder())
-            )
-            .forEach(menuLink -> {
-                var updatedOrder = menuLink.getOrder() + orderIncrement;
-                this.portalMenuLinkCrudService.update(menuLink.toBuilder().order(updatedOrder).build());
-            });
+        this.portalMenuLinkQueryService
+                .findByEnvironmentIdSortByOrder(updatedPortalMenuLink.getEnvironmentId())
+                .stream()
+                .filter(menuLink -> !Objects.equals(menuLink.getId(), updatedPortalMenuLink.getId()))
+                .filter(menuLink -> shouldMoveDown
+                        ? this.toBeMovedDown(oldOrder, newOrder, menuLink.getOrder())
+                        : this.toBeMovedUp(oldOrder, newOrder, menuLink.getOrder()))
+                .forEach(menuLink -> {
+                    var updatedOrder = menuLink.getOrder() + orderIncrement;
+                    this.portalMenuLinkCrudService.update(
+                            menuLink.toBuilder().order(updatedOrder).build());
+                });
     }
 
     private boolean toBeMovedUp(int oldOrder, int newOrder, int portalMenuLinkOrder) {
@@ -83,7 +81,8 @@ public class UpdatePortalMenuLinkUseCase {
     }
 
     private void validatePortalMenuLinkToUpdate(PortalMenuLink portalMenuLinkToUpdate) {
-        if (portalMenuLinkToUpdate.getName() == null || portalMenuLinkToUpdate.getName().isEmpty()) {
+        if (portalMenuLinkToUpdate.getName() == null
+                || portalMenuLinkToUpdate.getName().isEmpty()) {
             throw new InvalidDataException("Name is required.");
         }
     }

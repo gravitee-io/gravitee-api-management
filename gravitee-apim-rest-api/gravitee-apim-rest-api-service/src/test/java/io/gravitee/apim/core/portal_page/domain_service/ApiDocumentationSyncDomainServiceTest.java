@@ -57,17 +57,16 @@ import org.junit.jupiter.api.Test;
 class ApiDocumentationSyncDomainServiceTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String API_ID = "11111111-1111-1111-1111-111111111111";
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("22222222-2222-2222-2222-222222222222");
 
     private final PortalNavigationItemsCrudServiceInMemory navItemCrud = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navItemQuery = new PortalNavigationItemsQueryServiceInMemory(
-        navItemCrud.storage()
-    );
+    private final PortalNavigationItemsQueryServiceInMemory navItemQuery =
+            new PortalNavigationItemsQueryServiceInMemory(navItemCrud.storage());
     private final PortalPageContentQueryServiceInMemory pageContentQuery = new PortalPageContentQueryServiceInMemory();
 
     private ApiDocumentationSyncDomainService syncService;
@@ -84,29 +83,21 @@ class ApiDocumentationSyncDomainServiceTest {
     @Test
     void materializes_a_nav_page_when_no_portal_lists_the_api() {
         var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Getting Started",
-            Optional.empty(),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.API, API_ID, "Getting Started", Optional.empty(), Optional.of(1));
         var doc = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            automationMetadata
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                automationMetadata);
 
         syncService.rematerialize(AUDIT_INFO, doc);
 
-        assertThat(navItemCrud.storage())
-            .singleElement()
-            .satisfies(page -> {
-                assertThat(page.getId()).isEqualTo(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID));
-                assertThat(page.isRoot()).isTrue();
-                assertThat(page.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
-            });
+        assertThat(navItemCrud.storage()).singleElement().satisfies(page -> {
+            assertThat(page.getId()).isEqualTo(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID));
+            assertThat(page.isRoot()).isTrue();
+            assertThat(page.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
+        });
     }
 
     @Test
@@ -117,16 +108,15 @@ class ApiDocumentationSyncDomainServiceTest {
         syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        assertThat(
-            navItemCrud.storage().stream().filter(PortalNavigationPage.class::isInstance).map(PortalNavigationItem::getId)
-        ).containsExactly(pageId);
+        assertThat(navItemCrud.storage().stream()
+                        .filter(PortalNavigationPage.class::isInstance)
+                        .map(PortalNavigationItem::getId))
+                .containsExactly(pageId);
 
-        var page = (PortalNavigationPage) navItemCrud
-            .storage()
-            .stream()
-            .filter(item -> item.getId().equals(pageId))
-            .findFirst()
-            .orElseThrow();
+        var page = (PortalNavigationPage) navItemCrud.storage().stream()
+                .filter(item -> item.getId().equals(pageId))
+                .findFirst()
+                .orElseThrow();
         assertThat(page.getAutomationMetadata()).isNotNull();
         assertThat(page.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.API);
         assertThat(page.getAutomationMetadata().referenceId()).isEqualTo(API_ID);
@@ -145,7 +135,10 @@ class ApiDocumentationSyncDomainServiceTest {
 
         var pageIdOurs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         var pageIdTheirs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "another-api-id", DOC_ID);
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).contains(pageIdOurs).doesNotContain(pageIdTheirs);
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .contains(pageIdOurs)
+                .doesNotContain(pageIdTheirs);
     }
 
     @Test
@@ -175,7 +168,9 @@ class ApiDocumentationSyncDomainServiceTest {
 
         verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()), any(), any());
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(pageId);
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .doesNotContain(pageId);
     }
 
     @Test
@@ -193,50 +188,45 @@ class ApiDocumentationSyncDomainServiceTest {
     @Test
     void validate_placement_rejects_a_parent_that_is_not_a_container_without_writing_anything() {
         var syncWithRealValidator = new ApiDocumentationSyncDomainService(
-            navItemCrud,
-            navItemQuery,
-            new PortalNavigationItemValidatorService(
+                navItemCrud,
                 navItemQuery,
-                PortalPageContentQueryServiceInMemory.sharing(pageContentQuery.storage()),
-                new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory(),
-                new ApiCrudServiceInMemory()
-            )
-        );
+                new PortalNavigationItemValidatorService(
+                        navItemQuery,
+                        PortalPageContentQueryServiceInMemory.sharing(pageContentQuery.storage()),
+                        new ApiProductQueryServiceInMemory(),
+                        new PortalNavigationItemSourceDomainServiceInMemory(),
+                        new ApiCrudServiceInMemory()));
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
         var conflictingPage = PortalNavigationPage.builder()
-            .id(folderId)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .title("Not a folder")
-            .segment("not-a-folder")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(folderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .title("Not a folder")
+                .segment("not-a-folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         navItemCrud.create(conflictingPage);
         var storageBefore = List.copyOf(navItemCrud.storage());
         var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Getting Started",
-            Optional.of("/guides"),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.API,
+                API_ID,
+                "Getting Started",
+                Optional.of("/guides"),
+                Optional.of(1));
         var doc = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            automationMetadata
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                automationMetadata);
 
-        assertThatThrownBy(() -> syncWithRealValidator.validatePlacement(AUDIT_INFO, doc, null)).isInstanceOf(
-            ParentTypeMismatchException.class
-        );
+        assertThatThrownBy(() -> syncWithRealValidator.validatePlacement(AUDIT_INFO, doc, null))
+                .isInstanceOf(ParentTypeMismatchException.class);
 
         assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
@@ -260,7 +250,9 @@ class ApiDocumentationSyncDomainServiceTest {
         syncService.dematerialize(AUDIT_INFO, API_ID, DOC_ID);
 
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(pageId);
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .doesNotContain(pageId);
     }
 
     @Test
@@ -285,63 +277,73 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.cleanupForApi(AUDIT_INFO, API_ID);
 
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(navApiIdA, navApiIdB);
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .containsExactlyInAnyOrder(navApiIdA, navApiIdB);
     }
 
     @Test
     void cleanupForApi_also_removes_the_apis_folder_subtree() {
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
         var folder = PortalNavigationFolder.builder()
-            .id(folderId)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("guides")
-            .segment("guides")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(folderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("guides")
+                .segment("guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         navItemCrud.create(folder);
 
         syncService.cleanupForApi(AUDIT_INFO, API_ID);
 
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(folderId);
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .doesNotContain(folderId);
     }
 
     @Test
     void cleanupForApi_removes_root_level_link() {
         var linkSyncService = new PortalLinkSyncDomainService(navItemCrud, navItemQuery);
-        var link = linkSyncService.materializeForApi(AUDIT_INFO, API_ID, "docs-link", "Docs", "https://example.com", null, 0, null);
+        var link = linkSyncService.materializeForApi(
+                AUDIT_INFO, API_ID, "docs-link", "Docs", "https://example.com", null, 0, null);
 
         syncService.cleanupForApi(AUDIT_INFO, API_ID);
 
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(link.getId());
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .doesNotContain(link.getId());
     }
 
     @Test
     void cleanupForApi_removes_nested_link_under_folder() {
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
         var folder = PortalNavigationFolder.builder()
-            .id(folderId)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("guides")
-            .segment("guides")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(folderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("guides")
+                .segment("guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         navItemCrud.create(folder);
         var linkSyncService = new PortalLinkSyncDomainService(navItemCrud, navItemQuery);
-        var link = linkSyncService.materializeForApi(AUDIT_INFO, API_ID, "docs-link", "Docs", "https://example.com", "/guides", 0, null);
+        var link = linkSyncService.materializeForApi(
+                AUDIT_INFO, API_ID, "docs-link", "Docs", "https://example.com", "/guides", 0, null);
 
         syncService.cleanupForApi(AUDIT_INFO, API_ID);
 
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(link.getId());
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .doesNotContain(link.getId());
     }
 
     @Test
@@ -353,7 +355,9 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.cleanupForApi(AUDIT_INFO, API_ID);
 
-        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(ownNavApiId, otherApiNavId);
+        assertThat(navItemCrud.storage())
+                .extracting(PortalNavigationItem::getId)
+                .containsExactlyInAnyOrder(ownNavApiId, otherApiNavId);
     }
 
     @Test
@@ -372,17 +376,16 @@ class ApiDocumentationSyncDomainServiceTest {
         // nav-api rows takes only that row.
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         assertThat(navItemCrud.storage())
-            .extracting(PortalNavigationItem::getId)
-            .containsExactlyInAnyOrder(keptNavApiId, pageId)
-            .doesNotContain(removedNavApiId);
+                .extracting(PortalNavigationItem::getId)
+                .containsExactlyInAnyOrder(keptNavApiId, pageId)
+                .doesNotContain(removedNavApiId);
     }
 
     @Test
     void rematerialize_preserves_stored_page_visibility_when_caller_visibility_is_absent() {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), API_ID, PortalVisibility.PUBLIC);
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        navItemCrud.create(
-            PortalNavigationPage.builder()
+        navItemCrud.create(PortalNavigationPage.builder()
                 .id(pageId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -393,39 +396,29 @@ class ApiDocumentationSyncDomainServiceTest {
                 .portalPageContentId(DOC_ID)
                 .published(true)
                 .visibility(PortalVisibility.PRIVATE)
-                .build()
-        );
+                .build());
 
         var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Guides",
-            Optional.empty(),
-            Optional.of(0)
-        );
+                AutomationMetadata.ReferenceType.API, API_ID, "Guides", Optional.empty(), Optional.of(0));
         var doc = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            automationMetadata
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                automationMetadata);
         syncService.rematerialize(AUDIT_INFO, doc);
 
-        var page = (PortalNavigationPage) navItemCrud
-            .storage()
-            .stream()
-            .filter(item -> item.getId().equals(pageId))
-            .findFirst()
-            .orElseThrow();
+        var page = (PortalNavigationPage) navItemCrud.storage().stream()
+                .filter(item -> item.getId().equals(pageId))
+                .findFirst()
+                .orElseThrow();
         assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
     }
 
     @Test
     void materialize_resolves_from_parent_when_caller_omits_visibility_on_an_existing_page() {
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/docs");
-        navItemCrud.create(
-            PortalNavigationFolder.builder()
+        navItemCrud.create(PortalNavigationFolder.builder()
                 .id(folderId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -435,11 +428,9 @@ class ApiDocumentationSyncDomainServiceTest {
                 .order(0)
                 .published(true)
                 .visibility(PortalVisibility.PUBLIC)
-                .build()
-        );
+                .build());
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        navItemCrud.create(
-            PortalNavigationPage.builder()
+        navItemCrud.create(PortalNavigationPage.builder()
                 .id(pageId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -451,40 +442,30 @@ class ApiDocumentationSyncDomainServiceTest {
                 .portalPageContentId(DOC_ID)
                 .published(true)
                 .visibility(PortalVisibility.PRIVATE)
-                .build()
-        );
+                .build());
 
         var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Getting Started",
-            Optional.of("/docs"),
-            Optional.of(0)
-        );
+                AutomationMetadata.ReferenceType.API, API_ID, "Getting Started", Optional.of("/docs"), Optional.of(0));
         var doc = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            automationMetadata
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                automationMetadata);
 
         syncService.materialize(AUDIT_INFO, doc, null);
 
-        var page = (PortalNavigationPage) navItemCrud
-            .storage()
-            .stream()
-            .filter(item -> item.getId().equals(pageId))
-            .findFirst()
-            .orElseThrow();
+        var page = (PortalNavigationPage) navItemCrud.storage().stream()
+                .filter(item -> item.getId().equals(pageId))
+                .findFirst()
+                .orElseThrow();
         assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
     }
 
     @Test
     void materialize_resolves_from_parent_when_caller_omits_visibility_on_an_existing_root_page() {
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        navItemCrud.create(
-            PortalNavigationPage.builder()
+        navItemCrud.create(PortalNavigationPage.builder()
                 .id(pageId)
                 .organizationId(AUDIT_INFO.organizationId())
                 .environmentId(AUDIT_INFO.environmentId())
@@ -495,32 +476,23 @@ class ApiDocumentationSyncDomainServiceTest {
                 .portalPageContentId(DOC_ID)
                 .published(true)
                 .visibility(PortalVisibility.PRIVATE)
-                .build()
-        );
+                .build());
 
         var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Guides",
-            Optional.empty(),
-            Optional.of(0)
-        );
+                AutomationMetadata.ReferenceType.API, API_ID, "Guides", Optional.empty(), Optional.of(0));
         var doc = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            automationMetadata
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                automationMetadata);
 
         syncService.materialize(AUDIT_INFO, doc, null);
 
-        var page = (PortalNavigationPage) navItemCrud
-            .storage()
-            .stream()
-            .filter(item -> item.getId().equals(pageId))
-            .findFirst()
-            .orElseThrow();
+        var page = (PortalNavigationPage) navItemCrud.storage().stream()
+                .filter(item -> item.getId().equals(pageId))
+                .findFirst()
+                .orElseThrow();
         assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
     }
 
@@ -534,35 +506,34 @@ class ApiDocumentationSyncDomainServiceTest {
 
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id, String apiId, PortalVisibility visibility) {
         var create = CreatePortalNavigationItem.builder()
-            .id(id)
-            .title("api")
-            .segment("api")
-            .area(PortalArea.TOP_NAVBAR)
-            .type(PortalNavigationItemType.API)
-            .order(0)
-            .apiId(apiId)
-            .visibility(visibility)
-            .published(true)
-            .build();
-        var navApi = (PortalNavigationApi) PortalNavigationItem.from(create, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), null);
+                .id(id)
+                .title("api")
+                .segment("api")
+                .area(PortalArea.TOP_NAVBAR)
+                .type(PortalNavigationItemType.API)
+                .order(0)
+                .apiId(apiId)
+                .visibility(visibility)
+                .published(true)
+                .build();
+        var navApi = (PortalNavigationApi)
+                PortalNavigationItem.from(create, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), null);
         navItemCrud.create(navApi);
         return navApi;
     }
 
     private static PortalPageContent<?> aDocumentation() {
         var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Getting Started",
-            Optional.of("/getting-started"),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.API,
+                API_ID,
+                "Getting Started",
+                Optional.of("/getting-started"),
+                Optional.of(1));
         return new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            automationMetadata
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                automationMetadata);
     }
 }

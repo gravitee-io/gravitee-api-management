@@ -41,16 +41,14 @@ class MongoDictionaryPropertyLegacyReadTest extends AbstractManagementRepository
     @Test
     void should_read_a_genuine_legacy_raw_bson_bare_string_property() throws Exception {
         mongoOperations
-            .getCollection("test_prefix_dictionaries")
-            .insertOne(
-                new Document()
-                    .append("_id", "dic-raw-legacy")
-                    .append("environmentId", "DEFAULT")
-                    .append("name", "Raw Legacy Dic")
-                    .append("key", "dic-raw-legacy")
-                    .append("type", "MANUAL")
-                    .append("properties", new Document("legacy-key", "legacy-value"))
-            );
+                .getCollection("test_prefix_dictionaries")
+                .insertOne(new Document()
+                        .append("_id", "dic-raw-legacy")
+                        .append("environmentId", "DEFAULT")
+                        .append("name", "Raw Legacy Dic")
+                        .append("key", "dic-raw-legacy")
+                        .append("type", "MANUAL")
+                        .append("properties", new Document("legacy-key", "legacy-value")));
 
         var found = dictionaryRepository.findById("dic-raw-legacy");
 

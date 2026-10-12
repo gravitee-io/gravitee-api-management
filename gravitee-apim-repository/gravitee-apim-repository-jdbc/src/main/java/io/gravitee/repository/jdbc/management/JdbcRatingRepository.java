@@ -51,16 +51,16 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     @Override
     protected JdbcObjectMapper<Rating> buildOrm() {
         return JdbcObjectMapper.builder(Rating.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("rate", Types.TINYINT, byte.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("comment", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("rate", Types.TINYINT, byte.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("comment", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -81,17 +81,21 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     }
 
     @Override
-    public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable page)
-        throws TechnicalException {
-        log.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})", referenceId, referenceType, page);
+    public Page<Rating> findByReferenceIdAndReferenceTypePageable(
+            String referenceId, RatingReferenceType referenceType, Pageable page) throws TechnicalException {
+        log.debug(
+                "JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})",
+                referenceId,
+                referenceType,
+                page);
         final List<Rating> ratings;
         try {
             ratings = jdbcTemplate.query(
-                "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? order by created_at desc",
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name()
-            );
+                    "select r.* from " + this.tableName
+                            + " r where reference_id = ? and reference_type = ? order by created_at desc",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name());
         } catch (final Exception ex) {
             final String message = "Failed to find ratings by api pageable";
             log.error(message, ex);
@@ -101,15 +105,15 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     }
 
     @Override
-    public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException {
+    public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
+            throws TechnicalException {
         log.debug("JdbcRatingRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             return jdbcTemplate.query(
-                "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? ",
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name()
-            );
+                    "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? ",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name());
         } catch (final Exception ex) {
             log.error("Failed to find ratings by ref:", ex);
             throw new TechnicalException("Failed to find ratings by ref", ex);
@@ -117,21 +121,23 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     }
 
     @Override
-    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
-        throws TechnicalException {
-        log.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypeAndUser({}, {}, {})", referenceId, referenceType, user);
+    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(
+            String referenceId, RatingReferenceType referenceType, String user) throws TechnicalException {
+        log.debug(
+                "JdbcRatingRepository.findByReferenceIdAndReferenceTypeAndUser({}, {}, {})",
+                referenceId,
+                referenceType,
+                user);
         try {
             List<Rating> ratings = jdbcTemplate.query(
-                "select r.* from " +
-                    this.tableName +
-                    " r where reference_id = ? and reference_type = ?  and " +
-                    escapeReservedWord("user") +
-                    " = ?",
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name(),
-                user
-            );
+                    "select r.* from " + this.tableName
+                            + " r where reference_id = ? and reference_type = ?  and "
+                            + escapeReservedWord("user")
+                            + " = ?",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name(),
+                    user);
             return ratings.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find ratings by api:", ex);
@@ -151,15 +157,18 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     private String buildSummariesQuery(RatingCriteria ratingCriteria, boolean hasInClause) {
         StringBuilder queryBuilder = new StringBuilder(
-            "SELECT reference_id, avg(cast(rate as decimal)) as averageRate, count(rate) as numberOfRatings, max(updated_at) as lastUpdatedAt from "
-        )
-            .append(this.tableName)
-            .append(" where reference_type = ? and rate > ? ");
+                        "SELECT reference_id, avg(cast(rate as decimal)) as averageRate, count(rate) as numberOfRatings, max(updated_at) as lastUpdatedAt from ")
+                .append(this.tableName)
+                .append(" where reference_type = ? and rate > ? ");
 
         if (hasInClause) {
-            queryBuilder.append("and reference_id IN (").append(getOrm().buildInClause(ratingCriteria.getReferenceIds())).append(") ");
+            queryBuilder
+                    .append("and reference_id IN (")
+                    .append(getOrm().buildInClause(ratingCriteria.getReferenceIds()))
+                    .append(") ");
         }
-        queryBuilder.append("group by reference_id order by averageRate desc, numberOfRatings desc, lastUpdatedAt desc");
+        queryBuilder.append(
+                "group by reference_id order by averageRate desc, numberOfRatings desc, lastUpdatedAt desc");
 
         return queryBuilder.toString();
     }
@@ -168,20 +177,20 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     public Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) throws TechnicalException {
         log.debug("JdbcRatingRepository.findReferenceIdsOrderByRate({})", ratingCriteria.toString());
         try {
-            boolean hasInClause = ratingCriteria.getReferenceIds() != null && !ratingCriteria.getReferenceIds().isEmpty();
+            boolean hasInClause = ratingCriteria.getReferenceIds() != null
+                    && !ratingCriteria.getReferenceIds().isEmpty();
 
             return jdbcTemplate.query(
-                this.buildSummariesQuery(ratingCriteria, hasInClause),
-                this.buildSummariesSetter(ratingCriteria, hasInClause),
-                resultSet -> {
-                    Set<String> ranking = new LinkedHashSet<>();
-                    while (resultSet.next()) {
-                        String referenceId = resultSet.getString(1);
-                        ranking.add(referenceId);
-                    }
-                    return ranking;
-                }
-            );
+                    this.buildSummariesQuery(ratingCriteria, hasInClause),
+                    this.buildSummariesSetter(ratingCriteria, hasInClause),
+                    resultSet -> {
+                        Set<String> ranking = new LinkedHashSet<>();
+                        while (resultSet.next()) {
+                            String referenceId = resultSet.getString(1);
+                            ranking.add(referenceId);
+                        }
+                        return ranking;
+                    });
         } catch (final Exception ex) {
             log.error("Failed to compute ranking by criteria:", ex);
             throw new TechnicalException("Failed to compute ranking by criteria", ex);
@@ -190,25 +199,26 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType.name(),
-                referenceId
-            );
+                    "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType.name(),
+                    referenceId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
-                    referenceType.name(),
-                    referenceId
-                );
+                        "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                        referenceType.name(),
+                        referenceId);
             }
 
-            log.debug("JdbcRatingRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcRatingRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done",
+                    referenceId,
+                    referenceType);
             return rows;
         } catch (final Exception ex) {
             log.error("Failed to delete rating for refId: {}/{}", referenceId, referenceType, ex);

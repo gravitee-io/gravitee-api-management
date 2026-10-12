@@ -66,7 +66,8 @@ class WsdlToImportApiUseCaseTest {
         """;
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
-    private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+    private final EndpointConnectorPluginDomainService endpointConnectorPluginService =
+            mock(EndpointConnectorPluginDomainService.class);
     private final PolicyPluginCrudServiceInMemory policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
@@ -75,48 +76,46 @@ class WsdlToImportApiUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
+        importDefinitionCreateDomainServiceTestInitializer =
+                new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
 
-        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn(SHARED_CONFIGURATION);
+        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString()))
+                .thenReturn(SHARED_CONFIGURATION);
 
-        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
-            List.of(
+        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(List.of(
                 new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                ),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
-        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane@gravitee.io").build())
-        );
-        when(
-            importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        ).thenAnswer(invocation -> invocation.getArgument(0));
+                        Key.API_PRIMARY_OWNER_MODE.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        ApiPrimaryOwnerMode.USER.name()),
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
+        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane@gravitee.io")
+                .build()));
+        when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                        any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         ImportConfiguration importConfiguration = mock(ImportConfiguration.class);
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
 
         useCase = new WsdlToImportApiUseCase(
-            new WsdlParserDomainServiceImpl(importConfiguration),
-            new OAIDomainServiceImpl(
-                new PolicyOperationVisitorManagerImpl(),
-                new TagQueryServiceInMemory(),
-                endpointConnectorPluginService,
-                policyPluginCrudService,
-                importConfiguration
-            ),
-            importDefinitionCreateDomainServiceTestInitializer.initialize()
-        );
+                new WsdlParserDomainServiceImpl(importConfiguration),
+                new OAIDomainServiceImpl(
+                        new PolicyOperationVisitorManagerImpl(),
+                        new TagQueryServiceInMemory(),
+                        endpointConnectorPluginService,
+                        policyPluginCrudService,
+                        importConfiguration),
+                importDefinitionCreateDomainServiceTestInitializer.initialize());
     }
 
     @Test
@@ -134,14 +133,13 @@ class WsdlToImportApiUseCaseTest {
 
         assertThat(output).isNotNull();
         assertThat(apiDefinition.getEndpointGroups())
-            .isNotEmpty()
-            .first()
-            .satisfies(endpointGroup ->
-                assertThat(endpointGroup.getEndpoints())
-                    .isNotEmpty()
-                    .first()
-                    .satisfies(endpoint -> assertThat(endpoint.getConfiguration()).contains("http://localhost:8080/calculator"))
-            );
+                .isNotEmpty()
+                .first()
+                .satisfies(endpointGroup -> assertThat(endpointGroup.getEndpoints())
+                        .isNotEmpty()
+                        .first()
+                        .satisfies(endpoint ->
+                                assertThat(endpoint.getConfiguration()).contains("http://localhost:8080/calculator")));
     }
 
     @Test
@@ -169,22 +167,24 @@ class WsdlToImportApiUseCaseTest {
 
             assertThat(output).isNotNull();
             assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage())
-                .hasSize(1)
-                .first()
-                .satisfies(page -> {
-                    assertThat(page.getReferenceId()).isEqualTo(output.apiWithFlows().getId());
-                    assertThat(page.getName()).isEqualTo("Swagger");
-                    // Content must be the converted OpenAPI YAML, not the raw WSDL XML
-                    assertThat(page.getContent()).startsWith("openapi:");
-                    assertThat(page.getContent()).doesNotStartWith("<");
-                });
+                    .hasSize(1)
+                    .first()
+                    .satisfies(page -> {
+                        assertThat(page.getReferenceId())
+                                .isEqualTo(output.apiWithFlows().getId());
+                        assertThat(page.getName()).isEqualTo("Swagger");
+                        // Content must be the converted OpenAPI YAML, not the raw WSDL XML
+                        assertThat(page.getContent()).startsWith("openapi:");
+                        assertThat(page.getContent()).doesNotStartWith("<");
+                    });
         }
 
         @Test
         void should_not_add_documentation_page_when_disabled() {
             useCase.execute(buildInput(loadWsdl(), false, false));
 
-            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage()).isEmpty();
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage())
+                    .isEmpty();
         }
     }
 
@@ -195,15 +195,12 @@ class WsdlToImportApiUseCaseTest {
         @Test
         void should_create_api_from_remote_wsdl_url(WireMockRuntimeInfo wm) {
             var wsdlContent = loadWsdl();
-            wm.getWireMock().register(get(urlEqualTo("/calculator.wsdl")).willReturn(aResponse().withStatus(200).withBody(wsdlContent)));
+            wm.getWireMock()
+                    .register(get(urlEqualTo("/calculator.wsdl"))
+                            .willReturn(aResponse().withStatus(200).withBody(wsdlContent)));
 
             var input = new WsdlToImportApiUseCase.Input.Url(
-                "http://localhost:" + wm.getHttpPort() + "/calculator.wsdl",
-                false,
-                false,
-                List.of(),
-                AUDIT_INFO
-            );
+                    "http://localhost:" + wm.getHttpPort() + "/calculator.wsdl", false, false, List.of(), AUDIT_INFO);
             var output = useCase.execute(input);
 
             assertThat(output).isNotNull();
@@ -212,7 +209,8 @@ class WsdlToImportApiUseCaseTest {
 
         @Test
         void should_throw_when_remote_url_is_unreachable() {
-            var input = new WsdlToImportApiUseCase.Input.Url("http://localhost:1/nonexistent.wsdl", false, false, List.of(), AUDIT_INFO);
+            var input = new WsdlToImportApiUseCase.Input.Url(
+                    "http://localhost:1/nonexistent.wsdl", false, false, List.of(), AUDIT_INFO);
 
             var throwable = catchThrowable(() -> useCase.execute(input));
 
@@ -221,15 +219,12 @@ class WsdlToImportApiUseCaseTest {
 
         @Test
         void should_throw_when_remote_url_returns_invalid_wsdl(WireMockRuntimeInfo wm) {
-            wm.getWireMock().register(get(urlEqualTo("/bad.wsdl")).willReturn(aResponse().withStatus(200).withBody("not valid wsdl")));
+            wm.getWireMock()
+                    .register(get(urlEqualTo("/bad.wsdl"))
+                            .willReturn(aResponse().withStatus(200).withBody("not valid wsdl")));
 
             var input = new WsdlToImportApiUseCase.Input.Url(
-                "http://localhost:" + wm.getHttpPort() + "/bad.wsdl",
-                false,
-                false,
-                List.of(),
-                AUDIT_INFO
-            );
+                    "http://localhost:" + wm.getHttpPort() + "/bad.wsdl", false, false, List.of(), AUDIT_INFO);
             var throwable = catchThrowable(() -> useCase.execute(input));
 
             assertThat(throwable).isInstanceOf(SwaggerDescriptorException.class);
@@ -238,7 +233,8 @@ class WsdlToImportApiUseCaseTest {
 
     @Test
     void should_create_flows_when_rest_to_soap_policy_is_requested() {
-        var input = new WsdlToImportApiUseCase.Input.Inline(loadWsdl(), false, false, List.of("rest-to-soap"), AUDIT_INFO);
+        var input =
+                new WsdlToImportApiUseCase.Input.Inline(loadWsdl(), false, false, List.of("rest-to-soap"), AUDIT_INFO);
         var output = useCase.execute(input);
         var apiDefinition = (Api) output.apiWithFlows().getApiDefinitionValue();
 
@@ -251,7 +247,9 @@ class WsdlToImportApiUseCaseTest {
         return Resources.toString(Resources.getResource("wsdl/calculator.wsdl"), Charsets.UTF_8);
     }
 
-    private WsdlToImportApiUseCase.Input buildInput(String payload, boolean withDocumentation, boolean withOASValidationPolicy) {
-        return new WsdlToImportApiUseCase.Input.Inline(payload, withDocumentation, withOASValidationPolicy, List.of(), AUDIT_INFO);
+    private WsdlToImportApiUseCase.Input buildInput(
+            String payload, boolean withDocumentation, boolean withOASValidationPolicy) {
+        return new WsdlToImportApiUseCase.Input.Inline(
+                payload, withDocumentation, withOASValidationPolicy, List.of(), AUDIT_INFO);
     }
 }

@@ -27,26 +27,26 @@ public interface ScoringReportAdapter {
     ScoringReportAdapter INSTANCE = Mappers.getMapper(ScoringReportAdapter.class);
 
     ScoringReport toEntity(io.gravitee.repository.management.model.ScoringReport source);
+
     EnvironmentOverview toEntity(io.gravitee.repository.management.model.ScoringEnvironmentSummary source);
 
     default EnvironmentApiScoringReport toEntity(io.gravitee.repository.management.model.ScoringEnvironmentApi source) {
         return new EnvironmentApiScoringReport(
-            toEnvironmentApiScoringReportApi(source),
-            source.getReportId() != null ? toEnvironmentApiScoringReportSummary(source) : null
-        );
+                toEnvironmentApiScoringReportApi(source),
+                source.getReportId() != null ? toEnvironmentApiScoringReportSummary(source) : null);
     }
 
     @Mapping(target = "apiId", source = "apiId")
     @Mapping(target = "name", source = "apiName")
     @Mapping(target = "type", source = "apiType")
     @Mapping(target = "updatedAt", source = "apiUpdatedAt")
-    EnvironmentApiScoringReport.Api toEnvironmentApiScoringReportApi(io.gravitee.repository.management.model.ScoringEnvironmentApi source);
+    EnvironmentApiScoringReport.Api toEnvironmentApiScoringReportApi(
+            io.gravitee.repository.management.model.ScoringEnvironmentApi source);
 
     @Mapping(target = "id", source = "reportId")
     @Mapping(target = "createdAt", source = "reportCreatedAt")
     EnvironmentApiScoringReport.Summary toEnvironmentApiScoringReportSummary(
-        io.gravitee.repository.management.model.ScoringEnvironmentApi source
-    );
+            io.gravitee.repository.management.model.ScoringEnvironmentApi source);
 
     io.gravitee.repository.management.model.ScoringReport toRepository(ScoringReport source);
 }

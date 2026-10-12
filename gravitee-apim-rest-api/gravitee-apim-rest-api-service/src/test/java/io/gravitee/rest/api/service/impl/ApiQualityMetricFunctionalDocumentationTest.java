@@ -55,7 +55,8 @@ public class ApiQualityMetricFunctionalDocumentationTest {
     @Test
     public void shouldBeValidWithMarkdownPublished() {
         PageEntity item = mock(PageEntity.class);
-        when(mockPageService.search(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.singletonList(item));
+        when(mockPageService.search(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -66,7 +67,8 @@ public class ApiQualityMetricFunctionalDocumentationTest {
 
     @Test
     public void shouldNotBeValidWithEmptyList() {
-        when(mockPageService.search(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptyList());
+        when(mockPageService.search(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 

@@ -46,38 +46,43 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     }
 
     @Override
-    public Page<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+    public Page<Api> search(
+            ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = this.storage()
-            .stream()
-            .filter(api -> {
-                var matchesIntegrationId =
-                    isNull(apiCriteria) ||
-                    isNull(apiCriteria.getIntegrationId()) ||
-                    Objects.equals(((OriginContext.Integration) api.getOriginContext()).integrationId(), apiCriteria.getIntegrationId());
-                var matchesApiId = isNull(apiCriteria) || isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
-                var matchesEnvironmentId =
-                    isNull(apiCriteria) ||
-                    isNull(apiCriteria.getEnvironmentId()) ||
-                    apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
-                var matchesLifecycleState =
-                    isNull(apiCriteria) ||
-                    isNull(apiCriteria.getLifecycleStates()) ||
-                    apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
-                var matchesGroups =
-                    isNull(apiCriteria) ||
-                    isNull(apiCriteria.getGroups()) ||
-                    apiCriteria.getGroups().isEmpty() ||
-                    (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
-                return (matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId && matchesGroups);
-            })
-            .toList();
+        var matches = this.storage().stream()
+                .filter(api -> {
+                    var matchesIntegrationId = isNull(apiCriteria)
+                            || isNull(apiCriteria.getIntegrationId())
+                            || Objects.equals(
+                                    ((OriginContext.Integration) api.getOriginContext()).integrationId(),
+                                    apiCriteria.getIntegrationId());
+                    var matchesApiId = isNull(apiCriteria)
+                            || isNull(apiCriteria.getIds())
+                            || apiCriteria.getIds().contains(api.getId());
+                    var matchesEnvironmentId = isNull(apiCriteria)
+                            || isNull(apiCriteria.getEnvironmentId())
+                            || apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
+                    var matchesLifecycleState = isNull(apiCriteria)
+                            || isNull(apiCriteria.getLifecycleStates())
+                            || apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
+                    var matchesGroups = isNull(apiCriteria)
+                            || isNull(apiCriteria.getGroups())
+                            || apiCriteria.getGroups().isEmpty()
+                            || (api.getGroups() != null
+                                    && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
+                    return (matchesIntegrationId
+                            && matchesApiId
+                            && matchesLifecycleState
+                            && matchesEnvironmentId
+                            && matchesGroups);
+                })
+                .toList();
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }
@@ -88,54 +93,46 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
      */
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        if (
-            apiCriteria != null &&
-            (apiCriteria.getIntegrationId() != null ||
-                apiCriteria.getIds() != null ||
-                apiCriteria.getDefinitionVersion() != null ||
-                apiCriteria.getEnvironmentId() != null ||
-                (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()))
-        ) {
-            return this.storage()
-                .stream()
-                .filter(api -> {
-                    var matchesIntegrationId =
-                        isNull(apiCriteria.getIntegrationId()) ||
-                        Objects.equals(
-                            ((OriginContext.Integration) api.getOriginContext()).integrationId(),
-                            apiCriteria.getIntegrationId()
-                        );
-                    var matchesApiId = isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
-                    var matchesLifecycleState =
-                        isNull(apiCriteria.getLifecycleStates()) || apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
-                    var matchesApiDefinitionVersion =
-                        isNull(apiCriteria.getDefinitionVersion()) ||
-                        apiCriteria.getDefinitionVersion().contains(api.getDefinitionVersion());
-                    var matchesEnvironmentId =
-                        isNull(apiCriteria.getEnvironmentId()) || apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
-                    var matchesGroups =
-                        isNull(apiCriteria.getGroups()) ||
-                        apiCriteria.getGroups().isEmpty() ||
-                        (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
-                    return (
-                        matchesIntegrationId &&
-                        matchesApiId &&
-                        matchesLifecycleState &&
-                        matchesApiDefinitionVersion &&
-                        matchesEnvironmentId &&
-                        matchesGroups
-                    );
-                });
+        if (apiCriteria != null
+                && (apiCriteria.getIntegrationId() != null
+                        || apiCriteria.getIds() != null
+                        || apiCriteria.getDefinitionVersion() != null
+                        || apiCriteria.getEnvironmentId() != null
+                        || (apiCriteria.getGroups() != null
+                                && !apiCriteria.getGroups().isEmpty()))) {
+            return this.storage().stream().filter(api -> {
+                var matchesIntegrationId = isNull(apiCriteria.getIntegrationId())
+                        || Objects.equals(
+                                ((OriginContext.Integration) api.getOriginContext()).integrationId(),
+                                apiCriteria.getIntegrationId());
+                var matchesApiId =
+                        isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
+                var matchesLifecycleState = isNull(apiCriteria.getLifecycleStates())
+                        || apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
+                var matchesApiDefinitionVersion = isNull(apiCriteria.getDefinitionVersion())
+                        || apiCriteria.getDefinitionVersion().contains(api.getDefinitionVersion());
+                var matchesEnvironmentId = isNull(apiCriteria.getEnvironmentId())
+                        || apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
+                var matchesGroups = isNull(apiCriteria.getGroups())
+                        || apiCriteria.getGroups().isEmpty()
+                        || (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
+                return (matchesIntegrationId
+                        && matchesApiId
+                        && matchesLifecycleState
+                        && matchesApiDefinitionVersion
+                        && matchesEnvironmentId
+                        && matchesGroups);
+            });
         }
         return this.storage().stream();
     }
 
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
-        return storage
-            .stream()
-            .filter(api -> environmentId.equals(api.getEnvironmentId()) && Objects.equals(api.getCrossId(), crossId))
-            .findFirst();
+        return storage.stream()
+                .filter(api ->
+                        environmentId.equals(api.getEnvironmentId()) && Objects.equals(api.getCrossId(), crossId))
+                .findFirst();
     }
 
     @Override
@@ -143,15 +140,15 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage
-            .stream()
-            .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte && integrationId.equals(inte.integrationId()))
-            .sorted(Comparator.comparing(Api::getUpdatedAt).reversed())
-            .toList();
+        var matches = storage.stream()
+                .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte
+                        && integrationId.equals(inte.integrationId()))
+                .sorted(Comparator.comparing(Api::getUpdatedAt).reversed())
+                .toList();
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, page.size(), matches.size());
     }

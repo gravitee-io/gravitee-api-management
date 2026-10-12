@@ -31,18 +31,18 @@ public class ApiFromUserCollationEnIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("tickets")
-            .name("a1fu1en")
-            .key("api", ascending())
-            .key("fromUser", ascending())
-            .collation(collation())
-            .build();
+                .collection("tickets")
+                .name("a1fu1en")
+                .key("api", ascending())
+                .key("fromUser", ascending())
+                .collation(collation())
+                .build();
     }
 
     private static Collation collation() {
         return Collation.builder()
-            .locale(Locale.ENGLISH.getLanguage())
-            .collationStrength(CollationStrength.SECONDARY)
-            .build();
+                .locale(Locale.ENGLISH.getLanguage())
+                .collationStrength(CollationStrength.SECONDARY)
+                .build();
     }
 }

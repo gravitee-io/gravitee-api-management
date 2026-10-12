@@ -29,12 +29,10 @@ public class GetApiProductInfosByApiIdUseCase {
     private final ApiProductQueryService apiProductQueryService;
 
     public Output execute(Input input) {
-        List<ApiProductInfo> infos = apiProductQueryService
-            .findByApiId(input.apiId())
-            .stream()
-            .map(p -> new ApiProductInfo(p.getId(), p.getName()))
-            .sorted(Comparator.comparing(ApiProductInfo::name, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
-            .toList();
+        List<ApiProductInfo> infos = apiProductQueryService.findByApiId(input.apiId()).stream()
+                .map(p -> new ApiProductInfo(p.getId(), p.getName()))
+                .sorted(Comparator.comparing(ApiProductInfo::name, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .toList();
         return new Output(infos);
     }
 

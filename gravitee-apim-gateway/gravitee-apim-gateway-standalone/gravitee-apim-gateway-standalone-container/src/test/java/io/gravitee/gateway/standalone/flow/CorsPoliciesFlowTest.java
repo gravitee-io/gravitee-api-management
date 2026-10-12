@@ -40,11 +40,10 @@ public class CorsPoliciesFlowTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldRunFlows_preflightRequest() throws Exception {
-        HttpResponse response = execute(
-            Request.Options("http://localhost:8082/test/my_team")
-                .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://localhost")
-        ).returnResponse();
+        HttpResponse response = execute(Request.Options("http://localhost:8082/test/my_team")
+                        .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
+                        .addHeader(HttpHeaders.ORIGIN, "http://localhost"))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

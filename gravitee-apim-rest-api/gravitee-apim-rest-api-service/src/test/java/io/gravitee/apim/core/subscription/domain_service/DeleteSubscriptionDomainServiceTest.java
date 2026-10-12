@@ -60,14 +60,16 @@ class DeleteSubscriptionDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
+        var auditDomainService = new AuditDomainService(
+                auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
 
         service = new DeleteSubscriptionDomainService(subscriptionCrudServiceInMemory, auditDomainService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(subscriptionCrudServiceInMemory, userCrudServiceInMemory, auditCrudServiceInMemory).forEach(InMemoryAlternative::reset);
+        Stream.of(subscriptionCrudServiceInMemory, userCrudServiceInMemory, auditCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @BeforeAll
@@ -85,7 +87,10 @@ class DeleteSubscriptionDomainServiceTest {
     @ParameterizedTest
     @EnumSource(value = SubscriptionEntity.Status.class)
     void should_delete_subscription(SubscriptionEntity.Status status) {
-        var subscription = SubscriptionFixtures.aSubscription().toBuilder().planId("federated").status(status).build();
+        var subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                .planId("federated")
+                .status(status)
+                .build();
         subscriptionCrudServiceInMemory.initWith(List.of(subscription));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -96,26 +101,26 @@ class DeleteSubscriptionDomainServiceTest {
 
     @Test
     void should_create_audit_log() {
-        var subscription = SubscriptionFixtures.aSubscription().toBuilder().planId("federated").build();
+        var subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                .planId("federated")
+                .build();
         subscriptionCrudServiceInMemory.initWith(List.of(subscription));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
         service.delete(subscription, auditInfo);
 
         assertThat(auditCrudServiceInMemory.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(MY_API)
-                    .user(USER_ID)
-                    .event(SubscriptionAuditEvent.SUBSCRIPTION_DELETED.name())
-                    .properties(Map.of())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(MY_API)
+                        .user(USER_ID)
+                        .event(SubscriptionAuditEvent.SUBSCRIPTION_DELETED.name())
+                        .properties(Map.of())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 }

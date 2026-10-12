@@ -69,10 +69,15 @@ public abstract class TracingRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_search_traces_matching_service_tag() {
         var page = tracingRepository
-            .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of("service.name", Fixtures.SERVICE_NAME), 20, null, null, Map.of()))
-            .blockingGet();
+                .searchTraces(
+                        QUERY_CONTEXT,
+                        new TraceSearchCriteria(
+                                Map.of("service.name", Fixtures.SERVICE_NAME), 20, null, null, Map.of()))
+                .blockingGet();
 
-        assertThat(page.getContent()).extracting(Trace::traceId).containsExactlyInAnyOrder(Fixtures.TRACE_OK_ID, Fixtures.TRACE_ERROR_ID);
+        assertThat(page.getContent())
+                .extracting(Trace::traceId)
+                .containsExactlyInAnyOrder(Fixtures.TRACE_OK_ID, Fixtures.TRACE_ERROR_ID);
         // The SPI reports the distinct-trace total (not the slice size), so callers can paginate.
         assertThat(page.getTotalElements()).isEqualTo(2L);
     }
@@ -80,11 +85,11 @@ public abstract class TracingRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_empty_page_when_no_trace_matches() {
         var page = tracingRepository
-            .searchTraces(
-                QUERY_CONTEXT,
-                new TraceSearchCriteria(Map.of("service.name", "service-that-does-not-exist"), 20, null, null, Map.of())
-            )
-            .blockingGet();
+                .searchTraces(
+                        QUERY_CONTEXT,
+                        new TraceSearchCriteria(
+                                Map.of("service.name", "service-that-does-not-exist"), 20, null, null, Map.of()))
+                .blockingGet();
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isZero();
@@ -92,7 +97,9 @@ public abstract class TracingRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void should_get_trace_by_id_with_full_span_tree() {
-        Trace trace = tracingRepository.getTrace(QUERY_CONTEXT, Fixtures.TRACE_OK_ID, Map.of()).blockingGet();
+        Trace trace = tracingRepository
+                .getTrace(QUERY_CONTEXT, Fixtures.TRACE_OK_ID, Map.of())
+                .blockingGet();
 
         assertThat(trace).isNotNull();
         assertThat(trace.traceId()).isEqualTo(Fixtures.TRACE_OK_ID);
@@ -104,7 +111,9 @@ public abstract class TracingRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void should_complete_empty_when_trace_id_is_unknown() {
-        Trace trace = tracingRepository.getTrace(QUERY_CONTEXT, Fixtures.UNKNOWN_TRACE_ID, Map.of()).blockingGet();
+        Trace trace = tracingRepository
+                .getTrace(QUERY_CONTEXT, Fixtures.UNKNOWN_TRACE_ID, Map.of())
+                .blockingGet();
 
         assertThat(trace).isNull();
     }
@@ -124,6 +133,7 @@ public abstract class TracingRepositoryTest extends AbstractRepositoryTest {
          * fixtures under this org so the contract tests find them.
          */
         public static final String ORG_ID = "test-org";
+
         public static final String ENV_ID = "test-env";
 
         public static final String SERVICE_NAME = "test-service";

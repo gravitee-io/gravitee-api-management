@@ -35,10 +35,9 @@ public interface PortalNavigationItemCrudService {
      * @return the item as stored afterwards, empty when it no longer exists
      */
     Optional<PortalNavigationItem> updateSourceFetchState(
-        PortalNavigationItemId id,
-        PortalNavigationItemSource fetchedSource,
-        PortalNavigationItemSource.FetchState fetchState
-    );
+            PortalNavigationItemId id,
+            PortalNavigationItemSource fetchedSource,
+            PortalNavigationItemSource.FetchState fetchState);
 
     void delete(PortalNavigationItemId portalNavigationItemId);
 

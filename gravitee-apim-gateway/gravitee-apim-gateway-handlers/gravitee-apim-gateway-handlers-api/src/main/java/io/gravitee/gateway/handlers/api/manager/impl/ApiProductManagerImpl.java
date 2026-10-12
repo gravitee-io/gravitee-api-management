@@ -28,7 +28,6 @@ import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
@@ -47,11 +46,10 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
 
     public ApiProductManagerImpl(
-        ApiProductRegistry apiProductRegistry,
-        EventManager eventManager,
-        LicenseManager licenseManager,
-        GatewayConfiguration gatewayConfiguration
-    ) {
+            ApiProductRegistry apiProductRegistry,
+            EventManager eventManager,
+            LicenseManager licenseManager,
+            GatewayConfiguration gatewayConfiguration) {
         this.apiProductRegistry = apiProductRegistry;
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
@@ -88,18 +86,16 @@ public class ApiProductManagerImpl implements ApiProductManager {
         var license = licenseManager.getOrganizationLicenseOrPlatform(apiProduct.getOrganizationId());
         if (license == null || !license.isFeatureEnabled("apim-api-products")) {
             log.warn(
-                "The API Product [{}] can not be deployed because it is not allowed by the current license (apim-api-products feature required)",
-                apiProduct.getName()
-            );
+                    "The API Product [{}] can not be deployed because it is not allowed by the current license (apim-api-products feature required)",
+                    apiProduct.getName());
             return Completable.complete();
         }
 
         if (!ApiProductShardingFilter.matchesProductTags(gatewayConfiguration, apiProduct.getTags())) {
             log.debug(
-                "The API Product [{}] has been ignored because not in configured gateway tags {}",
-                apiProduct.getName(),
-                apiProduct.getTags()
-            );
+                    "The API Product [{}] has been ignored because not in configured gateway tags {}",
+                    apiProduct.getName(),
+                    apiProduct.getTags());
             if (get(apiProduct.getId()) != null) {
                 undeploy(apiProduct.getId());
             }
@@ -110,11 +106,10 @@ public class ApiProductManagerImpl implements ApiProductManager {
         ReactableApiProduct deployedApiProduct = get(apiProduct.getId());
 
         boolean apiProductToDeploy = deployedApiProduct == null || force;
-        boolean apiProductToUpdate =
-            !apiProductToDeploy &&
-            deployedApiProduct.getDeployedAt() != null &&
-            apiProduct.getDeployedAt() != null &&
-            deployedApiProduct.getDeployedAt().before(apiProduct.getDeployedAt());
+        boolean apiProductToUpdate = !apiProductToDeploy
+                && deployedApiProduct.getDeployedAt() != null
+                && apiProduct.getDeployedAt() != null
+                && deployedApiProduct.getDeployedAt().before(apiProduct.getDeployedAt());
 
         // Deploy new API Product
         if (apiProductToDeploy) {
@@ -148,9 +143,8 @@ public class ApiProductManagerImpl implements ApiProductManager {
         log.debug("Updating API Product [{}]", apiProduct.getId());
 
         ReactableApiProduct previousProduct = apiProducts.get(apiProduct.getId());
-        Set<String> previousApiIds = previousProduct != null && previousProduct.getApiIds() != null
-            ? previousProduct.getApiIds()
-            : Set.of();
+        Set<String> previousApiIds =
+                previousProduct != null && previousProduct.getApiIds() != null ? previousProduct.getApiIds() : Set.of();
 
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
@@ -165,7 +159,8 @@ public class ApiProductManagerImpl implements ApiProductManager {
             allAffectedApiIds.addAll(apiProduct.getApiIds());
         }
         if (!allAffectedApiIds.isEmpty()) {
-            ApiProductChangedEvent event = new ApiProductChangedEvent(apiProduct.getId(), apiProduct.getEnvironmentId(), allAffectedApiIds);
+            ApiProductChangedEvent event =
+                    new ApiProductChangedEvent(apiProduct.getId(), apiProduct.getEnvironmentId(), allAffectedApiIds);
             eventManager.publishEvent(ApiProductEventType.UPDATE, event);
         }
         log.info("API Product [{}] has been updated", apiProduct.getId());
@@ -174,7 +169,10 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private void undeploy(String apiProductId) {
         ReactableApiProduct currentApiProduct = apiProducts.remove(apiProductId);
         if (currentApiProduct != null) {
-            log.debug("Undeploying API Product [{}] from environment [{}]", apiProductId, currentApiProduct.getEnvironmentId());
+            log.debug(
+                    "Undeploying API Product [{}] from environment [{}]",
+                    apiProductId,
+                    currentApiProduct.getEnvironmentId());
 
             apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
 
@@ -192,19 +190,15 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private void emitApiProductChangedEvent(ApiProductEventType eventType, ReactableApiProduct apiProduct) {
         try {
             ApiProductChangedEvent event = new ApiProductChangedEvent(
-                apiProduct.getId(),
-                apiProduct.getEnvironmentId(),
-                apiProduct.getApiIds()
-            );
+                    apiProduct.getId(), apiProduct.getEnvironmentId(), apiProduct.getApiIds());
             eventManager.publishEvent(eventType, event);
             log.debug("Emitted {} event for API Product [{}]", eventType, apiProduct.getId());
         } catch (Exception e) {
             log.error(
-                "Failed to emit {} event for API Product [{}] — security chain may be stale until next sync cycle",
-                eventType,
-                apiProduct.getId(),
-                e
-            );
+                    "Failed to emit {} event for API Product [{}] — security chain may be stale until next sync cycle",
+                    eventType,
+                    apiProduct.getId(),
+                    e);
         }
     }
 }

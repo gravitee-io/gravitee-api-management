@@ -23,5 +23,6 @@ import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
  */
 public interface GraviteeDescriptorService {
     String descriptorName();
+
     GraviteeDescriptorEntity read(String s);
 }

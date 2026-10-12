@@ -45,17 +45,19 @@ class JdbcAuditRepositoryTest {
             }
         }
         if (field == null) throw new RuntimeException("jdbcTemplate field not found");
-        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(Long.class))).thenReturn(5L);
+        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(Long.class)))
+                .thenReturn(5L);
 
         doAnswer(invocation -> {
-            JdbcHelper.CollatingRowMapper<Audit> rowMapper = invocation.getArgument(1);
-            rowMapper.getRows().add(new Audit());
-            rowMapper.getRows().add(new Audit());
-            return null;
-        })
-            .when(jdbcTemplate)
-            .query(anyString(), any(JdbcHelper.CollatingRowMapper.class), any(Object[].class));
-        AuditCriteria criteria = new AuditCriteria.Builder().organizationId("org1").build();
+                    JdbcHelper.CollatingRowMapper<Audit> rowMapper = invocation.getArgument(1);
+                    rowMapper.getRows().add(new Audit());
+                    rowMapper.getRows().add(new Audit());
+                    return null;
+                })
+                .when(jdbcTemplate)
+                .query(anyString(), any(JdbcHelper.CollatingRowMapper.class), any(Object[].class));
+        AuditCriteria criteria =
+                new AuditCriteria.Builder().organizationId("org1").build();
         var pageable = new PageableBuilder().pageNumber(0).pageSize(2).build();
 
         Page<Audit> result = repo.search(criteria, pageable);

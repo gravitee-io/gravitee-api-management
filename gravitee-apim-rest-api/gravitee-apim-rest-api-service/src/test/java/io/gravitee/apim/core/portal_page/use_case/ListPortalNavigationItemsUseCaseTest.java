@@ -83,30 +83,24 @@ class ListPortalNavigationItemsUseCaseTest {
         apiQueryService = new ApiQueryServiceInMemory();
         apiPortalSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
         apiProductAccessibleIdsDomainService = spy(
-            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
-        );
+                new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService));
         useCase = createUseCase();
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
 
     private ListPortalNavigationItemsUseCase createUseCase() {
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
-            membershipQueryService,
-            subscriptionQueryService,
-            apiQueryService
-        );
-        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
+        var apiMembershipDomainService =
+                new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService, apiQueryService);
+        var apiVisibilityDomainService =
+                new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
-            queryService,
-            apiProductAccessibleIdsDomainService
-        );
+                queryService, apiProductAccessibleIdsDomainService);
         return new ListPortalNavigationItemsUseCase(
-            queryService,
-            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiPortalSearchQueryService,
-            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory())
-        );
+                queryService,
+                List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                apiPortalSearchQueryService,
+                new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()));
     }
 
     @Test
@@ -115,37 +109,33 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data for APIs, Guides, Support
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items())
-            .hasSize(13)
-            .extracting(PortalNavigationItem::getTitle)
-            .containsExactly(
-                "APIs",
-                "Example Link",
-                "Guides",
-                "Support",
-                "Overview",
-                "Getting Started",
-                "Category1",
-                "API 1",
-                "page11",
-                "API 2 Folder",
-                "page12",
-                "API 1 Folder",
-                "API 2"
-            );
+                .hasSize(13)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly(
+                        "APIs",
+                        "Example Link",
+                        "Guides",
+                        "Support",
+                        "Overview",
+                        "Getting Started",
+                        "Category1",
+                        "API 1",
+                        "page11",
+                        "API 2 Folder",
+                        "page12",
+                        "API 1 Folder",
+                        "API 2");
     }
 
     @Test
@@ -154,23 +144,20 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 false,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items())
-            .hasSize(4)
-            .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("Overview", "Getting Started", "Category1", "API 1");
+                .hasSize(4)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly("Overview", "Getting Started", "Category1", "API 1");
     }
 
     @Test
@@ -179,33 +166,29 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items())
-            .hasSize(9)
-            .extracting(PortalNavigationItem::getTitle)
-            .containsExactly(
-                "Overview",
-                "Getting Started",
-                "Category1",
-                "API 1",
-                "page11",
-                "API 2 Folder",
-                "page12",
-                "API 1 Folder",
-                "API 2"
-            );
+                .hasSize(9)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly(
+                        "Overview",
+                        "Getting Started",
+                        "Category1",
+                        "API 1",
+                        "page11",
+                        "API 2 Folder",
+                        "page12",
+                        "API 1 Folder",
+                        "API 2");
     }
 
     @Test
@@ -214,65 +197,56 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items())
-            .hasSize(12)
-            .extracting(PortalNavigationItem::getTitle)
-            .containsExactly(
-                "APIs",
-                "Example Link",
-                "Guides",
-                "Support",
-                "Overview",
-                "Getting Started",
-                "Category1",
-                "API 1",
-                "API 2 Folder",
-                "page12",
-                "API 1 Folder",
-                "API 2"
-            );
+                .hasSize(12)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly(
+                        "APIs",
+                        "Example Link",
+                        "Guides",
+                        "Support",
+                        "Overview",
+                        "Getting Started",
+                        "Category1",
+                        "API 1",
+                        "API 2 Folder",
+                        "page12",
+                        "API 1 Folder",
+                        "API 2");
     }
 
     @Test
     void should_not_return_published_item_if_parent_is_unpublished_when_parent_id_null() {
         // Given
-        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Unpublished Folder");
+        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(
+                PortalNavigationItemId.random().toString(), "Unpublished Folder");
         unpublishedFolder.setPublished(false);
 
         var publishedChildPage = PortalNavigationItemFixtures.aPage(
-            PortalNavigationItemId.random().toString(),
-            "Published Child Page",
-            unpublishedFolder.getId()
-        );
+                PortalNavigationItemId.random().toString(), "Published Child Page", unpublishedFolder.getId());
         publishedChildPage.setPublished(true);
 
         queryService.initWith(List.of(unpublishedFolder, publishedChildPage));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items()).hasSize(0);
@@ -281,30 +255,25 @@ class ListPortalNavigationItemsUseCaseTest {
     @Test
     void should_not_return_published_child_when_parent_is_unpublished_and_parent_id_is_defined() {
         // Given
-        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Unpublished Folder");
+        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(
+                PortalNavigationItemId.random().toString(), "Unpublished Folder");
         unpublishedFolder.setPublished(false);
 
         var publishedChildPage = PortalNavigationItemFixtures.aPage(
-            PortalNavigationItemId.random().toString(),
-            "Published Child Page",
-            unpublishedFolder.getId()
-        );
+                PortalNavigationItemId.random().toString(), "Published Child Page", unpublishedFolder.getId());
         publishedChildPage.setPublished(true);
 
         queryService.initWith(List.of(unpublishedFolder, publishedChildPage));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(unpublishedFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items()).hasSize(0);
@@ -313,33 +282,31 @@ class ListPortalNavigationItemsUseCaseTest {
     @Test
     void should_return_published_children_when_parent_is_published_and_parent_id_is_defined() {
         // Given
-        var publishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Published Folder");
+        var publishedFolder = PortalNavigationItemFixtures.aFolder(
+                PortalNavigationItemId.random().toString(), "Published Folder");
         publishedFolder.setPublished(true);
 
         var publishedChildPage = PortalNavigationItemFixtures.aPage(
-            PortalNavigationItemId.random().toString(),
-            "Published Child Page",
-            publishedFolder.getId()
-        );
+                PortalNavigationItemId.random().toString(), "Published Child Page", publishedFolder.getId());
         publishedChildPage.setPublished(true);
 
         queryService.initWith(List.of(publishedFolder, publishedChildPage));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(publishedFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
-            )
-        );
+                false));
 
         // Then
-        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Published Child Page");
+        assertThat(result.items())
+                .hasSize(1)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly("Published Child Page");
     }
 
     @Test
@@ -348,17 +315,14 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.random()),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items()).isEmpty();
@@ -367,29 +331,24 @@ class ListPortalNavigationItemsUseCaseTest {
     @Test
     void should_return_empty_list_when_parent_is_found_and_not_visible_in_portal() {
         // Given
-        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().toString(), "Unpublished Folder");
+        var unpublishedFolder = PortalNavigationItemFixtures.aFolder(
+                PortalNavigationItemId.random().toString(), "Unpublished Folder");
         unpublishedFolder.setPublished(false);
 
         var publishedChildPage = PortalNavigationItemFixtures.aPage(
-            PortalNavigationItemId.random().toString(),
-            "Published Child Page",
-            unpublishedFolder.getId()
-        );
+                PortalNavigationItemId.random().toString(), "Published Child Page", unpublishedFolder.getId());
 
         queryService.initWith(List.of(unpublishedFolder, publishedChildPage));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(unpublishedFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items()).isEmpty();
@@ -399,86 +358,83 @@ class ListPortalNavigationItemsUseCaseTest {
     void should_return_only_published_items_when_load_children_false_and_only_visible_in_portal_true() {
         // Given
         // Setup data for APIs, Guides, Support
-        var unpublishedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Unpublished Page", null);
+        var unpublishedPage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "Unpublished Page", null);
         unpublishedPage.setPublished(false);
 
-        var publishedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Published Page", null);
+        var publishedPage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "Published Page", null);
         publishedPage.setPublished(true);
 
         queryService.initWith(List.of(unpublishedPage, publishedPage));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
                 PortalNavigationItemViewerContext.forPortal(true),
-                false
-            )
-        );
+                false));
 
         // Then
-        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Published Page");
+        assertThat(result.items())
+                .hasSize(1)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly("Published Page");
     }
 
     @Test
     void should_return_only_public_items_when_only_portal_visibility_and_not_authenticated() {
         // Given
         // Setup data for APIs, Guides, Support
-        var privatePage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Private Page", null);
+        var privatePage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "Private Page", null);
         privatePage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
 
-        var publicPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Public Page", null);
+        var publicPage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "Public Page", null);
         publicPage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
 
         queryService.initWith(List.of(privatePage, publicPage));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
                 PortalNavigationItemViewerContext.forPortal(false),
-                false
-            )
-        );
+                false));
 
         // Then
-        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Public Page");
+        assertThat(result.items())
+                .hasSize(1)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly("Public Page");
     }
 
     @Test
     void should_hide_private_api_nav_item_from_authenticated_non_member() {
         // Given a private API nav item and an authenticated user that is neither a member nor a subscriber.
         var apiNavItem = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Restricted API",
-            null,
-            "private-api-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted API", null, "private-api-id");
         apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         queryService.initWith(List.of(apiNavItem));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
-            )
-        );
+                false));
 
         // Then the API nav item is not exposed through the documentation endpoint either,
         // keeping it consistent with the catalog visibility rules.
@@ -489,39 +445,28 @@ class ListPortalNavigationItemsUseCaseTest {
     void should_show_private_api_nav_item_to_authenticated_member() {
         // Given a private API and a user that is a member of it.
         var apiNavItem = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Restricted API",
-            null,
-            "private-api-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted API", null, "private-api-id");
         apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         queryService.initWith(List.of(apiNavItem));
-        membershipQueryService.initWith(
-            List.of(
-                io.gravitee.apim.core.membership.model.Membership.builder()
-                    .id("m-1")
-                    .memberId("user-member")
-                    .memberType(io.gravitee.apim.core.membership.model.Membership.Type.USER)
-                    .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
-                    .referenceId("private-api-id")
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(io.gravitee.apim.core.membership.model.Membership.builder()
+                .id("m-1")
+                .memberId("user-member")
+                .memberType(io.gravitee.apim.core.membership.model.Membership.Type.USER)
+                .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
+                .referenceId("private-api-id")
+                .build()));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-member"),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Restricted API");
@@ -531,38 +476,29 @@ class ListPortalNavigationItemsUseCaseTest {
     void should_hide_children_of_private_api_nav_item_for_non_member() {
         // Given a private API nav item with a public child folder containing a public page.
         var apiNavItem = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Restricted API",
-            null,
-            "private-api-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted API", null, "private-api-id");
         apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         var childFolder = PortalNavigationItemFixtures.aFolder(
-            PortalNavigationItemId.random().toString(),
-            "API Resources",
-            apiNavItem.getId()
-        );
+                PortalNavigationItemId.random().toString(), "API Resources", apiNavItem.getId());
         childFolder.updateParent(apiNavItem);
 
-        var childPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "API Overview", childFolder.getId());
+        var childPage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "API Overview", childFolder.getId());
         childPage.updateParent(childFolder);
 
         queryService.initWith(List.of(apiNavItem, childFolder, childPage));
 
         // When — non-member tries to load the whole tree
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
-            )
-        );
+                false));
 
         // Then none of the restricted API subtree is returned.
         assertThat(result.items()).isEmpty();
@@ -572,31 +508,25 @@ class ListPortalNavigationItemsUseCaseTest {
     void should_return_empty_when_parent_is_private_api_and_user_is_not_member() {
         // Given a private API nav item with a public child.
         var apiNavItem = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Restricted API",
-            null,
-            "private-api-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted API", null, "private-api-id");
         apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
-        var childPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "API Overview", apiNavItem.getId());
+        var childPage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "API Overview", apiNavItem.getId());
         childPage.updateParent(apiNavItem);
 
         queryService.initWith(List.of(apiNavItem, childPage));
 
         // When — user queries with the API nav item as parent directly (bypass attempt)
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(apiNavItem.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
-            )
-        );
+                false));
 
         // Then the parent is rejected and no children are exposed.
         assertThat(result.items()).isEmpty();
@@ -606,38 +536,29 @@ class ListPortalNavigationItemsUseCaseTest {
     void should_return_empty_when_parent_is_descendant_of_private_api_and_user_is_not_member() {
         // Given a private API nav item with a folder child containing a page.
         var apiNavItem = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Restricted API",
-            null,
-            "private-api-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted API", null, "private-api-id");
         apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         var childFolder = PortalNavigationItemFixtures.aFolder(
-            PortalNavigationItemId.random().toString(),
-            "API Resources",
-            apiNavItem.getId()
-        );
+                PortalNavigationItemId.random().toString(), "API Resources", apiNavItem.getId());
         childFolder.updateParent(apiNavItem);
 
-        var childPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "API Overview", childFolder.getId());
+        var childPage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "API Overview", childFolder.getId());
         childPage.updateParent(childFolder);
 
         queryService.initWith(List.of(apiNavItem, childFolder, childPage));
 
         // When — user queries with the folder as parent (descendant of hidden API)
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(childFolder.getId()),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
-            )
-        );
+                false));
 
         // Then the ancestor check still prevents exposure.
         assertThat(result.items()).isEmpty();
@@ -648,28 +569,21 @@ class ListPortalNavigationItemsUseCaseTest {
         var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
         rootFolder.markAsRoot();
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Restricted product",
-            rootFolder.getId(),
-            "api-product-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted product", rootFolder.getId(), "api-product-id");
         apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiProduct.updateParent(rootFolder);
         var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
         childPage.updateParent(apiProduct);
         queryService.initWith(List.of(rootFolder, apiProduct, childPage));
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
-            )
-        );
+                false));
 
         assertThat(result.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Products");
     }
@@ -679,34 +593,29 @@ class ListPortalNavigationItemsUseCaseTest {
         var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
         rootFolder.markAsRoot();
         var firstApiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "First restricted product",
-            rootFolder.getId(),
-            "first-api-product-id"
-        );
+                PortalNavigationItemId.random().toString(),
+                "First restricted product",
+                rootFolder.getId(),
+                "first-api-product-id");
         firstApiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         firstApiProduct.updateParent(rootFolder);
         var secondApiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Second restricted product",
-            rootFolder.getId(),
-            "second-api-product-id"
-        );
+                PortalNavigationItemId.random().toString(),
+                "Second restricted product",
+                rootFolder.getId(),
+                "second-api-product-id");
         secondApiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         secondApiProduct.updateParent(rootFolder);
         queryService.initWith(List.of(rootFolder, firstApiProduct, secondApiProduct));
 
-        useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-access"),
-                false
-            )
-        );
+                false));
 
         verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(ENV_ID, "user-without-access");
     }
@@ -716,43 +625,32 @@ class ListPortalNavigationItemsUseCaseTest {
         var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
         rootFolder.markAsRoot();
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Restricted product",
-            rootFolder.getId(),
-            "api-product-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted product", rootFolder.getId(), "api-product-id");
         apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiProduct.updateParent(rootFolder);
         var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
         childPage.updateParent(apiProduct);
         queryService.initWith(List.of(rootFolder, apiProduct, childPage));
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-id")
-                    .memberId("product-member")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("api-product-id")
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("membership-id")
+                .memberId("product-member")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId("api-product-id")
+                .build()));
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("product-member"),
-                false
-            )
-        );
+                false));
 
         assertThat(result.items())
-            .extracting(PortalNavigationItem::getTitle)
-            .containsExactlyInAnyOrder("Products", "Restricted product", "Product overview");
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactlyInAnyOrder("Products", "Restricted product", "Product overview");
     }
 
     @Test
@@ -760,86 +658,80 @@ class ListPortalNavigationItemsUseCaseTest {
         var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
         rootFolder.markAsRoot();
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Public product",
-            rootFolder.getId(),
-            "api-product-id"
-        );
+                PortalNavigationItemId.random().toString(), "Public product", rootFolder.getId(), "api-product-id");
         apiProduct.updateParent(rootFolder);
         var privateApi = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Restricted API",
-            apiProduct.getId(),
-            "api-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted API", apiProduct.getId(), "api-id");
         privateApi.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         privateApi.updateParent(apiProduct);
         queryService.initWith(List.of(rootFolder, apiProduct, privateApi));
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal("user-without-api-access"),
-                false
-            )
-        );
+                false));
 
-        assertThat(result.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Products", "Public product");
+        assertThat(result.items())
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly("Products", "Public product");
     }
 
     @Test
     void should_only_return_nav_bar_items_when_area_is_top_navbar() {
         // Given
         // Setup data for APIs, Guides, Support
-        var homePageItem = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Home Page Item", null);
+        var homePageItem = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "Home Page Item", null);
         homePageItem.setArea(PortalArea.HOMEPAGE);
         homePageItem.setPublished(true);
 
-        var navBarItem = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Nav Bar Item", null);
+        var navBarItem = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemId.random().toString(), "Nav Bar Item", null);
         navBarItem.setArea(PortalArea.TOP_NAVBAR);
 
         queryService.initWith(List.of(homePageItem, navBarItem));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         // Then
-        assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Nav Bar Item");
+        assertThat(result.items())
+                .hasSize(1)
+                .extracting(PortalNavigationItem::getTitle)
+                .containsExactly("Nav Bar Item");
     }
 
     @Test
     void should_return_empty_apis_map_when_include_apis_is_false_even_with_api_items() {
         // Given
-        var apiNavItem = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().toString(), "API 1", null, "api-1");
+        var apiNavItem = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().toString(), "API 1", null, "api-1");
         queryService.initWith(List.of(apiNavItem));
-        apiPortalSearchQueryService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENV_ID).build()));
+        apiPortalSearchQueryService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id("api-1")
+                .environmentId(ENV_ID)
+                .build()));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         // Then
         assertThat(result.apis()).isEmpty();
@@ -851,17 +743,14 @@ class ListPortalNavigationItemsUseCaseTest {
         // Setup data for APIs, Guides, Support (no API-type items)
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 false,
                 PortalNavigationItemViewerContext.forConsole(),
-                true
-            )
-        );
+                true));
 
         // Then
         assertThat(result.apis()).isEmpty();
@@ -870,23 +759,24 @@ class ListPortalNavigationItemsUseCaseTest {
     @Test
     void should_populate_apis_map_keyed_by_navigation_item_id_when_include_apis_is_true() {
         // Given
-        var apiNavItem = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().toString(), "API 1", null, "api-1");
+        var apiNavItem = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().toString(), "API 1", null, "api-1");
         queryService.initWith(List.of(apiNavItem));
-        var api = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENV_ID).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("api-1")
+                .environmentId(ENV_ID)
+                .build();
         apiPortalSearchQueryService.initWith(List.of(api));
 
         // When
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                true
-            )
-        );
+                true));
 
         // Then
         assertThat(result.apis()).containsExactly(java.util.Map.entry(apiNavItem.getId(), api));
@@ -912,31 +802,31 @@ class ListPortalNavigationItemsUseCaseTest {
         var rowA = PortalNavigationItemFixtures.anApi(navApiRowA.toString(), "API (portal A)", null, apiId);
         var rowB = PortalNavigationItemFixtures.anApi(navApiRowB.toString(), "API (portal B)", null, apiId);
         var apiPage = PortalNavigationPage.builder()
-            .id(apiPageId)
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("API Overview")
-            .segment("api-overview")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .build();
+                .id(apiPageId)
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("API Overview")
+                .segment("api-overview")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .build();
         var apiLink = PortalNavigationLink.builder()
-            .id(apiLinkId)
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("External Docs")
-            .segment("external-docs")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .build();
+                .id(apiLinkId)
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("External Docs")
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .build();
 
         queryService.initWith(List.of(rowA, rowB, apiPage, apiLink));
     }
@@ -945,21 +835,16 @@ class ListPortalNavigationItemsUseCaseTest {
     void renders_the_api_subtree_under_every_portal_row_that_lists_the_api() {
         seedApiSubtreeListedByTwoPortals();
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
-        assertThat(result.items())
-            .filteredOn(i -> i.getId().equals(apiPageId))
-            .hasSize(2);
+        assertThat(result.items()).filteredOn(i -> i.getId().equals(apiPageId)).hasSize(2);
         assertThat(result.items()).extracting(PortalNavigationItem::getParentId).contains(navApiRowA, navApiRowB);
     }
 
@@ -967,38 +852,32 @@ class ListPortalNavigationItemsUseCaseTest {
     void does_not_expose_api_subtree_roots_at_the_portal_top_level() {
         seedApiSubtreeListedByTwoPortals();
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         assertThat(result.items())
-            .filteredOn(PortalNavigationItem::isRoot)
-            .noneMatch(i -> i.getReference() instanceof NavigationItemReference.ApiReference);
+                .filteredOn(PortalNavigationItem::isRoot)
+                .noneMatch(i -> i.getReference() instanceof NavigationItemReference.ApiReference);
     }
 
     @Test
     void returns_the_api_subtree_when_children_are_requested_lazily_for_the_nav_api_row() {
         seedApiSubtreeListedByTwoPortals();
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(navApiRowA),
                 false,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         assertThat(result.items()).extracting(PortalNavigationItem::getId).contains(apiPageId);
     }
@@ -1007,61 +886,52 @@ class ListPortalNavigationItemsUseCaseTest {
     void the_rewritten_parent_id_is_not_persisted() {
         seedApiSubtreeListedByTwoPortals();
 
-        useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         assertThat(queryService.storage())
-            .filteredOn(i -> i.getId().equals(apiPageId))
-            .allMatch(PortalNavigationItem::isRoot);
+                .filteredOn(i -> i.getId().equals(apiPageId))
+                .allMatch(PortalNavigationItem::isRoot);
     }
 
     @Test
     void renders_an_api_attached_link_under_every_portal_that_lists_the_api() {
         seedApiSubtreeListedByTwoPortals();
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         assertThat(result.items())
-            .filteredOn(i -> i.getId().equals(apiLinkId))
-            .hasSize(2)
-            .extracting(PortalNavigationItem::getParentId)
-            .containsExactlyInAnyOrder(navApiRowA, navApiRowB);
+                .filteredOn(i -> i.getId().equals(apiLinkId))
+                .hasSize(2)
+                .extracting(PortalNavigationItem::getParentId)
+                .containsExactlyInAnyOrder(navApiRowA, navApiRowB);
     }
 
     @Test
     void renders_an_api_attached_link_that_has_no_location() {
         seedApiSubtreeListedByTwoPortals();
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forConsole(),
-                false
-            )
-        );
+                false));
 
         assertThat(result.items()).extracting(PortalNavigationItem::getId).contains(apiLinkId);
     }
@@ -1070,62 +940,56 @@ class ListPortalNavigationItemsUseCaseTest {
     void a_hidden_portal_folder_hides_the_api_subtree_spliced_under_its_nav_api_row() {
         var apiId = "hidden-folder-api-id";
         var hiddenFolder = PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Hidden Folder")
-            .segment("hidden-folder")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Hidden Folder")
+                .segment("hidden-folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         hiddenFolder.markAsRoot();
 
         var navApiRow = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "API under hidden folder",
-            hiddenFolder.getId(),
-            apiId
-        );
+                PortalNavigationItemId.random().toString(), "API under hidden folder", hiddenFolder.getId(), apiId);
 
         var apiPage = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Spliced Doc")
-            .segment("spliced-doc")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Spliced Doc")
+                .segment("spliced-doc")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .build();
         apiPage.markAsRoot();
 
         queryService.initWith(List.of(hiddenFolder, navApiRow, apiPage));
 
-        var result = useCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = useCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
                 ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
                 PortalNavigationItemViewerContext.forPortal(false),
-                false
-            )
-        );
+                false));
 
         assertThat(result.items())
-            .extracting(PortalNavigationItem::getId)
-            .doesNotContain(hiddenFolder.getId(), navApiRow.getId(), apiPage.getId());
+                .extracting(PortalNavigationItem::getId)
+                .doesNotContain(hiddenFolder.getId(), navApiRow.getId(), apiPage.getId());
     }
 
     @ParameterizedTest
     @MethodSource("documentationViewers")
-    void should_project_api_owned_documentation_only_under_the_standalone_row(PortalNavigationItemViewerContext viewer) {
+    void should_project_api_owned_documentation_only_under_the_standalone_row(
+            PortalNavigationItemViewerContext viewer) {
         queryService = spy(queryService);
         useCase = createUseCase();
         var fixture = seedApiListedStandaloneAndInProduct();
@@ -1134,55 +998,64 @@ class ListPortalNavigationItemsUseCaseTest {
 
         for (var root : fixture.apiRoots()) {
             assertThat(items)
-                .filteredOn(item -> item.getId().equals(root.getId()))
-                .singleElement()
-                .satisfies(item -> {
-                    assertThat(item.getParentId()).isEqualTo(fixture.standaloneApi().getId());
-                    assertThat(item.getRootId()).isEqualTo(fixture.catalog().getId());
-                });
+                    .filteredOn(item -> item.getId().equals(root.getId()))
+                    .singleElement()
+                    .satisfies(item -> {
+                        assertThat(item.getParentId())
+                                .isEqualTo(fixture.standaloneApi().getId());
+                        assertThat(item.getRootId()).isEqualTo(fixture.catalog().getId());
+                    });
             assertThat(root.getParentId()).isNull();
             assertThat(root.getRootId()).isEqualTo(root.getId());
         }
         assertThat(items)
-            .filteredOn(item -> item.getId().equals(fixture.nestedPage().getId()))
-            .hasSize(1);
-        assertThat(items).contains(fixture.productPage(), fixture.physicalApiPage(), fixture.productApi(), fixture.nestedProductApi());
-        verify(queryService).findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-            ENV_ID,
-            PortalArea.TOP_NAVBAR,
-            new NavigationItemReference.ApiReference(fixture.standaloneApi().getApiId())
-        );
+                .filteredOn(item -> item.getId().equals(fixture.nestedPage().getId()))
+                .hasSize(1);
+        assertThat(items)
+                .contains(
+                        fixture.productPage(),
+                        fixture.physicalApiPage(),
+                        fixture.productApi(),
+                        fixture.nestedProductApi());
+        verify(queryService)
+                .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                        ENV_ID,
+                        PortalArea.TOP_NAVBAR,
+                        new NavigationItemReference.ApiReference(
+                                fixture.standaloneApi().getApiId()));
     }
 
     @ParameterizedTest
     @MethodSource("documentationViewers")
-    void should_keep_physical_product_documentation_without_querying_api_owned_documentation(PortalNavigationItemViewerContext viewer) {
+    void should_keep_physical_product_documentation_without_querying_api_owned_documentation(
+            PortalNavigationItemViewerContext viewer) {
         queryService = spy(queryService);
         useCase = createUseCase();
         var fixture = seedApiListedStandaloneAndInProduct();
 
-        assertThat(listDocumentation(fixture.product().getId(), true, viewer)).containsExactlyInAnyOrder(
-            fixture.productFolder(),
-            fixture.productApi(),
-            fixture.nestedProductApi(),
-            fixture.productPage(),
-            fixture.physicalApiPage()
-        );
-        assertThat(listDocumentation(fixture.product().getId(), false, viewer)).containsExactlyInAnyOrder(
-            fixture.productFolder(),
-            fixture.productApi(),
-            fixture.productPage()
-        );
+        assertThat(listDocumentation(fixture.product().getId(), true, viewer))
+                .containsExactlyInAnyOrder(
+                        fixture.productFolder(),
+                        fixture.productApi(),
+                        fixture.nestedProductApi(),
+                        fixture.productPage(),
+                        fixture.physicalApiPage());
+        assertThat(listDocumentation(fixture.product().getId(), false, viewer))
+                .containsExactlyInAnyOrder(fixture.productFolder(), fixture.productApi(), fixture.productPage());
         for (boolean recursive : List.of(false, true)) {
-            assertThat(listDocumentation(fixture.productFolder().getId(), recursive, viewer)).containsExactly(fixture.nestedProductApi());
-            assertThat(listDocumentation(fixture.productApi().getId(), recursive, viewer)).containsExactly(fixture.physicalApiPage());
-            assertThat(listDocumentation(fixture.nestedProductApi().getId(), recursive, viewer)).isEmpty();
+            assertThat(listDocumentation(fixture.productFolder().getId(), recursive, viewer))
+                    .containsExactly(fixture.nestedProductApi());
+            assertThat(listDocumentation(fixture.productApi().getId(), recursive, viewer))
+                    .containsExactly(fixture.physicalApiPage());
+            assertThat(listDocumentation(fixture.nestedProductApi().getId(), recursive, viewer))
+                    .isEmpty();
         }
-        verify(queryService, never()).findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-            ENV_ID,
-            PortalArea.TOP_NAVBAR,
-            new NavigationItemReference.ApiReference(fixture.standaloneApi().getApiId())
-        );
+        verify(queryService, never())
+                .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                        ENV_ID,
+                        PortalArea.TOP_NAVBAR,
+                        new NavigationItemReference.ApiReference(
+                                fixture.standaloneApi().getApiId()));
     }
 
     @ParameterizedTest
@@ -1191,12 +1064,13 @@ class ListPortalNavigationItemsUseCaseTest {
         var fixture = seedApiListedStandaloneAndInProduct();
 
         assertThat(listDocumentation(fixture.standaloneApi().getId(), false, viewer))
-            .containsExactlyInAnyOrderElementsOf(fixture.apiRoots())
-            .allSatisfy(item -> assertThat(item.getParentId()).isEqualTo(fixture.standaloneApi().getId()));
+                .containsExactlyInAnyOrderElementsOf(fixture.apiRoots())
+                .allSatisfy(item -> assertThat(item.getParentId())
+                        .isEqualTo(fixture.standaloneApi().getId()));
         assertThat(listDocumentation(fixture.standaloneApi().getId(), true, viewer))
-            .containsAll(fixture.apiRoots())
-            .contains(fixture.nestedPage())
-            .hasSize(4);
+                .containsAll(fixture.apiRoots())
+                .contains(fixture.nestedPage())
+                .hasSize(4);
     }
 
     @Test
@@ -1206,33 +1080,35 @@ class ListPortalNavigationItemsUseCaseTest {
         var viewer = PortalNavigationItemViewerContext.forConsole();
 
         assertThat(listDocumentation(null, true, viewer))
-            .filteredOn(item -> item.getId().equals(pageId))
-            .extracting(PortalNavigationItem::getParentId)
-            .containsExactly(fixture.standaloneApi().getId());
+                .filteredOn(item -> item.getId().equals(pageId))
+                .extracting(PortalNavigationItem::getParentId)
+                .containsExactly(fixture.standaloneApi().getId());
 
         fixture.productFolder().updateParent(fixture.catalog());
         assertThat(listDocumentation(null, true, viewer))
-            .filteredOn(item -> item.getId().equals(pageId))
-            .extracting(PortalNavigationItem::getParentId)
-            .containsExactlyInAnyOrder(fixture.standaloneApi().getId(), fixture.nestedProductApi().getId());
+                .filteredOn(item -> item.getId().equals(pageId))
+                .extracting(PortalNavigationItem::getParentId)
+                .containsExactlyInAnyOrder(
+                        fixture.standaloneApi().getId(),
+                        fixture.nestedProductApi().getId());
 
         fixture.productFolder().updateParent(fixture.product());
         assertThat(listDocumentation(null, true, viewer))
-            .filteredOn(item -> item.getId().equals(pageId))
-            .extracting(PortalNavigationItem::getParentId)
-            .containsExactly(fixture.standaloneApi().getId());
+                .filteredOn(item -> item.getId().equals(pageId))
+                .extracting(PortalNavigationItem::getParentId)
+                .containsExactly(fixture.standaloneApi().getId());
     }
 
     @Test
     void should_preserve_api_documentation_when_ancestry_is_missing() {
         var fixture = seedApiListedStandaloneAndInProduct();
-        queryService.initWith(
-            Stream.concat(fixture.apiRoots().stream(), Stream.of(fixture.productFolder(), fixture.nestedProductApi())).toList()
-        );
+        queryService.initWith(Stream.concat(
+                        fixture.apiRoots().stream(), Stream.of(fixture.productFolder(), fixture.nestedProductApi()))
+                .toList());
 
-        assertThat(
-            listDocumentation(fixture.nestedProductApi().getId(), false, PortalNavigationItemViewerContext.forConsole())
-        ).containsExactlyInAnyOrderElementsOf(fixture.apiRoots());
+        assertThat(listDocumentation(
+                        fixture.nestedProductApi().getId(), false, PortalNavigationItemViewerContext.forConsole()))
+                .containsExactlyInAnyOrderElementsOf(fixture.apiRoots());
     }
 
     @Test
@@ -1240,37 +1116,23 @@ class ListPortalNavigationItemsUseCaseTest {
         var fixture = seedApiListedStandaloneAndInProduct();
         fixture.productFolder().updateParent(fixture.productFolder());
 
-        assertThatThrownBy(() ->
-            listDocumentation(fixture.nestedProductApi().getId(), false, PortalNavigationItemViewerContext.forConsole())
-        ).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+        assertThatThrownBy(() -> listDocumentation(
+                        fixture.nestedProductApi().getId(), false, PortalNavigationItemViewerContext.forConsole()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class);
     }
 
     private static Stream<PortalNavigationItemViewerContext> documentationViewers() {
         return Stream.of(
-            PortalNavigationItemViewerContext.forConsole(),
-            PortalNavigationItemViewerContext.forPortal(false),
-            PortalNavigationItemViewerContext.forPortal("authenticated-user")
-        );
+                PortalNavigationItemViewerContext.forConsole(),
+                PortalNavigationItemViewerContext.forPortal(false),
+                PortalNavigationItemViewerContext.forPortal("authenticated-user"));
     }
 
     private List<PortalNavigationItem> listDocumentation(
-        PortalNavigationItemId parentId,
-        boolean recursive,
-        PortalNavigationItemViewerContext viewer
-    ) {
-        return useCase
-            .execute(
-                new ListPortalNavigationItemsUseCase.Input(
-                    ENV_ID,
-                    ORG_ID,
-                    PortalArea.TOP_NAVBAR,
-                    Optional.ofNullable(parentId),
-                    recursive,
-                    viewer,
-                    false
-                )
-            )
-            .items();
+            PortalNavigationItemId parentId, boolean recursive, PortalNavigationItemViewerContext viewer) {
+        return useCase.execute(new ListPortalNavigationItemsUseCase.Input(
+                        ENV_ID, ORG_ID, PortalArea.TOP_NAVBAR, Optional.ofNullable(parentId), recursive, viewer, false))
+                .items();
     }
 
     private DocumentationFixture seedApiListedStandaloneAndInProduct() {
@@ -1278,47 +1140,37 @@ class ListPortalNavigationItemsUseCaseTest {
         var catalog = PortalNavigationItemFixtures.aFolder("Catalog");
         catalog.markAsRoot();
         var standaloneApi = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Standalone API",
-            catalog.getId(),
-            apiId
-        );
+                PortalNavigationItemId.random().toString(), "Standalone API", catalog.getId(), apiId);
         var product = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Product",
-            catalog.getId(),
-            "product-id"
-        );
+                PortalNavigationItemId.random().toString(), "Product", catalog.getId(), "product-id");
         var productFolder = PortalNavigationItemFixtures.aFolder("Product folder", product.getId());
         var productApi = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Product API",
-            product.getId(),
-            apiId
-        );
+                PortalNavigationItemId.random().toString(), "Product API", product.getId(), apiId);
         var nestedProductApi = PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            "Nested product API",
-            productFolder.getId(),
-            apiId
-        );
+                PortalNavigationItemId.random().toString(), "Nested product API", productFolder.getId(), apiId);
         var reference = new NavigationItemReference.ApiReference(apiId);
-        var page = PortalNavigationItemFixtures.aPage("API page", null).toBuilder().reference(reference).build();
+        var page = PortalNavigationItemFixtures.aPage("API page", null).toBuilder()
+                .reference(reference)
+                .build();
         var link = PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("API link")
-            .segment("api-link")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(reference)
-            .build();
-        var folder = PortalNavigationItemFixtures.aFolder("API folder").toBuilder().reference(reference).build();
-        var nestedPage = PortalNavigationItemFixtures.aPage("Nested API page", folder.getId()).toBuilder().reference(reference).build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("API link")
+                .segment("api-link")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(reference)
+                .build();
+        var folder = PortalNavigationItemFixtures.aFolder("API folder").toBuilder()
+                .reference(reference)
+                .build();
+        var nestedPage = PortalNavigationItemFixtures.aPage("Nested API page", folder.getId()).toBuilder()
+                .reference(reference)
+                .build();
         var productPage = PortalNavigationItemFixtures.aPage("Product documentation", product.getId());
         var physicalApiPage = PortalNavigationItemFixtures.aPage("Physical API documentation", productApi.getId());
         standaloneApi.updateParent(catalog);
@@ -1330,8 +1182,7 @@ class ListPortalNavigationItemsUseCaseTest {
         nestedPage.updateParent(folder);
         productPage.updateParent(product);
         physicalApiPage.updateParent(productApi);
-        queryService.initWith(
-            List.of(
+        queryService.initWith(List.of(
                 catalog,
                 standaloneApi,
                 product,
@@ -1343,33 +1194,29 @@ class ListPortalNavigationItemsUseCaseTest {
                 folder,
                 nestedPage,
                 productPage,
-                physicalApiPage
-            )
-        );
+                physicalApiPage));
         return new DocumentationFixture(
-            catalog,
-            standaloneApi,
-            product,
-            productFolder,
-            productApi,
-            nestedProductApi,
-            List.of(page, link, folder),
-            nestedPage,
-            productPage,
-            physicalApiPage
-        );
+                catalog,
+                standaloneApi,
+                product,
+                productFolder,
+                productApi,
+                nestedProductApi,
+                List.of(page, link, folder),
+                nestedPage,
+                productPage,
+                physicalApiPage);
     }
 
     private record DocumentationFixture(
-        PortalNavigationFolder catalog,
-        PortalNavigationApi standaloneApi,
-        PortalNavigationApiProduct product,
-        PortalNavigationFolder productFolder,
-        PortalNavigationApi productApi,
-        PortalNavigationApi nestedProductApi,
-        List<PortalNavigationItem> apiRoots,
-        PortalNavigationPage nestedPage,
-        PortalNavigationPage productPage,
-        PortalNavigationPage physicalApiPage
-    ) {}
+            PortalNavigationFolder catalog,
+            PortalNavigationApi standaloneApi,
+            PortalNavigationApiProduct product,
+            PortalNavigationFolder productFolder,
+            PortalNavigationApi productApi,
+            PortalNavigationApi nestedProductApi,
+            List<PortalNavigationItem> apiRoots,
+            PortalNavigationPage nestedPage,
+            PortalNavigationPage productPage,
+            PortalNavigationPage physicalApiPage) {}
 }

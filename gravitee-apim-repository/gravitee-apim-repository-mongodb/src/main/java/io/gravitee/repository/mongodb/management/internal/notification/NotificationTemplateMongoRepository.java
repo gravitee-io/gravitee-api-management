@@ -30,11 +30,7 @@ import org.springframework.stereotype.Repository;
 public interface NotificationTemplateMongoRepository extends MongoRepository<NotificationTemplateMongo, String> {
     @Query("{ 'hook': ?0, 'scope': ?1, 'referenceId': ?2, 'referenceType': ?3 }")
     List<NotificationTemplateMongo> findByHookAndScopeAndReferenceIdAndReferenceType(
-        String hook,
-        String scope,
-        String referenceId,
-        String referenceType
-    );
+            String hook, String scope, String referenceId, String referenceType);
 
     @Query("{ 'referenceId': ?0, 'referenceType': ?1 }")
     List<NotificationTemplateMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
@@ -44,7 +40,5 @@ public interface NotificationTemplateMongoRepository extends MongoRepository<Not
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", delete = true)
     List<NotificationTemplateMongo> deleteByReferenceIdAndReferenceType(
-        String referenceId,
-        NotificationTemplateReferenceType referenceType
-    );
+            String referenceId, NotificationTemplateReferenceType referenceType);
 }

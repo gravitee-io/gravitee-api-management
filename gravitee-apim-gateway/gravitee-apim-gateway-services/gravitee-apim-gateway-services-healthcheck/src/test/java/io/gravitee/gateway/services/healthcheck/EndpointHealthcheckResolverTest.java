@@ -78,13 +78,12 @@ public class EndpointHealthcheckResolverTest {
 
         lenient().when(mockProxy.getGroups()).thenReturn(Collections.singleton(mockEndpointGroup));
 
-        lenient().when(mockEndpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
+        lenient()
+                .when(mockEndpointGroup.getEndpoints())
+                .thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
 
         lenient().when(mockEndpoint.getType()).thenReturn("http");
-        lenient()
-            .when(mockEndpoint.getConfiguration())
-            .thenReturn(
-                """
+        lenient().when(mockEndpoint.getConfiguration()).thenReturn("""
                 {
                   "name": "test",
                   "target": "http://localhost",
@@ -100,8 +99,7 @@ public class EndpointHealthcheckResolverTest {
                     "followRedirects": false
                   }
                 }
-                """
-            );
+                """);
         lenient().when(mockGatewayConfiguration.tenant()).thenReturn(Optional.empty());
     }
 
@@ -113,7 +111,6 @@ public class EndpointHealthcheckResolverTest {
      * global HC enabled && local HC disabled
      * no global HC && local HC disabled
      */
-
     @Test
     public void should_not_resolve_endpoint_rules_when_healthcheck_is_not_defined_globally_nor_locally() {
         Services services = new Services();
@@ -125,7 +122,8 @@ public class EndpointHealthcheckResolverTest {
     }
 
     @Test
-    public void should_not_resolve_endpoint_rules_when_healthcheck_is_disabled_globally_with_no_endpoint_configuration() {
+    public void
+            should_not_resolve_endpoint_rules_when_healthcheck_is_disabled_globally_with_no_endpoint_configuration() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(false);
 
@@ -180,7 +178,6 @@ public class EndpointHealthcheckResolverTest {
      * global HC disabled and local HC enabled
      * no global HC and local HC enabled
      */
-
     @Test
     public void should_resolve_endpoint_rules_when_healthcheck_is_enabled_globally_without_local_configuration() {
         HealthCheckService healthCheckService = new HealthCheckService();
@@ -192,9 +189,9 @@ public class EndpointHealthcheckResolverTest {
         var api = anApi(services, Set.of(healthcheckNotDefinedEndpoint()));
 
         assertThat(endpointHealthcheckResolver.resolve(api))
-            .hasSize(1)
-            .extracting(rule -> rule.api().getId())
-            .containsExactly("api-id");
+                .hasSize(1)
+                .extracting(rule -> rule.api().getId())
+                .containsExactly("api-id");
     }
 
     @Test
@@ -208,9 +205,9 @@ public class EndpointHealthcheckResolverTest {
         var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
         assertThat(endpointHealthcheckResolver.resolve(api))
-            .hasSize(1)
-            .extracting(rule -> rule.api().getId())
-            .containsExactly("api-id");
+                .hasSize(1)
+                .extracting(rule -> rule.api().getId())
+                .containsExactly("api-id");
     }
 
     @Test
@@ -224,9 +221,9 @@ public class EndpointHealthcheckResolverTest {
         var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
         assertThat(endpointHealthcheckResolver.resolve(api))
-            .hasSize(1)
-            .extracting(rule -> rule.api().getId())
-            .containsExactly("api-id");
+                .hasSize(1)
+                .extracting(rule -> rule.api().getId())
+                .containsExactly("api-id");
     }
 
     @Test
@@ -237,9 +234,9 @@ public class EndpointHealthcheckResolverTest {
         var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
         assertThat(endpointHealthcheckResolver.resolve(api))
-            .hasSize(1)
-            .extracting(rule -> rule.api().getId())
-            .containsExactly("api-id");
+                .hasSize(1)
+                .extracting(rule -> rule.api().getId())
+                .containsExactly("api-id");
     }
 
     @Test
@@ -254,17 +251,15 @@ public class EndpointHealthcheckResolverTest {
 
         List<EndpointRule> resolved = endpointHealthcheckResolver.resolve(api);
 
-        assertThat(resolved)
-            .hasSize(1)
-            .satisfies(rules -> {
-                var endpoint = rules.get(0).endpoint();
-                assertThat(endpoint)
-                    .isInstanceOf(HttpEndpoint.class)
-                    .satisfies(httpEndpoint -> {
-                        var httpProxy = ((HttpEndpoint) httpEndpoint).getHttpProxy();
-                        assertThat(httpProxy).extracting(HttpProxy::getHost, HttpProxy::getPort).containsExactly("localhost", 9001);
-                    });
+        assertThat(resolved).hasSize(1).satisfies(rules -> {
+            var endpoint = rules.get(0).endpoint();
+            assertThat(endpoint).isInstanceOf(HttpEndpoint.class).satisfies(httpEndpoint -> {
+                var httpProxy = ((HttpEndpoint) httpEndpoint).getHttpProxy();
+                assertThat(httpProxy)
+                        .extracting(HttpProxy::getHost, HttpProxy::getPort)
+                        .containsExactly("localhost", 9001);
             });
+        });
     }
 
     private Api anApi(Services services, Set<Endpoint> endpoints) {
@@ -279,15 +274,18 @@ public class EndpointHealthcheckResolverTest {
         var proxy = new Proxy();
         proxy.setGroups(Set.of(group));
 
-        var apiDefinition = anApiV2().toBuilder().id("api-id").proxy(proxy).services(services).build();
+        var apiDefinition = anApiV2().toBuilder()
+                .id("api-id")
+                .proxy(proxy)
+                .services(services)
+                .build();
 
         return new Api(apiDefinition);
     }
 
     private HttpEndpoint healthcheckNotDefinedEndpoint() {
         HttpEndpoint endpoint = new HttpEndpoint("default", "http://localhost");
-        endpoint.setConfiguration(
-            """
+        endpoint.setConfiguration("""
                 {
                   "name": "test",
                   "target": "http://localhost:2000",
@@ -304,15 +302,13 @@ public class EndpointHealthcheckResolverTest {
                     "followRedirects": false
                   }
                 }
-            """
-        );
+            """);
         return endpoint;
     }
 
     private HttpEndpoint healthcheckDisabledEndpoint() {
         HttpEndpoint endpoint = new HttpEndpoint("default", "http://localhost");
-        endpoint.setConfiguration(
-            """
+        endpoint.setConfiguration("""
                 {
                   "name": "test",
                   "target": "http://localhost",
@@ -332,15 +328,13 @@ public class EndpointHealthcheckResolverTest {
                     "followRedirects": false
                   }
                 }
-            """
-        );
+            """);
         return endpoint;
     }
 
     private HttpEndpoint healthcheckEnabledEndpoint() {
         HttpEndpoint endpoint = new HttpEndpoint("default", "http://localhost");
-        endpoint.setConfiguration(
-            """
+        endpoint.setConfiguration("""
                 {
                  "name": "test",
                  "target": "http://localhost",
@@ -373,8 +367,7 @@ public class EndpointHealthcheckResolverTest {
                    "followRedirects": false
                  }
                }
-            """
-        );
+            """);
         return endpoint;
     }
 }

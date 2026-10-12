@@ -60,19 +60,17 @@ class PortalApiProductAccessDomainServiceTest {
 
         var apiQueryService = new ApiQueryServiceInMemory();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
-            navigationItemsQueryService,
-            new ApiPortalMembershipDomainService(membershipQueryService, new SubscriptionQueryServiceInMemory(), apiQueryService)
-        );
+                navigationItemsQueryService,
+                new ApiPortalMembershipDomainService(
+                        membershipQueryService, new SubscriptionQueryServiceInMemory(), apiQueryService));
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
-            navigationItemsQueryService,
-            new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService)
-        );
+                navigationItemsQueryService,
+                new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService));
         service = new PortalApiProductAccessDomainService(
-            apiProductQueryService,
-            navigationItemsQueryService,
-            apiProductVisibilityDomainService,
-            apiVisibilityDomainService
-        );
+                apiProductQueryService,
+                navigationItemsQueryService,
+                apiProductVisibilityDomainService,
+                apiVisibilityDomainService);
     }
 
     @Test
@@ -103,9 +101,8 @@ class PortalApiProductAccessDomainServiceTest {
         navigationItem.setVisibility(PortalVisibility.PRIVATE);
         givenProductAndNavigation(apiProduct(), navigationItem);
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null))).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null)))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
@@ -114,9 +111,8 @@ class PortalApiProductAccessDomainServiceTest {
         apiProduct.setEnvironmentId("other-environment");
         givenProductAndNavigation(apiProduct, apiProductNavigation());
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null))).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null)))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
@@ -125,40 +121,34 @@ class PortalApiProductAccessDomainServiceTest {
         navigationItem.setPublished(false);
         givenProductAndNavigation(apiProduct(), navigationItem);
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null))).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(null)))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
     void should_reject_product_below_hidden_api_product_ancestor() {
         var parent = PortalNavigationItemFixtures.anApiProduct(
-            "00000000-0000-0000-0000-000000000201",
-            "Parent product",
-            null,
-            "00000000-0000-0000-0000-000000000202"
-        );
+                "00000000-0000-0000-0000-000000000201", "Parent product", null, "00000000-0000-0000-0000-000000000202");
         parent.setVisibility(PortalVisibility.PRIVATE);
         var navigationItem = apiProductNavigation(parent.getId());
         apiProductQueryService.initWith(List.of(apiProduct()));
         navigationItemsQueryService.initWith(List.of(parent, navigationItem));
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID))).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID)))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
     void should_reject_product_below_hidden_api_ancestor() {
-        var parent = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000301", "Parent API", null, "api-id");
+        var parent = PortalNavigationItemFixtures.anApi(
+                "00000000-0000-0000-0000-000000000301", "Parent API", null, "api-id");
         parent.setVisibility(PortalVisibility.PRIVATE);
         var navigationItem = apiProductNavigation(parent.getId());
         apiProductQueryService.initWith(List.of(apiProduct()));
         navigationItemsQueryService.initWith(List.of(parent, navigationItem));
 
-        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID))).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> service.findAccessible(ENVIRONMENT_ID, API_PRODUCT_ID, viewer(USER_ID)))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     private void givenProductAndNavigation(ApiProduct apiProduct, PortalNavigationApiProduct navigationItem) {
@@ -167,7 +157,11 @@ class PortalApiProductAccessDomainServiceTest {
     }
 
     private static ApiProduct apiProduct() {
-        return ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENVIRONMENT_ID).name("Product").build();
+        return ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name("Product")
+                .build();
     }
 
     private static PortalNavigationApiProduct apiProductNavigation() {
@@ -180,12 +174,12 @@ class PortalApiProductAccessDomainServiceTest {
 
     private static Membership apiProductMembership() {
         return Membership.builder()
-            .id("membership-id")
-            .memberId(USER_ID)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.API_PRODUCT)
-            .referenceId(API_PRODUCT_ID)
-            .build();
+                .id("membership-id")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId(API_PRODUCT_ID)
+                .build();
     }
 
     private static PortalNavigationItemViewerContext viewer(String userId) {

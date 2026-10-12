@@ -62,18 +62,15 @@ public class RatingSummaryEntity {
 
     @Override
     public String toString() {
-        return (
-            "RatingSummaryEntity{" +
-            "api='" +
-            api +
-            '\'' +
-            ", numberOfRatings=" +
-            numberOfRatings +
-            ", averageRate=" +
-            averageRate +
-            ", numberOfRatingsByRate=" +
-            numberOfRatingsByRate +
-            '}'
-        );
+        return ("RatingSummaryEntity{" + "api='"
+                + api
+                + '\''
+                + ", numberOfRatings="
+                + numberOfRatings
+                + ", averageRate="
+                + averageRate
+                + ", numberOfRatingsByRate="
+                + numberOfRatingsByRate
+                + '}');
     }
 }

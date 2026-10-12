@@ -41,40 +41,35 @@ public class GetUserApplicationsUseCase {
 
     public Output execute(Input input) {
         var memberships = membershipQueryService.findByMemberIdAndMemberTypeAndReferenceType(
-            input.userId,
-            Membership.Type.USER,
-            Membership.ReferenceType.APPLICATION
-        );
+                input.userId, Membership.Type.USER, Membership.ReferenceType.APPLICATION);
 
-        Set<String> appIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toCollection(HashSet::new));
+        Set<String> appIds =
+                memberships.stream().map(Membership::getReferenceId).collect(Collectors.toCollection(HashSet::new));
 
         if (appIds.isEmpty()) {
             return new Output(List.of(), 0);
         }
 
-        var appPage = applicationQueryService.searchByIds(appIds, input.environmentId, new PageableImpl(input.page, input.perPage));
+        var appPage = applicationQueryService.searchByIds(
+                appIds, input.environmentId, new PageableImpl(input.page, input.perPage));
 
-        Set<String> environmentIds = appPage
-            .getContent()
-            .stream()
-            .map(BaseApplicationEntity::getEnvironmentId)
-            .filter(envId -> envId != null)
-            .collect(Collectors.toSet());
+        Set<String> environmentIds = appPage.getContent().stream()
+                .map(BaseApplicationEntity::getEnvironmentId)
+                .filter(envId -> envId != null)
+                .collect(Collectors.toSet());
         Map<String, String> environmentNames = resolveEnvironmentNames(environmentIds);
 
-        List<UserApplication> data = appPage
-            .getContent()
-            .stream()
-            .map(app -> {
-                String envId = app.getEnvironmentId();
-                return UserApplication.builder()
-                    .id(app.getId())
-                    .name(app.getName())
-                    .environmentId(envId)
-                    .environmentName(envId != null ? environmentNames.get(envId) : null)
-                    .build();
-            })
-            .toList();
+        List<UserApplication> data = appPage.getContent().stream()
+                .map(app -> {
+                    String envId = app.getEnvironmentId();
+                    return UserApplication.builder()
+                            .id(app.getId())
+                            .name(app.getName())
+                            .environmentId(envId)
+                            .environmentName(envId != null ? environmentNames.get(envId) : null)
+                            .build();
+                })
+                .toList();
 
         return new Output(data, appPage.getTotalElements());
     }

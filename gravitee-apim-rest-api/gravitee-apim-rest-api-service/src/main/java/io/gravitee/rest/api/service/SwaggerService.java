@@ -48,10 +48,9 @@ public interface SwaggerService {
      * @return The API from the Swagger descriptor
      */
     SwaggerApiEntity createAPI(
-        ExecutionContext executionContext,
-        ImportSwaggerDescriptorEntity swaggerDescriptor,
-        DefinitionVersion definitionVersion
-    );
+            ExecutionContext executionContext,
+            ImportSwaggerDescriptorEntity swaggerDescriptor,
+            DefinitionVersion definitionVersion);
 
     /**
      * This method is used to transform a Swagger descriptor specification using swagger transformers.

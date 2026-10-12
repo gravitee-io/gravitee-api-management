@@ -58,7 +58,10 @@ public class RejectedPathProcessor implements Processor {
     @Override
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.defer(() -> {
-            ctx.withLogger(log).warn("Rejecting request {}, returning BAD_REQUEST (400)", ctx.request().path());
+            ctx.withLogger(log)
+                    .warn(
+                            "Rejecting request {}, returning BAD_REQUEST (400)",
+                            ctx.request().path());
 
             final Metrics metrics = ctx.metrics();
             metrics.setApiId(UNKNOWN_SERVICE);
@@ -71,7 +74,8 @@ public class RejectedPathProcessor implements Processor {
             // A gRPC caller reads the status from the trailers, not from the HTTP code: without
             // these it sees UNKNOWN and has no idea why it was refused. Same treatment as an
             // unmatched context path, which is the closest thing this rejection resembles.
-            final MediaType mediaType = MediaType.parseMediaType(ctx.request().headers().get(HttpHeaderNames.CONTENT_TYPE));
+            final MediaType mediaType =
+                    MediaType.parseMediaType(ctx.request().headers().get(HttpHeaderNames.CONTENT_TYPE));
             if (MediaType.MEDIA_APPLICATION_GRPC.equals(mediaType)) {
                 ctx.response().headers().set("grpc-status", GrpcStatus.INVALID_ARGUMENT.toString());
                 ctx.response().headers().set("grpc-message", message);
@@ -82,10 +86,11 @@ public class RejectedPathProcessor implements Processor {
             // holding any non-ASCII character has more bytes than it has characters, and a short
             // Content-Length truncates the response.
             ctx.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(body.length()));
-            ctx
-                .response()
-                .headers()
-                .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[400].contentType", MediaType.TEXT_PLAIN));
+            ctx.response()
+                    .headers()
+                    .set(
+                            HttpHeaderNames.CONTENT_TYPE,
+                            environment.getProperty("http.errors[400].contentType", MediaType.TEXT_PLAIN));
             ctx.response().body(body);
             return ctx.response().end(ctx);
         });

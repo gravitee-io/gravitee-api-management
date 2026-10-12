@@ -70,7 +70,8 @@ class GetTraceDetailUseCaseTest {
 
     @Test
     void should_return_empty_when_trace_does_not_exist() {
-        GetTraceDetailUseCase.Output output = useCase.execute(new GetTraceDetailUseCase.Input(ORG, ENV, API_ID, "unknown"));
+        GetTraceDetailUseCase.Output output =
+                useCase.execute(new GetTraceDetailUseCase.Input(ORG, ENV, API_ID, "unknown"));
 
         assertThat(output.trace()).isEmpty();
     }
@@ -82,31 +83,26 @@ class GetTraceDetailUseCaseTest {
         givenTraceWithSpans(List.of(root, child));
 
         otelLogPort.givenEvents(
-            TRACE_ID,
-            List.of(
-                new SpanEvent("root", "gravitee.policy.pre", Instant.parse("2026-05-26T15:00:00.500Z"), Map.of()),
-                new SpanEvent("child", "gravitee.policy.post", Instant.parse("2026-05-26T15:00:01.500Z"), Map.of())
-            )
-        );
+                TRACE_ID,
+                List.of(
+                        new SpanEvent(
+                                "root", "gravitee.policy.pre", Instant.parse("2026-05-26T15:00:00.500Z"), Map.of()),
+                        new SpanEvent(
+                                "child", "gravitee.policy.post", Instant.parse("2026-05-26T15:00:01.500Z"), Map.of())));
         otelLogPort.givenPayloadLogs(
-            TRACE_ID,
-            List.of(new PayloadLog("root", Instant.parse("2026-05-26T15:00:00.700Z"), "INFO", "{}", Map.of()))
-        );
+                TRACE_ID,
+                List.of(new PayloadLog("root", Instant.parse("2026-05-26T15:00:00.700Z"), "INFO", "{}", Map.of())));
 
         TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
 
-        Span stitchedRoot = detail
-            .spans()
-            .stream()
-            .filter(s -> "root".equals(s.spanId()))
-            .findFirst()
-            .orElseThrow();
-        Span stitchedChild = detail
-            .spans()
-            .stream()
-            .filter(s -> "child".equals(s.spanId()))
-            .findFirst()
-            .orElseThrow();
+        Span stitchedRoot = detail.spans().stream()
+                .filter(s -> "root".equals(s.spanId()))
+                .findFirst()
+                .orElseThrow();
+        Span stitchedChild = detail.spans().stream()
+                .filter(s -> "child".equals(s.spanId()))
+                .findFirst()
+                .orElseThrow();
         assertThat(stitchedRoot.events()).extracting(SpanEvent::name).containsExactly("gravitee.policy.pre");
         assertThat(stitchedRoot.payloadLogs()).hasSize(1);
         assertThat(stitchedChild.events()).extracting(SpanEvent::name).containsExactly("gravitee.policy.post");
@@ -119,12 +115,10 @@ class GetTraceDetailUseCaseTest {
         givenTraceWithSpans(List.of(root));
 
         otelLogPort.givenEvents(
-            TRACE_ID,
-            List.of(
-                new SpanEvent("root", "second", Instant.parse("2026-05-26T15:00:00.900Z"), Map.of()),
-                new SpanEvent("root", "first", Instant.parse("2026-05-26T15:00:00.100Z"), Map.of())
-            )
-        );
+                TRACE_ID,
+                List.of(
+                        new SpanEvent("root", "second", Instant.parse("2026-05-26T15:00:00.900Z"), Map.of()),
+                        new SpanEvent("root", "first", Instant.parse("2026-05-26T15:00:00.100Z"), Map.of())));
 
         TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
 
@@ -160,18 +154,17 @@ class GetTraceDetailUseCaseTest {
     void should_promote_trace_status_to_ERROR_when_any_span_has_ERROR_status() {
         Span ok = span("ok", null, "GET /pets", Instant.parse("2026-05-26T15:00:00Z"));
         Span failing = new Span(
-            "failing",
-            "ok",
-            "downstream-call",
-            "gateway",
-            Instant.parse("2026-05-26T15:00:01Z"),
-            500L,
-            SpanStatus.ERROR,
-            SpanKind.INTERNAL,
-            Map.of(),
-            List.of(),
-            List.of()
-        );
+                "failing",
+                "ok",
+                "downstream-call",
+                "gateway",
+                Instant.parse("2026-05-26T15:00:01Z"),
+                500L,
+                SpanStatus.ERROR,
+                SpanKind.INTERNAL,
+                Map.of(),
+                List.of(),
+                List.of());
         givenTraceWithSpans(List.of(ok, failing));
 
         TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
@@ -184,18 +177,17 @@ class GetTraceDetailUseCaseTest {
         // Root with explicit OK status — no spans errored, so the trace rolls up to the root's status (OK), not
         // the default UNSET. Caller filters on "healthy traces" via status == OK can rely on this fallback.
         Span root = new Span(
-            "root",
-            null,
-            "GET /pets",
-            "gateway",
-            Instant.parse("2026-05-26T15:00:00Z"),
-            1_000L,
-            SpanStatus.OK,
-            SpanKind.INTERNAL,
-            Map.of(),
-            List.of(),
-            List.of()
-        );
+                "root",
+                null,
+                "GET /pets",
+                "gateway",
+                Instant.parse("2026-05-26T15:00:00Z"),
+                1_000L,
+                SpanStatus.OK,
+                SpanKind.INTERNAL,
+                Map.of(),
+                List.of(),
+                List.of());
         givenTraceWithSpans(List.of(root));
 
         TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
@@ -205,13 +197,10 @@ class GetTraceDetailUseCaseTest {
 
     @Test
     void should_report_span_count_matching_the_assembled_span_list() {
-        givenTraceWithSpans(
-            List.of(
+        givenTraceWithSpans(List.of(
                 span("root", null, "GET /pets", Instant.parse("2026-05-26T15:00:00Z")),
                 span("child-1", "root", "policy-pre", Instant.parse("2026-05-26T15:00:01Z")),
-                span("child-2", "root", "policy-post", Instant.parse("2026-05-26T15:00:02Z"))
-            )
-        );
+                span("child-2", "root", "policy-post", Instant.parse("2026-05-26T15:00:02Z"))));
 
         TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
 
@@ -220,18 +209,17 @@ class GetTraceDetailUseCaseTest {
 
     private Span span(String spanId, String parentSpanId, String op, Instant start) {
         return new Span(
-            spanId,
-            parentSpanId,
-            op,
-            "gateway",
-            start,
-            1_000L,
-            SpanStatus.UNSET,
-            SpanKind.INTERNAL,
-            Map.of(),
-            List.of(),
-            List.of()
-        );
+                spanId,
+                parentSpanId,
+                op,
+                "gateway",
+                start,
+                1_000L,
+                SpanStatus.UNSET,
+                SpanKind.INTERNAL,
+                Map.of(),
+                List.of(),
+                List.of());
     }
 
     private void givenTraceWithSpans(List<Span> spans) {
@@ -239,12 +227,18 @@ class GetTraceDetailUseCaseTest {
         // the spans list). Stub with UNSET / 0 so the fixture doesn't lie about the trace status — the use case
         // computes status from the spans list, not from this seed.
         tracingPort.givenTrace(
-            ORG,
-            ENV,
-            Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, API_ID),
-            new Trace(TRACE_ID, spans.get(0).startTime(), 1_000L, "gateway", spans.get(0).operationName(), SpanStatus.UNSET, 0),
-            spans
-        );
+                ORG,
+                ENV,
+                Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, API_ID),
+                new Trace(
+                        TRACE_ID,
+                        spans.get(0).startTime(),
+                        1_000L,
+                        "gateway",
+                        spans.get(0).operationName(),
+                        SpanStatus.UNSET,
+                        0),
+                spans);
     }
 
     private GetTraceDetailUseCase.Input input() {

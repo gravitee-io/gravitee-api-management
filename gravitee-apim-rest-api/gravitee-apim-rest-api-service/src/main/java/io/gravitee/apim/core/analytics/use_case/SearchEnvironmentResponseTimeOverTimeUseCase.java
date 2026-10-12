@@ -54,22 +54,28 @@ public class SearchEnvironmentResponseTimeOverTimeUseCase {
         var apis = apiIds.values().stream().flatMap(List::stream).toList();
 
         return analyticsQueryService
-            .searchAvgResponseTimeOverTime(executionContext, apis, from, to, interval, apiIds.keySet())
-            .map(statsData -> new Output(from, to, interval, statsData.values().stream().map(Math::round).toList()))
-            .defaultIfEmpty(new Output(from, to, interval, List.of()));
+                .searchAvgResponseTimeOverTime(executionContext, apis, from, to, interval, apiIds.keySet())
+                .map(statsData -> new Output(
+                        from,
+                        to,
+                        interval,
+                        statsData.values().stream().map(Math::round).toList()))
+                .defaultIfEmpty(new Output(from, to, interval, List.of()));
     }
 
     private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(envId)
+                                .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
     }
 
     private DefinitionVersion getDefinitionVersion(Api api) {

@@ -60,21 +60,20 @@ public class ServicesDiscoveryResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List service discovery plugins",
-        description = "User must have the MANAGEMENT_API[READ] permission to use this service"
-    )
+            summary = "List service discovery plugins",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of service discovery plugins",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ResourceListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of service discovery plugins",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ResourceListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Collection<ResourceListItem> getServicesDiscoverResources(@QueryParam("expand") List<String> expand) {
-        Stream<ResourceListItem> stream = serviceDiscoveryService.findAll().stream().map(this::convert);
+        Stream<ResourceListItem> stream =
+                serviceDiscoveryService.findAll().stream().map(this::convert);
 
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {

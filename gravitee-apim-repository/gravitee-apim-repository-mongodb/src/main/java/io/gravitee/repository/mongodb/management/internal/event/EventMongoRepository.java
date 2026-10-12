@@ -19,7 +19,6 @@ import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**

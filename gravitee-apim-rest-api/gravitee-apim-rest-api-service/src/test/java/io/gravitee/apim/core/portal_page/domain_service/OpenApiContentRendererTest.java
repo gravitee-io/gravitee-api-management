@@ -54,11 +54,10 @@ class OpenApiContentRendererTest {
         apiExposedEntrypointDomainService = new ApiExposedEntrypointDomainServiceInMemory();
         openApiContentTransformer = new OpenApiContentTransformerSpy();
         renderer = new OpenApiContentRenderer(
-            new PortalNavigationEnclosingApiDomainService(navigationItemsQueryService),
-            apiCrudService,
-            apiExposedEntrypointDomainService,
-            openApiContentTransformer
-        );
+                new PortalNavigationEnclosingApiDomainService(navigationItemsQueryService),
+                apiCrudService,
+                apiExposedEntrypointDomainService,
+                openApiContentTransformer);
     }
 
     @Test
@@ -70,12 +69,7 @@ class OpenApiContentRendererTest {
         var page = PortalNavigationItemFixtures.aPage(pageId, "OpenAPI page", null, contentId);
         page.markAsRoot();
         var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
-            contentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            content,
-            configuration
-        );
+                contentId, ORGANIZATION_ID, ENVIRONMENT_ID, content, configuration);
 
         var rendered = renderer.render(page, openApiContent);
 
@@ -92,20 +86,20 @@ class OpenApiContentRendererTest {
         var pageId = "00000000-0000-0000-0000-000000000095";
         var content = "openapi: 3.0.3\ninfo:\n  title: Test";
         var configuration = configuration(false, true);
-        var apiNav = PortalNavigationItemFixtures.anApi(PortalNavigationItemFixtures.API1_ID, "API One", null, apiTechnicalId);
+        var apiNav = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemFixtures.API1_ID, "API One", null, apiTechnicalId);
         apiNav.markAsRoot();
         var pageUnderApi = PortalNavigationItemFixtures.aPage(pageId, "OpenAPI page", apiNav.getId(), contentId);
         pageUnderApi.updateParent(apiNav);
         var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
-            contentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            content,
-            configuration
-        );
-        var api = ApiFixtures.aProxyApiV4().toBuilder().id(apiTechnicalId).environmentId(ENVIRONMENT_ID).build();
+                contentId, ORGANIZATION_ID, ENVIRONMENT_ID, content, configuration);
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(apiTechnicalId)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudService.initWith(List.of(api));
-        apiExposedEntrypointDomainService.initWith(List.of(new ExposedEntrypoint("https://apis.gravitee.io/http_proxy")));
+        apiExposedEntrypointDomainService.initWith(
+                List.of(new ExposedEntrypoint("https://apis.gravitee.io/http_proxy")));
         navigationItemsQueryService.initWith(List.of(apiNav, pageUnderApi));
         openApiContentTransformer.transformedContent = "transformed openapi";
 
@@ -116,8 +110,10 @@ class OpenApiContentRendererTest {
         assertThat(openApiContentTransformer.content).isEqualTo(content);
         assertThat(openApiContentTransformer.configuration).isEqualTo(configuration);
         assertThat(openApiContentTransformer.apiContext).isPresent();
-        assertThat(openApiContentTransformer.apiContext.orElseThrow().entrypoints()).containsExactly("https://apis.gravitee.io/http_proxy");
-        assertThat(openApiContentTransformer.apiContext.orElseThrow().contextPath()).contains("/http_proxy/");
+        assertThat(openApiContentTransformer.apiContext.orElseThrow().entrypoints())
+                .containsExactly("https://apis.gravitee.io/http_proxy");
+        assertThat(openApiContentTransformer.apiContext.orElseThrow().contextPath())
+                .contains("/http_proxy/");
     }
 
     @Test
@@ -129,12 +125,7 @@ class OpenApiContentRendererTest {
         var page = PortalNavigationItemFixtures.aPage(pageId, "OpenAPI page", null, contentId);
         page.markAsRoot();
         var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
-            contentId,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            content,
-            configuration
-        );
+                contentId, ORGANIZATION_ID, ENVIRONMENT_ID, content, configuration);
         navigationItemsQueryService.initWith(List.of(page));
         openApiContentTransformer.transformedContent = content;
 
@@ -147,21 +138,20 @@ class OpenApiContentRendererTest {
 
     private static SwaggerUiConfiguration configuration(boolean entrypointsAsServers, boolean contextPathAsServerPath) {
         return new SwaggerUiConfiguration(
-            true,
-            "list",
-            true,
-            12,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            "https://sandbox.example.com",
-            true,
-            entrypointsAsServers,
-            contextPathAsServerPath
-        );
+                true,
+                "list",
+                true,
+                12,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                "https://sandbox.example.com",
+                true,
+                entrypointsAsServers,
+                contextPathAsServerPath);
     }
 
     private static class OpenApiContentTransformerSpy implements OpenApiContentTransformer {

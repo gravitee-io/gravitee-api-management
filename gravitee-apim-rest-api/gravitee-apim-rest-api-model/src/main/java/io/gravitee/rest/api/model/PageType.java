@@ -65,9 +65,9 @@ public enum PageType {
 
     public static PageType fromPageExtensionAndContent(String pageExtension, String pageContent) {
         return Stream.of(values())
-            .filter(pageType -> pageType.matchesExtensionAndContent(pageExtension, pageContent))
-            .findFirst()
-            .orElse(null);
+                .filter(pageType -> pageType.matchesExtensionAndContent(pageExtension, pageContent))
+                .findFirst()
+                .orElse(null);
     }
 
     public static boolean isIndexable(PageType pageType) {

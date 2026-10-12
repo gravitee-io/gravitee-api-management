@@ -44,11 +44,10 @@ class ImportDefinitionPlanDomainService {
     private final PlanCrudService planCrudService;
 
     ImportDefinitionPlanDomainService(
-        CreatePlanDomainService createPlanDomainService,
-        UpdatePlanDomainService updatePlanDomainService,
-        DeletePlanDomainService deletePlanDomainService,
-        PlanCrudService planCrudService
-    ) {
+            CreatePlanDomainService createPlanDomainService,
+            UpdatePlanDomainService updatePlanDomainService,
+            DeletePlanDomainService deletePlanDomainService,
+            PlanCrudService planCrudService) {
         this.createPlanDomainService = createPlanDomainService;
         this.updatePlanDomainService = updatePlanDomainService;
         this.deletePlanDomainService = deletePlanDomainService;
@@ -63,11 +62,10 @@ class ImportDefinitionPlanDomainService {
         var savedPlans = planCrudService.findByApiId(api.getId());
 
         if (savedPlans.isEmpty()) {
-            List<String> incomingCrossIds = plansWithFlows
-                .stream()
-                .map(Plan::getCrossId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+            List<String> incomingCrossIds = plansWithFlows.stream()
+                    .map(Plan::getCrossId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             if (!incomingCrossIds.isEmpty()) {
                 var legacyPlans = planCrudService.findByCrossIds(incomingCrossIds);
                 if (!legacyPlans.isEmpty()) {
@@ -77,26 +75,29 @@ class ImportDefinitionPlanDomainService {
         }
 
         // Build indexed lookups once — O(m) — to avoid O(n*m) per-item streaming inside the loop.
-        var savedByCrossId = savedPlans
-            .stream()
-            .filter(p -> p.getCrossId() != null)
-            .collect(Collectors.toMap(Plan::getCrossId, p -> p, (a, b) -> a));
+        var savedByCrossId = savedPlans.stream()
+                .filter(p -> p.getCrossId() != null)
+                .collect(Collectors.toMap(Plan::getCrossId, p -> p, (a, b) -> a));
         var savedById = savedPlans.stream().collect(Collectors.toMap(Plan::getId, p -> p, (a, b) -> a));
 
         var unmatchedSavedPlanIds = new HashSet<>(savedById.keySet());
 
         for (PlanWithFlows planWithFlow : plansWithFlows) {
-            findSavedPlanForImport(savedByCrossId, savedById, planWithFlow).ifPresentOrElse(
-                existing -> updateMatchedPlan(existing, planWithFlow, unmatchedSavedPlanIds, api, auditInfo),
-                () -> createPlanDomainService.create(planWithFlow, planWithFlow.getFlows(), api, auditInfo)
-            );
+            findSavedPlanForImport(savedByCrossId, savedById, planWithFlow)
+                    .ifPresentOrElse(
+                            existing ->
+                                    updateMatchedPlan(existing, planWithFlow, unmatchedSavedPlanIds, api, auditInfo),
+                            () -> createPlanDomainService.create(
+                                    planWithFlow, planWithFlow.getFlows(), api, auditInfo));
         }
 
-        // FIXME: Support closing plans when export includes closed ones (currently mimics V2 promotion behavior and remove missing plans).
+        // FIXME: Support closing plans when export includes closed ones (currently mimics V2 promotion behavior and
+        // remove missing plans).
         unmatchedSavedPlanIds.forEach(planId -> deletePlanDomainService.delete(savedById.get(planId), auditInfo));
     }
 
-    private void updateMatchedPlan(Plan existing, PlanWithFlows incoming, HashSet<String> unmatchedIds, Api api, AuditInfo auditInfo) {
+    private void updateMatchedPlan(
+            Plan existing, PlanWithFlows incoming, HashSet<String> unmatchedIds, Api api, AuditInfo auditInfo) {
         incoming.setId(existing.getId());
         // Always write the authoritative values from the API to heal any legacy plan that had null referenceId.
         incoming.setReferenceId(api.getId());
@@ -107,16 +108,15 @@ class ImportDefinitionPlanDomainService {
 
     /** Match by {@code crossId} when present and found; else by {@code id}. */
     private static Optional<Plan> findSavedPlanForImport(
-        Map<String, Plan> savedByCrossId,
-        Map<String, Plan> savedById,
-        PlanWithFlows incomingPlan
-    ) {
+            Map<String, Plan> savedByCrossId, Map<String, Plan> savedById, PlanWithFlows incomingPlan) {
         if (incomingPlan.getCrossId() != null) {
             var byCrossId = Optional.ofNullable(savedByCrossId.get(incomingPlan.getCrossId()));
             if (byCrossId.isPresent()) return byCrossId;
         }
         // incomingPlan.getId() is null only in manually crafted definitions that omit the id field.
         // A normal Gravitee export always includes the plan id; the guard prevents NPE in the map lookup.
-        return incomingPlan.getId() == null ? Optional.empty() : Optional.ofNullable(savedById.get(incomingPlan.getId()));
+        return incomingPlan.getId() == null
+                ? Optional.empty()
+                : Optional.ofNullable(savedById.get(incomingPlan.getId()));
     }
 }

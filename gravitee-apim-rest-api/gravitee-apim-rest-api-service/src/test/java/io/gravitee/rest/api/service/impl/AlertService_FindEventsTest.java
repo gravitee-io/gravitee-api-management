@@ -43,9 +43,12 @@ public class AlertService_FindEventsTest extends AlertServiceTest {
         when(alertEventRepository.search(any(), any())).thenReturn(new Page<>(List.of(entity), 0, 1, 1));
 
         final Page<AlertEventEntity> page = alertService.findEvents(
-            UUID.randomUUID().toString(),
-            new AlertEventQuery.Builder().pageNumber(0).pageSize(1).type(EventType.ALERT_NOTIFICATION).build()
-        );
+                UUID.randomUUID().toString(),
+                new AlertEventQuery.Builder()
+                        .pageNumber(0)
+                        .pageSize(1)
+                        .type(EventType.ALERT_NOTIFICATION)
+                        .build());
 
         assertEquals(0, page.getPageNumber());
         assertEquals(1, page.getPageElements());
@@ -58,9 +61,12 @@ public class AlertService_FindEventsTest extends AlertServiceTest {
         when(alertEventRepository.search(any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
 
         final Page<AlertEventEntity> page = alertService.findEvents(
-            UUID.randomUUID().toString(),
-            new AlertEventQuery.Builder().pageNumber(0).pageSize(1).type(EventType.ALERT_NOTIFICATION).build()
-        );
+                UUID.randomUUID().toString(),
+                new AlertEventQuery.Builder()
+                        .pageNumber(0)
+                        .pageSize(1)
+                        .type(EventType.ALERT_NOTIFICATION)
+                        .build());
 
         assertEquals(1, page.getPageNumber());
         assertEquals(0, page.getPageElements());

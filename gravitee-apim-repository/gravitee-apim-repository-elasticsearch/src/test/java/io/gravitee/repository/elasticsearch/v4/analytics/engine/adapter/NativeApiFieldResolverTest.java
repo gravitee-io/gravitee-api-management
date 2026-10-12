@@ -39,9 +39,8 @@ class NativeApiFieldResolverTest {
 
     @Test
     void resolves_native_connection_status_facet_to_additional_metrics_keyword() {
-        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CONNECTION_STATUS)).isEqualTo(
-            "additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS
-        );
+        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CONNECTION_STATUS))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
     }
 
     @Test
@@ -61,66 +60,68 @@ class NativeApiFieldResolverTest {
 
     @Test
     void resolves_failure_side_facet_to_additional_metrics_keyword() {
-        assertThat(fieldResolver.fromFacet(Facet.NATIVE_FAILURE_SIDE)).isEqualTo("additional-metrics." + NativeApiMetricKeys.FAILURE_SIDE);
+        assertThat(fieldResolver.fromFacet(Facet.NATIVE_FAILURE_SIDE))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.FAILURE_SIDE);
     }
 
     @Test
     void resolves_client_id_facet_to_additional_metrics_keyword() {
-        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CLIENT_ID)).isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_ID);
+        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CLIENT_ID))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_ID);
     }
 
     @Test
     void resolves_client_software_name_facet_to_additional_metrics_keyword() {
         // The fleet dimension: where client.id is caller-chosen and near-unique per pod, the library is a
         // handful of values across a whole estate — which is what makes it groupable at all.
-        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CLIENT_SOFTWARE_NAME)).isEqualTo(
-            "additional-metrics." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME
-        );
+        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CLIENT_SOFTWARE_NAME))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME);
     }
 
     @Test
     void resolves_client_software_name_filter_to_additional_metrics_keyword() {
-        assertThat(
-            fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME, Filter.Operator.EQ, "librdkafka"))
-        ).isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME);
+        assertThat(fieldResolver.fromFilter(
+                        new Filter(Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME, Filter.Operator.EQ, "librdkafka")))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME);
     }
 
     @Test
     void resolves_failure_side_filter_to_additional_metrics_keyword() {
-        assertThat(
-            fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_FAILURE_SIDE, Filter.Operator.IN, List.of("DOWNSTREAM")))
-        ).isEqualTo("additional-metrics." + NativeApiMetricKeys.FAILURE_SIDE);
+        assertThat(fieldResolver.fromFilter(
+                        new Filter(Filter.Name.NATIVE_FAILURE_SIDE, Filter.Operator.IN, List.of("DOWNSTREAM"))))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.FAILURE_SIDE);
     }
 
     @Test
     void resolves_client_id_filter_to_additional_metrics_keyword() {
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_CLIENT_ID, Filter.Operator.EQ, "console-producer"))).isEqualTo(
-            "additional-metrics." + NativeApiMetricKeys.CLIENT_ID
-        );
+        assertThat(fieldResolver.fromFilter(
+                        new Filter(Filter.Name.NATIVE_CLIENT_ID, Filter.Operator.EQ, "console-producer")))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_ID);
     }
 
     @Test
     void resolves_api_filter_to_api_id() {
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("api-1")))).isEqualTo("api-id");
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("api-1"))))
+                .isEqualTo("api-id");
     }
 
     @Test
     void resolves_application_filter_to_application_id() {
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.APPLICATION, Filter.Operator.IN, List.of("app-1")))).isEqualTo(
-            "application-id"
-        );
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.APPLICATION, Filter.Operator.IN, List.of("app-1"))))
+                .isEqualTo("application-id");
     }
 
     @Test
     void resolves_plan_filter_to_plan_id() {
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.PLAN, Filter.Operator.IN, List.of("plan-1")))).isEqualTo("plan-id");
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.PLAN, Filter.Operator.IN, List.of("plan-1"))))
+                .isEqualTo("plan-id");
     }
 
     @Test
     void resolves_native_connection_status_filter_to_additional_metrics_keyword() {
-        assertThat(
-            fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_CONNECTION_STATUS, Filter.Operator.IN, List.of("CONNECTED")))
-        ).isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
+        assertThat(fieldResolver.fromFilter(
+                        new Filter(Filter.Name.NATIVE_CONNECTION_STATUS, Filter.Operator.IN, List.of("CONNECTED"))))
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
     }
 
     @Test
@@ -130,9 +131,9 @@ class NativeApiFieldResolverTest {
 
     @Test
     void throws_UnsupportedOperationException_on_http_filter() {
-        assertThrows(UnsupportedOperationException.class, () ->
-            fieldResolver.fromFilter(new Filter(Filter.Name.HTTP_STATUS, Filter.Operator.EQ, 200))
-        );
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> fieldResolver.fromFilter(new Filter(Filter.Name.HTTP_STATUS, Filter.Operator.EQ, 200)));
     }
 
     @Test

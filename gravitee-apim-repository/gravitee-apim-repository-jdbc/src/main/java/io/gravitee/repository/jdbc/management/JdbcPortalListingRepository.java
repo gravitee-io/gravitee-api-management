@@ -31,7 +31,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<PortalListing, String> implements PortalListingRepository {
+public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<PortalListing, String>
+        implements PortalListingRepository {
 
     JdbcPortalListingRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_listings");
@@ -40,12 +41,12 @@ public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<Port
     @Override
     protected JdbcObjectMapper<PortalListing> buildOrm() {
         return JdbcObjectMapper.builder(PortalListing.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("portal_id", Types.NVARCHAR, String.class)
-            .addColumn("apis", Types.NCLOB, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("portal_id", Types.NVARCHAR, String.class)
+                .addColumn("apis", Types.NCLOB, String.class)
+                .build();
     }
 
     @Override
@@ -54,41 +55,43 @@ public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<Port
     }
 
     @Override
-    public Optional<PortalListing> findByIdAndEnvironmentId(String portalListingId, String environmentId) throws TechnicalException {
+    public Optional<PortalListing> findByIdAndEnvironmentId(String portalListingId, String environmentId)
+            throws TechnicalException {
         log.debug("JdbcPortalListingRepository.findByIdAndEnvironmentId({}, {})", portalListingId, environmentId);
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() + " WHERE id = ? and environment_id = ?",
-                    getOrm().getRowMapper(),
-                    portalListingId,
-                    environmentId
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " WHERE id = ? and environment_id = ?",
+                            getOrm().getRowMapper(),
+                            portalListingId,
+                            environmentId)
+                    .stream()
+                    .findFirst();
         } catch (final Exception ex) {
             throw handleException(
-                ex,
-                String.format("Failed to find portal listing by id (%s) and environment id (%s)", portalListingId, environmentId)
-            );
+                    ex,
+                    String.format(
+                            "Failed to find portal listing by id (%s) and environment id (%s)",
+                            portalListingId, environmentId));
         }
     }
 
     @Override
-    public List<PortalListing> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId) throws TechnicalException {
+    public List<PortalListing> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId)
+            throws TechnicalException {
         log.debug("JdbcPortalListingRepository.findAllByPortalIdAndEnvironmentId({}, {})", portalId, environmentId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE portal_id = ? and environment_id = ?",
-                getOrm().getRowMapper(),
-                portalId,
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " WHERE portal_id = ? and environment_id = ?",
+                    getOrm().getRowMapper(),
+                    portalId,
+                    environmentId);
         } catch (final Exception ex) {
             throw handleException(
-                ex,
-                String.format("Failed to find portal listings by portal id (%s) and environment id (%s)", portalId, environmentId)
-            );
+                    ex,
+                    String.format(
+                            "Failed to find portal listings by portal id (%s) and environment id (%s)",
+                            portalId, environmentId));
         }
     }
 

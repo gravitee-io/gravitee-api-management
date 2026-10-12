@@ -35,7 +35,8 @@ import org.junit.jupiter.api.Test;
 class DeletePortalCategoryUseCaseTest {
 
     private static final String ENVIRONMENT_ID = "env-1";
-    private static final PortalCategoryId PORTAL_CATEGORY_ID = PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
+    private static final PortalCategoryId PORTAL_CATEGORY_ID =
+            PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
     private static final PortalCategoryId UNKNOWN_ID = PortalCategoryId.of("00000000-0000-0000-0000-000000000bad");
 
     private PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory;
@@ -44,7 +45,8 @@ class DeletePortalCategoryUseCaseTest {
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, new PortalCategoryQueryServiceInMemory());
+        var domainService = new PortalCategoryDomainService(
+                portalCategoryCrudServiceInMemory, new PortalCategoryQueryServiceInMemory());
         useCase = new DeletePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 
@@ -55,7 +57,8 @@ class DeletePortalCategoryUseCaseTest {
 
     @Test
     void should_delete_existing_portal_category() {
-        portalCategoryCrudServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Title", null, true)));
+        portalCategoryCrudServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Title", null, true)));
 
         useCase.execute(new DeletePortalCategoryUseCase.Input(ENVIRONMENT_ID, PORTAL_CATEGORY_ID));
 
@@ -64,8 +67,7 @@ class DeletePortalCategoryUseCaseTest {
 
     @Test
     void should_throw_not_found_when_id_is_unknown() {
-        assertThatThrownBy(() -> useCase.execute(new DeletePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID))).isInstanceOf(
-            PortalCategoryNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new DeletePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID)))
+                .isInstanceOf(PortalCategoryNotFoundException.class);
     }
 }

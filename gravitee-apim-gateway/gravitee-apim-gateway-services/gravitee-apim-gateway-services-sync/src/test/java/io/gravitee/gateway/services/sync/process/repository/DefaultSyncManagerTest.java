@@ -72,7 +72,8 @@ class DefaultSyncManagerTest {
         when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, Set.of("env")));
         when(router.get(any())).thenReturn(route);
         when(route.produces(any())).thenReturn(route);
-        cut = new DefaultSyncManager(router, node, synchronizers, null, new NoopDistributedSyncService(), 5, TimeUnit.SECONDS, 1);
+        cut = new DefaultSyncManager(
+                router, node, synchronizers, null, new NoopDistributedSyncService(), 5, TimeUnit.SECONDS, 1);
     }
 
     @Test
@@ -90,14 +91,16 @@ class DefaultSyncManagerTest {
     }
 
     @Test
-    void should_perform_full_initial_sync_on_primary_cold_start_even_with_existing_distributed_state() throws Exception {
+    void should_perform_full_initial_sync_on_primary_cold_start_even_with_existing_distributed_state()
+            throws Exception {
         DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
         when(distributedSyncService.isEnabled()).thenReturn(true);
         when(distributedSyncService.isPrimaryNode()).thenReturn(true);
         when(distributedSyncService.ready()).thenReturn(Completable.complete());
         lenient()
-            .when(distributedSyncService.state())
-            .thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+                .when(distributedSyncService.state())
+                .thenReturn(Maybe.just(
+                        DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
         when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
 
         RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
@@ -125,7 +128,11 @@ class DefaultSyncManagerTest {
             // Node starts as secondary (doStart + first cycle), then gets promoted to primary.
             when(distributedSyncService.isPrimaryNode()).thenReturn(false, false, false, true);
             when(distributedSyncService.ready()).thenReturn(Completable.complete());
-            when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+            when(distributedSyncService.state())
+                    .thenReturn(Maybe.just(DistributedSyncState.builder()
+                            .from(1_000L)
+                            .to(2_000L)
+                            .build()));
             when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
 
             RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
@@ -134,15 +141,14 @@ class DefaultSyncManagerTest {
             when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
 
             cut = new DefaultSyncManager(
-                router,
-                node,
-                synchronizers,
-                new ArrayList<>(List.of(distributedSynchronizer)),
-                distributedSyncService,
-                5,
-                TimeUnit.SECONDS,
-                1
-            );
+                    router,
+                    node,
+                    synchronizers,
+                    new ArrayList<>(List.of(distributedSynchronizer)),
+                    distributedSyncService,
+                    5,
+                    TimeUnit.SECONDS,
+                    1);
             cut.start();
 
             // As a secondary, the initial sync reads distributed events from scratch.
@@ -168,8 +174,9 @@ class DefaultSyncManagerTest {
         when(distributedSyncService.isPrimaryNode()).thenReturn(false, true);
         when(distributedSyncService.ready()).thenReturn(Completable.complete());
         lenient()
-            .when(distributedSyncService.state())
-            .thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+                .when(distributedSyncService.state())
+                .thenReturn(Maybe.just(
+                        DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
         when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
 
         RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
@@ -193,14 +200,11 @@ class DefaultSyncManagerTest {
 
             AtomicInteger counter = new AtomicInteger(0);
             // Fail the initial sync (and its inner retry), then succeed on the outer retry.
-            RepositorySynchronizer synchronizer = spy(
-                new FakeSynchronizer(
-                    Completable.defer(() ->
-                        counter.getAndIncrement() < 2 ? Completable.error(new RuntimeException("bridge 502")) : Completable.complete()
-                    ),
-                    1
-                )
-            );
+            RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(
+                    Completable.defer(() -> counter.getAndIncrement() < 2
+                            ? Completable.error(new RuntimeException("bridge 502"))
+                            : Completable.complete()),
+                    1));
             synchronizers.add(synchronizer);
 
             cut.start();
@@ -228,8 +232,7 @@ class DefaultSyncManagerTest {
             AtomicInteger counter = new AtomicInteger(0);
 
             RepositorySynchronizer synchronizer1 = spy(new FakeSynchronizer(Completable.complete(), 1));
-            RepositorySynchronizer synchronizer2 = spy(
-                new FakeSynchronizer(
+            RepositorySynchronizer synchronizer2 = spy(new FakeSynchronizer(
                     Completable.defer(() -> {
                         if (counter.getAndIncrement() == 0) {
                             return Completable.complete();
@@ -237,9 +240,7 @@ class DefaultSyncManagerTest {
 
                         return Completable.complete().delay(8, TimeUnit.SECONDS);
                     }),
-                    2
-                )
-            );
+                    2));
             synchronizers.add(synchronizer1);
             synchronizers.add(synchronizer2);
 
@@ -254,7 +255,8 @@ class DefaultSyncManagerTest {
             testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
             testScheduler.triggerActions();
 
-            // Advance time by another 5 seconds to complete the sync process and exceed the delay between 2 sync at the same time.
+            // Advance time by another 5 seconds to complete the sync process and exceed the delay between 2 sync at the
+            // same time.
             testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
             testScheduler.triggerActions();
 
@@ -280,8 +282,7 @@ class DefaultSyncManagerTest {
             AtomicInteger counterSyncComplete = new AtomicInteger(0);
 
             RepositorySynchronizer synchronizer1 = spy(new FakeSynchronizer(Completable.complete(), 1));
-            RepositorySynchronizer synchronizer2 = spy(
-                new FakeSynchronizer(
+            RepositorySynchronizer synchronizer2 = spy(new FakeSynchronizer(
                     Completable.defer(() -> {
                         var currentCounter = counter.getAndIncrement();
                         if (currentCounter > 0 && currentCounter < 3) {
@@ -290,9 +291,7 @@ class DefaultSyncManagerTest {
                         counterSyncComplete.incrementAndGet();
                         return Completable.complete();
                     }),
-                    2
-                )
-            );
+                    2));
             synchronizers.add(synchronizer1);
             synchronizers.add(synchronizer2);
 
@@ -319,7 +318,8 @@ class DefaultSyncManagerTest {
             testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
             testScheduler.triggerActions();
 
-            // Synchronizer has been called 4 times with 2 success (one on full sync (start) and one on diff sync after 2 failure)
+            // Synchronizer has been called 4 times with 2 success (one on full sync (start) and one on diff sync after
+            // 2 failure)
             assertThat(counter.get()).isEqualTo(4);
             assertThat(counterSyncComplete.get()).isEqualTo(2);
 

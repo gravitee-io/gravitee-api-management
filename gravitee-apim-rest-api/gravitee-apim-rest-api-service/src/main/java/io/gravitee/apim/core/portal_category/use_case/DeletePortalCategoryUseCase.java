@@ -32,7 +32,8 @@ public class DeletePortalCategoryUseCase {
     private final PortalCategoryCrudService portalCategoryCrudService;
 
     public Output execute(Input input) {
-        var existing = portalCategoryDomainService.findByIdAndEnvironmentId(input.environmentId(), input.portalCategoryId());
+        var existing =
+                portalCategoryDomainService.findByIdAndEnvironmentId(input.environmentId(), input.portalCategoryId());
         portalCategoryCrudService.delete(existing.getId());
         return new Output();
     }

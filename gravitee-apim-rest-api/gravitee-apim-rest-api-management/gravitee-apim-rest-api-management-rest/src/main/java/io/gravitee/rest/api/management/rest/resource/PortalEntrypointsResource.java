@@ -40,10 +40,8 @@ public class PortalEntrypointsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<EntrypointEntity> getPortalEntrypoints() {
-        return entrypointService
-            .findAll(GraviteeContext.getExecutionContext())
-            .stream()
-            .peek(entrypointEntity -> entrypointEntity.setId(null))
-            .collect(toList());
+        return entrypointService.findAll(GraviteeContext.getExecutionContext()).stream()
+                .peek(entrypointEntity -> entrypointEntity.setId(null))
+                .collect(toList());
     }
 }

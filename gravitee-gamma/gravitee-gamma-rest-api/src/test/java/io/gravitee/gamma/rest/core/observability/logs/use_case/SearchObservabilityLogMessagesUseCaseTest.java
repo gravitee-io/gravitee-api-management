@@ -39,23 +39,30 @@ class SearchObservabilityLogMessagesUseCaseTest {
     private static final String REQUEST_ID = "req-1";
 
     private final ObservabilityLogsDataPort logsDataPort = mock(ObservabilityLogsDataPort.class);
-    private final SearchObservabilityLogMessagesUseCase useCase = new SearchObservabilityLogMessagesUseCase(logsDataPort);
+    private final SearchObservabilityLogMessagesUseCase useCase =
+            new SearchObservabilityLogMessagesUseCase(logsDataPort);
 
     private SearchObservabilityLogMessagesUseCase.Output execute(Integer page, Integer perPage) {
-        return useCase.execute(new SearchObservabilityLogMessagesUseCase.Input(ORG_ID, ENV_ID, API_ID, REQUEST_ID, page, perPage));
+        return useCase.execute(
+                new SearchObservabilityLogMessagesUseCase.Input(ORG_ID, ENV_ID, API_ID, REQUEST_ID, page, perPage));
     }
 
     @Test
     void should_return_the_messages_of_the_connection() {
         var message = MessageLog.builder()
-            .requestId(REQUEST_ID)
-            .operation("PUBLISH")
-            .entrypoint(MessageLog.Message.builder().connectorId("http-post").payload("{}").build())
-            .endpoint(MessageLog.Message.builder().connectorId("kafka").payload("{}").build())
-            .build();
-        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt())).thenReturn(
-            new MessageLogsPage(List.of(message), 1)
-        );
+                .requestId(REQUEST_ID)
+                .operation("PUBLISH")
+                .entrypoint(MessageLog.Message.builder()
+                        .connectorId("http-post")
+                        .payload("{}")
+                        .build())
+                .endpoint(MessageLog.Message.builder()
+                        .connectorId("kafka")
+                        .payload("{}")
+                        .build())
+                .build();
+        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt()))
+                .thenReturn(new MessageLogsPage(List.of(message), 1));
 
         var output = execute(1, 20);
 
@@ -65,9 +72,8 @@ class SearchObservabilityLogMessagesUseCaseTest {
 
     @Test
     void should_report_an_api_recording_no_message_logs_as_an_empty_page() {
-        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt())).thenReturn(
-            MessageLogsPage.EMPTY
-        );
+        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt()))
+                .thenReturn(MessageLogsPage.EMPTY);
 
         var output = execute(1, 20);
 
@@ -76,9 +82,8 @@ class SearchObservabilityLogMessagesUseCaseTest {
 
     @Test
     void should_fall_back_to_the_defaults_on_absent_or_meaningless_paging() {
-        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt())).thenReturn(
-            MessageLogsPage.EMPTY
-        );
+        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt()))
+                .thenReturn(MessageLogsPage.EMPTY);
 
         var output = execute(null, 0);
 
@@ -89,9 +94,8 @@ class SearchObservabilityLogMessagesUseCaseTest {
 
     @Test
     void should_cap_the_page_size_so_one_call_cannot_pull_a_whole_connection() {
-        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt())).thenReturn(
-            MessageLogsPage.EMPTY
-        );
+        when(logsDataPort.searchMessages(eq(ORG_ID), eq(ENV_ID), eq(API_ID), eq(REQUEST_ID), anyInt(), anyInt()))
+                .thenReturn(MessageLogsPage.EMPTY);
 
         var output = execute(3, 5_000);
 

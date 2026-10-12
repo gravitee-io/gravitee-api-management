@@ -28,9 +28,9 @@ public class CrossIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("ci1")
-            .key("crossId", ascending())
-            .build();
+                .collection("apis")
+                .name("ci1")
+                .key("crossId", ascending())
+                .build();
     }
 }

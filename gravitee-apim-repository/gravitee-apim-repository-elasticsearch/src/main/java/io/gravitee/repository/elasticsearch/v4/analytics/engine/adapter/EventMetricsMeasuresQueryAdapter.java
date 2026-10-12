@@ -64,7 +64,10 @@ public class EventMetricsMeasuresQueryAdapter {
     }
 
     private JsonObject json(MeasuresQuery query) {
-        return new JsonObject().put("size", 0).put("query", adaptQuery(query)).put("aggs", adaptMetrics(query.metrics()));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", adaptQuery(query))
+                .put("aggs", adaptMetrics(query.metrics()));
     }
 
     /**
@@ -73,12 +76,12 @@ public class EventMetricsMeasuresQueryAdapter {
     JsonObject adaptQuery(Query query) {
         var bool = boolAdapter.adaptForEventMetrics(query);
         return sharedDocType(query.metrics())
-            .map(docType -> {
-                var filters = bool.getJsonObject("bool").getJsonArray("filter");
-                filters.add(docTypeTerm(docType));
-                return bool;
-            })
-            .orElse(bool);
+                .map(docType -> {
+                    var filters = bool.getJsonObject("bool").getJsonArray("filter");
+                    filters.add(docTypeTerm(docType));
+                    return bool;
+                })
+                .orElse(bool);
     }
 
     /**
@@ -103,24 +106,21 @@ public class EventMetricsMeasuresQueryAdapter {
         if (sharedDocType(metrics).isPresent()) {
             return;
         }
-        var breakdown = metrics
-            .stream()
-            .map(metric -> metric.metric() + " (" + fieldResolver.docType(metric.metric()) + ")")
-            .toList();
-        throw new UnsupportedOperationException(
-            "Native event metrics " + queryKind + " cannot mix documents types in a single query, got: " + breakdown
-        );
+        var breakdown = metrics.stream()
+                .map(metric -> metric.metric() + " (" + fieldResolver.docType(metric.metric()) + ")")
+                .toList();
+        throw new UnsupportedOperationException("Native event metrics " + queryKind
+                + " cannot mix documents types in a single query, got: " + breakdown);
     }
 
     Optional<String> sharedDocType(List<MetricMeasuresQuery> metrics) {
         if (metrics == null || metrics.isEmpty()) {
             return Optional.empty();
         }
-        var docTypes = metrics
-            .stream()
-            .map(metric -> fieldResolver.docType(metric.metric()))
-            .distinct()
-            .toList();
+        var docTypes = metrics.stream()
+                .map(metric -> fieldResolver.docType(metric.metric()))
+                .distinct()
+                .toList();
         return docTypes.size() == 1 ? Optional.of(docTypes.getFirst()) : Optional.empty();
     }
 
@@ -145,10 +145,12 @@ public class EventMetricsMeasuresQueryAdapter {
             if (docTypeHoisted) {
                 aggs.mergeIn(measureAggs);
             } else {
-                var filterName = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + AggregationAdapter.FILTER_AGG_SUFFIX;
+                var filterName = metric.metric().name()
+                        + AggregationAdapter.AGG_NAME_SEPARATOR
+                        + AggregationAdapter.FILTER_AGG_SUFFIX;
                 var filterAgg = new JsonObject()
-                    .put("filter", docTypeTerm(fieldResolver.docType(metric.metric())))
-                    .put("aggs", measureAggs);
+                        .put("filter", docTypeTerm(fieldResolver.docType(metric.metric())))
+                        .put("aggs", measureAggs);
                 aggs.put(filterName, filterAgg);
             }
         }
@@ -160,16 +162,16 @@ public class EventMetricsMeasuresQueryAdapter {
             // The `#__FILTER__` slot already carries the doc-type here, so honouring per-metric filters
             // would mean nesting a second filter aggregation. Until that is implemented, refuse: the
             // validator accepts these filters upstream, so dropping them would silently widen the query.
-            throw new UnsupportedOperationException(
-                "Native event metrics do not support per-metric filters yet, got " + metric.filters() + " on " + metric.metric()
-            );
+            throw new UnsupportedOperationException("Native event metrics do not support per-metric filters yet, got "
+                    + metric.filters() + " on " + metric.metric());
         }
         var aggs = new JsonObject();
         for (var measure : metric.measures()) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
-            aggregate(aggName, metric.metric(), measure).ifPresent(agg ->
-                aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next())
-            );
+            aggregate(aggName, metric.metric(), measure)
+                    .ifPresent(agg -> aggs.put(
+                            agg.keySet().iterator().next(),
+                            agg.values().iterator().next()));
         }
         return aggs;
     }
@@ -178,21 +180,19 @@ public class EventMetricsMeasuresQueryAdapter {
         if (fieldResolver.isAccumulatedDuration(metric)) {
             if (measure != Measure.AVG) {
                 throw new UnsupportedOperationException(
-                    "Native operation durations are accumulated sums, so only AVG is supported, got: " + measure
-                );
+                        "Native operation durations are accumulated sums, so only AVG is supported, got: " + measure);
             }
-            return Optional.of(
-                durationBuilder.build(aggName, fieldResolver.fromMetric(metric), fieldResolver.durationSampleCountField(metric))
-            );
+            return Optional.of(durationBuilder.build(
+                    aggName, fieldResolver.fromMetric(metric), fieldResolver.durationSampleCountField(metric)));
         }
 
         var field = fieldResolver.fromMetric(metric);
         return switch (measure) {
             case SUM -> Optional.of(sumBuilder.build(aggName, field));
             case MAX -> Optional.of(maxBuilder.build(aggName, field));
-            default -> throw new UnsupportedOperationException(
-                "Native event metric " + metric + " supports SUM and MAX only, got: " + measure
-            );
+            default ->
+                throw new UnsupportedOperationException(
+                        "Native event metric " + metric + " supports SUM and MAX only, got: " + measure);
         };
     }
 }

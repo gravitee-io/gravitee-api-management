@@ -29,10 +29,9 @@ public class DescribeKafkaClusterUseCase {
     private final ObjectMapper objectMapper;
 
     public DescribeKafkaClusterUseCase(
-        ClusterCrudService clusterCrudService,
-        KafkaClusterDomainService kafkaClusterDomainService,
-        ObjectMapper objectMapper
-    ) {
+            ClusterCrudService clusterCrudService,
+            KafkaClusterDomainService kafkaClusterDomainService,
+            ObjectMapper objectMapper) {
         this.clusterCrudService = clusterCrudService;
         this.kafkaClusterDomainService = kafkaClusterDomainService;
         this.objectMapper = objectMapper;

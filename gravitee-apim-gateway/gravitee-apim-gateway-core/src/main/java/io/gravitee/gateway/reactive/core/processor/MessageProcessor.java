@@ -15,9 +15,6 @@
  */
 package io.gravitee.gateway.reactive.core.processor;
 
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
-import io.reactivex.rxjava3.core.Completable;
-
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team

@@ -32,11 +32,17 @@ import org.junit.jupiter.api.Test;
 class EdgeApiTest {
 
     private static EdgeApi edgeApi(List<Plan> plans) {
-        return new EdgeApi(io.gravitee.definition.model.v4.edge.EdgeApi.builder().id("edge-api").plans(plans).build());
+        return new EdgeApi(io.gravitee.definition.model.v4.edge.EdgeApi.builder()
+                .id("edge-api")
+                .plans(plans)
+                .build());
     }
 
     private static Plan plan(String id, String securityType) {
-        return Plan.builder().id(id).security(PlanSecurity.builder().type(securityType).build()).build();
+        return Plan.builder()
+                .id(id)
+                .security(PlanSecurity.builder().type(securityType).build())
+                .build();
     }
 
     @Nested

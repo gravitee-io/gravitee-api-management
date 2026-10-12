@@ -22,7 +22,7 @@ import io.gravitee.rest.api.management.v2.rest.model.DebugHttpRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface DebugApiMapper {
     DebugApiMapper INSTANCE = Mappers.getMapper(DebugApiMapper.class);
 

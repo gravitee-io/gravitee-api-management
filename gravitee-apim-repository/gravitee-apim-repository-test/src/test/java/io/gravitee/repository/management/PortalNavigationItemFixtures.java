@@ -26,18 +26,18 @@ public final class PortalNavigationItemFixtures {
 
     public static PortalNavigationItem.PortalNavigationItemBuilder anItem(String id, PortalNavigationItem.Type type) {
         return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .title(id)
-            .segment(id)
-            .type(type)
-            .area(PortalNavigationItem.Area.TOP_NAVBAR)
-            .order(4)
-            .published(true)
-            .configuration("{}")
-            .visibility(PortalNavigationItem.Visibility.PUBLIC)
-            .rootId(id);
+                .id(id)
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .title(id)
+                .segment(id)
+                .type(type)
+                .area(PortalNavigationItem.Area.TOP_NAVBAR)
+                .order(4)
+                .published(true)
+                .configuration("{}")
+                .visibility(PortalNavigationItem.Visibility.PUBLIC)
+                .rootId(id);
     }
 
     public static PortalNavigationItem.PortalNavigationItemBuilder aLink(String id) {
@@ -49,18 +49,20 @@ public final class PortalNavigationItemFixtures {
     }
 
     public static PortalNavigationItem.PortalNavigationItemBuilder anApiProduct(String id, String apiProductId) {
-        return anItem(id, PortalNavigationItem.Type.API_PRODUCT).apiProductId(apiProductId).published(false);
+        return anItem(id, PortalNavigationItem.Type.API_PRODUCT)
+                .apiProductId(apiProductId)
+                .published(false);
     }
 
     public static PortalNavigationItem.PortalNavigationItemBuilder aPage(String id, String portalPageContentId) {
-        return anItem(id, PortalNavigationItem.Type.PAGE).configuration("{ \"portalPageContentId\": \"" + portalPageContentId + "\" }");
+        return anItem(id, PortalNavigationItem.Type.PAGE)
+                .configuration("{ \"portalPageContentId\": \"" + portalPageContentId + "\" }");
     }
 
     /** A PAGE whose configuration also carries an external source, with auto-fetch enabled. */
     public static PortalNavigationItem.PortalNavigationItemBuilder aSourcedPage(String id, String portalPageContentId) {
         return anItem(id, PortalNavigationItem.Type.PAGE)
-            .configuration(
-                """
+                .configuration("""
                 { "portalPageContentId": "%s",
                   "source": {
                     "type": "github-fetcher",
@@ -69,8 +71,7 @@ public final class PortalNavigationItemFixtures {
                     "lastFetchedAt": "2024-07-17T12:00:00Z",
                     "lastFetchError": "previous fetch failed"
                   }
-                }""".formatted(portalPageContentId)
-            )
-            .useAutoFetch(true);
+                }""".formatted(portalPageContentId))
+                .useAutoFetch(true);
     }
 }

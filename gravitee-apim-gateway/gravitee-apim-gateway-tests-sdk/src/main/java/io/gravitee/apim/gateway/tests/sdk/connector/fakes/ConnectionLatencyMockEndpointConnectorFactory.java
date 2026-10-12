@@ -28,7 +28,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class ConnectionLatencyMockEndpointConnectorFactory
-    implements HttpEndpointAsyncConnectorFactory<ConnectionLatencyMockEndpointConnector> {
+        implements HttpEndpointAsyncConnectorFactory<ConnectionLatencyMockEndpointConnector> {
 
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
@@ -48,14 +48,10 @@ public class ConnectionLatencyMockEndpointConnectorFactory
 
     @Override
     public ConnectionLatencyMockEndpointConnector createConnector(
-        DeploymentContext deploymentContext,
-        String configuration,
-        String sharedConfiguration
-    ) {
+            DeploymentContext deploymentContext, String configuration, String sharedConfiguration) {
         try {
-            return new ConnectionLatencyMockEndpointConnector(
-                pluginConfigurationHelper.readConfiguration(ConnectionLatencyMockEndpointConnectorConfiguration.class, configuration)
-            );
+            return new ConnectionLatencyMockEndpointConnector(pluginConfigurationHelper.readConfiguration(
+                    ConnectionLatencyMockEndpointConnectorConfiguration.class, configuration));
         } catch (PluginConfigurationException e) {
             return null;
         }

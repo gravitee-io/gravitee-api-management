@@ -48,7 +48,8 @@ public class V4EmulationEngineImplTest {
 
     @Test
     public void should_return_v4_emulation_engine_without_api_def_when_default_creation_only() {
-        V4EmulationEngineServiceImpl v4EmulationEngineService = new V4EmulationEngineServiceImpl(CREATION_ONLY.getLabel());
+        V4EmulationEngineServiceImpl v4EmulationEngineService =
+                new V4EmulationEngineServiceImpl(CREATION_ONLY.getLabel());
         assertEquals(CREATION_ONLY, v4EmulationEngineService.defaultMode());
         assertEquals(ExecutionMode.V4_EMULATION_ENGINE, v4EmulationEngineService.getExecutionModeFor(null));
     }
@@ -64,12 +65,15 @@ public class V4EmulationEngineImplTest {
     public void should_return_v4_emulation_engine_with_api_def_when_default_yes() {
         V4EmulationEngineServiceImpl v4EmulationEngineService = new V4EmulationEngineServiceImpl(YES.getLabel());
         assertEquals(YES, v4EmulationEngineService.defaultMode());
-        assertEquals(ExecutionMode.V4_EMULATION_ENGINE, v4EmulationEngineService.getExecutionModeFor(objectMapper.createObjectNode()));
+        assertEquals(
+                ExecutionMode.V4_EMULATION_ENGINE,
+                v4EmulationEngineService.getExecutionModeFor(objectMapper.createObjectNode()));
     }
 
     @Test
     public void should_return_v3_with_api_def_when_default_creation_only() {
-        V4EmulationEngineServiceImpl v4EmulationEngineService = new V4EmulationEngineServiceImpl(CREATION_ONLY.getLabel());
+        V4EmulationEngineServiceImpl v4EmulationEngineService =
+                new V4EmulationEngineServiceImpl(CREATION_ONLY.getLabel());
         assertEquals(CREATION_ONLY, v4EmulationEngineService.defaultMode());
         assertEquals(ExecutionMode.V3, v4EmulationEngineService.getExecutionModeFor(objectMapper.createObjectNode()));
     }

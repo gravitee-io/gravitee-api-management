@@ -74,7 +74,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { ResourceContextConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
@@ -324,14 +324,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        when(
-            permissionService.hasPermission(
-                any(ExecutionContext.class),
-                any(RolePermission.class),
-                anyString(),
-                any(RolePermissionAction[].class)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        any(ExecutionContext.class),
+                        any(RolePermission.class),
+                        anyString(),
+                        any(RolePermissionAction[].class)))
+                .thenReturn(true);
     }
 
     @Priority(50)
@@ -339,29 +337,27 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
+            requestContext.setSecurityContext(new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    return () -> USER_NAME;
                 }
-            );
+
+                @Override
+                public boolean isUserInRole(String string) {
+                    return false;
+                }
+
+                @Override
+                public boolean isSecure() {
+                    return true;
+                }
+
+                @Override
+                public String getAuthenticationScheme() {
+                    return "BASIC";
+                }
+            });
         }
     }
 }

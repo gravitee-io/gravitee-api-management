@@ -33,26 +33,19 @@ public class ListUserAsyncJobsUseCase {
     public Output execute(Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 10));
         var page = asyncJobQueryService.listAsyncJobs(
-            new AsyncJobQueryService.ListQuery(
-                input.environmentId,
-                Optional.of(input.initiatorId),
-                input.type,
-                input.status,
-                input.sourceId
-            ),
-            pageable
-        );
+                new AsyncJobQueryService.ListQuery(
+                        input.environmentId, Optional.of(input.initiatorId), input.type, input.status, input.sourceId),
+                pageable);
         return new Output(page);
     }
 
     public record Input(
-        String environmentId,
-        String initiatorId,
-        Optional<AsyncJob.Type> type,
-        Optional<AsyncJob.Status> status,
-        Optional<String> sourceId,
-        Optional<Pageable> pageable
-    ) {
+            String environmentId,
+            String initiatorId,
+            Optional<AsyncJob.Type> type,
+            Optional<AsyncJob.Status> status,
+            Optional<String> sourceId,
+            Optional<Pageable> pageable) {
         public Input {
             if (environmentId == null) {
                 throw new IllegalArgumentException("Environment ID is required");
@@ -67,15 +60,33 @@ public class ListUserAsyncJobsUseCase {
         }
 
         public Input(String environmentId, String initiatorId, AsyncJob.Type type) {
-            this(environmentId, initiatorId, Optional.ofNullable(type), Optional.empty(), Optional.empty(), Optional.empty());
+            this(
+                    environmentId,
+                    initiatorId,
+                    Optional.ofNullable(type),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty());
         }
 
         public Input(String environmentId, String initiatorId, AsyncJob.Status status) {
-            this(environmentId, initiatorId, Optional.empty(), Optional.ofNullable(status), Optional.empty(), Optional.empty());
+            this(
+                    environmentId,
+                    initiatorId,
+                    Optional.empty(),
+                    Optional.ofNullable(status),
+                    Optional.empty(),
+                    Optional.empty());
         }
 
         public Input(String environmentId, String initiatorId, AsyncJob.Type type, AsyncJob.Status status) {
-            this(environmentId, initiatorId, Optional.ofNullable(type), Optional.ofNullable(status), Optional.empty(), Optional.empty());
+            this(
+                    environmentId,
+                    initiatorId,
+                    Optional.ofNullable(type),
+                    Optional.ofNullable(status),
+                    Optional.empty(),
+                    Optional.empty());
         }
     }
 

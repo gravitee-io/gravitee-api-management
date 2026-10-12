@@ -42,17 +42,29 @@ public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
         parameter.setReferenceId(REFERENCE_ID);
         parameter.setReferenceType(REFERENCE_TYPE);
 
-        assertFalse(parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE).isPresent(), "Parameter already exists");
+        assertFalse(
+                parameterRepository
+                        .findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE)
+                        .isPresent(),
+                "Parameter already exists");
         parameterRepository.create(parameter);
-        assertTrue(parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE).isPresent(), "Parameter not created");
+        assertTrue(
+                parameterRepository
+                        .findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE)
+                        .isPresent(),
+                "Parameter not created");
 
         Optional<Parameter> optional = parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE);
         assertTrue(optional.isPresent(), "Parameter saved not found");
 
         final Parameter parameterSaved = optional.get();
         assertEquals(parameter.getValue(), parameterSaved.getValue(), "Invalid saved parameter value.");
-        assertEquals(parameter.getReferenceId(), parameterSaved.getReferenceId(), "Invalid saved parameter referenceId.");
-        assertEquals(parameter.getReferenceType(), parameterSaved.getReferenceType(), "Invalid saved parameter referenceType.");
+        assertEquals(
+                parameter.getReferenceId(), parameterSaved.getReferenceId(), "Invalid saved parameter referenceId.");
+        assertEquals(
+                parameter.getReferenceType(),
+                parameterSaved.getReferenceType(),
+                "Invalid saved parameter referenceType.");
     }
 
     @Test
@@ -64,10 +76,15 @@ public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
         final Parameter parameter = optional.get();
         parameter.setValue("New value");
 
-        assertTrue(parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE).isPresent(), "Parameter does not exist");
+        assertTrue(
+                parameterRepository
+                        .findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE)
+                        .isPresent(),
+                "Parameter does not exist");
         parameterRepository.update(parameter);
 
-        Optional<Parameter> optionalUpdated = parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE);
+        Optional<Parameter> optionalUpdated =
+                parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE);
         assertTrue(optionalUpdated.isPresent(), "Parameter to update not found");
 
         final Parameter parameterUpdated = optionalUpdated.get();
@@ -77,14 +94,16 @@ public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldDelete() throws Exception {
         assertTrue(
-            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent(),
-            "Parameter to delete does not exist"
-        );
+                parameterRepository
+                        .findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE)
+                        .isPresent(),
+                "Parameter to delete does not exist");
         parameterRepository.delete("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE);
         assertFalse(
-            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent(),
-            "Parameter not deleted"
-        );
+                parameterRepository
+                        .findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE)
+                        .isPresent(),
+                "Parameter not deleted");
     }
 
     @Test
@@ -110,10 +129,9 @@ public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindAll() throws Exception {
         List<Parameter> parameters = parameterRepository.findByKeys(
-            Arrays.asList("management.oAuth.clientId", "management.oAuth.clientSecret", "unknown"),
-            REFERENCE_ID,
-            REFERENCE_TYPE
-        );
+                Arrays.asList("management.oAuth.clientId", "management.oAuth.clientSecret", "unknown"),
+                REFERENCE_ID,
+                REFERENCE_TYPE);
         assertNotNull(parameters);
         assertFalse(parameters.isEmpty());
         assertEquals(2, parameters.size());
@@ -129,11 +147,20 @@ public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        assertEquals(2, parameterRepository.findAll("env-deleted", ParameterReferenceType.ENVIRONMENT).size());
+        assertEquals(
+                2,
+                parameterRepository
+                        .findAll("env-deleted", ParameterReferenceType.ENVIRONMENT)
+                        .size());
 
-        List<String> deleted = parameterRepository.deleteByReferenceIdAndReferenceType("env-deleted", ParameterReferenceType.ENVIRONMENT);
+        List<String> deleted = parameterRepository.deleteByReferenceIdAndReferenceType(
+                "env-deleted", ParameterReferenceType.ENVIRONMENT);
 
         assertEquals(2, deleted.size());
-        assertEquals(0, parameterRepository.findAll("env-deleted", ParameterReferenceType.ENVIRONMENT).size());
+        assertEquals(
+                0,
+                parameterRepository
+                        .findAll("env-deleted", ParameterReferenceType.ENVIRONMENT)
+                        .size());
     }
 }

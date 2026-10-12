@@ -36,7 +36,8 @@ import org.reflections.ReflectionUtils;
 @CustomLog
 public class ResourceFactory {
 
-    public Resource create(Class<? extends Resource> resourceClass, Map<Class<?>, Object> injectables) throws Exception {
+    public Resource create(Class<? extends Resource> resourceClass, Map<Class<?>, Object> injectables)
+            throws Exception {
         log.debug("Create a new resource instance for {}", resourceClass.getName());
 
         return createResource(resourceClass, injectables);
@@ -65,11 +66,9 @@ public class ResourceFactory {
                 boolean accessible = field.isAccessible();
 
                 Class<?> type = field.getType();
-                Optional<?> value = injectables
-                    .values()
-                    .stream()
-                    .filter(o -> type.isAssignableFrom(o.getClass()))
-                    .findFirst();
+                Optional<?> value = injectables.values().stream()
+                        .filter(o -> type.isAssignableFrom(o.getClass()))
+                        .findFirst();
 
                 if (value.isPresent()) {
                     log.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(), resourceClass);
@@ -93,17 +92,16 @@ public class ResourceFactory {
         Constructor<? extends Resource> constructor = null;
 
         Set<Constructor> resourceConstructors = ReflectionUtils.getConstructors(
-            resourceClass,
-            withModifier(Modifier.PUBLIC),
-            withParametersAssignableFrom(ResourceConfiguration.class),
-            withParametersCount(1)
-        );
+                resourceClass,
+                withModifier(Modifier.PUBLIC),
+                withParametersAssignableFrom(ResourceConfiguration.class),
+                withParametersCount(1));
 
         if (resourceConstructors.isEmpty()) {
             log.debug(
-                "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
-                resourceClass.getName()
-            );
+                    "No configuration can be injected for {} because there is no valid constructor. "
+                            + "Using default empty constructor.",
+                    resourceClass.getName());
             try {
                 constructor = resourceClass.getConstructor();
             } catch (NoSuchMethodException nsme) {
@@ -120,7 +118,8 @@ public class ResourceFactory {
 
     private Set<Field> lookingForInjectableFields(Class<?> resourceClass) {
         // For now, we still need to support javax.inject waiting for all third-parties to migrate to jakarta.inject.
-        final HashSet<Field> fields = new HashSet<>(getAllFields(resourceClass, withAnnotation(javax.inject.Inject.class)));
+        final HashSet<Field> fields =
+                new HashSet<>(getAllFields(resourceClass, withAnnotation(javax.inject.Inject.class)));
         fields.addAll(ReflectionUtils.getAllFields(resourceClass, withAnnotation(Inject.class)));
         return fields;
     }
@@ -131,9 +130,8 @@ public class ResourceFactory {
                 Class<?>[] parameterTypes = parameterTypes(input);
                 if (parameterTypes.length == types.length) {
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        if (
-                            !types[i].isAssignableFrom(parameterTypes[i]) || (parameterTypes[i] == Object.class && types[i] != Object.class)
-                        ) {
+                        if (!types[i].isAssignableFrom(parameterTypes[i])
+                                || (parameterTypes[i] == Object.class && types[i] != Object.class)) {
                             return false;
                         }
                     }
@@ -146,11 +144,9 @@ public class ResourceFactory {
 
     private static Class[] parameterTypes(Member member) {
         return member != null
-            ? member.getClass() == Method.class
-                ? ((Method) member).getParameterTypes()
-                : member.getClass() == Constructor.class
-                    ? ((Constructor) member).getParameterTypes()
-                    : null
-            : null;
+                ? member.getClass() == Method.class
+                        ? ((Method) member).getParameterTypes()
+                        : member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null
+                : null;
     }
 }

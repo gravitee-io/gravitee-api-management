@@ -65,49 +65,43 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         final DebugApiV2 debugApiComponent = (DebugApiV2) debugContext.getComponent(Api.class);
 
         final Vertx vertx = context.getComponent(Vertx.class);
-        vertx
-            .<Void>executeBlocking(() -> {
-                Event event = null;
-                try {
-                    event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
-                    final io.gravitee.definition.model.debug.DebugApiV2 debugApi = computeDebugApiEventPayload(
-                        debugContext,
-                        debugApiComponent
-                    );
-                    updateEvent(event.updatePayload(objectMapper.writeValueAsString(debugApi)), ApiDebugStatus.SUCCESS);
-                } catch (JsonProcessingException | TechnicalException e) {
-                    log.error("Error occurs while saving debug event", e);
-                    failEvent(event);
-                }
-                return null;
-            })
-            .onComplete(result -> {
-                // Push response to the next handler
-                next.handle(context);
-            });
+        vertx.<Void>executeBlocking(() -> {
+                    Event event = null;
+                    try {
+                        event = eventRepository
+                                .findById(debugApiComponent.getEventId())
+                                .orElseThrow(TechnicalException::new);
+                        final io.gravitee.definition.model.debug.DebugApiV2 debugApi =
+                                computeDebugApiEventPayload(debugContext, debugApiComponent);
+                        updateEvent(
+                                event.updatePayload(objectMapper.writeValueAsString(debugApi)), ApiDebugStatus.SUCCESS);
+                    } catch (JsonProcessingException | TechnicalException e) {
+                        log.error("Error occurs while saving debug event", e);
+                        failEvent(event);
+                    }
+                    return null;
+                })
+                .onComplete(result -> {
+                    // Push response to the next handler
+                    next.handle(context);
+                });
     }
 
     private io.gravitee.definition.model.debug.DebugApiV2 computeDebugApiEventPayload(
-        DebugExecutionContext debugContext,
-        DebugApiV2 debugApiComponent
-    ) {
+            DebugExecutionContext debugContext, DebugApiV2 debugApiComponent) {
         final io.gravitee.definition.model.debug.DebugApiV2 debugApi = convert(debugApiComponent);
         PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
         debugApi.setPreprocessorStep(preprocessorStep);
         debugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
 
         HttpResponse response = createResponse(
-            debugContext.response().headers(),
-            debugContext.response().status(),
-            getResponseBuffer(debugContext)
-        );
+                debugContext.response().headers(), debugContext.response().status(), getResponseBuffer(debugContext));
         debugApi.setResponse(response);
 
         HttpResponse invokerResponse = createResponse(
-            debugContext.getInvokerResponse().getHeaders(),
-            debugContext.getInvokerResponse().getStatus(),
-            debugContext.getInvokerResponse().getBuffer()
-        );
+                debugContext.getInvokerResponse().getHeaders(),
+                debugContext.getInvokerResponse().getStatus(),
+                debugContext.getInvokerResponse().getBuffer());
         debugApi.setBackendResponse(invokerResponse);
 
         debugApi.setMetrics(createMetrics(debugContext.request().metrics()));
@@ -169,13 +163,10 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
     }
 
     private void updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus)
-        throws TechnicalException {
-        eventRepository.update(
-            debugEvent.updateProperties(
+            throws TechnicalException {
+        eventRepository.update(debugEvent.updateProperties(
                 io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(),
-                apiDebugStatus.name()
-            )
-        );
+                apiDebugStatus.name()));
     }
 
     protected io.gravitee.definition.model.debug.DebugApiV2 convert(DebugApiV2 content) {
@@ -188,14 +179,9 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugAPI.setFlowMode(content.getDefinition().getFlowMode());
         debugAPI.setFlows(content.getDefinition().getFlows());
         debugAPI.setPathMappings(content.getDefinition().getPathMappings());
-        debugAPI.setPlans(
-            content
-                .getDefinition()
-                .getPlans()
-                .stream()
+        debugAPI.setPlans(content.getDefinition().getPlans().stream()
                 .filter(plan -> !PlanStatus.CLOSED.getLabel().equalsIgnoreCase(plan.getStatus()))
-                .collect(Collectors.toList())
-        );
+                .collect(Collectors.toList()));
         debugAPI.setServices(content.getDefinition().getServices());
         debugAPI.setProxy(content.getDefinition().getProxy());
         debugAPI.setProperties(content.getDefinition().getProperties());
@@ -210,7 +196,8 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
     }
 
     private io.gravitee.definition.model.debug.DebugStep convert(DebugStep<?> ds) {
-        final io.gravitee.definition.model.debug.DebugStep debugStep = new io.gravitee.definition.model.debug.DebugStep();
+        final io.gravitee.definition.model.debug.DebugStep debugStep =
+                new io.gravitee.definition.model.debug.DebugStep();
         debugStep.setPolicyInstanceId(ds.getPolicyInstanceId());
         debugStep.setPolicyId(ds.getPolicyId());
         debugStep.setDuration(ds.elapsedTime().toNanos());
@@ -218,23 +205,24 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugStep.setCondition(ds.getCondition());
         debugStep.setError(ds.getError());
         debugStep.setScope(ds.getPolicyScope());
-        debugStep.setStage(ds.policyMetadata().metadata().getOrDefault(PolicyMetadata.MetadataKeys.STAGE, "UNDEFINED").toString());
+        debugStep.setStage(ds.policyMetadata()
+                .metadata()
+                .getOrDefault(PolicyMetadata.MetadataKeys.STAGE, "UNDEFINED")
+                .toString());
 
         Map<String, Object> result = new HashMap<>();
-        ds
-            .getDebugDiffContent()
-            .forEach((key, value) -> {
-                if (DebugStep.DIFF_KEY_HEADERS.equals(key)) {
-                    // Headers are converted to Map<String, List<String>>
-                    result.put(DebugStep.DIFF_KEY_HEADERS, convertHeaders((HttpHeaders) value));
-                } else if (DebugStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
-                    // Body is converted from Buffer to String
-                    result.put(DebugStep.DIFF_KEY_BODY, value.toString());
-                } else {
-                    // Everything else is kept as is
-                    result.put(key, value);
-                }
-            });
+        ds.getDebugDiffContent().forEach((key, value) -> {
+            if (DebugStep.DIFF_KEY_HEADERS.equals(key)) {
+                // Headers are converted to Map<String, List<String>>
+                result.put(DebugStep.DIFF_KEY_HEADERS, convertHeaders((HttpHeaders) value));
+            } else if (DebugStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
+                // Body is converted from Buffer to String
+                result.put(DebugStep.DIFF_KEY_BODY, value.toString());
+            } else {
+                // Everything else is kept as is
+                result.put(key, value);
+            }
+        });
 
         debugStep.setResult(result);
         return debugStep;

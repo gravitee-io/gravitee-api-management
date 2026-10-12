@@ -25,6 +25,7 @@ public interface ScoringRulesetAdapter {
     ScoringRulesetAdapter INSTANCE = Mappers.getMapper(ScoringRulesetAdapter.class);
 
     ScoringRuleset toEntity(io.gravitee.repository.management.model.ScoringRuleset source);
+
     io.gravitee.repository.management.model.ScoringRuleset toRepository(ScoringRuleset source);
 
     /**
@@ -62,7 +63,8 @@ public interface ScoringRulesetAdapter {
             case ASYNCAPI -> io.gravitee.repository.management.model.ScoringRuleset.Format.ASYNCAPI;
             case GRAVITEE_PROXY -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_PROXY;
             case GRAVITEE_MESSAGE -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_MESSAGE;
-            case GRAVITEE_FEDERATION -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_FEDERATION;
+            case GRAVITEE_FEDERATION ->
+                io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_FEDERATION;
             case GRAVITEE_NATIVE -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_NATIVE;
             case GRAVITEE_V2 -> io.gravitee.repository.management.model.ScoringRuleset.Format.GRAVITEE_V2;
             case null -> null;

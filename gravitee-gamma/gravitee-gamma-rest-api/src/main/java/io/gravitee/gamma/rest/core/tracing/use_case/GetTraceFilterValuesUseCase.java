@@ -18,7 +18,6 @@ package io.gravitee.gamma.rest.core.tracing.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.tracing.exception.TraceFilterNotFoundException;
 import io.gravitee.gamma.rest.core.tracing.exception.UnsupportedFilterException;
-import io.gravitee.gamma.rest.core.tracing.model.FilterType;
 import io.gravitee.gamma.rest.core.tracing.model.TraceFilterSpec;
 import io.gravitee.gamma.rest.core.tracing.model.TraceFilterValue;
 import io.gravitee.gamma.rest.core.tracing.model.TraceFilterValuesPage;
@@ -64,15 +63,14 @@ public class GetTraceFilterValuesUseCase {
     private final TraceFilterRegistry filterRegistry;
 
     public record Input(
-        String moduleId,
-        String filterName,
-        /** Case-insensitive substring filter applied to {@code enumValues}. {@code null} / blank means no filter. */
-        String query,
-        /** 1-based page number. {@code null} means page 1. */
-        Integer page,
-        /** Page size. {@code null} means {@value #DEFAULT_PER_PAGE}. Clamped to {@value #MAX_PER_PAGE}. */
-        Integer perPage
-    ) {}
+            String moduleId,
+            String filterName,
+            /** Case-insensitive substring filter applied to {@code enumValues}. {@code null} / blank means no filter. */
+            String query,
+            /** 1-based page number. {@code null} means page 1. */
+            Integer page,
+            /** Page size. {@code null} means {@value #DEFAULT_PER_PAGE}. Clamped to {@value #MAX_PER_PAGE}. */
+            Integer perPage) {}
 
     public record Output(TraceFilterValuesPage page) {}
 
@@ -80,20 +78,22 @@ public class GetTraceFilterValuesUseCase {
         TraceFilterSpec spec = lookupFilter(input.moduleId(), input.filterName());
         return switch (spec.type()) {
             case ENUM -> new Output(handleEnum(spec, input));
-            case KEYWORD -> throw UnsupportedFilterException.valueListingNotSupported(spec.name(), spec.type().name());
+            case KEYWORD ->
+                throw UnsupportedFilterException.valueListingNotSupported(
+                        spec.name(), spec.type().name());
             // No keyword filter exists in the slim cut — once one lands (e.g. AIM's LLM_MODEL) the
             // case above gets a real handler that queries the tracing repository for distinct values.
-            case NUMBER, STRING, BOOLEAN -> throw UnsupportedFilterException.valueListingNotSupported(spec.name(), spec.type().name());
+            case NUMBER, STRING, BOOLEAN ->
+                throw UnsupportedFilterException.valueListingNotSupported(
+                        spec.name(), spec.type().name());
         };
     }
 
     private TraceFilterSpec lookupFilter(String moduleId, String filterName) {
-        return filterRegistry
-            .getFiltersForModule(moduleId)
-            .stream()
-            .filter(s -> s.name().equals(filterName))
-            .findFirst()
-            .orElseThrow(() -> new TraceFilterNotFoundException(filterName));
+        return filterRegistry.getFiltersForModule(moduleId).stream()
+                .filter(s -> s.name().equals(filterName))
+                .findFirst()
+                .orElseThrow(() -> new TraceFilterNotFoundException(filterName));
     }
 
     private static TraceFilterValuesPage handleEnum(TraceFilterSpec spec, Input input) {
@@ -102,15 +102,18 @@ public class GetTraceFilterValuesUseCase {
             return new TraceFilterValuesPage(List.of(), 0L);
         }
 
-        String queryLower = input.query() == null || input.query().isBlank() ? null : input.query().toLowerCase();
-        List<TraceFilterValue> matching = enumValues
-            .stream()
-            .filter(v -> queryLower == null || v.toLowerCase().contains(queryLower))
-            .map(v -> new TraceFilterValue(v, null))
-            .toList();
+        String queryLower = input.query() == null || input.query().isBlank()
+                ? null
+                : input.query().toLowerCase();
+        List<TraceFilterValue> matching = enumValues.stream()
+                .filter(v -> queryLower == null || v.toLowerCase().contains(queryLower))
+                .map(v -> new TraceFilterValue(v, null))
+                .toList();
 
         int page = (input.page() != null && input.page() > 0) ? input.page() : 1;
-        int perPage = (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        int perPage = (input.perPage() != null && input.perPage() > 0)
+                ? Math.min(input.perPage(), MAX_PER_PAGE)
+                : DEFAULT_PER_PAGE;
         int fromIndex = Math.min((page - 1) * perPage, matching.size());
         int toIndex = Math.min(fromIndex + perPage, matching.size());
 

@@ -28,9 +28,10 @@ import org.junit.jupiter.api.DisplayNameGenerator;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/grpc/streaming-greeter.json" })
+@DeployApi({"/apis/grpc/streaming-greeter.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class GrpcSecuredServerStreamingV4EmulationIntegrationTest extends GrpcServerStreamingV4EmulationIntegrationTest {
+public class GrpcSecuredServerStreamingV4EmulationIntegrationTest
+        extends GrpcServerStreamingV4EmulationIntegrationTest {
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
@@ -39,6 +40,7 @@ public class GrpcSecuredServerStreamingV4EmulationIntegrationTest extends GrpcSe
     }
 
     public GrpcIoClient createGrpcClient() {
-        return getGrpcClient(() -> GrpcIoClient.client(vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true)));
+        return getGrpcClient(() -> GrpcIoClient.client(
+                vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true)));
     }
 }

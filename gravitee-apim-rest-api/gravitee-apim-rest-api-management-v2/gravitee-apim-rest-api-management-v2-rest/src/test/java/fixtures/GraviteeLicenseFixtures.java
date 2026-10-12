@@ -28,8 +28,10 @@ public class GraviteeLicenseFixtures {
 
     private GraviteeLicenseFixtures() {}
 
-    private static final Supplier<GraviteeLicense> BASE_GRAVITEE_LICENSE = () ->
-        new GraviteeLicense().tier("tier-galaxy").features(List.of("feature-datadog-reporter")).packs(List.of("pack-observability"));
+    private static final Supplier<GraviteeLicense> BASE_GRAVITEE_LICENSE = () -> new GraviteeLicense()
+            .tier("tier-galaxy")
+            .features(List.of("feature-datadog-reporter"))
+            .packs(List.of("pack-observability"));
 
     public static GraviteeLicense aGraviteeLicense() {
         return BASE_GRAVITEE_LICENSE.get();

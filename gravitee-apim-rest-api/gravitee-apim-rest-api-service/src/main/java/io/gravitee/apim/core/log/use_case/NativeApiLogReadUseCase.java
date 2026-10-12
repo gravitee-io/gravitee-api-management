@@ -35,8 +35,7 @@ public class NativeApiLogReadUseCase {
     public record Output(Optional<NativeApiLog> nativeApiLog) {}
 
     public Output execute(Input input) {
-        return new Output(
-            nativeApiLogCrudService.findLog(input.executionContext(), input.apiId(), input.requestId(), input.from(), input.to())
-        );
+        return new Output(nativeApiLogCrudService.findLog(
+                input.executionContext(), input.apiId(), input.requestId(), input.from(), input.to()));
     }
 }

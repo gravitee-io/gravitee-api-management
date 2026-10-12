@@ -46,9 +46,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @CustomLog
 @Import(RepositoryAuthenticationProviderConfiguration.class)
-public class RepositoryAuthenticationProvider
-    extends AbstractUserDetailsAuthenticationProvider
-    implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
+public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider
+        implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
 
     @Autowired
     private UserService userService;
@@ -57,13 +56,13 @@ public class RepositoryAuthenticationProvider
     private PasswordEncoder passwordEncoder;
 
     @Override
-    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
-        throws AuthenticationException {
+    protected void additionalAuthenticationChecks(
+            UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
+            throws AuthenticationException {
         if (authentication.getCredentials() == null) {
             log.debug("Authentication failed: no credentials provided");
             throw new BadCredentialsException(
-                messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
-            );
+                    messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
 
         String presentedPassword = authentication.getCredentials().toString();
@@ -71,25 +70,20 @@ public class RepositoryAuthenticationProvider
         if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
             log.debug("Authentication failed: password does not match stored value");
             throw new BadCredentialsException(
-                messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
-            );
+                    messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
     }
 
     @Override
-    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication)
+            throws AuthenticationException {
         try {
             UserEntity user = userService.findBySource(
-                GraviteeContext.getCurrentOrganization(),
-                RepositoryIdentityProvider.PROVIDER_TYPE,
-                username,
-                true
-            );
+                    GraviteeContext.getCurrentOrganization(), RepositoryIdentityProvider.PROVIDER_TYPE, username, true);
             if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
                 if (user.getPassword() == null) {
-                    throw new BadCredentialsException(
-                        messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
-                    );
+                    throw new BadCredentialsException(messages.getMessage(
+                            "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
                 }
                 if (user.getStatus().toUpperCase().equals("PENDING")) {
                     log.warn("Authentication failed: registration of user '{}' is still awaiting approval", username);
@@ -112,20 +106,14 @@ public class RepositoryAuthenticationProvider
     private UserDetails mapUserEntityToUserDetails(UserEntity userEntity) {
         List<GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
         if (userEntity.getRoles() != null && userEntity.getRoles().size() > 0) {
-            authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(
-                userEntity
-                    .getRoles()
-                    .stream()
+            authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(userEntity.getRoles().stream()
                     .map(r -> r.getScope().name() + ':' + r.getName())
-                    .collect(Collectors.joining(","))
-            );
+                    .collect(Collectors.joining(",")));
         }
 
-        io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails = new io.gravitee.rest.api.idp.api.authentication.UserDetails(
-            userEntity.getId(),
-            userEntity.getPassword(),
-            authorities
-        );
+        io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails =
+                new io.gravitee.rest.api.idp.api.authentication.UserDetails(
+                        userEntity.getId(), userEntity.getPassword(), authorities);
 
         userDetails.setFirstname(userEntity.getFirstname());
         userDetails.setLastname(userEntity.getLastname());

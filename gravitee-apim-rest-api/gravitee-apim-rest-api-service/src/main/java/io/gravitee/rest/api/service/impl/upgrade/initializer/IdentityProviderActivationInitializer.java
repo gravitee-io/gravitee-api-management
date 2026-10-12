@@ -43,27 +43,21 @@ public class IdentityProviderActivationInitializer implements Initializer {
 
         // initialize roles.
         final ActivationTarget defaultEnvTarget = new ActivationTarget(
-            GraviteeContext.getDefaultEnvironment(),
-            IdentityProviderActivationReferenceType.ENVIRONMENT
-        );
+                GraviteeContext.getDefaultEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT);
         final ActivationTarget defaultOrgTarget = new ActivationTarget(
-            GraviteeContext.getDefaultOrganization(),
-            IdentityProviderActivationReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getDefaultOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION);
 
-        if (
-            this.identityProviderActivationService.findAllByTarget(defaultOrgTarget).isEmpty() &&
-            this.identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()
-        ) {
+        if (this.identityProviderActivationService
+                        .findAllByTarget(defaultOrgTarget)
+                        .isEmpty()
+                && this.identityProviderActivationService
+                        .findAllByTarget(defaultEnvTarget)
+                        .isEmpty()) {
             log.info("    No activation found. Active all idp on all target by default if enabled.");
             this.identityProviderService.findAll(executionContext).forEach(idp -> {
                 if (idp.isEnabled()) {
                     this.identityProviderActivationService.activateIdpOnTargets(
-                        executionContext,
-                        idp.getId(),
-                        defaultOrgTarget,
-                        defaultEnvTarget
-                    );
+                            executionContext, idp.getId(), defaultOrgTarget, defaultEnvTarget);
                 }
             });
         }

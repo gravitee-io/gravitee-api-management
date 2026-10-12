@@ -79,21 +79,18 @@ public class PortalNotificationEntity {
 
     @Override
     public String toString() {
-        return (
-            "PortalNotificationEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", title='" +
-            title +
-            '\'' +
-            ", message='" +
-            message +
-            '\'' +
-            ", createAt='" +
-            createdAt +
-            '\'' +
-            '}'
-        );
+        return ("PortalNotificationEntity{" + "id='"
+                + id
+                + '\''
+                + ", title='"
+                + title
+                + '\''
+                + ", message='"
+                + message
+                + '\''
+                + ", createAt='"
+                + createdAt
+                + '\''
+                + '}');
     }
 }

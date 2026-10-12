@@ -41,7 +41,8 @@ public class IdentityProviderMapper {
         idpItem.setRequiredUrlParams(socialIdentityProviderEntity.getRequiredUrlParams());
         idpItem.setScopes(socialIdentityProviderEntity.getScopes());
         idpItem.setTokenIntrospectionEndpoint(socialIdentityProviderEntity.getTokenIntrospectionEndpoint());
-        idpItem.setType(IdentityProviderType.fromValue(socialIdentityProviderEntity.getType().name()));
+        idpItem.setType(IdentityProviderType.fromValue(
+                socialIdentityProviderEntity.getType().name()));
         idpItem.setUserLogoutEndpoint(socialIdentityProviderEntity.getUserLogoutEndpoint());
 
         return idpItem;

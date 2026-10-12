@@ -36,22 +36,22 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
 
     private static final String GRPC_TRAILERS_TE = "trailers";
 
-    GrpcEndpointRuleHandler(Vertx vertx, EndpointRule<HttpEndpoint> rule, TemplateEngine templateEngine, Environment environment)
-        throws Exception {
+    GrpcEndpointRuleHandler(
+            Vertx vertx, EndpointRule<HttpEndpoint> rule, TemplateEngine templateEngine, Environment environment)
+            throws Exception {
         super(vertx, rule, templateEngine, environment);
     }
 
     @Override
-    protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URL request, HealthCheckStep step) {
+    protected Future<HttpClientRequest> createHttpClientRequest(
+            final HttpClient httpClient, URL request, HealthCheckStep step) {
         RequestOptions options = prepareHttpClientRequest(request, step);
 
-        return httpClient
-            .request(options)
-            .map(httpClientRequest -> {
-                // Always set chunked mode for gRPC transport
-                httpClientRequest.setChunked(true);
-                return httpClientRequest;
-            });
+        return httpClient.request(options).map(httpClientRequest -> {
+            // Always set chunked mode for gRPC transport
+            httpClientRequest.setChunked(true);
+            return httpClientRequest;
+        });
     }
 
     @Override
@@ -66,7 +66,8 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     }
 
     @Override
-    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URL requestUrl) throws Exception {
+    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URL requestUrl)
+            throws Exception {
         HttpClientOptions httpClientOptions = super.createHttpClientOptions((HttpEndpoint) endpoint, requestUrl);
 
         // Force HTTP_2 and disable Upgrade

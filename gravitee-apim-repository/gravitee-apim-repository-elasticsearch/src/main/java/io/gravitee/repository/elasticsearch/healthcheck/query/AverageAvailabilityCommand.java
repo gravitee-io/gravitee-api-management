@@ -60,7 +60,8 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
     }
 
     @Override
-    public AvailabilityResponse executeQuery(QueryContext queryContext, Query<AvailabilityResponse> query) throws AnalyticsException {
+    public AvailabilityResponse executeQuery(QueryContext queryContext, Query<AvailabilityResponse> query)
+            throws AnalyticsException {
         final AvailabilityQuery availabilityQuery = (AvailabilityQuery) query;
 
         final String sQuery = this.createQuery(TEMPLATE, availabilityQuery);
@@ -69,15 +70,15 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
         try {
             final long now = System.currentTimeMillis();
             final long from = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
-                .minus(1, ChronoUnit.MONTHS)
-                .toInstant()
-                .toEpochMilli();
+                    .minus(1, ChronoUnit.MONTHS)
+                    .toInstant()
+                    .toEpochMilli();
 
             final Single<SearchResponse> result = this.client.search(
-                this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, now, clusters),
-                !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
-                sQuery
-            );
+                    this.indexNameGenerator.getIndexName(
+                            queryContext.placeholder(), Type.HEALTH_CHECK, from, now, clusters),
+                    !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
+                    sQuery);
 
             return this.toAvailabilityResponseResponse(result.blockingGet());
         } catch (Exception eex) {

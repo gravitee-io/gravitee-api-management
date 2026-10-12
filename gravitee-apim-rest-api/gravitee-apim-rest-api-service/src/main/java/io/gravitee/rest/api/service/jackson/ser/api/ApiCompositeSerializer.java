@@ -46,14 +46,14 @@ public class ApiCompositeSerializer extends ApiSerializer implements Initializin
     }
 
     @Override
-    public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        serializers
-            .stream()
-            .filter(serializer -> serializer.canHandle(apiEntity))
-            .findFirst()
-            // fall back to default
-            .orElse(serializers.get(0))
-            .serialize(apiEntity, jsonGenerator, serializerProvider);
+    public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+            throws IOException {
+        serializers.stream()
+                .filter(serializer -> serializer.canHandle(apiEntity))
+                .findFirst()
+                // fall back to default
+                .orElse(serializers.get(0))
+                .serialize(apiEntity, jsonGenerator, serializerProvider);
     }
 
     @Override

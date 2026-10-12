@@ -38,7 +38,8 @@ public interface ClientCertificateMongoRepository extends MongoRepository<Client
     List<ClientCertificateMongo> findByApplicationIdAndStatuses(String applicationId, Collection<String> statuses);
 
     @Query("{ applicationId: { $in: ?0 }, status: { $in: ?1 } }")
-    List<ClientCertificateMongo> findByApplicationIdsAndStatuses(Collection<String> applicationIds, Collection<String> statuses);
+    List<ClientCertificateMongo> findByApplicationIdsAndStatuses(
+            Collection<String> applicationIds, Collection<String> statuses);
 
     @Query("{ status: { $in: ?0 } }")
     List<ClientCertificateMongo> findByStatuses(Collection<String> statuses);

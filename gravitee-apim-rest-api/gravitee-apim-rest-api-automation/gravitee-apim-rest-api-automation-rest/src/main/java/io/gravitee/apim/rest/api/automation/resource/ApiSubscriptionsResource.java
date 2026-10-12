@@ -66,14 +66,17 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_SUBSCRIPTION,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @Valid @NotNull SubscriptionSpec spec,
-        @PathParam("apiHrid") String apiHrid,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID,
-        @QueryParam("hridContainsAppUUID") boolean hridContainsAppUUID
-    ) {
+            @Valid @NotNull SubscriptionSpec spec,
+            @PathParam("apiHrid") String apiHrid,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+            @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID,
+            @QueryParam("hridContainsAppUUID") boolean hridContainsAppUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -82,43 +85,62 @@ public class ApiSubscriptionsResource extends AbstractResource {
         // Legacy mode means 'Hrid' fields contains GUID from GKO Status
         // that were preexisting in the kube cluster
         SubscriptionCRDSpec subscriptionCRDSpec = SubscriptionCRDSpec.builder()
-            .id(
-                hridContainsUUID
-                    ? spec.getHrid()
-                    : HRIDToUUID.subscription().context(auditInfo).api(apiHrid).subscription(spec.getHrid()).id()
-            )
-            .applicationId(
-                hridContainsAppUUID
-                    ? spec.getApplicationHrid()
-                    : HRIDToUUID.application().context(auditInfo).hrid(spec.getApplicationHrid()).id()
-            )
-            .referenceId(hridContainsApiUUID ? apiHrid : HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id())
-            .referenceType(SubscriptionReferenceType.API)
-            .planId(
-                hridContainsApiUUID ? spec.getPlanHrid() : HRIDToUUID.plan().context(auditInfo).api(apiHrid).plan(spec.getPlanHrid()).id()
-            )
-            .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
-            .metadata(spec.getMetadata())
-            .apiKeys(toApiKeyCRDSpecs(spec.getApiKeys()))
-            .consumerConfiguration(SubscriptionMapper.INSTANCE.toConsumerConfiguration(spec.getConsumerConfiguration()))
-            .build();
+                .id(
+                        hridContainsUUID
+                                ? spec.getHrid()
+                                : HRIDToUUID.subscription()
+                                        .context(auditInfo)
+                                        .api(apiHrid)
+                                        .subscription(spec.getHrid())
+                                        .id())
+                .applicationId(
+                        hridContainsAppUUID
+                                ? spec.getApplicationHrid()
+                                : HRIDToUUID.application()
+                                        .context(auditInfo)
+                                        .hrid(spec.getApplicationHrid())
+                                        .id())
+                .referenceId(
+                        hridContainsApiUUID
+                                ? apiHrid
+                                : HRIDToUUID.api()
+                                        .context(auditInfo)
+                                        .hrid(apiHrid)
+                                        .id())
+                .referenceType(SubscriptionReferenceType.API)
+                .planId(
+                        hridContainsApiUUID
+                                ? spec.getPlanHrid()
+                                : HRIDToUUID.plan()
+                                        .context(auditInfo)
+                                        .api(apiHrid)
+                                        .plan(spec.getPlanHrid())
+                                        .id())
+                .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
+                .metadata(spec.getMetadata())
+                .apiKeys(toApiKeyCRDSpecs(spec.getApiKeys()))
+                .consumerConfiguration(
+                        SubscriptionMapper.INSTANCE.toConsumerConfiguration(spec.getConsumerConfiguration()))
+                .build();
 
         SubscriptionCRDStatus status = importSubscriptionCRDUseCase
-            .execute(new ImportSubscriptionCRDUseCase.Input(auditInfo, subscriptionCRDSpec))
-            .status();
+                .execute(new ImportSubscriptionCRDUseCase.Input(auditInfo, subscriptionCRDSpec))
+                .status();
 
-        return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status)).build();
+        return Response.ok(
+                        SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status))
+                .build();
     }
 
     private static List<ApiKeyCRDSpec> toApiKeyCRDSpecs(List<ApiKeySpec> apiKeys) {
         if (apiKeys == null || apiKeys.isEmpty()) {
             return null;
         }
-        return apiKeys
-            .stream()
-            .map(k ->
-                ApiKeyCRDSpec.builder().key(k.getKey()).expireAt(k.getExpireAt() != null ? k.getExpireAt().toZonedDateTime() : null).build()
-            )
-            .toList();
+        return apiKeys.stream()
+                .map(k -> ApiKeyCRDSpec.builder()
+                        .key(k.getKey())
+                        .expireAt(k.getExpireAt() != null ? k.getExpireAt().toZonedDateTime() : null)
+                        .build())
+                .toList();
     }
 }

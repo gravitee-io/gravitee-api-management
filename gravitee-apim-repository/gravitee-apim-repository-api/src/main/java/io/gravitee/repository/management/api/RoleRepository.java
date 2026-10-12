@@ -47,11 +47,8 @@ public interface RoleRepository extends FindAllRepository<Role> {
      * @throws TechnicalException if something wrong happen
      */
     Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(
-        RoleScope scope,
-        String name,
-        String referenceId,
-        RoleReferenceType referenceType
-    ) throws TechnicalException;
+            RoleScope scope, String name, String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException;
 
     /**
      * find all roles by scope id for a given reference
@@ -61,13 +58,14 @@ public interface RoleRepository extends FindAllRepository<Role> {
      * @return list of roles
      * @throws TechnicalException if something wrong happen
      */
-    Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
-        throws TechnicalException;
+    Set<Role> findByScopeAndReferenceIdAndReferenceType(
+            RoleScope scope, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
 
-    Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException;
+    Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException;
 
-    Optional<Role> findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType)
-        throws TechnicalException;
+    Optional<Role> findByIdAndReferenceIdAndReferenceType(
+            String roleId, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
 
     Set<Role> findAllByIdIn(Set<String> ids) throws TechnicalException;
 
@@ -78,5 +76,6 @@ public interface RoleRepository extends FindAllRepository<Role> {
      * @return List of IDs of deleted roles
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException;
 }

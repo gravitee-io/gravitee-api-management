@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.parameters.Key.ALERT_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.API_LABELS_DICTIONARY;
-import static io.gravitee.rest.api.model.parameters.Key.API_PRODUCT_PRIMARY_OWNER_MODE;
 import static io.gravitee.rest.api.model.parameters.Key.COMPANY_NAME;
 import static io.gravitee.rest.api.model.parameters.Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.CONSOLE_SCHEDULER_NOTIFICATIONS;
@@ -64,7 +63,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import inmemory.AccessPointQueryServiceInMemory;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -167,53 +165,95 @@ class ConfigServiceTest {
         params.put(PORTAL_NEXT_SEARCH_FUZZY.key(), singletonList("true"));
         params.put(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED.key(), singletonList("true"));
 
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(params);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
         assertThat(portalSettings).isNotNull();
-        assertThat(portalSettings.getAuthentication().getForceLogin().isEnabled()).as("force login").isEqualTo(true);
-        assertThat(portalSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
-        assertThat(portalSettings.getPortal().getAnalytics().isEnabled()).as("analytics").isEqualTo(Boolean.TRUE);
-        assertThat(portalSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
-        assertThat(portalSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isEqualTo(Boolean.TRUE);
-        assertThat(portalSettings.getPlan().getSecurity().getKeyless().isEnabled()).as("plan security keyless").isEqualTo(Boolean.TRUE);
+        assertThat(portalSettings.getAuthentication().getForceLogin().isEnabled())
+                .as("force login")
+                .isEqualTo(true);
+        assertThat(portalSettings.getScheduler().getNotificationsInSeconds())
+                .as("scheduler notifications")
+                .isEqualTo(Integer.valueOf(11));
+        assertThat(portalSettings.getPortal().getAnalytics().isEnabled())
+                .as("analytics")
+                .isEqualTo(Boolean.TRUE);
+        assertThat(portalSettings.getReCaptcha().getSiteKey())
+                .as("recaptcha siteKey")
+                .isEqualTo("my-site-key");
+        assertThat(portalSettings.getReCaptcha().getEnabled())
+                .as("recaptcha enabled")
+                .isEqualTo(Boolean.TRUE);
+        assertThat(portalSettings.getPlan().getSecurity().getKeyless().isEnabled())
+                .as("plan security keyless")
+                .isEqualTo(Boolean.TRUE);
         assertThat(portalSettings.getPlan().getSecurity().getCustomApiKeyReuse().isEnabled())
-            .as("plan security custom api key reuse")
-            .isTrue();
-        assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled())
-            .as("open api swagger enabled")
-            .isEqualTo(Boolean.TRUE);
+                .as("plan security custom api key reuse")
+                .isTrue();
+        assertThat(portalSettings
+                        .getOpenAPIDocViewer()
+                        .getOpenAPIDocType()
+                        .getSwagger()
+                        .isEnabled())
+                .as("open api swagger enabled")
+                .isEqualTo(Boolean.TRUE);
         assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getDefaultType())
-            .as("open api swagger default")
-            .isEqualTo("Swagger");
-        assertThat(portalSettings.getApi().getLabelsDictionary().size()).as("api labels").isEqualTo(2);
-        assertThat(portalSettings.getApiProduct().getPrimaryOwnerMode()).as("api product primary owner mode").isEqualTo("GROUP");
-        assertThat(portalSettings.getCors().getExposedHeaders().size()).as("cors exposed headers").isEqualTo(2);
-        assertThat(portalSettings.getApi().getLabelsDictionary()).as("api labels").hasSize(2);
-        assertThat(portalSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
-        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getLimit()).as("sampling count").isEqualTo(100);
-        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getDefaultValue()).as("sampling count").isEqualTo(10);
-        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getLimit())
-            .as("sampling probabilistic")
-            .isEqualTo(0.5);
-        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getDefaultValue())
-            .as("sampling probabilistic")
-            .isEqualTo(0.01);
-        assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit()).as("sampling temporal").isEqualTo("PT1S");
+                .as("open api swagger default")
+                .isEqualTo("Swagger");
+        assertThat(portalSettings.getApi().getLabelsDictionary().size())
+                .as("api labels")
+                .isEqualTo(2);
+        assertThat(portalSettings.getApiProduct().getPrimaryOwnerMode())
+                .as("api product primary owner mode")
+                .isEqualTo("GROUP");
+        assertThat(portalSettings.getCors().getExposedHeaders().size())
+                .as("cors exposed headers")
+                .isEqualTo(2);
+        assertThat(portalSettings.getApi().getLabelsDictionary())
+                .as("api labels")
+                .hasSize(2);
+        assertThat(portalSettings.getCors().getExposedHeaders())
+                .as("cors exposed headers")
+                .hasSize(2);
+        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getLimit())
+                .as("sampling count")
+                .isEqualTo(100);
+        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getDefaultValue())
+                .as("sampling count")
+                .isEqualTo(10);
+        assertThat(portalSettings
+                        .getLogging()
+                        .getMessageSampling()
+                        .getProbabilistic()
+                        .getLimit())
+                .as("sampling probabilistic")
+                .isEqualTo(0.5);
+        assertThat(portalSettings
+                        .getLogging()
+                        .getMessageSampling()
+                        .getProbabilistic()
+                        .getDefaultValue())
+                .as("sampling probabilistic")
+                .isEqualTo(0.01);
+        assertThat(portalSettings
+                        .getLogging()
+                        .getMessageSampling()
+                        .getTemporal()
+                        .getLimit())
+                .as("sampling temporal")
+                .isEqualTo("PT1S");
         assertThat(portalSettings.getPortalNext().getCatalog().getFuzzySearch().isEnabled())
-            .as("portal next catalog fuzzy search")
-            .isTrue();
+                .as("portal next catalog fuzzy search")
+                .isTrue();
     }
 
     @Test
@@ -231,91 +271,121 @@ class ConfigServiceTest {
         params.put(LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), singletonList("0.01"));
         params.put(LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), singletonList("PT1S"));
 
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(params);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(params);
 
-        lenient().when(mockParameterService.isSystemConfigured(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED)).thenReturn(true);
-        lenient().when(mockParameterService.isSystemConfigured(Key.API_LABELS_DICTIONARY)).thenReturn(true);
-        lenient().when(mockParameterService.isSystemConfigured(Key.PORTAL_SCHEDULER_NOTIFICATIONS)).thenReturn(true);
-        lenient().when(mockParameterService.isSystemConfigured(Key.PORTAL_ANALYTICS_ENABLED)).thenReturn(true);
-        lenient().when(mockParameterService.isSystemConfigured(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED)).thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED))
+                .thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.API_LABELS_DICTIONARY))
+                .thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.PORTAL_SCHEDULER_NOTIFICATIONS))
+                .thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.PORTAL_ANALYTICS_ENABLED))
+                .thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED))
+                .thenReturn(true);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
         assertThat(portalSettings).isNotNull();
-        assertThat(portalSettings.getAuthentication().getForceLogin().isEnabled()).as("force login").isTrue();
+        assertThat(portalSettings.getAuthentication().getForceLogin().isEnabled())
+                .as("force login")
+                .isTrue();
         assertThat(portalSettings.getApi().getLabelsDictionary()).containsExactly("label1");
         assertThat(portalSettings.getScheduler().getNotificationsInSeconds()).isEqualTo(11);
-        assertThat(portalSettings.getPortal().getAnalytics().isEnabled()).as("analytics").isTrue();
-        assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled())
-            .as("open api swagger enabled")
-            .isTrue();
+        assertThat(portalSettings.getPortal().getAnalytics().isEnabled())
+                .as("analytics")
+                .isTrue();
+        assertThat(portalSettings
+                        .getOpenAPIDocViewer()
+                        .getOpenAPIDocType()
+                        .getSwagger()
+                        .isEnabled())
+                .as("open api swagger enabled")
+                .isTrue();
         assertThat(portalSettings.getCors().getExposedHeaders()).containsExactly("OnlyOneHeader");
         List<String> readonlyMetadata = portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
         assertThat(readonlyMetadata)
-            .hasSize(5)
-            .containsExactlyInAnyOrder(
-                PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key(),
-                API_LABELS_DICTIONARY.key(),
-                PORTAL_SCHEDULER_NOTIFICATIONS.key(),
-                PORTAL_ANALYTICS_ENABLED.key(),
-                OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key()
-            );
-        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getLimit()).as("sampling count limit").isEqualTo(100);
+                .hasSize(5)
+                .containsExactlyInAnyOrder(
+                        PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key(),
+                        API_LABELS_DICTIONARY.key(),
+                        PORTAL_SCHEDULER_NOTIFICATIONS.key(),
+                        PORTAL_ANALYTICS_ENABLED.key(),
+                        OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key());
+        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getLimit())
+                .as("sampling count limit")
+                .isEqualTo(100);
         assertThat(portalSettings.getLogging().getMessageSampling().getCount().getDefaultValue())
-            .as("sampling count default")
-            .isEqualTo(10);
-        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getLimit())
-            .as("sampling probabilistic limit")
-            .isEqualTo(0.5);
-        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getDefaultValue())
-            .as("sampling probabilistic default")
-            .isEqualTo(0.01);
-        assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit())
-            .as("sampling temporal limit")
-            .isEqualTo("PT1S");
+                .as("sampling count default")
+                .isEqualTo(10);
+        assertThat(portalSettings
+                        .getLogging()
+                        .getMessageSampling()
+                        .getProbabilistic()
+                        .getLimit())
+                .as("sampling probabilistic limit")
+                .isEqualTo(0.5);
+        assertThat(portalSettings
+                        .getLogging()
+                        .getMessageSampling()
+                        .getProbabilistic()
+                        .getDefaultValue())
+                .as("sampling probabilistic default")
+                .isEqualTo(0.01);
+        assertThat(portalSettings
+                        .getLogging()
+                        .getMessageSampling()
+                        .getTemporal()
+                        .getLimit())
+                .as("sampling temporal limit")
+                .isEqualTo("PT1S");
     }
 
     @Test
     void shouldMarkBrandedSendersReadonlyWhenConfiguredAsNativeYamlList() {
         // Whether a value is system-configured (native yaml list or flat form) is ParameterService's call.
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(new HashMap<>());
-        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(true);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(new HashMap<>());
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS))
+                .thenReturn(true);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertThat(portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY)).contains(Key.EMAIL_BRANDED_SENDERS.key());
+        assertThat(portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY))
+                .contains(Key.EMAIL_BRANDED_SENDERS.key());
     }
 
     @Test
     void shouldNotMarkBrandedSendersReadonlyWhenNotConfigured() {
         // A present-but-invalid config is not system-configured; the field must stay editable rather than being
         // locked on a value that is not actually in effect.
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(new HashMap<>());
-        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(false);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(new HashMap<>());
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS))
+                .thenReturn(false);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
@@ -324,32 +394,27 @@ class ConfigServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            // systemConfigured, envOverride, expectedInherited
-            "false, false, true", // no valid system value and no environment override -> inherited from the organization
-            "false, true, false", // an environment-level override exists -> the environment's own value, not inherited
-            "true, false, false", // a valid system value is in effect -> comes from system, not inherited
-        }
-    )
+    @CsvSource({
+        // systemConfigured, envOverride, expectedInherited
+        "false, false, true", // no valid system value and no environment override -> inherited from the organization
+        "false, true, false", // an environment-level override exists -> the environment's own value, not inherited
+        "true, false, false", // a valid system value is in effect -> comes from system, not inherited
+    })
     void shouldFlagBrandedSendersInheritedFromSystemAndEnvOverride(
-        boolean systemConfigured,
-        boolean envOverride,
-        boolean expectedInherited
-    ) {
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(new HashMap<>());
-        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(systemConfigured);
-        when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
-            envOverride
-        );
+            boolean systemConfigured, boolean envOverride, boolean expectedInherited) {
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(new HashMap<>());
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS))
+                .thenReturn(systemConfigured);
+        when(mockParameterService.existsOnScope(
+                        Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(envOverride);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
@@ -359,15 +424,13 @@ class ConfigServiceTest {
     @Test
     void shouldNotMarkBrandedSendersInheritedForConsoleSettings() {
         // Organization scope has nothing above it to inherit branded senders from; the flag stays false.
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(new HashMap<>());
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn(new HashMap<>());
 
         ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
@@ -376,30 +439,32 @@ class ConfigServiceTest {
 
     @Test
     void shouldResetPortalBrandedSendersByDeletingEnvParameterAndReturningInheritedSettings() {
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(new HashMap<>());
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(new HashMap<>());
         // After the delete there is no environment override and no valid system value in effect.
-        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(false);
-        when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
-            false
-        );
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS))
+                .thenReturn(false);
+        when(mockParameterService.existsOnScope(
+                        Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(false);
 
-        PortalSettingsEntity portalSettings = configService.resetPortalBrandedSenders(GraviteeContext.getExecutionContext());
+        PortalSettingsEntity portalSettings =
+                configService.resetPortalBrandedSenders(GraviteeContext.getExecutionContext());
 
-        verify(mockParameterService).delete(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(Key.EMAIL_BRANDED_SENDERS),
-            eq("DEFAULT"),
-            eq(ParameterReferenceType.ENVIRONMENT)
-        );
-        // The refreshed settings resolve through delete -> getPortalSettings -> applyBrandedSendersInheritance to inherited.
+        verify(mockParameterService)
+                .delete(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(Key.EMAIL_BRANDED_SENDERS),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT));
+        // The refreshed settings resolve through delete -> getPortalSettings -> applyBrandedSendersInheritance to
+        // inherited.
         assertThat(portalSettings.getEmail().isBrandedSendersInherited()).isTrue();
     }
 
@@ -410,13 +475,13 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
 
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_URL,
-            "ACME",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_URL,
+                        "ACME",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
@@ -426,56 +491,80 @@ class ConfigServiceTest {
         params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED.key(), singletonList("true"));
         params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED.key(), singletonList("true"));
 
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(params);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(false);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled())
-            .as("portalNext applications.membership.enabled enabled")
-            .isTrue();
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getTransferOwnership().isEnabled())
-            .as("portalNext applications.membership.transferOwnership enabled")
-            .isTrue();
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getInvitations().isEnabled())
-            .as("portalNext applications.membership.invitations enabled")
-            .isTrue();
+        assertThat(portalSettings
+                        .getPortalNext()
+                        .getApplications()
+                        .getMembership()
+                        .getEnabled())
+                .as("portalNext applications.membership.enabled enabled")
+                .isTrue();
+        assertThat(portalSettings
+                        .getPortalNext()
+                        .getApplications()
+                        .getMembership()
+                        .getTransferOwnership()
+                        .isEnabled())
+                .as("portalNext applications.membership.transferOwnership enabled")
+                .isTrue();
+        assertThat(portalSettings
+                        .getPortalNext()
+                        .getApplications()
+                        .getMembership()
+                        .getInvitations()
+                        .isEnabled())
+                .as("portalNext applications.membership.invitations enabled")
+                .isTrue();
     }
 
     @Test
     void shouldGetPortalSettingsWithPortalNextTogglesDefaultedToDisabled() {
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(new HashMap<>());
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(new HashMap<>());
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(false);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled())
-            .as("portalNext applications.membership.enabled disabled by default")
-            .isFalse();
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getTransferOwnership().isEnabled())
-            .as("portalNext applications.membership.transferOwnership disabled by default")
-            .isFalse();
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getInvitations().isEnabled())
-            .as("portalNext applications.membership.invitations disabled by default")
-            .isFalse();
+        assertThat(portalSettings
+                        .getPortalNext()
+                        .getApplications()
+                        .getMembership()
+                        .getEnabled())
+                .as("portalNext applications.membership.enabled disabled by default")
+                .isFalse();
+        assertThat(portalSettings
+                        .getPortalNext()
+                        .getApplications()
+                        .getMembership()
+                        .getTransferOwnership()
+                        .isEnabled())
+                .as("portalNext applications.membership.transferOwnership disabled by default")
+                .isFalse();
+        assertThat(portalSettings
+                        .getPortalNext()
+                        .getApplications()
+                        .getMembership()
+                        .getInvitations()
+                        .isEnabled())
+                .as("portalNext applications.membership.invitations disabled by default")
+                .isFalse();
     }
 
     @Test
@@ -487,27 +576,27 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
 
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED,
-            "false",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED,
+                        "false",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
@@ -517,31 +606,43 @@ class ConfigServiceTest {
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
 
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(params);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
         ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
         assertThat(consoleSettings).isNotNull();
-        assertThat(consoleSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
-        assertThat(consoleSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
-        assertThat(consoleSettings.getAlert().getEnabled()).as("alerting enabled").isEqualTo(Boolean.TRUE);
-        assertThat(consoleSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isEqualTo(Boolean.TRUE);
-        assertThat(consoleSettings.getCors().getExposedHeaders().size()).as("cors exposed headers").isEqualTo(2);
-        assertThat(consoleSettings.getAnalyticsPendo().getEnabled()).as("analytics pendo enabled").isEqualTo(Boolean.FALSE);
-        assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEqualTo("");
+        assertThat(consoleSettings.getScheduler().getNotificationsInSeconds())
+                .as("scheduler notifications")
+                .isEqualTo(Integer.valueOf(11));
+        assertThat(consoleSettings.getReCaptcha().getSiteKey())
+                .as("recaptcha siteKey")
+                .isEqualTo("my-site-key");
+        assertThat(consoleSettings.getAlert().getEnabled())
+                .as("alerting enabled")
+                .isEqualTo(Boolean.TRUE);
+        assertThat(consoleSettings.getReCaptcha().getEnabled())
+                .as("recaptcha enabled")
+                .isEqualTo(Boolean.TRUE);
+        assertThat(consoleSettings.getCors().getExposedHeaders().size())
+                .as("cors exposed headers")
+                .isEqualTo(2);
+        assertThat(consoleSettings.getAnalyticsPendo().getEnabled())
+                .as("analytics pendo enabled")
+                .isEqualTo(Boolean.FALSE);
+        assertThat(consoleSettings.getAnalyticsPendo().getApiKey())
+                .as("analytics pendo apiKey")
+                .isEqualTo("");
         assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled())
-            .as("license expiration notification enabled")
-            .isEqualTo(Boolean.TRUE);
+                .as("license expiration notification enabled")
+                .isEqualTo(Boolean.TRUE);
     }
 
     @Test
@@ -552,46 +653,50 @@ class ConfigServiceTest {
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
         params.put(USER_GROUP_REQUIRED_ENABLED.key(), singletonList("true"));
 
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(params);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
         ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(GraviteeContext.getExecutionContext());
 
         assertThat(consoleConfig).isNotNull();
-        assertThat(consoleConfig.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
-        assertThat(consoleConfig.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
-        assertThat(consoleConfig.getUserGroup().getRequired().isEnabled()).as("user group required enabled").isTrue();
+        assertThat(consoleConfig.getScheduler().getNotificationsInSeconds())
+                .as("scheduler notifications")
+                .isEqualTo(Integer.valueOf(11));
+        assertThat(consoleConfig.getReCaptcha().getSiteKey())
+                .as("recaptcha siteKey")
+                .isEqualTo("my-site-key");
+        assertThat(consoleConfig.getUserGroup().getRequired().isEnabled())
+                .as("user group required enabled")
+                .isTrue();
         assertThat(consoleConfig.getAlert().getEnabled()).as("alerting enabled").isEqualTo(Boolean.TRUE);
-        assertThat(consoleConfig.getReCaptcha().getEnabled()).as("recaptcha enabled").isEqualTo(Boolean.TRUE);
+        assertThat(consoleConfig.getReCaptcha().getEnabled())
+                .as("recaptcha enabled")
+                .isEqualTo(Boolean.TRUE);
         assertThat(consoleConfig.getLicenseExpirationNotification().getEnabled())
-            .as("license expiration notification enabled")
-            .isEqualTo(Boolean.TRUE);
+                .as("license expiration notification enabled")
+                .isEqualTo(Boolean.TRUE);
     }
 
     @Test
     void shouldGetPortalConfig() {
         Map<String, List<String>> params = new HashMap<>();
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(params);
-        when(accessPointQueryService.getKafkaGatewayAccessPoints(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))).thenReturn(
-            List.of(AccessPoint.builder().host("kafka.local").build())
-        );
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(params);
+        when(accessPointQueryService.getKafkaGatewayAccessPoints(
+                        eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+                .thenReturn(List.of(AccessPoint.builder().host("kafka.local").build()));
 
         PortalConfigEntity portalConfig = configService.getPortalConfig(GraviteeContext.getExecutionContext());
 
@@ -609,140 +714,155 @@ class ConfigServiceTest {
         params.put(Key.ANALYTICS_CLIENT_TIMEOUT.key(), singletonList("60000"));
         params.put(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(params);
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn(params);
 
-        lenient().when(mockParameterService.isSystemConfigured(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED)).thenReturn(true);
-        lenient().when(mockParameterService.isSystemConfigured(Key.CONSOLE_SCHEDULER_NOTIFICATIONS)).thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED))
+                .thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.CONSOLE_SCHEDULER_NOTIFICATIONS))
+                .thenReturn(true);
 
         ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
         assertThat(consoleSettings).isNotNull();
-        assertThat(consoleSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
-        assertThat(consoleSettings.getCors().getExposedHeaders().size()).as("cors exposed headers").isEqualTo(1);
+        assertThat(consoleSettings.getScheduler().getNotificationsInSeconds())
+                .as("scheduler notifications")
+                .isEqualTo(Integer.valueOf(11));
+        assertThat(consoleSettings.getCors().getExposedHeaders().size())
+                .as("cors exposed headers")
+                .isEqualTo(1);
         List<String> readonlyMetadata = consoleSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
         assertThat(readonlyMetadata)
-            .hasSize(2)
-            .contains(CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key(), CONSOLE_SCHEDULER_NOTIFICATIONS.key());
+                .hasSize(2)
+                .contains(CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key(), CONSOLE_SCHEDULER_NOTIFICATIONS.key());
     }
 
     @Test
     void shouldCreateConsoleSettings() {
         ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
         consoleSettingsEntity.getAlert().setEnabled(true);
-        consoleSettingsEntity.setLogging(
-            Logging.builder()
+        consoleSettingsEntity.setLogging(Logging.builder()
                 .maxDurationMillis(3000L)
-                .audit(Logging.Audit.builder().enabled(true).trail(Logging.Audit.AuditTrail.builder().enabled(true).build()).build())
+                .audit(Logging.Audit.builder()
+                        .enabled(true)
+                        .trail(Logging.Audit.AuditTrail.builder().enabled(true).build())
+                        .build())
                 .user(Logging.User.builder().displayed(true).build())
-                .messageSampling(
-                    MessageSampling.builder()
-                        .count(MessageSampling.Count.builder().defaultValue(100).limit(10).build())
-                        .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.01).limit(0.5).build())
-                        .temporal(MessageSampling.Temporal.builder().defaultValue("PT1S").limit("PT1S").build())
-                        .build()
-                )
-                .build()
-        );
-        consoleSettingsEntity.setUserGroup(UserGroup.builder().required(new Enabled(true)).build());
+                .messageSampling(MessageSampling.builder()
+                        .count(MessageSampling.Count.builder()
+                                .defaultValue(100)
+                                .limit(10)
+                                .build())
+                        .probabilistic(MessageSampling.Probabilistic.builder()
+                                .defaultValue(0.01)
+                                .limit(0.5)
+                                .build())
+                        .temporal(MessageSampling.Temporal.builder()
+                                .defaultValue("PT1S")
+                                .limit("PT1S")
+                                .build())
+                        .build())
+                .build());
+        consoleSettingsEntity.setUserGroup(
+                UserGroup.builder().required(new Enabled(true)).build());
 
         configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
 
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            ALERT_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_DEFAULT_MAX_DURATION,
-            "3000",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_USER_DISPLAYED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_AUDIT_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
-            "100",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
-            "10",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT,
-            "PT1S",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
-            "PT1S",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT,
-            "0.01",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
-            "0.5",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            LOGGING_AUDIT_TRAIL_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(mockParameterService, times(1)).save(
-            GraviteeContext.getExecutionContext(),
-            USER_GROUP_REQUIRED_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        ALERT_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_DEFAULT_MAX_DURATION,
+                        "3000",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_USER_DISPLAYED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_AUDIT_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
+                        "100",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
+                        "10",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT,
+                        "PT1S",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
+                        "PT1S",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT,
+                        "0.01",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
+                        "0.5",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        LOGGING_AUDIT_TRAIL_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        USER_GROUP_REQUIRED_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = { true, false })
+    @ValueSource(booleans = {true, false})
     void shouldCreateConsoleSettingsForTrialInstance(boolean isTrialInstance) {
         ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
         final Email emailSettings = new Email();
@@ -764,83 +884,33 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
 
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_ENABLED),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_HOST),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_PORT),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_FROM),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_USERNAME),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_PASSWORD),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_PROTOCOL),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_SUBJECT),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_PROPERTIES_AUTH_ENABLED),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_PROPERTIES_SSL_TRUST),
-            any(String.class),
-            any(),
-            any()
-        );
-        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
-            any(ExecutionContext.class),
-            eq(EMAIL_PROPERTIES_STARTTLS_ENABLE),
-            any(String.class),
-            any(),
-            any()
-        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_ENABLED), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_HOST), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_PORT), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_FROM), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_USERNAME), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_PASSWORD), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_PROTOCOL), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_SUBJECT), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_AUTH_ENABLED), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_SSL_TRUST), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1))
+                .save(
+                        any(ExecutionContext.class),
+                        eq(EMAIL_PROPERTIES_STARTTLS_ENABLE),
+                        any(String.class),
+                        any(),
+                        any());
     }
 
     @Test
@@ -852,13 +922,13 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_URL,
-            "ACME",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
+        verify(mockParameterService)
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_URL,
+                        "ACME",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
@@ -870,13 +940,13 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_URL,
-            "ACME",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
+        verify(mockParameterService)
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_URL,
+                        "ACME",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
@@ -885,13 +955,14 @@ class ConfigServiceTest {
         settings.getEmail().setFrom("not-an-email");
 
         assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings))
-            .isInstanceOf(ConstraintViolationException.class)
-            .satisfies(e ->
-                assertThat(((ConstraintViolationException) e).getConstraintViolations())
-                    .extracting(ConstraintViolation::getMessage)
-                    .containsExactly("must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")")
-            );
-        verify(mockParameterService, never()).save(any(ExecutionContext.class), any(Key.class), anyString(), any(), any());
+                .isInstanceOf(ConstraintViolationException.class)
+                .satisfies(
+                        e -> assertThat(((ConstraintViolationException) e).getConstraintViolations())
+                                .extracting(ConstraintViolation::getMessage)
+                                .containsExactly(
+                                        "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")"));
+        verify(mockParameterService, never())
+                .save(any(ExecutionContext.class), any(Key.class), anyString(), any(), any());
     }
 
     @Test
@@ -901,50 +972,53 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService).save(
-            GraviteeContext.getExecutionContext(),
-            EMAIL_FROM,
-            "Example <noreply@example.com>",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
+        verify(mockParameterService)
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        EMAIL_FROM,
+                        "Example <noreply@example.com>",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
     void shouldSaveWhenTheBrandedSendersLockedBySystemConfigurationAreInvalid() {
-        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(true);
+        lenient()
+                .when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS))
+                .thenReturn(true);
         PortalSettingsEntity settings = new PortalSettingsEntity();
         settings.getEmail().setBrandedSenders(List.of(brandedSender("Example, Inc <noreply@example.com>")));
         settings.getPortal().setUrl("ACME");
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_URL,
-            "ACME",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
+        verify(mockParameterService)
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_URL,
+                        "ACME",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
     void shouldSaveWhenAStoredBrandedSenderIsInvalidAndLeftUnchanged() {
         BrandedSenderConfig stored = brandedSender("Example, Inc <noreply@example.com>");
-        stubStoredSenderSettings(Map.of(Key.EMAIL_BRANDED_SENDERS.key(), singletonList(BrandedSenders.write(List.of(stored)))));
+        stubStoredSenderSettings(
+                Map.of(Key.EMAIL_BRANDED_SENDERS.key(), singletonList(BrandedSenders.write(List.of(stored)))));
         PortalSettingsEntity settings = new PortalSettingsEntity();
         settings.getEmail().setBrandedSenders(List.of(stored, brandedSender("noreply@example.org")));
         settings.getPortal().setUrl("ACME");
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService).save(
-            GraviteeContext.getExecutionContext(),
-            PORTAL_URL,
-            "ACME",
-            "DEFAULT",
-            ParameterReferenceType.ENVIRONMENT
-        );
+        verify(mockParameterService)
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        PORTAL_URL,
+                        "ACME",
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT);
     }
 
     @Test
@@ -952,10 +1026,10 @@ class ConfigServiceTest {
         PortalSettingsEntity settings = new PortalSettingsEntity();
         settings.getEmail().setBrandedSenders(List.of(brandedSender("Example, Inc <noreply@example.com>")));
 
-        assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings)).isInstanceOf(
-            ConstraintViolationException.class
-        );
-        verify(mockParameterService, never()).save(any(ExecutionContext.class), any(Key.class), anyString(), any(), any());
+        assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings))
+                .isInstanceOf(ConstraintViolationException.class);
+        verify(mockParameterService, never())
+                .save(any(ExecutionContext.class), any(Key.class), anyString(), any(), any());
     }
 
     @Test
@@ -963,9 +1037,8 @@ class ConfigServiceTest {
         ConsoleSettingsEntity settings = new ConsoleSettingsEntity();
         settings.getEmail().setFrom("not-an-email");
 
-        assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings)).isInstanceOf(
-            ConstraintViolationException.class
-        );
+        assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings))
+                .isInstanceOf(ConstraintViolationException.class);
     }
 
     @Test
@@ -977,27 +1050,25 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService).save(
-            GraviteeContext.getExecutionContext(),
-            ALERT_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
+        verify(mockParameterService)
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        ALERT_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
     }
 
     @Test
     void shouldSaveConsoleSettingsWhenStoredSenderSettingsAreInvalidAndLeftUnchanged() {
         BrandedSenderConfig storedBrandedSender = brandedSender("Legacy, Inc <noreply@example.com>");
         stubStoredSenderSettings(
-            Map.of(
-                EMAIL_FROM.key(),
-                singletonList("Example, Inc <noreply@example.com>"),
-                Key.EMAIL_BRANDED_SENDERS.key(),
-                singletonList(BrandedSenders.write(List.of(storedBrandedSender)))
-            ),
-            ParameterReferenceType.ORGANIZATION
-        );
+                Map.of(
+                        EMAIL_FROM.key(),
+                        singletonList("Example, Inc <noreply@example.com>"),
+                        Key.EMAIL_BRANDED_SENDERS.key(),
+                        singletonList(BrandedSenders.write(List.of(storedBrandedSender)))),
+                ParameterReferenceType.ORGANIZATION);
         ConsoleSettingsEntity settings = new ConsoleSettingsEntity();
         settings.getEmail().setFrom("Example, Inc <noreply@example.com>");
         settings.getEmail().setBrandedSenders(List.of(storedBrandedSender));
@@ -1005,13 +1076,13 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService).save(
-            GraviteeContext.getExecutionContext(),
-            ALERT_ENABLED,
-            "true",
-            "DEFAULT",
-            ParameterReferenceType.ORGANIZATION
-        );
+        verify(mockParameterService)
+                .save(
+                        GraviteeContext.getExecutionContext(),
+                        ALERT_ENABLED,
+                        "true",
+                        "DEFAULT",
+                        ParameterReferenceType.ORGANIZATION);
     }
 
     @Test
@@ -1022,26 +1093,29 @@ class ConfigServiceTest {
 
         configService.save(GraviteeContext.getExecutionContext(), settings);
 
-        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_FROM), anyString(), any(), any());
+        verify(mockParameterService, never())
+                .save(any(ExecutionContext.class), eq(EMAIL_FROM), anyString(), any(), any());
     }
 
     private void stubStoredSenderSettings(Map<String, List<String>> storedValues) {
         stubStoredSenderSettings(storedValues, ParameterReferenceType.ENVIRONMENT);
     }
 
-    private void stubStoredSenderSettings(Map<String, List<String>> storedValues, ParameterReferenceType referenceType) {
-        when(
-            mockParameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                any(List.class),
-                any(Function.class),
-                eq("DEFAULT"),
-                eq(referenceType)
-            )
-        ).thenReturn(storedValues);
+    private void stubStoredSenderSettings(
+            Map<String, List<String>> storedValues, ParameterReferenceType referenceType) {
+        when(mockParameterService.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(List.class),
+                        any(Function.class),
+                        eq("DEFAULT"),
+                        eq(referenceType)))
+                .thenReturn(storedValues);
     }
 
     private static BrandedSenderConfig brandedSender(String from) {
-        return BrandedSenderConfig.builder().domains(List.of("example.com")).from(from).build();
+        return BrandedSenderConfig.builder()
+                .domains(List.of("example.com"))
+                .from(from)
+                .build();
     }
 }

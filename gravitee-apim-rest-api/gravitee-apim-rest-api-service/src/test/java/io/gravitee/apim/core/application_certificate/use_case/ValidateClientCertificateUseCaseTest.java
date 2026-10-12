@@ -31,7 +31,8 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ValidateClientCertificateUseCaseTest {
 
-    private final ClientCertificateValidationDomainService validationService = mock(ClientCertificateValidationDomainService.class);
+    private final ClientCertificateValidationDomainService validationService =
+            mock(ClientCertificateValidationDomainService.class);
     private final ValidateClientCertificateUseCase useCase = new ValidateClientCertificateUseCase(validationService);
 
     @Test
@@ -49,8 +50,7 @@ class ValidateClientCertificateUseCaseTest {
     void should_propagate_exception_from_domain_service() {
         when(validationService.validate("invalid-pem")).thenThrow(new ClientCertificateInvalidException());
 
-        assertThatThrownBy(() -> useCase.execute(new ValidateClientCertificateUseCase.Input("invalid-pem"))).isInstanceOf(
-            ClientCertificateInvalidException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new ValidateClientCertificateUseCase.Input("invalid-pem")))
+                .isInstanceOf(ClientCertificateInvalidException.class);
     }
 }

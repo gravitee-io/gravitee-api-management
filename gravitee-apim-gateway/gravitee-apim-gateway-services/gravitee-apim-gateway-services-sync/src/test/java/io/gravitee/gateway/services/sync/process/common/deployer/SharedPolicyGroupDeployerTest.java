@@ -57,11 +57,12 @@ class SharedPolicyGroupDeployerTest {
 
         @Test
         void should_deploy_shared_policy_group() {
-            ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder().id("id").build();
+            ReactableSharedPolicyGroup reactable =
+                    ReactableSharedPolicyGroup.builder().id("id").build();
             SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
-                .sharedPolicyGroupId("id")
-                .reactableSharedPolicyGroup(reactable)
-                .build();
+                    .sharedPolicyGroupId("id")
+                    .reactableSharedPolicyGroup(reactable)
+                    .build();
 
             cut.deploy(sharedPolicyGroup).test().assertComplete();
             verify(sharedPolicyGroupManager).register(reactable);
@@ -70,13 +71,13 @@ class SharedPolicyGroupDeployerTest {
         @Test
         void should_return_error_when_shared_policy_group_manager_throw_exception() {
             ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder()
-                .id("id")
-                .definition(SharedPolicyGroup.builder().build())
-                .build();
+                    .id("id")
+                    .definition(SharedPolicyGroup.builder().build())
+                    .build();
             SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
-                .sharedPolicyGroupId("id")
-                .reactableSharedPolicyGroup(reactable)
-                .build();
+                    .sharedPolicyGroupId("id")
+                    .reactableSharedPolicyGroup(reactable)
+                    .build();
             doThrow(new SyncException("error")).when(sharedPolicyGroupManager).register(reactable);
             cut.deploy(sharedPolicyGroup).test().assertFailure(SyncException.class);
             verify(sharedPolicyGroupManager).register(reactable);
@@ -94,12 +95,13 @@ class SharedPolicyGroupDeployerTest {
 
         @Test
         void should_undeploy_shared_policy_group() {
-            ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder().id("id").build();
+            ReactableSharedPolicyGroup reactable =
+                    ReactableSharedPolicyGroup.builder().id("id").build();
             SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
-                .sharedPolicyGroupId("id")
-                .environmentId("env")
-                .reactableSharedPolicyGroup(reactable)
-                .build();
+                    .sharedPolicyGroupId("id")
+                    .environmentId("env")
+                    .reactableSharedPolicyGroup(reactable)
+                    .build();
             cut.undeploy(sharedPolicyGroup).test().assertComplete();
             verify(sharedPolicyGroupManager).unregister("id", "env");
         }
@@ -107,14 +109,14 @@ class SharedPolicyGroupDeployerTest {
         @Test
         void should_complete_on_error_when_shared_policy_group_manager_throw_exception() {
             ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder()
-                .id("id")
-                .definition(SharedPolicyGroup.builder().build())
-                .build();
+                    .id("id")
+                    .definition(SharedPolicyGroup.builder().build())
+                    .build();
             SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
-                .sharedPolicyGroupId("id")
-                .environmentId("env")
-                .reactableSharedPolicyGroup(reactable)
-                .build();
+                    .sharedPolicyGroupId("id")
+                    .environmentId("env")
+                    .reactableSharedPolicyGroup(reactable)
+                    .build();
             doThrow(new SyncException("error")).when(sharedPolicyGroupManager).unregister("id", "env");
             cut.undeploy(sharedPolicyGroup).test().assertFailure(SyncException.class);
             verify(sharedPolicyGroupManager).unregister("id", "env");
@@ -123,10 +125,12 @@ class SharedPolicyGroupDeployerTest {
         @Test
         void should_fail_with_sync_exception_when_the_undeployed_group_has_no_definition() {
             SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
-                .sharedPolicyGroupId("id")
-                .environmentId("env")
-                .build();
-            doThrow(new RuntimeException("error")).when(sharedPolicyGroupManager).unregister("id", "env");
+                    .sharedPolicyGroupId("id")
+                    .environmentId("env")
+                    .build();
+            doThrow(new RuntimeException("error"))
+                    .when(sharedPolicyGroupManager)
+                    .unregister("id", "env");
             cut.undeploy(sharedPolicyGroup).test().assertFailure(SyncException.class);
             verify(sharedPolicyGroupManager).unregister("id", "env");
         }
@@ -134,9 +138,9 @@ class SharedPolicyGroupDeployerTest {
         @Test
         void should_undeploy_every_environment_when_the_event_lists_none() {
             SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
-                .sharedPolicyGroupId("id")
-                .allEnvironments(true)
-                .build();
+                    .sharedPolicyGroupId("id")
+                    .allEnvironments(true)
+                    .build();
             cut.undeploy(sharedPolicyGroup).test().assertComplete();
             verify(sharedPolicyGroupManager).unregisterAll("id");
         }
@@ -144,10 +148,12 @@ class SharedPolicyGroupDeployerTest {
         @Test
         void should_fail_with_sync_exception_when_undeploying_every_environment_fails() {
             SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
-                .sharedPolicyGroupId("id")
-                .allEnvironments(true)
-                .build();
-            doThrow(new RuntimeException("error")).when(sharedPolicyGroupManager).unregisterAll("id");
+                    .sharedPolicyGroupId("id")
+                    .allEnvironments(true)
+                    .build();
+            doThrow(new RuntimeException("error"))
+                    .when(sharedPolicyGroupManager)
+                    .unregisterAll("id");
             cut.undeploy(sharedPolicyGroup).test().assertFailure(SyncException.class);
             verify(sharedPolicyGroupManager).unregisterAll("id");
         }

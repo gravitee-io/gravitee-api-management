@@ -42,26 +42,23 @@ public class CockpitIdInitializer implements Initializer {
 
         Collection<OrganizationEntity> organizations = organizationService.findAll();
 
-        organizations
-            .stream()
-            .filter(org -> !org.getId().equals(GraviteeContext.getDefaultOrganization()) && org.getCockpitId() == null)
-            .forEach(org -> {
-                UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
-                newOrganization.setCockpitId(org.getId());
-                organizationService.updateOrganization(org.getId(), newOrganization);
-            });
+        organizations.stream()
+                .filter(org ->
+                        !org.getId().equals(GraviteeContext.getDefaultOrganization()) && org.getCockpitId() == null)
+                .forEach(org -> {
+                    UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
+                    newOrganization.setCockpitId(org.getId());
+                    organizationService.updateOrganization(org.getId(), newOrganization);
+                });
 
-        organizations.forEach(org ->
-            environmentService
-                .findByOrganization(org.getId())
-                .stream()
-                .filter(env -> !env.getId().equals(GraviteeContext.getDefaultEnvironment()) && env.getCockpitId() == null)
+        organizations.forEach(org -> environmentService.findByOrganization(org.getId()).stream()
+                .filter(env ->
+                        !env.getId().equals(GraviteeContext.getDefaultEnvironment()) && env.getCockpitId() == null)
                 .forEach(env -> {
                     UpdateEnvironmentEntity updateEnv = new UpdateEnvironmentEntity(env);
                     updateEnv.setCockpitId(env.getId());
                     environmentService.createOrUpdate(org.getId(), env.getId(), updateEnv);
-                })
-        );
+                }));
 
         return true;
     }

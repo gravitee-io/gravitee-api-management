@@ -61,8 +61,10 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, flow.getEntrypointConnect().size());
         assertEquals(1, flow.getInteract().size());
 
-        assertEquals("{#request.headers != null}", flow.getEntrypointConnect().get(0).getCondition());
-        assertEquals("{#message.content != null}", flow.getEntrypointConnect().get(0).getMessageCondition());
+        assertEquals(
+                "{#request.headers != null}", flow.getEntrypointConnect().get(0).getCondition());
+        assertEquals(
+                "{#message.content != null}", flow.getEntrypointConnect().get(0).getMessageCondition());
         assertEquals("{#response.headers != null}", flow.getInteract().get(0).getCondition());
         assertEquals("{#message.headers != null}", flow.getInteract().get(0).getMessageCondition());
 
@@ -125,10 +127,18 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flow.getTags().size(), flowCreated.getTags().size());
         assertEquals(flow.getTags(), flowCreated.getTags());
         assertEquals(flow.getOrder(), flowCreated.getOrder());
-        assertEquals(flow.getEntrypointConnect().get(0).getCondition(), flowCreated.getEntrypointConnect().get(0).getCondition());
-        assertEquals(flow.getPublish().get(0).getCondition(), flowCreated.getPublish().get(0).getCondition());
-        assertEquals(flow.getSubscribe().get(0).getCondition(), flowCreated.getSubscribe().get(0).getCondition());
-        assertEquals(flow.getInteract().get(0).getCondition(), flowCreated.getInteract().get(0).getCondition());
+        assertEquals(
+                flow.getEntrypointConnect().get(0).getCondition(),
+                flowCreated.getEntrypointConnect().get(0).getCondition());
+        assertEquals(
+                flow.getPublish().get(0).getCondition(),
+                flowCreated.getPublish().get(0).getCondition());
+        assertEquals(
+                flow.getSubscribe().get(0).getCondition(),
+                flowCreated.getSubscribe().get(0).getCondition());
+        assertEquals(
+                flow.getInteract().get(0).getCondition(),
+                flowCreated.getInteract().get(0).getCondition());
     }
 
     @Test
@@ -182,11 +192,19 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDeleteByReference() throws TechnicalException {
-        assertEquals(2, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
+        assertEquals(
+                2,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted")
+                        .size());
 
         flowRepository.deleteByReferenceIdAndReferenceType("orga-v4-deleted", FlowReferenceType.ORGANIZATION);
 
-        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
+        assertEquals(
+                0,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted")
+                        .size());
     }
 
     @Test
@@ -197,6 +215,10 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
 
         flowRepository.deleteAllById(ids);
 
-        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
+        assertEquals(
+                0,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted")
+                        .size());
     }
 }

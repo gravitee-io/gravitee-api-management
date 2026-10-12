@@ -39,7 +39,8 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
     private final ApiSearchService apiSearchService;
     private final ObjectMapper objectMapper;
 
-    public ApiLicenseServiceImpl(LicenseManager licenseManager, ApiSearchService apiSearchService, ObjectMapper objectMapper) {
+    public ApiLicenseServiceImpl(
+            LicenseManager licenseManager, ApiSearchService apiSearchService, ObjectMapper objectMapper) {
         this.licenseManager = licenseManager;
         this.apiSearchService = apiSearchService;
         this.objectMapper = objectMapper;
@@ -51,13 +52,14 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
         List<Plugin> plugins = getPlugins(repositoryApi);
 
         try {
-            var licensePlugins = plugins
-                .stream()
-                .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
-                .toList();
+            var licensePlugins = plugins.stream()
+                    .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
+                    .toList();
             licenseManager.validatePluginFeatures(executionContext.getOrganizationId(), licensePlugins);
         } catch (io.gravitee.node.api.license.ForbiddenFeatureException ffe) {
-            throw new ForbiddenFeatureException(ffe.getFeatures().stream().map(LicenseManager.ForbiddenFeature::plugin).toList());
+            throw new ForbiddenFeatureException(ffe.getFeatures().stream()
+                    .map(LicenseManager.ForbiddenFeature::plugin)
+                    .toList());
         } catch (io.gravitee.node.api.license.InvalidLicenseException e) {
             throw new InvalidLicenseException(e.getMessage());
         }
@@ -66,20 +68,34 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
     private List<Plugin> getPlugins(Api repositoryApi) {
         try {
             return switch (repositoryApi.getDefinitionVersion()) {
-                case V4 -> switch (repositoryApi.getType()) {
-                    case NATIVE -> objectMapper
-                        .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class)
-                        .getPlugins();
-                    case EDGE -> objectMapper
-                        .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.edge.EdgeApi.class)
-                        .getPlugins();
-                    case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> objectMapper
-                        .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class)
-                        .getPlugins();
-                };
-                case V2 -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
+                case V4 ->
+                    switch (repositoryApi.getType()) {
+                        case NATIVE ->
+                            objectMapper
+                                    .readValue(
+                                            repositoryApi.getDefinition(),
+                                            io.gravitee.definition.model.v4.nativeapi.NativeApi.class)
+                                    .getPlugins();
+                        case EDGE ->
+                            objectMapper
+                                    .readValue(
+                                            repositoryApi.getDefinition(),
+                                            io.gravitee.definition.model.v4.edge.EdgeApi.class)
+                                    .getPlugins();
+                        case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE ->
+                            objectMapper
+                                    .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class)
+                                    .getPlugins();
+                    };
+                case V2 ->
+                    objectMapper
+                            .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class)
+                            .getPlugins();
                 case FEDERATED, FEDERATED_AGENT -> List.of();
-                case null -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
+                case null ->
+                    objectMapper
+                            .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class)
+                            .getPlugins();
             };
         } catch (Exception e) {
             throw new TechnicalManagementException(e.getMessage());

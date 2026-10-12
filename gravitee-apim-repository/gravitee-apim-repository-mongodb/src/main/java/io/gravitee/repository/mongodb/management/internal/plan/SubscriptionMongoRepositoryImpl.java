@@ -68,7 +68,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
     private String tablePrefix;
 
     @Override
-    public Page<SubscriptionMongo> search(SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable) {
+    public Page<SubscriptionMongo> search(
+            SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable) {
         List<Bson> filterPipeline = buildFilterPipeline(criteria);
 
         Long totalCount = null;
@@ -78,9 +79,10 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             List<Bson> countPipeline = new ArrayList<>(filterPipeline);
             countPipeline.add(count("totalCount"));
             AggregateIterable<Document> countAggregate = mongoTemplate
-                .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
-                .aggregate(countPipeline);
-            totalCount = mongoQueries.countAggregationOrTimeout(countAggregate, "totalCount", SubscriptionMongo.class.getSimpleName());
+                    .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+                    .aggregate(countPipeline);
+            totalCount = mongoQueries.countAggregationOrTimeout(
+                    countAggregate, "totalCount", SubscriptionMongo.class.getSimpleName());
         }
 
         List<Bson> dataPipeline = new ArrayList<>(filterPipeline);
@@ -103,8 +105,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         AggregateIterable<Document> dataAggregate = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
-            .aggregate(dataPipeline);
+                .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+                .aggregate(dataPipeline);
         return buildSubscriptionsPage(pageable, dataAggregate, totalCount);
     }
 
@@ -114,8 +116,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         dataPipeline.add(Aggregates.project(Projections.exclude("_class")));
 
         AggregateIterable<Document> dataAggregate = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
-            .aggregate(dataPipeline);
+                .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+                .aggregate(dataPipeline);
 
         List<SubscriptionMongo> subscriptions = new ArrayList<>();
         MongoConverter converter = mongoTemplate.getConverter();
@@ -146,26 +148,25 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             if (criteria.getReferenceIds() == null || criteria.getReferenceIds().isEmpty()) {
                 // Filter by type only (e.g. Portal API-only): include legacy subscriptions with null referenceType
                 if (criteria.getReferenceType() == SubscriptionReferenceType.API) {
-                    dataPipeline.add(
-                        match(
-                            or(
-                                eq("referenceType", SubscriptionReferenceType.API.name()),
-                                eq("referenceType", null),
-                                exists("referenceType", false)
-                            )
-                        )
-                    );
+                    dataPipeline.add(match(or(
+                            eq("referenceType", SubscriptionReferenceType.API.name()),
+                            eq("referenceType", null),
+                            exists("referenceType", false))));
                 } else {
-                    dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
+                    dataPipeline.add(match(
+                            eq("referenceType", criteria.getReferenceType().name())));
                 }
             } else {
                 if (criteria.getReferenceType() == SubscriptionReferenceType.API) {
                     addApiReferenceIdsFilter(dataPipeline, criteria.getReferenceIds());
                 } else {
                     // API_PRODUCT and other types: strict filter (new feature, no legacy fallback needed)
-                    dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
+                    dataPipeline.add(match(
+                            eq("referenceType", criteria.getReferenceType().name())));
                     if (criteria.getReferenceIds().size() == 1) {
-                        dataPipeline.add(match(eq("referenceId", criteria.getReferenceIds().iterator().next())));
+                        dataPipeline.add(match(eq(
+                                "referenceId",
+                                criteria.getReferenceIds().iterator().next())));
                     } else {
                         dataPipeline.add(match(in("referenceId", criteria.getReferenceIds())));
                     }
@@ -187,7 +188,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
         if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
             if (criteria.getStatuses().size() == 1) {
-                dataPipeline.add(match(eq("status", criteria.getStatuses().iterator().next())));
+                dataPipeline.add(
+                        match(eq("status", criteria.getStatuses().iterator().next())));
             } else {
                 dataPipeline.add(match(in("status", criteria.getStatuses())));
             }
@@ -195,7 +197,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
             if (criteria.getApplications().size() == 1) {
-                dataPipeline.add(match(eq("application", criteria.getApplications().iterator().next())));
+                dataPipeline.add(match(
+                        eq("application", criteria.getApplications().iterator().next())));
             } else {
                 dataPipeline.add(match(in("application", criteria.getApplications())));
             }
@@ -203,7 +206,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
         // set range query
         if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
-            dataPipeline.add(match(and(gte("updatedAt", new Date(criteria.getFrom())), lt("updatedAt", new Date(criteria.getTo())))));
+            dataPipeline.add(match(
+                    and(gte("updatedAt", new Date(criteria.getFrom())), lt("updatedAt", new Date(criteria.getTo())))));
         } else if (criteria.getFrom() > 0) {
             dataPipeline.add(match(gte("updatedAt", new Date(criteria.getFrom()))));
         } else if (criteria.getTo() > 0) {
@@ -242,11 +246,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
     @Override
     public List<SubscriptionMongo> searchAfter(
-        SubscriptionCriteria criteria,
-        SubscriptionCursor after,
-        int pageSize,
-        SubscriptionSearchSort sort
-    ) {
+            SubscriptionCriteria criteria, SubscriptionCursor after, int pageSize, SubscriptionSearchSort sort) {
         Criteria mongoCriteria = new Criteria();
         List<Criteria> clauses = new ArrayList<>();
 
@@ -277,25 +277,28 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             switch (sort) {
                 case UPDATED_AT -> {
                     Date marker = new Date(after.updatedAt());
-                    clauses.add(
-                        new Criteria().orOperator(
-                            Criteria.where("updatedAt").gt(marker),
-                            new Criteria().andOperator(Criteria.where("updatedAt").is(marker), Criteria.where("_id").gt(after.id()))
-                        )
-                    );
+                    clauses.add(new Criteria()
+                            .orOperator(
+                                    Criteria.where("updatedAt").gt(marker),
+                                    new Criteria()
+                                            .andOperator(
+                                                    Criteria.where("updatedAt").is(marker),
+                                                    Criteria.where("_id").gt(after.id()))));
                 }
                 case PLAN_ID -> {
                     if (after.plan() == null) {
-                        throw new IllegalArgumentException("PLAN_ID sort requires a (plan, id) cursor, but the cursor has no plan");
+                        throw new IllegalArgumentException(
+                                "PLAN_ID sort requires a (plan, id) cursor, but the cursor has no plan");
                     }
                     // (plan, _id) keyset: lets the {plan:1,_id:1} index scan each plan's range in order
                     // instead of an _id-ordered collection walk over unrelated rows.
-                    clauses.add(
-                        new Criteria().orOperator(
-                            Criteria.where("plan").gt(after.plan()),
-                            new Criteria().andOperator(Criteria.where("plan").is(after.plan()), Criteria.where("_id").gt(after.id()))
-                        )
-                    );
+                    clauses.add(new Criteria()
+                            .orOperator(
+                                    Criteria.where("plan").gt(after.plan()),
+                                    new Criteria()
+                                            .andOperator(
+                                                    Criteria.where("plan").is(after.plan()),
+                                                    Criteria.where("_id").gt(after.id()))));
                 }
                 case ID -> clauses.add(Criteria.where("_id").gt(after.id()));
             }
@@ -324,12 +327,10 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
             aggregations.add(match(in("application", criteria.getApplications())));
             group = "$application";
-        } else if (
-            criteria.getReferenceType() != null &&
-            criteria.getReferenceType() == SubscriptionReferenceType.API &&
-            criteria.getReferenceIds() != null &&
-            !criteria.getReferenceIds().isEmpty()
-        ) {
+        } else if (criteria.getReferenceType() != null
+                && criteria.getReferenceType() == SubscriptionReferenceType.API
+                && criteria.getReferenceIds() != null
+                && !criteria.getReferenceIds().isEmpty()) {
             aggregations.add(match(in("referenceId", criteria.getReferenceIds())));
             aggregations.add(match(eq("referenceType", SubscriptionReferenceType.API.name())));
         } else {
@@ -349,8 +350,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         AggregateIterable<Document> subscriptions = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
-            .aggregate(aggregations);
+                .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+                .aggregate(aggregations);
 
         Set<String> references = new LinkedHashSet<>();
         subscriptions.forEach(document -> {
@@ -376,22 +377,23 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
     }
 
     private void addReferenceTypesFilter(List<Bson> dataPipeline, SubscriptionCriteria criteria) {
-        boolean filterByReferenceIds = !CollectionUtils.isEmpty(criteria.getApis()) || !CollectionUtils.isEmpty(criteria.getApiProducts());
+        boolean filterByReferenceIds =
+                !CollectionUtils.isEmpty(criteria.getApis()) || !CollectionUtils.isEmpty(criteria.getApiProducts());
         List<Bson> referenceFilters = new ArrayList<>();
 
         if (criteria.getReferenceTypes().contains(SubscriptionReferenceType.API)) {
             if (!filterByReferenceIds || !CollectionUtils.isEmpty(criteria.getApis())) {
                 Bson referenceTypeFilter = or(
-                    eq("referenceType", SubscriptionReferenceType.API.name()),
-                    eq("referenceType", null),
-                    exists("referenceType", false)
-                );
+                        eq("referenceType", SubscriptionReferenceType.API.name()),
+                        eq("referenceType", null),
+                        exists("referenceType", false));
                 if (filterByReferenceIds) {
                     Bson migratedFilter = and(
-                        eq("referenceType", SubscriptionReferenceType.API.name()),
-                        in("referenceId", criteria.getApis())
-                    );
-                    Bson legacyFilter = and(or(eq("referenceType", null), exists("referenceType", false)), in("api", criteria.getApis()));
+                            eq("referenceType", SubscriptionReferenceType.API.name()),
+                            in("referenceId", criteria.getApis()));
+                    Bson legacyFilter = and(
+                            or(eq("referenceType", null), exists("referenceType", false)),
+                            in("api", criteria.getApis()));
                     referenceTypeFilter = or(migratedFilter, legacyFilter);
                 }
                 referenceFilters.add(referenceTypeFilter);
@@ -411,7 +413,8 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         dataPipeline.add(match(referenceFilters.isEmpty() ? exists("_id", false) : or(referenceFilters)));
     }
 
-    private Page<SubscriptionMongo> buildSubscriptionsPage(Pageable pageable, AggregateIterable<Document> dataAggregate, Long totalCount) {
+    private Page<SubscriptionMongo> buildSubscriptionsPage(
+            Pageable pageable, AggregateIterable<Document> dataAggregate, Long totalCount) {
         List<SubscriptionMongo> subscriptions = new ArrayList<>();
 
         MongoConverter converter = mongoTemplate.getConverter();
@@ -420,10 +423,9 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         return new Page<>(
-            subscriptions,
-            pageable != null ? pageable.pageNumber() : 0,
-            subscriptions.size(),
-            totalCount == null ? subscriptions.size() : totalCount
-        );
+                subscriptions,
+                pageable != null ? pageable.pageNumber() : 0,
+                subscriptions.size(),
+                totalCount == null ? subscriptions.size() : totalCount);
     }
 }

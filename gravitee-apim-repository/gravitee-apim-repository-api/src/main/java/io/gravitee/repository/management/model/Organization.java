@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.model;
 
 import java.util.List;
-import java.util.Objects;
 import lombok.*;
 
 /**
@@ -32,7 +31,11 @@ import lombok.*;
 @AllArgsConstructor
 public class Organization {
 
-    public static final Organization DEFAULT = Organization.builder().id("DEFAULT").hrids(List.of("default")).name("Default").build();
+    public static final Organization DEFAULT = Organization.builder()
+            .id("DEFAULT")
+            .hrids(List.of("default"))
+            .name("Default")
+            .build();
 
     public enum AuditEvent implements Audit.AuditEvent {
         ORGANIZATION_FLOWS_UPDATED,

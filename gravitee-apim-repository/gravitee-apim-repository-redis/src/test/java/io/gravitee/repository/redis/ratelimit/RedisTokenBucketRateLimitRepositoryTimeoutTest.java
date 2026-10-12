@@ -89,17 +89,16 @@ class RedisTokenBucketRateLimitRepositoryTimeoutTest {
 
         vertx.runOnContext(v -> {
             repository
-                .refillAndTryConsume("k", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("k"))
-                .subscribe(
-                    r -> {
-                        result.set(r);
-                        done.countDown();
-                    },
-                    t -> {
-                        error.set(t);
-                        done.countDown();
-                    }
-                );
+                    .refillAndTryConsume("k", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("k"))
+                    .subscribe(
+                            r -> {
+                                result.set(r);
+                                done.countDown();
+                            },
+                            t -> {
+                                error.set(t);
+                                done.countDown();
+                            });
             subscribed.countDown();
             try {
                 Thread.sleep(OPERATION_TIMEOUT_MS * 4L);
@@ -112,7 +111,9 @@ class RedisTokenBucketRateLimitRepositoryTimeoutTest {
         redisPromise.complete(consumeResponse(1L, 5L));
 
         assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
-        assertThat(error.get()).as("must not raise a false RedisOperationTimeoutException").isNull();
+        assertThat(error.get())
+                .as("must not raise a false RedisOperationTimeoutException")
+                .isNull();
         assertThat(result.get()).isNotNull();
         assertThat(result.get().allowed()).isTrue();
         assertThat(result.get().remainingTokens()).isEqualTo(5L);
@@ -128,17 +129,12 @@ class RedisTokenBucketRateLimitRepositoryTimeoutTest {
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<Throwable> error = new AtomicReference<>();
 
-        vertx.runOnContext(v ->
-            repository
+        vertx.runOnContext(v -> repository
                 .refillAndTryConsume("k", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("k"))
-                .subscribe(
-                    r -> done.countDown(),
-                    t -> {
-                        error.set(t);
-                        done.countDown();
-                    }
-                )
-        );
+                .subscribe(r -> done.countDown(), t -> {
+                    error.set(t);
+                    done.countDown();
+                }));
 
         assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(error.get()).isInstanceOf(RedisOperationTimeoutException.class);
@@ -146,7 +142,11 @@ class RedisTokenBucketRateLimitRepositoryTimeoutTest {
     }
 
     private RedisClient stubRedisClient() {
-        RedisClientOptions options = RedisClientOptions.builder().host("127.0.0.1").port(1).connectTimeout(500).build();
+        RedisClientOptions options = RedisClientOptions.builder()
+                .host("127.0.0.1")
+                .port(1)
+                .connectTimeout(500)
+                .build();
         return new RedisClient(vertx, new VertxRedisClientFactory(vertx), options, Map.of()) {
             @Override
             public boolean isConnected() {
@@ -172,20 +172,17 @@ class RedisTokenBucketRateLimitRepositoryTimeoutTest {
 
     private RedisAPI redisApiProxy() {
         return (RedisAPI) Proxy.newProxyInstance(
-            RedisAPI.class.getClassLoader(),
-            new Class<?>[] { RedisAPI.class },
-            (proxy, method, args) -> {
-                if ("evalsha".equals(method.getName()) && args != null && args.length == 1) {
-                    @SuppressWarnings("unchecked")
-                    List<String> command = (List<String>) args[0];
-                    return evalshaHandler.apply(command);
-                }
-                if ("toString".equals(method.getName())) {
-                    return "RedisAPI-stub";
-                }
-                throw new UnsupportedOperationException("Unexpected RedisAPI call: " + method.getName());
-            }
-        );
+                RedisAPI.class.getClassLoader(), new Class<?>[] {RedisAPI.class}, (proxy, method, args) -> {
+                    if ("evalsha".equals(method.getName()) && args != null && args.length == 1) {
+                        @SuppressWarnings("unchecked")
+                        List<String> command = (List<String>) args[0];
+                        return evalshaHandler.apply(command);
+                    }
+                    if ("toString".equals(method.getName())) {
+                        return "RedisAPI-stub";
+                    }
+                    throw new UnsupportedOperationException("Unexpected RedisAPI call: " + method.getName());
+                });
     }
 
     private static Response consumeResponse(long allowed, long tokens) {

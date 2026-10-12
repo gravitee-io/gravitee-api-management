@@ -85,7 +85,8 @@ class SecurityChainDiagnosticTest {
             var verbose = new SecurityChainDiagnostic(true);
             verbose.markPlanHasNotYetStartedSubscription("plan1", "app1");
 
-            assertThat(verbose.message()).isEqualTo("The subscription has not yet started for the provided credentials");
+            assertThat(verbose.message())
+                    .isEqualTo("The subscription has not yet started for the provided credentials");
         }
 
         @Test
@@ -144,7 +145,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("The provided authentication token is invalid for the following plans: plan1, plan2");
+            assertThat(cause.getMessage())
+                    .isEqualTo("The provided authentication token is invalid for the following plans: plan1, plan2");
         }
 
         @Test
@@ -157,7 +159,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: 1234***cdef (plan: plan1)");
+            assertThat(cause.getMessage())
+                    .isEqualTo("No subscription was found for API Key: 1234***cdef (plan: plan1)");
         }
 
         @Test
@@ -170,7 +173,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("No subscription was found for Client ID: my-c***2345 (plan: plan1)");
+            assertThat(cause.getMessage())
+                    .isEqualTo("No subscription was found for Client ID: my-c***2345 (plan: plan1)");
         }
 
         @Test
@@ -196,7 +200,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("No subscription was found for Certificate: CN=m***yorg (plan: plan1)");
+            assertThat(cause.getMessage())
+                    .isEqualTo("No subscription was found for Certificate: CN=m***yorg (plan: plan1)");
         }
 
         @Test
@@ -210,9 +215,9 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo(
-                "No subscription was found for API Key: 1234***cdef (plan: plan1) or for Client ID: my-c***2345 (plan: plan2)"
-            );
+            assertThat(cause.getMessage())
+                    .isEqualTo(
+                            "No subscription was found for API Key: 1234***cdef (plan: plan1) or for Client ID: my-c***2345 (plan: plan2)");
         }
 
         @Test
@@ -226,9 +231,9 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo(
-                "No subscription was found for API Key: 1234***cdef (plan: plan1) or for Certificate: CN=m***yorg (plan: plan2)"
-            );
+            assertThat(cause.getMessage())
+                    .isEqualTo(
+                            "No subscription was found for API Key: 1234***cdef (plan: plan1) or for Certificate: CN=m***yorg (plan: plan2)");
         }
 
         @Test
@@ -242,7 +247,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: a657***97e6 (plans: key, second key plan)");
+            assertThat(cause.getMessage())
+                    .isEqualTo("No subscription was found for API Key: a657***97e6 (plans: key, second key plan)");
         }
 
         @Test
@@ -256,9 +262,9 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo(
-                "The subscription has expired for the following plans: plan1 (application: app1), plan2 (application: app2)"
-            );
+            assertThat(cause.getMessage())
+                    .isEqualTo(
+                            "The subscription has expired for the following plans: plan1 (application: app1), plan2 (application: app2)");
         }
 
         @Test
@@ -271,9 +277,9 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo(
-                "The subscription has not yet started for the following plan: plan1 (application: app1)"
-            );
+            assertThat(cause.getMessage())
+                    .isEqualTo(
+                            "The subscription has not yet started for the following plan: plan1 (application: app1)");
         }
 
         @Test
@@ -286,7 +292,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("None of the selection rules matched for the following plan: plan1");
+            assertThat(cause.getMessage())
+                    .isEqualTo("None of the selection rules matched for the following plan: plan1");
         }
 
         @Test
@@ -300,9 +307,9 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo(
-                "The request did not include an authentication token for the following plans: plan1, plan2"
-            );
+            assertThat(cause.getMessage())
+                    .isEqualTo(
+                            "The request did not include an authentication token for the following plans: plan1, plan2");
         }
 
         @Test
@@ -327,7 +334,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("The provided authentication token is invalid for the following plan: plan3");
+            assertThat(cause.getMessage())
+                    .isEqualTo("The provided authentication token is invalid for the following plan: plan3");
         }
 
         @Test
@@ -355,7 +363,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("The subscription has expired for the following plan: plan2 (application: app2)");
+            assertThat(cause.getMessage())
+                    .isEqualTo("The subscription has expired for the following plan: plan2 (application: app2)");
         }
 
         @Test
@@ -369,9 +378,9 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo(
-                "The subscription has not yet started for the following plan: plan2 (application: app1)"
-            );
+            assertThat(cause.getMessage())
+                    .isEqualTo(
+                            "The subscription has not yet started for the following plan: plan2 (application: app1)");
         }
 
         @Test
@@ -385,7 +394,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("The subscription has expired for the following plan: plan2 (application: app1)");
+            assertThat(cause.getMessage())
+                    .isEqualTo("The subscription has expired for the following plan: plan2 (application: app1)");
         }
 
         @Test
@@ -399,7 +409,8 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("None of the selection rules matched for the following plan: plan2");
+            assertThat(cause.getMessage())
+                    .isEqualTo("None of the selection rules matched for the following plan: plan2");
         }
     }
 

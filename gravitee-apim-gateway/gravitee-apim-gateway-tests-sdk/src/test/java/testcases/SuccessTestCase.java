@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/success-flow.json" })
+@DeployApi({"/apis/success-flow.json"})
 @EnableForGatewayTestingExtensionTesting
 public class SuccessTestCase extends AbstractGatewayTest {
 
@@ -51,27 +51,25 @@ public class SuccessTestCase extends AbstractGatewayTest {
         wiremock.stubFor(get("/team/my_team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test/my_team")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("OnResponseContent2Policy");
+                    return true;
+                })
+                .assertNoErrors();
 
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/team/my_team"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
                 .withHeader("X-Gravitee-Policy", equalTo("request-header1"))
-                .withHeader(ON_REQUEST_POLICY, equalTo("invoked"))
-        );
+                .withHeader(ON_REQUEST_POLICY, equalTo("invoked")));
     }
 
     @Override

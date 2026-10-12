@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.mapper;
 
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
-import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
@@ -38,5 +37,6 @@ public interface ClientCertificateMapper {
 
     ClientCertificate toDomain(UpdateClientCertificate dto);
 
-    Page<io.gravitee.rest.api.model.clientcertificate.ClientCertificate> map(Page<ClientCertificate> clientCertificatePage);
+    Page<io.gravitee.rest.api.model.clientcertificate.ClientCertificate> map(
+            Page<ClientCertificate> clientCertificatePage);
 }

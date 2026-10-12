@@ -36,16 +36,14 @@ public class Stream2Policy {
     @OnRequestContent
     public ReadWriteStream<Buffer> onRequestContent(Request request, Response response, PolicyChain policyChain) {
         return TransformableRequestStreamBuilder.on(request)
-            .chain(policyChain)
-            .transform(
-                new Function<Buffer, Buffer>() {
+                .chain(policyChain)
+                .transform(new Function<Buffer, Buffer>() {
                     @Override
                     public Buffer apply(Buffer buffer) {
                         return Buffer.buffer("OnRequestContent2Policy");
                     }
-                }
-            )
-            .build();
+                })
+                .build();
     }
 
     @OnResponseContent

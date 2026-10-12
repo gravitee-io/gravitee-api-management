@@ -41,11 +41,7 @@ public final class NativeFailureOriginRules {
 
     /** Authentication / SASL handshake failures happen between the client and the gateway. */
     public static final Set<String> CLIENT_SIDE_ERROR_KEYS = Set.of(
-        "SASL_AUTHENTICATION_FAILED",
-        "ILLEGAL_SASL_STATE",
-        "UNSUPPORTED_SASL_MECHANISM",
-        "SECURITY_DISABLED"
-    );
+            "SASL_AUTHENTICATION_FAILED", "ILLEGAL_SASL_STATE", "UNSUPPORTED_SASL_MECHANISM", "SECURITY_DISABLED");
 
     /**
      * Broker-domain failures: availability, topics/partitions, consumer groups, coordination.
@@ -54,24 +50,17 @@ public final class NativeFailureOriginRules {
      * {@link NativeApiMetricKeys#FAILURE_SIDE}.
      */
     public static final Set<String> BROKER_SIDE_ERROR_KEYS = Set.of(
-        "UNKNOWN_TOPIC_OR_PARTITION",
-        "REBALANCE_IN_PROGRESS",
-        "ILLEGAL_GENERATION",
-        "MEMBER_ID_REQUIRED",
-        "INVALID_TXN_STATE",
-        "NOT_COORDINATOR",
-        "NOT_LEADER_OR_FOLLOWER",
-        "LEADER_NOT_AVAILABLE"
-    );
+            "UNKNOWN_TOPIC_OR_PARTITION",
+            "REBALANCE_IN_PROGRESS",
+            "ILLEGAL_GENERATION",
+            "MEMBER_ID_REQUIRED",
+            "INVALID_TXN_STATE",
+            "NOT_COORDINATOR",
+            "NOT_LEADER_OR_FOLLOWER",
+            "LEADER_NOT_AVAILABLE");
 
-    public static final Set<String> BROKER_SIDE_ERROR_KEY_PREFIXES = Set.of(
-        "BROKER_",
-        "COORDINATOR_",
-        "TOPIC_",
-        "GROUP_",
-        "REBALANCE_",
-        "OFFSET_"
-    );
+    public static final Set<String> BROKER_SIDE_ERROR_KEY_PREFIXES =
+            Set.of("BROKER_", "COORDINATOR_", "TOPIC_", "GROUP_", "REBALANCE_", "OFFSET_");
 
     /** Kafka's catch-all error, reported by the gateway for unclassified internal throwables. */
     public static final String UNKNOWN_SERVER_ERROR_KEY = "UNKNOWN_SERVER_ERROR";
@@ -81,6 +70,7 @@ public final class NativeFailureOriginRules {
 
     /** {@link NativeApiMetricKeys#FAILURE_SIDE} values written by the gateway. */
     public static final String FAILURE_SIDE_DOWNSTREAM = "DOWNSTREAM";
+
     public static final String FAILURE_SIDE_UPSTREAM = "UPSTREAM";
     public static final String FAILURE_SIDE_INTERNAL = "INTERNAL";
 

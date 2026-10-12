@@ -47,7 +47,8 @@ public class PipelineConfiguration {
         this(DEFAULT_PIPELINE_INGEST_PLUGINS, null, freeMarkerComponent);
     }
 
-    public PipelineConfiguration(String ingestPlugins, String userAgentRegexFile, FreeMarkerComponent freeMarkerComponent) {
+    public PipelineConfiguration(
+            String ingestPlugins, String userAgentRegexFile, FreeMarkerComponent freeMarkerComponent) {
         this.ingestPlugins = ingestPlugins;
         this.userAgentRegexFile = userAgentRegexFile;
         this.freeMarkerComponent = freeMarkerComponent;
@@ -55,16 +56,16 @@ public class PipelineConfiguration {
 
     public String createPipeline() {
         if (ingestPlugins != null && !ingestPlugins.isEmpty()) {
-            final Set<String> configuredPlugin = Stream.of(ingestPlugins.split(",")).map(String::trim).collect(toSet());
+            final Set<String> configuredPlugin =
+                    Stream.of(ingestPlugins.split(",")).map(String::trim).collect(toSet());
             configuredPlugin.retainAll(RETAINED_INGEST_PLUGINS);
 
             final Map<String, Object> data = new HashMap<>();
             data.put("userAgentRegexFile", userAgentRegexFile);
 
-            final String processors = configuredPlugin
-                .stream()
-                .map(ingestPlug -> this.freeMarkerComponent.generateFromTemplate(ingestPlug + ".ftl", data))
-                .collect(Collectors.joining(","));
+            final String processors = configuredPlugin.stream()
+                    .map(ingestPlug -> this.freeMarkerComponent.generateFromTemplate(ingestPlug + ".ftl", data))
+                    .collect(Collectors.joining(","));
 
             final Map<String, Object> processorsMap = new HashMap<>(1);
             processorsMap.put("processors", processors);

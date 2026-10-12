@@ -164,7 +164,8 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldFindOrganizationIdsByEnvironments() throws Exception {
-        Set<String> organizationIds = environmentRepository.findOrganizationIdsByEnvironments(Set.of("DEFAULT-update", "DEFAULT-findById"));
+        Set<String> organizationIds =
+                environmentRepository.findOrganizationIdsByEnvironments(Set.of("DEFAULT-update", "DEFAULT-findById"));
         assertEquals(2, organizationIds.size());
         assertTrue(organizationIds.stream().anyMatch(s -> s.equals("ANOTHER-ORG")));
         assertTrue(organizationIds.stream().anyMatch(s -> s.equals("DEFAULT-ORG")));

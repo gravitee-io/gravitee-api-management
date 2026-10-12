@@ -45,15 +45,12 @@ public class ResolveObservabilityFilterLabelsUseCase {
 
     public Output execute(Input input) {
         List<Entry> entries = input.entries() == null ? List.of() : input.entries();
-        var requests = entries
-            .stream()
-            .map(e -> new ObservabilityFilterDataPort.ResolveRequest(e.filterName(), e.ids()))
-            .toList();
-        var resolved = filterDataPort
-            .resolveLabels(requests)
-            .stream()
-            .map(r -> new ResolvedEntry(r.filterName(), r.labels()))
-            .toList();
+        var requests = entries.stream()
+                .map(e -> new ObservabilityFilterDataPort.ResolveRequest(e.filterName(), e.ids()))
+                .toList();
+        var resolved = filterDataPort.resolveLabels(requests).stream()
+                .map(r -> new ResolvedEntry(r.filterName(), r.labels()))
+                .toList();
         return new Output(resolved);
     }
 }

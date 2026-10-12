@@ -30,7 +30,8 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalNavigationManifestParserImplTest {
 
-    private final PortalNavigationManifestParserImpl parser = new PortalNavigationManifestParserImpl(new GraviteeDescriptorServiceImpl());
+    private final PortalNavigationManifestParserImpl parser =
+            new PortalNavigationManifestParserImpl(new GraviteeDescriptorServiceImpl());
 
     @Test
     void should_expose_the_gravitee_descriptor_file_name() {
@@ -52,12 +53,12 @@ class PortalNavigationManifestParserImplTest {
             """;
 
         assertThat(parser.parse(manifest))
-            .extracting(
-                PortalNavigationManifestParser.ManifestPage::src,
-                PortalNavigationManifestParser.ManifestPage::name,
-                PortalNavigationManifestParser.ManifestPage::dest
-            )
-            .containsExactly(tuple("/docs/intro.md", "Introduction", "/guides"), tuple("/docs/api.yaml", null, null));
+                .extracting(
+                        PortalNavigationManifestParser.ManifestPage::src,
+                        PortalNavigationManifestParser.ManifestPage::name,
+                        PortalNavigationManifestParser.ManifestPage::dest)
+                .containsExactly(
+                        tuple("/docs/intro.md", "Introduction", "/guides"), tuple("/docs/api.yaml", null, null));
     }
 
     @Test
@@ -67,11 +68,13 @@ class PortalNavigationManifestParserImplTest {
 
     @Test
     void should_reject_a_descriptor_with_an_unsupported_version() {
-        assertThatThrownBy(() -> parser.parse("{ \"version\": 2 }")).isInstanceOf(InvalidPortalNavigationItemSourceException.class);
+        assertThatThrownBy(() -> parser.parse("{ \"version\": 2 }"))
+                .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
     }
 
     @Test
     void should_reject_an_unreadable_descriptor() {
-        assertThatThrownBy(() -> parser.parse("not json at all")).isInstanceOf(InvalidPortalNavigationItemSourceException.class);
+        assertThatThrownBy(() -> parser.parse("not json at all"))
+                .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
     }
 }

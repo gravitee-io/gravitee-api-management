@@ -80,14 +80,21 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .name("My API")
+                .environmentId(ENVIRONMENT)
+                .build()));
 
         sourceDomainService().givenRemoteFile("/docs/guide.md", "# Guide");
         sourceDomainService().givenRemoteFile("/docs/advanced/tuning.md", "# Tuning");
@@ -110,12 +117,10 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         var body = response.readEntity(ImportPortalNavigationResponse.class);
         assertThat(body.getSummary().getSucceeded()).isEqualTo(2);
         // root, docs, advanced, guide, tuning
-        assertThat(portalNavigationItemCrudService.storage())
-            .hasSize(5)
-            .allSatisfy(item -> {
-                assertThat(item.getReference()).isEqualTo(API_REFERENCE);
-                assertThat(item.getPublished()).isFalse();
-            });
+        assertThat(portalNavigationItemCrudService.storage()).hasSize(5).allSatisfy(item -> {
+            assertThat(item.getReference()).isEqualTo(API_REFERENCE);
+            assertThat(item.getPublished()).isFalse();
+        });
     }
 
     @Test
@@ -123,13 +128,15 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         var folder = aFolderOwnedBy(API_ID);
         portalNavigationItemCrudService.initWith(List.of(folder));
 
-        Response response = rootTarget().request().post(Entity.json(aRequest().parentId(folder.getId().id())));
+        Response response = rootTarget()
+                .request()
+                .post(Entity.json(aRequest().parentId(folder.getId().id())));
 
         assertThat(response).hasStatus(OK_200);
-        var rootFolder = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder) response
-            .readEntity(ImportPortalNavigationResponse.class)
-            .getRootFolder()
-            .getActualInstance();
+        var rootFolder = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder)
+                response.readEntity(ImportPortalNavigationResponse.class)
+                        .getRootFolder()
+                        .getActualInstance();
         assertThat(rootFolder.getParentId()).isEqualTo(folder.getId().id());
     }
 
@@ -138,7 +145,9 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         var foreignFolder = aFolderOwnedBy(OTHER_API_ID);
         portalNavigationItemCrudService.initWith(List.of(foreignFolder));
 
-        Response response = rootTarget().request().post(Entity.json(aRequest().parentId(foreignFolder.getId().id())));
+        Response response = rootTarget()
+                .request()
+                .post(Entity.json(aRequest().parentId(foreignFolder.getId().id())));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
         assertThat(portalNavigationItemCrudService.storage()).containsExactly(foreignFolder);
@@ -150,7 +159,9 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         section.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemCrudService.initWith(List.of(section));
 
-        Response response = rootTarget().request().post(Entity.json(aRequest().parentId(section.getId().id())));
+        Response response = rootTarget()
+                .request()
+                .post(Entity.json(aRequest().parentId(section.getId().id())));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
         assertThat(portalNavigationItemCrudService.storage()).containsExactly(section);
@@ -158,14 +169,12 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
 
     @Test
     void should_return_403_with_environment_documentation_permission_only() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(false);
 
         Response response = rootTarget().request().post(Entity.json(aRequest()));
 
@@ -176,14 +185,12 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
     @Test
     void should_succeed_with_api_documentation_permission_only() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(true);
 
         Response response = rootTarget().request().post(Entity.json(aRequest()));
 
@@ -196,16 +203,19 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
 
     private static ImportPortalNavigationRequest aRequest() {
         return new ImportPortalNavigationRequest()
-            .title("Imported Docs")
-            .source(new PortalNavigationItemSource().type("http-fetcher").configuration(Map.of("url", "https://example.com/repo")));
+                .title("Imported Docs")
+                .source(new PortalNavigationItemSource()
+                        .type("http-fetcher")
+                        .configuration(Map.of("url", "https://example.com/repo")));
     }
 
     private static PortalNavigationFolder aFolderOwnedBy(String apiId) {
-        var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .published(false)
-            .build();
+        var folder = PortalNavigationItemFixtures.aFolder(
+                        PortalNavigationItemId.random().json(), "Guides")
+                .toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .published(false)
+                .build();
         folder.setEnvironmentId(ENVIRONMENT);
         return folder;
     }

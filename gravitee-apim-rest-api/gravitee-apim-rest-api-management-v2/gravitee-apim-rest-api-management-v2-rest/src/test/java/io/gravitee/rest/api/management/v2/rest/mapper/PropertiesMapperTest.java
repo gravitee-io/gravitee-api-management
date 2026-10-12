@@ -126,21 +126,25 @@ public class PropertiesMapperTest {
         Property convertedProperty = convertedPropertyList.get(0);
         assertThat(convertedProperty).isNotNull();
 
-        assertThat(convertedProperty.getKey()).isEqualTo(propertiesToMap.getProperties().get(0).getKey());
-        assertThat(convertedProperty.getValue()).isEqualTo(propertiesToMap.getProperties().get(0).getValue());
-        assertThat(convertedProperty.getDynamic()).isEqualTo(propertiesToMap.getProperties().get(0).isDynamic());
-        assertThat(convertedProperty.getEncrypted()).isEqualTo(propertiesToMap.getProperties().get(0).isEncrypted());
+        assertThat(convertedProperty.getKey())
+                .isEqualTo(propertiesToMap.getProperties().get(0).getKey());
+        assertThat(convertedProperty.getValue())
+                .isEqualTo(propertiesToMap.getProperties().get(0).getValue());
+        assertThat(convertedProperty.getDynamic())
+                .isEqualTo(propertiesToMap.getProperties().get(0).isDynamic());
+        assertThat(convertedProperty.getEncrypted())
+                .isEqualTo(propertiesToMap.getProperties().get(0).isEncrypted());
         assertThat(convertedProperty.getEncryptable()).isNull();
     }
 
     @Test
     void shouldMaskValueWhenMappingAnEncryptedV4PropertyToTheRestModel() {
         var encryptedProperty = io.gravitee.definition.model.v4.property.Property.builder()
-            .key("prop-key")
-            .value("ciphertext")
-            .encrypted(true)
-            .dynamic(false)
-            .build();
+                .key("prop-key")
+                .value("ciphertext")
+                .encrypted(true)
+                .dynamic(false)
+                .build();
 
         Property convertedProperty = propertiesMapper.map(encryptedProperty);
 
@@ -151,11 +155,11 @@ public class PropertiesMapperTest {
     @Test
     void shouldMaskValueWhenMappingAnEncryptedV2PropertyToTheRestModel() {
         var encryptedProperty = io.gravitee.definition.model.Property.builder()
-            .key("prop-key")
-            .value("ciphertext")
-            .encrypted(true)
-            .dynamic(false)
-            .build();
+                .key("prop-key")
+                .value("ciphertext")
+                .encrypted(true)
+                .dynamic(false)
+                .build();
 
         Property convertedProperty = propertiesMapper.map(encryptedProperty);
 

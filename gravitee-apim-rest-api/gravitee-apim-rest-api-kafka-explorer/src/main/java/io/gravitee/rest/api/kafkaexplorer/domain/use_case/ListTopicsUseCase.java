@@ -29,10 +29,9 @@ public class ListTopicsUseCase {
     private final ObjectMapper objectMapper;
 
     public ListTopicsUseCase(
-        ClusterCrudService clusterCrudService,
-        KafkaClusterDomainService kafkaClusterDomainService,
-        ObjectMapper objectMapper
-    ) {
+            ClusterCrudService clusterCrudService,
+            KafkaClusterDomainService kafkaClusterDomainService,
+            ObjectMapper objectMapper) {
         this.clusterCrudService = clusterCrudService;
         this.kafkaClusterDomainService = kafkaClusterDomainService;
         this.objectMapper = objectMapper;
@@ -42,25 +41,18 @@ public class ListTopicsUseCase {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
         var config = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
         var topicsPage = kafkaClusterDomainService.listTopics(
-            config,
-            input.nameFilter(),
-            input.page(),
-            input.perPage(),
-            input.sortBy(),
-            input.sortOrder()
-        );
+                config, input.nameFilter(), input.page(), input.perPage(), input.sortBy(), input.sortOrder());
         return new Output(topicsPage);
     }
 
     public record Input(
-        String clusterId,
-        String environmentId,
-        String nameFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    ) {}
+            String clusterId,
+            String environmentId,
+            String nameFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder) {}
 
     public record Output(TopicsPage topicsPage) {}
 }

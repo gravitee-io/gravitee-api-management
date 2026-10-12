@@ -52,25 +52,23 @@ public class PortalMediaResource extends AbstractResource {
     private PageService pageService;
 
     @POST
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)})
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces("text/plain")
     @Operation(
-        summary = "Create a media for the portal",
-        description = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service"
-    )
+            summary = "Create a media for the portal",
+            description = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Media successfully created",
-        content = @Content(mediaType = "text/plain", schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Media successfully created",
+            content = @Content(mediaType = "text/plain", schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response uploadPortalMedia(
-        @FormDataParam("file") InputStream uploadedInputStream,
-        @FormDataParam("file") FormDataContentDisposition fileDetail,
-        @FormDataParam("file") final FormDataBodyPart body
-    ) throws IOException {
+            @FormDataParam("file") InputStream uploadedInputStream,
+            @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("file") final FormDataBodyPart body)
+            throws IOException {
         String mediaId;
 
         if (fileDetail.getSize() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
@@ -83,9 +81,12 @@ public class PortalMediaResource extends AbstractResource {
             mediaEntity.setData(IOUtils.toByteArray(uploadedInputStream));
             mediaEntity.setFileName(fileDetail.getFileName());
             try {
-                ImageUtils.verify(body.getMediaType().getType(), body.getMediaType().getSubtype(), mediaEntity.getData());
+                ImageUtils.verify(
+                        body.getMediaType().getType(), body.getMediaType().getSubtype(), mediaEntity.getData());
             } catch (InvalidImageException e) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Invalid image format")
+                        .build();
             }
 
             mediaId = mediaService.savePortalMedia(GraviteeContext.getExecutionContext(), mediaEntity);
@@ -98,10 +99,9 @@ public class PortalMediaResource extends AbstractResource {
     @Path("/{hash}")
     @Operation(summary = "Retrieve a media")
     @ApiResponse(
-        responseCode = "200",
-        description = "A media",
-        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
-    )
+            responseCode = "200",
+            description = "A media",
+            content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "404", description = "Not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getPortalMedia(@Context Request request, @PathParam("hash") String hash) {
@@ -125,16 +125,19 @@ public class PortalMediaResource extends AbstractResource {
             return builder.cacheControl(cc).build();
         }
 
-        return Response.ok(mediaEntity.getData()).type(mediaEntity.getMimeType()).cacheControl(cc).tag(etag).build();
+        return Response.ok(mediaEntity.getData())
+                .type(mediaEntity.getMimeType())
+                .cacheControl(cc)
+                .tag(etag)
+                .build();
     }
 
     @DELETE
     @Path("/{hash}")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE)})
     @Operation(
-        summary = "Delete a portal media",
-        description = "User must have the PORTAL_DOCUMENTATION[DELETE] permission to use this service"
-    )
+            summary = "Delete a portal media",
+            description = "User must have the PORTAL_DOCUMENTATION[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Media successfully deleted")
     @ApiResponse(responseCode = "400", description = "Media is attached to pages and cannot be deleted")
     @ApiResponse(responseCode = "404", description = "Media not found")
@@ -150,8 +153,8 @@ public class PortalMediaResource extends AbstractResource {
 
         if (isAttached) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Media is attached to pages and cannot be deleted. Please detach it from all pages first.")
-                .build();
+                    .entity("Media is attached to pages and cannot be deleted. Please detach it from all pages first.")
+                    .build();
         }
 
         mediaService.deletePortalMediaByHash(GraviteeContext.getExecutionContext(), hash);

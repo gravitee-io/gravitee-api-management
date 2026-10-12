@@ -33,7 +33,6 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.Set;
 
 public class ApiMetadataResource extends AbstractResource {
 
@@ -45,23 +44,24 @@ public class ApiMetadataResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_METADATA,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiMetadata(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("source") String filterBySource,
-        @QueryParam("sortBy") String sortBy
-    ) {
-        var output = getApiMetadataUseCase.execute(
-            new GetApiMetadataUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), filterBySource, sortBy)
-        );
+            @BeanParam @Valid PaginationParam paginationParam,
+            @QueryParam("source") String filterBySource,
+            @QueryParam("sortBy") String sortBy) {
+        var output = getApiMetadataUseCase.execute(new GetApiMetadataUseCase.Input(
+                apiId, GraviteeContext.getCurrentEnvironment(), filterBySource, sortBy));
         List<ApiMetadata> paginationData = computePaginationData(output.metadata(), paginationParam);
 
         return Response.ok()
-            .entity(
-                new MetadataResponse()
-                    .data(MetadataMapper.INSTANCE.mapFromCore(paginationData))
-                    .pagination(PaginationInfo.computePaginationInfo(output.metadata().size(), paginationData.size(), paginationParam))
-            )
-            .build();
+                .entity(new MetadataResponse()
+                        .data(MetadataMapper.INSTANCE.mapFromCore(paginationData))
+                        .pagination(PaginationInfo.computePaginationInfo(
+                                output.metadata().size(), paginationData.size(), paginationParam)))
+                .build();
     }
 }

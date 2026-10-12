@@ -19,9 +19,7 @@ import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.CompletableTransformer;
-import java.util.function.Function;
 import java.util.function.Supplier;
-import org.reactivestreams.Publisher;
 
 /**
  * Handy class allowing to chain reactor steps easily.
@@ -76,7 +74,8 @@ public class CompletableReactorChain extends Completable {
      * @param onError the {@link io.reactivex.rxjava3.functions.Function} to pass to @link Completable#onErrorResumeNext(io.reactivex.rxjava3.functions.Function)}.
      * @return the current chain for fluent usage.
      */
-    public CompletableReactorChain chainWithOnError(io.reactivex.rxjava3.functions.Function<Throwable, Completable> onError) {
+    public CompletableReactorChain chainWithOnError(
+            io.reactivex.rxjava3.functions.Function<Throwable, Completable> onError) {
         completable = completable.onErrorResumeNext(onError);
         return this;
     }

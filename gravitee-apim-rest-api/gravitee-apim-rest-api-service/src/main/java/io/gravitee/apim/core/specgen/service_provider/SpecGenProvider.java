@@ -23,7 +23,6 @@ import io.reactivex.rxjava3.core.Single;
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 public interface SpecGenProvider {
     Single<ApiSpecGenRequestReply> performRequest(String apiId, ApiSpecGenOperation operation, String userId);
 }

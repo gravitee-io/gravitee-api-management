@@ -51,7 +51,9 @@ class KafkaExplorerResourceIntegrationTest_DescribeConsumerGroup extends Abstrac
         var adminProps = new Properties();
         adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(adminProps)) {
-            admin.createTopics(List.of(new NewTopic(TEST_TOPIC, 2, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin.createTopics(List.of(new NewTopic(TEST_TOPIC, 2, (short) 1)))
+                    .all()
+                    .get(10, TimeUnit.SECONDS);
         }
 
         var producerProps = new Properties();
@@ -60,7 +62,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeConsumerGroup extends Abstrac
         producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         try (var producer = new KafkaProducer<String, String>(producerProps)) {
             for (int i = 0; i < 10; i++) {
-                producer.send(new ProducerRecord<>(TEST_TOPIC, "key-" + i, "value-" + i)).get();
+                producer.send(new ProducerRecord<>(TEST_TOPIC, "key-" + i, "value-" + i))
+                        .get();
             }
         }
 
@@ -79,7 +82,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeConsumerGroup extends Abstrac
 
     @Test
     void should_return_200_with_consumer_group_detail() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeConsumerGroupRequest().clusterId(CLUSTER_ID).groupId(CONSUMER_GROUP_ID);
 
@@ -105,7 +109,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeConsumerGroup extends Abstrac
 
     @Test
     void should_return_400_when_group_id_missing() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeConsumerGroupRequest().clusterId(CLUSTER_ID);
 
@@ -118,7 +123,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeConsumerGroup extends Abstrac
 
     @Test
     void should_return_502_when_broker_unreachable() {
-        givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeConsumerGroupRequest().clusterId(CLUSTER_ID).groupId(CONSUMER_GROUP_ID);
 

@@ -61,9 +61,9 @@ class GroupsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
-                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("group-id").members(0).build())
-            );
+            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class)))
+                    .thenReturn(new ImportGroupCRDUseCase.Output(
+                            GroupCRDStatus.builder().id("group-id").members(0).build()));
         }
 
         @Test
@@ -81,9 +81,9 @@ class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_members() {
-            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
-                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("group-id").members(1).build())
-            );
+            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class)))
+                    .thenReturn(new ImportGroupCRDUseCase.Output(
+                            GroupCRDStatus.builder().id("group-id").members(1).build()));
 
             var state = expectEntity("group-with-members.json");
             SoftAssertions.assertSoftly(soft -> {
@@ -95,10 +95,14 @@ class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_use_name_as_id_when_hrid_contains_uuid() {
-            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenAnswer(call -> {
-                ImportGroupCRDUseCase.Input input = call.getArgument(0, ImportGroupCRDUseCase.Input.class);
-                return new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id(input.spec().getId()).members(0).build());
-            });
+            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class)))
+                    .thenAnswer(call -> {
+                        ImportGroupCRDUseCase.Input input = call.getArgument(0, ImportGroupCRDUseCase.Input.class);
+                        return new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder()
+                                .id(input.spec().getId())
+                                .members(0)
+                                .build());
+                    });
 
             var state = expectEntity("group-with-name.json", false, true);
             assertThat(state.getId()).isEqualTo("my-group");
@@ -112,9 +116,11 @@ class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_validation() {
-            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
-                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("generated-id").members(0).build())
-            );
+            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class)))
+                    .thenReturn(new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder()
+                            .id("generated-id")
+                            .members(0)
+                            .build()));
 
             var state = expectEntity("group-with-name.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
@@ -125,15 +131,12 @@ class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_errors() {
-            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
-                new ImportGroupCRDUseCase.Output(
-                    GroupCRDStatus.builder()
-                        .id("generated-id")
-                        .members(0)
-                        .errors(new GroupCRDStatus.Errors(java.util.List.of(), java.util.List.of("unknown role")))
-                        .build()
-                )
-            );
+            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class)))
+                    .thenReturn(new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder()
+                            .id("generated-id")
+                            .members(0)
+                            .errors(new GroupCRDStatus.Errors(java.util.List.of(), java.util.List.of("unknown role")))
+                            .build()));
 
             var state = expectEntity("group-with-name.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
@@ -150,15 +153,16 @@ class GroupsResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             reset(groupService);
-            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
-                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("group-id").members(0).build())
-            );
-            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
-                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("group-id").members(0).build())
-            );
+            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class)))
+                    .thenReturn(new ImportGroupCRDUseCase.Output(
+                            GroupCRDStatus.builder().id("group-id").members(0).build()));
+            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class)))
+                    .thenReturn(new ImportGroupCRDUseCase.Output(
+                            GroupCRDStatus.builder().id("group-id").members(0).build()));
         }
 
-        private void givenStoredDefaultMemberRoles(Map<io.gravitee.rest.api.model.permissions.RoleScope, String> roles) {
+        private void givenStoredDefaultMemberRoles(
+                Map<io.gravitee.rest.api.model.permissions.RoleScope, String> roles) {
             var group = new io.gravitee.rest.api.model.GroupEntity();
             group.setRoles(roles);
             when(groupService.findById(any(), eq("group-id"))).thenReturn(group);
@@ -166,26 +170,21 @@ class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_default_member_roles_to_the_use_case_and_answer_the_stored_ones() {
-            givenStoredDefaultMemberRoles(
-                Map.of(
+            givenStoredDefaultMemberRoles(Map.of(
                     io.gravitee.rest.api.model.permissions.RoleScope.API,
                     "USER",
                     io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,
                     "USER",
                     io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT,
-                    "USER"
-                )
-            );
+                    "USER"));
             var state = expectEntity("group-with-default-member-roles.json");
 
             var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
             verify(importGroupCRDUseCase).execute(input.capture());
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(input.getValue().spec().getDefaultMemberRoles())
-                    .containsExactlyInAnyOrderEntriesOf(
-                        Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER")
-                    );
+                soft.assertThat(input.getValue().spec().getDefaultMemberRoles())
+                        .containsExactlyInAnyOrderEntriesOf(Map.of(
+                                RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER"));
                 soft.assertThat(input.getValue().spec().isIgnoreMembers()).isFalse();
                 soft.assertThat(state.getDefaultMemberRoles().getApiProduct()).isEqualTo("USER");
             });
@@ -220,16 +219,14 @@ class GroupsResourceTest extends AbstractResourceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_pass_ignore_members_to_the_use_case(boolean dryRun) {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", dryRun)
                     .queryParam("ignoreMembers", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("group-with-members.json")))
-            ) {
+                    .put(Entity.json(readJSON("group-with-members.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
 
@@ -257,14 +254,12 @@ class GroupsResourceTest extends AbstractResourceTest {
     }
 
     private GroupState expectEntity(String spec, boolean dryRun, boolean hridContainsUUID) {
-        try (
-            var response = rootTarget()
+        try (var response = rootTarget()
                 .queryParam("dryRun", dryRun)
                 .queryParam("hridContainsUUID", hridContainsUUID)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .put(Entity.json(readJSON(spec)))
-        ) {
+                .put(Entity.json(readJSON(spec)))) {
             assertThat(response.getStatus()).isEqualTo(200);
             return response.readEntity(GroupState.class);
         }

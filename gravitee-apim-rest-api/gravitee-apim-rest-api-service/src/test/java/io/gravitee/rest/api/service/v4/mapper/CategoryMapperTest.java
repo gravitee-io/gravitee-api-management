@@ -62,7 +62,8 @@ public class CategoryMapperTest {
         Set<String> inputCategories = Set.of(categoryId1, categoryKey2);
         categoryService.initWith(categories);
 
-        var result = categoryMapper.toCategoryId(GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
+        var result = categoryMapper.toCategoryId(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
 
         assertThat(result).isNotNull();
         assertThat(result).containsExactlyInAnyOrder(categoryId1, categoryId2);
@@ -75,7 +76,8 @@ public class CategoryMapperTest {
 
         categoryService.initWith(categories);
 
-        var result = categoryMapper.toCategoryId(GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
+        var result = categoryMapper.toCategoryId(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
 
         assertThat(result).isNotNull();
         assertThat(result).containsExactlyInAnyOrder(categoryId1, categoryId2);
@@ -88,7 +90,8 @@ public class CategoryMapperTest {
 
         categoryService.initWith(categories);
 
-        var actualCategories = categoryMapper.toCategoryId(GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
+        var actualCategories = categoryMapper.toCategoryId(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
 
         assertThat(actualCategories).isNotNull();
         assertThat(actualCategories).containsExactlyInAnyOrder(categoryId1, categoryId2);
@@ -100,7 +103,8 @@ public class CategoryMapperTest {
         Set<String> inputCategories = Set.of(categoryId1, categoryKey2);
         categoryService.initWith(categories);
 
-        var result = categoryMapper.toCategoryKey(GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
+        var result = categoryMapper.toCategoryKey(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
 
         assertThat(result).isNotNull();
         assertThat(result).containsExactlyInAnyOrder(categoryKey1, categoryKey2);
@@ -113,7 +117,8 @@ public class CategoryMapperTest {
 
         categoryService.initWith(categories);
 
-        var result = categoryMapper.toCategoryKey(GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
+        var result = categoryMapper.toCategoryKey(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
 
         assertThat(result).isNotNull();
         assertThat(result).containsExactlyInAnyOrder(categoryKey1, categoryKey2);
@@ -126,7 +131,8 @@ public class CategoryMapperTest {
 
         categoryService.initWith(categories);
 
-        var result = categoryMapper.toCategoryKey(GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
+        var result = categoryMapper.toCategoryKey(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), inputCategories);
 
         assertThat(result).isNotNull();
         assertThat(result).containsExactlyInAnyOrder(categoryKey1, categoryKey2);
@@ -135,7 +141,8 @@ public class CategoryMapperTest {
 
     @Test
     public void shouldNotUpdateApiCategoriesToIdsWhenCategoriesAreNull() {
-        var actualCategories = categoryMapper.toCategoryId(GraviteeContext.getExecutionContext().getEnvironmentId(), null);
+        var actualCategories = categoryMapper.toCategoryId(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), null);
         assertThat(actualCategories).isNull();
     }
 
@@ -143,19 +150,22 @@ public class CategoryMapperTest {
     public void shouldReturnEmptySetWhenCategoriesAreEmpty() {
         Set<String> apiCategories = new HashSet<>();
 
-        Set<String> result = categoryMapper.toCategoryId(GraviteeContext.getExecutionContext().getEnvironmentId(), apiCategories);
+        Set<String> result = categoryMapper.toCategoryId(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), apiCategories);
         assertEquals(apiCategories, result);
     }
 
     @Test
     public void shouldReturnEmptySetWhenCategoriesAreNull() {
-        var actual = categoryMapper.toCategoryId(GraviteeContext.getExecutionContext().getEnvironmentId(), null);
+        var actual = categoryMapper.toCategoryId(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), null);
         assertThat(actual).isNull();
     }
 
     @Test
     public void shouldNotUpdateApiCategoriesToKeysWhenCategoriesAreNull() {
-        var actualCategories = categoryMapper.toCategoryKey(GraviteeContext.getExecutionContext().getEnvironmentId(), null);
+        var actualCategories = categoryMapper.toCategoryKey(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), null);
         assertThat(actualCategories).isNull();
     }
 
@@ -163,13 +173,15 @@ public class CategoryMapperTest {
     public void shouldReturnEmptyKeysWhenCategoriesAreEmpty() {
         Set<String> apiCategories = new HashSet<>();
 
-        Set<String> result = categoryMapper.toCategoryKey(GraviteeContext.getExecutionContext().getEnvironmentId(), apiCategories);
+        Set<String> result = categoryMapper.toCategoryKey(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), apiCategories);
         assertEquals(apiCategories, result);
     }
 
     @Test
     public void shouldReturnEmptyKeysWhenCategoriesAreNull() {
-        var actual = categoryMapper.toCategoryKey(GraviteeContext.getExecutionContext().getEnvironmentId(), null);
+        var actual = categoryMapper.toCategoryKey(
+                GraviteeContext.getExecutionContext().getEnvironmentId(), null);
         assertThat(actual).isNull();
     }
 }

@@ -38,7 +38,8 @@ public class PaginationLinksTest {
         int total = 0;
         int perPage = 10;
 
-        var result = PaginationLinks.computePaginationLinks(REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
+        var result = PaginationLinks.computePaginationLinks(
+                REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
 
         assertThat(result).isEqualTo(new Links().self(REQUEST_URI.toString()));
     }
@@ -48,7 +49,8 @@ public class PaginationLinksTest {
         int total = 5;
         int perPage = 10;
 
-        var result = PaginationLinks.computePaginationLinks(REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
+        var result = PaginationLinks.computePaginationLinks(
+                REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
 
         assertThat(result).isEqualTo(new Links().self(REQUEST_URI.toString()));
     }
@@ -58,15 +60,15 @@ public class PaginationLinksTest {
         int total = 35;
         int perPage = 10;
 
-        var result = PaginationLinks.computePaginationLinks(REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
+        var result = PaginationLinks.computePaginationLinks(
+                REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
 
-        assertThat(result).isEqualTo(
-            new Links()
-                .self(REQUEST_URI.toString())
-                .first(REQUEST_URI + "?page=1")
-                .next(REQUEST_URI + "?page=2")
-                .last(REQUEST_URI + "?page=4")
-        );
+        assertThat(result)
+                .isEqualTo(new Links()
+                        .self(REQUEST_URI.toString())
+                        .first(REQUEST_URI + "?page=1")
+                        .next(REQUEST_URI + "?page=2")
+                        .last(REQUEST_URI + "?page=4"));
     }
 
     @Test
@@ -75,19 +77,18 @@ public class PaginationLinksTest {
         int perPage = 10;
 
         var result = PaginationLinks.computePaginationLinks(
-            URI.create(REQUEST_URI + "?perPage=" + perPage),
-            new MultivaluedHashMap<>(ofEntries(entry(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, String.valueOf(perPage)))),
-            total,
-            new PaginationParam(1, perPage)
-        );
+                URI.create(REQUEST_URI + "?perPage=" + perPage),
+                new MultivaluedHashMap<>(
+                        ofEntries(entry(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, String.valueOf(perPage)))),
+                total,
+                new PaginationParam(1, perPage));
 
-        assertThat(result).isEqualTo(
-            new Links()
-                .self(REQUEST_URI + "?perPage=10")
-                .first(REQUEST_URI + "?perPage=10&page=1")
-                .next(REQUEST_URI + "?perPage=10&page=2")
-                .last(REQUEST_URI + "?perPage=10&page=4")
-        );
+        assertThat(result)
+                .isEqualTo(new Links()
+                        .self(REQUEST_URI + "?perPage=10")
+                        .first(REQUEST_URI + "?perPage=10&page=1")
+                        .next(REQUEST_URI + "?perPage=10&page=2")
+                        .last(REQUEST_URI + "?perPage=10&page=4"));
     }
 
     @Test
@@ -97,19 +98,17 @@ public class PaginationLinksTest {
         int perPage = 10;
 
         var result = PaginationLinks.computePaginationLinks(
-            URI.create(REQUEST_URI + "?page=" + page),
-            new MultivaluedHashMap<>(ofEntries(entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)))),
-            total,
-            new PaginationParam(page, perPage)
-        );
+                URI.create(REQUEST_URI + "?page=" + page),
+                new MultivaluedHashMap<>(ofEntries(entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)))),
+                total,
+                new PaginationParam(page, perPage));
 
-        assertThat(result).isEqualTo(
-            new Links()
-                .self(REQUEST_URI + "?page=1")
-                .first(REQUEST_URI + "?page=1")
-                .next(REQUEST_URI + "?page=2")
-                .last(REQUEST_URI + "?page=4")
-        );
+        assertThat(result)
+                .isEqualTo(new Links()
+                        .self(REQUEST_URI + "?page=1")
+                        .first(REQUEST_URI + "?page=1")
+                        .next(REQUEST_URI + "?page=2")
+                        .last(REQUEST_URI + "?page=4"));
     }
 
     @Test
@@ -119,20 +118,18 @@ public class PaginationLinksTest {
         int perPage = 10;
 
         var result = PaginationLinks.computePaginationLinks(
-            URI.create(REQUEST_URI + "?page=" + page),
-            new MultivaluedHashMap<>(ofEntries(entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)))),
-            total,
-            new PaginationParam(page, perPage)
-        );
+                URI.create(REQUEST_URI + "?page=" + page),
+                new MultivaluedHashMap<>(ofEntries(entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)))),
+                total,
+                new PaginationParam(page, perPage));
 
-        assertThat(result).isEqualTo(
-            new Links()
-                .self(REQUEST_URI + "?page=2")
-                .first(REQUEST_URI + "?page=1")
-                .next(REQUEST_URI + "?page=3")
-                .previous(REQUEST_URI + "?page=1")
-                .last(REQUEST_URI + "?page=4")
-        );
+        assertThat(result)
+                .isEqualTo(new Links()
+                        .self(REQUEST_URI + "?page=2")
+                        .first(REQUEST_URI + "?page=1")
+                        .next(REQUEST_URI + "?page=3")
+                        .previous(REQUEST_URI + "?page=1")
+                        .last(REQUEST_URI + "?page=4"));
     }
 
     @Test
@@ -142,19 +139,17 @@ public class PaginationLinksTest {
         int perPage = 10;
 
         var result = PaginationLinks.computePaginationLinks(
-            URI.create(REQUEST_URI + "?page=" + page),
-            new MultivaluedHashMap<>(ofEntries(entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)))),
-            total,
-            new PaginationParam(page, perPage)
-        );
+                URI.create(REQUEST_URI + "?page=" + page),
+                new MultivaluedHashMap<>(ofEntries(entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)))),
+                total,
+                new PaginationParam(page, perPage));
 
-        assertThat(result).isEqualTo(
-            new Links()
-                .self(REQUEST_URI + "?page=4")
-                .first(REQUEST_URI + "?page=1")
-                .previous(REQUEST_URI + "?page=3")
-                .last(REQUEST_URI + "?page=4")
-        );
+        assertThat(result)
+                .isEqualTo(new Links()
+                        .self(REQUEST_URI + "?page=4")
+                        .first(REQUEST_URI + "?page=1")
+                        .previous(REQUEST_URI + "?page=3")
+                        .last(REQUEST_URI + "?page=4"));
     }
 
     @Test
@@ -164,34 +159,30 @@ public class PaginationLinksTest {
         int perPage = 10;
 
         var result = PaginationLinks.computePaginationLinks(
-            URI.create(REQUEST_URI + "?page=" + page + "&perPage=" + perPage),
-            new MultivaluedHashMap<>(
-                ofEntries(
-                    entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)),
-                    entry(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, String.valueOf(perPage))
-                )
-            ),
-            total,
-            new PaginationParam(page, perPage)
-        );
+                URI.create(REQUEST_URI + "?page=" + page + "&perPage=" + perPage),
+                new MultivaluedHashMap<>(ofEntries(
+                        entry(PaginationParam.PAGE_QUERY_PARAM_NAME, String.valueOf(page)),
+                        entry(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, String.valueOf(perPage)))),
+                total,
+                new PaginationParam(page, perPage));
 
-        assertThat(result).isEqualTo(
-            new Links()
-                .self(REQUEST_URI + "?page=2&perPage=10")
-                .first(REQUEST_URI + "?page=1&perPage=10")
-                .next(REQUEST_URI + "?page=3&perPage=10")
-                .previous(REQUEST_URI + "?page=1&perPage=10")
-                .last(REQUEST_URI + "?page=4&perPage=10")
-        );
+        assertThat(result)
+                .isEqualTo(new Links()
+                        .self(REQUEST_URI + "?page=2&perPage=10")
+                        .first(REQUEST_URI + "?page=1&perPage=10")
+                        .next(REQUEST_URI + "?page=3&perPage=10")
+                        .previous(REQUEST_URI + "?page=1&perPage=10")
+                        .last(REQUEST_URI + "?page=4&perPage=10"));
     }
 
     @ParameterizedTest
-    @ValueSource(ints = { 0, 55 })
+    @ValueSource(ints = {0, 55})
     void should_return_null_on_invalid_situation(int page) {
         int total = 35;
         int perPage = 10;
 
-        var result = PaginationLinks.computePaginationLinks(REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(page, perPage));
+        var result = PaginationLinks.computePaginationLinks(
+                REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(page, perPage));
 
         assertThat(result).isNull();
     }

@@ -15,26 +15,26 @@
  */
 package io.gravitee.apim.infra.query_service.cockpit; /*
 
-import com.google.common.base.Strings;
-import com.google.common.net.InternetDomainName;
-import io.gravitee.apim.core.cockpit.model.AccessPointTemplate;
-import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
-import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
-import io.gravitee.apim.core.installation.model.InstallationType;
-import jakarta.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import lombok.CustomLog;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.stereotype.Service;
+                                                      import com.google.common.base.Strings;
+                                                      import com.google.common.net.InternetDomainName;
+                                                      import io.gravitee.apim.core.cockpit.model.AccessPointTemplate;
+                                                      import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
+                                                      import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+                                                      import io.gravitee.apim.core.installation.model.InstallationType;
+                                                      import jakarta.annotation.PostConstruct;
+                                                      import java.util.ArrayList;
+                                                      import java.util.EnumMap;
+                                                      import java.util.List;
+                                                      import java.util.Map;
+                                                      import lombok.RequiredArgsConstructor;
+                                                      import lombok.CustomLog;
+                                                      import org.springframework.core.env.ConfigurableEnvironment;
+                                                      import org.springframework.stereotype.Service;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
+                                                      /**
+                                                       * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+                                                       * @author GraviteeSource Team
+                                                       */
 
 import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
@@ -58,14 +58,13 @@ import org.springframework.stereotype.Service;
 public class CockpitAccessServiceImpl implements CockpitAccessService {
 
     private static final String MULTI_TENANT_ACCESS_POINT_PROPERTY =
-        "installation." + InstallationType.Labels.MULTI_TENANT + ".accessPoints";
+            "installation." + InstallationType.Labels.MULTI_TENANT + ".accessPoints";
 
     private final InstallationTypeDomainService installationTypeDomainService;
     private final ConfigurableEnvironment environment;
 
-    private final Map<AccessPointTemplate.Type, List<AccessPointTemplate>> accessPointsTemplate = new EnumMap<>(
-        AccessPointTemplate.Type.class
-    );
+    private final Map<AccessPointTemplate.Type, List<AccessPointTemplate>> accessPointsTemplate =
+            new EnumMap<>(AccessPointTemplate.Type.class);
 
     @PostConstruct
     public void afterPropertiesSet() {
@@ -73,17 +72,20 @@ public class CockpitAccessServiceImpl implements CockpitAccessService {
             for (AccessPointTemplate.Type type : AccessPointTemplate.Type.values()) {
                 List<AccessPointTemplate> accessPoints = new ArrayList<>();
                 for (AccessPointTemplate.Target target : AccessPointTemplate.Target.values()) {
-                    String host = environment.getProperty(
-                        MULTI_TENANT_ACCESS_POINT_PROPERTY + "." + type.getLabel() + "." + target.getLabel() + ".host"
-                    );
+                    String host = environment.getProperty(MULTI_TENANT_ACCESS_POINT_PROPERTY + "." + type.getLabel()
+                            + "." + target.getLabel() + ".host");
                     if (host != null) {
                         validateHost(host);
                         Boolean secured = environment.getProperty(
-                            MULTI_TENANT_ACCESS_POINT_PROPERTY + "." + type.getLabel() + "." + target.getLabel() + ".secured",
-                            Boolean.class,
-                            true
-                        );
-                        accessPoints.add(AccessPointTemplate.builder().target(target).host(host).secured(secured).build());
+                                MULTI_TENANT_ACCESS_POINT_PROPERTY + "." + type.getLabel() + "." + target.getLabel()
+                                        + ".secured",
+                                Boolean.class,
+                                true);
+                        accessPoints.add(AccessPointTemplate.builder()
+                                .target(target)
+                                .host(host)
+                                .secured(secured)
+                                .build());
                     }
                 }
                 if (!accessPoints.isEmpty()) {
@@ -91,7 +93,8 @@ public class CockpitAccessServiceImpl implements CockpitAccessService {
                 }
             }
             if (accessPointsTemplate.isEmpty()) {
-                throw new InvalidAccessPointException("Installation is multi-tenant but doesn't configure any access points.");
+                throw new InvalidAccessPointException(
+                        "Installation is multi-tenant but doesn't configure any access points.");
             }
         }
     }

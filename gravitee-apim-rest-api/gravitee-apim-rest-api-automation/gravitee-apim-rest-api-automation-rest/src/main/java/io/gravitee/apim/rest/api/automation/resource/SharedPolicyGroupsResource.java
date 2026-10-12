@@ -59,12 +59,15 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @Valid @NotNull LegacySharedPolicyGroupSpec spec,
-        @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID
-    ) {
+            @Valid @NotNull LegacySharedPolicyGroupSpec spec,
+            @QueryParam("dryRun") boolean dryRun,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -86,24 +89,24 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         if (dryRun) {
             var statusBuilder = SharedPolicyGroupCRDStatus.builder();
             validateSharedPolicyGroupCRDDomainService
-                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(auditInfo, sharedPolicyGroupCRD))
-                .peek(
-                    sanitized ->
-                        statusBuilder
-                            .id(sanitized.crd().getSharedPolicyGroupId())
-                            .crossId(sanitized.crd().getCrossId())
-                            .organizationId(auditInfo.organizationId())
-                            .environmentId(auditInfo.environmentId()),
-                    errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors))
-                );
-            return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(spec, statusBuilder.build())).build();
+                    .validateAndSanitize(
+                            new ValidateSharedPolicyGroupCRDDomainService.Input(auditInfo, sharedPolicyGroupCRD))
+                    .peek(
+                            sanitized -> statusBuilder
+                                    .id(sanitized.crd().getSharedPolicyGroupId())
+                                    .crossId(sanitized.crd().getCrossId())
+                                    .organizationId(auditInfo.organizationId())
+                                    .environmentId(auditInfo.environmentId()),
+                            errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors)));
+            return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(spec, statusBuilder.build()))
+                    .build();
         }
 
         var output = importSharedPolicyGroupCRDCRDUseCase.execute(
-            new ImportSharedPolicyGroupCRDCRDUseCase.Input(auditInfo, sharedPolicyGroupCRD)
-        );
+                new ImportSharedPolicyGroupCRDCRDUseCase.Input(auditInfo, sharedPolicyGroupCRD));
 
-        return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(spec, output.status())).build();
+        return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(spec, output.status()))
+                .build();
     }
 
     @Path("/{hrid}")

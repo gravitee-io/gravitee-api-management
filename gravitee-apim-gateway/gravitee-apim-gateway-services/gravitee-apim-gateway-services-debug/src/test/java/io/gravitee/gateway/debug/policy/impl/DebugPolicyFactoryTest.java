@@ -46,10 +46,7 @@ public class DebugPolicyFactoryTest {
     @Test
     public void testConstructor_ShouldInstantiateCorrectly() {
         DebugPolicyFactory debugPolicyFactory = new DebugPolicyFactory(
-            configuration,
-            mockPolicyPluginFactory,
-            new DebugExpressionLanguageConditionFilter()
-        );
+                configuration, mockPolicyPluginFactory, new DebugExpressionLanguageConditionFilter());
         // assert that the DebugPolicyFactory object is created successfully
         assertNotNull(debugPolicyFactory, "DebugPolicyFactory should be instantiated correctly");
     }

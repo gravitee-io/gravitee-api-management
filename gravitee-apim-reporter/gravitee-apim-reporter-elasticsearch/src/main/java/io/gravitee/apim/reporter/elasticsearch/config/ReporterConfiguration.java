@@ -139,10 +139,12 @@ public class ReporterConfiguration {
     @Value("${reporters.elasticsearch.http.proxy.type:" + DEFAULT_PROXY_TYPE + "}")
     private String proxyType = DEFAULT_PROXY_TYPE;
 
-    @Value("${reporters.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: '" + DEFAULT_PROXY_HTTP_HOST + "'}}")
+    @Value("${reporters.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: '"
+            + DEFAULT_PROXY_HTTP_HOST + "'}}")
     private String proxyHttpHost = DEFAULT_PROXY_HTTP_HOST;
 
-    @Value("${reporters.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: " + DEFAULT_PROXY_HTTP_PORT + "}}")
+    @Value("${reporters.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: "
+            + DEFAULT_PROXY_HTTP_PORT + "}}")
     private int proxyHttpPort = DEFAULT_PROXY_HTTP_PORT;
 
     @Value("${reporters.elasticsearch.http.proxy.http.username:#{null}}")
@@ -151,10 +153,12 @@ public class ReporterConfiguration {
     @Value("${reporters.elasticsearch.http.proxy.http.password:#{null}}")
     private String proxyHttpPassword;
 
-    @Value("${reporters.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: '" + DEFAULT_PROXY_HTTPS_HOST + "'}}")
+    @Value("${reporters.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: '"
+            + DEFAULT_PROXY_HTTPS_HOST + "'}}")
     private String proxyHttpsHost = DEFAULT_PROXY_HTTPS_HOST;
 
-    @Value("${reporters.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?:" + DEFAULT_PROXY_HTTPS_PORT + "}}")
+    @Value("${reporters.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?:"
+            + DEFAULT_PROXY_HTTPS_PORT + "}}")
     private int proxyHttpsPort = DEFAULT_PROXY_HTTPS_PORT;
 
     @Value("${reporters.elasticsearch.http.proxy.https.username:#{null}}")
@@ -242,13 +246,15 @@ public class ReporterConfiguration {
     /**
      * Policy name Property name
      */
-    @Value("${reporters.elasticsearch.lifecycle.policy_property_name:" + DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME + "}")
+    @Value("${reporters.elasticsearch.lifecycle.policy_property_name:" + DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME
+            + "}")
     private String indexLifecyclePolicyPropertyName = DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME;
 
     /**
      * Rollover name Property name
      */
-    @Value("${reporters.elasticsearch.lifecycle.rollover_alias_property_name:" + DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME + "}")
+    @Value("${reporters.elasticsearch.lifecycle.rollover_alias_property_name:"
+            + DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME + "}")
     private String indexLifecycleRolloverAliasPropertyName = DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME;
 
     /**
@@ -573,7 +579,8 @@ public class ReporterConfiguration {
     }
 
     public boolean isProxyConfigured() {
-        return !EnvironmentUtils.getPropertiesStartingWith(environment, "reporters.elasticsearch.http.proxy").isEmpty();
+        return !EnvironmentUtils.getPropertiesStartingWith(environment, "reporters.elasticsearch.http.proxy")
+                .isEmpty();
     }
 
     public String getExtendedSettingsTemplate() {
@@ -612,7 +619,8 @@ public class ReporterConfiguration {
     }
 
     public String getIndexLifecycleRolloverAliasPropertyName() {
-        return blankToDefault(indexLifecycleRolloverAliasPropertyName, DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME);
+        return blankToDefault(
+                indexLifecycleRolloverAliasPropertyName, DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME);
     }
 
     public void setIndexLifecycleRolloverAliasPropertyName(String indexLifecycleRolloverAliasPropertyName) {

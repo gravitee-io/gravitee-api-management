@@ -78,7 +78,8 @@ public class ApiDeployerStatement {
     }
 
     public void deploy() throws Throwable {
-        final String homeFolder = target.getClass().getAnnotation(ApiDescriptor.class).configFolder();
+        final String homeFolder =
+                target.getClass().getAnnotation(ApiDescriptor.class).configFolder();
         URL home = ApiDeployerStatement.class.getResource(homeFolder);
         String graviteeHome = URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name());
         System.setProperty("gravitee.home", graviteeHome);
@@ -90,7 +91,7 @@ public class ApiDeployerStatement {
         final Environment environment = applicationContext.getBean(Environment.class);
 
         DefaultListableBeanFactory beanFactory =
-            (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+                (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 
         FakeReporter fakeReporter = (FakeReporter) applicationContext.getBean("fakeReporter");
         ReporterManager reporterManager = applicationContext.getBean(ReporterManager.class);
@@ -109,19 +110,19 @@ public class ApiDeployerStatement {
 
             // Register policies
             String[] policyBeanNamesForType = applicationContext.getBeanNamesForType(
-                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-            );
+                    ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-            register.registerPolicy((ConfigurablePluginManager<PolicyPlugin>) applicationContext.getBean(policyBeanNamesForType[0]));
+            register.registerPolicy(
+                    (ConfigurablePluginManager<PolicyPlugin>) applicationContext.getBean(policyBeanNamesForType[0]));
 
             // Register resources
             String[] resourceBeanNamesForType = container
-                .applicationContext()
-                .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
+                    .applicationContext()
+                    .getBeanNamesForType(
+                            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
 
-            register.registerResource(
-                (ConfigurablePluginManager<ResourcePlugin>) container.applicationContext().getBean(resourceBeanNamesForType[0])
-            );
+            register.registerResource((ConfigurablePluginManager<ResourcePlugin>)
+                    container.applicationContext().getBean(resourceBeanNamesForType[0]));
         }
 
         if (target instanceof PolicyFactory) {
@@ -150,10 +151,13 @@ public class ApiDeployerStatement {
         }
 
         try {
-            final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
+            final io.gravitee.gateway.handlers.api.definition.Api apiToRegister =
+                    new io.gravitee.gateway.handlers.api.definition.Api(api);
 
-            final String v2EmulateV4EngineDefault = environment.getProperty("api.v2.emulateV4Engine.default", String.class, "yes");
-            if (v2EmulateV4EngineDefault.equalsIgnoreCase("yes") || v2EmulateV4EngineDefault.equalsIgnoreCase("creation_only")) {
+            final String v2EmulateV4EngineDefault =
+                    environment.getProperty("api.v2.emulateV4Engine.default", String.class, "yes");
+            if (v2EmulateV4EngineDefault.equalsIgnoreCase("yes")
+                    || v2EmulateV4EngineDefault.equalsIgnoreCase("creation_only")) {
                 // Force the execution mode to V4 EMULATION ENGINE as required by the environment variable.
                 apiToRegister.getDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
             } else if (v2EmulateV4EngineDefault.equalsIgnoreCase("no")) {
@@ -198,7 +202,8 @@ public class ApiDeployerStatement {
 
         starterThread.start();
 
-        final VertxEmbeddedContainer vertxEmbeddedContainer = container.applicationContext().getBean(VertxEmbeddedContainer.class);
+        final VertxEmbeddedContainer vertxEmbeddedContainer =
+                container.applicationContext().getBean(VertxEmbeddedContainer.class);
 
         while (vertxEmbeddedContainer.lifecycleState() != Lifecycle.State.STARTED) {
             Thread.sleep(5);
@@ -206,7 +211,8 @@ public class ApiDeployerStatement {
         return vertxEmbeddedContainer;
     }
 
-    private void stopServer(GatewayTestContainer container, VertxEmbeddedContainer vertxContainer) throws InterruptedException {
+    private void stopServer(GatewayTestContainer container, VertxEmbeddedContainer vertxContainer)
+            throws InterruptedException {
         final Thread stopThread = new Thread(() -> {
             try {
                 container.stop();

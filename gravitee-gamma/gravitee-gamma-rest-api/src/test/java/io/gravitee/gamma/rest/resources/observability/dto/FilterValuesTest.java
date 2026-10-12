@@ -52,13 +52,17 @@ class FilterValuesTest {
     @MethodSource("malformedValues")
     void should_reject_a_value_that_is_neither_a_scalar_nor_an_array_of_scalars(Object value) {
         assertThatThrownBy(() -> FilterValues.normalize("API", value))
-            .isInstanceOf(UnsupportedObservabilityFilterException.class)
-            .hasMessageContaining("API")
-            .extracting("technicalCode")
-            .isEqualTo("observability.filter.invalid_value_shape");
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("API")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_value_shape");
     }
 
     static Stream<Object> malformedValues() {
-        return Stream.of(Map.of("id", "api-1"), Arrays.asList("api-1", null), List.of(List.of("api-1")), List.of(Map.of("id", "api-1")));
+        return Stream.of(
+                Map.of("id", "api-1"),
+                Arrays.asList("api-1", null),
+                List.of(List.of("api-1")),
+                List.of(Map.of("id", "api-1")));
     }
 }

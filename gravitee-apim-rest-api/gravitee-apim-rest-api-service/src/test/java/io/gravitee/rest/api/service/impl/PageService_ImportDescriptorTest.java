@@ -112,7 +112,8 @@ public class PageService_ImportDescriptorTest {
         // We mock the validateSafeContent method because the fetcher keeps sending the same json descriptor which is
         // not a swagger valid document (and modify the fetcher mock to produce valid desc is overkill)
         ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId");
-        when(pageService.validateSafeContent(eq(executionContext), any(), any())).thenReturn(new ArrayList<>());
+        when(pageService.validateSafeContent(eq(executionContext), any(), any()))
+                .thenReturn(new ArrayList<>());
 
         PageSourceEntity pageSource = new PageSourceEntity();
         pageSource.setType("type");
@@ -120,15 +121,16 @@ public class PageService_ImportDescriptorTest {
         ImportPageEntity pageEntity = new ImportPageEntity();
         pageEntity.setSource(pageSource);
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportDescriptorMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportDescriptorMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockDescriptorFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportDescriptorMockFetcher> mockFetcherClass = PageService_ImportDescriptorMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockDescriptorFetcherConfiguration fetcherConfiguration = new PageService_MockDescriptorFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockDescriptorFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockDescriptorFetcherConfiguration fetcherConfiguration =
+                new PageService_MockDescriptorFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockDescriptorFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         Page newPage = mock(Page.class);
@@ -162,7 +164,10 @@ public class PageService_ImportDescriptorTest {
         openAPI.setInfo(new Info().title("My API").version("1.0.0").description("A description"));
         openAPI.setServers(List.of());
         OAIDescriptor descriptor = new OAIDescriptor(openAPI);
-        PageEntity pageEntity = PageEntity.builder().type(PageType.SWAGGER.name()).content(descriptor.toJson()).build();
+        PageEntity pageEntity = PageEntity.builder()
+                .type(PageType.SWAGGER.name())
+                .content(descriptor.toJson())
+                .build();
 
         var result = pageService.validateSafeContent(executionContext, pageEntity, "api-id");
 
@@ -179,7 +184,10 @@ public class PageService_ImportDescriptorTest {
         openAPI.setInfo(new Info().title("My API").version("1.0.0").description("A description"));
         openAPI.setServers(List.of());
         OAIDescriptor descriptor = new OAIDescriptor(openAPI);
-        PageEntity pageEntity = PageEntity.builder().type(PageType.SWAGGER.name()).content(descriptor.toJson()).build();
+        PageEntity pageEntity = PageEntity.builder()
+                .type(PageType.SWAGGER.name())
+                .content(descriptor.toJson())
+                .build();
 
         var result = pageService.validateSafeContent(executionContext, pageEntity, "api-id");
 

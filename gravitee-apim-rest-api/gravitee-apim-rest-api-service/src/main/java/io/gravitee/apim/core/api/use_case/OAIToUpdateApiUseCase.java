@@ -38,13 +38,12 @@ public class OAIToUpdateApiUseCase {
 
     @Builder
     public record Input(
-        String apiId,
-        ImportSwaggerDescriptorEntity importSwaggerDescriptor,
-        boolean withDocumentation,
-        boolean withOASValidationPolicy,
-        boolean withPolicyPaths,
-        AuditInfo auditInfo
-    ) {}
+            String apiId,
+            ImportSwaggerDescriptorEntity importSwaggerDescriptor,
+            boolean withDocumentation,
+            boolean withOASValidationPolicy,
+            boolean withPolicyPaths,
+            AuditInfo auditInfo) {}
 
     public record Output(ApiWithFlows apiWithFlows) {}
 
@@ -55,12 +54,11 @@ public class OAIToUpdateApiUseCase {
     public Output execute(Input input) {
         var audit = input.auditInfo();
         var importDefinition = oaiDomainService.convert(
-            audit.organizationId(),
-            audit.environmentId(),
-            input.importSwaggerDescriptor(),
-            input.withDocumentation(),
-            input.withOASValidationPolicy()
-        );
+                audit.organizationId(),
+                audit.environmentId(),
+                input.importSwaggerDescriptor(),
+                input.withDocumentation(),
+                input.withOASValidationPolicy());
 
         if (importDefinition == null) {
             throw new InvalidApiDefinitionException("Unable to read the swagger specification");
@@ -68,14 +66,14 @@ public class OAIToUpdateApiUseCase {
 
         if (!input.withPolicyPaths()) {
             restoreApiFlowIdsByKey(
-                importDefinition.getApiExport() != null ? importDefinition.getApiExport().getFlows() : null,
-                input.apiId()
-            );
+                    importDefinition.getApiExport() != null
+                            ? importDefinition.getApiExport().getFlows()
+                            : null,
+                    input.apiId());
         }
 
         var output = updateApiDefinitionUseCase.execute(
-            new UpdateApiDefinitionFromImportUseCase.Input(input.apiId(), importDefinition, audit)
-        );
+                new UpdateApiDefinitionFromImportUseCase.Input(input.apiId(), importDefinition, audit));
 
         return new Output(output.apiWithFlows());
     }
@@ -85,45 +83,46 @@ public class OAIToUpdateApiUseCase {
             return;
         }
 
-        var idByKey = flowCrudService
-            .getApiV4Flows(apiId)
-            .stream()
-            .filter(f -> f instanceof Flow flow && flow.getId() != null)
-            .collect(Collectors.toMap(this::httpFlowKey, Flow::getId, (firstId, duplicateId) -> keepFirstId(apiId, firstId)));
+        var idByKey = flowCrudService.getApiV4Flows(apiId).stream()
+                .filter(f -> f instanceof Flow flow && flow.getId() != null)
+                .collect(Collectors.toMap(
+                        this::httpFlowKey, Flow::getId, (firstId, duplicateId) -> keepFirstId(apiId, firstId)));
 
-        flows
-            .stream()
-            .filter(f -> f instanceof Flow flow && flow.getId() == null)
-            .map(Flow.class::cast)
-            .forEach(flow -> {
-                // remove so the same existing ID cannot be assigned to more than one incoming flow
-                var existingId = idByKey.remove(httpFlowKey(flow));
-                if (existingId != null) {
-                    flow.setId(existingId);
-                }
-            });
+        flows.stream()
+                .filter(f -> f instanceof Flow flow && flow.getId() == null)
+                .map(Flow.class::cast)
+                .forEach(flow -> {
+                    // remove so the same existing ID cannot be assigned to more than one incoming flow
+                    var existingId = idByKey.remove(httpFlowKey(flow));
+                    if (existingId != null) {
+                        flow.setId(existingId);
+                    }
+                });
     }
 
     private String httpFlowKey(AbstractFlow abstractFlow) {
         if (!(abstractFlow instanceof Flow flow) || flow.getSelectors() == null) {
             return "";
         }
-        return flow
-            .getSelectors()
-            .stream()
-            .filter(HttpSelector.class::isInstance)
-            .map(HttpSelector.class::cast)
-            .map(this::httpSelectorKey)
-            .collect(Collectors.joining(";"));
+        return flow.getSelectors().stream()
+                .filter(HttpSelector.class::isInstance)
+                .map(HttpSelector.class::cast)
+                .map(this::httpSelectorKey)
+                .collect(Collectors.joining(";"));
     }
 
     private String httpSelectorKey(HttpSelector http) {
-        var methods = http.getMethods() != null ? http.getMethods().stream().map(Enum::name).sorted().collect(Collectors.joining(",")) : "";
+        var methods = http.getMethods() != null
+                ? http.getMethods().stream().map(Enum::name).sorted().collect(Collectors.joining(","))
+                : "";
         return http.getPath() + "|" + methods;
     }
 
     private String keepFirstId(String apiId, String firstId) {
-        log.warn("Duplicate HTTP flow key found among persisted flows for API [{}], keeping first flow id [{}]", apiId, firstId);
+        log.warn(
+                "Duplicate HTTP flow key found among persisted flows for API [{}], keeping first flow id [{}]",
+                apiId,
+                firstId);
         return firstId;
     }
 }

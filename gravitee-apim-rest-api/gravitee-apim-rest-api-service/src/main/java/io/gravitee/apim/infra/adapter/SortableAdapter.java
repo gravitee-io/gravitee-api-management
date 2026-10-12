@@ -28,7 +28,8 @@ public class SortableAdapter {
     public io.gravitee.repository.management.api.search.Sortable toSortableForRepository(Sortable sortable) {
         var builder = new SortableBuilder();
         if (sortable != null) {
-            builder.field(sortable.getField()).order(Order.valueOf(sortable.getOrder().name()));
+            builder.field(sortable.getField())
+                    .order(Order.valueOf(sortable.getOrder().name()));
         }
         return builder.build();
     }

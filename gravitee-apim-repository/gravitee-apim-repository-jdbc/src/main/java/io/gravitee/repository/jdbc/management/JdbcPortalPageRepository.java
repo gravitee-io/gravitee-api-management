@@ -35,7 +35,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalPage, String> implements PortalPageRepository {
+public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalPage, String>
+        implements PortalPageRepository {
 
     JdbcPortalPageRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_pages");
@@ -44,13 +45,13 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
     @Override
     protected JdbcObjectMapper<PortalPage> buildOrm() {
         return JdbcObjectMapper.builder(PortalPage.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.LONGNVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.LONGNVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -70,7 +71,8 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
             return List.of();
         }
         try {
-            var sql = new StringBuilder("SELECT id, environment_id, name, content, created_at, updated_at FROM " + this.tableName);
+            var sql = new StringBuilder(
+                    "SELECT id, environment_id, name, content, created_at, updated_at FROM " + this.tableName);
             getOrm().buildInCondition(true, sql, "id", ids);
             return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
         } catch (Exception ex) {
@@ -91,7 +93,10 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
                 expands.forEach(e -> selected.add(e.getValue()));
             }
 
-            StringBuilder sql = new StringBuilder("SELECT ").append(String.join(", ", selected)).append(" FROM ").append(this.tableName);
+            StringBuilder sql = new StringBuilder("SELECT ")
+                    .append(String.join(", ", selected))
+                    .append(" FROM ")
+                    .append(this.tableName);
             getOrm().buildInCondition(true, sql, "id", ids);
             return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
         } catch (Exception ex) {

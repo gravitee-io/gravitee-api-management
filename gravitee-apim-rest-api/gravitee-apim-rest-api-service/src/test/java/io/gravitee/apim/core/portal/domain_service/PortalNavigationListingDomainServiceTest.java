@@ -42,15 +42,16 @@ import org.junit.jupiter.api.Test;
 class PortalNavigationListingDomainServiceTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
 
     private static final PortalId PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
 
     private final PortalNavigationItemsCrudServiceInMemory crud = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory query = new PortalNavigationItemsQueryServiceInMemory(crud.storage());
+    private final PortalNavigationItemsQueryServiceInMemory query =
+            new PortalNavigationItemsQueryServiceInMemory(crud.storage());
     private final PortalPageContentCrudServiceInMemory pageContentCrud = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory pageContentQuery = new PortalPageContentQueryServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrud = new PortalListingCrudServiceInMemory();
@@ -64,29 +65,24 @@ class PortalNavigationListingDomainServiceTest {
         pageContentQuery.reset();
         portalListingCrud.reset();
         syncService = new PortalNavigationSyncDomainService(
-            query,
-            new AutomationManagedNavigationItemsQueryService(portalListingCrud, query),
-            new NavigationSyncPlanExecutor(crud, query, pageContentCrud),
-            mock(PortalNavigationValidator.class)
-        );
+                query,
+                new AutomationManagedNavigationItemsQueryService(portalListingCrud, query),
+                new NavigationSyncPlanExecutor(crud, query, pageContentCrud),
+                mock(PortalNavigationValidator.class));
         listingService = new PortalNavigationListingDomainService(query);
     }
 
     @Test
     void list_as_navigation_paths_round_trips_input_order() {
         syncService.sync(
-            AUDIT_INFO,
-            PORTAL_ID,
-            PortalNavigationStructure.empty(),
-            PortalNavigationStructure.ofTopNavbar(
-                List.of(
-                    new NavigationPath("/a", null),
-                    new NavigationPath("/a/b", null),
-                    new NavigationPath("/c", null),
-                    new NavigationPath("/c/d", null)
-                )
-            )
-        );
+                AUDIT_INFO,
+                PORTAL_ID,
+                PortalNavigationStructure.empty(),
+                PortalNavigationStructure.ofTopNavbar(List.of(
+                        new NavigationPath("/a", null),
+                        new NavigationPath("/a/b", null),
+                        new NavigationPath("/c", null),
+                        new NavigationPath("/c/d", null))));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
@@ -96,48 +92,50 @@ class PortalNavigationListingDomainServiceTest {
     @Test
     void path_uses_segment_not_title_when_display_name_provided() {
         syncService.sync(
-            AUDIT_INFO,
-            PORTAL_ID,
-            PortalNavigationStructure.empty(),
-            PortalNavigationStructure.ofTopNavbar(
-                List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/alpha/docs", null))
-            )
-        );
+                AUDIT_INFO,
+                PORTAL_ID,
+                PortalNavigationStructure.empty(),
+                PortalNavigationStructure.ofTopNavbar(List.of(
+                        new NavigationPath("/projects/alpha", "Alpha"),
+                        new NavigationPath("/projects/alpha/docs", null))));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
-        assertThat(result).extracting(NavigationPath::path).containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
+        assertThat(result)
+                .extracting(NavigationPath::path)
+                .containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
     }
 
     @Test
     void display_name_is_surfaced_when_title_differs_from_segment() {
         syncService.sync(
-            AUDIT_INFO,
-            PORTAL_ID,
-            PortalNavigationStructure.empty(),
-            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", "Alpha")))
-        );
+                AUDIT_INFO,
+                PORTAL_ID,
+                PortalNavigationStructure.empty(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", "Alpha"))));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
         assertThat(result)
-            .filteredOn(p -> "/projects/alpha".equals(p.path()))
-            .singleElement()
-            .extracting(NavigationPath::displayName)
-            .isEqualTo("Alpha");
+                .filteredOn(p -> "/projects/alpha".equals(p.path()))
+                .singleElement()
+                .extracting(NavigationPath::displayName)
+                .isEqualTo("Alpha");
     }
 
     @Test
     void display_name_is_null_when_title_equals_segment() {
         syncService.sync(
-            AUDIT_INFO,
-            PORTAL_ID,
-            PortalNavigationStructure.empty(),
-            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null)))
-        );
+                AUDIT_INFO,
+                PORTAL_ID,
+                PortalNavigationStructure.empty(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null))));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
-        assertThat(result).singleElement().extracting(NavigationPath::displayName).isNull();
+        assertThat(result)
+                .singleElement()
+                .extracting(NavigationPath::displayName)
+                .isNull();
     }
 }

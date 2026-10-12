@@ -137,54 +137,57 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             // the user has a SUBSCRIPTION_UPDATE permission
 
             // search for PENDING subscriptions (APIs)
-            Set<String> apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, SUBSCRIPTION.getName());
+            Set<String> apiIds =
+                    getApisForAPermission(executionContext, userMembershipsAndPermissions, SUBSCRIPTION.getName());
             final List<TaskEntity> tasks = new ArrayList<>();
             if (!apiIds.isEmpty()) {
                 SubscriptionQuery apiQuery = new SubscriptionQuery();
                 apiQuery.setStatuses(singleton(PENDING));
                 apiQuery.setApis(apiIds);
-                tasks.addAll(subscriptionService.search(executionContext, apiQuery).stream().map(this::convert).collect(toList()));
+                tasks.addAll(subscriptionService.search(executionContext, apiQuery).stream()
+                        .map(this::convert)
+                        .collect(toList()));
             }
 
             // search for PENDING subscriptions (API Products)
             Set<String> apiProductIds = getApiProductsForAPermission(
-                executionContext,
-                userMembershipsAndPermissions,
-                ApiProductPermission.SUBSCRIPTION.getName()
-            );
+                    executionContext, userMembershipsAndPermissions, ApiProductPermission.SUBSCRIPTION.getName());
             if (!apiProductIds.isEmpty()) {
                 SubscriptionQuery apiProductQuery = new SubscriptionQuery();
                 apiProductQuery.setStatuses(singleton(PENDING));
                 apiProductQuery.setApiProducts(apiProductIds);
-                tasks.addAll(subscriptionService.search(executionContext, apiProductQuery).stream().map(this::convert).collect(toList()));
+                tasks.addAll(subscriptionService.search(executionContext, apiProductQuery).stream()
+                        .map(this::convert)
+                        .collect(toList()));
             }
 
             if (isEnvironmentAdmin()) {
                 // search for PENDING user registration
                 final Page<UserEntity> pendingUsers = userService.search(
-                    executionContext,
-                    new UserCriteria.Builder().statuses(UserStatus.PENDING).build(),
-                    new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH)
-                );
-                if (pendingUsers.getContent() != null && !pendingUsers.getContent().isEmpty()) {
-                    tasks.addAll(pendingUsers.getContent().stream().map(this::convert).collect(toList()));
+                        executionContext,
+                        new UserCriteria.Builder().statuses(UserStatus.PENDING).build(),
+                        new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH));
+                if (pendingUsers.getContent() != null
+                        && !pendingUsers.getContent().isEmpty()) {
+                    tasks.addAll(pendingUsers.getContent().stream()
+                            .map(this::convert)
+                            .collect(toList()));
                 }
             }
 
             // search for IN_REVIEW and REQUEST_FOR_CHANGES apis using a single batch query
-            final Set<String> reviewApiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, REVIEWS.getName());
-            final Set<String> definitionApiIds = getApisForAPermission(
-                executionContext,
-                userMembershipsAndPermissions,
-                DEFINITION.getName()
-            );
+            final Set<String> reviewApiIds =
+                    getApisForAPermission(executionContext, userMembershipsAndPermissions, REVIEWS.getName());
+            final Set<String> definitionApiIds =
+                    getApisForAPermission(executionContext, userMembershipsAndPermissions, DEFINITION.getName());
 
             Set<String> allWorkflowApiIds = new HashSet<>();
             allWorkflowApiIds.addAll(reviewApiIds);
             allWorkflowApiIds.addAll(definitionApiIds);
 
             if (!allWorkflowApiIds.isEmpty()) {
-                final List<Workflow> allWorkflows = workflowService.findByReferencesAndType(API, allWorkflowApiIds, WorkflowType.REVIEW);
+                final List<Workflow> allWorkflows =
+                        workflowService.findByReferencesAndType(API, allWorkflowApiIds, WorkflowType.REVIEW);
 
                 // Keep only the latest (first) workflow per API since results are ordered by createdAt desc
                 Map<String, Workflow> latestWorkflowByApi = new HashMap<>();
@@ -220,26 +223,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         // 1. find apis and group memberships
 
         Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(
-            MembershipMemberType.USER,
-            userId,
-            io.gravitee.rest.api.model.MembershipReferenceType.API
-        );
+                MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.API);
 
-        memberships.addAll(
-            membershipService.getMembershipsByMemberAndReference(
-                MembershipMemberType.USER,
-                userId,
-                io.gravitee.rest.api.model.MembershipReferenceType.GROUP
-            )
-        );
+        memberships.addAll(membershipService.getMembershipsByMemberAndReference(
+                MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.GROUP));
 
-        memberships.addAll(
-            membershipService.getMembershipsByMemberAndReference(
-                MembershipMemberType.USER,
-                userId,
-                io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT
-            )
-        );
+        memberships.addAll(membershipService.getMembershipsByMemberAndReference(
+                MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT));
 
         List<MembershipAndPermissions> userMembershipAndPermissions = new ArrayList<>();
 
@@ -247,7 +237,8 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             // 2. get API/API Product roles in each memberships and search for roleEntity only once
             RoleEntity role = roleService.findById(membership.getRoleId());
             if (role.getScope() == RoleScope.API || role.getScope() == RoleScope.API_PRODUCT) {
-                userMembershipAndPermissions.add(new MembershipAndPermissions(membership, role.getPermissions(), role.getScope()));
+                userMembershipAndPermissions.add(
+                        new MembershipAndPermissions(membership, role.getPermissions(), role.getScope()));
             }
         }
 
@@ -255,10 +246,10 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     }
 
     private Set<String> getApisForAPermission(
-        ExecutionContext executionContext,
-        List<MembershipAndPermissions> membershipsAndPermissions,
-        final String permission
-    ) throws TechnicalException {
+            ExecutionContext executionContext,
+            List<MembershipAndPermissions> membershipsAndPermissions,
+            final String permission)
+            throws TechnicalException {
         Set<String> apiIds = new HashSet<>();
         List<String> groupIds = new ArrayList<>();
 
@@ -293,13 +284,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             apiCriteriaList.add(criteria);
         }
         if (isEnvironmentAdmin()) {
-            List<String> environmentIds = environmentService
-                .findByOrganization(executionContext.getOrganizationId())
-                .stream()
-                .map(EnvironmentEntity::getId)
-                .collect(toList());
+            List<String> environmentIds =
+                    environmentService.findByOrganization(executionContext.getOrganizationId()).stream()
+                            .map(EnvironmentEntity::getId)
+                            .collect(toList());
 
-            ApiCriteria criteria = new ApiCriteria.Builder().environments(environmentIds).build();
+            ApiCriteria criteria =
+                    new ApiCriteria.Builder().environments(environmentIds).build();
 
             apiCriteriaList.add(criteria);
         }
@@ -308,17 +299,19 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         // If we want to improve performance, we need to change the way we retrieve tasks
         // ex: use a dedicated repository & collection to retrieve tasks
         if (!apiCriteriaList.isEmpty()) {
-            apiIds.addAll(apiRepository.searchIds(apiCriteriaList, convert(new PageableImpl(1, Integer.MAX_VALUE)), null).getContent());
+            apiIds.addAll(apiRepository
+                    .searchIds(apiCriteriaList, convert(new PageableImpl(1, Integer.MAX_VALUE)), null)
+                    .getContent());
         }
 
         return apiIds;
     }
 
     private Set<String> getApiProductsForAPermission(
-        ExecutionContext executionContext,
-        List<MembershipAndPermissions> membershipsAndPermissions,
-        final String permission
-    ) throws TechnicalException {
+            ExecutionContext executionContext,
+            List<MembershipAndPermissions> membershipsAndPermissions,
+            final String permission)
+            throws TechnicalException {
         Set<String> apiProductIds = new HashSet<>();
 
         for (MembershipAndPermissions membershipWithPerms : membershipsAndPermissions) {
@@ -339,28 +332,28 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                     break;
                 }
             }
-            if (hasUpdateRight && membershipWithPerms.membership.getReferenceType() == MembershipReferenceType.API_PRODUCT) {
+            if (hasUpdateRight
+                    && membershipWithPerms.membership.getReferenceType() == MembershipReferenceType.API_PRODUCT) {
                 apiProductIds.add(membershipWithPerms.membership.getReferenceId());
             }
         }
 
         List<ApiProductCriteria> apiProductCriteriaList = new ArrayList<>();
         if (isEnvironmentAdmin()) {
-            List<String> environmentIds = environmentService
-                .findByOrganization(executionContext.getOrganizationId())
-                .stream()
-                .map(EnvironmentEntity::getId)
-                .collect(toList());
-            apiProductCriteriaList.add(new ApiProductCriteria.Builder().environments(environmentIds).build());
+            List<String> environmentIds =
+                    environmentService.findByOrganization(executionContext.getOrganizationId()).stream()
+                            .map(EnvironmentEntity::getId)
+                            .collect(toList());
+            apiProductCriteriaList.add(new ApiProductCriteria.Builder()
+                    .environments(environmentIds)
+                    .build());
         }
 
         if (!apiProductCriteriaList.isEmpty()) {
             try {
-                apiProductIds.addAll(
-                    apiProductsRepository
+                apiProductIds.addAll(apiProductsRepository
                         .searchIds(apiProductCriteriaList, convert(new PageableImpl(1, Integer.MAX_VALUE)), null)
-                        .getContent()
-                );
+                        .getContent());
             } catch (TechnicalException e) {
                 log.error("Error retrieving API Product IDs for environment admin tasks", e);
             }
@@ -422,7 +415,10 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 metadata.put(subscription.getApplication(), "environmentId", value.getEnvironmentId());
             });
         } catch (TechnicalException e) {
-            log.error("Error retrieving application task metadata for application [{}]", subscription.getApplication(), e);
+            log.error(
+                    "Error retrieving application task metadata for application [{}]",
+                    subscription.getApplication(),
+                    e);
         }
     }
 
@@ -439,7 +435,8 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 if (plan.getReferenceType() == Plan.PlanReferenceType.API_PRODUCT) {
                     Optional<ApiProduct> optionalApiProduct = apiProductsRepository.findById(referenceId);
                     optionalApiProduct.ifPresent(product -> metadata.put(referenceId, "name", product.getName()));
-                    optionalApiProduct.ifPresent(product -> metadata.put(referenceId, "environmentId", product.getEnvironmentId()));
+                    optionalApiProduct.ifPresent(
+                            product -> metadata.put(referenceId, "environmentId", product.getEnvironmentId()));
                 } else {
                     Optional<Api> optionalApi = apiRepository.findById(referenceId);
                     optionalApi.ifPresent(api -> metadata.put(referenceId, "name", api.getName()));
@@ -471,7 +468,8 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             taskEntity.setCreatedAt(subscription.getCreatedAt());
             taskEntity.setData(subscription);
         } catch (Exception e) {
-            throw new TechnicalManagementException("Error converting subscription " + subscription.getId() + " to a Task", e);
+            throw new TechnicalManagementException(
+                    "Error converting subscription " + subscription.getId() + " to a Task", e);
         }
         return taskEntity;
     }

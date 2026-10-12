@@ -78,18 +78,25 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .name("My API")
+                .environmentId(ENVIRONMENT)
+                .build()));
 
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(
-            new CreatePortalNavigationItemUseCase.Output(PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT))
-        );
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(
+                        PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT)));
     }
 
     @AfterEach
@@ -103,15 +110,15 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     @Test
     void should_return_canonical_api_documentation_from_the_use_case() {
         var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null);
-        var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .published(false)
-            .build();
+        var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null).toBuilder()
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .published(false)
+                .build();
         output.markAsRoot();
-        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+        when(createPortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         Response response = rootTarget().request().post(json(page));
 
@@ -121,7 +128,8 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
         assertThat(item.getId()).isEqualTo(output.getId().id());
         assertThat(item.getParentId()).isNull();
         assertThat(item.getRootId()).isEqualTo(output.getId().id());
-        assertThat(item.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
+        assertThat(item.getPortalPageContentId())
+                .isEqualTo(output.getPortalPageContentId().id());
     }
 
     @Test
@@ -152,7 +160,8 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     void should_create_an_item_under_a_folder_of_the_same_api() {
         var folder = aFolderOwnedBy(API_ID);
         portalNavigationItemsQueryService.initWith(List.of(folder));
-        var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(folder.getId().id());
+        var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage()
+                .parentId(folder.getId().id());
 
         Response response = rootTarget().request().post(json(page));
 
@@ -164,7 +173,8 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     void should_reject_a_parent_belonging_to_another_api() {
         var foreignFolder = aFolderOwnedBy(OTHER_API_ID);
         portalNavigationItemsQueryService.initWith(List.of(foreignFolder));
-        var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(foreignFolder.getId().id());
+        var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage()
+                .parentId(foreignFolder.getId().id());
 
         Response response = rootTarget().request().post(json(page));
 
@@ -177,7 +187,8 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
         var section = PortalNavigationItemFixtures.aFolder("APIs");
         section.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemsQueryService.initWith(List.of(section));
-        var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(section.getId().id());
+        var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage()
+                .parentId(section.getId().id());
 
         Response response = rootTarget().request().post(json(page));
 
@@ -197,16 +208,17 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
 
     @Test
     void should_return_403_with_environment_documentation_permission_only() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(false);
 
-        Response response = rootTarget().request().post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)));
+        Response response = rootTarget()
+                .request()
+                .post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage()
+                        .parentId(null)));
 
         assertThat(response).hasStatus(FORBIDDEN_403);
         verifyNoInteractions(createPortalNavigationItemUseCase);
@@ -215,16 +227,17 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     @Test
     void should_succeed_with_api_documentation_permission_only() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(true);
 
-        Response response = rootTarget().request().post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)));
+        Response response = rootTarget()
+                .request()
+                .post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage()
+                        .parentId(null)));
 
         assertThat(response).hasStatus(CREATED_201);
     }
@@ -236,10 +249,11 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     }
 
     private static PortalNavigationFolder aFolderOwnedBy(String apiId) {
-        var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Auth")
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .build();
+        var folder = PortalNavigationItemFixtures.aFolder(
+                        PortalNavigationItemId.random().json(), "Auth")
+                .toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .build();
         folder.setEnvironmentId(ENVIRONMENT);
         return folder;
     }

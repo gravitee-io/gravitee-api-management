@@ -120,7 +120,7 @@ public class ApplicationMapperTest {
         applicationEntity = new ApplicationEntity();
         applicationListItem = new ApplicationListItem();
 
-        //init
+        // init
         reset(groupService);
         reset(userService);
         reset(userMapper);
@@ -128,14 +128,16 @@ public class ApplicationMapperTest {
         GroupEntity grpEntity = new GroupEntity();
         grpEntity.setId(APPLICATION_GROUP_ID);
         grpEntity.setName(APPLICATION_GROUP_NAME);
-        when(groupService.findById(GraviteeContext.getExecutionContext(), APPLICATION_GROUP_ID)).thenReturn(grpEntity);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), APPLICATION_GROUP_ID))
+                .thenReturn(grpEntity);
 
         UserEntity userEntity = Mockito.mock(UserEntity.class);
         when(userEntity.getDisplayName()).thenReturn(APPLICATION_USER_DISPLAYNAME);
         when(userEntity.getEmail()).thenReturn(APPLICATION_USER_EMAIL);
         when(userEntity.getId()).thenReturn(APPLICATION_USER_ID);
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), APPLICATION_USER_ID)).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), APPLICATION_USER_ID))
+                .thenReturn(userEntity);
         when(userMapper.convert(userEntity)).thenCallRealMethod();
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
@@ -172,14 +174,16 @@ public class ApplicationMapperTest {
 
     @Test
     public void testConvertFromAppListItem() {
-        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
+        Application responseApplication =
+                applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS);
     }
 
     @Test
     public void testConvertFromAppListItemWithKubernetesOrigin() {
         applicationListItem.setOrigin(Origin.KUBERNETES);
-        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
+        Application responseApplication =
+                applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS, Origin.KUBERNETES);
     }
 
@@ -192,20 +196,23 @@ public class ApplicationMapperTest {
         settings.setTls(tlsSettings);
 
         applicationListItem.setSettings(settings);
-        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
+        Application responseApplication =
+                applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.TLS_SETTINGS);
     }
 
     @Test
     public void testConvertFromAppEntityNoSettings() {
-        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
+        Application responseApplication =
+                applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS);
     }
 
     @Test
     public void testConvertFromAppEntityWithKubernetesOrigin() {
         applicationEntity.setOrigin(Origin.KUBERNETES);
-        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
+        Application responseApplication =
+                applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS, Origin.KUBERNETES);
     }
 
@@ -218,7 +225,8 @@ public class ApplicationMapperTest {
         settings.setApp(simpleAppEntitySetings);
         applicationEntity.setSettings(settings);
 
-        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
+        Application responseApplication =
+                applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.SIMPLE_SETTINGS);
     }
 
@@ -239,7 +247,8 @@ public class ApplicationMapperTest {
         settings.setOauth(oAuthClientEntitySettings);
         applicationEntity.setSettings(settings);
 
-        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
+        Application responseApplication =
+                applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.OAUTH_SETTINGS);
     }
 
@@ -247,19 +256,26 @@ public class ApplicationMapperTest {
         checkApplication(now, responseApplication, appSettingsType, Origin.MANAGEMENT);
     }
 
-    private void checkApplication(Instant now, Application responseApplication, AppSettingsEnum appSettingsType, Origin origin) {
+    private void checkApplication(
+            Instant now, Application responseApplication, AppSettingsEnum appSettingsType, Origin origin) {
         assertNotNull(responseApplication);
 
         assertNull(responseApplication.getLinks());
 
         assertEquals(APPLICATION_TYPE, responseApplication.getApplicationType());
-        assertEquals(now.toEpochMilli(), responseApplication.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                now.toEpochMilli(),
+                responseApplication.getCreatedAt().toInstant().toEpochMilli());
         assertEquals(APPLICATION_DESCRIPTION, responseApplication.getDescription());
         assertEquals(APPLICATION_DOMAIN, responseApplication.getDomain());
         assertEquals(APPLICATION_ID, responseApplication.getId());
         assertEquals(APPLICATION_NAME, responseApplication.getName());
-        assertEquals(now.toEpochMilli(), responseApplication.getUpdatedAt().toInstant().toEpochMilli());
-        assertEquals(APPLICATION_API_KEY_MODE.name(), responseApplication.getApiKeyMode().getValue());
+        assertEquals(
+                now.toEpochMilli(),
+                responseApplication.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                APPLICATION_API_KEY_MODE.name(),
+                responseApplication.getApiKeyMode().getValue());
         assertEquals(origin.name(), responseApplication.getOrigin());
 
         List<Group> groups = responseApplication.getGroups();
@@ -273,9 +289,12 @@ public class ApplicationMapperTest {
         assertEquals(APPLICATION_USER_DISPLAYNAME, owner.getDisplayName());
         assertEquals(APPLICATION_USER_EMAIL, owner.getEmail());
         assertEquals(APPLICATION_USER_ID, owner.getId());
-        assertEquals("environments/DEFAULT/users/" + APPLICATION_USER_ID + "/avatar?", owner.getLinks().getAvatar());
+        assertEquals(
+                "environments/DEFAULT/users/" + APPLICATION_USER_ID + "/avatar?",
+                owner.getLinks().getAvatar());
 
-        io.gravitee.rest.api.portal.rest.model.ApplicationSettings applicationSettings = responseApplication.getSettings();
+        io.gravitee.rest.api.portal.rest.model.ApplicationSettings applicationSettings =
+                responseApplication.getSettings();
         if (AppSettingsEnum.NO_SETTINGS == appSettingsType) {
             assertNull(applicationSettings);
         } else {

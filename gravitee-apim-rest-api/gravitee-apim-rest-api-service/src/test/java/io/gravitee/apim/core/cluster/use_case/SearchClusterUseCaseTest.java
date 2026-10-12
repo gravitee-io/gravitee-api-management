@@ -51,92 +51,104 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     @BeforeEach
     void setUp() {
         searchClusterUseCase = new SearchClusterUseCase(
-            clusterQueryService,
-            membershipQueryService,
-            new ClusterConfigurationAccessDomainService(permissionDomainService)
-        );
+                clusterQueryService,
+                membershipQueryService,
+                new ClusterConfigurationAccessDomainService(permissionDomainService));
         initDb();
     }
 
     @Test
     void should_search_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, true, "admin"));
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, true, "admin"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
-            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
-                    initClusters().stream().map(Cluster::getName).sorted().limit(10).toList()
-                )
-        );
+                () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
+                () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .isEqualTo(initClusters().stream()
+                                .map(Cluster::getName)
+                                .sorted()
+                                .limit(10)
+                                .toList()));
     }
 
     @Test
     void should_search_not_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "member-1"));
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "member-1"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
-            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
-                    List.of("Cluster 1", "Cluster 4", "Cluster 8")
-                )
-        );
+                () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
+                () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .isEqualTo(List.of("Cluster 1", "Cluster 4", "Cluster 8")));
     }
 
     @Test
     void sould_search_not_admin_no_membership_no_pageable_no_sort_by() {
         // When
         var result = searchClusterUseCase.execute(
-            new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "unknown-member")
-        );
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "unknown-member"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(0),
-            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(0),
-            () -> assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEmpty()
-        );
+                () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(0),
+                () -> assertThat(result.pageResult().getPageElements()).isEqualTo(0),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .isEmpty());
     }
 
     @Test
     void should_search_admin_with_pageable_no_sort_by() {
         Pageable pageable = new PageableImpl(2, 5);
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, pageable, null, true, "admin"));
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, pageable, null, true, "admin"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
-            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
-                    initClusters().stream().map(Cluster::getName).sorted().toList().subList(5, 10)
-                )
-        );
+                () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
+                () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .isEqualTo(initClusters().stream()
+                                .map(Cluster::getName)
+                                .sorted()
+                                .toList()
+                                .subList(5, 10)));
     }
 
     @Test
     void should_search_admin_no_pageable_with_sort_by() {
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, sortBy, true, "admin"));
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, sortBy, true, "admin"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
-            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
-                    initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).limit(10).toList()
-                )
-        );
+                () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
+                () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .isEqualTo(initClusters().stream()
+                                .sorted(Comparator.comparing(Cluster::getId))
+                                .map(Cluster::getName)
+                                .limit(10)
+                                .toList()));
     }
 
     @Test
@@ -145,18 +157,20 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
         String sortBy = "id";
         // When
         var result = searchClusterUseCase.execute(
-            new SearchClusterUseCase.Input(ENV_ID, null, null, null, pageable, sortBy, true, "admin")
-        );
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, pageable, sortBy, true, "admin"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
-            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
-                    initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).toList().subList(5, 10)
-                )
-        );
+                () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(17),
+                () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .isEqualTo(initClusters().stream()
+                                .sorted(Comparator.comparing(Cluster::getId))
+                                .map(Cluster::getName)
+                                .toList()
+                                .subList(5, 10)));
     }
 
     @Test
@@ -164,387 +178,356 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
         Pageable pageable = new PageableImpl(1, 10);
         String query = "Cluster 1";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, query, pageable, null, true, "admin"));
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, query, pageable, null, true, "admin"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
-            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
-                    List.of("Cluster 1", "Cluster 12", "Cluster 13")
-                )
-        );
+                () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
+                () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .isEqualTo(List.of("Cluster 1", "Cluster 12", "Cluster 13")));
     }
 
     @Test
     void should_hide_configuration_when_no_permission() {
         // When
         lenient()
-            .when(
-                permissionDomainService.hasPermission(
-                    eq(ORG_ID),
-                    eq("member-1"),
-                    eq(RolePermission.CLUSTER_CONFIGURATION),
-                    argThat(s -> !s.equals("cluster-1")),
-                    eq(RolePermissionAction.READ)
-                )
-            )
-            .thenReturn(false);
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "member-2"));
+                .when(permissionDomainService.hasPermission(
+                        eq(ORG_ID),
+                        eq("member-1"),
+                        eq(RolePermission.CLUSTER_CONFIGURATION),
+                        argThat(s -> !s.equals("cluster-1")),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "member-2"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(1),
-            () -> assertThat(result.pageResult().getContent().get(0).getName()).isEqualTo("2 - Cluster"),
-            () -> assertThat(result.pageResult().getContent().get(0).getConfiguration()).isNull()
-        );
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(1),
+                () -> assertThat(result.pageResult().getContent().get(0).getName())
+                        .isEqualTo("2 - Cluster"),
+                () -> assertThat(result.pageResult().getContent().get(0).getConfiguration())
+                        .isNull());
     }
 
     @Test
     void should_show_configuration_when_permission() {
         // When
         lenient()
-            .when(
-                permissionDomainService.hasPermission(
-                    eq(ORG_ID),
-                    eq("member-1"),
-                    eq(RolePermission.CLUSTER_CONFIGURATION),
-                    argThat(s -> s.equals("cluster-1")),
-                    eq(RolePermissionAction.READ)
-                )
-            )
-            .thenReturn(true);
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "member-1"));
+                .when(permissionDomainService.hasPermission(
+                        eq(ORG_ID),
+                        eq("member-1"),
+                        eq(RolePermission.CLUSTER_CONFIGURATION),
+                        argThat(s -> s.equals("cluster-1")),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(true);
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, false, "member-1"));
         // Then
         assertAll(
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).containsExactlyInAnyOrder(
-                    "Cluster 1",
-                    "Cluster 4",
-                    "Cluster 8"
-                ),
-            () ->
-                assertThat(
-                    result
-                        .pageResult()
-                        .getContent()
-                        .stream()
-                        .filter(c -> c.getName().equals("Cluster 1"))
-                        .findFirst()
-                        .get()
-                        .getConfiguration()
-                ).isNotNull(),
-            () ->
-                assertThat(
-                    result
-                        .pageResult()
-                        .getContent()
-                        .stream()
-                        .filter(c -> c.getName().equals("Cluster 4"))
-                        .findFirst()
-                        .get()
-                        .getConfiguration()
-                ).isNull(),
-            () ->
-                assertThat(
-                    result
-                        .pageResult()
-                        .getContent()
-                        .stream()
-                        .filter(c -> c.getName().equals("Cluster 8"))
-                        .findFirst()
-                        .get()
-                        .getConfiguration()
-                ).isNull()
-        );
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .containsExactlyInAnyOrder("Cluster 1", "Cluster 4", "Cluster 8"),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .filter(c -> c.getName().equals("Cluster 1"))
+                                .findFirst()
+                                .get()
+                                .getConfiguration())
+                        .isNotNull(),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .filter(c -> c.getName().equals("Cluster 4"))
+                                .findFirst()
+                                .get()
+                                .getConfiguration())
+                        .isNull(),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .filter(c -> c.getName().equals("Cluster 8"))
+                                .findFirst()
+                                .get()
+                                .getConfiguration())
+                        .isNull());
     }
 
     @Test
     void should_search_by_type_kafka_cluster() {
         Pageable pageable = new PageableImpl(1, 10);
-        var result = searchClusterUseCase.execute(
-            new SearchClusterUseCase.Input(ENV_ID, ClusterType.KAFKA_CLUSTER, null, null, pageable, null, true, "admin")
-        );
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(
+                ENV_ID, ClusterType.KAFKA_CLUSTER, null, null, pageable, null, true, "admin"));
         assertAll(
-            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(2),
-            () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).containsExactlyInAnyOrder(
-                    "Kafka Cluster A",
-                    "Kafka Cluster B"
-                )
-        );
+                () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(2),
+                () -> assertThat(result.pageResult().getContent().stream()
+                                .map(Cluster::getName)
+                                .toList())
+                        .containsExactlyInAnyOrder("Kafka Cluster A", "Kafka Cluster B"));
     }
 
     @Test
     void should_never_return_credentials_in_the_list() {
-        clusterQueryService.initWith(
-            List.of(
-                Cluster.builder()
-                    .id("secured-cluster")
-                    .name("secured")
-                    .environmentId(ENV_ID)
-                    .organizationId(ORG_ID)
-                    .configuration(
-                        Map.of(
-                            "bootstrapServers",
-                            "broker:9093",
-                            "security",
-                            Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))
-                        )
-                    )
-                    .build()
-            )
-        );
-        lenient().when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        clusterQueryService.initWith(List.of(Cluster.builder()
+                .id("secured-cluster")
+                .name("secured")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of(
+                        "bootstrapServers",
+                        "broker:9093",
+                        "security",
+                        Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))))
+                .build()));
+        lenient()
+                .when(permissionDomainService.hasPermission(any(), any(), any(), any(), any()))
+                .thenReturn(true);
 
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, true, "admin"));
+        var result = searchClusterUseCase.execute(
+                new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, true, "admin"));
 
-        assertThat(result.pageResult().getContent().get(0).getConfiguration()).isEqualTo(
-            Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
-        );
+        assertThat(result.pageResult().getContent().get(0).getConfiguration())
+                .isEqualTo(Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL")));
     }
 
     private List<Cluster> initClusters() {
         Cluster cluster1 = Cluster.builder()
-            .id("cluster-1")
-            .name("Cluster 1")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 1")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-1")
+                .name("Cluster 1")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 1")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster2 = Cluster.builder()
-            .id("cluster-2")
-            .name("2 - Cluster")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 2")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-2")
+                .name("2 - Cluster")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 2")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster3 = Cluster.builder()
-            .id("cluster-3")
-            .name("Cluster no 3")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 3")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-3")
+                .name("Cluster no 3")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 3")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster4 = Cluster.builder()
-            .id("cluster-4")
-            .name("Cluster 4")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 4")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-4")
+                .name("Cluster 4")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 4")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster5 = Cluster.builder()
-            .id("cluster-5")
-            .name("Cluster 5")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 5")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-5")
+                .name("Cluster 5")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 5")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster6 = Cluster.builder()
-            .id("cluster-6")
-            .name("6 Cluster")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 6")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-6")
+                .name("6 Cluster")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 6")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster7 = Cluster.builder()
-            .id("cluster-7")
-            .name("7 - Cluster")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 7")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-7")
+                .name("7 - Cluster")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 7")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster8 = Cluster.builder()
-            .id("cluster-8")
-            .name("Cluster 8")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 8")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-8")
+                .name("Cluster 8")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 8")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster9 = Cluster.builder()
-            .id("cluster-9")
-            .name("Cluster - 9")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 9")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-9")
+                .name("Cluster - 9")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 9")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster10 = Cluster.builder()
-            .id("cluster-10")
-            .name("10 - Cluster")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 10")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-10")
+                .name("10 - Cluster")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 10")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster11 = Cluster.builder()
-            .id("cluster-11")
-            .name("11 Cluster")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 11")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-11")
+                .name("11 Cluster")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 11")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster12 = Cluster.builder()
-            .id("cluster-12")
-            .name("Cluster 12")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 12")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-12")
+                .name("Cluster 12")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 12")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster13 = Cluster.builder()
-            .id("cluster-13")
-            .name("Cluster 13")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 13")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-13")
+                .name("Cluster 13")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 13")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster14 = Cluster.builder()
-            .id("cluster-14")
-            .name("14 Cluster")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 14")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-14")
+                .name("14 Cluster")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 14")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster cluster15 = Cluster.builder()
-            .id("cluster-15")
-            .name("15 - Cluster")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 15")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id("cluster-15")
+                .name("15 - Cluster")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 15")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         Cluster kafkaClusterA = Cluster.builder()
-            .id("kafka-cluster-a")
-            .name("Kafka Cluster A")
-            .type(ClusterType.KAFKA_CLUSTER)
-            .createdAt(INSTANT_NOW)
-            .description("A Kafka Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .build();
+                .id("kafka-cluster-a")
+                .name("Kafka Cluster A")
+                .type(ClusterType.KAFKA_CLUSTER)
+                .createdAt(INSTANT_NOW)
+                .description("A Kafka Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .build();
         Cluster kafkaClusterB = Cluster.builder()
-            .id("kafka-cluster-b")
-            .name("Kafka Cluster B")
-            .type(ClusterType.KAFKA_CLUSTER)
-            .createdAt(INSTANT_NOW)
-            .description("Another Kafka Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .build();
+                .id("kafka-cluster-b")
+                .name("Kafka Cluster B")
+                .type(ClusterType.KAFKA_CLUSTER)
+                .createdAt(INSTANT_NOW)
+                .description("Another Kafka Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .build();
         List<Cluster> clusters = List.of(
-            cluster1,
-            cluster2,
-            cluster3,
-            cluster4,
-            cluster5,
-            cluster6,
-            cluster7,
-            cluster8,
-            cluster9,
-            cluster10,
-            cluster11,
-            cluster12,
-            cluster13,
-            cluster14,
-            cluster15,
-            kafkaClusterA,
-            kafkaClusterB
-        );
+                cluster1,
+                cluster2,
+                cluster3,
+                cluster4,
+                cluster5,
+                cluster6,
+                cluster7,
+                cluster8,
+                cluster9,
+                cluster10,
+                cluster11,
+                cluster12,
+                cluster13,
+                cluster14,
+                cluster15,
+                kafkaClusterA,
+                kafkaClusterB);
         clusterQueryService.initWith(clusters);
         return clusters;
     }
 
     private void initMemberships() {
         List<Membership> memberships = List.of(
-            Membership.builder()
-                .referenceId("cluster-1")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-1")
-                .build(),
-            Membership.builder()
-                .referenceId("group-1")
-                .referenceType(Membership.ReferenceType.GROUP)
-                .memberType(Membership.Type.USER)
-                .memberId("member-1")
-                .build(),
-            Membership.builder()
-                .referenceId("cluster-4")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-1")
-                .build(),
-            Membership.builder()
-                .referenceId("cluster-2")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-2")
-                .build(),
-            Membership.builder()
-                .referenceId("api-1")
-                .referenceType(Membership.ReferenceType.API)
-                .memberType(Membership.Type.USER)
-                .memberId("member-1")
-                .build(),
-            Membership.builder()
-                .referenceId("cluster-3")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-3")
-                .build(),
-            Membership.builder()
-                .referenceId("cluster-5")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-3")
-                .build(),
-            Membership.builder()
-                .referenceId("cluster-8")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-1")
-                .build(),
-            Membership.builder()
-                .referenceId("cluster-9")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-4")
-                .build(),
-            Membership.builder()
-                .referenceId("cluster-15")
-                .referenceType(Membership.ReferenceType.CLUSTER)
-                .memberType(Membership.Type.USER)
-                .memberId("member-5")
-                .build()
-        );
+                Membership.builder()
+                        .referenceId("cluster-1")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-1")
+                        .build(),
+                Membership.builder()
+                        .referenceId("group-1")
+                        .referenceType(Membership.ReferenceType.GROUP)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-1")
+                        .build(),
+                Membership.builder()
+                        .referenceId("cluster-4")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-1")
+                        .build(),
+                Membership.builder()
+                        .referenceId("cluster-2")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-2")
+                        .build(),
+                Membership.builder()
+                        .referenceId("api-1")
+                        .referenceType(Membership.ReferenceType.API)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-1")
+                        .build(),
+                Membership.builder()
+                        .referenceId("cluster-3")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-3")
+                        .build(),
+                Membership.builder()
+                        .referenceId("cluster-5")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-3")
+                        .build(),
+                Membership.builder()
+                        .referenceId("cluster-8")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-1")
+                        .build(),
+                Membership.builder()
+                        .referenceId("cluster-9")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-4")
+                        .build(),
+                Membership.builder()
+                        .referenceId("cluster-15")
+                        .referenceType(Membership.ReferenceType.CLUSTER)
+                        .memberType(Membership.Type.USER)
+                        .memberId("member-5")
+                        .build());
         membershipQueryService.initWith(memberships);
     }
 

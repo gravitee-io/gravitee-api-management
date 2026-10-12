@@ -24,8 +24,7 @@ public class IntegrationFixture {
 
     private IntegrationFixture() {}
 
-    public static final Supplier<Integration.IntegrationBuilder> BASE = () ->
-        Integration.builder()
+    public static final Supplier<Integration.IntegrationBuilder> BASE = () -> Integration.builder()
             .id("integration-id")
             .name("An integration")
             .description("A description")

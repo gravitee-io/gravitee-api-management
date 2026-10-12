@@ -47,13 +47,12 @@ public class DeployModelToApiUpdateUseCase {
     private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     public DeployModelToApiUpdateUseCase(
-        OAIDomainService oaiDomainService,
-        UpdateApiDomainService updateApiDomainService,
-        DeployModelToApiDomainService deployModelToApiDomainService,
-        PlanCrudService planCrudService,
-        PageCrudService pageCrudService,
-        ImportApiGroupsDomainService importApiGroupsDomainService
-    ) {
+            OAIDomainService oaiDomainService,
+            UpdateApiDomainService updateApiDomainService,
+            DeployModelToApiDomainService deployModelToApiDomainService,
+            PlanCrudService planCrudService,
+            PageCrudService pageCrudService,
+            ImportApiGroupsDomainService importApiGroupsDomainService) {
         this.oaiDomainService = oaiDomainService;
         this.updateApiDomainService = updateApiDomainService;
         this.deployModelToApiDomainService = deployModelToApiDomainService;
@@ -63,12 +62,18 @@ public class DeployModelToApiUpdateUseCase {
     }
 
     public DeployModelToApiUpdateUseCase.Output execute(DeployModelToApiUpdateUseCase.Input input) {
-        log.debug("API [id: {} / crossId: {}] will be updated with mode {}.", input.apiId(), input.apiCrossId(), input.mode().name());
+        log.debug(
+                "API [id: {} / crossId: {}] will be updated with mode {}.",
+                input.apiId(),
+                input.apiCrossId(),
+                input.mode().name());
 
         var organizationId = input.auditInfo().organizationId();
         var environmentId = input.auditInfo().environmentId();
-        var importSwaggerDescriptorEntity = deployModelToApiDomainService.configure(input.mode(), input.swaggerDefinition());
-        var importDefinition = oaiDomainService.convert(organizationId, environmentId, importSwaggerDescriptorEntity, true, false);
+        var importSwaggerDescriptorEntity =
+                deployModelToApiDomainService.configure(input.mode(), input.swaggerDefinition());
+        var importDefinition =
+                oaiDomainService.convert(organizationId, environmentId, importSwaggerDescriptorEntity, true, false);
 
         managePlan(input);
         manageDocumentationPage(input, importDefinition.getPages().getFirst());
@@ -86,7 +91,8 @@ public class DeployModelToApiUpdateUseCase {
             apiExport.setGroups(importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, input.auditInfo()));
         }
 
-        var apiUpdated = updateApiDomainService.updateV4(ApiModelFactory.fromApiExport(apiExport, environmentId), input.auditInfo());
+        var apiUpdated = updateApiDomainService.updateV4(
+                ApiModelFactory.fromApiExport(apiExport, environmentId), input.auditInfo());
         var api = deployModelToApiDomainService.manageApiState(apiUpdated, input.auditInfo(), input.mode());
 
         log.info("API [id: {} / crossId: {}] v4 updated.", api.getId(), api.getCrossId());
@@ -98,36 +104,35 @@ public class DeployModelToApiUpdateUseCase {
         final var plans = planCrudService.findByApiId(input.apiId());
 
         if (plans.stream().noneMatch(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)) {
-            planCrudService.create(
-                new Plan(input.apiId(), deployModelToApiDomainService.createDefaultPlan())
+            planCrudService.create(new Plan(input.apiId(), deployModelToApiDomainService.createDefaultPlan())
                     .toBuilder()
-                    .referenceId(input.apiId())
-                    .referenceType(Plan.ReferenceType.API)
-                    .needRedeployAt(Date.from(TimeProvider.now().toInstant()))
-                    .validation(Plan.PlanValidationType.AUTO)
-                    .build()
-            );
+                            .referenceId(input.apiId())
+                            .referenceType(Plan.ReferenceType.API)
+                            .needRedeployAt(Date.from(TimeProvider.now().toInstant()))
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .build());
         }
     }
 
     private void manageDocumentationPage(final Input input, final Page pageToCreate) {
         final var pages = pageCrudService.findByApiId(input.apiId());
-        final var swaggerDocumentationPageCount = pages
-            .stream()
-            .filter(page -> page.getType() == Page.Type.SWAGGER)
-            .count();
+        final var swaggerDocumentationPageCount = pages.stream()
+                .filter(page -> page.getType() == Page.Type.SWAGGER)
+                .count();
 
         if (swaggerDocumentationPageCount > 1) {
             log.warn(
-                "More than one Swagger documentation page already exists for this API [id: {} / crossId: {}].",
-                input.apiId(),
-                input.apiCrossId()
-            );
+                    "More than one Swagger documentation page already exists for this API [id: {} / crossId: {}].",
+                    input.apiId(),
+                    input.apiCrossId());
             return;
         }
 
         if (swaggerDocumentationPageCount == 0) {
-            log.warn("No Swagger documentation page exists for this API [id: {} / crossId: {}].", input.apiId(), input.apiCrossId());
+            log.warn(
+                    "No Swagger documentation page exists for this API [id: {} / crossId: {}].",
+                    input.apiId(),
+                    input.apiCrossId());
             pageToCreate.setId(UuidString.generateRandom());
             pageToCreate.setCreatedAt(Date.from(TimeProvider.now().toInstant()));
             pageToCreate.setUpdatedAt(Date.from(TimeProvider.now().toInstant()));
@@ -143,13 +148,12 @@ public class DeployModelToApiUpdateUseCase {
     }
 
     public record Input(
-        String swaggerDefinition,
-        AuditInfo auditInfo,
-        String apiId,
-        String apiCrossId,
-        DeployModelToApiDomainService.Mode mode,
-        List<String> labels
-    ) {}
+            String swaggerDefinition,
+            AuditInfo auditInfo,
+            String apiId,
+            String apiCrossId,
+            DeployModelToApiDomainService.Mode mode,
+            List<String> labels) {}
 
     public record Output(Api api) {}
 }

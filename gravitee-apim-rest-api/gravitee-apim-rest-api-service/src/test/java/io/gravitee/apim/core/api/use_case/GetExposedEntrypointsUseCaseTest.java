@@ -40,12 +40,13 @@ public class GetExposedEntrypointsUseCaseTest {
     private final String ORG_ID = "org-id";
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory =
-        new ApiExposedEntrypointDomainServiceInMemory();
+            new ApiExposedEntrypointDomainServiceInMemory();
     private GetExposedEntrypointsUseCase getExposedEntrypointsUseCase;
 
     @BeforeEach
     void setUp() {
-        getExposedEntrypointsUseCase = new GetExposedEntrypointsUseCase(apiCrudServiceInMemory, apiExposedEntrypointDomainServiceInMemory);
+        getExposedEntrypointsUseCase =
+                new GetExposedEntrypointsUseCase(apiCrudServiceInMemory, apiExposedEntrypointDomainServiceInMemory);
     }
 
     @AfterEach
@@ -57,40 +58,50 @@ public class GetExposedEntrypointsUseCaseTest {
     @Nested
     class WithHttpV4Api {
 
-        private final Api API = aMessageApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).build();
+        private final Api API =
+                aMessageApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).build();
 
         @Test
         void should_return_exposed_entrypoint() {
             // Given
             apiCrudServiceInMemory.initWith(List.of(API));
-            apiExposedEntrypointDomainServiceInMemory.initWith(List.of(new ExposedEntrypoint("http://myapi.domain.com")));
+            apiExposedEntrypointDomainServiceInMemory.initWith(
+                    List.of(new ExposedEntrypoint("http://myapi.domain.com")));
 
             // When
-            var output = getExposedEntrypointsUseCase.execute(new GetExposedEntrypointsUseCase.Input(ORG_ID, ENV_ID, API_ID));
+            var output = getExposedEntrypointsUseCase.execute(
+                    new GetExposedEntrypointsUseCase.Input(ORG_ID, ENV_ID, API_ID));
 
             // Then
             assertNotNull(output);
-            assertEquals("http://myapi.domain.com", output.exposedEntrypoints().get(0).value());
+            assertEquals(
+                    "http://myapi.domain.com",
+                    output.exposedEntrypoints().get(0).value());
         }
     }
 
     @Nested
     class WithNativeV4Api {
 
-        private final Api API = aNativeApi().toBuilder().id(API_ID).environmentId(ENV_ID).build();
+        private final Api API =
+                aNativeApi().toBuilder().id(API_ID).environmentId(ENV_ID).build();
 
         @Test
         void should_return_exposed_entrypoint() {
             // Given
             apiCrudServiceInMemory.initWith(List.of(API));
-            apiExposedEntrypointDomainServiceInMemory.initWith(List.of(new ExposedEntrypoint("myapi.kafka.domain.com:9092")));
+            apiExposedEntrypointDomainServiceInMemory.initWith(
+                    List.of(new ExposedEntrypoint("myapi.kafka.domain.com:9092")));
 
             // When
-            var output = getExposedEntrypointsUseCase.execute(new GetExposedEntrypointsUseCase.Input(ORG_ID, ENV_ID, API_ID));
+            var output = getExposedEntrypointsUseCase.execute(
+                    new GetExposedEntrypointsUseCase.Input(ORG_ID, ENV_ID, API_ID));
 
             // Then
             assertNotNull(output);
-            assertEquals("myapi.kafka.domain.com:9092", output.exposedEntrypoints().get(0).value());
+            assertEquals(
+                    "myapi.kafka.domain.com:9092",
+                    output.exposedEntrypoints().get(0).value());
         }
     }
 }

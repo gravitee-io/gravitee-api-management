@@ -29,14 +29,13 @@ class GetSharedPolicyGroupPolicyPluginsUseCaseTest {
     static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
     private final SharedPolicyGroupHistoryQueryServiceInMemory sharedPolicyGroupHistoryQueryServiceInMemory =
-        new SharedPolicyGroupHistoryQueryServiceInMemory();
+            new SharedPolicyGroupHistoryQueryServiceInMemory();
     private GetSharedPolicyGroupPolicyPluginsUseCase getSharedPolicyGroupPolicyPluginsUseCase;
 
     @BeforeEach
     void setUp() {
-        getSharedPolicyGroupPolicyPluginsUseCase = new GetSharedPolicyGroupPolicyPluginsUseCase(
-            sharedPolicyGroupHistoryQueryServiceInMemory
-        );
+        getSharedPolicyGroupPolicyPluginsUseCase =
+                new GetSharedPolicyGroupPolicyPluginsUseCase(sharedPolicyGroupHistoryQueryServiceInMemory);
     }
 
     @Test
@@ -47,20 +46,23 @@ class GetSharedPolicyGroupPolicyPluginsUseCaseTest {
 
         SharedPolicyGroup undeployedSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         undeployedSharedPolicyGroup.setLifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED);
-        sharedPolicyGroupHistoryQueryServiceInMemory.initWith(List.of(deployedSharedPolicyGroup, undeployedSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryServiceInMemory.initWith(
+                List.of(deployedSharedPolicyGroup, undeployedSharedPolicyGroup));
 
         // When
-        var result = getSharedPolicyGroupPolicyPluginsUseCase.execute(new GetSharedPolicyGroupPolicyPluginsUseCase.Input(ENV_ID));
+        var result = getSharedPolicyGroupPolicyPluginsUseCase.execute(
+                new GetSharedPolicyGroupPolicyPluginsUseCase.Input(ENV_ID));
 
         // Then
         assertEquals(result.sharedPolicyGroupPolicyList().size(), 1);
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getId(), deployedSharedPolicyGroup.getCrossId());
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getName(), deployedSharedPolicyGroup.getName());
-        assertEquals(result.sharedPolicyGroupPolicyList().get(0).getDescription(), deployedSharedPolicyGroup.getDescription());
         assertEquals(
-            result.sharedPolicyGroupPolicyList().get(0).getPrerequisiteMessage(),
-            deployedSharedPolicyGroup.getPrerequisiteMessage()
-        );
+                result.sharedPolicyGroupPolicyList().get(0).getDescription(),
+                deployedSharedPolicyGroup.getDescription());
+        assertEquals(
+                result.sharedPolicyGroupPolicyList().get(0).getPrerequisiteMessage(),
+                deployedSharedPolicyGroup.getPrerequisiteMessage());
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getApiType(), deployedSharedPolicyGroup.getApiType());
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getPhase(), deployedSharedPolicyGroup.getPhase());
         assertEquals(result.sharedPolicyGroupPolicyList().get(0).getPolicyId(), "shared-policy-group-policy");

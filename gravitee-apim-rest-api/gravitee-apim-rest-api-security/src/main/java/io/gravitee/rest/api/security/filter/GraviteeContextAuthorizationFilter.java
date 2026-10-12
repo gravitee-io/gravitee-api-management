@@ -42,7 +42,7 @@ public class GraviteeContextAuthorizationFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-        throws IOException, ServletException {
+            throws IOException, ServletException {
         log.debug("Check if authenticated user is associated to the resolved GraviteeContext");
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
@@ -54,11 +54,15 @@ public class GraviteeContextAuthorizationFilter extends GenericFilterBean {
         // If user authenticated, he needs to have access to the organization
         if (Objects.nonNull(userDetails)) {
             if (Objects.isNull(userDetails.getOrganizationId())) {
-                ErrorHelper.sendError(httpServletResponse, HttpStatusCode.FORBIDDEN_403, "No organization associated to user");
+                ErrorHelper.sendError(
+                        httpServletResponse, HttpStatusCode.FORBIDDEN_403, "No organization associated to user");
                 return;
             }
             if (organizationId != null && !organizationId.equals(userDetails.getOrganizationId())) {
-                ErrorHelper.sendError(httpServletResponse, HttpStatusCode.FORBIDDEN_403, "User is not allowed to access this organization");
+                ErrorHelper.sendError(
+                        httpServletResponse,
+                        HttpStatusCode.FORBIDDEN_403,
+                        "User is not allowed to access this organization");
                 return;
             }
         }

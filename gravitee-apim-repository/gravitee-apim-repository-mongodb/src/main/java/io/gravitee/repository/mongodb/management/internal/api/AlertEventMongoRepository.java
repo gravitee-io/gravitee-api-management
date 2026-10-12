@@ -24,4 +24,5 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface AlertEventMongoRepository extends MongoRepository<AlertEventMongo, String>, AlertEventMongoRepositoryCustom {}
+public interface AlertEventMongoRepository
+        extends MongoRepository<AlertEventMongo, String>, AlertEventMongoRepositoryCustom {}

@@ -30,11 +30,12 @@ import org.mapstruct.factory.Mappers;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class, CollectionFactory.class })
+@Mapper(uses = {DateMapper.class, CollectionFactory.class})
 public interface ApplicationMapper {
     ApplicationMapper INSTANCE = Mappers.getMapper(ApplicationMapper.class);
 
     BaseApplication mapToBaseApplication(ApplicationListItem applicationListItem);
+
     List<BaseApplication> mapToBaseApplicationList(Collection<ApplicationListItem> applications);
 
     @Mapping(target = "picture", source = "pictureUrl")

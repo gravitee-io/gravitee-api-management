@@ -103,51 +103,48 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
     public void shouldNotDebugApiNotFound() {
         when(license.isFeatureEnabled("apim-debug-mode")).thenReturn(true);
         final Response response = envTarget(API + "/_debug")
-            .request()
-            .post(
-                Entity.entity(
-                    DebugApiEntity.builder()
-                        .graviteeDefinitionVersion("2.0.0")
-                        .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
-                        .build(),
-                    MediaType.APPLICATION_JSON
-                )
-            );
+                .request()
+                .post(Entity.entity(
+                        DebugApiEntity.builder()
+                                .graviteeDefinitionVersion("2.0.0")
+                                .proxy(Proxy.builder()
+                                        .virtualHosts(List.of(new VirtualHost("/")))
+                                        .build())
+                                .build(),
+                        MediaType.APPLICATION_JSON));
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }
 
     @Test
     public void shouldDebugApi() {
         when(license.isFeatureEnabled("apim-debug-mode")).thenReturn(true);
-        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API).build()));
-        instanceQueryServiceInMemory.initWith(
-            List.of(
-                Instance.builder()
-                    .id("gateway")
-                    .startedAt(new Date())
-                    .clusterPrimaryNode(true)
-                    .environments(Set.of("DEFAULT"))
-                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                    .tags(List.of())
-                    .build()
-            )
-        );
+        apiCrudServiceInMemory.initWith(
+                List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API).build()));
+        instanceQueryServiceInMemory.initWith(List.of(Instance.builder()
+                .id("gateway")
+                .startedAt(new Date())
+                .clusterPrimaryNode(true)
+                .environments(Set.of("DEFAULT"))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .tags(List.of())
+                .build()));
 
         final Response response = envTarget(API + "/_debug")
-            .request()
-            .post(
-                Entity.entity(
-                    DebugApiEntity.builder()
-                        .id(API)
-                        .graviteeDefinitionVersion("2.0.0")
-                        .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
-                        .plans(
-                            Set.of(PlanEntity.builder().id("plan").status(PlanStatus.PUBLISHED).security(PlanSecurityType.KEY_LESS).build())
-                        )
-                        .build(),
-                    MediaType.APPLICATION_JSON
-                )
-            );
+                .request()
+                .post(Entity.entity(
+                        DebugApiEntity.builder()
+                                .id(API)
+                                .graviteeDefinitionVersion("2.0.0")
+                                .proxy(Proxy.builder()
+                                        .virtualHosts(List.of(new VirtualHost("/")))
+                                        .build())
+                                .plans(Set.of(PlanEntity.builder()
+                                        .id("plan")
+                                        .status(PlanStatus.PUBLISHED)
+                                        .security(PlanSecurityType.KEY_LESS)
+                                        .build()))
+                                .build(),
+                        MediaType.APPLICATION_JSON));
         assertThat(response.getStatus()).isEqualTo(OK_200);
         final EventEntity eventEntity = response.readEntity(EventEntity.class);
         assertThat(eventEntity).extracting(EventEntity::getType).isEqualTo(EventType.DEBUG_API);

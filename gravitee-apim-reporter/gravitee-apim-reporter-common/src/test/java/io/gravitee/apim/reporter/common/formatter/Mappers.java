@@ -52,12 +52,9 @@ public class Mappers {
     public static class JsonLinesMapper {
 
         public List<JsonNode> readLines(byte[] jsonLines) throws IOException {
-            return JSON.readerFor(JsonNode.class)
-                .readValues(jsonLines)
-                .readAll()
-                .stream()
-                .map(JsonNode.class::cast)
-                .collect(Collectors.toList());
+            return JSON.readerFor(JsonNode.class).readValues(jsonLines).readAll().stream()
+                    .map(JsonNode.class::cast)
+                    .collect(Collectors.toList());
         }
 
         public List<JsonNode> readLines(String jsonLines) throws IOException {

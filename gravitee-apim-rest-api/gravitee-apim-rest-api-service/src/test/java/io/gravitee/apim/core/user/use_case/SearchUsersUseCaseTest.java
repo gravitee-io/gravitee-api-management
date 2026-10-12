@@ -72,17 +72,15 @@ class SearchUsersUseCaseTest {
 
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(new BaseApplicationEntity());
         when(userQueryService.search(new UserSearchQuery("body-query"))).thenReturn(List.of(user1, user2));
-        when(
-            membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
-                List.of("user-2", "user-1"),
-                Membership.Type.USER,
-                Membership.ReferenceType.APPLICATION
-            )
-        ).thenReturn(List.of(Membership.builder().memberId("user-2").referenceId(APPLICATION_ID).build()));
+        when(membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
+                        List.of("user-2", "user-1"), Membership.Type.USER, Membership.ReferenceType.APPLICATION))
+                .thenReturn(List.of(Membership.builder()
+                        .memberId("user-2")
+                        .referenceId(APPLICATION_ID)
+                        .build()));
 
-        var result = cut.execute(
-            new SearchUsersUseCase.Input(executionContext, new UserSearchQuery("body-query"), Optional.of(APPLICATION_ID))
-        );
+        var result = cut.execute(new SearchUsersUseCase.Input(
+                executionContext, new UserSearchQuery("body-query"), Optional.of(APPLICATION_ID)));
 
         assertThat(result.totalCount()).isEqualTo(2);
         assertThat(result.data()).extracting(User::id).containsExactly("user-2", "user-1");
@@ -100,17 +98,12 @@ class SearchUsersUseCaseTest {
 
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(new BaseApplicationEntity());
         when(userQueryService.search(new UserSearchQuery("body-query"))).thenReturn(List.of(userWithoutId, userWithId));
-        when(
-            membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
-                List.of("user-1"),
-                Membership.Type.USER,
-                Membership.ReferenceType.APPLICATION
-            )
-        ).thenReturn(List.of());
+        when(membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
+                        List.of("user-1"), Membership.Type.USER, Membership.ReferenceType.APPLICATION))
+                .thenReturn(List.of());
 
-        var result = cut.execute(
-            new SearchUsersUseCase.Input(executionContext, new UserSearchQuery("body-query"), Optional.of(APPLICATION_ID))
-        );
+        var result = cut.execute(new SearchUsersUseCase.Input(
+                executionContext, new UserSearchQuery("body-query"), Optional.of(APPLICATION_ID)));
 
         assertThat(result.totalCount()).isEqualTo(2);
         assertThat(result.data()).extracting(User::id).containsExactly(null, "user-1");
@@ -126,7 +119,8 @@ class SearchUsersUseCaseTest {
 
         when(userQueryService.search(new UserSearchQuery(null))).thenReturn(List.of(user));
 
-        var result = cut.execute(new SearchUsersUseCase.Input(executionContext, new UserSearchQuery(null), Optional.empty()));
+        var result = cut.execute(
+                new SearchUsersUseCase.Input(executionContext, new UserSearchQuery(null), Optional.empty()));
 
         assertThat(result.totalCount()).isEqualTo(1);
         assertThat(result.data()).extracting(User::id).containsExactly("user-1");
@@ -138,11 +132,13 @@ class SearchUsersUseCaseTest {
     void should_return_all_sorted_users_without_pagination() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
 
-        when(userQueryService.search(new UserSearchQuery("john"))).thenReturn(
-            List.of(aUser("user-1", null, null, "Smith", "John Smith", null), aUser("user-2", null, null, "Doe", "Johnny Doe", null))
-        );
+        when(userQueryService.search(new UserSearchQuery("john")))
+                .thenReturn(List.of(
+                        aUser("user-1", null, null, "Smith", "John Smith", null),
+                        aUser("user-2", null, null, "Doe", "Johnny Doe", null)));
 
-        var result = cut.execute(new SearchUsersUseCase.Input(executionContext, new UserSearchQuery("john"), Optional.empty()));
+        var result = cut.execute(
+                new SearchUsersUseCase.Input(executionContext, new UserSearchQuery("john"), Optional.empty()));
 
         assertThat(result.totalCount()).isEqualTo(2);
         assertThat(result.data()).extracting(User::id).containsExactly("user-2", "user-1");
@@ -152,11 +148,11 @@ class SearchUsersUseCaseTest {
     void should_throw_when_application_membership_is_requested_for_unknown_application() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
 
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
-        Throwable throwable = catchThrowable(() ->
-            cut.execute(new SearchUsersUseCase.Input(executionContext, new UserSearchQuery(null), Optional.of(APPLICATION_ID)))
-        );
+        Throwable throwable = catchThrowable(() -> cut.execute(new SearchUsersUseCase.Input(
+                executionContext, new UserSearchQuery(null), Optional.of(APPLICATION_ID))));
 
         assertThat(throwable).isInstanceOf(ApplicationNotFoundException.class).hasMessageContaining(APPLICATION_ID);
         verify(userQueryService, never()).search(any());

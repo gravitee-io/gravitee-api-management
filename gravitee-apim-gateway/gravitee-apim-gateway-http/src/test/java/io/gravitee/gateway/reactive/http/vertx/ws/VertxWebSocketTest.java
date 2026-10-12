@@ -237,7 +237,8 @@ class VertxWebSocketTest {
         void should_not_write_if_not_upgraded() {
             ReflectionTestUtils.setField(cut, "upgraded", false);
 
-            final TestObserver<Void> obs = cut.write(io.gravitee.gateway.api.buffer.Buffer.buffer("test")).test();
+            final TestObserver<Void> obs = cut.write(io.gravitee.gateway.api.buffer.Buffer.buffer("test"))
+                    .test();
             obs.assertComplete();
             verifyNoInteractions(webSocket);
         }
@@ -248,7 +249,8 @@ class VertxWebSocketTest {
             ReflectionTestUtils.setField(cut, "webSocket", webSocket);
             when(webSocket.isClosed()).thenReturn(true);
 
-            final TestObserver<Void> obs = cut.write(io.gravitee.gateway.api.buffer.Buffer.buffer("test")).test();
+            final TestObserver<Void> obs = cut.write(io.gravitee.gateway.api.buffer.Buffer.buffer("test"))
+                    .test();
             obs.assertError(HttpClosedException.class);
             verify(webSocket, never()).rxWrite(any(Buffer.class));
         }
@@ -258,7 +260,10 @@ class VertxWebSocketTest {
     class WriteFrame {
 
         @ParameterizedTest
-        @EnumSource(value = WebSocketFrameType.class, names = { "CLOSE" }, mode = EnumSource.Mode.EXCLUDE)
+        @EnumSource(
+                value = WebSocketFrameType.class,
+                names = {"CLOSE"},
+                mode = EnumSource.Mode.EXCLUDE)
         void should_write_frame(WebSocketFrameType frameType) {
             ReflectionTestUtils.setField(cut, "upgraded", true);
             ReflectionTestUtils.setField(cut, "webSocket", webSocket);
@@ -267,9 +272,11 @@ class VertxWebSocketTest {
             when(webSocketFrame.binaryData()).thenReturn(Buffer.buffer(FRAME_DATA));
             when(webSocket.rxWriteFrame(any())).thenReturn(Completable.complete());
 
-            final TestObserver<Void> obs = cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
+            final TestObserver<Void> obs =
+                    cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
             obs.assertComplete();
-            verify(webSocket).rxWriteFrame(argThat(frame -> frame.type() == frameType && FRAME_DATA.equals(frame.textData())));
+            verify(webSocket)
+                    .rxWriteFrame(argThat(frame -> frame.type() == frameType && FRAME_DATA.equals(frame.textData())));
         }
 
         @Test
@@ -280,7 +287,8 @@ class VertxWebSocketTest {
             when(webSocketFrame.type()).thenReturn(CLOSE);
             when(webSocket.rxClose()).thenReturn(Completable.complete());
 
-            final TestObserver<Void> obs = cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
+            final TestObserver<Void> obs =
+                    cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
             obs.assertComplete();
             verify(webSocket).rxClose();
         }
@@ -289,7 +297,8 @@ class VertxWebSocketTest {
         void should_not_write_frame_if_not_upgraded() {
             ReflectionTestUtils.setField(cut, "upgraded", false);
 
-            final TestObserver<Void> obs = cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
+            final TestObserver<Void> obs =
+                    cut.writeFrame(new VertxWebSocketFrame(webSocketFrame)).test();
             obs.assertComplete();
             verifyNoInteractions(webSocket);
         }
@@ -342,7 +351,8 @@ class VertxWebSocketTest {
 
             when(webSocket.toFlowable()).thenReturn(Flowable.just(buffer1, buffer2, buffer3));
 
-            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs = cut.read().test();
+            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs =
+                    cut.read().test();
 
             obs.assertComplete();
             obs.assertValueCount(3);
@@ -355,7 +365,8 @@ class VertxWebSocketTest {
         void should_read_empty_if_not_upgraded() {
             ReflectionTestUtils.setField(cut, "upgraded", false);
 
-            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs = cut.read().test();
+            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs =
+                    cut.read().test();
 
             obs.assertNoValues();
         }
@@ -369,11 +380,12 @@ class VertxWebSocketTest {
             final Buffer buffer2 = Buffer.buffer("Test2");
             final Buffer buffer3 = Buffer.buffer("Test3");
 
-            when(webSocket.toFlowable()).thenReturn(
-                Flowable.just(buffer1, buffer2, buffer3).concatWith(Flowable.error(new RuntimeException(MOCK_EXCEPTION)))
-            );
+            when(webSocket.toFlowable())
+                    .thenReturn(Flowable.just(buffer1, buffer2, buffer3)
+                            .concatWith(Flowable.error(new RuntimeException(MOCK_EXCEPTION))));
 
-            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs = cut.read().test();
+            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs =
+                    cut.read().test();
 
             obs.assertValueCount(3);
             obs.assertValueAt(0, buffer -> buffer.toString().equals(buffer1.toString()));
@@ -392,11 +404,12 @@ class VertxWebSocketTest {
             final Buffer buffer2 = Buffer.buffer("Test2");
             final Buffer buffer3 = Buffer.buffer("Test3");
 
-            when(webSocket.toFlowable()).thenReturn(
-                Flowable.just(buffer1, buffer2, buffer3).concatWith(Flowable.error(new HttpClosedException("")))
-            );
+            when(webSocket.toFlowable())
+                    .thenReturn(Flowable.just(buffer1, buffer2, buffer3)
+                            .concatWith(Flowable.error(new HttpClosedException(""))));
 
-            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs = cut.read().test();
+            final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs =
+                    cut.read().test();
 
             obs.assertComplete();
             obs.assertValueCount(3);

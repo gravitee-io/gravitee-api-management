@@ -34,9 +34,6 @@ public class ReadBodyThenInterruptPolicy implements HttpPolicy {
 
     @Override
     public Completable onRequest(HttpPlainExecutionContext ctx) {
-        return ctx
-            .request()
-            .bodyOrEmpty()
-            .flatMapCompletable(body -> ctx.interruptWith(new ExecutionFailure(400)));
+        return ctx.request().bodyOrEmpty().flatMapCompletable(body -> ctx.interruptWith(new ExecutionFailure(400)));
     }
 }

@@ -39,26 +39,26 @@ public class MediaValidationServiceImpl implements MediaValidationService {
 
     private static final Tika TIKA = new Tika();
 
-    private static final Pattern MEDIA_TYPE_PATTERN = Pattern.compile("^(?<major>[^/]*(application|image|audio|video)[^/]*)");
+    private static final Pattern MEDIA_TYPE_PATTERN =
+            Pattern.compile("^(?<major>[^/]*(application|image|audio|video)[^/]*)");
 
     private static final Set<String> FORBIDDEN_TYPES = Set.of(
-        "application/java-archive",
-        "application/x-dosexec",
-        "application/x-msdownload",
-        "application/x-ms-installer",
-        "application/x-shockwave-flash",
-        "application/x-bsh",
-        "application/x-sh",
-        "application/x-csh",
-        "application/javascript",
-        "application/vbscript",
-        "application/sql",
-        "application/x-executable",
-        "application/bat",
-        "application/x-bat",
-        "application/octet-stream",
-        "text/x-script.sh"
-    );
+            "application/java-archive",
+            "application/x-dosexec",
+            "application/x-msdownload",
+            "application/x-ms-installer",
+            "application/x-shockwave-flash",
+            "application/x-bsh",
+            "application/x-sh",
+            "application/x-csh",
+            "application/javascript",
+            "application/vbscript",
+            "application/sql",
+            "application/x-executable",
+            "application/bat",
+            "application/x-bat",
+            "application/octet-stream",
+            "text/x-script.sh");
 
     public void validate(MediaEntity mediaEntity) {
         if (mediaEntity == null || mediaEntity.getData() == null) {
@@ -79,15 +79,21 @@ public class MediaValidationServiceImpl implements MediaValidationService {
             throw new UploadUnauthorized("Unable to determine file type.");
         }
 
-        log.debug("File '{}': declared type='{}', detected type='{}'", mediaEntity.getFileName(), mediaType, detectedMediaType);
+        log.debug(
+                "File '{}': declared type='{}', detected type='{}'",
+                mediaEntity.getFileName(),
+                mediaType,
+                detectedMediaType);
 
         checkContentTypeMismatch(mediaType, detectedMediaType, mediaEntity.getFileName());
 
-        (mediaType.equals(detectedMediaType) ? Set.of(mediaType) : Set.of(mediaType, detectedMediaType)).forEach(type -> {
-            if (isForbidden(type)) {
-                throw new UploadUnauthorized("Unsupported file type: " + type + ". Uploading this type of file is not allowed.");
-            }
-        });
+        (mediaType.equals(detectedMediaType) ? Set.of(mediaType) : Set.of(mediaType, detectedMediaType))
+                .forEach(type -> {
+                    if (isForbidden(type)) {
+                        throw new UploadUnauthorized(
+                                "Unsupported file type: " + type + ". Uploading this type of file is not allowed.");
+                    }
+                });
 
         if ("application/pdf".equals(mediaType) || "application/pdf".equals(detectedMediaType)) {
             if (!isAcceptablePDF(mediaEntity)) throw new UploadUnauthorized("This pdf use unallowed features.");
@@ -121,10 +127,10 @@ public class MediaValidationServiceImpl implements MediaValidationService {
             }
 
             PDDestinationOrAction openAction = catalog.getOpenAction();
-            boolean isForbiddenAction = (openAction instanceof PDActionJavaScript ||
-                openAction instanceof PDActionLaunch ||
-                openAction instanceof PDActionImportData ||
-                openAction instanceof PDActionSubmitForm);
+            boolean isForbiddenAction = (openAction instanceof PDActionJavaScript
+                    || openAction instanceof PDActionLaunch
+                    || openAction instanceof PDActionImportData
+                    || openAction instanceof PDActionSubmitForm);
             if (isForbiddenAction) {
                 log.warn("PDF file {} use forbidden open action.", media.getFileName());
                 return false;
@@ -144,13 +150,9 @@ public class MediaValidationServiceImpl implements MediaValidationService {
 
         var match = MEDIA_TYPE_PATTERN.matcher(mediaType);
         if (match.find() && !detectedMediaType.startsWith(match.group("major") + '/')) {
-            throw new UploadUnauthorized(
-                String.format(
+            throw new UploadUnauthorized(String.format(
                     "File content does not match its extension. Declared as '%s/...', but content is of type '%s'.",
-                    match.group("major"),
-                    detectedMediaType
-                )
-            );
+                    match.group("major"), detectedMediaType));
         }
     }
 }

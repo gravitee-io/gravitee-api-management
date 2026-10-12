@@ -28,7 +28,9 @@ import java.util.stream.Stream;
 
 public interface ScoringReportRepository {
     ScoringReport create(ScoringReport report) throws TechnicalException;
+
     Optional<ScoringReport> findLatestFor(String apiId) throws TechnicalException;
+
     Stream<ScoringReport> findLatestReports(Collection<String> apiIds) throws TechnicalException;
     /**
      * Latest scoring of every API of an environment, including APIs that were never evaluated.
@@ -36,8 +38,9 @@ public interface ScoringReportRepository {
      * @param apiTypes when non-empty, restricts the result to APIs of these types; {@code null} or
      *                 empty returns every type.
      */
-    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable)
-        throws TechnicalException;
+    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(
+            String environmentId, Collection<ApiType> apiTypes, Pageable pageable) throws TechnicalException;
+
     void deleteByApi(String api) throws TechnicalException;
 
     ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException;

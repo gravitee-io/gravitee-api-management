@@ -50,17 +50,16 @@ public final class HttpStatusCodeGroups {
      * defined in exactly one place.
      */
     public static final Map<String, String> FRIENDLY_LABELS = Map.of(
-        "1XX",
-        "1xx Informational",
-        "2XX",
-        "2xx Success",
-        "3XX",
-        "3xx Redirection",
-        "4XX",
-        "4xx Client Error",
-        "5XX",
-        "5xx Server Error"
-    );
+            "1XX",
+            "1xx Informational",
+            "2XX",
+            "2xx Success",
+            "3XX",
+            "3xx Redirection",
+            "4XX",
+            "4xx Client Error",
+            "5XX",
+            "5xx Server Error");
 
     static {
         var bounds = new LinkedHashMap<String, Bounds>();
@@ -88,10 +87,9 @@ public final class HttpStatusCodeGroups {
      * Returns all group bounds as {@link NumberRange} for ES range aggregations.
      */
     public static List<NumberRange> asNumberRanges() {
-        return GROUP_BOUNDS.values()
-            .stream()
-            .map(b -> new NumberRange(b.min(), b.max()))
-            .toList();
+        return GROUP_BOUNDS.values().stream()
+                .map(b -> new NumberRange(b.min(), b.max()))
+                .toList();
     }
 
     /**
@@ -99,9 +97,9 @@ public final class HttpStatusCodeGroups {
      * ({@code "1XX"}). ES range aggregation keys use the {@code "min-max"} format.
      */
     public static Map<String, String> esBucketKeyToGroupLabel() {
-        return GROUP_BOUNDS.entrySet()
-            .stream()
-            .collect(Collectors.toUnmodifiableMap(e -> e.getValue().min() + "-" + e.getValue().max(), Map.Entry::getKey));
+        return GROUP_BOUNDS.entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        e -> e.getValue().min() + "-" + e.getValue().max(), Map.Entry::getKey));
     }
 
     /**
@@ -109,13 +107,9 @@ public final class HttpStatusCodeGroups {
      * ({@code "1xx Informational"}). Uses {@link #FRIENDLY_LABELS} as the label source.
      */
     public static Map<String, String> esBucketKeyToFriendlyGroupLabel() {
-        return GROUP_BOUNDS.entrySet()
-            .stream()
-            .collect(
-                Collectors.toUnmodifiableMap(
-                    e -> e.getValue().min() + "-" + e.getValue().max(),
-                    e -> FRIENDLY_LABELS.getOrDefault(e.getKey(), e.getKey())
-                )
-            );
+        return GROUP_BOUNDS.entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        e -> e.getValue().min() + "-" + e.getValue().max(),
+                        e -> FRIENDLY_LABELS.getOrDefault(e.getKey(), e.getKey())));
     }
 }

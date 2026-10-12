@@ -76,15 +76,14 @@ class ResourceManagerImplTest {
         classLoader = new DefaultClassLoader(this.classLoader);
 
         cut = new ResourceManagerImpl(
-            false,
-            classLoader,
-            reactable,
-            resourcePluginManager,
-            resourceClassLoaderFactory,
-            resourceConfigurationFactory,
-            applicationContext,
-            deploymentContext
-        );
+                false,
+                classLoader,
+                reactable,
+                resourcePluginManager,
+                resourceClassLoaderFactory,
+                resourceConfigurationFactory,
+                applicationContext,
+                deploymentContext);
     }
 
     @Test
@@ -92,7 +91,8 @@ class ResourceManagerImplTest {
         when(reactable.dependencies(Resource.class)).thenReturn(Collections.emptySet());
         cut.initialize();
 
-        verifyNoInteractions(resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
+        verifyNoInteractions(
+                resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
     }
 
     @Test
@@ -136,15 +136,14 @@ class ResourceManagerImplTest {
         doThrow(new IOException("Mock exception")).when(spy).removeClassLoader(anyString());
 
         cut = new ResourceManagerImpl(
-            false,
-            spy,
-            reactable,
-            resourcePluginManager,
-            resourceClassLoaderFactory,
-            resourceConfigurationFactory,
-            applicationContext,
-            deploymentContext
-        );
+                false,
+                spy,
+                reactable,
+                resourcePluginManager,
+                resourceClassLoaderFactory,
+                resourceConfigurationFactory,
+                applicationContext,
+                deploymentContext);
 
         cut.initialize();
         assertThat(cut.containsResource(resource.getName())).isFalse();
@@ -190,7 +189,8 @@ class ResourceManagerImplTest {
         when(reactable.dependencies(Resource.class)).thenReturn(Set.of(resource));
         when(resourcePluginManager.get(resource.getType())).thenReturn(resourcePlugin);
         when(resourcePlugin.configuration()).thenReturn(FakeConfiguration.class);
-        when(resourceConfigurationFactory.create(FakeConfiguration.class, resource.getConfiguration())).thenReturn(fakeConfiguration);
+        when(resourceConfigurationFactory.create(FakeConfiguration.class, resource.getConfiguration()))
+                .thenReturn(fakeConfiguration);
 
         cut.initialize();
 
@@ -236,7 +236,9 @@ class ResourceManagerImplTest {
         final Object r = cut.getResource(resource.getName());
         assertThat(r).isExactlyInstanceOf(FakeWithDeploymentContext.class);
 
-        assertThat(((FakeWithDeploymentContext) r).getDeploymentContext()).isNotNull().isSameAs(deploymentContext);
+        assertThat(((FakeWithDeploymentContext) r).getDeploymentContext())
+                .isNotNull()
+                .isSameAs(deploymentContext);
     }
 
     private Resource buildResource() {

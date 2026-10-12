@@ -42,14 +42,13 @@ public class CachedPolicyFactory implements PolicyFactory {
 
     @Override
     public Policy create(
-        StreamType streamType,
-        PolicyManifest policyManifest,
-        PolicyConfiguration policyConfiguration,
-        PolicyMetadata policyMetadata
-    ) {
-        return policies.computeIfAbsent(getKey(streamType, policyManifest, policyConfiguration, policyMetadata.getCondition()), k ->
-            delegate.create(streamType, policyManifest, policyConfiguration, policyMetadata)
-        );
+            StreamType streamType,
+            PolicyManifest policyManifest,
+            PolicyConfiguration policyConfiguration,
+            PolicyMetadata policyMetadata) {
+        return policies.computeIfAbsent(
+                getKey(streamType, policyManifest, policyConfiguration, policyMetadata.getCondition()),
+                k -> delegate.create(streamType, policyManifest, policyConfiguration, policyMetadata));
     }
 
     @Override
@@ -57,16 +56,17 @@ public class CachedPolicyFactory implements PolicyFactory {
         delegate.cleanup(policyManifest);
     }
 
-    private String getKey(StreamType streamType, PolicyManifest policyManifest, PolicyConfiguration policyConfiguration, String condition) {
-        return (
-            getHashCode(streamType) +
-            "-" +
-            getHashCode(policyManifest) +
-            "-" +
-            getHashCode(policyConfiguration) +
-            "-" +
-            getHashCode(condition)
-        );
+    private String getKey(
+            StreamType streamType,
+            PolicyManifest policyManifest,
+            PolicyConfiguration policyConfiguration,
+            String condition) {
+        return (getHashCode(streamType) + "-"
+                + getHashCode(policyManifest)
+                + "-"
+                + getHashCode(policyConfiguration)
+                + "-"
+                + getHashCode(condition));
     }
 
     private Integer getHashCode(Object o) {

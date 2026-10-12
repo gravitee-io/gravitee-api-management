@@ -57,20 +57,19 @@ public class SpelServiceImpl implements SpelService {
     }
 
     private static final List<Class<?>> SUPPORTED_TYPES = List.of(
-        MultiValueMap.class,
-        HttpHeaders.class,
-        Map.class,
-        Boolean.class,
-        Integer.class,
-        Long.class,
-        Math.class,
-        Object.class,
-        List.class,
-        Collection.class,
-        Set.class,
-        String.class,
-        String[].class
-    );
+            MultiValueMap.class,
+            HttpHeaders.class,
+            Map.class,
+            Boolean.class,
+            Integer.class,
+            Long.class,
+            Math.class,
+            Object.class,
+            List.class,
+            Collection.class,
+            Set.class,
+            String.class,
+            String[].class);
 
     @Override
     public JsonNode getGrammar() {
@@ -98,11 +97,11 @@ public class SpelServiceImpl implements SpelService {
     private void buildType(ObjectNode type, Class<?> classz) {
         final ArrayNode methodsNode = type.putArray("methods");
         Arrays.stream(securedMethodResolver.getMethods(classz))
-            .filter(f -> Modifier.isPublic(f.getModifiers()))
-            .forEach(method -> {
-                ObjectNode methodNode = methodsNode.addObject();
-                fillMethod(methodNode, method);
-            });
+                .filter(f -> Modifier.isPublic(f.getModifiers()))
+                .forEach(method -> {
+                    ObjectNode methodNode = methodsNode.addObject();
+                    fillMethod(methodNode, method);
+                });
     }
 
     private void fillMethod(ObjectNode methodNode, Method method) {

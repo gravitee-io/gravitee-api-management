@@ -127,7 +127,8 @@ public enum ObservabilityEntrypoints {
     }
 
     /** Entrypoints the analytics default leaves out: everything not counted as HTTP request traffic. */
-    public static final List<String> ANALYTICS_EXCLUDED_IDS = idsWithScope(Scope.LOGS_ONLY, Scope.DEDICATED_FAMILY, Scope.EXCLUDED);
+    public static final List<String> ANALYTICS_EXCLUDED_IDS =
+            idsWithScope(Scope.LOGS_ONLY, Scope.DEDICATED_FAMILY, Scope.EXCLUDED);
 
     /** Entrypoints the logs default leaves out. Narrower than analytics: the logs screen lists connections. */
     public static final List<String> LOGS_EXCLUDED_IDS = idsWithScope(Scope.DEDICATED_FAMILY, Scope.EXCLUDED);
@@ -166,8 +167,8 @@ public enum ObservabilityEntrypoints {
     private static List<String> idsWithScope(Scope... scopes) {
         var selected = Set.of(scopes);
         return Arrays.stream(values())
-            .filter(entrypoint -> selected.contains(entrypoint.scope))
-            .map(ObservabilityEntrypoints::id)
-            .toList();
+                .filter(entrypoint -> selected.contains(entrypoint.scope))
+                .map(ObservabilityEntrypoints::id)
+                .toList();
     }
 }

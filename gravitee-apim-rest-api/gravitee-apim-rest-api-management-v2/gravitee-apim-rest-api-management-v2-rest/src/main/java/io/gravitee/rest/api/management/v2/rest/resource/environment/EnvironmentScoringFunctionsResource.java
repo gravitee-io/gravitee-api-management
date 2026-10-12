@@ -55,22 +55,24 @@ public class EnvironmentScoringFunctionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importFunction(@Valid ImportScoringFunction request) {
-        var result = importEnvironmentFunctionUseCase.execute(
-            new ImportEnvironmentFunctionUseCase.Input(
+        var result = importEnvironmentFunctionUseCase.execute(new ImportEnvironmentFunctionUseCase.Input(
                 new ImportEnvironmentFunctionUseCase.NewFunction(request.getName(), request.getPayload()),
-                getAuditInfo()
-            )
-        );
+                getAuditInfo()));
 
-        return Response.created(uriInfo.getRequestUri().resolve(result.functionId())).build();
+        return Response.created(uriInfo.getRequestUri().resolve(result.functionId()))
+                .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ScoringFunctionsResponse listFunctions() {
         var executionContext = GraviteeContext.getExecutionContext();
-        var result = getEnvironmentFunctionsUseCase.execute(new GetEnvironmentFunctionsUseCase.Input(executionContext.getEnvironmentId()));
-        return new ScoringFunctionsResponse().data(result.reports().stream().map(ScoringFunctionMapper.INSTANCE::map).toList());
+        var result = getEnvironmentFunctionsUseCase.execute(
+                new GetEnvironmentFunctionsUseCase.Input(executionContext.getEnvironmentId()));
+        return new ScoringFunctionsResponse()
+                .data(result.reports().stream()
+                        .map(ScoringFunctionMapper.INSTANCE::map)
+                        .toList());
     }
 
     @Path("{functionName}")

@@ -44,9 +44,9 @@ class AmConnectionRequestBindingTest {
     static void setUp() {
         // ParameterMessageInterpolator avoids the optional jakarta.el dependency in unit tests.
         factory = Validation.byDefaultProvider()
-            .configure()
-            .messageInterpolator(new ParameterMessageInterpolator())
-            .buildValidatorFactory();
+                .configure()
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory();
         validator = factory.getValidator();
     }
 
@@ -78,7 +78,8 @@ class AmConnectionRequestBindingTest {
 
     @Test
     void leaves_unset_fields_null_without_dropping_others() throws Exception {
-        var req = MAPPER.readValue("{\"baseUrl\":\"https://am.example\",\"amOrganizationId\":\"am-org\"}", AmConnectionRequest.class);
+        var req = MAPPER.readValue(
+                "{\"baseUrl\":\"https://am.example\",\"amOrganizationId\":\"am-org\"}", AmConnectionRequest.class);
 
         assertThat(req.baseUrl()).isEqualTo("https://am.example");
         assertThat(req.amOrganizationId()).isEqualTo("am-org");

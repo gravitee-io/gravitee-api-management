@@ -24,9 +24,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class NewPreRegisterUserEntity extends NewExternalUserEntity {
 
     @Schema(
-        description = "Whether this user is a service account. A service account must not have a firstname, and " +
-            "requires at least one of sourceId, lastname or email to derive a unique identifier."
-    )
+            description = "Whether this user is a service account. A service account must not have a firstname, and "
+                    + "requires at least one of sourceId, lastname or email to derive a unique identifier.")
     private boolean service = false;
 
     public boolean isService() {
@@ -39,33 +38,30 @@ public class NewPreRegisterUserEntity extends NewExternalUserEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewPreRegisterUserEntity{" +
-            "firstname='" +
-            getFirstname() +
-            '\'' +
-            ", lastname='" +
-            getLastname() +
-            '\'' +
-            ", email='" +
-            getEmail() +
-            '\'' +
-            ", source='" +
-            getSource() +
-            '\'' +
-            ", picture='" +
-            getPicture() +
-            '\'' +
-            ", sourceId='" +
-            getSourceId() +
-            '\'' +
-            ", newsletter=" +
-            getNewsletter() +
-            ", customFields=" +
-            getCustomFields() +
-            ", isService=" +
-            service +
-            '}'
-        );
+        return ("NewPreRegisterUserEntity{" + "firstname='"
+                + getFirstname()
+                + '\''
+                + ", lastname='"
+                + getLastname()
+                + '\''
+                + ", email='"
+                + getEmail()
+                + '\''
+                + ", source='"
+                + getSource()
+                + '\''
+                + ", picture='"
+                + getPicture()
+                + '\''
+                + ", sourceId='"
+                + getSourceId()
+                + '\''
+                + ", newsletter="
+                + getNewsletter()
+                + ", customFields="
+                + getCustomFields()
+                + ", isService="
+                + service
+                + '}');
     }
 }

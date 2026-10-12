@@ -25,20 +25,19 @@ import lombok.Builder;
  */
 @Builder
 public record AuthzDecisionLogFilters(
-    Set<String> apiIds,
-    Long from,
-    Long to,
-    Set<String> decisions,
-    Set<String> subjectIds,
-    Set<String> actions,
-    Set<String> resourceIds,
-    Set<String> callers,
-    Set<String> statuses,
-    Set<String> indeterminateCauses,
-    Set<String> errorTypes,
-    Set<String> targetPdpIds,
-    Set<String> matchedPolicyNames,
-    Set<String> policyGenerations,
-    Set<String> requestIds,
-    String reasonContains
-) {}
+        Set<String> apiIds,
+        Long from,
+        Long to,
+        Set<String> decisions,
+        Set<String> subjectIds,
+        Set<String> actions,
+        Set<String> resourceIds,
+        Set<String> callers,
+        Set<String> statuses,
+        Set<String> indeterminateCauses,
+        Set<String> errorTypes,
+        Set<String> targetPdpIds,
+        Set<String> matchedPolicyNames,
+        Set<String> policyGenerations,
+        Set<String> requestIds,
+        String reasonContains) {}

@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 public class PortalNavigationItemDefaultReferenceMongoUpgrader extends MongoUpgrader {
 
     public static final int PORTAL_NAVIGATION_ITEM_DEFAULT_REFERENCE_MONGO_UPGRADER_ORDER =
-        PortalNavigationItemDefaultRootIdMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_ROOT_ID_MONGO_UPGRADER_ORDER + 1;
+            PortalNavigationItemDefaultRootIdMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_ROOT_ID_MONGO_UPGRADER_ORDER
+                    + 1;
 
     public static final String REFERENCE_TYPE = "referenceType";
     public static final String REFERENCE_ID = "referenceId";
@@ -48,13 +49,14 @@ public class PortalNavigationItemDefaultReferenceMongoUpgrader extends MongoUpgr
     public boolean upgrade() {
         var collection = this.getCollection("portal_navigation_items");
         var typeResult = collection.updateMany(
-            Filters.or(Filters.exists(REFERENCE_TYPE, false), Filters.eq(REFERENCE_TYPE, null)),
-            Updates.set(REFERENCE_TYPE, UNATTACHED_REFERENCE_TYPE)
-        );
+                Filters.or(Filters.exists(REFERENCE_TYPE, false), Filters.eq(REFERENCE_TYPE, null)),
+                Updates.set(REFERENCE_TYPE, UNATTACHED_REFERENCE_TYPE));
         var idResult = collection.updateMany(
-            Filters.or(Filters.exists(REFERENCE_ID, false), Filters.eq(REFERENCE_ID, null), Filters.eq(REFERENCE_ID, "")),
-            Updates.set(REFERENCE_ID, UNATTACHED_REFERENCE_ID)
-        );
+                Filters.or(
+                        Filters.exists(REFERENCE_ID, false),
+                        Filters.eq(REFERENCE_ID, null),
+                        Filters.eq(REFERENCE_ID, "")),
+                Updates.set(REFERENCE_ID, UNATTACHED_REFERENCE_ID));
         return typeResult.wasAcknowledged() && idResult.wasAcknowledged();
     }
 

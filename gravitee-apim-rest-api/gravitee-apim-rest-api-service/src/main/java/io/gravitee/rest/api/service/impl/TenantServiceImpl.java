@@ -64,14 +64,12 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     private AuditService auditService;
 
     @Override
-    public TenantEntity findByKeyAndReference(String tenant, String referenceId, TenantReferenceType tenantReferenceType) {
+    public TenantEntity findByKeyAndReference(
+            String tenant, String referenceId, TenantReferenceType tenantReferenceType) {
         try {
             log.debug("Find tenant by key: {}", tenant);
             Optional<Tenant> optTenant = tenantRepository.findByKeyAndReference(
-                tenant,
-                referenceId,
-                repoTenantReferenceType(tenantReferenceType)
-            );
+                    tenant, referenceId, repoTenantReferenceType(tenantReferenceType));
 
             if (!optTenant.isPresent()) {
                 throw new TenantNotFoundException(tenant);
@@ -87,11 +85,9 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     public List<TenantEntity> findByReference(String referenceId, TenantReferenceType referenceType) {
         try {
             log.debug("Find all tenants");
-            return tenantRepository
-                .findByReference(referenceId, repoTenantReferenceType(referenceType))
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toList());
+            return tenantRepository.findByReference(referenceId, repoTenantReferenceType(referenceType)).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find all tenants", ex);
         }
@@ -99,12 +95,12 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
 
     @Override
     public List<TenantEntity> create(
-        ExecutionContext executionContext,
-        final List<NewTenantEntity> tenantEntities,
-        String referenceId,
-        TenantReferenceType referenceType
-    ) {
-        // First we prevent the duplicate tenant name. Keys are persisted normalized, so uniqueness must be checked on the
+            ExecutionContext executionContext,
+            final List<NewTenantEntity> tenantEntities,
+            String referenceId,
+            TenantReferenceType referenceType) {
+        // First we prevent the duplicate tenant name. Keys are persisted normalized, so uniqueness must be checked on
+        // the
         // normalized form, including between the tenants of this request
         final Set<String> tenantKeys = new HashSet<>();
         tenantEntities.forEach(tenantEntity -> {
@@ -113,10 +109,9 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             }
         });
 
-        final Optional<TenantEntity> optionalTenant = findByReference(referenceId, referenceType)
-            .stream()
-            .filter(tenant -> tenantKeys.contains(tenant.getKey()))
-            .findAny();
+        final Optional<TenantEntity> optionalTenant = findByReference(referenceId, referenceType).stream()
+                .filter(tenant -> tenantKeys.contains(tenant.getKey()))
+                .findAny();
 
         if (optionalTenant.isPresent()) {
             throw new DuplicateTenantKeyException(optionalTenant.get().getName());
@@ -128,17 +123,17 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 Tenant tenant = convert(tenantEntity, referenceId, referenceType);
                 savedTenants.add(convert(tenantRepository.create(tenant)));
                 auditService.createAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(TENANT, tenant.getKey()))
-                        .event(TENANT_CREATED)
-                        .createdAt(new Date())
-                        .oldValue(null)
-                        .newValue(tenant)
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.singletonMap(TENANT, tenant.getKey()))
+                                .event(TENANT_CREATED)
+                                .createdAt(new Date())
+                                .oldValue(null)
+                                .newValue(tenant)
+                                .build());
             } catch (TechnicalException ex) {
-                throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
+                throw new TechnicalManagementException(
+                        "An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
             }
         });
         return savedTenants;
@@ -146,20 +141,16 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
 
     @Override
     public List<TenantEntity> update(
-        ExecutionContext executionContext,
-        final List<UpdateTenantEntity> tenantEntities,
-        String referenceId,
-        TenantReferenceType referenceType
-    ) {
+            ExecutionContext executionContext,
+            final List<UpdateTenantEntity> tenantEntities,
+            String referenceId,
+            TenantReferenceType referenceType) {
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
         tenantEntities.forEach(tenantEntity -> {
             try {
                 Tenant tenant = convert(tenantEntity);
                 Optional<Tenant> tenantOptional = tenantRepository.findByKeyAndReference(
-                    tenant.getKey(),
-                    referenceId,
-                    repoTenantReferenceType(referenceType)
-                );
+                        tenant.getKey(), referenceId, repoTenantReferenceType(referenceType));
                 if (tenantOptional.isPresent()) {
                     Tenant existingTenant = tenantOptional.get();
                     tenant.setId(existingTenant.getId());
@@ -167,43 +158,43 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                     tenant.setReferenceType(existingTenant.getReferenceType());
                     savedTenants.add(convert(tenantRepository.update(tenant)));
                     auditService.createAuditLog(
-                        executionContext,
-                        AuditService.AuditLogData.builder()
-                            .properties(Collections.singletonMap(TENANT, tenant.getKey()))
-                            .event(TENANT_UPDATED)
-                            .createdAt(new Date())
-                            .oldValue(tenantOptional.get())
-                            .newValue(tenant)
-                            .build()
-                    );
+                            executionContext,
+                            AuditService.AuditLogData.builder()
+                                    .properties(Collections.singletonMap(TENANT, tenant.getKey()))
+                                    .event(TENANT_UPDATED)
+                                    .createdAt(new Date())
+                                    .oldValue(tenantOptional.get())
+                                    .newValue(tenant)
+                                    .build());
                 }
             } catch (TechnicalException ex) {
-                throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
+                throw new TechnicalManagementException(
+                        "An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
             }
         });
         return savedTenants;
     }
 
     @Override
-    public void delete(ExecutionContext executionContext, final String tenantKey, String referenceId, TenantReferenceType referenceType) {
+    public void delete(
+            ExecutionContext executionContext,
+            final String tenantKey,
+            String referenceId,
+            TenantReferenceType referenceType) {
         try {
             Optional<Tenant> tenantOptional = tenantRepository.findByKeyAndReference(
-                tenantKey,
-                referenceId,
-                repoTenantReferenceType(referenceType)
-            );
+                    tenantKey, referenceId, repoTenantReferenceType(referenceType));
             if (tenantOptional.isPresent()) {
                 tenantRepository.delete(tenantOptional.get().getId());
                 auditService.createAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(TENANT, tenantKey))
-                        .event(TENANT_DELETED)
-                        .createdAt(new Date())
-                        .oldValue(null)
-                        .newValue(tenantOptional.get())
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.singletonMap(TENANT, tenantKey))
+                                .event(TENANT_DELETED)
+                                .createdAt(new Date())
+                                .oldValue(null)
+                                .newValue(tenantOptional.get())
+                                .build());
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete tenant " + tenantKey, ex);
@@ -217,7 +208,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         tenant.setName(tenantEntity.getName());
         tenant.setDescription(tenantEntity.getDescription());
         tenant.setReferenceId(referenceId);
-        tenant.setReferenceType(io.gravitee.repository.management.model.TenantReferenceType.valueOf(referenceType.name()));
+        tenant.setReferenceType(
+                io.gravitee.repository.management.model.TenantReferenceType.valueOf(referenceType.name()));
         return tenant;
     }
 
@@ -238,7 +230,8 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         return tenantEntity;
     }
 
-    private io.gravitee.repository.management.model.TenantReferenceType repoTenantReferenceType(TenantReferenceType referenceType) {
+    private io.gravitee.repository.management.model.TenantReferenceType repoTenantReferenceType(
+            TenantReferenceType referenceType) {
         return io.gravitee.repository.management.model.TenantReferenceType.valueOf(referenceType.name());
     }
 }

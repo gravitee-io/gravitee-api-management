@@ -37,7 +37,8 @@ public class DefaultOpenApiProvider implements DefaultPortalPageContentProvider 
 
     @Override
     public PortalPageContent<?> provide(String organizationId, String environmentId) {
-        return new OpenApiPageContent(PortalPageContentId.random(), organizationId, environmentId, getDefaultOpenApiContent());
+        return new OpenApiPageContent(
+                PortalPageContentId.random(), organizationId, environmentId, getDefaultOpenApiContent());
     }
 
     private OpenApi getDefaultOpenApiContent() {

@@ -25,11 +25,11 @@ public class InitiatorIdTypeStatusIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("asyncjobs")
-            .name("i1t1s1")
-            .key("initiatorId", ascending())
-            .key("type", ascending())
-            .key("status", ascending())
-            .build();
+                .collection("asyncjobs")
+                .name("i1t1s1")
+                .key("initiatorId", ascending())
+                .key("type", ascending())
+                .key("status", ascending())
+                .build();
     }
 }

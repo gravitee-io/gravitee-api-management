@@ -30,8 +30,7 @@ import lombok.CustomLog;
  */
 @CustomLog
 public abstract class AbstractStreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>>
-    extends AbstractProcessorChain<T, P>
-    implements StreamableProcessorChain<T, S, P> {
+        extends AbstractProcessorChain<T, P> implements StreamableProcessorChain<T, S, P> {
 
     private P streamableProcessorChain;
     private Handler<ProcessorFailure> streamErrorHandler;
@@ -57,11 +56,11 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
                 previousProcessor = processor;
 
                 processor
-                    .handler(__ -> handle(data))
-                    .errorHandler(failure -> errorHandler.handle(failure))
-                    .exitHandler(stream -> exitHandler.handle(null))
-                    .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
-                    .handle(data);
+                        .handler(__ -> handle(data))
+                        .errorHandler(failure -> errorHandler.handle(failure))
+                        .exitHandler(stream -> exitHandler.handle(null))
+                        .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
+                        .handle(data);
             } catch (Exception ex) {
                 log.error("Unexpected error while handling the streamable processor chain", ex);
                 errorHandler.handle(new RuntimeProcessorFailure(ex.getMessage()));

@@ -56,7 +56,8 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
 
         RatingEntity ratingEntity = new RatingEntity();
         ratingEntity.setId(RATING);
@@ -72,7 +73,8 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
     public void shouldHaveApiNotFoundWhenUpdateWithFakeApiId() {
         RatingInput ratingInput = new RatingInput().comment(RATING).value(2);
         final String fakeId = "fake";
-        final Response response = target(fakeId).path("ratings").path(RATING).request().put(Entity.json(ratingInput));
+        final Response response =
+                target(fakeId).path("ratings").path(RATING).request().put(Entity.json(ratingInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -91,7 +93,8 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
     public void shouldHaveRatingNotFoundWhenUpdateWithFakeRatingId() {
         RatingInput ratingInput = new RatingInput().comment(RATING).value(2);
         final String fakeId = "fake";
-        final Response response = target(API).path("ratings").path(fakeId).request().put(Entity.json(ratingInput));
+        final Response response =
+                target(API).path("ratings").path(fakeId).request().put(Entity.json(ratingInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -114,7 +117,8 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
         rating.setValue(2);
 
         doReturn(rating).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
-        final Response response = target(API).path("ratings").path(RATING).request().put(Entity.json(ratingInput));
+        final Response response =
+                target(API).path("ratings").path(RATING).request().put(Entity.json(ratingInput));
         Rating updatedRatingResponse = response.readEntity(Rating.class);
         assertNotNull(updatedRatingResponse);
         assertEquals(rating.getValue(), updatedRatingResponse.getValue());
@@ -123,7 +127,8 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveApiNotFoundWhenDeleteWithFakeApiId() {
         final String fakeId = "fake";
-        final Response response = target(fakeId).path("ratings").path(RATING).request().delete();
+        final Response response =
+                target(fakeId).path("ratings").path(RATING).request().delete();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -141,7 +146,8 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveRatingNotFoundWhenDeleteWithFakeRatingId() {
         final String fakeId = "fake";
-        final Response response = target(API).path("ratings").path(fakeId).request().delete();
+        final Response response =
+                target(API).path("ratings").path(fakeId).request().delete();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -158,7 +164,8 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldDeleteApiRating() {
-        final Response deleteResponse = target(API).path("ratings").path(RATING).request().delete();
+        final Response deleteResponse =
+                target(API).path("ratings").path(RATING).request().delete();
         assertEquals(NO_CONTENT_204, deleteResponse.getStatus());
     }
 }

@@ -36,7 +36,8 @@ public interface MetadataMongoRepository extends MongoRepository<MetadataMongo, 
 
     List<MetadataMongo> findByIdReferenceTypeAndIdReferenceId(MetadataReferenceType referenceType, String referenceId);
 
-    List<MetadataMongo> findByIdReferenceTypeAndIdReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds);
+    List<MetadataMongo> findByIdReferenceTypeAndIdReferenceIdIn(
+            MetadataReferenceType referenceType, Collection<String> referenceIds);
 
     @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
     List<MetadataMongo> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType);

@@ -36,12 +36,15 @@ public class PortalAutomationScopeDomainService {
      * a separate rule, enforced by {@link #validate}.
      */
     public boolean portalExistsInEnvironment(AuditInfo auditInfo, PortalId portalId) {
-        return portalCrudService.findByIdAndEnvironmentId(portalId, auditInfo.environmentId()).isPresent();
+        return portalCrudService
+                .findByIdAndEnvironmentId(portalId, auditInfo.environmentId())
+                .isPresent();
     }
 
     public List<Validator.Error> validate(AuditInfo auditInfo, PortalId portalId, String fieldName) {
         if (hasEstablishedPortalConflict(auditInfo, portalId)) {
-            return List.of(Validator.Error.severe("%s does not match the established portal for this environment", fieldName));
+            return List.of(
+                    Validator.Error.severe("%s does not match the established portal for this environment", fieldName));
         }
         return List.of();
     }
@@ -50,9 +53,7 @@ public class PortalAutomationScopeDomainService {
         if (properties.allowMultiplePortalPerEnv()) {
             return false;
         }
-        return portalCrudService
-            .findByEnvironmentId(auditInfo.environmentId())
-            .stream()
-            .anyMatch(p -> !p.getId().equals(portalId));
+        return portalCrudService.findByEnvironmentId(auditInfo.environmentId()).stream()
+                .anyMatch(p -> !p.getId().equals(portalId));
     }
 }

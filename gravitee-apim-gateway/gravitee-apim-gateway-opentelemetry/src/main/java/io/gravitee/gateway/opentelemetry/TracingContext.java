@@ -16,7 +16,6 @@
 package io.gravitee.gateway.opentelemetry;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.common.service.Service;
 import io.gravitee.node.api.opentelemetry.Tracer;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import lombok.RequiredArgsConstructor;

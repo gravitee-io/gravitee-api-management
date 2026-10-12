@@ -47,7 +47,8 @@ public class ValidatePageSourceDomainServiceImplTest {
     private static final String PAGE_NAME = "test-page";
 
     Vertx vertx = mock(Vertx.class);
-    private final ValidatePageSourceDomainService cut = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), vertx);
+    private final ValidatePageSourceDomainService cut =
+            new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), vertx);
 
     @Nested
     class Github {
@@ -76,24 +77,21 @@ public class ValidatePageSourceDomainServiceImplTest {
         @Test
         void should_validate_with_required_fields() {
             var source = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "githubUrl",
-                        "https://api.github.com",
-                        "owner",
-                        "test",
-                        "repository",
-                        "doc-samples",
-                        "filepath",
-                        "/",
-                        "username",
-                        "test",
-                        "personalAccessToken",
-                        "test-token"
-                    )
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "githubUrl",
+                            "https://api.github.com",
+                            "owner",
+                            "test",
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
@@ -101,40 +99,37 @@ public class ValidatePageSourceDomainServiceImplTest {
             assertThat(result.warning()).isEmpty();
             assertThat(result.value()).isNotEmpty();
             assertThat(result.value().get())
-                .usingRecursiveComparison()
-                .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+                    .usingRecursiveComparison()
+                    .ignoringFields("source.configuration")
+                    .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
         }
 
         @Test
         void should_validate_with_optional_fields() {
             var source = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "githubUrl",
-                        "https://api.github.com",
-                        "owner",
-                        "test",
-                        "repository",
-                        "doc-samples",
-                        "filepath",
-                        "/",
-                        "username",
-                        "test",
-                        "personalAccessToken",
-                        "test-token",
-                        "branchOrTag",
-                        "main",
-                        "autoFetch",
-                        true,
-                        "useSystemProxy",
-                        false,
-                        "fetchCron",
-                        "5 * * * * *"
-                    )
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "githubUrl",
+                            "https://api.github.com",
+                            "owner",
+                            "test",
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token",
+                            "branchOrTag",
+                            "main",
+                            "autoFetch",
+                            true,
+                            "useSystemProxy",
+                            false,
+                            "fetchCron",
+                            "5 * * * * *"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
@@ -142,50 +137,44 @@ public class ValidatePageSourceDomainServiceImplTest {
             assertThat(result.warning()).isEmpty();
             assertThat(result.value()).isNotEmpty();
             assertThat(result.value().get())
-                .usingRecursiveComparison()
-                .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+                    .usingRecursiveComparison()
+                    .ignoringFields("source.configuration")
+                    .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
         }
 
         @Test
         void should_default_github_URL() {
             var source = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "owner",
-                        "test",
-                        "repository",
-                        "doc-samples",
-                        "filepath",
-                        "/",
-                        "username",
-                        "test",
-                        "personalAccessToken",
-                        "test-token"
-                    )
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "owner",
+                            "test",
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token"))
+                    .build();
 
             var expectedSource = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "githubUrl",
-                        "https://api.github.com",
-                        "owner",
-                        "test",
-                        "repository",
-                        "doc-samples",
-                        "filepath",
-                        "/",
-                        "username",
-                        "test",
-                        "personalAccessToken",
-                        "test-token"
-                    )
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "githubUrl",
+                            "https://api.github.com",
+                            "owner",
+                            "test",
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
@@ -193,116 +182,116 @@ public class ValidatePageSourceDomainServiceImplTest {
             assertThat(result.warning()).isEmpty();
             assertThat(result.value()).isNotEmpty();
             assertThat(result.value().get())
-                .usingRecursiveComparison()
-                .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
+                    .usingRecursiveComparison()
+                    .ignoringFields("source.configuration")
+                    .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
         }
 
         @Test
         void should_return_error_with_missing_required_property() {
             var source = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of("repository", "doc-samples", "filepath", "/", "username", "test", "personalAccessToken", "test-token")
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
-                .isNotEmpty()
-                .hasValue(List.of(severe("property [owner] is required in [github-fetcher] configuration for page [test-page]")));
+                    .isNotEmpty()
+                    .hasValue(List.of(severe(
+                            "property [owner] is required in [github-fetcher] configuration for page [test-page]")));
         }
 
         @Test
         void should_return_error_with_invalid_github_URL() {
             var source = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "githubUrl",
-                        "INVALID URL HERE",
-                        "owner",
-                        "test",
-                        "repository",
-                        "doc-samples",
-                        "filepath",
-                        "/",
-                        "username",
-                        "test",
-                        "personalAccessToken",
-                        "test-token"
-                    )
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "githubUrl",
+                            "INVALID URL HERE",
+                            "owner",
+                            "test",
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
-                .isNotEmpty()
-                .hasValue(List.of(severe("property [githubUrl] of source [github-fetcher] must be a valid URL for page [test-page]")));
+                    .isNotEmpty()
+                    .hasValue(
+                            List.of(
+                                    severe(
+                                            "property [githubUrl] of source [github-fetcher] must be a valid URL for page [test-page]")));
         }
 
         @Test
         void should_sanitize_and_return_warning_with_unknown_property() {
             var source = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "githubUrl",
-                        "https://api.github.com",
-                        "owner",
-                        "test",
-                        "repository",
-                        "doc-samples",
-                        "filepath",
-                        "/",
-                        "username",
-                        "test",
-                        "personalAccessToken",
-                        "test-token",
-                        "unknownPropertyKey",
-                        "whatever"
-                    )
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "githubUrl",
+                            "https://api.github.com",
+                            "owner",
+                            "test",
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token",
+                            "unknownPropertyKey",
+                            "whatever"))
+                    .build();
 
             var expectedSource = PageSource.builder()
-                .type("github-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "githubUrl",
-                        "https://api.github.com",
-                        "owner",
-                        "test",
-                        "repository",
-                        "doc-samples",
-                        "filepath",
-                        "/",
-                        "username",
-                        "test",
-                        "personalAccessToken",
-                        "test-token"
-                    )
-                )
-                .build();
+                    .type("github-fetcher")
+                    .configurationMap(Map.of(
+                            "githubUrl",
+                            "https://api.github.com",
+                            "owner",
+                            "test",
+                            "repository",
+                            "doc-samples",
+                            "filepath",
+                            "/",
+                            "username",
+                            "test",
+                            "personalAccessToken",
+                            "test-token"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
             assertThat(result.warning())
-                .isNotEmpty()
-                .hasValue(
-                    List.of(
-                        warning("page [test-page] contains unknown configuration property [unknownPropertyKey] for [github-fetcher] source")
-                    )
-                );
+                    .isNotEmpty()
+                    .hasValue(
+                            List.of(
+                                    warning(
+                                            "page [test-page] contains unknown configuration property [unknownPropertyKey] for [github-fetcher] source")));
             assertThat(result.value()).isNotEmpty();
             assertThat(result.value().get())
-                .usingRecursiveComparison()
-                .ignoringFields("source.configuration")
-                .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
+                    .usingRecursiveComparison()
+                    .ignoringFields("source.configuration")
+                    .isEqualTo(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
         }
     }
 
@@ -312,9 +301,9 @@ public class ValidatePageSourceDomainServiceImplTest {
         @Test
         void should_validate_with_required_fields() {
             var source = PageSource.builder()
-                .type("http-fetcher")
-                .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
-                .build();
+                    .type("http-fetcher")
+                    .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
@@ -326,79 +315,85 @@ public class ValidatePageSourceDomainServiceImplTest {
         @Test
         void should_validate_with_optional_fields() {
             var source = PageSource.builder()
-                .type("http-fetcher")
-                .configurationMap(
-                    Map.of(
-                        "url",
-                        "https://petstore.swagger.io/v2/swagger.json",
-                        "autoFetch",
-                        true,
-                        "useSystemProxy",
-                        false,
-                        "fetchCron",
-                        "5 * * * * *"
-                    )
-                )
-                .build();
+                    .type("http-fetcher")
+                    .configurationMap(Map.of(
+                            "url",
+                            "https://petstore.swagger.io/v2/swagger.json",
+                            "autoFetch",
+                            true,
+                            "useSystemProxy",
+                            false,
+                            "fetchCron",
+                            "5 * * * * *"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isEmpty();
-            assertThat(result.value()).isNotEmpty().hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+            assertThat(result.value())
+                    .isNotEmpty()
+                    .hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
         }
 
         @Test
         void should_return_error_with_invalid_URL() {
-            var source = PageSource.builder().type("http-fetcher").configurationMap(Map.of("url", "INVALID URL HERE")).build();
+            var source = PageSource.builder()
+                    .type("http-fetcher")
+                    .configurationMap(Map.of("url", "INVALID URL HERE"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
-                .isNotEmpty()
-                .hasValue(List.of(severe("property [url] of source [http-fetcher] must be a valid URL for page [test-page]")));
+                    .isNotEmpty()
+                    .hasValue(List.of(severe(
+                            "property [url] of source [http-fetcher] must be a valid URL for page [test-page]")));
         }
 
         @Test
         void should_return_error_with_invalid_cron_expression() {
             var source = PageSource.builder()
-                .type("http-fetcher")
-                .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "fetchCron", "***"))
-                .build();
+                    .type("http-fetcher")
+                    .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "fetchCron", "***"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
             assertThat(result.warning()).isEmpty();
             assertThat(result.severe())
-                .isNotEmpty()
-                .hasValue(
-                    List.of(severe("property [fetchCron] of source [http-fetcher] must be a valid cron expression for page [test-page]"))
-                );
+                    .isNotEmpty()
+                    .hasValue(
+                            List.of(
+                                    severe(
+                                            "property [fetchCron] of source [http-fetcher] must be a valid cron expression for page [test-page]")));
         }
 
         @Test
         void should_sanitize_and_return_warning_with_unknown_property() {
             var source = PageSource.builder()
-                .type("http-fetcher")
-                .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "unknownPropertyKey", "whatever"))
-                .build();
+                    .type("http-fetcher")
+                    .configurationMap(Map.of(
+                            "url", "https://petstore.swagger.io/v2/swagger.json", "unknownPropertyKey", "whatever"))
+                    .build();
 
             var expectedSource = PageSource.builder()
-                .type("http-fetcher")
-                .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
-                .build();
+                    .type("http-fetcher")
+                    .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
 
             assertThat(result.warning())
-                .isNotEmpty()
-                .hasValue(
-                    List.of(
-                        warning("page [test-page] contains unknown configuration property [unknownPropertyKey] for [http-fetcher] source")
-                    )
-                );
-            assertThat(result.value()).isNotEmpty().hasValue((new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource)));
+                    .isNotEmpty()
+                    .hasValue(
+                            List.of(
+                                    warning(
+                                            "page [test-page] contains unknown configuration property [unknownPropertyKey] for [http-fetcher] source")));
+            assertThat(result.value())
+                    .isNotEmpty()
+                    .hasValue((new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource)));
         }
     }
 }

@@ -34,7 +34,9 @@ public class ResourcePluginQueryServiceLegacyWrapper implements ResourcePluginQu
 
     @Override
     public Set<ResourcePlugin> findAll() {
-        return resourceService.findAll().stream().map(ResourcePluginAdapter.INSTANCE::map).collect(Collectors.toSet());
+        return resourceService.findAll().stream()
+                .map(ResourcePluginAdapter.INSTANCE::map)
+                .collect(Collectors.toSet());
     }
 
     @Override

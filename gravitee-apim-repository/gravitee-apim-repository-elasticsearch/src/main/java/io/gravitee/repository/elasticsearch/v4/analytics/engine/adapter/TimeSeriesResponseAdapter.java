@@ -32,8 +32,8 @@ public class TimeSeriesResponseAdapter extends AbstractResponseAdapter {
 
     public TimeSeriesResult adapt(SearchResponse esResponse, TimeSeriesQuery query) {
         return lookupForAggregations(esResponse)
-            .map(aggregations -> toTimeSeriesResult(aggregations, query))
-            .orElseGet(() -> empty(query));
+                .map(aggregations -> toTimeSeriesResult(aggregations, query))
+                .orElseGet(() -> empty(query));
     }
 
     private TimeSeriesResult toTimeSeriesResult(Map<String, Aggregation> aggregations, TimeSeriesQuery query) {

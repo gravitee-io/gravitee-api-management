@@ -38,18 +38,21 @@ import org.junit.jupiter.api.Test;
 
 class SubscriptionFormElResolverDomainServiceImplTest {
 
-    private final SubscriptionFormExpressionResolverDomainService expressionResolver = mock(
-        SubscriptionFormExpressionResolverDomainService.class
-    );
+    private final SubscriptionFormExpressionResolverDomainService expressionResolver =
+            mock(SubscriptionFormExpressionResolverDomainService.class);
     private final ApiMetadataQueryService metadataQueryService = mock(ApiMetadataQueryService.class);
     private SubscriptionFormElResolverDomainServiceImpl service;
 
     @BeforeEach
     void setUp() {
         service = new SubscriptionFormElResolverDomainServiceImpl(expressionResolver, metadataQueryService);
-        when(metadataQueryService.findApiMetadata(anyString(), anyString())).thenReturn(
-            Map.of("envs", ApiMetadata.builder().key("envs").value("Dev,Staging,Prod").build())
-        );
+        when(metadataQueryService.findApiMetadata(anyString(), anyString()))
+                .thenReturn(Map.of(
+                        "envs",
+                        ApiMetadata.builder()
+                                .key("envs")
+                                .value("Dev,Staging,Prod")
+                                .build()));
     }
 
     @Nested
@@ -68,25 +71,24 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_return_empty_map_when_no_dynamic_fields() {
-            var schema = new SubscriptionFormSchema(
-                List.of(SelectField.builder().fieldKey("plan").required(true).options(List.of("Free", "Pro")).build())
-            );
+            var schema = new SubscriptionFormSchema(List.of(SelectField.builder()
+                    .fieldKey("plan")
+                    .required(true)
+                    .options(List.of("Free", "Pro"))
+                    .build()));
             assertThat(service.resolveSchemaOptions(schema, "env-1", "api-1")).isEmpty();
         }
 
         @Test
         void should_resolve_expression_when_apiId_is_present() {
-            when(expressionResolver.resolveToOptions(eq("{#api.metadata['envs']}"), any())).thenReturn(List.of("Dev", "Staging", "Prod"));
+            when(expressionResolver.resolveToOptions(eq("{#api.metadata['envs']}"), any()))
+                    .thenReturn(List.of("Dev", "Staging", "Prod"));
 
-            var schema = new SubscriptionFormSchema(
-                List.of(
-                    SelectField.builder()
-                        .fieldKey("env")
-                        .required(false)
-                        .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod")))
-                        .build()
-                )
-            );
+            var schema = new SubscriptionFormSchema(List.of(SelectField.builder()
+                    .fieldKey("env")
+                    .required(false)
+                    .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod")))
+                    .build()));
 
             var result = service.resolveSchemaOptions(schema, "env-1", "api-1");
 
@@ -95,15 +97,11 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_return_fallback_when_no_api_context_and_expression_cannot_be_resolved() {
-            var schema = new SubscriptionFormSchema(
-                List.of(
-                    SelectField.builder()
-                        .fieldKey("env")
-                        .required(false)
-                        .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod", "Test")))
-                        .build()
-                )
-            );
+            var schema = new SubscriptionFormSchema(List.of(SelectField.builder()
+                    .fieldKey("env")
+                    .required(false)
+                    .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod", "Test")))
+                    .build()));
 
             var result = service.resolveSchemaOptions(schema);
 
@@ -112,17 +110,14 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_resolve_expression_without_api_context_when_expression_is_self_contained() {
-            when(expressionResolver.resolveToOptions("{#'Dev,Staging,Prod'}", Map.of())).thenReturn(List.of("Dev", "Staging", "Prod"));
+            when(expressionResolver.resolveToOptions("{#'Dev,Staging,Prod'}", Map.of()))
+                    .thenReturn(List.of("Dev", "Staging", "Prod"));
 
-            var schema = new SubscriptionFormSchema(
-                List.of(
-                    SelectField.builder()
-                        .fieldKey("env")
-                        .required(false)
-                        .dynamicOptions(new DynamicOptions("{#'Dev,Staging,Prod'}", List.of("Prod", "Test")))
-                        .build()
-                )
-            );
+            var schema = new SubscriptionFormSchema(List.of(SelectField.builder()
+                    .fieldKey("env")
+                    .required(false)
+                    .dynamicOptions(new DynamicOptions("{#'Dev,Staging,Prod'}", List.of("Prod", "Test")))
+                    .build()));
 
             var result = service.resolveSchemaOptions(schema);
 
@@ -133,15 +128,11 @@ class SubscriptionFormElResolverDomainServiceImplTest {
         void should_use_fallback_when_resolution_fails() {
             when(expressionResolver.resolveToOptions(anyString(), any())).thenReturn(List.of());
 
-            var schema = new SubscriptionFormSchema(
-                List.of(
-                    SelectField.builder()
-                        .fieldKey("env")
-                        .required(false)
-                        .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod")))
-                        .build()
-                )
-            );
+            var schema = new SubscriptionFormSchema(List.of(SelectField.builder()
+                    .fieldKey("env")
+                    .required(false)
+                    .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod")))
+                    .build()));
 
             var result = service.resolveSchemaOptions(schema, "env-1", "api-1");
 
@@ -150,17 +141,14 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_use_fallback_without_api_context_when_resolution_fails() {
-            when(expressionResolver.resolveToOptions("{#api.metadata['envs']}", Map.of())).thenReturn(List.of());
+            when(expressionResolver.resolveToOptions("{#api.metadata['envs']}", Map.of()))
+                    .thenReturn(List.of());
 
-            var schema = new SubscriptionFormSchema(
-                List.of(
-                    SelectField.builder()
-                        .fieldKey("env")
-                        .required(false)
-                        .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod", "Test")))
-                        .build()
-                )
-            );
+            var schema = new SubscriptionFormSchema(List.of(SelectField.builder()
+                    .fieldKey("env")
+                    .required(false)
+                    .dynamicOptions(new DynamicOptions("{#api.metadata['envs']}", List.of("Prod", "Test")))
+                    .build()));
 
             var result = service.resolveSchemaOptions(schema);
 
@@ -179,7 +167,8 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_resolve_dynamic_one_of_in_place() {
-            when(expressionResolver.resolveToOptions(eq("{#api.metadata['plans']}"), any())).thenReturn(List.of("Free", "Pro"));
+            when(expressionResolver.resolveToOptions(eq("{#api.metadata['plans']}"), any()))
+                    .thenReturn(List.of("Free", "Pro"));
             var dynamicConstraint = Constraint.OneOf.dynamic("{#api.metadata['plans']}", List.of("Free"));
 
             var constraints = new SubscriptionFormFieldConstraints(Map.of("plan", List.of(dynamicConstraint)));
@@ -194,7 +183,8 @@ class SubscriptionFormElResolverDomainServiceImplTest {
 
         @Test
         void should_resolve_dynamic_each_of_in_place() {
-            when(expressionResolver.resolveToOptions(eq("{#api.metadata['tags']}"), any())).thenReturn(List.of("Alpha", "Beta"));
+            when(expressionResolver.resolveToOptions(eq("{#api.metadata['tags']}"), any()))
+                    .thenReturn(List.of("Alpha", "Beta"));
             var dynamicConstraint = Constraint.EachOf.dynamic("{#api.metadata['tags']}", List.of("Fallback"));
 
             var constraints = new SubscriptionFormFieldConstraints(Map.of("tags", List.of(dynamicConstraint)));
@@ -210,12 +200,12 @@ class SubscriptionFormElResolverDomainServiceImplTest {
         @Test
         void should_leave_non_dynamic_constraints_unchanged() {
             var constraints = new SubscriptionFormFieldConstraints(
-                Map.of("company", List.of(new Constraint.Required(), new Constraint.MaxLength(100)))
-            );
+                    Map.of("company", List.of(new Constraint.Required(), new Constraint.MaxLength(100))));
 
             var resolved = service.resolveConstraints(constraints, "env-1", "api-1");
 
-            assertThat(resolved.byFieldKey().get("company")).containsExactly(new Constraint.Required(), new Constraint.MaxLength(100));
+            assertThat(resolved.byFieldKey().get("company"))
+                    .containsExactly(new Constraint.Required(), new Constraint.MaxLength(100));
         }
 
         @Test

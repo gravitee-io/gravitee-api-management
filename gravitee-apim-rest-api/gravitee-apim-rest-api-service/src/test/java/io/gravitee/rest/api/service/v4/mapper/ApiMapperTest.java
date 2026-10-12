@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -50,8 +49,6 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -92,14 +89,13 @@ public class ApiMapperTest {
     private static final String FEDERATED_AGENT_ENVIRONMENT_ID = "environment-id";
     private static final String FEDERATED_AGENT_INTEGRATION_ID = "integration-id";
     private static final FederatedAgent.Skill FEDERATED_AGENT_SKILL = new FederatedAgent.Skill(
-        "skill-id",
-        "skill-name",
-        "skill-description",
-        List.of("tag"),
-        List.of("example"),
-        List.of("text/plain"),
-        List.of("application/json")
-    );
+            "skill-id",
+            "skill-name",
+            "skill-description",
+            List.of("tag"),
+            List.of("example"),
+            List.of("text/plain"),
+            List.of("application/json"));
 
     private ApiMapper apiMapper;
 
@@ -126,21 +122,22 @@ public class ApiMapperTest {
     @BeforeEach
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
-        apiMapper = new ApiMapper(objectMapper, planService, flowService, parameterService, workflowService, categoryMapper);
+        apiMapper = new ApiMapper(
+                objectMapper, planService, flowService, parameterService, workflowService, categoryMapper);
     }
 
     @Test
     public void should_normalize_legacy_ssl_none_values_when_reading_the_definition() throws Exception {
         // Given
-        var api = apiWithSharedConfiguration("http-proxy", "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}");
+        var api = apiWithSharedConfiguration(
+                "http-proxy", "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}");
 
         // When
         var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
 
         // Then
-        assertThat(entity.getEndpointGroups().getFirst().getSharedConfiguration()).isEqualTo(
-            "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}"
-        );
+        assertThat(entity.getEndpointGroups().getFirst().getSharedConfiguration())
+                .isEqualTo("{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}");
     }
 
     @Test
@@ -152,9 +149,12 @@ public class ApiMapperTest {
         var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
 
         // Then
-        assertThat(entity.getEndpointGroups().getFirst().getEndpoints().getFirst().getSharedConfigurationOverride()).isEqualTo(
-            "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}"
-        );
+        assertThat(entity.getEndpointGroups()
+                        .getFirst()
+                        .getEndpoints()
+                        .getFirst()
+                        .getSharedConfigurationOverride())
+                .isEqualTo("{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}");
     }
 
     @Test
@@ -167,7 +167,8 @@ public class ApiMapperTest {
         var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
 
         // Then
-        assertThat(entity.getEndpointGroups().getFirst().getSharedConfiguration()).isEqualTo(legacySsl);
+        assertThat(entity.getEndpointGroups().getFirst().getSharedConfiguration())
+                .isEqualTo(legacySsl);
     }
 
     @Test
@@ -196,9 +197,8 @@ public class ApiMapperTest {
         var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
 
         // Then
-        assertThat(entity.getServices().getDynamicProperty().getConfiguration()).isEqualTo(
-            "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}"
-        );
+        assertThat(entity.getServices().getDynamicProperty().getConfiguration())
+                .isEqualTo("{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}");
     }
 
     private Api apiWithSharedConfiguration(String connectorType, String sharedConfiguration) throws Exception {
@@ -328,7 +328,10 @@ public class ApiMapperTest {
 
         Api repo = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(repo.getDefinition()).contains("\"key\":\"secret\"").contains("\"encrypted\":true").contains("\"dynamic\":true");
+        assertThat(repo.getDefinition())
+                .contains("\"key\":\"secret\"")
+                .contains("\"encrypted\":true")
+                .contains("\"dynamic\":true");
     }
 
     @Test
@@ -384,10 +387,14 @@ public class ApiMapperTest {
             update.setType(type);
             update.setAllowedInApiProducts(true);
 
-            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update).getDefinition();
+            var definition = apiMapper
+                    .toRepository(GraviteeContext.getExecutionContext(), update)
+                    .getDefinition();
 
             if (composableTypes.contains(type)) {
-                assertThat(definition).as("%s must survive an update with the flag intact", type).contains("\"allowedInApiProducts\":true");
+                assertThat(definition)
+                        .as("%s must survive an update with the flag intact", type)
+                        .contains("\"allowedInApiProducts\":true");
             } else {
                 assertThat(definition).as("%s must not carry the flag", type).contains("\"allowedInApiProducts\":null");
             }
@@ -408,10 +415,14 @@ public class ApiMapperTest {
 
             when(categoryMapper.toCategoryId(any(), any())).thenReturn(Set.of());
 
-            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity).getDefinition();
+            var definition = apiMapper
+                    .toRepository(GraviteeContext.getExecutionContext(), apiEntity)
+                    .getDefinition();
 
             if (composableTypes.contains(type)) {
-                assertThat(definition).as("%s must round-trip the flag", type).contains("\"allowedInApiProducts\":true");
+                assertThat(definition)
+                        .as("%s must round-trip the flag", type)
+                        .contains("\"allowedInApiProducts\":true");
             } else {
                 assertThat(definition).as("%s must not carry the flag", type).contains("\"allowedInApiProducts\":null");
             }
@@ -435,9 +446,13 @@ public class ApiMapperTest {
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
         apiDefinition.setResponseTemplates(Map.of("/", Map.of("/", new ResponseTemplate())));
-        apiDefinition.setFailover(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        apiDefinition.setFailover(Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .build());
 
         Api api = new Api();
         api.setId("id");
@@ -503,9 +518,14 @@ public class ApiMapperTest {
         assertThat(apiEntity.getFlows().size()).isEqualTo(2);
         assertThat(apiEntity.getResponseTemplates()).isNotNull();
         assertThat(apiEntity.getResponseTemplates().size()).isEqualTo(1);
-        assertThat(apiEntity.getFailover()).isEqualTo(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        assertThat(apiEntity.getFailover())
+                .isEqualTo(Failover.builder()
+                        .enabled(true)
+                        .perSubscription(false)
+                        .maxFailures(3)
+                        .openStateDuration(11000)
+                        .slowCallDuration(500)
+                        .build());
     }
 
     @Test
@@ -531,7 +551,8 @@ public class ApiMapperTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setDefinition("wrong api definition");
 
-        when(categoryMapper.toCategoryKey(eq(api.getEnvironmentId()), eq(api.getCategories()))).thenReturn(api.getCategories());
+        when(categoryMapper.toCategoryKey(eq(api.getEnvironmentId()), eq(api.getCategories())))
+                .thenReturn(api.getCategories());
 
         io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = apiMapper.toEntity(api, null);
 
@@ -579,9 +600,13 @@ public class ApiMapperTest {
         newApiEntity.setEndpointGroups(List.of(new EndpointGroup()));
         newApiEntity.setFlowExecution(new FlowExecution());
         newApiEntity.setFlows(List.of(new Flow(), new Flow()));
-        newApiEntity.setFailover(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        newApiEntity.setFailover(Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .build());
 
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), newApiEntity);
         assertThat(api.getDescription()).isNull();
@@ -615,9 +640,13 @@ public class ApiMapperTest {
         apiDefinition.setTags(Set.of("tag"));
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
-        apiDefinition.setFailover(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        apiDefinition.setFailover(Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .build());
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
     }
 
@@ -647,15 +676,16 @@ public class ApiMapperTest {
         updateApiEntity.setMetadata(List.of(new ApiMetadataEntity()));
         updateApiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED);
         updateApiEntity.setDisableMembershipNotifications(true);
-        updateApiEntity.setFailover(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
-        updateApiEntity.setProperties(
-            List.of(
+        updateApiEntity.setFailover(Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .build());
+        updateApiEntity.setProperties(List.of(
                 new PropertyEntity("propKey", "propValue", false, false),
-                new PropertyEntity("dynPropKey", "dynPropValue", false, false, true)
-            )
-        );
+                new PropertyEntity("dynPropKey", "dynPropValue", false, false, true)));
         updateApiEntity.setResources(List.of(new Resource()));
         updateApiEntity.setPlans(Set.of(new PlanEntity()));
 
@@ -664,7 +694,8 @@ public class ApiMapperTest {
         CategoryEntity existingCategoryByKeyEntity = new CategoryEntity();
         existingCategoryByKeyEntity.setKey("existingCatKey");
 
-        when(categoryMapper.toCategoryId(any(), eq(updateApiEntity.getCategories()))).thenReturn(updateApiEntity.getCategories());
+        when(categoryMapper.toCategoryId(any(), eq(updateApiEntity.getCategories())))
+                .thenReturn(updateApiEntity.getCategories());
 
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
 
@@ -697,12 +728,16 @@ public class ApiMapperTest {
         apiDefinition.setTags(Set.of("tag1", "tag2"));
         apiDefinition.setListeners(List.of(new HttpListener()));
         apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
-        apiDefinition.setProperties(
-            List.of(new Property("propKey", "propValue", false, false), new Property("dynPropKey", "dynPropValue", false, true))
-        );
-        apiDefinition.setFailover(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        apiDefinition.setProperties(List.of(
+                new Property("propKey", "propValue", false, false),
+                new Property("dynPropKey", "dynPropValue", false, true)));
+        apiDefinition.setFailover(Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .build());
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
@@ -799,9 +834,13 @@ public class ApiMapperTest {
         apiEntity.setResources(List.of(new Resource()));
         apiEntity.setPlans(Set.of(new PlanEntity()));
         apiEntity.setUpdatedAt(new Date());
-        apiEntity.setFailover(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        apiEntity.setFailover(Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .build());
 
         CategoryEntity existingCategoryByIdEntity = new CategoryEntity();
         existingCategoryByIdEntity.setId("existingCatId");
@@ -851,9 +890,13 @@ public class ApiMapperTest {
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
         apiDefinition.setResponseTemplates(new HashMap<>());
-        apiDefinition.setFailover(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
-        );
+        apiDefinition.setFailover(Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .build());
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
     }
 
@@ -915,7 +958,8 @@ public class ApiMapperTest {
         assertThat(nativeEntity.getPicture()).isEqualTo("picture");
         assertThat(nativeEntity.getBackground()).isEqualTo("background");
         assertThat(nativeEntity.getLabels().size()).isEqualTo(1);
-        assertThat(nativeEntity.getLifecycleState()).isEqualTo(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
+        assertThat(nativeEntity.getLifecycleState())
+                .isEqualTo(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
         assertThat(nativeEntity.getState()).isEqualTo(Lifecycle.State.STARTED);
         assertThat(nativeEntity.getVisibility()).isEqualTo(io.gravitee.rest.api.model.Visibility.PUBLIC);
 
@@ -939,7 +983,8 @@ public class ApiMapperTest {
     void should_map_federated_agent_definition_to_entity() throws Exception {
         // Given
         var api = aFederatedAgentApi(objectMapper.writeValueAsString(aFederatedAgent()));
-        when(categoryMapper.toCategoryKey(eq(FEDERATED_AGENT_ENVIRONMENT_ID), eq(api.getCategories()))).thenReturn(Set.of("category-key"));
+        when(categoryMapper.toCategoryKey(eq(FEDERATED_AGENT_ENVIRONMENT_ID), eq(api.getCategories())))
+                .thenReturn(Set.of("category-key"));
 
         // When
         var result = apiMapper.federatedAgentToEntity(api, aFederatedAgentPrimaryOwner());
@@ -953,7 +998,8 @@ public class ApiMapperTest {
         // Given
         var api = aFederatedAgentApi(objectMapper.writeValueAsString(aFederatedAgent()));
         var executionContext = new ExecutionContext("organization-id", FEDERATED_AGENT_ENVIRONMENT_ID);
-        when(categoryMapper.toCategoryKey(eq(FEDERATED_AGENT_ENVIRONMENT_ID), eq(api.getCategories()))).thenReturn(Set.of("category-key"));
+        when(categoryMapper.toCategoryKey(eq(FEDERATED_AGENT_ENVIRONMENT_ID), eq(api.getCategories())))
+                .thenReturn(Set.of("category-key"));
 
         // When
         var result = apiMapper.federatedAgentToEntity(executionContext, api, aFederatedAgentPrimaryOwner());
@@ -988,7 +1034,11 @@ public class ApiMapperTest {
     }
 
     private static FederatedAgent aFederatedAgent() {
-        return FederatedAgent.builder().name("agent-name").url("https://agent.example.com").skills(List.of(FEDERATED_AGENT_SKILL)).build();
+        return FederatedAgent.builder()
+                .name("agent-name")
+                .url("https://agent.example.com")
+                .skills(List.of(FEDERATED_AGENT_SKILL))
+                .build();
     }
 
     private static Api aFederatedAgentApi(String definition) {
@@ -1012,17 +1062,15 @@ public class ApiMapperTest {
         assertThat(result.getId()).isEqualTo("api-id");
         assertThat(result.getName()).isEqualTo("api-name");
         assertThat(result.getCategories()).containsExactly("category-key");
-        assertThat(result.getSkills()).containsExactly(
-            new FederatedApiAgentEntity.Skill(
-                FEDERATED_AGENT_SKILL.id(),
-                FEDERATED_AGENT_SKILL.name(),
-                FEDERATED_AGENT_SKILL.description(),
-                FEDERATED_AGENT_SKILL.tags(),
-                FEDERATED_AGENT_SKILL.examples(),
-                FEDERATED_AGENT_SKILL.inputModes(),
-                FEDERATED_AGENT_SKILL.outputModes()
-            )
-        );
+        assertThat(result.getSkills())
+                .containsExactly(new FederatedApiAgentEntity.Skill(
+                        FEDERATED_AGENT_SKILL.id(),
+                        FEDERATED_AGENT_SKILL.name(),
+                        FEDERATED_AGENT_SKILL.description(),
+                        FEDERATED_AGENT_SKILL.tags(),
+                        FEDERATED_AGENT_SKILL.examples(),
+                        FEDERATED_AGENT_SKILL.inputModes(),
+                        FEDERATED_AGENT_SKILL.outputModes()));
         assertThat(result.getPrimaryOwner().getId()).isEqualTo("po-id");
         assertThat(result.getPrimaryOwner().getDisplayName()).isEqualTo("a PO");
         assertThat(result.getOriginContext().integrationId()).isEqualTo(FEDERATED_AGENT_INTEGRATION_ID);

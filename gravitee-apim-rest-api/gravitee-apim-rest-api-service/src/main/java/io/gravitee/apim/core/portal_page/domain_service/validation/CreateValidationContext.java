@@ -34,22 +34,27 @@ import java.util.Set;
  * {@link UniqueItemIdRule} and {@link HomepageUniquenessRule}.
  */
 public record CreateValidationContext(
-    List<PortalNavigationItem> navigationItems,
-    Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-    Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
-    Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId,
-    List<PendingSegmentClaim> pendingSegmentClaims,
-    Set<PortalPageContentId> pendingContentIds,
-    Set<PortalNavigationItemId> itemIdsBeingReplaced
-) {
-    public CreateValidationContext(
         List<PortalNavigationItem> navigationItems,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
         Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
         Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId,
-        List<PendingSegmentClaim> pendingSegmentClaims
-    ) {
-        this(navigationItems, itemsById, pendingItemsById, pendingUpdatesByExistingId, pendingSegmentClaims, Set.of(), Set.of());
+        List<PendingSegmentClaim> pendingSegmentClaims,
+        Set<PortalPageContentId> pendingContentIds,
+        Set<PortalNavigationItemId> itemIdsBeingReplaced) {
+    public CreateValidationContext(
+            List<PortalNavigationItem> navigationItems,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+            Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
+            Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId,
+            List<PendingSegmentClaim> pendingSegmentClaims) {
+        this(
+                navigationItems,
+                itemsById,
+                pendingItemsById,
+                pendingUpdatesByExistingId,
+                pendingSegmentClaims,
+                Set.of(),
+                Set.of());
     }
 
     public static CreateValidationContext empty() {
@@ -57,6 +62,7 @@ public record CreateValidationContext(
     }
 
     public static CreateValidationContext replacing(Set<PortalNavigationItemId> itemIdsBeingReplaced) {
-        return new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(), Set.of(), itemIdsBeingReplaced);
+        return new CreateValidationContext(
+                List.of(), Map.of(), Map.of(), Map.of(), List.of(), Set.of(), itemIdsBeingReplaced);
     }
 }

@@ -29,10 +29,16 @@ public class ScoreComputingDomainService {
         var hintsWeight = 0.1;
         var aggressivenessParam = 0.1;
 
-        var sum = ((errorsWeight * nbErrors) + (warningsWeight * nbWarnings) + (infosWeight * nbInfos) + (hintsWeight * nbHints));
+        var sum = ((errorsWeight * nbErrors)
+                + (warningsWeight * nbWarnings)
+                + (infosWeight * nbInfos)
+                + (hintsWeight * nbHints));
         var agg = sum * aggressivenessParam;
         var exp = StrictMath.exp(-agg);
 
-        return BigDecimal.valueOf(1).multiply(BigDecimal.valueOf(exp)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+        return BigDecimal.valueOf(1)
+                .multiply(BigDecimal.valueOf(exp))
+                .setScale(2, RoundingMode.HALF_EVEN)
+                .doubleValue();
     }
 }

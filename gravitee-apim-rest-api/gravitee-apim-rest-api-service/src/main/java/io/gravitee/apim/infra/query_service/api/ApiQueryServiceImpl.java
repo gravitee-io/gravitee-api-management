@@ -48,30 +48,37 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
     }
 
     @Override
-    public Page<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
-        return this.apiRepository.search(
-            apiCriteria == null ? null : ApiSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(apiCriteria),
-            sortable == null ? null : SortableAdapter.INSTANCE.toSortableForRepository(sortable),
-            convert(pageable),
-            apiFieldFilter == null ? null : ApiFieldFilterAdapter.INSTANCE.toApiFieldFilterForRepository(apiFieldFilter)
-        ).map(ApiAdapter.INSTANCE::toCoreModel);
+    public Page<Api> search(
+            ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        return this.apiRepository
+                .search(
+                        apiCriteria == null
+                                ? null
+                                : ApiSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(apiCriteria),
+                        sortable == null ? null : SortableAdapter.INSTANCE.toSortableForRepository(sortable),
+                        convert(pageable),
+                        apiFieldFilter == null
+                                ? null
+                                : ApiFieldFilterAdapter.INSTANCE.toApiFieldFilterForRepository(apiFieldFilter))
+                .map(ApiAdapter.INSTANCE::toCoreModel);
     }
 
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        return ApiAdapter.INSTANCE.toCoreModelStream(
-            this.apiRepository.search(
+        return ApiAdapter.INSTANCE.toCoreModelStream(this.apiRepository.search(
                 apiCriteria == null ? null : ApiSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(apiCriteria),
                 sortable == null ? null : SortableAdapter.INSTANCE.toSortableForRepository(sortable),
-                apiFieldFilter == null ? null : ApiFieldFilterAdapter.INSTANCE.toApiFieldFilterForRepository(apiFieldFilter)
-            )
-        );
+                apiFieldFilter == null
+                        ? null
+                        : ApiFieldFilterAdapter.INSTANCE.toApiFieldFilterForRepository(apiFieldFilter)));
     }
 
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         try {
-            return apiRepository.findByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiAdapter.INSTANCE::toCoreModel);
+            return apiRepository
+                    .findByEnvironmentIdAndCrossId(environmentId, crossId)
+                    .map(ApiAdapter.INSTANCE::toCoreModel);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -79,15 +86,17 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
 
     @Override
     public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
-        var searchCriteria = new ApiCriteria.Builder().integrationId(integrationId).build();
+        var searchCriteria =
+                new ApiCriteria.Builder().integrationId(integrationId).build();
         var sortable = SortableAdapter.INSTANCE.toSortableForRepository(
-            Sortable.builder().field("updatedAt").order(Sortable.Order.DESC).build()
-        );
+                Sortable.builder().field("updatedAt").order(Sortable.Order.DESC).build());
         var fieldFilter = new io.gravitee.repository.management.api.search.ApiFieldFilter.Builder()
-            .excludeDefinition()
-            .excludePicture()
-            .build();
+                .excludeDefinition()
+                .excludePicture()
+                .build();
 
-        return apiRepository.search(searchCriteria, sortable, convert(pageable), fieldFilter).map(ApiAdapter.INSTANCE::toCoreModel);
+        return apiRepository
+                .search(searchCriteria, sortable, convert(pageable), fieldFilter)
+                .map(ApiAdapter.INSTANCE::toCoreModel);
     }
 }

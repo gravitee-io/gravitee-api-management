@@ -34,10 +34,9 @@ public class RejectSubscriptionUseCase {
     private final RejectSubscriptionDomainService rejectSubscriptionDomainService;
 
     public RejectSubscriptionUseCase(
-        SubscriptionCrudService subscriptionCrudService,
-        PlanCrudService planCrudService,
-        RejectSubscriptionDomainService rejectSubscriptionDomainService
-    ) {
+            SubscriptionCrudService subscriptionCrudService,
+            PlanCrudService planCrudService,
+            RejectSubscriptionDomainService rejectSubscriptionDomainService) {
         this.subscriptionCrudService = subscriptionCrudService;
         this.planCrudService = planCrudService;
         this.rejectSubscriptionDomainService = rejectSubscriptionDomainService;
@@ -56,8 +55,10 @@ public class RejectSubscriptionUseCase {
         return new Output(rejectSubscriptionDomainService.reject(subscription, input.reasonMessage, input.auditInfo));
     }
 
-    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
-        if (!referenceType.equals(subscription.getReferenceType()) || !referenceId.equals(subscription.getReferenceId())) {
+    private void validateSubscription(
+            SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (!referenceType.equals(subscription.getReferenceType())
+                || !referenceId.equals(subscription.getReferenceId())) {
             throw new SubscriptionNotFoundException(subscription.getId());
         }
     }
@@ -77,12 +78,11 @@ public class RejectSubscriptionUseCase {
 
     @Builder
     public record Input(
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        String subscriptionId,
-        String reasonMessage,
-        AuditInfo auditInfo
-    ) {}
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            String subscriptionId,
+            String reasonMessage,
+            AuditInfo auditInfo) {}
 
     public record Output(SubscriptionEntity subscription) {}
 }

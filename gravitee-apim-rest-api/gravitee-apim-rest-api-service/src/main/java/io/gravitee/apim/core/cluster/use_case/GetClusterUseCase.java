@@ -34,6 +34,7 @@ public class GetClusterUseCase {
 
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.environmentId);
-        return new Output(clusterConfigurationAccessDomainService.visibleTo(cluster, input.organizationId, input.userId));
+        return new Output(
+                clusterConfigurationAccessDomainService.visibleTo(cluster, input.organizationId, input.userId));
     }
 }

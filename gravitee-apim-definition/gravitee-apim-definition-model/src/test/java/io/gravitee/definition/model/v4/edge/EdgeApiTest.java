@@ -27,7 +27,8 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class EdgeApiTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Test
     void should_round_trip_a_route_carrying_its_api_plan_and_subscription() throws Exception {
@@ -40,7 +41,8 @@ class EdgeApiTest {
         var read = objectMapper.readValue(json, EdgeApi.class);
 
         // Then
-        assertThat(json).contains("\"apiId\":\"api-id\"", "\"planId\":\"plan-id\"", "\"subscriptionId\":\"subscription-id\"");
+        assertThat(json)
+                .contains("\"apiId\":\"api-id\"", "\"planId\":\"plan-id\"", "\"subscriptionId\":\"subscription-id\"");
         assertThat(read.getProxy().getApps().get(0).routes()).containsExactly(route);
     }
 
@@ -55,9 +57,8 @@ class EdgeApiTest {
 
         // Then
         assertThat(json).doesNotContain("apiId", "planId", "subscriptionId");
-        assertThat(read.getProxy().getApps().get(0).routes()).containsExactly(
-            new RouteMapping("/v1/messages", "/anthropic", null, null, null)
-        );
+        assertThat(read.getProxy().getApps().get(0).routes())
+                .containsExactly(new RouteMapping("/v1/messages", "/anthropic", null, null, null));
     }
 
     @Test
@@ -90,13 +91,12 @@ class EdgeApiTest {
 
     private static EdgeApi edgeApiWith(RouteMapping route) {
         return EdgeApi.builder()
-            .id("edge-api")
-            .name("Edge")
-            .proxy(
-                EdgeProxyDefinition.builder()
-                    .apps(List.of(new EdgeApp("Claude Code", null, List.of(route), "anthropic-messages", "anthropic")))
-                    .build()
-            )
-            .build();
+                .id("edge-api")
+                .name("Edge")
+                .proxy(EdgeProxyDefinition.builder()
+                        .apps(List.of(
+                                new EdgeApp("Claude Code", null, List.of(route), "anthropic-messages", "anthropic")))
+                        .build())
+                .build();
     }
 }

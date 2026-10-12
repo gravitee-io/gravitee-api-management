@@ -117,6 +117,7 @@ public class Subscription implements Serializable {
      * The username of the user who has subscribed to the plan.
      */
     private String subscribedBy;
+
     private Date startingAt;
     private Date endingAt;
     /**
@@ -127,6 +128,7 @@ public class Subscription implements Serializable {
      * Subscription last update date
      */
     private Date updatedAt;
+
     private Date closedAt;
     private Date pausedAt;
 
@@ -139,6 +141,7 @@ public class Subscription implements Serializable {
      * Number of days before the expiration of this subscription when the last pre-expiration notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
+
     private String configuration;
     private Map<String, String> metadata;
     private Type type = Type.STANDARD;

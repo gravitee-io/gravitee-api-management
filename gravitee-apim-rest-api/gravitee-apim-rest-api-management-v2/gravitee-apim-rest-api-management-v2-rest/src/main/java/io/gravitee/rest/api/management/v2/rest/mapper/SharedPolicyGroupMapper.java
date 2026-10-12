@@ -27,25 +27,27 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, OriginContextMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class, OriginContextMapper.class})
 public interface SharedPolicyGroupMapper {
     SharedPolicyGroupMapper INSTANCE = Mappers.getMapper(SharedPolicyGroupMapper.class);
 
-    io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup map(CreateSharedPolicyGroup sharedPolicyGroup);
+    io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup map(
+            CreateSharedPolicyGroup sharedPolicyGroup);
 
     io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup map(SharedPolicyGroupCRD spec);
 
-    List<SharedPolicyGroup> map(List<io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup> sharedPolicyGroups);
+    List<SharedPolicyGroup> map(
+            List<io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup> sharedPolicyGroups);
 
     SharedPolicyGroup map(io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup sharedPolicyGroup);
 
-    io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup map(UpdateSharedPolicyGroup sharedPolicyGroup);
+    io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup map(
+            UpdateSharedPolicyGroup sharedPolicyGroup);
 
     SharedPolicyGroupCRD map(io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupCRD spec);
 
     io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup mapToModel(
-        io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupCRD spec
-    );
+            io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupCRD spec);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     StepV4 mapStep(Step step);
@@ -54,10 +56,10 @@ public interface SharedPolicyGroupMapper {
     Step mapStep(StepV4 stepV4);
 
     List<SharedPolicyGroupPolicyPlugin> mapToSharedPolicyGroupPolicyPlugins(
-        List<io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin> sharedPolicyGroupPolicyPlugins
-    );
+            List<io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin>
+                    sharedPolicyGroupPolicyPlugins);
 
     SharedPolicyGroupPolicyPlugin mapToSharedPolicyGroupPolicyPlugin(
-        io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin sharedPolicyGroupPolicyPlugin
-    );
+            io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin
+                    sharedPolicyGroupPolicyPlugin);
 }

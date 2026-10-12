@@ -62,19 +62,18 @@ public class AggregateValueCountByFieldAdapter {
     }
 
     protected static JsonObject buildAggregationsPerField(List<String> fields) {
-        return fields.stream().reduce(JsonObject.of(), (a, b) -> a.mergeIn(buildAggregationForField(b)), JsonObject::mergeIn);
+        return fields.stream()
+                .reduce(JsonObject.of(), (a, b) -> a.mergeIn(buildAggregationForField(b)), JsonObject::mergeIn);
     }
 
     private static JsonObject buildAggregationForField(String field) {
         return JsonObject.of(
-            "top_hits_count_" + field,
-            JsonObject.of(
-                "terms",
-                JsonObject.of(FIELD, field),
-                "aggs",
-                JsonObject.of(HITS_COUNT, JsonObject.of("value_count", JsonObject.of(FIELD, field)))
-            )
-        );
+                "top_hits_count_" + field,
+                JsonObject.of(
+                        "terms",
+                        JsonObject.of(FIELD, field),
+                        "aggs",
+                        JsonObject.of(HITS_COUNT, JsonObject.of("value_count", JsonObject.of(FIELD, field)))));
     }
 
     private static JsonObject apiIdsFilterForQuery(List<String> apiIds) {
@@ -100,18 +99,13 @@ public class AggregateValueCountByFieldAdapter {
             return Optional.empty();
         }
 
-        final var result = aggregations
-            .values()
-            .stream()
-            .filter(aggregation -> aggregation.getBuckets() != null)
-            .flatMap(aggregation -> aggregation.getBuckets().stream())
-            .collect(
-                Collectors.toMap(
-                    jsonNode -> jsonNode.get("key").asText(),
-                    jsonNode -> jsonNode.get(HITS_COUNT).get("value").asLong(),
-                    Long::sum
-                )
-            );
+        final var result = aggregations.values().stream()
+                .filter(aggregation -> aggregation.getBuckets() != null)
+                .flatMap(aggregation -> aggregation.getBuckets().stream())
+                .collect(Collectors.toMap(
+                        jsonNode -> jsonNode.get("key").asText(),
+                        jsonNode -> jsonNode.get(HITS_COUNT).get("value").asLong(),
+                        Long::sum));
 
         return Optional.of(TopHitsAggregate.builder().topHitsCounts(result).build());
     }

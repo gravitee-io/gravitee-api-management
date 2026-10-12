@@ -54,17 +54,18 @@ public class BulkCreatePortalNavigationItemUseCase {
         }
 
         var defaultPageNavigationItemIds = Stream.concat(
-            result.stream().filter(PortalNavigationApiProduct.class::isInstance).map(PortalNavigationItem::getId),
-            expansion.generatedApiNavigationItemIds().stream()
-        ).toList();
+                        result.stream()
+                                .filter(PortalNavigationApiProduct.class::isInstance)
+                                .map(PortalNavigationItem::getId),
+                        expansion.generatedApiNavigationItemIds().stream())
+                .toList();
         defaultPageDomainService.seedDefaultPages(organizationId, environmentId, defaultPageNavigationItemIds);
 
         var createdItems = expansion.selectRequestedItems(result);
-        createdItems
-            .stream()
-            .map(PortalNavigationItem::getSource)
-            .filter(Objects::nonNull)
-            .forEach(sourceDomainService::removeSensitiveData);
+        createdItems.stream()
+                .map(PortalNavigationItem::getSource)
+                .filter(Objects::nonNull)
+                .forEach(sourceDomainService::removeSensitiveData);
 
         return new BulkCreatePortalNavigationItemUseCase.Output(createdItems);
     }

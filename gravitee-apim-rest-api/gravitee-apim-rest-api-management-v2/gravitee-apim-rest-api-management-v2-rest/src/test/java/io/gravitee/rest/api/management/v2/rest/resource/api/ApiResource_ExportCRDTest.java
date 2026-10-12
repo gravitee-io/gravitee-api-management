@@ -57,14 +57,12 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
 
     @Test
     public void should_not_export_when_no_definition_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
     }
@@ -85,7 +83,8 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
             soft.assertThat(yamlNode.get("spec").get("crossId").asText()).isEqualTo(ApiCRDFixtures.API_CROSS_ID);
             soft.assertThat(yamlNode.get("spec").get("name").asText()).isEqualTo(ApiCRDFixtures.API_NAME);
             soft.assertThat(yamlNode.get("spec").get("plans")).isNotEmpty();
-            soft.assertThat(yamlNode.get("spec").get("plans").get(ApiCRDFixtures.PLAN_NAME)).isNotNull();
+            soft.assertThat(yamlNode.get("spec").get("plans").get(ApiCRDFixtures.PLAN_NAME))
+                    .isNotNull();
             soft.assertThat(yamlNode.get("spec").get("listeners")).isNotEmpty();
             soft.assertThat(yamlNode.get("spec").get("endpointGroups")).isNotEmpty();
         });
@@ -93,7 +92,8 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
 
     @Test
     public void should_export_created_api_as_unpublished() throws JsonProcessingException {
-        apiCRDExportDomainService.initWith(List.of(ApiCRDFixtures.newBaseSpec().id(API).lifecycleState("CREATED").build()));
+        apiCRDExportDomainService.initWith(List.of(
+                ApiCRDFixtures.newBaseSpec().id(API).lifecycleState("CREATED").build()));
 
         Response response = rootTarget().request().get();
 

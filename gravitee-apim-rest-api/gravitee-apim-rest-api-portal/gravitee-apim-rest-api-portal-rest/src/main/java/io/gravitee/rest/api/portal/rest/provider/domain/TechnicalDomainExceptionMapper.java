@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.portal.rest.provider.domain;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
@@ -28,8 +26,8 @@ public class TechnicalDomainExceptionMapper extends AbstractDomainExceptionMappe
     @Override
     public Response toResponse(TechnicalDomainException ve) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(ve, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "technical", null))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(ve, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "technical", null))
+                .build();
     }
 }

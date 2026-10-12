@@ -50,7 +50,8 @@ public class ApiSubscriptionsResource_TransferTest extends AbstractApiSubscripti
     public void should_return_404_if_not_found() {
         when(subscriptionService.findById(SUBSCRIPTION)).thenThrow(new SubscriptionNotFoundException(SUBSCRIPTION));
 
-        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aTransferSubscription()));
+        final Response response =
+                rootTarget().request().post(Entity.json(SubscriptionFixtures.aTransferSubscription()));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -60,16 +61,16 @@ public class ApiSubscriptionsResource_TransferTest extends AbstractApiSubscripti
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .referenceId("ANOTHER-API")
-            .referenceType("API")
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .referenceId("ANOTHER-API")
+                .referenceType("API")
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
-        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aTransferSubscription()));
+        final Response response =
+                rootTarget().request().post(Entity.json(SubscriptionFixtures.aTransferSubscription()));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -79,16 +80,15 @@ public class ApiSubscriptionsResource_TransferTest extends AbstractApiSubscripti
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
-        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aTransferSubscription()));
+        final Response response =
+                rootTarget().request().post(Entity.json(SubscriptionFixtures.aTransferSubscription()));
         assertEquals(FORBIDDEN_403, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -98,19 +98,20 @@ public class ApiSubscriptionsResource_TransferTest extends AbstractApiSubscripti
 
     @Test
     public void should_transfer_subscription() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .api(API)
-            .plan(PLAN)
-            .status(SubscriptionStatus.PENDING)
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .api(API)
+                .plan(PLAN)
+                .status(SubscriptionStatus.PENDING)
+                .build();
         final var transferSubscription = SubscriptionFixtures.aTransferSubscription();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
-        when(
-            subscriptionService.transfer(eq(GraviteeContext.getExecutionContext()), any(TransferSubscriptionEntity.class), eq(USER_NAME))
-        ).thenReturn(subscriptionEntity);
+        when(subscriptionService.transfer(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(TransferSubscriptionEntity.class),
+                        eq(USER_NAME)))
+                .thenReturn(subscriptionEntity);
 
         final Response response = rootTarget().request().post(Entity.json(transferSubscription));
         assertEquals(OK_200, response.getStatus());
@@ -118,14 +119,14 @@ public class ApiSubscriptionsResource_TransferTest extends AbstractApiSubscripti
         final Subscription subscription = response.readEntity(Subscription.class);
         assertEquals(SUBSCRIPTION, subscription.getId());
 
-        verify(subscriptionService).transfer(
-            eq(GraviteeContext.getExecutionContext()),
-            Mockito.argThat(transferSubscriptionEntity -> {
-                assertEquals(SUBSCRIPTION, transferSubscriptionEntity.getId());
-                assertEquals(transferSubscription.getPlanId(), transferSubscriptionEntity.getPlan());
-                return true;
-            }),
-            eq(USER_NAME)
-        );
+        verify(subscriptionService)
+                .transfer(
+                        eq(GraviteeContext.getExecutionContext()),
+                        Mockito.argThat(transferSubscriptionEntity -> {
+                            assertEquals(SUBSCRIPTION, transferSubscriptionEntity.getId());
+                            assertEquals(transferSubscription.getPlanId(), transferSubscriptionEntity.getPlan());
+                            return true;
+                        }),
+                        eq(USER_NAME));
     }
 }

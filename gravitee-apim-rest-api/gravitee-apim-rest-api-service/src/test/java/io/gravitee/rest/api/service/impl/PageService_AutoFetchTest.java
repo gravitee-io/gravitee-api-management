@@ -136,15 +136,16 @@ public class PageService_AutoFetchTest {
         when(pageRepository.search(any())).thenReturn(Arrays.asList(mockPage));
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportDescriptorMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportDescriptorMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockDescriptorFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportDescriptorMockFetcher> mockFetcherClass = PageService_ImportDescriptorMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockDescriptorFetcherConfiguration fetcherConfiguration = new PageService_MockDescriptorFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockDescriptorFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockDescriptorFetcherConfiguration fetcherConfiguration =
+                new PageService_MockDescriptorFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockDescriptorFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
 
@@ -164,21 +165,23 @@ public class PageService_AutoFetchTest {
         when(mockPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
         when(mockPage.getReferenceId()).thenReturn("envId");
         when(mockPage.getSource()).thenReturn(pageSource);
-        when(mockPage.getUpdatedAt()).thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
+        when(mockPage.getUpdatedAt())
+                .thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
         when(mockPage.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.search(any())).thenReturn(Arrays.asList(mockPage));
         when(pageRepository.update(any())).thenReturn(mockPage);
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration =
+                new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceCronValue("* * * * * *");
@@ -201,15 +204,16 @@ public class PageService_AutoFetchTest {
         when(pageRepository.search(any())).thenReturn(Arrays.asList(mockPage));
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration =
+                new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceCronValue("* 10 * * * *");
@@ -231,7 +235,8 @@ public class PageService_AutoFetchTest {
         when(mockRootPage.getSource()).thenReturn(pageSource);
         when(mockRootPage.getReferenceId()).thenReturn("apiid");
         when(mockRootPage.getType()).thenReturn(PageType.ROOT.name());
-        when(mockRootPage.getUpdatedAt()).thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
+        when(mockRootPage.getUpdatedAt())
+                .thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
         when(mockRootPage.getVisibility()).thenReturn("PUBLIC");
 
         when(mockPage.getSource()).thenReturn(pageSource);
@@ -239,24 +244,29 @@ public class PageService_AutoFetchTest {
         when(mockPage.getReferenceId()).thenReturn("apiid");
         when(mockPage.getReferenceType()).thenReturn(PageReferenceType.API);
         when(mockPage.getType()).thenReturn(PageType.MARKDOWN.name());
-        when(mockPage.getUpdatedAt()).thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
+        when(mockPage.getUpdatedAt())
+                .thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
         when(mockPage.getVisibility()).thenReturn("PUBLIC");
 
         when(pageRepository.findById(any())).thenReturn(Optional.of(mockPage));
         when(pageRepository.update(any())).thenReturn(mockPage);
-        when(pageRepository.search(any())).thenReturn(Arrays.asList(mockRootPage)).thenReturn(Arrays.asList(mockPage));
+        when(pageRepository.search(any()))
+                .thenReturn(Arrays.asList(mockRootPage))
+                .thenReturn(Arrays.asList(mockPage));
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportAutFetchDescriptorMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportAutFetchDescriptorMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockAutoFetchDescriptorFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
-        Class<PageService_ImportAutFetchDescriptorMockFetcher> mockFetcherClass = PageService_ImportAutFetchDescriptorMockFetcher.class;
+        Class<PageService_ImportAutFetchDescriptorMockFetcher> mockFetcherClass =
+                PageService_ImportAutFetchDescriptorMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
         PageService_MockAutoFetchDescriptorFetcherConfiguration fetcherConfiguration =
-            new PageService_MockAutoFetchDescriptorFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockAutoFetchDescriptorFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+                new PageService_MockAutoFetchDescriptorFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(
+                        eq(PageService_MockAutoFetchDescriptorFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         when(pageRepository.update(any())).thenReturn(mockPage);
@@ -280,15 +290,16 @@ public class PageService_AutoFetchTest {
         when(pageRepository.update(any())).thenAnswer(returnsFirstArg());
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration =
+                new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(true);
@@ -307,7 +318,8 @@ public class PageService_AutoFetchTest {
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(pageRepository).update(argThat(page -> page.getUseAutoFetch() != null && page.getUseAutoFetch() == true));
+        verify(pageRepository)
+                .update(argThat(page -> page.getUseAutoFetch() != null && page.getUseAutoFetch() == true));
     }
 
     @Test
@@ -323,15 +335,16 @@ public class PageService_AutoFetchTest {
         when(pageRepository.update(any())).thenAnswer(returnsFirstArg());
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
-        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration =
+                new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(false);
@@ -400,14 +413,15 @@ public class PageService_AutoFetchTest {
         when(pageRepository.update(any())).thenAnswer(returnsFirstArg());
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         when(fetcherPlugin.fetcher()).thenReturn(PageService_ImportSimplePageMockFetcher.class);
-        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration =
+                new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory beanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceCronValue("* * * * * *");
@@ -422,7 +436,8 @@ public class PageService_AutoFetchTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    public void should_continue_auto_fetch_when_page_source_configuration_is_invalid(String sourceConfiguration) throws Exception {
+    public void should_continue_auto_fetch_when_page_source_configuration_is_invalid(String sourceConfiguration)
+            throws Exception {
         PageSource invalidPageSource = new PageSource();
         invalidPageSource.setType("type");
         invalidPageSource.setConfiguration(sourceConfiguration);
@@ -439,21 +454,23 @@ public class PageService_AutoFetchTest {
         when(validPage.getSource()).thenReturn(validPageSource);
         when(validPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
         when(validPage.getReferenceId()).thenReturn("envId");
-        when(validPage.getUpdatedAt()).thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
+        when(validPage.getUpdatedAt())
+                .thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
         when(validPage.getVisibility()).thenReturn(Visibility.PUBLIC.name());
 
         when(pageRepository.search(any())).thenReturn(Arrays.asList(invalidPage, validPage));
         when(pageRepository.update(any())).thenAnswer(returnsFirstArg());
 
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
-        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.clazz())
+                .thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
         when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
         when(fetcherPlugin.fetcher()).thenReturn(PageService_ImportSimplePageMockFetcher.class);
-        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
-            fetcherConfiguration
-        );
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration =
+                new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString()))
+                .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory beanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
         PageService_MockSinglePageFetcherConfiguration.forceCronValue("* * * * * *");

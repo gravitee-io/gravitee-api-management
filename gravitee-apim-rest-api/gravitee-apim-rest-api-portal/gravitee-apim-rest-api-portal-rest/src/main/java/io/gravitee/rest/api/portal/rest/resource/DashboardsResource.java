@@ -46,11 +46,12 @@ public class DashboardsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response list() {
         final List<Dashboard> dashboards = dashboardService
-            .findByReferenceAndType(DashboardReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), APPLICATION)
-            .stream()
-            .filter(DashboardEntity::isEnabled)
-            .map(dashboardMapper::convert)
-            .toList();
+                .findByReferenceAndType(
+                        DashboardReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), APPLICATION)
+                .stream()
+                .filter(DashboardEntity::isEnabled)
+                .map(dashboardMapper::convert)
+                .toList();
         return Response.ok(dashboards).build();
     }
 }

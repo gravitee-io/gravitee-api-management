@@ -21,14 +21,13 @@ import io.gravitee.apim.infra.json.jackson.module.GraviteeDefinitionJacksonModul
 import lombok.CustomLog;
 
 @CustomLog
-public class GraviteeDefinitionJacksonJsonSerializer extends JacksonJsonSerializer implements GraviteeDefinitionSerializer {
+public class GraviteeDefinitionJacksonJsonSerializer extends JacksonJsonSerializer
+        implements GraviteeDefinitionSerializer {
 
     public GraviteeDefinitionJacksonJsonSerializer() {
-        super(
-            JsonMapperFactory.jsonBuilder()
+        super(JsonMapperFactory.jsonBuilder()
                 .addModule(new GraviteeDefinitionJacksonModule())
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .build()
-        );
+                .build());
     }
 }

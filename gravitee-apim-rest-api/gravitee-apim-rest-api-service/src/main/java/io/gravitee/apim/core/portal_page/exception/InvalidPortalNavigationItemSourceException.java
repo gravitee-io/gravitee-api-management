@@ -28,14 +28,14 @@ public class InvalidPortalNavigationItemSourceException extends ValidationDomain
     }
 
     public static InvalidPortalNavigationItemSourceException unknownSourceType(String sourceType) {
-        return new InvalidPortalNavigationItemSourceException("No fetcher plugin found for source type %s.".formatted(sourceType));
+        return new InvalidPortalNavigationItemSourceException(
+                "No fetcher plugin found for source type %s.".formatted(sourceType));
     }
 
-    public static InvalidPortalNavigationItemSourceException invalidSourceConfiguration(String sourceType, Throwable cause) {
+    public static InvalidPortalNavigationItemSourceException invalidSourceConfiguration(
+            String sourceType, Throwable cause) {
         return new InvalidPortalNavigationItemSourceException(
-            "The source configuration is not valid for source type %s.".formatted(sourceType),
-            cause
-        );
+                "The source configuration is not valid for source type %s.".formatted(sourceType), cause);
     }
 
     /**
@@ -43,24 +43,23 @@ public class InvalidPortalNavigationItemSourceException extends ValidationDomain
      */
     public static InvalidPortalNavigationItemSourceException sourceAddressNotAllowed(String sourceType) {
         return new InvalidPortalNavigationItemSourceException(
-            "The address configured for source type %s is not allowed.".formatted(sourceType)
-        );
+                "The address configured for source type %s is not allowed.".formatted(sourceType));
     }
 
     public static InvalidPortalNavigationItemSourceException invalidCronExpression(String cron) {
-        return new InvalidPortalNavigationItemSourceException("The fetch cron expression %s is not valid.".formatted(cron));
+        return new InvalidPortalNavigationItemSourceException(
+                "The fetch cron expression %s is not valid.".formatted(cron));
     }
 
     public static InvalidPortalNavigationItemSourceException unresolvedSensitivePlaceholder(String field) {
         return new InvalidPortalNavigationItemSourceException(
-            "The source configuration field %s still holds the masked placeholder: provide its actual value.".formatted(field)
-        );
+                "The source configuration field %s still holds the masked placeholder: provide its actual value."
+                        .formatted(field));
     }
 
     public static InvalidPortalNavigationItemSourceException sourceCannotListFiles(String sourceType) {
         return new InvalidPortalNavigationItemSourceException(
-            "The source type %s cannot list files: a files fetcher is required.".formatted(sourceType)
-        );
+                "The source type %s cannot list files: a files fetcher is required.".formatted(sourceType));
     }
 
     public static InvalidPortalNavigationItemSourceException invalidManifest(Throwable cause) {
@@ -68,6 +67,7 @@ public class InvalidPortalNavigationItemSourceException extends ValidationDomain
     }
 
     public static InvalidPortalNavigationItemSourceException cronRequiredForAutoFetch() {
-        return new InvalidPortalNavigationItemSourceException("A fetch cron expression is required when auto-fetch is enabled.");
+        return new InvalidPortalNavigationItemSourceException(
+                "A fetch cron expression is required when auto-fetch is enabled.");
     }
 }

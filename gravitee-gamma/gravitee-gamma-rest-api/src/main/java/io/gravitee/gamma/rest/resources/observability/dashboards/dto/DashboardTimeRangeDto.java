@@ -28,7 +28,8 @@ public record DashboardTimeRangeDto(String type, String period, Long from, Long 
         if (timeRange == null) {
             return null;
         }
-        return new DashboardTimeRangeDto(timeRange.type().name().toLowerCase(), timeRange.period(), timeRange.from(), timeRange.to());
+        return new DashboardTimeRangeDto(
+                timeRange.type().name().toLowerCase(), timeRange.period(), timeRange.from(), timeRange.to());
     }
 
     public TimeRange toCore() {

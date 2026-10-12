@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @see <a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html">https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html</a>
  * @see <a href="https://nanosoft.co.za/blog/post/clean-architecture-use-cases">https://nanosoft.co.za/blog/post/clean-architecture-use-cases</a>
  */
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Transactional(value = "graviteeTransactionManager", noRollbackFor = AbstractManagementException.class)
 public @interface UseCase {}

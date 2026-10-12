@@ -27,9 +27,7 @@ import org.springframework.stereotype.Repository;
 public interface PortalPageContentMongoRepository extends MongoRepository<PortalPageContentMongo, String> {
     Set<PortalPageContentMongo> findAllByType(PortalPageContent.Type type);
 
-    List<PortalPageContentMongo> findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
-        String environmentId,
-        AutomationTargetReferenceType referenceType,
-        String referenceId
-    );
+    List<PortalPageContentMongo>
+            findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+                    String environmentId, AutomationTargetReferenceType referenceType, String referenceId);
 }

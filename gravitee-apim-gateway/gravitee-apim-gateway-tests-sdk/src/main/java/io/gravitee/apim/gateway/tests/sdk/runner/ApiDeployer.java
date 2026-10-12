@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.runner;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.function.Consumer;
 

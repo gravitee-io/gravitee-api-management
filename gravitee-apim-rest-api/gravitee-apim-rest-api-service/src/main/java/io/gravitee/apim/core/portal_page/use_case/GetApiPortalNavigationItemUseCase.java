@@ -35,7 +35,8 @@ public class GetApiPortalNavigationItemUseCase {
     private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
-        var item = apiOwnedNavigationDomainService.requireOwnedItem(input.environmentId(), input.apiId(), input.itemId());
+        var item =
+                apiOwnedNavigationDomainService.requireOwnedItem(input.environmentId(), input.apiId(), input.itemId());
         if (item.getSource() != null) {
             sourceDomainService.removeSensitiveData(item.getSource());
         }

@@ -28,9 +28,9 @@ public class DefinitionVersionIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("dv1")
-            .key("definitionVersion", ascending())
-            .build();
+                .collection("apis")
+                .name("dv1")
+                .key("definitionVersion", ascending())
+                .build();
     }
 }

@@ -72,9 +72,7 @@ public class ReactorHandlerRegistryTest {
         Reactable reactable = createReactable("reactable1");
 
         ReactorHandler handler = createReactorHandler(
-            new OverlappingHttpAcceptor("/products/v1"),
-            new OverlappingHttpAcceptor("/products/v2")
-        );
+                new OverlappingHttpAcceptor("/products/v1"), new OverlappingHttpAcceptor("/products/v2"));
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
@@ -91,9 +89,7 @@ public class ReactorHandlerRegistryTest {
         Reactable reactable = createReactable("reactable1");
 
         ReactorHandler handler = createReactorHandler(
-            new DefaultHttpAcceptor("/products/v1"),
-            new DefaultHttpAcceptor("api.gravitee.io", "/products/v2")
-        );
+                new DefaultHttpAcceptor("/products/v1"), new DefaultHttpAcceptor("api.gravitee.io", "/products/v2"));
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
@@ -118,7 +114,8 @@ public class ReactorHandlerRegistryTest {
 
         reactorHandlerRegistry.create(reactable2);
 
-        Assertions.assertEquals(2, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                2, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
         final Iterator<HttpAcceptor> httpAcceptorHandlerIterator = httpAcceptorHandlers.iterator();
         Assertions.assertEquals(2, httpAcceptorHandlers.size());
@@ -138,7 +135,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
-        Assertions.assertEquals(2, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                2, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
 
         // Paths are sorted in natural order so "/" takes priority over "/products".
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
@@ -198,29 +196,27 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/a")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/a"));
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/a-v1")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/a-v1"));
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
@@ -255,29 +251,27 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/a/b/c")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/a/b/c"));
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/a/b/a"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/a/b/b"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/a/b/d"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/a/b/e"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/a/b/f"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a/b/c1/sub"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/a/b/c1/sub"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/a/b/c1/sub")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/a/b/a"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/a/b/b"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/a/b/d"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/a/b/e"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/a/b/f"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/a/b/c1/sub"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/a/b/c1/sub"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/a/b/c1/sub"));
 
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
@@ -308,46 +302,42 @@ public class ReactorHandlerRegistryTest {
     public void shouldHaveMultipleHttpAcceptors_multipleVhostsWithSubPathsAndWildcards() {
         DummyReactable reactable = createReactable("reactable1");
         ReactorHandler handler = createReactorHandler(
-            new OverlappingHttpAcceptor(null, "/"),
-            new OverlappingHttpAcceptor("*.gravitee.io", "/"),
-            new OverlappingHttpAcceptor("test.gravitee.io", "/")
-        );
+                new OverlappingHttpAcceptor(null, "/"),
+                new OverlappingHttpAcceptor("*.gravitee.io", "/"),
+                new OverlappingHttpAcceptor("test.gravitee.io", "/"));
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new OverlappingHttpAcceptor("test.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("test.gravitee.io", "/a/b"),
-            new OverlappingHttpAcceptor("test.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("1.test.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("2.test.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("3.test.gravitee.io", "/a/b/c")
-        );
+                new OverlappingHttpAcceptor("test.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("test.gravitee.io", "/a/b"),
+                new OverlappingHttpAcceptor("test.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("1.test.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("2.test.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("3.test.gravitee.io", "/a/b/c"));
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new OverlappingHttpAcceptor("*.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("*.gravitee.io", "/a/b/c/sub"),
-            new OverlappingHttpAcceptor("*.foo.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("*.foo.gravitee.io", "/a/b/c/sub"),
-            new OverlappingHttpAcceptor("*.test.gravitee.io", "/a/b/c"),
-            new OverlappingHttpAcceptor("*.test.gravitee.io", "/a/b/c/sub")
-        );
+                new OverlappingHttpAcceptor("*.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("*.gravitee.io", "/a/b/c/sub"),
+                new OverlappingHttpAcceptor("*.foo.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("*.foo.gravitee.io", "/a/b/c/sub"),
+                new OverlappingHttpAcceptor("*.test.gravitee.io", "/a/b/c"),
+                new OverlappingHttpAcceptor("*.test.gravitee.io", "/a/b/c/sub"));
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
         DummyReactable reactable4 = createReactable("reactable4");
         ReactorHandler handler4 = createReactorHandler(
-            new OverlappingHttpAcceptor(null, "/a/b/a"),
-            new OverlappingHttpAcceptor(null, "/a/b/b"),
-            new OverlappingHttpAcceptor(null, "/a/b/c"),
-            new OverlappingHttpAcceptor(null, "/a/b/a/sub"),
-            new OverlappingHttpAcceptor(null, "/a/b/b/sub"),
-            new OverlappingHttpAcceptor(null, "/a/b/c/sub")
-        );
+                new OverlappingHttpAcceptor(null, "/a/b/a"),
+                new OverlappingHttpAcceptor(null, "/a/b/b"),
+                new OverlappingHttpAcceptor(null, "/a/b/c"),
+                new OverlappingHttpAcceptor(null, "/a/b/a/sub"),
+                new OverlappingHttpAcceptor(null, "/a/b/b/sub"),
+                new OverlappingHttpAcceptor(null, "/a/b/c/sub"));
 
         when(reactorHandlerFactoryManager.create(reactable4)).thenReturn(List.of(handler4));
         reactorHandlerRegistry.create(reactable4);
@@ -387,43 +377,40 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/a")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/a"));
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/a-v1"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/a-v1")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/a-v1"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/a-v1"));
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
         reactable2 = createReactable("reactable2");
         handler2 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/b")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/b"));
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.update(reactable2);
 
@@ -456,7 +443,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
-        Assertions.assertEquals(1, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                1, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
 
         for (int i = 0; i < 100; i++) {
             final DummyReactable toUpdate = createReactable("reactable1");
@@ -464,10 +452,9 @@ public class ReactorHandlerRegistryTest {
             when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(List.of(handlerUpdate));
             reactorHandlerRegistry.update(toUpdate);
             Assertions.assertEquals(
-                1,
-                reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size(),
-                "Size of acceptors list should be 1 (i=" + i + ")"
-            );
+                    1,
+                    reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size(),
+                    "Size of acceptors list should be 1 (i=" + i + ")");
         }
 
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
@@ -483,7 +470,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
-        Assertions.assertEquals(1, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                1, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
 
         for (int i = 0; i < 100; i++) {
             final Reactable toUpdate = createReactable("reactable");
@@ -491,10 +479,9 @@ public class ReactorHandlerRegistryTest {
             when(reactorHandlerFactoryManager.create(toUpdate)).thenReturn(List.of(handlerUpdate));
             reactorHandlerRegistry.update(toUpdate);
             Assertions.assertEquals(
-                1,
-                reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size(),
-                "Size of acceptors list should be 1 (i=" + i + ")"
-            );
+                    1,
+                    reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size(),
+                    "Size of acceptors list should be 1 (i=" + i + ")");
         }
 
         final Collection<HttpAcceptor> httpAcceptorHandlers = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
@@ -526,7 +513,8 @@ public class ReactorHandlerRegistryTest {
             executorService.shutdown();
             assertTrue(executorService.awaitTermination(10000, TimeUnit.MILLISECONDS));
 
-            Assertions.assertEquals(100, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+            Assertions.assertEquals(
+                    100, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
 
             executorService = Executors.newFixedThreadPool(10);
             runnables = new ArrayList<>();
@@ -545,7 +533,8 @@ public class ReactorHandlerRegistryTest {
             executorService.shutdown();
             assertTrue(executorService.awaitTermination(10000, TimeUnit.MILLISECONDS));
 
-            Assertions.assertEquals(100, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+            Assertions.assertEquals(
+                    100, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
         } finally {
             if (executorService != null) {
                 executorService.shutdownNow();
@@ -563,7 +552,8 @@ public class ReactorHandlerRegistryTest {
         DummyReactable updateReactable = createReactable("reactable1");
         reactorHandlerRegistry.remove(updateReactable);
 
-        Assertions.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
     }
 
     @Test
@@ -573,7 +563,8 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.remove(reactable);
 
-        Assertions.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
     }
 
     @Test
@@ -585,29 +576,27 @@ public class ReactorHandlerRegistryTest {
 
         DummyReactable reactable2 = createReactable("reactable2");
         ReactorHandler handler2 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/a")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/a"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/a"));
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.create(reactable2);
 
         DummyReactable reactable3 = createReactable("reactable3");
         ReactorHandler handler3 = createReactorHandler(
-            new OverlappingHttpAcceptor("api.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api1.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api2.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api3.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api4.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("apiX.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api10.gravitee.io", "/b"),
-            new OverlappingHttpAcceptor("api11.gravitee.io", "/b")
-        );
+                new OverlappingHttpAcceptor("api.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api1.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api2.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api3.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api4.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("apiX.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api10.gravitee.io", "/b"),
+                new OverlappingHttpAcceptor("api11.gravitee.io", "/b"));
         when(reactorHandlerFactoryManager.create(reactable3)).thenReturn(List.of(handler3));
         reactorHandlerRegistry.create(reactable3);
 
@@ -667,14 +656,16 @@ public class ReactorHandlerRegistryTest {
         assertEntryPoint("api10.gravitee.io", "/b/", httpAcceptorHandlerIterator.next());
 
         reactorHandlerRegistry.remove(reactable3);
-        Assertions.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
     }
 
     @Test
     public void shouldHaveOneHttpAcceptorAndOneDummyAcceptor_singleReactable() {
         Reactable reactable = createReactable("reactable1");
 
-        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultDummyAcceptor("api1"));
+        ReactorHandler handler =
+                createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultDummyAcceptor("api1"));
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
@@ -692,15 +683,18 @@ public class ReactorHandlerRegistryTest {
     @Test
     public void shouldHaveNoEntrypoints_removeSameReactableWithHttpAndDummyAcceptors() {
         DummyReactable reactable = createReactable("reactable1");
-        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultDummyAcceptor("api1"));
+        ReactorHandler handler =
+                createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultDummyAcceptor("api1"));
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
         DummyReactable updateReactable = createReactable("reactable1");
         reactorHandlerRegistry.remove(updateReactable);
 
-        Assertions.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
-        Assertions.assertEquals(0, reactorHandlerRegistry.getAcceptors(DummyAcceptor.class).size());
+        Assertions.assertEquals(
+                0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
+        Assertions.assertEquals(
+                0, reactorHandlerRegistry.getAcceptors(DummyAcceptor.class).size());
     }
 
     @Test
@@ -722,7 +716,8 @@ public class ReactorHandlerRegistryTest {
     }
 
     @Test
-    public void should_not_lose_acceptors_when_registering_concurrently_for_same_reactable() throws InterruptedException {
+    public void should_not_lose_acceptors_when_registering_concurrently_for_same_reactable()
+            throws InterruptedException {
         int threadCount = 8;
         int iterations = 200;
         ExecutorService pool = Executors.newFixedThreadPool(threadCount);
@@ -731,9 +726,8 @@ public class ReactorHandlerRegistryTest {
                 String id = "concurrent" + i;
                 DummyReactable reactable = createReactable(id);
                 // Each create() call produces its own handler with a distinct acceptor
-                when(reactorHandlerFactoryManager.create(reactable)).thenAnswer(invocation ->
-                    List.of(createReactorHandler(new DefaultDummyAcceptor(id)))
-                );
+                when(reactorHandlerFactoryManager.create(reactable))
+                        .thenAnswer(invocation -> List.of(createReactorHandler(new DefaultDummyAcceptor(id))));
 
                 var start = new java.util.concurrent.CountDownLatch(1);
                 var done = new java.util.concurrent.CountDownLatch(threadCount);
@@ -756,10 +750,9 @@ public class ReactorHandlerRegistryTest {
                 // registered forever: remove() cannot see them anymore.
                 reactorHandlerRegistry.remove(reactable);
                 Assertions.assertEquals(
-                    0,
-                    reactorHandlerRegistry.getAcceptors(DummyAcceptor.class).size(),
-                    "Acceptors leaked by concurrent register() calls"
-                );
+                        0,
+                        reactorHandlerRegistry.getAcceptors(DummyAcceptor.class).size(),
+                        "Acceptors leaked by concurrent register() calls");
             }
         } finally {
             pool.shutdownNow();
@@ -767,7 +760,8 @@ public class ReactorHandlerRegistryTest {
     }
 
     @Test
-    public void shouldNotThrowConcurrentModificationException_concurrentReadersAndWriters() throws InterruptedException {
+    public void shouldNotThrowConcurrentModificationException_concurrentReadersAndWriters()
+            throws InterruptedException {
         // Pre-populate some APIs so readers always have something to iterate
         for (int i = 0; i < 5; i++) {
             DummyReactable reactable = createReactable("seed" + i);
@@ -787,7 +781,8 @@ public class ReactorHandlerRegistryTest {
         for (int i = 0; i < poolSize; i++) {
             String id = "stress" + i;
             DummyReactable reactable = createReactable(id);
-            ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/" + id), new DefaultDummyAcceptor(id));
+            ReactorHandler handler =
+                    createReactorHandler(new DefaultHttpAcceptor("/" + id), new DefaultDummyAcceptor(id));
             when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
             pool.add(reactable);
         }
@@ -805,7 +800,8 @@ public class ReactorHandlerRegistryTest {
                             a.path();
                         }
                         // Also iterate DummyAcceptor (simulates TcpAcceptor, separate map key)
-                        Collection<DummyAcceptor> dummySnapshot = reactorHandlerRegistry.getAcceptors(DummyAcceptor.class);
+                        Collection<DummyAcceptor> dummySnapshot =
+                                reactorHandlerRegistry.getAcceptors(DummyAcceptor.class);
                         for (DummyAcceptor d : dummySnapshot) {
                             d.apiId();
                         }
@@ -862,14 +858,14 @@ public class ReactorHandlerRegistryTest {
         ReactorHandler handler = mock(ReactorHandler.class);
 
         List<Acceptor<?>> acceptors = Arrays.stream(httpAcceptors)
-            .peek(acceptor -> {
-                if (acceptor instanceof DefaultHttpAcceptor) {
-                    ((DefaultHttpAcceptor) acceptor).reactor(handler);
-                } else if (acceptor instanceof DefaultDummyAcceptor) {
-                    ((DefaultDummyAcceptor) acceptor).reactor(handler);
-                }
-            })
-            .collect(Collectors.toList());
+                .peek(acceptor -> {
+                    if (acceptor instanceof DefaultHttpAcceptor) {
+                        ((DefaultHttpAcceptor) acceptor).reactor(handler);
+                    } else if (acceptor instanceof DefaultDummyAcceptor) {
+                        ((DefaultDummyAcceptor) acceptor).reactor(handler);
+                    }
+                })
+                .collect(Collectors.toList());
 
         when(handler.acceptors()).thenReturn(acceptors);
 

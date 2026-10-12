@@ -18,11 +18,8 @@ package io.gravitee.apim.core.theme.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.InMemoryAlternative;
-import inmemory.ParametersDomainServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
-import inmemory.ThemeServiceLegacyWrapperInMemory;
-import io.gravitee.apim.core.theme.model.NewTheme;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeAutomationMetadata;
 import io.gravitee.apim.core.theme.model.ThemeType;
@@ -56,13 +53,13 @@ public class CurrentThemeDomainServiceTest {
 
     private Theme aTheme(String id, ThemeType type, boolean enabled) {
         return Theme.builder()
-            .id(id)
-            .name("name")
-            .type(type)
-            .referenceId(ENV_ID)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .enabled(enabled)
-            .build();
+                .id(id)
+                .name("name")
+                .type(type)
+                .referenceId(ENV_ID)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .enabled(enabled)
+                .build();
     }
 
     @Nested
@@ -87,7 +84,8 @@ public class CurrentThemeDomainServiceTest {
 
             cut.disablePreviousEnabledTheme(newTheme);
 
-            var disabledPreviousTheme = previousPortalTheme.toBuilder().enabled(false).build();
+            var disabledPreviousTheme =
+                    previousPortalTheme.toBuilder().enabled(false).build();
             assertThat(themeCrudService.storage()).contains(disabledPreviousTheme);
         }
 
@@ -100,7 +98,8 @@ public class CurrentThemeDomainServiceTest {
 
             cut.disablePreviousEnabledTheme(newTheme);
 
-            var disabledPreviousTheme = previousPortalTheme.toBuilder().enabled(false).build();
+            var disabledPreviousTheme =
+                    previousPortalTheme.toBuilder().enabled(false).build();
             assertThat(themeCrudService.storage()).contains(disabledPreviousTheme);
         }
 
@@ -129,15 +128,15 @@ public class CurrentThemeDomainServiceTest {
             cut.deactivateAndFallback(deactivated);
 
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("deactivated"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(false);
+                    .filteredOn(t -> t.getId().equals("deactivated"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(false);
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("other"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(true);
+                    .filteredOn(t -> t.getId().equals("other"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(true);
         }
 
         @Test
@@ -147,7 +146,10 @@ public class CurrentThemeDomainServiceTest {
 
             cut.deactivateAndFallback(deactivated);
 
-            assertThat(themeCrudService.storage()).singleElement().extracting(Theme::isEnabled).isEqualTo(false);
+            assertThat(themeCrudService.storage())
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(false);
         }
 
         @Test
@@ -160,101 +162,96 @@ public class CurrentThemeDomainServiceTest {
             cut.deactivateAndFallback(alreadyDisabled);
 
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("currently-enabled"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(true);
+                    .filteredOn(t -> t.getId().equals("currently-enabled"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(true);
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("stray-other"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(false);
+                    .filteredOn(t -> t.getId().equals("stray-other"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(false);
         }
 
         @Test
         void should_reactivate_the_most_recently_updated_other_theme_when_several_exist() {
             var deactivated = aTheme("deactivated", ThemeType.PORTAL_NEXT, true);
-            var staleOther = aTheme("stale-other", ThemeType.PORTAL_NEXT, false)
-                .toBuilder()
-                .updatedAt(ZonedDateTime.now().minusDays(2))
-                .build();
-            var recentOther = aTheme("recent-other", ThemeType.PORTAL_NEXT, false)
-                .toBuilder()
-                .updatedAt(ZonedDateTime.now().minusMinutes(1))
-                .build();
+            var staleOther = aTheme("stale-other", ThemeType.PORTAL_NEXT, false).toBuilder()
+                    .updatedAt(ZonedDateTime.now().minusDays(2))
+                    .build();
+            var recentOther = aTheme("recent-other", ThemeType.PORTAL_NEXT, false).toBuilder()
+                    .updatedAt(ZonedDateTime.now().minusMinutes(1))
+                    .build();
             themeCrudService.initWith(Arrays.asList(deactivated, staleOther, recentOther));
 
             cut.deactivateAndFallback(deactivated);
 
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("recent-other"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(true);
+                    .filteredOn(t -> t.getId().equals("recent-other"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(true);
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("stale-other"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(false);
+                    .filteredOn(t -> t.getId().equals("stale-other"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(false);
         }
 
         @Test
-        void should_prefer_a_non_automation_managed_theme_over_an_automation_managed_one_even_if_it_was_updated_more_recently() {
+        void
+                should_prefer_a_non_automation_managed_theme_over_an_automation_managed_one_even_if_it_was_updated_more_recently() {
             var deactivated = aTheme("theme-b", ThemeType.PORTAL_NEXT, true);
-            var automationManagedThemeA = aTheme("theme-a", ThemeType.PORTAL_NEXT, false)
-                .toBuilder()
-                .createdAt(ZonedDateTime.now().minusDays(1))
-                .updatedAt(ZonedDateTime.now().minusSeconds(1))
-                .automationMetadata(new ThemeAutomationMetadata("theme-a"))
-                .build();
-            var consoleTheme = aTheme("console-theme", ThemeType.PORTAL_NEXT, false)
-                .toBuilder()
-                .createdAt(ZonedDateTime.now().minusDays(10))
-                .updatedAt(ZonedDateTime.now().minusDays(10))
-                .build();
+            var automationManagedThemeA = aTheme("theme-a", ThemeType.PORTAL_NEXT, false).toBuilder()
+                    .createdAt(ZonedDateTime.now().minusDays(1))
+                    .updatedAt(ZonedDateTime.now().minusSeconds(1))
+                    .automationMetadata(new ThemeAutomationMetadata("theme-a"))
+                    .build();
+            var consoleTheme = aTheme("console-theme", ThemeType.PORTAL_NEXT, false).toBuilder()
+                    .createdAt(ZonedDateTime.now().minusDays(10))
+                    .updatedAt(ZonedDateTime.now().minusDays(10))
+                    .build();
             themeCrudService.initWith(Arrays.asList(deactivated, automationManagedThemeA, consoleTheme));
 
             cut.deactivateAndFallback(deactivated);
 
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("console-theme"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(true);
+                    .filteredOn(t -> t.getId().equals("console-theme"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(true);
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("theme-a"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(false);
+                    .filteredOn(t -> t.getId().equals("theme-a"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(false);
         }
 
         @Test
         void should_fall_back_to_an_automation_managed_theme_when_no_non_automation_managed_theme_exists() {
             var deactivated = aTheme("deactivated", ThemeType.PORTAL_NEXT, true);
-            var staleManaged = aTheme("stale-managed", ThemeType.PORTAL_NEXT, false)
-                .toBuilder()
-                .updatedAt(ZonedDateTime.now().minusDays(2))
-                .automationMetadata(new ThemeAutomationMetadata("stale-managed"))
-                .build();
-            var recentManaged = aTheme("recent-managed", ThemeType.PORTAL_NEXT, false)
-                .toBuilder()
-                .updatedAt(ZonedDateTime.now().minusMinutes(1))
-                .automationMetadata(new ThemeAutomationMetadata("recent-managed"))
-                .build();
+            var staleManaged = aTheme("stale-managed", ThemeType.PORTAL_NEXT, false).toBuilder()
+                    .updatedAt(ZonedDateTime.now().minusDays(2))
+                    .automationMetadata(new ThemeAutomationMetadata("stale-managed"))
+                    .build();
+            var recentManaged = aTheme("recent-managed", ThemeType.PORTAL_NEXT, false).toBuilder()
+                    .updatedAt(ZonedDateTime.now().minusMinutes(1))
+                    .automationMetadata(new ThemeAutomationMetadata("recent-managed"))
+                    .build();
             themeCrudService.initWith(Arrays.asList(deactivated, staleManaged, recentManaged));
 
             cut.deactivateAndFallback(deactivated);
 
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("recent-managed"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(true);
+                    .filteredOn(t -> t.getId().equals("recent-managed"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(true);
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("stale-managed"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(false);
+                    .filteredOn(t -> t.getId().equals("stale-managed"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(false);
         }
 
         @Test
@@ -266,10 +263,10 @@ public class CurrentThemeDomainServiceTest {
             cut.deactivateAndFallback(deactivated);
 
             assertThat(themeCrudService.storage())
-                .filteredOn(t -> t.getId().equals("different-type"))
-                .singleElement()
-                .extracting(Theme::isEnabled)
-                .isEqualTo(false);
+                    .filteredOn(t -> t.getId().equals("different-type"))
+                    .singleElement()
+                    .extracting(Theme::isEnabled)
+                    .isEqualTo(false);
         }
     }
 }

@@ -47,7 +47,8 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT_ID = "DEFAULT";
     private static final UUID API_PRODUCT_ID = UUID.fromString("00000000-0000-0000-0000-000000000101");
-    private static final PortalNavigationItemId NAVIGATION_ITEM_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102");
+    private static final PortalNavigationItemId NAVIGATION_ITEM_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102");
 
     @Autowired
     private ApiProductQueryServiceInMemory apiProductQueryService;
@@ -78,7 +79,12 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_api_product_details_and_accessible_apis() {
-        var api = Api.builder().id("api-id").environmentId(ENVIRONMENT_ID).name("Payments API").version("2.0.0").build();
+        var api = Api.builder()
+                .id("api-id")
+                .environmentId(ENVIRONMENT_ID)
+                .name("Payments API")
+                .version("2.0.0")
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct(Set.of(api.getId()))));
         apiQueryService.initWith(List.of(api));
         navigationItemsQueryService.initWith(List.of(apiProductNavigationItem(), apiNavigationItem(api)));
@@ -94,13 +100,11 @@ class ApiProductResourceTest extends AbstractResourceTest {
         assertThat(result.getKind()).isEqualTo(PortalApiProductDetails.KindEnum.AI_WORKSPACE);
         assertThat(result.getNavigationItemId()).isEqualTo(NAVIGATION_ITEM_ID.id());
         assertThat(result.getTags()).containsExactly("ai", "public");
-        assertThat(result.getApis())
-            .singleElement()
-            .satisfies(includedApi -> {
-                assertThat(includedApi.getId()).isEqualTo("api-id");
-                assertThat(includedApi.getName()).isEqualTo("Payments API");
-                assertThat(includedApi.getVersion()).isEqualTo("2.0.0");
-            });
+        assertThat(result.getApis()).singleElement().satisfies(includedApi -> {
+            assertThat(includedApi.getId()).isEqualTo("api-id");
+            assertThat(includedApi.getName()).isEqualTo("Payments API");
+            assertThat(includedApi.getVersion()).isEqualTo("2.0.0");
+        });
     }
 
     @Test
@@ -114,45 +118,45 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
     private static ApiProduct apiProduct(Set<String> apiIds) {
         return ApiProduct.builder()
-            .id(API_PRODUCT_ID.toString())
-            .environmentId(ENVIRONMENT_ID)
-            .name("AI Workspace")
-            .description("Consumer description")
-            .version("1.0.0")
-            .kind(ApiProductKind.AI_WORKSPACE)
-            .tags(Set.of("public", "ai"))
-            .apiIds(apiIds)
-            .build();
+                .id(API_PRODUCT_ID.toString())
+                .environmentId(ENVIRONMENT_ID)
+                .name("AI Workspace")
+                .description("Consumer description")
+                .version("1.0.0")
+                .kind(ApiProductKind.AI_WORKSPACE)
+                .tags(Set.of("public", "ai"))
+                .apiIds(apiIds)
+                .build();
     }
 
     private static PortalNavigationApiProduct apiProductNavigationItem() {
         return PortalNavigationApiProduct.builder()
-            .id(NAVIGATION_ITEM_ID)
-            .organizationId("organization-id")
-            .environmentId(ENVIRONMENT_ID)
-            .title("AI Workspace")
-            .segment("ai-workspace")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiProductId(API_PRODUCT_ID.toString())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(NAVIGATION_ITEM_ID)
+                .organizationId("organization-id")
+                .environmentId(ENVIRONMENT_ID)
+                .title("AI Workspace")
+                .segment("ai-workspace")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiProductId(API_PRODUCT_ID.toString())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     private static PortalNavigationItem apiNavigationItem(Api api) {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("organization-id")
-            .environmentId(ENVIRONMENT_ID)
-            .title(api.getName())
-            .segment("payments-api")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(NAVIGATION_ITEM_ID)
-            .apiId(api.getId())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("organization-id")
+                .environmentId(ENVIRONMENT_ID)
+                .title(api.getName())
+                .segment("payments-api")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(NAVIGATION_ITEM_ID)
+                .apiId(api.getId())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 }

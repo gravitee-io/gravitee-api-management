@@ -25,10 +25,10 @@ public class AlertCreatedAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("alert_events")
-            .name("a1c1")
-            .key("alert", ascending())
-            .key("createdAt", ascending())
-            .build();
+                .collection("alert_events")
+                .name("a1c1")
+                .key("alert", ascending())
+                .key("createdAt", ascending())
+                .build();
     }
 }

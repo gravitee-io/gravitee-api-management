@@ -24,6 +24,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface NodeMonitoringMongoRepository extends MongoRepository<MonitoringMongo, String>, NodeMonitoringMongoRepositoryCustom {
+public interface NodeMonitoringMongoRepository
+        extends MongoRepository<MonitoringMongo, String>, NodeMonitoringMongoRepositoryCustom {
     MonitoringMongo findByNodeIdAndType(String nodeId, String type);
 }

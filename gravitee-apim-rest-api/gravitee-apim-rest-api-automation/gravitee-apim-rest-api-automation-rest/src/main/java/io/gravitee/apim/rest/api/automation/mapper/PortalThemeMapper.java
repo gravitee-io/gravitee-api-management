@@ -33,8 +33,10 @@ import org.mapstruct.factory.Mappers;
 public interface PortalThemeMapper {
     PortalThemeMapper INSTANCE = Mappers.getMapper(PortalThemeMapper.class);
 
-    default PortalThemeState toPortalThemeState(Theme theme, String hrid, AuditInfo audit, List<Validator.Error> errors) {
-        var state = new PortalThemeState(theme.getId(), audit.environmentId(), audit.organizationId(), toErrors(errors));
+    default PortalThemeState toPortalThemeState(
+            Theme theme, String hrid, AuditInfo audit, List<Validator.Error> errors) {
+        var state =
+                new PortalThemeState(theme.getId(), audit.environmentId(), audit.organizationId(), toErrors(errors));
         state.setHrid(hrid);
         state.setName(theme.getName());
         state.setDefinition(toWireDefinition(theme.getDefinitionPortalNext()));
@@ -50,10 +52,10 @@ public interface PortalThemeMapper {
             return null;
         }
         return ThemeDefinition.builder()
-            .customCss(wire.getCustomCss())
-            .font(toCoreFont(wire.getFont()))
-            .color(toCoreColor(wire.getColor()))
-            .build();
+                .customCss(wire.getCustomCss())
+                .font(toCoreFont(wire.getFont()))
+                .color(toCoreColor(wire.getColor()))
+                .build();
     }
 
     default PortalNextThemeDefinition toWireDefinition(ThemeDefinition core) {
@@ -61,9 +63,9 @@ public interface PortalThemeMapper {
             return null;
         }
         return new PortalNextThemeDefinition()
-            .customCss(core.getCustomCss())
-            .font(toWireFont(core.getFont()))
-            .color(toWireColor(core.getColor()));
+                .customCss(core.getCustomCss())
+                .font(toWireFont(core.getFont()))
+                .color(toWireColor(core.getColor()));
     }
 
     default Errors toErrors(List<Validator.Error> validationErrors) {
@@ -71,8 +73,14 @@ public interface PortalThemeMapper {
             return null;
         }
         var wire = new Errors();
-        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
-        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        wire.setSevere(validationErrors.stream()
+                .filter(Validator.Error::isSevere)
+                .map(Validator.Error::getMessage)
+                .toList());
+        wire.setWarning(validationErrors.stream()
+                .filter(Validator.Error::isWarning)
+                .map(Validator.Error::getMessage)
+                .toList());
         return wire;
     }
 
@@ -95,12 +103,12 @@ public interface PortalThemeMapper {
             return null;
         }
         return ThemeDefinition.Color.builder()
-            .primary(wire.getPrimary())
-            .secondary(wire.getSecondary())
-            .tertiary(wire.getTertiary())
-            .error(wire.getError())
-            .background(toCoreBackground(wire.getBackground()))
-            .build();
+                .primary(wire.getPrimary())
+                .secondary(wire.getSecondary())
+                .tertiary(wire.getTertiary())
+                .error(wire.getError())
+                .background(toCoreBackground(wire.getBackground()))
+                .build();
     }
 
     private static PortalNextThemeColor toWireColor(ThemeDefinition.Color core) {
@@ -108,18 +116,21 @@ public interface PortalThemeMapper {
             return null;
         }
         return new PortalNextThemeColor()
-            .primary(core.getPrimary())
-            .secondary(core.getSecondary())
-            .tertiary(core.getTertiary())
-            .error(core.getError())
-            .background(toWireBackground(core.getBackground()));
+                .primary(core.getPrimary())
+                .secondary(core.getSecondary())
+                .tertiary(core.getTertiary())
+                .error(core.getError())
+                .background(toWireBackground(core.getBackground()));
     }
 
     private static ThemeDefinition.Background toCoreBackground(PortalNextThemeBackground wire) {
         if (wire == null) {
             return null;
         }
-        return ThemeDefinition.Background.builder().page(wire.getPage()).card(wire.getCard()).build();
+        return ThemeDefinition.Background.builder()
+                .page(wire.getPage())
+                .card(wire.getCard())
+                .build();
     }
 
     private static PortalNextThemeBackground toWireBackground(ThemeDefinition.Background core) {

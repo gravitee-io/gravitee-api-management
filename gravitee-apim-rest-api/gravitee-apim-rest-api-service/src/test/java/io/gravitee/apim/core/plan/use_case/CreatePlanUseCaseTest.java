@@ -74,7 +74,8 @@ class CreatePlanUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final String GENERATED_ID = "generated-id";
 
-    private static final Function<Api, List<? extends AbstractFlow>> EMPTY_FLOW_PROVIDER = _api -> Collections.emptyList();
+    private static final Function<Api, List<? extends AbstractFlow>> EMPTY_FLOW_PROVIDER =
+            _api -> Collections.emptyList();
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -82,31 +83,22 @@ class CreatePlanUseCaseTest {
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    AuditDomainService auditDomainService = new AuditDomainService(
-        auditCrudService,
-        new UserCrudServiceInMemory(),
-        new JacksonJsonDiffProcessor()
-    );
+    AuditDomainService auditDomainService =
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
-    PlanValidatorDomainService planValidatorService = new PlanValidatorDomainService(
-        parametersQueryService,
-        policyValidationDomainService,
-        pageCrudService
-    );
-    FlowValidationDomainService flowValidationDomainService = new FlowValidationDomainService(
-        policyValidationDomainService,
-        new EntrypointPluginQueryServiceInMemory()
-    );
+    PlanValidatorDomainService planValidatorService =
+            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
+    FlowValidationDomainService flowValidationDomainService =
+            new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory());
     inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
     CreatePlanDomainService createPlanDomainService = new CreatePlanDomainService(
-        planValidatorService,
-        flowValidationDomainService,
-        planCrudService,
-        flowCrudService,
-        auditDomainService,
-        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
-        kafkaPortRanges
-    );
+            planValidatorService,
+            flowValidationDomainService,
+            planCrudService,
+            flowCrudService,
+            auditDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges);
 
     CreatePlanUseCase createPlanUseCase = new CreatePlanUseCase(createPlanDomainService, apiCrudService);
 
@@ -122,12 +114,17 @@ class CreatePlanUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"),
-                new Parameter(Key.PLAN_SECURITY_MTLS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
+        parametersQueryService.initWith(List.of(
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true"),
+                new Parameter(
+                        Key.PLAN_SECURITY_MTLS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
     }
 
     @AfterEach
@@ -142,33 +139,32 @@ class CreatePlanUseCaseTest {
         var api = givenExistingApi(API);
 
         // When
-        var result = createPlanUseCase.execute(
-            new Input(
+        var result = createPlanUseCase.execute(new Input(
                 api.getId(),
-                _api ->
-                    PlanFixtures.HttpV4.aKeyless()
-                        .toBuilder()
+                _api -> PlanFixtures.HttpV4.aKeyless().toBuilder()
                         .id(null)
                         .referenceId(API.getId())
                         .referenceType(GenericPlanEntity.ReferenceType.API)
                         .build(),
                 EMPTY_FLOW_PROVIDER,
-                AUDIT_INFO
-            )
-        );
+                AUDIT_INFO));
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
-            .extracting(
-                PlanWithFlows::getApiId,
-                createdPlan -> createdPlan.getPlanType().name(),
-                createdPlan -> createdPlan.getPlanMode().name(),
-                createdPlan -> createdPlan.getReferenceId(),
-                createdPlan -> createdPlan.getReferenceType()
-            )
-            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name(), api.getId(), Plan.ReferenceType.API);
+                .extracting(
+                        PlanWithFlows::getApiId,
+                        createdPlan -> createdPlan.getPlanType().name(),
+                        createdPlan -> createdPlan.getPlanMode().name(),
+                        createdPlan -> createdPlan.getReferenceId(),
+                        createdPlan -> createdPlan.getReferenceType())
+                .containsExactly(
+                        api.getId(),
+                        Plan.PlanType.API.name(),
+                        PlanMode.STANDARD.name(),
+                        api.getId(),
+                        Plan.ReferenceType.API);
     }
 
     @Test
@@ -176,11 +172,10 @@ class CreatePlanUseCaseTest {
         // Given
         var api = givenExistingApi(API);
         var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
-            EMPTY_FLOW_PROVIDER,
-            AUDIT_INFO
-        );
+                api.getId(),
+                _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
+                EMPTY_FLOW_PROVIDER,
+                AUDIT_INFO);
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
@@ -195,14 +190,16 @@ class CreatePlanUseCaseTest {
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            createPlanUseCase.execute(
-                new Input(api.getId(), _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(), EMPTY_FLOW_PROVIDER, AUDIT_INFO)
-            )
-        );
+        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(new Input(
+                api.getId(),
+                _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
+                EMPTY_FLOW_PROVIDER,
+                AUDIT_INFO)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(PlanInvalidException.class).hasMessage("Can't manually create Federated Plan");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(PlanInvalidException.class)
+                .hasMessage("Can't manually create Federated Plan");
     }
 
     @Test
@@ -216,7 +213,9 @@ class CreatePlanUseCaseTest {
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(PlanInvalidException.class).hasMessage("Cannot create mTLS plan for TCP API");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(PlanInvalidException.class)
+                .hasMessage("Cannot create mTLS plan for TCP API");
     }
 
     @Test
@@ -233,8 +232,10 @@ class CreatePlanUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
-            .extracting(PlanWithFlows::getApiId, createdPlan -> createdPlan.getPlanSecurity().getType())
-            .containsExactly(api.getId(), "mtls");
+                .extracting(
+                        PlanWithFlows::getApiId,
+                        createdPlan -> createdPlan.getPlanSecurity().getType())
+                .containsExactly(api.getId(), "mtls");
     }
 
     @Test
@@ -250,7 +251,9 @@ class CreatePlanUseCaseTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
-        assertThat(result.plan()).extracting(PlanWithFlows::getApiId, Plan::getPlanSecurity).containsExactly(api.getId(), null);
+        assertThat(result.plan())
+                .extracting(PlanWithFlows::getApiId, Plan::getPlanSecurity)
+                .containsExactly(api.getId(), null);
     }
 
     @Test
@@ -258,11 +261,10 @@ class CreatePlanUseCaseTest {
         // Given
         var api = givenExistingApi(ApiFixtures.aNativeApi());
         var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
-            EMPTY_FLOW_PROVIDER,
-            AUDIT_INFO
-        );
+                api.getId(),
+                _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
+                EMPTY_FLOW_PROVIDER,
+                AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -271,12 +273,11 @@ class CreatePlanUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
-            .extracting(
-                PlanWithFlows::getApiId,
-                createdPlan -> createdPlan.getPlanType().name(),
-                creadedPlan -> creadedPlan.getPlanMode().name()
-            )
-            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
+                .extracting(
+                        PlanWithFlows::getApiId,
+                        createdPlan -> createdPlan.getPlanType().name(),
+                        creadedPlan -> creadedPlan.getPlanMode().name())
+                .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
     }
 
     @Test
@@ -285,11 +286,10 @@ class CreatePlanUseCaseTest {
         var api = givenExistingApi(ApiFixtures.aNativeApi());
         List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4());
         var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
-            _api -> flows,
-            AUDIT_INFO
-        );
+                api.getId(),
+                _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
+                _api -> flows,
+                AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -298,32 +298,30 @@ class CreatePlanUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
-            .extracting(
-                PlanWithFlows::getApiId,
-                createdPlan -> createdPlan.getPlanType().name(),
-                creadedPlan -> creadedPlan.getPlanMode().name()
-            )
-            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
+                .extracting(
+                        PlanWithFlows::getApiId,
+                        createdPlan -> createdPlan.getPlanType().name(),
+                        creadedPlan -> creadedPlan.getPlanMode().name())
+                .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
     }
 
     @Test
     void should_persist_port_range_row_when_creating_native_plan_with_port_routing() {
         // Given
         var api = givenExistingApi(ApiFixtures.aNativeApi());
-        var portMode = PlanFixtures.NativeV4.aKeyless()
-            .toBuilder()
-            .id(null)
-            .planDefinitionNativeV4(
-                io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
-                    .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
-                    .mode(PlanMode.STANDARD)
-                    .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
-                    .bootstrapPort(9092)
-                    .brokerRangeStart(9100)
-                    .brokerRangeEnd(9102)
-                    .build()
-            )
-            .build();
+        var portMode = PlanFixtures.NativeV4.aKeyless().toBuilder()
+                .id(null)
+                .planDefinitionNativeV4(io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                        .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder()
+                                .type("key-less")
+                                .build())
+                        .mode(PlanMode.STANDARD)
+                        .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                        .bootstrapPort(9092)
+                        .brokerRangeStart(9100)
+                        .brokerRangeEnd(9102)
+                        .build())
+                .build();
         var input = new Input(api.getId(), _api -> portMode, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
 
         // When
@@ -331,45 +329,40 @@ class CreatePlanUseCaseTest {
 
         // Then — port-range row was written with the same values as the plan definition
         var persisted = kafkaPortRanges.findByPlanId(result.id());
-        Assertions.assertThat(persisted)
-            .isPresent()
-            .hasValueSatisfying(pr -> {
-                Assertions.assertThat(pr.getBootstrapPort()).isEqualTo(9092);
-                Assertions.assertThat(pr.getRangeStart()).isEqualTo(9100);
-                Assertions.assertThat(pr.getRangeEnd()).isEqualTo(9102);
-                Assertions.assertThat(pr.getApiId()).isEqualTo(api.getId());
-                Assertions.assertThat(pr.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-            });
+        Assertions.assertThat(persisted).isPresent().hasValueSatisfying(pr -> {
+            Assertions.assertThat(pr.getBootstrapPort()).isEqualTo(9092);
+            Assertions.assertThat(pr.getRangeStart()).isEqualTo(9100);
+            Assertions.assertThat(pr.getRangeEnd()).isEqualTo(9102);
+            Assertions.assertThat(pr.getApiId()).isEqualTo(api.getId());
+            Assertions.assertThat(pr.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+        });
     }
 
     @Test
     void should_reject_native_plan_whose_port_range_conflicts_with_existing_plan() {
         // Given — an already-registered port-range row for another plan on the same env
         var api = givenExistingApi(ApiFixtures.aNativeApi());
-        kafkaPortRanges.create(
-            io.gravitee.apim.core.plan.model.KafkaPortRange.builder()
+        kafkaPortRanges.create(io.gravitee.apim.core.plan.model.KafkaPortRange.builder()
                 .planId("existing-plan")
                 .apiId(api.getId())
                 .environmentId(ENVIRONMENT_ID)
                 .bootstrapPort(9092)
                 .rangeStart(9100)
                 .rangeEnd(9105)
-                .build()
-        );
-        var overlapping = PlanFixtures.NativeV4.aKeyless()
-            .toBuilder()
-            .id(null)
-            .planDefinitionNativeV4(
-                io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
-                    .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
-                    .mode(PlanMode.STANDARD)
-                    .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
-                    .bootstrapPort(9192)
-                    .brokerRangeStart(9103) // overlaps with [9100-9105]
-                    .brokerRangeEnd(9108)
-                    .build()
-            )
-            .build();
+                .build());
+        var overlapping = PlanFixtures.NativeV4.aKeyless().toBuilder()
+                .id(null)
+                .planDefinitionNativeV4(io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                        .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder()
+                                .type("key-less")
+                                .build())
+                        .mode(PlanMode.STANDARD)
+                        .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                        .bootstrapPort(9192)
+                        .brokerRangeStart(9103) // overlaps with [9100-9105]
+                        .brokerRangeEnd(9108)
+                        .build())
+                .build();
         var input = new Input(api.getId(), _api -> overlapping, EMPTY_FLOW_PROVIDER, AUDIT_INFO);
 
         // When
@@ -377,8 +370,8 @@ class CreatePlanUseCaseTest {
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(io.gravitee.apim.core.plan.exception.PortRangeConflictException.class)
-            .hasMessageContaining("plan 'existing-plan'");
+                .isInstanceOf(io.gravitee.apim.core.plan.exception.PortRangeConflictException.class)
+                .hasMessageContaining("plan 'existing-plan'");
     }
 
     @Test
@@ -387,19 +380,18 @@ class CreatePlanUseCaseTest {
         var api = givenExistingApi(ApiFixtures.aNativeApi());
         List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4(), FlowFixtures.aNativeFlowV4());
         var input = new Input(
-            api.getId(),
-            _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
-            _api -> flows,
-            AUDIT_INFO
-        );
+                api.getId(),
+                _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
+                _api -> flows,
+                AUDIT_INFO);
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(NativeApiWithMultipleFlowsException.class)
-            .hasMessage("Native APIs cannot have more than one flow");
+                .isInstanceOf(NativeApiWithMultipleFlowsException.class)
+                .hasMessage("Native APIs cannot have more than one flow");
     }
 
     @Test
@@ -414,8 +406,8 @@ class CreatePlanUseCaseTest {
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(PlanInvalidException.class)
-            .hasMessage("Plan mode 'Push' is forbidden for Native APIs");
+                .isInstanceOf(PlanInvalidException.class)
+                .hasMessage("Plan mode 'Push' is forbidden for Native APIs");
     }
 
     private Api givenExistingApi(Api api) {

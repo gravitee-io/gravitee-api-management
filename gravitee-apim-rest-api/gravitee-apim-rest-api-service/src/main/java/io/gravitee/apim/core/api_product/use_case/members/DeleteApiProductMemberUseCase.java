@@ -39,23 +39,17 @@ public class DeleteApiProductMemberUseCase {
     public record Output() {}
 
     public Output execute(Input input) {
-        Member member = memberQueryService.getUserMember(MembershipReferenceType.API_PRODUCT, input.apiProductId, input.memberId);
-        if (
-            member != null &&
-            Optional.ofNullable(member.getRoles())
-                .orElse(List.of())
-                .stream()
-                .anyMatch(r -> RoleScope.API_PRODUCT.equals(r.getScope()) && PRIMARY_OWNER.name().equals(r.getName()))
-        ) {
+        Member member = memberQueryService.getUserMember(
+                MembershipReferenceType.API_PRODUCT, input.apiProductId, input.memberId);
+        if (member != null
+                && Optional.ofNullable(member.getRoles()).orElse(List.of()).stream()
+                        .anyMatch(r -> RoleScope.API_PRODUCT.equals(r.getScope())
+                                && PRIMARY_OWNER.name().equals(r.getName()))) {
             throw new PrimaryOwnerRemovalException();
         }
 
         memberQueryService.deleteReferenceMember(
-            MembershipReferenceType.API_PRODUCT,
-            input.apiProductId,
-            MembershipMemberType.USER,
-            input.memberId
-        );
+                MembershipReferenceType.API_PRODUCT, input.apiProductId, MembershipMemberType.USER, input.memberId);
         return new Output();
     }
 }

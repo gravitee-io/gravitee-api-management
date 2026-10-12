@@ -89,9 +89,8 @@ public class PlanService_DeleteTest {
         assertThrows(PlanWithSubscriptionsException.class, () -> {
             when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
             when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-            when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
-                Collections.singleton(subscription)
-            );
+            when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                    .thenReturn(Collections.singleton(subscription));
 
             planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         });
@@ -101,7 +100,8 @@ public class PlanService_DeleteTest {
     public void shouldDeleteBecauseStagingState() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
@@ -124,7 +124,8 @@ public class PlanService_DeleteTest {
     public void shouldDeleteBecauseClosedState() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
@@ -138,7 +139,8 @@ public class PlanService_DeleteTest {
     public void shouldDeleteBecausePublishedWithNoSubscription() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
@@ -151,7 +153,8 @@ public class PlanService_DeleteTest {
     @Test
     public void shouldDelete() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
@@ -165,7 +168,8 @@ public class PlanService_DeleteTest {
     public void shouldDeleteNativePlanAndFlows() throws TechnicalException {
         when(plan.getApiType()).thenReturn(ApiType.NATIVE);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
         when(plan.getId()).thenReturn(PLAN_ID);
         when(plan.getBootstrapPort()).thenReturn(9002);

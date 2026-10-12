@@ -35,10 +35,10 @@ import org.junit.jupiter.api.Test;
 class GetPortalThemeUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
 
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     private GetPortalThemeUseCase useCase;
@@ -67,26 +67,24 @@ class GetPortalThemeUseCaseTest {
     void throws_when_theme_is_in_a_different_environment() {
         themeCrudService.initWith(List.of(anEnvironmentTheme("theme-1", "other-env")));
 
-        assertThatThrownBy(() -> useCase.execute(new GetPortalThemeUseCase.Input(AUDIT_INFO, "theme-1"))).isInstanceOf(
-            ThemeNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new GetPortalThemeUseCase.Input(AUDIT_INFO, "theme-1")))
+                .isInstanceOf(ThemeNotFoundException.class);
     }
 
     @Test
     void throws_when_theme_does_not_exist() {
-        assertThatThrownBy(() -> useCase.execute(new GetPortalThemeUseCase.Input(AUDIT_INFO, "unknown"))).isInstanceOf(
-            ThemeNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new GetPortalThemeUseCase.Input(AUDIT_INFO, "unknown")))
+                .isInstanceOf(ThemeNotFoundException.class);
     }
 
     private static Theme anEnvironmentTheme(String id, String envId) {
         return Theme.builder()
-            .id(id)
-            .name("Theme " + id)
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(envId)
-            .enabled(true)
-            .build();
+                .id(id)
+                .name("Theme " + id)
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(envId)
+                .enabled(true)
+                .build();
     }
 }

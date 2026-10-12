@@ -38,8 +38,9 @@ import java.util.Map;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends AbstractFlow, PC extends AbstractPolicyChain<T>>
-    implements PolicyChainFactory<PC, F> {
+public abstract class AbstractPolicyChainFactory<
+                T extends BasePolicy, F extends AbstractFlow, PC extends AbstractPolicyChain<T>>
+        implements PolicyChainFactory<PC, F> {
 
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
@@ -52,9 +53,9 @@ public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
-            .maxSize(CACHE_MAX_SIZE)
-            .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
-            .build();
+                .maxSize(CACHE_MAX_SIZE)
+                .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
+                .build();
 
         this.policyChains = new InMemoryCache<>(id + getIdSuffix(), cacheConfiguration);
     }
@@ -63,7 +64,8 @@ public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends
 
     protected abstract List<Step> getSteps(F flow, ExecutionPhase phase);
 
-    protected abstract PC buildPolicyChain(String flowChainId, F flow, ExecutionPhase phase, List<T> policies, Map<T, String> descriptions);
+    protected abstract PC buildPolicyChain(
+            String flowChainId, F flow, ExecutionPhase phase, List<T> policies, Map<T, String> descriptions);
 
     protected abstract PolicyMetadata buildPolicyMetadata(Step step);
 

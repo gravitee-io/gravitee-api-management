@@ -43,12 +43,11 @@ public class InvokerFactory {
     public Invoker create() {
         if (api.getProxy().failoverEnabled()) {
             return new FailoverInvoker(
-                vertx,
-                endpointResolver,
-                new FailoverOptions()
-                    .setMaxAttempts(api.getProxy().getFailover().getMaxAttempts())
-                    .setRetryTimeout(api.getProxy().getFailover().getRetryTimeout())
-            );
+                    vertx,
+                    endpointResolver,
+                    new FailoverOptions()
+                            .setMaxAttempts(api.getProxy().getFailover().getMaxAttempts())
+                            .setRetryTimeout(api.getProxy().getFailover().getRetryTimeout()));
         }
 
         return new EndpointInvoker(endpointResolver);

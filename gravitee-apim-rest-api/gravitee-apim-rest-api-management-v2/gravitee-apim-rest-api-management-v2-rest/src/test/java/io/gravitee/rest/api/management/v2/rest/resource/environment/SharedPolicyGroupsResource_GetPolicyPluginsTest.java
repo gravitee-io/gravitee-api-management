@@ -70,15 +70,16 @@ public class SharedPolicyGroupsResource_GetPolicyPluginsTest extends AbstractRes
     @Test
     void should_get_policy_plugins() {
         // Given
-        when(getSharedPolicyGroupPolicyPluginsUseCase.execute(any())).thenReturn(
-            new GetSharedPolicyGroupPolicyPluginsUseCase.Output(List.of(SharedPolicyGroupFixtures.aSharedPolicyGroupPolicyPlugin()))
-        );
+        when(getSharedPolicyGroupPolicyPluginsUseCase.execute(any()))
+                .thenReturn(new GetSharedPolicyGroupPolicyPluginsUseCase.Output(
+                        List.of(SharedPolicyGroupFixtures.aSharedPolicyGroupPolicyPlugin())));
 
         // When
         final Response response = rootTarget().request().get();
 
         // Then
         assertThat(response).hasStatus(200);
-        verify(getSharedPolicyGroupPolicyPluginsUseCase).execute(new GetSharedPolicyGroupPolicyPluginsUseCase.Input(ENV_ID));
+        verify(getSharedPolicyGroupPolicyPluginsUseCase)
+                .execute(new GetSharedPolicyGroupPolicyPluginsUseCase.Input(ENV_ID));
     }
 }

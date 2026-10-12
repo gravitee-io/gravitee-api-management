@@ -47,32 +47,30 @@ class JdbcPortalListingRepositoryTest {
 
     @Test
     void findByIdAndEnvironmentId_wraps_exception_as_technical() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), any(Object.class), any(Object.class))).thenThrow(
-            new RuntimeException("boom")
-        );
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), any(Object.class), any(Object.class)))
+                .thenThrow(new RuntimeException("boom"));
 
         var ex = catchThrowable(() -> repository.findByIdAndEnvironmentId("listing1", "env1"));
 
         assertThat(ex)
-            .isInstanceOf(TechnicalException.class)
-            .hasMessageContaining("Failed to find portal listing by id (listing1)")
-            .hasMessageContaining("environment id (env1)")
-            .hasCauseInstanceOf(RuntimeException.class);
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("Failed to find portal listing by id (listing1)")
+                .hasMessageContaining("environment id (env1)")
+                .hasCauseInstanceOf(RuntimeException.class);
     }
 
     @Test
     void findAllByPortalIdAndEnvironmentId_wraps_exception_as_technical() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), any(Object.class), any(Object.class))).thenThrow(
-            new RuntimeException("boom")
-        );
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), any(Object.class), any(Object.class)))
+                .thenThrow(new RuntimeException("boom"));
 
         var ex = catchThrowable(() -> repository.findAllByPortalIdAndEnvironmentId("portal1", "env1"));
 
         assertThat(ex)
-            .isInstanceOf(TechnicalException.class)
-            .hasMessageContaining("Failed to find portal listings by portal id (portal1)")
-            .hasMessageContaining("environment id (env1)")
-            .hasCauseInstanceOf(RuntimeException.class);
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("Failed to find portal listings by portal id (portal1)")
+                .hasMessageContaining("environment id (env1)")
+                .hasCauseInstanceOf(RuntimeException.class);
     }
 
     @Test
@@ -82,9 +80,9 @@ class JdbcPortalListingRepositoryTest {
         var ex = catchThrowable(() -> repository.deleteByEnvironmentId("env1"));
 
         assertThat(ex)
-            .isInstanceOf(TechnicalException.class)
-            .hasMessageContaining("Failed to delete portal listings by environment id: env1")
-            .hasCauseInstanceOf(RuntimeException.class);
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("Failed to delete portal listings by environment id: env1")
+                .hasCauseInstanceOf(RuntimeException.class);
     }
 
     @Test
@@ -94,8 +92,8 @@ class JdbcPortalListingRepositoryTest {
         var ex = catchThrowable(() -> repository.deleteByOrganizationId("org1"));
 
         assertThat(ex)
-            .isInstanceOf(TechnicalException.class)
-            .hasMessageContaining("Failed to delete portal listings by organization id: org1")
-            .hasCauseInstanceOf(RuntimeException.class);
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("Failed to delete portal listings by organization id: org1")
+                .hasCauseInstanceOf(RuntimeException.class);
     }
 }

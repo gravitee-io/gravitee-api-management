@@ -74,6 +74,7 @@ class PathHandlingV4IntegrationTest {
 
     /** No dot segment in sight, only unreserved characters that §6.2.2.2 decodes anyway. */
     private static final String ENCODED_UNRESERVED = "/alpha/api/%41%42/%7Etilde";
+
     private static final String DECODED_UNRESERVED = "/alpha/api/AB/~tilde";
 
     /**
@@ -95,19 +96,24 @@ class PathHandlingV4IntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "api-key",
-                PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-            );
+                    "api-key",
+                    PolicyBuilder.build(
+                            "api-key",
+                            ApiKeyPolicy.class,
+                            ApiKeyPolicyConfiguration.class,
+                            ApiKeyPolicyInitializer.class));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -118,18 +124,18 @@ class PathHandlingV4IntegrationTest {
         }
 
         protected void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus)
-            throws InterruptedException {
+                throws InterruptedException {
             httpClient
-                .rxRequest(HttpMethod.GET, rawPath)
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response.statusCode()).isEqualTo(expectedStatus);
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, rawPath)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response.statusCode()).isEqualTo(expectedStatus);
+                        return true;
+                    })
+                    .assertNoErrors();
         }
 
         protected String singleUpstreamRequestUrl() {
@@ -141,7 +147,7 @@ class PathHandlingV4IntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    @DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
     class With_raw_handling extends PathHandlingTest {
 
         @Override
@@ -167,7 +173,8 @@ class PathHandlingV4IntegrationTest {
         }
 
         @Test
-        void should_leave_percent_encoded_unreserved_characters_encoded(HttpClient httpClient) throws InterruptedException {
+        void should_leave_percent_encoded_unreserved_characters_encoded(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             // The counterpart of the NORMALIZE case: under RAW the backend receives the bytes the
@@ -180,7 +187,7 @@ class PathHandlingV4IntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    @DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
     class With_reject_handling extends PathHandlingTest {
 
         @Override
@@ -233,7 +240,7 @@ class PathHandlingV4IntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    @DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
     class With_normalize_handling extends PathHandlingTest {
 
         @Override
@@ -251,7 +258,8 @@ class PathHandlingV4IntegrationTest {
         }
 
         @Test
-        void should_enforce_the_plan_of_the_api_the_resolved_path_designates(HttpClient httpClient) throws InterruptedException {
+        void should_enforce_the_plan_of_the_api_the_resolved_path_designates(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             // Resolved, the request is a call to beta, so beta's api-key plan applies and answers
@@ -283,7 +291,8 @@ class PathHandlingV4IntegrationTest {
         }
 
         @Test
-        void should_deliver_percent_encoded_unreserved_characters_decoded(HttpClient httpClient) throws InterruptedException {
+        void should_deliver_percent_encoded_unreserved_characters_decoded(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             // The consequence of RFC 3986 §6.2.2.2 that surprises people: the rule that makes
@@ -295,7 +304,8 @@ class PathHandlingV4IntegrationTest {
         }
 
         @Test
-        void should_answer_not_found_when_the_resolved_path_matches_no_api(HttpClient httpClient) throws InterruptedException {
+        void should_answer_not_found_when_the_resolved_path_matches_no_api(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             // The other half of the defect: escaping the configured endpoint target no longer
@@ -334,7 +344,7 @@ class PathHandlingV4IntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    @DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
     class With_reject_handling_on_parameterised_dot_segments extends PathHandlingTest {
 
         @Override
@@ -352,7 +362,8 @@ class PathHandlingV4IntegrationTest {
         }
 
         @Test
-        void should_still_serve_an_ordinary_segment_that_carries_parameters(HttpClient httpClient) throws InterruptedException {
+        void should_still_serve_an_ordinary_segment_that_carries_parameters(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             // Only a segment that is entirely dots before the ';' is a dot segment. If this ever
@@ -368,7 +379,7 @@ class PathHandlingV4IntegrationTest {
      */
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    @DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
     class With_no_handling_configured extends PathHandlingTest {
 
         // Deliberately no configureGateway override: the gateway resolves the default itself.
@@ -400,7 +411,7 @@ class PathHandlingV4IntegrationTest {
      */
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    @DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
     class With_an_unreadable_handling_value extends PathHandlingTest {
 
         @Override
@@ -409,7 +420,8 @@ class PathHandlingV4IntegrationTest {
         }
 
         @Test
-        void should_normalize_rather_than_fall_through_to_the_raw_path(HttpClient httpClient) throws InterruptedException {
+        void should_normalize_rather_than_fall_through_to_the_raw_path(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             // Falling back to RAW here would answer 200 and hand the caller beta's backend without

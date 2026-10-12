@@ -24,13 +24,12 @@ public class NoopAuthzEnginePort implements AuthzEnginePort {
 
     @Override
     public Completable addOrUpdateEntity(
-        String environmentId,
-        String uid,
-        Map<String, Object> attributes,
-        List<String> parents,
-        Set<String> targetPdpIds,
-        long updatedAt
-    ) {
+            String environmentId,
+            String uid,
+            Map<String, Object> attributes,
+            List<String> parents,
+            Set<String> targetPdpIds,
+            long updatedAt) {
         return Completable.complete();
     }
 
@@ -41,14 +40,13 @@ public class NoopAuthzEnginePort implements AuthzEnginePort {
 
     @Override
     public Completable addOrUpdatePolicy(
-        String environmentId,
-        String docId,
-        String name,
-        String policyText,
-        Set<String> targetPdpIds,
-        long updatedAt,
-        String revision
-    ) {
+            String environmentId,
+            String docId,
+            String name,
+            String policyText,
+            Set<String> targetPdpIds,
+            long updatedAt,
+            String revision) {
         return Completable.complete();
     }
 
@@ -59,13 +57,12 @@ public class NoopAuthzEnginePort implements AuthzEnginePort {
 
     @Override
     public Completable addOrUpdateSchema(
-        String environmentId,
-        String docId,
-        String name,
-        String schemaText,
-        Set<String> targetPdpIds,
-        long updatedAt
-    ) {
+            String environmentId,
+            String docId,
+            String name,
+            String schemaText,
+            Set<String> targetPdpIds,
+            long updatedAt) {
         return Completable.complete();
     }
 

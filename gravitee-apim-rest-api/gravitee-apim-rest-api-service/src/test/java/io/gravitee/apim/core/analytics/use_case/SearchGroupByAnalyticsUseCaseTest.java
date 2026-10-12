@@ -95,60 +95,49 @@ class SearchGroupByAnalyticsUseCaseTest {
     @Test
     void should_throw_exception_if_api_is_tcp() {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchGroupByAnalyticsUseCase.Input(
-                    MY_API,
-                    INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
-                    INSTANT_NOW.toEpochMilli(),
-                    "api-id",
-                    null,
-                    null,
-                    Optional.empty()
-                )
-            )
-        );
+                        MY_API,
+                        INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
+                        INSTANT_NOW.toEpochMilli(),
+                        "api-id",
+                        null,
+                        null,
+                        Optional.empty())));
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
     }
 
     @Test
     void should_throw_if_api_doesnt_belong_to_environment() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build()));
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        apiCrudService.initWith(List.of(
+                ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build()));
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchGroupByAnalyticsUseCase.Input(
-                    MY_API,
-                    INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
-                    INSTANT_NOW.toEpochMilli(),
-                    "api-id",
-                    null,
-                    null,
-                    Optional.empty()
-                )
-            )
-        );
+                        MY_API,
+                        INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
+                        INSTANT_NOW.toEpochMilli(),
+                        "api-id",
+                        null,
+                        null,
+                        Optional.empty())));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_is_not_v2_or_v4() {
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchGroupByAnalyticsUseCase.Input(
-                    MY_API,
-                    INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
-                    INSTANT_NOW.toEpochMilli(),
-                    "api-id",
-                    null,
-                    null,
-                    Optional.empty()
-                )
-            )
-        );
+                        MY_API,
+                        INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
+                        INSTANT_NOW.toEpochMilli(),
+                        "api-id",
+                        null,
+                        null,
+                        Optional.empty())));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
@@ -156,40 +145,37 @@ class SearchGroupByAnalyticsUseCaseTest {
     void should_accept_v2_api() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder().values(Map.of("k1", 5L)).order(List.of("k1")).build();
+        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder()
+                .values(Map.of("k1", 5L))
+                .order(List.of("k1"))
+                .build();
 
         var result = useCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchGroupByAnalyticsUseCase.Input(
-                MY_API,
-                INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
-                INSTANT_NOW.toEpochMilli(),
-                "status",
-                null,
-                null,
-                Optional.empty()
-            )
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchGroupByAnalyticsUseCase.Input(
+                        MY_API,
+                        INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
+                        INSTANT_NOW.toEpochMilli(),
+                        "status",
+                        null,
+                        null,
+                        Optional.empty()));
 
         assertThat(result.analytics()).isNotNull();
     }
 
     @Test
     void should_throw_if_api_is_not_found() {
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchGroupByAnalyticsUseCase.Input(
-                    MY_API,
-                    INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
-                    INSTANT_NOW.toEpochMilli(),
-                    "api-id",
-                    null,
-                    null,
-                    Optional.empty()
-                )
-            )
-        );
+                        MY_API,
+                        INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
+                        INSTANT_NOW.toEpochMilli(),
+                        "api-id",
+                        null,
+                        null,
+                        Optional.empty())));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
 
@@ -197,20 +183,16 @@ class SearchGroupByAnalyticsUseCaseTest {
     void should_throw_if_api_dates_are_invalid() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchGroupByAnalyticsUseCase.Input(
-                    MY_API,
-                    INSTANT_NOW.toEpochMilli(),
-                    INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
-                    "api-id",
-                    null,
-                    null,
-                    Optional.empty()
-                )
-            )
-        );
+                        MY_API,
+                        INSTANT_NOW.toEpochMilli(),
+                        INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
+                        "api-id",
+                        null,
+                        null,
+                        Optional.empty())));
         assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
     }
 
@@ -219,27 +201,29 @@ class SearchGroupByAnalyticsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         var values = Map.of("k1", 10L, "k2", 20L);
-        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder().values(values).order(List.of("k1", "k2")).build();
+        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder()
+                .values(values)
+                .order(List.of("k1", "k2"))
+                .build();
 
         var result = useCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchGroupByAnalyticsUseCase.Input(
-                MY_API,
-                INSTANT_NOW.minus(3, ChronoUnit.DAYS).toEpochMilli(),
-                INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli(),
-                "api-id",
-                null,
-                null,
-                Optional.empty()
-            )
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchGroupByAnalyticsUseCase.Input(
+                        MY_API,
+                        INSTANT_NOW.minus(3, ChronoUnit.DAYS).toEpochMilli(),
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                        "api-id",
+                        null,
+                        null,
+                        Optional.empty()));
 
         assertThat(result.analytics()).isEqualTo(analyticsQueryService.groupByAnalytics);
         assertThat(result.metadata()).containsKeys("k1", "k2");
         assertThat(result.metadata().get("k1")).containsEntry("name", "api-k1");
         assertThat(result.metadata().get("k2")).containsEntry("name", "api-k2");
 
-        var queryCaptor = ArgumentCaptor.forClass(io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery.class);
+        var queryCaptor = ArgumentCaptor.forClass(
+                io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery.class);
         verify(analyticsQueryService).searchGroupByAnalytics(any(), queryCaptor.capture());
         assertSoftly(softly -> {
             softly.assertThat(queryCaptor.getValue().searchTermId().id()).isEqualTo(MY_API);
@@ -254,23 +238,24 @@ class SearchGroupByAnalyticsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         String queryString = "status:200 AND method:GET";
-        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder().order(Collections.emptyList()).build();
+        analyticsQueryService.groupByAnalytics =
+                GroupByAnalytics.builder().order(Collections.emptyList()).build();
 
         useCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchGroupByAnalyticsUseCase.Input(
-                MY_API,
-                INSTANT_NOW.minus(2, ChronoUnit.DAYS).toEpochMilli(),
-                INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli(),
-                "api-id",
-                null,
-                null,
-                Optional.of(queryString)
-            )
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchGroupByAnalyticsUseCase.Input(
+                        MY_API,
+                        INSTANT_NOW.minus(2, ChronoUnit.DAYS).toEpochMilli(),
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                        "api-id",
+                        null,
+                        null,
+                        Optional.of(queryString)));
 
-        var queryCaptor = ArgumentCaptor.forClass(io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery.class);
+        var queryCaptor = ArgumentCaptor.forClass(
+                io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery.class);
         verify(analyticsQueryService).searchGroupByAnalytics(any(), queryCaptor.capture());
-        assertThat(queryCaptor.getValue().query().map(queryString::equals).orElse(false)).isTrue();
+        assertThat(queryCaptor.getValue().query().map(queryString::equals).orElse(false))
+                .isTrue();
     }
 }

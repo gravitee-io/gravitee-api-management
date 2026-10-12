@@ -117,7 +117,8 @@ class LogEndpointRequestTest {
 
     @Test
     void should_log_headers_including_all_headers_added_by_the_endpoint() {
-        final HttpHeaders backendHeaders = HttpHeaders.create().set("X-To-Backend1", "Backend1").set("X-To-Backend2", "Backend2");
+        final HttpHeaders backendHeaders =
+                HttpHeaders.create().set("X-To-Backend1", "Backend1").set("X-To-Backend2", "Backend2");
         final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         existingHeaders.set("X-Test1", "Value1");
         existingHeaders.set("X-Test2", "Value2");
@@ -180,7 +181,8 @@ class LogEndpointRequestTest {
         initializeHeaders(initialHeaders);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any())).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any()))
+                .thenReturn(false);
 
         cut.setupCapture(ctx);
         triggerRequestToBackend(HttpHeaders.create(), false);
@@ -276,11 +278,11 @@ class LogEndpointRequestTest {
         }
 
         if (expectCaptureBody) {
-            Flowable.fromPublisher(
-                buffersInterceptorCaptor.getValue().apply(Flowable.just(Buffer.buffer(LogEndpointRequestTest.BODY_CONTENT)))
-            )
-                .test()
-                .assertComplete();
+            Flowable.fromPublisher(buffersInterceptorCaptor
+                            .getValue()
+                            .apply(Flowable.just(Buffer.buffer(LogEndpointRequestTest.BODY_CONTENT))))
+                    .test()
+                    .assertComplete();
         }
         cut.finalizeCapture(ctx);
     }

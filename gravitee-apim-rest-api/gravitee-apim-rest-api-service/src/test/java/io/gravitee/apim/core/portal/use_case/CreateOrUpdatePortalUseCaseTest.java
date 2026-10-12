@@ -39,7 +39,6 @@ import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
-import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -59,20 +58,23 @@ import org.junit.jupiter.api.Test;
 class CreateOrUpdatePortalUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
-    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
+    private final PortalAutomationScopeDomainService scopeEnforcer =
+            new PortalAutomationScopeDomainService(portalCrudService, () -> false);
     private final ValidatePortalDomainService validator = new ValidatePortalDomainService(scopeEnforcer);
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
-    private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-    private final PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
+    private final PortalPageContentCrudServiceInMemory pageContentCrudService =
+            new PortalPageContentCrudServiceInMemory();
+    private final PortalPageContentQueryServiceInMemory pageContentQueryService =
+            new PortalPageContentQueryServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     private final ThemeQueryServiceInMemory themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
@@ -81,25 +83,22 @@ class CreateOrUpdatePortalUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CreateOrUpdatePortalUseCase(
-            validator,
-            portalCrudService,
-            new PortalNavigationSyncDomainService(
-                navQueryService,
-                new AutomationManagedNavigationItemsQueryService(portalListingCrudService, navQueryService),
-                new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService),
-                mock(PortalNavigationItemValidatorService.class)
-            ),
-            pageContentQueryService,
-            new PortalDocumentationSyncDomainService(
-                navCrudService,
-                navQueryService,
-                new HomepageReconciler(navQueryService, navCrudService, pageContentCrudService),
-                mock(PortalNavigationItemValidatorService.class)
-            ),
-            scopeEnforcer,
-            themeCrudService,
-            new CurrentThemeDomainService(themeQueryService, themeCrudService)
-        );
+                validator,
+                portalCrudService,
+                new PortalNavigationSyncDomainService(
+                        navQueryService,
+                        new AutomationManagedNavigationItemsQueryService(portalListingCrudService, navQueryService),
+                        new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService),
+                        mock(PortalNavigationItemValidatorService.class)),
+                pageContentQueryService,
+                new PortalDocumentationSyncDomainService(
+                        navCrudService,
+                        navQueryService,
+                        new HomepageReconciler(navQueryService, navCrudService, pageContentCrudService),
+                        mock(PortalNavigationItemValidatorService.class)),
+                scopeEnforcer,
+                themeCrudService,
+                new CurrentThemeDomainService(themeQueryService, themeCrudService));
     }
 
     @AfterEach
@@ -124,7 +123,8 @@ class CreateOrUpdatePortalUseCaseTest {
     void should_update_when_existing() {
         var existing = PortalFixtures.aPortal();
         portalCrudService.initWith(java.util.List.of(existing));
-        var renamed = Portal.of(existing.getId(), existing.getEnvironmentId(), existing.getOrganizationId(), "Renamed Portal");
+        var renamed = Portal.of(
+                existing.getId(), existing.getEnvironmentId(), existing.getOrganizationId(), "Renamed Portal");
 
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, renamed));
 
@@ -149,79 +149,64 @@ class CreateOrUpdatePortalUseCaseTest {
         portalCrudService.initWith(java.util.List.of(existing));
 
         var otherEnvAudit = AuditInfo.builder()
-            .organizationId("organization-id")
-            .environmentId("other-env")
-            .actor(AuditActor.builder().userId("user-id").build())
-            .build();
+                .organizationId("organization-id")
+                .environmentId("other-env")
+                .actor(AuditActor.builder().userId("user-id").build())
+                .build();
         var inOtherEnv = Portal.of(existing.getId(), "other-env", "organization-id", "Other Env Portal");
 
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(otherEnvAudit, inOtherEnv));
 
         assertThat(output.portal()).isEqualTo(inOtherEnv);
         assertThat(portalCrudService.storage()).hasSize(2);
-        assertThat(portalCrudService.storage().stream().map(Portal::getEnvironmentId).toList()).containsExactlyInAnyOrder(
-            "environment-id",
-            "other-env"
-        );
+        assertThat(portalCrudService.storage().stream()
+                        .map(Portal::getEnvironmentId)
+                        .toList())
+                .containsExactlyInAnyOrder("environment-id", "other-env");
     }
 
     @Test
     void should_sync_navigation_against_top_navbar_folders() {
-        var defaultPortalId = io.gravitee.apim.core.portal.model.PortalId.of(
-            io.gravitee.rest.api.service.common.HRIDToUUID.portal().context(AUDIT_INFO).hrid("default-portal").id()
-        );
-        var portal = Portal.of(defaultPortalId, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal");
+        var defaultPortalId =
+                io.gravitee.apim.core.portal.model.PortalId.of(io.gravitee.rest.api.service.common.HRIDToUUID.portal()
+                        .context(AUDIT_INFO)
+                        .hrid("default-portal")
+                        .id());
+        var portal =
+                Portal.of(defaultPortalId, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal");
 
-        useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(
+        useCase.execute(new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 portal,
-                PortalNavigationStructure.ofTopNavbar(
-                    List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/beta", null))
-                )
-            )
-        );
+                PortalNavigationStructure.ofTopNavbar(List.of(
+                        new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/beta", null)))));
 
         assertThat(navCrudService.storage()).hasSize(3);
         assertThat(navCrudService.storage()).allMatch(item -> item.getArea() == PortalArea.TOP_NAVBAR);
         assertThat(navCrudService.storage()).allMatch(item -> item.getType() == PortalNavigationItemType.FOLDER);
-        assertThat(
-            navCrudService
-                .storage()
-                .stream()
-                .map(it -> it.getTitle())
-                .toList()
-        ).containsExactlyInAnyOrder("projects", "Alpha", "beta");
+        assertThat(navCrudService.storage().stream().map(it -> it.getTitle()).toList())
+                .containsExactlyInAnyOrder("projects", "Alpha", "beta");
     }
 
     @Test
     void should_throw_when_navigation_path_is_invalid() {
         var portal = PortalFixtures.aPortal();
 
-        assertThatThrownBy(() ->
-            useCase.execute(
-                new CreateOrUpdatePortalUseCase.Input(
-                    AUDIT_INFO,
-                    portal,
-                    PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null)))
-                )
-            )
-        )
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("structure.topNavbar[1].path");
+        assertThatThrownBy(() -> useCase.execute(new CreateOrUpdatePortalUseCase.Input(
+                        AUDIT_INFO,
+                        portal,
+                        PortalNavigationStructure.ofTopNavbar(
+                                List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null))))))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("structure.topNavbar[1].path");
     }
 
     @Test
     void should_return_empty_errors_when_navigation_is_valid() {
         var portal = PortalFixtures.aPortal();
 
-        var output = useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(
-                AUDIT_INFO,
-                portal,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/docs", null)))
-            )
-        );
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO, portal, PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/docs", null)))));
 
         assertThat(output.errors()).isEmpty();
     }
@@ -229,73 +214,63 @@ class CreateOrUpdatePortalUseCaseTest {
     @Test
     void should_persist_navigation_array_on_portal_row() {
         var portal = PortalFixtures.aPortal();
-        var input = PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", "A"), new NavigationPath("/b", null)));
+        var input = PortalNavigationStructure.ofTopNavbar(
+                List.of(new NavigationPath("/a", "A"), new NavigationPath("/b", null)));
 
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, input));
 
         assertThat(output.portal().getNavigationStructure().forArea(PortalArea.TOP_NAVBAR))
-            .extracting(NavigationPath::path)
-            .containsExactly("/a", "/b");
+                .extracting(NavigationPath::path)
+                .containsExactly("/a", "/b");
         assertThat(portalCrudService.storage()).hasSize(1);
         assertThat(portalCrudService.storage().get(0).getNavigationStructure().forArea(PortalArea.TOP_NAVBAR))
-            .extracting(NavigationPath::path)
-            .containsExactly("/a", "/b");
+                .extracting(NavigationPath::path)
+                .containsExactly("/a", "/b");
         assertThat(output.structure()).isEqualTo(output.portal().getNavigationStructure());
     }
 
     @Test
     void should_use_previously_persisted_to_skip_unmanaged_folders_on_delete() {
         var portal = PortalFixtures.aPortal();
-        useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(
+        useCase.execute(new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 portal,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/managed", null)))
-            )
-        );
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/managed", null)))));
         var unmanaged = io.gravitee.apim.core.portal_page.model.PortalNavigationFolder.builder()
-            .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.random())
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("manual")
-            .segment("manual")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .published(true)
-            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
-            .build();
+                .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.random())
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("manual")
+                .segment("manual")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .published(true)
+                .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
+                .build();
         unmanaged.markAsRoot();
         navCrudService.initWith(List.of(unmanaged));
 
-        useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, PortalNavigationStructure.ofTopNavbar(List.of())));
+        useCase.execute(new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO, portal, PortalNavigationStructure.ofTopNavbar(List.of())));
 
         assertThat(navCrudService.storage()).contains(unmanaged);
-        assertThat(
-            navCrudService
-                .storage()
-                .stream()
-                .anyMatch(it -> "managed".equals(it.getTitle()))
-        ).isFalse();
+        assertThat(navCrudService.storage().stream().anyMatch(it -> "managed".equals(it.getTitle())))
+                .isFalse();
     }
 
     @Test
     void should_reject_portal_when_environment_already_has_a_different_portal() {
-        portalCrudService.initWith(
-            List.of(
-                Portal.of(
-                    io.gravitee.apim.core.portal.model.PortalId.of("00000000-0000-0000-0000-0000000000b1"),
-                    AUDIT_INFO.environmentId(),
-                    AUDIT_INFO.organizationId(),
-                    "Established"
-                )
-            )
-        );
+        portalCrudService.initWith(List.of(Portal.of(
+                io.gravitee.apim.core.portal.model.PortalId.of("00000000-0000-0000-0000-0000000000b1"),
+                AUDIT_INFO.environmentId(),
+                AUDIT_INFO.organizationId(),
+                "Established")));
         var incoming = PortalFixtures.aPortal();
 
         assertThatThrownBy(() -> useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, incoming)))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("hrid")
-            .hasMessageContaining("established portal");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("hrid")
+                .hasMessageContaining("established portal");
     }
 
     @Test
@@ -309,40 +284,41 @@ class CreateOrUpdatePortalUseCaseTest {
 
     private static Theme aTheme(String id, ThemeType type, boolean enabled) {
         return Theme.builder()
-            .id(id)
-            .name("name")
-            .type(type)
-            .referenceId(AUDIT_INFO.environmentId())
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .enabled(enabled)
-            .build();
+                .id(id)
+                .name("name")
+                .type(type)
+                .referenceId(AUDIT_INFO.environmentId())
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .enabled(enabled)
+                .build();
     }
 
     @Test
     void should_wire_active_theme_and_enable_it_when_active_theme_hrid_set() {
         var themeHrid = "brand-theme";
-        var themeId = io.gravitee.rest.api.service.common.HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(themeHrid).id();
+        var themeId = io.gravitee.rest.api.service.common.HRIDToUUID.portalTheme()
+                .context(AUDIT_INFO)
+                .hrid(themeHrid)
+                .id();
         var otherThemeId = "11111111-1111-1111-1111-111111111111";
-        themeCrudService.initWith(
-            List.of(aTheme(themeId, ThemeType.PORTAL_NEXT, false), aTheme(otherThemeId, ThemeType.PORTAL_NEXT, true))
-        );
+        themeCrudService.initWith(List.of(
+                aTheme(themeId, ThemeType.PORTAL_NEXT, false), aTheme(otherThemeId, ThemeType.PORTAL_NEXT, true)));
         var portal = PortalFixtures.aPortal();
 
-        var output = useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, PortalNavigationStructure.empty(), themeHrid)
-        );
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO, portal, PortalNavigationStructure.empty(), themeHrid));
 
         assertThat(output.portal().getActiveThemeId()).isEqualTo(themeId);
         assertThat(themeCrudService.storage())
-            .filteredOn(t -> t.getId().equals(themeId))
-            .singleElement()
-            .extracting(t -> t.isEnabled())
-            .isEqualTo(true);
+                .filteredOn(t -> t.getId().equals(themeId))
+                .singleElement()
+                .extracting(t -> t.isEnabled())
+                .isEqualTo(true);
         assertThat(themeCrudService.storage())
-            .filteredOn(t -> t.getId().equals(otherThemeId))
-            .singleElement()
-            .extracting(t -> t.isEnabled())
-            .isEqualTo(false);
+                .filteredOn(t -> t.getId().equals(otherThemeId))
+                .singleElement()
+                .extracting(t -> t.isEnabled())
+                .isEqualTo(false);
     }
 
     @Test
@@ -356,10 +332,10 @@ class CreateOrUpdatePortalUseCaseTest {
 
         assertThat(output.portal().getActiveThemeId()).isNull();
         assertThat(themeCrudService.storage())
-            .filteredOn(t -> t.getId().equals(existingActiveThemeId))
-            .singleElement()
-            .extracting(Theme::isEnabled)
-            .isEqualTo(false);
+                .filteredOn(t -> t.getId().equals(existingActiveThemeId))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(false);
     }
 
     @Test
@@ -368,22 +344,22 @@ class CreateOrUpdatePortalUseCaseTest {
         var otherThemeId = "33333333-3333-3333-3333-333333333333";
         var portal = PortalFixtures.aPortal();
         portalCrudService.initWith(List.of(portal.withActiveThemeId(clearedThemeId)));
-        themeCrudService.initWith(
-            List.of(aTheme(clearedThemeId, ThemeType.PORTAL_NEXT, true), aTheme(otherThemeId, ThemeType.PORTAL_NEXT, false))
-        );
+        themeCrudService.initWith(List.of(
+                aTheme(clearedThemeId, ThemeType.PORTAL_NEXT, true),
+                aTheme(otherThemeId, ThemeType.PORTAL_NEXT, false)));
 
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal));
 
         assertThat(output.portal().getActiveThemeId()).isNull();
         assertThat(themeCrudService.storage())
-            .filteredOn(t -> t.getId().equals(clearedThemeId))
-            .singleElement()
-            .extracting(Theme::isEnabled)
-            .isEqualTo(false);
+                .filteredOn(t -> t.getId().equals(clearedThemeId))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(false);
         assertThat(themeCrudService.storage())
-            .filteredOn(t -> t.getId().equals(otherThemeId))
-            .singleElement()
-            .extracting(Theme::isEnabled)
-            .isEqualTo(true);
+                .filteredOn(t -> t.getId().equals(otherThemeId))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(true);
     }
 }

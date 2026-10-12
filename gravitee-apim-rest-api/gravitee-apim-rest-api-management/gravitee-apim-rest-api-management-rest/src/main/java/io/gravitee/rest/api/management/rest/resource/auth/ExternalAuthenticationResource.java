@@ -76,15 +76,13 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
                 algorithm = environment.getProperty("auth.external.algorithm", Algorithm.class);
                 if (algorithm == null) {
                     throw new InvalidAlgorithmException(
-                        "Algorithm can not be null, it can be set using auth.external.algorithm in the gravitee config file"
-                    );
+                            "Algorithm can not be null, it can be set using auth.external.algorithm in the gravitee config file");
                 }
 
                 PublicKeyResolver publicKeyResolver = () -> environment.getProperty("auth.external.verificationKey");
                 if (publicKeyResolver.resolve() == null) {
                     throw new IllegalArgumentException(
-                        "The Authentication key can not be null. You can either set a ULR to you existing JWKS or pass the public key directly"
-                    );
+                            "The Authentication key can not be null. You can either set a ULR to you existing JWKS or pass the public key directly");
                 }
 
                 String issuer = environment.getProperty("auth.external.issuer", String.class);
@@ -94,10 +92,8 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
                     claimsSet = new JWTClaimsSet.Builder().issuer(issuer).build();
                 }
 
-                final DefaultJWTClaimsVerifier claimsVerifier = new DefaultJWTClaimsVerifier<>(
-                    claimsSet,
-                    new HashSet<>(Arrays.asList("sub", "iss", "iat"))
-                );
+                final DefaultJWTClaimsVerifier claimsVerifier =
+                        new DefaultJWTClaimsVerifier<>(claimsSet, new HashSet<>(Arrays.asList("sub", "iss", "iat")));
 
                 // init JWT key source (Remote URL or from configuration file)
                 if (publicKeyResolver.resolve().toLowerCase().startsWith("http")) {
@@ -129,7 +125,8 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
     }
 
     @GET
-    public Response tokenExchange(@QueryParam(value = "token") final String token, @Context final HttpServletResponse httpResponse) {
+    public Response tokenExchange(
+            @QueryParam(value = "token") final String token, @Context final HttpServletResponse httpResponse) {
         if (!enabled) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -154,22 +151,24 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
 
             // Retrieve the user or try to create unknown user
             UserEntity user = userService.findBySource(
-                GraviteeContext.getCurrentOrganization(),
-                jwtClaimsSet.getIssuer(),
-                jwtClaimsSet.getSubject(),
-                true
-            );
+                    GraviteeContext.getCurrentOrganization(),
+                    jwtClaimsSet.getIssuer(),
+                    jwtClaimsSet.getSubject(),
+                    true);
 
-            final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
+            final Set<GrantedAuthority> authorities =
+                    authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
 
             UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
             userDetails.setEmail(user.getEmail());
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
+            SecurityContextHolder.getContext()
+                    .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
             // External user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
 
-            String url = String.format("%s/#!/%s", installationAccessQueryService.getConsoleUrl(organizationId), environmentId);
+            String url = String.format(
+                    "%s/#!/%s", installationAccessQueryService.getConsoleUrl(organizationId), environmentId);
 
             // Redirect the user.
             return Response.temporaryRedirect(new URI(url)).build();

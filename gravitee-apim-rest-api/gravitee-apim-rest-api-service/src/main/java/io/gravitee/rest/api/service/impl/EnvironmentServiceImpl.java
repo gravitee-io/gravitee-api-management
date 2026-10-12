@@ -105,10 +105,11 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
             if (userId != null) {
                 final List<String> stringStream = membershipService
-                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.ENVIRONMENT)
-                    .stream()
-                    .map(MembershipEntity::getReferenceId)
-                    .collect(Collectors.toList());
+                        .getMembershipsByMemberAndReference(
+                                MembershipMemberType.USER, userId, MembershipReferenceType.ENVIRONMENT)
+                        .stream()
+                        .map(MembershipEntity::getReferenceId)
+                        .collect(Collectors.toList());
 
                 envStream = envStream.filter(env -> stringStream.contains(env.getId()));
             }
@@ -123,12 +124,11 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         try {
             log.debug("Find all environments by org and environment id or hrid");
 
-            Set<Environment> byOrgAndIdOrHrid = environmentRepository
-                .findByOrganization(organizationId)
-                .stream()
-                .filter(Objects::nonNull)
-                .filter(env -> env.getId().equals(idOrHrid) || env.getHrids().contains(idOrHrid))
-                .collect(Collectors.toSet());
+            Set<Environment> byOrgAndIdOrHrid = environmentRepository.findByOrganization(organizationId).stream()
+                    .filter(Objects::nonNull)
+                    .filter(env ->
+                            env.getId().equals(idOrHrid) || env.getHrids().contains(idOrHrid))
+                    .collect(Collectors.toSet());
 
             if (byOrgAndIdOrHrid.isEmpty()) {
                 throw new EnvironmentNotFoundException(idOrHrid);
@@ -149,18 +149,18 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         try {
             log.debug("Find organization id from environment ids");
 
-            return environmentRepository
-                .findOrganizationIdsByEnvironments(environmentIds)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+            return environmentRepository.findOrganizationIdsByEnvironments(environmentIds).stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find organization ids from environment ids", ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find organization ids from environment ids", ex);
         }
     }
 
     @Override
-    public EnvironmentEntity createOrUpdate(String organizationId, String environmentId, final UpdateEnvironmentEntity environmentEntity) {
+    public EnvironmentEntity createOrUpdate(
+            String organizationId, String environmentId, final UpdateEnvironmentEntity environmentEntity) {
         try {
             // First we check that organization exists
             this.organizationService.findById(organizationId);
@@ -175,19 +175,21 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             } else {
                 EnvironmentEntity createdEnvironment = convert(environmentRepository.create(environment));
 
-                //create Default items for environment
+                // create Default items for environment
                 ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
                 apiHeaderService.initialize(executionContext);
                 pageService.initialize(executionContext);
                 dashboardService.initialize(executionContext);
-                initializeSharedPolicyGroupUseCase.execute(
-                    InitializeSharedPolicyGroupUseCase.Input.builder().organizationId(organizationId).environmentId(environmentId).build()
-                );
+                initializeSharedPolicyGroupUseCase.execute(InitializeSharedPolicyGroupUseCase.Input.builder()
+                        .organizationId(organizationId)
+                        .environmentId(environmentId)
+                        .build());
                 metadataService.initialize(executionContext);
                 return createdEnvironment;
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to update environment " + environmentEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update environment " + environmentEntity.getName(), ex);
         }
     }
 
@@ -201,7 +203,8 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 throw new EnvironmentNotFoundException(environmentId);
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete environment " + environmentId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete environment " + environmentId, ex);
         }
     }
 
@@ -226,11 +229,12 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         try {
             log.debug("Find environment by cockpit id");
             return environmentRepository
-                .findByCockpitId(cockpitId)
-                .map(this::convert)
-                .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
+                    .findByCockpitId(cockpitId)
+                    .map(this::convert)
+                    .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find environment by cockpit id " + cockpitId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find environment by cockpit id " + cockpitId, ex);
         }
     }
 
@@ -238,19 +242,22 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     public List<EnvironmentEntity> findByOrganization(String organizationId) {
         try {
             log.debug("Find all environments by organization");
-            return environmentRepository.findByOrganization(organizationId).stream().map(this::convert).collect(Collectors.toList());
+            return environmentRepository.findByOrganization(organizationId).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find all environments by organization " + organizationId,
-                ex
-            );
+                    "An error occurs while trying to find all environments by organization " + organizationId, ex);
         }
     }
 
     @Override
     public EnvironmentEntity getDefaultOrInitialize() {
         try {
-            return environmentRepository.findById(GraviteeContext.getDefaultEnvironment()).map(this::convert).orElseGet(this::initialize);
+            return environmentRepository
+                    .findById(GraviteeContext.getDefaultEnvironment())
+                    .map(this::convert)
+                    .orElseGet(this::initialize);
         } catch (final Exception ex) {
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
@@ -259,7 +266,8 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public Set<EnvironmentEntity> findAllOrInitialize() {
         try {
-            var environments = environmentRepository.findAll().stream().map(this::convert).collect(Collectors.toSet());
+            var environments =
+                    environmentRepository.findAll().stream().map(this::convert).collect(Collectors.toSet());
             if (environments.isEmpty()) {
                 return Set.of(this.initialize());
             }

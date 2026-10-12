@@ -50,7 +50,8 @@ class ScheduledCertificateRevocationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ScheduledCertificateRevocationService(scheduler, "0 0 0 * * *", true, processPendingCertificateTransitionsUseCase);
+        service = new ScheduledCertificateRevocationService(
+                scheduler, "0 0 0 * * *", true, processPendingCertificateTransitionsUseCase);
     }
 
     @Test
@@ -62,7 +63,8 @@ class ScheduledCertificateRevocationServiceTest {
 
     @Test
     void shouldThrowWhenCronExpressionIsInvalid() {
-        service = new ScheduledCertificateRevocationService(scheduler, "not-a-cron", true, processPendingCertificateTransitionsUseCase);
+        service = new ScheduledCertificateRevocationService(
+                scheduler, "not-a-cron", true, processPendingCertificateTransitionsUseCase);
 
         assertThrows(IllegalArgumentException.class, () -> service.doStart());
 
@@ -71,7 +73,8 @@ class ScheduledCertificateRevocationServiceTest {
 
     @Test
     void shouldNotScheduleTaskWhenDisabled() throws Exception {
-        service = new ScheduledCertificateRevocationService(scheduler, "0 0 0 * * *", false, processPendingCertificateTransitionsUseCase);
+        service = new ScheduledCertificateRevocationService(
+                scheduler, "0 0 0 * * *", false, processPendingCertificateTransitionsUseCase);
 
         service.doStart();
 
@@ -82,14 +85,16 @@ class ScheduledCertificateRevocationServiceTest {
     void shouldProcessPendingCertificateTransitions() {
         service.run();
 
-        verify(processPendingCertificateTransitionsUseCase, times(1)).execute(
-            new ProcessPendingCertificateTransitionsUseCase.Input(AuditActor.builder().userId("system").build())
-        );
+        verify(processPendingCertificateTransitionsUseCase, times(1))
+                .execute(new ProcessPendingCertificateTransitionsUseCase.Input(
+                        AuditActor.builder().userId("system").build()));
     }
 
     @Test
     void shouldNotThrowWhenUseCaseFails() {
-        doThrow(new RuntimeException("DB connection failed")).when(processPendingCertificateTransitionsUseCase).execute(any());
+        doThrow(new RuntimeException("DB connection failed"))
+                .when(processPendingCertificateTransitionsUseCase)
+                .execute(any());
 
         assertDoesNotThrow(() -> service.run());
 

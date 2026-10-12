@@ -84,63 +84,55 @@ public class EndpointHealthcheckResolver implements InitializingBean {
         boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
 
         // Filter to check only HTTP endpoints
-        Stream<HttpEndpoint> httpEndpoints = api
-            .getDefinition()
-            .getProxy()
-            .getGroups()
-            .stream()
-            .filter(group -> group.getEndpoints() != null)
-            .flatMap(group ->
-                group
-                    .getEndpoints()
-                    .stream()
-                    .map(this::convertToHttpEndpoint)
-                    .filter(Objects::nonNull)
-                    .peek(endpoint -> applyGroupSettings(group, endpoint))
-            );
+        Stream<HttpEndpoint> httpEndpoints = api.getDefinition().getProxy().getGroups().stream()
+                .filter(group -> group.getEndpoints() != null)
+                .flatMap(group -> group.getEndpoints().stream()
+                        .map(this::convertToHttpEndpoint)
+                        .filter(Objects::nonNull)
+                        .peek(endpoint -> applyGroupSettings(group, endpoint)));
 
         // Filtering endpoints according to tenancy configuration
         if (gatewayConfiguration.tenant().isPresent()) {
             String tenant = gatewayConfiguration.tenant().get();
-            httpEndpoints = httpEndpoints.filter(
-                endpoint -> endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant)
-            );
+            httpEndpoints = httpEndpoints.filter(endpoint -> endpoint.getTenants() == null
+                    || endpoint.getTenants().isEmpty()
+                    || endpoint.getTenants().contains(tenant));
         }
 
         // Remove backup endpoints
         httpEndpoints = httpEndpoints.filter(endpoint -> !endpoint.isBackup());
 
         // Keep only endpoints where health-check is enabled or not settled (inherit from service)
-        httpEndpoints = httpEndpoints.filter(endpoint ->
-            ((endpoint.getHealthCheck() == null && hcEnabled) ||
-                (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && !endpoint.getHealthCheck().isInherit()) ||
-                (endpoint.getHealthCheck() != null &&
-                    endpoint.getHealthCheck().isEnabled() &&
-                    endpoint.getHealthCheck().isInherit() &&
-                    hcEnabled))
-        );
+        httpEndpoints = httpEndpoints.filter(endpoint -> ((endpoint.getHealthCheck() == null && hcEnabled)
+                || (endpoint.getHealthCheck() != null
+                        && endpoint.getHealthCheck().isEnabled()
+                        && !endpoint.getHealthCheck().isInherit())
+                || (endpoint.getHealthCheck() != null
+                        && endpoint.getHealthCheck().isEnabled()
+                        && endpoint.getHealthCheck().isInherit()
+                        && hcEnabled)));
 
         return httpEndpoints
-            .map(
-                (Function<HttpEndpoint, EndpointRule>) endpoint -> {
-                    HealthCheckService healthcheck = (endpoint.getHealthCheck() == null || endpoint.getHealthCheck().isInherit())
-                        ? rootHealthCheck
-                        : endpoint.getHealthCheck();
+                .map((Function<HttpEndpoint, EndpointRule>) endpoint -> {
+                    HealthCheckService healthcheck = (endpoint.getHealthCheck() == null
+                                    || endpoint.getHealthCheck().isInherit())
+                            ? rootHealthCheck
+                            : endpoint.getHealthCheck();
                     // The following has to be managed by the connector-api
                     if (endpoint.getType().equalsIgnoreCase("grpc")) {
                         return new GrpcEndpointRule(api, endpoint, healthcheck, systemProxyOptions);
                     } else {
                         return new HttpEndpointRule(api, endpoint, healthcheck, systemProxyOptions);
                     }
-                }
-            )
-            .collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 
     private HttpEndpoint convertToHttpEndpoint(Endpoint endpoint) {
         if (isHttpEndpoint(endpoint)) {
             try {
-                // FIXME: This creates a new instance of HttpEndpoint (and so definition.model.Endpoint) instead of using
+                // FIXME: This creates a new instance of HttpEndpoint (and so definition.model.Endpoint) instead of
+                // using
                 // the one from the ManagedEndpoint. This is a temporary fix that need to be addressed, for details see
                 // https://github.com/gravitee-io/issues/issues/6437
                 HttpEndpoint httpEndpoint = mapper.readValue(endpoint.getConfiguration(), HttpEndpoint.class);
@@ -179,13 +171,15 @@ public class EndpointHealthcheckResolver implements InitializingBean {
     public <T extends Endpoint> EndpointRule resolve(Api api, T endpoint) {
         HttpEndpoint httpEndpoint = convertToHttpEndpoint(endpoint);
         if (httpEndpoint != null) {
-            HealthCheckService rootHealthCheck = api.getDefinition().getServices().get(HealthCheckService.class);
+            HealthCheckService rootHealthCheck =
+                    api.getDefinition().getServices().get(HealthCheckService.class);
             boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
 
             if (hcEnabled || httpEndpoint.getHealthCheck() != null) {
-                HealthCheckService healthcheck = (httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit())
-                    ? rootHealthCheck
-                    : httpEndpoint.getHealthCheck();
+                HealthCheckService healthcheck = (httpEndpoint.getHealthCheck() == null
+                                || httpEndpoint.getHealthCheck().isInherit())
+                        ? rootHealthCheck
+                        : httpEndpoint.getHealthCheck();
                 if (endpoint.getType().equalsIgnoreCase("http")) {
                     return new HttpEndpointRule(api, httpEndpoint, healthcheck, systemProxyOptions);
                 } else if (endpoint.getType().equalsIgnoreCase("grpc")) {

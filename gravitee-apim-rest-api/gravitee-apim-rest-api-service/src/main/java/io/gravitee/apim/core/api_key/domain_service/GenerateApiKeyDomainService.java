@@ -64,25 +64,26 @@ public class GenerateApiKeyDomainService {
         return generate(subscription, app, auditInfo, customApiKey, false);
     }
 
-    public ApiKeyEntity generateForFederated(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
+    public ApiKeyEntity generateForFederated(
+            SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
         var app = applicationCrudService.findById(subscription.getApplicationId(), auditInfo.environmentId());
         return generate(subscription, app, auditInfo, customApiKey, true);
     }
 
     private ApiKeyEntity generate(
-        SubscriptionEntity subscription,
-        BaseApplicationEntity application,
-        AuditInfo auditInfo,
-        String apiKeyValue,
-        boolean federated
-    ) {
+            SubscriptionEntity subscription,
+            BaseApplicationEntity application,
+            AuditInfo auditInfo,
+            String apiKeyValue,
+            boolean federated) {
         if (!application.hasApiKeySharedMode()) {
             return generate(auditInfo, subscription, apiKeyValue, federated);
         }
         return findOrGenerate(auditInfo, application, subscription, apiKeyValue, federated);
     }
 
-    private ApiKeyEntity generate(AuditInfo auditInfo, SubscriptionEntity subscription, String apiKeyValue, boolean federated) {
+    private ApiKeyEntity generate(
+            AuditInfo auditInfo, SubscriptionEntity subscription, String apiKeyValue, boolean federated) {
         log.debug("Generate an API Key for subscription {}", subscription);
 
         if (!federated && Objects.nonNull(apiKeyValue) && !apiKeyValue.isEmpty()) {
@@ -112,7 +113,8 @@ public class GenerateApiKeyDomainService {
      * @param federated Flag indicating that we handle a federated subscription
      * @return An API Key
      */
-    private ApiKeyEntity generateForSubscription(SubscriptionEntity subscription, String customApiKey, boolean federated) {
+    private ApiKeyEntity generateForSubscription(
+            SubscriptionEntity subscription, String customApiKey, boolean federated) {
         if (federated) {
             return ApiKeyEntity.generateForFederatedSubscription(subscription, customApiKey);
         }
@@ -126,13 +128,14 @@ public class GenerateApiKeyDomainService {
 
     private Optional<ApiKeyEntity> findExistingKey(String apiKeyValue, SubscriptionEntity subscription) {
         String referenceId = subscription.getReferenceId();
-        String referenceType = subscription.getReferenceType() != null ? subscription.getReferenceType().name() : null;
+        String referenceType = subscription.getReferenceType() != null
+                ? subscription.getReferenceType().name()
+                : null;
         log.debug(
-            "Look up an existing API Key for reference {} (type {}) and application {}",
-            referenceId,
-            referenceType,
-            subscription.getApplicationId()
-        );
+                "Look up an existing API Key for reference {} (type {}) and application {}",
+                referenceId,
+                referenceType,
+                subscription.getApplicationId());
 
         if (referenceId != null && referenceType != null) {
             return apiKeyQueryService.findByKeyAndReferenceIdAndReferenceType(apiKeyValue, referenceId, referenceType);
@@ -155,9 +158,9 @@ public class GenerateApiKeyDomainService {
 
     private boolean isCustomKeyReuseAllowed(AuditInfo auditInfo) {
         return parametersQueryService.findAsBoolean(
-            Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED,
-            new ParameterContext(auditInfo.environmentId(), auditInfo.organizationId(), ParameterReferenceType.ENVIRONMENT)
-        );
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED,
+                new ParameterContext(
+                        auditInfo.environmentId(), auditInfo.organizationId(), ParameterReferenceType.ENVIRONMENT));
     }
 
     /**
@@ -165,13 +168,11 @@ public class GenerateApiKeyDomainService {
      * creating a duplicate {@code (reference, key)} record. The previous subscription link is kept for history;
      * the gateway only resolves a key through its active subscriptions, so the closed one stays inert.
      */
-    private ApiKeyEntity reuseExistingKey(ApiKeyEntity existingKey, SubscriptionEntity subscription, AuditInfo auditInfo) {
-        var reused = existingKey
-            .reactivate()
-            .addSubscription(subscription.getId())
-            .toBuilder()
-            .expireAt(subscription.getEndingAt())
-            .build();
+    private ApiKeyEntity reuseExistingKey(
+            ApiKeyEntity existingKey, SubscriptionEntity subscription, AuditInfo auditInfo) {
+        var reused = existingKey.reactivate().addSubscription(subscription.getId()).toBuilder()
+                .expireAt(subscription.getEndingAt())
+                .build();
 
         apiKeyCrudService.update(reused);
         createAuditLog(reused, subscription, auditInfo, ApiKeyAuditEvent.APIKEY_REACTIVATED);
@@ -180,17 +181,17 @@ public class GenerateApiKeyDomainService {
     }
 
     private ApiKeyEntity findOrGenerate(
-        AuditInfo auditInfo,
-        BaseApplicationEntity application,
-        SubscriptionEntity subscription,
-        String customApiKey,
-        boolean federated
-    ) {
+            AuditInfo auditInfo,
+            BaseApplicationEntity application,
+            SubscriptionEntity subscription,
+            String customApiKey,
+            boolean federated) {
         return apiKeyQueryService
-            .findByApplication(application.getId())
-            .peek(apiKey -> addSubscription(apiKey, subscription))
-            .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
-            .orElseGet(() -> generate(auditInfo, subscription, customApiKey, federated));
+                .findByApplication(application.getId())
+                .peek(apiKey -> addSubscription(apiKey, subscription))
+                .max(comparing(ApiKeyEntity::isRevoked, reverseOrder())
+                        .thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
+                .orElseGet(() -> generate(auditInfo, subscription, customApiKey, federated));
     }
 
     private void addSubscription(ApiKeyEntity apiKey, SubscriptionEntity subscription) {
@@ -198,11 +199,10 @@ public class GenerateApiKeyDomainService {
     }
 
     private void createAuditLog(
-        ApiKeyEntity createdApiKeyEntity,
-        SubscriptionEntity subscription,
-        AuditInfo auditInfo,
-        ApiKeyAuditEvent event
-    ) {
+            ApiKeyEntity createdApiKeyEntity,
+            SubscriptionEntity subscription,
+            AuditInfo auditInfo,
+            ApiKeyAuditEvent event) {
         boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
         String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApiId();
 
@@ -218,8 +218,7 @@ public class GenerateApiKeyDomainService {
         var auditedApiKey = createdApiKeyEntity.toBuilder().key(null).build();
 
         if (isApiProduct) {
-            auditService.createApiProductAuditLog(
-                ApiProductAuditLogEntity.builder()
+            auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
                     .apiProductId(referenceId)
@@ -229,11 +228,9 @@ public class GenerateApiKeyDomainService {
                     .newValue(auditedApiKey)
                     .createdAt(createdApiKeyEntity.getCreatedAt())
                     .properties(properties)
-                    .build()
-            );
+                    .build());
         } else {
-            auditService.createApiAuditLog(
-                ApiAuditLogEntity.builder()
+            auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
                     .apiId(referenceId)
@@ -243,8 +240,7 @@ public class GenerateApiKeyDomainService {
                     .newValue(auditedApiKey)
                     .createdAt(createdApiKeyEntity.getCreatedAt())
                     .properties(properties)
-                    .build()
-            );
+                    .build());
         }
     }
 }

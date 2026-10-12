@@ -290,15 +290,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 @Configuration
-@Import(
-    {
-        InMemoryConfiguration.class,
-        FakeConfiguration.class,
-        CoreServiceSpringConfiguration.class,
-        UsecaseSpringConfiguration.class,
-        JacksonSpringConfiguration.class,
-    }
-)
+@Import({
+    InMemoryConfiguration.class,
+    FakeConfiguration.class,
+    CoreServiceSpringConfiguration.class,
+    UsecaseSpringConfiguration.class,
+    JacksonSpringConfiguration.class,
+})
 @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
 
@@ -723,8 +721,7 @@ public class ResourceContextConfiguration {
 
         @Override
         public io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Fields fromPatchedNode(
-            com.fasterxml.jackson.databind.JsonNode patchedNode
-        ) {
+                com.fasterxml.jackson.databind.JsonNode patchedNode) {
             throw new UnsupportedOperationException(MESSAGE);
         }
     }
@@ -791,15 +788,12 @@ public class ResourceContextConfiguration {
 
     @Bean
     public VerifyApiPathDomainService verifyApiPathDomainService(
-        ApiQueryService apiQueryService,
-        InstallationAccessQueryService installationAccessQueryService
-    ) {
+            ApiQueryService apiQueryService, InstallationAccessQueryService installationAccessQueryService) {
         return new VerifyApiPathDomainService(
-            apiQueryService,
-            installationAccessQueryService,
-            new ApiHostValidatorDomainServiceImpl(),
-            new io.gravitee.apim.core.api.domain_service.ApiPathIndex()
-        );
+                apiQueryService,
+                installationAccessQueryService,
+                new ApiHostValidatorDomainServiceImpl(),
+                new io.gravitee.apim.core.api.domain_service.ApiPathIndex());
     }
 
     @Bean
@@ -869,9 +863,8 @@ public class ResourceContextConfiguration {
 
     @Bean
     public JsonPatchDomainService jsonPatchDomainService(
-        JsonMergePatchService jsonMergePatchService,
-        io.gravitee.apim.core.json_patch.domain_service.JsonPatchService jsonPatchService
-    ) {
+            JsonMergePatchService jsonMergePatchService,
+            io.gravitee.apim.core.json_patch.domain_service.JsonPatchService jsonPatchService) {
         return new JsonPatchDomainService(jsonMergePatchService, jsonPatchService);
     }
 
@@ -882,9 +875,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public SearchAuditDomainService searchAuditDomainService(
-        AuditQueryService auditQueryService,
-        AuditMetadataQueryService auditMetadataQueryService
-    ) {
+            AuditQueryService auditQueryService, AuditMetadataQueryService auditMetadataQueryService) {
         return new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
     }
 
@@ -1042,19 +1033,17 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService(
-        ApplicationRepository applicationRepository,
-        ApplicationTypeService applicationTypeService,
-        ParameterService parameterService,
-        ClientCertificateValidationDomainService clientCertificateValidationDomainService,
-        ClientCertificateCrudService clientCertificateCrudService
-    ) {
+            ApplicationRepository applicationRepository,
+            ApplicationTypeService applicationTypeService,
+            ParameterService parameterService,
+            ClientCertificateValidationDomainService clientCertificateValidationDomainService,
+            ClientCertificateCrudService clientCertificateCrudService) {
         return new ValidateApplicationSettingsDomainServiceImpl(
-            applicationRepository,
-            applicationTypeService,
-            parameterService,
-            clientCertificateValidationDomainService,
-            clientCertificateCrudService
-        );
+                applicationRepository,
+                applicationTypeService,
+                parameterService,
+                clientCertificateValidationDomainService,
+                clientCertificateCrudService);
     }
 
     @Bean
@@ -1083,7 +1072,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public PermissionDomainService permissionDomainService(MembershipService membershipService, PermissionService permissionService) {
+    public PermissionDomainService permissionDomainService(
+            MembershipService membershipService, PermissionService permissionService) {
         return new PermissionDomainServiceLegacyWrapper(membershipService, permissionService);
     }
 
@@ -1094,33 +1084,31 @@ public class ResourceContextConfiguration {
 
     @Bean
     public SubscriptionCRDDomainService subscriptionSpecDomainService(
-        SubscriptionService subscriptionService,
-        SubscriptionAdapter subscriptionAdapter,
-        AcceptSubscriptionDomainService acceptSubscriptionDomainService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService,
-        ReconcileApiKeysDomainService reconcileApiKeysDomainService,
-        SubscriptionCrudService subscriptionCrudService
-    ) {
+            SubscriptionService subscriptionService,
+            SubscriptionAdapter subscriptionAdapter,
+            AcceptSubscriptionDomainService acceptSubscriptionDomainService,
+            CloseSubscriptionDomainService closeSubscriptionDomainService,
+            ReconcileApiKeysDomainService reconcileApiKeysDomainService,
+            SubscriptionCrudService subscriptionCrudService) {
         return new SubscriptionCRDDomainServiceImpl(
-            subscriptionService,
-            subscriptionAdapter,
-            acceptSubscriptionDomainService,
-            closeSubscriptionDomainService,
-            reconcileApiKeysDomainService,
-            subscriptionCrudService
-        );
+                subscriptionService,
+                subscriptionAdapter,
+                acceptSubscriptionDomainService,
+                closeSubscriptionDomainService,
+                reconcileApiKeysDomainService,
+                subscriptionCrudService);
     }
 
     @Bean
     public ImportSubscriptionCRDUseCase importSubscriptionSpecUseCase(
-        SubscriptionCRDDomainService subscriptionSpecDomainService,
-        ValidateSubscriptionCRDDomainService validateSubscriptionCRDDomainService
-    ) {
+            SubscriptionCRDDomainService subscriptionSpecDomainService,
+            ValidateSubscriptionCRDDomainService validateSubscriptionCRDDomainService) {
         return new ImportSubscriptionCRDUseCase(subscriptionSpecDomainService, validateSubscriptionCRDDomainService);
     }
 
     @Bean
-    public DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase(SubscriptionCRDDomainService subscriptionSpecDomainService) {
+    public DeleteSubscriptionSpecUseCase deleteSubscriptionSpecUseCase(
+            SubscriptionCRDDomainService subscriptionSpecDomainService) {
         return new DeleteSubscriptionSpecUseCase(subscriptionSpecDomainService);
     }
 
@@ -1166,20 +1154,18 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidateGroupCRDDomainService validateGroupCRDDomainService(
-        ValidateCRDMembersDomainService validateCRDMembersDomainService,
-        RoleService roleService
-    ) {
+            ValidateCRDMembersDomainService validateCRDMembersDomainService, RoleService roleService) {
         return new ValidateGroupCRDDomainServiceImpl(validateCRDMembersDomainService, roleService);
     }
 
     @Bean
     public ImportGroupCRDUseCase importGroupCRDUseCase(
-        ValidateGroupCRDDomainService validateGroupCRDDomainService,
-        GroupQueryService groupQueryService,
-        GroupCrudService groupCrudService,
-        CRDMembersDomainService crdMembersDomainService
-    ) {
-        return new ImportGroupCRDUseCase(validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
+            ValidateGroupCRDDomainService validateGroupCRDDomainService,
+            GroupQueryService groupQueryService,
+            GroupCrudService groupCrudService,
+            CRDMembersDomainService crdMembersDomainService) {
+        return new ImportGroupCRDUseCase(
+                validateGroupCRDDomainService, groupQueryService, groupCrudService, crdMembersDomainService);
     }
 
     @Bean
@@ -1199,9 +1185,8 @@ public class ResourceContextConfiguration {
 
     @Bean
     public GetExposedEntrypointsUseCase getExposedEntrypointsUseCase(
-        ApiCrudServiceInMemory apiCrudServiceInMemory,
-        ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory
-    ) {
+            ApiCrudServiceInMemory apiCrudServiceInMemory,
+            ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory) {
         return new GetExposedEntrypointsUseCase(apiCrudServiceInMemory, apiExposedEntrypointDomainServiceInMemory);
     }
 
@@ -1357,24 +1342,21 @@ public class ResourceContextConfiguration {
 
     @Bean
     public PortalNavigationSourcedItemsDomainService portalNavigationSourcedItemsDomainService(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
-    ) {
+            PortalNavigationItemsQueryService portalNavigationItemsQueryService) {
         return new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService);
     }
 
     @Bean
     public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentQueryService portalPageContentQueryService,
-        ApiCrudServiceInMemory apiCrudServiceInMemory
-    ) {
+            PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+            PortalPageContentQueryService portalPageContentQueryService,
+            ApiCrudServiceInMemory apiCrudServiceInMemory) {
         return new PortalNavigationItemValidatorService(
-            portalNavigationItemsQueryService,
-            portalPageContentQueryService,
-            mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class),
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiCrudServiceInMemory
-        );
+                portalNavigationItemsQueryService,
+                portalPageContentQueryService,
+                mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class),
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                apiCrudServiceInMemory);
     }
 
     @Bean
@@ -1384,16 +1366,14 @@ public class ResourceContextConfiguration {
 
     @Bean
     public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationItemValidatorService validatorService,
-        PortalNavigationItemDomainService domainService
-    ) {
+            PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+            PortalNavigationItemValidatorService validatorService,
+            PortalNavigationItemDomainService domainService) {
         return new UpdatePortalNavigationItemUseCase(
-            portalNavigationItemsQueryService,
-            validatorService,
-            domainService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
-        );
+                portalNavigationItemsQueryService,
+                validatorService,
+                domainService,
+                new PortalNavigationItemSourceDomainServiceInMemory());
     }
 
     @Bean
@@ -1442,17 +1422,20 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public GetApiMetricSpecUseCase getApiMetricSpecUseCase(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+    public GetApiMetricSpecUseCase getApiMetricSpecUseCase(
+            AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
         return new GetApiMetricSpecUseCase(analyticsDefinitionQueryService);
     }
 
     @Bean
-    public GetMetricFilterSpecUseCase getMetricFilterSpecUseCase(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+    public GetMetricFilterSpecUseCase getMetricFilterSpecUseCase(
+            AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
         return new GetMetricFilterSpecUseCase(analyticsDefinitionQueryService);
     }
 
     @Bean
-    public GetMetricFacetSpecUseCase getMetricFacetSpecUseCase(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+    public GetMetricFacetSpecUseCase getMetricFacetSpecUseCase(
+            AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
         return new GetMetricFacetSpecUseCase(analyticsDefinitionQueryService);
     }
 
@@ -1477,7 +1460,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public UnitEnrichmentPostProcessor unitEnrichmentPostProcessor(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+    public UnitEnrichmentPostProcessor unitEnrichmentPostProcessor(
+            AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
         return new UnitEnrichmentPostProcessorImpl(analyticsDefinitionQueryService);
     }
 

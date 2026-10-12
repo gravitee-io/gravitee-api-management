@@ -41,10 +41,12 @@ public class PlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List of available plan's type")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of plans",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlansConfigurationEntity.class))
-    )
+            responseCode = "200",
+            description = "List of plans",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlansConfigurationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public PlansConfigurationEntity getPlansConfiguration() {
         return planService.getConfiguration();

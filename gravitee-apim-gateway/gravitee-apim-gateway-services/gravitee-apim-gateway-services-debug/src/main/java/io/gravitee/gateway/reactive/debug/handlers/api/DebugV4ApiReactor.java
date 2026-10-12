@@ -54,55 +54,53 @@ import java.util.stream.Collectors;
 public class DebugV4ApiReactor extends DefaultApiReactor {
 
     public DebugV4ApiReactor(
-        Api api,
-        DeploymentContext deploymentContext,
-        ComponentProvider componentProvider,
-        List<TemplateVariableProvider> ctxTemplateVariableProviders,
-        PolicyManager policyManager,
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        ApiServicePluginManager apiServicePluginManager,
-        EndpointManager endpointManager,
-        ResourceLifecycleManager resourceLifecycleManager,
-        ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowChainFactory flowChainFactory,
-        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
-        Configuration configuration,
-        Node node,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        ReporterService reporterService,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        HttpAcceptorFactory httpAcceptorFactory,
-        TracingContext tracingContext,
-        LogGuardService logGuardService,
-        ApiProductRegistry apiProductRegistry,
-        ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory
-    ) {
+            Api api,
+            DeploymentContext deploymentContext,
+            ComponentProvider componentProvider,
+            List<TemplateVariableProvider> ctxTemplateVariableProviders,
+            PolicyManager policyManager,
+            EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            ApiServicePluginManager apiServicePluginManager,
+            EndpointManager endpointManager,
+            ResourceLifecycleManager resourceLifecycleManager,
+            ApiProcessorChainFactory apiProcessorChainFactory,
+            FlowChainFactory flowChainFactory,
+            io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
+            Configuration configuration,
+            Node node,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            ReporterService reporterService,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            HttpAcceptorFactory httpAcceptorFactory,
+            TracingContext tracingContext,
+            LogGuardService logGuardService,
+            ApiProductRegistry apiProductRegistry,
+            ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory) {
         super(
-            api,
-            deploymentContext,
-            componentProvider,
-            ctxTemplateVariableProviders,
-            policyManager,
-            entrypointConnectorPluginManager,
-            apiServicePluginManager,
-            endpointManager,
-            resourceLifecycleManager,
-            apiProcessorChainFactory,
-            flowChainFactory,
-            v4FlowChainFactory,
-            configuration,
-            node,
-            requestTimeoutConfiguration,
-            reporterService,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            tracingContext,
-            logGuardService,
-            apiProductRegistry,
-            apiProductPlanPolicyManagerFactory
-        );
+                api,
+                deploymentContext,
+                componentProvider,
+                ctxTemplateVariableProviders,
+                policyManager,
+                entrypointConnectorPluginManager,
+                apiServicePluginManager,
+                endpointManager,
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                flowChainFactory,
+                v4FlowChainFactory,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                tracingContext,
+                logGuardService,
+                apiProductRegistry,
+                apiProductPlanPolicyManagerFactory);
         invokerHooks.add(new DebugInvokerHook());
     }
 
@@ -113,7 +111,8 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
          * The code bellow remove this generated uuid from both context path, path and pathInfo and override request attributes to be sure the gateway find the right api
          */
         String debugContextPath = ctx.request().contextPath();
-        String cleanContextPath = PathTransformer.removeEventIdFromPath(((ReactableDebugApi<?>) api).getEventId(), debugContextPath);
+        String cleanContextPath =
+                PathTransformer.removeEventIdFromPath(((ReactableDebugApi<?>) api).getEventId(), debugContextPath);
         ctx.request().debugContextPath(cleanContextPath);
 
         return super.handle(ctx);
@@ -129,14 +128,11 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
     public List<Acceptor<?>> acceptors() {
         try {
             if (acceptors == null) {
-                acceptors = api
-                    .getDefinition()
-                    .getListeners()
-                    .stream()
-                    .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
-                    .flatMap(l -> ((HttpListener) l).getPaths().stream())
-                    .map(p -> new DefaultHttpAcceptor(null, p.getPath(), this, null))
-                    .collect(Collectors.toList());
+                acceptors = api.getDefinition().getListeners().stream()
+                        .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
+                        .flatMap(l -> ((HttpListener) l).getPaths().stream())
+                        .map(p -> new DefaultHttpAcceptor(null, p.getPath(), this, null))
+                        .collect(Collectors.toList());
             }
             return acceptors;
         } catch (Exception ex) {

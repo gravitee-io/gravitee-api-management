@@ -70,33 +70,27 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
     }
 
     private void givenExistingSharedPolicyGroup(List<Step> steps) {
-        var spg = HRIDToUUID.sharedPolicyGroup().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(HRID);
-        sharedPolicyGroupCrudService.initWith(
-            List.of(
-                SharedPolicyGroup.builder()
-                    .id(spg.id())
-                    .crossId(spg.crossId())
-                    .hrid(HRID)
-                    .environmentId(ENVIRONMENT)
-                    .organizationId(ORGANIZATION)
-                    .steps(steps)
-                    .build()
-            )
-        );
+        var spg = HRIDToUUID.sharedPolicyGroup()
+                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                .hrid(HRID);
+        sharedPolicyGroupCrudService.initWith(List.of(SharedPolicyGroup.builder()
+                .id(spg.id())
+                .crossId(spg.crossId())
+                .hrid(HRID)
+                .environmentId(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .steps(steps)
+                .build()));
     }
 
     private void givenExistingSharedPolicyGroupWithLegacyId() {
-        sharedPolicyGroupCrudService.initWith(
-            List.of(
-                SharedPolicyGroup.builder()
-                    .id(GUID)
-                    .crossId("legacy-cross-id")
-                    .hrid(GUID)
-                    .environmentId(ENVIRONMENT)
-                    .organizationId(ORGANIZATION)
-                    .build()
-            )
-        );
+        sharedPolicyGroupCrudService.initWith(List.of(SharedPolicyGroup.builder()
+                .id(GUID)
+                .crossId("legacy-cross-id")
+                .hrid(GUID)
+                .environmentId(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build()));
     }
 
     @Nested
@@ -127,7 +121,11 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
             sharedPolicyGroupCrudService.reset();
             givenExistingSharedPolicyGroupWithLegacyId();
 
-            try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().get()) {
+            try (var response = rootTarget()
+                    .path(GUID)
+                    .queryParam("hridContainsUUID", true)
+                    .request()
+                    .get()) {
                 var state = response.readEntity(SharedPolicyGroupState.class);
                 assertThat(state.getId()).isEqualTo(GUID);
             }
@@ -168,7 +166,11 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
                 givenExistingSharedPolicyGroupWithLegacyId();
 
                 assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-                try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().delete()) {
+                try (var response = rootTarget()
+                        .path(GUID)
+                        .queryParam("hridContainsUUID", true)
+                        .request()
+                        .delete()) {
                     assertThat(response.getStatus()).isEqualTo(204);
                 }
                 assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();
@@ -189,7 +191,11 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
             @Test
             void should_not_delete_shared_policy_group_and_return_no_content() {
                 assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-                try (var response = rootTarget().path(HRID).queryParam("dryRun", true).request().delete()) {
+                try (var response = rootTarget()
+                        .path(HRID)
+                        .queryParam("dryRun", true)
+                        .request()
+                        .delete()) {
                     assertThat(response.getStatus()).isEqualTo(204);
                 }
                 assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
@@ -197,7 +203,11 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
 
             @Test
             void should_return_a_404_status_code_with_unknown_hrid() {
-                try (var response = rootTarget().path("unknown").queryParam("dryRun", true).request().delete()) {
+                try (var response = rootTarget()
+                        .path("unknown")
+                        .queryParam("dryRun", true)
+                        .request()
+                        .delete()) {
                     assertThat(response.getStatus()).isEqualTo(404);
                 }
                 assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
@@ -213,24 +223,25 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
 
             @BeforeEach
             void setUp() {
-                when(createSharedPolicyGroupUseCase.execute(any(CreateSharedPolicyGroupUseCase.Input.class))).thenAnswer(invocation -> {
-                    CreateSharedPolicyGroupUseCase.Input argument = invocation.getArgument(0);
-                    var spgToCreate = argument.sharedPolicyGroupToCreate();
-                    return new CreateSharedPolicyGroupUseCase.Output(
-                        SharedPolicyGroup.builder()
-                            .id(spgToCreate.getId())
-                            .crossId(spgToCreate.getCrossId())
-                            .hrid(spgToCreate.getHrid())
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    );
-                });
+                when(createSharedPolicyGroupUseCase.execute(any(CreateSharedPolicyGroupUseCase.Input.class)))
+                        .thenAnswer(invocation -> {
+                            CreateSharedPolicyGroupUseCase.Input argument = invocation.getArgument(0);
+                            var spgToCreate = argument.sharedPolicyGroupToCreate();
+                            return new CreateSharedPolicyGroupUseCase.Output(SharedPolicyGroup.builder()
+                                    .id(spgToCreate.getId())
+                                    .crossId(spgToCreate.getCrossId())
+                                    .hrid(spgToCreate.getHrid())
+                                    .environmentId(ENVIRONMENT)
+                                    .build());
+                        });
             }
 
             @Test
             void should_return_state_from_hrid() {
                 var state = putAndReadEntity("shared-policy-group.json", false);
-                var spg = HRIDToUUID.sharedPolicyGroup().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(HRID);
+                var spg = HRIDToUUID.sharedPolicyGroup()
+                        .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                        .hrid(HRID);
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(state.getCrossId()).isEqualTo(spg.crossId());
                     soft.assertThat(state.getId()).isEqualTo(spg.id());
@@ -254,36 +265,30 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
 
             @Test
             void should_accept_step_values_longer_than_64_characters() {
-                try (
-                    var response = rootTarget()
+                try (var response = rootTarget()
                         .queryParam("dryRun", false)
                         .request()
-                        .put(Entity.json(readJSON("shared-policy-group-with-long-fields.json")))
-                ) {
+                        .put(Entity.json(readJSON("shared-policy-group-with-long-fields.json")))) {
                     assertThat(response.getStatus()).isEqualTo(200);
                 }
             }
 
             @Test
             void should_reject_with_cross_id_and_no_hrid() {
-                try (
-                    var response = rootTarget()
+                try (var response = rootTarget()
                         .queryParam("dryRun", false)
                         .request()
-                        .put(Entity.json(readJSON("shared-policy-group-with-cross-id-and-no-hrid.json")))
-                ) {
+                        .put(Entity.json(readJSON("shared-policy-group-with-cross-id-and-no-hrid.json")))) {
                     assertThat(response.getStatus()).isEqualTo(400);
                 }
             }
 
             @Test
             void should_reject_edge_api_type() {
-                try (
-                    var response = rootTarget()
+                try (var response = rootTarget()
                         .queryParam("dryRun", false)
                         .request()
-                        .put(Entity.json(readJSON("shared-policy-group-with-edge-type.json")))
-                ) {
+                        .put(Entity.json(readJSON("shared-policy-group-with-edge-type.json")))) {
                     assertThat(response.getStatus()).isEqualTo(400);
                 }
             }
@@ -306,31 +311,28 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
 
             @Test
             void should_return_state_from_cross_id_no_hrid() {
-                try (
-                    var response = rootTarget()
+                try (var response = rootTarget()
                         .queryParam("dryRun", true)
                         .request()
-                        .put(Entity.json(readJSON("shared-policy-group-with-cross-id-and-no-hrid.json")))
-                ) {
+                        .put(Entity.json(readJSON("shared-policy-group-with-cross-id-and-no-hrid.json")))) {
                     assertThat(response.getStatus()).isEqualTo(400);
                 }
             }
 
             @Test
             void should_reject_edge_api_type() {
-                try (
-                    var response = rootTarget()
+                try (var response = rootTarget()
                         .queryParam("dryRun", true)
                         .request()
-                        .put(Entity.json(readJSON("shared-policy-group-with-edge-type.json")))
-                ) {
+                        .put(Entity.json(readJSON("shared-policy-group-with-edge-type.json")))) {
                     assertThat(response.getStatus()).isEqualTo(400);
                 }
             }
         }
 
         private SharedPolicyGroupState putAndReadEntity(String spec, boolean dryRun) {
-            try (var response = rootTarget().queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(spec)))) {
+            try (var response =
+                    rootTarget().queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(spec)))) {
                 return response.readEntity(SharedPolicyGroupState.class);
             }
         }
@@ -341,22 +343,26 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_api_type_is_native() {
-            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"PROXY\"", "\"NATIVE\""));
+            putInvalidSpecAndAssertBadRequest(
+                    readJSON("shared-policy-group.json").replace("\"PROXY\"", "\"NATIVE\""));
         }
 
         @Test
         void should_return_400_when_phase_is_entrypoint_connect() {
-            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"ENTRYPOINT_CONNECT\""));
+            putInvalidSpecAndAssertBadRequest(
+                    readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"ENTRYPOINT_CONNECT\""));
         }
 
         @Test
         void should_return_400_when_phase_is_interact() {
-            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"INTERACT\""));
+            putInvalidSpecAndAssertBadRequest(
+                    readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"INTERACT\""));
         }
 
         @Test
         void should_return_400_when_proxy_api_type_has_subscribe_phase() {
-            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"SUBSCRIBE\""));
+            putInvalidSpecAndAssertBadRequest(
+                    readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"SUBSCRIBE\""));
         }
 
         private void putInvalidSpecAndAssertBadRequest(String spec) {

@@ -69,29 +69,25 @@ public class ApiItemCreateRule implements CreatePortalNavigationItemValidationRu
     }
 
     private static boolean isApiIdAlreadyUsed(
-        @NonNull String apiId,
-        String targetApiProductId,
-        List<PortalNavigationItem> navigationItems,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById
-    ) {
-        return navigationItems
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .filter(apiItem -> apiId.equals(apiItem.getApiId()))
-            .anyMatch(apiItem ->
-                Objects.equals(
-                    targetApiProductId,
-                    ApiProductAncestorValidation.findApiProductId(apiItem.getParentId(), itemsById).orElse(null)
-                )
-            );
+            @NonNull String apiId,
+            String targetApiProductId,
+            List<PortalNavigationItem> navigationItems,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById) {
+        return navigationItems.stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .filter(apiItem -> apiId.equals(apiItem.getApiId()))
+                .anyMatch(apiItem -> Objects.equals(
+                        targetApiProductId,
+                        ApiProductAncestorValidation.findApiProductId(apiItem.getParentId(), itemsById)
+                                .orElse(null)));
     }
 
     private void validateApiProductMembership(String apiId, String apiProductId, String environmentId) {
         var apiProduct = apiProductQueryService
-            .findById(apiProductId)
-            .filter(product -> environmentId.equals(product.getEnvironmentId()))
-            .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
+                .findById(apiProductId)
+                .filter(product -> environmentId.equals(product.getEnvironmentId()))
+                .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
         if (apiProduct.getApiIds() == null || !apiProduct.getApiIds().contains(apiId)) {
             throw InvalidPortalNavigationItemDataException.apiDoesNotBelongToApiProduct(apiId, apiProductId);
         }

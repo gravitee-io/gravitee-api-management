@@ -30,24 +30,20 @@ import lombok.CustomLog;
 public class LicenseMapper {
 
     public Maybe<LicenseDeployable> to(final DistributedEvent event) {
-        return Maybe.just(
-            LicenseDeployable.builder()
+        return Maybe.just(LicenseDeployable.builder()
                 .id(event.getId())
                 .license(event.getPayload())
                 .syncAction(SyncActionMapper.to(event.getSyncAction()))
-                .build()
-        );
+                .build());
     }
 
     public Maybe<DistributedEvent> to(final LicenseDeployable deployable) {
-        return Maybe.just(
-            DistributedEvent.builder()
+        return Maybe.just(DistributedEvent.builder()
                 .payload(deployable.license())
                 .id(deployable.id())
                 .type(DistributedEventType.LICENSE)
                 .syncAction(SyncActionMapper.to(deployable.syncAction()))
                 .updatedAt(new Date())
-                .build()
-        );
+                .build());
     }
 }

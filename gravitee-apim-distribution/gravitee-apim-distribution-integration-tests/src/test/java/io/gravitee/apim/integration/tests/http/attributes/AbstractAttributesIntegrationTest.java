@@ -44,45 +44,46 @@ public class AbstractAttributesIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
-        policies.put("attributes-to-header", PolicyBuilder.build("attributes-to-header", AttributesToHeaderPolicy.class));
         policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
+                "attributes-to-header", PolicyBuilder.build("attributes-to-header", AttributesToHeaderPolicy.class));
+        policies.put(
+                "api-key",
+                PolicyBuilder.build(
+                        "api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class));
         policies.put("mock", PolicyBuilder.build("mock", MockPolicy.class, MockPolicyConfiguration.class));
     }
 
     protected void addApiKeyPlan(ReactableApi<?> api) {
         apiKey = anApiKey(api);
         if (api.getDefinition() instanceof Api) {
-            ((Api) api.getDefinition()).setPlans(
-                List.of(
-                    Plan.builder()
-                        .id("default_plan")
-                        .api(api.getId())
-                        .security("key_less")
-                        .status("PUBLISHED")
-                        .securityDefinition("{\"propagateApiKey\":true}")
-                        .build(),
-                    Plan.builder()
-                        .id("plan-id")
-                        .api(api.getId())
-                        .security("API_KEY")
-                        .status("PUBLISHED")
-                        .securityDefinition("{\"propagateApiKey\":true}")
-                        .build()
-                )
-            );
+            ((Api) api.getDefinition())
+                    .setPlans(List.of(
+                            Plan.builder()
+                                    .id("default_plan")
+                                    .api(api.getId())
+                                    .security("key_less")
+                                    .status("PUBLISHED")
+                                    .securityDefinition("{\"propagateApiKey\":true}")
+                                    .build(),
+                            Plan.builder()
+                                    .id("plan-id")
+                                    .api(api.getId())
+                                    .security("API_KEY")
+                                    .status("PUBLISHED")
+                                    .securityDefinition("{\"propagateApiKey\":true}")
+                                    .build()));
         }
     }
 

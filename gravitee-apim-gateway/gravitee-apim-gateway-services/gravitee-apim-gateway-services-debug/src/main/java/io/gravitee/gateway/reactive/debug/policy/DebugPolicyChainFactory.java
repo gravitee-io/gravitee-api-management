@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactive.debug.policy;
 
 import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import io.gravitee.node.api.configuration.Configuration;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

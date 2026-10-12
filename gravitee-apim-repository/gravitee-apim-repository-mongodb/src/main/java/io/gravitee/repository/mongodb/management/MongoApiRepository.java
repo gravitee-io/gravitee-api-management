@@ -91,8 +91,11 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
-        return internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldFilter).map(mapper::map);
+    public Page<Api> search(
+            ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
+        return internalApiRepo
+                .search(apiCriteria, sortable, pageable, apiFieldFilter)
+                .map(mapper::map);
     }
 
     @Override
@@ -102,7 +105,8 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     @Override
-    public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
+    public Stream<Api> search(
+            ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
         if (sortable == null) {
             return searchByKeyset(apiCriteria, apiFieldFilter, batchSize);
         }
@@ -112,15 +116,17 @@ public class MongoApiRepository implements ApiRepository {
             return Stream.empty();
         }
         return Stream.iterate(
-            page,
-            p -> !isEmpty(p),
-            p -> hasNext(p) ? search(apiCriteria, sortable, nextPageable(p, pageable), apiFieldFilter) : null
-        ).flatMap(p -> {
-            if (p != null && p.getContent() != null) {
-                return p.getContent().stream();
-            }
-            return Stream.empty();
-        });
+                        page,
+                        p -> !isEmpty(p),
+                        p -> hasNext(p)
+                                ? search(apiCriteria, sortable, nextPageable(p, pageable), apiFieldFilter)
+                                : null)
+                .flatMap(p -> {
+                    if (p != null && p.getContent() != null) {
+                        return p.getContent().stream();
+                    }
+                    return Stream.empty();
+                });
     }
 
     /**
@@ -129,16 +135,17 @@ public class MongoApiRepository implements ApiRepository {
      */
     private Stream<Api> searchByKeyset(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter, int batchSize) {
         return Stream.iterate(
-            internalApiRepo.searchAfter(apiCriteria, apiFieldFilter, null, null, batchSize),
-            page -> !page.isEmpty(),
-            page -> {
-                if (page.size() < batchSize) {
-                    return List.<ApiMongo>of();
-                }
-                ApiMongo last = page.getLast();
-                return internalApiRepo.searchAfter(apiCriteria, apiFieldFilter, last.getName(), last.getId(), batchSize);
-            }
-        ).flatMap(page -> mapper.mapApis(page).stream());
+                        internalApiRepo.searchAfter(apiCriteria, apiFieldFilter, null, null, batchSize),
+                        page -> !page.isEmpty(),
+                        page -> {
+                            if (page.size() < batchSize) {
+                                return List.<ApiMongo>of();
+                            }
+                            ApiMongo last = page.getLast();
+                            return internalApiRepo.searchAfter(
+                                    apiCriteria, apiFieldFilter, last.getName(), last.getId(), batchSize);
+                        })
+                .flatMap(page -> mapper.mapApis(page).stream());
     }
 
     @Override
@@ -153,7 +160,9 @@ public class MongoApiRepository implements ApiRepository {
 
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
-        return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
+        return internalApiRepo
+                .findByEnvironmentIdAndCrossId(environmentId, crossId)
+                .map(this::mapApi);
     }
 
     private ApiMongo mapApi(Api api) {
@@ -173,19 +182,27 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     private Pageable nextPageable(Page currentPage, Pageable pageable) {
-        return new PageableBuilder().pageSize(pageable.pageSize()).pageNumber(currentPage.getPageNumber() + 1).build();
+        return new PageableBuilder()
+                .pageSize(pageable.pageSize())
+                .pageNumber(currentPage.getPageNumber() + 1)
+                .build();
     }
 
     @Override
-    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException {
-        return internalApiRepo.findIdByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiMongo::getId);
+    public Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId)
+            throws TechnicalException {
+        return internalApiRepo
+                .findIdByEnvironmentIdAndCrossId(environmentId, crossId)
+                .map(ApiMongo::getId);
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete by environmentId [{}]", environmentId);
         try {
-            final var apiMongos = internalApiRepo.deleteByEnvironmentId(environmentId).stream().map(ApiMongo::getId).toList();
+            final var apiMongos = internalApiRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(ApiMongo::getId)
+                    .toList();
             log.debug("Delete by environmentId [{}] - Done", environmentId);
             return apiMongos;
         } catch (Exception ex) {

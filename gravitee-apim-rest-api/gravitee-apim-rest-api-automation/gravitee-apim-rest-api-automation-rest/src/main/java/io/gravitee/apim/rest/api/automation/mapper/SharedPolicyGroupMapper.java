@@ -39,7 +39,7 @@ import org.mapstruct.factory.Mappers;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, OriginContextMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class, OriginContextMapper.class})
 public interface SharedPolicyGroupMapper {
     SharedPolicyGroupMapper INSTANCE = Mappers.getMapper(SharedPolicyGroupMapper.class);
 
@@ -62,7 +62,8 @@ public interface SharedPolicyGroupMapper {
     io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD map(LegacySharedPolicyGroupSpec spec);
 
     default SharedPolicyGroupState toState(SharedPolicyGroup spg) {
-        var state = new SharedPolicyGroupState(spg.getId(), spg.getEnvironmentId(), spg.getOrganizationId(), null, spg.getCrossId());
+        var state = new SharedPolicyGroupState(
+                spg.getId(), spg.getEnvironmentId(), spg.getOrganizationId(), null, spg.getCrossId());
         mapToState(spg, state);
         return state;
     }
@@ -76,12 +77,11 @@ public interface SharedPolicyGroupMapper {
 
     default SharedPolicyGroupState toState(LegacySharedPolicyGroupSpec spec, SharedPolicyGroupCRDStatus status) {
         var state = new SharedPolicyGroupState(
-            status.getId(),
-            status.getEnvironmentId(),
-            status.getOrganizationId(),
-            toErrors(status.getErrors()),
-            status.getCrossId()
-        );
+                status.getId(),
+                status.getEnvironmentId(),
+                status.getOrganizationId(),
+                toErrors(status.getErrors()),
+                status.getCrossId());
         mapSpecToState(spec, state);
         return state;
     }

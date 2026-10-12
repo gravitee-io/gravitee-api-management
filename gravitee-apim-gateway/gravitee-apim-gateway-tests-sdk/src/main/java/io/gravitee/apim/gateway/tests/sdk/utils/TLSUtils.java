@@ -64,7 +64,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @SuppressWarnings("java:S112") // only used in tests
 public class TLSUtils {
 
@@ -84,7 +83,8 @@ public class TLSUtils {
         String toPem() throws IOException;
 
         default String toPem(D object) throws IOException {
-            try (StringWriter out = new StringWriter(); JcaPEMWriter writer = new JcaPEMWriter(out)) {
+            try (StringWriter out = new StringWriter();
+                    JcaPEMWriter writer = new JcaPEMWriter(out)) {
                 writer.writeObject(object);
                 writer.flush();
                 return out.toString();
@@ -151,19 +151,18 @@ public class TLSUtils {
     private static X509Certificate generateCert(final KeyPair keyPair, String commonName) throws Exception {
         String issuer = "C=FR, O=Gravitee, OU=IntegrationTests, CN=%s".formatted(commonName);
         final X509v3CertificateBuilder certificateBuilder = new X509v3CertificateBuilder(
-            new X500Name(issuer),
-            BigInteger.ONE,
-            Date.from(Instant.now().minus(30, ChronoUnit.DAYS)),
-            Date.from(Instant.now().plus(30, ChronoUnit.DAYS)),
-            new X500Name(issuer),
-            SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
-        );
+                new X500Name(issuer),
+                BigInteger.ONE,
+                Date.from(Instant.now().minus(30, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(30, ChronoUnit.DAYS)),
+                new X500Name(issuer),
+                SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
-        final AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256WithRSAEncryption");
+        final AlgorithmIdentifier sigAlgId =
+                new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256WithRSAEncryption");
         final AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        final ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(
-            PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded())
-        );
+        final ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
+                .build(PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded()));
         final X509CertificateHolder x509CertificateHolder = certificateBuilder.build(signer);
 
         final X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(x509CertificateHolder);
@@ -196,7 +195,8 @@ public class TLSUtils {
      * @param password used to secure the keystore
      * @throws Exception when something wrong happened or  <code>data</code>  is not a supported type
      */
-    public static void appendToKeyStore(KeyStore keystore, String alias, Object data, char[] password) throws Exception {
+    public static void appendToKeyStore(KeyStore keystore, String alias, Object data, char[] password)
+            throws Exception {
         addEntry(keystore, alias, data, password);
     }
 
@@ -223,10 +223,11 @@ public class TLSUtils {
         }
         if (data instanceof X509Pair x509Pair) {
             ks.setEntry(
-                alias,
-                new KeyStore.PrivateKeyEntry(x509Pair.privateKey().data(), new X509Certificate[] { x509Pair.certificate().data() }),
-                new KeyStore.PasswordProtection(password)
-            );
+                    alias,
+                    new KeyStore.PrivateKeyEntry(
+                            x509Pair.privateKey().data(),
+                            new X509Certificate[] {x509Pair.certificate().data()}),
+                    new KeyStore.PasswordProtection(password));
         } else if (data instanceof X509Cert x509Cert) {
             ks.setEntry(alias, new KeyStore.TrustedCertificateEntry(x509Cert.data()), null);
         } else {
@@ -248,19 +249,20 @@ public class TLSUtils {
         X500Principal subject = new X500Principal("C=FR, O=Gravitee, OU=IntegrationTests, CN=%s".formatted(commonName));
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
-            subject,
-            calculateSerialNumber(),
-            Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            subject,
-            caKeyPair.getPublic()
-        );
+                subject,
+                calculateSerialNumber(),
+                Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                subject,
+                caKeyPair.getPublic());
 
         certBuilder
-            .addExtension(Extension.basicConstraints, true, new BasicConstraints(true))
-            .addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign));
+                .addExtension(Extension.basicConstraints, true, new BasicConstraints(true))
+                .addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign));
 
-        ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BC").build(caKeyPair.getPrivate());
+        ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSAEncryption")
+                .setProvider("BC")
+                .build(caKeyPair.getPrivate());
 
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider("BC");
 
@@ -284,21 +286,20 @@ public class TLSUtils {
         X500Principal subject = new X500Principal("C=FR, O=Gravitee, OU=IntegrationTests, CN=%s".formatted(clientCN));
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
-            caKeyPair.certificate().data().getSubjectX500Principal(),
-            calculateSerialNumber(),
-            Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            subject,
-            clientKeyPair.getPublic()
-        );
+                caKeyPair.certificate().data().getSubjectX500Principal(),
+                calculateSerialNumber(),
+                Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                subject,
+                clientKeyPair.getPublic());
 
         certBuilder
-            .addExtension(Extension.basicConstraints, true, new BasicConstraints(false))
-            .addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
+                .addExtension(Extension.basicConstraints, true, new BasicConstraints(false))
+                .addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
 
         ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSAEncryption")
-            .setProvider("BC")
-            .build(caKeyPair.privateKey().data());
+                .setProvider("BC")
+                .build(caKeyPair.privateKey().data());
 
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider("BC");
 
@@ -316,18 +317,16 @@ public class TLSUtils {
      */
     public static X509CRL generateCRL(X509Pair caKeyPair, X509Certificate... revokedCerts) throws Exception {
         X509v2CRLBuilder crlBuilder = new JcaX509v2CRLBuilder(
-            caKeyPair.certificate().data().getSubjectX500Principal(),
-            Date.from(Instant.now().minus(1, ChronoUnit.DAYS))
-        );
+                caKeyPair.certificate().data().getSubjectX500Principal(),
+                Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
 
         crlBuilder.setNextUpdate(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)));
 
         JcaX509ExtensionUtils extUtils = new JcaX509ExtensionUtils();
         crlBuilder.addExtension(
-            Extension.authorityKeyIdentifier,
-            false,
-            extUtils.createAuthorityKeyIdentifier(caKeyPair.certificate().data())
-        );
+                Extension.authorityKeyIdentifier,
+                false,
+                extUtils.createAuthorityKeyIdentifier(caKeyPair.certificate().data()));
 
         if (revokedCerts.length > 0) {
             ExtensionsGenerator extGen = new ExtensionsGenerator();
@@ -339,8 +338,8 @@ public class TLSUtils {
         }
 
         ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSAEncryption")
-            .setProvider("BC")
-            .build(caKeyPair.privateKey().data());
+                .setProvider("BC")
+                .build(caKeyPair.privateKey().data());
 
         JcaX509CRLConverter converter = new JcaX509CRLConverter().setProvider("BC");
 
@@ -354,7 +353,8 @@ public class TLSUtils {
      * @throws Exception when something wrong happened when writing the CRL
      */
     public static void writeCrlToPemFile(X509CRL crl, Path path) throws Exception {
-        try (var writer = new StringWriter(); var pemWriter = new JcaPEMWriter(writer)) {
+        try (var writer = new StringWriter();
+                var pemWriter = new JcaPEMWriter(writer)) {
             pemWriter.writeObject(crl);
             pemWriter.flush();
             Files.writeString(path, writer.toString());

@@ -51,17 +51,16 @@ class ReactableOrganizationMapperTest {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(organization));
         event.setCreatedAt(new Date());
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableOrganization -> {
-                assertThat(reactableOrganization.getId()).isEqualTo("id");
-                assertThat(reactableOrganization.getName()).isEqualTo("name");
-                assertThat(reactableOrganization.isEnabled()).isTrue();
-                assertThat(reactableOrganization.getDeployedAt()).isNotNull();
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableOrganization -> {
+                    assertThat(reactableOrganization.getId()).isEqualTo("id");
+                    assertThat(reactableOrganization.getName()).isEqualTo("name");
+                    assertThat(reactableOrganization.isEnabled()).isTrue();
+                    assertThat(reactableOrganization.getDeployedAt()).isNotNull();
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test

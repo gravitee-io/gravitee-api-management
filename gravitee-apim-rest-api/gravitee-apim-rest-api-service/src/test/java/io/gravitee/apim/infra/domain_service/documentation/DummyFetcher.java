@@ -36,7 +36,8 @@ public class DummyFetcher implements Fetcher {
     @Override
     public Resource fetch() throws FetcherException {
         var resource = new Resource();
-        InputStream stream = nextStream.get() != null ? nextStream.get() : new ByteArrayInputStream("dummy content".getBytes());
+        InputStream stream =
+                nextStream.get() != null ? nextStream.get() : new ByteArrayInputStream("dummy content".getBytes());
         nextStream.remove(); // consume once
         resource.setContent(stream);
         return resource;

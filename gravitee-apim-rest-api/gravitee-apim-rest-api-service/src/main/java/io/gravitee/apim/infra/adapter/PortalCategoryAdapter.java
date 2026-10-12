@@ -35,12 +35,11 @@ public interface PortalCategoryAdapter {
             return null;
         }
         return PortalCategory.of(
-            PortalCategoryId.of(repository.getId()),
-            repository.getEnvironmentId(),
-            repository.getTitle(),
-            repository.getDescription(),
-            repository.isVisible()
-        );
+                PortalCategoryId.of(repository.getId()),
+                repository.getEnvironmentId(),
+                repository.getTitle(),
+                repository.getDescription(),
+                repository.isVisible());
     }
 
     io.gravitee.repository.management.model.PortalCategory toRepository(PortalCategory domain);

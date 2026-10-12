@@ -48,16 +48,15 @@ public class NativeOperationDurationBuilder {
 
     public Map<String, JsonObject> build(String aggName, String durationField, String sampleCountField) {
         return Map.of(
-            "_" + aggName,
-            json().put("date_histogram", singleBucketBuilder.build()).put("aggs", aggs(aggName, durationField, sampleCountField))
-        );
+                "_" + aggName,
+                json().put("date_histogram", singleBucketBuilder.build())
+                        .put("aggs", aggs(aggName, durationField, sampleCountField)));
     }
 
     private JsonObject aggs(String aggName, String durationField, String sampleCountField) {
-        return json()
-            .put(DURATION_SUM_AGG, sum(durationField))
-            .put(SAMPLE_COUNT_SUM_AGG, sum(sampleCountField))
-            .put(aggName, bucketScript());
+        return json().put(DURATION_SUM_AGG, sum(durationField))
+                .put(SAMPLE_COUNT_SUM_AGG, sum(sampleCountField))
+                .put(aggName, bucketScript());
     }
 
     private JsonObject sum(String field) {
@@ -65,7 +64,9 @@ public class NativeOperationDurationBuilder {
     }
 
     private JsonObject bucketScript() {
-        return json().put("bucket_script", json().put("buckets_path", bucketPath()).put("script", script()));
+        return json().put(
+                        "bucket_script",
+                        json().put("buckets_path", bucketPath()).put("script", script()));
     }
 
     private JsonObject bucketPath() {

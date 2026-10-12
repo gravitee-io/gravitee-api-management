@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.portal_menu_link.use_case;
 
-import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_menu_link.crud_service.PortalMenuLinkCrudService;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
@@ -29,7 +28,8 @@ public class GetPortalMenuLinkUseCase {
     private final PortalMenuLinkCrudService portalMenuLinkCrudService;
 
     public Output execute(Input input) {
-        return new Output(this.portalMenuLinkCrudService.getByIdAndEnvironmentId(input.portalMenuLinkId(), input.environmentId()));
+        return new Output(this.portalMenuLinkCrudService.getByIdAndEnvironmentId(
+                input.portalMenuLinkId(), input.environmentId()));
     }
 
     @Builder

@@ -43,13 +43,13 @@ import lombok.RequiredArgsConstructor;
 public class ValidateGroupsDomainService implements Validator<ValidateGroupsDomainService.Input> {
 
     public record Input(
-        String environmentId,
-        Set<String> groups,
-        String definitionVersion,
-        String origin,
-        Group.GroupEvent groupEvent,
-        boolean addDefaultGroups
-    ) implements Validator.Input {
+            String environmentId,
+            Set<String> groups,
+            String definitionVersion,
+            String origin,
+            Group.GroupEvent groupEvent,
+            boolean addDefaultGroups)
+            implements Validator.Input {
         public Input(String environmentId, Set<String> groups, String definitionVersion, String origin) {
             this(environmentId, groups, definitionVersion, origin, null, false);
         }
@@ -67,11 +67,9 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
 
         if (input.addDefaultGroups) {
             log.debug("find default groups");
-            Set<String> defaultGroups = groupQueryService
-                .findByEvent(input.environmentId, input.groupEvent)
-                .stream()
-                .map(Group::getId)
-                .collect(toSet());
+            Set<String> defaultGroups = groupQueryService.findByEvent(input.environmentId, input.groupEvent).stream()
+                    .map(Group::getId)
+                    .collect(toSet());
             sanitizedGroups.addAll(defaultGroups);
         }
 
@@ -90,11 +88,13 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         var groupsFromIds = groupQueryService.findByIds(queried).stream().toList();
         // for the sake of not searching group that will never be found
         groupsFromIds.stream().map(Group::getId).forEach(queried::remove);
-        var groupsFromHRIDs = groupQueryService.findByHRIDs(input.environmentId(), queried).stream().toList();
+        var groupsFromHRIDs = groupQueryService.findByHRIDs(input.environmentId(), queried).stream()
+                .toList();
         // group hrid might also be the name of another group,
         // removing it from the queried groups to avoid adding a group that is not meant to be added
         groupsFromHRIDs.stream().map(Group::getHrid).forEach(queried::remove);
-        var groupsFromNames = groupQueryService.findByNames(input.environmentId(), queried).stream().toList();
+        var groupsFromNames = groupQueryService.findByNames(input.environmentId(), queried).stream()
+                .toList();
 
         var groupIds = groupsFromIds.stream().map(Group::getId).collect(toSet());
         var groupHRIDs = groupsFromHRIDs.stream().map(Group::getHrid).collect(toSet());
@@ -114,13 +114,13 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         var sanitizedFromHRIDs = noPrimaryOwnerResultFromHRIDs.value().orElse(List.of());
         var sanitizedFromNames = noPrimaryOwnerResultFromNames.value().orElse(List.of());
 
-        if (
-            DefinitionVersion.V2.getLabel().equals(input.definitionVersion) &&
-            DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(input.origin)
-        ) {
+        if (DefinitionVersion.V2.getLabel().equals(input.definitionVersion)
+                && DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(input.origin)) {
             sanitizedGroups.addAll(sanitizedFromIds.stream().map(Group::getName).toList());
-            sanitizedGroups.addAll(sanitizedFromHRIDs.stream().map(Group::getName).toList());
-            sanitizedGroups.addAll(sanitizedFromNames.stream().map(Group::getName).toList());
+            sanitizedGroups.addAll(
+                    sanitizedFromHRIDs.stream().map(Group::getName).toList());
+            sanitizedGroups.addAll(
+                    sanitizedFromNames.stream().map(Group::getName).toList());
         } else {
             sanitizedGroups.addAll(sanitizedFromIds.stream().map(Group::getId).toList());
             sanitizedGroups.addAll(sanitizedFromHRIDs.stream().map(Group::getId).toList());
@@ -132,33 +132,30 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         givenGroups.removeAll(groupNames);
 
         for (var unknownGroup : givenGroups) {
-            errors.add(Error.warning("Group [%s] could not be found in environment [%s]", unknownGroup, input.environmentId()));
+            errors.add(Error.warning(
+                    "Group [%s] could not be found in environment [%s]", unknownGroup, input.environmentId()));
         }
 
         return Result.ofBoth(input.sanitized(sanitizedGroups), errors);
     }
 
-    private Result<List<Group>> validateAndSanitizeNoPrimaryOwners(List<Group> groups, Function<Group, String> idMapper) {
+    private Result<List<Group>> validateAndSanitizeNoPrimaryOwners(
+            List<Group> groups, Function<Group, String> idMapper) {
         var sanitized = new ArrayList<>(groups);
-        var groupsWithPrimaryOwner = sanitized
-            .stream()
-            .filter(group -> StringUtils.isNotEmpty(group.getApiPrimaryOwner()))
-            .toList();
+        var groupsWithPrimaryOwner = sanitized.stream()
+                .filter(group -> StringUtils.isNotEmpty(group.getApiPrimaryOwner()))
+                .toList();
         sanitized.removeAll(groupsWithPrimaryOwner);
         var errors = buildPrimaryOwnerErrors(groupsWithPrimaryOwner, idMapper);
         return Result.ofBoth(sanitized, errors);
     }
 
     private List<Error> buildPrimaryOwnerErrors(List<Group> groupsWithPrimaryOwner, Function<Group, String> idMapper) {
-        return groupsWithPrimaryOwner
-            .stream()
-            .map(idMapper)
-            .map(id ->
-                Error.warning(
-                    "Group [%s] will be discarded because it contains an API Primary Owner member, which is not supported by the API.",
-                    id
-                )
-            )
-            .toList();
+        return groupsWithPrimaryOwner.stream()
+                .map(idMapper)
+                .map(id -> Error.warning(
+                        "Group [%s] will be discarded because it contains an API Primary Owner member, which is not supported by the API.",
+                        id))
+                .toList();
     }
 }

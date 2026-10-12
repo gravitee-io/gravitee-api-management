@@ -36,20 +36,16 @@ public class InvitationCrudServiceInMemory implements InvitationCrudService, InM
 
     @Override
     public Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
-        return storage
-            .stream()
-            .filter(ApplicationInvitation.class::isInstance)
-            .map(ApplicationInvitation.class::cast)
-            .filter(invitation -> invitation.id().equals(invitationId))
-            .findFirst();
+        return storage.stream()
+                .filter(ApplicationInvitation.class::isInstance)
+                .map(ApplicationInvitation.class::cast)
+                .filter(invitation -> invitation.id().equals(invitationId))
+                .findFirst();
     }
 
     @Override
     public List<Invitation> findByEmail(String email) {
-        return storage
-            .stream()
-            .filter(i -> i.email().equals(email))
-            .toList();
+        return storage.stream().filter(i -> i.email().equals(email)).toList();
     }
 
     @Override

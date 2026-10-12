@@ -40,24 +40,28 @@ public class ValidatePortalThemeUseCase {
 
     private static Theme toTheme(ValidateThemeDomainService.Input sanitized) {
         var id = sanitized.themeHrid() == null || sanitized.themeHrid().isBlank()
-            ? null
-            : HRIDToUUID.portalTheme().context(sanitized.auditInfo()).hrid(sanitized.themeHrid()).id();
-        var automationMetadata = sanitized.themeHrid() == null || sanitized.themeHrid().isBlank()
-            ? null
-            : new ThemeAutomationMetadata(sanitized.themeHrid());
+                ? null
+                : HRIDToUUID.portalTheme()
+                        .context(sanitized.auditInfo())
+                        .hrid(sanitized.themeHrid())
+                        .id();
+        var automationMetadata =
+                sanitized.themeHrid() == null || sanitized.themeHrid().isBlank()
+                        ? null
+                        : new ThemeAutomationMetadata(sanitized.themeHrid());
         return Theme.builder()
-            .id(id)
-            .name(sanitized.name())
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(sanitized.auditInfo().environmentId())
-            .definitionPortalNext(sanitized.definitionPortalNext())
-            .enabled(false)
-            .logo(sanitized.logo())
-            .optionalLogo(sanitized.optionalLogo())
-            .favicon(sanitized.favicon())
-            .backgroundImage(sanitized.backgroundImage())
-            .automationMetadata(automationMetadata)
-            .build();
+                .id(id)
+                .name(sanitized.name())
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(sanitized.auditInfo().environmentId())
+                .definitionPortalNext(sanitized.definitionPortalNext())
+                .enabled(false)
+                .logo(sanitized.logo())
+                .optionalLogo(sanitized.optionalLogo())
+                .favicon(sanitized.favicon())
+                .backgroundImage(sanitized.backgroundImage())
+                .automationMetadata(automationMetadata)
+                .build();
     }
 }

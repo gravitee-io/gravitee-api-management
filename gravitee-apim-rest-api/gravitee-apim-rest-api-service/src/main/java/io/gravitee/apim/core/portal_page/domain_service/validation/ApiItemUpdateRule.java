@@ -21,7 +21,6 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,8 @@ public class ApiItemUpdateRule implements UpdatePortalNavigationItemValidationRu
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         var payloadParentId = toUpdate.getParentId();
 
         if (payloadParentId == null) {
@@ -53,26 +53,22 @@ public class ApiItemUpdateRule implements UpdatePortalNavigationItemValidationRu
 
         var targetApiProductId = ApiProductAncestorValidation.findApiProductId(payloadParentId, ctx);
         validateUniqueness(existingItem, targetApiProductId.orElse(null), ctx);
-        targetApiProductId.ifPresent(apiProductId ->
-            validateApiProductMembership(((PortalNavigationApi) existingItem).getApiId(), apiProductId, existingItem.getEnvironmentId())
-        );
+        targetApiProductId.ifPresent(apiProductId -> validateApiProductMembership(
+                ((PortalNavigationApi) existingItem).getApiId(), apiProductId, existingItem.getEnvironmentId()));
     }
 
-    private static void validateUniqueness(PortalNavigationItem existingItem, String targetApiProductId, UpdateValidationContext ctx) {
+    private static void validateUniqueness(
+            PortalNavigationItem existingItem, String targetApiProductId, UpdateValidationContext ctx) {
         var apiId = ((PortalNavigationApi) existingItem).getApiId();
-        boolean alreadyExists = ctx
-            .navigationItems()
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .filter(apiItem -> !apiItem.getId().equals(existingItem.getId()))
-            .filter(apiItem -> apiId.equals(apiItem.getApiId()))
-            .anyMatch(apiItem ->
-                Objects.equals(
-                    targetApiProductId,
-                    ApiProductAncestorValidation.findApiProductId(apiItem.getParentId(), ctx.itemsById()).orElse(null)
-                )
-            );
+        boolean alreadyExists = ctx.navigationItems().stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .filter(apiItem -> !apiItem.getId().equals(existingItem.getId()))
+                .filter(apiItem -> apiId.equals(apiItem.getApiId()))
+                .anyMatch(apiItem -> Objects.equals(
+                        targetApiProductId,
+                        ApiProductAncestorValidation.findApiProductId(apiItem.getParentId(), ctx.itemsById())
+                                .orElse(null)));
         if (alreadyExists) {
             throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(apiId);
         }
@@ -80,9 +76,9 @@ public class ApiItemUpdateRule implements UpdatePortalNavigationItemValidationRu
 
     private void validateApiProductMembership(String apiId, String apiProductId, String environmentId) {
         var apiProduct = apiProductQueryService
-            .findById(apiProductId)
-            .filter(product -> environmentId.equals(product.getEnvironmentId()))
-            .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
+                .findById(apiProductId)
+                .filter(product -> environmentId.equals(product.getEnvironmentId()))
+                .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
         if (apiProduct.getApiIds() == null || !apiProduct.getApiIds().contains(apiId)) {
             throw InvalidPortalNavigationItemDataException.apiDoesNotBelongToApiProduct(apiId, apiProductId);
         }

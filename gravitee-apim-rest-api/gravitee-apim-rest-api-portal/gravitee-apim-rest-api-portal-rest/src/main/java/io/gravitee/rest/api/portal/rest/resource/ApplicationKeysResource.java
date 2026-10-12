@@ -66,19 +66,22 @@ public class ApplicationKeysResource extends AbstractResource {
     @Path("/_renew")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)})
     public Response renewSharedKey() {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
-        final Key createdKey = keyMapper.convert(apiKeyService.renew(GraviteeContext.getExecutionContext(), applicationEntity));
+        ApplicationEntity applicationEntity =
+                applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
+        final Key createdKey =
+                keyMapper.convert(apiKeyService.renew(GraviteeContext.getExecutionContext(), applicationEntity));
         return Response.status(Response.Status.CREATED).entity(createdKey).build();
     }
 
     @POST
     @Path("/{apiKey}/_revoke")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)})
     public Response revokeKeySubscription(@PathParam("apiKey") String apiKey) {
-        revokeApplicationApiKeyUsecase.execute(new RevokeApplicationApiKeyUseCase.Input(apiKey, applicationId, getAuditInfo()));
+        revokeApplicationApiKeyUsecase.execute(
+                new RevokeApplicationApiKeyUseCase.Input(apiKey, applicationId, getAuditInfo()));
 
         return Response.noContent().build();
     }

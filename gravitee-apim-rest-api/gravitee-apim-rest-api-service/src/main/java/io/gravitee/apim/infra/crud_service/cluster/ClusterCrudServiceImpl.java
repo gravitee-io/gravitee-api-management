@@ -52,16 +52,18 @@ public class ClusterCrudServiceImpl implements ClusterCrudService {
     public Cluster findByIdAndEnvironmentId(String id, String environmentId) {
         try {
             return clusterRepository
-                .findById(id)
-                .filter(belongsToEnvironment(environmentId))
-                .map(clusterAdapter::fromRepository)
-                .orElseThrow(() -> new DbEntityNotFoundException(io.gravitee.repository.management.model.Cluster.class, id));
+                    .findById(id)
+                    .filter(belongsToEnvironment(environmentId))
+                    .map(clusterAdapter::fromRepository)
+                    .orElseThrow(() ->
+                            new DbEntityNotFoundException(io.gravitee.repository.management.model.Cluster.class, id));
         } catch (TechnicalException e) {
             throw TechnicalManagementException.ofTryingToFindById(Cluster.class, id, e);
         }
     }
 
-    private static Predicate<io.gravitee.repository.management.model.Cluster> belongsToEnvironment(String environmentId) {
+    private static Predicate<io.gravitee.repository.management.model.Cluster> belongsToEnvironment(
+            String environmentId) {
         return cluster -> environmentId.equals(cluster.getEnvironmentId());
     }
 

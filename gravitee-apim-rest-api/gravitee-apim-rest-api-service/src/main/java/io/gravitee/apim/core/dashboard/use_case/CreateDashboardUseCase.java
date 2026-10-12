@@ -48,15 +48,13 @@ public class CreateDashboardUseCase {
     public Output execute(Input input) {
         var now = ZonedDateTime.now(TimeProvider.clock());
 
-        var dashboard = input
-            .dashboard()
-            .toBuilder()
-            .id(UuidString.generateRandom())
-            .environmentId(input.auditInfo().environmentId())
-            .createdBy(input.auditInfo().actor().userId())
-            .createdAt(now)
-            .lastModified(now)
-            .build();
+        var dashboard = input.dashboard().toBuilder()
+                .id(UuidString.generateRandom())
+                .environmentId(input.auditInfo().environmentId())
+                .createdBy(input.auditInfo().actor().userId())
+                .createdAt(now)
+                .lastModified(now)
+                .build();
 
         var created = dashboardDomainService.create(dashboard);
 
@@ -66,8 +64,7 @@ public class CreateDashboardUseCase {
     }
 
     private void createAuditLog(Dashboard dashboard, AuditInfo auditInfo) {
-        auditService.createDashboardAuditLog(
-            DashboardAuditLogEntity.builder()
+        auditService.createDashboardAuditLog(DashboardAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(DashboardAuditEvent.DASHBOARD_CREATED)
@@ -76,7 +73,6 @@ public class CreateDashboardUseCase {
                 .newValue(dashboard)
                 .createdAt(dashboard.getCreatedAt())
                 .properties(Map.of(AuditProperties.DASHBOARD, dashboard.getId()))
-                .build()
-        );
+                .build());
     }
 }

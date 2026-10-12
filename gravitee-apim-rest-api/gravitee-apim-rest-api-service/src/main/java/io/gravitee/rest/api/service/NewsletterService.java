@@ -27,6 +27,8 @@ public interface NewsletterService {
      * @param email
      */
     void subscribe(String email);
+
     List<String> getTaglines();
+
     boolean isEnabled();
 }

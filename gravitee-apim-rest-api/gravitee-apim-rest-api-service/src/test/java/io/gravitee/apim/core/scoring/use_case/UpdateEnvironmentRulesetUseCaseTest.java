@@ -64,38 +64,48 @@ class UpdateEnvironmentRulesetUseCaseTest {
         // Given
         var rulesetId = "ruleset-id";
         givenExistingRulesets(ScoringRulesetFixture.aRuleset(rulesetId).withReferenceId(ENVIRONMENT_ID));
-        var rulesetToUpdate = ScoringRuleset.builder().id(rulesetId).name("updated-name").description("updated-description").build();
+        var rulesetToUpdate = ScoringRuleset.builder()
+                .id(rulesetId)
+                .name("updated-name")
+                .description("updated-description")
+                .build();
 
         // When
         var output = useCase.execute(new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, AUDIT_INFO));
 
         // Then
-        assertThat(output.scoringRuleset()).isEqualTo(
-            ScoringRuleset.builder()
-                .id("ruleset-id")
-                .name("updated-name")
-                .description("updated-description")
-                .format(ScoringRuleset.Format.GRAVITEE_PROXY)
-                .payload("payload-ruleset-id")
-                .referenceId("environment-id")
-                .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(output.scoringRuleset())
+                .isEqualTo(ScoringRuleset.builder()
+                        .id("ruleset-id")
+                        .name("updated-name")
+                        .description("updated-description")
+                        .format(ScoringRuleset.Format.GRAVITEE_PROXY)
+                        .payload("payload-ruleset-id")
+                        .referenceId("environment-id")
+                        .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_throw_exception_when_ruleset_is_not_found() {
-        //Given
+        // Given
         var rulesetId = "ruleset-id";
-        var rulesetToUpdate = ScoringRuleset.builder().id(rulesetId).name("updated-name").description("updated-description").build();
+        var rulesetToUpdate = ScoringRuleset.builder()
+                .id(rulesetId)
+                .name("updated-name")
+                .description("updated-description")
+                .build();
 
-        //When
-        Throwable thrown = catchThrowable(() -> useCase.execute(new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, AUDIT_INFO)));
+        // When
+        Throwable thrown = catchThrowable(
+                () -> useCase.execute(new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, AUDIT_INFO)));
 
-        //Then
-        assertThat(thrown).isInstanceOf(RulesetNotFoundException.class).hasMessage("Ruleset with id " + rulesetId + " not found");
+        // Then
+        assertThat(thrown)
+                .isInstanceOf(RulesetNotFoundException.class)
+                .hasMessage("Ruleset with id " + rulesetId + " not found");
     }
 
     private void givenExistingRulesets(ScoringRuleset... rulesets) {

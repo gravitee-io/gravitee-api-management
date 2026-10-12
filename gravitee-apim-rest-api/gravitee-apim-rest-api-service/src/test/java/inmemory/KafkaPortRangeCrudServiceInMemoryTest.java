@@ -18,7 +18,6 @@ package inmemory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.plan.model.KafkaPortRange;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -37,13 +36,13 @@ class KafkaPortRangeCrudServiceInMemoryTest {
 
     private static KafkaPortRange range(String planId, int bootstrap, int rangeStart, int rangeEnd) {
         return KafkaPortRange.builder()
-            .planId(planId)
-            .apiId("api-1")
-            .environmentId("env-1")
-            .bootstrapPort(bootstrap)
-            .rangeStart(rangeStart)
-            .rangeEnd(rangeEnd)
-            .build();
+                .planId(planId)
+                .apiId("api-1")
+                .environmentId("env-1")
+                .bootstrapPort(bootstrap)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .build();
     }
 
     @Nested
@@ -105,7 +104,9 @@ class KafkaPortRangeCrudServiceInMemoryTest {
 
         @Test
         void should_scope_by_environment_id() {
-            cut.create(range("other-env-plan", 9092, 9100, 9102).toBuilder().environmentId("env-2").build());
+            cut.create(range("other-env-plan", 9092, 9100, 9102).toBuilder()
+                    .environmentId("env-2")
+                    .build());
 
             var conflicts = cut.findConflicting("env-1", 9092, 9100, 9102, null);
 
@@ -131,7 +132,8 @@ class KafkaPortRangeCrudServiceInMemoryTest {
         void should_remove_all_rows_for_api() {
             cut.create(range("plan-1", 9092, 9100, 9102));
             cut.create(range("plan-2", 9192, 9200, 9202));
-            cut.create(range("plan-3", 9292, 9300, 9302).toBuilder().apiId("api-2").build());
+            cut.create(
+                    range("plan-3", 9292, 9300, 9302).toBuilder().apiId("api-2").build());
 
             cut.deleteByApiId("api-1");
 

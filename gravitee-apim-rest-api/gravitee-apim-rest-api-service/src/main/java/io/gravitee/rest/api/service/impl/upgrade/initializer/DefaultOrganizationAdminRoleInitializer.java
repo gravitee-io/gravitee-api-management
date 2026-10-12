@@ -44,47 +44,41 @@ public class DefaultOrganizationAdminRoleInitializer extends OrganizationInitial
     @Override
     protected void initializeOrganization(ExecutionContext executionContext) {
         roleService.createOrUpdateSystemRole(
-            executionContext,
-            SystemRole.ADMIN,
-            RoleScope.ORGANIZATION,
-            OrganizationPermission.values(),
-            executionContext.getOrganizationId()
-        );
+                executionContext,
+                SystemRole.ADMIN,
+                RoleScope.ORGANIZATION,
+                OrganizationPermission.values(),
+                executionContext.getOrganizationId());
         roleService.createOrUpdateSystemRole(
-            executionContext,
-            SystemRole.ADMIN,
-            RoleScope.ENVIRONMENT,
-            EnvironmentPermission.values(),
-            executionContext.getOrganizationId()
-        );
+                executionContext,
+                SystemRole.ADMIN,
+                RoleScope.ENVIRONMENT,
+                EnvironmentPermission.values(),
+                executionContext.getOrganizationId());
         roleService.createOrUpdateSystemRole(
-            executionContext,
-            SystemRole.PRIMARY_OWNER,
-            RoleScope.INTEGRATION,
-            IntegrationPermission.values(),
-            executionContext.getOrganizationId()
-        );
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.INTEGRATION,
+                IntegrationPermission.values(),
+                executionContext.getOrganizationId());
         roleService.createOrUpdateSystemRole(
-            executionContext,
-            SystemRole.PRIMARY_OWNER,
-            RoleScope.CLUSTER,
-            ClusterPermission.values(),
-            executionContext.getOrganizationId()
-        );
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.CLUSTER,
+                ClusterPermission.values(),
+                executionContext.getOrganizationId());
         roleService.createOrUpdateSystemRole(
-            executionContext,
-            SystemRole.PRIMARY_OWNER,
-            RoleScope.AI_CATALOG,
-            AiCatalogPermission.values(),
-            executionContext.getOrganizationId()
-        );
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.AI_CATALOG,
+                AiCatalogPermission.values(),
+                executionContext.getOrganizationId());
         roleService.createOrUpdateSystemRole(
-            executionContext,
-            SystemRole.PRIMARY_OWNER,
-            RoleScope.EXPLORER,
-            ExplorerPermission.values(),
-            executionContext.getOrganizationId()
-        );
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.EXPLORER,
+                ExplorerPermission.values(),
+                executionContext.getOrganizationId());
     }
 
     @Override

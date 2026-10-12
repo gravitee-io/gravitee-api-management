@@ -42,17 +42,16 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
 
     @Override
     public FilterValuesPage searchFilterValues(
-        String organizationId,
-        String environmentId,
-        FilterSpec.Name filterName,
-        Instant from,
-        Instant to,
-        int page,
-        int size,
-        Map<String, Object> afterKey,
-        String searchPattern,
-        Set<String> authorizedApiIds
-    ) {
+            String organizationId,
+            String environmentId,
+            FilterSpec.Name filterName,
+            Instant from,
+            Instant to,
+            int page,
+            int size,
+            Map<String, Object> afterKey,
+            String searchPattern,
+            Set<String> authorizedApiIds) {
         var esFieldName = resolveEsFieldName(filterName);
         var queryContext = new QueryContext(organizationId, environmentId);
 
@@ -61,14 +60,14 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
 
         for (int i = 1; i <= page; i++) {
             var query = FilterValuesQuery.builder()
-                .esFieldName(esFieldName)
-                .from(from != null ? from.toEpochMilli() : null)
-                .to(to != null ? to.toEpochMilli() : null)
-                .size(size)
-                .afterKey(currentAfterKey)
-                .searchPattern(searchPattern)
-                .apiIds(authorizedApiIds)
-                .build();
+                    .esFieldName(esFieldName)
+                    .from(from != null ? from.toEpochMilli() : null)
+                    .to(to != null ? to.toEpochMilli() : null)
+                    .size(size)
+                    .afterKey(currentAfterKey)
+                    .searchPattern(searchPattern)
+                    .apiIds(authorizedApiIds)
+                    .build();
 
             result = analyticsRepository.searchFilterValues(queryContext, query);
 
@@ -123,7 +122,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             // switch on a stale path, and the values dropdown would quietly return an empty page.
             case NATIVE_CLIENT_ID -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_ID;
             case NATIVE_CLIENT_SOFTWARE_NAME -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
-            case NATIVE_CLIENT_SOFTWARE_VERSION -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
+            case NATIVE_CLIENT_SOFTWARE_VERSION ->
+                ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
             case ENTRYPOINT -> "entrypoint-id";
             case ERROR_KEY -> "error-key";
             case REQUEST_ID -> "request-id";

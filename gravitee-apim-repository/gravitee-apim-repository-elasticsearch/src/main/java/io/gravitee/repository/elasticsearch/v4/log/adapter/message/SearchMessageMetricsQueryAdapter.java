@@ -70,10 +70,12 @@ public class SearchMessageMetricsQueryAdapter {
         if (from <= 0 || from >= to) {
             return;
         }
-        terms.add(JsonObject.of("range", JsonObject.of(MessageMetricsFields.TIMESTAMP, JsonObject.of("gte", from, "lte", to))));
+        terms.add(JsonObject.of(
+                "range", JsonObject.of(MessageMetricsFields.TIMESTAMP, JsonObject.of("gte", from, "lte", to))));
     }
 
-    private static void addAdditionalFieldsQueries(ArrayList<JsonObject> terms, java.util.Map<String, java.util.List<String>> additional) {
+    private static void addAdditionalFieldsQueries(
+            ArrayList<JsonObject> terms, java.util.Map<String, java.util.List<String>> additional) {
         if (additional == null || additional.isEmpty()) {
             return;
         }
@@ -121,8 +123,8 @@ public class SearchMessageMetricsQueryAdapter {
             }
         } else {
             query = values.size() == 1
-                ? JsonObject.of("term", JsonObject.of(fieldPath, values.getString(0)))
-                : JsonObject.of("terms", JsonObject.of(fieldPath, values));
+                    ? JsonObject.of("term", JsonObject.of(fieldPath, values.getString(0)))
+                    : JsonObject.of("terms", JsonObject.of(fieldPath, values));
         }
 
         terms.add(query);

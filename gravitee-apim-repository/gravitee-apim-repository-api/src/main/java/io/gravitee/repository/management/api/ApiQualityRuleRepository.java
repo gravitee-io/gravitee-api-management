@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ApiQualityRule;
-import io.gravitee.repository.management.model.Membership;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,11 +26,18 @@ import java.util.Optional;
  */
 public interface ApiQualityRuleRepository extends FindAllRepository<ApiQualityRule> {
     Optional<ApiQualityRule> findById(String api, String qualityRule) throws TechnicalException;
+
     ApiQualityRule create(ApiQualityRule apiQualityRule) throws TechnicalException;
+
     ApiQualityRule update(ApiQualityRule apiQualityRule) throws TechnicalException;
+
     void delete(String api, String qualityRule) throws TechnicalException;
+
     List<ApiQualityRule> findByQualityRule(String qualityRule) throws TechnicalException;
+
     List<ApiQualityRule> findByApi(String api) throws TechnicalException;
+
     void deleteByQualityRule(String qualityRule) throws TechnicalException;
+
     void deleteByApi(String api) throws TechnicalException;
 }

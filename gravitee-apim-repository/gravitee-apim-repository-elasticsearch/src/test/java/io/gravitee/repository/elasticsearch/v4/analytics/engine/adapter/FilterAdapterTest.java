@@ -62,17 +62,18 @@ class FilterAdapterTest {
 
         private MeasuresQuery queryWith(Filter filter) {
             return new MeasuresQuery(
-                buildTimeRange(),
-                List.of(filter),
-                List.of(new MetricMeasuresQuery(Metric.AUTHZ_OPERATIONS, Set.of(Measure.COUNT)))
-            );
+                    buildTimeRange(),
+                    List.of(filter),
+                    List.of(new MetricMeasuresQuery(Metric.AUTHZ_OPERATIONS, Set.of(Measure.COUNT))));
         }
 
         @Test
         void should_match_nothing_when_a_filter_only_decisions_carry_is_set() {
-            var filters = adapter.adaptForAuthzTraffic(queryWith(new Filter(Filter.Name.AUTHZ_DECISION, Filter.Operator.EQ, "PERMIT")));
+            var filters = adapter.adaptForAuthzTraffic(
+                    queryWith(new Filter(Filter.Name.AUTHZ_DECISION, Filter.Operator.EQ, "PERMIT")));
 
-            assertThat(filters.getJsonObject(filters.size() - 1)).isEqualTo(JsonObject.of("match_none", JsonObject.of()));
+            assertThat(filters.getJsonObject(filters.size() - 1))
+                    .isEqualTo(JsonObject.of("match_none", JsonObject.of()));
         }
 
         @ParameterizedTest
@@ -92,7 +93,8 @@ class FilterAdapterTest {
 
         @Test
         void should_keep_a_filter_the_traffic_carries() {
-            var filters = adapter.adaptForAuthzTraffic(queryWith(new Filter(Filter.Name.AUTHZ_ACTION, Filter.Operator.EQ, "read")));
+            var filters = adapter.adaptForAuthzTraffic(
+                    queryWith(new Filter(Filter.Name.AUTHZ_ACTION, Filter.Operator.EQ, "read")));
 
             assertThat(filters.encode()).doesNotContain("match_none").contains("keyword_authz_action");
         }
@@ -109,25 +111,24 @@ class FilterAdapterTest {
 
         private MeasuresQuery queryWith(Filter... filters) {
             return new MeasuresQuery(
-                buildTimeRange(),
-                List.of(filters),
-                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)))
-            );
+                    buildTimeRange(),
+                    List.of(filters),
+                    List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))));
         }
 
         @Test
         void should_skip_the_join_when_every_filter_reads_a_message_field() {
             var query = queryWith(
-                new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)),
-                new Filter(Filter.Name.MESSAGE_OPERATION_TYPE, Filter.Operator.EQ, "publish")
-            );
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)),
+                    new Filter(Filter.Name.MESSAGE_OPERATION_TYPE, Filter.Operator.EQ, "publish"));
 
             assertThat(messageFilterAdapter.isFullyAppliedOnMessages(query)).isTrue();
         }
 
         @Test
         void should_skip_the_join_when_nothing_is_filtered() {
-            assertThat(messageFilterAdapter.isFullyAppliedOnMessages(queryWith())).isTrue();
+            assertThat(messageFilterAdapter.isFullyAppliedOnMessages(queryWith()))
+                    .isTrue();
         }
 
         /**
@@ -143,13 +144,12 @@ class FilterAdapterTest {
         void should_skip_the_join_for_a_dimension_the_message_documents_now_carry() {
             for (var name : List.of(Filter.Name.PLAN, Filter.Name.APPLICATION, Filter.Name.ENTRYPOINT)) {
                 var query = queryWith(
-                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)),
-                    new Filter(name, Filter.Operator.EQ, "whatever")
-                );
+                        new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)),
+                        new Filter(name, Filter.Operator.EQ, "whatever"));
 
                 assertThat(messageFilterAdapter.isFullyAppliedOnMessages(query))
-                    .as("filter %s is stamped on the message document", name)
-                    .isTrue();
+                        .as("filter %s is stamped on the message document", name)
+                        .isTrue();
             }
         }
 
@@ -164,11 +164,11 @@ class FilterAdapterTest {
                 var filter = new Filter(name, Filter.Operator.EQ, "whatever");
 
                 assertThat(messageFilterAdapter.shouldAdaptForMessage(filter))
-                    .as("%s must not be applied on the joined message phase", name)
-                    .isFalse();
+                        .as("%s must not be applied on the joined message phase", name)
+                        .isFalse();
                 assertThat(messageFilterAdapter.shouldAdaptForEnrichedMessage(filter))
-                    .as("%s is applied on the direct path", name)
-                    .isTrue();
+                        .as("%s is applied on the direct path", name)
+                        .isTrue();
             }
         }
     }
@@ -253,7 +253,8 @@ class FilterAdapterTest {
 
         @Test
         void should_generate_bool_should_range_query_for_in_status_code_group_filter() throws JsonProcessingException {
-            var filters = List.of(new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.IN, List.of("2XX", "5XX")));
+            var filters =
+                    List.of(new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.IN, List.of("2XX", "5XX")));
             var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
             var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
 
@@ -316,8 +317,8 @@ class FilterAdapterTest {
             var filter = new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.EQ, "9XX");
 
             assertThatThrownBy(() -> filterAdapter.adaptMetricFilters(List.of(filter)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Unknown status code group: 9XX");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Unknown status code group: 9XX");
         }
 
         @Test
@@ -326,8 +327,8 @@ class FilterAdapterTest {
             var filter = new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.EQ, null);
 
             assertThatThrownBy(() -> filterAdapter.adaptMetricFilters(List.of(filter)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Status code group must not be null");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Status code group must not be null");
         }
 
         @Test
@@ -392,8 +393,10 @@ class FilterAdapterTest {
         @Test
         void should_generate_range_query_for_metric_level_status_code_group_filter() throws JsonProcessingException {
             var topLevelFilters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)));
-            var metricFilters = List.of(new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.IN, List.of("2XX", "4XX")));
-            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT), metricFilters, List.of()));
+            var metricFilters =
+                    List.of(new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.IN, List.of("2XX", "4XX")));
+            var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT), metricFilters, List.of()));
 
             var query = new MeasuresQuery(buildTimeRange(), topLevelFilters, metrics);
 
@@ -509,8 +512,8 @@ class FilterAdapterTest {
             var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
 
             assertThatThrownBy(() -> measuresAdapter.adapt(query))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("FETCH");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("FETCH");
         }
     }
 
@@ -593,9 +596,8 @@ class FilterAdapterTest {
         void should_generate_range_query_at_metric_level_for_gte() throws JsonProcessingException {
             var topLevelFilters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)));
             var metricFilters = List.of(new Filter(Filter.Name.HTTP_GATEWAY_RESPONSE_TIME, Filter.Operator.GTE, 1000));
-            var metrics = List.of(
-                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG), metricFilters, List.of())
-            );
+            var metrics = List.of(new MetricMeasuresQuery(
+                    Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG), metricFilters, List.of()));
 
             var query = new MeasuresQuery(buildTimeRange(), topLevelFilters, metrics);
 
@@ -622,18 +624,16 @@ class FilterAdapterTest {
 
             var mustNot = scope.getJsonObject("bool").getJsonArray("must_not");
             assertThat(mustNot).hasSize(2);
-            assertThat(mustNot.getJsonObject(0).getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD).getList()).containsExactly(
-                "native-kafka",
-                "edge",
-                "authzen",
-                "sse",
-                "webhook",
-                "websocket",
-                "tcp-proxy"
-            );
-            assertThat(
-                mustNot.getJsonObject(1).getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD + ".keyword").getList()
-            ).containsExactly("native-kafka", "edge", "authzen", "sse", "webhook", "websocket", "tcp-proxy");
+            assertThat(mustNot.getJsonObject(0)
+                            .getJsonObject("terms")
+                            .getJsonArray(ENTRYPOINT_FIELD)
+                            .getList())
+                    .containsExactly("native-kafka", "edge", "authzen", "sse", "webhook", "websocket", "tcp-proxy");
+            assertThat(mustNot.getJsonObject(1)
+                            .getJsonObject("terms")
+                            .getJsonArray(ENTRYPOINT_FIELD + ".keyword")
+                            .getList())
+                    .containsExactly("native-kafka", "edge", "authzen", "sse", "webhook", "websocket", "tcp-proxy");
         }
 
         @Test
@@ -644,7 +644,8 @@ class FilterAdapterTest {
         }
 
         @Test
-        void should_honour_an_explicit_entrypoint_filter_exactly_and_skip_the_default_scope() throws JsonProcessingException {
+        void should_honour_an_explicit_entrypoint_filter_exactly_and_skip_the_default_scope()
+                throws JsonProcessingException {
             var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("mcp-proxy", "sse")));
             var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
             var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
@@ -658,8 +659,8 @@ class FilterAdapterTest {
             assertThat(terms.get(1).asText()).isEqualTo("sse");
             for (var node : filterArray) {
                 assertThat(node.has("bool") && node.get("bool").has("must_not"))
-                    .as("the default scope must not be added next to an explicit ENTRYPOINT filter")
-                    .isFalse();
+                        .as("the default scope must not be added next to an explicit ENTRYPOINT filter")
+                        .isFalse();
             }
         }
 
@@ -671,7 +672,10 @@ class FilterAdapterTest {
 
             var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
 
-            assertThat(jsonQuery.at("/query/bool/filter/1/bool/must_not/exists/field").asText()).isEqualTo("entrypoint-id");
+            assertThat(jsonQuery
+                            .at("/query/bool/filter/1/bool/must_not/exists/field")
+                            .asText())
+                    .isEqualTo("entrypoint-id");
         }
 
         @Test
@@ -680,28 +684,30 @@ class FilterAdapterTest {
             // here would turn a request that worked into a 500.
             var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, "mcp"));
             var query = new MeasuresQuery(
-                buildTimeRange(),
-                filters,
-                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)))
-            );
+                    buildTimeRange(),
+                    filters,
+                    List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))));
 
             var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
 
-            assertThat(jsonQuery.at("/query/bool/filter/1/bool/should/0/terms/entrypoint-id/0").asText()).isEqualTo("mcp");
+            assertThat(jsonQuery
+                            .at("/query/bool/filter/1/bool/should/0/terms/entrypoint-id/0")
+                            .asText())
+                    .isEqualTo("mcp");
         }
 
         @Test
         void should_select_nothing_when_the_entrypoint_filter_names_no_value() throws JsonProcessingException {
             var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of()));
             var query = new MeasuresQuery(
-                buildTimeRange(),
-                filters,
-                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)))
-            );
+                    buildTimeRange(),
+                    filters,
+                    List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))));
 
             var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
 
-            assertThat(jsonQuery.at("/query/bool/filter/1/match_none").isMissingNode()).isFalse();
+            assertThat(jsonQuery.at("/query/bool/filter/1/match_none").isMissingNode())
+                    .isFalse();
         }
 
         @Test
@@ -713,8 +719,11 @@ class FilterAdapterTest {
             var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
 
             var defaultScope = jsonQuery.at("/query/bool/filter/2/bool/must_not");
-            assertThat(defaultScope.isArray()).as("the default scope is the last filter of an unfiltered HTTP query").isTrue();
-            assertThat(defaultScope.get(0).at("/terms/entrypoint-id").get(0).asText()).isEqualTo("native-kafka");
+            assertThat(defaultScope.isArray())
+                    .as("the default scope is the last filter of an unfiltered HTTP query")
+                    .isTrue();
+            assertThat(defaultScope.get(0).at("/terms/entrypoint-id").get(0).asText())
+                    .isEqualTo("native-kafka");
         }
 
         /**
@@ -727,7 +736,8 @@ class FilterAdapterTest {
             var filters = List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID));
             var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
 
-            var connexionFilters = filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
+            var connexionFilters =
+                    filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
 
             assertThat(connexionFilters.encode()).doesNotContain(FilterAdapter.ENTRYPOINT_FIELD);
         }
@@ -736,12 +746,12 @@ class FilterAdapterTest {
         @Test
         void should_pass_an_explicit_entrypoint_filter_through_to_the_message_connections() {
             var filters = List.of(
-                new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID),
-                new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("sse"))
-            );
+                    new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID),
+                    new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("sse")));
             var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
 
-            var connexionFilters = filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
+            var connexionFilters =
+                    filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
 
             assertThat(connexionFilters.encode()).contains("sse");
         }
@@ -759,12 +769,10 @@ class FilterAdapterTest {
 
             var jsonFilters = authzFilterAdapter.adaptForAuthz(new MeasuresQuery(buildTimeRange(), filters, metrics));
 
-            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 2)).isEqualTo(
-                JsonObject.of("term", JsonObject.of("decision-point-type", "authz"))
-            );
-            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 1)).isEqualTo(
-                JsonObject.of("term", JsonObject.of("phase", "RESOLVED"))
-            );
+            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 2))
+                    .isEqualTo(JsonObject.of("term", JsonObject.of("decision-point-type", "authz")));
+            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 1))
+                    .isEqualTo(JsonObject.of("term", JsonObject.of("phase", "RESOLVED")));
         }
 
         @Test
@@ -778,14 +786,17 @@ class FilterAdapterTest {
         }
 
         @ParameterizedTest
-        @EnumSource(value = Filter.Name.class, names = { "AUTHZ_OPERATION", "AUTHZ_SEARCH_TYPE" })
+        @EnumSource(
+                value = Filter.Name.class,
+                names = {"AUTHZ_OPERATION", "AUTHZ_SEARCH_TYPE"})
         void should_match_no_decision_when_filtered_on_a_field_only_traffic_carries(Filter.Name name) {
             var filters = List.of(new Filter(name, Filter.Operator.EQ, "search"));
             var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
 
             var jsonFilters = authzFilterAdapter.adaptForAuthz(new MeasuresQuery(buildTimeRange(), filters, metrics));
 
-            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 1)).isEqualTo(JsonObject.of("match_none", JsonObject.of()));
+            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 1))
+                    .isEqualTo(JsonObject.of("match_none", JsonObject.of()));
         }
     }
 
@@ -799,17 +810,19 @@ class FilterAdapterTest {
             var filters = List.of(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.GTE, "m"));
             var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
 
-            var jsonQuery = JSON.readTree(authzMeasuresAdapter.adapt(new MeasuresQuery(buildTimeRange(), filters, metrics)));
+            var jsonQuery =
+                    JSON.readTree(authzMeasuresAdapter.adapt(new MeasuresQuery(buildTimeRange(), filters, metrics)));
 
-            assertThat(jsonQuery.at("/query/bool/filter/1/range/subject-id/gte").asText()).isEqualTo("m");
+            assertThat(jsonQuery.at("/query/bool/filter/1/range/subject-id/gte").asText())
+                    .isEqualTo("m");
         }
 
         @Test
         void should_share_one_entity_reference_budget_across_every_subject_and_resource_condition() {
             var filters = new ArrayList<Filter>();
-            IntStream.range(0, 50).forEach(i ->
-                filters.add(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "T" + i + "::a::b::c"))
-            );
+            IntStream.range(0, 50)
+                    .forEach(i -> filters.add(
+                            new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "T" + i + "::a::b::c")));
             filters.add(new Filter(Filter.Name.AUTHZ_RESOURCE_ID, Filter.Operator.EQ, "Doc::\"d1\""));
             var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
 
@@ -824,8 +837,7 @@ class FilterAdapterTest {
             var adapter = new FilterAdapter(new AuthzFieldResolver());
 
             var clause = adapter.adaptMetricFilters(
-                List.of(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\""))
-            );
+                    List.of(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\"")));
 
             assertThat(occurrences(clause.encode(), "\"subject-type\"")).isZero();
             assertThat(occurrences(clause.encode(), "\"subject-id\"")).isEqualTo(1);

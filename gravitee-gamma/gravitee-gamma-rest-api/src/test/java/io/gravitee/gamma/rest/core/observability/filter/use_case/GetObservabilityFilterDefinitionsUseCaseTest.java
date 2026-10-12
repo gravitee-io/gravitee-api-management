@@ -33,7 +33,8 @@ import org.junit.jupiter.api.Test;
 class GetObservabilityFilterDefinitionsUseCaseTest {
 
     // Real registry → exercises the actual unified vocabulary shipped with the host catalog.
-    private final GetObservabilityFilterDefinitionsUseCase useCase = new GetObservabilityFilterDefinitionsUseCase(new SpiFilterRegistry());
+    private final GetObservabilityFilterDefinitionsUseCase useCase =
+            new GetObservabilityFilterDefinitionsUseCase(new SpiFilterRegistry());
 
     @Test
     void should_return_the_full_catalog_when_both_axes_are_empty() {
@@ -41,9 +42,9 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
 
         assertThat(output.filters()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
         assertThat(output.filters())
-            .extracting(FilterSpec::name)
-            .contains("API", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI", "HTTP_PATH")
-            .doesNotContain("HTTP_PATH_MAPPING");
+                .extracting(FilterSpec::name)
+                .contains("API", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI", "HTTP_PATH")
+                .doesNotContain("HTTP_PATH_MAPPING");
     }
 
     @Test
@@ -51,24 +52,30 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
         var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS), Set.of()));
 
         // Every returned spec must declare LOGS; analytics-only filters (e.g. GATEWAY) drop out.
-        assertThat(output.filters()).allSatisfy(spec -> assertThat(spec.signals()).contains(Signal.LOGS));
-        assertThat(output.filters()).extracting(FilterSpec::name).contains("API", "URI").doesNotContain("GATEWAY", "HOST");
+        assertThat(output.filters())
+                .allSatisfy(spec -> assertThat(spec.signals()).contains(Signal.LOGS));
+        assertThat(output.filters())
+                .extracting(FilterSpec::name)
+                .contains("API", "URI")
+                .doesNotContain("GATEWAY", "HOST");
     }
 
     @Test
     void should_narrow_to_llm_relevant_filters_when_api_type_is_llm() {
         var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(), Set.of(ApiType.LLM)));
 
-        assertThat(output.filters()).allSatisfy(spec -> assertThat(spec.apiTypes()).contains(ApiType.LLM));
         assertThat(output.filters())
-            .extracting(FilterSpec::name)
-            .contains("API", "LLM_PROXY_MODEL")
-            .doesNotContain("MESSAGE_SIZE", "EDGE_TYPE");
+                .allSatisfy(spec -> assertThat(spec.apiTypes()).contains(ApiType.LLM));
+        assertThat(output.filters())
+                .extracting(FilterSpec::name)
+                .contains("API", "LLM_PROXY_MODEL")
+                .doesNotContain("MESSAGE_SIZE", "EDGE_TYPE");
     }
 
     @Test
     void should_intersect_both_axes_independently() {
-        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.ANALYTICS), Set.of(ApiType.MESSAGE)));
+        var output = useCase.execute(
+                new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.ANALYTICS), Set.of(ApiType.MESSAGE)));
 
         List<String> names = output.filters().stream().map(FilterSpec::name).toList();
         assertThat(names).contains("MESSAGE_OPERATION_TYPE", "MESSAGE_SIZE", "API_TYPE");
@@ -87,23 +94,24 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
      */
     @Test
     void should_serve_the_connection_document_filters_for_message_logs() {
-        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS), Set.of(ApiType.MESSAGE)));
+        var output = useCase.execute(
+                new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS), Set.of(ApiType.MESSAGE)));
 
         List<String> names = output.filters().stream().map(FilterSpec::name).toList();
-        assertThat(names).contains(
-            "API",
-            "APPLICATION",
-            "PLAN",
-            "ENTRYPOINT",
-            "HTTP_METHOD",
-            "HTTP_STATUS",
-            "HTTP_STATUS_CODE_GROUP",
-            "URI",
-            "HTTP_GATEWAY_RESPONSE_TIME",
-            "ERROR_KEY",
-            "REQUEST_ID",
-            "TRANSACTION_ID"
-        );
+        assertThat(names)
+                .contains(
+                        "API",
+                        "APPLICATION",
+                        "PLAN",
+                        "ENTRYPOINT",
+                        "HTTP_METHOD",
+                        "HTTP_STATUS",
+                        "HTTP_STATUS_CODE_GROUP",
+                        "URI",
+                        "HTTP_GATEWAY_RESPONSE_TIME",
+                        "ERROR_KEY",
+                        "REQUEST_ID",
+                        "TRANSACTION_ID");
         // A Message API records no connection-level body, so a payload search would always be empty.
         assertThat(names).doesNotContain("PAYLOAD");
     }

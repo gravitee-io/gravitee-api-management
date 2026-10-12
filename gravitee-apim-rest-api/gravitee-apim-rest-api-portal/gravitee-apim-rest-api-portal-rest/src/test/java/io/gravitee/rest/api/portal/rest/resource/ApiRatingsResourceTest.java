@@ -50,7 +50,8 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() throws IOException {
         resetAllMocks();
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
 
         RatingEntity rating1 = new RatingEntity();
         RatingEntity rating2 = new RatingEntity();
@@ -75,10 +76,11 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundWhileGettingApiRatings() {
-        //init
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        // init
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(false);
 
-        //test
+        // test
         final Response response = target(API).path("ratings").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
@@ -96,7 +98,9 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetServiceUnavailable() {
-        doThrow(ApiRatingUnavailableException.class).when(ratingService).create(eq(GraviteeContext.getExecutionContext()), any());
+        doThrow(ApiRatingUnavailableException.class)
+                .when(ratingService)
+                .create(eq(GraviteeContext.getExecutionContext()), any());
 
         RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
 
@@ -129,7 +133,8 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetMineApiRatings() {
-        final Response response = target(API).path("ratings").queryParam("mine", true).request().get();
+        final Response response =
+                target(API).path("ratings").queryParam("mine", true).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -155,10 +160,11 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundWhileCreatingApiRatings() {
-        //init
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        // init
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(false);
 
-        //test
+        // test
         RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
 
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
@@ -178,12 +184,13 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldBadRequestWhileCreatingApiRatings() {
-        //init
+        // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), userApi.getId())).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), userApi.getId()))
+                .thenReturn(true);
 
-        //test
+        // test
 
         final Response response = target(API).path("ratings").request().post(Entity.json(null));
         assertEquals(BAD_REQUEST_400, response.getStatus());

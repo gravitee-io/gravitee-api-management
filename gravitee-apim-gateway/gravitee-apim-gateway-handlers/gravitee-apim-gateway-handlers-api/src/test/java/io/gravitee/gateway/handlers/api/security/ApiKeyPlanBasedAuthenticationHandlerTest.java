@@ -71,7 +71,8 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
 
     @Test
     public void shouldNotHandle() {
-        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
+        apiKeyPlanBasedAuthenticationHandler =
+                new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
         when(authenticationHandler.canHandle(any())).thenReturn(false);
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(authenticationContext);
@@ -83,7 +84,8 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
 
     @Test
     public void shouldHandle_ifNoKeyInContext() {
-        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
+        apiKeyPlanBasedAuthenticationHandler =
+                new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
         AuthenticationContext context = mock(AuthenticationContext.class);
         when(authenticationHandler.canHandle(any())).thenReturn(true);
 
@@ -98,7 +100,8 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
 
     @Test
     public void shouldHandle_ifKeyNotFound() {
-        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
+        apiKeyPlanBasedAuthenticationHandler =
+                new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
         when(authenticationHandler.canHandle(any())).thenReturn(true);
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
@@ -114,7 +117,8 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
     @Test
     public void shouldNotHandle_ifKeyFoundAndPlanNotMatch() {
         when(plan.getId()).thenReturn("planId");
-        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
+        apiKeyPlanBasedAuthenticationHandler =
+                new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
         when(authenticationHandler.canHandle(any())).thenReturn(true);
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
@@ -136,7 +140,8 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         when(apiKey.getPlan()).thenReturn("planId");
         when(apiKey.getKey()).thenReturn("api-key");
 
-        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
+        apiKeyPlanBasedAuthenticationHandler =
+                new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
         when(authenticationHandler.canHandle(any())).thenReturn(true);
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
@@ -146,11 +151,11 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
 
         assertFalse(canHandle);
         verify(authenticationContext, times(1)).get(APIKEY_CONTEXT_ATTRIBUTE);
-        verify(subscriptionService, times(1)).getByApiAndSecurityToken(
-            eq("apiId"),
-            argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
-            eq("planId")
-        );
+        verify(subscriptionService, times(1))
+                .getByApiAndSecurityToken(
+                        eq("apiId"),
+                        argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
+                        eq("planId"));
     }
 
     @Test
@@ -160,20 +165,19 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         when(apiKey.getPlan()).thenReturn("planId");
         when(apiKey.getKey()).thenReturn("api-key");
 
-        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
+        apiKeyPlanBasedAuthenticationHandler =
+                new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
         when(authenticationHandler.canHandle(any())).thenReturn(true);
         when(authenticationContext.request()).thenReturn(mock(Request.class));
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
         when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(apiKey)));
 
-        when(
-            subscriptionService.getByApiAndSecurityToken(
-                eq("apiId"),
-                argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
-                eq("planId")
-            )
-        ).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndSecurityToken(
+                        eq("apiId"),
+                        argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
+                        eq("planId")))
+                .thenReturn(Optional.of(subscription));
         when(subscription.isTimeValid(anyLong())).thenReturn(false);
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(authenticationContext);
@@ -188,20 +192,19 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         when(apiKey.getPlan()).thenReturn("planId");
         when(apiKey.getKey()).thenReturn("api-key");
 
-        apiKeyPlanBasedAuthenticationHandler = new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
+        apiKeyPlanBasedAuthenticationHandler =
+                new ApiKeyPlanBasedAuthenticationHandler(authenticationHandler, plan, subscriptionService);
         when(authenticationHandler.canHandle(any())).thenReturn(true);
         when(authenticationContext.request()).thenReturn(mock(Request.class));
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
         when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(apiKey)));
 
-        when(
-            subscriptionService.getByApiAndSecurityToken(
-                eq("apiId"),
-                argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
-                eq("planId")
-            )
-        ).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndSecurityToken(
+                        eq("apiId"),
+                        argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
+                        eq("planId")))
+                .thenReturn(Optional.of(subscription));
         when(subscription.isTimeValid(anyLong())).thenReturn(true);
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(authenticationContext);

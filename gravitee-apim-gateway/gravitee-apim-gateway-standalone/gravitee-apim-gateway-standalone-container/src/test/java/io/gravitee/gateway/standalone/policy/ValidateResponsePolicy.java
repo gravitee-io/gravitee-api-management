@@ -23,7 +23,6 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponseContent;
 
 /**
@@ -47,9 +46,8 @@ public class ValidateResponsePolicy {
 
             @Override
             public void end() {
-                policyChain.streamFailWith(
-                    PolicyResult.failure(GATEWAY_INVALID_RESPONSE_KEY, HttpStatusCode.BAD_REQUEST_400, "Bad request")
-                );
+                policyChain.streamFailWith(PolicyResult.failure(
+                        GATEWAY_INVALID_RESPONSE_KEY, HttpStatusCode.BAD_REQUEST_400, "Bad request"));
             }
         };
     }

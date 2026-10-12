@@ -35,46 +35,41 @@ public class PolicyResponseStep extends PolicyStep<MutableResponse> {
     }
 
     @Override
-    public Single<PolicyStepState> saveInputState(final MutableResponse response, final Map<String, Serializable> inputAttributes) {
-        return response
-            .bodyOrEmpty()
-            .map(inputBody ->
-                new PolicyStepState()
-                    .headers(response.headers())
-                    .statusCode(response.status())
-                    .reason(response.reason())
-                    .attributes(inputAttributes)
-                    .buffer(inputBody)
-            );
+    public Single<PolicyStepState> saveInputState(
+            final MutableResponse response, final Map<String, Serializable> inputAttributes) {
+        return response.bodyOrEmpty()
+                .map(inputBody -> new PolicyStepState()
+                        .headers(response.headers())
+                        .statusCode(response.status())
+                        .reason(response.reason())
+                        .attributes(inputAttributes)
+                        .buffer(inputBody));
     }
 
     @Override
     public Single<Map<String, Object>> computeDiff(
-        final MutableResponse response,
-        final PolicyStepState inputState,
-        final Map<String, Serializable> outputAttributes
-    ) {
-        return response
-            .bodyOrEmpty()
-            .map(outputBody -> {
-                Map<String, Object> diffMap = new HashMap<>();
-                if (!inputState.headers().deeplyEquals(response.headers())) {
-                    diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(response.headers()));
-                }
-                if (inputState.statusCode() != response.status()) {
-                    diffMap.put(DIFF_KEY_STATUS_CODE, response.status());
-                }
-                if (inputState.reason() != null && !inputState.reason().equals(response.reason())) {
-                    diffMap.put(DIFF_KEY_REASON, response.reason());
-                }
-                if (!inputState.attributes().equals(outputAttributes)) {
-                    diffMap.put(DIFF_KEY_ATTRIBUTES, new HashMap<>(outputAttributes));
-                }
+            final MutableResponse response,
+            final PolicyStepState inputState,
+            final Map<String, Serializable> outputAttributes) {
+        return response.bodyOrEmpty().map(outputBody -> {
+            Map<String, Object> diffMap = new HashMap<>();
+            if (!inputState.headers().deeplyEquals(response.headers())) {
+                diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(response.headers()));
+            }
+            if (inputState.statusCode() != response.status()) {
+                diffMap.put(DIFF_KEY_STATUS_CODE, response.status());
+            }
+            if (inputState.reason() != null && !inputState.reason().equals(response.reason())) {
+                diffMap.put(DIFF_KEY_REASON, response.reason());
+            }
+            if (!inputState.attributes().equals(outputAttributes)) {
+                diffMap.put(DIFF_KEY_ATTRIBUTES, new HashMap<>(outputAttributes));
+            }
 
-                if (!inputState.buffer().getNativeBuffer().equals(outputBody.getNativeBuffer())) {
-                    diffMap.put(DIFF_KEY_BODY_BUFFER, Buffer.buffer(outputBody.getBytes()));
-                }
-                return diffMap;
-            });
+            if (!inputState.buffer().getNativeBuffer().equals(outputBody.getNativeBuffer())) {
+                diffMap.put(DIFF_KEY_BODY_BUFFER, Buffer.buffer(outputBody.getBytes()));
+            }
+            return diffMap;
+        });
     }
 }

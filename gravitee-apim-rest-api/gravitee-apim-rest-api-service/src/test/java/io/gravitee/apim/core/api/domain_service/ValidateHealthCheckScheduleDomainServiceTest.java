@@ -50,15 +50,15 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
         @Test
         void should_reject_five_field_cron_on_group_health_check() {
-            var errors = validate(groupWithHealthCheck(INVALID_FIVE_FIELD_CRON, inheritingEndpoint("default-endpoint")));
+            var errors =
+                    validate(groupWithHealthCheck(INVALID_FIVE_FIELD_CRON, inheritingEndpoint("default-endpoint")));
 
             assertThat(errors).hasSize(1);
             assertThat(errors.getFirst().isSevere()).isTrue();
             assertThat(errors.getFirst().getMessage()).contains(INVALID_FIVE_FIELD_CRON);
             assertThat(errors.getFirst().getMessage()).contains("6 fields");
-            assertThat(errors.getFirst().getMessage()).contains(
-                "endpointGroups[default-group].services.healthCheck.configuration.schedule"
-            );
+            assertThat(errors.getFirst().getMessage())
+                    .contains("endpointGroups[default-group].services.healthCheck.configuration.schedule");
         }
 
         @Test
@@ -70,23 +70,25 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
         @Test
         void should_ignore_invalid_group_cron_when_no_endpoint_uses_it() {
-            var errors = validate(group(enabledHealthCheck(false, INVALID_FIVE_FIELD_CRON), overridingEndpoint("ep-1", VALID_CRON)));
+            var errors = validate(
+                    group(enabledHealthCheck(false, INVALID_FIVE_FIELD_CRON), overridingEndpoint("ep-1", VALID_CRON)));
 
             assertThat(errors).isEmpty();
         }
 
         @Test
         void should_ignore_invalid_cron_on_inheriting_endpoint_when_group_config_is_used() {
-            var errors = validate(group(enabledHealthCheck(false, VALID_CRON), inheritingEnabledEndpoint("ep-1", INVALID_FIVE_FIELD_CRON)));
+            var errors = validate(group(
+                    enabledHealthCheck(false, VALID_CRON), inheritingEnabledEndpoint("ep-1", INVALID_FIVE_FIELD_CRON)));
 
             assertThat(errors).isEmpty();
         }
 
         @Test
         void should_reject_invalid_cron_on_disabled_overriding_endpoint_when_group_probe_runs() {
-            var errors = validate(
-                group(enabledHealthCheck(false, VALID_CRON), overridingDisabledEndpoint("ep-1", INVALID_FIVE_FIELD_CRON))
-            );
+            var errors = validate(group(
+                    enabledHealthCheck(false, VALID_CRON),
+                    overridingDisabledEndpoint("ep-1", INVALID_FIVE_FIELD_CRON)));
 
             assertThat(errors).hasSize(1);
             assertThat(errors.getFirst().getMessage()).contains("endpoints[ep-1]");
@@ -104,7 +106,8 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
         @Test
         void should_skip_disabled_health_check_with_invalid_schedule() {
-            var errors = validate(group(healthCheck(false, false, INVALID_FIVE_FIELD_CRON), inheritingEndpoint("default-endpoint")));
+            var errors = validate(
+                    group(healthCheck(false, false, INVALID_FIVE_FIELD_CRON), inheritingEndpoint("default-endpoint")));
 
             assertThat(errors).isEmpty();
         }
@@ -115,24 +118,25 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
         @Test
         void should_allow_group_without_cron_when_all_endpoints_have_one() {
-            var errors = validate(
-                group(enabledHealthCheck(false, null), overridingEndpoint("ep-1", VALID_CRON), overridingEndpoint("ep-2", VALID_CRON))
-            );
+            var errors = validate(group(
+                    enabledHealthCheck(false, null),
+                    overridingEndpoint("ep-1", VALID_CRON),
+                    overridingEndpoint("ep-2", VALID_CRON)));
 
             assertThat(errors).isEmpty();
         }
 
         @Test
         void should_reject_group_without_cron_when_an_endpoint_does_not_have_one() {
-            var errors = validate(
-                group(enabledHealthCheck(false, null), overridingEndpoint("ep-1", VALID_CRON), inheritingEndpoint("ep-2"))
-            );
+            var errors = validate(group(
+                    enabledHealthCheck(false, null),
+                    overridingEndpoint("ep-1", VALID_CRON),
+                    inheritingEndpoint("ep-2")));
 
             assertThat(errors).hasSize(1);
             assertThat(errors.getFirst().getMessage()).contains("is required");
-            assertThat(errors.getFirst().getMessage()).contains(
-                "endpointGroups[default-group].services.healthCheck.configuration.schedule"
-            );
+            assertThat(errors.getFirst().getMessage())
+                    .contains("endpointGroups[default-group].services.healthCheck.configuration.schedule");
         }
     }
 
@@ -141,7 +145,8 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
         @Test
         void should_allow_inheriting_endpoint_without_cron_when_group_has_one() {
-            var errors = validate(group(enabledHealthCheck(false, VALID_CRON), inheritingEnabledEndpoint("ep-1", null)));
+            var errors =
+                    validate(group(enabledHealthCheck(false, VALID_CRON), inheritingEnabledEndpoint("ep-1", null)));
 
             assertThat(errors).isEmpty();
         }
@@ -159,14 +164,14 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
             assertThat(errors).hasSize(1);
             assertThat(errors.getFirst().getMessage()).contains("is required");
-            assertThat(errors.getFirst().getMessage()).contains(
-                "endpointGroups[default-group].services.healthCheck.configuration.schedule"
-            );
+            assertThat(errors.getFirst().getMessage())
+                    .contains("endpointGroups[default-group].services.healthCheck.configuration.schedule");
         }
 
         @Test
         void should_allow_inheriting_enabled_endpoint_when_disabled_group_has_a_cron() {
-            var errors = validate(group(healthCheck(false, false, VALID_CRON), inheritingEnabledEndpoint("canary", null)));
+            var errors =
+                    validate(group(healthCheck(false, false, VALID_CRON), inheritingEnabledEndpoint("canary", null)));
 
             assertThat(errors).isEmpty();
         }
@@ -206,11 +211,13 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
     private static EndpointGroup group(Service groupHealthCheck, Endpoint... endpoints) {
         return EndpointGroup.builder()
-            .name("default-group")
-            .type("http-proxy")
-            .services(EndpointGroupServices.builder().healthCheck(groupHealthCheck).build())
-            .endpoints(List.of(endpoints))
-            .build();
+                .name("default-group")
+                .type("http-proxy")
+                .services(EndpointGroupServices.builder()
+                        .healthCheck(groupHealthCheck)
+                        .build())
+                .endpoints(List.of(endpoints))
+                .build();
     }
 
     private static Endpoint inheritingEndpoint(String name) {
@@ -231,10 +238,10 @@ class ValidateHealthCheckScheduleDomainServiceTest {
 
     private static Endpoint endpoint(String name, Service healthCheck) {
         return Endpoint.builder()
-            .name(name)
-            .type("http-proxy")
-            .services(EndpointServices.builder().healthCheck(healthCheck).build())
-            .build();
+                .name(name)
+                .type("http-proxy")
+                .services(EndpointServices.builder().healthCheck(healthCheck).build())
+                .build();
     }
 
     private static Service enabledHealthCheck(boolean overrideConfiguration, String schedule) {
@@ -244,10 +251,10 @@ class ValidateHealthCheckScheduleDomainServiceTest {
     private static Service healthCheck(boolean enabled, boolean overrideConfiguration, String schedule) {
         var configuration = schedule == null ? "{}" : "{\"schedule\":\"%s\"}".formatted(schedule);
         return Service.builder()
-            .type(ValidateHealthCheckScheduleDomainService.HTTP_HEALTH_CHECK_TYPE)
-            .enabled(enabled)
-            .overrideConfiguration(overrideConfiguration)
-            .configuration(configuration)
-            .build();
+                .type(ValidateHealthCheckScheduleDomainService.HTTP_HEALTH_CHECK_TYPE)
+                .enabled(enabled)
+                .overrideConfiguration(overrideConfiguration)
+                .configuration(configuration)
+                .build();
     }
 }

@@ -38,38 +38,41 @@ public class CreateOrUpdatePortalListingUseCase {
     private final PortalListingCrudService portalListingCrudService;
     private final PortalListingSyncDomainService syncDomainService;
 
-    public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) {}
+    public record Input(
+            AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) {}
 
     public record Output(PortalListingId id, List<Validator.Error> errors) {}
 
     public Output execute(Input input) {
-        var validation = validator.validateAndSanitize(
-            new ValidatePortalListingDomainService.Input(input.auditInfo(), input.listingId(), input.portalId(), input.apis())
-        );
+        var validation = validator.validateAndSanitize(new ValidatePortalListingDomainService.Input(
+                input.auditInfo(), input.listingId(), input.portalId(), input.apis()));
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                    errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
 
-        var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal listing"));
+        var sanitized = validation
+                .value()
+                .orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal listing"));
 
         var listing = PortalListing.of(
-            sanitized.listingId(),
-            input.auditInfo().environmentId(),
-            input.auditInfo().organizationId(),
-            sanitized.portalId(),
-            sanitized.apis() == null ? List.of() : sanitized.apis()
-        );
+                sanitized.listingId(),
+                input.auditInfo().environmentId(),
+                input.auditInfo().organizationId(),
+                sanitized.portalId(),
+                sanitized.apis() == null ? List.of() : sanitized.apis());
 
         syncDomainService.validateForConflicts(input.auditInfo(), sanitized.portalId(), listing);
 
-        var existing = portalListingCrudService.findByIdAndEnvironmentId(sanitized.listingId(), input.auditInfo().environmentId());
+        var existing = portalListingCrudService.findByIdAndEnvironmentId(
+                sanitized.listingId(), input.auditInfo().environmentId());
         var previousApis = existing.map(PortalListing::getApis).orElseGet(List::of);
-        var saved = existing.isPresent() ? portalListingCrudService.update(listing) : portalListingCrudService.create(listing);
+        var saved = existing.isPresent()
+                ? portalListingCrudService.update(listing)
+                : portalListingCrudService.create(listing);
 
         syncDomainService.sync(input.auditInfo(), saved.getPortalId(), previousApis, saved);
 

@@ -65,39 +65,46 @@ public class PortalLinksResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_PORTAL,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @PathParam("hrid") String portalHrid,
-        @Valid @NotNull PortalLinkSpec spec,
-        @QueryParam("dryRun") boolean dryRun
-    ) {
+            @PathParam("hrid") String portalHrid,
+            @Valid @NotNull PortalLinkSpec spec,
+            @QueryParam("dryRun") boolean dryRun) {
         var auditInfo = getAuditInfo();
-        var portalId = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
+        var portalId = PortalId.of(
+                HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
         var linkId = PortalNavigationItemId.forPortalLink(auditInfo, portalId.toString(), spec.getHrid());
 
         var input = new CreateOrUpdatePortalLinkUseCase.Input(
-            auditInfo,
-            portalId,
-            spec.getHrid(),
-            spec.getName(),
-            spec.getHref(),
-            spec.getLocation(),
-            spec.getOrder(),
-            PortalLinkMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
-        );
+                auditInfo,
+                portalId,
+                spec.getHrid(),
+                spec.getName(),
+                spec.getHref(),
+                spec.getLocation(),
+                spec.getOrder(),
+                PortalLinkMapper.INSTANCE.toDomainVisibility(spec.getVisibility()));
         var output = dryRun ? validatePortalLinkUseCase.execute(input) : createOrUpdatePortalLinkUseCase.execute(input);
 
         // A dry run never has a link() (ValidatePortalLinkUseCase never persists), and a failed real apply
         // has none either, so both fall back to echoing the submitted spec; a successful apply reports
         // what was actually persisted, not what was submitted.
         var state = output.link() != null
-            ? PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), spec.getHrid(), output.errors(), portalHrid)
-            : PortalLinkMapper.INSTANCE.toPortalLinkState(spec, linkId.toString(), output.errors(), auditInfo, portalHrid);
+                ? PortalLinkMapper.INSTANCE.toPortalLinkState(
+                        output.link(), spec.getHrid(), output.errors(), portalHrid)
+                : PortalLinkMapper.INSTANCE.toPortalLinkState(
+                        spec, linkId.toString(), output.errors(), auditInfo, portalHrid);
 
         // A dry run is a preview: severe findings are its payload, so it always answers 200.
         // A real apply that produced severe errors persisted nothing — it must not report success.
         var applyFailed = !dryRun && output.errors().stream().anyMatch(Validator.Error::isSevere);
 
-        return Response.status(applyFailed ? Response.Status.BAD_REQUEST : Response.Status.OK).entity(state).build();
+        return Response.status(applyFailed ? Response.Status.BAD_REQUEST : Response.Status.OK)
+                .entity(state)
+                .build();
     }
 }

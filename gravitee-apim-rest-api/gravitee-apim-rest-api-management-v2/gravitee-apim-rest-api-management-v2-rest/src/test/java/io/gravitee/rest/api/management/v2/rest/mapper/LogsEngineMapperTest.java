@@ -42,28 +42,31 @@ class LogsEngineMapperTest {
 
     @Test
     void should_map_proxy_to_http_proxy() {
-        assertThat(LogsEngineMapper.INSTANCE.mapApiType(ApiType.PROXY)).isEqualTo(EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY);
+        assertThat(LogsEngineMapper.INSTANCE.mapApiType(ApiType.PROXY))
+                .isEqualTo(EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY);
     }
 
     @Test
     void should_map_llm_proxy_to_llm_proxy() {
-        assertThat(LogsEngineMapper.INSTANCE.mapApiType(ApiType.LLM_PROXY)).isEqualTo(EnvironmentApiLog.ApiTypeEnum.LLM_PROXY);
+        assertThat(LogsEngineMapper.INSTANCE.mapApiType(ApiType.LLM_PROXY))
+                .isEqualTo(EnvironmentApiLog.ApiTypeEnum.LLM_PROXY);
     }
 
     @Test
     void should_map_mcp_proxy_to_mcp_proxy() {
-        assertThat(LogsEngineMapper.INSTANCE.mapApiType(ApiType.MCP_PROXY)).isEqualTo(EnvironmentApiLog.ApiTypeEnum.MCP_PROXY);
+        assertThat(LogsEngineMapper.INSTANCE.mapApiType(ApiType.MCP_PROXY))
+                .isEqualTo(EnvironmentApiLog.ApiTypeEnum.MCP_PROXY);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "A2A_PROXY", "MESSAGE", "NATIVE" })
+    @ValueSource(strings = {"A2A_PROXY", "MESSAGE", "NATIVE"})
     void should_map_non_http_types_to_null(String apiTypeName) {
         var result = LogsEngineMapper.INSTANCE.mapApiType(ApiType.valueOf(apiTypeName));
         assertThat(result).isNull();
     }
 
     @ParameterizedTest
-    @CsvSource({ "HTTP_PATH,URI", "HTTP_GATEWAY_RESPONSE_TIME,RESPONSE_TIME", "MCP_PROXY_METHOD,MCP_METHOD" })
+    @CsvSource({"HTTP_PATH,URI", "HTTP_GATEWAY_RESPONSE_TIME,RESPONSE_TIME", "MCP_PROXY_METHOD,MCP_METHOD"})
     void should_alias_catalog_filter_names_to_the_logs_engine_vocabulary(String wireName, String engineName) {
         var result = LogsEngineMapper.INSTANCE.mapFilterName(FilterName.valueOf(wireName));
 
@@ -71,7 +74,7 @@ class LogsEngineMapperTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "URI", "RESPONSE_TIME", "MCP_METHOD" })
+    @ValueSource(strings = {"URI", "RESPONSE_TIME", "MCP_METHOD"})
     void should_keep_accepting_the_historical_filter_names(String legacyName) {
         // Links saved before the vocabularies were reconciled still carry these.
         var result = LogsEngineMapper.INSTANCE.mapFilterName(FilterName.valueOf(legacyName));
@@ -83,7 +86,9 @@ class LogsEngineMapperTest {
     void should_map_every_wire_filter_name_to_the_logs_engine() {
         // Guards the switch in mapFilterName: a name added to openapi-logs.yaml without an engine
         // counterpart would otherwise blow up at request time rather than here.
-        assertThat(FilterName.values()).allSatisfy(name -> assertThat(LogsEngineMapper.INSTANCE.mapFilterName(name)).isNotNull());
+        assertThat(FilterName.values())
+                .allSatisfy(name -> assertThat(LogsEngineMapper.INSTANCE.mapFilterName(name))
+                        .isNotNull());
     }
 
     @Test
@@ -96,11 +101,11 @@ class LogsEngineMapperTest {
         var wireNames = Arrays.stream(FilterName.values()).map(Enum::name).collect(Collectors.toSet());
 
         assertThat(new AnalyticsDefinitionYAMLQueryService().getFilters(Set.of(Signal.LOGS)))
-            .isNotEmpty()
-            .allSatisfy(spec ->
-                assertThat(wireNames)
-                    .as("%s is published for the LOGS signal but missing from FilterName in openapi-logs.yaml", spec.name())
-                    .contains(spec.name().name())
-            );
+                .isNotEmpty()
+                .allSatisfy(spec -> assertThat(wireNames)
+                        .as(
+                                "%s is published for the LOGS signal but missing from FilterName in openapi-logs.yaml",
+                                spec.name())
+                        .contains(spec.name().name()));
     }
 }

@@ -66,15 +66,16 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(mockApi);
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false))
+                .thenReturn(mockApi);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
     }
 
     @Test
     void shouldNotFoundApiWhileGettingApiMetrics() {
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenThrow(
-            new ApiNotFoundException(API)
-        );
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false))
+                .thenThrow(new ApiNotFoundException(API));
 
         final Response response = target(API).path("metrics").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -112,14 +113,17 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
         subC8.setApplication("C");
         subC8.setApi("8");
         doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1))
-            .when(subscriptionService)
-            .search(eq(GraviteeContext.getExecutionContext()), any());
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
-        io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockMetrics = new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
+        io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockMetrics =
+                new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
         Map<String, Double> globalMetrics = new HashMap<>();
         globalMetrics.put("1w", API_HEALTHCHECK_RATIO);
         mockMetrics.setGlobal(globalMetrics);
-        doReturn(mockMetrics).when(healthCheckService).getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(mockMetrics)
+                .when(healthCheckService)
+                .getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         final Response response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -136,7 +140,9 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
         // Case 1
         doReturn(null).when(analyticsService).execute(any(ExecutionContext.class), any(StatsQuery.class));
         doReturn(null).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
-        doReturn(null).when(healthCheckService).getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(null)
+                .when(healthCheckService)
+                .getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         Response response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -149,10 +155,12 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
 
         // Case 2
         doReturn(null).when(analyticsService).execute(any(ExecutionContext.class), any(StatsQuery.class));
-        doReturn(Collections.emptyList()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Collections.emptyList())
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number>())
-            .when(healthCheckService)
-            .getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
+                .when(healthCheckService)
+                .getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -166,9 +174,12 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
         // Case 3
         doReturn(null).when(analyticsService).execute(any(ExecutionContext.class), any(StatsQuery.class));
         doReturn(null).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
-        io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockedMetrics = new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
+        io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockedMetrics =
+                new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
         mockedMetrics.setGlobal(Collections.singletonMap("1w", Double.NaN));
-        doReturn(mockedMetrics).when(healthCheckService).getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(mockedMetrics)
+                .when(healthCheckService)
+                .getAvailability(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         response = target(API).path("metrics").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -183,7 +194,7 @@ class ApiMetricsResourceTest extends AbstractResourceTest {
         doReturn(null).when(analyticsService).execute(any(ExecutionContext.class), any(StatsQuery.class));
         doReturn(null).when(subscriptionService).search(any(), any());
         io.gravitee.rest.api.model.healthcheck.ApiMetrics<Number> mockedMetrics3 =
-            new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
+                new io.gravitee.rest.api.model.healthcheck.ApiMetrics<>();
         mockedMetrics.setGlobal(Collections.singletonMap("1w", null));
         doReturn(mockedMetrics3).when(healthCheckService).getAvailability(any(), any(), any());
 

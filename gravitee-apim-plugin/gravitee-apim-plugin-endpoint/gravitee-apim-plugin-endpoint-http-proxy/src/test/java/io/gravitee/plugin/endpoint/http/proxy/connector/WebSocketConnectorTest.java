@@ -22,7 +22,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.util.LinkedMultiValueMap;
@@ -168,7 +167,8 @@ class WebSocketConnectorTest {
 
         connect();
 
-        assertThat(requestHeaders.get("Sec-WebSocket-Extensions")).isEqualTo("permessage-deflate; client_max_window_bits");
+        assertThat(requestHeaders.get("Sec-WebSocket-Extensions"))
+                .isEqualTo("permessage-deflate; client_max_window_bits");
     }
 
     @Test
@@ -178,7 +178,8 @@ class WebSocketConnectorTest {
 
         connect();
 
-        assertThat(backendReceivedExtensions.get(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEmpty();
+        assertThat(backendReceivedExtensions.get(TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .isEmpty();
         verify(ctx, never()).interruptWith(any(ExecutionFailure.class));
     }
 
@@ -186,17 +187,19 @@ class WebSocketConnectorTest {
     void should_not_relay_backend_extension_answer_to_caller() throws Exception {
         connect();
 
-        assertThat(backendReceivedExtensions.get(TIMEOUT_SECONDS, TimeUnit.SECONDS)).contains("permessage-deflate");
+        assertThat(backendReceivedExtensions.get(TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .contains("permessage-deflate");
         assertThat(responseHeaders.contains("Sec-WebSocket-Extensions")).isFalse();
         verify(callerWebSocket).upgrade();
     }
 
     private void connect() {
-        new WebSocketConnector(configuration, sharedConfiguration, new HttpClientFactory(), new WebSocketClientFactory())
-            .connect(ctx)
-            .test()
-            .awaitDone(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .assertComplete();
+        new WebSocketConnector(
+                        configuration, sharedConfiguration, new HttpClientFactory(), new WebSocketClientFactory())
+                .connect(ctx)
+                .test()
+                .awaitDone(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .assertComplete();
     }
 
     /**
@@ -219,19 +222,20 @@ class WebSocketConnectorTest {
             backendReceivedExtensions.complete(offer);
 
             final StringBuilder handshake = new StringBuilder()
-                .append("HTTP/1.1 101 Switching Protocols\r\n")
-                .append("Upgrade: websocket\r\n")
-                .append("Connection: Upgrade\r\n")
-                .append("Sec-WebSocket-Accept: ")
-                .append(accept(key))
-                .append("\r\n");
+                    .append("HTTP/1.1 101 Switching Protocols\r\n")
+                    .append("Upgrade: websocket\r\n")
+                    .append("Connection: Upgrade\r\n")
+                    .append("Sec-WebSocket-Accept: ")
+                    .append(accept(key))
+                    .append("\r\n");
             final String firstOffer = Arrays.stream(offer.split(","))
-                .map(String::trim)
-                .filter(extension -> extension.startsWith("permessage-deflate"))
-                .findFirst()
-                .orElse("");
+                    .map(String::trim)
+                    .filter(extension -> extension.startsWith("permessage-deflate"))
+                    .findFirst()
+                    .orElse("");
             if (!firstOffer.isEmpty()) {
-                handshake.append("Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_no_context_takeover");
+                handshake.append(
+                        "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_no_context_takeover");
                 if (firstOffer.contains("client_max_window_bits")) {
                     handshake.append("; client_max_window_bits=15");
                 }
@@ -243,17 +247,17 @@ class WebSocketConnectorTest {
 
     private static String header(String head, String name) {
         final String prefix = name.toLowerCase(Locale.ROOT) + ":";
-        return head
-            .lines()
-            .filter(line -> line.toLowerCase(Locale.ROOT).startsWith(prefix))
-            .map(line -> line.substring(prefix.length()).trim())
-            .reduce((first, second) -> first + ", " + second)
-            .orElse("");
+        return head.lines()
+                .filter(line -> line.toLowerCase(Locale.ROOT).startsWith(prefix))
+                .map(line -> line.substring(prefix.length()).trim())
+                .reduce((first, second) -> first + ", " + second)
+                .orElse("");
     }
 
     private static String accept(String key) {
         try {
-            final byte[] sha1 = MessageDigest.getInstance("SHA-1").digest((key + WEBSOCKET_GUID).getBytes(StandardCharsets.US_ASCII));
+            final byte[] sha1 = MessageDigest.getInstance("SHA-1")
+                    .digest((key + WEBSOCKET_GUID).getBytes(StandardCharsets.US_ASCII));
             return Base64.getEncoder().encodeToString(sha1);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to compute the WebSocket accept value", e);

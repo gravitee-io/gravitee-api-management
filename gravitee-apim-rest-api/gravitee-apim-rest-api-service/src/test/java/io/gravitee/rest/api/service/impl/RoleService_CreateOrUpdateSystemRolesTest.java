@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,14 +26,12 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Arrays;
-import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -54,8 +51,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
     private static final String REFERENCE_ID = "DEFAULT";
     private static final RoleReferenceType REFERENCE_TYPE = RoleReferenceType.ORGANIZATION;
     private static int[] envtAdminPermissions = Arrays.stream(EnvironmentPermission.values())
-        .mapToInt(ep -> ep.getMask() + 15)
-        .toArray();
+            .mapToInt(ep -> ep.getMask() + 15)
+            .toArray();
 
     @InjectMocks
     private RoleServiceImpl roleService = new RoleServiceImpl();
@@ -71,16 +68,14 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
     @Test
     public void shouldCreateSystemRole() throws TechnicalException {
-        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenReturn(empty());
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                .thenReturn(empty());
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(11)).findByScopeAndNameAndReferenceIdAndReferenceType(
-            any(),
-            anyString(),
-            eq(REFERENCE_ID),
-            eq(REFERENCE_TYPE)
-        );
+        verify(mockRoleRepository, times(11))
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                        any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, never()).update(any());
         verify(mockRoleRepository, times(11)).create(any());
     }
@@ -88,140 +83,86 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
     @Test
     public void shouldUpdateSystemRole() throws TechnicalException {
         Role mgmtAdminRole = mock(Role.class);
-        when(mgmtAdminRole.getPermissions()).thenReturn(new int[] { 20, 21 });
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.ENVIRONMENT,
-                "ADMIN",
-                REFERENCE_ID,
-                REFERENCE_TYPE
-            )
-        ).thenReturn(of(mgmtAdminRole));
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.ORGANIZATION,
-                "ADMIN",
-                REFERENCE_ID,
-                REFERENCE_TYPE
-            )
-        ).thenReturn(empty());
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.API,
-                "PRIMARY_OWNER",
-                REFERENCE_ID,
-                REFERENCE_TYPE
-            )
-        ).thenReturn(empty());
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.APPLICATION,
-                "PRIMARY_OWNER",
-                REFERENCE_ID,
-                REFERENCE_TYPE
-            )
-        ).thenReturn(empty());
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)
-        ).thenReturn(empty());
+        when(mgmtAdminRole.getPermissions()).thenReturn(new int[] {20, 21});
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.ENVIRONMENT, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(of(mgmtAdminRole));
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.ORGANIZATION, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(empty());
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.API, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(empty());
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.APPLICATION, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(empty());
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(empty());
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(11)).findByScopeAndNameAndReferenceIdAndReferenceType(
-            any(),
-            anyString(),
-            eq(REFERENCE_ID),
-            eq(REFERENCE_TYPE)
-        );
-        verify(mockRoleRepository, times(1)).update(
-            argThat(
-                o ->
-                    o.getScope().equals(RoleScope.ENVIRONMENT) &&
-                    Arrays.stream(o.getPermissions()).reduce(Math::addExact).orElse(0) ==
-                    Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
-            )
-        );
-        verify(mockRoleRepository, times(6)).create(
-            argThat(
-                o ->
-                    o.getScope().equals(RoleScope.API) ||
-                    o.getScope().equals(RoleScope.APPLICATION) ||
-                    o.getScope().equals(RoleScope.ORGANIZATION) ||
-                    o.getScope().equals(RoleScope.PLATFORM) ||
-                    o.getScope().equals(RoleScope.GROUP) ||
-                    o.getScope().equals(RoleScope.INTEGRATION) ||
-                    o.getScope().equals(RoleScope.API_PRODUCT)
-            )
-        );
+        verify(mockRoleRepository, times(11))
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                        any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
+        verify(mockRoleRepository, times(1))
+                .update(argThat(o -> o.getScope().equals(RoleScope.ENVIRONMENT)
+                        && Arrays.stream(o.getPermissions())
+                                        .reduce(Math::addExact)
+                                        .orElse(0)
+                                == Arrays.stream(envtAdminPermissions)
+                                        .reduce(Math::addExact)
+                                        .orElse(0)));
+        verify(mockRoleRepository, times(6))
+                .create(argThat(o -> o.getScope().equals(RoleScope.API)
+                        || o.getScope().equals(RoleScope.APPLICATION)
+                        || o.getScope().equals(RoleScope.ORGANIZATION)
+                        || o.getScope().equals(RoleScope.PLATFORM)
+                        || o.getScope().equals(RoleScope.GROUP)
+                        || o.getScope().equals(RoleScope.INTEGRATION)
+                        || o.getScope().equals(RoleScope.API_PRODUCT)));
     }
 
     @Test
     public void shouldDoNothing() throws TechnicalException {
         Role mgmtAdminRole = mock(Role.class);
         when(mgmtAdminRole.getPermissions()).thenReturn(envtAdminPermissions);
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.ENVIRONMENT,
-                "ADMIN",
-                REFERENCE_ID,
-                REFERENCE_TYPE
-            )
-        ).thenReturn(of(mgmtAdminRole));
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.API,
-                "PRIMARY_OWNER",
-                REFERENCE_ID,
-                REFERENCE_TYPE
-            )
-        ).thenReturn(empty());
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.APPLICATION,
-                "PRIMARY_OWNER",
-                REFERENCE_ID,
-                REFERENCE_TYPE
-            )
-        ).thenReturn(empty());
-        when(
-            mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)
-        ).thenReturn(empty());
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.ENVIRONMENT, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(of(mgmtAdminRole));
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.API, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(empty());
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.APPLICATION, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(empty());
+        when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
+                .thenReturn(empty());
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(11)).findByScopeAndNameAndReferenceIdAndReferenceType(
-            any(),
-            anyString(),
-            eq(REFERENCE_ID),
-            eq(REFERENCE_TYPE)
-        );
+        verify(mockRoleRepository, times(11))
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                        any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(6)).create(
-            argThat(
-                o ->
-                    o.getScope().equals(RoleScope.API) ||
-                    o.getScope().equals(RoleScope.APPLICATION) ||
-                    o.getScope().equals(RoleScope.ORGANIZATION) ||
-                    o.getScope().equals(RoleScope.PLATFORM) ||
-                    o.getScope().equals(RoleScope.GROUP) ||
-                    o.getScope().equals(RoleScope.INTEGRATION) ||
-                    o.getScope().equals(RoleScope.API_PRODUCT)
-            )
-        );
+        verify(mockRoleRepository, times(6))
+                .create(argThat(o -> o.getScope().equals(RoleScope.API)
+                        || o.getScope().equals(RoleScope.APPLICATION)
+                        || o.getScope().equals(RoleScope.ORGANIZATION)
+                        || o.getScope().equals(RoleScope.PLATFORM)
+                        || o.getScope().equals(RoleScope.GROUP)
+                        || o.getScope().equals(RoleScope.INTEGRATION)
+                        || o.getScope().equals(RoleScope.API_PRODUCT)));
     }
 
     @Test
     public void shouldNotCreateBecauseOfTechnicalManagementException() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             Role mgmtAdminRole = mock(Role.class);
-            when(
-                mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.ENVIRONMENT,
-                    "ADMIN",
-                    REFERENCE_ID,
-                    REFERENCE_TYPE
-                )
-            ).thenThrow(new TechnicalException());
+            when(mockRoleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.ENVIRONMENT, "ADMIN", REFERENCE_ID, REFERENCE_TYPE))
+                    .thenThrow(new TechnicalException());
 
             roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
         });

@@ -35,7 +35,7 @@ public class RedisRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.RATE_LIMIT, Scope.DISTRIBUTED_SYNC };
+        return new Scope[] {Scope.RATE_LIMIT, Scope.DISTRIBUTED_SYNC};
     }
 
     @Override

@@ -49,7 +49,6 @@ import org.springframework.core.env.Environment;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @ExtendWith(MockitoExtension.class)
 public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
 
@@ -73,18 +72,17 @@ public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
         GraviteeContext.fromExecutionContext(new ExecutionContext());
 
         lenient()
-            .when(environment.getProperty(any(), eq(String.class), anyString()))
-            .thenAnswer(invocation -> invocation.getArgument(2));
+                .when(environment.getProperty(any(), eq(String.class), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(2));
 
         eventManager = new EventManagerImpl();
         cut = new GraviteeCorsConfiguration(
-            environment,
-            parameterService,
-            installationAccessQueryService,
-            eventManager,
-            GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
-            ENVIRONMENT_TYPE
-        );
+                environment,
+                parameterService,
+                installationAccessQueryService,
+                eventManager,
+                GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
+                ENVIRONMENT_TYPE);
     }
 
     @AfterEach
@@ -94,44 +92,42 @@ public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
 
     @Test
     void should_initialize_fields_from_default_value() {
-        verify(environment, times(1)).getProperty(
-            Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN.key(),
-            String.class,
-            Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN.defaultValue()
-        );
-        verify(environment, times(1)).getProperty(
-            Key.PORTAL_HTTP_CORS_ALLOW_HEADERS.key(),
-            String.class,
-            Key.PORTAL_HTTP_CORS_ALLOW_HEADERS.defaultValue()
-        );
-        verify(environment, times(1)).getProperty(
-            Key.PORTAL_HTTP_CORS_ALLOW_METHODS.key(),
-            String.class,
-            Key.PORTAL_HTTP_CORS_ALLOW_METHODS.defaultValue()
-        );
-        verify(environment, times(1)).getProperty(
-            Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.key(),
-            String.class,
-            Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.defaultValue()
-        );
-        verify(environment, times(1)).getProperty(
-            Key.PORTAL_HTTP_CORS_MAX_AGE.key(),
-            String.class,
-            Key.PORTAL_HTTP_CORS_MAX_AGE.defaultValue()
-        );
+        verify(environment, times(1))
+                .getProperty(
+                        Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN.key(),
+                        String.class,
+                        Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN.defaultValue());
+        verify(environment, times(1))
+                .getProperty(
+                        Key.PORTAL_HTTP_CORS_ALLOW_HEADERS.key(),
+                        String.class,
+                        Key.PORTAL_HTTP_CORS_ALLOW_HEADERS.defaultValue());
+        verify(environment, times(1))
+                .getProperty(
+                        Key.PORTAL_HTTP_CORS_ALLOW_METHODS.key(),
+                        String.class,
+                        Key.PORTAL_HTTP_CORS_ALLOW_METHODS.defaultValue());
+        verify(environment, times(1))
+                .getProperty(
+                        Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.key(),
+                        String.class,
+                        Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.defaultValue());
+        verify(environment, times(1))
+                .getProperty(
+                        Key.PORTAL_HTTP_CORS_MAX_AGE.key(), String.class, Key.PORTAL_HTTP_CORS_MAX_AGE.defaultValue());
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
-        assertThat(cut.getAllowedHeaders()).containsOnly(
-            "Cache-Control",
-            "Pragma",
-            "Origin",
-            "Authorization",
-            "Content-Type",
-            "X-Requested-With",
-            "If-Match",
-            "X-Xsrf-Token",
-            "X-Recaptcha-Token"
-        );
+        assertThat(cut.getAllowedHeaders())
+                .containsOnly(
+                        "Cache-Control",
+                        "Pragma",
+                        "Origin",
+                        "Authorization",
+                        "Content-Type",
+                        "X-Requested-With",
+                        "If-Match",
+                        "X-Xsrf-Token",
+                        "X-Recaptcha-Token");
         assertThat(cut.getAllowedMethods()).containsOnly("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH");
         assertThat(cut.getExposedHeaders()).containsOnly("ETag", "X-Xsrf-Token");
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
@@ -141,20 +137,20 @@ public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
     void should_initialize_fields_from_default_value_and_installation() {
         when(installationAccessQueryService.getPortalUrls()).thenReturn(List.of("custom-portal-url"));
         cut = new GraviteeCorsConfiguration(
-            environment,
-            parameterService,
-            installationAccessQueryService,
-            eventManager,
-            GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
-            ENVIRONMENT_TYPE
-        );
+                environment,
+                parameterService,
+                installationAccessQueryService,
+                eventManager,
+                GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
+                ENVIRONMENT_TYPE);
 
         assertEquals(Arrays.asList("*", "custom-portal-url"), cut.getAllowedOriginPatterns());
     }
 
     @Test
     void should_not_set_fields_on_event_with_wrong_env_id() {
-        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ENV")));
+        eventManager.publishEvent(
+                new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ENV")));
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
     }
 

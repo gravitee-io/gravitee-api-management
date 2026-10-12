@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.EventType;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;

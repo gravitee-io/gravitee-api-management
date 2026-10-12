@@ -153,14 +153,8 @@ public class ApiStateServiceImpl_DeployTest {
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
     @InjectMocks
-    private ApiConverter apiConverter = new ApiConverter(
-        objectMapper,
-        planService,
-        flowService,
-        categoryMapper,
-        parameterService,
-        workflowService
-    );
+    private ApiConverter apiConverter =
+            new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService);
 
     @Mock
     private PlanSearchService planSearchService;
@@ -168,9 +162,9 @@ public class ApiStateServiceImpl_DeployTest {
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
-    private final io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService validateApiClusterBindingService = mock(
-        io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class
-    );
+    private final io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService
+            validateApiClusterBindingService =
+                    mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class);
 
     private Api api;
     private Api updatedApi;
@@ -179,50 +173,46 @@ public class ApiStateServiceImpl_DeployTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
     public void setUp() {
         ApiMapper apiMapper = new ApiMapper(
-            new ObjectMapper(),
-            planServiceV4,
-            flowServiceV4,
-            parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
-        );
+                new ObjectMapper(),
+                planServiceV4,
+                flowServiceV4,
+                parameterService,
+                workflowService,
+                new CategoryMapper(categoryService));
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiStateService = new ApiStateServiceImpl(
-            apiSearchService,
-            apiRepository,
-            apiMapper,
-            genericApiMapper,
-            apiNotificationService,
-            primaryOwnerService,
-            auditService,
-            eventService,
-            eventLatestRepository,
-            objectMapper,
-            apiMetadataService,
-            apiValidationService,
-            planSearchService,
-            apiConverter,
-            synchronizationService,
-            eventManager,
-            searchEngineService,
-            validateApiClusterBindingService
-        );
+                apiSearchService,
+                apiRepository,
+                apiMapper,
+                genericApiMapper,
+                apiNotificationService,
+                primaryOwnerService,
+                auditService,
+                eventService,
+                eventLatestRepository,
+                objectMapper,
+                apiMetadataService,
+                apiValidationService,
+                planSearchService,
+                apiConverter,
+                synchronizationService,
+                eventManager,
+                searchEngineService,
+                validateApiClusterBindingService);
         reset(searchEngineService, validateApiClusterBindingService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
@@ -236,9 +226,8 @@ public class ApiStateServiceImpl_DeployTest {
 
         updatedApi = new Api(api);
 
-        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class))).then(invocation ->
-            invocation.getArgument(1)
-        );
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class)))
+                .then(invocation -> invocation.getArgument(1));
     }
 
     @Test
@@ -246,58 +235,61 @@ public class ApiStateServiceImpl_DeployTest {
         final Event previousPublishedEvent = new Event();
         previousPublishedEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "3"));
 
-        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(true);
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
-            List.of(previousPublishedEvent)
-        );
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L)))
+                .thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
-        final GenericApiEntity result = apiStateService.deploy(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_NAME,
-            apiDeploymentEntity
-        );
+        final GenericApiEntity result =
+                apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity);
 
-        verify(eventService).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.PUBLISH_API),
-            eq(api),
-            argThat(
-                properties ->
-                    properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
-                    properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("4") &&
-                    properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
-            )
-        );
+        verify(eventService)
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.PUBLISH_API),
+                        eq(api),
+                        argThat(properties -> properties
+                                        .get(Event.EventProperties.USER.getValue())
+                                        .equals(USER_NAME)
+                                && properties
+                                        .get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())
+                                        .equals("4")
+                                && properties
+                                        .get(Event.EventProperties.DEPLOYMENT_LABEL.getValue())
+                                        .equals(apiDeploymentEntity.getDeploymentLabel())));
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
     @Test
     public void should_not_deploy_when_no_active_plan_for_api() {
         assertThrows(ApiNotDeployableException.class, () -> {
-            when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(false);
+            when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                    .thenReturn(false);
             when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
-            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
+            apiStateService.deploy(
+                    GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
         });
     }
 
     @Test
     public void should_not_deploy_when_bound_virtual_cluster_is_not_deployed() throws TechnicalException {
-        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(true);
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         doThrow(new ApiNotDeployableException("bound virtual cluster is not deployed"))
-            .when(validateApiClusterBindingService)
-            .validateDeployable(eq(API_ID), any(), any(), any());
+                .when(validateApiClusterBindingService)
+                .validateDeployable(eq(API_ID), any(), any(), any());
 
-        assertThrows(ApiNotDeployableException.class, () ->
-            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
-        );
+        assertThrows(
+                ApiNotDeployableException.class,
+                () -> apiStateService.deploy(
+                        GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity()));
         verify(apiRepository, never()).update(any());
     }
 
@@ -306,59 +298,61 @@ public class ApiStateServiceImpl_DeployTest {
         final Event previousPublishedEvent = new Event();
         previousPublishedEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "3"));
 
-        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
-            List.of(previousPublishedEvent)
-        );
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L)))
+                .thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
-        final GenericApiEntity result = apiStateService.deploy(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_NAME,
-            apiDeploymentEntity
-        );
+        final GenericApiEntity result =
+                apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity);
 
-        verify(eventService).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.PUBLISH_API),
-            eq(api),
-            argThat(
-                properties ->
-                    properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
-                    properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("4") &&
-                    properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
-            )
-        );
+        verify(eventService)
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.PUBLISH_API),
+                        eq(api),
+                        argThat(properties -> properties
+                                        .get(Event.EventProperties.USER.getValue())
+                                        .equals(USER_NAME)
+                                && properties
+                                        .get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())
+                                        .equals("4")
+                                && properties
+                                        .get(Event.EventProperties.DEPLOYMENT_LABEL.getValue())
+                                        .equals(apiDeploymentEntity.getDeploymentLabel())));
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
     @Test
     public void should_redeploy_api_with_synced_dynamic_properties() throws TechnicalException {
-        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
 
         final GenericApiEntity result = apiStateService.redeployWithSyncedDynamicProperties(
-            GraviteeContext.getExecutionContext(),
-            updatedApi,
-            USER_NAME,
-            new ApiDeploymentEntity("http-dynamic-properties sync")
-        );
+                GraviteeContext.getExecutionContext(),
+                updatedApi,
+                USER_NAME,
+                new ApiDeploymentEntity("http-dynamic-properties sync"));
 
-        verify(eventService).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.PUBLISH_API),
-            same(updatedApi),
-            argThat(properties -> "http-dynamic-properties sync".equals(properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue())))
-        );
+        verify(eventService)
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.PUBLISH_API),
+                        same(updatedApi),
+                        argThat(properties -> "http-dynamic-properties sync"
+                                .equals(properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()))));
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
@@ -395,11 +389,14 @@ public class ApiStateServiceImpl_DeployTest {
     @Test
     public void should_keep_the_access_audit_when_the_deploy_notification_fails() throws TechnicalException {
         given_deployable_api(ApiType.PROXY, ENCRYPTED_PROPERTY_DEFINITION);
-        doThrow(new IllegalStateException("notifier down")).when(apiNotificationService).triggerDeployNotification(any(), any());
+        doThrow(new IllegalStateException("notifier down"))
+                .when(apiNotificationService)
+                .triggerDeployNotification(any(), any());
 
-        assertThrows(IllegalStateException.class, () ->
-            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
-        );
+        assertThrows(
+                IllegalStateException.class,
+                () -> apiStateService.deploy(
+                        GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity()));
 
         verify_encrypted_properties_access_audited();
     }
@@ -434,11 +431,7 @@ public class ApiStateServiceImpl_DeployTest {
         api.setDefinitionVersion(DefinitionVersion.V2);
 
         GenericApiEntity deployed = apiStateService.deploy(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_NAME,
-            new ApiDeploymentEntity()
-        );
+                GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
 
         assertTrue(((ApiEntity) deployed).getPropertyList().getFirst().isEncrypted());
         verifyNoInteractions(auditService);
@@ -447,47 +440,50 @@ public class ApiStateServiceImpl_DeployTest {
     @Test
     public void should_not_audit_a_rejected_deploy() {
         api.setDefinition(ENCRYPTED_PROPERTY_DEFINITION);
-        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(false);
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(false);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(api);
 
-        assertThrows(ApiNotDeployableException.class, () ->
-            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
-        );
+        assertThrows(
+                ApiNotDeployableException.class,
+                () -> apiStateService.deploy(
+                        GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity()));
 
         verifyNoInteractions(auditService);
     }
 
     @Test
-    public void should_audit_encrypted_properties_refresh_when_redeploying_with_synced_dynamic_properties() throws TechnicalException {
+    public void should_audit_encrypted_properties_refresh_when_redeploying_with_synced_dynamic_properties()
+            throws TechnicalException {
         given_deployable_api(ApiType.PROXY, ENCRYPTED_PROPERTY_DEFINITION);
         updatedApi.setType(ApiType.PROXY);
         updatedApi.setDefinition(ENCRYPTED_PROPERTY_DEFINITION);
 
         apiStateService.redeployWithSyncedDynamicProperties(
-            GraviteeContext.getExecutionContext(),
-            updatedApi,
-            USER_NAME,
-            new ApiDeploymentEntity("http-dynamic-properties sync")
-        );
+                GraviteeContext.getExecutionContext(),
+                updatedApi,
+                USER_NAME,
+                new ApiDeploymentEntity("http-dynamic-properties sync"));
 
-        verify(eventService).createApiEvent(any(), anySet(), anyString(), eq(EventType.PUBLISH_API), same(updatedApi), anyMap());
+        verify(eventService)
+                .createApiEvent(any(), anySet(), anyString(), eq(EventType.PUBLISH_API), same(updatedApi), anyMap());
         verify_encrypted_properties_audited(API_ENCRYPTED_PROPERTIES_REFRESHED);
         verifyNoMoreInteractions(auditService);
     }
 
     @Test
     public void should_not_audit_a_redeploy_with_synced_dynamic_properties_of_an_api_without_encrypted_property()
-        throws TechnicalException {
+            throws TechnicalException {
         given_deployable_api(ApiType.PROXY, PLAIN_PROPERTY_DEFINITION);
         updatedApi.setType(ApiType.PROXY);
         updatedApi.setDefinition(PLAIN_PROPERTY_DEFINITION);
 
         apiStateService.redeployWithSyncedDynamicProperties(
-            GraviteeContext.getExecutionContext(),
-            updatedApi,
-            USER_NAME,
-            new ApiDeploymentEntity("http-dynamic-properties sync")
-        );
+                GraviteeContext.getExecutionContext(),
+                updatedApi,
+                USER_NAME,
+                new ApiDeploymentEntity("http-dynamic-properties sync"));
 
         verifyNoInteractions(auditService);
     }
@@ -495,20 +491,23 @@ public class ApiStateServiceImpl_DeployTest {
     @Test
     public void should_throw_technical_exception_during_update() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
-            when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
-            when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+            when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                    .thenReturn(true);
+            when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
+                    .thenReturn(api);
             when(apiRepository.update(api)).thenThrow(new TechnicalException());
-            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
+            apiStateService.deploy(
+                    GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
         });
     }
 
     @Test
     public void should_throw_not_found_exception_during_get_by_id() {
         assertThrows(ApiNotFoundException.class, () -> {
-            when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(
-                new ApiNotFoundException(API_ID)
-            );
-            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
+            when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
+                    .thenThrow(new ApiNotFoundException(API_ID));
+            apiStateService.deploy(
+                    GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
         });
     }
 
@@ -520,38 +519,35 @@ public class ApiStateServiceImpl_DeployTest {
         deploymentEntity.setDeploymentLabel("Release v1.0");
         Event mockEvent = new Event();
         mockEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "5"));
-        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
-            List.of(mockEvent)
-        );
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L)))
+                .thenReturn(List.of(mockEvent));
         Map<String, String> props = new HashMap<>();
 
         ApiStateServiceImpl impl = new ApiStateServiceImpl(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            eventLatestRepository,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                eventLatestRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
         Method method = ApiStateServiceImpl.class.getDeclaredMethod(
-            "addDeploymentLabelToProperties",
-            ExecutionContext.class,
-            String.class,
-            Map.class,
-            ApiDeploymentEntity.class
-        );
+                "addDeploymentLabelToProperties",
+                ExecutionContext.class,
+                String.class,
+                Map.class,
+                ApiDeploymentEntity.class);
         method.setAccessible(true);
         method.invoke(impl, executionContext, "api-id", props, deploymentEntity);
         assertEquals("6", props.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()));
@@ -561,8 +557,10 @@ public class ApiStateServiceImpl_DeployTest {
     private void given_deployable_api(ApiType type, String definition) throws TechnicalException {
         api.setType(type);
         api.setDefinition(definition);
-        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
     }
 
@@ -571,19 +569,16 @@ public class ApiStateServiceImpl_DeployTest {
     }
 
     private void verify_encrypted_properties_audited(Api.AuditEvent event) {
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent() == event &&
-                    auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true")) &&
-                    auditLogData.getCreatedAt().equals(api.getDeployedAt()) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue() == null &&
-                    ACCESS_PATCH.equals(auditLogData.getPatch())
-            ),
-            eq(API_ID),
-            eq(USER_NAME)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent() == event
+                                && auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true"))
+                                && auditLogData.getCreatedAt().equals(api.getDeployedAt())
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue() == null
+                                && ACCESS_PATCH.equals(auditLogData.getPatch())),
+                        eq(API_ID),
+                        eq(USER_NAME));
     }
 }

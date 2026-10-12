@@ -69,12 +69,15 @@ public class PlanKeylessMutualTLSV4IntegrationTest {
     }
 
     public static void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     public static void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
@@ -92,15 +95,14 @@ public class PlanKeylessMutualTLSV4IntegrationTest {
     }
 
     public static void configureGateway(GatewayConfigurationBuilder config) {
-        config
-            .httpSecured(true)
-            .set("http.ssl.clientAuth", "request")
-            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
+        config.httpSecured(true)
+                .set("http.ssl.clientAuth", "request")
+                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
     }
 
     @Nested
     @GatewayTest
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectKeylessTest extends PlanKeylessV4IntegrationTest {
 
         @Override
@@ -143,11 +145,10 @@ public class PlanKeylessMutualTLSV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             configureTrustedHttpClient(options, gatewayConfig.httpPort(), false);
         }
 
@@ -156,12 +157,11 @@ public class PlanKeylessMutualTLSV4IntegrationTest {
                 String path = (String) arguments.get()[0];
                 boolean requireWiremock = (boolean) arguments.get()[1];
                 return Stream.of(
-                    Arguments.of(path, requireWiremock, "Authorization", ""),
-                    Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
-                    Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
-                    Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
-                    Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token")
-                );
+                        Arguments.of(path, requireWiremock, "Authorization", ""),
+                        Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
+                        Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
+                        Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
+                        Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token"));
             });
         }
 
@@ -169,26 +169,22 @@ public class PlanKeylessMutualTLSV4IntegrationTest {
         @ParameterizedTest
         @MethodSource("provideSecurityHeaders")
         protected void should_access_api_and_ignore_security(
-            String apiId,
-            boolean requireWiremock,
-            String headerName,
-            String headerValue,
-            HttpClient client
-        ) {
+                String apiId, boolean requireWiremock, String headerName, String headerValue, HttpClient client) {
             super.should_access_api_and_ignore_security(apiId, requireWiremock, headerName, headerValue, client);
         }
 
         @Override
         @ParameterizedTest
         @MethodSource("provideApis")
-        protected void should_return_200_success_without_any_security(String apiId, boolean requireWiremock, HttpClient client) {
+        protected void should_return_200_success_without_any_security(
+                String apiId, boolean requireWiremock, HttpClient client) {
             super.should_return_200_success_without_any_security(apiId, requireWiremock, client);
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectMtlsTest extends PlanMutualTLSClientAuthRequestIntegrationTest {
 
         @Override
@@ -233,12 +229,11 @@ public class PlanKeylessMutualTLSV4IntegrationTest {
         @MethodSource("provideApis")
         @Override
         protected void should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_request(
-            final String apiId,
-            final boolean requireWiremock,
-            final HttpClient client
-        ) {
-            // In this case, the mtls plan will simply be skipped and pass to the Keyless one, letting the request success
-            should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_request(apiId, requireWiremock, client, OK_200, ENDPOINT_RESPONSE);
+                final String apiId, final boolean requireWiremock, final HttpClient client) {
+            // In this case, the mtls plan will simply be skipped and pass to the Keyless one, letting the request
+            // success
+            should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_request(
+                    apiId, requireWiremock, client, OK_200, ENDPOINT_RESPONSE);
         }
     }
 }

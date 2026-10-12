@@ -31,7 +31,8 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GetPortalPageContentUseCaseTest {
 
-    private static final PortalPageContentId CONTENT_ID = PortalPageContentId.of("00000000-0000-0000-0000-000000000001");
+    private static final PortalPageContentId CONTENT_ID =
+            PortalPageContentId.of("00000000-0000-0000-0000-000000000001");
 
     private GetPortalPageContentUseCase useCase;
 
@@ -51,9 +52,8 @@ class GetPortalPageContentUseCaseTest {
         // Then
         assertThat(result.content()).isInstanceOf(GraviteeMarkdownPageContent.class);
         assertThat(result.content().getId()).isEqualTo(CONTENT_ID);
-        assertThat(((GraviteeMarkdownPageContent) result.content()).getContent().value()).isEqualTo(
-            "# Welcome\n\nThis is a sample page content."
-        );
+        assertThat(((GraviteeMarkdownPageContent) result.content()).getContent().value())
+                .isEqualTo("# Welcome\n\nThis is a sample page content.");
     }
 
     @Test
@@ -63,9 +63,9 @@ class GetPortalPageContentUseCaseTest {
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(new GetPortalPageContentUseCase.Input(unknownId)))
-            .isInstanceOf(PageContentNotFoundException.class)
-            .hasMessage("Page content not found")
-            .extracting(ex -> ((PageContentNotFoundException) ex).getId())
-            .isEqualTo(unknownId.json());
+                .isInstanceOf(PageContentNotFoundException.class)
+                .hasMessage("Page content not found")
+                .extracting(ex -> ((PageContentNotFoundException) ex).getId())
+                .isEqualTo(unknownId.json());
     }
 }

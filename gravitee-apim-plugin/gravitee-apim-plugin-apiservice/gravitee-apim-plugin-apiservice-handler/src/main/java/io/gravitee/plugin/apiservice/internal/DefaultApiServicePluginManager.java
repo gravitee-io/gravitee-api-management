@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.apiservice.internal;
 
-import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.apiservice.ApiServiceClassLoaderFactory;
@@ -37,9 +36,8 @@ import lombok.CustomLog;
  */
 @SuppressWarnings("unchecked")
 @CustomLog
-public class DefaultApiServicePluginManager
-    extends AbstractConfigurablePluginManager<ApiServicePlugin<?, ?>>
-    implements ApiServicePluginManager {
+public class DefaultApiServicePluginManager extends AbstractConfigurablePluginManager<ApiServicePlugin<?, ?>>
+        implements ApiServicePluginManager {
 
     private final ApiServiceClassLoaderFactory classLoaderFactory;
     private final Map<String, ApiServiceFactory<?>> factories = new HashMap<>();
@@ -47,9 +45,8 @@ public class DefaultApiServicePluginManager
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
     public DefaultApiServicePluginManager(
-        final ApiServiceClassLoaderFactory classLoaderFactory,
-        PluginConfigurationHelper pluginConfigurationHelper
-    ) {
+            final ApiServiceClassLoaderFactory classLoaderFactory,
+            PluginConfigurationHelper pluginConfigurationHelper) {
         this.classLoaderFactory = classLoaderFactory;
         this.pluginConfigurationHelper = pluginConfigurationHelper;
     }
@@ -61,9 +58,8 @@ public class DefaultApiServicePluginManager
         // Create api service.
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<ApiServiceFactory<?>> connectorFactoryClass = (Class<ApiServiceFactory<?>>) pluginClassLoader.loadClass(
-                plugin.clazz()
-            );
+            final Class<ApiServiceFactory<?>> connectorFactoryClass =
+                    (Class<ApiServiceFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
             ApiServiceFactory<?> factory = createFactory(connectorFactoryClass);
             if (plugin.deployed()) {
                 factories.put(plugin.id(), factory);
@@ -76,15 +72,15 @@ public class DefaultApiServicePluginManager
     }
 
     private ApiServiceFactory<?> createFactory(final Class<ApiServiceFactory<?>> connectorFactoryClass)
-        throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+            throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         ApiServiceFactory<?> factory;
         try {
-            Constructor<ApiServiceFactory<?>> constructorWithFactoryHelper = connectorFactoryClass.getDeclaredConstructor(
-                PluginConfigurationHelper.class
-            );
+            Constructor<ApiServiceFactory<?>> constructorWithFactoryHelper =
+                    connectorFactoryClass.getDeclaredConstructor(PluginConfigurationHelper.class);
             factory = constructorWithFactoryHelper.newInstance(pluginConfigurationHelper);
         } catch (NoSuchMethodException e) {
-            Constructor<ApiServiceFactory<?>> constructorWithFactoryHelper = connectorFactoryClass.getDeclaredConstructor();
+            Constructor<ApiServiceFactory<?>> constructorWithFactoryHelper =
+                    connectorFactoryClass.getDeclaredConstructor();
             factory = constructorWithFactoryHelper.newInstance();
         }
 
@@ -122,13 +118,9 @@ public class DefaultApiServicePluginManager
 
     @Override
     public <T extends ApiServiceFactory<?>> List<T> getAllFactories(boolean includeNotDeployed, Class<?> clazz) {
-        List<ApiServiceFactory<?>> allFactories = new ArrayList<>(
-            factories
-                .values()
-                .stream()
+        List<ApiServiceFactory<?>> allFactories = new ArrayList<>(factories.values().stream()
                 .filter(f -> clazz.isAssignableFrom(f.getClass()))
-                .toList()
-        );
+                .toList());
         if (includeNotDeployed) {
             allFactories.addAll(notDeployedPluginFactories.values());
         }

@@ -22,37 +22,20 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
-import io.gravitee.apim.infra.crud_service.plan.PlanCrudServiceImpl;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.plan.PlanMode;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
-import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import lombok.SneakyThrows;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -80,12 +63,12 @@ public class ThemeCrudServiceImplTest {
             var definitionPortal = new ThemeDefinition();
             definitionPortal.setData(List.of());
             var theme = Theme.builder()
-                .id("portal-id")
-                .type(ThemeType.PORTAL)
-                .definitionPortal(definitionPortal)
-                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .build();
+                    .id("portal-id")
+                    .type(ThemeType.PORTAL)
+                    .definitionPortal(definitionPortal)
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build();
             when(themeRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             var result = service.create(theme);
@@ -97,15 +80,17 @@ public class ThemeCrudServiceImplTest {
         @SneakyThrows
         void should_create_a_portal_next_theme() {
             var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
-                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
-                .build();
+                    .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder()
+                            .primary("#fff")
+                            .build())
+                    .build();
             var theme = Theme.builder()
-                .id("portal-id")
-                .type(ThemeType.PORTAL_NEXT)
-                .definitionPortalNext(definitionPortal)
-                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .build();
+                    .id("portal-id")
+                    .type(ThemeType.PORTAL_NEXT)
+                    .definitionPortalNext(definitionPortal)
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build();
             when(themeRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             var result = service.create(theme);
@@ -119,10 +104,13 @@ public class ThemeCrudServiceImplTest {
             when(themeRepository.create(any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.create(Theme.builder().build()));
+            Throwable throwable =
+                    catchThrowable(() -> service.create(Theme.builder().build()));
 
             // Then
-            assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessage("Error during theme creation");
+            assertThat(throwable)
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("Error during theme creation");
         }
     }
 
@@ -135,59 +123,57 @@ public class ThemeCrudServiceImplTest {
             var definitionPortal = new ThemeDefinition();
             definitionPortal.setData(List.of());
             var theme = Theme.builder()
-                .id("portal-id")
-                .type(ThemeType.PORTAL)
-                .definitionPortal(definitionPortal)
-                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .build();
+                    .id("portal-id")
+                    .type(ThemeType.PORTAL)
+                    .definitionPortal(definitionPortal)
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build();
             service.update(theme);
 
             var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Theme.class);
             verify(themeRepository).update(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.Theme.builder()
-                        .id("portal-id")
-                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
-                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.Theme.builder()
+                            .id("portal-id")
+                            .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
+                            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .build());
         }
 
         @Test
         @SneakyThrows
         void should_update_an_existing_portal_next_theme() {
             var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
-                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
-                .build();
+                    .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder()
+                            .primary("#fff")
+                            .build())
+                    .build();
             var theme = Theme.builder()
-                .id("portal-id")
-                .type(ThemeType.PORTAL_NEXT)
-                .definitionPortalNext(definitionPortal)
-                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .build();
+                    .id("portal-id")
+                    .type(ThemeType.PORTAL_NEXT)
+                    .definitionPortalNext(definitionPortal)
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build();
             service.update(theme);
 
             var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Theme.class);
             verify(themeRepository).update(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.Theme.builder()
-                        .id("portal-id")
-                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
-                        .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.Theme.builder()
+                            .id("portal-id")
+                            .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
+                            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .build());
         }
 
         @Test
@@ -196,7 +182,8 @@ public class ThemeCrudServiceImplTest {
             when(themeRepository.update(any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.update(Theme.builder().build()));
+            Throwable throwable =
+                    catchThrowable(() -> service.update(Theme.builder().build()));
 
             // Then
             assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessage("Error during theme update");
@@ -209,20 +196,21 @@ public class ThemeCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_get_a_portal_theme() {
-            when(themeRepository.findById("portal-id")).thenReturn(
-                Optional.of(
-                    io.gravitee.repository.management.model.Theme.builder()
-                        .id("portal-id")
-                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
-                        .definition("{ \"data\": [] }")
-                        .build()
-                )
-            );
+            when(themeRepository.findById("portal-id"))
+                    .thenReturn(Optional.of(io.gravitee.repository.management.model.Theme.builder()
+                            .id("portal-id")
+                            .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
+                            .definition("{ \"data\": [] }")
+                            .build()));
 
             var definitionPortal = new ThemeDefinition();
             definitionPortal.setData(List.of());
 
-            var theme = Theme.builder().id("portal-id").type(ThemeType.PORTAL).definitionPortal(definitionPortal).build();
+            var theme = Theme.builder()
+                    .id("portal-id")
+                    .type(ThemeType.PORTAL)
+                    .definitionPortal(definitionPortal)
+                    .build();
 
             var existingTheme = service.get("portal-id");
 
@@ -232,21 +220,24 @@ public class ThemeCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_get_a_portal_next_theme() {
-            when(themeRepository.findById("portal-id")).thenReturn(
-                Optional.of(
-                    io.gravitee.repository.management.model.Theme.builder()
-                        .id("portal-id")
-                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
-                        .definition("{ \"color\": { \"primary\": \"#fff\" } }")
-                        .build()
-                )
-            );
+            when(themeRepository.findById("portal-id"))
+                    .thenReturn(Optional.of(io.gravitee.repository.management.model.Theme.builder()
+                            .id("portal-id")
+                            .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
+                            .definition("{ \"color\": { \"primary\": \"#fff\" } }")
+                            .build()));
 
             var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
-                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
-                .build();
+                    .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder()
+                            .primary("#fff")
+                            .build())
+                    .build();
 
-            var theme = Theme.builder().id("portal-id").type(ThemeType.PORTAL_NEXT).definitionPortalNext(definitionPortal).build();
+            var theme = Theme.builder()
+                    .id("portal-id")
+                    .type(ThemeType.PORTAL_NEXT)
+                    .definitionPortalNext(definitionPortal)
+                    .build();
 
             var existingTheme = service.get("portal-id");
 
@@ -274,7 +265,9 @@ public class ThemeCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.get("portal-id"));
 
             // Then
-            assertThat(throwable).isInstanceOf(ThemeNotFoundException.class).hasMessage("Theme [ portal-id ] not found");
+            assertThat(throwable)
+                    .isInstanceOf(ThemeNotFoundException.class)
+                    .hasMessage("Theme [ portal-id ] not found");
         }
     }
 }

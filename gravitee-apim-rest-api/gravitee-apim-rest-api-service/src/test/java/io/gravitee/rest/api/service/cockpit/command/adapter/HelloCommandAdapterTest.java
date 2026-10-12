@@ -79,13 +79,12 @@ public class HelloCommandAdapterTest {
     @BeforeEach
     public void beforeEach() {
         cut = new HelloCommandAdapter(
-            node,
-            installationService,
-            installationTypeDomainService,
-            cockpitAccessService,
-            pluginRegistry,
-            installationConfiguration
-        );
+                node,
+                installationService,
+                installationTypeDomainService,
+                cockpitAccessService,
+                pluginRegistry,
+                installationConfiguration);
     }
 
     @Test
@@ -139,20 +138,34 @@ public class HelloCommandAdapterTest {
         when(installationService.getOrInitialize()).thenReturn(installationEntity);
         when(installationTypeDomainService.get()).thenReturn(InstallationType.STANDALONE);
 
-        final TestObserver<HelloCommand> obs = cut
-            .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
-            .test();
+        final TestObserver<HelloCommand> obs = cut.adapt(
+                        null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
+                .test();
 
         obs.await();
         obs.assertValue(helloCommand -> {
-            assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_PATH));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
-            assertEquals(InstallationType.STANDALONE.getLabel(), helloCommand.getPayload().getInstallationType());
+            assertEquals(
+                    CUSTOM_VALUE,
+                    helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
+            assertTrue(helloCommand
+                    .getPayload()
+                    .getAdditionalInformation()
+                    .containsKey(AdditionalInfoConstants.AUTH_PATH));
+            assertTrue(helloCommand
+                    .getPayload()
+                    .getAdditionalInformation()
+                    .containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
+            assertEquals(
+                    InstallationType.STANDALONE.getLabel(),
+                    helloCommand.getPayload().getInstallationType());
 
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().hostname());
-            assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
-            assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
+            assertEquals(
+                    GraviteeContext.getDefaultOrganization(),
+                    helloCommand.getPayload().getDefaultOrganizationId());
+            assertEquals(
+                    GraviteeContext.getDefaultEnvironment(),
+                    helloCommand.getPayload().getDefaultEnvironmentId());
             assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().installationId());
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().hostname());
 
@@ -169,31 +182,51 @@ public class HelloCommandAdapterTest {
         when(node.hostname()).thenReturn(HOSTNAME);
         when(installationService.getOrInitialize()).thenReturn(installationEntity);
         when(installationTypeDomainService.get()).thenReturn(InstallationType.MULTI_TENANT);
-        when(cockpitAccessService.getAccessPointsTemplate()).thenReturn(
-            Map.of(
-                AccessPointTemplate.Type.ENVIRONMENT,
-                List.of(AccessPointTemplate.builder().host("localhost").secured(false).target(AccessPointTemplate.Target.CONSOLE).build())
-            )
-        );
-        final TestObserver<HelloCommand> obs = cut
-            .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
-            .test();
+        when(cockpitAccessService.getAccessPointsTemplate())
+                .thenReturn(Map.of(
+                        AccessPointTemplate.Type.ENVIRONMENT,
+                        List.of(AccessPointTemplate.builder()
+                                .host("localhost")
+                                .secured(false)
+                                .target(AccessPointTemplate.Target.CONSOLE)
+                                .build())));
+        final TestObserver<HelloCommand> obs = cut.adapt(
+                        null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
+                .test();
 
         obs.await();
         obs.assertValue(helloCommand -> {
-            assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_PATH));
-            assertFalse(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
-            assertEquals(InstallationType.MULTI_TENANT.getLabel(), helloCommand.getPayload().getInstallationType());
+            assertEquals(
+                    CUSTOM_VALUE,
+                    helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
+            assertTrue(helloCommand
+                    .getPayload()
+                    .getAdditionalInformation()
+                    .containsKey(AdditionalInfoConstants.AUTH_PATH));
+            assertFalse(helloCommand
+                    .getPayload()
+                    .getAdditionalInformation()
+                    .containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
+            assertEquals(
+                    InstallationType.MULTI_TENANT.getLabel(),
+                    helloCommand.getPayload().getInstallationType());
 
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().hostname());
-            assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
-            assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
+            assertEquals(
+                    GraviteeContext.getDefaultOrganization(),
+                    helloCommand.getPayload().getDefaultOrganizationId());
+            assertEquals(
+                    GraviteeContext.getDefaultEnvironment(),
+                    helloCommand.getPayload().getDefaultEnvironmentId());
             assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().installationId());
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().hostname());
 
             assertEquals(helloCommand.getPayload().getAccessPointsTemplate().size(), 1);
-            AccessPoint accessPoint = helloCommand.getPayload().getAccessPointsTemplate().get(AccessPoint.Type.ENVIRONMENT).get(0);
+            AccessPoint accessPoint = helloCommand
+                    .getPayload()
+                    .getAccessPointsTemplate()
+                    .get(AccessPoint.Type.ENVIRONMENT)
+                    .get(0);
             assertEquals(accessPoint.getHost(), "localhost");
             assertEquals(accessPoint.isSecured(), false);
             assertEquals(accessPoint.getTarget(), AccessPoint.Target.CONSOLE);
@@ -204,9 +237,8 @@ public class HelloCommandAdapterTest {
     @Test
     void adaptWithException() {
         when(installationService.getOrInitialize()).thenThrow(new TechnicalManagementException());
-        cut
-            .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
-            .test()
-            .assertError(TechnicalManagementException.class);
+        cut.adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
+                .test()
+                .assertError(TechnicalManagementException.class);
     }
 }

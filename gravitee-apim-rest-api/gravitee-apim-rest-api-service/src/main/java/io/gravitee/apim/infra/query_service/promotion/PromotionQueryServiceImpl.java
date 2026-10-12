@@ -46,13 +46,9 @@ public class PromotionQueryServiceImpl implements PromotionQueryService {
         }
 
         if (!CollectionUtils.isEmpty(promotionQuery.statuses())) {
-            criteria.statuses(
-                promotionQuery
-                    .statuses()
-                    .stream()
+            criteria.statuses(promotionQuery.statuses().stream()
                     .map(status -> PromotionStatus.valueOf(status.name()))
-                    .collect(Collectors.toList())
-            );
+                    .collect(Collectors.toList()));
         }
 
         if (!CollectionUtils.isEmpty(promotionQuery.targetEnvCockpitIds())) {

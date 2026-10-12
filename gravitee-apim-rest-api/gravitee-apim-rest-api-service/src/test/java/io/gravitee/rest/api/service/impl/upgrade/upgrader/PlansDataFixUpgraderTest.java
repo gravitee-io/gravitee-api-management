@@ -105,7 +105,8 @@ public class PlansDataFixUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
         doNothing().when(upgrader).fixApiPlans(any(), any(), any());
-        when(environmentRepository.findById(any())).thenAnswer(i -> Optional.of(buildTestEnvironment(i.getArgument(0), "testOrgId")));
+        when(environmentRepository.findById(any()))
+                .thenAnswer(i -> Optional.of(buildTestEnvironment(i.getArgument(0), "testOrgId")));
 
         Api apiv2_1 = new Api();
         apiv2_1.setId("api2");
@@ -115,13 +116,13 @@ public class PlansDataFixUpgraderTest {
         apiv2_2.setId("api4");
         apiv2_2.setDefinition("{\"gravitee\": \"2.0.0\"}");
         apiv2_2.setEnvironmentId("envId");
-        when(
-            apiRepository.search(
-                eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()),
-                eq(null),
-                any(ApiFieldFilter.class)
-            )
-        ).thenReturn(Stream.of(apiv2_1, apiv2_2));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .definitionVersion(List.of(DefinitionVersion.V2))
+                                .build()),
+                        eq(null),
+                        any(ApiFieldFilter.class)))
+                .thenReturn(Stream.of(apiv2_1, apiv2_2));
 
         upgrader.upgrade();
 
@@ -148,7 +149,8 @@ public class PlansDataFixUpgraderTest {
         api3.setEnvironmentId("env1");
         api3.setDefinition("{\"gravitee\": \"2.0.0\"}");
 
-        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(api1, api2, api3));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
+                .thenReturn(Stream.of(api1, api2, api3));
 
         when(environmentRepository.findById("env1")).thenReturn(Optional.of(buildTestEnvironment("env1", "org1")));
         when(environmentRepository.findById("env2")).thenReturn(Optional.of(buildTestEnvironment("env2", "org2")));
@@ -161,21 +163,24 @@ public class PlansDataFixUpgraderTest {
         verifyNoMoreInteractions(environmentRepository);
 
         // assert that each call to fixApiPlans has been done with the ExecutionContext related to API
-        verify(upgrader, times(1)).fixApiPlans(
-            argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
-            same(api1),
-            any()
-        );
-        verify(upgrader, times(1)).fixApiPlans(
-            argThat(e -> e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")),
-            same(api2),
-            any()
-        );
-        verify(upgrader, times(1)).fixApiPlans(
-            argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
-            same(api3),
-            any()
-        );
+        verify(upgrader, times(1))
+                .fixApiPlans(
+                        argThat(e -> e.getEnvironmentId().equals("env1")
+                                && e.getOrganizationId().equals("org1")),
+                        same(api1),
+                        any());
+        verify(upgrader, times(1))
+                .fixApiPlans(
+                        argThat(e -> e.getEnvironmentId().equals("env2")
+                                && e.getOrganizationId().equals("org2")),
+                        same(api2),
+                        any());
+        verify(upgrader, times(1))
+                .fixApiPlans(
+                        argThat(e -> e.getEnvironmentId().equals("env1")
+                                && e.getOrganizationId().equals("org1")),
+                        same(api3),
+                        any());
     }
 
     @Test
@@ -188,7 +193,8 @@ public class PlansDataFixUpgraderTest {
         api1.setEnvironmentId("env1");
         api1.setDefinition("{\"gravitee\": \"2.0.0\"}");
 
-        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(api1));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
+                .thenReturn(Stream.of(api1));
         when(environmentRepository.findById(any())).thenThrow(new TechnicalException("this is a test exception"));
 
         upgrader.upgrade();
@@ -199,41 +205,42 @@ public class PlansDataFixUpgraderTest {
 
     @Test
     public void closeExtraApiPlans_should_close_extra_plans() throws TechnicalException {
-        Map<String, Plan> apiPlansMap = new HashMap<>(Map.of("plan12", new Plan(), "plan47", new Plan(), "plan78", new Plan()));
+        Map<String, Plan> apiPlansMap =
+                new HashMap<>(Map.of("plan12", new Plan(), "plan47", new Plan(), "plan78", new Plan()));
         apiPlansMap.get("plan12").setId("plan12");
         apiPlansMap.get("plan47").setId("plan47");
         apiPlansMap.get("plan78").setId("plan78");
 
         Map<String, io.gravitee.definition.model.Plan> definitionPlansMap = Map.of(
-            "plan78",
-            new io.gravitee.definition.model.Plan(),
-            "plan22",
-            new io.gravitee.definition.model.Plan(),
-            "plan12",
-            new io.gravitee.definition.model.Plan(),
-            "plan88",
-            new io.gravitee.definition.model.Plan()
-        );
+                "plan78",
+                new io.gravitee.definition.model.Plan(),
+                "plan22",
+                new io.gravitee.definition.model.Plan(),
+                "plan12",
+                new io.gravitee.definition.model.Plan(),
+                "plan88",
+                new io.gravitee.definition.model.Plan());
 
         upgrader.closeExtraApiPlans(definitionPlansMap, apiPlansMap);
 
-        verify(planRepository, times(1)).update(argThat(plan -> plan.getId().equals("plan47") && plan.getStatus() == Plan.Status.CLOSED));
+        verify(planRepository, times(1))
+                .update(argThat(plan -> plan.getId().equals("plan47") && plan.getStatus() == Plan.Status.CLOSED));
         verifyNoMoreInteractions(planRepository);
     }
 
     @Test
     public void addMissingApiPlans_should_create_all_missing_plans() throws TechnicalException {
-        Map<String, Plan> apiPlansMap = new HashMap<>(Map.of("plan12", new Plan(), "plan47", new Plan(), "plan78", new Plan()));
+        Map<String, Plan> apiPlansMap =
+                new HashMap<>(Map.of("plan12", new Plan(), "plan47", new Plan(), "plan78", new Plan()));
         Map<String, io.gravitee.definition.model.Plan> definitionPlansMap = Map.of(
-            "plan78",
-            new io.gravitee.definition.model.Plan(),
-            "plan22",
-            new io.gravitee.definition.model.Plan(),
-            "plan12",
-            new io.gravitee.definition.model.Plan(),
-            "plan88",
-            new io.gravitee.definition.model.Plan()
-        );
+                "plan78",
+                new io.gravitee.definition.model.Plan(),
+                "plan22",
+                new io.gravitee.definition.model.Plan(),
+                "plan12",
+                new io.gravitee.definition.model.Plan(),
+                "plan88",
+                new io.gravitee.definition.model.Plan());
         definitionPlansMap.get("plan22").setName("name plan22");
         definitionPlansMap.get("plan88").setName("name plan88");
 
@@ -249,7 +256,8 @@ public class PlansDataFixUpgraderTest {
         assertTrue(apiPlansMap.containsKey("plan47"));
         assertTrue(apiPlansMap.containsKey("plan22"));
         assertTrue(apiPlansMap.containsKey("plan88"));
-        verify(planRepository, times(2)).create(argThat(plan -> plan.getReferenceId().equals("my-api-id")));
+        verify(planRepository, times(2))
+                .create(argThat(plan -> plan.getReferenceId().equals("my-api-id")));
     }
 
     @Test
@@ -257,11 +265,11 @@ public class PlansDataFixUpgraderTest {
         Api api = new Api();
         api.setId("my-api-id");
 
-        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id")).thenReturn(
-            new PrimaryOwnerEntity()
-        );
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id"))
+                .thenReturn(new PrimaryOwnerEntity());
 
-        upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, Collections.emptyList(), Collections.emptyList());
+        upgrader.sendEmailToApiOwner(
+                GraviteeContext.getExecutionContext(), api, Collections.emptyList(), Collections.emptyList());
 
         verify(primaryOwnerService, times(1)).getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id");
     }
@@ -273,22 +281,20 @@ public class PlansDataFixUpgraderTest {
 
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
         primaryOwner.setEmail("primary-owner-email");
-        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id")).thenReturn(primaryOwner);
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id"))
+                .thenReturn(primaryOwner);
 
         List<Plan> createdPlans = new ArrayList<>();
         List<Plan> closedPlans = new ArrayList<>();
         upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, createdPlans, closedPlans);
 
-        verify(emailService, times(1)).sendAsyncEmailNotification(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                notification ->
-                    notification.getTo()[0].equals("primary-owner-email") &&
-                    notification.getParams().get("api") == api &&
-                    notification.getParams().get("createdPlans") == createdPlans &&
-                    notification.getParams().get("closedPlans") == closedPlans
-            )
-        );
+        verify(emailService, times(1))
+                .sendAsyncEmailNotification(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(notification -> notification.getTo()[0].equals("primary-owner-email")
+                                && notification.getParams().get("api") == api
+                                && notification.getParams().get("createdPlans") == createdPlans
+                                && notification.getParams().get("closedPlans") == closedPlans));
     }
 
     @Test

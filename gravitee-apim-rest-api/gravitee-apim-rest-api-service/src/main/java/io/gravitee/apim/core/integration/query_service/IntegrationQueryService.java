@@ -22,11 +22,7 @@ import java.util.Collection;
 
 public interface IntegrationQueryService {
     Page<Integration> findByEnvironment(String environmentId, Pageable pageable);
+
     Page<Integration> findByEnvironmentAndContext(
-        String environmentId,
-        String userId,
-        Collection<String> groups,
-        boolean isAdmin,
-        Pageable pageable
-    );
+            String environmentId, String userId, Collection<String> groups, boolean isAdmin, Pageable pageable);
 }

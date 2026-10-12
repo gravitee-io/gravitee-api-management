@@ -34,11 +34,13 @@ public class GetResourcePluginUseCase {
 
     public Output execute(Input input) {
         var resourcePlugin = resourcePluginCrudService
-            .get(input.resourceId)
-            .flatMap(resource ->
-                licenseChecker.setPluginDeployedStatusDependingOnLicense(Set.of(resource), input.organizationId).stream().findFirst()
-            )
-            .orElseThrow(() -> new ResourceNotFoundException(input.resourceId));
+                .get(input.resourceId)
+                .flatMap(resource ->
+                        licenseChecker
+                                .setPluginDeployedStatusDependingOnLicense(Set.of(resource), input.organizationId)
+                                .stream()
+                                .findFirst())
+                .orElseThrow(() -> new ResourceNotFoundException(input.resourceId));
 
         if (!input.withSchema) {
             return new Output(resourcePlugin, null);

@@ -35,15 +35,7 @@ public enum Qos {
     AT_LEAST_ONCE("at-least-once");
 
     private static final Map<String, Qos> maps = Map.of(
-        NONE.label,
-        NONE,
-        AUTO.label,
-        AUTO,
-        AT_MOST_ONCE.label,
-        AT_MOST_ONCE,
-        AT_LEAST_ONCE.label,
-        AT_LEAST_ONCE
-    );
+            NONE.label, NONE, AUTO.label, AUTO, AT_MOST_ONCE.label, AT_MOST_ONCE, AT_LEAST_ONCE.label, AT_LEAST_ONCE);
 
     @JsonValue
     private final String label;

@@ -134,7 +134,8 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
         when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID))
+                .thenReturn(environmentEntity);
 
         when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
@@ -142,33 +143,31 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
 
     @Test
     public void should_not_import_when_no_definition_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(false);
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_import_api_from_url_when_url_is_valid() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(true);
 
         Buffer buffer = Buffer.buffer(VALID_API_DEFINITION_JSON);
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
-        ApiWithFlows mockApi = ApiWithFlows.builder().id("test-api-id").name("Test API").build();
+        ApiWithFlows mockApi =
+                ApiWithFlows.builder().id("test-api-id").name("Test API").build();
         when(importApiDefinitionUseCase.execute(any())).thenReturn(new ImportApiDefinitionUseCase.Output(mockApi));
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
@@ -180,14 +179,12 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
 
     @Test
     public void should_return_bad_request_when_url_is_forbidden() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(true);
 
         when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
@@ -199,17 +196,16 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
 
     @Test
     public void should_return_bad_request_when_url_returns_invalid_json() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(true);
 
         Buffer buffer = Buffer.buffer("invalid json content");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -221,17 +217,17 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         // as a TechnicalManagementException; it must become a clean 4xx, not a 500 leaking the remote response.
         grantCreatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
-            new TechnicalManagementException(" Error on url '" + TEST_URL + "'. Status code: 404. Message: Not Found", null)
-        );
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenThrow(new TechnicalManagementException(
+                        " Error on url '" + TEST_URL + "'. Status code: 404. Message: Not Found", null));
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         String body = response.readEntity(String.class);
         assertThat(body)
-            .contains("Unable to fetch the API definition")
-            .doesNotContain("io.gravitee", "TechnicalManagementException", "Status code", "404");
+                .contains("Unable to fetch the API definition")
+                .doesNotContain("io.gravitee", "TechnicalManagementException", "Status code", "404");
     }
 
     @Test
@@ -240,20 +236,18 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         // UnknownHostException or the failing host.
         grantCreatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
-            new TechnicalManagementException(
-                "Failed to resolve 'nonexistent-host-xyz.invalid'",
-                new java.net.UnknownHostException("nonexistent-host-xyz.invalid")
-            )
-        );
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenThrow(new TechnicalManagementException(
+                        "Failed to resolve 'nonexistent-host-xyz.invalid'",
+                        new java.net.UnknownHostException("nonexistent-host-xyz.invalid")));
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         String body = response.readEntity(String.class);
         assertThat(body)
-            .contains("Unable to fetch the API definition")
-            .doesNotContain("io.gravitee", "UnknownHostException", "Failed to resolve", "nonexistent-host");
+                .contains("Unable to fetch the API definition")
+                .doesNotContain("io.gravitee", "UnknownHostException", "Failed to resolve", "nonexistent-host");
     }
 
     @Test
@@ -262,7 +256,8 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         grantCreatePermission();
 
         Buffer buffer = Buffer.buffer("{\"hello\":\"world\"}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
 
@@ -278,7 +273,8 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
         grantCreatePermission();
 
         Buffer buffer = Buffer.buffer("{\"api\":{\"definitionVersion\":\"V4\"},\"members\":[{\"displayName\":\"\"}]}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
         Response response = rootTarget().request(MediaType.APPLICATION_JSON).post(Entity.text(TEST_URL));
 
@@ -288,26 +284,22 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
     }
 
     private void grantCreatePermission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(true);
     }
 
     @Test
     public void should_reject_url_not_in_whitelist() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(true);
 
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of("https://allowed.example.com"));
 

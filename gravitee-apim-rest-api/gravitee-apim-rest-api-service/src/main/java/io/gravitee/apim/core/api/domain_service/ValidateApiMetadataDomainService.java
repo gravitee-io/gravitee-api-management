@@ -44,25 +44,29 @@ public class ValidateApiMetadataDomainService {
     private final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     public void validateUniqueKey(String apiId, String key) {
-        this.metadataCrudService.findById(
-            MetadataId.builder().key(key).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build()
-        ).ifPresent(m -> {
-            throw new DuplicateApiMetadataKeyException(apiId, key);
-        });
+        this.metadataCrudService
+                .findById(MetadataId.builder()
+                        .key(key)
+                        .referenceId(apiId)
+                        .referenceType(Metadata.ReferenceType.API)
+                        .build())
+                .ifPresent(m -> {
+                    throw new DuplicateApiMetadataKeyException(apiId, key);
+                });
     }
 
     public void validateUniqueName(String environmentId, String apiId, String name) {
-        this.metadataQueryService.findApiMetadata(environmentId, apiId)
-            .values()
-            .forEach(val -> {
-                if (val.getName().equalsIgnoreCase(name)) {
-                    throw new DuplicateApiMetadataNameException(apiId, name);
-                }
-            });
+        this.metadataQueryService.findApiMetadata(environmentId, apiId).values().forEach(val -> {
+            if (val.getName().equalsIgnoreCase(name)) {
+                throw new DuplicateApiMetadataNameException(apiId, name);
+            }
+        });
     }
 
     public void validateValueByFormat(Api api, String organizationId, String value, Metadata.MetadataFormat format) {
-        var valueToCheck = Objects.nonNull(value) && value.startsWith("${") ? this.getDecodedValue(api, organizationId, value) : value;
+        var valueToCheck = Objects.nonNull(value) && value.startsWith("${")
+                ? this.getDecodedValue(api, organizationId, value)
+                : value;
 
         try {
             switch (format) {
@@ -88,10 +92,9 @@ public class ValidateApiMetadataDomainService {
 
     private String getDecodedValue(Api api, String organizationId, String value) {
         var apiTemplate = new ApiMetadataDecoderDomainService.ApiMetadataDecodeContext(
-            api,
-            Map.of(), // Metadata cannot reference another metadata entry
-            apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, api.getId())
-        );
+                api,
+                Map.of(), // Metadata cannot reference another metadata entry
+                apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, api.getId()));
 
         return this.apiMetadataDecoderDomainService.decodeMetadataValue(value, apiTemplate);
     }

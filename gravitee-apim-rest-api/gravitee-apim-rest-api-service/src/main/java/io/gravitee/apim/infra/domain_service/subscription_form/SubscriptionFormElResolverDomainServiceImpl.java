@@ -48,7 +48,8 @@ public class SubscriptionFormElResolverDomainServiceImpl implements Subscription
     private final ApiMetadataQueryService apiMetadataQueryService;
 
     @Override
-    public Map<String, List<String>> resolveSchemaOptions(SubscriptionFormSchema schema, String environmentId, String apiId) {
+    public Map<String, List<String>> resolveSchemaOptions(
+            SubscriptionFormSchema schema, String environmentId, String apiId) {
         return resolveSchemaOptionsWithParams(schema, buildTemplateParams(environmentId, apiId));
     }
 
@@ -59,10 +60,7 @@ public class SubscriptionFormElResolverDomainServiceImpl implements Subscription
 
     @Override
     public SubscriptionFormFieldConstraints resolveConstraints(
-        @Nonnull SubscriptionFormFieldConstraints constraints,
-        String environmentId,
-        String apiId
-    ) {
+            @Nonnull SubscriptionFormFieldConstraints constraints, String environmentId, String apiId) {
         return resolveConstraintsWithParams(constraints, buildTemplateParams(environmentId, apiId));
     }
 
@@ -71,7 +69,8 @@ public class SubscriptionFormElResolverDomainServiceImpl implements Subscription
         return resolveConstraintsWithParams(constraints, Map.of());
     }
 
-    private Map<String, List<String>> resolveSchemaOptionsWithParams(SubscriptionFormSchema schema, Map<String, Object> templateParams) {
+    private Map<String, List<String>> resolveSchemaOptionsWithParams(
+            SubscriptionFormSchema schema, Map<String, Object> templateParams) {
         if (schema == null || schema.isEmpty()) {
             return Map.of();
         }
@@ -81,41 +80,37 @@ public class SubscriptionFormElResolverDomainServiceImpl implements Subscription
             if (field instanceof DynamicOptionsAttribute dyn && dyn.dynamicOptions() != null) {
                 var dynamic = dyn.dynamicOptions();
                 result.put(
-                    field.fieldKey(),
-                    resolveExpressionToOptionsWithFallback(dynamic.expression(), dynamic.fallback(), templateParams)
-                );
+                        field.fieldKey(),
+                        resolveExpressionToOptionsWithFallback(
+                                dynamic.expression(), dynamic.fallback(), templateParams));
             }
         }
         return result;
     }
 
     private SubscriptionFormFieldConstraints resolveConstraintsWithParams(
-        SubscriptionFormFieldConstraints constraints,
-        Map<String, Object> templateParams
-    ) {
+            SubscriptionFormFieldConstraints constraints, Map<String, Object> templateParams) {
         if (constraints.isEmpty()) {
             return constraints;
         }
 
-        for (Map.Entry<String, List<Constraint>> entry : constraints.byFieldKey().entrySet()) {
+        for (Map.Entry<String, List<Constraint>> entry :
+                constraints.byFieldKey().entrySet()) {
             resolveConstraintList(entry.getValue(), templateParams);
         }
         return constraints;
     }
 
     private void resolveConstraintList(List<Constraint> constraints, Map<String, Object> templateParams) {
-        constraints
-            .stream()
-            .filter(Constraint.ResolvableOptions.class::isInstance)
-            .map(Constraint.ResolvableOptions.class::cast)
-            .forEach(resolvable -> resolvable.resolve(expression -> resolveExpressionToOptions(expression, templateParams)));
+        constraints.stream()
+                .filter(Constraint.ResolvableOptions.class::isInstance)
+                .map(Constraint.ResolvableOptions.class::cast)
+                .forEach(resolvable ->
+                        resolvable.resolve(expression -> resolveExpressionToOptions(expression, templateParams)));
     }
 
     private List<String> resolveExpressionToOptionsWithFallback(
-        String expression,
-        List<String> fallback,
-        Map<String, Object> templateParams
-    ) {
+            String expression, List<String> fallback, Map<String, Object> templateParams) {
         var resolvedOptions = resolveExpressionToOptions(expression, templateParams);
         return resolvedOptions == null || resolvedOptions.isEmpty() ? fallback : resolvedOptions;
     }
@@ -125,12 +120,9 @@ public class SubscriptionFormElResolverDomainServiceImpl implements Subscription
     }
 
     private Map<String, Object> buildTemplateParams(String environmentId, String apiId) {
-        Map<String, Object> metadata = apiMetadataQueryService
-            .findApiMetadata(environmentId, apiId)
-            .entrySet()
-            .stream()
-            .filter(e -> effectiveValue(e.getValue()) != null)
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> (Object) effectiveValue(e.getValue())));
+        Map<String, Object> metadata = apiMetadataQueryService.findApiMetadata(environmentId, apiId).entrySet().stream()
+                .filter(e -> effectiveValue(e.getValue()) != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> (Object) effectiveValue(e.getValue())));
 
         Map<String, Object> api = new HashMap<>();
         api.put("metadata", metadata);

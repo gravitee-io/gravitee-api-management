@@ -24,5 +24,6 @@ import io.gravitee.rest.api.model.alert.AlertReferenceType;
  * @author GraviteeSource Team
  */
 public interface AlertAnalyticsService {
-    AlertAnalyticsEntity findByReference(AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery);
+    AlertAnalyticsEntity findByReference(
+            AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery);
 }

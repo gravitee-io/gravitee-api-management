@@ -34,33 +34,30 @@ public class PortalNavigationItemVisibilityEvaluator {
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
 
     public PortalNavigationItemVisibilityEvaluator(
-        String environmentId,
-        PortalNavigationItemViewerContext viewerContext,
-        PortalNavigationItemsQueryService queryService,
-        List<PortalNavigationItemVisibilityService> visibilityServices
-    ) {
+            String environmentId,
+            PortalNavigationItemViewerContext viewerContext,
+            PortalNavigationItemsQueryService queryService,
+            List<PortalNavigationItemVisibilityService> visibilityServices) {
         this.environmentId = environmentId;
         this.viewerContext = viewerContext;
         this.queryService = queryService;
-        this.visibilityServices = visibilityServices
-            .stream()
-            .map(service -> new PreparedVisibilityService(service, service.prepareVisibilityPredicate(environmentId, viewerContext)))
-            .toList();
-        this.apiVisibilityDomainService = visibilityServices
-            .stream()
-            .filter(PortalNavigationApiVisibilityDomainService.class::isInstance)
-            .map(PortalNavigationApiVisibilityDomainService.class::cast)
-            .findFirst()
-            .orElse(null);
+        this.visibilityServices = visibilityServices.stream()
+                .map(service -> new PreparedVisibilityService(
+                        service, service.prepareVisibilityPredicate(environmentId, viewerContext)))
+                .toList();
+        this.apiVisibilityDomainService = visibilityServices.stream()
+                .filter(PortalNavigationApiVisibilityDomainService.class::isInstance)
+                .map(PortalNavigationApiVisibilityDomainService.class::cast)
+                .findFirst()
+                .orElse(null);
     }
 
     public boolean isVisible(PortalNavigationItem item) {
-        return visibilityServices
-            .stream()
-            .filter(service -> service.appliesTo(item))
-            .findFirst()
-            .map(service -> service.isVisible(item))
-            .orElse(true);
+        return visibilityServices.stream()
+                .filter(service -> service.appliesTo(item))
+                .findFirst()
+                .map(service -> service.isVisible(item))
+                .orElse(true);
     }
 
     public boolean hasHiddenAncestor(PortalNavigationItem item) {
@@ -72,7 +69,9 @@ public class PortalNavigationItemVisibilityEvaluator {
                 return true;
             }
         }
-        if (current != null && current.isRoot() && current.getReference() instanceof NavigationItemReference.ApiReference apiReference) {
+        if (current != null
+                && current.isRoot()
+                && current.getReference() instanceof NavigationItemReference.ApiReference apiReference) {
             return isEnclosingApiHidden(apiReference.apiId());
         }
         return false;
@@ -87,13 +86,12 @@ public class PortalNavigationItemVisibilityEvaluator {
         if (apiVisibilityDomainService == null) {
             return false;
         }
-        return !apiVisibilityDomainService.isApiVisibleToUser(environmentId, apiId, viewerContext.userId().orElse(null));
+        return !apiVisibilityDomainService.isApiVisibleToUser(
+                environmentId, apiId, viewerContext.userId().orElse(null));
     }
 
     private record PreparedVisibilityService(
-        PortalNavigationItemVisibilityService service,
-        Predicate<PortalNavigationItem> visibilityPredicate
-    ) {
+            PortalNavigationItemVisibilityService service, Predicate<PortalNavigationItem> visibilityPredicate) {
         private boolean appliesTo(PortalNavigationItem item) {
             return service.appliesTo(item);
         }

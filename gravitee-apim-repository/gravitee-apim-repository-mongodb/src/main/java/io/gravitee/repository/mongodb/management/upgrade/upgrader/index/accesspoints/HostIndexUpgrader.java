@@ -28,9 +28,9 @@ public class HostIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("access_points")
-            .name("h1")
-            .key("host", ascending())
-            .build();
+                .collection("access_points")
+                .name("h1")
+                .key("host", ascending())
+                .build();
     }
 }

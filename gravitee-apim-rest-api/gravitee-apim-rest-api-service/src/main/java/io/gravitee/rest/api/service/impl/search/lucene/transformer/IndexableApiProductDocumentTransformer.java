@@ -96,24 +96,28 @@ public class IndexableApiProductDocumentTransformer implements DocumentTransform
 
         if (apiProduct.getDescription() != null) {
             doc.add(new StringField(FIELD_DESCRIPTION, apiProduct.getDescription(), Field.Store.NO));
-            doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, apiProduct.getDescription().toLowerCase(), Field.Store.NO));
+            doc.add(new StringField(
+                    FIELD_DESCRIPTION_LOWERCASE, apiProduct.getDescription().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, apiProduct.getDescription(), Field.Store.NO));
         }
 
         if (apiProduct.getCreatedAt() != null) {
-            doc.add(new LongPoint(FIELD_CREATED_AT, apiProduct.getCreatedAt().toInstant().toEpochMilli()));
+            doc.add(new LongPoint(
+                    FIELD_CREATED_AT, apiProduct.getCreatedAt().toInstant().toEpochMilli()));
         }
         if (apiProduct.getKind() != null) {
             doc.add(new StringField(FIELD_KIND, apiProduct.getKind().name(), Field.Store.NO));
         }
         if (apiProduct.getUpdatedAt() != null) {
-            doc.add(new LongPoint(FIELD_UPDATED_AT, apiProduct.getUpdatedAt().toInstant().toEpochMilli()));
+            doc.add(new LongPoint(
+                    FIELD_UPDATED_AT, apiProduct.getUpdatedAt().toInstant().toEpochMilli()));
         }
 
         if (primaryOwner != null && primaryOwner.displayName() != null) {
             doc.add(new StringField(FIELD_OWNER, primaryOwner.displayName(), Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_OWNER_SORTED, toSortedValue(primaryOwner.displayName())));
-            doc.add(new StringField(FIELD_OWNER_LOWERCASE, primaryOwner.displayName().toLowerCase(), Field.Store.NO));
+            doc.add(new StringField(
+                    FIELD_OWNER_LOWERCASE, primaryOwner.displayName().toLowerCase(), Field.Store.NO));
         }
 
         return doc;

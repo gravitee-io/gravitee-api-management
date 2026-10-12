@@ -152,7 +152,8 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
 
             verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
 
-            var subscriptionVariable = spyCtx.getTemplateEngine().getTemplateContext().lookupVariable("subscription");
+            var subscriptionVariable =
+                    spyCtx.getTemplateEngine().getTemplateContext().lookupVariable("subscription");
             assertThat(subscriptionVariable).isNotNull();
             assertThat(subscriptionVariable).isInstanceOf(SubscriptionVariable.class);
         }
@@ -163,7 +164,8 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
 
             verify(spyCtx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION), any());
 
-            var subscriptionVariable = spyCtx.getTemplateEngine().getTemplateContext().lookupVariable("subscription");
+            var subscriptionVariable =
+                    spyCtx.getTemplateEngine().getTemplateContext().lookupVariable("subscription");
             assertThat(subscriptionVariable).isNotNull();
             assertThat(subscriptionVariable).isInstanceOf(SubscriptionVariable.class);
         }
@@ -181,7 +183,8 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             cut.execute(spyCtx).test().assertComplete();
 
             assertThat(spyCtx.metrics().getApiProductId()).isEqualTo("api-product-id");
-            assertThat(spyCtx.<String>getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT)).isEqualTo("api-product-id");
+            assertThat(spyCtx.<String>getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT))
+                    .isEqualTo("api-product-id");
         }
 
         @Test
@@ -297,7 +300,8 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         }
 
         @Test
-        void should_use_hash_subscription_id_when_client_identifier_header_is_null_and_subscription_equals_remote_address() {
+        void
+                should_use_hash_subscription_id_when_client_identifier_header_is_null_and_subscription_equals_remote_address() {
             spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, REMOTE_ADDRESS);
 
             cut.execute(spyCtx).test().assertComplete();

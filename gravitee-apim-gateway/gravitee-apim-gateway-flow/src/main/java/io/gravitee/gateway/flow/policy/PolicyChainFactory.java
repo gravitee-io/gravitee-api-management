@@ -45,32 +45,29 @@ public class PolicyChainFactory {
     }
 
     public StreamableProcessor<ExecutionContext, Buffer> create(
-        final List<PolicyMetadata> resolvedPolicies,
-        final StreamType streamType,
-        final ExecutionContext context
-    ) {
-        return create(resolvedPolicies, streamType, context, policies ->
-            streamType == StreamType.ON_REQUEST
-                ? OrderedPolicyChain.create(policies, context)
-                : ReversedPolicyChain.create(policies, context)
-        );
+            final List<PolicyMetadata> resolvedPolicies, final StreamType streamType, final ExecutionContext context) {
+        return create(
+                resolvedPolicies,
+                streamType,
+                context,
+                policies -> streamType == StreamType.ON_REQUEST
+                        ? OrderedPolicyChain.create(policies, context)
+                        : ReversedPolicyChain.create(policies, context));
     }
 
     public StreamableProcessor<ExecutionContext, Buffer> create(
-        List<PolicyMetadata> resolvedPolicies,
-        StreamType streamType,
-        ExecutionContext context,
-        Function<List<Policy>, StreamableProcessor<ExecutionContext, Buffer>> mapper
-    ) {
+            List<PolicyMetadata> resolvedPolicies,
+            StreamType streamType,
+            ExecutionContext context,
+            Function<List<Policy>, StreamableProcessor<ExecutionContext, Buffer>> mapper) {
         if (resolvedPolicies.isEmpty()) {
             return new NoOpPolicyChain(context);
         }
 
-        final List<Policy> policies = resolvedPolicies
-            .stream()
-            .map(policyMetadata -> policyManager.create(streamType, policyMetadata))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+        final List<Policy> policies = resolvedPolicies.stream()
+                .map(policyMetadata -> policyManager.create(streamType, policyMetadata))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         return mapper.apply(policies);
     }

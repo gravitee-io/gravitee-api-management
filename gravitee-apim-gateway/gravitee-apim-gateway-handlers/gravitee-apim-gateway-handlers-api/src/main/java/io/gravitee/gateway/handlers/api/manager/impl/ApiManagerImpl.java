@@ -68,7 +68,8 @@ public class ApiManagerImpl implements ApiManager {
 
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
 
-    private static final Set<String> SUPPORTED_SECRET_DEFINITION_KINDS = Set.of(API_V4_DEFINITION_KIND, NATIVE_API_V4_DEFINITION_KIND);
+    private static final Set<String> SUPPORTED_SECRET_DEFINITION_KINDS =
+            Set.of(API_V4_DEFINITION_KIND, NATIVE_API_V4_DEFINITION_KIND);
 
     private final EventManager eventManager;
     private final GatewayConfiguration gatewayConfiguration;
@@ -82,45 +83,44 @@ public class ApiManagerImpl implements ApiManager {
      * nothing outside deployment.
      */
     private static final int API_LOCK_STRIPES = 64;
-    private final Lock[] apiLocks = Stream.generate(ReentrantLock::new).limit(API_LOCK_STRIPES).toArray(Lock[]::new);
+
+    private final Lock[] apiLocks =
+            Stream.generate(ReentrantLock::new).limit(API_LOCK_STRIPES).toArray(Lock[]::new);
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
     private final ApiProductRegistry apiProductRegistry;
 
     public ApiManagerImpl(
-        final EventManager eventManager,
-        final GatewayConfiguration gatewayConfiguration,
-        LicenseManager licenseManager,
-        final DataEncryptor dataEncryptor
-    ) {
+            final EventManager eventManager,
+            final GatewayConfiguration gatewayConfiguration,
+            LicenseManager licenseManager,
+            final DataEncryptor dataEncryptor) {
         this(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, null);
     }
 
     public ApiManagerImpl(
-        final EventManager eventManager,
-        final GatewayConfiguration gatewayConfiguration,
-        LicenseManager licenseManager,
-        final DataEncryptor dataEncryptor,
-        final ApiProductRegistry apiProductRegistry
-    ) {
+            final EventManager eventManager,
+            final GatewayConfiguration gatewayConfiguration,
+            LicenseManager licenseManager,
+            final DataEncryptor dataEncryptor,
+            final ApiProductRegistry apiProductRegistry) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.licenseManager = licenseManager;
         this.apiProductRegistry = apiProductRegistry;
         deployers = Map.ofEntries(
-            Map.entry(Api.class, new ApiDeployer(gatewayConfiguration, dataEncryptor)),
-            Map.entry(
-                io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
-                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor)
-            ),
-            Map.entry(
-                io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
-                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(gatewayConfiguration, dataEncryptor)
-            ),
-            Map.entry(
-                io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi.class,
-                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.EdgeApiDeployer(gatewayConfiguration, dataEncryptor)
-            )
-        );
+                Map.entry(Api.class, new ApiDeployer(gatewayConfiguration, dataEncryptor)),
+                Map.entry(
+                        io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
+                        new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(
+                                gatewayConfiguration, dataEncryptor)),
+                Map.entry(
+                        io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
+                        new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(
+                                gatewayConfiguration, dataEncryptor)),
+                Map.entry(
+                        io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi.class,
+                        new io.gravitee.gateway.reactive.handlers.api.v4.deployer.EdgeApiDeployer(
+                                gatewayConfiguration, dataEncryptor)));
 
         subscribeToSecretDiscoveryEvents();
         subscribeToApiProductEventsIfNeeded();
@@ -128,13 +128,12 @@ public class ApiManagerImpl implements ApiManager {
 
     private void subscribeToSecretDiscoveryEvents() {
         eventManager.subscribeForEvents(
-            event -> {
-                if (event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent) {
-                    onSecretDiscoveryValueChanged(secretDiscoveryEvent);
-                }
-            },
-            SecretDiscoveryEventType.VALUE_CHANGED
-        );
+                event -> {
+                    if (event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent) {
+                        onSecretDiscoveryValueChanged(secretDiscoveryEvent);
+                    }
+                },
+                SecretDiscoveryEventType.VALUE_CHANGED);
     }
 
     private void onSecretDiscoveryValueChanged(SecretDiscoveryEvent secretDiscoveryEvent) {
@@ -143,10 +142,9 @@ public class ApiManagerImpl implements ApiManager {
         }
         if (!SUPPORTED_SECRET_DEFINITION_KINDS.contains(definition.kind())) {
             log.debug(
-                "Received SecretDiscoveryEvent for definition {} with kind {}, but we only handle API V4 and Native API definitions",
-                definition.id(),
-                definition.kind()
-            );
+                    "Received SecretDiscoveryEvent for definition {} with kind {}, but we only handle API V4 and Native API definitions",
+                    definition.id(),
+                    definition.kind());
             return;
         }
         updateApiOnSecretChange(definition);
@@ -156,9 +154,8 @@ public class ApiManagerImpl implements ApiManager {
         ReactableApi<?> api = apis.get(definition.id());
         if (api == null) {
             log.trace(
-                "Received SecretDiscoveryEvent for API {}, but it is not found in the API manager. Unable to update it",
-                definition.id()
-            );
+                    "Received SecretDiscoveryEvent for API {}, but it is not found in the API manager. Unable to update it",
+                    definition.id());
             return;
         }
         MDC.put("api", api.getId());
@@ -176,13 +173,12 @@ public class ApiManagerImpl implements ApiManager {
             return;
         }
         eventManager.subscribeForEvents(
-            event -> {
-                if (event.content() instanceof ApiProductChangedEvent productEvent) {
-                    onApiProductUndeploy(productEvent);
-                }
-            },
-            ApiProductEventType.UNDEPLOY
-        );
+                event -> {
+                    if (event.content() instanceof ApiProductChangedEvent productEvent) {
+                        onApiProductUndeploy(productEvent);
+                    }
+                },
+                ApiProductEventType.UNDEPLOY);
     }
 
     private void onApiProductUndeploy(ApiProductChangedEvent productEvent) {
@@ -208,22 +204,23 @@ public class ApiManagerImpl implements ApiManager {
 
         try {
             licenseManager.validatePluginFeatures(
-                api.getOrganizationId(),
-                plugins
-                    .stream()
-                    .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
-                    .collect(Collectors.toSet())
-            );
+                    api.getOrganizationId(),
+                    plugins.stream()
+                            .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
+                            .collect(Collectors.toSet()));
         } catch (InvalidLicenseException | ForbiddenFeatureException e) {
-            log.warn("The API {} could not be deployed because it is not allowed by the current license", api.getName(), e);
+            log.warn(
+                    "The API {} could not be deployed because it is not allowed by the current license",
+                    api.getName(),
+                    e);
             return false;
         }
 
         if (isApiShardEligible(api)) {
             boolean apiToDeploy = deployedApi == null || force;
-            boolean apiToUpdate =
-                !apiToDeploy &&
-                (deployedApi.getDeployedAt().before(api.getDeployedAt()) && !Objects.equals(deployedApi.getRevision(), api.getRevision()));
+            boolean apiToUpdate = !apiToDeploy
+                    && (deployedApi.getDeployedAt().before(api.getDeployedAt())
+                            && !Objects.equals(deployedApi.getRevision(), api.getRevision()));
 
             if (apiToDeploy || apiToUpdate) {
                 Deployer deployer = deployers.get(api.getClass());
@@ -258,18 +255,16 @@ public class ApiManagerImpl implements ApiManager {
 
         if (isApiShardEligible(reactableApi)) {
             boolean apiToDeploy = deployedApi == null;
-            boolean apiToUpdate =
-                !apiToDeploy &&
-                (deployedApi.getDeployedAt().before(reactableApi.getDeployedAt()) &&
-                    !Objects.equals(deployedApi.getRevision(), reactableApi.getRevision()));
+            boolean apiToUpdate = !apiToDeploy
+                    && (deployedApi.getDeployedAt().before(reactableApi.getDeployedAt())
+                            && !Objects.equals(deployedApi.getRevision(), reactableApi.getRevision()));
 
             if (apiToDeploy || apiToUpdate) {
                 log.debug(
-                    "requiredActionFor [{}]: DEPLOY (shard-eligible, toDeploy={}, toUpdate={})",
-                    reactableApi.getId(),
-                    apiToDeploy,
-                    apiToUpdate
-                );
+                        "requiredActionFor [{}]: DEPLOY (shard-eligible, toDeploy={}, toUpdate={})",
+                        reactableApi.getId(),
+                        apiToDeploy,
+                        apiToUpdate);
                 return ActionOnApi.DEPLOY;
             }
             log.debug("requiredActionFor [{}]: NONE (shard-eligible but already up-to-date)", reactableApi.getId());
@@ -278,11 +273,10 @@ public class ApiManagerImpl implements ApiManager {
             return ActionOnApi.UNDEPLOY;
         } else {
             log.debug(
-                "requiredActionFor [{}]: NONE — not shard-eligible (tags={}, env={})",
-                reactableApi.getId(),
-                reactableApi.getTags(),
-                reactableApi.getEnvironmentId()
-            );
+                    "requiredActionFor [{}]: NONE — not shard-eligible (tags={}, env={})",
+                    reactableApi.getId(),
+                    reactableApi.getTags(),
+                    reactableApi.getEnvironmentId());
         }
         return ActionOnApi.NONE;
     }
@@ -315,15 +309,15 @@ public class ApiManagerImpl implements ApiManager {
 
         final ExecutorService refreshAllExecutor = createExecutor(Math.min(PARALLELISM, allApis.size()));
 
-        final List<Callable<Boolean>> toInvoke = allApis
-            .stream()
-            .map(api -> ((Callable<Boolean>) () -> register(api, true)))
-            .collect(Collectors.toList());
+        final List<Callable<Boolean>> toInvoke = allApis.stream()
+                .map(api -> ((Callable<Boolean>) () -> register(api, true)))
+                .collect(Collectors.toList());
 
         try {
             refreshAllExecutor.invokeAll(toInvoke);
             refreshAllExecutor.shutdown();
-            while (!refreshAllExecutor.awaitTermination(100, TimeUnit.MILLISECONDS));
+            while (!refreshAllExecutor.awaitTermination(100, TimeUnit.MILLISECONDS))
+                ;
         } catch (InterruptedException e) {
             log.error("Unable to refresh apis", e);
             Thread.currentThread().interrupt();
@@ -347,9 +341,11 @@ public class ApiManagerImpl implements ApiManager {
             if (!plans.isEmpty() || includedInApiProduct) {
                 log.debug("Deploying {} (has plans or included in API Product)", api);
                 eventManager.publishEvent(
-                    SecretDiscoveryEventType.DISCOVER,
-                    new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
-                );
+                        SecretDiscoveryEventType.DISCOVER,
+                        new SecretDiscoveryEvent(
+                                api.getEnvironmentId(),
+                                api.getDefinition(),
+                                new DefinitionMetadata(api.getRevision())));
                 apis.put(api.getId(), api);
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
                 log.info("{} has been deployed", api);
@@ -364,17 +360,14 @@ public class ApiManagerImpl implements ApiManager {
     }
 
     private ExecutorService createExecutor(int threadCount) {
-        return Executors.newFixedThreadPool(
-            threadCount,
-            new ThreadFactory() {
-                private int counter = 0;
+        return Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
+            private int counter = 0;
 
-                @Override
-                public Thread newThread(Runnable r) {
-                    return new Thread(r, "gio.api-manager-" + counter++);
-                }
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r, "gio.api-manager-" + counter++);
             }
-        );
+        });
     }
 
     private void update(ReactableApi<?> api) {
@@ -388,9 +381,9 @@ public class ApiManagerImpl implements ApiManager {
         if (api.enabled() && (!plans.isEmpty() || includedInApiProduct)) {
             log.debug("Updating {} (has plans or included in API Product)", api);
             eventManager.publishEvent(
-                SecretDiscoveryEventType.DISCOVER,
-                new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
-            );
+                    SecretDiscoveryEventType.DISCOVER,
+                    new SecretDiscoveryEvent(
+                            api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision())));
 
             ReactableApi<?> previousApi = apis.get(api.getId());
 
@@ -400,13 +393,11 @@ public class ApiManagerImpl implements ApiManager {
             if (previousApi != null) {
                 // Revoke the previous API revision
                 eventManager.publishEvent(
-                    SecretDiscoveryEventType.REVOKE,
-                    new SecretDiscoveryEvent(
-                        previousApi.getEnvironmentId(),
-                        previousApi.getDefinition(),
-                        new DefinitionMetadata(previousApi.getRevision())
-                    )
-                );
+                        SecretDiscoveryEventType.REVOKE,
+                        new SecretDiscoveryEvent(
+                                previousApi.getEnvironmentId(),
+                                previousApi.getDefinition(),
+                                new DefinitionMetadata(previousApi.getRevision())));
             }
             log.info("{} has been updated", api);
         } else if (plans.isEmpty() && !includedInApiProduct) {
@@ -427,11 +418,10 @@ public class ApiManagerImpl implements ApiManager {
         boolean productMatch = isIncludedInApiProductWithPlans(api);
         if (!productMatch) {
             log.debug(
-                "API [{}] (tags={}) not shard-eligible: no matching gateway tags and no API Product plan entries found (env={})",
-                api.getId(),
-                api.getTags(),
-                api.getEnvironmentId()
-            );
+                    "API [{}] (tags={}) not shard-eligible: no matching gateway tags and no API Product plan entries found (env={})",
+                    api.getId(),
+                    api.getTags(),
+                    api.getEnvironmentId());
         }
         return productMatch;
     }
@@ -440,10 +430,8 @@ public class ApiManagerImpl implements ApiManager {
         if (apiProductRegistry == null || api.getEnvironmentId() == null) {
             return false;
         }
-        List<ApiProductRegistry.ApiProductPlanEntry> apiProductPlanEntries = apiProductRegistry.getApiProductPlanEntriesForApi(
-            api.getId(),
-            api.getEnvironmentId()
-        );
+        List<ApiProductRegistry.ApiProductPlanEntry> apiProductPlanEntries =
+                apiProductRegistry.getApiProductPlanEntriesForApi(api.getId(), api.getEnvironmentId());
         return apiProductPlanEntries != null && !apiProductPlanEntries.isEmpty();
     }
 
@@ -458,7 +446,10 @@ public class ApiManagerImpl implements ApiManager {
             withPerApiLock(apiId, () -> {
                 ReactableApi<?> deployedApi = apis.get(apiId);
                 if (deployedApi != null && !isApiShardEligible(deployedApi)) {
-                    log.info("API [{}] no longer eligible after API Product [{}] change — undeploying", apiId, productId);
+                    log.info(
+                            "API [{}] no longer eligible after API Product [{}] change — undeploying",
+                            apiId,
+                            productId);
                     undeploy(apiId);
                 }
             });
@@ -493,13 +484,11 @@ public class ApiManagerImpl implements ApiManager {
             log.debug("Undeployment of {}", currentApi);
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
             eventManager.publishEvent(
-                SecretDiscoveryEventType.REVOKE,
-                new SecretDiscoveryEvent(
-                    currentApi.getEnvironmentId(),
-                    currentApi.getDefinition(),
-                    new DefinitionMetadata(currentApi.getRevision())
-                )
-            );
+                    SecretDiscoveryEventType.REVOKE,
+                    new SecretDiscoveryEvent(
+                            currentApi.getEnvironmentId(),
+                            currentApi.getDefinition(),
+                            new DefinitionMetadata(currentApi.getRevision())));
             log.info("{} has been undeployed", currentApi);
             MDC.remove("api");
         }

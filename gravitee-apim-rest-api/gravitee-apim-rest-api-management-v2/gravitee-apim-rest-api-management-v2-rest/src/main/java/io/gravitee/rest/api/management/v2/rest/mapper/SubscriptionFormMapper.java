@@ -31,7 +31,7 @@ import org.mapstruct.factory.Mappers;
  *
  * @author Gravitee.io Team
  */
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface SubscriptionFormMapper {
     SubscriptionFormMapper INSTANCE = Mappers.getMapper(SubscriptionFormMapper.class);
 
@@ -42,7 +42,8 @@ public interface SubscriptionFormMapper {
 
     List<io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm> toResponse(List<SubscriptionForm> entities);
 
-    default io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm toResponse(GetSubscriptionFormUseCase.Output output) {
+    default io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm toResponse(
+            GetSubscriptionFormUseCase.Output output) {
         var model = toResponse(output.subscriptionForm());
         model.setResolvedOptions(output.resolvedOptions().isEmpty() ? null : output.resolvedOptions());
         return model;

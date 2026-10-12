@@ -71,7 +71,8 @@ public class GetObservabilityFilterValuesUseCase {
     private final FilterRegistry filterRegistry;
     private final ObservabilityFilterDataPort filterDataPort;
 
-    public record Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage, Set<ApiType> apiTypes) {
+    public record Input(
+            String filterName, String query, Long from, Long to, Integer page, Integer perPage, Set<ApiType> apiTypes) {
         public Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage) {
             this(filterName, query, from, to, page, perPage, Set.of());
         }
@@ -87,10 +88,9 @@ public class GetObservabilityFilterValuesUseCase {
         FilterValuesPage values = switch (spec.type()) {
             case ENUM -> handleEnum(spec, input, apiTypes, page, perPage);
             case KEYWORD -> listKeywordValues(spec, input, apiTypes, page, perPage);
-            case NUMBER, STRING, BOOLEAN -> throw UnsupportedObservabilityFilterException.valueListingNotSupported(
-                spec.name(),
-                spec.type().name()
-            );
+            case NUMBER, STRING, BOOLEAN ->
+                throw UnsupportedObservabilityFilterException.valueListingNotSupported(
+                        spec.name(), spec.type().name());
         };
         return new Output(values, page, perPage);
     }
@@ -106,14 +106,19 @@ public class GetObservabilityFilterValuesUseCase {
     }
 
     private static int resolvePerPage(Input input) {
-        return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        return (input.perPage() != null && input.perPage() > 0)
+                ? Math.min(input.perPage(), MAX_PER_PAGE)
+                : DEFAULT_PER_PAGE;
     }
 
-    private FilterValuesPage listKeywordValues(FilterSpec spec, Input input, Set<ApiType> apiTypes, int page, int perPage) {
+    private FilterValuesPage listKeywordValues(
+            FilterSpec spec, Input input, Set<ApiType> apiTypes, int page, int perPage) {
         if (StaticFilters.withoutValueListing().contains(spec.name())) {
-            throw UnsupportedObservabilityFilterException.valueListingNotSupported(spec.name(), spec.type().name());
+            throw UnsupportedObservabilityFilterException.valueListingNotSupported(
+                    spec.name(), spec.type().name());
         }
-        var stored = filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
+        var stored = filterDataPort.listKeywordValues(
+                spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
         if (!StaticFilters.ENTRYPOINT.name().equals(spec.name()) || !noEntrypointMatches(input.query())) {
             return stored;
         }
@@ -143,33 +148,32 @@ public class GetObservabilityFilterValuesUseCase {
     }
 
     private FilterSpec lookupFilter(String filterName, Set<ApiType> apiTypes) {
-        return filterRegistry
-            .getFilters(null, apiTypes.isEmpty() ? null : apiTypes)
-            .stream()
-            .filter(s -> s.name().equals(filterName))
-            .findFirst()
-            .orElseThrow(() -> new ObservabilityFilterNotFoundException(filterName));
+        return filterRegistry.getFilters(null, apiTypes.isEmpty() ? null : apiTypes).stream()
+                .filter(s -> s.name().equals(filterName))
+                .findFirst()
+                .orElseThrow(() -> new ObservabilityFilterNotFoundException(filterName));
     }
 
-    private static FilterValuesPage handleEnum(FilterSpec spec, Input input, Set<ApiType> apiTypes, int page, int perPage) {
+    private static FilterValuesPage handleEnum(
+            FilterSpec spec, Input input, Set<ApiType> apiTypes, int page, int perPage) {
         List<FilterSpec.EnumValue> enumValues = spec.enumValues() == null ? List.of() : spec.enumValues();
         if (!apiTypes.isEmpty() && "API_TYPE".equals(spec.name())) {
             Set<String> allowedValues = apiTypes.stream().map(Enum::name).collect(java.util.stream.Collectors.toSet());
-            enumValues = enumValues
-                .stream()
-                .filter(v -> allowedValues.contains(v.value()))
-                .toList();
+            enumValues = enumValues.stream()
+                    .filter(v -> allowedValues.contains(v.value()))
+                    .toList();
         }
         if (enumValues.isEmpty()) {
             return new FilterValuesPage(List.of(), 0L);
         }
 
-        String queryLower = input.query() == null || input.query().isBlank() ? null : input.query().toLowerCase();
-        List<FilterValue> matching = enumValues
-            .stream()
-            .filter(v -> queryLower == null || matches(v, queryLower))
-            .map(v -> new FilterValue(v.value(), v.label()))
-            .toList();
+        String queryLower = input.query() == null || input.query().isBlank()
+                ? null
+                : input.query().toLowerCase();
+        List<FilterValue> matching = enumValues.stream()
+                .filter(v -> queryLower == null || matches(v, queryLower))
+                .map(v -> new FilterValue(v.value(), v.label()))
+                .toList();
 
         int fromIndex = (int) Math.min((long) (page - 1) * perPage, matching.size());
         int toIndex = Math.min(fromIndex + perPage, matching.size());
@@ -178,8 +182,7 @@ public class GetObservabilityFilterValuesUseCase {
     }
 
     private static boolean matches(FilterSpec.EnumValue value, String queryLower) {
-        return (
-            value.value().toLowerCase().contains(queryLower) || (value.label() != null && value.label().toLowerCase().contains(queryLower))
-        );
+        return (value.value().toLowerCase().contains(queryLower)
+                || (value.label() != null && value.label().toLowerCase().contains(queryLower)));
     }
 }

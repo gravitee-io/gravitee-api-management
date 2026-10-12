@@ -21,7 +21,7 @@ import java.lang.annotation.*;
 
 @Documented
 @Constraint(validatedBy = IntervalParamValidator.class)
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IntervalParamConstraint {
     String message() default "Invalid interval definition";

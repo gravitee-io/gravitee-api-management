@@ -53,11 +53,7 @@ class PortalPageContentMapperTest {
         // Given
         var contentId = PortalPageContentId.of("12345678-1234-1234-1234-123456789abc");
         var markdownContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-            contentId,
-            "ORG",
-            "ENV",
-            "# Welcome\n\nThis is a test page."
-        );
+                contentId, "ORG", "ENV", "# Welcome\n\nThis is a test page.");
 
         // When
         var result = mapper.map(markdownContent);
@@ -85,7 +81,8 @@ class PortalPageContentMapperTest {
     void should_map_portal_page_content_polymorphically() {
         // Given
         var contentId = PortalPageContentId.random();
-        var markdownContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "ORG", "ENV", "Test content");
+        var markdownContent =
+                PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "ORG", "ENV", "Test content");
 
         // When
         var result = mapper.map((io.gravitee.apim.core.portal_page.model.PortalPageContent) markdownContent);
@@ -102,11 +99,7 @@ class PortalPageContentMapperTest {
         // Given
         var contentId = PortalPageContentId.of("12345678-1234-1234-1234-123456789abd");
         var asyncApiContent = PortalPageContentFixtures.anAsyncApiPageContent(
-            contentId,
-            "ORG",
-            "ENV",
-            "asyncapi: '3.0.0'\ninfo:\n  title: Test AsyncAPI"
-        );
+                contentId, "ORG", "ENV", "asyncapi: '3.0.0'\ninfo:\n  title: Test AsyncAPI");
 
         // When
         var result = mapper.map(asyncApiContent);
@@ -122,62 +115,61 @@ class PortalPageContentMapperTest {
     void should_map_openapi_page_content_configuration_to_dedicated_schema() {
         // Given
         var content = new OpenApiPageContent(
-            PortalPageContentId.of("12345678-1234-1234-1234-123456789abc"),
-            "ORG",
-            "ENV",
-            OpenApi.of("openapi: 3.0.0"),
-            SwaggerUiConfigurationFixtures.aSwaggerUiConfiguration()
-        );
+                PortalPageContentId.of("12345678-1234-1234-1234-123456789abc"),
+                "ORG",
+                "ENV",
+                OpenApi.of("openapi: 3.0.0"),
+                SwaggerUiConfigurationFixtures.aSwaggerUiConfiguration());
 
         // When
         var result = mapper.map(content);
 
         // Then
         assertThat(result.getConfiguration())
-            .isNotNull()
-            .extracting(PortalPageOpenApiConfiguration::getActualInstance)
-            .isInstanceOfSatisfying(PortalPageSwaggerConfiguration.class, configuration -> {
-                assertThat(configuration.getViewer()).isEqualTo(BasePortalPageOpenApiConfiguration.ViewerEnum.SWAGGER);
-                assertThat(configuration.getDisplayOperationId()).isTrue();
-                assertThat(configuration.getDocExpansion()).isEqualTo(PortalPageSwaggerConfiguration.DocExpansionEnum.FULL);
-                assertThat(configuration.getEnableFiltering()).isFalse();
-                assertThat(configuration.getMaxDisplayedTags()).isEqualTo(12);
-                assertThat(configuration.getShowCommonExtensions()).isTrue();
-                assertThat(configuration.getShowExtensions()).isFalse();
-                assertThat(configuration.getShowURL()).isTrue();
-                assertThat(configuration.getTryIt()).isFalse();
-                assertThat(configuration.getDisableSyntaxHighlight()).isTrue();
-                assertThat(configuration.getTryItAnonymous()).isFalse();
-                assertThat(configuration.getTryItURL()).isEqualTo("https://try-it.example.com");
-                assertThat(configuration.getUsePkce()).isTrue();
-                assertThat(configuration.getEntrypointsAsServers()).isFalse();
-                assertThat(configuration.getContextPathAsServerPath()).isTrue();
-            });
+                .isNotNull()
+                .extracting(PortalPageOpenApiConfiguration::getActualInstance)
+                .isInstanceOfSatisfying(PortalPageSwaggerConfiguration.class, configuration -> {
+                    assertThat(configuration.getViewer())
+                            .isEqualTo(BasePortalPageOpenApiConfiguration.ViewerEnum.SWAGGER);
+                    assertThat(configuration.getDisplayOperationId()).isTrue();
+                    assertThat(configuration.getDocExpansion())
+                            .isEqualTo(PortalPageSwaggerConfiguration.DocExpansionEnum.FULL);
+                    assertThat(configuration.getEnableFiltering()).isFalse();
+                    assertThat(configuration.getMaxDisplayedTags()).isEqualTo(12);
+                    assertThat(configuration.getShowCommonExtensions()).isTrue();
+                    assertThat(configuration.getShowExtensions()).isFalse();
+                    assertThat(configuration.getShowURL()).isTrue();
+                    assertThat(configuration.getTryIt()).isFalse();
+                    assertThat(configuration.getDisableSyntaxHighlight()).isTrue();
+                    assertThat(configuration.getTryItAnonymous()).isFalse();
+                    assertThat(configuration.getTryItURL()).isEqualTo("https://try-it.example.com");
+                    assertThat(configuration.getUsePkce()).isTrue();
+                    assertThat(configuration.getEntrypointsAsServers()).isFalse();
+                    assertThat(configuration.getContextPathAsServerPath()).isTrue();
+                });
     }
 
     @Test
     void should_map_redoc_configuration_to_dedicated_schema() {
         // Given
         var content = new OpenApiPageContent(
-            PortalPageContentId.of("12345678-1234-1234-1234-123456789abc"),
-            "ORG",
-            "ENV",
-            OpenApi.of("openapi: 3.0.0"),
-            new RedocConfiguration("https://redoc.example.com")
-        );
+                PortalPageContentId.of("12345678-1234-1234-1234-123456789abc"),
+                "ORG",
+                "ENV",
+                OpenApi.of("openapi: 3.0.0"),
+                new RedocConfiguration("https://redoc.example.com"));
 
         // When
         var result = mapper.map(content);
 
         // Then
         assertThat(result.getConfiguration()).isNotNull();
-        assertThat(result.getConfiguration().getActualInstance()).isInstanceOfSatisfying(
-            PortalPageRedocConfiguration.class,
-            configuration -> {
-                assertThat(configuration.getViewer()).isEqualTo(BasePortalPageOpenApiConfiguration.ViewerEnum.REDOC);
-                assertThat(configuration.getTryItURL()).isEqualTo("https://redoc.example.com");
-            }
-        );
+        assertThat(result.getConfiguration().getActualInstance())
+                .isInstanceOfSatisfying(PortalPageRedocConfiguration.class, configuration -> {
+                    assertThat(configuration.getViewer())
+                            .isEqualTo(BasePortalPageOpenApiConfiguration.ViewerEnum.REDOC);
+                    assertThat(configuration.getTryItURL()).isEqualTo("https://redoc.example.com");
+                });
     }
 
     @Test
@@ -208,10 +200,8 @@ class PortalPageContentMapperTest {
     void should_map_update_portal_page_content_configuration_to_core_configuration() {
         // Given
         var content = new UpdatePortalPageContent()
-            .content("openapi: 3.0.0")
-            .configuration(
-                new PortalPageOpenApiConfiguration(
-                    newSwaggerConfiguration()
+                .content("openapi: 3.0.0")
+                .configuration(new PortalPageOpenApiConfiguration(newSwaggerConfiguration()
                         .displayOperationId(true)
                         .docExpansion(PortalPageSwaggerConfiguration.DocExpansionEnum.LIST)
                         .enableFiltering(false)
@@ -225,9 +215,7 @@ class PortalPageContentMapperTest {
                         .tryItURL("https://try-it.example.com")
                         .usePkce(true)
                         .entrypointsAsServers(false)
-                        .contextPathAsServerPath(true)
-                )
-            );
+                        .contextPathAsServerPath(true)));
 
         // When
         var result = mapper.map(content);
@@ -255,8 +243,8 @@ class PortalPageContentMapperTest {
     void should_map_update_portal_page_content_swagger_configuration_with_default_values() {
         // Given
         var content = new UpdatePortalPageContent()
-            .content("openapi: 3.0.0")
-            .configuration(new PortalPageOpenApiConfiguration(newSwaggerConfiguration()));
+                .content("openapi: 3.0.0")
+                .configuration(new PortalPageOpenApiConfiguration(newSwaggerConfiguration()));
 
         // When
         var result = mapper.map(content);
@@ -284,16 +272,17 @@ class PortalPageContentMapperTest {
     void should_map_update_portal_page_content_redoc_configuration_to_core_configuration() {
         // Given
         var content = new UpdatePortalPageContent()
-            .content("openapi: 3.0.0")
-            .configuration(new PortalPageOpenApiConfiguration(newRedocConfiguration()));
+                .content("openapi: 3.0.0")
+                .configuration(new PortalPageOpenApiConfiguration(newRedocConfiguration()));
 
         // When
         var result = mapper.map(content);
 
         // Then
-        assertThat(result.getConfiguration()).isInstanceOfSatisfying(RedocConfiguration.class, configuration ->
-            assertThat(configuration.tryItUrl()).isEqualTo("https://redoc.example.com")
-        );
+        assertThat(result.getConfiguration())
+                .isInstanceOfSatisfying(
+                        RedocConfiguration.class,
+                        configuration -> assertThat(configuration.tryItUrl()).isEqualTo("https://redoc.example.com"));
     }
 
     private static PortalPageSwaggerConfiguration newSwaggerConfiguration() {

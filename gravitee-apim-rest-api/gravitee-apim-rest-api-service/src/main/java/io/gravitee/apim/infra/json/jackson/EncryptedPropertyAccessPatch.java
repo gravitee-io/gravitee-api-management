@@ -42,7 +42,10 @@ public final class EncryptedPropertyAccessPatch {
         property.put("encrypted", true);
 
         ObjectNode operation = JsonNodeFactory.instance.objectNode();
-        operation.put("op", "access").put("path", PROPERTIES.appendProperty(key).toString()).set("value", property);
+        operation
+                .put("op", "access")
+                .put("path", PROPERTIES.appendProperty(key).toString())
+                .set("value", property);
         return operation;
     }
 }

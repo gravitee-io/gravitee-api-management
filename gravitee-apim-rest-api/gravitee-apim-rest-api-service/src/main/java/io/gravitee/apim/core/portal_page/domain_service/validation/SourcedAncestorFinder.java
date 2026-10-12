@@ -35,7 +35,8 @@ public class SourcedAncestorFinder {
     }
 
     /** Same walk from a parent id, so an item about to be created can be checked against its target parent. */
-    public Optional<PortalNavigationItem> findSourcedAncestorFrom(String environmentId, PortalNavigationItemId parentId) {
+    public Optional<PortalNavigationItem> findSourcedAncestorFrom(
+            String environmentId, PortalNavigationItemId parentId) {
         int depth = 0;
         while (parentId != null) {
             if (ValidationDepth.exceeded(depth++, parentId, "the read-only restriction is not enforced above")) {

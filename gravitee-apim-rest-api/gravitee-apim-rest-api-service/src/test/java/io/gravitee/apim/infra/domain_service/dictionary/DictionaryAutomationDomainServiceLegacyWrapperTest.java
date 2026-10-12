@@ -50,70 +50,69 @@ class DictionaryAutomationDomainServiceLegacyWrapperTest {
 
     private static List<DictionaryProperty> mixedProperties() {
         return List.of(
-            new DictionaryProperty("plain-key", "plain-value", null, null),
-            new DictionaryProperty("secret-key", "cipher", true, null)
-        );
+                new DictionaryProperty("plain-key", "plain-value", null, null),
+                new DictionaryProperty("secret-key", "cipher", true, null));
     }
 
-    private static final Map<String, String> EXPECTED_PROPERTIES = Map.of("plain-key", "plain-value", "secret-key", "cipher");
+    private static final Map<String, String> EXPECTED_PROPERTIES =
+            Map.of("plain-key", "plain-value", "secret-key", "cipher");
     private static final Map<String, DictionaryPropertyOptions> EXPECTED_OPTIONS = Map.of(
-        "secret-key",
-        DictionaryPropertyOptions.builder().encrypted(true).build()
-    );
+            "secret-key", DictionaryPropertyOptions.builder().encrypted(true).build());
 
     @Test
     void should_pass_encrypted_flag_to_the_create_entity() {
         Dictionary dictionary = Dictionary.builder()
-            .name("My Dictionary")
-            .type(DictionaryType.MANUAL)
-            .properties(mixedProperties())
-            .build();
+                .name("My Dictionary")
+                .type(DictionaryType.MANUAL)
+                .properties(mixedProperties())
+                .build();
 
         wrapper.create(GraviteeContext.getExecutionContext(), dictionary);
 
-        verify(dictionaryService).create(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                (NewDictionaryEntity entity) ->
-                    entity.getProperties().equals(EXPECTED_PROPERTIES) && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)
-            )
-        );
+        verify(dictionaryService)
+                .create(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat((NewDictionaryEntity entity) ->
+                                entity.getProperties().equals(EXPECTED_PROPERTIES)
+                                        && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)));
     }
 
     @Test
     void should_skip_null_property_when_creating_a_legacy_dictionary() {
         List<DictionaryProperty> properties = new ArrayList<>(mixedProperties());
         properties.add(null);
-        Dictionary dictionary = Dictionary.builder().name("My Dictionary").type(DictionaryType.MANUAL).properties(properties).build();
+        Dictionary dictionary = Dictionary.builder()
+                .name("My Dictionary")
+                .type(DictionaryType.MANUAL)
+                .properties(properties)
+                .build();
 
         wrapper.create(GraviteeContext.getExecutionContext(), dictionary);
 
-        verify(dictionaryService).create(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                (NewDictionaryEntity entity) ->
-                    entity.getProperties().equals(EXPECTED_PROPERTIES) && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)
-            )
-        );
+        verify(dictionaryService)
+                .create(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat((NewDictionaryEntity entity) ->
+                                entity.getProperties().equals(EXPECTED_PROPERTIES)
+                                        && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)));
     }
 
     @Test
     void should_pass_encrypted_flag_to_the_update_entity() {
         Dictionary dictionary = Dictionary.builder()
-            .name("My Dictionary")
-            .type(DictionaryType.MANUAL)
-            .properties(mixedProperties())
-            .build();
+                .name("My Dictionary")
+                .type(DictionaryType.MANUAL)
+                .properties(mixedProperties())
+                .build();
 
         wrapper.update(GraviteeContext.getExecutionContext(), "dic-1", dictionary);
 
-        verify(dictionaryService).update(
-            eq(GraviteeContext.getExecutionContext()),
-            eq("dic-1"),
-            argThat(
-                (UpdateDictionaryEntity entity) ->
-                    entity.getProperties().equals(EXPECTED_PROPERTIES) && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)
-            )
-        );
+        verify(dictionaryService)
+                .update(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("dic-1"),
+                        argThat((UpdateDictionaryEntity entity) ->
+                                entity.getProperties().equals(EXPECTED_PROPERTIES)
+                                        && entity.getPropertyOptions().equals(EXPECTED_OPTIONS)));
     }
 }

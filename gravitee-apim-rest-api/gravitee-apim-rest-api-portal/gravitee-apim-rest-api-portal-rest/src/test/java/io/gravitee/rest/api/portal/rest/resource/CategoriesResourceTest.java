@@ -64,9 +64,8 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         category3.setOrder(1);
 
         Map<String, Long> countByCategory = Map.of(category1.getId(), 1L, category2.getId(), 0L, category3.getId(), 2L);
-        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any())).thenReturn(cat ->
-            countByCategory.getOrDefault(cat, 0L)
-        );
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any()))
+                .thenReturn(cat -> countByCategory.getOrDefault(cat, 0L));
 
         existingCategories = List.of(category1, category2, category3);
 
@@ -87,7 +86,8 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoCategory() {
-        final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
+        final Response response =
+                target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -104,7 +104,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     public void shouldGetNoPublishedApiAndNoLink() {
         when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(new ArrayList<>());
 
-        //Test with default limit
+        // Test with default limit
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -114,8 +114,9 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         Links links = categoriesResponse.getLinks();
         assertNull(links);
 
-        //Test with small limit
-        final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
+        // Test with small limit
+        final Response anotherResponse =
+                target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
 
         categoriesResponse = anotherResponse.readEntity(CategoriesResponse.class);
@@ -128,7 +129,8 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNothingIfAllCategoriesEmpty() {
         // 0 APIs returned for user in any categories
-        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any())).thenReturn(cat -> 0);
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any()))
+                .thenReturn(cat -> 0);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

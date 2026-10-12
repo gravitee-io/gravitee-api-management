@@ -53,7 +53,8 @@ class DeleteMembershipDomainServiceTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
-    MembershipQueryServiceInMemory membershipQueryServiceInMemory = new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
+    MembershipQueryServiceInMemory membershipQueryServiceInMemory =
+            new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
     AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
 
@@ -73,18 +74,23 @@ class DeleteMembershipDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
+        var auditDomainService = new AuditDomainService(
+                auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
 
-        service = new DeleteMembershipDomainService(membershipQueryServiceInMemory, membershipCrudServiceInMemory, auditDomainService);
+        service = new DeleteMembershipDomainService(
+                membershipQueryServiceInMemory, membershipCrudServiceInMemory, auditDomainService);
 
         membershipCrudServiceInMemory.initWith(List.of(MembershipFixtures.anApiMembership(API_ID)));
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(membershipCrudServiceInMemory, membershipQueryServiceInMemory, auditCrudServiceInMemory, userCrudServiceInMemory).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+                        membershipCrudServiceInMemory,
+                        membershipQueryServiceInMemory,
+                        auditCrudServiceInMemory,
+                        userCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -99,19 +105,17 @@ class DeleteMembershipDomainServiceTest {
         service.deleteApiMemberships(API_ID, AUDIT_INFO);
 
         assertThat(auditCrudServiceInMemory.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .contains(
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(API_ID)
-                    .user(USER_ID)
-                    .properties(Map.of())
-                    .event(MembershipAuditEvent.MEMBERSHIP_DELETED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .contains(AuditEntity.builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(API_ID)
+                        .user(USER_ID)
+                        .properties(Map.of())
+                        .event(MembershipAuditEvent.MEMBERSHIP_DELETED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 }

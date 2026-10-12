@@ -31,7 +31,9 @@ public class MessageFacetExtractor {
     static final String REQUEST_ID_AGG_NAME = "_REQUEST_ID";
 
     public static MessageFacetJoin extractFromComposite(SearchResponse response, List<Facet> joinFacets) {
-        if (response == null || response.getAggregations() == null || response.getAggregations().isEmpty()) {
+        if (response == null
+                || response.getAggregations() == null
+                || response.getAggregations().isEmpty()) {
             return MessageFacetJoin.empty();
         }
 

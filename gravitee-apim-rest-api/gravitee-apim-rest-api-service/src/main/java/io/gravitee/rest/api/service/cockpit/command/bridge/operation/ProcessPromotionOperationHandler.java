@@ -56,9 +56,8 @@ public class ProcessPromotionOperationHandler implements BridgeOperationHandler 
         try {
             promotionEntity = objectMapper.readValue(bridgeCommand.getPayload().content(), PromotionEntity.class);
         } catch (JsonProcessingException e) {
-            String errorDetails = "Problem while deserializing promotion for environment [%s]".formatted(
-                bridgeCommand.getPayload().environmentId()
-            );
+            String errorDetails = "Problem while deserializing promotion for environment [%s]"
+                    .formatted(bridgeCommand.getPayload().environmentId());
             log.warn(errorDetails, e);
             return Single.just(new BridgeReply(bridgeCommand.getId(), errorDetails));
         }
@@ -66,26 +65,19 @@ public class ProcessPromotionOperationHandler implements BridgeOperationHandler 
         try {
             PromotionEntity promotion = promotionService.createOrUpdate(promotionEntity);
             BridgeCommandPayload commandPayload = bridgeCommand.getPayload();
-            return Single.just(
-                new BridgeReply(
+            return Single.just(new BridgeReply(
                     bridgeCommand.getId(),
                     new BridgeReplyPayload(
-                        true,
-                        List.of(
-                            BridgeReplyPayload.BridgeReplyContent.builder()
-                                .environmentId(commandPayload.target().environmentId())
-                                .organizationId(commandPayload.organizationId())
-                                .installationId(installationService.get().getId())
-                                .content(objectMapper.writeValueAsString(promotion))
-                                .build()
-                        )
-                    )
-                )
-            );
+                            true,
+                            List.of(BridgeReplyPayload.BridgeReplyContent.builder()
+                                    .environmentId(commandPayload.target().environmentId())
+                                    .organizationId(commandPayload.organizationId())
+                                    .installationId(installationService.get().getId())
+                                    .content(objectMapper.writeValueAsString(promotion))
+                                    .build()))));
         } catch (JsonProcessingException e) {
-            String errorDetails = "Problem while serializing promotion for environment [%s]".formatted(
-                bridgeCommand.getPayload().environmentId()
-            );
+            String errorDetails = "Problem while serializing promotion for environment [%s]"
+                    .formatted(bridgeCommand.getPayload().environmentId());
             log.warn(errorDetails);
             return Single.just(new BridgeReply(bridgeCommand.getId(), errorDetails));
         }

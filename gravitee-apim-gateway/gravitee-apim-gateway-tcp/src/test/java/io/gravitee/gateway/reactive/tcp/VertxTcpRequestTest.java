@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.gateway.reactive.tcp.VertxTcpRequest;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.rxjava3.core.net.NetSocket;
@@ -68,11 +67,11 @@ class VertxTcpRequestTest {
         assertBlankedValues(tcpRequest);
 
         tcpRequest
-            .chunks()
-            .doOnNext(buffer -> assertThat(buffer).hasToString("foo"))
-            .test()
-            .awaitCount(1)
-            .assertComplete();
+                .chunks()
+                .doOnNext(buffer -> assertThat(buffer).hasToString("foo"))
+                .test()
+                .awaitCount(1)
+                .assertComplete();
     }
 
     @Test

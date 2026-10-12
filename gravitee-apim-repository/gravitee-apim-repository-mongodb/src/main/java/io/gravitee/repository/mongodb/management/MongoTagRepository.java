@@ -58,34 +58,34 @@ public class MongoTagRepository implements TagRepository {
     public Optional<Tag> findByKeyAndReference(String key, String referenceId, TagReferenceType referenceType) {
         log.debug("Find tag by key and reference [{}, {}, {}]", key, referenceId, referenceType);
 
-        final TagMongo tag = internalTagRepo.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType).orElse(null);
+        final TagMongo tag = internalTagRepo
+                .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
+                .orElse(null);
 
         log.debug("Find tag by key and reference[{}, {}, {}] - Done", key, referenceId, referenceType);
         return Optional.ofNullable(mapper.map(tag));
     }
 
     @Override
-    public Set<Tag> findByKeysAndReference(Set<String> keys, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+    public Set<Tag> findByKeysAndReference(Set<String> keys, String referenceId, TagReferenceType referenceType)
+            throws TechnicalException {
         log.debug("Find tags by keys and reference [{}, {}, {}]", keys, referenceId, referenceType);
 
-        final List<TagMongo> tags = internalTagRepo.findByKeyInAndReferenceIdAndReferenceType(keys, referenceId, referenceType);
+        final List<TagMongo> tags =
+                internalTagRepo.findByKeyInAndReferenceIdAndReferenceType(keys, referenceId, referenceType);
 
         log.debug("Find tag by keys and reference[{}, {}, {}] - Done", keys, referenceId, referenceType);
-        return tags
-            .stream()
-            .map(tagMongo -> mapper.map(tagMongo))
-            .collect(Collectors.toSet());
+        return tags.stream().map(tagMongo -> mapper.map(tagMongo)).collect(Collectors.toSet());
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType)
+            throws TechnicalException {
         log.debug("Delete tags by reference {}/{}", referenceId, referenceType);
 
-        final var tags = internalTagRepo
-            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-            .stream()
-            .map(TagMongo::getId)
-            .toList();
+        final var tags = internalTagRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+                .map(TagMongo::getId)
+                .toList();
 
         log.debug("Delete tag by reference {}/{} - Done", referenceId, referenceType);
         return tags;
@@ -118,7 +118,7 @@ public class MongoTagRepository implements TagRepository {
         }
 
         try {
-            //Update
+            // Update
             tagMongo.setName(tag.getName());
             tagMongo.setKey(tag.getKey());
             tagMongo.setDescription(tag.getDescription());
@@ -147,18 +147,13 @@ public class MongoTagRepository implements TagRepository {
     @Override
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         final List<TagMongo> tags = internalTagRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return tags
-            .stream()
-            .map(tagMongo -> mapper.map(tagMongo))
-            .collect(Collectors.toSet());
+        return tags.stream().map(tagMongo -> mapper.map(tagMongo)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Tag> findAll() throws TechnicalException {
-        return internalTagRepo
-            .findAll()
-            .stream()
-            .map(tagMongo -> mapper.map(tagMongo))
-            .collect(Collectors.toSet());
+        return internalTagRepo.findAll().stream()
+                .map(tagMongo -> mapper.map(tagMongo))
+                .collect(Collectors.toSet());
     }
 }

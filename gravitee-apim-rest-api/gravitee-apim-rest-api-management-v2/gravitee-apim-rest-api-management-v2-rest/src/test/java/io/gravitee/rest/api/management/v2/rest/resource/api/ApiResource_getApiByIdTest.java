@@ -101,11 +101,11 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_V4() throws JsonProcessingException {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(
-            this.fakeApiEntityV4()
-        );
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(this.fakeApiEntityV4());
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -132,15 +132,14 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getListeners());
         assertEquals(3, responseApi.getListeners().size());
 
-        io.gravitee.rest.api.management.v2.rest.model.HttpListener httpListener = responseApi.getListeners().get(0).getHttpListener();
+        io.gravitee.rest.api.management.v2.rest.model.HttpListener httpListener =
+                responseApi.getListeners().get(0).getHttpListener();
         assertNotNull(httpListener);
         assertNotNull(httpListener.getPathMappings());
         assertNotNull(httpListener.getPaths().get(0).getHost());
 
-        io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener subscriptionListener = responseApi
-            .getListeners()
-            .get(1)
-            .getSubscriptionListener();
+        io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener subscriptionListener =
+                responseApi.getListeners().get(1).getSubscriptionListener();
         assertNotNull(subscriptionListener);
         assertNotNull(subscriptionListener.getEntrypoints());
         var foundEntrypoint = subscriptionListener.getEntrypoints().get(0);
@@ -150,7 +149,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertEquals("Entrypoint type", foundEntrypoint.getType());
         assertEquals("SUBSCRIPTION", subscriptionListener.getType().toString());
 
-        io.gravitee.rest.api.management.v2.rest.model.TcpListener tcpListener = responseApi.getListeners().get(2).getTcpListener();
+        io.gravitee.rest.api.management.v2.rest.model.TcpListener tcpListener =
+                responseApi.getListeners().get(2).getTcpListener();
         assertNotNull(tcpListener);
         assertNotNull(tcpListener.getEntrypoints());
         var tcpFoundEntrypoint = tcpListener.getEntrypoints().get(0);
@@ -203,24 +203,24 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         var httpSelector = flow.getSelectors().get(0).getHttpSelector();
         assertNotNull(httpSelector);
         assertEquals("/test", httpSelector.getPath());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH, httpSelector.getPathOperator());
+        assertEquals(
+                io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH, httpSelector.getPathOperator());
         assertEquals(2, httpSelector.getMethods().size());
         assertEquals(
-            Set.of(
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-            ),
-            httpSelector.getMethods()
-        );
+                Set.of(
+                        io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
+                        io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST),
+                httpSelector.getMethods());
 
         var channelSelector = flow.getSelectors().get(1).getChannelSelector();
         assertEquals("my-channel", channelSelector.getChannel());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH, channelSelector.getChannelOperator());
+        assertEquals(
+                io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH,
+                channelSelector.getChannelOperator());
         assertEquals(1, channelSelector.getOperations().size());
         assertEquals(
-            Set.of(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE),
-            channelSelector.getOperations()
-        );
+                Set.of(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE),
+                channelSelector.getOperations());
         assertEquals(1, channelSelector.getEntrypoints().size());
         assertEquals(Set.of("my-entrypoint"), channelSelector.getEntrypoints());
 
@@ -246,17 +246,14 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_api_V4() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(
-            this.fakeApiEntityV4()
-        );
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(this.fakeApiEntityV4());
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -278,17 +275,22 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getListeners());
         assertNotNull(responseApi.getListeners().get(0));
         assertNotNull((responseApi.getListeners().get(0).getHttpListener()).getPathMappings());
-        assertTrue((responseApi.getListeners().get(0).getHttpListener()).getPathMappings().isEmpty());
-        assertNull((responseApi.getListeners().get(0).getHttpListener()).getPaths().get(0).getHost());
+        assertTrue((responseApi.getListeners().get(0).getHttpListener())
+                .getPathMappings()
+                .isEmpty());
+        assertNull((responseApi.getListeners().get(0).getHttpListener())
+                .getPaths()
+                .get(0)
+                .getHost());
     }
 
     @Test
     public void should_get_native_api_V4() throws JsonProcessingException {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(
-            this.fakeNativeApiEntityV4()
-        );
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(this.fakeNativeApiEntityV4());
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -390,17 +392,14 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_native_api_V4() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(
-            this.fakeNativeApiEntityV4()
-        );
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(this.fakeNativeApiEntityV4());
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -425,9 +424,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_V2() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(
-            this.fakeApiEntityV2()
-        );
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(this.fakeApiEntityV2());
 
         final Response response = rootTarget(API).request().get();
 
@@ -457,15 +455,16 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getServices().getHealthCheck());
         assertEquals(Boolean.TRUE, responseApi.getServices().getHealthCheck().getEnabled());
         assertNotNull(responseApi.getServices().getDynamicProperty());
-        assertEquals(Boolean.TRUE, responseApi.getServices().getDynamicProperty().getEnabled());
+        assertEquals(
+                Boolean.TRUE, responseApi.getServices().getDynamicProperty().getEnabled());
         assertNotNull(responseApi.getServices().getDynamicProperty().getConfiguration());
         assertEquals(true, responseApi.getServices().getDynamicProperty().getEnabled());
 
         var httpDynamicProperty = responseApi
-            .getServices()
-            .getDynamicProperty()
-            .getConfiguration()
-            .getHttpDynamicPropertyProviderConfiguration();
+                .getServices()
+                .getDynamicProperty()
+                .getConfiguration()
+                .getHttpDynamicPropertyProviderConfiguration();
         assertNotNull(httpDynamicProperty);
         assertEquals("GET", httpDynamicProperty.getMethod().getValue());
         assertNotNull(httpDynamicProperty.getBody());
@@ -476,18 +475,15 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_get_filtered_api_V2() {
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(
-            this.fakeApiEntityV2()
-        );
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(this.fakeApiEntityV2());
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -513,10 +509,16 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_return_false_for_allowedInApiProducts_when_entity_has_false() {
-        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name(API).allowedInApiProducts(false).build();
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder()
+                .id(API)
+                .name(API)
+                .allowedInApiProducts(false)
+                .build();
 
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(true);
 
         final Response response = rootTarget(API).request().get();
 
@@ -528,10 +530,16 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     @Test
     public void should_preserve_true_for_allowedInApiProducts_when_entity_has_true() {
-        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name(API).allowedInApiProducts(true).build();
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder()
+                .id(API)
+                .name(API)
+                .allowedInApiProducts(true)
+                .build();
 
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(true);
 
         final Response response = rootTarget(API).request().get();
 
@@ -545,7 +553,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     public void should_emit_ETag_and_Last_Modified_headers_on_GET() {
         var apiEntity = this.fakeApiEntityV4();
         apiEntity.setUpdatedAt(new Date(1000L));
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(apiEntity);
 
         final Response response = rootTarget(API).request().get();
 
@@ -560,8 +569,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         final String UNKNOWN_API = "unknown";
 
         doThrow(ApiNotFoundException.class)
-            .when(apiSearchServiceV4)
-            .findGenericById(GraviteeContext.getExecutionContext(), UNKNOWN_API, true, true, true);
+                .when(apiSearchServiceV4)
+                .findGenericById(GraviteeContext.getExecutionContext(), UNKNOWN_API, true, true, true);
 
         final Response response = rootTarget(UNKNOWN_API).request().get();
 
@@ -603,22 +612,19 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         endpointGroup.setSharedConfiguration("{\"shared\": \"configuration\"}");
         Endpoint endpoint = new Endpoint();
         endpoint.setType("http-get");
-        endpoint.setConfiguration(
-            "{\n" +
-                "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-                "                        \"topics\": [\n" +
-                "                            \"demo\"\n" +
-                "                        ],\n" +
-                "                        \"producer\": {\n" +
-                "                            \"enabled\": false\n" +
-                "                        },\n" +
-                "                        \"consumer\": {\n" +
-                "                            \"encodeMessageId\": true,\n" +
-                "                            \"enabled\": true,\n" +
-                "                            \"autoOffsetReset\": \"earliest\"\n" +
-                "                        }\n" +
-                "                    }"
-        );
+        endpoint.setConfiguration("{\n" + "                        \"bootstrapServers\": \"kafka:9092\",\n"
+                + "                        \"topics\": [\n"
+                + "                            \"demo\"\n"
+                + "                        ],\n"
+                + "                        \"producer\": {\n"
+                + "                            \"enabled\": false\n"
+                + "                        },\n"
+                + "                        \"consumer\": {\n"
+                + "                            \"encodeMessageId\": true,\n"
+                + "                            \"enabled\": true,\n"
+                + "                            \"autoOffsetReset\": \"earliest\"\n"
+                + "                        }\n"
+                + "                    }");
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
 
@@ -651,20 +657,17 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         apiEntity.setFlows(List.of(flow));
 
         Service dynamicProperty = new Service();
-        dynamicProperty.setConfiguration(
-            "{\n" +
-                "        \"enabled\": true,\n" +
-                "        \"schedule\": \"*/10 * * * * *\",\n" +
-                "        \"provider\": \"HTTP\",\n" +
-                "        \"configuration\": {\n" +
-                "          \"url\": \"https://api.gravitee.io/echo\",\n" +
-                "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
-                "          \"useSystemProxy\": false,\n" +
-                "          \"method\": \"GET\",\n" +
-                "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
-                "        }\n" +
-                "      }"
-        );
+        dynamicProperty.setConfiguration("{\n" + "        \"enabled\": true,\n"
+                + "        \"schedule\": \"*/10 * * * * *\",\n"
+                + "        \"provider\": \"HTTP\",\n"
+                + "        \"configuration\": {\n"
+                + "          \"url\": \"https://api.gravitee.io/echo\",\n"
+                + "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n"
+                + "          \"useSystemProxy\": false,\n"
+                + "          \"method\": \"GET\",\n"
+                + "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n"
+                + "        }\n"
+                + "      }");
         dynamicProperty.setType("dynamic-property");
         dynamicProperty.setEnabled(true);
         dynamicProperty.setOverrideConfiguration(true);
@@ -700,22 +703,19 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         endpointGroup.setSharedConfiguration("{\"shared\": \"configuration\"}");
         var endpoint = new NativeEndpoint();
         endpoint.setType("native-kafka");
-        endpoint.setConfiguration(
-            "{\n" +
-                "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-                "                        \"topics\": [\n" +
-                "                            \"demo\"\n" +
-                "                        ],\n" +
-                "                        \"producer\": {\n" +
-                "                            \"enabled\": false\n" +
-                "                        },\n" +
-                "                        \"consumer\": {\n" +
-                "                            \"encodeMessageId\": true,\n" +
-                "                            \"enabled\": true,\n" +
-                "                            \"autoOffsetReset\": \"earliest\"\n" +
-                "                        }\n" +
-                "                    }"
-        );
+        endpoint.setConfiguration("{\n" + "                        \"bootstrapServers\": \"kafka:9092\",\n"
+                + "                        \"topics\": [\n"
+                + "                            \"demo\"\n"
+                + "                        ],\n"
+                + "                        \"producer\": {\n"
+                + "                            \"enabled\": false\n"
+                + "                        },\n"
+                + "                        \"consumer\": {\n"
+                + "                            \"encodeMessageId\": true,\n"
+                + "                            \"enabled\": true,\n"
+                + "                            \"autoOffsetReset\": \"earliest\"\n"
+                + "                        }\n"
+                + "                    }");
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
 
@@ -736,25 +736,25 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         apiEntity.setFlows(List.of(flow));
 
         Service dynamicProperty = new Service();
-        dynamicProperty.setConfiguration(
-            "{\n" +
-                "        \"enabled\": true,\n" +
-                "        \"schedule\": \"*/10 * * * * *\",\n" +
-                "        \"provider\": \"HTTP\",\n" +
-                "        \"configuration\": {\n" +
-                "          \"url\": \"https://api.gravitee.io/echo\",\n" +
-                "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
-                "          \"useSystemProxy\": false,\n" +
-                "          \"method\": \"GET\",\n" +
-                "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
-                "        }\n" +
-                "      }"
-        );
+        dynamicProperty.setConfiguration("{\n" + "        \"enabled\": true,\n"
+                + "        \"schedule\": \"*/10 * * * * *\",\n"
+                + "        \"provider\": \"HTTP\",\n"
+                + "        \"configuration\": {\n"
+                + "          \"url\": \"https://api.gravitee.io/echo\",\n"
+                + "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n"
+                + "          \"useSystemProxy\": false,\n"
+                + "          \"method\": \"GET\",\n"
+                + "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n"
+                + "        }\n"
+                + "      }");
         dynamicProperty.setType("dynamic-property");
         dynamicProperty.setEnabled(true);
         dynamicProperty.setOverrideConfiguration(true);
         apiEntity.setServices(new NativeApiServices(dynamicProperty));
-        apiEntity.setAnalytics(NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(true).build());
+        apiEntity.setAnalytics(NativeAnalytics.builder()
+                .enabled(true)
+                .reporterMetricsEnabled(true)
+                .build());
 
         return apiEntity;
     }
@@ -785,36 +785,33 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         httpConfiguration.setMethod(HttpMethod.GET);
         httpConfiguration.setUrl("https://api.gravitee.io/echo");
         httpConfiguration.setUseSystemProxy(false);
-        httpConfiguration.setSpecification(
-            "[{\n" +
-                "    \"operation\": \"shift\",\n" +
-                "    \"spec\": {\n" +
-                "      \"rating\": {\n" +
-                "        \"primary\": {\n" +
-                "          \"value\": \"Rating\",\n" +
-                "          \"max\": \"RatingRange\"\n" +
-                "        },\n" +
-                "        \"*\": {\n" +
-                "          \"max\": \"SecondaryRatings.&1.Range\",\n" +
-                "          \"value\": \"SecondaryRatings.&1.Value\",\n" +
-                "          \"$\": \"SecondaryRatings.&1.Id\"\n" +
-                "        }\n" +
-                "      }\n" +
-                "    }\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"operation\": \"default\",\n" +
-                "    \"spec\": {\n" +
-                "      \"Range\": 5,\n" +
-                "      \"SecondaryRatings\": {\n" +
-                "        \"*\": {\n" +
-                "          \"Range\": 5\n" +
-                "        }\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "]"
-        );
+        httpConfiguration.setSpecification("[{\n" + "    \"operation\": \"shift\",\n"
+                + "    \"spec\": {\n"
+                + "      \"rating\": {\n"
+                + "        \"primary\": {\n"
+                + "          \"value\": \"Rating\",\n"
+                + "          \"max\": \"RatingRange\"\n"
+                + "        },\n"
+                + "        \"*\": {\n"
+                + "          \"max\": \"SecondaryRatings.&1.Range\",\n"
+                + "          \"value\": \"SecondaryRatings.&1.Value\",\n"
+                + "          \"$\": \"SecondaryRatings.&1.Id\"\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  },\n"
+                + "  {\n"
+                + "    \"operation\": \"default\",\n"
+                + "    \"spec\": {\n"
+                + "      \"Range\": 5,\n"
+                + "      \"SecondaryRatings\": {\n"
+                + "        \"*\": {\n"
+                + "          \"Range\": 5\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "]");
         dynamicPropertyService.setConfiguration(httpConfiguration);
         services.setDynamicPropertyService(dynamicPropertyService);
         apiEntity.setServices(services);

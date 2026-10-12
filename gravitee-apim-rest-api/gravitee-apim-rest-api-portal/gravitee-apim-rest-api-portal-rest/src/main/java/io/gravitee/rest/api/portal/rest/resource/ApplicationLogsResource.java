@@ -80,27 +80,27 @@ public class ApplicationLogsResource extends AbstractResource {
     @GET
     @Deprecated
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response applicationLogs_deprecated(
-        @PathParam("applicationId") String applicationId,
-        @Valid @BeanParam PaginationParam paginationParam,
-        @BeanParam LogsParam logsParam
-    ) {
-        //Does application exists ?
+            @PathParam("applicationId") String applicationId,
+            @Valid @BeanParam PaginationParam paginationParam,
+            @BeanParam LogsParam logsParam) {
+        // Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
+        final SearchLogResponse<ApplicationRequestItem> searchLogResponse =
+                getSearchLogResponse(applicationId, paginationParam, logsParam);
 
-        List<Log> logs = searchLogResponse.getLogs().stream().map(logMapper::convert).toList();
+        List<Log> logs =
+                searchLogResponse.getLogs().stream().map(logMapper::convert).toList();
 
         final Map<String, Object> metadataTotal = new HashMap<>();
         metadataTotal.put(METADATA_DATA_TOTAL_KEY, searchLogResponse.getTotal());
 
-        final Map<String, Map<String, Object>> metadata = searchLogResponse.getMetadata() == null
-            ? new HashMap()
-            : new HashMap(searchLogResponse.getMetadata());
+        final Map<String, Map<String, Object>> metadata =
+                searchLogResponse.getMetadata() == null ? new HashMap() : new HashMap(searchLogResponse.getMetadata());
         metadata.put(METADATA_DATA_KEY, metadataTotal);
-        //No pagination, because logsService did it already
+        // No pagination, because logsService did it already
         return createListResponse(GraviteeContext.getExecutionContext(), logs, paginationParam, metadata, false);
     }
 
@@ -108,42 +108,37 @@ public class ApplicationLogsResource extends AbstractResource {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response searchApplicationLogs(
-        @PathParam("applicationId") String applicationId,
-        @Valid @BeanParam PaginationParam paginationParam,
-        final @Valid @NotNull SearchApplicationLogsParam searchLogsParam
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @Valid @BeanParam PaginationParam paginationParam,
+            final @Valid @NotNull SearchApplicationLogsParam searchLogsParam) {
         searchLogsParam.validate();
 
         var executionContext = GraviteeContext.getExecutionContext();
 
         Optional<Pageable> pageable = Optional.ofNullable(
-            paginationParam.hasPagination() ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize()) : null
-        );
+                paginationParam.hasPagination()
+                        ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
+                        : null);
 
-        var result = searchApplicationConnectionLogsUseCase.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = searchApplicationConnectionLogsUseCase.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 applicationId,
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 logMapper.convert(applicationId, searchLogsParam),
-                pageable
-            )
-        );
+                pageable));
 
         var metadata = getMetadataForApplicationConnectionLog(result.data(), result.total());
 
         // No pagination, because logsService did it already
-        return createListResponse(executionContext, logMapper.convertConnectionLogs(result.data()), paginationParam, metadata, false);
+        return createListResponse(
+                executionContext, logMapper.convertConnectionLogs(result.data()), paginationParam, metadata, false);
     }
 
     @SuppressWarnings("unchecked")
     protected SearchLogResponse<ApplicationRequestItem> getSearchLogResponse(
-        String applicationId,
-        PaginationParam paginationParam,
-        LogsParam logsParam
-    ) {
+            String applicationId, PaginationParam paginationParam, LogsParam logsParam) {
         logsParam.validate();
 
         LogQuery logQuery = new LogQuery();
@@ -162,84 +157,81 @@ public class ApplicationLogsResource extends AbstractResource {
     @GET
     @Path("/{logId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response applicationLog(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("logId") String logId,
-        @QueryParam("timestamp") Long timestamp
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @PathParam("logId") String logId,
+            @QueryParam("timestamp") Long timestamp) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var connectionLog = getConnectionLogByApplicationIdAndLogIdAndTimestamp(executionContext, applicationId, logId, timestamp);
+        var connectionLog =
+                getConnectionLogByApplicationIdAndLogIdAndTimestamp(executionContext, applicationId, logId, timestamp);
 
         var detail = searchApiConnectionLogDetailUseCase
-            .execute(
-                GraviteeContext.getExecutionContext(),
-                new SearchApiConnectionLogDetailUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId())
-            )
-            .connectionLogDetail();
+                .execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchApiConnectionLogDetailUseCase.Input(
+                                connectionLog.getApiId(), connectionLog.getRequestId()))
+                .connectionLogDetail();
 
-        return Response.ok(
-            logMapper.convert(connectionLog, detail, getMetadataForApplicationConnectionLog(List.of(connectionLog)))
-        ).build();
+        return Response.ok(logMapper.convert(
+                        connectionLog, detail, getMetadataForApplicationConnectionLog(List.of(connectionLog))))
+                .build();
     }
 
     @POST
     @Path("_export")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response exportApplicationLogsAsCSV(
-        @PathParam("applicationId") String applicationId,
-        @BeanParam PaginationParam paginationParam,
-        @BeanParam LogsParam logsParam
-    ) {
-        //Does application exists ?
+            @PathParam("applicationId") String applicationId,
+            @BeanParam PaginationParam paginationParam,
+            @BeanParam LogsParam logsParam) {
+        // Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
-        final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
+        final SearchLogResponse<ApplicationRequestItem> searchLogResponse =
+                getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
-            .header(
-                HttpHeaders.CONTENT_DISPOSITION,
-                format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis())
-            )
-            .build();
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis()))
+                .build();
     }
 
     @GET
     @Path("/{logId}/messages")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response getApplicationLogMessagesByApplicationIdAndLogId(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("logId") String logId,
-        @QueryParam("timestamp") Long timestamp,
-        @Valid @BeanParam PaginationParam paginationParam
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @PathParam("logId") String logId,
+            @QueryParam("timestamp") Long timestamp,
+            @Valid @BeanParam PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var connectionLog = getConnectionLogByApplicationIdAndLogIdAndTimestamp(executionContext, applicationId, logId, timestamp);
+        var connectionLog =
+                getConnectionLogByApplicationIdAndLogIdAndTimestamp(executionContext, applicationId, logId, timestamp);
 
         Optional<Pageable> pageable = Optional.ofNullable(
-            paginationParam.hasPagination() ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize()) : null
-        );
+                paginationParam.hasPagination()
+                        ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
+                        : null);
         var result = searchMessageLogsUseCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiAggregatedMessageLogsUseCase.Input(connectionLog.getApiId(), connectionLog.getRequestId(), pageable)
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiAggregatedMessageLogsUseCase.Input(
+                        connectionLog.getApiId(), connectionLog.getRequestId(), pageable));
 
         var metadata = getMetadataForApplicationConnectionLog(List.of(connectionLog), result.total());
 
         return createListResponse(
-            GraviteeContext.getExecutionContext(),
-            logMapper.convert(result.data()),
-            paginationParam,
-            metadata,
-            false
-        );
+                GraviteeContext.getExecutionContext(),
+                logMapper.convert(result.data()),
+                paginationParam,
+                metadata,
+                false);
     }
 
     public Map<String, Map<String, Object>> getMetadataForApplicationConnectionLog(
-        @NotNull List<ConnectionLog> applicationConnectionLogs,
-        Long total
-    ) {
+            @NotNull List<ConnectionLog> applicationConnectionLogs, Long total) {
         var metadata = getMetadataForApplicationConnectionLog(applicationConnectionLogs);
 
         metadata.put(METADATA_DATA_KEY, Map.of(METADATA_DATA_TOTAL_KEY, total));
@@ -247,7 +239,8 @@ public class ApplicationLogsResource extends AbstractResource {
         return metadata;
     }
 
-    public Map<String, Map<String, Object>> getMetadataForApplicationConnectionLog(@NotNull List<ConnectionLog> applicationConnectionLogs) {
+    public Map<String, Map<String, Object>> getMetadataForApplicationConnectionLog(
+            @NotNull List<ConnectionLog> applicationConnectionLogs) {
         Map<String, Map<String, Object>> metadata = new HashMap<>();
 
         applicationConnectionLogs.forEach(applicationConnectionLog -> {
@@ -267,20 +260,17 @@ public class ApplicationLogsResource extends AbstractResource {
     }
 
     private ConnectionLog getConnectionLogByApplicationIdAndLogIdAndTimestamp(
-        ExecutionContext executionContext,
-        String applicationId,
-        String logId,
-        Long timestamp
-    ) {
-        var result = searchApplicationConnectionLogsUseCase.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+            ExecutionContext executionContext, String applicationId, String logId, Long timestamp) {
+        var result = searchApplicationConnectionLogsUseCase.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 applicationId,
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                SearchLogsFilters.builder().from(timestamp).to(timestamp).requestIds(Set.of(logId)).build(),
-                new PageableImpl(1, 1)
-            )
-        );
+                SearchLogsFilters.builder()
+                        .from(timestamp)
+                        .to(timestamp)
+                        .requestIds(Set.of(logId))
+                        .build(),
+                new PageableImpl(1, 1)));
         if (result.data().isEmpty()) {
             throw new NotFoundException("Log [ " + logId + " ] not found.");
         }
@@ -306,7 +296,9 @@ public class ApplicationLogsResource extends AbstractResource {
                 metadata.put(LogMetadata.METADATA_VERSION.getValue(), api.getVersion());
 
                 if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-                    metadata.put(LogMetadata.METADATA_API_TYPE.getValue(), api.getType().name());
+                    metadata.put(
+                            LogMetadata.METADATA_API_TYPE.getValue(),
+                            api.getType().name());
                 }
 
                 if (Api.ApiLifecycleState.ARCHIVED.equals(api.getApiLifecycleState())) {
@@ -340,8 +332,7 @@ public class ApplicationLogsResource extends AbstractResource {
     }
 
     private static boolean isAnUnknownService(String id) {
-        return (
-            Objects.equals(id, LogMetadata.UNKNOWN_SERVICE.getValue()) || Objects.equals(id, LogMetadata.UNKNOWN_SERVICE_MAPPED.getValue())
-        );
+        return (Objects.equals(id, LogMetadata.UNKNOWN_SERVICE.getValue())
+                || Objects.equals(id, LogMetadata.UNKNOWN_SERVICE_MAPPED.getValue()));
     }
 }

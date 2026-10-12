@@ -38,14 +38,12 @@ public class NodeMetadataMapper {
                 return null;
             }
             try {
-                final DistributedNodeMetadataDeployable distributedDeployable = objectMapper.readValue(
-                    event.getPayload(),
-                    DistributedNodeMetadataDeployable.class
-                );
+                final DistributedNodeMetadataDeployable distributedDeployable =
+                        objectMapper.readValue(event.getPayload(), DistributedNodeMetadataDeployable.class);
                 return NodeMetadataDeployable.builder()
-                    .organizationIds(distributedDeployable.organizationIds)
-                    .installationId(distributedDeployable.installationId)
-                    .build();
+                        .organizationIds(distributedDeployable.organizationIds)
+                        .installationId(distributedDeployable.installationId)
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while determining deployed organization into event payload", e);
                 return null;
@@ -57,19 +55,13 @@ public class NodeMetadataMapper {
         return Maybe.fromCallable(() -> {
             try {
                 return DistributedEvent.builder()
-                    .id(nodeMetadataDeployable.id())
-                    .type(DistributedEventType.NODE_METADATA)
-                    .syncAction(DistributedSyncAction.DEPLOY)
-                    .payload(
-                        objectMapper.writeValueAsString(
-                            new DistributedNodeMetadataDeployable(
-                                nodeMetadataDeployable.organizationIds(),
-                                nodeMetadataDeployable.installationId()
-                            )
-                        )
-                    )
-                    .updatedAt(new Date())
-                    .build();
+                        .id(nodeMetadataDeployable.id())
+                        .type(DistributedEventType.NODE_METADATA)
+                        .syncAction(DistributedSyncAction.DEPLOY)
+                        .payload(objectMapper.writeValueAsString(new DistributedNodeMetadataDeployable(
+                                nodeMetadataDeployable.organizationIds(), nodeMetadataDeployable.installationId())))
+                        .updatedAt(new Date())
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while building distributed event from node metadata", e);
                 return null;

@@ -40,19 +40,24 @@ public class ApiProductMapper {
             try {
                 SyncAction syncAction = SyncActionMapper.to(event.getSyncAction());
 
-                if (syncAction == SyncAction.DEPLOY && (event.getPayload() == null || event.getPayload().isBlank())) {
+                if (syncAction == SyncAction.DEPLOY
+                        && (event.getPayload() == null || event.getPayload().isBlank())) {
                     return null;
                 }
 
-                var builder = ApiProductReactorDeployable.builder().apiProductId(event.getId()).syncAction(syncAction);
+                var builder = ApiProductReactorDeployable.builder()
+                        .apiProductId(event.getId())
+                        .syncAction(syncAction);
 
                 if (syncAction == SyncAction.DEPLOY) {
-                    ReactableApiProduct reactableApiProduct = objectMapper.readValue(event.getPayload(), ReactableApiProduct.class);
+                    ReactableApiProduct reactableApiProduct =
+                            objectMapper.readValue(event.getPayload(), ReactableApiProduct.class);
                     builder.reactableApiProduct(reactableApiProduct);
 
                     List<Plan> plans = reactableApiProduct.getPlans();
                     if (plans != null && !plans.isEmpty()) {
-                        builder.subscribablePlans(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
+                        builder.subscribablePlans(
+                                plans.stream().map(Plan::getId).collect(Collectors.toSet()));
                     }
                 }
 
@@ -68,10 +73,10 @@ public class ApiProductMapper {
         return Maybe.fromCallable(() -> {
             try {
                 DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
-                    .id(deployable.apiProductId())
-                    .type(DistributedEventType.API_PRODUCT)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date());
+                        .id(deployable.apiProductId())
+                        .type(DistributedEventType.API_PRODUCT)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date());
                 if (deployable.syncAction() == SyncAction.DEPLOY) {
                     builder.payload(objectMapper.writeValueAsString(deployable.reactableApiProduct()));
                 }

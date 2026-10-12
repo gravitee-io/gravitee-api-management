@@ -77,12 +77,10 @@ public class NewTagEntity {
         if (this == o) return true;
         if (!(o instanceof NewTagEntity)) return false;
         NewTagEntity that = (NewTagEntity) o;
-        return (
-            Objects.equals(name, that.name) &&
-            Objects.equals(key, that.key) &&
-            Objects.equals(description, that.description) &&
-            Objects.equals(restrictedGroups, that.restrictedGroups)
-        );
+        return (Objects.equals(name, that.name)
+                && Objects.equals(key, that.key)
+                && Objects.equals(description, that.description)
+                && Objects.equals(restrictedGroups, that.restrictedGroups));
     }
 
     @Override
@@ -92,20 +90,17 @@ public class NewTagEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewTagEntity{" +
-            "name='" +
-            name +
-            '\'' +
-            ", key='" +
-            key +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", restrictedGroups=" +
-            restrictedGroups +
-            '}'
-        );
+        return ("NewTagEntity{" + "name='"
+                + name
+                + '\''
+                + ", key='"
+                + key
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", restrictedGroups="
+                + restrictedGroups
+                + '}');
     }
 }

@@ -68,26 +68,27 @@ public enum ExtensibleFilters {
     public List<FilterSpec.EnumValue> baselineValues() {
         return switch (this) {
             // TODO(GMA-421): remove API kinds here as their owning module becomes a contributor.
-            case API_TYPE -> ApiType.API_KINDS.stream()
-                .map(t -> new FilterSpec.EnumValue(t.name(), t.label()))
-                .toList();
-            case RECORD_TYPE -> Arrays.stream(RecordType.values())
-                .map(t -> new FilterSpec.EnumValue(t.name(), t.label()))
-                .toList();
+            case API_TYPE ->
+                ApiType.API_KINDS.stream()
+                        .map(t -> new FilterSpec.EnumValue(t.name(), t.label()))
+                        .toList();
+            case RECORD_TYPE ->
+                Arrays.stream(RecordType.values())
+                        .map(t -> new FilterSpec.EnumValue(t.name(), t.label()))
+                        .toList();
         };
     }
 
     /** Builds the {@link FilterSpec} shell for this filter with the given (already merged) values. */
     public FilterSpec toSpec(List<FilterSpec.EnumValue> values) {
         return new FilterSpec(
-            name(),
-            label,
-            FilterType.ENUM,
-            List.of(FilterOperator.EQ, FilterOperator.IN),
-            values,
-            null,
-            signals,
-            apiTypes
-        );
+                name(),
+                label,
+                FilterType.ENUM,
+                List.of(FilterOperator.EQ, FilterOperator.IN),
+                values,
+                null,
+                signals,
+                apiTypes);
     }
 }

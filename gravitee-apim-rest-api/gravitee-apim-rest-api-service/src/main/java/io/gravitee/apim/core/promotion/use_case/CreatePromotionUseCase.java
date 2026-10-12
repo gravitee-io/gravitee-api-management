@@ -20,7 +20,6 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -47,7 +46,6 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.CustomLog;
@@ -73,18 +71,17 @@ public class CreatePromotionUseCase {
     public record Output(Promotion promotion) {}
 
     public CreatePromotionUseCase(
-        ApiExportDomainService apiExportDomainService,
-        EnvironmentCrudService environmentCrudService,
-        PromotionQueryService promotionQueryService,
-        GraviteeDefinitionSerializer graviteeDefinitionSerializer,
-        PromotionCrudService promotionCrudService,
-        AuditDomainService auditService,
-        CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
-        UserCrudService userCrudService,
-        ApiCrudService apiCrudService,
-        PlanCrudService planCrudService,
-        PageCrudService pageCrudService
-    ) {
+            ApiExportDomainService apiExportDomainService,
+            EnvironmentCrudService environmentCrudService,
+            PromotionQueryService promotionQueryService,
+            GraviteeDefinitionSerializer graviteeDefinitionSerializer,
+            PromotionCrudService promotionCrudService,
+            AuditDomainService auditService,
+            CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
+            UserCrudService userCrudService,
+            ApiCrudService apiCrudService,
+            PlanCrudService planCrudService,
+            PageCrudService pageCrudService) {
         this.apiExportDomainService = apiExportDomainService;
         this.environmentCrudService = environmentCrudService;
         this.promotionQueryService = promotionQueryService;
@@ -101,11 +98,11 @@ public class CreatePromotionUseCase {
     public Output execute(Input input) {
         var api = apiCrudService.get(input.apiId);
         var createdPromotion = switch (api.getDefinitionVersion()) {
-            case V2 -> cockpitPromotionServiceProvider.createPromotion(
-                input.apiId,
-                input.promotionRequest,
-                input.auditInfo.actor().userId()
-            );
+            case V2 ->
+                cockpitPromotionServiceProvider.createPromotion(
+                        input.apiId,
+                        input.promotionRequest,
+                        input.auditInfo.actor().userId());
             case V4 -> createPromotion(api, input.promotionRequest, input.auditInfo);
             default -> throw new ApiInvalidDefinitionVersionException(input.apiId);
         };
@@ -121,13 +118,13 @@ public class CreatePromotionUseCase {
         var sourceEnvironment = environmentCrudService.get(auditInfo.environmentId());
 
         var promotionQuery = new PromotionQueryService.PromotionQuery(
-            apiId,
-            Set.of(promotionRequest.getTargetEnvCockpitId()),
-            Set.of(PromotionStatus.CREATED, PromotionStatus.TO_BE_VALIDATED),
-            null
-        );
+                apiId,
+                Set.of(promotionRequest.getTargetEnvCockpitId()),
+                Set.of(PromotionStatus.CREATED, PromotionStatus.TO_BE_VALIDATED),
+                null);
 
-        List<Promotion> inProgressPromotions = promotionQueryService.search(promotionQuery).getContent();
+        List<Promotion> inProgressPromotions =
+                promotionQueryService.search(promotionQuery).getContent();
         if (!inProgressPromotions.isEmpty()) {
             Promotion promotion = inProgressPromotions.getFirst();
             throw new PromotionAlreadyInProgressException(promotion.getId());
@@ -136,33 +133,33 @@ public class CreatePromotionUseCase {
         Promotion toSave;
         try {
             toSave = Promotion.builder()
-                .id(UuidString.generateRandom())
-                .author(
-                    PromotionAuthor.builder()
-                        .userId(authenticatedUser.getId())
-                        .displayName(authenticatedUser.displayName())
-                        .email(authenticatedUser.getEmail())
-                        .source(authenticatedUser.getSource() != null ? authenticatedUser.getSource().value() : null)
-                        .sourceId(authenticatedUser.getSourceId())
-                        .build()
-                )
-                .status(PromotionStatus.CREATED)
-                .apiId(apiId)
-                .apiDefinition(graviteeDefinitionSerializer.serialize(apiDefinition))
-                .sourceEnvCockpitId(sourceEnvironment.getCockpitId())
-                .sourceEnvName(sourceEnvironment.getName())
-                .targetEnvCockpitId(promotionRequest.getTargetEnvCockpitId())
-                .targetEnvName(promotionRequest.getTargetEnvName())
-                .createdAt(TimeProvider.now().toInstant())
-                .build();
+                    .id(UuidString.generateRandom())
+                    .author(PromotionAuthor.builder()
+                            .userId(authenticatedUser.getId())
+                            .displayName(authenticatedUser.displayName())
+                            .email(authenticatedUser.getEmail())
+                            .source(
+                                    authenticatedUser.getSource() != null
+                                            ? authenticatedUser.getSource().value()
+                                            : null)
+                            .sourceId(authenticatedUser.getSourceId())
+                            .build())
+                    .status(PromotionStatus.CREATED)
+                    .apiId(apiId)
+                    .apiDefinition(graviteeDefinitionSerializer.serialize(apiDefinition))
+                    .sourceEnvCockpitId(sourceEnvironment.getCockpitId())
+                    .sourceEnvName(sourceEnvironment.getName())
+                    .targetEnvCockpitId(promotionRequest.getTargetEnvCockpitId())
+                    .targetEnvName(promotionRequest.getTargetEnvName())
+                    .createdAt(TimeProvider.now().toInstant())
+                    .build();
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("Fail to serialize api definition", e);
         }
 
         var createdPromotion = promotionCrudService.create(toSave);
 
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(createdPromotion.getApiId())
@@ -172,26 +169,22 @@ public class CreatePromotionUseCase {
                 .newValue(createdPromotion)
                 .createdAt(createdPromotion.getCreatedAt().atZone(ZoneId.of("UTC")))
                 .properties(Collections.emptyMap())
-                .build()
-        );
+                .build());
 
         return createdPromotion;
     }
 
     private Promotion sendCockpitCommand(Promotion promotion, AuditInfo auditInfo) {
         var cockpitReplyStatus = cockpitPromotionServiceProvider.requestPromotion(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            promotion
-        );
+                auditInfo.organizationId(), auditInfo.environmentId(), promotion);
 
-        var updated = promotionCrudService.update(
-            promotion
-                .toBuilder()
-                .status(cockpitReplyStatus != CockpitReplyStatus.SUCCEEDED ? PromotionStatus.ERROR : PromotionStatus.TO_BE_VALIDATED)
+        var updated = promotionCrudService.update(promotion.toBuilder()
+                .status(
+                        cockpitReplyStatus != CockpitReplyStatus.SUCCEEDED
+                                ? PromotionStatus.ERROR
+                                : PromotionStatus.TO_BE_VALIDATED)
                 .updatedAt(TimeProvider.now().toInstant())
-                .build()
-        );
+                .build());
 
         if (cockpitReplyStatus != CockpitReplyStatus.SUCCEEDED) {
             throw new TechnicalManagementException("An error occurs while sending promotion request to cockpit");
@@ -205,26 +198,22 @@ public class CreatePromotionUseCase {
             api.setCrossId(UuidString.generateRandom());
             apiCrudService.update(api);
         }
-        var plans = planCrudService
-            .findByApiId(api.getId())
-            .stream()
-            .peek(plan -> {
-                if (StringUtils.isEmpty(plan.getCrossId())) {
-                    plan.setCrossId(UuidString.generateRandom());
-                }
-            })
-            .toList();
+        var plans = planCrudService.findByApiId(api.getId()).stream()
+                .peek(plan -> {
+                    if (StringUtils.isEmpty(plan.getCrossId())) {
+                        plan.setCrossId(UuidString.generateRandom());
+                    }
+                })
+                .toList();
         planCrudService.updateCrossIds(plans);
 
-        var pages = pageCrudService
-            .findByApiId(api.getId())
-            .stream()
-            .peek(page -> {
-                if (StringUtils.isEmpty(page.getCrossId())) {
-                    page.setCrossId(UuidString.generateRandom());
-                }
-            })
-            .toList();
+        var pages = pageCrudService.findByApiId(api.getId()).stream()
+                .peek(page -> {
+                    if (StringUtils.isEmpty(page.getCrossId())) {
+                        page.setCrossId(UuidString.generateRandom());
+                    }
+                })
+                .toList();
         pageCrudService.updateCrossIds(pages);
     }
 }

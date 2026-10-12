@@ -71,12 +71,11 @@ public class AiWorkspaceRolesUpgraderTest {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
         ExecutionContext expectedExecutionContext = new ExecutionContext(organization);
-        when(roleService.findByScopeAndName(eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_OWNER.getName()), eq(organizationId))).thenReturn(
-            Optional.empty()
-        );
-        when(roleService.findByScopeAndName(eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_USER.getName()), eq(organizationId))).thenReturn(
-            Optional.empty()
-        );
+        when(roleService.findByScopeAndName(
+                        eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_OWNER.getName()), eq(organizationId)))
+                .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_USER.getName()), eq(organizationId)))
+                .thenReturn(Optional.empty());
 
         upgrader.upgrade();
 
@@ -92,12 +91,11 @@ public class AiWorkspaceRolesUpgraderTest {
         when(organization.getId()).thenReturn(organizationId);
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
-        when(roleService.findByScopeAndName(eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_OWNER.getName()), eq(organizationId))).thenReturn(
-            Optional.of(new RoleEntity())
-        );
-        when(roleService.findByScopeAndName(eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_USER.getName()), eq(organizationId))).thenReturn(
-            Optional.of(new RoleEntity())
-        );
+        when(roleService.findByScopeAndName(
+                        eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_OWNER.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(eq(AI_WORKSPACE), eq(ROLE_AI_WORKSPACE_USER.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(new RoleEntity()));
 
         upgrader.upgrade();
 

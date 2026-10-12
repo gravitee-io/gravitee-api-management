@@ -55,12 +55,11 @@ public class ApiRatingAnswersResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE)})
     public Response createApiRatingAnswer(
-        @PathParam("apiId") String apiId,
-        @PathParam("ratingId") String ratingId,
-        @Valid RatingAnswerInput ratingAnswerInput
-    ) {
+            @PathParam("apiId") String apiId,
+            @PathParam("ratingId") String ratingId,
+            @Valid RatingAnswerInput ratingAnswerInput) {
         if (ratingAnswerInput == null) {
             throw new BadRequestException("Input must not be null.");
         }
@@ -71,10 +70,11 @@ public class ApiRatingAnswersResource extends AbstractResource {
                 NewRatingAnswerEntity ratingAnswerEntity = new NewRatingAnswerEntity();
                 ratingAnswerEntity.setComment(ratingAnswerInput.getComment());
                 ratingAnswerEntity.setRatingId(ratingId);
-                RatingEntity updatedRating = ratingService.createAnswer(GraviteeContext.getExecutionContext(), ratingAnswerEntity);
+                RatingEntity updatedRating =
+                        ratingService.createAnswer(GraviteeContext.getExecutionContext(), ratingAnswerEntity);
                 return Response.status(Status.CREATED)
-                    .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
-                    .build();
+                        .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
+                        .build();
             }
             throw new RatingNotFoundException(ratingId, apiId);
         }

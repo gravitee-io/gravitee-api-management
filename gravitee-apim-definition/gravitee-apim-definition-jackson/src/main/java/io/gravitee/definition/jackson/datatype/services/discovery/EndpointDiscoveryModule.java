@@ -27,7 +27,8 @@ public class EndpointDiscoveryModule extends GraviteeModule {
     public EndpointDiscoveryModule() {
         super(EndpointDiscoveryService.SERVICE_KEY);
         // first deserializers
-        addDeserializer(EndpointDiscoveryService.class, new EndpointDiscoveryDeserializer(EndpointDiscoveryService.class));
+        addDeserializer(
+                EndpointDiscoveryService.class, new EndpointDiscoveryDeserializer(EndpointDiscoveryService.class));
 
         // then serializers:
         addSerializer(EndpointDiscoveryService.class, new EndpointDiscoverySerializer(EndpointDiscoveryService.class));

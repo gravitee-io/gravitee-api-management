@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.shared_policy_group.exception;
 
-import static java.util.Collections.singletonMap;
-
 import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
 import java.util.Map;
 
@@ -36,10 +34,8 @@ public class SharedPolicyGroupDuplicateCrossIdException extends AbstractNotFound
     @Override
     public String getMessage() {
         return String.format(
-            "SharedPolicyGroup with crossId [%s] already exists for environment [%s].",
-            this.sharedPolicyGroupId,
-            environmentId
-        );
+                "SharedPolicyGroup with crossId [%s] already exists for environment [%s].",
+                this.sharedPolicyGroupId, environmentId);
     }
 
     @Override

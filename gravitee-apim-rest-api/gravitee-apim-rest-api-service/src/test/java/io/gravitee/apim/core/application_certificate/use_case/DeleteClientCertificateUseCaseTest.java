@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.application_certificate.use_case;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -41,7 +40,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DeleteClientCertificateUseCaseTest {
 
-    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
+    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService =
+            new ClientCertificateCrudServiceInMemory();
 
     @Mock
     private ClientCertificateDomainService clientCertificateDomainService;
@@ -51,7 +51,8 @@ class DeleteClientCertificateUseCaseTest {
     @BeforeEach
     void setUp() {
         clientCertificateCrudService.reset();
-        deleteClientCertificateUseCase = new DeleteClientCertificateUseCase(clientCertificateCrudService, clientCertificateDomainService);
+        deleteClientCertificateUseCase =
+                new DeleteClientCertificateUseCase(clientCertificateCrudService, clientCertificateDomainService);
     }
 
     @Test
@@ -59,22 +60,21 @@ class DeleteClientCertificateUseCaseTest {
         var certId = "cert-id";
         var appId = "app-id";
         var certificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            appId,
-            "Test Certificate",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+                certId,
+                "cross-id",
+                appId,
+                "Test Certificate",
+                new Date(),
+                new Date(),
+                new Date(),
+                new Date(),
+                "PEM_CONTENT",
+                new Date(),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint",
+                "env-id",
+                ClientCertificateStatus.ACTIVE);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(certId));
@@ -87,36 +87,39 @@ class DeleteClientCertificateUseCaseTest {
         var certId = "cert-id";
         var appId = "app-id";
         var certificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            appId,
-            "Test Certificate",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+                certId,
+                "cross-id",
+                appId,
+                "Test Certificate",
+                new Date(),
+                new Date(),
+                new Date(),
+                new Date(),
+                "PEM_CONTENT",
+                new Date(),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint",
+                "env-id",
+                ClientCertificateStatus.ACTIVE);
         clientCertificateCrudService.initWith(List.of(certificate));
 
-        doThrow(new ClientCertificateLastRemovalException(appId)).when(clientCertificateDomainService).delete(appId, certId);
+        doThrow(new ClientCertificateLastRemovalException(appId))
+                .when(clientCertificateDomainService)
+                .delete(appId, certId);
 
         var input = new DeleteClientCertificateUseCase.Input(certId);
 
-        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateLastRemovalException.class);
+        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input))
+                .isInstanceOf(ClientCertificateLastRemovalException.class);
     }
 
     @Test
     void should_throw_exception_when_certificate_not_found() {
         var input = new DeleteClientCertificateUseCase.Input("non-existent-id");
 
-        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input))
+                .isInstanceOf(ClientCertificateNotFoundException.class);
     }
 
     @Test
@@ -124,26 +127,26 @@ class DeleteClientCertificateUseCaseTest {
         var certId = "cert-id";
         var appId = "app-id";
         var certificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            appId,
-            "Test Certificate",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+                certId,
+                "cross-id",
+                appId,
+                "Test Certificate",
+                new Date(),
+                new Date(),
+                new Date(),
+                new Date(),
+                "PEM_CONTENT",
+                new Date(),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint",
+                "env-id",
+                ClientCertificateStatus.ACTIVE);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         var input = new DeleteClientCertificateUseCase.Input(Optional.of("other-app-id"), certId);
 
-        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+        assertThatThrownBy(() -> deleteClientCertificateUseCase.execute(input))
+                .isInstanceOf(ClientCertificateNotFoundException.class);
     }
 }

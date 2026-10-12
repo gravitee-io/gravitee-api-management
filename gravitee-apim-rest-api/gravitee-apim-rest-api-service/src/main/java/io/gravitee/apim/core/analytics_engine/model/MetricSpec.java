@@ -18,14 +18,13 @@ package io.gravitee.apim.core.analytics_engine.model;
 import java.util.List;
 
 public record MetricSpec(
-    Name name,
-    String label,
-    List<ApiSpec.Name> apis,
-    Unit unit,
-    List<Measure> measures,
-    List<FilterSpec.Name> filters,
-    List<FacetSpec.Name> facets
-) {
+        Name name,
+        String label,
+        List<ApiSpec.Name> apis,
+        Unit unit,
+        List<Measure> measures,
+        List<FilterSpec.Name> filters,
+        List<FacetSpec.Name> facets) {
     public enum Name {
         HTTP_REQUESTS,
         HTTP_ERRORS,

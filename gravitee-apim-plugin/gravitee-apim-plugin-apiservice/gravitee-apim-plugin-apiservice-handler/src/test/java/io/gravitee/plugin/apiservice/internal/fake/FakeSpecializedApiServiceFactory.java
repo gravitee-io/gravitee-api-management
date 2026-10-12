@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.apiservice.internal.fake;
 
-import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 
 /**

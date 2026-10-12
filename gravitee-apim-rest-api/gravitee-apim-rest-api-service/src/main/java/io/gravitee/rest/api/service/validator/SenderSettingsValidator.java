@@ -48,9 +48,9 @@ public class SenderSettingsValidator implements DisposableBean {
 
     // The sender constraint messages use no expression language, so no EL implementation is required.
     private final ValidatorFactory validatorFactory = Validation.byProvider(HibernateValidator.class)
-        .configure()
-        .messageInterpolator(new ParameterMessageInterpolator())
-        .buildValidatorFactory();
+            .configure()
+            .messageInterpolator(new ParameterMessageInterpolator())
+            .buildValidatorFactory();
 
     private final Validator validator = validatorFactory.getValidator();
 
@@ -71,11 +71,9 @@ public class SenderSettingsValidator implements DisposableBean {
 
         if (!skipped.test(Key.EMAIL_BRANDED_SENDERS)) {
             List<BrandedSenderConfig> storedBrandedSenders = stored.getBrandedSenders();
-            submitted
-                .getBrandedSenders()
-                .stream()
-                .filter(brandedSender -> !storedBrandedSenders.contains(brandedSender))
-                .forEach(brandedSender -> violations.addAll(validator.validate(brandedSender)));
+            submitted.getBrandedSenders().stream()
+                    .filter(brandedSender -> !storedBrandedSenders.contains(brandedSender))
+                    .forEach(brandedSender -> violations.addAll(validator.validate(brandedSender)));
         }
 
         if (!violations.isEmpty()) {

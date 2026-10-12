@@ -73,25 +73,25 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
 
     @Container
     private static final VaultContainer<?> vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
-        .withVaultToken(VAULT_TOKEN)
-        .withInitCommand(
-            "kv put secret/test" +
-                " value1='initial value1'" +
-                " value2='initial value2'" +
-                " value3='initial value3'" +
-                " value4='initial value4'" +
-                " value5='initial value5'",
-            "kv put secret/test2 value1='initial testValue1'"
-        );
+            .withVaultToken(VAULT_TOKEN)
+            .withInitCommand(
+                    "kv put secret/test" + " value1='initial value1'"
+                            + " value2='initial value2'"
+                            + " value3='initial value3'"
+                            + " value4='initial value4'"
+                            + " value5='initial value5'",
+                    "kv put secret/test2 value1='initial testValue1'");
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
@@ -100,7 +100,8 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
         testDictionary.setId("test");
         testDictionary.setKey("test");
         testDictionary.setEnvironmentId("DEFAULT");
-        testDictionary.setProperties(Map.of("value4", new DictionaryProperty("/vault/secret/test:value4?renewable=true", false)));
+        testDictionary.setProperties(
+                Map.of("value4", new DictionaryProperty("/vault/secret/test:value4?renewable=true", false)));
         dictionaries.add(testDictionary);
     }
 
@@ -111,7 +112,9 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
         // create a renewable token so the plugin does not start panicking
         String token;
         try {
-            token = vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token").getStdout();
+            token = vaultContainer
+                    .execInContainer("vault", "token", "create", "-period=10m", "-field", "token")
+                    .getStdout();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -119,7 +122,8 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
         configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.host", vaultContainer.getHost());
-        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
+        configurationBuilder.setYamlProperty(
+                "api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", "false");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "token");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.config.token", token);
@@ -132,11 +136,10 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureSecretProviders(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins) {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class));
     }
 
     @Override
@@ -152,51 +155,46 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
 
     @SneakyThrows
     @Test
-    @DeployApi({ "/apis/v4/http/secrets/api-with-secrets.json" })
+    @DeployApi({"/apis/v4/http/secrets/api-with-secrets.json"})
     void should_retrieve_password_from_secret_provider_when_it_changes(HttpClient httpClient, Vertx vertx) {
         wiremock.stubFor(get("/echo").willReturn(ok("response from backend")));
 
         // Call the API and check the secret is retrieved correctly
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/echo"))
-                .withHeader("X-Secret-URI", equalTo("initial value1 initial testValue1"))
-                .withHeader("X-Secret-URI-renewable", equalTo("initial value2"))
-                .withHeader("X-Secret-URI-reloadOnChange", equalTo("initial value3"))
-                .withHeader("X-Secret-Dictionary", equalTo("initial value4"))
-                .withHeader("X-Secret-Properties", equalTo("initial value5"))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/echo"))
+                        .withHeader("X-Secret-URI", equalTo("initial value1 initial testValue1"))
+                        .withHeader("X-Secret-URI-renewable", equalTo("initial value2"))
+                        .withHeader("X-Secret-URI-reloadOnChange", equalTo("initial value3"))
+                        .withHeader("X-Secret-Dictionary", equalTo("initial value4"))
+                        .withHeader("X-Secret-Properties", equalTo("initial value5")));
 
         // Update the secret in the provider
         vaultContainer.execInContainer(
-            "vault",
-            "kv",
-            "put",
-            "secret/test",
-            "value1=updated value1",
-            "value2=updated value2",
-            "value3=updated value3",
-            "value4=updated value4",
-            "value5=updated value5"
-        );
+                "vault",
+                "kv",
+                "put",
+                "secret/test",
+                "value1=updated value1",
+                "value2=updated value2",
+                "value3=updated value3",
+                "value4=updated value4",
+                "value5=updated value5");
 
         // Wait and check that the API retrieves the updated secret
         TimeUnit.SECONDS.sleep(5);
-        await()
-            .pollInterval(1, TimeUnit.SECONDS)
-            .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                httpClient
+        await().pollInterval(1, TimeUnit.SECONDS).atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            httpClient
                     .rxRequest(HttpMethod.GET, "/test")
                     .flatMap(HttpClientRequest::rxSend)
                     .flatMap(response -> {
@@ -207,15 +205,18 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
                     .awaitDone(10, TimeUnit.SECONDS)
                     .assertComplete();
 
-                wiremock.verify(
+            wiremock.verify(
                     1,
                     getRequestedFor(urlPathEqualTo("/echo"))
-                        .withHeader("X-Secret-URI", equalTo("updated value1 initial testValue1")) // As the full secret is refreshed, all values are updated and benefit to all specs.
-                        .withHeader("X-Secret-URI-renewable", equalTo("updated value2"))
-                        .withHeader("X-Secret-URI-reloadOnChange", equalTo("updated value3"))
-                        .withHeader("X-Secret-Dictionary", equalTo("updated value4"))
-                        .withHeader("X-Secret-Properties", equalTo("updated value5"))
-                );
-            });
+                            .withHeader(
+                                    "X-Secret-URI",
+                                    equalTo("updated value1 initial testValue1")) // As the full secret is refreshed,
+                            // all values are updated and benefit
+                            // to all specs.
+                            .withHeader("X-Secret-URI-renewable", equalTo("updated value2"))
+                            .withHeader("X-Secret-URI-reloadOnChange", equalTo("updated value3"))
+                            .withHeader("X-Secret-Dictionary", equalTo("updated value4"))
+                            .withHeader("X-Secret-Properties", equalTo("updated value5")));
+        });
     }
 }

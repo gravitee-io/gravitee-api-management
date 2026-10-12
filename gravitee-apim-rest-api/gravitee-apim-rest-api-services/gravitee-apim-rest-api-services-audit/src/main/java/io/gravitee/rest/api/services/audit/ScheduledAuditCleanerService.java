@@ -42,15 +42,14 @@ public class ScheduledAuditCleanerService extends AbstractService implements Run
     private final ClusterManager clusterManager;
 
     public ScheduledAuditCleanerService(
-        @Qualifier("auditTaskScheduler") TaskScheduler scheduler,
-        @Value("${services.audit.cron:0 1 * * * *}") String cronTrigger,
-        @Value("${services.audit.enabled:false}") boolean enabled,
-        @Value("${services.audit.retention.days:365}") int maxAgeInDays,
-        RemoveOldAuditDataUseCase removeOldAuditDataUseCase,
-        OrganizationService organizationService,
-        EnvironmentService environmentService,
-        ClusterManager clusterManager
-    ) {
+            @Qualifier("auditTaskScheduler") TaskScheduler scheduler,
+            @Value("${services.audit.cron:0 1 * * * *}") String cronTrigger,
+            @Value("${services.audit.enabled:false}") boolean enabled,
+            @Value("${services.audit.retention.days:365}") int maxAgeInDays,
+            RemoveOldAuditDataUseCase removeOldAuditDataUseCase,
+            OrganizationService organizationService,
+            EnvironmentService environmentService,
+            ClusterManager clusterManager) {
         this.scheduler = scheduler;
         this.cronTrigger = cronTrigger;
         this.enabled = enabled;
@@ -84,20 +83,20 @@ public class ScheduledAuditCleanerService extends AbstractService implements Run
             return;
         }
         var environments = stream(organizationService.findAll())
-            .flatMap(o -> stream(environmentService.findByOrganization(o.getId())))
-            .toList();
+                .flatMap(o -> stream(environmentService.findByOrganization(o.getId())))
+                .toList();
 
         for (var environment : environments) {
             log.info(
-                "Start cleanup environment: {} ({}) from organisation {}",
-                environment.getName(),
-                environment.getId(),
-                environment.getOrganizationId()
-            );
+                    "Start cleanup environment: {} ({}) from organisation {}",
+                    environment.getName(),
+                    environment.getId(),
+                    environment.getOrganizationId());
             try {
                 removeOldAuditDataUseCase.execute(new RemoveOldAuditDataUseCase.Input(environment.getId(), maxAge));
             } catch (Exception e) {
-                log.error("Audit cleanup failed for environment {} ({})", environment.getName(), environment.getId(), e);
+                log.error(
+                        "Audit cleanup failed for environment {} ({})", environment.getName(), environment.getId(), e);
             }
         }
     }

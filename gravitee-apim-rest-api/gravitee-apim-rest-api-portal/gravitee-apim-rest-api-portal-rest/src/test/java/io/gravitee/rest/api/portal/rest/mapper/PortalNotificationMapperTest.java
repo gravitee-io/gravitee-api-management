@@ -39,7 +39,7 @@ public class PortalNotificationMapperTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        //init
+        // init
         PortalNotificationEntity portalNotificationEntity = new PortalNotificationEntity();
 
         portalNotificationEntity.setCreatedAt(nowDate);
@@ -47,12 +47,14 @@ public class PortalNotificationMapperTest {
         portalNotificationEntity.setMessage(NOTIF_MESSAGE);
         portalNotificationEntity.setTitle(NOTIF_TITLE);
 
-        //Test
+        // Test
         PortalNotification responsePortalNotif = new PortalNotificationMapper().convert(portalNotificationEntity);
         assertNotNull(responsePortalNotif);
         assertEquals(NOTIF_ID, responsePortalNotif.getId());
         assertEquals(NOTIF_MESSAGE, responsePortalNotif.getMessage());
         assertEquals(NOTIF_TITLE, responsePortalNotif.getTitle());
-        assertEquals(now.toEpochMilli(), responsePortalNotif.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                now.toEpochMilli(),
+                responsePortalNotif.getCreatedAt().toInstant().toEpochMilli());
     }
 }

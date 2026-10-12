@@ -118,8 +118,10 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flowCreated.getConsumers().size(), flow.getConsumers().size());
         assertEquals(flowCreated.getConsumers().get(0), flow.getConsumers().get(0));
         assertEquals(flowCreated.getOrder(), flow.getOrder());
-        assertEquals(flowCreated.getPre().get(0).getOrder(), flow.getPre().get(0).getOrder());
-        assertEquals(flowCreated.getPre().get(0).getCondition(), flow.getPre().get(0).getCondition());
+        assertEquals(
+                flowCreated.getPre().get(0).getOrder(), flow.getPre().get(0).getOrder());
+        assertEquals(
+                flowCreated.getPre().get(0).getCondition(), flow.getPre().get(0).getCondition());
     }
 
     @Test
@@ -134,14 +136,11 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
         // Fields with big capacities
         flow.setName(
-            "A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters---------"
-        );
+                "A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters---------");
         flow.setCondition(
-            "A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters--------------------------------"
-        );
+                "A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters--------------------------------");
         flow.setPath(
-            "A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters---------"
-        );
+                "A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters---------");
 
         Flow flowCreated = flowRepository.create(flow);
         assertEquals(flowCreated.getId(), flow.getId());
@@ -213,11 +212,19 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDeleteByReference() throws TechnicalException {
-        assertEquals(2, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
+        assertEquals(
+                2,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted")
+                        .size());
 
         flowRepository.deleteByReferenceIdAndReferenceType("orga-deleted", FlowReferenceType.ORGANIZATION);
 
-        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
+        assertEquals(
+                0,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted")
+                        .size());
     }
 
     @Test
@@ -228,31 +235,51 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
         flowRepository.deleteAllById(ids);
 
-        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
+        assertEquals(
+                0,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted")
+                        .size());
     }
 
     @Test
     public void shouldSaveAll() throws TechnicalException {
-        Flow flow1 = aFlow().toBuilder().id("flow-to-create-1").name("flow-to-create-1").build();
-        Flow flow2 = flow1.toBuilder().id("flow-to-create-2").name("flow-to-create-2").order(2).build();
+        Flow flow1 = aFlow().toBuilder()
+                .id("flow-to-create-1")
+                .name("flow-to-create-1")
+                .build();
+        Flow flow2 = flow1.toBuilder()
+                .id("flow-to-create-2")
+                .name("flow-to-create-2")
+                .order(2)
+                .build();
 
         List<Flow> result = flowRepository.createAll(List.of(flow1, flow2));
         assertThat(result).hasSize(2);
         assertThat(result)
-            .extracting(Flow::getId, Flow::getName)
-            .containsExactlyInAnyOrder(tuple("flow-to-create-1", "flow-to-create-1"), tuple("flow-to-create-2", "flow-to-create-2"));
+                .extracting(Flow::getId, Flow::getName)
+                .containsExactlyInAnyOrder(
+                        tuple("flow-to-create-1", "flow-to-create-1"), tuple("flow-to-create-2", "flow-to-create-2"));
     }
 
     @Test
     public void shouldUpdateAll() throws TechnicalException {
-        Flow flow1 = aFlow().toBuilder().id("flow-to-update-1").name("flow-to-update-1").build();
-        Flow flow2 = flow1.toBuilder().id("flow-to-update-2").name("flow-to-update-2").order(2).build();
+        Flow flow1 = aFlow().toBuilder()
+                .id("flow-to-update-1")
+                .name("flow-to-update-1")
+                .build();
+        Flow flow2 = flow1.toBuilder()
+                .id("flow-to-update-2")
+                .name("flow-to-update-2")
+                .order(2)
+                .build();
 
         List<Flow> createdFlows = flowRepository.createAll(List.of(flow1, flow2));
         assertThat(createdFlows).hasSize(2);
         assertThat(createdFlows)
-            .extracting(Flow::getId, Flow::getName)
-            .containsExactlyInAnyOrder(tuple("flow-to-update-1", "flow-to-update-1"), tuple("flow-to-update-2", "flow-to-update-2"));
+                .extracting(Flow::getId, Flow::getName)
+                .containsExactlyInAnyOrder(
+                        tuple("flow-to-update-1", "flow-to-update-1"), tuple("flow-to-update-2", "flow-to-update-2"));
 
         flow1.setName("flow-to-update-1-updated");
         flow2.setName("flow-to-update-2-updated");
@@ -260,11 +287,10 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         List<Flow> updatedFlows = flowRepository.updateAll(List.of(flow1, flow2));
         assertThat(updatedFlows).hasSize(2);
         assertThat(updatedFlows)
-            .extracting(Flow::getId, Flow::getName)
-            .containsExactlyInAnyOrder(
-                tuple("flow-to-update-1", "flow-to-update-1-updated"),
-                tuple("flow-to-update-2", "flow-to-update-2-updated")
-            );
+                .extracting(Flow::getId, Flow::getName)
+                .containsExactlyInAnyOrder(
+                        tuple("flow-to-update-1", "flow-to-update-1-updated"),
+                        tuple("flow-to-update-2", "flow-to-update-2-updated"));
     }
 
     @Test
@@ -275,14 +301,14 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         // methods is intentionally left null to reproduce the NPE fix
 
         Flow flow = Flow.builder()
-            .id("flow-null-http-methods")
-            .name("flow-null-http-methods")
-            .createdAt(new Date(1470157767000L))
-            .referenceId("my-api-id")
-            .referenceType(FlowReferenceType.API)
-            .order(1)
-            .selectors(List.of(httpSelector))
-            .build();
+                .id("flow-null-http-methods")
+                .name("flow-null-http-methods")
+                .createdAt(new Date(1470157767000L))
+                .referenceId("my-api-id")
+                .referenceType(FlowReferenceType.API)
+                .order(1)
+                .selectors(List.of(httpSelector))
+                .build();
 
         Flow created = flowRepository.create(flow);
 
@@ -290,24 +316,25 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(created.getSelectors()).hasSize(1);
         assertThat(created.getSelectors().get(0).getType()).isEqualTo(FlowSelectorType.HTTP);
 
-        FlowHttpSelector createdSelector = (FlowHttpSelector) created.getSelectors().get(0);
+        FlowHttpSelector createdSelector =
+                (FlowHttpSelector) created.getSelectors().get(0);
         assertThat(createdSelector.getPath()).isEqualTo("/test");
         assertThat(createdSelector.getPathOperator()).isEqualTo(FlowOperator.STARTS_WITH);
     }
 
     private Flow aFlow() {
         return Flow.builder()
-            .id("flow")
-            .name("flow")
-            .condition("my-condition")
-            .createdAt(new Date(1470157767000L))
-            .enabled(false)
-            .methods(new HashSet<>(List.of(HttpMethod.CONNECT)))
-            .path("/")
-            .operator(FlowOperator.STARTS_WITH)
-            .referenceId("my-api-id")
-            .referenceType(FlowReferenceType.API)
-            .order(1)
-            .build();
+                .id("flow")
+                .name("flow")
+                .condition("my-condition")
+                .createdAt(new Date(1470157767000L))
+                .enabled(false)
+                .methods(new HashSet<>(List.of(HttpMethod.CONNECT)))
+                .path("/")
+                .operator(FlowOperator.STARTS_WITH)
+                .referenceId("my-api-id")
+                .referenceType(FlowReferenceType.API)
+                .order(1)
+                .build();
     }
 }

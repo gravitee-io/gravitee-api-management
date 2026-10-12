@@ -26,14 +26,18 @@ import java.util.Date;
  */
 @Schema(name = "CreateClientCertificate", description = "DTO for creating a client certificate in PEM format")
 public record CreateClientCertificate(
-    @NotNull @Size(max = 255) @Schema(description = "Name of this client certificate.") String name,
-    @Schema(
-        description = "Date when this certificate will become available. If null it will be deployed along with current or future subscription."
-    )
-    Date startsAt,
-    @Schema(
-        description = "Date when this certificate will be removed from existing subscriptions. If null it will stay until the subscription is removed."
-    )
-    Date endsAt,
-    @NotNull @Schema(description = "The certificate in PEM format.") String certificate
-) {}
+        @NotNull @Size(max = 255) @Schema(description = "Name of this client certificate.")
+        String name,
+
+        @Schema(
+                description =
+                        "Date when this certificate will become available. If null it will be deployed along with current or future subscription.")
+        Date startsAt,
+
+        @Schema(
+                description =
+                        "Date when this certificate will be removed from existing subscriptions. If null it will stay until the subscription is removed.")
+        Date endsAt,
+
+        @NotNull @Schema(description = "The certificate in PEM format.")
+        String certificate) {}

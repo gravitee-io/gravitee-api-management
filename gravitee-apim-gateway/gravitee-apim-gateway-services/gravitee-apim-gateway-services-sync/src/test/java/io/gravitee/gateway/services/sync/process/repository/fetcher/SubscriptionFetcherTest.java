@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.Subscription;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -69,12 +68,12 @@ class SubscriptionFetcherTest {
         Subscription subscription = new Subscription();
         subscription.setId("s");
         subscription.setUpdatedAt(new Date(1));
-        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(subscription));
-        cut
-            .fetchLatest(null, null, Set.of())
-            .test()
-            .assertValueCount(1)
-            .assertValue(subscriptions -> subscriptions.contains(subscription));
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS)))
+                .thenReturn(List.of(subscription));
+        cut.fetchLatest(null, null, Set.of())
+                .test()
+                .assertValueCount(1)
+                .assertValue(subscriptions -> subscriptions.contains(subscription));
     }
 
     @Test
@@ -84,30 +83,28 @@ class SubscriptionFetcherTest {
         Subscription subscription = new Subscription();
         subscription.setId("s");
         subscription.setUpdatedAt(new Date(from.toEpochMilli()));
-        when(
-            subscriptionRepository.searchAfter(
-                argThat(
-                    argument ->
-                        argument.getEnvironments().contains("env") &&
-                        argument.getStatuses().containsAll(Set.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name())) &&
-                        argument.getFrom() < from.toEpochMilli() &&
-                        argument.getTo() > to.toEpochMilli()
-                ),
-                argThat(argument -> argument.field().equals("updatedAt") && argument.order().equals(Order.ASC)),
-                isNull(),
-                eq(BULK_ITEMS)
-            )
-        ).thenReturn(List.of(subscription));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
-            .test()
-            .assertValueCount(1)
-            .assertValue(subscriptions -> subscriptions.contains(subscription));
+        when(subscriptionRepository.searchAfter(
+                        argThat(argument -> argument.getEnvironments().contains("env")
+                                && argument.getStatuses()
+                                        .containsAll(
+                                                Set.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name()))
+                                && argument.getFrom() < from.toEpochMilli()
+                                && argument.getTo() > to.toEpochMilli()),
+                        argThat(argument -> argument.field().equals("updatedAt")
+                                && argument.order().equals(Order.ASC)),
+                        isNull(),
+                        eq(BULK_ITEMS)))
+                .thenReturn(List.of(subscription));
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
+                .test()
+                .assertValueCount(1)
+                .assertValue(subscriptions -> subscriptions.contains(subscription));
     }
 
     @Test
     void should_emit_on_error_when_repository_thrown_exception() throws TechnicalException {
-        when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenThrow(new RuntimeException());
+        when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                .thenThrow(new RuntimeException());
         cut.fetchLatest(-1L, -1L, Set.of()).test().assertError(RuntimeException.class);
     }
 
@@ -120,23 +117,20 @@ class SubscriptionFetcherTest {
         Subscription last1 = page1.get(page1.size() - 1);
         Subscription last2 = page2.get(page2.size() - 1);
 
-        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(page1);
-        when(
-            subscriptionRepository.searchAfter(
-                any(),
-                any(),
-                argThat(cursor -> cursor != null && cursor.id().equals(last1.getId())),
-                eq(BULK_ITEMS)
-            )
-        ).thenReturn(page2);
-        when(
-            subscriptionRepository.searchAfter(
-                any(),
-                any(),
-                argThat(cursor -> cursor != null && cursor.id().equals(last2.getId())),
-                eq(BULK_ITEMS)
-            )
-        ).thenReturn(shortPage);
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS)))
+                .thenReturn(page1);
+        when(subscriptionRepository.searchAfter(
+                        any(),
+                        any(),
+                        argThat(cursor -> cursor != null && cursor.id().equals(last1.getId())),
+                        eq(BULK_ITEMS)))
+                .thenReturn(page2);
+        when(subscriptionRepository.searchAfter(
+                        any(),
+                        any(),
+                        argThat(cursor -> cursor != null && cursor.id().equals(last2.getId())),
+                        eq(BULK_ITEMS)))
+                .thenReturn(shortPage);
 
         cut.fetchLatest(0L, 1L, Set.of("env")).test().assertValueCount(3).assertComplete();
     }
@@ -152,9 +146,14 @@ class SubscriptionFetcherTest {
         poisoned.setId("poisoned");
         poisoned.setUpdatedAt(null);
 
-        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(good, poisoned));
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS)))
+                .thenReturn(List.of(good, poisoned));
 
-        cut.fetchLatest(0L, 1L, Set.of("env")).test().assertValueCount(1).assertComplete().assertNoErrors();
+        cut.fetchLatest(0L, 1L, Set.of("env"))
+                .test()
+                .assertValueCount(1)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     private static List<Subscription> bulkSubs(String idPrefix, int count, long baseMs) {

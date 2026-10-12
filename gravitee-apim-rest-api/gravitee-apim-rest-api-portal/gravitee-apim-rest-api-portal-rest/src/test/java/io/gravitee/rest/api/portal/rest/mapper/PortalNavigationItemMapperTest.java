@@ -86,18 +86,18 @@ class PortalNavigationItemMapperTest {
         var category1 = PortalCategoryId.random();
         var category2 = PortalCategoryId.random();
         var api = PortalNavigationApi.builder()
-            .id(PortalNavigationFixtures.randomNavigationId())
-            .organizationId("org")
-            .environmentId("env")
-            .title("My Api")
-            .segment("my-api")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-id")
-            .categoryIds(List.of(category1, category2))
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationFixtures.randomNavigationId())
+                .organizationId("org")
+                .environmentId("env")
+                .title("My Api")
+                .segment("my-api")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-id")
+                .categoryIds(List.of(category1, category2))
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
         var result = PortalNavigationItemMapper.INSTANCE.map(api);
 
@@ -111,23 +111,25 @@ class PortalNavigationItemMapperTest {
         var category1 = PortalCategoryId.random();
         var category2 = PortalCategoryId.random();
         var apiProduct = PortalNavigationApiProduct.builder()
-            .id(PortalNavigationFixtures.randomNavigationId())
-            .organizationId("org")
-            .environmentId("env")
-            .title("API Product")
-            .segment("api-product")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiProductId(apiProductId)
-            .categoryIds(List.of(category1, category2))
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationFixtures.randomNavigationId())
+                .organizationId("org")
+                .environmentId("env")
+                .title("API Product")
+                .segment("api-product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiProductId(apiProductId)
+                .categoryIds(List.of(category1, category2))
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
         var mapped = PortalNavigationItemMapper.INSTANCE.getBasePortalNavigationItem(apiProduct);
 
-        assertThat(mapped.getActualInstance()).isInstanceOf(io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct.class);
-        var mappedApiProduct = (io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct) mapped.getActualInstance();
+        assertThat(mapped.getActualInstance())
+                .isInstanceOf(io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct.class);
+        var mappedApiProduct =
+                (io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct) mapped.getActualInstance();
         assertThat(mappedApiProduct.getApiProductId()).isEqualTo(UUID.fromString(apiProductId));
         assertThat(mappedApiProduct.getCategoryIds()).containsExactly(category1.id(), category2.id());
         assertThat(mappedApiProduct.getTitle()).isEqualTo("API Product");

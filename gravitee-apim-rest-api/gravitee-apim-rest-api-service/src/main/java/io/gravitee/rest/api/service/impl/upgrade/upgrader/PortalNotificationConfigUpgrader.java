@@ -20,7 +20,6 @@ import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.P
 import io.gravitee.definition.model.Origin;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
-import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
@@ -45,9 +44,8 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
     PortalNotificationConfigRepository portalNotificationConfigRepository;
 
     public PortalNotificationConfigUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository) {
         this.environmentRepository = environmentRepository;
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
     }
@@ -60,58 +58,58 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
     private boolean applyUpgrade() throws TechnicalException {
         Set<Environment> environments = environmentRepository.findAll();
 
-        List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository
-            .findAll()
-            .stream()
-            .filter(
-                portalNotificationConfig ->
-                    portalNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
-                    portalNotificationConfig.getReferenceId().equals("DEFAULT")
-            )
-            .flatMap(
-                (Function<PortalNotificationConfig, Stream<PortalNotificationConfig>>) portalNotificationConfig ->
-                    migratePortalNotificationConfigToEnvironments(environments, portalNotificationConfig)
-            )
-            .toList();
-        log.info("Migrating portalNotificationConfig: {} for environments {}", portalNotificationConfigs.size(), environments);
+        List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository.findAll().stream()
+                .filter(portalNotificationConfig ->
+                        portalNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL)
+                                && portalNotificationConfig.getReferenceId().equals("DEFAULT"))
+                .flatMap((Function<PortalNotificationConfig, Stream<PortalNotificationConfig>>)
+                        portalNotificationConfig ->
+                                migratePortalNotificationConfigToEnvironments(environments, portalNotificationConfig))
+                .toList();
+        log.info(
+                "Migrating portalNotificationConfig: {} for environments {}",
+                portalNotificationConfigs.size(),
+                environments);
         return true;
     }
 
     private Stream<PortalNotificationConfig> migratePortalNotificationConfigToEnvironments(
-        Set<Environment> environments,
-        PortalNotificationConfig portalNotificationConfig
-    ) {
-        Stream<PortalNotificationConfig> stream = environments
-            .stream()
-            .map(environment -> {
-                PortalNotificationConfig portalNotificationConfigToCreate = duplicate(environment, portalNotificationConfig);
-                try {
-                    return portalNotificationConfigRepository.create(portalNotificationConfigToCreate);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(
-                        "Failed to duplicate portalNotificationConfig " + portalNotificationConfig + " to " + environment,
-                        e
-                    );
-                }
-            });
+            Set<Environment> environments, PortalNotificationConfig portalNotificationConfig) {
+        Stream<PortalNotificationConfig> stream = environments.stream().map(environment -> {
+            PortalNotificationConfig portalNotificationConfigToCreate =
+                    duplicate(environment, portalNotificationConfig);
+            try {
+                return portalNotificationConfigRepository.create(portalNotificationConfigToCreate);
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(
+                        "Failed to duplicate portalNotificationConfig " + portalNotificationConfig + " to "
+                                + environment,
+                        e);
+            }
+        });
         try {
             portalNotificationConfigRepository.delete(portalNotificationConfig);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Failed to delete portalNotificationConfig " + portalNotificationConfig, e);
+            throw new TechnicalManagementException(
+                    "Failed to delete portalNotificationConfig " + portalNotificationConfig, e);
         }
         return stream;
     }
 
-    private PortalNotificationConfig duplicate(Environment environment, PortalNotificationConfig portalNotificationConfig) {
+    private PortalNotificationConfig duplicate(
+            Environment environment, PortalNotificationConfig portalNotificationConfig) {
         return PortalNotificationConfig.builder()
-            .referenceId(environment.getId())
-            .referenceType(NotificationReferenceType.ENVIRONMENT)
-            .hooks(portalNotificationConfig.getHooks())
-            .origin(portalNotificationConfig.getOrigin() != null ? portalNotificationConfig.getOrigin() : Origin.MANAGEMENT)
-            .user(portalNotificationConfig.getUser())
-            .createdAt(portalNotificationConfig.getCreatedAt())
-            .updatedAt(portalNotificationConfig.getUpdatedAt())
-            .build();
+                .referenceId(environment.getId())
+                .referenceType(NotificationReferenceType.ENVIRONMENT)
+                .hooks(portalNotificationConfig.getHooks())
+                .origin(
+                        portalNotificationConfig.getOrigin() != null
+                                ? portalNotificationConfig.getOrigin()
+                                : Origin.MANAGEMENT)
+                .user(portalNotificationConfig.getUser())
+                .createdAt(portalNotificationConfig.getCreatedAt())
+                .updatedAt(portalNotificationConfig.getUpdatedAt())
+                .build();
     }
 
     @Override

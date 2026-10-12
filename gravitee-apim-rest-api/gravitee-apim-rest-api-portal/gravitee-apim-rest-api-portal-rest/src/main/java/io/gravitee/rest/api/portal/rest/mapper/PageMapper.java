@@ -59,12 +59,12 @@ public class PageMapper {
 
         if (page.getMetadata() != null) {
             AtomicInteger counter = new AtomicInteger(0);
-            List<Metadata> metadataList = page
-                .getMetadata()
-                .entrySet()
-                .stream()
-                .map(e -> new Metadata().name(e.getKey()).value(e.getValue()).order(Integer.toString(counter.getAndIncrement())))
-                .collect(Collectors.toList());
+            List<Metadata> metadataList = page.getMetadata().entrySet().stream()
+                    .map(e -> new Metadata()
+                            .name(e.getKey())
+                            .value(e.getValue())
+                            .order(Integer.toString(counter.getAndIncrement())))
+                    .collect(Collectors.toList());
             pageItem.setMetadata(metadataList);
         }
         pageItem.setName(page.getName());
@@ -84,7 +84,9 @@ public class PageMapper {
 
         if (page.getContentRevisionId() != null) {
             final PageRevisionId contentRevisionId = new PageRevisionId();
-            contentRevisionId.setPageId(page.getContentRevisionId().getPageId()); // do not use the pageId because the content maybe a translation (so a different pageId in the revisionId)
+            contentRevisionId.setPageId(page.getContentRevisionId()
+                    .getPageId()); // do not use the pageId because the content maybe a translation (so a different
+            // pageId in the revisionId)
             contentRevisionId.setRevision(page.getContentRevisionId().getRevision());
             pageItem.setContentRevisionId(contentRevisionId);
         }
@@ -94,13 +96,15 @@ public class PageMapper {
 
     private List<PageMedia> getPageMediaList(String apiId, PageEntity page, String mediaUrl) {
         List<MediaEntity> allWithoutContent = apiId == null
-            ? mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), page.getAttachedMedia())
-            : mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId);
+                ? mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), page.getAttachedMedia())
+                : mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId);
 
-        return allWithoutContent
-            .stream()
-            .map(media -> new PageMedia().name(media.getFileName()).link(mediaUrl + "/" + media.getHash()).type(media.getType()))
-            .toList();
+        return allWithoutContent.stream()
+                .map(media -> new PageMedia()
+                        .name(media.getFileName())
+                        .link(mediaUrl + "/" + media.getHash())
+                        .type(media.getType()))
+                .toList();
     }
 
     private PageConfiguration convertPageConfiguration(Map<String, String> configuration) {
@@ -113,7 +117,8 @@ public class PageMapper {
         String showExtensions = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_EXTENSIONS);
         String showUrl = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_URL);
         String tryIt = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT);
-        String disableSyntaxHighlight = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISABLE_SYNTAX_HIGHLIGHT);
+        String disableSyntaxHighlight =
+                configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISABLE_SYNTAX_HIGHLIGHT);
         String tryItAnonymous = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS);
         String tryItURL = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL);
         String usePkce = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_USE_PKCE);

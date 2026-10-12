@@ -18,7 +18,6 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Limits.ENTRYPOINT_BUCKETS;
 
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
@@ -45,14 +44,18 @@ public class SearchAverageConnectionDurationQueryAdapter {
 
     private static JsonObject buildAverageMessagesPerRequestPerEntrypointAggregate(boolean isEntrypointIdKeyword) {
         return JsonObject.of(
-            ENTRYPOINTS_AGG,
-            JsonObject.of(
-                "terms",
-                JsonObject.of(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword", "size", ENTRYPOINT_BUCKETS),
-                "aggs",
-                JsonObject.of(AVG_ENDED_REQUEST_DURATION_MS, JsonObject.of("avg", JsonObject.of(FIELD, "gateway-response-time-ms")))
-            )
-        );
+                ENTRYPOINTS_AGG,
+                JsonObject.of(
+                        "terms",
+                        JsonObject.of(
+                                FIELD,
+                                isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword",
+                                "size",
+                                ENTRYPOINT_BUCKETS),
+                        "aggs",
+                        JsonObject.of(
+                                AVG_ENDED_REQUEST_DURATION_MS,
+                                JsonObject.of("avg", JsonObject.of(FIELD, "gateway-response-time-ms")))));
     }
 
     private static JsonObject buildElasticQuery(AverageConnectionDurationQuery query) {

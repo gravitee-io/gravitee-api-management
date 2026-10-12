@@ -30,25 +30,23 @@ public class SaveAmConnectionUseCase {
     private final AmConnectionViewDomainService amConnectionViewDomainService;
 
     public record Input(
-        String orgId,
-        String baseUrl,
-        String serviceAccountAccessToken,
-        String amOrganizationId,
-        String environmentId,
-        String defaultDomainId,
-        String defaultDomainHrid,
-        String gatewayUrl
-    ) {}
+            String orgId,
+            String baseUrl,
+            String serviceAccountAccessToken,
+            String amOrganizationId,
+            String environmentId,
+            String defaultDomainId,
+            String defaultDomainHrid,
+            String gatewayUrl) {}
 
     public record Output(
-        String baseUrl,
-        boolean hasAccessToken,
-        String amOrganizationId,
-        String environmentId,
-        String defaultDomainId,
-        String defaultDomainHrid,
-        String gatewayUrl
-    ) {}
+            String baseUrl,
+            boolean hasAccessToken,
+            String amOrganizationId,
+            String environmentId,
+            String defaultDomainId,
+            String defaultDomainHrid,
+            String gatewayUrl) {}
 
     public Output execute(Input input) {
         // The DTO already enforces a non-blank baseUrl; the AM organization is just as required for
@@ -60,26 +58,23 @@ public class SaveAmConnectionUseCase {
         // Store the trimmed org so the persisted value matches what TestAmConnectionUseCase verifies.
         var amOrganizationId = input.amOrganizationId().trim();
         amConnectionRepository.save(
-            input.orgId(),
-            new AmConnection(
-                input.baseUrl(),
-                input.serviceAccountAccessToken(),
-                amOrganizationId,
-                input.environmentId(),
-                input.defaultDomainId(),
-                input.defaultDomainHrid(),
-                input.gatewayUrl()
-            )
-        );
+                input.orgId(),
+                new AmConnection(
+                        input.baseUrl(),
+                        input.serviceAccountAccessToken(),
+                        amOrganizationId,
+                        input.environmentId(),
+                        input.defaultDomainId(),
+                        input.defaultDomainHrid(),
+                        input.gatewayUrl()));
         var view = amConnectionViewDomainService.forOrg(input.orgId());
         return new Output(
-            view.baseUrl(),
-            view.hasAccessToken(),
-            view.amOrganizationId(),
-            view.environmentId(),
-            view.defaultDomainId(),
-            view.defaultDomainHrid(),
-            view.gatewayUrl()
-        );
+                view.baseUrl(),
+                view.hasAccessToken(),
+                view.amOrganizationId(),
+                view.environmentId(),
+                view.defaultDomainId(),
+                view.defaultDomainHrid(),
+                view.gatewayUrl());
     }
 }

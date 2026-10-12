@@ -81,9 +81,9 @@ class ApiProductDocumentSearcherTest {
 
         ExecutionContext executionContext = new ExecutionContext(ORG_1, ENV_1);
         var query = QueryBuilder.create(IndexableApiProduct.class)
-            .setQuery(null)
-            .addFilter(IndexableApiProductDocumentTransformer.FIELD_TYPE_VALUE, Set.of("product-1", "product-3"))
-            .build();
+                .setQuery(null)
+                .addFilter(IndexableApiProductDocumentTransformer.FIELD_TYPE_VALUE, Set.of("product-1", "product-3"))
+                .build();
 
         var result = searcher.search(executionContext, query);
 
@@ -98,7 +98,8 @@ class ApiProductDocumentSearcherTest {
         indexWriter.commit();
 
         ExecutionContext executionContext = new ExecutionContext(ORG_1, ENV_1);
-        var query = QueryBuilder.create(IndexableApiProduct.class).setQuery("API").build();
+        var query =
+                QueryBuilder.create(IndexableApiProduct.class).setQuery("API").build();
 
         var result = searcher.search(executionContext, query);
 
@@ -113,8 +114,9 @@ class ApiProductDocumentSearcherTest {
 
         ExecutionContext executionContext = new ExecutionContext(ORG_1, ENV_1);
         var query = QueryBuilder.create(IndexableApiProduct.class)
-            .addExcludedFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, Set.of(ApiProductKind.AI_WORKSPACE.name()))
-            .build();
+                .addExcludedFilter(
+                        IndexableApiProductDocumentTransformer.FIELD_KIND, Set.of(ApiProductKind.AI_WORKSPACE.name()))
+                .build();
 
         var result = searcher.search(executionContext, query);
 
@@ -129,9 +131,10 @@ class ApiProductDocumentSearcherTest {
 
         ExecutionContext executionContext = new ExecutionContext(ORG_1, ENV_1);
         var query = QueryBuilder.create(IndexableApiProduct.class)
-            .setQuery("Shared")
-            .addExcludedFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, Set.of(ApiProductKind.AI_WORKSPACE.name()))
-            .build();
+                .setQuery("Shared")
+                .addExcludedFilter(
+                        IndexableApiProductDocumentTransformer.FIELD_KIND, Set.of(ApiProductKind.AI_WORKSPACE.name()))
+                .build();
 
         var result = searcher.search(executionContext, query);
 
@@ -143,8 +146,14 @@ class ApiProductDocumentSearcherTest {
     }
 
     private void indexApiProduct(String id, String name, String environmentId, ApiProductKind kind) throws IOException {
-        ApiProduct apiProduct = ApiProduct.builder().id(id).environmentId(environmentId).name(name).kind(kind).build();
-        IndexableApiProduct indexable = IndexableApiProduct.builder().apiProduct(apiProduct).build();
+        ApiProduct apiProduct = ApiProduct.builder()
+                .id(id)
+                .environmentId(environmentId)
+                .name(name)
+                .kind(kind)
+                .build();
+        IndexableApiProduct indexable =
+                IndexableApiProduct.builder().apiProduct(apiProduct).build();
         Document doc = transformer.transform(indexable);
         indexWriter.addDocument(doc);
     }

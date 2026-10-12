@@ -72,29 +72,32 @@ public class DeleteIngestedApisUseCase {
         var deletedCounter = new AtomicInteger();
 
         var apisToDelete = apiQueryService
-            .search(
-                ApiSearchCriteria.builder().integrationId(input.integrationId).build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .toList();
+                .search(
+                        ApiSearchCriteria.builder()
+                                .integrationId(input.integrationId)
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .toList();
 
         Flowable.fromIterable(apisToDelete)
-            .subscribe(
-                api -> {
-                    if (api.getApiLifecycleState().equals(Api.ApiLifecycleState.PUBLISHED)) {
-                        skippedCounter.incrementAndGet();
-                    } else {
-                        delete(api, input.auditInfo);
-                        deletedCounter.incrementAndGet();
-                    }
-                },
-                exception -> {
-                    log.error("Error to delete ingested APi", exception);
-                    errorCounter.incrementAndGet();
-                }
-            )
-            .dispose();
+                .subscribe(
+                        api -> {
+                            if (api.getApiLifecycleState().equals(Api.ApiLifecycleState.PUBLISHED)) {
+                                skippedCounter.incrementAndGet();
+                            } else {
+                                delete(api, input.auditInfo);
+                                deletedCounter.incrementAndGet();
+                            }
+                        },
+                        exception -> {
+                            log.error("Error to delete ingested APi", exception);
+                            errorCounter.incrementAndGet();
+                        })
+                .dispose();
 
         return new Output(deletedCounter.get(), skippedCounter.get(), errorCounter.get());
     }
@@ -107,50 +110,48 @@ public class DeleteIngestedApisUseCase {
     private void delete(Api api, AuditInfo auditInfo) {
         var apiId = api.getId();
 
-        planQueryService
-            .findAllByApiId(apiId)
-            .forEach(plan -> {
-                //Close active Subscriptions
-                subscriptionQueryService
+        planQueryService.findAllByApiId(apiId).forEach(plan -> {
+            // Close active Subscriptions
+            subscriptionQueryService
                     .findActiveSubscriptionsByPlan(plan.getId())
-                    .forEach(activeSubscription ->
-                        closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), api, auditInfo)
-                    );
+                    .forEach(activeSubscription -> closeSubscriptionDomainService.closeSubscription(
+                            activeSubscription.getId(), api, auditInfo));
 
-                //Delete all subscriptions
-                subscriptionQueryService
+            // Delete all subscriptions
+            subscriptionQueryService
                     .findSubscriptionsByPlan(plan.getId())
                     .forEach(subscription -> deleteSubscriptionDomainService.delete(subscription, auditInfo));
 
-                //Delete plans
-                deletePlanDomainService.delete(plan, auditInfo);
-            });
+            // Delete plans
+            deletePlanDomainService.delete(plan, auditInfo);
+        });
 
-        //Delete pages
-        pageQueryService.searchByApiId(apiId).forEach(page -> deleteApiDocumentationDomainService.delete(api, page.getId(), auditInfo));
+        // Delete pages
+        pageQueryService
+                .searchByApiId(apiId)
+                .forEach(page -> deleteApiDocumentationDomainService.delete(api, page.getId(), auditInfo));
 
-        //Delete API Index
+        // Delete API Index
         apiIndexerDomainService.delete(oneShotIndexation(auditInfo), api);
 
-        //Delete membership
+        // Delete membership
         deleteMembershipDomainService.deleteApiMemberships(apiId, auditInfo);
 
-        //Delete metadata
+        // Delete metadata
         apiMetadataDomainService.deleteApiMetadata(apiId, auditInfo);
 
-        //Remove from the subscription form dedicated to it
+        // Remove from the subscription form dedicated to it
         removeApiFromSubscriptionFormDomainService.removeApi(api.getEnvironmentId(), apiId);
 
-        //Delete API
+        // Delete API
         apiCrudService.delete(api.getId());
 
-        //Audit
+        // Audit
         createAuditLog(auditInfo, api);
     }
 
     private void createAuditLog(AuditInfo auditInfo, Api api) {
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(api.getId())
@@ -159,7 +160,6 @@ public class DeleteIngestedApisUseCase {
                 .oldValue(api)
                 .createdAt(TimeProvider.now())
                 .properties(Collections.emptyMap())
-                .build()
-        );
+                .build());
     }
 }

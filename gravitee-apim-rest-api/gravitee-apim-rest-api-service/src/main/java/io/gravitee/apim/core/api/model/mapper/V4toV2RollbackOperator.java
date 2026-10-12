@@ -24,25 +24,23 @@ import io.gravitee.definition.model.v4.ApiType;
 public class V4toV2RollbackOperator {
 
     public Api rollback(Api source, io.gravitee.definition.model.Api apiDefinition) {
-        return source
-            .toBuilder()
-            .name(apiDefinition.getName())
-            .version(apiDefinition.getVersion())
-            .definitionVersion(DefinitionVersion.V2)
-            .updatedAt(TimeProvider.now())
-            .type(ApiType.PROXY)
-            .apiDefinitionValue(apiDefinition.toBuilder().plans(null).build())
-            .build();
+        return source.toBuilder()
+                .name(apiDefinition.getName())
+                .version(apiDefinition.getVersion())
+                .definitionVersion(DefinitionVersion.V2)
+                .updatedAt(TimeProvider.now())
+                .type(ApiType.PROXY)
+                .apiDefinitionValue(apiDefinition.toBuilder().plans(null).build())
+                .build();
     }
 
     public Plan rollback(Plan source, io.gravitee.definition.model.Plan planDefinition) {
-        return source
-            .toBuilder()
-            .planDefinitionV2(planDefinition)
-            .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V2)
-            .updatedAt(TimeProvider.now())
-            .planDefinitionHttpV4(null)
-            .name(planDefinition.getName())
-            .build();
+        return source.toBuilder()
+                .planDefinitionV2(planDefinition)
+                .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V2)
+                .updatedAt(TimeProvider.now())
+                .planDefinitionHttpV4(null)
+                .name(planDefinition.getName())
+                .build();
     }
 }

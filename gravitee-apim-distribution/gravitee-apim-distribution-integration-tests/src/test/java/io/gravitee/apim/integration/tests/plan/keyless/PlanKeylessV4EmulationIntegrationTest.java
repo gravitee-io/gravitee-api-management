@@ -64,25 +64,25 @@ public class PlanKeylessV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    protected void should_return_200_success_without_any_security(String apiId, boolean requireWiremock, HttpClient client) {
+    protected void should_return_200_success_without_any_security(
+            String apiId, boolean requireWiremock, HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         if (requireWiremock) {
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -96,33 +96,31 @@ public class PlanKeylessV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideSecurityHeaders")
     protected void should_access_api_and_ignore_security(
-        final String apiId,
-        boolean requireWiremock,
-        final String headerName,
-        final String headerValue,
-        HttpClient client
-    ) {
+            final String apiId,
+            boolean requireWiremock,
+            final String headerName,
+            final String headerValue,
+            HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader(headerName, headerValue);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader(headerName, headerValue);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         if (requireWiremock) {
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -134,14 +132,13 @@ public class PlanKeylessV4EmulationIntegrationTest extends AbstractGatewayTest {
             String path = (String) arguments.get()[0];
             boolean requireWiremock = (boolean) arguments.get()[1];
             return Stream.of(
-                Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", "an-api-key"),
-                Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", ""),
-                Arguments.of(path, requireWiremock, "Authorization", ""),
-                Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
-                Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
-                Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
-                Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token")
-            );
+                    Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", ""),
+                    Arguments.of(path, requireWiremock, "Authorization", ""),
+                    Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
+                    Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
+                    Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
+                    Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token"));
         });
     }
 }

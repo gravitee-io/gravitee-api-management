@@ -72,10 +72,12 @@ public class MongoPortalCategoryRepository implements PortalCategoryRepository {
             throw new IllegalStateException("Portal category to update must have a title");
         }
 
-        var existing = internalPortalCategoryRepo.findById(portalCategory.getId()).orElse(null);
+        var existing =
+                internalPortalCategoryRepo.findById(portalCategory.getId()).orElse(null);
 
         if (existing == null) {
-            throw new IllegalStateException(String.format("No portal category found with id [%s]", portalCategory.getId()));
+            throw new IllegalStateException(
+                    String.format("No portal category found with id [%s]", portalCategory.getId()));
         }
 
         try {
@@ -109,7 +111,8 @@ public class MongoPortalCategoryRepository implements PortalCategoryRepository {
         try {
             internalPortalCategoryRepo.deleteByEnvironmentId(environmentId);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when deleting portal categories by environment: " + environmentId, e);
+            throw new TechnicalException(
+                    "An error occurred when deleting portal categories by environment: " + environmentId, e);
         }
     }
 }

@@ -53,7 +53,9 @@ public class ApplicationQueryServiceImpl extends AbstractService implements Appl
             }
             var repoPageable = convert(pageable);
             var page = applicationRepository.search(criteriaBuilder.build(), repoPageable);
-            var content = page.getContent().stream().map(ApplicationAdapter.INSTANCE::toEntity).toList();
+            var content = page.getContent().stream()
+                    .map(ApplicationAdapter.INSTANCE::toEntity)
+                    .toList();
             return new Page<>(content, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurred while searching applications by ids", e);
@@ -64,11 +66,12 @@ public class ApplicationQueryServiceImpl extends AbstractService implements Appl
     public Set<BaseApplicationEntity> findByEnvironment(String environmentId) {
         try {
             return stream(applicationRepository.findAllByEnvironment(environmentId, ApplicationStatus.values()))
-                .map(ApplicationAdapter.INSTANCE::toEntity)
-                .collect(Collectors.toSet());
+                    .map(ApplicationAdapter.INSTANCE::toEntity)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             log.error("An error occurred while finding applications by environment", e);
-            throw new TechnicalManagementException("An error occurred while finding applications by environment id: " + environmentId, e);
+            throw new TechnicalManagementException(
+                    "An error occurred while finding applications by environment id: " + environmentId, e);
         }
     }
 }

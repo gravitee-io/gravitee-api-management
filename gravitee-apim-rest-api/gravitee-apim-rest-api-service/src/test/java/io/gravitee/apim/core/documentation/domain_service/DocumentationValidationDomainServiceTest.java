@@ -78,58 +78,48 @@ public class DocumentationValidationDomainServiceTest {
         var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
 
         cut = new DocumentationValidationDomainService(
-            new HtmlSanitizerImpl(htmlSanitizer),
-            new NoopTemplateResolverDomainService(),
-            apiCrudService,
-            new NoopSwaggerOpenApiResolver(),
-            new ApiMetadataQueryServiceInMemory(),
-            new ApiPrimaryOwnerDomainService(
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                new HtmlSanitizerImpl(htmlSanitizer),
+                new NoopTemplateResolverDomainService(),
+                apiCrudService,
+                new NoopSwaggerOpenApiResolver(),
+                new ApiMetadataQueryServiceInMemory(),
+                new ApiPrimaryOwnerDomainService(
+                        new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                        groupQueryService,
+                        membershipCrudService,
+                        membershipQueryService,
+                        roleQueryService,
+                        userCrudService),
+                new ApiDocumentationDomainService(pageQueryService, planQueryService),
+                pageCrudService,
+                pageSourceDomainService,
                 groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
-            new ApiDocumentationDomainService(pageQueryService, planQueryService),
-            pageCrudService,
-            pageSourceDomainService,
-            groupQueryService,
-            roleQueryService
-        );
+                roleQueryService);
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
-        roleQueryService.initWith(
-            List.of(
-                Role.builder()
-                    .id("role-id")
-                    .scope(Role.Scope.API)
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .name("PRIMARY_OWNER")
-                    .build()
-            )
-        );
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("member-id")
-                    .memberId("my-member-id")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .roleId("role-id")
-                    .build()
-            )
-        );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").build()));
+        roleQueryService.initWith(List.of(Role.builder()
+                .id("role-id")
+                .scope(Role.Scope.API)
+                .referenceType(Role.ReferenceType.ORGANIZATION)
+                .referenceId(ORGANIZATION_ID)
+                .name("PRIMARY_OWNER")
+                .build()));
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("member-id")
+                .memberId("my-member-id")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API_ID)
+                .roleId("role-id")
+                .build()));
+        userCrudService.initWith(
+                List.of(BaseUserEntity.builder().id("my-member-id").build()));
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(auditCrudService, userCrudService, roleQueryService, membershipCrudService, userCrudService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(auditCrudService, userCrudService, roleQueryService, membershipCrudService, userCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -165,52 +155,72 @@ public class DocumentationValidationDomainServiceTest {
         @Test
         void should_return_only_groups_that_exist() {
             groupQueryService.initWith(List.of(Group.builder().id("group-1").build()));
-            var existingAccessControl = AccessControl.builder().referenceId("group-1").referenceType("GROUP").build();
-            var nonExistingAccessControl = AccessControl.builder().referenceId("group-2").referenceType("GROUP").build();
+            var existingAccessControl = AccessControl.builder()
+                    .referenceId("group-1")
+                    .referenceType("GROUP")
+                    .build();
+            var nonExistingAccessControl = AccessControl.builder()
+                    .referenceId("group-2")
+                    .referenceType("GROUP")
+                    .build();
 
-            assertThat(cut.sanitizeAccessControls(Set.of(nonExistingAccessControl, existingAccessControl))).isEqualTo(
-                Set.of(existingAccessControl)
-            );
+            assertThat(cut.sanitizeAccessControls(Set.of(nonExistingAccessControl, existingAccessControl)))
+                    .isEqualTo(Set.of(existingAccessControl));
         }
 
         @Test
         void should_return_only_roles_that_exist() {
             roleQueryService.initWith(List.of(Role.builder().id("role-1").build()));
-            var existingAccessControl = AccessControl.builder().referenceId("role-1").referenceType("ROLE").build();
-            var nonExistingAccessControl = AccessControl.builder().referenceId("role-2").referenceType("ROLE").build();
+            var existingAccessControl = AccessControl.builder()
+                    .referenceId("role-1")
+                    .referenceType("ROLE")
+                    .build();
+            var nonExistingAccessControl = AccessControl.builder()
+                    .referenceId("role-2")
+                    .referenceType("ROLE")
+                    .build();
 
-            assertThat(cut.sanitizeAccessControls(Set.of(nonExistingAccessControl, existingAccessControl))).isEqualTo(
-                Set.of(existingAccessControl)
-            );
+            assertThat(cut.sanitizeAccessControls(Set.of(nonExistingAccessControl, existingAccessControl)))
+                    .isEqualTo(Set.of(existingAccessControl));
         }
 
         @Test
         void should_return_existing_roles_and_groups() {
             roleQueryService.initWith(List.of(Role.builder().id("role-1").build()));
-            var existingRoleAccessControl = AccessControl.builder().referenceId("role-1").referenceType("ROLE").build();
-            var nonExistingRoleAccessControl = AccessControl.builder().referenceId("role-2").referenceType("ROLE").build();
+            var existingRoleAccessControl = AccessControl.builder()
+                    .referenceId("role-1")
+                    .referenceType("ROLE")
+                    .build();
+            var nonExistingRoleAccessControl = AccessControl.builder()
+                    .referenceId("role-2")
+                    .referenceType("ROLE")
+                    .build();
 
             groupQueryService.initWith(List.of(Group.builder().id("group-1").build()));
-            var existingGroupAccessControl = AccessControl.builder().referenceId("group-1").referenceType("GROUP").build();
-            var nonExistingGroupAccessControl = AccessControl.builder().referenceId("group-2").referenceType("GROUP").build();
+            var existingGroupAccessControl = AccessControl.builder()
+                    .referenceId("group-1")
+                    .referenceType("GROUP")
+                    .build();
+            var nonExistingGroupAccessControl = AccessControl.builder()
+                    .referenceId("group-2")
+                    .referenceType("GROUP")
+                    .build();
 
-            assertThat(
-                cut.sanitizeAccessControls(
-                    Set.of(
-                        nonExistingRoleAccessControl,
-                        existingRoleAccessControl,
-                        nonExistingGroupAccessControl,
-                        existingGroupAccessControl
-                    )
-                )
-            ).isEqualTo(Set.of(existingRoleAccessControl, existingGroupAccessControl));
+            assertThat(cut.sanitizeAccessControls(Set.of(
+                            nonExistingRoleAccessControl,
+                            existingRoleAccessControl,
+                            nonExistingGroupAccessControl,
+                            existingGroupAccessControl)))
+                    .isEqualTo(Set.of(existingRoleAccessControl, existingGroupAccessControl));
         }
 
         @Test
         void should_only_return_roles_and_groups() {
-            assertThat(
-                cut.sanitizeAccessControls(Set.of(AccessControl.builder().referenceId("one-id").referenceType("USER").build()))
-            ).isEqualTo(Set.of());
+            assertThat(cut.sanitizeAccessControls(Set.of(AccessControl.builder()
+                            .referenceId("one-id")
+                            .referenceType("USER")
+                            .build())))
+                    .isEqualTo(Set.of());
         }
     }
 
@@ -219,11 +229,10 @@ public class DocumentationValidationDomainServiceTest {
 
         @Test
         void should_throw_an_exception() {
-            assertThatThrownBy(() ->
-                cut.validateContentIsSafe(
-                    "<script src=\"/external.jpg\" /><div onClick=\\\"alert('test');\\\" style=\\\"margin: auto\\\">onclick alert<div>\""
-                )
-            ).isInstanceOf(PageContentUnsafeException.class);
+            assertThatThrownBy(
+                            () -> cut.validateContentIsSafe(
+                                    "<script src=\"/external.jpg\" /><div onClick=\\\"alert('test');\\\" style=\\\"margin: auto\\\">onclick alert<div>\""))
+                    .isInstanceOf(PageContentUnsafeException.class);
         }
 
         @Test
@@ -248,21 +257,21 @@ public class DocumentationValidationDomainServiceTest {
         @NullSource
         @EmptySource
         void should_throw_an_error_when_name_is_not_valid(String name) {
-            assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(Page.builder().name(name).build(), ORGANIZATION_ID)).isInstanceOf(
-                InvalidPageNameException.class
-            );
+            assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(
+                            Page.builder().name(name).build(), ORGANIZATION_ID))
+                    .isInstanceOf(InvalidPageNameException.class);
         }
 
         @Test
         void should_set_content_from_source() {
             var page = Page.builder()
-                .name("new-page")
-                .type(Page.Type.MARKDOWN)
-                .source(PageSource.builder().type("http").build())
-                .content("")
-                .referenceId(API_ID)
-                .referenceType(Page.ReferenceType.API)
-                .build();
+                    .name("new-page")
+                    .type(Page.Type.MARKDOWN)
+                    .source(PageSource.builder().type("http").build())
+                    .content("")
+                    .referenceId(API_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .build();
 
             var sanitized = cut.validateAndSanitizeForCreation(page, ORGANIZATION_ID);
 
@@ -271,69 +280,66 @@ public class DocumentationValidationDomainServiceTest {
 
         @Test
         void should_throw_error_if_markdown_content_is_unsafe() {
-            assertThatThrownBy(() ->
-                cut.validateAndSanitizeForCreation(
-                    Page.builder().type(Page.Type.MARKDOWN).name("new page").content(getNotSafe()).build(),
-                    ORGANIZATION_ID
-                )
-            ).isInstanceOf(PageContentUnsafeException.class);
+            assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(
+                            Page.builder()
+                                    .type(Page.Type.MARKDOWN)
+                                    .name("new page")
+                                    .content(getNotSafe())
+                                    .build(),
+                            ORGANIZATION_ID))
+                    .isInstanceOf(PageContentUnsafeException.class);
         }
 
         @Test
         void should_throw_error_if_swagger_content_is_unsafe() {
-            assertThatThrownBy(() ->
-                cut.validateAndSanitizeForCreation(
-                    Page.builder().type(Page.Type.SWAGGER).name("new page").content(getNotSafe()).build(),
-                    ORGANIZATION_ID
-                )
-            ).isInstanceOf(InvalidPageContentException.class);
+            assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(
+                            Page.builder()
+                                    .type(Page.Type.SWAGGER)
+                                    .name("new page")
+                                    .content(getNotSafe())
+                                    .build(),
+                            ORGANIZATION_ID))
+                    .isInstanceOf(InvalidPageContentException.class);
         }
 
         @Test
         void should_throw_error_if_parent_is_not_a_folder() {
             var parentId = "parent-id";
-            pageCrudService.initWith(List.of(Page.builder().id(parentId).type(Page.Type.MARKDOWN).build()));
+            pageCrudService.initWith(
+                    List.of(Page.builder().id(parentId).type(Page.Type.MARKDOWN).build()));
 
-            assertThatThrownBy(() ->
-                cut.validateAndSanitizeForCreation(
-                    Page.builder()
-                        .type(Page.Type.MARKDOWN)
-                        .name("new page")
-                        .content("")
-                        .parentId(parentId)
-                        .referenceId(API_ID)
-                        .referenceType(Page.ReferenceType.API)
-                        .build(),
-                    ORGANIZATION_ID
-                )
-            ).isInstanceOf(InvalidPageParentException.class);
+            assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(
+                            Page.builder()
+                                    .type(Page.Type.MARKDOWN)
+                                    .name("new page")
+                                    .content("")
+                                    .parentId(parentId)
+                                    .referenceId(API_ID)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .build(),
+                            ORGANIZATION_ID))
+                    .isInstanceOf(InvalidPageParentException.class);
         }
 
         @Test
         void should_throw_error_when_name_is_not_unique() {
-            pageQueryService.initWith(
-                List.of(
-                    Page.builder()
-                        .name("new page")
-                        .type(Page.Type.MARKDOWN)
-                        .referenceId("api-id")
-                        .referenceType(Page.ReferenceType.API)
-                        .build()
-                )
-            );
+            pageQueryService.initWith(List.of(Page.builder()
+                    .name("new page")
+                    .type(Page.Type.MARKDOWN)
+                    .referenceId("api-id")
+                    .referenceType(Page.ReferenceType.API)
+                    .build()));
 
-            assertThatThrownBy(() ->
-                cut.validateAndSanitizeForCreation(
-                    Page.builder()
-                        .type(Page.Type.MARKDOWN)
-                        .name("new page")
-                        .content("")
-                        .referenceId("api-id")
-                        .referenceType(Page.ReferenceType.API)
-                        .build(),
-                    ORGANIZATION_ID
-                )
-            ).isInstanceOf(ValidationDomainException.class);
+            assertThatThrownBy(() -> cut.validateAndSanitizeForCreation(
+                            Page.builder()
+                                    .type(Page.Type.MARKDOWN)
+                                    .name("new page")
+                                    .content("")
+                                    .referenceId("api-id")
+                                    .referenceType(Page.ReferenceType.API)
+                                    .build(),
+                            ORGANIZATION_ID))
+                    .isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
@@ -342,16 +348,15 @@ public class DocumentationValidationDomainServiceTest {
             config.put("fetchCron", "* */5 * * * *");
 
             Page sanitized = cut.validateAndSanitizeForCreation(
-                Page.builder()
-                    .type(Page.Type.ROOT)
-                    .name("new fetcher page")
-                    .content("")
-                    .referenceId("api-id")
-                    .referenceType(Page.ReferenceType.API)
-                    .source(new PageSource("github-fetcher", null, config))
-                    .build(),
-                ORGANIZATION_ID
-            );
+                    Page.builder()
+                            .type(Page.Type.ROOT)
+                            .name("new fetcher page")
+                            .content("")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .source(new PageSource("github-fetcher", null, config))
+                            .build(),
+                    ORGANIZATION_ID);
 
             assertThat(sanitized.getType()).isEqualTo(Page.Type.ROOT);
         }

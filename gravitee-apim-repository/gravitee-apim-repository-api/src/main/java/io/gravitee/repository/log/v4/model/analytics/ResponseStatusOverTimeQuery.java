@@ -24,19 +24,9 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record ResponseStatusOverTimeQuery(
-    List<String> apiIds,
-    Instant from,
-    Instant to,
-    Duration interval,
-    Collection<DefinitionVersion> versions
-) {
+        List<String> apiIds, Instant from, Instant to, Duration interval, Collection<DefinitionVersion> versions) {
     public ResponseStatusOverTimeQuery(
-        List<String> apiIds,
-        Instant from,
-        Instant to,
-        Duration interval,
-        Collection<DefinitionVersion> versions
-    ) {
+            List<String> apiIds, Instant from, Instant to, Duration interval, Collection<DefinitionVersion> versions) {
         this.apiIds = apiIds;
         this.from = from;
         this.to = to;

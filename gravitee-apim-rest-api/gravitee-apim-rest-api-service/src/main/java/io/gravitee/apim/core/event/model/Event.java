@@ -74,7 +74,8 @@ public class Event {
         private static final Map<String, EventProperties> LABELS_MAP;
 
         static {
-            LABELS_MAP = Arrays.stream(EventProperties.values()).collect(Collectors.toMap(entry -> entry.label, Function.identity()));
+            LABELS_MAP = Arrays.stream(EventProperties.values())
+                    .collect(Collectors.toMap(entry -> entry.label, Function.identity()));
         }
 
         private final String label;

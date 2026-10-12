@@ -69,8 +69,10 @@ class OAIToImportApiUseCaseTest {
     private static final String USER_ID = "user-id";
     private static final String USER_EMAIL = "jane.doe@gravitee.io";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
-    private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager =
+            new PolicyOperationVisitorManagerImpl();
+    private final EndpointConnectorPluginDomainService endpointConnectorPluginService =
+            mock(EndpointConnectorPluginDomainService.class);
     private OAIToImportApiUseCase useCase;
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -78,62 +80,58 @@ class OAIToImportApiUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
-        importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
-            List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build())
-        );
+        importDefinitionCreateDomainServiceTestInitializer =
+                new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
+        importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(List.of(Group.builder()
+                .id("1")
+                .name("group1")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
         var tagQueryService = new TagQueryServiceInMemory();
-        tagQueryService.initWith(
-            List.of(
-                Tag.builder()
-                    .id(UUID.random().toString())
-                    .key("tag1")
-                    .name("tag1")
-                    .referenceId(ORGANIZATION_ID)
-                    .referenceType(Tag.TagReferenceType.ORGANIZATION)
-                    .build()
-            )
-        );
+        tagQueryService.initWith(List.of(Tag.builder()
+                .id(UUID.random().toString())
+                .key("tag1")
+                .name("tag1")
+                .referenceId(ORGANIZATION_ID)
+                .referenceType(Tag.TagReferenceType.ORGANIZATION)
+                .build()));
 
-        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn(SHARED_CONFIGURATION);
+        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString()))
+                .thenReturn(SHARED_CONFIGURATION);
 
-        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
-            List.of(
+        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(List.of(
                 new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                ),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
-        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build())
-        );
-        when(
-            importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        ).thenAnswer(invocation -> invocation.getArgument(0));
+                        Key.API_PRIMARY_OWNER_MODE.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        ApiPrimaryOwnerMode.USER.name()),
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
+        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email(USER_EMAIL)
+                .build()));
+        when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                        any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var importConfiguration = mock(ImportConfiguration.class);
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
 
         useCase = new OAIToImportApiUseCase(
-            new OAIDomainServiceImpl(
-                policyOperationVisitorManager,
-                tagQueryService,
-                endpointConnectorPluginService,
-                policyPluginCrudService,
-                importConfiguration
-            ),
-            importDefinitionCreateDomainServiceTestInitializer.initialize()
-        );
+                new OAIDomainServiceImpl(
+                        policyOperationVisitorManager,
+                        tagQueryService,
+                        endpointConnectorPluginService,
+                        policyPluginCrudService,
+                        importConfiguration),
+                importDefinitionCreateDomainServiceTestInitializer.initialize());
     }
 
     @Test
@@ -153,7 +151,8 @@ class OAIToImportApiUseCaseTest {
         var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
         assertThat(importDefinition.getGroups()).hasSize(2).contains("1");
-        var group2 = importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(ENVIRONMENT_ID, Set.of("group2"));
+        var group2 = importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(
+                ENVIRONMENT_ID, Set.of("group2"));
         assertThat(group2).hasSize(1);
         assertThat(importDefinition.getGroups()).contains(group2.getFirst().getId());
     }
@@ -194,17 +193,19 @@ class OAIToImportApiUseCaseTest {
         var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
         assertThat(importDefinition.getApiDefinitionHttpV4().getEndpointGroups())
-            .hasSize(1)
-            .extracting(EndpointGroup::getSharedConfiguration)
-            .containsExactly(SHARED_CONFIGURATION);
+                .hasSize(1)
+                .extracting(EndpointGroup::getSharedConfiguration)
+                .containsExactly(SHARED_CONFIGURATION);
     }
 
     @Test
     @SneakyThrows
     void should_import_when_payload_is_a_remote_url() {
-        // Given a payload that is a remote location (a file: URL the parser fetches) — import-from-private is allowed in this test
+        // Given a payload that is a remote location (a file: URL the parser fetches) — import-from-private is allowed
+        // in this test
         var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
-        var resourceUrl = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json").toString();
+        var resourceUrl = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json")
+                .toString();
         importSwaggerDescriptor.setPayload(resourceUrl);
 
         // When
@@ -229,7 +230,8 @@ class OAIToImportApiUseCaseTest {
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
-            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, true, false, AUDIT_INFO));
+            var output =
+                    useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, true, false, AUDIT_INFO));
 
             // Then
             assertThat(output).isNotNull();
@@ -237,13 +239,14 @@ class OAIToImportApiUseCaseTest {
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
             assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage())
-                .hasSize(1)
-                .first()
-                .satisfies(page -> {
-                    assertThat(page.getReferenceId()).isEqualTo(output.apiWithFlows().getId());
-                    assertThat(page.getName()).isEqualTo(DEFAULT_IMPORT_PAGE_NAME);
-                    assertThat(page.getContent()).isEqualTo(openApiAsString);
-                });
+                    .hasSize(1)
+                    .first()
+                    .satisfies(page -> {
+                        assertThat(page.getReferenceId())
+                                .isEqualTo(output.apiWithFlows().getId());
+                        assertThat(page.getName()).isEqualTo(DEFAULT_IMPORT_PAGE_NAME);
+                        assertThat(page.getContent()).isEqualTo(openApiAsString);
+                    });
         }
 
         @Test
@@ -256,14 +259,16 @@ class OAIToImportApiUseCaseTest {
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
-            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, false, false, AUDIT_INFO));
+            var output =
+                    useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, false, false, AUDIT_INFO));
 
             // Then
             assertThat(output).isNotNull();
 
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
-            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage()).isEmpty();
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage())
+                    .isEmpty();
         }
     }
 
@@ -278,18 +283,17 @@ class OAIToImportApiUseCaseTest {
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
             final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
-            policyPluginCrudService.initWith(
-                List.of(PolicyPlugin.builder().id("oas-validation").name("OpenAPI Specification Validation").build())
-            );
+            policyPluginCrudService.initWith(List.of(PolicyPlugin.builder()
+                    .id("oas-validation")
+                    .name("OpenAPI Specification Validation")
+                    .build()));
 
             // When
-            var output = useCase.execute(
-                OAIToImportApiUseCase.Input.builder()
+            var output = useCase.execute(OAIToImportApiUseCase.Input.builder()
                     .importSwaggerDescriptor(importSwaggerDescriptor)
                     .withOASValidationPolicy(true)
                     .auditInfo(AUDIT_INFO)
-                    .build()
-            );
+                    .build());
 
             // Then
             assertThat(output).isNotNull();
@@ -298,26 +302,29 @@ class OAIToImportApiUseCaseTest {
             assertThat(importDefinition).isNotNull();
             // Check that the OAS validation policy is added
             assertThat(importDefinition.getApiDefinitionHttpV4().getFlows())
-                .first()
-                .satisfies(flow -> {
-                    assertThat(flow.getName()).isEqualTo("OpenAPI Specification Validation");
-                    assertThat(flow.getRequest()).isNotNull();
-                    assertThat(((HttpSelector) flow.getSelectors().get(0)).getPath()).isEqualTo("/");
-                    assertThat(((HttpSelector) flow.getSelectors().get(0)).getPathOperator()).isEqualTo(Operator.STARTS_WITH);
-                    var oasValidationStep = flow.getRequest().get(0);
-                    assertThat(oasValidationStep.getPolicy()).isEqualTo("oas-validation");
-                    assertThat(oasValidationStep.getConfiguration()).isEqualTo("{\"resourceName\":\"OpenAPI Specification\"}");
-                });
+                    .first()
+                    .satisfies(flow -> {
+                        assertThat(flow.getName()).isEqualTo("OpenAPI Specification Validation");
+                        assertThat(flow.getRequest()).isNotNull();
+                        assertThat(((HttpSelector) flow.getSelectors().get(0)).getPath())
+                                .isEqualTo("/");
+                        assertThat(((HttpSelector) flow.getSelectors().get(0)).getPathOperator())
+                                .isEqualTo(Operator.STARTS_WITH);
+                        var oasValidationStep = flow.getRequest().get(0);
+                        assertThat(oasValidationStep.getPolicy()).isEqualTo("oas-validation");
+                        assertThat(oasValidationStep.getConfiguration())
+                                .isEqualTo("{\"resourceName\":\"OpenAPI Specification\"}");
+                    });
 
             // Check that the Resource is added
             assertThat(importDefinition.getApiDefinitionHttpV4().getResources())
-                .hasSize(1)
-                .first()
-                .satisfies(resource1 -> {
-                    assertThat(resource1.getName()).isEqualTo("OpenAPI Specification");
-                    assertThat(resource1.getType()).isEqualTo("content-provider-inline-resource");
-                    assertThat(resource1.getConfiguration()).contains("\"content\":");
-                });
+                    .hasSize(1)
+                    .first()
+                    .satisfies(resource1 -> {
+                        assertThat(resource1.getName()).isEqualTo("OpenAPI Specification");
+                        assertThat(resource1.getType()).isEqualTo("content-provider-inline-resource");
+                        assertThat(resource1.getConfiguration()).contains("\"content\":");
+                    });
         }
 
         @Test
@@ -330,20 +337,16 @@ class OAIToImportApiUseCaseTest {
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
-            var throwable = catchThrowable(() ->
-                useCase.execute(
-                    OAIToImportApiUseCase.Input.builder()
-                        .importSwaggerDescriptor(importSwaggerDescriptor)
-                        .withOASValidationPolicy(true)
-                        .auditInfo(AUDIT_INFO)
-                        .build()
-                )
-            );
+            var throwable = catchThrowable(() -> useCase.execute(OAIToImportApiUseCase.Input.builder()
+                    .importSwaggerDescriptor(importSwaggerDescriptor)
+                    .withOASValidationPolicy(true)
+                    .auditInfo(AUDIT_INFO)
+                    .build()));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(InvalidImportWithOASValidationPolicyException.class)
-                .hasMessage("Invalid import with OAS validation policy: Policy not found");
+                    .isInstanceOf(InvalidImportWithOASValidationPolicyException.class)
+                    .hasMessage("Invalid import with OAS validation policy: Policy not found");
         }
 
         @Test
@@ -356,13 +359,11 @@ class OAIToImportApiUseCaseTest {
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
-            var output = useCase.execute(
-                OAIToImportApiUseCase.Input.builder()
+            var output = useCase.execute(OAIToImportApiUseCase.Input.builder()
                     .importSwaggerDescriptor(importSwaggerDescriptor)
                     .withOASValidationPolicy(false)
                     .auditInfo(AUDIT_INFO)
-                    .build()
-            );
+                    .build());
 
             // Then
             assertThat(output).isNotNull();
@@ -370,9 +371,8 @@ class OAIToImportApiUseCaseTest {
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
             // Check that the OAS validation policy is not added
-            assertThat(importDefinition.getApiDefinitionHttpV4().getFlows()).noneMatch(flow ->
-                flow.getName().equals("OpenAPI Specification Validation")
-            );
+            assertThat(importDefinition.getApiDefinitionHttpV4().getFlows())
+                    .noneMatch(flow -> flow.getName().equals("OpenAPI Specification Validation"));
             // Check that the Resource is not added
             assertThat(importDefinition.getApiDefinitionHttpV4().getResources()).isEmpty();
         }

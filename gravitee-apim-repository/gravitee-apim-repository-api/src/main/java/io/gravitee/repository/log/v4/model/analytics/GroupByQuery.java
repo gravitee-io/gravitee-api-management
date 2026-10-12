@@ -19,13 +19,12 @@ import java.util.List;
 import java.util.Optional;
 
 public record GroupByQuery(
-    SearchTermId searchTermId,
-    String field,
-    List<Group> groups,
-    Optional<Order> order,
-    TimeRange timeRange,
-    Optional<String> query
-) {
+        SearchTermId searchTermId,
+        String field,
+        List<Group> groups,
+        Optional<Order> order,
+        TimeRange timeRange,
+        Optional<String> query) {
     public record Group(long from, long to) {}
 
     public record Order(String field, boolean order, String type) {}

@@ -59,14 +59,8 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
      */
     private static final Pattern EL_OPTIONS_PATTERN = Pattern.compile("^(\\{#.+}):(.*)$", Pattern.DOTALL);
 
-    private static final Set<String> FORM_FIELD_TAGS = Set.of(
-        "gmd-input",
-        "gmd-textarea",
-        "gmd-select",
-        "gmd-radio",
-        "gmd-checkbox",
-        "gmd-checkbox-group"
-    );
+    private static final Set<String> FORM_FIELD_TAGS =
+            Set.of("gmd-input", "gmd-textarea", "gmd-select", "gmd-radio", "gmd-checkbox", "gmd-checkbox-group");
 
     @Override
     public SubscriptionFormSchema generate(GraviteeMarkdown gmdContent) {
@@ -75,13 +69,10 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
             return new SubscriptionFormSchema(List.of());
         }
 
-        List<Field> fields = Jsoup.parseBodyFragment(raw)
-            .body()
-            .getAllElements()
-            .stream()
-            .filter(el -> FORM_FIELD_TAGS.contains(el.tagName()))
-            .map(this::toFieldSchema)
-            .toList();
+        List<Field> fields = Jsoup.parseBodyFragment(raw).body().getAllElements().stream()
+                .filter(el -> FORM_FIELD_TAGS.contains(el.tagName()))
+                .map(this::toFieldSchema)
+                .toList();
 
         return new SubscriptionFormSchema(fields);
     }
@@ -89,84 +80,103 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
     private Field toFieldSchema(Element el) {
         String fieldKey = el.attr("fieldkey").trim();
         if (fieldKey.isEmpty()) {
-            throw invalidDefinition("GMD form field is missing required 'fieldkey' attribute for element: " + el.tagName());
+            throw invalidDefinition(
+                    "GMD form field is missing required 'fieldkey' attribute for element: " + el.tagName());
         }
         boolean required = Boolean.parseBoolean(el.attr("required"));
 
         return switch (el.tagName()) {
-            case "gmd-input" -> InputField.builder()
-                .fieldKey(fieldKey)
-                .required(required)
-                .readonlyValue(parseReadonlyValue(el, fieldKey))
-                .minLength(parseNullableInt(el, "minlength"))
-                .maxLength(parseNullableInt(el, "maxlength"))
-                .pattern(el.hasAttr("pattern") ? el.attr("pattern").trim() : null)
-                .build();
-            case "gmd-textarea" -> TextareaField.builder()
-                .fieldKey(fieldKey)
-                .required(required)
-                .readonlyValue(parseReadonlyValue(el, fieldKey))
-                .minLength(parseNullableInt(el, "minlength"))
-                .maxLength(parseNullableInt(el, "maxlength"))
-                .build();
+            case "gmd-input" ->
+                InputField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .readonlyValue(parseReadonlyValue(el, fieldKey))
+                        .minLength(parseNullableInt(el, "minlength"))
+                        .maxLength(parseNullableInt(el, "maxlength"))
+                        .pattern(el.hasAttr("pattern") ? el.attr("pattern").trim() : null)
+                        .build();
+            case "gmd-textarea" ->
+                TextareaField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .readonlyValue(parseReadonlyValue(el, fieldKey))
+                        .minLength(parseNullableInt(el, "minlength"))
+                        .maxLength(parseNullableInt(el, "maxlength"))
+                        .build();
             case "gmd-select" -> {
                 var parsed = parseOptions(el, fieldKey);
                 yield switch (parsed) {
-                    case ParsedOptions.NoOptions ignored -> SelectField.builder().fieldKey(fieldKey).required(required).build();
-                    case ParsedOptions.StaticOptions(var values) -> SelectField.builder()
-                        .fieldKey(fieldKey)
-                        .required(required)
-                        .options(values)
-                        .build();
-                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) -> SelectField.builder()
-                        .fieldKey(fieldKey)
-                        .required(required)
-                        .dynamicOptions(dynamicOptions)
-                        .build();
+                    case ParsedOptions.NoOptions ignored ->
+                        SelectField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .build();
+                    case ParsedOptions.StaticOptions(var values) ->
+                        SelectField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .options(values)
+                                .build();
+                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) ->
+                        SelectField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .dynamicOptions(dynamicOptions)
+                                .build();
                 };
             }
             case "gmd-radio" -> {
                 var parsed = parseOptions(el, fieldKey);
                 var readonlyValue = parseReadonlyValue(el, fieldKey);
                 yield switch (parsed) {
-                    case ParsedOptions.NoOptions ignored -> RadioField.builder()
-                        .fieldKey(fieldKey)
-                        .required(required)
-                        .readonlyValue(readonlyValue)
-                        .build();
-                    case ParsedOptions.StaticOptions(var values) -> RadioField.builder()
-                        .fieldKey(fieldKey)
-                        .required(required)
-                        .readonlyValue(readonlyValue)
-                        .options(values)
-                        .build();
-                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) -> RadioField.builder()
-                        .fieldKey(fieldKey)
-                        .required(required)
-                        .readonlyValue(readonlyValue)
-                        .dynamicOptions(dynamicOptions)
-                        .build();
+                    case ParsedOptions.NoOptions ignored ->
+                        RadioField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .readonlyValue(readonlyValue)
+                                .build();
+                    case ParsedOptions.StaticOptions(var values) ->
+                        RadioField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .readonlyValue(readonlyValue)
+                                .options(values)
+                                .build();
+                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) ->
+                        RadioField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .readonlyValue(readonlyValue)
+                                .dynamicOptions(dynamicOptions)
+                                .build();
                 };
             }
-            case "gmd-checkbox" -> CheckboxField.builder()
-                .fieldKey(fieldKey)
-                .required(required)
-                .readonlyValue(parseReadonlyValue(el, fieldKey))
-                .build();
+            case "gmd-checkbox" ->
+                CheckboxField.builder()
+                        .fieldKey(fieldKey)
+                        .required(required)
+                        .readonlyValue(parseReadonlyValue(el, fieldKey))
+                        .build();
             case "gmd-checkbox-group" -> {
                 var parsed = parseOptions(el, fieldKey);
                 yield switch (parsed) {
-                    case ParsedOptions.NoOptions ignored -> CheckboxGroupField.builder().fieldKey(fieldKey).required(required).build();
-                    case ParsedOptions.StaticOptions(var values) -> CheckboxGroupField.builder()
-                        .fieldKey(fieldKey)
-                        .required(required)
-                        .options(values)
-                        .build();
-                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) -> CheckboxGroupField.builder()
-                        .fieldKey(fieldKey)
-                        .required(required)
-                        .dynamicOptions(dynamicOptions)
-                        .build();
+                    case ParsedOptions.NoOptions ignored ->
+                        CheckboxGroupField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .build();
+                    case ParsedOptions.StaticOptions(var values) ->
+                        CheckboxGroupField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .options(values)
+                                .build();
+                    case ParsedOptions.DynamicOptionsParsed(var dynamicOptions) ->
+                        CheckboxGroupField.builder()
+                                .fieldKey(fieldKey)
+                                .required(required)
+                                .dynamicOptions(dynamicOptions)
+                                .build();
                 };
             }
             default -> throw invalidDefinition("Unknown GMD form field tag: " + el.tagName());
@@ -176,13 +186,14 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
     private String parseReadonlyValue(Element el, String fieldKey) {
         boolean readonly = Boolean.parseBoolean(el.attr("readonly"));
         if (readonly && !el.hasAttr("value")) {
-            throw invalidDefinition("Readonly field '" + fieldKey + "' (" + el.tagName() + ") must have a 'value' attribute");
+            throw invalidDefinition(
+                    "Readonly field '" + fieldKey + "' (" + el.tagName() + ") must have a 'value' attribute");
         }
         return readonly ? el.attr("value").trim() : null;
     }
 
     private sealed interface ParsedOptions
-        permits ParsedOptions.NoOptions, ParsedOptions.StaticOptions, ParsedOptions.DynamicOptionsParsed {
+            permits ParsedOptions.NoOptions, ParsedOptions.StaticOptions, ParsedOptions.DynamicOptionsParsed {
         record NoOptions() implements ParsedOptions {}
 
         record StaticOptions(List<String> values) implements ParsedOptions {}
@@ -200,12 +211,9 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
         if (raw.startsWith("{#")) {
             Matcher m = EL_OPTIONS_PATTERN.matcher(raw);
             if (!m.matches()) {
-                throw invalidDefinition(
-                    "Field '" +
-                        fieldKey +
-                        "': EL expression in 'options' requires a fallback list. " +
-                        "Use the format: {#expression}:fallback1,fallback2"
-                );
+                throw invalidDefinition("Field '" + fieldKey
+                        + "': EL expression in 'options' requires a fallback list. "
+                        + "Use the format: {#expression}:fallback1,fallback2");
             }
             String expression = m.group(1).trim();
             List<String> fallback = parseCommaList(m.group(2));
@@ -232,8 +240,8 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
 
     private List<String> parseCommaList(String raw) {
         return Arrays.stream(raw.split(","))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .toList();
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 }

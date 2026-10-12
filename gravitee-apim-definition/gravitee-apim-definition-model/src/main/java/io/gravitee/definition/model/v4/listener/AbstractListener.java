@@ -26,11 +26,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
-import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
-import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -51,19 +49,21 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode
 @SuperBuilder(toBuilder = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = HttpListener.class, name = "HTTP"),
-        @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
-        @JsonSubTypes.Type(value = SubscriptionListener.class, name = "SUBSCRIPTION"),
-        @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
-        @JsonSubTypes.Type(value = TcpListener.class, name = "TCP"),
-        @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
-        @JsonSubTypes.Type(value = KafkaListener.class, name = "KAFKA"),
-        @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL),
-    }
-)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type",
+        visible = true)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = HttpListener.class, name = "HTTP"),
+    @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
+    @JsonSubTypes.Type(value = SubscriptionListener.class, name = "SUBSCRIPTION"),
+    @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
+    @JsonSubTypes.Type(value = TcpListener.class, name = "TCP"),
+    @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
+    @JsonSubTypes.Type(value = KafkaListener.class, name = "KAFKA"),
+    @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL),
+})
 public class AbstractListener<E extends AbstractEntrypoint> implements Serializable {
 
     @JsonProperty(required = true)
@@ -88,7 +88,10 @@ public class AbstractListener<E extends AbstractEntrypoint> implements Serializa
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return Optional.ofNullable(this.entrypoints)
-            .map(e -> e.stream().map(AbstractEntrypoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-            .orElse(List.of());
+                .map(e -> e.stream()
+                        .map(AbstractEntrypoint::getPlugins)
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList()))
+                .orElse(List.of());
     }
 }

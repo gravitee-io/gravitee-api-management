@@ -38,7 +38,8 @@ class SearchApiAggregatedMessageLogsUseCaseTest {
     private static final String API_ID = "my-api";
     private static final String REQUEST_ID = "request-id";
     private SearchApiAggregatedMessageLogsUseCase usecase;
-    private final AggregatedMessageLogCrudServiceInMemory messageLogStorageService = new AggregatedMessageLogCrudServiceInMemory();
+    private final AggregatedMessageLogCrudServiceInMemory messageLogStorageService =
+            new AggregatedMessageLogCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -54,27 +55,20 @@ class SearchApiAggregatedMessageLogsUseCaseTest {
     @Test
     void should_return_messages_logs_of_an_api() {
         var expectedMessageLog = aMessageLog(API_ID, REQUEST_ID);
-        messageLogStorageService.initWith(
-            List.of(
+        messageLogStorageService.initWith(List.of(
                 expectedMessageLog,
                 aMessageLog("other-api", "a-request-id"),
                 aMessageLog(API_ID, "other-request-id"),
-                aMessageLog("other-api", "another-request-id")
-            )
-        );
+                aMessageLog("other-api", "another-request-id")));
 
         var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiAggregatedMessageLogsUseCase.Input(API_ID, REQUEST_ID)
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiAggregatedMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
-                .isEqualTo(
-                    List.of(
-                        AggregatedMessageLog.builder()
+            soft.assertThat(result.data())
+                    .isEqualTo(List.of(AggregatedMessageLog.builder()
                             .apiId(API_ID)
                             .requestId(REQUEST_ID)
                             .apiId(API_ID)
@@ -85,37 +79,38 @@ class SearchApiAggregatedMessageLogsUseCaseTest {
                             .operation(expectedMessageLog.getOperation())
                             .entrypoint(expectedMessageLog.getEntrypoint())
                             .endpoint(expectedMessageLog.getEndpoint())
-                            .build()
-                    )
-                );
+                            .build()));
         });
     }
 
     @Test
     void should_return_api_message_logs_sorted_by_desc_timestamp() {
-        messageLogStorageService.initWith(
-            List.of(
-                aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-1").timestamp("2020-02-01T20:00:00.00Z").build(),
-                aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-2").timestamp("2020-02-02T20:00:00.00Z").build(),
-                aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-3").timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
+        messageLogStorageService.initWith(List.of(
+                aMessageLog(API_ID, REQUEST_ID).toBuilder()
+                        .correlationId("correlation-1")
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .build(),
+                aMessageLog(API_ID, REQUEST_ID).toBuilder()
+                        .correlationId("correlation-2")
+                        .timestamp("2020-02-02T20:00:00.00Z")
+                        .build(),
+                aMessageLog(API_ID, REQUEST_ID).toBuilder()
+                        .correlationId("correlation-3")
+                        .timestamp("2020-02-04T20:00:00.00Z")
+                        .build()));
 
         var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiAggregatedMessageLogsUseCase.Input(API_ID, REQUEST_ID)
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiAggregatedMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
-            soft
-                .assertThat(result.data())
-                .extracting(AggregatedMessageLog::getCorrelationId, AggregatedMessageLog::getTimestamp)
-                .containsExactly(
-                    tuple("correlation-3", "2020-02-04T20:00:00.00Z"),
-                    tuple("correlation-2", "2020-02-02T20:00:00.00Z"),
-                    tuple("correlation-1", "2020-02-01T20:00:00.00Z")
-                );
+            soft.assertThat(result.data())
+                    .extracting(AggregatedMessageLog::getCorrelationId, AggregatedMessageLog::getTimestamp)
+                    .containsExactly(
+                            tuple("correlation-3", "2020-02-04T20:00:00.00Z"),
+                            tuple("correlation-2", "2020-02-02T20:00:00.00Z"),
+                            tuple("correlation-1", "2020-02-01T20:00:00.00Z"));
         });
     }
 
@@ -124,20 +119,22 @@ class SearchApiAggregatedMessageLogsUseCaseTest {
         var expectedTotal = 15;
         var pageNumber = 2;
         var pageSize = 5;
-        messageLogStorageService.initWith(
-            IntStream.range(0, expectedTotal)
-                .mapToObj(i -> aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
-                .toList()
-        );
+        messageLogStorageService.initWith(IntStream.range(0, expectedTotal)
+                .mapToObj(i -> aMessageLog(API_ID, REQUEST_ID).toBuilder()
+                        .correlationId(String.valueOf(i))
+                        .build())
+                .toList());
 
         var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiAggregatedMessageLogsUseCase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize))
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiAggregatedMessageLogsUseCase.Input(
+                        API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);
-            soft.assertThat(result.data()).extracting(AggregatedMessageLog::getCorrelationId).containsExactly("5", "6", "7", "8", "9");
+            soft.assertThat(result.data())
+                    .extracting(AggregatedMessageLog::getCorrelationId)
+                    .containsExactly("5", "6", "7", "8", "9");
         });
     }
 }

@@ -44,11 +44,10 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public record OtelLogRecord(
-    String traceId,
-    String spanId,
-    Instant timestamp,
-    String severity,
-    String body,
-    Map<String, String> attributes,
-    Map<String, String> resourceAttributes
-) {}
+        String traceId,
+        String spanId,
+        Instant timestamp,
+        String severity,
+        String body,
+        Map<String, String> attributes,
+        Map<String, String> resourceAttributes) {}

@@ -74,16 +74,17 @@ public class AnalyticsResource {
         checkReadObservabilityPermission();
 
         var ctx = GraviteeContext.getExecutionContext();
-        var output = computeMeasuresUseCase.execute(
-            new ComputeObservabilityMeasuresUseCase.Input(
+        var output = computeMeasuresUseCase.execute(new ComputeObservabilityMeasuresUseCase.Input(
                 ctx.getOrganizationId(),
                 ctx.getEnvironmentId(),
                 toFilters(request != null ? request.filters() : null),
-                request != null && request.timeRange() != null ? request.timeRange().from() : null,
-                request != null && request.timeRange() != null ? request.timeRange().to() : null,
-                toMetrics(request != null ? request.metrics() : null)
-            )
-        );
+                request != null && request.timeRange() != null
+                        ? request.timeRange().from()
+                        : null,
+                request != null && request.timeRange() != null
+                        ? request.timeRange().to()
+                        : null,
+                toMetrics(request != null ? request.metrics() : null)));
         return output.response();
     }
 
@@ -95,19 +96,20 @@ public class AnalyticsResource {
         checkReadObservabilityPermission();
 
         var ctx = GraviteeContext.getExecutionContext();
-        var output = computeFacetsUseCase.execute(
-            new ComputeObservabilityFacetsUseCase.Input(
+        var output = computeFacetsUseCase.execute(new ComputeObservabilityFacetsUseCase.Input(
                 ctx.getOrganizationId(),
                 ctx.getEnvironmentId(),
                 toFilters(request != null ? request.filters() : null),
-                request != null && request.timeRange() != null ? request.timeRange().from() : null,
-                request != null && request.timeRange() != null ? request.timeRange().to() : null,
+                request != null && request.timeRange() != null
+                        ? request.timeRange().from()
+                        : null,
+                request != null && request.timeRange() != null
+                        ? request.timeRange().to()
+                        : null,
                 toFacetMetrics(request != null ? request.metrics() : null),
                 request != null && request.by() != null ? request.by() : List.of(),
                 request != null ? request.limit() : null,
-                toRanges(request != null ? request.ranges() : null)
-            )
-        );
+                toRanges(request != null ? request.ranges() : null)));
         return output.response();
     }
 
@@ -119,20 +121,21 @@ public class AnalyticsResource {
         checkReadObservabilityPermission();
 
         var ctx = GraviteeContext.getExecutionContext();
-        var output = computeTimeSeriesUseCase.execute(
-            new ComputeObservabilityTimeSeriesUseCase.Input(
+        var output = computeTimeSeriesUseCase.execute(new ComputeObservabilityTimeSeriesUseCase.Input(
                 ctx.getOrganizationId(),
                 ctx.getEnvironmentId(),
                 toFilters(request != null ? request.filters() : null),
-                request != null && request.timeRange() != null ? request.timeRange().from() : null,
-                request != null && request.timeRange() != null ? request.timeRange().to() : null,
+                request != null && request.timeRange() != null
+                        ? request.timeRange().from()
+                        : null,
+                request != null && request.timeRange() != null
+                        ? request.timeRange().to()
+                        : null,
                 request != null ? request.interval() : null,
                 toFacetMetrics(request != null ? request.metrics() : null),
                 request != null && request.by() != null ? request.by() : List.of(),
                 request != null ? request.facetSize() : null,
-                toRanges(request != null ? request.ranges() : null)
-            )
-        );
+                toRanges(request != null ? request.ranges() : null)));
         return output.response();
     }
 
@@ -141,34 +144,30 @@ public class AnalyticsResource {
     }
 
     private static List<io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery> toMetrics(
-        List<MetricQueryDto> dtos
-    ) {
+            List<MetricQueryDto> dtos) {
         return RequestEntries.map(dtos, "metrics", MetricQueryDto::toCore);
     }
 
-    private static List<io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery> toFacetMetrics(
-        List<FacetMetricQueryDto> dtos
-    ) {
+    private static List<io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery>
+            toFacetMetrics(List<FacetMetricQueryDto> dtos) {
         return RequestEntries.map(dtos, "metrics", FacetMetricQueryDto::toCore);
     }
 
     private static List<io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange> toRanges(
-        List<NumberRangeDto> dtos
-    ) {
+            List<NumberRangeDto> dtos) {
         return RequestEntries.map(dtos, "ranges", NumberRangeDto::toCore);
     }
 
     private void checkReadObservabilityPermission() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String environmentId = executionContext.getEnvironmentId();
-        boolean allowed =
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                environmentId,
-                RolePermissionAction.READ
-            ) ||
-            permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+        boolean allowed = permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_DASHBOARD,
+                        environmentId,
+                        RolePermissionAction.READ)
+                || permissionService.hasPermission(
+                        executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
         if (!allowed) {
             throw new ForbiddenAccessException();
         }

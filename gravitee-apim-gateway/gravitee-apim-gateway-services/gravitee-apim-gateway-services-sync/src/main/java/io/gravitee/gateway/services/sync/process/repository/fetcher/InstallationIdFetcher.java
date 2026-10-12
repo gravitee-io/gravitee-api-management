@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.process.repository.fetcher;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -29,8 +28,9 @@ public class InstallationIdFetcher {
 
     public Maybe<String> fetch() {
         return Maybe.defer(() -> {
-            Optional<Installation> optionalInstallation = installationRepository.find();
-            return Maybe.fromOptional(optionalInstallation);
-        }).map(Installation::getId);
+                    Optional<Installation> optionalInstallation = installationRepository.find();
+                    return Maybe.fromOptional(optionalInstallation);
+                })
+                .map(Installation::getId);
     }
 }

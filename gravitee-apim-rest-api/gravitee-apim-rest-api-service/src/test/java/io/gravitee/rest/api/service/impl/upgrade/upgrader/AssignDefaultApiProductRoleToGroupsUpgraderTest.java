@@ -81,7 +81,8 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
     }
 
     @Test
-    public void should_create_default_api_product_membership_for_groups_missing_one() throws UpgraderException, TechnicalException {
+    public void should_create_default_api_product_membership_for_groups_missing_one()
+            throws UpgraderException, TechnicalException {
         Environment env = environment();
         when(environmentRepository.findAll()).thenReturn(Set.of(env));
         stubApiProductRoles();
@@ -90,26 +91,20 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
         Group g2 = group("g2");
         when(groupRepository.findAllByEnvironment(ENV_ID)).thenReturn(Set.of(g1, g2));
 
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                "g1",
-                MembershipMemberType.GROUP,
-                MembershipReferenceType.API_PRODUCT
-            )
-        ).thenReturn(Set.of());
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                        "g1", MembershipMemberType.GROUP, MembershipReferenceType.API_PRODUCT))
+                .thenReturn(Set.of());
         Membership g2Existing = new Membership();
         g2Existing.setReferenceId(null);
         g2Existing.setRoleId(API_PRODUCT_USER_ROLE_ID);
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                "g2",
-                MembershipMemberType.GROUP,
-                MembershipReferenceType.API_PRODUCT
-            )
-        ).thenReturn(Set.of(g2Existing));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                        "g2", MembershipMemberType.GROUP, MembershipReferenceType.API_PRODUCT))
+                .thenReturn(Set.of(g2Existing));
 
-        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP)).thenReturn(List.of());
-        when(membershipRepository.findByReferenceIdAndReferenceType("g2", MembershipReferenceType.GROUP)).thenReturn(List.of());
+        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP))
+                .thenReturn(List.of());
+        when(membershipRepository.findByReferenceIdAndReferenceType("g2", MembershipReferenceType.GROUP))
+                .thenReturn(List.of());
 
         upgrader.upgrade();
 
@@ -124,7 +119,8 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
     }
 
     @Test
-    public void should_backfill_api_product_role_for_legacy_group_members() throws UpgraderException, TechnicalException {
+    public void should_backfill_api_product_role_for_legacy_group_members()
+            throws UpgraderException, TechnicalException {
         Environment env = environment();
         when(environmentRepository.findAll()).thenReturn(Set.of(env));
         stubApiProductRoles();
@@ -133,13 +129,9 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
         Membership groupDefault = new Membership();
         groupDefault.setReferenceId(null);
         groupDefault.setRoleId(API_PRODUCT_USER_ROLE_ID);
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                "g1",
-                MembershipMemberType.GROUP,
-                MembershipReferenceType.API_PRODUCT
-            )
-        ).thenReturn(Set.of(groupDefault));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                        "g1", MembershipMemberType.GROUP, MembershipReferenceType.API_PRODUCT))
+                .thenReturn(Set.of(groupDefault));
 
         Membership legacyApiRole = new Membership();
         legacyApiRole.setMemberId("user-1");
@@ -147,9 +139,8 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
         legacyApiRole.setReferenceId("g1");
         legacyApiRole.setReferenceType(MembershipReferenceType.GROUP);
         legacyApiRole.setRoleId("api-user-role-id");
-        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP)).thenReturn(
-            List.of(legacyApiRole)
-        );
+        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP))
+                .thenReturn(List.of(legacyApiRole));
 
         upgrader.upgrade();
 
@@ -164,7 +155,8 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
     }
 
     @Test
-    public void should_skip_member_backfill_when_api_product_role_already_exists() throws UpgraderException, TechnicalException {
+    public void should_skip_member_backfill_when_api_product_role_already_exists()
+            throws UpgraderException, TechnicalException {
         Environment env = environment();
         when(environmentRepository.findAll()).thenReturn(Set.of(env));
         stubApiProductRoles();
@@ -173,13 +165,9 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
         Membership groupDefault = new Membership();
         groupDefault.setReferenceId(null);
         groupDefault.setRoleId(API_PRODUCT_USER_ROLE_ID);
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                "g1",
-                MembershipMemberType.GROUP,
-                MembershipReferenceType.API_PRODUCT
-            )
-        ).thenReturn(Set.of(groupDefault));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                        "g1", MembershipMemberType.GROUP, MembershipReferenceType.API_PRODUCT))
+                .thenReturn(Set.of(groupDefault));
 
         Membership existingApiProductRole = new Membership();
         existingApiProductRole.setMemberId("user-1");
@@ -187,9 +175,8 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
         existingApiProductRole.setReferenceId("g1");
         existingApiProductRole.setReferenceType(MembershipReferenceType.GROUP);
         existingApiProductRole.setRoleId(API_PRODUCT_USER_ROLE_ID);
-        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP)).thenReturn(
-            List.of(existingApiProductRole)
-        );
+        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP))
+                .thenReturn(List.of(existingApiProductRole));
 
         upgrader.upgrade();
 
@@ -197,18 +184,17 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
     }
 
     @Test
-    public void should_skip_environment_when_api_product_user_role_is_missing() throws UpgraderException, TechnicalException {
+    public void should_skip_environment_when_api_product_user_role_is_missing()
+            throws UpgraderException, TechnicalException {
         Environment env = environment();
         when(environmentRepository.findAll()).thenReturn(Set.of(env));
 
-        when(
-            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                eq(RoleScope.API_PRODUCT),
-                eq(ROLE_API_PRODUCT_USER.getName()),
-                eq(ORG_ID),
-                eq(RoleReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(Optional.empty());
+        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        eq(RoleScope.API_PRODUCT),
+                        eq(ROLE_API_PRODUCT_USER.getName()),
+                        eq(ORG_ID),
+                        eq(RoleReferenceType.ORGANIZATION)))
+                .thenReturn(Optional.empty());
 
         upgrader.upgrade();
 
@@ -217,7 +203,8 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
     }
 
     @Test
-    public void should_be_idempotent_when_all_groups_and_members_already_have_roles() throws UpgraderException, TechnicalException {
+    public void should_be_idempotent_when_all_groups_and_members_already_have_roles()
+            throws UpgraderException, TechnicalException {
         Environment env = environment();
         when(environmentRepository.findAll()).thenReturn(Set.of(env));
         stubApiProductRoles();
@@ -228,14 +215,11 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
         Membership existing = new Membership();
         existing.setReferenceId(null);
         existing.setRoleId(API_PRODUCT_USER_ROLE_ID);
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                "g1",
-                MembershipMemberType.GROUP,
-                MembershipReferenceType.API_PRODUCT
-            )
-        ).thenReturn(Set.of(existing));
-        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP)).thenReturn(List.of());
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                        "g1", MembershipMemberType.GROUP, MembershipReferenceType.API_PRODUCT))
+                .thenReturn(Set.of(existing));
+        when(membershipRepository.findByReferenceIdAndReferenceType("g1", MembershipReferenceType.GROUP))
+                .thenReturn(List.of());
 
         upgrader.upgrade();
 
@@ -249,17 +233,15 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
 
     private void stubApiProductRoles() throws TechnicalException {
         Role userRole = role(API_PRODUCT_USER_ROLE_ID);
-        when(
-            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                eq(RoleScope.API_PRODUCT),
-                eq(ROLE_API_PRODUCT_USER.getName()),
-                eq(ORG_ID),
-                eq(RoleReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(Optional.of(userRole));
-        when(
-            roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.API_PRODUCT, ORG_ID, RoleReferenceType.ORGANIZATION)
-        ).thenReturn(Set.of(userRole, role(API_PRODUCT_OWNER_ROLE_ID)));
+        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        eq(RoleScope.API_PRODUCT),
+                        eq(ROLE_API_PRODUCT_USER.getName()),
+                        eq(ORG_ID),
+                        eq(RoleReferenceType.ORGANIZATION)))
+                .thenReturn(Optional.of(userRole));
+        when(roleRepository.findByScopeAndReferenceIdAndReferenceType(
+                        RoleScope.API_PRODUCT, ORG_ID, RoleReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(userRole, role(API_PRODUCT_OWNER_ROLE_ID)));
     }
 
     private Environment environment() {

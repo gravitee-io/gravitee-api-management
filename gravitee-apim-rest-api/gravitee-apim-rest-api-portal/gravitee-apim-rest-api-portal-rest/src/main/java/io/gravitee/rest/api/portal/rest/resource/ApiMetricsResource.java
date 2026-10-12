@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
@@ -64,10 +63,11 @@ public class ApiMetricsResource extends AbstractResource {
     private HealthCheckService healthCheckService;
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @RequirePortalAuth
     public Response getApiMetricsByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false, false);
+        GenericApiEntity api =
+                apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false, false);
 
         if (api.getLifecycleState() != ApiLifecycleState.PUBLISHED) {
             throw new ApiNotFoundException(apiId);
@@ -86,16 +86,14 @@ public class ApiMetricsResource extends AbstractResource {
     }
 
     private Number getHealthRatio(String apiId) {
-        io.gravitee.rest.api.model.healthcheck.ApiMetrics<?> apiAvailability = healthCheckService.getAvailability(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            Field.ENDPOINT.name()
-        );
+        io.gravitee.rest.api.model.healthcheck.ApiMetrics<?> apiAvailability =
+                healthCheckService.getAvailability(GraviteeContext.getExecutionContext(), apiId, Field.ENDPOINT.name());
         if (apiAvailability != null) {
             Map<String, Double> globalAvailability = apiAvailability.getGlobal();
             if (globalAvailability != null && globalAvailability.get("1w") != null) {
                 try {
-                    return BigDecimal.valueOf(globalAvailability.get("1w")).divide(BigDecimal.valueOf(100), 4, RoundingMode.DOWN);
+                    return BigDecimal.valueOf(globalAvailability.get("1w"))
+                            .divide(BigDecimal.valueOf(100), 4, RoundingMode.DOWN);
                 } catch (NumberFormatException nfe) {
                     return null;
                 }
@@ -132,9 +130,12 @@ public class ApiMetricsResource extends AbstractResource {
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
 
         // group by apis
-        Collection<SubscriptionEntity> searchResult = subscriptionService.search(GraviteeContext.getExecutionContext(), subscriptionQuery);
+        Collection<SubscriptionEntity> searchResult =
+                subscriptionService.search(GraviteeContext.getExecutionContext(), subscriptionQuery);
         if (searchResult != null) {
-            return searchResult.stream().collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting())).get(apiId);
+            return searchResult.stream()
+                    .collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting()))
+                    .get(apiId);
         }
         return null;
     }

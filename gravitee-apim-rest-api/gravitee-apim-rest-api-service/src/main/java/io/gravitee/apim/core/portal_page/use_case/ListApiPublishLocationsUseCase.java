@@ -32,11 +32,9 @@ public class ListApiPublishLocationsUseCase {
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
 
     public Output execute(Input input) {
-        var locations = apiOwnedNavigationDomainService
-            .findPublishLocations(input.environmentId())
-            .stream()
-            .map(section -> new PublishLocation(section.getId(), section.getTitle()))
-            .toList();
+        var locations = apiOwnedNavigationDomainService.findPublishLocations(input.environmentId()).stream()
+                .map(section -> new PublishLocation(section.getId(), section.getTitle()))
+                .toList();
         return new Output(locations);
     }
 

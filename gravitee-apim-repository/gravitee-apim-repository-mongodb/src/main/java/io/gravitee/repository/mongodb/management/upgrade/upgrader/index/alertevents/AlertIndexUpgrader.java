@@ -28,9 +28,9 @@ public class AlertIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("alert_events")
-            .name("a1")
-            .key("alert", ascending())
-            .build();
+                .collection("alert_events")
+                .name("a1")
+                .key("alert", ascending())
+                .build();
     }
 }

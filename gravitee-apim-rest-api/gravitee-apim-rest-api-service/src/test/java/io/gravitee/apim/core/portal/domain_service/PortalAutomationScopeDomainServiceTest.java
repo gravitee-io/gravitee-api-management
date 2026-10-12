@@ -32,10 +32,10 @@ import org.junit.jupiter.api.Test;
 class PortalAutomationScopeDomainServiceTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
 
     private static final PortalId ESTABLISHED_PORTAL_ID = PortalFixtures.PORTAL_ID;
     private static final PortalId OTHER_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000b2");
@@ -53,7 +53,8 @@ class PortalAutomationScopeDomainServiceTest {
 
     @Test
     void should_allow_any_portal_when_no_portal_exists_in_environment() {
-        assertThat(domainService.validate(AUDIT_INFO, ESTABLISHED_PORTAL_ID, "hrid")).isEmpty();
+        assertThat(domainService.validate(AUDIT_INFO, ESTABLISHED_PORTAL_ID, "hrid"))
+                .isEmpty();
         assertThat(domainService.validate(AUDIT_INFO, OTHER_PORTAL_ID, "hrid")).isEmpty();
     }
 
@@ -101,11 +102,13 @@ class PortalAutomationScopeDomainServiceTest {
     void portal_exists_in_environment_is_true_when_the_portal_is_present() {
         portalCrudService.initWith(List.of(PortalFixtures.aPortal()));
 
-        assertThat(domainService.portalExistsInEnvironment(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).isTrue();
+        assertThat(domainService.portalExistsInEnvironment(AUDIT_INFO, ESTABLISHED_PORTAL_ID))
+                .isTrue();
     }
 
     @Test
     void portal_exists_in_environment_is_false_when_the_portal_is_absent() {
-        assertThat(domainService.portalExistsInEnvironment(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).isFalse();
+        assertThat(domainService.portalExistsInEnvironment(AUDIT_INFO, ESTABLISHED_PORTAL_ID))
+                .isFalse();
     }
 }

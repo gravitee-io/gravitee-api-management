@@ -29,6 +29,7 @@ public class ApiTemplateModelProviderImpl implements ApiTemplateModelProvider {
 
     @Override
     public Object getApiTemplateModel(String organizationId, String environmentId, String apiId) {
-        return apiTemplateService.findByIdForTemplates(new ExecutionContext(organizationId, environmentId), apiId, true);
+        return apiTemplateService.findByIdForTemplates(
+                new ExecutionContext(organizationId, environmentId), apiId, true);
     }
 }

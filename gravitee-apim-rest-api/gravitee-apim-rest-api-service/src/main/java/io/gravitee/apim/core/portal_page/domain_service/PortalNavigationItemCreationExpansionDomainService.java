@@ -51,9 +51,8 @@ import lombok.RequiredArgsConstructor;
 public class PortalNavigationItemCreationExpansionDomainService {
 
     private static final Comparator<Api> API_COMPARATOR = Comparator.comparing(
-        Api::getName,
-        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
-    ).thenComparing(Api::getId);
+                    Api::getName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+            .thenComparing(Api::getId);
 
     private final ApiProductQueryService apiProductQueryService;
     private final ApiCrudService apiCrudService;
@@ -74,11 +73,14 @@ public class PortalNavigationItemCreationExpansionDomainService {
         }
 
         var ownershipResolver = new OwnershipResolver(itemsToCreate, environmentId);
-        return new Expansion(itemsToCreate.stream().map(ownershipResolver::normalize).toList(), List.copyOf(requestedItemIds));
+        return new Expansion(
+                itemsToCreate.stream().map(ownershipResolver::normalize).toList(), List.copyOf(requestedItemIds));
     }
 
     private static boolean isDocumentation(PortalNavigationItemType type) {
-        return type == PortalNavigationItemType.PAGE || type == PortalNavigationItemType.FOLDER || type == PortalNavigationItemType.LINK;
+        return type == PortalNavigationItemType.PAGE
+                || type == PortalNavigationItemType.FOLDER
+                || type == PortalNavigationItemType.LINK;
     }
 
     private static NavigationItemReference inheritReference(NavigationItemReference reference, ParentContext parent) {
@@ -111,7 +113,9 @@ public class PortalNavigationItemCreationExpansionDomainService {
 
         private CreatePortalNavigationItem normalize(CreatePortalNavigationItem item) {
             var builder = item.toBuilder().renderedParentId(null);
-            if (!isDocumentation(item.getType()) || item.getReference() instanceof ApiReference || item.getParentId() == null) {
+            if (!isDocumentation(item.getType())
+                    || item.getReference() instanceof ApiReference
+                    || item.getParentId() == null) {
                 return builder.build();
             }
 
@@ -119,10 +123,9 @@ public class PortalNavigationItemCreationExpansionDomainService {
             var reference = inheritReference(item.getReference(), parent);
             builder.reference(reference);
             if (reference instanceof ApiReference && parent.type() == PortalNavigationItemType.API) {
-                builder
-                    .parentId(null)
-                    .renderedParentId(item.getParentId())
-                    .visibility(PortalVisibility.resolve(item.getVisibility(), parent.visibility()));
+                builder.parentId(null)
+                        .renderedParentId(item.getParentId())
+                        .visibility(PortalVisibility.resolve(item.getVisibility(), parent.visibility()));
             }
             return builder.build();
         }
@@ -145,15 +148,15 @@ public class PortalNavigationItemCreationExpansionDomainService {
             var parent = resolvedParents.get(currentId);
             for (var node : ancestors.reversed()) {
                 var reference = node.pending() && isDocumentation(node.type())
-                    ? inheritReference(node.reference(), parent)
-                    : node.reference();
+                        ? inheritReference(node.reference(), parent)
+                        : node.reference();
                 parent = new ParentContext(
-                    node.type(),
-                    reference,
-                    node.apiId(),
-                    PortalVisibility.resolve(node.visibility(), parent == null ? null : parent.visibility()),
-                    node.type() == PortalNavigationItemType.API_PRODUCT || (parent != null && parent.productScoped())
-                );
+                        node.type(),
+                        reference,
+                        node.apiId(),
+                        PortalVisibility.resolve(node.visibility(), parent == null ? null : parent.visibility()),
+                        node.type() == PortalNavigationItemType.API_PRODUCT
+                                || (parent != null && parent.productScoped()));
                 resolvedParents.put(node.id(), parent);
             }
             return parent;
@@ -163,48 +166,44 @@ public class PortalNavigationItemCreationExpansionDomainService {
             var pending = pendingItems.get(id);
             if (pending != null) {
                 return new ParentNode(
-                    id,
-                    pending.getParentId(),
-                    pending.getType(),
-                    pending.getReference(),
-                    pending.getApiId(),
-                    pending.getVisibility(),
-                    true
-                );
+                        id,
+                        pending.getParentId(),
+                        pending.getType(),
+                        pending.getReference(),
+                        pending.getApiId(),
+                        pending.getVisibility(),
+                        true);
             }
             var persisted = navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, id);
             if (persisted == null) {
                 throw new ParentNotFoundException(id.json());
             }
             return new ParentNode(
-                id,
-                persisted.getParentId(),
-                persisted.getType(),
-                persisted.getReference(),
-                persisted instanceof PortalNavigationApi api ? api.getApiId() : null,
-                persisted.getVisibility(),
-                false
-            );
+                    id,
+                    persisted.getParentId(),
+                    persisted.getType(),
+                    persisted.getReference(),
+                    persisted instanceof PortalNavigationApi api ? api.getApiId() : null,
+                    persisted.getVisibility(),
+                    false);
         }
     }
 
     private record ParentNode(
-        PortalNavigationItemId id,
-        PortalNavigationItemId parentId,
-        PortalNavigationItemType type,
-        NavigationItemReference reference,
-        String apiId,
-        PortalVisibility visibility,
-        boolean pending
-    ) {}
+            PortalNavigationItemId id,
+            PortalNavigationItemId parentId,
+            PortalNavigationItemType type,
+            NavigationItemReference reference,
+            String apiId,
+            PortalVisibility visibility,
+            boolean pending) {}
 
     private record ParentContext(
-        PortalNavigationItemType type,
-        NavigationItemReference reference,
-        String apiId,
-        PortalVisibility visibility,
-        boolean productScoped
-    ) {}
+            PortalNavigationItemType type,
+            NavigationItemReference reference,
+            String apiId,
+            PortalVisibility visibility,
+            boolean productScoped) {}
 
     private List<CreatePortalNavigationItem> createApiChildren(CreatePortalNavigationItem root, String environmentId) {
         var apiProductId = root.getApiProductId();
@@ -213,17 +212,16 @@ public class PortalNavigationItemCreationExpansionDomainService {
         }
 
         var apiProduct = apiProductQueryService
-            .findById(apiProductId)
-            .filter(product -> environmentId.equals(product.getEnvironmentId()))
-            .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
+                .findById(apiProductId)
+                .filter(product -> environmentId.equals(product.getEnvironmentId()))
+                .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
         var apis = resolveApis(apiProduct, environmentId);
         var visibility = PortalVisibility.resolve(root.getVisibility(), PortalVisibility.PUBLIC);
 
         var children = new ArrayList<CreatePortalNavigationItem>(apis.size());
         for (int order = 0; order < apis.size(); order++) {
             var api = apis.get(order);
-            children.add(
-                CreatePortalNavigationItem.builder()
+            children.add(CreatePortalNavigationItem.builder()
                     .id(PortalNavigationItemId.random())
                     .title(api.getName())
                     .area(root.getArea())
@@ -234,8 +232,7 @@ public class PortalNavigationItemCreationExpansionDomainService {
                     .apiId(api.getId())
                     .visibility(visibility)
                     .published(false)
-                    .build()
-            );
+                    .build());
         }
         return children;
     }
@@ -247,40 +244,39 @@ public class PortalNavigationItemCreationExpansionDomainService {
         }
 
         var apis = apiCrudService.findByIds(List.copyOf(apiIds));
-        var validApisById = apis
-            .stream()
-            .filter(api -> environmentId.equals(api.getEnvironmentId()))
-            .collect(Collectors.toMap(Api::getId, Function.identity(), (existing, duplicate) -> existing));
+        var validApisById = apis.stream()
+                .filter(api -> environmentId.equals(api.getEnvironmentId()))
+                .collect(Collectors.toMap(Api::getId, Function.identity(), (existing, duplicate) -> existing));
 
-        apiIds
-            .stream()
-            .filter(apiId -> !validApisById.containsKey(apiId))
-            .findFirst()
-            .ifPresent(apiId -> {
-                throw new ApiNotFoundException(apiId);
-            });
+        apiIds.stream()
+                .filter(apiId -> !validApisById.containsKey(apiId))
+                .findFirst()
+                .ifPresent(apiId -> {
+                    throw new ApiNotFoundException(apiId);
+                });
 
         return validApisById.values().stream().sorted(API_COMPARATOR).toList();
     }
 
     private CreatePortalNavigationItem ensureId(CreatePortalNavigationItem item) {
-        return item.getId() != null ? item : item.toBuilder().id(PortalNavigationItemId.random()).build();
+        return item.getId() != null
+                ? item
+                : item.toBuilder().id(PortalNavigationItemId.random()).build();
     }
 
-    public record Expansion(List<CreatePortalNavigationItem> itemsToCreate, List<PortalNavigationItemId> requestedItemIds) {
+    public record Expansion(
+            List<CreatePortalNavigationItem> itemsToCreate, List<PortalNavigationItemId> requestedItemIds) {
         public List<PortalNavigationItemId> generatedApiNavigationItemIds() {
-            return itemsToCreate
-                .stream()
-                .filter(item -> item.getType() == PortalNavigationItemType.API)
-                .filter(item -> !requestedItemIds.contains(item.getId()))
-                .map(CreatePortalNavigationItem::getId)
-                .toList();
+            return itemsToCreate.stream()
+                    .filter(item -> item.getType() == PortalNavigationItemType.API)
+                    .filter(item -> !requestedItemIds.contains(item.getId()))
+                    .map(CreatePortalNavigationItem::getId)
+                    .toList();
         }
 
         public List<PortalNavigationItem> selectRequestedItems(List<PortalNavigationItem> createdItems) {
-            Map<PortalNavigationItemId, PortalNavigationItem> createdItemsById = createdItems
-                .stream()
-                .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
+            Map<PortalNavigationItemId, PortalNavigationItem> createdItemsById =
+                    createdItems.stream().collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
             return requestedItemIds.stream().map(createdItemsById::get).toList();
         }
     }

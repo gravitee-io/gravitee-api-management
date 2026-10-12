@@ -82,7 +82,8 @@ public class CreateApiProductUseCase {
 
         List<String> apiIdsList = payload.getApiIds();
         if (apiIdsList != null && !apiIdsList.isEmpty()) {
-            validateApiProductService.validateApiIdsForProduct(auditInfo.environmentId(), apiIdsList, payload.getKind());
+            validateApiProductService.validateApiIdsForProduct(
+                    auditInfo.environmentId(), apiIdsList, payload.getKind());
         }
 
         Set<String> apiIds = apiIdsList == null || apiIdsList.isEmpty() ? Set.of() : Set.copyOf(apiIdsList);
@@ -90,41 +91,38 @@ public class CreateApiProductUseCase {
         apiProductTagDomainService.validateTagsOnCreate(auditInfo, tags);
 
         ApiProduct apiProduct = ApiProduct.builder()
-            .id(UuidString.generateRandom())
-            .environmentId(auditInfo.environmentId())
-            .name(payload.getName())
-            .description(payload.getDescription())
-            .version(payload.getVersion())
-            .apiIds(apiIds)
-            .tags(tags)
-            .kind(payload.getKind())
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+                .id(UuidString.generateRandom())
+                .environmentId(auditInfo.environmentId())
+                .name(payload.getName())
+                .description(payload.getDescription())
+                .version(payload.getVersion())
+                .apiIds(apiIds)
+                .tags(tags)
+                .kind(payload.getKind())
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
 
         validateApiProductService.validate(apiProduct);
 
         apiProductQueryService
-            .findByEnvironmentIdAndName(auditInfo.environmentId(), apiProduct.getName())
-            .ifPresent(existing -> {
-                throw new ValidationDomainException(
-                    "An API Product already exists in environment.",
-                    Map.of("environmentId", auditInfo.environmentId(), "name", apiProduct.getName())
-                );
-            });
+                .findByEnvironmentIdAndName(auditInfo.environmentId(), apiProduct.getName())
+                .ifPresent(existing -> {
+                    throw new ValidationDomainException(
+                            "An API Product already exists in environment.",
+                            Map.of("environmentId", auditInfo.environmentId(), "name", apiProduct.getName()));
+                });
 
         PrimaryOwnerEntity primaryOwner = apiProductPrimaryOwnerFactory.createForNewApiProduct(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            auditInfo.actor().userId()
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                auditInfo.actor().userId());
 
-        Set<String> defaultGroups = groupQueryService
-            .findByEvent(auditInfo.environmentId(), Group.GroupEvent.API_PRODUCT_CREATE)
-            .stream()
-            .filter(group -> StringUtils.isEmpty(group.getApiProductPrimaryOwner()))
-            .map(Group::getId)
-            .collect(toSet());
+        Set<String> defaultGroups =
+                groupQueryService.findByEvent(auditInfo.environmentId(), Group.GroupEvent.API_PRODUCT_CREATE).stream()
+                        .filter(group -> StringUtils.isEmpty(group.getApiProductPrimaryOwner()))
+                        .map(Group::getId)
+                        .collect(toSet());
         Set<String> sanitizedGroups = new HashSet<>(apiProduct.getGroups() != null ? apiProduct.getGroups() : Set.of());
         sanitizedGroups.addAll(defaultGroups);
         if (PrimaryOwnerEntity.Type.GROUP.equals(primaryOwner.type())) {
@@ -136,7 +134,8 @@ public class CreateApiProductUseCase {
 
         ApiProduct created = apiProductCrudService.create(apiProduct);
 
-        apiProductPrimaryOwnerDomainService.createApiProductPrimaryOwnerMembership(created.getId(), primaryOwner, auditInfo);
+        apiProductPrimaryOwnerDomainService.createApiProductPrimaryOwnerMembership(
+                created.getId(), primaryOwner, auditInfo);
 
         apiProductIndexerDomainService.index(oneShotIndexation(auditInfo), created, primaryOwner);
 
@@ -148,12 +147,12 @@ public class CreateApiProductUseCase {
     }
 
     private void createDefaultMailNotification(ApiProduct apiProduct) {
-        notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigForApiProduct(apiProduct.getId()));
+        notificationConfigCrudService.create(
+                NotificationConfig.defaultMailNotificationConfigForApiProduct(apiProduct.getId()));
     }
 
     private void createAuditLog(ApiProduct apiProduct, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ApiProductAuditEvent.API_PRODUCT_CREATED)
@@ -162,7 +161,6 @@ public class CreateApiProductUseCase {
                 .newValue(apiProduct)
                 .createdAt(apiProduct.getCreatedAt())
                 .properties(Map.of(AuditProperties.API_PRODUCT, apiProduct.getId()))
-                .build()
-        );
+                .build());
     }
 }

@@ -69,9 +69,9 @@ public class MessageExpressionLanguageTest extends AbstractGatewayTest {
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.putIfAbsent(
-            "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-        );
+                "transform-headers",
+                PolicyBuilder.build(
+                        "transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class));
     }
 
     @Override
@@ -81,7 +81,8 @@ public class MessageExpressionLanguageTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -93,24 +94,25 @@ public class MessageExpressionLanguageTest extends AbstractGatewayTest {
     @DeployApi("/apis/v4/messages/el/message-expression-language.json")
     void should_add_update_and_remove_headers_on_request_message(HttpClient httpClient) throws InterruptedException {
         httpClient
-            .rxRequest(POST, "/test")
-            .flatMap(request -> request.putHeader("x-header-test", "header value").rxSend("content"))
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.body();
-            })
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS);
+                .rxRequest(POST, "/test")
+                .flatMap(request ->
+                        request.putHeader("x-header-test", "header value").rxSend("content"))
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS);
 
         messageStorage
-            .subject()
-            .test()
-            .assertValue(message -> {
-                assertThat(message.headers().get("x-header-test-renamed")).isEqualTo("header value");
-                assertThat(message.headers().get("x-header-test-added")).isEqualTo("content");
-                assertThat(message.headers().contains("x-header-test")).isFalse();
-                return true;
-            })
-            .dispose();
+                .subject()
+                .test()
+                .assertValue(message -> {
+                    assertThat(message.headers().get("x-header-test-renamed")).isEqualTo("header value");
+                    assertThat(message.headers().get("x-header-test-added")).isEqualTo("content");
+                    assertThat(message.headers().contains("x-header-test")).isFalse();
+                    return true;
+                })
+                .dispose();
     }
 }

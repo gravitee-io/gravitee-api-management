@@ -40,7 +40,8 @@ public class ClusterLifecycleStateUpgrader extends MongoUpgrader {
     @Override
     public boolean upgrade() {
         // Filters.eq(field, null) matches documents where the field is null or absent.
-        getCollection("clusters").updateMany(Filters.eq("lifecycleState", null), Updates.set("lifecycleState", "UNDEPLOYED"));
+        getCollection("clusters")
+                .updateMany(Filters.eq("lifecycleState", null), Updates.set("lifecycleState", "UNDEPLOYED"));
         return true;
     }
 

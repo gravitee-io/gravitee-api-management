@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurationMapper {
 
-    public ConfigurationResponse convert(PortalSettingsEntity portalConfigEntity, ConsoleSettingsEntity consoleSettingsEntity) {
+    public ConfigurationResponse convert(
+            PortalSettingsEntity portalConfigEntity, ConsoleSettingsEntity consoleSettingsEntity) {
         ConfigurationResponse configuration = new ConfigurationResponse();
         configuration.setAnalytics(convert(portalConfigEntity.getAnalytics()));
         configuration.setApiReview(convert(portalConfigEntity.getApiReview().getEnabled()));
@@ -84,7 +85,9 @@ public class ConfigurationMapper {
     }
 
     private ConfigurationPortalNextApplicationsMembership convert(PortalNext.Applications.Membership membership) {
-        if (membership.getEnabled() == null && membership.getTransferOwnership() == null && membership.getInvitations() == null) {
+        if (membership.getEnabled() == null
+                && membership.getTransferOwnership() == null
+                && membership.getInvitations() == null) {
             return null;
         }
         ConfigurationPortalNextApplicationsMembership config = new ConfigurationPortalNextApplicationsMembership();
@@ -186,14 +189,13 @@ public class ConfigurationMapper {
         configuration.setHomepageTitle(portal.getHomepageTitle());
 
         PortalApplicationSettings.ApplicationTypes types = application.getTypes();
-        if (
-            (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()) ||
-            (!types.getSimpleType().isEnabled() &&
-                !types.getWebType().isEnabled() &&
-                !types.getNativeType().isEnabled() &&
-                !types.getBackendToBackendType().isEnabled() &&
-                !types.getBrowserType().isEnabled())
-        ) {
+        if ((!application.getRegistration().getEnabled()
+                        && !types.getSimpleType().isEnabled())
+                || (!types.getSimpleType().isEnabled()
+                        && !types.getWebType().isEnabled()
+                        && !types.getNativeType().isEnabled()
+                        && !types.getBackendToBackendType().isEnabled()
+                        && !types.getBrowserType().isEnabled())) {
             configuration.setApplicationCreation(convert(false));
         } else {
             configuration.setApplicationCreation(convert(true));
@@ -320,7 +322,8 @@ public class ConfigurationMapper {
             }
             if (docType.getDefaultType() != null) {
                 try {
-                    configDocType.setDefaultType(ConfigurationOpenAPIDocType.DefaultTypeEnum.fromValue(docType.getDefaultType()));
+                    configDocType.setDefaultType(
+                            ConfigurationOpenAPIDocType.DefaultTypeEnum.fromValue(docType.getDefaultType()));
                 } catch (IllegalArgumentException ignored) {
                     // Unknown value: omit the field rather than crashing
                 }
@@ -338,7 +341,8 @@ public class ConfigurationMapper {
         return new Enabled().enabled(enabledEntity.isEnabled());
     }
 
-    private Enabled convertNullableEnabled(io.gravitee.rest.api.model.settings.Enabled enabledEntity, boolean defaultWhenNull) {
+    private Enabled convertNullableEnabled(
+            io.gravitee.rest.api.model.settings.Enabled enabledEntity, boolean defaultWhenNull) {
         if (enabledEntity == null) {
             return new Enabled().enabled(defaultWhenNull);
         }

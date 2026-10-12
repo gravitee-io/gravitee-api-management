@@ -36,9 +36,8 @@ public class NoOpRepositoryProviderTest {
     @Test
     public void shouldReturnAnalyticsScope() {
         assertArrayEquals(
-            new Scope[] { Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT, Scope.OTEL_TRACES, Scope.OTEL_LOGS },
-            provider.scopes()
-        );
+                new Scope[] {Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT, Scope.OTEL_TRACES, Scope.OTEL_LOGS},
+                provider.scopes());
     }
 
     @Test

@@ -15,7 +15,6 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.core.workflow.query_service.WorkflowQueryService;
 import java.util.ArrayList;
@@ -55,12 +54,9 @@ public class WorkflowQueryServiceInMemory implements WorkflowQueryService, InMem
     @Override
     public List<Workflow> findAllByApiIdAndType(String apiId, Workflow.Type type) {
         return this.storage.stream()
-            .filter(
-                workflow ->
-                    Objects.equals(apiId, workflow.getReferenceId()) &&
-                    Workflow.ReferenceType.API.equals(workflow.getReferenceType()) &&
-                    Objects.equals(type, workflow.getType())
-            )
-            .toList();
+                .filter(workflow -> Objects.equals(apiId, workflow.getReferenceId())
+                        && Workflow.ReferenceType.API.equals(workflow.getReferenceType())
+                        && Objects.equals(type, workflow.getType()))
+                .toList();
     }
 }

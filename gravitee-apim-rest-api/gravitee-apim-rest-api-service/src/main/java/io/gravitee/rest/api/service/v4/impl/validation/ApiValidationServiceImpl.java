@@ -86,19 +86,18 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final ApiProductQueryService apiProductQueryService;
 
     public ApiValidationServiceImpl(
-        final TagsValidationService tagsValidationService,
-        final GroupValidationService groupValidationService,
-        final ListenerValidationService listenerValidationService,
-        final EndpointGroupsValidationService endpointGroupsValidationService,
-        final FlowValidationService flowValidationService,
-        final ResourcesValidationService resourcesValidationService,
-        final AnalyticsValidationService loggingValidationService,
-        final PlanSearchService planSearchService,
-        final PlanValidationService planValidationService,
-        ApiServicePluginService apiServicePluginService,
-        FlowValidationDomainService flowValidationDomainService,
-        ApiProductQueryService apiProductQueryService
-    ) {
+            final TagsValidationService tagsValidationService,
+            final GroupValidationService groupValidationService,
+            final ListenerValidationService listenerValidationService,
+            final EndpointGroupsValidationService endpointGroupsValidationService,
+            final FlowValidationService flowValidationService,
+            final ResourcesValidationService resourcesValidationService,
+            final AnalyticsValidationService loggingValidationService,
+            final PlanSearchService planSearchService,
+            final PlanValidationService planValidationService,
+            ApiServicePluginService apiServicePluginService,
+            FlowValidationDomainService flowValidationDomainService,
+            ApiProductQueryService apiProductQueryService) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
         this.listenerValidationService = listenerValidationService;
@@ -115,10 +114,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
     @Override
     public void validateAndSanitizeNewApi(
-        final ExecutionContext executionContext,
-        final NewApiEntity newApiEntity,
-        final PrimaryOwnerEntity primaryOwnerEntity
-    ) {
+            final ExecutionContext executionContext,
+            final NewApiEntity newApiEntity,
+            final PrimaryOwnerEntity primaryOwnerEntity) {
         // Validate version
         this.validateDefinitionVersion(null, newApiEntity.getDefinitionVersion());
         // Validate API Type
@@ -126,120 +124,97 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean tags
         newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
         // Validate and clean groups
-        newApiEntity.setGroups(
-            groupValidationService.validateAndSanitize(executionContext, null, newApiEntity.getGroups(), null, primaryOwnerEntity, true)
-        );
+        newApiEntity.setGroups(groupValidationService.validateAndSanitize(
+                executionContext, null, newApiEntity.getGroups(), null, primaryOwnerEntity, true));
         // Validate and clean listeners
-        newApiEntity.setListeners(
-            listenerValidationService.validateAndSanitizeHttpV4(
-                executionContext,
-                null,
-                newApiEntity.getListeners(),
-                newApiEntity.getEndpointGroups()
-            )
-        );
+        newApiEntity.setListeners(listenerValidationService.validateAndSanitizeHttpV4(
+                executionContext, null, newApiEntity.getListeners(), newApiEntity.getEndpointGroups()));
         // Validate and clean endpoints
-        newApiEntity.setEndpointGroups(
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(newApiEntity.getType(), newApiEntity.getEndpointGroups())
-        );
+        newApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                newApiEntity.getType(), newApiEntity.getEndpointGroups()));
         // Validate and clean logging
-        newApiEntity.setAnalytics(
-            analyticsValidationService.validateAndSanitize(executionContext, newApiEntity.getType(), newApiEntity.getAnalytics())
-        );
+        newApiEntity.setAnalytics(analyticsValidationService.validateAndSanitize(
+                executionContext, newApiEntity.getType(), newApiEntity.getAnalytics()));
         // Validate and clean flow
-        newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getFlows()));
+        newApiEntity.setFlows(
+                flowValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getFlows()));
 
         flowValidationDomainService.validatePathParameters(
-            newApiEntity.getType(),
-            (newApiEntity.getFlows() != null ? newApiEntity.getFlows().stream() : Stream.empty()),
-            Stream.empty()
-        );
+                newApiEntity.getType(),
+                (newApiEntity.getFlows() != null ? newApiEntity.getFlows().stream() : Stream.empty()),
+                Stream.empty());
 
         newApiEntity.setDescription(HtmlSanitizer.sanitize(newApiEntity.getDescription()));
     }
 
     @Override
     public void validateAndSanitizeUpdateApi(
-        final ExecutionContext executionContext,
-        final UpdateApiEntity updateApiEntity,
-        final PrimaryOwnerEntity primaryOwnerEntity,
-        final ApiEntity existingApiEntity
-    ) {
+            final ExecutionContext executionContext,
+            final UpdateApiEntity updateApiEntity,
+            final PrimaryOwnerEntity primaryOwnerEntity,
+            final ApiEntity existingApiEntity) {
         // Validate version
-        this.validateDefinitionVersion(existingApiEntity.getDefinitionVersion(), updateApiEntity.getDefinitionVersion());
+        this.validateDefinitionVersion(
+                existingApiEntity.getDefinitionVersion(), updateApiEntity.getDefinitionVersion());
         // Validate API Type
         this.validateApiType(existingApiEntity.getType(), updateApiEntity.getType());
         // Validate and clean lifecycle state
         updateApiEntity.setLifecycleState(this.validateAndSanitizeLifecycleState(existingApiEntity, updateApiEntity));
         // Validate and clean tags
-        updateApiEntity.setTags(
-            tagsValidationService.validateAndSanitize(executionContext, existingApiEntity.getTags(), updateApiEntity.getTags())
-        );
+        updateApiEntity.setTags(tagsValidationService.validateAndSanitize(
+                executionContext, existingApiEntity.getTags(), updateApiEntity.getTags()));
         // Validate and clean groups
-        updateApiEntity.setGroups(
-            groupValidationService.validateAndSanitize(
+        updateApiEntity.setGroups(groupValidationService.validateAndSanitize(
                 executionContext,
                 updateApiEntity.getId(),
                 updateApiEntity.getGroups(),
                 existingApiEntity.getGroups(),
                 primaryOwnerEntity,
-                existingApiEntity.getOriginContext().origin().equals(OriginContext.Origin.KUBERNETES)
-            )
-        );
+                existingApiEntity.getOriginContext().origin().equals(OriginContext.Origin.KUBERNETES)));
         // Validate and clean listeners
-        updateApiEntity.setListeners(
-            listenerValidationService.validateAndSanitizeHttpV4(
+        updateApiEntity.setListeners(listenerValidationService.validateAndSanitizeHttpV4(
                 executionContext,
                 updateApiEntity.getId(),
                 updateApiEntity.getListeners(),
-                updateApiEntity.getEndpointGroups()
-            )
-        );
+                updateApiEntity.getEndpointGroups()));
         // Validate and clean endpoints
-        updateApiEntity.setEndpointGroups(
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
-        );
+        updateApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                updateApiEntity.getType(), updateApiEntity.getEndpointGroups()));
         // Validate and clean logging
-        updateApiEntity.setAnalytics(
-            analyticsValidationService.validateAndSanitize(executionContext, updateApiEntity.getType(), updateApiEntity.getAnalytics())
-        );
+        updateApiEntity.setAnalytics(analyticsValidationService.validateAndSanitize(
+                executionContext, updateApiEntity.getType(), updateApiEntity.getAnalytics()));
         // Validate and clean flow
-        updateApiEntity.setFlows(
-            flowValidationDomainService.validateAndSanitizeHttpV4(
+        updateApiEntity.setFlows(flowValidationDomainService.validateAndSanitizeHttpV4(
                 updateApiEntity.getType(),
                 updateApiEntity.getFlows(),
-                ApiResourceNames.from(updateApiEntity.getResources())
-            )
-        );
+                ApiResourceNames.from(updateApiEntity.getResources())));
 
         // Validate and clean plans
-        updateApiEntity.setPlans(
-            planValidationService.validateAndSanitize(
+        updateApiEntity.setPlans(planValidationService.validateAndSanitize(
                 updateApiEntity.getType(),
                 updateApiEntity.getPlans(),
-                ApiResourceNames.from(updateApiEntity.getResources())
-            )
-        );
+                ApiResourceNames.from(updateApiEntity.getResources())));
 
         // Validate path parameters
         flowValidationDomainService.validatePathParameters(
-            updateApiEntity.getType(),
-            (updateApiEntity.getFlows() != null ? updateApiEntity.getFlows().stream() : Stream.empty()),
-            getPlansFlows(updateApiEntity.getPlans())
-        );
+                updateApiEntity.getType(),
+                (updateApiEntity.getFlows() != null ? updateApiEntity.getFlows().stream() : Stream.empty()),
+                getPlansFlows(updateApiEntity.getPlans()));
 
         // Validate and clean resources
         updateApiEntity.setResources(validateAndSanitize(updateApiEntity.getResources()));
 
-        this.validateDynamicProperties(updateApiEntity.getServices() != null ? updateApiEntity.getServices().getDynamicProperty() : null);
+        this.validateDynamicProperties(
+                updateApiEntity.getServices() != null
+                        ? updateApiEntity.getServices().getDynamicProperty()
+                        : null);
     }
 
     @Override
     public void validateAndSanitizeImportApiForCreation(
-        final ExecutionContext executionContext,
-        final ApiEntity apiEntity,
-        final PrimaryOwnerEntity primaryOwnerEntity
-    ) {
+            final ExecutionContext executionContext,
+            final ApiEntity apiEntity,
+            final PrimaryOwnerEntity primaryOwnerEntity) {
         // Validate version
         this.validateDefinitionVersion(null, apiEntity.getDefinitionVersion());
         // Validate API Type
@@ -249,55 +224,35 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean tags
         apiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, apiEntity.getTags()));
         // Validate and clean groups
-        apiEntity.setGroups(
-            groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), null, primaryOwnerEntity, true)
-        );
+        apiEntity.setGroups(groupValidationService.validateAndSanitize(
+                executionContext, null, apiEntity.getGroups(), null, primaryOwnerEntity, true));
         // Validate and clean listeners
         // ApiEntity.getListeners() is a plain Lombok getter (returns null when unset); unlike definition-layer models
         // whose getters coalesce null → List.of(), an explicit null guard is required here before delegating.
         if (apiEntity.getListeners() == null) {
             throw new ListenerMissingException();
         }
-        apiEntity.setListeners(
-            listenerValidationService.validateAndSanitizeHttpV4(
-                executionContext,
-                null,
-                apiEntity.getListeners(),
-                apiEntity.getEndpointGroups()
-            )
-        );
+        apiEntity.setListeners(listenerValidationService.validateAndSanitizeHttpV4(
+                executionContext, null, apiEntity.getListeners(), apiEntity.getEndpointGroups()));
         // Validate and clean endpoints
-        apiEntity.setEndpointGroups(
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(apiEntity.getType(), apiEntity.getEndpointGroups())
-        );
+        apiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                apiEntity.getType(), apiEntity.getEndpointGroups()));
         // Validate and clean logging
-        apiEntity.setAnalytics(
-            analyticsValidationService.validateAndSanitize(executionContext, apiEntity.getType(), apiEntity.getAnalytics())
-        );
+        apiEntity.setAnalytics(analyticsValidationService.validateAndSanitize(
+                executionContext, apiEntity.getType(), apiEntity.getAnalytics()));
         // Validate and clean flow
-        apiEntity.setFlows(
-            flowValidationService.validateAndSanitize(
-                apiEntity.getType(),
-                apiEntity.getFlows(),
-                ApiResourceNames.from(apiEntity.getResources())
-            )
-        );
+        apiEntity.setFlows(flowValidationService.validateAndSanitize(
+                apiEntity.getType(), apiEntity.getFlows(), ApiResourceNames.from(apiEntity.getResources())));
 
         // Validate and clean plans
-        apiEntity.setPlans(
-            planValidationService.validateAndSanitize(
-                apiEntity.getType(),
-                apiEntity.getPlans(),
-                ApiResourceNames.from(apiEntity.getResources())
-            )
-        );
+        apiEntity.setPlans(planValidationService.validateAndSanitize(
+                apiEntity.getType(), apiEntity.getPlans(), ApiResourceNames.from(apiEntity.getResources())));
 
         // Validate path parameters
         flowValidationDomainService.validatePathParameters(
-            apiEntity.getType(),
-            (apiEntity.getFlows() != null ? apiEntity.getFlows().stream() : Stream.empty()),
-            getPlansFlows(apiEntity.getPlans())
-        );
+                apiEntity.getType(),
+                (apiEntity.getFlows() != null ? apiEntity.getFlows().stream() : Stream.empty()),
+                getPlansFlows(apiEntity.getPlans()));
 
         // Validate and clean resources
         apiEntity.setResources(validateAndSanitize(apiEntity.getResources()));
@@ -305,37 +260,28 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Sanitize Description
         apiEntity.setDescription(HtmlSanitizer.sanitize(apiEntity.getDescription()));
 
-        this.validateDynamicProperties(apiEntity.getServices() != null ? apiEntity.getServices().getDynamicProperty() : null);
+        this.validateDynamicProperties(
+                apiEntity.getServices() != null ? apiEntity.getServices().getDynamicProperty() : null);
     }
 
     @Override
     public boolean canDeploy(ExecutionContext executionContext, String apiId) {
-        boolean hasPublishedOrDeprecatedPlan = planSearchService
-            .findByApi(executionContext, apiId, false)
-            .stream()
-            .anyMatch(
-                planEntity ->
-                    PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
-            );
+        boolean hasPublishedOrDeprecatedPlan = planSearchService.findByApi(executionContext, apiId, false).stream()
+                .anyMatch(planEntity -> PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus())
+                        || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus()));
         if (hasPublishedOrDeprecatedPlan) {
             return true;
         }
         String environmentId = executionContext.getEnvironmentId();
-        return apiProductQueryService
-            .findByApiId(apiId)
-            .stream()
-            .filter(product -> Objects.equals(product.getEnvironmentId(), environmentId))
-            .anyMatch(product -> hasPublishedOrDeprecatedPlanForApiProduct(executionContext, product.getId()));
+        return apiProductQueryService.findByApiId(apiId).stream()
+                .filter(product -> Objects.equals(product.getEnvironmentId(), environmentId))
+                .anyMatch(product -> hasPublishedOrDeprecatedPlanForApiProduct(executionContext, product.getId()));
     }
 
     private boolean hasPublishedOrDeprecatedPlanForApiProduct(ExecutionContext executionContext, String apiProductId) {
-        return planSearchService
-            .findByApiProduct(executionContext, apiProductId)
-            .stream()
-            .anyMatch(
-                planEntity ->
-                    PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
-            );
+        return planSearchService.findByApiProduct(executionContext, apiProductId).stream()
+                .anyMatch(planEntity -> PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus())
+                        || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus()));
     }
 
     public void validateDynamicProperties(Service dynamicProperties) {
@@ -348,15 +294,10 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         }
 
         if (dynamicProperties.isEnabled()) {
-            dynamicProperties.setConfiguration(
-                this.apiServicePluginService.validateApiServiceConfiguration(
+            dynamicProperties.setConfiguration(this.apiServicePluginService.validateApiServiceConfiguration(
                     dynamicProperties.getType(),
                     LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
-                        dynamicProperties.getType(),
-                        dynamicProperties.getConfiguration()
-                    )
-                )
-            );
+                            dynamicProperties.getType(), dynamicProperties.getConfiguration())));
         }
     }
 
@@ -371,7 +312,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         return plans.stream().flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
     }
 
-    private void validateDefinitionVersion(final DefinitionVersion oldDefinitionVersion, final DefinitionVersion newDefinitionVersion) {
+    private void validateDefinitionVersion(
+            final DefinitionVersion oldDefinitionVersion, final DefinitionVersion newDefinitionVersion) {
         if (newDefinitionVersion != DefinitionVersion.V4) {
             throw new InvalidDataException("Definition version is unsupported, should be V4 or higher");
         }
@@ -391,7 +333,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         }
     }
 
-    private ApiLifecycleState validateAndSanitizeLifecycleState(final ApiEntity existingApiEntity, final UpdateApiEntity updateApiEntity) {
+    private ApiLifecycleState validateAndSanitizeLifecycleState(
+            final ApiEntity existingApiEntity, final UpdateApiEntity updateApiEntity) {
         var existingState = existingApiEntity.getLifecycleState();
         var newState = updateApiEntity.getLifecycleState();
 

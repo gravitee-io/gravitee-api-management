@@ -19,7 +19,6 @@ import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.model.context.OriginContext;
-import io.swagger.models.Model;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -79,67 +78,67 @@ public class SharedPolicyGroupCRD {
 
     public SharedPolicyGroup toSharedPolicyGroup() {
         return SharedPolicyGroup.builder()
-            .hrid(hrid)
-            .crossId(crossId)
-            .id(sharedPolicyGroupId)
-            .name(name)
-            .description(description)
-            .apiType(apiType)
-            .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
-            .prerequisiteMessage(prerequisiteMessage)
-            .steps(steps)
-            .phase(phase)
-            .build();
+                .hrid(hrid)
+                .crossId(crossId)
+                .id(sharedPolicyGroupId)
+                .name(name)
+                .description(description)
+                .apiType(apiType)
+                .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+                .prerequisiteMessage(prerequisiteMessage)
+                .steps(steps)
+                .phase(phase)
+                .build();
     }
 
     public CreateSharedPolicyGroup toCreateSharedPolicyGroup() {
         return CreateSharedPolicyGroup.builder()
-            .id(sharedPolicyGroupId)
-            .hrid(hrid)
-            .crossId(crossId)
-            .name(name)
-            .description(description)
-            .apiType(apiType)
-            .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
-            .prerequisiteMessage(prerequisiteMessage)
-            .steps(steps)
-            .phase(phase)
-            .build();
+                .id(sharedPolicyGroupId)
+                .hrid(hrid)
+                .crossId(crossId)
+                .name(name)
+                .description(description)
+                .apiType(apiType)
+                .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+                .prerequisiteMessage(prerequisiteMessage)
+                .steps(steps)
+                .phase(phase)
+                .build();
     }
 
     public SharedPolicyGroupCRD fromCreateSharedPolicyGroup(CreateSharedPolicyGroup createSharedPolicyGroup) {
         return SharedPolicyGroupCRD.builder()
-            .hrid(createSharedPolicyGroup.getHrid())
-            .crossId(createSharedPolicyGroup.getCrossId())
-            .name(createSharedPolicyGroup.getName())
-            .description(createSharedPolicyGroup.getDescription())
-            .apiType(createSharedPolicyGroup.getApiType())
-            .originContext(createSharedPolicyGroup.getOriginContext())
-            .prerequisiteMessage(createSharedPolicyGroup.getPrerequisiteMessage())
-            .steps(createSharedPolicyGroup.getSteps())
-            .phase(createSharedPolicyGroup.getPhase())
-            .build();
+                .hrid(createSharedPolicyGroup.getHrid())
+                .crossId(createSharedPolicyGroup.getCrossId())
+                .name(createSharedPolicyGroup.getName())
+                .description(createSharedPolicyGroup.getDescription())
+                .apiType(createSharedPolicyGroup.getApiType())
+                .originContext(createSharedPolicyGroup.getOriginContext())
+                .prerequisiteMessage(createSharedPolicyGroup.getPrerequisiteMessage())
+                .steps(createSharedPolicyGroup.getSteps())
+                .phase(createSharedPolicyGroup.getPhase())
+                .build();
     }
 
     public UpdateSharedPolicyGroup toUpdateSharedPolicyGroup() {
         return UpdateSharedPolicyGroup.builder()
-            .hrid(hrid)
-            .crossId(crossId)
-            .name(name)
-            .description(description)
-            .prerequisiteMessage(prerequisiteMessage)
-            .steps(steps)
-            .build();
+                .hrid(hrid)
+                .crossId(crossId)
+                .name(name)
+                .description(description)
+                .prerequisiteMessage(prerequisiteMessage)
+                .steps(steps)
+                .build();
     }
 
     public SharedPolicyGroupCRD fromUpdateSharedPolicyGroup(UpdateSharedPolicyGroup updateSharedPolicyGroup) {
         return SharedPolicyGroupCRD.builder()
-            .hrid(updateSharedPolicyGroup.getHrid())
-            .crossId(updateSharedPolicyGroup.getCrossId())
-            .name(updateSharedPolicyGroup.getName())
-            .description(updateSharedPolicyGroup.getDescription())
-            .prerequisiteMessage(updateSharedPolicyGroup.getPrerequisiteMessage())
-            .steps(updateSharedPolicyGroup.getSteps())
-            .build();
+                .hrid(updateSharedPolicyGroup.getHrid())
+                .crossId(updateSharedPolicyGroup.getCrossId())
+                .name(updateSharedPolicyGroup.getName())
+                .description(updateSharedPolicyGroup.getDescription())
+                .prerequisiteMessage(updateSharedPolicyGroup.getPrerequisiteMessage())
+                .steps(updateSharedPolicyGroup.getSteps())
+                .build();
     }
 }

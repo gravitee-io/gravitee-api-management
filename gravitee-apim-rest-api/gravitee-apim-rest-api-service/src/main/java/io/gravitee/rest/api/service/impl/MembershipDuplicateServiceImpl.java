@@ -38,12 +38,9 @@ public class MembershipDuplicateServiceImpl implements MembershipDuplicateServic
 
     @Override
     public List<MemberEntity> duplicateMemberships(
-        ExecutionContext executionContext,
-        String sourceApiId,
-        String duplicatedApiId,
-        String userId
-    ) {
-        var primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
+            ExecutionContext executionContext, String sourceApiId, String duplicatedApiId, String userId) {
+        var primaryOwnerRole =
+                roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
         if (primaryOwnerRole == null) {
             return List.of();
         }
@@ -54,26 +51,23 @@ public class MembershipDuplicateServiceImpl implements MembershipDuplicateServic
         }
 
         var defaultRole = defaultRoles.get(0);
-        return membershipService
-            .getMembershipsByReference(MembershipReferenceType.API, sourceApiId)
-            .stream()
-            .filter(m -> !m.getMemberId().equals(userId))
-            .map(m -> {
-                var roleId = m.getRoleId();
+        return membershipService.getMembershipsByReference(MembershipReferenceType.API, sourceApiId).stream()
+                .filter(m -> !m.getMemberId().equals(userId))
+                .map(m -> {
+                    var roleId = m.getRoleId();
 
-                if (roleId.equals(primaryOwnerRole.getId())) {
-                    roleId = defaultRole.getId();
-                }
+                    if (roleId.equals(primaryOwnerRole.getId())) {
+                        roleId = defaultRole.getId();
+                    }
 
-                return membershipService.addRoleToMemberOnReference(
-                    executionContext,
-                    MembershipReferenceType.API,
-                    duplicatedApiId,
-                    m.getMemberType(),
-                    m.getMemberId(),
-                    roleId
-                );
-            })
-            .toList();
+                    return membershipService.addRoleToMemberOnReference(
+                            executionContext,
+                            MembershipReferenceType.API,
+                            duplicatedApiId,
+                            m.getMemberType(),
+                            m.getMemberId(),
+                            roleId);
+                })
+                .toList();
     }
 }

@@ -49,26 +49,30 @@ class CredentialMapperTest {
 
     @Test
     void should_distribute_an_undeploy_without_payload() {
-        DistributedEvent event = cut
-            .to(CredentialDeployable.builder().credentialId("credential-1").environmentId("env-1").syncAction(SyncAction.UNDEPLOY).build())
-            .blockingGet();
+        DistributedEvent event = cut.to(CredentialDeployable.builder()
+                        .credentialId("credential-1")
+                        .environmentId("env-1")
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .build())
+                .blockingGet();
 
         assertThat(event.getPayload()).isNull();
         assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-        assertThat(cut.to(event).blockingGet()).isEqualTo(
-            CredentialDeployable.builder().credentialId("credential-1").syncAction(SyncAction.UNDEPLOY).build()
-        );
+        assertThat(cut.to(event).blockingGet())
+                .isEqualTo(CredentialDeployable.builder()
+                        .credentialId("credential-1")
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .build());
     }
 
     @Test
     void should_allow_no_api_when_the_payload_lists_none() {
         DistributedEvent event = DistributedEvent.builder()
-            .id("credential-1")
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .payload(
-                "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"organizationId\": \"org-1\", \"encryptedSecret\": \"ciphertext\", \"updatedAt\": 1234}"
-            )
-            .build();
+                .id("credential-1")
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .payload(
+                        "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"organizationId\": \"org-1\", \"encryptedSecret\": \"ciphertext\", \"updatedAt\": 1234}")
+                .build();
 
         assertThat(cut.to(event).blockingGet().allowedApiIds()).isEmpty();
     }
@@ -82,22 +86,25 @@ class CredentialMapperTest {
 
     @Test
     void should_return_empty_with_wrong_payload() {
-        cut
-            .to(DistributedEvent.builder().id("credential-1").syncAction(DistributedSyncAction.DEPLOY).payload("wrong").build())
-            .test()
-            .assertComplete()
-            .assertNoValues();
+        cut.to(DistributedEvent.builder()
+                        .id("credential-1")
+                        .syncAction(DistributedSyncAction.DEPLOY)
+                        .payload("wrong")
+                        .build())
+                .test()
+                .assertComplete()
+                .assertNoValues();
     }
 
     private static CredentialDeployable deployed() {
         return CredentialDeployable.builder()
-            .credentialId("credential-1")
-            .environmentId("env-1")
-            .organizationId("org-1")
-            .allowedApiIds(Set.of("api-1", "api-2"))
-            .encryptedSecret("ciphertext")
-            .updatedAt(1234L)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .credentialId("credential-1")
+                .environmentId("env-1")
+                .organizationId("org-1")
+                .allowedApiIds(Set.of("api-1", "api-2"))
+                .encryptedSecret("ciphertext")
+                .updatedAt(1234L)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 }

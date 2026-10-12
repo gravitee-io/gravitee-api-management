@@ -35,8 +35,11 @@ public class OrganizationMapper {
     public Maybe<OrganizationDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
             try {
-                final ReactableOrganization reactableOrganization = objectMapper.readValue(event.getPayload(), ReactableOrganization.class);
-                return OrganizationDeployable.builder().reactableOrganization(reactableOrganization).build();
+                final ReactableOrganization reactableOrganization =
+                        objectMapper.readValue(event.getPayload(), ReactableOrganization.class);
+                return OrganizationDeployable.builder()
+                        .reactableOrganization(reactableOrganization)
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while determining deployed organization into event payload", e);
                 return null;
@@ -48,12 +51,12 @@ public class OrganizationMapper {
         return Maybe.fromCallable(() -> {
             try {
                 return DistributedEvent.builder()
-                    .id(organizationDeployable.id())
-                    .type(DistributedEventType.ORGANIZATION)
-                    .syncAction(DistributedSyncAction.DEPLOY)
-                    .payload(objectMapper.writeValueAsString(organizationDeployable.reactableOrganization()))
-                    .updatedAt(new Date())
-                    .build();
+                        .id(organizationDeployable.id())
+                        .type(DistributedEventType.ORGANIZATION)
+                        .syncAction(DistributedSyncAction.DEPLOY)
+                        .payload(objectMapper.writeValueAsString(organizationDeployable.reactableOrganization()))
+                        .updatedAt(new Date())
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while building distributed event from organization", e);
                 return null;

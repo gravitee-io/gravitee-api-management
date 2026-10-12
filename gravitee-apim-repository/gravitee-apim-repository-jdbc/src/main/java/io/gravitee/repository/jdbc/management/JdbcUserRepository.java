@@ -88,32 +88,31 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     @Override
     protected JdbcObjectMapper<User> buildOrm() {
         return JdbcObjectMapper.builder(User.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("email", Types.NVARCHAR, String.class)
-            .addColumn("firstname", Types.NVARCHAR, String.class)
-            .addColumn("last_connection_at", Types.TIMESTAMP, Date.class)
-            .addColumn("lastname", Types.NVARCHAR, String.class)
-            .addColumn("password", Types.NVARCHAR, String.class)
-            .addColumn("picture", Types.NVARCHAR, String.class)
-            .addColumn("source", Types.NVARCHAR, String.class)
-            .addColumn("source_id", Types.NVARCHAR, String.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn(STATUS_FIELD, Types.NVARCHAR, UserStatus.class)
-            .addColumn("login_count", Types.BIGINT, long.class)
-            .addColumn("first_connection_at", Types.TIMESTAMP, Date.class)
-            .addColumn("newsletter_subscribed", Types.BOOLEAN, Boolean.class)
-            .addColumn("is_service_account", Types.BOOLEAN, Boolean.class)
-            .addColumn("registration_origin", Types.NVARCHAR, RegistrationOrigin.class)
-            .addColumn(
-                "idp_claims",
-                Types.NCLOB,
-                Map.class,
-                JdbcUserRepository::serializeIdpClaims,
-                JdbcUserRepository::deserializeIdpClaims
-            )
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("email", Types.NVARCHAR, String.class)
+                .addColumn("firstname", Types.NVARCHAR, String.class)
+                .addColumn("last_connection_at", Types.TIMESTAMP, Date.class)
+                .addColumn("lastname", Types.NVARCHAR, String.class)
+                .addColumn("password", Types.NVARCHAR, String.class)
+                .addColumn("picture", Types.NVARCHAR, String.class)
+                .addColumn("source", Types.NVARCHAR, String.class)
+                .addColumn("source_id", Types.NVARCHAR, String.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn(STATUS_FIELD, Types.NVARCHAR, UserStatus.class)
+                .addColumn("login_count", Types.BIGINT, long.class)
+                .addColumn("first_connection_at", Types.TIMESTAMP, Date.class)
+                .addColumn("newsletter_subscribed", Types.BOOLEAN, Boolean.class)
+                .addColumn("is_service_account", Types.BOOLEAN, Boolean.class)
+                .addColumn("registration_origin", Types.NVARCHAR, RegistrationOrigin.class)
+                .addColumn(
+                        "idp_claims",
+                        Types.NCLOB,
+                        Map.class,
+                        JdbcUserRepository::serializeIdpClaims,
+                        JdbcUserRepository::deserializeIdpClaims)
+                .build();
     }
 
     @Override
@@ -122,16 +121,17 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String organizationId)
+            throws TechnicalException {
         log.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
             List<User> users = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?",
-                getOrm().getRowMapper(),
-                source,
-                sourceId,
-                organizationId
-            );
+                    getOrm().getSelectAllSql()
+                            + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?",
+                    getOrm().getRowMapper(),
+                    source,
+                    sourceId,
+                    organizationId);
             return users.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find user by source", ex);
@@ -144,11 +144,10 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
         log.debug("JdbcUserRepository.findByEmail({})", email);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " u where UPPER(u.email) = UPPER(?) and organization_id = ?",
-                getOrm().getRowMapper(),
-                email,
-                organizationId
-            );
+                    getOrm().getSelectAllSql() + " u where UPPER(u.email) = UPPER(?) and organization_id = ?",
+                    getOrm().getRowMapper(),
+                    email,
+                    organizationId);
         } catch (final Exception ex) {
             log.error("Failed to find user by email", ex);
             throw new TechnicalException("Failed to find user by email", ex);
@@ -161,24 +160,22 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             return Collections.emptySet();
         }
         final String[] lastId = new String[1];
-        List<String> uniqueIds = ids
-            .stream()
-            .filter(id -> {
-                if (id.equals(lastId[0])) {
-                    return false;
-                } else {
-                    lastId[0] = id;
-                    return true;
-                }
-            })
-            .collect(Collectors.toList());
+        List<String> uniqueIds = ids.stream()
+                .filter(id -> {
+                    if (id.equals(lastId[0])) {
+                        return false;
+                    } else {
+                        lastId[0] = id;
+                        return true;
+                    }
+                })
+                .collect(Collectors.toList());
         log.debug("JdbcUserRepository.findByIds({})", uniqueIds);
         try {
             final List<User> users = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " u where u.id in ( " + getOrm().buildInClause(uniqueIds) + " )",
-                (PreparedStatement ps) -> getOrm().setArguments(ps, uniqueIds, 1),
-                getOrm().getRowMapper()
-            );
+                    getOrm().getSelectAllSql() + " u where u.id in ( " + getOrm().buildInClause(uniqueIds) + " )",
+                    (PreparedStatement ps) -> getOrm().setArguments(ps, uniqueIds, 1),
+                    getOrm().getRowMapper());
             return new HashSet<>(users);
         } catch (final Exception ex) {
             final String msg = "Failed to find users by ids";
@@ -213,7 +210,9 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                 }
 
                 if (criteria.hasNoStatus()) {
-                    query.append(" and ").append(escapeReservedWord(STATUS_FIELD)).append(" is null ");
+                    query.append(" and ")
+                            .append(escapeReservedWord(STATUS_FIELD))
+                            .append(" is null ");
                 }
 
                 if (criteria.getOrganizationId() != null) {
@@ -223,19 +222,18 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                 query.append(" order by id ");
 
                 result = jdbcTemplate.query(
-                    query.toString(),
-                    (PreparedStatement ps) -> {
-                        int idx = 1;
-                        if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
-                            List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
-                            idx = getOrm().setArguments(ps, statuses, idx);
-                        }
-                        if (criteria.getOrganizationId() != null) {
-                            idx = getOrm().setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
-                        }
-                    },
-                    getOrm().getRowMapper()
-                );
+                        query.toString(),
+                        (PreparedStatement ps) -> {
+                            int idx = 1;
+                            if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                                List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
+                                idx = getOrm().setArguments(ps, statuses, idx);
+                            }
+                            if (criteria.getOrganizationId() != null) {
+                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
+                            }
+                        },
+                        getOrm().getRowMapper());
             }
             return getResultAsPage(pageable, result);
         } catch (final Exception ex) {
@@ -249,10 +247,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
         log.debug("JdbcUserRepository.deleteByOrganizationId({})", organizationId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where organization_id = ?",
-                String.class,
-                organizationId
-            );
+                    "select id from " + tableName + " where organization_id = ?", String.class, organizationId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where organization_id = ?", organizationId);

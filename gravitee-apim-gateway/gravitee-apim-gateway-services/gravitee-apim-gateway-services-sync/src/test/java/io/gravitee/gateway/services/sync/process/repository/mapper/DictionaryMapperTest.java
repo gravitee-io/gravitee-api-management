@@ -15,14 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.DICTIONARY_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.model.Event;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -45,17 +43,17 @@ class DictionaryMapperTest {
 
     @Test
     void should_map_dictionary() throws JsonProcessingException {
-        io.gravitee.gateway.dictionary.model.Dictionary dictionaryExpected = new io.gravitee.gateway.dictionary.model.Dictionary();
+        io.gravitee.gateway.dictionary.model.Dictionary dictionaryExpected =
+                new io.gravitee.gateway.dictionary.model.Dictionary();
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(dictionaryExpected));
-        cut
-            .to(event)
-            .test()
-            .assertValue(dictionary -> {
-                assertThat(dictionary).isEqualTo(dictionaryExpected);
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(dictionary -> {
+                    assertThat(dictionary).isEqualTo(dictionaryExpected);
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -70,15 +68,16 @@ class DictionaryMapperTest {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\"}}");
 
-        cut
-            .to(event)
-            .test()
-            .assertValue(dictionary -> {
-                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
-                assertThat(dictionary.getProperties().get("legacy-key").encrypted()).isFalse();
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(dictionary -> {
+                    assertThat(dictionary.getProperties().get("legacy-key").value())
+                            .isEqualTo("legacy-value");
+                    assertThat(dictionary.getProperties().get("legacy-key").encrypted())
+                            .isFalse();
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -86,19 +85,23 @@ class DictionaryMapperTest {
         // The rolling-upgrade payload: a dictionary saved before the typed shape existed, with one
         // property since encrypted.
         Event event = new Event();
-        event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
+        event.setPayload(
+                "{\"properties\":{\"legacy-key\":\"legacy-value\",\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
 
-        cut
-            .to(event)
-            .test()
-            .assertValue(dictionary -> {
-                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
-                assertThat(dictionary.getProperties().get("legacy-key").encrypted()).isFalse();
-                assertThat(dictionary.getProperties().get("typed-key").value()).isEqualTo("cipher");
-                assertThat(dictionary.getProperties().get("typed-key").encrypted()).isTrue();
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(dictionary -> {
+                    assertThat(dictionary.getProperties().get("legacy-key").value())
+                            .isEqualTo("legacy-value");
+                    assertThat(dictionary.getProperties().get("legacy-key").encrypted())
+                            .isFalse();
+                    assertThat(dictionary.getProperties().get("typed-key").value())
+                            .isEqualTo("cipher");
+                    assertThat(dictionary.getProperties().get("typed-key").encrypted())
+                            .isTrue();
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -106,15 +109,15 @@ class DictionaryMapperTest {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"null-key\":null}}");
 
-        cut
-            .to(event)
-            .test()
-            .assertValue(dictionary -> {
-                assertThat(dictionary.getProperties()).containsOnlyKeys("legacy-key");
-                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(dictionary -> {
+                    assertThat(dictionary.getProperties()).containsOnlyKeys("legacy-key");
+                    assertThat(dictionary.getProperties().get("legacy-key").value())
+                            .isEqualTo("legacy-value");
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -122,14 +125,15 @@ class DictionaryMapperTest {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
 
-        cut
-            .to(event)
-            .test()
-            .assertValue(dictionary -> {
-                assertThat(dictionary.getProperties().get("typed-key").value()).isEqualTo("cipher");
-                assertThat(dictionary.getProperties().get("typed-key").encrypted()).isTrue();
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(dictionary -> {
+                    assertThat(dictionary.getProperties().get("typed-key").value())
+                            .isEqualTo("cipher");
+                    assertThat(dictionary.getProperties().get("typed-key").encrypted())
+                            .isTrue();
+                    return true;
+                })
+                .assertComplete();
     }
 }

@@ -39,47 +39,52 @@ class EventAdapterTest {
         entity.setEnvironments(Set.of("env1", "env2"));
         entity.setPayload("payload");
         entity.setType(EventType.DEBUG_API);
-        entity.setProperties(
-            Map.of(Event.EventProperties.API_ID.getLabel(), "api-id", Event.EventProperties.GATEWAY_ID.getLabel(), "gateway-id")
-        );
+        entity.setProperties(Map.of(
+                Event.EventProperties.API_ID.getLabel(),
+                "api-id",
+                Event.EventProperties.GATEWAY_ID.getLabel(),
+                "gateway-id"));
 
         final Event result = cut.fromEntity(entity);
         assertThat(result)
-            .extracting(Event::getId, Event::getEnvironments, Event::getPayload, Event::getType, Event::getProperties)
-            .containsExactly(
-                entity.getId(),
-                entity.getEnvironments(),
-                entity.getPayload(),
-                entity.getType(),
-                Map.of(Event.EventProperties.API_ID, "api-id", Event.EventProperties.GATEWAY_ID, "gateway-id")
-            );
+                .extracting(
+                        Event::getId, Event::getEnvironments, Event::getPayload, Event::getType, Event::getProperties)
+                .containsExactly(
+                        entity.getId(),
+                        entity.getEnvironments(),
+                        entity.getPayload(),
+                        entity.getType(),
+                        Map.of(Event.EventProperties.API_ID, "api-id", Event.EventProperties.GATEWAY_ID, "gateway-id"));
     }
 
     @Test
     void should_convert_event_to_entity() {
         Event event = Event.builder()
-            .id("id")
-            .environments(Set.of("env1", "env2"))
-            .payload("payload")
-            .type(EventType.DEBUG_API)
-            .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "api-id", Event.EventProperties.GATEWAY_ID, "gateway-id")))
-            .build();
+                .id("id")
+                .environments(Set.of("env1", "env2"))
+                .payload("payload")
+                .type(EventType.DEBUG_API)
+                .properties(new EnumMap<>(
+                        Map.of(Event.EventProperties.API_ID, "api-id", Event.EventProperties.GATEWAY_ID, "gateway-id")))
+                .build();
 
         final EventEntity result = cut.toEntity(event);
         assertThat(result)
-            .extracting(
-                EventEntity::getId,
-                EventEntity::getEnvironments,
-                EventEntity::getPayload,
-                EventEntity::getType,
-                EventEntity::getProperties
-            )
-            .containsExactly(
-                event.getId(),
-                event.getEnvironments(),
-                event.getPayload(),
-                event.getType(),
-                Map.of(Event.EventProperties.API_ID.getLabel(), "api-id", Event.EventProperties.GATEWAY_ID.getLabel(), "gateway-id")
-            );
+                .extracting(
+                        EventEntity::getId,
+                        EventEntity::getEnvironments,
+                        EventEntity::getPayload,
+                        EventEntity::getType,
+                        EventEntity::getProperties)
+                .containsExactly(
+                        event.getId(),
+                        event.getEnvironments(),
+                        event.getPayload(),
+                        event.getType(),
+                        Map.of(
+                                Event.EventProperties.API_ID.getLabel(),
+                                "api-id",
+                                Event.EventProperties.GATEWAY_ID.getLabel(),
+                                "gateway-id"));
     }
 }

@@ -69,11 +69,10 @@ class OpenApiPortalPageContentConfigurationUpgraderTest {
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(portalPageContentRepository.updatedContents())
-            .extracting(PortalPageContent::getId, PortalPageContent::getConfiguration)
-            .containsExactlyInAnyOrder(
-                tuple("content-without-configuration", DEFAULT_REDOC_CONFIGURATION),
-                tuple("content-with-blank-configuration", DEFAULT_REDOC_CONFIGURATION)
-            );
+                .extracting(PortalPageContent::getId, PortalPageContent::getConfiguration)
+                .containsExactlyInAnyOrder(
+                        tuple("content-without-configuration", DEFAULT_REDOC_CONFIGURATION),
+                        tuple("content-with-blank-configuration", DEFAULT_REDOC_CONFIGURATION));
     }
 
     @Test
@@ -95,19 +94,19 @@ class OpenApiPortalPageContentConfigurationUpgraderTest {
         portalPageContentRepository.failOnFindAllByType();
 
         assertThatThrownBy(() -> upgrader.upgrade())
-            .isInstanceOf(UpgraderException.class)
-            .hasMessageContaining("connection failed");
+                .isInstanceOf(UpgraderException.class)
+                .hasMessageContaining("connection failed");
     }
 
     private static PortalPageContent openApiContent(String id, String configuration) {
         return PortalPageContent.builder()
-            .id(id)
-            .organizationId("organization-id")
-            .environmentId("environment-id")
-            .type(PortalPageContent.Type.OPENAPI)
-            .content("openapi: 3.0.0")
-            .configuration(configuration)
-            .build();
+                .id(id)
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .type(PortalPageContent.Type.OPENAPI)
+                .content("openapi: 3.0.0")
+                .configuration(configuration)
+                .build();
     }
 
     private static class FakePortalPageContentRepository implements PortalPageContentRepository {
@@ -136,10 +135,9 @@ class OpenApiPortalPageContentConfigurationUpgraderTest {
             if (failOnFindAllByType) {
                 throw new TechnicalException("connection failed");
             }
-            return contents
-                .stream()
-                .filter(content -> content.getType() == type)
-                .toList();
+            return contents.stream()
+                    .filter(content -> content.getType() == type)
+                    .toList();
         }
 
         @Override
@@ -149,10 +147,9 @@ class OpenApiPortalPageContentConfigurationUpgraderTest {
 
         @Override
         public Optional<PortalPageContent> findById(String id) {
-            return contents
-                .stream()
-                .filter(content -> content.getId().equals(id))
-                .findFirst();
+            return contents.stream()
+                    .filter(content -> content.getId().equals(id))
+                    .findFirst();
         }
 
         @Override
@@ -174,10 +171,7 @@ class OpenApiPortalPageContentConfigurationUpgraderTest {
 
         @Override
         public List<PortalPageContent> findByAutomationReference(
-            String environmentId,
-            AutomationTargetReferenceType referenceType,
-            String referenceId
-        ) {
+                String environmentId, AutomationTargetReferenceType referenceType, String referenceId) {
             return List.of();
         }
     }

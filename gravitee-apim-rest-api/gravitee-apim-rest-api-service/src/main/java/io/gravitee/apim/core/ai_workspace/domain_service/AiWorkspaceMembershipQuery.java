@@ -41,9 +41,8 @@ public class AiWorkspaceMembershipQuery {
 
     private static final int MEMBERSHIP_PAGE_SIZE = 500;
     private static final Comparator<SubscriptionEntity> OLDEST_FIRST = Comparator.comparing(
-        SubscriptionEntity::getCreatedAt,
-        Comparator.nullsLast(Comparator.naturalOrder())
-    ).thenComparing(SubscriptionEntity::getId, Comparator.nullsLast(Comparator.naturalOrder()));
+                    SubscriptionEntity::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(SubscriptionEntity::getId, Comparator.nullsLast(Comparator.naturalOrder()));
 
     private final SubscriptionSearchQueryService subscriptionSearchQueryService;
 
@@ -51,59 +50,48 @@ public class AiWorkspaceMembershipQuery {
         return find(executionContext, applicationIds, null);
     }
 
-    public List<AiWorkspaceMembership> find(ExecutionContext executionContext, Set<String> applicationIds, Set<String> apiProductIds) {
+    public List<AiWorkspaceMembership> find(
+            ExecutionContext executionContext, Set<String> applicationIds, Set<String> apiProductIds) {
         if (applicationIds == null || applicationIds.isEmpty()) {
             return List.of();
         }
         var byProduct = new LinkedHashMap<String, SubscriptionEntity>();
-        subscriptions(executionContext, applicationIds, apiProductIds)
-            .stream()
-            .filter(subscription -> subscription.getReferenceId() != null)
-            .filter(subscription -> "API_PRODUCT".equals(subscription.getReferenceType()))
-            .sorted(OLDEST_FIRST)
-            .forEach(subscription -> byProduct.putIfAbsent(subscription.getReferenceId(), subscription));
-        return byProduct
-            .values()
-            .stream()
-            .map(subscription ->
-                new AiWorkspaceMembership(
-                    subscription.getReferenceId(),
-                    subscription.getPlan(),
-                    subscription.getApplication(),
-                    subscription.getId(),
-                    subscription.getCreatedAt()
-                )
-            )
-            .toList();
+        subscriptions(executionContext, applicationIds, apiProductIds).stream()
+                .filter(subscription -> subscription.getReferenceId() != null)
+                .filter(subscription -> "API_PRODUCT".equals(subscription.getReferenceType()))
+                .sorted(OLDEST_FIRST)
+                .forEach(subscription -> byProduct.putIfAbsent(subscription.getReferenceId(), subscription));
+        return byProduct.values().stream()
+                .map(subscription -> new AiWorkspaceMembership(
+                        subscription.getReferenceId(),
+                        subscription.getPlan(),
+                        subscription.getApplication(),
+                        subscription.getId(),
+                        subscription.getCreatedAt()))
+                .toList();
     }
 
     private List<SubscriptionEntity> subscriptions(
-        ExecutionContext executionContext,
-        Set<String> applicationIds,
-        Set<String> apiProductIds
-    ) {
+            ExecutionContext executionContext, Set<String> applicationIds, Set<String> apiProductIds) {
         var criteria = new SubscriptionSearchQueryService.Criteria(
-            Set.of(SubscriptionReferenceType.API_PRODUCT),
-            null,
-            apiProductIds,
-            applicationIds,
-            null,
-            Set.of(SubscriptionStatus.ACCEPTED),
-            null
-        );
+                Set.of(SubscriptionReferenceType.API_PRODUCT),
+                null,
+                apiProductIds,
+                applicationIds,
+                null,
+                Set.of(SubscriptionStatus.ACCEPTED),
+                null);
         List<SubscriptionEntity> subscriptions = new ArrayList<>();
         int pageNumber = 1;
         while (true) {
             Page<SubscriptionEntity> page = subscriptionSearchQueryService.search(
-                executionContext,
-                criteria,
-                new PageableImpl(pageNumber, MEMBERSHIP_PAGE_SIZE)
-            );
+                    executionContext, criteria, new PageableImpl(pageNumber, MEMBERSHIP_PAGE_SIZE));
             if (page == null || page.getContent() == null || page.getContent().isEmpty()) {
                 return subscriptions;
             }
             subscriptions.addAll(page.getContent());
-            if (subscriptions.size() >= page.getTotalElements() || page.getContent().size() < MEMBERSHIP_PAGE_SIZE) {
+            if (subscriptions.size() >= page.getTotalElements()
+                    || page.getContent().size() < MEMBERSHIP_PAGE_SIZE) {
                 return subscriptions;
             }
             pageNumber++;

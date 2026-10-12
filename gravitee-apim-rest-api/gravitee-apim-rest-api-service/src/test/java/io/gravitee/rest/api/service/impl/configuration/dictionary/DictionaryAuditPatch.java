@@ -41,13 +41,12 @@ final class DictionaryAuditPatch {
     private DictionaryAuditPatch() {}
 
     static AuditService.AuditLogData captured(AuditService auditService) {
-        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        ArgumentCaptor<AuditService.AuditLogData> auditLogData =
+                ArgumentCaptor.forClass(AuditService.AuditLogData.class);
         verify(auditService, atLeastOnce()).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
-        List<AuditService.AuditLogData> diffedEntries = auditLogData
-            .getAllValues()
-            .stream()
-            .filter(DictionaryAuditPatch::isDiffed)
-            .toList();
+        List<AuditService.AuditLogData> diffedEntries = auditLogData.getAllValues().stream()
+                .filter(DictionaryAuditPatch::isDiffed)
+                .toList();
         assertThat(diffedEntries).hasSize(1);
         return diffedEntries.getFirst();
     }

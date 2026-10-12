@@ -61,14 +61,7 @@ public class SearchObservabilityLogsUseCase {
      * set — the rest of the pipeline (AccessibleApiScope, query building) adjusts automatically.
      */
     static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(
-        ApiType.HTTP_PROXY,
-        ApiType.LLM,
-        ApiType.MCP,
-        ApiType.A2A,
-        ApiType.MESSAGE,
-        ApiType.NATIVE,
-        ApiType.AUTHZ
-    );
+            ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.MESSAGE, ApiType.NATIVE, ApiType.AUTHZ);
 
     private final ObservabilityLogsDataPort logsDataPort;
     private final ObservabilityFilterValidator filterValidator;
@@ -76,14 +69,13 @@ public class SearchObservabilityLogsUseCase {
     private final EntrypointScopeProvider entrypointScopeProvider;
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        List<FilterCondition> filters,
-        Instant from,
-        Instant to,
-        Integer page,
-        Integer perPage
-    ) {}
+            String organizationId,
+            String environmentId,
+            List<FilterCondition> filters,
+            Instant from,
+            Instant to,
+            Integer page,
+            Integer perPage) {}
 
     public record Output(LogsPage data, int page, int perPage) {}
 
@@ -119,16 +111,16 @@ public class SearchObservabilityLogsUseCase {
         }
 
         var query = LogsSearchQuery.builder()
-            .apiIds(scope.apiIds())
-            .apisById(scope.apisById())
-            .conditions(effectiveConditions)
-            .from(input.from.toEpochMilli())
-            .to(input.to.toEpochMilli())
-            .page(page)
-            .perPage(perPage)
-            .recordType(recordType)
-            .entrypointScope(entrypointScope)
-            .build();
+                .apiIds(scope.apiIds())
+                .apisById(scope.apisById())
+                .conditions(effectiveConditions)
+                .from(input.from.toEpochMilli())
+                .to(input.to.toEpochMilli())
+                .page(page)
+                .perPage(perPage)
+                .recordType(recordType)
+                .entrypointScope(entrypointScope)
+                .build();
 
         var result = logsDataPort.searchLogs(input.organizationId, input.environmentId, query);
         return new Output(result, page, perPage);
@@ -139,7 +131,9 @@ public class SearchObservabilityLogsUseCase {
     }
 
     private static int resolvePerPage(Input input) {
-        return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        return (input.perPage() != null && input.perPage() > 0)
+                ? Math.min(input.perPage(), MAX_PER_PAGE)
+                : DEFAULT_PER_PAGE;
     }
 
     private static void validateTimeRange(Instant from, Instant to) {
@@ -161,17 +155,16 @@ public class SearchObservabilityLogsUseCase {
      * search, not a wider filter.
      */
     private static RecordType extractRecordType(List<FilterCondition> conditions) {
-        var values = conditions
-            .stream()
-            .filter(c -> ExtensibleFilters.RECORD_TYPE.filterName().equals(c.name()))
-            .flatMap(c -> c.values().stream())
-            .distinct()
-            .toList();
+        var values = conditions.stream()
+                .filter(c -> ExtensibleFilters.RECORD_TYPE.filterName().equals(c.name()))
+                .flatMap(c -> c.values().stream())
+                .distinct()
+                .toList();
         if (values.size() > 1) {
             throw new ValidationDomainException(
-                "Filter 'RECORD_TYPE' accepts a single value, was " + values + ". Search one record kind at a time.",
-                "observability.filter.multiple_record_types"
-            );
+                    "Filter 'RECORD_TYPE' accepts a single value, was " + values
+                            + ". Search one record kind at a time.",
+                    "observability.filter.multiple_record_types");
         }
         return values.stream().findFirst().map(RecordType::fromNameOrDefault).orElse(RecordType.REQUEST);
     }
@@ -180,72 +173,66 @@ public class SearchObservabilityLogsUseCase {
     // Package-private so a test can assert set equality against the catalog: a filter offered on the
     // decisions screen but missing here is advertised and then refused with a 400.
     static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(
-        StaticFilters.AUTHZ_DECISION.filterName(),
-        StaticFilters.AUTHZ_SUBJECT_ID.filterName(),
-        StaticFilters.AUTHZ_ACTION.filterName(),
-        StaticFilters.AUTHZ_RESOURCE_ID.filterName(),
-        StaticFilters.AUTHZ_CALLER.filterName(),
-        StaticFilters.AUTHZ_STATUS.filterName(),
-        StaticFilters.AUTHZ_INDETERMINATE_CAUSE.filterName(),
-        StaticFilters.AUTHZ_ERROR_TYPE.filterName(),
-        StaticFilters.AUTHZ_PDP.filterName(),
-        StaticFilters.AUTHZ_MATCHED_POLICY.filterName(),
-        StaticFilters.AUTHZ_REASON.filterName(),
-        StaticFilters.AUTHZ_POLICY_VERSION.filterName(),
-        StaticFilters.REQUEST_ID.filterName()
-    );
+            StaticFilters.AUTHZ_DECISION.filterName(),
+            StaticFilters.AUTHZ_SUBJECT_ID.filterName(),
+            StaticFilters.AUTHZ_ACTION.filterName(),
+            StaticFilters.AUTHZ_RESOURCE_ID.filterName(),
+            StaticFilters.AUTHZ_CALLER.filterName(),
+            StaticFilters.AUTHZ_STATUS.filterName(),
+            StaticFilters.AUTHZ_INDETERMINATE_CAUSE.filterName(),
+            StaticFilters.AUTHZ_ERROR_TYPE.filterName(),
+            StaticFilters.AUTHZ_PDP.filterName(),
+            StaticFilters.AUTHZ_MATCHED_POLICY.filterName(),
+            StaticFilters.AUTHZ_REASON.filterName(),
+            StaticFilters.AUTHZ_POLICY_VERSION.filterName(),
+            StaticFilters.REQUEST_ID.filterName());
 
     /**
      * Anything the decision search cannot express would be accepted and then dropped —
      * indistinguishable, to the caller, from a filter that matched everything.
      */
     private static void rejectConditionsTheDecisionSearchCannotApply(List<FilterCondition> conditions) {
-        var unsupported = conditions
-            .stream()
-            .map(FilterCondition::name)
-            .filter(name -> !DECISION_SUPPORTED_FILTERS.contains(name))
-            .distinct()
-            .sorted()
-            .toList();
+        var unsupported = conditions.stream()
+                .map(FilterCondition::name)
+                .filter(name -> !DECISION_SUPPORTED_FILTERS.contains(name))
+                .distinct()
+                .sorted()
+                .toList();
         if (!unsupported.isEmpty()) {
             throw new ValidationDomainException(
-                "Filters " +
-                    unsupported +
-                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, " +
-                    DECISION_SUPPORTED_FILTERS.stream().sorted().collect(Collectors.joining(", ")) +
-                    " and the time range.",
-                "observability.filter.not_applicable_to_decisions"
-            );
+                    "Filters " + unsupported
+                            + " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, "
+                            + DECISION_SUPPORTED_FILTERS.stream().sorted().collect(Collectors.joining(", "))
+                            + " and the time range.",
+                    "observability.filter.not_applicable_to_decisions");
         }
     }
 
     /** Filters only decision records carry; {@code REQUEST_ID} is the one the request search reads too. */
     // Package-private so a test can assert set equality against the catalog, like the allowlist above.
     static final Set<String> DECISION_ONLY_FILTERS = DECISION_SUPPORTED_FILTERS.stream()
-        .filter(name -> !StaticFilters.REQUEST_ID.filterName().equals(name))
-        .collect(Collectors.toUnmodifiableSet());
+            .filter(name -> !StaticFilters.REQUEST_ID.filterName().equals(name))
+            .collect(Collectors.toUnmodifiableSet());
 
     /**
      * Request documents hold none of the decision fields, so such a condition can only mean the caller forgot
      * to ask for decision records. Said so, rather than the translator's generic "not yet supported".
      */
     private static void rejectDecisionFiltersOnTheRequestSearch(List<FilterCondition> conditions) {
-        conditions
-            .stream()
-            .map(FilterCondition::name)
-            .filter(DECISION_ONLY_FILTERS::contains)
-            .findFirst()
-            .ifPresent(name -> {
-                throw UnsupportedObservabilityFilterException.requiresDecisionRecordType(name);
-            });
+        conditions.stream()
+                .map(FilterCondition::name)
+                .filter(DECISION_ONLY_FILTERS::contains)
+                .findFirst()
+                .ifPresent(name -> {
+                    throw UnsupportedObservabilityFilterException.requiresDecisionRecordType(name);
+                });
     }
 
     private static Set<String> extractApiFilter(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(c -> "API".equals(c.name()))
-            .flatMap(c -> c.values().stream())
-            .collect(Collectors.toSet());
+        return conditions.stream()
+                .filter(c -> "API".equals(c.name()))
+                .flatMap(c -> c.values().stream())
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -254,18 +241,17 @@ public class SearchObservabilityLogsUseCase {
      * unsupported type (e.g. {@code EDGE}) simply yields an empty scope instead of an error.
      */
     private static Set<ApiType> narrowApiTypes(List<FilterCondition> conditions) {
-        var requested = conditions
-            .stream()
-            .filter(c -> "API_TYPE".equals(c.name()))
-            .flatMap(c -> c.values().stream())
-            .flatMap(v -> {
-                try {
-                    return Stream.of(ApiType.valueOf(v));
-                } catch (IllegalArgumentException e) {
-                    return Stream.empty();
-                }
-            })
-            .collect(Collectors.toSet());
+        var requested = conditions.stream()
+                .filter(c -> "API_TYPE".equals(c.name()))
+                .flatMap(c -> c.values().stream())
+                .flatMap(v -> {
+                    try {
+                        return Stream.of(ApiType.valueOf(v));
+                    } catch (IllegalArgumentException e) {
+                        return Stream.empty();
+                    }
+                })
+                .collect(Collectors.toSet());
 
         if (requested.isEmpty()) {
             return LOGS_SUPPORTED_API_TYPES;
@@ -275,12 +261,11 @@ public class SearchObservabilityLogsUseCase {
     }
 
     private static List<FilterCondition> removeScopeConditions(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(
-                c -> !"API".equals(c.name()) && !"API_TYPE".equals(c.name()) && !ExtensibleFilters.RECORD_TYPE.filterName().equals(c.name())
-            )
-            .toList();
+        return conditions.stream()
+                .filter(c -> !"API".equals(c.name())
+                        && !"API_TYPE".equals(c.name())
+                        && !ExtensibleFilters.RECORD_TYPE.filterName().equals(c.name()))
+                .toList();
     }
 
     /**
@@ -290,21 +275,19 @@ public class SearchObservabilityLogsUseCase {
      * built from: the data port translates it as a single predicate.
      */
     private EntrypointScope resolveEntrypointScope(List<FilterCondition> conditions) {
-        var explicitValues = conditions
-            .stream()
-            .filter(SearchObservabilityLogsUseCase::isEntrypointCondition)
-            .flatMap(condition -> condition.values().stream())
-            .toList();
+        var explicitValues = conditions.stream()
+                .filter(SearchObservabilityLogsUseCase::isEntrypointCondition)
+                .flatMap(condition -> condition.values().stream())
+                .toList();
         return explicitValues.isEmpty()
-            ? EntrypointScope.excluding(entrypointScopeProvider.excludedFromLogs())
-            : EntrypointScope.exactly(explicitValues);
+                ? EntrypointScope.excluding(entrypointScopeProvider.excludedFromLogs())
+                : EntrypointScope.exactly(explicitValues);
     }
 
     private static List<FilterCondition> removeEntrypointConditions(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(condition -> !isEntrypointCondition(condition))
-            .toList();
+        return conditions.stream()
+                .filter(condition -> !isEntrypointCondition(condition))
+                .toList();
     }
 
     private static boolean isEntrypointCondition(FilterCondition condition) {

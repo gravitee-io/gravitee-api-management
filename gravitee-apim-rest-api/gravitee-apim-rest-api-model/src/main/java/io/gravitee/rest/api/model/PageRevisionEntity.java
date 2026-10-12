@@ -104,28 +104,25 @@ public class PageRevisionEntity {
 
     @Override
     public String toString() {
-        return (
-            "PageEntity{" +
-            " name='" +
-            name +
-            '\'' +
-            ", pageId='" +
-            pageId +
-            '\'' +
-            ", revision=" +
-            revision +
-            ", content='" +
-            content +
-            '\'' +
-            ", hash='" +
-            hash +
-            '\'' +
-            ", contributor='" +
-            contributor +
-            '\'' +
-            ", modificationDate=" +
-            modificationDate +
-            '}'
-        );
+        return ("PageEntity{" + " name='"
+                + name
+                + '\''
+                + ", pageId='"
+                + pageId
+                + '\''
+                + ", revision="
+                + revision
+                + ", content='"
+                + content
+                + '\''
+                + ", hash='"
+                + hash
+                + '\''
+                + ", contributor='"
+                + contributor
+                + '\''
+                + ", modificationDate="
+                + modificationDate
+                + '}');
     }
 }

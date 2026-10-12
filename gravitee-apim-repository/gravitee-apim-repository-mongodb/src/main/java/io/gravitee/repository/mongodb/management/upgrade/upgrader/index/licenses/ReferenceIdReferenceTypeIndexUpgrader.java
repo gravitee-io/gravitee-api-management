@@ -28,10 +28,10 @@ public class ReferenceIdReferenceTypeIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("licenses")
-            .name("rt_ri1")
-            .key("referenceType", ascending())
-            .key("referenceId", ascending())
-            .build();
+                .collection("licenses")
+                .name("rt_ri1")
+                .key("referenceType", ascending())
+                .key("referenceId", ascending())
+                .build();
     }
 }

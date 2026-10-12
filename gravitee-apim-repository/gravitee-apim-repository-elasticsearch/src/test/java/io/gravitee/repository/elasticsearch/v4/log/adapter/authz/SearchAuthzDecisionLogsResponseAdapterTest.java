@@ -45,27 +45,23 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
     @Test
     @SneakyThrows
     void carries_the_total_and_every_decision_of_the_page() {
-        var response = responseOf(
-            """
+        var response = responseOf("""
             { "event-id": "evt-1", "api-id": "api-1", "verdict": "PERMIT" }
-            """,
-            3L
-        );
+            """, 3L);
 
         var result = SearchAuthzDecisionLogsResponseAdapter.adapt(response);
 
         assertThat(result.total()).isEqualTo(3L);
-        assertThat(result.data())
-            .singleElement()
-            .satisfies(decision -> {
-                assertThat(decision.eventId()).isEqualTo("evt-1");
-                assertThat(decision.decision()).isEqualTo("PERMIT");
-            });
+        assertThat(result.data()).singleElement().satisfies(decision -> {
+            assertThat(decision.eventId()).isEqualTo("evt-1");
+            assertThat(decision.decision()).isEqualTo("PERMIT");
+        });
     }
 
     @Test
     void finds_no_decision_when_the_lookup_came_back_without_hits() {
-        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(new SearchResponse())).isEmpty();
+        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(new SearchResponse()))
+                .isEmpty();
     }
 
     @Test
@@ -79,15 +75,16 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
         emptyHits.setTotal(new TotalHits(0));
         withEmptyHitList.setSearchHits(emptyHits);
 
-        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(withoutHitList)).isEmpty();
-        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(withEmptyHitList)).isEmpty();
+        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(withoutHitList))
+                .isEmpty();
+        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(withEmptyHitList))
+                .isEmpty();
     }
 
     @Test
     @SneakyThrows
     void reads_the_one_decision_a_by_id_lookup_returns() {
-        var response = responseOf(
-            """
+        var response = responseOf("""
             {
               "event-id": "evt-9",
               "api-id": "api-9",
@@ -95,9 +92,7 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
               "verdict": "FORBID",
               "reasons": ["No policy matched"]
             }
-            """,
-            1L
-        );
+            """, 1L);
 
         var decision = SearchAuthzDecisionLogsResponseAdapter.adaptFirst(response);
 

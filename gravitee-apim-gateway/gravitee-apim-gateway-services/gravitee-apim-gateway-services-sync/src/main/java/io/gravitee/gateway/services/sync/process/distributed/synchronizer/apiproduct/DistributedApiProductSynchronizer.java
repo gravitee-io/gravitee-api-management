@@ -29,18 +29,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import lombok.CustomLog;
 
 @CustomLog
-public class DistributedApiProductSynchronizer extends AbstractDistributedSynchronizer<ApiProductReactorDeployable, ApiProductDeployer> {
+public class DistributedApiProductSynchronizer
+        extends AbstractDistributedSynchronizer<ApiProductReactorDeployable, ApiProductDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final ApiProductMapper apiProductMapper;
 
     public DistributedApiProductSynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final ApiProductMapper apiProductMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final ApiProductMapper apiProductMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.apiProductMapper = apiProductMapper;

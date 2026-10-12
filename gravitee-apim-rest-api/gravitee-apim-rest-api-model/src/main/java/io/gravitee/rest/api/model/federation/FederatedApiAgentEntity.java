@@ -107,14 +107,14 @@ public class FederatedApiAgentEntity implements GenericApiEntity {
     public record Provider(String organization, String url) implements Serializable {}
 
     public record Skill(
-        String id,
-        String name,
-        String description,
-        Collection<String> tags,
-        @Nullable Collection<String> examples,
-        @Nullable Collection<String> inputModes,
-        @Nullable Collection<String> outputModes
-    ) implements Serializable {}
+            String id,
+            String name,
+            String description,
+            Collection<String> tags,
+            @Nullable Collection<String> examples,
+            @Nullable Collection<String> inputModes,
+            @Nullable Collection<String> outputModes)
+            implements Serializable {}
 
     @Override
     public Lifecycle.State getState() {

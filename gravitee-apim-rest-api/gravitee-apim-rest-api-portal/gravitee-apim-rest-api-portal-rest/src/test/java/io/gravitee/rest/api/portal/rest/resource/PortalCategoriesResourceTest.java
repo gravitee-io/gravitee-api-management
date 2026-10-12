@@ -57,26 +57,24 @@ public class PortalCategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_only_visible_categories() {
-        portalCategoryQueryService.initWith(
-            List.of(
+        portalCategoryQueryService.initWith(List.of(
                 PortalCategory.of(PortalCategoryId.random(), ENV_ID, "Weather", "Weather APIs", true),
                 PortalCategory.of(PortalCategoryId.random(), ENV_ID, "Hidden", "Hidden category", false),
-                PortalCategory.of(PortalCategoryId.random(), "other-env", "Banking", "Banking APIs", true)
-            )
-        );
+                PortalCategory.of(PortalCategoryId.random(), "other-env", "Banking", "Banking APIs", true)));
 
         Response response = target().request().get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(PortalCategoriesResponse.class);
-        assertThat(result.getData()).extracting(io.gravitee.rest.api.portal.rest.model.PortalCategory::getTitle).containsExactly("Weather");
+        assertThat(result.getData())
+                .extracting(io.gravitee.rest.api.portal.rest.model.PortalCategory::getTitle)
+                .containsExactly("Weather");
     }
 
     @Test
     void should_return_empty_list_when_no_visible_categories() {
         portalCategoryQueryService.initWith(
-            List.of(PortalCategory.of(PortalCategoryId.random(), ENV_ID, "Hidden", "Hidden category", false))
-        );
+                List.of(PortalCategory.of(PortalCategoryId.random(), ENV_ID, "Hidden", "Hidden category", false)));
 
         Response response = target().request().get();
 

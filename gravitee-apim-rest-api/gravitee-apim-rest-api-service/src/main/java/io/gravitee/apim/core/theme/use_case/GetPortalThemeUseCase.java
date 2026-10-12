@@ -34,8 +34,8 @@ public class GetPortalThemeUseCase {
 
     public Output execute(Input input) {
         var theme = themeCrudService
-            .findByIdAndEnvironmentId(input.themeId(), input.auditInfo().environmentId())
-            .orElseThrow(() -> new ThemeNotFoundException(input.themeId()));
+                .findByIdAndEnvironmentId(input.themeId(), input.auditInfo().environmentId())
+                .orElseThrow(() -> new ThemeNotFoundException(input.themeId()));
         return new Output(theme);
     }
 }

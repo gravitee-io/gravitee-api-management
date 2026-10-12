@@ -48,17 +48,21 @@ class ApiTypeFilterTransformerTest {
 
     private final ApiTypeFilterTransformer transformer = new ApiTypeFilterTransformer();
 
-    private static AnalyticsQueryContext buildContext(Set<String> authorizedApiIds, Map<ApiType, Set<String>> apiIdsByType) {
+    private static AnalyticsQueryContext buildContext(
+            Set<String> authorizedApiIds, Map<ApiType, Set<String>> apiIdsByType) {
         var actor = AuditActor.builder().userId(UUID.randomUUID().toString()).build();
-        var auditInfo = AuditInfo.builder().organizationId("DEFAULT").environmentId(ENVIRONMENT_ID).actor(actor).build();
+        var auditInfo = AuditInfo.builder()
+                .organizationId("DEFAULT")
+                .environmentId(ENVIRONMENT_ID)
+                .actor(actor)
+                .build();
         return new AnalyticsQueryContext(
-            auditInfo,
-            new ExecutionContext("DEFAULT", ENVIRONMENT_ID),
-            authorizedApiIds,
-            Map.of(),
-            Map.of(),
-            apiIdsByType
-        );
+                auditInfo,
+                new ExecutionContext("DEFAULT", ENVIRONMENT_ID),
+                authorizedApiIds,
+                Map.of(),
+                Map.of(),
+                apiIdsByType);
     }
 
     private static AnalyticsQueryContext buildContext(Set<String> authorizedApiIds) {
@@ -66,13 +70,7 @@ class ApiTypeFilterTransformerTest {
     }
 
     private static final Map<ApiType, Set<String>> STANDARD_API_IDS_BY_TYPE = Map.of(
-        ApiType.PROXY,
-        Set.of("api-1"),
-        ApiType.MCP_PROXY,
-        Set.of("api-2"),
-        ApiType.LLM_PROXY,
-        Set.of("api-3")
-    );
+            ApiType.PROXY, Set.of("api-1"), ApiType.MCP_PROXY, Set.of("api-2"), ApiType.LLM_PROXY, Set.of("api-3"));
 
     @Test
     void should_add_api_filter_with_authorized_ids_when_no_api_type() {
@@ -85,8 +83,8 @@ class ApiTypeFilterTransformerTest {
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
         assertThat(filters.getFirst().operator()).isEqualTo(FilterOperator.IN);
         assertThat(filters.getFirst().value())
-            .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
-            .containsExactlyInAnyOrderElementsOf(authorizedApiIds);
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactlyInAnyOrderElementsOf(authorizedApiIds);
     }
 
     @Test
@@ -108,7 +106,9 @@ class ApiTypeFilterTransformerTest {
 
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).isEmpty();
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .isEmpty();
     }
 
     @Test
@@ -121,7 +121,9 @@ class ApiTypeFilterTransformerTest {
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
         assertThat(filters.getFirst().operator()).isEqualTo(FilterOperator.IN);
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-2");
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-2");
     }
 
     @Test
@@ -134,8 +136,8 @@ class ApiTypeFilterTransformerTest {
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
         assertThat(filters.getFirst().value())
-            .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
-            .containsExactlyInAnyOrder("api-2", "api-3");
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactlyInAnyOrder("api-2", "api-3");
     }
 
     @Test
@@ -147,12 +149,12 @@ class ApiTypeFilterTransformerTest {
 
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().value())
-            .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
-            .containsExactly("api-authz");
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-authz");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "NATIVE", "KAFKA" })
+    @ValueSource(strings = {"NATIVE", "KAFKA"})
     void should_narrow_to_native_apis_for_both_native_and_kafka_values(String apiTypeValue) {
         var context = buildContext(Set.of("api-1", "api-native"), Map.of(ApiType.NATIVE, Set.of("api-native")));
 
@@ -162,8 +164,8 @@ class ApiTypeFilterTransformerTest {
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
         assertThat(filters.getFirst().value())
-            .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
-            .containsExactly("api-native");
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-native");
     }
 
     @Test
@@ -189,7 +191,9 @@ class ApiTypeFilterTransformerTest {
 
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).isEmpty();
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .isEmpty();
     }
 
     @Test
@@ -199,7 +203,9 @@ class ApiTypeFilterTransformerTest {
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "HTTP_PROXY");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-1");
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-1");
     }
 
     @Test
@@ -209,7 +215,9 @@ class ApiTypeFilterTransformerTest {
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "MESSAGE");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-4");
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-4");
     }
 
     @Test
@@ -219,7 +227,9 @@ class ApiTypeFilterTransformerTest {
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "KAFKA");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-5");
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-5");
     }
 
     @Test
@@ -229,7 +239,9 @@ class ApiTypeFilterTransformerTest {
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "A2A");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-6");
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-6");
     }
 
     @Test
@@ -238,8 +250,8 @@ class ApiTypeFilterTransformerTest {
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "UNKNOWN");
 
         assertThatThrownBy(() -> transformer.transform(context, List.of(apiTypeFilter)))
-            .isInstanceOf(InvalidQueryException.class)
-            .hasMessageContaining("Unknown API type 'UNKNOWN'");
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("Unknown API type 'UNKNOWN'");
     }
 
     @Test
@@ -248,8 +260,8 @@ class ApiTypeFilterTransformerTest {
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, null);
 
         assertThatThrownBy(() -> transformer.transform(context, List.of(apiTypeFilter)))
-            .isInstanceOf(InvalidQueryException.class)
-            .hasMessageContaining("requires a non-null value");
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("requires a non-null value");
     }
 
     @Test
@@ -261,9 +273,9 @@ class ApiTypeFilterTransformerTest {
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters.getFirst().value())
-            .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
-            .as("MCP_PROXY type has no entries in apiIdsByType, so result should be empty")
-            .isEmpty();
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .as("MCP_PROXY type has no entries in apiIdsByType, so result should be empty")
+                .isEmpty();
     }
 
     @Test
@@ -273,6 +285,8 @@ class ApiTypeFilterTransformerTest {
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "MCP");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
-        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-2");
+        assertThat(filters.getFirst().value())
+                .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+                .containsExactly("api-2");
     }
 }

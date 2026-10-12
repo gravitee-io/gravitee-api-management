@@ -28,9 +28,8 @@ public class ValidatePortalListingUseCase {
     private final ValidatePortalListingDomainService validator;
 
     public CreateOrUpdatePortalListingUseCase.Output execute(CreateOrUpdatePortalListingUseCase.Input input) {
-        var result = validator.validateAndSanitize(
-            new ValidatePortalListingDomainService.Input(input.auditInfo(), input.listingId(), input.portalId(), input.apis())
-        );
+        var result = validator.validateAndSanitize(new ValidatePortalListingDomainService.Input(
+                input.auditInfo(), input.listingId(), input.portalId(), input.apis()));
         List<Validator.Error> errors = result.errors().orElseGet(List::of);
         return new CreateOrUpdatePortalListingUseCase.Output(input.listingId(), errors);
     }

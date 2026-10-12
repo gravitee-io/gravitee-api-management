@@ -35,8 +35,9 @@ public class GetPortalListingUseCase {
 
     public Output execute(Input input) {
         var listing = portalListingCrudService
-            .findByIdAndEnvironmentId(input.listingId(), input.auditInfo().environmentId())
-            .orElseThrow(() -> new PortalListingNotFoundException(input.listingId().toString()));
+                .findByIdAndEnvironmentId(input.listingId(), input.auditInfo().environmentId())
+                .orElseThrow(() ->
+                        new PortalListingNotFoundException(input.listingId().toString()));
         return new Output(listing);
     }
 }

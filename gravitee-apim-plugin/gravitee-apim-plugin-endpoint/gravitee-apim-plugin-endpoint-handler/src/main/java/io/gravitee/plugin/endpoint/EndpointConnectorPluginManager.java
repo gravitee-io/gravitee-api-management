@@ -25,7 +25,8 @@ import java.io.IOException;
 public interface EndpointConnectorPluginManager extends ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> {
     <T extends BaseEndpointConnectorFactory<?>> T getFactoryById(final String endpointPluginId);
 
-    <T extends BaseEndpointConnectorFactory<?>> T getFactoryById(final String endpointPluginId, boolean includeNotDeployed);
+    <T extends BaseEndpointConnectorFactory<?>> T getFactoryById(
+            final String endpointPluginId, boolean includeNotDeployed);
 
     String getSharedConfigurationSchema(String pluginId, boolean includeNotDeployed) throws IOException;
 }

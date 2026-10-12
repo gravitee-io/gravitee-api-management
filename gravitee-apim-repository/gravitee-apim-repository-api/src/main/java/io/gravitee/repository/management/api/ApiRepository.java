@@ -50,7 +50,8 @@ public interface ApiRepository extends CrudRepository<Api, String> {
 
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException;
 
-    Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId) throws TechnicalException;
+    Optional<String> findIdByEnvironmentIdAndCrossId(final String environmentId, final String crossId)
+            throws TechnicalException;
 
     boolean existById(final String appId) throws TechnicalException;
 

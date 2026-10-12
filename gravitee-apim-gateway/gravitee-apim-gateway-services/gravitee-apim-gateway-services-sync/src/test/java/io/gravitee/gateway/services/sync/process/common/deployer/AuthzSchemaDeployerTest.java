@@ -42,7 +42,8 @@ class AuthzSchemaDeployerTest {
 
     @Test
     void deploy_stages_the_document_against_its_targets() {
-        deployer.deploy(schema("doc-1", "Fleet schema", "entity User;", Set.of("orders"), null)).blockingAwait();
+        deployer.deploy(schema("doc-1", "Fleet schema", "entity User;", Set.of("orders"), null))
+                .blockingAwait();
 
         assertThat(port.ops).hasSize(1);
         RecordingPort.SchemaOp op = port.ops.peek();
@@ -60,33 +61,38 @@ class AuthzSchemaDeployerTest {
         // so such a test stays green after the sequencing is broken.
         port.removeGate = CompletableSubject.create();
 
-        deployer.deploy(schema("doc-2", "n", "entity User;", Set.of("orders"), Set.of("stock"))).subscribe();
+        deployer.deploy(schema("doc-2", "n", "entity User;", Set.of("orders"), Set.of("stock")))
+                .subscribe();
 
         assertThat(port.ops)
-            .extracting(RecordingPort.SchemaOp::op)
-            .as("staging must not begin while the eviction is still in flight")
-            .containsExactly("removeSchema");
+                .extracting(RecordingPort.SchemaOp::op)
+                .as("staging must not begin while the eviction is still in flight")
+                .containsExactly("removeSchema");
 
         port.removeGate.onComplete();
 
-        assertThat(port.ops).extracting(RecordingPort.SchemaOp::op).containsExactly("removeSchema", "addOrUpdateSchema");
+        assertThat(port.ops)
+                .extracting(RecordingPort.SchemaOp::op)
+                .containsExactly("removeSchema", "addOrUpdateSchema");
     }
 
     @Test
     void deploy_evicts_dropped_scopes_before_staging_the_new_targets() {
-        deployer.deploy(schema("doc-2", "n", "entity User;", Set.of("orders"), Set.of("stock"))).blockingAwait();
+        deployer.deploy(schema("doc-2", "n", "entity User;", Set.of("orders"), Set.of("stock")))
+                .blockingAwait();
 
         assertThat(port.ops).hasSize(2);
         assertThat(port.ops)
-            .extracting(RecordingPort.SchemaOp::op)
-            .as("eviction must precede staging, otherwise a retarget leaves the schema live on the old engine")
-            .containsExactly("removeSchema", "addOrUpdateSchema");
+                .extracting(RecordingPort.SchemaOp::op)
+                .as("eviction must precede staging, otherwise a retarget leaves the schema live on the old engine")
+                .containsExactly("removeSchema", "addOrUpdateSchema");
         assertThat(port.ops.peek().targetPdpIds()).containsExactly("stock");
     }
 
     @Test
     void deploy_without_dropped_scopes_does_not_emit_a_removal() {
-        deployer.deploy(schema("doc-3", "n", "entity User;", Set.of("orders"), Set.of())).blockingAwait();
+        deployer.deploy(schema("doc-3", "n", "entity User;", Set.of("orders"), Set.of()))
+                .blockingAwait();
 
         assertThat(port.ops).extracting(RecordingPort.SchemaOp::op).containsExactly("addOrUpdateSchema");
     }
@@ -106,28 +112,24 @@ class AuthzSchemaDeployerTest {
 
     @Test
     void the_deployer_never_touches_the_policy_or_entity_paths() {
-        deployer.deploy(schema("doc-5", "n", "entity User;", Set.of("orders"), Set.of("stock"))).blockingAwait();
+        deployer.deploy(schema("doc-5", "n", "entity User;", Set.of("orders"), Set.of("stock")))
+                .blockingAwait();
 
         assertThat(port.otherOps).isEmpty();
     }
 
     private static AuthzSchemaReactorDeployable schema(
-        String docId,
-        String name,
-        String schemaText,
-        Set<String> targets,
-        Set<String> removed
-    ) {
+            String docId, String name, String schemaText, Set<String> targets, Set<String> removed) {
         return AuthzSchemaReactorDeployable.builder()
-            .docId(docId)
-            .name(name)
-            .schemaText(schemaText)
-            .environmentId("env-1")
-            .targetPdpIds(targets)
-            .removedTargetPdpIds(removed)
-            .updatedAt(1L)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .docId(docId)
+                .name(name)
+                .schemaText(schemaText)
+                .environmentId("env-1")
+                .targetPdpIds(targets)
+                .removedTargetPdpIds(removed)
+                .updatedAt(1L)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     private static class RecordingPort implements AuthzEnginePort {
@@ -137,17 +139,17 @@ class AuthzSchemaDeployerTest {
         final ConcurrentLinkedQueue<SchemaOp> ops = new ConcurrentLinkedQueue<>();
         /** When set, removeSchema does not complete until the test releases it. */
         CompletableSubject removeGate;
+
         final ConcurrentLinkedQueue<String> otherOps = new ConcurrentLinkedQueue<>();
 
         @Override
         public Completable addOrUpdateEntity(
-            String environmentId,
-            String uid,
-            Map<String, Object> attributes,
-            List<String> parents,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String uid,
+                Map<String, Object> attributes,
+                List<String> parents,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             otherOps.add("addOrUpdateEntity");
             return Completable.complete();
         }
@@ -160,14 +162,13 @@ class AuthzSchemaDeployerTest {
 
         @Override
         public Completable addOrUpdatePolicy(
-            String environmentId,
-            String docId,
-            String name,
-            String policyText,
-            Set<String> targetPdpIds,
-            long updatedAt,
-            String revision
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String policyText,
+                Set<String> targetPdpIds,
+                long updatedAt,
+                String revision) {
             otherOps.add("addOrUpdatePolicy");
             return Completable.complete();
         }
@@ -180,23 +181,22 @@ class AuthzSchemaDeployerTest {
 
         @Override
         public Completable addOrUpdateSchema(
-            String environmentId,
-            String docId,
-            String name,
-            String schemaText,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String schemaText,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             // Recorded on subscribe, not when the chain is assembled: Java evaluates this call's arguments
             // before andThen() runs, so recording in the method body makes any ordering assertion vacuous.
-            return Completable.fromAction(() -> ops.add(new SchemaOp("addOrUpdateSchema", docId, name, schemaText, targetPdpIds)));
+            return Completable.fromAction(
+                    () -> ops.add(new SchemaOp("addOrUpdateSchema", docId, name, schemaText, targetPdpIds)));
         }
 
         @Override
         public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
-            return Completable.fromAction(() -> ops.add(new SchemaOp("removeSchema", docId, null, null, targetPdpIds))).andThen(
-                removeGate == null ? Completable.complete() : removeGate
-            );
+            return Completable.fromAction(() -> ops.add(new SchemaOp("removeSchema", docId, null, null, targetPdpIds)))
+                    .andThen(removeGate == null ? Completable.complete() : removeGate);
         }
 
         @Override

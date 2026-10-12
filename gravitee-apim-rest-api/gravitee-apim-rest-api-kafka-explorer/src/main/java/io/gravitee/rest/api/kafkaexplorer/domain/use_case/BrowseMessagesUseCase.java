@@ -29,10 +29,9 @@ public class BrowseMessagesUseCase {
     private final ObjectMapper objectMapper;
 
     public BrowseMessagesUseCase(
-        ClusterCrudService clusterCrudService,
-        KafkaClusterDomainService kafkaClusterDomainService,
-        ObjectMapper objectMapper
-    ) {
+            ClusterCrudService clusterCrudService,
+            KafkaClusterDomainService kafkaClusterDomainService,
+            ObjectMapper objectMapper) {
         this.clusterCrudService = clusterCrudService;
         this.kafkaClusterDomainService = kafkaClusterDomainService;
         this.objectMapper = objectMapper;
@@ -42,29 +41,27 @@ public class BrowseMessagesUseCase {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
         var config = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
         var result = kafkaClusterDomainService.browseMessages(
-            config,
-            input.topicName(),
-            input.partition(),
-            input.offsetMode(),
-            input.offsetValue(),
-            input.keyFilter(),
-            input.valueFilter(),
-            input.limit()
-        );
+                config,
+                input.topicName(),
+                input.partition(),
+                input.offsetMode(),
+                input.offsetValue(),
+                input.keyFilter(),
+                input.valueFilter(),
+                input.limit());
         return new Output(result);
     }
 
     public record Input(
-        String clusterId,
-        String environmentId,
-        String topicName,
-        Integer partition,
-        String offsetMode,
-        Long offsetValue,
-        String keyFilter,
-        String valueFilter,
-        int limit
-    ) {}
+            String clusterId,
+            String environmentId,
+            String topicName,
+            Integer partition,
+            String offsetMode,
+            Long offsetValue,
+            String keyFilter,
+            String valueFilter,
+            int limit) {}
 
     public record Output(BrowseMessagesResult browseMessagesResult) {}
 }

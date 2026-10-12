@@ -60,84 +60,83 @@ public final class NativeApiLogFixtures {
     public static final long FROM_MILLIS = FROM.toEpochMilli();
     public static final long TO_MILLIS = TO.toEpochMilli();
 
-    public static final Map<String, Long> CONNECTION_STATUS_COUNTS = Map.of(STATUS_CONNECTED, 7L, STATUS_CONNECTION_ERROR, 3L);
+    public static final Map<String, Long> CONNECTION_STATUS_COUNTS =
+            Map.of(STATUS_CONNECTED, 7L, STATUS_CONNECTION_ERROR, 3L);
 
     /** Raw ES {@code additional-metrics} map matching the fields in {@link #buildNativeApiErrorLog} — used by repository / source-mapper tests. */
     public static final Map<String, Object> RAW_ADDITIONAL_METRICS = Map.of(
-        NativeApiMetricKeys.CLIENT_ID,
-        CLIENT_ID,
-        NativeApiMetricKeys.CLIENT_SOFTWARE_NAME,
-        CLIENT_SOFTWARE_NAME,
-        NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION,
-        CLIENT_SOFTWARE_VERSION,
-        NativeApiMetricKeys.BROKER_ID,
-        BROKER_ID,
-        NativeApiMetricKeys.CONNECTION_STATUS,
-        STATUS_CONNECTION_ERROR,
-        NativeApiMetricKeys.CONNECTION_DURATION_MS,
-        CONNECTION_DURATION_MS
-    );
+            NativeApiMetricKeys.CLIENT_ID,
+            CLIENT_ID,
+            NativeApiMetricKeys.CLIENT_SOFTWARE_NAME,
+            CLIENT_SOFTWARE_NAME,
+            NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION,
+            CLIENT_SOFTWARE_VERSION,
+            NativeApiMetricKeys.BROKER_ID,
+            BROKER_ID,
+            NativeApiMetricKeys.CONNECTION_STATUS,
+            STATUS_CONNECTION_ERROR,
+            NativeApiMetricKeys.CONNECTION_DURATION_MS,
+            CONNECTION_DURATION_MS);
 
     private NativeApiLogFixtures() {}
 
     /** {@link NativeApiLog} populated only with fields visible to {@code API_NATIVE_LOG} (LIST view). */
     public static NativeApiLog buildNativeApiLog(String apiId, String requestId) {
         return NativeApiLog.builder()
-            .apiId(apiId)
-            .requestId(requestId)
-            .transactionId(TRANSACTION_ID)
-            .timestamp(TIMESTAMP_ISO)
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .clientIdentifier(CLIENT_IDENTIFIER)
-            .entrypointId(ENTRYPOINT_ID)
-            .connectionStatus(NativeConnectionStatus.CONNECTION_ERROR)
-            .connectionDurationMs(CONNECTION_DURATION_MS)
-            .build();
+                .apiId(apiId)
+                .requestId(requestId)
+                .transactionId(TRANSACTION_ID)
+                .timestamp(TIMESTAMP_ISO)
+                .applicationId(APPLICATION_ID)
+                .planId(PLAN_ID)
+                .clientIdentifier(CLIENT_IDENTIFIER)
+                .entrypointId(ENTRYPOINT_ID)
+                .connectionStatus(NativeConnectionStatus.CONNECTION_ERROR)
+                .connectionDurationMs(CONNECTION_DURATION_MS)
+                .build();
     }
 
     /** {@link NativeApiLog} populated on every field — visible to {@code API_NATIVE_ANALYTICS} (DETAIL view). */
     public static NativeApiLog buildNativeApiErrorLog(String apiId, String requestId) {
-        return buildNativeApiLog(apiId, requestId)
-            .toBuilder()
-            .subscriptionId(SUBSCRIPTION_ID)
-            .gateway(GATEWAY)
-            .remoteAddress(REMOTE_ADDRESS)
-            .localAddress(LOCAL_ADDRESS)
-            .host(HOST)
-            .errorKey(ERROR_KEY)
-            .message(MESSAGE)
-            .clientId(CLIENT_ID)
-            .clientSoftwareName(CLIENT_SOFTWARE_NAME)
-            .clientSoftwareVersion(CLIENT_SOFTWARE_VERSION)
-            .securityType(SECURITY_TYPE)
-            .securityToken(SECURITY_TOKEN)
-            .brokerId(BROKER_ID)
-            .build();
+        return buildNativeApiLog(apiId, requestId).toBuilder()
+                .subscriptionId(SUBSCRIPTION_ID)
+                .gateway(GATEWAY)
+                .remoteAddress(REMOTE_ADDRESS)
+                .localAddress(LOCAL_ADDRESS)
+                .host(HOST)
+                .errorKey(ERROR_KEY)
+                .message(MESSAGE)
+                .clientId(CLIENT_ID)
+                .clientSoftwareName(CLIENT_SOFTWARE_NAME)
+                .clientSoftwareVersion(CLIENT_SOFTWARE_VERSION)
+                .securityType(SECURITY_TYPE)
+                .securityToken(SECURITY_TOKEN)
+                .brokerId(BROKER_ID)
+                .build();
     }
 
     /** {@link NativeApiMetrics} repository entity matching {@link #buildNativeApiErrorLog} — same shape, same constants. */
     public static NativeApiMetrics buildNativeApiMetrics(String apiId, String requestId) {
         return NativeApiMetrics.builder()
-            .apiId(apiId)
-            .requestId(requestId)
-            .transactionId(TRANSACTION_ID)
-            .timestamp(TIMESTAMP_ISO)
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .clientIdentifier(CLIENT_IDENTIFIER)
-            .subscriptionId(SUBSCRIPTION_ID)
-            .entrypointId(ENTRYPOINT_ID)
-            .gateway(GATEWAY)
-            .remoteAddress(REMOTE_ADDRESS)
-            .localAddress(LOCAL_ADDRESS)
-            .host(HOST)
-            .errorKey(ERROR_KEY)
-            .message(MESSAGE)
-            // Top-level document fields, unlike the native-kafka keywords in RAW_ADDITIONAL_METRICS.
-            .securityType(SECURITY_TYPE)
-            .securityToken(SECURITY_TOKEN)
-            .additionalMetrics(RAW_ADDITIONAL_METRICS)
-            .build();
+                .apiId(apiId)
+                .requestId(requestId)
+                .transactionId(TRANSACTION_ID)
+                .timestamp(TIMESTAMP_ISO)
+                .applicationId(APPLICATION_ID)
+                .planId(PLAN_ID)
+                .clientIdentifier(CLIENT_IDENTIFIER)
+                .subscriptionId(SUBSCRIPTION_ID)
+                .entrypointId(ENTRYPOINT_ID)
+                .gateway(GATEWAY)
+                .remoteAddress(REMOTE_ADDRESS)
+                .localAddress(LOCAL_ADDRESS)
+                .host(HOST)
+                .errorKey(ERROR_KEY)
+                .message(MESSAGE)
+                // Top-level document fields, unlike the native-kafka keywords in RAW_ADDITIONAL_METRICS.
+                .securityType(SECURITY_TYPE)
+                .securityToken(SECURITY_TOKEN)
+                .additionalMetrics(RAW_ADDITIONAL_METRICS)
+                .build();
     }
 }

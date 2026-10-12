@@ -43,15 +43,14 @@ public class Plan extends AbstractPlan {
     private List<Flow> flows;
 
     public Plan(
-        String id,
-        String name,
-        PlanSecurity security,
-        PlanMode mode,
-        String selectionRule,
-        Set<String> tags,
-        PlanStatus status,
-        List<Flow> flows
-    ) {
+            String id,
+            String name,
+            PlanSecurity security,
+            PlanMode mode,
+            String selectionRule,
+            Set<String> tags,
+            PlanStatus status,
+            List<Flow> flows) {
         super(id, name, security, mode, selectionRule, tags, status);
         this.flows = flows;
     }
@@ -60,8 +59,12 @@ public class Plan extends AbstractPlan {
     @Override
     public List<Plugin> getPlugins() {
         return Optional.ofNullable(this.flows)
-            .map(f -> f.stream().filter(AbstractFlow::isEnabled).map(AbstractFlow::getPlugins).flatMap(List::stream).toList())
-            .orElse(List.of());
+                .map(f -> f.stream()
+                        .filter(AbstractFlow::isEnabled)
+                        .map(AbstractFlow::getPlugins)
+                        .flatMap(List::stream)
+                        .toList())
+                .orElse(List.of());
     }
 
     public Plan flows(List<Flow> flows) {

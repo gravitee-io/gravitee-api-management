@@ -59,27 +59,27 @@ public class AsyncJobQueryServiceImplTest {
         @SneakyThrows
         void should_return_pending_job_from_source_id() {
             // Given
-            when(integrationRepository.findPendingJobFor(any())).thenAnswer(invocation ->
-                Optional.of(AsyncJobFixture.anAsyncJob().toBuilder().sourceId(invocation.getArgument(0)).build())
-            );
+            when(integrationRepository.findPendingJobFor(any()))
+                    .thenAnswer(invocation -> Optional.of(AsyncJobFixture.anAsyncJob().toBuilder()
+                            .sourceId(invocation.getArgument(0))
+                            .build()));
 
             // When
             var result = service.findPendingJobFor("integration-id");
 
-            //Then
-            assertThat(result).contains(
-                AsyncJob.builder()
-                    .id("job-id")
-                    .sourceId("integration-id")
-                    .environmentId("environment-id")
-                    .initiatorId("initiator-id")
-                    .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
-                    .upperLimit(10L)
-                    .status(AsyncJob.Status.PENDING)
-                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+            // Then
+            assertThat(result)
+                    .contains(AsyncJob.builder()
+                            .id("job-id")
+                            .sourceId("integration-id")
+                            .environmentId("environment-id")
+                            .initiatorId("initiator-id")
+                            .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                            .upperLimit(10L)
+                            .status(AsyncJob.Status.PENDING)
+                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .build());
         }
 
         @Test
@@ -93,8 +93,8 @@ public class AsyncJobQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred while finding pending AsyncJob for: integration-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred while finding pending AsyncJob for: integration-id");
         }
     }
 
@@ -106,34 +106,29 @@ public class AsyncJobQueryServiceImplTest {
         void should_build_the_query() {
             // Given
             var pageable = new PageableImpl(1, 5);
-            when(integrationRepository.search(any(), any())).thenReturn(
-                new Page<>(List.of(AsyncJobFixture.anAsyncJob()), pageable.getPageNumber(), 1, 1)
-            );
+            when(integrationRepository.search(any(), any()))
+                    .thenReturn(new Page<>(List.of(AsyncJobFixture.anAsyncJob()), pageable.getPageNumber(), 1, 1));
 
             // When
             service.listAsyncJobs(
-                new AsyncJobQueryService.ListQuery(
-                    "my-env",
-                    Optional.of("initiator-id"),
-                    Optional.of(AsyncJob.Type.FEDERATED_APIS_INGESTION),
-                    Optional.of(AsyncJob.Status.PENDING),
-                    Optional.of("source-id")
-                ),
-                pageable
-            );
+                    new AsyncJobQueryService.ListQuery(
+                            "my-env",
+                            Optional.of("initiator-id"),
+                            Optional.of(AsyncJob.Type.FEDERATED_APIS_INGESTION),
+                            Optional.of(AsyncJob.Status.PENDING),
+                            Optional.of("source-id")),
+                    pageable);
 
-            //Then
+            // Then
             var captor = ArgumentCaptor.forClass(AsyncJobRepository.SearchCriteria.class);
             verify(integrationRepository).search(captor.capture(), any());
-            assertThat(captor.getValue()).isEqualTo(
-                new AsyncJobRepository.SearchCriteria(
-                    "my-env",
-                    Optional.of("initiator-id"),
-                    Optional.of("FEDERATED_APIS_INGESTION"),
-                    Optional.of("PENDING"),
-                    Optional.of("source-id")
-                )
-            );
+            assertThat(captor.getValue())
+                    .isEqualTo(new AsyncJobRepository.SearchCriteria(
+                            "my-env",
+                            Optional.of("initiator-id"),
+                            Optional.of("FEDERATED_APIS_INGESTION"),
+                            Optional.of("PENDING"),
+                            Optional.of("source-id")));
         }
 
         @Test
@@ -141,34 +136,32 @@ public class AsyncJobQueryServiceImplTest {
         void should_return_jobs_matching_query() {
             // Given
             var pageable = new PageableImpl(1, 5);
-            when(integrationRepository.search(any(), any())).thenReturn(
-                new Page<>(List.of(AsyncJobFixture.anAsyncJob()), pageable.getPageNumber(), 1, 1)
-            );
+            when(integrationRepository.search(any(), any()))
+                    .thenReturn(new Page<>(List.of(AsyncJobFixture.anAsyncJob()), pageable.getPageNumber(), 1, 1));
 
             // When
             var result = service.listAsyncJobs(new AsyncJobQueryService.ListQuery("my-env"), pageable);
 
-            //Then
+            // Then
             assertThat(result)
-                .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-                .containsExactly(
-                    List.of(
-                        AsyncJob.builder()
-                            .id("job-id")
-                            .sourceId("integration-id")
-                            .environmentId("environment-id")
-                            .initiatorId("initiator-id")
-                            .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
-                            .upperLimit(10L)
-                            .status(AsyncJob.Status.PENDING)
-                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                            .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                            .build()
-                    ),
-                    1,
-                    1L,
-                    1L
-                );
+                    .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+                    .containsExactly(
+                            List.of(AsyncJob.builder()
+                                    .id("job-id")
+                                    .sourceId("integration-id")
+                                    .environmentId("environment-id")
+                                    .initiatorId("initiator-id")
+                                    .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                                    .upperLimit(10L)
+                                    .status(AsyncJob.Status.PENDING)
+                                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z")
+                                            .atZone(ZoneId.systemDefault()))
+                                    .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z")
+                                            .atZone(ZoneId.systemDefault()))
+                                    .build()),
+                            1,
+                            1L,
+                            1L);
         }
 
         @Test
@@ -179,23 +172,19 @@ public class AsyncJobQueryServiceImplTest {
 
             // When
             var pageable = new PageableImpl(1, 5);
-            var throwable = catchThrowable(() ->
-                service.listAsyncJobs(
+            var throwable = catchThrowable(() -> service.listAsyncJobs(
                     new AsyncJobQueryService.ListQuery(
-                        "my-env",
-                        Optional.of("initiator-id"),
-                        Optional.of(AsyncJob.Type.FEDERATED_APIS_INGESTION),
-                        Optional.of(AsyncJob.Status.PENDING),
-                        Optional.of("source-id")
-                    ),
-                    pageable
-                )
-            );
+                            "my-env",
+                            Optional.of("initiator-id"),
+                            Optional.of(AsyncJob.Type.FEDERATED_APIS_INGESTION),
+                            Optional.of(AsyncJob.Status.PENDING),
+                            Optional.of("source-id")),
+                    pageable));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessageContaining("An error occurred while searching AsyncJob with");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessageContaining("An error occurred while searching AsyncJob with");
         }
     }
 }

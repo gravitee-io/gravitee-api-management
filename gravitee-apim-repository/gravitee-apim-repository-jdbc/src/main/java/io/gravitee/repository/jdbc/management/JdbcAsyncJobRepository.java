@@ -47,11 +47,13 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
         log.debug("JdbcAsyncJobRepository.findPendingJobFor({})", sourceId);
         try {
             var jobs = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where source_id = ? and status = 'PENDING'",
-                getOrm().getRowMapper(),
-                sourceId
-            );
-            return jobs.stream().map(this::handleDeadLine).filter(not(AsyncJob::isTimedOut)).findFirst();
+                    getOrm().getSelectAllSql() + " where source_id = ? and status = 'PENDING'",
+                    getOrm().getRowMapper(),
+                    sourceId);
+            return jobs.stream()
+                    .map(this::handleDeadLine)
+                    .filter(not(AsyncJob::isTimedOut))
+                    .findFirst();
         } catch (final Exception ex) {
             final String message = "Failed to find pending AsyncJob for: " + sourceId;
             log.error(message, ex);
@@ -64,11 +66,11 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
         log.debug("JdbcAsyncJobRepository.search({})", criteria);
         try {
             var jobs = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
-                ps -> fillPreparedStatement(criteria, ps),
-                getOrm().getRowMapper()
-            );
-            return getResultAsPage(pageable, jobs.stream().map(this::handleDeadLine).toList());
+                    getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
+                    ps -> fillPreparedStatement(criteria, ps),
+                    getOrm().getRowMapper());
+            return getResultAsPage(
+                    pageable, jobs.stream().map(this::handleDeadLine).toList());
         } catch (final Exception ex) {
             final String message = "Failed to search AsyncJob with: " + criteria;
             log.error(message, ex);
@@ -80,7 +82,11 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
     public void delay(String id, Date newDeadLine) throws TechnicalException {
         log.debug("JdbcAsyncJobRepository.delay({}, {})", id, newDeadLine);
         try {
-            jdbcTemplate.update("update " + tableName + " set updated_at = ?, dead_line = ? where id = ?", new Date(), newDeadLine, id);
+            jdbcTemplate.update(
+                    "update " + tableName + " set updated_at = ?, dead_line = ? where id = ?",
+                    new Date(),
+                    newDeadLine,
+                    id);
         } catch (final Exception ex) {
             final String message = "Failed to delay AsyncJob: " + id;
             log.error(message, ex);
@@ -93,10 +99,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
         log.debug("JdbcAsyncJobRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
@@ -119,18 +122,18 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
     @Override
     protected JdbcObjectMapper<AsyncJob> buildOrm() {
         return JdbcObjectMapper.builder(AsyncJob.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("source_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("initiator_Id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, String.class)
-            .addColumn("error_message", Types.NVARCHAR, String.class)
-            .addColumn("upper_limit", Types.INTEGER, Long.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("dead_line", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("source_id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("initiator_Id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("status", Types.NVARCHAR, String.class)
+                .addColumn("error_message", Types.NVARCHAR, String.class)
+                .addColumn("upper_limit", Types.INTEGER, Long.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("dead_line", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     private String convert(SearchCriteria criteria) {

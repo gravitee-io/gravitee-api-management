@@ -76,14 +76,13 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
     private final PortalNavigationItemCrudService portalNavigationItemCrudService;
 
     public ClassicCategoriesMigrationUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy CategoryRepository categoryRepository,
-        @Lazy ApiRepository apiRepository,
-        PortalCategoryQueryService portalCategoryQueryService,
-        CreatePortalCategoryUseCase createPortalCategoryUseCase,
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationItemCrudService portalNavigationItemCrudService
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy CategoryRepository categoryRepository,
+            @Lazy ApiRepository apiRepository,
+            PortalCategoryQueryService portalCategoryQueryService,
+            CreatePortalCategoryUseCase createPortalCategoryUseCase,
+            PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+            PortalNavigationItemCrudService portalNavigationItemCrudService) {
         this.environmentRepository = environmentRepository;
         this.categoryRepository = categoryRepository;
         this.apiRepository = apiRepository;
@@ -116,19 +115,17 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
             // the per-item catches below) recognizes already-migrated categories by the one thing that
             // is both stable and already required to be unique per environment - see
             // PortalCategoryDomainService#validateTitleUniqueness - the title itself.
-            var existingPortalCategoriesByTitle = portalCategoryQueryService
-                .findByEnvironmentId(environment.getId())
-                .stream()
-                .collect(Collectors.toMap(category -> category.getTitle().toLowerCase(), Function.identity(), (first, second) -> first));
+            var existingPortalCategoriesByTitle =
+                    portalCategoryQueryService.findByEnvironmentId(environment.getId()).stream()
+                            .collect(Collectors.toMap(
+                                    category -> category.getTitle().toLowerCase(),
+                                    Function.identity(),
+                                    (first, second) -> first));
 
             var apiIdsByClassicCategory = findApiIdsByClassicCategory(environment.getId());
             for (final var classicCategory : classicCategories) {
                 var succeeded = migrateClassicCategory(
-                    environment.getId(),
-                    classicCategory,
-                    existingPortalCategoriesByTitle,
-                    apiIdsByClassicCategory
-                );
+                        environment.getId(), classicCategory, existingPortalCategoriesByTitle, apiIdsByClassicCategory);
                 allSucceeded = allSucceeded && succeeded;
             }
         }
@@ -139,25 +136,22 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
     }
 
     private boolean migrateClassicCategory(
-        String environmentId,
-        Category classicCategory,
-        Map<String, PortalCategory> existingPortalCategoriesByTitle,
-        Map<String, Set<String>> apiIdsByClassicCategory
-    ) {
-        var alreadyMigrated = existingPortalCategoriesByTitle.get(classicCategory.getName().toLowerCase());
+            String environmentId,
+            Category classicCategory,
+            Map<String, PortalCategory> existingPortalCategoriesByTitle,
+            Map<String, Set<String>> apiIdsByClassicCategory) {
+        var alreadyMigrated =
+                existingPortalCategoriesByTitle.get(classicCategory.getName().toLowerCase());
         PortalCategory portalCategory;
         if (alreadyMigrated != null) {
             portalCategory = alreadyMigrated;
         } else {
             try {
                 portalCategory = createPortalCategoryUseCase
-                    .execute(
-                        new CreatePortalCategoryUseCase.Input(
-                            environmentId,
-                            ClassicCategoryToPortalCategoryMapper.toCreatePortalCategory(classicCategory)
-                        )
-                    )
-                    .portalCategory();
+                        .execute(new CreatePortalCategoryUseCase.Input(
+                                environmentId,
+                                ClassicCategoryToPortalCategoryMapper.toCreatePortalCategory(classicCategory)))
+                        .portalCategory();
             } catch (Exception e) {
                 log.warn("Unable to migrate classic category {} to a Portal Next category", classicCategory.getId(), e);
                 return false;
@@ -182,39 +176,42 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
     private Map<String, Set<String>> findApiIdsByClassicCategory(String environmentId) {
         var apiIdsByCategory = new HashMap<String, Set<String>>();
         for (final var api : apiRepository.search(
-            new ApiCriteria.Builder().environmentId(environmentId).build(),
-            ApiFieldFilter.defaultFields()
-        )) {
+                new ApiCriteria.Builder().environmentId(environmentId).build(), ApiFieldFilter.defaultFields())) {
             if (api.getCategories() == null) {
                 continue;
             }
             for (final var classicCategoryIdOrKey : api.getCategories()) {
-                apiIdsByCategory.computeIfAbsent(classicCategoryIdOrKey, key -> new HashSet<>()).add(api.getId());
+                apiIdsByCategory
+                        .computeIfAbsent(classicCategoryIdOrKey, key -> new HashSet<>())
+                        .add(api.getId());
             }
         }
         return apiIdsByCategory;
     }
 
-    private boolean assignApisToPortalCategory(String environmentId, Set<String> apiIds, PortalCategoryId portalCategoryId) {
+    private boolean assignApisToPortalCategory(
+            String environmentId, Set<String> apiIds, PortalCategoryId portalCategoryId) {
         var navigationApis = portalNavigationItemsQueryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(environmentId)
-                    .type(PortalNavigationItemType.API)
-                    .apiIds(apiIds)
-                    .build()
-            )
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .toList();
+                .search(PortalNavigationItemQueryCriteria.builder()
+                        .environmentId(environmentId)
+                        .type(PortalNavigationItemType.API)
+                        .apiIds(apiIds)
+                        .build())
+                .stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .toList();
 
         var allSucceeded = true;
         for (final var navigationApi : navigationApis) {
             try {
                 assignCategoryToNavigationApi(navigationApi, portalCategoryId);
             } catch (Exception e) {
-                log.warn("Unable to assign portal category {} to navigation item {}", portalCategoryId, navigationApi.getId(), e);
+                log.warn(
+                        "Unable to assign portal category {} to navigation item {}",
+                        portalCategoryId,
+                        navigationApi.getId(),
+                        e);
                 allSucceeded = false;
             }
         }
@@ -231,8 +228,7 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
         var newCategoryIds = new ArrayList<>(navigationApi.getCategoryIds());
         newCategoryIds.add(portalCategoryId);
 
-        navigationApi.update(
-            UpdatePortalNavigationItem.builder()
+        navigationApi.update(UpdatePortalNavigationItem.builder()
                 .title(navigationApi.getTitle())
                 .segment(navigationApi.getSegment())
                 .order(navigationApi.getOrder())
@@ -240,8 +236,7 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
                 .visibility(navigationApi.getVisibility())
                 .source(navigationApi.getSource())
                 .categoryIds(newCategoryIds)
-                .build()
-        );
+                .build());
         portalNavigationItemCrudService.update(navigationApi);
     }
 }

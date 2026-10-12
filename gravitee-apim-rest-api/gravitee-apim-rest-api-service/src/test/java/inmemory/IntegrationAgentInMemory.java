@@ -52,19 +52,19 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
         var total = apisNumberToIngest.get(integrationId);
 
         return total != null
-            ? Single.just(new IngestStarted(ingestJobId, !apiIds.isEmpty() ? Math.min(apiIds.size(), total) : total))
-            : Single.error(new RuntimeException("job fail to start"));
+                ? Single.just(
+                        new IngestStarted(ingestJobId, !apiIds.isEmpty() ? Math.min(apiIds.size(), total) : total))
+                : Single.error(new RuntimeException("job fail to start"));
     }
 
     @Override
     public Single<IntegrationSubscription> subscribe(
-        String integrationId,
-        FederatedApi api,
-        SubscriptionParameter subscriptionParameter,
-        String subscriptionId,
-        BaseApplicationEntity application,
-        Map<String, String> providerMetadata
-    ) {
+            String integrationId,
+            FederatedApi api,
+            SubscriptionParameter subscriptionParameter,
+            String subscriptionId,
+            BaseApplicationEntity application,
+            Map<String, String> providerMetadata) {
         subscriptions.compute(integrationId, (integration, subscriptionIds) -> {
             if (subscriptionIds == null) {
                 subscriptionIds = new ArrayList<>();
@@ -84,14 +84,11 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
         if (!providerMetadata.isEmpty()) {
             metadata.putAll(providerMetadata);
         }
-        return Single.just(
-            new IntegrationSubscription(
+        return Single.just(new IntegrationSubscription(
                 integrationId,
                 type,
                 String.join("-", type.name(), subscriptionId, application.getId(), application.getName()),
-                metadata
-            )
-        );
+                metadata));
     }
 
     @Override
@@ -105,9 +102,9 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     @Override
     public Single<DiscoveredApis> discoverApis(String integrationId) {
         return Flowable.fromIterable(storage)
-            .filter(asset -> asset.integrationId().equals(integrationId))
-            .toList()
-            .map(discoveredApis -> new DiscoveredApis(discoveredApis, false));
+                .filter(asset -> asset.integrationId().equals(integrationId))
+                .toList()
+                .map(discoveredApis -> new DiscoveredApis(discoveredApis, false));
     }
 
     @Override

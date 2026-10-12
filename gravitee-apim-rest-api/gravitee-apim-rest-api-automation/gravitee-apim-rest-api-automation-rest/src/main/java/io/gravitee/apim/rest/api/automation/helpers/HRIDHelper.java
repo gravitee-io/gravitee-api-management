@@ -41,7 +41,6 @@ public class HRIDHelper {
      * @return A human-readable identifier (HRID) generated from the provided name,
      *         or a randomly generated HRID if the name is blank or null.
      */
-
     public static String nameToHRID(String name) {
         if (name == null || name.isBlank()) {
             log.warn("Generating random HRID for name={} as it is blank", name);

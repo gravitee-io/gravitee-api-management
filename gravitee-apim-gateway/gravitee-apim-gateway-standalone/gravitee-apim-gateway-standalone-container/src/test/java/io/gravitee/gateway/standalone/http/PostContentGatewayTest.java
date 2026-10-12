@@ -43,22 +43,22 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
     @Test
     @Disabled
     /*
-      This test seems to not work anymore since latest Wiremock & Jetty upgrade.
-      Content_type response header is no more sent back and replaced by transfer-encoding.
-     */
+     This test seems to not work anymore since latest Wiremock & Jetty upgrade.
+     Content_type response header is no more sent back and replaced by transfer-encoding.
+    */
     public void small_body_with_content_length() throws Exception {
-        String mockContent = StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case1/response_content.json"));
+        String mockContent =
+                StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case1/response_content.json"));
 
-        stubFor(
-            post(urlEqualTo("/team/my_team")).willReturn(
-                ok()
-                    .withBody(mockContent)
-                    .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_LENGTH, Integer.toString(mockContent.length()))
-                    .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-            )
-        );
+        stubFor(post(urlEqualTo("/team/my_team"))
+                .willReturn(ok().withBody(mockContent)
+                        .withHeader(
+                                io.gravitee.common.http.HttpHeaders.CONTENT_LENGTH,
+                                Integer.toString(mockContent.length()))
+                        .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)));
 
-        Request request = Request.Post("http://localhost:8082/test/my_team").bodyString(mockContent, ContentType.APPLICATION_JSON);
+        Request request = Request.Post("http://localhost:8082/test/my_team")
+                .bodyString(mockContent, ContentType.APPLICATION_JSON);
         HttpResponse response = request.execute().returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
@@ -66,26 +66,31 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         String responseContent = StringUtils.copy(response.getEntity().getContent());
 
         assertEquals(mockContent, responseContent);
-        assertEquals(mockContent.length(), Integer.parseInt(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH).getValue()));
-        assertEquals(responseContent.length(), Integer.parseInt(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH).getValue()));
+        assertEquals(
+                mockContent.length(),
+                Integer.parseInt(
+                        response.getFirstHeader(HttpHeaders.CONTENT_LENGTH).getValue()));
+        assertEquals(
+                responseContent.length(),
+                Integer.parseInt(
+                        response.getFirstHeader(HttpHeaders.CONTENT_LENGTH).getValue()));
 
         verify(postRequestedFor(urlEqualTo("/team/my_team")).withRequestBody(equalToJson(mockContent)));
     }
 
     @Test
     public void small_body_with_chunked_transfer_encoding() throws Exception {
-        String mockContent = StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case1/response_content.json"));
+        String mockContent =
+                StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case1/response_content.json"));
 
-        stubFor(
-            post(urlEqualTo("/team/my_team")).willReturn(
-                ok().withBody(mockContent).withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-            )
-        );
+        stubFor(post(urlEqualTo("/team/my_team"))
+                .willReturn(ok().withBody(mockContent)
+                        .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)));
 
-        Request request = Request.Post("http://localhost:8082/test/my_team").bodyStream(
-            this.getClass().getClassLoader().getResourceAsStream("case1/request_content.json"),
-            ContentType.APPLICATION_JSON
-        );
+        Request request = Request.Post("http://localhost:8082/test/my_team")
+                .bodyStream(
+                        this.getClass().getClassLoader().getResourceAsStream("case1/request_content.json"),
+                        ContentType.APPLICATION_JSON);
         HttpResponse response = execute(request).returnResponse();
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
@@ -93,25 +98,26 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         assertEquals(mockContent, responseContent);
         assertNull(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH));
         assertNotNull(response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING));
-        assertEquals(HttpHeadersValues.TRANSFER_ENCODING_CHUNKED, response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
+        assertEquals(
+                HttpHeadersValues.TRANSFER_ENCODING_CHUNKED,
+                response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
 
         verify(postRequestedFor(urlEqualTo("/team/my_team")).withRequestBody(equalToJson(mockContent)));
     }
 
     @Test
     public void large_body_with_chunked_transfer_encoding() throws Exception {
-        String mockContent = StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case2/response_content.json"));
+        String mockContent =
+                StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case2/response_content.json"));
 
-        stubFor(
-            post(urlEqualTo("/team/my_team")).willReturn(
-                ok().withBody(mockContent).withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-            )
-        );
+        stubFor(post(urlEqualTo("/team/my_team"))
+                .willReturn(ok().withBody(mockContent)
+                        .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)));
 
-        Request request = Request.Post("http://localhost:8082/test/my_team").bodyStream(
-            getClass().getClassLoader().getResourceAsStream("case2/response_content.json"),
-            ContentType.APPLICATION_JSON
-        );
+        Request request = Request.Post("http://localhost:8082/test/my_team")
+                .bodyStream(
+                        getClass().getClassLoader().getResourceAsStream("case2/response_content.json"),
+                        ContentType.APPLICATION_JSON);
 
         HttpResponse response = execute(request).returnResponse();
 
@@ -122,7 +128,9 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         assertEquals(content, content);
         assertNull(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH));
         assertNotNull(response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING));
-        assertEquals(HttpHeadersValues.TRANSFER_ENCODING_CHUNKED, response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
+        assertEquals(
+                HttpHeadersValues.TRANSFER_ENCODING_CHUNKED,
+                response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
 
         System.out.println(wireMockRule.findAllUnmatchedRequests().size());
         verify(postRequestedFor(urlEqualTo("/team/my_team")).withRequestBody(equalToJson(mockContent)));
@@ -130,15 +138,15 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void large_body_with_content_length() throws Exception {
-        String mockContent = StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case2/response_content.json"));
+        String mockContent =
+                StringUtils.copy(getClass().getClassLoader().getResourceAsStream("case2/response_content.json"));
 
-        stubFor(
-            post(urlEqualTo("/team/my_team")).willReturn(
-                ok().withBody(mockContent).withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-            )
-        );
+        stubFor(post(urlEqualTo("/team/my_team"))
+                .willReturn(ok().withBody(mockContent)
+                        .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)));
 
-        Request request = Request.Post("http://localhost:8082/test/my_team").bodyString(mockContent, ContentType.APPLICATION_JSON);
+        Request request = Request.Post("http://localhost:8082/test/my_team")
+                .bodyString(mockContent, ContentType.APPLICATION_JSON);
 
         HttpResponse response = execute(request).returnResponse();
 
@@ -150,7 +158,9 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         assertEquals(content, content);
         assertNull(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH));
         assertNotNull(response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING));
-        assertEquals(HttpHeadersValues.TRANSFER_ENCODING_CHUNKED, response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
+        assertEquals(
+                HttpHeadersValues.TRANSFER_ENCODING_CHUNKED,
+                response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING).getValue());
 
         verify(postRequestedFor(urlEqualTo("/team/my_team")).withRequestBody(equalTo(mockContent)));
     }
@@ -179,8 +189,8 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         stubFor(post(urlEqualTo("/team/my_team")).willReturn(ok()));
 
         Request request = Request.Post("http://localhost:8082/test/my_team")
-            .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-            .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
 
         Response response = execute(request);
 
@@ -193,11 +203,11 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
         assertEquals(0, responseContent.length());
 
-        verify(
-            postRequestedFor(urlEqualTo("/team/my_team"))
+        verify(postRequestedFor(urlEqualTo("/team/my_team"))
                 .withoutHeader(HttpHeaders.TRANSFER_ENCODING)
-                .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, new EqualToPattern(MediaType.APPLICATION_JSON))
-        );
+                .withHeader(
+                        io.gravitee.common.http.HttpHeaders.CONTENT_TYPE,
+                        new EqualToPattern(MediaType.APPLICATION_JSON)));
     }
 
     @Test
@@ -205,8 +215,8 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         stubFor(get(urlEqualTo("/team/my_team")).willReturn(ok()));
 
         Request request = Request.Get("http://localhost:8082/test/my_team")
-            .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-            .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
 
         Response response = execute(request);
 
@@ -219,18 +229,19 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
         assertEquals(0, responseContent.length());
 
-        verify(
-            getRequestedFor(urlEqualTo("/team/my_team"))
+        verify(getRequestedFor(urlEqualTo("/team/my_team"))
                 .withoutHeader(HttpHeaders.TRANSFER_ENCODING)
-                .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, new EqualToPattern(MediaType.APPLICATION_JSON))
-        );
+                .withHeader(
+                        io.gravitee.common.http.HttpHeaders.CONTENT_TYPE,
+                        new EqualToPattern(MediaType.APPLICATION_JSON)));
     }
 
     @Test
     public void get_no_content_with_chunked_encoding_transfer_and_content_type() throws Exception {
         stubFor(get(urlEqualTo("/team/my_team")).willReturn(ok()));
 
-        Request request = Request.Get("http://localhost:8082/test/my_team").addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        Request request = Request.Get("http://localhost:8082/test/my_team")
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 
         Response response = execute(request);
 
@@ -243,11 +254,9 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
         assertEquals(0, responseContent.length());
 
-        verify(
-            getRequestedFor(urlEqualTo("/team/my_team")).withHeader(
-                io.gravitee.common.http.HttpHeaders.CONTENT_TYPE,
-                new EqualToPattern(MediaType.APPLICATION_JSON)
-            )
-        );
+        verify(getRequestedFor(urlEqualTo("/team/my_team"))
+                .withHeader(
+                        io.gravitee.common.http.HttpHeaders.CONTENT_TYPE,
+                        new EqualToPattern(MediaType.APPLICATION_JSON)));
     }
 }

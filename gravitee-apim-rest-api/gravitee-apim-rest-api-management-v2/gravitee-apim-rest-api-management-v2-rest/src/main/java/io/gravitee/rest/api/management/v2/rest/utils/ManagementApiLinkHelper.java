@@ -27,71 +27,67 @@ public final class ManagementApiLinkHelper {
 
     public static String apiPictureURL(UriBuilder baseUriBuilder, GenericApiEntity api) {
         return resourcesURL(
-            baseUriBuilder,
-            api.getId(),
-            "apis",
-            null,
-            "picture",
-            null != api.getUpdatedAt() ? api.getUpdatedAt().getTime() : null
-        );
+                baseUriBuilder,
+                api.getId(),
+                "apis",
+                null,
+                "picture",
+                null != api.getUpdatedAt() ? api.getUpdatedAt().getTime() : null);
     }
 
     public static String apiBackgroundURL(UriBuilder baseUriBuilder, GenericApiEntity api) {
         return resourcesURL(
-            baseUriBuilder,
-            api.getId(),
-            "apis",
-            null,
-            "background",
-            null != api.getUpdatedAt() ? api.getUpdatedAt().getTime() : null
-        );
+                baseUriBuilder,
+                api.getId(),
+                "apis",
+                null,
+                "background",
+                null != api.getUpdatedAt() ? api.getUpdatedAt().getTime() : null);
     }
 
     public static String apiPictureURL(UriBuilder baseUriBuilder, Api api) {
         return resourcesURL(
-            baseUriBuilder,
-            api.getId(),
-            "apis",
-            null,
-            "picture",
-            null != api.getUpdatedAt() ? api.getUpdatedAt().toInstant().toEpochMilli() : null
-        );
+                baseUriBuilder,
+                api.getId(),
+                "apis",
+                null,
+                "picture",
+                null != api.getUpdatedAt() ? api.getUpdatedAt().toInstant().toEpochMilli() : null);
     }
 
     public static String apiBackgroundURL(UriBuilder baseUriBuilder, Api api) {
         return resourcesURL(
-            baseUriBuilder,
-            api.getId(),
-            "apis",
-            null,
-            "background",
-            null != api.getUpdatedAt() ? api.getUpdatedAt().toInstant().toEpochMilli() : null
-        );
+                baseUriBuilder,
+                api.getId(),
+                "apis",
+                null,
+                "background",
+                null != api.getUpdatedAt() ? api.getUpdatedAt().toInstant().toEpochMilli() : null);
     }
 
     public static String apiPictureURL(UriBuilder baseUriBuilder, EnvironmentApiScoringReport report) {
         return resourcesURL(
-            baseUriBuilder,
-            report.api().apiId(),
-            "apis",
-            null,
-            "picture",
-            null != report.api().updatedAt() ? report.api().updatedAt().toInstant().toEpochMilli() : null
-        );
+                baseUriBuilder,
+                report.api().apiId(),
+                "apis",
+                null,
+                "picture",
+                null != report.api().updatedAt()
+                        ? report.api().updatedAt().toInstant().toEpochMilli()
+                        : null);
     }
 
     private static String resourcesURL(
-        UriBuilder baseUriBuilder,
-        String resourceId,
-        String resourceName,
-        String subResourceId,
-        String subResourceName,
-        Object hash
-    ) {
+            UriBuilder baseUriBuilder,
+            String resourceId,
+            String resourceName,
+            String subResourceId,
+            String subResourceName,
+            Object hash) {
         UriBuilder resourcesURLBuilder = baseUriBuilder
-            .path("environments")
-            .path(GraviteeContext.getCurrentEnvironment())
-            .path(resourceName);
+                .path("environments")
+                .path(GraviteeContext.getCurrentEnvironment())
+                .path(resourceName);
         if (resourceId != null && !resourceId.isEmpty()) {
             resourcesURLBuilder = resourcesURLBuilder.path(resourceId);
         }

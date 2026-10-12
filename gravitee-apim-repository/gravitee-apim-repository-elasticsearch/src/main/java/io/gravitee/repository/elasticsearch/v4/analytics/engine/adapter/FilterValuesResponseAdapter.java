@@ -31,7 +31,9 @@ public class FilterValuesResponseAdapter {
     static final String TOTAL_COUNT_AGG_NAME = "total_count";
 
     public FilterValuesResult adapt(SearchResponse response) {
-        if (response == null || response.getAggregations() == null || response.getAggregations().isEmpty()) {
+        if (response == null
+                || response.getAggregations() == null
+                || response.getAggregations().isEmpty()) {
             return new FilterValuesResult(Collections.emptyList(), null, 0);
         }
 
@@ -78,7 +80,9 @@ public class FilterValuesResponseAdapter {
         }
 
         var afterKey = new HashMap<String, Object>();
-        afterKeyNode.fields().forEachRemaining(entry -> afterKey.put(entry.getKey(), extractJsonValue(entry.getValue())));
+        afterKeyNode
+                .fields()
+                .forEachRemaining(entry -> afterKey.put(entry.getKey(), extractJsonValue(entry.getValue())));
         return afterKey;
     }
 

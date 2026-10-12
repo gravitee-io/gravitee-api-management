@@ -52,7 +52,10 @@ class ClusterDeployerTest {
         @Test
         void should_deploy_cluster() {
             var reactable = KafkaClusterReactableCluster.builder().id("id").build();
-            var deployable = ClusterReactorDeployable.builder().clusterId("id").reactableCluster(reactable).build();
+            var deployable = ClusterReactorDeployable.builder()
+                    .clusterId("id")
+                    .reactableCluster(reactable)
+                    .build();
 
             cut.deploy(deployable).test().assertComplete();
             verify(clusterManager).register(reactable);
@@ -61,7 +64,10 @@ class ClusterDeployerTest {
         @Test
         void should_return_error_when_cluster_manager_throws() {
             var reactable = KafkaClusterReactableCluster.builder().id("id").build();
-            var deployable = ClusterReactorDeployable.builder().clusterId("id").reactableCluster(reactable).build();
+            var deployable = ClusterReactorDeployable.builder()
+                    .clusterId("id")
+                    .reactableCluster(reactable)
+                    .build();
 
             doThrow(new SyncException("error")).when(clusterManager).register(reactable);
             cut.deploy(deployable).test().assertFailure(SyncException.class);

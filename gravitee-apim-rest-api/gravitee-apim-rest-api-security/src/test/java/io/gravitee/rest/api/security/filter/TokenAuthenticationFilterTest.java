@@ -77,12 +77,7 @@ public class TokenAuthenticationFilterTest {
         final String BEARER = "Bearer " + TOKEN;
 
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
-            "JWT_SECRET_TOEKN_TEST",
-            cookieGenerator,
-            userService,
-            tokenService,
-            authoritiesProvider
-        );
+                "JWT_SECRET_TOEKN_TEST", cookieGenerator, userService, tokenService, authoritiesProvider);
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -93,12 +88,14 @@ public class TokenAuthenticationFilterTest {
         UserEntity user = mock(UserEntity.class);
         when(user.getId()).thenReturn(USER_ID);
         when(user.getOrganizationId()).thenReturn(ORG_ID);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID))
+                .thenReturn(user);
 
         filter.doFilter(request, response, filterChain);
 
         verify(authoritiesProvider).retrieveAuthorities(USER_ID);
-        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetails principal = (UserDetails)
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         assertEquals(ORG_ID, principal.getOrganizationId());
     }
 
@@ -109,12 +106,7 @@ public class TokenAuthenticationFilterTest {
         final String BEARER = "Bearer " + TOKEN;
 
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
-            "JWT_SECRET_TOEKN_TEST",
-            cookieGenerator,
-            userService,
-            tokenService,
-            authoritiesProvider
-        );
+                "JWT_SECRET_TOEKN_TEST", cookieGenerator, userService, tokenService, authoritiesProvider);
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -133,12 +125,7 @@ public class TokenAuthenticationFilterTest {
         final String BEARER = "Bearer " + TOKEN;
 
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
-            "JWT_SECRET_TOEKN_TEST",
-            cookieGenerator,
-            userService,
-            tokenService,
-            authoritiesProvider
-        );
+                "JWT_SECRET_TOEKN_TEST", cookieGenerator, userService, tokenService, authoritiesProvider);
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -146,7 +133,8 @@ public class TokenAuthenticationFilterTest {
         when(token.getReferenceId()).thenReturn(USER_ID);
         when(tokenService.findByToken(TOKEN)).thenReturn(token);
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenThrow(new UserNotFoundException(USER_ID));
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID))
+                .thenThrow(new UserNotFoundException(USER_ID));
 
         filter.doFilter(request, response, filterChain);
 

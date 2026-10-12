@@ -66,7 +66,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
     void setup() {
         rootTarget = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -85,7 +88,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
     }
 
     private io.gravitee.apim.core.subscription_form.model.SubscriptionForm givenAForm(boolean enabled) {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).enabled(enabled).build();
+        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .environmentId(ENVIRONMENT)
+                .enabled(enabled)
+                .build();
         subscriptionFormQueryService.initWith(List.of(form));
         subscriptionFormCrudService.initWith(List.of(form));
         return form;
@@ -101,14 +107,14 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             var response = rootTarget.path(form.getId().toString()).request().get();
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getId()).isEqualTo(UUID.fromString(SubscriptionFormFixtures.FORM_ID));
-                    assertThat(result.getName()).isEqualTo(SubscriptionFormFixtures.FORM_NAME);
-                    assertThat(result.getGmdContent()).isEqualTo(SubscriptionFormFixtures.GMD_CONTENT);
-                    assertThat(result.getEnabled()).isFalse();
-                });
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> {
+                        assertThat(result.getId()).isEqualTo(UUID.fromString(SubscriptionFormFixtures.FORM_ID));
+                        assertThat(result.getName()).isEqualTo(SubscriptionFormFixtures.FORM_NAME);
+                        assertThat(result.getGmdContent()).isEqualTo(SubscriptionFormFixtures.GMD_CONTENT);
+                        assertThat(result.getEnabled()).isFalse();
+                    });
         }
 
         @Test
@@ -129,9 +135,11 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_return_403_if_incorrect_permissions() {
             var form = givenAForm(false);
 
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.READ, () ->
-                rootTarget.path(form.getId().toString()).request().get()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_METADATA,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ,
+                    () -> rootTarget.path(form.getId().toString()).request().get());
         }
     }
 
@@ -142,27 +150,28 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_update_name_and_content() {
             var existingForm = givenAForm(false);
             UpdateSubscriptionForm request = new UpdateSubscriptionForm()
-                .name("Renamed")
-                .gmdContent("<gmd-card>Updated Content</gmd-card>")
-                .apiIds(List.of());
+                    .name("Renamed")
+                    .gmdContent("<gmd-card>Updated Content</gmd-card>")
+                    .apiIds(List.of());
 
-            var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
+            var response =
+                    rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getName()).isEqualTo("Renamed");
-                    assertThat(result.getGmdContent()).isEqualTo("<gmd-card>Updated Content</gmd-card>");
-                });
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> {
+                        assertThat(result.getName()).isEqualTo("Renamed");
+                        assertThat(result.getGmdContent()).isEqualTo("<gmd-card>Updated Content</gmd-card>");
+                    });
         }
 
         @Test
         void should_return_404_when_form_not_exists() {
             UpdateSubscriptionForm request = new UpdateSubscriptionForm()
-                .name("Any")
-                .gmdContent("<gmd-card>Content</gmd-card>")
-                .apiIds(List.of());
+                    .name("Any")
+                    .gmdContent("<gmd-card>Content</gmd-card>")
+                    .apiIds(List.of());
 
             var response = rootTarget.path(UNKNOWN_ID).request().put(Entity.json(request));
 
@@ -172,9 +181,9 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         @Test
         void should_return_404_when_the_id_is_not_an_identifier() {
             UpdateSubscriptionForm request = new UpdateSubscriptionForm()
-                .name("Any")
-                .gmdContent("<gmd-card>Content</gmd-card>")
-                .apiIds(List.of());
+                    .name("Any")
+                    .gmdContent("<gmd-card>Content</gmd-card>")
+                    .apiIds(List.of());
 
             var response = rootTarget.path(MALFORMED_ID).request().put(Entity.json(request));
 
@@ -185,17 +194,18 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_return_409_when_renaming_to_the_name_of_another_form() {
             var existingForm = givenAForm(false);
             var otherForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-                .id(SubscriptionFormId.random())
-                .environmentId(ENVIRONMENT)
-                .name("Partners")
-                .build();
+                    .id(SubscriptionFormId.random())
+                    .environmentId(ENVIRONMENT)
+                    .name("Partners")
+                    .build();
             subscriptionFormQueryService.initWith(List.of(otherForm));
             UpdateSubscriptionForm request = new UpdateSubscriptionForm()
-                .name("Partners")
-                .gmdContent("<gmd-card>Content</gmd-card>")
-                .apiIds(List.of());
+                    .name("Partners")
+                    .gmdContent("<gmd-card>Content</gmd-card>")
+                    .apiIds(List.of());
 
-            var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
+            var response =
+                    rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
 
             assertThat(response).hasStatus(HttpStatusCode.CONFLICT_409);
         }
@@ -203,9 +213,11 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_when_gmd_content_is_missing() {
             var existingForm = givenAForm(false);
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").apiIds(List.of());
+            UpdateSubscriptionForm request =
+                    new UpdateSubscriptionForm().name("Any").apiIds(List.of());
 
-            var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
+            var response =
+                    rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
 
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -213,9 +225,11 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_when_api_ids_are_missing() {
             var existingForm = givenAForm(false);
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
+            UpdateSubscriptionForm request =
+                    new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
 
-            var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
+            var response =
+                    rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
 
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -224,13 +238,18 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_return_403_if_incorrect_permissions() {
             var existingForm = givenAForm(false);
             UpdateSubscriptionForm request = new UpdateSubscriptionForm()
-                .name("Any")
-                .gmdContent("<gmd-card>Content</gmd-card>")
-                .apiIds(List.of());
+                    .name("Any")
+                    .gmdContent("<gmd-card>Content</gmd-card>")
+                    .apiIds(List.of());
 
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
-                rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_METADATA,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget
+                            .path(existingForm.getId().toString())
+                            .request()
+                            .put(Entity.json(request)));
         }
     }
 
@@ -241,24 +260,32 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_enable_disabled_form() {
             var disabledForm = givenAForm(false);
 
-            var response = rootTarget.path(disabledForm.getId().toString()).path("_enable").request().post(Entity.json(""));
+            var response = rootTarget
+                    .path(disabledForm.getId().toString())
+                    .path("_enable")
+                    .request()
+                    .post(Entity.json(""));
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> assertThat(result.getEnabled()).isTrue());
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> assertThat(result.getEnabled()).isTrue());
         }
 
         @Test
         void should_be_idempotent_when_already_enabled() {
             var enabledForm = givenAForm(true);
 
-            var response = rootTarget.path(enabledForm.getId().toString()).path("_enable").request().post(Entity.json(""));
+            var response = rootTarget
+                    .path(enabledForm.getId().toString())
+                    .path("_enable")
+                    .request()
+                    .post(Entity.json(""));
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> assertThat(result.getEnabled()).isTrue());
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> assertThat(result.getEnabled()).isTrue());
         }
 
         @Test
@@ -276,29 +303,38 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_disable_enabled_form() {
             var enabledForm = givenAForm(true);
 
-            var response = rootTarget.path(enabledForm.getId().toString()).path("_disable").request().post(Entity.json(""));
+            var response = rootTarget
+                    .path(enabledForm.getId().toString())
+                    .path("_disable")
+                    .request()
+                    .post(Entity.json(""));
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> assertThat(result.getEnabled()).isFalse());
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> assertThat(result.getEnabled()).isFalse());
         }
 
         @Test
         void should_be_idempotent_when_already_disabled() {
             var disabledForm = givenAForm(false);
 
-            var response = rootTarget.path(disabledForm.getId().toString()).path("_disable").request().post(Entity.json(""));
+            var response = rootTarget
+                    .path(disabledForm.getId().toString())
+                    .path("_disable")
+                    .request()
+                    .post(Entity.json(""));
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> assertThat(result.getEnabled()).isFalse());
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> assertThat(result.getEnabled()).isFalse());
         }
 
         @Test
         void should_return_404_when_form_not_found() {
-            var response = rootTarget.path(UNKNOWN_ID).path("_disable").request().post(Entity.json(""));
+            var response =
+                    rootTarget.path(UNKNOWN_ID).path("_disable").request().post(Entity.json(""));
 
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
         }
@@ -335,9 +371,11 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_return_403_if_incorrect_permissions() {
             var form = givenAForm(false);
 
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.DELETE, () ->
-                rootTarget.path(form.getId().toString()).request().delete()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_METADATA,
+                    ENVIRONMENT,
+                    RolePermissionAction.DELETE,
+                    () -> rootTarget.path(form.getId().toString()).request().delete());
         }
     }
 }

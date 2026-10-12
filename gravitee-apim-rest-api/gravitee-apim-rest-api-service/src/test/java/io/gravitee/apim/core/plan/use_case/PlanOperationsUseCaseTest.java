@@ -74,22 +74,20 @@ class PlanOperationsUseCaseTest {
     @BeforeEach
     void setUp() {
         planOperationsUseCase = new PlanOperationsUseCase(
-            planSearchQueryService,
-            planCrudService,
-            deletePlanDomainService,
-            publishPlanDomainService,
-            closePlanDomainService,
-            deprecatePlanDomainService
-        );
+                planSearchQueryService,
+                planCrudService,
+                deletePlanDomainService,
+                publishPlanDomainService,
+                closePlanDomainService,
+                deprecatePlanDomainService);
     }
 
     private Plan planForApiProduct() {
-        return PlanFixtures.aPlanHttpV4()
-            .toBuilder()
-            .id(PLAN_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .referenceId(API_PRODUCT_ID)
-            .build();
+        return PlanFixtures.aPlanHttpV4().toBuilder()
+                .id(PLAN_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .referenceId(API_PRODUCT_ID)
+                .build();
     }
 
     @Nested
@@ -98,21 +96,17 @@ class PlanOperationsUseCaseTest {
         @Test
         void should_delete_plan_and_return_plan() {
             Plan plan = planForApiProduct();
-            when(
-                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-                    eq(PLAN_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(plan);
+            when(planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT)))
+                    .thenReturn(plan);
 
             var input = PlanOperationsUseCase.Input.builder()
-                .planId(PLAN_ID)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .operation(Operation.DELETE)
-                .auditInfo(auditInfo)
-                .build();
+                    .planId(PLAN_ID)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .operation(Operation.DELETE)
+                    .auditInfo(auditInfo)
+                    .build();
 
             var output = planOperationsUseCase.execute(input);
 
@@ -132,23 +126,19 @@ class PlanOperationsUseCaseTest {
             Plan plan = planForApiProduct();
             Plan closedPlan = planForApiProduct();
 
-            when(
-                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-                    eq(PLAN_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(plan);
+            when(planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT)))
+                    .thenReturn(plan);
             doNothing().when(closePlanDomainService).close(eq(PLAN_ID), eq(auditInfo));
             when(planCrudService.getById(PLAN_ID)).thenReturn(closedPlan);
 
             var input = PlanOperationsUseCase.Input.builder()
-                .planId(PLAN_ID)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .operation(Operation.CLOSE)
-                .auditInfo(auditInfo)
-                .build();
+                    .planId(PLAN_ID)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .operation(Operation.CLOSE)
+                    .auditInfo(auditInfo)
+                    .build();
 
             var output = planOperationsUseCase.execute(input);
 
@@ -167,22 +157,18 @@ class PlanOperationsUseCaseTest {
             Plan plan = planForApiProduct();
             Plan publishedPlan = planForApiProduct();
 
-            when(
-                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-                    eq(PLAN_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(plan);
+            when(planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT)))
+                    .thenReturn(plan);
             when(publishPlanDomainService.publish(eq(auditInfo), eq(PLAN_ID))).thenReturn(publishedPlan);
 
             var input = PlanOperationsUseCase.Input.builder()
-                .planId(PLAN_ID)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .operation(Operation.PUBLISH)
-                .auditInfo(auditInfo)
-                .build();
+                    .planId(PLAN_ID)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .operation(Operation.PUBLISH)
+                    .auditInfo(auditInfo)
+                    .build();
 
             var output = planOperationsUseCase.execute(input);
 
@@ -201,23 +187,19 @@ class PlanOperationsUseCaseTest {
             Plan plan = planForApiProduct();
             Plan deprecatedPlan = planForApiProduct();
 
-            when(
-                planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-                    eq(PLAN_ID),
-                    eq(API_PRODUCT_ID),
-                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                )
-            ).thenReturn(plan);
+            when(planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
+                            eq(PLAN_ID), eq(API_PRODUCT_ID), eq(GenericPlanEntity.ReferenceType.API_PRODUCT)))
+                    .thenReturn(plan);
             doNothing().when(deprecatePlanDomainService).deprecate(eq(PLAN_ID), eq(auditInfo), eq(false));
             when(planCrudService.getById(PLAN_ID)).thenReturn(deprecatedPlan);
 
             var input = PlanOperationsUseCase.Input.builder()
-                .planId(PLAN_ID)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .operation(Operation.DEPRECATE)
-                .auditInfo(auditInfo)
-                .build();
+                    .planId(PLAN_ID)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .operation(Operation.DEPRECATE)
+                    .auditInfo(auditInfo)
+                    .build();
 
             var output = planOperationsUseCase.execute(input);
 

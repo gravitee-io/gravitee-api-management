@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 public class SubscriptionReferenceTypeUpgrader extends MongoUpgrader {
 
     public static final int SUBSCRIPTION_REFERENCE_TYPE_UPGRADER_ORDER =
-        SubscriptionApplicationNameUpgrader.SUBSCRIPTION_APPLICATION_NAME_UPGRADER_ORDER + 1;
+            SubscriptionApplicationNameUpgrader.SUBSCRIPTION_APPLICATION_NAME_UPGRADER_ORDER + 1;
 
     @Override
     public boolean upgrade() throws UpgraderException {
@@ -36,13 +36,13 @@ public class SubscriptionReferenceTypeUpgrader extends MongoUpgrader {
             log.debug("Starting subscription reference type upgrader");
 
             var filter = Filters.and(
-                Filters.exists("api", true),
-                Filters.ne("api", null),
-                Filters.ne("api", ""),
-                Filters.or(Filters.exists("referenceType", false), Filters.eq("referenceType", null))
-            );
+                    Filters.exists("api", true),
+                    Filters.ne("api", null),
+                    Filters.ne("api", ""),
+                    Filters.or(Filters.exists("referenceType", false), Filters.eq("referenceType", null)));
 
-            var pipeline = List.of(new Document("$set", new Document("referenceType", "API").append("referenceId", "$api")));
+            var pipeline =
+                    List.of(new Document("$set", new Document("referenceType", "API").append("referenceId", "$api")));
 
             var result = this.getCollection("subscriptions").updateMany(filter, pipeline);
             log.debug("Upgraded {} subscription(s) with reference type and reference id", result.getModifiedCount());

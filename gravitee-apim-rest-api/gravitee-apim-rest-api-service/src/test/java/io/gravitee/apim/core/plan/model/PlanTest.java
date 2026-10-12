@@ -27,8 +27,11 @@ class PlanTest {
 
     @Test
     void update_should_keep_existing_validation_when_updated_plan_has_none() {
-        var existing = PlanFixtures.HttpV4.anApiKey().toBuilder().validation(Plan.PlanValidationType.AUTO).build();
-        var incoming = PlanFixtures.HttpV4.anApiKey().toBuilder().validation(null).build();
+        var existing = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .validation(Plan.PlanValidationType.AUTO)
+                .build();
+        var incoming =
+                PlanFixtures.HttpV4.anApiKey().toBuilder().validation(null).build();
 
         var result = existing.update(incoming);
 
@@ -37,8 +40,12 @@ class PlanTest {
 
     @Test
     void update_should_apply_validation_when_updated_plan_has_one() {
-        var existing = PlanFixtures.HttpV4.anApiKey().toBuilder().validation(Plan.PlanValidationType.AUTO).build();
-        var incoming = PlanFixtures.HttpV4.anApiKey().toBuilder().validation(Plan.PlanValidationType.MANUAL).build();
+        var existing = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .validation(Plan.PlanValidationType.AUTO)
+                .build();
+        var incoming = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .validation(Plan.PlanValidationType.MANUAL)
+                .build();
 
         var result = existing.update(incoming);
 

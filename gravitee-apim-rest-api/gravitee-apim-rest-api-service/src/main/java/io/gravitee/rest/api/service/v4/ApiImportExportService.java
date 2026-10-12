@@ -27,5 +27,6 @@ public interface ApiImportExportService {
 
     void createMembers(final ExecutionContext executionContext, String apiId, Set<MemberEntity> members);
 
-    ExportApiEntity exportApi(final ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData);
+    ExportApiEntity exportApi(
+            final ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData);
 }

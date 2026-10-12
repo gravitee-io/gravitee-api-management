@@ -22,7 +22,6 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -66,9 +65,8 @@ public class NewApiEntity {
     private ApiType type;
 
     @Schema(
-        description = "API's description. A short description of your API.",
-        example = "I can use a hundred characters to describe this API."
-    )
+            description = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
 
     @Schema(description = "The list of sharding tags associated with this API.", example = "public, private")

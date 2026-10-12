@@ -54,8 +54,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldFindByPlan() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().plans(singleton("plan1")).build()
-        );
+                SubscriptionCriteria.builder().plans(singleton("plan1")).build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -69,7 +68,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals("reason", subscription.getReason(), "Subscription reason");
         assertEquals("request", subscription.getRequest(), "Subscription request");
         assertEquals(PENDING, subscription.getStatus(), "Subscription status");
-        assertEquals(Subscription.ConsumerStatus.STARTED, subscription.getConsumerStatus(), "Subscription consumer status");
+        assertEquals(
+                Subscription.ConsumerStatus.STARTED, subscription.getConsumerStatus(), "Subscription consumer status");
         assertEquals("user1", subscription.getProcessedBy(), "Subscription processed by");
         assertEquals("user2", subscription.getSubscribedBy(), "Subscription subscribed by");
         assertTrue(compareDate(1439022010883L, subscription.getStartingAt().getTime()), "Subscription starting at");
@@ -78,28 +78,31 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertTrue(compareDate(1469022010883L, subscription.getUpdatedAt().getTime()), "Subscription updated at");
         assertTrue(compareDate(1479022010883L, subscription.getProcessedAt().getTime()), "Subscription processed at");
         assertTrue(compareDate(1479022010883L, subscription.getPausedAt().getTime()), "Subscription paused at");
-        assertTrue(compareDate(1479022010883L, subscription.getConsumerPausedAt().getTime()), "Subscription consumer paused at");
+        assertTrue(
+                compareDate(1479022010883L, subscription.getConsumerPausedAt().getTime()),
+                "Subscription consumer paused at");
         assertEquals("my-client-id", subscription.getClientId(), "Subscription client id");
         assertEquals("my-client-certificate", subscription.getClientCertificate(), "Subscription client certficate");
         assertTrue(subscription.getGeneralConditionsAccepted(), "Subscription GCU accepted");
         assertEquals("ref", subscription.getGeneralConditionsContentPageId(), "Subscription GCU content pageId");
-        assertEquals(Integer.valueOf(2), subscription.getGeneralConditionsContentRevision(), "Subscription GCU content revision");
+        assertEquals(
+                Integer.valueOf(2),
+                subscription.getGeneralConditionsContentRevision(),
+                "Subscription GCU content revision");
         assertTrue(subscription.getMetadata().containsKey("key"), "Subscription metadata");
         assertEquals("value", subscription.getMetadata().get("key"), "Subscription metadata");
         assertEquals("{}", subscription.getConfiguration(), "Subscription configuration");
         assertEquals(Subscription.Type.STANDARD, subscription.getType(), "Subscription type");
         assertEquals(
-            Integer.valueOf(30),
-            subscription.getDaysToExpirationOnLastNotification(),
-            "Subscription days to expiration on last notification"
-        );
+                Integer.valueOf(30),
+                subscription.getDaysToExpirationOnLastNotification(),
+                "Subscription days to expiration on last notification");
     }
 
     @Test
     public void shouldNotFindByPlan() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().plans(singleton("unknown-plan")).build()
-        );
+                SubscriptionCriteria.builder().plans(singleton("unknown-plan")).build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -108,8 +111,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldFindByApplication() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().applications(singleton("app1")).build()
-        );
+                SubscriptionCriteria.builder().applications(singleton("app1")).build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -122,9 +124,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shoulNotFindByApplication() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().applications(singleton("unknown-app")).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .applications(singleton("unknown-app"))
+                .build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -132,9 +134,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindByEnvironment() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().environments(singleton("DEFAULT")).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .environments(singleton("DEFAULT"))
+                .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -147,9 +149,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shoulNotFindByEnvironment() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().applications(singleton("unknown-env")).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .applications(singleton("unknown-env"))
+                .build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -157,9 +159,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindByIds() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().ids(List.of("sub1", "sub3", "sub4")).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .ids(List.of("sub1", "sub3", "sub4"))
+                .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -172,9 +174,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shoulNotFindByIds() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().ids(singleton("unknown-subscription")).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .ids(singleton("unknown-subscription"))
+                .build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -269,9 +271,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBetweenDates() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().from(1469022010883L).to(1569022010883L).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .from(1469022010883L)
+                .to(1569022010883L)
+                .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -281,10 +284,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindAfterFromDate() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().from(1469022010883L).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                SubscriptionCriteria.builder().from(1469022010883L).build());
 
         assertEquals(4, subscriptions.size(), "Subscriptions size");
-        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        Set<String> subscriptionIds =
+                subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(subscriptionIds.contains("sub3"), "Should contain sub3");
         assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
         assertTrue(subscriptionIds.contains("sub-api-product-1"), "Should contain sub-api-product-1");
@@ -293,98 +298,14 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBeforeToDate() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().to(1569022010883L).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                SubscriptionCriteria.builder().to(1569022010883L).build());
 
         assertEquals(13, subscriptions.size(), "Subscriptions size");
-        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        Set<String> subscriptionIds =
+                subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(subscriptionIds.contains("sub1"));
-        assertTrue(
-            subscriptionIds.containsAll(
-                List.of(
-                    "sub-sa-1",
-                    "sub-sa-2a",
-                    "sub-sa-2b",
-                    "sub-sa-3-a",
-                    "sub-sa-3-b",
-                    "sub-sa-3-c",
-                    "sub-sa-3-d",
-                    "sub-sa-3-e",
-                    "sub-sa-4-a",
-                    "sub-sa-4-b",
-                    "sub-sa-4-c",
-                    "sub-sa-4-d"
-                )
-            )
-        );
-    }
-
-    @Test
-    public void shouldFindBetweenDatesPageable() throws Exception {
-        Page<Subscription> subscriptionPage = subscriptionRepository.search(
-            SubscriptionCriteria.builder().from(1339022010883L).to(1839022010883L).build(),
-            null,
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
-
-        assertEquals(0, subscriptionPage.getPageNumber());
-        assertEquals(2, subscriptionPage.getPageElements());
-        assertEquals(2, subscriptionPage.getTotalElements());
-
-        assertEquals(2, subscriptionPage.getContent().size());
-        assertEquals("sub3", subscriptionPage.getContent().get(0).getId());
-        assertEquals("sub1", subscriptionPage.getContent().get(1).getId());
-
-        subscriptionPage = subscriptionRepository.search(
-            SubscriptionCriteria.builder().from(1339022010883L).to(1839022010883L).build(),
-            null,
-            new PageableBuilder().pageNumber(1).pageSize(2).build()
-        );
-
-        assertEquals(1, subscriptionPage.getPageNumber());
-        assertEquals(0, subscriptionPage.getPageElements());
-        assertEquals(2, subscriptionPage.getTotalElements());
-
-        assertEquals(0, subscriptionPage.getContent().size());
-    }
-
-    @Test
-    public void shouldFindBetweenEndingAtDates() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().endingAtAfter(1449022010880L).endingAtBefore(1569022010883L).build()
-        );
-
-        assertEquals(1, subscriptions.size(), "Subscriptions size");
-        assertEquals("sub1", subscriptions.getFirst().getId(), "Subscription id");
-    }
-
-    @Test
-    public void shouldFindAfterEndingAtDate() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().endingAtAfter(1449022010880L).build()
-        );
-
-        assertEquals(1, subscriptions.size(), "Subscriptions size");
-        assertEquals("sub1", subscriptions.getFirst().getId(), "Subscription id");
-    }
-
-    @Test
-    public void shouldFindAfterEndingAtDateWithoutEndingAt() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().endingAtAfter(1449022010880L).includeWithoutEnd(true).build()
-        );
-
-        assertEquals(21, subscriptions.size(), "Subscriptions size");
-        assertTrue(
-            List.of(
-                "sub3",
-                "sub2",
-                "sub5",
-                "sub4",
-                "sub1",
-                "sub6",
-                "sub7",
-                "sub8",
-                "sub-legacy-push",
+        assertTrue(subscriptionIds.containsAll(List.of(
                 "sub-sa-1",
                 "sub-sa-2a",
                 "sub-sa-2b",
@@ -396,20 +317,106 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 "sub-sa-4-a",
                 "sub-sa-4-b",
                 "sub-sa-4-c",
-                "sub-sa-4-d"
-            ).containsAll(subscriptions.stream().map(Subscription::getId).toList()),
-            "Subscription id"
-        );
+                "sub-sa-4-d")));
+    }
+
+    @Test
+    public void shouldFindBetweenDatesPageable() throws Exception {
+        Page<Subscription> subscriptionPage = subscriptionRepository.search(
+                SubscriptionCriteria.builder()
+                        .from(1339022010883L)
+                        .to(1839022010883L)
+                        .build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(2).build());
+
+        assertEquals(0, subscriptionPage.getPageNumber());
+        assertEquals(2, subscriptionPage.getPageElements());
+        assertEquals(2, subscriptionPage.getTotalElements());
+
+        assertEquals(2, subscriptionPage.getContent().size());
+        assertEquals("sub3", subscriptionPage.getContent().get(0).getId());
+        assertEquals("sub1", subscriptionPage.getContent().get(1).getId());
+
+        subscriptionPage = subscriptionRepository.search(
+                SubscriptionCriteria.builder()
+                        .from(1339022010883L)
+                        .to(1839022010883L)
+                        .build(),
+                null,
+                new PageableBuilder().pageNumber(1).pageSize(2).build());
+
+        assertEquals(1, subscriptionPage.getPageNumber());
+        assertEquals(0, subscriptionPage.getPageElements());
+        assertEquals(2, subscriptionPage.getTotalElements());
+
+        assertEquals(0, subscriptionPage.getContent().size());
+    }
+
+    @Test
+    public void shouldFindBetweenEndingAtDates() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .endingAtAfter(1449022010880L)
+                .endingAtBefore(1569022010883L)
+                .build());
+
+        assertEquals(1, subscriptions.size(), "Subscriptions size");
+        assertEquals("sub1", subscriptions.getFirst().getId(), "Subscription id");
+    }
+
+    @Test
+    public void shouldFindAfterEndingAtDate() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                SubscriptionCriteria.builder().endingAtAfter(1449022010880L).build());
+
+        assertEquals(1, subscriptions.size(), "Subscriptions size");
+        assertEquals("sub1", subscriptions.getFirst().getId(), "Subscription id");
+    }
+
+    @Test
+    public void shouldFindAfterEndingAtDateWithoutEndingAt() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .endingAtAfter(1449022010880L)
+                .includeWithoutEnd(true)
+                .build());
+
+        assertEquals(21, subscriptions.size(), "Subscriptions size");
+        assertTrue(
+                List.of(
+                                "sub3",
+                                "sub2",
+                                "sub5",
+                                "sub4",
+                                "sub1",
+                                "sub6",
+                                "sub7",
+                                "sub8",
+                                "sub-legacy-push",
+                                "sub-sa-1",
+                                "sub-sa-2a",
+                                "sub-sa-2b",
+                                "sub-sa-3-a",
+                                "sub-sa-3-b",
+                                "sub-sa-3-c",
+                                "sub-sa-3-d",
+                                "sub-sa-3-e",
+                                "sub-sa-4-a",
+                                "sub-sa-4-b",
+                                "sub-sa-4-c",
+                                "sub-sa-4-d")
+                        .containsAll(
+                                subscriptions.stream().map(Subscription::getId).toList()),
+                "Subscription id");
     }
 
     @Test
     public void shouldFindBeforeEndingAtDate() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().endingAtBefore(1569022010883L).build()
-        );
+                SubscriptionCriteria.builder().endingAtBefore(1569022010883L).build());
 
         assertEquals(3, subscriptions.size(), "Subscriptions size");
-        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        Set<String> subscriptionIds =
+                subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
         assertTrue(subscriptionIds.contains("sub-api-product-1"), "Should contain sub-api-product-1");
         assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
@@ -417,38 +424,34 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBeforeEndingAtDateIncludingWithoutEndingAt() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .endingAtBefore(1569022010883L)
+                .includeWithoutEnd(true)
+                .build());
 
         assertEquals(23, subscriptions.size(), "Subscriptions size");
-        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        Set<String> subscriptionIds =
+                subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(
-            subscriptionIds.containsAll(
-                List.of(
-                    "sub3",
-                    "sub2",
-                    "sub5",
-                    "sub4",
-                    "sub1",
-                    "sub6",
-                    "sub7",
-                    "sub8",
-                    "sub-api-product-1",
-                    "sub-api-product-2",
-                    "sub-legacy-push"
-                )
-            ),
-            "Should contain expected subscriptions"
-        );
+                subscriptionIds.containsAll(List.of(
+                        "sub3",
+                        "sub2",
+                        "sub5",
+                        "sub4",
+                        "sub1",
+                        "sub6",
+                        "sub7",
+                        "sub8",
+                        "sub-api-product-1",
+                        "sub-api-product-2",
+                        "sub-legacy-push")),
+                "Should contain expected subscriptions");
     }
 
     @Test
     public void shouldFindReferenceIdsOrderByNumberOfSubscriptionsDesc() throws TechnicalException {
         Set<String> ranking = this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-            SubscriptionCriteria.builder().statuses(List.of(PENDING.name())).build(),
-            Order.DESC
-        );
+                SubscriptionCriteria.builder().statuses(List.of(PENDING.name())).build(), Order.DESC);
 
         assertEquals(1, ranking.size(), "Ranking size");
         assertEquals("api1", ranking.iterator().next(), "Ranking");
@@ -457,13 +460,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldComputeRankingByReferenceTypeAndIds() throws TechnicalException {
         Set<String> ranking = this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-            SubscriptionCriteria.builder()
-                .referenceType(SubscriptionReferenceType.API)
-                .referenceIds(List.of("api1"))
-                .statuses(List.of(PENDING.name()))
-                .build(),
-            Order.DESC
-        );
+                SubscriptionCriteria.builder()
+                        .referenceType(SubscriptionReferenceType.API)
+                        .referenceIds(List.of("api1"))
+                        .statuses(List.of(PENDING.name()))
+                        .build(),
+                Order.DESC);
 
         assertNotNull(ranking);
         assertEquals(1, ranking.size(), "Ranking size");
@@ -474,9 +476,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     public void should_search_subscriptions_including_legacy_api_field() throws TechnicalException {
         // Regression test for APIM-13150: subscriptions with api field set but no referenceId/referenceType
         // (created by old nodes during rolling upgrade from 4.10 to 4.11) must be included in results
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().referenceIds(List.of("api1")).referenceType(SubscriptionReferenceType.API).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .referenceIds(List.of("api1"))
+                .referenceType(SubscriptionReferenceType.API)
+                .build());
 
         assertNotNull(subscriptions);
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
@@ -487,9 +490,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldComputeRankingByApplications() throws TechnicalException {
         Set<String> ranking = this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-            SubscriptionCriteria.builder().applications(Arrays.asList("app1", "app2")).build(),
-            Order.DESC
-        );
+                SubscriptionCriteria.builder()
+                        .applications(Arrays.asList("app1", "app2"))
+                        .build(),
+                Order.DESC);
 
         assertEquals(2, ranking.size(), "Ranking size");
         Iterator<String> iterator = ranking.iterator();
@@ -499,14 +503,15 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBySecurityType() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().planSecurityTypes(List.of(API_KEY.name(), OAUTH2.name())).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .planSecurityTypes(List.of(API_KEY.name(), OAUTH2.name()))
+                .build());
 
         assertNotNull(subscriptions);
         assertEquals(5, subscriptions.size());
         // Results may be in different order, so check that all expected subscriptions are present
-        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
+        Set<String> subscriptionIds =
+                subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
         assertTrue(subscriptionIds.contains("sub5"), "Should contain sub5");
         assertTrue(subscriptionIds.contains("sub4"), "Should contain sub4");
         assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
@@ -516,17 +521,16 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBySecurityTypeAndStatus() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder()
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
                 .planSecurityTypes(List.of(API_KEY.name(), OAUTH2.name()))
                 .statuses(List.of(PENDING.name()))
-                .build()
-        );
+                .build());
 
         assertNotNull(subscriptions);
         assertEquals(3, subscriptions.size());
         // Results may be in different order, so check that all expected subscriptions are present
-        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
+        Set<String> subscriptionIds =
+                subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
         assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
         assertTrue(subscriptionIds.contains("sub4"), "Should contain sub4");
         assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
@@ -535,9 +539,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldSearchByIdsSortedById() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
-            new SortableBuilder().order(Order.ASC).field("id").build()
-        );
+                SubscriptionCriteria.builder()
+                        .ids(List.of("sub4", "sub3", "sub1"))
+                        .build(),
+                new SortableBuilder().order(Order.ASC).field("id").build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -551,9 +556,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldSearchByIdsSortedByCreated() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
-            new SortableBuilder().order(Order.ASC).field("createdAt").build()
-        );
+                SubscriptionCriteria.builder()
+                        .ids(List.of("sub4", "sub3", "sub1"))
+                        .build(),
+                new SortableBuilder().order(Order.ASC).field("createdAt").build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -566,49 +572,41 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
-        List<Subscription> subscriptionsBeforeDeletion = subscriptionRepository
-            .findAll()
-            .stream()
-            .filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId()))
-            .toList();
+        List<Subscription> subscriptionsBeforeDeletion = subscriptionRepository.findAll().stream()
+                .filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId()))
+                .toList();
         assertEquals(3, subscriptionsBeforeDeletion.size());
 
         List<String> subscriptionsIdsDeleted = subscriptionRepository.deleteByEnvironmentId("ToBeDeleted");
 
         assertEquals(3, subscriptionsIdsDeleted.size());
         assertEquals(
-            0,
-            subscriptionRepository
-                .findAll()
-                .stream()
-                .filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId()))
-                .count()
-        );
+                0,
+                subscriptionRepository.findAll().stream()
+                        .filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId()))
+                        .count());
     }
 
     @Test
     public void shouldSearchByReferenceTypeOnlyApi() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().referenceType(SubscriptionReferenceType.API).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .referenceType(SubscriptionReferenceType.API)
+                .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        subscriptions.forEach(sub ->
-            assertTrue(
+        subscriptions.forEach(sub -> assertTrue(
                 sub.getReferenceType() == null || sub.getReferenceType() == SubscriptionReferenceType.API,
-                "Each result must be API or legacy (null) referenceType"
-            )
-        );
+                "Each result must be API or legacy (null) referenceType"));
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(ids.contains("sub1"), "Should include API subscription sub1");
     }
 
     @Test
     public void shouldSearchByReferenceTypeOnlyApiProduct() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().referenceType(SubscriptionReferenceType.API_PRODUCT).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -620,11 +618,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void should_search_api_and_api_product_subscriptions_by_reference_types() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder()
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
                 .referenceTypes(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT))
-                .build()
-        );
+                .build());
 
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
 
@@ -636,13 +632,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void should_search_api_and_api_product_subscriptions_by_typed_reference_ids() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder()
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
                 .referenceTypes(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT))
                 .apis(Set.of("api1"))
                 .apiProducts(Set.of("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88"))
-                .build()
-        );
+                .build());
 
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
 
@@ -655,42 +649,41 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void should_page_api_and_api_product_subscriptions_with_an_accurate_total() throws TechnicalException {
         SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-            .referenceTypes(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT))
-            .applications(Set.of("app4"))
-            .build();
+                .referenceTypes(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT))
+                .applications(Set.of("app4"))
+                .build();
         var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
 
         Page<Subscription> firstPage = subscriptionRepository.search(
-            criteria,
-            sortable,
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
+                criteria,
+                sortable,
+                new PageableBuilder().pageNumber(0).pageSize(2).build());
         Page<Subscription> secondPage = subscriptionRepository.search(
-            criteria,
-            sortable,
-            new PageableBuilder().pageNumber(1).pageSize(2).build()
-        );
+                criteria,
+                sortable,
+                new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertEquals(2, firstPage.getContent().size());
         assertEquals(firstPage.getTotalElements(), secondPage.getTotalElements());
         assertTrue(firstPage.getTotalElements() > firstPage.getContent().size());
         assertTrue(
-            firstPage
-                .getContent()
-                .stream()
-                .map(Subscription::getId)
-                .noneMatch(secondPage.getContent().stream().map(Subscription::getId).toList()::contains),
-            "Pages must not overlap"
-        );
+                firstPage.getContent().stream()
+                        .map(Subscription::getId)
+                        .noneMatch(secondPage.getContent().stream()
+                                .map(Subscription::getId)
+                                .toList()::contains),
+                "Pages must not overlap");
     }
 
     @Test
     public void shouldSearchByReferenceIdsAndType() throws TechnicalException {
         // Criteria with referenceIds/referenceType for API subscriptions
-        // Expects both the migrated subscription (referenceId/referenceType set) and the legacy one (only api field set)
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().referenceIds(List.of("api1")).referenceType(SubscriptionReferenceType.API).build()
-        );
+        // Expects both the migrated subscription (referenceId/referenceType set) and the legacy one (only api field
+        // set)
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .referenceIds(List.of("api1"))
+                .referenceType(SubscriptionReferenceType.API)
+                .build());
 
         assertNotNull(subscriptions);
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
@@ -701,9 +694,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void should_search_by_multiple_reference_ids_including_legacy_api_field() throws TechnicalException {
         // Regression test for APIM-13150: the multi-ID (IN clause) path must also include legacy subscriptions
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().referenceIds(List.of("api1", "api-unknown")).referenceType(SubscriptionReferenceType.API).build()
-        );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
+                .referenceIds(List.of("api1", "api-unknown"))
+                .referenceType(SubscriptionReferenceType.API)
+                .build());
 
         assertNotNull(subscriptions);
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
@@ -713,18 +707,17 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldSearchByReferenceIdsAndReferenceType() throws TechnicalException {
-        List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder()
+        List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder()
                 .referenceIds(List.of("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88"))
                 .referenceType(SubscriptionReferenceType.API_PRODUCT)
-                .build()
-        );
+                .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
         assertEquals(2, subscriptions.size(), "Subscriptions size");
 
-        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        Set<String> subscriptionIds =
+                subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(subscriptionIds.contains("sub-api-product-1"), "Should contain sub-api-product-1");
         assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
 
@@ -737,9 +730,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldFindByReferenceIdAndReferenceType() throws TechnicalException {
         Set<Subscription> subscriptions = subscriptionRepository.findByReferenceIdAndReferenceType(
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", SubscriptionReferenceType.API_PRODUCT);
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -755,9 +746,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldNotFindByReferenceIdAndReferenceTypeWhenNoMatch() throws TechnicalException {
         Set<Subscription> subscriptions = subscriptionRepository.findByReferenceIdAndReferenceType(
-            "non-existent-api-product",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "non-existent-api-product", SubscriptionReferenceType.API_PRODUCT);
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -766,10 +755,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldFindByIdAndReferenceIdAndReferenceType() throws TechnicalException {
         Optional<Subscription> subscription = subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
-            "sub-api-product-1",
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "sub-api-product-1", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", SubscriptionReferenceType.API_PRODUCT);
 
         assertNotNull(subscription);
         assertTrue(subscription.isPresent());
@@ -781,22 +767,17 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldNotFindByIdAndReferenceIdAndReferenceTypeWhenWrongReferenceId() throws TechnicalException {
         Optional<Subscription> subscription = subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
-            "sub-api-product-1",
-            "api-product-2",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "sub-api-product-1", "api-product-2", SubscriptionReferenceType.API_PRODUCT);
 
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());
     }
 
     @Test
-    public void shouldNotFindByIdAndReferenceIdAndReferenceTypeWhenSubscriptionDoesNotExist() throws TechnicalException {
+    public void shouldNotFindByIdAndReferenceIdAndReferenceTypeWhenSubscriptionDoesNotExist()
+            throws TechnicalException {
         Optional<Subscription> subscription = subscriptionRepository.findByIdAndReferenceIdAndReferenceType(
-            "non-existent",
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "non-existent", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", SubscriptionReferenceType.API_PRODUCT);
 
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());
@@ -804,7 +785,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void searchUnorderedShouldReturnSameSetAsSearch() throws TechnicalException {
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().applications(singleton("app1")).build();
+        SubscriptionCriteria criteria =
+                SubscriptionCriteria.builder().applications(singleton("app1")).build();
 
         List<Subscription> sorted = subscriptionRepository.search(criteria);
         List<Subscription> unordered = subscriptionRepository.searchUnordered(criteria);
@@ -819,11 +801,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void searchAfter_shouldReturnSingleSubscriptionForEnvironment() throws TechnicalException {
         List<Subscription> page = subscriptionRepository.searchAfter(
-            SubscriptionCriteria.builder().environments(singleton("env-sa-1")).build(),
-            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
-            null,
-            10
-        );
+                SubscriptionCriteria.builder()
+                        .environments(singleton("env-sa-1"))
+                        .build(),
+                new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+                null,
+                10);
 
         assertNotNull(page);
         assertEquals(1, page.size());
@@ -832,7 +815,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void searchAfter_shouldPaginateByPlanKeysetWithPlansFilter() throws TechnicalException {
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(List.of("plan3")).build();
+        SubscriptionCriteria criteria =
+                SubscriptionCriteria.builder().plans(List.of("plan3")).build();
         // Warmup path: sort field "plan" → (plan, id) keyset, paired with byPlanAndId cursor.
         var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
@@ -856,10 +840,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         }
 
         assertEquals(
-            Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
-            collected,
-            "plan3 subs returned exactly — no leak from unrelated plans"
-        );
+                Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
+                collected,
+                "plan3 subs returned exactly — no leak from unrelated plans");
     }
 
     @Test
@@ -867,16 +850,15 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         // Legacy / repository-bridge fallback: sort field "id" → id-only keyset, paired with byId
         // cursor. The seek and the sort must both be id-only — if the sort were (plan, id) here while
         // the seek stays id-only (the bug this guards), keyset pagination would skip or duplicate rows.
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(List.of("plan3")).build();
+        SubscriptionCriteria criteria =
+                SubscriptionCriteria.builder().plans(List.of("plan3")).build();
         var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
 
         // Ground truth: a single page (no keyset) gives the engine's own id order. Collation differs
         // per engine, so we compare against this rather than a hard-coded order.
-        List<String> singlePageOrder = subscriptionRepository
-            .searchAfter(criteria, sortable, null, 100)
-            .stream()
-            .map(Subscription::getId)
-            .collect(Collectors.toList());
+        List<String> singlePageOrder = subscriptionRepository.searchAfter(criteria, sortable, null, 100).stream()
+                .map(Subscription::getId)
+                .collect(Collectors.toList());
 
         // Paginate the same query in small pages via the byId cursor.
         List<String> paged = new java.util.ArrayList<>();
@@ -897,12 +879,14 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         // Keyset pagination must reproduce the single-page order exactly — same elements, same order,
         // no skips or duplicates. This holds only when the seek predicate agrees with the sort.
-        assertEquals(singlePageOrder, paged, "id-only keyset pagination must reproduce the single-page id order (no skip/dup/reorder)");
         assertEquals(
-            Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
-            new java.util.HashSet<>(paged),
-            "plan3 subs returned exactly — no leak from unrelated plans"
-        );
+                singlePageOrder,
+                paged,
+                "id-only keyset pagination must reproduce the single-page id order (no skip/dup/reorder)");
+        assertEquals(
+                Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
+                new java.util.HashSet<>(paged),
+                "plan3 subs returned exactly — no leak from unrelated plans");
     }
 
     @Test
@@ -911,10 +895,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         // to load subs that are active OR have no expiry. searchAfter's net-new criteria support
         // must produce the same set as the legacy search() for this exact shape.
         SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-            .plans(List.of("plan-sa"))
-            .endingAtAfter(2500L)
-            .includeWithoutEnd(true)
-            .build();
+                .plans(List.of("plan-sa"))
+                .endingAtAfter(2500L)
+                .includeWithoutEnd(true)
+                .build();
         var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
         Set<String> viaSearchAfter = new java.util.LinkedHashSet<>();
@@ -927,19 +911,21 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 break;
             }
             page.forEach(s -> viaSearchAfter.add(s.getId()));
-            cursor = SubscriptionCursor.byPlanAndId(page.getLast().getPlan(), page.getLast().getId());
+            cursor = SubscriptionCursor.byPlanAndId(
+                    page.getLast().getPlan(), page.getLast().getId());
             if (page.size() < pageSize) {
                 break;
             }
         }
 
-        Set<String> viaLegacySearch = subscriptionRepository.search(criteria).stream().map(Subscription::getId).collect(Collectors.toSet());
+        Set<String> viaLegacySearch = subscriptionRepository.search(criteria).stream()
+                .map(Subscription::getId)
+                .collect(Collectors.toSet());
 
         assertEquals(
-            viaLegacySearch,
-            viaSearchAfter,
-            "searchAfter and legacy search() must return identical set for endingAtAfter+includeWithoutEnd"
-        );
+                viaLegacySearch,
+                viaSearchAfter,
+                "searchAfter and legacy search() must return identical set for endingAtAfter+includeWithoutEnd");
     }
 
     @Test
@@ -947,7 +933,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
         // planSecurityTypes rejected
-        SubscriptionCriteria withPlanSecurity = SubscriptionCriteria.builder().planSecurityTypes(List.of(API_KEY.name())).build();
+        SubscriptionCriteria withPlanSecurity = SubscriptionCriteria.builder()
+                .planSecurityTypes(List.of(API_KEY.name()))
+                .build();
         try {
             subscriptionRepository.searchAfter(withPlanSecurity, sortable, null, 10);
             fail("Expected TechnicalException for planSecurityTypes");
@@ -956,7 +944,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         }
 
         // excludedApis rejected
-        SubscriptionCriteria withExcludedApis = SubscriptionCriteria.builder().excludedApis(List.of("api-1")).build();
+        SubscriptionCriteria withExcludedApis =
+                SubscriptionCriteria.builder().excludedApis(List.of("api-1")).build();
         try {
             subscriptionRepository.searchAfter(withExcludedApis, sortable, null, 10);
             fail("Expected TechnicalException for excludedApis");
@@ -968,11 +957,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void searchAfter_shouldReturnEmptyWhenNoMatch() throws TechnicalException {
         List<Subscription> page = subscriptionRepository.searchAfter(
-            SubscriptionCriteria.builder().environments(singleton("env-sa-empty")).build(),
-            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
-            null,
-            10
-        );
+                SubscriptionCriteria.builder()
+                        .environments(singleton("env-sa-empty"))
+                        .build(),
+                new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+                null,
+                10);
 
         assertNotNull(page);
         assertTrue(page.isEmpty());
@@ -980,7 +970,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void searchAfter_shouldTerminateOnExactMultipleOfPageSize() throws TechnicalException {
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-4")).build();
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .environments(singleton("env-sa-4"))
+                .build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
         int pageSize = 2;
 
@@ -989,26 +981,26 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         Subscription last = page1.getLast();
         List<Subscription> page2 = subscriptionRepository.searchAfter(
-            criteria,
-            sortable,
-            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            pageSize
-        );
+                criteria,
+                sortable,
+                SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+                pageSize);
         assertEquals(2, page2.size());
 
         last = page2.getLast();
         List<Subscription> page3 = subscriptionRepository.searchAfter(
-            criteria,
-            sortable,
-            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            pageSize
-        );
+                criteria,
+                sortable,
+                SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+                pageSize);
         assertTrue(page3.isEmpty(), "Page after exact-multiple total must be empty");
     }
 
     @Test
     public void searchAfter_shouldNotSkipOrDuplicateAcrossSameMsBoundary() throws TechnicalException {
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-3")).build();
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .environments(singleton("env-sa-3"))
+                .build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
         Set<String> collected = new java.util.LinkedHashSet<>();
@@ -1031,10 +1023,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         }
 
         assertEquals(
-            Set.of("sub-sa-3-a", "sub-sa-3-b", "sub-sa-3-c", "sub-sa-3-d", "sub-sa-3-e"),
-            collected,
-            "All 5 same-ms subs returned exactly once"
-        );
+                Set.of("sub-sa-3-a", "sub-sa-3-b", "sub-sa-3-c", "sub-sa-3-d", "sub-sa-3-e"),
+                collected,
+                "All 5 same-ms subs returned exactly once");
     }
 
     @Test
@@ -1043,38 +1034,39 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         // metadata rows against the page budget. With pageSize=2 and two subs (3 + 2 metadata rows),
         // a naive LIMIT 2 on the join returns only the first sub with partial metadata. The page
         // must contain exactly the two subscriptions with their complete metadata maps.
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-2")).build();
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .environments(singleton("env-sa-2"))
+                .build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
         List<Subscription> page = subscriptionRepository.searchAfter(criteria, sortable, null, 2);
         assertEquals(2, page.size());
-        Subscription a = page
-            .stream()
-            .filter(s -> "sub-sa-2a".equals(s.getId()))
-            .findFirst()
-            .orElseThrow();
-        Subscription b = page
-            .stream()
-            .filter(s -> "sub-sa-2b".equals(s.getId()))
-            .findFirst()
-            .orElseThrow();
+        Subscription a = page.stream()
+                .filter(s -> "sub-sa-2a".equals(s.getId()))
+                .findFirst()
+                .orElseThrow();
+        Subscription b = page.stream()
+                .filter(s -> "sub-sa-2b".equals(s.getId()))
+                .findFirst()
+                .orElseThrow();
         assertEquals(java.util.Map.of("k1", "v1", "k2", "v2", "k3", "v3"), a.getMetadata());
         assertEquals(java.util.Map.of("kA", "vA", "kB", "vB"), b.getMetadata());
 
         // Short page contract: next call past last sub returns empty
         Subscription last = page.getLast();
         List<Subscription> next = subscriptionRepository.searchAfter(
-            criteria,
-            sortable,
-            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            2
-        );
+                criteria,
+                sortable,
+                SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+                2);
         assertTrue(next.isEmpty());
     }
 
     @Test
     public void searchAfter_shouldAdvanceSubscriptionCursorAcrossPagesAndTerminate() throws TechnicalException {
-        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-2")).build();
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .environments(singleton("env-sa-2"))
+                .build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
         List<Subscription> page1 = subscriptionRepository.searchAfter(criteria, sortable, null, 1);
@@ -1083,21 +1075,19 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         Subscription last = page1.getFirst();
         List<Subscription> page2 = subscriptionRepository.searchAfter(
-            criteria,
-            sortable,
-            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            1
-        );
+                criteria,
+                sortable,
+                SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+                1);
         assertEquals(1, page2.size());
         assertEquals("sub-sa-2b", page2.getFirst().getId());
 
         last = page2.getFirst();
         List<Subscription> page3 = subscriptionRepository.searchAfter(
-            criteria,
-            sortable,
-            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            1
-        );
+                criteria,
+                sortable,
+                SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+                1);
         assertTrue(page3.isEmpty());
     }
 
@@ -1106,7 +1096,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     private static final long SYNC_BASE = 1_700_000_000_000L;
     private static final long SYNC_NOW = 2_000_000_000_000L;
 
-    private Subscription syncSubscription(String id, String plan, Subscription.Status status, Long endingAt, long updatedAt, String env) {
+    private Subscription syncSubscription(
+            String id, String plan, Subscription.Status status, Long endingAt, long updatedAt, String env) {
         Subscription subscription = new Subscription();
         subscription.setId(id);
         subscription.setEnvironmentId(env);
@@ -1127,16 +1118,29 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         long future = SYNC_NOW + 1_000_000L;
         long past = SYNC_NOW - 1_000_000L;
         List<Subscription> subscriptions = List.of(
-            syncSubscription("sync-b2", "plan-sync-b", Subscription.Status.ACCEPTED, null, SYNC_BASE + 1000, SYNC_ENV),
-            syncSubscription("sync-b1", "plan-sync-b", Subscription.Status.ACCEPTED, future, SYNC_BASE + 2000, SYNC_ENV),
-            syncSubscription("sync-a2", "plan-sync-a", Subscription.Status.ACCEPTED, future, SYNC_BASE + 3000, SYNC_ENV),
-            syncSubscription("sync-a1", "plan-sync-a", Subscription.Status.ACCEPTED, null, SYNC_BASE + 4000, SYNC_ENV),
-            syncSubscription("sync-a3", "plan-sync-a", Subscription.Status.ACCEPTED, past, SYNC_BASE + 5000, SYNC_ENV),
-            syncSubscription("sync-a4", "plan-sync-a", Subscription.Status.CLOSED, null, SYNC_BASE + 6000, SYNC_ENV),
-            syncSubscription("sync-a5", "plan-sync-a", Subscription.Status.REJECTED, null, SYNC_BASE + 7000, SYNC_ENV),
-            syncSubscription("sync-c1", "plan-sync-c", Subscription.Status.ACCEPTED, null, SYNC_BASE + 8000, SYNC_ENV),
-            syncSubscription("sync-a6", "plan-sync-a", Subscription.Status.ACCEPTED, null, SYNC_BASE + 9000, "env-sync-other")
-        );
+                syncSubscription(
+                        "sync-b2", "plan-sync-b", Subscription.Status.ACCEPTED, null, SYNC_BASE + 1000, SYNC_ENV),
+                syncSubscription(
+                        "sync-b1", "plan-sync-b", Subscription.Status.ACCEPTED, future, SYNC_BASE + 2000, SYNC_ENV),
+                syncSubscription(
+                        "sync-a2", "plan-sync-a", Subscription.Status.ACCEPTED, future, SYNC_BASE + 3000, SYNC_ENV),
+                syncSubscription(
+                        "sync-a1", "plan-sync-a", Subscription.Status.ACCEPTED, null, SYNC_BASE + 4000, SYNC_ENV),
+                syncSubscription(
+                        "sync-a3", "plan-sync-a", Subscription.Status.ACCEPTED, past, SYNC_BASE + 5000, SYNC_ENV),
+                syncSubscription(
+                        "sync-a4", "plan-sync-a", Subscription.Status.CLOSED, null, SYNC_BASE + 6000, SYNC_ENV),
+                syncSubscription(
+                        "sync-a5", "plan-sync-a", Subscription.Status.REJECTED, null, SYNC_BASE + 7000, SYNC_ENV),
+                syncSubscription(
+                        "sync-c1", "plan-sync-c", Subscription.Status.ACCEPTED, null, SYNC_BASE + 8000, SYNC_ENV),
+                syncSubscription(
+                        "sync-a6",
+                        "plan-sync-a",
+                        Subscription.Status.ACCEPTED,
+                        null,
+                        SYNC_BASE + 9000,
+                        "env-sync-other"));
         for (Subscription subscription : subscriptions) {
             subscriptionRepository.create(subscription);
         }
@@ -1149,7 +1153,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         }
     }
 
-    private List<String> searchAllAfter(SubscriptionCriteria criteria, String sortField, int pageSize) throws TechnicalException {
+    private List<String> searchAllAfter(SubscriptionCriteria criteria, String sortField, int pageSize)
+            throws TechnicalException {
         var sortable = new SortableBuilder().field(sortField).order(Order.ASC).build();
         List<String> ids = new java.util.ArrayList<>();
         SubscriptionCursor cursor = null;
@@ -1162,8 +1167,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             page.forEach(s -> ids.add(s.getId()));
             Subscription last = page.getLast();
             cursor = "plan".equals(sortField)
-                ? SubscriptionCursor.byPlanAndId(last.getPlan(), last.getId())
-                : SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
+                    ? SubscriptionCursor.byPlanAndId(last.getPlan(), last.getId())
+                    : SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
             if (page.size() < pageSize) {
                 break;
             }
@@ -1172,17 +1177,18 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
-    public void searchAfter_gatewayInitialSync_shouldReturnActiveAcceptedSubscriptionsOrderedByPlanThenId() throws TechnicalException {
+    public void searchAfter_gatewayInitialSync_shouldReturnActiveAcceptedSubscriptionsOrderedByPlanThenId()
+            throws TechnicalException {
         List<Subscription> created = createSyncSubscriptions();
         try {
             // SubscriptionAppender.loadSubscriptions(initialSync = true)
             SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-                .plans(List.of("plan-sync-a", "plan-sync-b"))
-                .environments(singleton(SYNC_ENV))
-                .statuses(List.of(Subscription.Status.ACCEPTED.name()))
-                .endingAtAfter(SYNC_NOW)
-                .includeWithoutEnd(true)
-                .build();
+                    .plans(List.of("plan-sync-a", "plan-sync-b"))
+                    .environments(singleton(SYNC_ENV))
+                    .statuses(List.of(Subscription.Status.ACCEPTED.name()))
+                    .endingAtAfter(SYNC_NOW)
+                    .includeWithoutEnd(true)
+                    .build();
 
             // page size 2 forces the (plan, id) keyset to cross plan boundaries
             assertEquals(List.of("sync-a1", "sync-a2", "sync-b1", "sync-b2"), searchAllAfter(criteria, "plan", 2));
@@ -1192,36 +1198,40 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
-    public void searchAfter_gatewayInitialSyncOnManyPlans_shouldReturnOnlyActiveAcceptedSubscriptions() throws TechnicalException {
+    public void searchAfter_gatewayInitialSyncOnManyPlans_shouldReturnOnlyActiveAcceptedSubscriptions()
+            throws TechnicalException {
         List<Subscription> created = createSyncSubscriptions();
         try {
             // Initial sync as run by a gateway sharded on a plan list: no environment filter and a page size large
             // enough to read everything in one call. Most subscriptions of those plans (closed, rejected, expired)
             // do not match, which is the case the {status, plan, _id} index serves.
             SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-                .plans(List.of("plan-sync-a", "plan-sync-b"))
-                .statuses(List.of(Subscription.Status.ACCEPTED.name()))
-                .endingAtAfter(SYNC_NOW)
-                .includeWithoutEnd(true)
-                .build();
+                    .plans(List.of("plan-sync-a", "plan-sync-b"))
+                    .statuses(List.of(Subscription.Status.ACCEPTED.name()))
+                    .endingAtAfter(SYNC_NOW)
+                    .includeWithoutEnd(true)
+                    .build();
 
-            assertEquals(List.of("sync-a1", "sync-a2", "sync-a6", "sync-b1", "sync-b2"), searchAllAfter(criteria, "plan", 2000));
+            assertEquals(
+                    List.of("sync-a1", "sync-a2", "sync-a6", "sync-b1", "sync-b2"),
+                    searchAllAfter(criteria, "plan", 2000));
         } finally {
             deleteSyncSubscriptions(created);
         }
     }
 
     @Test
-    public void searchAfter_gatewayInitialSync_shouldExcludeSubscriptionsWithoutEndWhenNotIncluded() throws TechnicalException {
+    public void searchAfter_gatewayInitialSync_shouldExcludeSubscriptionsWithoutEndWhenNotIncluded()
+            throws TechnicalException {
         List<Subscription> created = createSyncSubscriptions();
         try {
             SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-                .plans(List.of("plan-sync-a", "plan-sync-b"))
-                .environments(singleton(SYNC_ENV))
-                .statuses(List.of(Subscription.Status.ACCEPTED.name()))
-                .endingAtAfter(SYNC_NOW)
-                .includeWithoutEnd(false)
-                .build();
+                    .plans(List.of("plan-sync-a", "plan-sync-b"))
+                    .environments(singleton(SYNC_ENV))
+                    .statuses(List.of(Subscription.Status.ACCEPTED.name()))
+                    .endingAtAfter(SYNC_NOW)
+                    .includeWithoutEnd(false)
+                    .build();
 
             assertEquals(List.of("sync-a2", "sync-b1"), searchAllAfter(criteria, "plan", 1));
         } finally {
@@ -1231,50 +1241,49 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void searchAfter_gatewayIncrementalSync_shouldReturnAllSyncedStatusesIncludingExpiredOrderedByPlanThenId()
-        throws TechnicalException {
+            throws TechnicalException {
         List<Subscription> created = createSyncSubscriptions();
         try {
             // SubscriptionAppender.loadSubscriptions(initialSync = false): no endingAt filter
             SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-                .plans(List.of("plan-sync-a", "plan-sync-b"))
-                .environments(singleton(SYNC_ENV))
-                .statuses(
-                    List.of(
-                        Subscription.Status.ACCEPTED.name(),
-                        Subscription.Status.CLOSED.name(),
-                        Subscription.Status.PAUSED.name(),
-                        Subscription.Status.PENDING.name()
-                    )
-                )
-                .build();
+                    .plans(List.of("plan-sync-a", "plan-sync-b"))
+                    .environments(singleton(SYNC_ENV))
+                    .statuses(List.of(
+                            Subscription.Status.ACCEPTED.name(),
+                            Subscription.Status.CLOSED.name(),
+                            Subscription.Status.PAUSED.name(),
+                            Subscription.Status.PENDING.name()))
+                    .build();
 
-            assertEquals(List.of("sync-a1", "sync-a2", "sync-a3", "sync-a4", "sync-b1", "sync-b2"), searchAllAfter(criteria, "plan", 4));
+            assertEquals(
+                    List.of("sync-a1", "sync-a2", "sync-a3", "sync-a4", "sync-b1", "sync-b2"),
+                    searchAllAfter(criteria, "plan", 4));
         } finally {
             deleteSyncSubscriptions(created);
         }
     }
 
     @Test
-    public void searchAfter_gatewayFetchLatest_shouldReturnTimeWindowOrderedByUpdatedAtThenId() throws TechnicalException {
+    public void searchAfter_gatewayFetchLatest_shouldReturnTimeWindowOrderedByUpdatedAtThenId()
+            throws TechnicalException {
         List<Subscription> created = createSyncSubscriptions();
         try {
             // SubscriptionFetcher.fetchLatest: statuses + [from, to[ on updatedAt + environments
             SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-                .statuses(
-                    List.of(
-                        Subscription.Status.ACCEPTED.name(),
-                        Subscription.Status.CLOSED.name(),
-                        Subscription.Status.PAUSED.name(),
-                        Subscription.Status.PENDING.name()
-                    )
-                )
-                .from(SYNC_BASE + 2000)
-                .to(SYNC_BASE + 8000)
-                .environments(singleton(SYNC_ENV))
-                .build();
+                    .statuses(List.of(
+                            Subscription.Status.ACCEPTED.name(),
+                            Subscription.Status.CLOSED.name(),
+                            Subscription.Status.PAUSED.name(),
+                            Subscription.Status.PENDING.name()))
+                    .from(SYNC_BASE + 2000)
+                    .to(SYNC_BASE + 8000)
+                    .environments(singleton(SYNC_ENV))
+                    .build();
 
             // from is inclusive, to exclusive; REJECTED (7000) is filtered out by status
-            assertEquals(List.of("sync-b1", "sync-a2", "sync-a1", "sync-a3", "sync-a4"), searchAllAfter(criteria, "updatedAt", 2));
+            assertEquals(
+                    List.of("sync-b1", "sync-a2", "sync-a1", "sync-a3", "sync-a4"),
+                    searchAllAfter(criteria, "updatedAt", 2));
         } finally {
             deleteSyncSubscriptions(created);
         }

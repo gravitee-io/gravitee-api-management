@@ -23,17 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.Member;
-import io.gravitee.node.api.cluster.messaging.Message;
 import io.gravitee.node.api.cluster.messaging.Topic;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -73,17 +69,17 @@ class HeartbeatEventPublisherTest {
     @Test
     void should_publish_light_event() {
         cut.run();
-        verify(topic).publish(
-            argThat(eventPublish -> {
-                assertThat(eventPublish.getCreatedAt()).isNull();
-                assertThat(eventPublish.getUpdatedAt()).isNotNull();
-                assertThat(eventPublish.getProperties()).containsOnly(
-                    entry(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(eventPublish.getUpdatedAt().getTime())),
-                    entry(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.TRUE.toString())
-                );
-                return true;
-            })
-        );
+        verify(topic).publish(argThat(eventPublish -> {
+            assertThat(eventPublish.getCreatedAt()).isNull();
+            assertThat(eventPublish.getUpdatedAt()).isNotNull();
+            assertThat(eventPublish.getProperties())
+                    .containsOnly(
+                            entry(
+                                    EVENT_LAST_HEARTBEAT_PROPERTY,
+                                    Long.toString(eventPublish.getUpdatedAt().getTime())),
+                            entry(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.TRUE.toString()));
+            return true;
+        }));
     }
 
     @Test

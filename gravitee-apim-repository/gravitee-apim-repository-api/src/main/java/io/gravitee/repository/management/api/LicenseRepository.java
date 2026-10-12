@@ -24,8 +24,12 @@ import java.util.Optional;
 
 public interface LicenseRepository extends FindAllRepository<License> {
     Optional<License> findById(String referenceId, License.ReferenceType referenceType) throws TechnicalException;
+
     License create(License license) throws TechnicalException;
+
     License update(License license) throws TechnicalException;
+
     void delete(String referenceId, License.ReferenceType referenceType) throws TechnicalException;
+
     Page<License> findByCriteria(LicenseCriteria criteria, Pageable pageable) throws TechnicalException;
 }

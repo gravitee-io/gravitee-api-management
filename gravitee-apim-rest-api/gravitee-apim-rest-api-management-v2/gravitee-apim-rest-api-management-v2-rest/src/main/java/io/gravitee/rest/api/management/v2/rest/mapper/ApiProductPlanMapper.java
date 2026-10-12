@@ -36,12 +36,15 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class})
 public interface ApiProductPlanMapper {
     ApiProductPlanMapper INSTANCE = Mappers.getMapper(ApiProductPlanMapper.class);
 
     @Mapping(source = "security.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
-    @Mapping(source = "security.configuration", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(
+            source = "security.configuration",
+            target = "security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     ApiProductPlan map(PlanEntity planEntity);
 
     default List<ApiProductPlan> convert(List<Plan> entities) {
@@ -61,7 +64,10 @@ public interface ApiProductPlanMapper {
     }
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
-    @Mapping(source = "planSecurity.configuration", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(
+            source = "planSecurity.configuration",
+            target = "security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     @Mapping(source = "planStatus", target = "status")
     @Mapping(source = "planMode", target = "mode")
     ApiProductPlan map(Plan plan);
@@ -76,7 +82,8 @@ public interface ApiProductPlanMapper {
         if (Objects.isNull(securityType)) {
             return null;
         }
-        return PlanSecurityType.fromValue(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType).name());
+        return PlanSecurityType.fromValue(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType)
+                .name());
     }
 
     @Named("mapFromSecurityType")
@@ -84,7 +91,8 @@ public interface ApiProductPlanMapper {
         if (Objects.isNull(securityType)) {
             return null;
         }
-        return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name()).getLabel();
+        return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name())
+                .getLabel();
     }
 
     @Named("mapToPlanDefinitionHttpV4")
@@ -95,10 +103,16 @@ public interface ApiProductPlanMapper {
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "mode", source = "planMode")
-    @Mapping(source = "planSecurity.configuration", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(
+            source = "planSecurity.configuration",
+            target = "security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     BasePlan map(GenericPlanEntity plan);
 
-    @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(
+            target = "securityConfiguration",
+            source = "security.configuration",
+            qualifiedByName = "serializeConfiguration")
     @Mapping(target = "tags", source = "tags", qualifiedByName = "mapPlanUpdateTags")
     PlanUpdates mapToPlanUpdates(UpdateGenericApiProductPlan updatePlanV4);
 

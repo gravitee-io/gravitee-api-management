@@ -35,359 +35,417 @@ import java.util.Arrays;
 
 public interface DefaultRoleEntityDefinition {
     NewRoleEntity DEFAULT_ROLE_ORGANIZATION_USER = new NewRoleEntity(
-        "USER",
-        "Default Organization Role. Created by Gravitee.io.",
-        ORGANIZATION,
-        true,
-        Maps.<String, char[]>builder()
-            .put(OrganizationPermission.ENVIRONMENT.getName(), new char[] { READ.getId() })
-            .put(OrganizationPermission.ROLE.getName(), new char[] { READ.getId() })
-            .put(OrganizationPermission.TAG.getName(), new char[] { READ.getId() })
-            .put(OrganizationPermission.TENANT.getName(), new char[] { READ.getId() })
-            .put(OrganizationPermission.ENTRYPOINT.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default Organization Role. Created by Gravitee.io.",
+            ORGANIZATION,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(OrganizationPermission.ENVIRONMENT.getName(), new char[] {READ.getId()})
+                    .put(OrganizationPermission.ROLE.getName(), new char[] {READ.getId()})
+                    .put(OrganizationPermission.TAG.getName(), new char[] {READ.getId()})
+                    .put(OrganizationPermission.TENANT.getName(), new char[] {READ.getId()})
+                    .put(OrganizationPermission.ENTRYPOINT.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_ENVIRONMENT_API_PUBLISHER = new NewRoleEntity(
-        "API_PUBLISHER",
-        "Environment Role. Created by Gravitee.io.",
-        ENVIRONMENT,
-        false,
-        Maps.<String, char[]>builder()
-            .put(EnvironmentPermission.API.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
-            .put(
-                EnvironmentPermission.SHARED_POLICY_GROUP.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .put(EnvironmentPermission.TAG.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.TENANT.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.PLATFORM.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.CLUSTER.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.EXPLORER.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "API_PUBLISHER",
+            "Environment Role. Created by Gravitee.io.",
+            ENVIRONMENT,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            EnvironmentPermission.API.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            EnvironmentPermission.APPLICATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            EnvironmentPermission.INTEGRATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] {READ.getId()})
+                    .put(
+                            EnvironmentPermission.SHARED_POLICY_GROUP.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(EnvironmentPermission.TAG.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.GROUP.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.TENANT.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.PLATFORM.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.CLUSTER.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.EXPLORER.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity DEFAULT_ROLE_ENVIRONMENT_USER = new NewRoleEntity(
-        "USER",
-        "Default Environment Role. Created by Gravitee.io.",
-        ENVIRONMENT,
-        true,
-        Maps.<String, char[]>builder()
-            .put(EnvironmentPermission.API.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.DOCUMENTATION.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default Environment Role. Created by Gravitee.io.",
+            ENVIRONMENT,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(EnvironmentPermission.API.getName(), new char[] {READ.getId()})
+                    .put(
+                            EnvironmentPermission.APPLICATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(EnvironmentPermission.GROUP.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.DOCUMENTATION.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.INTEGRATION.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_ENVIRONMENT_FEDERATION_AGENT = new NewRoleEntity(
-        "FEDERATION_AGENT",
-        "Environment Role used by Federation agents. Created by Gravitee.io.",
-        ENVIRONMENT,
-        false,
-        Maps.<String, char[]>builder()
-            .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "FEDERATION_AGENT",
+            "Environment Role used by Federation agents. Created by Gravitee.io.",
+            ENVIRONMENT,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            EnvironmentPermission.INTEGRATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_ENVIRONMENT_EDGE_MANAGER = new NewRoleEntity(
-        "EDGE_MANAGER",
-        "Environment Role. Created by Gravitee.io.",
-        ENVIRONMENT,
-        false,
-        Maps.<String, char[]>builder()
-            .put(
-                EnvironmentPermission.EDGE_CONFIGURATION.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .put(EnvironmentPermission.API.getName(), new char[] { CREATE.getId(), READ.getId() })
-            .put(EnvironmentPermission.APPLICATION.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.PLATFORM.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "EDGE_MANAGER",
+            "Environment Role. Created by Gravitee.io.",
+            ENVIRONMENT,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            EnvironmentPermission.EDGE_CONFIGURATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(EnvironmentPermission.API.getName(), new char[] {CREATE.getId(), READ.getId()})
+                    .put(EnvironmentPermission.APPLICATION.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.GROUP.getName(), new char[] {READ.getId()})
+                    .put(EnvironmentPermission.PLATFORM.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_ENVIRONMENT_GAMMA_IDENTITY_ADMIN = new NewRoleEntity(
-        "GAMMA_IDENTITY_ADMIN",
-        "Environment Role used to manage Agent Identity. Created by Gravitee.io.",
-        ENVIRONMENT,
-        false,
-        Maps.<String, char[]>builder()
-            .put(EnvironmentPermission.AM_CONFIGURATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId() })
-            .put(
-                EnvironmentPermission.AGENT_IDENTITY.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .build()
-    );
+            "GAMMA_IDENTITY_ADMIN",
+            "Environment Role used to manage Agent Identity. Created by Gravitee.io.",
+            ENVIRONMENT,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            EnvironmentPermission.AM_CONFIGURATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId()})
+                    .put(
+                            EnvironmentPermission.AGENT_IDENTITY.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN = new NewRoleEntity(
-        "GAMMA_AUTHZ_ADMIN",
-        "Environment Role used to manage Authorization. Created by Gravitee.io.",
-        ENVIRONMENT,
-        false,
-        Maps.<String, char[]>builder()
-            .put(
-                EnvironmentPermission.AUTHZ_ENTITIES.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .put(
-                EnvironmentPermission.AUTHZ_POLICIES.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .put(EnvironmentPermission.AUTHZ_PDP.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(EnvironmentPermission.AUTHZ_SCHEMA.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(
-                EnvironmentPermission.AUTHZ_SCIM_CONNECTION.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .put(
-                EnvironmentPermission.AUTHZ_SCIM_SYNC.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .build()
-    );
+            "GAMMA_AUTHZ_ADMIN",
+            "Environment Role used to manage Authorization. Created by Gravitee.io.",
+            ENVIRONMENT,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            EnvironmentPermission.AUTHZ_ENTITIES.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            EnvironmentPermission.AUTHZ_POLICIES.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            EnvironmentPermission.AUTHZ_PDP.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            EnvironmentPermission.AUTHZ_SCHEMA.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            EnvironmentPermission.AUTHZ_SCIM_CONNECTION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            EnvironmentPermission.AUTHZ_SCIM_SYNC.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity DEFAULT_ROLE_API_USER = new NewRoleEntity(
-        "USER",
-        "Default API Role. Created by Gravitee.io.",
-        API,
-        true,
-        Maps.<String, char[]>builder()
-            .put(ApiPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.PLAN.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.SUBSCRIPTION.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.MEMBER.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.METADATA.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.EVENT.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.DOCUMENTATION.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.RATING.getName(), new char[] { CREATE.getId(), READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default API Role. Created by Gravitee.io.",
+            API,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(ApiPermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.PLAN.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.SUBSCRIPTION.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.METADATA.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.EVENT.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.DOCUMENTATION.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.RATING.getName(), new char[] {CREATE.getId(), READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_API_OWNER = new NewRoleEntity(
-        "OWNER",
-        "API Role. Created by Gravitee.io.",
-        API,
-        false,
-        Maps.<String, char[]>builder()
-            .put(ApiPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId() })
-            .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId() })
-            .put(ApiPermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.SUBSCRIPTION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.METADATA.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.ANALYTICS.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.EVENT.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.HEALTH.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.LOG.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.NATIVE_LOG.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.NATIVE_ANALYTICS.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.DOCUMENTATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.AUDIT.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.RATING.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.RATING_ANSWER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.DISCOVERY.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.NOTIFICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiPermission.ALERT.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "OWNER",
+            "API Role. Created by Gravitee.io.",
+            API,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(ApiPermission.DEFINITION.getName(), new char[] {CREATE.getId(), READ.getId(), UPDATE.getId()})
+                    .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] {CREATE.getId(), READ.getId()})
+                    .put(
+                            ApiPermission.PLAN.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.SUBSCRIPTION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.MEMBER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.METADATA.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.ANALYTICS.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.EVENT.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.HEALTH.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.LOG.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(ApiPermission.NATIVE_LOG.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.NATIVE_ANALYTICS.getName(), new char[] {READ.getId()})
+                    .put(
+                            ApiPermission.DOCUMENTATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.AUDIT.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.RATING.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.RATING_ANSWER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.DISCOVERY.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.NOTIFICATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiPermission.ALERT.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_API_REVIEWER = new NewRoleEntity(
-        "REVIEWER",
-        "API Role. Created by Gravitee.io.",
-        API,
-        false,
-        Maps.<String, char[]>builder()
-            .put(ApiPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.PLAN.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.METADATA.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.DOCUMENTATION.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.DISCOVERY.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.NOTIFICATION.getName(), new char[] { READ.getId(), UPDATE.getId() })
-            .put(ApiPermission.ALERT.getName(), new char[] { READ.getId() })
-            .put(ApiPermission.QUALITY_RULE.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId() })
-            .put(ApiPermission.REVIEWS.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "REVIEWER",
+            "API Role. Created by Gravitee.io.",
+            API,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(ApiPermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.PLAN.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.METADATA.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.DOCUMENTATION.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.DISCOVERY.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.NOTIFICATION.getName(), new char[] {READ.getId(), UPDATE.getId()})
+                    .put(ApiPermission.ALERT.getName(), new char[] {READ.getId()})
+                    .put(ApiPermission.QUALITY_RULE.getName(), new char[] {CREATE.getId(), READ.getId(), UPDATE.getId()
+                    })
+                    .put(
+                            ApiPermission.REVIEWS.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity DEFAULT_ROLE_APPLICATION_USER = new NewRoleEntity(
-        "USER",
-        "Default Application Role. Created by Gravitee.io.",
-        APPLICATION,
-        true,
-        Maps.<String, char[]>builder()
-            .put(ApplicationPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(ApplicationPermission.MEMBER.getName(), new char[] { READ.getId() })
-            .put(ApplicationPermission.ANALYTICS.getName(), new char[] { READ.getId() })
-            .put(ApplicationPermission.LOG.getName(), new char[] { READ.getId() })
-            .put(ApplicationPermission.SUBSCRIPTION.getName(), new char[] { CREATE.getId(), READ.getId() })
-            .put(ApplicationPermission.METADATA.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default Application Role. Created by Gravitee.io.",
+            APPLICATION,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(ApplicationPermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(ApplicationPermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .put(ApplicationPermission.ANALYTICS.getName(), new char[] {READ.getId()})
+                    .put(ApplicationPermission.LOG.getName(), new char[] {READ.getId()})
+                    .put(ApplicationPermission.SUBSCRIPTION.getName(), new char[] {CREATE.getId(), READ.getId()})
+                    .put(ApplicationPermission.METADATA.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_APPLICATION_OWNER = new NewRoleEntity(
-        "OWNER",
-        "Application Role. Created by Gravitee.io.",
-        APPLICATION,
-        false,
-        Maps.<String, char[]>builder()
-            .put(ApplicationPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApplicationPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApplicationPermission.ANALYTICS.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApplicationPermission.LOG.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApplicationPermission.SUBSCRIPTION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApplicationPermission.NOTIFICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApplicationPermission.ALERT.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApplicationPermission.METADATA.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "OWNER",
+            "Application Role. Created by Gravitee.io.",
+            APPLICATION,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            ApplicationPermission.DEFINITION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApplicationPermission.MEMBER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApplicationPermission.ANALYTICS.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApplicationPermission.LOG.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApplicationPermission.SUBSCRIPTION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApplicationPermission.NOTIFICATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApplicationPermission.ALERT.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApplicationPermission.METADATA.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_INTEGRATION_OWNER = new NewRoleEntity(
-        "OWNER",
-        "Integration Role. Created by Gravitee.io.",
-        INTEGRATION,
-        false,
-        Maps.<String, char[]>builder()
-            .put(IntegrationPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(IntegrationPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "OWNER",
+            "Integration Role. Created by Gravitee.io.",
+            INTEGRATION,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            IntegrationPermission.DEFINITION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            IntegrationPermission.MEMBER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_INTEGRATION_USER = new NewRoleEntity(
-        "USER",
-        "Default Integration Role. Created by Gravitee.io.",
-        INTEGRATION,
-        true,
-        Maps.<String, char[]>builder()
-            .put(IntegrationPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(IntegrationPermission.MEMBER.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default Integration Role. Created by Gravitee.io.",
+            INTEGRATION,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(IntegrationPermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(IntegrationPermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_AI_CATALOG_OWNER = new NewRoleEntity(
-        "OWNER",
-        "Catalog Role. Created by Gravitee.io.",
-        AI_CATALOG,
-        false,
-        Maps.<String, char[]>builder()
-            .put(AiCatalogPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(AiCatalogPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "OWNER",
+            "Catalog Role. Created by Gravitee.io.",
+            AI_CATALOG,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            AiCatalogPermission.DEFINITION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            AiCatalogPermission.MEMBER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_AI_CATALOG_USER = new NewRoleEntity(
-        "USER",
-        "Default Catalog Role. Created by Gravitee.io.",
-        AI_CATALOG,
-        true,
-        Maps.<String, char[]>builder()
-            .put(AiCatalogPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(AiCatalogPermission.MEMBER.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default Catalog Role. Created by Gravitee.io.",
+            AI_CATALOG,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(AiCatalogPermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(AiCatalogPermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_API_PRODUCT_OWNER = new NewRoleEntity(
-        "OWNER",
-        "API Product Role. Created by Gravitee.io.",
-        API_PRODUCT,
-        false,
-        Maps.<String, char[]>builder()
-            .put(ApiProductPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiProductPermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiProductPermission.NOTIFICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(ApiProductPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "OWNER",
+            "API Product Role. Created by Gravitee.io.",
+            API_PRODUCT,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            ApiProductPermission.DEFINITION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiProductPermission.PLAN.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiProductPermission.SUBSCRIPTION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiProductPermission.NOTIFICATION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            ApiProductPermission.MEMBER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_API_PRODUCT_USER = new NewRoleEntity(
-        "USER",
-        "Default API Product Role. Created by Gravitee.io.",
-        API_PRODUCT,
-        true,
-        Maps.<String, char[]>builder()
-            .put(ApiProductPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(ApiProductPermission.PLAN.getName(), new char[] { READ.getId() })
-            .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] { READ.getId() })
-            .put(ApiProductPermission.NOTIFICATION.getName(), new char[] { READ.getId() })
-            .put(ApiProductPermission.MEMBER.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default API Product Role. Created by Gravitee.io.",
+            API_PRODUCT,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(ApiProductPermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(ApiProductPermission.PLAN.getName(), new char[] {READ.getId()})
+                    .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] {READ.getId()})
+                    .put(ApiProductPermission.NOTIFICATION.getName(), new char[] {READ.getId()})
+                    .put(ApiProductPermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity ROLE_AI_WORKSPACE_OWNER = new NewRoleEntity(
-        "OWNER",
-        "AI Workspace Role. Created by Gravitee.io.",
-        AI_WORKSPACE,
-        false,
-        Maps.<String, char[]>builder()
-            .put(AiWorkspacePermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(AiWorkspacePermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(AiWorkspacePermission.USER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(AiWorkspacePermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .build()
-    );
+            "OWNER",
+            "AI Workspace Role. Created by Gravitee.io.",
+            AI_WORKSPACE,
+            false,
+            Maps.<String, char[]>builder()
+                    .put(
+                            AiWorkspacePermission.DEFINITION.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            AiWorkspacePermission.PLAN.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            AiWorkspacePermission.USER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .put(
+                            AiWorkspacePermission.MEMBER.getName(),
+                            new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                    .build());
 
     NewRoleEntity ROLE_AI_WORKSPACE_USER = new NewRoleEntity(
-        "USER",
-        "Default AI Workspace Role. Created by Gravitee.io.",
-        AI_WORKSPACE,
-        true,
-        Maps.<String, char[]>builder()
-            .put(AiWorkspacePermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(AiWorkspacePermission.PLAN.getName(), new char[] { READ.getId() })
-            .put(AiWorkspacePermission.USER.getName(), new char[] { READ.getId() })
-            .put(AiWorkspacePermission.MEMBER.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default AI Workspace Role. Created by Gravitee.io.",
+            AI_WORKSPACE,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(AiWorkspacePermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(AiWorkspacePermission.PLAN.getName(), new char[] {READ.getId()})
+                    .put(AiWorkspacePermission.USER.getName(), new char[] {READ.getId()})
+                    .put(AiWorkspacePermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity CLUSTER_ROLE_USER = new NewRoleEntity(
-        "USER",
-        "Default Cluster Role. Created by Gravitee.io.",
-        CLUSTER,
-        true,
-        Maps.<String, char[]>builder()
-            .put(ClusterPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(ClusterPermission.MEMBER.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default Cluster Role. Created by Gravitee.io.",
+            CLUSTER,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(ClusterPermission.DEFINITION.getName(), new char[] {READ.getId()})
+                    .put(ClusterPermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity CLUSTER_ROLE_OWNER = new NewRoleEntity(
-        "OWNER",
-        "Default Cluster Role. Created by Gravitee.io.",
-        CLUSTER,
-        false,
-        Arrays.stream(ClusterPermission.values()).collect(
-            toMap(ClusterPermission::getName, cp -> new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-        )
-    );
+            "OWNER",
+            "Default Cluster Role. Created by Gravitee.io.",
+            CLUSTER,
+            false,
+            Arrays.stream(ClusterPermission.values()).collect(toMap(ClusterPermission::getName, cp ->
+                    new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})));
 
     NewRoleEntity EXPLORER_ROLE_USER = new NewRoleEntity(
-        "USER",
-        "Default Explorer Role. Created by Gravitee.io.",
-        EXPLORER,
-        true,
-        Maps.<String, char[]>builder()
-            .put(ExplorerPermission.CONFIGURATION.getName(), new char[] { READ.getId() })
-            .put(ExplorerPermission.MEMBER.getName(), new char[] { READ.getId() })
-            .build()
-    );
+            "USER",
+            "Default Explorer Role. Created by Gravitee.io.",
+            EXPLORER,
+            true,
+            Maps.<String, char[]>builder()
+                    .put(ExplorerPermission.CONFIGURATION.getName(), new char[] {READ.getId()})
+                    .put(ExplorerPermission.MEMBER.getName(), new char[] {READ.getId()})
+                    .build());
 
     NewRoleEntity EXPLORER_ROLE_OWNER = new NewRoleEntity(
-        "OWNER",
-        "Default Explorer Role. Created by Gravitee.io.",
-        EXPLORER,
-        false,
-        Arrays.stream(ExplorerPermission.values()).collect(
-            toMap(ExplorerPermission::getName, ep -> new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-        )
-    );
+            "OWNER",
+            "Default Explorer Role. Created by Gravitee.io.",
+            EXPLORER,
+            false,
+            Arrays.stream(ExplorerPermission.values()).collect(toMap(ExplorerPermission::getName, ep ->
+                    new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})));
 }

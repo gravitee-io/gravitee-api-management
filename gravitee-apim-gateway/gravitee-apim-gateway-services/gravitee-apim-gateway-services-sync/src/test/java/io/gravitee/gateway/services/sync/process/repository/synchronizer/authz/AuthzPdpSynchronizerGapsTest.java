@@ -100,9 +100,11 @@ class AuthzPdpSynchronizerGapsTest {
         lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of("eu")));
         lenient()
-            .when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any()))
-            .thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+                .when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any()))
+                .thenReturn(Completable.complete());
+        lenient()
+                .when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong()))
+                .thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         consumer = registerReplyingConsumer();
@@ -121,53 +123,53 @@ class AuthzPdpSynchronizerGapsTest {
     private AuthzPdpSynchronizer newSynchronizer() {
         NoopDistributedSyncService distributedSyncService = new NoopDistributedSyncService();
         DeployerFactory deployerFactory = org.mockito.Mockito.mock(DeployerFactory.class);
-        lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));
-        lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzPolicyDeployer())
+                .thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzEntityDeployer())
+                .thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
 
         AuthzPolicySynchronizer policySynchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzPolicyMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
 
         AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
-            fetcher,
-            new AuthzSchemaMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzSchemaMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         AuthzEntitySynchronizer entitySynchronizer = new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzEntityMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         hostedScopes = new AuthzHostedScopes();
         revisions = new AuthzAppliedRevisions();
         return new AuthzPdpSynchronizer(
-            fetcher,
-            new AuthzPdpMapper(new ObjectMapper()),
-            schemaSynchronizer,
-            policySynchronizer,
-            entitySynchronizer,
-            node,
-            gatewayConfiguration,
-            vertx,
-            hostedScopes,
-            executor(),
-            executor(),
-            revisions
-        );
+                fetcher,
+                new AuthzPdpMapper(new ObjectMapper()),
+                schemaSynchronizer,
+                policySynchronizer,
+                entitySynchronizer,
+                node,
+                gatewayConfiguration,
+                vertx,
+                hostedScopes,
+                executor(),
+                executor(),
+                revisions);
     }
 
     private static ThreadPoolExecutor executor() {
@@ -175,12 +177,10 @@ class AuthzPdpSynchronizerGapsTest {
     }
 
     private MessageConsumer<JsonObject> registerReplyingConsumer() {
-        return vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                received.add(message.body());
-                message.reply(new JsonObject().put("ok", true));
-            });
+        return vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            received.add(message.body());
+            message.reply(new JsonObject().put("ok", true));
+        });
     }
 
     // ---------------------------------------------------------------------
@@ -208,7 +208,11 @@ class AuthzPdpSynchronizerGapsTest {
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "eu");
         stubPdpFetch(publish);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(gatewayConfiguration, org.mockito.Mockito.atLeastOnce()).shardingTags();
         verify(node, never()).id();
@@ -221,7 +225,11 @@ class AuthzPdpSynchronizerGapsTest {
         Event blankTag = pdpEvent("evt-blank", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "   ");
         stubPdpFetch(blankTag);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(1);
         assertThat(received.peek().getString("op")).isEqualTo("provision");
@@ -229,7 +237,8 @@ class AuthzPdpSynchronizerGapsTest {
     }
 
     @Test
-    void evict_for_a_non_matching_tag_is_dropped_so_a_regional_replica_on_this_node_survives() throws InterruptedException {
+    void evict_for_a_non_matching_tag_is_dropped_so_a_regional_replica_on_this_node_survives()
+            throws InterruptedException {
         // Node carries "eu" (setUp). Deleting the 'us' replica emits unpublishPdp(scope-us, tag=us). The
         // engine is keyed by the bare targetPdpId "scope-us", so relaying that evict on this eu node would
         // tear down the eu replica's engine that legitimately lives here. The tag gate must DROP a
@@ -237,7 +246,11 @@ class AuthzPdpSynchronizerGapsTest {
         Event evict = pdpEvent("evt-evict", EventType.UNPUBLISH_AUTHZ_PDP, "scope-us", "us");
         stubPdpFetch(evict);
 
-        synchronizer.synchronize(100L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(100L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -251,7 +264,11 @@ class AuthzPdpSynchronizerGapsTest {
         Event blankScope = pdpEvent("evt-x", EventType.PUBLISH_AUTHZ_PDP, "", "eu");
         stubPdpFetch(blankScope);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
         verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any());
@@ -271,32 +288,45 @@ class AuthzPdpSynchronizerGapsTest {
         Event policyB = policyEvent("pol-b", "scope-b@eu");
         Event policyW = policyEvent("pol-w", "*");
 
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(a, b))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policyA, policyB, policyW))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(a, b)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(policyA, policyB, policyW)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("targetPdpId"))
-            .containsExactlyInAnyOrder("scope-a", "scope-b");
+                .extracting(m -> m.getString("targetPdpId"))
+                .containsExactlyInAnyOrder("scope-a", "scope-b");
         assertThat(received).allMatch(m -> "provision".equals(m.getString("op")));
         // relay message carries the environmentId so the engine can compute the runtime key
         assertThat(received).allMatch(m -> "env-pdp".equals(m.getString("environmentId")));
 
         // scope-a hydration: own policy + wildcard, routed under scope-a only, env-namespaced
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-a"), any(), any(), eq(Set.of("scope-a@eu")), anyLong(), any());
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-a@eu")), anyLong(), any());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-b"), any(), any(), eq(Set.of("scope-a@eu")), anyLong(), any());
+        verify(enginePort)
+                .addOrUpdatePolicy(
+                        eq("env-pdp"), eq("pol-a"), any(), any(), eq(Set.of("scope-a@eu")), anyLong(), any());
+        verify(enginePort)
+                .addOrUpdatePolicy(
+                        eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-a@eu")), anyLong(), any());
+        verify(enginePort, never())
+                .addOrUpdatePolicy(any(), eq("pol-b"), any(), any(), eq(Set.of("scope-a@eu")), anyLong(), any());
 
         // scope-b hydration: own policy + wildcard, routed under scope-b only, env-namespaced
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-b"), any(), any(), eq(Set.of("scope-b@eu")), anyLong(), any());
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-b@eu")), anyLong(), any());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-a"), any(), any(), eq(Set.of("scope-b@eu")), anyLong(), any());
+        verify(enginePort)
+                .addOrUpdatePolicy(
+                        eq("env-pdp"), eq("pol-b"), any(), any(), eq(Set.of("scope-b@eu")), anyLong(), any());
+        verify(enginePort)
+                .addOrUpdatePolicy(
+                        eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-b@eu")), anyLong(), any());
+        verify(enginePort, never())
+                .addOrUpdatePolicy(any(), eq("pol-a"), any(), any(), eq(Set.of("scope-b@eu")), anyLong(), any());
 
         // one commit per provisioned scope, per synchronizer (policy + entity backfill)
         verify(enginePort, times(1)).commitScope("env-pdp", "scope-a@eu");
@@ -313,15 +343,18 @@ class AuthzPdpSynchronizerGapsTest {
         Event us = pdpEvent("evt-us", EventType.PUBLISH_AUTHZ_PDP, "scope-us", "us");
         Event policyUs = policyEvent("pol-us", "scope-us@eu");
 
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(us))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policyUs))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(us)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(policyUs)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
         verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any());
@@ -338,11 +371,15 @@ class AuthzPdpSynchronizerGapsTest {
         Event evict = pdpEvent("evt-e", EventType.UNPUBLISH_AUTHZ_PDP, "scope-drop", "eu");
         stubPdpFetch(prov, evict);
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
-            .containsExactlyInAnyOrder("provision:scope-keep", "evict:scope-drop");
+                .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+                .containsExactlyInAnyOrder("provision:scope-keep", "evict:scope-drop");
     }
 
     @Test
@@ -350,11 +387,19 @@ class AuthzPdpSynchronizerGapsTest {
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "eu");
         stubPdpFetch(publish);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
         assertThat(received).hasSize(1);
 
         received.clear();
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(1);
         assertThat(received.peek().getString("targetPdpId")).isEqualTo("scope-1");
@@ -366,7 +411,11 @@ class AuthzPdpSynchronizerGapsTest {
         Event evict = pdpEvent("evt-e", EventType.UNPUBLISH_AUTHZ_PDP, "scope-gone", "eu");
         stubPdpFetch(evict);
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(1);
         assertThat(received.peek().getString("op")).isEqualTo("evict");
@@ -381,18 +430,20 @@ class AuthzPdpSynchronizerGapsTest {
     void hydration_failure_is_swallowed_and_synchronize_still_completes() throws InterruptedException {
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "eu");
         Event policy = policyEvent("pol-1", "scope-1@eu");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(publish))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policy))
-        );
-        when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any())).thenReturn(
-            Completable.error(new RuntimeException("engine down"))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(publish)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(policy)));
+        when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any()))
+                .thenReturn(Completable.error(new RuntimeException("engine down")));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // provision was relayed before hydration failed
         assertThat(received).hasSize(1);
@@ -411,21 +462,25 @@ class AuthzPdpSynchronizerGapsTest {
     void failed_provision_relay_is_re_driven_on_the_next_cycle_and_then_hydrated() throws InterruptedException {
         // Cycle 1: the relay always fails — nothing is hydrated, but the scope must be remembered.
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "PDP service unavailable"));
+        consumer = vertx.eventBus()
+                .consumer(
+                        AuthzPdpSynchronizer.PROVISION_ADDRESS,
+                        message -> message.fail(500, "PDP service unavailable"));
 
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-lost", "eu");
         Event policy = policyEvent("pol-1", "scope-lost@eu");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(publish))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policy))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(publish)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(policy)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Relay failed, so the scope was not yet provisioned/hydrated.
         verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any());
@@ -434,21 +489,27 @@ class AuthzPdpSynchronizerGapsTest {
         // Cycle 2: the PDP service is healthy again and the incremental event window is EMPTY
         // (no new AUTHZ_PDP events). The pending scope must still be re-driven and hydrated.
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                received.add(message.body());
-                message.reply(new JsonObject().put("ok", true));
-            });
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            received.add(message.body());
+            message.reply(new JsonObject().put("ok", true));
+        });
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Re-driven from the pending set: relayed with env, then hydrated.
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
-            .containsExactly("provision:env-pdp:scope-lost");
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-lost@eu")), anyLong(), any());
+                .extracting(
+                        m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
+                .containsExactly("provision:env-pdp:scope-lost");
+        verify(enginePort)
+                .addOrUpdatePolicy(
+                        eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-lost@eu")), anyLong(), any());
         verify(enginePort, times(1)).commitScope("env-pdp", "scope-lost@eu");
     }
 
@@ -457,40 +518,42 @@ class AuthzPdpSynchronizerGapsTest {
         // First scope's relay fails, second scope is published in the same batch.
         // The failure is swallowed per-deployable, so the healthy scope must still be hydrated.
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                JsonObject body = message.body();
-                if ("scope-bad".equals(body.getString("targetPdpId"))) {
-                    message.fail(500, "down");
-                } else {
-                    received.add(body);
-                    message.reply(new JsonObject().put("ok", true));
-                }
-            });
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            JsonObject body = message.body();
+            if ("scope-bad".equals(body.getString("targetPdpId"))) {
+                message.fail(500, "down");
+            } else {
+                received.add(body);
+                message.reply(new JsonObject().put("ok", true));
+            }
+        });
 
         Event bad = pdpEvent("evt-bad", EventType.PUBLISH_AUTHZ_PDP, "scope-bad", "eu");
         Event good = pdpEvent("evt-good", EventType.PUBLISH_AUTHZ_PDP, "scope-good", "eu");
         Event policyGood = policyEvent("pol-good", "scope-good@eu");
         Event policyBad = policyEvent("pol-bad", "scope-bad@eu");
 
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(bad, good))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policyGood, policyBad))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(bad, good)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(policyGood, policyBad)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // healthy scope relayed + hydrated, env-namespaced
-        assertThat(received)
-            .extracting(m -> m.getString("targetPdpId"))
-            .contains("scope-good");
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-good"), any(), any(), eq(Set.of("scope-good@eu")), anyLong(), any());
+        assertThat(received).extracting(m -> m.getString("targetPdpId")).contains("scope-good");
+        verify(enginePort)
+                .addOrUpdatePolicy(
+                        eq("env-pdp"), eq("pol-good"), any(), any(), eq(Set.of("scope-good@eu")), anyLong(), any());
         // failed scope never hydrated (it stays in the pending set, not provisioned this cycle)
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-bad"), any(), any(), eq(Set.of("scope-bad@eu")), anyLong(), any());
+        verify(enginePort, never())
+                .addOrUpdatePolicy(any(), eq("pol-bad"), any(), any(), eq(Set.of("scope-bad@eu")), anyLong(), any());
     }
 
     @Test
@@ -498,41 +561,46 @@ class AuthzPdpSynchronizerGapsTest {
         // Cycle 1: env-A relay fails (kept pending), env-B relay confirms in the same batch.
         // The env-B confirmation must NOT remove env-A's pending entry (runtime-key isolation).
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                if ("env-A".equals(message.body().getString("environmentId"))) {
-                    message.fail(500, "down");
-                } else {
-                    received.add(message.body());
-                    message.reply(new JsonObject().put("ok", true));
-                }
-            });
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            if ("env-A".equals(message.body().getString("environmentId"))) {
+                message.fail(500, "down");
+            } else {
+                received.add(message.body());
+                message.reply(new JsonObject().put("ok", true));
+            }
+        });
 
         Event publishEnvA = pdpEvent("evt-a", EventType.PUBLISH_AUTHZ_PDP, "scope-x", "eu", "env-A");
         Event publishEnvB = pdpEvent("evt-b", EventType.PUBLISH_AUTHZ_PDP, "scope-x", "eu", "env-B");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(publishEnvA, publishEnvB))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(publishEnvA, publishEnvB)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-A", "env-B")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-A", "env-B"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Cycle 2: window empty, all relays healthy. env-A must still be re-driven from pending.
         received.clear();
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                received.add(message.body());
-                message.reply(new JsonObject().put("ok", true));
-            });
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            received.add(message.body());
+            message.reply(new JsonObject().put("ok", true));
+        });
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-A", "env-B")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-A", "env-B"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
-            .containsExactly("provision:env-A:scope-x");
+                .extracting(
+                        m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
+                .containsExactly("provision:env-A:scope-x");
     }
 
     // ---------------------------------------------------------------------
@@ -546,29 +614,44 @@ class AuthzPdpSynchronizerGapsTest {
     void unpublish_clears_a_pending_provision_so_it_is_not_resurrected() throws InterruptedException {
         // Cycle 1: provision relay always fails -> scope remembered as pending.
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "PDP service unavailable"));
+        consumer = vertx.eventBus()
+                .consumer(
+                        AuthzPdpSynchronizer.PROVISION_ADDRESS,
+                        message -> message.fail(500, "PDP service unavailable"));
 
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-z", "eu");
         stubPdpFetch(publish);
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Cycle 2: the scope is UNPUBLISHED. The evict relay ALSO fails this cycle — the pending
         // provision must still be cleared (evict wins) so it cannot be resurrected later.
         Event unpublish = pdpEvent("evt-u", EventType.UNPUBLISH_AUTHZ_PDP, "scope-z", "eu");
         stubPdpFetch(unpublish);
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
         received.clear();
 
         // Cycle 3: empty window, PDP service healthy. The evicted scope must NOT be resurrected
         // from the pending-provision set.
         consumer.unregister();
         consumer = registerReplyingConsumer();
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
-        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        synchronizer
+                .synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        assertThat(received).noneMatch(m -> "provision".equals(m.getString("op")) && "scope-z".equals(m.getString("targetPdpId")));
+        assertThat(received)
+                .noneMatch(m -> "provision".equals(m.getString("op")) && "scope-z".equals(m.getString("targetPdpId")));
     }
 
     // ---------------------------------------------------------------------
@@ -581,22 +664,33 @@ class AuthzPdpSynchronizerGapsTest {
     void failed_evict_relay_is_re_driven_on_the_next_cycle() throws InterruptedException {
         // Cycle 1: evict relay fails.
         consumer.unregister();
-        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        consumer =
+                vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
 
         Event unpublish = pdpEvent("evt-u", EventType.UNPUBLISH_AUTHZ_PDP, "scope-evict", "eu");
         stubPdpFetch(unpublish);
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Cycle 2: PDP service healthy, AUTHZ_PDP window empty. The evict must be re-sent.
         consumer.unregister();
         consumer = registerReplyingConsumer();
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
-            .containsExactly("evict:env-pdp:scope-evict");
+                .extracting(
+                        m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
+                .containsExactly("evict:env-pdp:scope-evict");
     }
 
     // ---------------------------------------------------------------------
@@ -608,23 +702,31 @@ class AuthzPdpSynchronizerGapsTest {
     void failed_hydration_is_retried_on_the_next_cycle() throws InterruptedException {
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-h", "eu");
         Event policy = policyEvent("pol-h", "scope-h@eu");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(publish))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policy))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(publish)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(policy)));
         // Cycle 1: the commit fails -> hydration must be remembered as pending.
         when(enginePort.commitScope(any(), any())).thenReturn(Completable.error(new RuntimeException("engine down")));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Cycle 2: AUTHZ_PDP window empty, engine healthy. The pending hydration must be re-driven.
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.empty());
         when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
 
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The scope was hydrated again on cycle 2 and finally committed.
         // A scope is sealed once, after schema, policies and entities have all been staged, so each cycle
@@ -632,15 +734,9 @@ class AuthzPdpSynchronizerGapsTest {
         // cycle 2 repeats the staging and the commit succeeds. Two cycles, two commits, two policy stages.
         // Note the trade-off this makes explicit: committing once per scope means a dead engine is now
         // discovered after the staging calls rather than at the first aggregate boundary.
-        verify(enginePort, times(2)).addOrUpdatePolicy(
-            eq("env-pdp"),
-            eq("pol-h"),
-            any(),
-            any(),
-            eq(Set.of("scope-h@eu")),
-            anyLong(),
-            any()
-        );
+        verify(enginePort, times(2))
+                .addOrUpdatePolicy(
+                        eq("env-pdp"), eq("pol-h"), any(), any(), eq(Set.of("scope-h@eu")), anyLong(), any());
         verify(enginePort, times(2)).commitScope("env-pdp", "scope-h@eu");
     }
 
@@ -653,25 +749,39 @@ class AuthzPdpSynchronizerGapsTest {
     @Test
     void a_permanently_failing_pending_provision_stops_retrying_after_max_attempts() throws InterruptedException {
         consumer.unregister();
-        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        consumer =
+                vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
 
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-dead", "eu");
         stubPdpFetch(publish);
 
         // Cycle 1: initial relay fails -> pending. This is the first attempt.
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Subsequent cycles only ever re-drive from the pending set (window empty).
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.empty());
         for (int i = 0; i < AuthzPdpSynchronizer.MAX_PENDING_ATTEMPTS + 2; i++) {
-            synchronizer.synchronize((long) (i + 1), Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+            synchronizer
+                    .synchronize((long) (i + 1), Instant.now().toEpochMilli(), Set.of("env-1"))
+                    .test()
+                    .await()
+                    .assertComplete();
         }
 
         // Now register a healthy consumer and run one more cycle. The scope must have been abandoned,
         // so nothing is relayed any more.
         consumer.unregister();
         consumer = registerReplyingConsumer();
-        synchronizer.synchronize(999L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(999L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -679,20 +789,30 @@ class AuthzPdpSynchronizerGapsTest {
     @Test
     void a_pending_provision_is_dropped_when_its_tag_no_longer_matches_this_node() throws InterruptedException {
         consumer.unregister();
-        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        consumer =
+                vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
 
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-retag", "eu");
         stubPdpFetch(publish);
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The node is re-sharded: it no longer carries the "eu" tag, so the pending provision must be
         // dropped, not re-driven, even though the relay would now succeed.
         when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of("us")));
         consumer.unregister();
         consumer = registerReplyingConsumer();
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -708,7 +828,11 @@ class AuthzPdpSynchronizerGapsTest {
         revisions.markApplied("env-pdp", "stock@us", "pol-1", 100L);
 
         stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).noneMatch(m -> "evict".equals(m.getString("op")));
         assertThat(hostedScopes.serves("env-pdp", "stock@eu")).isTrue();
@@ -718,11 +842,16 @@ class AuthzPdpSynchronizerGapsTest {
     }
 
     @Test
-    void deleting_both_regional_replicas_on_an_untagged_node_evicts_the_engine_after_the_last_delete() throws InterruptedException {
+    void deleting_both_regional_replicas_on_an_untagged_node_evicts_the_engine_after_the_last_delete()
+            throws InterruptedException {
         provisionBothStockReplicasOnAnUntaggedNode();
 
         stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
         assertThat(received).isEmpty();
 
         // The resync window re-delivers the stock@us UNPUBLISH next to the new stock@eu one, so both rails
@@ -730,15 +859,18 @@ class AuthzPdpSynchronizerGapsTest {
         // bucket left relays one too — harmless, because the PDP's own removal is idempotent. What the
         // gateway guarantees is that the engine ends up evicted, not that exactly one command says so.
         stubPdpFetch(
-            pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
-            pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu")
-        );
-        synchronizer.synchronize(3L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+                pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
+                pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer
+                .synchronize(3L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .isNotEmpty()
-            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
-            .containsOnly("evict:stock");
+                .isNotEmpty()
+                .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+                .containsOnly("evict:stock");
         assertThat(hostedScopes.hostedFor("env-pdp")).isEmpty();
     }
 
@@ -747,14 +879,17 @@ class AuthzPdpSynchronizerGapsTest {
         provisionBothStockReplicasOnAnUntaggedNode();
 
         stubPdpFetch(
-            pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
-            pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu")
-        );
-        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+                pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
+                pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer
+                .synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
-            .containsExactly("evict:stock");
+                .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+                .containsExactly("evict:stock");
         assertThat(hostedScopes.hostedFor("env-pdp")).isEmpty();
     }
 
@@ -762,40 +897,62 @@ class AuthzPdpSynchronizerGapsTest {
     void a_pending_provision_of_one_replica_survives_the_confirmed_evict_of_the_other() throws InterruptedException {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The stock@eu provision relay fails, so stock@eu stays pending and is not hosted.
         consumer.unregister();
-        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        consumer =
+                vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
         stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         // stock@us is the last hosted scope on the engine, so its delete relays an evict that confirms.
         consumer.unregister();
         consumer = registerReplyingConsumer();
         received.clear();
         stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
-            .containsExactly("evict:stock", "provision:stock");
+                .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+                .containsExactly("evict:stock", "provision:stock");
         assertThat(hostedScopes.hostedFor("env-pdp")).containsExactly("stock@eu");
     }
 
     @Test
     void a_second_tag_variant_on_an_untagged_node_is_hydrated() throws InterruptedException {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policyEvent("pol-eu", "stock@eu"), policyEvent("pol-us", "stock@us")))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(
+                        Flowable.just(List.of(policyEvent("pol-eu", "stock@eu"), policyEvent("pol-us", "stock@us"))));
         stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-us"), any(), any(), eq(Set.of("stock@us")), anyLong(), any());
+        verify(enginePort)
+                .addOrUpdatePolicy(eq("env-pdp"), eq("pol-us"), any(), any(), eq(Set.of("stock@us")), anyLong(), any());
         verify(enginePort).commitScope("env-pdp", "stock@us");
     }
 
@@ -804,19 +961,26 @@ class AuthzPdpSynchronizerGapsTest {
         // A re-tag arrives as a delete plus a recreate in one batch.
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
         revisions.markApplied("env-pdp", "stock@us", "pol-1", 100L);
         received.clear();
 
         stubPdpFetch(
-            pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
-            pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu")
-        );
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+                pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
+                pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
-            .containsExactly("provision:stock");
+                .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+                .containsExactly("provision:stock");
         assertThat(hostedScopes.hostedFor("env-pdp")).containsExactly("stock@eu");
         assertThat(revisions.shouldApply("env-pdp", "stock@us", "pol-1", 100L)).isTrue();
     }
@@ -825,13 +989,22 @@ class AuthzPdpSynchronizerGapsTest {
     void a_failed_evict_relay_keeps_the_scope_routable_and_drops_its_revision_marks() throws InterruptedException {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
         revisions.markApplied("env-pdp", "stock@eu", "pol-1", 100L);
 
         consumer.unregister();
-        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        consumer =
+                vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
         stubPdpFetch(pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The engine may well still be alive, so the scope has to stay routable: otherwise serves() gates
         // out the cascade's own removals and the engine serves documents that moved away until a restart.
@@ -843,16 +1016,24 @@ class AuthzPdpSynchronizerGapsTest {
     @Test
     void a_pdp_re_created_after_a_failed_evict_relay_is_hydrated() throws InterruptedException {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(policyEvent("pol-eu", "stock@eu")))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(policyEvent("pol-eu", "stock@eu"))));
         stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         consumer.unregister();
-        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        consumer =
+                vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
         stubPdpFetch(pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Re-created inside the resync window: the batch carries the re-delivered UNPUBLISH and the new
         // PUBLISH. The scope is marked hosted again by the failed evict, so only the unconfirmed evict tells
@@ -860,25 +1041,39 @@ class AuthzPdpSynchronizerGapsTest {
         consumer.unregister();
         consumer = registerReplyingConsumer();
         stubPdpFetch(
-            pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"),
-            pdpEvent("pdp-eu-2", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu")
-        );
-        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+                pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"),
+                pdpEvent("pdp-eu-2", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer
+                .synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
-        verify(enginePort, times(2)).addOrUpdatePolicy(eq("env-pdp"), eq("pol-eu"), any(), any(), eq(Set.of("stock@eu")), anyLong(), any());
+        verify(enginePort, times(2))
+                .addOrUpdatePolicy(eq("env-pdp"), eq("pol-eu"), any(), any(), eq(Set.of("stock@eu")), anyLong(), any());
         verify(enginePort, times(2)).commitScope("env-pdp", "stock@eu");
     }
 
     @Test
-    void a_pending_evict_is_absorbed_when_a_sibling_replica_is_provisioned_before_it_re_drives() throws InterruptedException {
+    void a_pending_evict_is_absorbed_when_a_sibling_replica_is_provisioned_before_it_re_drives()
+            throws InterruptedException {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         consumer.unregister();
-        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        consumer =
+                vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
         stubPdpFetch(pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         // stock@us is provisioned before the pending evict re-drives, so the re-drive must find the sibling
         // and drop the evict instead of tearing down the engine stock@us now needs.
@@ -886,20 +1081,32 @@ class AuthzPdpSynchronizerGapsTest {
         consumer = registerReplyingConsumer();
         received.clear();
         stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received)
-            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
-            .containsExactly("provision:stock");
+                .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+                .containsExactly("provision:stock");
         assertThat(hostedScopes.hostedFor("env-pdp")).containsExactly("stock@us");
     }
 
     private void provisionBothStockReplicasOnAnUntaggedNode() throws InterruptedException {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
         stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp"))
+                .test()
+                .await()
+                .assertComplete();
         assertThat(hostedScopes.hostedFor("env-pdp")).containsExactlyInAnyOrder("stock@eu", "stock@us");
         received.clear();
     }
@@ -909,9 +1116,8 @@ class AuthzPdpSynchronizerGapsTest {
     // ---------------------------------------------------------------------
 
     private void stubPdpFetch(Event... events) {
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(events))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(events)));
     }
 
     private static Event pdpEvent(String id, EventType type, String targetPdpId, String tag) {
@@ -935,16 +1141,14 @@ class AuthzPdpSynchronizerGapsTest {
         Event event = new Event();
         event.setId(docId);
         event.setType(EventType.PUBLISH_AUTHZ_POLICY);
-        event.setPayload(
-            new JsonObject()
+        event.setPayload(new JsonObject()
                 .put("id", docId)
                 .put("name", docId)
                 .put("kind", "GLOBAL")
                 .put("policyText", "permit();")
                 .put("environmentId", "env-pdp")
                 .put("targetPdpIds", List.of(targetPdpId))
-                .encode()
-        );
+                .encode());
         return event;
     }
 }

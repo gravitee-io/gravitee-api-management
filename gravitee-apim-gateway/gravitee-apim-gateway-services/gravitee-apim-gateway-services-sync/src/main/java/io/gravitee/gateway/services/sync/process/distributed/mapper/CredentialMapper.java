@@ -43,30 +43,30 @@ public class CredentialMapper {
             try {
                 SyncAction syncAction = SyncActionMapper.to(event.getSyncAction());
                 if (syncAction == SyncAction.UNDEPLOY) {
-                    return CredentialDeployable.builder().credentialId(event.getId()).syncAction(SyncAction.UNDEPLOY).build();
+                    return CredentialDeployable.builder()
+                            .credentialId(event.getId())
+                            .syncAction(SyncAction.UNDEPLOY)
+                            .build();
                 }
                 Payload payload = objectMapper.readValue(event.getPayload(), Payload.class);
-                if (
-                    isBlank(payload.id()) ||
-                    isBlank(payload.environmentId()) ||
-                    isBlank(payload.organizationId()) ||
-                    isBlank(payload.encryptedSecret())
-                ) {
+                if (isBlank(payload.id())
+                        || isBlank(payload.environmentId())
+                        || isBlank(payload.organizationId())
+                        || isBlank(payload.encryptedSecret())) {
                     log.warn(
-                        "Skipping distributed credential event [{}] — missing id, environmentId, organizationId, or encryptedSecret",
-                        event.getId()
-                    );
+                            "Skipping distributed credential event [{}] — missing id, environmentId, organizationId, or encryptedSecret",
+                            event.getId());
                     return null;
                 }
                 return CredentialDeployable.builder()
-                    .credentialId(payload.id())
-                    .environmentId(payload.environmentId())
-                    .organizationId(payload.organizationId())
-                    .allowedApiIds(payload.allowedApiIds() == null ? Set.of() : Set.copyOf(payload.allowedApiIds()))
-                    .encryptedSecret(payload.encryptedSecret())
-                    .updatedAt(payload.updatedAt())
-                    .syncAction(syncAction)
-                    .build();
+                        .credentialId(payload.id())
+                        .environmentId(payload.environmentId())
+                        .organizationId(payload.organizationId())
+                        .allowedApiIds(payload.allowedApiIds() == null ? Set.of() : Set.copyOf(payload.allowedApiIds()))
+                        .encryptedSecret(payload.encryptedSecret())
+                        .updatedAt(payload.updatedAt())
+                        .syncAction(syncAction)
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while reading credential from distributed event [{}]", event.getId(), e);
                 return null;
@@ -78,23 +78,18 @@ public class CredentialMapper {
         return Maybe.fromCallable(() -> {
             try {
                 DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
-                    .id(deployable.credentialId())
-                    .type(DistributedEventType.CREDENTIAL)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date());
+                        .id(deployable.credentialId())
+                        .type(DistributedEventType.CREDENTIAL)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date());
                 if (deployable.syncAction() == SyncAction.DEPLOY) {
-                    builder.payload(
-                        objectMapper.writeValueAsString(
-                            new Payload(
-                                deployable.credentialId(),
-                                deployable.environmentId(),
-                                deployable.organizationId(),
-                                deployable.allowedApiIds(),
-                                deployable.encryptedSecret(),
-                                deployable.updatedAt()
-                            )
-                        )
-                    );
+                    builder.payload(objectMapper.writeValueAsString(new Payload(
+                            deployable.credentialId(),
+                            deployable.environmentId(),
+                            deployable.organizationId(),
+                            deployable.allowedApiIds(),
+                            deployable.encryptedSecret(),
+                            deployable.updatedAt())));
                 }
                 return builder.build();
             } catch (Exception e) {
@@ -109,11 +104,10 @@ public class CredentialMapper {
     }
 
     record Payload(
-        String id,
-        String environmentId,
-        String organizationId,
-        Set<String> allowedApiIds,
-        String encryptedSecret,
-        long updatedAt
-    ) {}
+            String id,
+            String environmentId,
+            String organizationId,
+            Set<String> allowedApiIds,
+            String encryptedSecret,
+            long updatedAt) {}
 }

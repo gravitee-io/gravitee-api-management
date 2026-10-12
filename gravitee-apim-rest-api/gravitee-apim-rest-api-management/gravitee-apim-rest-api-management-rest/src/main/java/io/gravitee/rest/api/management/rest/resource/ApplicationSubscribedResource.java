@@ -60,19 +60,17 @@ public class ApplicationSubscribedResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List APIs and API Products subscribed by the application",
-        description = "User must have the APPLICATION_SUBSCRIPTION permission to use this service"
-    )
+            summary = "List APIs and API Products subscribed by the application",
+            description = "User must have the APPLICATION_SUBSCRIPTION permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of subscribed APIs and API Products (id and name)",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = SubscribedReference.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of subscribed APIs and API Products (id and name)",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = SubscribedReference.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)})
     public Collection<SubscribedReference> getSubscribedApisAndProducts() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         return subscriptionService.getSubscribedReferences(executionContext, application);

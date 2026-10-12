@@ -51,12 +51,11 @@ public class ApiTagServiceImpl implements ApiTagService {
     private final AuditService auditService;
 
     public ApiTagServiceImpl(
-        @Lazy final ApiRepository apiRepository,
-        final EnvironmentService environmentService,
-        final ObjectMapper objectMapper,
-        final ApiNotificationService apiNotificationService,
-        final AuditService auditService
-    ) {
+            @Lazy final ApiRepository apiRepository,
+            final EnvironmentService environmentService,
+            final ObjectMapper objectMapper,
+            final ApiNotificationService apiNotificationService,
+            final AuditService auditService) {
         this.apiRepository = apiRepository;
         this.environmentService = environmentService;
         this.objectMapper = objectMapper;
@@ -66,74 +65,65 @@ public class ApiTagServiceImpl implements ApiTagService {
 
     @Override
     public void deleteTagFromAPIs(ExecutionContext executionContext, final String tagId) {
-        environmentService
-            .findByOrganization(executionContext.getOrganizationId())
-            .stream()
-            .map(ExecutionContext::new)
-            .flatMap(env ->
-                apiRepository.search(
-                    new ApiCriteria.Builder().environmentId(env.getEnvironmentId()).build(),
-                    null,
-                    ApiFieldFilter.allFields()
-                )
-            )
-            .forEach(api -> removeTag(executionContext, api, tagId));
+        environmentService.findByOrganization(executionContext.getOrganizationId()).stream()
+                .map(ExecutionContext::new)
+                .flatMap(env -> apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId(env.getEnvironmentId())
+                                .build(),
+                        null,
+                        ApiFieldFilter.allFields()))
+                .forEach(api -> removeTag(executionContext, api, tagId));
     }
 
-    private void removeTag(ExecutionContext executionContext, Api api, String tagId) throws TechnicalManagementException {
+    private void removeTag(ExecutionContext executionContext, Api api, String tagId)
+            throws TechnicalManagementException {
         // Skip if API is federated or has origin Kubernetes
-        if (
-            api.getDefinitionVersion() == DefinitionVersion.FEDERATED ||
-            api.getDefinitionVersion() == DefinitionVersion.FEDERATED_AGENT ||
-            Api.ORIGIN_KUBERNETES.equals(api.getOrigin())
-        ) {
+        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED
+                || api.getDefinitionVersion() == DefinitionVersion.FEDERATED_AGENT
+                || Api.ORIGIN_KUBERNETES.equals(api.getOrigin())) {
             log.debug("Skipping tag removal for API: {}", api.getId());
             return;
         }
         log.debug(
-            "Starting tag removal process for API: {}, tag: '{}', definition version: {}",
-            api.getId(),
-            tagId,
-            api.getDefinitionVersion()
-        );
+                "Starting tag removal process for API: {}, tag: '{}', definition version: {}",
+                api.getId(),
+                tagId,
+                api.getDefinitionVersion());
         try {
             Api previousApi = new Api(api);
             Api updated = null;
             Map<Audit.AuditProperties, String> auditProperties = emptyMap();
             if (api.getDefinitionVersion() != DefinitionVersion.V4) {
-                final io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                    api.getDefinition(),
-                    io.gravitee.definition.model.Api.class
-                );
+                final io.gravitee.definition.model.Api apiDefinition =
+                        objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
                 if (apiDefinition.getTags().remove(tagId)) {
                     api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                     updated = apiRepository.update(api);
                 }
             } else {
-                final io.gravitee.definition.model.v4.AbstractApi apiDefinition = objectMapper.readValue(
-                    api.getDefinition(),
-                    io.gravitee.definition.model.v4.AbstractApi.class
-                );
+                final io.gravitee.definition.model.v4.AbstractApi apiDefinition =
+                        objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class);
                 if (apiDefinition.getTags().remove(tagId)) {
                     api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                     updated = apiRepository.update(api);
-                    auditProperties = EncryptedPropertyAuditProperties.of(apiDefinition.getProperties(), apiDefinition.getProperties());
+                    auditProperties = EncryptedPropertyAuditProperties.of(
+                            apiDefinition.getProperties(), apiDefinition.getProperties());
                     log.debug("API '{}' updated successfully after removing tag '{}'", api.getId(), tagId);
                 }
             }
             if (updated != null) {
                 apiNotificationService.triggerUpdateNotification(executionContext, api);
                 auditService.createApiAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(auditProperties)
-                        .event(API_UPDATED)
-                        .createdAt(api.getUpdatedAt())
-                        .oldValue(previousApi)
-                        .newValue(updated)
-                        .build(),
-                    api.getId()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(auditProperties)
+                                .event(API_UPDATED)
+                                .createdAt(api.getUpdatedAt())
+                                .oldValue(previousApi)
+                                .newValue(updated)
+                                .build(),
+                        api.getId());
                 log.debug("API update notification and audit log triggered for API: {}", api.getId());
             }
         } catch (Exception ex) {

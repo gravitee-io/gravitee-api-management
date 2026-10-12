@@ -61,7 +61,8 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
             }
 
             if (criteria.getStatuses() != null) {
-                List<String> statusNames = criteria.getStatuses().stream().map(Enum::name).collect(Collectors.toList());
+                List<String> statusNames =
+                        criteria.getStatuses().stream().map(Enum::name).collect(Collectors.toList());
                 query.addCriteria(where("status").in(statusNames));
             }
 
@@ -75,12 +76,9 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
         }
 
         if (sortable != null && isNotEmpty(sortable.field())) {
-            query.with(
-                Sort.by(
+            query.with(Sort.by(
                     sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
-                    FieldUtils.toCamelCase(sortable.field())
-                )
-            );
+                    FieldUtils.toCamelCase(sortable.field())));
         }
 
         // Keep the count before adding pagination param to ensure the result is correct

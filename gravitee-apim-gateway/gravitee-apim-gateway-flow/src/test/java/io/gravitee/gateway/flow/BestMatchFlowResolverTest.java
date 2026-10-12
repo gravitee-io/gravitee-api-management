@@ -46,11 +46,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     @ParameterizedTest
     @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
     public void shouldResolveBestMatchFlowApiResolver(
-        List<String> flowPaths,
-        Operator operator,
-        String expectedBestMatchResult,
-        String requestPath
-    ) {
+            List<String> flowPaths, Operator operator, String expectedBestMatchResult, String requestPath) {
         initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
         init();
 

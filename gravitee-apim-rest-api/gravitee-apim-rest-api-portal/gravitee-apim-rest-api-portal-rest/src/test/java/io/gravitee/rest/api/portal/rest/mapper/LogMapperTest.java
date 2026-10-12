@@ -52,7 +52,7 @@ public class LogMapperTest {
 
     @Test
     public void testConvertListItem() {
-        //init
+        // init
         ApplicationRequestItem applicationRequestItem = new ApplicationRequestItem();
         applicationRequestItem.setApi(LOG_API);
         applicationRequestItem.setId(LOG_ID);
@@ -65,7 +65,7 @@ public class LogMapperTest {
         applicationRequestItem.setTransactionId(LOG_TRANSACTION);
         applicationRequestItem.setUser(LOG_USER);
 
-        //Test
+        // Test
         Log log = logMapper.convert(applicationRequestItem);
         assertNotNull(log);
 
@@ -92,7 +92,7 @@ public class LogMapperTest {
 
     @Test
     public void testConvertFull() {
-        //init
+        // init
         ApplicationRequest applicationRequest = new ApplicationRequest();
         applicationRequest.setApi(LOG_API);
         applicationRequest.setHost(LOG_HOST);
@@ -137,7 +137,7 @@ public class LogMapperTest {
         applicationRequest.setTransactionId(LOG_TRANSACTION);
         applicationRequest.setUser(LOG_USER);
 
-        //Test
+        // Test
         Log log = logMapper.convert(applicationRequest);
         assertNotNull(log);
 

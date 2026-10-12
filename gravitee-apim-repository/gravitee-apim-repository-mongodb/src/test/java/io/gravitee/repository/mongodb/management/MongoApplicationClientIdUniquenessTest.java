@@ -45,9 +45,9 @@ public class MongoApplicationClientIdUniquenessTest extends AbstractManagementRe
 
     @Test
     public void should_not_create_two_active_applications_with_same_client_id_in_same_environment() {
-        assertThatThrownBy(() -> applicationRepository.create(anApplicationWithClientId("duplicate", "PROD", "my-client-id"))).isInstanceOf(
-            DuplicateKeyException.class
-        );
+        assertThatThrownBy(() ->
+                        applicationRepository.create(anApplicationWithClientId("duplicate", "PROD", "my-client-id")))
+                .isInstanceOf(DuplicateKeyException.class);
     }
 
     @Test
@@ -66,7 +66,8 @@ public class MongoApplicationClientIdUniquenessTest extends AbstractManagementRe
 
     @Test
     public void should_not_update_an_application_to_use_an_existing_client_id() throws Exception {
-        Application application = applicationRepository.create(anApplicationWithClientId("to-be-updated", "PROD", "its-own-client-id"));
+        Application application =
+                applicationRepository.create(anApplicationWithClientId("to-be-updated", "PROD", "its-own-client-id"));
         application.getMetadata().put(METADATA_CLIENT_ID, "my-client-id");
 
         assertThatThrownBy(() -> applicationRepository.update(application)).isInstanceOf(DuplicateKeyException.class);
@@ -74,7 +75,8 @@ public class MongoApplicationClientIdUniquenessTest extends AbstractManagementRe
 
     @Test
     public void should_update_an_application_keeping_its_own_client_id() throws Exception {
-        Application application = applicationRepository.create(anApplicationWithClientId("keeping-client-id", "PROD", "kept-client-id"));
+        Application application =
+                applicationRepository.create(anApplicationWithClientId("keeping-client-id", "PROD", "kept-client-id"));
         application.setName("renamed");
 
         Application updated = applicationRepository.update(application);
@@ -85,7 +87,8 @@ public class MongoApplicationClientIdUniquenessTest extends AbstractManagementRe
 
     @Test
     public void should_release_client_id_when_application_is_archived() throws Exception {
-        Application application = applicationRepository.findById("app-with-client-id").orElseThrow();
+        Application application =
+                applicationRepository.findById("app-with-client-id").orElseThrow();
         application.setStatus(ApplicationStatus.ARCHIVED);
         applicationRepository.update(application);
 

@@ -51,7 +51,6 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -136,7 +135,6 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -152,7 +150,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
@@ -247,9 +244,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
 
             if (executionContext.hasEnvironmentId()) {
-                applicationOptional = applicationOptional.filter(result ->
-                    result.getEnvironmentId().equals(executionContext.getEnvironmentId())
-                );
+                applicationOptional = applicationOptional.filter(
+                        result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
             }
 
             if (applicationOptional.isPresent()) {
@@ -258,7 +254,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             throw new ApplicationNotFoundException(applicationId);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find an application using its ID " + applicationId, ex);
         }
     }
 
@@ -269,10 +266,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<ApplicationListItem> findByIdsAndStatus(
-        final ExecutionContext executionContext,
-        Collection<String> applicationIds,
-        ApplicationStatus applicationStatus
-    ) {
+            final ExecutionContext executionContext,
+            Collection<String> applicationIds,
+            ApplicationStatus applicationStatus) {
         try {
             log.debug("Find application by IDs: {}", applicationIds);
 
@@ -280,9 +276,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return Collections.emptySet();
             }
 
-            ApplicationCriteria.ApplicationCriteriaBuilder criteriaBuilder = ApplicationCriteria.builder().restrictedToIds(
-                new HashSet<>(applicationIds)
-            );
+            ApplicationCriteria.ApplicationCriteriaBuilder criteriaBuilder =
+                    ApplicationCriteria.builder().restrictedToIds(new HashSet<>(applicationIds));
 
             if (applicationStatus != null) {
                 criteriaBuilder.status(applicationStatus);
@@ -299,7 +294,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             return this.convertToList(executionContext, applications.getContent());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find applications by ids {}" + applicationIds, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find applications by ids {}" + applicationIds, ex);
         }
     }
 
@@ -317,37 +313,32 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<String> findIdsByUserAndPermission(
-        ExecutionContext executionContext,
-        String username,
-        Sortable sortable,
-        RolePermission rolePermission,
-        RolePermissionAction... acl
-    ) {
+            ExecutionContext executionContext,
+            String username,
+            Sortable sortable,
+            RolePermission rolePermission,
+            RolePermissionAction... acl) {
         log.debug("Find applicationIds for user and permission {}, {}, {}", username, rolePermission, acl);
-        ApplicationQuery applicationQuery = buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
+        ApplicationQuery applicationQuery =
+                buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
         applicationQuery.setExcludeFilters(Arrays.asList(ApplicationExcludeFilter.OWNER));
         return searchIds(executionContext, applicationQuery, sortable);
     }
 
     private ApplicationQuery buildApplicationQueryForUserAndPermission(
-        ExecutionContext executionContext,
-        RolePermission rolePermission,
-        RolePermissionAction[] acl,
-        String username
-    ) {
-        List<String> roleIdsWithPermission = roleService
-            .findAllByOrganization(executionContext.getOrganizationId())
-            .stream()
-            .filter(roleEntity -> roleService.hasPermission(roleEntity.getPermissions(), rolePermission.getPermission(), acl))
-            .map(RoleEntity::getId)
-            .toList();
+            ExecutionContext executionContext,
+            RolePermission rolePermission,
+            RolePermissionAction[] acl,
+            String username) {
+        List<String> roleIdsWithPermission =
+                roleService.findAllByOrganization(executionContext.getOrganizationId()).stream()
+                        .filter(roleEntity -> roleService.hasPermission(
+                                roleEntity.getPermissions(), rolePermission.getPermission(), acl))
+                        .map(RoleEntity::getId)
+                        .toList();
 
         Set<String> appIds = membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
-            MembershipMemberType.USER,
-            username,
-            MembershipReferenceType.APPLICATION,
-            roleIdsWithPermission
-        );
+                MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION, roleIdsWithPermission);
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
         applicationQuery.setIds(appIds);
@@ -357,9 +348,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
+    public Set<ApplicationListItem> findByUser(
+            final ExecutionContext executionContext, String username, Sortable sortable) {
         log.debug("Find applications for user {}", username);
-        ApplicationQuery applicationQuery = ApplicationQuery.builder().user(username).status(ApplicationStatus.ACTIVE.name()).build();
+        ApplicationQuery applicationQuery = ApplicationQuery.builder()
+                .user(username)
+                .status(ApplicationStatus.ACTIVE.name())
+                .build();
         Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, null);
         return new LinkedHashSet<>(applications.getContent());
     }
@@ -390,22 +385,26 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByGroupsAndStatus(final ExecutionContext executionContext, List<String> groupIds, String status) {
+    public Set<ApplicationListItem> findByGroupsAndStatus(
+            final ExecutionContext executionContext, List<String> groupIds, String status) {
         log.debug("Find applications by groups {}", groupIds);
         try {
             ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
-            Set<Application> applications = applicationRepository.findByGroups(groupIds, ApplicationStatus.valueOf(status.toUpperCase()));
+            Set<Application> applications =
+                    applicationRepository.findByGroups(groupIds, ApplicationStatus.valueOf(status.toUpperCase()));
 
             return ApplicationStatus.ACTIVE.equals(requestedStatus)
-                ? convertToList(executionContext, applications)
-                : convertToSimpleList(applications);
+                    ? convertToList(executionContext, applications)
+                    : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find applications for groups " + groupIds, ex);
         }
     }
 
     @Override
-    public ApplicationEntity create(final ExecutionContext executionContext, NewApplicationEntity newApplicationEntity, String userId) {
+    public ApplicationEntity create(
+            final ExecutionContext executionContext, NewApplicationEntity newApplicationEntity, String userId) {
         log.debug("Create {} for user {}", newApplicationEntity, userId);
 
         creationPreFlightChecks(executionContext, newApplicationEntity);
@@ -416,10 +415,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         // Create a simple "internal" application
         if (newApplicationEntity.getSettings().getApp() != null) {
             // If client registration is enabled, check that the simple type is allowed
-            if (
-                isClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId()) &&
-                !isApplicationTypeAllowed(executionContext, "simple", executionContext.getEnvironmentId())
-            ) {
+            if (isClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId())
+                    && !isApplicationTypeAllowed(executionContext, "simple", executionContext.getEnvironmentId())) {
                 throw new IllegalStateException("Application type 'simple' is not allowed");
             }
 
@@ -437,38 +434,31 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (!isApplicationTypeAllowed(executionContext, appType, executionContext.getEnvironmentId())) {
                 throw new IllegalStateException("Application type '" + appType + "' is not allowed");
             }
-            checkAndSanitizeOAuthClientSettings(newApplicationEntity.getSettings().getOauth());
+            checkAndSanitizeOAuthClientSettings(
+                    newApplicationEntity.getSettings().getOauth());
 
             // Create an OAuth client
             ClientRegistrationResponse registrationResponse = clientRegistrationService.register(
-                executionContext,
-                newApplicationEntity,
-                userService.findIdpClaims(executionContext, userId)
-            );
+                    executionContext, newApplicationEntity, userService.findIdpClaims(executionContext, userId));
             try {
                 metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
                 metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
                 metadata.put(
-                    METADATA_ADDITIONAL_CLIENT_METADATA,
-                    mapper.writeValueAsString(newApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata())
-                );
+                        METADATA_ADDITIONAL_CLIENT_METADATA,
+                        mapper.writeValueAsString(
+                                newApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata()));
             } catch (JsonProcessingException e) {
                 log.error("An error has occurred while serializing registration response", e);
             }
         }
 
-        List<CreateClientCertificate> clientCertificates = getClientCertificates(
-            newApplicationEntity.getName(),
-            newApplicationEntity.getSettings()
-        );
+        List<CreateClientCertificate> clientCertificates =
+                getClientCertificates(newApplicationEntity.getName(), newApplicationEntity.getSettings());
 
-        if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
+        if (newApplicationEntity.getGroups() != null
+                && !newApplicationEntity.getGroups().isEmpty()) {
             Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
-                executionContext,
-                userId,
-                newApplicationEntity.getGroups(),
-                Set.of()
-            );
+                    executionContext, userId, newApplicationEntity.getGroups(), Set.of());
             newApplicationEntity.setGroups(groups);
             if (!groups.isEmpty()) {
                 groupService.findByIds(groups);
@@ -476,7 +466,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         Application application = applicationConverter.toApplication(newApplicationEntity);
-        if (newApplicationEntity.getId() != null && !newApplicationEntity.getId().isEmpty()) {
+        if (newApplicationEntity.getId() != null
+                && !newApplicationEntity.getId().isEmpty()) {
             application.setId(newApplicationEntity.getId());
         } else {
             application.setId(UuidString.generateRandom());
@@ -485,11 +476,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
         // Add Default groups
-        Set<String> defaultGroups = groupService
-            .findByEvent(executionContext.getEnvironmentId(), GroupEvent.APPLICATION_CREATE)
-            .stream()
-            .map(GroupEntity::getId)
-            .collect(toSet());
+        Set<String> defaultGroups =
+                groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.APPLICATION_CREATE).stream()
+                        .map(GroupEntity::getId)
+                        .collect(toSet());
         if (!defaultGroups.isEmpty()) {
             application.addAllGroups(defaultGroups);
         }
@@ -509,65 +499,68 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             return List.copyOf(settings.getTls().getClientCertificates());
         }
         if (StringUtils.isNotBlank(settings.getTls().getClientCertificate())) {
-            return List.of(new CreateClientCertificate(appName, null, null, settings.getTls().getClientCertificate()));
+            return List.of(new CreateClientCertificate(
+                    appName, null, null, settings.getTls().getClientCertificate()));
         }
         return List.of();
     }
 
     private void creationPreFlightChecks(ExecutionContext executionContext, NewApplicationEntity newApplicationEntity) {
         // Check that only one settings is defined
-        if (newApplicationEntity.getSettings().getApp() != null && newApplicationEntity.getSettings().getOauth() != null) {
+        if (newApplicationEntity.getSettings().getApp() != null
+                && newApplicationEntity.getSettings().getOauth() != null) {
             throw new InvalidApplicationTypeException();
         }
 
         // Check that a type is defined
-        if (newApplicationEntity.getSettings().getApp() == null && newApplicationEntity.getSettings().getOauth() == null) {
+        if (newApplicationEntity.getSettings().getApp() == null
+                && newApplicationEntity.getSettings().getOauth() == null) {
             throw new InvalidApplicationTypeException();
         }
 
         // Check that shared API Key mode is enabled
-        if (
-            newApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
-        ) {
+        if (newApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED
+                && !parameterService.findAsBoolean(
+                        executionContext,
+                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT)) {
             throw new InvalidApplicationApiKeyModeException(
-                "Can't create application with SHARED API Key mode cause environment setting is disabled"
-            );
+                    "Can't create application with SHARED API Key mode cause environment setting is disabled");
         }
     }
 
     private ApplicationEntity createApplicationForEnvironment(
-        final ExecutionContext executionContext,
-        String userId,
-        Application application,
-        List<CreateClientCertificate> clientCertificates
-    ) {
+            final ExecutionContext executionContext,
+            String userId,
+            Application application,
+            List<CreateClientCertificate> clientCertificates) {
         try {
             application.setEnvironmentId(executionContext.getEnvironmentId());
 
             // Create client certificates if provided
             for (var cert : clientCertificates) {
                 var certToCreate = new ClientCertificate(
-                    cert.name() != null ? cert.name() : application.getName(),
-                    cert.certificate(),
-                    cert.startsAt(),
-                    cert.endsAt()
-                );
-                clientCertificateCrudService.create(application.getId(), validateAndEnrich(certToCreate, executionContext, null));
+                        cert.name() != null ? cert.name() : application.getName(),
+                        cert.certificate(),
+                        cert.startsAt(),
+                        cert.endsAt());
+                clientCertificateCrudService.create(
+                        application.getId(), validateAndEnrich(certToCreate, executionContext, null));
             }
 
             Application createdApplication = applicationRepository.create(application);
 
             // Audit
-            createAuditLog(executionContext, APPLICATION_CREATED, createdApplication.getCreatedAt(), null, createdApplication);
+            createAuditLog(
+                    executionContext, APPLICATION_CREATED, createdApplication.getCreatedAt(), null, createdApplication);
 
             // Add the primary owner of the newly created Application
             membershipService.addRoleToMemberOnReference(
-                executionContext,
-                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, createdApplication.getId()),
-                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name())
-            );
+                    executionContext,
+                    new MembershipService.MembershipReference(
+                            MembershipReferenceType.APPLICATION, createdApplication.getId()),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name()));
 
             // create the default mail notification
             UserEntity userEntity = userService.findById(executionContext, userId);
@@ -576,7 +569,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 notificationConfigEntity.setName("Default Mail Notifications");
                 notificationConfigEntity.setReferenceType(HookScope.APPLICATION.name());
                 notificationConfigEntity.setReferenceId(createdApplication.getId());
-                notificationConfigEntity.setHooks(Arrays.stream(ApplicationHook.values()).map(Enum::name).toList());
+                notificationConfigEntity.setHooks(
+                        Arrays.stream(ApplicationHook.values()).map(Enum::name).toList());
                 notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
                 notificationConfigEntity.setConfig(userEntity.getEmail());
                 genericNotificationConfigService.create(notificationConfigEntity);
@@ -586,75 +580,72 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             throw new ClientIdAlreadyExistsException(application.getMetadata().get(METADATA_CLIENT_ID));
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying create " +
-                    application +
-                    " for user " +
-                    userId +
-                    " in environment " +
-                    executionContext.getEnvironmentId(),
-                ex
-            );
+                    "An error occurs while trying create " + application
+                            + " for user "
+                            + userId
+                            + " in environment "
+                            + executionContext.getEnvironmentId(),
+                    ex);
         }
     }
 
     private void checkAndSanitizeOAuthClientSettings(OAuthClientSettings oAuthClientSettings) {
-        if (oAuthClientSettings.getGrantTypes() == null || oAuthClientSettings.getGrantTypes().isEmpty()) {
+        if (oAuthClientSettings.getGrantTypes() == null
+                || oAuthClientSettings.getGrantTypes().isEmpty()) {
             throw new ApplicationGrantTypesNotFoundException();
         }
 
-        if (oAuthClientSettings.getApplicationType() == null || oAuthClientSettings.getApplicationType().isEmpty()) {
+        if (oAuthClientSettings.getApplicationType() == null
+                || oAuthClientSettings.getApplicationType().isEmpty()) {
             throw new ApplicationTypeNotFoundException(null);
         }
 
-        ApplicationTypeEntity applicationTypeEntity = applicationTypeService.getApplicationType(oAuthClientSettings.getApplicationType());
+        ApplicationTypeEntity applicationTypeEntity =
+                applicationTypeService.getApplicationType(oAuthClientSettings.getApplicationType());
 
         List<String> targetGrantTypes = oAuthClientSettings.getGrantTypes();
-        List<String> allowedGrantTypes = applicationTypeEntity
-            .getAllowed_grant_types()
-            .stream()
-            .map(ApplicationGrantTypeEntity::getType)
-            .toList();
+        List<String> allowedGrantTypes = applicationTypeEntity.getAllowed_grant_types().stream()
+                .map(ApplicationGrantTypeEntity::getType)
+                .toList();
         if (!allowedGrantTypes.containsAll(targetGrantTypes)) {
-            throw new ApplicationGrantTypesNotAllowedException(oAuthClientSettings.getApplicationType(), targetGrantTypes);
+            throw new ApplicationGrantTypesNotAllowedException(
+                    oAuthClientSettings.getApplicationType(), targetGrantTypes);
         }
 
         List<String> redirectUris = oAuthClientSettings.getRedirectUris();
-        if (Boolean.TRUE.equals(applicationTypeEntity.getRequires_redirect_uris()) && (redirectUris == null || redirectUris.isEmpty())) {
+        if (Boolean.TRUE.equals(applicationTypeEntity.getRequires_redirect_uris())
+                && (redirectUris == null || redirectUris.isEmpty())) {
             throw new ApplicationRedirectUrisNotFound();
         }
 
-        List<String> responseTypes = applicationTypeEntity
-            .getAllowed_grant_types()
-            .stream()
-            .filter(applicationGrantTypeEntity -> targetGrantTypes.contains(applicationGrantTypeEntity.getType()))
-            .map(ApplicationGrantTypeEntity::getResponse_types)
-            .flatMap(Collection::stream)
-            .distinct()
-            .toList();
+        List<String> responseTypes = applicationTypeEntity.getAllowed_grant_types().stream()
+                .filter(applicationGrantTypeEntity -> targetGrantTypes.contains(applicationGrantTypeEntity.getType()))
+                .map(ApplicationGrantTypeEntity::getResponse_types)
+                .flatMap(Collection::stream)
+                .distinct()
+                .toList();
 
         oAuthClientSettings.setResponseTypes(responseTypes);
     }
 
     @Override
     public ApplicationEntity update(
-        final ExecutionContext executionContext,
-        String applicationId,
-        UpdateApplicationEntity updateApplicationEntity
-    ) {
+            final ExecutionContext executionContext,
+            String applicationId,
+            UpdateApplicationEntity updateApplicationEntity) {
         try {
             log.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
             Application applicationToUpdate = applicationRepository
-                .findById(applicationId)
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+                    .findById(applicationId)
+                    .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
             Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
-                executionContext,
-                getAuthenticatedUsername(),
-                updateApplicationEntity.getGroups(),
-                applicationToUpdate.getGroups()
-            );
+                    executionContext,
+                    getAuthenticatedUsername(),
+                    updateApplicationEntity.getGroups(),
+                    applicationToUpdate.getGroups());
             updateApplicationEntity.setGroups(groups);
             validateUserGroups(executionContext, groups);
 
@@ -662,7 +653,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             // Retro-compatibility : If input API Key mode is not specified, get it from existing application
             if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
-                updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
+                updateApplicationEntity.setApiKeyMode(
+                        ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
             } else {
                 // Check that application API Key mode is valid
                 checkApiKeyModeUpdate(executionContext, updateApplicationEntity.getApiKeyMode(), applicationToUpdate);
@@ -672,22 +664,34 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Map<String, String> metadata = new HashMap<>();
 
             // Update a simple application
-            if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
+            if (applicationToUpdate.getType() == ApplicationType.SIMPLE
+                    && updateApplicationEntity.getSettings().getApp() != null) {
                 // If clientId is set, check for uniqueness
                 checkClientIdUniqueness(executionContext, updateApplicationEntity, applicationToUpdate);
             } else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
-                // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+                // Some IdPs do not support the optional application_type parameter. However, the DCR implementation
+                // expects this parameter to never be empty
                 if (updateApplicationEntity.getSettings().getOauth().getApplicationType() == null) {
-                    updateApplicationEntity.getSettings().getOauth().setApplicationType(applicationToUpdate.getType().name());
+                    updateApplicationEntity
+                            .getSettings()
+                            .getOauth()
+                            .setApplicationType(applicationToUpdate.getType().name());
                 }
-                checkAndSanitizeOAuthClientSettings(updateApplicationEntity.getSettings().getOauth());
+                checkAndSanitizeOAuthClientSettings(
+                        updateApplicationEntity.getSettings().getOauth());
 
                 // Update an OAuth client
-                final String registrationPayload = applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
+                final String registrationPayload =
+                        applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
                 if (registrationPayload != null) {
-                    updateClientRegistration(executionContext, updateApplicationEntity, registrationPayload, metadata, applicationToUpdate);
+                    updateClientRegistration(
+                            executionContext,
+                            updateApplicationEntity,
+                            registrationPayload,
+                            metadata,
+                            applicationToUpdate);
                 } else {
                     keepPreviousOAuthMetadata(applicationToUpdate, metadata);
                 }
@@ -701,74 +705,67 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setType(applicationToUpdate.getType());
             application.setCreatedAt(applicationToUpdate.getCreatedAt());
             application.setUpdatedAt(new Date());
-            application.setOrigin(applicationToUpdate.getOrigin() != null ? applicationToUpdate.getOrigin() : Origin.MANAGEMENT);
+            application.setOrigin(
+                    applicationToUpdate.getOrigin() != null ? applicationToUpdate.getOrigin() : Origin.MANAGEMENT);
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             Application updatedApplication = updateApplication(application);
 
             createAuditLog(
-                executionContext,
-                APPLICATION_UPDATED,
-                updatedApplication.getUpdatedAt(),
-                applicationToUpdate,
-                updatedApplication
-            );
+                    executionContext,
+                    APPLICATION_UPDATED,
+                    updatedApplication.getUpdatedAt(),
+                    applicationToUpdate,
+                    updatedApplication);
 
             updateActiveSubscriptions(executionContext, applicationId, application);
-            return convertApplication(executionContext, Collections.singleton(updatedApplication), true).iterator().next();
+            return convertApplication(executionContext, Collections.singleton(updatedApplication), true)
+                    .iterator()
+                    .next();
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to update application %s", applicationId),
-                ex
-            );
+                    String.format("An error occurs while trying to update application %s", applicationId), ex);
         }
     }
 
     @Override
     public void syncClientCertificates(
-        ExecutionContext executionContext,
-        String applicationId,
-        UpdateApplicationEntity updateApplicationEntity
-    ) {
+            ExecutionContext executionContext, String applicationId, UpdateApplicationEntity updateApplicationEntity) {
         // Handle TLS certificate changes via ClientCertificateCrudService
-        List<CreateClientCertificate> incoming = getClientCertificates(
-            updateApplicationEntity.getName(),
-            updateApplicationEntity.getSettings()
-        );
+        List<CreateClientCertificate> incoming =
+                getClientCertificates(updateApplicationEntity.getName(), updateApplicationEntity.getSettings());
 
         // Get all currently active certificates, sorted by creation date desc
         var existing = clientCertificateCrudService
-            .findByApplicationIdAndStatuses(applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END)
-            .stream()
-            .sorted(Comparator.comparing(ClientCertificate::createdAt))
-            .toList();
+                .findByApplicationIdAndStatuses(
+                        applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END)
+                .stream()
+                .sorted(Comparator.comparing(ClientCertificate::createdAt))
+                .toList();
 
-        Map<String, ClientCertificate> existingByFingerprint = existing
-            .stream()
-            .collect(Collectors.toMap(this::fingerprintOf, c -> c, (a, b) -> a));
+        Map<String, ClientCertificate> existingByFingerprint =
+                existing.stream().collect(Collectors.toMap(this::fingerprintOf, c -> c, (a, b) -> a));
 
-        Map<CreateClientCertificate, String> incomingFingerprints = incoming
-            .stream()
-            .collect(Collectors.toMap(cert -> cert, cert -> fingerprint(cert.certificate())));
+        Map<CreateClientCertificate, String> incomingFingerprints =
+                incoming.stream().collect(Collectors.toMap(cert -> cert, cert -> fingerprint(cert.certificate())));
         Set<String> matchedIds = new HashSet<>();
         for (CreateClientCertificate incomingCert : incoming) {
             String incomingFingerprint = incomingFingerprints.get(incomingCert);
             ClientCertificate existingCert = existingByFingerprint.get(incomingFingerprint);
             if (existingCert == null) {
                 var certToCreate = new ClientCertificate(
-                    incomingCert.name(),
-                    incomingCert.certificate(),
-                    incomingCert.startsAt(),
-                    incomingCert.endsAt()
-                );
-                clientCertificateCrudService.create(applicationId, validateAndEnrich(certToCreate, executionContext, applicationId));
+                        incomingCert.name(),
+                        incomingCert.certificate(),
+                        incomingCert.startsAt(),
+                        incomingCert.endsAt());
+                clientCertificateCrudService.create(
+                        applicationId, validateAndEnrich(certToCreate, executionContext, applicationId));
             } else {
                 matchedIds.add(existingCert.id());
                 if (hasChanges(incomingCert, existingCert)) {
                     clientCertificateCrudService.update(
-                        existingCert.id(),
-                        new ClientCertificate(incomingCert.name(), incomingCert.startsAt(), incomingCert.endsAt())
-                    );
+                            existingCert.id(),
+                            new ClientCertificate(incomingCert.name(), incomingCert.startsAt(), incomingCert.endsAt()));
                 }
             }
         }
@@ -783,40 +780,31 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private ClientCertificate validateAndEnrich(
-        ClientCertificate certToCreate,
-        ExecutionContext executionContext,
-        String excludeApplicationId
-    ) {
+            ClientCertificate certToCreate, ExecutionContext executionContext, String excludeApplicationId) {
         var certInfo = clientCertificateValidationDomainService.validateForCreation(
-            certToCreate,
-            executionContext.getEnvironmentId(),
-            excludeApplicationId
-        );
+                certToCreate, executionContext.getEnvironmentId(), excludeApplicationId);
         return new ClientCertificate(
-            null,
-            null,
-            null,
-            certToCreate.name(),
-            certToCreate.startsAt(),
-            certToCreate.endsAt(),
-            null,
-            null,
-            certToCreate.certificate(),
-            certInfo.certificateExpiration(),
-            certInfo.subject(),
-            certInfo.issuer(),
-            certInfo.fingerprint(),
-            null,
-            null
-        );
+                null,
+                null,
+                null,
+                certToCreate.name(),
+                certToCreate.startsAt(),
+                certToCreate.endsAt(),
+                null,
+                null,
+                certToCreate.certificate(),
+                certInfo.certificateExpiration(),
+                certInfo.subject(),
+                certInfo.issuer(),
+                certInfo.fingerprint(),
+                null,
+                null);
     }
 
     private boolean hasChanges(CreateClientCertificate incoming, ClientCertificate existing) {
-        return (
-            !Objects.equals(incoming.name(), existing.name()) ||
-            !Objects.equals(incoming.startsAt(), existing.startsAt()) ||
-            !Objects.equals(incoming.endsAt(), existing.endsAt())
-        );
+        return (!Objects.equals(incoming.name(), existing.name())
+                || !Objects.equals(incoming.startsAt(), existing.startsAt())
+                || !Objects.equals(incoming.endsAt(), existing.endsAt()));
     }
 
     private String fingerprint(String certificatePem) {
@@ -831,90 +819,84 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private void createAuditLog(
-        ExecutionContext executionContext,
-        Application.AuditEvent applicationUpdated,
-        Date updatedApplication,
-        Application applicationToUpdate,
-        Application updatedApplication1
-    ) {
+            ExecutionContext executionContext,
+            Application.AuditEvent applicationUpdated,
+            Date updatedApplication,
+            Application applicationToUpdate,
+            Application updatedApplication1) {
         // Audit
         auditService.createApplicationAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(Collections.emptyMap())
-                .event(applicationUpdated)
-                .createdAt(updatedApplication)
-                .oldValue(applicationToUpdate)
-                .newValue(updatedApplication1)
-                .build(),
-            updatedApplication1.getId()
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(Collections.emptyMap())
+                        .event(applicationUpdated)
+                        .createdAt(updatedApplication)
+                        .oldValue(applicationToUpdate)
+                        .newValue(updatedApplication1)
+                        .build(),
+                updatedApplication1.getId());
     }
 
-    private void updateActiveSubscriptions(ExecutionContext executionContext, String applicationId, Application application) {
+    private void updateActiveSubscriptions(
+            ExecutionContext executionContext, String applicationId, Application application) {
         SubscriptionQuery subQuery = new SubscriptionQuery();
         subQuery.setApplication(applicationId);
-        subQuery.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING));
+        subQuery.setStatuses(
+                Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING));
 
         String clientId = application.getMetadata().get(METADATA_CLIENT_ID);
 
         Consumer<Subscription> clientIdSubscriptionModifier = s -> s.setClientId(clientId);
         Consumer<Subscription> applicationNameSubscriptionModifier = s -> s.setApplicationName(application.getName());
 
-        subscriptionService
-            .search(executionContext, subQuery)
-            .forEach(subscriptionEntity -> {
-                Consumer<Subscription> subscriptionModifier = null;
-                if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
-                    subscriptionModifier = clientIdSubscriptionModifier;
-                }
-                if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
-                    subscriptionModifier = subscriptionModifier == null
+        subscriptionService.search(executionContext, subQuery).forEach(subscriptionEntity -> {
+            Consumer<Subscription> subscriptionModifier = null;
+            if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
+                subscriptionModifier = clientIdSubscriptionModifier;
+            }
+            if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
+                subscriptionModifier = subscriptionModifier == null
                         ? applicationNameSubscriptionModifier
                         : subscriptionModifier.andThen(applicationNameSubscriptionModifier);
-                }
-                if (subscriptionModifier != null) {
-                    UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-                    updateSubscriptionEntity.setId(subscriptionEntity.getId());
-                    updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
-                    updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
-                    updateSubscriptionEntity.setConfiguration(subscriptionEntity.getConfiguration());
-                    subscriptionService.update(executionContext, updateSubscriptionEntity, subscriptionModifier);
-                }
-            });
+            }
+            if (subscriptionModifier != null) {
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setId(subscriptionEntity.getId());
+                updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+                updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+                updateSubscriptionEntity.setConfiguration(subscriptionEntity.getConfiguration());
+                subscriptionService.update(executionContext, updateSubscriptionEntity, subscriptionModifier);
+            }
+        });
     }
 
     private void checkClientIdUniqueness(
-        ExecutionContext executionContext,
-        UpdateApplicationEntity updateApplicationEntity,
-        Application applicationToUpdate
-    ) throws TechnicalException {
+            ExecutionContext executionContext,
+            UpdateApplicationEntity updateApplicationEntity,
+            Application applicationToUpdate)
+            throws TechnicalException {
         String clientId = updateApplicationEntity.getSettings().getApp().getClientId();
 
         if (!StringUtils.isBlank(clientId)) {
             log.debug("Check that client_id is unique among all applications");
             final Set<Application> applications = applicationRepository.findAllByEnvironment(
-                executionContext.getEnvironmentId(),
-                ApplicationStatus.ACTIVE
-            );
-            final Optional<Application> byClientId = applications
-                .stream()
-                .filter(app -> app.getMetadata() != null)
-                .filter(app -> clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)))
-                .findAny();
-            if (byClientId.map(app -> !app.getId().equals(applicationToUpdate.getId())).orElse(false)) {
+                    executionContext.getEnvironmentId(), ApplicationStatus.ACTIVE);
+            final Optional<Application> byClientId = applications.stream()
+                    .filter(app -> app.getMetadata() != null)
+                    .filter(app -> clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)))
+                    .findAny();
+            if (byClientId
+                    .map(app -> !app.getId().equals(applicationToUpdate.getId()))
+                    .orElse(false)) {
                 throw new ClientIdAlreadyExistsException(clientId);
             }
         }
     }
 
     private void updatePreFlightChecks(
-        UpdateApplicationEntity updateApplicationEntity,
-        Application applicationToUpdate,
-        Set<String> groups
-    ) {
+            UpdateApplicationEntity updateApplicationEntity, Application applicationToUpdate, Set<String> groups) {
         if (groups != null && !groups.isEmpty()) {
-            //throw a NotFoundException if the group doesn't exist
+            // throw a NotFoundException if the group doesn't exist
             groupService.findByIds(groups);
         }
 
@@ -923,12 +905,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         // Check that only one settings is defined
-        if (updateApplicationEntity.getSettings().getApp() != null && updateApplicationEntity.getSettings().getOauth() != null) {
+        if (updateApplicationEntity.getSettings().getApp() != null
+                && updateApplicationEntity.getSettings().getOauth() != null) {
             throw new InvalidApplicationTypeException();
         }
 
         // Check that a type is defined
-        if (updateApplicationEntity.getSettings().getApp() == null && updateApplicationEntity.getSettings().getOauth() == null) {
+        if (updateApplicationEntity.getSettings().getApp() == null
+                && updateApplicationEntity.getSettings().getOauth() == null) {
             throw new InvalidApplicationTypeException();
         }
     }
@@ -944,7 +928,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (applicationToUpdate.getMetadata() == null) {
             return;
         }
-        for (String key : List.of(METADATA_CLIENT_ID, METADATA_REGISTRATION_PAYLOAD, METADATA_ADDITIONAL_CLIENT_METADATA)) {
+        for (String key :
+                List.of(METADATA_CLIENT_ID, METADATA_REGISTRATION_PAYLOAD, METADATA_ADDITIONAL_CLIENT_METADATA)) {
             String previousValue = applicationToUpdate.getMetadata().get(key);
             if (previousValue != null) {
                 metadata.put(key, previousValue);
@@ -953,28 +938,26 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private void updateClientRegistration(
-        ExecutionContext executionContext,
-        UpdateApplicationEntity updateApplicationEntity,
-        String registrationPayload,
-        Map<String, String> metadata,
-        Application applicationToUpdate
-    ) {
+            ExecutionContext executionContext,
+            UpdateApplicationEntity updateApplicationEntity,
+            String registrationPayload,
+            Map<String, String> metadata,
+            Application applicationToUpdate) {
         try {
             // Inject the application owner's IdP claims (not the editor's) so the tenant/user context registered with
             // the IdP stays tied to who owns the application and does not flip when another user edits it. Resolved
             // defensively: an unresolvable owner must degrade to "no claims injected", never break the DCR update.
             ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
-                executionContext,
-                registrationPayload,
-                updateApplicationEntity,
-                resolveOwnerIdpClaims(executionContext, applicationToUpdate.getId())
-            );
+                    executionContext,
+                    registrationPayload,
+                    updateApplicationEntity,
+                    resolveOwnerIdpClaims(executionContext, applicationToUpdate.getId()));
             metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
             metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
             metadata.put(
-                METADATA_ADDITIONAL_CLIENT_METADATA,
-                mapper.writeValueAsString(updateApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata())
-            );
+                    METADATA_ADDITIONAL_CLIENT_METADATA,
+                    mapper.writeValueAsString(
+                            updateApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata()));
         } catch (Exception e) {
             log.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
             keepPreviousOAuthMetadata(applicationToUpdate, metadata);
@@ -989,13 +972,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private Map<String, String> resolveOwnerIdpClaims(ExecutionContext executionContext, String applicationId) {
         try {
             String ownerId = membershipService.getPrimaryOwnerUserId(
-                executionContext.getOrganizationId(),
-                MembershipReferenceType.APPLICATION,
-                applicationId
-            );
+                    executionContext.getOrganizationId(), MembershipReferenceType.APPLICATION, applicationId);
             return ownerId != null ? userService.findIdpClaims(executionContext, ownerId) : null;
         } catch (Exception e) {
-            log.warn("Could not resolve primary owner IdP claims for application {}; proceeding without injection", applicationId, e);
+            log.warn(
+                    "Could not resolve primary owner IdP claims for application {}; proceeding without injection",
+                    applicationId,
+                    e);
             return null;
         }
     }
@@ -1004,26 +987,26 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(executionContext);
 
         if (consoleConfig.getUserGroup().getRequired().isEnabled() && CollectionUtils.isEmpty(groups)) {
-            throw new BadRequestException("Updating an application is not allowed as at least one group is required on the application.");
+            throw new BadRequestException(
+                    "Updating an application is not allowed as at least one group is required on the application.");
         }
     }
 
     private static boolean areNotEmptyAndDifferent(String applicationField, String subscriptionField) {
-        return (
-            StringUtils.isNotEmpty(subscriptionField) &&
-            StringUtils.isNotEmpty(applicationField) &&
-            !subscriptionField.equals(applicationField)
-        );
+        return (StringUtils.isNotEmpty(subscriptionField)
+                && StringUtils.isNotEmpty(applicationField)
+                && !subscriptionField.equals(applicationField));
     }
 
     @Override
-    public ApplicationEntity updateApiKeyMode(final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode) {
+    public ApplicationEntity updateApiKeyMode(
+            final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode) {
         try {
             log.debug("Update application {} with apiKeyMode {}", applicationId, apiKeyMode);
 
             Application applicationToUpdate = applicationRepository
-                .findById(applicationId)
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+                    .findById(applicationId)
+                    .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
             if (ApplicationStatus.ARCHIVED.equals(applicationToUpdate.getStatus())) {
                 throw new ApplicationArchivedException(applicationToUpdate.getName());
@@ -1032,64 +1015,58 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Check that application Api Key mode is valid
             checkApiKeyModeUpdate(executionContext, apiKeyMode, applicationToUpdate);
 
-            applicationToUpdate.setApiKeyMode(io.gravitee.repository.management.model.ApiKeyMode.valueOf(apiKeyMode.name()));
+            applicationToUpdate.setApiKeyMode(
+                    io.gravitee.repository.management.model.ApiKeyMode.valueOf(apiKeyMode.name()));
             Application updatedApplication = applicationRepository.update(applicationToUpdate);
 
             // Audit
             createAuditLog(
-                executionContext,
-                APPLICATION_UPDATED,
-                updatedApplication.getUpdatedAt(),
-                applicationToUpdate,
-                updatedApplication
-            );
+                    executionContext,
+                    APPLICATION_UPDATED,
+                    updatedApplication.getUpdatedAt(),
+                    applicationToUpdate,
+                    updatedApplication);
 
-            return convertApplication(executionContext, Collections.singleton(updatedApplication), true).iterator().next();
+            return convertApplication(executionContext, Collections.singleton(updatedApplication), true)
+                    .iterator()
+                    .next();
         } catch (TechnicalException ex) {
             String error = String.format(
-                "An error occurs while trying to update application %s with apiKeyMode %s",
-                applicationId,
-                apiKeyMode
-            );
+                    "An error occurs while trying to update application %s with apiKeyMode %s",
+                    applicationId, apiKeyMode);
             throw new TechnicalManagementException(error, ex);
         }
     }
 
     private void validateApplicationClientId(
-        ExecutionContext executionContext,
-        String applicationId,
-        UpdateApplicationEntity updateApplicationEntity
-    ) {
-        if (
-            null != updateApplicationEntity.getSettings() &&
-            null != updateApplicationEntity.getSettings().getApp() &&
-            StringUtils.isEmpty(updateApplicationEntity.getSettings().getApp().getClientId())
-        ) {
-            Set<String> planIds = subscriptionService
-                .findByApplicationAndPlan(executionContext, applicationId, null)
-                .stream()
-                .filter(subscriptionEntity ->
-                    Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING).contains(
-                        subscriptionEntity.getStatus()
-                    )
-                )
-                .map(SubscriptionEntity::getPlan)
-                .collect(Collectors.toSet());
+            ExecutionContext executionContext, String applicationId, UpdateApplicationEntity updateApplicationEntity) {
+        if (null != updateApplicationEntity.getSettings()
+                && null != updateApplicationEntity.getSettings().getApp()
+                && StringUtils.isEmpty(
+                        updateApplicationEntity.getSettings().getApp().getClientId())) {
+            Set<String> planIds =
+                    subscriptionService.findByApplicationAndPlan(executionContext, applicationId, null).stream()
+                            .filter(subscriptionEntity -> Set.of(
+                                            SubscriptionStatus.ACCEPTED,
+                                            SubscriptionStatus.PAUSED,
+                                            SubscriptionStatus.PENDING)
+                                    .contains(subscriptionEntity.getStatus()))
+                            .map(SubscriptionEntity::getPlan)
+                            .collect(Collectors.toSet());
 
             if (!planIds.isEmpty()) {
-                Set<GenericPlanEntity> plans = this.planSearchService.findByIdIn(executionContext, planIds)
-                    .stream()
-                    .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
-                    .filter(planEntity -> {
-                        PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
-                        return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
-                    })
-                    .collect(toSet());
+                Set<GenericPlanEntity> plans = this.planSearchService.findByIdIn(executionContext, planIds).stream()
+                        .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
+                        .filter(planEntity -> {
+                            PlanSecurityType security = PlanSecurityType.valueOfLabel(
+                                    planEntity.getPlanSecurity().getType());
+                            return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
+                        })
+                        .collect(toSet());
 
                 if (!plans.isEmpty()) {
                     throw new ApplicationClientIdException(
-                        "Can't update application because client_id is missing and it has subscriptions"
-                    );
+                            "Can't update application because client_id is missing and it has subscriptions");
                 }
             }
         }
@@ -1101,8 +1078,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             log.debug("Renew client secret for application {}", applicationId);
 
             Application applicationToUpdate = applicationRepository
-                .findById(applicationId)
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+                    .findById(applicationId)
+                    .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
             if (ApplicationStatus.ARCHIVED.equals(applicationToUpdate.getStatus())) {
                 throw new ApplicationArchivedException(applicationToUpdate.getName());
@@ -1114,14 +1091,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             ApplicationEntity applicationEntity = findById(executionContext, applicationId);
 
             // Check that the application can be updated with a new client secret
-            if (
-                applicationEntity.getSettings().getOauth() != null &&
-                applicationEntity.getSettings().getOauth().isRenewClientSecretSupported()
-            ) {
+            if (applicationEntity.getSettings().getOauth() != null
+                    && applicationEntity.getSettings().getOauth().isRenewClientSecretSupported()) {
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.renewClientSecret(
-                    executionContext,
-                    applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD)
-                );
+                        executionContext, applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD));
 
                 // Update application metadata
                 Map<String, String> metadata = new HashMap<>();
@@ -1135,28 +1108,28 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
                 applicationToUpdate.setUpdatedAt(new Date());
 
-                metadata.forEach((key, value) -> applicationToUpdate.getMetadata().put(key, value));
+                metadata.forEach(
+                        (key, value) -> applicationToUpdate.getMetadata().put(key, value));
 
                 Application updatedApplication = applicationRepository.update(applicationToUpdate);
 
                 // Audit
                 createAuditLog(
-                    executionContext,
-                    APPLICATION_UPDATED,
-                    updatedApplication.getUpdatedAt(),
-                    applicationToUpdate,
-                    updatedApplication
-                );
+                        executionContext,
+                        APPLICATION_UPDATED,
+                        updatedApplication.getUpdatedAt(),
+                        applicationToUpdate,
+                        updatedApplication);
 
-                return convertApplication(executionContext, Collections.singleton(updatedApplication), true).iterator().next();
+                return convertApplication(executionContext, Collections.singleton(updatedApplication), true)
+                        .iterator()
+                        .next();
             }
 
             throw new ApplicationRenewClientSecretException(applicationToUpdate.getName());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to renew client secret %s", applicationId),
-                ex
-            );
+                    String.format("An error occurs while trying to renew client secret %s", applicationId), ex);
         }
     }
 
@@ -1166,15 +1139,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             log.debug("Restore application {}", applicationId);
 
             Application application = applicationRepository
-                .findById(applicationId)
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+                    .findById(applicationId)
+                    .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
             if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
                 throw new ApplicationActiveException(application.getName());
             }
 
             if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_ID)) {
-                checkClientIdIsUniqueForEnv(application.getMetadata().get(METADATA_CLIENT_ID), application.getEnvironmentId());
+                checkClientIdIsUniqueForEnv(
+                        application.getMetadata().get(METADATA_CLIENT_ID), application.getEnvironmentId());
             }
 
             application.setStatus(ApplicationStatus.ACTIVE);
@@ -1184,11 +1158,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             membershipService.deleteReference(executionContext, MembershipReferenceType.APPLICATION, applicationId);
             // Add the primary owner of the newly created Application
             membershipService.addRoleToMemberOnReference(
-                executionContext,
-                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
-                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name())
-            );
+                    executionContext,
+                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name()));
 
             // delete notifications
             genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
@@ -1196,11 +1169,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             Application restoredApplication = updateApplication(application);
 
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
-                executionContext,
-                applicationId,
-                null
-            );
+            Collection<SubscriptionEntity> subscriptions =
+                    subscriptionService.findByApplicationAndPlan(executionContext, applicationId, null);
 
             subscriptions.forEach(subscription -> {
                 try {
@@ -1214,11 +1184,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             UserEntity userEntity = userService.findById(executionContext, userId);
 
             // Audit
-            createAuditLog(executionContext, APPLICATION_RESTORED, restoredApplication.getUpdatedAt(), application, restoredApplication);
+            createAuditLog(
+                    executionContext,
+                    APPLICATION_RESTORED,
+                    restoredApplication.getUpdatedAt(),
+                    application,
+                    restoredApplication);
 
             return convert(executionContext, restoredApplication, userEntity, true);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(String.format("An error occurs while trying to restore %s", applicationId), ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to restore %s", applicationId), ex);
         }
     }
 
@@ -1230,14 +1206,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     private boolean isClientRegistrationEnabled(ExecutionContext executionContext, String environmentId) {
         return parameterService.findAsBoolean(
-            executionContext,
-            Key.APPLICATION_REGISTRATION_ENABLED,
-            environmentId,
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext,
+                Key.APPLICATION_REGISTRATION_ENABLED,
+                environmentId,
+                ParameterReferenceType.ENVIRONMENT);
     }
 
-    private boolean isApplicationTypeAllowed(ExecutionContext executionContext, String applicationType, String environmentId) {
+    private boolean isApplicationTypeAllowed(
+            ExecutionContext executionContext, String applicationType, String environmentId) {
         Key key = Key.valueOf("APPLICATION_TYPE_" + applicationType.toUpperCase() + "_ENABLED");
         return parameterService.findAsBoolean(executionContext, key, environmentId, ParameterReferenceType.ENVIRONMENT);
     }
@@ -1248,14 +1224,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             log.debug("Delete application {}", applicationId);
 
             Application application = applicationRepository
-                .findById(applicationId)
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+                    .findById(applicationId)
+                    .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
             Application previousApplication = new Application(application);
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
-                executionContext,
-                applicationId,
-                null
-            );
+            Collection<SubscriptionEntity> subscriptions =
+                    subscriptionService.findByApplicationAndPlan(executionContext, applicationId, null);
 
             subscriptions.forEach(subscription -> {
                 List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(executionContext, subscription.getId());
@@ -1269,13 +1242,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
                 try {
                     closeSubscriptionDomainService.closeSubscription(
-                        subscription.getId(),
-                        AuditInfo.builder()
-                            .organizationId(executionContext.getOrganizationId())
-                            .environmentId(executionContext.getEnvironmentId())
-                            .actor(getAuthenticatedUserAsAuditActor())
-                            .build()
-                    );
+                            subscription.getId(),
+                            AuditInfo.builder()
+                                    .organizationId(executionContext.getOrganizationId())
+                                    .environmentId(executionContext.getEnvironmentId())
+                                    .actor(getAuthenticatedUserAsAuditActor())
+                                    .build());
                 } catch (SubscriptionNotClosableException snce) {
                     // Subscription cannot be closed because it is already closed or not yet accepted
                     log.debug("The subscription cannot be closed: {}", snce.getMessage());
@@ -1295,181 +1267,176 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // delete client certificates
             clientCertificateCrudService.deleteByApplicationId(applicationId);
             // Audit
-            createAuditLog(executionContext, APPLICATION_ARCHIVED, application.getUpdatedAt(), previousApplication, application);
+            createAuditLog(
+                    executionContext,
+                    APPLICATION_ARCHIVED,
+                    application.getUpdatedAt(),
+                    previousApplication,
+                    application);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to delete application %s", applicationId),
-                ex
-            );
+                    String.format("An error occurs while trying to delete application %s", applicationId), ex);
         }
     }
 
     private Set<ApplicationEntity> convertApplication(
-        ExecutionContext executionContext,
-        Collection<Application> applications,
-        boolean fetchCertificate
-    ) {
+            ExecutionContext executionContext, Collection<Application> applications, boolean fetchCertificate) {
         if (applications == null || applications.isEmpty()) {
             return Collections.emptySet();
         }
         RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(
-            executionContext.getOrganizationId(),
-            RoleScope.APPLICATION
-        );
+                executionContext.getOrganizationId(), RoleScope.APPLICATION);
         if (primaryOwnerRole == null) {
             throw new RoleNotFoundException("APPLICATION_PRIMARY_OWNER");
         }
 
-        //find primary owners usernames of each application
-        final List<String> activeApplicationIds = applications
-            .stream()
-            .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
-            .map(Application::getId)
-            .collect(Collectors.toList());
+        // find primary owners usernames of each application
+        final List<String> activeApplicationIds = applications.stream()
+                .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
+                .map(Application::getId)
+                .collect(Collectors.toList());
 
         Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(
-            io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
-            activeApplicationIds,
-            primaryOwnerRole.getId()
-        );
+                io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
+                activeApplicationIds,
+                primaryOwnerRole.getId());
         int poMissing = activeApplicationIds.size() - memberships.size();
         if (poMissing > 0) {
-            Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(toSet());
+            Set<String> appMembershipsIds =
+                    memberships.stream().map(MembershipEntity::getReferenceId).collect(toSet());
 
             activeApplicationIds.removeAll(appMembershipsIds);
-            Optional<String> optionalApplicationsAsString = activeApplicationIds.stream().reduce((a, b) -> a + " / " + b);
+            Optional<String> optionalApplicationsAsString =
+                    activeApplicationIds.stream().reduce((a, b) -> a + " / " + b);
 
             String applicationsAsString = "?";
             if (optionalApplicationsAsString.isPresent()) applicationsAsString = optionalApplicationsAsString.get();
-            throw new TechnicalManagementException(
-                poMissing + " applications has no identified primary owners in this list " + applicationsAsString + "."
-            );
+            throw new TechnicalManagementException(poMissing
+                    + " applications has no identified primary owners in this list " + applicationsAsString + ".");
         }
 
         Map<String, String> applicationToUser = HashMap.newHashMap(memberships.size());
         Map<String, UserEntity> userIdToUserEntity = HashMap.newHashMap(memberships.size());
 
         if (!memberships.isEmpty()) {
-            memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getMemberId()));
+            memberships.forEach(
+                    membership -> applicationToUser.put(membership.getReferenceId(), membership.getMemberId()));
 
             // We don't need user metadata, only global information
             userService
-                .findByIds(executionContext, memberships.stream().map(MembershipEntity::getMemberId).toList(), false)
-                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
+                    .findByIds(
+                            executionContext,
+                            memberships.stream()
+                                    .map(MembershipEntity::getMemberId)
+                                    .toList(),
+                            false)
+                    .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
         }
 
-        return applications
-            .stream()
-            .map(publicApplication ->
-                convert(
-                    executionContext,
-                    publicApplication,
-                    userIdToUserEntity.get(applicationToUser.get(publicApplication.getId())),
-                    fetchCertificate
-                )
-            )
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        return applications.stream()
+                .map(publicApplication -> convert(
+                        executionContext,
+                        publicApplication,
+                        userIdToUserEntity.get(applicationToUser.get(publicApplication.getId())),
+                        fetchCertificate))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Set<ApplicationListItem> convertToSimpleList(Collection<Application> applications) {
-        return applications
-            .stream()
-            .map(application -> {
-                ApplicationListItem item = new ApplicationListItem();
-                item.setId(application.getId());
-                item.setName(application.getName());
-                item.setDescription(application.getDescription());
-                item.setDomain(application.getDomain());
-                item.setCreatedAt(application.getCreatedAt());
-                item.setUpdatedAt(application.getUpdatedAt());
-                item.setType(application.getType().name());
-                item.setStatus(application.getStatus().name());
-                item.setPicture(application.getPicture());
-                item.setBackground(application.getBackground());
-                item.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
-                item.setOrigin(application.getOrigin());
-                return item;
-            })
-            .collect(toSet());
+        return applications.stream()
+                .map(application -> {
+                    ApplicationListItem item = new ApplicationListItem();
+                    item.setId(application.getId());
+                    item.setName(application.getName());
+                    item.setDescription(application.getDescription());
+                    item.setDomain(application.getDomain());
+                    item.setCreatedAt(application.getCreatedAt());
+                    item.setUpdatedAt(application.getUpdatedAt());
+                    item.setType(application.getType().name());
+                    item.setStatus(application.getStatus().name());
+                    item.setPicture(application.getPicture());
+                    item.setBackground(application.getBackground());
+                    item.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
+                    item.setOrigin(application.getOrigin());
+                    return item;
+                })
+                .collect(toSet());
     }
 
     private Page<ApplicationListItem> convertToSimpleList(Page<Application> applications) {
         Set<ApplicationListItem> applicationListItems = convertToSimpleList(applications.getContent());
         return new Page<>(
-            List.copyOf(applicationListItems),
-            applications.getPageNumber(),
-            applicationListItems.size(),
-            applications.getTotalElements()
-        );
+                List.copyOf(applicationListItems),
+                applications.getPageNumber(),
+                applicationListItems.size(),
+                applications.getTotalElements());
     }
 
-    private Page<ApplicationListItem> convertToList(final ExecutionContext executionContext, Page<Application> applications) {
+    private Page<ApplicationListItem> convertToList(
+            final ExecutionContext executionContext, Page<Application> applications) {
         Set<ApplicationListItem> applicationListItems = convertToList(executionContext, applications.getContent());
         return new Page<>(
-            List.copyOf(applicationListItems),
-            applications.getPageNumber(),
-            applicationListItems.size(),
-            applications.getTotalElements()
-        );
+                List.copyOf(applicationListItems),
+                applications.getPageNumber(),
+                applicationListItems.size(),
+                applications.getTotalElements());
     }
 
-    private Set<ApplicationListItem> convertToList(final ExecutionContext executionContext, Collection<Application> applications) {
-        // fetchCertificate=false: certificates are resolved in bulk below, resolving them per-application here would be N+1 and wasted work
+    private Set<ApplicationListItem> convertToList(
+            final ExecutionContext executionContext, Collection<Application> applications) {
+        // fetchCertificate=false: certificates are resolved in bulk below, resolving them per-application here would be
+        // N+1 and wasted work
         Set<ApplicationEntity> entities = convertApplication(executionContext, applications, false);
 
-        Set<ApplicationListItem> apps = entities
-            .stream()
-            .map(applicationEntity -> {
-                ApplicationListItem item = new ApplicationListItem();
-                item.setId(applicationEntity.getId());
-                item.setName(applicationEntity.getName());
-                item.setDescription(applicationEntity.getDescription());
-                item.setDomain(applicationEntity.getDomain());
-                item.setCreatedAt(applicationEntity.getCreatedAt());
-                item.setUpdatedAt(applicationEntity.getUpdatedAt());
-                item.setGroups(applicationEntity.getGroups());
-                item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
-                item.setType(applicationEntity.getType());
-                item.setStatus(applicationEntity.getStatus());
-                item.setPicture(applicationEntity.getPicture());
-                item.setBackground(applicationEntity.getBackground());
-                item.setApiKeyMode(applicationEntity.getApiKeyMode());
-                item.setDisableMembershipNotifications(applicationEntity.isDisableMembershipNotifications());
-                item.setOrigin(applicationEntity.getOrigin());
+        Set<ApplicationListItem> apps = entities.stream()
+                .map(applicationEntity -> {
+                    ApplicationListItem item = new ApplicationListItem();
+                    item.setId(applicationEntity.getId());
+                    item.setName(applicationEntity.getName());
+                    item.setDescription(applicationEntity.getDescription());
+                    item.setDomain(applicationEntity.getDomain());
+                    item.setCreatedAt(applicationEntity.getCreatedAt());
+                    item.setUpdatedAt(applicationEntity.getUpdatedAt());
+                    item.setGroups(applicationEntity.getGroups());
+                    item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
+                    item.setType(applicationEntity.getType());
+                    item.setStatus(applicationEntity.getStatus());
+                    item.setPicture(applicationEntity.getPicture());
+                    item.setBackground(applicationEntity.getBackground());
+                    item.setApiKeyMode(applicationEntity.getApiKeyMode());
+                    item.setDisableMembershipNotifications(applicationEntity.isDisableMembershipNotifications());
+                    item.setOrigin(applicationEntity.getOrigin());
 
-                final Application app = applications
-                    .stream()
-                    .filter(application -> application.getId().equals(applicationEntity.getId()))
-                    .findFirst()
-                    .get();
-                item.setSettings(getSettings(executionContext, app, false));
-                return item;
-            })
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+                    final Application app = applications.stream()
+                            .filter(application -> application.getId().equals(applicationEntity.getId()))
+                            .findFirst()
+                            .get();
+                    item.setSettings(getSettings(executionContext, app, false));
+                    return item;
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         List<ClientCertificate> certificates = clientCertificateCrudService.findByApplicationIdsAndStatuses(
-            apps.stream().map(ApplicationListItem::getId).toList(),
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
+                apps.stream().map(ApplicationListItem::getId).toList(),
+                ClientCertificateStatus.ACTIVE,
+                ClientCertificateStatus.ACTIVE_WITH_END);
 
         // Group by applicationId and find most recent certificate
-        Map<String, ClientCertificate> mostRecentCertificates = certificates
-            .stream()
-            .collect(
-                Collectors.groupingBy(
-                    ClientCertificate::applicationId,
-                    Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(ClientCertificate::createdAt)), opt ->
-                        opt.orElse(null)
-                    )
-                )
-            );
+        Map<String, ClientCertificate> mostRecentCertificates = certificates.stream()
+                .collect(Collectors.groupingBy(
+                        ClientCertificate::applicationId,
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy(Comparator.comparing(ClientCertificate::createdAt)),
+                                opt -> opt.orElse(null))));
 
         // Set TLS settings with most recent certificate for each app
         apps.forEach(app -> {
             ClientCertificate mostRecent = mostRecentCertificates.get(app.getId());
             if (mostRecent != null) {
-                app.getSettings().setTls(TlsSettings.builder().clientCertificate(mostRecent.certificate()).build());
+                app.getSettings()
+                        .setTls(TlsSettings.builder()
+                                .clientCertificate(mostRecent.certificate())
+                                .build());
             }
         });
 
@@ -1477,11 +1444,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private ApplicationEntity convert(
-        final ExecutionContext executionContext,
-        Application application,
-        UserEntity primaryOwner,
-        boolean fetchCertificate
-    ) {
+            final ExecutionContext executionContext,
+            Application application,
+            UserEntity primaryOwner,
+            boolean fetchCertificate) {
         if (primaryOwner == null) {
             // add a default unknown user
             primaryOwner = new UserEntity();
@@ -1512,13 +1478,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setSettings(getSettings(executionContext, application, fetchCertificate));
         applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
         if (application.getApiKeyMode() != null) {
-            applicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
+            applicationEntity.setApiKeyMode(
+                    ApiKeyMode.valueOf(application.getApiKeyMode().name()));
         }
         applicationEntity.setOrigin(application.getOrigin() != null ? application.getOrigin() : Origin.MANAGEMENT);
         return applicationEntity;
     }
 
-    private ApplicationSettings getSettings(final ExecutionContext executionContext, Application application, boolean fetchCertificate) {
+    private ApplicationSettings getSettings(
+            final ExecutionContext executionContext, Application application, boolean fetchCertificate) {
         final ApplicationSettings settings = new ApplicationSettings();
         if (application.getType() == ApplicationType.SIMPLE) {
             setSimpleAppSettings(application, settings);
@@ -1529,34 +1497,30 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (fetchCertificate) {
             // Fetch the most recent active certificate from ClientCertificateCrudService
             List<ClientCertificate> list = clientCertificateCrudService
-                .findByApplicationIdAndStatuses(
-                    application.getId(),
-                    ClientCertificateStatus.ACTIVE,
-                    ClientCertificateStatus.ACTIVE_WITH_END
-                )
-                .stream()
-                .sorted(Comparator.comparing(ClientCertificate::createdAt))
-                .toList();
+                    .findByApplicationIdAndStatuses(
+                            application.getId(),
+                            ClientCertificateStatus.ACTIVE,
+                            ClientCertificateStatus.ACTIVE_WITH_END)
+                    .stream()
+                    .sorted(Comparator.comparing(ClientCertificate::createdAt))
+                    .toList();
 
             if (!list.isEmpty()) {
                 if (list.size() == 1 && Objects.equals(list.getFirst().name(), application.getName())) {
                     // This is a nasty trick to comply with upgraded application
                     // or legacy management or application in APIs (using the certificate singular instead of the list)
-                    settings.setTls(
-                        TlsSettings.builder().clientCertificate(list.getFirst().certificate()).certificateCount(list.size()).build()
-                    );
-                } else {
-                    settings.setTls(
-                        TlsSettings.builder()
-                            .clientCertificates(
-                                list
-                                    .stream()
-                                    .map(c -> new CreateClientCertificate(c.name(), c.startsAt(), c.endsAt(), c.certificate()))
-                                    .toList()
-                            )
+                    settings.setTls(TlsSettings.builder()
+                            .clientCertificate(list.getFirst().certificate())
                             .certificateCount(list.size())
-                            .build()
-                    );
+                            .build());
+                } else {
+                    settings.setTls(TlsSettings.builder()
+                            .clientCertificates(list.stream()
+                                    .map(c -> new CreateClientCertificate(
+                                            c.name(), c.startsAt(), c.endsAt(), c.certificate()))
+                                    .toList())
+                            .certificateCount(list.size())
+                            .build());
                 }
             }
         }
@@ -1564,16 +1528,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return settings;
     }
 
-    private void setOAuthSettings(ExecutionContext executionContext, Application application, ApplicationSettings settings) {
+    private void setOAuthSettings(
+            ExecutionContext executionContext, Application application, ApplicationSettings settings) {
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         if (application.getMetadata() != null) {
             try {
                 final String registrationPayload = application.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
                 if (registrationPayload != null) {
-                    final ClientRegistrationResponse registrationResponse = mapper.readValue(
-                        registrationPayload,
-                        ClientRegistrationResponse.class
-                    );
+                    final ClientRegistrationResponse registrationResponse =
+                            mapper.readValue(registrationPayload, ClientRegistrationResponse.class);
                     clientSettings.setClientId(registrationResponse.getClientId());
                     clientSettings.setClientSecret(registrationResponse.getClientSecret());
                     clientSettings.setClientUri(registrationResponse.getClientUri());
@@ -1584,16 +1547,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     clientSettings.setGrantTypes(registrationResponse.getGrantTypes());
                 }
 
-                final String additionalClientMetadata = application.getMetadata().get(METADATA_ADDITIONAL_CLIENT_METADATA);
+                final String additionalClientMetadata =
+                        application.getMetadata().get(METADATA_ADDITIONAL_CLIENT_METADATA);
                 if (additionalClientMetadata != null) {
-                    clientSettings.setAdditionalClientMetadata(mapper.readValue(additionalClientMetadata, new TypeReference<>() {}));
+                    clientSettings.setAdditionalClientMetadata(
+                            mapper.readValue(additionalClientMetadata, new TypeReference<>() {}));
                 }
 
-                Iterator<ClientRegistrationProviderEntity> clientRegistrationProviderIte = clientRegistrationService
-                    .findAll(executionContext)
-                    .iterator();
+                Iterator<ClientRegistrationProviderEntity> clientRegistrationProviderIte =
+                        clientRegistrationService.findAll(executionContext).iterator();
                 if (clientRegistrationProviderIte.hasNext()) {
-                    clientSettings.setRenewClientSecretSupported(clientRegistrationProviderIte.next().isRenewClientSecretSupport());
+                    clientSettings.setRenewClientSecretSupported(
+                            clientRegistrationProviderIte.next().isRenewClientSecretSupport());
                 }
             } catch (IOException e) {
                 log.error("An error occurred while reading client settings");
@@ -1619,7 +1584,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     public InlinePictureEntity getPicture(final ExecutionContext executionContext, String applicationId) {
         ApplicationEntity applicationEntity = findById(executionContext, applicationId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (applicationEntity.getPicture() != null && !applicationEntity.getPicture().isEmpty()) {
+        if (applicationEntity.getPicture() != null
+                && !applicationEntity.getPicture().isEmpty()) {
             String[] parts = applicationEntity.getPicture().split(";", 2);
             encodeImage(imageEntity, parts, applicationEntity.getPicture());
         }
@@ -1645,9 +1611,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Map<String, Object> findByIdAsMap(String id) throws TechnicalException {
-        Application application = applicationRepository.findById(id).orElseThrow(() -> new ApplicationNotFoundException(id));
+        Application application =
+                applicationRepository.findById(id).orElseThrow(() -> new ApplicationNotFoundException(id));
 
-        ExecutionContext executionContext = new ExecutionContext(environmentService.findById(application.getEnvironmentId()));
+        ExecutionContext executionContext =
+                new ExecutionContext(environmentService.findById(application.getEnvironmentId()));
         ApplicationEntity applicationEntity = convertAndFillPrimaryOwner(executionContext, application);
 
         Map<String, Object> dataAsMap = mapper.convertValue(applicationEntity, Map.class);
@@ -1655,7 +1623,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return dataAsMap;
     }
 
-    public Set<String> searchIds(ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable) {
+    public Set<String> searchIds(
+            ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable) {
         try {
             ApplicationCriteria searchCriteria = buildSearchCriteria(executionContext, applicationQuery);
 
@@ -1665,17 +1634,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             return applicationRepository.searchIds(searchCriteria, convert(sortable));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find applications for query " + applicationQuery, ex);
         }
     }
 
     @Override
     public Page<ApplicationListItem> search(
-        ExecutionContext executionContext,
-        ApplicationQuery applicationQuery,
-        Sortable sortable,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext,
+            ApplicationQuery applicationQuery,
+            Sortable sortable,
+            Pageable pageable) {
         try {
             ApplicationCriteria searchCriteria = buildSearchCriteria(executionContext, applicationQuery);
 
@@ -1683,15 +1652,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return new Page<>(Collections.emptyList(), 1, 0, 0);
             }
 
-            Page<Application> applications = applicationRepository.search(searchCriteria, convert(pageable), convert(sortable));
+            Page<Application> applications =
+                    applicationRepository.search(searchCriteria, convert(pageable), convert(sortable));
 
             // An archived doesn't have owner
-            if (!ApplicationStatus.ARCHIVED.name().equals(applicationQuery.getStatus()) && applicationQuery.includeOwner()) {
+            if (!ApplicationStatus.ARCHIVED.name().equals(applicationQuery.getStatus())
+                    && applicationQuery.includeOwner()) {
                 return this.convertToList(executionContext, applications);
             }
             return this.convertToSimpleList(applications);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find applications for query " + applicationQuery, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find applications for query " + applicationQuery, ex);
         }
     }
 
@@ -1701,11 +1673,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (executionContext.hasEnvironmentId()) {
             criteriaBuilder.environmentIds(Sets.newHashSet(executionContext.getEnvironmentId()));
         } else {
-            final Set<String> environmentIds = environmentService
-                .findByOrganization(executionContext.getOrganizationId())
-                .stream()
-                .map(EnvironmentEntity::getId)
-                .collect(toSet());
+            final Set<String> environmentIds =
+                    environmentService.findByOrganization(executionContext.getOrganizationId()).stream()
+                            .map(EnvironmentEntity::getId)
+                            .collect(toSet());
             criteriaBuilder.environmentIds(environmentIds);
         }
 
@@ -1721,20 +1692,25 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             ApplicationStatus applicationStatus = null;
-            if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
-                applicationStatus = ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase());
+            if (applicationQuery.getStatus() != null
+                    && !applicationQuery.getStatus().isBlank()) {
+                applicationStatus =
+                        ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase());
                 criteriaBuilder.status(applicationStatus);
             }
 
             criteriaBuilder.restrictedToIds(applicationQuery.getIds());
 
             if (StringUtils.isNotBlank(applicationQuery.getUser())) {
-                Set<String> userApplicationsIds = findUserApplicationsIds(executionContext, applicationQuery.getUser(), applicationStatus);
+                Set<String> userApplicationsIds =
+                        findUserApplicationsIds(executionContext, applicationQuery.getUser(), applicationStatus);
                 if (userApplicationsIds.isEmpty()) {
                     return null;
                 }
                 if (CollectionUtils.isNotEmpty(applicationQuery.getIds())) {
-                    Set<String> authorizedApps = userApplicationsIds.stream().filter(applicationQuery.getIds()::contains).collect(toSet());
+                    Set<String> authorizedApps = userApplicationsIds.stream()
+                            .filter(applicationQuery.getIds()::contains)
+                            .collect(toSet());
                     if (authorizedApps.isEmpty()) {
                         return null;
                     }
@@ -1747,21 +1723,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return criteriaBuilder.build();
     }
 
-    public Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, ApplicationStatus status) {
-        //find applications where the user is a member
+    public Set<String> findUserApplicationsIds(
+            ExecutionContext executionContext, String username, ApplicationStatus status) {
+        // find applications where the user is a member
         Set<String> appIds = membershipService.getReferenceIdsByMemberAndReference(
-            MembershipMemberType.USER,
-            username,
-            MembershipReferenceType.APPLICATION
-        );
+                MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION);
 
-        //find user groups
+        // find user groups
         List<String> groupIds = membershipService
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.GROUP)
-            .stream()
-            .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
-            .map(MembershipEntity::getReferenceId)
-            .toList();
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.GROUP)
+                .stream()
+                .filter(m -> m.getRoleId() != null
+                        && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
+                .map(MembershipEntity::getReferenceId)
+                .toList();
 
         if (!groupIds.isEmpty()) {
             ApplicationQuery applicationQueryWithGroupsAndStatus = new ApplicationQuery();
@@ -1793,39 +1768,29 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void checkApiKeyModeUpdate(ExecutionContext executionContext, ApiKeyMode apiKeyMode, Application applicationToUpdate) {
-        if (
-            applicationToUpdate.getApiKeyMode() != null &&
-            !applicationToUpdate.getApiKeyMode().isUpdatable() &&
-            !applicationToUpdate.getApiKeyMode().name().equals(apiKeyMode.name())
-        ) {
-            throw new InvalidApplicationApiKeyModeException(
-                String.format(
+    private void checkApiKeyModeUpdate(
+            ExecutionContext executionContext, ApiKeyMode apiKeyMode, Application applicationToUpdate) {
+        if (applicationToUpdate.getApiKeyMode() != null
+                && !applicationToUpdate.getApiKeyMode().isUpdatable()
+                && !applicationToUpdate.getApiKeyMode().name().equals(apiKeyMode.name())) {
+            throw new InvalidApplicationApiKeyModeException(String.format(
                     "Can't update application %s API Key mode cause current API Key Mode %s is not updatable",
-                    applicationToUpdate.getId(),
-                    applicationToUpdate.getApiKeyMode()
-                )
-            );
-        } else if (
-            apiKeyMode == ApiKeyMode.SHARED &&
-            applicationToUpdate.getApiKeyMode() != io.gravitee.repository.management.model.ApiKeyMode.SHARED &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
-        ) {
-            throw new InvalidApplicationApiKeyModeException(
-                String.format(
+                    applicationToUpdate.getId(), applicationToUpdate.getApiKeyMode()));
+        } else if (apiKeyMode == ApiKeyMode.SHARED
+                && applicationToUpdate.getApiKeyMode() != io.gravitee.repository.management.model.ApiKeyMode.SHARED
+                && !parameterService.findAsBoolean(
+                        executionContext,
+                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT)) {
+            throw new InvalidApplicationApiKeyModeException(String.format(
                     "Can't update application %s API Key mode to SHARED cause environment setting is disabled",
-                    applicationToUpdate.getId()
-                )
-            );
+                    applicationToUpdate.getId()));
         }
     }
 
     private ApplicationEntity convertAndFillPrimaryOwner(ExecutionContext executionContext, Application application) {
         MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
-            executionContext.getOrganizationId(),
-            MembershipReferenceType.APPLICATION,
-            application.getId()
-        );
+                executionContext.getOrganizationId(), MembershipReferenceType.APPLICATION, application.getId());
         if (primaryOwnerMemberEntity == null) {
             if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
                 log.error("The Application {} doesn't have any primary owner.", application.getId());
@@ -1833,6 +1798,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             return convert(executionContext, application, null, true);
         }
 
-        return convert(executionContext, application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()), true);
+        return convert(
+                executionContext,
+                application,
+                userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()),
+                true);
     }
 }

@@ -32,7 +32,8 @@ public class PolicyBuilder {
         return build(id, policy, null);
     }
 
-    public static PolicyPlugin build(String id, Class<?> policy, Class<? extends PolicyConfiguration> policyConfiguration) {
+    public static PolicyPlugin build(
+            String id, Class<?> policy, Class<? extends PolicyConfiguration> policyConfiguration) {
         return new PolicyPlugin() {
             @Override
             public Class<?> policy() {

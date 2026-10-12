@@ -24,5 +24,6 @@ public interface ScoringFunctionAdapter {
     ScoringFunctionAdapter INSTANCE = Mappers.getMapper(ScoringFunctionAdapter.class);
 
     ScoringFunction toEntity(io.gravitee.repository.management.model.ScoringFunction source);
+
     io.gravitee.repository.management.model.ScoringFunction toRepository(ScoringFunction source);
 }

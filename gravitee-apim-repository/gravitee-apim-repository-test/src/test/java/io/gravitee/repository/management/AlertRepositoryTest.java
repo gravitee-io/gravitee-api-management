@@ -37,10 +37,8 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(alerts);
         assertEquals(4, alerts.size());
-        final Optional<AlertTrigger> optionalAlert = alerts
-            .stream()
-            .filter(alert -> "quota90".equals(alert.getId()))
-            .findAny();
+        final Optional<AlertTrigger> optionalAlert =
+                alerts.stream().filter(alert -> "quota90".equals(alert.getId())).findAny();
         assertTrue(optionalAlert.isPresent());
         assertEquals("Quota90", optionalAlert.get().getName());
         assertEquals("Description for alert API quota 90%", optionalAlert.get().getDescription());
@@ -49,8 +47,10 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("QUOTA", optionalAlert.get().getType());
         assertEquals("{}", optionalAlert.get().getDefinition());
         assertTrue(optionalAlert.get().isEnabled());
-        assertTrue(compareDate(1439022010883L, optionalAlert.get().getCreatedAt().getTime()));
-        assertTrue(compareDate(1439022010883L, optionalAlert.get().getUpdatedAt().getTime()));
+        assertTrue(
+                compareDate(1439022010883L, optionalAlert.get().getCreatedAt().getTime()));
+        assertTrue(
+                compareDate(1439022010883L, optionalAlert.get().getUpdatedAt().getTime()));
         assertTrue(optionalAlert.get().isTemplate());
         assertEquals(1, optionalAlert.get().getEventRules().size());
     }
@@ -158,14 +158,16 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferenceAndReferenceIds() throws Exception {
-        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Arrays.asList("api-id", "application-id"));
+        final List<AlertTrigger> alerts =
+                alertRepository.findByReferenceAndReferenceIds("API", Arrays.asList("api-id", "application-id"));
         assertNotNull(alerts);
         assertEquals(2, alerts.size());
     }
 
     @Test
     public void shouldFindByReferenceAndReferenceIds_andReturnEmptyListWhenInputListIsEmpty() throws Exception {
-        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Collections.emptyList());
+        final List<AlertTrigger> alerts =
+                alertRepository.findByReferenceAndReferenceIds("API", Collections.emptyList());
         assertNotNull(alerts);
         assertEquals(0, alerts.size());
     }

@@ -34,11 +34,12 @@ public class VerifyApiProductNameUseCase {
         }
 
         String trimmedName = input.name.trim();
-        Optional<ApiProduct> existingApiProduct = apiProductQueryService.findByEnvironmentIdAndName(input.environmentId, trimmedName);
+        Optional<ApiProduct> existingApiProduct =
+                apiProductQueryService.findByEnvironmentIdAndName(input.environmentId, trimmedName);
 
-        if (
-            existingApiProduct.isPresent() && (input.apiProductId == null || !existingApiProduct.get().getId().equals(input.apiProductId))
-        ) {
+        if (existingApiProduct.isPresent()
+                && (input.apiProductId == null
+                        || !existingApiProduct.get().getId().equals(input.apiProductId))) {
             throw new ValidationDomainException(String.format("API Product name '%s' already exists", trimmedName));
         }
         return new Output(trimmedName);

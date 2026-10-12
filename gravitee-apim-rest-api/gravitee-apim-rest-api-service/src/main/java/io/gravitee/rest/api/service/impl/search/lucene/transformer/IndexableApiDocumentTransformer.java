@@ -22,7 +22,6 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
@@ -73,20 +72,23 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         if (api.getLifecycleState() != null) {
             doc.add(new StringField(FIELD_STATUS, api.getLifecycleState().name(), Field.Store.NO));
-            doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getLifecycleState().name())));
+            doc.add(new SortedDocValuesField(
+                    FIELD_STATUS_SORTED, toSortedValue(api.getLifecycleState().name())));
         }
 
         String portalStatus = api.getApiLifecycleState() == Api.ApiLifecycleState.PUBLISHED
-            ? Api.ApiLifecycleState.PUBLISHED.name()
-            : Api.ApiLifecycleState.UNPUBLISHED.name();
+                ? Api.ApiLifecycleState.PUBLISHED.name()
+                : Api.ApiLifecycleState.UNPUBLISHED.name();
         doc.add(new StringField(FIELD_PORTAL_STATUS, portalStatus, Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_PORTAL_STATUS_SORTED, toSortedValue(portalStatus)));
 
         doc.add(new StringField(FIELD_VISIBILITY, api.getVisibility().name(), Field.Store.NO));
-        doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
+        doc.add(new SortedDocValuesField(
+                FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
         if (api.getDefinitionVersion() != null) {
-            doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
+            doc.add(new StringField(
+                    FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
             String apiType = LuceneTransformerUtils.generateApiType(api);
             doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
@@ -105,13 +107,15 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
         if (api.getDescription() != null) {
             doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
-            doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), Field.Store.NO));
+            doc.add(new StringField(
+                    FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
         }
         if (primaryOwner != null) {
             doc.add(new StringField(FIELD_OWNER, primaryOwner.displayName(), Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_OWNER_SORTED, toSortedValue(primaryOwner.displayName())));
-            doc.add(new StringField(FIELD_OWNER_LOWERCASE, primaryOwner.displayName().toLowerCase(), Field.Store.NO));
+            doc.add(new StringField(
+                    FIELD_OWNER_LOWERCASE, primaryOwner.displayName().toLowerCase(), Field.Store.NO));
             if (primaryOwner.email() != null) {
                 doc.add(new TextField(FIELD_OWNER_MAIL, primaryOwner.email(), Field.Store.NO));
             }
@@ -133,26 +137,27 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
                 doc.add(new TextField(FIELD_CATEGORIES_SPLIT, category, Field.Store.NO));
             }
             String categoriesAsc = categories.stream().sorted().collect(Collectors.joining(","));
-            String categoriesDesc = categories.stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            String categoriesDesc =
+                    categories.stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
             doc.add(new SortedDocValuesField(FIELD_CATEGORIES_ASC_SORTED, toSortedValue(categoriesAsc)));
             doc.add(new SortedDocValuesField(FIELD_CATEGORIES_DESC_SORTED, toSortedValue(categoriesDesc)));
         }
 
         if (api.getCreatedAt() != null) {
-            doc.add(new LongPoint(FIELD_CREATED_AT, api.getCreatedAt().toInstant().toEpochMilli()));
+            doc.add(new LongPoint(
+                    FIELD_CREATED_AT, api.getCreatedAt().toInstant().toEpochMilli()));
         }
         if (api.getUpdatedAt() != null) {
-            doc.add(new LongPoint(FIELD_UPDATED_AT, api.getUpdatedAt().toInstant().toEpochMilli()));
+            doc.add(new LongPoint(
+                    FIELD_UPDATED_AT, api.getUpdatedAt().toInstant().toEpochMilli()));
         }
 
         // metadata
         if (metadata != null) {
-            metadata
-                .values()
-                .forEach(metadataValue -> {
-                    doc.add(new StringField(FIELD_METADATA, metadataValue, Field.Store.NO));
-                    doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue, Field.Store.NO));
-                });
+            metadata.values().forEach(metadataValue -> {
+                doc.add(new StringField(FIELD_METADATA, metadataValue, Field.Store.NO));
+                doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue, Field.Store.NO));
+            });
         }
 
         if (api.getOriginContext() != null && api.getOriginContext().name() != null) {
@@ -193,7 +198,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         // always indexed and remain findable by a search for allowedInApiProducts=false.
         if (apiDefinitionV4 instanceof io.gravitee.definition.model.v4.Api v4Api) {
             boolean allowedInApiProducts = Boolean.TRUE.equals(v4Api.getAllowedInApiProducts());
-            doc.add(new StringField(FIELD_ALLOW_IN_API_PRODUCTS, Boolean.toString(allowedInApiProducts), Field.Store.NO));
+            doc.add(new StringField(
+                    FIELD_ALLOW_IN_API_PRODUCTS, Boolean.toString(allowedInApiProducts), Field.Store.NO));
         }
 
         // tags
@@ -203,7 +209,9 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
                 doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
             }
             String tagsAsc = apiDefinitionV4.getTags().stream().sorted().collect(Collectors.joining(","));
-            String tagsDesc = apiDefinitionV4.getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            String tagsDesc = apiDefinitionV4.getTags().stream()
+                    .sorted(Comparator.reverseOrder())
+                    .collect(Collectors.joining(","));
             doc.add(new SortedDocValuesField(FIELD_TAGS_ASC_SORTED, toSortedValue(tagsAsc)));
             doc.add(new SortedDocValuesField(FIELD_TAGS_DESC_SORTED, toSortedValue(tagsDesc)));
         }
@@ -211,31 +219,27 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
     private void transformV4ApiHttpListeners(Document doc, io.gravitee.definition.model.v4.Api apiDefinitionV4) {
         if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
-            final int[] pathIndex = { 0 };
-            apiDefinitionV4
-                .getListeners()
-                .stream()
-                .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .flatMap(listener -> {
-                    HttpListener httpListener = (HttpListener) listener;
-                    return httpListener.getPaths().stream();
-                })
-                .forEach(path -> {
-                    appendPath(doc, pathIndex, path.getPath());
-                    appendHost(doc, path.getHost());
-                });
+            final int[] pathIndex = {0};
+            apiDefinitionV4.getListeners().stream()
+                    .filter(listener -> listener.getType() == ListenerType.HTTP)
+                    .flatMap(listener -> {
+                        HttpListener httpListener = (HttpListener) listener;
+                        return httpListener.getPaths().stream();
+                    })
+                    .forEach(path -> {
+                        appendPath(doc, pathIndex, path.getPath());
+                        appendHost(doc, path.getHost());
+                    });
         }
     }
 
     private void transformV4ApiNativeListeners(Document doc, NativeApi apiDefinitionV4) {
         if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
-            apiDefinitionV4
-                .getListeners()
-                .stream()
-                .filter(listener -> listener.getType() == ListenerType.KAFKA)
-                .forEach(listener -> {
-                    if (listener instanceof KafkaListener kafkaListener) appendHost(doc, kafkaListener.getHost());
-                });
+            apiDefinitionV4.getListeners().stream()
+                    .filter(listener -> listener.getType() == ListenerType.KAFKA)
+                    .forEach(listener -> {
+                        if (listener instanceof KafkaListener kafkaListener) appendHost(doc, kafkaListener.getHost());
+                    });
         }
     }
 
@@ -261,11 +265,10 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         // Handle v2 API paths from proxy configuration
         if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api apiV2 && apiV2.getProxy() != null) {
-            final int[] pathIndex = { 0 };
-            apiV2
-                .getProxy()
-                .getVirtualHosts()
-                .forEach(virtualHost -> appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath()));
+            final int[] pathIndex = {0};
+            apiV2.getProxy()
+                    .getVirtualHosts()
+                    .forEach(virtualHost -> appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath()));
         }
 
         // Handle v2 API tags
@@ -275,13 +278,15 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
                 doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
             }
             String tagsAsc = api.getTags().stream().sorted().collect(Collectors.joining(","));
-            String tagsDesc = api.getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            String tagsDesc =
+                    api.getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
             doc.add(new SortedDocValuesField(FIELD_TAGS_ASC_SORTED, toSortedValue(tagsAsc)));
             doc.add(new SortedDocValuesField(FIELD_TAGS_DESC_SORTED, toSortedValue(tagsDesc)));
         }
 
         // Handle v2 API health check
-        doc.add(new StringField(FIELD_HAS_HEALTH_CHECK, Boolean.toString(hasHealthCheckEnabledV2(api)), Field.Store.NO));
+        doc.add(new StringField(
+                FIELD_HAS_HEALTH_CHECK, Boolean.toString(hasHealthCheckEnabledV2(api)), Field.Store.NO));
     }
 
     private boolean hasHealthCheckEnabledV2(Api api) {
@@ -294,11 +299,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         // Check for global health check services at API level
         if (apiDefinition.getServices() != null) {
-            boolean hasGlobalHealthCheck = apiDefinition
-                .getServices()
-                .getAll()
-                .stream()
-                .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
+            boolean hasGlobalHealthCheck = apiDefinition.getServices().getAll().stream()
+                    .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
             if (hasGlobalHealthCheck) {
                 return true;
             }
@@ -306,18 +308,11 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         // Check for endpoint-level health checks
         if (apiDefinition.getProxy() != null && apiDefinition.getProxy().getGroups() != null) {
-            return apiDefinition
-                .getProxy()
-                .getGroups()
-                .stream()
-                .anyMatch(
-                    group ->
-                        group.getEndpoints() != null &&
-                        group
-                            .getEndpoints()
-                            .stream()
-                            .anyMatch(endpoint -> endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled())
-                );
+            return apiDefinition.getProxy().getGroups().stream()
+                    .anyMatch(group -> group.getEndpoints() != null
+                            && group.getEndpoints().stream()
+                                    .anyMatch(endpoint -> endpoint.getHealthCheck() != null
+                                            && endpoint.getHealthCheck().isEnabled()));
         }
 
         return false;

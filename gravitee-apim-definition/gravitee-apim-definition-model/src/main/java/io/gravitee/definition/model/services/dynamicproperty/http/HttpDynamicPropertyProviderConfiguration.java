@@ -55,9 +55,9 @@ public class HttpDynamicPropertyProviderConfiguration implements DynamicProperty
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         HttpDynamicPropertyProviderConfiguration that = (HttpDynamicPropertyProviderConfiguration) o;
-        return (
-            useSystemProxy == that.useSystemProxy && Objects.equals(url, that.url) && Objects.equals(specification, that.specification)
-        );
+        return (useSystemProxy == that.useSystemProxy
+                && Objects.equals(url, that.url)
+                && Objects.equals(specification, that.specification));
     }
 
     @Override

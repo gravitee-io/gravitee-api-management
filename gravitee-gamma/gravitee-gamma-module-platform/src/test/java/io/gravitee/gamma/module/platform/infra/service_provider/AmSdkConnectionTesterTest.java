@@ -83,9 +83,9 @@ class AmSdkConnectionTesterTest {
     @Test
     void should_surface_am_status_and_a_clean_message_when_organization_is_rejected() {
         when(clientFactory.forConnection(any())).thenReturn(new AmApis(null, "bogus", defaults, null));
-        when(defaults.listEnvironments("bogus")).thenReturn(
-            Future.failedFuture(new ApiException(403, "Forbidden", null, "{\"message\":\"Permission denied\",\"http_status\":403}"))
-        );
+        when(defaults.listEnvironments("bogus"))
+                .thenReturn(Future.failedFuture(new ApiException(
+                        403, "Forbidden", null, "{\"message\":\"Permission denied\",\"http_status\":403}")));
 
         var result = tester.test(APIM_ORG, connection("bogus"));
 
@@ -107,7 +107,8 @@ class AmSdkConnectionTesterTest {
 
     @Test
     void should_require_access_token() {
-        var result = tester.test(APIM_ORG, new AmConnection("https://am.example", " ", "am-org", null, null, null, null));
+        var result =
+                tester.test(APIM_ORG, new AmConnection("https://am.example", " ", "am-org", null, null, null, null));
 
         assertThat(result.ok()).isFalse();
         assertThat(result.status()).isEqualTo(400);

@@ -53,7 +53,8 @@ public class AccessibleApiScopeDomainService {
      * @return The intersection of the three constraints. An empty {@code apiIds} means the caller
      *         has no data to see (→ empty result, not 403).
      */
-    public ScopedApis computeScope(List<AccessibleApi> accessibleApis, Set<ApiType> wantedApiTypes, Set<String> userApiFilter) {
+    public ScopedApis computeScope(
+            List<AccessibleApi> accessibleApis, Set<ApiType> wantedApiTypes, Set<String> userApiFilter) {
         var filtered = accessibleApis.stream().filter(api -> api.type() != null && wantedApiTypes.contains(api.type()));
 
         if (userApiFilter != null && !userApiFilter.isEmpty()) {
@@ -62,9 +63,9 @@ public class AccessibleApiScopeDomainService {
 
         var apiList = filtered.toList();
         var ids = apiList.stream().map(AccessibleApi::id).collect(Collectors.toSet());
-        var apisById = apiList
-            .stream()
-            .collect(Collectors.toMap(AccessibleApi::id, AccessibleApiScopeDomainService::toReference, (a, b) -> a));
+        var apisById = apiList.stream()
+                .collect(
+                        Collectors.toMap(AccessibleApi::id, AccessibleApiScopeDomainService::toReference, (a, b) -> a));
 
         return new ScopedApis(ids, apisById);
     }

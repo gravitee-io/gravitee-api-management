@@ -103,27 +103,29 @@ class ApiExportDomainServiceImplTest {
     public static final Media MEDIA = Media.builder().apiId(API_ID).id("media").build();
 
     private static final Page MARKDOWN_PAGE = Page.builder()
-        .id("page")
-        .type(Page.Type.MARKDOWN)
-        .referenceId(API_ID)
-        .referenceType(Page.ReferenceType.API)
-        .build();
+            .id("page")
+            .type(Page.Type.MARKDOWN)
+            .referenceId(API_ID)
+            .referenceType(Page.ReferenceType.API)
+            .build();
     public static final PageExport EXPECTED_MARKDOWN_PAGE = PageExport.builder()
-        .id("page")
-        .type(Page.Type.MARKDOWN)
-        .referenceId(API_ID)
-        .referenceType(Page.ReferenceType.API)
-        .build();
+            .id("page")
+            .type(Page.Type.MARKDOWN)
+            .referenceId(API_ID)
+            .referenceType(Page.ReferenceType.API)
+            .build();
 
-    private static final Metadata METADATA = Metadata.builder().key("hehe").name("haha").value("hoohoo").build();
+    private static final Metadata METADATA =
+            Metadata.builder().key("hehe").name("haha").value("hoohoo").build();
     public static final Map<String, String> EXPECTED_METADATA = Map.of("haha", "hoohoo");
 
     private static final Membership MEMBER = Membership.builder()
-        .id("member")
-        .memberId("member-id")
-        .memberType(Membership.Type.USER)
-        .build();
-    public static final ApiMember EXPECTED_MEMBER = ApiMember.builder().id("member-id").type(MembershipMemberType.USER).build();
+            .id("member")
+            .memberId("member-id")
+            .memberType(Membership.Type.USER)
+            .build();
+    public static final ApiMember EXPECTED_MEMBER =
+            ApiMember.builder().id("member-id").type(MembershipMemberType.USER).build();
 
     @Mock
     PermissionService permissionService;
@@ -177,37 +179,30 @@ class ApiExportDomainServiceImplTest {
     void setUp() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         lenient()
-            .when(
-                permissionService.hasPermission(
-                    any(ExecutionContext.class),
-                    any(RolePermission.class),
-                    anyString(),
-                    ArgumentMatchers.<RolePermissionAction>any()
-                )
-            )
-            .thenReturn(true);
+                .when(permissionService.hasPermission(
+                        any(ExecutionContext.class),
+                        any(RolePermission.class),
+                        anyString(),
+                        ArgumentMatchers.<RolePermissionAction>any()))
+                .thenReturn(true);
         lenient()
-            .when(
-                permissionService.hasPermission(
-                    any(ExecutionContext.class),
-                    anyString(),
-                    any(RolePermission.class),
-                    anyString(),
-                    ArgumentMatchers.<RolePermissionAction>any()
-                )
-            )
-            .thenReturn(true);
+                .when(permissionService.hasPermission(
+                        any(ExecutionContext.class),
+                        anyString(),
+                        any(RolePermission.class),
+                        anyString(),
+                        ArgumentMatchers.<RolePermissionAction>any()))
+                .thenReturn(true);
 
-        lenient().when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class))).thenReturn(List.of());
         lenient()
-            .when(groupQueryService.findByIds(anySet()))
-            .thenAnswer(invocation -> {
-                Set<String> ids = invocation.getArgument(0);
-                return ids
-                    .stream()
+                .when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class)))
+                .thenReturn(List.of());
+        lenient().when(groupQueryService.findByIds(anySet())).thenAnswer(invocation -> {
+            Set<String> ids = invocation.getArgument(0);
+            return ids.stream()
                     .map(id -> Group.builder().id(id).name(id).build())
                     .collect(Collectors.toSet());
-            });
+        });
     }
 
     @AfterEach
@@ -236,23 +231,19 @@ class ApiExportDomainServiceImplTest {
             }
             """;
 
-        definition.setServices(
-            new ApiServices(
-                Service.builder()
-                    .overrideConfiguration(true)
-                    .configuration(configuration)
-                    .type("http-dynamic-properties")
-                    .enabled(true)
-                    .build()
-            )
-        );
+        definition.setServices(new ApiServices(Service.builder()
+                .overrideConfiguration(true)
+                .configuration(configuration)
+                .type("http-dynamic-properties")
+                .enabled(true)
+                .build()));
         Api api = Api.builder()
-            .id(apiId)
-            .type(ApiType.PROXY)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(definition)
-            .groups(Set.of("group-1"))
-            .build();
+                .id(apiId)
+                .type(ApiType.PROXY)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .groups(Set.of("group-1"))
+                .build();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
         when(metadataCrudService.findByApiId(anyString())).thenReturn(List.of(METADATA));
@@ -276,26 +267,23 @@ class ApiExportDomainServiceImplTest {
         GraviteeDefinition.V4 v4Export = (GraviteeDefinition.V4) export;
 
         assertThat(v4Export.api().services()).isNotNull();
-        assertThat(v4Export.api().services().getDynamicProperty())
-            .isNotNull()
-            .satisfies(dynamicProperty -> {
-                assertThat(dynamicProperty.isOverrideConfiguration()).isTrue();
-                assertThat(dynamicProperty.isEnabled()).isTrue();
-                assertThat(dynamicProperty.getType()).isEqualTo("http-dynamic-properties");
-                assertThat(dynamicProperty.getConfiguration()).isEqualTo(configuration);
-            });
+        assertThat(v4Export.api().services().getDynamicProperty()).isNotNull().satisfies(dynamicProperty -> {
+            assertThat(dynamicProperty.isOverrideConfiguration()).isTrue();
+            assertThat(dynamicProperty.isEnabled()).isTrue();
+            assertThat(dynamicProperty.getType()).isEqualTo("http-dynamic-properties");
+            assertThat(dynamicProperty.getConfiguration()).isEqualTo(configuration);
+        });
     }
 
     @Test
     void should_export_v4_api_categories_as_keys_not_ids() {
         // Given
         String apiId = UUID.randomUUID().toString();
-        Api api = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(apiId)
-            .environmentId("DEFAULT")
-            .categories(Set.of("cat-id-1", "cat-id-2"))
-            .build();
+        Api api = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(apiId)
+                .environmentId("DEFAULT")
+                .categories(Set.of("cat-id-1", "cat-id-2"))
+                .build();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class))).thenReturn(List.of("proxy", "common"));
 
@@ -304,8 +292,8 @@ class ApiExportDomainServiceImplTest {
 
         // Then
         assertThat(export.api().categories())
-            .as("V4 API must export categories as keys/names, not internal IDs")
-            .containsExactlyInAnyOrder("proxy", "common");
+                .as("V4 API must export categories as keys/names, not internal IDs")
+                .containsExactlyInAnyOrder("proxy", "common");
     }
 
     @Test
@@ -314,23 +302,27 @@ class ApiExportDomainServiceImplTest {
         var definition = new io.gravitee.definition.model.v4.Api();
         definition.setType(ApiType.PROXY);
         Api api = Api.builder()
-            .id(apiId)
-            .type(ApiType.PROXY)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(definition)
-            .build();
+                .id(apiId)
+                .type(ApiType.PROXY)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .build();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
         GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
-        assertThat(((GraviteeDefinition.V4) export).api().allowedInApiProducts()).isFalse();
+        assertThat(((GraviteeDefinition.V4) export).api().allowedInApiProducts())
+                .isFalse();
     }
 
     @Test
     void should_export_v4_native_api_categories_as_keys_not_ids() {
         // Given
         String apiId = UUID.randomUUID().toString();
-        Api api = ApiFixtures.aNativeApi().toBuilder().environmentId("DEFAULT").categories(Set.of("cat-id-native")).build();
+        Api api = ApiFixtures.aNativeApi().toBuilder()
+                .environmentId("DEFAULT")
+                .categories(Set.of("cat-id-native"))
+                .build();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class))).thenReturn(List.of("native-key"));
 
@@ -339,8 +331,8 @@ class ApiExportDomainServiceImplTest {
 
         // Then
         assertThat(export.api().categories())
-            .as("V4 native API must export categories as keys/names, not internal IDs")
-            .containsExactly("native-key");
+                .as("V4 native API must export categories as keys/names, not internal IDs")
+                .containsExactly("native-key");
     }
 
     @Test
@@ -349,21 +341,19 @@ class ApiExportDomainServiceImplTest {
         String apiId = UUID.randomUUID().toString();
         var definition = new io.gravitee.definition.model.v4.Api();
         Api api = Api.builder()
-            .id(apiId)
-            .type(ApiType.PROXY)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(definition)
-            .build();
+                .id(apiId)
+                .type(ApiType.PROXY)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .build();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(
-            permissionService.hasPermission(
-                any(ExecutionContext.class),
-                anyString(),
-                any(RolePermission.class),
-                anyString(),
-                ArgumentMatchers.<RolePermissionAction>any()
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        any(ExecutionContext.class),
+                        anyString(),
+                        any(RolePermission.class),
+                        anyString(),
+                        ArgumentMatchers.<RolePermissionAction>any()))
+                .thenReturn(false);
 
         // When
         GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
@@ -375,9 +365,13 @@ class ApiExportDomainServiceImplTest {
     @Test
     void export_service_maps_group_ids_to_names() {
         String apiId = UUID.randomUUID().toString();
-        Api api = ApiFixtures.aProxyApiV4().toBuilder().id(apiId).groups(Set.of("group-1")).build();
+        Api api = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(apiId)
+                .groups(Set.of("group-1"))
+                .build();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(groupQueryService.findByIds(Set.of("group-1"))).thenReturn(Set.of(Group.builder().id("group-1").name("Helios").build()));
+        when(groupQueryService.findByIds(Set.of("group-1")))
+                .thenReturn(Set.of(Group.builder().id("group-1").name("Helios").build()));
         when(metadataCrudService.findByApiId(anyString())).thenReturn(List.of());
         when(membershipCrudService.findByApiId(anyString())).thenReturn(List.of());
         when(pageQueryService.searchByApiId(anyString())).thenReturn(List.of());
@@ -391,11 +385,13 @@ class ApiExportDomainServiceImplTest {
     @Test
     void export_service_skips_missing_group_ids_and_exports_resolved_names() {
         String apiId = UUID.randomUUID().toString();
-        Api api = ApiFixtures.aProxyApiV4().toBuilder().id(apiId).groups(Set.of("group-1", "missing-group")).build();
+        Api api = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(apiId)
+                .groups(Set.of("group-1", "missing-group"))
+                .build();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(groupQueryService.findByIds(Set.of("group-1", "missing-group"))).thenReturn(
-            Set.of(Group.builder().id("group-1").name("Helios").build())
-        );
+        when(groupQueryService.findByIds(Set.of("group-1", "missing-group")))
+                .thenReturn(Set.of(Group.builder().id("group-1").name("Helios").build()));
         when(metadataCrudService.findByApiId(anyString())).thenReturn(List.of());
         when(membershipCrudService.findByApiId(anyString())).thenReturn(List.of());
         when(pageQueryService.searchByApiId(anyString())).thenReturn(List.of());
@@ -438,7 +434,11 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = UUID.randomUUID().toString();
 
-        Service dynamicProperty = Service.builder().type("http-dynamic-properties").enabled(true).configuration("{}").build();
+        Service dynamicProperty = Service.builder()
+                .type("http-dynamic-properties")
+                .enabled(true)
+                .configuration("{}")
+                .build();
         Api api = ApiFixtures.aNativeApi();
         api.getApiDefinitionNativeV4().setServices(new NativeApiServices(dynamicProperty));
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
@@ -448,7 +448,8 @@ class ApiExportDomainServiceImplTest {
 
         // Then
         assertThat(((ApiDescriptor.Native) export.api()).services()).isNotNull();
-        assertThat(((ApiDescriptor.Native) export.api()).services().getDynamicProperty()).isEqualTo(dynamicProperty);
+        assertThat(((ApiDescriptor.Native) export.api()).services().getDynamicProperty())
+                .isEqualTo(dynamicProperty);
     }
 
     @Test
@@ -463,9 +464,9 @@ class ApiExportDomainServiceImplTest {
 
         Api api = ApiFixtures.aFederatedApi();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(integrationCrudService.findApiIntegrationById(anyString())).thenReturn(
-            Optional.of(new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null))
-        );
+        when(integrationCrudService.findApiIntegrationById(anyString()))
+                .thenReturn(Optional.of(
+                        new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null)));
 
         // When
         GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
@@ -538,7 +539,9 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = UUID.randomUUID().toString();
 
-        Api api = ApiFixtures.aMessageApiV4().toBuilder().groups(Set.of("group-1")).build();
+        Api api = ApiFixtures.aMessageApiV4().toBuilder()
+                .groups(Set.of("group-1"))
+                .build();
 
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
@@ -563,7 +566,8 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = UUID.randomUUID().toString();
 
-        Api api = ApiFixtures.aProxyApiV2().toBuilder().groups(Set.of("group-1")).build();
+        Api api =
+                ApiFixtures.aProxyApiV2().toBuilder().groups(Set.of("group-1")).build();
 
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
@@ -587,12 +591,14 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = UUID.randomUUID().toString();
 
-        Api api = ApiFixtures.aFederatedApi().toBuilder().groups(Set.of("group-1")).build();
+        Api api = ApiFixtures.aFederatedApi().toBuilder()
+                .groups(Set.of("group-1"))
+                .build();
 
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(integrationCrudService.findApiIntegrationById(anyString())).thenReturn(
-            Optional.of(new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null))
-        );
+        when(integrationCrudService.findApiIntegrationById(anyString()))
+                .thenReturn(Optional.of(
+                        new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null)));
 
         // When
         GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.allOf(Excludable.class));
@@ -615,12 +621,13 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = "apiId";
         Api api = Api.builder()
-            .id(apiId)
-            .description("Gravitee.io")
-            .type(ApiType.PROXY)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder().build())
-            .build();
+                .id(apiId)
+                .description("Gravitee.io")
+                .type(ApiType.PROXY)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(
+                        io.gravitee.definition.model.v4.Api.builder().build())
+                .build();
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(pageQueryService.searchByApiId(anyString())).thenReturn(pages());
@@ -635,120 +642,127 @@ class ApiExportDomainServiceImplTest {
         GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
 
         // Then
-        assertThat(export.pages()).containsOnly(
-            PageExport.builder()
-                .id("folder-1")
-                .name("My Folder")
-                .order(1)
-                .type(Page.Type.FOLDER)
-                .visibility(Page.Visibility.PUBLIC)
-                .build(),
-            PageExport.builder()
-                .name("My Title")
-                .order(1)
-                .type(Page.Type.MARKDOWN)
-                .visibility(Page.Visibility.PUBLIC)
-                .content("Read the doc")
-                .accessControls(Set.of(AccessControl.builder().referenceId("my-group").referenceType("GROUP").build()))
-                .id("markdown-1")
-                .build(),
-            PageExport.builder()
-                .name("Aside")
-                .order(1)
-                .type(Page.Type.SYSTEM_FOLDER)
-                .visibility(Page.Visibility.PUBLIC)
-                .published(true)
-                .id("system-folder-1")
-                .build(),
-            PageExport.builder()
-                .name("My Swagger")
-                .order(1)
-                .type(Page.Type.SWAGGER)
-                .visibility(Page.Visibility.PUBLIC)
-                .content("Read the doc")
-                .id("swagger-1")
-                .build(),
-            PageExport.builder()
-                .name("My Link")
-                .order(1)
-                .type(Page.Type.LINK)
-                .visibility(Page.Visibility.PUBLIC)
-                .content("Read the doc")
-                .id("link-1")
-                .build(),
-            PageExport.builder()
-                .name("My Translation")
-                .order(1)
-                .type(Page.Type.TRANSLATION)
-                .visibility(Page.Visibility.PUBLIC)
-                .content("Lire la documentation")
-                .id("translation-1")
-                .build(),
-            PageExport.builder()
-                .name("My Template")
-                .order(1)
-                .type(Page.Type.MARKDOWN_TEMPLATE)
-                .visibility(Page.Visibility.PUBLIC)
-                .content("Read the doc")
-                .id("md-template-1")
-                .build(),
-            PageExport.builder()
-                .name("My asciidoc")
-                .order(1)
-                .type(Page.Type.ASCIIDOC)
-                .visibility(Page.Visibility.PUBLIC)
-                .content("Read the asciidoc")
-                .id("asciidoc-1")
-                .build()
-        );
-        assertThat(export.members()).containsOnly(
-            ApiMember.builder()
-                .displayName("Bruce Wayne")
-                .type(MembershipMemberType.USER)
-                .roles(List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").scope(RoleScope.APPLICATION).build()))
-                .build()
-        );
-        assertThat(export.metadata()).containsOnly(
-            NewApiMetadata.builder()
-                .key("metadata-key")
-                .name("metadata-name")
-                .format(Metadata.MetadataFormat.STRING)
-                .value("metadata-value")
-                .defaultValue("metadata-value-env")
-                .build()
-        );
-        assertThat(((GraviteeDefinition.V4) export).plans()).containsOnly(
-            PlanDescriptor.V4.builder()
-                .id("plan-id")
-                .crossId("test-plan-cross-id")
-                .definitionVersion(DefinitionVersion.V4)
-                .description("free plan")
-                .type(Plan.PlanType.API)
-                .order(0)
-                .excludedGroups(List.of("my-group"))
-                .selectionRule("/**")
-                .status(PlanStatus.PUBLISHED)
-                .flows(List.of())
-                .validation(Plan.PlanValidationType.AUTO)
-                .apiId(apiId)
-                .characteristics(List.of())
-                .security(PlanSecurity.builder().type("API_KEY").build())
-                .build()
-        );
+        assertThat(export.pages())
+                .containsOnly(
+                        PageExport.builder()
+                                .id("folder-1")
+                                .name("My Folder")
+                                .order(1)
+                                .type(Page.Type.FOLDER)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .build(),
+                        PageExport.builder()
+                                .name("My Title")
+                                .order(1)
+                                .type(Page.Type.MARKDOWN)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .content("Read the doc")
+                                .accessControls(Set.of(AccessControl.builder()
+                                        .referenceId("my-group")
+                                        .referenceType("GROUP")
+                                        .build()))
+                                .id("markdown-1")
+                                .build(),
+                        PageExport.builder()
+                                .name("Aside")
+                                .order(1)
+                                .type(Page.Type.SYSTEM_FOLDER)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .published(true)
+                                .id("system-folder-1")
+                                .build(),
+                        PageExport.builder()
+                                .name("My Swagger")
+                                .order(1)
+                                .type(Page.Type.SWAGGER)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .content("Read the doc")
+                                .id("swagger-1")
+                                .build(),
+                        PageExport.builder()
+                                .name("My Link")
+                                .order(1)
+                                .type(Page.Type.LINK)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .content("Read the doc")
+                                .id("link-1")
+                                .build(),
+                        PageExport.builder()
+                                .name("My Translation")
+                                .order(1)
+                                .type(Page.Type.TRANSLATION)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .content("Lire la documentation")
+                                .id("translation-1")
+                                .build(),
+                        PageExport.builder()
+                                .name("My Template")
+                                .order(1)
+                                .type(Page.Type.MARKDOWN_TEMPLATE)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .content("Read the doc")
+                                .id("md-template-1")
+                                .build(),
+                        PageExport.builder()
+                                .name("My asciidoc")
+                                .order(1)
+                                .type(Page.Type.ASCIIDOC)
+                                .visibility(Page.Visibility.PUBLIC)
+                                .content("Read the asciidoc")
+                                .id("asciidoc-1")
+                                .build());
+        assertThat(export.members())
+                .containsOnly(ApiMember.builder()
+                        .displayName("Bruce Wayne")
+                        .type(MembershipMemberType.USER)
+                        .roles(List.of(ApiMemberRole.builder()
+                                .name("PRIMARY_OWNER")
+                                .scope(RoleScope.APPLICATION)
+                                .build()))
+                        .build());
+        assertThat(export.metadata())
+                .containsOnly(NewApiMetadata.builder()
+                        .key("metadata-key")
+                        .name("metadata-name")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .value("metadata-value")
+                        .defaultValue("metadata-value-env")
+                        .build());
+        assertThat(((GraviteeDefinition.V4) export).plans())
+                .containsOnly(PlanDescriptor.V4
+                        .builder()
+                        .id("plan-id")
+                        .crossId("test-plan-cross-id")
+                        .definitionVersion(DefinitionVersion.V4)
+                        .description("free plan")
+                        .type(Plan.PlanType.API)
+                        .order(0)
+                        .excludedGroups(List.of("my-group"))
+                        .selectionRule("/**")
+                        .status(PlanStatus.PUBLISHED)
+                        .flows(List.of())
+                        .validation(Plan.PlanValidationType.AUTO)
+                        .apiId(apiId)
+                        .characteristics(List.of())
+                        .security(PlanSecurity.builder().type("API_KEY").build())
+                        .build());
     }
 
     @Test
     void should_export_v4_proxy_without_ids() {
         // Given
         String apiId = "apiId";
-        List<Flow> flows = List.of(FlowFixtures.aProxyFlowV4().toBuilder().id("flow-id").build());
+        List<Flow> flows =
+                List.of(FlowFixtures.aProxyFlowV4().toBuilder().id("flow-id").build());
         Api api = Api.builder()
-            .id(apiId)
-            .description("Gravitee.io")
-            .type(ApiType.PROXY)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder().flows(flows).build())
-            .build();
+                .id(apiId)
+                .description("Gravitee.io")
+                .type(ApiType.PROXY)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder()
+                        .flows(flows)
+                        .build())
+                .build();
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(flowCrudService.getApiV4Flows(anyString())).thenReturn(flows);
@@ -757,236 +771,264 @@ class ApiExportDomainServiceImplTest {
 
         // When
         GraviteeDefinition export = sut.export(
-            apiId,
-            getAuditInfo(),
-            Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
-        );
+                apiId,
+                getAuditInfo(),
+                Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA));
 
         // Then
         assertThat(export.api().id()).isNull();
         assertThat(((ApiDescriptor.ApiDescriptorV4) export.api()).flows())
-            .extracting(io.gravitee.definition.model.v4.flow.Flow::getId)
-            .allMatch(Objects::isNull);
+                .extracting(io.gravitee.definition.model.v4.flow.Flow::getId)
+                .allMatch(Objects::isNull);
         assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
-        assertThat(((GraviteeDefinition.V4) export).plans()).extracting(PlanDescriptor.V4::id).allMatch(Objects::isNull);
+        assertThat(((GraviteeDefinition.V4) export).plans())
+                .extracting(PlanDescriptor.V4::id)
+                .allMatch(Objects::isNull);
     }
 
     @Test
     void should_export_native_api_without_ids() {
         // Given
         String apiId = "apiId";
-        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4().toBuilder().id("flow-id").build());
+        List<NativeFlow> flows =
+                List.of(FlowFixtures.aNativeFlowV4().toBuilder().id("flow-id").build());
         Api api = Api.builder()
-            .id(apiId)
-            .description("Gravitee.io")
-            .type(ApiType.PROXY)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionNativeV4(NativeApi.builder().flows(flows).build())
-            .build();
+                .id(apiId)
+                .description("Gravitee.io")
+                .type(ApiType.PROXY)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionNativeV4(NativeApi.builder().flows(flows).build())
+                .build();
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(flowCrudService.getNativeApiFlows(anyString())).thenReturn(flows);
         when(pageQueryService.searchByApiId(anyString())).thenReturn(pages());
-        when(planCrudService.findByApiId(anyString())).thenReturn(
-            List.of(PlanFixtures.aPlanNativeV4().toBuilder().id("plan-id").apiId(apiId).build())
-        );
+        when(planCrudService.findByApiId(anyString()))
+                .thenReturn(List.of(PlanFixtures.aPlanNativeV4().toBuilder()
+                        .id("plan-id")
+                        .apiId(apiId)
+                        .build()));
 
         // When
         GraviteeDefinition export = sut.export(
-            apiId,
-            getAuditInfo(),
-            Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
-        );
+                apiId,
+                getAuditInfo(),
+                Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA));
 
         // Then
         assertThat(export.api().id()).isNull();
-        assertThat(((ApiDescriptor.Native) export.api()).flows()).extracting(NativeFlow::getId).allMatch(Objects::isNull);
+        assertThat(((ApiDescriptor.Native) export.api()).flows())
+                .extracting(NativeFlow::getId)
+                .allMatch(Objects::isNull);
         assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
-        assertThat(((GraviteeDefinition.Native) export).plans()).extracting(PlanDescriptor.Native::id).allMatch(Objects::isNull);
+        assertThat(((GraviteeDefinition.Native) export).plans())
+                .extracting(PlanDescriptor.Native::id)
+                .allMatch(Objects::isNull);
     }
 
     @Test
     void should_export_v2_proxy_without_ids() {
         // Given
         String apiId = "apiId";
-        List<io.gravitee.definition.model.flow.Flow> flows = List.of(FlowFixtures.aFlowV2().toBuilder().id("flow-id").build());
+        List<io.gravitee.definition.model.flow.Flow> flows =
+                List.of(FlowFixtures.aFlowV2().toBuilder().id("flow-id").build());
         Api api = Api.builder()
-            .id(apiId)
-            .description("Gravitee.io")
-            .type(ApiType.PROXY)
-            .definitionVersion(DefinitionVersion.V2)
-            .apiDefinition(io.gravitee.definition.model.Api.builder().flows(flows).build())
-            .build();
+                .id(apiId)
+                .description("Gravitee.io")
+                .type(ApiType.PROXY)
+                .definitionVersion(DefinitionVersion.V2)
+                .apiDefinition(
+                        io.gravitee.definition.model.Api.builder().flows(flows).build())
+                .build();
         api.setDefinitionVersion(DefinitionVersion.V4);
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(flowCrudService.getApiV2Flows(anyString())).thenReturn(flows);
         when(pageQueryService.searchByApiId(anyString())).thenReturn(pages());
-        when(planCrudService.findByApiId(anyString())).thenReturn(
-            List.of(PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(apiId).build())
-        );
+        when(planCrudService.findByApiId(anyString()))
+                .thenReturn(List.of(PlanFixtures.aPlanV2().toBuilder()
+                        .id("plan-id")
+                        .apiId(apiId)
+                        .build()));
 
         // When
         GraviteeDefinition export = sut.export(
-            apiId,
-            getAuditInfo(),
-            Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA)
-        );
+                apiId,
+                getAuditInfo(),
+                Set.of(Excludable.IDS, Excludable.MEMBERS, Excludable.GROUPS, Excludable.METADATA));
 
         // Then
         assertThat(export.api().id()).isNull();
         assertThat(((ApiDescriptor.ApiDescriptorV2) export.api()).flows())
-            .extracting(io.gravitee.definition.model.flow.Flow::getId)
-            .allMatch(Objects::isNull);
+                .extracting(io.gravitee.definition.model.flow.Flow::getId)
+                .allMatch(Objects::isNull);
         assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
-        assertThat(((GraviteeDefinition.V2) export).plans()).extracting(PlanDescriptor.V2::id).allMatch(Objects::isNull);
+        assertThat(((GraviteeDefinition.V2) export).plans())
+                .extracting(PlanDescriptor.V2::id)
+                .allMatch(Objects::isNull);
     }
 
     private Set<BaseUserEntity> users() {
-        return Set.of(BaseUserEntity.builder().firstname("Bruce").lastname("Wayne").build());
+        return Set.of(
+                BaseUserEntity.builder().firstname("Bruce").lastname("Wayne").build());
     }
 
     List<Page> pages() {
         Page folder = Page.builder()
-            .id("folder-1")
-            .name("My Folder")
-            .order(1)
-            .type(Page.Type.FOLDER)
-            .visibility(Page.Visibility.PUBLIC)
-            .build();
+                .id("folder-1")
+                .name("My Folder")
+                .order(1)
+                .type(Page.Type.FOLDER)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
         Page markdownPage = Page.builder()
-            .name("My Title")
-            .order(1)
-            .type(Page.Type.MARKDOWN)
-            .content("Read the doc")
-            .visibility(Page.Visibility.PUBLIC)
-            .accessControls(Set.of(new AccessControl("my-group", "GROUP")))
-            .id("markdown-1")
-            .build();
+                .name("My Title")
+                .order(1)
+                .type(Page.Type.MARKDOWN)
+                .content("Read the doc")
+                .visibility(Page.Visibility.PUBLIC)
+                .accessControls(Set.of(new AccessControl("my-group", "GROUP")))
+                .id("markdown-1")
+                .build();
         Page asideFolder = Page.builder()
-            .name("Aside")
-            .order(1)
-            .published(true)
-            .type(Page.Type.SYSTEM_FOLDER)
-            .visibility(Page.Visibility.PUBLIC)
-            .id("system-folder-1")
-            .build();
+                .name("Aside")
+                .order(1)
+                .published(true)
+                .type(Page.Type.SYSTEM_FOLDER)
+                .visibility(Page.Visibility.PUBLIC)
+                .id("system-folder-1")
+                .build();
 
         Page swaggerPage = Page.builder()
-            .name("My Swagger")
-            .order(1)
-            .type(Page.Type.SWAGGER)
-            .content("Read the doc")
-            .visibility(Page.Visibility.PUBLIC)
-            .id("swagger-1")
-            .build();
+                .name("My Swagger")
+                .order(1)
+                .type(Page.Type.SWAGGER)
+                .content("Read the doc")
+                .visibility(Page.Visibility.PUBLIC)
+                .id("swagger-1")
+                .build();
         Page linkPage = Page.builder()
-            .name("My Link")
-            .order(1)
-            .type(Page.Type.LINK)
-            .content("Read the doc")
-            .visibility(Page.Visibility.PUBLIC)
-            .id("link-1")
-            .build();
+                .name("My Link")
+                .order(1)
+                .type(Page.Type.LINK)
+                .content("Read the doc")
+                .visibility(Page.Visibility.PUBLIC)
+                .id("link-1")
+                .build();
         Page translationPage = Page.builder()
-            .name("My Translation")
-            .order(1)
-            .type(Page.Type.TRANSLATION)
-            .content("Lire la documentation")
-            .visibility(Page.Visibility.PUBLIC)
-            .id("translation-1")
-            .build();
+                .name("My Translation")
+                .order(1)
+                .type(Page.Type.TRANSLATION)
+                .content("Lire la documentation")
+                .visibility(Page.Visibility.PUBLIC)
+                .id("translation-1")
+                .build();
         Page markdownTemplatePage = Page.builder()
-            .name("My Template")
-            .order(1)
-            .type(Page.Type.MARKDOWN_TEMPLATE)
-            .content("Read the doc")
-            .visibility(Page.Visibility.PUBLIC)
-            .id("md-template-1")
-            .build();
+                .name("My Template")
+                .order(1)
+                .type(Page.Type.MARKDOWN_TEMPLATE)
+                .content("Read the doc")
+                .visibility(Page.Visibility.PUBLIC)
+                .id("md-template-1")
+                .build();
 
         Page asciidocPage = Page.builder()
-            .name("My asciidoc")
-            .order(1)
-            .type(Page.Type.ASCIIDOC)
-            .content("Read the asciidoc")
-            .visibility(Page.Visibility.PUBLIC)
-            .id("asciidoc-1")
-            .build();
+                .name("My asciidoc")
+                .order(1)
+                .type(Page.Type.ASCIIDOC)
+                .content("Read the asciidoc")
+                .visibility(Page.Visibility.PUBLIC)
+                .id("asciidoc-1")
+                .build();
 
-        return List.of(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage);
+        return List.of(
+                folder,
+                markdownPage,
+                swaggerPage,
+                asideFolder,
+                linkPage,
+                translationPage,
+                markdownTemplatePage,
+                asciidocPage);
     }
 
     Set<Plan> plans(String apiId) {
         Plan publishedPlan = Plan.builder()
-            .definitionVersion(DefinitionVersion.V4)
-            .id("plan-id")
-            .crossId("test-plan-cross-id")
-            .apiId(apiId)
-            .description("free plan")
-            .type(Plan.PlanType.API)
-            .validation(Plan.PlanValidationType.AUTO)
-            .excludedGroups(List.of("my-group"))
-            .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .security(PlanSecurity.builder().type("API_KEY").build())
-                    .selectionRule("/**")
-                    .build()
-            )
-            .build()
-            .setPlanStatus(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED);
+                .definitionVersion(DefinitionVersion.V4)
+                .id("plan-id")
+                .crossId("test-plan-cross-id")
+                .apiId(apiId)
+                .description("free plan")
+                .type(Plan.PlanType.API)
+                .validation(Plan.PlanValidationType.AUTO)
+                .excludedGroups(List.of("my-group"))
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .security(PlanSecurity.builder().type("API_KEY").build())
+                        .selectionRule("/**")
+                        .build())
+                .build()
+                .setPlanStatus(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED);
 
         var closedPlan = Plan.builder()
-            .definitionVersion(DefinitionVersion.V4)
-            .id("closedPlan-id")
-            .crossId("closed-test-plan-cross-id")
-            .apiId(apiId)
-            .description("free closedPlan")
-            .type(Plan.PlanType.API)
-            .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .security(PlanSecurity.builder().type("API_KEY").build())
-                    .selectionRule("/**")
-                    .build()
-            )
-            .validation(Plan.PlanValidationType.AUTO)
-            .build()
-            .setPlanStatus(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
+                .definitionVersion(DefinitionVersion.V4)
+                .id("closedPlan-id")
+                .crossId("closed-test-plan-cross-id")
+                .apiId(apiId)
+                .description("free closedPlan")
+                .type(Plan.PlanType.API)
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .security(PlanSecurity.builder().type("API_KEY").build())
+                        .selectionRule("/**")
+                        .build())
+                .validation(Plan.PlanValidationType.AUTO)
+                .build()
+                .setPlanStatus(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
         return Set.of(publishedPlan, closedPlan);
     }
 
     List<Metadata> metadataApi(String apiId) {
         Metadata metadata = Metadata.builder()
-            .referenceId(apiId)
-            .referenceType(Metadata.ReferenceType.API)
-            .key("metadata-key")
-            .name("metadata-name")
-            .value("metadata-value")
-            .format(Metadata.MetadataFormat.STRING)
-            .build();
+                .referenceId(apiId)
+                .referenceType(Metadata.ReferenceType.API)
+                .key("metadata-key")
+                .name("metadata-name")
+                .value("metadata-value")
+                .format(Metadata.MetadataFormat.STRING)
+                .build();
         return List.of(metadata);
     }
 
     List<Metadata> metadataEnv(String env) {
         Metadata metadata = Metadata.builder()
-            .referenceId(env)
-            .referenceType(Metadata.ReferenceType.ENVIRONMENT)
-            .key("metadata-key")
-            .name("metadata-name")
-            .value("metadata-value-env")
-            .format(Metadata.MetadataFormat.STRING)
-            .build();
+                .referenceId(env)
+                .referenceType(Metadata.ReferenceType.ENVIRONMENT)
+                .key("metadata-key")
+                .name("metadata-name")
+                .value("metadata-value-env")
+                .format(Metadata.MetadataFormat.STRING)
+                .build();
         return List.of(metadata);
     }
 
     Set<Membership> members() {
-        return Set.of(Membership.builder().id("johndoe").memberType(Membership.Type.USER).roleId("role-id").build());
+        return Set.of(Membership.builder()
+                .id("johndoe")
+                .memberType(Membership.Type.USER)
+                .roleId("role-id")
+                .build());
     }
 
     Set<Role> roles() {
-        return Set.of(Role.builder().name("PRIMARY_OWNER").scope(Role.Scope.APPLICATION).id("role-id").build());
+        return Set.of(Role.builder()
+                .name("PRIMARY_OWNER")
+                .scope(Role.Scope.APPLICATION)
+                .id("role-id")
+                .build());
     }
 
     private static AuditInfo getAuditInfo() {
-        return AuditInfo.builder().environmentId("DEFAULT").actor(AuditActor.builder().userId("member-id").build()).build();
+        return AuditInfo.builder()
+                .environmentId("DEFAULT")
+                .actor(AuditActor.builder().userId("member-id").build())
+                .build();
     }
 }

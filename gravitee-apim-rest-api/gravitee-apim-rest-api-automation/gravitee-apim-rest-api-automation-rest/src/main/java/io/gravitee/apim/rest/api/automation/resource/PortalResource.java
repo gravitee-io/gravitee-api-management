@@ -68,25 +68,27 @@ public class PortalResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ)})
     public Response getPortalByHRID(@PathParam("hrid") String hrid) {
         var auditInfo = getAuditInfo();
-        PortalId id = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(hrid).id());
+        PortalId id =
+                PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(hrid).id());
         try {
             var output = getPortalUseCase.execute(new GetPortalUseCase.Input(auditInfo, id));
-            return Response.ok(
-                PortalMapper.INSTANCE.toPortalState(output.portal(), hrid, output.structure(), output.activeThemeHrid(), null)
-            ).build();
+            return Response.ok(PortalMapper.INSTANCE.toPortalState(
+                            output.portal(), hrid, output.structure(), output.activeThemeHrid(), null))
+                    .build();
         } catch (PortalNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE)})
     public Response deletePortalByHrid(@PathParam("hrid") String hrid) {
         var auditInfo = getAuditInfo();
-        PortalId id = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(hrid).id());
+        PortalId id =
+                PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(hrid).id());
         try {
             deletePortalUseCase.execute(new DeletePortalUseCase.Input(auditInfo, id));
         } catch (PortalNotFoundException e) {

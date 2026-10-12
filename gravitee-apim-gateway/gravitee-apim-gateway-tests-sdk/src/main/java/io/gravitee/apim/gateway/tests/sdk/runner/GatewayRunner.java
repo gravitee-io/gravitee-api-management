@@ -166,16 +166,20 @@ public class GatewayRunner {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(GatewayRunner.class);
     public static final String API_ALREADY_DEPLOYED_MESSAGE = "An API has already been deployed with id {%s}";
-    public static final String SPG_ALREADY_DEPLOYED_MESSAGE = "A Shared Policy Group has already been deployed with id {%s}";
-    public static final String ORGANIZATION_ALREADY_DEPLOYED_MESSAGE = "An organization has already been deployed with id {%s}";
+    public static final String SPG_ALREADY_DEPLOYED_MESSAGE =
+            "A Shared Policy Group has already been deployed with id {%s}";
+    public static final String ORGANIZATION_ALREADY_DEPLOYED_MESSAGE =
+            "An organization has already been deployed with id {%s}";
     public static final String SHARED_POLICY_GROUP_ALREADY_DEPLOYED_MESSAGE =
-        "A shared policy group has already been deployed with id {%s}";
-    public static final String CANNOT_UNDEPPLOY_CLASS_API_MESSAGE = "An API deployed at class level cannot be undeployed (id {%s})";
+            "A shared policy group has already been deployed with id {%s}";
+    public static final String CANNOT_UNDEPPLOY_CLASS_API_MESSAGE =
+            "An API deployed at class level cannot be undeployed (id {%s})";
     public static final String CANNOT_UNDEPPLOY_CLASS_SPG_MESSAGE =
-        "A shared policy group deployed at class level cannot be undeployed (id {%s})";
-    public static final String API_PRODUCT_ALREADY_DEPLOYED_MESSAGE = "An API Product has already been deployed with id {%s}";
+            "A shared policy group deployed at class level cannot be undeployed (id {%s})";
+    public static final String API_PRODUCT_ALREADY_DEPLOYED_MESSAGE =
+            "An API Product has already been deployed with id {%s}";
     public static final String CANNOT_UNDEPLOY_CLASS_API_PRODUCT_MESSAGE =
-        "An API Product deployed at class level cannot be undeployed (id {%s})";
+            "An API Product deployed at class level cannot be undeployed (id {%s})";
     private static final String AT_CLASS_LEVEL = " at class level";
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
@@ -203,7 +207,8 @@ public class GatewayRunner {
     public GatewayRunner(GatewayConfigurationBuilder gatewayConfigurationBuilder, AbstractGatewayTest testInstance) {
         this.gatewayConfigurationBuilder = gatewayConfigurationBuilder;
         this.testInstance = testInstance;
-        this.v2ExecutionMode = testInstance.getClass().getAnnotation(GatewayTest.class).v2ExecutionMode();
+        this.v2ExecutionMode =
+                testInstance.getClass().getAnnotation(GatewayTest.class).v2ExecutionMode();
         this.graviteeMapper = new GraviteeMapper();
         this.deployedForTestClass = new HashMap<>();
         this.deployedForTest = new HashMap<>();
@@ -219,15 +224,14 @@ public class GatewayRunner {
         testInstance.setDeployedClassApis(this.deployedForTestClass);
 
         this.apiDeploymentPreparers = Map.of(
-            Api.class,
-            new LegacyApiDeploymentPreparer(),
-            io.gravitee.definition.model.v4.Api.class,
-            new V4ApiDeploymentPreparer(),
-            NativeApi.class,
-            new NativeApiDeploymentPreparer(),
-            EdgeApi.class,
-            new EdgeApiDeploymentPreparer()
-        );
+                Api.class,
+                new LegacyApiDeploymentPreparer(),
+                io.gravitee.definition.model.v4.Api.class,
+                new V4ApiDeploymentPreparer(),
+                NativeApi.class,
+                new NativeApiDeploymentPreparer(),
+                EdgeApi.class,
+                new EdgeApiDeploymentPreparer());
     }
 
     /**
@@ -246,14 +250,14 @@ public class GatewayRunner {
             configure(gatewayConfiguration);
 
             // create Gateway — use UniverseTierLicenseManager if the test class deploys API Products
-            final LicenseManager licenseManager = testClassUsesApiProducts()
-                ? new UniverseTierLicenseManager()
-                : new PermissiveLicenseManager();
+            final LicenseManager licenseManager =
+                    testClassUsesApiProducts() ? new UniverseTierLicenseManager() : new PermissiveLicenseManager();
 
             gatewayContainer = new GatewayTestContainer(context -> {
                 registerTestLicenseManager(context, licenseManager);
                 applyOnGraviteeYaml(context, gatewayConfiguration.yamlProperties());
-                // secret provider plugins need to be set up during boot to ensure a proper resolution of secrets during startup.
+                // secret provider plugins need to be set up during boot to ensure a proper resolution of secrets during
+                // startup.
                 registerSecretProvider(context);
             });
 
@@ -292,16 +296,12 @@ public class GatewayRunner {
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
             ServerManager serverManager = gatewayContainer.applicationContext().getBean(ServerManager.class);
-            var httpPorts = serverManager
-                .servers(VertxHttpServer.class)
-                .stream()
-                .flatMap(srv -> selectPort(srv, HttpServer::actualPort))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            var tcpPorts = serverManager
-                .servers(VertxTcpServer.class)
-                .stream()
-                .flatMap(srv -> selectPort(srv, NetServer::actualPort))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var httpPorts = serverManager.servers(VertxHttpServer.class).stream()
+                    .flatMap(srv -> selectPort(srv, HttpServer::actualPort))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var tcpPorts = serverManager.servers(VertxTcpServer.class).stream()
+                    .flatMap(srv -> selectPort(srv, NetServer::actualPort))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             gatewayDynamicConfig = new GatewayDynamicConfig.GatewayDynamicConfigImpl(httpPorts, tcpPorts);
             isRunning = true;
@@ -315,12 +315,16 @@ public class GatewayRunner {
 
     private <U> Stream<Map.Entry<String, Integer>> selectPort(VertxServer<U, ?> c, ToIntFunction<U> actualPort) {
         return c.instances().isEmpty()
-            ? Stream.empty()
-            : Stream.of(Map.entry(c.id(), actualPort.applyAsInt(c.instances().get(NOT_SECURED_RANDOM.nextInt(c.instances().size())))));
+                ? Stream.empty()
+                : Stream.of(Map.entry(
+                        c.id(),
+                        actualPort.applyAsInt(c.instances()
+                                .get(NOT_SECURED_RANDOM.nextInt(c.instances().size())))));
     }
 
     private void configure(GatewayConfiguration gatewayConfiguration) throws IOException {
-        final String homeFolder = testInstance.getClass().getAnnotation(GatewayTest.class).configFolder();
+        final String homeFolder =
+                testInstance.getClass().getAnnotation(GatewayTest.class).configFolder();
 
         // Try to get graviteeHome from jar. Useful for policies having a maven dependency to this sdk.
         String graviteeHome = loadConfigurationFromJar(homeFolder);
@@ -345,19 +349,16 @@ public class GatewayRunner {
         System.setProperty("services.core.http.port", "0");
         System.setProperty("services.core.http.enabled", String.valueOf(false));
 
-        gatewayConfiguration
-            .systemProperties()
-            .forEach((k, v) -> {
-                configuredSystemProperties.put(k, v);
-                System.setProperty(String.valueOf(k), String.valueOf(v));
-            });
+        gatewayConfiguration.systemProperties().forEach((k, v) -> {
+            configuredSystemProperties.put(k, v);
+            System.setProperty(String.valueOf(k), String.valueOf(v));
+        });
     }
 
     private void applyOnGraviteeYaml(ApplicationContext context, Properties extraProperties) {
         ConfigurableEnvironment configurableEnvironment = (ConfigurableEnvironment) context.getBean(Environment.class);
-        GraviteeYamlPropertySource graviteeProperties = (GraviteeYamlPropertySource) configurableEnvironment
-            .getPropertySources()
-            .get("graviteeYamlConfiguration");
+        GraviteeYamlPropertySource graviteeProperties = (GraviteeYamlPropertySource)
+                configurableEnvironment.getPropertySources().get("graviteeYamlConfiguration");
         if (graviteeProperties != null) {
             extraProperties.forEach((k, v) -> graviteeProperties.getSource().put(String.valueOf(k), v));
         }
@@ -376,8 +377,10 @@ public class GatewayRunner {
             final URL configFolderURL = getClass().getResource(DEFAULT_CONFIGURATION_FOLDER);
             assert configFolderURL != null;
             final URLConnection urlConnection = configFolderURL.openConnection();
-            if (urlConnection instanceof JarURLConnection jarUrlConnection && Files.notExists(Path.of(DEFAULT_CONFIGURATION_FOLDER))) {
-                final Path targetDir = Files.createTempDirectory(String.format("%s-config", testInstance.getClass().getSimpleName()));
+            if (urlConnection instanceof JarURLConnection jarUrlConnection
+                    && Files.notExists(Path.of(DEFAULT_CONFIGURATION_FOLDER))) {
+                final Path targetDir = Files.createTempDirectory(
+                        String.format("%s-config", testInstance.getClass().getSimpleName()));
                 tempDir = targetDir;
 
                 copyJarResourcesRecursively(targetDir, jarUrlConnection);
@@ -403,10 +406,12 @@ public class GatewayRunner {
      * @param organizationDefinitionPath is the definition file of the organization to deploy
      * @param apisDefPath array of api definition path to deploy
      */
-    public void deployOrganizationForClass(String organizationDefinitionPath, final String[] apisDefPath) throws IOException {
+    public void deployOrganizationForClass(String organizationDefinitionPath, final String[] apisDefPath)
+            throws IOException {
         final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
         if (deployedOrganizationsForTestClass.containsKey(reactableOrganization.getId())) {
-            throw new PreconditionViolationException(String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableOrganization.getId()));
+            throw new PreconditionViolationException(
+                    String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableOrganization.getId()));
         }
         deployOrganization(reactableOrganization, deployedOrganizationsForTestClass);
         for (String apiDef : apisDefPath) {
@@ -418,13 +423,13 @@ public class GatewayRunner {
      * Deploys an Organization, declared at method level, thanks to {@link DeployOrganization}
      * @param organizationDefinitionPath is the definition of the organization to deploy
      */
-    public void deployOrganizationForTest(String organizationDefinitionPath, final String[] apisDefinitionPath) throws IOException {
+    public void deployOrganizationForTest(String organizationDefinitionPath, final String[] apisDefinitionPath)
+            throws IOException {
         final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
-        if (
-            deployedOrganizationsForTestClass.containsKey(reactableOrganization.getId()) ||
-            deployedOrganizationsForTest.containsKey(reactableOrganization.getId())
-        ) {
-            throw new PreconditionViolationException(String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableOrganization.getId()));
+        if (deployedOrganizationsForTestClass.containsKey(reactableOrganization.getId())
+                || deployedOrganizationsForTest.containsKey(reactableOrganization.getId())) {
+            throw new PreconditionViolationException(
+                    String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableOrganization.getId()));
         }
         deployOrganization(reactableOrganization, deployedOrganizationsForTest);
         for (String apiDef : apisDefinitionPath) {
@@ -439,8 +444,10 @@ public class GatewayRunner {
      * @param reactableOrganization the ReactableOrganization to deploy
      * @param deployedOrganizations the map containing deployed organizations.
      */
-    private void deployOrganization(ReactableOrganization reactableOrganization, Map<String, ReactableOrganization> deployedOrganizations) {
-        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
+    private void deployOrganization(
+            ReactableOrganization reactableOrganization, Map<String, ReactableOrganization> deployedOrganizations) {
+        OrganizationManager organizationManager =
+                gatewayContainer.applicationContext().getBean(OrganizationManager.class);
 
         testInstance.ensureMinimalRequirementForOrganization(reactableOrganization);
         reactableOrganization.setDeployedAt(new Date());
@@ -448,38 +455,32 @@ public class GatewayRunner {
         try {
             organizationManager.register(reactableOrganization);
         } catch (Exception e) {
-            throw new IllegalStateException("An error occurred deploying the organization %s".formatted(reactableOrganization.getId()), e);
+            throw new IllegalStateException(
+                    "An error occurred deploying the organization %s".formatted(reactableOrganization.getId()), e);
         }
         deployedOrganizations.put(reactableOrganization.getId(), reactableOrganization);
     }
 
     public void deploySharedPolicyGroupForClass(String sharedPolicyGroupDefinitionPath) throws IOException {
-        final ReactableSharedPolicyGroup reactableSharedPolicyGroup = loadSharedPolicyGroupDefinition(sharedPolicyGroupDefinitionPath);
-        if (
-            deployedSharedPolicyGroupsForTestClass.containsKey(
-                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
-            )
-        ) {
+        final ReactableSharedPolicyGroup reactableSharedPolicyGroup =
+                loadSharedPolicyGroupDefinition(sharedPolicyGroupDefinitionPath);
+        if (deployedSharedPolicyGroupsForTestClass.containsKey(new SharedPolicyGroupKey(
+                reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()))) {
             throw new PreconditionViolationException(
-                String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableSharedPolicyGroup.getId())
-            );
+                    String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableSharedPolicyGroup.getId()));
         }
         deploySharedPolicyGroup(reactableSharedPolicyGroup, deployedSharedPolicyGroupsForTestClass);
     }
 
     public void deploySharedPolicyGroupForTest(String sharedPolicyGroupDefinitionPath) throws IOException {
-        final ReactableSharedPolicyGroup reactableSharedPolicyGroup = loadSharedPolicyGroupDefinition(sharedPolicyGroupDefinitionPath);
-        if (
-            deployedSharedPolicyGroupsForTestClass.containsKey(
-                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
-            ) ||
-            deployedSharedPolicyGroupsForTest.containsKey(
-                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
-            )
-        ) {
+        final ReactableSharedPolicyGroup reactableSharedPolicyGroup =
+                loadSharedPolicyGroupDefinition(sharedPolicyGroupDefinitionPath);
+        if (deployedSharedPolicyGroupsForTestClass.containsKey(new SharedPolicyGroupKey(
+                        reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()))
+                || deployedSharedPolicyGroupsForTest.containsKey(new SharedPolicyGroupKey(
+                        reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()))) {
             throw new PreconditionViolationException(
-                String.format(SHARED_POLICY_GROUP_ALREADY_DEPLOYED_MESSAGE, reactableSharedPolicyGroup.getId())
-            );
+                    String.format(SHARED_POLICY_GROUP_ALREADY_DEPLOYED_MESSAGE, reactableSharedPolicyGroup.getId()));
         }
         deploySharedPolicyGroup(reactableSharedPolicyGroup, deployedSharedPolicyGroupsForTest);
     }
@@ -490,10 +491,10 @@ public class GatewayRunner {
      * @param deployedSharedPolicyGroups the map containing deployed shared policy groups.
      */
     private void deploySharedPolicyGroup(
-        ReactableSharedPolicyGroup reactableSharedPolicyGroup,
-        Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroups
-    ) {
-        SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
+            ReactableSharedPolicyGroup reactableSharedPolicyGroup,
+            Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroups) {
+        SharedPolicyGroupManager sharedPolicyGroupManager =
+                gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
 
         testInstance.ensureMinimalRequirementForOrganization(reactableSharedPolicyGroup);
         reactableSharedPolicyGroup.setDeployedAt(new Date());
@@ -502,37 +503,39 @@ public class GatewayRunner {
             sharedPolicyGroupManager.register(reactableSharedPolicyGroup);
         } catch (Exception e) {
             throw new IllegalStateException(
-                "An error occurred deploying the shared policy group %s".formatted(reactableSharedPolicyGroup.getId()),
-                e
-            );
+                    "An error occurred deploying the shared policy group %s"
+                            .formatted(reactableSharedPolicyGroup.getId()),
+                    e);
         }
         deployedSharedPolicyGroups.put(
-            new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()),
-            reactableSharedPolicyGroup
-        );
+                new SharedPolicyGroupKey(
+                        reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()),
+                reactableSharedPolicyGroup);
     }
 
     public void deployApiProductForClass(String apiProductDefinitionPath) throws IOException {
         final ReactableApiProduct reactableApiProduct = loadApiProductDefinition(apiProductDefinitionPath);
         if (deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId())) {
-            throw new PreconditionViolationException(String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE, reactableApiProduct.getId()));
+            throw new PreconditionViolationException(
+                    String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE, reactableApiProduct.getId()));
         }
         deployApiProduct(reactableApiProduct, deployedApiProductsForTestClass);
     }
 
     public void deployApiProductForTest(String apiProductDefinitionPath) throws IOException {
         final ReactableApiProduct reactableApiProduct = loadApiProductDefinition(apiProductDefinitionPath);
-        if (
-            deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId()) ||
-            deployedApiProductsForTest.containsKey(reactableApiProduct.getId())
-        ) {
-            throw new PreconditionViolationException(String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE, reactableApiProduct.getId()));
+        if (deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId())
+                || deployedApiProductsForTest.containsKey(reactableApiProduct.getId())) {
+            throw new PreconditionViolationException(
+                    String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE, reactableApiProduct.getId()));
         }
         deployApiProduct(reactableApiProduct, deployedApiProductsForTest);
     }
 
-    private void deployApiProduct(ReactableApiProduct reactableApiProduct, Map<String, ReactableApiProduct> deployedApiProducts) {
-        ApiProductManager apiProductManager = gatewayContainer.applicationContext().getBean(ApiProductManager.class);
+    private void deployApiProduct(
+            ReactableApiProduct reactableApiProduct, Map<String, ReactableApiProduct> deployedApiProducts) {
+        ApiProductManager apiProductManager =
+                gatewayContainer.applicationContext().getBean(ApiProductManager.class);
 
         testInstance.ensureMinimalRequirementForApiProduct(reactableApiProduct);
         reactableApiProduct.setDeployedAt(new Date());
@@ -540,7 +543,8 @@ public class GatewayRunner {
         try {
             apiProductManager.register(reactableApiProduct);
         } catch (Exception e) {
-            throw new IllegalStateException("An error occurred deploying the API Product %s".formatted(reactableApiProduct.getId()), e);
+            throw new IllegalStateException(
+                    "An error occurred deploying the API Product %s".formatted(reactableApiProduct.getId()), e);
         }
         deployedApiProducts.put(reactableApiProduct.getId(), reactableApiProduct);
     }
@@ -576,7 +580,8 @@ public class GatewayRunner {
      */
     public void deployForTest(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
-        if (deployedForTestClass.containsKey(reactableApi.getId()) || deployedForTest.containsKey(reactableApi.getId())) {
+        if (deployedForTestClass.containsKey(reactableApi.getId())
+                || deployedForTest.containsKey(reactableApi.getId())) {
             throw new PreconditionViolationException(String.format(API_ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
         deploy(reactableApi, deployedForTest, organizationId);
@@ -588,7 +593,8 @@ public class GatewayRunner {
      */
     private void deployFromTest(ReactableApi<?> reactableApi) {
         if (deployedForTestClass.containsKey(reactableApi.getId())) {
-            throw new PreconditionViolationException(String.format(API_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableApi.getId()));
+            throw new PreconditionViolationException(
+                    String.format(API_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableApi.getId()));
         }
         if (deployedForTest.containsKey(reactableApi.getId())) {
             undeploy(reactableApi);
@@ -616,24 +622,16 @@ public class GatewayRunner {
      * @param reactableSharedPolicyGroup is the shared policy group to deploy
      */
     private void deploySharedPolicyGroupFromTest(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
-        if (
-            deployedSharedPolicyGroupsForTestClass.containsKey(
-                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
-            )
-        ) {
+        if (deployedSharedPolicyGroupsForTestClass.containsKey(new SharedPolicyGroupKey(
+                reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()))) {
             throw new PreconditionViolationException(
-                String.format(SPG_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableSharedPolicyGroup.getId())
-            );
+                    String.format(SPG_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableSharedPolicyGroup.getId()));
         }
-        if (
-            deployedSharedPolicyGroupsForTest.containsKey(
-                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
-            )
-        ) {
+        if (deployedSharedPolicyGroupsForTest.containsKey(new SharedPolicyGroupKey(
+                reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()))) {
             undeploySharedPolicyGroup(reactableSharedPolicyGroup);
-            deployedSharedPolicyGroupsForTest.remove(
-                new SharedPolicyGroupKey(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId())
-            );
+            deployedSharedPolicyGroupsForTest.remove(new SharedPolicyGroupKey(
+                    reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId()));
         }
         deploySharedPolicyGroup(reactableSharedPolicyGroup, deployedSharedPolicyGroupsForTest);
     }
@@ -642,13 +640,14 @@ public class GatewayRunner {
      * Undeploys a Shared Policy Group from a test. Throws if the shared policy group is deployed at class level
      */
     private void undeploySharedPolicyGroupFromTest(String sharedPolicyGroup, String environmentId) {
-        if (deployedSharedPolicyGroupsForTestClass.containsKey(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId))) {
-            throw new PreconditionViolationException(String.format(CANNOT_UNDEPPLOY_CLASS_SPG_MESSAGE, sharedPolicyGroup));
+        if (deployedSharedPolicyGroupsForTestClass.containsKey(
+                new SharedPolicyGroupKey(sharedPolicyGroup, environmentId))) {
+            throw new PreconditionViolationException(
+                    String.format(CANNOT_UNDEPPLOY_CLASS_SPG_MESSAGE, sharedPolicyGroup));
         }
         if (deployedSharedPolicyGroupsForTest.containsKey(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId))) {
-            SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer
-                .applicationContext()
-                .getBean(SharedPolicyGroupManager.class);
+            SharedPolicyGroupManager sharedPolicyGroupManager =
+                    gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
             sharedPolicyGroupManager.unregister(sharedPolicyGroup, environmentId);
             deployedSharedPolicyGroupsForTest.remove(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId));
         }
@@ -657,8 +656,7 @@ public class GatewayRunner {
     private void deployOrRedeployApiProductFromTest(ReactableApiProduct reactableApiProduct) {
         if (deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId())) {
             throw new PreconditionViolationException(
-                String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableApiProduct.getId())
-            );
+                    String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableApiProduct.getId()));
         }
         if (deployedApiProductsForTest.containsKey(reactableApiProduct.getId())) {
             undeployApiProduct(reactableApiProduct);
@@ -669,7 +667,8 @@ public class GatewayRunner {
 
     private void undeployApiProductFromTest(String apiProductId) {
         if (deployedApiProductsForTestClass.containsKey(apiProductId)) {
-            throw new PreconditionViolationException(String.format(CANNOT_UNDEPLOY_CLASS_API_PRODUCT_MESSAGE, apiProductId));
+            throw new PreconditionViolationException(
+                    String.format(CANNOT_UNDEPLOY_CLASS_API_PRODUCT_MESSAGE, apiProductId));
         }
         if (deployedApiProductsForTest.containsKey(apiProductId)) {
             ReactableApiProduct product = deployedApiProductsForTest.get(apiProductId);
@@ -690,7 +689,8 @@ public class GatewayRunner {
     private ReactableApi<?> toReactableApi(String apiDefinitionPath) throws IOException {
         final JsonNode apiAsJson = loadResource(apiDefinitionPath, JsonNode.class);
         final DefinitionVersion definitionVersion = extractApiDefinitionVersion(apiAsJson);
-        // ⚠️ Workaround to be able to configure an environmentId for a given test. EnvironmentId field is normally not part of the Api Definition
+        // ⚠️ Workaround to be able to configure an environmentId for a given test. EnvironmentId field is normally not
+        // part of the Api Definition
         final String environmentId = extractApiEnvironmentId(apiAsJson).orElse("DEFAULT");
         final ReactableApi<?> reactableApi;
         if (DefinitionVersion.V4.equals(definitionVersion)) {
@@ -715,7 +715,8 @@ public class GatewayRunner {
     private void deployDictionaries(GatewayTestContainer gatewayContainer) {
         List<Dictionary> dictionaries = new ArrayList<>();
         testInstance.configureDictionaries(dictionaries);
-        DictionaryManager dictionaryManager = gatewayContainer.applicationContext().getBean(DictionaryManager.class);
+        DictionaryManager dictionaryManager =
+                gatewayContainer.applicationContext().getBean(DictionaryManager.class);
         dictionaries.forEach(dictionaryManager::deploy);
     }
 
@@ -730,7 +731,8 @@ public class GatewayRunner {
      * @param reactableApi the ReactableApi to deploy
      * @param deployedApis the map containing deployed apis.
      */
-    private void deploy(ReactableApi<?> reactableApi, Map<String, ReactableApi<?>> deployedApis, final String organizationId) {
+    private void deploy(
+            ReactableApi<?> reactableApi, Map<String, ReactableApi<?>> deployedApis, final String organizationId) {
         ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
 
         if (!DefinitionVersion.V4.equals(reactableApi.getDefinitionVersion())) {
@@ -748,7 +750,8 @@ public class GatewayRunner {
             reactableApi.setDeployedAt(new Date());
             apiManager.register(reactableApi);
         } catch (Exception e) {
-            throw new IllegalStateException("An error occurred deploying the api %s".formatted(reactableApi.getId()), e);
+            throw new IllegalStateException(
+                    "An error occurred deploying the api %s".formatted(reactableApi.getId()), e);
         }
         deployedApis.put(reactableApi.getId(), reactableApi);
     }
@@ -770,7 +773,8 @@ public class GatewayRunner {
     }
 
     public void undeployOrganization(ReactableOrganization reactableOrganization) {
-        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
+        OrganizationManager organizationManager =
+                gatewayContainer.applicationContext().getBean(OrganizationManager.class);
         organizationManager.unregister(reactableOrganization.getId());
     }
 
@@ -784,8 +788,10 @@ public class GatewayRunner {
     }
 
     public void undeploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
-        SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
-        sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId());
+        SharedPolicyGroupManager sharedPolicyGroupManager =
+                gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
+        sharedPolicyGroupManager.unregister(
+                reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId());
     }
 
     public void undeployApiProductForClass() {
@@ -799,7 +805,8 @@ public class GatewayRunner {
     }
 
     private void undeployApiProduct(ReactableApiProduct reactableApiProduct) {
-        ApiProductManager apiProductManager = gatewayContainer.applicationContext().getBean(ApiProductManager.class);
+        ApiProductManager apiProductManager =
+                gatewayContainer.applicationContext().getBean(ApiProductManager.class);
         apiProductManager.unregister(reactableApiProduct.getId());
     }
 
@@ -835,7 +842,8 @@ public class GatewayRunner {
 
         starterThread.start();
 
-        final VertxEmbeddedContainer vertxEmbeddedContainer = container.applicationContext().getBean(VertxEmbeddedContainer.class);
+        final VertxEmbeddedContainer vertxEmbeddedContainer =
+                container.applicationContext().getBean(VertxEmbeddedContainer.class);
 
         // First, wait for the vertxEmbeddedContainer to be started
         while (vertxEmbeddedContainer.lifecycleState() != Lifecycle.State.STARTED) {
@@ -848,7 +856,8 @@ public class GatewayRunner {
         return vertxEmbeddedContainer;
     }
 
-    private void stopServer(GatewayTestContainer container, VertxEmbeddedContainer vertxContainer) throws InterruptedException {
+    private void stopServer(GatewayTestContainer container, VertxEmbeddedContainer vertxContainer)
+            throws InterruptedException {
         if (container != null) {
             final Thread stopThread = new Thread(() -> {
                 try {
@@ -867,7 +876,9 @@ public class GatewayRunner {
     }
 
     private void ensureMinimalRequirementForApi(ReactableApi<?> reactableApi) {
-        apiDeploymentPreparers.get(reactableApi.getDefinition().getClass()).ensureMinimalRequirementForApi(reactableApi.getDefinition());
+        apiDeploymentPreparers
+                .get(reactableApi.getDefinition().getClass())
+                .ensureMinimalRequirementForApi(reactableApi.getDefinition());
         if (reactableApi.getOrganizationId() == null) {
             reactableApi.setOrganizationId("DEFAULT");
         }
@@ -876,8 +887,8 @@ public class GatewayRunner {
     @SneakyThrows
     private void registerSecretProvider(ApplicationContext applicationContext) {
         SecretProviderPluginManager pluginManager = applicationContext.getBean(SecretProviderPluginManager.class);
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderFactories =
-            new HashSet<>();
+        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                secretProviderFactories = new HashSet<>();
         try {
             testInstance.configureSecretProviders(secretProviderFactories);
         } catch (Exception e) {
@@ -905,7 +916,8 @@ public class GatewayRunner {
     }
 
     private void registerReactors(GatewayTestContainer container) {
-        final ReactorPluginManager reactorPluginManager = container.applicationContext().getBean(ReactorPluginManager.class);
+        final ReactorPluginManager reactorPluginManager =
+                container.applicationContext().getBean(ReactorPluginManager.class);
         Set<ReactorPlugin<? extends ReactorFactory<?>>> reactorFactoriesMap = new HashSet<>();
         testInstance.configureReactors(reactorFactoriesMap);
         reactorFactoriesMap.forEach(reactorPluginManager::register);
@@ -921,17 +933,18 @@ public class GatewayRunner {
     }
 
     private void ensureMinimalRequirementForReporters(GatewayTestContainer container, Map<String, Reporter> reporters) {
-        reporters.putIfAbsent("fakeReporter", (FakeReporter) container.applicationContext().getBean("fakeReporter"));
+        reporters.putIfAbsent(
+                "fakeReporter", (FakeReporter) container.applicationContext().getBean("fakeReporter"));
     }
 
     private void registerResources(GatewayTestContainer container) {
         String[] resourceBeanNamesForType = container
-            .applicationContext()
-            .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
+                .applicationContext()
+                .getBeanNamesForType(
+                        ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
 
-        final ConfigurablePluginManager<ResourcePlugin> resourceManager = (ConfigurablePluginManager<ResourcePlugin>) container
-            .applicationContext()
-            .getBean(resourceBeanNamesForType[0]);
+        final ConfigurablePluginManager<ResourcePlugin> resourceManager = (ConfigurablePluginManager<ResourcePlugin>)
+                container.applicationContext().getBean(resourceBeanNamesForType[0]);
 
         Map<String, ResourcePlugin> resourcesMap = new HashMap<>();
         testInstance.configureResources(resourcesMap);
@@ -940,11 +953,11 @@ public class GatewayRunner {
 
     private void registerPolicies(GatewayTestContainer container) {
         String[] policyBeanNamesForType = container
-            .applicationContext()
-            .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
-        final ConfigurablePluginManager<PolicyPlugin> policyManager = (ConfigurablePluginManager<PolicyPlugin>) container
-            .applicationContext()
-            .getBean(policyBeanNamesForType[0]);
+                .applicationContext()
+                .getBeanNamesForType(
+                        ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
+        final ConfigurablePluginManager<PolicyPlugin> policyManager = (ConfigurablePluginManager<PolicyPlugin>)
+                container.applicationContext().getBean(policyBeanNamesForType[0]);
 
         Map<String, PolicyPlugin> policyMap = new HashMap<>();
         loadPolicyAsAPlugin(container.applicationContext(), policyMap);
@@ -976,7 +989,8 @@ public class GatewayRunner {
     }
 
     private void registerConnectors(GatewayTestContainer container) {
-        ConnectorPluginManager connectorPluginManager = container.applicationContext().getBean(ConnectorPluginManager.class);
+        ConnectorPluginManager connectorPluginManager =
+                container.applicationContext().getBean(ConnectorPluginManager.class);
 
         Map<String, ConnectorPlugin> connectorsMap = new HashMap<>();
         testInstance.configureConnectors(connectorsMap);
@@ -989,9 +1003,8 @@ public class GatewayRunner {
     }
 
     private void registerEntrypoints(GatewayTestContainer container) {
-        final EntrypointConnectorPluginManager entrypointPluginManager = container
-            .applicationContext()
-            .getBean(EntrypointConnectorPluginManager.class);
+        final EntrypointConnectorPluginManager entrypointPluginManager =
+                container.applicationContext().getBean(EntrypointConnectorPluginManager.class);
 
         Map<String, EntrypointConnectorPlugin<?, ?>> entrypointsMap = new HashMap<>();
         testInstance.configureEntrypoints(entrypointsMap);
@@ -999,9 +1012,8 @@ public class GatewayRunner {
     }
 
     private void registerEndpoints(GatewayTestContainer container) {
-        final EndpointConnectorPluginManager endpointPluginManager = container
-            .applicationContext()
-            .getBean(EndpointConnectorPluginManager.class);
+        final EndpointConnectorPluginManager endpointPluginManager =
+                container.applicationContext().getBean(EndpointConnectorPluginManager.class);
 
         Map<String, EndpointConnectorPlugin<?, ?>> endpointsMap = new HashMap<>();
         testInstance.configureEndpoints(endpointsMap);
@@ -1014,31 +1026,31 @@ public class GatewayRunner {
     }
 
     private ReactableOrganization loadOrganizationDefinition(String orgDefinitionPath) throws IOException {
-        final io.gravitee.definition.model.Organization organization = loadResource(
-            orgDefinitionPath,
-            io.gravitee.definition.model.Organization.class
-        );
+        final io.gravitee.definition.model.Organization organization =
+                loadResource(orgDefinitionPath, io.gravitee.definition.model.Organization.class);
         return new ReactableOrganization(organization);
     }
 
-    private ReactableSharedPolicyGroup loadSharedPolicyGroupDefinition(String sharedPolicyGroupDefinitionPath) throws IOException {
-        final SharedPolicyGroup sharedPolicyGroup = loadResource(sharedPolicyGroupDefinitionPath, SharedPolicyGroup.class);
+    private ReactableSharedPolicyGroup loadSharedPolicyGroupDefinition(String sharedPolicyGroupDefinitionPath)
+            throws IOException {
+        final SharedPolicyGroup sharedPolicyGroup =
+                loadResource(sharedPolicyGroupDefinitionPath, SharedPolicyGroup.class);
         return new ReactableSharedPolicyGroup(sharedPolicyGroup);
     }
 
     private ReactableApiProduct loadApiProductDefinition(String apiProductDefinitionPath) throws IOException {
         final ApiProductDefinition definition = loadResource(apiProductDefinitionPath, ApiProductDefinition.class);
         return ReactableApiProduct.builder()
-            .id(definition.getId())
-            .name(definition.getName())
-            .description(definition.getDescription())
-            .version(definition.getVersion())
-            .apiIds(definition.getApiIds() != null ? definition.getApiIds() : Set.of())
-            .environmentId(definition.getEnvironmentId())
-            .environmentHrid(definition.getEnvironmentHrid())
-            .organizationId(definition.getOrganizationId())
-            .organizationHrid(definition.getOrganizationHrid())
-            .build();
+                .id(definition.getId())
+                .name(definition.getName())
+                .description(definition.getDescription())
+                .version(definition.getVersion())
+                .apiIds(definition.getApiIds() != null ? definition.getApiIds() : Set.of())
+                .environmentId(definition.getEnvironmentId())
+                .environmentHrid(definition.getEnvironmentHrid())
+                .organizationId(definition.getOrganizationId())
+                .organizationHrid(definition.getOrganizationHrid())
+                .build();
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
@@ -1055,24 +1067,21 @@ public class GatewayRunner {
 
         final HashMap<String, String> variables = new HashMap<>();
 
-        gatewayDynamicConfig
-            .httpPorts()
-            .forEach((id, port) -> {
-                variables.put("GATEWAY_" + id.toUpperCase() + "_PORT", "" + port);
-            });
+        gatewayDynamicConfig.httpPorts().forEach((id, port) -> {
+            variables.put("GATEWAY_" + id.toUpperCase() + "_PORT", "" + port);
+        });
 
         testInstance.configurePlaceHolderVariables(variables);
 
         for (Map.Entry<String, String> entry : variables.entrySet()) {
             definition = definition.replaceAll(
-                Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
-                entry.getValue()
-            );
+                    Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
+                    entry.getValue());
         }
 
         definition = definition
-            .replace("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
-            .replace("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
+                .replace("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
+                .replace("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
 
         return graviteeMapper.readValue(definition, toClass);
     }
@@ -1093,7 +1102,8 @@ public class GatewayRunner {
                 JarEntry entry = it.next();
                 if (entry.getName().startsWith(jarConnection.getEntryName())) {
                     if (entry.getName().contains("./") || entry.getName().contains("../")) {
-                        throw new SecurityException("JarEntry trying to access FileSystem with relative path: " + entry.getName());
+                        throw new SecurityException(
+                                "JarEntry trying to access FileSystem with relative path: " + entry.getName());
                     }
                     if (!entry.isDirectory()) {
                         try (InputStream entryInputStream = jarFile.getInputStream(entry)) {
@@ -1114,31 +1124,28 @@ public class GatewayRunner {
     private void removeTemporaryFolderIfNeeded() throws IOException {
         if (tempDir != null) {
             LOGGER.debug("Removing temp folder: {}", tempDir);
-            Files.walkFileTree(
-                tempDir,
-                new SimpleFileVisitor<>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        if (exc != null) {
-                            throw exc;
-                        }
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
+            Files.walkFileTree(tempDir, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
                 }
-            );
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    if (exc != null) {
+                        throw exc;
+                    }
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         }
     }
 
@@ -1152,7 +1159,8 @@ public class GatewayRunner {
      */
     private DefinitionVersion extractApiDefinitionVersion(JsonNode apiAsJson) {
         if (apiAsJson.has("definitionVersion")) {
-            return DefinitionVersion.valueOfLabel(apiAsJson.get("definitionVersion").asText());
+            return DefinitionVersion.valueOfLabel(
+                    apiAsJson.get("definitionVersion").asText());
         } else if (apiAsJson.has("gravitee")) {
             return DefinitionVersion.valueOfLabel(apiAsJson.get("gravitee").asText());
         } else {
@@ -1187,8 +1195,10 @@ public class GatewayRunner {
     }
 
     private void registerTestLicenseManager(ApplicationContext context, LicenseManager licenseManager) {
-        // AnnotationConfigApplicationContext uses DefaultListableBeanFactory; required for destroySingleton/registerSingleton.
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) ((ConfigurableApplicationContext) context).getBeanFactory();
+        // AnnotationConfigApplicationContext uses DefaultListableBeanFactory; required for
+        // destroySingleton/registerSingleton.
+        DefaultListableBeanFactory beanFactory =
+                (DefaultListableBeanFactory) ((ConfigurableApplicationContext) context).getBeanFactory();
         String beanName = "licenseManager";
         if (beanFactory.containsSingleton(beanName)) beanFactory.destroySingleton(beanName);
         beanFactory.registerSingleton(beanName, licenseManager);
@@ -1205,7 +1215,8 @@ public class GatewayRunner {
             return true;
         }
         for (Class<?> c = testClass; c != null; c = c.getSuperclass()) {
-            if (Arrays.stream(c.getDeclaredMethods()).anyMatch(method -> method.isAnnotationPresent(DeployApiProducts.class))) {
+            if (Arrays.stream(c.getDeclaredMethods())
+                    .anyMatch(method -> method.isAnnotationPresent(DeployApiProducts.class))) {
                 return true;
             }
         }
@@ -1224,13 +1235,16 @@ public class GatewayRunner {
         String pkg = handlerClass.getPackage().getName();
         int lastDot = pkg.lastIndexOf('.');
         assert lastDot != -1 : "You can't add url handlers in the base package";
-        // Ignore java:S1872 which explains that class names are not unique, they are only when they are within a package.
-        // Here, we just enforce the class name is "Handler" because system property "java.protocol.handler.pkgs" will only look for class of this name and inherting from URLStreamHandler
-        assert handlerClass.getSimpleName().equals("Handler") : "A URLStreamHandler must be in a class named 'Handler'; not " +
-        handlerClass.getSimpleName();
+        // Ignore java:S1872 which explains that class names are not unique, they are only when they are within a
+        // package.
+        // Here, we just enforce the class name is "Handler" because system property "java.protocol.handler.pkgs" will
+        // only look for class of this name and inherting from URLStreamHandler
+        assert handlerClass.getSimpleName().equals("Handler")
+                : "A URLStreamHandler must be in a class named 'Handler'; not " + handlerClass.getSimpleName();
 
         final String protocolHandlersPackage =
-            handlerClass.getPackage().getName().substring(0, lastDot) + (originalProperty.isEmpty() ? "" : "|" + originalProperty);
+                handlerClass.getPackage().getName().substring(0, lastDot)
+                        + (originalProperty.isEmpty() ? "" : "|" + originalProperty);
         // As we will put our custom protocols in the same package, add it only once.
         if (!originalProperty.contains(protocolHandlersPackage)) {
             System.setProperty("java.protocol.handler.pkgs", protocolHandlersPackage);

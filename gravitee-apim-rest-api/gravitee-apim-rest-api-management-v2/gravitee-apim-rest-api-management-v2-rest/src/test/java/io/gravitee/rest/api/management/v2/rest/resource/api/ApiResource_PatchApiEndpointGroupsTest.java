@@ -82,89 +82,81 @@ public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
-        primaryOwnerDomainService.initWith(
-            List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
-        );
-        membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_NAME)
-                    .referenceId(API)
-                    .roleId("api-po-id-" + ORGANIZATION)
-                    .referenceType(Membership.ReferenceType.API)
-                    .memberType(Membership.Type.USER)
-                    .build()
-            )
-        );
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
+                        .id(USER_NAME)
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build())));
+        membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .memberId(USER_NAME)
+                .referenceId(API)
+                .roleId("api-po-id-" + ORGANIZATION)
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .build()));
 
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).updateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).validateV4(any(), any());
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService)
+                .forEach(InMemoryAlternative::reset);
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 
     private void givenApiWithEndpointGroups(List<EndpointGroup> groups) {
         var base = ApiFixtures.aProxyApiV4();
-        var api = base.toBuilder().apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().endpointGroups(groups).build()).build();
+        var api = base.toBuilder()
+                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder()
+                        .endpointGroups(groups)
+                        .build())
+                .build();
         apiCrudService.initWith(List.of(api));
     }
 
     private static EndpointGroup defaultGroup(String name) {
         return EndpointGroup.builder()
-            .name(name)
-            .type("http-proxy")
-            .sharedConfiguration("{}")
-            .endpoints(
-                List.of(
-                    io.gravitee.definition.model.v4.endpointgroup.Endpoint.builder()
+                .name(name)
+                .type("http-proxy")
+                .sharedConfiguration("{}")
+                .endpoints(List.of(io.gravitee.definition.model.v4.endpointgroup.Endpoint.builder()
                         .name("default-endpoint")
                         .type("http-proxy")
                         .weight(1)
                         .inheritConfiguration(true)
                         .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
     }
 
     private static Map<String, Object> groupMap(String name) {
         return Map.of(
-            "name",
-            name,
-            "type",
-            "http-proxy",
-            "sharedConfiguration",
-            "{}",
-            "endpoints",
-            List.of(
-                Map.of(
-                    "name",
-                    "default-endpoint",
-                    "type",
-                    "http-proxy",
-                    "weight",
-                    1,
-                    "inheritConfiguration",
-                    true,
-                    "configuration",
-                    "{\"target\":\"https://api.gravitee.io/echo\"}"
-                )
-            )
-        );
+                "name",
+                name,
+                "type",
+                "http-proxy",
+                "sharedConfiguration",
+                "{}",
+                "endpoints",
+                List.of(Map.of(
+                        "name",
+                        "default-endpoint",
+                        "type",
+                        "http-proxy",
+                        "weight",
+                        1,
+                        "inheritConfiguration",
+                        true,
+                        "configuration",
+                        "{\"target\":\"https://api.gravitee.io/echo\"}")));
     }
 
     private static String mergePatchEndpointGroups(List<Map<String, Object>> groups) {
@@ -246,11 +238,13 @@ public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
     @Test
     void patch_with_empty_endpointGroups_returns_400() {
         givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
-        doThrow(new ValidationDomainException("endpointGroups must not be empty", Map.of("location", "/endpointGroups"), "invalidValue"))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
+        doThrow(new ValidationDomainException(
+                        "endpointGroups must not be empty", Map.of("location", "/endpointGroups"), "invalidValue"))
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
 
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"endpointGroups\":[]}", MERGE_PATCH_TYPE));
+        var response =
+                rootTarget(API).request().method("PATCH", Entity.entity("{\"endpointGroups\":[]}", MERGE_PATCH_TYPE));
 
         var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
         Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
@@ -259,27 +253,25 @@ public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
 
     static Stream<Arguments> validatorRejectionCases() {
         return Stream.of(
-            Map.entry("endpoint group name must not be blank", "/endpointGroups/0/name"),
-            Map.entry("endpoint type is invalid", "/endpointGroups/0/type")
-        ).flatMap(entry ->
-            Stream.of(MERGE_PATCH_TYPE, JSON_PATCH_TYPE).map(contentType -> Arguments.of(entry.getKey(), entry.getValue(), contentType))
-        );
+                        Map.entry("endpoint group name must not be blank", "/endpointGroups/0/name"),
+                        Map.entry("endpoint type is invalid", "/endpointGroups/0/type"))
+                .flatMap(entry -> Stream.of(MERGE_PATCH_TYPE, JSON_PATCH_TYPE)
+                        .map(contentType -> Arguments.of(entry.getKey(), entry.getValue(), contentType)));
     }
 
     @ParameterizedTest
     @MethodSource("validatorRejectionCases")
     void post_patch_validator_failure_returns_400_with_invalidValue_envelope_and_location(
-        String message,
-        String location,
-        String contentType
-    ) {
+            String message, String location, String contentType) {
         givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
         doThrow(new ValidationDomainException(message, Map.of("location", location), "invalidValue"))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
 
         var groups = List.of(groupMap("group-a"));
-        var body = contentType.equals(JSON_PATCH_TYPE) ? jsonPatchReplaceEndpointGroups(groups) : mergePatchEndpointGroups(groups);
+        var body = contentType.equals(JSON_PATCH_TYPE)
+                ? jsonPatchReplaceEndpointGroups(groups)
+                : mergePatchEndpointGroups(groups);
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
@@ -292,9 +284,12 @@ public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
         givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
 
         var response = rootTarget(API)
-            .queryParam("dryRun", "true")
-            .request()
-            .method("PATCH", Entity.entity("{\"endpointGroups\":" + toJson(List.of(groupMap("group-b"))) + "}", MERGE_PATCH_TYPE));
+                .queryParam("dryRun", "true")
+                .request()
+                .method(
+                        "PATCH",
+                        Entity.entity(
+                                "{\"endpointGroups\":" + toJson(List.of(groupMap("group-b"))) + "}", MERGE_PATCH_TYPE));
 
         var apiV4 = assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
         Assertions.assertThat(apiV4.getEndpointGroups().getFirst().getName()).isEqualTo("group-b");
@@ -303,14 +298,19 @@ public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
     @Test
     void dry_run_validation_failure_returns_400() {
         givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
-        doThrow(new ValidationDomainException("invalid endpoint group", Map.of("location", "/endpointGroups/0"), "invalidValue"))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+        doThrow(new ValidationDomainException(
+                        "invalid endpoint group", Map.of("location", "/endpointGroups/0"), "invalidValue"))
+                .when(updateApiDomainService)
+                .validateV4(any(), any());
 
         var response = rootTarget(API)
-            .queryParam("dryRun", "true")
-            .request()
-            .method("PATCH", Entity.entity("{\"endpointGroups\":" + toJson(List.of(groupMap("bad-group"))) + "}", MERGE_PATCH_TYPE));
+                .queryParam("dryRun", "true")
+                .request()
+                .method(
+                        "PATCH",
+                        Entity.entity(
+                                "{\"endpointGroups\":" + toJson(List.of(groupMap("bad-group"))) + "}",
+                                MERGE_PATCH_TYPE));
 
         var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
         Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");

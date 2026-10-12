@@ -77,9 +77,9 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
     void should_create_portal_menu_link_with_default_visibility() {
         // When
         var portalMenuLinkToCreate = new CreatePortalMenuLink()
-            .name("new menu link")
-            .target("http://newTarget")
-            .type(CreatePortalMenuLink.TypeEnum.EXTERNAL);
+                .name("new menu link")
+                .target("http://newTarget")
+                .type(CreatePortalMenuLink.TypeEnum.EXTERNAL);
         final Response response = rootTarget().request().post(json(portalMenuLinkToCreate));
 
         // Then
@@ -87,13 +87,13 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
         var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink.class);
 
         assertThat(result)
-            .isNotNull()
-            .hasFieldOrProperty("id")
-            .hasFieldOrPropertyWithValue("target", portalMenuLinkToCreate.getTarget())
-            .hasFieldOrPropertyWithValue("name", portalMenuLinkToCreate.getName())
-            .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
-            .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PRIVATE)
-            .hasFieldOrPropertyWithValue("order", 1);
+                .isNotNull()
+                .hasFieldOrProperty("id")
+                .hasFieldOrPropertyWithValue("target", portalMenuLinkToCreate.getTarget())
+                .hasFieldOrPropertyWithValue("name", portalMenuLinkToCreate.getName())
+                .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
+                .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PRIVATE)
+                .hasFieldOrPropertyWithValue("order", 1);
         assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(1);
     }
 
@@ -101,10 +101,10 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
     void should_create_portal_menu_link_with_public_visibility() {
         // When
         var portalMenuLinkToCreate = new CreatePortalMenuLink()
-            .name("new menu link")
-            .target("http://newTarget")
-            .type(CreatePortalMenuLink.TypeEnum.EXTERNAL)
-            .visibility(CreatePortalMenuLink.VisibilityEnum.PUBLIC);
+                .name("new menu link")
+                .target("http://newTarget")
+                .type(CreatePortalMenuLink.TypeEnum.EXTERNAL)
+                .visibility(CreatePortalMenuLink.VisibilityEnum.PUBLIC);
         final Response response = rootTarget().request().post(json(portalMenuLinkToCreate));
 
         // Then
@@ -112,28 +112,30 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
         var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink.class);
 
         assertThat(result)
-            .isNotNull()
-            .hasFieldOrProperty("id")
-            .hasFieldOrPropertyWithValue("target", portalMenuLinkToCreate.getTarget())
-            .hasFieldOrPropertyWithValue("name", portalMenuLinkToCreate.getName())
-            .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
-            .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PUBLIC)
-            .hasFieldOrPropertyWithValue("order", 1);
+                .isNotNull()
+                .hasFieldOrProperty("id")
+                .hasFieldOrPropertyWithValue("target", portalMenuLinkToCreate.getTarget())
+                .hasFieldOrPropertyWithValue("name", portalMenuLinkToCreate.getName())
+                .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
+                .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PUBLIC)
+                .hasFieldOrPropertyWithValue("order", 1);
         assertThat(portalMenuLinkCrudServiceInMemory.storage()).hasSize(1);
     }
 
     @Test
     void should_return_400_if_execute_fails_with_invalid_data_exception() {
         // When
-        var createPortalMenuLink = PortalMenuLinkFixtures.aCreatePortalMenuLink().toBuilder().name(null).build();
+        var createPortalMenuLink = PortalMenuLinkFixtures.aCreatePortalMenuLink().toBuilder()
+                .name(null)
+                .build();
         final Response response = rootTarget().request().post(json(createPortalMenuLink));
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("Validation error");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
         assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 
@@ -144,10 +146,10 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("Validation error");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
         assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 
@@ -158,34 +160,32 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("Validation error");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
         assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
         // Given
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_SETTINGS),
-                eq(ENV_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_SETTINGS),
+                        eq(ENV_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         // When
         final Response response = rootTarget().request().post(json(PortalMenuLinkFixtures.aCreatePortalMenuLink()));
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         assertThat(portalMenuLinkCrudServiceInMemory.storage()).isEmpty();
     }
 }

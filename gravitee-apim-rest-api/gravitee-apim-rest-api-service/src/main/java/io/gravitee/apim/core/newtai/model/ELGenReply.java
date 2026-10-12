@@ -17,11 +17,14 @@ package io.gravitee.apim.core.newtai.model;
 
 public interface ELGenReply {
     String message();
+
     FeedbackId feedbackId();
 
     interface FeedbackId {
         String chatId();
+
         String userMessageId();
+
         String agentMessageId();
     }
 }

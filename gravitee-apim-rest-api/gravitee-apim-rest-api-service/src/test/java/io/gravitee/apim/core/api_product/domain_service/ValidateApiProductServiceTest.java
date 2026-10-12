@@ -57,13 +57,10 @@ class ValidateApiProductServiceTest {
 
     @BeforeEach
     void setUp() {
-        Stream.of(apiCrudService, apiQueryService, planQueryService, apiProductQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, apiQueryService, planQueryService, apiProductQueryService)
+                .forEach(InMemoryAlternative::reset);
         validateApiProductService = new ValidateApiProductService(
-            apiQueryService,
-            apiCrudService,
-            planQueryService,
-            apiProductQueryService
-        );
+                apiQueryService, apiCrudService, planQueryService, apiProductQueryService);
     }
 
     @Nested
@@ -71,34 +68,53 @@ class ValidateApiProductServiceTest {
 
         @Test
         void should_throw_when_name_is_empty() {
-            ApiProduct product = ApiProduct.builder().id("p1").name("").version("1.0").environmentId(ENV_ID).build();
+            ApiProduct product = ApiProduct.builder()
+                    .id("p1")
+                    .name("")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .build();
 
             assertThatThrownBy(() -> validateApiProductService.validate(product))
-                .isInstanceOf(InvalidDataException.class)
-                .hasMessage("API Product name is required.");
+                    .isInstanceOf(InvalidDataException.class)
+                    .hasMessage("API Product name is required.");
         }
 
         @Test
         void should_throw_when_name_is_null() {
-            ApiProduct product = ApiProduct.builder().id("p1").version("1.0").environmentId(ENV_ID).build();
+            ApiProduct product = ApiProduct.builder()
+                    .id("p1")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .build();
 
             assertThatThrownBy(() -> validateApiProductService.validate(product))
-                .isInstanceOf(InvalidDataException.class)
-                .hasMessage("API Product name is required.");
+                    .isInstanceOf(InvalidDataException.class)
+                    .hasMessage("API Product name is required.");
         }
 
         @Test
         void should_throw_when_version_is_empty() {
-            ApiProduct product = ApiProduct.builder().id("p1").name("Product").version("").environmentId(ENV_ID).build();
+            ApiProduct product = ApiProduct.builder()
+                    .id("p1")
+                    .name("Product")
+                    .version("")
+                    .environmentId(ENV_ID)
+                    .build();
 
             assertThatThrownBy(() -> validateApiProductService.validate(product))
-                .isInstanceOf(InvalidDataException.class)
-                .hasMessage("API Product version is required.");
+                    .isInstanceOf(InvalidDataException.class)
+                    .hasMessage("API Product version is required.");
         }
 
         @Test
         void should_not_throw_when_name_and_version_are_set() {
-            ApiProduct product = ApiProduct.builder().id("p1").name("Product").version("1.0").environmentId(ENV_ID).build();
+            ApiProduct product = ApiProduct.builder()
+                    .id("p1")
+                    .name("Product")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .build();
 
             assertThatCode(() -> validateApiProductService.validate(product)).doesNotThrowAnyException();
         }
@@ -109,29 +125,40 @@ class ValidateApiProductServiceTest {
 
         @Test
         void should_do_nothing_when_apiIds_empty() {
-            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of(), null)).doesNotThrowAnyException();
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of(), null))
+                    .doesNotThrowAnyException();
         }
 
         @Test
         void should_throw_when_api_does_not_exist() {
-            ApiProduct product = ApiProduct.builder().id("p1").name("P").version("1.0").environmentId(ENV_ID).build();
+            ApiProduct product = ApiProduct.builder()
+                    .id("p1")
+                    .name("P")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .build();
             apiProductQueryService.initWith(List.of(product));
 
-            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("non-existent"), null))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("do not exist")
-                .hasMessageContaining("non-existent");
+            assertThatThrownBy(() ->
+                            validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("non-existent"), null))
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("do not exist")
+                    .hasMessageContaining("non-existent");
         }
 
         @Test
         void should_throw_when_api_is_not_v4() {
-            Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
+            Api v2Api = ApiFixtures.aProxyApiV2().toBuilder()
+                    .id("api-v2")
+                    .environmentId(ENV_ID)
+                    .build();
             apiCrudService.initWith(List.of(v2Api));
 
-            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-v2"), null))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("not V4")
-                .hasMessageContaining("api-v2");
+            assertThatThrownBy(
+                            () -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-v2"), null))
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("not V4")
+                    .hasMessageContaining("api-v2");
         }
 
         @Test
@@ -140,9 +167,9 @@ class ValidateApiProductServiceTest {
             apiCrudService.initWith(List.of(api));
 
             assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("not allowed in API Products")
-                .hasMessageContaining("api-1");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("not allowed in API Products")
+                    .hasMessageContaining("api-1");
         }
 
         @Test
@@ -150,9 +177,8 @@ class ValidateApiProductServiceTest {
             Api api = createV4ProxyApi("api-1", true);
             apiCrudService.initWith(List.of(api));
 
-            assertThatCode(() ->
-                validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null)
-            ).doesNotThrowAnyException();
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null))
+                    .doesNotThrowAnyException();
         }
 
         @ParameterizedTest
@@ -161,10 +187,10 @@ class ValidateApiProductServiceTest {
             apiCrudService.initWith(List.of(api));
 
             assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null))
-                .as(label)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("not allowed in API Products")
-                .hasMessageContaining("api-1");
+                    .as(label)
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("not allowed in API Products")
+                    .hasMessageContaining("api-1");
         }
 
         @ParameterizedTest
@@ -172,9 +198,10 @@ class ValidateApiProductServiceTest {
         void should_not_throw_when_an_agent_asset_joins_an_ai_workspace(String label, Api api) {
             apiCrudService.initWith(List.of(api));
 
-            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), ApiProductKind.AI_WORKSPACE))
-                .as(label)
-                .doesNotThrowAnyException();
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(
+                            ENV_ID, List.of("api-1"), ApiProductKind.AI_WORKSPACE))
+                    .as(label)
+                    .doesNotThrowAnyException();
         }
 
         /**
@@ -187,9 +214,10 @@ class ValidateApiProductServiceTest {
         void should_not_throw_when_an_agent_asset_was_already_a_member(String label, Api api) {
             apiCrudService.initWith(List.of(api));
 
-            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), Set.of("api-1"), null))
-                .as(label)
-                .doesNotThrowAnyException();
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(
+                            ENV_ID, List.of("api-1"), Set.of("api-1"), null))
+                    .as(label)
+                    .doesNotThrowAnyException();
         }
 
         /** A workspace reads its default proxy by kind, so a second one of the same kind leaves it unreadable. */
@@ -198,20 +226,21 @@ class ValidateApiProductServiceTest {
         void should_throw_when_a_second_agent_asset_of_the_same_kind_joins_a_workspace(String label, Api api) {
             apiCrudService.initWith(List.of(api, agentAssetApi(api, "api-2")));
 
-            assertThatThrownBy(() ->
-                validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1", "api-2"), Set.of(), ApiProductKind.AI_WORKSPACE)
-            )
-                .as(label)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("already has");
+            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(
+                            ENV_ID, List.of("api-1", "api-2"), Set.of(), ApiProductKind.AI_WORKSPACE))
+                    .as(label)
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("already has");
         }
 
         static Stream<org.junit.jupiter.params.provider.Arguments> agentAssetApis() {
             return Stream.of(
-                org.junit.jupiter.params.provider.Arguments.of("llm-proxy", agentAssetApi(ApiFixtures.aLLMProxyApiV4())),
-                org.junit.jupiter.params.provider.Arguments.of("mcp-proxy", agentAssetApi(ApiFixtures.aMCPProxyApiV4())),
-                org.junit.jupiter.params.provider.Arguments.of("a2a-proxy", agentAssetApi(ApiFixtures.anA2AProxyApiV4()))
-            );
+                    org.junit.jupiter.params.provider.Arguments.of(
+                            "llm-proxy", agentAssetApi(ApiFixtures.aLLMProxyApiV4())),
+                    org.junit.jupiter.params.provider.Arguments.of(
+                            "mcp-proxy", agentAssetApi(ApiFixtures.aMCPProxyApiV4())),
+                    org.junit.jupiter.params.provider.Arguments.of(
+                            "a2a-proxy", agentAssetApi(ApiFixtures.anA2AProxyApiV4())));
         }
 
         @Test
@@ -219,9 +248,8 @@ class ValidateApiProductServiceTest {
             Api api = createV4ProxyApi("api-1", true);
             apiCrudService.initWith(List.of(api, api));
 
-            assertThatCode(() ->
-                validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null)
-            ).doesNotThrowAnyException();
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null))
+                    .doesNotThrowAnyException();
         }
     }
 
@@ -230,26 +258,30 @@ class ValidateApiProductServiceTest {
 
         @Test
         void should_return_empty_when_apiIds_null() {
-            assertThat(validateApiProductService.getApisToUndeployOnRemoval(null, "product-1")).isEmpty();
+            assertThat(validateApiProductService.getApisToUndeployOnRemoval(null, "product-1"))
+                    .isEmpty();
         }
 
         @Test
         void should_return_empty_when_apiIds_empty() {
-            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of(), "product-1")).isEmpty();
+            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of(), "product-1"))
+                    .isEmpty();
         }
 
         @Test
         void should_return_api_when_removing_deployed_api_without_plan_and_not_in_other_product() {
-            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder()
+                    .deployedAt(ZonedDateTime.now())
+                    .build();
             apiCrudService.initWith(List.of(deployedNoPlan));
 
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-1")
+                    .name("P")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct));
 
             List<Api> toUndeploy = validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1");
@@ -258,94 +290,106 @@ class ValidateApiProductServiceTest {
 
         @Test
         void should_return_empty_when_removing_deployed_api_that_has_published_plan() {
-            Api deployedApi = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+            Api deployedApi = createV4ProxyApi("api-1", true).toBuilder()
+                    .deployedAt(ZonedDateTime.now())
+                    .build();
             apiCrudService.initWith(List.of(deployedApi));
 
-            Plan plan = PlanFixtures.HttpV4.aKeyless().toBuilder().referenceId("api-1").id("plan-1").build();
+            Plan plan = PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .referenceId("api-1")
+                    .id("plan-1")
+                    .build();
             planQueryService.initWith(List.of(plan));
 
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-1")
+                    .name("P")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct));
 
-            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1")).isEmpty();
+            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1"))
+                    .isEmpty();
         }
 
         @Test
         void should_return_empty_when_removing_undeployed_api() {
-            Api undeployedApi = createV4ProxyApi("api-1", true).toBuilder().deployedAt(null).build();
+            Api undeployedApi =
+                    createV4ProxyApi("api-1", true).toBuilder().deployedAt(null).build();
             apiCrudService.initWith(List.of(undeployedApi));
 
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-1")
+                    .name("P")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct));
 
-            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1")).isEmpty();
+            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1"))
+                    .isEmpty();
         }
 
         @Test
         void should_return_empty_when_removed_api_is_in_another_product_with_plan() {
-            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder()
+                    .deployedAt(ZonedDateTime.now())
+                    .build();
             apiCrudService.initWith(List.of(deployedNoPlan));
 
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P1")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-1")
+                    .name("P1")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             ApiProduct otherProduct = ApiProduct.builder()
-                .id("product-2")
-                .name("P2")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-2")
+                    .name("P2")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct, otherProduct));
 
-            Plan product2Plan = PlanFixtures.HttpV4.aKeyless()
-                .toBuilder()
-                .id("plan-product-2")
-                .referenceId("product-2")
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .environmentId(ENV_ID)
-                .build();
+            Plan product2Plan = PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .id("plan-product-2")
+                    .referenceId("product-2")
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .environmentId(ENV_ID)
+                    .build();
             product2Plan.setPlanStatus(PlanStatus.PUBLISHED);
             planQueryService.initWith(List.of(product2Plan));
 
-            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1")).isEmpty();
+            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1"))
+                    .isEmpty();
         }
 
         @Test
         void should_return_api_when_only_other_product_containing_api_has_no_plans() {
-            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder()
+                    .deployedAt(ZonedDateTime.now())
+                    .build();
             apiCrudService.initWith(List.of(deployedNoPlan));
 
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P1")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-1")
+                    .name("P1")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             ApiProduct otherProductNoPlans = ApiProduct.builder()
-                .id("product-2")
-                .name("P2")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-2")
+                    .name("P2")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct, otherProductNoPlans));
 
             List<Api> toUndeploy = validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1");
@@ -354,23 +398,25 @@ class ValidateApiProductServiceTest {
 
         @Test
         void should_return_api_when_only_other_product_containing_api_is_in_different_environment() {
-            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+            Api deployedNoPlan = createV4ProxyApi("api-1", true).toBuilder()
+                    .deployedAt(ZonedDateTime.now())
+                    .build();
             apiCrudService.initWith(List.of(deployedNoPlan));
 
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P1")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-1")
+                    .name("P1")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
             ApiProduct productInOtherEnv = ApiProduct.builder()
-                .id("product-2")
-                .name("P2")
-                .version("1.0")
-                .environmentId("other-env")
-                .apiIds(Set.of("api-1"))
-                .build();
+                    .id("product-2")
+                    .name("P2")
+                    .version("1.0")
+                    .environmentId("other-env")
+                    .apiIds(Set.of("api-1"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct, productInOtherEnv));
 
             List<Api> toUndeploy = validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1"), "product-1");
@@ -380,50 +426,55 @@ class ValidateApiProductServiceTest {
         @Test
         void should_return_empty_when_api_not_found_in_crud() {
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("missing-api"))
-                .build();
+                    .id("product-1")
+                    .name("P")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("missing-api"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct));
 
-            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("missing-api"), "product-1")).isEmpty();
+            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("missing-api"), "product-1"))
+                    .isEmpty();
         }
 
         @Test
         void should_return_empty_for_multiple_apis_when_other_product_has_plan() {
-            Api deployedNoPlan1 = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
-            Api deployedNoPlan2 = createV4ProxyApi("api-2", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+            Api deployedNoPlan1 = createV4ProxyApi("api-1", true).toBuilder()
+                    .deployedAt(ZonedDateTime.now())
+                    .build();
+            Api deployedNoPlan2 = createV4ProxyApi("api-2", true).toBuilder()
+                    .deployedAt(ZonedDateTime.now())
+                    .build();
             apiCrudService.initWith(List.of(deployedNoPlan1, deployedNoPlan2));
 
             ApiProduct currentProduct = ApiProduct.builder()
-                .id("product-1")
-                .name("P1")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1", "api-2"))
-                .build();
+                    .id("product-1")
+                    .name("P1")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1", "api-2"))
+                    .build();
             ApiProduct otherProduct = ApiProduct.builder()
-                .id("product-2")
-                .name("P2")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1", "api-2"))
-                .build();
+                    .id("product-2")
+                    .name("P2")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1", "api-2"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct, otherProduct));
 
-            Plan product2Plan = PlanFixtures.HttpV4.aKeyless()
-                .toBuilder()
-                .id("plan-product-2")
-                .referenceId("product-2")
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .environmentId(ENV_ID)
-                .build();
+            Plan product2Plan = PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .id("plan-product-2")
+                    .referenceId("product-2")
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .environmentId(ENV_ID)
+                    .build();
             product2Plan.setPlanStatus(PlanStatus.PUBLISHED);
             planQueryService.initWith(List.of(product2Plan));
 
-            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1", "api-2"), "product-1")).isEmpty();
+            assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1", "api-2"), "product-1"))
+                    .isEmpty();
         }
     }
 
@@ -432,7 +483,11 @@ class ValidateApiProductServiceTest {
         var definition = fixture.getApiDefinitionValue();
         if (definition instanceof io.gravitee.definition.model.v4.Api v4Api) {
             var updated = v4Api.toBuilder().id(id).allowedInApiProducts(true).build();
-            return fixture.toBuilder().id(id).environmentId(ENV_ID).apiDefinitionValue(updated).build();
+            return fixture.toBuilder()
+                    .id(id)
+                    .environmentId(ENV_ID)
+                    .apiDefinitionValue(updated)
+                    .build();
         }
         throw new IllegalStateException("Expected V4 API definition");
     }
@@ -440,8 +495,13 @@ class ValidateApiProductServiceTest {
     private static Api agentAssetApi(Api fixture) {
         var definition = fixture.getApiDefinitionValue();
         if (definition instanceof io.gravitee.definition.model.v4.Api v4Api) {
-            var updated = v4Api.toBuilder().id("api-1").allowedInApiProducts(true).build();
-            return fixture.toBuilder().id("api-1").environmentId(ENV_ID).apiDefinitionValue(updated).build();
+            var updated =
+                    v4Api.toBuilder().id("api-1").allowedInApiProducts(true).build();
+            return fixture.toBuilder()
+                    .id("api-1")
+                    .environmentId(ENV_ID)
+                    .apiDefinitionValue(updated)
+                    .build();
         }
         throw new IllegalStateException("Expected V4 API definition");
     }
@@ -449,8 +509,15 @@ class ValidateApiProductServiceTest {
     private static Api createV4ProxyApi(String id, boolean allowedInApiProducts) {
         var apiDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionValue();
         if (apiDefinition instanceof io.gravitee.definition.model.v4.Api v4Api) {
-            var updatedDef = v4Api.toBuilder().id(id).allowedInApiProducts(allowedInApiProducts).build();
-            return ApiFixtures.aProxyApiV4().toBuilder().id(id).environmentId(ENV_ID).apiDefinitionValue(updatedDef).build();
+            var updatedDef = v4Api.toBuilder()
+                    .id(id)
+                    .allowedInApiProducts(allowedInApiProducts)
+                    .build();
+            return ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(id)
+                    .environmentId(ENV_ID)
+                    .apiDefinitionValue(updatedDef)
+                    .build();
         }
         throw new IllegalStateException("Expected V4 API definition");
     }

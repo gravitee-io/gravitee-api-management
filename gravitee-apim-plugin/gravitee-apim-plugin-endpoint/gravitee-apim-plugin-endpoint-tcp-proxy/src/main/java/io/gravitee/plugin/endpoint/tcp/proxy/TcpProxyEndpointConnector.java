@@ -42,9 +42,8 @@ public class TcpProxyEndpointConnector extends AbstractService<Connector> implem
     private final TcpClientFactory tcpClientFactory;
 
     TcpProxyEndpointConnector(
-        TcpProxyEndpointConnectorConfiguration configuration,
-        TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            TcpProxyEndpointConnectorConfiguration configuration,
+            TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         this.configuration = configuration;
         this.sharedConfiguration = sharedConfiguration;
         this.tcpClientFactory = new TcpClientFactory();
@@ -68,17 +67,22 @@ public class TcpProxyEndpointConnector extends AbstractService<Connector> implem
     @Override
     public Completable connect(TcpExecutionContext ctx) {
         return tcpClientFactory
-            .getOrBuildTcpClient(ctx, configuration, sharedConfiguration)
-            .rxConnect(this.configuration.getTcpTarget().getPort(), this.configuration.getTcpTarget().getHost())
-            .doOnSuccess(backendSocket -> {
-                // pause as soon as possible
-                backendSocket.pause();
-                // configure response as all will happen in end() method
-                ctx.response().chunks(backendSocket.toFlowable().map(Buffer::buffer));
-                // Read request chunks and write to backendSocket
-                ctx.request().pipeUpstream(VertxReadStreamUtil.toVertxRxReadStream(ctx.request().chunks()).rxPipeTo(backendSocket));
-            })
-            .ignoreElement();
+                .getOrBuildTcpClient(ctx, configuration, sharedConfiguration)
+                .rxConnect(
+                        this.configuration.getTcpTarget().getPort(),
+                        this.configuration.getTcpTarget().getHost())
+                .doOnSuccess(backendSocket -> {
+                    // pause as soon as possible
+                    backendSocket.pause();
+                    // configure response as all will happen in end() method
+                    ctx.response().chunks(backendSocket.toFlowable().map(Buffer::buffer));
+                    // Read request chunks and write to backendSocket
+                    ctx.request()
+                            .pipeUpstream(VertxReadStreamUtil.toVertxRxReadStream(
+                                            ctx.request().chunks())
+                                    .rxPipeTo(backendSocket));
+                })
+                .ignoreElement();
     }
 
     TcpProxyEndpointConnectorConfiguration getConfiguration() {

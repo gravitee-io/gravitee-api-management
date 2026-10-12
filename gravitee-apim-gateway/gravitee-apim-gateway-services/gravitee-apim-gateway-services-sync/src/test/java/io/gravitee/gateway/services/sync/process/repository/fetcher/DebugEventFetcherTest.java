@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.Node;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -61,11 +60,10 @@ class DebugEventFetcherTest {
     void should_fetch_debug_event() {
         Event event = new Event();
         when(eventRepository.search(any())).thenReturn(List.of(event));
-        cut
-            .fetchLatest(null, null, Set.of())
-            .test()
-            .assertValueCount(1)
-            .assertValue(apiKeys -> apiKeys.contains(event));
+        cut.fetchLatest(null, null, Set.of())
+                .test()
+                .assertValueCount(1)
+                .assertValue(apiKeys -> apiKeys.contains(event));
     }
 
     @Test
@@ -73,25 +71,18 @@ class DebugEventFetcherTest {
         Instant to = Instant.now();
         Instant from = to.minus(1000, ChronoUnit.MILLIS);
         Event event = new Event();
-        when(
-            eventRepository.search(
-                argThat(
-                    argument ->
-                        argument.getTypes().size() == 1 &&
-                        argument.getTypes().contains(EventType.DEBUG_API) &&
-                        argument.getProperties().containsKey(Event.EventProperties.API_DEBUG_STATUS.getValue()) &&
-                        argument.getProperties().containsKey(Event.EventProperties.GATEWAY_ID.getValue()) &&
-                        argument.getEnvironments().contains("env") &&
-                        argument.getFrom() < from.toEpochMilli() &&
-                        argument.getTo() > to.toEpochMilli()
-                )
-            )
-        ).thenReturn(List.of(event));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
-            .test()
-            .assertValueCount(1)
-            .assertValue(apiKeys -> apiKeys.contains(event));
+        when(eventRepository.search(argThat(argument -> argument.getTypes().size() == 1
+                        && argument.getTypes().contains(EventType.DEBUG_API)
+                        && argument.getProperties().containsKey(Event.EventProperties.API_DEBUG_STATUS.getValue())
+                        && argument.getProperties().containsKey(Event.EventProperties.GATEWAY_ID.getValue())
+                        && argument.getEnvironments().contains("env")
+                        && argument.getFrom() < from.toEpochMilli()
+                        && argument.getTo() > to.toEpochMilli())))
+                .thenReturn(List.of(event));
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
+                .test()
+                .assertValueCount(1)
+                .assertValue(apiKeys -> apiKeys.contains(event));
     }
 
     @Test

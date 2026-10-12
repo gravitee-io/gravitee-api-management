@@ -53,9 +53,9 @@ class LogBodyMappingTest {
     private record BodyPath(String parent, String field) {}
 
     static Stream<Arguments> trees_and_log_types() {
-        return Stream.of("es7x", "es8x", "es9x", "opensearch").flatMap(tree ->
-            Stream.of(Type.LOG, Type.V4_LOG, Type.V4_MESSAGE_LOG).map(type -> Arguments.of(tree, type))
-        );
+        return Stream.of("es7x", "es8x", "es9x", "opensearch")
+                .flatMap(tree ->
+                        Stream.of(Type.LOG, Type.V4_LOG, Type.V4_MESSAGE_LOG).map(type -> Arguments.of(tree, type)));
     }
 
     /**
@@ -73,9 +73,11 @@ class LogBodyMappingTest {
     void should_index_bodies_for_prefix_search_only(String tree, Type type) {
         var bodyFields = bodyFieldsOf(render(tree, type, new ReporterConfiguration()), type);
 
-        assertThat(bodyFields).allSatisfy(body ->
-            assertThat(body).containsEntry("type", "text").containsEntry("index_options", "docs").containsEntry("norms", false)
-        );
+        assertThat(bodyFields)
+                .allSatisfy(body -> assertThat(body)
+                        .containsEntry("type", "text")
+                        .containsEntry("index_options", "docs")
+                        .containsEntry("norms", false));
     }
 
     @ParameterizedTest(name = "{0} {1} keeps indexing bodies searchable with the analyzer it already used")
@@ -103,27 +105,27 @@ class LogBodyMappingTest {
 
         // Elasticsearch rejects a mapping that sets analyzer, index_options or norms on an unindexed field,
         // so turning indexing off has to drop all three rather than merely add "index": false next to them.
-        assertThat(bodyFields).allSatisfy(body ->
-            assertThat(body)
-                .containsEntry("type", "text")
-                .containsEntry("index", false)
-                .doesNotContainKey("analyzer")
-                .doesNotContainKey("index_options")
-                .doesNotContainKey("norms")
-        );
+        assertThat(bodyFields)
+                .allSatisfy(body -> assertThat(body)
+                        .containsEntry("type", "text")
+                        .containsEntry("index", false)
+                        .doesNotContainKey("analyzer")
+                        .doesNotContainKey("index_options")
+                        .doesNotContainKey("norms"));
     }
 
     @ParameterizedTest(name = "{0} {1} maps every captured payload")
     @MethodSource("trees_and_log_types")
     void should_map_every_captured_payload(String tree, Type type) {
-        assertThat(bodyFieldsOf(render(tree, type, new ReporterConfiguration()), type)).hasSameSizeAs(bodyPathsOf(type));
+        assertThat(bodyFieldsOf(render(tree, type, new ReporterConfiguration()), type))
+                .hasSameSizeAs(bodyPathsOf(type));
     }
 
     private static String render(String tree, Type type, ReporterConfiguration configuration) {
         var freeMarkerComponent = FreeMarkerComponent.builder()
-            .classLoader(LogBodyMappingTest.class.getClassLoader())
-            .classLoaderTemplateBase("freemarker")
-            .build();
+                .classLoader(LogBodyMappingTest.class.getClassLoader())
+                .classLoaderTemplateBase("freemarker")
+                .build();
         var pipelineConfiguration = new PipelineConfiguration(freeMarkerComponent);
 
         // No client: generateIndexTemplate only renders, it never talks to the cluster.
@@ -131,7 +133,8 @@ class LogBodyMappingTest {
             case "es7x" -> new ES7IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es8x" -> new ES8IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es9x" -> new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
-            case "opensearch" -> new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
+            case "opensearch" ->
+                new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             default -> throw new IllegalArgumentException("Unknown template tree: " + tree);
         };
 
@@ -145,30 +148,33 @@ class LogBodyMappingTest {
     private static List<Map<String, Object>> bodyFieldsOf(String renderedTemplate, Type type) {
         var root = new JsonObject(renderedTemplate);
         var mappings = root.containsKey("mappings")
-            ? root.getJsonObject("mappings")
-            : root.getJsonObject("template").getJsonObject("mappings");
+                ? root.getJsonObject("mappings")
+                : root.getJsonObject("template").getJsonObject("mappings");
         var properties = mappings.getJsonObject("properties");
 
-        return bodyPathsOf(type)
-            .stream()
-            .map(path -> properties.getJsonObject(path.parent()).getJsonObject("properties").getJsonObject(path.field()).getMap())
-            .toList();
+        return bodyPathsOf(type).stream()
+                .map(path -> properties
+                        .getJsonObject(path.parent())
+                        .getJsonObject("properties")
+                        .getJsonObject(path.field())
+                        .getMap())
+                .toList();
     }
 
     private static List<BodyPath> bodyPathsOf(Type type) {
         return switch (type) {
-            case LOG -> List.of(
-                new BodyPath("client-request", "body"),
-                new BodyPath("client-response", "body"),
-                new BodyPath("proxy-request", "body"),
-                new BodyPath("proxy-response", "body")
-            );
-            case V4_LOG -> List.of(
-                new BodyPath("entrypoint-request", "body"),
-                new BodyPath("entrypoint-response", "body"),
-                new BodyPath("endpoint-request", "body"),
-                new BodyPath("endpoint-response", "body")
-            );
+            case LOG ->
+                List.of(
+                        new BodyPath("client-request", "body"),
+                        new BodyPath("client-response", "body"),
+                        new BodyPath("proxy-request", "body"),
+                        new BodyPath("proxy-response", "body"));
+            case V4_LOG ->
+                List.of(
+                        new BodyPath("entrypoint-request", "body"),
+                        new BodyPath("entrypoint-response", "body"),
+                        new BodyPath("endpoint-request", "body"),
+                        new BodyPath("endpoint-response", "body"));
             case V4_MESSAGE_LOG -> List.of(new BodyPath("message", "payload"));
             default -> throw new IllegalArgumentException("Type carries no body: " + type);
         };

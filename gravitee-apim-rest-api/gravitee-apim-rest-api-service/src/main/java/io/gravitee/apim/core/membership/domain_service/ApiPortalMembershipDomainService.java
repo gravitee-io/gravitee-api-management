@@ -45,30 +45,33 @@ public class ApiPortalMembershipDomainService {
         }
 
         Set<String> directApiIds = membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(userId, Membership.Type.USER, Membership.ReferenceType.API)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(toSet());
+                .findByMemberIdAndMemberTypeAndReferenceType(userId, Membership.Type.USER, Membership.ReferenceType.API)
+                .stream()
+                .map(Membership::getReferenceId)
+                .collect(toSet());
 
-        Set<String> userGroupIds = membershipQueryService
-            .findGroupsThatUserBelongsTo(userId)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(toSet());
+        Set<String> userGroupIds = membershipQueryService.findGroupsThatUserBelongsTo(userId).stream()
+                .map(Membership::getReferenceId)
+                .collect(toSet());
 
         // Group-based API access is stored on the API itself (Api.groups field) when a group is
         // assigned to an API, not as a GROUP->API Membership record. Match candidate APIs whose
         // groups intersect the user's groups.
         Set<String> groupApiIds = userGroupIds.isEmpty()
-            ? Set.of()
-            : apiQueryService
-                .search(
-                    ApiSearchCriteria.builder().ids(List.copyOf(candidateApiIds)).groups(List.copyOf(userGroupIds)).build(),
-                    null,
-                    ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-                )
-                .map(Api::getId)
-                .collect(toSet());
+                ? Set.of()
+                : apiQueryService
+                        .search(
+                                ApiSearchCriteria.builder()
+                                        .ids(List.copyOf(candidateApiIds))
+                                        .groups(List.copyOf(userGroupIds))
+                                        .build(),
+                                null,
+                                ApiFieldFilter.builder()
+                                        .pictureExcluded(true)
+                                        .definitionExcluded(true)
+                                        .build())
+                        .map(Api::getId)
+                        .collect(toSet());
 
         Set<String> allowed = new HashSet<>(directApiIds);
         allowed.addAll(groupApiIds);
@@ -82,20 +85,21 @@ public class ApiPortalMembershipDomainService {
         }
 
         Set<String> userApplicationIds = membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(userId, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(toSet());
+                .findByMemberIdAndMemberTypeAndReferenceType(
+                        userId, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
+                .stream()
+                .map(Membership::getReferenceId)
+                .collect(toSet());
 
         if (userApplicationIds.isEmpty()) {
             return Set.of();
         }
 
         return subscriptionQueryService
-            .findActiveByApplicationIdsAndApiIds(userApplicationIds, candidateApiIds)
-            .stream()
-            .map(SubscriptionEntity::getApiId)
-            .filter(candidateApiIds::contains)
-            .collect(toSet());
+                .findActiveByApplicationIdsAndApiIds(userApplicationIds, candidateApiIds)
+                .stream()
+                .map(SubscriptionEntity::getApiId)
+                .filter(candidateApiIds::contains)
+                .collect(toSet());
     }
 }

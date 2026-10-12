@@ -80,20 +80,22 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         this(delegate, failoverConfiguration, apiId, null);
     }
 
-    public FailoverInvoker(HttpInvoker delegate, Failover failoverConfiguration, String apiId, EndpointManager endpointManager) {
+    public FailoverInvoker(
+            HttpInvoker delegate, Failover failoverConfiguration, String apiId, EndpointManager endpointManager) {
         this.delegate = delegate;
         this.failoverConfiguration = failoverConfiguration;
         this.endpointManager = endpointManager;
         final CircuitBreakerConfig circuitBreakerConfiguration = CircuitBreakerConfig.custom()
-            .permittedNumberOfCallsInHalfOpenState(1)
-            .slowCallDurationThreshold(Duration.of(failoverConfiguration.getSlowCallDuration(), ChronoUnit.MILLIS))
-            .minimumNumberOfCalls(failoverConfiguration.getMaxFailures())
-            .slidingWindowSize(failoverConfiguration.getMaxFailures())
-            .failureRateThreshold(100)
-            .slowCallRateThreshold(100)
-            .waitDurationInOpenState(Duration.of(failoverConfiguration.getOpenStateDuration(), ChronoUnit.MILLIS))
-            .build();
-        // Instantiate one global circuit breaker for the API or a circuit breaker registry based on failover configuration
+                .permittedNumberOfCallsInHalfOpenState(1)
+                .slowCallDurationThreshold(Duration.of(failoverConfiguration.getSlowCallDuration(), ChronoUnit.MILLIS))
+                .minimumNumberOfCalls(failoverConfiguration.getMaxFailures())
+                .slidingWindowSize(failoverConfiguration.getMaxFailures())
+                .failureRateThreshold(100)
+                .slowCallRateThreshold(100)
+                .waitDurationInOpenState(Duration.of(failoverConfiguration.getOpenStateDuration(), ChronoUnit.MILLIS))
+                .build();
+        // Instantiate one global circuit breaker for the API or a circuit breaker registry based on failover
+        // configuration
         if (!failoverConfiguration.isPerSubscription()) {
             circuitBreaker = CircuitBreaker.of(apiId, circuitBreakerConfiguration);
             circuitBreakerRegistry = null;
@@ -117,31 +119,33 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         final AtomicReference<String> firstFailedEndpoint = new AtomicReference<>();
         final AtomicReference<RequestSnapshot> snapshotRef = new AtomicReference<>();
 
-        return captureRequestState(ctx, snapshotRef).andThen(
-            Completable.defer(() -> {
-                int attempt = totalAttempts.getAndIncrement();
+        return captureRequestState(ctx, snapshotRef)
+                .andThen(Completable.defer(() -> {
+                            int attempt = totalAttempts.getAndIncrement();
 
-                // On retry, capture the endpoint that failed in the previous attempt and restore the request to its initial state
-                if (attempt > 0) {
-                    firstFailedEndpoint.compareAndSet(null, resolveCurrentEndpointName(ctx));
-                    restoreContextState(ctx, snapshotRef.get());
-                }
+                            // On retry, capture the endpoint that failed in the previous attempt and restore the
+                            // request to its initial state
+                            if (attempt > 0) {
+                                firstFailedEndpoint.compareAndSet(null, resolveCurrentEndpointName(ctx));
+                                restoreContextState(ctx, snapshotRef.get());
+                            }
 
-                // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
-                ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
-                // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
-                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+                            // EndpointInvoker overrides the request endpoint. We need to set it back to original state
+                            // to retry properly
+                            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
+                            // Entrypoint connectors skip response handling if there is an error. In the case of a
+                            // retry, we need to reset the failure.
+                            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
-                forceNextEndpoint(ctx, attempt, endpointRotation);
+                            forceNextEndpoint(ctx, attempt, endpointRotation);
 
-                return delegate.invoke(ctx).andThen(evaluateFailureCondition(ctx));
-            })
-                .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
-                .retry(failoverConfiguration.getMaxRetries())
-                .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
-                .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)))
-                .doFinally(() -> recordFailoverMetrics(ctx, totalAttempts.get(), firstFailedEndpoint.get()))
-        );
+                            return delegate.invoke(ctx).andThen(evaluateFailureCondition(ctx));
+                        })
+                        .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
+                        .retry(failoverConfiguration.getMaxRetries())
+                        .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
+                        .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)))
+                        .doFinally(() -> recordFailoverMetrics(ctx, totalAttempts.get(), firstFailedEndpoint.get())));
     }
 
     /**
@@ -158,7 +162,8 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      *                         endpoints for failover. The list is lazily initialized on the first
      *                         invocation.
      */
-    private void forceNextEndpoint(HttpExecutionContext ctx, int attempt, AtomicReference<List<String>> endpointRotation) {
+    private void forceNextEndpoint(
+            HttpExecutionContext ctx, int attempt, AtomicReference<List<String>> endpointRotation) {
         if (!failoverConfiguration.isForceNextEndpointOnFailure()) {
             return;
         }
@@ -193,7 +198,8 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      * @return the initialized or existing list of endpoint names in rotation order, or {@code null}
      *         if no endpoints are available or could be determined from the context.
      */
-    private List<String> initEndpointRotation(HttpExecutionContext ctx, AtomicReference<List<String>> endpointRotation) {
+    private List<String> initEndpointRotation(
+            HttpExecutionContext ctx, AtomicReference<List<String>> endpointRotation) {
         List<String> rotation = endpointRotation.get();
         if (rotation == null) {
             rotation = buildEndpointRotation(ctx);
@@ -223,10 +229,8 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         String selectedEndpointName = selectedEndpoint.getDefinition().getName();
 
         // Use the group definition to get endpoints in their declaration order
-        List<? extends io.gravitee.definition.model.v4.endpointgroup.Endpoint> definedEndpoints = selectedEndpoint
-            .getGroup()
-            .getDefinition()
-            .getEndpoints();
+        List<? extends io.gravitee.definition.model.v4.endpointgroup.Endpoint> definedEndpoints =
+                selectedEndpoint.getGroup().getDefinition().getEndpoints();
         if (definedEndpoints == null || definedEndpoints.size() <= 1) {
             return null;
         }
@@ -259,16 +263,16 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         if (!StringUtils.hasText(condition)) {
             return Completable.complete();
         }
-        return ctx
-            .getTemplateEngine()
-            .eval(condition, Boolean.class)
-            .flatMapCompletable(isFailure -> {
-                if (Boolean.TRUE.equals(isFailure)) {
-                    return Completable.error(new FailoverConditionMatchException("Failover condition matched: " + condition));
-                }
-                return Completable.complete();
-            })
-            .onErrorComplete(t -> !(t instanceof FailoverConditionMatchException));
+        return ctx.getTemplateEngine()
+                .eval(condition, Boolean.class)
+                .flatMapCompletable(isFailure -> {
+                    if (Boolean.TRUE.equals(isFailure)) {
+                        return Completable.error(
+                                new FailoverConditionMatchException("Failover condition matched: " + condition));
+                    }
+                    return Completable.complete();
+                })
+                .onErrorComplete(t -> !(t instanceof FailoverConditionMatchException));
     }
 
     protected String resolveCurrentEndpointName(HttpExecutionContext ctx) {
@@ -287,7 +291,10 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         }
         ManagedEndpoint successfulEndpoint = ctx.getInternalAttribute(ATTR_INTERNAL_FAILOVER_MANAGED_ENDPOINT);
         if (successfulEndpoint != null) {
-            ctx.metrics().putAdditionalKeywordMetric("keyword_failover_successful-endpoint", successfulEndpoint.getDefinition().getName());
+            ctx.metrics()
+                    .putAdditionalKeywordMetric(
+                            "keyword_failover_successful-endpoint",
+                            successfulEndpoint.getDefinition().getName());
         }
     }
 
@@ -306,12 +313,12 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
      */
     protected Completable captureRequestState(HttpExecutionContext ctx, AtomicReference<RequestSnapshot> snapshotRef) {
         return FailoverRequestAdapter.forRequest(ctx.request())
-            .body()
-            // Body present: capture path, headers, and body for full replay
-            .doOnSuccess(body -> snapshotRef.compareAndSet(null, RequestSnapshot.withBody(ctx, body)))
-            // No body (e.g. GET): capture path and headers only
-            .doOnComplete(() -> snapshotRef.compareAndSet(null, RequestSnapshot.headersOnly(ctx)))
-            .ignoreElement();
+                .body()
+                // Body present: capture path, headers, and body for full replay
+                .doOnSuccess(body -> snapshotRef.compareAndSet(null, RequestSnapshot.withBody(ctx, body)))
+                // No body (e.g. GET): capture path and headers only
+                .doOnComplete(() -> snapshotRef.compareAndSet(null, RequestSnapshot.headersOnly(ctx)))
+                .ignoreElement();
     }
 
     /**
@@ -342,12 +349,14 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
     protected record RequestSnapshot(String pathInfo, HttpHeaders headers, Buffer body) {
         /** Captures request state including the body content for replay on retry. */
         static RequestSnapshot withBody(HttpExecutionContext ctx, Buffer body) {
-            return new RequestSnapshot(ctx.request().pathInfo(), HttpHeaders.create(ctx.request().headers()), body);
+            return new RequestSnapshot(
+                    ctx.request().pathInfo(), HttpHeaders.create(ctx.request().headers()), body);
         }
 
         /** Captures request state when no body is present (e.g. GET requests). */
         static RequestSnapshot headersOnly(HttpExecutionContext ctx) {
-            return new RequestSnapshot(ctx.request().pathInfo(), HttpHeaders.create(ctx.request().headers()), null);
+            return new RequestSnapshot(
+                    ctx.request().pathInfo(), HttpHeaders.create(ctx.request().headers()), null);
         }
     }
 }

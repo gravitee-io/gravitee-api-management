@@ -32,7 +32,8 @@ public class ApiProductItemUpdateRule implements UpdatePortalNavigationItemValid
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         var parentId = toUpdate.getParentId();
         if (parentId == null) {
             throw InvalidPortalNavigationItemDataException.fieldIsEmpty("parentId");

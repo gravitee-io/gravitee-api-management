@@ -36,7 +36,7 @@ public class ElasticsearchRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.ANALYTICS, Scope.OTEL_TRACES, Scope.OTEL_LOGS };
+        return new Scope[] {Scope.ANALYTICS, Scope.OTEL_TRACES, Scope.OTEL_LOGS};
     }
 
     @Override

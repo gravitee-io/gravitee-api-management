@@ -19,23 +19,16 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.model.ApiSpecGen;
-import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiSpecGenCrudServiceInMemory implements ApiSpecGenCrudService, InMemoryAlternative<Entry<String, Integer>> {
+public class ApiSpecGenCrudServiceInMemory
+        implements ApiSpecGenCrudService, InMemoryAlternative<Entry<String, Integer>> {
 
     private Map<String, Integer> storage;
 

@@ -37,9 +37,7 @@ class AuthzEntityDeployerTest {
     void setUp() {
         port = new RecordingPort();
         deployer = new AuthzEntityDeployer(
-            port,
-            new io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService()
-        );
+                port, new io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService());
     }
 
     @Test
@@ -78,11 +76,11 @@ class AuthzEntityDeployerTest {
     @Test
     void undeploy_does_not_filter_by_registry() {
         AuthzEntityReactorDeployable d = AuthzEntityReactorDeployable.builder()
-            .entityId("api.bookings")
-            .engineUid("Resource::\"api.bookings\"")
-            .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
-            .syncAction(SyncAction.UNDEPLOY)
-            .build();
+                .entityId("api.bookings")
+                .engineUid("Resource::\"api.bookings\"")
+                .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
+                .syncAction(SyncAction.UNDEPLOY)
+                .build();
 
         deployer.undeploy(d).blockingAwait();
 
@@ -93,13 +91,13 @@ class AuthzEntityDeployerTest {
     @Test
     void deploy_forwards_attributes_and_parents_to_the_engine_port() {
         AuthzEntityReactorDeployable d = AuthzEntityReactorDeployable.builder()
-            .entityId("api.bookings")
-            .engineUid("Resource::\"api.bookings\"")
-            .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
-            .attributes(Map.of("region", "eu"))
-            .parents(List.of("Resource::\"api.parent\""))
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .entityId("api.bookings")
+                .engineUid("Resource::\"api.bookings\"")
+                .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
+                .attributes(Map.of("region", "eu"))
+                .parents(List.of("Resource::\"api.parent\""))
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         deployer.deploy(d).blockingAwait();
 
@@ -111,13 +109,13 @@ class AuthzEntityDeployerTest {
     @Test
     void deploy_evicts_dropped_scopes_before_re_staging_targets() {
         AuthzEntityReactorDeployable d = AuthzEntityReactorDeployable.builder()
-            .entityId("api.bookings")
-            .engineUid("Resource::\"api.bookings\"")
-            .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
-            .targetPdpIds(Set.of("scope-b"))
-            .removedTargetPdpIds(Set.of("scope-a"))
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .entityId("api.bookings")
+                .engineUid("Resource::\"api.bookings\"")
+                .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
+                .targetPdpIds(Set.of("scope-b"))
+                .removedTargetPdpIds(Set.of("scope-a"))
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         deployer.deploy(d).blockingAwait();
 
@@ -141,20 +139,20 @@ class AuthzEntityDeployerTest {
 
     private static AuthzEntityReactorDeployable principal(String entityId) {
         return AuthzEntityReactorDeployable.builder()
-            .entityId(entityId)
-            .engineUid("Principal::\"" + entityId + "\"")
-            .kind(AuthzEntityReactorDeployable.Kind.PRINCIPAL)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .entityId(entityId)
+                .engineUid("Principal::\"" + entityId + "\"")
+                .kind(AuthzEntityReactorDeployable.Kind.PRINCIPAL)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     private static AuthzEntityReactorDeployable resource(String entityId) {
         return AuthzEntityReactorDeployable.builder()
-            .entityId(entityId)
-            .engineUid("Resource::\"" + entityId + "\"")
-            .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .entityId(entityId)
+                .engineUid("Resource::\"" + entityId + "\"")
+                .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     @Test
@@ -165,29 +163,36 @@ class AuthzEntityDeployerTest {
         deployer.undeploy(d).blockingAwait();
 
         assertThat(port.entityOps).isNotEmpty();
-        assertThat(port.schemaOps).as("the schema route is separate; an entity must never stage a schema").isEmpty();
+        assertThat(port.schemaOps)
+                .as("the schema route is separate; an entity must never stage a schema")
+                .isEmpty();
 
         // The assertion above is only worth anything if the recorder actually records; prove it here,
         // otherwise gutting the recorder would leave the guard silently green.
-        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("orders"), 1L).blockingAwait();
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("orders"), 1L)
+                .blockingAwait();
         assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
     }
 
     private static class RecordingPort implements AuthzEnginePort {
 
-        record EntityOp(String op, String uid, Map<String, Object> attributes, List<String> parents, Set<String> targetPdpIds) {}
+        record EntityOp(
+                String op,
+                String uid,
+                Map<String, Object> attributes,
+                List<String> parents,
+                Set<String> targetPdpIds) {}
 
         final ConcurrentLinkedQueue<EntityOp> entityOps = new ConcurrentLinkedQueue<>();
 
         @Override
         public Completable addOrUpdateEntity(
-            String environmentId,
-            String uid,
-            Map<String, Object> attributes,
-            List<String> parents,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String uid,
+                Map<String, Object> attributes,
+                List<String> parents,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             entityOps.add(new EntityOp("addOrUpdateEntity", uid, attributes, parents, targetPdpIds));
             return Completable.complete();
         }
@@ -200,14 +205,13 @@ class AuthzEntityDeployerTest {
 
         @Override
         public Completable addOrUpdatePolicy(
-            String environmentId,
-            String docId,
-            String name,
-            String policyText,
-            Set<String> targetPdpIds,
-            long updatedAt,
-            String revision
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String policyText,
+                Set<String> targetPdpIds,
+                long updatedAt,
+                String revision) {
             return Completable.complete();
         }
 
@@ -220,13 +224,12 @@ class AuthzEntityDeployerTest {
 
         @Override
         public Completable addOrUpdateSchema(
-            String environmentId,
-            String docId,
-            String name,
-            String schemaText,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String schemaText,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             schemaOps.add("addOrUpdateSchema:" + docId);
             return Completable.complete();
         }

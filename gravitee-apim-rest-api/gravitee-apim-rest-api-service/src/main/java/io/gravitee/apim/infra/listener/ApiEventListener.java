@@ -22,8 +22,6 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import lombok.CustomLog;
 import org.springframework.stereotype.Component;
@@ -86,6 +84,7 @@ public class ApiEventListener implements EventListener<ApiEvent, io.gravitee.rep
     }
 
     private static boolean isV4Api(io.gravitee.repository.management.model.Api eventPayload) {
-        return eventPayload.getDefinitionVersion() != null && eventPayload.getDefinitionVersion().equals(DefinitionVersion.V4);
+        return eventPayload.getDefinitionVersion() != null
+                && eventPayload.getDefinitionVersion().equals(DefinitionVersion.V4);
     }
 }

@@ -56,7 +56,9 @@ public class AsyncJobMongoRepositoryImpl implements AsyncJobMongoRepositoryCusto
 
     @Override
     public void delay(String id, Date newDeadLine) {
-        Query query = new Query().addCriteria(Criteria.where("id").is(id)).addCriteria(Criteria.where("status").is("PENDING"));
+        Query query = new Query()
+                .addCriteria(Criteria.where("id").is(id))
+                .addCriteria(Criteria.where("status").is("PENDING"));
 
         UpdateDefinition update = Update.update("deadLine", newDeadLine).set("updatedAt", new Date());
         mongoTemplate.updateFirst(query, update, AsyncJobMongo.class);
@@ -64,10 +66,16 @@ public class AsyncJobMongoRepositoryImpl implements AsyncJobMongoRepositoryCusto
 
     private Query toQuery(AsyncJobRepository.SearchCriteria criteria) {
         Query query = new Query().addCriteria(Criteria.where("environmentId").is(criteria.environmentId()));
-        criteria.initiatorId().ifPresent(initiatorId -> query.addCriteria(Criteria.where("initiatorId").is(initiatorId)));
-        criteria.type().ifPresent(type -> query.addCriteria(Criteria.where("type").is(type)));
-        criteria.status().ifPresent(status -> query.addCriteria(Criteria.where("status").is(status)));
-        criteria.sourceId().ifPresent(sourceId -> query.addCriteria(Criteria.where("sourceId").is(sourceId)));
+        criteria.initiatorId()
+                .ifPresent(initiatorId ->
+                        query.addCriteria(Criteria.where("initiatorId").is(initiatorId)));
+        criteria.type()
+                .ifPresent(type -> query.addCriteria(Criteria.where("type").is(type)));
+        criteria.status()
+                .ifPresent(status -> query.addCriteria(Criteria.where("status").is(status)));
+        criteria.sourceId()
+                .ifPresent(
+                        sourceId -> query.addCriteria(Criteria.where("sourceId").is(sourceId)));
         return query;
     }
 }

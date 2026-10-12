@@ -37,27 +37,27 @@ class MultiServersApiDeployV4IntegrationTest extends AbstractMultiServersApiDepl
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Test
     @DeployApi("/apis/v4/http/api.json")
-    void should_get_200_when_calling_on_both_first_and_second_servers(HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig)
-        throws InterruptedException {
+    void should_get_200_when_calling_on_both_first_and_second_servers(
+            HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig) throws InterruptedException {
         super.should_get_200_when_calling_on_both_first_and_second_servers(httpClient, gatewayConfig);
     }
 
     @Test
     @DeployApi("/apis/v4/http/api-single-server.json")
     void should_get_200_when_calling_on_second_server_and_404_on_first_server(
-        HttpClient httpClient,
-        GatewayDynamicConfig.Config gatewayConfig
-    ) throws InterruptedException {
+            HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig) throws InterruptedException {
         super.should_get_200_when_calling_on_second_server_and_404_on_first_server(httpClient, gatewayConfig);
     }
 }

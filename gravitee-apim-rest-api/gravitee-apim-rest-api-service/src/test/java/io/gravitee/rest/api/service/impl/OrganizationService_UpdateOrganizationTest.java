@@ -100,7 +100,9 @@ public class OrganizationService_UpdateOrganizationTest {
 
         when(mockOrganizationRepository.findById(ORG_ID)).thenReturn(Optional.empty());
 
-        assertThrows(OrganizationNotFoundException.class, () -> organizationService.updateOrganization(ORG_ID, updateOrganizationEntity));
+        assertThrows(
+                OrganizationNotFoundException.class,
+                () -> organizationService.updateOrganization(ORG_ID, updateOrganizationEntity));
     }
 
     @Test
@@ -122,7 +124,9 @@ public class OrganizationService_UpdateOrganizationTest {
         when(mockOrganizationRepository.findById(ORG_ID)).thenReturn(Optional.of(organization));
         when(mockOrganizationRepository.update(any())).thenThrow(new TechnicalException("Technical error"));
 
-        assertThrows(TechnicalManagementException.class, () -> organizationService.updateOrganization(ORG_ID, updateOrganizationEntity));
+        assertThrows(
+                TechnicalManagementException.class,
+                () -> organizationService.updateOrganization(ORG_ID, updateOrganizationEntity));
     }
 
     @Test
@@ -150,7 +154,8 @@ public class OrganizationService_UpdateOrganizationTest {
         expectedOrganization.setName(NAME);
         expectedOrganization.setDescription(DESCRIPTION);
 
-        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, ORG_ID)).thenReturn(Collections.emptyList());
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, ORG_ID))
+                .thenReturn(Collections.emptyList());
 
         EnvironmentEntity env1 = new EnvironmentEntity();
         env1.setId("env_1");
@@ -163,15 +168,13 @@ public class OrganizationService_UpdateOrganizationTest {
         assertNotNull(result);
         assertEquals(ORG_ID, result.getId());
         assertEquals(COCKPIT_ID, result.getCockpitId());
-        verify(mockOrganizationRepository).update(
-            argThat(o -> {
-                assertEquals(COCKPIT_ID, o.getCockpitId());
-                assertEquals(FLOW_MODE, o.getFlowMode());
-                assertEquals(HRIDS, o.getHrids());
-                assertEquals(NAME, o.getName());
-                assertEquals(DESCRIPTION, o.getDescription());
-                return true;
-            })
-        );
+        verify(mockOrganizationRepository).update(argThat(o -> {
+            assertEquals(COCKPIT_ID, o.getCockpitId());
+            assertEquals(FLOW_MODE, o.getFlowMode());
+            assertEquals(HRIDS, o.getHrids());
+            assertEquals(NAME, o.getName());
+            assertEquals(DESCRIPTION, o.getDescription());
+            return true;
+        }));
     }
 }

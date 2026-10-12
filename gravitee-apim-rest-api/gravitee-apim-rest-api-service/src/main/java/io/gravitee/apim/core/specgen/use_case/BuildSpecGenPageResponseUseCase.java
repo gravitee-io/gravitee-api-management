@@ -20,7 +20,6 @@ import static io.gravitee.apim.core.documentation.model.Page.Visibility.*;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 import static java.time.LocalDateTime.now;
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -54,25 +53,25 @@ public class BuildSpecGenPageResponseUseCase {
 
     public Maybe<Page> execute(Input input) {
         return queryService
-            .rxFindByIdAndType(getExecutionContext(), input.apiId(), ApiType.PROXY)
-            .observeOn(Schedulers.computation())
-            .map(api -> buildPage(api, oasProvider.decorateSpecification(api, input.content())))
-            .observeOn(Schedulers.io());
+                .rxFindByIdAndType(getExecutionContext(), input.apiId(), ApiType.PROXY)
+                .observeOn(Schedulers.computation())
+                .map(api -> buildPage(api, oasProvider.decorateSpecification(api, input.content())))
+                .observeOn(Schedulers.io());
     }
 
     private static Page buildPage(ApiSpecGen api, String rawSpec) {
         String now = now().format(ofPattern(DATE_FORMAT_PATTERN));
         return Page.builder()
-            .referenceId(api.id())
-            .referenceType(API)
-            .name(api.name() + " by Newt - " + now)
-            .content(rawSpec)
-            .type(Type.SWAGGER)
-            .visibility(PRIVATE)
-            .homepage(false)
-            .published(false)
-            .metadata(METADATA)
-            .build();
+                .referenceId(api.id())
+                .referenceType(API)
+                .name(api.name() + " by Newt - " + now)
+                .content(rawSpec)
+                .type(Type.SWAGGER)
+                .visibility(PRIVATE)
+                .homepage(false)
+                .published(false)
+                .metadata(METADATA)
+                .build();
     }
 
     public record Input(String apiId, String content) {}

@@ -33,7 +33,8 @@ public class CockpitPromotionServiceProviderImpl implements CockpitPromotionServ
     private final CockpitPromotionService cockpitPromotionService;
     private final PromotionService promotionService;
 
-    public CockpitPromotionServiceProviderImpl(CockpitPromotionService cockpitPromotionService, PromotionService promotionService) {
+    public CockpitPromotionServiceProviderImpl(
+            CockpitPromotionService cockpitPromotionService, PromotionService promotionService) {
         this.cockpitPromotionService = cockpitPromotionService;
         this.promotionService = promotionService;
     }
@@ -41,40 +42,38 @@ public class CockpitPromotionServiceProviderImpl implements CockpitPromotionServ
     @Override
     public CockpitReplyStatus requestPromotion(String organizationId, String environmentId, Promotion promotion) {
         var cockpitReply = cockpitPromotionService.requestPromotion(
-            new ExecutionContext(organizationId, environmentId),
-            PromotionAdapter.INSTANCE.toRestApiModel(promotion)
-        );
+                new ExecutionContext(organizationId, environmentId),
+                PromotionAdapter.INSTANCE.toRestApiModel(promotion));
         return cockpitReply.getStatus() == io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus.SUCCEEDED
-            ? CockpitReplyStatus.SUCCEEDED
-            : CockpitReplyStatus.ERROR;
+                ? CockpitReplyStatus.SUCCEEDED
+                : CockpitReplyStatus.ERROR;
     }
 
     @Override
     public CockpitReplyStatus processPromotion(String organizationId, String environmentId, Promotion promotion) {
         var cockpitReply = cockpitPromotionService.processPromotion(
-            new ExecutionContext(organizationId, environmentId),
-            PromotionAdapter.INSTANCE.toRestApiModel(promotion)
-        );
+                new ExecutionContext(organizationId, environmentId),
+                PromotionAdapter.INSTANCE.toRestApiModel(promotion));
         return cockpitReply.getStatus() == io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus.SUCCEEDED
-            ? CockpitReplyStatus.SUCCEEDED
-            : CockpitReplyStatus.ERROR;
+                ? CockpitReplyStatus.SUCCEEDED
+                : CockpitReplyStatus.ERROR;
     }
 
     @Override
     public Promotion createPromotion(String apiId, PromotionRequest promotionRequest, String userId) {
         PromotionEntity created = promotionService.create(
-            GraviteeContext.getExecutionContext(),
-            GraviteeContext.getCurrentEnvironment(),
-            apiId,
-            PromotionAdapter.INSTANCE.toRestApiModel(promotionRequest),
-            userId
-        );
+                GraviteeContext.getExecutionContext(),
+                GraviteeContext.getCurrentEnvironment(),
+                apiId,
+                PromotionAdapter.INSTANCE.toRestApiModel(promotionRequest),
+                userId);
         return PromotionAdapter.INSTANCE.toCoreModel(created);
     }
 
     @Override
     public Promotion process(String promotionId, boolean isAccepted) {
-        var processed = promotionService.processPromotion(GraviteeContext.getExecutionContext(), promotionId, isAccepted);
+        var processed =
+                promotionService.processPromotion(GraviteeContext.getExecutionContext(), promotionId, isAccepted);
         return PromotionAdapter.INSTANCE.toCoreModel(processed);
     }
 }

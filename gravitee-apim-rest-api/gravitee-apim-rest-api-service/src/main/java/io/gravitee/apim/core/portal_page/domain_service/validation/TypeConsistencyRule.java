@@ -36,7 +36,8 @@ public class TypeConsistencyRule implements UpdatePortalNavigationItemValidation
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         PortalNavigationItemType existingType = switch (existingItem) {
             case PortalNavigationFolder ignored -> PortalNavigationItemType.FOLDER;
             case PortalNavigationPage ignored -> PortalNavigationItemType.PAGE;
@@ -45,7 +46,8 @@ public class TypeConsistencyRule implements UpdatePortalNavigationItemValidation
             case PortalNavigationApiProduct ignored -> PortalNavigationItemType.API_PRODUCT;
         };
         if (existingType != toUpdate.getType()) {
-            throw InvalidPortalNavigationItemDataException.typeMismatch(toUpdate.getType().toString(), existingType.toString());
+            throw InvalidPortalNavigationItemDataException.typeMismatch(
+                    toUpdate.getType().toString(), existingType.toString());
         }
     }
 }

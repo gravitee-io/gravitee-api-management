@@ -66,10 +66,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultEndpointManagerTest {
 
     private static final String ENDPOINT_TYPE = "test";
-    private static final String ENDPOINT_GROUP_SHARED_CONFIG = "{ \"groupSharedConfig\": \"something in the shared config\"}";
+    private static final String ENDPOINT_GROUP_SHARED_CONFIG =
+            "{ \"groupSharedConfig\": \"something in the shared config\"}";
     private static final String ENDPOINT_CONFIG = "{ \"config\": \"something\"}";
     private static final String ENDPOINT_SHARED_CONFIG_OVERRIDE =
-        "{ \"overriddenSharedConfig\": \"something overridden for the endpoint\"}";
+            "{ \"overriddenSharedConfig\": \"something overridden for the endpoint\"}";
     private static final String MOCK_EXCEPTION = "Mock exception";
     private static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE);
     private static final ApiType SUPPORTED_API_TYPE = ApiType.MESSAGE;
@@ -96,7 +97,9 @@ class DefaultEndpointManagerTest {
 
     @BeforeEach
     void init() {
-        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
+        lenient()
+                .when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
+                .thenReturn(entrypointConnector);
         lenient().when(entrypointConnector.supportedModes()).thenReturn(SUPPORTED_MODES);
         lenient().when(entrypointConnector.supportedApi()).thenReturn(SUPPORTED_API_TYPE);
         lenient().when(pluginManager.getFactoryById(ENDPOINT_TYPE)).thenReturn(connectorFactory);
@@ -115,17 +118,15 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector3 = mock(EndpointConnector.class);
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE)).thenReturn(
-                connector1,
-                connector2,
-                connector3,
-                connector4
-            );
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE))
+                    .thenReturn(connector1, connector2, connector3, connector4);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             verify(pluginManager, times(4)).getFactoryById(ENDPOINT_TYPE);
-            verify(connectorFactory, times(4)).createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE);
+            verify(connectorFactory, times(4))
+                    .createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE);
             verify(connector1).start();
             verify(connector2).start();
             verify(connector3).start();
@@ -142,17 +143,15 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector3 = mock(EndpointConnector.class);
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(
-                connector1,
-                connector2,
-                connector3,
-                connector4
-            );
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector1, connector2, connector3, connector4);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             verify(pluginManager, times(4)).getFactoryById(ENDPOINT_TYPE);
-            verify(connectorFactory, times(4)).createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
+            verify(connectorFactory, times(4))
+                    .createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
             verify(connector1).start();
             verify(connector2).start();
             verify(connector3).start();
@@ -171,14 +170,16 @@ class DefaultEndpointManagerTest {
 
             i.set(0);
             Stream.concat(
-                api.getEndpointGroups().get(0).getEndpoints().stream(),
-                api.getEndpointGroups().get(1).getEndpoints().stream()
-            ).forEachOrdered(e -> e.setName("endpoint" + i.incrementAndGet()));
+                            api.getEndpointGroups().get(0).getEndpoints().stream(),
+                            api.getEndpointGroups().get(1).getEndpoints().stream())
+                    .forEachOrdered(e -> e.setName("endpoint" + i.incrementAndGet()));
 
             final EndpointConnector connector = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
 
             cut.provide(templateContext);
             verify(templateContext).setVariable("endpoints", Collections.emptyMap());
@@ -191,12 +192,12 @@ class DefaultEndpointManagerTest {
             verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
 
             assertThat(endpointsCaptor.getValue())
-                .containsEntry("group1", "group1:")
-                .containsEntry("endpoint1", "endpoint1:")
-                .containsEntry("endpoint2", "endpoint2:")
-                .containsEntry("group2", "group2:")
-                .containsEntry("endpoint3", "endpoint3:")
-                .containsEntry("endpoint4", "endpoint4:");
+                    .containsEntry("group1", "group1:")
+                    .containsEntry("endpoint1", "endpoint1:")
+                    .containsEntry("endpoint2", "endpoint2:")
+                    .containsEntry("group2", "group2:")
+                    .containsEntry("endpoint3", "endpoint3:")
+                    .containsEntry("endpoint4", "endpoint4:");
         }
 
         @Test
@@ -208,65 +209,82 @@ class DefaultEndpointManagerTest {
             api.getEndpointGroups().get(1).getEndpoints().get(0).setInheritConfiguration(true);
 
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next();
 
             assertThat(next).isNotNull();
 
             // 2 connectors have been created with endpoint overriding shared configuration
-            verify(connectorFactory, times(2)).createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE);
-            // 2 connectors have been created with endpoint group shared configuration, cause endpoint2 inherits group shared configuration
-            verify(connectorFactory, times(2)).createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
+            verify(connectorFactory, times(2))
+                    .createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE);
+            // 2 connectors have been created with endpoint group shared configuration, cause endpoint2 inherits group
+            // shared configuration
+            verify(connectorFactory, times(2))
+                    .createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
         }
 
         @Test
         void should_start_endpoint_using_configured_tenant() throws Exception {
             when(gatewayConfiguration.tenant()).thenReturn(Optional.of(TENANT_1));
-            final Api api = buildApiWithEndpoints(() ->
-                List.of(
-                    anEndpointWithInheritedConfig().toBuilder().tenants(List.of(TENANT_1)).build(),
-                    anEndpointWithInheritedConfig().toBuilder().tenants(List.of(TENANT_2)).build(),
-                    anEndpointWithInheritedConfig().toBuilder().tenants(Collections.emptyList()).build()
-                )
-            );
+            final Api api = buildApiWithEndpoints(() -> List.of(
+                    anEndpointWithInheritedConfig().toBuilder()
+                            .tenants(List.of(TENANT_1))
+                            .build(),
+                    anEndpointWithInheritedConfig().toBuilder()
+                            .tenants(List.of(TENANT_2))
+                            .build(),
+                    anEndpointWithInheritedConfig().toBuilder()
+                            .tenants(Collections.emptyList())
+                            .build()));
 
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             final ManagedEndpoint next = cut.next();
             assertThat(next).isNotNull();
 
             // Should deploy the enpoint with tenant-1 and the one without any tenant
-            verify(connectorFactory, times(2)).createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
+            verify(connectorFactory, times(2))
+                    .createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
         }
 
         @Test
         void should_start_all_endpoints_when_gateway_does_not_have_any_tenant_configured() throws Exception {
             when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
-            final Api api = buildApiWithEndpoints(() ->
-                List.of(
-                    anEndpointWithInheritedConfig().toBuilder().tenants(List.of(TENANT_1)).build(),
-                    anEndpointWithInheritedConfig().toBuilder().tenants(List.of(TENANT_2)).build(),
-                    anEndpointWithInheritedConfig().toBuilder().tenants(Collections.emptyList()).build()
-                )
-            );
+            final Api api = buildApiWithEndpoints(() -> List.of(
+                    anEndpointWithInheritedConfig().toBuilder()
+                            .tenants(List.of(TENANT_1))
+                            .build(),
+                    anEndpointWithInheritedConfig().toBuilder()
+                            .tenants(List.of(TENANT_2))
+                            .build(),
+                    anEndpointWithInheritedConfig().toBuilder()
+                            .tenants(Collections.emptyList())
+                            .build()));
 
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             final ManagedEndpoint next = cut.next();
             assertThat(next).isNotNull();
 
-            verify(connectorFactory, times(3)).createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
+            verify(connectorFactory, times(3))
+                    .createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG);
         }
     }
 
@@ -283,14 +301,11 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
             when(connector2.preStop()).thenThrow(new Exception(MOCK_EXCEPTION));
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(
-                connector1,
-                connector2,
-                connector3,
-                connector4
-            );
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector1, connector2, connector3, connector4);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             cut.preStop();
 
@@ -310,14 +325,11 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
             when(connector2.stop()).thenThrow(new Exception(MOCK_EXCEPTION));
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(
-                connector1,
-                connector2,
-                connector3,
-                connector4
-            );
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector1, connector2, connector3, connector4);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             cut.stop();
 
@@ -340,9 +352,11 @@ class DefaultEndpointManagerTest {
             var newEndpoint = anEndpointWithInheritedConfig();
 
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             cut.provide(templateContext);
 
@@ -366,9 +380,11 @@ class DefaultEndpointManagerTest {
             var newEndpoint = anEndpointWithInheritedConfig();
 
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             cut.addListener((event, endpoint) -> {
@@ -388,16 +404,18 @@ class DefaultEndpointManagerTest {
             var groupName = api.getEndpointGroups().get(0).getName();
             var endpointToUpdate = api.getEndpointGroups().get(0).getEndpoints().get(0);
             var updatedEndpoint = Endpoint.builder()
-                .name(endpointToUpdate.getName())
-                .type(endpointToUpdate.getType())
-                .configuration("updated")
-                .inheritConfiguration(true)
-                .build();
+                    .name(endpointToUpdate.getName())
+                    .type(endpointToUpdate.getType())
+                    .configuration("updated")
+                    .inheritConfiguration(true)
+                    .build();
 
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(connector);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             var endpointRemoved = new AtomicBoolean(false);
@@ -411,7 +429,9 @@ class DefaultEndpointManagerTest {
                 if (event.equals(EndpointManager.Event.ADD)) {
                     checkpointEndpointAdded.flag();
                     assertThat(endpoint.getDefinition().getName()).isEqualTo(updatedEndpoint.getName());
-                    assertThat(endpointRemoved.get()).describedAs("Endpoint should have been removed first").isTrue();
+                    assertThat(endpointRemoved.get())
+                            .describedAs("Endpoint should have been removed first")
+                            .isTrue();
                 }
             });
             cut.addOrUpdateEndpoint(groupName, updatedEndpoint);
@@ -429,8 +449,10 @@ class DefaultEndpointManagerTest {
 
             final EndpointConnector connector = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
 
             cut.start();
             cut.provide(templateContext);
@@ -438,7 +460,8 @@ class DefaultEndpointManagerTest {
             final ArgumentCaptor<Map<String, String>> endpointsCaptor = ArgumentCaptor.forClass(Map.class);
             verify(templateContext).setVariable(eq("endpoints"), endpointsCaptor.capture());
 
-            final String endpointToRemove = api.getEndpointGroups().get(0).getEndpoints().get(0).getName();
+            final String endpointToRemove =
+                    api.getEndpointGroups().get(0).getEndpoints().get(0).getName();
             assertThat(endpointsCaptor.getValue()).hasSize(6).containsKey(endpointToRemove);
 
             reset(templateContext);
@@ -452,21 +475,19 @@ class DefaultEndpointManagerTest {
         @Test
         void should_notify_listeners(VertxTestContext context) throws Exception {
             final Api api = buildApi();
-            final String endpointToRemove = api.getEndpointGroups().get(0).getEndpoints().get(0).getName();
+            final String endpointToRemove =
+                    api.getEndpointGroups().get(0).getEndpoints().get(0).getName();
 
             final EndpointConnector connector1 = mock(EndpointConnector.class);
             final EndpointConnector connector2 = mock(EndpointConnector.class);
             final EndpointConnector connector3 = mock(EndpointConnector.class);
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(
-                connector1,
-                connector2,
-                connector3,
-                connector4
-            );
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
+                    .thenReturn(connector1, connector2, connector3, connector4);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             cut.addListener((event, endpoint) -> {
@@ -486,7 +507,8 @@ class DefaultEndpointManagerTest {
         void should_return_null_managed_endpoint_when_not_started() {
             final Api api = buildApi();
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             assertThat(cut.next()).isNull();
         }
 
@@ -495,18 +517,22 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
 
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next();
 
             assertThat(next).isNotNull();
-            assertThat(next.getDefinition()).isEqualTo(api.getEndpointGroups().get(0).getEndpoints().get(0));
+            assertThat(next.getDefinition())
+                    .isEqualTo(api.getEndpointGroups().get(0).getEndpoints().get(0));
             assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
             assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
             assertThat(next.getGroup()).isNotNull();
-            assertThat(next.getGroup().getDefinition()).isEqualTo(api.getEndpointGroups().get(0));
+            assertThat(next.getGroup().getDefinition())
+                    .isEqualTo(api.getEndpointGroups().get(0));
         }
 
         @Test
@@ -514,12 +540,15 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
 
             final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
-            final Endpoint expectedEndpoint = expectedEndpointGroup.getEndpoints().get(1);
+            final Endpoint expectedEndpoint =
+                    expectedEndpointGroup.getEndpoints().get(1);
             final String endpointName = expectedEndpoint.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next(new EndpointCriteria(endpointName, null, null));
 
@@ -538,14 +567,17 @@ class DefaultEndpointManagerTest {
             final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
             final String groupName = expectedEndpointGroup.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next(new EndpointCriteria(groupName, null, null));
 
             assertThat(next).isNotNull();
-            assertThat(next.getDefinition()).isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
+            assertThat(next.getDefinition())
+                    .isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
             assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
             assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
             assertThat(next.getGroup()).isNotNull();
@@ -557,12 +589,15 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
 
             final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
-            final Endpoint expectedEndpoint = expectedEndpointGroup.getEndpoints().get(1);
+            final Endpoint expectedEndpoint =
+                    expectedEndpointGroup.getEndpoints().get(1);
             final String endpointName = expectedEndpoint.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             ManagedEndpoint next = cut.next(new EndpointCriteria(endpointName, null, null));
 
@@ -578,14 +613,17 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
 
             final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
-            final Endpoint expectedEndpoint = expectedEndpointGroup.getEndpoints().get(1);
+            final Endpoint expectedEndpoint =
+                    expectedEndpointGroup.getEndpoints().get(1);
             final String endpointName = expectedEndpoint.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
             final EndpointCriteria criteria = new EndpointCriteria(endpointName, null, null);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             ManagedEndpoint next = cut.next(criteria);
             cut.disable(next);
@@ -602,9 +640,11 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
             final EndpointConnector connector = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             ManagedEndpoint next = cut.next(new EndpointCriteria("UNKNOWN", null, null));
 
@@ -618,7 +658,8 @@ class DefaultEndpointManagerTest {
             // Simulate no connector factory available.
             when(pluginManager.getFactoryById(ENDPOINT_TYPE)).thenReturn(null);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             ManagedEndpoint next = cut.next();
 
@@ -632,7 +673,8 @@ class DefaultEndpointManagerTest {
             // Simulate an unexpected exception.
             when(pluginManager.getFactoryById(ENDPOINT_TYPE)).thenThrow(new RuntimeException(MOCK_EXCEPTION));
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             ManagedEndpoint next = cut.next();
 
@@ -644,9 +686,11 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
 
             // Simulate connector factory returns null connector.
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(null);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(null);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             ManagedEndpoint next = cut.next();
 
@@ -661,13 +705,14 @@ class DefaultEndpointManagerTest {
             final String groupName = expectedEndpointGroup.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
             when(connector.supportedModes()).thenReturn(Set.of(ConnectorMode.PUBLISH));
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next(
-                new EndpointCriteria(groupName, null, Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE))
-            );
+                    new EndpointCriteria(groupName, null, Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE)));
 
             assertThat(next).isNull();
         }
@@ -677,17 +722,19 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
 
             final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
-            final Endpoint expectedEndpoint = expectedEndpointGroup.getEndpoints().get(1);
+            final Endpoint expectedEndpoint =
+                    expectedEndpointGroup.getEndpoints().get(1);
             final String endpointName = expectedEndpoint.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
             when(connector.supportedModes()).thenReturn(Set.of(ConnectorMode.PUBLISH));
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next(
-                new EndpointCriteria(endpointName, null, Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE))
-            );
+                    new EndpointCriteria(endpointName, null, Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE)));
 
             assertThat(next).isNull();
         }
@@ -700,16 +747,18 @@ class DefaultEndpointManagerTest {
             final String groupName = expectedEndpointGroup.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
             when(connector.supportedModes()).thenReturn(Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE));
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next(
-                new EndpointCriteria(groupName, null, Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE))
-            );
+                    new EndpointCriteria(groupName, null, Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE)));
 
             assertThat(next).isNotNull();
-            assertThat(next.getDefinition()).isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
+            assertThat(next.getDefinition())
+                    .isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
             assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
             assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
             assertThat(next.getGroup()).isNotNull();
@@ -724,9 +773,11 @@ class DefaultEndpointManagerTest {
             final String groupName = expectedEndpointGroup.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
             when(connector.supportedApi()).thenReturn(ApiType.MESSAGE);
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next(new EndpointCriteria(groupName, ApiType.PROXY, null));
 
@@ -738,13 +789,16 @@ class DefaultEndpointManagerTest {
             final Api api = buildApi();
 
             final EndpointGroup expectedEndpointGroup = api.getEndpointGroups().get(1);
-            final Endpoint expectedEndpoint = expectedEndpointGroup.getEndpoints().get(1);
+            final Endpoint expectedEndpoint =
+                    expectedEndpointGroup.getEndpoints().get(1);
             final String endpointName = expectedEndpoint.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
             when(connector.supportedApi()).thenReturn(ApiType.MESSAGE);
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
             final ManagedEndpoint next = cut.next(new EndpointCriteria(endpointName, ApiType.PROXY, null));
 
@@ -759,15 +813,18 @@ class DefaultEndpointManagerTest {
             final String groupName = expectedEndpointGroup.getName();
             final EndpointConnector connector = mock(EndpointConnector.class);
             when(connector.supportedApi()).thenReturn(ApiType.MESSAGE);
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(connector);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
+                    .thenReturn(connector);
 
-            final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
+            final DefaultEndpointManager cut =
+                    new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
             final ManagedEndpoint next = cut.next(new EndpointCriteria(groupName, ApiType.MESSAGE, null));
 
             assertThat(next).isNotNull();
-            assertThat(next.getDefinition()).isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
+            assertThat(next.getDefinition())
+                    .isEqualTo(expectedEndpointGroup.getEndpoints().get(0)); // First endpoint of the group is expected.
             assertThat((EndpointConnector) next.getConnector()).isEqualTo(connector);
             assertThat(next.getStatus()).isEqualTo(ManagedEndpoint.Status.UP);
             assertThat(next.getGroup()).isNotNull();
@@ -791,11 +848,11 @@ class DefaultEndpointManagerTest {
 
     private EndpointGroup anEndpointGroup(Supplier<Endpoint> endpointSupplier) {
         return EndpointGroup.builder()
-            .name(randomUUID().toString())
-            .type(ENDPOINT_TYPE)
-            .sharedConfiguration(ENDPOINT_GROUP_SHARED_CONFIG)
-            .endpoints(List.of(endpointSupplier.get(), endpointSupplier.get()))
-            .build();
+                .name(randomUUID().toString())
+                .type(ENDPOINT_TYPE)
+                .sharedConfiguration(ENDPOINT_GROUP_SHARED_CONFIG)
+                .endpoints(List.of(endpointSupplier.get(), endpointSupplier.get()))
+                .build();
     }
 
     private Api buildApiWithEndpoints(Supplier<List<Endpoint>> endpointsSupplier) {
@@ -809,29 +866,29 @@ class DefaultEndpointManagerTest {
 
     private EndpointGroup anEndpointGroupFromEndpoints(Supplier<List<Endpoint>> endpointsSupplier) {
         return EndpointGroup.builder()
-            .name(randomUUID().toString())
-            .type(ENDPOINT_TYPE)
-            .sharedConfiguration(ENDPOINT_GROUP_SHARED_CONFIG)
-            .endpoints(endpointsSupplier.get())
-            .build();
+                .name(randomUUID().toString())
+                .type(ENDPOINT_TYPE)
+                .sharedConfiguration(ENDPOINT_GROUP_SHARED_CONFIG)
+                .endpoints(endpointsSupplier.get())
+                .build();
     }
 
     Endpoint anEndpointWithSharedConfigurationOverride(String configuration) {
         return Endpoint.builder()
-            .name(randomUUID().toString())
-            .type(ENDPOINT_TYPE)
-            .configuration(ENDPOINT_CONFIG)
-            .inheritConfiguration(false)
-            .sharedConfigurationOverride(configuration)
-            .build();
+                .name(randomUUID().toString())
+                .type(ENDPOINT_TYPE)
+                .configuration(ENDPOINT_CONFIG)
+                .inheritConfiguration(false)
+                .sharedConfigurationOverride(configuration)
+                .build();
     }
 
     Endpoint anEndpointWithInheritedConfig() {
         return Endpoint.builder()
-            .name(randomUUID().toString())
-            .type(ENDPOINT_TYPE)
-            .configuration(ENDPOINT_CONFIG)
-            .inheritConfiguration(true)
-            .build();
+                .name(randomUUID().toString())
+                .type(ENDPOINT_TYPE)
+                .configuration(ENDPOINT_CONFIG)
+                .inheritConfiguration(true)
+                .build();
     }
 }

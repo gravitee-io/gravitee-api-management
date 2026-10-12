@@ -69,7 +69,8 @@ public class UserResourceTest extends AbstractResourceTest {
         doReturn(new UserLinks()).when(userMapper).computeUserLinks(any(), any());
 
         InlinePictureEntity mockImage = new InlinePictureEntity();
-        byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
+        byte[] apiLogoContent = Files.readAllBytes(Paths.get(
+                this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
         doReturn(mockImage).when(userService).getPicture(eq(GraviteeContext.getExecutionContext()), any());
@@ -78,8 +79,10 @@ public class UserResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetCurrentUserWithoutConfig() {
         UserEntity userEntity = new UserEntity();
-        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(userEntity);
-        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.FALSE);
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(userEntity);
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(Boolean.FALSE);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -98,9 +101,12 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithEmptyManagementConfig() {
-        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
-        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.TRUE);
-        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext())).thenReturn(new ConsoleSettingsEntity());
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(Boolean.TRUE);
+        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext()))
+                .thenReturn(new ConsoleSettingsEntity());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -118,10 +124,13 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithManagementConfigWithoutUrl() {
-        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
-        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.TRUE);
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
-        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext())).thenReturn(consoleConfigEntity);
+        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext()))
+                .thenReturn(consoleConfigEntity);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -139,13 +148,16 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithManagementConfigWithUrl() {
-        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
-        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.TRUE);
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
         Management managementConfig = new Management();
         managementConfig.setUrl("URL");
         consoleConfigEntity.setManagement(managementConfig);
-        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext())).thenReturn(consoleConfigEntity);
+        when(configService.getConsoleSettings(GraviteeContext.getExecutionContext()))
+                .thenReturn(consoleConfigEntity);
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -178,22 +190,23 @@ public class UserResourceTest extends AbstractResourceTest {
         UserInput userInput = new UserInput();
         final String newAvatar = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-        final String expectedAvatar =
-            "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL" +
-            "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+" +
-            "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr" +
-            "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj" +
-            "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
+        final String expectedAvatar = "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL"
+                + "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+"
+                + "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr"
+                + "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj"
+                + "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
         final String userEmail = "example@gio.com";
 
         userInput.setAvatar(newAvatar);
         userInput.setId(USER_NAME);
-        when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME), any())).thenReturn(new UserEntity());
+        when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME), any()))
+                .thenReturn(new UserEntity());
 
         UserEntity existingUser = new UserEntity();
         existingUser.setEmail(userEmail);
         existingUser.setSource("gravitee");
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingUser);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(existingUser);
 
         final Response response = target().request().put(Entity.json(userInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -223,11 +236,12 @@ public class UserResourceTest extends AbstractResourceTest {
     @Test
     void shouldNotUpdateAvatarWhenSvg() {
         final String svgAvatar =
-            "data:image/svg+xml;base64,PGJyPgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjQgMTI0IiBmaWxsPSJub25lIj4KPHJlY3Qgd2lkdGg9IjEyNCIgaGVpZ2h0PSIxMjQiIHJ4PSIyNCIgZmlsbD0iIzAwMDAwMCIvPgogICA8c2NyaXB0IHR5cGU9InRleHQvamF2YXNjcmlwdCI+ICAKICAgICAgYWxlcnQoZG9jdW1lbnQubG9jYXRpb24pOwogICA8L3NjcmlwdD4KPC9zdmc+";
+                "data:image/svg+xml;base64,PGJyPgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjQgMTI0IiBmaWxsPSJub25lIj4KPHJlY3Qgd2lkdGg9IjEyNCIgaGVpZ2h0PSIxMjQiIHJ4PSIyNCIgZmlsbD0iIzAwMDAwMCIvPgogICA8c2NyaXB0IHR5cGU9InRleHQvamF2YXNjcmlwdCI+ICAKICAgICAgYWxlcnQoZG9jdW1lbnQubG9jYXRpb24pOwogICA8L3NjcmlwdD4KPC9zdmc+";
         UserInput userInput = new UserInput().id(USER_NAME).avatar(svgAvatar);
         UserEntity existingUser = new UserEntity();
         existingUser.setSource("gravitee");
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingUser);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(existingUser);
 
         final Response response = target().request().put(Entity.json(userInput));
 
@@ -245,10 +259,12 @@ public class UserResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetUserAvatarRedirectUrl() throws IOException {
         doReturn(new UserEntity()).when(userService).findById(eq(GraviteeContext.getExecutionContext()), any());
-        doReturn(new UserEntity()).when(userService).findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(new UserEntity())
+                .when(userService)
+                .findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new UrlPictureEntity(target().getUri().toURL().toString()))
-            .when(userService)
-            .getPicture(eq(GraviteeContext.getExecutionContext()), any());
+                .when(userService)
+                .getPicture(eq(GraviteeContext.getExecutionContext()), any());
         final Response response = target().path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }

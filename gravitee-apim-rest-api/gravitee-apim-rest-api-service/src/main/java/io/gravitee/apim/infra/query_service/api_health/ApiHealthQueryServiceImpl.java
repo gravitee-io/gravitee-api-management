@@ -41,36 +41,40 @@ public class ApiHealthQueryServiceImpl implements ApiHealthQueryService {
     @Override
     public Maybe<AverageHealthCheckResponseTime> averageResponseTime(ApiFieldPeriodQuery query) {
         return healthCheckRepository
-            .averageResponseTime(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
-            .map(ApiHealthAdapter.INSTANCE::map);
+                .averageResponseTime(
+                        new QueryContext(query.organizationId(), query.environmentId()),
+                        ApiHealthAdapter.INSTANCE.map(query))
+                .map(ApiHealthAdapter.INSTANCE::map);
     }
 
     @Override
-    public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query) {
+    public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
+            AverageHealthCheckResponseTimeOvertimeQuery query) {
         return healthCheckRepository
-            .averageResponseTimeOvertime(
-                new QueryContext(query.organizationId(), query.environmentId()),
-                ApiHealthAdapter.INSTANCE.map(query)
-            )
-            .map(result ->
-                new AverageHealthCheckResponseTimeOvertime(
-                    new AverageHealthCheckResponseTimeOvertime.TimeRange(query.from(), query.to(), query.interval()),
-                    new ArrayList<>(result.buckets().values())
-                )
-            );
+                .averageResponseTimeOvertime(
+                        new QueryContext(query.organizationId(), query.environmentId()),
+                        ApiHealthAdapter.INSTANCE.map(query))
+                .map(result -> new AverageHealthCheckResponseTimeOvertime(
+                        new AverageHealthCheckResponseTimeOvertime.TimeRange(
+                                query.from(), query.to(), query.interval()),
+                        new ArrayList<>(result.buckets().values())));
     }
 
     @Override
     public Maybe<AvailabilityHealthCheck> availability(ApiFieldPeriodQuery query) {
         return healthCheckRepository
-            .availability(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
-            .map(response -> new AvailabilityHealthCheck(response.global(), response.ratesByFields()));
+                .availability(
+                        new QueryContext(query.organizationId(), query.environmentId()),
+                        ApiHealthAdapter.INSTANCE.map(query))
+                .map(response -> new AvailabilityHealthCheck(response.global(), response.ratesByFields()));
     }
 
     @Override
     public Maybe<Page<HealthCheckLog>> searchLogs(SearchLogsQuery query) {
         return healthCheckRepository
-            .searchLogs(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
-            .map(page -> page.map(ApiHealthAdapter.INSTANCE::map));
+                .searchLogs(
+                        new QueryContext(query.organizationId(), query.environmentId()),
+                        ApiHealthAdapter.INSTANCE.map(query))
+                .map(page -> page.map(ApiHealthAdapter.INSTANCE::map));
     }
 }

@@ -76,14 +76,15 @@ public class MongoWorkflowRepository implements WorkflowRepository {
             throw new IllegalStateException("Workflow to update must have an id");
         }
 
-        final WorkflowMongo workflowMongo = internalWorkflowRepo.findById(workflow.getId()).orElse(null);
+        final WorkflowMongo workflowMongo =
+                internalWorkflowRepo.findById(workflow.getId()).orElse(null);
 
         if (workflowMongo == null) {
             throw new IllegalStateException(String.format("No workflow found with id [%s]", workflow.getId()));
         }
 
         try {
-            //Update
+            // Update
             workflowMongo.setReferenceType(workflow.getReferenceType());
             workflowMongo.setReferenceId(workflow.getReferenceId());
             workflowMongo.setType(workflow.getType());
@@ -119,11 +120,9 @@ public class MongoWorkflowRepository implements WorkflowRepository {
     public List<Workflow> findByReferenceAndType(String referenceType, String referenceId, String type) {
         log.debug("Find workflow by reference and type '{}' / '{}' / '{}'", referenceType, referenceId, type);
 
-        final List<WorkflowMongo> workflows = internalWorkflowRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(
-            referenceType,
-            referenceId,
-            type
-        );
+        final List<WorkflowMongo> workflows =
+                internalWorkflowRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(
+                        referenceType, referenceId, type);
 
         log.debug("Find workflow by reference and type '{}' / '{}' / '{}' done", referenceType, referenceId, type);
         return workflows.stream().map(this::map).collect(toList());
@@ -135,24 +134,22 @@ public class MongoWorkflowRepository implements WorkflowRepository {
         if (referenceIds == null || referenceIds.isEmpty()) {
             return List.of();
         }
-        final List<WorkflowMongo> workflows = internalWorkflowRepo.findByReferenceTypeAndReferenceIdInAndTypeOrderByCreatedAtDesc(
-            referenceType,
-            referenceIds,
-            type
-        );
+        final List<WorkflowMongo> workflows =
+                internalWorkflowRepo.findByReferenceTypeAndReferenceIdInAndTypeOrderByCreatedAtDesc(
+                        referenceType, referenceIds, type);
         log.debug("Find workflows by references and type '{}' / '{}' / '{}' done", referenceType, referenceIds, type);
         return workflows.stream().map(this::map).collect(toList());
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType)
+            throws TechnicalException {
         log.debug("Delete workflow by reference {}/{}", referenceId, referenceType);
 
-        final var workflows = internalWorkflowRepo
-            .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
-            .stream()
-            .map(WorkflowMongo::getId)
-            .toList();
+        final var workflows =
+                internalWorkflowRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType).stream()
+                        .map(WorkflowMongo::getId)
+                        .toList();
 
         log.debug("Delete workflow by reference and type {}/{} - Done", referenceType, referenceId);
         return workflows;

@@ -102,25 +102,22 @@ public class UpdateReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateMetadataEntity{" +
-            "key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", format=" +
-            format +
-            ", defaultValue='" +
-            defaultValue +
-            '\'' +
-            ", value='" +
-            value +
-            '\'' +
-            ", hidden=" +
-            hidden +
-            '}'
-        );
+        return ("UpdateMetadataEntity{" + "key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", format="
+                + format
+                + ", defaultValue='"
+                + defaultValue
+                + '\''
+                + ", value='"
+                + value
+                + '\''
+                + ", hidden="
+                + hidden
+                + '}');
     }
 }

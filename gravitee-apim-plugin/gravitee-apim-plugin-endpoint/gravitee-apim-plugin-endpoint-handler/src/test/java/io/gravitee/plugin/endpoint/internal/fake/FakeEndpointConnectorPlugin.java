@@ -27,7 +27,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class FakeEndpointConnectorPlugin
-    implements EndpointConnectorPlugin<FakeEndpointConnectorFactory, FakeEndpointConnectorConfiguration> {
+        implements EndpointConnectorPlugin<FakeEndpointConnectorFactory, FakeEndpointConnectorConfiguration> {
 
     private static final String WITH_ENDPOINT_SHARED_CONFIGURATION_FILE = "with-endpoint-group-configuration";
     private static final String WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE = "without-endpoint-group-configuration";
@@ -61,14 +61,19 @@ public class FakeEndpointConnectorPlugin
 
     private FakeEndpointConnectorPlugin(boolean withoutResource, boolean withPropertyConfig, boolean deployed) {
         if (!withPropertyConfig) {
-            resourceFolder = withoutResource ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+            resourceFolder = withoutResource
+                    ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE
+                    : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
             this.properties = Map.of();
             this.deployed = deployed;
             return;
         }
 
-        resourceFolder = withoutResource ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
-        this.properties = withoutResource ? Map.of() : Map.of("schema.sharedConfiguration", "sharedConfiguration/schema-form.json");
+        resourceFolder =
+                withoutResource ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+        this.properties = withoutResource
+                ? Map.of()
+                : Map.of("schema.sharedConfiguration", "sharedConfiguration/schema-form.json");
         this.deployed = deployed;
     }
 
@@ -99,7 +104,10 @@ public class FakeEndpointConnectorPlugin
     @Override
     public Path path() {
         try {
-            return Paths.get(this.getClass().getClassLoader().getResource("files/" + resourceFolder).toURI());
+            return Paths.get(this.getClass()
+                    .getClassLoader()
+                    .getResource("files/" + resourceFolder)
+                    .toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

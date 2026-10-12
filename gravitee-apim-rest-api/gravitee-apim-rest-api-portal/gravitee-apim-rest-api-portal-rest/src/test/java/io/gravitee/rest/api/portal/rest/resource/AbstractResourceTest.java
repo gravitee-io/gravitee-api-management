@@ -119,7 +119,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { ResourceContextConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
@@ -172,7 +172,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApplicationService applicationService;
 
     @Autowired
-    protected io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+    protected io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService
+            clientCertificateCrudService;
 
     @Autowired
     protected ApplicationTypeService applicationTypeService;
@@ -362,19 +363,17 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected SubscriptionFormSchemaGenerator subscriptionFormSchemaGenerator;
 
     public AbstractResourceTest() {
-        super(
-            new AuthenticationProviderManager() {
-                @Override
-                public List<AuthenticationProvider> getIdentityProviders() {
-                    return Collections.emptyList();
-                }
-
-                @Override
-                public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
-                    return Optional.empty();
-                }
+        super(new AuthenticationProviderManager() {
+            @Override
+            public List<AuthenticationProvider> getIdentityProviders() {
+                return Collections.emptyList();
             }
-        );
+
+            @Override
+            public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
+                return Optional.empty();
+            }
+        });
     }
 
     public AbstractResourceTest(AuthenticationProviderManager authenticationProviderManager) {
@@ -383,83 +382,82 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     protected void resetAllMocks() {
         reset(
-            createSubscriptionUseCase,
-            searchPortalSubscriptionsUseCase,
-            getClientCertificatesUseCase,
-            getClientCertificateUseCase,
-            createClientCertificateUseCase,
-            updateClientCertificateUseCase,
-            deleteClientCertificateUseCase,
-            validateClientCertificateUseCase,
-            apiService,
-            apiSearchService,
-            apiAuthorizationService,
-            apiEntrypointService,
-            applicationService,
-            clientCertificateCrudService,
-            policyService,
-            userService,
-            fetcherService,
-            swaggerService,
-            membershipService,
-            roleService,
-            pageService,
-            groupService,
-            ratingService,
-            permissionService,
-            notifierService,
-            qualityMetricsService,
-            messageService,
-            socialIdentityProviderService,
-            tagService,
-            parameterService,
-            metadataService,
-            planService,
-            planSearchService,
-            subscriptionService,
-            entrypointService,
-            apiKeyService,
-            taskService,
-            logsService,
-            analyticsService,
-            portalNotificationConfigService,
-            portalNotificationService,
-            genericNotificationConfigService,
-            topApiService,
-            categoryService,
-            apiCategoryService,
-            ticketService,
-            configService,
-            authenticationProvider,
-            cookieGenerator,
-            apiMapper,
-            pageMapper,
-            planMapper,
-            ratingMapper,
-            keyMapper,
-            applicationMapper,
-            memberMapper,
-            userMapper,
-            analyticsMapper,
-            portalNotificationMapper,
-            categoryMapper,
-            ticketMapper,
-            configMapper,
-            identityProviderMapper,
-            healthCheckService,
-            applicationTypeService,
-            identityService,
-            filteringService,
-            applicationMetadataService,
-            referenceMetadataMapper,
-            customUserFieldService,
-            identityProviderActivationService,
-            environmentService,
-            accessControlService,
-            themeService,
-            themeMapper,
-            endpointConnectorPluginService
-        );
+                createSubscriptionUseCase,
+                searchPortalSubscriptionsUseCase,
+                getClientCertificatesUseCase,
+                getClientCertificateUseCase,
+                createClientCertificateUseCase,
+                updateClientCertificateUseCase,
+                deleteClientCertificateUseCase,
+                validateClientCertificateUseCase,
+                apiService,
+                apiSearchService,
+                apiAuthorizationService,
+                apiEntrypointService,
+                applicationService,
+                clientCertificateCrudService,
+                policyService,
+                userService,
+                fetcherService,
+                swaggerService,
+                membershipService,
+                roleService,
+                pageService,
+                groupService,
+                ratingService,
+                permissionService,
+                notifierService,
+                qualityMetricsService,
+                messageService,
+                socialIdentityProviderService,
+                tagService,
+                parameterService,
+                metadataService,
+                planService,
+                planSearchService,
+                subscriptionService,
+                entrypointService,
+                apiKeyService,
+                taskService,
+                logsService,
+                analyticsService,
+                portalNotificationConfigService,
+                portalNotificationService,
+                genericNotificationConfigService,
+                topApiService,
+                categoryService,
+                apiCategoryService,
+                ticketService,
+                configService,
+                authenticationProvider,
+                cookieGenerator,
+                apiMapper,
+                pageMapper,
+                planMapper,
+                ratingMapper,
+                keyMapper,
+                applicationMapper,
+                memberMapper,
+                userMapper,
+                analyticsMapper,
+                portalNotificationMapper,
+                categoryMapper,
+                ticketMapper,
+                configMapper,
+                identityProviderMapper,
+                healthCheckService,
+                applicationTypeService,
+                identityService,
+                filteringService,
+                applicationMetadataService,
+                referenceMetadataMapper,
+                customUserFieldService,
+                identityProviderActivationService,
+                environmentService,
+                accessControlService,
+                themeService,
+                themeMapper,
+                endpointConnectorPluginService);
     }
 
     @Priority(50)
@@ -467,29 +465,27 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return null;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return false;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
+            requestContext.setSecurityContext(new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    return null;
                 }
-            );
+
+                @Override
+                public boolean isUserInRole(String string) {
+                    return false;
+                }
+
+                @Override
+                public boolean isSecure() {
+                    return false;
+                }
+
+                @Override
+                public String getAuthenticationScheme() {
+                    return "BASIC";
+                }
+            });
         }
     }
 }

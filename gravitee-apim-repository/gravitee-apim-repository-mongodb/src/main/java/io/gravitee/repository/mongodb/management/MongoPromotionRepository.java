@@ -47,12 +47,10 @@ public class MongoPromotionRepository implements PromotionRepository {
     public Optional<Promotion> findById(String id) throws TechnicalException {
         log.debug("Find promotion by ID [{}]", id);
 
-        return internalRepository
-            .findById(id)
-            .map(promotionMongo -> {
-                log.debug("Find promotion by ID [{}] - Done", id);
-                return map(promotionMongo);
-            });
+        return internalRepository.findById(id).map(promotionMongo -> {
+            log.debug("Find promotion by ID [{}] - Done", id);
+            return map(promotionMongo);
+        });
     }
 
     @Override
@@ -111,7 +109,9 @@ public class MongoPromotionRepository implements PromotionRepository {
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
         log.debug("Delete all by api id [{}]", apiId);
         try {
-            final var allByApiId = internalRepository.deleteByApiId(apiId).stream().map(PromotionMongo::getId).toList();
+            final var allByApiId = internalRepository.deleteByApiId(apiId).stream()
+                    .map(PromotionMongo::getId)
+                    .toList();
             log.debug("Delete all by api id [{}] -- Done", apiId);
             return allByApiId;
         } catch (Exception ex) {

@@ -65,33 +65,38 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
         when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID))
+                .thenReturn(environmentEntity);
     }
 
     @Test
     public void should_not_import_when_no_definition_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(false);
         Response response = rootTarget().request().post(null);
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_return_resources_in_response_on_success() {
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .configuration("{\"key\":\"value\"}")
+                .build();
         var baseApi = ApiFixtures.aProxyApiV4();
-        var createdApi = baseApi
-            .toBuilder()
-            .id("imported-api-id")
-            .environmentId(ENVIRONMENT_ID)
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-            .build();
+        var createdApi = baseApi.toBuilder()
+                .id("imported-api-id")
+                .environmentId(ENVIRONMENT_ID)
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
         var apiWithFlows = new ApiWithFlows(createdApi, List.of());
 
         when(importApiDefinitionUseCase.execute(any())).thenReturn(new ImportApiDefinitionUseCase.Output(apiWithFlows));

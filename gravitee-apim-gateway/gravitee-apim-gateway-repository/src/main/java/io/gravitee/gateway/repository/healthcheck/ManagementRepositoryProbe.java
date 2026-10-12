@@ -51,7 +51,10 @@ public class ManagementRepositoryProbe implements Probe {
             // Search for an event to check repository connection
             return CompletableFuture.supplyAsync(() -> {
                 try {
-                    eventRepository.search(EventCriteria.builder().from(System.currentTimeMillis()).to(System.currentTimeMillis()).build());
+                    eventRepository.search(EventCriteria.builder()
+                            .from(System.currentTimeMillis())
+                            .to(System.currentTimeMillis())
+                            .build());
                     return Result.healthy();
                 } catch (Exception ex) {
                     return Result.unhealthy(ex);

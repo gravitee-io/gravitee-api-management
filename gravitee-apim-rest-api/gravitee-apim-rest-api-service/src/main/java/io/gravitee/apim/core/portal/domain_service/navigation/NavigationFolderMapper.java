@@ -27,27 +27,26 @@ public final class NavigationFolderMapper {
     private NavigationFolderMapper() {}
 
     public static boolean matches(
-        PortalNavigationFolder existing,
-        FolderActions.DesiredFolder desired,
-        @Nullable PortalNavigationItemContainer parent
-    ) {
-        return (
-            Objects.equals(existing.getTitle(), desired.title()) &&
-            Objects.equals(existing.getSegment(), desired.segment().value()) &&
-            existing.getOrder() == desired.order() &&
-            Objects.equals(existing.getParentId(), parent == null ? null : parent.getId()) &&
-            Objects.equals(
-                existing.getVisibility(),
-                PortalVisibility.resolve(desired.visibility(), parent == null ? null : parent.getVisibility())
-            )
-        );
+            PortalNavigationFolder existing,
+            FolderActions.DesiredFolder desired,
+            @Nullable PortalNavigationItemContainer parent) {
+        return (Objects.equals(existing.getTitle(), desired.title())
+                && Objects.equals(existing.getSegment(), desired.segment().value())
+                && existing.getOrder() == desired.order()
+                && Objects.equals(existing.getParentId(), parent == null ? null : parent.getId())
+                && Objects.equals(
+                        existing.getVisibility(),
+                        PortalVisibility.resolve(
+                                desired.visibility(), parent == null ? null : parent.getVisibility())));
     }
 
-    public static void apply(FolderActions.DesiredFolder source, PortalNavigationItemContainer parent, PortalNavigationFolder target) {
+    public static void apply(
+            FolderActions.DesiredFolder source, PortalNavigationItemContainer parent, PortalNavigationFolder target) {
         target.setTitle(source.title());
         target.setSegment(source.segment().value());
         target.setOrder(source.order());
-        target.setVisibility(PortalVisibility.resolve(source.visibility(), parent == null ? null : parent.getVisibility()));
+        target.setVisibility(
+                PortalVisibility.resolve(source.visibility(), parent == null ? null : parent.getVisibility()));
         if (parent == null) {
             target.markAsRoot();
         } else {

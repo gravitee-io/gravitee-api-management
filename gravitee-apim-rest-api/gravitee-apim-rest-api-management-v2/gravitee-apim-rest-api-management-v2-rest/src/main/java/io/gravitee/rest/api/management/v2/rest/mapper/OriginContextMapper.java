@@ -54,9 +54,14 @@ public interface OriginContextMapper {
     }
 
     ManagementOriginContext map(OriginContext.Management source);
+
     KubernetesOriginContext map(OriginContext.Kubernetes source);
+
     IntegrationOriginContext map(OriginContext.Integration source);
+
     OriginContext.Management map(ManagementOriginContext source);
+
     OriginContext.Kubernetes map(KubernetesOriginContext source);
+
     OriginContext.Integration map(IntegrationOriginContext source);
 }

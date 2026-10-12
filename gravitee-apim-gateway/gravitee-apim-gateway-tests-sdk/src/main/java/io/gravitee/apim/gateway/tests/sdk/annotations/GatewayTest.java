@@ -51,9 +51,9 @@ import org.junit.jupiter.api.parallel.Resources;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith({ VertxExtension.class, GatewayTestingExtension.class })
+@ExtendWith({VertxExtension.class, GatewayTestingExtension.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ResourceLock(value = Resources.SYSTEM_PROPERTIES, mode = ResourceAccessMode.READ_WRITE)
 @Order(Integer.MAX_VALUE)

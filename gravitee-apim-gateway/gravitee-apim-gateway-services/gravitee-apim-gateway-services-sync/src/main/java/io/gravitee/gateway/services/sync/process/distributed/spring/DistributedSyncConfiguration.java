@@ -68,7 +68,8 @@ import org.springframework.context.annotation.Lazy;
 public class DistributedSyncConfiguration {
 
     @Bean
-    public ApiMapper distributedApiMapper(ObjectMapper objectMapper, SubscriptionMapper subscriptionMapper, ApiKeyMapper apiKeyMapper) {
+    public ApiMapper distributedApiMapper(
+            ObjectMapper objectMapper, SubscriptionMapper subscriptionMapper, ApiKeyMapper apiKeyMapper) {
         return new ApiMapper(objectMapper, subscriptionMapper, apiKeyMapper);
     }
 
@@ -134,274 +135,209 @@ public class DistributedSyncConfiguration {
 
     @Bean
     public DistributedEventFetcher distributedEventFetcher(
-        @Lazy DistributedEventRepository distributedEventRepository,
-        ClusterManager clusterManager,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
-    ) {
+            @Lazy DistributedEventRepository distributedEventRepository,
+            ClusterManager clusterManager,
+            @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems) {
         return new DistributedEventFetcher(distributedEventRepository, clusterManager, bulkItems);
     }
 
     @Bean
     public DistributedSubscriptionSynchronizer distributedSubscriptionSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        SubscriptionMapper subscriptionMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            SubscriptionMapper subscriptionMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new DistributedSubscriptionSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            subscriptionMapper
-        );
+                distributedEventFetcher,
+                syncFetcherExecutor,
+                syncDeployerExecutor,
+                deployerFactory,
+                subscriptionMapper);
     }
 
     @Bean
     public DistributedApiKeySynchronizer distributedApiKeySynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        ApiKeyMapper apiKeyMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            ApiKeyMapper apiKeyMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new DistributedApiKeySynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            apiKeyMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, apiKeyMapper);
     }
 
     @Bean
     public DistributedApiProductSynchronizer distributedApiProductSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        ApiProductMapper apiProductMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            ApiProductMapper apiProductMapper) {
         return new DistributedApiProductSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            apiProductMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, apiProductMapper);
     }
 
     @Bean
     public DistributedApiSynchronizer distributedApiSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        ApiMapper apiMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            ApiMapper apiMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new DistributedApiSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            apiMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, apiMapper);
     }
 
     @Bean
     public DistributedDictionarySynchronizer distributedDictionarySynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        DictionaryMapper dictionaryMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            DictionaryMapper dictionaryMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new DistributedDictionarySynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            dictionaryMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, dictionaryMapper);
     }
 
     @Bean
     public DistributedOrganizationSynchronizer distributedOrganizationSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        OrganizationMapper organizationMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            OrganizationMapper organizationMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new DistributedOrganizationSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            organizationMapper
-        );
+                distributedEventFetcher,
+                syncFetcherExecutor,
+                syncDeployerExecutor,
+                deployerFactory,
+                organizationMapper);
     }
 
     @Bean
     public DistributedLicenseSynchronizer distributedLicenseSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        LicenseMapper licenseMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            LicenseMapper licenseMapper) {
         return new DistributedLicenseSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            licenseMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, licenseMapper);
     }
 
     @Bean
     public DistributedAccessPointSynchronizer distributedAccessPointSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        AccessPointMapper accessPointMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            AccessPointMapper accessPointMapper) {
         return new DistributedAccessPointSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            accessPointMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, accessPointMapper);
     }
 
     @Bean
     public DistributedSharedPolicyGroupSynchronizer distributedSharedPolicyGroupSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        SharedPolicyGroupMapper sharedPolicyGroupMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            SharedPolicyGroupMapper sharedPolicyGroupMapper) {
         return new DistributedSharedPolicyGroupSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            sharedPolicyGroupMapper
-        );
+                distributedEventFetcher,
+                syncFetcherExecutor,
+                syncDeployerExecutor,
+                deployerFactory,
+                sharedPolicyGroupMapper);
     }
 
     @Bean
     public DistributedAuthzEntitySynchronizer distributedAuthzEntitySynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        AuthzEntityMapper authzEntityMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            AuthzEntityMapper authzEntityMapper) {
         return new DistributedAuthzEntitySynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            authzEntityMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, authzEntityMapper);
     }
 
     @Bean
     public DistributedAuthzPolicySynchronizer distributedAuthzPolicySynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        AuthzPolicyMapper authzPolicyMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            AuthzPolicyMapper authzPolicyMapper) {
         return new DistributedAuthzPolicySynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            authzPolicyMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, authzPolicyMapper);
     }
 
     @Bean
     public DistributedCredentialSynchronizer distributedCredentialSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        CredentialMapper credentialMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            CredentialMapper credentialMapper) {
         return new DistributedCredentialSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            credentialMapper
-        );
+                distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor, deployerFactory, credentialMapper);
     }
 
     @Bean
     public DistributedNodeMetadataSynchronizer distributedNodeMetadataSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        NodeMetadataMapper nodeMetadataMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            NodeMetadataMapper nodeMetadataMapper) {
         return new DistributedNodeMetadataSynchronizer(
-            distributedEventFetcher,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            deployerFactory,
-            nodeMetadataMapper
-        );
+                distributedEventFetcher,
+                syncFetcherExecutor,
+                syncDeployerExecutor,
+                deployerFactory,
+                nodeMetadataMapper);
     }
 
     @Bean
     public DefaultDistributedSyncService distributedSyncService(
-        final Node node,
-        final ClusterManager clusterManager,
-        @Value("${distributed-sync.type}") String distributedSyncRepoType,
-        @Lazy final DistributedEventRepository distributedEventRepository,
-        @Lazy final DistributedSyncStateRepository distributedSyncStateRepository,
-        final ApiMapper apiMapper,
-        final SubscriptionMapper subscriptionMapper,
-        final ApiKeyMapper apiKeyMapper,
-        final OrganizationMapper organizationMapper,
-        final DictionaryMapper dictionaryMapper,
-        final LicenseMapper licenseMapper,
-        final AccessPointMapper accessPointMapper,
-        final SharedPolicyGroupMapper sharedPolicyGroupMapper,
-        final NodeMetadataMapper nodeMetadataMapper,
-        final AuthzEntityMapper authzEntityMapper,
-        final AuthzPolicyMapper authzPolicyMapper,
-        final ApiProductMapper apiProductMapper,
-        final CredentialMapper credentialMapper
-    ) {
+            final Node node,
+            final ClusterManager clusterManager,
+            @Value("${distributed-sync.type}") String distributedSyncRepoType,
+            @Lazy final DistributedEventRepository distributedEventRepository,
+            @Lazy final DistributedSyncStateRepository distributedSyncStateRepository,
+            final ApiMapper apiMapper,
+            final SubscriptionMapper subscriptionMapper,
+            final ApiKeyMapper apiKeyMapper,
+            final OrganizationMapper organizationMapper,
+            final DictionaryMapper dictionaryMapper,
+            final LicenseMapper licenseMapper,
+            final AccessPointMapper accessPointMapper,
+            final SharedPolicyGroupMapper sharedPolicyGroupMapper,
+            final NodeMetadataMapper nodeMetadataMapper,
+            final AuthzEntityMapper authzEntityMapper,
+            final AuthzPolicyMapper authzPolicyMapper,
+            final ApiProductMapper apiProductMapper,
+            final CredentialMapper credentialMapper) {
         return new DefaultDistributedSyncService(
-            node,
-            clusterManager,
-            distributedSyncRepoType,
-            distributedEventRepository,
-            distributedSyncStateRepository,
-            apiMapper,
-            subscriptionMapper,
-            apiKeyMapper,
-            organizationMapper,
-            dictionaryMapper,
-            licenseMapper,
-            accessPointMapper,
-            sharedPolicyGroupMapper,
-            nodeMetadataMapper,
-            authzEntityMapper,
-            authzPolicyMapper,
-            apiProductMapper,
-            credentialMapper
-        );
+                node,
+                clusterManager,
+                distributedSyncRepoType,
+                distributedEventRepository,
+                distributedSyncStateRepository,
+                apiMapper,
+                subscriptionMapper,
+                apiKeyMapper,
+                organizationMapper,
+                dictionaryMapper,
+                licenseMapper,
+                accessPointMapper,
+                sharedPolicyGroupMapper,
+                nodeMetadataMapper,
+                authzEntityMapper,
+                authzPolicyMapper,
+                apiProductMapper,
+                credentialMapper);
     }
 }

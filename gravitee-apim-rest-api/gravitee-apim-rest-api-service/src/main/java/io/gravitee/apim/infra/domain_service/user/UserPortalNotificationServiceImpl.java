@@ -35,6 +35,7 @@ public class UserPortalNotificationServiceImpl implements UserPortalNotification
 
     @Override
     public void triggerUserRegistered(ExecutionContext executionContext, BaseUserEntity user) {
-        notifierService.trigger(executionContext, PortalHook.USER_REGISTERED, Map.of("user", UserAdapter.INSTANCE.toUserEntity(user)));
+        notifierService.trigger(
+                executionContext, PortalHook.USER_REGISTERED, Map.of("user", UserAdapter.INSTANCE.toUserEntity(user)));
     }
 }

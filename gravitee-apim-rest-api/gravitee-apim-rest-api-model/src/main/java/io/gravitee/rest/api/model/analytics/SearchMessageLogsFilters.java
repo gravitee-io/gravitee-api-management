@@ -21,12 +21,11 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record SearchMessageLogsFilters(
-    long from,
-    long to,
-    String operation,
-    String connectorType,
-    String connectorId,
-    String requestId,
-    Map<String, List<String>> additional,
-    Boolean requiresAdditional
-) {}
+        long from,
+        long to,
+        String operation,
+        String connectorType,
+        String connectorId,
+        String requestId,
+        Map<String, List<String>> additional,
+        Boolean requiresAdditional) {}

@@ -102,9 +102,8 @@ class DebugApiUseCaseTest {
     public static final String PLAN_ID = "plan-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private DebugApiUseCase cut;
-    private final ApiPolicyValidatorDomainService apiPolicyValidatorDomainService = new ApiPolicyValidatorDomainService(
-        new FakePolicyValidationDomainService()
-    );
+    private final ApiPolicyValidatorDomainService apiPolicyValidatorDomainService =
+            new ApiPolicyValidatorDomainService(new FakePolicyValidationDomainService());
 
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
@@ -115,31 +114,31 @@ class DebugApiUseCaseTest {
     @BeforeEach
     void setUp() {
         cut = new DebugApiUseCase(
-            apiPolicyValidatorDomainService,
-            apiCrudServiceInMemory,
-            instanceQueryService,
-            planQueryService,
-            flowCrudService,
-            eventCrudService
-        );
+                apiPolicyValidatorDomainService,
+                apiCrudServiceInMemory,
+                instanceQueryService,
+                planQueryService,
+                flowCrudService,
+                eventCrudService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiCrudServiceInMemory, eventCrudService, flowCrudService, instanceQueryService, planQueryService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(apiCrudServiceInMemory, eventCrudService, flowCrudService, instanceQueryService, planQueryService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_throw_when_debugging_non_existing_api() {
-        assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, aDebugApiV2(ApiDefinitionFixtures.anApiV2()), AUDIT_INFO)))
-            .isInstanceOf(ApiNotFoundException.class)
-            .hasMessage("Api not found.");
+        assertThatThrownBy(() -> cut.execute(
+                        new DebugApiUseCase.Input(API_ID, aDebugApiV2(ApiDefinitionFixtures.anApiV2()), AUDIT_INFO)))
+                .isInstanceOf(ApiNotFoundException.class)
+                .hasMessage("Api not found.");
 
-        assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-            .isInstanceOf(ApiNotFoundException.class)
-            .hasMessage("Api not found.");
+        assertThatThrownBy(() ->
+                        cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(ApiNotFoundException.class)
+                .hasMessage("Api not found.");
     }
 
     @Nested
@@ -154,22 +153,27 @@ class DebugApiUseCaseTest {
             var api = givenExistingApiDefinition(api1, Api.class);
 
             assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, aDebugApiV2(api), AUDIT_INFO)))
-                .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
-                .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
+                    .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
+                    .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
         }
 
         @ParameterizedTest
-        @EnumSource(value = PlanStatus.class, names = { "STAGING", "PUBLISHED" }, mode = EnumSource.Mode.EXCLUDE)
+        @EnumSource(
+                value = PlanStatus.class,
+                names = {"STAGING", "PUBLISHED"},
+                mode = EnumSource.Mode.EXCLUDE)
         @SneakyThrows
         void should_throw_when_no_active_plan(PlanStatus planStatus) {
             instanceQueryService.initWith(List.of(validInstance()));
             io.gravitee.apim.core.api.model.Api api1 = ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag"));
             var api = givenExistingApiDefinition(api1, Api.class);
-            api.setPlans(List.of(PlanFixtures.aKeylessV2().toBuilder().status(planStatus.name()).build()));
+            api.setPlans(List.of(PlanFixtures.aKeylessV2().toBuilder()
+                    .status(planStatus.name())
+                    .build()));
 
             assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, aDebugApiV2(api), AUDIT_INFO)))
-                .isInstanceOf(DebugApiNoValidPlanException.class)
-                .hasMessage("There is no staging or published plan for this API [my-api].");
+                    .isInstanceOf(DebugApiNoValidPlanException.class)
+                    .hasMessage("There is no staging or published plan for this API [my-api].");
         }
 
         @Test
@@ -180,38 +184,35 @@ class DebugApiUseCaseTest {
             var api = givenExistingApiDefinition(api1, Api.class);
             api.setPlans(List.of(PlanFixtures.aKeylessV2()));
             api.setExecutionMode(V4_EMULATION_ENGINE);
-            api.getProxy().setLogging(new Logging(LoggingMode.PROXY, LoggingScope.REQUEST, LoggingContent.HEADERS, null));
+            api.getProxy()
+                    .setLogging(new Logging(LoggingMode.PROXY, LoggingScope.REQUEST, LoggingContent.HEADERS, null));
             api.setServices(healthcheckService(true));
 
             final DebugApiUseCase.Output output = cut.execute(
-                new DebugApiUseCase.Input(API_ID, aDebugApiV2(api, new HttpRequest("/", "GET")), AUDIT_INFO)
-            );
+                    new DebugApiUseCase.Input(API_ID, aDebugApiV2(api, new HttpRequest("/", "GET")), AUDIT_INFO));
 
             assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
             assertThat(output.debugApiEvent())
-                .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
-                .contains(EventType.DEBUG_API, Index.atIndex(0))
-                .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
-                .contains(
-                    Map.ofEntries(
-                        entry(Event.EventProperties.API_ID, API_ID),
-                        entry(Event.EventProperties.USER, USER_ID),
-                        entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
-                        entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)
-                    ),
-                    Index.atIndex(2)
-                );
-            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper.getInstance().readValue(
-                output.debugApiEvent().getPayload(),
-                DebugApiV2.class
-            );
+                    .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
+                    .contains(EventType.DEBUG_API, Index.atIndex(0))
+                    .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
+                    .contains(
+                            Map.ofEntries(
+                                    entry(Event.EventProperties.API_ID, API_ID),
+                                    entry(Event.EventProperties.USER, USER_ID),
+                                    entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
+                                    entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)),
+                            Index.atIndex(2));
+            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper.getInstance()
+                    .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(debugApiFromEvent.getExecutionMode()).isEqualTo(V4_EMULATION_ENGINE);
-                softly
-                    .assertThat(debugApiFromEvent.getProxy())
-                    .extracting(Proxy::getLogging)
-                    .isEqualTo(new Logging(LoggingMode.NONE, LoggingScope.NONE, LoggingContent.NONE, null));
-                softly.assertThat(debugApiFromEvent.getServices()).usingRecursiveComparison().isEqualTo(healthcheckService(false));
+                softly.assertThat(debugApiFromEvent.getProxy())
+                        .extracting(Proxy::getLogging)
+                        .isEqualTo(new Logging(LoggingMode.NONE, LoggingScope.NONE, LoggingContent.NONE, null));
+                softly.assertThat(debugApiFromEvent.getServices())
+                        .usingRecursiveComparison()
+                        .isEqualTo(healthcheckService(false));
             });
         }
     }
@@ -230,17 +231,17 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
-                .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
+                    .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
         }
 
         @ParameterizedTest
         @EnumSource(
-            value = io.gravitee.definition.model.v4.plan.PlanStatus.class,
-            names = { "STAGING", "PUBLISHED" },
-            mode = EnumSource.Mode.EXCLUDE
-        )
+                value = io.gravitee.definition.model.v4.plan.PlanStatus.class,
+                names = {"STAGING", "PUBLISHED"},
+                mode = EnumSource.Mode.EXCLUDE)
         @SneakyThrows
         void should_throw_when_no_active_plan(io.gravitee.definition.model.v4.plan.PlanStatus planStatus) {
             var plan = fixtures.core.model.PlanFixtures.aPlanV2();
@@ -250,9 +251,10 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan.setPlanStatus(planStatus));
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(DebugApiNoValidPlanException.class)
-                .hasMessage("There is no staging or published plan for this API [my-api].");
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(DebugApiNoValidPlanException.class)
+                    .hasMessage("There is no staging or published plan for this API [my-api].");
         }
 
         @Test
@@ -263,25 +265,20 @@ class DebugApiUseCaseTest {
             plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
             plan.setReferenceId(API_ID);
             givenExistingPlanV2Flows(
-                plan.getId(),
-                FlowFixtures.aFlowV2()
-                    .toBuilder()
-                    .pre(
-                        List.of(
-                            io.gravitee.definition.model.flow.Step.builder()
-                                .name("my-step-name-1")
-                                .policy("a-policy_throw_invalid_data_exception")
-                                .configuration("{}")
-                                .build()
-                        )
-                    )
-                    .build()
-            );
+                    plan.getId(),
+                    FlowFixtures.aFlowV2().toBuilder()
+                            .pre(List.of(io.gravitee.definition.model.flow.Step.builder()
+                                    .name("my-step-name-1")
+                                    .policy("a-policy_throw_invalid_data_exception")
+                                    .configuration("{}")
+                                    .build()))
+                            .build());
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(InvalidDataException.class)
-                .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(InvalidDataException.class)
+                    .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
         }
 
         @Test
@@ -296,36 +293,35 @@ class DebugApiUseCaseTest {
             var api = givenExistingApiDefinition(api1, Api.class);
             api.setPlans(List.of(PlanFixtures.aKeylessV2()));
             api.setExecutionMode(V4_EMULATION_ENGINE);
-            api.getProxy().setLogging(new Logging(LoggingMode.PROXY, LoggingScope.REQUEST, LoggingContent.HEADERS, null));
+            api.getProxy()
+                    .setLogging(new Logging(LoggingMode.PROXY, LoggingScope.REQUEST, LoggingContent.HEADERS, null));
             api.setServices(healthcheckService(true));
 
-            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+            final DebugApiUseCase.Output output =
+                    cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
 
             assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
             assertThat(output.debugApiEvent())
-                .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
-                .contains(EventType.DEBUG_API, Index.atIndex(0))
-                .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
-                .contains(
-                    Map.ofEntries(
-                        entry(Event.EventProperties.API_ID, API_ID),
-                        entry(Event.EventProperties.USER, USER_ID),
-                        entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
-                        entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)
-                    ),
-                    Index.atIndex(2)
-                );
-            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper.getInstance().readValue(
-                output.debugApiEvent().getPayload(),
-                DebugApiV2.class
-            );
+                    .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
+                    .contains(EventType.DEBUG_API, Index.atIndex(0))
+                    .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
+                    .contains(
+                            Map.ofEntries(
+                                    entry(Event.EventProperties.API_ID, API_ID),
+                                    entry(Event.EventProperties.USER, USER_ID),
+                                    entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
+                                    entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)),
+                            Index.atIndex(2));
+            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper.getInstance()
+                    .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(debugApiFromEvent.getExecutionMode()).isEqualTo(V4_EMULATION_ENGINE);
-                softly
-                    .assertThat(debugApiFromEvent.getProxy())
-                    .extracting(Proxy::getLogging)
-                    .isEqualTo(new Logging(LoggingMode.NONE, LoggingScope.NONE, LoggingContent.NONE, null));
-                softly.assertThat(debugApiFromEvent.getServices()).usingRecursiveComparison().isEqualTo(healthcheckService(false));
+                softly.assertThat(debugApiFromEvent.getProxy())
+                        .extracting(Proxy::getLogging)
+                        .isEqualTo(new Logging(LoggingMode.NONE, LoggingScope.NONE, LoggingContent.NONE, null));
+                softly.assertThat(debugApiFromEvent.getServices())
+                        .usingRecursiveComparison()
+                        .isEqualTo(healthcheckService(false));
             });
         }
     }
@@ -337,11 +333,12 @@ class DebugApiUseCaseTest {
         void should_throw_when_debugging_v4_message_api() {
             givenExistingApi(ApiFixtures.aMessageApiV4().setId(API_ID));
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(DebugApiInvalidDefinitionVersionException.class)
-                .hasMessage("Only API V2 or V4 PROXY can be debugged.")
-                .extracting("parameters")
-                .isEqualTo(Map.of("apiId", API_ID));
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(DebugApiInvalidDefinitionVersionException.class)
+                    .hasMessage("Only API V2 or V4 PROXY can be debugged.")
+                    .extracting("parameters")
+                    .isEqualTo(Map.of("apiId", API_ID));
         }
 
         @ParameterizedTest
@@ -355,17 +352,17 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
-                .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
+                    .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
         }
 
         @ParameterizedTest
         @EnumSource(
-            value = io.gravitee.definition.model.v4.plan.PlanStatus.class,
-            names = { "STAGING", "PUBLISHED" },
-            mode = EnumSource.Mode.EXCLUDE
-        )
+                value = io.gravitee.definition.model.v4.plan.PlanStatus.class,
+                names = {"STAGING", "PUBLISHED"},
+                mode = EnumSource.Mode.EXCLUDE)
         @SneakyThrows
         void should_throw_when_no_active_plan(io.gravitee.definition.model.v4.plan.PlanStatus planStatus) {
             var plan = fixtures.core.model.PlanFixtures.aPlanHttpV4();
@@ -375,9 +372,10 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan.setPlanStatus(planStatus));
             givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(DebugApiNoValidPlanException.class)
-                .hasMessage("There is no staging or published plan for this API [my-api].");
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(DebugApiNoValidPlanException.class)
+                    .hasMessage("There is no staging or published plan for this API [my-api].");
         }
 
         @Test
@@ -388,25 +386,20 @@ class DebugApiUseCaseTest {
             plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
             plan.setReferenceId(API_ID);
             givenExistingPlanV4Flows(
-                plan.getId(),
-                FlowFixtures.aProxyFlowV4()
-                    .toBuilder()
-                    .request(
-                        List.of(
-                            Step.builder()
-                                .name("my-step-name-1")
-                                .policy("a-policy_throw_invalid_data_exception")
-                                .configuration("{}")
-                                .build()
-                        )
-                    )
-                    .build()
-            );
+                    plan.getId(),
+                    FlowFixtures.aProxyFlowV4().toBuilder()
+                            .request(List.of(Step.builder()
+                                    .name("my-step-name-1")
+                                    .policy("a-policy_throw_invalid_data_exception")
+                                    .configuration("{}")
+                                    .build()))
+                            .build());
             givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(InvalidDataException.class)
-                .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(InvalidDataException.class)
+                    .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
         }
 
         @Test
@@ -419,24 +412,19 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             var api = givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
             givenExistingApiV4Flows(
-                api.getId(),
-                FlowFixtures.aProxyFlowV4()
-                    .toBuilder()
-                    .request(
-                        List.of(
-                            Step.builder()
-                                .name("my-step-name-1")
-                                .policy("a-policy_throw_invalid_data_exception")
-                                .configuration("{}")
-                                .build()
-                        )
-                    )
-                    .build()
-            );
+                    api.getId(),
+                    FlowFixtures.aProxyFlowV4().toBuilder()
+                            .request(List.of(Step.builder()
+                                    .name("my-step-name-1")
+                                    .policy("a-policy_throw_invalid_data_exception")
+                                    .configuration("{}")
+                                    .build()))
+                            .build());
 
-            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
-                .isInstanceOf(InvalidDataException.class)
-                .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
+            assertThatThrownBy(() ->
+                            cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                    .isInstanceOf(InvalidDataException.class)
+                    .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
         }
 
         @Test
@@ -449,65 +437,55 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             io.gravitee.apim.core.api.model.Api api1 = ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag"));
             var api = givenExistingApiDefinition(api1, io.gravitee.definition.model.v4.Api.class);
-            api
-                .getAnalytics()
-                .setLogging(
-                    new io.gravitee.definition.model.v4.analytics.logging.Logging(
-                        new io.gravitee.definition.model.v4.analytics.logging.LoggingMode(true, true),
-                        new LoggingPhase(true, true),
-                        new io.gravitee.definition.model.v4.analytics.logging.LoggingContent(true, false, false, false, false),
-                        null,
-                        null
-                    )
-                );
-            api
-                .getEndpointGroups()
-                .forEach(endpointGroup -> {
-                    endpointGroup.setServices(new EndpointGroupServices(null, new Service(false, true, "healthcheck", null)));
-                    endpointGroup
+            api.getAnalytics()
+                    .setLogging(new io.gravitee.definition.model.v4.analytics.logging.Logging(
+                            new io.gravitee.definition.model.v4.analytics.logging.LoggingMode(true, true),
+                            new LoggingPhase(true, true),
+                            new io.gravitee.definition.model.v4.analytics.logging.LoggingContent(
+                                    true, false, false, false, false),
+                            null,
+                            null));
+            api.getEndpointGroups().forEach(endpointGroup -> {
+                endpointGroup.setServices(
+                        new EndpointGroupServices(null, new Service(false, true, "healthcheck", null)));
+                endpointGroup
                         .getEndpoints()
-                        .forEach(endpoint -> endpoint.setServices(new EndpointServices(new Service(false, true, "healthcheck", null))));
-                });
+                        .forEach(endpoint -> endpoint.setServices(
+                                new EndpointServices(new Service(false, true, "healthcheck", null))));
+            });
 
-            final DebugApiUseCase.Output output = cut.execute(
-                new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)
-            );
+            final DebugApiUseCase.Output output =
+                    cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO));
 
             assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
 
             assertThat(output.debugApiEvent())
-                .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
-                .contains(EventType.DEBUG_API, Index.atIndex(0))
-                .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
-                .contains(
-                    Map.ofEntries(
-                        entry(Event.EventProperties.API_ID, API_ID),
-                        entry(Event.EventProperties.USER, USER_ID),
-                        entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
-                        entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID),
-                        entry(Event.EventProperties.API_DEFINITION_VERSION, DefinitionVersion.V4.name())
-                    ),
-                    Index.atIndex(2)
-                );
-            var debugApiFromEvent = GraviteeJacksonMapper.getInstance().readValue(output.debugApiEvent().getPayload(), DebugApiV4.class);
+                    .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
+                    .contains(EventType.DEBUG_API, Index.atIndex(0))
+                    .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
+                    .contains(
+                            Map.ofEntries(
+                                    entry(Event.EventProperties.API_ID, API_ID),
+                                    entry(Event.EventProperties.USER, USER_ID),
+                                    entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
+                                    entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID),
+                                    entry(Event.EventProperties.API_DEFINITION_VERSION, DefinitionVersion.V4.name())),
+                            Index.atIndex(2));
+            var debugApiFromEvent = GraviteeJacksonMapper.getInstance()
+                    .readValue(output.debugApiEvent().getPayload(), DebugApiV4.class);
             SoftAssertions.assertSoftly(softly -> {
-                softly.assertThat(debugApiFromEvent.getApiDefinition().getAnalytics()).extracting(Analytics::getLogging).isNull();
+                softly.assertThat(debugApiFromEvent.getApiDefinition().getAnalytics())
+                        .extracting(Analytics::getLogging)
+                        .isNull();
 
-                softly
-                    .assertThat(debugApiFromEvent.getApiDefinition().getEndpointGroups())
-                    .extracting(EndpointGroup::getServices)
-                    .containsExactly(new EndpointGroupServices(null, null));
-                softly
-                    .assertThat(
-                        debugApiFromEvent
-                            .getApiDefinition()
-                            .getEndpointGroups()
-                            .stream()
-                            .map(EndpointGroup::getEndpoints)
-                            .flatMap(List::stream)
-                    )
-                    .extracting(Endpoint::getServices)
-                    .containsExactly(new EndpointServices(null));
+                softly.assertThat(debugApiFromEvent.getApiDefinition().getEndpointGroups())
+                        .extracting(EndpointGroup::getServices)
+                        .containsExactly(new EndpointGroupServices(null, null));
+                softly.assertThat(debugApiFromEvent.getApiDefinition().getEndpointGroups().stream()
+                                .map(EndpointGroup::getEndpoints)
+                                .flatMap(List::stream))
+                        .extracting(Endpoint::getServices)
+                        .containsExactly(new EndpointServices(null));
             });
         }
     }
@@ -520,21 +498,21 @@ class DebugApiUseCaseTest {
         void should_select_gateway_with_matching_tag_over_more_recently_started_tagless_gateway() {
             // hybrid gateway carries the sharding tag but was started earlier
             var hybridGateway = Instance.builder()
-                .id("hybrid-gateway")
-                .startedAt(new Date(1_000))
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .tags(List.of("valid-tag"))
-                .build();
+                    .id("hybrid-gateway")
+                    .startedAt(new Date(1_000))
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .tags(List.of("valid-tag"))
+                    .build();
             // SaaS gateway is tagless (matches every API) and was started most recently
             var saasGateway = Instance.builder()
-                .id("saas-gateway")
-                .startedAt(new Date())
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .build();
+                    .id("saas-gateway")
+                    .startedAt(new Date())
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .build();
             instanceQueryService.initWith(List.of(saasGateway, hybridGateway));
 
             var plan = fixtures.core.model.PlanFixtures.aPlanV2();
@@ -543,28 +521,30 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
-            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+            final DebugApiUseCase.Output output =
+                    cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
 
-            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "hybrid-gateway");
+            assertThat(output.debugApiEvent().getProperties())
+                    .containsEntry(Event.EventProperties.GATEWAY_ID, "hybrid-gateway");
         }
 
         @Test
         @SneakyThrows
         void should_select_most_recently_started_gateway_when_api_has_no_tag() {
             var olderGateway = Instance.builder()
-                .id("older-gateway")
-                .startedAt(new Date(1_000))
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .build();
+                    .id("older-gateway")
+                    .startedAt(new Date(1_000))
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .build();
             var newerGateway = Instance.builder()
-                .id("newer-gateway")
-                .startedAt(new Date())
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .build();
+                    .id("newer-gateway")
+                    .startedAt(new Date())
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .build();
             instanceQueryService.initWith(List.of(olderGateway, newerGateway));
 
             var plan = fixtures.core.model.PlanFixtures.aPlanV2();
@@ -573,30 +553,32 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV2());
 
-            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+            final DebugApiUseCase.Output output =
+                    cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
 
-            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "newer-gateway");
+            assertThat(output.debugApiEvent().getProperties())
+                    .containsEntry(Event.EventProperties.GATEWAY_ID, "newer-gateway");
         }
 
         @Test
         @SneakyThrows
         void should_select_most_recently_started_gateway_among_several_matching_tagged_gateways() {
             var olderTaggedGateway = Instance.builder()
-                .id("older-tagged-gateway")
-                .startedAt(new Date(1_000))
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .tags(List.of("valid-tag"))
-                .build();
+                    .id("older-tagged-gateway")
+                    .startedAt(new Date(1_000))
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .tags(List.of("valid-tag"))
+                    .build();
             var newerTaggedGateway = Instance.builder()
-                .id("newer-tagged-gateway")
-                .startedAt(new Date())
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .tags(List.of("valid-tag"))
-                .build();
+                    .id("newer-tagged-gateway")
+                    .startedAt(new Date())
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .tags(List.of("valid-tag"))
+                    .build();
             instanceQueryService.initWith(List.of(olderTaggedGateway, newerTaggedGateway));
 
             var plan = fixtures.core.model.PlanFixtures.aPlanV2();
@@ -605,10 +587,12 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
-            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+            final DebugApiUseCase.Output output =
+                    cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
 
             // both gateways explicitly match the tag, so the tie-breaker (most recently started) applies
-            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "newer-tagged-gateway");
+            assertThat(output.debugApiEvent().getProperties())
+                    .containsEntry(Event.EventProperties.GATEWAY_ID, "newer-tagged-gateway");
         }
 
         @Test
@@ -616,22 +600,22 @@ class DebugApiUseCaseTest {
         void should_prefer_explicit_tag_match_over_gateway_matching_only_by_exclusion_tag() {
             // this gateway has no positive tag — it only matches the API because the API is not in its excluded tags
             var excludingGateway = Instance.builder()
-                .id("excluding-gateway")
-                .startedAt(new Date())
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .tags(List.of("!other-tag"))
-                .build();
+                    .id("excluding-gateway")
+                    .startedAt(new Date())
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .tags(List.of("!other-tag"))
+                    .build();
             // this gateway explicitly carries the API's tag but was started earlier
             var taggedGateway = Instance.builder()
-                .id("tagged-gateway")
-                .startedAt(new Date(1_000))
-                .clusterPrimaryNode(true)
-                .environments(Set.of(ENVIRONMENT_ID))
-                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-                .tags(List.of("valid-tag"))
-                .build();
+                    .id("tagged-gateway")
+                    .startedAt(new Date(1_000))
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .tags(List.of("valid-tag"))
+                    .build();
             instanceQueryService.initWith(List.of(excludingGateway, taggedGateway));
 
             var plan = fixtures.core.model.PlanFixtures.aPlanV2();
@@ -640,70 +624,76 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
-            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+            final DebugApiUseCase.Output output =
+                    cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
 
-            // the exclusion-only gateway is a wildcard match (like a tagless one), so the explicit match wins despite being older
-            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "tagged-gateway");
+            // the exclusion-only gateway is a wildcard match (like a tagless one), so the explicit match wins despite
+            // being older
+            assertThat(output.debugApiEvent().getProperties())
+                    .containsEntry(Event.EventProperties.GATEWAY_ID, "tagged-gateway");
         }
     }
 
     private static Instance validInstance() {
         return Instance.builder()
-            .id(GATEWAY_ID)
-            .startedAt(new Date())
-            .clusterPrimaryNode(true)
-            .environments(Set.of(ENVIRONMENT_ID))
-            .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-            .build();
+                .id(GATEWAY_ID)
+                .startedAt(new Date())
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .build();
     }
 
     private static Stream<Arguments> provideNonEligibleGateways() {
         return Stream.of(
-            Arguments.of(List.of()),
-            Arguments.of(List.of(Instance.builder().build())),
-            Arguments.of(List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).build())),
-            Arguments.of(List.of(Instance.builder().startedAt(new Date()).build())),
-            Arguments.of(List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).startedAt(new Date()).build())),
-            Arguments.of(List.of(Instance.builder().startedAt(new Date()).clusterPrimaryNode(false).build())),
-            Arguments.of(
-                List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).startedAt(new Date()).clusterPrimaryNode(false).build())
-            ),
-            Arguments.of(List.of(Instance.builder().environments(Set.of()).startedAt(new Date()).clusterPrimaryNode(true).build())),
-            Arguments.of(
-                List.of(Instance.builder().environments(Set.of(ENVIRONMENT_ID)).startedAt(new Date()).clusterPrimaryNode(true).build())
-            ),
-            Arguments.of(
-                List.of(
-                    Instance.builder()
+                Arguments.of(List.of()),
+                Arguments.of(List.of(Instance.builder().build())),
+                Arguments.of(List.of(
+                        Instance.builder().environments(Set.of(ENVIRONMENT_ID)).build())),
+                Arguments.of(List.of(Instance.builder().startedAt(new Date()).build())),
+                Arguments.of(List.of(Instance.builder()
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .startedAt(new Date())
+                        .build())),
+                Arguments.of(List.of(Instance.builder()
+                        .startedAt(new Date())
+                        .clusterPrimaryNode(false)
+                        .build())),
+                Arguments.of(List.of(Instance.builder()
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .startedAt(new Date())
+                        .clusterPrimaryNode(false)
+                        .build())),
+                Arguments.of(List.of(Instance.builder()
+                        .environments(Set.of())
+                        .startedAt(new Date())
+                        .clusterPrimaryNode(true)
+                        .build())),
+                Arguments.of(List.of(Instance.builder()
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .startedAt(new Date())
+                        .clusterPrimaryNode(true)
+                        .build())),
+                Arguments.of(List.of(Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))
                         .plugins(Set.of())
-                        .build()
-                )
-            ),
-            Arguments.of(
-                List.of(
-                    Instance.builder()
+                        .build())),
+                Arguments.of(List.of(Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))
                         .plugins(Set.of(PluginEntity.builder().build()))
-                        .build()
-                )
-            ),
-            Arguments.of(
-                List.of(
-                    Instance.builder()
+                        .build())),
+                Arguments.of(List.of(Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))
-                        .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                        .plugins(Set.of(
+                                PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
                         .tags(List.of("invalid-tag"))
-                        .build()
-                )
-            )
-        );
+                        .build())));
     }
 
     private static DebugApiV2 aDebugApiV2(Api api) {
@@ -726,7 +716,8 @@ class DebugApiUseCaseTest {
         return api;
     }
 
-    public <T extends ApiDefinition> T givenExistingApiDefinition(io.gravitee.apim.core.api.model.Api api, Class<T> clazz) {
+    public <T extends ApiDefinition> T givenExistingApiDefinition(
+            io.gravitee.apim.core.api.model.Api api, Class<T> clazz) {
         apiCrudServiceInMemory.initWith(List.of(api));
         return clazz.cast(api.getApiDefinitionValue());
     }

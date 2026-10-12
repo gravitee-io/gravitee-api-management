@@ -71,8 +71,7 @@ public class NewRatingEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewRatingEntity{" + "api='" + api + '\'' + ", rate=" + rate + ", title='" + title + '\'' + ", comment='" + comment + '\'' + '}'
-        );
+        return ("NewRatingEntity{" + "api='" + api + '\'' + ", rate=" + rate + ", title='" + title + '\''
+                + ", comment='" + comment + '\'' + '}');
     }
 }

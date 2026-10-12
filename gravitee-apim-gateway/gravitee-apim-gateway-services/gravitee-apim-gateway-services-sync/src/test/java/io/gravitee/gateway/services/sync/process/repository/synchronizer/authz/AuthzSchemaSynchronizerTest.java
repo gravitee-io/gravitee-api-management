@@ -73,14 +73,13 @@ class AuthzSchemaSynchronizerTest {
     @BeforeEach
     void setUp() {
         synchronizer = new AuthzSchemaSynchronizer(
-            fetcher,
-            new AuthzSchemaMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                fetcher,
+                new AuthzSchemaMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(deployerFactory.createAuthzSchemaDeployer()).thenReturn(deployer);
@@ -106,7 +105,11 @@ class AuthzSchemaSynchronizerTest {
     void no_events_still_calls_commit_to_retry_any_pending() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                .test()
+                .await()
+                .assertComplete();
 
         verify(port).commit();
     }
@@ -114,10 +117,16 @@ class AuthzSchemaSynchronizerTest {
     @Test
     void publish_and_unpublish_are_handled_in_one_batch() throws InterruptedException {
         Event publish = schemaEvent("doc-p", "[\"orders\"]");
-        Event unpublish = event("evt-u", EventType.UNPUBLISH_AUTHZ_SCHEMA, "{\"id\":\"doc-u\",\"environmentId\":\"env-1\"}");
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish, unpublish)));
+        Event unpublish =
+                event("evt-u", EventType.UNPUBLISH_AUTHZ_SCHEMA, "{\"id\":\"doc-u\",\"environmentId\":\"env-1\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(publish, unpublish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any());
         verify(deployer).undeploy(any());
@@ -126,11 +135,14 @@ class AuthzSchemaSynchronizerTest {
 
     @Test
     void commit_fires_after_the_deploy_completes() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
-            Flowable.just(List.of(schemaEvent("doc-p", "[\"orders\"]")))
-        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(schemaEvent("doc-p", "[\"orders\"]"))));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         var inOrder = inOrder(deployer, port);
         inOrder.verify(deployer).deploy(any());
@@ -140,11 +152,14 @@ class AuthzSchemaSynchronizerTest {
     @Test
     void unparseable_event_payload_is_dropped_without_breaking_the_batch() throws InterruptedException {
         Event bad = event("evt-bad", EventType.PUBLISH_AUTHZ_SCHEMA, "not-json");
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
-            Flowable.just(List.of(bad, schemaEvent("doc-good", "[\"orders\"]")))
-        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(bad, schemaEvent("doc-good", "[\"orders\"]"))));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(1)).deploy(any());
         verify(port).commit();
@@ -158,7 +173,11 @@ class AuthzSchemaSynchronizerTest {
         }
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(events));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(50)).deploy(any());
         verify(port, times(1)).commit();
@@ -166,13 +185,17 @@ class AuthzSchemaSynchronizerTest {
 
     @Test
     void the_deployable_carries_the_documents_declared_targets() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
-            Flowable.just(List.of(schemaEvent("doc-t", "[\"orders\",\"stock\"]")))
-        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(schemaEvent("doc-t", "[\"orders\",\"stock\"]"))));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzSchemaReactorDeployable> captor = ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
+        ArgumentCaptor<AuthzSchemaReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().targetPdpIds()).containsExactlyInAnyOrder("orders", "stock");
         assertThat(captor.getValue().schemaText()).isEqualTo("entity User;");
@@ -180,14 +203,12 @@ class AuthzSchemaSynchronizerTest {
 
     private static Event schemaEvent(String id, String targets) {
         return event(
-            "evt-" + id + "-" + targets.hashCode(),
-            EventType.PUBLISH_AUTHZ_SCHEMA,
-            "{\"id\":\"" +
-                id +
-                "\",\"name\":\"S\",\"environmentId\":\"env-1\",\"schemaText\":\"entity User;\",\"targetPdpIds\":" +
-                targets +
-                "}"
-        );
+                "evt-" + id + "-" + targets.hashCode(),
+                EventType.PUBLISH_AUTHZ_SCHEMA,
+                "{\"id\":\"" + id
+                        + "\",\"name\":\"S\",\"environmentId\":\"env-1\",\"schemaText\":\"entity User;\",\"targetPdpIds\":"
+                        + targets
+                        + "}");
     }
 
     private static Event event(String id, EventType type, String payload) {

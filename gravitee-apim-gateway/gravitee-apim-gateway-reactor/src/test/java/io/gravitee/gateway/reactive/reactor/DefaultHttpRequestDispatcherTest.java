@@ -215,10 +215,16 @@ class DefaultHttpRequestDispatcherTest {
 
         lenient().when(requestProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
         lenient().when(responseProcessorChainFactory.create()).thenReturn(new ProcessorProviderChain<>(List.of()));
-        lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
-        lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
+        lenient()
+                .when(platformProcessorChainFactory.preProcessorChain())
+                .thenReturn(new ProcessorChain("pre", List.of()));
+        lenient()
+                .when(platformProcessorChainFactory.postProcessorChain())
+                .thenReturn(new ProcessorChain("post", List.of()));
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
-        lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10L);
+        lenient()
+                .when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay())
+                .thenReturn(10L);
 
         lenient().when(globalComponentProvider.getComponent(Node.class)).thenReturn(node);
         mockConnectionCreationTimestamp();
@@ -226,22 +232,21 @@ class DefaultHttpRequestDispatcherTest {
         spyNoopTracer = spy(new NoOpTracer());
         tracingContext = new TracingContext(spyNoopTracer, true, false);
         cut = new DefaultHttpRequestDispatcher(
-            gatewayConfiguration,
-            httpAcceptorResolver,
-            idGenerator,
-            globalComponentProvider,
-            new RequestProcessorChainFactory(),
-            responseProcessorChainFactory,
-            platformProcessorChainFactory,
-            notFoundProcessorChainFactory,
-            tracingContext,
-            requestTimeoutConfiguration,
-            requestClientAuthConfiguration,
-            new RequestPathConfiguration(RequestPathHandling.RAW),
-            vertx,
-            true
-        );
-        //TODO: to check: is this needed ?
+                gatewayConfiguration,
+                httpAcceptorResolver,
+                idGenerator,
+                globalComponentProvider,
+                new RequestProcessorChainFactory(),
+                responseProcessorChainFactory,
+                platformProcessorChainFactory,
+                notFoundProcessorChainFactory,
+                tracingContext,
+                requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
+                new RequestPathConfiguration(RequestPathHandling.RAW),
+                vertx,
+                true);
+        // TODO: to check: is this needed ?
         // cut.setApplicationContext(mock(ApplicationContext.class));
     }
 
@@ -256,7 +261,9 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
         lenient().when(httpServerConnection.channelHandlerContext()).thenReturn(channelHandlerContext);
         lenient().when(channelHandlerContext.channel()).thenReturn(channel);
-        lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
+        lenient()
+                .when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)))
+                .thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
 
@@ -298,7 +305,8 @@ class DefaultHttpRequestDispatcherTest {
                 "*",
                 null,
             };
-            return Stream.of(RequestPathHandling.values()).flatMap(mode -> Stream.of(paths).map(path -> Arguments.of(mode, path)));
+            return Stream.of(RequestPathHandling.values())
+                    .flatMap(mode -> Stream.of(paths).map(path -> Arguments.of(mode, path)));
         }
 
         @ParameterizedTest(name = "{0} on {1}")
@@ -309,10 +317,12 @@ class DefaultHttpRequestDispatcherTest {
             final RequestPathConfiguration configuration = new RequestPathConfiguration(mode);
             when(rxRequest.path()).thenReturn(path);
             lenient().when(httpAcceptorResolver.resolve(any(), any(), any())).thenReturn(null);
-            lenient().when(notFoundProcessorChainFactory.processorChain()).thenReturn(new ProcessorChain("not-found", List.of()));
             lenient()
-                .when(notFoundProcessorChainFactory.rejectedPathProcessorChain())
-                .thenReturn(new ProcessorChain("rejected", List.of()));
+                    .when(notFoundProcessorChainFactory.processorChain())
+                    .thenReturn(new ProcessorChain("not-found", List.of()));
+            lenient()
+                    .when(notFoundProcessorChainFactory.rejectedPathProcessorChain())
+                    .thenReturn(new ProcessorChain("rejected", List.of()));
 
             // When the request is dispatched.
             dispatcherWith(configuration).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS);
@@ -324,21 +334,20 @@ class DefaultHttpRequestDispatcherTest {
 
         private DefaultHttpRequestDispatcher dispatcherWith(final RequestPathConfiguration configuration) {
             return new DefaultHttpRequestDispatcher(
-                gatewayConfiguration,
-                httpAcceptorResolver,
-                idGenerator,
-                globalComponentProvider,
-                new RequestProcessorChainFactory(),
-                responseProcessorChainFactory,
-                platformProcessorChainFactory,
-                notFoundProcessorChainFactory,
-                tracingContext,
-                requestTimeoutConfiguration,
-                requestClientAuthConfiguration,
-                configuration,
-                vertx,
-                true
-            );
+                    gatewayConfiguration,
+                    httpAcceptorResolver,
+                    idGenerator,
+                    globalComponentProvider,
+                    new RequestProcessorChainFactory(),
+                    responseProcessorChainFactory,
+                    platformProcessorChainFactory,
+                    notFoundProcessorChainFactory,
+                    tracingContext,
+                    requestTimeoutConfiguration,
+                    requestClientAuthConfiguration,
+                    configuration,
+                    vertx,
+                    true);
         }
     }
 
@@ -367,9 +376,8 @@ class DefaultHttpRequestDispatcherTest {
 
         @Test
         void shouldPropagateErrorWhenErrorWithV4EmulationRequest() {
-            when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(
-                Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE))
-            );
+            when(apiReactor.handle(any(MutableExecutionContext.class)))
+                    .thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
             final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
@@ -379,14 +387,12 @@ class DefaultHttpRequestDispatcherTest {
 
         @Test
         void shouldInitiateTracingV4EmulationRequest() {
-            when(
-                apiReactor.handle(
-                    argThat(ctx -> {
-                        assertThat(ctx.<Span>getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN)).isNotNull();
+            when(apiReactor.handle(argThat(ctx -> {
+                        assertThat(ctx.<Span>getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN))
+                                .isNotNull();
                         return true;
-                    })
-                )
-            ).thenReturn(Completable.complete());
+                    })))
+                    .thenReturn(Completable.complete());
 
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
             verify(spyNoopTracer).startRootSpanFrom(any(), any());
@@ -401,25 +407,23 @@ class DefaultHttpRequestDispatcherTest {
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
 
             verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
-            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute")).isEqualTo(PATH);
+            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute"))
+                    .isEqualTo(PATH);
         }
 
         @Test
         void shouldEndTracingSpanInErrorWhenExceptionOnV4EmulationRequest() {
-            when(
-                apiReactor.handle(
-                    argThat(ctx -> {
-                        assertThat(ctx.<Span>getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN)).isNotNull();
+            when(apiReactor.handle(argThat(ctx -> {
+                        assertThat(ctx.<Span>getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN))
+                                .isNotNull();
                         return true;
-                    })
-                )
-            ).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
+                    })))
+                    .thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
-            cut
-                .dispatch(rxRequest, SERVER_ID)
-                .test()
-                .assertError(RuntimeException.class)
-                .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
+            cut.dispatch(rxRequest, SERVER_ID)
+                    .test()
+                    .assertError(RuntimeException.class)
+                    .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
             verify(spyNoopTracer).startRootSpanFrom(any(), any());
             verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), any(Throwable.class));
         }
@@ -464,11 +468,11 @@ class DefaultHttpRequestDispatcherTest {
             when(response.ended()).thenReturn(true);
 
             doAnswer(i -> {
-                simulateEndHandlerCall(i);
-                return null;
-            })
-                .when(apiReactor)
-                .handle(any(ExecutionContext.class), any(Handler.class));
+                        simulateEndHandlerCall(i);
+                        return null;
+                    })
+                    .when(apiReactor)
+                    .handle(any(ExecutionContext.class), any(Handler.class));
 
             final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
@@ -490,11 +494,11 @@ class DefaultHttpRequestDispatcherTest {
             final ArgumentCaptor<ExecutionContext> ctxCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
 
             doAnswer(i -> {
-                simulateEndHandlerCall(i);
-                return null;
-            })
-                .when(apiReactor)
-                .handle(ctxCaptor.capture(), any(Handler.class));
+                        simulateEndHandlerCall(i);
+                        return null;
+                    })
+                    .when(apiReactor)
+                    .handle(ctxCaptor.capture(), any(Handler.class));
 
             final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
@@ -511,15 +515,15 @@ class DefaultHttpRequestDispatcherTest {
             when(response.ended()).thenReturn(true);
 
             doAnswer(i -> {
-                final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
+                        final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
 
-                assertEquals("TENANT", ctx.request().metrics().getTenant());
-                assertEquals("ZONE", ctx.request().metrics().getZone());
-                simulateEndHandlerCall(i);
-                return null;
-            })
-                .when(apiReactor)
-                .handle(any(ExecutionContext.class), any(Handler.class));
+                        assertEquals("TENANT", ctx.request().metrics().getTenant());
+                        assertEquals("ZONE", ctx.request().metrics().getZone());
+                        simulateEndHandlerCall(i);
+                        return null;
+                    })
+                    .when(apiReactor)
+                    .handle(any(ExecutionContext.class), any(Handler.class));
 
             final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
@@ -534,15 +538,15 @@ class DefaultHttpRequestDispatcherTest {
             when(rxResponse.rxEnd()).thenReturn(Completable.complete());
 
             doAnswer(i -> {
-                final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
+                        final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
 
-                assertEquals("TENANT", ctx.request().metrics().getTenant());
-                assertEquals("ZONE", ctx.request().metrics().getZone());
-                simulateEndHandlerCall(i);
-                return null;
-            })
-                .when(apiReactor)
-                .handle(any(ExecutionContext.class), any(Handler.class));
+                        assertEquals("TENANT", ctx.request().metrics().getTenant());
+                        assertEquals("ZONE", ctx.request().metrics().getZone());
+                        simulateEndHandlerCall(i);
+                        return null;
+                    })
+                    .when(apiReactor)
+                    .handle(any(ExecutionContext.class), any(Handler.class));
 
             final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
@@ -557,27 +561,29 @@ class DefaultHttpRequestDispatcherTest {
             when(rxResponse.rxEnd()).thenReturn(Completable.error(new RuntimeException()));
 
             doAnswer(i -> {
-                final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
+                        final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
 
-                assertEquals("TENANT", ctx.request().metrics().getTenant());
-                assertEquals("ZONE", ctx.request().metrics().getZone());
-                simulateEndHandlerCall(i);
-                return null;
-            })
-                .when(apiReactor)
-                .handle(any(ExecutionContext.class), any(Handler.class));
+                        assertEquals("TENANT", ctx.request().metrics().getTenant());
+                        assertEquals("ZONE", ctx.request().metrics().getZone());
+                        simulateEndHandlerCall(i);
+                        return null;
+                    })
+                    .when(apiReactor)
+                    .handle(any(ExecutionContext.class), any(Handler.class));
 
-            cut
-                .dispatch(rxRequest, SERVER_ID)
-                // Simulate when the client is ending the connection before the gateway got a response from the endpoint
-                .doOnSubscribe(Disposable::dispose)
-                .test()
-                .assertNoErrors();
+            cut.dispatch(rxRequest, SERVER_ID)
+                    // Simulate when the client is ending the connection before the gateway got a response from the
+                    // endpoint
+                    .doOnSubscribe(Disposable::dispose)
+                    .test()
+                    .assertNoErrors();
         }
 
         @Test
         void shouldPropagateErrorWhenExceptionWithV3Request() {
-            doThrow(new RuntimeException(MOCK_ERROR_MESSAGE)).when(apiReactor).handle(any(ExecutionContext.class), any(Handler.class));
+            doThrow(new RuntimeException(MOCK_ERROR_MESSAGE))
+                    .when(apiReactor)
+                    .handle(any(ExecutionContext.class), any(Handler.class));
 
             final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
@@ -590,17 +596,17 @@ class DefaultHttpRequestDispatcherTest {
             when(response.ended()).thenReturn(true);
 
             doAnswer(i -> {
-                simulateEndHandlerCall(i);
-                return null;
-            })
-                .when(apiReactor)
-                .handle(
-                    argThat(ctx -> {
-                        assertThat(ctx.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN)).isNotNull();
-                        return true;
-                    }),
-                    any(Handler.class)
-                );
+                        simulateEndHandlerCall(i);
+                        return null;
+                    })
+                    .when(apiReactor)
+                    .handle(
+                            argThat(ctx -> {
+                                assertThat(ctx.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN))
+                                        .isNotNull();
+                                return true;
+                            }),
+                            any(Handler.class));
 
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
             verify(spyNoopTracer).startRootSpanFrom(any(), any());
@@ -612,23 +618,26 @@ class DefaultHttpRequestDispatcherTest {
             when(response.ended()).thenReturn(true);
 
             doAnswer(i -> {
-                simulateEndHandlerCall(i);
-                return null;
-            })
-                .when(apiReactor)
-                .handle(any(ExecutionContext.class), any(Handler.class));
+                        simulateEndHandlerCall(i);
+                        return null;
+                    })
+                    .when(apiReactor)
+                    .handle(any(ExecutionContext.class), any(Handler.class));
 
             ArgumentCaptor<Context> vertxContextCaptor = ArgumentCaptor.forClass(Context.class);
 
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
 
             verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
-            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute")).isEqualTo(PATH);
+            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute"))
+                    .isEqualTo(PATH);
         }
 
         @Test
         void shouldEndSpanInErrorWhenExceptionWithV3Request() {
-            doThrow(new RuntimeException(MOCK_ERROR_MESSAGE)).when(apiReactor).handle(any(ExecutionContext.class), any(Handler.class));
+            doThrow(new RuntimeException(MOCK_ERROR_MESSAGE))
+                    .when(apiReactor)
+                    .handle(any(ExecutionContext.class), any(Handler.class));
 
             final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
@@ -667,7 +676,8 @@ class DefaultHttpRequestDispatcherTest {
 
             cut.dispatch(rxRequest, SERVER_ID).test().assertResult();
 
-            final ArgumentCaptor<HttpExecutionContextInternal> ctx = ArgumentCaptor.forClass(HttpExecutionContextInternal.class);
+            final ArgumentCaptor<HttpExecutionContextInternal> ctx =
+                    ArgumentCaptor.forClass(HttpExecutionContextInternal.class);
             verify(processorChain).execute(ctx.capture(), any());
             // The origin every duration is measured from has to predate the work the dispatcher does — the path scan,
             // the normalization, this very lookup. Taken in the request wrapper's constructor it would come after, and
@@ -722,7 +732,8 @@ class DefaultHttpRequestDispatcherTest {
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
 
             verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
-            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute")).isEqualTo("/");
+            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute"))
+                    .isEqualTo("/");
         }
     }
 
@@ -755,7 +766,8 @@ class DefaultHttpRequestDispatcherTest {
             lenient().when(ctx.metrics()).thenReturn(metrics);
             lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
 
-            DefaultHttpRequestDispatcher.classifyResponseStreamError(ctx, new RuntimeException("boom: a real gateway defect"));
+            DefaultHttpRequestDispatcher.classifyResponseStreamError(
+                    ctx, new RuntimeException("boom: a real gateway defect"));
 
             assertThat(metrics.getErrorKey()).isNull();
             assertThat(metrics.getFailure()).isNull();

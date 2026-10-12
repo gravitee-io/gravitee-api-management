@@ -53,8 +53,8 @@ class IndexTemplateTest {
      * as valid JSON here while the cluster silently drops one.
      */
     private static final ObjectMapper JSON = new ObjectMapper()
-        .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-        .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
 
     /**
      * Every dated-index type. The two data streams are covered separately: they render a policy but must
@@ -63,18 +63,17 @@ class IndexTemplateTest {
      * {@code template} — and it is pushed through the legacy template API.
      */
     static Stream<Arguments> es_trees_and_lifecycle_types() {
-        return Stream.of("es7x", "es8x", "es9x").flatMap(esDir ->
-            Stream.of(
-                Type.REQUEST,
-                Type.HEALTH_CHECK,
-                Type.LOG,
-                Type.MONITOR,
-                Type.V4_LOG,
-                Type.V4_METRICS,
-                Type.V4_MESSAGE_LOG,
-                Type.V4_MESSAGE_METRICS
-            ).map(type -> Arguments.of(esDir, type))
-        );
+        return Stream.of("es7x", "es8x", "es9x")
+                .flatMap(esDir -> Stream.of(
+                                Type.REQUEST,
+                                Type.HEALTH_CHECK,
+                                Type.LOG,
+                                Type.MONITOR,
+                                Type.V4_LOG,
+                                Type.V4_METRICS,
+                                Type.V4_MESSAGE_LOG,
+                                Type.V4_MESSAGE_METRICS)
+                        .map(type -> Arguments.of(esDir, type)));
     }
 
     @ParameterizedTest(name = "{0} {1} template uses the configured ISM property names")
@@ -85,9 +84,9 @@ class IndexTemplateTest {
         configuration.setIndexLifecycleRolloverAliasPropertyName("index.plugins.index_state_management.rollover_alias");
 
         assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type))
-            .contains("\"index.plugins.index_state_management.policy_id\"")
-            .contains("\"index.plugins.index_state_management.rollover_alias\"")
-            .doesNotContain("\"index.lifecycle.");
+                .contains("\"index.plugins.index_state_management.policy_id\"")
+                .contains("\"index.plugins.index_state_management.rollover_alias\"")
+                .doesNotContain("\"index.lifecycle.");
     }
 
     @ParameterizedTest(name = "{0} {1} template falls back to the default keys when property names are blank")
@@ -100,17 +99,17 @@ class IndexTemplateTest {
         // An empty or padded key would make the cluster reject the whole template, taking the shard, replica
         // and refresh settings down with it — blank has to mean "unset", not "render nothing at all".
         assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type))
-            .contains("\"index.lifecycle.name\"")
-            .contains("\"index.lifecycle.rollover_alias\"")
-            .doesNotContain("\"\":")
-            .doesNotContain("\"  index.lifecycle.rollover_alias  \"");
+                .contains("\"index.lifecycle.name\"")
+                .contains("\"index.lifecycle.rollover_alias\"")
+                .doesNotContain("\"\":")
+                .doesNotContain("\"  index.lifecycle.rollover_alias  \"");
     }
 
     /** Every rendered template whose dynamic templates map {@code additional-metrics.keyword_*}, on every tree. */
     static Stream<Arguments> all_trees_and_types_carrying_additional_keyword_metrics() {
-        return all_trees().flatMap(esDir ->
-            Stream.of(Type.REQUEST, Type.V4_METRICS, Type.V4_MESSAGE_METRICS).map(type -> Arguments.of(esDir, type))
-        );
+        return all_trees()
+                .flatMap(esDir -> Stream.of(Type.REQUEST, Type.V4_METRICS, Type.V4_MESSAGE_METRICS)
+                        .map(type -> Arguments.of(esDir, type)));
     }
 
     @ParameterizedTest(name = "{0} {1} bounds additional-metrics.keyword_* with ignore_above")
@@ -122,8 +121,8 @@ class IndexTemplateTest {
         // Defence in depth: the gateway bounds client.id at the source, this covers every keyword_* metric,
         // including ones other plugins add later.
         assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type))
-            .contains("\"additional-metrics.keyword_*\"")
-            .contains("\"ignore_above\"");
+                .contains("\"additional-metrics.keyword_*\"")
+                .contains("\"ignore_above\"");
     }
 
     /**
@@ -139,7 +138,9 @@ class IndexTemplateTest {
         // JSON by a stray separator — the failure mode a cluster reports only as a parse error.
         var configuration = configurationFor(policyState);
 
-        assertThatNoException().isThrownBy(() -> JSON.readTree(preparerFor(esDir, configuration).generateIndexTemplate(type)));
+        assertThatNoException()
+                .isThrownBy(
+                        () -> JSON.readTree(preparerFor(esDir, configuration).generateIndexTemplate(type)));
     }
 
     private static ReporterConfiguration configurationFor(String policyState) {
@@ -149,7 +150,8 @@ class IndexTemplateTest {
             case "set with overridden property names" -> {
                 var configuration = configurationWithPolicies();
                 configuration.setIndexLifecyclePolicyPropertyName("index.plugins.index_state_management.policy_id");
-                configuration.setIndexLifecycleRolloverAliasPropertyName("index.plugins.index_state_management.rollover_alias");
+                configuration.setIndexLifecycleRolloverAliasPropertyName(
+                        "index.plugins.index_state_management.rollover_alias");
                 yield configuration;
             }
             default -> throw new IllegalArgumentException("Unknown policy state: " + policyState);
@@ -164,18 +166,17 @@ class IndexTemplateTest {
     }
 
     static Stream<Arguments> all_trees_and_all_types_and_policy_state() {
-        return all_trees().flatMap(tree ->
-            all_types().flatMap(type ->
-                Stream.of("set", "unset", "set with overridden property names").map(policyState -> Arguments.of(tree, type, policyState))
-            )
-        );
+        return all_trees()
+                .flatMap(tree -> all_types()
+                        .flatMap(type -> Stream.of("set", "unset", "set with overridden property names")
+                                .map(policyState -> Arguments.of(tree, type, policyState))));
     }
 
     @Test
     void should_render_default_ilm_keys_for_an_untouched_elasticsearch_configuration() {
         assertThat(preparerFor("es8x", configurationWithPolicies()).generateIndexTemplate(Type.LOG))
-            .contains("\"index.lifecycle.name\": \"policy-log\"")
-            .contains("\"index.lifecycle.rollover_alias\"");
+                .contains("\"index.lifecycle.name\": \"policy-log\"")
+                .contains("\"index.lifecycle.rollover_alias\"");
     }
 
     @Test
@@ -186,9 +187,9 @@ class IndexTemplateTest {
         configuration.setIndexLifecyclePolicyLog("bad\"policy");
 
         assertThat(preparerFor("es8x", configuration).generateIndexTemplate(Type.LOG))
-            .contains("\"bad\\\"name\"")
-            .contains("\"bad\\\"alias\"")
-            .contains("\"bad\\\"policy\"");
+                .contains("\"bad\\\"name\"")
+                .contains("\"bad\\\"alias\"")
+                .contains("\"bad\\\"policy\"");
     }
 
     /**
@@ -196,15 +197,14 @@ class IndexTemplateTest {
      * name, the opensearch tree hard-codes its ISM key and interpolates no property name at all.
      */
     private static final Map<String, String> DATA_STREAM_POLICY_KEY = Map.of(
-        "es7x",
-        "index.lifecycle.name",
-        "es8x",
-        "index.lifecycle.name",
-        "es9x",
-        "index.lifecycle.name",
-        "opensearch",
-        "index.plugins.index_state_management.policy_id"
-    );
+            "es7x",
+            "index.lifecycle.name",
+            "es8x",
+            "index.lifecycle.name",
+            "es9x",
+            "index.lifecycle.name",
+            "opensearch",
+            "index.plugins.index_state_management.policy_id");
 
     static Stream<String> all_trees() {
         return Stream.of("es7x", "es8x", "es9x", "opensearch");
@@ -221,15 +221,15 @@ class IndexTemplateTest {
 
     /** The es trees only: the opensearch tree hard-codes its ISM key, so there is no override to honour. */
     static Stream<Arguments> es_trees_and_data_stream_types() {
-        return Stream.of("es7x", "es8x", "es9x").flatMap(esDir -> data_stream_types().map(type -> Arguments.of(esDir, type)));
+        return Stream.of("es7x", "es8x", "es9x")
+                .flatMap(esDir -> data_stream_types().map(type -> Arguments.of(esDir, type)));
     }
 
     @ParameterizedTest(name = "{0} {1} renders the configured lifecycle policy")
     @MethodSource("all_trees_and_data_stream_types")
     void should_render_the_lifecycle_policy_of_a_data_stream(String esDir, Type type) {
-        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type)).contains(
-            "\"" + DATA_STREAM_POLICY_KEY.get(esDir) + "\": \"policy-" + type.getType() + "\""
-        );
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type))
+                .contains("\"" + DATA_STREAM_POLICY_KEY.get(esDir) + "\": \"policy-" + type.getType() + "\"");
     }
 
     @ParameterizedTest(name = "{0} {1} sets no rollover alias")
@@ -237,7 +237,8 @@ class IndexTemplateTest {
     void should_not_set_a_rollover_alias_on_a_data_stream(String esDir, Type type) {
         // A data stream rolls over on its own: ILM/ISM resolve the target from the parent stream and never
         // read this setting, and Elasticsearch rejects the alias ILM uses for dated indexes.
-        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type)).doesNotContain("rollover_alias");
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type))
+                .doesNotContain("rollover_alias");
     }
 
     @ParameterizedTest(name = "{0} {1} honours the configured ISM property name")
@@ -246,9 +247,8 @@ class IndexTemplateTest {
         var configuration = configurationWithPolicies();
         configuration.setIndexLifecyclePolicyPropertyName("index.plugins.index_state_management.policy_id");
 
-        assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type)).contains(
-            "\"index.plugins.index_state_management.policy_id\": \"policy-" + type.getType() + "\""
-        );
+        assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type))
+                .contains("\"index.plugins.index_state_management.policy_id\": \"policy-" + type.getType() + "\"");
     }
 
     @ParameterizedTest(name = "{0} {1} renders no lifecycle settings when no policy is set")
@@ -256,8 +256,8 @@ class IndexTemplateTest {
     void should_render_no_lifecycle_settings_for_a_data_stream_when_no_policy_is_set(String esDir, Type type) {
         // The default deployment: the key is documented but unset, and must stay entirely absent.
         assertThat(preparerFor(esDir, new ReporterConfiguration()).generateIndexTemplate(type))
-            .doesNotContain(DATA_STREAM_POLICY_KEY.get(esDir))
-            .doesNotContain("rollover_alias");
+                .doesNotContain(DATA_STREAM_POLICY_KEY.get(esDir))
+                .doesNotContain("rollover_alias");
     }
 
     @ParameterizedTest(name = "{0} {1} escapes a malformed policy")
@@ -268,7 +268,8 @@ class IndexTemplateTest {
         var configuration = configurationWithPolicies();
         setDataStreamPolicy(configuration, type, "bad\"policy");
 
-        assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type)).contains("\"bad\\\"policy\"");
+        assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type))
+                .contains("\"bad\\\"policy\"");
     }
 
     @ParameterizedTest(name = "{0} decisions mapping keeps the matched rule version")
@@ -277,21 +278,27 @@ class IndexTemplateTest {
         var matchedRules = decisionsMappings(esDir).path("properties").path("matched-rules");
 
         assertThat(matchedRules.path("type").asText()).isEqualTo("nested");
-        assertThat(matchedRules.path("properties").path("version").path("type").asText()).isEqualTo("keyword");
+        assertThat(matchedRules.path("properties").path("version").path("type").asText())
+                .isEqualTo("keyword");
     }
 
     @ParameterizedTest(name = "{0} renders no authz-decisions template")
     @MethodSource("all_trees")
     void should_render_no_authz_decisions_template(String esDir) {
         assertThat(Stream.of(Type.TYPES).map(Type::getType)).doesNotContain("authz-decisions");
-        assertThat(IndexTemplateTest.class.getResource("/freemarker/" + esDir + "/mapping/index-template-authz-decisions.ftl")).isNull();
+        assertThat(IndexTemplateTest.class.getResource(
+                        "/freemarker/" + esDir + "/mapping/index-template-authz-decisions.ftl"))
+                .isNull();
     }
 
     private static JsonNode decisionsMappings(String esDir) throws Exception {
-        var mappings = JSON.readTree(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.DECISIONS))
-            .path("template")
-            .path("mappings");
-        assertThat(mappings.isObject()).as("%s decisions template carries mappings", esDir).isTrue();
+        var mappings = JSON.readTree(
+                        preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.DECISIONS))
+                .path("template")
+                .path("mappings");
+        assertThat(mappings.isObject())
+                .as("%s decisions template carries mappings", esDir)
+                .isTrue();
         return mappings;
     }
 
@@ -316,9 +323,9 @@ class IndexTemplateTest {
 
     private static AbstractIndexPreparer preparerFor(String esDir, ReporterConfiguration configuration) {
         var freeMarkerComponent = FreeMarkerComponent.builder()
-            .classLoader(IndexTemplateTest.class.getClassLoader())
-            .classLoaderTemplateBase("freemarker")
-            .build();
+                .classLoader(IndexTemplateTest.class.getClassLoader())
+                .classLoaderTemplateBase("freemarker")
+                .build();
         var pipelineConfiguration = new PipelineConfiguration(freeMarkerComponent);
 
         // No client: generateIndexTemplate only renders, it never talks to the cluster.
@@ -326,7 +333,8 @@ class IndexTemplateTest {
             case "es7x" -> new ES7IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es8x" -> new ES8IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es9x" -> new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
-            case "opensearch" -> new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
+            case "opensearch" ->
+                new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             default -> throw new IllegalArgumentException("Unknown es dir: " + esDir);
         };
     }

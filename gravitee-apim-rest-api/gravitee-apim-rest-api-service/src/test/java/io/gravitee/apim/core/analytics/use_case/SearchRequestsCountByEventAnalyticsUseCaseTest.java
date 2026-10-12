@@ -66,48 +66,46 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() ->
-            cut.execute(
-                GraviteeContext.getExecutionContext(),
-                new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
-            )
-        ).isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchRequestsCountByEventAnalyticsUseCase.Input(
+                                MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())))
+                .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_not_v2_or_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
-        assertThatThrownBy(() ->
-            cut.execute(
-                GraviteeContext.getExecutionContext(),
-                new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
-            )
-        ).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+        assertThatThrownBy(() -> cut.execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchRequestsCountByEventAnalyticsUseCase.Input(
+                                MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())))
+                .isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void should_accept_v2_api() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        analyticsQueryService.requestsCount = RequestsCount.builder().total(10L).countsByEntrypoint(Map.of("http-get", 10L)).build();
+        analyticsQueryService.requestsCount = RequestsCount.builder()
+                .total(10L)
+                .countsByEntrypoint(Map.of("http-get", 10L))
+                .build();
         final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty()));
         assertThat(result.result().getTotal()).isEqualTo(10L);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        assertThatThrownBy(() ->
-            cut.execute(
-                GraviteeContext.getExecutionContext(),
-                new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
-            )
-        )
-            .isInstanceOf(TcpProxyNotSupportedException.class)
-            .hasMessage("TCP Proxy not supported");
+        assertThatThrownBy(() -> cut.execute(
+                        GraviteeContext.getExecutionContext(),
+                        new SearchRequestsCountByEventAnalyticsUseCase.Input(
+                                MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())))
+                .isInstanceOf(TcpProxyNotSupportedException.class)
+                .hasMessage("TCP Proxy not supported");
     }
 
     @Test
@@ -116,10 +114,11 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
         analyticsQueryService.requestsCount = null;
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
-        );
-        assertThat(result.result()).extracting(RequestsCount::getCountsByEntrypoint, RequestsCount::getTotal).containsExactly(Map.of(), 0L);
+                GraviteeContext.getExecutionContext(),
+                new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty()));
+        assertThat(result.result())
+                .extracting(RequestsCount::getCountsByEntrypoint, RequestsCount::getTotal)
+                .containsExactly(Map.of(), 0L);
     }
 
     @Test
@@ -127,13 +126,12 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         analyticsQueryService.requestsCount = RequestsCount.builder()
-            .total(56L)
-            .countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L))
-            .build();
+                .total(56L)
+                .countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L))
+                .build();
         final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty()));
         assertThat(result.result().getTotal()).isEqualTo(56);
         assertThat(result.result().getCountsByEntrypoint()).isEqualTo(Map.of("http-get", 26L, "http-post", 30L));
     }
@@ -144,13 +142,13 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
         GraviteeContext.setCurrentEnvironment("environment-id");
         var queryString = "status:200 AND method:GET";
         analyticsQueryService.requestsCount = RequestsCount.builder()
-            .total(56L)
-            .countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L))
-            .build();
+                .total(56L)
+                .countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L))
+                .build();
         final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.of(queryString))
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchRequestsCountByEventAnalyticsUseCase.Input(
+                        MY_API, FROM_EPOCH, TO_EPOCH, Optional.of(queryString)));
         assertThat(result.result().getTotal()).isNotNull();
     }
 }

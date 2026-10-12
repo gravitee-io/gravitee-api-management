@@ -27,5 +27,6 @@ public interface ConnectorMapper {
     ConnectorMapper INSTANCE = Mappers.getMapper(ConnectorMapper.class);
 
     Connector convert(ConnectorExpandPluginEntity connectorExpandPluginEntity);
+
     List<Connector> convert(Collection<ConnectorExpandPluginEntity> connectorExpandPluginEntities);
 }

@@ -33,8 +33,10 @@ public class DefinitionContextMapperTest {
         io.gravitee.rest.api.management.v2.rest.model.DefinitionContext result = definitionContextMapper.map(context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getOrigin()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.OriginEnum.MANAGEMENT);
-        assertThat(result.getMode()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.ModeEnum.FULLY_MANAGED);
+        assertThat(result.getOrigin())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.OriginEnum.MANAGEMENT);
+        assertThat(result.getMode())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.ModeEnum.FULLY_MANAGED);
     }
 
     @Test

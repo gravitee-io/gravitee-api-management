@@ -46,6 +46,7 @@ public class DefaultAsyncApiProvider implements DefaultPortalPageContentProvider
 
     @Override
     public PortalPageContent<?> provide(String organizationId, String environmentId) {
-        return new AsyncApiPageContent(PortalPageContentId.random(), organizationId, environmentId, defaultAsyncApiContent);
+        return new AsyncApiPageContent(
+                PortalPageContentId.random(), organizationId, environmentId, defaultAsyncApiContent);
     }
 }

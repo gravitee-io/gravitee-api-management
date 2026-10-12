@@ -42,12 +42,11 @@ public class ScheduledPortalPageAutoFetchService extends AbstractService impleme
     private final AtomicLong counter = new AtomicLong(0);
 
     public ScheduledPortalPageAutoFetchService(
-        @Qualifier("portalAutoFetchTaskScheduler") TaskScheduler scheduler,
-        @Value("${services.portal_navigation_auto_fetch.cron:0 */5 * * * *}") String cronTrigger,
-        @Value("${services.portal_navigation_auto_fetch.enabled:true}") boolean enabled,
-        AutoFetchPortalNavigationItemsUseCase autoFetchPortalNavigationItemsUseCase,
-        ClusterManager clusterManager
-    ) {
+            @Qualifier("portalAutoFetchTaskScheduler") TaskScheduler scheduler,
+            @Value("${services.portal_navigation_auto_fetch.cron:0 */5 * * * *}") String cronTrigger,
+            @Value("${services.portal_navigation_auto_fetch.enabled:true}") boolean enabled,
+            AutoFetchPortalNavigationItemsUseCase autoFetchPortalNavigationItemsUseCase,
+            ClusterManager clusterManager) {
         this.scheduler = scheduler;
         this.cronTrigger = cronTrigger;
         this.enabled = enabled;
@@ -71,9 +70,9 @@ public class ScheduledPortalPageAutoFetchService extends AbstractService impleme
             scheduler.schedule(this, new CronTrigger(cronTrigger));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                "Invalid cron expression [%s] in property 'services.portal_navigation_auto_fetch.cron'".formatted(cronTrigger),
-                e
-            );
+                    "Invalid cron expression [%s] in property 'services.portal_navigation_auto_fetch.cron'"
+                            .formatted(cronTrigger),
+                    e);
         }
         log.info("Portal Page Auto Fetch service has been initialized with cron [{}]", cronTrigger);
     }
@@ -96,12 +95,17 @@ public class ScheduledPortalPageAutoFetchService extends AbstractService impleme
             // Kept at debug when there was nothing to do: the job ticks every 5 minutes on every
             // installation, including those that use no external source at all.
             if (output.succeeded() + output.failed() > 0) {
-                log.info("Portal page auto fetch #{}: {} navigation page(s) fetched, {} failed", run, output.succeeded(), output.failed());
+                log.info(
+                        "Portal page auto fetch #{}: {} navigation page(s) fetched, {} failed",
+                        run,
+                        output.succeeded(),
+                        output.failed());
             } else {
                 log.debug("Portal page auto fetch #{}: no navigation page was due", run);
             }
         } catch (Exception e) {
-            log.error("Portal page auto fetch #{} failed: no portal navigation page was fetched during this run", run, e);
+            log.error(
+                    "Portal page auto fetch #{} failed: no portal navigation page was fetched during this run", run, e);
         }
         log.debug("Portal page auto fetch #{} ended at {}", run, Instant.now());
     }

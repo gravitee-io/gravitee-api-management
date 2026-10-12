@@ -101,33 +101,30 @@ public class Theme {
 
     @Override
     public String toString() {
-        return (
-            "Theme{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            ", updatedAt='" +
-            updatedAt +
-            '\'' +
-            ", enabled='" +
-            enabled +
-            '\'' +
-            ", definition='" +
-            definition +
-            '\'' +
-            '}'
-        );
+        return ("Theme{" + "id='"
+                + id
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", createdAt='"
+                + createdAt
+                + '\''
+                + ", updatedAt='"
+                + updatedAt
+                + '\''
+                + ", enabled='"
+                + enabled
+                + '\''
+                + ", definition='"
+                + definition
+                + '\''
+                + '}');
     }
 }

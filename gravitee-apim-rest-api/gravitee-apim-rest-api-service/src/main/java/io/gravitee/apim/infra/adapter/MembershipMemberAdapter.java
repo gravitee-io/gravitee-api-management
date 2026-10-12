@@ -29,5 +29,6 @@ public interface MembershipMemberAdapter {
     MembershipMemberAdapter INSTANCE = Mappers.getMapper(MembershipMemberAdapter.class);
 
     MembershipMember map(MembershipService.MembershipMember member);
+
     MembershipService.MembershipMember map(MembershipMember member);
 }

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.definition.model.DefinitionContext.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -26,7 +25,6 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -59,7 +57,12 @@ public class ApiService_DeployTest {
             api.setId(apiId);
             api.setOrigin(ORIGIN_KUBERNETES);
             Mockito.when(apiRepository.findById(apiId)).thenReturn(Optional.of(api));
-            apiService.deploy(GraviteeContext.getExecutionContext(), apiId, "some-user", EventType.STOP_API, new ApiDeploymentEntity());
+            apiService.deploy(
+                    GraviteeContext.getExecutionContext(),
+                    apiId,
+                    "some-user",
+                    EventType.STOP_API,
+                    new ApiDeploymentEntity());
         });
     }
 }

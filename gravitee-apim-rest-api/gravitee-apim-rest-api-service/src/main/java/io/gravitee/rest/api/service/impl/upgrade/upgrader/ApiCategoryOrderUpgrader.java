@@ -42,10 +42,9 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
 
     @Autowired
     public ApiCategoryOrderUpgrader(
-        @Lazy ApiRepository apiRepository,
-        @Lazy CategoryRepository categoryRepository,
-        @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository
-    ) {
+            @Lazy ApiRepository apiRepository,
+            @Lazy CategoryRepository categoryRepository,
+            @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository) {
         this.apiRepository = apiRepository;
         this.categoryRepository = categoryRepository;
         this.apiCategoryOrderRepository = apiCategoryOrderRepository;
@@ -64,21 +63,21 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
     private boolean fillApiCategoryOrderTable() throws TechnicalException {
         this.categoryRepository.findAll().forEach(category -> {
             var order = new AtomicInteger(0);
-            this.apiRepository.search(new ApiCriteria.Builder().category(category.getId()).build(), ApiFieldFilter.defaultFields()).forEach(
-                api -> {
-                    try {
-                        this.apiCategoryOrderRepository.create(
-                            ApiCategoryOrder.builder()
-                                .apiId(api.getId())
-                                .categoryId(category.getId())
-                                .order(order.getAndIncrement())
-                                .build()
-                        );
-                    } catch (TechnicalException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            );
+            this.apiRepository
+                    .search(
+                            new ApiCriteria.Builder().category(category.getId()).build(),
+                            ApiFieldFilter.defaultFields())
+                    .forEach(api -> {
+                        try {
+                            this.apiCategoryOrderRepository.create(ApiCategoryOrder.builder()
+                                    .apiId(api.getId())
+                                    .categoryId(category.getId())
+                                    .order(order.getAndIncrement())
+                                    .build());
+                        } catch (TechnicalException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
         });
         return true;
     }

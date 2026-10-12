@@ -120,9 +120,7 @@ public class ProxyEndpointResolverTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-        delimiterString = "|",
-        textBlock = """
+    @CsvSource(delimiterString = "|", textBlock = """
         http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test
         http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test/
         http://host:8080/test|local:|local|http://host:8080/test
@@ -144,9 +142,9 @@ public class ProxyEndpointResolverTest {
         wss://host:8080/test/|wss://host:8080/test/|endpoint|wss://endpoint:8080/test/
         http://host:8080/test toto  tété/titi|http://host:8080/test toto  tété/titi|endpoint|http://host:8080/test
         http://host:8080/test/ toto  tété/titi|http://host:8080/test/ toto  tété/titi|endpoint|http://host:8080/test
-        """
-    )
-    void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
+        """)
+    void resolveUserDefinedEndpoint(
+            String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.name()).thenReturn(endpointName);
         when(endpoint.target()).thenReturn(endpointTarget);

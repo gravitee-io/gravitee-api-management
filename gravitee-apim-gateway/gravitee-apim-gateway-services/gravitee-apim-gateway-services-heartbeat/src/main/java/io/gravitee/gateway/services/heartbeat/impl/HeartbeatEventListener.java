@@ -41,7 +41,10 @@ public class HeartbeatEventListener implements MessageListener<Event> {
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
 
     public HeartbeatEventListener(final ClusterManager clusterManager, final EventRepository eventRepository) {
-        this(clusterManager, eventRepository, Executors.newSingleThreadExecutor(r -> new Thread(r, "gio-heartbeat-listener")));
+        this(
+                clusterManager,
+                eventRepository,
+                Executors.newSingleThreadExecutor(r -> new Thread(r, "gio-heartbeat-listener")));
     }
 
     /**
@@ -50,10 +53,9 @@ public class HeartbeatEventListener implements MessageListener<Event> {
      */
     @VisibleForTesting
     HeartbeatEventListener(
-        final ClusterManager clusterManager,
-        final EventRepository eventRepository,
-        final ExecutorService heartbeatExecutor
-    ) {
+            final ClusterManager clusterManager,
+            final EventRepository eventRepository,
+            final ExecutorService heartbeatExecutor) {
         this.clusterManager = clusterManager;
         this.eventRepository = eventRepository;
         this.heartbeatExecutor = heartbeatExecutor;
@@ -67,10 +69,9 @@ public class HeartbeatEventListener implements MessageListener<Event> {
             // Check if already processing a heartbeat event
             if (!isProcessing.compareAndSet(false, true)) {
                 log.warn(
-                    "Discarding heartbeat event id[{}] type[{}] - another heartbeat event is already being processed",
-                    event.getId(),
-                    event.getType()
-                );
+                        "Discarding heartbeat event id[{}] type[{}] - another heartbeat event is already being processed",
+                        event.getId(),
+                        event.getType());
                 return;
             }
 
@@ -79,11 +80,10 @@ public class HeartbeatEventListener implements MessageListener<Event> {
                     eventRepository.createOrPatch(event);
                 } catch (Exception ex) {
                     log.warn(
-                        "An error occurred while trying to create or update the heartbeat event id[{}] type[{}]",
-                        event.getId(),
-                        event.getType(),
-                        ex
-                    );
+                            "An error occurred while trying to create or update the heartbeat event id[{}] type[{}]",
+                            event.getId(),
+                            event.getType(),
+                            ex);
                 } finally {
                     isProcessing.set(false);
                 }

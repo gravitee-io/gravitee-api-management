@@ -72,11 +72,8 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByApiAndUser() throws Exception {
-        final Optional<Rating> ratingOptional = ratingRepository.findByReferenceIdAndReferenceTypeAndUser(
-            "api",
-            RatingReferenceType.API,
-            "user"
-        );
+        final Optional<Rating> ratingOptional =
+                ratingRepository.findByReferenceIdAndReferenceTypeAndUser("api", RatingReferenceType.API, "user");
 
         assertTrue(ratingOptional.isPresent());
         final Rating rating = ratingOptional.get();
@@ -98,10 +95,9 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByApiPageable() throws Exception {
         Page<Rating> ratingPage = ratingRepository.findByReferenceIdAndReferenceTypePageable(
-            "api",
-            RatingReferenceType.API,
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
+                "api",
+                RatingReferenceType.API,
+                new PageableBuilder().pageNumber(0).pageSize(2).build());
 
         assertEquals(0, ratingPage.getPageNumber());
         assertEquals(2, ratingPage.getPageElements());
@@ -112,10 +108,9 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("rating-id", ratingPage.getContent().get(1).getId());
 
         ratingPage = ratingRepository.findByReferenceIdAndReferenceTypePageable(
-            "api",
-            RatingReferenceType.API,
-            new PageableBuilder().pageNumber(1).pageSize(2).build()
-        );
+                "api",
+                RatingReferenceType.API,
+                new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertEquals(1, ratingPage.getPageNumber());
         assertEquals(1, ratingPage.getPageElements());
@@ -130,26 +125,20 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType("api", RatingReferenceType.API);
         assertEquals(3, ratings.size());
         assertEquals(
-            1,
-            ratings
-                .stream()
-                .filter(rating -> "rating-id".equals(rating.getId()))
-                .count()
-        );
+                1,
+                ratings.stream()
+                        .filter(rating -> "rating-id".equals(rating.getId()))
+                        .count());
         assertEquals(
-            1,
-            ratings
-                .stream()
-                .filter(rating -> "rating2-id".equals(rating.getId()))
-                .count()
-        );
+                1,
+                ratings.stream()
+                        .filter(rating -> "rating2-id".equals(rating.getId()))
+                        .count());
         assertEquals(
-            1,
-            ratings
-                .stream()
-                .filter(rating -> "rating4-id".equals(rating.getId()))
-                .count()
-        );
+                1,
+                ratings.stream()
+                        .filter(rating -> "rating4-id".equals(rating.getId()))
+                        .count());
     }
 
     @Test
@@ -160,9 +149,11 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindReferenceIdsOrderByRateWithCriteria() throws Exception {
-        final Set<String> ranking = ratingRepository.findReferenceIdsOrderByRate(
-            new RatingCriteria.Builder().referenceIds("api").referenceType(RatingReferenceType.API).gt(1).build()
-        );
+        final Set<String> ranking = ratingRepository.findReferenceIdsOrderByRate(new RatingCriteria.Builder()
+                .referenceIds("api")
+                .referenceType(RatingReferenceType.API)
+                .gt(1)
+                .build());
         assertEquals(ranking, new LinkedHashSet<>(Arrays.asList("api")));
     }
 
@@ -202,7 +193,10 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(rating.getRate(), ratingSaved.getRate(), "Invalid rating rate.");
         assertTrue(compareDate(rating.getCreatedAt(), ratingSaved.getCreatedAt()), "Invalid rating created date.");
         assertTrue(compareDate(rating.getUpdatedAt(), ratingSaved.getUpdatedAt()), "Invalid rating updated date.");
-        assertEquals(singletonList(ratingAnswer), ratingAnswerRepository.findByRating(rating.getId()), "Invalid rating answers.");
+        assertEquals(
+                singletonList(ratingAnswer),
+                ratingAnswerRepository.findByRating(rating.getId()),
+                "Invalid rating answers.");
     }
 
     @Test
@@ -245,13 +239,15 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        final var beforeDeletion = ratingRepository
-            .findByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API)
-            .stream()
-            .map(Rating::getId)
-            .toList();
-        final var deleted = ratingRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API);
-        final var nbAfterDeletion = ratingRepository.findByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API).size();
+        final var beforeDeletion =
+                ratingRepository.findByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API).stream()
+                        .map(Rating::getId)
+                        .toList();
+        final var deleted =
+                ratingRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API);
+        final var nbAfterDeletion = ratingRepository
+                .findByReferenceIdAndReferenceType("ToBeDeleted", RatingReferenceType.API)
+                .size();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(beforeDeletion.containsAll(deleted));
@@ -260,9 +256,12 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_answer_by_rating() throws Exception {
-        final var beforeDeletion = ratingAnswerRepository.findByRating("ToBeDeleted").stream().map(RatingAnswer::getId).toList();
+        final var beforeDeletion = ratingAnswerRepository.findByRating("ToBeDeleted").stream()
+                .map(RatingAnswer::getId)
+                .toList();
         final var deleted = ratingAnswerRepository.deleteByRating("ToBeDeleted");
-        final var nbAfterDeletion = ratingAnswerRepository.findByRating("ToBeDeleted").size();
+        final var nbAfterDeletion =
+                ratingAnswerRepository.findByRating("ToBeDeleted").size();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(beforeDeletion.containsAll(deleted));

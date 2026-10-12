@@ -16,11 +16,8 @@
 package io.gravitee.apim.core.promotion.model;
 
 import java.time.Instant;
-import java.util.Date;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @Builder(toBuilder = true)

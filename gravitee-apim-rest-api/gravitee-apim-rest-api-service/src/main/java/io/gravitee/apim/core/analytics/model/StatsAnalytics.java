@@ -15,4 +15,5 @@
  */
 package io.gravitee.apim.core.analytics.model;
 
-public record StatsAnalytics(float avg, float min, float max, float sum, float count, float rps, float rpm, float rph) {}
+public record StatsAnalytics(
+        float avg, float min, float max, float sum, float count, float rps, float rpm, float rph) {}

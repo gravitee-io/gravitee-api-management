@@ -61,15 +61,15 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetDateHistoAnalytics() {
         final Response response = target(APPLICATION)
-            .path("analytics")
-            .queryParam("from", 0)
-            .queryParam("to", 100)
-            .queryParam("interval", 10_000)
-            .queryParam("query", APPLICATION)
-            .queryParam("type", "DATE_HISTO")
-            .queryParam("aggs", "AVG:hit")
-            .request()
-            .get();
+                .path("analytics")
+                .queryParam("from", 0)
+                .queryParam("to", 100)
+                .queryParam("interval", 10_000)
+                .queryParam("query", APPLICATION)
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("aggs", "AVG:hit")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<DateHistogramQuery> queryCaptor = ArgumentCaptor.forClass(DateHistogramQuery.class);
@@ -92,17 +92,17 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetGroupByAnalytics() {
         final Response response = target(APPLICATION)
-            .path("analytics")
-            .queryParam("from", 0)
-            .queryParam("to", 100)
-            .queryParam("interval", 10_000)
-            .queryParam("query", APPLICATION)
-            .queryParam("field", APPLICATION)
-            .queryParam("type", "GROUP_BY")
-            .queryParam("ranges", "10:20")
-            .queryParam("order", "orderType:orderField")
-            .request()
-            .get();
+                .path("analytics")
+                .queryParam("from", 0)
+                .queryParam("to", 100)
+                .queryParam("interval", 10_000)
+                .queryParam("query", APPLICATION)
+                .queryParam("field", APPLICATION)
+                .queryParam("type", "GROUP_BY")
+                .queryParam("ranges", "10:20")
+                .queryParam("order", "orderType:orderField")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<GroupByQuery> queryCaptor = ArgumentCaptor.forClass(GroupByQuery.class);
@@ -131,14 +131,14 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetCountAnalytics() {
         final Response response = target(APPLICATION)
-            .path("analytics")
-            .queryParam("from", 0)
-            .queryParam("to", 100)
-            .queryParam("interval", 10_000)
-            .queryParam("query", APPLICATION)
-            .queryParam("type", "COUNT")
-            .request()
-            .get();
+                .path("analytics")
+                .queryParam("from", 0)
+                .queryParam("to", 100)
+                .queryParam("interval", 10_000)
+                .queryParam("query", APPLICATION)
+                .queryParam("type", "COUNT")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ExecutionContext> queryContextCaptor = ArgumentCaptor.forClass(ExecutionContext.class);

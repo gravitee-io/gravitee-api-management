@@ -56,24 +56,21 @@ public class PortalAnalyticsDashboardsResourceTest extends AbstractResourceTest 
     void setUp() {
         resetAllMocks();
         reset(listDashboardsUseCase);
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
     }
 
     @Test
     @DisplayName("returns paginated data + metadata + links and delegates to ListDashboardsUseCase")
     void returnsPaginatedList() {
-        when(listDashboardsUseCase.execute(any())).thenReturn(
-            new ListDashboardsUseCase.Output(
-                List.of(
-                    PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1"),
-                    PortalAnalyticsDashboardFixtures.aDashboard("dashboard-2", "Dashboard 2")
-                )
-            )
-        );
+        when(listDashboardsUseCase.execute(any()))
+                .thenReturn(new ListDashboardsUseCase.Output(List.of(
+                        PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1"),
+                        PortalAnalyticsDashboardFixtures.aDashboard("dashboard-2", "Dashboard 2"))));
 
-        final var response = target().queryParam("page", 1).queryParam("size", 10).request().get();
+        final var response =
+                target().queryParam("page", 1).queryParam("size", 10).request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -91,9 +88,9 @@ public class PortalAnalyticsDashboardsResourceTest extends AbstractResourceTest 
     @Test
     @DisplayName("403 when PORTAL_NEXT_ANALYTICS_ENABLED is false — use case is not invoked")
     void forbiddenWhenAnalyticsDisabled() {
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(false);
 
         final var response = target().request().get();
 

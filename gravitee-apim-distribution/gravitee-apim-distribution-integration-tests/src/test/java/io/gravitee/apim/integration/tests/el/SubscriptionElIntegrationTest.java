@@ -69,20 +69,22 @@ class SubscriptionElIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-        );
+                "transform-headers",
+                PolicyBuilder.build(
+                        "transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class));
         policies.put("jwt", PolicyBuilder.build("jwt", JWTPolicy.class, JWTPolicyConfiguration.class));
     }
 
@@ -97,37 +99,33 @@ class SubscriptionElIntegrationTest extends AbstractGatewayTest {
         expectedHeaders.put("X-Expression-Subscription", "subscription-id");
 
         var jwtToken = generateJWT(5000);
-        when(
-            getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                eq("api-with-subscription-el"),
-                argThat(
-                    securityToken ->
-                        securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
-                        securityToken.getTokenValue().equals(JWT_CLIENT_ID)
-                ),
-                eq(PLAN_JWT_ID)
-            )
-        ).thenReturn(Optional.of(createSubscription("api-with-subscription-el", PLAN_JWT_ID, false)));
+        when(getBean(SubscriptionService.class)
+                        .getByApiAndSecurityToken(
+                                eq("api-with-subscription-el"),
+                                argThat(securityToken ->
+                                        securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name())
+                                                && securityToken.getTokenValue().equals(JWT_CLIENT_ID)),
+                                eq(PLAN_JWT_ID)))
+                .thenReturn(Optional.of(createSubscription("api-with-subscription-el", PLAN_JWT_ID, false)));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader("Authorization", "Bearer " + jwtToken);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                // just asserting we get a response (hence no SSL errors), no need for an API.
-                assertThat(response.statusCode()).isEqualTo(200);
-                var allExpectedHeaders = expectedHeaders
-                    .entrySet()
-                    .stream()
-                    .allMatch(entry -> entry.getValue().equals(response.headers().get(entry.getKey())));
-                assertThat(allExpectedHeaders).isTrue();
-                return response.body();
-            })
-            .retry(1)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    // just asserting we get a response (hence no SSL errors), no need for an API.
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    var allExpectedHeaders = expectedHeaders.entrySet().stream()
+                            .allMatch(entry ->
+                                    entry.getValue().equals(response.headers().get(entry.getKey())));
+                    assertThat(allExpectedHeaders).isTrue();
+                    return response.body();
+                })
+                .retry(1)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
     }
 }

@@ -31,10 +31,8 @@ import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -103,12 +101,14 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
         return switch (SecurityToken.TokenType.valueOfOrNone(securityToken.getTokenType())) {
-            case API_KEY -> apiKeyService
-                .getByApiAndKey(api, securityToken.getTokenValue())
-                .flatMap(apiKey -> getByApiAndId(api, apiKey.getSubscription()));
-            case MD5_API_KEY -> apiKeyService
-                .getByApiAndMd5Key(api, securityToken.getTokenValue())
-                .flatMap(apiKey -> getByApiAndId(api, apiKey.getSubscription()));
+            case API_KEY ->
+                apiKeyService
+                        .getByApiAndKey(api, securityToken.getTokenValue())
+                        .flatMap(apiKey -> getByApiAndId(api, apiKey.getSubscription()));
+            case MD5_API_KEY ->
+                apiKeyService
+                        .getByApiAndMd5Key(api, securityToken.getTokenValue())
+                        .flatMap(apiKey -> getByApiAndId(api, apiKey.getSubscription()));
             case CLIENT_ID -> getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
             case CERTIFICATE -> getByApiAndCertificate(api, plan, securityToken.getTokenValue());
             default -> Optional.empty();
@@ -133,16 +133,14 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     private Optional<Subscription> getByApiAndCertificate(String api, String plan, String certificateFingerprint) {
-        Optional<Subscription> direct = subscriptionTrustStoreLoaderManager.getByCertificate(api, plan, certificateFingerprint);
+        Optional<Subscription> direct =
+                subscriptionTrustStoreLoaderManager.getByCertificate(api, plan, certificateFingerprint);
         if (direct.isPresent()) {
             return direct;
         }
         for (String productId : apiProductRegistry.getApiProductIdsForApi(api)) {
-            Optional<Subscription> fromProduct = subscriptionTrustStoreLoaderManager.getByCertificate(
-                productId,
-                plan,
-                certificateFingerprint
-            );
+            Optional<Subscription> fromProduct =
+                    subscriptionTrustStoreLoaderManager.getByCertificate(productId, plan, certificateFingerprint);
             if (fromProduct.isPresent()) {
                 return fromProduct;
             }
@@ -162,30 +160,30 @@ public class SubscriptionCacheService implements SubscriptionService {
         if (ACCEPTED.name().equals(subscription.getStatus())) {
             if (subscription.getClientCertificate() != null) {
                 log.debug(
-                    "Registering subscription [{}] for scope [{}] by client certificate",
-                    subscription.getId(),
-                    scopeOf(subscription)
-                );
+                        "Registering subscription [{}] for scope [{}] by client certificate",
+                        subscription.getId(),
+                        scopeOf(subscription));
                 registerFromClientCertificate(subscription);
             } else if (subscription.getClientId() != null) {
                 log.debug(
-                    "Registering subscription [{}] for scope [{}] by clientId [{}]",
-                    subscription.getId(),
-                    scopeOf(subscription),
-                    subscription.getClientId()
-                );
+                        "Registering subscription [{}] for scope [{}] by clientId [{}]",
+                        subscription.getId(),
+                        scopeOf(subscription),
+                        subscription.getClientId());
                 publish(subscription, cacheByClientId);
             } else {
-                log.debug("Registering subscription [{}] for scope [{}] by ID", subscription.getId(), scopeOf(subscription));
+                log.debug(
+                        "Registering subscription [{}] for scope [{}] by ID",
+                        subscription.getId(),
+                        scopeOf(subscription));
                 publish(subscription, null);
             }
         } else {
             log.debug(
-                "Unregistering subscription [{}] for scope [{}] with status [{}]",
-                subscription.getId(),
-                scopeOf(subscription),
-                subscription.getStatus()
-            );
+                    "Unregistering subscription [{}] for scope [{}] with status [{}]",
+                    subscription.getId(),
+                    scopeOf(subscription),
+                    subscription.getStatus());
             unregister(subscription);
         }
     }
@@ -210,7 +208,8 @@ public class SubscriptionCacheService implements SubscriptionService {
      * @param identityCache the identity index this credential type belongs to, null when the
      *                      subscription carries no credential and is only reachable by id
      */
-    private void publish(final Subscription subscription, final ConcurrentMap<IdentityKey, Subscription> identityCache) {
+    private void publish(
+            final Subscription subscription, final ConcurrentMap<IdentityKey, Subscription> identityCache) {
         cacheById.compute(subscription.getId(), (id, previous) -> {
             if (identityCache != null) {
                 identityCache.put(identityCacheKey(subscription), subscription);
@@ -248,13 +247,11 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     private void removeIfStale(
-        final ConcurrentMap<IdentityKey, Subscription> cache,
-        final Subscription previous,
-        final Subscription current
-    ) {
-        boolean sameCredentialType =
-            (previous.getClientId() != null) == (current.getClientId() != null) &&
-            (previous.getClientCertificate() != null) == (current.getClientCertificate() != null);
+            final ConcurrentMap<IdentityKey, Subscription> cache,
+            final Subscription previous,
+            final Subscription current) {
+        boolean sameCredentialType = (previous.getClientId() != null) == (current.getClientId() != null)
+                && (previous.getClientCertificate() != null) == (current.getClientCertificate() != null);
 
         IdentityKey previousKey = identityCacheKey(previous);
         IdentityKey previousKeyWithoutPlan = identityCacheKeyWithoutPlan(previous);
@@ -277,10 +274,8 @@ public class SubscriptionCacheService implements SubscriptionService {
             evictEverywhere(cached);
             // The candidate may carry different credentials than what was cached (e.g. a status
             // change arriving after a credential update): evict those keys too.
-            if (
-                !Objects.equals(cached.getClientId(), candidate.getClientId()) ||
-                !Objects.equals(cached.getClientCertificate(), candidate.getClientCertificate())
-            ) {
+            if (!Objects.equals(cached.getClientId(), candidate.getClientId())
+                    || !Objects.equals(cached.getClientCertificate(), candidate.getClientCertificate())) {
                 evictEverywhere(candidate);
             }
             evictIdFromScope(scopeOf(cached), id);
@@ -311,16 +306,14 @@ public class SubscriptionCacheService implements SubscriptionService {
         if (subscriptionIds == null) {
             return;
         }
-        subscriptionIds.forEach(subscriptionId ->
-            cacheById.computeIfPresent(subscriptionId, (id, cached) -> {
-                if (!Objects.equals(scopeId, scopeOf(cached))) {
-                    // Re-registered under another scope in the meantime: leave it alone.
-                    return cached;
-                }
-                evictEverywhere(cached);
-                return null;
-            })
-        );
+        subscriptionIds.forEach(subscriptionId -> cacheById.computeIfPresent(subscriptionId, (id, cached) -> {
+            if (!Objects.equals(scopeId, scopeOf(cached))) {
+                // Re-registered under another scope in the meantime: leave it alone.
+                return cached;
+            }
+            evictEverywhere(cached);
+            return null;
+        }));
     }
 
     private void evictEverywhere(final Subscription subscription) {
@@ -384,7 +377,8 @@ public class SubscriptionCacheService implements SubscriptionService {
     /** Whether the subscription is reachable through the given API — directly, or via its product. */
     private boolean servesApi(final Subscription subscription, final String api) {
         String scope = scopeOf(subscription);
-        return Objects.equals(scope, api) || apiProductRegistry.getApiProductIdsForApi(api).contains(scope);
+        return Objects.equals(scope, api)
+                || apiProductRegistry.getApiProductIdsForApi(api).contains(scope);
     }
 
     private IdentityKey identityCacheKey(Subscription subscription) {
@@ -425,7 +419,8 @@ public class SubscriptionCacheService implements SubscriptionService {
         if (subscription.getApiProductId() == null) {
             return serversOf(subscription.getApi());
         }
-        ReactableApiProduct product = apiProductRegistry.get(subscription.getApiProductId(), subscription.getEnvironmentId());
+        ReactableApiProduct product =
+                apiProductRegistry.get(subscription.getApiProductId(), subscription.getEnvironmentId());
         if (product == null || product.getApiIds() == null) {
             return Set.of();
         }
@@ -437,12 +432,9 @@ public class SubscriptionCacheService implements SubscriptionService {
     private Set<String> serversOf(String apiId) {
         final ReactableApi<?> reactableApi = apiManager.get(apiId);
         if (reactableApi instanceof Api api) {
-            return api
-                .getDefinition()
-                .getListeners()
-                .stream()
-                .flatMap(l -> l.getServers() != null ? l.getServers().stream() : Stream.empty())
-                .collect(Collectors.toSet());
+            return api.getDefinition().getListeners().stream()
+                    .flatMap(l -> l.getServers() != null ? l.getServers().stream() : Stream.empty())
+                    .collect(Collectors.toSet());
         }
         return Set.of();
     }

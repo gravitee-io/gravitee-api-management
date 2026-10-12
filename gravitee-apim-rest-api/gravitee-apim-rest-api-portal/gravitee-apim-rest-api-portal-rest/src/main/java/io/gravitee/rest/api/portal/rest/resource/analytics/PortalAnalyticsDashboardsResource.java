@@ -54,9 +54,12 @@ public class PortalAnalyticsDashboardsResource extends AbstractResource<Analytic
     @RequirePortalAuth
     public Response listDashboards(@BeanParam PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var dashboards = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(executionContext.getEnvironmentId())).dashboards();
+        var dashboards = listDashboardsUseCase
+                .execute(new ListDashboardsUseCase.Input(executionContext.getEnvironmentId()))
+                .dashboards();
 
-        return createListResponse(executionContext, dashboards, effectivePagination(paginationParam, dashboards.size()));
+        return createListResponse(
+                executionContext, dashboards, effectivePagination(paginationParam, dashboards.size()));
     }
 
     private static PaginationParam effectivePagination(PaginationParam paginationParam, int itemCount) {
@@ -67,7 +70,8 @@ public class PortalAnalyticsDashboardsResource extends AbstractResource<Analytic
     }
 
     @Override
-    protected List<AnalyticsDashboard> transformPageContent(ExecutionContext executionContext, List<Dashboard> pageContent) {
+    protected List<AnalyticsDashboard> transformPageContent(
+            ExecutionContext executionContext, List<Dashboard> pageContent) {
         return PortalAnalyticsDashboardMapper.INSTANCE.toDto(pageContent);
     }
 

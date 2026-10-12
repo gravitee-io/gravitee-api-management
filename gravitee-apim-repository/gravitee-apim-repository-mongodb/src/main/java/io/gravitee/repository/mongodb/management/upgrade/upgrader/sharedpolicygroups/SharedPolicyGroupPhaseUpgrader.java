@@ -20,7 +20,6 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateManyModel;
 import com.mongodb.client.model.Updates;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.keys.ApiKeyFederatedUpgrader;
 import java.util.ArrayList;
 import org.bson.Document;
@@ -32,7 +31,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SharedPolicyGroupPhaseUpgrader extends MongoUpgrader {
 
-    public static final int SHARED_POLICY_GROUP_PHASE_UPGRADER_ORDER = ApiKeyFederatedUpgrader.API_KEY_FEDERATED_UPGRADER_ORDER + 1;
+    public static final int SHARED_POLICY_GROUP_PHASE_UPGRADER_ORDER =
+            ApiKeyFederatedUpgrader.API_KEY_FEDERATED_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
@@ -43,17 +43,16 @@ public class SharedPolicyGroupPhaseUpgrader extends MongoUpgrader {
     public boolean upgrade() {
         var projection = Projections.fields(Projections.include("_id", "phase"));
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
-        this.getCollection("sharedpolicygroups")
-            .find()
-            .projection(projection)
-            .forEach(spg -> {
-                if (spg.getString("phase").equals("MESSAGE_REQUEST")) {
-                    bulkActions.add(new UpdateManyModel<>(Filters.eq("_id", spg.getString("_id")), Updates.set("phase", "PUBLISH")));
-                }
-                if (spg.getString("phase").equals("MESSAGE_RESPONSE")) {
-                    bulkActions.add(new UpdateManyModel<>(Filters.eq("_id", spg.getString("_id")), Updates.set("phase", "SUBSCRIBE")));
-                }
-            });
+        this.getCollection("sharedpolicygroups").find().projection(projection).forEach(spg -> {
+            if (spg.getString("phase").equals("MESSAGE_REQUEST")) {
+                bulkActions.add(new UpdateManyModel<>(
+                        Filters.eq("_id", spg.getString("_id")), Updates.set("phase", "PUBLISH")));
+            }
+            if (spg.getString("phase").equals("MESSAGE_RESPONSE")) {
+                bulkActions.add(new UpdateManyModel<>(
+                        Filters.eq("_id", spg.getString("_id")), Updates.set("phase", "SUBSCRIBE")));
+            }
+        });
         if (!bulkActions.isEmpty()) {
             this.getCollection("sharedpolicygroups").bulkWrite(bulkActions).wasAcknowledged();
         }

@@ -85,12 +85,14 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getEndingAt()).isEqualTo(subscription.getEndingAt());
         assertThat(subscriptionMapped.getId()).isEqualTo(subscription.getId());
         assertThat(subscriptionMapped.getPlan()).isEqualTo(subscription.getPlan());
-        assertThat(subscriptionMapped.getStatus()).isEqualTo(subscription.getStatus().name());
-        assertThat(subscriptionMapped.getConsumerStatus().name()).isEqualTo(subscription.getConsumerStatus().name());
-        assertThat(subscriptionMapped.getType().name()).isEqualTo(subscription.getType().name());
-        assertThat(subscriptionMapped.getConfiguration()).isEqualTo(
-            objectMapper.readValue(subscription.getConfiguration(), SubscriptionConfiguration.class)
-        );
+        assertThat(subscriptionMapped.getStatus())
+                .isEqualTo(subscription.getStatus().name());
+        assertThat(subscriptionMapped.getConsumerStatus().name())
+                .isEqualTo(subscription.getConsumerStatus().name());
+        assertThat(subscriptionMapped.getType().name())
+                .isEqualTo(subscription.getType().name());
+        assertThat(subscriptionMapped.getConfiguration())
+                .isEqualTo(objectMapper.readValue(subscription.getConfiguration(), SubscriptionConfiguration.class));
         assertThat(subscriptionMapped.getMetadata()).isEmpty();
     }
 
@@ -112,7 +114,8 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getId()).isEqualTo(subscription.getId());
         assertThat(subscriptionMapped.getPlan()).isEqualTo(subscription.getPlan());
         assertThat(subscriptionMapped.getStatus()).isNull();
-        assertThat(subscriptionMapped.getConsumerStatus()).isEqualTo(io.gravitee.gateway.api.service.Subscription.ConsumerStatus.STARTED);
+        assertThat(subscriptionMapped.getConsumerStatus())
+                .isEqualTo(io.gravitee.gateway.api.service.Subscription.ConsumerStatus.STARTED);
         assertThat(subscriptionMapped.getType()).isEqualTo(io.gravitee.gateway.api.service.Subscription.Type.STANDARD);
         assertThat(subscriptionMapped.getConfiguration()).isNull();
         assertThat(subscriptionMapped.getMetadata()).isEmpty();
@@ -121,10 +124,12 @@ class SubscriptionMapperTest {
     @Test
     void should_share_the_empty_metadata_singleton_across_subscriptions() {
         subscription.setMetadata(null);
-        io.gravitee.gateway.api.service.Subscription first = cut.to(subscription).getFirst();
+        io.gravitee.gateway.api.service.Subscription first =
+                cut.to(subscription).getFirst();
 
         subscription.setMetadata(Map.of());
-        io.gravitee.gateway.api.service.Subscription second = cut.to(subscription).getFirst();
+        io.gravitee.gateway.api.service.Subscription second =
+                cut.to(subscription).getFirst();
 
         assertThat(first.getMetadata()).isEmpty();
         assertThat(first.getMetadata()).isSameAs(second.getMetadata());
@@ -136,7 +141,8 @@ class SubscriptionMapperTest {
         metadata.put("key", null);
         subscription.setMetadata(metadata);
 
-        io.gravitee.gateway.api.service.Subscription mapped = cut.to(subscription).getFirst();
+        io.gravitee.gateway.api.service.Subscription mapped =
+                cut.to(subscription).getFirst();
 
         assertThat(mapped.getMetadata()).containsEntry("key", null);
     }
@@ -156,7 +162,8 @@ class SubscriptionMapperTest {
         subscription.setApplicationName("application-name");
         subscription.setEnvironmentId("env");
 
-        io.gravitee.gateway.api.service.Subscription first = cut.to(subscription).getFirst();
+        io.gravitee.gateway.api.service.Subscription first =
+                cut.to(subscription).getFirst();
         io.gravitee.gateway.api.service.Subscription second = cut.to(other).getFirst();
 
         assertThat(second.getApi()).isSameAs(first.getApi());
@@ -192,7 +199,10 @@ class SubscriptionMapperTest {
         subscription.setApi(null);
         subscription.setEnvironmentId("env-1");
         ApiProductRegistry registry = mock(ApiProductRegistry.class);
-        ReactableApiProduct product = ReactableApiProduct.builder().id("product-1").apiIds(Set.of("api1", "api2")).build();
+        ReactableApiProduct product = ReactableApiProduct.builder()
+                .id("product-1")
+                .apiIds(Set.of("api1", "api2"))
+                .build();
         when(registry.get("product-1", "env-1")).thenReturn(product);
         cut = new SubscriptionMapper(objectMapper, registry);
 
@@ -235,7 +245,8 @@ class SubscriptionMapperTest {
         subscription.setApi(null);
         subscription.setEnvironmentId("env-1");
         ApiProductRegistry registry = mock(ApiProductRegistry.class);
-        ReactableApiProduct product = ReactableApiProduct.builder().id("product-1").apiIds(Set.of()).build();
+        ReactableApiProduct product =
+                ReactableApiProduct.builder().id("product-1").apiIds(Set.of()).build();
         when(registry.get("product-1", "env-1")).thenReturn(product);
         cut = new SubscriptionMapper(objectMapper, registry);
 
@@ -251,7 +262,8 @@ class SubscriptionMapperTest {
         subscription.setApi(null);
         subscription.setEnvironmentId("env-1");
         ApiProductRegistry registry = mock(ApiProductRegistry.class);
-        ReactableApiProduct product = ReactableApiProduct.builder().id("product-1").apiIds(null).build();
+        ReactableApiProduct product =
+                ReactableApiProduct.builder().id("product-1").apiIds(null).build();
         when(registry.get("product-1", "env-1")).thenReturn(product);
         cut = new SubscriptionMapper(objectMapper, registry);
 

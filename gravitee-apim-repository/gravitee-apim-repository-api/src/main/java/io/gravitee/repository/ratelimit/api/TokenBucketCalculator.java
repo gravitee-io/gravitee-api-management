@@ -68,13 +68,12 @@ public final class TokenBucketCalculator {
      * @throws IllegalArgumentException if {@code refillPeriodMillis <= 0}, {@code tokensRequested < 0} or {@code capacity < 0}
      */
     public static TokenBucketConsumeResult refillAndTryConsume(
-        TokenBucket bucket,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis
-    ) {
+            TokenBucket bucket,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis) {
         requireValidArgs(tokensRequested, refillPeriodMillis, capacity);
 
         long elapsed = nowMillis - bucket.getLastRefillTime();
@@ -105,10 +104,7 @@ public final class TokenBucketCalculator {
 
         long tokensAfter = bucket.getTokens();
         return new TokenBucketConsumeResult(
-            allowed,
-            tokensAfter,
-            nextAvailableAtMillis(tokensAfter, refillRate, refillPeriodMillis, nowMillis)
-        );
+                allowed, tokensAfter, nextAvailableAtMillis(tokensAfter, refillRate, refillPeriodMillis, nowMillis));
     }
 
     /**
@@ -118,7 +114,8 @@ public final class TokenBucketCalculator {
      * <p>Public so backends that compute the new balance server-side (e.g. MongoDB's update pipeline)
      * can derive this result field consistently with the Java path.
      */
-    public static long nextAvailableAtMillis(long tokensAfter, long refillRate, long refillPeriodMillis, long nowMillis) {
+    public static long nextAvailableAtMillis(
+            long tokensAfter, long refillRate, long refillPeriodMillis, long nowMillis) {
         if (tokensAfter >= 1) {
             return nowMillis;
         }
@@ -153,7 +150,8 @@ public final class TokenBucketCalculator {
             throw new IllegalArgumentException("refillPeriodMillis must be > 0, was " + refillPeriodMillis);
         }
         if (tokensRequested < 0 || capacity < 0) {
-            throw new IllegalArgumentException("tokensRequested and capacity must be >= 0, were " + tokensRequested + "/" + capacity);
+            throw new IllegalArgumentException(
+                    "tokensRequested and capacity must be >= 0, were " + tokensRequested + "/" + capacity);
         }
     }
 

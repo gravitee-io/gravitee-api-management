@@ -79,26 +79,37 @@ public class SubscriptionFormInlineContentMongoUpgraderTest extends AbstractMana
 
     private void givenAMigratedForm(String formId, String contentId) {
         givenAFormPointingAt(formId, contentId);
-        mongoTemplate.getCollection(pageContentsCollection).insertOne(new Document("_id", contentId).append(CONTENT, DEFINITION));
+        mongoTemplate
+                .getCollection(pageContentsCollection)
+                .insertOne(new Document("_id", contentId).append(CONTENT, DEFINITION));
     }
 
     private void givenAFormPointingAt(String formId, String contentId) {
         mongoTemplate
-            .getCollection(formsCollection)
-            .insertOne(aForm(formId).append(GMD_CONTENT, null).append(PORTAL_PAGE_CONTENT_ID, contentId));
+                .getCollection(formsCollection)
+                .insertOne(aForm(formId).append(GMD_CONTENT, null).append(PORTAL_PAGE_CONTENT_ID, contentId));
     }
 
     // Every form of the collection is scoped to an environment and named, as the unique index on both requires.
     private static Document aForm(String formId) {
-        return new Document("_id", formId).append("environmentId", "env-" + formId).append("name", formId).append("normalizedName", formId);
+        return new Document("_id", formId)
+                .append("environmentId", "env-" + formId)
+                .append("name", formId)
+                .append("normalizedName", formId);
     }
 
     private Document findForm(String id) {
-        return mongoTemplate.getCollection(formsCollection).find(new Document("_id", id)).first();
+        return mongoTemplate
+                .getCollection(formsCollection)
+                .find(new Document("_id", id))
+                .first();
     }
 
     private Document findPageContent(String id) {
-        return mongoTemplate.getCollection(pageContentsCollection).find(new Document("_id", id)).first();
+        return mongoTemplate
+                .getCollection(pageContentsCollection)
+                .find(new Document("_id", id))
+                .first();
     }
 
     @Test
@@ -124,7 +135,9 @@ public class SubscriptionFormInlineContentMongoUpgraderTest extends AbstractMana
 
     @Test
     public void upgrade_should_leave_a_form_that_was_never_migrated_untouched() throws Exception {
-        mongoTemplate.getCollection(formsCollection).insertOne(aForm("form-inline").append(GMD_CONTENT, DEFINITION));
+        mongoTemplate
+                .getCollection(formsCollection)
+                .insertOne(aForm("form-inline").append(GMD_CONTENT, DEFINITION));
 
         boolean result = upgrader.upgrade();
 
@@ -135,7 +148,9 @@ public class SubscriptionFormInlineContentMongoUpgraderTest extends AbstractMana
     @Test
     public void upgrade_should_leave_a_page_content_no_form_points_at_alone() throws Exception {
         givenAMigratedForm("form-migrated", "content-migrated");
-        mongoTemplate.getCollection(pageContentsCollection).insertOne(new Document("_id", "content-of-a-page").append(CONTENT, "# A page"));
+        mongoTemplate
+                .getCollection(pageContentsCollection)
+                .insertOne(new Document("_id", "content-of-a-page").append(CONTENT, "# A page"));
 
         upgrader.upgrade();
 

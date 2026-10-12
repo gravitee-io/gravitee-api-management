@@ -61,9 +61,9 @@ class RepositorySyncConfigurationTest {
 
     private static Method beanMethod(String name) {
         return Arrays.stream(RepositorySyncConfiguration.class.getDeclaredMethods())
-            .filter(m -> m.getName().equals(name) && m.isAnnotationPresent(Bean.class))
-            .findFirst()
-            .orElse(null);
+                .filter(m -> m.getName().equals(name) && m.isAnnotationPresent(Bean.class))
+                .findFirst()
+                .orElse(null);
     }
 
     private static boolean isGammaConditional(Method method) {

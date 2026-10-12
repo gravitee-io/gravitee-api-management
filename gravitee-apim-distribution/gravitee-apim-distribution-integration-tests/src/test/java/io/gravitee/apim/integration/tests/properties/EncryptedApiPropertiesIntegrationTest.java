@@ -64,7 +64,8 @@ class EncryptedApiPropertiesIntegrationTest extends AbstractGatewayTest {
     private static final String PLAIN_DYNAMIC_VALUE = "this is a plain dynamic property";
 
     // Computed once so both uses see the same ciphertext, regardless of whether encryption is deterministic.
-    private static final String ENCRYPTED_WITH_ANOTHER_SECRET_VALUE = encryptWith(ANOTHER_SECRET, ENCRYPTED_MANUAL_PLAINTEXT);
+    private static final String ENCRYPTED_WITH_ANOTHER_SECRET_VALUE =
+            encryptWith(ANOTHER_SECRET, ENCRYPTED_MANUAL_PLAINTEXT);
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
@@ -82,77 +83,75 @@ class EncryptedApiPropertiesIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-        );
+                "transform-headers",
+                PolicyBuilder.build(
+                        "transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class));
     }
 
     @Test
     @DeployApi("/apis/v4/properties/api-with-encrypted-properties.json")
     @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
-    void should_evaluate_encrypted_and_plain_properties_to_their_plaintext_value(HttpClient httpClient, VertxTestContext vertxTestContext) {
+    void should_evaluate_encrypted_and_plain_properties_to_their_plaintext_value(
+            HttpClient httpClient, VertxTestContext vertxTestContext) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .subscribe(
-                response ->
-                    vertxTestContext.verify(() -> {
-                        assertThat(response.statusCode()).isEqualTo(200);
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .subscribe(
+                        response -> vertxTestContext.verify(() -> {
+                            assertThat(response.statusCode()).isEqualTo(200);
 
-                        wiremock.verify(
-                            1,
-                            getRequestedFor(urlPathEqualTo("/endpoint"))
-                                .withHeader("X-Encrypted-Manual-Property", equalTo(ENCRYPTED_MANUAL_PLAINTEXT))
-                                .withHeader("X-Encrypted-Dynamic-Property", equalTo(ENCRYPTED_DYNAMIC_PLAINTEXT))
-                                .withHeader("X-Plain-Dynamic-Property", equalTo(PLAIN_DYNAMIC_VALUE))
-                        );
-                        vertxTestContext.completeNow();
-                    }),
-                vertxTestContext::failNow
-            );
+                            wiremock.verify(
+                                    1,
+                                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                                            .withHeader(
+                                                    "X-Encrypted-Manual-Property", equalTo(ENCRYPTED_MANUAL_PLAINTEXT))
+                                            .withHeader(
+                                                    "X-Encrypted-Dynamic-Property",
+                                                    equalTo(ENCRYPTED_DYNAMIC_PLAINTEXT))
+                                            .withHeader("X-Plain-Dynamic-Property", equalTo(PLAIN_DYNAMIC_VALUE)));
+                            vertxTestContext.completeNow();
+                        }),
+                        vertxTestContext::failNow);
     }
 
     @Test
     @DeployApi("/apis/v4/properties/api-with-property-encrypted-with-another-secret.json")
     @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
     void should_serve_the_stored_value_as_is_when_the_gateway_secret_does_not_match(
-        HttpClient httpClient,
-        VertxTestContext vertxTestContext
-    ) {
+            HttpClient httpClient, VertxTestContext vertxTestContext) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test-another-secret")
-            .flatMap(HttpClientRequest::rxSend)
-            .subscribe(
-                response ->
-                    vertxTestContext.verify(() -> {
-                        assertThat(response.statusCode()).isEqualTo(200);
+                .rxRequest(HttpMethod.GET, "/test-another-secret")
+                .flatMap(HttpClientRequest::rxSend)
+                .subscribe(
+                        response -> vertxTestContext.verify(() -> {
+                            assertThat(response.statusCode()).isEqualTo(200);
 
-                        wiremock.verify(
-                            1,
-                            getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
-                                "X-Encrypted-Property",
-                                equalTo(ENCRYPTED_WITH_ANOTHER_SECRET_VALUE)
-                            )
-                        );
-                        vertxTestContext.completeNow();
-                    }),
-                vertxTestContext::failNow
-            );
+                            wiremock.verify(
+                                    1,
+                                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                                            .withHeader(
+                                                    "X-Encrypted-Property",
+                                                    equalTo(ENCRYPTED_WITH_ANOTHER_SECRET_VALUE)));
+                            vertxTestContext.completeNow();
+                        }),
+                        vertxTestContext::failNow);
     }
 
     @SneakyThrows

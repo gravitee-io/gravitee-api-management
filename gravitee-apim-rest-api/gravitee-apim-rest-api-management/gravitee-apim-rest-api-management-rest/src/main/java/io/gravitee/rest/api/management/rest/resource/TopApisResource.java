@@ -53,67 +53,75 @@ public class TopApisResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List of top APIs", description = "User must have the PORTAL_TOP_APIS[READ] permission to use this service")
+    @Operation(
+            summary = "List of top APIs",
+            description = "User must have the PORTAL_TOP_APIS[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of top APIs",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TopApiEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of top APIs",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TopApiEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.READ)})
     public List<TopApiEntity> getTopApis() {
-        return topApiService.findAll(GraviteeContext.getExecutionContext()).stream().peek(addPictureUrl()).collect(toList());
+        return topApiService.findAll(GraviteeContext.getExecutionContext()).stream()
+                .peek(addPictureUrl())
+                .collect(toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a top API", description = "User must have the PORTAL_TOP_APIS[CREATE] permission to use this service")
+    @Operation(
+            summary = "Create a top API",
+            description = "User must have the PORTAL_TOP_APIS[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of top APIs",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TopApiEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of top APIs",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TopApiEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.CREATE)})
     public List<TopApiEntity> createTopApi(@Valid @NotNull final NewTopApiEntity topApi) {
-        return topApiService.create(GraviteeContext.getExecutionContext(), topApi).stream().peek(addPictureUrl()).collect(toList());
+        return topApiService.create(GraviteeContext.getExecutionContext(), topApi).stream()
+                .peek(addPictureUrl())
+                .collect(toList());
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update a top API", description = "User must have the PORTAL_TOP_APIS[UPDATE] permission to use this service")
+    @Operation(
+            summary = "Update a top API",
+            description = "User must have the PORTAL_TOP_APIS[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of top APIs",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TopApiEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of top APIs",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TopApiEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.UPDATE)})
     public List<TopApiEntity> updateTopApi(@Valid @NotNull final List<UpdateTopApiEntity> topApis) {
-        return topApiService.update(GraviteeContext.getExecutionContext(), topApis).stream().peek(addPictureUrl()).collect(toList());
+        return topApiService.update(GraviteeContext.getExecutionContext(), topApis).stream()
+                .peek(addPictureUrl())
+                .collect(toList());
     }
 
     @Path("{topAPI}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Delete an existing top API",
-        description = "User must have the PORTAL_TOP_APIS[DELETE] permission to use this service"
-    )
+            summary = "Delete an existing top API",
+            description = "User must have the PORTAL_TOP_APIS[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Top API successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.DELETE)})
     public void deleteTopApi(@PathParam("topAPI") String topAPI) {
         topApiService.delete(GraviteeContext.getExecutionContext(), topAPI);
     }
@@ -121,14 +129,13 @@ public class TopApisResource extends AbstractResource {
     private Consumer<TopApiEntity> addPictureUrl() {
         return topApiEntity -> {
             final UriBuilder ub = uriInfo.getBaseUriBuilder();
-            final UriBuilder uriBuilder = ub
-                .path("organizations")
-                .path(GraviteeContext.getCurrentOrganization())
-                .path("environments")
-                .path(GraviteeContext.getCurrentEnvironment())
-                .path("apis")
-                .path(topApiEntity.getApi())
-                .path("picture");
+            final UriBuilder uriBuilder = ub.path("organizations")
+                    .path(GraviteeContext.getCurrentOrganization())
+                    .path("environments")
+                    .path(GraviteeContext.getCurrentEnvironment())
+                    .path("apis")
+                    .path(topApiEntity.getApi())
+                    .path("picture");
             topApiEntity.setPictureUrl(uriBuilder.build().toString());
         };
     }

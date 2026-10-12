@@ -30,7 +30,6 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -147,8 +146,8 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME)
-            .request()
-            .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+                .request()
+                .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
@@ -164,8 +163,8 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME)
-            .request()
-            .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+                .request()
+                .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
@@ -187,6 +186,8 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newPageEntity));
 
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path("my-beautiful-page").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path("my-beautiful-page").getUri().toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

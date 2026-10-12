@@ -43,7 +43,9 @@ import org.springframework.stereotype.Component;
 public final class HtmlSanitizer {
 
     private final Parser mdParser = Parser.builder(new MutableDataSet()).build();
-    private final HtmlRenderer htmlRenderer = HtmlRenderer.builder(new MutableDataSet().set(HtmlRenderer.SUPPRESSED_LINKS, "")).build();
+    private final HtmlRenderer htmlRenderer = HtmlRenderer.builder(
+                    new MutableDataSet().set(HtmlRenderer.SUPPRESSED_LINKS, ""))
+            .build();
 
     private final PolicyFactory factory;
 
@@ -114,12 +116,10 @@ public final class HtmlSanitizer {
     static class InvalidCommentVisitor extends NodeVisitor {
 
         InvalidCommentVisitor() {
-            super(
-                new VisitHandler<>(HtmlCommentBlock.class, htmlBlock -> {
-                    String removedInvalidComments = htmlBlock.getChars().toString().replaceAll("<!-{2,3}>", "");
-                    htmlBlock.setChars(BasedSequence.of(removedInvalidComments));
-                })
-            );
+            super(new VisitHandler<>(HtmlCommentBlock.class, htmlBlock -> {
+                String removedInvalidComments = htmlBlock.getChars().toString().replaceAll("<!-{2,3}>", "");
+                htmlBlock.setChars(BasedSequence.of(removedInvalidComments));
+            }));
         }
     }
 
@@ -144,46 +144,55 @@ public final class HtmlSanitizer {
         };
 
         PolicyFactory htmlImagesSanitizer = new HtmlPolicyBuilder()
-            .allowUrlProtocols("data", "http", "https")
-            .allowElements("img")
-            .allowAttributes("alt", "title", "src")
-            .onElements("img")
-            .allowAttributes("border", "height", "width")
-            .matching(IntegerAttributePolicy)
-            .onElements("img")
-            .toFactory();
+                .allowUrlProtocols("data", "http", "https")
+                .allowElements("img")
+                .allowAttributes("alt", "title", "src")
+                .onElements("img")
+                .allowAttributes("border", "height", "width")
+                .matching(IntegerAttributePolicy)
+                .onElements("img")
+                .toFactory();
 
         PolicyFactory htmlCssSanitizer = new HtmlPolicyBuilder()
-            .allowStyling(CssSchema.union(CssSchema.DEFAULT, CssSchema.withProperties(Collections.singleton("float"))))
-            .toFactory();
+                .allowStyling(
+                        CssSchema.union(CssSchema.DEFAULT, CssSchema.withProperties(Collections.singleton("float"))))
+                .toFactory();
 
         /*
          * Allow a set of HTML tags to support GitHub Flavoured Markdown. Spec is available at: <a href="https://github.github.com/gfm">https://github.github.com/gfm</a>
          */
-        PolicyFactory githubFlavouredMarkdownSanitizer = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
+        PolicyFactory githubFlavouredMarkdownSanitizer =
+                new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
         PolicyFactory graviteeMarkdownInstallMcpSanitizer = new HtmlPolicyBuilder()
-            .allowElements("gmd-install-mcp")
-            .allowAttributes("name", "transport", "url", "headers", "command", "args", "env", "clients")
-            .onElements("gmd-install-mcp")
-            .toFactory();
+                .allowElements("gmd-install-mcp")
+                .allowAttributes("name", "transport", "url", "headers", "command", "args", "env", "clients")
+                .onElements("gmd-install-mcp")
+                .toFactory();
 
-        PolicyFactory policyFactory = Sanitizers.BLOCKS.and(Sanitizers.FORMATTING)
-            .and(
-                new HtmlPolicyBuilder()
-                    .allowStandardUrlProtocols()
-                    .allowElements("a")
-                    .allowAttributes("href", "title")
-                    .onElements("a")
-                    .toFactory()
-            )
-            .and(htmlCssSanitizer)
-            .and(Sanitizers.TABLES)
-            .and(new HtmlPolicyBuilder().allowElements("pre", "hr").toFactory())
-            .and(new HtmlPolicyBuilder().allowElements("ol").allowAttributes("start").onElements("ol").toFactory())
-            .and(htmlImagesSanitizer)
-            .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory())
-            .and(githubFlavouredMarkdownSanitizer)
-            .and(graviteeMarkdownInstallMcpSanitizer);
+        PolicyFactory policyFactory = Sanitizers.BLOCKS
+                .and(Sanitizers.FORMATTING)
+                .and(new HtmlPolicyBuilder()
+                        .allowStandardUrlProtocols()
+                        .allowElements("a")
+                        .allowAttributes("href", "title")
+                        .onElements("a")
+                        .toFactory())
+                .and(htmlCssSanitizer)
+                .and(Sanitizers.TABLES)
+                .and(new HtmlPolicyBuilder().allowElements("pre", "hr").toFactory())
+                .and(new HtmlPolicyBuilder()
+                        .allowElements("ol")
+                        .allowAttributes("start")
+                        .onElements("ol")
+                        .toFactory())
+                .and(htmlImagesSanitizer)
+                .and(new HtmlPolicyBuilder()
+                        .allowElements("code")
+                        .allowAttributes("class")
+                        .globally()
+                        .toFactory())
+                .and(githubFlavouredMarkdownSanitizer)
+                .and(graviteeMarkdownInstallMcpSanitizer);
 
         PolicyFactory additionalElementsSanitizer = configureAdditionalElements(policyFactory, environment);
         if (additionalElementsSanitizer != null) {
@@ -215,7 +224,8 @@ public final class HtmlSanitizer {
         boolean found = true;
         int idx = 0;
         while (found) {
-            String element = environment.getProperty("documentation.markdown.additional_allowed_elements[" + idx + "].element");
+            String element =
+                    environment.getProperty("documentation.markdown.additional_allowed_elements[" + idx + "].element");
             if (element == null) {
                 found = false;
             } else {
@@ -236,8 +246,7 @@ public final class HtmlSanitizer {
         int attributeIdx = 0;
         while (found) {
             String attribute = environment.getProperty(
-                "documentation.markdown.additional_allowed_elements[" + idx + "].attributes[" + attributeIdx + "]"
-            );
+                    "documentation.markdown.additional_allowed_elements[" + idx + "].attributes[" + attributeIdx + "]");
             if (attribute == null) {
                 found = false;
             } else {

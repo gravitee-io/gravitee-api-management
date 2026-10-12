@@ -37,10 +37,9 @@ public final class ReportableSanitizationUtil {
 
     public static void removeCustomMetricsWithNullValues(io.gravitee.reporter.api.v4.metric.Metrics metrics) {
         removeNullsFromMap(
-            metrics,
-            io.gravitee.reporter.api.v4.metric.Metrics::getCustomMetrics,
-            io.gravitee.reporter.api.v4.metric.Metrics::setCustomMetrics
-        );
+                metrics,
+                io.gravitee.reporter.api.v4.metric.Metrics::getCustomMetrics,
+                io.gravitee.reporter.api.v4.metric.Metrics::setCustomMetrics);
     }
 
     public static void removeCustomMetricsWithNullValues(MessageMetrics metrics) {
@@ -79,13 +78,16 @@ public final class ReportableSanitizationUtil {
             if (value == null) {
                 continue;
             }
-            // ponytail: decode bytes as UTF-8 (Kafka keys/headers are usually text); switch to base64 if lossless binary is ever needed
-            cleanMap.put(entry.getKey(), value instanceof byte[] bytes ? new String(bytes, StandardCharsets.UTF_8) : value);
+            // ponytail: decode bytes as UTF-8 (Kafka keys/headers are usually text); switch to base64 if lossless
+            // binary is ever needed
+            cleanMap.put(
+                    entry.getKey(), value instanceof byte[] bytes ? new String(bytes, StandardCharsets.UTF_8) : value);
         }
         message.setMetadata(cleanMap);
     }
 
-    private static <M, T> void removeNullsFromMap(M target, Function<M, Map<String, T>> getter, BiConsumer<M, Map<String, T>> setter) {
+    private static <M, T> void removeNullsFromMap(
+            M target, Function<M, Map<String, T>> getter, BiConsumer<M, Map<String, T>> setter) {
         if (target == null) {
             return;
         }

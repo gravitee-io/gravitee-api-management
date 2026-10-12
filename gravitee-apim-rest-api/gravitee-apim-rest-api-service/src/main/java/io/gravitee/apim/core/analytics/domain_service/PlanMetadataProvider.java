@@ -78,31 +78,29 @@ public class PlanMetadataProvider implements AnalyticsMetadataProvider {
         Map<String, PlanMetadata> metaMap = new HashMap<>();
 
         // Unknown plans
-        keys
-            .stream()
-            .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
-            .forEach(key -> metaMap.put(key, UNKNOWN_PLAN));
+        keys.stream()
+                .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
+                .forEach(key -> metaMap.put(key, UNKNOWN_PLAN));
 
         // Batch for real plan ids
-        List<String> planIds = keys
-            .stream()
-            .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
-            .toList();
+        List<String> planIds = keys.stream()
+                .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
+                .toList();
 
         if (!planIds.isEmpty()) {
-            var plans = planCrudService.findByIds(planIds).stream().collect(Collectors.toMap(Plan::getId, Function.identity()));
+            var plans = planCrudService.findByIds(planIds).stream()
+                    .collect(Collectors.toMap(Plan::getId, Function.identity()));
 
             // Found plans
             plans.forEach((id, plan) -> metaMap.put(id, ofPlan(plan)));
 
             // Not found plans
-            planIds
-                .stream()
-                .filter(id -> !plans.containsKey(id))
-                .forEach(id -> metaMap.put(id, NOT_FOUND));
+            planIds.stream().filter(id -> !plans.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
         }
 
         // Build output Map<String, Map<String, String>>
-        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
+        return metaMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }

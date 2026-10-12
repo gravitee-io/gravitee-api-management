@@ -37,9 +37,8 @@ public final class StatusCodeGroups {
         if (statusCodeGroup == null) {
             throw new IllegalArgumentException("Status code group must not be null");
         }
-        var bounds = HttpStatusCodeGroups.resolve(statusCodeGroup).orElseThrow(() ->
-            new IllegalArgumentException("Unknown status code group: " + statusCodeGroup)
-        );
+        var bounds = HttpStatusCodeGroups.resolve(statusCodeGroup)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown status code group: " + statusCodeGroup));
         return rangeFilter(field, bounds.min(), bounds.max());
     }
 

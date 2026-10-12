@@ -32,12 +32,10 @@ import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
-import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
 import org.springframework.context.ApplicationContext;
-import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 /**
@@ -77,7 +75,10 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
                     field.setAccessible(accessible);
                 }
             }
-            page.getSource().setConfiguration((new ObjectMapper().valueToTree(fetcherConfiguration).toString()));
+            page.getSource()
+                    .setConfiguration((new ObjectMapper()
+                            .valueToTree(fetcherConfiguration)
+                            .toString()));
         });
     }
 
@@ -86,7 +87,8 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
         if (oldPage.getSource() == null || newPage.getSource() == null) {
             return;
         }
-        if (oldPage.getSource().getConfiguration() == null || newPage.getSource().getConfiguration() == null) {
+        if (oldPage.getSource().getConfiguration() == null
+                || newPage.getSource().getConfiguration() == null) {
             return;
         }
 
@@ -100,9 +102,7 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
             FetcherConfiguration originalFetcherConfiguration = oldFetcher.getConfiguration();
             FetcherConfiguration updatedFetcherConfiguration = newFetcher.getConfiguration();
             var sameAddress = FetcherConfigurationAddress.sameAddress(
-                oldPage.getSource().getConfiguration(),
-                newPage.getSource().getConfiguration()
-            );
+                    oldPage.getSource().getConfiguration(), newPage.getSource().getConfiguration());
             boolean updated = false;
 
             Field[] fields = originalFetcherConfiguration.getClass().getDeclaredFields();
@@ -128,7 +128,10 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
                 }
             }
             if (updated) {
-                newPage.getSource().setConfiguration((new ObjectMapper().valueToTree(updatedFetcherConfiguration).toString()));
+                newPage.getSource()
+                        .setConfiguration((new ObjectMapper()
+                                .valueToTree(updatedFetcherConfiguration)
+                                .toString()));
             }
         }
     }
@@ -147,14 +150,15 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
                 return new String(content.readAllBytes(), Charset.defaultCharset());
             }
         } catch (FetcherException | IOException e) {
-            throw new TechnicalDomainException("unable to fetch content with configuration " + source.getConfiguration());
+            throw new TechnicalDomainException(
+                    "unable to fetch content with configuration " + source.getConfiguration());
         }
     }
 
     private Optional<Fetcher> loadFetcher(Page page) {
         return Optional.ofNullable(page.getSource())
-            .flatMap(this::loadPlugin)
-            .map(plugin -> buildFetcher(plugin, page.getSource()));
+                .flatMap(this::loadPlugin)
+                .map(plugin -> buildFetcher(plugin, page.getSource()));
     }
 
     private Optional<FetcherPlugin<?>> loadPlugin(PageSource source) {
@@ -165,7 +169,8 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
     private Fetcher buildFetcher(FetcherPlugin<?> plugin, PageSource source) {
         try {
             var classLoader = plugin.fetcher().getClassLoader();
-            var configClass = (Class<? extends FetcherConfiguration>) classLoader.loadClass(plugin.configuration().getName());
+            var configClass = (Class<? extends FetcherConfiguration>)
+                    classLoader.loadClass(plugin.configuration().getName());
             var config = fetcherConfigurationFactory.create(configClass, source.getConfiguration());
             var fetcherClass = (Class<? extends Fetcher>) classLoader.loadClass(plugin.clazz());
             var fetcher = fetcherClass.getConstructor(configClass).newInstance(config);

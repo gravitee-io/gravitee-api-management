@@ -34,12 +34,12 @@ class AuditEventQueryServiceImplTest {
     void should_list_the_encrypted_properties_accessed_and_refreshed_events() {
         var result = service.listAllApiAuditEvents();
 
-        Assertions.assertThat(result).contains(
-            "API_ENCRYPTED_PROPERTIES_ACCESSED",
-            "DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED",
-            "API_ENCRYPTED_PROPERTIES_REFRESHED",
-            "DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED"
-        );
+        Assertions.assertThat(result)
+                .contains(
+                        "API_ENCRYPTED_PROPERTIES_ACCESSED",
+                        "DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED",
+                        "API_ENCRYPTED_PROPERTIES_REFRESHED",
+                        "DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED");
     }
 
     @Test

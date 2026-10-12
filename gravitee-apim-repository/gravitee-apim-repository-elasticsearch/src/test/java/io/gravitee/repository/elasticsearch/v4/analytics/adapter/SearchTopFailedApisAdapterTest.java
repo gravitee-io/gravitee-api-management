@@ -181,17 +181,13 @@ class SearchTopFailedApisAdapterTest {
 
     @Test
     public void test() {
-        var result = SearchTopFailedApisAdapter.adaptQuery(
-            new TopFailedQueryCriteria(
+        var result = SearchTopFailedApisAdapter.adaptQuery(new TopFailedQueryCriteria(
                 List.of(
-                    "9f060ca4-326b-473a-860c-a4326be73a28",
-                    "c9dfb001-39f2-4e41-9fb0-0139f2de4170",
-                    "28113601-5197-4815-9136-015197b81592"
-                ),
+                        "9f060ca4-326b-473a-860c-a4326be73a28",
+                        "c9dfb001-39f2-4e41-9fb0-0139f2de4170",
+                        "28113601-5197-4815-9136-015197b81592"),
                 1740097471000L,
-                1740180271000L
-            )
-        );
+                1740180271000L));
         System.out.println(result);
     }
 }

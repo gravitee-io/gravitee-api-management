@@ -71,7 +71,8 @@ class ApiProductAccessibleIdsDomainServiceTest {
 
     @Test
     void should_return_only_group_inherited_api_products_when_user_has_no_direct_memberships() {
-        apiProductQueryService.initWith(List.of(apiProduct("ap-1", ENV_ID, null), apiProduct("ap-2", ENV_ID, Set.of(GROUP_ID))));
+        apiProductQueryService.initWith(
+                List.of(apiProduct("ap-1", ENV_ID, null), apiProduct("ap-2", ENV_ID, Set.of(GROUP_ID))));
         membershipCrudService.initWith(List.of(groupMembership("m-1", GROUP_ID)));
 
         Set<String> result = domainService.findAccessibleApiProductIds(ENV_ID, USER_ID);
@@ -81,10 +82,12 @@ class ApiProductAccessibleIdsDomainServiceTest {
 
     @Test
     void should_union_direct_and_group_inherited_api_products() {
-        apiProductQueryService.initWith(
-            List.of(apiProduct("ap-1", ENV_ID, null), apiProduct("ap-2", ENV_ID, Set.of(GROUP_ID)), apiProduct("ap-3", ENV_ID, null))
-        );
-        membershipCrudService.initWith(List.of(directApiProductMembership("m-1", "ap-1"), groupMembership("m-2", GROUP_ID)));
+        apiProductQueryService.initWith(List.of(
+                apiProduct("ap-1", ENV_ID, null),
+                apiProduct("ap-2", ENV_ID, Set.of(GROUP_ID)),
+                apiProduct("ap-3", ENV_ID, null)));
+        membershipCrudService.initWith(
+                List.of(directApiProductMembership("m-1", "ap-1"), groupMembership("m-2", GROUP_ID)));
 
         Set<String> result = domainService.findAccessibleApiProductIds(ENV_ID, USER_ID);
 
@@ -94,7 +97,8 @@ class ApiProductAccessibleIdsDomainServiceTest {
     @Test
     void should_dedupe_when_direct_and_group_inherited_overlap() {
         apiProductQueryService.initWith(List.of(apiProduct("ap-1", ENV_ID, Set.of(GROUP_ID))));
-        membershipCrudService.initWith(List.of(directApiProductMembership("m-1", "ap-1"), groupMembership("m-2", GROUP_ID)));
+        membershipCrudService.initWith(
+                List.of(directApiProductMembership("m-1", "ap-1"), groupMembership("m-2", GROUP_ID)));
 
         Set<String> result = domainService.findAccessibleApiProductIds(ENV_ID, USER_ID);
 
@@ -104,9 +108,9 @@ class ApiProductAccessibleIdsDomainServiceTest {
     @Test
     void should_scope_group_inherited_lookup_to_the_requested_environment() {
         // ap-other-env is in a different environment but attached to the same group: must NOT leak.
-        apiProductQueryService.initWith(
-            List.of(apiProduct("ap-here", ENV_ID, Set.of(GROUP_ID)), apiProduct("ap-other-env", OTHER_ENV_ID, Set.of(GROUP_ID)))
-        );
+        apiProductQueryService.initWith(List.of(
+                apiProduct("ap-here", ENV_ID, Set.of(GROUP_ID)),
+                apiProduct("ap-other-env", OTHER_ENV_ID, Set.of(GROUP_ID))));
         membershipCrudService.initWith(List.of(groupMembership("m-1", GROUP_ID)));
 
         Set<String> result = domainService.findAccessibleApiProductIds(ENV_ID, USER_ID);
@@ -117,9 +121,9 @@ class ApiProductAccessibleIdsDomainServiceTest {
     @Test
     void should_ignore_groups_the_user_does_not_belong_to() {
         // ap-other is attached to a different group than the one sam belongs to.
-        apiProductQueryService.initWith(
-            List.of(apiProduct("ap-mine", ENV_ID, Set.of(GROUP_ID)), apiProduct("ap-other", ENV_ID, Set.of(OTHER_GROUP_ID)))
-        );
+        apiProductQueryService.initWith(List.of(
+                apiProduct("ap-mine", ENV_ID, Set.of(GROUP_ID)),
+                apiProduct("ap-other", ENV_ID, Set.of(OTHER_GROUP_ID))));
         membershipCrudService.initWith(List.of(groupMembership("m-1", GROUP_ID)));
 
         Set<String> result = domainService.findAccessibleApiProductIds(ENV_ID, USER_ID);
@@ -128,30 +132,34 @@ class ApiProductAccessibleIdsDomainServiceTest {
     }
 
     private static ApiProduct apiProduct(String id, String environmentId, Set<String> groups) {
-        ApiProduct apiProduct = ApiProduct.builder().id(id).name(id).environmentId(environmentId).build();
+        ApiProduct apiProduct = ApiProduct.builder()
+                .id(id)
+                .name(id)
+                .environmentId(environmentId)
+                .build();
         apiProduct.setGroups(groups == null ? null : new HashSet<>(groups));
         return apiProduct;
     }
 
     private static Membership directApiProductMembership(String id, String apiProductId) {
         return Membership.builder()
-            .id(id)
-            .memberId(USER_ID)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.API_PRODUCT)
-            .referenceId(apiProductId)
-            .roleId(ROLE_ID)
-            .build();
+                .id(id)
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId(apiProductId)
+                .roleId(ROLE_ID)
+                .build();
     }
 
     private static Membership groupMembership(String id, String groupId) {
         return Membership.builder()
-            .id(id)
-            .memberId(USER_ID)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.GROUP)
-            .referenceId(groupId)
-            .roleId(ROLE_ID)
-            .build();
+                .id(id)
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId(groupId)
+                .roleId(ROLE_ID)
+                .build();
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.plugin.reactor.internal;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,15 +64,14 @@ class DefaultReactorPluginManagerTest {
 
     @BeforeEach
     void setUp() {
-        cut = new DefaultReactorPluginManager(applicationContext, pluginContextFactory, reactorFactoryManager, serviceManager);
+        cut = new DefaultReactorPluginManager(
+                applicationContext, pluginContextFactory, reactorFactoryManager, serviceManager);
     }
 
     @Test
     void should_register_new_reactor_plugin() {
-        final DefaultReactorPlugin<FakeReactorFactory> reactorPlugin = new DefaultReactorPlugin<>(
-            new FakeReactorPlugin(),
-            FakeReactorFactory.class
-        );
+        final DefaultReactorPlugin<FakeReactorFactory> reactorPlugin =
+                new DefaultReactorPlugin<>(new FakeReactorPlugin(), FakeReactorFactory.class);
         final FakeReactorFactory fakeReactorFactory = new FakeReactorFactory();
         when(pluginContextFactory.create(reactorPlugin)).thenReturn(pluginContext);
         when(pluginContext.getBean(reactorPlugin.clazz())).thenReturn(fakeReactorFactory);

@@ -36,21 +36,25 @@ import org.junit.jupiter.api.Test;
 
 class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
 
-    private final MySqlChangeLogTableWithPrimaryKeyGenerator generator = new MySqlChangeLogTableWithPrimaryKeyGenerator();
+    private final MySqlChangeLogTableWithPrimaryKeyGenerator generator =
+            new MySqlChangeLogTableWithPrimaryKeyGenerator();
 
     @Test
     void supports_MySQLDatabase() {
-        assertThat(generator.supports(new CreateDatabaseChangeLogTableStatement(), new MySQLDatabase())).isTrue();
+        assertThat(generator.supports(new CreateDatabaseChangeLogTableStatement(), new MySQLDatabase()))
+                .isTrue();
     }
 
     @Test
     void supports_MariaDBDatabase() {
-        assertThat(generator.supports(new CreateDatabaseChangeLogTableStatement(), new MariaDBDatabase())).isTrue();
+        assertThat(generator.supports(new CreateDatabaseChangeLogTableStatement(), new MariaDBDatabase()))
+                .isTrue();
     }
 
     @Test
     void does_not_support_PostgresDatabase() {
-        assertThat(generator.supports(new CreateDatabaseChangeLogTableStatement(), new PostgresDatabase())).isFalse();
+        assertThat(generator.supports(new CreateDatabaseChangeLogTableStatement(), new PostgresDatabase()))
+                .isFalse();
     }
 
     @Test
@@ -61,39 +65,36 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
     @Test
     void splices_named_primary_key_into_create_table() {
         Sql[] result = MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(
-            new Sql[] { sql("CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255))") },
-            "pk_DATABASECHANGELOG"
-        );
+                new Sql[] {
+                    sql("CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255))")
+                },
+                "pk_DATABASECHANGELOG");
         assertThat(result).hasSize(1);
-        assertThat(result[0].toSql()).isEqualTo(
-            "CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255), CONSTRAINT pk_DATABASECHANGELOG PRIMARY KEY (ID, AUTHOR, FILENAME))"
-        );
+        assertThat(result[0].toSql())
+                .isEqualTo(
+                        "CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255), CONSTRAINT pk_DATABASECHANGELOG PRIMARY KEY (ID, AUTHOR, FILENAME))");
     }
 
     @Test
     void honours_configured_constraint_name() {
         Sql[] result = MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(
-            new Sql[] { sql("CREATE TABLE acme_databasechangelog (ID VARCHAR(255))") },
-            "pk_acme_databasechangelog"
-        );
-        assertThat(result[0].toSql()).contains("CONSTRAINT pk_acme_databasechangelog PRIMARY KEY (ID, AUTHOR, FILENAME)");
+                new Sql[] {sql("CREATE TABLE acme_databasechangelog (ID VARCHAR(255))")}, "pk_acme_databasechangelog");
+        assertThat(result[0].toSql())
+                .contains("CONSTRAINT pk_acme_databasechangelog PRIMARY KEY (ID, AUTHOR, FILENAME)");
     }
 
     @Test
     void tolerates_leading_whitespace_in_create_table() {
         Sql[] result = MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(
-            new Sql[] { sql("\n  CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255))") },
-            "pk_DATABASECHANGELOG"
-        );
+                new Sql[] {sql("\n  CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255))")}, "pk_DATABASECHANGELOG");
         assertThat(result[0].toSql()).contains("CONSTRAINT pk_DATABASECHANGELOG PRIMARY KEY (ID, AUTHOR, FILENAME)");
     }
 
     @Test
     void passes_through_non_create_table_statements_when_a_create_table_is_present() {
         Sql[] result = MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(
-            new Sql[] { sql("SET sql_mode = ''"), sql("CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255))") },
-            "pk_DATABASECHANGELOG"
-        );
+                new Sql[] {sql("SET sql_mode = ''"), sql("CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255))")},
+                "pk_DATABASECHANGELOG");
         assertThat(result).hasSize(2);
         assertThat(result[0].toSql()).isEqualTo("SET sql_mode = ''");
         assertThat(result[1].toSql()).contains("CONSTRAINT pk_DATABASECHANGELOG PRIMARY KEY (ID, AUTHOR, FILENAME)");
@@ -101,18 +102,20 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
 
     @Test
     void throws_when_no_create_table_is_present() {
-        Sql[] input = { sql("INSERT INTO DATABASECHANGELOG VALUES (1, 'a', 'b')") };
-        assertThatThrownBy(() -> MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(input, "pk_DATABASECHANGELOG"))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Expected a CREATE TABLE statement");
+        Sql[] input = {sql("INSERT INTO DATABASECHANGELOG VALUES (1, 'a', 'b')")};
+        assertThatThrownBy(() ->
+                        MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(input, "pk_DATABASECHANGELOG"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Expected a CREATE TABLE statement");
     }
 
     @Test
     void throws_when_create_table_has_no_balanced_parens() {
-        Sql[] input = { sql("CREATE TABLE DATABASECHANGELOG ID VARCHAR(255") };
-        assertThatThrownBy(() -> MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(input, "pk_DATABASECHANGELOG"))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("no balanced column-list parentheses");
+        Sql[] input = {sql("CREATE TABLE DATABASECHANGELOG ID VARCHAR(255")};
+        assertThatThrownBy(() ->
+                        MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(input, "pk_DATABASECHANGELOG"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("no balanced column-list parentheses");
     }
 
     @Test
@@ -121,16 +124,14 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
         // parens would fool a naive lastIndexOf(')'). The splice has to walk paren-depth and
         // splice INSIDE the column list, before any trailing table options.
         Sql[] result = MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(
-            new Sql[] {
-                sql(
-                    "CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255)) ENGINE=InnoDB PARTITION BY HASH(id) PARTITIONS 4"
-                ),
-            },
-            "pk_DATABASECHANGELOG"
-        );
-        assertThat(result[0].toSql()).isEqualTo(
-            "CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255), CONSTRAINT pk_DATABASECHANGELOG PRIMARY KEY (ID, AUTHOR, FILENAME)) ENGINE=InnoDB PARTITION BY HASH(id) PARTITIONS 4"
-        );
+                new Sql[] {
+                    sql(
+                            "CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255)) ENGINE=InnoDB PARTITION BY HASH(id) PARTITIONS 4"),
+                },
+                "pk_DATABASECHANGELOG");
+        assertThat(result[0].toSql())
+                .isEqualTo(
+                        "CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255), CONSTRAINT pk_DATABASECHANGELOG PRIMARY KEY (ID, AUTHOR, FILENAME)) ENGINE=InnoDB PARTITION BY HASH(id) PARTITIONS 4");
     }
 
     @Test
@@ -139,11 +140,13 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
         // splice another — that would emit two PK clauses and a duplicate-key DDL error at
         // execution time. Throw with the offending SQL so the breakage surfaces clearly.
         Sql[] input = {
-            sql("CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255), PRIMARY KEY (ID))"),
+            sql(
+                    "CREATE TABLE DATABASECHANGELOG (ID VARCHAR(255), AUTHOR VARCHAR(255), FILENAME VARCHAR(255), PRIMARY KEY (ID))"),
         };
-        assertThatThrownBy(() -> MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(input, "pk_DATABASECHANGELOG"))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("already contains a PRIMARY KEY");
+        assertThatThrownBy(() ->
+                        MySqlChangeLogTableWithPrimaryKeyGenerator.spliceWithPrimaryKey(input, "pk_DATABASECHANGELOG"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already contains a PRIMARY KEY");
     }
 
     @Test
@@ -153,12 +156,13 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
         // during a Maven packaging change, the whole strict-PK splice silently disappears.
         // ServiceLoader.load returns the registered SqlGenerators on the test classpath so
         // we can assert ours is in the list at unit-test time.
-        boolean found = StreamSupport.stream(ServiceLoader.load(SqlGenerator.class).spliterator(), false).anyMatch(
-            MySqlChangeLogTableWithPrimaryKeyGenerator.class::isInstance
-        );
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(SqlGenerator.class).spliterator(), false)
+                .anyMatch(MySqlChangeLogTableWithPrimaryKeyGenerator.class::isInstance);
         assertThat(found)
-            .as("MySqlChangeLogTableWithPrimaryKeyGenerator must be registered via META-INF/services/liquibase.sqlgenerator.SqlGenerator")
-            .isTrue();
+                .as(
+                        "MySqlChangeLogTableWithPrimaryKeyGenerator must be registered via META-INF/services/liquibase.sqlgenerator.SqlGenerator")
+                .isTrue();
     }
 
     /**
@@ -173,10 +177,7 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
     void generateSql_splices_named_pk_into_real_upstream_output() {
         SortedSet<SqlGenerator<CreateDatabaseChangeLogTableStatement>> emptyChain = new TreeSet<>();
         Sql[] generated = generator.generateSql(
-            new CreateDatabaseChangeLogTableStatement(),
-            new MySQLDatabase(),
-            new SqlGeneratorChain<>(emptyChain)
-        );
+                new CreateDatabaseChangeLogTableStatement(), new MySQLDatabase(), new SqlGeneratorChain<>(emptyChain));
 
         assertThat(generated).isNotEmpty();
         String sql = generated[0].toSql();
@@ -187,13 +188,13 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
         // Spot-check that the columns Liquibase ships with survive the splice — guards against a
         // future upstream change that adds/renames columns and silently breaks our retrofit.
         assertThat(sql)
-            .contains("ID")
-            .contains("AUTHOR")
-            .contains("FILENAME")
-            .contains("DATEEXECUTED")
-            .contains("ORDEREXECUTED")
-            .contains("MD5SUM")
-            .contains("DEPLOYMENT_ID");
+                .contains("ID")
+                .contains("AUTHOR")
+                .contains("FILENAME")
+                .contains("DATEEXECUTED")
+                .contains("ORDEREXECUTED")
+                .contains("MD5SUM")
+                .contains("DEPLOYMENT_ID");
     }
 
     private static Sql sql(String text) {

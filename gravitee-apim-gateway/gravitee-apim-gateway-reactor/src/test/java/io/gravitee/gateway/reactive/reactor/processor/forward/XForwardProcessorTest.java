@@ -43,16 +43,17 @@ public class XForwardProcessorTest extends AbstractProcessorTest {
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("197.225.30.74", "197.225.30.74"),
-            Arguments.of("197.225.30.74:5000", "197.225.30.74"),
-            Arguments.of("197.225.30.74, 10.0.0.1, 10.0.0.2", "197.225.30.74"),
-            Arguments.of("197.225.30.74:5000, 10.0.0.1:5000, 10.0.0.2:5000", "197.225.30.74"),
-            Arguments.of("2001:0db8:85a3:0000:0000:8a2e:0370:7334", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
-            Arguments.of("2001:db8:85a3:0:0:8a2e:370:7334", "2001:db8:85a3:0:0:8a2e:370:7334"),
-            Arguments.of("2001:db8:85a3::8a2e:370:7334", "2001:db8:85a3::8a2e:370:7334"),
-            Arguments.of("197.225.30.74:5000, 2001:0db8:85a3:0000:0000:8a2e:0370:7334", "197.225.30.74"),
-            Arguments.of("2001:0db8:85a3:0000:0000:8a2e:0370:7334, 197.225.30.74:5000", "2001:0db8:85a3:0000:0000:8a2e:0370:7334")
-        );
+                Arguments.of("197.225.30.74", "197.225.30.74"),
+                Arguments.of("197.225.30.74:5000", "197.225.30.74"),
+                Arguments.of("197.225.30.74, 10.0.0.1, 10.0.0.2", "197.225.30.74"),
+                Arguments.of("197.225.30.74:5000, 10.0.0.1:5000, 10.0.0.2:5000", "197.225.30.74"),
+                Arguments.of("2001:0db8:85a3:0000:0000:8a2e:0370:7334", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"),
+                Arguments.of("2001:db8:85a3:0:0:8a2e:370:7334", "2001:db8:85a3:0:0:8a2e:370:7334"),
+                Arguments.of("2001:db8:85a3::8a2e:370:7334", "2001:db8:85a3::8a2e:370:7334"),
+                Arguments.of("197.225.30.74:5000, 2001:0db8:85a3:0000:0000:8a2e:0370:7334", "197.225.30.74"),
+                Arguments.of(
+                        "2001:0db8:85a3:0000:0000:8a2e:0370:7334, 197.225.30.74:5000",
+                        "2001:0db8:85a3:0000:0000:8a2e:0370:7334"));
     }
 
     @BeforeEach
@@ -100,113 +101,131 @@ public class XForwardProcessorTest extends AbstractProcessorTest {
 
     private static Stream<Arguments> provideForwardedTestsData() {
         HttpHeaders arg1Headers = HttpHeaders.create();
-        ForwardedTestData arg1Data = ForwardedTestData.builder().headers(arg1Headers).uri("/test").build();
+        ForwardedTestData arg1Data =
+                ForwardedTestData.builder().headers(arg1Headers).uri("/test").build();
 
         HttpHeaders arg2Headers = HttpHeaders.create();
         arg2Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43;proto=http;host=client-proxy-instance.com");
-        ForwardedTestData arg2Data = ForwardedTestData.builder().headers(arg2Headers).uri("/test").build();
+        ForwardedTestData arg2Data =
+                ForwardedTestData.builder().headers(arg2Headers).uri("/test").build();
 
         HttpHeaders arg3Headers = HttpHeaders.create();
         arg3Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg3Headers.set(HttpHeaderNames.X_FORWARDED_PROTO, "https");
         arg3Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance.com");
-        ForwardedTestData arg3Data = ForwardedTestData.builder().headers(arg3Headers).uri("").build();
+        ForwardedTestData arg3Data =
+                ForwardedTestData.builder().headers(arg3Headers).uri("").build();
 
         HttpHeaders arg4Headers = HttpHeaders.create();
         arg4Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg4Headers.set(HttpHeaderNames.X_FORWARDED_PROTO, "http");
         arg4Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance.com");
         arg4Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "80");
-        ForwardedTestData arg4Data = ForwardedTestData.builder().headers(arg4Headers).uri("/test").build();
+        ForwardedTestData arg4Data =
+                ForwardedTestData.builder().headers(arg4Headers).uri("/test").build();
 
         HttpHeaders arg5Headers = HttpHeaders.create();
         arg5Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg5Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance.com");
         arg5Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "8080");
-        ForwardedTestData arg5Data = ForwardedTestData.builder().headers(arg5Headers).uri("/test").build();
+        ForwardedTestData arg5Data =
+                ForwardedTestData.builder().headers(arg5Headers).uri("/test").build();
 
         HttpHeaders arg6Headers = HttpHeaders.create();
         arg6Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg6Headers.set(HttpHeaderNames.X_FORWARDED_PROTO, "https");
         arg6Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com,client-proxy-instance2.com");
         arg6Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "443");
-        ForwardedTestData arg6Data = ForwardedTestData.builder().headers(arg6Headers).uri("").build();
+        ForwardedTestData arg6Data =
+                ForwardedTestData.builder().headers(arg6Headers).uri("").build();
 
         HttpHeaders arg7Headers = HttpHeaders.create();
         arg7Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg7Headers.set(HttpHeaderNames.X_FORWARDED_PROTO, "https");
         arg7Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com,client-proxy-instance2.com");
         arg7Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "8080");
-        ForwardedTestData arg7Data = ForwardedTestData.builder().headers(arg7Headers).uri("").build();
+        ForwardedTestData arg7Data =
+                ForwardedTestData.builder().headers(arg7Headers).uri("").build();
 
         HttpHeaders arg8Headers = HttpHeaders.create();
         arg8Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg8Headers.set(HttpHeaderNames.X_FORWARDED_PROTO, "http");
         arg8Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com,client-proxy-instance2.com");
-        ForwardedTestData arg8Data = ForwardedTestData.builder().headers(arg8Headers).uri("/test").build();
+        ForwardedTestData arg8Data =
+                ForwardedTestData.builder().headers(arg8Headers).uri("/test").build();
 
         HttpHeaders arg9Headers = HttpHeaders.create();
         arg9Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg9Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com,client-proxy-instance2.com");
         arg9Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "80");
-        ForwardedTestData arg9Data = ForwardedTestData.builder().headers(arg9Headers).uri("/test").build();
+        ForwardedTestData arg9Data =
+                ForwardedTestData.builder().headers(arg9Headers).uri("/test").build();
 
         HttpHeaders arg10Headers = HttpHeaders.create();
         arg10Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg10Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com , client-proxy-instance2.com");
         arg10Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "8080");
-        ForwardedTestData arg10Data = ForwardedTestData.builder().headers(arg10Headers).uri("/test").build();
+        ForwardedTestData arg10Data =
+                ForwardedTestData.builder().headers(arg10Headers).uri("/test").build();
 
         HttpHeaders arg11Headers = HttpHeaders.create();
         arg11Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
         arg11Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com , client-proxy-instance2.com");
         arg11Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "8080");
         arg11Headers.set(HttpHeaderNames.X_FORWARDED_PREFIX, "/app");
-        ForwardedTestData arg11Data = ForwardedTestData.builder().headers(arg11Headers).uri("/test").build();
+        ForwardedTestData arg11Data =
+                ForwardedTestData.builder().headers(arg11Headers).uri("/test").build();
 
         HttpHeaders arg12Headers = HttpHeaders.create();
         arg12Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43 ; proto=http ; host=client-proxy-instance.com");
-        ForwardedTestData arg12Data = ForwardedTestData.builder().headers(arg12Headers).uri("").build();
+        ForwardedTestData arg12Data =
+                ForwardedTestData.builder().headers(arg12Headers).uri("").build();
 
         HttpHeaders arg13Headers = HttpHeaders.create();
         arg13Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43 ; Proto=http ; HOST=client-proxy-instance.com");
-        ForwardedTestData arg13Data = ForwardedTestData.builder().headers(arg13Headers).uri("").build();
+        ForwardedTestData arg13Data =
+                ForwardedTestData.builder().headers(arg13Headers).uri("").build();
 
         HttpHeaders arg14Headers = HttpHeaders.create();
         arg14Headers.set(HttpHeaderNames.FORWARDED, "for=192.0.2.43 , Proto=http , HOST=\"client-proxy-instance.com\"");
-        ForwardedTestData arg14Data = ForwardedTestData.builder().headers(arg14Headers).uri("").build();
+        ForwardedTestData arg14Data =
+                ForwardedTestData.builder().headers(arg14Headers).uri("").build();
 
         HttpHeaders arg15Headers = HttpHeaders.create();
         arg15Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
-        arg15Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com:8080 , client-proxy-instance2.com");
+        arg15Headers.set(
+                HttpHeaderNames.X_FORWARDED_HOST, "client-proxy-instance1.com:8080 , client-proxy-instance2.com");
         arg15Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "8080");
         arg15Headers.set(HttpHeaderNames.X_FORWARDED_PREFIX, "/app");
-        ForwardedTestData arg15Data = ForwardedTestData.builder().headers(arg15Headers).uri("/test").build();
+        ForwardedTestData arg15Data =
+                ForwardedTestData.builder().headers(arg15Headers).uri("/test").build();
 
         HttpHeaders arg16Headers = HttpHeaders.create();
         arg16Headers.set(HttpHeaderNames.X_FORWARDED_FOR, "192.168.1.15");
-        arg16Headers.set(HttpHeaderNames.X_FORWARDED_HOST, "http://client-proxy-instance1.com:8080 , client-proxy-instance2.com");
+        arg16Headers.set(
+                HttpHeaderNames.X_FORWARDED_HOST,
+                "http://client-proxy-instance1.com:8080 , client-proxy-instance2.com");
         arg16Headers.set(HttpHeaderNames.X_FORWARDED_PORT, "8080");
         arg16Headers.set(HttpHeaderNames.X_FORWARDED_PREFIX, "/app");
-        ForwardedTestData arg16Data = ForwardedTestData.builder().headers(arg16Headers).uri("/test").build();
+        ForwardedTestData arg16Data =
+                ForwardedTestData.builder().headers(arg16Headers).uri("/test").build();
 
         return Stream.of(
-            Arguments.of(arg1Data, "http://client-instance.com/test"),
-            Arguments.of(arg2Data, "http://client-proxy-instance.com/test"),
-            Arguments.of(arg3Data, "https://client-proxy-instance.com"),
-            Arguments.of(arg4Data, "http://client-proxy-instance.com/test"),
-            Arguments.of(arg5Data, "http://client-proxy-instance.com:8080/test"),
-            Arguments.of(arg6Data, "https://client-proxy-instance1.com"),
-            Arguments.of(arg7Data, "https://client-proxy-instance1.com:8080"),
-            Arguments.of(arg8Data, "http://client-proxy-instance1.com/test"),
-            Arguments.of(arg9Data, "http://client-proxy-instance1.com/test"),
-            Arguments.of(arg10Data, "http://client-proxy-instance1.com:8080/test"),
-            Arguments.of(arg11Data, "http://client-proxy-instance1.com:8080/app/test"),
-            Arguments.of(arg12Data, "http://client-proxy-instance.com"),
-            Arguments.of(arg13Data, "http://client-proxy-instance.com"),
-            Arguments.of(arg14Data, "http://client-proxy-instance.com"),
-            Arguments.of(arg15Data, "http://client-proxy-instance1.com:8080/app/test"),
-            Arguments.of(arg16Data, "http://client-proxy-instance1.com:8080/app/test")
-        );
+                Arguments.of(arg1Data, "http://client-instance.com/test"),
+                Arguments.of(arg2Data, "http://client-proxy-instance.com/test"),
+                Arguments.of(arg3Data, "https://client-proxy-instance.com"),
+                Arguments.of(arg4Data, "http://client-proxy-instance.com/test"),
+                Arguments.of(arg5Data, "http://client-proxy-instance.com:8080/test"),
+                Arguments.of(arg6Data, "https://client-proxy-instance1.com"),
+                Arguments.of(arg7Data, "https://client-proxy-instance1.com:8080"),
+                Arguments.of(arg8Data, "http://client-proxy-instance1.com/test"),
+                Arguments.of(arg9Data, "http://client-proxy-instance1.com/test"),
+                Arguments.of(arg10Data, "http://client-proxy-instance1.com:8080/test"),
+                Arguments.of(arg11Data, "http://client-proxy-instance1.com:8080/app/test"),
+                Arguments.of(arg12Data, "http://client-proxy-instance.com"),
+                Arguments.of(arg13Data, "http://client-proxy-instance.com"),
+                Arguments.of(arg14Data, "http://client-proxy-instance.com"),
+                Arguments.of(arg15Data, "http://client-proxy-instance1.com:8080/app/test"),
+                Arguments.of(arg16Data, "http://client-proxy-instance1.com:8080/app/test"));
     }
 }

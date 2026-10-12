@@ -28,14 +28,20 @@ class LuceneTransformerUtilsTest {
 
     @Test
     public void generate_api_type_v4_native() {
-        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.NATIVE).build();
+        Api api = Api.builder()
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.NATIVE)
+                .build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("V4_KAFKA");
     }
 
     @Test
     public void generate_api_type_v4_proxy() {
-        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.PROXY).build();
+        Api api = Api.builder()
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("V4_HTTP_PROXY");
     }
@@ -43,35 +49,43 @@ class LuceneTransformerUtilsTest {
     @Test
     public void generate_api_type_v4_tcp_proxy() {
         Api api = Api.builder()
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .apiDefinitionHttpV4(
-                io.gravitee.definition.model.v4.Api.builder()
-                    .listeners(List.of(TcpListener.builder().entrypoints(List.of()).build()))
-                    .build()
-            )
-            .build();
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api.builder()
+                        .listeners(List.of(
+                                TcpListener.builder().entrypoints(List.of()).build()))
+                        .build())
+                .build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("V4_TCP_PROXY");
     }
 
     @Test
     public void generate_api_type_v4_mcp_proxy() {
-        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.MCP_PROXY).build();
+        Api api = Api.builder()
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.MCP_PROXY)
+                .build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("V4_MCP_PROXY");
     }
 
     @Test
     public void generate_api_type_v4_llm_proxy() {
-        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.LLM_PROXY).build();
+        Api api = Api.builder()
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.LLM_PROXY)
+                .build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("V4_LLM_PROXY");
     }
 
     @Test
     public void generate_api_type_v4_message() {
-        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.MESSAGE).build();
+        Api api = Api.builder()
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.MESSAGE)
+                .build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("V4_MESSAGE");
     }
@@ -92,7 +106,9 @@ class LuceneTransformerUtilsTest {
 
     @Test
     public void generate_api_type_federated_agent() {
-        Api api = Api.builder().definitionVersion(DefinitionVersion.FEDERATED_AGENT).build();
+        Api api = Api.builder()
+                .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                .build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("FEDERATED_AGENT");
     }

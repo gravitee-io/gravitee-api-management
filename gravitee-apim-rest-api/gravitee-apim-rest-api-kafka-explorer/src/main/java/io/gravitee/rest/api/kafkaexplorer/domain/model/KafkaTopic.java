@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
 public record KafkaTopic(
-    String name,
-    int partitionCount,
-    int replicationFactor,
-    int underReplicatedCount,
-    boolean internal,
-    Long size,
-    Long messageCount
-) {}
+        String name,
+        int partitionCount,
+        int replicationFactor,
+        int underReplicatedCount,
+        boolean internal,
+        Long size,
+        Long messageCount) {}

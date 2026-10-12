@@ -102,18 +102,15 @@ public class MongoRoleRepository implements RoleRepository {
 
     @Override
     public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(
-        RoleScope scope,
-        String name,
-        String referenceId,
-        RoleReferenceType referenceType
-    ) throws TechnicalException {
+            RoleScope scope, String name, String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException {
         log.debug("Find role by scope and name [{}, {}, {}, {}]", scope, name, referenceId, referenceType);
 
         final Optional<Role> role = internalRoleRepo
-            .findByScopeAndNameAndReferenceIdAndReferenceType(scope.name(), name, referenceId, referenceType.name())
-            .stream()
-            .map(this::map)
-            .findFirst();
+                .findByScopeAndNameAndReferenceIdAndReferenceType(scope.name(), name, referenceId, referenceType.name())
+                .stream()
+                .map(this::map)
+                .findFirst();
 
         log.debug("Find role by scope and name [{}, {}, {}, {}] - Done", scope, name, referenceId, referenceType);
         return role;
@@ -167,19 +164,20 @@ public class MongoRoleRepository implements RoleRepository {
 
     @Override
     public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) {
-        final List<RoleMongo> roles = internalRoleRepo.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
+        final List<RoleMongo> roles =
+                internalRoleRepo.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
         return roles.stream().map(this::map).collect(Collectors.toSet());
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException {
         log.debug("Delete roles by refId: {}/{}", referenceId, referenceType);
         try {
-            final var roles = internalRoleRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(RoleMongo::getId)
-                .toList();
+            final var roles =
+                    internalRoleRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+                            .map(RoleMongo::getId)
+                            .toList();
             log.debug("Delete roles by refId: {}/{} - Done", referenceId, referenceType);
             return roles;
         } catch (Exception ex) {
@@ -189,8 +187,10 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
-    public Optional<Role> findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType) {
-        return Optional.ofNullable(map(internalRoleRepo.findByIdAndReferenceIdAndReferenceType(roleId, referenceId, referenceType.name())));
+    public Optional<Role> findByIdAndReferenceIdAndReferenceType(
+            String roleId, String referenceId, RoleReferenceType referenceType) {
+        return Optional.ofNullable(map(
+                internalRoleRepo.findByIdAndReferenceIdAndReferenceType(roleId, referenceId, referenceType.name())));
     }
 
     @Override
@@ -200,14 +200,12 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
-    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType) {
+    public Set<Role> findByScopeAndReferenceIdAndReferenceType(
+            RoleScope scope, String referenceId, RoleReferenceType referenceType) {
         log.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);
 
         final Set<RoleMongo> roles = internalRoleRepo.findByScopeAndReferenceIdAndReferenceType(
-            scope.name(),
-            referenceId,
-            referenceType.name()
-        );
+                scope.name(), referenceId, referenceType.name());
 
         log.debug("Find role by scope [{}, {}, {}] - Done", scope, referenceId, referenceType);
         return roles.stream().map(this::map).collect(Collectors.toSet());

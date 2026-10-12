@@ -57,7 +57,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ObservabilityFilterValidator {
 
-    private static final Set<FilterOperator> MULTI_VALUE_OPERATORS = EnumSet.of(FilterOperator.IN, FilterOperator.NOT_IN);
+    private static final Set<FilterOperator> MULTI_VALUE_OPERATORS =
+            EnumSet.of(FilterOperator.IN, FilterOperator.NOT_IN);
     private static final Set<FilterOperator> CLOSED_RANGE = EnumSet.of(FilterOperator.GTE, FilterOperator.LTE);
 
     private final FilterRegistry filterRegistry;
@@ -102,13 +103,12 @@ public class ObservabilityFilterValidator {
     }
 
     private Map<String, FilterSpec> specsByName() {
-        return filterRegistry
-            .getFilters(Set.of(), Set.of())
-            .stream()
-            .collect(Collectors.toMap(FilterSpec::name, spec -> spec, (a, b) -> b));
+        return filterRegistry.getFilters(Set.of(), Set.of()).stream()
+                .collect(Collectors.toMap(FilterSpec::name, spec -> spec, (a, b) -> b));
     }
 
-    private static FilterSpec applicableSpec(FilterCondition condition, Signal signal, Map<String, FilterSpec> specsByName) {
+    private static FilterSpec applicableSpec(
+            FilterCondition condition, Signal signal, Map<String, FilterSpec> specsByName) {
         FilterSpec spec = specsByName.get(condition.name());
         if (spec == null) {
             throw UnsupportedObservabilityFilterException.unknownName(condition.name());
@@ -117,7 +117,8 @@ public class ObservabilityFilterValidator {
             throw UnsupportedObservabilityFilterException.signalMismatch(condition.name(), signal);
         }
         if (!spec.operators().contains(condition.operator())) {
-            throw UnsupportedObservabilityFilterException.unsupportedOperator(condition.name(), condition.operator().name());
+            throw UnsupportedObservabilityFilterException.unsupportedOperator(
+                    condition.name(), condition.operator().name());
         }
         return spec;
     }
@@ -132,21 +133,22 @@ public class ObservabilityFilterValidator {
     }
 
     private static void validateOneFilterPerField(List<FilterCondition> conditions) {
-        conditions
-            .stream()
-            .collect(Collectors.groupingBy(FilterCondition::name, LinkedHashMap::new, Collectors.counting()))
-            .forEach((name, count) -> {
-                if (count > 1) {
-                    throw UnsupportedObservabilityFilterException.repeatedOnDashboard(name, count);
-                }
-            });
+        conditions.stream()
+                .collect(Collectors.groupingBy(FilterCondition::name, LinkedHashMap::new, Collectors.counting()))
+                .forEach((name, count) -> {
+                    if (count > 1) {
+                        throw UnsupportedObservabilityFilterException.repeatedOnDashboard(name, count);
+                    }
+                });
     }
 
     // A single-value operator handed several values was read as its first value by analytics and as IN by
     // logs: refusing it is the only answer both signals can give.
     private static void validateArity(FilterCondition condition) {
-        if (!MULTI_VALUE_OPERATORS.contains(condition.operator()) && condition.values().size() != 1) {
-            throw UnsupportedObservabilityFilterException.invalidArity(condition.name(), condition.operator().name(), condition.values());
+        if (!MULTI_VALUE_OPERATORS.contains(condition.operator())
+                && condition.values().size() != 1) {
+            throw UnsupportedObservabilityFilterException.invalidArity(
+                    condition.name(), condition.operator().name(), condition.values());
         }
     }
 
@@ -158,7 +160,8 @@ public class ObservabilityFilterValidator {
             var number = parseNumber(condition.name(), value);
             var range = spec.range();
             if (range != null && (isBelow(number, range.min()) || isAbove(number, range.max()))) {
-                throw UnsupportedObservabilityFilterException.valueOutOfRange(condition.name(), value, range.min(), range.max());
+                throw UnsupportedObservabilityFilterException.valueOutOfRange(
+                        condition.name(), value, range.min(), range.max());
             }
         }
     }
@@ -181,23 +184,27 @@ public class ObservabilityFilterValidator {
     }
 
     private static void validateRepetition(List<FilterCondition> conditions, Map<String, FilterSpec> specsByName) {
-        conditions
-            .stream()
-            .collect(Collectors.groupingBy(FilterCondition::name, LinkedHashMap::new, Collectors.toList()))
-            .forEach((name, repeated) -> {
-                if (repeated.size() == 1) {
-                    return;
-                }
-                var operators = repeated.stream().map(FilterCondition::operator).toList();
-                if (!isClosedRange(specsByName.get(name), operators)) {
-                    throw UnsupportedObservabilityFilterException.repeated(name, operators.stream().map(FilterOperator::name).toList());
-                }
-                validateRangeBounds(name, repeated);
-            });
+        conditions.stream()
+                .collect(Collectors.groupingBy(FilterCondition::name, LinkedHashMap::new, Collectors.toList()))
+                .forEach((name, repeated) -> {
+                    if (repeated.size() == 1) {
+                        return;
+                    }
+                    var operators =
+                            repeated.stream().map(FilterCondition::operator).toList();
+                    if (!isClosedRange(specsByName.get(name), operators)) {
+                        throw UnsupportedObservabilityFilterException.repeated(
+                                name,
+                                operators.stream().map(FilterOperator::name).toList());
+                    }
+                    validateRangeBounds(name, repeated);
+                });
     }
 
     private static boolean isClosedRange(FilterSpec spec, List<FilterOperator> operators) {
-        return spec.type() == FilterType.NUMBER && operators.size() == 2 && Set.copyOf(operators).equals(CLOSED_RANGE);
+        return spec.type() == FilterType.NUMBER
+                && operators.size() == 2
+                && Set.copyOf(operators).equals(CLOSED_RANGE);
     }
 
     private static void validateRangeBounds(String name, List<FilterCondition> range) {
@@ -209,12 +216,11 @@ public class ObservabilityFilterValidator {
     }
 
     private static long boundOf(String name, List<FilterCondition> range, FilterOperator operator) {
-        return range
-            .stream()
-            .filter(condition -> condition.operator() == operator)
-            .map(condition -> parseNumber(name, condition.values().getFirst()))
-            .findFirst()
-            .orElseThrow();
+        return range.stream()
+                .filter(condition -> condition.operator() == operator)
+                .map(condition -> parseNumber(name, condition.values().getFirst()))
+                .findFirst()
+                .orElseThrow();
     }
 
     /**
@@ -223,10 +229,13 @@ public class ObservabilityFilterValidator {
      * an unfiltered result set instead of a 400.
      */
     private static void validateEnumValues(FilterCondition condition, FilterSpec spec) {
-        if (spec.type() != FilterType.ENUM || spec.enumValues() == null || spec.enumValues().isEmpty()) {
+        if (spec.type() != FilterType.ENUM
+                || spec.enumValues() == null
+                || spec.enumValues().isEmpty()) {
             return;
         }
-        var allowed = spec.enumValues().stream().map(FilterSpec.EnumValue::value).collect(Collectors.toSet());
+        var allowed =
+                spec.enumValues().stream().map(FilterSpec.EnumValue::value).collect(Collectors.toSet());
         for (String value : condition.values()) {
             if (!allowed.contains(value)) {
                 throw UnsupportedObservabilityFilterException.unknownEnumValue(condition.name(), value);
@@ -235,13 +244,8 @@ public class ObservabilityFilterValidator {
     }
 
     private static boolean hasOnlyBlankValues(FilterCondition condition) {
-        return (
-            condition.values() == null ||
-            condition.values().isEmpty() ||
-            condition
-                .values()
-                .stream()
-                .allMatch(value -> value == null || value.isBlank())
-        );
+        return (condition.values() == null
+                || condition.values().isEmpty()
+                || condition.values().stream().allMatch(value -> value == null || value.isBlank()));
     }
 }

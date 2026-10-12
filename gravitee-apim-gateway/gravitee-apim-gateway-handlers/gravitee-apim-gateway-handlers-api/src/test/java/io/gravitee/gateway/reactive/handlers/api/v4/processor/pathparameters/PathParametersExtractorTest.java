@@ -27,12 +27,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
@@ -45,13 +43,14 @@ class PathParametersExtractorTest {
     @Test
     void can_not_extract_param_null_api() {
         assertThatThrownBy(() -> new PathParametersExtractor(null))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("Api is mandatory");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Api is mandatory");
     }
 
     @Test
     void can_not_extract_param_no_flow() {
-        assertThat(new PathParametersExtractor(new Api()).canExtractPathParams()).isFalse();
+        assertThat(new PathParametersExtractor(new Api()).canExtractPathParams())
+                .isFalse();
     }
 
     @Test
@@ -68,24 +67,28 @@ class PathParametersExtractorTest {
     }
 
     @ParameterizedTest
-    @MethodSource("io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractorTest#provideParameters")
+    @MethodSource(
+            "io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractorTest#provideParameters")
     void can_extract_flow_and_extract_param_on_request(
-        String api,
-        String method,
-        String path,
-        Map<String, String> expectedPathParam,
-        Set<String> excludedPathParam
-    ) throws IOException {
+            String api,
+            String method,
+            String path,
+            Map<String, String> expectedPathParam,
+            Set<String> excludedPathParam)
+            throws IOException {
         final PathParametersExtractor cut = new PathParametersExtractor(readApi(api));
         final Map<String, String> pathParams = cut.extract(method, path);
-        assertThat(pathParams).isEqualTo(expectedPathParam).doesNotContainKeys(excludedPathParam.toArray(new String[0]));
+        assertThat(pathParams)
+                .isEqualTo(expectedPathParam)
+                .doesNotContainKeys(excludedPathParam.toArray(new String[0]));
     }
 
     private static Api readApi(String name) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(
-            PathParametersExtractorTest.class.getClassLoader().getResourceAsStream("v4/apis/pathparams/" + name + ".json"),
-            Api.class
-        );
+                PathParametersExtractorTest.class
+                        .getClassLoader()
+                        .getResourceAsStream("v4/apis/pathparams/" + name + ".json"),
+                Api.class);
     }
 }

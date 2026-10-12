@@ -25,9 +25,9 @@ public class RefIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("ai_workspace_components")
-            .name("r1")
-            .key("refId", ascending())
-            .build();
+                .collection("ai_workspace_components")
+                .name("r1")
+                .key("refId", ascending())
+                .build();
     }
 }

@@ -48,22 +48,25 @@ public class PortalLinkResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ)})
     public Response getPortalLinkByHRID(@PathParam("hrid") String portalHrid, @PathParam("linkHrid") String linkHrid) {
         var auditInfo = getAuditInfo();
         var portalId = HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id();
         var linkId = PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid);
         try {
             var output = getPortalLinkUseCase.execute(new GetPortalLinkUseCase.Input(auditInfo, linkId));
-            return Response.ok(PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), linkHrid, List.of(), portalHrid)).build();
+            return Response.ok(
+                            PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), linkHrid, List.of(), portalHrid))
+                    .build();
         } catch (PortalLinkNotFoundException e) {
             throw new HRIDNotFoundException(linkHrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE) })
-    public Response deletePortalLinkByHrid(@PathParam("hrid") String portalHrid, @PathParam("linkHrid") String linkHrid) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE)})
+    public Response deletePortalLinkByHrid(
+            @PathParam("hrid") String portalHrid, @PathParam("linkHrid") String linkHrid) {
         var auditInfo = getAuditInfo();
         var portalId = HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id();
         var linkId = PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid);

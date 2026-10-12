@@ -32,38 +32,39 @@ import org.mapstruct.NullValueMappingStrategy;
 
 @CustomLog
 @Mapper(
-    componentModel = MappingConstants.ComponentModel.SPRING,
-    uses = { JsonDeserializer.class, JsonDeserializer.class },
-    injectionStrategy = InjectionStrategy.FIELD,
-    nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL
-)
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {JsonDeserializer.class, JsonDeserializer.class},
+        injectionStrategy = InjectionStrategy.FIELD,
+        nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL)
 public abstract class SharedPolicyGroupAdapter {
 
     @Mapping(target = "originContext", expression = "java(toOriginContextEnum(sharedPolicyGroup.getOrigin()))")
-    public abstract SharedPolicyGroup toEntity(io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup);
+    public abstract SharedPolicyGroup toEntity(
+            io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup);
 
     @Mapping(target = "origin", expression = "java(toOriginString(sharedPolicyGroupEntity.getOriginContext()))")
     @Mapping(target = "definition", source = ".", qualifiedByName = "serializeDefinition")
-    public abstract io.gravitee.repository.management.model.SharedPolicyGroup fromEntity(SharedPolicyGroup sharedPolicyGroupEntity);
+    public abstract io.gravitee.repository.management.model.SharedPolicyGroup fromEntity(
+            SharedPolicyGroup sharedPolicyGroupEntity);
 
     public abstract io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState fromEntity(
-        SharedPolicyGroup.SharedPolicyGroupLifecycleState sharedPolicyGroupLifecycleState
-    );
+            SharedPolicyGroup.SharedPolicyGroupLifecycleState sharedPolicyGroupLifecycleState);
 
     @AfterMapping
     protected void addPolicyGroupDefinition(
-        @MappingTarget SharedPolicyGroup result,
-        io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup
-    ) {
+            @MappingTarget SharedPolicyGroup result,
+            io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup) {
         var definition = sharedPolicyGroup.getDefinition();
         if (definition == null || definition.isEmpty()) {
             return;
         }
         try {
-            var sharedPolicyGroupDefinition = GraviteeJacksonMapper.getInstance().readValue(definition, SharedPolicyGroupDefinition.class);
+            var sharedPolicyGroupDefinition =
+                    GraviteeJacksonMapper.getInstance().readValue(definition, SharedPolicyGroupDefinition.class);
             result.setSteps(sharedPolicyGroupDefinition.getSteps());
         } catch (IOException ioe) {
-            log.error("Unexpected error while deserializing SharedPolicyGroup definition with id:" + result.getId(), ioe);
+            log.error(
+                    "Unexpected error while deserializing SharedPolicyGroup definition with id:" + result.getId(), ioe);
         }
     }
 
@@ -74,14 +75,16 @@ public abstract class SharedPolicyGroupAdapter {
         }
 
         try {
-            var sharedPolicyGroupDefinition = SharedPolicyGroupDefinition.builder().steps(sharedPolicyGroupEntity.getSteps()).build();
+            var sharedPolicyGroupDefinition = SharedPolicyGroupDefinition.builder()
+                    .steps(sharedPolicyGroupEntity.getSteps())
+                    .build();
 
             return GraviteeJacksonMapper.getInstance().writeValueAsString(sharedPolicyGroupDefinition);
         } catch (IOException ioe) {
             throw new RuntimeException(
-                "Unexpected error while serializing SharedPolicyGroup definition with id:" + sharedPolicyGroupEntity.getId(),
-                ioe
-            );
+                    "Unexpected error while serializing SharedPolicyGroup definition with id:"
+                            + sharedPolicyGroupEntity.getId(),
+                    ioe);
         }
     }
 

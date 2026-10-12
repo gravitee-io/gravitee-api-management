@@ -45,16 +45,32 @@ public class GetThemesUseCaseTest {
 
     @Test
     void should_return_empty_page() {
-        var result = cut.execute(GetThemesUseCase.Input.builder().page(1).size(10).enabled(false).type(ThemeType.PORTAL).build()).result();
+        var result = cut.execute(GetThemesUseCase.Input.builder()
+                        .page(1)
+                        .size(10)
+                        .enabled(false)
+                        .type(ThemeType.PORTAL)
+                        .build())
+                .result();
 
         assertThat(result).hasFieldOrPropertyWithValue("content", List.of());
     }
 
     @Test
     void should_return_page_of_results() {
-        var portalTheme = Theme.builder().id("portal-id").type(ThemeType.PORTAL).enabled(true).build();
+        var portalTheme = Theme.builder()
+                .id("portal-id")
+                .type(ThemeType.PORTAL)
+                .enabled(true)
+                .build();
         themeQueryServiceInMemory.initWith(List.of(portalTheme));
-        var result = cut.execute(GetThemesUseCase.Input.builder().page(1).size(10).enabled(true).type(ThemeType.PORTAL).build()).result();
+        var result = cut.execute(GetThemesUseCase.Input.builder()
+                        .page(1)
+                        .size(10)
+                        .enabled(true)
+                        .type(ThemeType.PORTAL)
+                        .build())
+                .result();
 
         assertThat(result).hasFieldOrPropertyWithValue("content", List.of(portalTheme));
     }

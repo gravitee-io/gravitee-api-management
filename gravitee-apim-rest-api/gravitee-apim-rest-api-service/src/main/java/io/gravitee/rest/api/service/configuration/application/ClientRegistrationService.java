@@ -33,28 +33,26 @@ public interface ClientRegistrationService {
     Set<ClientRegistrationProviderEntity> findAll(ExecutionContext executionContext);
 
     ClientRegistrationProviderEntity create(
-        ExecutionContext executionContext,
-        NewClientRegistrationProviderEntity clientRegistrationProvider
-    );
+            ExecutionContext executionContext, NewClientRegistrationProviderEntity clientRegistrationProvider);
 
     ClientRegistrationProviderEntity update(
-        ExecutionContext executionContext,
-        String id,
-        UpdateClientRegistrationProviderEntity clientRegistrationProvider
-    );
+            ExecutionContext executionContext,
+            String id,
+            UpdateClientRegistrationProviderEntity clientRegistrationProvider);
 
     ClientRegistrationProviderEntity findById(String environmentId, String id);
 
     void delete(ExecutionContext executionContext, String id);
 
-    ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application, Map<String, String> idpClaims);
+    ClientRegistrationResponse register(
+            ExecutionContext executionContext, NewApplicationEntity application, Map<String, String> idpClaims);
 
     ClientRegistrationResponse update(
-        ExecutionContext executionContext,
-        String previousRegistrationResponse,
-        UpdateApplicationEntity application,
-        Map<String, String> idpClaims
-    );
+            ExecutionContext executionContext,
+            String previousRegistrationResponse,
+            UpdateApplicationEntity application,
+            Map<String, String> idpClaims);
 
-    ClientRegistrationResponse renewClientSecret(ExecutionContext executionContext, String previousRegistrationResponse);
+    ClientRegistrationResponse renewClientSecret(
+            ExecutionContext executionContext, String previousRegistrationResponse);
 }

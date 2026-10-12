@@ -93,13 +93,12 @@ public class EventServiceTest {
     private static final String API_ID = "id-api";
     private static final String ENVIRONMENT_ID = "DEFAULT";
     private static final Map<String, String> EVENT_PROPERTIES = Map.of(
-        Event.EventProperties.API_ID.getValue(),
-        API_ID,
-        Event.EventProperties.USER.getValue(),
-        EVENT_USERNAME,
-        Event.EventProperties.ORIGIN.getValue(),
-        EVENT_ORIGIN
-    );
+            Event.EventProperties.API_ID.getValue(),
+            API_ID,
+            Event.EventProperties.USER.getValue(),
+            EVENT_USERNAME,
+            Event.EventProperties.ORIGIN.getValue(),
+            EVENT_ORIGIN);
 
     @BeforeEach
     public void setup() {
@@ -159,11 +158,10 @@ public class EventServiceTest {
         when(newEvent.getProperties()).thenReturn(EVENT_PROPERTIES);
 
         final EventEntity eventEntity = eventService.createNewEventEntity(
-            GraviteeContext.getExecutionContext(),
-            Set.of(GraviteeContext.getCurrentEnvironment()),
-            GraviteeContext.getCurrentOrganization(),
-            newEvent
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(GraviteeContext.getCurrentEnvironment()),
+                GraviteeContext.getCurrentOrganization(),
+                newEvent);
 
         assertNotNull(eventEntity);
         assertEquals(EventType.PUBLISH_API.toString(), eventEntity.getType().toString());
@@ -211,28 +209,25 @@ public class EventServiceTest {
 
     @Test
     public void shouldSearchNoResults() {
-        when(
-            eventRepository.search(
-                EventCriteria.builder()
-                    .from(1420070400000L)
-                    .to(1422748800000L)
-                    .type(EventType.START_API)
-                    .environment(ENVIRONMENT_ID)
-                    .build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-            )
-        ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+        when(eventRepository.search(
+                        EventCriteria.builder()
+                                .from(1420070400000L)
+                                .to(1422748800000L)
+                                .type(EventType.START_API)
+                                .environment(ENVIRONMENT_ID)
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build()))
+                .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
-            List.of(io.gravitee.rest.api.model.EventType.START_API),
-            null,
-            1420070400000L,
-            1422748800000L,
-            0,
-            10,
-            List.of(GraviteeContext.getCurrentEnvironment())
-        );
+                GraviteeContext.getExecutionContext(),
+                List.of(io.gravitee.rest.api.model.EventType.START_API),
+                null,
+                1420070400000L,
+                1422748800000L,
+                0,
+                10,
+                List.of(GraviteeContext.getCurrentEnvironment()));
         assertEquals(0L, eventPageEntity.getTotalElements());
     }
 
@@ -248,28 +243,25 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(
-            eventRepository.search(
-                EventCriteria.builder()
-                    .from(1420070400000L)
-                    .to(1422748800000L)
-                    .type(EventType.START_API)
-                    .environment(ENVIRONMENT_ID)
-                    .build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-            )
-        ).thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
+        when(eventRepository.search(
+                        EventCriteria.builder()
+                                .from(1420070400000L)
+                                .to(1422748800000L)
+                                .type(EventType.START_API)
+                                .environment(ENVIRONMENT_ID)
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build()))
+                .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
-            List.of(io.gravitee.rest.api.model.EventType.START_API),
-            null,
-            1420070400000L,
-            1422748800000L,
-            0,
-            10,
-            List.of(GraviteeContext.getCurrentEnvironment())
-        );
+                GraviteeContext.getExecutionContext(),
+                List.of(io.gravitee.rest.api.model.EventType.START_API),
+                null,
+                1420070400000L,
+                1422748800000L,
+                0,
+                10,
+                List.of(GraviteeContext.getCurrentEnvironment()));
 
         assertEquals(2L, eventPageEntity.getTotalElements());
         assertEquals("event1", eventPageEntity.getContent().get(0).getId());
@@ -287,28 +279,25 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(
-            eventRepository.search(
-                EventCriteria.builder()
-                    .from(1420070400000L)
-                    .to(1422748800000L)
-                    .types(Set.of(EventType.START_API, EventType.STOP_API))
-                    .environment(ENVIRONMENT_ID)
-                    .build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-            )
-        ).thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
+        when(eventRepository.search(
+                        EventCriteria.builder()
+                                .from(1420070400000L)
+                                .to(1422748800000L)
+                                .types(Set.of(EventType.START_API, EventType.STOP_API))
+                                .environment(ENVIRONMENT_ID)
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build()))
+                .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
-            List.of(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
-            null,
-            1420070400000L,
-            1422748800000L,
-            0,
-            10,
-            List.of(GraviteeContext.getCurrentEnvironment())
-        );
+                GraviteeContext.getExecutionContext(),
+                List.of(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
+                null,
+                1420070400000L,
+                1422748800000L,
+                0,
+                10,
+                List.of(GraviteeContext.getCurrentEnvironment()));
 
         assertEquals(2L, eventPageEntity.getTotalElements());
         assertEquals("event1", eventPageEntity.getContent().get(0).getId());
@@ -328,28 +317,25 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(
-            eventRepository.search(
-                EventCriteria.builder()
-                    .from(1420070400000L)
-                    .to(1422748800000L)
-                    .property(Event.EventProperties.API_ID.getValue(), "id-api")
-                    .environments(List.of(ENVIRONMENT_ID))
-                    .build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-            )
-        ).thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
+        when(eventRepository.search(
+                        EventCriteria.builder()
+                                .from(1420070400000L)
+                                .to(1422748800000L)
+                                .property(Event.EventProperties.API_ID.getValue(), "id-api")
+                                .environments(List.of(ENVIRONMENT_ID))
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build()))
+                .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
-            null,
-            values,
-            1420070400000L,
-            1422748800000L,
-            0,
-            10,
-            List.of(GraviteeContext.getCurrentEnvironment())
-        );
+                GraviteeContext.getExecutionContext(),
+                null,
+                values,
+                1420070400000L,
+                1422748800000L,
+                0,
+                10,
+                List.of(GraviteeContext.getCurrentEnvironment()));
 
         assertEquals(2L, eventPageEntity.getTotalElements());
         assertEquals("event1", eventPageEntity.getContent().get(0).getId());
@@ -369,29 +355,26 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(
-            eventRepository.search(
-                EventCriteria.builder()
-                    .from(1420070400000L)
-                    .to(1422748800000L)
-                    .property(Event.EventProperties.API_ID.getValue(), "id-api")
-                    .types(Set.of(EventType.START_API, EventType.STOP_API))
-                    .environment(ENVIRONMENT_ID)
-                    .build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-            )
-        ).thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
+        when(eventRepository.search(
+                        EventCriteria.builder()
+                                .from(1420070400000L)
+                                .to(1422748800000L)
+                                .property(Event.EventProperties.API_ID.getValue(), "id-api")
+                                .types(Set.of(EventType.START_API, EventType.STOP_API))
+                                .environment(ENVIRONMENT_ID)
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build()))
+                .thenReturn(new Page<>(List.of(event, event2), 0, 2, 2));
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
-            List.of(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
-            values,
-            1420070400000L,
-            1422748800000L,
-            0,
-            10,
-            List.of(GraviteeContext.getCurrentEnvironment())
-        );
+                GraviteeContext.getExecutionContext(),
+                List.of(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
+                values,
+                1420070400000L,
+                1422748800000L,
+                0,
+                10,
+                List.of(GraviteeContext.getCurrentEnvironment()));
 
         assertEquals(2L, eventPageEntity.getTotalElements());
         assertEquals("event1", eventPageEntity.getContent().get(0).getId());
@@ -402,67 +385,58 @@ public class EventServiceTest {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         eventService.createDynamicDictionaryEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.START_DICTIONARY,
-            "dictionaryId"
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.START_DICTIONARY,
+                "dictionaryId");
 
-        verify(eventRepository).create(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertTrue(e.getPayload() == null && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
-                return true;
-            })
-        );
-        verify(eventLatestRepository).createOrUpdate(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertTrue(e.getPayload() == null && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
-                return true;
-            })
-        );
+        verify(eventRepository).create(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertTrue(e.getPayload() == null
+                    && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
+            return true;
+        }));
+        verify(eventLatestRepository).createOrUpdate(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertTrue(e.getPayload() == null
+                    && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
+            return true;
+        }));
         verifyNoMoreInteractions(eventRepository);
     }
 
     @Test
-    public void createDictionaryApiEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
+    public void createDictionaryApiEvent_shouldCreateEvent_withPayload()
+            throws TechnicalException, JsonProcessingException {
         String jsonValue = "serialized json value";
         var dictionary = mock(io.gravitee.repository.management.model.Dictionary.class);
         when(objectMapper.writeValueAsString(dictionary)).thenReturn(jsonValue);
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         eventService.createDictionaryEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            dictionary
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.DEBUG_API,
+                dictionary);
 
-        verify(eventRepository).create(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertTrue(
-                    jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue())
-                );
-                return true;
-            })
-        );
-        verify(eventLatestRepository).createOrUpdate(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertTrue(
-                    jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue())
-                );
-                return true;
-            })
-        );
+        verify(eventRepository).create(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertTrue(jsonValue.equals(e.getPayload())
+                    && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
+            return true;
+        }));
+        verify(eventLatestRepository).createOrUpdate(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertTrue(jsonValue.equals(e.getPayload())
+                    && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue()));
+            return true;
+        }));
 
         verifyNoMoreInteractions(eventRepository);
     }
@@ -472,63 +446,54 @@ public class EventServiceTest {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         eventService.createOrganizationEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_ORGANIZATION,
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.PUBLISH_ORGANIZATION,
+                null);
 
-        verify(eventRepository).create(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertNull(e.getPayload());
-                return true;
-            })
-        );
+        verify(eventRepository).create(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertNull(e.getPayload());
+            return true;
+        }));
         verifyNoMoreInteractions(eventRepository);
         verifyNoInteractions(eventLatestRepository);
     }
 
     @Test
-    public void createOrganizationEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
+    public void createOrganizationEvent_shouldCreateEvent_withPayload()
+            throws TechnicalException, JsonProcessingException {
         String jsonValue = "serialized json value";
         OrganizationEntity organization = mock(OrganizationEntity.class);
         when(objectMapper.writeValueAsString(organization)).thenReturn(jsonValue);
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         eventService.createOrganizationEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_ORGANIZATION,
-            organization
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.PUBLISH_ORGANIZATION,
+                organization);
 
-        verify(eventRepository).create(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertTrue(
-                    jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.ORGANIZATION_ID.getValue())
-                );
-                return true;
-            })
-        );
+        verify(eventRepository).create(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertTrue(jsonValue.equals(e.getPayload())
+                    && e.getProperties().containsKey(Event.EventProperties.ORGANIZATION_ID.getValue()));
+            return true;
+        }));
 
         verifyNoMoreInteractions(eventRepository);
 
-        verify(eventLatestRepository).createOrUpdate(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertTrue(
-                    jsonValue.equals(e.getPayload()) && e.getProperties().containsKey(Event.EventProperties.ORGANIZATION_ID.getValue())
-                );
-                return true;
-            })
-        );
+        verify(eventLatestRepository).createOrUpdate(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertTrue(jsonValue.equals(e.getPayload())
+                    && e.getProperties().containsKey(Event.EventProperties.ORGANIZATION_ID.getValue()));
+            return true;
+        }));
     }
 
     @Test
@@ -536,22 +501,19 @@ public class EventServiceTest {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
-            (Api) null,
-            Map.of()
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.PUBLISH_API,
+                (Api) null,
+                Map.of());
 
-        verify(eventRepository).create(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertNull(e.getPayload());
-                return true;
-            })
-        );
+        verify(eventRepository).create(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertNull(e.getPayload());
+            return true;
+        }));
         verifyNoMoreInteractions(eventRepository);
         verifyNoInteractions(eventLatestRepository);
     }
@@ -561,37 +523,32 @@ public class EventServiceTest {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
-            "apiId",
-            Map.of()
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.PUBLISH_API,
+                "apiId",
+                Map.of());
 
-        verify(eventRepository).create(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertNull(e.getPayload());
-                return true;
-            })
-        );
+        verify(eventRepository).create(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertNull(e.getPayload());
+            return true;
+        }));
 
-        verify(eventLatestRepository).createOrUpdate(
-            argThat(e -> {
-                assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
-                assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
-                assertNull(e.getPayload());
-                return true;
-            })
-        );
+        verify(eventLatestRepository).createOrUpdate(argThat(e -> {
+            assertEquals(Set.of(ENVIRONMENT_ID), e.getEnvironments());
+            assertEquals(Set.of(ORGANIZATION_ID), e.getOrganizations());
+            assertNull(e.getPayload());
+            return true;
+        }));
         verifyNoMoreInteractions(eventRepository);
     }
 
     @Test
     public void createApiEvent_shouldReadDatabasePlans_thenCreateEvent_withPayloadContainingPlans()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
         ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(objectMapper));
@@ -601,22 +558,19 @@ public class EventServiceTest {
         api.setId(API_ID);
         api.setDefinition("{}");
 
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(
-            Set.of(
-                buildPlanEntity("plan1", PlanStatus.STAGING),
-                buildPlanEntity("plan2", PlanStatus.CLOSED),
-                buildPlanEntity("plan3", PlanStatus.PUBLISHED)
-            )
-        );
+        when(planService.findByApi(any(), eq(API_ID)))
+                .thenReturn(Set.of(
+                        buildPlanEntity("plan1", PlanStatus.STAGING),
+                        buildPlanEntity("plan2", PlanStatus.CLOSED),
+                        buildPlanEntity("plan3", PlanStatus.PUBLISHED)));
 
         eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.START_API,
-            api,
-            Map.of()
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.START_API,
+                api,
+                Map.of());
 
         // check event has been created and capture his payload
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
@@ -628,7 +582,8 @@ public class EventServiceTest {
 
         // deserialize payload event and check it contains plans from database, except closed ones
         Api payloadApi = realObjectMapper.readValue(eventCaptured.getPayload(), Api.class);
-        var payloadApiDefinition = realObjectMapper.readValue(payloadApi.getDefinition(), io.gravitee.definition.model.Api.class);
+        var payloadApiDefinition =
+                realObjectMapper.readValue(payloadApi.getDefinition(), io.gravitee.definition.model.Api.class);
         assertEquals(2, payloadApiDefinition.getPlans().size());
         assertEquals("plan1", payloadApiDefinition.getPlans().get(0).getId());
         assertEquals("plan3", payloadApiDefinition.getPlans().get(1).getId());
@@ -636,7 +591,7 @@ public class EventServiceTest {
 
     @Test
     public void createApiEvent_shouldReadDatabaseApiFlows_thenCreateEvent_withPayloadContainingFlows()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
         ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(objectMapper));
@@ -646,16 +601,16 @@ public class EventServiceTest {
         api.setId(API_ID);
         api.setDefinition("{}");
 
-        when(flowService.findByReference(FlowReferenceType.API, API_ID)).thenReturn(List.of(buildFlow("flow1"), buildFlow("flow2")));
+        when(flowService.findByReference(FlowReferenceType.API, API_ID))
+                .thenReturn(List.of(buildFlow("flow1"), buildFlow("flow2")));
 
         eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
-            api,
-            Map.of()
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.PUBLISH_API,
+                api,
+                Map.of());
 
         // check event has been created and capture his payload
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
@@ -666,7 +621,8 @@ public class EventServiceTest {
         Event eventCaptured = createdEvent.getValue();
         assertTrue(eventCaptured.getProperties().containsKey(Event.EventProperties.API_ID.getValue()));
         Api payloadApi = realObjectMapper.readValue(eventCaptured.getPayload(), Api.class);
-        var payloadApiDefinition = realObjectMapper.readValue(payloadApi.getDefinition(), io.gravitee.definition.model.Api.class);
+        var payloadApiDefinition =
+                realObjectMapper.readValue(payloadApi.getDefinition(), io.gravitee.definition.model.Api.class);
         assertEquals(2, payloadApiDefinition.getFlows().size());
         assertEquals("flow1", payloadApiDefinition.getFlows().get(0).getName());
         assertEquals("flow2", payloadApiDefinition.getFlows().get(1).getName());
@@ -676,7 +632,8 @@ public class EventServiceTest {
     }
 
     @Test
-    public void create_native_api_event_with_api_and_plan_flows_in_payload() throws TechnicalException, JsonProcessingException {
+    public void create_native_api_event_with_api_and_plan_flows_in_payload()
+            throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
         ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(objectMapper));
@@ -688,26 +645,27 @@ public class EventServiceTest {
         api.setType(ApiType.NATIVE);
         api.setDefinition("{ \"type\": \"native\" }");
 
-        when(planQueryService.findAllByApiId(API_ID)).thenReturn(
-            List.of(
-                buildCorePlan("plan-id", ApiType.NATIVE, io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED),
-                buildCorePlan("plan-id", ApiType.MESSAGE, io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
-            )
-        );
+        when(planQueryService.findAllByApiId(API_ID))
+                .thenReturn(List.of(
+                        buildCorePlan(
+                                "plan-id", ApiType.NATIVE, io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED),
+                        buildCorePlan(
+                                "plan-id",
+                                ApiType.MESSAGE,
+                                io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)));
 
-        when(flowCrudService.getNativePlanFlows("plan-id")).thenReturn(
-            List.of(buildNativeFlow("flow1-plan"), buildNativeFlow("flow2-plan"))
-        );
-        when(flowCrudService.getNativeApiFlows(API_ID)).thenReturn(List.of(buildNativeFlow("flow1"), buildNativeFlow("flow2")));
+        when(flowCrudService.getNativePlanFlows("plan-id"))
+                .thenReturn(List.of(buildNativeFlow("flow1-plan"), buildNativeFlow("flow2-plan")));
+        when(flowCrudService.getNativeApiFlows(API_ID))
+                .thenReturn(List.of(buildNativeFlow("flow1"), buildNativeFlow("flow2")));
 
         eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
-            api,
-            Map.of()
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.PUBLISH_API,
+                api,
+                Map.of());
 
         // check event has been created and capture his payload
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
@@ -719,16 +677,18 @@ public class EventServiceTest {
         assertTrue(eventCaptured.getProperties().containsKey(Event.EventProperties.API_ID.getValue()));
         Api payloadApi = realObjectMapper.readValue(eventCaptured.getPayload(), Api.class);
         var payloadApiDefinition = realObjectMapper.readValue(
-            payloadApi.getDefinition(),
-            io.gravitee.definition.model.v4.nativeapi.NativeApi.class
-        );
+                payloadApi.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class);
         assertEquals(2, payloadApiDefinition.getFlows().size());
         assertEquals("flow1", payloadApiDefinition.getFlows().get(0).getName());
         assertEquals("flow2", payloadApiDefinition.getFlows().get(1).getName());
         assertEquals(1, payloadApiDefinition.getPlans().size());
         assertEquals(2, payloadApiDefinition.getPlans().get(0).getFlows().size());
-        assertEquals("flow1-plan", payloadApiDefinition.getPlans().get(0).getFlows().get(0).getName());
-        assertEquals("flow2-plan", payloadApiDefinition.getPlans().get(0).getFlows().get(1).getName());
+        assertEquals(
+                "flow1-plan",
+                payloadApiDefinition.getPlans().get(0).getFlows().get(0).getName());
+        assertEquals(
+                "flow2-plan",
+                payloadApiDefinition.getPlans().get(0).getFlows().get(1).getName());
 
         assertEquals(Set.of(ENVIRONMENT_ID), eventCaptured.getEnvironments());
         assertEquals(Set.of(ORGANIZATION_ID), eventCaptured.getOrganizations());
@@ -747,13 +707,12 @@ public class EventServiceTest {
         api.setDefinition("{ \"type\": \"edge\" }");
 
         eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(ENVIRONMENT_ID),
-            ORGANIZATION_ID,
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
-            api,
-            Map.of()
-        );
+                GraviteeContext.getExecutionContext(),
+                Set.of(ENVIRONMENT_ID),
+                ORGANIZATION_ID,
+                io.gravitee.rest.api.model.EventType.PUBLISH_API,
+                api,
+                Map.of());
 
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository).create(createdEvent.capture());
@@ -776,12 +735,18 @@ public class EventServiceTest {
     }
 
     private Plan buildCorePlan(String id, ApiType apiType, io.gravitee.definition.model.v4.plan.PlanStatus status) {
-        var plan = Plan.builder().id(id).definitionVersion(DefinitionVersion.V4).apiType(apiType).apiId(API_ID);
+        var plan = Plan.builder()
+                .id(id)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(apiType)
+                .apiId(API_ID);
 
         if (apiType == ApiType.NATIVE) {
             plan.planDefinitionNativeV4(NativePlan.builder().status(status).build());
         } else {
-            plan.planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder().status(status).build());
+            plan.planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                    .status(status)
+                    .build());
         }
 
         return plan.build();

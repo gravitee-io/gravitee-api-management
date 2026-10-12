@@ -42,21 +42,19 @@ public class JdbcUpgraderRepository extends JdbcAbstractRepository<UpgradeRecord
     @Override
     protected JdbcObjectMapper<UpgradeRecord> buildOrm() {
         return JdbcObjectMapper.builder(UpgradeRecord.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("applied_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("applied_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
     public Maybe<UpgradeRecord> findById(String id) {
         log.debug("JdbcUpgraderRepository.findById({})", id);
         try {
-            return jdbcTemplate
-                .query(getOrm().getSelectByIdSql(), getRowMapper(), id)
-                .stream()
-                .findFirst()
-                .map(Maybe::just)
-                .orElseGet(Maybe::empty);
+            return jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id).stream()
+                    .findFirst()
+                    .map(Maybe::just)
+                    .orElseGet(Maybe::empty);
         } catch (final Exception ex) {
             log.error("Failed to find upgrader data by id {}", id, ex);
             return Maybe.error(new TechnicalException("Failed to find upgrader data by id {}", ex));

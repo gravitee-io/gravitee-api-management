@@ -76,39 +76,27 @@ class CreateApiProductPlanUseCaseTest {
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     ApiProductCrudServiceInMemory apiProductCrudServiceInMemory = new ApiProductCrudServiceInMemory();
-    AuditDomainService auditDomainService = new AuditDomainService(
-        auditCrudService,
-        new UserCrudServiceInMemory(),
-        new JacksonJsonDiffProcessor()
-    );
+    AuditDomainService auditDomainService =
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
-    PlanValidatorDomainService planValidatorService = new PlanValidatorDomainService(
-        parametersQueryService,
-        policyValidationDomainService,
-        pageCrudService
-    );
-    FlowValidationDomainService flowValidationDomainService = new FlowValidationDomainService(
-        policyValidationDomainService,
-        new EntrypointPluginQueryServiceInMemory()
-    );
+    PlanValidatorDomainService planValidatorService =
+            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
+    FlowValidationDomainService flowValidationDomainService =
+            new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory());
     inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
     CreatePlanDomainService createPlanDomainService = new CreatePlanDomainService(
-        planValidatorService,
-        flowValidationDomainService,
-        planCrudService,
-        flowCrudService,
-        auditDomainService,
-        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
-        kafkaPortRanges
-    );
+            planValidatorService,
+            flowValidationDomainService,
+            planCrudService,
+            flowCrudService,
+            auditDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges);
 
     PlanExcludedGroupsDomainService planExcludedGroupsDomainService = mock(PlanExcludedGroupsDomainService.class);
 
     CreateApiProductPlanUseCase createPlanUseCase = new CreateApiProductPlanUseCase(
-        createPlanDomainService,
-        apiProductCrudServiceInMemory,
-        planExcludedGroupsDomainService
-    );
+            createPlanDomainService, apiProductCrudServiceInMemory, planExcludedGroupsDomainService);
 
     @BeforeAll
     static void beforeAll() {
@@ -122,12 +110,17 @@ class CreateApiProductPlanUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"),
-                new Parameter(Key.PLAN_SECURITY_MTLS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
+        parametersQueryService.initWith(List.of(
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true"),
+                new Parameter(
+                        Key.PLAN_SECURITY_MTLS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
     }
 
     @AfterEach
@@ -142,48 +135,44 @@ class CreateApiProductPlanUseCaseTest {
         var api = givenExistingApiProduct(API_PRODUCT);
 
         // When
-        var result = createPlanUseCase.execute(
-            new Input(
+        var result = createPlanUseCase.execute(new Input(
                 api.getId(),
-                _api ->
-                    PlanFixtures.HttpV4.aKeyless()
-                        .toBuilder()
+                _api -> PlanFixtures.HttpV4.aKeyless().toBuilder()
                         .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                         .referenceId(api.getId())
                         .apiType(null)
                         .build(),
-                AUDIT_INFO
-            )
-        );
+                AUDIT_INFO));
         // Then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo("keyless");
         assertThat(result.plan())
-            .extracting(
-                createdPlan -> createdPlan.getPlanMode().name(),
-                createdPlan -> createdPlan.getReferenceId(),
-                createdPlan -> createdPlan.getReferenceType(),
-                Plan::getEnvironmentId,
-                Plan::getReferenceId,
-                Plan::getPlanStatus,
-                Plan::getDefinitionVersion
-            )
-            .containsExactly(
-                PlanMode.STANDARD.name(),
-                api.getId(),
-                GenericPlanEntity.ReferenceType.API_PRODUCT,
-                api.getEnvironmentId(),
-                api.getId(),
-                PlanStatus.STAGING,
-                DefinitionVersion.V4
-            );
+                .extracting(
+                        createdPlan -> createdPlan.getPlanMode().name(),
+                        createdPlan -> createdPlan.getReferenceId(),
+                        createdPlan -> createdPlan.getReferenceType(),
+                        Plan::getEnvironmentId,
+                        Plan::getReferenceId,
+                        Plan::getPlanStatus,
+                        Plan::getDefinitionVersion)
+                .containsExactly(
+                        PlanMode.STANDARD.name(),
+                        api.getId(),
+                        GenericPlanEntity.ReferenceType.API_PRODUCT,
+                        api.getEnvironmentId(),
+                        api.getId(),
+                        PlanStatus.STAGING,
+                        DefinitionVersion.V4);
     }
 
     @Test
     void should_not_allow_to_create_secured_plan() {
         // Given
         var api = givenExistingApiProduct(API_PRODUCT);
-        var input = new Input(api.getId(), _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(), AUDIT_INFO);
+        var input = new Input(
+                api.getId(),
+                _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
+                AUDIT_INFO);
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
@@ -208,14 +197,18 @@ class CreateApiProductPlanUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
-            .extracting(
-                Plan::getReferenceId,
-                createdPlan -> createdPlan.getPlanSecurity().getType(),
-                Plan::getReferenceType,
-                Plan::getPlanStatus,
-                Plan::getDefinitionVersion
-            )
-            .containsExactly(api.getId(), "mtls", GenericPlanEntity.ReferenceType.API_PRODUCT, PlanStatus.STAGING, DefinitionVersion.V4);
+                .extracting(
+                        Plan::getReferenceId,
+                        createdPlan -> createdPlan.getPlanSecurity().getType(),
+                        Plan::getReferenceType,
+                        Plan::getPlanStatus,
+                        Plan::getDefinitionVersion)
+                .containsExactly(
+                        api.getId(),
+                        "mtls",
+                        GenericPlanEntity.ReferenceType.API_PRODUCT,
+                        PlanStatus.STAGING,
+                        DefinitionVersion.V4);
     }
 
     @Test
@@ -234,14 +227,18 @@ class CreateApiProductPlanUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(GENERATED_ID);
         assertThat(result.plan())
-            .extracting(
-                Plan::getReferenceId,
-                Plan::getPlanSecurity,
-                Plan::getReferenceType,
-                Plan::getPlanStatus,
-                Plan::getDefinitionVersion
-            )
-            .containsExactly(api.getId(), null, GenericPlanEntity.ReferenceType.API_PRODUCT, PlanStatus.STAGING, DefinitionVersion.V4);
+                .extracting(
+                        Plan::getReferenceId,
+                        Plan::getPlanSecurity,
+                        Plan::getReferenceType,
+                        Plan::getPlanStatus,
+                        Plan::getDefinitionVersion)
+                .containsExactly(
+                        api.getId(),
+                        null,
+                        GenericPlanEntity.ReferenceType.API_PRODUCT,
+                        PlanStatus.STAGING,
+                        DefinitionVersion.V4);
     }
 
     private ApiProduct givenExistingApiProduct(ApiProduct api) {
@@ -251,12 +248,12 @@ class CreateApiProductPlanUseCaseTest {
 
     private ApiProduct.ApiProductBuilder BASE() {
         return ApiProduct.builder()
-            .id("my-api-product")
-            .name("my-api-product")
-            .environmentId("environment-id")
-            .description("api-product-description")
-            .version("1.0.0")
-            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
+                .id("my-api-product")
+                .name("my-api-product")
+                .environmentId("environment-id")
+                .description("api-product-description")
+                .version("1.0.0")
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
     }
 }

@@ -52,38 +52,55 @@ public class AnalyticsDefinitionResource {
     @Path("/apis")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_ANALYTICS,
+                acls = {RolePermissionAction.READ})
+    })
     public ApiSpecsResponse getApiSpecs() {
-        return AnalyticsDefinitionMapper.INSTANCE.toApiSpecsResponse(getApiSpec.execute().specs());
+        return AnalyticsDefinitionMapper.INSTANCE.toApiSpecsResponse(
+                getApiSpec.execute().specs());
     }
 
     @Path("/apis/{apiName}/metrics")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_ANALYTICS,
+                acls = {RolePermissionAction.READ})
+    })
     public MetricSpecsResponse getApiMetricSpecs(@PathParam("apiName") String apiName) {
-        return AnalyticsDefinitionMapper.INSTANCE.toMetricSpecsResponse(
-            getApiMetricSpec.execute(new GetApiMetricSpecUseCase.Input(apiName)).specs()
-        );
+        return AnalyticsDefinitionMapper.INSTANCE.toMetricSpecsResponse(getApiMetricSpec
+                .execute(new GetApiMetricSpecUseCase.Input(apiName))
+                .specs());
     }
 
     @Path("/metrics/{metricName}/facets")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_ANALYTICS,
+                acls = {RolePermissionAction.READ})
+    })
     public FacetSpecsResponse getMetricFacetSpecs(@PathParam("metricName") String metricName) {
-        return AnalyticsDefinitionMapper.INSTANCE.toFacetSpecsResponse(
-            getMetricFacetSpec.execute(new GetMetricFacetSpecUseCase.Input(metricName)).specs()
-        );
+        return AnalyticsDefinitionMapper.INSTANCE.toFacetSpecsResponse(getMetricFacetSpec
+                .execute(new GetMetricFacetSpecUseCase.Input(metricName))
+                .specs());
     }
 
     @Path("/metrics/{metricName}/filters")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_ANALYTICS,
+                acls = {RolePermissionAction.READ})
+    })
     public FilterSpecsResponse getMetricFilterSpecs(@PathParam("metricName") String metricName) {
-        return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(
-            getMetricFilterSpec.execute(new GetMetricFilterSpecUseCase.Input(metricName)).specs()
-        );
+        return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getMetricFilterSpec
+                .execute(new GetMetricFilterSpecUseCase.Input(metricName))
+                .specs());
     }
 }

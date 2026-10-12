@@ -67,33 +67,33 @@ class RequestConfigurationTest {
     @Test
     void should_configure_timeout_when_greater_than_0() {
         assertThat(cut.httpRequestTimeoutConfiguration(30L, 10, 10_000L))
-            .extracting(
-                RequestTimeoutConfiguration::getRequestTimeout,
-                RequestTimeoutConfiguration::getRequestTimeoutGraceDelay,
-                RequestTimeoutConfiguration::getPolicyTimeoutMs
-            )
-            .containsExactly(30L, 10L, 10_000L);
+                .extracting(
+                        RequestTimeoutConfiguration::getRequestTimeout,
+                        RequestTimeoutConfiguration::getRequestTimeoutGraceDelay,
+                        RequestTimeoutConfiguration::getPolicyTimeoutMs)
+                .containsExactly(30L, 10L, 10_000L);
     }
 
     @ParameterizedTest(name = "Timeout: {0}")
-    @ValueSource(longs = { -10L, 0, 30L })
+    @ValueSource(longs = {-10L, 0, 30L})
     void should_use_configured_timeout(long timeout) {
         final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, 10_000L);
 
         assertThat(result)
-            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
-            .containsExactly(timeout, 10L);
+                .extracting(
+                        RequestTimeoutConfiguration::getRequestTimeout,
+                        RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
+                .containsExactly(timeout, 10L);
 
         if (timeout <= 0) {
             final List<ILoggingEvent> logList = listAppender.list;
             assertThat(logList)
-                .hasSize(1)
-                .element(0)
-                .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
-                .containsExactly(
-                    "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms",
-                    Level.WARN
-                );
+                    .hasSize(1)
+                    .element(0)
+                    .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
+                    .containsExactly(
+                            "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms",
+                            Level.WARN);
         }
     }
 
@@ -103,15 +103,18 @@ class RequestConfigurationTest {
         final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, 10_000L);
 
         assertThat(result)
-            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
-            .containsExactly(30_000L, 10L);
+                .extracting(
+                        RequestTimeoutConfiguration::getRequestTimeout,
+                        RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
+                .containsExactly(30_000L, 10L);
 
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
-            .hasSize(1)
-            .element(0)
-            .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
-            .containsExactly("Http request timeout cannot be unset. Setting it to default value: 30_000 ms", Level.WARN);
+                .hasSize(1)
+                .element(0)
+                .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
+                .containsExactly(
+                        "Http request timeout cannot be unset. Setting it to default value: 30_000 ms", Level.WARN);
     }
 
     @Nested
@@ -119,16 +122,17 @@ class RequestConfigurationTest {
     class Reading_the_path_handling_mode {
 
         @ParameterizedTest(name = "{0}")
-        @ValueSource(strings = { "RAW", "REJECT", "NORMALIZE", "normalize", "  NORMALIZE  ", "NoRmAlIzE" })
+        @ValueSource(strings = {"RAW", "REJECT", "NORMALIZE", "normalize", "  NORMALIZE  ", "NoRmAlIzE"})
         void should_accept_a_known_value_whatever_its_case_or_padding(String configured) {
             final RequestPathConfiguration result = cut.httpRequestPathConfiguration(configured);
 
-            assertThat(result.getHandling()).isEqualTo(RequestPathHandling.valueOf(configured.trim().toUpperCase(Locale.ROOT)));
+            assertThat(result.getHandling())
+                    .isEqualTo(RequestPathHandling.valueOf(configured.trim().toUpperCase(Locale.ROOT)));
             assertThat(warnings()).isEmpty();
         }
 
         @ParameterizedTest(name = "[{index}] \"{0}\"")
-        @ValueSource(strings = { "NORMALISE", "REJEKT", "", "  ", "true" })
+        @ValueSource(strings = {"NORMALISE", "REJEKT", "", "  ", "true"})
         void should_fall_back_to_the_default_on_an_unknown_value_and_say_so(String configured) {
             // The default, not RAW. An operator who mistypes has to be told — we do not refuse to
             // start, the sibling timeout bean above sets the house rule, and the warning is the only
@@ -137,8 +141,8 @@ class RequestConfigurationTest {
 
             assertThat(result.getHandling()).isEqualTo(RequestPathHandling.NORMALIZE);
             assertThat(warnings())
-                .singleElement()
-                .satisfies(warning -> assertThat(warning).contains("http.pathHandling"));
+                    .singleElement()
+                    .satisfies(warning -> assertThat(warning).contains("http.pathHandling"));
         }
 
         @Test
@@ -150,7 +154,8 @@ class RequestConfigurationTest {
             try {
                 Locale.setDefault(Locale.forLanguageTag("tr"));
 
-                assertThat(cut.httpRequestPathConfiguration("normalize").getHandling()).isEqualTo(RequestPathHandling.NORMALIZE);
+                assertThat(cut.httpRequestPathConfiguration("normalize").getHandling())
+                        .isEqualTo(RequestPathHandling.NORMALIZE);
             } finally {
                 Locale.setDefault(previous);
             }
@@ -169,25 +174,24 @@ class RequestConfigurationTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @ValueSource(strings = { "RAW", "REJECT", "NORMALIZE" })
+        @ValueSource(strings = {"RAW", "REJECT", "NORMALIZE"})
         void should_state_the_active_mode_at_startup_including_the_default(String configured) {
             // The operator's only positive confirmation of which mode came up, and the counterpart
             // of the warning above: without it, a mistyped value looks exactly like the default.
             cut.httpRequestPathConfiguration(configured);
 
             assertThat(listAppender.list)
-                .filteredOn(event -> event.getLevel() == Level.INFO)
-                .singleElement()
-                .extracting(ILoggingEvent::getFormattedMessage, as(InstanceOfAssertFactories.STRING))
-                .contains(configured);
+                    .filteredOn(event -> event.getLevel() == Level.INFO)
+                    .singleElement()
+                    .extracting(ILoggingEvent::getFormattedMessage, as(InstanceOfAssertFactories.STRING))
+                    .contains(configured);
         }
 
         private List<String> warnings() {
-            return listAppender.list
-                .stream()
-                .filter(event -> event.getLevel() == Level.WARN)
-                .map(ILoggingEvent::getFormattedMessage)
-                .toList();
+            return listAppender.list.stream()
+                    .filter(event -> event.getLevel() == Level.WARN)
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .toList();
         }
     }
 }

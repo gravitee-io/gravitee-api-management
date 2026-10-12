@@ -35,17 +35,14 @@ public class PortalNavigationTemplatingServiceImpl implements PortalNavigationTe
     public RenderedPageContent renderGraviteeMarkdown(RenderPortalNavigationMarkdownInput input) {
         try {
             return RenderedPageContent.of(
-                templateProcessor.processInlineTemplate(input.rawMarkdown().value(), input.model()),
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
+                    templateProcessor.processInlineTemplate(input.rawMarkdown().value(), input.model()),
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
         } catch (TemplateProcessorException e) {
             // Evaluation failures wrap a freemarker.template.TemplateException; parse failures wrap an IOException
             // (FreeMarker's ParseException extends IOException, not TemplateException).
             if (e.getCause() instanceof TemplateException te) {
                 throw new PortalPageContentTemplateException(
-                    "Invalid expression or value is missing for " + te.getBlamedExpressionString(),
-                    e
-                );
+                        "Invalid expression or value is missing for " + te.getBlamedExpressionString(), e);
             }
             final var message = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             throw new PortalPageContentTemplateException("Invalid template: " + message, e);

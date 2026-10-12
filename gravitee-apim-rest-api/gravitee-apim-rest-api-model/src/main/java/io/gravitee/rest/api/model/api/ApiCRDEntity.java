@@ -62,7 +62,9 @@ public class ApiCRDEntity {
     @NotEmpty
     private String id;
 
-    @Schema(description = "API's crossId. Identifies API across environments.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @Schema(
+            description = "API's crossId. Identifies API across environments.",
+            example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     @NotNull
     @NotEmpty
     private String crossId;
@@ -80,12 +82,13 @@ public class ApiCRDEntity {
     @NotNull
     @NotEmpty
     @Schema(
-        description = "API's description. A short description of your API.",
-        example = "I can use a hundred characters to describe this API."
-    )
+            description = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
 
-    @Schema(description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
+    @Schema(
+            description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.",
+            example = "v3")
     @DeploymentRequired
     @JsonProperty(value = "execution_mode")
     private ExecutionMode executionMode;
@@ -102,7 +105,9 @@ public class ApiCRDEntity {
     @Schema(description = "a list of plans with flows (the policies configuration)")
     private Set<PlanEntity> plans = new HashSet<>();
 
-    @Schema(description = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+    @Schema(
+            description =
+                    "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
     @Schema(description = "The list of API resources used by policies like cache resources or oauth2")
@@ -146,15 +151,14 @@ public class ApiCRDEntity {
 
     @JsonProperty(value = "path_mappings")
     @Schema(
-        description = "A list of paths used to aggregate data in analytics",
-        example = "/products/:productId, /products/:productId/media"
-    )
+            description = "A list of paths used to aggregate data in analytics",
+            example = "/products/:productId, /products/:productId/media")
     private Set<String> pathMappings;
 
     @JsonProperty(value = "response_templates")
     @Schema(
-        description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
-    )
+            description =
+                    "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     private List<ApiMetadataEntity> metadata;

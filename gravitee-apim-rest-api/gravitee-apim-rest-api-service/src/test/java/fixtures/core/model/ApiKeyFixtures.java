@@ -25,8 +25,7 @@ public class ApiKeyFixtures {
 
     private ApiKeyFixtures() {}
 
-    private static final Supplier<ApiKeyEntity.ApiKeyEntityBuilder> BASE = () ->
-        ApiKeyEntity.builder()
+    private static final Supplier<ApiKeyEntity.ApiKeyEntityBuilder> BASE = () -> ApiKeyEntity.builder()
             .id("api-key-id")
             .key("c080f684-2c35-40a1-903c-627c219e0567")
             .applicationId("application-id")

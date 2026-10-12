@@ -60,7 +60,8 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isValidWhenDisabled() {
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(false);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(false);
 
         assertTrue(reCaptchaService.isValid(null));
         assertTrue(reCaptchaService.isValid(""));
@@ -69,7 +70,8 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isNotValidIfNoToken() {
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(true);
 
         assertFalse(reCaptchaService.isValid(null));
         assertFalse(reCaptchaService.isValid(""));
@@ -78,10 +80,10 @@ public class ReCaptchaServiceImplTest {
     @Test
     public void isValid() {
         when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
-        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(
-            Buffer.buffer("{ \"success\": true, \"score\": 1.0 }")
-        );
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(true);
+        when(httpClientService.request(any(), any(), any(), any(), any()))
+                .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
 
         assertTrue(reCaptchaService.isValid("any"));
     }
@@ -89,10 +91,10 @@ public class ReCaptchaServiceImplTest {
     @Test
     public void isValidAboveMinScore() {
         when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
-        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(
-            Buffer.buffer("{ \"success\": true, \"score\": 1.0 }")
-        );
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(true);
+        when(httpClientService.request(any(), any(), any(), any(), any()))
+                .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
 
         assertTrue(reCaptchaService.isValid("any"));
     }
@@ -100,32 +102,36 @@ public class ReCaptchaServiceImplTest {
     @Test
     public void isNotValidBelowMinScore() {
         when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
-        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(
-            Buffer.buffer("{ \"success\": true, \"score\": 0.4 }")
-        );
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(true);
+        when(httpClientService.request(any(), any(), any(), any(), any()))
+                .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 0.4 }"));
 
         assertFalse(reCaptchaService.isValid("any"));
     }
 
     @Test
     public void isNotValidNoSuccess() {
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
-        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(Buffer.buffer("{ \"success\": false }"));
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(true);
+        when(httpClientService.request(any(), any(), any(), any(), any()))
+                .thenReturn(Buffer.buffer("{ \"success\": false }"));
 
         assertFalse(reCaptchaService.isValid("any"));
     }
 
     @Test
     public void isEnabled() {
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(true);
 
         assertTrue(reCaptchaService.isEnabled());
     }
 
     @Test
     public void isNotEnabled() {
-        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(false);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false))
+                .thenReturn(false);
 
         assertFalse(reCaptchaService.isEnabled());
     }

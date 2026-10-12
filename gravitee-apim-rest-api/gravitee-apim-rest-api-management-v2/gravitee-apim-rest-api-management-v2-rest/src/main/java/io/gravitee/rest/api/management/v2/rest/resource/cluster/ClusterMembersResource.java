@@ -73,35 +73,39 @@ public class ClusterMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.CLUSTER_MEMBER,
+                acls = {RolePermissionAction.READ})
+    })
     public MembersResponse getClusterMembers(@BeanParam @Valid PaginationParam paginationParam) {
         var output = getClusterMembersUseCase.execute(new GetClusterMembersUseCase.Input(clusterId));
         var membersSubList = computePaginationData(output.members(), paginationParam);
         return new MembersResponse()
-            .data(MemberMapper.INSTANCE.map(membersSubList))
-            .pagination(PaginationInfo.computePaginationInfo(output.members().size(), membersSubList.size(), paginationParam))
-            .links(computePaginationLinks(output.members().size(), paginationParam));
+                .data(MemberMapper.INSTANCE.map(membersSubList))
+                .pagination(PaginationInfo.computePaginationInfo(
+                        output.members().size(), membersSubList.size(), paginationParam))
+                .links(computePaginationLinks(output.members().size(), paginationParam));
     }
 
     @POST
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.CREATE)})
     public Response addClusterMember(@Valid @NotNull AddMember addMember) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
-        addClusterMemberUseCase.execute(new AddClusterMemberUseCase.Input(audit, MemberMapper.INSTANCE.map(addMember), clusterId));
+        addClusterMemberUseCase.execute(
+                new AddClusterMemberUseCase.Input(audit, MemberMapper.INSTANCE.map(addMember), clusterId));
 
         return Response.status(Response.Status.CREATED).build();
     }
@@ -110,18 +114,20 @@ public class ClusterMembersResource extends AbstractResource {
     @Path("/{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response updateClusterMember(@PathParam("memberId") String memberId, @Valid @NotNull UpdateMember updateMember) {
+    @Permissions({@Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE)})
+    public Response updateClusterMember(
+            @PathParam("memberId") String memberId, @Valid @NotNull UpdateMember updateMember) {
         var output = updateClusterMemberUseCase.execute(
-            new UpdateClusterMemberUseCase.Input(updateMember.getRoleName(), memberId, clusterId)
-        );
-        return Response.ok().entity(MemberMapper.INSTANCE.map(output.updatedMember())).build();
+                new UpdateClusterMemberUseCase.Input(updateMember.getRoleName(), memberId, clusterId));
+        return Response.ok()
+                .entity(MemberMapper.INSTANCE.map(output.updatedMember()))
+                .build();
     }
 
     @Path("/{memberId}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.DELETE)})
     public Response deleteClusterMember(@PathParam("memberId") String memberId) {
         deleteClusterMemberUseCase.execute(new DeleteClusterMemberUseCase.Input(clusterId, memberId));
         return Response.noContent().build();
@@ -129,11 +135,10 @@ public class ClusterMembersResource extends AbstractResource {
 
     @POST
     @Path("/_transfer-ownership")
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response transferClusterOwnership(ClusterTransferOwnership transferOwnership) {
         transferClusterOwnershipUseCase.execute(
-            new TransferClusterOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), clusterId)
-        );
+                new TransferClusterOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), clusterId));
         return Response.noContent().build();
     }
 }

@@ -57,7 +57,8 @@ class InvalidateRoleCacheCommandListenerTest {
     @Test
     void should_invalidate_role_cache_when_valid_event() {
         // given
-        String jsonContent = "{\"referenceType\":\"ORG\",\"referenceId\":\"org-1\",\"memberType\":\"USER\",\"memberId\":\"user-1\"}";
+        String jsonContent =
+                "{\"referenceType\":\"ORG\",\"referenceId\":\"org-1\",\"memberType\":\"USER\",\"memberId\":\"user-1\"}";
         CommandEntity commandEntity = mock(CommandEntity.class);
         when(commandEntity.getTags()).thenReturn(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE));
         when(commandEntity.getContent()).thenReturn(jsonContent);
@@ -112,7 +113,8 @@ class InvalidateRoleCacheCommandListenerTest {
     void should_not_invalidate_cache_when_tags_do_not_match() {
         // given
         CommandEntity commandEntity = mock(CommandEntity.class);
-        when(commandEntity.getTags()).thenReturn(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE)); // not GROUP_DEFAULT_ROLES_UPDATE
+        when(commandEntity.getTags())
+                .thenReturn(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE)); // not GROUP_DEFAULT_ROLES_UPDATE
         Event<CommandEvent, CommandEntity> event = mock(Event.class);
         when(event.type()).thenReturn(CommandEvent.TO_PROCESS);
         when(event.content()).thenReturn(commandEntity);

@@ -62,65 +62,67 @@ public class DictionariesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.READ))
     @Operation(
-        summary = "Get the list of global dictionaries",
-        description = "User must have the DICTIONARY[READ] permission to use this service"
-    )
+            summary = "Get the list of global dictionaries",
+            description = "User must have the DICTIONARY[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List global dictionaries",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = DictionaryListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List global dictionaries",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = DictionaryListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<DictionaryListItem> getDictionaries() {
-        return dictionaryService
-            .findAll(GraviteeContext.getExecutionContext())
-            .stream()
-            .map(dictionaryEntity -> {
-                DictionaryListItem item = new DictionaryListItem();
-                item.setId(dictionaryEntity.getId());
-                item.setName(dictionaryEntity.getName());
-                item.setKey(dictionaryEntity.getKey());
-                item.setDescription(dictionaryEntity.getDescription());
-                item.setCreatedAt(dictionaryEntity.getCreatedAt());
-                item.setUpdatedAt(dictionaryEntity.getUpdatedAt());
-                item.setDeployedAt(dictionaryEntity.getDeployedAt());
-                item.setType(dictionaryEntity.getType());
-                item.setState(dictionaryEntity.getState());
+        return dictionaryService.findAll(GraviteeContext.getExecutionContext()).stream()
+                .map(dictionaryEntity -> {
+                    DictionaryListItem item = new DictionaryListItem();
+                    item.setId(dictionaryEntity.getId());
+                    item.setName(dictionaryEntity.getName());
+                    item.setKey(dictionaryEntity.getKey());
+                    item.setDescription(dictionaryEntity.getDescription());
+                    item.setCreatedAt(dictionaryEntity.getCreatedAt());
+                    item.setUpdatedAt(dictionaryEntity.getUpdatedAt());
+                    item.setDeployedAt(dictionaryEntity.getDeployedAt());
+                    item.setType(dictionaryEntity.getType());
+                    item.setState(dictionaryEntity.getState());
 
-                if (dictionaryEntity.getProperties() != null) {
-                    item.setProperties(dictionaryEntity.getProperties().size());
-                }
+                    if (dictionaryEntity.getProperties() != null) {
+                        item.setProperties(dictionaryEntity.getProperties().size());
+                    }
 
-                if (dictionaryEntity.getProvider() != null) {
-                    item.setProvider(dictionaryEntity.getProvider().getType());
-                }
+                    if (dictionaryEntity.getProvider() != null) {
+                        item.setProvider(dictionaryEntity.getProvider().getType());
+                    }
 
-                return item;
-            })
-            .collect(toList());
+                    return item;
+                })
+                .collect(toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.CREATE) })
-    @Operation(summary = "Create a dictionary", description = "User must have the DICTIONARY[CREATE] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.CREATE)})
+    @Operation(
+            summary = "Create a dictionary",
+            description = "User must have the DICTIONARY[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Dictionary successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DictionaryEntity.class))
-    )
+            responseCode = "201",
+            description = "Dictionary successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = DictionaryEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createDictionary(
-        @Parameter(name = "dictionary", required = true) @Valid @NotNull NewDictionaryEntity newDictionaryEntity
-    ) {
-        DictionaryEntity newDictionary = dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionaryEntity);
+            @Parameter(name = "dictionary", required = true) @Valid @NotNull NewDictionaryEntity newDictionaryEntity) {
+        DictionaryEntity newDictionary =
+                dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionaryEntity);
 
         if (newDictionary != null) {
-            return Response.created(this.getLocationHeader(newDictionary.getId())).entity(newDictionary).build();
+            return Response.created(this.getLocationHeader(newDictionary.getId()))
+                    .entity(newDictionary)
+                    .build();
         }
 
         return Response.serverError().build();

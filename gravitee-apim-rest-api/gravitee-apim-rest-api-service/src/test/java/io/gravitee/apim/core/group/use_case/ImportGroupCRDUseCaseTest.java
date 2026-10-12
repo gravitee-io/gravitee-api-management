@@ -52,7 +52,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -66,7 +65,8 @@ class ImportGroupCRDUseCaseTest {
     private static final String ACTOR_USER_ID = "actor-user-id";
     private static final String GROUP_ID = "abc0a85b-9924-4981-bd71-69295353f5ff";
 
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
 
@@ -84,60 +84,50 @@ class ImportGroupCRDUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        when(
-            roleService.findDefaultRoleByScopes(
-                ORGANIZATION_ID,
-                io.gravitee.rest.api.model.permissions.RoleScope.API,
-                io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,
-                io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION
-            )
-        ).thenReturn(
-            List.of(
-                RoleEntity.builder()
-                    .id(UUID.randomUUID().toString())
-                    .scope(io.gravitee.rest.api.model.permissions.RoleScope.API)
-                    .defaultRole(true)
-                    .name("USER")
-                    .build(),
-                RoleEntity.builder()
-                    .id(UUID.randomUUID().toString())
-                    .scope(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION)
-                    .defaultRole(true)
-                    .name("USER")
-                    .build(),
-                RoleEntity.builder()
-                    .id(UUID.randomUUID().toString())
-                    .scope(io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION)
-                    .defaultRole(true)
-                    .name("USER")
-                    .build()
-            )
-        );
+        when(roleService.findDefaultRoleByScopes(
+                        ORGANIZATION_ID,
+                        io.gravitee.rest.api.model.permissions.RoleScope.API,
+                        io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,
+                        io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION))
+                .thenReturn(List.of(
+                        RoleEntity.builder()
+                                .id(UUID.randomUUID().toString())
+                                .scope(io.gravitee.rest.api.model.permissions.RoleScope.API)
+                                .defaultRole(true)
+                                .name("USER")
+                                .build(),
+                        RoleEntity.builder()
+                                .id(UUID.randomUUID().toString())
+                                .scope(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION)
+                                .defaultRole(true)
+                                .name("USER")
+                                .build(),
+                        RoleEntity.builder()
+                                .id(UUID.randomUUID().toString())
+                                .scope(io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION)
+                                .defaultRole(true)
+                                .name("USER")
+                                .build()));
 
         cut = new ImportGroupCRDUseCase(
-            new ValidateGroupCRDDomainServiceImpl(new ValidateCRDMembersDomainService(userDomainService, roleQueryService), roleService),
-            groupQueryService,
-            groupCrudService,
-            membersService
-        );
+                new ValidateGroupCRDDomainServiceImpl(
+                        new ValidateCRDMembersDomainService(userDomainService, roleQueryService), roleService),
+                groupQueryService,
+                groupCrudService,
+                membersService);
     }
 
     @Test
     void should_create_group_setting_origin_to_kubernetes() {
         var spec = GroupCRDSpec.builder()
-            .id("abc0a85b-9924-4981-bd71-69295353f5ff")
-            .name("kubernetes-spec")
-            .members(
-                new LinkedHashSet<>(
-                    Set.of(
-                        GroupCRDSpec.Member.builder()
-                            .source("memory")
-                            .sourceId("api1")
-                            .roles(Map.of(RoleScope.API, "OWNER", RoleScope.APPLICATION, "OWNER", RoleScope.INTEGRATION, "OWNER"))
-                            .build()
-                    )
-                )
-            );
+                .id("abc0a85b-9924-4981-bd71-69295353f5ff")
+                .name("kubernetes-spec")
+                .members(new LinkedHashSet<>(Set.of(GroupCRDSpec.Member.builder()
+                        .source("memory")
+                        .sourceId("api1")
+                        .roles(Map.of(
+                                RoleScope.API, "OWNER", RoleScope.APPLICATION, "OWNER", RoleScope.INTEGRATION, "OWNER"))
+                        .build())));
 
         cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()));
 
@@ -152,22 +142,22 @@ class ImportGroupCRDUseCaseTest {
 
     @Test
     void should_set_default_roles_on_create() {
-        when(roleService.findByScopeAndName(io.gravitee.rest.api.model.permissions.RoleScope.API, "OWNER", ORGANIZATION_ID)).thenReturn(
-            Optional.of(RoleEntity.builder().name("OWNER").build())
-        );
-        when(
-            roleService.findByScopeAndName(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "USER", ORGANIZATION_ID)
-        ).thenReturn(Optional.of(RoleEntity.builder().name("USER").build()));
-        when(
-            roleService.findByScopeAndName(io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT, "USER", ORGANIZATION_ID)
-        ).thenReturn(Optional.of(RoleEntity.builder().name("USER").build()));
+        when(roleService.findByScopeAndName(
+                        io.gravitee.rest.api.model.permissions.RoleScope.API, "OWNER", ORGANIZATION_ID))
+                .thenReturn(Optional.of(RoleEntity.builder().name("OWNER").build()));
+        when(roleService.findByScopeAndName(
+                        io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "USER", ORGANIZATION_ID))
+                .thenReturn(Optional.of(RoleEntity.builder().name("USER").build()));
+        when(roleService.findByScopeAndName(
+                        io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT, "USER", ORGANIZATION_ID))
+                .thenReturn(Optional.of(RoleEntity.builder().name("USER").build()));
 
         var spec = GroupCRDSpec.builder()
-            .id(GROUP_ID)
-            .name("kubernetes-spec")
-            .apiRole("OWNER")
-            .applicationRole("USER")
-            .apiProductRole("USER");
+                .id(GROUP_ID)
+                .name("kubernetes-spec")
+                .apiRole("OWNER")
+                .applicationRole("USER")
+                .apiProductRole("USER");
 
         cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()));
 
@@ -185,8 +175,10 @@ class ImportGroupCRDUseCaseTest {
         givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT, "USER");
         var declared = Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER");
 
-        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(declared).build()));
-        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(declared).build()));
+        cut.execute(new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO, aGroupSpec().defaultMemberRoles(declared).build()));
+        cut.execute(new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO, aGroupSpec().defaultMemberRoles(declared).build()));
 
         assertSoftly(soft -> {
             soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isEqualTo("USER");
@@ -199,21 +191,23 @@ class ImportGroupCRDUseCaseTest {
     void should_clear_default_member_roles_absent_from_the_declared_map() {
         givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
         givenRole(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "USER");
-        cut.execute(
-            new ImportGroupCRDUseCase.Input(
+        cut.execute(new ImportGroupCRDUseCase.Input(
                 AUDIT_INFO,
-                aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER")).build()
-            )
-        );
+                aGroupSpec()
+                        .defaultMemberRoles(Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER"))
+                        .build()));
 
-        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "USER")).build()));
+        cut.execute(new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO,
+                aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "USER")).build()));
 
         assertSoftly(soft -> {
             soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isEqualTo("USER");
             soft.assertThat(membersService.getGroupApplicationRole(GROUP_ID)).isNull();
         });
 
-        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of()).build()));
+        cut.execute(new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of()).build()));
 
         assertThat(membersService.getGroupApiRole(GROUP_ID)).isNull();
     }
@@ -221,7 +215,8 @@ class ImportGroupCRDUseCaseTest {
     @Test
     void should_leave_default_roles_untouched_when_the_map_is_not_declared() {
         givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API, "OWNER");
-        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().apiRole("OWNER").build()));
+        cut.execute(new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO, aGroupSpec().apiRole("OWNER").build()));
 
         cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().build()));
 
@@ -230,32 +225,38 @@ class ImportGroupCRDUseCaseTest {
 
     @Test
     void should_warn_and_clear_an_unknown_default_member_role() {
-        var result = cut.execute(
-            new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "UNKNOWN")).build())
-        );
+        var result = cut.execute(new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO,
+                aGroupSpec()
+                        .defaultMemberRoles(Map.of(RoleScope.API, "UNKNOWN"))
+                        .build()));
 
         assertSoftly(soft -> {
             soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isNull();
-            soft.assertThat(result.status().getErrors().warning()).containsExactly("default api role [UNKNOWN] doesn't exist");
+            soft.assertThat(result.status().getErrors().warning())
+                    .containsExactly("default api role [UNKNOWN] doesn't exist");
         });
     }
 
     @Test
     void should_reject_a_scope_that_is_not_a_group_default_role_scope() {
-        assertThatThrownBy(() ->
-            cut.execute(
-                new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of(RoleScope.INTEGRATION, "USER")).build())
-            )
-        )
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("scope [INTEGRATION] is not a group default role scope");
+        assertThatThrownBy(() -> cut.execute(new ImportGroupCRDUseCase.Input(
+                        AUDIT_INFO,
+                        aGroupSpec()
+                                .defaultMemberRoles(Map.of(RoleScope.INTEGRATION, "USER"))
+                                .build())))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("scope [INTEGRATION] is not a group default role scope");
     }
 
     @Test
     void should_not_touch_members_when_ignoring_members() {
         var spec = aGroupSpec()
-            .ignoreMembers(true)
-            .members(new LinkedHashSet<>(Set.of(GroupCRDSpec.Member.builder().source("memory").sourceId("unknown").build())));
+                .ignoreMembers(true)
+                .members(new LinkedHashSet<>(Set.of(GroupCRDSpec.Member.builder()
+                        .source("memory")
+                        .sourceId("unknown")
+                        .build())));
 
         var result = cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()));
 
@@ -270,31 +271,27 @@ class ImportGroupCRDUseCaseTest {
     @Test
     void should_keep_console_only_settings_on_update() {
         var existing = io.gravitee.apim.core.group.model.Group.builder()
-            .id(GROUP_ID)
-            .hrid("developers")
-            .environmentId(ENVIRONMENT_ID)
-            .name("old-name")
-            .lockApiRole(true)
-            .lockApplicationRole(true)
-            .lockApiProductRole(true)
-            .eventRules(
-                List.of(
-                    new io.gravitee.apim.core.group.model.Group.GroupEventRule(
-                        io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE
-                    )
-                )
-            )
-            .maxInvitation(10)
-            .systemInvitation(true)
-            .emailInvitation(true)
-            .apiPrimaryOwner("po-user")
-            .disableMembershipNotifications(false)
-            .origin(OriginContext.Origin.KUBERNETES.name())
-            .build();
+                .id(GROUP_ID)
+                .hrid("developers")
+                .environmentId(ENVIRONMENT_ID)
+                .name("old-name")
+                .lockApiRole(true)
+                .lockApplicationRole(true)
+                .lockApiProductRole(true)
+                .eventRules(List.of(new io.gravitee.apim.core.group.model.Group.GroupEventRule(
+                        io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE)))
+                .maxInvitation(10)
+                .systemInvitation(true)
+                .emailInvitation(true)
+                .apiPrimaryOwner("po-user")
+                .disableMembershipNotifications(false)
+                .origin(OriginContext.Origin.KUBERNETES.name())
+                .build();
         groupQueryService.initWith(List.of(existing));
         groupCrudService.storage().put(GROUP_ID, existing);
 
-        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().name("new-name").notifyMembers(false).build()));
+        cut.execute(new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO, aGroupSpec().name("new-name").notifyMembers(false).build()));
 
         var updated = groupCrudService.storage().get(GROUP_ID);
         assertSoftly(soft -> {
@@ -317,46 +314,39 @@ class ImportGroupCRDUseCaseTest {
     }
 
     private void givenRole(io.gravitee.rest.api.model.permissions.RoleScope scope, String name) {
-        when(roleService.findByScopeAndName(scope, name, ORGANIZATION_ID)).thenReturn(Optional.of(RoleEntity.builder().name(name).build()));
+        when(roleService.findByScopeAndName(scope, name, ORGANIZATION_ID))
+                .thenReturn(Optional.of(RoleEntity.builder().name(name).build()));
     }
 
     @Test
     void should_reject_import_when_primary_owner_is_added_as_group_member() {
-        userDomainService.initWith(
-            List.of(
-                BaseUserEntity.builder()
-                    .organizationId(ORGANIZATION_ID)
-                    .id(ACTOR_USER_ID)
-                    .source(IdpSource.of("memory"))
-                    .sourceId("admin")
-                    .build()
-            )
-        );
-        roleQueryService.initWith(
-            List.of(
-                Role.builder()
-                    .name("USER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .id(UUID.randomUUID().toString())
-                    .scope(Role.Scope.API)
-                    .build()
-            )
-        );
+        userDomainService.initWith(List.of(BaseUserEntity.builder()
+                .organizationId(ORGANIZATION_ID)
+                .id(ACTOR_USER_ID)
+                .source(IdpSource.of("memory"))
+                .sourceId("admin")
+                .build()));
+        roleQueryService.initWith(List.of(Role.builder()
+                .name("USER")
+                .referenceType(Role.ReferenceType.ORGANIZATION)
+                .referenceId(ORGANIZATION_ID)
+                .id(UUID.randomUUID().toString())
+                .scope(Role.Scope.API)
+                .build()));
 
         var spec = GroupCRDSpec.builder()
-            .id(GROUP_ID)
-            .name("kubernetes-spec")
-            .members(
-                new LinkedHashSet<>(
-                    Set.of(GroupCRDSpec.Member.builder().source("memory").sourceId("admin").roles(Map.of(RoleScope.API, "USER")).build())
-                )
-            );
+                .id(GROUP_ID)
+                .name("kubernetes-spec")
+                .members(new LinkedHashSet<>(Set.of(GroupCRDSpec.Member.builder()
+                        .source("memory")
+                        .sourceId("admin")
+                        .roles(Map.of(RoleScope.API, "USER"))
+                        .build())));
 
         ImportGroupCRDUseCase.Input input = new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build());
         assertThatThrownBy(() -> cut.execute(input))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Unable to import because of errors [can not change the role of primary owner [admin]]");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Unable to import because of errors [can not change the role of primary owner [admin]]");
     }
 
     @Test
@@ -365,18 +355,17 @@ class ImportGroupCRDUseCaseTest {
         when(validationService.validateAndSanitize(any())).thenReturn(Validator.Result.empty());
 
         var useCase = new ImportGroupCRDUseCase(
-            validationService,
-            new GroupQueryServiceInMemory(),
-            new GroupCrudServiceInMemory(),
-            new CRDMembersDomainServiceInMemory()
-        );
+                validationService,
+                new GroupQueryServiceInMemory(),
+                new GroupCrudServiceInMemory(),
+                new CRDMembersDomainServiceInMemory());
 
         var auditInfo = AuditInfoFixtures.anAuditInfo("org", "env", "user");
         var spec = GroupCRDSpec.builder().id("group-id").name("test").build();
 
         var input = new ImportGroupCRDUseCase.Input(auditInfo, spec);
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Unable to sanitize CRD spec");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Unable to sanitize CRD spec");
     }
 }

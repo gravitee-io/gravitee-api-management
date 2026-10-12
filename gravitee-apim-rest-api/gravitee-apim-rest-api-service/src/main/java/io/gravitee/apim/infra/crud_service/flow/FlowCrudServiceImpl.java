@@ -87,21 +87,18 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             return Map.of();
         }
         try {
-            List<io.gravitee.repository.management.model.flow.Flow> repoFlows = flowRepository.findByReferences(
-                FlowReferenceType.PLAN,
-                planIds
-            );
-            return repoFlows
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, e ->
-                        e.getValue().stream().map(FlowAdapter.INSTANCE::toFlowV4).collect(Collectors.toList())
-                    )
-                );
+            List<io.gravitee.repository.management.model.flow.Flow> repoFlows =
+                    flowRepository.findByReferences(FlowReferenceType.PLAN, planIds);
+            return repoFlows.stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().stream()
+                                    .map(FlowAdapter.INSTANCE::toFlowV4)
+                                    .collect(Collectors.toList())));
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to get v4 plan flows", ex);
         }
@@ -143,21 +140,18 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             return Map.of();
         }
         try {
-            List<io.gravitee.repository.management.model.flow.Flow> repoFlows = flowRepository.findByReferences(
-                FlowReferenceType.PLAN,
-                planIds
-            );
-            return repoFlows
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, e ->
-                        e.getValue().stream().map(FlowAdapter.INSTANCE::toNativeFlow).collect(Collectors.toList())
-                    )
-                );
+            List<io.gravitee.repository.management.model.flow.Flow> repoFlows =
+                    flowRepository.findByReferences(FlowReferenceType.PLAN, planIds);
+            return repoFlows.stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().stream()
+                                    .map(FlowAdapter.INSTANCE::toNativeFlow)
+                                    .collect(Collectors.toList())));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to get native plan flows";
             log.error(error, ex);
@@ -171,21 +165,18 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             return Map.of();
         }
         try {
-            List<io.gravitee.repository.management.model.flow.Flow> repoFlows = flowRepository.findByReferences(
-                FlowReferenceType.PLAN,
-                planIds
-            );
-            return repoFlows
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, e ->
-                        e.getValue().stream().map(FlowAdapter.INSTANCE::toFlowV2).collect(Collectors.toList())
-                    )
-                );
+            List<io.gravitee.repository.management.model.flow.Flow> repoFlows =
+                    flowRepository.findByReferences(FlowReferenceType.PLAN, planIds);
+            return repoFlows.stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().stream()
+                                    .map(FlowAdapter.INSTANCE::toFlowV2)
+                                    .collect(Collectors.toList())));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to get v2 plan flows";
             log.error(error, ex);
@@ -194,28 +185,25 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     private List<io.gravitee.repository.management.model.flow.Flow> save(
-        FlowReferenceType flowReferenceType,
-        String referenceId,
-        List<? extends AbstractFlow> flows
-    ) {
+            FlowReferenceType flowReferenceType, String referenceId, List<? extends AbstractFlow> flows) {
         try {
             log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
             if (isEmpty(flows)) {
                 flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return List.of();
             }
-            var dbFlowsById = flowRepository
-                .findByReference(flowReferenceType, referenceId)
-                .stream()
-                .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
+            var dbFlowsById = flowRepository.findByReference(flowReferenceType, referenceId).stream()
+                    .collect(Collectors.toMap(
+                            io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
 
-            Set<String> flowIdsToSave = flows.stream().map(AbstractFlow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<String> flowIdsToSave = flows.stream()
+                    .map(AbstractFlow::getId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
 
-            Set<String> flowIdsToDelete = dbFlowsById
-                .keySet()
-                .stream()
-                .filter(Predicate.not(flowIdsToSave::contains))
-                .collect(Collectors.toSet());
+            Set<String> flowIdsToDelete = dbFlowsById.keySet().stream()
+                    .filter(Predicate.not(flowIdsToSave::contains))
+                    .collect(Collectors.toSet());
             if (!flowIdsToDelete.isEmpty()) {
                 flowRepository.deleteAllById(flowIdsToDelete);
             }
@@ -224,82 +212,83 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             for (int order = 0; order < flows.size(); ++order) {
                 var flow = flows.get(order);
                 var dbFlow = (flow.getId() == null || !dbFlowsById.containsKey(flow.getId()))
-                    ? flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order))
-                    : flowRepository.update(
-                        FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
-                    );
+                        ? flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(
+                                flow, flowReferenceType, referenceId, order))
+                        : flowRepository.update(FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(
+                                dbFlowsById.get(flow.getId()), flow, order));
                 savedFlows.add(dbFlow);
             }
             return savedFlows;
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to save flows for " + flowReferenceType + ": " + referenceId;
+            final String error =
+                    "An error occurs while trying to save flows for " + flowReferenceType + ": " + referenceId;
             log.error(error, ex);
             throw new TechnicalDomainException(error, ex);
         }
     }
 
-    private List<io.gravitee.definition.model.flow.Flow> getV2(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<io.gravitee.definition.model.flow.Flow> getV2(
+            FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Get flows for reference {},{}", flowReferenceType, flowReferenceType);
-            return flowRepository
-                .findByReference(flowReferenceType, referenceId)
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .map(FlowAdapter.INSTANCE::toFlowV2)
-                .collect(Collectors.toList());
+            return flowRepository.findByReference(flowReferenceType, referenceId).stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .map(FlowAdapter.INSTANCE::toFlowV2)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
+            final String error =
+                    "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
             log.error(error, ex);
             throw new TechnicalDomainException(error, ex);
         }
     }
 
     private List<Flow> getHttpV4(FlowReferenceType flowReferenceType, String referenceId) {
-        return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toFlowV4).collect(Collectors.toList());
+        return getRepositoryV4(flowReferenceType, referenceId)
+                .map(FlowAdapter.INSTANCE::toFlowV4)
+                .collect(Collectors.toList());
     }
 
     private List<NativeFlow> getNativeV4(FlowReferenceType flowReferenceType, String referenceId) {
-        return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toNativeFlow).collect(Collectors.toList());
+        return getRepositoryV4(flowReferenceType, referenceId)
+                .map(FlowAdapter.INSTANCE::toNativeFlow)
+                .collect(Collectors.toList());
     }
 
     private Stream<io.gravitee.repository.management.model.flow.Flow> getRepositoryV4(
-        FlowReferenceType flowReferenceType,
-        String referenceId
-    ) {
+            FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Get flows for reference {},{}", flowReferenceType, flowReferenceType);
-            return flowRepository
-                .findByReference(flowReferenceType, referenceId)
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder));
+            return flowRepository.findByReference(flowReferenceType, referenceId).stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder));
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
+            final String error =
+                    "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
             log.error(error, ex);
             throw new TechnicalDomainException(error, ex);
         }
     }
 
     private void saveV2(
-        FlowReferenceType flowReferenceType,
-        String referenceId,
-        @Nullable List<io.gravitee.definition.model.flow.Flow> flows
-    ) {
+            FlowReferenceType flowReferenceType,
+            String referenceId,
+            @Nullable List<io.gravitee.definition.model.flow.Flow> flows) {
         try {
             log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
             if (isEmpty(flows)) {
                 flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return;
             }
-            var dbFlowsById = stream(flowRepository.findByReference(flowReferenceType, referenceId)).collect(
-                Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity())
-            );
+            var dbFlowsById = stream(flowRepository.findByReference(flowReferenceType, referenceId))
+                    .collect(Collectors.toMap(
+                            io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
 
-            var flowIdsToSave = flows
-                .stream()
-                .flatMap(f -> Stream.ofNullable(f.getId()))
-                .collect(Collectors.toSet());
+            var flowIdsToSave =
+                    flows.stream().flatMap(f -> Stream.ofNullable(f.getId())).collect(Collectors.toSet());
 
-            var flowIdsToDelete = dbFlowsById.keySet().stream().filter(Predicate.not(flowIdsToSave::contains)).collect(Collectors.toSet());
+            var flowIdsToDelete = dbFlowsById.keySet().stream()
+                    .filter(Predicate.not(flowIdsToSave::contains))
+                    .collect(Collectors.toSet());
             if (!flowIdsToDelete.isEmpty()) {
                 flowRepository.deleteAllById(flowIdsToDelete);
             }
@@ -307,13 +296,16 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             for (int order = 0; order < flows.size(); ++order) {
                 var flow = flows.get(order);
                 if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
-                    flowRepository.create(FlowAdapter.INSTANCE.toRepository(flow, flowReferenceType, referenceId, order));
+                    flowRepository.create(
+                            FlowAdapter.INSTANCE.toRepository(flow, flowReferenceType, referenceId, order));
                 } else {
-                    flowRepository.update(FlowAdapter.INSTANCE.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, order));
+                    flowRepository.update(
+                            FlowAdapter.INSTANCE.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, order));
                 }
             }
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to save flows for " + flowReferenceType + ": " + referenceId;
+            final String error =
+                    "An error occurs while trying to save flows for " + flowReferenceType + ": " + referenceId;
             throw new TechnicalDomainException(error, ex);
         }
     }

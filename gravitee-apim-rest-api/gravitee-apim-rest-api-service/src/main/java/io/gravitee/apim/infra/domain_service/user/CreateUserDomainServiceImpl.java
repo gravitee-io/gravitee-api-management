@@ -35,15 +35,10 @@ public class CreateUserDomainServiceImpl implements CreateUserDomainService {
 
     @Override
     public BaseUserEntity createGraviteeUser(
-        ExecutionContext executionContext,
-        String email,
-        Optional<String> firstname,
-        Optional<String> lastname
-    ) {
+            ExecutionContext executionContext, String email, Optional<String> firstname, Optional<String> lastname) {
         var now = Date.from(TimeProvider.now().toInstant());
-        var created = userCrudService.create(
-            BaseUserEntity.createGraviteeUser(executionContext.getOrganizationId(), email, firstname, lastname, now)
-        );
+        var created = userCrudService.create(BaseUserEntity.createGraviteeUser(
+                executionContext.getOrganizationId(), email, firstname, lastname, now));
         assignUserDefaultRolesDomainService.assignDefaultRoles(executionContext, created.getId());
         return created;
     }

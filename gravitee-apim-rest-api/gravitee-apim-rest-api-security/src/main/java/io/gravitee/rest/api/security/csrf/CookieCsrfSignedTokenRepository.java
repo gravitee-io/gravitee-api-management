@@ -92,9 +92,14 @@ public class CookieCsrfSignedTokenRepository implements CsrfTokenRepository {
         String tokenValue = token.getToken();
 
         try {
-            JWTClaimsSet claims = new JWTClaimsSet.Builder().issuer(issuer()).issueTime(new Date()).claim(TOKEN_CLAIM, tokenValue).build();
+            JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                    .issuer(issuer())
+                    .issueTime(new Date())
+                    .claim(TOKEN_CLAIM, tokenValue)
+                    .build();
 
-            JWSObject jwsObject = new JWSObject(new JWSHeader((JWSAlgorithm.HS256)), new Payload(claims.toJSONObject()));
+            JWSObject jwsObject =
+                    new JWSObject(new JWSHeader((JWSAlgorithm.HS256)), new Payload(claims.toJSONObject()));
             jwsObject.sign(signer);
 
             Cookie cookie = cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, jwsObject.serialize(), true);

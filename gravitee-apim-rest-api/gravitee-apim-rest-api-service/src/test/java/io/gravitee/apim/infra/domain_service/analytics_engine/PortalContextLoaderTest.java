@@ -77,9 +77,12 @@ class PortalContextLoaderTest {
     private static final String ENV_ID = "DEFAULT";
     private static final String ORG_ID = "DEFAULT";
 
-    private static final Api REPO_API_1 = Api.builder().id("id1").name("api1").type(ApiType.PROXY).build();
-    private static final Api REPO_API_2 = Api.builder().id("id2").name("api2").type(ApiType.MESSAGE).build();
-    private static final Api REPO_API_3 = Api.builder().id("id3").name("api3").type(ApiType.LLM_PROXY).build();
+    private static final Api REPO_API_1 =
+            Api.builder().id("id1").name("api1").type(ApiType.PROXY).build();
+    private static final Api REPO_API_2 =
+            Api.builder().id("id2").name("api2").type(ApiType.MESSAGE).build();
+    private static final Api REPO_API_3 =
+            Api.builder().id("id3").name("api3").type(ApiType.LLM_PROXY).build();
 
     private static final String ADMIN_USER_ID = UUID.randomUUID().toString();
     private static final String NON_ADMIN_USER_ID = UUID.randomUUID().toString();
@@ -96,7 +99,11 @@ class PortalContextLoaderTest {
 
     private AuditInfo auditInfo(String userId) {
         var actor = AuditActor.builder().userId(userId).build();
-        return AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(actor).build();
+        return AuditInfo.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .actor(actor)
+                .build();
     }
 
     private void setUpSecurityContext(String role) {
@@ -113,17 +120,17 @@ class PortalContextLoaderTest {
 
     private PortalNavigationApi navApi(String apiId) {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(apiId)
-            .segment(PortalNavigationItem.slugify(apiId).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(apiId)
+                .segment(PortalNavigationItem.slugify(apiId).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(apiId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     private ApplicationListItem appItem(String id, String name) {
@@ -148,19 +155,22 @@ class PortalContextLoaderTest {
             var context = contextLoader.load(auditInfo(ADMIN_USER_ID));
 
             assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id2", "id3");
-            assertThat(context.apiNamesById()).isEqualTo(
-                Map.of(
-                    REPO_API_1.getId(),
-                    REPO_API_1.getName(),
-                    REPO_API_2.getId(),
-                    REPO_API_2.getName(),
-                    REPO_API_3.getId(),
-                    REPO_API_3.getName()
-                )
-            );
-            assertThat(context.apiIdsByType()).isEqualTo(
-                Map.of(ApiType.PROXY, Set.of("id1"), ApiType.MESSAGE, Set.of("id2"), ApiType.LLM_PROXY, Set.of("id3"))
-            );
+            assertThat(context.apiNamesById())
+                    .isEqualTo(Map.of(
+                            REPO_API_1.getId(),
+                            REPO_API_1.getName(),
+                            REPO_API_2.getId(),
+                            REPO_API_2.getName(),
+                            REPO_API_3.getId(),
+                            REPO_API_3.getName()));
+            assertThat(context.apiIdsByType())
+                    .isEqualTo(Map.of(
+                            ApiType.PROXY,
+                            Set.of("id1"),
+                            ApiType.MESSAGE,
+                            Set.of("id2"),
+                            ApiType.LLM_PROXY,
+                            Set.of("id3")));
             assertThat(context.applicationNamesById()).isEmpty();
             assertThat(context.executionContext().getOrganizationId()).isEqualTo(ORG_ID);
             assertThat(context.executionContext().getEnvironmentId()).isEqualTo(ENV_ID);
@@ -183,7 +193,8 @@ class PortalContextLoaderTest {
 
         @Test
         void should_exclude_apis_with_null_type_from_apiIdsByType() {
-            var apiWithoutType = Api.builder().id("id-no-type").name("no-type-api").build();
+            var apiWithoutType =
+                    Api.builder().id("id-no-type").name("no-type-api").build();
             when(apiRepository.search(any(), any())).thenReturn(List.of(REPO_API_1, apiWithoutType));
 
             var context = contextLoader.load(auditInfo(ADMIN_USER_ID));
@@ -203,11 +214,11 @@ class PortalContextLoaderTest {
 
         @Test
         void should_load_context_scoped_to_visible_portal_apis_and_user_applications() {
-            when(visibilityDomainService.resolveVisibleItems(ENV_ID, NON_ADMIN_USER_ID)).thenReturn(List.of(navApi("id2"), navApi("id3")));
+            when(visibilityDomainService.resolveVisibleItems(ENV_ID, NON_ADMIN_USER_ID))
+                    .thenReturn(List.of(navApi("id2"), navApi("id3")));
             when(apiRepository.search(any(), any())).thenReturn(List.of(REPO_API_2, REPO_API_3));
-            when(applicationService.findByUser(any(), eq(NON_ADMIN_USER_ID))).thenReturn(
-                Set.of(appItem("app1", "My App"), appItem("app2", "Another App"))
-            );
+            when(applicationService.findByUser(any(), eq(NON_ADMIN_USER_ID)))
+                    .thenReturn(Set.of(appItem("app1", "My App"), appItem("app2", "Another App")));
 
             var context = contextLoader.load(auditInfo(NON_ADMIN_USER_ID));
 
@@ -220,7 +231,8 @@ class PortalContextLoaderTest {
 
         @Test
         void should_return_empty_apis_when_no_visible_portal_apis() {
-            when(visibilityDomainService.resolveVisibleItems(ENV_ID, NON_ADMIN_USER_ID)).thenReturn(Collections.emptyList());
+            when(visibilityDomainService.resolveVisibleItems(ENV_ID, NON_ADMIN_USER_ID))
+                    .thenReturn(Collections.emptyList());
             when(applicationService.findByUser(any(), eq(NON_ADMIN_USER_ID))).thenReturn(Collections.emptySet());
 
             var context = contextLoader.load(auditInfo(NON_ADMIN_USER_ID));

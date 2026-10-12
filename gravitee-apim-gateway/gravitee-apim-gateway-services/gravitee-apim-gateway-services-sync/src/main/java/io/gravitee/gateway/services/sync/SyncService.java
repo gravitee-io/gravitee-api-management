@@ -59,7 +59,8 @@ public class SyncService extends AbstractService {
             // Register sync prob
             probeManager.register(syncProcessProbe);
 
-            // Force refresh based on internal state of the api manager and shared policy group manager (useful if apis definitions are maintained across the cluster).
+            // Force refresh based on internal state of the api manager and shared policy group manager (useful if apis
+            // definitions are maintained across the cluster).
             apiManager.refresh();
             sharedPolicyGroupManager.refresh();
 
@@ -69,7 +70,10 @@ public class SyncService extends AbstractService {
                     try {
                         syncManager.start();
                     } catch (Exception e) {
-                        log.error("Unable to start sync manager {}", syncManager.getClass().getSimpleName(), e);
+                        log.error(
+                                "Unable to start sync manager {}",
+                                syncManager.getClass().getSimpleName(),
+                                e);
                     }
                 });
             }
@@ -85,7 +89,10 @@ public class SyncService extends AbstractService {
                 try {
                     syncManager.stop();
                 } catch (Exception e) {
-                    log.error("Unable to start sync manager {}", syncManager.getClass().getSimpleName(), e);
+                    log.error(
+                            "Unable to start sync manager {}",
+                            syncManager.getClass().getSimpleName(),
+                            e);
                     throw new RuntimeException(e);
                 }
             });

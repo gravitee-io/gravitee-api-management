@@ -43,13 +43,13 @@ class ValidatePlanDomainServiceTest {
     void should_reject_native_keyless_plan_coexisting_with_active_auth_plan() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseNativeSpec().build();
         Map<String, PlanCRD> plans = Map.of(
-            "keyless",
-            nativePlan("keyless", "key-less", PlanStatus.PUBLISHED),
-            "apikey",
-            nativePlan("apikey", "api-key", PlanStatus.PUBLISHED)
-        );
+                "keyless",
+                nativePlan("keyless", "key-less", PlanStatus.PUBLISHED),
+                "apikey",
+                nativePlan("apikey", "api-key", PlanStatus.PUBLISHED));
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result =
+                service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
 
         assertThat(hasMutualExclusivityError(result)).isTrue();
     }
@@ -58,13 +58,13 @@ class ValidatePlanDomainServiceTest {
     void should_reject_native_keyless_plan_coexisting_with_deprecated_auth_plan() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseNativeSpec().build();
         Map<String, PlanCRD> plans = Map.of(
-            "keyless",
-            nativePlan("keyless", "key-less", PlanStatus.PUBLISHED),
-            "apikey",
-            nativePlan("apikey", "api-key", PlanStatus.DEPRECATED)
-        );
+                "keyless",
+                nativePlan("keyless", "key-less", PlanStatus.PUBLISHED),
+                "apikey",
+                nativePlan("apikey", "api-key", PlanStatus.DEPRECATED));
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result =
+                service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
 
         assertThat(hasMutualExclusivityError(result)).isTrue();
     }
@@ -73,13 +73,13 @@ class ValidatePlanDomainServiceTest {
     void should_accept_native_keyless_plan_when_the_auth_plan_is_closed() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseNativeSpec().build();
         Map<String, PlanCRD> plans = Map.of(
-            "keyless",
-            nativePlan("keyless", "key-less", PlanStatus.PUBLISHED),
-            "apikey",
-            nativePlan("apikey", "api-key", PlanStatus.CLOSED)
-        );
+                "keyless",
+                nativePlan("keyless", "key-less", PlanStatus.PUBLISHED),
+                "apikey",
+                nativePlan("apikey", "api-key", PlanStatus.CLOSED));
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result =
+                service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
 
         assertThat(hasMutualExclusivityError(result)).isFalse();
     }
@@ -88,33 +88,30 @@ class ValidatePlanDomainServiceTest {
     void should_accept_native_multiple_authentication_plans() {
         ApiCRDSpec spec = ApiCRDFixtures.newBaseNativeSpec().build();
         Map<String, PlanCRD> plans = Map.of(
-            "apikey",
-            nativePlan("apikey", "api-key", PlanStatus.PUBLISHED),
-            "jwt",
-            nativePlan("jwt", "jwt", PlanStatus.PUBLISHED)
-        );
+                "apikey",
+                nativePlan("apikey", "api-key", PlanStatus.PUBLISHED),
+                "jwt",
+                nativePlan("jwt", "jwt", PlanStatus.PUBLISHED));
 
-        var result = service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
+        var result =
+                service.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, plans, List.of()));
 
         assertThat(hasMutualExclusivityError(result)).isFalse();
     }
 
     private static PlanCRD nativePlan(String id, String securityType, PlanStatus status) {
         return PlanCRD.builder()
-            .id(id)
-            .name(id)
-            .security(new PlanSecurity(securityType, "{}"))
-            .mode(PlanMode.STANDARD)
-            .status(status)
-            .build();
+                .id(id)
+                .name(id)
+                .security(new PlanSecurity(securityType, "{}"))
+                .mode(PlanMode.STANDARD)
+                .status(status)
+                .build();
     }
 
     private static boolean hasMutualExclusivityError(Validator.Result<ValidatePlanDomainService.Input> result) {
-        return result
-            .errors()
-            .orElseGet(List::of)
-            .stream()
-            .map(Validator.Error::getMessage)
-            .anyMatch(message -> message.contains("mutually exclusive"));
+        return result.errors().orElseGet(List::of).stream()
+                .map(Validator.Error::getMessage)
+                .anyMatch(message -> message.contains("mutually exclusive"));
     }
 }

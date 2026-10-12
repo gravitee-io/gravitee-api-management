@@ -91,43 +91,56 @@ public class SharedPolicyGroupsResource_CreateTest extends AbstractResourceTest 
     void should_create_shared_policy_group() {
         var createSharedPolicyGroup = aCreateSharedPolicyGroup();
 
-        when(createSharedPolicyGroupUseCase.execute(any())).thenReturn(
-            new CreateSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup())
-        );
+        when(createSharedPolicyGroupUseCase.execute(any()))
+                .thenReturn(new CreateSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup()));
 
         final Response response = rootTarget().request().post(json(createSharedPolicyGroup));
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
-        var createdSharedPolicyGroup = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup.class);
+        var createdSharedPolicyGroup =
+                response.readEntity(io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup.class);
 
         assertThat(createdSharedPolicyGroup)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", SharedPolicyGroupFixtures.aSharedPolicyGroup().getId())
-            .hasFieldOrPropertyWithValue("crossId", SharedPolicyGroupFixtures.aSharedPolicyGroup().getCrossId())
-            .hasFieldOrPropertyWithValue("name", SharedPolicyGroupFixtures.aSharedPolicyGroup().getName())
-            .hasFieldOrPropertyWithValue("description", SharedPolicyGroupFixtures.aSharedPolicyGroup().getDescription())
-            .hasFieldOrPropertyWithValue("version", SharedPolicyGroupFixtures.aSharedPolicyGroup().getVersion())
-            .hasFieldOrPropertyWithValue(
-                "lifecycleState",
-                SharedPolicyGroupLifecycleState.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getLifecycleState().name())
-            )
-            .hasFieldOrPropertyWithValue("apiType", ApiType.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getApiType().name()))
-            .hasFieldOrPropertyWithValue("phase", FlowPhase.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getPhase().name()))
-            .satisfies(sharedPolicyGroup -> {
-                Assertions.assertThat(sharedPolicyGroup.getSteps())
-                    .hasSize(1)
-                    .containsAll(
-                        List.of(
-                            new StepV4()
-                                .policy("policyId")
-                                .name("Step name")
-                                .enabled(true)
-                                .configuration(Map.ofEntries(Map.entry("key", "value")))
-                        )
-                    );
-            })
-            .hasFieldOrProperty("deployedAt")
-            .hasFieldOrProperty("createdAt")
-            .hasFieldOrProperty("updatedAt");
+                .isNotNull()
+                .hasFieldOrPropertyWithValue(
+                        "id", SharedPolicyGroupFixtures.aSharedPolicyGroup().getId())
+                .hasFieldOrPropertyWithValue(
+                        "crossId",
+                        SharedPolicyGroupFixtures.aSharedPolicyGroup().getCrossId())
+                .hasFieldOrPropertyWithValue(
+                        "name", SharedPolicyGroupFixtures.aSharedPolicyGroup().getName())
+                .hasFieldOrPropertyWithValue(
+                        "description",
+                        SharedPolicyGroupFixtures.aSharedPolicyGroup().getDescription())
+                .hasFieldOrPropertyWithValue(
+                        "version",
+                        SharedPolicyGroupFixtures.aSharedPolicyGroup().getVersion())
+                .hasFieldOrPropertyWithValue(
+                        "lifecycleState",
+                        SharedPolicyGroupLifecycleState.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup()
+                                .getLifecycleState()
+                                .name()))
+                .hasFieldOrPropertyWithValue(
+                        "apiType",
+                        ApiType.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup()
+                                .getApiType()
+                                .name()))
+                .hasFieldOrPropertyWithValue(
+                        "phase",
+                        FlowPhase.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup()
+                                .getPhase()
+                                .name()))
+                .satisfies(sharedPolicyGroup -> {
+                    Assertions.assertThat(sharedPolicyGroup.getSteps())
+                            .hasSize(1)
+                            .containsAll(List.of(new StepV4()
+                                    .policy("policyId")
+                                    .name("Step name")
+                                    .enabled(true)
+                                    .configuration(Map.ofEntries(Map.entry("key", "value")))));
+                })
+                .hasFieldOrProperty("deployedAt")
+                .hasFieldOrProperty("createdAt")
+                .hasFieldOrProperty("updatedAt");
 
         var captor = ArgumentCaptor.forClass(CreateSharedPolicyGroupUseCase.Input.class);
         verify(createSharedPolicyGroupUseCase).execute(captor.capture());
@@ -164,21 +177,20 @@ public class SharedPolicyGroupsResource_CreateTest extends AbstractResourceTest 
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
-                eq(ENV_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                        eq(ENV_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(false);
 
-        final Response response = rootTarget().request().post(json(SharedPolicyGroupFixtures.aCreateSharedPolicyGroup()));
+        final Response response =
+                rootTarget().request().post(json(SharedPolicyGroupFixtures.aCreateSharedPolicyGroup()));
 
         MAPIAssertions.assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 }

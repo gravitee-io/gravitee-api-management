@@ -32,15 +32,14 @@ public class UpdateApplicationInvitationDomainService {
     private final ValidateApplicationInvitationRoleDomainService validateApplicationInvitationRoleDomainService;
 
     public ApplicationInvitation update(
-        @Nonnull String organizationId,
-        @Nonnull String applicationId,
-        @Nonnull InvitationId invitationId,
-        @Nonnull UpdateApplicationInvitation updateApplicationInvitation
-    ) {
+            @Nonnull String organizationId,
+            @Nonnull String applicationId,
+            @Nonnull InvitationId invitationId,
+            @Nonnull UpdateApplicationInvitation updateApplicationInvitation) {
         var invitation = invitationCrudService
-            .findApplicationInvitationById(invitationId)
-            .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
-            .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
+                .findApplicationInvitationById(invitationId)
+                .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
+                .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
 
         validateApplicationInvitationRoleDomainService.validate(organizationId, updateApplicationInvitation.roleName());
 

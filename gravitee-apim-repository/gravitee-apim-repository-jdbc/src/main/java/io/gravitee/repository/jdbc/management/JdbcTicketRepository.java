@@ -44,14 +44,14 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
     @Override
     protected JdbcObjectMapper<Ticket> buildOrm() {
         return JdbcObjectMapper.builder(Ticket.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("from_user", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("subject", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.CLOB, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("from_user", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("application", Types.NVARCHAR, String.class)
+                .addColumn("subject", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.CLOB, String.class)
+                .build();
     }
 
     @Override
@@ -60,7 +60,8 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
     }
 
     @Override
-    public Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         log.debug("JdbcTicketRepository.search() - {}", getOrm().getTableName());
 
         try {
@@ -84,19 +85,19 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
                 applySortable(sortable, query);
 
                 result = jdbcTemplate.query(
-                    query.toString(),
-                    (PreparedStatement ps) -> {
-                        int idx = 1;
-                        if (criteria.getFromUser() != null && criteria.getFromUser().length() > 0) {
-                            idx = getOrm().setArguments(ps, Arrays.asList(criteria.getFromUser()), idx);
-                        }
+                        query.toString(),
+                        (PreparedStatement ps) -> {
+                            int idx = 1;
+                            if (criteria.getFromUser() != null
+                                    && criteria.getFromUser().length() > 0) {
+                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getFromUser()), idx);
+                            }
 
-                        if (criteria.getApi() != null && criteria.getApi().length() > 0) {
-                            idx = getOrm().setArguments(ps, Arrays.asList(criteria.getApi()), idx);
-                        }
-                    },
-                    getOrm().getRowMapper()
-                );
+                            if (criteria.getApi() != null && criteria.getApi().length() > 0) {
+                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getApi()), idx);
+                            }
+                        },
+                        getOrm().getRowMapper());
             }
             return getResultAsPage(pageable, result);
         } catch (final Exception ex) {
@@ -126,7 +127,8 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
         log.debug("JdbcTicketRepository.deleteByApiId({})", apiId);
         try {
-            final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where api = ?", String.class, apiId);
+            final var rows = jdbcTemplate.queryForList(
+                    "select id from " + this.tableName + " where api = ?", String.class, apiId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where api = ?", apiId);
@@ -145,10 +147,7 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
         log.debug("JdbcTicketRepository.deleteByApplicationId({})", applicationId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where application = ?",
-                String.class,
-                applicationId
-            );
+                    "select id from " + this.tableName + " where application = ?", String.class, applicationId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where application = ?", applicationId);

@@ -33,7 +33,8 @@ class AuthzTrafficAnalyticsQueryServiceTest {
 
     @Test
     void should_declare_only_operations_and_searches() {
-        assertThat(service.metrics()).containsExactlyInAnyOrder(MetricSpec.Name.AUTHZ_OPERATIONS, MetricSpec.Name.AUTHZ_SEARCHES);
+        assertThat(service.metrics())
+                .containsExactlyInAnyOrder(MetricSpec.Name.AUTHZ_OPERATIONS, MetricSpec.Name.AUTHZ_SEARCHES);
     }
 
     @Test
@@ -68,12 +69,12 @@ class AuthzTrafficAnalyticsQueryServiceTest {
 
     @Test
     void should_not_claim_a_metric_from_another_domain() {
-        var foreign = service
-            .metrics()
-            .stream()
-            .filter(name -> !name.name().startsWith("AUTHZ_"))
-            .toList();
+        var foreign = service.metrics().stream()
+                .filter(name -> !name.name().startsWith("AUTHZ_"))
+                .toList();
 
-        assertThat(foreign).as("claiming a non-authz metric would steal it from its own query service").isEmpty();
+        assertThat(foreign)
+                .as("claiming a non-authz metric would steal it from its own query service")
+                .isEmpty();
     }
 }

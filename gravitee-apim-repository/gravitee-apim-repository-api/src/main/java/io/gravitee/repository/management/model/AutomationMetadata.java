@@ -38,6 +38,10 @@ public class AutomationMetadata {
      * so the attached copy only needs to carry {@code referenceType}/{@code referenceId}/{@code location}.
      */
     public AutomationMetadata trimmedForNavItem() {
-        return AutomationMetadata.builder().referenceType(referenceType).referenceId(referenceId).location(location).build();
+        return AutomationMetadata.builder()
+                .referenceType(referenceType)
+                .referenceId(referenceId)
+                .location(location)
+                .build();
     }
 }

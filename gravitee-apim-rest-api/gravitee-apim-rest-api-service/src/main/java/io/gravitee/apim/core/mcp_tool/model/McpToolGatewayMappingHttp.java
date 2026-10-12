@@ -25,10 +25,9 @@ import lombok.Builder;
  */
 @Builder(toBuilder = true)
 public record McpToolGatewayMappingHttp(
-    String method,
-    String path,
-    String contentType,
-    List<String> pathParams,
-    List<String> queryParams,
-    List<String> headers
-) {}
+        String method,
+        String path,
+        String contentType,
+        List<String> pathParams,
+        List<String> queryParams,
+        List<String> headers) {}

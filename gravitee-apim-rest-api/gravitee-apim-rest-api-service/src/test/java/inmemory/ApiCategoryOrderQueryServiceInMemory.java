@@ -23,7 +23,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ApiCategoryOrderQueryServiceInMemory implements ApiCategoryOrderQueryService, InMemoryAlternative<ApiCategoryOrder> {
+public class ApiCategoryOrderQueryServiceInMemory
+        implements ApiCategoryOrderQueryService, InMemoryAlternative<ApiCategoryOrder> {
 
     private List<ApiCategoryOrder> storage = new ArrayList<>();
 
@@ -45,9 +46,8 @@ public class ApiCategoryOrderQueryServiceInMemory implements ApiCategoryOrderQue
 
     @Override
     public Set<ApiCategoryOrder> findAllByCategoryId(String categoryId) {
-        return storage
-            .stream()
-            .filter(apiCategoryOrder -> Objects.equals(categoryId, apiCategoryOrder.getCategoryId()))
-            .collect(Collectors.toSet());
+        return storage.stream()
+                .filter(apiCategoryOrder -> Objects.equals(categoryId, apiCategoryOrder.getCategoryId()))
+                .collect(Collectors.toSet());
     }
 }

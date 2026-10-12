@@ -45,9 +45,11 @@ public class ApplicationConverter {
             if (newApplicationEntity.getSettings().getApp() != null) {
                 application.setType(ApplicationType.SIMPLE);
             } else {
-                application.setType(
-                    ApplicationType.valueOf(newApplicationEntity.getSettings().getOauth().getApplicationType().toUpperCase())
-                );
+                application.setType(ApplicationType.valueOf(newApplicationEntity
+                        .getSettings()
+                        .getOauth()
+                        .getApplicationType()
+                        .toUpperCase()));
             }
         }
         application.setPicture(newApplicationEntity.getPicture());

@@ -36,10 +36,7 @@ public class InvalidateParameterCacheCommandListener implements EventListener<Co
     private final ParameterService parameterService;
 
     public InvalidateParameterCacheCommandListener(
-        ObjectMapper objectMapper,
-        ParameterService parameterService,
-        EventManager eventManager
-    ) {
+            ObjectMapper objectMapper, ParameterService parameterService, EventManager eventManager) {
         this.objectMapper = objectMapper;
         this.parameterService = parameterService;
         eventManager.subscribeForEvents(this, CommandEvent.class);
@@ -47,12 +44,10 @@ public class InvalidateParameterCacheCommandListener implements EventListener<Co
 
     @Override
     public void onEvent(Event<CommandEvent, CommandEntity> event) {
-        if (
-            event != null &&
-            CommandEvent.TO_PROCESS.equals(event.type()) &&
-            event.content() != null &&
-            event.content().getTags().contains(CommandTags.PARAMETER_CACHE_UPDATE)
-        ) {
+        if (event != null
+                && CommandEvent.TO_PROCESS.equals(event.type())
+                && event.content() != null
+                && event.content().getTags().contains(CommandTags.PARAMETER_CACHE_UPDATE)) {
             String content = event.content().getContent();
             log.debug("Command event: {}", content);
 
@@ -65,7 +60,8 @@ public class InvalidateParameterCacheCommandListener implements EventListener<Co
             }
 
             if (eventData != null) {
-                parameterService.invalidateCache(eventData.getKey(), eventData.getReferenceId(), eventData.getReferenceType());
+                parameterService.invalidateCache(
+                        eventData.getKey(), eventData.getReferenceId(), eventData.getReferenceType());
             }
         }
     }

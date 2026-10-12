@@ -37,10 +37,9 @@ class ImportDefinitionPageDomainService {
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
 
     ImportDefinitionPageDomainService(
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        CreateApiDocumentationDomainService createApiDocumentationDomainService,
-        UpdateApiDocumentationDomainService updateApiDocumentationDomainService
-    ) {
+            ApiDocumentationDomainService apiDocumentationDomainService,
+            CreateApiDocumentationDomainService createApiDocumentationDomainService,
+            UpdateApiDocumentationDomainService updateApiDocumentationDomainService) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
@@ -52,35 +51,42 @@ class ImportDefinitionPageDomainService {
         }
 
         var savedPages = apiDocumentationDomainService.getApiPages(apiId, null);
-        var pageMap = savedPages
-            .stream()
-            .filter(p -> p.getCrossId() != null)
-            .collect(Collectors.toMap(Page::getCrossId, Function.identity()));
+        var pageMap = savedPages.stream()
+                .filter(p -> p.getCrossId() != null)
+                .collect(Collectors.toMap(Page::getCrossId, Function.identity()));
         var now = Date.from(TimeProvider.now().toInstant());
 
         for (var importedPage : pagesToImport) {
             var existingPage = findSavedPageForImport(pageMap, savedPages, importedPage);
-            var pageToSave = importedPage.toBuilder().referenceType(Page.ReferenceType.API).referenceId(apiId).updatedAt(now);
+            var pageToSave = importedPage.toBuilder()
+                    .referenceType(Page.ReferenceType.API)
+                    .referenceId(apiId)
+                    .updatedAt(now);
             if (existingPage.isEmpty()) {
-                createApiDocumentationDomainService.createPage(pageToSave.createdAt(now).build(), auditInfo);
+                createApiDocumentationDomainService.createPage(
+                        pageToSave.createdAt(now).build(), auditInfo);
             } else {
                 // Match is by crossId; the imported page may carry a different id (e.g. after id generation on update).
                 // Persistence must use the existing row id.
-                var mergedForUpdate = pageToSave.id(existingPage.get().getId()).createdAt(existingPage.get().getCreatedAt()).build();
+                var mergedForUpdate = pageToSave
+                        .id(existingPage.get().getId())
+                        .createdAt(existingPage.get().getCreatedAt())
+                        .build();
                 updateApiDocumentationDomainService.updatePage(mergedForUpdate, existingPage.get(), auditInfo);
             }
         }
     }
 
     /** Match by {@code crossId} when present and found; else by matching type and name. */
-    private static Optional<Page> findSavedPageForImport(Map<String, Page> savedByCrossId, List<Page> savedPages, Page importedPage) {
+    private static Optional<Page> findSavedPageForImport(
+            Map<String, Page> savedByCrossId, List<Page> savedPages, Page importedPage) {
         if (importedPage.getCrossId() != null) {
             var byCrossId = Optional.ofNullable(savedByCrossId.get(importedPage.getCrossId()));
             if (byCrossId.isPresent()) return byCrossId;
         }
-        return savedPages
-            .stream()
-            .filter(p -> p.getType() == importedPage.getType() && importedPage.getName().equals(p.getName()))
-            .findFirst();
+        return savedPages.stream()
+                .filter(p -> p.getType() == importedPage.getType()
+                        && importedPage.getName().equals(p.getName()))
+                .findFirst();
     }
 }

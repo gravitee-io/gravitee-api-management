@@ -46,8 +46,7 @@ class NativeApiMetricsSearchResponseAdapterTest {
     @Test
     @SneakyThrows
     void adapt_additional_metrics_for_successful_connection() {
-        var source = objectMapper.readTree(
-            """
+        var source = objectMapper.readTree("""
             {
               "@timestamp": "2026-01-01T00:00:00.000Z",
               "api-id": "api-1",
@@ -61,8 +60,7 @@ class NativeApiMetricsSearchResponseAdapterTest {
               "host": "broker.example.com",
               "additional-metrics": { "keyword_native-kafka_connection-status": "CONNECTED" }
             }
-            """
-        );
+            """);
         var response = new SearchResponse();
         var hits = new SearchHits();
         var hit = new SearchHit();

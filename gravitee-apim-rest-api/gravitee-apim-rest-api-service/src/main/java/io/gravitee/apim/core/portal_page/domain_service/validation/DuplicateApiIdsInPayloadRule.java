@@ -38,7 +38,8 @@ public class DuplicateApiIdsInPayloadRule implements BulkCreatePortalNavigationI
             if (apiId == null || apiId.isBlank()) {
                 continue;
             }
-            var apiProductId = ApiProductAncestorValidation.findApiProductId(item.getParentId(), ctx).orElse(null);
+            var apiProductId = ApiProductAncestorValidation.findApiProductId(item.getParentId(), ctx)
+                    .orElse(null);
             if (!seenApiReferences.add(new ApiReference(apiId, apiProductId))) {
                 throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(apiId);
             }

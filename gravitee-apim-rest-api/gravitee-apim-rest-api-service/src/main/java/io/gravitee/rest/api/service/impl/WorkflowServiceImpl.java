@@ -46,13 +46,12 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
 
     @Override
     public Workflow create(
-        final WorkflowReferenceType referenceType,
-        final String referenceId,
-        final WorkflowType type,
-        final String user,
-        final WorkflowState state,
-        final String comment
-    ) {
+            final WorkflowReferenceType referenceType,
+            final String referenceId,
+            final WorkflowType type,
+            final String user,
+            final WorkflowState state,
+            final String comment) {
         final Workflow workflow = new Workflow();
         workflow.setId(UuidString.generateRandom());
         workflow.setReferenceType(referenceType.name());
@@ -72,33 +71,27 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
 
     @Override
     public List<Workflow> findByReferenceAndType(
-        final WorkflowReferenceType referenceType,
-        final String referenceId,
-        final WorkflowType type
-    ) {
+            final WorkflowReferenceType referenceType, final String referenceId, final WorkflowType type) {
         try {
             return workflowRepository.findByReferenceAndType(referenceType.name(), referenceId, type.name());
         } catch (TechnicalException ex) {
-            final String message =
-                "An error occurs while trying to find workflow by ref " + referenceType + "/" + referenceId + " and type " + type;
+            final String message = "An error occurs while trying to find workflow by ref " + referenceType + "/"
+                    + referenceId + " and type " + type;
             throw new TechnicalManagementException(message, ex);
         }
     }
 
     @Override
     public List<Workflow> findByReferencesAndType(
-        final WorkflowReferenceType referenceType,
-        final Collection<String> referenceIds,
-        final WorkflowType type
-    ) {
+            final WorkflowReferenceType referenceType, final Collection<String> referenceIds, final WorkflowType type) {
         if (referenceIds == null || referenceIds.isEmpty()) {
             return List.of();
         }
         try {
             return workflowRepository.findByReferencesAndType(referenceType.name(), referenceIds, type.name());
         } catch (TechnicalException ex) {
-            final String message =
-                "An error occurs while trying to find workflows by refs " + referenceType + "/" + referenceIds + " and type " + type;
+            final String message = "An error occurs while trying to find workflows by refs " + referenceType + "/"
+                    + referenceIds + " and type " + type;
             throw new TechnicalManagementException(message, ex);
         }
     }

@@ -47,42 +47,39 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
 
     @Override
     public SearchLogsResponse<AuthzDecisionLog> searchDecisionLogs(
-        ExecutionContext executionContext,
-        AuthzDecisionLogFilters filters,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext, AuthzDecisionLogFilters filters, Pageable pageable) {
         var apiIds = filters.apiIds();
         if (apiIds == null || apiIds.isEmpty()) {
             return new SearchLogsResponse<>(0, List.of());
         }
         try {
             var response = metricsRepository.searchAuthzDecisionLogs(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                AuthzDecisionLogQuery.builder()
-                    .apiIds(apiIds)
-                    .from(filters.from())
-                    .to(filters.to())
-                    .decisions(filters.decisions())
-                    .subjectIds(filters.subjectIds())
-                    .actions(filters.actions())
-                    .resourceIds(filters.resourceIds())
-                    .callers(filters.callers())
-                    .statuses(filters.statuses())
-                    .indeterminateCauses(filters.indeterminateCauses())
-                    .errorTypes(filters.errorTypes())
-                    .targetPdpIds(filters.targetPdpIds())
-                    .matchedPolicyNames(filters.matchedPolicyNames())
-                    .policyGenerations(filters.policyGenerations())
-                    .requestIds(filters.requestIds())
-                    .reasonContains(filters.reasonContains())
-                    .page(pageable.getPageNumber())
-                    .size(pageable.getPageSize())
-                    .build()
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    AuthzDecisionLogQuery.builder()
+                            .apiIds(apiIds)
+                            .from(filters.from())
+                            .to(filters.to())
+                            .decisions(filters.decisions())
+                            .subjectIds(filters.subjectIds())
+                            .actions(filters.actions())
+                            .resourceIds(filters.resourceIds())
+                            .callers(filters.callers())
+                            .statuses(filters.statuses())
+                            .indeterminateCauses(filters.indeterminateCauses())
+                            .errorTypes(filters.errorTypes())
+                            .targetPdpIds(filters.targetPdpIds())
+                            .matchedPolicyNames(filters.matchedPolicyNames())
+                            .policyGenerations(filters.policyGenerations())
+                            .requestIds(filters.requestIds())
+                            .reasonContains(filters.reasonContains())
+                            .page(pageable.getPageNumber())
+                            .size(pageable.getPageSize())
+                            .build());
             return new SearchLogsResponse<>(
-                response.total(),
-                response.data().stream().map(AuthzDecisionLogsCrudServiceImpl::toDomain).toList()
-            );
+                    response.total(),
+                    response.data().stream()
+                            .map(AuthzDecisionLogsCrudServiceImpl::toDomain)
+                            .toList());
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search authz decision logs [apiIds={}]", apiIds, e);
             throw new TechnicalManagementException("Unable to search authz decision logs", e);
@@ -93,12 +90,11 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
     public Optional<AuthzDecisionLog> findDecisionLog(ExecutionContext executionContext, String apiId, String eventId) {
         try {
             return metricsRepository
-                .findAuthzDecisionLog(
-                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                    apiId,
-                    eventId
-                )
-                .map(AuthzDecisionLogsCrudServiceImpl::toDomain);
+                    .findAuthzDecisionLog(
+                            new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                            apiId,
+                            eventId)
+                    .map(AuthzDecisionLogsCrudServiceImpl::toDomain);
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to find authz decision [apiId={}, eventId={}]", apiId, eventId, e);
             throw new TechnicalManagementException("Unable to find authz decision " + eventId, e);
@@ -107,45 +103,43 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
 
     private static AuthzDecisionLog toDomain(io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog decision) {
         return AuthzDecisionLog.builder()
-            .eventId(decision.eventId())
-            .timestamp(decision.timestamp())
-            .apiId(decision.apiId())
-            .organizationId(decision.organizationId())
-            .environmentId(decision.environmentId())
-            .gatewayId(decision.gatewayId())
-            .requestId(decision.requestId())
-            .status(decision.status())
-            .caller(decision.caller())
-            .targetPdpId(decision.targetPdpId())
-            .policyGeneration(decision.policyGeneration())
-            .decision(decision.decision())
-            .outcome(decision.outcome())
-            .enforced(decision.enforced())
-            .indeterminateCause(decision.indeterminateCause())
-            .matchedRules(toDomain(decision.matchedRules()))
-            .reasons(decision.reasons())
-            .subjectType(decision.subjectType())
-            .subjectId(decision.subjectId())
-            .action(decision.action())
-            .resourceType(decision.resourceType())
-            .resourceId(decision.resourceId())
-            .batchId(decision.batchId())
-            .batchIndex(decision.batchIndex())
-            .batchSize(decision.batchSize())
-            .durationNanos(decision.durationNanos())
-            .errorType(decision.errorType())
-            .build();
+                .eventId(decision.eventId())
+                .timestamp(decision.timestamp())
+                .apiId(decision.apiId())
+                .organizationId(decision.organizationId())
+                .environmentId(decision.environmentId())
+                .gatewayId(decision.gatewayId())
+                .requestId(decision.requestId())
+                .status(decision.status())
+                .caller(decision.caller())
+                .targetPdpId(decision.targetPdpId())
+                .policyGeneration(decision.policyGeneration())
+                .decision(decision.decision())
+                .outcome(decision.outcome())
+                .enforced(decision.enforced())
+                .indeterminateCause(decision.indeterminateCause())
+                .matchedRules(toDomain(decision.matchedRules()))
+                .reasons(decision.reasons())
+                .subjectType(decision.subjectType())
+                .subjectId(decision.subjectId())
+                .action(decision.action())
+                .resourceType(decision.resourceType())
+                .resourceId(decision.resourceId())
+                .batchId(decision.batchId())
+                .batchIndex(decision.batchIndex())
+                .batchSize(decision.batchSize())
+                .durationNanos(decision.durationNanos())
+                .errorType(decision.errorType())
+                .build();
     }
 
     private static List<AuthzDecisionLog.MatchedRule> toDomain(
-        List<io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.MatchedRule> matchedRules
-    ) {
+            List<io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.MatchedRule> matchedRules) {
         if (matchedRules == null) {
             return null;
         }
-        return matchedRules
-            .stream()
-            .map(rule -> new AuthzDecisionLog.MatchedRule(rule.id(), rule.name(), rule.version(), rule.effect()))
-            .toList();
+        return matchedRules.stream()
+                .map(rule -> new AuthzDecisionLog.MatchedRule(rule.id(), rule.name(), rule.version(), rule.effect()))
+                .toList();
     }
 }

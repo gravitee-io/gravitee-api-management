@@ -88,15 +88,18 @@ public class DeployModelToApiUpdateUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final List<String> LABELS = List.of("label1", "label2");
 
-    private static final URL resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+    private static final URL resource =
+            Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
     public static final String RANDOM_ID = "random-id";
     public static final String API_ID = "apiId";
     public static final String API_CROSS_ID = "crossId";
 
     private String swaggerDefinition;
 
-    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
-    private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager =
+            new PolicyOperationVisitorManagerImpl();
+    private final EndpointConnectorPluginDomainService endpointConnectorPluginService =
+            mock(EndpointConnectorPluginDomainService.class);
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PolicyPluginCrudServiceInMemory policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
@@ -105,9 +108,7 @@ public class DeployModelToApiUpdateUseCaseTest {
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     private final ImportApiGroupsDomainService importApiGroupsDomainService = new ImportApiGroupsDomainService(
-        groupQueryService,
-        new CreateGroupDomainServiceInMemory(groupQueryService)
-    );
+            groupQueryService, new CreateGroupDomainServiceInMemory(groupQueryService));
 
     @Mock
     private ApiService delegateApiService;
@@ -122,93 +123,92 @@ public class DeployModelToApiUpdateUseCaseTest {
         UuidString.overrideGenerator(() -> RANDOM_ID);
 
         when(apiStateDomainService.isSynchronized(any(), eq(AUDIT_INFO))).thenReturn(false);
-        lenient()
-            .when(apiStateDomainService.start(any(), eq(AUDIT_INFO)))
-            .thenAnswer(invocation -> {
-                var apiToUpdate = invocation.<Api>getArgument(0);
-                var api = apiCrudService.get(apiToUpdate.getId());
+        lenient().when(apiStateDomainService.start(any(), eq(AUDIT_INFO))).thenAnswer(invocation -> {
+            var apiToUpdate = invocation.<Api>getArgument(0);
+            var api = apiCrudService.get(apiToUpdate.getId());
 
-                api.setLifecycleState(Api.LifecycleState.STARTED);
-                return api;
-            });
-        lenient()
-            .when(apiStateDomainService.deploy(any(), anyString(), eq(AUDIT_INFO)))
-            .thenAnswer(invocation -> invocation.<Api>getArgument(0));
-
-        when(
-            delegateApiService.update(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(API_ID),
-                any(UpdateApiEntity.class),
-                anyBoolean(),
-                anyString()
-            )
-        ).thenAnswer(invocation -> {
-            var updateApiEntity = invocation.<UpdateApiEntity>getArgument(2);
-            var api = apiCrudService.get(updateApiEntity.getId());
-
-            var apiStatus = switch (updateApiEntity.getLifecycleState()) {
-                case CREATED -> Api.ApiLifecycleState.CREATED;
-                case PUBLISHED -> Api.ApiLifecycleState.PUBLISHED;
-                case UNPUBLISHED -> Api.ApiLifecycleState.UNPUBLISHED;
-                case DEPRECATED -> Api.ApiLifecycleState.DEPRECATED;
-                case ARCHIVED -> Api.ApiLifecycleState.ARCHIVED;
-            };
-
-            var visibility = switch (updateApiEntity.getVisibility()) {
-                case PUBLIC -> Api.Visibility.PUBLIC;
-                case PRIVATE -> Api.Visibility.PRIVATE;
-            };
-
-            api.setApiLifecycleState(apiStatus);
-            api.setVisibility(visibility);
-
-            api.setLabels(updateApiEntity.getLabels());
-            if (updateApiEntity.getGroups() != null) {
-                api.setGroups(new HashSet<>(updateApiEntity.getGroups()));
-            }
-
-            return ApiAdapter.INSTANCE.toApiEntity(api);
+            api.setLifecycleState(Api.LifecycleState.STARTED);
+            return api;
         });
+        lenient()
+                .when(apiStateDomainService.deploy(any(), anyString(), eq(AUDIT_INFO)))
+                .thenAnswer(invocation -> invocation.<Api>getArgument(0));
 
-        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn("{}");
+        when(delegateApiService.update(
+                        eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                        eq(API_ID),
+                        any(UpdateApiEntity.class),
+                        anyBoolean(),
+                        anyString()))
+                .thenAnswer(invocation -> {
+                    var updateApiEntity = invocation.<UpdateApiEntity>getArgument(2);
+                    var api = apiCrudService.get(updateApiEntity.getId());
 
-        groupQueryService.initWith(List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build()));
+                    var apiStatus = switch (updateApiEntity.getLifecycleState()) {
+                        case CREATED -> Api.ApiLifecycleState.CREATED;
+                        case PUBLISHED -> Api.ApiLifecycleState.PUBLISHED;
+                        case UNPUBLISHED -> Api.ApiLifecycleState.UNPUBLISHED;
+                        case DEPRECATED -> Api.ApiLifecycleState.DEPRECATED;
+                        case ARCHIVED -> Api.ApiLifecycleState.ARCHIVED;
+                    };
+
+                    var visibility = switch (updateApiEntity.getVisibility()) {
+                        case PUBLIC -> Api.Visibility.PUBLIC;
+                        case PRIVATE -> Api.Visibility.PRIVATE;
+                    };
+
+                    api.setApiLifecycleState(apiStatus);
+                    api.setVisibility(visibility);
+
+                    api.setLabels(updateApiEntity.getLabels());
+                    if (updateApiEntity.getGroups() != null) {
+                        api.setGroups(new HashSet<>(updateApiEntity.getGroups()));
+                    }
+
+                    return ApiAdapter.INSTANCE.toApiEntity(api);
+                });
+
+        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString()))
+                .thenReturn("{}");
+
+        groupQueryService.initWith(List.of(Group.builder()
+                .id("1")
+                .name("group1")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         var tagQueryService = new TagQueryServiceInMemory();
-        tagQueryService.initWith(
-            List.of(
-                Tag.builder().id("1").name("tag1").referenceId(ORGANIZATION_ID).referenceType(Tag.TagReferenceType.ORGANIZATION).build()
-            )
-        );
+        tagQueryService.initWith(List.of(Tag.builder()
+                .id("1")
+                .name("tag1")
+                .referenceId(ORGANIZATION_ID)
+                .referenceType(Tag.TagReferenceType.ORGANIZATION)
+                .build()));
 
         swaggerDefinition = Resources.toString(resource, Charsets.UTF_8);
 
         final var oaiDomainService = new OAIDomainServiceImpl(
-            policyOperationVisitorManager,
-            tagQueryService,
-            endpointConnectorPluginService,
-            policyPluginCrudService,
-            mock(ImportConfiguration.class)
-        );
+                policyOperationVisitorManager,
+                tagQueryService,
+                endpointConnectorPluginService,
+                policyPluginCrudService,
+                mock(ImportConfiguration.class));
 
         final var updateApiDomainService = new UpdateApiDomainServiceImpl(delegateApiService, apiCrudService);
 
         useCase = new DeployModelToApiUpdateUseCase(
-            oaiDomainService,
-            updateApiDomainService,
-            new DeployModelToApiDomainService(updateApiDomainService, apiStateDomainService),
-            planCrudService,
-            pageCrudService,
-            importApiGroupsDomainService
-        );
+                oaiDomainService,
+                updateApiDomainService,
+                new DeployModelToApiDomainService(updateApiDomainService, apiStateDomainService),
+                planCrudService,
+                pageCrudService,
+                importApiGroupsDomainService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(policyPluginCrudService, apiCrudService, planCrudService, pageCrudService, groupQueryService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(policyPluginCrudService, apiCrudService, planCrudService, pageCrudService, groupQueryService)
+                .forEach(InMemoryAlternative::reset);
 
         GraviteeContext.cleanContext();
 
@@ -217,25 +217,24 @@ public class DeployModelToApiUpdateUseCaseTest {
 
     @Test
     void should_resolve_openapi_group_names_to_ids_when_updating_api() {
-        apiCrudService.create(Api.builder().id(API_ID).crossId(API_CROSS_ID).definitionVersion(DefinitionVersion.V4).build());
-        planCrudService.create(
-            Plan.builder()
+        apiCrudService.create(Api.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .build());
+        planCrudService.create(Plan.builder()
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
                 .referenceId(API_ID)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.PUBLISHED)
                         .security(PlanSecurity.builder().type("key-less").build())
-                        .build()
-                )
+                        .build())
                 .validation(Plan.PlanValidationType.AUTO)
-                .build()
-        );
-        pageCrudService.createDocumentationPage(
-            Page.builder()
+                .build());
+        pageCrudService.createDocumentationPage(Page.builder()
                 .id(RANDOM_ID)
                 .referenceId(API_ID)
                 .referenceType(Page.ReferenceType.API)
@@ -244,28 +243,24 @@ public class DeployModelToApiUpdateUseCaseTest {
                 .visibility(Page.Visibility.PUBLIC)
                 .content("oldValue")
                 .published(true)
-                .build()
-        );
+                .build());
 
         var updateCaptor = ArgumentCaptor.forClass(UpdateApiEntity.class);
-        useCase.execute(
-            new DeployModelToApiUpdateUseCase.Input(
+        useCase.execute(new DeployModelToApiUpdateUseCase.Input(
                 swaggerDefinition,
                 AUDIT_INFO,
                 API_ID,
                 API_CROSS_ID,
                 DeployModelToApiDomainService.Mode.DOCUMENTED,
-                LABELS
-            )
-        );
+                LABELS));
 
-        verify(delegateApiService, times(2)).update(
-            eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-            eq(API_ID),
-            updateCaptor.capture(),
-            anyBoolean(),
-            anyString()
-        );
+        verify(delegateApiService, times(2))
+                .update(
+                        eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                        eq(API_ID),
+                        updateCaptor.capture(),
+                        anyBoolean(),
+                        anyString());
 
         Set<String> groupIds = updateCaptor.getAllValues().getFirst().getGroups();
         assertThat(groupIds).hasSize(2).contains("1");
@@ -281,27 +276,25 @@ public class DeployModelToApiUpdateUseCaseTest {
         // Without the DeployModel null/empty guard, resolveOrCreateGroupIds([]) returns [] and
         // legacy update clears membership. null groups tells update to keep existingGroups.
         var existingGroupId = "existing-group-id";
-        apiCrudService.create(
-            Api.builder().id(API_ID).crossId(API_CROSS_ID).definitionVersion(DefinitionVersion.V4).groups(Set.of(existingGroupId)).build()
-        );
-        planCrudService.create(
-            Plan.builder()
+        apiCrudService.create(Api.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .groups(Set.of(existingGroupId))
+                .build());
+        planCrudService.create(Plan.builder()
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
                 .referenceId(API_ID)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.PUBLISHED)
                         .security(PlanSecurity.builder().type("key-less").build())
-                        .build()
-                )
+                        .build())
                 .validation(Plan.PlanValidationType.AUTO)
-                .build()
-        );
-        pageCrudService.createDocumentationPage(
-            Page.builder()
+                .build());
+        pageCrudService.createDocumentationPage(Page.builder()
                 .id(RANDOM_ID)
                 .referenceId(API_ID)
                 .referenceType(Page.ReferenceType.API)
@@ -310,35 +303,29 @@ public class DeployModelToApiUpdateUseCaseTest {
                 .visibility(Page.Visibility.PUBLIC)
                 .content("oldValue")
                 .published(true)
-                .build()
-        );
+                .build());
 
         // Same fixture as other tests, but with empty groups (OpenAPI / converter yields []).
         var openApiWithEmptyGroups = swaggerDefinition.replace(
-            "\"groups\": [\n      \"group1\",\n      \"group2\"\n    ],\n",
-            "\"groups\": [],\n"
-        );
+                "\"groups\": [\n      \"group1\",\n      \"group2\"\n    ],\n", "\"groups\": [],\n");
         assertThat(openApiWithEmptyGroups).contains("\"groups\": []").doesNotContain("\"group1\"");
 
         var updateCaptor = ArgumentCaptor.forClass(UpdateApiEntity.class);
-        useCase.execute(
-            new DeployModelToApiUpdateUseCase.Input(
+        useCase.execute(new DeployModelToApiUpdateUseCase.Input(
                 openApiWithEmptyGroups,
                 AUDIT_INFO,
                 API_ID,
                 API_CROSS_ID,
                 DeployModelToApiDomainService.Mode.DOCUMENTED,
-                LABELS
-            )
-        );
+                LABELS));
 
-        verify(delegateApiService, times(2)).update(
-            eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-            eq(API_ID),
-            updateCaptor.capture(),
-            anyBoolean(),
-            anyString()
-        );
+        verify(delegateApiService, times(2))
+                .update(
+                        eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                        eq(API_ID),
+                        updateCaptor.capture(),
+                        anyBoolean(),
+                        anyString());
 
         assertThat(updateCaptor.getAllValues().getFirst().getGroups()).isNull();
         assertThat(apiCrudService.get(API_ID).getGroups()).containsExactly(existingGroupId);
@@ -347,30 +334,28 @@ public class DeployModelToApiUpdateUseCaseTest {
     @ParameterizedTest
     @MethodSource
     public void should_update_api(
-        DeployModelToApiDomainService.Mode mode,
-        Api.ApiLifecycleState apiLifecycleState,
-        Api.LifecycleState lifecycleState,
-        Api.Visibility visibility
-    ) {
-        apiCrudService.create(Api.builder().id(API_ID).crossId(API_CROSS_ID).definitionVersion(DefinitionVersion.V4).build());
-        planCrudService.create(
-            Plan.builder()
+            DeployModelToApiDomainService.Mode mode,
+            Api.ApiLifecycleState apiLifecycleState,
+            Api.LifecycleState lifecycleState,
+            Api.Visibility visibility) {
+        apiCrudService.create(Api.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .build());
+        planCrudService.create(Plan.builder()
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
                 .referenceId(API_ID)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.PUBLISHED)
                         .security(PlanSecurity.builder().type("key-less").build())
-                        .build()
-                )
+                        .build())
                 .validation(Plan.PlanValidationType.AUTO)
-                .build()
-        );
-        pageCrudService.createDocumentationPage(
-            Page.builder()
+                .build());
+        pageCrudService.createDocumentationPage(Page.builder()
                 .id(RANDOM_ID)
                 .referenceId(API_ID)
                 .referenceType(Page.ReferenceType.API)
@@ -379,65 +364,70 @@ public class DeployModelToApiUpdateUseCaseTest {
                 .visibility(Page.Visibility.PUBLIC)
                 .content("oldValue")
                 .published(true)
-                .build()
-        );
+                .build());
 
-        useCase.execute(new DeployModelToApiUpdateUseCase.Input(swaggerDefinition, AUDIT_INFO, API_ID, API_CROSS_ID, mode, LABELS));
+        useCase.execute(new DeployModelToApiUpdateUseCase.Input(
+                swaggerDefinition, AUDIT_INFO, API_ID, API_CROSS_ID, mode, LABELS));
 
         assertThat(apiCrudService.storage()).hasSize(1);
         assertThat(apiCrudService.storage().getFirst())
-            .extracting(
-                Api::getId,
-                Api::getCrossId,
-                Api::getDefinitionVersion,
-                Api::getApiLifecycleState,
-                Api::getLifecycleState,
-                Api::getVisibility,
-                Api::getLabels
-            )
-            .containsExactly(API_ID, API_CROSS_ID, DefinitionVersion.V4, apiLifecycleState, lifecycleState, visibility, LABELS);
+                .extracting(
+                        Api::getId,
+                        Api::getCrossId,
+                        Api::getDefinitionVersion,
+                        Api::getApiLifecycleState,
+                        Api::getLifecycleState,
+                        Api::getVisibility,
+                        Api::getLabels)
+                .containsExactly(
+                        API_ID,
+                        API_CROSS_ID,
+                        DefinitionVersion.V4,
+                        apiLifecycleState,
+                        lifecycleState,
+                        visibility,
+                        LABELS);
 
         assertThat(planCrudService.storage()).hasSize(1);
         assertThat(planCrudService.storage().getFirst())
-            .extracting(Plan::getId, Plan::getPlanStatus)
-            .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
+                .extracting(Plan::getId, Plan::getPlanStatus)
+                .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
 
         assertThat(pageCrudService.storage()).hasSize(1);
         assertThat(pageCrudService.storage().getFirst())
-            .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType, Page::getContent)
-            .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER, swaggerDefinition);
+                .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType, Page::getContent)
+                .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER, swaggerDefinition);
 
-        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1)).start(any(), eq(AUDIT_INFO));
+        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1))
+                .start(any(), eq(AUDIT_INFO));
         verify(apiStateDomainService, times(1)).deploy(any(), any(), eq(AUDIT_INFO));
     }
 
     @ParameterizedTest
     @MethodSource("should_update_api")
     public void should_create_new_plan_if_the_plan_is_closed(
-        DeployModelToApiDomainService.Mode mode,
-        Api.ApiLifecycleState apiLifecycleState,
-        Api.LifecycleState lifecycleState,
-        Api.Visibility visibility
-    ) {
-        apiCrudService.create(Api.builder().id(API_ID).crossId(API_CROSS_ID).definitionVersion(DefinitionVersion.V4).build());
-        planCrudService.create(
-            Plan.builder()
+            DeployModelToApiDomainService.Mode mode,
+            Api.ApiLifecycleState apiLifecycleState,
+            Api.LifecycleState lifecycleState,
+            Api.Visibility visibility) {
+        apiCrudService.create(Api.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .build());
+        planCrudService.create(Plan.builder()
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
                 .referenceId(API_ID)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.CLOSED)
                         .security(PlanSecurity.builder().type("key-less").build())
-                        .build()
-                )
+                        .build())
                 .validation(Plan.PlanValidationType.AUTO)
-                .build()
-        );
-        pageCrudService.createDocumentationPage(
-            Page.builder()
+                .build());
+        pageCrudService.createDocumentationPage(Page.builder()
                 .id(RANDOM_ID)
                 .referenceId(API_ID)
                 .referenceType(Page.ReferenceType.API)
@@ -446,119 +436,129 @@ public class DeployModelToApiUpdateUseCaseTest {
                 .visibility(Page.Visibility.PUBLIC)
                 .content("oldValue")
                 .published(true)
-                .build()
-        );
+                .build());
 
-        useCase.execute(new DeployModelToApiUpdateUseCase.Input(swaggerDefinition, AUDIT_INFO, API_ID, API_CROSS_ID, mode, LABELS));
+        useCase.execute(new DeployModelToApiUpdateUseCase.Input(
+                swaggerDefinition, AUDIT_INFO, API_ID, API_CROSS_ID, mode, LABELS));
 
         assertThat(apiCrudService.storage()).hasSize(1);
         assertThat(apiCrudService.storage().getFirst())
-            .extracting(
-                Api::getId,
-                Api::getCrossId,
-                Api::getDefinitionVersion,
-                Api::getApiLifecycleState,
-                Api::getLifecycleState,
-                Api::getVisibility,
-                Api::getLabels
-            )
-            .containsExactly(API_ID, API_CROSS_ID, DefinitionVersion.V4, apiLifecycleState, lifecycleState, visibility, LABELS);
+                .extracting(
+                        Api::getId,
+                        Api::getCrossId,
+                        Api::getDefinitionVersion,
+                        Api::getApiLifecycleState,
+                        Api::getLifecycleState,
+                        Api::getVisibility,
+                        Api::getLabels)
+                .containsExactly(
+                        API_ID,
+                        API_CROSS_ID,
+                        DefinitionVersion.V4,
+                        apiLifecycleState,
+                        lifecycleState,
+                        visibility,
+                        LABELS);
 
-        final var plans = planCrudService
-            .storage()
-            .stream()
-            .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
-            .toList();
+        final var plans = planCrudService.storage().stream()
+                .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
+                .toList();
         assertThat(plans).hasSize(1);
-        assertThat(plans.getFirst()).extracting(Plan::getId, Plan::getPlanStatus).containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
+        assertThat(plans.getFirst())
+                .extracting(Plan::getId, Plan::getPlanStatus)
+                .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
 
         assertThat(pageCrudService.storage()).hasSize(1);
         assertThat(pageCrudService.storage().getFirst())
-            .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType, Page::getContent)
-            .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER, swaggerDefinition);
+                .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType, Page::getContent)
+                .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER, swaggerDefinition);
 
-        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1)).start(any(), eq(AUDIT_INFO));
+        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1))
+                .start(any(), eq(AUDIT_INFO));
         verify(apiStateDomainService, times(1)).deploy(any(), any(), eq(AUDIT_INFO));
     }
 
     @ParameterizedTest
     @MethodSource("should_update_api")
     public void should_create_new_page_if_no_swagger_page_exists(
-        DeployModelToApiDomainService.Mode mode,
-        Api.ApiLifecycleState apiLifecycleState,
-        Api.LifecycleState lifecycleState,
-        Api.Visibility visibility
-    ) {
-        apiCrudService.create(Api.builder().id(API_ID).crossId(API_CROSS_ID).definitionVersion(DefinitionVersion.V4).build());
-        planCrudService.create(
-            Plan.builder()
+            DeployModelToApiDomainService.Mode mode,
+            Api.ApiLifecycleState apiLifecycleState,
+            Api.LifecycleState lifecycleState,
+            Api.Visibility visibility) {
+        apiCrudService.create(Api.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .build());
+        planCrudService.create(Plan.builder()
                 .id(RANDOM_ID)
                 .apiId(API_ID)
                 .type(Plan.PlanType.API)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
                 .referenceId(API_ID)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
                         .status(PlanStatus.CLOSED)
                         .security(PlanSecurity.builder().type("key-less").build())
-                        .build()
-                )
+                        .build())
                 .validation(Plan.PlanValidationType.AUTO)
-                .build()
-        );
+                .build());
 
-        useCase.execute(new DeployModelToApiUpdateUseCase.Input(swaggerDefinition, AUDIT_INFO, API_ID, API_CROSS_ID, mode, LABELS));
+        useCase.execute(new DeployModelToApiUpdateUseCase.Input(
+                swaggerDefinition, AUDIT_INFO, API_ID, API_CROSS_ID, mode, LABELS));
 
         assertThat(apiCrudService.storage()).hasSize(1);
         assertThat(apiCrudService.storage().getFirst())
-            .extracting(
-                Api::getId,
-                Api::getCrossId,
-                Api::getDefinitionVersion,
-                Api::getApiLifecycleState,
-                Api::getLifecycleState,
-                Api::getVisibility,
-                Api::getLabels
-            )
-            .containsExactly(API_ID, API_CROSS_ID, DefinitionVersion.V4, apiLifecycleState, lifecycleState, visibility, LABELS);
+                .extracting(
+                        Api::getId,
+                        Api::getCrossId,
+                        Api::getDefinitionVersion,
+                        Api::getApiLifecycleState,
+                        Api::getLifecycleState,
+                        Api::getVisibility,
+                        Api::getLabels)
+                .containsExactly(
+                        API_ID,
+                        API_CROSS_ID,
+                        DefinitionVersion.V4,
+                        apiLifecycleState,
+                        lifecycleState,
+                        visibility,
+                        LABELS);
 
-        final var plans = planCrudService
-            .storage()
-            .stream()
-            .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
-            .toList();
+        final var plans = planCrudService.storage().stream()
+                .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
+                .toList();
         assertThat(plans).hasSize(1);
-        assertThat(plans.getFirst()).extracting(Plan::getId, Plan::getPlanStatus).containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
+        assertThat(plans.getFirst())
+                .extracting(Plan::getId, Plan::getPlanStatus)
+                .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
 
         assertThat(pageCrudService.storage()).hasSize(1);
         assertThat(pageCrudService.storage().getFirst())
-            .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType, Page::getContent)
-            .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER, swaggerDefinition);
+                .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType, Page::getContent)
+                .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER, swaggerDefinition);
 
-        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1)).start(any(), eq(AUDIT_INFO));
+        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1))
+                .start(any(), eq(AUDIT_INFO));
         verify(apiStateDomainService, times(1)).deploy(any(), any(), eq(AUDIT_INFO));
     }
 
     private static Stream<Arguments> should_update_api() {
         return Stream.of(
-            Arguments.of(
-                DeployModelToApiDomainService.Mode.DOCUMENTED,
-                Api.ApiLifecycleState.CREATED,
-                Api.LifecycleState.STOPPED,
-                Api.Visibility.PRIVATE
-            ),
-            Arguments.of(
-                DeployModelToApiDomainService.Mode.MOCKED,
-                Api.ApiLifecycleState.CREATED,
-                Api.LifecycleState.STARTED,
-                Api.Visibility.PRIVATE
-            ),
-            Arguments.of(
-                DeployModelToApiDomainService.Mode.PUBLISHED,
-                Api.ApiLifecycleState.PUBLISHED,
-                Api.LifecycleState.STARTED,
-                Api.Visibility.PUBLIC
-            )
-        );
+                Arguments.of(
+                        DeployModelToApiDomainService.Mode.DOCUMENTED,
+                        Api.ApiLifecycleState.CREATED,
+                        Api.LifecycleState.STOPPED,
+                        Api.Visibility.PRIVATE),
+                Arguments.of(
+                        DeployModelToApiDomainService.Mode.MOCKED,
+                        Api.ApiLifecycleState.CREATED,
+                        Api.LifecycleState.STARTED,
+                        Api.Visibility.PRIVATE),
+                Arguments.of(
+                        DeployModelToApiDomainService.Mode.PUBLISHED,
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.LifecycleState.STARTED,
+                        Api.Visibility.PUBLIC));
     }
 }

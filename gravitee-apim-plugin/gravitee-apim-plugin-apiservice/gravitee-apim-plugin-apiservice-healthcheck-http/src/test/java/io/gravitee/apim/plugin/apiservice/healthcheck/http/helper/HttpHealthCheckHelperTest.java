@@ -65,7 +65,8 @@ public class HttpHealthCheckHelperTest {
     @BeforeEach
     public void setup() {
         lenient().when(api.getEndpointGroups()).thenReturn(List.of(endpointGroup));
-        this.managedEndpoint = new DefaultManagedEndpoint(endpoint, new DefaultManagedEndpointGroup(endpointGroup), null);
+        this.managedEndpoint =
+                new DefaultManagedEndpoint(endpoint, new DefaultManagedEndpointGroup(endpointGroup), null);
     }
 
     @Nested
@@ -227,12 +228,9 @@ public class HttpHealthCheckHelperTest {
             services.setHealthCheck(healthCheck);
             when(endpoint.getTenants()).thenReturn(List.of("unknown"));
             when(endpoint.getServices()).thenReturn(services);
-            assertFalse(
-                HttpHealthCheckHelper.isServiceEnabled(
+            assertFalse(HttpHealthCheckHelper.isServiceEnabled(
                     new DefaultManagedEndpoint(endpoint, new DefaultManagedEndpointGroup(endpointGroup), null),
-                    TENANT_ID
-                )
-            );
+                    TENANT_ID));
         }
 
         @Test
@@ -244,12 +242,9 @@ public class HttpHealthCheckHelperTest {
             services.setHealthCheck(healthCheck);
             when(endpoint.getTenants()).thenReturn(List.of(TENANT_ID));
             when(endpoint.getServices()).thenReturn(services);
-            assertTrue(
-                HttpHealthCheckHelper.isServiceEnabled(
+            assertTrue(HttpHealthCheckHelper.isServiceEnabled(
                     new DefaultManagedEndpoint(endpoint, new DefaultManagedEndpointGroup(endpointGroup), null),
-                    TENANT_ID
-                )
-            );
+                    TENANT_ID));
         }
 
         @Test
@@ -261,12 +256,9 @@ public class HttpHealthCheckHelperTest {
             services.setHealthCheck(healthCheck);
 
             when(endpointGroup.getServices()).thenReturn(services);
-            assertTrue(
-                HttpHealthCheckHelper.isServiceEnabled(
+            assertTrue(HttpHealthCheckHelper.isServiceEnabled(
                     new DefaultManagedEndpoint(endpoint, new DefaultManagedEndpointGroup(endpointGroup), null),
-                    TENANT_ID
-                )
-            );
+                    TENANT_ID));
         }
     }
 }

@@ -45,12 +45,14 @@ public class SearchRequestsCountQueryAdapter {
 
     private static JsonObject buildEntrypointIdAggregate(boolean isEntrypointIdKeyword) {
         return JsonObject.of(
-            "entrypoints",
-            JsonObject.of(
-                "terms",
-                JsonObject.of("field", isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword", "size", ENTRYPOINT_BUCKETS)
-            )
-        );
+                "entrypoints",
+                JsonObject.of(
+                        "terms",
+                        JsonObject.of(
+                                "field",
+                                isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword",
+                                "size",
+                                ENTRYPOINT_BUCKETS)));
     }
 
     private static JsonObject buildElasticQuery(RequestsCountQuery query) {
@@ -59,22 +61,14 @@ public class SearchRequestsCountQueryAdapter {
         }
 
         var terms = new ArrayList<JsonObject>();
-        query
-            .apiId()
-            .ifPresent(apiId ->
-                terms.add(
-                    JsonObject.of(
+        query.apiId()
+                .ifPresent(apiId -> terms.add(JsonObject.of(
                         "bool",
                         JsonObject.of(
-                            "should",
-                            JsonArray.of(
-                                JsonObject.of("term", JsonObject.of("api-id", apiId)),
-                                JsonObject.of("term", JsonObject.of("api", apiId))
-                            )
-                        )
-                    )
-                )
-            );
+                                "should",
+                                JsonArray.of(
+                                        JsonObject.of("term", JsonObject.of("api-id", apiId)),
+                                        JsonObject.of("term", JsonObject.of("api", apiId)))))));
 
         var timestamp = new JsonObject();
         query.from().ifPresent(from -> timestamp.put("gte", from.toEpochMilli()));

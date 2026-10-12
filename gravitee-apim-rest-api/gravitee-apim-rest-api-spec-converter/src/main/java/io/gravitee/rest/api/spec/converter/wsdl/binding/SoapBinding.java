@@ -45,7 +45,11 @@ public class SoapBinding extends AbstractBinding {
     @Override
     public BobyParts extractBodyParts(List<Object> elements) {
         Optional<SOAPBody> optBody = extractFirstElement(elements, SOAPBody.class);
-        return new BobyParts(optBody.get().getParts() == null ? Collections.EMPTY_LIST : optBody.get().getParts(), optBody.get().getUse());
+        return new BobyParts(
+                optBody.get().getParts() == null
+                        ? Collections.EMPTY_LIST
+                        : optBody.get().getParts(),
+                optBody.get().getUse());
     }
 
     @Override
@@ -57,13 +61,15 @@ public class SoapBinding extends AbstractBinding {
     @Override
     public List<HeaderDef> extractHeaderParts(List<Object> elements) {
         return extractAllElements(elements, SOAPHeader.class)
-            .map(header -> new HeaderDef(header.getMessage(), header.getUse(), header.getPart(), header.getRequired()))
-            .collect(Collectors.toList());
+                .map(header ->
+                        new HeaderDef(header.getMessage(), header.getUse(), header.getPart(), header.getRequired()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public String getRpcNamespace(BindingOperation bindingOperation) {
-        Optional<SOAPBody> optional = extractFirstElement(bindingOperation.getBindingInput().getExtensibilityElements(), SOAPBody.class);
+        Optional<SOAPBody> optional =
+                extractFirstElement(bindingOperation.getBindingInput().getExtensibilityElements(), SOAPBody.class);
         return optional.get().getNamespaceURI();
     }
 

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.api.deser.AbstractStdScalarDeserializer;
-import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
 import java.io.IOException;
 

@@ -43,8 +43,7 @@ class AverageHealthCheckResponseTimeAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result).isEqualTo(
-                """
+            assertThatJson(result).isEqualTo("""
                   {
                     "size": 0,
                     "query": {
@@ -88,8 +87,7 @@ class AverageHealthCheckResponseTimeAdapterTest {
                         }
                      }
                   }
-                }"""
-            );
+                }""");
         }
     }
 }

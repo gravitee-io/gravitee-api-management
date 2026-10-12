@@ -42,33 +42,35 @@ import java.util.Map;
 public class EndpointFactoryImpl implements EndpointFactory {
 
     @Override
-    public io.gravitee.gateway.api.endpoint.Endpoint create(Endpoint endpoint, Connector<Connection, ProxyRequest> connector) {
-        return new ManagedEndpoint(
-            endpoint,
-            new io.gravitee.gateway.api.Connector() {
-                @Override
-                public void request(ProxyRequest request, ExecutionContext context, Handler<ProxyConnection> proxyConnectionHandler) {
-                    connector.request(context, request, result -> proxyConnectionHandler.handle(new ConnectorProxyConnection(result)));
-                }
-
-                @Override
-                public Lifecycle.State lifecycleState() {
-                    return connector.lifecycleState();
-                }
-
-                @Override
-                public io.gravitee.gateway.api.Connector start() throws Exception {
-                    connector.start();
-                    return this;
-                }
-
-                @Override
-                public io.gravitee.gateway.api.Connector stop() throws Exception {
-                    connector.stop();
-                    return this;
-                }
+    public io.gravitee.gateway.api.endpoint.Endpoint create(
+            Endpoint endpoint, Connector<Connection, ProxyRequest> connector) {
+        return new ManagedEndpoint(endpoint, new io.gravitee.gateway.api.Connector() {
+            @Override
+            public void request(
+                    ProxyRequest request, ExecutionContext context, Handler<ProxyConnection> proxyConnectionHandler) {
+                connector.request(
+                        context,
+                        request,
+                        result -> proxyConnectionHandler.handle(new ConnectorProxyConnection(result)));
             }
-        );
+
+            @Override
+            public Lifecycle.State lifecycleState() {
+                return connector.lifecycleState();
+            }
+
+            @Override
+            public io.gravitee.gateway.api.Connector start() throws Exception {
+                connector.start();
+                return this;
+            }
+
+            @Override
+            public io.gravitee.gateway.api.Connector stop() throws Exception {
+                connector.stop();
+                return this;
+            }
+        });
     }
 
     private static class ConnectorProxyConnection implements ProxyConnection {

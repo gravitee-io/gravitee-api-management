@@ -49,7 +49,9 @@ import org.junit.jupiter.api.Test;
  * @author Gravitee Team
  */
 @GatewayTest
-@DeployOrganization(organization = "/organizations/organization-add-header.json", apis = { "/apis/v4/http/api.json" })
+@DeployOrganization(
+        organization = "/organizations/organization-add-header.json",
+        apis = {"/apis/v4/http/api.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpRequestKeylessV4IntegrationTest extends AbstractGatewayTest {
 
@@ -60,12 +62,14 @@ class HttpRequestKeylessV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Test
@@ -74,26 +78,26 @@ class HttpRequestKeylessV4IntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertPlatformHeaders(response);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("response from backend");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertPlatformHeaders(response);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("response from backend");
+                    return true;
+                })
+                .assertNoErrors();
 
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/endpoint"))
+                        .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER)));
     }
 
     protected void assertPlatformHeaders(HttpClientResponse response) {

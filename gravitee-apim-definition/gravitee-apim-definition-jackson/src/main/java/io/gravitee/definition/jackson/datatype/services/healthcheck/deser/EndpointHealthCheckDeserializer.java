@@ -33,8 +33,9 @@ public class EndpointHealthCheckDeserializer extends HealthCheckDeserializer<End
     }
 
     @Override
-    protected void deserialize(EndpointHealthCheckService service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException {
+    protected void deserialize(
+            EndpointHealthCheckService service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException {
         final JsonNode inheritNode = node.get("inherit");
         boolean inherit = inheritNode == null || inheritNode.asBoolean(true);
         service.setInherit(inherit);

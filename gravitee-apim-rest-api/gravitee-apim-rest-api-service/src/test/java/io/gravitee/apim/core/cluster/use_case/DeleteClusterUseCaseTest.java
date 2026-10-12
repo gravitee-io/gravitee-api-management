@@ -46,15 +46,15 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
         deleteClusterUseCase = new DeleteClusterUseCase(clusterCrudService, auditService);
 
         existingCluster = Cluster.builder()
-            .id(GENERATED_UUID)
-            .name("Cluster 1")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 1")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .build();
+                .id(GENERATED_UUID)
+                .name("Cluster 1")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 1")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .build();
         clusterCrudService.initWith(List.of(existingCluster));
     }
 
@@ -74,20 +74,20 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
 
         // Then
         AuditEntity deletedAudit = AuditEntity.builder()
-            .id("generated-id")
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
-            .referenceId(ENV_ID)
-            .user(USER_ID)
-            .properties(Map.of(AuditProperties.CLUSTER.name(), existingCluster.getId()))
-            .event(ClusterAuditEvent.CLUSTER_DELETED.name())
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .build();
+                .id("generated-id")
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
+                .referenceId(ENV_ID)
+                .user(USER_ID)
+                .properties(Map.of(AuditProperties.CLUSTER.name(), existingCluster.getId()))
+                .event(ClusterAuditEvent.CLUSTER_DELETED.name())
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build();
 
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(deletedAudit);
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(deletedAudit);
     }
 
     @Test
@@ -95,9 +95,10 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
         existingCluster.setLifecycleState(ClusterLifecycleState.DEPLOYED);
         clusterCrudService.initWith(List.of(existingCluster));
 
-        assertThatThrownBy(() -> deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO)))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("Cluster must be undeployed before deletion.");
+        assertThatThrownBy(() -> deleteClusterUseCase.execute(
+                        new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO)))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Cluster must be undeployed before deletion.");
     }
 
     @Test
@@ -105,8 +106,9 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
         existingCluster.setLifecycleState(ClusterLifecycleState.PENDING);
         clusterCrudService.initWith(List.of(existingCluster));
 
-        assertThatThrownBy(() -> deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO)))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("Cluster must be undeployed before deletion.");
+        assertThatThrownBy(() -> deleteClusterUseCase.execute(
+                        new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO)))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Cluster must be undeployed before deletion.");
     }
 }

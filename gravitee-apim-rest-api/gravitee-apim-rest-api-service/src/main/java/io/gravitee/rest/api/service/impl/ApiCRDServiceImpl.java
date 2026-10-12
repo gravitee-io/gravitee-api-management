@@ -90,16 +90,18 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
     public ApiCRDStatusEntity importApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
         try {
             ApiEntity existingApiEntity = apiService
-                .findByEnvironmentIdAndCrossId(executionContext.getEnvironmentId(), api.getCrossId())
-                .orElse(null);
+                    .findByEnvironmentIdAndCrossId(executionContext.getEnvironmentId(), api.getCrossId())
+                    .orElse(null);
 
             String sanitizedApiDefinition = objectMapper.writeValueAsString(api);
 
             ApiEntity importedApi;
             if (existingApiEntity != null) {
-                importedApi = apiDuplicatorService.updateWithImportedDefinition(executionContext, null, sanitizedApiDefinition);
+                importedApi = apiDuplicatorService.updateWithImportedDefinition(
+                        executionContext, null, sanitizedApiDefinition);
             } else {
-                importedApi = apiDuplicatorService.createWithImportedDefinition(executionContext, sanitizedApiDefinition);
+                importedApi =
+                        apiDuplicatorService.createWithImportedDefinition(executionContext, sanitizedApiDefinition);
             }
 
             // Make sure Definition Context is set properly on API imports or updates
@@ -108,12 +110,11 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
             // Deploy the API if needed
             if (api.getDefinitionContext().isSyncFromManagement()) {
                 apiService.deploy(
-                    executionContext,
-                    importedApi.getId(),
-                    getAuthenticatedUsername(),
-                    EventType.PUBLISH_API,
-                    new ApiDeploymentEntity()
-                );
+                        executionContext,
+                        importedApi.getId(),
+                        getAuthenticatedUsername(),
+                        EventType.PUBLISH_API,
+                        new ApiDeploymentEntity());
             }
 
             // Update API State if it has changed
@@ -122,28 +123,23 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
             transferOwnerShip(executionContext, importedApi.getId());
 
             // Get plan IDs
-            Map<String, String> plansByCrossId = planService
-                .findByApi(executionContext, importedApi.getId())
-                .stream()
-                .collect(toMap(PlanEntity::getCrossId, PlanEntity::getId));
+            Map<String, String> plansByCrossId = planService.findByApi(executionContext, importedApi.getId()).stream()
+                    .collect(toMap(PlanEntity::getCrossId, PlanEntity::getId));
 
             notificationCRDService.syncApiPortalNotifications(
-                importedApi.getId(),
-                getAuthenticatedUsername(),
-                api.getConsoleNotificationConfiguration()
-            );
+                    importedApi.getId(), getAuthenticatedUsername(), api.getConsoleNotificationConfiguration());
 
             return new ApiCRDStatusEntity(
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                importedApi.getId(),
-                importedApi.getCrossId(),
-                api.getState(),
-                null, // will be set in the APIResources
-                plansByCrossId
-            );
+                    executionContext.getOrganizationId(),
+                    executionContext.getEnvironmentId(),
+                    importedApi.getId(),
+                    importedApi.getCrossId(),
+                    api.getState(),
+                    null, // will be set in the APIResources
+                    plansByCrossId);
         } catch (JsonProcessingException e) {
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to JSON deserialize the API definition.");
         }
     }
 
@@ -151,9 +147,11 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
         if (!importedApi.getDefinitionContext().equals(api.getDefinitionContext())) {
             DefinitionContext definitionContext = api.getDefinitionContext();
             definitionContextService.setDefinitionContext(
-                importedApi.getId(),
-                new DefinitionContextEntity(definitionContext.getOrigin(), definitionContext.getMode(), definitionContext.getSyncFrom())
-            );
+                    importedApi.getId(),
+                    new DefinitionContextEntity(
+                            definitionContext.getOrigin(),
+                            definitionContext.getMode(),
+                            definitionContext.getSyncFrom()));
         }
     }
 
@@ -161,17 +159,15 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
         UserDetails authenticatedUser = getAuthenticatedUser();
 
         MembershipEntity currentPrimaryOwner = membershipService.getPrimaryOwner(
-            executionContext.getOrganizationId(),
-            MembershipReferenceType.API,
-            apiId
-        );
+                executionContext.getOrganizationId(), MembershipReferenceType.API, apiId);
 
         if (currentPrimaryOwner.getMemberId().equals(authenticatedUser.getUsername())) {
             log.debug("user {} is already the primary owner of API {}", authenticatedUser.getUsername(), apiId);
             return;
         }
 
-        var primaryOwner = new MembershipService.MembershipMember(authenticatedUser.getUsername(), null, MembershipMemberType.USER);
+        var primaryOwner = new MembershipService.MembershipMember(
+                authenticatedUser.getUsername(), null, MembershipMemberType.USER);
 
         membershipService.transferApiOwnership(executionContext, apiId, primaryOwner, List.of());
     }
@@ -180,7 +176,8 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
         if (existingApiEntity == null || existingApiEntity.getState() != importedApi.getState()) {
             if (Lifecycle.State.STARTED == importedApi.getState()) {
                 checkApiLifeCycle(importedApi);
-                apiService.start(GraviteeContext.getExecutionContext(), importedApi.getId(), getAuthenticatedUsername());
+                apiService.start(
+                        GraviteeContext.getExecutionContext(), importedApi.getId(), getAuthenticatedUsername());
             } else if (Lifecycle.State.STOPPED == importedApi.getState()) {
                 checkApiLifeCycle(importedApi);
                 apiService.stop(GraviteeContext.getExecutionContext(), importedApi.getId(), getAuthenticatedUsername());
@@ -190,16 +187,16 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
 
     private void checkApiLifeCycle(ApiEntity api) {
         if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
-            throw new BadRequestException(String.format("lifecycle state of deleted API [%s] cannot be changed", api.getId()));
+            throw new BadRequestException(
+                    String.format("lifecycle state of deleted API [%s] cannot be changed", api.getId()));
         }
 
         if (api.getState() == Lifecycle.State.STOPPED) {
             final boolean apiReviewEnabled = parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.API_REVIEW_ENABLED,
-                ParameterReferenceType.ENVIRONMENT
-            );
-            if (apiReviewEnabled && api.getWorkflowState() != null && !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())) {
+                    GraviteeContext.getExecutionContext(), Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+            if (apiReviewEnabled
+                    && api.getWorkflowState() != null
+                    && !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())) {
                 throw new BadRequestException("API cannot be started without being reviewed");
             }
         }

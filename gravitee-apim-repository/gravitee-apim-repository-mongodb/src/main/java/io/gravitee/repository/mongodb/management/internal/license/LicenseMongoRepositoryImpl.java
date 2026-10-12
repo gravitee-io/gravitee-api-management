@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom {
@@ -43,7 +42,8 @@ public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom 
         final Query query = new Query();
 
         if (filter.getReferenceType() != null) {
-            query.addCriteria(where("_id.referenceType").is(filter.getReferenceType().name()));
+            query.addCriteria(
+                    where("_id.referenceType").is(filter.getReferenceType().name()));
         }
 
         if (!isEmpty(filter.getReferenceIds())) {
@@ -64,6 +64,10 @@ public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom 
         long total = mongoQueries.countOrTimeout(mongoTemplate, query, LicenseMongo.class);
         List<LicenseMongo> license = mongoTemplate.find(query, LicenseMongo.class);
 
-        return new Page<>(license, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+        return new Page<>(
+                license,
+                pageable != null ? pageable.pageNumber() : 0,
+                pageable != null ? pageable.pageSize() : 0,
+                total);
     }
 }

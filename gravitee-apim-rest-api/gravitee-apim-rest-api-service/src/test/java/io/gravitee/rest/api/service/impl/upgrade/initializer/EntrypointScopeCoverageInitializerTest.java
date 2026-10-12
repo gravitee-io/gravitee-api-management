@@ -31,7 +31,8 @@ import org.junit.jupiter.api.Test;
 class EntrypointScopeCoverageInitializerTest {
 
     private final EntrypointPluginQueryServiceInMemory entrypointPlugins = new EntrypointPluginQueryServiceInMemory();
-    private final EntrypointScopeCoverageInitializer initializer = new EntrypointScopeCoverageInitializer(entrypointPlugins);
+    private final EntrypointScopeCoverageInitializer initializer =
+            new EntrypointScopeCoverageInitializer(entrypointPlugins);
 
     @AfterEach
     void tearDown() {
@@ -40,16 +41,16 @@ class EntrypointScopeCoverageInitializerTest {
 
     @Test
     void should_report_installed_entrypoints_the_registry_does_not_declare_deployed_or_not() {
-        entrypointPlugins.initWith(
-            List.of(entrypoint("http-proxy", true), entrypoint("acme-custom", true), entrypoint("acme-beta", false))
-        );
+        entrypointPlugins.initWith(List.of(
+                entrypoint("http-proxy", true), entrypoint("acme-custom", true), entrypoint("acme-beta", false)));
 
         assertThat(initializer.undecidedEntrypointIds()).containsExactly("acme-beta", "acme-custom");
     }
 
     @Test
     void should_treat_excluded_and_dedicated_family_entrypoints_as_decided() {
-        entrypointPlugins.initWith(List.of(entrypoint("sse", true), entrypoint("authzen", true), entrypoint("native-kafka", true)));
+        entrypointPlugins.initWith(
+                List.of(entrypoint("sse", true), entrypoint("authzen", true), entrypoint("native-kafka", true)));
 
         assertThat(initializer.undecidedEntrypointIds()).isEmpty();
     }
@@ -63,12 +64,12 @@ class EntrypointScopeCoverageInitializerTest {
 
     private static ConnectorPlugin entrypoint(String id, boolean deployed) {
         return ConnectorPlugin.builder()
-            .id(id)
-            .name(id)
-            .version("1.0.0")
-            .supportedApiType(ApiType.PROXY)
-            .supportedListenerType(ListenerType.HTTP)
-            .deployed(deployed)
-            .build();
+                .id(id)
+                .name(id)
+                .version("1.0.0")
+                .supportedApiType(ApiType.PROXY)
+                .supportedListenerType(ListenerType.HTTP)
+                .deployed(deployed)
+                .build();
     }
 }

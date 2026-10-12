@@ -18,9 +18,7 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static jakarta.ws.rs.client.Entity.form;
 import static jakarta.ws.rs.client.Entity.json;
-import static jakarta.ws.rs.client.Entity.text;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.reset;
@@ -182,7 +180,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             }
         };
 
-        when(socialIdentityProviderService.findById(eq(USER_SOURCE_OAUTH2), any())).thenReturn(identityProvider);
+        when(socialIdentityProviderService.findById(eq(USER_SOURCE_OAUTH2), any()))
+                .thenReturn(identityProvider);
         cleanEnvironment();
         cleanRolesGroupMapping();
         reset(userService, groupService, roleService, membershipService);
@@ -205,28 +204,29 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldConnectExistingUser() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        // mock oauth2 user info call
+        mockUserInfo(
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
-        //mock DB find user by name
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
 
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
-            userEntity
-        );
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any()))
+                .thenReturn(userEntity);
 
-        //mock DB user connect
+        // mock DB user connect
         when(userService.connect(any(), eq(userEntity.getId()))).thenReturn(userEntity);
 
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
@@ -241,28 +241,30 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_exchange_token_by_query_param()
-        throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+            throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         final String tokenToExchange = "MyToken";
         // Given
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
         // mock introspect token
         mockIntrospectToken();
-        //mock oauth2 user info call
+        // mock oauth2 user info call
         mockUserInfo(
-            okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
-            tokenToExchange
-        );
-        //mock DB find user by name
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
+                tokenToExchange);
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        //mock DB user connect
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
-            userEntity
-        );
+        // mock DB user connect
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any()))
+                .thenReturn(userEntity);
         when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(userEntity);
 
         // When
-        Response response = orgTarget().path("exchange").queryParam("token", tokenToExchange).request().post(json(null));
+        Response response = orgTarget()
+                .path("exchange")
+                .queryParam("token", tokenToExchange)
+                .request()
+                .post(json(null));
 
         // Then
         verify(userService, times(1)).connect(any(), eq(userEntity.getSourceId()));
@@ -271,24 +273,23 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_exchange_token_by_body() throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    public void should_exchange_token_by_body()
+            throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         final String tokenToExchange = "MyToken";
         // Given
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
         // mock introspect token
         mockIntrospectToken();
-        //mock oauth2 user info call
+        // mock oauth2 user info call
         mockUserInfo(
-            okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
-            tokenToExchange
-        );
-        //mock DB find user by name
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
+                tokenToExchange);
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        //mock DB user connect
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
-            userEntity
-        );
+        // mock DB user connect
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any()))
+                .thenReturn(userEntity);
         when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(userEntity);
 
         // When
@@ -307,19 +308,20 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // Given
         mockDefaultEnvironment();
         mockTokenEndpoint();
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        mockUserInfo(
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
         mockConnectedUser();
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+                .request()
+                .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        WireMock.verify(
-            postRequestedFor(urlEqualTo("/token"))
+        WireMock.verify(postRequestedFor(urlEqualTo("/token"))
                 .withHeader(HttpHeaders.AUTHORIZATION, absent())
-                .withRequestBody(containing("client_secret=the_client_secret"))
-        );
+                .withRequestBody(containing("client_secret=the_client_secret")));
     }
 
     @Test
@@ -328,19 +330,20 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockDefaultEnvironment();
         identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
         mockTokenEndpoint();
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        mockUserInfo(
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
         mockConnectedUser();
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+                .request()
+                .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        WireMock.verify(
-            postRequestedFor(urlEqualTo("/token"))
+        WireMock.verify(postRequestedFor(urlEqualTo("/token"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedBasicAuthorization()))
-                .withRequestBody(notContaining("client_secret"))
-        );
+                .withRequestBody(notContaining("client_secret")));
     }
 
     @Test
@@ -348,19 +351,23 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // Given
         mockDefaultEnvironment();
         mockIntrospectionEndpoint();
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())), "MyToken");
+        mockUserInfo(
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
+                "MyToken");
         mockConnectedUser();
 
         // When
-        Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
+        Response response = orgTarget()
+                .path("exchange")
+                .queryParam("token", "MyToken")
+                .request()
+                .post(json(null));
 
         // Then
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        WireMock.verify(
-            postRequestedFor(urlEqualTo("/introspect"))
+        WireMock.verify(postRequestedFor(urlEqualTo("/introspect"))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedBasicAuthorization()))
-                .withRequestBody(notContaining("client_secret"))
-        );
+                .withRequestBody(notContaining("client_secret")));
     }
 
     @Test
@@ -369,148 +376,174 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockDefaultEnvironment();
         identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST);
         mockIntrospectionEndpoint();
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())), "MyToken");
+        mockUserInfo(
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())),
+                "MyToken");
         mockConnectedUser();
 
         // When
-        Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
+        Response response = orgTarget()
+                .path("exchange")
+                .queryParam("token", "MyToken")
+                .request()
+                .post(json(null));
 
         // Then
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        WireMock.verify(
-            postRequestedFor(urlEqualTo("/introspect"))
+        WireMock.verify(postRequestedFor(urlEqualTo("/introspect"))
                 .withHeader(HttpHeaders.AUTHORIZATION, absent())
                 .withRequestBody(containing("client_secret=the_client_secret"))
-                .withRequestBody(containing("client_id=the_client_id"))
-        );
+                .withRequestBody(containing("client_id=the_client_id")));
     }
 
     /** Carries detail a caller must never see, so relaying the provider's raw body fails these tests. */
     private static final String PROVIDER_REJECTION_BODY =
-        "{\"error\":\"invalid_client\",\"error_description\":\"client not found in realm internal-realm-7\",\"trace\":\"provider-node-3\"}";
+            "{\"error\":\"invalid_client\",\"error_description\":\"client not found in realm internal-realm-7\",\"trace\":\"provider-node-3\"}";
 
     private void assertRelaysOnlyTheErrorCode(String body) {
-        assertTrue(body.contains("invalid_client"), "the provider's own error code must reach the caller, got: " + body);
-        assertFalse(body.contains("internal-realm-7"), "the provider's response detail must not be relayed, got: " + body);
-        assertFalse(body.contains("provider-node-3"), "the provider's response detail must not be relayed, got: " + body);
-        assertFalse(body.contains("error_description"), "the provider's response detail must not be relayed, got: " + body);
+        assertTrue(
+                body.contains("invalid_client"), "the provider's own error code must reach the caller, got: " + body);
+        assertFalse(
+                body.contains("internal-realm-7"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(
+                body.contains("provider-node-3"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(
+                body.contains("error_description"), "the provider's response detail must not be relayed, got: " + body);
     }
 
     @Test
     public void should_report_invalid_client_on_token_request_instead_of_an_empty_unauthorized() throws Exception {
         // Given
         mockDefaultEnvironment();
-        stubFor(post("/token").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
+        stubFor(post("/token")
+                .willReturn(
+                        aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+                .request()
+                .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
         String body = response.readEntity(String.class);
         assertRelaysOnlyTheErrorCode(body);
         assertTrue(
-            body.contains("tokenEndpointAuthMethod"),
-            "an invalid_client failure must name the client authentication method as the likely cause, got: " + body
-        );
+                body.contains("tokenEndpointAuthMethod"),
+                "an invalid_client failure must name the client authentication method as the likely cause, got: "
+                        + body);
     }
 
     @Test
     public void should_report_invalid_client_on_introspection_instead_of_a_server_error() throws Exception {
         // Given
         mockDefaultEnvironment();
-        stubFor(post("/introspect").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
+        stubFor(post("/introspect")
+                .willReturn(
+                        aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
 
         // When
-        Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
+        Response response = orgTarget()
+                .path("exchange")
+                .queryParam("token", "MyToken")
+                .request()
+                .post(json(null));
 
         // Then
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
         String body = response.readEntity(String.class);
         assertRelaysOnlyTheErrorCode(body);
         assertTrue(
-            body.contains("tokenEndpointAuthMethod"),
-            "an invalid_client failure must name the client authentication method as the likely cause, got: " + body
-        );
+                body.contains("tokenEndpointAuthMethod"),
+                "an invalid_client failure must name the client authentication method as the likely cause, got: "
+                        + body);
     }
 
     @Test
     public void should_not_suggest_the_client_authentication_method_for_an_unrelated_error() throws Exception {
         // Given
         mockDefaultEnvironment();
-        stubFor(
-            post("/token").willReturn(aResponse().withStatus(HttpStatusCode.BAD_REQUEST_400).withBody("{\"error\":\"invalid_grant\"}"))
-        );
+        stubFor(post("/token")
+                .willReturn(aResponse()
+                        .withStatus(HttpStatusCode.BAD_REQUEST_400)
+                        .withBody("{\"error\":\"invalid_grant\"}")));
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+                .request()
+                .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         String body = response.readEntity(String.class);
         assertTrue(body.contains("invalid_grant"), "the provider's own error code must reach the caller, got: " + body);
         assertFalse(
-            body.contains("tokenEndpointAuthMethod"),
-            "the client authentication hint must be reserved for credential rejections, got: " + body
-        );
+                body.contains("tokenEndpointAuthMethod"),
+                "the client authentication hint must be reserved for credential rejections, got: " + body);
     }
 
     @Test
     public void should_report_a_non_json_provider_response_without_relaying_it() throws Exception {
         // Given
         mockDefaultEnvironment();
-        stubFor(
-            post("/token").willReturn(
-                aResponse().withStatus(HttpStatusCode.BAD_GATEWAY_502).withBody("<html><body>nginx: upstream 10.0.0.7 down</body></html>")
-            )
-        );
+        stubFor(post("/token")
+                .willReturn(aResponse()
+                        .withStatus(HttpStatusCode.BAD_GATEWAY_502)
+                        .withBody("<html><body>nginx: upstream 10.0.0.7 down</body></html>")));
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+                .request()
+                .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         String body = response.readEntity(String.class);
         // A provider that is unreachable must not be reported as a credential problem
-        assertTrue(body.contains("identity_provider_unavailable"), "an unreachable provider must be named as such, got: " + body);
+        assertTrue(
+                body.contains("identity_provider_unavailable"),
+                "an unreachable provider must be named as such, got: " + body);
         assertFalse(body.contains("10.0.0.7"), "the provider's response body must not be relayed, got: " + body);
-        assertFalse(body.contains("tokenEndpointAuthMethod"), "an outage must not be blamed on the auth method, got: " + body);
+        assertFalse(
+                body.contains("tokenEndpointAuthMethod"),
+                "an outage must not be blamed on the auth method, got: " + body);
     }
 
     private void mockTokenEndpoint() throws IOException {
-        stubFor(
-            post("/token").willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
-        );
+        stubFor(post("/token")
+                .willReturn(okJson(
+                        IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset()))));
     }
 
     private void mockIntrospectionEndpoint() {
-        stubFor(post("/introspect").willReturn(okJson(new JsonObject().put("active", "true").toString())));
+        stubFor(post("/introspect")
+                .willReturn(okJson(new JsonObject().put("active", "true").toString())));
     }
 
     private void mockConnectedUser() {
         UserEntity userEntity = mockUserEntity();
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
-            userEntity
-        );
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any()))
+                .thenReturn(userEntity);
         when(userService.connect(any(), eq(userEntity.getId()))).thenReturn(userEntity);
     }
 
     private static String expectedBasicAuthorization() {
-        return "Basic " + Base64.getEncoder().encodeToString("the_client_id:the_client_secret".getBytes(StandardCharsets.UTF_8));
+        return "Basic "
+                + Base64.getEncoder()
+                        .encodeToString("the_client_id:the_client_secret".getBytes(StandardCharsets.UTF_8));
     }
 
     private static void mockIntrospectToken() {
         String tokenRequestBody = "token=MyToken";
         JsonObject tokenResponseBody = new JsonObject().put("active", "true");
-        stubFor(
-            post("/introspect")
+        stubFor(post("/introspect")
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
                 .withHeader(HttpHeaders.AUTHORIZATION, containing("Basic"))
                 .withRequestBody(equalTo(tokenRequestBody))
-                .willReturn(okJson(tokenResponseBody.toString()))
-        );
+                .willReturn(okJson(tokenResponseBody.toString())));
     }
 
     private void verifyJwtToken(Response response)
-        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+            throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException,
+                    JWTVerificationException {
         TokenEntity responseToken = response.readEntity(TokenEntity.class);
         assertEquals("BEARER", responseToken.getType().name());
 
@@ -532,11 +565,13 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void verifyJwtTokenIsNotPresent(Response response)
-        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+            throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException,
+                    JWTVerificationException {
         assertNull(response.getCookies().get(HttpHeaders.AUTHORIZATION));
     }
 
-    private MultivaluedMap<String, String> createPayload(String clientId, String redirectUri, String code, String state) {
+    private MultivaluedMap<String, String> createPayload(
+            String clientId, String redirectUri, String code, String state) {
         final MultivaluedMap<String, String> payload = new MultivaluedHashMap<>();
         payload.add("client_id", clientId);
         payload.add("redirect_uri", redirectUri);
@@ -547,29 +582,30 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldConnectNewUser() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        final String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        // mock oauth2 user info call
+        final String userInfo =
+                IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         mockUserInfo(okJson(userInfo));
 
-        //mock create user
+        // mock create user
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfo, createdUser);
 
-        //mock DB user connect
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
-            createdUser
-        );
+        // mock DB user connect
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any()))
+                .thenReturn(createdUser);
         when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
 
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
@@ -590,14 +626,16 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         updateUserEntity.setLastname("Doe");
         user.setPicture("http://example.com/janedoe/me.jpg");
 
-        when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(user.getId()), refEq(updateUserEntity))).thenReturn(user);
+        when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(user.getId()), refEq(updateUserEntity)))
+                .thenReturn(user);
         return updateUserEntity;
     }
 
-    private void mockUserCreation(SocialIdentityProviderEntity socialIdentityProviderEntity, String userInfo, UserEntity createdUser) {
-        when(
-            userService.createOrUpdateUserFromSocialIdentityProvider(any(), refEq(socialIdentityProviderEntity), eq(userInfo), any(), any())
-        ).thenReturn(createdUser);
+    private void mockUserCreation(
+            SocialIdentityProviderEntity socialIdentityProviderEntity, String userInfo, UserEntity createdUser) {
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(
+                        any(), refEq(socialIdentityProviderEntity), eq(userInfo), any(), any()))
+                .thenReturn(createdUser);
     }
 
     private UserEntity mockUserEntity() {
@@ -616,22 +654,21 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotConnectUserOn401UserInfo() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        mockUserInfo(
-            WireMock.unauthorized().withBody(
-                IOUtils.toString(read("/oauth2/json/user_info_401_response_body.json"), Charset.defaultCharset())
-            )
-        );
+        // mock oauth2 user info call
+        mockUserInfo(WireMock.unauthorized()
+                .withBody(IOUtils.toString(
+                        read("/oauth2/json/user_info_401_response_body.json"), Charset.defaultCharset())));
 
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
@@ -649,22 +686,23 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotConnectUserWhenMissingMailInUserInfo() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockWrongEnvironment();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        // mock oauth2 user info call
+        mockUserInfo(
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         // mock processUser to throw EmailRequiredException
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any(), any(), any(), any())).thenThrow(
-            new EmailRequiredException("email")
-        );
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any(), any(), any(), any()))
+                .thenThrow(new EmailRequiredException("email"));
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
@@ -682,30 +720,26 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(responseDefinitionBuilder, "2YotnFZFEjr1zCsicMWpAA");
     }
 
-    private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder, String expectedBearer) throws IOException {
-        stubFor(
-            get("/userinfo")
+    private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder, String expectedBearer)
+            throws IOException {
+        stubFor(get("/userinfo")
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + expectedBearer))
-                .willReturn(responseDefinitionBuilder)
-        );
+                .willReturn(responseDefinitionBuilder));
     }
 
     private void mockExchangeAuthorizationCodeForAccessToken() throws IOException {
-        String tokenRequestBody =
-            "code=CoDe&" +
-            "grant_type=authorization_code&" +
-            "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&" +
-            "client_secret=the_client_secret&" +
-            "client_id=the_client_id&" +
-            "code_verifier=";
+        String tokenRequestBody = "code=CoDe&" + "grant_type=authorization_code&"
+                + "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&"
+                + "client_secret=the_client_secret&"
+                + "client_id=the_client_id&"
+                + "code_verifier=";
 
-        stubFor(
-            post("/token")
+        stubFor(post("/token")
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
                 .withRequestBody(equalTo(tokenRequestBody))
-                .willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
-        );
+                .willReturn(okJson(
+                        IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset()))));
     }
 
     private void mockDefaultEnvironment() {
@@ -730,60 +764,60 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldConnectNewUserWithGroupsMappingFromUserInfo() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
         mockGroupsMapping();
         mockRolesMapping();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        final String userInfoBody = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        // mock oauth2 user info call
+        final String userInfoBody =
+                IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         mockUserInfo(okJson(userInfoBody));
 
-        //mock DB find user by name
-        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false)).thenThrow(
-            new UserNotFoundException("janedoe@example.com")
-        );
+        // mock DB find user by name
+        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+                .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
-        //mock create user
+        // mock create user
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfoBody, createdUser);
 
-        //mock group search and association
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "Example group")).thenReturn(
-            mockGroupEntity("group_id_1", "Example group")
-        );
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "soft user")).thenReturn(
-            mockGroupEntity("group_id_2", "soft user")
-        );
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "Others")).thenReturn(mockGroupEntity("group_id_3", "Others"));
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "Api consumer")).thenReturn(
-            mockGroupEntity("group_id_4", "Api consumer")
-        );
+        // mock group search and association
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "Example group"))
+                .thenReturn(mockGroupEntity("group_id_1", "Example group"));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "soft user"))
+                .thenReturn(mockGroupEntity("group_id_2", "soft user"));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "Others"))
+                .thenReturn(mockGroupEntity("group_id_3", "Others"));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "Api consumer"))
+                .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
-        RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "ADMIN");
+        RoleEntity roleApplicationAdmin =
+                mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "ADMIN");
 
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
-            Arrays.asList(roleApiUser, roleApplicationAdmin)
-        );
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API, RoleScope.APPLICATION))
+                .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
 
-        //mock DB update user picture
+        // mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
 
-        //mock DB user connect
+        // mock DB user connect
         when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
 
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), any(), any(), any());
+        verify(userService, times(1))
+                .createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), any(), any(), any());
 
         verify(userService, times(1)).connect(any(), eq("janedoe@example.com"));
 
@@ -799,50 +833,52 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldConnectNewUserWithNoMatchingGroupsMappingFromUserInfo() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
         mockGroupsMapping();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        final String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset());
+        // mock oauth2 user info call
+        final String userInfo = IOUtils.toString(
+                read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset());
         mockUserInfo(okJson(userInfo));
 
-        //mock DB find user by name
-        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false)).thenThrow(
-            new UserNotFoundException("janedoe@example.com")
-        );
+        // mock DB find user by name
+        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+                .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
-        //mock create user
+        // mock create user
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfo, createdUser);
 
-        //mock DB update user picture
+        // mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
 
-        //mock DB user connect
+        // mock DB user connect
         when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
 
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), any(), any(), any());
+        verify(userService, times(1))
+                .createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), any(), any(), any());
 
         verify(userService, times(1)).connect(any(), eq("janedoe@example.com"));
 
-        //verify group creations
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
-            eq(GraviteeContext.getExecutionContext()),
-            any(MembershipService.MembershipReference.class),
-            any(MembershipService.MembershipMember.class),
-            any(MembershipService.MembershipRole.class)
-        );
+        // verify group creations
+        verify(membershipService, times(0))
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(MembershipService.MembershipReference.class),
+                        any(MembershipService.MembershipMember.class),
+                        any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -856,53 +892,60 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldConnectNewUserWithGroupsMappingFromUserInfoWhenGroupIsNotFound() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
         mockGroupsMapping();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        final String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        // mock oauth2 user info call
+        final String userInfo =
+                IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         mockUserInfo(okJson(userInfo));
 
-        //mock DB find user by name
-        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false)).thenThrow(
-            new UserNotFoundException("janedoe@example.com")
-        );
+        // mock DB find user by name
+        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+                .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
-        //mock group search and association
-        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Example group")).thenReturn(Collections.emptyList());
-        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "soft user")).thenReturn(Collections.emptyList());
-        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Others")).thenReturn(Collections.emptyList());
-        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Api consumer")).thenReturn(Collections.emptyList());
+        // mock group search and association
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Example group"))
+                .thenReturn(Collections.emptyList());
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "soft user"))
+                .thenReturn(Collections.emptyList());
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Others"))
+                .thenReturn(Collections.emptyList());
+        when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Api consumer"))
+                .thenReturn(Collections.emptyList());
 
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfo, createdUser);
 
-        //mock DB user connect
+        // mock DB user connect
         when(userService.connect(any(), eq(createdUser.getId()))).thenReturn(createdUser);
 
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), any(), any(), any());
+        verify(userService, times(1))
+                .createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), any(), any(), any());
 
-        verify(userService, times(0)).update(eq(GraviteeContext.getExecutionContext()), any(String.class), any(UpdateUserEntity.class));
+        verify(userService, times(0))
+                .update(eq(GraviteeContext.getExecutionContext()), any(String.class), any(UpdateUserEntity.class));
         verify(userService, times(1)).connect(any(), anyString());
 
-        //verify group creations
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
-            eq(GraviteeContext.getExecutionContext()),
-            any(MembershipService.MembershipReference.class),
-            any(MembershipService.MembershipMember.class),
-            any(MembershipService.MembershipRole.class)
-        );
+        // verify group creations
+        verify(membershipService, times(0))
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(MembershipService.MembershipReference.class),
+                        any(MembershipService.MembershipMember.class),
+                        any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -913,23 +956,24 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotConnectNewUserWhenWrongELGroupsMapping() throws Exception {
         // -- MOCK
-        //mock environment
+        // mock environment
         mockDefaultEnvironment();
         mockWrongELGroupsMapping();
 
-        //mock oauth2 exchange authorisation code for access token
+        // mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
 
-        //mock oauth2 user info call
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        // mock oauth2 user info call
+        mockUserInfo(
+                okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any(), any(), any(), any())).thenThrow(
-            new ExpressionEvaluationException("error")
-        );
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any(), any(), any(), any()))
+                .thenThrow(new ExpressionEvaluationException("error"));
 
         // -- CALL
 
-        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
         Response response = orgTarget().request().post(form(payload));
 
@@ -965,8 +1009,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     private void mockGroupsMapping() {
         GroupMappingEntity condition1 = new GroupMappingEntity();
         condition1.setCondition(
-            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
-        );
+                "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         condition1.setGroups(Arrays.asList("Example group", "soft user"));
         identityProvider.getGroupMappings().add(condition1);
 
@@ -984,8 +1027,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     private void mockRolesMapping() {
         RoleMappingEntity role1 = new RoleMappingEntity();
         role1.setCondition(
-            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
-        );
+                "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         role1.setOrganizations(Collections.singletonList("USER"));
         identityProvider.getRoleMappings().add(role1);
 

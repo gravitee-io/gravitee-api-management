@@ -24,35 +24,33 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ApplicationCrudServiceInMemory implements ApplicationCrudService, InMemoryAlternative<BaseApplicationEntity> {
+public class ApplicationCrudServiceInMemory
+        implements ApplicationCrudService, InMemoryAlternative<BaseApplicationEntity> {
 
     final List<BaseApplicationEntity> storage = new ArrayList<>();
 
     @Override
     public BaseApplicationEntity findById(ExecutionContext executionContext, String applicationId) {
-        return storage
-            .stream()
-            .filter(application -> applicationId.equals(application.getId()))
-            .findFirst()
-            .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+        return storage.stream()
+                .filter(application -> applicationId.equals(application.getId()))
+                .findFirst()
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
     }
 
     @Override
     public BaseApplicationEntity findById(String applicationId, String environmentId) {
-        return storage
-            .stream()
-            .filter(application -> applicationId.equals(application.getId()))
-            .findFirst()
-            .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+        return storage.stream()
+                .filter(application -> applicationId.equals(application.getId()))
+                .findFirst()
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
     }
 
     @Override
     public List<BaseApplicationEntity> findByIds(List<String> appIds, String environmentId) {
-        return storage
-            .stream()
-            .filter(app -> appIds.contains(app.getId()))
-            .filter(app -> app.getEnvironmentId().equals(environmentId))
-            .collect(Collectors.toList());
+        return storage.stream()
+                .filter(app -> appIds.contains(app.getId()))
+                .filter(app -> app.getEnvironmentId().equals(environmentId))
+                .collect(Collectors.toList());
     }
 
     @Override

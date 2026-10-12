@@ -44,13 +44,12 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public record OtelLogSearchCriteria(
-    String traceId,
-    Map<String, String> attributeFilters,
-    Map<String, String> resourceAttributeFilters,
-    Instant start,
-    Instant end,
-    Integer limit
-) {
+        String traceId,
+        Map<String, String> attributeFilters,
+        Map<String, String> resourceAttributeFilters,
+        Instant start,
+        Instant end,
+        Integer limit) {
     public OtelLogSearchCriteria {
         if (limit == null || limit <= 0) {
             limit = 5000;

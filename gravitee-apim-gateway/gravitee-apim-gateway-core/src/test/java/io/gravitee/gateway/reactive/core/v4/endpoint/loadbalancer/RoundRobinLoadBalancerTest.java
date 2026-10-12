@@ -46,14 +46,11 @@ class RoundRobinLoadBalancerTest {
     void shouldReturnTheNextEndpointInTheListAtEachCall() {
         int totalEndpoints = 5;
         List<ManagedEndpoint> endpoints = IntStream.range(0, totalEndpoints)
-            .mapToObj(i ->
-                new DefaultManagedEndpoint(
-                    new Endpoint(),
-                    new DefaultManagedEndpointGroup(new EndpointGroup()),
-                    mock(EndpointConnector.class)
-                )
-            )
-            .collect(Collectors.toList());
+                .mapToObj(i -> new DefaultManagedEndpoint(
+                        new Endpoint(),
+                        new DefaultManagedEndpointGroup(new EndpointGroup()),
+                        mock(EndpointConnector.class)))
+                .collect(Collectors.toList());
         RoundRobinLoadBalancer cut = new RoundRobinLoadBalancer(endpoints);
         ManagedEndpoint prevEndpoint = null;
         for (int i = 0; i < totalEndpoints; i++) {

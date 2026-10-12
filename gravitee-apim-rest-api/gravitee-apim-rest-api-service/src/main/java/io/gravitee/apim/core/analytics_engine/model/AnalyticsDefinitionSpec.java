@@ -17,4 +17,5 @@ package io.gravitee.apim.core.analytics_engine.model;
 
 import java.util.List;
 
-public record AnalyticsDefinitionSpec(List<ApiSpec> apis, List<MetricSpec> metrics, List<FilterSpec> filters, List<FacetSpec> facets) {}
+public record AnalyticsDefinitionSpec(
+        List<ApiSpec> apis, List<MetricSpec> metrics, List<FilterSpec> filters, List<FacetSpec> facets) {}

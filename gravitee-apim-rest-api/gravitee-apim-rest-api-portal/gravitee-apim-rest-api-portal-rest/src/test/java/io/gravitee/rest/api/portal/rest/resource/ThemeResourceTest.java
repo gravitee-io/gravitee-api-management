@@ -59,7 +59,8 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetDefaultPortalTheme() {
-        final Response response = target().queryParam("type", "PORTAL").request().get();
+        final Response response =
+                target().queryParam("type", "PORTAL").request().get();
 
         ThemeResponse resultTheme = response.readEntity(ThemeResponse.class);
         assertNotNull(resultTheme);
@@ -68,7 +69,8 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetDefaultPortalNextTheme() {
-        final Response response = target().queryParam("type", "PORTAL_NEXT").request().get();
+        final Response response =
+                target().queryParam("type", "PORTAL_NEXT").request().get();
 
         ThemeResponse resultTheme = response.readEntity(ThemeResponse.class);
         assertNotNull(resultTheme);

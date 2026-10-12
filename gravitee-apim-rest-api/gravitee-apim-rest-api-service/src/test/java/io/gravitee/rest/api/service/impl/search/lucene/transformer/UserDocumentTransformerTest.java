@@ -45,7 +45,11 @@ public class UserDocumentTransformerTest {
 
         @Test
         void should_use_lastname_firstname_lowercased_as_sort_value_when_both_are_present() {
-            var user = UserEntity.builder().id("user-uuid").firstname("Alice").lastname("Smith").build();
+            var user = UserEntity.builder()
+                    .id("user-uuid")
+                    .firstname("Alice")
+                    .lastname("Smith")
+                    .build();
 
             var doc = transformer.transform(user);
 
@@ -56,7 +60,11 @@ public class UserDocumentTransformerTest {
 
         @Test
         void should_strip_accents_and_lowercase_lastname_firstname_sort_value() {
-            var user = UserEntity.builder().id("user-uuid").firstname("Élodie").lastname("Müller").build();
+            var user = UserEntity.builder()
+                    .id("user-uuid")
+                    .firstname("Élodie")
+                    .lastname("Müller")
+                    .build();
 
             var doc = transformer.transform(user);
 
@@ -67,7 +75,10 @@ public class UserDocumentTransformerTest {
 
         @Test
         void should_use_display_name_as_sort_value_when_user_has_no_firstname_or_lastname() {
-            var user = UserEntity.builder().id("user-uuid").sourceId("svc-ci-my-service-account").build();
+            var user = UserEntity.builder()
+                    .id("user-uuid")
+                    .sourceId("svc-ci-my-service-account")
+                    .build();
 
             var doc = transformer.transform(user);
 
@@ -104,7 +115,8 @@ public class UserDocumentTransformerTest {
 
             var doc = transformer.transform(user);
 
-            assertThat(doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED)).isNull();
+            assertThat(doc.getField(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED))
+                    .isNull();
         }
     }
 
@@ -115,9 +127,9 @@ public class UserDocumentTransformerTest {
         public void should_transform_a_user_with_custom_fields() {
             // Given
             var user = UserEntity.builder()
-                .id("user-uuid")
-                .customFields(Map.ofEntries(Map.entry("prop1", "value1"), Map.entry("prop2", "value2")))
-                .build();
+                    .id("user-uuid")
+                    .customFields(Map.ofEntries(Map.entry("prop1", "value1"), Map.entry("prop2", "value2")))
+                    .build();
 
             // When
             var doc = transformer.transform(user);
@@ -130,9 +142,9 @@ public class UserDocumentTransformerTest {
         public void should_ignore_empty_custom_fields() {
             // Given
             var user = UserEntity.builder()
-                .id("user-uuid")
-                .customFields(Map.ofEntries(Map.entry("prop1", ""), Map.entry("prop3", "value")))
-                .build();
+                    .id("user-uuid")
+                    .customFields(Map.ofEntries(Map.entry("prop1", ""), Map.entry("prop3", "value")))
+                    .build();
 
             // When
             var doc = transformer.transform(user);
@@ -145,14 +157,11 @@ public class UserDocumentTransformerTest {
         public void should_ignore_custom_fields_containing_base64_images() {
             // Given
             var user = UserEntity.builder()
-                .id("user-uuid")
-                .customFields(
-                    Map.ofEntries(
-                        Map.entry("prop1", "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0A"),
-                        Map.entry("prop2", "value")
-                    )
-                )
-                .build();
+                    .id("user-uuid")
+                    .customFields(Map.ofEntries(
+                            Map.entry("prop1", "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0A"),
+                            Map.entry("prop2", "value")))
+                    .build();
 
             // When
             var doc = transformer.transform(user);

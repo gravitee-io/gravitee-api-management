@@ -49,9 +49,7 @@ import lombok.CustomLog;
  */
 @CustomLog
 public abstract class AbstractSecurityChain<
-    P extends AbstractSecurityPlan<? extends BaseSecurityPolicy, C>,
-    C extends BaseExecutionContext
-> {
+        P extends AbstractSecurityPlan<? extends BaseSecurityPolicy, C>, C extends BaseExecutionContext> {
 
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
     protected static final String PLAN_RESOLUTION_FAILURE = "GATEWAY_PLAN_RESOLUTION_FAILURE";
@@ -91,54 +89,48 @@ public abstract class AbstractSecurityChain<
                 Boolean verbose401 = configuration.getProperty(SECURITY_VERBOSE_401, Boolean.class, false);
                 SecurityChainDiagnostic securityChainDiagnostic = new SecurityChainDiagnostic(verbose401);
                 ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC, securityChainDiagnostic);
-                return chain
-                    .concatMapSingle(securityPlan -> continueChain(ctx, securityPlan))
-                    .any(Boolean::booleanValue)
-                    .flatMapCompletable(securityHandled -> {
-                        if (Boolean.FALSE.equals(securityHandled)) {
-                            Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
-                            if (throwable != null) {
-                                return sendError(
-                                    ctx,
-                                    new ExecutionFailure(SERVICE_UNAVAILABLE_503)
-                                        .cause(throwable)
-                                        .key(PLAN_RESOLUTION_FAILURE)
-                                        .message(TEMPORARILY_UNAVAILABLE_MESSAGE)
-                                );
-                            }
+                return chain.concatMapSingle(securityPlan -> continueChain(ctx, securityPlan))
+                        .any(Boolean::booleanValue)
+                        .flatMapCompletable(securityHandled -> {
+                            if (Boolean.FALSE.equals(securityHandled)) {
+                                Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
+                                if (throwable != null) {
+                                    return sendError(
+                                            ctx,
+                                            new ExecutionFailure(SERVICE_UNAVAILABLE_503)
+                                                    .cause(throwable)
+                                                    .key(PLAN_RESOLUTION_FAILURE)
+                                                    .message(TEMPORARILY_UNAVAILABLE_MESSAGE));
+                                }
 
-                            return chain
-                                .filter(securityPlan -> securityPlan instanceof HttpSecurityPlan)
-                                .flatMapSingle(securityPlan -> {
-                                    if (ctx instanceof HttpPlainExecutionContext httpCtx) {
-                                        return ((HttpSecurityPlan) securityPlan).wwwAuthenticate(httpCtx);
-                                    }
-                                    return Single.just(false);
-                                })
-                                .any(Boolean::booleanValue)
-                                .flatMapCompletable(wwwAuthenticate ->
-                                    sendError(
-                                        ctx,
-                                        new ExecutionFailure(UNAUTHORIZED_401)
-                                            .key(PLAN_UNRESOLVABLE)
-                                            .message(securityChainDiagnostic.message())
-                                            .cause(securityChainDiagnostic.cause())
-                                    )
-                                );
-                        }
-                        return Completable.complete();
-                    })
-                    .doOnSubscribe(disposable -> {
-                        ctx.withLogger(log).debug("Executing security chain");
-                        ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
-                    })
-                    .doOnTerminate(() -> {
-                        ComponentScope.remove(ctx, ComponentType.SYSTEM, "security");
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
-                    });
+                                return chain.filter(securityPlan -> securityPlan instanceof HttpSecurityPlan)
+                                        .flatMapSingle(securityPlan -> {
+                                            if (ctx instanceof HttpPlainExecutionContext httpCtx) {
+                                                return ((HttpSecurityPlan) securityPlan).wwwAuthenticate(httpCtx);
+                                            }
+                                            return Single.just(false);
+                                        })
+                                        .any(Boolean::booleanValue)
+                                        .flatMapCompletable(wwwAuthenticate -> sendError(
+                                                ctx,
+                                                new ExecutionFailure(UNAUTHORIZED_401)
+                                                        .key(PLAN_UNRESOLVABLE)
+                                                        .message(securityChainDiagnostic.message())
+                                                        .cause(securityChainDiagnostic.cause())));
+                            }
+                            return Completable.complete();
+                        })
+                        .doOnSubscribe(disposable -> {
+                            ctx.withLogger(log).debug("Executing security chain");
+                            ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
+                        })
+                        .doOnTerminate(() -> {
+                            ComponentScope.remove(ctx, ComponentType.SYSTEM, "security");
+                            ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
+                            ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
+                            ctx.removeInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
+                            ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+                        });
             }
 
             ctx.withLogger(log).debug("Skipping security chain because it has been explicitly required");
@@ -148,19 +140,21 @@ public abstract class AbstractSecurityChain<
 
     private Single<Boolean> continueChain(C ctx, P securityPlan) {
         return securityPlan
-            .canExecute(ctx)
-            .onErrorResumeNext(throwable -> {
-                ctx
-                    .withLogger(log)
-                    .error("An error occurred while checking if security plan {} can be executed", securityPlan.id(), throwable);
-                ctx.setInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE, throwable);
-                return FALSE;
-            })
-            .flatMap(canExecute -> {
-                if (Boolean.TRUE.equals(canExecute)) {
-                    return executePlan(securityPlan, ctx);
-                }
-                return FALSE;
-            });
+                .canExecute(ctx)
+                .onErrorResumeNext(throwable -> {
+                    ctx.withLogger(log)
+                            .error(
+                                    "An error occurred while checking if security plan {} can be executed",
+                                    securityPlan.id(),
+                                    throwable);
+                    ctx.setInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE, throwable);
+                    return FALSE;
+                })
+                .flatMap(canExecute -> {
+                    if (Boolean.TRUE.equals(canExecute)) {
+                        return executePlan(securityPlan, ctx);
+                    }
+                    return FALSE;
+                });
     }
 }

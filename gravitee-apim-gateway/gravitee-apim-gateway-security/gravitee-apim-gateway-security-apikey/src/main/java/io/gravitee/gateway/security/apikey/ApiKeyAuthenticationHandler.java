@@ -63,9 +63,8 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final List<AuthenticationPolicy> POLICIES = Arrays.asList(
-        // First, validate the incoming API Key
-        (PluginAuthenticationPolicy) () -> API_KEY_POLICY
-    );
+            // First, validate the incoming API Key
+            (PluginAuthenticationPolicy) () -> API_KEY_POLICY);
 
     private String apiKeyHeader;
 
@@ -120,15 +119,15 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
     private String readApiKey(Request request) {
         String apiKey = null;
 
-        Optional<String> apiKeyFromCustomHeader = customApiKeyHeaders
-            .stream()
-            .map(request.headers()::get)
-            .filter(Objects::nonNull)
-            .findFirst();
+        Optional<String> apiKeyFromCustomHeader = customApiKeyHeaders.stream()
+                .map(request.headers()::get)
+                .filter(Objects::nonNull)
+                .findFirst();
         if (apiKeyFromCustomHeader.isPresent()) {
             log.debug("Found API Key from custom header for API {}", api.getId());
             return apiKeyFromCustomHeader.get();
-        } else if (!customApiKeyHeaders.isEmpty() && customApiKeyHeaders.stream().noneMatch(request.headers()::contains)) {
+        } else if (!customApiKeyHeaders.isEmpty()
+                && customApiKeyHeaders.stream().noneMatch(request.headers()::contains)) {
             // Header is present but empty so init apiKey with empty string
             return "";
         }
@@ -160,27 +159,30 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
 
     private List<String> getCustomApiKeyHeadersFromPlans() {
         if (api != null && api.getPlans() != null) {
-            return api
-                .getPlans()
-                .stream()
-                .filter(Plan::isApiKey)
-                .filter(plan -> StringUtils.hasText(plan.getSecurityDefinition()))
-                .map(plan -> {
-                    try {
-                        JsonNode securityDef = objectMapper.readTree(plan.getSecurityDefinition());
-                        if (securityDef != null && securityDef.at(ENABLE_CUSTOM_API_KEY_HEADER_FIELD).asBoolean()) {
-                            String headerName = securityDef.at(CUSTOM_API_KEY_HEADER_FIELD).asText();
-                            if (StringUtils.hasText(headerName)) {
-                                return headerName;
+            return api.getPlans().stream()
+                    .filter(Plan::isApiKey)
+                    .filter(plan -> StringUtils.hasText(plan.getSecurityDefinition()))
+                    .map(plan -> {
+                        try {
+                            JsonNode securityDef = objectMapper.readTree(plan.getSecurityDefinition());
+                            if (securityDef != null
+                                    && securityDef
+                                            .at(ENABLE_CUSTOM_API_KEY_HEADER_FIELD)
+                                            .asBoolean()) {
+                                String headerName = securityDef
+                                        .at(CUSTOM_API_KEY_HEADER_FIELD)
+                                        .asText();
+                                if (StringUtils.hasText(headerName)) {
+                                    return headerName;
+                                }
                             }
+                        } catch (JsonProcessingException e) {
+                            log.warn("Unable to parse security definition for plan {}", plan.getId(), e);
                         }
-                    } catch (JsonProcessingException e) {
-                        log.warn("Unable to parse security definition for plan {}", plan.getId(), e);
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .toList();
+                        return null;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
         }
         return Collections.emptyList();
     }

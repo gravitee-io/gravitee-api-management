@@ -34,7 +34,8 @@ public class DefaultContentRenderer implements ContentRenderer {
     @Override
     public RenderedPageContent render(PortalNavigationItem item, PortalPageContent<?> content) {
         return switch (content) {
-            case AsyncApiPageContent aapi -> RenderedPageContent.of(aapi.getContent().value(), PortalPageContentType.ASYNCAPI);
+            case AsyncApiPageContent aapi ->
+                RenderedPageContent.of(aapi.getContent().value(), PortalPageContentType.ASYNCAPI);
             default -> throw new RendererException("Content type not supported: " + content.getType());
         };
     }

@@ -52,12 +52,15 @@ public class CategoryResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @RequirePortalAuth
     public Response get(@PathParam("categoryId") String categoryId) {
-        CategoryEntity category = categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
+        CategoryEntity category =
+                categoryService.findNotHiddenById(categoryId, GraviteeContext.getCurrentEnvironment());
 
-        var countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
+        var countByCategory =
+                apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
         category.setTotalApis(countByCategory.applyAsLong(category.getId()));
 
-        return Response.ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder())).build();
+        return Response.ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder()))
+                .build();
     }
 
     @GET

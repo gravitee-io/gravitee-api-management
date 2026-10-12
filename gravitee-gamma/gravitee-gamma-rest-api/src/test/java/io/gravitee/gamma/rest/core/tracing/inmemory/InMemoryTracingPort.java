@@ -80,15 +80,14 @@ public class InMemoryTracingPort implements TracingPort {
 
     @Override
     public Page<Trace> searchTraces(
-        String orgId,
-        String envId,
-        Map<String, String> resourceAttributeFilters,
-        Map<String, String> attributeFilters,
-        Instant start,
-        Instant end,
-        int page,
-        int perPage
-    ) {
+            String orgId,
+            String envId,
+            Map<String, String> resourceAttributeFilters,
+            Map<String, String> attributeFilters,
+            Instant start,
+            Instant end,
+            int page,
+            int perPage) {
         this.lastResourceAttributeFilters = resourceAttributeFilters;
         this.lastAttributeFilters = attributeFilters;
         this.lastStart = start;
@@ -96,19 +95,14 @@ public class InMemoryTracingPort implements TracingPort {
         this.lastPage = page;
         this.lastPerPage = perPage;
 
-        List<Trace> matching = traces
-            .stream()
-            .filter(t -> Objects.equals(t.orgId(), orgId) && Objects.equals(t.envId(), envId))
-            .filter(t ->
-                resourceAttributeFilters
-                    .entrySet()
-                    .stream()
-                    .allMatch(e -> Objects.equals(t.scope().get(e.getKey()), e.getValue()))
-            )
-            .filter(t -> (start == null || !t.trace().startTime().isBefore(start)))
-            .filter(t -> (end == null || !t.trace().startTime().isAfter(end)))
-            .map(TraceFixture::trace)
-            .toList();
+        List<Trace> matching = traces.stream()
+                .filter(t -> Objects.equals(t.orgId(), orgId) && Objects.equals(t.envId(), envId))
+                .filter(t -> resourceAttributeFilters.entrySet().stream()
+                        .allMatch(e -> Objects.equals(t.scope().get(e.getKey()), e.getValue())))
+                .filter(t -> (start == null || !t.trace().startTime().isBefore(start)))
+                .filter(t -> (end == null || !t.trace().startTime().isAfter(end)))
+                .map(TraceFixture::trace)
+                .toList();
 
         int from = Math.max(0, page) * Math.max(1, perPage);
         int to = Math.min(from + Math.max(1, perPage), matching.size());
@@ -117,7 +111,8 @@ public class InMemoryTracingPort implements TracingPort {
     }
 
     @Override
-    public Optional<List<Span>> getTraceSpans(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters) {
+    public Optional<List<Span>> getTraceSpans(
+            String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters) {
         this.lastResourceAttributeFilters = resourceAttributeFilters;
         return Optional.ofNullable(spansByTraceId.get(traceId));
     }

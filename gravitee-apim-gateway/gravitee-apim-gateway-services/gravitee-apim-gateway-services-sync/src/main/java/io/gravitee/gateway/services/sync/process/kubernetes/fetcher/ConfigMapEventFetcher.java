@@ -19,8 +19,6 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import static io.gravitee.repository.management.model.Event.EventProperties.DEPLOYMENT_NUMBER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.utils.IdGenerator;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.kubernetes.client.KubernetesClient;
@@ -38,7 +36,6 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -78,19 +75,17 @@ public class ConfigMapEventFetcher {
 
     public Flowable<List<io.gravitee.repository.management.model.Event>> fetchAll(String kind) {
         return listConfigMaps(kind)
-            .flatMapMaybe(cm -> convertTo(new Event<>(EVENT_ADDED, cm)))
-            .buffer(bulkEvents());
+                .flatMapMaybe(cm -> convertTo(new Event<>(EVENT_ADDED, cm)))
+                .buffer(bulkEvents());
     }
 
     public Flowable<List<io.gravitee.repository.management.model.Event>> fetchLatest(String kind) {
         return watchConfigMaps(kind)
-            .flatMapMaybe(configMapEvent ->
-                convertTo(configMapEvent).onErrorResumeNext(throwable -> {
+                .flatMapMaybe(configMapEvent -> convertTo(configMapEvent).onErrorResumeNext(throwable -> {
                     log.warn("Error occurred while handling event. Ignoring.", throwable);
                     return Maybe.empty();
-                })
-            )
-            .buffer(bulkEvents());
+                }))
+                .buffer(bulkEvents());
     }
 
     private Flowable<ConfigMap> listConfigMaps(String kind) {
@@ -99,29 +94,28 @@ public class ConfigMapEventFetcher {
             return listConfigMaps(null, kind).toFlowable().flatMap(Flowable::fromIterable);
         }
         return Flowable.fromIterable(namespacesAsList)
-            .flatMapMaybe(ns -> listConfigMaps(ns, kind))
-            .flatMap(Flowable::fromIterable);
+                .flatMapMaybe(ns -> listConfigMaps(ns, kind))
+                .flatMap(Flowable::fromIterable);
     }
 
     private Maybe<List<ConfigMap>> listConfigMaps(String namespace, String kind) {
-        return client
-            .get(
-                ResourceQuery.configMaps()
-                    .namespace(namespace)
-                    .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, RESOURCE_GROUP))
-                    .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, kind))
-                    .resourceVersion(resourceVersions.get(kind))
-                    .build()
-            )
-            .doOnSuccess(configMapList -> {
-                log.debug("caching config map resources version {} to watch from there", configMapList.getMetadata().getResourceVersion());
-                resourceVersions.put(kind, configMapList.getMetadata().getResourceVersion());
-            })
-            .doOnError(err -> {
-                log.debug("removing resource version from cache for kind {}", kind);
-                resourceVersions.remove(kind);
-            })
-            .map(ConfigMapList::getItems);
+        return client.get(ResourceQuery.configMaps()
+                        .namespace(namespace)
+                        .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, RESOURCE_GROUP))
+                        .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, kind))
+                        .resourceVersion(resourceVersions.get(kind))
+                        .build())
+                .doOnSuccess(configMapList -> {
+                    log.debug(
+                            "caching config map resources version {} to watch from there",
+                            configMapList.getMetadata().getResourceVersion());
+                    resourceVersions.put(kind, configMapList.getMetadata().getResourceVersion());
+                })
+                .doOnError(err -> {
+                    log.debug("removing resource version from cache for kind {}", kind);
+                    resourceVersions.remove(kind);
+                })
+                .map(ConfigMapList::getItems);
     }
 
     private Flowable<Event<ConfigMap>> watchConfigMaps(String kind) {
@@ -132,22 +126,20 @@ public class ConfigMapEventFetcher {
         return Flowable.fromIterable(namespacesAsList).flatMap(ns -> watchConfigMaps(ns, kind));
     }
 
-    private Flowable<io.gravitee.kubernetes.client.model.v1.Event<ConfigMap>> watchConfigMaps(String namespace, String kind) {
-        return client
-            .watch(
-                WatchQuery.configMaps()
-                    .namespace(namespace)
-                    .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, RESOURCE_GROUP))
-                    .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, kind))
-                    .resourceVersion(resourceVersions.get(kind))
-                    .build()
-            )
-            .doOnError(err -> {
-                if (err instanceof ResourceVersionNotFoundException) {
-                    log.debug("removing resource version from cache for kind {}", kind);
-                    resourceVersions.remove(kind);
-                }
-            });
+    private Flowable<io.gravitee.kubernetes.client.model.v1.Event<ConfigMap>> watchConfigMaps(
+            String namespace, String kind) {
+        return client.watch(WatchQuery.configMaps()
+                        .namespace(namespace)
+                        .labelSelector(LabelSelector.equals(LABEL_MANAGED_BY, RESOURCE_GROUP))
+                        .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, kind))
+                        .resourceVersion(resourceVersions.get(kind))
+                        .build())
+                .doOnError(err -> {
+                    if (err instanceof ResourceVersionNotFoundException) {
+                        log.debug("removing resource version from cache for kind {}", kind);
+                        resourceVersions.remove(kind);
+                    }
+                });
     }
 
     public Maybe<io.gravitee.repository.management.model.Event> convertTo(final Event<ConfigMap> configMapEvent) {
@@ -156,9 +148,9 @@ public class ConfigMapEventFetcher {
             final String definition = configMap.getData().get(DATA_DEFINITION);
 
             // Extract the API definition version from the data. Consider it to be V2 to keep backward compatibility.
-            final String apiDefinitionVersion = Optional.ofNullable(configMap.getData().get(DATA_API_DEFINITION_VERSION)).orElse(
-                DefinitionVersion.V2.getLabel()
-            );
+            final String apiDefinitionVersion = Optional.ofNullable(
+                            configMap.getData().get(DATA_API_DEFINITION_VERSION))
+                    .orElse(DefinitionVersion.V2.getLabel());
 
             if (definition != null) {
                 String apiId;
@@ -166,10 +158,8 @@ public class ConfigMapEventFetcher {
                 DefinitionVersion definitionVersion = DefinitionVersion.valueOfLabel(apiDefinitionVersion);
 
                 if (definitionVersion == DefinitionVersion.V2) {
-                    io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                        definition,
-                        io.gravitee.definition.model.Api.class
-                    );
+                    io.gravitee.definition.model.Api apiDefinition =
+                            objectMapper.readValue(definition, io.gravitee.definition.model.Api.class);
                     apiId = apiDefinition.getId();
                     definitionVersion = apiDefinition.getDefinitionVersion();
                 } else if (definitionVersion == DefinitionVersion.V4) {
@@ -178,21 +168,24 @@ public class ConfigMapEventFetcher {
                     apiType = ApiType.fromLabel((String) apiDefinition.get("type"));
                     definitionVersion = DefinitionVersion.valueOfLabel((String) apiDefinition.get("definitionVersion"));
                 } else {
-                    return Maybe.error(new RuntimeException("ApiDefinitionVersion is missing for this configmap: " + definition));
+                    return Maybe.error(
+                            new RuntimeException("ApiDefinitionVersion is missing for this configmap: " + definition));
                 }
 
-                // Need to deserialize api definition in order to recreate a regular Event which can be handled by the ApiSynchronizer.
-                final io.gravitee.repository.management.model.Event event = new io.gravitee.repository.management.model.Event();
-                event.setProperties(
-                    Map.ofEntries(
+                // Need to deserialize api definition in order to recreate a regular Event which can be handled by the
+                // ApiSynchronizer.
+                final io.gravitee.repository.management.model.Event event =
+                        new io.gravitee.repository.management.model.Event();
+                event.setProperties(Map.ofEntries(
                         Map.entry(API_ID.getValue(), apiId),
                         // simulate a deployment number to define a revision in the reactable
-                        Map.entry(DEPLOYMENT_NUMBER.getValue(), configMap.getMetadata().getResourceVersion())
-                    )
-                );
+                        Map.entry(
+                                DEPLOYMENT_NUMBER.getValue(),
+                                configMap.getMetadata().getResourceVersion())));
                 event.setCreatedAt(new Date());
 
-                final io.gravitee.repository.management.model.Api api = new io.gravitee.repository.management.model.Api();
+                final io.gravitee.repository.management.model.Api api =
+                        new io.gravitee.repository.management.model.Api();
                 api.setEnvironmentId(configMap.getData().get(DATA_ENVIRONMENT_ID));
                 api.setDefinition(definition);
                 api.setDefinitionVersion(definitionVersion);
@@ -221,11 +214,10 @@ public class ConfigMapEventFetcher {
         } catch (Exception ex) {
             // Log the error and ignore this event.
             log.error(
-                "Unable to extract api definition from config map [{}/{}].",
-                configMap.getMetadata().getNamespace(),
-                configMap.getMetadata().getName(),
-                ex
-            );
+                    "Unable to extract api definition from config map [{}/{}].",
+                    configMap.getMetadata().getNamespace(),
+                    configMap.getMetadata().getName(),
+                    ex);
         }
         return Maybe.empty();
     }

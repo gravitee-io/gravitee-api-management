@@ -40,13 +40,12 @@ public class DomainResource {
 
     @GET
     public DomainResponse get(
-        @PathParam("orgId") String orgId,
-        @PathParam("amEnvId") String amEnvId,
-        @PathParam("domainId") String domainId
-    ) {
-        return AmCalls.run(() ->
-            AmDtoMapper.toDto(getDomainUseCase.execute(new GetDomainUseCase.Input(orgId, amEnvId, domainId)).domain())
-        );
+            @PathParam("orgId") String orgId,
+            @PathParam("amEnvId") String amEnvId,
+            @PathParam("domainId") String domainId) {
+        return AmCalls.run(() -> AmDtoMapper.toDto(getDomainUseCase
+                .execute(new GetDomainUseCase.Input(orgId, amEnvId, domainId))
+                .domain()));
     }
 
     @Path("/entrypoints")

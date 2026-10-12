@@ -34,11 +34,8 @@ public class DictionaryPropertyMaskedValueException extends AbstractValidationEx
 
     @Override
     public String getMessage() {
-        return (
-            "Dictionary property [" +
-            propertyKey +
-            "] holds the placeholder that stands in for an encrypted value, but no encrypted value is stored under that key. Send the real value instead."
-        );
+        return ("Dictionary property [" + propertyKey
+                + "] holds the placeholder that stands in for an encrypted value, but no encrypted value is stored under that key. Send the real value instead.");
     }
 
     @Override

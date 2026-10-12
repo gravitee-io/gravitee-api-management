@@ -55,9 +55,11 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public <T extends Response> T query(final QueryContext queryContext, final Query<T> query) throws AnalyticsException {
+    public <T extends Response> T query(final QueryContext queryContext, final Query<T> query)
+            throws AnalyticsException {
         @SuppressWarnings("unchecked")
-        final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
+        final ElasticsearchQueryCommand<T> handler =
+                (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
 
         if (handler == null) {
             log.error("No command found to handle query of type {}", query.getClass());

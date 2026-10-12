@@ -56,14 +56,11 @@ public class UserTokenPermissionUpgrader implements Upgrader {
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
             organizationRepository
-                .findAll()
-                .forEach(organization ->
-                    roleService
-                        .findByScope(RoleScope.ORGANIZATION, organization.getId())
-                        .stream()
-                        .filter(role -> !SystemRole.ADMIN.name().equalsIgnoreCase(role.getName()))
-                        .forEach(role -> processRolePermissions(role, organization))
-                );
+                    .findAll()
+                    .forEach(organization ->
+                            roleService.findByScope(RoleScope.ORGANIZATION, organization.getId()).stream()
+                                    .filter(role -> !SystemRole.ADMIN.name().equalsIgnoreCase(role.getName()))
+                                    .forEach(role -> processRolePermissions(role, organization)));
             return true;
         });
     }

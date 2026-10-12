@@ -48,17 +48,20 @@ public class ApiScoringResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public void scoreAPI(@Suspended final AsyncResponse response) {
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(apiId, getAuditInfo()))
-            .subscribe(
-                () -> response.resume(Response.accepted(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING)).build()),
-                response::resume
-            );
+                .execute(new ScoreApiRequestUseCase.Input(apiId, getAuditInfo()))
+                .subscribe(
+                        () -> response.resume(
+                                Response.accepted(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING))
+                                        .build()),
+                        response::resume);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiScoring() {
-        var report = getLatestReportUseCase.execute(new GetLatestReportUseCase.Input(apiId)).report();
+        var report = getLatestReportUseCase
+                .execute(new GetLatestReportUseCase.Input(apiId))
+                .report();
         if (report == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

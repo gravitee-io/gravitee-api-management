@@ -70,30 +70,26 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
 
     @Override
     public Set<SocialIdentityProviderEntity> findAll(
-        final ExecutionContext executionContext,
-        IdentityProviderActivationService.ActivationTarget target
-    ) {
+            final ExecutionContext executionContext, IdentityProviderActivationService.ActivationTarget target) {
         try {
-            Set<String> allIdpByTarget = identityProviderActivationService
-                .findAllByTarget(target)
-                .stream()
-                .map(IdentityProviderActivationEntity::getIdentityProvider)
-                .collect(Collectors.toSet());
+            Set<String> allIdpByTarget = identityProviderActivationService.findAllByTarget(target).stream()
+                    .map(IdentityProviderActivationEntity::getIdentityProvider)
+                    .collect(Collectors.toSet());
 
-            Stream<IdentityProviderEntity> identityProviderEntityStream = identityProviderService
-                .findAll(executionContext)
-                .stream()
-                .filter(idp -> allIdpByTarget.contains(idp.getId()));
+            Stream<IdentityProviderEntity> identityProviderEntityStream =
+                    identityProviderService.findAll(executionContext).stream()
+                            .filter(idp -> allIdpByTarget.contains(idp.getId()));
 
-            // "enabled" only governs Portal visibility. Console access is revoked by removing the ORGANIZATION activation.
+            // "enabled" only governs Portal visibility. Console access is revoked by removing the ORGANIZATION
+            // activation.
             if (target.getReferenceType() == IdentityProviderActivationReferenceType.ENVIRONMENT) {
                 identityProviderEntityStream = identityProviderEntityStream.filter(IdentityProviderEntity::isEnabled);
             }
 
             return identityProviderEntityStream
-                .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
-                .map(this::convert)
-                .collect(Collectors.toSet());
+                    .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
+                    .map(this::convert)
+                    .collect(Collectors.toSet());
         } catch (Exception ex) {
             throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
@@ -104,11 +100,9 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
         try {
             log.debug("Find identity provider by ID: {}", id);
 
-            Set<String> allIdpByTarget = identityProviderActivationService
-                .findAllByTarget(target)
-                .stream()
-                .map(IdentityProviderActivationEntity::getIdentityProvider)
-                .collect(Collectors.toSet());
+            Set<String> allIdpByTarget = identityProviderActivationService.findAllByTarget(target).stream()
+                    .map(IdentityProviderActivationEntity::getIdentityProvider)
+                    .collect(Collectors.toSet());
 
             if (!allIdpByTarget.contains(id)) {
                 throw new IdentityProviderNotFoundException(id);
@@ -116,7 +110,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
 
             IdentityProviderEntity identityProvider = identityProviderService.findById(id);
 
-            if (target.getReferenceType() == IdentityProviderActivationReferenceType.ENVIRONMENT && !identityProvider.isEnabled()) {
+            if (target.getReferenceType() == IdentityProviderActivationReferenceType.ENVIRONMENT
+                    && !identityProvider.isEnabled()) {
                 throw new IdentityProviderNotFoundException(identityProvider.getId());
             }
 
@@ -124,7 +119,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
         } catch (IdentityProviderNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }
 
@@ -138,41 +134,42 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
         } else if (identityProvider.getType() == IdentityProviderType.OIDC) {
             provider = new OIDCIdentityProviderEntity();
 
-            ((OIDCIdentityProviderEntity) provider).setColor((String) identityProvider.getConfiguration().get("color"));
-            ((OIDCIdentityProviderEntity) provider).setDiscoveryEndpoint(
-                (String) identityProvider.getConfiguration().get("discoveryEndpoint")
-            );
-            ((OIDCIdentityProviderEntity) provider).setTokenEndpoint((String) identityProvider.getConfiguration().get("tokenEndpoint"));
-            ((OIDCIdentityProviderEntity) provider).setAuthorizationEndpoint(
-                (String) identityProvider.getConfiguration().get("authorizeEndpoint")
-            );
-            ((OIDCIdentityProviderEntity) provider).setTokenIntrospectionEndpoint(
-                (String) identityProvider.getConfiguration().get("tokenIntrospectionEndpoint")
-            );
-            ((OIDCIdentityProviderEntity) provider).setUserInfoEndpoint(
-                (String) identityProvider.getConfiguration().get("userInfoEndpoint")
-            );
-            ((OIDCIdentityProviderEntity) provider).setUserLogoutEndpoint(
-                (String) identityProvider.getConfiguration().get("userLogoutEndpoint")
-            );
-            ((OIDCIdentityProviderEntity) provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
+            ((OIDCIdentityProviderEntity) provider)
+                    .setColor((String) identityProvider.getConfiguration().get("color"));
+            ((OIDCIdentityProviderEntity) provider).setDiscoveryEndpoint((String)
+                    identityProvider.getConfiguration().get("discoveryEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setTokenEndpoint((String)
+                    identityProvider.getConfiguration().get("tokenEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setAuthorizationEndpoint((String)
+                    identityProvider.getConfiguration().get("authorizeEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setTokenIntrospectionEndpoint((String)
+                    identityProvider.getConfiguration().get("tokenIntrospectionEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setUserInfoEndpoint((String)
+                    identityProvider.getConfiguration().get("userInfoEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setUserLogoutEndpoint((String)
+                    identityProvider.getConfiguration().get("userLogoutEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setScopes((List<String>)
+                    identityProvider.getConfiguration().get("scopes"));
             ((OIDCIdentityProviderEntity) provider).setUserProfileMapping(identityProvider.getUserProfileMapping());
         } else if (identityProvider.getType() == IdentityProviderType.GRAVITEEIO_AM) {
             String serverBaseUrl = (String) identityProvider.getConfiguration().get("serverURL");
             String domain = (String) identityProvider.getConfiguration().get("domain");
 
             // Remove duplicate slash
-            String serverUrl = DUPLICATE_SLASH_REMOVER.matcher(serverBaseUrl + '/' + domain).replaceAll(URI_PATH_SEPARATOR);
+            String serverUrl = DUPLICATE_SLASH_REMOVER
+                    .matcher(serverBaseUrl + '/' + domain)
+                    .replaceAll(URI_PATH_SEPARATOR);
             if (serverUrl.lastIndexOf(URI_PATH_SEPARATOR) == serverUrl.length() - 1) {
                 serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
             }
 
             provider = new AMIdentityProviderEntity(serverUrl);
-            ((AMIdentityProviderEntity) provider).setColor((String) identityProvider.getConfiguration().get("color"));
-            ((AMIdentityProviderEntity) provider).setDiscoveryEndpoint(
-                (String) identityProvider.getConfiguration().get("discoveryEndpoint")
-            );
-            ((AMIdentityProviderEntity) provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
+            ((AMIdentityProviderEntity) provider)
+                    .setColor((String) identityProvider.getConfiguration().get("color"));
+            ((AMIdentityProviderEntity) provider).setDiscoveryEndpoint((String)
+                    identityProvider.getConfiguration().get("discoveryEndpoint"));
+            ((AMIdentityProviderEntity) provider).setScopes((List<String>)
+                    identityProvider.getConfiguration().get("scopes"));
             ((AMIdentityProviderEntity) provider).setUserProfileMapping(identityProvider.getUserProfileMapping());
         }
 
@@ -181,10 +178,10 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             provider.setName(identityProvider.getName());
             provider.setDescription(identityProvider.getDescription());
             provider.setClientId((String) identityProvider.getConfiguration().get(CLIENT_ID));
-            provider.setClientSecret((String) identityProvider.getConfiguration().get(CLIENT_SECRET));
-            provider.setTokenEndpointAuthMethod(
-                clientAuthenticationMethod(identityProvider.getConfiguration().get(TOKEN_ENDPOINT_AUTH_METHOD), identityProvider.getId())
-            );
+            provider.setClientSecret(
+                    (String) identityProvider.getConfiguration().get(CLIENT_SECRET));
+            provider.setTokenEndpointAuthMethod(clientAuthenticationMethod(
+                    identityProvider.getConfiguration().get(TOKEN_ENDPOINT_AUTH_METHOD), identityProvider.getId()));
             provider.setGroupMappings(identityProvider.getGroupMappings());
             provider.setRoleMappings(identityProvider.getRoleMappings());
             provider.setEmailRequired(identityProvider.isEmailRequired());
@@ -208,7 +205,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             return null;
         }
 
-        ClientAuthenticationMethod method = configured instanceof String declared ? ClientAuthenticationMethod.fromValue(declared) : null;
+        ClientAuthenticationMethod method =
+                configured instanceof String declared ? ClientAuthenticationMethod.fromValue(declared) : null;
         if (method == null) {
             reportUnusableClientAuthenticationMethod(identityProviderId, configured);
         }
@@ -220,17 +218,17 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
      * warning per call turns a single typo into one log line per authentication request.
      */
     private void reportUnusableClientAuthenticationMethod(String identityProviderId, Object configured) {
-        String previouslyReported = reportedClientAuthenticationMethods.put(identityProviderId, String.valueOf(configured));
+        String previouslyReported =
+                reportedClientAuthenticationMethods.put(identityProviderId, String.valueOf(configured));
         if (String.valueOf(configured).equals(previouslyReported)) {
             return;
         }
         log.warn(
-            "Identity provider {} declares an unusable {} '{}'. Expected {} or {}. Falling back to the default of each endpoint.",
-            identityProviderId,
-            TOKEN_ENDPOINT_AUTH_METHOD,
-            configured,
-            ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue(),
-            ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue()
-        );
+                "Identity provider {} declares an unusable {} '{}'. Expected {} or {}. Falling back to the default of each endpoint.",
+                identityProviderId,
+                TOKEN_ENDPOINT_AUTH_METHOD,
+                configured,
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue(),
+                ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue());
     }
 }

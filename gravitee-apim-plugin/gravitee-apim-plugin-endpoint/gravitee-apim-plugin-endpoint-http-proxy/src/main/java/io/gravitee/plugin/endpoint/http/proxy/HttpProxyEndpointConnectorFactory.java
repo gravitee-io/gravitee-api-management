@@ -45,22 +45,17 @@ public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnec
 
     @Override
     public HttpProxyEndpointConnector createConnector(
-        final DeploymentContext deploymentContext,
-        final String configuration,
-        final String sharedConfiguration
-    ) {
+            final DeploymentContext deploymentContext, final String configuration, final String sharedConfiguration) {
         try {
-            HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator = new HttpProxyEndpointConnectorConfigurationEvaluator(
-                connectorFactoryHelper.readConfiguration(HttpProxyEndpointConnectorConfiguration.class, configuration)
-            );
+            HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator =
+                    new HttpProxyEndpointConnectorConfigurationEvaluator(connectorFactoryHelper.readConfiguration(
+                            HttpProxyEndpointConnectorConfiguration.class, configuration));
             HttpProxyEndpointConnectorSharedConfigurationEvaluator sharedConfigurationEvaluator =
-                new HttpProxyEndpointConnectorSharedConfigurationEvaluator(
-                    connectorFactoryHelper.readConfiguration(HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
-                );
+                    new HttpProxyEndpointConnectorSharedConfigurationEvaluator(connectorFactoryHelper.readConfiguration(
+                            HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration));
             return new HttpProxyEndpointConnector(
-                configurationEvaluator.evalNow(deploymentContext),
-                sharedConfigurationEvaluator.evalNow(deploymentContext)
-            );
+                    configurationEvaluator.evalNow(deploymentContext),
+                    sharedConfigurationEvaluator.evalNow(deploymentContext));
         } catch (Exception e) {
             log.error("Can't create connector because no valid configuration", e);
             return null;

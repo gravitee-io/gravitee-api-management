@@ -22,7 +22,8 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface KafkaPortRangeMongoRepository extends MongoRepository<KafkaPortRangeMongo, String>, KafkaPortRangeMongoRepositoryCustom {
+public interface KafkaPortRangeMongoRepository
+        extends MongoRepository<KafkaPortRangeMongo, String>, KafkaPortRangeMongoRepositoryCustom {
     @Query(value = "{ 'apiId': ?0 }", delete = true)
     List<KafkaPortRangeMongo> deleteByApiId(String apiId);
 

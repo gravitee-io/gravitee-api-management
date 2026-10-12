@@ -43,7 +43,8 @@ public class DictionaryDeployer implements Deployer<DictionaryDeployable> {
                 dictionaryManager.deploy(dictionary);
                 log.debug("Dictionary [{}] deployed ", deployable.id());
             } catch (Exception e) {
-                throw new SyncException(String.format("An error occurred when trying to deploy dictionary %s", dictionary), e);
+                throw new SyncException(
+                        String.format("An error occurred when trying to deploy dictionary %s", dictionary), e);
             }
         });
     }
@@ -60,7 +61,9 @@ public class DictionaryDeployer implements Deployer<DictionaryDeployable> {
             try {
                 dictionaryManager.undeploy(dictionary);
             } catch (Exception e) {
-                throw new SyncException(String.format("An error occurred when trying to undeploy dictionary [%s].", deployable.id()), e);
+                throw new SyncException(
+                        String.format("An error occurred when trying to undeploy dictionary [%s].", deployable.id()),
+                        e);
             }
         });
     }

@@ -116,44 +116,45 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
             endpoints.putIfAbsent(
-                "http-proxy",
-                EndpointBuilder.build("http-proxy", ConnectionErrorHttpProxyEndpointConnectorFactory.class)
-            );
+                    "http-proxy",
+                    EndpointBuilder.build("http-proxy", ConnectionErrorHttpProxyEndpointConnectorFactory.class));
         }
 
         @Test
         @DeployApi("/apis/v4/http/failover/connectionfailure/api-proxy-only-one-endpoint-no-fail-connect.json")
         void should_not_retry_on_fast_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the backend answers immediately with no connection error
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection has been attempted once
-                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("1");
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        // Then the connection has been attempted once
+                        assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("1");
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
             // Then the backend should have been called 1 time
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -161,25 +162,26 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         @Test
         @DeployApi("/apis/v4/http/failover/connectionfailure/api-proxy-only-one-endpoint-fail-each-connect.json")
         void should_retry_and_fail_on_error_connection(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the endpoint systematically fail to connect to the backend
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    // Then the connection should have been attempted three times
-                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("3");
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        // Then the connection should have been attempted three times
+                        assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("3");
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
             // Then the backend should have not been called
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -187,30 +189,31 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         @Test
         @DeployApi("/apis/v4/http/failover/connectionfailure/api-proxy-only-one-endpoint-fail-first-connect.json")
         void should_success_on_first_retry(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the endpoint systematically fail to connect to the backend
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection should have been attempted twice
-                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("2");
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        // Then the connection should have been attempted twice
+                        assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("2");
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
             // Then the backend should have been called once
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -227,12 +230,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", ConnectionErrorMockEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "mock", EndpointBuilder.build("mock", ConnectionErrorMockEndpointConnectorFactory.class));
         }
 
         @Test
@@ -241,20 +246,20 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given a Message API, with no latency on endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection must have been tried once
-                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("1");
-                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValueCount(5);
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        // Then the connection must have been tried once
+                        assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("1");
+                        return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValueCount(5);
         }
 
         @Test
@@ -263,19 +268,19 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given a Message API, with latency of 750ms on each endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    // Then the connection must have been tried 3 times
-                    assertThat(response.getHeader(ConnectionErrorMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("3");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        // Then the connection must have been tried 3 times
+                        assertThat(response.getHeader(ConnectionErrorMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("3");
+                        return true;
+                    });
         }
 
         @Test
@@ -284,20 +289,20 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given a Message API, with latency of 750ms on first endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection must have been tried twice
-                    assertThat(response.getHeader(ConnectionErrorMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("2");
-                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValueCount(5);
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        // Then the connection must have been tried twice
+                        assertThat(response.getHeader(ConnectionErrorMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("2");
+                        return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValueCount(5);
         }
     }
 
@@ -312,12 +317,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", ConnectionLatencyMockEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "mock", EndpointBuilder.build("mock", ConnectionLatencyMockEndpointConnectorFactory.class));
         }
 
         @Test
@@ -326,20 +333,20 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given a Message API, with no latency on endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection must have been tried once
-                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("1");
-                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValueCount(5);
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        // Then the connection must have been tried once
+                        assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("1");
+                        return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValueCount(5);
         }
 
         @Test
@@ -348,19 +355,19 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given a Message API, with latency of 750ms on each endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    // Then the connection must have been tried 3 times
-                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("3");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        // Then the connection must have been tried 3 times
+                        assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("3");
+                        return true;
+                    });
         }
 
         @Test
@@ -369,20 +376,20 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given a Message API, with latency of 750ms on first endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection must have been tried twice
-                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("2");
-                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValueCount(5);
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        // Then the connection must have been tried twice
+                        assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS))
+                                .isEqualTo("2");
+                        return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValueCount(5);
         }
     }
 
@@ -390,48 +397,51 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
     @GatewayTest
     class PerSubscription extends AbstractGatewayTest {
 
-        final Function<HttpClient, Single<HttpClientResponse>> requestSupplier = client ->
-            client.rxRequest(HttpMethod.GET, "/test").flatMap(HttpClientRequest::rxSend);
+        final Function<HttpClient, Single<HttpClientResponse>> requestSupplier =
+                client -> client.rxRequest(HttpMethod.GET, "/test").flatMap(HttpClientRequest::rxSend);
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
         public void configurePolicies(final Map<String, PolicyPlugin> policies) {
             policies.put(
-                "api-key",
-                PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-            );
+                    "api-key",
+                    PolicyBuilder.build(
+                            "api-key",
+                            ApiKeyPolicy.class,
+                            ApiKeyPolicyConfiguration.class,
+                            ApiKeyPolicyInitializer.class));
         }
 
         @Test
         @DeployApi("/apis/v4/http/failover/api-one-circuit-breaker-per-subscription.json")
-        void should_fail_and_open_circuit_after_five_failures_and_remain_closed_for_other_subscriber(HttpClient client) {
-            // Given an API with failover configured with one maxRetries, a slowCallDuration of 500ms and a maxFailures of 2 before opening the circuit breaker
+        void should_fail_and_open_circuit_after_five_failures_and_remain_closed_for_other_subscriber(
+                HttpClient client) {
+            // Given an API with failover configured with one maxRetries, a slowCallDuration of 500ms and a maxFailures
+            // of 2 before opening the circuit breaker
             // And Given the backend answers in 750ms
-            wiremock.stubFor(
-                get("/endpoint")
+            wiremock.stubFor(get("/endpoint")
                     .inScenario("Keyless calls")
                     .whenScenarioStateIs(Scenario.STARTED)
-                    .willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750))
-            );
+                    .willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
 
             // When requesting two times the API
-            final List<Single<HttpClientResponse>> listOfParallelCalls = List.of(
-                requestSupplier.apply(client),
-                requestSupplier.apply(client)
-            );
+            final List<Single<HttpClientResponse>> listOfParallelCalls =
+                    List.of(requestSupplier.apply(client), requestSupplier.apply(client));
             final TestSubscriber<HttpClientResponse> test = Single.merge(listOfParallelCalls)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
             for (int i = 0; i < listOfParallelCalls.size(); i++) {
                 test.assertValueAt(i, response -> {
                     // Then the API response should be 502
@@ -445,42 +455,44 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // When doing a new request to the API
             wiremock.resetRequests();
             requestSupplier
-                .apply(client)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+                    .apply(client)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
 
             // Then circuit breaker should be OPEN, and do not propagate request to the backend
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
 
             // Given the backend now answer normally
-            wiremock.stubFor(
-                get("/endpoint").inScenario("Api-Key calls").whenScenarioStateIs("API-KEY").willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+            wiremock.stubFor(get("/endpoint")
+                    .inScenario("Api-Key calls")
+                    .whenScenarioStateIs("API-KEY")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
             wiremock.resetRequests();
             wiremock.setScenarioState("Api-Key calls", "API-KEY");
 
             // When requesting the backend as a different subscriber (with a subscription to a plan)
             final ApiKey apiKey = createApiKey("api-one-circuit-breaker-per-subscription");
             when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
-            whenSearchingSubscription(apiKey).thenReturn(Optional.of(createSubscription(apiKey.getApi(), PLAN_APIKEY_ID, false)));
+            whenSearchingSubscription(apiKey)
+                    .thenReturn(Optional.of(createSubscription(apiKey.getApi(), PLAN_APIKEY_ID, false)));
 
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> request.putHeader("X-Gravitee-Api-Key", apiKey.getKey()).rxSend())
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(request -> request.putHeader("X-Gravitee-Api-Key", apiKey.getKey())
+                            .rxSend())
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return true;
+                    });
 
             // Then the circuit breaker should be CLOSE and the call should be done as expected
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -497,16 +509,13 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         }
 
         private OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(ApiKey apiKey) {
-            return when(
-                getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                    eq(apiKey.getApi()),
-                    argThat(
-                        securityToken ->
-                            securityToken.getTokenType().equals(API_KEY.name()) && securityToken.getTokenValue().equals(apiKey.getKey())
-                    ),
-                    eq(apiKey.getPlan())
-                )
-            );
+            return when(getBean(SubscriptionService.class)
+                    .getByApiAndSecurityToken(
+                            eq(apiKey.getApi()),
+                            argThat(securityToken ->
+                                    securityToken.getTokenType().equals(API_KEY.name())
+                                            && securityToken.getTokenValue().equals(apiKey.getKey())),
+                            eq(apiKey.getPlan())));
         }
     }
 
@@ -516,12 +525,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -533,19 +544,22 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
     }
 
     @Nested
-    //Need to add test order since last test (should_retry_and_fail_on_connection_exception) is stopping wiremock which is messing with the other tests
+    // Need to add test order since last test (should_retry_and_fail_on_connection_exception) is stopping wiremock which
+    // is messing with the other tests
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     @GatewayTest
     class OnlyOneEndpointInGroup extends FailoverV4EmulationIntegrationTest.OnlyOneEndpointInGroup {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -595,12 +609,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -642,27 +658,28 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms
             // and only one group with 3 endpoints (round-robin load balancing)
             // And Given backend answers in 750ms on first two endpoints, and immediately on the third
-            wiremock.stubFor(post("/endpoint-1").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
-            wiremock.stubFor(post("/endpoint-2").willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
+            wiremock.stubFor(post("/endpoint-1")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(post("/endpoint-2")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
             wiremock.stubFor(post("/endpoint-3").willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
 
             // When requesting the API with a body
-            client
-                .rxRequest(HttpMethod.POST, "/test")
-                .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response body should be the one from third endpoint
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.POST, "/test")
+                    .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response body should be the one from third endpoint
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
+                        return true;
+                    });
             // Then each endpoint should have been called once with the original body
             wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-1")).withRequestBody(equalTo("request-body")));
             wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-2")).withRequestBody(equalTo("request-body")));
@@ -676,12 +693,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -690,14 +709,11 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 throw new IllegalStateException("should be testing a v4 API");
             }
             final Api definition = (Api) api.getDefinition();
-            definition
-                .getEndpointGroups()
-                .stream()
-                .filter(group -> group.getName().equals("second-group"))
-                .flatMap(group -> group.getEndpoints().stream())
-                .forEach(endpoint ->
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
-                );
+            definition.getEndpointGroups().stream()
+                    .filter(group -> group.getName().equals("second-group"))
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .forEach(endpoint -> endpoint.setConfiguration(
+                            endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort))));
             // Redeploy api with updated endpoint config
             var manager = applicationContext.getBean(ApiManager.class);
             manager.unregister(api.getId());
@@ -732,45 +748,45 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Test
         @DeployApi("/apis/v4/http/failover/api-failure-condition.json")
         void should_retry_when_failure_condition_matches_and_succeed_on_second_attempt(HttpClient client) {
             // Given a backend that returns 500 on the first call, then 200 on the second
-            wiremock.stubFor(
-                get("/endpoint")
+            wiremock.stubFor(get("/endpoint")
                     .inScenario("failure-condition")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(serverError().withBody("error"))
-                    .willSetStateTo("recovered")
-            );
-            wiremock.stubFor(
-                get("/endpoint").inScenario("failure-condition").whenScenarioStateIs("recovered").willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willSetStateTo("recovered"));
+            wiremock.stubFor(get("/endpoint")
+                    .inScenario("failure-condition")
+                    .whenScenarioStateIs("recovered")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the response should be 200 (recovered on retry)
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the response should be 200 (recovered on retry)
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
             // Then the backend should have been called 2 times (1st 500 + 2nd 200)
             wiremock.verify(2, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -783,21 +799,20 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
             // Then the backend should have been called only once (no retry)
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -810,12 +825,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Test
@@ -827,16 +844,15 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             wiremock.stubFor(get("/endpoint-3").willReturn(serverError().withBody("error-3")));
 
             // When requesting the API (all retries fail → 502)
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
 
             // Then all three endpoints should have been called exactly once each
             // (forceNextEndpointOnFailure ensures different endpoints on each retry)
@@ -851,34 +867,32 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // Given endpoint-1 always returns 500, endpoint-3 always returns 500,
             // and endpoint-2 returns 500 on first call then 200 on second call
             wiremock.stubFor(get("/endpoint-1").willReturn(serverError().withBody("error-1")));
-            wiremock.stubFor(
-                get("/endpoint-2")
+            wiremock.stubFor(get("/endpoint-2")
                     .inScenario("full-loop")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(serverError().withBody("error-2"))
-                    .willSetStateTo("second-pass")
-            );
-            wiremock.stubFor(
-                get("/endpoint-2").inScenario("full-loop").whenScenarioStateIs("second-pass").willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willSetStateTo("second-pass"));
+            wiremock.stubFor(get("/endpoint-2")
+                    .inScenario("full-loop")
+                    .whenScenarioStateIs("second-pass")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
             wiremock.stubFor(get("/endpoint-3").willReturn(serverError().withBody("error-3")));
 
             // When requesting the API
             // Expected flow: default(500) → second(500) → third(500) → default(500) → second(200)
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
             // Then endpoint-1 should have been called twice (initial + loop back)
             wiremock.verify(2, getRequestedFor(urlPathEqualTo("/endpoint-1")));
@@ -908,12 +922,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -922,13 +938,11 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 var analytics = apiDefinition.getAnalytics() != null ? apiDefinition.getAnalytics() : new Analytics();
                 analytics.setEnabled(true);
                 if (analytics.getLogging() == null) {
-                    analytics.setLogging(
-                        Logging.builder()
+                    analytics.setLogging(Logging.builder()
                             .mode(new LoggingMode(true, true))
                             .phase(new LoggingPhase(true, true))
                             .content(new LoggingContent(true, false, true, false, false))
-                            .build()
-                    );
+                            .build());
                 }
                 apiDefinition.setAnalytics(analytics);
             }
@@ -938,84 +952,72 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         @DeployApi("/apis/v4/http/failover/api-failure-condition.json")
         void should_record_failover_metrics_when_retry_succeeds(HttpClient client) {
             // Given a backend that returns 500 on the first call, then 200 on the second
-            wiremock.stubFor(
-                get("/endpoint")
+            wiremock.stubFor(get("/endpoint")
                     .inScenario("metrics-retry")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(serverError().withBody("error"))
-                    .willSetStateTo("recovered")
-            );
-            wiremock.stubFor(
-                get("/endpoint").inScenario("metrics-retry").whenScenarioStateIs("recovered").willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willSetStateTo("recovered"));
+            wiremock.stubFor(get("/endpoint")
+                    .inScenario("metrics-retry")
+                    .whenScenarioStateIs("recovered")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then failover metrics should be recorded
-            metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 1L);
-                    assertThat(metrics.keywordAdditionalMetrics())
+            metricsSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 1L);
+                assertThat(metrics.keywordAdditionalMetrics())
                         .isNotNull()
                         .containsKey("keyword_failover_first-failed-endpoint")
                         .containsEntry("keyword_failover_successful-endpoint", "default");
-                    return true;
-                });
+                return true;
+            });
         }
 
         @Test
         @DeployApi("/apis/v4/http/failover/api-failure-condition-post.json")
         void should_record_failover_metrics_when_retry_succeeds_posting_payload(HttpClient client) {
             // Given a backend that returns 500 on the first call, then 200 on the second
-            wiremock.stubFor(
-                post("/endpoint")
+            wiremock.stubFor(post("/endpoint")
                     .inScenario("metrics-retry-post")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(serverError().withBody("error"))
-                    .willSetStateTo("recovered")
-            );
-            wiremock.stubFor(
-                post("/endpoint").inScenario("metrics-retry-post").whenScenarioStateIs("recovered").willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willSetStateTo("recovered"));
+            wiremock.stubFor(post("/endpoint")
+                    .inScenario("metrics-retry-post")
+                    .whenScenarioStateIs("recovered")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API with a body
-            client
-                .rxRequest(HttpMethod.POST, "/test")
-                .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+            client.rxRequest(HttpMethod.POST, "/test")
+                    .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then failover metrics should be recorded
-            metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 1L);
-                    assertThat(metrics.keywordAdditionalMetrics())
+            metricsSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 1L);
+                assertThat(metrics.keywordAdditionalMetrics())
                         .isNotNull()
                         .containsKey("keyword_failover_first-failed-endpoint")
                         .containsEntry("keyword_failover_successful-endpoint", "default");
-                    return true;
-                });
+                return true;
+            });
 
             // Then the backend should have been called twice, each time with the original body
             wiremock.verify(2, postRequestedFor(urlPathEqualTo("/endpoint")).withRequestBody(equalTo("request-body")));
@@ -1028,27 +1030,22 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then no failover metrics should be recorded
-            metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.longAdditionalMetrics()).isNullOrEmpty();
-                    assertThat(metrics.keywordAdditionalMetrics()).isNullOrEmpty();
-                    return true;
-                });
+            metricsSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.longAdditionalMetrics()).isNullOrEmpty();
+                assertThat(metrics.keywordAdditionalMetrics()).isNullOrEmpty();
+                return true;
+            });
         }
 
         @Test
@@ -1060,30 +1057,25 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             wiremock.stubFor(get("/endpoint-3").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then failover metrics should reflect 2 hops and endpoint-3 as successful
-            metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 2L);
-                    assertThat(metrics.keywordAdditionalMetrics())
+            metricsSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 2L);
+                assertThat(metrics.keywordAdditionalMetrics())
                         .isNotNull()
                         .containsKey("keyword_failover_first-failed-endpoint")
                         .containsEntry("keyword_failover_successful-endpoint", "third");
-                    return true;
-                });
+                return true;
+            });
         }
 
         @Test
@@ -1093,43 +1085,37 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // endpoint-2 returns 500 first then 200
             // Expected flow: default(500) → second(500) → third(500) → default(500) → second(200)
             wiremock.stubFor(get("/endpoint-1").willReturn(serverError().withBody("error-1")));
-            wiremock.stubFor(
-                get("/endpoint-2")
+            wiremock.stubFor(get("/endpoint-2")
                     .inScenario("metrics-full-loop")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(serverError().withBody("error-2"))
-                    .willSetStateTo("second-pass")
-            );
-            wiremock.stubFor(
-                get("/endpoint-2").inScenario("metrics-full-loop").whenScenarioStateIs("second-pass").willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willSetStateTo("second-pass"));
+            wiremock.stubFor(get("/endpoint-2")
+                    .inScenario("metrics-full-loop")
+                    .whenScenarioStateIs("second-pass")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
             wiremock.stubFor(get("/endpoint-3").willReturn(serverError().withBody("error-3")));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then failover metrics should reflect 4 hops and endpoint-2 (second) as successful
-            metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 4L);
-                    assertThat(metrics.keywordAdditionalMetrics())
+            metricsSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 4L);
+                assertThat(metrics.keywordAdditionalMetrics())
                         .isNotNull()
                         .containsKey("keyword_failover_first-failed-endpoint")
                         .containsEntry("keyword_failover_successful-endpoint", "second");
-                    return true;
-                });
+                return true;
+            });
         }
     }
 
@@ -1139,12 +1125,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -1153,14 +1141,11 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 throw new IllegalStateException("should be testing a v4 API");
             }
             final Api definition = (Api) api.getDefinition();
-            definition
-                .getEndpointGroups()
-                .stream()
-                .filter(group -> group.getName().equals("second-group"))
-                .flatMap(group -> group.getEndpoints().stream())
-                .forEach(endpoint ->
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
-                );
+            definition.getEndpointGroups().stream()
+                    .filter(group -> group.getName().equals("second-group"))
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .forEach(endpoint -> endpoint.setConfiguration(
+                            endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort))));
             // Redeploy api with updated endpoint config
             var manager = applicationContext.getBean(ApiManager.class);
             manager.unregister(api.getId());
@@ -1209,19 +1194,21 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "dynamic-routing",
-                PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class)
-            );
+                    "dynamic-routing",
+                    PolicyBuilder.build(
+                            "dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -1230,14 +1217,11 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 throw new IllegalStateException("should be testing a v4 API");
             }
             final Api definition = (Api) api.getDefinition();
-            definition
-                .getEndpointGroups()
-                .stream()
-                .filter(group -> group.getName().equals("second"))
-                .flatMap(group -> group.getEndpoints().stream())
-                .forEach(endpoint ->
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
-                );
+            definition.getEndpointGroups().stream()
+                    .filter(group -> group.getName().equals("second"))
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .forEach(endpoint -> endpoint.setConfiguration(
+                            endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort))));
             var manager = applicationContext.getBean(ApiManager.class);
             manager.unregister(api.getId());
             manager.register(api);
@@ -1251,20 +1235,19 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             // The request should be routed to the "second" endpoint group, NOT the default group
             wiremock.stubFor(get("/second-group/hello").willReturn(ok("ok from backend")));
 
-            client
-                .rxRequest(HttpMethod.GET, "/test/hello")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response).hasToString("ok from backend");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/hello")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString("ok from backend");
+                        return true;
+                    });
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group/hello")));
         }
@@ -1274,35 +1257,30 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         void should_retry_to_second_group_on_slow_first_call(HttpClient client) {
             // First call is slow (triggers retry), second call is fast
             // Both attempts should target the "second" endpoint group
-            wiremock.stubFor(
-                get("/second-group/hello")
+            wiremock.stubFor(get("/second-group/hello")
                     .inScenario("Slow first call")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(ok("ok from backend").withFixedDelay(750))
-                    .willSetStateTo("First Retry")
-            );
+                    .willSetStateTo("First Retry"));
 
-            wiremock.stubFor(
-                get("/second-group/hello")
+            wiremock.stubFor(get("/second-group/hello")
                     .inScenario("Slow first call")
                     .whenScenarioStateIs("First Retry")
-                    .willReturn(ok("ok from backend"))
-            );
+                    .willReturn(ok("ok from backend")));
 
-            client
-                .rxRequest(HttpMethod.GET, "/test/hello")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response).hasToString("ok from backend");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/hello")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString("ok from backend");
+                        return true;
+                    });
 
             // Should have been called 2 times on the second group endpoint, never on default
             wiremock.verify(2, getRequestedFor(urlPathEqualTo("/second-group/hello")));

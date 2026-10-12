@@ -32,26 +32,28 @@ public class AmConnectionViewDomainService {
     private final AmConnectionRepository amConnectionRepository;
 
     public record View(
-        String baseUrl,
-        boolean hasAccessToken,
-        String amOrganizationId,
-        String environmentId,
-        String defaultDomainId,
-        String defaultDomainHrid,
-        String gatewayUrl
-    ) {}
+            String baseUrl,
+            boolean hasAccessToken,
+            String amOrganizationId,
+            String environmentId,
+            String defaultDomainId,
+            String defaultDomainHrid,
+            String gatewayUrl) {}
 
     public View forOrg(String orgId) {
         var connection = amConnectionRepository.findByOrg(orgId);
         boolean hasToken = amConnectionRepository.hasTokenForOrg(orgId);
 
-        String baseUrl = connection.map(c -> c.baseUrl() == null ? "" : c.baseUrl()).orElse("");
+        String baseUrl =
+                connection.map(c -> c.baseUrl() == null ? "" : c.baseUrl()).orElse("");
         String amOrganizationId = connection.map(AmConnection::amOrganizationId).orElse(null);
         String environmentId = connection.map(AmConnection::environmentId).orElse(null);
         String defaultDomainId = connection.map(AmConnection::defaultDomainId).orElse(null);
-        String defaultDomainHrid = connection.map(AmConnection::defaultDomainHrid).orElse(null);
+        String defaultDomainHrid =
+                connection.map(AmConnection::defaultDomainHrid).orElse(null);
         String gatewayUrl = connection.map(AmConnection::gatewayUrl).orElse(null);
 
-        return new View(baseUrl, hasToken, amOrganizationId, environmentId, defaultDomainId, defaultDomainHrid, gatewayUrl);
+        return new View(
+                baseUrl, hasToken, amOrganizationId, environmentId, defaultDomainId, defaultDomainHrid, gatewayUrl);
     }
 }

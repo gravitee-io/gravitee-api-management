@@ -19,8 +19,6 @@ import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_I
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.gateway.api.service.ApiKeyService;
-import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
@@ -92,7 +90,6 @@ import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.LicenseRepository;
-import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.ext.web.Router;
 import java.util.List;
@@ -141,7 +138,8 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public SharedPolicyGroupMapper sharedPolicyGroupMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
+    public SharedPolicyGroupMapper sharedPolicyGroupMapper(
+            ObjectMapper objectMapper, EnvironmentService environmentService) {
         return new SharedPolicyGroupMapper(objectMapper, environmentService);
     }
 
@@ -152,31 +150,27 @@ public class RepositorySyncConfiguration {
 
     @Bean
     public LatestEventFetcher eventFetcher(
-        EventLatestRepository eventLatestRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
-    ) {
+            EventLatestRepository eventLatestRepository,
+            @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems) {
         return new LatestEventFetcher(eventLatestRepository, bulkItems);
     }
 
     @Bean
     public SubscriptionFetcher subscriptionFetcher(
-        SubscriptionRepository subscriptionRepository,
-        @Value(
-            "${services.sync.subscription.bulk_items:" +
-                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_SUBSCRIPTION_BULK_ITEMS +
-                "}"
-        ) int bulkItems
-    ) {
+            SubscriptionRepository subscriptionRepository,
+            @Value("${services.sync.subscription.bulk_items:"
+                            + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_SUBSCRIPTION_BULK_ITEMS
+                            + "}")
+                    int bulkItems) {
         return new SubscriptionFetcher(subscriptionRepository, bulkItems);
     }
 
     @Bean
     public ApiKeyFetcher apiKeyFetcher(
-        ApiKeyRepository apiKeyRepository,
-        @Value(
-            "${services.sync.apikey.bulk_items:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}"
-        ) int bulkItems
-    ) {
+            ApiKeyRepository apiKeyRepository,
+            @Value("${services.sync.apikey.bulk_items:"
+                            + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}")
+                    int bulkItems) {
         return new ApiKeyFetcher(apiKeyRepository, bulkItems);
     }
 
@@ -187,22 +181,21 @@ public class RepositorySyncConfiguration {
 
     @Bean
     public LicenseFetcher licenseFetcher(
-        LicenseRepository licenseRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
-    ) {
+            LicenseRepository licenseRepository,
+            @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems) {
         return new LicenseFetcher(licenseRepository, bulkItems);
     }
 
     @Bean
     public AccessPointFetcher accessPointFetcher(
-        AccessPointRepository accessPointRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
-    ) {
+            AccessPointRepository accessPointRepository,
+            @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems) {
         return new AccessPointFetcher(accessPointRepository, bulkItems);
     }
 
     @Bean
-    public OrganizationIdsFetcher organizationIdsFetcher(EnvironmentRepository environmentRepository, GatewayConfiguration configuration) {
+    public OrganizationIdsFetcher organizationIdsFetcher(
+            EnvironmentRepository environmentRepository, GatewayConfiguration configuration) {
         return new OrganizationIdsFetcher(environmentRepository, configuration);
     }
 
@@ -218,82 +211,76 @@ public class RepositorySyncConfiguration {
 
     @Bean
     public ApiSynchronizer apiSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        ApiManager apiManager,
-        ApiMapper apiMapper,
-        PlanAppender planAppender,
-        SubscriptionAppender subscriptionAppender,
-        ApiKeyAppender apiKeyAppender,
-        AuthzAppender authzAppender,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        @Value(
-            "${services.sync.appender.parallelism:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APPENDER_PARALLELISM + "}"
-        ) int appenderParallelism
-    ) {
+            LatestEventFetcher eventsFetcher,
+            ApiManager apiManager,
+            ApiMapper apiMapper,
+            PlanAppender planAppender,
+            SubscriptionAppender subscriptionAppender,
+            ApiKeyAppender apiKeyAppender,
+            AuthzAppender authzAppender,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            @Value("${services.sync.appender.parallelism:"
+                            + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APPENDER_PARALLELISM + "}")
+                    int appenderParallelism) {
         return new ApiSynchronizer(
-            eventsFetcher,
-            apiManager,
-            apiMapper,
-            planAppender,
-            subscriptionAppender,
-            apiKeyAppender,
-            authzAppender,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            appenderParallelism
-        );
+                eventsFetcher,
+                apiManager,
+                apiMapper,
+                planAppender,
+                subscriptionAppender,
+                apiKeyAppender,
+                authzAppender,
+                deployerFactory,
+                syncFetcherExecutor,
+                syncDeployerExecutor,
+                appenderParallelism);
     }
 
     @Bean(destroyMethod = "dispose")
     public RepositoryApiMemberResyncTrigger apiMemberResyncTrigger(
-        @Lazy ApiSynchronizer apiSynchronizer,
-        ApiManager apiManager,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        EventManager eventManager,
-        @Lazy DefaultSyncManager syncManager
-    ) {
-        return new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager, syncManager::syncDone);
+            @Lazy ApiSynchronizer apiSynchronizer,
+            ApiManager apiManager,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            EventManager eventManager,
+            @Lazy DefaultSyncManager syncManager) {
+        return new RepositoryApiMemberResyncTrigger(
+                apiSynchronizer, apiManager, syncDeployerExecutor, eventManager, syncManager::syncDone);
     }
 
     @Bean
     public SubscriptionSynchronizer subscriptionSynchronizer(
-        SubscriptionFetcher subscriptionFetcher,
-        SubscriptionMapper subscriptionMapper,
-        PlanService planCache,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            SubscriptionFetcher subscriptionFetcher,
+            SubscriptionMapper subscriptionMapper,
+            PlanService planCache,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new SubscriptionSynchronizer(
-            subscriptionFetcher,
-            subscriptionMapper,
-            deployerFactory,
-            planCache,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                subscriptionFetcher,
+                subscriptionMapper,
+                deployerFactory,
+                planCache,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
     public ApiKeySynchronizer apiKeySynchronizer(
-        final ApiKeyFetcher apiKeyFetcher,
-        final SubscriptionCacheService subscriptionService,
-        final ApiKeyMapper apiKeyMapper,
-        final DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            final ApiKeyFetcher apiKeyFetcher,
+            final SubscriptionCacheService subscriptionService,
+            final ApiKeyMapper apiKeyMapper,
+            final DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new ApiKeySynchronizer(
-            apiKeyFetcher,
-            subscriptionService,
-            apiKeyMapper,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                apiKeyFetcher,
+                subscriptionService,
+                apiKeyMapper,
+                deployerFactory,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
@@ -305,118 +292,102 @@ public class RepositorySyncConfiguration {
     @Bean
     @Conditional(GammaEnabledCondition.class)
     public CredentialSynchronizer credentialSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        CredentialMapper credentialMapper,
-        EnvironmentService environmentService,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            CredentialMapper credentialMapper,
+            EnvironmentService environmentService,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new CredentialSynchronizer(
-            eventsFetcher,
-            credentialMapper,
-            environmentService,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                eventsFetcher,
+                credentialMapper,
+                environmentService,
+                deployerFactory,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
     public DictionarySynchronizer dictionarySynchronizer(
-        LatestEventFetcher eventsFetcher,
-        DictionaryMapper dictionaryMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
-        return new DictionarySynchronizer(eventsFetcher, dictionaryMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+            LatestEventFetcher eventsFetcher,
+            DictionaryMapper dictionaryMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
+        return new DictionarySynchronizer(
+                eventsFetcher, dictionaryMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
     public OrganizationSynchronizer organizationSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        OrganizationMapper organizationMapper,
-        FlowAppender flowAppender,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            OrganizationMapper organizationMapper,
+            FlowAppender flowAppender,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new OrganizationSynchronizer(
-            eventsFetcher,
-            organizationMapper,
-            flowAppender,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                eventsFetcher,
+                organizationMapper,
+                flowAppender,
+                deployerFactory,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
     public DebugSynchronizer debugSynchronizer(
-        DebugEventFetcher debugEventFetcher,
-        DebugMapper debugMapperMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
-        return new DebugSynchronizer(debugEventFetcher, debugMapperMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+            DebugEventFetcher debugEventFetcher,
+            DebugMapper debugMapperMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
+        return new DebugSynchronizer(
+                debugEventFetcher, debugMapperMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
     public LicenseSynchronizer licenseSynchronizer(
-        Node node,
-        LicenseFetcher licenseFetcher,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
-        return new LicenseSynchronizer(node, licenseFetcher, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+            Node node,
+            LicenseFetcher licenseFetcher,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
+        return new LicenseSynchronizer(
+                node, licenseFetcher, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
     public AccessPointSynchronizer accessPointSynchronizer(
-        AccessPointFetcher accessPointFetcher,
-        AccessPointMapper accessPointMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            AccessPointFetcher accessPointFetcher,
+            AccessPointMapper accessPointMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new AccessPointSynchronizer(
-            accessPointFetcher,
-            accessPointMapper,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                accessPointFetcher, accessPointMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
     public ClusterSynchronizer clusterSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        ClusterMapper clusterMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
-        return new ClusterSynchronizer(eventsFetcher, clusterMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+            LatestEventFetcher eventsFetcher,
+            ClusterMapper clusterMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
+        return new ClusterSynchronizer(
+                eventsFetcher, clusterMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
     public SharedPolicyGroupSynchronizer sharedPolicyGroupSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        SharedPolicyGroupMapper sharedPolicyGroupMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            SharedPolicyGroupMapper sharedPolicyGroupMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new SharedPolicyGroupSynchronizer(
-            eventsFetcher,
-            sharedPolicyGroupMapper,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                eventsFetcher, sharedPolicyGroupMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
@@ -442,7 +413,8 @@ public class RepositorySyncConfiguration {
     public AuthzHostedScopes authzHostedScopes(GatewayConfiguration gatewayConfiguration) {
         // A tag-scoped default ("default@<tag>") is served from the node's static sharding tags, so the
         // registry needs them at construction.
-        return new AuthzHostedScopes(new java.util.HashSet<>(gatewayConfiguration.shardingTags().orElseGet(java.util.List::of)));
+        return new AuthzHostedScopes(
+                new java.util.HashSet<>(gatewayConfiguration.shardingTags().orElseGet(java.util.List::of)));
     }
 
     @Bean
@@ -454,23 +426,21 @@ public class RepositorySyncConfiguration {
     @Bean
     @Conditional(GammaEnabledCondition.class)
     public AuthzEntitySynchronizer authzEntitySynchronizer(
-        LatestEventFetcher eventsFetcher,
-        AuthzEntityMapper authzEntityMapper,
-        DeployerFactory deployerFactory,
-        AuthzEnginePort authzEnginePort,
-        @Qualifier("authzEntityScopePlacement") AuthzScopePlacement authzEntityScopePlacement,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            AuthzEntityMapper authzEntityMapper,
+            DeployerFactory deployerFactory,
+            AuthzEnginePort authzEnginePort,
+            @Qualifier("authzEntityScopePlacement") AuthzScopePlacement authzEntityScopePlacement,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new AuthzEntitySynchronizer(
-            eventsFetcher,
-            authzEntityMapper,
-            deployerFactory,
-            authzEnginePort,
-            authzEntityScopePlacement,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                eventsFetcher,
+                authzEntityMapper,
+                deployerFactory,
+                authzEnginePort,
+                authzEntityScopePlacement,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
@@ -482,23 +452,21 @@ public class RepositorySyncConfiguration {
     @Bean
     @Conditional(GammaEnabledCondition.class)
     public AuthzPolicySynchronizer authzPolicySynchronizer(
-        LatestEventFetcher eventsFetcher,
-        AuthzPolicyMapper authzPolicyMapper,
-        DeployerFactory deployerFactory,
-        AuthzEnginePort authzEnginePort,
-        @Qualifier("authzPolicyScopePlacement") AuthzScopePlacement authzPolicyScopePlacement,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            AuthzPolicyMapper authzPolicyMapper,
+            DeployerFactory deployerFactory,
+            AuthzEnginePort authzEnginePort,
+            @Qualifier("authzPolicyScopePlacement") AuthzScopePlacement authzPolicyScopePlacement,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new AuthzPolicySynchronizer(
-            eventsFetcher,
-            authzPolicyMapper,
-            deployerFactory,
-            authzEnginePort,
-            authzPolicyScopePlacement,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                eventsFetcher,
+                authzPolicyMapper,
+                deployerFactory,
+                authzEnginePort,
+                authzPolicyScopePlacement,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
@@ -510,23 +478,21 @@ public class RepositorySyncConfiguration {
     @Bean
     @Conditional(GammaEnabledCondition.class)
     public AuthzSchemaSynchronizer authzSchemaSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        AuthzSchemaMapper authzSchemaMapper,
-        DeployerFactory deployerFactory,
-        AuthzEnginePort authzEnginePort,
-        @Qualifier("authzSchemaScopePlacement") AuthzScopePlacement authzSchemaScopePlacement,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            AuthzSchemaMapper authzSchemaMapper,
+            DeployerFactory deployerFactory,
+            AuthzEnginePort authzEnginePort,
+            @Qualifier("authzSchemaScopePlacement") AuthzScopePlacement authzSchemaScopePlacement,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new AuthzSchemaSynchronizer(
-            eventsFetcher,
-            authzSchemaMapper,
-            deployerFactory,
-            authzEnginePort,
-            authzSchemaScopePlacement,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                eventsFetcher,
+                authzSchemaMapper,
+                deployerFactory,
+                authzEnginePort,
+                authzSchemaScopePlacement,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
@@ -538,112 +504,104 @@ public class RepositorySyncConfiguration {
     @Bean
     @Conditional(GammaEnabledCondition.class)
     public AuthzPdpSynchronizer authzPdpSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        AuthzPdpMapper authzPdpMapper,
-        AuthzSchemaSynchronizer authzSchemaSynchronizer,
-        AuthzPolicySynchronizer authzPolicySynchronizer,
-        AuthzEntitySynchronizer authzEntitySynchronizer,
-        Node node,
-        GatewayConfiguration gatewayConfiguration,
-        io.vertx.rxjava3.core.Vertx vertx,
-        AuthzHostedScopes authzHostedScopes,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        AuthzAppliedRevisions authzAppliedRevisions
-    ) {
+            LatestEventFetcher eventsFetcher,
+            AuthzPdpMapper authzPdpMapper,
+            AuthzSchemaSynchronizer authzSchemaSynchronizer,
+            AuthzPolicySynchronizer authzPolicySynchronizer,
+            AuthzEntitySynchronizer authzEntitySynchronizer,
+            Node node,
+            GatewayConfiguration gatewayConfiguration,
+            io.vertx.rxjava3.core.Vertx vertx,
+            AuthzHostedScopes authzHostedScopes,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            AuthzAppliedRevisions authzAppliedRevisions) {
         return new AuthzPdpSynchronizer(
-            eventsFetcher,
-            authzPdpMapper,
-            authzSchemaSynchronizer,
-            authzPolicySynchronizer,
-            authzEntitySynchronizer,
-            node,
-            gatewayConfiguration,
-            vertx,
-            authzHostedScopes,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            authzAppliedRevisions
-        );
+                eventsFetcher,
+                authzPdpMapper,
+                authzSchemaSynchronizer,
+                authzPolicySynchronizer,
+                authzEntitySynchronizer,
+                node,
+                gatewayConfiguration,
+                vertx,
+                authzHostedScopes,
+                syncFetcherExecutor,
+                syncDeployerExecutor,
+                authzAppliedRevisions);
     }
 
     @Bean
     public ApiProductSubscriptionRefresher apiProductSubscriptionRefresher(
-        SubscriptionRepository subscriptionRepository,
-        ApiKeyRepository apiKeyRepository,
-        SubscriptionMapper subscriptionMapper,
-        ApiKeyMapper apiKeyMapper,
-        SubscriptionCacheService subscriptionService,
-        ApiKeyCacheService apiKeyService,
-        @Value(
-            "${services.sync.apikey.bulk_items:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}"
-        ) int bulkItems,
-        @Value(
-            "${services.sync.apikey.subscriptions_chunk_size:" +
-                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE +
-                "}"
-        ) int subscriptionsChunkSize
-    ) {
+            SubscriptionRepository subscriptionRepository,
+            ApiKeyRepository apiKeyRepository,
+            SubscriptionMapper subscriptionMapper,
+            ApiKeyMapper apiKeyMapper,
+            SubscriptionCacheService subscriptionService,
+            ApiKeyCacheService apiKeyService,
+            @Value("${services.sync.apikey.bulk_items:"
+                            + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}")
+                    int bulkItems,
+            @Value("${services.sync.apikey.subscriptions_chunk_size:"
+                            + io.gravitee.gateway.services.sync.SyncConfiguration
+                                    .DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE
+                            + "}")
+                    int subscriptionsChunkSize) {
         return new ApiProductSubscriptionRefresher(
-            subscriptionRepository,
-            apiKeyRepository,
-            subscriptionMapper,
-            apiKeyMapper,
-            subscriptionService,
-            apiKeyService,
-            bulkItems,
-            subscriptionsChunkSize
-        );
+                subscriptionRepository,
+                apiKeyRepository,
+                subscriptionMapper,
+                apiKeyMapper,
+                subscriptionService,
+                apiKeyService,
+                bulkItems,
+                subscriptionsChunkSize);
     }
 
     @Bean
     public ApiProductSynchronizer apiProductSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        ApiProductMapper apiProductMapper,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
-        return new ApiProductSynchronizer(eventsFetcher, apiProductMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+            LatestEventFetcher eventsFetcher,
+            ApiProductMapper apiProductMapper,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
+        return new ApiProductSynchronizer(
+                eventsFetcher, apiProductMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
     }
 
     @Bean
     public NodeMetadataSynchronizer nodeMetadataSynchronizer(
-        OrganizationIdsFetcher organizationIdsFetcher,
-        InstallationIdFetcher installationIdFetcher,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            OrganizationIdsFetcher organizationIdsFetcher,
+            InstallationIdFetcher installationIdFetcher,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor) {
         return new NodeMetadataSynchronizer(
-            organizationIdsFetcher,
-            installationIdFetcher,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor
-        );
+                organizationIdsFetcher,
+                installationIdFetcher,
+                deployerFactory,
+                syncFetcherExecutor,
+                syncDeployerExecutor);
     }
 
     @Bean
     public DefaultSyncManager syncManager(
-        @Qualifier("managementRouter") Router router,
-        final Node node,
-        final List<RepositorySynchronizer> synchronizers,
-        @Autowired(required = false) final List<DistributedSynchronizer> distributedSynchronizers,
-        final DistributedSyncService distributedSyncService,
-        @Value("${services.sync.delay:5000}") int delay,
-        @Value("${services.sync.unit:MILLISECONDS}") TimeUnit unit,
-        @Value("${services.sync.retry:3}") final int retryAttempt
-    ) {
+            @Qualifier("managementRouter") Router router,
+            final Node node,
+            final List<RepositorySynchronizer> synchronizers,
+            @Autowired(required = false) final List<DistributedSynchronizer> distributedSynchronizers,
+            final DistributedSyncService distributedSyncService,
+            @Value("${services.sync.delay:5000}") int delay,
+            @Value("${services.sync.unit:MILLISECONDS}") TimeUnit unit,
+            @Value("${services.sync.retry:3}") final int retryAttempt) {
         return new DefaultSyncManager(
-            router,
-            node,
-            synchronizers,
-            distributedSynchronizers,
-            distributedSyncService,
-            delay,
-            unit,
-            retryAttempt
-        );
+                router,
+                node,
+                synchronizers,
+                distributedSynchronizers,
+                distributedSyncService,
+                delay,
+                unit,
+                retryAttempt);
     }
 }

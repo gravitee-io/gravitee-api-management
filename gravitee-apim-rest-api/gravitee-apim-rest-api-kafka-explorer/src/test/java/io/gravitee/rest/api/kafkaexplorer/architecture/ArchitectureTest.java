@@ -40,8 +40,8 @@ class ArchitectureTest {
     private static final String GENERATED_MODEL_PACKAGE = BASE_PACKAGE + ".rest.model..";
 
     private static final JavaClasses classes = new ClassFileImporter()
-        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-        .importPackages(BASE_PACKAGE);
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages(BASE_PACKAGE);
 
     private static final JavaClasses allClasses = new ClassFileImporter().importPackages(BASE_PACKAGE);
 
@@ -51,49 +51,49 @@ class ArchitectureTest {
         @Test
         void domain_should_not_depend_on_resource() {
             noClasses()
-                .that()
-                .resideInAPackage(DOMAIN_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage(RESOURCE_PACKAGE)
-                .because("Domain layer must not depend on the resource (REST) layer")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(DOMAIN_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage(RESOURCE_PACKAGE)
+                    .because("Domain layer must not depend on the resource (REST) layer")
+                    .check(classes);
         }
 
         @Test
         void domain_should_not_depend_on_mapper() {
             noClasses()
-                .that()
-                .resideInAPackage(DOMAIN_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage(MAPPER_PACKAGE)
-                .because("Domain layer must not depend on mappers")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(DOMAIN_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage(MAPPER_PACKAGE)
+                    .because("Domain layer must not depend on mappers")
+                    .check(classes);
         }
 
         @Test
         void domain_should_not_depend_on_generated_models() {
             noClasses()
-                .that()
-                .resideInAPackage(DOMAIN_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage(GENERATED_MODEL_PACKAGE)
-                .because("Domain layer must not depend on OpenAPI generated models")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(DOMAIN_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage(GENERATED_MODEL_PACKAGE)
+                    .because("Domain layer must not depend on OpenAPI generated models")
+                    .check(classes);
         }
 
         @Test
         void domain_should_not_depend_on_jakarta_ws_rs() {
             noClasses()
-                .that()
-                .resideInAPackage(DOMAIN_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage("jakarta.ws.rs..")
-                .because("Domain layer must not depend on JAX-RS")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(DOMAIN_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage("jakarta.ws.rs..")
+                    .because("Domain layer must not depend on JAX-RS")
+                    .check(classes);
         }
     }
 
@@ -103,37 +103,36 @@ class ArchitectureTest {
         @Test
         void use_cases_should_reside_in_use_case_package() {
             classes()
-                .that()
-                .haveNameMatching(".*UseCase")
-                .and()
-                .areNotAnnotations()
-                .should()
-                .resideInAPackage("..use_case..")
-                .check(classes);
+                    .that()
+                    .haveNameMatching(".*UseCase")
+                    .and()
+                    .areNotAnnotations()
+                    .should()
+                    .resideInAPackage("..use_case..")
+                    .check(classes);
         }
 
         @Test
         void use_cases_should_be_suffixed_with_UseCase() {
             classes()
-                .that()
-                .resideInAPackage("..use_case..")
-                .and()
-                .areTopLevelClasses()
-                .should()
-                .haveSimpleNameEndingWith("UseCase")
-                .check(classes);
+                    .that()
+                    .resideInAPackage("..use_case..")
+                    .and()
+                    .areTopLevelClasses()
+                    .should()
+                    .haveSimpleNameEndingWith("UseCase")
+                    .check(classes);
         }
 
         @Test
         void use_cases_should_be_independent() {
-            slices()
-                .matching("..domain.(*).use_case..")
-                .namingSlices("UseCase $1")
-                .as("UseCase")
-                .should()
-                .notDependOnEachOther()
-                .allowEmptyShould(true)
-                .check(allClasses);
+            slices().matching("..domain.(*).use_case..")
+                    .namingSlices("UseCase $1")
+                    .as("UseCase")
+                    .should()
+                    .notDependOnEachOther()
+                    .allowEmptyShould(true)
+                    .check(allClasses);
         }
     }
 
@@ -143,25 +142,25 @@ class ArchitectureTest {
         @Test
         void mapper_should_not_depend_on_resource() {
             noClasses()
-                .that()
-                .resideInAPackage(MAPPER_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage(RESOURCE_PACKAGE)
-                .because("Mappers must be pure converters and not depend on the resource layer")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(MAPPER_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage(RESOURCE_PACKAGE)
+                    .because("Mappers must be pure converters and not depend on the resource layer")
+                    .check(classes);
         }
 
         @Test
         void mapper_should_not_depend_on_use_cases() {
             noClasses()
-                .that()
-                .resideInAPackage(MAPPER_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage(BASE_PACKAGE + ".domain.use_case..")
-                .because("Mappers must be pure converters and not depend on use cases")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(MAPPER_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage(BASE_PACKAGE + ".domain.use_case..")
+                    .because("Mappers must be pure converters and not depend on use cases")
+                    .check(classes);
         }
     }
 
@@ -171,25 +170,25 @@ class ArchitectureTest {
         @Test
         void infrastructure_should_not_depend_on_resource() {
             noClasses()
-                .that()
-                .resideInAPackage(INFRASTRUCTURE_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage(RESOURCE_PACKAGE)
-                .because("Infrastructure layer must not depend on the resource (REST) layer")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(INFRASTRUCTURE_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage(RESOURCE_PACKAGE)
+                    .because("Infrastructure layer must not depend on the resource (REST) layer")
+                    .check(classes);
         }
 
         @Test
         void infrastructure_should_not_depend_on_use_cases() {
             noClasses()
-                .that()
-                .resideInAPackage(INFRASTRUCTURE_PACKAGE)
-                .should()
-                .dependOnClassesThat()
-                .resideInAPackage(BASE_PACKAGE + ".domain.use_case..")
-                .because("Infrastructure layer must not depend on use cases")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(INFRASTRUCTURE_PACKAGE)
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage(BASE_PACKAGE + ".domain.use_case..")
+                    .because("Infrastructure layer must not depend on use cases")
+                    .check(classes);
         }
     }
 
@@ -199,24 +198,21 @@ class ArchitectureTest {
         @Test
         void domain_should_only_depend_on_allowed_packages() {
             classes()
-                .that()
-                .resideInAPackage(DOMAIN_PACKAGE)
-                .should()
-                .onlyDependOnClassesThat(
-                    resideInAnyPackage(
-                        DOMAIN_PACKAGE,
-                        DOMAIN_SERVICE_PACKAGE,
-                        "java..",
-                        "lombok..",
-                        "org.slf4j..",
-                        "com.fasterxml.jackson..",
-                        // Api Definition can't be in core because it is required for the Gateway
-                        "io.gravitee.apim.core..",
-                        "io.gravitee.plugin.configurations.."
-                    )
-                )
-                .because("Domain should be free from framework dependencies")
-                .check(classes);
+                    .that()
+                    .resideInAPackage(DOMAIN_PACKAGE)
+                    .should()
+                    .onlyDependOnClassesThat(resideInAnyPackage(
+                            DOMAIN_PACKAGE,
+                            DOMAIN_SERVICE_PACKAGE,
+                            "java..",
+                            "lombok..",
+                            "org.slf4j..",
+                            "com.fasterxml.jackson..",
+                            // Api Definition can't be in core because it is required for the Gateway
+                            "io.gravitee.apim.core..",
+                            "io.gravitee.plugin.configurations.."))
+                    .because("Domain should be free from framework dependencies")
+                    .check(classes);
         }
     }
 
@@ -225,7 +221,10 @@ class ArchitectureTest {
 
         @Test
         void should_be_free_of_cycles() {
-            slices().matching(BASE_PACKAGE + ".(**)..").should().beFreeOfCycles().check(allClasses);
+            slices().matching(BASE_PACKAGE + ".(**)..")
+                    .should()
+                    .beFreeOfCycles()
+                    .check(allClasses);
         }
     }
 }

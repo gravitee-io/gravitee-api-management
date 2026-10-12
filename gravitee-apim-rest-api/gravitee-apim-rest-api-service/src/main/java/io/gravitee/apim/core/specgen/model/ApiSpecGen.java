@@ -22,14 +22,13 @@ import io.gravitee.definition.model.v4.ApiType;
  * @author GraviteeSource Team
  */
 public record ApiSpecGen(
-    String id,
-    String name,
-    String description,
-    String version,
-    ApiType type,
-    String environmentId,
-    String definition
-) {
+        String id,
+        String name,
+        String description,
+        String version,
+        ApiType type,
+        String environmentId,
+        String definition) {
     public ApiSpecGen(String id, String name, String description, String version, ApiType type, String environmentId) {
         this(id, name, description, version, type, environmentId, null);
     }

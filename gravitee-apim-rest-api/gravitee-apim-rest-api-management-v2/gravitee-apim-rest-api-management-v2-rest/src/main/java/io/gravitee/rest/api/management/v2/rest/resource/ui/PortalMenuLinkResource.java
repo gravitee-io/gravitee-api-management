@@ -58,41 +58,52 @@ public class PortalMenuLinkResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SETTINGS,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getPortalMenuLink() {
         var executionContext = GraviteeContext.getExecutionContext();
 
         var output = getPortalMenuLinkUseCase.execute(
-            new GetPortalMenuLinkUseCase.Input(portalMenuLinkId, executionContext.getEnvironmentId())
-        );
+                new GetPortalMenuLinkUseCase.Input(portalMenuLinkId, executionContext.getEnvironmentId()));
 
         return Response.ok(this.getLocationHeader(output.portalMenuLinkEntity().getId()))
-            .entity(mapper.map(output.portalMenuLinkEntity()))
-            .build();
+                .entity(mapper.map(output.portalMenuLinkEntity()))
+                .build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SETTINGS,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updatePortalMenuLink(@Valid @NotNull final UpdatePortalMenuLink updatePortalMenuLink) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var output = updatePortalMenuLinkUseCase.execute(
-            new UpdatePortalMenuLinkUseCase.Input(portalMenuLinkId, executionContext.getEnvironmentId(), mapper.map(updatePortalMenuLink))
-        );
+        var output = updatePortalMenuLinkUseCase.execute(new UpdatePortalMenuLinkUseCase.Input(
+                portalMenuLinkId, executionContext.getEnvironmentId(), mapper.map(updatePortalMenuLink)));
 
         return Response.ok(this.getLocationHeader(output.portalMenuLinkEntity().getId()))
-            .entity(mapper.map(output.portalMenuLinkEntity()))
-            .build();
+                .entity(mapper.map(output.portalMenuLinkEntity()))
+                .build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SETTINGS,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deletePortalMenuLink() {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        deletePortalMenuLinkUseCase.execute(new DeletePortalMenuLinkUseCase.Input(portalMenuLinkId, executionContext.getEnvironmentId()));
+        deletePortalMenuLinkUseCase.execute(
+                new DeletePortalMenuLinkUseCase.Input(portalMenuLinkId, executionContext.getEnvironmentId()));
 
         return Response.noContent().build();
     }

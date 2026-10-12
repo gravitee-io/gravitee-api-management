@@ -31,7 +31,8 @@ public class VerifyApiProductDeployUseCase {
 
     public Output execute(Input input) {
         boolean ok = licenseDomainService.isApiProductDeploymentAllowed(input.organizationId());
-        String reason = ok ? null : "API Product deployment requires the apim-api-products feature (Galaxy tier or above).";
+        String reason =
+                ok ? null : "API Product deployment requires the apim-api-products feature (Galaxy tier or above).";
         return new Output(ok, reason);
     }
 

@@ -44,7 +44,8 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
     private final int NUMBER_OF_CLIENTS = 10;
     private final int NUMBER_OF_REQUESTS = 1000;
 
-    private final ExecutorService executorService = new ThreadPoolExecutor(10, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+    private final ExecutorService executorService =
+            new ThreadPoolExecutor(10, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
     @Test
     public void shouldProcessParallelRequests() throws Exception {
@@ -57,25 +58,28 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
 
         Runnable calls = () -> {
             for (int i = 0; i < NUMBER_OF_REQUESTS; i++) {
-                client
-                    .request(new RequestOptions().setAbsoluteURI("http://localhost:8082/test/my_team").setMethod(HttpMethod.GET))
-                    .onComplete(httpClientRequestEvt -> {
-                        if (httpClientRequestEvt.succeeded()) {
-                            httpClientRequestEvt
-                                .result()
-                                .send()
-                                .onComplete(httpClientResponseEvt -> {
+                client.request(new RequestOptions()
+                                .setAbsoluteURI("http://localhost:8082/test/my_team")
+                                .setMethod(HttpMethod.GET))
+                        .onComplete(httpClientRequestEvt -> {
+                            if (httpClientRequestEvt.succeeded()) {
+                                httpClientRequestEvt.result().send().onComplete(httpClientResponseEvt -> {
                                     if (httpClientResponseEvt.succeeded()) {
-                                        assertEquals(HttpStatusCode.OK_200, httpClientResponseEvt.result().statusCode());
-                                        latch.countDown(); // We count down only when we are sure the response has been received.
+                                        assertEquals(
+                                                HttpStatusCode.OK_200,
+                                                httpClientResponseEvt.result().statusCode());
+                                        latch.countDown(); // We count down only when we are sure the response has
+                                        // been received.
                                     } else {
-                                        logger.error("An error occurred during client response", httpClientResponseEvt.cause());
+                                        logger.error(
+                                                "An error occurred during client response",
+                                                httpClientResponseEvt.cause());
                                     }
                                 });
-                        } else {
-                            logger.error("An error occurred during client request", httpClientRequestEvt.cause());
-                        }
-                    });
+                            } else {
+                                logger.error("An error occurred during client request", httpClientRequestEvt.cause());
+                            }
+                        });
             }
         };
 

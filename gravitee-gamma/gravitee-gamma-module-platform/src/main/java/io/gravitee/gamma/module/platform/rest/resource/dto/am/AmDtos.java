@@ -27,25 +27,23 @@ public final class AmDtos {
      * clears it, non-blank encrypts and replaces.
      */
     public record AmConnectionRequest(
-        @NotBlank String baseUrl,
-        String serviceAccountAccessToken,
-        String amOrganizationId,
-        String environmentId,
-        String defaultDomainId,
-        String defaultDomainHrid,
-        String gatewayUrl
-    ) {}
+            @NotBlank String baseUrl,
+            String serviceAccountAccessToken,
+            String amOrganizationId,
+            String environmentId,
+            String defaultDomainId,
+            String defaultDomainHrid,
+            String gatewayUrl) {}
 
     // Token value is never returned; hasAccessToken lets the UI render a "set" placeholder.
     public record AmConnectionResponse(
-        String baseUrl,
-        boolean hasAccessToken,
-        String amOrganizationId,
-        String environmentId,
-        String defaultDomainId,
-        String defaultDomainHrid,
-        String gatewayUrl
-    ) {}
+            String baseUrl,
+            boolean hasAccessToken,
+            String amOrganizationId,
+            String environmentId,
+            String defaultDomainId,
+            String defaultDomainHrid,
+            String gatewayUrl) {}
 
     public record AmConnectionTestResultResponse(boolean ok, Integer status, String message) {}
 

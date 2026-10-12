@@ -91,7 +91,11 @@ public class AsyncJob {
     }
 
     public AsyncJob error(String errorMessage) {
-        return toBuilder().status(Status.ERROR).updatedAt(TimeProvider.now()).errorMessage(errorMessage).build();
+        return toBuilder()
+                .status(Status.ERROR)
+                .updatedAt(TimeProvider.now())
+                .errorMessage(errorMessage)
+                .build();
     }
 
     public boolean isTimedOut() {

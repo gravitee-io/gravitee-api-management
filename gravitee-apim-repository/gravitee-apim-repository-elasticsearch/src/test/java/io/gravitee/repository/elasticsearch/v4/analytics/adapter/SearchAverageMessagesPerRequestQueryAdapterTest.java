@@ -95,8 +95,7 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
     void should_build_query_with_api_filter() {
         var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(new AverageMessagesPerRequestQuery("api-id"));
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "size": 0,
               "query": {
@@ -145,8 +144,7 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
                 }
               }
             }
-            """
-        );
+            """);
     }
 
     @Test
@@ -155,10 +153,10 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
         var from = now.truncatedTo(ChronoUnit.DAYS);
         var to = from.plus(Duration.ofDays(1));
 
-        var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(new AverageMessagesPerRequestQuery("api-id", from, to));
+        var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(
+                new AverageMessagesPerRequestQuery("api-id", from, to));
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "size": 0,
               "query": {
@@ -215,7 +213,6 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
                 }
               }
             }
-            """
-        );
+            """);
     }
 }

@@ -34,16 +34,16 @@ import java.util.List;
  * the dashboard's content and the concurrency token is expressed the way HTTP already expresses it.
  */
 public record SaveDashboardRequestDto(
-    String id,
-    String module,
-    String title,
-    String description,
-    List<SaveDashboardFilterDto> filters,
-    DashboardTimeRangeDto timeRange,
-    JsonNode widgets
-) {
+        String id,
+        String module,
+        String title,
+        String description,
+        List<SaveDashboardFilterDto> filters,
+        DashboardTimeRangeDto timeRange,
+        JsonNode widgets) {
     public DashboardContent toContent() {
-        return new DashboardContent(title, description, toCoreFilters(), timeRange == null ? null : timeRange.toCore(), widgets);
+        return new DashboardContent(
+                title, description, toCoreFilters(), timeRange == null ? null : timeRange.toCore(), widgets);
     }
 
     /**
@@ -54,14 +54,13 @@ public record SaveDashboardRequestDto(
         if (filters == null) {
             return List.of();
         }
-        return filters
-            .stream()
-            .map(filter -> {
-                if (filter == null) {
-                    throw new InvalidDashboardException("Dashboard filters must not contain null entries");
-                }
-                return filter.toCore();
-            })
-            .toList();
+        return filters.stream()
+                .map(filter -> {
+                    if (filter == null) {
+                        throw new InvalidDashboardException("Dashboard filters must not contain null entries");
+                    }
+                    return filter.toCore();
+                })
+                .toList();
     }
 }

@@ -45,7 +45,8 @@ public class MongoUpgraderRepository implements UpgraderRepository {
     public Maybe<UpgradeRecord> findById(String id) {
         log.debug("Find upgrade record by ID [{}]", id);
 
-        final UpgradeRecordMongo record = internalUpgraderMongoRepository.findById(id).orElse(null);
+        final UpgradeRecordMongo record =
+                internalUpgraderMongoRepository.findById(id).orElse(null);
 
         log.debug("Find upgrade record by ID [{}] - Done", id);
 

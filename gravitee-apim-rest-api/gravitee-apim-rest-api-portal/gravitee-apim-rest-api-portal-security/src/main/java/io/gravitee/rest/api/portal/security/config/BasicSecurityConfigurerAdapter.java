@@ -132,12 +132,11 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         return new GraviteeUrlBasedCorsConfigurationSource(
-            environment,
-            parameterService,
-            installationAccessQueryService,
-            eventManager,
-            ParameterReferenceType.ENVIRONMENT
-        );
+                environment,
+                parameterService,
+                installationAccessQueryService,
+                eventManager,
+                ParameterReferenceType.ENVIRONMENT);
     }
 
     /*
@@ -152,7 +151,7 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             throw new IllegalStateException("JWT secret is mandatory");
         }
 
-        //Warning if the secret is still the default one
+        // Warning if the secret is still the default one
         if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
             log.warn("");
             log.warn("##############################################################");
@@ -175,14 +174,12 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
         configure(http, environment, cookieCsrfSignedTokenRepository());
 
         http.addFilterBefore(
-            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
-            BasicAuthenticationFilter.class
-        );
+                new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
+                BasicAuthenticationFilter.class);
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
         http.addFilterBefore(
-            new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
-            CorsFilter.class
-        );
+                new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
+                CorsFilter.class);
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
         return http.build();
@@ -195,11 +192,10 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
         log.info("Portal API BasicSecurity Config");
         log.info("Loading authentication identity providers for Basic authentication");
 
-        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers = authenticationProviderManager
-            .getIdentityProviders()
-            .stream()
-            .filter(authenticationProvider -> !authenticationProvider.external())
-            .collect(Collectors.toList());
+        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers =
+                authenticationProviderManager.getIdentityProviders().stream()
+                        .filter(authenticationProvider -> !authenticationProvider.external())
+                        .collect(Collectors.toList());
 
         for (AuthenticationProvider provider : providers) {
             String providerType = provider.type();
@@ -207,21 +203,22 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
 
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
             if (identityProviders != null) {
-                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider> authenticationProviderPlugin =
-                    identityProviders
-                        .stream()
-                        .filter(ip -> ip.type().equalsIgnoreCase(providerType))
-                        .map(ip -> identityProviderManager.loadIdentityProvider(ip.type(), provider.configuration()))
-                        .filter(Objects::nonNull)
-                        .findFirst();
+                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider>
+                        authenticationProviderPlugin = identityProviders.stream()
+                                .filter(ip -> ip.type().equalsIgnoreCase(providerType))
+                                .map(ip -> identityProviderManager.loadIdentityProvider(
+                                        ip.type(), provider.configuration()))
+                                .filter(Objects::nonNull)
+                                .findFirst();
 
                 if (authenticationProviderPlugin.isPresent()) {
-                    Object authenticationProvider = authenticationProviderPlugin.get().configure();
+                    Object authenticationProvider =
+                            authenticationProviderPlugin.get().configure();
 
-                    if (authenticationProvider instanceof org.springframework.security.authentication.AuthenticationProvider) {
-                        auth.authenticationProvider(
-                            (org.springframework.security.authentication.AuthenticationProvider) authenticationProvider
-                        );
+                    if (authenticationProvider
+                            instanceof org.springframework.security.authentication.AuthenticationProvider) {
+                        auth.authenticationProvider((org.springframework.security.authentication.AuthenticationProvider)
+                                authenticationProvider);
                     } else if (authenticationProvider instanceof SecurityConfigurer) {
                         auth.apply((SecurityConfigurer) authenticationProvider);
                     }
@@ -234,89 +231,94 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
-        return security.httpBasic().authenticationDetailsSource(authenticationDetailsSource()).realmName("Gravitee.io Portal API").and();
+        return security.httpBasic()
+                .authenticationDetailsSource(authenticationDetailsSource())
+                .realmName("Gravitee.io Portal API")
+                .and();
     }
 
     private HttpSecurity session(HttpSecurity security) throws Exception {
-        return security.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
+        return security.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and();
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
         String uriPrefix = "/environments/**";
-        return security
-            .authorizeHttpRequests()
-            .requestMatchers(HttpMethod.OPTIONS, "**")
-            .permitAll()
-            // Portal UI bootstrap resources.
-            .requestMatchers(HttpMethod.GET, "/ui/bootstrap")
-            .permitAll()
-            // OpenApi
-            .requestMatchers(HttpMethod.GET, "/openapi")
-            .permitAll()
-            //  Auth request
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**")
-            .permitAll()
-            //  Console auth request
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/auth/console")
-            .permitAll()
-            // API requests
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers")
-            .authenticated()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/apis/_search")
-            .permitAll()
-            // Pages
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/pages/**")
-            .permitAll()
-            // Portal
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/info/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/media/**")
-            .permitAll()
-            // Theme
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/theme/**")
-            .permitAll()
-            // Users
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/_change_password/**")
-            .permitAll()
-            // Categories
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-categories")
-            .permitAll()
-            // GMD pages
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-pages")
-            .permitAll()
-            // Portal Menu Links
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-menu-links")
-            .permitAll()
-            // Portal Navigation Items
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-navigation-items/**")
-            .permitAll()
-            /* Others requests
-             * i.e. :
-             *   - /auth/login
-             *   - /auth/logout
-             *   - POST /apis/ratings
-             *   - /applications/**
-             *   - /subscriptions/**
-             *   - /tickets
-             *   - /users
-             *   - /user/**
-             */
-            .anyRequest()
-            .authenticated()
-            .and();
+        return security.authorizeHttpRequests()
+                .requestMatchers(HttpMethod.OPTIONS, "**")
+                .permitAll()
+                // Portal UI bootstrap resources.
+                .requestMatchers(HttpMethod.GET, "/ui/bootstrap")
+                .permitAll()
+                // OpenApi
+                .requestMatchers(HttpMethod.GET, "/openapi")
+                .permitAll()
+                //  Auth request
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**")
+                .permitAll()
+                //  Console auth request
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/auth/console")
+                .permitAll()
+                // API requests
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers")
+                .authenticated()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/apis/_search")
+                .permitAll()
+                // Pages
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/pages/**")
+                .permitAll()
+                // Portal
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/info/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/media/**")
+                .permitAll()
+                // Theme
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/theme/**")
+                .permitAll()
+                // Users
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/users/_change_password/**")
+                .permitAll()
+                // Categories
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-categories")
+                .permitAll()
+                // GMD pages
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-pages")
+                .permitAll()
+                // Portal Menu Links
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-menu-links")
+                .permitAll()
+                // Portal Navigation Items
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-navigation-items/**")
+                .permitAll()
+                /* Others requests
+                 * i.e. :
+                 *   - /auth/login
+                 *   - /auth/logout
+                 *   - POST /apis/ratings
+                 *   - /applications/**
+                 *   - /subscriptions/**
+                 *   - /tickets
+                 *   - /users
+                 *   - /user/**
+                 */
+                .anyRequest()
+                .authenticated()
+                .and();
     }
 
-    private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
+    private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails>
+            authenticationDetailsSource() {
         return GraviteeAuthenticationDetails::new;
     }
 

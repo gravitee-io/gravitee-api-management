@@ -64,20 +64,19 @@ public class PortalNavigationItemFixtures {
     public static final String PRIVATE_ID = "00000000-0000-0000-0000-000000000013";
 
     public static final List<String> SAMPLE_NAVIGATION_ITEMS_IDS = List.of(
-        APIS_ID,
-        GUIDES_ID,
-        SUPPORT_ID,
-        OVERVIEW_ID,
-        GETTING_STARTED_ID,
-        CATEGORY1_ID,
-        API1_ID,
-        API2_ID,
-        API1_FOLDER_ID,
-        API2_FOLDER_ID,
-        PAGE11_ID,
-        PAGE12_ID,
-        LINK1_ID
-    );
+            APIS_ID,
+            GUIDES_ID,
+            SUPPORT_ID,
+            OVERVIEW_ID,
+            GETTING_STARTED_ID,
+            CATEGORY1_ID,
+            API1_ID,
+            API2_ID,
+            API1_FOLDER_ID,
+            API2_FOLDER_ID,
+            PAGE11_ID,
+            PAGE12_ID,
+            LINK1_ID);
 
     public static PortalNavigationFolder aFolder(String id, String title) {
         return aFolder(id, title, null);
@@ -85,17 +84,17 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationFolder aFolder(String id, String title, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.of(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.of(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
     }
 
     public static PortalNavigationFolder aFolder(String title) {
@@ -104,65 +103,66 @@ public class PortalNavigationItemFixtures {
 
     public static PortalNavigationFolder aFolder(String title, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
     }
 
     public static PortalNavigationPage aPage(String id, String title, PortalNavigationItemId parentId) {
         return PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.of(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.of(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
     }
 
     public static PortalNavigationPage aPage(String title, PortalNavigationItemId parentId) {
         return PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
     }
 
-    public static PortalNavigationPage aPage(String id, String title, PortalNavigationItemId parentId, PortalPageContentId contentId) {
+    public static PortalNavigationPage aPage(
+            String id, String title, PortalNavigationItemId parentId, PortalPageContentId contentId) {
         return PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.of(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(contentId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.of(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
     }
 
     public static List<PortalNavigationItem> navigationItemsForContentTest() {
@@ -194,154 +194,153 @@ public class PortalNavigationItemFixtures {
     }
 
     public static PortalNavigationLink aLink(
-        String id,
-        String title,
-        PortalNavigationItemId parentId,
-        AutomationMetadata automationMetadata
-    ) {
+            String id, String title, PortalNavigationItemId parentId, AutomationMetadata automationMetadata) {
         return PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.of(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .url("http://example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .automationMetadata(automationMetadata)
-            .build();
+                .id(PortalNavigationItemId.of(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url("http://example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .automationMetadata(automationMetadata)
+                .build();
     }
 
     public static PortalNavigationLink aLink() {
         return PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.of(LINK_ID))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("My Link")
-            .segment("my-link")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of(LINK_ID))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("My Link")
+                .segment("my-link")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     public static PortalNavigationApi anApi(String id, String title, PortalNavigationItemId parentId, String apiId) {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.of(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.of(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(apiId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
     }
 
-    public static PortalNavigationApi anApi(String apiId, PortalVisibility visibility, List<PortalCategoryId> categoryIds) {
+    public static PortalNavigationApi anApi(
+            String apiId, PortalVisibility visibility, List<PortalCategoryId> categoryIds) {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Nav for " + apiId)
-            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(visibility)
-            .categoryIds(categoryIds)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Nav for " + apiId)
+                .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(apiId)
+                .published(true)
+                .visibility(visibility)
+                .categoryIds(categoryIds)
+                .build();
     }
 
     public static PortalNavigationApi anApi() {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.of(API_ID))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(API_TITLE)
-            .segment("my-api")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .apiId("apiId")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of(API_ID))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(API_TITLE)
+                .segment("my-api")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .apiId("apiId")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     public static CreatePortalNavigationItem aCreatePortalNavigationApi(String apiId, PortalNavigationItemId parentId) {
         return CreatePortalNavigationItem.builder()
-            .title(API_TITLE)
-            .segment("my-api")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .type(PortalNavigationItemType.API)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .apiId(apiId)
-            .parentId(parentId)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .title(API_TITLE)
+                .segment("my-api")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .type(PortalNavigationItemType.API)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .apiId(apiId)
+                .parentId(parentId)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     public static CreatePortalNavigationItem aCreatePortalNavigationApi(
-        String apiId,
-        PortalNavigationItemId parentId,
-        List<PortalCategoryId> categoryIds
-    ) {
-        return aCreatePortalNavigationApi(apiId, parentId).toBuilder().categoryIds(categoryIds).build();
+            String apiId, PortalNavigationItemId parentId, List<PortalCategoryId> categoryIds) {
+        return aCreatePortalNavigationApi(apiId, parentId).toBuilder()
+                .categoryIds(categoryIds)
+                .build();
     }
 
     public static UpdatePortalNavigationItem anUpdatePortalNavigationApi() {
         return UpdatePortalNavigationItem.builder()
-            .title(API_TITLE)
-            .order(0)
-            .type(PortalNavigationItemType.API)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .title(API_TITLE)
+                .order(0)
+                .type(PortalNavigationItemType.API)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     public static UpdatePortalNavigationItem anUpdatePortalNavigationApi(List<PortalCategoryId> categoryIds) {
-        return anUpdatePortalNavigationApi().toBuilder().categoryIds(categoryIds).build();
+        return anUpdatePortalNavigationApi().toBuilder()
+                .categoryIds(categoryIds)
+                .build();
     }
 
-    public static PortalNavigationApiProduct anApiProduct(String id, String title, PortalNavigationItemId parentId, String apiProductId) {
+    public static PortalNavigationApiProduct anApiProduct(
+            String id, String title, PortalNavigationItemId parentId, String apiProductId) {
         return PortalNavigationApiProduct.builder()
-            .id(PortalNavigationItemId.of(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiProductId(apiProductId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(PortalNavigationItemId.of(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiProductId(apiProductId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
     }
 
     public static PortalNavigationApiProduct anApiProduct() {
         return PortalNavigationApiProduct.builder()
-            .id(PortalNavigationItemId.of(API_PRODUCT_ID))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("My API Product")
-            .segment("my-api-product")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(4)
-            .apiProductId("00000000-0000-0000-0000-000000000019")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of(API_PRODUCT_ID))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("My API Product")
+                .segment("my-api-product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(4)
+                .apiProductId("00000000-0000-0000-0000-000000000019")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     public static List<PortalNavigationItem> sampleNavigationItems() {
@@ -401,19 +400,18 @@ public class PortalNavigationItemFixtures {
         page12.updateParent(category1);
 
         return List.of(
-            apis,
-            guides,
-            support,
-            overview,
-            gettingStarted,
-            category1,
-            api1,
-            api2,
-            api1Folder,
-            api2Folder,
-            page11,
-            page12,
-            link1
-        );
+                apis,
+                guides,
+                support,
+                overview,
+                gettingStarted,
+                category1,
+                api1,
+                api2,
+                api1Folder,
+                api2Folder,
+                page11,
+                page12,
+                link1);
     }
 }

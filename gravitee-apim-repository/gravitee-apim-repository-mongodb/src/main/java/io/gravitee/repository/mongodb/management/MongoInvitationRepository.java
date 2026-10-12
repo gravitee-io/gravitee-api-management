@@ -52,7 +52,8 @@ public class MongoInvitationRepository implements InvitationRepository {
     public Optional<Invitation> findById(String invitationId) throws TechnicalException {
         log.debug("Find invitation by ID [{}]", invitationId);
 
-        final InvitationMongo invitation = internalInvitationRepo.findById(invitationId).orElse(null);
+        final InvitationMongo invitation =
+                internalInvitationRepo.findById(invitationId).orElse(null);
 
         log.debug("Find invitation by ID [{}] - Done", invitationId);
         return Optional.ofNullable(mapper.map(invitation));
@@ -78,14 +79,15 @@ public class MongoInvitationRepository implements InvitationRepository {
             throw new IllegalStateException("Invitation to update must have an email");
         }
 
-        final InvitationMongo invitationMongo = internalInvitationRepo.findById(invitation.getId()).orElse(null);
+        final InvitationMongo invitationMongo =
+                internalInvitationRepo.findById(invitation.getId()).orElse(null);
 
         if (invitationMongo == null) {
             throw new IllegalStateException(String.format("No invitation found with id [%s]", invitation.getId()));
         }
 
         try {
-            //Update
+            // Update
             invitationMongo.setReferenceType(invitation.getReferenceType());
             invitationMongo.setReferenceId(invitation.getReferenceId());
             invitationMongo.setEmail(invitation.getEmail());
@@ -121,29 +123,32 @@ public class MongoInvitationRepository implements InvitationRepository {
     @Override
     public List<Invitation> findByEmail(String email) throws TechnicalException {
         log.debug("Find invitations by email [{}]", email);
-        final List<Invitation> invitations = internalInvitationRepo.findByEmail(email).stream().map(this::map).toList();
+        final List<Invitation> invitations = internalInvitationRepo.findByEmail(email).stream()
+                .map(this::map)
+                .toList();
         log.debug("Find invitations by email [{}] - Done", email);
         return invitations;
     }
 
     @Override
-    public List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) {
+    public List<Invitation> findByReferenceIdAndReferenceType(
+            String referenceId, InvitationReferenceType referenceType) {
         log.debug("Find invitation by reference '{}' / '{}'", referenceId, referenceType);
 
-        final List<InvitationMongo> invitations = internalInvitationRepo.findByReferenceIdAndReferenceType(
-            referenceId,
-            referenceType.name()
-        );
+        final List<InvitationMongo> invitations =
+                internalInvitationRepo.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
 
         log.debug("Find invitation by reference '{}' / '{}' done", referenceId, referenceType);
         return invitations.stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
-    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         log.debug("Search invitations");
 
-        var invitations = internalInvitationRepo.search(criteria, sortable, pageable).map(this::map);
+        var invitations =
+                internalInvitationRepo.search(criteria, sortable, pageable).map(this::map);
 
         log.debug("Search invitations - Done");
 
@@ -152,14 +157,15 @@ public class MongoInvitationRepository implements InvitationRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete invitation by refId: {}/{}", referenceId, referenceType);
         try {
-            final var invitations = internalInvitationRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(InvitationMongo::getId)
-                .toList();
+            final var invitations =
+                    internalInvitationRepo
+                            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                            .stream()
+                            .map(InvitationMongo::getId)
+                            .toList();
 
             log.debug("Delete invitation by refId {}/{} - Done", referenceId, referenceType);
             return invitations;

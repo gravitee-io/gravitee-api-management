@@ -34,28 +34,25 @@ public class TransactionResponseProcessor extends AbstractProcessor<ExecutionCon
     @Override
     public void handle(final ExecutionContext context) {
         setHeaderAccordingToBackendOverrideMode(
-            context.request().headers(),
-            context.response().headers(),
-            configuration.transactionHeader,
-            configuration.transactionHeaderHeaderOverrideMode
-        );
+                context.request().headers(),
+                context.response().headers(),
+                configuration.transactionHeader,
+                configuration.transactionHeaderHeaderOverrideMode);
 
         setHeaderAccordingToBackendOverrideMode(
-            context.request().headers(),
-            context.response().headers(),
-            configuration.requestHeader,
-            configuration.requestHeaderHeaderOverrideMode
-        );
+                context.request().headers(),
+                context.response().headers(),
+                configuration.requestHeader,
+                configuration.requestHeaderHeaderOverrideMode);
 
         next.handle(context);
     }
 
     private void setHeaderAccordingToBackendOverrideMode(
-        final HttpHeaders requestHeaders,
-        final HttpHeaders responseHeaders,
-        final String headerName,
-        final TransactionHeaderOverrideMode headerOverrideMode
-    ) {
+            final HttpHeaders requestHeaders,
+            final HttpHeaders responseHeaders,
+            final String headerName,
+            final TransactionHeaderOverrideMode headerOverrideMode) {
         String requestHeaderValue = requestHeaders.get(headerName);
         String backendHeaderValue = responseHeaders.get(headerName);
 

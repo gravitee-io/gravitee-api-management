@@ -38,13 +38,12 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record TraceFilterSpec(
-    String name,
-    String label,
-    FilterType type,
-    List<FilterOperator> operators,
-    List<String> enumValues,
-    Range range
-) {
+        String name,
+        String label,
+        FilterType type,
+        List<FilterOperator> operators,
+        List<String> enumValues,
+        Range range) {
     /** Inclusive numeric bounds for {@link FilterType#NUMBER} filters. */
     public record Range(Number min, Number max) {}
 }

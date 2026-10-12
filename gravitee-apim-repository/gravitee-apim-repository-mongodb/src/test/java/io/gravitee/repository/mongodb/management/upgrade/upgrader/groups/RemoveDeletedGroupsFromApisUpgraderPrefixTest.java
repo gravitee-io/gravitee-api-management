@@ -66,7 +66,9 @@ public class RemoveDeletedGroupsFromApisUpgraderPrefixTest extends AbstractManag
         upgrader.setEnvironment(environment);
 
         var prefix = environment.getProperty("management.mongodb.prefix", "");
-        assertThat(prefix).as("this test only covers the prefixed-collection bug").isNotBlank();
+        assertThat(prefix)
+                .as("this test only covers the prefixed-collection bug")
+                .isNotBlank();
 
         apisCollection = prefix + "apis";
         groupsCollection = prefix + ATTR_GROUPS;
@@ -110,7 +112,10 @@ public class RemoveDeletedGroupsFromApisUpgraderPrefixTest extends AbstractManag
     }
 
     private List<String> groupsOfIn(String collection, String apiId) {
-        var api = mongoTemplate.getCollection(collection).find(new Document("_id", apiId)).first();
+        var api = mongoTemplate
+                .getCollection(collection)
+                .find(new Document("_id", apiId))
+                .first();
         return api == null ? null : api.getList(ATTR_GROUPS, String.class);
     }
 
@@ -165,18 +170,21 @@ public class RemoveDeletedGroupsFromApisUpgraderPrefixTest extends AbstractManag
     public void safeguard_should_trip_when_every_existing_group_is_reported_as_deleted() {
         givenGroups(EXISTING_GROUP, ANOTHER_EXISTING_GROUP);
 
-        assertThat(upgrader.wouldRemoveEveryExistingGroup(List.of(EXISTING_GROUP, ANOTHER_EXISTING_GROUP))).isTrue();
+        assertThat(upgrader.wouldRemoveEveryExistingGroup(List.of(EXISTING_GROUP, ANOTHER_EXISTING_GROUP)))
+                .isTrue();
     }
 
     @Test
     public void safeguard_should_not_trip_when_some_groups_survive() {
         givenGroups(EXISTING_GROUP, ANOTHER_EXISTING_GROUP);
 
-        assertThat(upgrader.wouldRemoveEveryExistingGroup(List.of(DELETED_GROUP))).isFalse();
+        assertThat(upgrader.wouldRemoveEveryExistingGroup(List.of(DELETED_GROUP)))
+                .isFalse();
     }
 
     @Test
-    public void upgrade_should_remove_only_the_groups_that_no_longer_exist_when_no_prefix_is_configured() throws Exception {
+    public void upgrade_should_remove_only_the_groups_that_no_longer_exist_when_no_prefix_is_configured()
+            throws Exception {
         assumeTheUpgraderRunsOnThisDatabase();
         var unprefixedUpgrader = new RemoveDeletedGroupsFromApisUpgrader();
         unprefixedUpgrader.setMongoTemplate(mongoTemplate);

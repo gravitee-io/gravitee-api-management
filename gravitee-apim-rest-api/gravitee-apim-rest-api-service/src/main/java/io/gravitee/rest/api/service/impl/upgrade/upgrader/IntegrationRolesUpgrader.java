@@ -46,13 +46,11 @@ public class IntegrationRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeIntegrationRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                initializeIntegrationRoles(executionContext);
+                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+            });
             return true;
         });
     }
@@ -70,12 +68,14 @@ public class IntegrationRolesUpgrader implements Upgrader {
 
     private boolean shouldCreateIntegrationOwnerRole(final ExecutionContext executionContext) {
         return roleService
-            .findByScopeAndName(INTEGRATION, ROLE_INTEGRATION_OWNER.getName(), executionContext.getOrganizationId())
-            .isEmpty();
+                .findByScopeAndName(INTEGRATION, ROLE_INTEGRATION_OWNER.getName(), executionContext.getOrganizationId())
+                .isEmpty();
     }
 
     private boolean shouldCreateIntegrationUserRole(final ExecutionContext executionContext) {
-        return roleService.findByScopeAndName(INTEGRATION, ROLE_INTEGRATION_USER.getName(), executionContext.getOrganizationId()).isEmpty();
+        return roleService
+                .findByScopeAndName(INTEGRATION, ROLE_INTEGRATION_USER.getName(), executionContext.getOrganizationId())
+                .isEmpty();
     }
 
     @Override

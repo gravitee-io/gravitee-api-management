@@ -90,28 +90,30 @@ public class ExecutionModeUpgraderTest {
 
     @Test
     public void should_update_v2_api_with_jupiter_execution_mode() throws TechnicalException, UpgraderException {
-        ApiCriteria onlyV2ApiCriteria = new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build();
+        ApiCriteria onlyV2ApiCriteria = new ApiCriteria.Builder()
+                .definitionVersion(List.of(DefinitionVersion.V2))
+                .build();
         Api jupiterApi = new Api();
         jupiterApi.setDefinition("{\"execution_mode\" : \"jupiter\"}");
         Api v3Api = new Api();
         v3Api.setDefinition("{\"execution_mode\":\"v3\"}");
         Api v4EmulationApi = new Api();
         v4EmulationApi.setDefinition("{\"execution_mode\":\"v4-emulation-engine\"}");
-        when(apiRepository.search(eq(onlyV2ApiCriteria), any(), any())).thenReturn(Stream.of(jupiterApi, v3Api, v4EmulationApi));
+        when(apiRepository.search(eq(onlyV2ApiCriteria), any(), any()))
+                .thenReturn(Stream.of(jupiterApi, v3Api, v4EmulationApi));
 
         cut.upgrade();
 
-        verify(apiRepository, times(1)).update(
-            argThat(argument -> {
-                String apiDef = argument.getDefinition();
-                try {
-                    JsonNode jsonNode = graviteeMapper.readTree(apiDef);
-                    assertThat(jsonNode.get("execution_mode").asText()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE.getLabel());
-                } catch (JsonProcessingException e) {
-                    return false;
-                }
-                return true;
-            })
-        );
+        verify(apiRepository, times(1)).update(argThat(argument -> {
+            String apiDef = argument.getDefinition();
+            try {
+                JsonNode jsonNode = graviteeMapper.readTree(apiDef);
+                assertThat(jsonNode.get("execution_mode").asText())
+                        .isEqualTo(ExecutionMode.V4_EMULATION_ENGINE.getLabel());
+            } catch (JsonProcessingException e) {
+                return false;
+            }
+            return true;
+        }));
     }
 }

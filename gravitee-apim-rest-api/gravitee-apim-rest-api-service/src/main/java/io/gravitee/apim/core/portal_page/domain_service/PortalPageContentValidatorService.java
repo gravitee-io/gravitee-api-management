@@ -33,10 +33,9 @@ public class PortalPageContentValidatorService {
     private final List<PortalPageContentValidator> validators;
 
     public void validateForUpdate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent) {
-        validators
-            .stream()
-            .filter(validator -> validator.appliesTo(existingContent))
-            .forEach(validator -> validator.validate(existingContent, updateContent));
+        validators.stream()
+                .filter(validator -> validator.appliesTo(existingContent))
+                .forEach(validator -> validator.validate(existingContent, updateContent));
     }
 
     /**

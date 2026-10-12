@@ -72,9 +72,9 @@ public class UnlinkInstallationCommandHandlerTest {
     @Test
     public void handle() throws InterruptedException {
         final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload.builder()
-            .environmentCockpitId(COCKPIT_ENV_ID)
-            .organizationCockpitId(COCKPIT_ORG_ID)
-            .build();
+                .environmentCockpitId(COCKPIT_ENV_ID)
+                .organizationCockpitId(COCKPIT_ORG_ID)
+                .build();
 
         EnvironmentEntity environment = mock(EnvironmentEntity.class);
         String envId = "env#1";
@@ -91,7 +91,8 @@ public class UnlinkInstallationCommandHandlerTest {
         TestObserver<UnlinkInstallationReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(accessPointCrudService, times(1)).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, envId);
         verify(accessPointCrudService, times(1)).deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, orgId);
@@ -100,14 +101,15 @@ public class UnlinkInstallationCommandHandlerTest {
     @Test
     public void handleWithException() throws InterruptedException {
         final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload.builder()
-            .environmentCockpitId(COCKPIT_ENV_ID)
-            .build();
+                .environmentCockpitId(COCKPIT_ENV_ID)
+                .build();
 
         UnlinkInstallationCommand command = new UnlinkInstallationCommand(payload);
 
         TestObserver<UnlinkInstallationReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 }

@@ -50,7 +50,7 @@ public final class HazelcastRateLimitRepository implements RateLimitRepository<R
         RateLimit defaultIfAbsent = supplier.get();
         long now = System.currentTimeMillis();
         return Single.fromCompletionStage(
-            counters.submitToKey(key, new IncrementAndGetEntryProcessor(weight, defaultIfAbsent, now))
-        ).doOnError(t -> log.warn("Hazelcast rate-limit increment failed for key={}", key, t));
+                        counters.submitToKey(key, new IncrementAndGetEntryProcessor(weight, defaultIfAbsent, now)))
+                .doOnError(t -> log.warn("Hazelcast rate-limit increment failed for key={}", key, t));
     }
 }

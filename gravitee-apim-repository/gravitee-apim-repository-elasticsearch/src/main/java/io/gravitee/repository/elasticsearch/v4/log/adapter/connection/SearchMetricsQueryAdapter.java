@@ -29,13 +29,15 @@ import org.springframework.util.CollectionUtils;
 public class SearchMetricsQueryAdapter {
 
     private static final String NATIVE_CONNECTION_STATUS_FIELD =
-        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
-    private static final String FAILURE_SIDE_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.FAILURE_SIDE;
-    private static final String NATIVE_CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+    private static final String FAILURE_SIDE_FIELD =
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.FAILURE_SIDE;
+    private static final String NATIVE_CLIENT_ID_FIELD =
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
     private static final String NATIVE_CLIENT_SOFTWARE_NAME_FIELD =
-        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
     private static final String NATIVE_CLIENT_SOFTWARE_VERSION_FIELD =
-        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
 
     private SearchMetricsQueryAdapter() {}
 
@@ -157,7 +159,11 @@ public class SearchMetricsQueryAdapter {
 
     private static void addErrorKeysFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getErrorKeys())) {
-            mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, filter.getErrorKeys().toArray())));
+            mustFilterList.add(JsonObject.of(
+                    "terms",
+                    JsonObject.of(
+                            RequestV2MetricsV4Fields.ERROR_KEY,
+                            filter.getErrorKeys().toArray())));
         }
     }
 
@@ -167,7 +173,10 @@ public class SearchMetricsQueryAdapter {
      */
     private static void addTenantsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getTenants())) {
-            mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.TENANT, filter.getTenants().toArray())));
+            mustFilterList.add(JsonObject.of(
+                    "terms",
+                    JsonObject.of(
+                            RequestV2MetricsV4Fields.TENANT, filter.getTenants().toArray())));
         }
     }
 
@@ -180,42 +189,41 @@ public class SearchMetricsQueryAdapter {
         var scope = filter.getEntrypointScope();
         if (scope != null) {
             mustFilterList.add(
-                switch (scope.kind()) {
-                    case EXCLUDING -> EntrypointScopeClause.excluding(scope.ids());
-                    case EXACTLY -> EntrypointScopeClause.exactly(scope.ids());
-                }
-            );
+                    switch (scope.kind()) {
+                        case EXCLUDING -> EntrypointScopeClause.excluding(scope.ids());
+                        case EXACTLY -> EntrypointScopeClause.exactly(scope.ids());
+                    });
             return;
         }
         if (!CollectionUtils.isEmpty(filter.getEntrypointIds())) {
             var termsFilter = JsonObject.of(
-                "terms",
-                JsonObject.of(RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics(), filter.getEntrypointIds())
-            );
+                    "terms",
+                    JsonObject.of(RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics(), filter.getEntrypointIds()));
             var fieldMissingFilter = JsonObject.of(
-                "bool",
-                JsonObject.of(
-                    "must_not",
-                    JsonObject.of("exists", JsonObject.of("field", RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics()))
-                )
-            );
-            mustFilterList.add(
-                JsonObject.of("bool", JsonObject.of("should", JsonArray.of(termsFilter, fieldMissingFilter), "minimum_should_match", 1))
-            );
+                    "bool",
+                    JsonObject.of(
+                            "must_not",
+                            JsonObject.of(
+                                    "exists",
+                                    JsonObject.of("field", RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics()))));
+            mustFilterList.add(JsonObject.of(
+                    "bool",
+                    JsonObject.of("should", JsonArray.of(termsFilter, fieldMissingFilter), "minimum_should_match", 1)));
         }
     }
 
     private static void addStatusesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getStatuses())) {
-            mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.STATUS, filter.getStatuses())));
+            mustFilterList.add(
+                    JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.STATUS, filter.getStatuses())));
         }
     }
 
     private static void addHttpMethodsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getMethods())) {
-            mustFilterList.add(
-                buildV2AndV4Terms(RequestV2MetricsV4Fields.HTTP_METHOD, filter.getMethods().stream().map(HttpMethod::code).toList())
-            );
+            mustFilterList.add(buildV2AndV4Terms(
+                    RequestV2MetricsV4Fields.HTTP_METHOD,
+                    filter.getMethods().stream().map(HttpMethod::code).toList()));
         }
     }
 
@@ -241,11 +249,13 @@ public class SearchMetricsQueryAdapter {
         if (!CollectionUtils.isEmpty(filter.getStatusRanges())) {
             if (filter.getStatusRanges().size() == 1) {
                 var range = filter.getStatusRanges().getFirst();
-                mustFilterList.add(StatusCodeGroups.rangeForBounds(RequestV2MetricsV4Fields.STATUS, range.getGte(), range.getLte()));
+                mustFilterList.add(StatusCodeGroups.rangeForBounds(
+                        RequestV2MetricsV4Fields.STATUS, range.getGte(), range.getLte()));
             } else {
                 var ranges = new JsonArray();
                 for (var range : filter.getStatusRanges()) {
-                    ranges.add(StatusCodeGroups.rangeForBounds(RequestV2MetricsV4Fields.STATUS, range.getGte(), range.getLte()));
+                    ranges.add(StatusCodeGroups.rangeForBounds(
+                            RequestV2MetricsV4Fields.STATUS, range.getGte(), range.getLte()));
                 }
                 mustFilterList.add(JsonObject.of("bool", JsonObject.of("should", ranges, "minimum_should_match", 1)));
             }
@@ -254,7 +264,8 @@ public class SearchMetricsQueryAdapter {
 
     private static void addStatusCodeGroupsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getStatusCodeGroups())) {
-            mustFilterList.add(StatusCodeGroups.shouldForGroups(RequestV2MetricsV4Fields.STATUS, filter.getStatusCodeGroups()));
+            mustFilterList.add(
+                    StatusCodeGroups.shouldForGroups(RequestV2MetricsV4Fields.STATUS, filter.getStatusCodeGroups()));
         }
     }
 
@@ -266,7 +277,8 @@ public class SearchMetricsQueryAdapter {
 
     private static void addLlmProxyProvidersFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getLlmProxyProviders())) {
-            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.LLM_PROXY_PROVIDER, filter.getLlmProxyProviders()));
+            mustFilterList.add(
+                    buildV4Terms(RequestV2MetricsV4Fields.LLM_PROXY_PROVIDER, filter.getLlmProxyProviders()));
         }
     }
 
@@ -278,7 +290,8 @@ public class SearchMetricsQueryAdapter {
 
     private static void addMcpProxyResourcesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getMcpProxyResources())) {
-            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.MCP_PROXY_RESOURCE, filter.getMcpProxyResources()));
+            mustFilterList.add(
+                    buildV4Terms(RequestV2MetricsV4Fields.MCP_PROXY_RESOURCE, filter.getMcpProxyResources()));
         }
     }
 
@@ -294,7 +307,10 @@ public class SearchMetricsQueryAdapter {
      */
     private static void addNativeClientIdsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getNativeClientIds())) {
-            mustFilterList.add(JsonObject.of("terms", JsonObject.of(NATIVE_CLIENT_ID_FIELD, filter.getNativeClientIds().toArray())));
+            mustFilterList.add(JsonObject.of(
+                    "terms",
+                    JsonObject.of(
+                            NATIVE_CLIENT_ID_FIELD, filter.getNativeClientIds().toArray())));
         }
     }
 
@@ -302,11 +318,14 @@ public class SearchMetricsQueryAdapter {
      * KIP-511 client library name — the fleet question, "who is still on librdkafka?". Equality only, like
      * the version below: ordering a version string is meaningless on a keyword, but selecting one is not.
      */
-    private static void addNativeClientSoftwareNamesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+    private static void addNativeClientSoftwareNamesFilter(
+            MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getNativeClientSoftwareNames())) {
-            mustFilterList.add(
-                JsonObject.of("terms", JsonObject.of(NATIVE_CLIENT_SOFTWARE_NAME_FIELD, filter.getNativeClientSoftwareNames().toArray()))
-            );
+            mustFilterList.add(JsonObject.of(
+                    "terms",
+                    JsonObject.of(
+                            NATIVE_CLIENT_SOFTWARE_NAME_FIELD,
+                            filter.getNativeClientSoftwareNames().toArray())));
         }
     }
 
@@ -314,23 +333,25 @@ public class SearchMetricsQueryAdapter {
      * KIP-511 client library version. Narrows a library rather than standing on its own: several clients
      * share version numbers, so a version alone identifies nothing.
      */
-    private static void addNativeClientSoftwareVersionsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+    private static void addNativeClientSoftwareVersionsFilter(
+            MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getNativeClientSoftwareVersions())) {
-            mustFilterList.add(
-                JsonObject.of(
+            mustFilterList.add(JsonObject.of(
                     "terms",
-                    JsonObject.of(NATIVE_CLIENT_SOFTWARE_VERSION_FIELD, filter.getNativeClientSoftwareVersions().toArray())
-                )
-            );
+                    JsonObject.of(
+                            NATIVE_CLIENT_SOFTWARE_VERSION_FIELD,
+                            filter.getNativeClientSoftwareVersions().toArray())));
         }
     }
 
     private static void addNativeConnectionStatusesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getNativeConnectionStatuses())) {
             // Native Kafka connection status only exists in v4-metrics documents, under additional-metrics
-            mustFilterList.add(
-                JsonObject.of("terms", JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, filter.getNativeConnectionStatuses().toArray()))
-            );
+            mustFilterList.add(JsonObject.of(
+                    "terms",
+                    JsonObject.of(
+                            NATIVE_CONNECTION_STATUS_FIELD,
+                            filter.getNativeConnectionStatuses().toArray())));
         }
     }
 
@@ -354,112 +375,102 @@ public class SearchMetricsQueryAdapter {
         if (!perOrigin.isEmpty()) {
             // Native-document guard: failure origins are a native Kafka concept — without it,
             // NONE/UNKNOWN would match successful/errored HTTP rows in a mixed scope.
-            mustFilterList.add(
-                JsonObject.of(
+            mustFilterList.add(JsonObject.of(
                     "bool",
                     JsonObject.of(
-                        "must",
-                        JsonArray.of(hasNativeConnectionStatus()),
-                        "should",
-                        new JsonArray(perOrigin),
-                        "minimum_should_match",
-                        1
-                    )
-                )
-            );
+                            "must",
+                            JsonArray.of(hasNativeConnectionStatus()),
+                            "should",
+                            new JsonArray(perOrigin),
+                            "minimum_should_match",
+                            1)));
         }
     }
 
     private static JsonObject failureOriginPredicate(String origin) {
         return switch (origin) {
-            case "NONE" -> JsonObject.of(
-                "bool",
-                JsonObject.of("must_not", JsonArray.of(hasErrorKey(), internalStatus(), knownFailureSide()))
-            );
-            case "CLIENT_TO_GATEWAY" -> explicitSideOrHeuristic(
-                NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM,
+            case "NONE" ->
                 JsonObject.of(
-                    "bool",
-                    JsonObject.of(
-                        "must",
-                        JsonArray.of(hasErrorKey()),
-                        "should",
-                        JsonArray.of(
-                            clientSideKeys(),
-                            // Unclassified key reported during connection establishment: client side.
-                            JsonObject.of(
+                        "bool",
+                        JsonObject.of("must_not", JsonArray.of(hasErrorKey(), internalStatus(), knownFailureSide())));
+            case "CLIENT_TO_GATEWAY" ->
+                explicitSideOrHeuristic(
+                        NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM,
+                        JsonObject.of(
                                 "bool",
                                 JsonObject.of(
-                                    "must",
-                                    JsonArray.of(connectionErrorStatus()),
-                                    "must_not",
-                                    JsonArray.of(brokerSideKeys(), internalErrorKey(), internalStatus())
-                                )
-                            )
-                        ),
-                        "minimum_should_match",
-                        1
-                    )
-                )
-            );
-            case "GATEWAY_TO_BROKER" -> explicitSideOrHeuristic(
-                NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM,
-                JsonObject.of("bool", JsonObject.of("must", JsonArray.of(hasErrorKey(), brokerSideKeys())))
-            );
-            case "GATEWAY_INTERNAL" -> explicitSideOrHeuristic(
-                NativeFailureOriginRules.FAILURE_SIDE_INTERNAL,
-                JsonObject.of(
-                    "bool",
-                    JsonObject.of(
-                        "should",
-                        JsonArray.of(
-                            JsonObject.of(
+                                        "must",
+                                        JsonArray.of(hasErrorKey()),
+                                        "should",
+                                        JsonArray.of(
+                                                clientSideKeys(),
+                                                // Unclassified key reported during connection establishment: client
+                                                // side.
+                                                JsonObject.of(
+                                                        "bool",
+                                                        JsonObject.of(
+                                                                "must",
+                                                                JsonArray.of(connectionErrorStatus()),
+                                                                "must_not",
+                                                                JsonArray.of(
+                                                                        brokerSideKeys(),
+                                                                        internalErrorKey(),
+                                                                        internalStatus())))),
+                                        "minimum_should_match",
+                                        1)));
+            case "GATEWAY_TO_BROKER" ->
+                explicitSideOrHeuristic(
+                        NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM,
+                        JsonObject.of("bool", JsonObject.of("must", JsonArray.of(hasErrorKey(), brokerSideKeys()))));
+            case "GATEWAY_INTERNAL" ->
+                explicitSideOrHeuristic(
+                        NativeFailureOriginRules.FAILURE_SIDE_INTERNAL,
+                        JsonObject.of(
                                 "bool",
                                 JsonObject.of(
-                                    "must",
-                                    JsonArray.of(
-                                        hasErrorKey(),
-                                        JsonObject.of(
-                                            "bool",
-                                            JsonObject.of(
-                                                "should",
-                                                JsonArray.of(internalErrorKey(), internalStatus()),
-                                                "minimum_should_match",
-                                                1
-                                            )
-                                        )
-                                    ),
-                                    "must_not",
-                                    JsonArray.of(clientSideKeys(), brokerSideKeys())
-                                )
-                            ),
-                            JsonObject.of(
-                                "bool",
-                                JsonObject.of("must", JsonArray.of(internalStatus()), "must_not", JsonArray.of(hasErrorKey()))
-                            )
-                        ),
-                        "minimum_should_match",
-                        1
-                    )
-                )
-            );
+                                        "should",
+                                        JsonArray.of(
+                                                JsonObject.of(
+                                                        "bool",
+                                                        JsonObject.of(
+                                                                "must",
+                                                                JsonArray.of(
+                                                                        hasErrorKey(),
+                                                                        JsonObject.of(
+                                                                                "bool",
+                                                                                JsonObject.of(
+                                                                                        "should",
+                                                                                        JsonArray.of(
+                                                                                                internalErrorKey(),
+                                                                                                internalStatus()),
+                                                                                        "minimum_should_match",
+                                                                                        1))),
+                                                                "must_not",
+                                                                JsonArray.of(clientSideKeys(), brokerSideKeys()))),
+                                                JsonObject.of(
+                                                        "bool",
+                                                        JsonObject.of(
+                                                                "must",
+                                                                JsonArray.of(internalStatus()),
+                                                                "must_not",
+                                                                JsonArray.of(hasErrorKey())))),
+                                        "minimum_should_match",
+                                        1)));
             // Heuristically undecidable AND no explicit side written by the gateway.
-            case "UNKNOWN" -> JsonObject.of(
-                "bool",
+            case "UNKNOWN" ->
                 JsonObject.of(
-                    "must",
-                    JsonArray.of(hasErrorKey()),
-                    "must_not",
-                    JsonArray.of(
-                        knownFailureSide(),
-                        clientSideKeys(),
-                        brokerSideKeys(),
-                        internalErrorKey(),
-                        internalStatus(),
-                        connectionErrorStatus()
-                    )
-                )
-            );
+                        "bool",
+                        JsonObject.of(
+                                "must",
+                                JsonArray.of(hasErrorKey()),
+                                "must_not",
+                                JsonArray.of(
+                                        knownFailureSide(),
+                                        clientSideKeys(),
+                                        brokerSideKeys(),
+                                        internalErrorKey(),
+                                        internalStatus(),
+                                        connectionErrorStatus())));
             default -> null;
         };
     }
@@ -472,27 +483,21 @@ public class SearchMetricsQueryAdapter {
     private static JsonObject explicitSideOrHeuristic(String side, JsonObject heuristic) {
         var explicit = JsonObject.of("term", JsonObject.of(FAILURE_SIDE_FIELD, side));
         var withoutKnownSide = JsonObject.of(
-            "bool",
-            JsonObject.of("must", JsonArray.of(heuristic), "must_not", JsonArray.of(knownFailureSide()))
-        );
-        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(explicit, withoutKnownSide), "minimum_should_match", 1));
+                "bool", JsonObject.of("must", JsonArray.of(heuristic), "must_not", JsonArray.of(knownFailureSide())));
+        return JsonObject.of(
+                "bool", JsonObject.of("should", JsonArray.of(explicit, withoutKnownSide), "minimum_should_match", 1));
     }
 
     /** Matches documents whose failure side is one of the values this version can route explicitly. */
     private static JsonObject knownFailureSide() {
         return JsonObject.of(
-            "terms",
-            JsonObject.of(
-                FAILURE_SIDE_FIELD,
-                new JsonArray(
-                    List.of(
-                        NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM,
-                        NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM,
-                        NativeFailureOriginRules.FAILURE_SIDE_INTERNAL
-                    )
-                )
-            )
-        );
+                "terms",
+                JsonObject.of(
+                        FAILURE_SIDE_FIELD,
+                        new JsonArray(List.of(
+                                NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM,
+                                NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM,
+                                NativeFailureOriginRules.FAILURE_SIDE_INTERNAL))));
     }
 
     private static JsonObject hasNativeConnectionStatus() {
@@ -505,19 +510,18 @@ public class SearchMetricsQueryAdapter {
 
     private static JsonObject clientSideKeys() {
         return JsonObject.of(
-            "terms",
-            JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.CLIENT_SIDE_ERROR_KEYS.toArray())
-        );
+                "terms",
+                JsonObject.of(
+                        RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.CLIENT_SIDE_ERROR_KEYS.toArray()));
     }
 
     private static JsonObject brokerSideKeys() {
         var branches = new ArrayList<JsonObject>();
-        branches.add(
-            JsonObject.of(
+        branches.add(JsonObject.of(
                 "terms",
-                JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.BROKER_SIDE_ERROR_KEYS.toArray())
-            )
-        );
+                JsonObject.of(
+                        RequestV2MetricsV4Fields.ERROR_KEY,
+                        NativeFailureOriginRules.BROKER_SIDE_ERROR_KEYS.toArray())));
         for (String prefix : NativeFailureOriginRules.BROKER_SIDE_ERROR_KEY_PREFIXES) {
             branches.add(JsonObject.of("prefix", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, prefix)));
         }
@@ -525,38 +529,41 @@ public class SearchMetricsQueryAdapter {
     }
 
     private static JsonObject internalErrorKey() {
-        return JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.UNKNOWN_SERVER_ERROR_KEY));
+        return JsonObject.of(
+                "term",
+                JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.UNKNOWN_SERVER_ERROR_KEY));
     }
 
     private static JsonObject internalStatus() {
-        return JsonObject.of("term", JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, NativeFailureOriginRules.INTERNAL_ERROR_STATUS));
+        return JsonObject.of(
+                "term", JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, NativeFailureOriginRules.INTERNAL_ERROR_STATUS));
     }
 
     private static JsonObject connectionErrorStatus() {
-        return JsonObject.of("term", JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, NativeFailureOriginRules.CONNECTION_ERROR_STATUS));
+        return JsonObject.of(
+                "term",
+                JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, NativeFailureOriginRules.CONNECTION_ERROR_STATUS));
     }
 
     private static void addResponseTimeRangesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getResponseTimeRanges())) {
             var responseTimeRanges = new ArrayList<JsonObject>();
-            filter
-                .getResponseTimeRanges()
-                .forEach(responseTimeRange -> {
-                    var rangeJsonObject = new JsonObject();
-                    if (responseTimeRange.getFrom() != null) {
-                        rangeJsonObject.put("gte", responseTimeRange.getFrom());
-                    }
-                    if (responseTimeRange.getTo() != null) {
-                        rangeJsonObject.put("lte", new Date(responseTimeRange.getTo()));
-                    }
+            filter.getResponseTimeRanges().forEach(responseTimeRange -> {
+                var rangeJsonObject = new JsonObject();
+                if (responseTimeRange.getFrom() != null) {
+                    rangeJsonObject.put("gte", responseTimeRange.getFrom());
+                }
+                if (responseTimeRange.getTo() != null) {
+                    rangeJsonObject.put("lte", new Date(responseTimeRange.getTo()));
+                }
 
-                    responseTimeRanges.add(
-                        JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v2Request(), rangeJsonObject))
-                    );
-                    responseTimeRanges.add(
-                        JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v4Metrics(), rangeJsonObject))
-                    );
-                });
+                responseTimeRanges.add(JsonObject.of(
+                        "range",
+                        JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v2Request(), rangeJsonObject)));
+                responseTimeRanges.add(JsonObject.of(
+                        "range",
+                        JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v4Metrics(), rangeJsonObject)));
+            });
 
             mustFilterList.add(buildShould(responseTimeRanges));
         }
@@ -571,15 +578,17 @@ public class SearchMetricsQueryAdapter {
             if (filter.getTo() != null) {
                 timestampJsonObject.put("lte", new Date(filter.getTo()));
             }
-            mustFilterList.add(JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, timestampJsonObject)));
+            mustFilterList.add(
+                    JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, timestampJsonObject)));
         }
     }
 
     private static JsonArray buildSort() {
         return JsonArray.of(
-            JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")),
-            JsonObject.of(RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics(), JsonObject.of("order", "asc", "unmapped_type", "keyword"))
-        );
+                JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")),
+                JsonObject.of(
+                        RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics(),
+                        JsonObject.of("order", "asc", "unmapped_type", "keyword")));
     }
 
     private static JsonObject buildV4Terms(RequestV2MetricsV4Fields.Field field, Collection<?> value) {

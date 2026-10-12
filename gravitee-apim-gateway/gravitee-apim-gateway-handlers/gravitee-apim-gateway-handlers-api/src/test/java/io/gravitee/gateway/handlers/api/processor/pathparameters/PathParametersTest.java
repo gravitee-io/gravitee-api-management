@@ -38,47 +38,56 @@ class PathParametersTest {
     void should_not_have_parameters_starts_with_operator() {
         final PathParameters cut = new PathParameters("/product/apim/item/portal", Operator.STARTS_WITH);
         assertThat(cut.getParameters()).isEmpty();
-        assertThat(cut.getPathPattern()).hasToString(Pattern.compile("^/product/apim/item/portal(?:/.*)?$").toString());
+        assertThat(cut.getPathPattern())
+                .hasToString(
+                        Pattern.compile("^/product/apim/item/portal(?:/.*)?$").toString());
     }
 
     @Test
     void should_not_have_parameters_equals_operator() {
         final PathParameters cut = new PathParameters("/product/apim/item/portal", Operator.EQUALS);
         assertThat(cut.getParameters()).isEmpty();
-        assertThat(cut.getPathPattern()).hasToString(Pattern.compile("^/product/apim/item/portal/?$").toString());
+        assertThat(cut.getPathPattern())
+                .hasToString(Pattern.compile("^/product/apim/item/portal/?$").toString());
     }
 
     @Test
     void should_have_parameters_starts_with_operator() {
         final PathParameters cut = new PathParameters("/product/:productId/item/:itemId", Operator.STARTS_WITH);
-        assertThat(cut.getParameters()).hasSize(2).extracting(PathParameter::getName).contains("productId", "itemId");
-        assertThat(cut.getPathPattern()).hasToString(
-            Pattern.compile(
-                "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)(?:/.*)?$"
-            ).toString()
-        );
+        assertThat(cut.getParameters())
+                .hasSize(2)
+                .extracting(PathParameter::getName)
+                .contains("productId", "itemId");
+        assertThat(cut.getPathPattern())
+                .hasToString(Pattern.compile(
+                                "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)(?:/.*)?$")
+                        .toString());
     }
 
     @Test
     void should_have_parameters_equals_operator() {
         final PathParameters cut = new PathParameters("/product/:productId/item/:itemId", Operator.EQUALS);
-        assertThat(cut.getParameters()).hasSize(2).extracting(PathParameter::getName).contains("productId", "itemId");
-        assertThat(cut.getPathPattern()).hasToString(
-            Pattern.compile(
-                "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/?$"
-            ).toString()
-        );
+        assertThat(cut.getParameters())
+                .hasSize(2)
+                .extracting(PathParameter::getName)
+                .contains("productId", "itemId");
+        assertThat(cut.getPathPattern())
+                .hasToString(Pattern.compile(
+                                "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/?$")
+                        .toString());
     }
 
     @Test
     void should_have_parameters_with_special_character() {
         final PathParameters cut = new PathParameters("/product/:product-id/item/:It€m_Id", Operator.STARTS_WITH);
-        assertThat(cut.getParameters()).hasSize(2).extracting(PathParameter::getName).contains("product-id", "It€m_Id");
-        assertThat(cut.getPathPattern()).hasToString(
-            Pattern.compile(
-                "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)(?:/.*)?$"
-            ).toString()
-        );
+        assertThat(cut.getParameters())
+                .hasSize(2)
+                .extracting(PathParameter::getName)
+                .contains("product-id", "It€m_Id");
+        assertThat(cut.getPathPattern())
+                .hasToString(Pattern.compile(
+                                "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)(?:/.*)?$")
+                        .toString());
     }
 
     @ParameterizedTest
@@ -89,18 +98,18 @@ class PathParametersTest {
 
     public static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of(
-                new PathParameters("/products/", Operator.STARTS_WITH),
-                new PathParameters("/products/", Operator.STARTS_WITH),
-                true
-            ),
-            Arguments.of(
-                new PathParameters("/products/", Operator.STARTS_WITH),
-                new PathParameters("/products/second", Operator.STARTS_WITH),
-                false
-            ),
-            Arguments.of(new PathParameters("/products/", Operator.STARTS_WITH), null, false),
-            Arguments.of(new PathParameters("/products/", Operator.EQUALS), new PathParameters("/products/", Operator.STARTS_WITH), false)
-        );
+                Arguments.of(
+                        new PathParameters("/products/", Operator.STARTS_WITH),
+                        new PathParameters("/products/", Operator.STARTS_WITH),
+                        true),
+                Arguments.of(
+                        new PathParameters("/products/", Operator.STARTS_WITH),
+                        new PathParameters("/products/second", Operator.STARTS_WITH),
+                        false),
+                Arguments.of(new PathParameters("/products/", Operator.STARTS_WITH), null, false),
+                Arguments.of(
+                        new PathParameters("/products/", Operator.EQUALS),
+                        new PathParameters("/products/", Operator.STARTS_WITH),
+                        false));
     }
 }

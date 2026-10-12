@@ -23,7 +23,8 @@ import io.gravitee.repository.analytics.query.TimeRangeFilter;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q extends AbstractQuery> implements QueryBuilder {
+public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q extends AbstractQuery>
+        implements QueryBuilder {
 
     protected final Q query;
 

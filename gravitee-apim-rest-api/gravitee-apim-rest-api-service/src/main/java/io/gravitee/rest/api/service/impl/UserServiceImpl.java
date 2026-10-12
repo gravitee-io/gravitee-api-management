@@ -206,6 +206,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     /** The only email link destination a caller may name. Never a URL -- see registerWithTarget. */
     private static final String GAMMA_TARGET = "gamma";
+
     private static final String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
     private static final String TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE = "accessToken";
     private static final String TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE = "idToken";
@@ -333,13 +334,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
         String environmentId = executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null;
         List<String> configuredWhitelist = portalWhitelist == null ? List.of() : portalWhitelist;
-        List<String> effectiveWhitelist = configuredWhitelist.isEmpty() ? fallbackPortalWhitelist(executionContext) : configuredWhitelist;
+        List<String> effectiveWhitelist =
+                configuredWhitelist.isEmpty() ? fallbackPortalWhitelist(executionContext) : configuredWhitelist;
         if (effectiveWhitelist.isEmpty()) {
             log.warn(
-                "Rejected redirect URL '{}' for environment {}: no 'portal.whitelist' is configured and no portal URL could be resolved for this environment. Falling back to the default link.",
-                url,
-                environmentId
-            );
+                    "Rejected redirect URL '{}' for environment {}: no 'portal.whitelist' is configured and no portal URL could be resolved for this environment. Falling back to the default link.",
+                    url,
+                    environmentId);
             return null;
         }
         try {
@@ -347,11 +348,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             return url;
         } catch (UrlForbiddenException e) {
             log.warn(
-                "Rejected redirect URL '{}' for environment {}: not part of the allowed whitelist {}. Falling back to the default link.",
-                url,
-                environmentId,
-                effectiveWhitelist
-            );
+                    "Rejected redirect URL '{}' for environment {}: not part of the allowed whitelist {}. Falling back to the default link.",
+                    url,
+                    environmentId,
+                    effectiveWhitelist);
             return null;
         }
     }
@@ -364,10 +364,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (portalUrls == null) {
             return List.of();
         }
-        return portalUrls
-            .stream()
-            .filter(portalUrl -> !isEmpty(portalUrl) && !DEFAULT_PORTAL_URL.equals(portalUrl))
-            .toList();
+        return portalUrls.stream()
+                .filter(portalUrl -> !isEmpty(portalUrl) && !DEFAULT_PORTAL_URL.equals(portalUrl))
+                .toList();
     }
 
     @Override
@@ -385,10 +384,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // First connection: create default application for user & notify
             if (user.getLastConnectionAt() == null && user.getFirstConnectionAt() == null) {
                 notifierService.trigger(
-                    executionContext,
-                    PortalHook.USER_FIRST_LOGIN,
-                    new NotificationParamsBuilder().user(convert(user, false)).build()
-                );
+                        executionContext,
+                        PortalHook.USER_FIRST_LOGIN,
+                        new NotificationParamsBuilder()
+                                .user(convert(user, false))
+                                .build());
                 user.setFirstConnectionAt(new Date());
                 if (defaultApplicationForFirstConnection) {
                     log.debug("Create a default application for {}", userId);
@@ -396,7 +396,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     defaultApp.setName("Default application");
                     defaultApp.setDescription("My default application");
 
-                    // To preserve backward compatibility, ensure that we have at least default settings for simple application type
+                    // To preserve backward compatibility, ensure that we have at least default settings for simple
+                    // application type
                     ApplicationSettings settings = new ApplicationSettings();
                     SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
                     settings.setApp(simpleAppSettings);
@@ -404,16 +405,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
                     try {
                         environmentService
-                            .findByUser(executionContext.getOrganizationId(), userId)
-                            .forEach(env ->
-                                applicationService.create(
-                                    new ExecutionContext(executionContext.getOrganizationId(), env.getId()),
-                                    defaultApp,
-                                    userId
-                                )
-                            );
+                                .findByUser(executionContext.getOrganizationId(), userId)
+                                .forEach(env -> applicationService.create(
+                                        new ExecutionContext(executionContext.getOrganizationId(), env.getId()),
+                                        defaultApp,
+                                        userId));
                     } catch (IllegalStateException ex) {
-                        //do not fail to create a user even if we are not able to create its default app
+                        // do not fail to create a user even if we are not able to create its default app
                         log.warn("Not able to create default app for user {}", userId);
                     }
                 }
@@ -429,15 +427,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             User updatedUser = userRepository.update(user);
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER, userId))
-                    .event(USER_CONNECTED)
-                    .createdAt(user.getUpdatedAt())
-                    .oldValue(previousUser)
-                    .newValue(user)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER, userId))
+                            .event(USER_CONNECTED)
+                            .createdAt(user.getUpdatedAt())
+                            .oldValue(previousUser)
+                            .newValue(user)
+                            .build());
 
             final UserEntity userEntity = convert(updatedUser, true);
             searchEngineService.index(executionContext, userEntity, false);
@@ -454,8 +451,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 log.debug("Find user by ID: {}", k);
 
                 Optional<User> optionalUser = userRepository
-                    .findById(k)
-                    .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
+                        .findById(k)
+                        .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
                 if (optionalUser.isPresent()) {
                     return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(k), true);
                 }
@@ -467,10 +464,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     return unknownUser;
                 }
 
-                //should never happen
+                // should never happen
                 throw new UserNotFoundException(k);
             } catch (TechnicalException ex) {
-                throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + k, ex);
+                throw new TechnicalManagementException(
+                        "An error occurs while trying to find user using its ID " + k, ex);
             }
         });
     }
@@ -480,10 +478,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             log.debug("Find user by Email: {}", email);
             List<User> users = userRepository.findByEmail(email, executionContext.getOrganizationId());
-            return users
-                .stream()
-                .map(user -> convert(user, false))
-                .toList();
+            return users.stream().map(user -> convert(user, false)).toList();
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find user using its email", ex);
         }
@@ -494,12 +489,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         log.debug("Find user by ID: {}", userId);
         try {
             return userRepository
-                .findById(userId)
-                .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
-                .map(user -> convertWithFlags(executionContext, user))
-                .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
+                    .findById(userId)
+                    .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                    .map(user -> convertWithFlags(executionContext, user))
+                    .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + userId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find user using its ID " + userId, ex);
         }
     }
 
@@ -509,11 +505,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             log.debug("Find user by source[{}] user[{}]", source, sourceId);
 
             return userRepository
-                .findBySource(source, sourceId, organizationId)
-                .map(user -> convert(user, loadRoles, emptyList(), false))
-                .orElseThrow(() -> new UserNotFoundException(sourceId));
+                    .findBySource(source, sourceId, organizationId)
+                    .map(user -> convert(user, loadRoles, emptyList(), false))
+                    .orElseThrow(() -> new UserNotFoundException(sourceId));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find user using source " + source + ':' + sourceId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find user using source " + source + ':' + sourceId, ex);
         }
     }
 
@@ -523,17 +520,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids, boolean withUserMetadata) {
+    public Set<UserEntity> findByIds(
+            ExecutionContext executionContext, Collection<String> ids, boolean withUserMetadata) {
         try {
             log.debug("Find users by ID: {}", ids);
 
             Set<User> users = userRepository.findByIds(ids);
 
             if (!users.isEmpty()) {
-                return users
-                    .stream()
-                    .map(u -> this.convert(u, false, withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList(), true))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+                return users.stream()
+                        .map(u -> this.convert(
+                                u,
+                                false,
+                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList(),
+                                true))
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
             }
 
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
@@ -544,7 +545,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
         } catch (TechnicalException ex) {
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
-            throw new TechnicalManagementException("An error occurs while trying to find users using their ID " + idsAsString, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find users using their ID " + idsAsString, ex);
         }
     }
 
@@ -553,18 +555,16 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         ReferenceContext currentContext = executionContext.getReferenceContext();
         if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
             userCreationEnabled = parameterService.findAsBoolean(
-                executionContext,
-                Key.CONSOLE_USERCREATION_ENABLED,
-                currentContext.getReferenceId(),
-                ParameterReferenceType.ORGANIZATION
-            );
+                    executionContext,
+                    Key.CONSOLE_USERCREATION_ENABLED,
+                    currentContext.getReferenceId(),
+                    ParameterReferenceType.ORGANIZATION);
         } else {
             userCreationEnabled = parameterService.findAsBoolean(
-                executionContext,
-                Key.PORTAL_USERCREATION_ENABLED,
-                currentContext.getReferenceId(),
-                ParameterReferenceType.ENVIRONMENT
-            );
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    currentContext.getReferenceId(),
+                    ParameterReferenceType.ENVIRONMENT);
         }
 
         if (!userCreationEnabled) {
@@ -580,7 +580,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @return the user
      */
     @Override
-    public UserEntity finalizeRegistration(ExecutionContext executionContext, final RegisterUserEntity registerUserEntity) {
+    public UserEntity finalizeRegistration(
+            ExecutionContext executionContext, final RegisterUserEntity registerUserEntity) {
         try {
             DecodedJWT jwt = getDecodedJWT(registerUserEntity.getToken());
 
@@ -595,10 +596,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 // check invitations
                 final String email = jwt.getClaim(Claims.EMAIL).asString();
                 final List<InvitationEntity> invitations = invitationService.findAll();
-                final List<InvitationEntity> userInvitations = invitations
-                    .stream()
-                    .filter(invitation -> invitation.getEmail().equals(email))
-                    .collect(toList());
+                final List<InvitationEntity> userInvitations = invitations.stream()
+                        .filter(invitation -> invitation.getEmail().equals(email))
+                        .collect(toList());
                 if (userInvitations.isEmpty()) {
                     throw new IllegalStateException("Invitation has been canceled");
                 }
@@ -634,7 +634,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     throw new UserRegistrationPendingApprovalException(username);
                 }
                 if (UserStatus.REJECTED == user.getStatus() || UserStatus.ARCHIVED == user.getStatus()) {
-                    throw new UserStateConflictException("Registration of user " + username + " cannot be finalized anymore");
+                    throw new UserStateConflictException(
+                            "Registration of user " + username + " cannot be finalized anymore");
                 }
             }
 
@@ -643,20 +644,18 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 final String email = user.getEmail();
                 final String userId = user.getId();
                 final List<InvitationEntity> invitations = invitationService.findAll();
-                invitations
-                    .stream()
-                    .filter(invitation -> invitation.getEmail().equals(email))
-                    .forEach(invitation -> {
-                        invitationService.addMember(
-                            executionContext,
-                            invitation.getReferenceType().name(),
-                            invitation.getReferenceId(),
-                            userId,
-                            invitation.getApiRole(),
-                            invitation.getApplicationRole()
-                        );
-                        invitationService.delete(invitation.getId(), invitation.getReferenceId());
-                    });
+                invitations.stream()
+                        .filter(invitation -> invitation.getEmail().equals(email))
+                        .forEach(invitation -> {
+                            invitationService.addMember(
+                                    executionContext,
+                                    invitation.getReferenceType().name(),
+                                    invitation.getReferenceId(),
+                                    userId,
+                                    invitation.getApiRole(),
+                                    invitation.getApplicationRole());
+                            invitationService.delete(invitation.getId(), invitation.getReferenceId());
+                        });
             }
 
             // Set date fields
@@ -667,15 +666,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             user = userRepository.update(user);
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER, user.getId()))
-                    .event(USER_CREATED)
-                    .createdAt(user.getUpdatedAt())
-                    .oldValue(null)
-                    .newValue(user)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER, user.getId()))
+                            .event(USER_CREATED)
+                            .createdAt(user.getUpdatedAt())
+                            .oldValue(null)
+                            .newValue(user)
+                            .build());
 
             // Do not send back the password
             user.setPassword(null);
@@ -692,7 +690,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public UserEntity finalizeResetPassword(ExecutionContext executionContext, ResetPasswordUserEntity registerUserEntity) {
+    public UserEntity finalizeResetPassword(
+            ExecutionContext executionContext, ResetPasswordUserEntity registerUserEntity) {
         try {
             DecodedJWT jwt = getDecodedJWT(registerUserEntity.getToken());
 
@@ -709,9 +708,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 final String username = subject.toString();
                 log.debug("Find user {} to update password", username);
                 user = userRepository
-                    .findById(username)
-                    .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
-                    .orElseThrow(() -> new UserNotFoundException(username));
+                        .findById(username)
+                        .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                        .orElseThrow(() -> new UserNotFoundException(username));
             }
 
             // Set date fields
@@ -723,15 +722,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user = userRepository.update(user);
 
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER, user.getId()))
-                    .event(PASSWORD_CHANGED)
-                    .createdAt(user.getUpdatedAt())
-                    .oldValue(null)
-                    .newValue(null)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER, user.getId()))
+                            .event(PASSWORD_CHANGED)
+                            .createdAt(user.getUpdatedAt())
+                            .oldValue(null)
+                            .newValue(null)
+                            .build());
 
             // Do not send back the password
             user.setPassword(null);
@@ -761,7 +759,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
 
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
-        JWTVerifier verifier = JWT.require(algorithm).withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER)).build();
+        JWTVerifier verifier = JWT.require(algorithm)
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .build();
 
         return verifier.verify(token);
     }
@@ -803,7 +803,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @return
      */
     @Override
-    public UserEntity create(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
+    public UserEntity create(
+            ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
         return create(executionContext, newExternalUserEntity, addDefaultRole, true, null);
     }
 
@@ -813,12 +814,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      *     is built by a later request, which has no other way of knowing which front door to send them back to.
      */
     private UserEntity create(
-        ExecutionContext executionContext,
-        NewExternalUserEntity newExternalUserEntity,
-        boolean addDefaultRole,
-        boolean autoRegistrationEnabled,
-        RegistrationOrigin registrationOrigin
-    ) {
+            ExecutionContext executionContext,
+            NewExternalUserEntity newExternalUserEntity,
+            boolean addDefaultRole,
+            boolean autoRegistrationEnabled,
+            RegistrationOrigin registrationOrigin) {
         try {
             String organizationId = executionContext.getOrganizationId();
 
@@ -827,17 +827,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             log.debug("Create an external user {}", newExternalUserEntity);
             Optional<User> checkUser = userRepository.findBySource(
-                newExternalUserEntity.getSource(),
-                newExternalUserEntity.getSourceId(),
-                organizationId
-            );
+                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), organizationId);
 
             if (checkUser.isPresent()) {
                 throw InvalidUserException.cannotBeCreated(
-                    newExternalUserEntity.getSource(),
-                    newExternalUserEntity.getSourceId(),
-                    organizationId
-                );
+                        newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), organizationId);
             }
 
             User user = userConverter.toUser(newExternalUserEntity);
@@ -856,19 +850,19 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             User createdUser = userRepository.create(user);
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER, user.getId()))
-                    .event(USER_CREATED)
-                    .createdAt(user.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(user)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER, user.getId()))
+                            .event(USER_CREATED)
+                            .createdAt(user.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(user)
+                            .build());
 
             List<UserMetadataEntity> metadata = new ArrayList<>();
             if (newExternalUserEntity.getCustomFields() != null) {
-                for (Map.Entry<String, Object> entry : newExternalUserEntity.getCustomFields().entrySet()) {
+                for (Map.Entry<String, Object> entry :
+                        newExternalUserEntity.getCustomFields().entrySet()) {
                     NewUserMetadataEntity metadataEntity = new NewUserMetadataEntity();
                     metadataEntity.setName(entry.getKey());
                     metadataEntity.setUserId(createdUser.getId());
@@ -886,7 +880,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to create an external user" + newExternalUserEntity, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create an external user" + newExternalUserEntity, ex);
         }
     }
 
@@ -896,24 +891,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public UserEntity register(
-        ExecutionContext executionContext,
-        final NewExternalUserEntity newExternalUserEntity,
-        final String confirmationPageUrl
-    ) {
+            ExecutionContext executionContext,
+            final NewExternalUserEntity newExternalUserEntity,
+            final String confirmationPageUrl) {
         return doRegister(
-            executionContext,
-            newExternalUserEntity,
-            () -> sanitizePortalRedirectUrl(executionContext, confirmationPageUrl),
-            RegistrationOrigin.PORTAL
-        );
+                executionContext,
+                newExternalUserEntity,
+                () -> sanitizePortalRedirectUrl(executionContext, confirmationPageUrl),
+                RegistrationOrigin.PORTAL);
     }
 
     @Override
     public UserEntity registerWithTarget(
-        ExecutionContext executionContext,
-        final NewExternalUserEntity newExternalUserEntity,
-        final String registrationTarget
-    ) {
+            ExecutionContext executionContext,
+            final NewExternalUserEntity newExternalUserEntity,
+            final String registrationTarget) {
         if (registrationTarget == null || registrationTarget.isBlank()) {
             return doRegister(executionContext, newExternalUserEntity, () -> null, RegistrationOrigin.CONSOLE);
         }
@@ -923,11 +915,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // not pass through sanitizePortalRedirectUrl: that whitelist exists for caller-supplied portal
             // URLs and would drop a trusted one built here.
             return doRegister(
-                executionContext,
-                newExternalUserEntity,
-                () -> buildGammaRegistrationPageUrl(executionContext.getOrganizationId()),
-                RegistrationOrigin.GAMMA
-            );
+                    executionContext,
+                    newExternalUserEntity,
+                    () -> buildGammaRegistrationPageUrl(executionContext.getOrganizationId()),
+                    RegistrationOrigin.GAMMA);
         }
 
         throw new ValidationDomainException("Unsupported registration target: " + registrationTarget);
@@ -940,55 +931,51 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      *     installation lookup on its way out.
      */
     private UserEntity doRegister(
-        ExecutionContext executionContext,
-        final NewExternalUserEntity newExternalUserEntity,
-        final Supplier<String> confirmationPageUrl,
-        final RegistrationOrigin registrationOrigin
-    ) {
+            ExecutionContext executionContext,
+            final NewExternalUserEntity newExternalUserEntity,
+            final Supplier<String> confirmationPageUrl,
+            final RegistrationOrigin registrationOrigin) {
         final ReferenceContext currentContext = executionContext.getReferenceContext();
 
         checkUserRegistrationEnabled(executionContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(executionContext, currentContext);
 
         return createAndSendEmail(
-            executionContext,
-            newExternalUserEntity,
-            USER_REGISTRATION,
-            confirmationPageUrl.get(),
-            autoRegistrationEnabled,
-            false,
-            registrationOrigin
-        );
+                executionContext,
+                newExternalUserEntity,
+                USER_REGISTRATION,
+                confirmationPageUrl.get(),
+                autoRegistrationEnabled,
+                false,
+                registrationOrigin);
     }
 
     private boolean isAutoRegistrationEnabled(ExecutionContext executionContext, ReferenceContext currentContext) {
         if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
             return parameterService.findAsBoolean(
-                executionContext,
-                Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED,
-                currentContext.getReferenceId(),
-                ParameterReferenceType.ORGANIZATION
-            );
+                    executionContext,
+                    Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED,
+                    currentContext.getReferenceId(),
+                    ParameterReferenceType.ORGANIZATION);
         }
         return parameterService.findAsBoolean(
-            executionContext,
-            Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED,
-            currentContext.getReferenceId(),
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext,
+                Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED,
+                currentContext.getReferenceId(),
+                ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
-    public UserEntity create(ExecutionContext executionContext, final NewPreRegisterUserEntity newPreRegisterUserEntity) {
+    public UserEntity create(
+            ExecutionContext executionContext, final NewPreRegisterUserEntity newPreRegisterUserEntity) {
         return createAndSendEmail(
-            executionContext,
-            newPreRegisterUserEntity,
-            USER_CREATION,
-            null,
-            true,
-            newPreRegisterUserEntity.isService(),
-            null
-        );
+                executionContext,
+                newPreRegisterUserEntity,
+                USER_CREATION,
+                null,
+                true,
+                newPreRegisterUserEntity.isService(),
+                null);
     }
 
     private boolean isServiceAccount(User user) {
@@ -1002,18 +989,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * Allows to create an user and send an email notification to finalize its creation.
      */
     private UserEntity createAndSendEmail(
-        ExecutionContext executionContext,
-        final NewExternalUserEntity newExternalUserEntity,
-        final ACTION action,
-        final String confirmationPageUrl,
-        final boolean autoRegistrationEnabled,
-        final boolean isServiceUser,
-        final RegistrationOrigin registrationOrigin
-    ) {
-        if (
-            (!isServiceUser || StringUtils.isNotEmpty(newExternalUserEntity.getEmail())) &&
-            !EmailValidator.isValid(newExternalUserEntity.getEmail())
-        ) {
+            ExecutionContext executionContext,
+            final NewExternalUserEntity newExternalUserEntity,
+            final ACTION action,
+            final String confirmationPageUrl,
+            final boolean autoRegistrationEnabled,
+            final boolean isServiceUser,
+            final RegistrationOrigin registrationOrigin) {
+        if ((!isServiceUser || StringUtils.isNotEmpty(newExternalUserEntity.getEmail()))
+                && !EmailValidator.isValid(newExternalUserEntity.getEmail())) {
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 
@@ -1042,33 +1026,27 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final String trimmedSourceId = StringUtils.trim(resolvedSourceId);
         if (isBlank(trimmedSourceId)) {
             throw new InvalidUserException(
-                "a service account requires a sourceId, lastname or email to derive a unique identifier",
-                newExternalUserEntity.getSource(),
-                null,
-                organizationId
-            );
+                    "a service account requires a sourceId, lastname or email to derive a unique identifier",
+                    newExternalUserEntity.getSource(),
+                    null,
+                    organizationId);
         }
         newExternalUserEntity.setSourceId(trimmedSourceId);
 
         final Optional<User> optionalUser;
         try {
             optionalUser = userRepository.findBySource(
-                newExternalUserEntity.getSource(),
-                newExternalUserEntity.getSourceId(),
-                organizationId
-            );
+                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), organizationId);
             if (optionalUser.isPresent()) {
                 throw InvalidUserException.cannotBeCreated(
-                    newExternalUserEntity.getSource(),
-                    newExternalUserEntity.getSourceId(),
-                    organizationId
-                );
+                        newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), organizationId);
             }
         } catch (final TechnicalException e) {
             throw new TechnicalManagementException(e.getMessage(), e);
         }
 
-        final UserEntity userEntity = create(executionContext, newExternalUserEntity, true, autoRegistrationEnabled, registrationOrigin);
+        final UserEntity userEntity =
+                create(executionContext, newExternalUserEntity, true, autoRegistrationEnabled, registrationOrigin);
 
         if (userEntity == null) {
             throw new TechnicalManagementException("An error occurs while trying to create user");
@@ -1077,19 +1055,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (!isServiceUser) {
             if (IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
                 final Map<String, Object> params = getTokenRegistrationParams(
-                    executionContext,
-                    userEntity,
-                    REGISTRATION_PATH,
-                    action,
-                    confirmationPageUrl
-                );
+                        executionContext, userEntity, REGISTRATION_PATH, action, confirmationPageUrl);
                 if (autoRegistrationEnabled) {
                     sendRegistrationEmail(executionContext, userEntity, action, params);
                     notifierService.trigger(
-                        executionContext,
-                        ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED,
-                        params
-                    );
+                            executionContext,
+                            ACTION.USER_REGISTRATION.equals(action)
+                                    ? PortalHook.USER_REGISTERED
+                                    : PortalHook.USER_CREATED,
+                            params);
                 } else {
                     notifierService.trigger(executionContext, PortalHook.USER_REGISTRATION_REQUEST, params);
                 }
@@ -1104,33 +1078,31 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private void sendRegistrationEmail(
-        ExecutionContext executionContext,
-        final UserEntity userEntity,
-        final ACTION action,
-        final Map<String, Object> params
-    ) {
+            ExecutionContext executionContext,
+            final UserEntity userEntity,
+            final ACTION action,
+            final Map<String, Object> params) {
         emailService.sendAsyncEmailNotification(
-            executionContext,
-            new EmailNotificationBuilder()
-                .to(userEntity.getEmail())
-                .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
-                .params(params)
-                .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
-                .build()
-        );
+                executionContext,
+                new EmailNotificationBuilder()
+                        .to(userEntity.getEmail())
+                        .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
+                        .params(params)
+                        .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
+                        .build());
     }
 
     private String registrationEnvironmentId(ExecutionContext executionContext, String userId) {
-        // The approval request is organization scoped, but the user got a membership on the environment they registered on.
+        // The approval request is organization scoped, but the user got a membership on the environment they registered
+        // on.
         Set<String> environmentIds = membershipService.getReferenceIdsByMemberAndReference(
-            MembershipMemberType.USER,
-            userId,
-            MembershipReferenceType.ENVIRONMENT
-        );
+                MembershipMemberType.USER, userId, MembershipReferenceType.ENVIRONMENT);
         if (environmentIds != null && environmentIds.size() == 1) {
             return environmentIds.iterator().next();
         }
-        return executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : GraviteeContext.getDefaultEnvironment();
+        return executionContext.hasEnvironmentId()
+                ? executionContext.getEnvironmentId()
+                : GraviteeContext.getDefaultEnvironment();
     }
 
     private String portalRegistrationConfirmationUrl(ExecutionContext executionContext, String userId) {
@@ -1141,9 +1113,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         // environment: without an explicit one, the email falls back to the console registration link.
         if (isEmpty(portalUrl) || DEFAULT_PORTAL_URL.equals(portalUrl)) {
             log.warn(
-                "No 'Portal URL' configured for environment {}, the registration email will link to the console. You may want to change this default configuration in the Settings.",
-                environmentId
-            );
+                    "No 'Portal URL' configured for environment {}, the registration email will link to the console. You may want to change this default configuration in the Settings.",
+                    environmentId);
             return null;
         }
         if (portalUrl.endsWith("/")) {
@@ -1176,7 +1147,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + userId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find user using its ID " + userId, ex);
         }
     }
 
@@ -1189,39 +1161,45 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final boolean registrationEmailToSend = accepted && !userToProcess.isHasPassword();
         // Resolved before the status changes, so an unresolvable destination leaves the user PENDING and re-approvable.
         // Resolving afterwards would leave them ACTIVE with no activation link and no way to reissue one.
-        final String confirmationPageUrl = registrationEmailToSend ? registrationConfirmationUrl(executionContext, user) : null;
+        final String confirmationPageUrl =
+                registrationEmailToSend ? registrationConfirmationUrl(executionContext, user) : null;
 
         UserEntity processedUser = this.changeUserStatus(user, accepted ? UserStatus.ACTIVE : UserStatus.REJECTED);
-        final Map<String, Object> params = new NotificationParamsBuilder().user(processedUser).build();
+        final Map<String, Object> params =
+                new NotificationParamsBuilder().user(processedUser).build();
         if (!registrationEmailToSend) {
             emailService.sendAsyncEmailNotification(
-                executionContext,
-                new EmailNotificationBuilder()
-                    .to(userToProcess.getEmail())
-                    .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED)
-                    .params(params)
-                    .param("registrationStatus", accepted ? "accepted" : "rejected")
-                    .build()
-            );
+                    executionContext,
+                    new EmailNotificationBuilder()
+                            .to(userToProcess.getEmail())
+                            .template(
+                                    EmailNotificationBuilder.EmailTemplate
+                                            .TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED)
+                            .params(params)
+                            .param("registrationStatus", accepted ? "accepted" : "rejected")
+                            .build());
         }
         auditService.createAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(Collections.singletonMap(USER, processedUser.getId()))
-                .event(accepted ? User.AuditEvent.USER_CONFIRMED : User.AuditEvent.USER_REJECTED)
-                .createdAt(processedUser.getUpdatedAt())
-                .oldValue(userToProcess)
-                .newValue(processedUser)
-                .build()
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(USER, processedUser.getId()))
+                        .event(accepted ? User.AuditEvent.USER_CONFIRMED : User.AuditEvent.USER_REJECTED)
+                        .createdAt(processedUser.getUpdatedAt())
+                        .oldValue(userToProcess)
+                        .newValue(processedUser)
+                        .build());
 
         if (registrationEmailToSend) {
             sendRegistrationEmail(
-                executionContext,
-                processedUser,
-                USER_REGISTRATION,
-                getTokenRegistrationParams(executionContext, processedUser, REGISTRATION_PATH, USER_REGISTRATION, confirmationPageUrl)
-            );
+                    executionContext,
+                    processedUser,
+                    USER_REGISTRATION,
+                    getTokenRegistrationParams(
+                            executionContext,
+                            processedUser,
+                            REGISTRATION_PATH,
+                            USER_REGISTRATION,
+                            confirmationPageUrl));
         }
 
         return processedUser;
@@ -1232,7 +1210,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user.setStatus(newStatus);
             user.setUpdatedAt(new Date());
             if (newStatus == UserStatus.REJECTED) {
-                //so a new registration can be requested with the same email
+                // so a new registration can be requested with the same email
                 user.setSourceId(newStatus.name().toLowerCase() + "-" + user.getSourceId());
             }
             final User updatedUser = this.userRepository.update(user);
@@ -1241,28 +1219,27 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
             return convert(updatedUser, true);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to create an external user" + user.getId(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create an external user" + user.getId(), ex);
         }
     }
 
     @Override
     public Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
-        final UserEntity userEntity,
-        final String managementUri,
-        final ACTION action
-    ) {
+            ExecutionContext executionContext,
+            final UserEntity userEntity,
+            final String managementUri,
+            final ACTION action) {
         return getTokenRegistrationParams(executionContext, userEntity, managementUri, action, null);
     }
 
     @Override
     public Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
-        final UserEntity userEntity,
-        final String managementUri,
-        final ACTION action,
-        final String targetPageUrl
-    ) {
+            ExecutionContext executionContext,
+            final UserEntity userEntity,
+            final String managementUri,
+            final ACTION action,
+            final String targetPageUrl) {
         // generate a JWT to store user's information and for security purpose
         final String jwtSecret = environment.getProperty("jwt.secret");
         if (jwtSecret == null || jwtSecret.isEmpty()) {
@@ -1272,24 +1249,22 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
 
         Date issueAt = new Date();
-        Instant expireAt = issueAt
-            .toInstant()
-            .plus(
-                Duration.ofSeconds(
-                    environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)
-                )
-            );
+        Instant expireAt = issueAt.toInstant()
+                .plus(Duration.ofSeconds(environment.getProperty(
+                        "user.creation.token.expire-after",
+                        Integer.class,
+                        DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)));
 
         final String token = JWT.create()
-            .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
-            .withIssuedAt(issueAt)
-            .withExpiresAt(Date.from(expireAt))
-            .withSubject(userEntity.getId())
-            .withClaim(Claims.EMAIL, userEntity.getEmail())
-            .withClaim(Claims.FIRSTNAME, userEntity.getFirstname())
-            .withClaim(Claims.LASTNAME, userEntity.getLastname())
-            .withClaim(Claims.ACTION, action.name())
-            .sign(algorithm);
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(userEntity.getId())
+                .withClaim(Claims.EMAIL, userEntity.getEmail())
+                .withClaim(Claims.FIRSTNAME, userEntity.getFirstname())
+                .withClaim(Claims.LASTNAME, userEntity.getLastname())
+                .withClaim(Claims.ACTION, action.name())
+                .sign(algorithm);
 
         String userURL = "";
         String managementURL = installationAccessQueryService.getConsoleUrl(executionContext.getOrganizationId());
@@ -1313,14 +1288,17 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // This value is used as a fallback when no Management URL has been configured by the platform admin.
             registrationUrl = DEFAULT_CONSOLE_URL + managementUri + token;
             log.warn(
-                "An email will be sent with a default '" +
-                    managementUri.substring(4, managementUri.indexOf('/', 4)) +
-                    "' link. You may want to change this default configuration of the 'Management URL' in the Settings."
-            );
+                    "An email will be sent with a default '" + managementUri.substring(4, managementUri.indexOf('/', 4))
+                            + "' link. You may want to change this default configuration of the 'Management URL' in the Settings.");
         }
 
         // send a confirm email with the token
-        return new NotificationParamsBuilder().user(userEntity).token(token).registrationUrl(registrationUrl).userUrl(userURL).build();
+        return new NotificationParamsBuilder()
+                .user(userEntity)
+                .token(token)
+                .registrationUrl(registrationUrl)
+                .userUrl(userURL)
+                .build();
     }
 
     @Override
@@ -1329,7 +1307,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public UserEntity update(ExecutionContext executionContext, String id, UpdateUserEntity updateUserEntity, String newsletterEmail) {
+    public UserEntity update(
+            ExecutionContext executionContext, String id, UpdateUserEntity updateUserEntity, String newsletterEmail) {
         try {
             log.debug("Updating {}", updateUserEntity);
             Optional<User> checkUser = userRepository.findById(id);
@@ -1356,21 +1335,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (updateUserEntity.getLastname() != null) {
                 user.setLastname(updateUserEntity.getLastname());
             }
-            if (updateUserEntity.getEmail() != null && !updateUserEntity.getEmail().equals(user.getEmail())) {
+            if (updateUserEntity.getEmail() != null
+                    && !updateUserEntity.getEmail().equals(user.getEmail())) {
                 if (isInternalUser(user)) {
-                    if (StringUtils.isNotEmpty(updateUserEntity.getEmail()) && !EmailValidator.isValid(updateUserEntity.getEmail())) {
+                    if (StringUtils.isNotEmpty(updateUserEntity.getEmail())
+                            && !EmailValidator.isValid(updateUserEntity.getEmail())) {
                         throw new EmailFormatInvalidException(updateUserEntity.getEmail());
                     }
 
                     // sourceId can be updated only for user registered into the Gravitee Repository
                     // in that case, check if the email is available before update sourceId
                     final Optional<User> optionalUser = userRepository.findBySource(
-                        user.getSource(),
-                        updateUserEntity.getEmail(),
-                        user.getOrganizationId()
-                    );
+                            user.getSource(), updateUserEntity.getEmail(), user.getOrganizationId());
                     if (optionalUser.isPresent()) {
-                        throw InvalidUserException.cannotBeUpdated(user.getSource(), updateUserEntity.getEmail(), user.getOrganizationId());
+                        throw InvalidUserException.cannotBeUpdated(
+                                user.getSource(), updateUserEntity.getEmail(), user.getOrganizationId());
                     }
                     user.setSourceId(updateUserEntity.getEmail());
                 }
@@ -1389,24 +1368,24 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             User updatedUser = userRepository.update(user);
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER, user.getId()))
-                    .event(USER_UPDATED)
-                    .createdAt(user.getUpdatedAt())
-                    .oldValue(previousUser)
-                    .newValue(user)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER, user.getId()))
+                            .event(USER_UPDATED)
+                            .createdAt(user.getUpdatedAt())
+                            .oldValue(previousUser)
+                            .newValue(user)
+                            .build());
 
             List<UserMetadataEntity> updatedMetadata = new ArrayList<>();
-            if (updateUserEntity.getCustomFields() != null && !updateUserEntity.getCustomFields().isEmpty()) {
+            if (updateUserEntity.getCustomFields() != null
+                    && !updateUserEntity.getCustomFields().isEmpty()) {
                 List<UserMetadataEntity> metadata = userMetadataService.findAllByUserId(user.getId());
-                for (Map.Entry<String, Object> entry : updateUserEntity.getCustomFields().entrySet()) {
-                    Optional<UserMetadataEntity> existingMeta = metadata
-                        .stream()
-                        .filter(meta -> meta.getKey().equals(entry.getKey()))
-                        .findFirst();
+                for (Map.Entry<String, Object> entry :
+                        updateUserEntity.getCustomFields().entrySet()) {
+                    Optional<UserMetadataEntity> existingMeta = metadata.stream()
+                            .filter(meta -> meta.getKey().equals(entry.getKey()))
+                            .findFirst();
                     if (existingMeta.isPresent()) {
                         UserMetadataEntity meta = existingMeta.get();
                         UpdateUserMetadataEntity metadataEntity = new UpdateUserMetadataEntity();
@@ -1442,17 +1421,20 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (query == null || query.isEmpty()) {
             // Browsing with no search term: keep the alphabetical (lastname/firstname) order.
             userQuery = QueryBuilder.create(UserEntity.class)
-                .setQuery("*")
-                .setPage(pageable)
-                .setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true))
-                .build();
+                    .setQuery("*")
+                    .setPage(pageable)
+                    .setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true))
+                    .build();
         } else {
             // UserDocumentTransformation remove domain from email address for security reasons
             // remove it during search phase to provide results
             String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
             // No sort: let the search engine rank by relevance score (best matches first) so the most
             // relevant users stay within bounded result windows such as the user picker's top 20.
-            userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
+            userQuery = QueryBuilder.create(UserEntity.class)
+                    .setQuery(sanitizedQuery)
+                    .setPage(pageable)
+                    .build();
         }
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
@@ -1470,25 +1452,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     private void populateUserFlags(String organizationId, final List<UserEntity> users) {
         RoleEntity apiPORole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.API);
-        RoleEntity applicationPORole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.APPLICATION);
+        RoleEntity applicationPORole =
+                roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.APPLICATION);
 
         users.forEach(user -> {
             final boolean apiPO = !membershipService
-                .getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.USER,
-                    user.getId(),
-                    MembershipReferenceType.API,
-                    apiPORole.getId()
-                )
-                .isEmpty();
+                    .getMembershipsByMemberAndReferenceAndRole(
+                            MembershipMemberType.USER, user.getId(), MembershipReferenceType.API, apiPORole.getId())
+                    .isEmpty();
             final boolean appPO = !membershipService
-                .getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.USER,
-                    user.getId(),
-                    MembershipReferenceType.APPLICATION,
-                    applicationPORole.getId()
-                )
-                .isEmpty();
+                    .getMembershipsByMemberAndReferenceAndRole(
+                            MembershipMemberType.USER,
+                            user.getId(),
+                            MembershipReferenceType.APPLICATION,
+                            applicationPORole.getId())
+                    .isEmpty();
 
             user.setPrimaryOwner(apiPO || appPO);
             user.setNbActiveTokens(tokenService.findByUser(user.getId()).size());
@@ -1500,8 +1478,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             log.debug("search users");
             UserCriteria.Builder builder = new UserCriteria.Builder()
-                .organizationId(executionContext.getOrganizationId())
-                .statuses(criteria.getStatuses());
+                    .organizationId(executionContext.getOrganizationId())
+                    .statuses(criteria.getStatuses());
             if (criteria.hasNoStatus()) {
                 builder.noStatus();
             }
@@ -1509,15 +1487,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             Page<User> users = userRepository.search(newCriteria, convert(pageable));
 
-            List<UserEntity> entities = users
-                .getContent()
-                .stream()
-                .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
-                .collect(toList());
+            List<UserEntity> entities = users.getContent().stream()
+                    .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
+                    .collect(toList());
 
             populateUserFlags(executionContext.getOrganizationId(), entities);
 
-            return new Page<>(entities, users.getPageNumber() + 1, (int) users.getPageElements(), users.getTotalElements());
+            return new Page<>(
+                    entities, users.getPageNumber() + 1, (int) users.getPageElements(), users.getTotalElements());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to search users", ex);
         }
@@ -1527,30 +1504,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public void delete(ExecutionContext executionContext, String id) {
         try {
             User user = userRepository
-                .findById(id)
-                .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
-                .orElseThrow(() -> new UserNotFoundException(id));
+                    .findById(id)
+                    .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                    .orElseThrow(() -> new UserNotFoundException(id));
 
             // If the users is PO of apps or apis, throw an exception
-            RoleEntity apiPoRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
+            RoleEntity apiPoRole =
+                    roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
             Set<MembershipEntity> apiPoMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.USER,
-                id,
-                MembershipReferenceType.API,
-                apiPoRole.getId()
-            );
+                    MembershipMemberType.USER, id, MembershipReferenceType.API, apiPoRole.getId());
             long apiCount = apiPoMemberships.size();
 
             RoleEntity appPoRole = roleService.findPrimaryOwnerRoleByOrganization(
-                executionContext.getOrganizationId(),
-                RoleScope.APPLICATION
-            );
+                    executionContext.getOrganizationId(), RoleScope.APPLICATION);
             Set<MembershipEntity> appPoMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.USER,
-                id,
-                MembershipReferenceType.APPLICATION,
-                appPoRole.getId()
-            );
+                    MembershipMemberType.USER, id, MembershipReferenceType.APPLICATION, appPoRole.getId());
             long applicationCount = appPoMemberships.size();
 
             if (apiCount > 0 || applicationCount > 0) {
@@ -1559,12 +1527,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             membershipService.removeMemberMemberships(executionContext, MembershipMemberType.USER, id);
 
-            //remove notifications
+            // remove notifications
             portalNotificationService.deleteAll(user.getId());
             portalNotificationConfigService.deleteByUser(user.getId());
             genericNotificationConfigService.deleteByUser(user);
 
-            //remove tokens
+            // remove tokens
             tokenService.revokeByUser(executionContext, user.getId());
 
             // change user datas
@@ -1644,15 +1612,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      */
     private String buildGammaPageUrl(final String organizationId, final String path) {
         String gammaUrl = installationAccessQueryService
-            .findGammaUrl(organizationId)
-            .filter(url -> !url.isBlank())
-            .orElseThrow(() ->
-                new ValidationDomainException(
-                    "No Gamma URL is configured for organization " +
-                        organizationId +
-                        ". Set 'installation.standalone.gamma-console.url', or the organization's Gamma console access point on a multi-tenant installation."
-                )
-            );
+                .findGammaUrl(organizationId)
+                .filter(url -> !url.isBlank())
+                .orElseThrow(
+                        () -> new ValidationDomainException(
+                                "No Gamma URL is configured for organization " + organizationId
+                                        + ". Set 'installation.standalone.gamma-console.url', or the organization's Gamma console access point on a multi-tenant installation."));
         if (gammaUrl.endsWith("/")) {
             gammaUrl = gammaUrl.substring(0, gammaUrl.length() - 1);
         }
@@ -1663,8 +1628,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public void updateServiceAccountStatus(ExecutionContext executionContext, String id, boolean serviceAccount) {
         try {
             Optional<User> optionalUser = userRepository
-                .findById(id)
-                .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
+                    .findById(id)
+                    .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
 
             if (optionalUser.isEmpty()) {
                 throw new UserNotFoundException(id);
@@ -1675,17 +1640,20 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user.setUpdatedAt(new Date());
             userRepository.update(user);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to update service account status for user " + id, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update service account status for user " + id, ex);
         }
     }
 
     @Override
-    public UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl) {
+    public UserEntity resetPasswordFromSourceId(
+            ExecutionContext executionContext, String sourceId, String resetPageUrl) {
         if (sourceId.startsWith("deleted")) {
             throw new UserNotActiveException(sourceId);
         }
 
-        UserEntity foundUser = this.findBySource(executionContext.getOrganizationId(), IDP_SOURCE_GRAVITEE, sourceId, false);
+        UserEntity foundUser =
+                this.findBySource(executionContext.getOrganizationId(), IDP_SOURCE_GRAVITEE, sourceId, false);
         if ("ACTIVE".equals(foundUser.getStatus())) {
             resetPassword(executionContext, foundUser.getId(), resetPageUrl);
             return foundUser;
@@ -1703,8 +1671,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             log.debug("Resetting password of user id {}", id);
 
             Optional<User> optionalUser = userRepository
-                .findById(id)
-                .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
+                    .findById(id)
+                    .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
 
             if (!optionalUser.isPresent()) {
                 throw new UserNotFoundException(id);
@@ -1722,7 +1690,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // use the audit events to throttle the number of resetPassword for a given userid
             // see: https://github.com/gravitee-io/issues/issues/4410
 
-            // do not perform this check if the request comes from an authenticated user (ie. admin or someone with right permission)
+            // do not perform this check if the request comes from an authenticated user (ie. admin or someone with
+            // right permission)
             if (!isAuthenticated() || !canResetPassword(executionContext)) {
                 AuditQuery query = new AuditQuery();
                 query.setEvents(Arrays.asList(User.AuditEvent.PASSWORD_RESET.name()));
@@ -1735,11 +1704,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         log.warn("More than 100 reset password received in less than 1 hour", user.getId());
                     }
 
-                    Optional<AuditEntity> optReset = events
-                        .getContent()
-                        .stream()
-                        .filter(evt -> user.getId().equals(evt.getProperties().get(USER.name())))
-                        .findFirst();
+                    Optional<AuditEntity> optReset = events.getContent().stream()
+                            .filter(evt ->
+                                    user.getId().equals(evt.getProperties().get(USER.name())))
+                            .findFirst();
                     if (optReset.isPresent()) {
                         throw new PasswordAlreadyResetException();
                     }
@@ -1747,33 +1715,26 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
 
             final Map<String, Object> params = getTokenRegistrationParams(
-                executionContext,
-                convert(user, false),
-                RESET_PASSWORD_PATH,
-                RESET_PASSWORD,
-                resetPageUrl
-            );
+                    executionContext, convert(user, false), RESET_PASSWORD_PATH, RESET_PASSWORD, resetPageUrl);
 
             notifierService.trigger(executionContext, PortalHook.PASSWORD_RESET, params);
 
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER, user.getId()))
-                    .event(PASSWORD_RESET)
-                    .createdAt(new Date())
-                    .oldValue(null)
-                    .newValue(null)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER, user.getId()))
+                            .event(PASSWORD_RESET)
+                            .createdAt(new Date())
+                            .oldValue(null)
+                            .newValue(null)
+                            .build());
             emailService.sendAsyncEmailNotification(
-                executionContext,
-                new EmailNotificationBuilder()
-                    .to(user.getEmail())
-                    .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_PASSWORD_RESET)
-                    .params(params)
-                    .build()
-            );
+                    executionContext,
+                    new EmailNotificationBuilder()
+                            .to(user.getEmail())
+                            .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_PASSWORD_RESET)
+                            .params(params)
+                            .build());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to reset password for user " + id;
             throw new TechnicalManagementException(message, ex);
@@ -1785,11 +1746,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             return true;
         }
         return permissionService.hasPermission(
-            executionContext,
-            RolePermission.ORGANIZATION_USERS,
-            executionContext.getOrganizationId(),
-            new RolePermissionAction[] { UPDATE }
-        );
+                executionContext,
+                RolePermission.ORGANIZATION_USERS,
+                executionContext.getOrganizationId(),
+                new RolePermissionAction[] {UPDATE});
     }
 
     private UserEntity convertWithFlags(final ExecutionContext executionContext, User user) {
@@ -1806,7 +1766,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return convert(user, loadRoles, customUserFields, true);
     }
 
-    private UserEntity convert(User user, boolean loadRoles, List<UserMetadataEntity> customUserFields, boolean nullifyPassword) {
+    private UserEntity convert(
+            User user, boolean loadRoles, List<UserMetadataEntity> customUserFields, boolean nullifyPassword) {
         if (user == null) {
             return null;
         }
@@ -1816,25 +1777,26 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (loadRoles) {
             Set<UserRoleEntity> roles = new HashSet<>();
             Set<RoleEntity> roleEntities = membershipService.getRoles(
-                MembershipReferenceType.ORGANIZATION,
-                user.getOrganizationId(),
-                MembershipMemberType.USER,
-                user.getId()
-            );
+                    MembershipReferenceType.ORGANIZATION,
+                    user.getOrganizationId(),
+                    MembershipMemberType.USER,
+                    user.getId());
             if (!roleEntities.isEmpty()) {
                 roleEntities.forEach(roleEntity -> roles.add(convert(roleEntity)));
             }
 
-            List<EnvironmentEntity> environmentEntities = this.environmentService.findByOrganization(user.getOrganizationId());
-            environmentEntities
-                .stream()
-                .flatMap(env ->
-                    membershipService
-                        .getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, user.getId())
-                        .stream()
-                )
-                .filter(Objects::nonNull)
-                .forEach(roleEntity -> roles.add(convert(roleEntity)));
+            List<EnvironmentEntity> environmentEntities =
+                    this.environmentService.findByOrganization(user.getOrganizationId());
+            environmentEntities.stream()
+                    .flatMap(env -> membershipService
+                            .getRoles(
+                                    MembershipReferenceType.ENVIRONMENT,
+                                    env.getId(),
+                                    MembershipMemberType.USER,
+                                    user.getId())
+                            .stream())
+                    .filter(Objects::nonNull)
+                    .forEach(roleEntity -> roles.add(convert(roleEntity)));
 
             userEntity.setRoles(roles);
 
@@ -1842,11 +1804,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             environmentEntities.forEach(env -> {
                 Set<UserRoleEntity> envRoles = new HashSet<>();
                 Set<RoleEntity> envRoleEntities = membershipService.getRoles(
-                    MembershipReferenceType.ENVIRONMENT,
-                    env.getId(),
-                    MembershipMemberType.USER,
-                    user.getId()
-                );
+                        MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, user.getId());
                 if (!envRoleEntities.isEmpty()) {
                     envRoleEntities.forEach(roleEntity -> envRoles.add(convert(roleEntity)));
                 }
@@ -1856,7 +1814,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
 
         if (nullifyPassword) {
-            userEntity.setHasPassword(user.getPassword() != null && !user.getPassword().isEmpty());
+            userEntity.setHasPassword(
+                    user.getPassword() != null && !user.getPassword().isEmpty());
             // Delete password for security reason
             userEntity.setPassword(null);
         }
@@ -1879,12 +1838,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public UserEntity createOrUpdateUserFromSocialIdentityProvider(
-        ExecutionContext executionContext,
-        SocialIdentityProviderEntity socialProvider,
-        String userInfo,
-        String accessToken,
-        String idToken
-    ) {
+            ExecutionContext executionContext,
+            SocialIdentityProviderEntity socialProvider,
+            String userInfo,
+            String accessToken,
+            String idToken) {
         HashMap<String, String> attrs = getUserProfileAttrs(socialProvider.getUserProfileMapping(), userInfo);
 
         String email = attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL);
@@ -1895,7 +1853,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         String idTokenPayloadAsString = null;
         if (idToken != null) {
             try {
-                idTokenPayloadAsString = new String(Base64.getUrlDecoder().decode(JWT.decode(idToken).getPayload()));
+                idTokenPayloadAsString = new String(
+                        Base64.getUrlDecoder().decode(JWT.decode(idToken).getPayload()));
             } catch (Exception e) {
                 log.debug("IdToken  \"{}\" is not valid.", idToken, e);
             }
@@ -1904,9 +1863,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         String accessTokenPayloadAsString = null;
         if (accessToken != null) {
             try {
-                accessTokenPayloadAsString = new String(Base64.getUrlDecoder().decode(JWT.decode(accessToken).getPayload()));
+                accessTokenPayloadAsString = new String(
+                        Base64.getUrlDecoder().decode(JWT.decode(accessToken).getPayload()));
             } catch (Exception e) {
-                //access token is opaque, do nothing
+                // access token is opaque, do nothing
                 log.debug("AccessToken  \"{}\" is not valid.", accessToken, e);
             }
         }
@@ -1915,34 +1875,22 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         // This is done BEFORE updating or creating the user account to ensure this one is properly created with correct
         // information (ie. mappings)
         Set<GroupEntity> userGroups = computeUserGroups(
-            email,
-            socialProvider.getGroupMappings(),
-            userInfo,
-            accessTokenPayloadAsString,
-            idTokenPayloadAsString,
-            executionContext
-        );
+                email,
+                socialProvider.getGroupMappings(),
+                userInfo,
+                accessTokenPayloadAsString,
+                idTokenPayloadAsString,
+                executionContext);
 
-        List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings() == null || socialProvider.getRoleMappings().isEmpty()
-            ? emptyList()
-            : socialProvider.getRoleMappings();
+        List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings() == null
+                        || socialProvider.getRoleMappings().isEmpty()
+                ? emptyList()
+                : socialProvider.getRoleMappings();
 
         Set<RoleEntity> userOrganizationRoles = this.computeOrganizationRoles(
-            executionContext,
-            rolesMapping,
-            email,
-            userInfo,
-            accessTokenPayloadAsString,
-            idTokenPayloadAsString
-        );
+                executionContext, rolesMapping, email, userInfo, accessTokenPayloadAsString, idTokenPayloadAsString);
         Map<String, Set<RoleEntity>> userEnvironmentRoles = this.computeEnvironmentRoles(
-            executionContext,
-            rolesMapping,
-            email,
-            userInfo,
-            accessTokenPayloadAsString,
-            idTokenPayloadAsString
-        );
+                executionContext, rolesMapping, email, userInfo, accessTokenPayloadAsString, idTokenPayloadAsString);
 
         UserEntity user = null;
         boolean created = false;
@@ -1955,61 +1903,48 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         // Memberships must be refreshed only when it is a user creation context or mappings should be synced during
         // later authentication
-        List<MembershipService.Membership> groupMemberships = refreshUserGroups(
-            executionContext,
-            user.getId(),
-            socialProvider.getId(),
-            userGroups
-        );
+        List<MembershipService.Membership> groupMemberships =
+                refreshUserGroups(executionContext, user.getId(), socialProvider.getId(), userGroups);
         List<MembershipService.Membership> roleOrganizationMemberships = refreshUserOrganizationRoles(
-            executionContext,
-            user.getId(),
-            socialProvider.getId(),
-            userOrganizationRoles
-        );
-        List<MembershipService.Membership> roleEnvironmentMemberships = refreshUserEnvironmentRoles(
-            user.getId(),
-            socialProvider.getId(),
-            userEnvironmentRoles
-        );
+                executionContext, user.getId(), socialProvider.getId(), userOrganizationRoles);
+        List<MembershipService.Membership> roleEnvironmentMemberships =
+                refreshUserEnvironmentRoles(user.getId(), socialProvider.getId(), userEnvironmentRoles);
 
         if (created || socialProvider.isSyncMappings()) {
-            final boolean hasGroupMapping = socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty();
+            final boolean hasGroupMapping = socialProvider.getGroupMappings() != null
+                    && !socialProvider.getGroupMappings().isEmpty();
             refreshUserMemberships(
-                executionContext,
-                user.getId(),
-                socialProvider.getId(),
-                groupMemberships,
-                hasGroupMapping,
-                MembershipReferenceType.GROUP
-            );
+                    executionContext,
+                    user.getId(),
+                    socialProvider.getId(),
+                    groupMemberships,
+                    hasGroupMapping,
+                    MembershipReferenceType.GROUP);
 
-            final boolean hasRoleMapping = socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty();
+            final boolean hasRoleMapping = socialProvider.getRoleMappings() != null
+                    && !socialProvider.getRoleMappings().isEmpty();
             refreshUserMemberships(
-                executionContext,
-                user.getId(),
-                socialProvider.getId(),
-                roleOrganizationMemberships,
-                hasRoleMapping,
-                MembershipReferenceType.ORGANIZATION
-            );
+                    executionContext,
+                    user.getId(),
+                    socialProvider.getId(),
+                    roleOrganizationMemberships,
+                    hasRoleMapping,
+                    MembershipReferenceType.ORGANIZATION);
             refreshUserMemberships(
-                executionContext,
-                user.getId(),
-                socialProvider.getId(),
-                roleEnvironmentMemberships,
-                hasRoleMapping,
-                MembershipReferenceType.ENVIRONMENT
-            );
+                    executionContext,
+                    user.getId(),
+                    socialProvider.getId(),
+                    roleEnvironmentMemberships,
+                    hasRoleMapping,
+                    MembershipReferenceType.ENVIRONMENT);
         }
 
         persistWhitelistedClaims(
-            socialProvider.getPersistedClaimsWhitelist(),
-            user.getId(),
-            userInfo,
-            accessTokenPayloadAsString,
-            idTokenPayloadAsString
-        );
+                socialProvider.getPersistedClaimsWhitelist(),
+                user.getId(),
+                userInfo,
+                accessTokenPayloadAsString,
+                idTokenPayloadAsString);
 
         return user;
     }
@@ -2019,7 +1954,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             return userRepository.findById(userId).map(User::getIdpClaims).orElse(null);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find IdP claims for user " + userId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find IdP claims for user " + userId, ex);
         }
     }
 
@@ -2032,17 +1968,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * captured, and no bulk purge or administrative delete exists to reach them.
      */
     private void persistWhitelistedClaims(
-        List<String> whitelist,
-        String userId,
-        String userInfo,
-        String accessTokenPayload,
-        String idTokenPayload
-    ) {
+            List<String> whitelist, String userId, String userInfo, String accessTokenPayload, String idTokenPayload) {
         // Null, not an empty map: User.setIdpClaims treats null as "no claims stored" and an empty map as a stored
         // empty value, and only the former clears the column.
         Map<String, String> idpClaims = whitelist == null || whitelist.isEmpty()
-            ? null
-            : extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
+                ? null
+                : extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
         try {
             Optional<User> optionalUser = userRepository.findById(userId);
             if (optionalUser.isEmpty()) {
@@ -2062,7 +1993,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } catch (TechnicalException e) {
             // Deliberately not rethrown: a claims failure must not fail the login. Logged as a retention failure rather
             // than a persistence one, because when the whitelist was cleared the claims are still stored.
-            log.error("Unable to apply the IdP claims whitelist for user {}; previously stored claims may remain", userId, e);
+            log.error(
+                    "Unable to apply the IdP claims whitelist for user {}; previously stored claims may remain",
+                    userId,
+                    e);
         }
     }
 
@@ -2071,13 +2005,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * userinfo (first source containing the claim wins). Missing claims are skipped; complex values are JSON-serialized.
      */
     private Map<String, String> extractWhitelistedClaims(
-        List<String> whitelist,
-        String userInfo,
-        String accessTokenPayload,
-        String idTokenPayload
-    ) {
+            List<String> whitelist, String userInfo, String accessTokenPayload, String idTokenPayload) {
         List<JsonNode> sources = new ArrayList<>();
-        for (String source : new String[] { idTokenPayload, accessTokenPayload, userInfo }) {
+        for (String source : new String[] {idTokenPayload, accessTokenPayload, userInfo}) {
             if (source != null && !source.isEmpty()) {
                 try {
                     sources.add(CLAIMS_MAPPER.readTree(source));
@@ -2121,7 +2051,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         map.put(field, userInfoPath.read(mapping, String.class));
                     }
                 } catch (Exception e) {
-                    log.warn("Using mapping: \"{}\" (on field:\"{}\"), no fields are located in {}", mapping, field, userInfo);
+                    log.warn(
+                            "Using mapping: \"{}\" (on field:\"{}\"), no fields are located in {}",
+                            mapping,
+                            field,
+                            userInfo);
                 }
             }
         }
@@ -2130,12 +2064,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private UserEntity createNewExternalUser(
-        ExecutionContext executionContext,
-        final SocialIdentityProviderEntity socialProvider,
-        final String userInfo,
-        HashMap<String, String> attrs,
-        String email
-    ) {
+            ExecutionContext executionContext,
+            final SocialIdentityProviderEntity socialProvider,
+            final String userInfo,
+            HashMap<String, String> attrs,
+            String email) {
         final NewExternalUserEntity newUser = new NewExternalUserEntity();
         newUser.setEmail(email);
         newUser.setSource(socialProvider.getId());
@@ -2157,18 +2090,16 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private UserEntity refreshExistingUser(
-        ExecutionContext executionContext,
-        final SocialIdentityProviderEntity socialProvider,
-        HashMap<String, String> attrs,
-        String email
-    ) {
+            ExecutionContext executionContext,
+            final SocialIdentityProviderEntity socialProvider,
+            HashMap<String, String> attrs,
+            String email) {
         String userId;
         UserEntity registeredUser = this.findBySource(
-            executionContext.getOrganizationId(),
-            socialProvider.getId(),
-            attrs.get(SocialIdentityProviderEntity.UserProfile.ID),
-            false
-        );
+                executionContext.getOrganizationId(),
+                socialProvider.getId(),
+                attrs.get(SocialIdentityProviderEntity.UserProfile.ID),
+                false);
         userId = registeredUser.getId();
 
         // User refresh
@@ -2189,39 +2120,42 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     protected Set<RoleEntity> computeOrganizationRoles(
-        ExecutionContext executionContext,
-        List<RoleMappingEntity> rolesMapping,
-        String username,
-        String userInfo,
-        String accessToken,
-        String idToken
-    ) {
+            ExecutionContext executionContext,
+            List<RoleMappingEntity> rolesMapping,
+            String username,
+            String userInfo,
+            String accessToken,
+            String idToken) {
         // First get all org roles based on the mappings
-        Set<RoleEntity> orgRoles = rolesMapping
-            .stream()
-            .filter(mapping -> mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty())
-            // Filter mappings that match the user profile
-            .filter(mapping -> {
-                TemplateEngine templateEngine = TemplateEngine.templateEngine();
-                templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-                templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
-                templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
+        Set<RoleEntity> orgRoles = rolesMapping.stream()
+                .filter(mapping -> mapping.getOrganizations() != null
+                        && !mapping.getOrganizations().isEmpty())
+                // Filter mappings that match the user profile
+                .filter(mapping -> {
+                    TemplateEngine templateEngine = TemplateEngine.templateEngine();
+                    templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+                    templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
+                    templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
 
-                boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
+                    boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
-                trace(username, match, mapping.getCondition());
+                    trace(username, match, mapping.getCondition());
 
-                return match;
-            })
-            // Get all organization included in this mapping
-            .flatMap(mapping -> mapping.getOrganizations().stream())
-            // Get all roles for each organization
-            .flatMap(org -> roleService.findByScopeAndName(RoleScope.ORGANIZATION, org, executionContext.getOrganizationId()).stream())
-            .collect(toSet());
+                    return match;
+                })
+                // Get all organization included in this mapping
+                .flatMap(mapping -> mapping.getOrganizations().stream())
+                // Get all roles for each organization
+                .flatMap(org ->
+                        roleService
+                                .findByScopeAndName(RoleScope.ORGANIZATION, org, executionContext.getOrganizationId())
+                                .stream())
+                .collect(toSet());
 
         // If no org roles are found, get the default ones
         if (orgRoles.isEmpty()) {
-            orgRoles.addAll(roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.ORGANIZATION));
+            orgRoles.addAll(
+                    roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.ORGANIZATION));
         }
 
         return orgRoles;
@@ -2231,25 +2165,29 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             return templateEngine.eval(condition, boolean.class).blockingGet();
         } catch (Exception e) {
-            log.warn("Failed to evaluate condition for user: {}. Condition: {}. Error: {}", userData, condition, e.getMessage(), e);
+            log.warn(
+                    "Failed to evaluate condition for user: {}. Condition: {}. Error: {}",
+                    userData,
+                    condition,
+                    e.getMessage(),
+                    e);
             return false;
         }
     }
 
     protected Map<String, Set<RoleEntity>> computeEnvironmentRoles(
-        ExecutionContext executionContext,
-        List<RoleMappingEntity> rolesMapping,
-        String username,
-        String userInfo,
-        String accessToken,
-        String idToken
-    ) {
+            ExecutionContext executionContext,
+            List<RoleMappingEntity> rolesMapping,
+            String username,
+            String userInfo,
+            String accessToken,
+            String idToken) {
         Map<String, Set<RoleEntity>> environmentRoles = new HashMap<>();
 
-        List<RoleMappingEntity> envRolesMapping = rolesMapping
-            .stream()
-            .filter(mapping -> mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty())
-            .collect(toList());
+        List<RoleMappingEntity> envRolesMapping = rolesMapping.stream()
+                .filter(mapping -> mapping.getEnvironments() != null
+                        && !mapping.getEnvironments().isEmpty())
+                .collect(toList());
 
         for (RoleMappingEntity mapping : envRolesMapping) {
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
@@ -2263,57 +2201,59 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             // Get roles
             if (match) {
-                mapping
-                    .getEnvironments()
-                    .forEach((environmentName, roles) -> {
-                        Set<RoleEntity> envRoles = environmentRoles.computeIfAbsent(environmentName, k -> new HashSet<>());
-                        for (String environmentRoleName : roles) {
-                            roleService
-                                .findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName, executionContext.getOrganizationId())
+                mapping.getEnvironments().forEach((environmentName, roles) -> {
+                    Set<RoleEntity> envRoles = environmentRoles.computeIfAbsent(environmentName, k -> new HashSet<>());
+                    for (String environmentRoleName : roles) {
+                        roleService
+                                .findByScopeAndName(
+                                        RoleScope.ENVIRONMENT,
+                                        environmentRoleName,
+                                        executionContext.getOrganizationId())
                                 .ifPresent(envRoles::add);
-                        }
-                    });
+                    }
+                });
             }
         }
 
         // If no env roles are found, get the default ones
         if (environmentRoles.isEmpty()) {
             String environmentId = executionContext.hasEnvironmentId()
-                ? executionContext.getEnvironmentId()
-                : GraviteeContext.getDefaultEnvironment();
-            List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
-                executionContext.getOrganizationId(),
-                RoleScope.ENVIRONMENT
-            );
-            environmentRoles.computeIfAbsent(environmentId, k -> new HashSet<>()).addAll(defaultRoles);
+                    ? executionContext.getEnvironmentId()
+                    : GraviteeContext.getDefaultEnvironment();
+            List<RoleEntity> defaultRoles =
+                    roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.ENVIRONMENT);
+            environmentRoles
+                    .computeIfAbsent(environmentId, k -> new HashSet<>())
+                    .addAll(defaultRoles);
         }
 
         return environmentRoles;
     }
 
     private void addRolesToUser(
-        ExecutionContext executionContext,
-        String userId,
-        Collection<RoleEntity> rolesToAdd,
-        MembershipReferenceType referenceType,
-        String referenceId
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            Collection<RoleEntity> rolesToAdd,
+            MembershipReferenceType referenceType,
+            String referenceId) {
         // add roles to user
         for (RoleEntity roleEntity : rolesToAdd) {
             MembershipService.MembershipReference ref = null;
             if (referenceType != null && referenceId != null) {
                 ref = new MembershipService.MembershipReference(referenceType, referenceId);
             } else if (roleEntity.getScope() == RoleScope.ORGANIZATION) {
-                ref = new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, executionContext.getOrganizationId());
+                ref = new MembershipService.MembershipReference(
+                        MembershipReferenceType.ORGANIZATION, executionContext.getOrganizationId());
             } else {
-                ref = new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
+                ref = new MembershipService.MembershipReference(
+                        MembershipReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
             }
             membershipService.addRoleToMemberOnReference(
-                executionContext,
-                ref,
-                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName())
-            );
+                    executionContext,
+                    ref,
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(
+                            RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName()));
         }
     }
 
@@ -2337,13 +2277,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @return
      */
     private Set<GroupEntity> computeUserGroups(
-        String userId,
-        List<GroupMappingEntity> mappings,
-        String userInfo,
-        String accessToken,
-        String idToken,
-        ExecutionContext executionContext
-    ) {
+            String userId,
+            List<GroupMappingEntity> mappings,
+            String userInfo,
+            String accessToken,
+            String idToken,
+            ExecutionContext executionContext) {
         if (mappings == null || mappings.isEmpty()) {
             return Collections.emptySet();
         }
@@ -2376,20 +2315,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private List<MembershipService.Membership> refreshUserGroups(
-        ExecutionContext executionContext,
-        String userId,
-        String identityProviderId,
-        Collection<GroupEntity> userGroups
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            String identityProviderId,
+            Collection<GroupEntity> userGroups) {
         List<MembershipService.Membership> memberships = new ArrayList<>();
 
         // Get the default group roles from system
         List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(
-            executionContext.getOrganizationId(),
-            RoleScope.API,
-            RoleScope.APPLICATION,
-            RoleScope.API_PRODUCT
-        );
+                executionContext.getOrganizationId(), RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
 
         for (GroupEntity group : userGroups) {
             if (group == null) {
@@ -2397,15 +2331,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
             for (RoleScope scope : List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT)) {
                 String roleName = Optional.ofNullable(group.getRoles())
-                    .map(roles -> roles.get(scope))
-                    .orElseGet(() ->
-                        roleEntities
-                            .stream()
-                            .filter(role -> role.getScope() == scope)
-                            .map(RoleEntity::getName)
-                            .findFirst()
-                            .orElse(null)
-                    );
+                        .map(roles -> roles.get(scope))
+                        .orElseGet(() -> roleEntities.stream()
+                                .filter(role -> role.getScope() == scope)
+                                .map(RoleEntity::getName)
+                                .findFirst()
+                                .orElse(null));
 
                 // Skip if no group or default role is found
                 if (roleName == null) {
@@ -2413,10 +2344,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 }
 
                 MembershipService.Membership membership = new MembershipService.Membership(
-                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group.getId()),
-                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(scope, roleName)
-                );
+                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group.getId()),
+                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(scope, roleName));
                 membership.setSource(identityProviderId);
                 memberships.add(membership);
             }
@@ -2425,48 +2355,40 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private List<MembershipService.Membership> refreshUserOrganizationRoles(
-        ExecutionContext executionContext,
-        String userId,
-        String identityProviderId,
-        Collection<RoleEntity> userOrganizationRoles
-    ) {
-        return userOrganizationRoles
-            .stream()
-            .map(roleEntity -> {
-                MembershipService.Membership membership = new MembershipService.Membership(
-                    new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, executionContext.getOrganizationId()),
-                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName())
-                );
-                membership.setSource(identityProviderId);
-                return membership;
-            })
-            .collect(Collectors.toList());
+            ExecutionContext executionContext,
+            String userId,
+            String identityProviderId,
+            Collection<RoleEntity> userOrganizationRoles) {
+        return userOrganizationRoles.stream()
+                .map(roleEntity -> {
+                    MembershipService.Membership membership = new MembershipService.Membership(
+                            new MembershipService.MembershipReference(
+                                    MembershipReferenceType.ORGANIZATION, executionContext.getOrganizationId()),
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(
+                                    RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName()));
+                    membership.setSource(identityProviderId);
+                    return membership;
+                })
+                .collect(Collectors.toList());
     }
 
     private List<MembershipService.Membership> refreshUserEnvironmentRoles(
-        String userId,
-        String identityProviderId,
-        Map<String, Set<RoleEntity>> userRolesByEnvironment
-    ) {
+            String userId, String identityProviderId, Map<String, Set<RoleEntity>> userRolesByEnvironment) {
         List<MembershipService.Membership> result = new ArrayList<>();
-        userRolesByEnvironment.forEach((environmentId, userRoles) ->
-            result.addAll(
-                userRoles
-                    .stream()
-                    .map(roleEntity -> {
-                        MembershipService.Membership membership = new MembershipService.Membership(
-                            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, environmentId),
+        userRolesByEnvironment.forEach((environmentId, userRoles) -> result.addAll(userRoles.stream()
+                .map(roleEntity -> {
+                    MembershipService.Membership membership = new MembershipService.Membership(
+                            new MembershipService.MembershipReference(
+                                    MembershipReferenceType.ENVIRONMENT, environmentId),
                             new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                            new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName())
-                        );
+                            new MembershipService.MembershipRole(
+                                    RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName()));
 
-                        membership.setSource(identityProviderId);
-                        return membership;
-                    })
-                    .collect(Collectors.toList())
-            )
-        );
+                    membership.setSource(identityProviderId);
+                    return membership;
+                })
+                .collect(Collectors.toList())));
         return result;
     }
 
@@ -2481,25 +2403,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @param types              The types of user memberships to manage
      */
     private void refreshUserMemberships(
-        ExecutionContext executionContext,
-        String userId,
-        String identityProviderId,
-        List<MembershipService.Membership> memberships,
-        boolean hasMapping,
-        MembershipReferenceType... types
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            String identityProviderId,
+            List<MembershipService.Membership> memberships,
+            boolean hasMapping,
+            MembershipReferenceType... types) {
         // Get existing memberships for a given type
         List<Membership> userMemberships = new ArrayList<>();
 
         for (MembershipReferenceType type : types) {
             try {
-                userMemberships.addAll(
-                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                userMemberships.addAll(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
                         userId,
                         io.gravitee.repository.management.model.MembershipMemberType.USER,
-                        io.gravitee.repository.management.model.MembershipReferenceType.valueOf(type.name())
-                    )
-                );
+                        io.gravitee.repository.management.model.MembershipReferenceType.valueOf(type.name())));
             } catch (TechnicalException e) {
                 final String msg = "An error occurs while finding memberships for user " + userId;
                 throw new TechnicalManagementException(msg, e);
@@ -2514,20 +2432,19 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (hasMapping) {
                 if (identityProviderId.equals(membership.getSource())) {
                     membershipService.deleteReferenceMemberBySource(
-                        executionContext,
-                        MembershipReferenceType.valueOf(membership.getReferenceType().name()),
-                        membership.getReferenceId(),
-                        MembershipMemberType.USER,
-                        userId,
-                        membership.getSource()
-                    );
+                            executionContext,
+                            MembershipReferenceType.valueOf(
+                                    membership.getReferenceType().name()),
+                            membership.getReferenceId(),
+                            MembershipMemberType.USER,
+                            userId,
+                            membership.getSource());
                 } else {
                     // Admin-assigned roles (non-IdP source) must survive IdP re-sync.
-                    resolveRoleScope(membership.getRoleId(), roleScopeByRoleId).ifPresent(roleScope ->
-                        manuallyAssignedRolesByReference
-                            .computeIfAbsent(membership.getReferenceId(), ignore -> new HashSet<>())
-                            .add(roleScope)
-                    );
+                    resolveRoleScope(membership.getRoleId(), roleScopeByRoleId)
+                            .ifPresent(roleScope -> manuallyAssignedRolesByReference
+                                    .computeIfAbsent(membership.getReferenceId(), ignore -> new HashSet<>())
+                                    .add(roleScope));
                 }
             } else {
                 // if there is no mapping configured on the social idp, we do not remove / reset it
@@ -2536,49 +2453,50 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         });
 
         Map<
-            MembershipService.MembershipReference,
-            Map<MembershipService.MembershipMember, Map<String, Collection<MembershipService.MembershipRole>>>
-        > groupedRoles = new HashMap<>();
-        memberships
-            .stream()
-            .filter(membership -> !containsMembership(overrideUserMemberships, membership))
-            .filter(membership -> {
-                if (!hasMapping) {
-                    return true;
-                }
-                Set<RoleScope> manualScopes = manuallyAssignedRolesByReference.get(membership.getReference().getId());
-                return manualScopes == null || !manualScopes.contains(membership.getRole().getScope());
-            })
-            .forEach(membership ->
-                groupedRoles
-                    .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
-                    .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
-                    .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
-                    .add(membership.getRole())
-            );
+                        MembershipService.MembershipReference,
+                        Map<
+                                MembershipService.MembershipMember,
+                                Map<String, Collection<MembershipService.MembershipRole>>>>
+                groupedRoles = new HashMap<>();
+        memberships.stream()
+                .filter(membership -> !containsMembership(overrideUserMemberships, membership))
+                .filter(membership -> {
+                    if (!hasMapping) {
+                        return true;
+                    }
+                    Set<RoleScope> manualScopes = manuallyAssignedRolesByReference.get(
+                            membership.getReference().getId());
+                    return manualScopes == null
+                            || !manualScopes.contains(membership.getRole().getScope());
+                })
+                .forEach(membership -> groupedRoles
+                        .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
+                        .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
+                        .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
+                        .add(membership.getRole()));
         // Create updated memberships
-        groupedRoles.forEach((reference, memberMapping) ->
-            memberMapping.forEach((member, sourceMapping) ->
-                sourceMapping.forEach((source, roles) ->
-                    membershipService.updateRolesToMemberOnReferenceBySource(executionContext, reference, member, roles, source)
-                )
-            )
-        );
+        groupedRoles.forEach((reference, memberMapping) -> memberMapping.forEach((member, sourceMapping) ->
+                sourceMapping.forEach((source, roles) -> membershipService.updateRolesToMemberOnReferenceBySource(
+                        executionContext, reference, member, roles, source))));
     }
 
-    private boolean containsMembership(List<Membership> overrideUserMemberships, MembershipService.Membership membership) {
-        return overrideUserMemberships
-            .stream()
-            .anyMatch(membership1 -> {
-                if (membership1.getReferenceId().equals(membership.getReference().getId())) {
-                    try {
-                        return membership.getRole().getScope().equals(roleService.findById(membership1.getRoleId()).getScope());
-                    } catch (RoleNotFoundException e) {
-                        return false;
-                    }
+    private boolean containsMembership(
+            List<Membership> overrideUserMemberships, MembershipService.Membership membership) {
+        return overrideUserMemberships.stream().anyMatch(membership1 -> {
+            if (membership1.getReferenceId().equals(membership.getReference().getId())) {
+                try {
+                    return membership
+                            .getRole()
+                            .getScope()
+                            .equals(roleService
+                                    .findById(membership1.getRoleId())
+                                    .getScope());
+                } catch (RoleNotFoundException e) {
+                    return false;
                 }
-                return false;
-            });
+            }
+            return false;
+        });
     }
 
     private Optional<RoleScope> resolveRoleScope(String roleId, Map<String, Optional<RoleScope>> roleScopeByRoleId) {
@@ -2594,38 +2512,34 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public void updateUserRoles(
-        ExecutionContext executionContext,
-        String userId,
-        MembershipReferenceType referenceType,
-        String referenceId,
-        List<String> roleIds
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            MembershipReferenceType referenceType,
+            String referenceId,
+            List<String> roleIds) {
         // check if user exist
         this.findById(executionContext, userId);
         MemberEntity userMember = membershipService.getUserMember(executionContext, referenceType, referenceId, userId);
         if (userMember != null) {
-            userMember
-                .getRoles()
-                .forEach(role -> {
-                    if (!roleIds.contains(role.getId())) {
-                        membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, role.getId());
-                    } else {
-                        roleIds.remove(role.getId());
-                    }
-                });
+            userMember.getRoles().forEach(role -> {
+                if (!roleIds.contains(role.getId())) {
+                    membershipService.removeRole(
+                            referenceType, referenceId, MembershipMemberType.USER, userId, role.getId());
+                } else {
+                    roleIds.remove(role.getId());
+                }
+            });
         }
         if (!roleIds.isEmpty()) {
             this.addRolesToUser(
-                executionContext,
-                userId,
-                roleIds
-                    .stream()
-                    .map(roleService::findById)
-                    .filter(role -> role.getScope().equals(RoleScope.valueOf(referenceType.name())))
-                    .collect(toSet()),
-                referenceType,
-                referenceId
-            );
+                    executionContext,
+                    userId,
+                    roleIds.stream()
+                            .map(roleService::findById)
+                            .filter(role -> role.getScope().equals(RoleScope.valueOf(referenceType.name())))
+                            .collect(toSet()),
+                    referenceType,
+                    referenceId);
         }
     }
 }

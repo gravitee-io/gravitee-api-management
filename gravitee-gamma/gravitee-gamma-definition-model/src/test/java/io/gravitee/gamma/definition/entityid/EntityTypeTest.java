@@ -29,19 +29,22 @@ class EntityTypeTest {
 
     @Test
     void scoped_builds_a_hierarchical_id() {
-        assertThat(EntityType.scoped("mcp-tool", "mcp-server").id("github", "list_pull_request").value()).isEqualTo(
-            "mcp-tool.github.list_pull_request"
-        );
+        assertThat(EntityType.scoped("mcp-tool", "mcp-server")
+                        .id("github", "list_pull_request")
+                        .value())
+                .isEqualTo("mcp-tool.github.list_pull_request");
     }
 
     @Test
     void name_seeded_rejects_a_parent_slug() {
-        assertThatThrownBy(() -> EntityType.nameSeeded("model").id("parent", "x")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> EntityType.nameSeeded("model").id("parent", "x"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void scoped_requires_a_parent_slug() {
-        assertThatThrownBy(() -> EntityType.scoped("mcp-tool", "mcp-server").id("x")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> EntityType.scoped("mcp-tool", "mcp-server").id("x"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

@@ -28,10 +28,10 @@ public class TagsToIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("commands")
-            .name("t1to1")
-            .key("tags", ascending())
-            .key("to", ascending())
-            .build();
+                .collection("commands")
+                .name("t1to1")
+                .key("tags", ascending())
+                .key("to", ascending())
+                .build();
     }
 }

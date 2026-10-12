@@ -52,7 +52,7 @@ public final class ApiTypeAdapter {
      */
     public static Optional<io.gravitee.definition.model.v4.ApiType> toDefinition(ApiType apiType) {
         return Arrays.stream(io.gravitee.definition.model.v4.ApiType.values())
-            .filter(definitionType -> toObservability(definitionType) == apiType)
-            .findFirst();
+                .filter(definitionType -> toObservability(definitionType) == apiType)
+                .findFirst();
     }
 }

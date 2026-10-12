@@ -60,12 +60,12 @@ public class MongoMediaRepository implements MediaRepository {
     @Override
     public Media create(Media media) {
         Document doc = new Document()
-            .append("type", media.getType())
-            .append("subType", media.getSubType())
-            .append("size", media.getSize())
-            .append("hash", media.getHash())
-            .append("environment", media.getEnvironment())
-            .append("organization", media.getOrganization());
+                .append("type", media.getType())
+                .append("subType", media.getSubType())
+                .append("size", media.getSize())
+                .append("hash", media.getHash())
+                .append("environment", media.getEnvironment())
+                .append("organization", media.getOrganization());
 
         if (media.getApi() != null) {
             doc.append("api", media.getApi());
@@ -73,18 +73,19 @@ public class MongoMediaRepository implements MediaRepository {
 
         GridFSUploadOptions options = new GridFSUploadOptions().metadata(doc);
 
-        getGridFs().uploadFromStream(
-            new BsonString(media.getId()),
-            media.getFileName(),
-            new ByteArrayInputStream(media.getData()),
-            options
-        );
+        getGridFs()
+                .uploadFromStream(
+                        new BsonString(media.getId()),
+                        media.getFileName(),
+                        new ByteArrayInputStream(media.getData()),
+                        options);
 
         return media;
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent) throws TechnicalException {
+    public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent)
+            throws TechnicalException {
         return this.findFirst(getQueryFindMedia(hash, mediaCriteria), withContent);
     }
 
@@ -202,14 +203,20 @@ public class MongoMediaRepository implements MediaRepository {
         if (environment == null) {
             return null;
         }
-        return or(eq("metadata.environment", environment), not(exists("metadata.environment")), eq("metadata.environment", null));
+        return or(
+                eq("metadata.environment", environment),
+                not(exists("metadata.environment")),
+                eq("metadata.environment", null));
     }
 
     private static Bson getOrganizationQuery(String organization) {
         if (organization == null) {
             return null;
         }
-        return or(eq("metadata.organization", organization), not(exists("metadata.organization")), eq("metadata.organization", null));
+        return or(
+                eq("metadata.organization", organization),
+                not(exists("metadata.organization")),
+                eq("metadata.organization", null));
     }
 
     private GridFSBucket getGridFs() {
@@ -261,12 +268,10 @@ public class MongoMediaRepository implements MediaRepository {
         try {
             GridFSBucket gridFs = getGridFs();
             List<String> deleted = new ArrayList<>();
-            gridFs
-                .find(query)
-                .forEach(file -> {
-                    deleted.add(file.getId().asString().getValue());
-                    gridFs.delete(file.getId());
-                });
+            gridFs.find(query).forEach(file -> {
+                deleted.add(file.getId().asString().getValue());
+                gridFs.delete(file.getId());
+            });
             return deleted;
         } catch (Exception e) {
             throw new TechnicalException(e);

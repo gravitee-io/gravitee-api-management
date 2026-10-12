@@ -17,5 +17,6 @@ package io.gravitee.apim.core.sanitizer;
 
 public interface HtmlSanitizer {
     String sanitize(String content);
+
     SanitizeResult isSafe(String content);
 }

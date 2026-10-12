@@ -27,16 +27,15 @@ class PathTest {
 
     public static Stream<Arguments> sanitizeParams() {
         return Stream.of(
-            Arguments.of(null, "/"),
-            Arguments.of("", "/"),
-            Arguments.of("path", "/path/"),
-            Arguments.of("/path", "/path/"),
-            Arguments.of("path/", "/path/"),
-            Arguments.of("//path/", "/path/"),
-            Arguments.of("path//subpath", "/path/subpath/"),
-            Arguments.of("path?param=value", "/path?param=value/"),
-            Arguments.of("path?param=value%20s", "/path?param=value%20s/")
-        );
+                Arguments.of(null, "/"),
+                Arguments.of("", "/"),
+                Arguments.of("path", "/path/"),
+                Arguments.of("/path", "/path/"),
+                Arguments.of("path/", "/path/"),
+                Arguments.of("//path/", "/path/"),
+                Arguments.of("path//subpath", "/path/subpath/"),
+                Arguments.of("path?param=value", "/path?param=value/"),
+                Arguments.of("path?param=value%20s", "/path?param=value%20s/"));
     }
 
     public static Stream<Arguments> invalidPaths() {

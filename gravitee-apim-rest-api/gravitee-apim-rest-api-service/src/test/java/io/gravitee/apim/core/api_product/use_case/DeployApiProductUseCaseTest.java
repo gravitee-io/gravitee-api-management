@@ -62,75 +62,85 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
-        new TriggerNotificationDomainServiceInMemory();
+            new TriggerNotificationDomainServiceInMemory();
     private DeployApiProductUseCase deployApiProductUseCase;
 
     @BeforeEach
     void setUp() {
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         var validateApiProductService = new ValidateApiProductService(
-            new ApiQueryServiceInMemory(),
-            new ApiCrudServiceInMemory(),
-            planQueryService,
-            mock(ApiProductQueryService.class)
-        );
+                new ApiQueryServiceInMemory(),
+                new ApiCrudServiceInMemory(),
+                planQueryService,
+                mock(ApiProductQueryService.class));
         deployApiProductUseCase = new DeployApiProductUseCase(
-            apiProductQueryService,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            validateApiProductService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService, flowCrudService),
-            triggerNotificationDomainService
-        );
+                apiProductQueryService,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                validateApiProductService,
+                new DeployApiProductDomainService(
+                        planQueryService, eventCrudService, eventLatestCrudService, flowCrudService),
+                triggerNotificationDomainService);
     }
 
     @Test
     void should_deploy_api_product() {
         var productId = "api-product-id";
-        var apiProduct = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).version("1.0.0").build();
+        var apiProduct = ApiProduct.builder()
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
 
         var input = new DeployApiProductUseCase.Input(productId, AUDIT_INFO);
         var output = deployApiProductUseCase.execute(input);
 
         assertThat(output.apiProduct())
-            .hasFieldOrPropertyWithValue("id", productId)
-            .hasFieldOrPropertyWithValue("name", "Product")
-            .hasFieldOrPropertyWithValue("environmentId", ENV_ID);
+                .hasFieldOrPropertyWithValue("id", productId)
+                .hasFieldOrPropertyWithValue("name", "Product")
+                .hasFieldOrPropertyWithValue("environmentId", ENV_ID);
 
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(productId), any());
-        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-            new ApiProductDeployedHookContext(productId, USER_ID)
-        );
+        assertThat(triggerNotificationDomainService.getHookNotifications())
+                .containsExactly(new ApiProductDeployedHookContext(productId, USER_ID));
     }
 
     @Test
     void should_hydrate_plan_flows_into_the_deployment_payload() {
         var productId = "api-product-id";
-        var apiProduct = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).version("1.0.0").build();
+        var apiProduct = ApiProduct.builder()
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
 
-        var plan = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .id("tier-1")
-            .referenceId(productId)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .build();
+        var plan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .id("tier-1")
+                .referenceId(productId)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .build();
         planQueryService.initWith(List.of(plan));
         flowCrudService.savePlanFlows(
-            "tier-1",
-            List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("budget").enabled(true).build())
-        );
+                "tier-1",
+                List.of(io.gravitee.definition.model.v4.flow.Flow.builder()
+                        .name("budget")
+                        .enabled(true)
+                        .build()));
 
         deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO));
 
-        var payloadCaptor = ArgumentCaptor.forClass(io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload.class);
+        var payloadCaptor =
+                ArgumentCaptor.forClass(io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload.class);
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), payloadCaptor.capture(), any());
         var deployedPlans = payloadCaptor.getValue().getPlans();
         assertThat(deployedPlans).hasSize(1);
         assertThat(deployedPlans.get(0).getFlows())
-            .extracting(io.gravitee.definition.model.v4.flow.Flow::getName)
-            .containsExactly("budget");
+                .extracting(io.gravitee.definition.model.v4.flow.Flow::getName)
+                .containsExactly("budget");
     }
 
     @Test
@@ -138,18 +148,22 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var input = new DeployApiProductUseCase.Input("missing-id", AUDIT_INFO);
 
         assertThatThrownBy(() -> deployApiProductUseCase.execute(input))
-            .isInstanceOf(ApiProductNotFoundException.class)
-            .hasMessage("API Product not found.");
+                .isInstanceOf(ApiProductNotFoundException.class)
+                .hasMessage("API Product not found.");
     }
 
     @Test
     void should_throw_exception_when_product_belongs_to_different_environment() {
         var productId = "api-product-id";
-        apiProductQueryService.initWith(List.of(ApiProduct.builder().id(productId).name("Product").environmentId("other-env").build()));
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(productId)
+                .name("Product")
+                .environmentId("other-env")
+                .build()));
 
-        assertThatThrownBy(() -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO))).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(
+                        () -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO)))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
@@ -157,26 +171,21 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var productId = "api-product-id";
         var apiId = "api-1";
         var apiProduct = ApiProduct.builder()
-            .id(productId)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .version("1.0.0")
-            .apiIds(Set.of(apiId))
-            .build();
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .apiIds(Set.of(apiId))
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
-        planQueryService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .referenceId(apiId)
-                    .referenceType(GenericPlanEntity.ReferenceType.API)
-                    .environmentId(ENV_ID)
-                    .planDefinitionHttpV4(
-                        PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.PUBLISHED).build()
-                    )
-                    .build()
-            )
-        );
+        planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                .referenceId(apiId)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.PUBLISHED)
+                        .build())
+                .build()));
 
         var output = deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO));
 
@@ -189,26 +198,21 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var productId = "api-product-id";
         var apiId = "api-without-plan";
         var apiProduct = ApiProduct.builder()
-            .id(productId)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .version("1.0.0")
-            .apiIds(Set.of(apiId))
-            .build();
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .apiIds(Set.of(apiId))
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
-        planQueryService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .referenceId(productId)
-                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .environmentId(ENV_ID)
-                    .planDefinitionHttpV4(
-                        PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.PUBLISHED).build()
-                    )
-                    .build()
-            )
-        );
+        planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                .referenceId(productId)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.PUBLISHED)
+                        .build())
+                .build()));
 
         var output = deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO));
 
@@ -221,26 +225,21 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var productId = "api-product-id";
         var apiId = "api-without-plan";
         var apiProduct = ApiProduct.builder()
-            .id(productId)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .version("1.0.0")
-            .apiIds(Set.of(apiId))
-            .build();
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .apiIds(Set.of(apiId))
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
-        planQueryService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .referenceId(productId)
-                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .environmentId(ENV_ID)
-                    .planDefinitionHttpV4(
-                        PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
-                    )
-                    .build()
-            )
-        );
+        planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                .referenceId(productId)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.DEPRECATED)
+                        .build())
+                .build()));
 
         var output = deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO));
 
@@ -253,26 +252,21 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var productId = "api-product-id";
         var apiId = "api-1";
         var apiProduct = ApiProduct.builder()
-            .id(productId)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .version("1.0.0")
-            .apiIds(Set.of(apiId))
-            .build();
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .apiIds(Set.of(apiId))
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
-        planQueryService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .referenceId(apiId)
-                    .referenceType(GenericPlanEntity.ReferenceType.API)
-                    .environmentId(ENV_ID)
-                    .planDefinitionHttpV4(
-                        PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
-                    )
-                    .build()
-            )
-        );
+        planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                .referenceId(apiId)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.DEPRECATED)
+                        .build())
+                .build()));
 
         var output = deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO));
 
@@ -285,30 +279,26 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var productId = "api-product-id";
         var apiId = "api-without-plan";
         var apiProduct = ApiProduct.builder()
-            .id(productId)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .version("1.0.0")
-            .apiIds(Set.of(apiId))
-            .build();
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .apiIds(Set.of(apiId))
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
-        planQueryService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .referenceId(productId)
-                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .environmentId(ENV_ID)
-                    .planDefinitionHttpV4(
-                        PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.STAGING).build()
-                    )
-                    .build()
-            )
-        );
+        planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                .referenceId(productId)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.STAGING)
+                        .build())
+                .build()));
 
-        assertThatThrownBy(() -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO)))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("some APIs have no published plan");
+        assertThatThrownBy(
+                        () -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("some APIs have no published plan");
     }
 
     @Test
@@ -316,18 +306,19 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var productId = "api-product-id";
         var apiId = "api-without-plan";
         var apiProduct = ApiProduct.builder()
-            .id(productId)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .version("1.0.0")
-            .apiIds(Set.of(apiId))
-            .build();
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .apiIds(Set.of(apiId))
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
         // No plans at all
 
-        assertThatThrownBy(() -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO)))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("some APIs have no published plan");
+        assertThatThrownBy(
+                        () -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("some APIs have no published plan");
     }
 
     @Test
@@ -335,30 +326,26 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         var productId = "api-product-id";
         var apiId = "api-staging-plan";
         var apiProduct = ApiProduct.builder()
-            .id(productId)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .version("1.0.0")
-            .apiIds(Set.of(apiId))
-            .build();
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .apiIds(Set.of(apiId))
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
-        planQueryService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .referenceId(apiId)
-                    .referenceType(GenericPlanEntity.ReferenceType.API)
-                    .environmentId(ENV_ID)
-                    .planDefinitionHttpV4(
-                        PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.STAGING).build()
-                    )
-                    .build()
-            )
-        );
+        planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                .referenceId(apiId)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.STAGING)
+                        .build())
+                .build()));
 
-        assertThatThrownBy(() -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO)))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("some APIs have no published plan");
+        assertThatThrownBy(
+                        () -> deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("some APIs have no published plan");
     }
 
     @Test
@@ -366,7 +353,12 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anOssLicense());
 
         var productId = "api-product-id";
-        var apiProduct = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).version("1.0.0").build();
+        var apiProduct = ApiProduct.builder()
+                .id(productId)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .version("1.0.0")
+                .build();
         apiProductQueryService.initWith(List.of(apiProduct));
 
         var input = new DeployApiProductUseCase.Input(productId, AUDIT_INFO);

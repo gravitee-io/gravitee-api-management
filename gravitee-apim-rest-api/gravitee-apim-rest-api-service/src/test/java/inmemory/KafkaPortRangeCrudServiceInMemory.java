@@ -19,10 +19,10 @@ import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.model.KafkaPortRange;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
-public class KafkaPortRangeCrudServiceInMemory implements KafkaPortRangeCrudService, InMemoryAlternative<KafkaPortRange> {
+public class KafkaPortRangeCrudServiceInMemory
+        implements KafkaPortRangeCrudService, InMemoryAlternative<KafkaPortRange> {
 
     private final List<KafkaPortRange> storage = new ArrayList<>();
 
@@ -45,10 +45,7 @@ public class KafkaPortRangeCrudServiceInMemory implements KafkaPortRangeCrudServ
 
     @Override
     public Optional<KafkaPortRange> findByPlanId(String planId) {
-        return storage
-            .stream()
-            .filter(r -> r.getPlanId().equals(planId))
-            .findFirst();
+        return storage.stream().filter(r -> r.getPlanId().equals(planId)).findFirst();
     }
 
     @Override
@@ -63,39 +60,28 @@ public class KafkaPortRangeCrudServiceInMemory implements KafkaPortRangeCrudServ
 
     @Override
     public List<KafkaPortRange> findConflicting(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) {
-        return storage
-            .stream()
-            .filter(r -> environmentId.equals(r.getEnvironmentId()))
-            .filter(r -> excludePlanId == null || !excludePlanId.equals(r.getPlanId()))
-            .filter(
-                r ->
-                    // broker-range overlap
-                    (r.getRangeStart() <= rangeEnd && r.getRangeEnd() >= rangeStart) ||
-                    // new bootstrap inside existing range
-                    (bootstrapPort >= r.getRangeStart() && bootstrapPort <= r.getRangeEnd()) ||
-                    // existing bootstrap inside new range
-                    (r.getBootstrapPort() >= rangeStart && r.getBootstrapPort() <= rangeEnd) ||
-                    // bootstrap collision
-                    r.getBootstrapPort() ==
-                    bootstrapPort
-            )
-            .toList();
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId) {
+        return storage.stream()
+                .filter(r -> environmentId.equals(r.getEnvironmentId()))
+                .filter(r -> excludePlanId == null || !excludePlanId.equals(r.getPlanId()))
+                .filter(r ->
+                        // broker-range overlap
+                        (r.getRangeStart() <= rangeEnd && r.getRangeEnd() >= rangeStart)
+                                ||
+                                // new bootstrap inside existing range
+                                (bootstrapPort >= r.getRangeStart() && bootstrapPort <= r.getRangeEnd())
+                                ||
+                                // existing bootstrap inside new range
+                                (r.getBootstrapPort() >= rangeStart && r.getBootstrapPort() <= rangeEnd)
+                                ||
+                                // bootstrap collision
+                                r.getBootstrapPort() == bootstrapPort)
+                .toList();
     }
 
     @Override
     public List<KafkaPortRange> findConflictingForUpdate(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) {
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId) {
         // In-memory has no transaction/locking semantics; the FOR UPDATE variant is observably
         // equivalent to the non-locking query for unit tests.
         return findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId);

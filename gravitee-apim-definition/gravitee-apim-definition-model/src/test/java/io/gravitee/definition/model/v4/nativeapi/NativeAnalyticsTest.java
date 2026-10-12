@@ -68,7 +68,10 @@ class NativeAnalyticsTest {
     @Test
     void should_leave_reporting_nothing_to_the_master_toggle() {
         // What the empty selection no longer expresses, this does — and it always did, first and unconditionally.
-        var analytics = NativeAnalytics.builder().reporterMetricsEnabled(false).connectionEvents(Set.of()).build();
+        var analytics = NativeAnalytics.builder()
+                .reporterMetricsEnabled(false)
+                .connectionEvents(Set.of())
+                .build();
 
         assertThat(analytics.isReporterMetricsEnabled()).isFalse();
     }
@@ -76,15 +79,13 @@ class NativeAnalyticsTest {
     @Test
     void should_preserve_connection_events_through_json() throws Exception {
         var original = NativeAnalytics.builder()
-            .connectionEvents(Set.of(NativeConnectionEvent.CONNECTED, NativeConnectionEvent.DISCONNECTED))
-            .build();
+                .connectionEvents(Set.of(NativeConnectionEvent.CONNECTED, NativeConnectionEvent.DISCONNECTED))
+                .build();
 
         var deserialized = objectMapper.readValue(objectMapper.writeValueAsString(original), NativeAnalytics.class);
 
-        assertThat(deserialized.getConnectionEvents()).containsExactlyInAnyOrder(
-            NativeConnectionEvent.CONNECTED,
-            NativeConnectionEvent.DISCONNECTED
-        );
+        assertThat(deserialized.getConnectionEvents())
+                .containsExactlyInAnyOrder(NativeConnectionEvent.CONNECTED, NativeConnectionEvent.DISCONNECTED);
     }
 
     @Test
@@ -99,7 +100,10 @@ class NativeAnalyticsTest {
 
     @Test
     void should_preserve_reporter_metrics_enabled_through_json() throws Exception {
-        var original = NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(false).build();
+        var original = NativeAnalytics.builder()
+                .enabled(true)
+                .reporterMetricsEnabled(false)
+                .build();
 
         var deserialized = objectMapper.readValue(objectMapper.writeValueAsString(original), NativeAnalytics.class);
 

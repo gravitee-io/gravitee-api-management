@@ -36,11 +36,12 @@ public class ValidateGroupCRDUseCase {
         var statusBuilder = GroupCRDStatus.builder();
 
         validator
-            .validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo(), input.spec()))
-            .peek(
-                sanitized -> statusBuilder.id(sanitized.spec().getId()).members(sanitized.spec().getMembers().size()),
-                errors -> statusBuilder.errors(GroupCRDStatus.Errors.fromErrorList(errors))
-            );
+                .validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo(), input.spec()))
+                .peek(
+                        sanitized -> statusBuilder
+                                .id(sanitized.spec().getId())
+                                .members(sanitized.spec().getMembers().size()),
+                        errors -> statusBuilder.errors(GroupCRDStatus.Errors.fromErrorList(errors)));
 
         return new ImportGroupCRDUseCase.Output(statusBuilder.build());
     }

@@ -42,7 +42,8 @@ public class SubscriptionTrustStoreLoaderManager {
 
     private final Map<String, Set<SubscriptionCertificate>> certificates = new HashMap<>();
     private final Map<CacheKey, Subscription> subscriptions = new ConcurrentHashMap<>();
-    private final Multimap<CacheKey, SubscriptionTrustStoreLoader> truststoreLoaders = MultimapBuilder.hashKeys().hashSetValues().build();
+    private final Multimap<CacheKey, SubscriptionTrustStoreLoader> truststoreLoaders =
+            MultimapBuilder.hashKeys().hashSetValues().build();
     private final ServerManager serverManager;
 
     public SubscriptionTrustStoreLoaderManager(ServerManager serverManager) {
@@ -56,17 +57,17 @@ public class SubscriptionTrustStoreLoaderManager {
      */
     public void registerSubscription(Subscription subscription, Set<String> deployOnServers) {
         certificates.computeIfPresent(subscription.getId(), (id, currentState) -> {
-            Set<SubscriptionCertificate> newState = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
+            Set<SubscriptionCertificate> newState =
+                    SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
             // compute diff to minimize disruption: add new certificates before removing old ones to avoid traffic cuts
-            Set<SubscriptionCertificate> toAdd = newState
-                .stream()
-                .filter(newCert -> !currentState.contains(newCert))
-                .collect(Collectors.toSet());
-            Set<SubscriptionCertificate> toRemove = currentState
-                .stream()
-                .filter(existing -> !newState.contains(existing))
-                .collect(Collectors.toSet());
-            Set<SubscriptionCertificate> toUpdate = currentState.stream().filter(newState::contains).collect(Collectors.toSet());
+            Set<SubscriptionCertificate> toAdd = newState.stream()
+                    .filter(newCert -> !currentState.contains(newCert))
+                    .collect(Collectors.toSet());
+            Set<SubscriptionCertificate> toRemove = currentState.stream()
+                    .filter(existing -> !newState.contains(existing))
+                    .collect(Collectors.toSet());
+            Set<SubscriptionCertificate> toUpdate =
+                    currentState.stream().filter(newState::contains).collect(Collectors.toSet());
 
             try {
                 // manage truststore loaders
@@ -95,7 +96,8 @@ public class SubscriptionTrustStoreLoaderManager {
         });
         certificates.computeIfAbsent(subscription.getId(), id -> {
             try {
-                Set<SubscriptionCertificate> newState = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
+                Set<SubscriptionCertificate> newState =
+                        SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
                 newState.forEach(s -> registerSubscriptionTrustStoreLoader(s, deployOnServers));
                 return newState;
             } catch (MalformedCertificateException e) {
@@ -128,38 +130,33 @@ public class SubscriptionTrustStoreLoaderManager {
         return Optional.ofNullable(subscriptions.get(new CacheKey(api, plan, certificateFingerprint)));
     }
 
-    private void registerSubscriptionTrustStoreLoader(SubscriptionCertificate subscriptionCertificate, Set<String> deployOnServers) {
-        serverManager
-            .servers()
-            .stream()
-            .filter(server -> deployOnServers.isEmpty() || deployOnServers.contains(server.id()))
-            .map(s -> (VertxServer<?, ?>) s)
-            .forEach(server -> {
-                SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(subscriptionCertificate);
-                log.debug(
-                    "Registering TrustStoreLoader for subscription {} and certificate {} for server {}",
-                    subscriptionCertificate.subscription().getId(),
-                    subscriptionCertificate.fingerprint(),
-                    server.id()
-                );
-                server.trustStoreLoaderManager().registerLoader(loader);
-                truststoreLoaders.put(new CacheKey(subscriptionCertificate), loader);
-            });
+    private void registerSubscriptionTrustStoreLoader(
+            SubscriptionCertificate subscriptionCertificate, Set<String> deployOnServers) {
+        serverManager.servers().stream()
+                .filter(server -> deployOnServers.isEmpty() || deployOnServers.contains(server.id()))
+                .map(s -> (VertxServer<?, ?>) s)
+                .forEach(server -> {
+                    SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(subscriptionCertificate);
+                    log.debug(
+                            "Registering TrustStoreLoader for subscription {} and certificate {} for server {}",
+                            subscriptionCertificate.subscription().getId(),
+                            subscriptionCertificate.fingerprint(),
+                            server.id());
+                    server.trustStoreLoaderManager().registerLoader(loader);
+                    truststoreLoaders.put(new CacheKey(subscriptionCertificate), loader);
+                });
         subscriptions.put(new CacheKey(subscriptionCertificate), subscriptionCertificate.subscription());
     }
 
     private void unregisterSubscriptionTrustStoreLoader(SubscriptionCertificate subscriptionCertificate) {
         log.debug(
-            "Stopping TrustStoreLoader for subscription {} and certificate {}",
-            subscriptionCertificate.subscription().getId(),
-            subscriptionCertificate.fingerprint()
-        );
-        truststoreLoaders
-            .removeAll(new CacheKey(subscriptionCertificate))
-            .forEach(loader -> {
-                loader.onEvent(new KeyStoreEvent.UnloadEvent(loader.id()));
-                loader.stop();
-            });
+                "Stopping TrustStoreLoader for subscription {} and certificate {}",
+                subscriptionCertificate.subscription().getId(),
+                subscriptionCertificate.fingerprint());
+        truststoreLoaders.removeAll(new CacheKey(subscriptionCertificate)).forEach(loader -> {
+            loader.onEvent(new KeyStoreEvent.UnloadEvent(loader.id()));
+            loader.stop();
+        });
         subscriptions.remove(new CacheKey(subscriptionCertificate));
     }
 
@@ -176,10 +173,9 @@ public class SubscriptionTrustStoreLoaderManager {
 
         public CacheKey(SubscriptionCertificate subscriptionCertificate) {
             this(
-                SubscriptionScope.of(subscriptionCertificate.subscription()),
-                subscriptionCertificate.subscription().getPlan(),
-                subscriptionCertificate.fingerprint()
-            );
+                    SubscriptionScope.of(subscriptionCertificate.subscription()),
+                    subscriptionCertificate.subscription().getPlan(),
+                    subscriptionCertificate.fingerprint());
         }
     }
 }

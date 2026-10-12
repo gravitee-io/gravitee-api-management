@@ -24,7 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class ResourcePluginCrudServiceInMemory implements ResourcePluginCrudService, InMemoryAlternative<ResourcePlugin> {
+public class ResourcePluginCrudServiceInMemory
+        implements ResourcePluginCrudService, InMemoryAlternative<ResourcePlugin> {
 
     final List<ResourcePlugin> storage = new ArrayList<>();
 
@@ -34,10 +35,9 @@ public class ResourcePluginCrudServiceInMemory implements ResourcePluginCrudServ
             throw new TechnicalManagementException("resourceId should not be null");
         }
 
-        var resource = storage
-            .stream()
-            .filter(resourcePlugin -> resourceId.equals(resourcePlugin.getId()))
-            .findFirst();
+        var resource = storage.stream()
+                .filter(resourcePlugin -> resourceId.equals(resourcePlugin.getId()))
+                .findFirst();
 
         if (resource.isEmpty()) {
             throw new ResourceNotFoundException(resourceId);

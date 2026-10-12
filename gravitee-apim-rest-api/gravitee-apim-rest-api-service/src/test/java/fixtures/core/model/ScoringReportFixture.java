@@ -26,31 +26,24 @@ public class ScoringReportFixture {
 
     private ScoringReportFixture() {}
 
-    public static final Supplier<ScoringReport.ScoringReportBuilder> BASE = () ->
-        ScoringReport.builder()
+    public static final Supplier<ScoringReport.ScoringReportBuilder> BASE = () -> ScoringReport.builder()
             .id("report-id")
             .apiId("api-id")
             .environmentId("environment-id")
             .summary(new ScoringReport.Summary(0.9D, 0L, 1L, 0L, 0L))
-            .assets(
-                List.of(
+            .assets(List.of(
                     new ScoringReport.Asset(
-                        "page-id",
-                        ScoringAssetType.SWAGGER,
-                        List.of(
-                            new ScoringReport.Diagnostic(
-                                ScoringReport.Severity.WARN,
-                                new ScoringReport.Range(new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
-                                "operation-operationId",
-                                "Operation must have \"operationId\".",
-                                "paths./echo.options"
-                            )
-                        ),
-                        List.of()
-                    ),
-                    new ScoringReport.Asset(null, ScoringAssetType.GRAVITEE_DEFINITION, List.of(), List.of())
-                )
-            )
+                            "page-id",
+                            ScoringAssetType.SWAGGER,
+                            List.of(new ScoringReport.Diagnostic(
+                                    ScoringReport.Severity.WARN,
+                                    new ScoringReport.Range(
+                                            new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
+                                    "operation-operationId",
+                                    "Operation must have \"operationId\".",
+                                    "paths./echo.options")),
+                            List.of()),
+                    new ScoringReport.Asset(null, ScoringAssetType.GRAVITEE_DEFINITION, List.of(), List.of())))
             .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
     public static ScoringReport aScoringReport() {
@@ -59,16 +52,12 @@ public class ScoringReportFixture {
 
     public static ScoringReport anErrorAssertScoringReport() {
         return BASE.get()
-            .assets(
-                List.of(
-                    new ScoringReport.Asset(
+                .assets(List.of(new ScoringReport.Asset(
                         "page-id",
                         ScoringAssetType.SWAGGER,
                         List.of(),
-                        List.of(new ScoringReport.ScoringError("some-error-code", List.of("path", "to", "the", "property")))
-                    )
-                )
-            )
-            .build();
+                        List.of(new ScoringReport.ScoringError(
+                                "some-error-code", List.of("path", "to", "the", "property"))))))
+                .build();
     }
 }

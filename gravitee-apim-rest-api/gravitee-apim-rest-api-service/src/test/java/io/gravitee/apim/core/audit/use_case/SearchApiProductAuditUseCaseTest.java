@@ -22,7 +22,6 @@ import io.gravitee.apim.core.api_product.model.ApiProductAuditQueryFilters;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -38,7 +37,8 @@ class SearchApiProductAuditUseCaseTest {
 
     AuditQueryServiceInMemory auditQueryService = new AuditQueryServiceInMemory();
     AuditMetadataQueryServiceInMemory auditMetadataQueryService = new AuditMetadataQueryServiceInMemory();
-    SearchAuditDomainService searchAuditDomainService = new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
+    SearchAuditDomainService searchAuditDomainService =
+            new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
 
     SearchApiProductAuditUseCase useCase;
 
@@ -55,13 +55,16 @@ class SearchApiProductAuditUseCaseTest {
     @Test
     void should_return_only_the_audits_of_the_requested_api_product() {
         var expected = AuditFixtures.anApiProductAudit();
-        auditQueryService.initWith(
-            List.of(
+        auditQueryService.initWith(List.of(
                 expected,
-                AuditFixtures.anApiProductAudit().toBuilder().id("audit2").referenceId("other-product").build(),
-                AuditFixtures.anApiProductAudit().toBuilder().id("audit3").environmentId("env2").build()
-            )
-        );
+                AuditFixtures.anApiProductAudit().toBuilder()
+                        .id("audit2")
+                        .referenceId("other-product")
+                        .build(),
+                AuditFixtures.anApiProductAudit().toBuilder()
+                        .id("audit3")
+                        .environmentId("env2")
+                        .build()));
 
         var result = useCase.execute(new SearchApiProductAuditUseCase.Input(filters()));
 
@@ -85,12 +88,11 @@ class SearchApiProductAuditUseCaseTest {
 
     private ApiProductAuditQueryFilters filters() {
         return new ApiProductAuditQueryFilters(
-            API_PRODUCT_ID,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            Optional.of(0L),
-            Optional.of(Instant.now().toEpochMilli()),
-            Set.of()
-        );
+                API_PRODUCT_ID,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                Optional.of(0L),
+                Optional.of(Instant.now().toEpochMilli()),
+                Set.of());
     }
 }

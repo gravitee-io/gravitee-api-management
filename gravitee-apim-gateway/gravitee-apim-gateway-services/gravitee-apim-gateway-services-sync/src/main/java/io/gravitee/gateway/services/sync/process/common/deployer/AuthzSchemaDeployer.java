@@ -44,28 +44,26 @@ public class AuthzSchemaDeployer implements Deployer<AuthzSchemaReactorDeployabl
     public Completable deploy(AuthzSchemaReactorDeployable deployable) {
         Set<String> removed = deployable.removedTargetPdpIds();
         Completable eviction = removed == null || removed.isEmpty()
-            ? Completable.complete()
-            : enginePort.removeSchema(deployable.environmentId(), deployable.docId(), removed);
-        return eviction
-            .andThen(
-                enginePort.addOrUpdateSchema(
-                    deployable.environmentId(),
-                    deployable.docId(),
-                    deployable.name(),
-                    deployable.schemaText(),
-                    deployable.targetPdpIds(),
-                    deployable.updatedAt()
-                )
-            )
-            .doOnComplete(() -> log.debug("Authz schema '{}' staged for next commit", deployable.docId()))
-            .doOnError(e -> log.warn("Failed to stage authz schema '{}': {}", deployable.docId(), e.getMessage()));
+                ? Completable.complete()
+                : enginePort.removeSchema(deployable.environmentId(), deployable.docId(), removed);
+        return eviction.andThen(enginePort.addOrUpdateSchema(
+                        deployable.environmentId(),
+                        deployable.docId(),
+                        deployable.name(),
+                        deployable.schemaText(),
+                        deployable.targetPdpIds(),
+                        deployable.updatedAt()))
+                .doOnComplete(() -> log.debug("Authz schema '{}' staged for next commit", deployable.docId()))
+                .doOnError(e -> log.warn("Failed to stage authz schema '{}': {}", deployable.docId(), e.getMessage()));
     }
 
     @Override
     public Completable undeploy(AuthzSchemaReactorDeployable deployable) {
         return enginePort
-            .removeSchema(deployable.environmentId(), deployable.docId(), deployable.targetPdpIds())
-            .doOnComplete(() -> log.debug("Authz schema '{}' staged for removal on next commit", deployable.docId()))
-            .doOnError(e -> log.warn("Failed to stage authz schema '{}' removal: {}", deployable.docId(), e.getMessage()));
+                .removeSchema(deployable.environmentId(), deployable.docId(), deployable.targetPdpIds())
+                .doOnComplete(
+                        () -> log.debug("Authz schema '{}' staged for removal on next commit", deployable.docId()))
+                .doOnError(e ->
+                        log.warn("Failed to stage authz schema '{}' removal: {}", deployable.docId(), e.getMessage()));
     }
 }

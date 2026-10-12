@@ -45,10 +45,9 @@ public class ListMyAiWorkspacesUseCase {
     private final FlowCrudService flowCrudService;
 
     public ListMyAiWorkspacesUseCase(
-        AiWorkspaceMembershipQuery memberships,
-        ApiProductQueryService apiProductQueryService,
-        FlowCrudService flowCrudService
-    ) {
+            AiWorkspaceMembershipQuery memberships,
+            ApiProductQueryService apiProductQueryService,
+            FlowCrudService flowCrudService) {
         this.memberships = memberships;
         this.apiProductQueryService = apiProductQueryService;
         this.flowCrudService = flowCrudService;
@@ -59,32 +58,31 @@ public class ListMyAiWorkspacesUseCase {
     public record Output(List<AiWorkspaceSummary> workspaces) {}
 
     public Output execute(Input input) {
-        List<AiWorkspaceMembership> memberships = this.memberships.find(input.executionContext(), input.applicationIds());
-        Set<String> productIds = memberships
-            .stream()
-            .map(AiWorkspaceMembership::apiProductId)
-            .filter(id -> id != null && !id.isBlank())
-            .collect(Collectors.toSet());
+        List<AiWorkspaceMembership> memberships =
+                this.memberships.find(input.executionContext(), input.applicationIds());
+        Set<String> productIds = memberships.stream()
+                .map(AiWorkspaceMembership::apiProductId)
+                .filter(id -> id != null && !id.isBlank())
+                .collect(Collectors.toSet());
         Map<String, ApiProduct> productsById = productIds.isEmpty()
-            ? Map.of()
-            : apiProductQueryService
-                .findByEnvironmentIdAndIdIn(input.executionContext().getEnvironmentId(), productIds)
-                .stream()
-                .collect(Collectors.toMap(ApiProduct::getId, product -> product, (left, right) -> left));
-        Set<String> planIds = memberships
-            .stream()
-            .map(AiWorkspaceMembership::planId)
-            .filter(planId -> planId != null && !planId.isBlank())
-            .collect(Collectors.toSet());
+                ? Map.of()
+                : apiProductQueryService
+                        .findByEnvironmentIdAndIdIn(input.executionContext().getEnvironmentId(), productIds)
+                        .stream()
+                        .collect(Collectors.toMap(ApiProduct::getId, product -> product, (left, right) -> left));
+        Set<String> planIds = memberships.stream()
+                .map(AiWorkspaceMembership::planId)
+                .filter(planId -> planId != null && !planId.isBlank())
+                .collect(Collectors.toSet());
         Map<String, List<Flow>> flowsByPlan = planIds.isEmpty() ? Map.of() : flowCrudService.getPlanV4Flows(planIds);
 
-        List<AiWorkspaceSummary> matched = memberships
-            .stream()
-            .map(membership -> toSummary(membership, productsById, flowsByPlan))
-            .flatMap(Optional::stream)
-            .filter(summary -> matchesName(summary.name(), input.name()))
-            .sorted(Comparator.comparing(AiWorkspaceSummary::name, NULLS_LAST).thenComparing(AiWorkspaceSummary::id, NULLS_LAST))
-            .toList();
+        List<AiWorkspaceSummary> matched = memberships.stream()
+                .map(membership -> toSummary(membership, productsById, flowsByPlan))
+                .flatMap(Optional::stream)
+                .filter(summary -> matchesName(summary.name(), input.name()))
+                .sorted(Comparator.comparing(AiWorkspaceSummary::name, NULLS_LAST)
+                        .thenComparing(AiWorkspaceSummary::id, NULLS_LAST))
+                .toList();
 
         return new Output(matched);
     }
@@ -100,23 +98,23 @@ public class ListMyAiWorkspacesUseCase {
     }
 
     private static Optional<AiWorkspaceSummary> toSummary(
-        AiWorkspaceMembership membership,
-        Map<String, ApiProduct> productsById,
-        Map<String, List<Flow>> flowsByPlan
-    ) {
+            AiWorkspaceMembership membership,
+            Map<String, ApiProduct> productsById,
+            Map<String, List<Flow>> flowsByPlan) {
         ApiProduct product = productsById.get(membership.apiProductId());
         if (product == null || product.getKind() != ApiProductKind.AI_WORKSPACE) {
             return Optional.empty();
         }
-        return Optional.of(
-            new AiWorkspaceSummary(product.getId(), product.getName(), product.getDescription(), budget(membership, flowsByPlan))
-        );
+        return Optional.of(new AiWorkspaceSummary(
+                product.getId(), product.getName(), product.getDescription(), budget(membership, flowsByPlan)));
     }
 
     private static AiWorkspaceBudget budget(AiWorkspaceMembership membership, Map<String, List<Flow>> flowsByPlan) {
         if (membership.planId() == null) {
             return null;
         }
-        return AiWorkspaceBudgetReader.read(flowsByPlan.getOrDefault(membership.planId(), List.of()), membership.planId()).orElse(null);
+        return AiWorkspaceBudgetReader.read(
+                        flowsByPlan.getOrDefault(membership.planId(), List.of()), membership.planId())
+                .orElse(null);
     }
 }

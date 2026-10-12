@@ -58,7 +58,8 @@ class HttpProxyEndpointConfigurationFactoryTest {
 
     @Test
     void should_build_http_configuration_with_node_address_when_service_address_is_blank() {
-        Service service = new Service().setAddress("   ").setNodeAddress("192.168.1.200").setPort(8080);
+        Service service =
+                new Service().setAddress("   ").setNodeAddress("192.168.1.200").setPort(8080);
 
         String result = factory.buildConfiguration(service);
 
@@ -67,9 +68,10 @@ class HttpProxyEndpointConfigurationFactoryTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "false,http://192.168.1.100:8080", "true,https://192.168.1.100:8080" })
+    @CsvSource({"false,http://192.168.1.100:8080", "true,https://192.168.1.100:8080"})
     void should_build_http_configuration_when_ssl_metadata(String ssl, String expectedTarget) {
-        Service service = new Service().setAddress("192.168.1.100").setPort(8080).setMeta(Map.of(CONSUL_METADATA_SSL, ssl));
+        Service service =
+                new Service().setAddress("192.168.1.100").setPort(8080).setMeta(Map.of(CONSUL_METADATA_SSL, ssl));
 
         String result = factory.buildConfiguration(service);
 
@@ -78,18 +80,17 @@ class HttpProxyEndpointConfigurationFactoryTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            "/api/v1,http://192.168.1.100:8080/api/v1",
-            "/api/v1/,http://192.168.1.100:8080/api/v1",
-            "'',http://192.168.1.100:8080",
-            "/,http://192.168.1.100:8080",
-            "/app/,http://192.168.1.100:8080/app",
-            "/service/endpoint/,http://192.168.1.100:8080/service/endpoint",
-        }
-    )
+    @CsvSource({
+        "/api/v1,http://192.168.1.100:8080/api/v1",
+        "/api/v1/,http://192.168.1.100:8080/api/v1",
+        "'',http://192.168.1.100:8080",
+        "/,http://192.168.1.100:8080",
+        "/app/,http://192.168.1.100:8080/app",
+        "/service/endpoint/,http://192.168.1.100:8080/service/endpoint",
+    })
     void should_build_configuration_with_path(String path, String expectedTarget) {
-        Service service = new Service().setAddress("192.168.1.100").setPort(8080).setMeta(Map.of(CONSUL_METADATA_PATH, path));
+        Service service =
+                new Service().setAddress("192.168.1.100").setPort(8080).setMeta(Map.of(CONSUL_METADATA_PATH, path));
 
         String result = factory.buildConfiguration(service);
 
@@ -119,7 +120,8 @@ class HttpProxyEndpointConfigurationFactoryTest {
 
     @Test
     void should_build_configuration_when_metadata_is_null() {
-        Service service = new Service().setAddress("192.168.1.100").setPort(8080).setMeta(null);
+        Service service =
+                new Service().setAddress("192.168.1.100").setPort(8080).setMeta(null);
 
         String result = factory.buildConfiguration(service);
 

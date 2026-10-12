@@ -30,15 +30,15 @@ class KafkaPortRangeAdapterTest {
     void should_round_trip_core_to_repository_and_back() {
         var coreNow = ZonedDateTime.of(2026, 4, 23, 12, 0, 0, 0, ZoneOffset.UTC);
         var source = io.gravitee.apim.core.plan.model.KafkaPortRange.builder()
-            .planId("plan-1")
-            .apiId("api-1")
-            .environmentId("env-1")
-            .bootstrapPort(9092)
-            .rangeStart(9100)
-            .rangeEnd(9102)
-            .createdAt(coreNow)
-            .updatedAt(coreNow)
-            .build();
+                .planId("plan-1")
+                .apiId("api-1")
+                .environmentId("env-1")
+                .bootstrapPort(9092)
+                .rangeStart(9100)
+                .rangeEnd(9102)
+                .createdAt(coreNow)
+                .updatedAt(coreNow)
+                .build();
 
         var repository = KafkaPortRangeAdapter.INSTANCE.toRepository(source);
         var roundTripped = KafkaPortRangeAdapter.INSTANCE.fromRepository(repository);
@@ -58,15 +58,15 @@ class KafkaPortRangeAdapterTest {
     @Test
     void should_map_instant_to_utc_zoned_date_time() {
         var repo = io.gravitee.repository.management.model.KafkaPortRange.builder()
-            .planId("plan-1")
-            .apiId("api-1")
-            .environmentId("env-1")
-            .bootstrapPort(9092)
-            .rangeStart(9100)
-            .rangeEnd(9102)
-            .createdAt(Instant.parse("2026-04-23T12:00:00Z"))
-            .updatedAt(Instant.parse("2026-04-23T12:00:00Z"))
-            .build();
+                .planId("plan-1")
+                .apiId("api-1")
+                .environmentId("env-1")
+                .bootstrapPort(9092)
+                .rangeStart(9100)
+                .rangeEnd(9102)
+                .createdAt(Instant.parse("2026-04-23T12:00:00Z"))
+                .updatedAt(Instant.parse("2026-04-23T12:00:00Z"))
+                .build();
 
         var core = KafkaPortRangeAdapter.INSTANCE.fromRepository(repo);
 

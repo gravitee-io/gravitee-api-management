@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.ApiProductKind;
 import java.util.Date;
 import java.util.List;

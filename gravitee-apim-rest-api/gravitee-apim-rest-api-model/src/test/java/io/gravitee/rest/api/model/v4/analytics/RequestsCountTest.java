@@ -46,7 +46,10 @@ public class RequestsCountTest {
 
     @Test
     void shouldCreateUsingBuilder() {
-        RequestsCount count = RequestsCount.builder().total(150L).countsByEntrypoint(Map.of("entryA", 150L)).build();
+        RequestsCount count = RequestsCount.builder()
+                .total(150L)
+                .countsByEntrypoint(Map.of("entryA", 150L))
+                .build();
 
         assertEquals(150L, count.getTotal());
         assertTrue(count.getCountsByEntrypoint().containsKey("entryA"));
@@ -54,17 +57,22 @@ public class RequestsCountTest {
 
     @Test
     void shouldSupportToBuilder() {
-        RequestsCount original = RequestsCount.builder().total(400L).countsByEntrypoint(Map.of("entryX", 400L)).build();
+        RequestsCount original = RequestsCount.builder()
+                .total(400L)
+                .countsByEntrypoint(Map.of("entryX", 400L))
+                .build();
 
         RequestsCount modified = original.toBuilder().total(500L).build();
 
         assertEquals(500L, modified.getTotal());
-        assertEquals("entryX", modified.getCountsByEntrypoint().keySet().iterator().next());
+        assertEquals(
+                "entryX", modified.getCountsByEntrypoint().keySet().iterator().next());
     }
 
     @Test
     void shouldHandleNullCountsByEntrypoint() {
-        RequestsCount count = RequestsCount.builder().total(0L).countsByEntrypoint(null).build();
+        RequestsCount count =
+                RequestsCount.builder().total(0L).countsByEntrypoint(null).build();
 
         assertEquals(0L, count.getTotal());
         assertNull(count.getCountsByEntrypoint());

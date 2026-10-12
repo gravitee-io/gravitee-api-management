@@ -39,15 +39,15 @@ class DiagnosticReportHelperTest {
         @DisplayName("Should create diagnostic with execution failure key and message")
         void shouldCreateDiagnosticWithExecutionFailureKeyAndMessage() {
             // Given
-            ExecutionFailure executionFailure = new ExecutionFailure(400).key("INVALID_REQUEST").message("The request is invalid");
+            ExecutionFailure executionFailure =
+                    new ExecutionFailure(400).key("INVALID_REQUEST").message("The request is invalid");
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                "legacy-key",
-                "legacy-message",
-                executionFailure
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                    "legacy-key",
+                    "legacy-message",
+                    executionFailure);
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo("INVALID_REQUEST");
@@ -64,11 +64,10 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                "legacy-key",
-                "legacy-message",
-                executionFailure
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                    "legacy-key",
+                    "legacy-message",
+                    executionFailure);
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo("legacy-key");
@@ -83,11 +82,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                new ComponentScope.ComponentEntry(null, null),
-                null,
-                null,
-                executionFailure
-            );
+                    new ComponentScope.ComponentEntry(null, null), null, null, executionFailure);
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo(DiagnosticReportHelper.INTERNAL_ERROR);
@@ -102,17 +97,16 @@ class DiagnosticReportHelperTest {
             // Given
             RuntimeException cause = new RuntimeException("Root cause");
             ExecutionFailure executionFailure = new ExecutionFailure(500)
-                .key("INTERNAL_ERROR")
-                .message("Something went wrong")
-                .cause(cause);
+                    .key("INTERNAL_ERROR")
+                    .message("Something went wrong")
+                    .cause(cause);
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                null,
-                null,
-                executionFailure
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                    null,
+                    null,
+                    executionFailure);
 
             // Then
             assertThat(diagnostic.getMessage()).isEqualTo("Something went wrong (Root cause)");
@@ -124,17 +118,16 @@ class DiagnosticReportHelperTest {
             // Given
             RuntimeException cause = new RuntimeException();
             ExecutionFailure executionFailure = new ExecutionFailure(500)
-                .key("INTERNAL_ERROR")
-                .message("Something went wrong")
-                .cause(cause);
+                    .key("INTERNAL_ERROR")
+                    .message("Something went wrong")
+                    .cause(cause);
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                null,
-                null,
-                executionFailure
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                    null,
+                    null,
+                    executionFailure);
 
             // Then
             assertThat(diagnostic.getMessage()).isEqualTo("Something went wrong (Runtime)");
@@ -147,17 +140,16 @@ class DiagnosticReportHelperTest {
             RuntimeException rootCause = new RuntimeException("Root cause");
             IllegalStateException wrapper = new IllegalStateException("Wrapper", rootCause);
             ExecutionFailure executionFailure = new ExecutionFailure(500)
-                .key("INTERNAL_ERROR")
-                .message("Something went wrong")
-                .cause(wrapper);
+                    .key("INTERNAL_ERROR")
+                    .message("Something went wrong")
+                    .cause(wrapper);
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                null,
-                null,
-                executionFailure
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                    null,
+                    null,
+                    executionFailure);
 
             // Then
             assertThat(diagnostic.getMessage()).isEqualTo("Something went wrong (Root cause)");
@@ -176,9 +168,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                executionWarn
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"), executionWarn);
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo("WARNING_KEY");
@@ -195,9 +185,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                executionWarn
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"), executionWarn);
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo(DiagnosticReportHelper.INTERNAL_ERROR);
@@ -211,7 +199,8 @@ class DiagnosticReportHelperTest {
             ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY").message("This is a warning");
 
             // When
-            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(new ComponentScope.ComponentEntry(null, null), executionWarn);
+            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
+                    new ComponentScope.ComponentEntry(null, null), executionWarn);
 
             // Then
             assertThat(diagnostic.getComponentType()).isEqualTo(DiagnosticReportHelper.UNKNOWN_COMPONENT);
@@ -223,13 +212,13 @@ class DiagnosticReportHelperTest {
         void shouldIncludeCauseInformationWhenPresent() {
             // Given
             RuntimeException cause = new RuntimeException("Warning cause");
-            ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY").message("This is a warning").cause(cause);
+            ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY")
+                    .message("This is a warning")
+                    .cause(cause);
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                executionWarn
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"), executionWarn);
 
             // Then
             assertThat(diagnostic.getMessage()).isEqualTo("This is a warning (Warning cause)");
@@ -240,13 +229,13 @@ class DiagnosticReportHelperTest {
         void shouldPrettifyExceptionNameWhenCauseHasNoMessage() {
             // Given
             RuntimeException cause = new RuntimeException();
-            ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY").message("This is a warning").cause(cause);
+            ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY")
+                    .message("This is a warning")
+                    .cause(cause);
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
-                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
-                executionWarn
-            );
+                    new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"), executionWarn);
 
             // Then
             assertThat(diagnostic.getMessage()).isEqualTo("This is a warning (Runtime)");

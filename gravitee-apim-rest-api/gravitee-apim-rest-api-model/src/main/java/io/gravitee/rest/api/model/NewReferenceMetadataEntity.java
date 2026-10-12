@@ -92,22 +92,19 @@ public class NewReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewApiMetadataEntity{" +
-            "name='" +
-            name +
-            '\'' +
-            ", format=" +
-            format +
-            ", defaultValue='" +
-            defaultValue +
-            '\'' +
-            ", value='" +
-            value +
-            '\'' +
-            ", hidden=" +
-            hidden +
-            '}'
-        );
+        return ("NewApiMetadataEntity{" + "name='"
+                + name
+                + '\''
+                + ", format="
+                + format
+                + ", defaultValue='"
+                + defaultValue
+                + '\''
+                + ", value='"
+                + value
+                + '\''
+                + ", hidden="
+                + hidden
+                + '}');
     }
 }

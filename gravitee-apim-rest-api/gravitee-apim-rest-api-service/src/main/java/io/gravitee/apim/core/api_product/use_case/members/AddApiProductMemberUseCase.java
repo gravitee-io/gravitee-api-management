@@ -42,13 +42,12 @@ public class AddApiProductMemberUseCase {
         validateMembership(input.addMember);
 
         MemberEntity created = membershipDomainService.createNewMembership(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.API_PRODUCT,
-            input.apiProductId,
-            input.addMember.getUserId(),
-            input.addMember.getExternalReference(),
-            input.addMember.getRoleName()
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API_PRODUCT,
+                input.apiProductId,
+                input.addMember.getUserId(),
+                input.addMember.getExternalReference(),
+                input.addMember.getRoleName());
 
         return new Output(created);
     }

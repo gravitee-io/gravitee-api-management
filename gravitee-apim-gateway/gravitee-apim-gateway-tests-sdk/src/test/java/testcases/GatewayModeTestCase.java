@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import org.junit.jupiter.api.Nested;
@@ -32,7 +31,7 @@ public class GatewayModeTestCase {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/nothing.json" })
+    @DeployApi({"/apis/nothing.json"})
     class V4EmulationEngine extends AbstractGatewayTest {
 
         @Test
@@ -43,7 +42,7 @@ public class GatewayModeTestCase {
         }
 
         @Test
-        @DeployApi({ "/apis/teams.json" })
+        @DeployApi({"/apis/teams.json"})
         void should_set_the_api_execution_mode_for_api_deployed_on_method() {
             var a = deployedApis.get("api-test");
             final Api api = (Api) a.getDefinition();
@@ -54,15 +53,15 @@ public class GatewayModeTestCase {
         void should_enable_emulate_engine() {
             var env = getBean(Environment.class);
             assertThat(env)
-                .isNotNull()
-                .extracting(e -> e.getProperty("api.v2.emulateV4Engine.default"))
-                .isEqualTo("yes");
+                    .isNotNull()
+                    .extracting(e -> e.getProperty("api.v2.emulateV4Engine.default"))
+                    .isEqualTo("yes");
         }
     }
 
     @Nested
     @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
-    @DeployApi({ "/apis/nothing.json" })
+    @DeployApi({"/apis/nothing.json"})
     class V3Engine extends AbstractGatewayTest {
 
         @Test
@@ -73,7 +72,7 @@ public class GatewayModeTestCase {
         }
 
         @Test
-        @DeployApi({ "/apis/teams.json" })
+        @DeployApi({"/apis/teams.json"})
         void should_set_the_api_execution_mode_for_api_deployed_on_method() {
             var a = deployedApis.get("api-test");
             final Api api = (Api) a.getDefinition();
@@ -84,9 +83,9 @@ public class GatewayModeTestCase {
         void should_disable_emulate_engine() {
             var env = getBean(Environment.class);
             assertThat(env)
-                .isNotNull()
-                .extracting(e -> e.getProperty("api.v2.emulateV4Engine.default"))
-                .isEqualTo("no");
+                    .isNotNull()
+                    .extracting(e -> e.getProperty("api.v2.emulateV4Engine.default"))
+                    .isEqualTo("no");
         }
     }
 }

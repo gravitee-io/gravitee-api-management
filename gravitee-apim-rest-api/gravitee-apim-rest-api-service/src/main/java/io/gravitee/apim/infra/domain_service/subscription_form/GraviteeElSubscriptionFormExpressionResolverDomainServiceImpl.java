@@ -25,13 +25,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 @CustomLog
-public class GraviteeElSubscriptionFormExpressionResolverDomainServiceImpl implements SubscriptionFormExpressionResolverDomainService {
+public class GraviteeElSubscriptionFormExpressionResolverDomainServiceImpl
+        implements SubscriptionFormExpressionResolverDomainService {
 
     @Override
     public List<String> resolveToOptions(String expression, Map<String, Object> templateParams) {
         try {
             var templateEngine = TemplateEngine.templateEngine();
-            templateParams.forEach((key, value) -> templateEngine.getTemplateContext().setVariable(key, value));
+            templateParams.forEach(
+                    (key, value) -> templateEngine.getTemplateContext().setVariable(key, value));
 
             String resolved = templateEngine.evalNow(expression, String.class);
             if (resolved == null || resolved.isBlank()) {
@@ -39,9 +41,9 @@ public class GraviteeElSubscriptionFormExpressionResolverDomainServiceImpl imple
             }
 
             return Arrays.stream(resolved.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toList();
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
         } catch (Exception e) {
             log.warn("Failed to resolve EL expression '{}' for subscription form options", expression, e);
             return List.of();

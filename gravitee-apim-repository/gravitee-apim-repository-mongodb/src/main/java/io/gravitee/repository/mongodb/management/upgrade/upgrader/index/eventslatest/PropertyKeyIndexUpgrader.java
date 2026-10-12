@@ -28,9 +28,9 @@ public class PropertyKeyIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events_latest")
-            .name("pk1")
-            .key("properties.key", ascending())
-            .build();
+                .collection("events_latest")
+                .name("pk1")
+                .key("properties.key", ascending())
+                .build();
     }
 }

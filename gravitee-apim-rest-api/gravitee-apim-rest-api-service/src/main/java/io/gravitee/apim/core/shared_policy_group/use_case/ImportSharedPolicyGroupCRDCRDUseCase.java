@@ -43,24 +43,18 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
 
     public Output execute(Input input) {
         var validationResult = validateSharedPolicyGroupCRDDomainService.validateAndSanitize(
-            new ValidateSharedPolicyGroupCRDDomainService.Input(input.auditInfo, input.crd)
-        );
+                new ValidateSharedPolicyGroupCRDDomainService.Input(input.auditInfo, input.crd));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(
+                            ",",
+                            errors.stream().map(Validator.Error::getMessage).toList())));
+        });
 
         Optional<SharedPolicyGroup> sharedPolicyGroup = sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(
-            input.auditInfo.environmentId(),
-            input.crd.getCrossId()
-        );
+                input.auditInfo.environmentId(), input.crd.getCrossId());
 
         if (sharedPolicyGroup.isPresent()) {
             return updateSharedPolicyGroup(input);
@@ -76,56 +70,39 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
     private Output createSharedPolicyGroup(Input input) {
         // Create a new Shared Policy Group
         var output = createSharedPolicyGroupUseCase.execute(
-            new CreateSharedPolicyGroupUseCase.Input(input.crd().toCreateSharedPolicyGroup(), input.auditInfo)
-        );
+                new CreateSharedPolicyGroupUseCase.Input(input.crd().toCreateSharedPolicyGroup(), input.auditInfo));
 
-        final Output result = new Output(
-            new SharedPolicyGroupCRDStatus(
+        final Output result = new Output(new SharedPolicyGroupCRDStatus(
                 output.sharedPolicyGroup().getCrossId(),
                 output.sharedPolicyGroup().getId(),
                 input.auditInfo.organizationId(),
                 input.auditInfo.environmentId(),
-                null
-            )
-        );
+                null));
 
         // Deploy the newly created Shared Policy group
-        deploySharedPolicyGroupUseCase.execute(
-            new DeploySharedPolicyGroupUseCase.Input(output.sharedPolicyGroup().getId(), input.auditInfo.environmentId(), input.auditInfo)
-        );
+        deploySharedPolicyGroupUseCase.execute(new DeploySharedPolicyGroupUseCase.Input(
+                output.sharedPolicyGroup().getId(), input.auditInfo.environmentId(), input.auditInfo));
 
         return result;
     }
 
     private Output updateSharedPolicyGroup(Input input) {
-        var output = updateSharedPolicyGroupUseCase.execute(
-            new UpdateSharedPolicyGroupUseCase.Input(
-                input.crd.getSharedPolicyGroupId(),
-                input.crd.toUpdateSharedPolicyGroup(),
-                input.auditInfo
-            )
-        );
+        var output = updateSharedPolicyGroupUseCase.execute(new UpdateSharedPolicyGroupUseCase.Input(
+                input.crd.getSharedPolicyGroupId(), input.crd.toUpdateSharedPolicyGroup(), input.auditInfo));
 
         // Deploy the SGP if the existing status is not DEPLOYED
-        if (output.sharedPolicyGroup().getLifecycleState() != SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED) {
+        if (output.sharedPolicyGroup().getLifecycleState()
+                != SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED) {
             // Deploy the newly created Shared Policy group
-            deploySharedPolicyGroupUseCase.execute(
-                new DeploySharedPolicyGroupUseCase.Input(
-                    output.sharedPolicyGroup().getId(),
-                    input.auditInfo.environmentId(),
-                    input.auditInfo
-                )
-            );
+            deploySharedPolicyGroupUseCase.execute(new DeploySharedPolicyGroupUseCase.Input(
+                    output.sharedPolicyGroup().getId(), input.auditInfo.environmentId(), input.auditInfo));
         }
 
-        return new Output(
-            new SharedPolicyGroupCRDStatus(
+        return new Output(new SharedPolicyGroupCRDStatus(
                 output.sharedPolicyGroup().getCrossId(),
                 output.sharedPolicyGroup().getId(),
                 input.auditInfo.organizationId(),
                 input.auditInfo.environmentId(),
-                null
-            )
-        );
+                null));
     }
 }

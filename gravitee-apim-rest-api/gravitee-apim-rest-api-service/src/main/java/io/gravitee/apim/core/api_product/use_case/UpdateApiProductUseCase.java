@@ -74,7 +74,8 @@ public class UpdateApiProductUseCase {
     private final DeployApiProductDomainService deployApiProductDomainService;
 
     public Output execute(Input input) {
-        if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
+        if (!licenseDomainService.isApiProductDeploymentAllowed(
+                input.auditInfo().organizationId())) {
             throw new ForbiddenFeatureException("api-product");
         }
         Optional<ApiProduct> existingApiProductOpt = apiProductQueryService.findById(input.apiProductId());
@@ -86,10 +87,12 @@ public class UpdateApiProductUseCase {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
 
-        ApiProduct beforeUpdate = existingApiProduct
-            .toBuilder()
-            .apiIds(existingApiProduct.getApiIds() != null ? new java.util.HashSet<>(existingApiProduct.getApiIds()) : null)
-            .build();
+        ApiProduct beforeUpdate = existingApiProduct.toBuilder()
+                .apiIds(
+                        existingApiProduct.getApiIds() != null
+                                ? new java.util.HashSet<>(existingApiProduct.getApiIds())
+                                : null)
+                .build();
 
         UpdateApiProduct updateApiProduct = input.updateApiProduct();
         Set<String> apiIds = updateApiProduct.getApiIds();
@@ -100,26 +103,28 @@ public class UpdateApiProductUseCase {
                 // The whole set is passed so a rule about the resulting product can see it; `beforeIds` says which
                 // of them the product already held, so membership is judged on what this write adds.
                 validateApiProductService.validateApiIdsForProduct(
-                    input.auditInfo().environmentId(),
-                    apiIds.stream().toList(),
-                    beforeIds,
-                    existingApiProduct.getKind()
-                );
+                        input.auditInfo().environmentId(),
+                        apiIds.stream().toList(),
+                        beforeIds,
+                        existingApiProduct.getKind());
             }
             updateApiProduct.setApiIds(newApiIds);
 
             Set<String> removedApiIds = new HashSet<>(beforeIds);
             removedApiIds.removeAll(newApiIds);
             if (!removedApiIds.isEmpty()) {
-                for (var api : validateApiProductService.getApisToUndeployOnRemoval(removedApiIds, input.apiProductId())) {
+                for (var api :
+                        validateApiProductService.getApisToUndeployOnRemoval(removedApiIds, input.apiProductId())) {
                     apiStateDomainService.stop(api, input.auditInfo());
                 }
             }
         }
 
         if (updateApiProduct.getTags() != null) {
-            apiProductTagDomainService.validateTagsOnUpdate(input.auditInfo(), existingApiProduct.getTags(), updateApiProduct.getTags());
-            existingApiProduct.setTags(updateApiProduct.getTags().isEmpty() ? Set.of() : Set.copyOf(updateApiProduct.getTags()));
+            apiProductTagDomainService.validateTagsOnUpdate(
+                    input.auditInfo(), existingApiProduct.getTags(), updateApiProduct.getTags());
+            existingApiProduct.setTags(
+                    updateApiProduct.getTags().isEmpty() ? Set.of() : Set.copyOf(updateApiProduct.getTags()));
         }
 
         existingApiProduct.update(updateApiProduct);
@@ -131,9 +136,7 @@ public class UpdateApiProductUseCase {
         PrimaryOwnerEntity primaryOwner = null;
         try {
             primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(
-                input.auditInfo().organizationId(),
-                updated.getId()
-            );
+                    input.auditInfo().organizationId(), updated.getId());
         } catch (ApiProductPrimaryOwnerNotFoundException ex) {
             log.debug("Failed to retrieve API Product primary owner, will index without primary owner", ex);
         }
@@ -146,10 +149,10 @@ public class UpdateApiProductUseCase {
         createAuditLog(beforeUpdate, updated, input.auditInfo());
 
         triggerNotificationDomainService.triggerApiProductNotification(
-            input.auditInfo().organizationId(),
-            input.auditInfo().environmentId(),
-            new ApiProductUpdatedHookContext(updated.getId(), input.auditInfo().actor().userId())
-        );
+                input.auditInfo().organizationId(),
+                input.auditInfo().environmentId(),
+                new ApiProductUpdatedHookContext(
+                        updated.getId(), input.auditInfo().actor().userId()));
         return new Output(updated);
     }
 
@@ -173,8 +176,9 @@ public class UpdateApiProductUseCase {
         }
 
         planQueryService
-            .findAllByReferenceIdAndReferenceType(updatedProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .forEach(plan -> removeOrphanedTagsFromPlan(plan, updatedProduct.getId(), currentProductTags));
+                .findAllByReferenceIdAndReferenceType(
+                        updatedProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .forEach(plan -> removeOrphanedTagsFromPlan(plan, updatedProduct.getId(), currentProductTags));
     }
 
     private static boolean hasRemovedTags(Set<String> previousTags, Set<String> currentTags) {
@@ -194,19 +198,20 @@ public class UpdateApiProductUseCase {
         }
 
         Set<String> cleanedTags = (currentProductTags == null || currentProductTags.isEmpty())
-            ? Set.of()
-            : planDef.getTags().stream().filter(currentProductTags::contains).collect(Collectors.toSet());
+                ? Set.of()
+                : planDef.getTags().stream()
+                        .filter(currentProductTags::contains)
+                        .collect(Collectors.toSet());
         if (cleanedTags.size() >= planDef.getTags().size()) {
             return;
         }
 
         log.info(
-            "Auto-cleaning orphaned tags from plan [{}] of API Product [{}]: {} -> {}",
-            plan.getId(),
-            productId,
-            planDef.getTags(),
-            cleanedTags
-        );
+                "Auto-cleaning orphaned tags from plan [{}] of API Product [{}]: {} -> {}",
+                plan.getId(),
+                productId,
+                planDef.getTags(),
+                cleanedTags);
         planDef.setTags(cleanedTags.isEmpty() ? null : cleanedTags);
         planCrudService.update(plan);
     }
@@ -216,9 +221,13 @@ public class UpdateApiProductUseCase {
             validateApiProductService.validateForDeploy(updated);
             deployApiProductDomainService.deploy(auditInfo, updated);
         } catch (ValidationDomainException e) {
-            log.warn("API Product [{}] membership was updated but not deployed to the gateway. {}", updated.getId(), e.getMessage());
+            log.warn(
+                    "API Product [{}] membership was updated but not deployed to the gateway. {}",
+                    updated.getId(),
+                    e.getMessage());
         } catch (Exception e) {
-            log.error("Unexpected error deploying API Product [{}] membership change to the gateway", updated.getId(), e);
+            log.error(
+                    "Unexpected error deploying API Product [{}] membership change to the gateway", updated.getId(), e);
         }
     }
 
@@ -229,8 +238,7 @@ public class UpdateApiProductUseCase {
     }
 
     private void createAuditLog(ApiProduct before, ApiProduct after, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ApiProductAuditEvent.API_PRODUCT_UPDATED)
@@ -240,7 +248,6 @@ public class UpdateApiProductUseCase {
                 .newValue(after)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.API_PRODUCT, after.getId()))
-                .build()
-        );
+                .build());
     }
 }

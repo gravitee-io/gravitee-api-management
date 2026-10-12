@@ -51,10 +51,10 @@ public class DashboardVersionConflictExceptionMapper implements ExceptionMapper<
     public Response toResponse(DashboardVersionConflictException exception) {
         var current = exception.getCurrent();
         return DashboardEntityTag.withETagOnly(
-            Response.status(Response.Status.PRECONDITION_FAILED)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(DashboardConflictDto.from(exception.getMessage(), current)),
-            current
-        ).build();
+                        Response.status(Response.Status.PRECONDITION_FAILED)
+                                .type(MediaType.APPLICATION_JSON_TYPE)
+                                .entity(DashboardConflictDto.from(exception.getMessage(), current)),
+                        current)
+                .build();
     }
 }

@@ -77,47 +77,50 @@ class ApplicationInvitationNotificationDomainServiceImplTest {
     @Test
     void should_dispatch_application_invitation_email_for_each_invitation() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-        var application = BaseApplicationEntity.builder().id(APPLICATION_ID).name("My Application").environmentId(ENVIRONMENT_ID).build();
+        var application = BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .name("My Application")
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         var invitations = List.of(
-            anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE_NAME),
-            anApplicationInvitation(INVITATION_ID_2, APPLICATION_ID, "bob@example.com", ROLE_NAME)
-        );
+                anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE_NAME),
+                anApplicationInvitation(INVITATION_ID_2, APPLICATION_ID, "bob@example.com", ROLE_NAME));
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(
-            userService.getTokenRegistrationParams(
-                eq(executionContext),
-                any(UserEntity.class),
-                eq(REGISTRATION_PATH),
-                eq(APPLICATION_INVITATION),
-                eq(CONFIRMATION_PAGE_URL.toString())
-            )
-        ).thenAnswer(invocation -> {
-            var user = invocation.getArgument(1, UserEntity.class);
-            return Map.of(PARAM_REGISTRATION_URL, "https://example.com/registration/" + user.getEmail());
-        });
+        when(userService.getTokenRegistrationParams(
+                        eq(executionContext),
+                        any(UserEntity.class),
+                        eq(REGISTRATION_PATH),
+                        eq(APPLICATION_INVITATION),
+                        eq(CONFIRMATION_PAGE_URL.toString())))
+                .thenAnswer(invocation -> {
+                    var user = invocation.getArgument(1, UserEntity.class);
+                    return Map.of(PARAM_REGISTRATION_URL, "https://example.com/registration/" + user.getEmail());
+                });
 
         cut.dispatchAsync(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitations, CONFIRMATION_PAGE_URL);
 
         verify(applicationCrudService).findById(APPLICATION_ID, ENVIRONMENT_ID);
-        verify(userService, times(2)).getTokenRegistrationParams(
-            eq(executionContext),
-            any(UserEntity.class),
-            eq(REGISTRATION_PATH),
-            eq(APPLICATION_INVITATION),
-            eq(CONFIRMATION_PAGE_URL.toString())
-        );
+        verify(userService, times(2))
+                .getTokenRegistrationParams(
+                        eq(executionContext),
+                        any(UserEntity.class),
+                        eq(REGISTRATION_PATH),
+                        eq(APPLICATION_INVITATION),
+                        eq(CONFIRMATION_PAGE_URL.toString()));
         var notificationCaptor = ArgumentCaptor.forClass(EmailNotification.class);
         verify(emailService, times(2)).sendAsyncEmailNotification(eq(executionContext), notificationCaptor.capture());
         assertThat(notificationCaptor.getAllValues())
-            .extracting(notification -> notification.getTo()[0])
-            .containsExactly("alice@example.com", "bob@example.com");
+                .extracting(notification -> notification.getTo()[0])
+                .containsExactly("alice@example.com", "bob@example.com");
         assertThat(notificationCaptor.getAllValues())
-            .extracting(EmailNotification::getTemplate)
-            .containsOnly(
-                EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_APPLICATION_INVITATION.getLinkedHook().getTemplate()
-            );
+                .extracting(EmailNotification::getTemplate)
+                .containsOnly(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_APPLICATION_INVITATION
+                        .getLinkedHook()
+                        .getTemplate());
         assertThat(notificationCaptor.getAllValues()).allSatisfy(notification -> {
-            assertThat(notification.getParams()).containsEntry(PARAM_APPLICATION, application).containsEntry(PARAM_ROLE, ROLE_NAME);
+            assertThat(notification.getParams())
+                    .containsEntry(PARAM_APPLICATION, application)
+                    .containsEntry(PARAM_ROLE, ROLE_NAME);
             assertThat(notification.getParams()).containsKey(PARAM_REGISTRATION_URL);
         });
     }

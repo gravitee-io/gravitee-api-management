@@ -26,27 +26,26 @@ import lombok.Builder;
  */
 @Builder
 public record AuthzDecision(
-    String eventId,
-    String decision,
-    String outcome,
-    String enforced,
-    String indeterminateCause,
-    String status,
-    String caller,
-    String targetPdpId,
-    String policyGeneration,
-    List<MatchedRule> matchedRules,
-    List<String> reasons,
-    String subjectType,
-    String subjectId,
-    String action,
-    String resourceType,
-    String resourceId,
-    String batchId,
-    Integer batchIndex,
-    Integer batchSize,
-    Long durationNanos,
-    String errorType
-) {
+        String eventId,
+        String decision,
+        String outcome,
+        String enforced,
+        String indeterminateCause,
+        String status,
+        String caller,
+        String targetPdpId,
+        String policyGeneration,
+        List<MatchedRule> matchedRules,
+        List<String> reasons,
+        String subjectType,
+        String subjectId,
+        String action,
+        String resourceType,
+        String resourceId,
+        String batchId,
+        Integer batchIndex,
+        Integer batchSize,
+        Long durationNanos,
+        String errorType) {
     public record MatchedRule(String id, String name, String version, String effect) {}
 }

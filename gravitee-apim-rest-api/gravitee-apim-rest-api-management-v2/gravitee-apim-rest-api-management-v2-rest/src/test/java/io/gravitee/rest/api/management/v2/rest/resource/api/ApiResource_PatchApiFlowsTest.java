@@ -91,52 +91,51 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
-        primaryOwnerDomainService.initWith(
-            List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
-        );
-        membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_NAME)
-                    .referenceId(API)
-                    .roleId("api-po-id-" + ORGANIZATION)
-                    .referenceType(Membership.ReferenceType.API)
-                    .memberType(Membership.Type.USER)
-                    .build()
-            )
-        );
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
+                        .id(USER_NAME)
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build())));
+        membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .memberId(USER_NAME)
+                .referenceId(API)
+                .roleId("api-po-id-" + ORGANIZATION)
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .build()));
 
         doAnswer(inv -> {
-            io.gravitee.apim.core.api.model.Api api = inv.getArgument(0);
-            var httpV4 = api.getApiDefinitionHttpV4();
-            if (httpV4 != null && httpV4.getFlows() != null) {
-                flowCrudService.saveApiFlows(api.getId(), httpV4.getFlows());
-            }
-            return api;
-        })
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+                    io.gravitee.apim.core.api.model.Api api = inv.getArgument(0);
+                    var httpV4 = api.getApiDefinitionHttpV4();
+                    if (httpV4 != null && httpV4.getFlows() != null) {
+                        flowCrudService.saveApiFlows(api.getId(), httpV4.getFlows());
+                    }
+                    return api;
+                })
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).validateV4(any(), any());
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService, flowCrudService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService, flowCrudService)
+                .forEach(InMemoryAlternative::reset);
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 
     private void givenApiWithFlows(List<Flow> flows) {
         var base = ApiFixtures.aProxyApiV4();
-        var api = base.toBuilder().apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().flows(flows).build()).build();
+        var api = base.toBuilder()
+                .apiDefinitionValue(
+                        base.getApiDefinitionHttpV4().toBuilder().flows(flows).build())
+                .build();
         apiCrudService.initWith(List.of(api));
     }
 
@@ -158,9 +157,8 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
     private static Stream<Arguments> bothFlowsReplaceVariants(List<Map<String, Object>> flows) {
         return Stream.of(
-            Arguments.of(mergePatchFlows(flows), MERGE_PATCH_TYPE),
-            Arguments.of(jsonPatchReplaceFlows(flows), JSON_PATCH_TYPE)
-        );
+                Arguments.of(mergePatchFlows(flows), MERGE_PATCH_TYPE),
+                Arguments.of(jsonPatchReplaceFlows(flows), JSON_PATCH_TYPE));
     }
 
     private static String toJson(Object value) {
@@ -211,22 +209,18 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
     @ParameterizedTest
     @MethodSource("addFlowVariants")
     void caller_without_api_definition_update_permission_receives_403_on_flows_patch(String body, String contentType) {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_GATEWAY_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_GATEWAY_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
@@ -237,8 +231,7 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
     class Validation {
 
         static Stream<Arguments> unknownSelectorTypeVariants() {
-            var flows = List.of(
-                Map.of(
+            var flows = List.of(Map.of(
                     "name",
                     "f1",
                     "enabled",
@@ -246,28 +239,29 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
                     "selectors",
                     List.of(Map.of("type", "unknown-type", "path", "/api")),
                     "request",
-                    List.of(stepMap("s1", "p1"))
-                )
-            );
+                    List.of(stepMap("s1", "p1"))));
             return bothFlowsReplaceVariants(flows);
         }
 
         static Stream<Arguments> lowercaseSelectorTypeVariants() {
             return Stream.of(
-                List.of(Map.of("type", "http", "path", "/api", "pathOperator", "EQUALS")),
-                List.of(Map.of("type", "channel", "channel", "/", "channelOperator", "STARTS_WITH")),
-                List.of(Map.of("type", "condition", "condition", "#true")),
-                List.of(Map.of("type", "mcp"))
-            ).flatMap(selectors ->
-                bothFlowsReplaceVariants(
-                    List.of(Map.of("name", "f1", "enabled", true, "selectors", selectors, "request", List.of(stepMap("s1", "p1"))))
-                )
-            );
+                            List.of(Map.of("type", "http", "path", "/api", "pathOperator", "EQUALS")),
+                            List.of(Map.of("type", "channel", "channel", "/", "channelOperator", "STARTS_WITH")),
+                            List.of(Map.of("type", "condition", "condition", "#true")),
+                            List.of(Map.of("type", "mcp")))
+                    .flatMap(selectors -> bothFlowsReplaceVariants(List.of(Map.of(
+                            "name",
+                            "f1",
+                            "enabled",
+                            true,
+                            "selectors",
+                            selectors,
+                            "request",
+                            List.of(stepMap("s1", "p1"))))));
         }
 
         static Stream<Arguments> uppercaseSelectorTypeVariants() {
-            var flows = List.of(
-                Map.of(
+            var flows = List.of(Map.of(
                     "name",
                     "f1",
                     "enabled",
@@ -275,15 +269,12 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
                     "selectors",
                     List.of(Map.of("type", "HTTP", "path", "/api", "pathOperator", "EQUALS")),
                     "request",
-                    List.of(stepMap("s1", "p1"))
-                )
-            );
+                    List.of(stepMap("s1", "p1"))));
             return bothFlowsReplaceVariants(flows);
         }
 
         static Stream<Arguments> uppercaseConditionSelectorTypeVariants() {
-            var flows = List.of(
-                Map.of(
+            var flows = List.of(Map.of(
                     "name",
                     "f1",
                     "enabled",
@@ -291,15 +282,12 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
                     "selectors",
                     List.of(Map.of("type", "CONDITION", "condition", "{#request.headers['X-Custom'] != null}")),
                     "request",
-                    List.of(stepMap("s1", "p1"))
-                )
-            );
+                    List.of(stepMap("s1", "p1"))));
             return bothFlowsReplaceVariants(flows);
         }
 
         static Stream<Arguments> uppercaseChannelSelectorTypeVariants() {
-            var flows = List.of(
-                Map.of(
+            var flows = List.of(Map.of(
                     "name",
                     "f1",
                     "enabled",
@@ -307,16 +295,20 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
                     "selectors",
                     List.of(Map.of("type", "CHANNEL", "channel", "/", "channelOperator", "STARTS_WITH")),
                     "request",
-                    List.of(stepMap("s1", "p1"))
-                )
-            );
+                    List.of(stepMap("s1", "p1"))));
             return bothFlowsReplaceVariants(flows);
         }
 
         static Stream<Arguments> uppercaseMcpSelectorTypeVariants() {
-            var flows = List.of(
-                Map.of("name", "f1", "enabled", true, "selectors", List.of(Map.of("type", "MCP")), "request", List.of(stepMap("s1", "p1")))
-            );
+            var flows = List.of(Map.of(
+                    "name",
+                    "f1",
+                    "enabled",
+                    true,
+                    "selectors",
+                    List.of(Map.of("type", "MCP")),
+                    "request",
+                    List.of(stepMap("s1", "p1"))));
             return bothFlowsReplaceVariants(flows);
         }
 
@@ -331,7 +323,9 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
             var persistedFlows = capturePersistedFlows();
             Assertions.assertThat(persistedFlows).hasSize(1);
-            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.CONDITION);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors())
+                    .extracting(Selector::getType)
+                    .contains(SelectorType.CONDITION);
         }
 
         @ParameterizedTest
@@ -343,7 +337,9 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
             var persistedFlows = capturePersistedFlows();
             Assertions.assertThat(persistedFlows).hasSize(1);
-            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.CHANNEL);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors())
+                    .extracting(Selector::getType)
+                    .contains(SelectorType.CHANNEL);
         }
 
         @ParameterizedTest
@@ -355,30 +351,30 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
             var persistedFlows = capturePersistedFlows();
             Assertions.assertThat(persistedFlows).hasSize(1);
-            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.MCP);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors())
+                    .extracting(Selector::getType)
+                    .contains(SelectorType.MCP);
         }
 
         static Stream<Arguments> validatorRejectionCases() {
             return Stream.of(
-                Map.entry("unknown policy id", "/flows/0/request/0/policy"),
-                Map.entry("missing step name", "/flows/0/request/0/name"),
-                Map.entry("invalid condition expression", "/flows/0/request/0/condition")
-            ).flatMap(entry ->
-                Stream.of(MERGE_PATCH_TYPE, JSON_PATCH_TYPE).map(contentType -> Arguments.of(entry.getKey(), entry.getValue(), contentType))
-            );
+                            Map.entry("unknown policy id", "/flows/0/request/0/policy"),
+                            Map.entry("missing step name", "/flows/0/request/0/name"),
+                            Map.entry("invalid condition expression", "/flows/0/request/0/condition"))
+                    .flatMap(entry -> Stream.of(MERGE_PATCH_TYPE, JSON_PATCH_TYPE)
+                            .map(contentType -> Arguments.of(entry.getKey(), entry.getValue(), contentType)));
         }
 
         @ParameterizedTest
         @MethodSource("unknownSelectorTypeVariants")
         void patch_with_unknown_selector_type_returns_400_with_invalidValue_envelope_and_field_path_location(
-            String body,
-            String contentType
-        ) {
+                String body, String contentType) {
             givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
 
             var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-            var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+            var error =
+                    assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
             Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
             Assertions.assertThat(error.getParameters()).containsKey("location");
             Assertions.assertThat(error.getParameters().get("location")).startsWith("/flows");
@@ -386,12 +382,14 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
         @ParameterizedTest
         @MethodSource("lowercaseSelectorTypeVariants")
-        void patch_with_lowercase_http_selector_type_returns_400_with_invalidValue_envelope(String body, String contentType) {
+        void patch_with_lowercase_http_selector_type_returns_400_with_invalidValue_envelope(
+                String body, String contentType) {
             givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
 
             var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-            var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+            var error =
+                    assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
             Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
             Assertions.assertThat(error.getParameters()).containsKey("location");
             Assertions.assertThat(error.getParameters().get("location")).startsWith("/flows");
@@ -408,26 +406,26 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
             var persistedFlows = capturePersistedFlows();
             Assertions.assertThat(persistedFlows).hasSize(1);
-            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.HTTP);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors())
+                    .extracting(Selector::getType)
+                    .contains(SelectorType.HTTP);
         }
 
         @ParameterizedTest
         @MethodSource("validatorRejectionCases")
         void post_patch_validator_failure_returns_400_with_invalidValue_envelope_and_location(
-            String message,
-            String location,
-            String contentType
-        ) {
+                String message, String location, String contentType) {
             givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "policy-a")))));
             doThrow(new ValidationDomainException(message, Map.of("location", location), "invalidValue"))
-                .when(updateApiDomainService)
-                .updateV4(any(), any());
+                    .when(updateApiDomainService)
+                    .updateV4(any(), any());
 
             var flows = List.of(flowMap("f1", List.of(stepMap("s1", "broken-policy"))));
             var body = contentType.equals(JSON_PATCH_TYPE) ? jsonPatchReplaceFlows(flows) : mergePatchFlows(flows);
             var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-            var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+            var error =
+                    assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
             Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
             Assertions.assertThat(error.getParameters()).containsEntry("location", location);
         }
@@ -437,28 +435,25 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
             givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
 
             var response = rootTarget(API)
-                .request()
-                .method("PATCH", Entity.entity("[{\"op\":\"remove\",\"path\":\"/flows/99\"}]", JSON_PATCH_TYPE));
+                    .request()
+                    .method("PATCH", Entity.entity("[{\"op\":\"remove\",\"path\":\"/flows/99\"}]", JSON_PATCH_TYPE));
 
-            var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+            var error =
+                    assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
             Assertions.assertThat(error.getMessage()).containsIgnoringCase("path");
         }
 
         @Test
         void json_patch_add_sub_pointer_selector_with_uppercase_type_returns_200() {
-            givenApiWithFlows(
-                List.of(
-                    Flow.builder()
-                        .name("f1")
-                        .enabled(true)
-                        .selectors(List.of(HttpSelector.builder().path("/api").build()))
-                        .request(List.of(step("s1", "p1")))
-                        .build()
-                )
-            );
+            givenApiWithFlows(List.of(Flow.builder()
+                    .name("f1")
+                    .enabled(true)
+                    .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                    .request(List.of(step("s1", "p1")))
+                    .build()));
 
             var body =
-                "[{\"op\":\"add\",\"path\":\"/flows/0/selectors/-\",\"value\":{\"type\":\"HTTP\",\"path\":\"/api2\",\"pathOperator\":\"EQUALS\"}}]";
+                    "[{\"op\":\"add\",\"path\":\"/flows/0/selectors/-\",\"value\":{\"type\":\"HTTP\",\"path\":\"/api2\",\"pathOperator\":\"EQUALS\"}}]";
             var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
 
             assertThat(response).hasStatus(OK_200);
@@ -466,22 +461,19 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
         @Test
         void json_patch_add_sub_pointer_selector_with_lowercase_type_returns_400_with_invalidValue_envelope() {
-            givenApiWithFlows(
-                List.of(
-                    Flow.builder()
-                        .name("f1")
-                        .enabled(true)
-                        .selectors(List.of(HttpSelector.builder().path("/api").build()))
-                        .request(List.of(step("s1", "p1")))
-                        .build()
-                )
-            );
+            givenApiWithFlows(List.of(Flow.builder()
+                    .name("f1")
+                    .enabled(true)
+                    .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                    .request(List.of(step("s1", "p1")))
+                    .build()));
 
             var body =
-                "[{\"op\":\"add\",\"path\":\"/flows/0/selectors/-\",\"value\":{\"type\":\"http\",\"path\":\"/api2\",\"pathOperator\":\"EQUALS\"}}]";
+                    "[{\"op\":\"add\",\"path\":\"/flows/0/selectors/-\",\"value\":{\"type\":\"http\",\"path\":\"/api2\",\"pathOperator\":\"EQUALS\"}}]";
             var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
 
-            var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+            var error =
+                    assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
             Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
         }
     }

@@ -28,6 +28,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ScoringReportMongoRepositoryCustom {
     List<ScoringReportMongo> findLatestReports(Collection<String> apiIds);
-    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable);
+
+    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(
+            String environmentId, Collection<ApiType> apiTypes, Pageable pageable);
+
     ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId);
 }

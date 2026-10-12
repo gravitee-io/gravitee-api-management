@@ -18,15 +18,14 @@ package io.gravitee.apim.core.api_product.model;
 import java.util.List;
 
 public record PortalApiProductDetails(
-    String id,
-    String name,
-    String description,
-    String version,
-    ApiProductKind kind,
-    String navigationItemId,
-    List<String> tags,
-    List<ApiSummary> apis
-) {
+        String id,
+        String name,
+        String description,
+        String version,
+        ApiProductKind kind,
+        String navigationItemId,
+        List<String> tags,
+        List<ApiSummary> apis) {
     public PortalApiProductDetails {
         tags = tags == null ? List.of() : List.copyOf(tags);
         apis = apis == null ? List.of() : List.copyOf(apis);

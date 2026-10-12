@@ -43,7 +43,7 @@ public class JoltMapper {
             return List.of();
         }
 
-        //Default value is equal to the input json value (in case empty jolt specs)
+        // Default value is equal to the input json value (in case empty jolt specs)
         String jsonProperties = source;
         if (chainr != null) {
             List<?> transformed;
@@ -56,14 +56,13 @@ public class JoltMapper {
         }
 
         List<Object> items = JsonUtils.jsonToList(jsonProperties);
-        return items
-            .stream()
-            .map(item -> {
-                Map<?, ?> mapItem = (Map<?, ?>) item;
-                String key = String.valueOf(mapItem.get("key"));
-                String value = String.valueOf(mapItem.get("value"));
-                return new DynamicProperty(key, value);
-            })
-            .collect(Collectors.toList());
+        return items.stream()
+                .map(item -> {
+                    Map<?, ?> mapItem = (Map<?, ?>) item;
+                    String key = String.valueOf(mapItem.get("key"));
+                    String value = String.valueOf(mapItem.get("value"));
+                    return new DynamicProperty(key, value);
+                })
+                .collect(Collectors.toList());
     }
 }

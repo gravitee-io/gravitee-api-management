@@ -87,14 +87,17 @@ public class DeployModelToApiCreateUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final List<String> LABELS = List.of("label1", "label2");
 
-    private static final URL resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+    private static final URL resource =
+            Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
     public static final String RANDOM_ID = "random-id";
     public static final String API_CROSS_ID = "crossId";
 
     private String swaggerDefinition;
 
-    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
-    private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager =
+            new PolicyOperationVisitorManagerImpl();
+    private final EndpointConnectorPluginDomainService endpointConnectorPluginService =
+            mock(EndpointConnectorPluginDomainService.class);
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -113,109 +116,101 @@ public class DeployModelToApiCreateUseCaseTest {
         UuidString.overrideGenerator(() -> RANDOM_ID);
 
         when(apiStateDomainService.isSynchronized(any(), eq(AUDIT_INFO))).thenReturn(false);
-        lenient()
-            .when(apiStateDomainService.start(any(), eq(AUDIT_INFO)))
-            .thenAnswer(invocation -> {
-                var apiToUpdate = invocation.<Api>getArgument(0);
-                var api = apiCrudService.get(apiToUpdate.getId());
+        lenient().when(apiStateDomainService.start(any(), eq(AUDIT_INFO))).thenAnswer(invocation -> {
+            var apiToUpdate = invocation.<Api>getArgument(0);
+            var api = apiCrudService.get(apiToUpdate.getId());
 
-                api.setLifecycleState(Api.LifecycleState.STARTED);
-                return api;
-            });
-        lenient()
-            .when(apiStateDomainService.deploy(any(), anyString(), eq(AUDIT_INFO)))
-            .thenAnswer(invocation -> invocation.<Api>getArgument(0));
-
-        when(
-            delegateApiService.update(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(RANDOM_ID),
-                any(UpdateApiEntity.class),
-                anyBoolean(),
-                anyString()
-            )
-        ).thenAnswer(invocation -> {
-            var updateApiEntity = invocation.<UpdateApiEntity>getArgument(2);
-            var api = apiCrudService.get(RANDOM_ID);
-
-            var apiStatus = switch (updateApiEntity.getLifecycleState()) {
-                case CREATED -> Api.ApiLifecycleState.CREATED;
-                case PUBLISHED -> Api.ApiLifecycleState.PUBLISHED;
-                case UNPUBLISHED -> Api.ApiLifecycleState.UNPUBLISHED;
-                case DEPRECATED -> Api.ApiLifecycleState.DEPRECATED;
-                case ARCHIVED -> Api.ApiLifecycleState.ARCHIVED;
-            };
-
-            var visibility = switch (updateApiEntity.getVisibility()) {
-                case PUBLIC -> Api.Visibility.PUBLIC;
-                case PRIVATE -> Api.Visibility.PRIVATE;
-            };
-
-            api.setApiLifecycleState(apiStatus);
-            api.setVisibility(visibility);
-
-            return ApiAdapter.INSTANCE.toApiEntity(api);
+            api.setLifecycleState(Api.LifecycleState.STARTED);
+            return api;
         });
+        lenient()
+                .when(apiStateDomainService.deploy(any(), anyString(), eq(AUDIT_INFO)))
+                .thenAnswer(invocation -> invocation.<Api>getArgument(0));
 
-        importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
-        importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
-            List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build())
-        );
+        when(delegateApiService.update(
+                        eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                        eq(RANDOM_ID),
+                        any(UpdateApiEntity.class),
+                        anyBoolean(),
+                        anyString()))
+                .thenAnswer(invocation -> {
+                    var updateApiEntity = invocation.<UpdateApiEntity>getArgument(2);
+                    var api = apiCrudService.get(RANDOM_ID);
+
+                    var apiStatus = switch (updateApiEntity.getLifecycleState()) {
+                        case CREATED -> Api.ApiLifecycleState.CREATED;
+                        case PUBLISHED -> Api.ApiLifecycleState.PUBLISHED;
+                        case UNPUBLISHED -> Api.ApiLifecycleState.UNPUBLISHED;
+                        case DEPRECATED -> Api.ApiLifecycleState.DEPRECATED;
+                        case ARCHIVED -> Api.ApiLifecycleState.ARCHIVED;
+                    };
+
+                    var visibility = switch (updateApiEntity.getVisibility()) {
+                        case PUBLIC -> Api.Visibility.PUBLIC;
+                        case PRIVATE -> Api.Visibility.PRIVATE;
+                    };
+
+                    api.setApiLifecycleState(apiStatus);
+                    api.setVisibility(visibility);
+
+                    return ApiAdapter.INSTANCE.toApiEntity(api);
+                });
+
+        importDefinitionCreateDomainServiceTestInitializer =
+                new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
+        importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(List.of(Group.builder()
+                .id("1")
+                .name("group1")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
         var tagQueryService = new TagQueryServiceInMemory();
-        tagQueryService.initWith(
-            List.of(
-                Tag.builder()
-                    .id("1")
-                    .key("tag-1")
-                    .name("tag1")
-                    .referenceId(ORGANIZATION_ID)
-                    .referenceType(Tag.TagReferenceType.ORGANIZATION)
-                    .build()
-            )
-        );
+        tagQueryService.initWith(List.of(Tag.builder()
+                .id("1")
+                .key("tag-1")
+                .name("tag1")
+                .referenceId(ORGANIZATION_ID)
+                .referenceType(Tag.TagReferenceType.ORGANIZATION)
+                .build()));
 
-        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn(SHARED_CONFIGURATION);
+        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString()))
+                .thenReturn(SHARED_CONFIGURATION);
 
-        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
-            List.of(
+        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(List.of(
                 new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                ),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
-        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build())
-        );
-        when(
-            importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        ).thenAnswer(invocation -> invocation.getArgument(0));
+                        Key.API_PRIMARY_OWNER_MODE.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        ApiPrimaryOwnerMode.USER.name()),
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
+        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email(USER_EMAIL)
+                .build()));
+        when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                        any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         swaggerDefinition = Resources.toString(resource, Charsets.UTF_8);
 
         final var oaiDomainService = new OAIDomainServiceImpl(
-            policyOperationVisitorManager,
-            tagQueryService,
-            endpointConnectorPluginService,
-            policyPluginCrudService,
-            mock(ImportConfiguration.class)
-        );
+                policyOperationVisitorManager,
+                tagQueryService,
+                endpointConnectorPluginService,
+                policyPluginCrudService,
+                mock(ImportConfiguration.class));
         final var importDefinitionCreateDomainService = importDefinitionCreateDomainServiceTestInitializer.initialize();
         final var updateApiDomainService = new UpdateApiDomainServiceImpl(delegateApiService, apiCrudService);
 
         useCase = new DeployModelToApiCreateUseCase(
-            oaiDomainService,
-            importDefinitionCreateDomainService,
-            new DeployModelToApiDomainService(updateApiDomainService, apiStateDomainService)
-        );
+                oaiDomainService,
+                importDefinitionCreateDomainService,
+                new DeployModelToApiDomainService(updateApiDomainService, apiStateDomainService));
     }
 
     @AfterEach
@@ -230,68 +225,81 @@ public class DeployModelToApiCreateUseCaseTest {
     @ParameterizedTest
     @MethodSource
     public void should_create_api(
-        DeployModelToApiDomainService.Mode mode,
-        Api.ApiLifecycleState apiLifecycleState,
-        Api.LifecycleState lifecycleState,
-        Api.Visibility visibility
-    ) {
-        useCase.execute(new DeployModelToApiCreateUseCase.Input(swaggerDefinition, AUDIT_INFO, API_CROSS_ID, mode, LABELS));
+            DeployModelToApiDomainService.Mode mode,
+            Api.ApiLifecycleState apiLifecycleState,
+            Api.LifecycleState lifecycleState,
+            Api.Visibility visibility) {
+        useCase.execute(
+                new DeployModelToApiCreateUseCase.Input(swaggerDefinition, AUDIT_INFO, API_CROSS_ID, mode, LABELS));
 
         assertThat(apiCrudService.storage()).hasSize(1);
         assertThat(apiCrudService.storage().getFirst())
-            .extracting(
-                Api::getId,
-                Api::getCrossId,
-                Api::getDefinitionVersion,
-                Api::getApiLifecycleState,
-                Api::getLifecycleState,
-                Api::getVisibility,
-                Api::getLabels
-            )
-            .containsExactly(RANDOM_ID, API_CROSS_ID, DefinitionVersion.V4, apiLifecycleState, lifecycleState, visibility, LABELS);
+                .extracting(
+                        Api::getId,
+                        Api::getCrossId,
+                        Api::getDefinitionVersion,
+                        Api::getApiLifecycleState,
+                        Api::getLifecycleState,
+                        Api::getVisibility,
+                        Api::getLabels)
+                .containsExactly(
+                        RANDOM_ID,
+                        API_CROSS_ID,
+                        DefinitionVersion.V4,
+                        apiLifecycleState,
+                        lifecycleState,
+                        visibility,
+                        LABELS);
 
-        assertThat(importDefinitionCreateDomainServiceTestInitializer.planCrudService.storage()).hasSize(1);
-        assertThat(importDefinitionCreateDomainServiceTestInitializer.planCrudService.storage().getFirst())
-            .extracting(Plan::getId, Plan::getPlanStatus)
-            .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
+        assertThat(importDefinitionCreateDomainServiceTestInitializer.planCrudService.storage())
+                .hasSize(1);
+        assertThat(importDefinitionCreateDomainServiceTestInitializer
+                        .planCrudService
+                        .storage()
+                        .getFirst())
+                .extracting(Plan::getId, Plan::getPlanStatus)
+                .containsExactly(RANDOM_ID, PlanStatus.PUBLISHED);
 
-        assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage()).hasSize(1);
-        assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage().getFirst())
-            .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType)
-            .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER);
+        assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage())
+                .hasSize(1);
+        assertThat(importDefinitionCreateDomainServiceTestInitializer
+                        .pageCrudService
+                        .storage()
+                        .getFirst())
+                .extracting(Page::getId, Page::getName, Page::getVisibility, Page::getType)
+                .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER);
 
-        assertThat(importDefinitionCreateDomainServiceTestInitializer.flowCrudService.storage()).hasSize(4);
-        importDefinitionCreateDomainServiceTestInitializer.flowCrudService
-            .getApiV4Flows(RANDOM_ID)
-            .forEach(flow -> {
-                assertThat(flow.getRequest()).isEmpty();
-                assertThat(flow.getResponse()).isEmpty();
-            });
+        assertThat(importDefinitionCreateDomainServiceTestInitializer.flowCrudService.storage())
+                .hasSize(4);
+        importDefinitionCreateDomainServiceTestInitializer
+                .flowCrudService
+                .getApiV4Flows(RANDOM_ID)
+                .forEach(flow -> {
+                    assertThat(flow.getRequest()).isEmpty();
+                    assertThat(flow.getResponse()).isEmpty();
+                });
 
-        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1)).start(any(), eq(AUDIT_INFO));
+        verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1))
+                .start(any(), eq(AUDIT_INFO));
         verify(apiStateDomainService, times(1)).deploy(any(), any(), eq(AUDIT_INFO));
     }
 
     private static Stream<Arguments> should_create_api() {
         return Stream.of(
-            Arguments.of(
-                DeployModelToApiDomainService.Mode.DOCUMENTED,
-                Api.ApiLifecycleState.CREATED,
-                Api.LifecycleState.STOPPED,
-                Api.Visibility.PRIVATE
-            ),
-            Arguments.of(
-                DeployModelToApiDomainService.Mode.MOCKED,
-                Api.ApiLifecycleState.CREATED,
-                Api.LifecycleState.STARTED,
-                Api.Visibility.PRIVATE
-            ),
-            Arguments.of(
-                DeployModelToApiDomainService.Mode.PUBLISHED,
-                Api.ApiLifecycleState.PUBLISHED,
-                Api.LifecycleState.STARTED,
-                Api.Visibility.PUBLIC
-            )
-        );
+                Arguments.of(
+                        DeployModelToApiDomainService.Mode.DOCUMENTED,
+                        Api.ApiLifecycleState.CREATED,
+                        Api.LifecycleState.STOPPED,
+                        Api.Visibility.PRIVATE),
+                Arguments.of(
+                        DeployModelToApiDomainService.Mode.MOCKED,
+                        Api.ApiLifecycleState.CREATED,
+                        Api.LifecycleState.STARTED,
+                        Api.Visibility.PRIVATE),
+                Arguments.of(
+                        DeployModelToApiDomainService.Mode.PUBLISHED,
+                        Api.ApiLifecycleState.PUBLISHED,
+                        Api.LifecycleState.STARTED,
+                        Api.Visibility.PUBLIC));
     }
 }

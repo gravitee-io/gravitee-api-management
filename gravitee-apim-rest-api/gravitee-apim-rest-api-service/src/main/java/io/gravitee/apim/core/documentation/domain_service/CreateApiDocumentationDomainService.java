@@ -48,11 +48,12 @@ public class CreateApiDocumentationDomainService {
 
         if (page.isSwaggerOrMarkdown()) {
             pageRevisionCrudService.create(createdPage);
-            indexer.index(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(createdPage));
+            indexer.index(
+                    new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()),
+                    new IndexablePage(createdPage));
         }
 
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .apiId(page.getReferenceId())
                 .event(PageAuditEvent.PAGE_CREATED)
                 .createdAt(page.getCreatedAt().toInstant().atZone(ZoneId.of("UTC")))
@@ -62,8 +63,7 @@ public class CreateApiDocumentationDomainService {
                 .properties(Map.of(AuditProperties.PAGE, page.getId()))
                 .oldValue(null)
                 .newValue(page)
-                .build()
-        );
+                .build());
 
         return createdPage;
     }

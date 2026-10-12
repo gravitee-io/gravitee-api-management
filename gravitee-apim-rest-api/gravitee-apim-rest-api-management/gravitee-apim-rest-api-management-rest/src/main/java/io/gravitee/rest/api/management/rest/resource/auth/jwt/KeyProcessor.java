@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.auth.jwt;
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

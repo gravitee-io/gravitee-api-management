@@ -41,9 +41,10 @@ public class SearchAverageConnectionDurationUseCase {
         validateApiRequirements(input);
 
         return analyticsQueryService
-            .searchAverageConnectionDuration(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
-            .map(Output::new)
-            .orElse(new Output());
+                .searchAverageConnectionDuration(
+                        executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
+                .map(Output::new)
+                .orElse(new Output());
     }
 
     private void validateApiRequirements(Input input) {

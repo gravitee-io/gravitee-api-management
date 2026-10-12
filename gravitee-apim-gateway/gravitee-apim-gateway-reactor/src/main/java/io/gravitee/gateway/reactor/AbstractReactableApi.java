@@ -143,17 +143,14 @@ public abstract class AbstractReactableApi<T> implements ReactableApi<T>, Serial
 
     @Override
     public String toString() {
-        return (
-            "API " +
-            "id[" +
-            this.getId() +
-            "] name[" +
-            this.getName() +
-            "] version[" +
-            this.getApiVersion() +
-            "] revision[" +
-            this.getRevision() +
-            "]"
-        );
+        return ("API " + "id["
+                + this.getId()
+                + "] name["
+                + this.getName()
+                + "] version["
+                + this.getApiVersion()
+                + "] revision["
+                + this.getRevision()
+                + "]");
     }
 }

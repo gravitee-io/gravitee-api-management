@@ -81,7 +81,8 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
         log.debug("Find groups by ids");
-        Set<Group> groups = stream(internalRepository.findByIds(ids)).map(this::map).collect(Collectors.toSet());
+        Set<Group> groups =
+                stream(internalRepository.findByIds(ids)).map(this::map).collect(Collectors.toSet());
         log.debug("Find groups by ids - Found {}", groups);
         return groups;
     }
@@ -150,16 +151,16 @@ public class MongoGroupRepository implements GroupRepository {
             }
         }
 
-        org.springframework.data.domain.Pageable dbPageable = PageRequest.of(
-            pageable.pageNumber(),
-            pageable.pageSize(),
-            Sort.by(Sort.Order.asc("name"))
-        );
+        org.springframework.data.domain.Pageable dbPageable =
+                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.by(Sort.Order.asc("name")));
 
         long total = mongoQueries.countOrTimeout(mongoTemplate, Query.of(query), GroupMongo.class);
 
-        query = query.with(dbPageable).collation(Collation.of(Locale.ENGLISH).strength(Collation.ComparisonLevel.secondary()));
-        List<Group> groups = mongoTemplate.find(query, GroupMongo.class).stream().map(mapper::map).toList();
+        query = query.with(dbPageable)
+                .collation(Collation.of(Locale.ENGLISH).strength(Collation.ComparisonLevel.secondary()));
+        List<Group> groups = mongoTemplate.find(query, GroupMongo.class).stream()
+                .map(mapper::map)
+                .toList();
 
         return new Page<>(groups, pageable.pageNumber() + 1, pageable.pageSize(), total);
     }
@@ -167,7 +168,9 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException {
         log.debug("Find all groups by environment");
-        Set<Group> all = internalRepository.findByEnvironmentId(environmentId).stream().map(this::map).collect(Collectors.toSet());
+        Set<Group> all = internalRepository.findByEnvironmentId(environmentId).stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
         log.debug("Find all groups by environment - Found {}", all);
         return all;
     }
@@ -179,7 +182,9 @@ public class MongoGroupRepository implements GroupRepository {
             return List.of();
         }
         try {
-            List<Group> groups = internalRepository.findByEnvironmentIdAndHridIn(environmentId, hrids).stream().map(this::map).toList();
+            List<Group> groups = internalRepository.findByEnvironmentIdAndHridIn(environmentId, hrids).stream()
+                    .map(this::map)
+                    .toList();
             log.debug("Find groups by hrids - Found {}", groups);
             return groups;
         } catch (Exception ex) {
@@ -192,7 +197,9 @@ public class MongoGroupRepository implements GroupRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete groups by environmentId: {}", environmentId);
         try {
-            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(GroupMongo::getId).toList();
+            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream()
+                    .map(GroupMongo::getId)
+                    .toList();
             log.debug("Delete groups by environment - Done {}", all);
             return all;
         } catch (Exception ex) {
@@ -206,22 +213,22 @@ public class MongoGroupRepository implements GroupRepository {
         log.debug("Find all groups by organization");
 
         LookupOperation lookupOperation = LookupOperation.newLookup()
-            .from(getTableNameFor("environments"))
-            .localField("environmentId")
-            .foreignField("_id")
-            .as("environment");
+                .from(getTableNameFor("environments"))
+                .localField("environmentId")
+                .foreignField("_id")
+                .as("environment");
 
         Aggregation aggregation = Aggregation.newAggregation(
-            lookupOperation,
-            Aggregation.match(where("environment.organizationId").is(organizationId))
-        );
+                lookupOperation,
+                Aggregation.match(where("environment.organizationId").is(organizationId)));
 
-        Set<Group> groups = mongoTemplate
-            .aggregate(aggregation, getTableNameFor("groups"), GroupMongo.class)
-            .getMappedResults()
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+        Set<Group> groups =
+                mongoTemplate
+                        .aggregate(aggregation, getTableNameFor("groups"), GroupMongo.class)
+                        .getMappedResults()
+                        .stream()
+                        .map(this::map)
+                        .collect(Collectors.toSet());
 
         log.debug("Find all groups by organization - Found {}", groups);
         return groups;

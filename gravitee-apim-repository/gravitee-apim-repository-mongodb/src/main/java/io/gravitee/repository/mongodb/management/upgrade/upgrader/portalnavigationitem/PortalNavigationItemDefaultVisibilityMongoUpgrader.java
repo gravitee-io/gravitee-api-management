@@ -34,7 +34,9 @@ import org.springframework.stereotype.Component;
 public class PortalNavigationItemDefaultVisibilityMongoUpgrader extends MongoUpgrader {
 
     public static final int PORTAL_NAVIGATION_ITEM_DEFAULT_VISIBILITY_MONGO_UPGRADER_ORDER =
-        PortalNavigationItemDefaultReferenceMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_REFERENCE_MONGO_UPGRADER_ORDER + 1;
+            PortalNavigationItemDefaultReferenceMongoUpgrader
+                            .PORTAL_NAVIGATION_ITEM_DEFAULT_REFERENCE_MONGO_UPGRADER_ORDER
+                    + 1;
 
     public static final String VISIBILITY = "visibility";
     public static final String DEFAULT_VISIBILITY = "PUBLIC";
@@ -46,10 +48,8 @@ public class PortalNavigationItemDefaultVisibilityMongoUpgrader extends MongoUpg
 
     @Override
     public boolean upgrade() {
-        var result = this.getCollection("portal_navigation_items").updateMany(
-            Filters.eq(VISIBILITY, null),
-            Updates.set(VISIBILITY, DEFAULT_VISIBILITY)
-        );
+        var result = this.getCollection("portal_navigation_items")
+                .updateMany(Filters.eq(VISIBILITY, null), Updates.set(VISIBILITY, DEFAULT_VISIBILITY));
         return result.wasAcknowledged();
     }
 

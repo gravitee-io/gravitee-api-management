@@ -32,7 +32,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<RatingAnswer, String> implements RatingAnswerRepository {
+public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<RatingAnswer, String>
+        implements RatingAnswerRepository {
 
     JdbcRatingAnswerRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "rating_answers");
@@ -41,13 +42,13 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
     @Override
     protected JdbcObjectMapper<RatingAnswer> buildOrm() {
         return JdbcObjectMapper.builder(RatingAnswer.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("rating", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("comment", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("rating", Types.NVARCHAR, String.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("comment", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -71,7 +72,8 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
     public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
         log.debug("JdbcRatingAnswerRepository.findByRating({})", rating);
         try {
-            return jdbcTemplate.query("select ra.* from " + this.tableName + " ra where rating = ?", getOrm().getRowMapper(), rating);
+            return jdbcTemplate.query(
+                    "select ra.* from " + this.tableName + " ra where rating = ?", getOrm().getRowMapper(), rating);
         } catch (final Exception ex) {
             log.error("Failed to find rating answers by rating:", ex);
             throw new TechnicalException("Failed to find rating answers by rating", ex);
@@ -82,7 +84,8 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
     public List<String> deleteByRating(String ratingId) throws TechnicalException {
         log.debug("JdbcRatingAnswerRepository.deleteByRatingId({})", ratingId);
         try {
-            final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where rating = ?", String.class, ratingId);
+            final var rows = jdbcTemplate.queryForList(
+                    "select id from " + this.tableName + " where rating = ?", String.class, ratingId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where rating = ?", ratingId);

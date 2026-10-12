@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorReadException;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorVersionException;
-import io.gravitee.rest.api.service.impl.GraviteeDescriptorServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

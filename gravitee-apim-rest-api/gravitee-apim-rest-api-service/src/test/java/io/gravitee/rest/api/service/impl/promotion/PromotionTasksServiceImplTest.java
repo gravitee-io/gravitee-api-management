@@ -81,29 +81,26 @@ public class PromotionTasksServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        cut = new PromotionTasksServiceImpl(promotionService, permissionService, environmentService, apiSearchService, objectMapper);
+        cut = new PromotionTasksServiceImpl(
+                promotionService, permissionService, environmentService, apiSearchService, objectMapper);
     }
 
     @Test
     public void shouldNotGetPromotionTasksWhenNothingFromDb() {
         when(promotionService.search(any(), any(), any())).thenReturn(new Page<>(emptyList(), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(CREATE)
-            )
-        ).thenReturn(true);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(CREATE)))
+                .thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(UPDATE)))
+                .thenReturn(true);
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
 
         assertThat(result).isEmpty();
@@ -112,22 +109,18 @@ public class PromotionTasksServiceImplTest {
     @Test
     public void shouldNotGetPromotionTasksIfDoesNotHavePermissions() {
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(CREATE)
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(CREATE)))
+                .thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(UPDATE)))
+                .thenReturn(false);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).isEmpty();
@@ -136,40 +129,33 @@ public class PromotionTasksServiceImplTest {
     @Test
     public void shouldGetPromotionTasks_withApiUpdate() {
         PromotionEntity aPromotionEntity = getAPromotionEntity();
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        when(promotionService.search(
+                        argThat(query ->
+                                query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
         previousPromotionEntity.setTargetApiId("api#target");
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(UPDATE)
-            )
-        ).thenReturn(true);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(CREATE)
-            )
-        ).thenReturn(false);
+        when(promotionService.search(
+                        argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(UPDATE)))
+                .thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(CREATE)))
+                .thenReturn(false);
 
         when(apiSearchService.exists("api#target")).thenReturn(true);
 
@@ -189,38 +175,31 @@ public class PromotionTasksServiceImplTest {
     @Test
     public void shouldGetPromotionTasks_withApiCreation() {
         PromotionEntity aPromotionEntity = getAPromotionEntity();
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        when(promotionService.search(
+                        argThat(query ->
+                                query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(CREATE)
-            )
-        ).thenReturn(true);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(UPDATE)
-            )
-        ).thenReturn(false);
+        when(promotionService.search(
+                        argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(emptyList(), 0, 0, 0));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(CREATE)))
+                .thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(UPDATE)))
+                .thenReturn(false);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
@@ -238,40 +217,33 @@ public class PromotionTasksServiceImplTest {
     @Test
     public void shouldGetPromotionTasks_withApiCreationBecauseItHasBeenDeleted() {
         PromotionEntity aPromotionEntity = getAPromotionEntity();
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        when(promotionService.search(
+                        argThat(query ->
+                                query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
         previousPromotionEntity.setTargetApiId("api#target");
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(CREATE)
-            )
-        ).thenReturn(true);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(UPDATE)
-            )
-        ).thenReturn(false);
+        when(promotionService.search(
+                        argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(CREATE)))
+                .thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(UPDATE)))
+                .thenReturn(false);
 
         when(apiSearchService.exists("api#target")).thenReturn(false);
 
@@ -291,40 +263,33 @@ public class PromotionTasksServiceImplTest {
     public void shouldGetPromotionTasks_withApiUpdate_andApiCreation() {
         PromotionEntity promotionEntity1 = getAPromotionEntity();
         PromotionEntity promotionEntity2 = getAPromotionEntity();
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(List.of(promotionEntity1, promotionEntity2), 0, 0, 0));
+        when(promotionService.search(
+                        argThat(query ->
+                                query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(List.of(promotionEntity1, promotionEntity2), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
         previousPromotionEntity.setTargetApiId("api#target");
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(UPDATE)
-            )
-        ).thenReturn(true);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(CREATE)
-            )
-        ).thenReturn(false);
+        when(promotionService.search(
+                        argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(UPDATE)))
+                .thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(CREATE)))
+                .thenReturn(false);
 
         when(apiSearchService.exists("api#target")).thenReturn(true);
 
@@ -335,38 +300,31 @@ public class PromotionTasksServiceImplTest {
     @Test
     public void shouldGetPromotionTasks_withV4ApiDefinition() {
         PromotionEntity aPromotionEntity = getAV4PromotionEntity();
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        when(promotionService.search(
+                        argThat(query ->
+                                query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(CREATE)
-            )
-        ).thenReturn(true);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq("env#1"),
-                eq(UPDATE)
-            )
-        ).thenReturn(false);
+        when(promotionService.search(
+                        argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(emptyList(), 0, 0, 0));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(CREATE)))
+                .thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq("env#1"),
+                        eq(UPDATE)))
+                .thenReturn(false);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
@@ -382,15 +340,17 @@ public class PromotionTasksServiceImplTest {
     // Built with the serializer promotions are stored with, so the test reads what production reads.
     @ParameterizedTest
     @EnumSource(ApiType.class)
-    public void shouldExposeTheLabelOfTheTypeThePromotedDefinitionDeclares(ApiType type) throws JsonProcessingException {
+    public void shouldExposeTheLabelOfTheTypeThePromotedDefinitionDeclares(ApiType type)
+            throws JsonProcessingException {
         PromotionEntity promotion = getAV4PromotionEntity();
-        promotion.setApiDefinition(
-            new GraviteeDefinitionJacksonJsonSerializer().serialize(
-                GraviteeDefinitionFixtures.BASE.get()
-                    .api(ApiDescriptor.ApiDescriptorV4.builder().name("Promoted API").type(type).build())
-                    .build()
-            )
-        );
+        promotion.setApiDefinition(new GraviteeDefinitionJacksonJsonSerializer()
+                .serialize(GraviteeDefinitionFixtures.BASE
+                        .get()
+                        .api(ApiDescriptor.ApiDescriptorV4.builder()
+                                .name("Promoted API")
+                                .type(type)
+                                .build())
+                        .build()));
         givenPromotionsAwaitingCreation(promotion, getAnEnvironmentEntity());
 
         Map<String, Object> taskData = taskDataOfTheOnlyTask();
@@ -408,7 +368,7 @@ public class PromotionTasksServiceImplTest {
 
     // A newer source installation may promote a type this one doesn't know yet; a label is not what is stored.
     @ParameterizedTest
-    @ValueSource(strings = { "TYPE_FROM_A_NEWER_VERSION", "llm-proxy" })
+    @ValueSource(strings = {"TYPE_FROM_A_NEWER_VERSION", "llm-proxy"})
     public void shouldOmitATypeThisInstallationDoesNotKnowAndStillListThePromotion(String storedType) {
         PromotionEntity promotion = getAV4PromotionEntity();
         promotion.setApiDefinition("{\"api\":{\"name\":\"Promoted API\",\"type\":\"" + storedType + "\"}}");
@@ -422,7 +382,7 @@ public class PromotionTasksServiceImplTest {
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = { "", "   ", "not json" })
+    @ValueSource(strings = {"", "   ", "not json"})
     public void shouldStillListAPromotionWhoseDefinitionCannotBeRead(String definition) {
         PromotionEntity promotion = getAV4PromotionEntity();
         promotion.setApiDefinition(definition);
@@ -469,37 +429,31 @@ public class PromotionTasksServiceImplTest {
 
     private void givenPromotionsAwaitingCreation(PromotionEntity promotion, EnvironmentEntity... environments) {
         when(environmentService.findByOrganization(any())).thenReturn(List.of(environments));
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(singletonList(promotion), 0, 0, 0));
-        when(
-            promotionService.search(
-                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
-                any(),
-                any()
-            )
-        ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
+        when(promotionService.search(
+                        argThat(query ->
+                                query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(singletonList(promotion), 0, 0, 0));
+        when(promotionService.search(
+                        argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                        any(),
+                        any()))
+                .thenReturn(new Page<>(emptyList(), 0, 0, 0));
         for (EnvironmentEntity environment : environments) {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_API),
-                    eq(environment.getId()),
-                    eq(CREATE)
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_API),
+                            eq(environment.getId()),
+                            eq(CREATE)))
+                    .thenReturn(true);
         }
     }
 
     private PromotionEntity getAPromotionEntity() {
         final PromotionEntity promotion = new PromotionEntity();
         promotion.setApiDefinition(
-            "{\"id\" : \"api#1\",\"name\" : \"API Name\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
-        );
+                "{\"id\" : \"api#1\",\"name\" : \"API Name\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         promotion.setTargetEnvCockpitId("env#1-cockpit-id");
         promotion.setTargetEnvName("Target Env");
         promotion.setSourceEnvCockpitId("env#2-cockpit-id");
@@ -518,8 +472,7 @@ public class PromotionTasksServiceImplTest {
         final PromotionEntity promotion = new PromotionEntity();
         // V4 export format: name is inside api object
         promotion.setApiDefinition(
-            "{\"export\":{\"date\":\"2026-02-03T23:42:09.626Z\",\"apimVersion\":\"4.10.3\"},\"api\":{\"crossId\":\"cc648cc8-a4d3-4d09-a48c-c8a4d3bd09e7\",\"name\":\"V4 API Name\",\"apiVersion\":\"1.0\",\"type\":\"PROXY\",\"definitionVersion\":\"V4\"},\"metadata\":[],\"pages\":[],\"plans\":[]}"
-        );
+                "{\"export\":{\"date\":\"2026-02-03T23:42:09.626Z\",\"apimVersion\":\"4.10.3\"},\"api\":{\"crossId\":\"cc648cc8-a4d3-4d09-a48c-c8a4d3bd09e7\",\"name\":\"V4 API Name\",\"apiVersion\":\"1.0\",\"type\":\"PROXY\",\"definitionVersion\":\"V4\"},\"metadata\":[],\"pages\":[],\"plans\":[]}");
         promotion.setTargetEnvCockpitId("env#1-cockpit-id");
         promotion.setTargetEnvName("Target Env");
         promotion.setSourceEnvCockpitId("env#2-cockpit-id");

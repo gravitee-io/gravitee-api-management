@@ -36,22 +36,17 @@ public interface NotificationTemplateRepository extends FindAllRepository<Notifi
 
     void delete(String id) throws TechnicalException;
 
-    Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
-        throws TechnicalException;
+    Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(
+            String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException;
 
     Set<NotificationTemplate> findByHookAndScopeAndReferenceIdAndReferenceType(
-        String hook,
-        String scope,
-        String referenceId,
-        NotificationTemplateReferenceType referenceType
-    ) throws TechnicalException;
+            String hook, String scope, String referenceId, NotificationTemplateReferenceType referenceType)
+            throws TechnicalException;
 
     Set<NotificationTemplate> findByTypeAndReferenceIdAndReferenceType(
-        NotificationTemplateType type,
-        String referenceId,
-        NotificationTemplateReferenceType referenceType
-    ) throws TechnicalException;
+            NotificationTemplateType type, String referenceId, NotificationTemplateReferenceType referenceType)
+            throws TechnicalException;
 
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
-        throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(
+            String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException;
 }

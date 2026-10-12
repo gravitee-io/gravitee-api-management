@@ -38,7 +38,8 @@ public class UnfollowRedirectTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldNotFollowRedirect() throws Exception {
-        wireMockRule.stubFor(get("/redirect").willReturn(permanentRedirect("http://localhost:" + wireMockRule.getPort() + "/final")));
+        wireMockRule.stubFor(get("/redirect")
+                .willReturn(permanentRedirect("http://localhost:" + wireMockRule.getPort() + "/final")));
 
         HttpClient client = HttpClientBuilder.create().disableRedirectHandling().build();
 
@@ -46,7 +47,8 @@ public class UnfollowRedirectTest extends AbstractWiremockGatewayTest {
         Response response = Executor.newInstance(client).execute(request);
         HttpResponse returnResponse = response.returnResponse();
 
-        assertEquals(HttpStatus.SC_MOVED_PERMANENTLY, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(
+                HttpStatus.SC_MOVED_PERMANENTLY, returnResponse.getStatusLine().getStatusCode());
 
         wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/redirect")));
         wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/final")));

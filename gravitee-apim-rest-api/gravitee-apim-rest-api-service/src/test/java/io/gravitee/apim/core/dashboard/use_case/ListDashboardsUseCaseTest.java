@@ -51,8 +51,16 @@ class ListDashboardsUseCaseTest {
 
     @Test
     void should_return_dashboards_for_environment() {
-        var dashboard1 = Dashboard.builder().id("d1").environmentId(ENVIRONMENT_ID).name("Dashboard 1").build();
-        var dashboard2 = Dashboard.builder().id("d2").environmentId(ENVIRONMENT_ID).name("Dashboard 2").build();
+        var dashboard1 = Dashboard.builder()
+                .id("d1")
+                .environmentId(ENVIRONMENT_ID)
+                .name("Dashboard 1")
+                .build();
+        var dashboard2 = Dashboard.builder()
+                .id("d2")
+                .environmentId(ENVIRONMENT_ID)
+                .name("Dashboard 2")
+                .build();
         dashboardCrudServiceInMemory.initWith(List.of(dashboard1, dashboard2));
 
         var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ENVIRONMENT_ID));
@@ -69,8 +77,16 @@ class ListDashboardsUseCaseTest {
 
     @Test
     void should_only_return_dashboards_for_requested_environment() {
-        var dashboard1 = Dashboard.builder().id("d1").environmentId(ENVIRONMENT_ID).name("Dashboard 1").build();
-        var dashboard2 = Dashboard.builder().id("d2").environmentId("other-env").name("Dashboard 2").build();
+        var dashboard1 = Dashboard.builder()
+                .id("d1")
+                .environmentId(ENVIRONMENT_ID)
+                .name("Dashboard 1")
+                .build();
+        var dashboard2 = Dashboard.builder()
+                .id("d2")
+                .environmentId("other-env")
+                .name("Dashboard 2")
+                .build();
         dashboardCrudServiceInMemory.initWith(List.of(dashboard1, dashboard2));
 
         var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(ENVIRONMENT_ID));

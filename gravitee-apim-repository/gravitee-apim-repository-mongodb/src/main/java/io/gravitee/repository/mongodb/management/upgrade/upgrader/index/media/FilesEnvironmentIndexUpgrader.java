@@ -28,10 +28,10 @@ public class FilesEnvironmentIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("media.files")
-            .name("e1")
-            .key("metadata.environment", ascending())
-            .build();
+                .collection("media.files")
+                .name("e1")
+                .key("metadata.environment", ascending())
+                .build();
     }
 
     @Override

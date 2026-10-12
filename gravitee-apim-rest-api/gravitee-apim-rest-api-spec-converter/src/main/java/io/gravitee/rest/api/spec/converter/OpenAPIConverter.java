@@ -26,5 +26,6 @@ public interface OpenAPIConverter {
     String DEFAULT_API_VERSION = "1.0.0";
 
     OpenAPI toOpenAPI(InputStream uri);
+
     OpenAPI toOpenAPI(String content);
 }

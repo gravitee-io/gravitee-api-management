@@ -41,7 +41,8 @@ public class ListenerEntrypointDuplicatedException extends AbstractManagementExc
 
     @Override
     public String getMessage() {
-        return "The api contains duplicated entrypoints [" + duplicatedEntrypoints + "] for listener [" + listenerType.getLabel() + "].";
+        return "The api contains duplicated entrypoints [" + duplicatedEntrypoints + "] for listener ["
+                + listenerType.getLabel() + "].";
     }
 
     @Override

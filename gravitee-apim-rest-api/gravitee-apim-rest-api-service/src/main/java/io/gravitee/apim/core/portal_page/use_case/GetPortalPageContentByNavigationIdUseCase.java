@@ -45,52 +45,46 @@ public class GetPortalPageContentByNavigationIdUseCase {
     private final List<ContentRenderer> contentRenderers;
 
     public Output execute(Input input) {
-        final var portalNavigationItem = Optional.ofNullable(
-            portalNavigationItemsQueryService.findByIdAndEnvironmentId(
-                input.environmentId(),
-                PortalNavigationItemId.of(input.portalNavigationItemId())
-            )
-        ).orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId()));
+        final var portalNavigationItem = Optional.ofNullable(portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                        input.environmentId(), PortalNavigationItemId.of(input.portalNavigationItemId())))
+                .orElseThrow(() -> new PortalNavigationItemNotFoundException(input.portalNavigationItemId()));
 
         input.viewerContext().validateAccess(portalNavigationItem);
 
         var visibilityEvaluator = new PortalNavigationItemVisibilityEvaluator(
-            input.environmentId(),
-            input.viewerContext(),
-            portalNavigationItemsQueryService,
-            visibilityServices
-        );
-        if (!visibilityEvaluator.isVisible(portalNavigationItem) || visibilityEvaluator.hasHiddenAncestor(portalNavigationItem)) {
-            throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
+                input.environmentId(), input.viewerContext(), portalNavigationItemsQueryService, visibilityServices);
+        if (!visibilityEvaluator.isVisible(portalNavigationItem)
+                || visibilityEvaluator.hasHiddenAncestor(portalNavigationItem)) {
+            throw new PortalNavigationItemNotFoundException(
+                    portalNavigationItem.getId().json());
         }
 
         if (!(portalNavigationItem instanceof PortalNavigationPage page)) {
             throw InvalidPortalNavigationItemDataException.typeMismatch(
-                PortalNavigationItemType.PAGE.name(),
-                portalNavigationItem.getType().name()
-            );
+                    PortalNavigationItemType.PAGE.name(),
+                    portalNavigationItem.getType().name());
         }
 
         var portalPageContent = portalPageContentQueryService
-            .findById(page.getPortalPageContentId())
-            .orElseThrow(() -> new PageContentNotFoundException(page.getPortalPageContentId().toString()));
+                .findById(page.getPortalPageContentId())
+                .orElseThrow(() -> new PageContentNotFoundException(
+                        page.getPortalPageContentId().toString()));
 
-        var rendered = contentRenderers
-            .stream()
-            .filter(r -> r.appliesTo(portalPageContent))
-            .findFirst()
-            .orElseThrow(() -> new RendererException("No renderer found for content type: " + portalPageContent.getType()))
-            .render(page, portalPageContent);
+        var rendered = contentRenderers.stream()
+                .filter(r -> r.appliesTo(portalPageContent))
+                .findFirst()
+                .orElseThrow(() ->
+                        new RendererException("No renderer found for content type: " + portalPageContent.getType()))
+                .render(page, portalPageContent);
 
         return new Output(rendered, portalNavigationItem);
     }
 
     public record Input(
-        String portalNavigationItemId,
-        String organizationId,
-        String environmentId,
-        PortalNavigationItemViewerContext viewerContext
-    ) {}
+            String portalNavigationItemId,
+            String organizationId,
+            String environmentId,
+            PortalNavigationItemViewerContext viewerContext) {}
 
     public record Output(RenderedPageContent renderedContent, PortalNavigationItem portalNavigationItem) {}
 }

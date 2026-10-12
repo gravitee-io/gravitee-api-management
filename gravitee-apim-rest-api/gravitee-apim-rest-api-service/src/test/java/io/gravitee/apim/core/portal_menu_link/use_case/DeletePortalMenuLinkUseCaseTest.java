@@ -33,14 +33,14 @@ import org.junit.jupiter.api.Test;
 public class DeletePortalMenuLinkUseCaseTest {
 
     private final PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService = new PortalMenuLinkCrudServiceInMemory();
-    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService = new PortalMenuLinkQueryServiceInMemory(
-        portalMenuLinkCrudService
-    );
+    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService =
+            new PortalMenuLinkQueryServiceInMemory(portalMenuLinkCrudService);
     private DeletePortalMenuLinkUseCase deletePortalMenuLinkUseCase;
 
     @BeforeEach
     void setUp() {
-        deletePortalMenuLinkUseCase = new DeletePortalMenuLinkUseCase(portalMenuLinkCrudService, portalMenuLinkQueryService);
+        deletePortalMenuLinkUseCase =
+                new DeletePortalMenuLinkUseCase(portalMenuLinkCrudService, portalMenuLinkQueryService);
     }
 
     @AfterEach
@@ -55,7 +55,8 @@ public class DeletePortalMenuLinkUseCaseTest {
         portalMenuLinkCrudService.initWith(List.of(toDelete));
 
         // When
-        deletePortalMenuLinkUseCase.execute(new DeletePortalMenuLinkUseCase.Input(toDelete.getId(), toDelete.getEnvironmentId()));
+        deletePortalMenuLinkUseCase.execute(
+                new DeletePortalMenuLinkUseCase.Input(toDelete.getId(), toDelete.getEnvironmentId()));
 
         // Then
         assertThat(portalMenuLinkCrudService.storage()).isEmpty();
@@ -64,25 +65,54 @@ public class DeletePortalMenuLinkUseCaseTest {
     @Test
     void should_reorder_when_delete() {
         // Given
-        portalMenuLinkCrudService.initWith(
-            List.of(
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id1").environmentId("env1").order(1).build(),
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id2").environmentId("env2").order(1).build(),
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id3").environmentId("env1").order(3).build(),
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id4").environmentId("env1").order(2).build(),
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id5").environmentId("env1").order(4).build()
-            )
-        );
+        portalMenuLinkCrudService.initWith(List.of(
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id1")
+                        .environmentId("env1")
+                        .order(1)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id2")
+                        .environmentId("env2")
+                        .order(1)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id3")
+                        .environmentId("env1")
+                        .order(3)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id4")
+                        .environmentId("env1")
+                        .order(2)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id5")
+                        .environmentId("env1")
+                        .order(4)
+                        .build()));
 
         // When
         deletePortalMenuLinkUseCase.execute(new DeletePortalMenuLinkUseCase.Input("id4", "env1"));
 
         // Then
         assertThat(portalMenuLinkCrudService.storage()).hasSize(4);
-        assertThat(portalMenuLinkCrudService.getByIdAndEnvironmentId("id1", "env1").getOrder()).isEqualTo(1);
-        assertThat(portalMenuLinkCrudService.getByIdAndEnvironmentId("id2", "env2").getOrder()).isEqualTo(1);
-        assertThat(portalMenuLinkCrudService.getByIdAndEnvironmentId("id3", "env1").getOrder()).isEqualTo(2);
-        assertThat(portalMenuLinkCrudService.getByIdAndEnvironmentId("id5", "env1").getOrder()).isEqualTo(3);
+        assertThat(portalMenuLinkCrudService
+                        .getByIdAndEnvironmentId("id1", "env1")
+                        .getOrder())
+                .isEqualTo(1);
+        assertThat(portalMenuLinkCrudService
+                        .getByIdAndEnvironmentId("id2", "env2")
+                        .getOrder())
+                .isEqualTo(1);
+        assertThat(portalMenuLinkCrudService
+                        .getByIdAndEnvironmentId("id3", "env1")
+                        .getOrder())
+                .isEqualTo(2);
+        assertThat(portalMenuLinkCrudService
+                        .getByIdAndEnvironmentId("id5", "env1")
+                        .getOrder())
+                .isEqualTo(3);
     }
 
     @Test
@@ -92,13 +122,12 @@ public class DeletePortalMenuLinkUseCaseTest {
         portalMenuLinkCrudService.initWith(List.of(toDelete));
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            deletePortalMenuLinkUseCase.execute(new DeletePortalMenuLinkUseCase.Input("unknown", toDelete.getEnvironmentId()))
-        );
+        var throwable = Assertions.catchThrowable(() -> deletePortalMenuLinkUseCase.execute(
+                new DeletePortalMenuLinkUseCase.Input("unknown", toDelete.getEnvironmentId())));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(PortalMenuLinkNotFoundException.class)
-            .hasMessage("PortalMenuLink [ unknown ] not found");
+                .isInstanceOf(PortalMenuLinkNotFoundException.class)
+                .hasMessage("PortalMenuLink [ unknown ] not found");
     }
 }

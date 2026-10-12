@@ -24,9 +24,6 @@ import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
@@ -71,14 +68,14 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         doAnswer(invocation -> {
-            var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
-            return RenderedPageContent.of(
-                in.rawMarkdown().value(),
-                io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-        })
-            .when(portalNavigationTemplatingService)
-            .renderGraviteeMarkdown(any());
+                    var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput)
+                            invocation.getArgument(0);
+                    return RenderedPageContent.of(
+                            in.rawMarkdown().value(),
+                            io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN);
+                })
+                .when(portalNavigationTemplatingService)
+                .renderGraviteeMarkdown(any());
     }
 
     @AfterEach
@@ -96,11 +93,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             // Given
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var publishedItem = PortalNavigationFixtures.page(
-                itemId,
-                "Published Page",
-                PortalArea.TOP_NAVBAR,
-                PortalNavigationFixtures.randomPageId()
-            );
+                    itemId, "Published Page", PortalArea.TOP_NAVBAR, PortalNavigationFixtures.randomPageId());
             publishedItem.setPublished(true);
             publishedItem.setEnvironmentId(ENV_ID);
 
@@ -120,11 +113,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
         void should_return_portal_navigation_item_when_user_is_authenticated() {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var publishedAndPublicItem = PortalNavigationFixtures.page(
-                itemId,
-                "Published Public Page",
-                PortalArea.TOP_NAVBAR,
-                PortalNavigationFixtures.randomPageId()
-            );
+                    itemId, "Published Public Page", PortalArea.TOP_NAVBAR, PortalNavigationFixtures.randomPageId());
             publishedAndPublicItem.setPublished(true);
             publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicItem.setEnvironmentId(ENV_ID);
@@ -145,7 +134,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
         void should_return_api_product_navigation_item() {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var apiProductId = UUID.randomUUID();
-            var apiProduct = PortalNavigationFixtures.apiProduct(itemId, "API Product", PortalArea.TOP_NAVBAR, apiProductId);
+            var apiProduct =
+                    PortalNavigationFixtures.apiProduct(itemId, "API Product", PortalArea.TOP_NAVBAR, apiProductId);
             apiProduct.setEnvironmentId(ENV_ID);
             portalNavigationItemsQueryService.initWith(List.of(apiProduct));
 
@@ -175,11 +165,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             // Given
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var unpublishedItem = PortalNavigationFixtures.page(
-                itemId,
-                "Unpublished Page",
-                PortalArea.TOP_NAVBAR,
-                PortalNavigationFixtures.randomPageId()
-            );
+                    itemId, "Unpublished Page", PortalArea.TOP_NAVBAR, PortalNavigationFixtures.randomPageId());
             unpublishedItem.setPublished(false);
             unpublishedItem.setEnvironmentId(ENV_ID);
 
@@ -202,13 +188,10 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "Page content text"
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "Page content text");
 
-            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            var publishedPage =
+                    PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
             publishedPage.setPublished(true);
             publishedPage.setEnvironmentId(ENV_ID);
 
@@ -216,7 +199,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(itemId.toString()).path("content").request().get();
+            Response response =
+                    target(itemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
@@ -229,11 +213,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
         void should_return_404_when_page_is_under_inaccessible_private_api_product() {
             var productId = PortalNavigationFixtures.randomNavigationId();
             var apiProduct = PortalNavigationFixtures.apiProduct(
-                productId,
-                "Private API Product",
-                PortalArea.TOP_NAVBAR,
-                UUID.randomUUID()
-            );
+                    productId, "Private API Product", PortalArea.TOP_NAVBAR, UUID.randomUUID());
             apiProduct.setEnvironmentId(ENV_ID);
             apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
 
@@ -243,15 +223,12 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             page.setEnvironmentId(ENV_ID);
             page.updateParent(apiProduct);
             var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "Private product content"
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "Private product content");
             portalNavigationItemsQueryService.initWith(List.of(apiProduct, page));
             portalPageContentQueryService.initWith(List.of(pageContent));
 
-            Response response = target(pageId.toString()).path("content").request().get();
+            Response response =
+                    target(pageId.toString()).path("content").request().get();
 
             assertThat(response.getStatus()).isEqualTo(404);
         }
@@ -262,30 +239,25 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var configuration = new SwaggerUiConfiguration(
-                true,
-                "list",
-                true,
-                12,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                "https://sandbox.example.com",
-                true,
-                false,
-                false
-            );
+                    true,
+                    "list",
+                    true,
+                    12,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    "https://sandbox.example.com",
+                    true,
+                    false,
+                    false);
             var pageContent = PortalPageContentFixtures.anOpenApiPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "openapi: 3.0.3\ninfo:\n  title: Test",
-                configuration
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "openapi: 3.0.3\ninfo:\n  title: Test", configuration);
 
-            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            var publishedPage =
+                    PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
             publishedPage.setPublished(true);
             publishedPage.setEnvironmentId(ENV_ID);
 
@@ -293,7 +265,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(itemId.toString()).path("content").request().get();
+            Response response =
+                    target(itemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
@@ -326,30 +299,12 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var configuration = new SwaggerUiConfiguration(
-                true,
-                "list",
-                true,
-                12,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                "",
-                true,
-                true,
-                true
-            );
+                    true, "list", true, 12, true, true, true, true, true, true, "", true, true, true);
             var pageContent = PortalPageContentFixtures.anOpenApiPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "openapi: 3.0.3\ninfo:\n  title: Test",
-                configuration
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "openapi: 3.0.3\ninfo:\n  title: Test", configuration);
 
-            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            var publishedPage =
+                    PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
             publishedPage.setPublished(true);
             publishedPage.setEnvironmentId(ENV_ID);
 
@@ -357,7 +312,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(itemId.toString()).path("content").request().get();
+            Response response =
+                    target(itemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
@@ -377,14 +333,14 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var pageContent = PortalPageContentFixtures.anOpenApiPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "openapi: 3.0.3\ninfo:\n  title: Test",
-                new RedocConfiguration("https://redoc.example.com")
-            );
+                    contentId,
+                    ORGANIZATION_ID,
+                    ENV_ID,
+                    "openapi: 3.0.3\ninfo:\n  title: Test",
+                    new RedocConfiguration("https://redoc.example.com"));
 
-            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            var publishedPage =
+                    PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
             publishedPage.setPublished(true);
             publishedPage.setEnvironmentId(ENV_ID);
 
@@ -392,7 +348,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(itemId.toString()).path("content").request().get();
+            Response response =
+                    target(itemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
@@ -412,13 +369,10 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "Page content text"
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "Page content text");
 
-            var publishedAndPublicPage = PortalNavigationFixtures.page(itemId, "Published Public Page", PortalArea.TOP_NAVBAR, contentId);
+            var publishedAndPublicPage =
+                    PortalNavigationFixtures.page(itemId, "Published Public Page", PortalArea.TOP_NAVBAR, contentId);
             publishedAndPublicPage.setPublished(true);
             publishedAndPublicPage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicPage.setEnvironmentId(ENV_ID);
@@ -427,7 +381,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(itemId.toString()).path("content").request().get();
+            Response response =
+                    target(itemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
@@ -443,7 +398,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalNavigationItemsQueryService.initWith(List.of());
 
             // When
-            Response response = target(unknownId.toString()).path("content").request().get();
+            Response response =
+                    target(unknownId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(404);
@@ -455,13 +411,10 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "Page content text"
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "Page content text");
 
-            var unpublishedPage = PortalNavigationFixtures.page(itemId, "Unpublished Page", PortalArea.TOP_NAVBAR, contentId);
+            var unpublishedPage =
+                    PortalNavigationFixtures.page(itemId, "Unpublished Page", PortalArea.TOP_NAVBAR, contentId);
             unpublishedPage.setPublished(false);
             unpublishedPage.setEnvironmentId(ENV_ID);
 
@@ -469,7 +422,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(itemId.toString()).path("content").request().get();
+            Response response =
+                    target(itemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(404);
@@ -486,7 +440,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalNavigationItemsQueryService.initWith(List.of(folder));
 
             // When
-            Response response = target(folderId.toString()).path("content").request().get();
+            Response response =
+                    target(folderId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(400);
@@ -498,7 +453,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var itemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
 
-            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            var publishedPage =
+                    PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
             publishedPage.setPublished(true);
             publishedPage.setEnvironmentId(ENV_ID);
 
@@ -506,7 +462,8 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             portalPageContentQueryService.initWith(List.of()); // No content
 
             // When
-            Response response = target(itemId.toString()).path("content").request().get();
+            Response response =
+                    target(itemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(404);

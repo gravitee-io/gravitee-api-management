@@ -57,13 +57,10 @@ public class NativeApiLogsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_NATIVE_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_NATIVE_LOG, acls = RolePermissionAction.READ)})
     public NativeApiLogsResponse getFilteredLogs(
-        @BeanParam @Valid SearchNativeLogsParam searchParam,
-        @BeanParam @Valid PaginationParam paginationParam
-    ) {
-        var output = searchUseCase.execute(
-            new NativeApiLogSearchUseCase.Input(
+            @BeanParam @Valid SearchNativeLogsParam searchParam, @BeanParam @Valid PaginationParam paginationParam) {
+        var output = searchUseCase.execute(new NativeApiLogSearchUseCase.Input(
                 GraviteeContext.getExecutionContext(),
                 apiId,
                 searchParam.getFrom(),
@@ -72,9 +69,7 @@ public class NativeApiLogsResource extends AbstractResource {
                 searchParam.getPlanIds(),
                 searchParam.getConnectionStatuses(),
                 paginationParam.getPage(),
-                paginationParam.getPerPage()
-            )
-        );
+                paginationParam.getPerPage()));
         var data = NativeApiLogsMapper.INSTANCE.mapList(output.response().logs());
         // The total stays honest — an operator wants to know a busy API had 50 000 connection events in the
         // window. The links do not: Elasticsearch refuses a from/size page past its result window, so a `last`
@@ -82,44 +77,40 @@ public class NativeApiLogsResource extends AbstractResource {
         // every page the API advertises a page the API can serve.
         long reachable = reachableTotal(output.response(), paginationParam);
         return new NativeApiLogsResponse()
-            .data(data)
-            .pagination(computePaginationInfo(output.response().total(), data.size(), paginationParam))
-            .links(computePaginationLinks(reachable, paginationParam))
-            // Only when it bites. Sending it on every response would have every client carry a branch for a
-            // case most APIs never reach.
-            .reachableCount(reachable < output.response().total() ? reachable : null);
+                .data(data)
+                .pagination(computePaginationInfo(output.response().total(), data.size(), paginationParam))
+                .links(computePaginationLinks(reachable, paginationParam))
+                // Only when it bites. Sending it on every response would have every client carry a branch for a
+                // case most APIs never reach.
+                .reachableCount(reachable < output.response().total() ? reachable : null);
     }
 
     @GET
     @Path("/summary")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_NATIVE_LOG, acls = RolePermissionAction.READ) })
-    public NativeApiLogsSummary summarize(@QueryParam("from") @NotNull @Min(0) Long from, @QueryParam("to") @NotNull @Min(0) Long to) {
-        var output = summaryUseCase.execute(
-            new NativeApiLogSummaryUseCase.Input(
-                GraviteeContext.getExecutionContext(),
-                apiId,
-                Instant.ofEpochMilli(from),
-                Instant.ofEpochMilli(to)
-            )
-        );
+    @Permissions({@Permission(value = RolePermission.API_NATIVE_LOG, acls = RolePermissionAction.READ)})
+    public NativeApiLogsSummary summarize(
+            @QueryParam("from") @NotNull @Min(0) Long from, @QueryParam("to") @NotNull @Min(0) Long to) {
+        var output = summaryUseCase.execute(new NativeApiLogSummaryUseCase.Input(
+                GraviteeContext.getExecutionContext(), apiId, Instant.ofEpochMilli(from), Instant.ofEpochMilli(to)));
         return NativeApiLogsMapper.INSTANCE.mapSummary(output);
     }
 
     @GET
     @Path("/{requestId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_NATIVE_ANALYTICS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_NATIVE_ANALYTICS, acls = RolePermissionAction.READ)})
     public NativeApiLog getLog(
-        @QueryParam("from") @NotNull @Min(0) Long from,
-        @QueryParam("to") @NotNull @Min(0) Long to,
-        @PathParam("requestId") String requestId
-    ) {
+            @QueryParam("from") @NotNull @Min(0) Long from,
+            @QueryParam("to") @NotNull @Min(0) Long to,
+            @PathParam("requestId") String requestId) {
         return readUseCase
-            .execute(new NativeApiLogReadUseCase.Input(GraviteeContext.getExecutionContext(), apiId, requestId, from, to))
-            .nativeApiLog()
-            .map(NativeApiLogsMapper.INSTANCE::map)
-            .orElseThrow(() -> new NotFoundException("No native log found for api: " + apiId + " and requestId: " + requestId));
+                .execute(new NativeApiLogReadUseCase.Input(
+                        GraviteeContext.getExecutionContext(), apiId, requestId, from, to))
+                .nativeApiLog()
+                .map(NativeApiLogsMapper.INSTANCE::map)
+                .orElseThrow(() -> new NotFoundException(
+                        "No native log found for api: " + apiId + " and requestId: " + requestId));
     }
 
     /**

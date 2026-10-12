@@ -43,10 +43,9 @@ public class BeanFactoryBuilder {
         BeanFactory beanFactory = getBeanFactoryFromElasticsearchInfo(info);
         if (beanFactory == null) {
             log.error(
-                "{} version {} is not supported by this connector",
-                info.getVersion().isOpenSearch() ? "OpenSearch" : "ElasticSearch",
-                info.getVersion().getNumber()
-            );
+                    "{} version {} is not supported by this connector",
+                    info.getVersion().isOpenSearch() ? "OpenSearch" : "ElasticSearch",
+                    info.getVersion().getNumber());
             return null;
         }
         return beanFactory;
@@ -54,29 +53,28 @@ public class BeanFactoryBuilder {
 
     private static ElasticsearchInfo retrieveElasticSearchInfo(final Client client) {
         // Wait for a connection to ES and retry each 5 seconds
-        return client
-            .getInfo()
-            .retryWhen(error ->
-                error.flatMap(throwable -> {
+        return client.getInfo()
+                .retryWhen(error -> error.flatMap(throwable -> {
                     if (isUnauthorized(throwable)) {
                         log.error(
-                            "Elasticsearch authentication failed (401). Please verify your 'reporters.elasticsearch.security.username' and 'reporters.elasticsearch.security.password' configuration.",
-                            throwable
-                        );
+                                "Elasticsearch authentication failed (401). Please verify your 'reporters.elasticsearch.security.username' and 'reporters.elasticsearch.security.password' configuration.",
+                                throwable);
                         return Flowable.error(throwable);
                     }
                     if (isForbidden(throwable)) {
                         log.error(
-                            "Elasticsearch access denied (403). The configured user does not have sufficient permissions to access the Elasticsearch cluster. Please verify the user's roles and privileges.",
-                            throwable
-                        );
+                                "Elasticsearch access denied (403). The configured user does not have sufficient permissions to access the Elasticsearch cluster. Please verify the user's roles and privileges.",
+                                throwable);
                         return Flowable.error(throwable);
                     }
-                    log.warn("Unable to connect to Elasticsearch, retrying in 5 seconds. Cause: {}", throwable.getMessage());
-                    return Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST);
-                })
-            )
-            .blockingGet();
+                    log.warn(
+                            "Unable to connect to Elasticsearch, retrying in 5 seconds. Cause: {}",
+                            throwable.getMessage());
+                    return Observable.just(new Object())
+                            .delay(5, TimeUnit.SECONDS)
+                            .toFlowable(BackpressureStrategy.LATEST);
+                }))
+                .blockingGet();
     }
 
     static boolean isUnauthorized(Throwable throwable) {
@@ -102,7 +100,8 @@ public class BeanFactoryBuilder {
 
     private static BeanFactory getBeanFactoryFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo) {
         if (elasticsearchInfo.getVersion().isOpenSearch()) {
-            if (SUPPORTED_OPENSEARCH_MAJOR_VERSIONS.contains(elasticsearchInfo.getVersion().getMajorVersion())) {
+            if (SUPPORTED_OPENSEARCH_MAJOR_VERSIONS.contains(
+                    elasticsearchInfo.getVersion().getMajorVersion())) {
                 return new OpenSearchBeanFactory();
             }
             return null;

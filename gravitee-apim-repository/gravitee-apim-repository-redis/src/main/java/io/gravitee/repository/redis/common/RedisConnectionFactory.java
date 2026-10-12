@@ -61,11 +61,10 @@ public class RedisConnectionFactory {
     private static final String STORE_FORMAT_PKCS12 = "PKCS12";
 
     public RedisConnectionFactory(
-        final Environment environment,
-        final Vertx vertx,
-        final String propertyPrefix,
-        final Map<String, String> scripts
-    ) {
+            final Environment environment,
+            final Vertx vertx,
+            final String propertyPrefix,
+            final Map<String, String> scripts) {
         this.environment = environment;
         this.vertx = vertx;
         this.propertyPrefix = propertyPrefix + ".redis.";
@@ -96,20 +95,18 @@ public class RedisConnectionFactory {
 
             String redisMaster = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master", String.class);
             if (!StringUtils.hasText(redisMaster)) {
-                throw new IllegalStateException(
-                    "Incorrect Sentinel configuration : parameter '" + propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master' is mandatory!"
-                );
+                throw new IllegalStateException("Incorrect Sentinel configuration : parameter '" + propertyPrefix
+                        + SENTINEL_PARAMETER_PREFIX + "master' is mandatory!");
             }
 
             String sentinelPassword = readPropertyValue(
-                propertyPrefix + SENTINEL_PARAMETER_PREFIX + PASSWORD_PARAMETER,
-                String.class,
-                null
-            );
+                    propertyPrefix + SENTINEL_PARAMETER_PREFIX + PASSWORD_PARAMETER, String.class, null);
 
-            builder.sentinel(
-                RedisSentinelOptions.builder().masterId(redisMaster).password(sentinelPassword).nodes(getSentinelNodes()).build()
-            );
+            builder.sentinel(RedisSentinelOptions.builder()
+                    .masterId(redisMaster)
+                    .password(sentinelPassword)
+                    .nodes(getSentinelNodes())
+                    .build());
         } else {
             log.debug("Redis repository configured to use standalone connection");
         }
@@ -118,7 +115,10 @@ public class RedisConnectionFactory {
             log.debug("Redis repository configured to use Cluster connection");
             // useReplicas is pinned to NEVER: rate limiting relies on master-consistent
             // counters, so reads must never be served from cluster replicas.
-            builder.cluster(RedisClusterOptions.builder().nodes(getClusterNodes()).useReplicas("NEVER").build());
+            builder.cluster(RedisClusterOptions.builder()
+                    .nodes(getClusterNodes())
+                    .useReplicas("NEVER")
+                    .build());
         }
 
         if (ssl) {
@@ -137,13 +137,15 @@ public class RedisConnectionFactory {
         boolean trustAll = readPropertyValue(propertyPrefix + "trustAll", boolean.class, true);
         sslOptions.setTrustAll(trustAll);
 
-        String hostnameVerificationAlgorithm = readPropertyValue(propertyPrefix + "hostnameVerificationAlgorithm", String.class, "NONE");
+        String hostnameVerificationAlgorithm =
+                readPropertyValue(propertyPrefix + "hostnameVerificationAlgorithm", String.class, "NONE");
         sslOptions.setHostnameVerificationAlgorithm(hostnameVerificationAlgorithm);
         sslOptions.setHostnameVerifier(!"NONE".equalsIgnoreCase(hostnameVerificationAlgorithm));
 
         String tlsProtocols = readPropertyValue(propertyPrefix + "tlsProtocols", String.class, "");
         if (StringUtils.hasText(tlsProtocols)) {
-            sslOptions.setTlsProtocols(StringUtils.commaDelimitedListToSet(StringUtils.trimAllWhitespace(tlsProtocols)));
+            sslOptions.setTlsProtocols(
+                    StringUtils.commaDelimitedListToSet(StringUtils.trimAllWhitespace(tlsProtocols)));
         }
 
         String tlsCiphers = readPropertyValue(propertyPrefix + "tlsCiphers", String.class, "");
@@ -226,13 +228,14 @@ public class RedisConnectionFactory {
             case STORE_FORMAT_PEM -> {
                 List<String> certPaths = new ArrayList<>();
                 List<String> keyPaths = new ArrayList<>();
-                for (
-                    int idx = 0;
-                    StringUtils.hasText(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
-                    idx++
-                ) {
-                    certPaths.add(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
-                    keyPaths.add(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].key", String.class));
+                for (int idx = 0;
+                        StringUtils.hasText(readPropertyValue(
+                                keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
+                        idx++) {
+                    certPaths.add(
+                            readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
+                    keyPaths.add(
+                            readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].key", String.class));
                 }
                 if (certPaths.isEmpty()) {
                     throw new IllegalArgumentException("Missing PEM keystore value");
@@ -287,35 +290,40 @@ public class RedisConnectionFactory {
     }
 
     private boolean isSentinelEnabled() {
-        return StringUtils.hasLength(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[0].host", String.class));
+        return StringUtils.hasLength(
+                readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[0].host", String.class));
     }
 
     private List<HostAndPort> getSentinelNodes() {
         final List<HostAndPort> nodes = new ArrayList<>();
-        for (
-            int idx = 0;
-            StringUtils.hasText(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class));
-            idx++
-        ) {
-            String host = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
-            int port = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
+        for (int idx = 0;
+                StringUtils.hasText(readPropertyValue(
+                        propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class));
+                idx++) {
+            String host = readPropertyValue(
+                    propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
+            int port = readPropertyValue(
+                    propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
             nodes.add(HostAndPort.builder().host(host).port(port).build());
         }
         return nodes;
     }
 
     private boolean isClusterEnabled() {
-        return StringUtils.hasLength(readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[0].host", String.class));
+        return StringUtils.hasLength(
+                readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[0].host", String.class));
     }
 
     private List<HostAndPort> getClusterNodes() {
         final List<HostAndPort> nodes = new ArrayList<>();
         for (int idx = 0; ; idx++) {
-            String host = readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
+            String host = readPropertyValue(
+                    propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
             if (!StringUtils.hasText(host)) {
                 break;
             }
-            int port = readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
+            int port =
+                    readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
             nodes.add(HostAndPort.builder().host(host).port(port).build());
         }
         return nodes;

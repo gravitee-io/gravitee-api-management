@@ -62,8 +62,7 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldFindAll_MaxInteger() throws TechnicalException {
         Page<PageRevision> revisions = pageRevisionRepository.findAll(
-            new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-        );
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build());
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(revisions).isNotNull();
             softly.assertThat(revisions.getPageNumber()).isEqualTo(0);
@@ -77,7 +76,8 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
     public void shouldFindAll_PageSize4() throws TechnicalException {
         int pageNumber = 0;
         do {
-            Page<PageRevision> revisions = pageRevisionRepository.findAll(new PageableBuilder().pageNumber(pageNumber).pageSize(4).build());
+            Page<PageRevision> revisions = pageRevisionRepository.findAll(
+                    new PageableBuilder().pageNumber(pageNumber).pageSize(4).build());
 
             try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
                 softly.assertThat(revisions).isNotNull();
@@ -119,7 +119,10 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
     public void shouldFindAllByPageId() throws Exception {
         List<PageRevision> pageShouldExists = pageRevisionRepository.findAllByPageId("findByPageId");
 
-        assertThat(pageShouldExists).hasSize(3).extracting(PageRevision::getPageId).containsOnly("findByPageId");
+        assertThat(pageShouldExists)
+                .hasSize(3)
+                .extracting(PageRevision::getPageId)
+                .containsOnly("findByPageId");
     }
 
     @Test
@@ -152,9 +155,11 @@ public class PageRevisionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void should_delete_by_page_id() throws Exception {
-        int nbBeforeDeletion = pageRevisionRepository.findAllByPageId("ToBeDeleted").size();
+        int nbBeforeDeletion =
+                pageRevisionRepository.findAllByPageId("ToBeDeleted").size();
         List<String> deleted = pageRevisionRepository.deleteByPageId("ToBeDeleted");
-        int nbAfterDeletion = pageRevisionRepository.findAllByPageId("ToBeDeleted").size();
+        int nbAfterDeletion =
+                pageRevisionRepository.findAllByPageId("ToBeDeleted").size();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(deleted.size()).isEqualTo(2);

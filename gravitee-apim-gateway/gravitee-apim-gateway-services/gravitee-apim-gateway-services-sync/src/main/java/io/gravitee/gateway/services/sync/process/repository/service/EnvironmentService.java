@@ -39,22 +39,28 @@ public class EnvironmentService {
     private final OrganizationRepository organizationRepository;
 
     private final Map<String, Environment> environments = new ConcurrentHashMap<>();
-    private final Map<String, io.gravitee.repository.management.model.Organization> organizations = new ConcurrentHashMap<>();
+    private final Map<String, io.gravitee.repository.management.model.Organization> organizations =
+            new ConcurrentHashMap<>();
 
     public void fill(final String environmentId, final ReactableApi<?> reactableApi) {
         if (environmentId != null) {
             Environment apiEnv = loadEnvironment(environmentId);
             if (apiEnv != null) {
                 reactableApi.setEnvironmentId(apiEnv.getId());
-                reactableApi.setEnvironmentHrid(apiEnv.getHrids() != null ? apiEnv.getHrids().stream().findFirst().orElse(null) : null);
+                reactableApi.setEnvironmentHrid(
+                        apiEnv.getHrids() != null
+                                ? apiEnv.getHrids().stream().findFirst().orElse(null)
+                                : null);
 
-                final io.gravitee.repository.management.model.Organization apiOrg = organizations.get(apiEnv.getOrganizationId());
+                final io.gravitee.repository.management.model.Organization apiOrg =
+                        organizations.get(apiEnv.getOrganizationId());
 
                 if (apiOrg != null) {
                     reactableApi.setOrganizationId(apiOrg.getId());
                     reactableApi.setOrganizationHrid(
-                        apiOrg.getHrids() != null ? apiOrg.getHrids().stream().findFirst().orElse(null) : null
-                    );
+                            apiOrg.getHrids() != null
+                                    ? apiOrg.getHrids().stream().findFirst().orElse(null)
+                                    : null);
                 }
             }
         }
@@ -66,18 +72,23 @@ public class EnvironmentService {
             if (sharedPolicyGroupEnv != null) {
                 reactableSharedPolicyGroup.setEnvironmentId(sharedPolicyGroupEnv.getId());
                 reactableSharedPolicyGroup.setEnvironmentHrid(
-                    sharedPolicyGroupEnv.getHrids() != null ? sharedPolicyGroupEnv.getHrids().stream().findFirst().orElse(null) : null
-                );
+                        sharedPolicyGroupEnv.getHrids() != null
+                                ? sharedPolicyGroupEnv.getHrids().stream()
+                                        .findFirst()
+                                        .orElse(null)
+                                : null);
 
-                final io.gravitee.repository.management.model.Organization sharedPolicyGroupOrg = organizations.get(
-                    sharedPolicyGroupEnv.getOrganizationId()
-                );
+                final io.gravitee.repository.management.model.Organization sharedPolicyGroupOrg =
+                        organizations.get(sharedPolicyGroupEnv.getOrganizationId());
 
                 if (sharedPolicyGroupOrg != null) {
                     reactableSharedPolicyGroup.setOrganizationId(sharedPolicyGroupOrg.getId());
                     reactableSharedPolicyGroup.setOrganizationHrid(
-                        sharedPolicyGroupOrg.getHrids() != null ? sharedPolicyGroupOrg.getHrids().stream().findFirst().orElse(null) : null
-                    );
+                            sharedPolicyGroupOrg.getHrids() != null
+                                    ? sharedPolicyGroupOrg.getHrids().stream()
+                                            .findFirst()
+                                            .orElse(null)
+                                    : null);
                 }
             }
         }
@@ -89,18 +100,21 @@ public class EnvironmentService {
             if (apiProductEnv != null) {
                 reactableApiProduct.setEnvironmentId(apiProductEnv.getId());
                 reactableApiProduct.setEnvironmentHrid(
-                    apiProductEnv.getHrids() != null ? apiProductEnv.getHrids().stream().findFirst().orElse(null) : null
-                );
+                        apiProductEnv.getHrids() != null
+                                ? apiProductEnv.getHrids().stream().findFirst().orElse(null)
+                                : null);
 
-                final io.gravitee.repository.management.model.Organization apiProductOrg = organizations.get(
-                    apiProductEnv.getOrganizationId()
-                );
+                final io.gravitee.repository.management.model.Organization apiProductOrg =
+                        organizations.get(apiProductEnv.getOrganizationId());
 
                 if (apiProductOrg != null) {
                     reactableApiProduct.setOrganizationId(apiProductOrg.getId());
                     reactableApiProduct.setOrganizationHrid(
-                        apiProductOrg.getHrids() != null ? apiProductOrg.getHrids().stream().findFirst().orElse(null) : null
-                    );
+                            apiProductOrg.getHrids() != null
+                                    ? apiProductOrg.getHrids().stream()
+                                            .findFirst()
+                                            .orElse(null)
+                                    : null);
                 }
             }
         }
@@ -139,7 +153,8 @@ public class EnvironmentService {
             throw e;
         } catch (Exception e) {
             // Transient failure while fetching the environment: do not cache, propagate for retry.
-            throw new SyncException(String.format("An error occurred fetching the environment '%s'.", environmentId), e);
+            throw new SyncException(
+                    String.format("An error occurred fetching the environment '%s'.", environmentId), e);
         }
     }
 
@@ -151,9 +166,12 @@ public class EnvironmentService {
         try {
             // An absent organization is tolerated (not cached); only a transient failure must fail the
             // sync so the partial environment is never memoized.
-            organizationRepository.findById(organizationId).ifPresent(organization -> organizations.put(organizationId, organization));
+            organizationRepository
+                    .findById(organizationId)
+                    .ifPresent(organization -> organizations.put(organizationId, organization));
         } catch (Exception e) {
-            throw new SyncException(String.format("An error occurred fetching the organization '%s'.", organizationId), e);
+            throw new SyncException(
+                    String.format("An error occurred fetching the organization '%s'.", organizationId), e);
         }
     }
 }

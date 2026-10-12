@@ -34,21 +34,17 @@ public class AcceptInvitationDomainServiceImpl implements AcceptInvitationDomain
     @Override
     public void addMember(ExecutionContext executionContext, Invitation invitation, String userId) {
         switch (invitation) {
-            case GroupInvitation g -> membershipDomainService.addGroupMemberships(
-                executionContext,
-                g.referenceId(),
-                userId,
-                g.apiRole(),
-                g.applicationRole()
-            );
-            case ApplicationInvitation a -> membershipDomainService.createNewMembership(
-                executionContext,
-                MembershipReferenceType.APPLICATION,
-                a.applicationId(),
-                userId,
-                null,
-                a.roleName()
-            );
+            case GroupInvitation g ->
+                membershipDomainService.addGroupMemberships(
+                        executionContext, g.referenceId(), userId, g.apiRole(), g.applicationRole());
+            case ApplicationInvitation a ->
+                membershipDomainService.createNewMembership(
+                        executionContext,
+                        MembershipReferenceType.APPLICATION,
+                        a.applicationId(),
+                        userId,
+                        null,
+                        a.roleName());
         }
     }
 }

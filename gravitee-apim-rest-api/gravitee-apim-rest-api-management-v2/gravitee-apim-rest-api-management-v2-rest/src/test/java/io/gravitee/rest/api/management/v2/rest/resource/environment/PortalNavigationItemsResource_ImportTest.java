@@ -87,21 +87,22 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
 
         ((PortalNavigationItemsQueryServiceInMemory) portalNavigationItemsQueryService).initWith(List.of());
         ((PortalNavigationItemsCrudServiceInMemory) portalNavigationItemCrudService).initWith(List.of());
@@ -117,14 +118,14 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
 
     private ImportPortalNavigationRequest aRequest() {
         return new ImportPortalNavigationRequest()
-            .title("Imported Docs")
-            .source(
-                new PortalNavigationItemSource()
-                    .type("http-fetcher")
-                    .configuration(
-                        Map.of("url", "https://example.com/repo", "token", PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
-                    )
-            );
+                .title("Imported Docs")
+                .source(new PortalNavigationItemSource()
+                        .type("http-fetcher")
+                        .configuration(Map.of(
+                                "url",
+                                "https://example.com/repo",
+                                "token",
+                                PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)));
     }
 
     private Response importNavigation(ImportPortalNavigationRequest request) {
@@ -133,7 +134,8 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
 
     @Test
     void should_import_the_remote_tree_and_return_the_root_folder_with_a_masked_source() {
-        var sourceDomainService = (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
+        var sourceDomainService =
+                (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
         sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
         sourceDomainService.givenRemoteFile("/docs/spec.yaml", "openapi: 3.0.3");
 
@@ -141,14 +143,13 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
 
         assertThat(response).hasStatus(OK_200);
         var body = response.readEntity(ImportPortalNavigationResponse.class);
-        var rootFolder = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder) body.getRootFolder().getActualInstance();
+        var rootFolder = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder)
+                body.getRootFolder().getActualInstance();
         assertThat(rootFolder.getTitle()).isEqualTo("Imported Docs");
         assertThat(rootFolder.getSource()).isNotNull();
         assertThat(rootFolder.getSource().getLastFetchedAt()).isNotNull();
-        assertThat((Map<String, Object>) rootFolder.getSource().getConfiguration()).containsEntry(
-            "token",
-            PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT
-        );
+        assertThat((Map<String, Object>) rootFolder.getSource().getConfiguration())
+                .containsEntry("token", PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
         assertThat(body.getSummary().getSucceeded()).isEqualTo(2);
         assertThat(body.getSummary().getFailed()).isZero();
     }
@@ -157,7 +158,8 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
     void should_report_a_file_failure_without_a_navigation_item_id() {
         // A failed file reached no item: the result carries no id, and the response must still be
         // valid against the contract generated clients are built from
-        var sourceDomainService = (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
+        var sourceDomainService =
+                (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
         sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
         sourceDomainService.givenRemoteFile("/docs/broken.md", "# Broken");
         sourceDomainService.failFileFetch("/docs/broken.md");
@@ -169,18 +171,19 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
         assertThat(summary.getSucceeded()).isEqualTo(1);
         assertThat(summary.getFailed()).isEqualTo(1);
         assertThat(summary.getResults())
-            .filteredOn(result -> !result.getSuccess())
-            .singleElement()
-            .satisfies(result -> {
-                assertThat(result.getNavigationItemId()).isNull();
-                assertThat(result.getTitle()).isEqualTo("broken");
-                assertThat(result.getError()).isNotBlank();
-            });
+                .filteredOn(result -> !result.getSuccess())
+                .singleElement()
+                .satisfies(result -> {
+                    assertThat(result.getNavigationItemId()).isNull();
+                    assertThat(result.getTitle()).isEqualTo("broken");
+                    assertThat(result.getError()).isNotBlank();
+                });
     }
 
     @Test
     void should_report_a_listing_failure_as_an_item_less_result() {
-        var sourceDomainService = (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
+        var sourceDomainService =
+                (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
         sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
         sourceDomainService.failNextListFilesWith(new RuntimeException("cannot reach repository"));
 
@@ -189,13 +192,11 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
         assertThat(response).hasStatus(OK_200);
         var summary = response.readEntity(ImportPortalNavigationResponse.class).getSummary();
         assertThat(summary.getFailed()).isEqualTo(1);
-        assertThat(summary.getResults())
-            .singleElement()
-            .satisfies(result -> {
-                assertThat(result.getSuccess()).isFalse();
-                assertThat(result.getNavigationItemId()).isNull();
-                assertThat(result.getError()).contains("Unable to list files");
-            });
+        assertThat(summary.getResults()).singleElement().satisfies(result -> {
+            assertThat(result.getSuccess()).isFalse();
+            assertThat(result.getNavigationItemId()).isNull();
+            assertThat(result.getError()).contains("Unable to list files");
+        });
     }
 
     @Test
@@ -206,14 +207,12 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
 
     @Test
     void should_return_403_when_user_lacks_update_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
 
         assertThat(importNavigation(aRequest())).hasStatus(FORBIDDEN_403);
     }

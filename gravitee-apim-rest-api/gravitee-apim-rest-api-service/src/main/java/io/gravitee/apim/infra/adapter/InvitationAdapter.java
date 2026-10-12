@@ -32,18 +32,18 @@ import org.mapstruct.factory.Mappers;
 public interface InvitationAdapter {
     InvitationAdapter INSTANCE = Mappers.getMapper(InvitationAdapter.class);
 
-    default ApplicationInvitation toApplicationInvitation(io.gravitee.repository.management.model.Invitation invitation) {
+    default ApplicationInvitation toApplicationInvitation(
+            io.gravitee.repository.management.model.Invitation invitation) {
         if (invitation == null) {
             return null;
         }
         return ApplicationInvitation.of(
-            map(invitation.getId()),
-            invitation.getReferenceId(),
-            invitation.getEmail(),
-            invitation.getApplicationRole(),
-            map(invitation.getCreatedAt()),
-            map(invitation.getUpdatedAt())
-        );
+                map(invitation.getId()),
+                invitation.getReferenceId(),
+                invitation.getEmail(),
+                invitation.getApplicationRole(),
+                map(invitation.getCreatedAt()),
+                map(invitation.getUpdatedAt()));
     }
 
     @Mapping(target = "id", source = "id")
@@ -79,7 +79,9 @@ public interface InvitationAdapter {
     }
 
     default ZonedDateTime map(Date date) {
-        return date == null ? null : date.toInstant().atZone(TimeProvider.clock().getZone());
+        return date == null
+                ? null
+                : date.toInstant().atZone(TimeProvider.clock().getZone());
     }
 
     default Date map(ZonedDateTime date) {

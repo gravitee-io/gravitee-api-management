@@ -54,8 +54,12 @@ class RedisTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRateLim
 
     @BeforeAll
     void startRedis() throws Exception {
-        assumeTrue(DockerClientFactory.instance().isDockerAvailable(), "Docker not available — skipping Redis token-bucket test");
-        redis = new GenericContainer<>(DockerImageName.parse("redis:7.4")).withExposedPorts(6379).waitingFor(Wait.forListeningPort());
+        assumeTrue(
+                DockerClientFactory.instance().isDockerAvailable(),
+                "Docker not available — skipping Redis token-bucket test");
+        redis = new GenericContainer<>(DockerImageName.parse("redis:7.4"))
+                .withExposedPorts(6379)
+                .waitingFor(Wait.forListeningPort());
         redis.start();
 
         String prefix = Scope.RATE_LIMIT.getName() + ".redis.";
@@ -64,11 +68,11 @@ class RedisTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRateLim
         env.setProperty(prefix + "port", String.valueOf(redis.getMappedPort(6379)));
 
         redisClient = new RedisConnectionFactory(
-            env,
-            vertx,
-            Scope.RATE_LIMIT.getName(),
-            Map.of(SCRIPT_TOKEN_BUCKET_KEY, SCRIPTS_TOKEN_BUCKET_LUA)
-        ).createRedisClient();
+                        env,
+                        vertx,
+                        Scope.RATE_LIMIT.getName(),
+                        Map.of(SCRIPT_TOKEN_BUCKET_KEY, SCRIPTS_TOKEN_BUCKET_LUA))
+                .createRedisClient();
         awaitConnected(redisClient);
 
         repo = new RedisTokenBucketRateLimitRepository(redisClient, 5000);
@@ -91,9 +95,12 @@ class RedisTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRateLim
     @Test
     void sets_key_ttl_to_the_full_refill_window() throws Exception {
         // capacity 100 at 2 tokens per 1000ms => the bucket would refill fully in 50s, so the key gets a ~50s TTL.
-        repo.refillAndTryConsume("ttl", 1, 2, 1_000L, 100, System.currentTimeMillis(), () -> new TokenBucket("ttl")).blockingGet();
+        repo.refillAndTryConsume("ttl", 1, 2, 1_000L, 100, System.currentTimeMillis(), () -> new TokenBucket("ttl"))
+                .blockingGet();
 
-        long pttl = Long.parseLong(redis.execInContainer("redis-cli", "pttl", "tokenbucket:ttl").getStdout().trim());
+        long pttl = Long.parseLong(redis.execInContainer("redis-cli", "pttl", "tokenbucket:ttl")
+                .getStdout()
+                .trim());
         assertThat(pttl).isBetween(45_000L, 51_000L);
     }
 

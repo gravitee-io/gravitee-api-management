@@ -33,19 +33,12 @@ import io.gravitee.apim.core.documentation.model.Page.Type;
 import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase.Output;
 import io.gravitee.apim.core.specgen.use_case.BuildSpecGenPageResponseUseCase;
-import io.gravitee.apim.core.specgen.use_case.BuildSpecGenPageResponseUseCase.Input;
 import io.gravitee.apim.core.specgen.use_case.NotifySpecGenResponseUseCase;
-import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.specgen.SpecGenCommandPayload;
 import io.gravitee.cockpit.api.command.v1.specgen.response.SpecGenResponseCommand;
-import io.gravitee.exchange.api.command.CommandStatus;
-import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.spec.gen.api.SpecGenResponse;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,37 +67,34 @@ class SpecGenResponseCommandHandlerTest {
     @BeforeEach
     void setUp() {
         specGenResponseCommandHandler = new SpecGenResponseCommandHandler(
-            buildSpecGenPageResponseUseCase,
-            createDocumentationPageUseCase,
-            portalNotificationService
-        );
+                buildSpecGenPageResponseUseCase, createDocumentationPageUseCase, portalNotificationService);
     }
 
     @Test
     void must_not_save_page_due_to_build_page_error() {
         final String errorMessage = "An error has occurred";
-        when(buildSpecGenPageResponseUseCase.execute(any())).thenReturn(Maybe.error(new IllegalArgumentException(errorMessage)));
+        when(buildSpecGenPageResponseUseCase.execute(any()))
+                .thenReturn(Maybe.error(new IllegalArgumentException(errorMessage)));
 
         assertThat(specGenResponseCommandHandler.supportType()).isEqualTo(SPEC_GEN_RESPONSE.name());
         specGenResponseCommandHandler
-            .handle(new SpecGenResponseCommand(generatePayload()))
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> nonNull(reply.getCommandId()))
-            .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
-            .assertValue(reply -> errorMessage.equals(reply.getErrorDetails()));
+                .handle(new SpecGenResponseCommand(generatePayload()))
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> nonNull(reply.getCommandId()))
+                .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
+                .assertValue(reply -> errorMessage.equals(reply.getErrorDetails()));
     }
 
     private static SpecGenCommandPayload<SpecGenResponse> generatePayload() {
         return new SpecGenCommandPayload<>(
-            generateRandom(),
-            generateRandom(),
-            generateRandom(),
-            generateRandom(),
-            new SpecGenResponse(generateRandom(), "openapi: 3.0.3", generateRandom())
-        );
+                generateRandom(),
+                generateRandom(),
+                generateRandom(),
+                generateRandom(),
+                new SpecGenResponse(generateRandom(), "openapi: 3.0.3", generateRandom()));
     }
 
     @Test
@@ -121,14 +111,14 @@ class SpecGenResponseCommandHandlerTest {
 
         assertThat(specGenResponseCommandHandler.supportType()).isEqualTo(SPEC_GEN_RESPONSE.name());
         specGenResponseCommandHandler
-            .handle(new SpecGenResponseCommand(payload))
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> nonNull(reply.getCommandId()))
-            .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
-            .assertValue(reply -> errorMessage.equals(reply.getErrorDetails()));
+                .handle(new SpecGenResponseCommand(payload))
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> nonNull(reply.getCommandId()))
+                .assertValue(reply -> ERROR.equals(reply.getCommandStatus()))
+                .assertValue(reply -> errorMessage.equals(reply.getErrorDetails()));
     }
 
     @Test
@@ -145,28 +135,28 @@ class SpecGenResponseCommandHandlerTest {
 
         assertThat(specGenResponseCommandHandler.supportType()).isEqualTo(SPEC_GEN_RESPONSE.name());
         specGenResponseCommandHandler
-            .handle(new SpecGenResponseCommand(payload))
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> nonNull(reply.getCommandId()))
-            .assertValue(reply -> SUCCEEDED.equals(reply.getCommandStatus()));
+                .handle(new SpecGenResponseCommand(payload))
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> nonNull(reply.getCommandId()))
+                .assertValue(reply -> SUCCEEDED.equals(reply.getCommandStatus()));
     }
 
     private static Page getPage() {
         return Page.builder()
-            .referenceId(generateRandom())
-            .referenceType(API)
-            .name("Api Name")
-            .content("openapi: 3.0.3")
-            .type(Type.SWAGGER)
-            .visibility(PRIVATE)
-            .homepage(false)
-            .hidden(true)
-            .published(false)
-            .metadata(METADATA)
-            .build();
+                .referenceId(generateRandom())
+                .referenceType(API)
+                .name("Api Name")
+                .content("openapi: 3.0.3")
+                .type(Type.SWAGGER)
+                .visibility(PRIVATE)
+                .homepage(false)
+                .hidden(true)
+                .published(false)
+                .metadata(METADATA)
+                .build();
     }
 
     @AfterEach

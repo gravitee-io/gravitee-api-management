@@ -47,10 +47,10 @@ public interface ApiAnalyticsSpecification {
 
     class ApiSupportedVersionSpecification implements ApiAnalyticsSpecification {
 
-        private static final java.util.Set<io.gravitee.definition.model.DefinitionVersion> SUPPORTED_VERSIONS = java.util.Set.of(
-            io.gravitee.definition.model.DefinitionVersion.V2,
-            io.gravitee.definition.model.DefinitionVersion.V4
-        );
+        private static final java.util.Set<io.gravitee.definition.model.DefinitionVersion> SUPPORTED_VERSIONS =
+                java.util.Set.of(
+                        io.gravitee.definition.model.DefinitionVersion.V2,
+                        io.gravitee.definition.model.DefinitionVersion.V4);
 
         @Override
         public boolean satisfies(Api api, ExecutionContext executionContext, long from, long to) {
@@ -111,46 +111,34 @@ public interface ApiAnalyticsSpecification {
     }
 
     static ApiAnalyticsSpecification forSearchHistogramAnalytics() {
-        return new And(
-            List.of(
+        return new And(List.of(
                 new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
-                new TimeRangeSpecification()
-            )
-        );
+                new TimeRangeSpecification()));
     }
 
     static ApiAnalyticsSpecification forSearchGroupByAnalytics() {
-        return new And(
-            List.of(
+        return new And(List.of(
                 new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
-                new TimeRangeSpecification()
-            )
-        );
+                new TimeRangeSpecification()));
     }
 
     static ApiAnalyticsSpecification forRequestsCountAnalytics() {
-        return new And(
-            List.of(
+        return new And(List.of(
                 new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
-                new TimeRangeSpecification()
-            )
-        );
+                new TimeRangeSpecification()));
     }
 
     static ApiAnalyticsSpecification forSearchStatsAnalytics() {
-        return new And(
-            List.of(
+        return new And(List.of(
                 new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
-                new TimeRangeSpecification()
-            )
-        );
+                new TimeRangeSpecification()));
     }
 }

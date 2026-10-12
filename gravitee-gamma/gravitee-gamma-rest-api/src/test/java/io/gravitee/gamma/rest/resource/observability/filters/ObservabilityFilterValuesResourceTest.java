@@ -46,7 +46,7 @@ import org.springframework.test.context.ContextConfiguration;
  * with only the data store replaced: what a caller gets for a filter the catalog offers, and for one
  * whose values the store cannot list.
  */
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, ValuesTestConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class, ValuesTestConfiguration.class})
 class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
@@ -74,17 +74,22 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
 
     @Test
     void should_list_entrypoint_values_from_the_data_store() {
-        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null)));
+        dataPort.givenKeywordValues(
+                "ENTRYPOINT", List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null)));
 
-        Response response = rootTarget("ENTRYPOINT/values").queryParam("apiType", "MCP").request().get();
+        Response response = rootTarget("ENTRYPOINT/values")
+                .queryParam("apiType", "MCP")
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         JsonNode body = response.readEntity(JsonNode.class);
         assertThat(body.get("data"))
-            .extracting(node -> node.get("value").asText())
-            .containsExactly("http-proxy", "mcp-studio", "(none)");
+                .extracting(node -> node.get("value").asText())
+                .containsExactly("http-proxy", "mcp-studio", "(none)");
         assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(3L);
-        assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.filterName()).isEqualTo("ENTRYPOINT"));
+        assertThat(dataPort.lastCall())
+                .hasValueSatisfying(call -> assertThat(call.filterName()).isEqualTo("ENTRYPOINT"));
     }
 
     @Test
@@ -101,7 +106,10 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
 
     @Test
     void should_answer_400_for_a_page_beyond_the_maximum() {
-        Response response = rootTarget("ENTRYPOINT/values").queryParam("page", 10_001).request().get();
+        Response response = rootTarget("ENTRYPOINT/values")
+                .queryParam("page", 10_001)
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         assertThat(dataPort.lastCall()).isEmpty();
@@ -126,7 +134,8 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         }
 
         @Bean
-        GetObservabilityFilterValuesUseCase getObservabilityFilterValuesUseCase(InMemoryObservabilityFilterDataPort dataPort) {
+        GetObservabilityFilterValuesUseCase getObservabilityFilterValuesUseCase(
+                InMemoryObservabilityFilterDataPort dataPort) {
             return new GetObservabilityFilterValuesUseCase(new SpiFilterRegistry(), dataPort);
         }
     }

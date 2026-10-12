@@ -107,20 +107,19 @@ public class SearchIndexInitializer implements Initializer {
 
     @Autowired
     public SearchIndexInitializer(
-        @Lazy ApiRepository apiRepository,
-        GenericApiMapper genericApiMapper,
-        PageService pageService,
-        @Lazy UserRepository userRepository,
-        SearchEngineService searchEngineService,
-        @Lazy EnvironmentRepository environmentRepository,
-        ApiConverter apiConverter,
-        UserConverter userConverter,
-        final PrimaryOwnerService primaryOwnerService,
-        ApiIndexerDomainService apiIndexerDomainService,
-        @Lazy ApiProductIndexerDomainService apiProductIndexerDomainService,
-        @Lazy ApiProductsRepository apiProductsRepository,
-        UserMetadataService userMetadataService
-    ) {
+            @Lazy ApiRepository apiRepository,
+            GenericApiMapper genericApiMapper,
+            PageService pageService,
+            @Lazy UserRepository userRepository,
+            SearchEngineService searchEngineService,
+            @Lazy EnvironmentRepository environmentRepository,
+            ApiConverter apiConverter,
+            UserConverter userConverter,
+            final PrimaryOwnerService primaryOwnerService,
+            ApiIndexerDomainService apiIndexerDomainService,
+            @Lazy ApiProductIndexerDomainService apiProductIndexerDomainService,
+            @Lazy ApiProductsRepository apiProductsRepository,
+            UserMetadataService userMetadataService) {
         this.apiRepository = apiRepository;
         this.genericApiMapper = genericApiMapper;
         this.pageService = pageService;
@@ -138,17 +137,15 @@ public class SearchIndexInitializer implements Initializer {
 
     @Override
     public boolean initialize() {
-        ExecutorService executorService = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors() * 2,
-            new ThreadFactory() {
-                private final AtomicLong counter = new AtomicLong(0);
+        ExecutorService executorService =
+                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2, new ThreadFactory() {
+                    private final AtomicLong counter = new AtomicLong(0);
 
-                @Override
-                public Thread newThread(Runnable r) {
-                    return new Thread(r, "gio.search-indexer-upgrader-" + counter.getAndIncrement());
-                }
-            }
-        );
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(r, "gio.search-indexer-upgrader-" + counter.getAndIncrement());
+                    }
+                });
 
         // index APIs
         List<CompletableFuture<?>> futures = new ArrayList<>();
@@ -175,21 +172,21 @@ public class SearchIndexInitializer implements Initializer {
         CompletableFuture<Void> future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
         future.whenCompleteAsync(
-            (unused, throwable) -> {
-                executorService.shutdown();
-                searchEngineService.commit();
-            },
-            executorService
-        );
+                (unused, throwable) -> {
+                    executorService.shutdown();
+                    searchEngineService.commit();
+                },
+                executorService);
 
         return true;
     }
 
-    protected List<CompletableFuture<?>> runApisIndexationAsync(ExecutorService executorService) throws TechnicalException {
+    protected List<CompletableFuture<?>> runApisIndexationAsync(ExecutorService executorService)
+            throws TechnicalException {
         return apiRepository
-            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
-            .map(api -> runApiIndexationAsync(executorService, api))
-            .collect(toList());
+                .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+                .map(api -> runApiIndexationAsync(executorService, api))
+                .collect(toList());
     }
 
     private CompletableFuture<?> runApiIndexationAsync(ExecutorService executorService, Api api) {
@@ -221,9 +218,7 @@ public class SearchIndexInitializer implements Initializer {
             }
 
             indexable = apiIndexerDomainService.toIndexableApi(
-                new Indexer.IndexationContext(organizationId, environmentId),
-                ApiAdapter.INSTANCE.toCoreModel(api)
-            );
+                    new Indexer.IndexationContext(organizationId, environmentId), ApiAdapter.INSTANCE.toCoreModel(api));
             return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
         } catch (Exception e) {
             log.error("Failed to convert API {} to indexable", api.getId(), e);
@@ -232,54 +227,51 @@ public class SearchIndexInitializer implements Initializer {
     }
 
     private CompletableFuture<?> runApiIndexationAsync(
-        ExecutionContext executionContext,
-        Api api,
-        PrimaryOwnerEntity primaryOwnerEntity,
-        Indexable indexable,
-        ExecutorService executorService
-    ) {
+            ExecutionContext executionContext,
+            Api api,
+            PrimaryOwnerEntity primaryOwnerEntity,
+            Indexable indexable,
+            ExecutorService executorService) {
         return CompletableFuture.runAsync(
-            () -> {
-                try {
-                    // API
-                    searchEngineService.index(executionContext, indexable, true, false);
+                () -> {
+                    try {
+                        // API
+                        searchEngineService.index(executionContext, indexable, true, false);
 
-                    // Pages
-                    GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(api, primaryOwnerEntity);
-                    List<PageEntity> apiPages = pageService.search(
-                        executionContext.getEnvironmentId(),
-                        new PageQuery.Builder().api(api.getId()).published(true).build(),
-                        true
-                    );
-                    apiPages.forEach(page -> {
-                        try {
-                            if (
-                                !PageType.FOLDER.name().equals(page.getType()) &&
-                                !PageType.ROOT.name().equals(page.getType()) &&
-                                !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
-                                !PageType.LINK.name().equals(page.getType())
-                            ) {
-                                pageService.transformSwagger(executionContext, page, genericApiEntity);
-                                searchEngineService.index(executionContext, page, true, false);
+                        // Pages
+                        GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(api, primaryOwnerEntity);
+                        List<PageEntity> apiPages = pageService.search(
+                                executionContext.getEnvironmentId(),
+                                new PageQuery.Builder()
+                                        .api(api.getId())
+                                        .published(true)
+                                        .build(),
+                                true);
+                        apiPages.forEach(page -> {
+                            try {
+                                if (!PageType.FOLDER.name().equals(page.getType())
+                                        && !PageType.ROOT.name().equals(page.getType())
+                                        && !PageType.SYSTEM_FOLDER.name().equals(page.getType())
+                                        && !PageType.LINK.name().equals(page.getType())) {
+                                    pageService.transformSwagger(executionContext, page, genericApiEntity);
+                                    searchEngineService.index(executionContext, page, true, false);
+                                }
+                            } catch (Exception ignored) {
+                                log.debug("Exception ignored in SearchIndexInitializer");
                             }
-                        } catch (Exception ignored) {
-                            log.debug("Exception ignored in SearchIndexInitializer");
-                        }
-                    });
-                } finally {
-                    GraviteeContext.cleanContext();
-                }
-            },
-            executorService
-        );
+                        });
+                    } finally {
+                        GraviteeContext.cleanContext();
+                    }
+                },
+                executorService);
     }
 
-    protected List<CompletableFuture<?>> runApiProductsIndexationAsync(ExecutorService executorService) throws TechnicalException {
-        return apiProductsRepository
-            .findAll()
-            .stream()
-            .map(repoProduct -> runApiProductIndexationAsync(executorService, repoProduct))
-            .collect(toList());
+    protected List<CompletableFuture<?>> runApiProductsIndexationAsync(ExecutorService executorService)
+            throws TechnicalException {
+        return apiProductsRepository.findAll().stream()
+                .map(repoProduct -> runApiProductIndexationAsync(executorService, repoProduct))
+                .collect(toList());
     }
 
     private CompletableFuture<?> runApiProductIndexationAsync(ExecutorService executorService, ApiProduct repoProduct) {
@@ -298,50 +290,49 @@ public class SearchIndexInitializer implements Initializer {
         ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
         try {
             var indexable = apiProductIndexerDomainService.toIndexableApiProduct(
-                new Indexer.IndexationContext(organizationId, environmentId),
-                ApiProductAdapter.INSTANCE.toModel(repoProduct)
-            );
+                    new Indexer.IndexationContext(organizationId, environmentId),
+                    ApiProductAdapter.INSTANCE.toModel(repoProduct));
             return CompletableFuture.runAsync(
-                () -> {
-                    try {
-                        searchEngineService.index(executionContext, indexable, true, false);
-                    } finally {
-                        GraviteeContext.cleanContext();
-                    }
-                },
-                executorService
-            );
+                    () -> {
+                        try {
+                            searchEngineService.index(executionContext, indexable, true, false);
+                        } finally {
+                            GraviteeContext.cleanContext();
+                        }
+                    },
+                    executorService);
         } catch (Exception e) {
             log.error("Failed to convert API Product {} to indexable", repoProduct.getId(), e);
             return CompletableFuture.failedFuture(e);
         }
     }
 
-    protected List<CompletableFuture<?>> runUsersIndexationAsync(ExecutorService executorService) throws TechnicalException {
+    protected List<CompletableFuture<?>> runUsersIndexationAsync(ExecutorService executorService)
+            throws TechnicalException {
         return userRepository
-            .search(
-                new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getContent()
-            .stream()
-            .map(user -> runUserIndexationAsync(executorService, user))
-            .collect(toList());
+                .search(
+                        new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent()
+                .stream()
+                .map(user -> runUserIndexationAsync(executorService, user))
+                .collect(toList());
     }
 
     private CompletableFuture<?> runUserIndexationAsync(ExecutorService executorService, User user) {
         return CompletableFuture.runAsync(
-            () -> {
-                ExecutionContext executionContext = new ExecutionContext(user.getOrganizationId(), null);
-                searchEngineService.index(
-                    executionContext,
-                    userConverter.toUserEntity(user, userMetadataService.findAllByUserId(user.getId())),
-                    true,
-                    false
-                );
-            },
-            executorService
-        );
+                () -> {
+                    ExecutionContext executionContext = new ExecutionContext(user.getOrganizationId(), null);
+                    searchEngineService.index(
+                            executionContext,
+                            userConverter.toUserEntity(user, userMetadataService.findAllByUserId(user.getId())),
+                            true,
+                            false);
+                },
+                executorService);
     }
 
     @Override

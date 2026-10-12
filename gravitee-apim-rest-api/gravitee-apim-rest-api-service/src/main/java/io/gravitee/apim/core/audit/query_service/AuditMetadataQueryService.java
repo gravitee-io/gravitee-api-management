@@ -19,6 +19,8 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 
 public interface AuditMetadataQueryService {
     String fetchApiNameMetadata(String apiId);
+
     String fetchPropertyMetadata(AuditEntity audit, String propertyName, String propertyValue);
+
     String fetchUserNameMetadata(String userId);
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
@@ -23,7 +22,6 @@ import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointStatus;
 import io.gravitee.repository.management.model.AccessPointTarget;
-import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.mongodb.management.internal.domain.AccessPointMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AccessPointMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -68,7 +66,8 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     @Override
     public Optional<AccessPoint> findByHost(final String host) {
         log.debug("Find access point by host [{}]", host);
-        final AccessPointMongo accessPointMongo = internalRepository.findByHostAndStatus(host, AccessPointStatus.CREATED);
+        final AccessPointMongo accessPointMongo =
+                internalRepository.findByHostAndStatus(host, AccessPointStatus.CREATED);
         AccessPoint res = map(accessPointMongo);
         log.debug("Find access point by host value [{}] - Done", host);
         return Optional.ofNullable(res);
@@ -76,16 +75,9 @@ public class MongoAccessPointRepository implements AccessPointRepository {
 
     @Override
     public List<AccessPoint> findByReferenceAndTarget(
-        AccessPointReferenceType referenceType,
-        String referenceId,
-        AccessPointTarget target
-    ) {
+            AccessPointReferenceType referenceType, String referenceId, AccessPointTarget target) {
         final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByReferenceAndTargetAndStatus(
-            referenceType.name(),
-            referenceId,
-            target.name(),
-            AccessPointStatus.CREATED
-        );
+                referenceType.name(), referenceId, target.name(), AccessPointStatus.CREATED);
         return accessPointMongos.stream().map(this::map).toList();
     }
 
@@ -97,19 +89,18 @@ public class MongoAccessPointRepository implements AccessPointRepository {
 
     @Override
     public List<AccessPoint> findByTarget(final AccessPointTarget target) {
-        final List<AccessPointMongo> accessPointMongos = internalRepository.findAllByTargetAndStatus(
-            target.name(),
-            AccessPointStatus.CREATED
-        );
+        final List<AccessPointMongo> accessPointMongos =
+                internalRepository.findAllByTargetAndStatus(target.name(), AccessPointStatus.CREATED);
         return accessPointMongos.stream().map(this::map).toList();
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final AccessPointReferenceType referenceType)
-        throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            final String referenceId, final AccessPointReferenceType referenceType) throws TechnicalException {
         log.debug("Delete access point by reference [{}, {}]", referenceType, referenceId);
         try {
-            List<AccessPointMongo> accessPointMongos = internalRepository.deleteAllByReference(referenceType.name(), referenceId);
+            List<AccessPointMongo> accessPointMongos =
+                    internalRepository.deleteAllByReference(referenceType.name(), referenceId);
             log.debug("Delete access point by reference [{}, {}] - Done", referenceType, referenceId);
             return accessPointMongos.stream().map(AccessPointMongo::getId).toList();
         } catch (Exception e) {
@@ -132,8 +123,9 @@ public class MongoAccessPointRepository implements AccessPointRepository {
         }
 
         internalRepository
-            .findById(accessPoint.getId())
-            .orElseThrow(() -> new IllegalStateException(String.format("No access point found with id [%s]", accessPoint.getId())));
+                .findById(accessPoint.getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        String.format("No access point found with id [%s]", accessPoint.getId())));
 
         log.debug("Update access point [{}]", accessPoint);
         return map(internalRepository.save(map(accessPoint)));

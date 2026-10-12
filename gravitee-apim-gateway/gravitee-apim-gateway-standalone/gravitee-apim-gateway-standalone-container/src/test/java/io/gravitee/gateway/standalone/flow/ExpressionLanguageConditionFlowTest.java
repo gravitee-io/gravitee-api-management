@@ -27,7 +27,6 @@ import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.flow.policy.RemoveQueryParameterPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
-import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
@@ -45,13 +44,17 @@ public class ExpressionLanguageConditionFlowTest extends AbstractWiremockGateway
     public void shouldRunFlows_getMethod() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team?my-param=value")).returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team?my-param=value"))
+                .returnResponse();
 
         if (emulateV4Engine()) {
-            // With V4 engine, flow condition is now evaluated once for the whole flow (EL based on a param suppressed during request policy chain and re-evaluated at response phase).
+            // With V4 engine, flow condition is now evaluated once for the whole flow (EL based on a param suppressed
+            // during request policy chain and re-evaluated at response phase).
             assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         } else {
-            assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
+            assertEquals(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR_500,
+                    response.getStatusLine().getStatusCode());
         }
 
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));

@@ -49,7 +49,9 @@ public class CategoryMapper {
         if (highlightApi != null) {
             categoryLinks.setHighlightedApi(PortalApiLinkHelper.apisURL(baseUriBuilder.clone(), highlightApi));
         }
-        final String hash = categoryEntity.getUpdatedAt() == null ? "" : String.valueOf(categoryEntity.getUpdatedAt().getTime());
+        final String hash = categoryEntity.getUpdatedAt() == null
+                ? ""
+                : String.valueOf(categoryEntity.getUpdatedAt().getTime());
         categoryLinks.setPicture(basePath + "/picture?" + hash);
         categoryLinks.setBackground(basePath + "/background?" + hash);
         categoryLinks.setSelf(basePath);

@@ -30,11 +30,12 @@ public class PluginFilterByLicenseDomainService {
         this.licenseManager = licenseManager;
     }
 
-    public <T extends PlatformPlugin> Set<T> setPluginDeployedStatusDependingOnLicense(Set<T> pluginSet, String organizationId) {
+    public <T extends PlatformPlugin> Set<T> setPluginDeployedStatusDependingOnLicense(
+            Set<T> pluginSet, String organizationId) {
         var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
-        return pluginSet
-            .stream()
-            .peek(plugin -> plugin.setDeployed(plugin.isDeployed() && license.isFeatureEnabled(plugin.getFeature())))
-            .collect(Collectors.toSet());
+        return pluginSet.stream()
+                .peek(plugin ->
+                        plugin.setDeployed(plugin.isDeployed() && license.isFeatureEnabled(plugin.getFeature())))
+                .collect(Collectors.toSet());
     }
 }

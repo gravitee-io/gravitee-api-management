@@ -38,7 +38,8 @@ class UniqueItemIdRuleTest {
 
     private static final String ENV_ID = "env-1";
     private static final String ORG_ID = "org-1";
-    private static final PortalNavigationItemId ITEM_ID = PortalNavigationItemId.of("11111111-1111-1111-1111-111111111a11");
+    private static final PortalNavigationItemId ITEM_ID =
+            PortalNavigationItemId.of("11111111-1111-1111-1111-111111111a11");
 
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private UniqueItemIdRule rule;
@@ -56,29 +57,33 @@ class UniqueItemIdRuleTest {
 
     @Test
     void an_existing_item_with_the_same_id_conflicts() {
-        navigationItemsQueryService.storage().add(PortalNavigationItem.from(pageCreateItem(ITEM_ID), ORG_ID, ENV_ID, null));
+        navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItem.from(pageCreateItem(ITEM_ID), ORG_ID, ENV_ID, null));
 
-        assertThatThrownBy(() -> rule.validate(pageCreateItem(ITEM_ID), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
-            ItemAlreadyExistsException.class
-        );
+        assertThatThrownBy(() -> rule.validate(pageCreateItem(ITEM_ID), ENV_ID, CreateValidationContext.empty()))
+                .isInstanceOf(ItemAlreadyExistsException.class);
     }
 
     @Test
     void an_existing_item_declared_ignorable_does_not_conflict() {
-        navigationItemsQueryService.storage().add(PortalNavigationItem.from(pageCreateItem(ITEM_ID), ORG_ID, ENV_ID, null));
+        navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItem.from(pageCreateItem(ITEM_ID), ORG_ID, ENV_ID, null));
         var ctx = CreateValidationContext.replacing(Set.of(ITEM_ID));
 
-        assertThatCode(() -> rule.validate(pageCreateItem(ITEM_ID), ENV_ID, ctx)).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(pageCreateItem(ITEM_ID), ENV_ID, ctx))
+                .doesNotThrowAnyException();
     }
 
     private static CreatePortalNavigationItem pageCreateItem(PortalNavigationItemId id) {
         var builder = CreatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.PAGE)
-            .title("Getting Started")
-            .segment("getting-started")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
+                .type(PortalNavigationItemType.PAGE)
+                .title("Getting Started")
+                .segment("getting-started")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
         if (id != null) {
             builder.id(id);
         }

@@ -57,9 +57,8 @@ import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-    uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class },
-    nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT
-)
+        uses = {ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class},
+        nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface PlanMapper {
     PlanMapper INSTANCE = Mappers.getMapper(PlanMapper.class);
 
@@ -86,12 +85,14 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanFederated mapFederated(PlanEntity planEntity);
 
-    @Mapping(target = "security.type", source = "planDefinitionV4.security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(
-        target = "security.configuration",
-        source = "planDefinitionV4.security.configuration",
-        qualifiedByName = "deserializeConfiguration"
-    )
+            target = "security.type",
+            source = "planDefinitionV4.security.type",
+            qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(
+            target = "security.configuration",
+            source = "planDefinitionV4.security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     @Mapping(target = "selectionRule", source = "planDefinitionV4.selectionRule")
     @Mapping(target = "status", source = "planDefinitionV4.status")
     @Mapping(target = "tags", source = "planDefinitionV4.tags")
@@ -113,11 +114,17 @@ public interface PlanMapper {
     }
 
     @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
-    @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(
+            target = "security.configuration",
+            source = "security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     PlanV4 map(PlanDescriptor.V4 source);
 
     @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
-    @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(
+            target = "security.configuration",
+            source = "security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     PlanV4 map(PlanDescriptor.Native source);
 
     @Mapping(target = "status", source = "federatedPlanDefinition.status")
@@ -128,7 +135,10 @@ public interface PlanMapper {
     Set<PlanV4> map(Set<? extends GenericPlanEntity> planEntityList);
 
     @Mapping(source = "security", target = "security.type")
-    @Mapping(source = "securityDefinition", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(
+            source = "securityDefinition",
+            target = "security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     @Mapping(constant = "V2", target = "definitionVersion")
     PlanV2 map(io.gravitee.rest.api.model.PlanEntity planEntity);
 
@@ -160,9 +170,7 @@ public interface PlanMapper {
     }
 
     default Set<io.gravitee.apim.core.plan.model.PlanWithFlows> map(
-        Collection<PlanV4> plans,
-        io.gravitee.rest.api.management.v2.rest.model.ApiType apiType
-    ) {
+            Collection<PlanV4> plans, io.gravitee.rest.api.management.v2.rest.model.ApiType apiType) {
         if (Objects.isNull(plans)) {
             return null;
         }
@@ -172,10 +180,7 @@ public interface PlanMapper {
         if (apiType == io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE) {
             return plans.stream().map(INSTANCE::toNativePlanWithFlows).collect(Collectors.toSet());
         }
-        return plans
-            .stream()
-            .map(p -> INSTANCE.toHttpPlanWithFlows(p, apiType))
-            .collect(Collectors.toSet());
+        return plans.stream().map(p -> INSTANCE.toHttpPlanWithFlows(p, apiType)).collect(Collectors.toSet());
     }
 
     @Mapping(target = "validation", defaultValue = "MANUAL")
@@ -190,7 +195,10 @@ public interface PlanMapper {
     io.gravitee.apim.core.plan.model.Plan mapFromNativeV4(CreatePlanV4 source);
 
     @Mapping(target = "security", source = "security.type", qualifiedByName = "toV2PlanSecurityType")
-    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(
+            target = "securityDefinition",
+            source = "security.configuration",
+            qualifiedByName = "serializeConfiguration")
     io.gravitee.rest.api.model.NewPlanEntity map(CreatePlanV2 plan);
 
     @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
@@ -234,7 +242,10 @@ public interface PlanMapper {
     @Mapping(target = "federatedPlanDefinition", source = "source", qualifiedByName = "mapToPlanDefinitionFederated")
     io.gravitee.apim.core.plan.model.Plan map(UpdatePlanFederated source);
 
-    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(
+            target = "securityDefinition",
+            source = "security.configuration",
+            qualifiedByName = "serializeConfiguration")
     io.gravitee.rest.api.model.UpdatePlanEntity map(UpdatePlanV2 plan);
 
     @Named("mapToPlanSecurityV4")
@@ -247,7 +258,8 @@ public interface PlanMapper {
         if (Objects.isNull(securityType)) {
             return null;
         }
-        return PlanSecurityType.fromValue(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType).name());
+        return PlanSecurityType.fromValue(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType)
+                .name());
     }
 
     @Named("mapFromSecurityType")
@@ -255,12 +267,14 @@ public interface PlanMapper {
         if (Objects.isNull(securityType)) {
             return null;
         }
-        return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name()).getLabel();
+        return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name())
+                .getLabel();
     }
 
     @Named("toV2PlanSecurityType")
     default io.gravitee.rest.api.model.PlanSecurityType toV2PlanSecurityType(PlanSecurityType securityType) {
-        // PlanSecurityType is a common enum containing MTLS plan. Such security type is not supported by V2, so it is ignored during mapping
+        // PlanSecurityType is a common enum containing MTLS plan. Such security type is not supported by V2, so it is
+        // ignored during mapping
         if (Objects.isNull(securityType) || PlanSecurityType.MTLS.equals(securityType)) {
             return null;
         }
@@ -269,7 +283,10 @@ public interface PlanMapper {
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "mode", source = "planMode")
-    @Mapping(source = "planSecurity.configuration", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(
+            source = "planSecurity.configuration",
+            target = "security.configuration",
+            qualifiedByName = "deserializeConfiguration")
     BasePlan map(GenericPlanEntity plan);
 
     Collection<BasePlan> mapToBasePlans(Set<GenericPlanEntity> plans);
@@ -300,7 +317,10 @@ public interface PlanMapper {
         return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) source.getFlows());
     }
 
-    @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(
+            target = "securityConfiguration",
+            source = "security.configuration",
+            qualifiedByName = "serializeConfiguration")
     PlanUpdates mapToPlanUpdates(UpdatePlanV4 updatePlanV4);
 
     default List<? extends AbstractFlow> mapApiCRDPlanFlows(PlanCRD plan, String apiType) {

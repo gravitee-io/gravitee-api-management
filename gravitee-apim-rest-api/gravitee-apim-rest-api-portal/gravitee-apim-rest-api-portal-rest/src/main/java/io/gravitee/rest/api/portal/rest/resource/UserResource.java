@@ -76,10 +76,11 @@ public class UserResource extends AbstractResource {
         try {
             UserEntity userEntity = userService.findByIdWithRoles(executionContext, authenticatedUser);
             User currentUser = userMapper.convertForEnvironment(userEntity, executionContext.getEnvironmentId());
-            boolean withManagement = (authenticatedUser != null &&
-                permissionService.hasManagementRights(executionContext, authenticatedUser));
+            boolean withManagement = (authenticatedUser != null
+                    && permissionService.hasManagementRights(executionContext, authenticatedUser));
             if (withManagement) {
-                Management managementConfig = this.configService.getConsoleSettings(executionContext).getManagement();
+                Management managementConfig =
+                        this.configService.getConsoleSettings(executionContext).getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {
                     UserConfig userConfig = new UserConfig();
                     userConfig.setManagementUrl(managementConfig.getUrl());
@@ -87,7 +88,8 @@ public class UserResource extends AbstractResource {
                 }
             }
 
-            currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
+            currentUser.setLinks(
+                    userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
             return Response.ok(currentUser).build();
         } catch (final UserNotFoundException unfe) {
             response.addCookie(cookieGenerator.generate(null));
@@ -128,17 +130,21 @@ public class UserResource extends AbstractResource {
         }
         updateUserEntity.setCustomFields(user.getCustomFields());
 
-        UserEntity updatedUser = userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUserEntity);
+        UserEntity updatedUser =
+                userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUserEntity);
 
         final User currentUser = userMapper.convert(updatedUser);
-        currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
+        currentUser.setLinks(
+                userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
         return Response.ok(currentUser).build();
     }
 
     @GET
     @Path("avatar")
     public Response getCurrentUserAvatar(@Context Request request) {
-        String userId = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser()).getId();
+        String userId = userService
+                .findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser())
+                .getId();
         PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
 
         if (picture == null) {
@@ -146,7 +152,8 @@ public class UserResource extends AbstractResource {
         }
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl()))
+                    .build();
         }
 
         return createPictureResponse(request, (InlinePictureEntity) picture);

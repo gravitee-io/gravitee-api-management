@@ -81,7 +81,8 @@ class UpdateNativeApiDomainServiceTest {
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService;
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+            new TriggerNotificationDomainServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -100,57 +101,47 @@ class UpdateNativeApiDomainServiceTest {
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("member-id")
-                    .memberId("my-member-id")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .roleId("api-po-id-organization-id")
-                    .build()
-            )
-        );
-        groupQueryService.initWith(
-            List.of(
-                Group.builder()
-                    .id("group-1")
-                    .environmentId("environment-id")
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .build()
-            )
-        );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id(MY_MEMBER_ID).email(MEMBER_EMAIL).build()));
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("member-id")
+                .memberId("my-member-id")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API_ID)
+                .roleId("api-po-id-organization-id")
+                .build()));
+        groupQueryService.initWith(List.of(Group.builder()
+                .id("group-1")
+                .environmentId("environment-id")
+                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                .build()));
+        userCrudService.initWith(List.of(
+                BaseUserEntity.builder().id(MY_MEMBER_ID).email(MEMBER_EMAIL).build()));
 
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
 
         cut = new UpdateNativeApiDomainService(
-            apiCrudService,
-            planQueryService,
-            new DeprecatePlanDomainService(planCrudService, auditDomainService),
-            triggerNotificationDomainService,
-            flowCrudService,
-            categoryDomainService,
-            auditDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(
-                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                    new FreemarkerTemplateProcessor()
-                ),
-                apiPrimaryOwnerService,
-                new ApiCategoryQueryServiceInMemory(),
-                indexer
-            )
-        );
+                apiCrudService,
+                planQueryService,
+                new DeprecatePlanDomainService(planCrudService, auditDomainService),
+                triggerNotificationDomainService,
+                flowCrudService,
+                categoryDomainService,
+                auditDomainService,
+                new ApiIndexerDomainService(
+                        new ApiMetadataDecoderDomainService(
+                                new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                                new FreemarkerTemplateProcessor()),
+                        apiPrimaryOwnerService,
+                        new ApiCategoryQueryServiceInMemory(),
+                        indexer));
     }
 
     @BeforeAll
@@ -167,19 +158,18 @@ class UpdateNativeApiDomainServiceTest {
 
     @Test
     public void update_native_api_with_basic_configuration_info() {
-        //given
+        // given
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         String categoryKey = "categoryKey-1";
-        var apiToUpdate = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .name("updated-name")
-            .description("updated-description")
-            .version("2.0.0")
-            .labels(List.of("label-1"))
-            .categories(Set.of(categoryKey))
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
+        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder()
+                .name("updated-name")
+                .description("updated-description")
+                .version("2.0.0")
+                .labels(List.of("label-1"))
+                .categories(Set.of(categoryKey))
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
 
         CategoryEntity categoryEntity = new CategoryEntity();
         String categoryId = "categoryId-1";
@@ -188,17 +178,18 @@ class UpdateNativeApiDomainServiceTest {
         when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of(categoryKey));
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        //when
+        // when
         var updatedApi = cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
-        //then
-        assertThat(apiCrudService.storage().get(0)).extracting("apiDefinitionNativeV4").isNotNull();
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
+        // then
+        assertThat(apiCrudService.storage().get(0))
+                .extracting("apiDefinitionNativeV4")
+                .isNotNull();
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
@@ -212,33 +203,31 @@ class UpdateNativeApiDomainServiceTest {
 
     @Test
     public void update_native_api_with_basic_configuration_info_without_category() {
-        //given
+        // given
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .name("updated-name")
-            .description("updated-description")
-            .version("2.0.0")
-            .labels(List.of("label-1"))
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
+        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder()
+                .name("updated-name")
+                .description("updated-description")
+                .version("2.0.0")
+                .labels(List.of("label-1"))
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
 
         CategoryEntity categoryEntity = new CategoryEntity();
         String categoryId = "categoryId-1";
         categoryEntity.setId(categoryId);
         var ownerEntity = buildPrimaryOwnerEntity();
 
-        //when
+        // when
         var updatedApi = cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
-        //then
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
+        // then
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
@@ -251,44 +240,42 @@ class UpdateNativeApiDomainServiceTest {
     @Test
     public void update_throws_an_exception_when_update_native_api_not_found() {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
+        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(ApiNotFoundException.class)
-            .isThrownBy(() ->
-                cut.update(
-                    apiToUpdate.getId(),
-                    old -> apiToUpdate,
-                    (oldApi, newApi) -> apiToUpdate,
-                    auditInfo,
-                    ownerEntity,
-                    oneShotIndexation(auditInfo)
-                )
-            )
-            .withMessage("Api not found.");
+                .isThrownBy(() -> cut.update(
+                        apiToUpdate.getId(),
+                        old -> apiToUpdate,
+                        (oldApi, newApi) -> apiToUpdate,
+                        auditInfo,
+                        ownerEntity,
+                        oneShotIndexation(auditInfo)))
+                .withMessage("Api not found.");
     }
 
     @Test
     public void update_throws_an_exception_when_sanitizer_throws_error() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
+        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
         var ownerEntity = buildPrimaryOwnerEntity();
 
         assertThatExceptionOfType(ValidationDomainException.class)
-            .isThrownBy(() ->
-                cut.update(
-                    apiToUpdate.getId(),
-                    old -> apiToUpdate,
-                    (oldApi, newApi) -> {
-                        throw new ValidationDomainException("a sanitizer error");
-                    },
-                    auditInfo,
-                    ownerEntity,
-                    oneShotIndexation(auditInfo)
-                )
-            )
-            .withMessage("a sanitizer error");
+                .isThrownBy(() -> cut.update(
+                        apiToUpdate.getId(),
+                        old -> apiToUpdate,
+                        (oldApi, newApi) -> {
+                            throw new ValidationDomainException("a sanitizer error");
+                        },
+                        auditInfo,
+                        ownerEntity,
+                        oneShotIndexation(auditInfo)))
+                .withMessage("a sanitizer error");
     }
 
     @Test
@@ -299,30 +286,28 @@ class UpdateNativeApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
 
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .contains(
-                // API Audit
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId("my-api")
-                    .user(USER_ID)
-                    .properties(Collections.emptyMap())
-                    .event(ApiAuditEvent.API_UPDATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .contains(
+                        // API Audit
+                        AuditEntity.builder()
+                                .id("generated-id")
+                                .organizationId(ORGANIZATION_ID)
+                                .environmentId(ENVIRONMENT_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .referenceId("my-api")
+                                .user(USER_ID)
+                                .properties(Collections.emptyMap())
+                                .event(ApiAuditEvent.API_UPDATED.name())
+                                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                                .build());
     }
 
     @Test
@@ -333,24 +318,20 @@ class UpdateNativeApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         var updatedApi = cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
 
         assertThat(indexer.storage())
-            .isNotEmpty()
-            .containsExactly(
-                new IndexableApi(
-                    updatedApi,
-                    new PrimaryOwnerEntity(MY_MEMBER_ID, MEMBER_EMAIL, MEMBER_EMAIL, PrimaryOwnerEntity.Type.USER),
-                    Map.of(),
-                    Collections.emptySet()
-                )
-            );
+                .isNotEmpty()
+                .containsExactly(new IndexableApi(
+                        updatedApi,
+                        new PrimaryOwnerEntity(MY_MEMBER_ID, MEMBER_EMAIL, MEMBER_EMAIL, PrimaryOwnerEntity.Type.USER),
+                        Map.of(),
+                        Collections.emptySet()));
     }
 
     @Test
@@ -359,17 +340,18 @@ class UpdateNativeApiDomainServiceTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = ApiFixtures.aNativeApi();
         var nativeFlow = NativeFlow.builder().id("native-flow").build();
-        apiToUpdate.setApiDefinitionValue(apiToUpdate.getApiDefinitionNativeV4().toBuilder().flows(List.of(nativeFlow)).build());
+        apiToUpdate.setApiDefinitionValue(apiToUpdate.getApiDefinitionNativeV4().toBuilder()
+                .flows(List.of(nativeFlow))
+                .build());
         var ownerEntity = buildPrimaryOwnerEntity();
 
         var updatedApi = cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
 
         assertThat(flowCrudService.storage()).isNotEmpty().containsExactly(nativeFlow);
         assertThat(updatedApi.getApiDefinitionNativeV4().getFlows()).containsExactly(nativeFlow);
@@ -383,42 +365,38 @@ class UpdateNativeApiDomainServiceTest {
         var ownerEntity = buildPrimaryOwnerEntity();
 
         cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
 
-        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-            new ApiUpdatedApiHookContext(apiToUpdate.getId())
-        );
+        assertThat(triggerNotificationDomainService.getHookNotifications())
+                .containsExactly(new ApiUpdatedApiHookContext(apiToUpdate.getId()));
     }
 
     @Test
     public void update_to_be_deprecated_updates_plans() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
-        planCrudService.initWith(
-            List.of(
+        planCrudService.initWith(List.of(
                 aNativePlanWithStatus(PlanStatus.PUBLISHED),
                 aNativePlanWithStatus(PlanStatus.CLOSED),
                 aNativePlanWithStatus(PlanStatus.STAGING),
-                aNativePlanWithStatus(PlanStatus.DEPRECATED)
-            )
-        );
+                aNativePlanWithStatus(PlanStatus.DEPRECATED)));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.DEPRECATED).build();
+        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.DEPRECATED)
+                .build();
         var ownerEntity = buildPrimaryOwnerEntity();
 
         cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
 
         var planRepository = planCrudService.storage();
 
@@ -432,22 +410,23 @@ class UpdateNativeApiDomainServiceTest {
     public void update_to_be_deprecated_triggers_deprecated_api_notification() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.DEPRECATED).build();
+        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.DEPRECATED)
+                .build();
         var ownerEntity = buildPrimaryOwnerEntity();
 
         cut.update(
-            apiToUpdate.getId(),
-            old -> apiToUpdate,
-            (oldApi, newApi) -> apiToUpdate,
-            auditInfo,
-            ownerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                apiToUpdate.getId(),
+                old -> apiToUpdate,
+                (oldApi, newApi) -> apiToUpdate,
+                auditInfo,
+                ownerEntity,
+                oneShotIndexation(auditInfo));
 
-        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-            new ApiDeprecatedApiHookContext(apiToUpdate.getId()),
-            new ApiUpdatedApiHookContext(apiToUpdate.getId())
-        );
+        assertThat(triggerNotificationDomainService.getHookNotifications())
+                .containsExactly(
+                        new ApiDeprecatedApiHookContext(apiToUpdate.getId()),
+                        new ApiUpdatedApiHookContext(apiToUpdate.getId()));
     }
 
     PrimaryOwnerEntity buildPrimaryOwnerEntity() {
@@ -456,25 +435,22 @@ class UpdateNativeApiDomainServiceTest {
 
     Plan aNativePlanWithStatus(PlanStatus status) {
         return Plan.builder()
-            .id(status.name())
-            .definitionVersion(DefinitionVersion.V4)
-            .referenceId(ApiFixtures.aNativeApi().getId())
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .apiType(ApiType.NATIVE)
-            .planDefinitionNativeV4(NativePlan.builder().status(status).build())
-            .build();
+                .id(status.name())
+                .definitionVersion(DefinitionVersion.V4)
+                .referenceId(ApiFixtures.aNativeApi().getId())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiType(ApiType.NATIVE)
+                .planDefinitionNativeV4(NativePlan.builder().status(status).build())
+                .build();
     }
 
     private static void assertThatPlanHasStatus(List<Plan> planRepository, String planId, PlanStatus expectedStatus) {
-        assertThat(
-            planRepository
-                .stream()
-                .filter(p -> Objects.equals(planId, p.getId()))
-                .findFirst()
-        )
-            .isNotEmpty()
-            .get()
-            .extracting(Plan::getPlanDefinitionNativeV4)
-            .hasFieldOrPropertyWithValue("status", expectedStatus);
+        assertThat(planRepository.stream()
+                        .filter(p -> Objects.equals(planId, p.getId()))
+                        .findFirst())
+                .isNotEmpty()
+                .get()
+                .extracting(Plan::getPlanDefinitionNativeV4)
+                .hasFieldOrPropertyWithValue("status", expectedStatus);
     }
 }

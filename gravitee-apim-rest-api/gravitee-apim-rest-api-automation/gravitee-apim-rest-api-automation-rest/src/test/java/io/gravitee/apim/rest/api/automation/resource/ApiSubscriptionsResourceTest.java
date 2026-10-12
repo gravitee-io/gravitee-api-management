@@ -57,16 +57,13 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_hrid() {
-            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
-                new ImportSubscriptionCRDUseCase.Output(
-                    SubscriptionCRDStatus.builder()
-                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
-                        .status(ACCEPTED.name())
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .build()
-                )
-            );
+            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class)))
+                    .thenReturn(new ImportSubscriptionCRDUseCase.Output(SubscriptionCRDStatus.builder()
+                            .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                            .status(ACCEPTED.name())
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
 
             var state = expectEntity("subscription-with-hrid.json");
             SoftAssertions.assertSoftly(soft -> {
@@ -80,40 +77,32 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
 
-            verify(importSubscriptionCRDUseCase, atMostOnce()).execute(
-                argThat(input -> {
-                    var consumerConfiguration = input.spec().getConsumerConfiguration();
-                    return (
-                        consumerConfiguration != null &&
-                        "webhook".equals(consumerConfiguration.getEntrypointId()) &&
-                        "/notifications".equals(consumerConfiguration.getChannel()) &&
-                        Map.of(
-                            "callbackUrl",
-                            "https://exmaple.com/callback",
-                            "headers",
-                            List.of(
-                                Map.of("name", "demoHeader", "value", "my-value"),
-                                Map.of("name", "anotherHeader", "value", "my-value2")
-                            )
-                        ).equals(consumerConfiguration.getEntrypointConfiguration())
-                    );
-                })
-            );
+            verify(importSubscriptionCRDUseCase, atMostOnce()).execute(argThat(input -> {
+                var consumerConfiguration = input.spec().getConsumerConfiguration();
+                return (consumerConfiguration != null
+                        && "webhook".equals(consumerConfiguration.getEntrypointId())
+                        && "/notifications".equals(consumerConfiguration.getChannel())
+                        && Map.of(
+                                        "callbackUrl",
+                                        "https://exmaple.com/callback",
+                                        "headers",
+                                        List.of(
+                                                Map.of("name", "demoHeader", "value", "my-value"),
+                                                Map.of("name", "anotherHeader", "value", "my-value2")))
+                                .equals(consumerConfiguration.getEntrypointConfiguration()));
+            }));
         }
 
         @Test
         void should_return_state_from_guid() {
-            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
-                new ImportSubscriptionCRDUseCase.Output(
-                    SubscriptionCRDStatus.builder()
-                        .id("subscription_id")
-                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
-                        .status(ACCEPTED.name())
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .build()
-                )
-            );
+            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class)))
+                    .thenReturn(new ImportSubscriptionCRDUseCase.Output(SubscriptionCRDStatus.builder()
+                            .id("subscription_id")
+                            .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                            .status(ACCEPTED.name())
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
 
             var state = expectEntity("subscription-with-id.json", true);
             SoftAssertions.assertSoftly(soft -> {
@@ -129,7 +118,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID + "/subscriptions";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID
+                + "/subscriptions";
     }
 
     private SubscriptionState expectEntity(String spec) {
@@ -137,13 +127,11 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     }
 
     private SubscriptionState expectEntity(String spec, boolean hridContainsUUID) {
-        try (
-            var response = rootTarget()
+        try (var response = rootTarget()
                 .queryParam("hridContainsUUID", hridContainsUUID)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .put(Entity.json(readJSON(spec)))
-        ) {
+                .put(Entity.json(readJSON(spec)))) {
             assertThat(response.getStatus()).isEqualTo(200);
             return response.readEntity(SubscriptionState.class);
         }

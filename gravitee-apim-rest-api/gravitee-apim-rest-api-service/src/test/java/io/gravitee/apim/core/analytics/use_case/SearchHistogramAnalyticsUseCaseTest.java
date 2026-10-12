@@ -100,8 +100,10 @@ class SearchHistogramAnalyticsUseCaseTest {
         long interval = 60000L;
         List<Aggregation> aggregations = List.of();
 
-        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
-        var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "field", Map.of()));
+        var expectedTimestamp =
+                new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets =
+                List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "field", Map.of()));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
         var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.empty(), null);
@@ -121,8 +123,10 @@ class SearchHistogramAnalyticsUseCaseTest {
         List<Aggregation> aggregations = List.of();
         String queryString = "status:200 AND method:GET";
 
-        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
-        var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.MetricBucket("name", "field", List.of()));
+        var expectedTimestamp =
+                new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets =
+                List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.MetricBucket("name", "field", List.of()));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
         var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.of(queryString), null);
@@ -137,17 +141,14 @@ class SearchHistogramAnalyticsUseCaseTest {
     void shouldReturnTopValueHitsForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, List<Double>> analytics = Map.of(
-            "downstream-active-connections",
-            List.of(2D),
-            "upstream-active-connections",
-            List.of(2D)
-        );
+        Map<String, List<Double>> analytics =
+                Map.of("downstream-active-connections", List.of(2D), "upstream-active-connections", List.of(2D));
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
         long interval = 60000L;
-        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty(), null);
+        var input = new SearchHistogramAnalyticsUseCase.Input(
+                MY_API, from, to, interval, List.of(), Optional.empty(), null);
 
         var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
@@ -155,21 +156,19 @@ class SearchHistogramAnalyticsUseCaseTest {
         assertFalse(buckets.isEmpty());
         assertEquals(2, buckets.size());
         // Order-agnostic assertions: pick buckets by field name
-        HistogramAnalytics.MetricBucket downstream = buckets
-            .stream()
-            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
-            .map(b -> (HistogramAnalytics.MetricBucket) b)
-            .filter(b -> "downstream-active-connections".equals(b.getField()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Missing downstream-active-connections bucket"));
+        HistogramAnalytics.MetricBucket downstream = buckets.stream()
+                .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+                .map(b -> (HistogramAnalytics.MetricBucket) b)
+                .filter(b -> "downstream-active-connections".equals(b.getField()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing downstream-active-connections bucket"));
 
-        HistogramAnalytics.MetricBucket upstream = buckets
-            .stream()
-            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
-            .map(b -> (HistogramAnalytics.MetricBucket) b)
-            .filter(b -> "upstream-active-connections".equals(b.getField()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Missing upstream-active-connections bucket"));
+        HistogramAnalytics.MetricBucket upstream = buckets.stream()
+                .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+                .map(b -> (HistogramAnalytics.MetricBucket) b)
+                .filter(b -> "upstream-active-connections".equals(b.getField()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing upstream-active-connections bucket"));
 
         assertEquals("downstream-active-connections", downstream.getField());
         assertEquals("downstream-active-connections", downstream.getName());
@@ -185,16 +184,13 @@ class SearchHistogramAnalyticsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         Map<String, List<Double>> analytics = Map.of(
-            "downstream-publish-messages-total",
-            List.of(200D),
-            "upstream-publish-messages-total",
-            List.of(200D)
-        );
+                "downstream-publish-messages-total", List.of(200D), "upstream-publish-messages-total", List.of(200D));
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
         long interval = 60000L;
-        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty(), null);
+        var input = new SearchHistogramAnalyticsUseCase.Input(
+                MY_API, from, to, interval, List.of(), Optional.empty(), null);
 
         var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
@@ -202,21 +198,19 @@ class SearchHistogramAnalyticsUseCaseTest {
         assertFalse(buckets.isEmpty());
         assertEquals(2, buckets.size());
         // Order-agnostic assertions: pick buckets by field name
-        HistogramAnalytics.MetricBucket downstream = buckets
-            .stream()
-            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
-            .map(b -> (HistogramAnalytics.MetricBucket) b)
-            .filter(b -> "downstream-publish-messages-total".equals(b.getField()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Missing downstream-publish-messages-total bucket"));
+        HistogramAnalytics.MetricBucket downstream = buckets.stream()
+                .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+                .map(b -> (HistogramAnalytics.MetricBucket) b)
+                .filter(b -> "downstream-publish-messages-total".equals(b.getField()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing downstream-publish-messages-total bucket"));
 
-        HistogramAnalytics.MetricBucket upstream = buckets
-            .stream()
-            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
-            .map(b -> (HistogramAnalytics.MetricBucket) b)
-            .filter(b -> "upstream-publish-messages-total".equals(b.getField()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Missing upstream-publish-messages-total bucket"));
+        HistogramAnalytics.MetricBucket upstream = buckets.stream()
+                .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+                .map(b -> (HistogramAnalytics.MetricBucket) b)
+                .filter(b -> "upstream-publish-messages-total".equals(b.getField()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing upstream-publish-messages-total bucket"));
 
         assertEquals("downstream-publish-messages-total", downstream.getField());
         assertEquals("downstream-publish-messages-total", downstream.getName());
@@ -231,16 +225,16 @@ class SearchHistogramAnalyticsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         Map<String, List<Double>> analytics = Map.of(
-            "downstream-publish-messages-total",
-            List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D),
-            "upstream-publish-messages-total",
-            List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D)
-        );
+                "downstream-publish-messages-total",
+                List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D),
+                "upstream-publish-messages-total",
+                List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D));
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
         long interval = 60000L;
-        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty(), Optional.empty());
+        var input = new SearchHistogramAnalyticsUseCase.Input(
+                MY_API, from, to, interval, List.of(), Optional.empty(), Optional.empty());
 
         var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
@@ -248,21 +242,19 @@ class SearchHistogramAnalyticsUseCaseTest {
         assertFalse(buckets.isEmpty());
         assertEquals(2, buckets.size());
         // Order-agnostic assertions: pick buckets by field name
-        HistogramAnalytics.MetricBucket downstream = buckets
-            .stream()
-            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
-            .map(b -> (HistogramAnalytics.MetricBucket) b)
-            .filter(b -> "downstream-publish-messages-total".equals(b.getField()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Missing downstream-publish-messages-total bucket"));
+        HistogramAnalytics.MetricBucket downstream = buckets.stream()
+                .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+                .map(b -> (HistogramAnalytics.MetricBucket) b)
+                .filter(b -> "downstream-publish-messages-total".equals(b.getField()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing downstream-publish-messages-total bucket"));
 
-        HistogramAnalytics.MetricBucket upstream = buckets
-            .stream()
-            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
-            .map(b -> (HistogramAnalytics.MetricBucket) b)
-            .filter(b -> "upstream-publish-messages-total".equals(b.getField()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Missing upstream-publish-messages-total bucket"));
+        HistogramAnalytics.MetricBucket upstream = buckets.stream()
+                .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+                .map(b -> (HistogramAnalytics.MetricBucket) b)
+                .filter(b -> "upstream-publish-messages-total".equals(b.getField()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing upstream-publish-messages-total bucket"));
         assertEquals("downstream-publish-messages-total", downstream.getField());
         assertEquals("downstream-publish-messages-total", downstream.getName());
         assertEquals(List.of(0D, 10D, 10D, 0D, 0D, 0D, 0D, 0D, 0D, 0D, 50D, 50D, 0D), downstream.getValues());
@@ -287,8 +279,10 @@ class SearchHistogramAnalyticsUseCaseTest {
         long to = INSTANT_NOW.toEpochMilli();
         long interval = 60000L;
 
-        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
-        var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "field", Map.of()));
+        var expectedTimestamp =
+                new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets =
+                List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "field", Map.of()));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
         var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of(), Optional.empty(), null);
@@ -308,7 +302,9 @@ class SearchHistogramAnalyticsUseCaseTest {
 
     @Test
     void shouldThrowWhenApiNotInEnvironment() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("definitely not" + ENV_ID).build()));
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .environmentId("definitely not" + ENV_ID)
+                .build()));
         var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty(), null);
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -332,18 +328,17 @@ class SearchHistogramAnalyticsUseCaseTest {
         long to = 2000L;
         long interval = 100L;
         var input = new Input(
-            ApiFixtures.MY_API,
-            from,
-            to,
-            interval,
-            List.of(new Aggregation("api-id", Aggregation.AggregationType.FIELD)),
-            Optional.empty(),
-            null
-        );
-        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
-        var expectedBuckets = List.of(
-            (HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "api-id", Map.of("aid1", List.of(), "aid2", List.of()))
-        );
+                ApiFixtures.MY_API,
+                from,
+                to,
+                interval,
+                List.of(new Aggregation("api-id", Aggregation.AggregationType.FIELD)),
+                Optional.empty(),
+                null);
+        var expectedTimestamp =
+                new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets = List.of((HistogramAnalytics.Bucket)
+                new HistogramAnalytics.CountBucket("name", "api-id", Map.of("aid1", List.of(), "aid2", List.of())));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
         var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
         assertThat(result.metadata()).isNotNull();

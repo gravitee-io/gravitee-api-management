@@ -27,7 +27,7 @@ import java.nio.file.Path;
  * @author GraviteeSource Team
  */
 public class HttpDynamicPropertiesServicePlugin
-    implements ApiServicePlugin<HttpDynamicPropertiesServiceFactory, HttpDynamicPropertiesServiceConfiguration> {
+        implements ApiServicePlugin<HttpDynamicPropertiesServiceFactory, HttpDynamicPropertiesServiceConfiguration> {
 
     @Override
     public String id() {

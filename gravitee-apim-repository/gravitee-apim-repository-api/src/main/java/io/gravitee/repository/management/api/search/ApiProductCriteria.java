@@ -78,15 +78,13 @@ public class ApiProductCriteria {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiProductCriteria that = (ApiProductCriteria) o;
-        return (
-            Objects.equals(ids, that.ids) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(version, that.version) &&
-            Objects.equals(environmentId, that.environmentId) &&
-            Objects.equals(environments, that.environments) &&
-            Objects.equals(apiIds, that.apiIds) &&
-            Objects.equals(groups, that.groups)
-        );
+        return (Objects.equals(ids, that.ids)
+                && Objects.equals(name, that.name)
+                && Objects.equals(version, that.version)
+                && Objects.equals(environmentId, that.environmentId)
+                && Objects.equals(environments, that.environments)
+                && Objects.equals(apiIds, that.apiIds)
+                && Objects.equals(groups, that.groups));
     }
 
     @Override

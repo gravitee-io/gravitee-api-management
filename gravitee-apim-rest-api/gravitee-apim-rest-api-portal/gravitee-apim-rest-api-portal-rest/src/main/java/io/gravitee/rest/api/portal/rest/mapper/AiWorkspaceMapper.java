@@ -50,7 +50,9 @@ public interface AiWorkspaceMapper {
 
     @Named("toPeriod")
     default io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget.PeriodEnum toPeriod(String period) {
-        return period == null ? null : io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget.PeriodEnum.fromValue(period);
+        return period == null
+                ? null
+                : io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget.PeriodEnum.fromValue(period);
     }
 
     @Mapping(target = "status", source = "status", qualifiedByName = "toKeyStatus")
@@ -58,6 +60,8 @@ public interface AiWorkspaceMapper {
 
     @Named("toKeyStatus")
     default io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey.StatusEnum toKeyStatus(String status) {
-        return status == null ? null : io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey.StatusEnum.fromValue(status);
+        return status == null
+                ? null
+                : io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey.StatusEnum.fromValue(status);
     }
 }

@@ -59,7 +59,7 @@ class AnalyticsRepositoryProbeTest {
 
     @Test
     void should_check_completed_with_unhealthy_state_when_repository_failed()
-        throws TechnicalException, ExecutionException, InterruptedException {
+            throws TechnicalException, ExecutionException, InterruptedException {
         RuntimeException runtimeException = new RuntimeException();
         when(analyticsRepository.query(any(), any())).thenThrow(runtimeException);
         Result result = cut.check().toCompletableFuture().get();

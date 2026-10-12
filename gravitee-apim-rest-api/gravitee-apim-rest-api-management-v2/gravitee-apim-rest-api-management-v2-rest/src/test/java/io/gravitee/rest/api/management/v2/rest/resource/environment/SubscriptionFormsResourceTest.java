@@ -71,7 +71,10 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
     void setup() {
         rootTarget = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -86,7 +89,8 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
         UuidString.reset();
         GraviteeContext.cleanContext();
 
-        Stream.of(subscriptionFormCrudService, subscriptionFormQueryService, apiCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(subscriptionFormCrudService, subscriptionFormQueryService, apiCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -94,16 +98,18 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_list_the_forms_of_the_environment() {
-            var firstForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).build();
+            var firstForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                    .environmentId(ENVIRONMENT)
+                    .build();
             var partnerForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-                .id(SubscriptionFormId.random())
-                .environmentId(ENVIRONMENT)
-                .name("Partners")
-                .build();
+                    .id(SubscriptionFormId.random())
+                    .environmentId(ENVIRONMENT)
+                    .name("Partners")
+                    .build();
             var otherEnvironmentForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-                .id(SubscriptionFormId.random())
-                .environmentId("other-env")
-                .build();
+                    .id(SubscriptionFormId.random())
+                    .environmentId("other-env")
+                    .build();
             subscriptionFormQueryService.initWith(List.of(firstForm, partnerForm, otherEnvironmentForm));
 
             var response = rootTarget.request().get();
@@ -111,8 +117,10 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(HttpStatusCode.OK_200);
             var forms = response.readEntity(new GenericType<List<SubscriptionForm>>() {});
             assertThat(forms)
-                .extracting(SubscriptionForm::getId)
-                .containsExactly(UUID.fromString(SubscriptionFormFixtures.FORM_ID), UUID.fromString(partnerForm.getId().toString()));
+                    .extracting(SubscriptionForm::getId)
+                    .containsExactly(
+                            UUID.fromString(SubscriptionFormFixtures.FORM_ID),
+                            UUID.fromString(partnerForm.getId().toString()));
             assertThat(forms.get(0).getName()).isEqualTo(SubscriptionFormFixtures.FORM_NAME);
             assertThat(forms.get(0).getGmdContent()).isEqualTo(SubscriptionFormFixtures.GMD_CONTENT);
             assertThat(forms.get(1).getName()).isEqualTo("Partners");
@@ -123,12 +131,17 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
             var response = rootTarget.request().get();
 
             assertThat(response).hasStatus(HttpStatusCode.OK_200);
-            assertThat(response.readEntity(new GenericType<List<SubscriptionForm>>() {})).isEmpty();
+            assertThat(response.readEntity(new GenericType<List<SubscriptionForm>>() {}))
+                    .isEmpty();
         }
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.READ, () -> rootTarget.request().get());
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_METADATA,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ,
+                    () -> rootTarget.request().get());
         }
     }
 
@@ -140,14 +153,18 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
             var response = rootTarget.path("_template").request().get();
 
             assertThat(response).hasStatus(HttpStatusCode.OK_200);
-            assertThat(response.readEntity(SubscriptionFormTemplate.class).getGmdContent()).isNotBlank().contains("<gmd-");
+            assertThat(response.readEntity(SubscriptionFormTemplate.class).getGmdContent())
+                    .isNotBlank()
+                    .contains("<gmd-");
         }
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.READ, () ->
-                rootTarget.path("_template").request().get()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_METADATA,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ,
+                    () -> rootTarget.path("_template").request().get());
         }
     }
 
@@ -156,48 +173,56 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_a_form() {
-            var request = new CreateSubscriptionForm().name("Partners").gmdContent(SubscriptionFormFixtures.GMD_CONTENT);
+            var request =
+                    new CreateSubscriptionForm().name("Partners").gmdContent(SubscriptionFormFixtures.GMD_CONTENT);
 
             var response = rootTarget.request().post(Entity.json(request));
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.CREATED_201)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getId()).isNotNull();
-                    assertThat(result.getName()).isEqualTo("Partners");
-                    assertThat(result.getGmdContent()).isEqualTo(SubscriptionFormFixtures.GMD_CONTENT);
-                    assertThat(result.getEnabled()).isFalse();
-                });
+                    .hasStatus(HttpStatusCode.CREATED_201)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> {
+                        assertThat(result.getId()).isNotNull();
+                        assertThat(result.getName()).isEqualTo("Partners");
+                        assertThat(result.getGmdContent()).isEqualTo(SubscriptionFormFixtures.GMD_CONTENT);
+                        assertThat(result.getEnabled()).isFalse();
+                    });
             assertThat(subscriptionFormCrudService.storage()).hasSize(1);
         }
 
         @Test
         void should_create_a_form_dedicated_to_apis() {
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                    .id("api-1")
+                    .environmentId(ENVIRONMENT)
+                    .build()));
             var request = new CreateSubscriptionForm()
-                .name("Partners")
-                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
-                .apiIds(List.of("api-1"));
+                    .name("Partners")
+                    .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                    .apiIds(List.of("api-1"));
 
             var response = rootTarget.request().post(Entity.json(request));
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.CREATED_201)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> assertThat(result.getApiIds()).containsExactly("api-1"));
+                    .hasStatus(HttpStatusCode.CREATED_201)
+                    .asEntity(SubscriptionForm.class)
+                    .satisfies(result -> assertThat(result.getApiIds()).containsExactly("api-1"));
         }
 
         @Test
         void should_return_409_when_an_api_is_already_mapped_to_another_form() {
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT).build()));
-            subscriptionFormQueryService.initWith(
-                List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).apiIds(List.of("api-1")).build())
-            );
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                    .id("api-1")
+                    .environmentId(ENVIRONMENT)
+                    .build()));
+            subscriptionFormQueryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                    .environmentId(ENVIRONMENT)
+                    .apiIds(List.of("api-1"))
+                    .build()));
             var request = new CreateSubscriptionForm()
-                .name("Partners")
-                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
-                .apiIds(List.of("api-1"));
+                    .name("Partners")
+                    .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                    .apiIds(List.of("api-1"));
 
             var response = rootTarget.request().post(Entity.json(request));
 
@@ -207,9 +232,9 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_when_an_api_does_not_exist() {
             var request = new CreateSubscriptionForm()
-                .name("Partners")
-                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
-                .apiIds(List.of("ghost"));
+                    .name("Partners")
+                    .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                    .apiIds(List.of("ghost"));
 
             var response = rootTarget.request().post(Entity.json(request));
 
@@ -218,10 +243,12 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_409_when_the_name_is_already_used() {
-            subscriptionFormQueryService.initWith(
-                List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).name("Partners").build())
-            );
-            var request = new CreateSubscriptionForm().name("partners").gmdContent(SubscriptionFormFixtures.GMD_CONTENT);
+            subscriptionFormQueryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                    .environmentId(ENVIRONMENT)
+                    .name("Partners")
+                    .build()));
+            var request =
+                    new CreateSubscriptionForm().name("partners").gmdContent(SubscriptionFormFixtures.GMD_CONTENT);
 
             var response = rootTarget.request().post(Entity.json(request));
 
@@ -239,11 +266,14 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            var request = new CreateSubscriptionForm().name("Partners").gmdContent(SubscriptionFormFixtures.GMD_CONTENT);
+            var request =
+                    new CreateSubscriptionForm().name("Partners").gmdContent(SubscriptionFormFixtures.GMD_CONTENT);
 
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.CREATE, () ->
-                rootTarget.request().post(Entity.json(request))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_METADATA,
+                    ENVIRONMENT,
+                    RolePermissionAction.CREATE,
+                    () -> rootTarget.request().post(Entity.json(request)));
         }
     }
 }

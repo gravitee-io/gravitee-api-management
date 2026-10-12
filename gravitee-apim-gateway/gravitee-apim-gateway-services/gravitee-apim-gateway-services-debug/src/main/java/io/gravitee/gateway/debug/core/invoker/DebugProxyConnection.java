@@ -66,10 +66,9 @@ public class DebugProxyConnection implements ProxyConnection {
     }
 
     protected ProxyConnection responseHandler(
-        ProxyConnection proxyConnection,
-        Handler<ProxyResponse> responseHandler,
-        final DebugExecutionContext context
-    ) {
+            ProxyConnection proxyConnection,
+            Handler<ProxyResponse> responseHandler,
+            final DebugExecutionContext context) {
         return proxyConnection.responseHandler(new DebugProxyResponseHandler(responseHandler, context));
     }
 

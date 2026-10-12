@@ -26,8 +26,10 @@ class PortalVisibilityTest {
 
     @Test
     void resolve_returns_caller_when_present() {
-        assertThat(PortalVisibility.resolve(PortalVisibility.PRIVATE, PortalVisibility.PUBLIC)).isEqualTo(PortalVisibility.PRIVATE);
-        assertThat(PortalVisibility.resolve(PortalVisibility.PUBLIC, PortalVisibility.PRIVATE)).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(PortalVisibility.resolve(PortalVisibility.PRIVATE, PortalVisibility.PUBLIC))
+                .isEqualTo(PortalVisibility.PRIVATE);
+        assertThat(PortalVisibility.resolve(PortalVisibility.PUBLIC, PortalVisibility.PRIVATE))
+                .isEqualTo(PortalVisibility.PUBLIC);
     }
 
     @Test

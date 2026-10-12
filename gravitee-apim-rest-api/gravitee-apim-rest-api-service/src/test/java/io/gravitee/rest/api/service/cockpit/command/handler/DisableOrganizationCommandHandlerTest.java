@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,31 +73,33 @@ class DisableOrganizationCommandHandlerTest {
 
         when(organizationService.findByCockpitId(ORG_COCKPIT_ID)).thenReturn(apimOrg);
 
-        cut
-            .handle(aDisableOrgCommand())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut.handle(aDisableOrgCommand())
+                .test()
+                .awaitDone(1, TimeUnit.SECONDS)
+                .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, ORG_APIM_ID);
-        verify(idpActivationService).removeAllIdpsFromTarget(
-            eq(new ExecutionContext(ORG_APIM_ID)),
-            eq(new IdentityProviderActivationService.ActivationTarget(ORG_APIM_ID, IdentityProviderActivationReferenceType.ORGANIZATION))
-        );
+        verify(idpActivationService)
+                .removeAllIdpsFromTarget(
+                        eq(new ExecutionContext(ORG_APIM_ID)),
+                        eq(new IdentityProviderActivationService.ActivationTarget(
+                                ORG_APIM_ID, IdentityProviderActivationReferenceType.ORGANIZATION)));
     }
 
     @Test
     void handleThrowsException() {
-        when(organizationService.findByCockpitId(ORG_COCKPIT_ID)).thenThrow(new OrganizationNotFoundException(ORG_COCKPIT_ID));
+        when(organizationService.findByCockpitId(ORG_COCKPIT_ID))
+                .thenThrow(new OrganizationNotFoundException(ORG_COCKPIT_ID));
 
-        cut
-            .handle(aDisableOrgCommand())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));
+        cut.handle(aDisableOrgCommand())
+                .test()
+                .awaitDone(1, TimeUnit.SECONDS)
+                .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     private DisableOrganizationCommand aDisableOrgCommand() {
-        return new DisableOrganizationCommand(DisableOrganizationCommandPayload.builder().cockpitId(ORG_COCKPIT_ID).build());
+        return new DisableOrganizationCommand(DisableOrganizationCommandPayload.builder()
+                .cockpitId(ORG_COCKPIT_ID)
+                .build());
     }
 }

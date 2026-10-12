@@ -136,14 +136,12 @@ public abstract class JerseySpringTest {
         resourceConfig.register(GraviteeContextRequestFilter.class);
 
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(
-            new AbstractBinder() {
-                @Override
-                protected void configure() {
-                    bind(response).to(HttpServletResponse.class);
-                }
+        resourceConfig.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(response).to(HttpServletResponse.class);
             }
-        );
+        });
     }
 
     @Priority(5)
@@ -151,35 +149,33 @@ public abstract class JerseySpringTest {
 
         @Override
         public void filter(final ContainerRequestContext requestContext) {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
-                        userDetails.setOrganizationId(ORGANIZATION);
+            requestContext.setSecurityContext(new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
+                    userDetails.setOrganizationId(ORGANIZATION);
 
-                        var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
-                        SecurityContextHolder.getContext().setAuthentication(principal);
+                    var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
+                    SecurityContextHolder.getContext().setAuthentication(principal);
 
-                        return principal;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
+                    return principal;
                 }
-            );
+
+                @Override
+                public boolean isUserInRole(String string) {
+                    return true;
+                }
+
+                @Override
+                public boolean isSecure() {
+                    return true;
+                }
+
+                @Override
+                public String getAuthenticationScheme() {
+                    return "BASIC";
+                }
+            });
         }
     }
 
@@ -196,12 +192,14 @@ public abstract class JerseySpringTest {
 
         @Override
         public void filter(ContainerRequestContext requestContext) throws IOException {
-            var principal = (UsernamePasswordAuthenticationToken) requestContext.getSecurityContext().getUserPrincipal();
+            var principal = (UsernamePasswordAuthenticationToken)
+                    requestContext.getSecurityContext().getUserPrincipal();
             var userDetails = Objects.isNull(principal)
-                ? null
-                : (io.gravitee.rest.api.idp.api.authentication.UserDetails) principal.getPrincipal();
+                    ? null
+                    : (io.gravitee.rest.api.idp.api.authentication.UserDetails) principal.getPrincipal();
 
-            MultivaluedMap<String, String> pathsParams = requestContext.getUriInfo().getPathParameters();
+            MultivaluedMap<String, String> pathsParams =
+                    requestContext.getUriInfo().getPathParameters();
 
             String organizationId = null;
             if (Objects.nonNull(userDetails)) {
@@ -215,7 +213,9 @@ public abstract class JerseySpringTest {
             if (pathsParams.containsKey("envId")) {
                 // The id or hrid of an environment
                 String idOrHrid = pathsParams.getFirst("envId");
-                environmentId = environmentService.findByOrgAndIdOrHrid(organizationId, idOrHrid).getId();
+                environmentId = environmentService
+                        .findByOrgAndIdOrHrid(organizationId, idOrHrid)
+                        .getId();
             }
 
             GraviteeContext.fromExecutionContext(new ExecutionContext(organizationId, environmentId));

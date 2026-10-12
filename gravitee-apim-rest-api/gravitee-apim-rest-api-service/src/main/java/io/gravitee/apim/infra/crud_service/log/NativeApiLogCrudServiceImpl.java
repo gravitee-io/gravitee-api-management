@@ -47,42 +47,48 @@ class NativeApiLogCrudServiceImpl implements NativeApiLogCrudService {
     }
 
     @Override
-    public Optional<NativeApiLog> findLog(ExecutionContext executionContext, String apiId, String requestId, Long from, Long to) {
+    public Optional<NativeApiLog> findLog(
+            ExecutionContext executionContext, String apiId, String requestId, Long from, Long to) {
         try {
             return metricsRepository
-                .findNativeApiMetrics(executionContext.getQueryContext(), apiId, requestId, from, to)
-                .map(NativeApiLogCrudServiceImpl::mapFull);
+                    .findNativeApiMetrics(executionContext.getQueryContext(), apiId, requestId, from, to)
+                    .map(NativeApiLogCrudServiceImpl::mapFull);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to find native connection log [apiId={},requestId={}]", apiId, requestId, e);
-            throw new TechnicalManagementException("Error while finding native connection log " + apiId + "/" + requestId, e);
+            log.error(
+                    "An error occurs while trying to find native connection log [apiId={},requestId={}]",
+                    apiId,
+                    requestId,
+                    e);
+            throw new TechnicalManagementException(
+                    "Error while finding native connection log " + apiId + "/" + requestId, e);
         }
     }
 
     @Override
     public SearchLogsResponse<NativeApiLog> searchLogs(
-        ExecutionContext executionContext,
-        String apiId,
-        NativeApiLogCrudService.Filter filter,
-        int page,
-        int size
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            NativeApiLogCrudService.Filter filter,
+            int page,
+            int size) {
         try {
             var query = NativeApiMetricsQuery.builder()
-                .apiId(apiId)
-                .from(filter.from())
-                .to(filter.to())
-                .applicationIds(filter.applicationIds())
-                .planIds(filter.planIds())
-                .connectionStatuses(toStrings(filter.connectionStatuses()))
-                .page(page)
-                .size(size)
-                .build();
+                    .apiId(apiId)
+                    .from(filter.from())
+                    .to(filter.to())
+                    .applicationIds(filter.applicationIds())
+                    .planIds(filter.planIds())
+                    .connectionStatuses(toStrings(filter.connectionStatuses()))
+                    .page(page)
+                    .size(size)
+                    .build();
             var response = metricsRepository.searchNativeApiMetrics(executionContext.getQueryContext(), query);
             return new SearchLogsResponse<>(
-                response.total(),
-                response.data().stream().map(NativeApiLogCrudServiceImpl::map).toList(),
-                response.maxReachableTotal()
-            );
+                    response.total(),
+                    response.data().stream()
+                            .map(NativeApiLogCrudServiceImpl::map)
+                            .toList(),
+                    response.maxReachableTotal());
         } catch (IllegalArgumentException e) {
             // The query layer rejecting the caller's own pagination, not a search that went wrong. Translated
             // here, at the boundary where infrastructure exceptions become domain ones, so the resource answers
@@ -97,51 +103,54 @@ class NativeApiLogCrudServiceImpl implements NativeApiLogCrudService {
     private static NativeApiLog mapFull(NativeApiMetrics metrics) {
         var additional = metrics.getAdditionalMetrics();
         return NativeApiLog.builder()
-            .apiId(metrics.getApiId())
-            .requestId(metrics.getRequestId())
-            .transactionId(metrics.getTransactionId())
-            .timestamp(metrics.getTimestamp())
-            .applicationId(metrics.getApplicationId())
-            .planId(metrics.getPlanId())
-            .clientIdentifier(metrics.getClientIdentifier())
-            .subscriptionId(metrics.getSubscriptionId())
-            .entrypointId(metrics.getEntrypointId())
-            .gateway(metrics.getGateway())
-            .remoteAddress(metrics.getRemoteAddress())
-            .localAddress(metrics.getLocalAddress())
-            .host(metrics.getHost())
-            .errorKey(metrics.getErrorKey())
-            .message(metrics.getMessage())
-            .connectionStatus(parseConnectionStatus(additional))
-            .clientId(asString(additional, NativeApiMetricKeys.CLIENT_ID))
-            .clientSoftwareName(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_NAME))
-            .clientSoftwareVersion(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION))
-            // Top-level document fields, unlike the native-kafka keywords above — every API type writes
-            // them. This resource is reached as /apis/{apiId}/logs/native/{requestId} and the query matches
-            // on api-id + request-id only (NativeApiMetricsFindQueryAdapter), with no API-type assertion, so
-            // an HTTP v4 document can land here. Its token would be the API key verbatim; see
-            // SecurityTokenProjection.
-            .securityType(metrics.getSecurityType())
-            .securityToken(SecurityTokenProjection.isTokenProjectable(metrics.getSecurityType()) ? metrics.getSecurityToken() : null)
-            .brokerId(asString(additional, NativeApiMetricKeys.BROKER_ID))
-            .connectionDurationMs(asLong(additional, NativeApiMetricKeys.CONNECTION_DURATION_MS))
-            .build();
+                .apiId(metrics.getApiId())
+                .requestId(metrics.getRequestId())
+                .transactionId(metrics.getTransactionId())
+                .timestamp(metrics.getTimestamp())
+                .applicationId(metrics.getApplicationId())
+                .planId(metrics.getPlanId())
+                .clientIdentifier(metrics.getClientIdentifier())
+                .subscriptionId(metrics.getSubscriptionId())
+                .entrypointId(metrics.getEntrypointId())
+                .gateway(metrics.getGateway())
+                .remoteAddress(metrics.getRemoteAddress())
+                .localAddress(metrics.getLocalAddress())
+                .host(metrics.getHost())
+                .errorKey(metrics.getErrorKey())
+                .message(metrics.getMessage())
+                .connectionStatus(parseConnectionStatus(additional))
+                .clientId(asString(additional, NativeApiMetricKeys.CLIENT_ID))
+                .clientSoftwareName(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_NAME))
+                .clientSoftwareVersion(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION))
+                // Top-level document fields, unlike the native-kafka keywords above — every API type writes
+                // them. This resource is reached as /apis/{apiId}/logs/native/{requestId} and the query matches
+                // on api-id + request-id only (NativeApiMetricsFindQueryAdapter), with no API-type assertion, so
+                // an HTTP v4 document can land here. Its token would be the API key verbatim; see
+                // SecurityTokenProjection.
+                .securityType(metrics.getSecurityType())
+                .securityToken(
+                        SecurityTokenProjection.isTokenProjectable(metrics.getSecurityType())
+                                ? metrics.getSecurityToken()
+                                : null)
+                .brokerId(asString(additional, NativeApiMetricKeys.BROKER_ID))
+                .connectionDurationMs(asLong(additional, NativeApiMetricKeys.CONNECTION_DURATION_MS))
+                .build();
     }
 
     private static NativeApiLog map(NativeApiMetrics metrics) {
         var additional = metrics.getAdditionalMetrics();
         return NativeApiLog.builder()
-            .apiId(metrics.getApiId())
-            .requestId(metrics.getRequestId())
-            .transactionId(metrics.getTransactionId())
-            .timestamp(metrics.getTimestamp())
-            .applicationId(metrics.getApplicationId())
-            .planId(metrics.getPlanId())
-            .clientIdentifier(metrics.getClientIdentifier())
-            .entrypointId(metrics.getEntrypointId())
-            .connectionStatus(parseConnectionStatus(additional))
-            .connectionDurationMs(asLong(additional, NativeApiMetricKeys.CONNECTION_DURATION_MS))
-            .build();
+                .apiId(metrics.getApiId())
+                .requestId(metrics.getRequestId())
+                .transactionId(metrics.getTransactionId())
+                .timestamp(metrics.getTimestamp())
+                .applicationId(metrics.getApplicationId())
+                .planId(metrics.getPlanId())
+                .clientIdentifier(metrics.getClientIdentifier())
+                .entrypointId(metrics.getEntrypointId())
+                .connectionStatus(parseConnectionStatus(additional))
+                .connectionDurationMs(asLong(additional, NativeApiMetricKeys.CONNECTION_DURATION_MS))
+                .build();
     }
 
     private static Set<String> toStrings(Set<NativeConnectionStatus> statuses) {

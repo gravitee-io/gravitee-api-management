@@ -88,15 +88,14 @@ class ApiProductSubscriptionRefresherTest {
     @BeforeEach
     void setUp() {
         cut = new ApiProductSubscriptionRefresher(
-            subscriptionRepository,
-            apiKeyRepository,
-            subscriptionMapper,
-            apiKeyMapper,
-            subscriptionService,
-            apiKeyService,
-            BULK_ITEMS,
-            CHUNK_SIZE
-        );
+                subscriptionRepository,
+                apiKeyRepository,
+                subscriptionMapper,
+                apiKeyMapper,
+                subscriptionService,
+                apiKeyService,
+                BULK_ITEMS,
+                CHUNK_SIZE);
     }
 
     @Nested
@@ -112,8 +111,10 @@ class ApiProductSubscriptionRefresherTest {
         @Test
         void loads_and_deploys_subscriptions() throws TechnicalException {
             var repoSub = productSubscription(SUB_1, PLAN_1, ENV_1);
-            var gatewaySub = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
-            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub));
+            var gatewaySub =
+                    Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
@@ -131,19 +132,28 @@ class ApiProductSubscriptionRefresherTest {
         void keeps_going_when_an_item_fails_with_an_error() throws TechnicalException {
             var repoSub1 = productSubscription(SUB_1, PLAN_1, ENV_1);
             var repoSub2 = productSubscription("sub-2", PLAN_1, ENV_1);
-            var gatewaySub1 = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
-            var gatewaySub2 = Subscription.builder().id("sub-2").api(API_1).plan(PLAN_1).build();
+            var gatewaySub1 =
+                    Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
+            var gatewaySub2 =
+                    Subscription.builder().id("sub-2").api(API_1).plan(PLAN_1).build();
             var repoKey = productApiKey(KEY_ID, ENV_1, SUB_1);
-            var gatewayKey = ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
-            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub1, repoSub2));
+            var gatewayKey =
+                    ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenReturn(List.of(repoSub1, repoSub2));
             when(subscriptionMapper.to(repoSub1)).thenReturn(List.of(gatewaySub1));
             when(subscriptionMapper.to(repoSub2)).thenReturn(List.of(gatewaySub2));
-            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, gatewaySub1)).thenReturn(gatewayKey);
-            doThrow(new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3")).when(subscriptionService).register(gatewaySub1);
+            doThrow(new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3"))
+                    .when(subscriptionService)
+                    .register(gatewaySub1);
             // BouncyCastle FIPS raises FipsUnapprovedOperationError, an AssertionError, which a LinkageError
             // guard would let through. The API key branch of quietly() is otherwise never driven with an Error.
-            doThrow(new AssertionError("attempt to use unapproved algorithm")).when(apiKeyService).register(gatewayKey);
+            doThrow(new AssertionError("attempt to use unapproved algorithm"))
+                    .when(apiKeyService)
+                    .register(gatewayKey);
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
@@ -156,12 +166,16 @@ class ApiProductSubscriptionRefresherTest {
         @Test
         void loads_and_deploys_api_keys() throws TechnicalException {
             var repoSub = productSubscription(SUB_1, PLAN_1, ENV_1);
-            var gatewaySub = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
+            var gatewaySub =
+                    Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
             var repoKey = productApiKey(KEY_ID, ENV_1, SUB_1);
-            var gatewayKey = ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
-            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub));
+            var gatewayKey =
+                    ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
-            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, gatewaySub)).thenReturn(gatewayKey);
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
@@ -172,7 +186,8 @@ class ApiProductSubscriptionRefresherTest {
 
         @Test
         void does_not_call_api_key_repository_when_no_subscriptions() throws TechnicalException {
-            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of());
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenReturn(List.of());
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
@@ -186,23 +201,28 @@ class ApiProductSubscriptionRefresherTest {
             // to subscriptions across both chunks must be processed exactly once (its mapped
             // gateway keys still produced — one per matched subscription).
             var localCut = new ApiProductSubscriptionRefresher(
-                subscriptionRepository,
-                apiKeyRepository,
-                subscriptionMapper,
-                apiKeyMapper,
-                subscriptionService,
-                apiKeyService,
-                BULK_ITEMS,
-                3 // small chunk size to force chunking with 5 subs
-            );
+                    subscriptionRepository,
+                    apiKeyRepository,
+                    subscriptionMapper,
+                    apiKeyMapper,
+                    subscriptionService,
+                    apiKeyService,
+                    BULK_ITEMS,
+                    3 // small chunk size to force chunking with 5 subs
+                    );
 
             var repoSubs = IntStream.range(0, 5)
-                .mapToObj(i -> productSubscription("sub" + i, PLAN_1, ENV_1))
-                .toList();
-            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(repoSubs);
+                    .mapToObj(i -> productSubscription("sub" + i, PLAN_1, ENV_1))
+                    .toList();
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenReturn(repoSubs);
             var gatewaySubs = IntStream.range(0, 5)
-                .mapToObj(i -> Subscription.builder().id("sub" + i).api(API_1).plan(PLAN_1).build())
-                .toList();
+                    .mapToObj(i -> Subscription.builder()
+                            .id("sub" + i)
+                            .api(API_1)
+                            .plan(PLAN_1)
+                            .build())
+                    .toList();
             for (int i = 0; i < 5; i++) {
                 when(subscriptionMapper.to(repoSubs.get(i))).thenReturn(List.of(gatewaySubs.get(i)));
             }
@@ -213,43 +233,60 @@ class ApiProductSubscriptionRefresherTest {
             federated.setSubscriptions(List.of("sub0", "sub3"));
             var chunk1Only = productApiKey("k-chunk1", ENV_1, "sub4");
 
-            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenAnswer(invocation -> {
-                var criteria = (io.gravitee.repository.management.api.search.ApiKeyCriteria) invocation.getArgument(0);
-                if (criteria.getSubscriptions() != null && criteria.getSubscriptions().contains("sub0")) {
-                    return List.of(federated);
-                }
-                if (criteria.getSubscriptions() != null && criteria.getSubscriptions().contains("sub3")) {
-                    return List.of(federated, chunk1Only);
-                }
-                return List.of();
-            });
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenAnswer(invocation -> {
+                        var criteria =
+                                (io.gravitee.repository.management.api.search.ApiKeyCriteria) invocation.getArgument(0);
+                        if (criteria.getSubscriptions() != null
+                                && criteria.getSubscriptions().contains("sub0")) {
+                            return List.of(federated);
+                        }
+                        if (criteria.getSubscriptions() != null
+                                && criteria.getSubscriptions().contains("sub3")) {
+                            return List.of(federated, chunk1Only);
+                        }
+                        return List.of();
+                    });
             // Each (repoKey, gatewaySub) pair maps to a distinct gateway ApiKey.
-            when(apiKeyMapper.to(federated, gatewaySubs.get(0))).thenReturn(
-                ApiKey.builder().id("k-fed-sub0").api(API_1).subscription("sub0").build()
-            );
-            when(apiKeyMapper.to(federated, gatewaySubs.get(3))).thenReturn(
-                ApiKey.builder().id("k-fed-sub3").api(API_1).subscription("sub3").build()
-            );
-            when(apiKeyMapper.to(chunk1Only, gatewaySubs.get(4))).thenReturn(
-                ApiKey.builder().id("k-chunk1-sub4").api(API_1).subscription("sub4").build()
-            );
+            when(apiKeyMapper.to(federated, gatewaySubs.get(0)))
+                    .thenReturn(ApiKey.builder()
+                            .id("k-fed-sub0")
+                            .api(API_1)
+                            .subscription("sub0")
+                            .build());
+            when(apiKeyMapper.to(federated, gatewaySubs.get(3)))
+                    .thenReturn(ApiKey.builder()
+                            .id("k-fed-sub3")
+                            .api(API_1)
+                            .subscription("sub3")
+                            .build());
+            when(apiKeyMapper.to(chunk1Only, gatewaySubs.get(4)))
+                    .thenReturn(ApiKey.builder()
+                            .id("k-chunk1-sub4")
+                            .api(API_1)
+                            .subscription("sub4")
+                            .build());
 
             localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
-            // With dedup: federated processed once → emits 2 mapped keys (sub0, sub3) + chunk1Only's 1 = 3 register calls.
-            // Without dedup: federated processed in both chunks → 4 federated mappings + 1 chunk1Only = 5 register calls.
+            // With dedup: federated processed once → emits 2 mapped keys (sub0, sub3) + chunk1Only's 1 = 3 register
+            // calls.
+            // Without dedup: federated processed in both chunks → 4 federated mappings + 1 chunk1Only = 5 register
+            // calls.
             verify(apiKeyService, org.mockito.Mockito.times(3)).register(any(ApiKey.class));
         }
 
         @Test
         void throws_when_repository_fails() throws TechnicalException {
-            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenThrow(new TechnicalException("DB error"));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS)))
+                    .thenThrow(new TechnicalException("DB error"));
 
-            var thrown = catchThrowable(() -> cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).blockingAwait());
+            var thrown = catchThrowable(
+                    () -> cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).blockingAwait());
 
             assertThat(thrown)
-                .isInstanceOf(SyncException.class)
-                .hasMessageContaining("Error occurred when retrieving subscriptions for API Product");
+                    .isInstanceOf(SyncException.class)
+                    .hasMessageContaining("Error occurred when retrieving subscriptions for API Product");
             assertThat(thrown.getCause()).isInstanceOf(TechnicalException.class);
         }
     }
@@ -267,7 +304,8 @@ class ApiProductSubscriptionRefresherTest {
         }
 
         @Test
-        void evicts_subscriptions_and_api_keys_of_the_product_without_hitting_the_repository() throws TechnicalException {
+        void evicts_subscriptions_and_api_keys_of_the_product_without_hitting_the_repository()
+                throws TechnicalException {
             cut.unregisterByApiProduct(PRODUCT_1).test().assertComplete();
 
             verify(subscriptionService).unregisterByApiProductId(PRODUCT_1);
@@ -290,9 +328,13 @@ class ApiProductSubscriptionRefresherTest {
             var linkageError = new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3");
             doThrow(linkageError).when(subscriptionService).unregisterByApiProductId(PRODUCT_1);
 
-            var thrown = catchThrowable(() -> cut.unregisterByApiProduct(PRODUCT_1).blockingAwait());
+            var thrown =
+                    catchThrowable(() -> cut.unregisterByApiProduct(PRODUCT_1).blockingAwait());
 
-            assertThat(thrown).isInstanceOf(SyncException.class).hasMessageContaining(PRODUCT_1).hasCause(linkageError);
+            assertThat(thrown)
+                    .isInstanceOf(SyncException.class)
+                    .hasMessageContaining(PRODUCT_1)
+                    .hasCause(linkageError);
             verify(apiKeyService, never()).unregisterByApiProductId(any());
         }
 
@@ -305,14 +347,16 @@ class ApiProductSubscriptionRefresherTest {
             var failure = new IllegalStateException("subscription cache unavailable");
             doThrow(failure).when(subscriptionService).unregisterByApiProductId(PRODUCT_1);
 
-            var thrown = catchThrowable(() -> cut.unregisterByApiProduct(PRODUCT_1).blockingAwait());
+            var thrown =
+                    catchThrowable(() -> cut.unregisterByApiProduct(PRODUCT_1).blockingAwait());
 
             assertThat(thrown).isSameAs(failure);
             verify(apiKeyService, never()).unregisterByApiProductId(any());
         }
     }
 
-    private static io.gravitee.repository.management.model.Subscription productSubscription(String id, String plan, String env) {
+    private static io.gravitee.repository.management.model.Subscription productSubscription(
+            String id, String plan, String env) {
         var s = new io.gravitee.repository.management.model.Subscription();
         s.setId(id);
         s.setReferenceId(PRODUCT_1);
@@ -323,7 +367,8 @@ class ApiProductSubscriptionRefresherTest {
         return s;
     }
 
-    private static io.gravitee.repository.management.model.ApiKey productApiKey(String id, String env, String subscriptionId) {
+    private static io.gravitee.repository.management.model.ApiKey productApiKey(
+            String id, String env, String subscriptionId) {
         var k = new io.gravitee.repository.management.model.ApiKey();
         k.setId(id);
         k.setKey("key-" + id);

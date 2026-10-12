@@ -37,20 +37,18 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AnalyticsRequestPipelineConditionsNotAppliedTest {
 
-    private static final FilterCondition DECISIONS_ONLY = new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION"));
-    private static final FilterCondition HTTP_STATUS = new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("500"));
+    private static final FilterCondition DECISIONS_ONLY =
+            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION"));
+    private static final FilterCondition HTTP_STATUS =
+            new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("500"));
 
     private final AnalyticsRequestPipeline pipeline = new AnalyticsRequestPipeline(
-        new ObservabilityFilterValidator(new SpiFilterRegistry()),
-        new AccessibleApiScopeDomainService()
-    );
+            new ObservabilityFilterValidator(new SpiFilterRegistry()), new AccessibleApiScopeDomainService());
 
     @Test
     void should_report_a_record_type_that_does_not_select_the_metric() {
         var notApplied = pipeline.conditionsNotApplied(
-            List.of(DECISIONS_ONLY),
-            List.of(metric("HTTP_REQUESTS"), metric("AUTHZ_DECISIONS"))
-        );
+                List.of(DECISIONS_ONLY), List.of(metric("HTTP_REQUESTS"), metric("AUTHZ_DECISIONS")));
 
         assertThat(notApplied).isEqualTo(Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE")));
     }
@@ -59,24 +57,28 @@ class AnalyticsRequestPipelineConditionsNotAppliedTest {
     void should_read_every_value_of_an_in_condition() {
         var both = new FilterCondition("RECORD_TYPE", FilterOperator.IN, List.of("REQUEST", "AUTHZ_DECISION"));
 
-        assertThat(pipeline.conditionsNotApplied(List.of(both), List.of(metric("HTTP_REQUESTS"), metric("AUTHZ_PERMITS")))).isEmpty();
+        assertThat(pipeline.conditionsNotApplied(
+                        List.of(both), List.of(metric("HTTP_REQUESTS"), metric("AUTHZ_PERMITS"))))
+                .isEmpty();
     }
 
     @Test
     void should_count_message_and_kafka_metrics_as_requests() {
         var requestsOnly = new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("REQUEST"));
 
-        assertThat(
-            pipeline.conditionsNotApplied(
-                List.of(requestsOnly),
-                List.of(metric("MESSAGES"), metric("NATIVE_MESSAGES_PRODUCED_DOWNSTREAM"), metric("AUTHZ_EVAL_DURATION"))
-            )
-        ).isEqualTo(Map.of("AUTHZ_EVAL_DURATION", List.of("RECORD_TYPE")));
+        assertThat(pipeline.conditionsNotApplied(
+                        List.of(requestsOnly),
+                        List.of(
+                                metric("MESSAGES"),
+                                metric("NATIVE_MESSAGES_PRODUCED_DOWNSTREAM"),
+                                metric("AUTHZ_EVAL_DURATION"))))
+                .isEqualTo(Map.of("AUTHZ_EVAL_DURATION", List.of("RECORD_TYPE")));
     }
 
     @Test
     void should_report_every_metric_level_condition_after_the_record_type() {
-        var notApplied = pipeline.conditionsNotApplied(List.of(DECISIONS_ONLY), List.of(metric("HTTP_REQUESTS", HTTP_STATUS)));
+        var notApplied =
+                pipeline.conditionsNotApplied(List.of(DECISIONS_ONLY), List.of(metric("HTTP_REQUESTS", HTTP_STATUS)));
 
         assertThat(notApplied).isEqualTo(Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE", "HTTP_STATUS")));
     }
@@ -86,9 +88,7 @@ class AnalyticsRequestPipelineConditionsNotAppliedTest {
         var plan = new FilterCondition("PLAN", FilterOperator.EQ, List.of("plan-1"));
 
         var notApplied = pipeline.conditionsNotApplied(
-            List.of(),
-            List.of(metric("HTTP_REQUESTS", HTTP_STATUS), metric("HTTP_REQUESTS", plan, HTTP_STATUS))
-        );
+                List.of(), List.of(metric("HTTP_REQUESTS", HTTP_STATUS), metric("HTTP_REQUESTS", plan, HTTP_STATUS)));
 
         assertThat(notApplied).isEqualTo(Map.of("HTTP_REQUESTS", List.of("HTTP_STATUS", "PLAN")));
     }
@@ -97,25 +97,27 @@ class AnalyticsRequestPipelineConditionsNotAppliedTest {
     void should_refuse_a_metric_level_condition_the_catalog_refuses() {
         var unknown = new FilterCondition("NOT_A_FILTER", FilterOperator.EQ, List.of("x"));
 
-        assertThatThrownBy(() -> pipeline.conditionsNotApplied(List.of(), List.of(metric("HTTP_REQUESTS", unknown)))).isInstanceOf(
-            UnsupportedObservabilityFilterException.class
-        );
+        assertThatThrownBy(() -> pipeline.conditionsNotApplied(List.of(), List.of(metric("HTTP_REQUESTS", unknown))))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class);
     }
 
     @Test
     void should_report_nothing_without_a_record_type_or_metric_level_condition() {
-        assertThat(pipeline.conditionsNotApplied(List.of(HTTP_STATUS), List.of(metric("HTTP_REQUESTS")))).isEmpty();
+        assertThat(pipeline.conditionsNotApplied(List.of(HTTP_STATUS), List.of(metric("HTTP_REQUESTS"))))
+                .isEmpty();
     }
 
     /** The decision metrics are the ones the engine reads from decision records: its authz query service's. */
     @Test
     void should_class_as_decisions_exactly_the_metrics_the_engine_reads_from_decision_records() {
-        var decisionMetrics = new AuthzAnalyticsQueryService(null).metrics().stream().map(Enum::name).toList();
+        var decisionMetrics = new AuthzAnalyticsQueryService(null)
+                .metrics().stream().map(Enum::name).toList();
 
-        assertThat(AnalyticsRequestPipeline.AUTHZ_DECISION_METRICS).containsExactlyInAnyOrderElementsOf(decisionMetrics);
-        assertThat(decisionMetrics).allSatisfy(name ->
-            assertThat(AnalyticsRequestPipeline.recordTypeOf(name)).isEqualTo(RecordType.AUTHZ_DECISION)
-        );
+        assertThat(AnalyticsRequestPipeline.AUTHZ_DECISION_METRICS)
+                .containsExactlyInAnyOrderElementsOf(decisionMetrics);
+        assertThat(decisionMetrics)
+                .allSatisfy(name ->
+                        assertThat(AnalyticsRequestPipeline.recordTypeOf(name)).isEqualTo(RecordType.AUTHZ_DECISION));
     }
 
     private static MetricConditions metric(String name, FilterCondition... conditions) {

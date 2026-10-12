@@ -113,7 +113,8 @@ class SearchMetricsResponseAdapterTest extends AbstractAdapterTest {
             assertThat(metrics.getApiId()).isEqualTo("2ebe3deb-1859-4d5b-be3d-eb1859dd5b16");
             assertThat(metrics.getRequestId()).isEqualTo("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb");
             assertThat(metrics.getTransactionId()).isEqualTo("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb");
-            assertThat(metrics.getClientIdentifier()).isEqualTo("b6cf5bd6081fb775fc3f89927e582d7e945f955c35b73a07879d75bb4ea96a01");
+            assertThat(metrics.getClientIdentifier())
+                    .isEqualTo("b6cf5bd6081fb775fc3f89927e582d7e945f955c35b73a07879d75bb4ea96a01");
             assertThat(metrics.getStatus()).isEqualTo(202);
             assertThat(metrics.getGatewayResponseTime()).isEqualTo(19);
             assertThat(metrics.getEndpoint()).isEqualTo("https://api.gravitee.io/echo");

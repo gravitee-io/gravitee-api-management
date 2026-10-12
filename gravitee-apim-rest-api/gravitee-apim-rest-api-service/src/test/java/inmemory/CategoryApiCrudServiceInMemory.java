@@ -45,17 +45,15 @@ public class CategoryApiCrudServiceInMemory implements CategoryApiCrudService, I
 
     @Override
     public Optional<ApiCategoryOrder> findById(String apiId, String categoryId) {
-        return storage
-            .stream()
-            .filter(
-                apiCategoryOrder ->
-                    Objects.equals(apiId, apiCategoryOrder.getApiId()) && Objects.equals(categoryId, apiCategoryOrder.getCategoryId())
-            )
-            .findFirst();
+        return storage.stream()
+                .filter(apiCategoryOrder -> Objects.equals(apiId, apiCategoryOrder.getApiId())
+                        && Objects.equals(categoryId, apiCategoryOrder.getCategoryId()))
+                .findFirst();
     }
 
     @Override
     public ApiCategoryOrder get(String apiId, String categoryId) {
-        return this.findById(apiId, categoryId).orElseThrow(() -> new ApiAndCategoryNotAssociatedException(apiId, categoryId));
+        return this.findById(apiId, categoryId)
+                .orElseThrow(() -> new ApiAndCategoryNotAssociatedException(apiId, categoryId));
     }
 }

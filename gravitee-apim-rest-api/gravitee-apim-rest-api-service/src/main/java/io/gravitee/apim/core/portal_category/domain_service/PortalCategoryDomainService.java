@@ -51,10 +51,8 @@ public class PortalCategoryDomainService {
 
     // Mirrors the classic Category behavior: title uniqueness is checked on create only, not on update.
     public void validateTitleUniqueness(String environmentId, String title) {
-        var alreadyExists = portalCategoryQueryService
-            .findByEnvironmentId(environmentId)
-            .stream()
-            .anyMatch(category -> category.getTitle().equalsIgnoreCase(title));
+        var alreadyExists = portalCategoryQueryService.findByEnvironmentId(environmentId).stream()
+                .anyMatch(category -> category.getTitle().equalsIgnoreCase(title));
 
         if (alreadyExists) {
             throw new PortalCategoryTitleAlreadyExistsException(title);
@@ -63,8 +61,8 @@ public class PortalCategoryDomainService {
 
     public PortalCategory findByIdAndEnvironmentId(String environmentId, PortalCategoryId id) {
         return portalCategoryCrudService
-            .get(id)
-            .filter(portalCategory -> environmentId.equals(portalCategory.getEnvironmentId()))
-            .orElseThrow(() -> new PortalCategoryNotFoundException(id.toString()));
+                .get(id)
+                .filter(portalCategory -> environmentId.equals(portalCategory.getEnvironmentId()))
+                .orElseThrow(() -> new PortalCategoryNotFoundException(id.toString()));
     }
 }

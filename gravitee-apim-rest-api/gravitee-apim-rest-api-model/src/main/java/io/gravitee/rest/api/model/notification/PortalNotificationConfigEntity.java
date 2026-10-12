@@ -61,22 +61,16 @@ public class PortalNotificationConfigEntity {
     }
 
     public boolean isDefaultEmpty() {
-        return (
-            (hooks == null || hooks.isEmpty()) &&
-            (groups == null || groups.isEmpty()) &&
-            (user != null && !user.isEmpty()) &&
-            (referenceType != null && !referenceType.isEmpty()) &&
-            (referenceId != null && !referenceId.isEmpty()) &&
-            (organizationId != null && !organizationId.isEmpty())
-        );
+        return ((hooks == null || hooks.isEmpty())
+                && (groups == null || groups.isEmpty())
+                && (user != null && !user.isEmpty())
+                && (referenceType != null && !referenceType.isEmpty())
+                && (referenceId != null && !referenceId.isEmpty())
+                && (organizationId != null && !organizationId.isEmpty()));
     }
 
     public static PortalNotificationConfigEntity newDefaultEmpty(
-        String user,
-        String referenceType,
-        String referenceId,
-        String organizationId
-    ) {
+            String user, String referenceType, String referenceId, String organizationId) {
         if (user == null || user.isEmpty()) {
             throw new IllegalArgumentException("User must not be empty");
         }
@@ -105,11 +99,9 @@ public class PortalNotificationConfigEntity {
         if (this == o) return true;
         if (!(o instanceof PortalNotificationConfigEntity)) return false;
         PortalNotificationConfigEntity that = (PortalNotificationConfigEntity) o;
-        return (
-            Objects.equals(referenceType, that.referenceType) &&
-            Objects.equals(referenceId, that.referenceId) &&
-            Objects.equals(user, that.user)
-        );
+        return (Objects.equals(referenceType, that.referenceType)
+                && Objects.equals(referenceId, that.referenceId)
+                && Objects.equals(user, that.user));
     }
 
     @Override

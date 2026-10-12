@@ -29,20 +29,18 @@ public class PersistentMockEndpointConnector extends MockEndpointConnector {
 
     private final MessageStorage messageStorage;
 
-    public PersistentMockEndpointConnector(MockEndpointConnectorConfiguration configuration, MessageStorage messageStorage) {
+    public PersistentMockEndpointConnector(
+            MockEndpointConnectorConfiguration configuration, MessageStorage messageStorage) {
         super(configuration);
         this.messageStorage = messageStorage;
     }
 
     @Override
     public Completable publish(HttpExecutionContext ctx) {
-        return Completable.defer(() ->
-            ctx
-                .request()
-                .onMessage(message -> {
+        return Completable.defer(() -> ctx.request().onMessage(message -> {
                     messageStorage.subject().onNext(message);
                     return Maybe.just(message);
-                })
-        ).andThen(super.publish(ctx));
+                }))
+                .andThen(super.publish(ctx));
     }
 }

@@ -65,26 +65,29 @@ public class DebugApiContextHandlerFactoryTest {
 
     @Test
     public void building_v3ExecutionContextFactory_should_put_ApiTemplateVariableProvider_in_context() {
-        ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
-        when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class)).thenReturn(
-            Map.of(ApiTemplateVariableProviderFactory.class.getName(), apiTemplateVariableProviderFactory)
-        );
-        when(dictionaryManager.createTemplateVariableProvider(any())).thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
+        ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory =
+                mock(ApiTemplateVariableProviderFactory.class);
+        when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class))
+                .thenReturn(
+                        Map.of(ApiTemplateVariableProviderFactory.class.getName(), apiTemplateVariableProviderFactory));
+        when(dictionaryManager.createTemplateVariableProvider(any()))
+                .thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
 
         V3ExecutionContextFactory executionContextFactory = debugApiContextHandlerFactory.v3ExecutionContextFactory(
-            mock(Api.class),
-            componentProvider,
-            referenceRegister
-        );
+                mock(Api.class), componentProvider, referenceRegister);
 
         assertTrue(executionContextFactory instanceof DebugExecutionContextFactory);
-        List<TemplateVariableProvider> providers = (List<TemplateVariableProvider>) getField(
-            getField(executionContextFactory, "delegate"),
-            "providers"
-        );
+        List<TemplateVariableProvider> providers =
+                (List<TemplateVariableProvider>) getField(getField(executionContextFactory, "delegate"), "providers");
         assertEquals(3, providers.size());
         assertTrue(providers.contains(referenceRegister));
-        assertTrue(providers.stream().filter(ApiTemplateVariableProvider.class::isInstance).findAny().isPresent());
-        assertTrue(providers.stream().filter(EnvironmentDictionaryTemplateVariableProvider.class::isInstance).findAny().isPresent());
+        assertTrue(providers.stream()
+                .filter(ApiTemplateVariableProvider.class::isInstance)
+                .findAny()
+                .isPresent());
+        assertTrue(providers.stream()
+                .filter(EnvironmentDictionaryTemplateVariableProvider.class::isInstance)
+                .findAny()
+                .isPresent());
     }
 }

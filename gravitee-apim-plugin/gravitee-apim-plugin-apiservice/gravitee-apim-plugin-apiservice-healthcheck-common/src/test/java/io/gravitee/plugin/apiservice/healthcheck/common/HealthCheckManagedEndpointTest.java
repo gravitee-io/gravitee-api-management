@@ -86,7 +86,9 @@ class HealthCheckManagedEndpointTest {
         when(node.id()).thenReturn("node.id");
         when(node.hostname()).thenReturn("node.hostname");
         when(node.application()).thenReturn("node.application");
-        when(node.metadata()).thenReturn(Map.ofEntries(Map.entry("tenant", "tenant-id"), Map.entry("installation", "installation-id")));
+        when(node.metadata())
+                .thenReturn(
+                        Map.ofEntries(Map.entry("tenant", "tenant-id"), Map.entry("installation", "installation-id")));
     }
 
     @Test
@@ -95,9 +97,9 @@ class HealthCheckManagedEndpointTest {
         final HealthCheckManagedEndpoint cut = buildHCManagedEndpoint();
 
         final EndpointStatus endpointStatus = EndpointStatus.forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
-            .on(TIMESTAMP)
-            .step(EndpointStatus.forStep(DEFAULT_STEP).build())
-            .build();
+                .on(TIMESTAMP)
+                .step(EndpointStatus.forStep(DEFAULT_STEP).build())
+                .build();
 
         for (int i = 0; i < DEFAULT_FAILURE_THRESHOLD; i++) {
             cut.reportStatus(false, endpointStatus);
@@ -114,9 +116,9 @@ class HealthCheckManagedEndpointTest {
         final HealthCheckManagedEndpoint cut = buildHCManagedEndpoint();
 
         final EndpointStatus endpointStatus = EndpointStatus.forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
-            .on(TIMESTAMP)
-            .step(EndpointStatus.forStep(DEFAULT_STEP).build())
-            .build();
+                .on(TIMESTAMP)
+                .step(EndpointStatus.forStep(DEFAULT_STEP).build())
+                .build();
 
         cut.reportStatus(false, endpointStatus);
         cut.reportStatus(true, endpointStatus);
@@ -128,25 +130,23 @@ class HealthCheckManagedEndpointTest {
         SoftAssertions.assertSoftly(softly -> {
             var event = eventCaptor.getValue();
 
-            softly
-                .assertThat(event.properties())
-                .containsEntry("tenant", "tenant-id")
-                .containsEntry("installation", "installation-id")
-                .containsEntry("organization", "*")
-                .containsEntry("environment", "*");
+            softly.assertThat(event.properties())
+                    .containsEntry("tenant", "tenant-id")
+                    .containsEntry("installation", "installation-id")
+                    .containsEntry("organization", "*")
+                    .containsEntry("environment", "*");
         });
     }
 
     private HealthCheckManagedEndpoint buildHCManagedEndpoint() {
         return new HealthCheckManagedEndpoint(
-            api,
-            node,
-            managedEndpoint,
-            endpointManager,
-            reporterService,
-            alertEventProducer,
-            HealthCheckManagedEndpoint.DEFAULT_SUCCESS_THRESHOLD,
-            DEFAULT_FAILURE_THRESHOLD
-        );
+                api,
+                node,
+                managedEndpoint,
+                endpointManager,
+                reporterService,
+                alertEventProducer,
+                HealthCheckManagedEndpoint.DEFAULT_SUCCESS_THRESHOLD,
+                DEFAULT_FAILURE_THRESHOLD);
     }
 }

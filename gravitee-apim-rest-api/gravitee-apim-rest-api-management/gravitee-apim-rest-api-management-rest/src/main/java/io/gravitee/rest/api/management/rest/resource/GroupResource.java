@@ -70,12 +70,11 @@ public class GroupResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @Operation(summary = "Get a group")
     @ApiResponse(
-        responseCode = "200",
-        description = "Group definition",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class))
-    )
+            responseCode = "200",
+            description = "Group definition",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)})
     public GroupEntity getGroup() {
         return groupService.findById(GraviteeContext.getExecutionContext(), group);
     }
@@ -84,7 +83,7 @@ public class GroupResource extends AbstractResource {
     @Operation(summary = "Delete an existing group")
     @ApiResponse(responseCode = "204", description = "Group successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE)})
     public Response deleteGroup() {
         checkRights();
         groupService.delete(GraviteeContext.getExecutionContext(), group);
@@ -96,31 +95,26 @@ public class GroupResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @Operation(summary = "Update an existing group")
     @ApiResponse(
-        responseCode = "200",
-        description = "Group successfully updated",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class))
-    )
+            responseCode = "200",
+            description = "Group successfully updated",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
-        }
-    )
-    public GroupEntity updateGroup(@Parameter(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
+    })
+    public GroupEntity updateGroup(
+            @Parameter(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
         final GroupEntity groupEntity = checkRights();
         // check if user is a 'simple group admin' or a platform admin
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !permissionService.hasPermission(
+        if (!permissionService.hasPermission(
                 executionContext,
                 RolePermission.ENVIRONMENT_GROUP,
                 GraviteeContext.getCurrentEnvironment(),
                 CREATE,
                 UPDATE,
-                DELETE
-            )
-        ) {
+                DELETE)) {
             updateGroupEntity.setMaxInvitation(groupEntity.getMaxInvitation());
             updateGroupEntity.setLockApiRole(groupEntity.isLockApiRole());
             updateGroupEntity.setLockApiProductRole(groupEntity.isLockApiProductRole());
@@ -128,13 +122,19 @@ public class GroupResource extends AbstractResource {
             updateGroupEntity.setSystemInvitation(groupEntity.isSystemInvitation());
             updateGroupEntity.setEmailInvitation(groupEntity.isEmailInvitation());
             if (groupEntity.isLockApiRole()) {
-                updateGroupEntity.getRoles().put(RoleScope.API, groupEntity.getRoles().get(RoleScope.API));
+                updateGroupEntity
+                        .getRoles()
+                        .put(RoleScope.API, groupEntity.getRoles().get(RoleScope.API));
             }
             if (groupEntity.isLockApiProductRole()) {
-                updateGroupEntity.getRoles().put(RoleScope.API_PRODUCT, groupEntity.getRoles().get(RoleScope.API_PRODUCT));
+                updateGroupEntity
+                        .getRoles()
+                        .put(RoleScope.API_PRODUCT, groupEntity.getRoles().get(RoleScope.API_PRODUCT));
             }
             if (groupEntity.isLockApplicationRole()) {
-                updateGroupEntity.getRoles().put(RoleScope.APPLICATION, groupEntity.getRoles().get(RoleScope.APPLICATION));
+                updateGroupEntity
+                        .getRoles()
+                        .put(RoleScope.APPLICATION, groupEntity.getRoles().get(RoleScope.APPLICATION));
             }
         }
         return groupService.update(executionContext, group, updateGroupEntity);
@@ -145,31 +145,42 @@ public class GroupResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @Operation(summary = "List APIs, applications or API Products linked to this group")
     @ApiResponse(
-        responseCode = "200",
-        description = "Group memberships",
-        content = @Content(
-            mediaType = APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(oneOf = { ApiEntity.class, ApplicationEntity.class, ApiProductEntity.class }))
-        )
-    )
-    @ApiResponse(responseCode = "204", description = "Group exist but there is no content to return because the type was not provided")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+            responseCode = "200",
+            description = "Group memberships",
+            content =
+                    @Content(
+                            mediaType = APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema =
+                                                    @Schema(
+                                                            oneOf = {
+                                                                ApiEntity.class,
+                                                                ApplicationEntity.class,
+                                                                ApiProductEntity.class
+                                                            }))))
+    @ApiResponse(
+            responseCode = "204",
+            description = "Group exist but there is no content to return because the type was not provided")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)})
     public Response getGroupMemberships(
-        @Parameter(
-            in = ParameterIn.QUERY,
-            description = "Type of the group member",
-            schema = @Schema(allowableValues = { "api", "application", "api_product" })
-        ) @QueryParam("type") String type
-    ) {
+            @Parameter(
+                            in = ParameterIn.QUERY,
+                            description = "Type of the group member",
+                            schema = @Schema(allowableValues = {"api", "application", "api_product"}))
+                    @QueryParam("type")
+                    String type) {
         // Check that group belongs to current environment
         groupService.findById(GraviteeContext.getExecutionContext(), group);
 
         if ("api".equalsIgnoreCase(type)) {
-            return Response.ok(groupService.getApis(GraviteeContext.getCurrentEnvironment(), group)).build();
+            return Response.ok(groupService.getApis(GraviteeContext.getCurrentEnvironment(), group))
+                    .build();
         } else if ("application".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApplications(group)).build();
         } else if ("api_product".equalsIgnoreCase(type)) {
-            return Response.ok(groupService.getApiProducts(GraviteeContext.getCurrentEnvironment(), group)).build();
+            return Response.ok(groupService.getApiProducts(GraviteeContext.getCurrentEnvironment(), group))
+                    .build();
         }
 
         return Response.noContent().build();
@@ -180,12 +191,11 @@ public class GroupResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @Operation(summary = "Associate a group to existing APIs or Applications")
     @ApiResponse(
-        responseCode = "200",
-        description = "Group successfully updated",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class))
-    )
+            responseCode = "200",
+            description = "Group successfully updated",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE)})
     public GroupEntity addGroupMember(@QueryParam("type") String type) {
         final GroupEntity groupEntity = checkRights();
 

@@ -80,10 +80,10 @@ class DebugExecutionContextTest {
     @Test
     public void shouldCallPostOnCreatedRequestPolicyStep() {
         debugExecutionContext
-            .prePolicyExecution("id", ExecutionPhase.REQUEST)
-            .andThen(debugExecutionContext.postPolicyExecution())
-            .test()
-            .assertResult();
+                .prePolicyExecution("id", ExecutionPhase.REQUEST)
+                .andThen(debugExecutionContext.postPolicyExecution())
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyRequestStep.class);
@@ -96,10 +96,10 @@ class DebugExecutionContextTest {
     @Test
     public void shouldCallErrorOnCreatedRequestPolicyStep() {
         debugExecutionContext
-            .prePolicyExecution("id", ExecutionPhase.REQUEST)
-            .andThen(debugExecutionContext.postPolicyExecution(new RuntimeException()))
-            .test()
-            .assertResult();
+                .prePolicyExecution("id", ExecutionPhase.REQUEST)
+                .andThen(debugExecutionContext.postPolicyExecution(new RuntimeException()))
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyRequestStep.class);
@@ -112,10 +112,10 @@ class DebugExecutionContextTest {
     @Test
     public void shouldCallErrorWithFailureOnCreatedRequestPolicyStep() {
         debugExecutionContext
-            .prePolicyExecution("id", ExecutionPhase.REQUEST)
-            .andThen(debugExecutionContext.postPolicyExecution(new ExecutionFailure(400)))
-            .test()
-            .assertResult();
+                .prePolicyExecution("id", ExecutionPhase.REQUEST)
+                .andThen(debugExecutionContext.postPolicyExecution(new ExecutionFailure(400)))
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyRequestStep.class);
@@ -128,10 +128,10 @@ class DebugExecutionContextTest {
     @Test
     public void shouldCallPostOnCreatedResponsePolicyStep() {
         debugExecutionContext
-            .prePolicyExecution("id", ExecutionPhase.RESPONSE)
-            .andThen(debugExecutionContext.postPolicyExecution())
-            .test()
-            .assertResult();
+                .prePolicyExecution("id", ExecutionPhase.RESPONSE)
+                .andThen(debugExecutionContext.postPolicyExecution())
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyResponseStep.class);
@@ -144,10 +144,10 @@ class DebugExecutionContextTest {
     @Test
     public void shouldCallErrorOnCreatedResponsePolicyStep() {
         debugExecutionContext
-            .prePolicyExecution("id", ExecutionPhase.RESPONSE)
-            .andThen(debugExecutionContext.postPolicyExecution(new RuntimeException()))
-            .test()
-            .assertResult();
+                .prePolicyExecution("id", ExecutionPhase.RESPONSE)
+                .andThen(debugExecutionContext.postPolicyExecution(new RuntimeException()))
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyResponseStep.class);
@@ -160,10 +160,10 @@ class DebugExecutionContextTest {
     @Test
     public void shouldCallErrorWithFailureOnCreatedResponsePolicyStep() {
         debugExecutionContext
-            .prePolicyExecution("id", ExecutionPhase.RESPONSE)
-            .andThen(debugExecutionContext.postPolicyExecution(new ExecutionFailure(400)))
-            .test()
-            .assertResult();
+                .prePolicyExecution("id", ExecutionPhase.RESPONSE)
+                .andThen(debugExecutionContext.postPolicyExecution(new ExecutionFailure(400)))
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyResponseStep.class);
@@ -175,13 +175,19 @@ class DebugExecutionContextTest {
 
     @Test
     public void shouldNotCreatePolicyStepWithAsyncRequestExecutionMode() {
-        debugExecutionContext.prePolicyExecution("id", ExecutionPhase.MESSAGE_REQUEST).test().assertResult();
+        debugExecutionContext
+                .prePolicyExecution("id", ExecutionPhase.MESSAGE_REQUEST)
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(0);
     }
 
     @Test
     public void shouldCreateRequestPolicyStepAndCallPre() {
-        debugExecutionContext.prePolicyExecution("id", ExecutionPhase.REQUEST).test().assertResult();
+        debugExecutionContext
+                .prePolicyExecution("id", ExecutionPhase.REQUEST)
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyRequestStep.class);
@@ -191,7 +197,10 @@ class DebugExecutionContextTest {
 
     @Test
     public void shouldCreateResponsePolicyStepAndCallPre() {
-        debugExecutionContext.prePolicyExecution("id", ExecutionPhase.RESPONSE).test().assertResult();
+        debugExecutionContext
+                .prePolicyExecution("id", ExecutionPhase.RESPONSE)
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(1);
         PolicyStep<?> currentDebugStep = debugExecutionContext.getCurrentDebugStep();
         assertThat(currentDebugStep).isInstanceOf(PolicyResponseStep.class);
@@ -201,7 +210,10 @@ class DebugExecutionContextTest {
 
     @Test
     public void shouldNotCreatePolicyStepWithAsyncResponseExecutionMode() {
-        debugExecutionContext.prePolicyExecution("id", ExecutionPhase.MESSAGE_RESPONSE).test().assertResult();
+        debugExecutionContext
+                .prePolicyExecution("id", ExecutionPhase.MESSAGE_RESPONSE)
+                .test()
+                .assertResult();
         assertThat(debugExecutionContext.getDebugSteps().size()).isEqualTo(0);
     }
 }

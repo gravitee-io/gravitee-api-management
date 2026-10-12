@@ -64,20 +64,21 @@ public class RedisTestRepositoryConfiguration {
 
         MockEnvironment mockEnvironment = new MockEnvironment();
         mockEnvironment.setProperty(propertyPrefix + "host", redisContainer.getHost());
-        mockEnvironment.setProperty(propertyPrefix + "port", redisContainer.getFirstMappedPort().toString());
+        mockEnvironment.setProperty(
+                propertyPrefix + "port", redisContainer.getFirstMappedPort().toString());
 
         RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(
-            mockEnvironment,
-            Vertx.vertx(),
-            Scope.RATE_LIMIT.getName(),
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-        );
+                mockEnvironment,
+                Vertx.vertx(),
+                Scope.RATE_LIMIT.getName(),
+                Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA));
 
         return redisConnectionFactory.createRedisClient();
     }
 
     @Bean
-    public RedisRateLimitRepository redisRateLimitRepository(@Qualifier("redisRateLimitClient") RedisClient redisRateLimitClient) {
+    public RedisRateLimitRepository redisRateLimitRepository(
+            @Qualifier("redisRateLimitClient") RedisClient redisRateLimitClient) {
         return new RedisRateLimitRepository(redisRateLimitClient, 500);
     }
 
@@ -87,29 +88,24 @@ public class RedisTestRepositoryConfiguration {
 
         MockEnvironment mockEnvironment = new MockEnvironment();
         mockEnvironment.setProperty(propertyPrefix + "host", redisContainer.getHost());
-        mockEnvironment.setProperty(propertyPrefix + "port", redisContainer.getFirstMappedPort().toString());
+        mockEnvironment.setProperty(
+                propertyPrefix + "port", redisContainer.getFirstMappedPort().toString());
 
-        RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(
-            mockEnvironment,
-            Vertx.vertx(),
-            Scope.DISTRIBUTED_SYNC.getName(),
-            Map.of()
-        );
+        RedisConnectionFactory redisConnectionFactory =
+                new RedisConnectionFactory(mockEnvironment, Vertx.vertx(), Scope.DISTRIBUTED_SYNC.getName(), Map.of());
 
         return redisConnectionFactory.createRedisClient();
     }
 
     @Bean
     public RedisDistributedEventRepository redisDistributedEventRepository(
-        @Qualifier("redisDistributedSyncClient") RedisClient redisDistributedSyncClient
-    ) {
+            @Qualifier("redisDistributedSyncClient") RedisClient redisDistributedSyncClient) {
         return new RedisDistributedEventRepository(redisDistributedSyncClient);
     }
 
     @Bean
     public RedisDistributedSyncStateRepository redisDistributedSyncStateRepository(
-        @Qualifier("redisDistributedSyncClient") RedisClient redisDistributedSyncClient
-    ) {
+            @Qualifier("redisDistributedSyncClient") RedisClient redisDistributedSyncClient) {
         return new RedisDistributedSyncStateRepository(redisDistributedSyncClient);
     }
 }

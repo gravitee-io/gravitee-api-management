@@ -19,12 +19,20 @@ import java.util.Date;
 
 public interface GenericThemeEntity {
     String getId();
+
     String getName();
+
     ThemeType getType();
+
     Date getCreatedAt();
+
     Date getUpdatedAt();
+
     boolean isEnabled();
+
     String getLogo();
+
     String getOptionalLogo();
+
     String getFavicon();
 }

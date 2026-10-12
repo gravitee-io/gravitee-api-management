@@ -81,16 +81,14 @@ class UserDocumentSearcherPaginationStabilityTest {
 
     private List<UserEntity> someUsersWithACommonPrefix() {
         return IntStream.range(0, USER_COUNT)
-            .mapToObj(i ->
-                UserEntity.builder()
-                    .id("user-" + i)
-                    .lastname("svc-ci-local-" + i)
-                    .email("svc-ci-local-" + i + "@example.com")
-                    .source("gravitee")
-                    .sourceId("svc-ci-local-" + i)
-                    .build()
-            )
-            .collect(Collectors.toList());
+                .mapToObj(i -> UserEntity.builder()
+                        .id("user-" + i)
+                        .lastname("svc-ci-local-" + i)
+                        .email("svc-ci-local-" + i + "@example.com")
+                        .source("gravitee")
+                        .sourceId("svc-ci-local-" + i)
+                        .build())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -101,10 +99,13 @@ class UserDocumentSearcherPaginationStabilityTest {
      */
     private List<UserEntity> someUsersThatAllTieOnTheBrowsingSort() {
         return IntStream.range(0, USER_COUNT)
-            .mapToObj(i ->
-                UserEntity.builder().id("user-" + i).firstname("John").lastname("Doe").email("john.doe." + i + "@example.com").build()
-            )
-            .collect(Collectors.toList());
+                .mapToObj(i -> UserEntity.builder()
+                        .id("user-" + i)
+                        .firstname("John")
+                        .lastname("Doe")
+                        .email("john.doe." + i + "@example.com")
+                        .build())
+                .collect(Collectors.toList());
     }
 
     /** All documents are "type:user" with no other differentiating query term, so they tie on relevance score. */
@@ -116,7 +117,8 @@ class UserDocumentSearcherPaginationStabilityTest {
         return walkAllPages(searcher, query, null, totalHits);
     }
 
-    private List<String> walkAllPages(UserDocumentSearcher searcher, Query query, Sortable sort, long totalHits) throws Exception {
+    private List<String> walkAllPages(UserDocumentSearcher searcher, Query query, Sortable sort, long totalHits)
+            throws Exception {
         List<String> collected = new ArrayList<>();
         int pageCount = (int) Math.ceil((double) totalHits / PAGE_SIZE);
         for (int page = 1; page <= pageCount; page++) {
@@ -163,9 +165,9 @@ class UserDocumentSearcherPaginationStabilityTest {
         assertThat(firstPage.getHits()).isEqualTo(USER_COUNT);
         assertThat(allIdsAcrossAllPages).hasSize(USER_COUNT);
         assertThat(allIdsAcrossAllPages).doesNotHaveDuplicates();
-        assertThat(allIdsAcrossAllPages).containsExactlyInAnyOrderElementsOf(
-            users.stream().map(UserEntity::getId).collect(Collectors.toList())
-        );
+        assertThat(allIdsAcrossAllPages)
+                .containsExactlyInAnyOrderElementsOf(
+                        users.stream().map(UserEntity::getId).collect(Collectors.toList()));
     }
 
     @Test
@@ -206,9 +208,9 @@ class UserDocumentSearcherPaginationStabilityTest {
         List<String> allIdsAcrossAllPages = walkAllPages(nodeA, query, browsingSort, USER_COUNT);
         assertThat(allIdsAcrossAllPages).hasSize(USER_COUNT);
         assertThat(allIdsAcrossAllPages).doesNotHaveDuplicates();
-        assertThat(allIdsAcrossAllPages).containsExactlyInAnyOrderElementsOf(
-            users.stream().map(UserEntity::getId).collect(Collectors.toList())
-        );
+        assertThat(allIdsAcrossAllPages)
+                .containsExactlyInAnyOrderElementsOf(
+                        users.stream().map(UserEntity::getId).collect(Collectors.toList()));
     }
 
     /**
@@ -228,23 +230,23 @@ class UserDocumentSearcherPaginationStabilityTest {
         // hits (page * size) instead of Integer.MAX_VALUE.
         int largeUserCount = 2500;
         List<UserEntity> users = IntStream.range(0, largeUserCount)
-            .mapToObj(i -> {
-                // Every 250th user gets an extra "admin" token, so scores vary across the
-                // index instead of tying -- see the class-level javadoc above for why.
-                // firstname must be set too: UserDocumentTransformer only indexes
-                // FIELD_LASTNAME_FIRSTNAME (what the query below matches on) when both
-                // lastname and firstname are non-empty.
-                String lastname = (i % 250 == 0) ? "svc-ci-local-admin-" + i : "svc-ci-local-" + i;
-                return UserEntity.builder()
-                    .id("user-" + i)
-                    .firstname("ci")
-                    .lastname(lastname)
-                    .email("svc-ci-local-" + i + "@example.com")
-                    .source("gravitee")
-                    .sourceId("svc-ci-local-" + i)
-                    .build();
-            })
-            .collect(Collectors.toList());
+                .mapToObj(i -> {
+                    // Every 250th user gets an extra "admin" token, so scores vary across the
+                    // index instead of tying -- see the class-level javadoc above for why.
+                    // firstname must be set too: UserDocumentTransformer only indexes
+                    // FIELD_LASTNAME_FIRSTNAME (what the query below matches on) when both
+                    // lastname and firstname are non-empty.
+                    String lastname = (i % 250 == 0) ? "svc-ci-local-admin-" + i : "svc-ci-local-" + i;
+                    return UserEntity.builder()
+                            .id("user-" + i)
+                            .firstname("ci")
+                            .lastname(lastname)
+                            .email("svc-ci-local-" + i + "@example.com")
+                            .source("gravitee")
+                            .sourceId("svc-ci-local-" + i)
+                            .build();
+                })
+                .collect(Collectors.toList());
         UserDocumentSearcher searcher = indexUsersAndBuildSearcher(users);
 
         // FIELD_LASTNAME_FIRSTNAME is indexed as a single un-split token (SingleTokenTokenizerFactory,

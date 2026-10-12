@@ -29,37 +29,32 @@ public class InvalidFlowException extends ValidationDomainException {
 
     public static InvalidFlowException invalidEntrypoint(String flowName, Set<String> invalidEntrypoints) {
         return new InvalidFlowException(
-            "The flow [" + flowName + "] contains channel selector with invalid entrypoints",
-            withFlowName(flowName, Map.of("invalidEntrypoints", String.join(",", invalidEntrypoints)))
-        );
+                "The flow [" + flowName + "] contains channel selector with invalid entrypoints",
+                withFlowName(flowName, Map.of("invalidEntrypoints", String.join(",", invalidEntrypoints))));
     }
 
     public static InvalidFlowException invalidSelector(String flowName, ApiType apiType, Set<String> invalidSelectors) {
         return new InvalidFlowException(
-            "The flow [" + flowName + "] contains selectors that couldn't apply to " + apiType.getLabel() + " API",
-            withFlowName(flowName, Map.of("invalidSelectors", String.join(",", invalidSelectors)))
-        );
+                "The flow [" + flowName + "] contains selectors that couldn't apply to " + apiType.getLabel() + " API",
+                withFlowName(flowName, Map.of("invalidSelectors", String.join(",", invalidSelectors))));
     }
 
     public static InvalidFlowException missingPathOperator(String flowName) {
         return new InvalidFlowException(
-            "The flow [" + flowName + "] contains an HTTP selector with a missing pathOperator",
-            withFlowName(flowName, Map.of())
-        );
+                "The flow [" + flowName + "] contains an HTTP selector with a missing pathOperator",
+                withFlowName(flowName, Map.of()));
     }
 
     public static InvalidFlowException duplicatedSelector(String flowName, Set<String> duplicatedSelectors) {
         return new InvalidFlowException(
-            "The flow [" + flowName + "] contains duplicated selectors type",
-            withFlowName(flowName, Map.of("duplicatedSelectors", String.join(",", duplicatedSelectors)))
-        );
+                "The flow [" + flowName + "] contains duplicated selectors type",
+                withFlowName(flowName, Map.of("duplicatedSelectors", String.join(",", duplicatedSelectors))));
     }
 
     public static InvalidFlowException invalidWildcardPath(String flowName, String path) {
         return new InvalidFlowException(
-            "The flow [" + flowName + "] contains an HTTP selector with an invalid wildcard path",
-            withFlowName(flowName, Map.of("path", path))
-        );
+                "The flow [" + flowName + "] contains an HTTP selector with an invalid wildcard path",
+                withFlowName(flowName, Map.of("path", path)));
     }
 
     private static Map<String, String> withFlowName(String flowName, Map<String, String> parameters) {

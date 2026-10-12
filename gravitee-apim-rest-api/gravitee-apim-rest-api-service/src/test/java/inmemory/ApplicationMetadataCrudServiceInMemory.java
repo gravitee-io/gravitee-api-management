@@ -28,7 +28,7 @@ import java.util.OptionalInt;
  * @author GraviteeSource Team
  */
 public class ApplicationMetadataCrudServiceInMemory
-    implements ApplicationMetadataCrudService, InMemoryAlternative<ApplicationMetadataEntity> {
+        implements ApplicationMetadataCrudService, InMemoryAlternative<ApplicationMetadataEntity> {
 
     private final List<ApplicationMetadataEntity> storage = new ArrayList<>();
 
@@ -47,7 +47,8 @@ public class ApplicationMetadataCrudServiceInMemory
 
     @Override
     public ApplicationMetadataEntity update(UpdateApplicationMetadataEntity metadata) {
-        OptionalInt index = this.findIndex(this.storage, entity -> entity.getApplicationId().equals(metadata.getApplicationId()));
+        OptionalInt index =
+                this.findIndex(this.storage, entity -> entity.getApplicationId().equals(metadata.getApplicationId()));
         if (index.isPresent()) {
             ApplicationMetadataEntity entity = new ApplicationMetadataEntity();
             entity.setApplicationId(metadata.getApplicationId());
@@ -66,7 +67,8 @@ public class ApplicationMetadataCrudServiceInMemory
 
     @Override
     public void delete(ApplicationMetadataEntity metadata) {
-        OptionalInt index = this.findIndex(this.storage, entity -> entity.getApplicationId().equals(metadata.getApplicationId()));
+        OptionalInt index =
+                this.findIndex(this.storage, entity -> entity.getApplicationId().equals(metadata.getApplicationId()));
         if (index.isPresent()) {
             this.storage.remove(metadata);
             return;

@@ -31,9 +31,8 @@ public class SharedPolicyGroupHistoryCrudServiceImpl implements SharedPolicyGrou
     private final SharedPolicyGroupAdapter sharedPolicyGroupAdapter;
 
     public SharedPolicyGroupHistoryCrudServiceImpl(
-        @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
-        SharedPolicyGroupAdapter sharedPolicyGroupAdapter
-    ) {
+            @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
+            SharedPolicyGroupAdapter sharedPolicyGroupAdapter) {
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
         this.sharedPolicyGroupAdapter = sharedPolicyGroupAdapter;
     }
@@ -41,13 +40,15 @@ public class SharedPolicyGroupHistoryCrudServiceImpl implements SharedPolicyGrou
     @Override
     public SharedPolicyGroup create(SharedPolicyGroup sharedPolicyGroupEntity) {
         try {
-            var result = sharedPolicyGroupHistoryRepository.create(sharedPolicyGroupAdapter.fromEntity(sharedPolicyGroupEntity));
+            var result = sharedPolicyGroupHistoryRepository.create(
+                    sharedPolicyGroupAdapter.fromEntity(sharedPolicyGroupEntity));
             return sharedPolicyGroupAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to create a SharedPolicyGroup with id: %s", sharedPolicyGroupEntity.getId()),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to create a SharedPolicyGroup with id: %s",
+                            sharedPolicyGroupEntity.getId()),
+                    e);
         }
     }
 
@@ -57,9 +58,10 @@ public class SharedPolicyGroupHistoryCrudServiceImpl implements SharedPolicyGrou
             sharedPolicyGroupHistoryRepository.delete(sharedPolicyGroupId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to delete a SharedPolicyGroup with id: %s", sharedPolicyGroupId),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to delete a SharedPolicyGroup with id: %s",
+                            sharedPolicyGroupId),
+                    e);
         }
     }
 }

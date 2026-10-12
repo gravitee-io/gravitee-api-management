@@ -38,7 +38,8 @@ class SingleApikeyDeployableTest {
         apiKey.setId("id");
         apiKey.setApi("api");
         apiKey.setPlan("plan");
-        SingleApiKeyDeployable apikeyDeployable = SingleApiKeyDeployable.builder().apiKey(apiKey).build();
+        SingleApiKeyDeployable apikeyDeployable =
+                SingleApiKeyDeployable.builder().apiKey(apiKey).build();
 
         assertThat(apikeyDeployable.id()).isEqualTo("id");
         assertThat(apikeyDeployable.apiId()).isEqualTo("api");

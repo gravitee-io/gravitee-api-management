@@ -56,6 +56,7 @@ class GetDomainUseCaseTest {
     void should_propagate_upstream_errors() {
         when(amDirectoryClient.getDomain("O", "E", "missing")).thenThrow(new AmUpstreamException("not found", 404));
 
-        assertThatThrownBy(() -> useCase.execute(new GetDomainUseCase.Input("O", "E", "missing"))).isInstanceOf(AmUpstreamException.class);
+        assertThatThrownBy(() -> useCase.execute(new GetDomainUseCase.Input("O", "E", "missing")))
+                .isInstanceOf(AmUpstreamException.class);
     }
 }

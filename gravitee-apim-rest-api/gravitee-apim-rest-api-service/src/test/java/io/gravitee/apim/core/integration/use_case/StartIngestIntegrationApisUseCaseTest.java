@@ -147,7 +147,8 @@ class StartIngestIntegrationApisUseCaseTest {
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     ApiCategoryQueryServiceInMemory apiCategoryQueryService2 = new ApiCategoryQueryServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
-    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
+    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService =
+            new CreateCategoryApiDomainServiceInMemory();
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     A2aAgentFetcherInMemory a2aAgentFetcher = new A2aAgentFetcherInMemory();
@@ -160,117 +161,95 @@ class StartIngestIntegrationApisUseCaseTest {
     LicenseManager licenseManager = mock(LicenseManager.class);
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
 
-    AuditDomainService auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+    AuditDomainService auditDomainService =
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
     ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
-        auditDomainService,
-        groupQueryService,
-        membershipCrudService,
-        membershipQueryService,
-        roleQueryService,
-        userCrudService
-    );
+            auditDomainService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService);
 
     ApiIndexerDomainService apiIndexerDomainService = new ApiIndexerDomainService(
-        new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
-        apiPrimaryOwnerDomainService,
-        apiCategoryQueryService1,
-        indexer
-    );
+            new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+            apiPrimaryOwnerDomainService,
+            apiCategoryQueryService1,
+            indexer);
 
     GroupValidationService groupValidationService = new GroupValidationService(groupQueryService);
 
-    ValidateFederatedApiDomainService validateFederatedApi = new ValidateFederatedApiDomainService(
-        groupValidationService,
-        categoryDomainService
-    );
+    ValidateFederatedApiDomainService validateFederatedApi =
+            new ValidateFederatedApiDomainService(groupValidationService, categoryDomainService);
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
-    PlanValidatorDomainService planValidatorService = new PlanValidatorDomainService(
-        parametersQueryService,
-        policyValidationDomainService,
-        pageCrudService
-    );
-    FlowValidationDomainService flowValidationDomainService = new FlowValidationDomainService(
-        policyValidationDomainService,
-        entrypointConnectorPluginService
-    );
+    PlanValidatorDomainService planValidatorService =
+            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
+    FlowValidationDomainService flowValidationDomainService =
+            new FlowValidationDomainService(policyValidationDomainService, entrypointConnectorPluginService);
     inmemory.KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
     CreatePlanDomainService createPlanDomainService = new CreatePlanDomainService(
-        planValidatorService,
-        flowValidationDomainService,
-        planCrudService,
-        flowCrudService,
-        auditDomainService,
-        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
-        kafkaPortRanges
-    );
+            planValidatorService,
+            flowValidationDomainService,
+            planCrudService,
+            flowCrudService,
+            auditDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges);
     ApiPrimaryOwnerFactory apiPrimaryOwnerFactory = new ApiPrimaryOwnerFactory(
-        groupQueryService,
-        membershipQueryService,
-        parametersQueryService,
-        roleQueryService,
-        userCrudService
-    );
+            groupQueryService, membershipQueryService, parametersQueryService, roleQueryService, userCrudService);
 
-    PlanSynchronizationService planSynchronizationService = new PlanSynchronizationLegacyWrapper(synchronizationService);
-    PlanValidatorDomainService planValidatorDomainService = new PlanValidatorDomainService(
-        parametersQueryService,
-        policyValidationDomainService,
-        pageCrudService
-    );
+    PlanSynchronizationService planSynchronizationService =
+            new PlanSynchronizationLegacyWrapper(synchronizationService);
+    PlanValidatorDomainService planValidatorDomainService =
+            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
     ReorderPlanDomainService reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
     EventCrudService eventCrudService = mock(EventCrudService.class);
     EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     UpdatePlanDomainService updatePlanDomainService = new UpdatePlanDomainService(
-        planQueryService,
-        planCrudService,
-        planValidatorDomainService,
-        flowValidationDomainService,
-        flowCrudService,
-        auditDomainService,
-        planSynchronizationService,
-        reorderPlanDomainService,
-        new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
-        kafkaPortRanges
-    );
+            planQueryService,
+            planCrudService,
+            planValidatorDomainService,
+            flowValidationDomainService,
+            flowCrudService,
+            auditDomainService,
+            planSynchronizationService,
+            reorderPlanDomainService,
+            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+            kafkaPortRanges);
     ApiPrimaryOwnerDomainService apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
-        auditDomainService,
-        groupQueryService,
-        membershipCrudService,
-        membershipQueryService,
-        roleQueryService,
-        userCrudService
-    );
+            auditDomainService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService);
     UpdateFederatedApiDomainService updateFederatedApiDomainService = new UpdateFederatedApiDomainService(
-        apiCrudService,
-        auditDomainService,
-        new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
-        categoryDomainService,
-        new ApiIndexerDomainService(
-            new ApiMetadataDecoderDomainService(metadataQueryService1, new FreemarkerTemplateProcessor()),
-            apiPrimaryOwnerService,
-            apiCategoryQueryService2,
-            indexer
-        )
-    );
+            apiCrudService,
+            auditDomainService,
+            new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
+            categoryDomainService,
+            new ApiIndexerDomainService(
+                    new ApiMetadataDecoderDomainService(metadataQueryService1, new FreemarkerTemplateProcessor()),
+                    apiPrimaryOwnerService,
+                    apiCategoryQueryService2,
+                    indexer));
     CreateApiDomainService createApiDomainService = new CreateApiDomainService(
-        apiCrudService,
-        auditDomainService,
-        new ApiIndexerDomainService(
-            new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+            apiCrudService,
+            auditDomainService,
+            new ApiIndexerDomainService(
+                    new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                    apiPrimaryOwnerDomainService,
+                    apiCategoryQueryService,
+                    indexer),
+            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
             apiPrimaryOwnerDomainService,
-            apiCategoryQueryService,
-            indexer
-        ),
-        new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
-        apiPrimaryOwnerDomainService,
-        flowCrudService,
-        notificationConfigCrudService,
-        parametersQueryService,
-        workflowCrudService,
-        createCategoryApiDomainService
-    );
+            flowCrudService,
+            notificationConfigCrudService,
+            parametersQueryService,
+            workflowCrudService,
+            createCategoryApiDomainService);
 
     private StartIngestIntegrationApisUseCase useCase;
 
@@ -289,58 +268,58 @@ class StartIngestIntegrationApisUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new StartIngestIntegrationApisUseCase(
-            integrationCrudService,
-            asyncJobCrudService,
-            integrationAgent,
-            new LicenseDomainService(licenseCrudService, licenseManager),
-            createApiDomainService,
-            updateFederatedApiDomainService,
-            apiIndexerDomainService,
-            a2aAgentFetcher,
-            apiPrimaryOwnerFactory,
-            validateFederatedApi,
-            createPlanDomainService,
-            updatePlanDomainService,
-            planCrudService,
-            apiCrudService
-        );
+                integrationCrudService,
+                asyncJobCrudService,
+                integrationAgent,
+                new LicenseDomainService(licenseCrudService, licenseManager),
+                createApiDomainService,
+                updateFederatedApiDomainService,
+                apiIndexerDomainService,
+                a2aAgentFetcher,
+                apiPrimaryOwnerFactory,
+                validateFederatedApi,
+                createPlanDomainService,
+                updatePlanDomainService,
+                planCrudService,
+                apiCrudService);
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            integrationCrudService,
-            asyncJobCrudService,
-            licenseCrudService,
-            integrationAgent,
-            metadataCrudService,
-            indexer,
-            auditCrudService,
-            userCrudService,
-            roleQueryService,
-            groupQueryService,
-            membershipCrudService,
-            apiCrudService,
-            planCrudService,
-            apiCategoryQueryService1,
-            flowCrudService,
-            parametersQueryService,
-            pageCrudService,
-            entrypointConnectorPluginService,
-            planQueryService,
-            apiCategoryQueryService2,
-            workflowCrudService,
-            createCategoryApiDomainService,
-            apiCategoryQueryService,
-            notificationConfigCrudService,
-            metadataQueryService1,
-            apiMetadataQueryService,
-            metadataQueryService,
-            membershipQueryService,
-            a2aAgentFetcher
-        ).forEach(InMemoryAlternative::reset);
+                        integrationCrudService,
+                        asyncJobCrudService,
+                        licenseCrudService,
+                        integrationAgent,
+                        metadataCrudService,
+                        indexer,
+                        auditCrudService,
+                        userCrudService,
+                        roleQueryService,
+                        groupQueryService,
+                        membershipCrudService,
+                        apiCrudService,
+                        planCrudService,
+                        apiCategoryQueryService1,
+                        flowCrudService,
+                        parametersQueryService,
+                        pageCrudService,
+                        entrypointConnectorPluginService,
+                        planQueryService,
+                        apiCategoryQueryService2,
+                        workflowCrudService,
+                        createCategoryApiDomainService,
+                        apiCategoryQueryService,
+                        notificationConfigCrudService,
+                        metadataQueryService1,
+                        apiMetadataQueryService,
+                        metadataQueryService,
+                        membershipQueryService,
+                        a2aAgentFetcher)
+                .forEach(InMemoryAlternative::reset);
         reset(licenseManager);
     }
 
@@ -350,46 +329,47 @@ class StartIngestIntegrationApisUseCaseTest {
         @Test
         void should_create_a_job_and_return_pending_status_when_a_job_has_started() {
             // Given
-            givenAnIntegration(IntegrationFixture.anApiIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+            givenAnIntegration(
+                    IntegrationFixture.anApiIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
             integrationAgent.configureApisNumberToIngest(INTEGRATION_ID, 10L);
 
             // When
-            var result = useCase
-                .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = useCase.execute(
+                            new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
             // Then
             assertThat(result).containsExactly(AsyncJob.Status.PENDING);
-            assertThat(asyncJobCrudService.storage()).contains(
-                AsyncJob.builder()
-                    .id("generated-id")
-                    .sourceId(INTEGRATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .initiatorId(USER_ID)
-                    .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
-                    .status(AsyncJob.Status.PENDING)
-                    .upperLimit(10L)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(5)))
-                    .build()
-            );
+            assertThat(asyncJobCrudService.storage())
+                    .contains(AsyncJob.builder()
+                            .id("generated-id")
+                            .sourceId(INTEGRATION_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .initiatorId(USER_ID)
+                            .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                            .status(AsyncJob.Status.PENDING)
+                            .upperLimit(10L)
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(5)))
+                            .build());
         }
 
         @Test
         void should_return_done_status_when_no_job_has_started_because_no_apis_to_ingest() {
             // Given
-            givenAnIntegration(IntegrationFixture.anApiIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+            givenAnIntegration(
+                    IntegrationFixture.anApiIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
             integrationAgent.configureApisNumberToIngest(INTEGRATION_ID, 0L);
 
             // When
-            var result = useCase
-                .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = useCase.execute(
+                            new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
             // Then
             assertThat(asyncJobCrudService.storage()).isEmpty();
@@ -398,18 +378,19 @@ class StartIngestIntegrationApisUseCaseTest {
 
         @Test
         void should_throw_when_no_license_found() {
-            when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+            when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                    .thenReturn(LicenseFixtures.anOssLicense());
 
-            useCase
-                .execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
-                .test()
-                .assertError(NotAllowedDomainException.class);
+            useCase.execute(new StartIngestIntegrationApisUseCase.Input(INTEGRATION_ID, List.of(), AUDIT_INFO))
+                    .test()
+                    .assertError(NotAllowedDomainException.class);
         }
 
         @Test
         void should_throw_when_no_integration_is_found() {
             // When
-            var obs = useCase.execute(new StartIngestIntegrationApisUseCase.Input("unknown", List.of(), AUDIT_INFO)).test();
+            var obs = useCase.execute(new StartIngestIntegrationApisUseCase.Input("unknown", List.of(), AUDIT_INFO))
+                    .test();
 
             // Then
             obs.assertError(IntegrationNotFoundException.class);
@@ -425,239 +406,234 @@ class StartIngestIntegrationApisUseCaseTest {
 
         private FederatedAgent createFederatedAgent(String name, String version, String url) {
             return FederatedAgent.builder()
-                .name(name)
-                .description("Test agent description")
-                .version(version)
-                .url(url)
-                .provider(new FederatedAgent.Provider("test-org", "https://provider.example.com"))
-                .capabilities(Map.of())
-                .skills(List.of())
-                .defaultInputModes(List.of())
-                .defaultOutputModes(List.of())
-                .build();
+                    .name(name)
+                    .description("Test agent description")
+                    .version(version)
+                    .url(url)
+                    .provider(new FederatedAgent.Provider("test-org", "https://provider.example.com"))
+                    .capabilities(Map.of())
+                    .skills(List.of())
+                    .defaultInputModes(List.of())
+                    .defaultOutputModes(List.of())
+                    .build();
         }
 
         @Test
         void should_return_success_status_for_successful_a2a_integration_with_single_well_known_url() {
             // Given
-            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithId("a2a-integration-id").withEnvironmentId(ENVIRONMENT_ID);
+            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithId("a2a-integration-id")
+                    .withEnvironmentId(ENVIRONMENT_ID);
             givenAnIntegration(a2aIntegration);
-            parametersQueryService.initWith(List.of(Parameter.builder().key(Key.API_PRIMARY_OWNER_MODE.key()).value("USER").build()));
-            userCrudService.initWith(List.of(BaseUserEntity.builder().id("user-id").build()));
+            parametersQueryService.initWith(List.of(Parameter.builder()
+                    .key(Key.API_PRIMARY_OWNER_MODE.key())
+                    .value("USER")
+                    .build()));
+            userCrudService.initWith(
+                    List.of(BaseUserEntity.builder().id("user-id").build()));
 
-            var federatedAgent = createFederatedAgent("Test Agent", "1.0.0", "https://example.com/.well-known/agent.json");
+            var federatedAgent =
+                    createFederatedAgent("Test Agent", "1.0.0", "https://example.com/.well-known/agent.json");
             a2aAgentFetcher.add("https://example.com/.well-known/agent.json", federatedAgent);
 
             // When
-            var result = useCase
-                .execute(new StartIngestIntegrationApisUseCase.Input("a2a-integration-id", List.of(), AUDIT_INFO))
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = useCase.execute(
+                            new StartIngestIntegrationApisUseCase.Input("a2a-integration-id", List.of(), AUDIT_INFO))
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
             // Then
             assertThat(result).containsExactly(AsyncJob.Status.SUCCESS);
             assertThat(apiCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
-                .containsOnly(
-                    Api.builder()
-                        .id(
-                            "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.json"
-                        )
-                        .environmentId("environment-id")
-                        .name("Test Agent")
-                        .description("Test agent description")
-                        .version("1.0.0")
-                        .originContext(new OriginContext.Integration("a2a-integration-id", "A2A Integration", "A2A"))
-                        .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-                        .groups(Set.of())
-                        .apiDefinitionValue(federatedAgent)
-                        .lifecycleState(null)
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
+                    .containsOnly(Api.builder()
+                            .id(
+                                    "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.json")
+                            .environmentId("environment-id")
+                            .name("Test Agent")
+                            .description("Test agent description")
+                            .version("1.0.0")
+                            .originContext(
+                                    new OriginContext.Integration("a2a-integration-id", "A2A Integration", "A2A"))
+                            .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                            .groups(Set.of())
+                            .apiDefinitionValue(federatedAgent)
+                            .lifecycleState(null)
+                            .build());
             assertThat(planCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
-                .containsOnly(
-                    Plan.builder()
-                        .id(
-                            "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.jsonkey-less"
-                        )
-                        .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-                        .name("Key less plan")
-                        .description("Default plan")
-                        .validation(Plan.PlanValidationType.MANUAL)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .referenceId(
-                            "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.json"
-                        )
-                        .order(0)
-                        .environmentId("environment-id")
-                        .characteristics(List.of())
-                        .excludedGroups(List.of())
-                        .commentRequired(false)
-                        .federatedPlanDefinition(
-                            FederatedPlan.builder()
-                                .id(
-                                    "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.jsonkey-less"
-                                )
-                                .providerId("test-org")
-                                .security(PlanSecurity.builder().type("key-less").build())
-                                .mode(PlanMode.STANDARD)
-                                .status(PlanStatus.PUBLISHED)
-                                .build()
-                        )
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
+                    .containsOnly(Plan.builder()
+                            .id(
+                                    "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.jsonkey-less")
+                            .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                            .name("Key less plan")
+                            .description("Default plan")
+                            .validation(Plan.PlanValidationType.MANUAL)
+                            .referenceType(GenericPlanEntity.ReferenceType.API)
+                            .referenceId(
+                                    "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.json")
+                            .order(0)
+                            .environmentId("environment-id")
+                            .characteristics(List.of())
+                            .excludedGroups(List.of())
+                            .commentRequired(false)
+                            .federatedPlanDefinition(FederatedPlan.builder()
+                                    .id(
+                                            "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.jsonkey-less")
+                                    .providerId("test-org")
+                                    .security(PlanSecurity.builder()
+                                            .type("key-less")
+                                            .build())
+                                    .mode(PlanMode.STANDARD)
+                                    .status(PlanStatus.PUBLISHED)
+                                    .build())
+                            .build());
         }
 
         @Test
         void should_return_success_status_for_a2a_integration_with_multiple_well_known_urls() {
             // Given
             var wellKnownUrls = List.of(
-                new Integration.A2aIntegration.WellKnownUrl("https://example1.com/.well-known/agent.json"),
-                new Integration.A2aIntegration.WellKnownUrl("https://example2.com/.well-known/agent.json")
-            );
-            parametersQueryService.initWith(List.of(Parameter.builder().key(Key.API_PRIMARY_OWNER_MODE.key()).value("USER").build()));
-            userCrudService.initWith(List.of(BaseUserEntity.builder().id("user-id").build()));
-            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithWellKnownUrls(wellKnownUrls).withEnvironmentId(ENVIRONMENT_ID);
+                    new Integration.A2aIntegration.WellKnownUrl("https://example1.com/.well-known/agent.json"),
+                    new Integration.A2aIntegration.WellKnownUrl("https://example2.com/.well-known/agent.json"));
+            parametersQueryService.initWith(List.of(Parameter.builder()
+                    .key(Key.API_PRIMARY_OWNER_MODE.key())
+                    .value("USER")
+                    .build()));
+            userCrudService.initWith(
+                    List.of(BaseUserEntity.builder().id("user-id").build()));
+            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithWellKnownUrls(wellKnownUrls)
+                    .withEnvironmentId(ENVIRONMENT_ID);
             givenAnIntegration(a2aIntegration);
 
-            var federatedAgent1 = createFederatedAgent("Agent 1", "1.0.0", "https://example1.com/.well-known/agent.json");
-            var federatedAgent2 = createFederatedAgent("Agent 2", "2.0.0", "https://example2.com/.well-known/agent.json");
+            var federatedAgent1 =
+                    createFederatedAgent("Agent 1", "1.0.0", "https://example1.com/.well-known/agent.json");
+            var federatedAgent2 =
+                    createFederatedAgent("Agent 2", "2.0.0", "https://example2.com/.well-known/agent.json");
 
-            a2aAgentFetcher.initWithMap(
-                Map.of(
+            a2aAgentFetcher.initWithMap(Map.of(
                     "https://example1.com/.well-known/agent.json",
                     federatedAgent1,
                     "https://example2.com/.well-known/agent.json",
-                    federatedAgent2
-                )
-            );
+                    federatedAgent2));
 
             // When
-            var result = useCase
-                .execute(new StartIngestIntegrationApisUseCase.Input(a2aIntegration.id(), List.of(), AUDIT_INFO))
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = useCase.execute(
+                            new StartIngestIntegrationApisUseCase.Input(a2aIntegration.id(), List.of(), AUDIT_INFO))
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
             // Then
             assertThat(result).containsExactly(AsyncJob.Status.SUCCESS);
             assertThat(apiCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
-                .containsExactlyInAnyOrder(
-                    Api.builder()
-                        .id(
-                            "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.json"
-                        )
-                        .environmentId("environment-id")
-                        .name("Agent 1")
-                        .description("Test agent description")
-                        .version("1.0.0")
-                        .originContext(new OriginContext.Integration("a2a-integration-id", "A2A Integration", "A2A"))
-                        .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-                        .groups(Set.of())
-                        .createdAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
-                        .updatedAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
-                        .apiDefinitionValue(federatedAgent1)
-                        .lifecycleState(null)
-                        .build(),
-                    Api.builder()
-                        .id(
-                            "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.json"
-                        )
-                        .environmentId("environment-id")
-                        .name("Agent 2")
-                        .description("Test agent description")
-                        .version("2.0.0")
-                        .originContext(new OriginContext.Integration("a2a-integration-id", "A2A Integration", "A2A"))
-                        .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-                        .groups(Set.of())
-                        .apiDefinitionValue(federatedAgent2)
-                        .lifecycleState(null)
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
+                    .containsExactlyInAnyOrder(
+                            Api.builder()
+                                    .id(
+                                            "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.json")
+                                    .environmentId("environment-id")
+                                    .name("Agent 1")
+                                    .description("Test agent description")
+                                    .version("1.0.0")
+                                    .originContext(new OriginContext.Integration(
+                                            "a2a-integration-id", "A2A Integration", "A2A"))
+                                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                                    .groups(Set.of())
+                                    .createdAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
+                                    .updatedAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
+                                    .apiDefinitionValue(federatedAgent1)
+                                    .lifecycleState(null)
+                                    .build(),
+                            Api.builder()
+                                    .id(
+                                            "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.json")
+                                    .environmentId("environment-id")
+                                    .name("Agent 2")
+                                    .description("Test agent description")
+                                    .version("2.0.0")
+                                    .originContext(new OriginContext.Integration(
+                                            "a2a-integration-id", "A2A Integration", "A2A"))
+                                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                                    .groups(Set.of())
+                                    .apiDefinitionValue(federatedAgent2)
+                                    .lifecycleState(null)
+                                    .build());
             assertThat(planCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
-                .containsExactlyInAnyOrder(
-                    Plan.builder()
-                        .id(
-                            "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.jsonkey-less"
-                        )
-                        .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-                        .name("Key less plan")
-                        .description("Default plan")
-                        .validation(Plan.PlanValidationType.MANUAL)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .referenceId(
-                            "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.json"
-                        )
-                        .order(0)
-                        .environmentId("environment-id")
-                        .characteristics(List.of())
-                        .excludedGroups(List.of())
-                        .commentRequired(false)
-                        .federatedPlanDefinition(
-                            FederatedPlan.builder()
-                                .id(
-                                    "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.jsonkey-less"
-                                )
-                                .providerId("test-org")
-                                .security(PlanSecurity.builder().type("key-less").build())
-                                .mode(PlanMode.STANDARD)
-                                .status(PlanStatus.PUBLISHED)
-                                .build()
-                        )
-                        .build(),
-                    Plan.builder()
-                        .id(
-                            "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.jsonkey-less"
-                        )
-                        .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-                        .name("Key less plan")
-                        .description("Default plan")
-                        .validation(Plan.PlanValidationType.MANUAL)
-                        .referenceType(GenericPlanEntity.ReferenceType.API)
-                        .referenceId(
-                            "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.json"
-                        )
-                        .order(0)
-                        .environmentId("environment-id")
-                        .characteristics(List.of())
-                        .excludedGroups(List.of())
-                        .commentRequired(false)
-                        .federatedPlanDefinition(
-                            FederatedPlan.builder()
-                                .id(
-                                    "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.jsonkey-less"
-                                )
-                                .providerId("test-org")
-                                .security(PlanSecurity.builder().type("key-less").build())
-                                .mode(PlanMode.STANDARD)
-                                .status(PlanStatus.PUBLISHED)
-                                .build()
-                        )
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
+                    .containsExactlyInAnyOrder(
+                            Plan.builder()
+                                    .id(
+                                            "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.jsonkey-less")
+                                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                                    .name("Key less plan")
+                                    .description("Default plan")
+                                    .validation(Plan.PlanValidationType.MANUAL)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                                    .referenceId(
+                                            "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.json")
+                                    .order(0)
+                                    .environmentId("environment-id")
+                                    .characteristics(List.of())
+                                    .excludedGroups(List.of())
+                                    .commentRequired(false)
+                                    .federatedPlanDefinition(FederatedPlan.builder()
+                                            .id(
+                                                    "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.jsonkey-less")
+                                            .providerId("test-org")
+                                            .security(PlanSecurity.builder()
+                                                    .type("key-less")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .status(PlanStatus.PUBLISHED)
+                                            .build())
+                                    .build(),
+                            Plan.builder()
+                                    .id(
+                                            "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.jsonkey-less")
+                                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                                    .name("Key less plan")
+                                    .description("Default plan")
+                                    .validation(Plan.PlanValidationType.MANUAL)
+                                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                                    .referenceId(
+                                            "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.json")
+                                    .order(0)
+                                    .environmentId("environment-id")
+                                    .characteristics(List.of())
+                                    .excludedGroups(List.of())
+                                    .commentRequired(false)
+                                    .federatedPlanDefinition(FederatedPlan.builder()
+                                            .id(
+                                                    "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.jsonkey-less")
+                                            .providerId("test-org")
+                                            .security(PlanSecurity.builder()
+                                                    .type("key-less")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .status(PlanStatus.PUBLISHED)
+                                            .build())
+                                    .build());
         }
 
         @Test
         void should_return_error_status_when_a2a_agent_fetching_fails() {
             // Given
-            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithId("a2a-integration-id").withEnvironmentId(ENVIRONMENT_ID);
+            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithId("a2a-integration-id")
+                    .withEnvironmentId(ENVIRONMENT_ID);
             givenAnIntegration(a2aIntegration);
 
-            //When, then
-            useCase
-                .execute(new StartIngestIntegrationApisUseCase.Input("a2a-integration-id", List.of(), AUDIT_INFO))
-                .test()
-                .awaitDone(5, TimeUnit.SECONDS)
-                .assertError(throwable -> {
-                    assertThat(throwable)
-                        .isInstanceOf(FederatedAgentIngestionException.class)
-                        .hasMessage("Failed to ingest data from the following URLs: https://example.com/.well-known/agent.json");
-                    return true;
-                });
+            // When, then
+            useCase.execute(new StartIngestIntegrationApisUseCase.Input("a2a-integration-id", List.of(), AUDIT_INFO))
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertError(throwable -> {
+                        assertThat(throwable)
+                                .isInstanceOf(FederatedAgentIngestionException.class)
+                                .hasMessage(
+                                        "Failed to ingest data from the following URLs: https://example.com/.well-known/agent.json");
+                        return true;
+                    });
 
             assertThat(apiCrudService.storage()).isEmpty();
             assertThat(planCrudService.storage()).isEmpty();
@@ -666,15 +642,16 @@ class StartIngestIntegrationApisUseCaseTest {
         @Test
         void should_return_success_status_for_a2a_integration_with_empty_well_known_urls() {
             // Given
-            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithWellKnownUrls(List.of()).withEnvironmentId(ENVIRONMENT_ID);
+            var a2aIntegration = IntegrationFixture.anA2aIntegrationWithWellKnownUrls(List.of())
+                    .withEnvironmentId(ENVIRONMENT_ID);
             givenAnIntegration(a2aIntegration);
 
             // When
-            var result = useCase
-                .execute(new StartIngestIntegrationApisUseCase.Input(a2aIntegration.id(), List.of(), AUDIT_INFO))
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = useCase.execute(
+                            new StartIngestIntegrationApisUseCase.Input(a2aIntegration.id(), List.of(), AUDIT_INFO))
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
             // Then
             assertThat(result).containsExactly(AsyncJob.Status.SUCCESS);

@@ -45,7 +45,7 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
     public <T> T create(Class<T> policyClass, PolicyConfiguration policyConfiguration) {
         log.debug("Create a new policy instance for {}", policyClass.getName());
 
-        //TODO: could we reuse policy instance ?
+        // TODO: could we reuse policy instance ?
         return createInstance(policyClass, policyConfiguration);
     }
 
@@ -86,17 +86,16 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
             log.debug("Looking for a constructor to inject policy configuration");
 
             Set<Constructor> policyConstructors = ReflectionUtils.getConstructors(
-                policyClass,
-                withModifier(Modifier.PUBLIC),
-                withParametersAssignableFrom(PolicyConfiguration.class),
-                withParametersCount(1)
-            );
+                    policyClass,
+                    withModifier(Modifier.PUBLIC),
+                    withParametersAssignableFrom(PolicyConfiguration.class),
+                    withParametersCount(1));
 
             if (policyConstructors.isEmpty()) {
                 log.debug(
-                    "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
-                    policyClass.getName()
-                );
+                        "No configuration can be injected for {} because there is no valid constructor. "
+                                + "Using default empty constructor.",
+                        policyClass.getName());
                 try {
                     return policyClass.getConstructor();
                 } catch (NoSuchMethodException nsme) {
@@ -118,9 +117,8 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
                 Class<?>[] parameterTypes = parameterTypes(input);
                 if (parameterTypes.length == types.length) {
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        if (
-                            !types[i].isAssignableFrom(parameterTypes[i]) || (parameterTypes[i] == Object.class && types[i] != Object.class)
-                        ) {
+                        if (!types[i].isAssignableFrom(parameterTypes[i])
+                                || (parameterTypes[i] == Object.class && types[i] != Object.class)) {
                             return false;
                         }
                     }
@@ -133,11 +131,9 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
 
     private static Class[] parameterTypes(Member member) {
         return member != null
-            ? member.getClass() == Method.class
-                ? ((Method) member).getParameterTypes()
-                : member.getClass() == Constructor.class
-                    ? ((Constructor) member).getParameterTypes()
-                    : null
-            : null;
+                ? member.getClass() == Method.class
+                        ? ((Method) member).getParameterTypes()
+                        : member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null
+                : null;
     }
 }

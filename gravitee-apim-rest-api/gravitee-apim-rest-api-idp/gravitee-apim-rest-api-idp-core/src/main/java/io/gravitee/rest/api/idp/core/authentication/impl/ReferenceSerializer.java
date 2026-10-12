@@ -67,7 +67,10 @@ public class ReferenceSerializer {
         JWSSigner signer = new MACSigner(secretKey().getEncoded());
 
         // Prepare JWT with claims set
-        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().subject(reference.getReference()).issuer(reference.getSource()).build();
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(reference.getReference())
+                .issuer(reference.getSource())
+                .build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
 
@@ -76,11 +79,10 @@ public class ReferenceSerializer {
 
         // Create JWE object with signed JWT as payload
         JWEObject jweObject = new JWEObject(
-            new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A256GCM)
-                .contentType("JWT") // required to signal nested JWT
-                .build(),
-            new Payload(signedJWT)
-        );
+                new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A256GCM)
+                        .contentType("JWT") // required to signal nested JWT
+                        .build(),
+                new Payload(signedJWT));
 
         // Perform encryption
         jweObject.encrypt(new DirectEncrypter(secretKey().getEncoded()));
@@ -105,7 +107,9 @@ public class ReferenceSerializer {
         signedJWT.verify(new MACVerifier(secretKey().getEncoded()));
 
         // Retrieve the JWT claims
-        return new IdentityReference(signedJWT.getJWTClaimsSet().getIssuer(), signedJWT.getJWTClaimsSet().getSubject());
+        return new IdentityReference(
+                signedJWT.getJWTClaimsSet().getIssuer(),
+                signedJWT.getJWTClaimsSet().getSubject());
     }
 
     private String secret() {

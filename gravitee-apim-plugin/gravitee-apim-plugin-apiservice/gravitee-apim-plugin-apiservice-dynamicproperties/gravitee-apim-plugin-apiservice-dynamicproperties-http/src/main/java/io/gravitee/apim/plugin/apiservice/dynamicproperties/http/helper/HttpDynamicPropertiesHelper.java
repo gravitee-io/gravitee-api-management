@@ -17,7 +17,6 @@ package io.gravitee.apim.plugin.apiservice.dynamicproperties.http.helper;
 
 import static io.gravitee.apim.plugin.apiservice.dynamicproperties.http.HttpDynamicPropertiesService.HTTP_DYNAMIC_PROPERTIES_TYPE;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
@@ -38,19 +37,19 @@ public class HttpDynamicPropertiesHelper {
         }
 
         if (api instanceof Api asHttpApi) {
-            return asHttpApi.getServices() != null && isServiceEnabled(asHttpApi.getServices().getDynamicProperty());
+            return asHttpApi.getServices() != null
+                    && isServiceEnabled(asHttpApi.getServices().getDynamicProperty());
         }
         if (api instanceof NativeApi asNativeApi) {
-            return asNativeApi.getServices() != null && isServiceEnabled(asNativeApi.getServices().getDynamicProperty());
+            return asNativeApi.getServices() != null
+                    && isServiceEnabled(asNativeApi.getServices().getDynamicProperty());
         }
         return false;
     }
 
     private static boolean isServiceEnabled(Service httpDynamicPropertiesService) {
-        return (
-            httpDynamicPropertiesService != null &&
-            httpDynamicPropertiesService.isEnabled() &&
-            HTTP_DYNAMIC_PROPERTIES_TYPE.equals(httpDynamicPropertiesService.getType())
-        );
+        return (httpDynamicPropertiesService != null
+                && httpDynamicPropertiesService.isEnabled()
+                && HTTP_DYNAMIC_PROPERTIES_TYPE.equals(httpDynamicPropertiesService.getType()));
     }
 }

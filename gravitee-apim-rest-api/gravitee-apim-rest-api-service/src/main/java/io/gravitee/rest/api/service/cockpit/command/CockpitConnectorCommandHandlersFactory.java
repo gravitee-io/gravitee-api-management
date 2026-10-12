@@ -41,24 +41,19 @@ public class CockpitConnectorCommandHandlersFactory implements ConnectorCommandH
 
     @Override
     public List<CommandHandler<? extends Command<?>, ? extends Reply<?>>> buildCommandHandlers(
-        final ConnectorCommandContext connectorCommandContext
-    ) {
+            final ConnectorCommandContext connectorCommandContext) {
         return commandHandlers;
     }
 
     @Override
     public List<CommandAdapter<? extends Command<?>, ? extends Command<?>, ? extends Reply<?>>> buildCommandAdapters(
-        final ConnectorCommandContext connectorCommandContext,
-        final ProtocolVersion protocolVersion
-    ) {
+            final ConnectorCommandContext connectorCommandContext, final ProtocolVersion protocolVersion) {
         return commandAdapters;
     }
 
     @Override
     public List<ReplyAdapter<? extends Reply<?>, ? extends Reply<?>>> buildReplyAdapters(
-        final ConnectorCommandContext connectorCommandContext,
-        final ProtocolVersion protocolVersion
-    ) {
+            final ConnectorCommandContext connectorCommandContext, final ProtocolVersion protocolVersion) {
         return replyAdapters;
     }
 }

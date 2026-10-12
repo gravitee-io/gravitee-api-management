@@ -44,47 +44,45 @@ public class GetSubscriptionsUseCase {
     private final PlanCrudService planCrudService;
 
     public Output execute(Input input) {
-        log.debug("Getting subscriptions for {} {} (subscriptionId: {})", input.referenceType, input.referenceId, input.subscriptionId);
+        log.debug(
+                "Getting subscriptions for {} {} (subscriptionId: {})",
+                input.referenceType,
+                input.referenceId,
+                input.subscriptionId);
 
         verifyReferenceExists(input.referenceId, input.referenceType);
 
         if (input.subscriptionId == null) {
             List<SubscriptionEntity> subscriptions = subscriptionQueryService.findAllByReferenceIdAndReferenceType(
-                input.referenceId,
-                input.referenceType
-            );
+                    input.referenceId, input.referenceType);
 
-            Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlanId).collect(Collectors.toSet());
+            Set<String> planIds =
+                    subscriptions.stream().map(SubscriptionEntity::getPlanId).collect(Collectors.toSet());
             if (!planIds.isEmpty()) {
-                Map<String, Plan> plansById = planCrudService
-                    .findByIds(new ArrayList<>(planIds))
-                    .stream()
-                    .collect(Collectors.toMap(Plan::getId, plan -> plan));
+                Map<String, Plan> plansById = planCrudService.findByIds(new ArrayList<>(planIds)).stream()
+                        .collect(Collectors.toMap(Plan::getId, plan -> plan));
 
-                subscriptions = subscriptions
-                    .stream()
-                    .filter(sub -> {
-                        Plan plan = plansById.get(sub.getPlanId());
-                        return plan != null && plan.getPlanStatus() != PlanStatus.CLOSED && plan.getPlanStatus() != PlanStatus.DEPRECATED;
-                    })
-                    .toList();
+                subscriptions = subscriptions.stream()
+                        .filter(sub -> {
+                            Plan plan = plansById.get(sub.getPlanId());
+                            return plan != null
+                                    && plan.getPlanStatus() != PlanStatus.CLOSED
+                                    && plan.getPlanStatus() != PlanStatus.DEPRECATED;
+                        })
+                        .toList();
             }
 
             log.debug("Found {} subscriptions for {} {}", subscriptions.size(), input.referenceType, input.referenceId);
             return Output.multiple(subscriptions);
         } else {
             Optional<SubscriptionEntity> subscription = subscriptionQueryService.findByIdAndReferenceIdAndReferenceType(
-                input.subscriptionId,
-                input.referenceId,
-                input.referenceType
-            );
+                    input.subscriptionId, input.referenceId, input.referenceType);
             log.debug(
-                "Subscription {} {} for {} {}",
-                input.subscriptionId,
-                subscription.isPresent() ? "found" : "not found",
-                input.referenceType,
-                input.referenceId
-            );
+                    "Subscription {} {} for {} {}",
+                    input.subscriptionId,
+                    subscription.isPresent() ? "found" : "not found",
+                    input.referenceType,
+                    input.referenceId);
             return Output.single(subscription);
         }
     }

@@ -45,7 +45,6 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.PromiseImpl;
@@ -95,17 +94,19 @@ class DebugEventCompletionProcessorTest {
         Promise<Void> promise = new PromiseImpl<>();
         lenient().when(debugExecutionContext.getComponent(Vertx.class)).thenReturn(vertx);
         lenient()
-            .doAnswer(i -> {
-                ((Callable) i.getArgument(0)).call();
-                return Future.succeededFuture();
-            })
-            .when(vertx)
-            .executeBlocking(any(Callable.class));
+                .doAnswer(i -> {
+                    ((Callable) i.getArgument(0)).call();
+                    return Future.succeededFuture();
+                })
+                .when(vertx)
+                .executeBlocking(any(Callable.class));
 
         io.gravitee.definition.model.debug.DebugApiV2 definition = new io.gravitee.definition.model.debug.DebugApiV2();
-        definition.setPlans(
-            Arrays.asList(plan(PlanStatus.STAGING), plan(PlanStatus.PUBLISHED), plan(PlanStatus.DEPRECATED), plan(PlanStatus.CLOSED))
-        );
+        definition.setPlans(Arrays.asList(
+                plan(PlanStatus.STAGING),
+                plan(PlanStatus.PUBLISHED),
+                plan(PlanStatus.DEPRECATED),
+                plan(PlanStatus.CLOSED)));
         lenient().when(debugApi.getDefinition()).thenReturn(definition);
     }
 
@@ -120,24 +121,23 @@ class DebugEventCompletionProcessorTest {
     @EnumSource(ResponseType.class)
     void shouldUpdateEventWithData(ResponseType responseType) throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class))
+                .thenReturn(debugApi);
         when(debugExecutionContext.request()).thenReturn(request);
 
         DebugRequestStep step1 = new DebugRequestStep(
-            "policy-id",
-            StreamType.ON_REQUEST,
-            "16415346-a549-4673-871c-3f8227e9bcfa",
-            PolicyScope.ON_REQUEST,
-            policyMetadata
-        );
+                "policy-id",
+                StreamType.ON_REQUEST,
+                "16415346-a549-4673-871c-3f8227e9bcfa",
+                PolicyScope.ON_REQUEST,
+                policyMetadata);
 
         DebugRequestStep step2 = new DebugRequestStep(
-            "policy-id-2",
-            StreamType.ON_RESPONSE,
-            "bdcccd71-f7ef-436e-9ac1-4ab3bff45668",
-            PolicyScope.ON_RESPONSE_CONTENT,
-            policyMetadata
-        );
+                "policy-id-2",
+                StreamType.ON_RESPONSE,
+                "bdcccd71-f7ef-436e-9ac1-4ab3bff45668",
+                PolicyScope.ON_RESPONSE_CONTENT,
+                policyMetadata);
 
         when(debugExecutionContext.getDebugSteps()).thenReturn(List.of(step1, step2));
         if (ResponseType.REGULAR_RESPONSE.equals(responseType)) {
@@ -164,7 +164,8 @@ class DebugEventCompletionProcessorTest {
         verify(eventRepository).update(captor.capture());
         Event updatedEvent = captor.getValue();
         assertThat(updatedEvent.getId()).isEqualTo("event-id");
-        assertThat(updatedEvent.getProperties()).isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.SUCCESS.name()));
+        assertThat(updatedEvent.getProperties())
+                .isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.SUCCESS.name()));
         assertThat(updatedEvent.getPayload()).isEqualTo("PAYLOAD_CONTENT");
     }
 
@@ -174,10 +175,12 @@ class DebugEventCompletionProcessorTest {
      * policies ran. Without it the timeline shows a request that never reached a single policy.
      */
     @Test
-    void should_report_the_path_the_policies_ran_on_in_the_preprocessor_step() throws TechnicalException, JsonProcessingException {
+    void should_report_the_path_the_policies_ran_on_in_the_preprocessor_step()
+            throws TechnicalException, JsonProcessingException {
         // Given a request whose path the gateway resolved before the API was selected.
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class))
+                .thenReturn(debugApi);
         when(debugExecutionContext.request()).thenReturn(request);
         when(debugExecutionContext.getDebugSteps()).thenReturn(List.of());
         // Built before the stubbing below: these helpers create mocks of their own, and Mockito
@@ -199,18 +202,19 @@ class DebugEventCompletionProcessorTest {
         cut.handle(debugExecutionContext);
 
         // Then the payload handed to the console carries the executed path.
-        ArgumentCaptor<io.gravitee.definition.model.debug.DebugApiV2> captor = ArgumentCaptor.forClass(
-            io.gravitee.definition.model.debug.DebugApiV2.class
-        );
+        ArgumentCaptor<io.gravitee.definition.model.debug.DebugApiV2> captor =
+                ArgumentCaptor.forClass(io.gravitee.definition.model.debug.DebugApiV2.class);
         verify(objectMapper).writeValueAsString(captor.capture());
         assertThat(captor.getValue().getPreprocessorStep().getPath()).isEqualTo("/b");
     }
 
     @ParameterizedTest
     @EnumSource(ResponseType.class)
-    void shouldSetEventInErrorWhenEventUpdateThrows(ResponseType responseType) throws TechnicalException, JsonProcessingException {
+    void shouldSetEventInErrorWhenEventUpdateThrows(ResponseType responseType)
+            throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class))
+                .thenReturn(debugApi);
         when(debugExecutionContext.request()).thenReturn(request);
         if (ResponseType.REGULAR_RESPONSE.equals(responseType)) {
             VertxHttpServerResponse debugResponse = getDebugResponse();
@@ -236,16 +240,17 @@ class DebugEventCompletionProcessorTest {
         ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository, times(2)).update(captor.capture());
         assertThat(captor.getAllValues().get(1).getId()).isEqualTo("event-id");
-        assertThat(captor.getAllValues().get(1).getProperties()).isEqualTo(
-            Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name())
-        );
+        assertThat(captor.getAllValues().get(1).getProperties())
+                .isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name()));
     }
 
     @ParameterizedTest
     @EnumSource(ResponseType.class)
-    void shouldSetEventInErrorWhenWriteValueAsStringThrows(ResponseType responseType) throws TechnicalException, JsonProcessingException {
+    void shouldSetEventInErrorWhenWriteValueAsStringThrows(ResponseType responseType)
+            throws TechnicalException, JsonProcessingException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class))
+                .thenReturn(debugApi);
         when(debugExecutionContext.request()).thenReturn(request);
         if (ResponseType.REGULAR_RESPONSE.equals(responseType)) {
             VertxHttpServerResponse debugResponse = getDebugResponse();
@@ -270,13 +275,15 @@ class DebugEventCompletionProcessorTest {
         ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository).update(captor.capture());
         assertThat(captor.getValue().getId()).isEqualTo("event-id");
-        assertThat(captor.getValue().getProperties()).isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name()));
+        assertThat(captor.getValue().getProperties())
+                .isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name()));
     }
 
     @Test
     void shouldHandleDebugEventWithoutEventInDatabase() throws TechnicalException {
         when(debugApi.getEventId()).thenReturn("event-id");
-        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class))
+                .thenReturn(debugApi);
 
         when(eventRepository.findById("event-id")).thenReturn(Optional.empty());
 
@@ -288,13 +295,13 @@ class DebugEventCompletionProcessorTest {
     @Test
     void shouldConvertMultiMapHeadersToSimpleMap() {
         final HttpHeaders headers = HttpHeaders.create()
-            .add("transfer-encoding", "chunked")
-            .add("X-Gravitee-Transaction-Id", "transaction-id")
-            .add("content-type", "application/json")
-            .add("X-Gravitee-Request-Id", "request-id")
-            .add("accept-encoding", "deflate")
-            .add("accept-encoding", "gzip")
-            .add("accept-encoding", "compress");
+                .add("transfer-encoding", "chunked")
+                .add("X-Gravitee-Transaction-Id", "transaction-id")
+                .add("content-type", "application/json")
+                .add("X-Gravitee-Request-Id", "request-id")
+                .add("accept-encoding", "deflate")
+                .add("accept-encoding", "gzip")
+                .add("accept-encoding", "compress");
 
         final Map<String, List<String>> result = cut.convertHeaders(headers);
 
@@ -309,13 +316,13 @@ class DebugEventCompletionProcessorTest {
     void shouldConvertDebugApi() {
         final io.gravitee.definition.model.debug.DebugApiV2 debugApiConverted = cut.convert(debugApi);
 
-        assertNotEquals(debugApiConverted.getPlans().size(), debugApi.getDefinition().getPlans().size());
+        assertNotEquals(
+                debugApiConverted.getPlans().size(),
+                debugApi.getDefinition().getPlans().size());
 
-        List<Plan> unexpectedPlans = debugApiConverted
-            .getPlans()
-            .stream()
-            .filter(plan -> PlanStatus.CLOSED.getLabel().equalsIgnoreCase(plan.getStatus()))
-            .toList();
+        List<Plan> unexpectedPlans = debugApiConverted.getPlans().stream()
+                .filter(plan -> PlanStatus.CLOSED.getLabel().equalsIgnoreCase(plan.getStatus()))
+                .toList();
 
         assertEquals(0, unexpectedPlans.size());
     }

@@ -49,8 +49,10 @@ public class PolicyResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a policy", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Operation(
+            summary = "Get a policy",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public PolicyEntity getPolicy(@PathParam("policy") String policy) {
         return policyService.findById(policy);
     }
@@ -58,8 +60,10 @@ public class PolicyResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a policy's schema", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Operation(
+            summary = "Get a policy's schema",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getPolicySchema(@PathParam("policy") String policy) {
         // Check that the policy exists
         policyService.findById(policy);
@@ -70,8 +74,10 @@ public class PolicyResource {
     @GET
     @Path("icon")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Get a policy's icon", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Operation(
+            summary = "Get a policy's icon",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getPolicyIcon(@PathParam("policy") String policy) {
         // Check that the policy exists
         policyService.findById(policy);
@@ -83,10 +89,9 @@ public class PolicyResource {
     @Path("documentation")
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(
-        summary = "Get a policy's documentation",
-        description = "User must have the MANAGEMENT_API[READ] permission to use this service"
-    )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+            summary = "Get a policy's documentation",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getPolicyDoc(@PathParam("policy") String policy) {
         // Check that the policy exists
         policyService.findById(policy);

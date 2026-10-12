@@ -78,22 +78,19 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     void should_get_messages_with_default_configuration(HttpClient httpClient) {
         var obs = startSseStream(httpClient).test();
         // expect 3 chunks: retry, two messages
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, chunk -> {
-                assertRetry(chunk);
-                return true;
-            })
-            .assertValueAt(1, chunk -> {
-                assertOnMessage(chunk, 0L, MESSAGE);
-                return true;
-            })
-            .assertValueAt(2, chunk -> {
-                assertOnMessage(chunk, 1L, MESSAGE);
-                return true;
-            });
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 3);
+        obs.assertValueAt(0, chunk -> {
+                    assertRetry(chunk);
+                    return true;
+                })
+                .assertValueAt(1, chunk -> {
+                    assertOnMessage(chunk, 0L, MESSAGE);
+                    return true;
+                })
+                .assertValueAt(2, chunk -> {
+                    assertOnMessage(chunk, 1L, MESSAGE);
+                    return true;
+                });
     }
 
     @Test
@@ -102,13 +99,13 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
         final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
 
         startSseStream(httpClient)
-            .doAfterNext(item -> connectionDrainManager.requestDrain())
-            .lastElement()
-            .test()
-            // Expect the flow to finish because of the connection drain.
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(buffer -> buffer.toString().contains("event: goaway"));
+                .doAfterNext(item -> connectionDrainManager.requestDrain())
+                .lastElement()
+                .test()
+                // Expect the flow to finish because of the connection drain.
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(buffer -> buffer.toString().contains("event: goaway"));
     }
 
     @Test
@@ -116,22 +113,19 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     void should_get_messages_with_default_comments(HttpClient httpClient) {
         var obs = startSseStream(httpClient).test();
         // expect 3 chunks: retry, two messages
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, chunk -> {
-                assertRetry(chunk);
-                return true;
-            })
-            .assertValueAt(1, chunk -> {
-                assertOnMessage(chunk, 0L, MESSAGE, "greeting: mate", "type: informal");
-                return true;
-            })
-            .assertValueAt(2, chunk -> {
-                assertOnMessage(chunk, 1L, MESSAGE, "greeting: mate", "type: informal");
-                return true;
-            });
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 3);
+        obs.assertValueAt(0, chunk -> {
+                    assertRetry(chunk);
+                    return true;
+                })
+                .assertValueAt(1, chunk -> {
+                    assertOnMessage(chunk, 0L, MESSAGE, "greeting: mate", "type: informal");
+                    return true;
+                })
+                .assertValueAt(2, chunk -> {
+                    assertOnMessage(chunk, 1L, MESSAGE, "greeting: mate", "type: informal");
+                    return true;
+                });
     }
 
     @Test
@@ -139,34 +133,31 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     void should_get_message_and_heart_beat(HttpClient httpClient) {
         var obs = startSseStream(httpClient).test();
         // expect 3 chunks: retry, 1 heartbeat, 1 message,
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, chunk -> {
-                assertRetry(chunk);
-                return true;
-            })
-            .assertValueAt(1, chunk -> {
-                assertHeartbeat(chunk);
-                return true;
-            })
-            .assertValueAt(2, chunk -> {
-                assertOnMessage(chunk, 0L, MESSAGE);
-                return true;
-            });
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 3);
+        obs.assertValueAt(0, chunk -> {
+                    assertRetry(chunk);
+                    return true;
+                })
+                .assertValueAt(1, chunk -> {
+                    assertHeartbeat(chunk);
+                    return true;
+                })
+                .assertValueAt(2, chunk -> {
+                    assertOnMessage(chunk, 0L, MESSAGE);
+                    return true;
+                });
     }
 
     private static Flowable<Buffer> startSseStream(HttpClient httpClient) {
         return httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
-                return request.rxSend();
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            });
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
+                    return request.rxSend();
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                });
     }
 }

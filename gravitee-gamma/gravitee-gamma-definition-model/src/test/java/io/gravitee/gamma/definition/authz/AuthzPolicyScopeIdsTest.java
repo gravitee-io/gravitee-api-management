@@ -27,13 +27,13 @@ class AuthzPolicyTargetPdpIdsTest {
     void targetPdpIds_round_trips_through_json() throws Exception {
         ObjectMapper om = new ObjectMapper();
         AuthzPolicy p = AuthzPolicy.builder()
-            .id("p1")
-            .name("n")
-            .kind(AuthzPolicyKind.GLOBAL)
-            .policyText("permit(principal, action, resource);")
-            .environmentId("env-1")
-            .targetPdpIds(Set.of("api-a", "*"))
-            .build();
+                .id("p1")
+                .name("n")
+                .kind(AuthzPolicyKind.GLOBAL)
+                .policyText("permit(principal, action, resource);")
+                .environmentId("env-1")
+                .targetPdpIds(Set.of("api-a", "*"))
+                .build();
         String json = om.writeValueAsString(p);
         AuthzPolicy back = om.readValue(json, AuthzPolicy.class);
         assertThat(back.getTargetPdpIds()).containsExactlyInAnyOrder("api-a", "*");
@@ -43,9 +43,8 @@ class AuthzPolicyTargetPdpIdsTest {
     void targetPdpIds_absent_in_legacy_json_deserializes_to_null() throws Exception {
         ObjectMapper om = new ObjectMapper();
         AuthzPolicy back = om.readValue(
-            "{\"id\":\"p1\",\"name\":\"n\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\"}",
-            AuthzPolicy.class
-        );
+                "{\"id\":\"p1\",\"name\":\"n\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\"}",
+                AuthzPolicy.class);
         assertThat(back.getTargetPdpIds()).isNull();
     }
 }

@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -72,13 +71,13 @@ class ApiProductDeployerTest {
     void setUp() {
         cut = new ApiProductDeployer(apiProductManager, planService, distributedSyncService, subscriptionRefresher);
         lenient()
-            .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
-            .thenReturn(Completable.complete());
+                .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
+                .thenReturn(Completable.complete());
         lenient().when(subscriptionRefresher.refresh(anySet(), anySet())).thenReturn(Completable.complete());
         lenient().when(subscriptionRefresher.unregisterByApiProduct(any())).thenReturn(Completable.complete());
         lenient()
-            .when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class)))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+                .when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class)))
+                .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @Nested
@@ -87,20 +86,20 @@ class ApiProductDeployerTest {
         @Test
         void should_deploy_api_product_successfully() {
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .name("Test Product")
-                .version("1.0")
-                .apiIds(Set.of("api-1", "api-2"))
-                .environmentId("env-id")
-                .deployedAt(new Date())
-                .build();
+                    .id("api-product-123")
+                    .name("Test Product")
+                    .version("1.0")
+                    .apiIds(Set.of("api-1", "api-2"))
+                    .environmentId("env-id")
+                    .deployedAt(new Date())
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .reactableApiProduct(reactableApiProduct)
-                .subscribablePlans(Set.of())
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .reactableApiProduct(reactableApiProduct)
+                    .subscribablePlans(Set.of())
+                    .build();
 
             cut.deploy(deployable).test().assertComplete();
             verify(apiProductManager).register(eq(reactableApiProduct), any(Completable.class));
@@ -109,20 +108,20 @@ class ApiProductDeployerTest {
         @Test
         void should_deploy_api_product_with_minimal_data() {
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                .id("api-product-min")
-                .name("Minimal Product")
-                .version("1.0")
-                .apiIds(Set.of("api-1"))
-                .environmentId("env-id")
-                .deployedAt(new Date())
-                .build();
+                    .id("api-product-min")
+                    .name("Minimal Product")
+                    .version("1.0")
+                    .apiIds(Set.of("api-1"))
+                    .environmentId("env-id")
+                    .deployedAt(new Date())
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-min")
-                .reactableApiProduct(reactableApiProduct)
-                .subscribablePlans(Set.of())
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-min")
+                    .reactableApiProduct(reactableApiProduct)
+                    .subscribablePlans(Set.of())
+                    .build();
 
             cut.deploy(deployable).test().assertComplete();
             verify(apiProductManager).register(eq(reactableApiProduct), any(Completable.class));
@@ -131,20 +130,20 @@ class ApiProductDeployerTest {
         @Test
         void should_complete_after_deployment_and_distribute() {
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .name("Test Product")
-                .version("1.0")
-                .apiIds(Set.of("api-1"))
-                .environmentId("env-id")
-                .deployedAt(new Date())
-                .build();
+                    .id("api-product-123")
+                    .name("Test Product")
+                    .version("1.0")
+                    .apiIds(Set.of("api-1"))
+                    .environmentId("env-id")
+                    .deployedAt(new Date())
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .reactableApiProduct(reactableApiProduct)
-                .subscribablePlans(Set.of())
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .reactableApiProduct(reactableApiProduct)
+                    .subscribablePlans(Set.of())
+                    .build();
 
             cut.doAfterDeployment(deployable).test().assertComplete();
             verify(distributedSyncService).distributeIfNeeded(deployable);
@@ -155,24 +154,23 @@ class ApiProductDeployerTest {
             // A member API removed from the product needs no eviction: the subscription stays cached
             // under the product and the registry simply stops resolving that API to it.
             ReactableApiProduct newProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .name("Updated Product")
-                .version("1.0")
-                .apiIds(Set.of("api-1"))
-                .environmentId("env-1")
-                .deployedAt(new Date())
-                .build();
+                    .id("api-product-123")
+                    .name("Updated Product")
+                    .version("1.0")
+                    .apiIds(Set.of("api-1"))
+                    .environmentId("env-1")
+                    .deployedAt(new Date())
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .reactableApiProduct(newProduct)
-                .subscribablePlans(Set.of("plan-1"))
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .reactableApiProduct(newProduct)
+                    .subscribablePlans(Set.of("plan-1"))
+                    .build();
 
-            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
-                invocation.getArgument(1)
-            );
+            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(1));
 
             cut.deploy(deployable).test().assertComplete();
 
@@ -187,9 +185,9 @@ class ApiProductDeployerTest {
         @Test
         void should_undeploy_api_product_successfully() {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.UNDEPLOY)
-                .apiProductId("api-product-123")
-                .build();
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId("api-product-123")
+                    .build();
 
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-123");
@@ -199,10 +197,10 @@ class ApiProductDeployerTest {
         @Test
         void should_undeploy_api_product_without_reactable() {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.UNDEPLOY)
-                .apiProductId("api-product-456")
-                .reactableApiProduct(null)
-                .build();
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId("api-product-456")
+                    .reactableApiProduct(null)
+                    .build();
 
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-456");
@@ -212,9 +210,9 @@ class ApiProductDeployerTest {
         @Test
         void should_unregister_subscriptions_and_api_keys_when_undeploying_deployed_product() {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.UNDEPLOY)
-                .apiProductId("api-product-123")
-                .build();
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId("api-product-123")
+                    .build();
 
             cut.undeploy(deployable).test().assertComplete();
 
@@ -231,12 +229,14 @@ class ApiProductDeployerTest {
          */
         @Test
         void should_stop_undeploying_when_evicting_the_subscriptions_fails() {
-            var failure = new SyncException("Failed to unregister subscriptions and API keys of API Product [api-product-123]");
-            when(subscriptionRefresher.unregisterByApiProduct("api-product-123")).thenReturn(Completable.error(failure));
+            var failure = new SyncException(
+                    "Failed to unregister subscriptions and API keys of API Product [api-product-123]");
+            when(subscriptionRefresher.unregisterByApiProduct("api-product-123"))
+                    .thenReturn(Completable.error(failure));
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.UNDEPLOY)
-                .apiProductId("api-product-123")
-                .build();
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId("api-product-123")
+                    .build();
 
             cut.undeploy(deployable).test().assertError(failure);
 
@@ -247,9 +247,9 @@ class ApiProductDeployerTest {
         @Test
         void should_complete_after_undeployment_and_distribute() {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.UNDEPLOY)
-                .apiProductId("api-product-123")
-                .build();
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId("api-product-123")
+                    .build();
 
             cut.doAfterUndeployment(deployable).test().assertComplete();
             verify(distributedSyncService).distributeIfNeeded(deployable);
@@ -262,17 +262,17 @@ class ApiProductDeployerTest {
         @Test
         void should_distribute_deploy_when_deploy_tags_do_not_match_gateway() {
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .name("Test Product")
-                .tags(Set.of("internal"))
-                .environmentId("env-id")
-                .build();
+                    .id("api-product-123")
+                    .name("Test Product")
+                    .tags(Set.of("internal"))
+                    .environmentId("env-id")
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .reactableApiProduct(reactableApiProduct)
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .reactableApiProduct(reactableApiProduct)
+                    .build();
 
             cut.doAfterDeployment(deployable).test().assertComplete();
             verify(distributedSyncService).distributeIfNeeded(deployable);
@@ -281,17 +281,17 @@ class ApiProductDeployerTest {
         @Test
         void should_distribute_deploy_when_product_tags_match_gateway() {
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .name("Test Product")
-                .tags(Set.of("internal"))
-                .environmentId("env-id")
-                .build();
+                    .id("api-product-123")
+                    .name("Test Product")
+                    .tags(Set.of("internal"))
+                    .environmentId("env-id")
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .reactableApiProduct(reactableApiProduct)
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .reactableApiProduct(reactableApiProduct)
+                    .build();
 
             cut.doAfterDeployment(deployable).test().assertComplete();
             verify(distributedSyncService).distributeIfNeeded(deployable);
@@ -300,9 +300,9 @@ class ApiProductDeployerTest {
         @Test
         void should_distribute_deploy_without_reactable_api_product() {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .build();
 
             cut.doAfterDeployment(deployable).test().assertComplete();
             verify(distributedSyncService).distributeIfNeeded(deployable);
@@ -311,9 +311,9 @@ class ApiProductDeployerTest {
         @Test
         void should_distribute_undeploy_even_when_product_tags_do_not_match_gateway() {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.UNDEPLOY)
-                .apiProductId("api-product-123")
-                .build();
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId("api-product-123")
+                    .build();
 
             cut.doAfterUndeployment(deployable).test().assertComplete();
             verify(distributedSyncService).distributeIfNeeded(deployable);
@@ -325,38 +325,36 @@ class ApiProductDeployerTest {
 
         @Test
         void should_handle_distribution_error_on_deploy() {
-            when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class))).thenReturn(
-                Completable.error(new RuntimeException("Distribution failed"))
-            );
+            when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
+                    .thenReturn(Completable.error(new RuntimeException("Distribution failed")));
 
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .name("Test Product")
-                .version("1.0")
-                .apiIds(Set.of("api-1"))
-                .environmentId("env-id")
-                .deployedAt(new Date())
-                .build();
+                    .id("api-product-123")
+                    .name("Test Product")
+                    .version("1.0")
+                    .apiIds(Set.of("api-1"))
+                    .environmentId("env-id")
+                    .deployedAt(new Date())
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .reactableApiProduct(reactableApiProduct)
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .reactableApiProduct(reactableApiProduct)
+                    .build();
 
             cut.doAfterDeployment(deployable).test().assertError(RuntimeException.class);
         }
 
         @Test
         void should_handle_distribution_error_on_undeploy() {
-            when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class))).thenReturn(
-                Completable.error(new RuntimeException("Distribution failed"))
-            );
+            when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
+                    .thenReturn(Completable.error(new RuntimeException("Distribution failed")));
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.UNDEPLOY)
-                .apiProductId("api-product-123")
-                .build();
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId("api-product-123")
+                    .build();
 
             cut.doAfterUndeployment(deployable).test().assertError(RuntimeException.class);
         }
@@ -393,26 +391,29 @@ class ApiProductDeployerTest {
 
         private ReactableApiProduct createProduct(String id, String name) {
             return ReactableApiProduct.builder()
-                .id(id)
-                .name(name)
-                .version("1.0")
-                .apiIds(Set.of("api-1"))
-                .environmentId("env-id")
-                .deployedAt(new Date())
-                .build();
+                    .id(id)
+                    .name(name)
+                    .version("1.0")
+                    .apiIds(Set.of("api-1"))
+                    .environmentId("env-id")
+                    .deployedAt(new Date())
+                    .build();
         }
 
         private ApiProductReactorDeployable createDeployable(ReactableApiProduct product, SyncAction action) {
             return ApiProductReactorDeployable.builder()
-                .syncAction(action)
-                .apiProductId(product.getId())
-                .reactableApiProduct(product)
-                .subscribablePlans(Set.of())
-                .build();
+                    .syncAction(action)
+                    .apiProductId(product.getId())
+                    .reactableApiProduct(product)
+                    .subscribablePlans(Set.of())
+                    .build();
         }
 
         private ApiProductReactorDeployable createUndeployable(String apiProductId) {
-            return ApiProductReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).apiProductId(apiProductId).build();
+            return ApiProductReactorDeployable.builder()
+                    .syncAction(SyncAction.UNDEPLOY)
+                    .apiProductId(apiProductId)
+                    .build();
         }
     }
 
@@ -421,25 +422,24 @@ class ApiProductDeployerTest {
 
         @Test
         void should_invoke_registerApiProductPlans_and_subscriptionRefresher_when_callback_runs() {
-            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
-                invocation.getArgument(1)
-            );
+            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(1));
 
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .name("Test Product")
-                .version("1.0")
-                .apiIds(Set.of("api-1"))
-                .environmentId("env-id")
-                .deployedAt(new Date())
-                .build();
+                    .id("api-product-123")
+                    .name("Test Product")
+                    .version("1.0")
+                    .apiIds(Set.of("api-1"))
+                    .environmentId("env-id")
+                    .deployedAt(new Date())
+                    .build();
 
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
-                .syncAction(SyncAction.DEPLOY)
-                .apiProductId("api-product-123")
-                .reactableApiProduct(reactableApiProduct)
-                .subscribablePlans(Set.of("plan-1"))
-                .build();
+                    .syncAction(SyncAction.DEPLOY)
+                    .apiProductId("api-product-123")
+                    .reactableApiProduct(reactableApiProduct)
+                    .subscribablePlans(Set.of("plan-1"))
+                    .build();
 
             cut.deploy(deployable).test().assertComplete();
 

@@ -56,7 +56,7 @@ public class PropertiesServiceImplTest {
 
     @Test
     public void encryptProperties_should_call_data_encryptor_for_each_encryptable_property_not_yet_encrypted()
-        throws GeneralSecurityException {
+            throws GeneralSecurityException {
         List<PropertyEntity> properties = buildProperties();
 
         propertiesService.encryptProperties(null, properties);
@@ -67,7 +67,8 @@ public class PropertiesServiceImplTest {
     }
 
     @Test
-    public void encryptProperties_should_set_encrypted_boolean_true_for_each_encrypted_property() throws GeneralSecurityException {
+    public void encryptProperties_should_set_encrypted_boolean_true_for_each_encrypted_property()
+            throws GeneralSecurityException {
         List<PropertyEntity> properties = buildProperties();
 
         propertiesService.encryptProperties(null, properties);
@@ -94,11 +95,10 @@ public class PropertiesServiceImplTest {
 
     private List<PropertyEntity> buildProperties() {
         return List.of(
-            new PropertyEntity("key1", "value1", false, false),
-            new PropertyEntity("key2", "value2", true, false),
-            new PropertyEntity("key3", "value3", true, true),
-            new PropertyEntity("key4", "value4", true, false)
-        );
+                new PropertyEntity("key1", "value1", false, false),
+                new PropertyEntity("key2", "value2", true, false),
+                new PropertyEntity("key3", "value3", true, true),
+                new PropertyEntity("key4", "value4", true, false));
     }
 
     @Test
@@ -109,17 +109,19 @@ public class PropertiesServiceImplTest {
         var throwable = catchThrowable(() -> propertiesService.encryptProperties(null, List.of(property)));
 
         assertThat(throwable)
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining("key")
-            .hasMessageNotContaining("plaintext");
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining("key")
+                .hasMessageNotContaining("plaintext");
     }
 
     @Test
-    public void encryptProperties_should_keep_the_stored_encrypted_value_when_the_mask_is_resubmitted() throws GeneralSecurityException {
+    public void encryptProperties_should_keep_the_stored_encrypted_value_when_the_mask_is_resubmitted()
+            throws GeneralSecurityException {
         PropertyEntity storedProperty = new PropertyEntity("key1", "ciphertext", true, true);
         PropertyEntity resubmittedMaskedProperty = new PropertyEntity("key1", ENCRYPTED_VALUE_MASK, true, false);
 
-        List<PropertyEntity> result = propertiesService.encryptProperties(List.of(storedProperty), List.of(resubmittedMaskedProperty));
+        List<PropertyEntity> result =
+                propertiesService.encryptProperties(List.of(storedProperty), List.of(resubmittedMaskedProperty));
 
         verifyNoMoreInteractions(dataEncryptor);
         assertEquals("ciphertext", result.get(0).getValue());
@@ -130,8 +132,8 @@ public class PropertiesServiceImplTest {
     public void encryptProperties_should_reject_the_mask_when_no_stored_encrypted_value_exists_for_the_key() {
         PropertyEntity resubmittedMaskedProperty = new PropertyEntity("key1", ENCRYPTED_VALUE_MASK, true, false);
 
-        assertThrows(MaskedApiPropertyValueException.class, () ->
-            propertiesService.encryptProperties(null, List.of(resubmittedMaskedProperty))
-        );
+        assertThrows(
+                MaskedApiPropertyValueException.class,
+                () -> propertiesService.encryptProperties(null, List.of(resubmittedMaskedProperty)));
     }
 }

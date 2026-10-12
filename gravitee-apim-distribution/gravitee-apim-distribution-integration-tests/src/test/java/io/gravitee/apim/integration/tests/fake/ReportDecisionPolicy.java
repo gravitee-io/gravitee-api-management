@@ -46,46 +46,46 @@ public class ReportDecisionPolicy implements Policy {
 
     @Override
     public Completable onRequest(HttpExecutionContext ctx) {
-        return Completable.fromRunnable(() -> ctx.getComponent(ReporterService.class).report(decision(ctx)));
+        return Completable.fromRunnable(
+                () -> ctx.getComponent(ReporterService.class).report(decision(ctx)));
     }
 
     private DecisionReport decision(HttpExecutionContext ctx) {
         return DecisionReport.builder()
-            .timestamp(System.currentTimeMillis())
-            .gatewayId(ctx.getComponent(Node.class).id())
-            .organizationId(attribute(ctx, ContextAttributes.ATTR_ORGANIZATION))
-            .environmentId(attribute(ctx, ContextAttributes.ATTR_ENVIRONMENT))
-            .apiId(ctx.getAttribute(ContextAttributes.ATTR_API))
-            .eventId("evt-" + ctx.request().id())
-            .requestId(ctx.request().id())
-            .phase(DecisionReport.Phase.RESOLVED)
-            .decisionPointType(DecisionReport.DECISION_POINT_GUARDIAN)
-            .decisionPointId("guardian-agent")
-            .decisionPointVersion("gpt-4o-2024-11")
-            .checkpoint("request.prompt")
-            .caller("gateway")
-            .subjectType("user")
-            .subjectId("jane@example.com")
-            .actorType("agent")
-            .actorId("support-bot")
-            .action("send_message")
-            .resourceType("conversation")
-            .resourceId("conv-42")
-            .outcome(configuration.getOutcome())
-            .enforced(configuration.getEnforced())
-            .verdict(configuration.getVerdict())
-            .indeterminateCause(configuration.getIndeterminateCause())
-            .confidence(0.94)
-            .reasons(List.of("no_pii_detected", "within_policy"))
-            .matchedRules(
-                List.of(new DecisionReport.MatchedRule("rule-1", "no-pii", "rev-1", DecisionReport.Outcome.ALLOW.getLabel(), Map.of()))
-            )
-            .status(DecisionReport.Status.SUCCESS)
-            .durationNanos(1_234_000L)
-            .additionalMetrics(
-                Set.of(new AdditionalMetric.LongMetric("long_tokens", 512L), new AdditionalMetric.KeywordMetric("keyword_model", "gpt-4o"))
-            )
-            .build();
+                .timestamp(System.currentTimeMillis())
+                .gatewayId(ctx.getComponent(Node.class).id())
+                .organizationId(attribute(ctx, ContextAttributes.ATTR_ORGANIZATION))
+                .environmentId(attribute(ctx, ContextAttributes.ATTR_ENVIRONMENT))
+                .apiId(ctx.getAttribute(ContextAttributes.ATTR_API))
+                .eventId("evt-" + ctx.request().id())
+                .requestId(ctx.request().id())
+                .phase(DecisionReport.Phase.RESOLVED)
+                .decisionPointType(DecisionReport.DECISION_POINT_GUARDIAN)
+                .decisionPointId("guardian-agent")
+                .decisionPointVersion("gpt-4o-2024-11")
+                .checkpoint("request.prompt")
+                .caller("gateway")
+                .subjectType("user")
+                .subjectId("jane@example.com")
+                .actorType("agent")
+                .actorId("support-bot")
+                .action("send_message")
+                .resourceType("conversation")
+                .resourceId("conv-42")
+                .outcome(configuration.getOutcome())
+                .enforced(configuration.getEnforced())
+                .verdict(configuration.getVerdict())
+                .indeterminateCause(configuration.getIndeterminateCause())
+                .confidence(0.94)
+                .reasons(List.of("no_pii_detected", "within_policy"))
+                .matchedRules(List.of(new DecisionReport.MatchedRule(
+                        "rule-1", "no-pii", "rev-1", DecisionReport.Outcome.ALLOW.getLabel(), Map.of())))
+                .status(DecisionReport.Status.SUCCESS)
+                .durationNanos(1_234_000L)
+                .additionalMetrics(Set.of(
+                        new AdditionalMetric.LongMetric("long_tokens", 512L),
+                        new AdditionalMetric.KeywordMetric("keyword_model", "gpt-4o")))
+                .build();
     }
 
     private static String attribute(HttpExecutionContext ctx, String name) {

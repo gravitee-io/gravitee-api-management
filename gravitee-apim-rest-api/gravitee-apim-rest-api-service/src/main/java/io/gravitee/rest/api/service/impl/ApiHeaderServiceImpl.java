@@ -61,7 +61,10 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     @Override
     public ApiHeaderEntity create(final ExecutionContext executionContext, NewApiHeaderEntity newEntity) {
         try {
-            int order = apiHeaderRepository.findAllByEnvironment(executionContext.getEnvironmentId()).size() + 1;
+            int order = apiHeaderRepository
+                            .findAllByEnvironment(executionContext.getEnvironmentId())
+                            .size()
+                    + 1;
 
             ApiHeader apiHeader = new ApiHeader();
             apiHeader.setId(UuidString.generateRandom());
@@ -73,15 +76,14 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             apiHeader.setUpdatedAt(apiHeader.getCreatedAt());
 
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(API_HEADER, apiHeader.getId()))
-                    .event(API_HEADER_CREATED)
-                    .createdAt(apiHeader.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(apiHeader)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(API_HEADER, apiHeader.getId()))
+                            .event(API_HEADER_CREATED)
+                            .createdAt(apiHeader.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(apiHeader)
+                            .build());
 
             return convert(apiHeaderRepository.create(apiHeader));
         } catch (TechnicalException e) {
@@ -93,24 +95,23 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     public void delete(ExecutionContext executionContext, String apiHeaderId) {
         try {
             ApiHeader apiHeader = apiHeaderRepository
-                .findById(apiHeaderId)
-                .filter(header -> header.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new ApiHeaderNotFoundException(apiHeaderId));
+                    .findById(apiHeaderId)
+                    .filter(header -> header.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new ApiHeaderNotFoundException(apiHeaderId));
 
             apiHeaderRepository.delete(apiHeaderId);
 
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(API_HEADER, apiHeaderId))
-                    .event(API_HEADER_DELETED)
-                    .createdAt(new Date())
-                    .oldValue(apiHeader)
-                    .newValue(null)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(API_HEADER, apiHeaderId))
+                            .event(API_HEADER_DELETED)
+                            .createdAt(new Date())
+                            .oldValue(apiHeader)
+                            .newValue(null)
+                            .build());
 
-            //reorder headers
+            // reorder headers
             int currentOrder = 1;
             for (ApiHeaderEntity apiHeaderEntity : this.findAll(executionContext.getEnvironmentId())) {
                 if (apiHeaderEntity.getOrder() != currentOrder) {
@@ -130,9 +131,9 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     public ApiHeaderEntity update(ExecutionContext executionContext, UpdateApiHeaderEntity updateEntity) {
         try {
             ApiHeader apiHeader = apiHeaderRepository
-                .findById(updateEntity.getId())
-                .filter(header -> header.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new ApiHeaderNotFoundException(updateEntity.getId()));
+                    .findById(updateEntity.getId())
+                    .filter(header -> header.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new ApiHeaderNotFoundException(updateEntity.getId()));
 
             ApiHeader updatedHeader = new ApiHeader(apiHeader);
             Date updatedAt = new Date();
@@ -147,15 +148,14 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             } else {
                 ApiHeader header = apiHeaderRepository.update(updatedHeader);
                 auditService.createAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(API_HEADER, header.getId()))
-                        .event(API_HEADER_UPDATED)
-                        .createdAt(header.getUpdatedAt())
-                        .oldValue(apiHeader)
-                        .newValue(header)
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.singletonMap(API_HEADER, header.getId()))
+                                .event(API_HEADER_UPDATED)
+                                .createdAt(header.getUpdatedAt())
+                                .oldValue(apiHeader)
+                                .newValue(header)
+                                .build());
                 return convert(header);
             }
         } catch (TechnicalException e) {
@@ -166,26 +166,22 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     @Override
     public List<ApiHeaderEntity> findAll(final String environmentId) {
         try {
-            return apiHeaderRepository
-                .findAllByEnvironment(environmentId)
-                .stream()
-                .sorted(Comparator.comparingInt(ApiHeader::getOrder))
-                .map(this::convert)
-                .collect(toList());
+            return apiHeaderRepository.findAllByEnvironment(environmentId).stream()
+                    .sorted(Comparator.comparingInt(ApiHeader::getOrder))
+                    .map(this::convert)
+                    .collect(toList());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find all header", e);
         }
     }
 
     private void reorderAndSave(final String environmentId, final ApiHeader headerToReorder) throws TechnicalException {
-        ApiHeader[] headers = apiHeaderRepository
-            .findAllByEnvironment(environmentId)
-            .stream()
-            .filter(h -> !Objects.equals(h.getId(), headerToReorder.getId()))
-            .sorted(Comparator.comparingInt(ApiHeader::getOrder))
-            .toArray(ApiHeader[]::new);
+        ApiHeader[] headers = apiHeaderRepository.findAllByEnvironment(environmentId).stream()
+                .filter(h -> !Objects.equals(h.getId(), headerToReorder.getId()))
+                .sorted(Comparator.comparingInt(ApiHeader::getOrder))
+                .toArray(ApiHeader[]::new);
 
-        //the new header order must be between 1 and numbers of current headers
+        // the new header order must be between 1 and numbers of current headers
         if (headerToReorder.getOrder() < 1) {
             headerToReorder.setOrder(1);
         } else if (headerToReorder.getOrder() > headers.length + 1) {

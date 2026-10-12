@@ -15,17 +15,11 @@
  */
 package io.gravitee.apim.infra.domain_service.theme;
 
-import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.theme.domain_service.ThemeServiceLegacyWrapper;
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.apim.infra.adapter.ThemeAdapter;
 import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import org.springframework.stereotype.Service;
 
 @Service

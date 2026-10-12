@@ -48,7 +48,8 @@ class GetTraceFilterDefinitionsUseCaseTest {
     void should_return_only_cross_module_filters_when_module_is_null() {
         GetTraceFilterDefinitionsUseCase useCase = useCaseWith(commonContributor, aimContributor, apimContributor);
 
-        GetTraceFilterDefinitionsUseCase.Output output = useCase.execute(new GetTraceFilterDefinitionsUseCase.Input(null));
+        GetTraceFilterDefinitionsUseCase.Output output =
+                useCase.execute(new GetTraceFilterDefinitionsUseCase.Input(null));
 
         assertThat(output.filters()).extracting(TraceFilterSpec::name).containsExactly("STATUS", "DURATION_NANOS");
     }
@@ -57,16 +58,20 @@ class GetTraceFilterDefinitionsUseCaseTest {
     void should_union_cross_module_with_module_specific_filters_when_module_is_specified() {
         GetTraceFilterDefinitionsUseCase useCase = useCaseWith(commonContributor, aimContributor, apimContributor);
 
-        GetTraceFilterDefinitionsUseCase.Output output = useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
+        GetTraceFilterDefinitionsUseCase.Output output =
+                useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
 
-        assertThat(output.filters()).extracting(TraceFilterSpec::name).containsExactly("STATUS", "DURATION_NANOS", "LLM_MODEL");
+        assertThat(output.filters())
+                .extracting(TraceFilterSpec::name)
+                .containsExactly("STATUS", "DURATION_NANOS", "LLM_MODEL");
     }
 
     @Test
     void should_ignore_contributors_for_unmatched_modules() {
         GetTraceFilterDefinitionsUseCase useCase = useCaseWith(commonContributor, aimContributor, apimContributor);
 
-        GetTraceFilterDefinitionsUseCase.Output output = useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
+        GetTraceFilterDefinitionsUseCase.Output output =
+                useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
 
         assertThat(output.filters()).extracting(TraceFilterSpec::name).doesNotContain("PLAN_ID");
     }
@@ -74,24 +79,26 @@ class GetTraceFilterDefinitionsUseCaseTest {
     @Test
     void should_let_module_contributor_override_a_cross_module_filter_by_name() {
         TraceFilterSpec aimOverride = filter("STATUS", "AIM-specific status", null);
-        GetTraceFilterDefinitionsUseCase useCase = useCaseWith(commonContributor, contributor("aim", List.of(aimOverride)));
+        GetTraceFilterDefinitionsUseCase useCase =
+                useCaseWith(commonContributor, contributor("aim", List.of(aimOverride)));
 
-        GetTraceFilterDefinitionsUseCase.Output output = useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
+        GetTraceFilterDefinitionsUseCase.Output output =
+                useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
 
         // The override replaces in place, not append — order preserved by the cross-module entry's position.
         assertThat(output.filters())
-            .extracting(TraceFilterSpec::name, TraceFilterSpec::label)
-            .containsExactly(
-                org.assertj.core.groups.Tuple.tuple("STATUS", "AIM-specific status"),
-                org.assertj.core.groups.Tuple.tuple("DURATION_NANOS", "Duration")
-            );
+                .extracting(TraceFilterSpec::name, TraceFilterSpec::label)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("STATUS", "AIM-specific status"),
+                        org.assertj.core.groups.Tuple.tuple("DURATION_NANOS", "Duration"));
     }
 
     @Test
     void should_return_empty_list_when_no_contributors_match() {
         GetTraceFilterDefinitionsUseCase useCase = useCaseWith(); // no contributors at all
 
-        GetTraceFilterDefinitionsUseCase.Output output = useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
+        GetTraceFilterDefinitionsUseCase.Output output =
+                useCase.execute(new GetTraceFilterDefinitionsUseCase.Input("aim"));
 
         assertThat(output.filters()).isEmpty();
     }

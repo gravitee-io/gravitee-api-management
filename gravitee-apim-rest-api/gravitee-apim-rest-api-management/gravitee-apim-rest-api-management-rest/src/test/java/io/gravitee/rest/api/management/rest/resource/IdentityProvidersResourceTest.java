@@ -60,11 +60,15 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
 
         IdentityProviderEntity createdIdentityProvider = new IdentityProviderEntity();
         createdIdentityProvider.setId(ID);
-        doReturn(createdIdentityProvider).when(identityProviderService).create(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(createdIdentityProvider)
+                .when(identityProviderService)
+                .create(eq(GraviteeContext.getExecutionContext()), any());
 
         IdentityProviderEntity updatedIdentityProvider = new IdentityProviderEntity();
         updatedIdentityProvider.setId(ID);
-        doReturn(updatedIdentityProvider).when(identityProviderService).update(eq(GraviteeContext.getExecutionContext()), eq(ID), any());
+        doReturn(updatedIdentityProvider)
+                .when(identityProviderService)
+                .update(eq(GraviteeContext.getExecutionContext()), eq(ID), any());
     }
 
     @Test
@@ -76,7 +80,8 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
 
         final Response response = envTarget().request().post(Entity.json(newIdentityProviderEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path(ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path(ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         verify(license, never()).isFeatureEnabled("apim-openid-connect-sso");
     }
@@ -92,7 +97,8 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
 
         final Response response = envTarget().request().post(Entity.json(newIdentityProviderEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path(ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path(ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test

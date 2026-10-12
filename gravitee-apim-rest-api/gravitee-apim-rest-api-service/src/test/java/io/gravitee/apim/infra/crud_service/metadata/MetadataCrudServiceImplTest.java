@@ -67,18 +67,16 @@ class MetadataCrudServiceImplTest {
             verify(metadataRepository).create(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.Metadata.builder()
-                        .referenceType(io.gravitee.repository.management.model.MetadataReferenceType.API)
-                        .referenceId("api-id")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .key("my-key")
-                        .format(MetadataFormat.MAIL)
-                        .value("my-value")
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.Metadata.builder()
+                            .referenceType(io.gravitee.repository.management.model.MetadataReferenceType.API)
+                            .referenceId("api-id")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .key("my-key")
+                            .format(MetadataFormat.MAIL)
+                            .value("my-value")
+                            .build());
         }
 
         @Test
@@ -102,8 +100,8 @@ class MetadataCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to create the my-key metadata of [apiId=api-id]");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to create the my-key metadata of [apiId=api-id]");
         }
     }
 
@@ -112,40 +110,37 @@ class MetadataCrudServiceImplTest {
 
         @Test
         void should_find_metadata_by_id() throws TechnicalException {
-            when(metadataRepository.findById("key", "referenceId", MetadataReferenceType.API)).thenReturn(
-                Optional.of(
-                    Metadata.builder().key("key").referenceId("referenceId").referenceType(MetadataReferenceType.API).value("value").build()
-                )
-            );
+            when(metadataRepository.findById("key", "referenceId", MetadataReferenceType.API))
+                    .thenReturn(Optional.of(Metadata.builder()
+                            .key("key")
+                            .referenceId("referenceId")
+                            .referenceType(MetadataReferenceType.API)
+                            .value("value")
+                            .build()));
 
-            var foundMetadata = service.findById(
-                MetadataId.builder()
+            var foundMetadata = service.findById(MetadataId.builder()
                     .key("key")
                     .referenceId("referenceId")
                     .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
-                    .build()
-            );
+                    .build());
 
             assertThat(foundMetadata).isPresent();
-            assertThat(foundMetadata).hasValue(
-                io.gravitee.apim.core.metadata.model.Metadata.builder()
-                    .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
-                    .referenceId("referenceId")
-                    .key("key")
-                    .value("value")
-                    .build()
-            );
+            assertThat(foundMetadata)
+                    .hasValue(io.gravitee.apim.core.metadata.model.Metadata.builder()
+                            .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                            .referenceId("referenceId")
+                            .key("key")
+                            .value("value")
+                            .build());
         }
 
         @Test
         void should_not_find_metadata_by_id_if_missing() {
-            var foundMetadata = service.findById(
-                MetadataId.builder()
+            var foundMetadata = service.findById(MetadataId.builder()
                     .key("key")
                     .referenceId("referenceId")
                     .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
-                    .build()
-            );
+                    .build());
 
             assertThat(foundMetadata).isEmpty();
         }
@@ -164,18 +159,16 @@ class MetadataCrudServiceImplTest {
             verify(metadataRepository).update(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.Metadata.builder()
-                        .referenceType(io.gravitee.repository.management.model.MetadataReferenceType.API)
-                        .referenceId("api-id")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .key("my-key")
-                        .format(MetadataFormat.MAIL)
-                        .value("my-value")
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.Metadata.builder()
+                            .referenceType(io.gravitee.repository.management.model.MetadataReferenceType.API)
+                            .referenceId("api-id")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .key("my-key")
+                            .format(MetadataFormat.MAIL)
+                            .value("my-value")
+                            .build());
         }
 
         @Test
@@ -199,8 +192,8 @@ class MetadataCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to create the my-key metadata of [apiId=api-id]");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to create the my-key metadata of [apiId=api-id]");
         }
     }
 
@@ -210,10 +203,10 @@ class MetadataCrudServiceImplTest {
         @Test
         void should_delete_metadata() throws TechnicalException {
             var id = MetadataId.builder()
-                .key("metadata-key")
-                .referenceId("api-id")
-                .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
-                .build();
+                    .key("metadata-key")
+                    .referenceId("api-id")
+                    .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                    .build();
             service.delete(id);
             verify(metadataRepository).delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.API);
         }
@@ -221,16 +214,16 @@ class MetadataCrudServiceImplTest {
         @Test
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
             var id = MetadataId.builder()
-                .key("metadata-key")
-                .referenceId("api-id")
-                .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
-                .build();
+                    .key("metadata-key")
+                    .referenceId("api-id")
+                    .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                    .build();
             doThrow(new TechnicalException("exception"))
-                .when(metadataRepository)
-                .delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.API);
+                    .when(metadataRepository)
+                    .delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.API);
             assertThatThrownBy(() -> service.delete(id))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to delete the metadata with key: " + id.getKey());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to delete the metadata with key: " + id.getKey());
             verify(metadataRepository).delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.API);
         }
     }

@@ -57,25 +57,24 @@ public class SocialIdentityProvidersResource extends AbstractResource {
     @GET
     @Operation(summary = "Get the list of social identity providers")
     @ApiResponse(
-        responseCode = "200",
-        description = "List social identity providers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = SocialIdentityProviderEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List social identity providers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema = @Schema(implementation = SocialIdentityProviderEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<SocialIdentityProviderEntity> getSocialIdentityProviders() {
         return socialIdentityProviderService
-            .findAll(
-                GraviteeContext.getExecutionContext(),
-                new IdentityProviderActivationService.ActivationTarget(
-                    GraviteeContext.getCurrentOrganization(),
-                    IdentityProviderActivationReferenceType.ORGANIZATION
-                )
-            )
-            .stream()
-            .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
-            .collect(Collectors.toList());
+                .findAll(
+                        GraviteeContext.getExecutionContext(),
+                        new IdentityProviderActivationService.ActivationTarget(
+                                GraviteeContext.getCurrentOrganization(),
+                                IdentityProviderActivationReferenceType.ORGANIZATION))
+                .stream()
+                .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
+                .collect(Collectors.toList());
     }
 }

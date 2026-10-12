@@ -31,9 +31,7 @@ public final class ApiAncestorValidation {
     private ApiAncestorValidation() {}
 
     public static void ensureNoApiInAncestors(
-        PortalNavigationItemId parentId,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById
-    ) {
+            PortalNavigationItemId parentId, Map<PortalNavigationItemId, PortalNavigationItem> itemsById) {
         ensureNoApiInAncestors(parentId, itemsById, Map.of());
     }
 
@@ -42,10 +40,9 @@ public final class ApiAncestorValidation {
     }
 
     private static void ensureNoApiInAncestors(
-        PortalNavigationItemId parentId,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
-    ) {
+            PortalNavigationItemId parentId,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+            Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById) {
         if (parentId == null) {
             return;
         }
@@ -55,7 +52,8 @@ public final class ApiAncestorValidation {
         while (currentId != null) {
             var pendingItem = pendingItemsById.get(currentId);
             if (pendingItem != null) {
-                if (pendingItem.getType() == PortalNavigationItemType.API || pendingItem.getReference() instanceof ApiReference) {
+                if (pendingItem.getType() == PortalNavigationItemType.API
+                        || pendingItem.getReference() instanceof ApiReference) {
                     throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
                 }
                 currentId = pendingItem.getParentId();
@@ -65,7 +63,8 @@ public final class ApiAncestorValidation {
             if (currentItem == null) {
                 return;
             }
-            if (currentItem.getType() == PortalNavigationItemType.API || currentItem.getReference() instanceof ApiReference) {
+            if (currentItem.getType() == PortalNavigationItemType.API
+                    || currentItem.getReference() instanceof ApiReference) {
                 throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
             }
             currentId = currentItem.getParentId();

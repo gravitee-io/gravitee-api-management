@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * @see ReactableApiProduct as the model to deploy
  * @author GraviteeSource Team
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface DeployApiProducts {

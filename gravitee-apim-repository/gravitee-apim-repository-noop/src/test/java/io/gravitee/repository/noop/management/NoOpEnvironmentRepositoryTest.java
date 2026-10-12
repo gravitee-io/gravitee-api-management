@@ -54,7 +54,8 @@ public class NoOpEnvironmentRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
-    public void should_return_empty_when_finding_by_an_organization_hrid_other_than_default() throws TechnicalException {
+    public void should_return_empty_when_finding_by_an_organization_hrid_other_than_default()
+            throws TechnicalException {
         Set<Environment> environments = cut.findByOrganizationsAndHrids(Set.of("test_org"), Set.of("test_hrid"));
 
         assertNotNull(environments);
@@ -62,19 +63,20 @@ public class NoOpEnvironmentRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
-    public void should_return_empty_when_finding_by_an_organization_other_than_default_and_default_environment() throws TechnicalException {
-        Set<Environment> environments = cut.findByOrganizationsAndHrids(Set.of("test_org"), new HashSet<>(Environment.DEFAULT.getHrids()));
+    public void should_return_empty_when_finding_by_an_organization_other_than_default_and_default_environment()
+            throws TechnicalException {
+        Set<Environment> environments =
+                cut.findByOrganizationsAndHrids(Set.of("test_org"), new HashSet<>(Environment.DEFAULT.getHrids()));
 
         assertNotNull(environments);
         assertTrue(environments.isEmpty());
     }
 
     @Test
-    public void should_return_empty_when_finding_by_default_organization_but_an_environment_other_than_default() throws TechnicalException {
-        Set<Environment> environments = cut.findByOrganizationsAndHrids(
-            new HashSet<>(Organization.DEFAULT.getHrids()),
-            Set.of("test_hrid")
-        );
+    public void should_return_empty_when_finding_by_default_organization_but_an_environment_other_than_default()
+            throws TechnicalException {
+        Set<Environment> environments =
+                cut.findByOrganizationsAndHrids(new HashSet<>(Organization.DEFAULT.getHrids()), Set.of("test_hrid"));
 
         assertNotNull(environments);
         assertTrue(environments.isEmpty());
@@ -82,11 +84,9 @@ public class NoOpEnvironmentRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void should_return_default_environment_when_finding_by_default_organization_and_default_environment_hrids()
-        throws TechnicalException {
+            throws TechnicalException {
         Set<Environment> environments = cut.findByOrganizationsAndHrids(
-            new HashSet<>(Organization.DEFAULT.getHrids()),
-            new HashSet<>(Environment.DEFAULT.getHrids())
-        );
+                new HashSet<>(Organization.DEFAULT.getHrids()), new HashSet<>(Environment.DEFAULT.getHrids()));
 
         assertNotNull(environments);
         assertEquals(Set.of(Environment.DEFAULT), environments);

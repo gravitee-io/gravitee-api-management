@@ -46,19 +46,16 @@ public class PropertiesEntityAsListDeserializerTest {
     @Test
     public void should_deserialize_properties_list() throws JsonProcessingException {
         List<PropertyEntity> properties = objectMapper.readValue(
-            "[" +
-                "{\"key\":\"key1\", \"value\":\"value1\", \"encryptable\":\"true\", \"encrypted\":\"false\"}," +
-                "{\"key\":\"key2\", \"value\":\"value2\", \"encryptable\":\"false\", \"encrypted\":\"false\"}," +
-                "{\"key\":\"key3\", \"value\":\"value3\", \"encryptable\":\"true\", \"encrypted\":\"true\"}" +
-                "]",
-            List.class
-        );
+                "[" + "{\"key\":\"key1\", \"value\":\"value1\", \"encryptable\":\"true\", \"encrypted\":\"false\"},"
+                        + "{\"key\":\"key2\", \"value\":\"value2\", \"encryptable\":\"false\", \"encrypted\":\"false\"},"
+                        + "{\"key\":\"key3\", \"value\":\"value3\", \"encryptable\":\"true\", \"encrypted\":\"true\"}"
+                        + "]",
+                List.class);
 
         List<PropertyEntity> expectedProperties = List.of(
-            new PropertyEntity("key1", "value1", true, false),
-            new PropertyEntity("key2", "value2", false, false),
-            new PropertyEntity("key3", "value3", true, true)
-        );
+                new PropertyEntity("key1", "value1", true, false),
+                new PropertyEntity("key2", "value2", false, false),
+                new PropertyEntity("key3", "value3", true, true));
 
         assertEquals(expectedProperties, properties);
     }
@@ -66,15 +63,12 @@ public class PropertiesEntityAsListDeserializerTest {
     @Test
     public void should_deserialize_properties_object() throws JsonProcessingException {
         List<PropertyEntity> properties = objectMapper.readValue(
-            "{" + "\"key1\": \"value1\"," + "\"key2\": \"value2\"," + "\"key3\": \"value3\"" + "}",
-            List.class
-        );
+                "{" + "\"key1\": \"value1\"," + "\"key2\": \"value2\"," + "\"key3\": \"value3\"" + "}", List.class);
 
         List<PropertyEntity> expectedProperties = List.of(
-            new PropertyEntity("key1", "value1"),
-            new PropertyEntity("key2", "value2"),
-            new PropertyEntity("key3", "value3")
-        );
+                new PropertyEntity("key1", "value1"),
+                new PropertyEntity("key2", "value2"),
+                new PropertyEntity("key3", "value3"));
 
         assertEquals(expectedProperties, properties);
     }

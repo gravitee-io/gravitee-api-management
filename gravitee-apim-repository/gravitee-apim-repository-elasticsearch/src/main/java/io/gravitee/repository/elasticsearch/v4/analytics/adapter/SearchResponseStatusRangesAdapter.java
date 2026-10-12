@@ -55,14 +55,13 @@ public class SearchResponseStatusRangesAdapter {
     public static final String UNKNOWN_RANGE = "unknown";
 
     public String adaptQuery(ResponseStatusQueryCriteria query, boolean isEntrypointIdKeyword) {
-        return json()
-            .put("size", 0)
-            // Needed to derive the UNKNOWN_RANGE bucket: the status ranges only span [100, 600),
-            // so the requests they leave out are the ones the query matched minus the ones they hold.
-            .put(TRACK_TOTAL_HITS, true)
-            .<ObjectNode>set("query", buildElasticQuery(query))
-            .set("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword))
-            .toString();
+        return json().put("size", 0)
+                // Needed to derive the UNKNOWN_RANGE bucket: the status ranges only span [100, 600),
+                // so the requests they leave out are the ones the query matched minus the ones they hold.
+                .put(TRACK_TOTAL_HITS, true)
+                .<ObjectNode>set("query", buildElasticQuery(query))
+                .set("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword))
+                .toString();
     }
 
     private ObjectNode buildElasticQuery(ResponseStatusQueryCriteria queryParams) {
@@ -95,56 +94,80 @@ public class SearchResponseStatusRangesAdapter {
 
     private static ObjectNode dateRangeFilterForQuery(Long from, Long to) {
         log.info("Query filtering date range from {} to {}", new Date(from), new Date(to));
-        return json().set("range", json().set("@timestamp", json().put("gte", from).put("lte", to)));
+        return json().set(
+                        "range",
+                        json().set("@timestamp", json().put("gte", from).put("lte", to)));
     }
 
-    private static ObjectNode buildResponseCountPerStatusCodeRangePerEntrypointAggregation(boolean isEntrypointIdKeyword) {
-        return json()
-            .<ObjectNode>set(
-                BY_ENTRYPOINT_ID_AGG,
-                json()
-                    .<ObjectNode>set(
-                        "terms",
-                        json().put(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword").put("size", ENTRYPOINT_BUCKETS)
-                    )
-                    .<ObjectNode>set(
-                        "aggs",
+    private static ObjectNode buildResponseCountPerStatusCodeRangePerEntrypointAggregation(
+            boolean isEntrypointIdKeyword) {
+        return json().<ObjectNode>set(
+                        BY_ENTRYPOINT_ID_AGG,
+                        json().<ObjectNode>set(
+                                        "terms",
+                                        json().put(
+                                                        FIELD,
+                                                        isEntrypointIdKeyword
+                                                                ? "entrypoint-id"
+                                                                : "entrypoint-id.keyword")
+                                                .put("size", ENTRYPOINT_BUCKETS))
+                                .<ObjectNode>set(
+                                        "aggs",
+                                        json().set(
+                                                        STATUS_RANGES,
+                                                        json().set(
+                                                                        "range",
+                                                                        json().put(FIELD, "status")
+                                                                                .set(
+                                                                                        "ranges",
+                                                                                        array().add(json().put(
+                                                                                                                "from",
+                                                                                                                100.0)
+                                                                                                        .put(
+                                                                                                                "to",
+                                                                                                                200.0))
+                                                                                                .add(json().put(
+                                                                                                                "from",
+                                                                                                                200.0)
+                                                                                                        .put(
+                                                                                                                "to",
+                                                                                                                300.0))
+                                                                                                .add(json().put(
+                                                                                                                "from",
+                                                                                                                300.0)
+                                                                                                        .put(
+                                                                                                                "to",
+                                                                                                                400.0))
+                                                                                                .add(json().put(
+                                                                                                                "from",
+                                                                                                                400.0)
+                                                                                                        .put(
+                                                                                                                "to",
+                                                                                                                500.0))
+                                                                                                .add(
+                                                                                                        json().put(
+                                                                                                                        "from",
+                                                                                                                        500.0)
+                                                                                                                .put(
+                                                                                                                        "to",
+                                                                                                                        600.0)))))))
+                .set(
+                        ALL_APIS_STATUS_RANGES,
                         json().set(
-                            STATUS_RANGES,
-                            json().set(
-                                "range",
-                                json()
-                                    .put(FIELD, "status")
-                                    .set(
-                                        "ranges",
-                                        array()
-                                            .add(json().put("from", 100.0).put("to", 200.0))
-                                            .add(json().put("from", 200.0).put("to", 300.0))
-                                            .add(json().put("from", 300.0).put("to", 400.0))
-                                            .add(json().put("from", 400.0).put("to", 500.0))
-                                            .add(json().put("from", 500.0).put("to", 600.0))
-                                    )
-                            )
-                        )
-                    )
-            )
-            .set(
-                ALL_APIS_STATUS_RANGES,
-                json().set(
-                    "range",
-                    json()
-                        .put(FIELD, "status")
-                        .set(
-                            "ranges",
-                            array()
-                                .add(json().put("from", 100.0).put("to", 200.0))
-                                .add(json().put("from", 200.0).put("to", 300.0))
-                                .add(json().put("from", 300.0).put("to", 400.0))
-                                .add(json().put("from", 400.0).put("to", 500.0))
-                                .add(json().put("from", 500.0).put("to", 600.0))
-                        )
-                )
-            );
+                                        "range",
+                                        json().put(FIELD, "status")
+                                                .set(
+                                                        "ranges",
+                                                        array().add(json().put("from", 100.0)
+                                                                        .put("to", 200.0))
+                                                                .add(json().put("from", 200.0)
+                                                                        .put("to", 300.0))
+                                                                .add(json().put("from", 300.0)
+                                                                        .put("to", 400.0))
+                                                                .add(json().put("from", 400.0)
+                                                                        .put("to", 500.0))
+                                                                .add(json().put("from", 500.0)
+                                                                        .put("to", 600.0)))));
     }
 
     public Optional<ResponseStatusRangesAggregate> adaptResponse(SearchResponse response) {
@@ -157,33 +180,31 @@ public class SearchResponseStatusRangesAdapter {
             return Optional.empty();
         }
 
-        final Map<String, Map<String, Long>> statusRangesByEntrypoints = byEntrypointsAggregation
-            .getBuckets()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    jsonNode -> jsonNode.get("key").asText(),
-                    jsonNode -> withUnknownRange(processStatusRanges(jsonNode.get(STATUS_RANGES)), jsonNode.path("doc_count").asLong())
-                )
-            );
+        final Map<String, Map<String, Long>> statusRangesByEntrypoints = byEntrypointsAggregation.getBuckets().stream()
+                .collect(Collectors.toMap(
+                        jsonNode -> jsonNode.get("key").asText(),
+                        jsonNode -> withUnknownRange(
+                                processStatusRanges(jsonNode.get(STATUS_RANGES)),
+                                jsonNode.path("doc_count").asLong())));
 
         final var allApisStatusRangesAggregation = aggregations.get(ALL_APIS_STATUS_RANGES);
         if (allApisStatusRangesAggregation == null) {
             return Optional.empty();
         }
 
-        final Map<String, Long> allApisStatusRanges = allApisStatusRangesAggregation
-            .getBuckets()
-            .stream()
-            .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> jsonNode.get("doc_count").asLong()));
+        final Map<String, Long> allApisStatusRanges = allApisStatusRangesAggregation.getBuckets().stream()
+                .collect(Collectors.toMap(
+                        jsonNode -> jsonNode.get("key").asText(),
+                        jsonNode -> jsonNode.get("doc_count").asLong()));
 
         final var ranges = totalHits(response)
-            .map(total -> withUnknownRange(allApisStatusRanges, total))
-            .orElse(allApisStatusRanges);
+                .map(total -> withUnknownRange(allApisStatusRanges, total))
+                .orElse(allApisStatusRanges);
 
-        return Optional.of(
-            ResponseStatusRangesAggregate.builder().statusRangesCountByEntrypoint(statusRangesByEntrypoints).ranges(ranges).build()
-        );
+        return Optional.of(ResponseStatusRangesAggregate.builder()
+                .statusRangesCountByEntrypoint(statusRangesByEntrypoints)
+                .ranges(ranges)
+                .build());
     }
 
     /**
@@ -200,14 +221,17 @@ public class SearchResponseStatusRangesAdapter {
      * @param matchedRequests every request the query matched, whatever its status
      */
     private static Map<String, Long> withUnknownRange(Map<String, Long> statusRanges, long matchedRequests) {
-        final long classified = statusRanges.values().stream().mapToLong(Long::longValue).sum();
+        final long classified =
+                statusRanges.values().stream().mapToLong(Long::longValue).sum();
         final var result = new LinkedHashMap<>(statusRanges);
         result.put(UNKNOWN_RANGE, Math.max(0, matchedRequests - classified));
         return result;
     }
 
     private static Optional<Long> totalHits(SearchResponse response) {
-        return Optional.ofNullable(response.getSearchHits()).map(SearchHits::getTotal).map(TotalHits::getValue);
+        return Optional.ofNullable(response.getSearchHits())
+                .map(SearchHits::getTotal)
+                .map(TotalHits::getValue);
     }
 
     private static Map<String, Long> processStatusRanges(JsonNode jsonNode) {

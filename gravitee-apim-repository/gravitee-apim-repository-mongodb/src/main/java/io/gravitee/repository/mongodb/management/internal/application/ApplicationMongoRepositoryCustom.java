@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -30,7 +29,8 @@ import java.util.stream.Stream;
  * @author GraviteeSource Team
  */
 public interface ApplicationMongoRepositoryCustom {
-    Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable, final Sortable sortable);
+    Page<ApplicationMongo> search(
+            ApplicationCriteria applicationCriteria, final Pageable pageable, final Sortable sortable);
 
     Stream<String> searchIds(ApplicationCriteria applicationCriteria);
 

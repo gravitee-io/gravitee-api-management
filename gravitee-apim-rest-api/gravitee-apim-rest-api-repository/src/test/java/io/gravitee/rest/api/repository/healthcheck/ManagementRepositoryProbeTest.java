@@ -59,7 +59,7 @@ class ManagementRepositoryProbeTest {
 
     @Test
     void should_check_completed_with_unhealthy_state_when_repository_failed()
-        throws TechnicalException, ExecutionException, InterruptedException {
+            throws TechnicalException, ExecutionException, InterruptedException {
         RuntimeException runtimeException = new RuntimeException();
         when(installationRepository.find()).thenThrow(runtimeException);
         Result result = cut.check().toCompletableFuture().get();

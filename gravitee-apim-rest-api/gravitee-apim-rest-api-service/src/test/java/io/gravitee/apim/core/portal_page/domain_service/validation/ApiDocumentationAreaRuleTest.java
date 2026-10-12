@@ -37,68 +37,78 @@ class ApiDocumentationAreaRuleTest {
 
     @Test
     void applies_to_page_with_api_reference() {
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR, apiRef()))).isTrue();
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR, apiRef())))
+                .isTrue();
     }
 
     @Test
     void does_not_apply_to_page_with_portal_reference() {
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR, portalRef()))).isFalse();
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR, portalRef())))
+                .isFalse();
     }
 
     @Test
     void applies_to_folder_with_api_reference() {
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR, apiRef()))).isTrue();
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR, apiRef())))
+                .isTrue();
     }
 
     @Test
     void applies_to_link_with_api_reference() {
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR, apiRef()))).isTrue();
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR, apiRef())))
+                .isTrue();
     }
 
     @Test
     void does_not_apply_to_folder_or_link_with_portal_reference() {
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE, portalRef()))).isFalse();
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE, portalRef()))).isFalse();
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE, portalRef())))
+                .isFalse();
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE, portalRef())))
+                .isFalse();
     }
 
     @Test
     void accepts_top_navbar() {
-        assertThatCode(() ->
-            rule.validate(item(PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR, apiRef()), "env-1", null)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(
+                        item(PortalNavigationItemType.PAGE, PortalArea.TOP_NAVBAR, apiRef()), "env-1", null))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void rejects_homepage() {
-        assertThatThrownBy(() -> rule.validate(item(PortalNavigationItemType.PAGE, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessageContaining("TOP_NAVBAR");
+        assertThatThrownBy(() -> rule.validate(
+                        item(PortalNavigationItemType.PAGE, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("TOP_NAVBAR");
     }
 
     @Test
     void rejects_api_owned_folder_outside_top_navbar() {
-        assertThatThrownBy(() -> rule.validate(item(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessageContaining("TOP_NAVBAR");
+        assertThatThrownBy(() -> rule.validate(
+                        item(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("TOP_NAVBAR");
     }
 
     @Test
     void rejects_api_owned_link_outside_top_navbar() {
-        assertThatThrownBy(() -> rule.validate(item(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessageContaining("TOP_NAVBAR");
+        assertThatThrownBy(() -> rule.validate(
+                        item(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("TOP_NAVBAR");
     }
 
-    private static CreatePortalNavigationItem item(PortalNavigationItemType type, PortalArea area, NavigationItemReference reference) {
+    private static CreatePortalNavigationItem item(
+            PortalNavigationItemType type, PortalArea area, NavigationItemReference reference) {
         return CreatePortalNavigationItem.builder()
-            .type(type)
-            .title("Doc")
-            .segment("doc")
-            .area(area)
-            .order(0)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .reference(reference)
-            .build();
+                .type(type)
+                .title("Doc")
+                .segment("doc")
+                .area(area)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .reference(reference)
+                .build();
     }
 
     private static NavigationItemReference apiRef() {

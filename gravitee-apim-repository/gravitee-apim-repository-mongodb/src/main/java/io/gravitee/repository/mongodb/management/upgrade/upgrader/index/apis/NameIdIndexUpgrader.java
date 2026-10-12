@@ -30,10 +30,10 @@ public class NameIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("n1i1")
-            .key("name", ascending())
-            .key("_id", ascending())
-            .build();
+                .collection("apis")
+                .name("n1i1")
+                .key("name", ascending())
+                .key("_id", ascending())
+                .build();
     }
 }

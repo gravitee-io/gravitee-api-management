@@ -72,35 +72,26 @@ public class AcceptUserInvitationUseCase {
             }
         };
 
-        var user = input
-            .action()
-            .existingUserId()
-            .map(userId -> findAndValidateExistingUser(userId, input.executionContext()))
-            .orElseGet(() ->
-                createUserDomainService.createGraviteeUser(
-                    input.executionContext(),
-                    input.action().email(),
-                    input.firstname(),
-                    input.lastname()
-                )
-            );
+        var user = input.action()
+                .existingUserId()
+                .map(userId -> findAndValidateExistingUser(userId, input.executionContext()))
+                .orElseGet(() -> createUserDomainService.createGraviteeUser(
+                        input.executionContext(), input.action().email(), input.firstname(), input.lastname()));
 
         switch (input.action()) {
             case UserRegistrationAction ignored -> {}
-            case InvitationBasedAction ignored -> pendingInvitations.forEach(invitation ->
-                processInvitation(input.executionContext(), invitation, user.getId())
-            );
+            case InvitationBasedAction ignored ->
+                pendingInvitations.forEach(
+                        invitation -> processInvitation(input.executionContext(), invitation, user.getId()));
         }
 
         user.setUpdatedAt(Date.from(TimeProvider.now().toInstant()));
 
-        var updated = input
-            .password()
-            .map(pwd -> userCrudService.updateAndSetPassword(user, userPasswordService.encode(pwd)))
-            .orElseGet(() -> userCrudService.update(user));
+        var updated = input.password()
+                .map(pwd -> userCrudService.updateAndSetPassword(user, userPasswordService.encode(pwd)))
+                .orElseGet(() -> userCrudService.update(user));
 
-        auditDomainService.createOrganizationAuditLog(
-            OrganizationAuditLogEntity.builder()
+        auditDomainService.createOrganizationAuditLog(OrganizationAuditLogEntity.builder()
                 .organizationId(input.executionContext().getOrganizationId())
                 .actor(AuditActor.builder().userId(updated.getId()).build())
                 .properties(Map.of(AuditProperties.USER, updated.getId()))
@@ -108,8 +99,7 @@ public class AcceptUserInvitationUseCase {
                 .createdAt(TimeProvider.now())
                 .oldValue(null)
                 .newValue(updated)
-                .build()
-        );
+                .build());
 
         userPortalNotificationService.triggerUserRegistered(input.executionContext(), updated);
 
@@ -135,21 +125,23 @@ public class AcceptUserInvitationUseCase {
         Optional<String> existingUserId();
     }
 
-    public sealed interface InvitationBasedAction extends Action permits GroupInvitationAction, ApplicationInvitationAction {}
+    public sealed interface InvitationBasedAction extends Action
+            permits GroupInvitationAction, ApplicationInvitationAction {}
 
     public record UserRegistrationAction(String email, Optional<String> existingUserId) implements Action {}
 
-    public record GroupInvitationAction(String email, Optional<String> existingUserId) implements InvitationBasedAction {}
+    public record GroupInvitationAction(String email, Optional<String> existingUserId)
+            implements InvitationBasedAction {}
 
-    public record ApplicationInvitationAction(String email, Optional<String> existingUserId) implements InvitationBasedAction {}
+    public record ApplicationInvitationAction(String email, Optional<String> existingUserId)
+            implements InvitationBasedAction {}
 
     public record Input(
-        ExecutionContext executionContext,
-        Action action,
-        Optional<RawPassword> password,
-        Optional<String> firstname,
-        Optional<String> lastname
-    ) {}
+            ExecutionContext executionContext,
+            Action action,
+            Optional<RawPassword> password,
+            Optional<String> firstname,
+            Optional<String> lastname) {}
 
     public record Output(BaseUserEntity user) {}
 }

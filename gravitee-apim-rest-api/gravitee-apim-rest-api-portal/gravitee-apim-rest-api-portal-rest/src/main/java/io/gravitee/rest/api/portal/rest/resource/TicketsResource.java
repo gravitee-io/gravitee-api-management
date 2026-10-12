@@ -54,18 +54,18 @@ public class TicketsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull(message = "Input must not be null.") final TicketInput ticketInput) {
         ticketService.create(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUser(),
-            ticketMapper.convert(ticketInput),
-            GraviteeContext.getCurrentEnvironment(),
-            ParameterReferenceType.ENVIRONMENT
-        );
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUser(),
+                ticketMapper.convert(ticketInput),
+                GraviteeContext.getCurrentEnvironment(),
+                ParameterReferenceType.ENVIRONMENT);
         return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTickets(@Valid @BeanParam PaginationParam paginationParam, @BeanParam TicketsParam ticketsParam) {
+    public Response getTickets(
+            @Valid @BeanParam PaginationParam paginationParam, @BeanParam TicketsParam ticketsParam) {
         TicketQuery query = new TicketQuery();
         query.setApi(ticketsParam.getApi());
         query.setApplication(ticketsParam.getApplication());
@@ -74,15 +74,15 @@ public class TicketsResource extends AbstractResource {
 
         Sortable sortable = null;
         if (ticketsParam.getOrder() != null) {
-            sortable = new SortableImpl(ticketsParam.getOrder().getField(), ticketsParam.getOrder().isSorted());
+            sortable = new SortableImpl(
+                    ticketsParam.getOrder().getField(), ticketsParam.getOrder().isSorted());
         }
 
         Page<TicketEntity> tickets = ticketService.search(
-            GraviteeContext.getExecutionContext(),
-            query,
-            sortable,
-            new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
-        );
+                GraviteeContext.getExecutionContext(),
+                query,
+                sortable,
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize()));
 
         final Map<String, Object> metadataTotal = new HashMap<>();
         metadataTotal.put(METADATA_DATA_TOTAL_KEY, tickets.getTotalElements());
@@ -90,6 +90,7 @@ public class TicketsResource extends AbstractResource {
         final Map<String, Map<String, Object>> metadata = new HashMap<>();
         metadata.put(METADATA_DATA_KEY, metadataTotal);
 
-        return createListResponse(GraviteeContext.getExecutionContext(), tickets.getContent(), paginationParam, metadata, false);
+        return createListResponse(
+                GraviteeContext.getExecutionContext(), tickets.getContent(), paginationParam, metadata, false);
     }
 }

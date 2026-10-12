@@ -52,22 +52,21 @@ public class PlanUpdates {
     private Integer brokerRangeEnd;
 
     public Plan applyTo(Plan oldPlan) {
-        Plan result = oldPlan
-            .toBuilder()
-            .name(name != null ? name : oldPlan.getName())
-            .crossId(crossId != null ? crossId : oldPlan.getCrossId())
-            .description(description)
-            .updatedAt(ZonedDateTime.now())
-            .commentRequired(commentRequired)
-            .commentMessage(commentMessage)
-            .generalConditions(generalConditions)
-            .excludedGroups(excludedGroups)
-            .characteristics(characteristics)
-            .order(order)
-            .validation(validation != null ? validation : oldPlan.getValidation())
-            .referenceId(oldPlan.getReferenceId())
-            .referenceType(oldPlan.getReferenceType())
-            .build();
+        Plan result = oldPlan.toBuilder()
+                .name(name != null ? name : oldPlan.getName())
+                .crossId(crossId != null ? crossId : oldPlan.getCrossId())
+                .description(description)
+                .updatedAt(ZonedDateTime.now())
+                .commentRequired(commentRequired)
+                .commentMessage(commentMessage)
+                .generalConditions(generalConditions)
+                .excludedGroups(excludedGroups)
+                .characteristics(characteristics)
+                .order(order)
+                .validation(validation != null ? validation : oldPlan.getValidation())
+                .referenceId(oldPlan.getReferenceId())
+                .referenceType(oldPlan.getReferenceType())
+                .build();
 
         if (tags != null) {
             result.setPlanTags(tags);

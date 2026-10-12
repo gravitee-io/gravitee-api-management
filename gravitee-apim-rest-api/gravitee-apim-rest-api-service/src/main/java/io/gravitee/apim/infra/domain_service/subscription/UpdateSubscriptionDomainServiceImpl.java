@@ -37,13 +37,12 @@ public class UpdateSubscriptionDomainServiceImpl implements UpdateSubscriptionDo
 
     @Override
     public void update(
-        AuditInfo auditInfo,
-        String subscriptionId,
-        io.gravitee.rest.api.model.SubscriptionConfigurationEntity configuration,
-        java.util.Map<String, String> metadata,
-        java.time.ZonedDateTime startingAt,
-        java.time.ZonedDateTime endingAt
-    ) {
+            AuditInfo auditInfo,
+            String subscriptionId,
+            io.gravitee.rest.api.model.SubscriptionConfigurationEntity configuration,
+            java.util.Map<String, String> metadata,
+            java.time.ZonedDateTime startingAt,
+            java.time.ZonedDateTime endingAt) {
         ExecutionContext executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();

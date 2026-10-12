@@ -55,18 +55,19 @@ public class ClientCertificateValidationDomainServiceImpl implements ClientCerti
         }
 
         return new CertificateInfo(
-            x509Certificate.getNotAfter(),
-            x509Certificate.getSubjectX500Principal().getName(),
-            x509Certificate.getIssuerX500Principal().getName(),
-            fingerprint
-        );
+                x509Certificate.getNotAfter(),
+                x509Certificate.getSubjectX500Principal().getName(),
+                x509Certificate.getIssuerX500Principal().getName(),
+                fingerprint);
     }
 
     @Override
-    public CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId, String excludeApplicationId) {
+    public CertificateInfo validateForCreation(
+            ClientCertificate clientCertificate, String environmentId, String excludeApplicationId) {
         CertificateInfo info = validate(clientCertificate.certificate());
 
-        if (clientCertificateCrudService.existsByFingerprintAndActiveApplication(info.fingerprint(), environmentId, excludeApplicationId)) {
+        if (clientCertificateCrudService.existsByFingerprintAndActiveApplication(
+                info.fingerprint(), environmentId, excludeApplicationId)) {
             throw new ClientCertificateAlreadyUsedException(info.fingerprint());
         }
 
@@ -98,12 +99,14 @@ public class ClientCertificateValidationDomainServiceImpl implements ClientCerti
     }
 
     private void validateDateBounds(ClientCertificate clientCertificate) {
-        if (
-            !Duration.between(
-                Optional.ofNullable(clientCertificate.startsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
-                Optional.ofNullable(clientCertificate.endsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MAX_VALUE))
-            ).isPositive()
-        ) {
+        if (!Duration.between(
+                        Optional.ofNullable(clientCertificate.startsAt())
+                                .map(Date::toInstant)
+                                .orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
+                        Optional.ofNullable(clientCertificate.endsAt())
+                                .map(Date::toInstant)
+                                .orElse(Instant.ofEpochMilli(Long.MAX_VALUE)))
+                .isPositive()) {
             throw new ClientCertificateDateBoundsInvalidException();
         }
     }

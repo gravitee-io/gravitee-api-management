@@ -23,32 +23,27 @@ public class ApiKeyMapper {
 
     public ApiKey to(io.gravitee.repository.management.model.ApiKey apiKeyModel, Set<Subscription> subscriptions) {
         ApiKey.ApiKeyBuilder apiKeyBuilder = ApiKey.builder()
-            .id(apiKeyModel.getId())
-            .key(apiKeyModel.getKey())
-            .application(apiKeyModel.getApplication())
-            .expireAt(apiKeyModel.getExpireAt())
-            .revoked(apiKeyModel.isRevoked())
-            .paused(apiKeyModel.isPaused())
-            .active(false);
+                .id(apiKeyModel.getId())
+                .key(apiKeyModel.getKey())
+                .application(apiKeyModel.getApplication())
+                .expireAt(apiKeyModel.getExpireAt())
+                .revoked(apiKeyModel.isRevoked())
+                .paused(apiKeyModel.isPaused())
+                .active(false);
 
         if (subscriptions != null) {
-            subscriptions
-                .stream()
-                .filter(subscription -> apiKeyModel.getSubscriptions().contains(subscription.getId()))
-                .findFirst()
-                .ifPresent(apiKeySubscription ->
-                    apiKeyBuilder
-                        .api(apiKeySubscription.getApi())
-                        .plan(apiKeySubscription.getPlan())
-                        .subscription(apiKeySubscription.getId())
-                        .active(
-                            !apiKeyModel.isPaused() &&
-                                !apiKeyModel.isRevoked() &&
-                                io.gravitee.repository.management.model.Subscription.Status.ACCEPTED.name().equals(
-                                    apiKeySubscription.getStatus()
-                                )
-                        )
-                );
+            subscriptions.stream()
+                    .filter(subscription -> apiKeyModel.getSubscriptions().contains(subscription.getId()))
+                    .findFirst()
+                    .ifPresent(apiKeySubscription -> apiKeyBuilder
+                            .api(apiKeySubscription.getApi())
+                            .plan(apiKeySubscription.getPlan())
+                            .subscription(apiKeySubscription.getId())
+                            .active(!apiKeyModel.isPaused()
+                                    && !apiKeyModel.isRevoked()
+                                    && io.gravitee.repository.management.model.Subscription.Status.ACCEPTED
+                                            .name()
+                                            .equals(apiKeySubscription.getStatus())));
         }
         return apiKeyBuilder.build();
     }

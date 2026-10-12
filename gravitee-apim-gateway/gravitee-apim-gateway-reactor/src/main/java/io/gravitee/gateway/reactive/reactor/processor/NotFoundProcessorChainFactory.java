@@ -19,7 +19,6 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
-import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.rejected.RejectedPathProcessor;
@@ -48,13 +47,12 @@ public class NotFoundProcessorChainFactory {
     private ProcessorChain rejectedPathProcessorChain;
 
     public NotFoundProcessorChainFactory(
-        final TransactionPreProcessorFactory transactionHandlerFactory,
-        final Environment environment,
-        final ReporterService reporterService,
-        boolean notFoundAnalyticsEnabled,
-        boolean rejectedAnalyticsEnabled,
-        GatewayConfiguration gatewayConfiguration
-    ) {
+            final TransactionPreProcessorFactory transactionHandlerFactory,
+            final Environment environment,
+            final ReporterService reporterService,
+            boolean notFoundAnalyticsEnabled,
+            boolean rejectedAnalyticsEnabled,
+            GatewayConfiguration gatewayConfiguration) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.environment = environment;
         this.reporterService = reporterService;

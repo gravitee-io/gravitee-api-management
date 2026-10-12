@@ -40,7 +40,8 @@ public class TracingReadWriteStream implements ReadWriteStream<Buffer> {
     private final Policy policy;
     private Span span;
 
-    public TracingReadWriteStream(final ExecutionContext context, final ReadWriteStream<Buffer> stream, final Policy policy) {
+    public TracingReadWriteStream(
+            final ExecutionContext context, final ReadWriteStream<Buffer> stream, final Policy policy) {
         this.policy = policy;
         this.tracer = context.getTracer();
         this.stream = stream;
@@ -48,7 +49,8 @@ public class TracingReadWriteStream implements ReadWriteStream<Buffer> {
 
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-        span = tracer.startSpanFrom(new InternalRequest(this.policy.id(), Map.of(TracingPolicy.SPAN_ATTRIBUTE, this.policy.id())));
+        span = tracer.startSpanFrom(
+                new InternalRequest(this.policy.id(), Map.of(TracingPolicy.SPAN_ATTRIBUTE, this.policy.id())));
         stream.bodyHandler(bodyHandler);
 
         return this;

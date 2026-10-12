@@ -83,18 +83,20 @@ class JdbcObjectMapperTest {
     @BeforeEach
     void setUp() {
         mapper = JdbcObjectMapper.builder(Item.class, "items", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            // "nested" maps to getNested()/setNested(Nested); ser/deser handle JSON encoding
-            .addColumn(
-                "nested",
-                Types.NCLOB,
-                Nested.class,
-                n -> "json:" + n.getValue(),
-                json -> new Nested(json.substring("json:".length()))
-            )
-            .addMirroredColumn("nested_value", Types.NVARCHAR, item -> item.getNested() != null ? item.getNested().getValue() : null)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                // "nested" maps to getNested()/setNested(Nested); ser/deser handle JSON encoding
+                .addColumn(
+                        "nested",
+                        Types.NCLOB,
+                        Nested.class,
+                        n -> "json:" + n.getValue(),
+                        json -> new Nested(json.substring("json:".length())))
+                .addMirroredColumn(
+                        "nested_value",
+                        Types.NVARCHAR,
+                        item -> item.getNested() != null ? item.getNested().getValue() : null)
+                .build();
     }
 
     // ─── SQL generation ───────────────────────────────────────────────────────
@@ -119,10 +121,7 @@ class JdbcObjectMapperTest {
     void insert_sql_has_correct_placeholder_count() throws Exception {
         String sql = captureInsertSql();
         // id, name, nested, nested_value = 4 placeholders
-        long count = sql
-            .chars()
-            .filter(c -> c == '?')
-            .count();
+        long count = sql.chars().filter(c -> c == '?').count();
         assertEquals(4, count);
     }
 

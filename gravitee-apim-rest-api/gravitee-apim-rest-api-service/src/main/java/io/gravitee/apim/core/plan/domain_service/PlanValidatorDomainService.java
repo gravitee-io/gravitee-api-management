@@ -49,16 +49,16 @@ public class PlanValidatorDomainService {
     private final PageCrudService pageCrudService;
 
     public PlanValidatorDomainService(
-        ParametersQueryService parametersQueryService,
-        PolicyValidationDomainService policyValidationDomainService,
-        PageCrudService pageCrudService
-    ) {
+            ParametersQueryService parametersQueryService,
+            PolicyValidationDomainService policyValidationDomainService,
+            PageCrudService pageCrudService) {
         this.parametersQueryService = parametersQueryService;
         this.policyValidationDomainService = policyValidationDomainService;
         this.pageCrudService = pageCrudService;
     }
 
-    public void validatePlanSecurity(Plan plan, String currentOrganizationId, String currentEnvironmentId, ApiType apiType) {
+    public void validatePlanSecurity(
+            Plan plan, String currentOrganizationId, String currentEnvironmentId, ApiType apiType) {
         var planMode = plan.getPlanMode();
         var security = plan.getPlanSecurity();
         if (planMode.equals(PlanMode.STANDARD)) {
@@ -66,7 +66,8 @@ public class PlanValidatorDomainService {
                 throw new PlanInvalidException("Security type is required for plan with 'STANDARD' mode");
             }
             ensurePlanSecurityIsAllowed(security.getType(), currentOrganizationId, currentEnvironmentId);
-            policyValidationDomainService.validateAndSanitizeConfiguration(security.getType(), security.getConfiguration());
+            policyValidationDomainService.validateAndSanitizeConfiguration(
+                    security.getType(), security.getConfiguration());
         }
 
         if (planMode.equals(PlanMode.PUSH)) {
@@ -85,20 +86,22 @@ public class PlanValidatorDomainService {
             log.debug("Plan rejected, tags {} mismatch the tags defined by the API ({})", planTags, apiTags);
 
             throw new ValidationDomainException(
-                "Plan tags mismatch the tags defined by the API",
-                Map.of("planTags", joinTags(planTags), "apiTags", joinTags(apiTags))
-            );
+                    "Plan tags mismatch the tags defined by the API",
+                    Map.of("planTags", joinTags(planTags), "apiTags", joinTags(apiTags)));
         }
     }
 
     public void validatePlanTagsAgainstApiProductTags(Set<String> planTags, Set<String> apiProductTags) {
-        if (!isEmpty(planTags) && (isEmpty(apiProductTags) || planTags.stream().anyMatch(tag -> !apiProductTags.contains(tag)))) {
-            log.debug("Plan rejected, tags {} mismatch the tags defined by the API Product ({})", planTags, apiProductTags);
+        if (!isEmpty(planTags)
+                && (isEmpty(apiProductTags) || planTags.stream().anyMatch(tag -> !apiProductTags.contains(tag)))) {
+            log.debug(
+                    "Plan rejected, tags {} mismatch the tags defined by the API Product ({})",
+                    planTags,
+                    apiProductTags);
 
             throw new ValidationDomainException(
-                "Plan tags mismatch the tags defined by the API Product",
-                Map.of("planTags", joinTags(planTags), "apiProductTags", joinTags(apiProductTags))
-            );
+                    "Plan tags mismatch the tags defined by the API Product",
+                    Map.of("planTags", joinTags(planTags), "apiProductTags", joinTags(apiProductTags)));
         }
     }
 
@@ -107,11 +110,12 @@ public class PlanValidatorDomainService {
     }
 
     public void validateGeneralConditionsPage(Plan plan, List<Page> pages) {
-        if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty() && (plan.isPublished() || plan.isDeprecated())) {
-            Optional<Page> candidate = pages
-                .stream()
-                .filter(page -> page.getId().equals(plan.getGeneralConditions()))
-                .findFirst();
+        if (plan.getGeneralConditions() != null
+                && !plan.getGeneralConditions().isEmpty()
+                && (plan.isPublished() || plan.isDeprecated())) {
+            Optional<Page> candidate = pages.stream()
+                    .filter(page -> page.getId().equals(plan.getGeneralConditions()))
+                    .findFirst();
             if (candidate.isEmpty()) {
                 throw new ValidationDomainException("Plan references a non existing page as general conditions");
             }
@@ -123,7 +127,9 @@ public class PlanValidatorDomainService {
     }
 
     public void validateGeneralConditionsPageStatus(Plan plan) {
-        if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty() && (plan.isPublished() || plan.isDeprecated())) {
+        if (plan.getGeneralConditions() != null
+                && !plan.getGeneralConditions().isEmpty()
+                && (plan.isPublished() || plan.isDeprecated())) {
             var page = pageCrudService.findById(plan.getGeneralConditions());
             if (page.isEmpty()) {
                 return;
@@ -135,7 +141,8 @@ public class PlanValidatorDomainService {
         }
     }
 
-    private void ensurePlanSecurityIsAllowed(String securityType, String currentOrganizationId, String currentEnvironmentId) {
+    private void ensurePlanSecurityIsAllowed(
+            String securityType, String currentOrganizationId, String currentEnvironmentId) {
         PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(securityType);
         Key securityKey = switch (planSecurityType) {
             case API_KEY -> Key.PLAN_SECURITY_APIKEY_ENABLED;
@@ -144,22 +151,18 @@ public class PlanValidatorDomainService {
             case OAUTH2 -> Key.PLAN_SECURITY_OAUTH2_ENABLED;
             case MTLS -> Key.PLAN_SECURITY_MTLS_ENABLED;
         };
-        if (
-            !parametersQueryService.findAsBoolean(
+        if (!parametersQueryService.findAsBoolean(
                 securityKey,
-                new ParameterContext(currentEnvironmentId, currentOrganizationId, ParameterReferenceType.ENVIRONMENT)
-            )
-        ) {
+                new ParameterContext(
+                        currentEnvironmentId, currentOrganizationId, ParameterReferenceType.ENVIRONMENT))) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurityType.name());
         }
     }
 
     public void validatePlanSecurityAgainstEntrypoints(PlanSecurity planSecurity, List<ListenerType> listenerTypes) {
-        if (
-            listenerTypes.contains(ListenerType.TCP) &&
-            !(PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType()) ||
-                PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType()))
-        ) {
+        if (listenerTypes.contains(ListenerType.TCP)
+                && !(PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType())
+                        || PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType()))) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
         }
     }

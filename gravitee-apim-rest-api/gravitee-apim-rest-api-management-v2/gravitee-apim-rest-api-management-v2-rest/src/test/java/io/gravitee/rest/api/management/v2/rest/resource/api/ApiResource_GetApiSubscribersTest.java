@@ -71,7 +71,8 @@ public class ApiResource_GetApiSubscribersTest extends ApiResourceTest {
 
     @Test
     public void should_return_empty_page_if_no_subscriber() {
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API)).thenReturn(Collections.emptyList());
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(Collections.emptyList());
 
         final Response response = rootTarget().request().get();
 
@@ -97,14 +98,12 @@ public class ApiResource_GetApiSubscribersTest extends ApiResourceTest {
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -116,31 +115,36 @@ public class ApiResource_GetApiSubscribersTest extends ApiResourceTest {
 
     @Test
     public void should_return_list_of_subscribers() {
-        var subscriptionEntity1 = SubscriptionFixtures.aSubscriptionEntity().toBuilder().application("my-application-1").build();
-        var subscriptionEntity2 = SubscriptionFixtures.aSubscriptionEntity().toBuilder().application("my-application-2").build();
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            List.of(subscriptionEntity1, subscriptionEntity2)
-        );
+        var subscriptionEntity1 = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .application("my-application-1")
+                .build();
+        var subscriptionEntity2 = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .application("my-application-2")
+                .build();
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(List.of(subscriptionEntity1, subscriptionEntity2));
 
-        var applicationQuery = ApplicationQuery.builder().ids(Set.of("my-application-1", "my-application-2")).build();
-        when(
-            applicationService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(applicationQuery),
-                any(Sortable.class),
-                any(Pageable.class)
-            )
-        ).thenReturn(
-            new Page<>(
-                List.of(
-                    ApplicationFixtures.anApplicationListItem().toBuilder().id("my-application-1").name("My first application").build(),
-                    ApplicationFixtures.anApplicationListItem().toBuilder().id("my-application-2").name("My second application").build()
-                ),
-                1,
-                10,
-                2
-            )
-        );
+        var applicationQuery = ApplicationQuery.builder()
+                .ids(Set.of("my-application-1", "my-application-2"))
+                .build();
+        when(applicationService.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(applicationQuery),
+                        any(Sortable.class),
+                        any(Pageable.class)))
+                .thenReturn(new Page<>(
+                        List.of(
+                                ApplicationFixtures.anApplicationListItem().toBuilder()
+                                        .id("my-application-1")
+                                        .name("My first application")
+                                        .build(),
+                                ApplicationFixtures.anApplicationListItem().toBuilder()
+                                        .id("my-application-2")
+                                        .name("My second application")
+                                        .build()),
+                        1,
+                        10,
+                        2));
 
         final Response response = rootTarget().request().get();
 
@@ -174,32 +178,39 @@ public class ApiResource_GetApiSubscribersTest extends ApiResourceTest {
 
     @Test
     public void should_return_search_multi_criteria() {
-        var subscriptionEntity1 = SubscriptionFixtures.aSubscriptionEntity().toBuilder().application("my-application-1").build();
-        var subscriptionEntity2 = SubscriptionFixtures.aSubscriptionEntity().toBuilder().application("my-application-2").build();
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            List.of(subscriptionEntity1, subscriptionEntity2)
-        );
+        var subscriptionEntity1 = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .application("my-application-1")
+                .build();
+        var subscriptionEntity2 = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .application("my-application-2")
+                .build();
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(List.of(subscriptionEntity1, subscriptionEntity2));
 
-        var applicationQuery = ApplicationQuery.builder().ids(Set.of("my-application-1", "my-application-2")).name("first").build();
-        when(
-            applicationService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(applicationQuery),
-                any(Sortable.class),
-                any(Pageable.class)
-            )
-        ).thenReturn(
-            new Page<>(
-                List.of(
-                    ApplicationFixtures.anApplicationListItem().toBuilder().id("my-application-1").name("My first application").build()
-                ),
-                2,
-                20,
-                1
-            )
-        );
+        var applicationQuery = ApplicationQuery.builder()
+                .ids(Set.of("my-application-1", "my-application-2"))
+                .name("first")
+                .build();
+        when(applicationService.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(applicationQuery),
+                        any(Sortable.class),
+                        any(Pageable.class)))
+                .thenReturn(new Page<>(
+                        List.of(ApplicationFixtures.anApplicationListItem().toBuilder()
+                                .id("my-application-1")
+                                .name("My first application")
+                                .build()),
+                        2,
+                        20,
+                        1));
 
-        final Response response = rootTarget().queryParam("name", "first").queryParam("page", 2).queryParam("perPage", 20).request().get();
+        final Response response = rootTarget()
+                .queryParam("name", "first")
+                .queryParam("page", 2)
+                .queryParam("perPage", 20)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -208,11 +219,11 @@ public class ApiResource_GetApiSubscribersTest extends ApiResourceTest {
         // Check data
         assertEquals(1, subscribersResponse.getData().size());
 
-        verify(applicationService).search(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(applicationQuery),
-            eq(new SortableImpl("name", true)),
-            eq(new PageableImpl(2, 20))
-        );
+        verify(applicationService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(applicationQuery),
+                        eq(new SortableImpl("name", true)),
+                        eq(new PageableImpl(2, 20)));
     }
 }

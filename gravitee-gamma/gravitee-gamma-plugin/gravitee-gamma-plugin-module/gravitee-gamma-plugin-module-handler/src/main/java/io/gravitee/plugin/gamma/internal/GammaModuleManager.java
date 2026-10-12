@@ -84,17 +84,14 @@ public class GammaModuleManager extends AbstractPluginManager<GammaModulePlugin>
     }
 
     @Override
-    public String getDocumentation(String pluginId, String propertyKey, boolean fallbackToDocumentation, boolean includeNotDeployed) {
+    public String getDocumentation(
+            String pluginId, String propertyKey, boolean fallbackToDocumentation, boolean includeNotDeployed) {
         return null;
     }
 
     @Override
     public PluginDocumentation getPluginDocumentation(
-        String pluginId,
-        String propertyKey,
-        boolean fallbackToDocumentation,
-        boolean includeNotDeployed
-    ) {
+            String pluginId, String propertyKey, boolean fallbackToDocumentation, boolean includeNotDeployed) {
         return null;
     }
 

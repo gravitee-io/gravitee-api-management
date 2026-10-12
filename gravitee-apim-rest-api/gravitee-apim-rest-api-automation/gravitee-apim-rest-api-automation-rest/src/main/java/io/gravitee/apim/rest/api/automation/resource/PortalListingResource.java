@@ -47,23 +47,35 @@ public class PortalListingResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ) })
-    public Response getPortalListingByHRID(@PathParam("hrid") String portalHrid, @PathParam("listingHrid") String listingHrid) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ)})
+    public Response getPortalListingByHRID(
+            @PathParam("hrid") String portalHrid, @PathParam("listingHrid") String listingHrid) {
         var auditInfo = getAuditInfo();
-        var listingId = PortalListingId.of(HRIDToUUID.portalListing().context(auditInfo).portal(portalHrid).hrid(listingHrid).id());
+        var listingId = PortalListingId.of(HRIDToUUID.portalListing()
+                .context(auditInfo)
+                .portal(portalHrid)
+                .hrid(listingHrid)
+                .id());
         try {
             var output = getPortalListingUseCase.execute(new GetPortalListingUseCase.Input(auditInfo, listingId));
-            return Response.ok(PortalListingMapper.INSTANCE.toPortalListingState(output.portalListing(), listingHrid, portalHrid)).build();
+            return Response.ok(PortalListingMapper.INSTANCE.toPortalListingState(
+                            output.portalListing(), listingHrid, portalHrid))
+                    .build();
         } catch (PortalListingNotFoundException e) {
             throw new HRIDNotFoundException(listingHrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE) })
-    public Response deletePortalListingByHrid(@PathParam("hrid") String portalHrid, @PathParam("listingHrid") String listingHrid) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE)})
+    public Response deletePortalListingByHrid(
+            @PathParam("hrid") String portalHrid, @PathParam("listingHrid") String listingHrid) {
         var auditInfo = getAuditInfo();
-        var listingId = PortalListingId.of(HRIDToUUID.portalListing().context(auditInfo).portal(portalHrid).hrid(listingHrid).id());
+        var listingId = PortalListingId.of(HRIDToUUID.portalListing()
+                .context(auditInfo)
+                .portal(portalHrid)
+                .hrid(listingHrid)
+                .id());
         try {
             deletePortalListingUseCase.execute(new DeletePortalListingUseCase.Input(auditInfo, listingId));
         } catch (PortalListingNotFoundException e) {

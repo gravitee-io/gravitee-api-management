@@ -48,7 +48,8 @@ public class DictionaryManager {
      */
     public void start(String dictionaryId) {
         try {
-            // FIXME Adding a fake execution context to match the new signature. It's not ideal but for the moment we have to fix quickly.
+            // FIXME Adding a fake execution context to match the new signature. It's not ideal but for the moment we
+            // have to fix quickly.
             final DictionaryEntity dictionary = dictionaryService.findById(new ExecutionContext(), dictionaryId);
             final DictionaryEntity startedDictionary = dictionaries.get(dictionary.getId());
 
@@ -72,7 +73,8 @@ public class DictionaryManager {
      */
     public void stop(String dictionaryId) {
         try {
-            DictionaryEntity dictionary = DictionaryEntity.builder().id(dictionaryId).build();
+            DictionaryEntity dictionary =
+                    DictionaryEntity.builder().id(dictionaryId).build();
             eventManager.publishEvent(DictionaryEvent.STOP, dictionary);
 
             dictionaries.remove(dictionaryId);
@@ -83,10 +85,10 @@ public class DictionaryManager {
 
     private boolean needRestart(DictionaryEntity dictionary, DictionaryEntity startedDictionary) {
         // A dictionary needs to be restarted if its configuration or trigger has changed.
-        return (
-            (dictionary.getUpdatedAt() != null && dictionary.getUpdatedAt().after(startedDictionary.getUpdatedAt())) &&
-            (!Objects.equals(dictionary.getProvider().getConfiguration(), startedDictionary.getProvider().getConfiguration()) ||
-                !Objects.equals(dictionary.getTrigger(), startedDictionary.getTrigger()))
-        );
+        return ((dictionary.getUpdatedAt() != null && dictionary.getUpdatedAt().after(startedDictionary.getUpdatedAt()))
+                && (!Objects.equals(
+                                dictionary.getProvider().getConfiguration(),
+                                startedDictionary.getProvider().getConfiguration())
+                        || !Objects.equals(dictionary.getTrigger(), startedDictionary.getTrigger())));
     }
 }

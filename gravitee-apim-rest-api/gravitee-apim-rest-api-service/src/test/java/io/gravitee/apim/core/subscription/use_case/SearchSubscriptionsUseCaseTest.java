@@ -64,34 +64,33 @@ class SearchSubscriptionsUseCaseTest {
     @EnumSource(SubscriptionReferenceType.class)
     void should_call_query_service_with_reference_type_and_id(SubscriptionReferenceType referenceType) {
         Page<SubscriptionEntity> expectedPage = new Page<>(List.of(), 1, 10, 0);
-        when(
-            subscriptionSearchQueryService.search(
-                eq(EXECUTION_CONTEXT),
-                eq(REFERENCE_ID),
-                eq(referenceType),
-                eq(null),
-                eq(null),
-                eq(null),
-                eq(null),
-                eq(PAGEABLE)
-            )
-        ).thenReturn(expectedPage);
+        when(subscriptionSearchQueryService.search(
+                        eq(EXECUTION_CONTEXT),
+                        eq(REFERENCE_ID),
+                        eq(referenceType),
+                        eq(null),
+                        eq(null),
+                        eq(null),
+                        eq(null),
+                        eq(PAGEABLE)))
+                .thenReturn(expectedPage);
 
-        var input = new SearchSubscriptionsUseCase.Input(EXECUTION_CONTEXT, REFERENCE_ID, referenceType, null, null, null, null, PAGEABLE);
+        var input = new SearchSubscriptionsUseCase.Input(
+                EXECUTION_CONTEXT, REFERENCE_ID, referenceType, null, null, null, null, PAGEABLE);
 
         SearchSubscriptionsUseCase.Output output = useCase.execute(input);
 
         assertThat(output.page()).isSameAs(expectedPage);
-        verify(subscriptionSearchQueryService).search(
-            eq(EXECUTION_CONTEXT),
-            eq(REFERENCE_ID),
-            referenceTypeCaptor.capture(),
-            eq(null),
-            eq(null),
-            eq(null),
-            eq(null),
-            eq(PAGEABLE)
-        );
+        verify(subscriptionSearchQueryService)
+                .search(
+                        eq(EXECUTION_CONTEXT),
+                        eq(REFERENCE_ID),
+                        referenceTypeCaptor.capture(),
+                        eq(null),
+                        eq(null),
+                        eq(null),
+                        eq(null),
+                        eq(PAGEABLE));
         assertThat(referenceTypeCaptor.getValue()).isEqualTo(referenceType);
     }
 
@@ -102,41 +101,38 @@ class SearchSubscriptionsUseCaseTest {
         Set<SubscriptionStatus> statuses = Set.of(SubscriptionStatus.ACCEPTED);
         String apiKey = "api-key-1";
         Page<SubscriptionEntity> expectedPage = new Page<>(List.of(), 1, 10, 0);
-        when(
-            subscriptionSearchQueryService.search(
-                eq(EXECUTION_CONTEXT),
-                eq(REFERENCE_ID),
-                eq(SubscriptionReferenceType.API_PRODUCT),
-                eq(applicationIds),
-                eq(planIds),
-                eq(statuses),
-                eq(apiKey),
-                eq(PAGEABLE)
-            )
-        ).thenReturn(expectedPage);
+        when(subscriptionSearchQueryService.search(
+                        eq(EXECUTION_CONTEXT),
+                        eq(REFERENCE_ID),
+                        eq(SubscriptionReferenceType.API_PRODUCT),
+                        eq(applicationIds),
+                        eq(planIds),
+                        eq(statuses),
+                        eq(apiKey),
+                        eq(PAGEABLE)))
+                .thenReturn(expectedPage);
 
         var input = new SearchSubscriptionsUseCase.Input(
-            EXECUTION_CONTEXT,
-            REFERENCE_ID,
-            SubscriptionReferenceType.API_PRODUCT,
-            applicationIds,
-            planIds,
-            statuses,
-            apiKey,
-            PAGEABLE
-        );
+                EXECUTION_CONTEXT,
+                REFERENCE_ID,
+                SubscriptionReferenceType.API_PRODUCT,
+                applicationIds,
+                planIds,
+                statuses,
+                apiKey,
+                PAGEABLE);
 
         useCase.execute(input);
 
-        verify(subscriptionSearchQueryService).search(
-            eq(EXECUTION_CONTEXT),
-            eq(REFERENCE_ID),
-            eq(SubscriptionReferenceType.API_PRODUCT),
-            eq(applicationIds),
-            eq(planIds),
-            eq(statuses),
-            eq(apiKey),
-            eq(PAGEABLE)
-        );
+        verify(subscriptionSearchQueryService)
+                .search(
+                        eq(EXECUTION_CONTEXT),
+                        eq(REFERENCE_ID),
+                        eq(SubscriptionReferenceType.API_PRODUCT),
+                        eq(applicationIds),
+                        eq(planIds),
+                        eq(statuses),
+                        eq(apiKey),
+                        eq(PAGEABLE));
     }
 }

@@ -60,16 +60,16 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public List<ApiMetadataEntity> findAllByApi(final ExecutionContext executionContext, final String apiId) {
-        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, Optional.of(executionContext.getEnvironmentId()));
-        return allMetadata
-            .stream()
-            .map(m -> convert(m, apiId))
-            .collect(toList());
+        final List<ReferenceMetadataEntity> allMetadata =
+                findAllByReference(API, apiId, Optional.of(executionContext.getEnvironmentId()));
+        return allMetadata.stream().map(m -> convert(m, apiId)).collect(toList());
     }
 
     @Override
-    public ApiMetadataEntity findByIdAndApi(final ExecutionContext executionContext, final String metadataId, final String apiId) {
-        return convert(findByIdAndReference(metadataId, API, apiId, Optional.of(executionContext.getEnvironmentId())), apiId);
+    public ApiMetadataEntity findByIdAndApi(
+            final ExecutionContext executionContext, final String metadataId, final String apiId) {
+        return convert(
+                findByIdAndReference(metadataId, API, apiId, Optional.of(executionContext.getEnvironmentId())), apiId);
     }
 
     @Override
@@ -80,41 +80,46 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
     @Override
     public void deleteAllByApi(final ExecutionContext executionContext, String apiId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, Optional.empty());
-        allMetadata.forEach(referenceMetadataEntity -> delete(executionContext, referenceMetadataEntity.getKey(), API, apiId));
+        allMetadata.forEach(
+                referenceMetadataEntity -> delete(executionContext, referenceMetadataEntity.getKey(), API, apiId));
     }
 
     @Override
-    public List<ApiMetadataEntity> create(final ExecutionContext executionContext, List<ApiMetadataEntity> apiMetadata, String apiId) {
+    public List<ApiMetadataEntity> create(
+            final ExecutionContext executionContext, List<ApiMetadataEntity> apiMetadata, String apiId) {
         if (apiMetadata == null || apiMetadata.isEmpty()) {
             return emptyList();
         }
 
-        return apiMetadata
-            .stream()
-            .map(data -> {
-                NewApiMetadataEntity newMD = new NewApiMetadataEntity();
-                newMD.setFormat(data.getFormat());
-                newMD.setName(data.getName());
-                newMD.setValue(data.getValue());
-                newMD.setApiId(apiId);
-                return newMD;
-            })
-            .map(newApiMetadataEntity -> create(executionContext, newApiMetadataEntity))
-            .collect(toList());
+        return apiMetadata.stream()
+                .map(data -> {
+                    NewApiMetadataEntity newMD = new NewApiMetadataEntity();
+                    newMD.setFormat(data.getFormat());
+                    newMD.setName(data.getName());
+                    newMD.setValue(data.getValue());
+                    newMD.setApiId(apiId);
+                    return newMD;
+                })
+                .map(newApiMetadataEntity -> create(executionContext, newApiMetadataEntity))
+                .collect(toList());
     }
 
     @Override
-    public ApiMetadataEntity create(final ExecutionContext executionContext, final NewApiMetadataEntity metadataEntity) {
-        return convert(create(executionContext, metadataEntity, API, metadataEntity.getApiId(), true), metadataEntity.getApiId());
+    public ApiMetadataEntity create(
+            final ExecutionContext executionContext, final NewApiMetadataEntity metadataEntity) {
+        return convert(
+                create(executionContext, metadataEntity, API, metadataEntity.getApiId(), true),
+                metadataEntity.getApiId());
     }
 
     @Override
-    public ApiMetadataEntity update(final ExecutionContext executionContext, final UpdateApiMetadataEntity metadataEntity) {
+    public ApiMetadataEntity update(
+            final ExecutionContext executionContext, final UpdateApiMetadataEntity metadataEntity) {
         ApiMetadataEntity apiMetadataEntity = convert(
-            update(executionContext, metadataEntity, API, metadataEntity.getApiId(), true),
-            metadataEntity.getApiId()
-        );
-        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, apiMetadataEntity.getApiId(), false, false, true);
+                update(executionContext, metadataEntity, API, metadataEntity.getApiId(), true),
+                metadataEntity.getApiId());
+        GenericApiEntity genericApi =
+                apiSearchService.findGenericById(executionContext, apiMetadataEntity.getApiId(), false, false, true);
         GenericApiEntity genericApiWithMetadata = fetchMetadataForApi(executionContext, genericApi);
         searchEngineService.index(executionContext, genericApiWithMetadata, false);
         return apiMetadataEntity;
@@ -122,36 +127,36 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     protected void checkReferenceMetadataFormat(
-        ExecutionContext executionContext,
-        MetadataFormat format,
-        String value,
-        MetadataReferenceType referenceType,
-        String referenceId
-    ) {
-        final GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, referenceId, false, false, false);
+            ExecutionContext executionContext,
+            MetadataFormat format,
+            String value,
+            MetadataReferenceType referenceType,
+            String referenceId) {
+        final GenericApiEntity genericApi =
+                apiSearchService.findGenericById(executionContext, referenceId, false, false, false);
         metadataService.checkMetadataFormat(executionContext, format, value, referenceType, genericApi);
     }
 
     @Override
-    public GenericApiEntity fetchMetadataForApi(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
+    public GenericApiEntity fetchMetadataForApi(
+            final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
         List<ApiMetadataEntity> metadataList = findAllByApi(executionContext, genericApiEntity.getId());
         final Map<String, Object> mapMetadata = new HashMap<>(metadataList.size());
 
-        metadataList.forEach(metadata ->
-            mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
-        );
+        metadataList.forEach(metadata -> mapMetadata.put(
+                metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
 
         String decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-            executionContext.getOrganizationId(),
-            genericApiEntity.getId(),
-            new StringReader(mapMetadata.toString()),
-            Collections.singletonMap("api", genericApiEntity)
-        );
+                executionContext.getOrganizationId(),
+                genericApiEntity.getId(),
+                new StringReader(mapMetadata.toString()),
+                Collections.singletonMap("api", genericApiEntity));
         Map<String, Object> metadataDecoded = null;
         if (decodedValue != null) {
-            metadataDecoded = Arrays.stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                .map(entry -> entry.split("="))
-                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+            metadataDecoded = Arrays.stream(
+                            decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                    .map(entry -> entry.split("="))
+                    .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
         }
         genericApiEntity.setMetadata(metadataDecoded);
 

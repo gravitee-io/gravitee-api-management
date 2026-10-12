@@ -54,7 +54,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<IdentityProvider> implements IdentityProviderRepository {
+public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<IdentityProvider>
+        implements IdentityProviderRepository {
 
     JdbcIdentityProviderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "identity_providers");
@@ -67,17 +68,17 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
     @Override
     protected JdbcObjectMapper<IdentityProvider> buildOrm() {
         return JdbcObjectMapper.builder(IdentityProvider.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, IdentityProviderType.class)
-            .addColumn("enabled", Types.BOOLEAN, boolean.class)
-            .addColumn("email_required", Types.BOOLEAN, Boolean.class)
-            .addColumn("sync_mappings", Types.BOOLEAN, Boolean.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, IdentityProviderType.class)
+                .addColumn("enabled", Types.BOOLEAN, boolean.class)
+                .addColumn("email_required", Types.BOOLEAN, Boolean.class)
+                .addColumn("sync_mappings", Types.BOOLEAN, Boolean.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     private class Rm implements RowMapper<IdentityProvider> {
@@ -113,21 +114,20 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
                 try {
                     HashMap<String, T> value = JSON_MAPPER.readValue(sMap, typeRef);
                     if (array) {
-                        value.forEach(
-                            new BiConsumer<String, T>() {
-                                @Override
-                                public void accept(String s, T t) {
-                                    List<C> list = (List<C>) t;
-                                    C[] arr = (C[]) Array.newInstance(valueType, list.size());
-                                    arr = list.toArray(arr);
-                                    value.put(s, (T) arr);
-                                }
+                        value.forEach(new BiConsumer<String, T>() {
+                            @Override
+                            public void accept(String s, T t) {
+                                List<C> list = (List<C>) t;
+                                C[] arr = (C[]) Array.newInstance(valueType, list.size());
+                                arr = list.toArray(arr);
+                                value.put(s, (T) arr);
                             }
-                        );
+                        });
                     }
 
                     return (Map<String, T>) value;
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                }
             }
 
             return null;
@@ -141,7 +141,8 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
         private JdbcObjectMapper<IdentityProvider> orm;
         private final Object[] ids;
 
-        public Psc(String sql, IdentityProvider identityProvider, JdbcObjectMapper<IdentityProvider> orm, Object... ids) {
+        public Psc(
+                String sql, IdentityProvider identityProvider, JdbcObjectMapper<IdentityProvider> orm, Object... ids) {
             this.sql = sql;
             this.identityProvider = identityProvider;
             this.orm = orm;
@@ -171,7 +172,8 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
             if (object != null) {
                 try {
                     return JSON_MAPPER.writeValueAsString(object);
-                } catch (JsonProcessingException e) {}
+                } catch (JsonProcessingException e) {
+                }
             }
 
             return null;
@@ -244,7 +246,8 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
     }
 
     protected PreparedStatementCreator buildUpdatePreparedStatementCreator(IdentityProvider identityProvider) {
-        return new Psc(UPDATE_SQL, identityProvider, getOrm(), identityProvider.getId(), identityProvider.getOrganizationId());
+        return new Psc(
+                UPDATE_SQL, identityProvider, getOrm(), identityProvider.getId(), identityProvider.getOrganizationId());
     }
 
     protected PreparedStatementCreator buildInsertPreparedStatementCreator(IdentityProvider identityProvider) {
@@ -311,7 +314,8 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
     public Optional<IdentityProvider> findById(String id) throws TechnicalException {
         log.debug("JdbcIdentityProviderRepository<{}>.findById({})", getOrm().getTableName(), id);
         try {
-            List<IdentityProvider> identityProviders = jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getRowMapper(), id);
+            List<IdentityProvider> identityProviders =
+                    jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getRowMapper(), id);
             return identityProviders.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find {} identityProviders by id:", getOrm().getTableName(), ex);
@@ -324,10 +328,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
         log.debug("JdbcIdentityProviderRepository.deleteByOrganizationId({})", organizationId);
         try {
             final var identityProviderIds = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where organization_id = ?",
-                String.class,
-                organizationId
-            );
+                    "select id from " + tableName + " where organization_id = ?", String.class, organizationId);
 
             if (!identityProviderIds.isEmpty()) {
                 jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
@@ -346,10 +347,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
         log.debug("JdbcIdentityProviderRepository.findAllByOrganizationId({})", organizationId);
         try {
             List<IdentityProvider> identityProviders = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where organization_id = ?",
-                getRowMapper(),
-                organizationId
-            );
+                    getOrm().getSelectAllSql() + " where organization_id = ?", getRowMapper(), organizationId);
             return new HashSet<>(identityProviders);
         } catch (final Exception ex) {
             log.error("Failed to find {} identityProviders by org:", getOrm().getTableName(), ex);

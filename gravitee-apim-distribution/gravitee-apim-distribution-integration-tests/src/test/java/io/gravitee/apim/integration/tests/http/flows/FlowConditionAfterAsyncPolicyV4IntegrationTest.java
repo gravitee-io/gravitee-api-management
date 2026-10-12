@@ -65,25 +65,29 @@ class FlowConditionAfterAsyncPolicyV4IntegrationTest extends AbstractGatewayTest
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
-        policies.putIfAbsent("latency", PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
         policies.putIfAbsent(
-            "assign-attributes",
-            PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
-        );
+                "latency",
+                PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
         policies.putIfAbsent(
-            "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-        );
+                "assign-attributes",
+                PolicyBuilder.build(
+                        "assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class));
+        policies.putIfAbsent(
+                "transform-headers",
+                PolicyBuilder.build(
+                        "transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class));
     }
 
     @Test
@@ -97,7 +101,8 @@ class FlowConditionAfterAsyncPolicyV4IntegrationTest extends AbstractGatewayTest
     void should_execute_the_next_flow_when_a_previous_asynchronous_flow_made_its_condition_true(HttpClient client) {
         callApi(client, "/async-matching");
 
-        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint/async-matching")).withHeader(NEXT_FLOW_EXECUTED, equalTo("true")));
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint/async-matching"))
+                .withHeader(NEXT_FLOW_EXECUTED, equalTo("true")));
     }
 
     @Test
@@ -110,15 +115,14 @@ class FlowConditionAfterAsyncPolicyV4IntegrationTest extends AbstractGatewayTest
     private void callApi(final HttpClient client, final String path) {
         wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
-        client
-            .rxRequest(HttpMethod.GET, "/test-condition-after-async" + path)
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+        client.rxRequest(HttpMethod.GET, "/test-condition-after-async" + path)
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
     }
 }

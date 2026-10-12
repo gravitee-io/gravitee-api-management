@@ -252,101 +252,95 @@ public class MonitoringJVM {
         if (this == o) return true;
         if (!(o instanceof MonitoringJVM)) return false;
         MonitoringJVM that = (MonitoringJVM) o;
-        return (
-            timestamp == that.timestamp &&
-            uptimeInMillis == that.uptimeInMillis &&
-            heapUsedInBytes == that.heapUsedInBytes &&
-            heapUsedPercent == that.heapUsedPercent &&
-            heapCommittedInBytes == that.heapCommittedInBytes &&
-            heapMaxInBytes == that.heapMaxInBytes &&
-            nonHeapUsedInBytes == that.nonHeapUsedInBytes &&
-            nonHeapCommittedInBytes == that.nonHeapCommittedInBytes &&
-            youngPoolUsedInBytes == that.youngPoolUsedInBytes &&
-            youngPoolMaxInBytes == that.youngPoolMaxInBytes &&
-            youngPoolPeakUsedInBytes == that.youngPoolPeakUsedInBytes &&
-            youngPoolPeakMaxInBytes == that.youngPoolPeakMaxInBytes &&
-            survivorPoolUsedInBytes == that.survivorPoolUsedInBytes &&
-            survivorPoolMaxInBytes == that.survivorPoolMaxInBytes &&
-            survivorPoolPeakUsedInBytes == that.survivorPoolPeakUsedInBytes &&
-            survivorPoolPeakMaxInBytes == that.survivorPoolPeakMaxInBytes &&
-            oldPoolUsedInBytes == that.oldPoolUsedInBytes &&
-            oldPoolMaxInBytes == that.oldPoolMaxInBytes &&
-            oldPoolPeakUsedInBytes == that.oldPoolPeakUsedInBytes &&
-            oldPoolPeakMaxInBytes == that.oldPoolPeakMaxInBytes
-        );
+        return (timestamp == that.timestamp
+                && uptimeInMillis == that.uptimeInMillis
+                && heapUsedInBytes == that.heapUsedInBytes
+                && heapUsedPercent == that.heapUsedPercent
+                && heapCommittedInBytes == that.heapCommittedInBytes
+                && heapMaxInBytes == that.heapMaxInBytes
+                && nonHeapUsedInBytes == that.nonHeapUsedInBytes
+                && nonHeapCommittedInBytes == that.nonHeapCommittedInBytes
+                && youngPoolUsedInBytes == that.youngPoolUsedInBytes
+                && youngPoolMaxInBytes == that.youngPoolMaxInBytes
+                && youngPoolPeakUsedInBytes == that.youngPoolPeakUsedInBytes
+                && youngPoolPeakMaxInBytes == that.youngPoolPeakMaxInBytes
+                && survivorPoolUsedInBytes == that.survivorPoolUsedInBytes
+                && survivorPoolMaxInBytes == that.survivorPoolMaxInBytes
+                && survivorPoolPeakUsedInBytes == that.survivorPoolPeakUsedInBytes
+                && survivorPoolPeakMaxInBytes == that.survivorPoolPeakMaxInBytes
+                && oldPoolUsedInBytes == that.oldPoolUsedInBytes
+                && oldPoolMaxInBytes == that.oldPoolMaxInBytes
+                && oldPoolPeakUsedInBytes == that.oldPoolPeakUsedInBytes
+                && oldPoolPeakMaxInBytes == that.oldPoolPeakMaxInBytes);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-            timestamp,
-            uptimeInMillis,
-            heapUsedInBytes,
-            heapUsedPercent,
-            heapCommittedInBytes,
-            heapMaxInBytes,
-            nonHeapUsedInBytes,
-            nonHeapCommittedInBytes,
-            youngPoolUsedInBytes,
-            youngPoolMaxInBytes,
-            youngPoolPeakUsedInBytes,
-            youngPoolPeakMaxInBytes,
-            survivorPoolUsedInBytes,
-            survivorPoolMaxInBytes,
-            survivorPoolPeakUsedInBytes,
-            survivorPoolPeakMaxInBytes,
-            oldPoolUsedInBytes,
-            oldPoolMaxInBytes,
-            oldPoolPeakUsedInBytes,
-            oldPoolPeakMaxInBytes
-        );
+                timestamp,
+                uptimeInMillis,
+                heapUsedInBytes,
+                heapUsedPercent,
+                heapCommittedInBytes,
+                heapMaxInBytes,
+                nonHeapUsedInBytes,
+                nonHeapCommittedInBytes,
+                youngPoolUsedInBytes,
+                youngPoolMaxInBytes,
+                youngPoolPeakUsedInBytes,
+                youngPoolPeakMaxInBytes,
+                survivorPoolUsedInBytes,
+                survivorPoolMaxInBytes,
+                survivorPoolPeakUsedInBytes,
+                survivorPoolPeakMaxInBytes,
+                oldPoolUsedInBytes,
+                oldPoolMaxInBytes,
+                oldPoolPeakUsedInBytes,
+                oldPoolPeakMaxInBytes);
     }
 
     @Override
     public String toString() {
-        return (
-            "MonitoringJVM{" +
-            "timestamp=" +
-            timestamp +
-            ", uptimeInMillis=" +
-            uptimeInMillis +
-            ", heapUsedInBytes=" +
-            heapUsedInBytes +
-            ", heapUsedPercent=" +
-            heapUsedPercent +
-            ", heapCommittedInBytes=" +
-            heapCommittedInBytes +
-            ", heapMaxInBytes=" +
-            heapMaxInBytes +
-            ", nonHeapUsedInBytes=" +
-            nonHeapUsedInBytes +
-            ", nonHeapCommittedInBytes=" +
-            nonHeapCommittedInBytes +
-            ", youngPoolUsedInBytes=" +
-            youngPoolUsedInBytes +
-            ", youngPoolMaxInBytes=" +
-            youngPoolMaxInBytes +
-            ", youngPoolPeakUsedInBytes=" +
-            youngPoolPeakUsedInBytes +
-            ", youngPoolPeakMaxInBytes=" +
-            youngPoolPeakMaxInBytes +
-            ", survivorPoolUsedInBytes=" +
-            survivorPoolUsedInBytes +
-            ", survivorPoolMaxInBytes=" +
-            survivorPoolMaxInBytes +
-            ", survivorPoolPeakUsedInBytes=" +
-            survivorPoolPeakUsedInBytes +
-            ", survivorPoolPeakMaxInBytes=" +
-            survivorPoolPeakMaxInBytes +
-            ", oldPoolUsedInBytes=" +
-            oldPoolUsedInBytes +
-            ", oldPoolMaxInBytes=" +
-            oldPoolMaxInBytes +
-            ", oldPoolPeakUsedInBytes=" +
-            oldPoolPeakUsedInBytes +
-            ", oldPoolPeakMaxInBytes=" +
-            oldPoolPeakMaxInBytes +
-            '}'
-        );
+        return ("MonitoringJVM{" + "timestamp="
+                + timestamp
+                + ", uptimeInMillis="
+                + uptimeInMillis
+                + ", heapUsedInBytes="
+                + heapUsedInBytes
+                + ", heapUsedPercent="
+                + heapUsedPercent
+                + ", heapCommittedInBytes="
+                + heapCommittedInBytes
+                + ", heapMaxInBytes="
+                + heapMaxInBytes
+                + ", nonHeapUsedInBytes="
+                + nonHeapUsedInBytes
+                + ", nonHeapCommittedInBytes="
+                + nonHeapCommittedInBytes
+                + ", youngPoolUsedInBytes="
+                + youngPoolUsedInBytes
+                + ", youngPoolMaxInBytes="
+                + youngPoolMaxInBytes
+                + ", youngPoolPeakUsedInBytes="
+                + youngPoolPeakUsedInBytes
+                + ", youngPoolPeakMaxInBytes="
+                + youngPoolPeakMaxInBytes
+                + ", survivorPoolUsedInBytes="
+                + survivorPoolUsedInBytes
+                + ", survivorPoolMaxInBytes="
+                + survivorPoolMaxInBytes
+                + ", survivorPoolPeakUsedInBytes="
+                + survivorPoolPeakUsedInBytes
+                + ", survivorPoolPeakMaxInBytes="
+                + survivorPoolPeakMaxInBytes
+                + ", oldPoolUsedInBytes="
+                + oldPoolUsedInBytes
+                + ", oldPoolMaxInBytes="
+                + oldPoolMaxInBytes
+                + ", oldPoolPeakUsedInBytes="
+                + oldPoolPeakUsedInBytes
+                + ", oldPoolPeakMaxInBytes="
+                + oldPoolPeakMaxInBytes
+                + '}');
     }
 }

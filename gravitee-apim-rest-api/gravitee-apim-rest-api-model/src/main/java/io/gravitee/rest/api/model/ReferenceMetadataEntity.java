@@ -94,23 +94,20 @@ public class ReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return (
-            "ReferenceMetadataEntity{" +
-            "key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", format=" +
-            format +
-            ", value='" +
-            value +
-            '\'' +
-            ", defaultValue='" +
-            defaultValue +
-            '\'' +
-            '}'
-        );
+        return ("ReferenceMetadataEntity{" + "key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", format="
+                + format
+                + ", value='"
+                + value
+                + '\''
+                + ", defaultValue='"
+                + defaultValue
+                + '\''
+                + '}');
     }
 }

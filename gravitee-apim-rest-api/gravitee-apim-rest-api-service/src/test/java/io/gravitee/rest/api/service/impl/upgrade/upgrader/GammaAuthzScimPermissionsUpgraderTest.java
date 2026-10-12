@@ -82,7 +82,8 @@ public class GammaAuthzScimPermissionsUpgraderTest {
     }
 
     @Test
-    public void should_grant_both_scim_permissions_and_keep_the_existing_ones() throws TechnicalException, UpgraderException {
+    public void should_grant_both_scim_permissions_and_keep_the_existing_ones()
+            throws TechnicalException, UpgraderException {
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
         givenGammaAuthzAdminRole(organizationId, roleWithoutScimPermissions("gamma-authz-admin-id"));
@@ -93,28 +94,17 @@ public class GammaAuthzScimPermissionsUpgraderTest {
         assertThat(update.getId()).isEqualTo("gamma-authz-admin-id");
         assertThat(update.getName()).isEqualTo(ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName());
         assertThat(update.getScope()).isEqualTo(ENVIRONMENT);
-        assertThat(update.getPermissions().get(SCIM_CONNECTION_PERMISSION)).containsExactlyInAnyOrder(
-            CREATE.getId(),
-            READ.getId(),
-            UPDATE.getId(),
-            DELETE.getId()
-        );
-        assertThat(update.getPermissions().get(SCIM_SYNC_PERMISSION)).containsExactlyInAnyOrder(
-            CREATE.getId(),
-            READ.getId(),
-            UPDATE.getId(),
-            DELETE.getId()
-        );
-        assertThat(update.getPermissions().get(ENTITIES_PERMISSION)).containsExactlyInAnyOrder(
-            CREATE.getId(),
-            READ.getId(),
-            UPDATE.getId(),
-            DELETE.getId()
-        );
+        assertThat(update.getPermissions().get(SCIM_CONNECTION_PERMISSION))
+                .containsExactlyInAnyOrder(CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId());
+        assertThat(update.getPermissions().get(SCIM_SYNC_PERMISSION))
+                .containsExactlyInAnyOrder(CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId());
+        assertThat(update.getPermissions().get(ENTITIES_PERMISSION))
+                .containsExactlyInAnyOrder(CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId());
     }
 
     @Test
-    public void should_not_update_when_both_permissions_are_already_granted() throws TechnicalException, UpgraderException {
+    public void should_not_update_when_both_permissions_are_already_granted()
+            throws TechnicalException, UpgraderException {
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
         givenGammaAuthzAdminRole(organizationId, roleWithScimPermissions("gamma-authz-admin-id"));
@@ -129,33 +119,25 @@ public class GammaAuthzScimPermissionsUpgraderTest {
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
         RoleEntity role = roleWithoutScimPermissions("gamma-authz-admin-id");
-        role.getPermissions().put(SCIM_CONNECTION_PERMISSION, new char[] { READ.getId() });
+        role.getPermissions().put(SCIM_CONNECTION_PERMISSION, new char[] {READ.getId()});
         givenGammaAuthzAdminRole(organizationId, role);
 
         assertThat(upgrader.upgrade()).isTrue();
 
         Map<String, char[]> permissions = captureSingleUpdate().getPermissions();
-        assertThat(permissions.get(SCIM_CONNECTION_PERMISSION)).containsExactlyInAnyOrder(
-            CREATE.getId(),
-            READ.getId(),
-            UPDATE.getId(),
-            DELETE.getId()
-        );
-        assertThat(permissions.get(SCIM_SYNC_PERMISSION)).containsExactlyInAnyOrder(
-            CREATE.getId(),
-            READ.getId(),
-            UPDATE.getId(),
-            DELETE.getId()
-        );
+        assertThat(permissions.get(SCIM_CONNECTION_PERMISSION))
+                .containsExactlyInAnyOrder(CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId());
+        assertThat(permissions.get(SCIM_SYNC_PERMISSION))
+                .containsExactlyInAnyOrder(CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId());
     }
 
     @Test
-    public void should_not_update_when_the_gamma_authz_admin_role_is_absent() throws TechnicalException, UpgraderException {
+    public void should_not_update_when_the_gamma_authz_admin_role_is_absent()
+            throws TechnicalException, UpgraderException {
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
-        when(roleService.findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(), organizationId)).thenReturn(
-            Optional.empty()
-        );
+        when(roleService.findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(), organizationId))
+                .thenReturn(Optional.empty());
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -163,15 +145,16 @@ public class GammaAuthzScimPermissionsUpgraderTest {
     }
 
     @Test
-    public void should_grant_both_permissions_when_the_permissions_map_is_null() throws TechnicalException, UpgraderException {
+    public void should_grant_both_permissions_when_the_permissions_map_is_null()
+            throws TechnicalException, UpgraderException {
         String organizationId = GraviteeContext.getDefaultOrganization();
         givenOrganizations(organizationId);
         RoleEntity role = RoleEntity.builder()
-            .id("gamma-authz-admin-id")
-            .name(ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName())
-            .scope(ENVIRONMENT)
-            .permissions(null)
-            .build();
+                .id("gamma-authz-admin-id")
+                .name(ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName())
+                .scope(ENVIRONMENT)
+                .permissions(null)
+                .build();
         givenGammaAuthzAdminRole(organizationId, role);
 
         assertThat(upgrader.upgrade()).isTrue();
@@ -207,9 +190,9 @@ public class GammaAuthzScimPermissionsUpgraderTest {
     }
 
     private void givenGammaAuthzAdminRole(String organizationId, RoleEntity role) {
-        when(
-            roleService.findByScopeAndName(eq(ENVIRONMENT), eq(ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName()), eq(organizationId))
-        ).thenReturn(Optional.of(role));
+        when(roleService.findByScopeAndName(
+                        eq(ENVIRONMENT), eq(ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(role));
     }
 
     private static RoleEntity roleWithScimPermissions(String id) {
@@ -225,11 +208,11 @@ public class GammaAuthzScimPermissionsUpgraderTest {
 
     private static RoleEntity gammaAuthzAdminRole(String id, Map<String, char[]> permissions) {
         return RoleEntity.builder()
-            .id(id)
-            .name(ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName())
-            .scope(ENVIRONMENT)
-            .permissions(permissions)
-            .build();
+                .id(id)
+                .name(ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName())
+                .scope(ENVIRONMENT)
+                .permissions(permissions)
+                .build();
     }
 
     private UpdateRoleEntity captureSingleUpdate() {

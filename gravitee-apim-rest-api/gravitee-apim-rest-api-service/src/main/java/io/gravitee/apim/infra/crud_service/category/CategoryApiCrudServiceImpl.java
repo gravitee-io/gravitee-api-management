@@ -44,6 +44,7 @@ public class CategoryApiCrudServiceImpl implements CategoryApiCrudService {
 
     @Override
     public ApiCategoryOrder get(String apiId, String categoryId) {
-        return findById(apiId, categoryId).orElseThrow(() -> new ApiAndCategoryNotAssociatedException(apiId, categoryId));
+        return findById(apiId, categoryId)
+                .orElseThrow(() -> new ApiAndCategoryNotAssociatedException(apiId, categoryId));
     }
 }

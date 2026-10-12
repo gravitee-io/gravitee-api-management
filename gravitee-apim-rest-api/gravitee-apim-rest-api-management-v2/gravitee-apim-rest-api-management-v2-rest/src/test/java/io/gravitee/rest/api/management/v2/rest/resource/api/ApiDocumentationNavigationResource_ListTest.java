@@ -66,14 +66,21 @@ class ApiDocumentationNavigationResource_ListTest extends AbstractResourceTest {
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .name("My API")
+                .environmentId(ENVIRONMENT)
+                .build()));
     }
 
     @AfterEach
@@ -85,68 +92,71 @@ class ApiDocumentationNavigationResource_ListTest extends AbstractResourceTest {
 
     @Test
     void should_list_the_api_documentation() {
-        var folder = inEnvironment(PortalNavigationItemFixtures.aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build());
-        var page = inEnvironment(
-            PortalNavigationItemFixtures.aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build()
-        );
+        var folder = inEnvironment(PortalNavigationItemFixtures.aFolder("Auth").toBuilder()
+                .reference(ownedBy(API_ID))
+                .build());
+        var page = inEnvironment(PortalNavigationItemFixtures.aPage("Setup", folder.getId()).toBuilder()
+                .reference(ownedBy(API_ID))
+                .build());
         var section = inEnvironment(PortalNavigationItemFixtures.aFolder("APIs"));
-        var listing = inEnvironment(
-            PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID)
-        );
+        var listing = inEnvironment(PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID));
         portalNavigationItemsQueryService.initWith(List.of(folder, page, section, listing));
 
         Response response = rootTarget().request().get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiPortalNavigationItemsResponse.class)
-            .satisfies(entity -> {
-                assertThat(entity.getItems())
-                    .extracting(item ->
-                        ((io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem) item.getActualInstance()).getId()
-                    )
-                    .containsExactlyInAnyOrder(folder.getId().id(), page.getId().id());
-                assertThat(entity.getPublications())
-                    .singleElement()
-                    .satisfies(publication -> {
+                .hasStatus(OK_200)
+                .asEntity(ApiPortalNavigationItemsResponse.class)
+                .satisfies(entity -> {
+                    assertThat(entity.getItems())
+                            .extracting(
+                                    item -> ((io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem)
+                                                    item.getActualInstance())
+                                            .getId())
+                            .containsExactlyInAnyOrder(
+                                    folder.getId().id(), page.getId().id());
+                    assertThat(entity.getPublications()).singleElement().satisfies(publication -> {
                         assertThat(publication.getPortalId()).isEqualTo(PortalId.ZERO.toString());
                         assertThat(publication.getSectionName()).isEqualTo("APIs");
-                        assertThat(publication.getPortalNavigationItem().getId()).isEqualTo(listing.getId().id());
-                        assertThat(publication.getPortalNavigationItem().getParentId()).isEqualTo(section.getId().id());
-                        assertThat(publication.getPortalNavigationItem().getApiId()).isEqualTo(API_ID);
-                        assertThat(publication.getPortalNavigationItem().getPublished()).isTrue();
+                        assertThat(publication.getPortalNavigationItem().getId())
+                                .isEqualTo(listing.getId().id());
+                        assertThat(publication.getPortalNavigationItem().getParentId())
+                                .isEqualTo(section.getId().id());
+                        assertThat(publication.getPortalNavigationItem().getApiId())
+                                .isEqualTo(API_ID);
+                        assertThat(publication.getPortalNavigationItem().getPublished())
+                                .isTrue();
                     });
-            });
+                });
     }
 
     @Test
     void should_return_no_items_and_no_publications_for_an_api_with_no_documentation() {
-        var foreign = inEnvironment(
-            PortalNavigationItemFixtures.aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build()
-        );
+        var foreign = inEnvironment(PortalNavigationItemFixtures.aPage("Other overview", null).toBuilder()
+                .reference(ownedBy(OTHER_API_ID))
+                .build());
         portalNavigationItemsQueryService.initWith(List.of(foreign));
 
         Response response = rootTarget().request().get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiPortalNavigationItemsResponse.class)
-            .satisfies(entity -> {
-                assertThat(entity.getItems()).isEmpty();
-                assertThat(entity.getPublications()).isEmpty();
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApiPortalNavigationItemsResponse.class)
+                .satisfies(entity -> {
+                    assertThat(entity.getItems()).isEmpty();
+                    assertThat(entity.getPublications()).isEmpty();
+                });
     }
 
     @Test
     void should_return_403_with_environment_documentation_permission_only() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         Response response = rootTarget().request().get();
 
@@ -156,14 +166,12 @@ class ApiDocumentationNavigationResource_ListTest extends AbstractResourceTest {
     @Test
     void should_succeed_with_api_documentation_permission_only() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(true);
 
         Response response = rootTarget().request().get();
 

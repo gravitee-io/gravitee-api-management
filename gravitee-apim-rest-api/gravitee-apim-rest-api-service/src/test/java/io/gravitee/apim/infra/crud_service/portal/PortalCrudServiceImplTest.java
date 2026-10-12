@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.Portal;
-import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.infra.adapter.PortalAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalRepository;
@@ -78,8 +77,8 @@ class PortalCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.create(portal));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to create a Portal with id: " + portal.getId());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to create a Portal with id: " + portal.getId());
         }
     }
 
@@ -91,16 +90,13 @@ class PortalCrudServiceImplTest {
         void should_return_portal_and_adapt_it() {
             var portalId = PortalFixtures.PORTAL_ID;
             var environmentId = "environment-id";
-            when(repository.findByIdAndEnvironmentId(portalId.toString(), environmentId)).thenReturn(
-                Optional.of(
-                    io.gravitee.repository.management.model.Portal.builder()
-                        .id(portalId.toString())
-                        .environmentId(environmentId)
-                        .organizationId("organization-id")
-                        .name("Default Portal")
-                        .build()
-                )
-            );
+            when(repository.findByIdAndEnvironmentId(portalId.toString(), environmentId))
+                    .thenReturn(Optional.of(io.gravitee.repository.management.model.Portal.builder()
+                            .id(portalId.toString())
+                            .environmentId(environmentId)
+                            .organizationId("organization-id")
+                            .name("Default Portal")
+                            .build()));
 
             var result = service.findByIdAndEnvironmentId(portalId, environmentId);
 
@@ -117,7 +113,8 @@ class PortalCrudServiceImplTest {
         void should_return_empty_when_not_found() {
             when(repository.findByIdAndEnvironmentId(any(), any())).thenReturn(Optional.empty());
 
-            assertThat(service.findByIdAndEnvironmentId(PortalFixtures.PORTAL_ID, "environment-id")).isEmpty();
+            assertThat(service.findByIdAndEnvironmentId(PortalFixtures.PORTAL_ID, "environment-id"))
+                    .isEmpty();
         }
 
         @Test
@@ -129,8 +126,9 @@ class PortalCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.findByIdAndEnvironmentId(portalId, "environment-id"));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find a Portal with id (" + portalId + ") in environment (environment-id)");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find a Portal with id (" + portalId
+                            + ") in environment (environment-id)");
         }
     }
 
@@ -171,8 +169,8 @@ class PortalCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.update(portal));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to update a Portal with id: " + portal.getId());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to update a Portal with id: " + portal.getId());
         }
     }
 
@@ -194,8 +192,8 @@ class PortalCrudServiceImplTest {
             doThrow(new TechnicalException("boom")).when(repository).delete(portalId.toString());
 
             assertThatThrownBy(() -> service.delete(portalId))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to delete the Portal with id: " + portalId);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to delete the Portal with id: " + portalId);
             verify(repository).delete(portalId.toString());
         }
     }

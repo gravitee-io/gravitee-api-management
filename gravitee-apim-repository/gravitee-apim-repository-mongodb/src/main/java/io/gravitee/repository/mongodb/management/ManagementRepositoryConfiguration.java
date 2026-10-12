@@ -52,7 +52,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
  */
 @Configuration
 @Import(EncryptionConfiguration.class)
-@ComponentScan(basePackages = { "io.gravitee.repository.mongodb.management", "io.gravitee.repository.mongodb.utils" })
+@ComponentScan(basePackages = {"io.gravitee.repository.mongodb.management", "io.gravitee.repository.mongodb.utils"})
 @EnableMongoRepositories
 @Profile("!test")
 public class ManagementRepositoryConfiguration extends AbstractRepositoryConfiguration {
@@ -112,8 +112,8 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
         try {
             MongoTemplate template = new MongoTemplate(mongoDbFactory, converter);
             // Register in parent context so sibling plugin contexts can reuse it.
-            DefaultListableBeanFactory beanFactory =
-                (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext.getParent()).getBeanFactory();
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory)
+                    ((ConfigurableApplicationContext) applicationContext.getParent()).getBeanFactory();
             beanFactory.registerSingleton("managementMongoTemplate", template);
             return template;
         } catch (Exception e) {
@@ -125,10 +125,12 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     public ReactiveMongoOperations indexReactiveMongoOperations() {
         try {
             MongoClientSettings build = MongoClientSettings.builder(mongoFactory.buildMongoClientSettings(true))
-                .applyToSocketSettings(b -> b.connectTimeout(1, TimeUnit.HOURS).readTimeout(1, TimeUnit.HOURS)) // long window for slow index builds
-                .applyToConnectionPoolSettings(b -> b.maxSize(5).minSize(0))
-                .build();
-            return new ReactiveMongoTemplate(com.mongodb.reactivestreams.client.MongoClients.create(build), getDatabaseName());
+                    .applyToSocketSettings(b -> b.connectTimeout(1, TimeUnit.HOURS)
+                            .readTimeout(1, TimeUnit.HOURS)) // long window for slow index builds
+                    .applyToConnectionPoolSettings(b -> b.maxSize(5).minSize(0))
+                    .build();
+            return new ReactiveMongoTemplate(
+                    com.mongodb.reactivestreams.client.MongoClients.create(build), getDatabaseName());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

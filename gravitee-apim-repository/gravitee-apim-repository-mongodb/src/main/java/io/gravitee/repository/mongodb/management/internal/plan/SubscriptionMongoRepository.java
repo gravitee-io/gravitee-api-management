@@ -27,7 +27,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface SubscriptionMongoRepository extends MongoRepository<SubscriptionMongo, String>, SubscriptionMongoRepositoryCustom {
+public interface SubscriptionMongoRepository
+        extends MongoRepository<SubscriptionMongo, String>, SubscriptionMongoRepositoryCustom {
     @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
     List<SubscriptionMongo> deleteByEnvironmentId(String environmentId);
 
@@ -35,5 +36,6 @@ public interface SubscriptionMongoRepository extends MongoRepository<Subscriptio
     List<SubscriptionMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 
     @Query(value = "{ 'id': ?0, 'referenceId': ?1, 'referenceType': ?2 }")
-    Optional<SubscriptionMongo> findByIdAndReferenceIdAndReferenceType(String subscriptionId, String referenceId, String referenceType);
+    Optional<SubscriptionMongo> findByIdAndReferenceIdAndReferenceType(
+            String subscriptionId, String referenceId, String referenceType);
 }

@@ -56,7 +56,6 @@ import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import java.util.List;
 import org.springframework.context.ApplicationContext;
 
@@ -67,128 +66,118 @@ import org.springframework.context.ApplicationContext;
 public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
 
     public DebugApiReactorHandlerFactory(
-        ApplicationContext applicationContext,
-        Configuration configuration,
-        Node node,
-        PolicyFactoryCreator v3PolicyFactoryCreator,
-        PolicyFactoryManager policyFactoryManager,
-        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
-        OrganizationManager organizationManager,
-        PolicyChainProviderLoader policyChainProviderLoader,
-        ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        HttpAcceptorFactory httpAcceptorFactory,
-        DictionaryManager dictionaryManager
-    ) {
+            ApplicationContext applicationContext,
+            Configuration configuration,
+            Node node,
+            PolicyFactoryCreator v3PolicyFactoryCreator,
+            PolicyFactoryManager policyFactoryManager,
+            OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+            OrganizationManager organizationManager,
+            PolicyChainProviderLoader policyChainProviderLoader,
+            ApiProcessorChainFactory apiProcessorChainFactory,
+            FlowResolverFactory flowResolverFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            HttpAcceptorFactory httpAcceptorFactory,
+            DictionaryManager dictionaryManager) {
         super(
-            applicationContext,
-            configuration,
-            node,
-            v3PolicyFactoryCreator,
-            policyFactoryManager,
-            organizationPolicyChainFactoryManager,
-            organizationManager,
-            policyChainProviderLoader,
-            apiProcessorChainFactory,
-            flowResolverFactory,
-            requestTimeoutConfiguration,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            null,
-            null,
-            null,
-            dictionaryManager,
-            null
-        );
+                applicationContext,
+                configuration,
+                node,
+                v3PolicyFactoryCreator,
+                policyFactoryManager,
+                organizationPolicyChainFactoryManager,
+                organizationManager,
+                policyChainProviderLoader,
+                apiProcessorChainFactory,
+                flowResolverFactory,
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                null,
+                null,
+                null,
+                dictionaryManager,
+                null);
     }
 
     @Override
     protected ApiReactorHandler getApiReactorHandler(
-        Configuration configuration,
-        Api api,
-        AccessPointManager accessPointManager,
-        EventManager eventManager
-    ) {
-        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager, httpAcceptorFactory, TracingContext.noop());
+            Configuration configuration, Api api, AccessPointManager accessPointManager, EventManager eventManager) {
+        return new DebugApiReactorHandler(
+                configuration, api, accessPointManager, eventManager, httpAcceptorFactory, TracingContext.noop());
     }
 
     @Override
     protected RequestProcessorChainFactory getRequestProcessorChainFactory(
-        Api api,
-        PolicyChainFactory policyChainFactory,
-        PolicyManager policyManager,
-        PolicyChainProviderLoader policyChainProviderLoader,
-        AuthenticationHandlerSelector authenticationHandlerSelector,
-        FlowPolicyResolverFactory flowPolicyResolverFactory,
-        RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options,
-        SecurityPolicyResolver securityPolicyResolver,
-        BestMatchFlowSelector bestMatchFlowSelector
-    ) {
+            Api api,
+            PolicyChainFactory policyChainFactory,
+            PolicyManager policyManager,
+            PolicyChainProviderLoader policyChainProviderLoader,
+            AuthenticationHandlerSelector authenticationHandlerSelector,
+            FlowPolicyResolverFactory flowPolicyResolverFactory,
+            RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options,
+            SecurityPolicyResolver securityPolicyResolver,
+            BestMatchFlowSelector bestMatchFlowSelector) {
         return super.getRequestProcessorChainFactory(
-            api,
-            policyChainFactory,
-            policyManager,
-            policyChainProviderLoader,
-            authenticationHandlerSelector,
-            flowPolicyResolverFactory,
-            options,
-            new DebugSecurityPolicyResolver(policyManager, authenticationHandlerSelector),
-            bestMatchFlowSelector
-        );
+                api,
+                policyChainFactory,
+                policyManager,
+                policyChainProviderLoader,
+                authenticationHandlerSelector,
+                flowPolicyResolverFactory,
+                options,
+                new DebugSecurityPolicyResolver(policyManager, authenticationHandlerSelector),
+                bestMatchFlowSelector);
     }
 
     @Override
     protected V3ExecutionContextFactory v3ExecutionContextFactory(
-        Api api,
-        ComponentProvider componentProvider,
-        DefaultReferenceRegister referenceRegister
-    ) {
-        return new DebugExecutionContextFactory(super.v3ExecutionContextFactory(api, componentProvider, referenceRegister));
+            Api api, ComponentProvider componentProvider, DefaultReferenceRegister referenceRegister) {
+        return new DebugExecutionContextFactory(
+                super.v3ExecutionContextFactory(api, componentProvider, referenceRegister));
     }
 
     @Override
-    protected HttpPolicyChainFactory createPolicyChainFactory(Api api, io.gravitee.gateway.reactive.policy.PolicyManager policyManager) {
+    protected HttpPolicyChainFactory createPolicyChainFactory(
+            Api api, io.gravitee.gateway.reactive.policy.PolicyManager policyManager) {
         return new DebugPolicyChainFactory(api.getId(), policyManager, false);
     }
 
     @Override
     protected SyncApiReactor createSyncApiReactor(
-        final Api api,
-        final CompositeComponentProvider apiComponentProvider,
-        final List<TemplateVariableProvider> templateVariableProviders,
-        final Invoker invoker,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ApiProcessorChainFactory apiProcessorChainFactory,
-        final io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
-        final FlowChainFactory flowChainFactory,
-        final GroupLifecycleManager groupLifecycleManager,
-        final Configuration configuration,
-        final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final AccessPointManager accessPointManager,
-        final EventManager eventManager
-    ) {
+            final Api api,
+            final CompositeComponentProvider apiComponentProvider,
+            final List<TemplateVariableProvider> templateVariableProviders,
+            final Invoker invoker,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ApiProcessorChainFactory apiProcessorChainFactory,
+            final io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
+            final FlowChainFactory flowChainFactory,
+            final GroupLifecycleManager groupLifecycleManager,
+            final Configuration configuration,
+            final Node node,
+            final RequestTimeoutConfiguration requestTimeoutConfiguration,
+            final AccessPointManager accessPointManager,
+            final EventManager eventManager) {
         return new DebugSyncApiReactor(
-            api,
-            apiComponentProvider,
-            templateVariableProviders,
-            new InvokerAdapter(invoker),
-            resourceLifecycleManager,
-            apiProcessorChainFactory,
-            policyManager,
-            flowChainFactory,
-            groupLifecycleManager,
-            configuration,
-            node,
-            requestTimeoutConfiguration,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            TracingContext.noop()
-        );
+                api,
+                apiComponentProvider,
+                templateVariableProviders,
+                new InvokerAdapter(invoker),
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                policyManager,
+                flowChainFactory,
+                groupLifecycleManager,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                TracingContext.noop());
     }
 }

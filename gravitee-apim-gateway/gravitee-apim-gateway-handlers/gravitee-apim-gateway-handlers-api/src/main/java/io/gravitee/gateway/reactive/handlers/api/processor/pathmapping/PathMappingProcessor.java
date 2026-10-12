@@ -54,29 +54,26 @@ public class PathMappingProcessor implements Processor {
             String path = ctx.request().pathInfo();
             String finalPath = path.endsWith("/") ? path : path + '/';
 
-            pathMappings
-                .entrySet()
-                .stream()
-                .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
-                .map(Map.Entry::getKey)
-                .min(comparing(this::countOccurrencesOf))
-                .ifPresent(resolvedMappedPath -> {
-                    ctx.metrics().setMappedPath(resolvedMappedPath);
-                    ctx.setAttribute(ContextAttributes.ATTR_MAPPED_PATH, resolvedMappedPath);
-                });
+            pathMappings.entrySet().stream()
+                    .filter(regexMappedPath ->
+                            regexMappedPath.getValue().matcher(finalPath).matches())
+                    .map(Map.Entry::getKey)
+                    .min(comparing(this::countOccurrencesOf))
+                    .ifPresent(resolvedMappedPath -> {
+                        ctx.metrics().setMappedPath(resolvedMappedPath);
+                        ctx.setAttribute(ContextAttributes.ATTR_MAPPED_PATH, resolvedMappedPath);
+                    });
         });
     }
 
     private Map<String, Pattern> getPathMappings(final HttpExecutionContextInternal ctx) {
         try {
             io.gravitee.definition.model.v4.Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
-            return api
-                .getListeners()
-                .stream()
-                .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .map(listener -> ((HttpListener) listener).getPathMappingsPattern())
-                .findFirst()
-                .orElse(null);
+            return api.getListeners().stream()
+                    .filter(listener -> listener.getType() == ListenerType.HTTP)
+                    .map(listener -> ((HttpListener) listener).getPathMappingsPattern())
+                    .findFirst()
+                    .orElse(null);
         } catch (Exception e) {
             io.gravitee.definition.model.Api api = ctx.getComponent(io.gravitee.definition.model.Api.class);
             return api.getPathMappings();

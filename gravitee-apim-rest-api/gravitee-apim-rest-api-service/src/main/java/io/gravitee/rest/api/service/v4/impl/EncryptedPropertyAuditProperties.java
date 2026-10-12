@@ -27,9 +27,10 @@ final class EncryptedPropertyAuditProperties {
 
     private EncryptedPropertyAuditProperties() {}
 
-    static Map<Audit.AuditProperties, String> of(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
+    static Map<Audit.AuditProperties, String> of(
+            List<? extends Property> oldProperties, List<? extends Property> newProperties) {
         return EncryptedPropertyAuditMarker.involvesEncryptedProperty(oldProperties, newProperties)
-            ? Map.of(ENCRYPTED, Boolean.TRUE.toString())
-            : Map.of();
+                ? Map.of(ENCRYPTED, Boolean.TRUE.toString())
+                : Map.of();
     }
 }

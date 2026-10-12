@@ -52,11 +52,10 @@ public class ProcessPendingCertificateTransitionsUseCase {
     private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
 
     public ProcessPendingCertificateTransitionsUseCase(
-        ClientCertificateCrudService clientCertificateCrudService,
-        EnvironmentCrudService environmentCrudService,
-        AuditDomainService auditDomainService,
-        MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService
-    ) {
+            ClientCertificateCrudService clientCertificateCrudService,
+            EnvironmentCrudService environmentCrudService,
+            AuditDomainService auditDomainService,
+            MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService) {
         this.clientCertificateCrudService = clientCertificateCrudService;
         this.environmentCrudService = environmentCrudService;
         this.auditDomainService = auditDomainService;
@@ -67,9 +66,7 @@ public class ProcessPendingCertificateTransitionsUseCase {
         log.debug("Processing pending certificate transitions");
 
         var candidates = clientCertificateCrudService.findByStatuses(
-            ClientCertificateStatus.ACTIVE_WITH_END,
-            ClientCertificateStatus.SCHEDULED
-        );
+                ClientCertificateStatus.ACTIVE_WITH_END, ClientCertificateStatus.SCHEDULED);
 
         log.debug("Found {} candidate certificates to evaluate", candidates.size());
 
@@ -84,16 +81,16 @@ public class ProcessPendingCertificateTransitionsUseCase {
             } catch (Exception e) {
                 failedCount++;
                 log.error(
-                    "Failed to process certificate transition for [{}] on application [{}]: {}",
-                    certificate.id(),
-                    certificate.applicationId(),
-                    e.getMessage(),
-                    e
-                );
+                        "Failed to process certificate transition for [{}] on application [{}]: {}",
+                        certificate.id(),
+                        certificate.applicationId(),
+                        e.getMessage(),
+                        e);
             }
         }
 
-        var affectedApplicationIds = transitioned.stream().map(ClientCertificate::applicationId).collect(Collectors.toSet());
+        var affectedApplicationIds =
+                transitioned.stream().map(ClientCertificate::applicationId).collect(Collectors.toSet());
 
         int failedMtlsUpdateCount = 0;
         for (var applicationId : affectedApplicationIds) {
@@ -101,32 +98,34 @@ public class ProcessPendingCertificateTransitionsUseCase {
                 mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(applicationId);
             } catch (Exception e) {
                 failedMtlsUpdateCount++;
-                log.error("Failed to update mTLS subscriptions for application [{}]: {}", applicationId, e.getMessage(), e);
+                log.error(
+                        "Failed to update mTLS subscriptions for application [{}]: {}",
+                        applicationId,
+                        e.getMessage(),
+                        e);
             }
         }
 
         if (!candidates.isEmpty()) {
             int successfulMtlsUpdates = affectedApplicationIds.size() - failedMtlsUpdateCount;
             var message =
-                "Completed certificate transitions: {} transitioned, {} failed | mTLS updates: {} updated, {} failed over {} applications";
+                    "Completed certificate transitions: {} transitioned, {} failed | mTLS updates: {} updated, {} failed over {} applications";
             if (failedCount > 0 || failedMtlsUpdateCount > 0) {
                 log.warn(
-                    message,
-                    transitioned.size(),
-                    failedCount,
-                    successfulMtlsUpdates,
-                    failedMtlsUpdateCount,
-                    affectedApplicationIds.size()
-                );
+                        message,
+                        transitioned.size(),
+                        failedCount,
+                        successfulMtlsUpdates,
+                        failedMtlsUpdateCount,
+                        affectedApplicationIds.size());
             } else {
                 log.info(
-                    message,
-                    transitioned.size(),
-                    failedCount,
-                    successfulMtlsUpdates,
-                    failedMtlsUpdateCount,
-                    affectedApplicationIds.size()
-                );
+                        message,
+                        transitioned.size(),
+                        failedCount,
+                        successfulMtlsUpdates,
+                        failedMtlsUpdateCount,
+                        affectedApplicationIds.size());
             }
         }
 
@@ -138,7 +137,8 @@ public class ProcessPendingCertificateTransitionsUseCase {
         return computedStatus != certificate.status();
     }
 
-    private void applyTransition(ClientCertificate certificate, AuditActor auditActor, List<ClientCertificate> transitioned) {
+    private void applyTransition(
+            ClientCertificate certificate, AuditActor auditActor, List<ClientCertificate> transitioned) {
         var oldCertificate = new ClientCertificate(certificate);
         var updated = clientCertificateCrudService.update(certificate.id(), certificate);
         // Audit log failure must not block executing the application update.
@@ -148,12 +148,11 @@ public class ProcessPendingCertificateTransitionsUseCase {
             createAuditLog(oldCertificate, updated, auditActor);
         } catch (Exception e) {
             log.error(
-                "Failed to create audit log for certificate [{}] on application [{}]: {}",
-                certificate.id(),
-                certificate.applicationId(),
-                e.getMessage(),
-                e
-            );
+                    "Failed to create audit log for certificate [{}] on application [{}]: {}",
+                    certificate.id(),
+                    certificate.applicationId(),
+                    e.getMessage(),
+                    e);
         }
         transitioned.add(updated);
     }
@@ -161,8 +160,7 @@ public class ProcessPendingCertificateTransitionsUseCase {
     private void createAuditLog(ClientCertificate oldCertificate, ClientCertificate newCertificate, AuditActor actor) {
         var environment = environmentCrudService.get(oldCertificate.environmentId());
 
-        auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity.builder()
+        auditDomainService.createApplicationAuditLog(ApplicationAuditLogEntity.builder()
                 .organizationId(environment.getOrganizationId())
                 .environmentId(environment.getId())
                 .applicationId(oldCertificate.applicationId())
@@ -172,8 +170,7 @@ public class ProcessPendingCertificateTransitionsUseCase {
                 .newValue(newCertificate)
                 .createdAt(TimeProvider.now())
                 .properties(Collections.singletonMap(AuditProperties.CLIENT_CERTIFICATE, oldCertificate.id()))
-                .build()
-        );
+                .build());
     }
 
     public record Input(AuditActor auditActor) {

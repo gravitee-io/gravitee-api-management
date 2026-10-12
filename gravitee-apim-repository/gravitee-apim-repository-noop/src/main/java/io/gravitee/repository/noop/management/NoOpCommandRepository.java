@@ -25,7 +25,8 @@ import java.util.List;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpCommandRepository extends AbstractNoOpManagementRepository<Command, String> implements CommandRepository {
+public class NoOpCommandRepository extends AbstractNoOpManagementRepository<Command, String>
+        implements CommandRepository {
 
     @Override
     public List<Command> search(CommandCriteria criteria) {

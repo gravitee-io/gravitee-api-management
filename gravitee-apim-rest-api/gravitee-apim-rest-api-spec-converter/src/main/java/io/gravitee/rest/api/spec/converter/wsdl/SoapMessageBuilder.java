@@ -78,10 +78,9 @@ public class SoapMessageBuilder {
             schemas.add(XmlObject.Factory.parse(schema.getElement(), this.options));
         } catch (XmlException e) {
             log.warn(
-                "XSD parsing failed, OpenAPI specification may be generated without SOAP envelope. Schema element: {}",
-                schema.getElement(),
-                e
-            );
+                    "XSD parsing failed, OpenAPI specification may be generated without SOAP envelope. Schema element: {}",
+                    schema.getElement(),
+                    e);
         }
     }
 
@@ -95,17 +94,15 @@ public class SoapMessageBuilder {
     public void compileSchemas() {
         try {
             schemaTypeSystem = XmlBeans.compileXsd(
-                schemas.toArray(new XmlObject[schemas.size()]),
-                XmlBeans.getBuiltinTypeSystem(),
-                options
-            );
+                    schemas.toArray(new XmlObject[schemas.size()]), XmlBeans.getBuiltinTypeSystem(), options);
             this.compiled = true;
         } catch (XmlException e) {
             log.warn("Compilation of XSD failed, OpenAPI specification will be generated without SOAP envelope.", e);
         }
     }
 
-    public Optional<String> generateSoapEnvelop(Definition wsdlDef, Binding binding, BindingOperation bindingOperation) {
+    public Optional<String> generateSoapEnvelop(
+            Definition wsdlDef, Binding binding, BindingOperation bindingOperation) {
         if (!compiled) {
             compileSchemas();
         }
@@ -113,7 +110,9 @@ public class SoapMessageBuilder {
         try (StringWriter writer = new StringWriter()) {
             Optional<SoapVersion> optVersion = detectSoapVersion(binding.getExtensibilityElements());
             if (!optVersion.isPresent()) {
-                log.error("SOAP version could not be detected for binding: {}. Skipping envelope generation.", binding.getQName());
+                log.error(
+                        "SOAP version could not be detected for binding: {}. Skipping envelope generation.",
+                        binding.getQName());
                 return Optional.empty();
             }
 
@@ -128,33 +127,35 @@ public class SoapMessageBuilder {
             envelopeCursor.beginElement(version.getEnvelopeQName());
 
             if (useEncoded) {
-                envelopeCursor.insertNamespace(SampleXmlUtil.XSI_TYPE.getPrefix(), SampleXmlUtil.XSI_TYPE.getNamespaceURI());
+                envelopeCursor.insertNamespace(
+                        SampleXmlUtil.XSI_TYPE.getPrefix(), SampleXmlUtil.XSI_TYPE.getNamespaceURI());
                 envelopeCursor.insertNamespace(XSD_PREFIX, XMLSCHEMA);
-                envelopeCursor.insertAttributeWithValue(SampleXmlUtil.XSI_TYPE, formatQName(version.getEnvelopeQName()));
+                envelopeCursor.insertAttributeWithValue(
+                        SampleXmlUtil.XSI_TYPE, formatQName(version.getEnvelopeQName()));
             }
 
             envelopeCursor.toLastChild();
             envelopeCursor.setBookmark(bookmark);
 
             new SoapHeadersBuilder()
-                .withWsdlDef(wsdlDef)
-                .withBindingOperation(bindingOperation)
-                .withCursor(envelopeCursor)
-                .withNamespaceMappings(namespaceMappings)
-                .withShemaTypeSystem(schemaTypeSystem)
-                .withVersion(version)
-                .build();
+                    .withWsdlDef(wsdlDef)
+                    .withBindingOperation(bindingOperation)
+                    .withCursor(envelopeCursor)
+                    .withNamespaceMappings(namespaceMappings)
+                    .withShemaTypeSystem(schemaTypeSystem)
+                    .withVersion(version)
+                    .build();
 
             envelopeCursor.toBookmark(bookmark);
             envelopeCursor.toLastChild();
 
             SoapBodyBuilder bodyBuilder = new SoapBodyBuilder();
             bodyBuilder
-                .withBindingOperation(bindingOperation)
-                .withCursor(envelopeCursor)
-                .withNamespaceMappings(namespaceMappings)
-                .withShemaTypeSystem(schemaTypeSystem)
-                .withVersion(version);
+                    .withBindingOperation(bindingOperation)
+                    .withCursor(envelopeCursor)
+                    .withNamespaceMappings(namespaceMappings)
+                    .withShemaTypeSystem(schemaTypeSystem)
+                    .withVersion(version);
             if (useElPlaceholders) {
                 bodyBuilder.withTypeContentWriter(ElPlaceholderXmlUtil.typeContentWriter());
             }

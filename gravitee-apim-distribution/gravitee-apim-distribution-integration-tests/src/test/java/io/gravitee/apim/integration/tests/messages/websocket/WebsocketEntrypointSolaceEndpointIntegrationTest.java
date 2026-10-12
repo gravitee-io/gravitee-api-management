@@ -46,71 +46,62 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber-none.json" })
+    @DeployApi({"/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber-none.json"})
     void should_receive_all_messages_with_none_qos(WebSocketClient webSocketClient) {
         OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
         var obs = webSocketClient
-            .rxConnect("/test-none")
-            .flatMapPublisher(websocket ->
-                websocket
-                    .toFlowable()
-                    .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 500).toFlowable())
-            )
-            .test();
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 1);
-        obs
-            .assertValue(frame -> {
-                assertThat(frame).hasToString("message");
-                return true;
-            })
-            .assertNoErrors();
+                .rxConnect("/test-none")
+                .flatMapPublisher(websocket -> websocket
+                        .toFlowable()
+                        .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 500)
+                                .toFlowable()))
+                .test();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 1);
+        obs.assertValue(frame -> {
+                    assertThat(frame).hasToString("message");
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber.json" })
+    @DeployApi({"/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber.json"})
     void should_receive_all_messages_with_auto_qos(WebSocketClient webSocketClient) {
         OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
         var obs = webSocketClient
-            .rxConnect("/test-auto")
-            .flatMapPublisher(websocket ->
-                websocket
-                    .toFlowable()
-                    .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 1000).toFlowable())
-            )
-            .test();
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 1);
-        obs
-            .assertValue(frame -> {
-                assertThat(frame).hasToString("message");
-                return true;
-            })
-            .assertNoErrors();
+                .rxConnect("/test-auto")
+                .flatMapPublisher(websocket -> websocket
+                        .toFlowable()
+                        .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 1000)
+                                .toFlowable()))
+                .test();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 1);
+        obs.assertValue(frame -> {
+                    assertThat(frame).hasToString("message");
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher.json" })
+    @DeployApi({"/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher.json"})
     void should_publish_messages(WebSocketClient webSocketClient) {
         TestSubscriber<InboundMessage> testSubscriber = subscribeToSolace(topic).test();
 
         webSocketClient
-            .rxConnect("/test")
-            .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message"))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertNoErrors();
+                .rxConnect("/test")
+                .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message"))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertNoErrors();
 
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> testSubscriber.values().size() >= 1);
+        await().atMost(30, TimeUnit.SECONDS).until(() -> testSubscriber.values().size() >= 1);
         testSubscriber.assertValue(frame -> {
             assertThat(Buffer.buffer(frame.getPayloadAsBytes())).hasToString("message");
             return true;
@@ -118,20 +109,18 @@ class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEnd
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher-subscriber.json" })
+    @DeployApi({"/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher-subscriber.json"})
     void should_received_published_messages(WebSocketClient webSocketClient) {
         var obs = webSocketClient
-            .rxConnect("/test")
-            .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith(websocket.toFlowable()))
-            .test();
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 1);
-        obs
-            .assertValue(frame -> {
-                assertThat(frame).hasToString("message");
-                return true;
-            })
-            .assertNoErrors();
+                .rxConnect("/test")
+                .flatMapPublisher(websocket ->
+                        websocket.writeTextMessage("message").toFlowable().mergeWith(websocket.toFlowable()))
+                .test();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 1);
+        obs.assertValue(frame -> {
+                    assertThat(frame).hasToString("message");
+                    return true;
+                })
+                .assertNoErrors();
     }
 }

@@ -47,10 +47,10 @@ public class HMACKeyProcessor<C extends SecurityContext> extends AbstractKeyProc
                 } else if (JWSAlgorithm.Family.HMAC_SHA.contains(algorithm)) {
                     // HMAC secret matcher
                     return new JWKMatcher.Builder()
-                        .keyType(KeyType.forAlgorithm(algorithm))
-                        .privateOnly(true)
-                        .algorithms(algorithm, null)
-                        .build();
+                            .keyType(KeyType.forAlgorithm(algorithm))
+                            .privateOnly(true)
+                            .algorithms(algorithm, null)
+                            .build();
                 } else {
                     return null; // Unsupported algorithm
                 }

@@ -128,18 +128,17 @@ public class PlanService_CloseTest {
     @Test
     public void shouldClosePlanV4AndAcceptedSubscription() throws TechnicalException {
         var plan = Plan.builder()
-            .status(Plan.Status.PUBLISHED)
-            .type(Plan.PlanType.API)
-            .validation(Plan.PlanValidationType.AUTO)
-            .referenceId(API_ID)
-            .referenceType(Plan.PlanReferenceType.API)
-            .build();
+                .status(Plan.Status.PUBLISHED)
+                .type(Plan.PlanType.API)
+                .validation(Plan.PlanValidationType.AUTO)
+                .referenceId(API_ID)
+                .referenceType(Plan.PlanReferenceType.API)
+                .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
-            Collections.singleton(subscription)
-        );
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.singleton(subscription));
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         var api = new Api();
@@ -156,7 +155,8 @@ public class PlanService_CloseTest {
         assertThat(genericPlanEntity.getId()).isEqualTo(PLAN_ID);
         assertThat(genericPlanEntity.getReferenceId()).isEqualTo(API_ID);
 
-        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
+        verify(planRepository, times(1))
+                .update(plan.toBuilder().status(Plan.Status.CLOSED).build());
 
         verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull());
     }
@@ -164,17 +164,16 @@ public class PlanService_CloseTest {
     @Test
     public void shouldClosePlanV2AndPendingSubscription() throws TechnicalException {
         var plan = Plan.builder()
-            .status(Plan.Status.PUBLISHED)
-            .referenceId(API_ID)
-            .referenceType(Plan.PlanReferenceType.API)
-            .validation(Plan.PlanValidationType.AUTO)
-            .build();
+                .status(Plan.Status.PUBLISHED)
+                .referenceId(API_ID)
+                .referenceType(Plan.PlanReferenceType.API)
+                .validation(Plan.PlanValidationType.AUTO)
+                .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
-            Collections.singleton(subscription)
-        );
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         var api = new Api();
         api.setId(API_ID);
@@ -190,7 +189,8 @@ public class PlanService_CloseTest {
         assertThat(genericPlanEntity.getId()).isEqualTo(PLAN_ID);
         assertThat(genericPlanEntity.getReferenceId()).isEqualTo(API_ID);
 
-        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
+        verify(planRepository, times(1))
+                .update(plan.toBuilder().status(Plan.Status.CLOSED).build());
 
         verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull());
     }
@@ -198,17 +198,16 @@ public class PlanService_CloseTest {
     @Test
     public void shouldClosePlanAndPausedSubscription() throws TechnicalException {
         var plan = Plan.builder()
-            .status(Plan.Status.PUBLISHED)
-            .referenceId(API_ID)
-            .referenceType(Plan.PlanReferenceType.API)
-            .validation(Plan.PlanValidationType.AUTO)
-            .build();
+                .status(Plan.Status.PUBLISHED)
+                .referenceId(API_ID)
+                .referenceType(Plan.PlanReferenceType.API)
+                .validation(Plan.PlanValidationType.AUTO)
+                .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
-            Collections.singleton(subscription)
-        );
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         var api = new Api();
         api.setId(API_ID);
@@ -216,7 +215,8 @@ public class PlanService_CloseTest {
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
+        verify(planRepository, times(1))
+                .update(plan.toBuilder().status(Plan.Status.CLOSED).build());
 
         verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull());
     }
@@ -224,16 +224,15 @@ public class PlanService_CloseTest {
     @Test
     public void shouldClosePlanButNotClosedSubscription() throws TechnicalException {
         var plan = Plan.builder()
-            .status(Plan.Status.PUBLISHED)
-            .validation(Plan.PlanValidationType.AUTO)
-            .referenceId(API_ID)
-            .referenceType(Plan.PlanReferenceType.API)
-            .build();
+                .status(Plan.Status.PUBLISHED)
+                .validation(Plan.PlanValidationType.AUTO)
+                .referenceId(API_ID)
+                .referenceType(Plan.PlanReferenceType.API)
+                .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
-            Collections.singleton(subscription)
-        );
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         var api = new Api();
         api.setId(API_ID);
@@ -241,6 +240,7 @@ public class PlanService_CloseTest {
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
+        verify(planRepository, times(1))
+                .update(plan.toBuilder().status(Plan.Status.CLOSED).build());
     }
 }

@@ -27,7 +27,8 @@ public enum ConnectorType {
     ENDPOINT("endpoint"),
     ENTRYPOINT("entrypoint");
 
-    private static final Map<String, ConnectorType> LABELS_MAP = Map.of(ENDPOINT.label, ENDPOINT, ENTRYPOINT.label, ENTRYPOINT);
+    private static final Map<String, ConnectorType> LABELS_MAP =
+            Map.of(ENDPOINT.label, ENDPOINT, ENTRYPOINT.label, ENTRYPOINT);
 
     private final String label;
 

@@ -81,10 +81,10 @@ class SearchAverageConnectionDurationQueryAdapterTest {
 
     @Test
     void should_build_query_with_api_filter() {
-        var result = SearchAverageConnectionDurationQueryAdapter.adapt(new AverageConnectionDurationQuery("api-id"), true);
+        var result =
+                SearchAverageConnectionDurationQueryAdapter.adapt(new AverageConnectionDurationQuery("api-id"), true);
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "size": 0,
               "query": {
@@ -119,16 +119,14 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                 }
               }
             }
-            """
-        );
+            """);
     }
 
     @Test
     void should_adapt_the_query_when_entrypoint_id_is_not_a_keyword() {
         var result = SearchAverageConnectionDurationQueryAdapter.adapt(new AverageConnectionDurationQuery(), false);
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "size": 0,
               "query": {
@@ -158,8 +156,7 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                 }
               }
             }
-            """
-        );
+            """);
     }
 
     @Test
@@ -169,12 +166,9 @@ class SearchAverageConnectionDurationQueryAdapterTest {
         var to = from.plus(Duration.ofDays(1));
 
         var result = SearchAverageConnectionDurationQueryAdapter.adapt(
-            new AverageConnectionDurationQuery(Optional.of("api-id"), Optional.of(from), Optional.of(to)),
-            true
-        );
+                new AverageConnectionDurationQuery(Optional.of("api-id"), Optional.of(from), Optional.of(to)), true);
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "size": 0,
               "query": {
@@ -213,7 +207,6 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                 }
               }
             }
-            """
-        );
+            """);
     }
 }

@@ -40,11 +40,10 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(themes);
         assertEquals(6, themes.size());
-        final Theme themeSimple = themes
-            .stream()
-            .filter(theme -> "simple".equals(theme.getId()))
-            .findAny()
-            .get();
+        final Theme themeSimple = themes.stream()
+                .filter(theme -> "simple".equals(theme.getId()))
+                .findAny()
+                .get();
         assertEquals("Theme simple", themeSimple.getName());
         assertEquals("PORTAL", themeSimple.getType().name());
         assertEquals("backgroundImage", themeSimple.getBackgroundImage());
@@ -61,33 +60,34 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferenceAndType() throws Exception {
-        final Set<Theme> themes = themeRepository.findByReferenceIdAndReferenceTypeAndType("DEFAULT", "ENVIRONMENT", ThemeType.PORTAL);
+        final Set<Theme> themes =
+                themeRepository.findByReferenceIdAndReferenceTypeAndType("DEFAULT", "ENVIRONMENT", ThemeType.PORTAL);
         assertNotNull(themes);
         assertEquals(2, themes.size());
-        final Theme darkTheme = themes
-            .stream()
-            .filter(theme -> "dark".equals(theme.getId()))
-            .findAny()
-            .get();
+        final Theme darkTheme = themes.stream()
+                .filter(theme -> "dark".equals(theme.getId()))
+                .findAny()
+                .get();
         assertEquals("Theme dark", darkTheme.getName());
-        final Theme lightTheme = themes
-            .stream()
-            .filter(theme -> "light".equals(theme.getId()))
-            .findAny()
-            .get();
+        final Theme lightTheme = themes.stream()
+                .filter(theme -> "light".equals(theme.getId()))
+                .findAny()
+                .get();
         assertEquals("Light", lightTheme.getName());
     }
 
     @Test
     public void shouldSearchByType() throws TechnicalException {
-        var results = themeRepository.search(ThemeCriteria.builder().type(ThemeType.PORTAL).build(), null);
+        var results = themeRepository.search(
+                ThemeCriteria.builder().type(ThemeType.PORTAL).build(), null);
         assertNotNull(results);
         assertEquals(3, results.getContent().size());
     }
 
     @Test
     public void shouldSearchByTypeAndEnabled() throws TechnicalException {
-        var results = themeRepository.search(ThemeCriteria.builder().type(ThemeType.PORTAL).enabled(true).build(), null);
+        var results = themeRepository.search(
+                ThemeCriteria.builder().type(ThemeType.PORTAL).enabled(true).build(), null);
         assertNotNull(results);
         assertEquals(1, results.getContent().size());
         assertEquals("dark", results.getContent().get(0).getId());
@@ -212,17 +212,17 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws TechnicalException {
-        final var nbBeforeDeletion = themeRepository
-            .findAll()
-            .stream()
-            .filter(t -> "ToBeDeleted".equals(t.getReferenceId()) && ThemeReferenceType.ENVIRONMENT.name().equals(t.getReferenceType()))
-            .count();
-        final var deleted = themeRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", ThemeReferenceType.ENVIRONMENT).size();
-        final var nbAfterDeletion = themeRepository
-            .findAll()
-            .stream()
-            .filter(t -> "ToBeDeleted".equals(t.getReferenceId()) && ThemeReferenceType.ENVIRONMENT.name().equals(t.getReferenceType()))
-            .count();
+        final var nbBeforeDeletion = themeRepository.findAll().stream()
+                .filter(t -> "ToBeDeleted".equals(t.getReferenceId())
+                        && ThemeReferenceType.ENVIRONMENT.name().equals(t.getReferenceType()))
+                .count();
+        final var deleted = themeRepository
+                .deleteByReferenceIdAndReferenceType("ToBeDeleted", ThemeReferenceType.ENVIRONMENT)
+                .size();
+        final var nbAfterDeletion = themeRepository.findAll().stream()
+                .filter(t -> "ToBeDeleted".equals(t.getReferenceId())
+                        && ThemeReferenceType.ENVIRONMENT.name().equals(t.getReferenceType()))
+                .count();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(deleted).isEqualTo(2);

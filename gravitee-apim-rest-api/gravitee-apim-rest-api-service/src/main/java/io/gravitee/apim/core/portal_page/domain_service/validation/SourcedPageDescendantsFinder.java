@@ -37,18 +37,20 @@ public class SourcedPageDescendantsFinder {
     }
 
     private void collect(
-        String environmentId,
-        PortalNavigationItemId parentId,
-        int depth,
-        Set<PortalNavigationItemId> visited,
-        List<PortalNavigationPage> result
-    ) {
+            String environmentId,
+            PortalNavigationItemId parentId,
+            int depth,
+            Set<PortalNavigationItemId> visited,
+            List<PortalNavigationPage> result) {
         // visited, not just the depth bound: a cycle would otherwise collect — and so fetch — a page several times
-        if (ValidationDepth.exceeded(depth, parentId, "sourced pages below are not collected") || !visited.add(parentId)) {
+        if (ValidationDepth.exceeded(depth, parentId, "sourced pages below are not collected")
+                || !visited.add(parentId)) {
             return;
         }
         for (var child : queryService.findByParentIdAndEnvironmentId(environmentId, parentId)) {
-            if (child instanceof PortalNavigationPage page && page.getSource() != null && !visited.contains(page.getId())) {
+            if (child instanceof PortalNavigationPage page
+                    && page.getSource() != null
+                    && !visited.contains(page.getId())) {
                 result.add(page);
             }
             collect(environmentId, child.getId(), depth + 1, visited, result);

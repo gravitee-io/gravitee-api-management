@@ -31,8 +31,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @EnabledIfSystemProperty(
-    named = "io.gravitee.sdk.testcase.enabled",
-    matches = "true",
-    disabledReason = "This test is disabled because it is only run in the context of GatewayTestingExtensionTest"
-)
+        named = "io.gravitee.sdk.testcase.enabled",
+        matches = "true",
+        disabledReason = "This test is disabled because it is only run in the context of GatewayTestingExtensionTest")
 public @interface EnableForGatewayTestingExtensionTesting {}

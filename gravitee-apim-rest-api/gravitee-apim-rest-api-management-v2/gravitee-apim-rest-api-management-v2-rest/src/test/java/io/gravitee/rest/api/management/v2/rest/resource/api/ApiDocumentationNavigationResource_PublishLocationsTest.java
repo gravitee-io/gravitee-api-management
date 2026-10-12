@@ -64,14 +64,21 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .name("My API")
+                .environmentId(ENVIRONMENT)
+                .build()));
     }
 
     @AfterEach
@@ -92,11 +99,12 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
         Response response = rootTarget().request().get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiPortalPublishLocationsResponse.class)
-            .satisfies(entity ->
-                assertThat(entity.getData()).containsExactly(new ApiPortalPublishLocation().id(section.getId().id()).name("APIs"))
-            );
+                .hasStatus(OK_200)
+                .asEntity(ApiPortalPublishLocationsResponse.class)
+                .satisfies(entity -> assertThat(entity.getData())
+                        .containsExactly(new ApiPortalPublishLocation()
+                                .id(section.getId().id())
+                                .name("APIs")));
     }
 
     @Test
@@ -107,9 +115,10 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
 
         Response response = rootTarget().request().get();
 
-        assertThat(response.readEntity(new GenericType<Map<String, List<Map<String, Object>>>>() {}).get("data"))
-            .singleElement()
-            .satisfies(location -> assertThat(location).containsOnlyKeys("id", "name"));
+        assertThat(response.readEntity(new GenericType<Map<String, List<Map<String, Object>>>>() {})
+                        .get("data"))
+                .singleElement()
+                .satisfies(location -> assertThat(location).containsOnlyKeys("id", "name"));
     }
 
     @Test
@@ -117,21 +126,19 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
         Response response = rootTarget().request().get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiPortalPublishLocationsResponse.class)
-            .satisfies(entity -> assertThat(entity.getData()).isEmpty());
+                .hasStatus(OK_200)
+                .asEntity(ApiPortalPublishLocationsResponse.class)
+                .satisfies(entity -> assertThat(entity.getData()).isEmpty());
     }
 
     @Test
     void should_return_403_with_environment_documentation_permission_only() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         Response response = rootTarget().request().get();
 
@@ -141,14 +148,12 @@ class ApiDocumentationNavigationResource_PublishLocationsTest extends AbstractRe
     @Test
     void should_succeed_with_api_documentation_permission_only() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(true);
 
         Response response = rootTarget().request().get();
 

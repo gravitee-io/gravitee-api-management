@@ -25,12 +25,13 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
  */
 public interface FieldResolver {
     String fromMetric(Metric metric);
+
     String fromFilter(Filter filter);
+
     String fromFacet(Facet facet);
 
     default String entityTypeFromFilter(Filter filter) {
         throw new UnsupportedOperationException(
-            getClass().getSimpleName() + " does not support entity type filter '" + filter.name() + "'"
-        );
+                getClass().getSimpleName() + " does not support entity type filter '" + filter.name() + "'");
     }
 }

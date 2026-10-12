@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Constraint(validatedBy = TimeRangeParamValidator.class)
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TimeRangeParamConstraint {
     String message() default "Invalid time range definition";

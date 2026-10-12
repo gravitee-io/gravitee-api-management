@@ -61,9 +61,10 @@ public class PromotionCrudServiceImpl implements PromotionCrudService {
         try {
             log.debug("Get promotion by id : {}", id);
             return promotionRepository
-                .findById(id)
-                .map(PromotionAdapter.INSTANCE::toCoreModel)
-                .orElseThrow(() -> new DbEntityNotFoundException(io.gravitee.repository.management.model.Promotion.class, id));
+                    .findById(id)
+                    .map(PromotionAdapter.INSTANCE::toCoreModel)
+                    .orElseThrow(() ->
+                            new DbEntityNotFoundException(io.gravitee.repository.management.model.Promotion.class, id));
         } catch (TechnicalException e) {
             throw TechnicalManagementException.ofTryingToFindById(Promotion.class, id, e);
         }

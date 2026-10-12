@@ -30,7 +30,7 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
+@Mapper(uses = {ApplicationMapper.class, DateMapper.class, PlanMapper.class})
 public interface ApiAuditMapper {
     Logger log = NodeLoggerFactory.getLogger(ApiAuditMapper.class);
     ApiAuditMapper INSTANCE = Mappers.getMapper(ApiAuditMapper.class);
@@ -38,27 +38,26 @@ public interface ApiAuditMapper {
     @Named("mapToAudit")
     default Audit map(AuditEntity source, Map<String, String> metadata) {
         return new Audit()
-            .id(source.getId())
-            .organizationId(source.getOrganizationId())
-            .environmentId(source.getEnvironmentId())
-            .reference(
-                new AuditReference()
-                    .id(source.getReferenceId())
-                    .type(AuditReference.TypeEnum.valueOf(source.getReferenceType().name()))
-                    .name(metadata.get(nameMetadataKey(source.getReferenceType().name(), source.getReferenceId())))
-            )
-            .user(new BaseUser().id(source.getUser()).displayName(metadata.get(nameMetadataKey("USER", source.getUser()))))
-            .properties(adaptProperties(source, metadata))
-            .event(source.getEvent())
-            .createdAt(source.getCreatedAt().toOffsetDateTime())
-            .patch(source.getPatch());
+                .id(source.getId())
+                .organizationId(source.getOrganizationId())
+                .environmentId(source.getEnvironmentId())
+                .reference(new AuditReference()
+                        .id(source.getReferenceId())
+                        .type(AuditReference.TypeEnum.valueOf(
+                                source.getReferenceType().name()))
+                        .name(metadata.get(
+                                nameMetadataKey(source.getReferenceType().name(), source.getReferenceId()))))
+                .user(new BaseUser()
+                        .id(source.getUser())
+                        .displayName(metadata.get(nameMetadataKey("USER", source.getUser()))))
+                .properties(adaptProperties(source, metadata))
+                .event(source.getEvent())
+                .createdAt(source.getCreatedAt().toOffsetDateTime())
+                .patch(source.getPatch());
     }
 
     default List<Audit> map(List<AuditEntity> source, Map<String, String> metadata) {
-        return source
-            .stream()
-            .map(audit -> map(audit, metadata))
-            .toList();
+        return source.stream().map(audit -> map(audit, metadata)).toList();
     }
 
     @Named("adaptProperties")
@@ -67,16 +66,11 @@ public interface ApiAuditMapper {
             return List.of();
         }
 
-        return source
-            .getProperties()
-            .entrySet()
-            .stream()
-            .map(entry ->
-                new AuditPropertiesInner()
-                    .key(entry.getKey())
-                    .value(entry.getValue())
-                    .name(metadata.get(nameMetadataKey(entry.getKey(), entry.getValue())))
-            )
-            .toList();
+        return source.getProperties().entrySet().stream()
+                .map(entry -> new AuditPropertiesInner()
+                        .key(entry.getKey())
+                        .value(entry.getValue())
+                        .name(metadata.get(nameMetadataKey(entry.getKey(), entry.getValue()))))
+                .toList();
     }
 }

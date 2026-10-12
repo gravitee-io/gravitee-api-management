@@ -85,42 +85,28 @@ class AuditServiceImplTest {
 
         @Test
         void should_audit_only_the_fingerprint_of_an_encrypted_property_of_a_v4_api() throws Exception {
-            var before = anApi(
-                """
-                {"definitionVersion":"V4","properties":[{"key":"plain","value":"plain-value","encrypted":false},{"key":"secret","value":"OLD-CIPHER","encrypted":true}]}"""
-            );
-            var after = anApi(
-                """
-                {"definitionVersion":"V4","properties":[{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","value":"NEW-CIPHER","encrypted":true}]}"""
-            );
+            var before = anApi("""
+                {"definitionVersion":"V4","properties":[{"key":"plain","value":"plain-value","encrypted":false},{"key":"secret","value":"OLD-CIPHER","encrypted":true}]}""");
+            var after = anApi("""
+                {"definitionVersion":"V4","properties":[{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","value":"NEW-CIPHER","encrypted":true}]}""");
 
             auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(before, after));
 
             assertThat(capturedPatch()).doesNotContain("OLD-CIPHER").doesNotContain("NEW-CIPHER");
-            assertThat(auditedDefinition().get("properties")).isEqualTo(
-                mapper.readTree(
-                    """
-                    [{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>","encrypted":true}]"""
-                )
-            );
+            assertThat(auditedDefinition().get("properties")).isEqualTo(mapper.readTree("""
+                    [{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>","encrypted":true}]"""));
         }
 
         @Test
         void should_audit_only_the_fingerprint_of_an_encrypted_property_of_a_v2_api() throws Exception {
-            var created = anApi(
-                """
-                {"gravitee":"2.0.0","properties":[{"key":"secret","value":"CIPHER","encrypted":true}]}"""
-            );
+            var created = anApi("""
+                {"gravitee":"2.0.0","properties":[{"key":"secret","value":"CIPHER","encrypted":true}]}""");
 
             auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, created));
 
             assertThat(capturedPatch()).doesNotContain("CIPHER");
-            assertThat(auditedDefinition().get("properties")).isEqualTo(
-                mapper.readTree(
-                    """
-                    [{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}]"""
-                )
-            );
+            assertThat(auditedDefinition().get("properties")).isEqualTo(mapper.readTree("""
+                    [{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}]"""));
         }
 
         @Test
@@ -130,17 +116,15 @@ class AuditServiceImplTest {
             auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, created));
 
             assertThat(capturedPatch())
-                .doesNotContain("CIPHER")
-                .contains("\"key\":\"secret\"")
-                .contains("<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>");
+                    .doesNotContain("CIPHER")
+                    .contains("\"key\":\"secret\"")
+                    .contains("<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>");
         }
 
         @Test
         void should_keep_the_ciphertext_in_the_audited_api() throws Exception {
-            var created = anApi(
-                """
-                {"definitionVersion":"V4","properties":[{"key":"secret","value":"CIPHER","encrypted":true}]}"""
-            );
+            var created = anApi("""
+                {"definitionVersion":"V4","properties":[{"key":"secret","value":"CIPHER","encrypted":true}]}""");
 
             auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, created));
 
@@ -158,7 +142,10 @@ class AuditServiceImplTest {
         void should_leave_out_a_definition_that_cannot_be_parsed() throws Exception {
             auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, anApi("not-json{\"value\":\"CIPHER\"")));
 
-            assertThat(capturedPatch()).doesNotContain("\"path\":\"/definition\"").doesNotContain("CIPHER").contains("\"path\":\"/id\"");
+            assertThat(capturedPatch())
+                    .doesNotContain("\"path\":\"/definition\"")
+                    .doesNotContain("CIPHER")
+                    .contains("\"path\":\"/id\"");
         }
 
         private static Api anApi(String definition) {
@@ -170,19 +157,20 @@ class AuditServiceImplTest {
 
         private static AuditService.AuditLogData anApiAudit(Object oldValue, Object newValue) {
             return AuditService.AuditLogData.builder()
-                .referenceType(Audit.AuditReferenceType.API)
-                .referenceId("api-id")
-                .event(Api.AuditEvent.API_UPDATED)
-                .oldValue(oldValue)
-                .newValue(newValue)
-                .build();
+                    .referenceType(Audit.AuditReferenceType.API)
+                    .referenceId("api-id")
+                    .event(Api.AuditEvent.API_UPDATED)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .build();
         }
 
         private JsonNode auditedDefinition() throws Exception {
-            var definitionOperation = StreamSupport.stream(mapper.readTree(capturedPatch()).spliterator(), false)
-                .filter(operation -> operation.get("path").asText().equals("/definition"))
-                .findFirst()
-                .orElseThrow();
+            var definitionOperation = StreamSupport.stream(
+                            mapper.readTree(capturedPatch()).spliterator(), false)
+                    .filter(operation -> operation.get("path").asText().equals("/definition"))
+                    .findFirst()
+                    .orElseThrow();
             return mapper.readTree(definitionOperation.get("value").textValue());
         }
     }
@@ -196,32 +184,37 @@ class AuditServiceImplTest {
 
         @Test
         void should_store_a_given_patch_instead_of_a_diff() throws Exception {
-            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().patch(PATCH).build());
+            auditService.createAuditLog(
+                    EXECUTION_CONTEXT, anApiAudit().patch(PATCH).build());
 
             assertThat(capturedPatch()).isEqualTo(PATCH);
         }
 
         @Test
         void should_reject_a_given_patch_combined_with_a_new_value() throws Exception {
-            var audit = anApiAudit().patch(PATCH).newValue(Map.of("key", "value")).build();
+            var audit =
+                    anApiAudit().patch(PATCH).newValue(Map.of("key", "value")).build();
 
-            assertThatThrownBy(() -> auditService.createAuditLog(EXECUTION_CONTEXT, audit)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> auditService.createAuditLog(EXECUTION_CONTEXT, audit))
+                    .isInstanceOf(IllegalArgumentException.class);
             verify(auditRepository, never()).create(any());
         }
 
         @Test
         void should_reject_a_given_patch_combined_with_an_old_value() throws Exception {
-            var audit = anApiAudit().patch(PATCH).oldValue(Map.of("key", "value")).build();
+            var audit =
+                    anApiAudit().patch(PATCH).oldValue(Map.of("key", "value")).build();
 
-            assertThatThrownBy(() -> auditService.createAuditLog(EXECUTION_CONTEXT, audit)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> auditService.createAuditLog(EXECUTION_CONTEXT, audit))
+                    .isInstanceOf(IllegalArgumentException.class);
             verify(auditRepository, never()).create(any());
         }
 
         private static AuditService.AuditLogData.AuditLogDataBuilder anApiAudit() {
             return AuditService.AuditLogData.builder()
-                .referenceType(Audit.AuditReferenceType.API)
-                .referenceId("api-id")
-                .event(Api.AuditEvent.API_ENCRYPTED_PROPERTIES_ACCESSED);
+                    .referenceType(Audit.AuditReferenceType.API)
+                    .referenceId("api-id")
+                    .event(Api.AuditEvent.API_ENCRYPTED_PROPERTIES_ACCESSED);
         }
     }
 
@@ -263,8 +256,8 @@ class AuditServiceImplTest {
         @Test
         void should_record_the_given_user_on_an_api_audit_when_no_user_is_authenticated() throws Exception {
             var auditWithoutReference = AuditService.AuditLogData.builder()
-                .event(Api.AuditEvent.API_ENCRYPTED_PROPERTIES_REFRESHED)
-                .build();
+                    .event(Api.AuditEvent.API_ENCRYPTED_PROPERTIES_REFRESHED)
+                    .build();
 
             auditService.createApiAuditLog(EXECUTION_CONTEXT, auditWithoutReference, "api-id", "sync-actor");
 
@@ -276,9 +269,9 @@ class AuditServiceImplTest {
 
         private static AuditService.AuditLogData.AuditLogDataBuilder anApiAudit() {
             return AuditService.AuditLogData.builder()
-                .referenceType(Audit.AuditReferenceType.API)
-                .referenceId("api-id")
-                .event(Api.AuditEvent.API_UPDATED);
+                    .referenceType(Audit.AuditReferenceType.API)
+                    .referenceId("api-id")
+                    .event(Api.AuditEvent.API_UPDATED);
         }
     }
 
@@ -478,7 +471,8 @@ class AuditServiceImplTest {
 
         @Test
         void should_resolve_dashboard_name_in_metadata() throws TechnicalException {
-            Dashboard dashboard = Dashboard.builder().id(DASHBOARD_ID).name(DASHBOARD_NAME).build();
+            Dashboard dashboard =
+                    Dashboard.builder().id(DASHBOARD_ID).name(DASHBOARD_NAME).build();
             when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(dashboardAudit()), 0, 1, 1));
             when(dashboardRepository.findById(DASHBOARD_ID)).thenReturn(Optional.of(dashboard));
 
@@ -507,7 +501,8 @@ class AuditServiceImplTest {
             assertThat(result.getMetadata()).containsEntry("DASHBOARD:" + DASHBOARD_ID + ":name", DASHBOARD_ID);
         }
 
-        private io.gravitee.common.data.domain.MetadataPage<io.gravitee.rest.api.model.audit.AuditEntity> auditSearch() {
+        private io.gravitee.common.data.domain.MetadataPage<io.gravitee.rest.api.model.audit.AuditEntity>
+                auditSearch() {
             AuditQuery query = new AuditQuery();
             query.setPage(1);
             query.setSize(10);

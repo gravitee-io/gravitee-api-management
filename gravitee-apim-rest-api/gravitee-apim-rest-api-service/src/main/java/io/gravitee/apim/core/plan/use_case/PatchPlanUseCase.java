@@ -65,25 +65,20 @@ public class PatchPlanUseCase {
     private static final String FIELD_FLOWS = "flows";
 
     private static final Set<String> ALLOWED_FIELDS = Set.of(
-        FIELD_NAME,
-        FIELD_DESCRIPTION,
-        FIELD_SECURITY_CONFIGURATION,
-        FIELD_VALIDATION,
-        FIELD_SELECTION_RULE,
-        FIELD_TAGS,
-        FIELD_EXCLUDED_GROUPS,
-        FIELD_CHARACTERISTICS,
-        FIELD_COMMENT_REQUIRED,
-        FIELD_GENERAL_CONDITIONS,
-        FIELD_FLOWS
-    );
+            FIELD_NAME,
+            FIELD_DESCRIPTION,
+            FIELD_SECURITY_CONFIGURATION,
+            FIELD_VALIDATION,
+            FIELD_SELECTION_RULE,
+            FIELD_TAGS,
+            FIELD_EXCLUDED_GROUPS,
+            FIELD_CHARACTERISTICS,
+            FIELD_COMMENT_REQUIRED,
+            FIELD_GENERAL_CONDITIONS,
+            FIELD_FLOWS);
 
-    private static final Set<String> NON_NULLABLE_FIELDS = Set.of(
-        FIELD_NAME,
-        FIELD_VALIDATION,
-        FIELD_SECURITY_CONFIGURATION,
-        FIELD_COMMENT_REQUIRED
-    );
+    private static final Set<String> NON_NULLABLE_FIELDS =
+            Set.of(FIELD_NAME, FIELD_VALIDATION, FIELD_SECURITY_CONFIGURATION, FIELD_COMMENT_REQUIRED);
 
     static final int MAX_PATCH_OPS = 200;
 
@@ -108,8 +103,9 @@ public class PatchPlanUseCase {
         }
 
         var plan = planCrudService
-            .findByPlanIdAndReferenceIdAndReferenceType(input.planId(), input.apiId(), GenericPlanEntity.ReferenceType.API.name())
-            .orElseThrow(() -> new PlanForApiNotFoundException(input.planId(), input.apiId()));
+                .findByPlanIdAndReferenceIdAndReferenceType(
+                        input.planId(), input.apiId(), GenericPlanEntity.ReferenceType.API.name())
+                .orElseThrow(() -> new PlanForApiNotFoundException(input.planId(), input.apiId()));
 
         var api = apiCrudService.get(input.apiId());
 
@@ -133,10 +129,12 @@ public class PatchPlanUseCase {
         var patchedNode = applyPatch(input.patchType(), patchNode, currentNode, input.planId(), input.apiId());
 
         var patched = applyPatchedValues(plan, patchedNode, explicitNulls);
-        var patchedFlows = extractFlows(patchedNode, currentFlows, explicitNulls, patchTargetsFlows(input.patchType(), patchNode));
+        var patchedFlows =
+                extractFlows(patchedNode, currentFlows, explicitNulls, patchTargetsFlows(input.patchType(), patchNode));
 
         if (patchTargetsExcludedGroups(input.patchType(), patchNode)) {
-            planExcludedGroupsDomainService.validateExcludedGroups(input.auditInfo().environmentId(), patched.getExcludedGroups());
+            planExcludedGroupsDomainService.validateExcludedGroups(
+                    input.auditInfo().environmentId(), patched.getExcludedGroups());
         }
 
         if (input.dryRun()) {
@@ -153,7 +151,9 @@ public class PatchPlanUseCase {
         var def = plan.getPlanDefinitionHttpV4();
         node.put(FIELD_NAME, plan.getName());
         node.put(FIELD_DESCRIPTION, plan.getDescription());
-        node.put(FIELD_VALIDATION, plan.getValidation() != null ? plan.getValidation().name() : null);
+        node.put(
+                FIELD_VALIDATION,
+                plan.getValidation() != null ? plan.getValidation().name() : null);
         node.put(FIELD_COMMENT_REQUIRED, plan.isCommentRequired());
         node.put(FIELD_GENERAL_CONDITIONS, plan.getGeneralConditions());
         if (def != null) {
@@ -205,14 +205,17 @@ public class PatchPlanUseCase {
             throw new ValidationDomainException("JSON Patch body must be a JSON array");
         }
         if (patchArray.size() > MAX_PATCH_OPS) {
-            throw new ValidationDomainException("JSON Patch request exceeds maximum of " + MAX_PATCH_OPS + " operations");
+            throw new ValidationDomainException(
+                    "JSON Patch request exceeds maximum of " + MAX_PATCH_OPS + " operations");
         }
         var index = 0;
         for (JsonNode op : patchArray) {
-            // Allow-list applies to every op, including the read-only RFC 6902 `test` op, so non-patchable pointers cannot be probed.
+            // Allow-list applies to every op, including the read-only RFC 6902 `test` op, so non-patchable pointers
+            // cannot be probed.
             var pathNode = op.path("path");
             if (pathNode.isMissingNode() || !pathNode.isTextual()) {
-                throw new ValidationDomainException("JSON Patch operation at index " + index + " is missing required 'path' field");
+                throw new ValidationDomainException(
+                        "JSON Patch operation at index " + index + " is missing required 'path' field");
             }
             var rawPath = pathNode.asText();
             validateJsonPatchField(index, "path", rawPath);
@@ -221,7 +224,8 @@ public class PatchPlanUseCase {
             if ("move".equals(opName) || "copy".equals(opName)) {
                 var fromNode = op.path("from");
                 if (fromNode.isMissingNode() || !fromNode.isTextual()) {
-                    throw new ValidationDomainException("JSON Patch operation at index " + index + " is missing required 'from' field");
+                    throw new ValidationDomainException(
+                            "JSON Patch operation at index " + index + " is missing required 'from' field");
                 }
                 validateJsonPatchField(index, "from", fromNode.asText());
             }
@@ -231,27 +235,21 @@ public class PatchPlanUseCase {
 
     private void validateJsonPatchField(int opIndex, String fieldLabel, String pointer) {
         if (!pointer.isEmpty() && !pointer.startsWith("/")) {
-            throw new ValidationDomainException(
-                "JSON Patch operation at index " +
-                    opIndex +
-                    " has '" +
-                    fieldLabel +
-                    "' value '" +
-                    pointer +
-                    "' which is not a valid JSON Pointer"
-            );
+            throw new ValidationDomainException("JSON Patch operation at index " + opIndex
+                    + " has '"
+                    + fieldLabel
+                    + "' value '"
+                    + pointer
+                    + "' which is not a valid JSON Pointer");
         }
         var field = extractTopLevelField(pointer);
         if (field.isEmpty()) {
-            throw new ValidationDomainException(
-                "JSON Patch operation at index " +
-                    opIndex +
-                    " has '" +
-                    fieldLabel +
-                    "' value '" +
-                    pointer +
-                    "' which does not target a specific field"
-            );
+            throw new ValidationDomainException("JSON Patch operation at index " + opIndex
+                    + " has '"
+                    + fieldLabel
+                    + "' value '"
+                    + pointer
+                    + "' which does not target a specific field");
         }
         validateField(field);
     }
@@ -333,7 +331,8 @@ public class PatchPlanUseCase {
         }
     }
 
-    private JsonNode applyPatch(PatchType patchType, JsonNode patchNode, JsonNode currentNode, String planId, String apiId) {
+    private JsonNode applyPatch(
+            PatchType patchType, JsonNode patchNode, JsonNode currentNode, String planId, String apiId) {
         try {
             if (patchType == PatchType.JSON_PATCH) {
                 return jsonPatchDomainService.applyJsonPatch(patchNode, currentNode);
@@ -341,9 +340,7 @@ public class PatchPlanUseCase {
             return jsonPatchDomainService.applyMergePatch(patchNode, currentNode);
         } catch (ValidationDomainException e) {
             throw new ValidationDomainException(
-                "Failed to apply patch on plan [" + planId + "] of API [" + apiId + "]: " + e.getMessage(),
-                e
-            );
+                    "Failed to apply patch on plan [" + planId + "] of API [" + apiId + "]: " + e.getMessage(), e);
         }
     }
 
@@ -355,7 +352,8 @@ public class PatchPlanUseCase {
 
         var description = textOrDefault(patchedNode, FIELD_DESCRIPTION, explicitNulls, existing.getDescription());
         var commentRequired = booleanOrDefault(patchedNode, FIELD_COMMENT_REQUIRED, existing.isCommentRequired());
-        var generalConditions = textOrDefault(patchedNode, FIELD_GENERAL_CONDITIONS, explicitNulls, existing.getGeneralConditions());
+        var generalConditions =
+                textOrDefault(patchedNode, FIELD_GENERAL_CONDITIONS, explicitNulls, existing.getGeneralConditions());
 
         var validationNode = patchedNode.get(FIELD_VALIDATION);
         var validation = existing.getValidation();
@@ -367,24 +365,26 @@ public class PatchPlanUseCase {
             }
         }
 
-        var excludedGroups = stringListOrDefault(patchedNode, FIELD_EXCLUDED_GROUPS, explicitNulls, existing.getExcludedGroups());
-        var characteristics = stringListOrDefault(patchedNode, FIELD_CHARACTERISTICS, explicitNulls, existing.getCharacteristics());
+        var excludedGroups =
+                stringListOrDefault(patchedNode, FIELD_EXCLUDED_GROUPS, explicitNulls, existing.getExcludedGroups());
+        var characteristics =
+                stringListOrDefault(patchedNode, FIELD_CHARACTERISTICS, explicitNulls, existing.getCharacteristics());
 
-        var updatedPlan = existing
-            .toBuilder()
-            .name(name)
-            .description(description)
-            .commentRequired(commentRequired)
-            .generalConditions(generalConditions)
-            .validation(validation)
-            .excludedGroups(excludedGroups)
-            .characteristics(characteristics)
-            .build();
+        var updatedPlan = existing.toBuilder()
+                .name(name)
+                .description(description)
+                .commentRequired(commentRequired)
+                .generalConditions(generalConditions)
+                .validation(validation)
+                .excludedGroups(excludedGroups)
+                .characteristics(characteristics)
+                .build();
 
         return applyPlanDefinition(updatedPlan, existing, patchedNode, explicitNulls, name);
     }
 
-    private Plan applyPlanDefinition(Plan updatedPlan, Plan existing, JsonNode patchedNode, Set<String> explicitNulls, String name) {
+    private Plan applyPlanDefinition(
+            Plan updatedPlan, Plan existing, JsonNode patchedNode, Set<String> explicitNulls, String name) {
         var def = existing.getPlanDefinitionHttpV4();
         if (def == null) {
             return updatedPlan;
@@ -407,11 +407,17 @@ public class PatchPlanUseCase {
 
         var tags = explicitNulls.contains(FIELD_TAGS) ? null : tagsOrDefault(patchedNode, def.getTags());
 
-        var updatedDef = def.toBuilder().name(name).selectionRule(selectionRule).security(security).tags(tags).build();
+        var updatedDef = def.toBuilder()
+                .name(name)
+                .selectionRule(selectionRule)
+                .security(security)
+                .tags(tags)
+                .build();
         return updatedPlan.toBuilder().planDefinitionHttpV4(updatedDef).build();
     }
 
-    private List<Flow> extractFlows(JsonNode patchedNode, List<Flow> currentFlows, Set<String> explicitNulls, boolean patchTargetsFlows) {
+    private List<Flow> extractFlows(
+            JsonNode patchedNode, List<Flow> currentFlows, Set<String> explicitNulls, boolean patchTargetsFlows) {
         if (explicitNulls.contains(FIELD_FLOWS)) {
             return List.of();
         }
@@ -437,7 +443,8 @@ public class PatchPlanUseCase {
             if (pointerTargetsFlows(op.path("path").asText(), flowsPointer)) {
                 return true;
             }
-            if ("move".equals(op.path("op").asText()) && pointerTargetsFlows(op.path("from").asText(), flowsPointer)) {
+            if ("move".equals(op.path("op").asText())
+                    && pointerTargetsFlows(op.path("from").asText(), flowsPointer)) {
                 return true;
             }
         }
@@ -456,10 +463,13 @@ public class PatchPlanUseCase {
             return false;
         }
         for (JsonNode op : patchNode) {
-            if (FIELD_EXCLUDED_GROUPS.equals(extractTopLevelField(op.path("path").asText()))) {
+            if (FIELD_EXCLUDED_GROUPS.equals(
+                    extractTopLevelField(op.path("path").asText()))) {
                 return true;
             }
-            if ("move".equals(op.path("op").asText()) && FIELD_EXCLUDED_GROUPS.equals(extractTopLevelField(op.path("from").asText()))) {
+            if ("move".equals(op.path("op").asText())
+                    && FIELD_EXCLUDED_GROUPS.equals(
+                            extractTopLevelField(op.path("from").asText()))) {
                 return true;
             }
         }
@@ -496,7 +506,8 @@ public class PatchPlanUseCase {
         return fieldNode.asText(defaultValue);
     }
 
-    private List<String> stringListOrDefault(JsonNode node, String field, Set<String> explicitNulls, List<String> defaultValue) {
+    private List<String> stringListOrDefault(
+            JsonNode node, String field, Set<String> explicitNulls, List<String> defaultValue) {
         if (explicitNulls.contains(field)) {
             return null;
         }
@@ -535,7 +546,8 @@ public class PatchPlanUseCase {
     }
 
     @Builder
-    public record Input(String apiId, String planId, PatchType patchType, String patchBody, boolean dryRun, AuditInfo auditInfo) {
+    public record Input(
+            String apiId, String planId, PatchType patchType, String patchBody, boolean dryRun, AuditInfo auditInfo) {
         public Input {
             Objects.requireNonNull(apiId, "apiId must not be null");
             Objects.requireNonNull(planId, "planId must not be null");

@@ -57,17 +57,17 @@ public class PortalAnalyticsDashboardResourceTest extends AbstractResourceTest {
     void setUp() {
         resetAllMocks();
         reset(getDashboardUseCase);
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
     }
 
     @Test
     @DisplayName("returns dashboard body and delegates to GetDashboardUseCase")
     void returnsOneDashboard() {
-        when(getDashboardUseCase.execute(any())).thenReturn(
-            new GetDashboardUseCase.Output(PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1"))
-        );
+        when(getDashboardUseCase.execute(any()))
+                .thenReturn(new GetDashboardUseCase.Output(
+                        PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1")));
 
         final var response = target().path("dashboard-1").request().get();
 
@@ -77,7 +77,10 @@ public class PortalAnalyticsDashboardResourceTest extends AbstractResourceTest {
         assertEquals("dashboard-1", dashboard.getId());
         assertEquals("Dashboard 1", dashboard.getName());
         assertNotNull(dashboard.getWidgets());
-        assertEquals("stats", Objects.requireNonNull(dashboard.getWidgets().getFirst().getType()).getValue());
+        assertEquals(
+                "stats",
+                Objects.requireNonNull(dashboard.getWidgets().getFirst().getType())
+                        .getValue());
 
         verify(getDashboardUseCase).execute(any());
     }
@@ -95,11 +98,11 @@ public class PortalAnalyticsDashboardResourceTest extends AbstractResourceTest {
     @Test
     @DisplayName("404 when dashboard belongs to another environment (prevents cross-env leak)")
     void notFoundWhenWrongEnvironment() {
-        when(getDashboardUseCase.execute(any())).thenReturn(
-            new GetDashboardUseCase.Output(
-                PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1").toBuilder().environmentId("OTHER").build()
-            )
-        );
+        when(getDashboardUseCase.execute(any()))
+                .thenReturn(new GetDashboardUseCase.Output(
+                        PortalAnalyticsDashboardFixtures.aDashboard("dashboard-1", "Dashboard 1").toBuilder()
+                                .environmentId("OTHER")
+                                .build()));
 
         final var response = target().path("dashboard-1").request().get();
 
@@ -109,9 +112,9 @@ public class PortalAnalyticsDashboardResourceTest extends AbstractResourceTest {
     @Test
     @DisplayName("403 when PORTAL_NEXT_ANALYTICS_ENABLED is false — use case is not invoked")
     void forbiddenWhenAnalyticsDisabled() {
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_ANALYTICS_ENABLED), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(false);
 
         final var response = target().path("dashboard-1").request().get();
 

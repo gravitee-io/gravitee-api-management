@@ -32,20 +32,19 @@ public class HealthCheckSerializer<T extends HealthCheckService> extends Schedul
     }
 
     @Override
-    protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
 
         if (service.getSteps() != null && !service.getSteps().isEmpty()) {
             jgen.writeArrayFieldStart("steps");
-            service
-                .getSteps()
-                .forEach(step -> {
-                    try {
-                        jgen.writeObject(step);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            service.getSteps().forEach(step -> {
+                try {
+                    jgen.writeObject(step);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jgen.writeEndArray();
         }
     }

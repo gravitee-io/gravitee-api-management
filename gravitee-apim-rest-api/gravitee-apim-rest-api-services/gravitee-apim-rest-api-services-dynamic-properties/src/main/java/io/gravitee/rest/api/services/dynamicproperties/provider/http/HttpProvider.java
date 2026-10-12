@@ -53,10 +53,9 @@ public class HttpProvider implements Provider {
     private final Node node;
 
     public HttpProvider(
-        final DynamicPropertyProviderConfiguration dpConfiguration,
-        final HttpClientService httpClientService,
-        final Node node
-    ) {
+            final DynamicPropertyProviderConfiguration dpConfiguration,
+            final HttpClientService httpClientService,
+            final Node node) {
         this.dpConfiguration = (HttpDynamicPropertyProviderConfiguration) dpConfiguration;
         this.mapper = new JoltMapper(this.dpConfiguration.getSpecification());
         this.httpClientService = httpClientService;
@@ -75,49 +74,51 @@ public class HttpProvider implements Provider {
             }
 
             final io.vertx.rxjava3.core.http.HttpClient httpClient = HttpClient.newInstance(
-                httpClientService.createHttpClient(requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy())
-            );
+                    httpClientService.createHttpClient(requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy()));
 
-            final int port = requestUrl.getPort() != -1 ? requestUrl.getPort() : (HTTPS_SCHEME.equals(requestUrl.getProtocol()) ? 443 : 80);
+            final int port = requestUrl.getPort() != -1
+                    ? requestUrl.getPort()
+                    : (HTTPS_SCHEME.equals(requestUrl.getProtocol()) ? 443 : 80);
 
             String relativeUri = (requestUrl.getQuery() == null)
-                ? requestUrl.getPath()
-                : requestUrl.getPath() + '?' + requestUrl.getQuery();
+                    ? requestUrl.getPath()
+                    : requestUrl.getPath() + '?' + requestUrl.getQuery();
 
             RequestOptions options = new RequestOptions()
-                .setMethod(HttpMethod.valueOf(dpConfiguration.getMethod().name()))
-                .setHost(requestUrl.getHost())
-                .setPort(port)
-                .setURI(relativeUri);
+                    .setMethod(HttpMethod.valueOf(dpConfiguration.getMethod().name()))
+                    .setHost(requestUrl.getHost())
+                    .setPort(port)
+                    .setURI(relativeUri);
 
-            //headers
+            // headers
             options.putHeader(USER_AGENT, NodeUtils.userAgent(node));
             options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
 
             if (dpConfiguration.getHeaders() != null) {
-                dpConfiguration.getHeaders().forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));
+                dpConfiguration
+                        .getHeaders()
+                        .forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));
             }
 
             return httpClient
-                .rxRequest(options)
-                .observeOn(Schedulers.io())
-                .flatMap(request -> {
-                    log.debug(
-                        "Dynamic properties will be fetched with the following request: {} {}",
-                        request.getMethod(),
-                        request.absoluteURI()
-                    );
-                    if (StringUtils.hasText(dpConfiguration.getBody())) {
-                        return request.rxSend(dpConfiguration.getBody());
-                    } else {
-                        return request.rxSend();
-                    }
-                })
-                .filter(response -> response.statusCode() == HttpStatusCode.OK_200)
-                .flatMap(response -> response.rxBody().toMaybe())
-                .observeOn(Schedulers.computation())
-                .map(buffer -> mapper.map(buffer.toString()))
-                .doFinally(httpClient::close);
+                    .rxRequest(options)
+                    .observeOn(Schedulers.io())
+                    .flatMap(request -> {
+                        log.debug(
+                                "Dynamic properties will be fetched with the following request: {} {}",
+                                request.getMethod(),
+                                request.absoluteURI());
+                        if (StringUtils.hasText(dpConfiguration.getBody())) {
+                            return request.rxSend(dpConfiguration.getBody());
+                        } else {
+                            return request.rxSend();
+                        }
+                    })
+                    .filter(response -> response.statusCode() == HttpStatusCode.OK_200)
+                    .flatMap(response -> response.rxBody().toMaybe())
+                    .observeOn(Schedulers.computation())
+                    .map(buffer -> mapper.map(buffer.toString()))
+                    .doFinally(httpClient::close);
         });
     }
 

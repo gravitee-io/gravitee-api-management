@@ -123,24 +123,27 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         verify(environmentService).findById(ENVIRONMENT_ID);
 
         ExecutionContext expectedContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-        verify(eventService).createDictionaryEvent(
-            eq(expectedContext),
-            eq(Collections.singleton(ENVIRONMENT_ID)),
-            eq(ORGANIZATION_ID),
-            eq(EventType.PUBLISH_DICTIONARY),
-            any(Dictionary.class)
-        );
-        verify(auditService).createAuditLog(
-            eq(expectedContext),
-            argThat(auditLogData -> auditLogData.getEvent().equals(DICTIONARY_UPDATED))
-        );
+        verify(eventService)
+                .createDictionaryEvent(
+                        eq(expectedContext),
+                        eq(Collections.singleton(ENVIRONMENT_ID)),
+                        eq(ORGANIZATION_ID),
+                        eq(EventType.PUBLISH_DICTIONARY),
+                        any(Dictionary.class));
+        verify(auditService)
+                .createAuditLog(
+                        eq(expectedContext),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(DICTIONARY_UPDATED)));
     }
 
     @Test
-    public void should_reapply_stored_classification_to_freshly_fetched_values() throws TechnicalException, GeneralSecurityException {
-        Dictionary dictionaryInDb = startedDynamicDictionaryWith(
-            Map.of("secret", new DictionaryProperty("previous-cipher", true), "plain", new DictionaryProperty("previous-value", false))
-        );
+    public void should_reapply_stored_classification_to_freshly_fetched_values()
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of(
+                "secret",
+                new DictionaryProperty("previous-cipher", true),
+                "plain",
+                new DictionaryProperty("previous-value", false)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -154,19 +157,16 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-secret", "plain", "fetched-plain"));
 
-        verify(dictionaryRepository).update(
-            argThat(
-                dict ->
-                    dict.getProperties().get("secret").encrypted() &&
-                    dict.getProperties().get("secret").value().equals("ENC(fetched-secret)") &&
-                    !dict.getProperties().get("plain").encrypted() &&
-                    dict.getProperties().get("plain").value().equals("fetched-plain")
-            )
-        );
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().get("secret").encrypted()
+                        && dict.getProperties().get("secret").value().equals("ENC(fetched-secret)")
+                        && !dict.getProperties().get("plain").encrypted()
+                        && dict.getProperties().get("plain").value().equals("fetched-plain")));
     }
 
     @Test
-    public void should_encrypt_a_newly_fetched_property_when_the_toggle_is_on() throws TechnicalException, GeneralSecurityException {
+    public void should_encrypt_a_newly_fetched_property_when_the_toggle_is_on()
+            throws TechnicalException, GeneralSecurityException {
         Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of(), true);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -175,16 +175,14 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("apiKey", "fresh-value"));
 
-        verify(dictionaryRepository).update(
-            argThat(
-                dict -> dict.getProperties().get("apiKey").encrypted() && dict.getProperties().get("apiKey").value().equals("fresh-cipher")
-            )
-        );
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().get("apiKey").encrypted()
+                        && dict.getProperties().get("apiKey").value().equals("fresh-cipher")));
     }
 
     @Test
     public void should_not_audit_encrypted_properties_access_when_a_refresh_publishes_an_encrypted_dictionary()
-        throws TechnicalException, GeneralSecurityException {
+            throws TechnicalException, GeneralSecurityException {
         Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of(), true);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -193,17 +191,19 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("apiKey", "fresh-value"));
 
-        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
-        verify(auditService, never()).createAuditLog(
-            any(),
-            argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED)
-        );
+        verify(eventService)
+                .createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+        verify(auditService, never())
+                .createAuditLog(
+                        any(),
+                        argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED));
     }
 
     @Test
     public void should_audit_encrypted_properties_refresh_when_a_refresh_publishes_an_encrypted_dictionary()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("value", false)), true);
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb =
+                startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("value", false)), true);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(dataEncryptor.encrypt("value")).thenReturn("value-cipher");
@@ -212,26 +212,27 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "value", "apiKey", "fresh-value"));
 
-        verify(auditService).createAuditLog(
-            any(),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED &&
-                    "true".equals(auditLogData.getProperties().get(ENCRYPTED)) &&
-                    auditLogData.getCreatedAt().equals(dictionaryInDb.getDeployedAt()) &&
-                    auditLogData
-                        .getPatch()
-                        .contains(
-                            "{\"op\":\"access\",\"path\":\"/properties/apiKey\",\"value\":{\"value\":\"<sha256:4841bcab77bdaabda76ea0b699c0a88a61a73bb3b2c5bd69f9d79e0848646fa0>\",\"encrypted\":true}}"
-                        )
-            )
-        );
+        verify(auditService)
+                .createAuditLog(
+                        any(),
+                        argThat(
+                                auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED
+                                        && "true"
+                                                .equals(auditLogData
+                                                        .getProperties()
+                                                        .get(ENCRYPTED))
+                                        && auditLogData.getCreatedAt().equals(dictionaryInDb.getDeployedAt())
+                                        && auditLogData
+                                                .getPatch()
+                                                .contains(
+                                                        "{\"op\":\"access\",\"path\":\"/properties/apiKey\",\"value\":{\"value\":\"<sha256:4841bcab77bdaabda76ea0b699c0a88a61a73bb3b2c5bd69f9d79e0848646fa0>\",\"encrypted\":true}}")));
     }
 
     @Test
     public void should_not_audit_encrypted_properties_refresh_when_the_refresh_changes_nothing()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(unchanged)", true)));
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary existing =
+                startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(unchanged)", true)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dataEncryptor.decrypt("ENC(unchanged)")).thenReturn("unchanged-plaintext");
 
@@ -241,7 +242,8 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
-    public void should_not_audit_encrypted_properties_refresh_for_a_dictionary_without_encrypted_value() throws TechnicalException {
+    public void should_not_audit_encrypted_properties_refresh_for_a_dictionary_without_encrypted_value()
+            throws TechnicalException {
         Dictionary existing = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old", false)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -249,15 +251,15 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
 
-        verify(auditService, never()).createAuditLog(
-            any(),
-            argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED)
-        );
+        verify(auditService, never())
+                .createAuditLog(
+                        any(),
+                        argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED));
     }
 
     @Test
     public void should_keep_the_rest_of_the_dictionary_updating_when_one_property_fails_to_encrypt()
-        throws TechnicalException, GeneralSecurityException {
+            throws TechnicalException, GeneralSecurityException {
         Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of(), true);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -267,20 +269,17 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("good", "good-value", "bad", "bad-value"));
 
-        verify(dictionaryRepository).update(
-            argThat(
-                dict ->
-                    dict.getProperties().get("good").encrypted() &&
-                    dict.getProperties().get("good").value().equals("good-cipher") &&
-                    !dict.getProperties().containsKey("bad")
-            )
-        );
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().get("good").encrypted()
+                        && dict.getProperties().get("good").value().equals("good-cipher")
+                        && !dict.getProperties().containsKey("bad")));
     }
 
     @Test
     public void should_keep_the_stored_plain_value_when_a_changed_fetch_fails_to_encrypt()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old-value", false)), true);
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb =
+                startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old-value", false)), true);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dataEncryptor.encrypt("new-value")).thenThrow(new GeneralSecurityException("boom"));
 
@@ -291,37 +290,39 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
-    public void should_keep_a_stored_encrypted_property_when_its_changed_value_fails_to_encrypt_while_another_key_still_updates()
-        throws TechnicalException, GeneralSecurityException {
+    public void
+            should_keep_a_stored_encrypted_property_when_its_changed_value_fails_to_encrypt_while_another_key_still_updates()
+                    throws TechnicalException, GeneralSecurityException {
         Dictionary dictionaryInDb = startedDynamicDictionaryWith(
-            Map.of("apiKey", new DictionaryProperty("old-cipher", true), "region", new DictionaryProperty("old-region", false)),
-            null
-        );
+                Map.of(
+                        "apiKey",
+                        new DictionaryProperty("old-cipher", true),
+                        "region",
+                        new DictionaryProperty("old-region", false)),
+                null);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(dataEncryptor.decrypt("old-cipher")).thenReturn("old-secret");
         when(dataEncryptor.encrypt("new-secret")).thenThrow(new GeneralSecurityException("boom"));
         given_environment();
 
-        DictionaryEntity result = dictionaryService.updateProperties(DICTIONARY_ID, Map.of("apiKey", "new-secret", "region", "new-region"));
+        DictionaryEntity result = dictionaryService.updateProperties(
+                DICTIONARY_ID, Map.of("apiKey", "new-secret", "region", "new-region"));
 
         assertThat(result.getProperties()).containsEntry("apiKey", ENCRYPTED_VALUE_MASK);
         assertThat(result.getProperties()).containsEntry("region", "new-region");
-        verify(dictionaryRepository).update(
-            argThat(
-                dict ->
-                    dict.getProperties().get("apiKey").encrypted() &&
-                    dict.getProperties().get("apiKey").value().equals("old-cipher") &&
-                    !dict.getProperties().get("region").encrypted() &&
-                    dict.getProperties().get("region").value().equals("new-region")
-            )
-        );
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().get("apiKey").encrypted()
+                        && dict.getProperties().get("apiKey").value().equals("old-cipher")
+                        && !dict.getProperties().get("region").encrypted()
+                        && dict.getProperties().get("region").value().equals("new-region")));
     }
 
     @Test
     public void should_encrypt_an_existing_plain_property_the_next_time_it_is_fetched_when_the_toggle_is_on()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old-value", false)), true);
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb =
+                startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old-value", false)), true);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(dataEncryptor.encrypt("old-value")).thenReturn("now-encrypted");
@@ -329,21 +330,21 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "old-value"));
 
-        verify(dictionaryRepository).update(
-            argThat(
-                dict -> dict.getProperties().get("plain").encrypted() && dict.getProperties().get("plain").value().equals("now-encrypted")
-            )
-        );
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().get("plain").encrypted()
+                        && dict.getProperties().get("plain").value().equals("now-encrypted")));
     }
 
     @Test
     public void should_leave_an_already_encrypted_property_alone_even_when_the_toggle_is_on()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("previous-cipher", true)), true);
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb =
+                startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("previous-cipher", true)), true);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dataEncryptor.decrypt("previous-cipher")).thenReturn("previous-cipher");
 
-        DictionaryEntity result = dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "previous-cipher"));
+        DictionaryEntity result =
+                dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "previous-cipher"));
 
         assertThat(result.getProperties()).containsEntry("secret", ENCRYPTED_VALUE_MASK);
         verify(dictionaryRepository, never()).update(any(Dictionary.class));
@@ -351,7 +352,8 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
-    public void should_leave_a_fetched_property_plain_when_the_toggle_is_off() throws TechnicalException, GeneralSecurityException {
+    public void should_leave_a_fetched_property_plain_when_the_toggle_is_off()
+            throws TechnicalException, GeneralSecurityException {
         Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of(), false);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -359,15 +361,14 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("apiKey", "fresh-value"));
 
-        verify(dictionaryRepository).update(
-            argThat(
-                dict -> !dict.getProperties().get("apiKey").encrypted() && dict.getProperties().get("apiKey").value().equals("fresh-value")
-            )
-        );
+        verify(dictionaryRepository)
+                .update(argThat(dict -> !dict.getProperties().get("apiKey").encrypted()
+                        && dict.getProperties().get("apiKey").value().equals("fresh-value")));
         verify(dataEncryptor, never()).encrypt(any());
     }
 
-    private static Dictionary startedDynamicDictionaryWith(Map<String, DictionaryProperty> properties, Boolean encryptOnFetch) {
+    private static Dictionary startedDynamicDictionaryWith(
+            Map<String, DictionaryProperty> properties, Boolean encryptOnFetch) {
         Dictionary dictionary = startedDynamicDictionaryWith(properties);
         if (encryptOnFetch != null) {
             DictionaryEncryptionPolicy encryption = new DictionaryEncryptionPolicy();
@@ -392,8 +393,8 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         fetched.put("broken", null);
 
         assertThatThrownBy(() -> dictionaryService.updateProperties(DICTIONARY_ID, fetched))
-            .isInstanceOf(DictionaryPropertyValueRequiredException.class)
-            .hasMessageContaining("broken");
+                .isInstanceOf(DictionaryPropertyValueRequiredException.class)
+                .hasMessageContaining("broken");
         verify(dictionaryRepository, never()).update(any(Dictionary.class));
     }
 
@@ -408,8 +409,9 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     @Test
     public void should_skip_the_write_and_publication_when_an_encrypted_value_is_unchanged()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(unchanged)", true)));
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary existing =
+                startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(unchanged)", true)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dataEncryptor.decrypt("ENC(unchanged)")).thenReturn("unchanged-plaintext");
 
@@ -422,7 +424,8 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     @Test
     public void should_skip_the_write_and_publication_when_a_plain_value_is_unchanged() throws TechnicalException {
-        Dictionary existing = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("plain-value", false)));
+        Dictionary existing =
+                startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("plain-value", false)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "plain-value"));
@@ -433,36 +436,45 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     @Test
     public void should_write_and_publish_when_a_key_disappears_from_the_fetched_values() throws TechnicalException {
-        Dictionary existing = startedDynamicDictionaryWith(
-            Map.of("kept", new DictionaryProperty("value", false), "dropped", new DictionaryProperty("value", false))
-        );
+        Dictionary existing = startedDynamicDictionaryWith(Map.of(
+                "kept", new DictionaryProperty("value", false), "dropped", new DictionaryProperty("value", false)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         given_environment();
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("kept", "value"));
 
-        verify(dictionaryRepository).update(argThat(dict -> dict.getProperties().keySet().equals(Set.of("kept"))));
-        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().keySet().equals(Set.of("kept"))));
+        verify(eventService)
+                .createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
     }
 
     @Test
-    public void should_mark_audit_as_encrypted_when_the_refresh_drops_the_last_encrypted_property() throws TechnicalException {
-        Dictionary existing = startedDynamicDictionaryWith(
-            Map.of("secret", new DictionaryProperty("ENC(secret)", true), "plain", new DictionaryProperty("value", false))
-        );
+    public void should_mark_audit_as_encrypted_when_the_refresh_drops_the_last_encrypted_property()
+            throws TechnicalException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of(
+                "secret",
+                new DictionaryProperty("ENC(secret)", true),
+                "plain",
+                new DictionaryProperty("value", false)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         given_environment();
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "value"));
 
-        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
+        verify(auditService)
+                .createAuditLog(
+                        any(),
+                        argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
     }
 
     @Test
-    public void should_re_encrypt_when_the_stored_ciphertext_cannot_be_decrypted() throws TechnicalException, GeneralSecurityException {
-        Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(undecipherable)", true)));
+    public void should_re_encrypt_when_the_stored_ciphertext_cannot_be_decrypted()
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary existing =
+                startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(undecipherable)", true)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         given_environment();
@@ -472,18 +484,15 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-plaintext"));
 
-        verify(dictionaryRepository).update(
-            argThat(
-                dict ->
-                    dict.getProperties().get("secret").encrypted() &&
-                    dict.getProperties().get("secret").value().equals("ENC(fetched-plaintext)")
-            )
-        );
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().get("secret").encrypted()
+                        && dict.getProperties().get("secret").value().equals("ENC(fetched-plaintext)")));
     }
 
     @Test
     public void should_audit_the_refresh_against_the_properties_it_replaced() throws TechnicalException {
-        Dictionary existing = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old", false)), false);
+        Dictionary existing =
+                startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old", false)), false);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         given_environment();
@@ -491,22 +500,20 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
 
         JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
-        assertThat(patch).contains(
-            json(
-                """
+        assertThat(patch).contains(json("""
                 {"op":"replace","path":"/properties/plain","value":"new"}
-                """
-            )
-        );
+                """));
         assertThat(patch).noneMatch(operation -> operation.get("path").asText().startsWith("/encryption"));
     }
 
     @Test
     public void should_audit_only_fingerprints_of_encrypted_values_on_a_dynamic_refresh()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary existing = startedDynamicDictionaryWith(
-            Map.of("secret", new DictionaryProperty("previous-cipher", true), "plain", new DictionaryProperty("previous-value", false))
-        );
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of(
+                "secret",
+                new DictionaryProperty("previous-cipher", true),
+                "plain",
+                new DictionaryProperty("previous-value", false)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         given_environment();
@@ -516,25 +523,22 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-secret", "plain", "fetched-plain"));
 
         JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
-        assertThat(patch).contains(
-            json(
-                """
+        assertThat(patch).contains(json("""
                 {"op":"replace","path":"/properties/plain","value":"fetched-plain"}
-                """
-            )
-        );
-        assertThat(patch).contains(
-            json(
-                """
+                """));
+        assertThat(patch).contains(json("""
                 {"op":"replace","path":"/properties/secret/value","value":"<sha256:9d5b507ef83160e2ae0ec255c63eb668826c010bc7cf3ec4bb90180887707c93>"}
-                """
-            )
-        );
-        assertThat(patch.toString()).doesNotContain("previous-cipher").doesNotContain("previous-secret").doesNotContain("fetched-secret");
+                """));
+        assertThat(patch.toString())
+                .doesNotContain("previous-cipher")
+                .doesNotContain("previous-secret")
+                .doesNotContain("fetched-secret");
 
         ArgumentCaptor<Dictionary> published = ArgumentCaptor.forClass(Dictionary.class);
-        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), published.capture());
-        assertThat(published.getValue().getProperties()).containsEntry("secret", new DictionaryProperty("ENC(fetched-secret)", true));
+        verify(eventService)
+                .createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), published.capture());
+        assertThat(published.getValue().getProperties())
+                .containsEntry("secret", new DictionaryProperty("ENC(fetched-secret)", true));
     }
 
     @Test
@@ -547,30 +551,32 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
 
         ArgumentCaptor<Dictionary> published = ArgumentCaptor.forClass(Dictionary.class);
-        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), published.capture());
-        assertThat(published.getValue().getProperties()).isEqualTo(Map.of("plain", new DictionaryProperty("new", false)));
+        verify(eventService)
+                .createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), published.capture());
+        assertThat(published.getValue().getProperties())
+                .isEqualTo(Map.of("plain", new DictionaryProperty("new", false)));
     }
 
     @Test
-    public void should_re_encrypt_when_the_stored_value_is_not_base64() throws TechnicalException, GeneralSecurityException {
-        Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("not base64!", true)));
+    public void should_re_encrypt_when_the_stored_value_is_not_base64()
+            throws TechnicalException, GeneralSecurityException {
+        Dictionary existing =
+                startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("not base64!", true)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
         given_environment();
 
-        when(dataEncryptor.decrypt("not base64!")).thenThrow(new IllegalArgumentException("Illegal base64 character 20"));
+        when(dataEncryptor.decrypt("not base64!"))
+                .thenThrow(new IllegalArgumentException("Illegal base64 character 20"));
         when(dataEncryptor.encrypt("fetched-plaintext")).thenReturn("ENC(fetched-plaintext)");
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-plaintext"));
 
-        verify(dictionaryRepository).update(
-            argThat(
-                dict ->
-                    dict.getProperties().get("secret").encrypted() &&
-                    dict.getProperties().get("secret").value().equals("ENC(fetched-plaintext)")
-            )
-        );
-        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+        verify(dictionaryRepository)
+                .update(argThat(dict -> dict.getProperties().get("secret").encrypted()
+                        && dict.getProperties().get("secret").value().equals("ENC(fetched-plaintext)")));
+        verify(eventService)
+                .createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
     }
 
     private void given_environment() {

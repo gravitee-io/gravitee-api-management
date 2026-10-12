@@ -84,13 +84,11 @@ public class MonitoringMemory {
         if (this == o) return true;
         if (!(o instanceof MonitoringMemory)) return false;
         MonitoringMemory that = (MonitoringMemory) o;
-        return (
-            totalInBytes == that.totalInBytes &&
-            freeInBytes == that.freeInBytes &&
-            usedInBytes == that.usedInBytes &&
-            freePercent == that.freePercent &&
-            usedPercent == that.usedPercent
-        );
+        return (totalInBytes == that.totalInBytes
+                && freeInBytes == that.freeInBytes
+                && usedInBytes == that.usedInBytes
+                && freePercent == that.freePercent
+                && usedPercent == that.usedPercent);
     }
 
     @Override
@@ -100,19 +98,16 @@ public class MonitoringMemory {
 
     @Override
     public String toString() {
-        return (
-            "MonitoringMemory{" +
-            "totalInBytes=" +
-            totalInBytes +
-            ", freeInBytes=" +
-            freeInBytes +
-            ", usedInBytes=" +
-            usedInBytes +
-            ", freePercent=" +
-            freePercent +
-            ", usedPercent=" +
-            usedPercent +
-            '}'
-        );
+        return ("MonitoringMemory{" + "totalInBytes="
+                + totalInBytes
+                + ", freeInBytes="
+                + freeInBytes
+                + ", usedInBytes="
+                + usedInBytes
+                + ", freePercent="
+                + freePercent
+                + ", usedPercent="
+                + usedPercent
+                + '}');
     }
 }

@@ -32,14 +32,14 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 public class UnsupportedFilterException extends ValidationDomainException {
 
     public static UnsupportedFilterException unknownName(String name) {
-        return new UnsupportedFilterException("Filter '" + name + "' is not supported by this backend", "tracing.filter.unknown_name");
+        return new UnsupportedFilterException(
+                "Filter '" + name + "' is not supported by this backend", "tracing.filter.unknown_name");
     }
 
     public static UnsupportedFilterException unsupportedOperator(String filterName, String operator) {
         return new UnsupportedFilterException(
-            "Operator '" + operator + "' is not supported yet for filter '" + filterName + "'",
-            "tracing.filter.unsupported_operator"
-        );
+                "Operator '" + operator + "' is not supported yet for filter '" + filterName + "'",
+                "tracing.filter.unsupported_operator");
     }
 
     /**
@@ -50,9 +50,8 @@ public class UnsupportedFilterException extends ValidationDomainException {
      */
     public static UnsupportedFilterException valueListingNotSupported(String filterName, String filterType) {
         return new UnsupportedFilterException(
-            "Filter type '" + filterType + "' does not support value listing (filter '" + filterName + "')",
-            "tracing.filter.value_listing_not_supported"
-        );
+                "Filter type '" + filterType + "' does not support value listing (filter '" + filterName + "')",
+                "tracing.filter.value_listing_not_supported");
     }
 
     private UnsupportedFilterException(String message, String technicalCode) {

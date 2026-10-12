@@ -46,8 +46,7 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         final Promotion promotion = new Promotion();
         promotion.setId("promotion#new");
         promotion.setApiDefinition(
-            "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
-        );
+                "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         promotion.setStatus(PromotionStatus.CREATED);
         promotion.setSourceEnvCockpitId("env#cockpit-1");
         promotion.setSourceEnvName("Demo");
@@ -59,12 +58,15 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
 
         boolean presentBefore = promotionRepository.findById("promotion#new").isPresent();
 
-        assertThat(presentBefore).withFailMessage("Promotion should not be present before creation").isFalse();
+        assertThat(presentBefore)
+                .withFailMessage("Promotion should not be present before creation")
+                .isFalse();
 
         Promotion createdPromotion = promotionRepository.create(promotion);
         assertThat(createdPromotion).isEqualTo(promotion);
 
-        Promotion storedPromotion = promotionRepository.findById("promotion#new").get();
+        Promotion storedPromotion =
+                promotionRepository.findById("promotion#new").get();
         assertThat(storedPromotion).isEqualTo(promotion);
     }
 
@@ -83,8 +85,7 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         expectedPromotion.setId("promotion#1");
         expectedPromotion.setApiId("api#1");
         expectedPromotion.setApiDefinition(
-            "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
-        );
+                "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         expectedPromotion.setStatus(PromotionStatus.CREATED);
         expectedPromotion.setSourceEnvCockpitId("env#cockpit-1");
         expectedPromotion.setSourceEnvName("Demo");
@@ -101,8 +102,7 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldUpdate() throws Exception {
         Promotion storedPromotion = promotionRepository.findById("promotion#1").get();
         storedPromotion.setApiDefinition(
-            "{\"id\" : \"anAPIID\",\"name\" : \"Product Updated\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
-        );
+                "{\"id\" : \"anAPIID\",\"name\" : \"Product Updated\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
 
         Promotion updatedPromotion = promotionRepository.update(storedPromotion);
         assertThat(updatedPromotion).isEqualTo(storedPromotion);
@@ -123,168 +123,239 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldDelete() throws Exception {
         String idOfPromotionToDelete = "promotion#to-delete";
 
-        boolean presentBefore = promotionRepository.findById(idOfPromotionToDelete).isPresent();
-        assertThat(presentBefore).withFailMessage("Promotion should be present before deletion").isTrue();
+        boolean presentBefore =
+                promotionRepository.findById(idOfPromotionToDelete).isPresent();
+        assertThat(presentBefore)
+                .withFailMessage("Promotion should be present before deletion")
+                .isTrue();
 
         promotionRepository.delete(idOfPromotionToDelete);
 
-        boolean presentAfter = promotionRepository.findById(idOfPromotionToDelete).isPresent();
-        assertThat(presentAfter).withFailMessage("Promotion should not be present after deletion").isFalse();
+        boolean presentAfter =
+                promotionRepository.findById(idOfPromotionToDelete).isPresent();
+        assertThat(presentAfter)
+                .withFailMessage("Promotion should not be present after deletion")
+                .isFalse();
     }
 
     @Test
     public void shouldSearchWithoutCriteria() throws Exception {
         final List<Promotion> promotions = promotionRepository
-            .search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        null,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(6);
         assertThat(promotions)
-            .extracting(Promotion::getId)
-            .containsExactlyInAnyOrder(
-                "promotion#1",
-                "promotion#to-delete",
-                "promotion#to_be_validated_env_1",
-                "promotion#to_be_validated_env_2",
-                "promotion#api-to-delete",
-                "promotion#api-to-delete-2"
-            );
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder(
+                        "promotion#1",
+                        "promotion#to-delete",
+                        "promotion#to_be_validated_env_1",
+                        "promotion#to_be_validated_env_2",
+                        "promotion#api-to-delete",
+                        "promotion#api-to-delete-2");
     }
 
     @Test
     public void shouldSearchWithEmptyCriteria() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().build();
         final List<Promotion> promotions = promotionRepository
-            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        criteria,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(6);
         assertThat(promotions)
-            .extracting(Promotion::getId)
-            .containsExactlyInAnyOrder(
-                "promotion#1",
-                "promotion#to-delete",
-                "promotion#to_be_validated_env_1",
-                "promotion#to_be_validated_env_2",
-                "promotion#api-to-delete",
-                "promotion#api-to-delete-2"
-            );
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder(
+                        "promotion#1",
+                        "promotion#to-delete",
+                        "promotion#to_be_validated_env_1",
+                        "promotion#to_be_validated_env_2",
+                        "promotion#api-to-delete",
+                        "promotion#api-to-delete-2");
     }
 
     @Test
     public void shouldSearchWithCriteriaTargetEnvIds() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().targetEnvCockpitIds("env#cockpit-1").build();
+        final PromotionCriteria criteria = new PromotionCriteria.Builder()
+                .targetEnvCockpitIds("env#cockpit-1")
+                .build();
         final List<Promotion> promotions = promotionRepository
-            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        criteria,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(1);
-        assertThat(promotions).extracting(Promotion::getId).containsExactlyInAnyOrder("promotion#to_be_validated_env_1");
+        assertThat(promotions)
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder("promotion#to_be_validated_env_1");
     }
 
     @Test
     public void shouldSearchWithCriteriaStatuses() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().statuses(List.of(PromotionStatus.TO_BE_VALIDATED)).build();
+        final PromotionCriteria criteria = new PromotionCriteria.Builder()
+                .statuses(List.of(PromotionStatus.TO_BE_VALIDATED))
+                .build();
         final List<Promotion> promotions = promotionRepository
-            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        criteria,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(2);
         assertThat(promotions)
-            .extracting(Promotion::getId)
-            .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 
     @Test
     public void shouldSearchWithCriteriaStatusesMultipleValues() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder()
-            .statuses(List.of(PromotionStatus.TO_BE_VALIDATED, PromotionStatus.CREATED))
-            .build();
+                .statuses(List.of(PromotionStatus.TO_BE_VALIDATED, PromotionStatus.CREATED))
+                .build();
         final List<Promotion> promotions = promotionRepository
-            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        criteria,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(6);
         assertThat(promotions)
-            .extracting(Promotion::getId)
-            .containsExactlyInAnyOrder(
-                "promotion#1",
-                "promotion#to-delete",
-                "promotion#to_be_validated_env_1",
-                "promotion#to_be_validated_env_2",
-                "promotion#api-to-delete",
-                "promotion#api-to-delete-2"
-            );
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder(
+                        "promotion#1",
+                        "promotion#to-delete",
+                        "promotion#to_be_validated_env_1",
+                        "promotion#to_be_validated_env_2",
+                        "promotion#api-to-delete",
+                        "promotion#api-to-delete-2");
     }
 
     @Test
     public void shouldSearchWithCriteriaStatusSortByCreatedAtDesc() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().statuses(List.of(PromotionStatus.TO_BE_VALIDATED)).build();
+        final PromotionCriteria criteria = new PromotionCriteria.Builder()
+                .statuses(List.of(PromotionStatus.TO_BE_VALIDATED))
+                .build();
         final List<Promotion> promotions = promotionRepository
-            .search(
-                criteria,
-                new SortableBuilder().field("created_at").order(Order.DESC).build(),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getContent();
+                .search(
+                        criteria,
+                        new SortableBuilder()
+                                .field("created_at")
+                                .order(Order.DESC)
+                                .build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(2);
         assertThat(promotions)
-            .extracting(Promotion::getId)
-            .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 
     @Test
     public void shouldSearchWithCriteriaStatusPaginated() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().statuses(List.of(PromotionStatus.TO_BE_VALIDATED)).build();
+        final PromotionCriteria criteria = new PromotionCriteria.Builder()
+                .statuses(List.of(PromotionStatus.TO_BE_VALIDATED))
+                .build();
         final List<Promotion> promotions = promotionRepository
-            .search(
-                criteria,
-                new SortableBuilder().field("created_at").order(Order.DESC).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
-            .getContent();
+                .search(
+                        criteria,
+                        new SortableBuilder()
+                                .field("created_at")
+                                .order(Order.DESC)
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(1).build())
+                .getContent();
 
         assertThat(promotions).hasSize(1);
-        assertThat(promotions).extracting(Promotion::getId).containsExactlyInAnyOrder("promotion#to_be_validated_env_2");
+        assertThat(promotions)
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder("promotion#to_be_validated_env_2");
     }
 
     @Test
     public void shouldSearchWithCriteriaApiId() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().apiId("api#1").build();
+        final PromotionCriteria criteria =
+                new PromotionCriteria.Builder().apiId("api#1").build();
         final List<Promotion> promotions = promotionRepository
-            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        criteria,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(3);
         assertThat(promotions)
-            .extracting(Promotion::getId)
-            .containsExactlyInAnyOrder("promotion#1", "promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder(
+                        "promotion#1", "promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 
     @Test
     public void shouldSearchWithCriteriaTargetApiId() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().targetApiExists(true).build();
+        final PromotionCriteria criteria =
+                new PromotionCriteria.Builder().targetApiExists(true).build();
         final List<Promotion> promotions = promotionRepository
-            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        criteria,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertThat(promotions).hasSize(2);
         assertThat(promotions)
-            .extracting(Promotion::getId)
-            .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
+                .extracting(Promotion::getId)
+                .containsExactlyInAnyOrder("promotion#to_be_validated_env_1", "promotion#to_be_validated_env_2");
     }
 
     @Test
     public void should_delete_by_api_id() throws Exception {
-        final var criteria = new PromotionCriteria.Builder().apiId("api-to-delete").build();
-        final var pageable = new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build();
-        final var nbBeforeDeletion = promotionRepository.search(criteria, null, pageable).getTotalElements();
+        final var criteria =
+                new PromotionCriteria.Builder().apiId("api-to-delete").build();
+        final var pageable =
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build();
+        final var nbBeforeDeletion =
+                promotionRepository.search(criteria, null, pageable).getTotalElements();
         assertThat(nbBeforeDeletion).isEqualTo(2);
 
         List<String> deletedPromotions = promotionRepository.deleteByApiId("api-to-delete");
 
         assertThat(deletedPromotions).containsOnly("promotion#api-to-delete", "promotion#api-to-delete-2");
-        assertThat(promotionRepository.search(criteria, null, pageable).getTotalElements()).isEqualTo(0);
+        assertThat(promotionRepository.search(criteria, null, pageable).getTotalElements())
+                .isEqualTo(0);
     }
 }

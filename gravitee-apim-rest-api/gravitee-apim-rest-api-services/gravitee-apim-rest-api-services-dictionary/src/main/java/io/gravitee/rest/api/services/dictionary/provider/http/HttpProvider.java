@@ -25,7 +25,6 @@ import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
 import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
@@ -69,32 +68,36 @@ public class HttpProvider implements Provider {
         try {
             URL requestUrl = new URL(configuration.getUrl());
 
-            final HttpClient httpClient = httpClientService.createHttpClient(requestUrl.getProtocol(), configuration.isUseSystemProxy());
+            final HttpClient httpClient =
+                    httpClientService.createHttpClient(requestUrl.getProtocol(), configuration.isUseSystemProxy());
 
-            final int port = requestUrl.getPort() != -1 ? requestUrl.getPort() : (HTTPS_SCHEME.equals(requestUrl.getProtocol()) ? 443 : 80);
+            final int port = requestUrl.getPort() != -1
+                    ? requestUrl.getPort()
+                    : (HTTPS_SCHEME.equals(requestUrl.getProtocol()) ? 443 : 80);
 
             String relativeUri = (requestUrl.getQuery() == null)
-                ? requestUrl.getPath()
-                : requestUrl.getPath() + '?' + requestUrl.getQuery();
+                    ? requestUrl.getPath()
+                    : requestUrl.getPath() + '?' + requestUrl.getQuery();
 
             RequestOptions options = new RequestOptions()
-                .setMethod(configuration.getMethod() != null ? configuration.getMethod() : HttpMethod.GET)
-                .setHost(requestUrl.getHost())
-                .setPort(port)
-                .setURI(relativeUri);
+                    .setMethod(configuration.getMethod() != null ? configuration.getMethod() : HttpMethod.GET)
+                    .setHost(requestUrl.getHost())
+                    .setPort(port)
+                    .setURI(relativeUri);
 
-            //headers
+            // headers
             options.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
             options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
 
             if (configuration.getHeaders() != null) {
-                configuration.getHeaders().forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));
+                configuration
+                        .getHeaders()
+                        .forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));
             }
 
             httpClient
-                .request(options)
-                .onFailure(
-                    new Handler<Throwable>() {
+                    .request(options)
+                    .onFailure(new Handler<Throwable>() {
                         @Override
                         public void handle(Throwable event) {
                             promise.fail(event);
@@ -102,35 +105,32 @@ public class HttpProvider implements Provider {
                             // Close client
                             httpClient.close();
                         }
-                    }
-                )
-                .onSuccess(
-                    new Handler<HttpClientRequest>() {
+                    })
+                    .onSuccess(new Handler<HttpClientRequest>() {
                         @Override
                         public void handle(HttpClientRequest request) {
-                            request
-                                .response()
-                                .onSuccess(response -> {
-                                    if (response.statusCode() == HttpStatusCode.OK_200) {
-                                        response.bodyHandler(buffer -> {
-                                            promise.complete(buffer);
+                            request.response()
+                                    .onSuccess(response -> {
+                                        if (response.statusCode() == HttpStatusCode.OK_200) {
+                                            response.bodyHandler(buffer -> {
+                                                promise.complete(buffer);
+
+                                                // Close client
+                                                httpClient.close();
+                                            });
+                                        } else {
+                                            promise.complete(null);
 
                                             // Close client
                                             httpClient.close();
-                                        });
-                                    } else {
-                                        promise.complete(null);
+                                        }
+                                    })
+                                    .onFailure(throwable -> {
+                                        promise.fail(throwable);
 
                                         // Close client
                                         httpClient.close();
-                                    }
-                                })
-                                .onFailure(throwable -> {
-                                    promise.fail(throwable);
-
-                                    // Close client
-                                    httpClient.close();
-                                });
+                                    });
 
                             if (!StringUtils.isEmpty(configuration.getBody())) {
                                 request.end(configuration.getBody());
@@ -138,16 +138,13 @@ public class HttpProvider implements Provider {
                                 request.end();
                             }
                         }
-                    }
-                );
+                    });
         } catch (Exception e) {
             promise.fail(e);
         }
 
-        return promise
-            .future()
-            .map(
-                new Function<Buffer, Collection<DynamicProperty>>() {
+        return promise.future()
+                .map(new Function<Buffer, Collection<DynamicProperty>>() {
                     @Override
                     public Collection<DynamicProperty> apply(Buffer buffer) {
                         if (buffer == null) {
@@ -155,10 +152,9 @@ public class HttpProvider implements Provider {
                         }
                         return mapper.map(buffer.toString());
                     }
-                }
-            )
-            .toCompletionStage()
-            .toCompletableFuture();
+                })
+                .toCompletionStage()
+                .toCompletableFuture();
     }
 
     @Override

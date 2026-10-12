@@ -64,31 +64,29 @@ public class ResourcesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List resource plugins", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "List resource plugins",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of resources",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ResourceListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of resources",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ResourceListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Collection<ResourceListItem> getResources(@QueryParam("expand") List<String> expand) {
         License license = licenseManager.getOrganizationLicenseOrPlatform(
-            GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization()
-        );
+                GraviteeContext.getCurrentOrganization() != null
+                        ? GraviteeContext.getCurrentOrganization()
+                        : GraviteeContext.getDefaultOrganization());
 
         boolean includeSchema = expand.contains("schema");
         boolean includeIcon = expand.contains("icon");
 
-        Stream<ResourceListItem> stream = resourceService
-            .findAll()
-            .stream()
-            .map(resource -> convert(resource, license::isFeatureEnabled, includeSchema, includeIcon));
+        Stream<ResourceListItem> stream = resourceService.findAll().stream()
+                .map(resource -> convert(resource, license::isFeatureEnabled, includeSchema, includeIcon));
 
         return stream.sorted(Comparator.comparing(ResourceListItem::getName)).collect(Collectors.toList());
     }
@@ -99,11 +97,10 @@ public class ResourcesResource {
     }
 
     private ResourceListItem convert(
-        PlatformPluginEntity resource,
-        java.util.function.Function<String, Boolean> featureEnabled,
-        boolean includeSchema,
-        boolean includeIcon
-    ) {
+            PlatformPluginEntity resource,
+            java.util.function.Function<String, Boolean> featureEnabled,
+            boolean includeSchema,
+            boolean includeIcon) {
         ResourceListItem item = new ResourceListItem();
 
         item.setId(resource.getId());

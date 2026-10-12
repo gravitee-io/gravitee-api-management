@@ -27,18 +27,18 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class DistributedAccessPointSynchronizer extends AbstractDistributedSynchronizer<AccessPointDeployable, AccessPointDeployer> {
+public class DistributedAccessPointSynchronizer
+        extends AbstractDistributedSynchronizer<AccessPointDeployable, AccessPointDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final AccessPointMapper accessPointMapper;
 
     public DistributedAccessPointSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        ThreadPoolExecutor syncFetcherExecutor,
-        ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        AccessPointMapper accessPointMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            ThreadPoolExecutor syncFetcherExecutor,
+            ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            AccessPointMapper accessPointMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.accessPointMapper = accessPointMapper;

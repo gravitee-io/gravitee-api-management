@@ -60,7 +60,8 @@ public class GatewayConfigurationBuilder {
     }
 
     public GatewayConfiguration build() {
-        return new GatewayConfiguration((Properties) this.systemProperties.clone(), (Properties) yamlProperties.clone());
+        return new GatewayConfiguration(
+                (Properties) this.systemProperties.clone(), (Properties) yamlProperties.clone());
     }
 
     public GatewayConfigurationBuilder v2EmulateV4Engine(String mode) {
@@ -89,17 +90,17 @@ public class GatewayConfigurationBuilder {
 
     public GatewayConfigurationBuilder enableTcpGateway() {
         return this.set("tcp.enabled", true)
-            .set("tcp.secured", true)
-            .set("tcp.port", 0) // auto select
-            .set("tcp.instances", 1)
-            .set("tcp.ssl.sni", true);
+                .set("tcp.secured", true)
+                .set("tcp.port", 0) // auto select
+                .set("tcp.instances", 1)
+                .set("tcp.ssl.sni", true);
     }
 
     public GatewayConfigurationBuilder configureKafkaGateway(int port) {
         return this.set("kafka.enabled", true)
-            .set("kafka.secured", true)
-            .set("kafka.port", port)
-            .set("kafka.instances", 1)
-            .set("kafka.ssl.sni", true);
+                .set("kafka.secured", true)
+                .set("kafka.port", port)
+                .set("kafka.instances", 1)
+                .set("kafka.ssl.sni", true);
     }
 }

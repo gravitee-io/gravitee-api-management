@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import io.gravitee.repository.management.model.Visibility;
 import java.util.Objects;
 
 /**
@@ -131,34 +130,31 @@ public class PageCriteria {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PageCriteria that = (PageCriteria) o;
-        return (
-            Objects.equals(referenceId, that.referenceId) &&
-            Objects.equals(referenceType, that.referenceType) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(type, that.type) &&
-            Objects.equals(homepage, that.homepage) &&
-            Objects.equals(published, that.published) &&
-            Objects.equals(visibility, that.visibility) &&
-            Objects.equals(parent, that.parent) &&
-            Objects.equals(rootParent, that.rootParent) &&
-            Objects.equals(accessControlGroupId, that.accessControlGroupId)
-        );
+        return (Objects.equals(referenceId, that.referenceId)
+                && Objects.equals(referenceType, that.referenceType)
+                && Objects.equals(name, that.name)
+                && Objects.equals(type, that.type)
+                && Objects.equals(homepage, that.homepage)
+                && Objects.equals(published, that.published)
+                && Objects.equals(visibility, that.visibility)
+                && Objects.equals(parent, that.parent)
+                && Objects.equals(rootParent, that.rootParent)
+                && Objects.equals(accessControlGroupId, that.accessControlGroupId));
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-            referenceId,
-            referenceType,
-            name,
-            type,
-            homepage,
-            published,
-            visibility,
-            parent,
-            rootParent,
-            accessControlGroupId
-        );
+                referenceId,
+                referenceType,
+                name,
+                type,
+                homepage,
+                published,
+                visibility,
+                parent,
+                rootParent,
+                accessControlGroupId);
     }
 
     public static class Builder {

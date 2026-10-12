@@ -34,7 +34,8 @@ public class IntervalParamValidator implements ConstraintValidator<IntervalParam
 
         if (from != null && to != null && from > to) {
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("Invalid date order, 'from' must be before 'to'").addConstraintViolation();
+            context.buildConstraintViolationWithTemplate("Invalid date order, 'from' must be before 'to'")
+                    .addConstraintViolation();
             return false;
         }
 

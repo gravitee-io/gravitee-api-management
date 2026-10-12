@@ -22,7 +22,8 @@ import io.gravitee.gateway.api.processor.ProcessorFailure;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractStreamableProcessor<T, S> extends AbstractProcessor<T> implements StreamableProcessor<T, S> {
+public abstract class AbstractStreamableProcessor<T, S> extends AbstractProcessor<T>
+        implements StreamableProcessor<T, S> {
 
     private Handler<ProcessorFailure> streamErrorHandler;
 

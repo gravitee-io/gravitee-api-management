@@ -54,19 +54,21 @@ public class XForwardProcessor implements Processor {
 
             if (StringUtils.hasText(xForwardedForHeader)) {
                 Arrays.stream(COMMA_SEPARATED_VALUES_PATTERN.split(xForwardedForHeader))
-                    .findFirst()
-                    .ifPresent(xForwardFor -> {
-                        int idx = xForwardFor.indexOf(':');
-                        String[] splits = xForwardFor.split(":");
+                        .findFirst()
+                        .ifPresent(xForwardFor -> {
+                            int idx = xForwardFor.indexOf(':');
+                            String[] splits = xForwardFor.split(":");
 
-                        xForwardFor = (idx == -1) || (splits.length > 2) ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
+                            xForwardFor = (idx == -1) || (splits.length > 2)
+                                    ? xForwardFor.trim()
+                                    : xForwardFor.substring(0, idx).trim();
 
-                        // X-Forwarded-For header must be reconstructed to include the gateway host address
-                        ctx.request().remoteAddress(xForwardFor);
+                            // X-Forwarded-For header must be reconstructed to include the gateway host address
+                            ctx.request().remoteAddress(xForwardFor);
 
-                        // And override the remote address provided by container in metrics
-                        ctx.metrics().setRemoteAddress(xForwardFor);
-                    });
+                            // And override the remote address provided by container in metrics
+                            ctx.metrics().setRemoteAddress(xForwardFor);
+                        });
             }
         });
     }
@@ -80,7 +82,9 @@ public class XForwardProcessor implements Processor {
         String protoHeaderValue = request.headers().get(HttpHeaderNames.X_FORWARDED_PROTO);
         String hostHeaderValue = request.headers().get(HttpHeaderNames.X_FORWARDED_HOST);
 
-        if (!StringUtils.hasText(forwardedHeaderValue) && !StringUtils.hasText(protoHeaderValue) && !StringUtils.hasText(hostHeaderValue)) {
+        if (!StringUtils.hasText(forwardedHeaderValue)
+                && !StringUtils.hasText(protoHeaderValue)
+                && !StringUtils.hasText(hostHeaderValue)) {
             return scheme + "://" + originalHost + uri;
         }
 
@@ -97,7 +101,9 @@ public class XForwardProcessor implements Processor {
                         host = host.replace("\"", "");
                     }
                     int commaIndex = host.indexOf(',');
-                    originalHost = commaIndex == -1 ? host : host.substring(0, commaIndex).trim();
+                    originalHost = commaIndex == -1
+                            ? host
+                            : host.substring(0, commaIndex).trim();
                 }
             }
         } else {
@@ -107,7 +113,9 @@ public class XForwardProcessor implements Processor {
 
             if (hostHeaderValue != null) {
                 int commaIndex = hostHeaderValue.indexOf(',');
-                originalHost = commaIndex == -1 ? hostHeaderValue : hostHeaderValue.substring(0, commaIndex).trim();
+                originalHost = commaIndex == -1
+                        ? hostHeaderValue
+                        : hostHeaderValue.substring(0, commaIndex).trim();
             }
         }
 
@@ -119,10 +127,9 @@ public class XForwardProcessor implements Processor {
         String portHeaderValue = request.headers().get(HttpHeaderNames.X_FORWARDED_PORT);
         if (portHeaderValue != null) {
             URI hostUri = URI.create(originalHostWithScheme);
-            if (
-                hostUri.getPort() == -1 &&
-                ((scheme.equals("http") && !portHeaderValue.equals("80")) || (scheme.equals("https") && !portHeaderValue.equals("443")))
-            ) {
+            if (hostUri.getPort() == -1
+                    && ((scheme.equals("http") && !portHeaderValue.equals("80"))
+                            || (scheme.equals("https") && !portHeaderValue.equals("443")))) {
                 originalHostWithScheme += ":" + portHeaderValue;
             }
         }

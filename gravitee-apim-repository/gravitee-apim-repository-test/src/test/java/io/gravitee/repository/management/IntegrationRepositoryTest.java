@@ -58,22 +58,24 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
 
     private static Integration creatIntegration(String uuid, Date date) {
         return Integration.builder()
-            .id(uuid)
-            .name("my-another-integration")
-            .description("test-description")
-            .provider("sample-provider")
-            .environmentId("my-env")
-            .createdAt(date)
-            .updatedAt(date)
-            .groups(Set.of("group-1"))
-            .build();
+                .id(uuid)
+                .name("my-another-integration")
+                .description("test-description")
+                .provider("sample-provider")
+                .environmentId("my-env")
+                .createdAt(date)
+                .updatedAt(date)
+                .groups(Set.of("group-1"))
+                .build();
     }
 
     @Test
     public void shouldFindByEnvironmentId() throws TechnicalException {
         var integrations = integrationRepository
-            .findAllByEnvironment("my-env", new PageableBuilder().pageSize(10).pageNumber(0).build())
-            .getContent();
+                .findAllByEnvironment(
+                        "my-env",
+                        new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getContent();
 
         assertThat(integrations).hasSize(3).are(declaredInEnv("my-env"));
     }
@@ -81,8 +83,12 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldFindByEnvironmentIdAndGroups() throws TechnicalException {
         var integrations = integrationRepository
-            .findAllByEnvironmentAndGroups("my-env", Set.of(), Set.of("group-1"), new PageableBuilder().pageSize(10).pageNumber(0).build())
-            .getContent();
+                .findAllByEnvironmentAndGroups(
+                        "my-env",
+                        Set.of(),
+                        Set.of("group-1"),
+                        new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getContent();
 
         assertThat(integrations).hasSize(2).are(associateToGroup("group-1"));
     }
@@ -90,13 +96,12 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldFindByEnvironmentIdIds() throws TechnicalException {
         var integrations = integrationRepository
-            .findAllByEnvironmentAndGroups(
-                "my-env",
-                Set.of("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"),
-                Set.of(""),
-                new PageableBuilder().pageSize(10).pageNumber(0).build()
-            )
-            .getContent();
+                .findAllByEnvironmentAndGroups(
+                        "my-env",
+                        Set.of("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"),
+                        Set.of(""),
+                        new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getContent();
 
         assertThat(integrations).hasSize(1).are(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"));
     }
@@ -104,22 +109,25 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldFindByEnvironmentIdAndGroupsAndIds() throws TechnicalException {
         var integrations = integrationRepository
-            .findAllByEnvironmentAndGroups(
-                "my-env",
-                Set.of("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"),
-                Set.of("group-2"),
-                new PageableBuilder().pageSize(10).pageNumber(0).build()
-            )
-            .getContent();
+                .findAllByEnvironmentAndGroups(
+                        "my-env",
+                        Set.of("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"),
+                        Set.of("group-2"),
+                        new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getContent();
 
-        assertThat(integrations).hasSize(2).are(anyOf(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"), associateToGroup("group-2")));
+        assertThat(integrations)
+                .hasSize(2)
+                .are(anyOf(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"), associateToGroup("group-2")));
     }
 
     @Test
     public void shouldReturnEmptyListWhenEnvironmentIdNotFound() throws TechnicalException {
         final List<Integration> integrations = integrationRepository
-            .findAllByEnvironment("other-env", new PageableBuilder().pageSize(10).pageNumber(0).build())
-            .getContent();
+                .findAllByEnvironment(
+                        "other-env",
+                        new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getContent();
 
         assertThat(integrations).isEmpty();
     }
@@ -150,15 +158,15 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
         var date = new Date(1_470_157_767_000L);
         var updateDate = new Date(1_712_660_289L);
         Integration integration = Integration.builder()
-            .id(id)
-            .name("my-updated-integration")
-            .description("updated-description")
-            .provider("sample-provider")
-            .environmentId("my-env")
-            .createdAt(date)
-            .updatedAt(updateDate)
-            .groups(Set.of("group-15"))
-            .build();
+                .id(id)
+                .name("my-updated-integration")
+                .description("updated-description")
+                .provider("sample-provider")
+                .environmentId("my-env")
+                .createdAt(date)
+                .updatedAt(updateDate)
+                .groups(Set.of("group-15"))
+                .build();
 
         final Integration updatedIntegration = integrationRepository.update(integration);
         assertThat(updatedIntegration).isEqualTo(integration);
@@ -187,12 +195,16 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
         long nbBeforeDeletion = integrationRepository
-            .findAllByEnvironment("ToBeDeleted", new PageableBuilder().pageSize(10).pageNumber(0).build())
-            .getTotalElements();
+                .findAllByEnvironment(
+                        "ToBeDeleted",
+                        new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getTotalElements();
         int deleted = integrationRepository.deleteByEnvironmentId("ToBeDeleted").size();
         long nbAfterDeletion = integrationRepository
-            .findAllByEnvironment("ToBeDeleted", new PageableBuilder().pageSize(10).pageNumber(0).build())
-            .getTotalElements();
+                .findAllByEnvironment(
+                        "ToBeDeleted",
+                        new PageableBuilder().pageSize(10).pageNumber(0).build())
+                .getTotalElements();
 
         assertThat(nbBeforeDeletion).isEqualTo(2L);
         assertThat(deleted).isEqualTo(2);

@@ -17,5 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.validation;
 
 public interface TimeInterval {
     Long getFrom();
+
     Long getTo();
 }

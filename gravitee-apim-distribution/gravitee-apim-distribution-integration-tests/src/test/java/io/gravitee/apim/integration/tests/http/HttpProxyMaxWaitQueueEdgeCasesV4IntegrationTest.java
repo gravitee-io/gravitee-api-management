@@ -42,32 +42,38 @@ import org.junit.jupiter.api.Test;
  * single-connection pool ({@code maxConcurrentConnections = 1}) and a slow backend so requests contend for the pool.
  */
 @GatewayTest
-@DeployApi(
-    {
-        "/apis/v4/http/api-mwq-unbounded.json",
-        "/apis/v4/http/api-mwq-absent.json",
-        "/apis/v4/http/api-mwq-null.json",
-        "/apis/v4/http/api-mwq-bounded.json",
-    }
-)
+@DeployApi({
+    "/apis/v4/http/api-mwq-unbounded.json",
+    "/apis/v4/http/api-mwq-absent.json",
+    "/apis/v4/http/api-mwq-null.json",
+    "/apis/v4/http/api-mwq-bounded.json",
+})
 class HttpProxyMaxWaitQueueEdgeCasesV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     private List<Integer> fireConcurrent(HttpClient httpClient, String path, int count) {
         return Flowable.range(0, count)
-            .flatMap(i -> httpClient.rxRequest(HttpMethod.GET, path).flatMap(HttpClientRequest::rxSend).toFlowable(), false, count)
-            .map(response -> response.statusCode())
-            .toList()
-            .blockingGet();
+                .flatMap(
+                        i -> httpClient
+                                .rxRequest(HttpMethod.GET, path)
+                                .flatMap(HttpClientRequest::rxSend)
+                                .toFlowable(),
+                        false,
+                        count)
+                .map(response -> response.statusCode())
+                .toList()
+                .blockingGet();
     }
 
     @Test

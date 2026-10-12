@@ -27,10 +27,14 @@ public class ResponseTimeProcessor extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext context) {
         // Compute response-time and add it to the metrics
-        long proxyResponseTimeInMs = System.currentTimeMillis() - context.request().metrics().timestamp().toEpochMilli();
+        long proxyResponseTimeInMs = System.currentTimeMillis()
+                - context.request().metrics().timestamp().toEpochMilli();
         context.request().metrics().setStatus(context.response().status());
         context.request().metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
-        context.request().metrics().setProxyLatencyMs(proxyResponseTimeInMs - context.request().metrics().getApiResponseTimeMs());
+        context.request()
+                .metrics()
+                .setProxyLatencyMs(
+                        proxyResponseTimeInMs - context.request().metrics().getApiResponseTimeMs());
 
         // Push response to the next handler
         next.handle(context);

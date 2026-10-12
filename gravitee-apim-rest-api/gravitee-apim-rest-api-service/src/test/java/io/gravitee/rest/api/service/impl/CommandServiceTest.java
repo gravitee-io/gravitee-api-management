@@ -78,7 +78,8 @@ public class CommandServiceTest {
         newCommand.setContent("{}");
         newCommand.setTags(List.of(CommandTags.DATA_TO_INDEX));
         newCommand.setTo("MANAGEMENT_APIS");
-        when(commandConverter.toCommand(any(ExecutionContext.class), any(NewCommandEntity.class))).thenReturn(new Command());
+        when(commandConverter.toCommand(any(ExecutionContext.class), any(NewCommandEntity.class)))
+                .thenReturn(new Command());
         commandService.send(GraviteeContext.getExecutionContext(), newCommand);
         verify(commandConverter, times(1)).toCommand(any(ExecutionContext.class), eq(newCommand));
         verify(commandRepository, times(1)).create(any(Command.class));
@@ -94,18 +95,18 @@ public class CommandServiceTest {
 
         commandService.search(executionContext, new CommandQuery());
 
-        verify(commandRepository, times(1)).search(
-            argThat(criteria -> "GRAVITEE".equals(criteria.getOrganizationId()) && "DEV".equals(criteria.getEnvironmentId()))
-        );
+        verify(commandRepository, times(1))
+                .search(argThat(criteria ->
+                        "GRAVITEE".equals(criteria.getOrganizationId()) && "DEV".equals(criteria.getEnvironmentId())));
     }
 
     @Test
     public void shouldSearchWithoutOrganizationAndWithoutEnvironmentWithEmptyQuery() {
         commandService.search(new CommandQuery());
 
-        verify(commandRepository, times(1)).search(
-            argThat(criteria -> criteria.getOrganizationId() == null && criteria.getEnvironmentId() == null)
-        );
+        verify(commandRepository, times(1))
+                .search(argThat(
+                        criteria -> criteria.getOrganizationId() == null && criteria.getEnvironmentId() == null));
     }
 
     @Test
@@ -117,9 +118,9 @@ public class CommandServiceTest {
 
         commandService.search(executionContext, new CommandQuery());
 
-        verify(commandRepository, times(1)).search(
-            argThat(criteria -> "GRAVITEE".equals(criteria.getOrganizationId()) && Objects.isNull(criteria.getEnvironmentId()))
-        );
+        verify(commandRepository, times(1))
+                .search(argThat(criteria -> "GRAVITEE".equals(criteria.getOrganizationId())
+                        && Objects.isNull(criteria.getEnvironmentId())));
     }
 
     @Test
@@ -136,7 +137,8 @@ public class CommandServiceTest {
         when(node.id()).thenReturn("test");
         when(commandRepository.findById(eq(commandId))).thenReturn(Optional.of(new Command()));
         commandService.ack(commandId);
-        verify(commandRepository, times(1)).update(argThat(command -> command.getAcknowledgments().contains("test")));
+        verify(commandRepository, times(1))
+                .update(argThat(command -> command.getAcknowledgments().contains("test")));
     }
 
     @Test

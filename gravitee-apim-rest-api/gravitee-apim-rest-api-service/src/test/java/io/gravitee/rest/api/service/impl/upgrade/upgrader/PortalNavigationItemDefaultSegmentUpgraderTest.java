@@ -50,7 +50,8 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
 
     @BeforeEach
     void setUp() {
-        upgrader = new PortalNavigationItemDefaultSegmentUpgrader(environmentRepository, portalNavigationItemRepository);
+        upgrader =
+                new PortalNavigationItemDefaultSegmentUpgrader(environmentRepository, portalNavigationItemRepository);
     }
 
     @Test
@@ -67,9 +68,8 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
     @SneakyThrows
     void should_return_true_when_no_nav_items_in_environment() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            Collections.emptyList()
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(Collections.emptyList());
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -80,46 +80,43 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
     @SneakyThrows
     void should_slugify_title_and_set_segment_for_items_with_null_segment() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(navItemNullSegment("item-1", "My Projects"), navItemNullSegment("item-2", "APIs & SDKs!"))
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(
+                        navItemNullSegment("item-1", "My Projects"), navItemNullSegment("item-2", "APIs & SDKs!")));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<PortalNavigationItem> captor = ArgumentCaptor.forClass(PortalNavigationItem.class);
         verify(portalNavigationItemRepository, times(2)).update(captor.capture());
         assertThat(captor.getAllValues())
-            .extracting(PortalNavigationItem::getSegment)
-            .containsExactlyInAnyOrder("my-projects", "apis-sdks");
+                .extracting(PortalNavigationItem::getSegment)
+                .containsExactlyInAnyOrder("my-projects", "apis-sdks");
     }
 
     @Test
     @SneakyThrows
     void should_slugify_title_and_set_segment_for_items_with_unset_placeholder_segment() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(
-                navItemWithSegment("item-1", "My Projects", "__CHANGE_ME__"),
-                navItemWithSegment("item-2", "APIs & SDKs!", "__CHANGE_ME__")
-            )
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(
+                        navItemWithSegment("item-1", "My Projects", "__CHANGE_ME__"),
+                        navItemWithSegment("item-2", "APIs & SDKs!", "__CHANGE_ME__")));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<PortalNavigationItem> captor = ArgumentCaptor.forClass(PortalNavigationItem.class);
         verify(portalNavigationItemRepository, times(2)).update(captor.capture());
         assertThat(captor.getAllValues())
-            .extracting(PortalNavigationItem::getSegment)
-            .containsExactlyInAnyOrder("my-projects", "apis-sdks");
+                .extracting(PortalNavigationItem::getSegment)
+                .containsExactlyInAnyOrder("my-projects", "apis-sdks");
     }
 
     @Test
     @SneakyThrows
     void should_skip_items_that_already_have_a_segment() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(navItemWithSegment("item-1", "My Projects", "my-projects"))
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(navItemWithSegment("item-1", "My Projects", "my-projects")));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -129,14 +126,17 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
     @Test
     @SneakyThrows
     void should_process_multiple_environments() {
-        var anotherEnv = Environment.builder().id("ENV2").organizationId("ORG2").hrids(List.of("env2")).name("env2").build();
+        var anotherEnv = Environment.builder()
+                .id("ENV2")
+                .organizationId("ORG2")
+                .hrids(List.of("env2"))
+                .name("env2")
+                .build();
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, anotherEnv));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(navItemNullSegment("item-1", "Getting Started"))
-        );
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("ORG2", "ENV2")).thenReturn(
-            List.of(navItemNullSegment("item-2", "Overview"))
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(navItemNullSegment("item-1", "Getting Started")));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("ORG2", "ENV2"))
+                .thenReturn(List.of(navItemNullSegment("item-2", "Overview")));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -147,15 +147,16 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
     @SneakyThrows
     void should_deduplicate_segments_within_sibling_group() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(navItemNullSegment("item-1", "Q&A"), navItemNullSegment("item-2", "Q/A"))
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(navItemNullSegment("item-1", "Q&A"), navItemNullSegment("item-2", "Q/A")));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<PortalNavigationItem> captor = ArgumentCaptor.forClass(PortalNavigationItem.class);
         verify(portalNavigationItemRepository, times(2)).update(captor.capture());
-        assertThat(captor.getAllValues()).extracting(PortalNavigationItem::getSegment).containsExactlyInAnyOrder("q-a", "q-a-2");
+        assertThat(captor.getAllValues())
+                .extracting(PortalNavigationItem::getSegment)
+                .containsExactlyInAnyOrder("q-a", "q-a-2");
     }
 
     @Test
@@ -165,33 +166,33 @@ class PortalNavigationItemDefaultSegmentUpgraderTest {
 
     private static PortalNavigationItem navItemNullSegment(String id, String title) {
         return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId("DEFAULT")
-            .environmentId("DEFAULT")
-            .title(title)
-            .segment(null)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .area(PortalNavigationItem.Area.TOP_NAVBAR)
-            .order(0)
-            .rootId(id)
-            .published(true)
-            .visibility(PortalNavigationItem.Visibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("DEFAULT")
+                .environmentId("DEFAULT")
+                .title(title)
+                .segment(null)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .area(PortalNavigationItem.Area.TOP_NAVBAR)
+                .order(0)
+                .rootId(id)
+                .published(true)
+                .visibility(PortalNavigationItem.Visibility.PUBLIC)
+                .build();
     }
 
     private static PortalNavigationItem navItemWithSegment(String id, String title, String segment) {
         return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId("DEFAULT")
-            .environmentId("DEFAULT")
-            .title(title)
-            .segment(segment)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .area(PortalNavigationItem.Area.TOP_NAVBAR)
-            .order(0)
-            .rootId(id)
-            .published(true)
-            .visibility(PortalNavigationItem.Visibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("DEFAULT")
+                .environmentId("DEFAULT")
+                .title(title)
+                .segment(segment)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .area(PortalNavigationItem.Area.TOP_NAVBAR)
+                .order(0)
+                .rootId(id)
+                .published(true)
+                .visibility(PortalNavigationItem.Visibility.PUBLIC)
+                .build();
     }
 }

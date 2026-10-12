@@ -123,21 +123,18 @@ public class UpdateThemeEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateThemeEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", enabled='" +
-            enabled +
-            '\'' +
-            ", definition='" +
-            definition +
-            '\'' +
-            '}'
-        );
+        return ("UpdateThemeEntity{" + "id='"
+                + id
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", enabled='"
+                + enabled
+                + '\''
+                + ", definition='"
+                + definition
+                + '\''
+                + '}');
     }
 }

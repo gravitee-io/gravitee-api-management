@@ -69,25 +69,25 @@ class DistributedEventFetcherTest {
     void should_fetch_latest_events() {
         DistributedEvent distributedEvent1 = DistributedEvent.builder().id("1").build();
         DistributedEvent distributedEvent2 = DistributedEvent.builder().id("2").build();
-        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.just(distributedEvent1, distributedEvent2));
-        cut
-            .fetchLatest(null, null, DistributedEventType.API, Set.of())
-            .test()
-            .assertValueAt(0, distributedEvent1)
-            .assertValueAt(1, distributedEvent2)
-            .assertComplete();
+        when(distributedEventRepository.searchAll(any(), eq(1000L)))
+                .thenReturn(Flowable.just(distributedEvent1, distributedEvent2));
+        cut.fetchLatest(null, null, DistributedEventType.API, Set.of())
+                .test()
+                .assertValueAt(0, distributedEvent1)
+                .assertValueAt(1, distributedEvent2)
+                .assertComplete();
     }
 
     @Test
     void should_search_with_criteria_based_on_timeframe() {
         when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
-        cut
-            .fetchLatest(1000L, 2000L, DistributedEventType.SUBSCRIPTION, Set.of(DistributedSyncAction.DEPLOY))
-            .test()
-            .assertNoValues()
-            .assertComplete();
+        cut.fetchLatest(1000L, 2000L, DistributedEventType.SUBSCRIPTION, Set.of(DistributedSyncAction.DEPLOY))
+                .test()
+                .assertNoValues()
+                .assertComplete();
 
-        ArgumentCaptor<DistributedEventCriteria> criteriaCaptor = ArgumentCaptor.forClass(DistributedEventCriteria.class);
+        ArgumentCaptor<DistributedEventCriteria> criteriaCaptor =
+                ArgumentCaptor.forClass(DistributedEventCriteria.class);
         verify(distributedEventRepository).searchAll(criteriaCaptor.capture(), eq(1000L));
         DistributedEventCriteria criteria = criteriaCaptor.getValue();
         assertThat(criteria.getClusterId()).isEqualTo(CLUSTER_ID);
@@ -106,8 +106,7 @@ class DistributedEventFetcherTest {
 
     @Test
     void should_reject_non_positive_bulk_items() {
-        assertThatThrownBy(() -> new DistributedEventFetcher(distributedEventRepository, clusterManager, 0)).isInstanceOf(
-            IllegalArgumentException.class
-        );
+        assertThatThrownBy(() -> new DistributedEventFetcher(distributedEventRepository, clusterManager, 0))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

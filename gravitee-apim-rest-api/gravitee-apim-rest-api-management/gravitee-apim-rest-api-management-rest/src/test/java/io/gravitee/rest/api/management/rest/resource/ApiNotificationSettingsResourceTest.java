@@ -67,9 +67,7 @@ public class ApiNotificationSettingsResourceTest {
     @Test
     public void updateApiPortalNotificationSettings_requiresUpdatePermission() throws NoSuchMethodException {
         var method = ApiNotificationSettingsResource.class.getDeclaredMethod(
-            "updateApiPortalNotificationSettings",
-            PortalNotificationConfigEntity.class
-        );
+                "updateApiPortalNotificationSettings", PortalNotificationConfigEntity.class);
         Permissions permissions = method.getAnnotation(Permissions.class);
         assertThat(permissions).isNotNull();
         assertThat(permissions.value()).hasSize(1);
@@ -106,7 +104,8 @@ public class ApiNotificationSettingsResourceTest {
     public void updateApiPortalNotificationSettings_throwsForbidden_whenReferenceIdMismatch() {
         PortalNotificationConfigEntity config = buildConfig("different-api", AUTHENTICATED_USER);
 
-        assertThatThrownBy(() -> resource.updateApiPortalNotificationSettings(config)).isInstanceOf(ForbiddenAccessException.class);
+        assertThatThrownBy(() -> resource.updateApiPortalNotificationSettings(config))
+                .isInstanceOf(ForbiddenAccessException.class);
     }
 
     private PortalNotificationConfigEntity buildConfig(String referenceId, String user) {

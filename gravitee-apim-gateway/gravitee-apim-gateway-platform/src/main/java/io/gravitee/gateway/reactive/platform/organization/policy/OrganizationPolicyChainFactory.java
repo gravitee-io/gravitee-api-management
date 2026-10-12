@@ -40,11 +40,8 @@ public class OrganizationPolicyChainFactory implements PolicyChainFactory<HttpPo
         if (organizationReactor instanceof DefaultOrganizationReactor defaultOrganizationReactor) {
             return defaultOrganizationReactor.policyChainFactory().create(flowChainId, flow, phase);
         }
-        throw new IllegalStateException(
-            String.format(
+        throw new IllegalStateException(String.format(
                 "PolicyChainFactory.create() shouldn't be call if no OrganizationReactor has been registered for organization '%s'",
-                organizationId
-            )
-        );
+                organizationId));
     }
 }

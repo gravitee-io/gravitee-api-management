@@ -38,7 +38,6 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -71,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -105,16 +103,15 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     private final ApiMetadataQueryService apiMetadataQueryService;
 
     public ApiSearchServiceImpl(
-        @Lazy final ApiRepository apiRepository,
-        final ApiMapper apiMapper,
-        final GenericApiMapper genericApiMapper,
-        @Lazy final PrimaryOwnerService primaryOwnerService,
-        @Lazy final CategoryService categoryService,
-        final SearchEngineService searchEngineService,
-        @Lazy final ApiAuthorizationService apiAuthorizationService,
-        @Lazy final IntegrationRepository integrationRepository,
-        final ApiMetadataQueryService apiMetadataQueryService
-    ) {
+            @Lazy final ApiRepository apiRepository,
+            final ApiMapper apiMapper,
+            final GenericApiMapper genericApiMapper,
+            @Lazy final PrimaryOwnerService primaryOwnerService,
+            @Lazy final CategoryService categoryService,
+            final SearchEngineService searchEngineService,
+            @Lazy final ApiAuthorizationService apiAuthorizationService,
+            @Lazy final IntegrationRepository integrationRepository,
+            final ApiMetadataQueryService apiMetadataQueryService) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
         this.genericApiMapper = genericApiMapper;
@@ -129,28 +126,23 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findV4RepositoryApiById(executionContext, apiId);
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+        PrimaryOwnerEntity primaryOwner =
+                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
         return apiMapper.toEntity(executionContext, api, primaryOwner, true, true, true);
     }
 
     @Override
     public GenericApiEntity findGenericById(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final boolean withApiFlows,
-        final boolean withPlans,
-        final boolean withApiCategories
-    ) {
+            final ExecutionContext executionContext,
+            final String apiId,
+            final boolean withApiFlows,
+            final boolean withPlans,
+            final boolean withApiCategories) {
         final Api api = this.findRepositoryApiById(executionContext, apiId);
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+        PrimaryOwnerEntity primaryOwner =
+                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
         GenericApiEntity genericApi = genericApiMapper.toGenericApi(
-            executionContext,
-            api,
-            primaryOwner,
-            withApiFlows,
-            withPlans,
-            withApiCategories
-        );
+                executionContext, api, primaryOwner, withApiFlows, withPlans, withApiCategories);
         return enrichFederatedApi(genericApi);
     }
 
@@ -160,9 +152,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             return apiRepository.findIdByEnvironmentIdAndCrossId(environment, crossId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
-                e
-            );
+                    "An error occurred while finding API by environment " + environment + " and crossId " + crossId, e);
         }
     }
 
@@ -178,11 +168,15 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     @Override
-    public Set<GenericApiEntity> findGenericByEnvironmentAndIdIn(final ExecutionContext executionContext, final Set<String> apiIds) {
+    public Set<GenericApiEntity> findGenericByEnvironmentAndIdIn(
+            final ExecutionContext executionContext, final Set<String> apiIds) {
         if (apiIds.isEmpty()) {
             return Set.of();
         }
-        ApiCriteria criteria = new ApiCriteria.Builder().ids(apiIds).environmentId(executionContext.getEnvironmentId()).build();
+        ApiCriteria criteria = new ApiCriteria.Builder()
+                .ids(apiIds)
+                .environmentId(executionContext.getEnvironmentId())
+                .build();
         List<Api> apisFound = apiRepository.search(criteria, ApiFieldFilter.allFields());
         return toGenericApis(executionContext, apisFound);
     }
@@ -201,7 +195,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             return optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
     }
 
@@ -211,8 +206,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         if (api.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new IllegalArgumentException(
-                String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
-            );
+                    String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel()));
         }
 
         return api;
@@ -224,10 +218,12 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     @Override
-    public Set<GenericApiEntity> search(ExecutionContext executionContext, final ApiQuery query, final boolean excludeDefinitionV4) {
+    public Set<GenericApiEntity> search(
+            ExecutionContext executionContext, final ApiQuery query, final boolean excludeDefinitionV4) {
         log.debug("Search APIs by {}", query);
 
-        Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query, excludeDefinitionV4);
+        Optional<Collection<String>> optionalTargetIds =
+                this.searchInDefinition(executionContext, query, excludeDefinitionV4);
 
         if (optionalTargetIds.isPresent()) {
             Collection<String> targetIds = optionalTargetIds.get();
@@ -245,25 +241,27 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             allowedDefinitionVersion.add(DefinitionVersion.V2);
             queryToCriteria.definitionVersion(allowedDefinitionVersion);
         }
-        List<Api> apis = apiRepository.search(queryToCriteria.build(), null, ApiFieldFilter.allFields()).collect(toList());
+        List<Api> apis = apiRepository
+                .search(queryToCriteria.build(), null, ApiFieldFilter.allFields())
+                .collect(toList());
         return this.toGenericApis(executionContext, apis);
     }
 
     @Override
     public Page<GenericApiEntity> search(
-        final ExecutionContext executionContext,
-        final String userId,
-        final boolean isAdmin,
-        final QueryBuilder<ApiEntity> apiQueryBuilder,
-        final Pageable pageable,
-        final boolean mapToFullGenericApiEntity,
-        final boolean manageOnly,
-        final Set<String> expands,
-        final Boolean hasOpenApiDocumentation
-    ) {
+            final ExecutionContext executionContext,
+            final String userId,
+            final boolean isAdmin,
+            final QueryBuilder<ApiEntity> apiQueryBuilder,
+            final Pageable pageable,
+            final boolean mapToFullGenericApiEntity,
+            final boolean manageOnly,
+            final Set<String> expands,
+            final Boolean hasOpenApiDocumentation) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
         // Lucene indexes api_type as "<definitionVersion>_<TYPE>" (e.g. "V4_EDGE"), not the raw label
-        apiQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiQueryBuilder.addExcludedFilter(
+                FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
         var apiQuery = apiQueryBuilder.build();
         SearchResult apiIdsResult = searchEngineService.search(GraviteeContext.getExecutionContext(), apiQuery);
 
@@ -289,11 +287,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         // Step 2: if user is not admin, get list of apiIds in their scope and join with Lucene results
         if (!isAdmin) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(
-                GraviteeContext.getExecutionContext(),
-                userId,
-                null,
-                manageOnly
-            );
+                    GraviteeContext.getExecutionContext(), userId, null, manageOnly);
 
             // User has no associated apis
             if (userApiIds.isEmpty()) {
@@ -310,13 +304,16 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         List<String> apiIdPageSubset = this.getApiIdPageSubset(apiIds, pageable);
 
         ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
-            .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-            .ids(apiIdPageSubset)
-            .notApiTypes(List.of(ApiType.EDGE));
+                .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                .ids(apiIdPageSubset)
+                .notApiTypes(List.of(ApiType.EDGE));
 
         if (Objects.nonNull(apiQuery.getFilters())) {
             if (apiQuery.getFilters().getOrDefault(FIELD_DEFINITION_VERSION, List.of()) instanceof List<?> versions) {
-                apiCriteriaBuilder.definitionVersion(stream(versions).map(Object::toString).map(DefinitionVersion::valueOfLabel).toList());
+                apiCriteriaBuilder.definitionVersion(stream(versions)
+                        .map(Object::toString)
+                        .map(DefinitionVersion::valueOfLabel)
+                        .toList());
             }
         }
 
@@ -328,9 +325,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         }
 
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(
-            executionContext,
-            apis.stream().map(Api::getId).toList()
-        );
+                executionContext, apis.stream().map(Api::getId).toList());
 
         Comparator<String> orderingComparator = Comparator.comparingInt(apiIdPageSubset::indexOf);
 
@@ -338,22 +333,19 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         Stream<GenericApiEntity> apisStream;
 
         if (mapToFullGenericApiEntity) {
-            apisStream = apis
-                .stream()
-                .map(api ->
-                    enrichFederatedApi(
-                        genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()), true, true, true)
-                    )
-                );
+            apisStream = apis.stream()
+                    .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(
+                            executionContext, api, primaryOwners.get(api.getId()), true, true, true)));
         } else {
             // Map to simple GenericApiEntity
-            apisStream = apis.stream().map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()))));
+            apisStream = apis.stream()
+                    .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()))));
         }
 
         // Step 6: Sort by subset order and add Page information
         List<GenericApiEntity> apiEntityList = apisStream
-            .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
-            .collect(Collectors.toList());
+                .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
+                .collect(Collectors.toList());
 
         if (expands != null && expands.contains(ApiService.EXPAND_METADATA) && !apiEntityList.isEmpty()) {
             fetchAndSetMetadata(executionContext, apiEntityList);
@@ -364,22 +356,25 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
     private Set<String> findApiIdsWithOpenApiDocumentation() {
         Query<PageEntity> pageQuery = QueryBuilder.create(PageEntity.class)
-            .addFilter(FIELD_PAGE_TYPE, "swagger")
-            .addFilter("reference_type", "api")
-            .build();
+                .addFilter(FIELD_PAGE_TYPE, "swagger")
+                .addFilter("reference_type", "api")
+                .build();
         SearchResult result = searchEngineService.searchPageReference(GraviteeContext.getExecutionContext(), pageQuery);
         return new HashSet<>(result.getDocuments());
     }
 
-    private void fetchAndSetMetadata(final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {
-        List<String> apiIds = apiEntityList.stream().map(GenericApiEntity::getId).filter(Objects::nonNull).distinct().toList();
+    private void fetchAndSetMetadata(
+            final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {
+        List<String> apiIds = apiEntityList.stream()
+                .map(GenericApiEntity::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         if (apiIds.isEmpty()) {
             return;
         }
-        Map<String, Map<String, ApiMetadata>> metadataByApiId = apiMetadataQueryService.findApiMetadataForApis(
-            executionContext.getEnvironmentId(),
-            apiIds
-        );
+        Map<String, Map<String, ApiMetadata>> metadataByApiId =
+                apiMetadataQueryService.findApiMetadataForApis(executionContext.getEnvironmentId(), apiIds);
         for (GenericApiEntity apiEntity : apiEntityList) {
             Map<String, ApiMetadata> apiMetadataMap = metadataByApiId.get(apiEntity.getId());
             if (apiMetadataMap != null && !apiMetadataMap.isEmpty()) {
@@ -389,17 +384,13 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     private static Map<String, Object> toResolvedMetadataValues(final Map<String, ApiMetadata> apiMetadataMap) {
-        return apiMetadataMap
-            .values()
-            .stream()
-            .filter(metadata -> metadata.getValue() != null || metadata.getDefaultValue() != null)
-            .collect(
-                toMap(
-                    ApiMetadata::getKey,
-                    metadata -> (Object) (metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue()),
-                    (existing, replacement) -> replacement
-                )
-            );
+        return apiMetadataMap.values().stream()
+                .filter(metadata -> metadata.getValue() != null || metadata.getDefaultValue() != null)
+                .collect(toMap(
+                        ApiMetadata::getKey,
+                        metadata -> (Object)
+                                (metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue()),
+                        (existing, replacement) -> replacement));
     }
 
     private List<String> getApiIdPageSubset(Collection<String> ids, Pageable pageable) {
@@ -429,13 +420,15 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
      * @return Optional<List < String>> an optional list of api ids and Optional.empty()
      * if ApiQuery doesn't contain fields stores in the api definition.
      */
-    private Optional<Collection<String>> searchInDefinition(ExecutionContext executionContext, ApiQuery apiQuery, final boolean excludeV4) {
+    private Optional<Collection<String>> searchInDefinition(
+            ExecutionContext executionContext, ApiQuery apiQuery, final boolean excludeV4) {
         if (apiQuery == null) {
             return Optional.empty();
         }
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = convert(apiQuery);
         if (excludeV4) {
-            searchEngineQueryBuilder.setExcludedFilters(Map.of(FIELD_DEFINITION_VERSION, List.of(DefinitionVersion.V4.getLabel())));
+            searchEngineQueryBuilder.setExcludedFilters(
+                    Map.of(FIELD_DEFINITION_VERSION, List.of(DefinitionVersion.V4.getLabel())));
         }
         Query<GenericApiEntity> searchEngineQuery = searchEngineQueryBuilder.build();
         if (isBlank(searchEngineQuery.getQuery())) {
@@ -465,15 +458,17 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
     private ApiCriteria.Builder queryToCriteria(final ExecutionContext executionContext, final ApiQuery query) {
         final ApiCriteria.Builder builder = new ApiCriteria.Builder()
-            .environmentId(executionContext.getEnvironmentId())
-            .notApiTypes(List.of(ApiType.EDGE));
+                .environmentId(executionContext.getEnvironmentId())
+                .notApiTypes(List.of(ApiType.EDGE));
         if (query == null) {
             return builder;
         }
         builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
 
         if (!isBlank(query.getCategory())) {
-            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
+            builder.category(categoryService
+                    .findById(query.getCategory(), executionContext.getEnvironmentId())
+                    .getId());
         }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups());
@@ -485,13 +480,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             builder.visibility(Visibility.valueOf(query.getVisibility().name()));
         }
         if (query.getLifecycleStates() != null) {
-            builder.lifecycleStates(
-                query
-                    .getLifecycleStates()
-                    .stream()
+            builder.lifecycleStates(query.getLifecycleStates().stream()
                     .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
-                    .collect(toList())
-            );
+                    .collect(toList()));
         }
         if (query.getIds() != null && !query.getIds().isEmpty()) {
             builder.ids(query.getIds());
@@ -505,38 +496,45 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
     @Override
     public Collection<String> searchIds(
-        final ExecutionContext executionContext,
-        final String query,
-        final Map<String, Object> filters,
-        final Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions,
-        boolean typoTolerance
-    ) {
-        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, typoTolerance, SearchSortStrategy.DEFAULT);
+            final ExecutionContext executionContext,
+            final String query,
+            final Map<String, Object> filters,
+            final Sortable sortable,
+            Collection<DefinitionVersion> excludeDefinitionVersions,
+            boolean typoTolerance) {
+        return searchIds(
+                executionContext,
+                query,
+                filters,
+                sortable,
+                excludeDefinitionVersions,
+                typoTolerance,
+                SearchSortStrategy.DEFAULT);
     }
 
     @Override
     public Collection<String> searchIds(
-        final ExecutionContext executionContext,
-        final String query,
-        final Map<String, Object> filters,
-        final Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions,
-        boolean typoTolerance,
-        SearchSortStrategy searchSortStrategy
-    ) {
+            final ExecutionContext executionContext,
+            final String query,
+            final Map<String, Object> filters,
+            final Sortable sortable,
+            Collection<DefinitionVersion> excludeDefinitionVersions,
+            boolean typoTolerance,
+            SearchSortStrategy searchSortStrategy) {
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder.create(GenericApiEntity.class)
-            .setSort(sortable)
-            .setFilters(filters)
-            .setTypoTolerance(typoTolerance)
-            .setSearchSortStrategy(searchSortStrategy);
+                .setSort(sortable)
+                .setFilters(filters)
+                .setTypoTolerance(typoTolerance)
+                .setSearchSortStrategy(searchSortStrategy);
         if (isNotEmpty(excludeDefinitionVersions)) {
             searchEngineQueryBuilder.addExcludedFilter(
-                FIELD_DEFINITION_VERSION,
-                stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList()
-            );
+                    FIELD_DEFINITION_VERSION,
+                    stream(excludeDefinitionVersions)
+                            .map(DefinitionVersion::getLabel)
+                            .toList());
         }
-        searchEngineQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        searchEngineQueryBuilder.addExcludedFilter(
+                FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
         if (!isBlank(query)) {
             searchEngineQueryBuilder.setQuery(query);
         }
@@ -548,13 +546,12 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         if (apis == null || apis.isEmpty()) {
             return Set.of();
         }
-        //find primary owners usernames of each apis
+        // find primary owners usernames of each apis
         final List<String> apiIds = apis.stream().map(Api::getId).collect(toList());
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(executionContext, apiIds);
-        Set<String> apiWithoutPo = apiIds
-            .stream()
-            .filter(apiId -> !primaryOwners.containsKey(apiId))
-            .collect(toSet());
+        Set<String> apiWithoutPo = apiIds.stream()
+                .filter(apiId -> !primaryOwners.containsKey(apiId))
+                .collect(toSet());
         Stream<Api> streamApis = apis.stream();
         if (!apiWithoutPo.isEmpty()) {
             String apisAsString = String.join(" / ", apiWithoutPo);
@@ -565,29 +562,23 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             streamApis = streamApis.filter(api -> !apiWithoutPo.contains(api.getId()));
         }
         return streamApis
-            .map(publicApi ->
-                genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId()), true, true, true)
-            )
-            .collect(Collectors.toSet());
+                .map(publicApi -> genericApiMapper.toGenericApi(
+                        executionContext, publicApi, primaryOwners.get(publicApi.getId()), true, true, true))
+                .collect(Collectors.toSet());
     }
 
     private GenericApiEntity enrichFederatedApi(GenericApiEntity genericApi) {
         try {
-            if (
-                genericApi instanceof FederatedApiEntity fede &&
-                fede.getOriginContext() != null &&
-                fede.getOriginContext().integrationName() == null
-            ) {
+            if (genericApi instanceof FederatedApiEntity fede
+                    && fede.getOriginContext() != null
+                    && fede.getOriginContext().integrationName() == null) {
                 integrationRepository
-                    .findByIntegrationId(fede.getOriginContext().integrationId())
-                    .map(integration ->
-                        new OriginContext.Integration(
-                            fede.getOriginContext().integrationId(),
-                            integration.getName(),
-                            integration.getProvider()
-                        )
-                    )
-                    .ifPresent(fede::setOriginContext);
+                        .findByIntegrationId(fede.getOriginContext().integrationId())
+                        .map(integration -> new OriginContext.Integration(
+                                fede.getOriginContext().integrationId(),
+                                integration.getName(),
+                                integration.getProvider()))
+                        .ifPresent(fede::setOriginContext);
             }
         } catch (TechnicalException e) {
             log.error("Impossible to find integrations", e);

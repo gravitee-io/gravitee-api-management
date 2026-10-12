@@ -65,14 +65,13 @@ class AuthzPolicySynchronizerScopeTest {
     @BeforeEach
     void setUp() {
         synchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                fetcher,
+                new AuthzPolicyMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(deployer);
@@ -86,20 +85,23 @@ class AuthzPolicySynchronizerScopeTest {
     @Test
     void routes_mixed_scope_batch_end_to_end() throws InterruptedException {
         Event evtA = event(
-            "evt-a",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"p-a\",\"name\":\"A\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":[\"api-a\"]}"
-        );
+                "evt-a",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"p-a\",\"name\":\"A\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":[\"api-a\"]}");
         Event evtB = event(
-            "evt-b",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"p-b\",\"name\":\"B\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":[\"*\"]}"
-        );
+                "evt-b",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"p-b\",\"name\":\"B\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":[\"*\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(evtA, evtB)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
         verify(deployer, times(2)).deploy(captor.capture());
 
         List<AuthzPolicyReactorDeployable> deployables = captor.getAllValues();
@@ -113,21 +115,29 @@ class AuthzPolicySynchronizerScopeTest {
     void unpublish_without_targetPdpIds_falls_back_to_last_placement_for_eviction() throws InterruptedException {
         // Cycle 1: deploy the policy to scope "api-a" — the synchronizer records the placement.
         Event publish = event(
-            "evt-pub",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"p-1\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":[\"api-a\"]}"
-        );
+                "evt-pub",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"p-1\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":[\"api-a\"]}");
         // Cycle 2: the UNPUBLISH carries no targetPdpIds (e.g. the PDP was already deleted), so eviction
         // must fall back to the recorded placement instead of removing from an empty scope set (orphan).
         Event unpublish = event("evt-unpub", EventType.UNPUBLISH_AUTHZ_POLICY, "{\"id\":\"p-1\",\"kind\":\"GLOBAL\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.just(List.of(publish)))
-            .thenReturn(Flowable.just(List.of(unpublish)));
+                .thenReturn(Flowable.just(List.of(publish)))
+                .thenReturn(Flowable.just(List.of(unpublish)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
         verify(deployer).undeploy(captor.capture());
         assertThat(captor.getValue().targetPdpIds()).isEqualTo(Set.of("api-a"));
     }

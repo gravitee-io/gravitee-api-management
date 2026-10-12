@@ -35,22 +35,18 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
         // Evict the dropped scopes (computed by the synchronizer) before re-staging the new targets.
         Set<String> removed = deployable.removedTargetPdpIds();
         Completable eviction = removed == null || removed.isEmpty()
-            ? Completable.complete()
-            : enginePort.removePolicy(deployable.environmentId(), deployable.docId(), removed);
-        return eviction
-            .andThen(
-                enginePort.addOrUpdatePolicy(
-                    deployable.environmentId(),
-                    deployable.docId(),
-                    deployable.name(),
-                    deployable.policyText(),
-                    deployable.targetPdpIds(),
-                    deployable.updatedAt(),
-                    deployable.revision()
-                )
-            )
-            .doOnComplete(() -> log.debug("Authz policy '{}' staged for next commit", deployable.docId()))
-            .doOnError(e -> log.warn("Failed to stage authz policy '{}': {}", deployable.docId(), e.getMessage()));
+                ? Completable.complete()
+                : enginePort.removePolicy(deployable.environmentId(), deployable.docId(), removed);
+        return eviction.andThen(enginePort.addOrUpdatePolicy(
+                        deployable.environmentId(),
+                        deployable.docId(),
+                        deployable.name(),
+                        deployable.policyText(),
+                        deployable.targetPdpIds(),
+                        deployable.updatedAt(),
+                        deployable.revision()))
+                .doOnComplete(() -> log.debug("Authz policy '{}' staged for next commit", deployable.docId()))
+                .doOnError(e -> log.warn("Failed to stage authz policy '{}': {}", deployable.docId(), e.getMessage()));
     }
 
     @Override
@@ -61,9 +57,11 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
     @Override
     public Completable undeploy(AuthzPolicyReactorDeployable deployable) {
         return enginePort
-            .removePolicy(deployable.environmentId(), deployable.docId(), deployable.targetPdpIds())
-            .doOnComplete(() -> log.debug("Authz policy '{}' staged for removal on next commit", deployable.docId()))
-            .doOnError(e -> log.warn("Failed to stage authz policy '{}' removal: {}", deployable.docId(), e.getMessage()));
+                .removePolicy(deployable.environmentId(), deployable.docId(), deployable.targetPdpIds())
+                .doOnComplete(
+                        () -> log.debug("Authz policy '{}' staged for removal on next commit", deployable.docId()))
+                .doOnError(e ->
+                        log.warn("Failed to stage authz policy '{}' removal: {}", deployable.docId(), e.getMessage()));
     }
 
     @Override

@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.theme.ThemeType;
-import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ThemeService;
@@ -58,14 +57,12 @@ public class ThemeResource extends AbstractResource {
             throw new ThemeTypeNotSupportedException();
         }
         var result = getCurrentThemeUseCase
-            .execute(
-                GetCurrentThemeUseCase.Input.builder()
-                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(themeType.name()))
-                    .executionContext(GraviteeContext.getExecutionContext())
-                    .portalId(portalId != null ? PortalId.of(portalId) : null)
-                    .build()
-            )
-            .result();
+                .execute(GetCurrentThemeUseCase.Input.builder()
+                        .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(themeType.name()))
+                        .executionContext(GraviteeContext.getExecutionContext())
+                        .portalId(portalId != null ? PortalId.of(portalId) : null)
+                        .build())
+                .result();
 
         String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), result.getId());
         return Response.ok(themeMapper.convert(result, themeURL)).build();
@@ -90,7 +87,8 @@ public class ThemeResource extends AbstractResource {
     @GET
     @Path("{themeId}/backgroundImage")
     public Response getBackgroundImage(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), id), request);
+        return this.buildPictureResponse(
+                themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), id), request);
     }
 
     @GET
@@ -105,7 +103,8 @@ public class ThemeResource extends AbstractResource {
         }
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl()))
+                    .build();
         }
 
         CacheControl cc = new CacheControl();
@@ -127,6 +126,11 @@ public class ThemeResource extends AbstractResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response.ok().entity(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+        return Response.ok()
+                .entity(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 }

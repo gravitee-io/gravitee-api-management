@@ -42,15 +42,19 @@ class CreateOrUpdateDictionaryUseCaseTest {
 
     @Test
     void should_create_when_dictionary_does_not_exist() {
-        var dictionary = Dictionary.builder().hrid("my-hrid").name("test").type(DictionaryType.MANUAL).build();
+        var dictionary = Dictionary.builder()
+                .hrid("my-hrid")
+                .name("test")
+                .type(DictionaryType.MANUAL)
+                .build();
         var created = DictionaryEntity.builder()
-            .id("new-id")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("new-id")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
         var deployed = DictionaryEntity.builder()
-            .id("new-id")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("new-id")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
 
         when(domainService.findById(executionContext, "new-id")).thenReturn(Optional.empty());
         when(domainService.create(executionContext, dictionary)).thenReturn(created);
@@ -65,19 +69,23 @@ class CreateOrUpdateDictionaryUseCaseTest {
 
     @Test
     void should_update_when_dictionary_already_exists() {
-        var dictionary = Dictionary.builder().id("existing-id").name("test").type(DictionaryType.MANUAL).build();
+        var dictionary = Dictionary.builder()
+                .id("existing-id")
+                .name("test")
+                .type(DictionaryType.MANUAL)
+                .build();
         var existing = DictionaryEntity.builder()
-            .id("existing-id")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("existing-id")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
         var updated = DictionaryEntity.builder()
-            .id("existing-id")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("existing-id")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
         var deployed = DictionaryEntity.builder()
-            .id("existing-id")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("existing-id")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
 
         when(domainService.findById(executionContext, "existing-id")).thenReturn(Optional.of(existing));
         when(domainService.update(executionContext, "existing-id", dictionary)).thenReturn(updated);
@@ -92,17 +100,21 @@ class CreateOrUpdateDictionaryUseCaseTest {
 
     @Test
     void should_create_new_dictionary_when_hrid_changes() {
-        var dictionary = Dictionary.builder().hrid("new-hrid").name("test").type(DictionaryType.MANUAL).build();
+        var dictionary = Dictionary.builder()
+                .hrid("new-hrid")
+                .name("test")
+                .type(DictionaryType.MANUAL)
+                .build();
         var created = DictionaryEntity.builder()
-            .id("new-id")
-            .key("new-hrid")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("new-id")
+                .key("new-hrid")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
         var deployed = DictionaryEntity.builder()
-            .id("new-id")
-            .key("new-hrid")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("new-id")
+                .key("new-hrid")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
 
         when(domainService.findById(executionContext, "new-id")).thenReturn(Optional.empty());
         when(domainService.create(executionContext, dictionary)).thenReturn(created);

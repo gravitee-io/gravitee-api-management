@@ -40,7 +40,8 @@ public interface KafkaPortRangeCrudService {
      * @param excludePlanId plan id to exclude from the check (the plan being updated); may be
      *                      {@code null} when creating a new plan.
      */
-    List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId);
+    List<KafkaPortRange> findConflicting(
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId);
 
     /**
      * Same as {@link #findConflicting} but acquires a row-level lock (JDBC {@code SELECT ... FOR
@@ -53,10 +54,5 @@ public interface KafkaPortRangeCrudService {
      * details.</p>
      */
     List<KafkaPortRange> findConflictingForUpdate(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    );
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId);
 }

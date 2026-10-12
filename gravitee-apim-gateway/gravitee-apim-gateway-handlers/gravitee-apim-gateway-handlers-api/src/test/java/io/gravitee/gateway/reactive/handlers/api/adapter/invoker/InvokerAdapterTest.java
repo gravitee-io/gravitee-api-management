@@ -93,7 +93,8 @@ class InvokerAdapterTest {
     void shouldCompleteAndSetChunkedBody() {
         when(ctx.response()).thenReturn(response);
 
-        // Simulate the ConnectionHandlerAdapter behavior by completing the nextEmitter (this will complete the InvokerAdapter execution).
+        // Simulate the ConnectionHandlerAdapter behavior by completing the nextEmitter (this will complete the
+        // InvokerAdapter execution).
         mockComplete();
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
@@ -130,20 +131,26 @@ class InvokerAdapterTest {
     void shouldInterruptWith502WhenExceptionOccurs() {
         when(ctx.response()).thenReturn(response);
         when(ctx.metrics()).thenReturn(metrics);
-        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
-            Completable.error(new InterruptionFailureException(i.getArgument(0)))
-        );
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+                .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
-            .when(invoker)
-            .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+                .when(invoker)
+                .invoke(
+                        any(io.gravitee.gateway.api.ExecutionContext.class),
+                        any(ReadWriteStream.class),
+                        any(Handler.class));
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertError(e -> {
             assertTrue(e instanceof InterruptionFailureException);
-            assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
-            assertEquals(GATEWAY_CLIENT_CONNECTION_ERROR, ((InterruptionFailureException) e).getExecutionFailure().key());
+            assertEquals(
+                    HttpStatusCode.BAD_GATEWAY_502,
+                    ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+            assertEquals(
+                    GATEWAY_CLIENT_CONNECTION_ERROR,
+                    ((InterruptionFailureException) e).getExecutionFailure().key());
             return true;
         });
         verify(response).chunks(Flowable.empty());
@@ -153,34 +160,34 @@ class InvokerAdapterTest {
     @Test
     void shouldInterruptAndPropagateFailureWhenInterruptionFailureExceptionOccurs() {
         when(ctx.response()).thenReturn(response);
-        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
-            Completable.error(new InterruptionFailureException(i.getArgument(0)))
-        );
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+                .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
         final String failureContentType = "text/plain";
         final String failureKey = "INTERNAL_ERROR";
 
-        final InterruptionFailureException interruptionFailureException = new InterruptionFailureException(
-            new ExecutionFailure(INTERNAL_SERVER_ERROR_500).contentType(failureContentType).message(MOCK_EXCEPTION_MESSAGE).key(failureKey)
-        );
+        final InterruptionFailureException interruptionFailureException =
+                new InterruptionFailureException(new ExecutionFailure(INTERNAL_SERVER_ERROR_500)
+                        .contentType(failureContentType)
+                        .message(MOCK_EXCEPTION_MESSAGE)
+                        .key(failureKey));
 
-        final ArgumentCaptor<ConnectionHandlerAdapter> connectionHandlerAdapterCaptor = ArgumentCaptor.forClass(
-            ConnectionHandlerAdapter.class
-        );
+        final ArgumentCaptor<ConnectionHandlerAdapter> connectionHandlerAdapterCaptor =
+                ArgumentCaptor.forClass(ConnectionHandlerAdapter.class);
 
         doNothing()
-            .when(invoker)
-            .invoke(
-                any(io.gravitee.gateway.api.ExecutionContext.class),
-                any(ReadWriteStream.class),
-                connectionHandlerAdapterCaptor.capture()
-            );
+                .when(invoker)
+                .invoke(
+                        any(io.gravitee.gateway.api.ExecutionContext.class),
+                        any(ReadWriteStream.class),
+                        connectionHandlerAdapterCaptor.capture());
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         // Simulate an InterruptionFailureException from the connection handler.
         final ConnectionHandlerAdapter connectionHandlerAdapter = connectionHandlerAdapterCaptor.getValue();
-        final CompletableEmitter nextEmitter = (CompletableEmitter) ReflectionTestUtils.getField(connectionHandlerAdapter, "nextEmitter");
+        final CompletableEmitter nextEmitter =
+                (CompletableEmitter) ReflectionTestUtils.getField(connectionHandlerAdapter, "nextEmitter");
         nextEmitter.tryOnError(interruptionFailureException);
 
         obs.assertError(e -> {
@@ -199,7 +206,8 @@ class InvokerAdapterTest {
     void shouldRestoreContextWhenInvokerExecutionCompleted() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -219,7 +227,8 @@ class InvokerAdapterTest {
     void shouldRestoreContextAndSetStatus499WhenInvokerExecutionCancelled() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -242,7 +251,8 @@ class InvokerAdapterTest {
     void shouldSetClientAbortedDuringRequestWhenCancelledBeforeRequestEnded() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -264,7 +274,8 @@ class InvokerAdapterTest {
     void shouldNotOverwriteAlreadyClassifiedClientCloseOnCancel() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
@@ -286,14 +297,16 @@ class InvokerAdapterTest {
     void shouldNotOverwriteWhenFailureAlreadySetOnCancel() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
         when(response.status()).thenReturn(0);
         when(ctx.metrics()).thenReturn(metrics);
         // interruptWith sets failure but leaves errorKey null; the dispose fallback must not overwrite it.
-        when(metrics.getFailure()).thenReturn(new Diagnostic("GATEWAY_OAUTH2_ACCESS_DENIED", "denied", "SECURITY", "oauth2"));
+        when(metrics.getFailure())
+                .thenReturn(new Diagnostic("GATEWAY_OAUTH2_ACCESS_DENIED", "denied", "SECURITY", "oauth2"));
 
         final TestObserver<Void> obs = cut.invoke(ctx).test(true);
 
@@ -308,24 +321,29 @@ class InvokerAdapterTest {
     void shouldRestoreContextWhenInvokerExecutionError() {
         final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT))
+                .thenReturn(adaptedExecutionContext);
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
         when(ctx.metrics()).thenReturn(metrics);
-        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
-            Completable.error(new InterruptionFailureException(i.getArgument(0)))
-        );
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+                .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
-            .when(invoker)
-            .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+                .when(invoker)
+                .invoke(
+                        any(io.gravitee.gateway.api.ExecutionContext.class),
+                        any(ReadWriteStream.class),
+                        any(Handler.class));
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertError(e -> {
             assertTrue(e instanceof InterruptionFailureException);
-            assertEquals(HttpStatusCode.BAD_GATEWAY_502, ((InterruptionFailureException) e).getExecutionFailure().statusCode());
+            assertEquals(
+                    HttpStatusCode.BAD_GATEWAY_502,
+                    ((InterruptionFailureException) e).getExecutionFailure().statusCode());
             return true;
         });
         verify(adaptedExecutionContext).restore();
@@ -334,16 +352,16 @@ class InvokerAdapterTest {
 
     private void mockComplete() {
         doAnswer(invocation -> {
-            ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-            final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                ConnectionHandlerAdapter.class,
-                "nextEmitter",
-                connectionHandlerAdapter
-            );
-            ((CompletableEmitter) nextEmitter.get()).onComplete();
-            return null;
-        })
-            .when(invoker)
-            .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+                    ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+                    final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                            ConnectionHandlerAdapter.class, "nextEmitter", connectionHandlerAdapter);
+                    ((CompletableEmitter) nextEmitter.get()).onComplete();
+                    return null;
+                })
+                .when(invoker)
+                .invoke(
+                        any(io.gravitee.gateway.api.ExecutionContext.class),
+                        any(ReadWriteStream.class),
+                        any(Handler.class));
     }
 }

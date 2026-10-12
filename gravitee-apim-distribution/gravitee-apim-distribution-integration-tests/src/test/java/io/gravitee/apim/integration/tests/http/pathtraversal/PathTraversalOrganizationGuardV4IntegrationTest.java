@@ -74,28 +74,32 @@ import org.junit.jupiter.api.Test;
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @DeployOrganization(
-    organization = "/organizations/organization-reject-dot-segments.json",
-    apis = { "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" }
-)
+        organization = "/organizations/organization-reject-dot-segments.json",
+        apis = {"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
 class PathTraversalOrganizationGuardV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
-        policies.put("groovy", PolicyBuilder.build("groovy", GroovyPolicy.class, GroovyPolicyConfiguration.class, GroovyInitializer.class));
         policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
+                "groovy",
+                PolicyBuilder.build(
+                        "groovy", GroovyPolicy.class, GroovyPolicyConfiguration.class, GroovyInitializer.class));
+        policies.put(
+                "api-key",
+                PolicyBuilder.build(
+                        "api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class));
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
@@ -130,7 +134,8 @@ class PathTraversalOrganizationGuardV4IntegrationTest extends AbstractGatewayTes
     }
 
     @Test
-    void should_reject_encoded_dot_segments_before_the_backend_is_called(HttpClient httpClient) throws InterruptedException {
+    void should_reject_encoded_dot_segments_before_the_backend_is_called(HttpClient httpClient)
+            throws InterruptedException {
         wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
         assertStatus(httpClient, "/alpha/api/%2e%2e/%2e%2e/beta/api/echo", 400);
@@ -139,7 +144,8 @@ class PathTraversalOrganizationGuardV4IntegrationTest extends AbstractGatewayTes
     }
 
     @Test
-    void should_reject_rather_than_route_to_the_api_the_resolved_path_designates(HttpClient httpClient) throws InterruptedException {
+    void should_reject_rather_than_route_to_the_api_the_resolved_path_designates(HttpClient httpClient)
+            throws InterruptedException {
         wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
         // Once resolved the path designates beta, whose plan would answer 401 without an api key.
@@ -150,17 +156,18 @@ class PathTraversalOrganizationGuardV4IntegrationTest extends AbstractGatewayTes
         assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
     }
 
-    private void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus) throws InterruptedException {
+    private void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus)
+            throws InterruptedException {
         httpClient
-            .rxRequest(HttpMethod.GET, rawPath)
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(expectedStatus);
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, rawPath)
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(expectedStatus);
+                    return true;
+                })
+                .assertNoErrors();
     }
 }

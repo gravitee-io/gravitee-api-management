@@ -69,8 +69,8 @@ class PortalCategoryCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.create(category));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to create a portal category");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to create a portal category");
         }
     }
 
@@ -98,8 +98,8 @@ class PortalCategoryCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.update(category));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to update portal category: " + category.getId());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to update portal category: " + category.getId());
         }
     }
 
@@ -121,8 +121,8 @@ class PortalCategoryCrudServiceImplTest {
             doThrow(new TechnicalException("boom")).when(repository).delete(id.toString());
 
             assertThatThrownBy(() -> service.delete(id))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to delete portal category: " + id);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to delete portal category: " + id);
         }
     }
 
@@ -134,7 +134,8 @@ class PortalCategoryCrudServiceImplTest {
         void should_return_portal_category_and_adapt_it() {
             var id = PortalCategoryFixtures.PORTAL_CATEGORY_ID;
             var category = PortalCategoryFixtures.aPortalCategory();
-            when(repository.findById(id.toString())).thenReturn(Optional.of(PortalCategoryAdapter.INSTANCE.toRepository(category)));
+            when(repository.findById(id.toString()))
+                    .thenReturn(Optional.of(PortalCategoryAdapter.INSTANCE.toRepository(category)));
 
             var result = service.get(id);
 
@@ -158,8 +159,8 @@ class PortalCategoryCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.get(id));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find portal category: " + id);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find portal category: " + id);
         }
     }
 }

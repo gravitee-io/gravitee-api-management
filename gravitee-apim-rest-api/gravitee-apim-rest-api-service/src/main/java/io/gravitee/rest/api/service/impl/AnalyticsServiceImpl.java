@@ -121,15 +121,16 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public StatsAnalytics execute(final ExecutionContext executionContext, final StatsQuery query) {
         try {
             final StatsResponse response = analyticsRepository.query(
-                executionContext.getQueryContext(),
-                QueryBuilders.stats()
-                    .query(query.getQuery())
-                    .terms(query.getTerms())
-                    .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
-                    .root(query.getRootField(), query.getRootIdentifier())
-                    .field(query.getField())
-                    .build()
-            );
+                    executionContext.getQueryContext(),
+                    QueryBuilders.stats()
+                            .query(query.getQuery())
+                            .terms(query.getTerms())
+                            .timeRange(
+                                    DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                                    IntervalBuilder.interval(query.getInterval()))
+                            .root(query.getRootField(), query.getRootIdentifier())
+                            .field(query.getField())
+                            .build());
 
             return response != null ? convert(response, query) : null;
         } catch (AnalyticsException ae) {
@@ -141,14 +142,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public HitsAnalytics execute(final ExecutionContext executionContext, CountQuery query) {
         try {
             CountResponse response = analyticsRepository.query(
-                executionContext.getQueryContext(),
-                QueryBuilders.count()
-                    .query(query.getQuery())
-                    .terms(query.getTerms())
-                    .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
-                    .root(query.getRootField(), query.getRootIdentifier())
-                    .build()
-            );
+                    executionContext.getQueryContext(),
+                    QueryBuilders.count()
+                            .query(query.getQuery())
+                            .terms(query.getTerms())
+                            .timeRange(
+                                    DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                                    IntervalBuilder.interval(query.getInterval()))
+                            .root(query.getRootField(), query.getRootIdentifier())
+                            .build());
 
             return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
@@ -160,21 +162,21 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public HistogramAnalytics execute(ExecutionContext executionContext, DateHistogramQuery query) {
         try {
             DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
-                .query(query.getQuery())
-                .terms(query.getTerms())
-                .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
-                .root(query.getRootField(), query.getRootIdentifier());
+                    .query(query.getQuery())
+                    .terms(query.getTerms())
+                    .timeRange(
+                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                            IntervalBuilder.interval(query.getInterval()))
+                    .root(query.getRootField(), query.getRootIdentifier());
 
             if (query.getAggregations() != null) {
-                query
-                    .getAggregations()
-                    .stream()
-                    .forEach(aggregation ->
-                        queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
-                    );
+                query.getAggregations().stream()
+                        .forEach(aggregation -> queryBuilder.aggregation(
+                                AggregationType.valueOf(aggregation.type().name()), aggregation.field()));
             }
 
-            DateHistogramResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
+            DateHistogramResponse response =
+                    analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
             return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -185,11 +187,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public TopHitsAnalytics execute(ExecutionContext executionContext, GroupByQuery query) {
         try {
             GroupByQueryBuilder queryBuilder = QueryBuilders.groupBy()
-                .query(query.getQuery())
-                .terms(query.getTerms())
-                .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
-                .root(query.getRootField(), query.getRootIdentifier())
-                .field(query.getField());
+                    .query(query.getQuery())
+                    .terms(query.getTerms())
+                    .timeRange(
+                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                            IntervalBuilder.interval(query.getInterval()))
+                    .root(query.getRootField(), query.getRootIdentifier())
+                    .field(query.getField());
 
             if (query.getGroups() != null) {
                 query.getGroups().forEach(queryBuilder::range);
@@ -197,16 +201,16 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             if (query.getOrder() != null) {
                 final GroupByQuery.Order order = query.getOrder();
-                queryBuilder.sort(
-                    SortBuilder.on(
+                queryBuilder.sort(SortBuilder.on(
                         order.getField(),
                         order.isOrder() ? Order.ASC : Order.DESC,
-                        (order.getType() == null) ? SortType.AVG : SortType.valueOf(order.getType().toUpperCase())
-                    )
-                );
+                        (order.getType() == null)
+                                ? SortType.AVG
+                                : SortType.valueOf(order.getType().toUpperCase())));
             }
 
-            GroupByResponse response = analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
+            GroupByResponse response =
+                    analyticsRepository.query(executionContext.getQueryContext(), queryBuilder.build());
             return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -225,7 +229,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             List<Bucket> buckets = new ArrayList<>(histogramResponse.values().size());
             for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
-                Bucket analyticsBucket = convertBucket(executionContext, histogramResponse.timestamps(), from, interval, bucket);
+                Bucket analyticsBucket =
+                        convertBucket(executionContext, histogramResponse.timestamps(), from, interval, bucket);
                 buckets.add(analyticsBucket);
             }
             analytics.setValues(buckets);
@@ -234,12 +239,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private Bucket convertBucket(
-        ExecutionContext executionContext,
-        List<Long> timestamps,
-        long from,
-        long interval,
-        io.gravitee.repository.analytics.query.response.histogram.Bucket bucket
-    ) {
+            ExecutionContext executionContext,
+            List<Long> timestamps,
+            long from,
+            long interval,
+            io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
         Bucket analyticsBucket = new Bucket();
         analyticsBucket.setName(bucket.name());
         analyticsBucket.setField(bucket.field());
@@ -253,28 +257,22 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (FIELD_APPLICATION.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket
-                .data()
-                .keySet()
-                .forEach(app -> metadata.put(app, getApplicationMetadata(executionContext, app)));
+            bucket.data().keySet().forEach(app -> metadata.put(app, getApplicationMetadata(executionContext, app)));
 
             analyticsBucket.setMetadata(metadata);
         } else if (FIELD_API.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket
-                .data()
-                .keySet()
-                .forEach(api -> metadata.put(api, getAPIMetadata(executionContext, api)));
+            bucket.data().keySet().forEach(api -> metadata.put(api, getAPIMetadata(executionContext, api)));
 
             analyticsBucket.setMetadata(metadata);
         } else if (FIELD_TENANT.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket
-                .data()
-                .keySet()
-                .forEach(tenant -> metadata.put(tenant, getTenantMetadata(executionContext.getOrganizationId(), tenant)));
+            bucket.data()
+                    .keySet()
+                    .forEach(tenant ->
+                            metadata.put(tenant, getTenantMetadata(executionContext.getOrganizationId(), tenant)));
 
             analyticsBucket.setMetadata(metadata);
         }
@@ -326,26 +324,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         final String fieldName = groupByResponse.getField();
 
         // Set results
-        topHitsAnalytics.setValues(
-            groupByResponse
-                .values()
-                .stream()
-                .collect(
-                    Collectors.toMap(
+        topHitsAnalytics.setValues(groupByResponse.values().stream()
+                .collect(Collectors.toMap(
                         // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
-                        // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
-                        bucket ->
-                            (UNKNOWN_SERVICE.equals(bucket.name()) && !fieldName.startsWith(CUSTOM_FIELD_NAME))
+                        // because javascript does not preserve the order, we have to convert all "1" keys to a non int
+                        // value
+                        bucket -> (UNKNOWN_SERVICE.equals(bucket.name()) && !fieldName.startsWith(CUSTOM_FIELD_NAME))
                                 ? UNKNOWN_SERVICE_MAPPED
                                 : bucket.name(),
                         GroupByResponse.Bucket::value,
                         (v1, v2) -> {
                             throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
                         },
-                        LinkedHashMap::new
-                    )
-                )
-        );
+                        LinkedHashMap::new)));
 
         if (fieldName != null && !fieldName.isEmpty()) {
             // Prepare metadata
@@ -392,7 +383,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
+                GenericApiEntity genericApiEntity =
+                        apiSearchService.findGenericById(executionContext, api, false, false, false);
                 metadata.put(METADATA_NAME, genericApiEntity.getName());
                 metadata.put(METADATA_VERSION, genericApiEntity.getApiVersion());
                 if (ApiLifecycleState.ARCHIVED.equals(genericApiEntity.getLifecycleState())) {
@@ -451,7 +443,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            TenantEntity tenantEntity = tenantService.findByKeyAndReference(tenant, organizationId, TenantReferenceType.ORGANIZATION);
+            TenantEntity tenantEntity =
+                    tenantService.findByKeyAndReference(tenant, organizationId, TenantReferenceType.ORGANIZATION);
             metadata.put(METADATA_NAME, tenantEntity.getName());
         } catch (TenantNotFoundException tnfe) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

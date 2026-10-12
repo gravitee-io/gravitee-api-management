@@ -49,7 +49,8 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     public Optional<Environment> findById(String environmentId) throws TechnicalException {
         log.debug("Find environment by ID [{}]", environmentId);
 
-        final EnvironmentMongo environment = internalEnvironmentRepo.findById(environmentId).orElse(null);
+        final EnvironmentMongo environment =
+                internalEnvironmentRepo.findById(environmentId).orElse(null);
 
         log.debug("Find environment by ID [{}] - Done", environment);
         return Optional.ofNullable(mapper.map(environment));
@@ -75,14 +76,15 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
             throw new IllegalStateException("Environment to update must have a name");
         }
 
-        final EnvironmentMongo environmentMongo = internalEnvironmentRepo.findById(environment.getId()).orElse(null);
+        final EnvironmentMongo environmentMongo =
+                internalEnvironmentRepo.findById(environment.getId()).orElse(null);
 
         if (environmentMongo == null) {
             throw new IllegalStateException(String.format("No environment found with id [%s]", environment.getId()));
         }
 
         try {
-            //Update
+            // Update
             environmentMongo.setName(environment.getName());
             environmentMongo.setDescription(environment.getDescription());
             environmentMongo.setHrids(environment.getHrids());
@@ -109,23 +111,22 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     @Override
     public Set<Environment> findAll() throws TechnicalException {
         final List<EnvironmentMongo> environments = internalEnvironmentRepo.findAll();
-        return environments
-            .stream()
-            .map(environmentMongo -> mapper.map(environmentMongo))
-            .collect(Collectors.toSet());
+        return environments.stream()
+                .map(environmentMongo -> mapper.map(environmentMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
         final Set<EnvironmentMongo> environments = internalEnvironmentRepo.findByOrganizationId(organizationId);
-        return environments
-            .stream()
-            .map(environmentMongo -> mapper.map(environmentMongo))
-            .collect(Collectors.toSet());
+        return environments.stream()
+                .map(environmentMongo -> mapper.map(environmentMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
-    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids) throws TechnicalException {
+    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids)
+            throws TechnicalException {
         Set<EnvironmentMongo> environments = new HashSet<>();
 
         if (!CollectionUtils.isEmpty(organizations) && !CollectionUtils.isEmpty(hrids)) {
@@ -136,32 +137,27 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
             environments = internalEnvironmentRepo.findByHrids(hrids);
         }
 
-        return environments
-            .stream()
-            .map(environmentMongo -> mapper.map(environmentMongo))
-            .collect(Collectors.toSet());
+        return environments.stream()
+                .map(environmentMongo -> mapper.map(environmentMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
         log.debug("Find environment by cockpit ID [{}]", cockpitId);
 
-        return internalEnvironmentRepo
-            .findByCockpitId(cockpitId)
-            .map(environment -> {
-                log.debug("Find environment by cockpit ID [{}] - Done", environment);
-                return mapper.map(environment);
-            });
+        return internalEnvironmentRepo.findByCockpitId(cockpitId).map(environment -> {
+            log.debug("Find environment by cockpit ID [{}] - Done", environment);
+            return mapper.map(environment);
+        });
     }
 
     @Override
     public Set<String> findOrganizationIdsByEnvironments(final Set<String> ids) throws TechnicalException {
         log.debug("Find organization ids for environments [{}]", ids);
 
-        return internalEnvironmentRepo
-            .findOrganizationIdsByEnvironments(ids)
-            .stream()
-            .map(EnvironmentMongo::getOrganizationId)
-            .collect(Collectors.toSet());
+        return internalEnvironmentRepo.findOrganizationIdsByEnvironments(ids).stream()
+                .map(EnvironmentMongo::getOrganizationId)
+                .collect(Collectors.toSet());
     }
 }

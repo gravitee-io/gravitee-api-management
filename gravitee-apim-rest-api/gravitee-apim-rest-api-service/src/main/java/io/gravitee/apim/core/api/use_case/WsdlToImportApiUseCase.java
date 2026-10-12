@@ -33,37 +33,39 @@ public class WsdlToImportApiUseCase {
 
     public sealed interface Input permits Input.Inline, Input.Url {
         boolean withDocumentation();
+
         boolean withOASValidationPolicy();
+
         List<String> withPolicies();
+
         AuditInfo auditInfo();
 
         record Inline(
-            String payload,
-            boolean withDocumentation,
-            boolean withOASValidationPolicy,
-            List<String> withPolicies,
-            AuditInfo auditInfo
-        ) implements Input {}
+                String payload,
+                boolean withDocumentation,
+                boolean withOASValidationPolicy,
+                List<String> withPolicies,
+                AuditInfo auditInfo)
+                implements Input {}
 
         record Url(
-            String url,
-            boolean withDocumentation,
-            boolean withOASValidationPolicy,
-            List<String> withPolicies,
-            AuditInfo auditInfo
-        ) implements Input {}
+                String url,
+                boolean withDocumentation,
+                boolean withOASValidationPolicy,
+                List<String> withPolicies,
+                AuditInfo auditInfo)
+                implements Input {}
 
         static Input of(
-            String payload,
-            boolean isUrl,
-            boolean withDocumentation,
-            boolean withOASValidationPolicy,
-            List<String> withPolicies,
-            AuditInfo auditInfo
-        ) {
+                String payload,
+                boolean isUrl,
+                boolean withDocumentation,
+                boolean withOASValidationPolicy,
+                List<String> withPolicies,
+                AuditInfo auditInfo) {
             return isUrl
-                ? new Url(payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo)
-                : new Inline(payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo);
+                    ? new Url(payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo)
+                    : new Inline(payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo);
         }
     }
 
@@ -83,20 +85,19 @@ public class WsdlToImportApiUseCase {
         var policies = addDependentPolicies(input.withPolicies());
 
         var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
-            .payload(openApiYaml)
-            .format(ImportSwaggerDescriptorEntity.Format.WSDL)
-            .withDocumentation(input.withDocumentation())
-            .withPolicies(policies)
-            .skipFlows(policies != null && policies.isEmpty())
-            .build();
+                .payload(openApiYaml)
+                .format(ImportSwaggerDescriptorEntity.Format.WSDL)
+                .withDocumentation(input.withDocumentation())
+                .withPolicies(policies)
+                .skipFlows(policies != null && policies.isEmpty())
+                .build();
 
         var importDefinition = oaiDomainService.convert(
-            input.auditInfo().organizationId(),
-            input.auditInfo().environmentId(),
-            importSwaggerDescriptor,
-            input.withDocumentation(),
-            input.withOASValidationPolicy()
-        );
+                input.auditInfo().organizationId(),
+                input.auditInfo().environmentId(),
+                importSwaggerDescriptor,
+                input.withDocumentation(),
+                input.withOASValidationPolicy());
 
         if (importDefinition == null) {
             throw new SwaggerDescriptorException("Failed to convert OpenAPI specification to API definition");
@@ -110,6 +111,8 @@ public class WsdlToImportApiUseCase {
         if (policies == null || !policies.contains("rest-to-soap")) {
             return policies;
         }
-        return Stream.concat(policies.stream(), Stream.of("xml-json")).distinct().toList();
+        return Stream.concat(policies.stream(), Stream.of("xml-json"))
+                .distinct()
+                .toList();
     }
 }

@@ -50,16 +50,21 @@ public class InstallationResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get installation information",
-        description = "User must have the ORGANIZATION_INSTALLATION[READ] permission on the platform"
-    )
+            summary = "Get installation information",
+            description = "User must have the ORGANIZATION_INSTALLATION[READ] permission on the platform")
     @ApiResponse(
-        responseCode = "200",
-        description = "Installation definition",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = InstallationEntity.class))
-    )
+            responseCode = "200",
+            description = "Installation definition",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = InstallationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_INSTALLATION, acls = { READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ORGANIZATION_INSTALLATION,
+                acls = {READ})
+    })
     public Response getInstallation() {
         return Response.ok(installationService.get()).build();
     }

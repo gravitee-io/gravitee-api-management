@@ -25,6 +25,7 @@ import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 public interface ApiServiceClassLoaderFactory extends PluginClassLoaderFactory<ApiServicePlugin<?, ?>> {
     @Override
     default PluginClassLoader getOrCreateClassLoader(ApiServicePlugin<?, ?> apiServicePlugin) {
-        return getOrCreateClassLoader(apiServicePlugin, apiServicePlugin.getClass().getClassLoader());
+        return getOrCreateClassLoader(
+                apiServicePlugin, apiServicePlugin.getClass().getClassLoader());
     }
 }

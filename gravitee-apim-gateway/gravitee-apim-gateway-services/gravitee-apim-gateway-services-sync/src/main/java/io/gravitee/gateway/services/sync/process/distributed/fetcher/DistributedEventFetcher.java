@@ -46,10 +46,9 @@ public class DistributedEventFetcher {
     private final int bulkItems;
 
     public DistributedEventFetcher(
-        final DistributedEventRepository distributedEventRepository,
-        final ClusterManager clusterManager,
-        final int bulkItems
-    ) {
+            final DistributedEventRepository distributedEventRepository,
+            final ClusterManager clusterManager,
+            final int bulkItems) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
         }
@@ -59,18 +58,18 @@ public class DistributedEventFetcher {
     }
 
     public Flowable<DistributedEvent> fetchLatest(
-        final Long from,
-        final Long to,
-        final DistributedEventType type,
-        final Set<DistributedSyncAction> syncActions
-    ) {
+            final Long from,
+            final Long to,
+            final DistributedEventType type,
+            final Set<DistributedSyncAction> syncActions) {
         DistributedEventCriteria distributedEventCriteria = DistributedEventCriteria.builder()
-            .clusterId(clusterManager.clusterId())
-            .from(from == null ? -1 : from - TIMEFRAME_DELAY)
-            .to(to == null ? -1 : to + TIMEFRAME_DELAY)
-            .type(type)
-            .syncActions(syncActions)
-            .build();
-        return distributedEventRepository.searchAll(distributedEventCriteria, Math.max(bulkItems, MIN_FETCH_BATCH_SIZE));
+                .clusterId(clusterManager.clusterId())
+                .from(from == null ? -1 : from - TIMEFRAME_DELAY)
+                .to(to == null ? -1 : to + TIMEFRAME_DELAY)
+                .type(type)
+                .syncActions(syncActions)
+                .build();
+        return distributedEventRepository.searchAll(
+                distributedEventCriteria, Math.max(bulkItems, MIN_FETCH_BATCH_SIZE));
     }
 }

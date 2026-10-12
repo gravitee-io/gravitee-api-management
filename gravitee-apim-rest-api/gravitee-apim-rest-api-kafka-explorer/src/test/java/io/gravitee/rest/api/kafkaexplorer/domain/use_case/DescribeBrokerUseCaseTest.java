@@ -55,20 +55,23 @@ class DescribeBrokerUseCaseTest {
     @Test
     void should_return_broker_info() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var expectedBrokerInfo = new BrokerInfo(
-            0,
-            "broker-host",
-            9092,
-            null,
-            true,
-            10,
-            20,
-            1073741824L,
-            List.of(new BrokerLogDirEntry("/bitnami/kafka/data", null, 5, 12, 524288L)),
-            List.of(new TopicConfigEntry("log.retention.hours", "168", "STATIC_BROKER_CONFIG", true, false))
-        );
+                0,
+                "broker-host",
+                9092,
+                null,
+                true,
+                10,
+                20,
+                1073741824L,
+                List.of(new BrokerLogDirEntry("/bitnami/kafka/data", null, 5, 12, 524288L)),
+                List.of(new TopicConfigEntry("log.retention.hours", "168", "STATIC_BROKER_CONFIG", true, false)));
         clusterDomainService.givenBrokerInfo(expectedBrokerInfo);
 
         var result = useCase.execute(new DescribeBrokerUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, 0));
@@ -79,12 +82,18 @@ class DescribeBrokerUseCaseTest {
     @Test
     void should_propagate_kafka_explorer_exception() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
-        clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
+        clusterDomainService.givenException(
+                new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
         assertThatThrownBy(() -> useCase.execute(new DescribeBrokerUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, 0)))
-            .isInstanceOf(KafkaExplorerException.class)
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+                .isInstanceOf(KafkaExplorerException.class)
+                .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode())
+                        .isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 }

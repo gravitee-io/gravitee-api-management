@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -80,7 +79,9 @@ public class ApplicationService_FindByOrganizationTest {
         application.setType(ApplicationType.WEB);
         application.setStatus(ApplicationStatus.ACTIVE);
         when(environmentService.findByOrganization(organizationId)).thenReturn(List.of(environment));
-        ApplicationCriteria criteria = ApplicationCriteria.builder().environmentIds(Set.of(environmentId)).build();
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
+                .environmentIds(Set.of(environmentId))
+                .build();
         when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(application.getId()));
 
         Set<String> applications = applicationService.findIdsByOrganization(organizationId);

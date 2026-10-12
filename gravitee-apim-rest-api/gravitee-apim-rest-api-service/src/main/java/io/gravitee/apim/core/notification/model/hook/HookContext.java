@@ -20,5 +20,6 @@ import java.util.Map;
 
 public interface HookContext {
     Map<HookContextEntry, String> getProperties();
+
     Hook getHook();
 }

@@ -47,10 +47,8 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
     @Override
     public Optional<AsyncJob> findById(String s) throws TechnicalException {
         log.debug("Find asyncJob by id [{}]", s);
-        Optional<AsyncJob> result = internalRepository
-            .findById(s)
-            .map(source -> mapper.map(source))
-            .map(this::handleDeadLine);
+        Optional<AsyncJob> result =
+                internalRepository.findById(s).map(source -> mapper.map(source)).map(this::handleDeadLine);
         log.debug("Find asyncJob by id [{}] - DONE", s);
         return result;
     }
@@ -70,14 +68,15 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
         }
 
         return internalRepository
-            .findById(job.getId())
-            .map(found -> {
-                log.debug("Update asyncJob [{}]", job.getId());
-                var updated = internalRepository.save(mapper.map(job));
-                log.debug("Update asyncJob [{}] - Done", updated.getId());
-                return mapper.map(updated);
-            })
-            .orElseThrow(() -> new IllegalStateException(String.format("No asyncJob found with id [%s]", job.getId())));
+                .findById(job.getId())
+                .map(found -> {
+                    log.debug("Update asyncJob [{}]", job.getId());
+                    var updated = internalRepository.save(mapper.map(job));
+                    log.debug("Update asyncJob [{}] - Done", updated.getId());
+                    return mapper.map(updated);
+                })
+                .orElseThrow(
+                        () -> new IllegalStateException(String.format("No asyncJob found with id [%s]", job.getId())));
     }
 
     @Override
@@ -89,21 +88,19 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
 
     @Override
     public Set<AsyncJob> findAll() throws TechnicalException {
-        return internalRepository
-            .findAll()
-            .stream()
-            .map(source -> mapper.map(source))
-            .map(this::handleDeadLine)
-            .collect(Collectors.toSet());
+        return internalRepository.findAll().stream()
+                .map(source -> mapper.map(source))
+                .map(this::handleDeadLine)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Optional<AsyncJob> findPendingJobFor(String sourceId) {
         return internalRepository
-            .findPendingJobFor(sourceId)
-            .map(source -> mapper.map(source))
-            .map(this::handleDeadLine)
-            .filter(not(AsyncJob::isTimedOut));
+                .findPendingJobFor(sourceId)
+                .map(source -> mapper.map(source))
+                .map(this::handleDeadLine)
+                .filter(not(AsyncJob::isTimedOut));
     }
 
     @Override
@@ -125,7 +122,9 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete integration jobs by environmentId: {}", environmentId);
         try {
-            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream().map(AsyncJobMongo::getId).toList();
+            List<String> all = internalRepository.deleteByEnvironmentId(environmentId).stream()
+                    .map(AsyncJobMongo::getId)
+                    .toList();
             log.debug("Delete integration jobs by environment - Done {}", all);
             return all;
         } catch (Exception ex) {

@@ -60,23 +60,20 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
 
     @Override
     public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
-        String environmentId,
-        PortalMenuLink.PortalMenuLinkVisibility visibility
-    ) throws TechnicalException {
+            String environmentId, PortalMenuLink.PortalMenuLinkVisibility visibility) throws TechnicalException {
         List<PortalMenuLinkMongo> results = internalPortalMenuLinkRepo.findByEnvironmentIdAndVisibilitySortByOrder(
-            environmentId,
-            visibility.name()
-        );
+                environmentId, visibility.name());
         return mapper.mapPortalMenuLinks(results);
     }
 
     @Override
-    public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) throws TechnicalException {
+    public Optional<PortalMenuLink> findByIdAndEnvironmentId(String portalMenuLinkId, String environmentId)
+            throws TechnicalException {
         log.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
 
         PortalMenuLinkMongo portalMenuLink = internalPortalMenuLinkRepo
-            .findByIdAndEnvironmentId(portalMenuLinkId, environmentId)
-            .orElse(null);
+                .findByIdAndEnvironmentId(portalMenuLinkId, environmentId)
+                .orElse(null);
         PortalMenuLink res = mapper.map(portalMenuLink);
 
         log.debug("Find portal menu link by ID [{}] - Done", portalMenuLinkId);
@@ -87,7 +84,8 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
     public Optional<PortalMenuLink> findById(String portalMenuLinkId) throws TechnicalException {
         log.debug("Find portal menu link by ID [{}]", portalMenuLinkId);
 
-        PortalMenuLinkMongo portalMenuLink = internalPortalMenuLinkRepo.findById(portalMenuLinkId).orElse(null);
+        PortalMenuLinkMongo portalMenuLink =
+                internalPortalMenuLinkRepo.findById(portalMenuLinkId).orElse(null);
         PortalMenuLink res = mapper.map(portalMenuLink);
 
         log.debug("Find portal menu link by ID [{}] - Done", portalMenuLinkId);
@@ -114,9 +112,11 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
             throw new IllegalStateException("Portal menu link must not be null");
         }
 
-        PortalMenuLinkMongo portalMenuLinkMongo = internalPortalMenuLinkRepo.findById(portalMenuLink.getId()).orElse(null);
+        PortalMenuLinkMongo portalMenuLinkMongo =
+                internalPortalMenuLinkRepo.findById(portalMenuLink.getId()).orElse(null);
         if (portalMenuLinkMongo == null) {
-            throw new IllegalStateException(String.format("No portal menu link found with id [%s]", portalMenuLink.getId()));
+            throw new IllegalStateException(
+                    String.format("No portal menu link found with id [%s]", portalMenuLink.getId()));
         }
 
         try {
@@ -141,10 +141,8 @@ public class MongoPortalMenuLinkRepository implements PortalMenuLinkRepository {
 
     @Override
     public Set<PortalMenuLink> findAll() throws TechnicalException {
-        return internalPortalMenuLinkRepo
-            .findAll()
-            .stream()
-            .map(portalMenuLinkMongo -> mapper.map(portalMenuLinkMongo))
-            .collect(Collectors.toSet());
+        return internalPortalMenuLinkRepo.findAll().stream()
+                .map(portalMenuLinkMongo -> mapper.map(portalMenuLinkMongo))
+                .collect(Collectors.toSet());
     }
 }

@@ -35,7 +35,8 @@ public class AuditCrudServiceInMemory implements AuditCrudService, InMemoryAlter
     @Override
     public void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge) {
         var limit = TimeProvider.now().minus(maxAge);
-        storage.removeIf(auditEntity -> environmentId.equals(auditEntity.getEnvironmentId()) && limit.isAfter(auditEntity.getCreatedAt()));
+        storage.removeIf(auditEntity ->
+                environmentId.equals(auditEntity.getEnvironmentId()) && limit.isAfter(auditEntity.getCreatedAt()));
     }
 
     @Override

@@ -41,7 +41,10 @@ public class AuthzTrafficMeasuresQueryAdapter implements AuthzMeasuresAdapter {
     }
 
     private JsonObject json(MeasuresQuery query) {
-        return new JsonObject().put("size", 0).put("query", adaptQuery(query)).put("aggs", adaptMetrics(query.metrics(), query.filters()));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", adaptQuery(query))
+                .put("aggs", adaptMetrics(query.metrics(), query.filters()));
     }
 
     @Override
@@ -59,7 +62,10 @@ public class AuthzTrafficMeasuresQueryAdapter implements AuthzMeasuresAdapter {
         if (fieldResolver.countsNothing(metric, filters)) {
             return new JsonObject().put("match_none", new JsonObject());
         }
-        return fieldResolver.scopeTerm(metric).map(AuthzTrafficMeasuresQueryAdapter::term).orElse(null);
+        return fieldResolver
+                .scopeTerm(metric)
+                .map(AuthzTrafficMeasuresQueryAdapter::term)
+                .orElse(null);
     }
 
     @Override
@@ -85,9 +91,8 @@ public class AuthzTrafficMeasuresQueryAdapter implements AuthzMeasuresAdapter {
     @Override
     public JsonObject buildMeasureAggs(MetricMeasuresQuery metric) {
         if (metric.filters() != null && !metric.filters().isEmpty()) {
-            throw new UnsupportedOperationException(
-                "Authz traffic does not support per-metric filters yet, got " + metric.filters() + " on " + metric.metric()
-            );
+            throw new UnsupportedOperationException("Authz traffic does not support per-metric filters yet, got "
+                    + metric.filters() + " on " + metric.metric());
         }
         var aggs = new JsonObject();
         var field = fieldResolver.fromMetric(metric.metric());
@@ -105,7 +110,9 @@ public class AuthzTrafficMeasuresQueryAdapter implements AuthzMeasuresAdapter {
     private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Measure measure) {
         return switch (measure) {
             case COUNT -> Optional.of(countBuilder.build(aggName, field));
-            default -> throw new UnsupportedOperationException("AuthzTrafficMeasuresQueryAdapter does not support measure " + measure);
+            default ->
+                throw new UnsupportedOperationException(
+                        "AuthzTrafficMeasuresQueryAdapter does not support measure " + measure);
         };
     }
 }

@@ -21,29 +21,44 @@ import java.util.Set;
 
 public interface ReactableApi<T> extends Reactable {
     T getDefinition();
+
     String getId();
+
     DefinitionVersion getDefinitionVersion();
+
     String getApiVersion();
+
     String getName();
+
     Date getDeployedAt();
+
     String getRevision();
+
     Set<String> getTags();
+
     Set<String> getSubscribablePlans();
+
     Set<String> getApiKeyPlans();
 
     String getEnvironmentId();
+
     String getEnvironmentHrid();
 
     String getOrganizationId();
+
     String getOrganizationHrid();
 
     void setEnabled(boolean enabled);
+
     void setDeployedAt(Date deployedAt);
+
     void setRevision(String revision);
 
     void setEnvironmentId(String environmentId);
+
     void setEnvironmentHrid(String environmentHrid);
 
     void setOrganizationId(String organizationId);
+
     void setOrganizationHrid(String organizationHrid);
 }

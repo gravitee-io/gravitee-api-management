@@ -43,45 +43,49 @@ public class GetUserApisUseCase {
 
     public Output execute(Input input) {
         var memberships = membershipQueryService.findByMemberIdAndMemberTypeAndReferenceType(
-            input.userId,
-            Membership.Type.USER,
-            Membership.ReferenceType.API
-        );
+                input.userId, Membership.Type.USER, Membership.ReferenceType.API);
 
-        List<String> apiIds = memberships.stream().map(Membership::getReferenceId).toList();
+        List<String> apiIds =
+                memberships.stream().map(Membership::getReferenceId).toList();
 
         if (apiIds.isEmpty()) {
             return new Output(List.of(), 0);
         }
 
-        var criteria = ApiSearchCriteria.builder().ids(apiIds).environmentId(input.environmentId).build();
-        var fieldFilter = ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build();
+        var criteria = ApiSearchCriteria.builder()
+                .ids(apiIds)
+                .environmentId(input.environmentId)
+                .build();
+        var fieldFilter = ApiFieldFilter.builder()
+                .pictureExcluded(true)
+                .definitionExcluded(true)
+                .build();
 
-        Page<Api> apiPage = apiQueryService.search(criteria, null, new PageableImpl(input.page, input.perPage), fieldFilter);
+        Page<Api> apiPage =
+                apiQueryService.search(criteria, null, new PageableImpl(input.page, input.perPage), fieldFilter);
 
-        Set<String> environmentIds = apiPage
-            .getContent()
-            .stream()
-            .map(Api::getEnvironmentId)
-            .filter(envId -> envId != null)
-            .collect(Collectors.toSet());
+        Set<String> environmentIds = apiPage.getContent().stream()
+                .map(Api::getEnvironmentId)
+                .filter(envId -> envId != null)
+                .collect(Collectors.toSet());
         Map<String, String> environmentNames = resolveEnvironmentNames(environmentIds);
 
-        List<UserApi> data = apiPage
-            .getContent()
-            .stream()
-            .map(api -> {
-                String envId = api.getEnvironmentId();
-                return UserApi.builder()
-                    .id(api.getId())
-                    .name(api.getName())
-                    .version(api.getVersion())
-                    .visibility(api.getVisibility() != null ? api.getVisibility().name() : null)
-                    .environmentId(envId)
-                    .environmentName(envId != null ? environmentNames.get(envId) : null)
-                    .build();
-            })
-            .toList();
+        List<UserApi> data = apiPage.getContent().stream()
+                .map(api -> {
+                    String envId = api.getEnvironmentId();
+                    return UserApi.builder()
+                            .id(api.getId())
+                            .name(api.getName())
+                            .version(api.getVersion())
+                            .visibility(
+                                    api.getVisibility() != null
+                                            ? api.getVisibility().name()
+                                            : null)
+                            .environmentId(envId)
+                            .environmentName(envId != null ? environmentNames.get(envId) : null)
+                            .build();
+                })
+                .toList();
 
         return new Output(data, apiPage.getTotalElements());
     }

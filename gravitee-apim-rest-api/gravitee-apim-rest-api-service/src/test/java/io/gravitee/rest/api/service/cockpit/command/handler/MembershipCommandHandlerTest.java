@@ -84,12 +84,12 @@ public class MembershipCommandHandlerTest {
     @Test
     public void handleWithAdminRole() throws InterruptedException {
         MembershipCommandPayload membershipPayload = MembershipCommandPayload.builder()
-            .userId("user#1")
-            .organizationId("orga#1")
-            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
-            .referenceId("env#1")
-            .role("ENVIRONMENT_PRIMARY_OWNER")
-            .build();
+                .userId("user#1")
+                .organizationId("orga#1")
+                .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+                .referenceId("env#1")
+                .role("ENVIRONMENT_PRIMARY_OWNER")
+                .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -101,56 +101,56 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ENVIRONMENT);
         role.setName("ADMIN");
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN", "orga#1")).thenReturn(Optional.of(role));
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false)))
+                .thenReturn(user);
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN", "orga#1"))
+                .thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        ArgumentCaptor<MembershipService.MembershipReference> membershipReference = ArgumentCaptor.forClass(
-            MembershipService.MembershipReference.class
-        );
-        ArgumentCaptor<MembershipService.MembershipMember> membershipMember = ArgumentCaptor.forClass(
-            MembershipService.MembershipMember.class
-        );
+        ArgumentCaptor<MembershipService.MembershipReference> membershipReference =
+                ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
+        ArgumentCaptor<MembershipService.MembershipMember> membershipMember =
+                ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
         ArgumentCaptor<List<MembershipService.MembershipRole>> membershipRoles = ArgumentCaptor.forClass(List.class);
 
-        verify(membershipService).updateRolesToMemberOnReference(
-            argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-            membershipReference.capture(),
-            membershipMember.capture(),
-            membershipRoles.capture(),
-            eq(COCKPIT_SOURCE),
-            eq(false)
-        );
+        verify(membershipService)
+                .updateRolesToMemberOnReference(
+                        argThat(executionContext ->
+                                executionContext.getOrganizationId().equals("orga#1")),
+                        membershipReference.capture(),
+                        membershipMember.capture(),
+                        membershipRoles.capture(),
+                        eq(COCKPIT_SOURCE),
+                        eq(false));
 
-        assertEquals(MembershipReferenceType.ENVIRONMENT, membershipReference.getValue().getType());
-        assertEquals(membershipPayload.referenceId(), membershipReference.getValue().getId());
+        assertEquals(
+                MembershipReferenceType.ENVIRONMENT,
+                membershipReference.getValue().getType());
+        assertEquals(
+                membershipPayload.referenceId(), membershipReference.getValue().getId());
         assertEquals(MembershipMemberType.USER, membershipMember.getValue().getMemberType());
         assertEquals(user.getId(), membershipMember.getValue().getMemberId());
-        assertTrue(
-            membershipRoles.getValue().size() == 1 &&
-                membershipRoles
-                    .getValue()
-                    .stream()
-                    .allMatch(
-                        membershipRole -> membershipRole.getScope() == role.getScope() && membershipRole.getName().equals(role.getName())
-                    )
-        );
+        assertTrue(membershipRoles.getValue().size() == 1
+                && membershipRoles.getValue().stream()
+                        .allMatch(membershipRole -> membershipRole.getScope() == role.getScope()
+                                && membershipRole.getName().equals(role.getName())));
     }
 
     @Test
     public void handleWithRole() throws InterruptedException {
         MembershipCommandPayload membershipPayload = MembershipCommandPayload.builder()
-            .userId("user#1")
-            .organizationId("orga#1")
-            .referenceType(MembershipReferenceType.ORGANIZATION.name())
-            .referenceId("orga#1")
-            .role("ORGANIZATION_OWNER")
-            .build();
+                .userId("user#1")
+                .organizationId("orga#1")
+                .referenceType(MembershipReferenceType.ORGANIZATION.name())
+                .referenceId("orga#1")
+                .role("ORGANIZATION_OWNER")
+                .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -162,56 +162,56 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ORGANIZATION);
         role.setName("ADMIN");
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", "orga#1")).thenReturn(Optional.of(role));
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false)))
+                .thenReturn(user);
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", "orga#1"))
+                .thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        ArgumentCaptor<MembershipService.MembershipReference> membershipReference = ArgumentCaptor.forClass(
-            MembershipService.MembershipReference.class
-        );
-        ArgumentCaptor<MembershipService.MembershipMember> membershipMember = ArgumentCaptor.forClass(
-            MembershipService.MembershipMember.class
-        );
+        ArgumentCaptor<MembershipService.MembershipReference> membershipReference =
+                ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
+        ArgumentCaptor<MembershipService.MembershipMember> membershipMember =
+                ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
         ArgumentCaptor<List<MembershipService.MembershipRole>> membershipRoles = ArgumentCaptor.forClass(List.class);
 
-        verify(membershipService).updateRolesToMemberOnReference(
-            argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-            membershipReference.capture(),
-            membershipMember.capture(),
-            membershipRoles.capture(),
-            eq(COCKPIT_SOURCE),
-            eq(false)
-        );
+        verify(membershipService)
+                .updateRolesToMemberOnReference(
+                        argThat(executionContext ->
+                                executionContext.getOrganizationId().equals("orga#1")),
+                        membershipReference.capture(),
+                        membershipMember.capture(),
+                        membershipRoles.capture(),
+                        eq(COCKPIT_SOURCE),
+                        eq(false));
 
-        assertEquals(MembershipReferenceType.ORGANIZATION, membershipReference.getValue().getType());
-        assertEquals(membershipPayload.referenceId(), membershipReference.getValue().getId());
+        assertEquals(
+                MembershipReferenceType.ORGANIZATION,
+                membershipReference.getValue().getType());
+        assertEquals(
+                membershipPayload.referenceId(), membershipReference.getValue().getId());
         assertEquals(MembershipMemberType.USER, membershipMember.getValue().getMemberType());
         assertEquals(user.getId(), membershipMember.getValue().getMemberId());
-        assertTrue(
-            membershipRoles.getValue().size() == 1 &&
-                membershipRoles
-                    .getValue()
-                    .stream()
-                    .allMatch(
-                        membershipRole -> membershipRole.getScope() == role.getScope() && membershipRole.getName().equals(role.getName())
-                    )
-        );
+        assertTrue(membershipRoles.getValue().size() == 1
+                && membershipRoles.getValue().stream()
+                        .allMatch(membershipRole -> membershipRole.getScope() == role.getScope()
+                                && membershipRole.getName().equals(role.getName())));
     }
 
     @Test
     public void handleWithUserRole() throws InterruptedException {
         MembershipCommandPayload membershipPayload = MembershipCommandPayload.builder()
-            .userId("user#1")
-            .organizationId("orga#1")
-            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
-            .referenceId("env#1")
-            .role("ENVIRONMENT_USER")
-            .build();
+                .userId("user#1")
+                .organizationId("orga#1")
+                .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+                .referenceId("env#1")
+                .role("ENVIRONMENT_USER")
+                .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -223,56 +223,56 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ENVIRONMENT);
         role.setName("USER");
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", "orga#1")).thenReturn(Optional.of(role));
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false)))
+                .thenReturn(user);
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", "orga#1"))
+                .thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        ArgumentCaptor<MembershipService.MembershipReference> membershipReference = ArgumentCaptor.forClass(
-            MembershipService.MembershipReference.class
-        );
-        ArgumentCaptor<MembershipService.MembershipMember> membershipMember = ArgumentCaptor.forClass(
-            MembershipService.MembershipMember.class
-        );
+        ArgumentCaptor<MembershipService.MembershipReference> membershipReference =
+                ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
+        ArgumentCaptor<MembershipService.MembershipMember> membershipMember =
+                ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
         ArgumentCaptor<List<MembershipService.MembershipRole>> membershipRoles = ArgumentCaptor.forClass(List.class);
 
-        verify(membershipService).updateRolesToMemberOnReference(
-            argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-            membershipReference.capture(),
-            membershipMember.capture(),
-            membershipRoles.capture(),
-            eq(COCKPIT_SOURCE),
-            eq(false)
-        );
+        verify(membershipService)
+                .updateRolesToMemberOnReference(
+                        argThat(executionContext ->
+                                executionContext.getOrganizationId().equals("orga#1")),
+                        membershipReference.capture(),
+                        membershipMember.capture(),
+                        membershipRoles.capture(),
+                        eq(COCKPIT_SOURCE),
+                        eq(false));
 
-        assertEquals(MembershipReferenceType.ENVIRONMENT, membershipReference.getValue().getType());
-        assertEquals(membershipPayload.referenceId(), membershipReference.getValue().getId());
+        assertEquals(
+                MembershipReferenceType.ENVIRONMENT,
+                membershipReference.getValue().getType());
+        assertEquals(
+                membershipPayload.referenceId(), membershipReference.getValue().getId());
         assertEquals(MembershipMemberType.USER, membershipMember.getValue().getMemberType());
         assertEquals(user.getId(), membershipMember.getValue().getMemberId());
-        assertTrue(
-            membershipRoles.getValue().size() == 1 &&
-                membershipRoles
-                    .getValue()
-                    .stream()
-                    .allMatch(
-                        membershipRole -> membershipRole.getScope() == role.getScope() && membershipRole.getName().equals(role.getName())
-                    )
-        );
+        assertTrue(membershipRoles.getValue().size() == 1
+                && membershipRoles.getValue().stream()
+                        .allMatch(membershipRole -> membershipRole.getScope() == role.getScope()
+                                && membershipRole.getName().equals(role.getName())));
     }
 
     @Test
     public void handleWithUnknownRole() throws InterruptedException {
         MembershipCommandPayload membershipPayload = MembershipCommandPayload.builder()
-            .userId("user#1")
-            .organizationId("orga#1")
-            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
-            .referenceId("env#1")
-            .role("UNKNOWN")
-            .build();
+                .userId("user#1")
+                .organizationId("orga#1")
+                .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+                .referenceId("env#1")
+                .role("UNKNOWN")
+                .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -282,13 +282,15 @@ public class MembershipCommandHandlerTest {
         RoleEntity role = new RoleEntity();
         role.setId(UUID.random().toString());
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false)))
+                .thenReturn(user);
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
 
         verifyNoInteractions(membershipService);
     }
@@ -296,24 +298,24 @@ public class MembershipCommandHandlerTest {
     @Test
     public void handleWithUnknownUser() throws InterruptedException {
         MembershipCommandPayload membershipPayload = MembershipCommandPayload.builder()
-            .userId("user#1")
-            .organizationId("orga#1")
-            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
-            .referenceId("env#1")
-            .role("UNKNOWN")
-            .build();
+                .userId("user#1")
+                .organizationId("orga#1")
+                .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+                .referenceId("env#1")
+                .role("UNKNOWN")
+                .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenThrow(
-            new UserNotFoundException(membershipPayload.userId())
-        );
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false)))
+                .thenThrow(new UserNotFoundException(membershipPayload.userId()));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
 
         verifyNoInteractions(roleService);
         verifyNoInteractions(membershipService);

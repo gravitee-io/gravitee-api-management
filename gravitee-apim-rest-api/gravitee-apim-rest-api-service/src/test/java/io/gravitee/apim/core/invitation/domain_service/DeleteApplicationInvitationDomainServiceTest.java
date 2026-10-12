@@ -51,9 +51,9 @@ class DeleteApplicationInvitationDomainServiceTest {
     @Test
     void should_delete_application_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", "USER"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(
+                        anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", "USER")));
 
         cut.delete(APPLICATION_ID, invitationId);
 
@@ -65,7 +65,8 @@ class DeleteApplicationInvitationDomainServiceTest {
         var invitationId = InvitationId.of(INVITATION_ID);
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> cut.delete(APPLICATION_ID, invitationId)).isInstanceOf(ApplicationInvitationNotFoundException.class);
+        assertThatThrownBy(() -> cut.delete(APPLICATION_ID, invitationId))
+                .isInstanceOf(ApplicationInvitationNotFoundException.class);
 
         verify(invitationCrudService, never()).delete(invitationId);
     }
@@ -73,11 +74,12 @@ class DeleteApplicationInvitationDomainServiceTest {
     @Test
     void should_throw_when_invitation_belongs_to_another_application() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anApplicationInvitation(INVITATION_ID, OTHER_APPLICATION_ID, "alice@example.com", "USER"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(
+                        anApplicationInvitation(INVITATION_ID, OTHER_APPLICATION_ID, "alice@example.com", "USER")));
 
-        assertThatThrownBy(() -> cut.delete(APPLICATION_ID, invitationId)).isInstanceOf(ApplicationInvitationNotFoundException.class);
+        assertThatThrownBy(() -> cut.delete(APPLICATION_ID, invitationId))
+                .isInstanceOf(ApplicationInvitationNotFoundException.class);
 
         verify(invitationCrudService, never()).delete(invitationId);
     }

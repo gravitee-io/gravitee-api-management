@@ -83,7 +83,9 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
     public List<PageRevisionEntity> findAllByPageId(String pageId) {
         log.debug("get all revisions for page {}", pageId);
         try {
-            return pageRevisionRepository.findAllByPageId(pageId).stream().map(this::convert).collect(Collectors.toList());
+            return pageRevisionRepository.findAllByPageId(pageId).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to get all revisions", e);
         }
@@ -129,10 +131,7 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
 
         revision.setPageId(page.getId());
         revision.setRevision(
-            findLastByPageId(page.getId())
-                .map(rev -> rev.getRevision() + 1)
-                .orElse(1)
-        );
+                findLastByPageId(page.getId()).map(rev -> rev.getRevision() + 1).orElse(1));
 
         revision.setName(page.getName());
         revision.setContent(page.getContent());
@@ -157,17 +156,9 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
 
     private String canonicalRevision(PageRevision page) {
         StringBuilder builder = new StringBuilder();
-        builder.append(
-            Optional.ofNullable(page.getName())
-                .map(c -> c.trim())
-                .orElse("")
-        );
+        builder.append(Optional.ofNullable(page.getName()).map(c -> c.trim()).orElse(""));
         builder.append('\n');
-        builder.append(
-            Optional.ofNullable(page.getContent())
-                .map(c -> c.trim())
-                .orElse("")
-        );
+        builder.append(Optional.ofNullable(page.getContent()).map(c -> c.trim()).orElse(""));
         builder.append('\n');
         builder.append(page.getContributor());
         builder.append('\n');

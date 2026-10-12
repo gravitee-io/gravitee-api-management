@@ -60,11 +60,12 @@ class UpdateApplicationInvitationUseCaseTest {
     void should_validate_application_existence_before_updating_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID);
         var update = new UpdateApplicationInvitation(ROLE_NAME);
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
-        assertThatThrownBy(() ->
-            cut.execute(new UpdateApplicationInvitationUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, update))
-        ).isInstanceOf(ApplicationNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(new UpdateApplicationInvitationUseCase.Input(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, update)))
+                .isInstanceOf(ApplicationNotFoundException.class);
 
         verifyNoInteractions(updateApplicationInvitationDomainService);
     }
@@ -74,16 +75,16 @@ class UpdateApplicationInvitationUseCaseTest {
         var invitationId = InvitationId.of(INVITATION_ID);
         var update = new UpdateApplicationInvitation(ROLE_NAME);
         var updatedInvitation = anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", ROLE_NAME);
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build()
-        );
-        when(updateApplicationInvitationDomainService.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, update)).thenReturn(
-            updatedInvitation
-        );
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenReturn(BaseApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build());
+        when(updateApplicationInvitationDomainService.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, update))
+                .thenReturn(updatedInvitation);
 
-        var output = cut.execute(
-            new UpdateApplicationInvitationUseCase.Input(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, update)
-        );
+        var output = cut.execute(new UpdateApplicationInvitationUseCase.Input(
+                ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, invitationId, update));
 
         assertThat(output.invitation()).isEqualTo(updatedInvitation);
         verify(updateApplicationInvitationDomainService).update(ORGANIZATION_ID, APPLICATION_ID, invitationId, update);

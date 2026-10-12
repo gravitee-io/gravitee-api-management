@@ -29,7 +29,8 @@ import org.junit.jupiter.api.Test;
 class EdgeProxyDefinitionTest {
 
     // Mirror the production GraviteeMapper's NON_NULL inclusion so serialization assertions match at-rest output.
-    private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Test
     void should_deserialize_legacy_payload_without_apps() throws Exception {
@@ -129,19 +130,20 @@ class EdgeProxyDefinitionTest {
         var definition = objectMapper.readValue(json, EdgeProxyDefinition.class);
 
         // Then
-        assertThat(definition.getApps().get(0).routes()).containsExactly(
-            new RouteMapping("/v1/messages", "/anthropic"),
-            new RouteMapping("/v1/messages*", "/anthropic-all"),
-            new RouteMapping("*", "/anthropic-catch-all")
-        );
+        assertThat(definition.getApps().get(0).routes())
+                .containsExactly(
+                        new RouteMapping("/v1/messages", "/anthropic"),
+                        new RouteMapping("/v1/messages*", "/anthropic-all"),
+                        new RouteMapping("*", "/anthropic-catch-all"));
     }
 
     @Test
     void should_serialize_app_route_path_under_the_path_property() throws Exception {
         // Given
         var definition = EdgeProxyDefinition.builder()
-            .apps(List.of(new EdgeApp("Claude Code", null, List.of(new RouteMapping("/v1/messages", "/anthropic")), null, null)))
-            .build();
+                .apps(List.of(new EdgeApp(
+                        "Claude Code", null, List.of(new RouteMapping("/v1/messages", "/anthropic")), null, null)))
+                .build();
 
         // When
         var json = objectMapper.writeValueAsString(definition);
@@ -154,9 +156,9 @@ class EdgeProxyDefinitionTest {
     void should_omit_apps_from_serialized_legacy_definition() throws Exception {
         // Given
         var definition = EdgeProxyDefinition.builder()
-            .dnsDomains(List.of(new DnsDomain("api.anthropic.com")))
-            .routes(List.of(new EdgeRoute("/v1/messages", "/anthropic", "anthropic")))
-            .build();
+                .dnsDomains(List.of(new DnsDomain("api.anthropic.com")))
+                .routes(List.of(new EdgeRoute("/v1/messages", "/anthropic", "anthropic")))
+                .build();
 
         // When
         var json = objectMapper.writeValueAsString(definition);

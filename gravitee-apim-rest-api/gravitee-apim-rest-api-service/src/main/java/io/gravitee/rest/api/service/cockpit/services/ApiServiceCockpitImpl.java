@@ -79,16 +79,15 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     private final VerifyApiPathDomainService verifyApiPathDomainService;
 
     public ApiServiceCockpitImpl(
-        ObjectMapper objectMapper,
-        ApiService apiService,
-        SwaggerService swaggerService,
-        PageService pageService,
-        ApiMetadataService apiMetadataService,
-        PlanService planService,
-        ApiConverter apiConverter,
-        PageConverter pageConverter,
-        VerifyApiPathDomainService verifyApiPathDomainService
-    ) {
+            ObjectMapper objectMapper,
+            ApiService apiService,
+            SwaggerService swaggerService,
+            PageService pageService,
+            ApiMetadataService apiMetadataService,
+            PlanService planService,
+            ApiConverter apiConverter,
+            PageConverter pageConverter,
+            VerifyApiPathDomainService verifyApiPathDomainService) {
         this.objectMapper = objectMapper;
         this.apiService = apiService;
         this.swaggerService = swaggerService;
@@ -102,14 +101,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     @Override
     public ApiEntityResult createApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        DeploymentMode mode,
-        List<String> labels
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            DeploymentMode mode,
+            List<String> labels) {
         if (mode == DeploymentMode.API_MOCKED) {
             log.debug("Create Mocked Api [{}].", apiId);
             return createMockedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
@@ -126,14 +124,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     @Override
     public ApiEntityResult updateApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        DeploymentMode mode,
-        List<String> labels
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            DeploymentMode mode,
+            List<String> labels) {
         if (mode == DeploymentMode.API_DOCUMENTED) {
             log.debug("Update Documented Api [{}].", apiId);
             return updateDocumentedApi(executionContext, apiId, swaggerDefinition, labels);
@@ -149,33 +146,27 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     private ApiEntityResult createDocumentedApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        List<String> labels
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            List<String> labels) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForDocumentedApi(swaggerDefinition);
         return createApiEntity(executionContext, apiId, userId, swaggerDescriptor, labels);
     }
 
     private ApiEntityResult updateDocumentedApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String swaggerDefinition,
-        List<String> labels
-    ) {
+            ExecutionContext executionContext, String apiId, String swaggerDefinition, List<String> labels) {
         return updateApiEntity(executionContext, apiId, buildForDocumentedApi(swaggerDefinition), labels);
     }
 
     private ApiEntityResult createMockedApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        List<String> labels
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            List<String> labels) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
 
         ApiEntityResult createApiResult = createApiEntity(executionContext, apiId, userId, swaggerDescriptor, labels);
@@ -190,14 +181,14 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     private ApiEntityResult updateMockedApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        List<String> labels
-    ) {
-        ApiEntityResult apiEntityResult = updateApiEntity(executionContext, apiId, buildForMockedApi(swaggerDefinition), labels);
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            List<String> labels) {
+        ApiEntityResult apiEntityResult =
+                updateApiEntity(executionContext, apiId, buildForMockedApi(swaggerDefinition), labels);
 
         ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
         apiDeployment.setDeploymentLabel("Model updated");
@@ -212,17 +203,17 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
             this.apiService.start(executionContext, apiId, userId);
         }
 
-        return ApiEntityResult.success(apiService.deploy(executionContext, apiId, userId, EventType.PUBLISH_API, apiDeployment));
+        return ApiEntityResult.success(
+                apiService.deploy(executionContext, apiId, userId, EventType.PUBLISH_API, apiDeployment));
     }
 
     private ApiEntityResult createPublishedApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        List<String> labels
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            List<String> labels) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
 
         ApiEntityResult createApiResult = createApiEntity(executionContext, apiId, userId, swaggerDescriptor, labels);
@@ -244,16 +235,17 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     private ApiEntityResult updatePublishedApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        List<String> labels
-    ) {
-        ApiEntityResult updatedApiResult = updateMockedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            List<String> labels) {
+        ApiEntityResult updatedApiResult =
+                updateMockedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
 
-        if (updatedApiResult.isSuccess() && !ApiLifecycleState.PUBLISHED.equals(updatedApiResult.getApi().getLifecycleState())) {
+        if (updatedApiResult.isSuccess()
+                && !ApiLifecycleState.PUBLISHED.equals(updatedApiResult.getApi().getLifecycleState())) {
             publishSwaggerDocumentation(executionContext, apiId);
             UpdateApiEntity updateEntity = apiConverter.toUpdateApiEntity(updatedApiResult.getApi());
             updateEntity.setVisibility(Visibility.PUBLIC);
@@ -265,12 +257,12 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     private ApiEntityResult updateApiEntity(
-        ExecutionContext executionContext,
-        String apiId,
-        ImportSwaggerDescriptorEntity swaggerDescriptor,
-        List<String> labels
-    ) {
-        final SwaggerApiEntity api = swaggerService.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
+            ExecutionContext executionContext,
+            String apiId,
+            ImportSwaggerDescriptorEntity swaggerDescriptor,
+            List<String> labels) {
+        final SwaggerApiEntity api =
+                swaggerService.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
         api.setLabels(labels);
 
         // apply update to proxy paths
@@ -280,17 +272,18 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         }
         api.getProxy().setVirtualHosts(result.toVirtualHosts());
 
-        return ApiEntityResult.success(this.apiService.updateFromSwagger(executionContext, apiId, api, swaggerDescriptor));
+        return ApiEntityResult.success(
+                this.apiService.updateFromSwagger(executionContext, apiId, api, swaggerDescriptor));
     }
 
     private ApiEntityResult createApiEntity(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        ImportSwaggerDescriptorEntity swaggerDescriptor,
-        List<String> labels
-    ) {
-        final SwaggerApiEntity api = swaggerService.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            ImportSwaggerDescriptorEntity swaggerDescriptor,
+            List<String> labels) {
+        final SwaggerApiEntity api =
+                swaggerService.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
         api.setLabels(labels);
 
         final ContextPathValidationResult result = checkContextPath(executionContext.getEnvironmentId(), api);
@@ -319,38 +312,37 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     ContextPathValidationResult checkContextPath(String environmentId, SwaggerApiEntity api, String apiId) {
         try {
-            var validationResult = verifyApiPathDomainService.validateAndSanitize(
-                new VerifyApiPathDomainService.Input(
+            var validationResult = verifyApiPathDomainService.validateAndSanitize(new VerifyApiPathDomainService.Input(
                     environmentId,
                     apiId,
-                    api
-                        .getProxy()
-                        .getVirtualHosts()
-                        .stream()
-                        .map(h -> Path.builder().path(h.getPath()).host(h.getHost()).overrideAccess(h.isOverrideEntrypoint()).build())
-                        .toList()
-                )
-            );
+                    api.getProxy().getVirtualHosts().stream()
+                            .map(h -> Path.builder()
+                                    .path(h.getPath())
+                                    .host(h.getHost())
+                                    .overrideAccess(h.isOverrideEntrypoint())
+                                    .build())
+                            .toList()));
 
-            validationResult
-                .severe()
-                .ifPresent(errors -> {
-                    throw new InvalidPathsException(errors.iterator().next().getMessage());
-                });
+            validationResult.severe().ifPresent(errors -> {
+                throw new InvalidPathsException(errors.iterator().next().getMessage());
+            });
 
-            var sanitizedPaths = validationResult
-                .map(VerifyApiPathDomainService.Input::paths)
-                .value()
-                .stream()
-                .flatMap(List::stream)
-                .toList();
+            var sanitizedPaths = validationResult.map(VerifyApiPathDomainService.Input::paths).value().stream()
+                    .flatMap(List::stream)
+                    .toList();
 
-            return ContextPathValidationResult.builder().sanitizedPaths(sanitizedPaths).build();
-        } catch (InvalidPathsException e) {
-            String ctxPath = api.getProxy().getVirtualHosts().stream().findFirst().map(VirtualHost::getPath).orElse("");
             return ContextPathValidationResult.builder()
-                .error("The path [" + ctxPath + "] automatically generated from the name is already covered by another API.")
-                .build();
+                    .sanitizedPaths(sanitizedPaths)
+                    .build();
+        } catch (InvalidPathsException e) {
+            String ctxPath = api.getProxy().getVirtualHosts().stream()
+                    .findFirst()
+                    .map(VirtualHost::getPath)
+                    .orElse("");
+            return ContextPathValidationResult.builder()
+                    .error("The path [" + ctxPath
+                            + "] automatically generated from the name is already covered by another API.")
+                    .build();
         } catch (Exception e) {
             return ContextPathValidationResult.builder().error(e.getMessage()).build();
         }
@@ -370,9 +362,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     private void publishSwaggerDocumentation(ExecutionContext executionContext, String apiId) {
         List<PageEntity> apiDocs = pageService.search(
-            executionContext.getEnvironmentId(),
-            new PageQuery.Builder().api(apiId).type(PageType.SWAGGER).build()
-        );
+                executionContext.getEnvironmentId(),
+                new PageQuery.Builder().api(apiId).type(PageType.SWAGGER).build());
 
         if (apiDocs.isEmpty()) {
             // This should not happen since we have created the documentation in previous step

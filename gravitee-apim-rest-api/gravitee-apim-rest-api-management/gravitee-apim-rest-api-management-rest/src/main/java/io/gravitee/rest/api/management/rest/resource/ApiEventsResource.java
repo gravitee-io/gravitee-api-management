@@ -75,20 +75,21 @@ public class ApiEventsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get API's events", description = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @Operation(
+            summary = "Get API's events",
+            description = "User must have the MANAGE_LIFECYCLE permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "API's events",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = EventEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "API's events",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = EventEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ)})
     public List<EventEntity> getApiEventsEvents(
-        @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array")) @QueryParam("type") EventTypeListParam eventTypeListParam
-    ) {
+            @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array")) @QueryParam("type")
+                    EventTypeListParam eventTypeListParam) {
         final EventQuery query = new EventQuery();
         query.setApi(api);
 
@@ -99,12 +100,10 @@ public class ApiEventsResource extends AbstractResource {
         if (executionContext.hasEnvironmentId()) {
             query.setEnvironmentIds(List.of(executionContext.getEnvironmentId()));
         }
-        return eventService
-            .search(executionContext, query)
-            .stream()
-            .filter(event -> eventTypeListParam.contains(event.getType()))
-            .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
-            .collect(Collectors.toList());
+        return eventService.search(executionContext, query).stream()
+                .filter(event -> eventTypeListParam.contains(event.getType()))
+                .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 
     @Path("{eventId}")
@@ -115,14 +114,18 @@ public class ApiEventsResource extends AbstractResource {
     @GET
     @Path("search")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get API's events", description = "User must have the API_EVENT[READ] permission to use this service")
+    @Operation(
+            summary = "Get API's events",
+            description = "User must have the API_EVENT[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Page of API events",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EventEntityPage.class))
-    )
+            responseCode = "200",
+            description = "Page of API events",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = EventEntityPage.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ)})
     public EventEntityPage searchApiEvents(@Parameter @BeanParam EventSearchParam eventSearchParam) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, api, false, false, false);
@@ -130,28 +133,25 @@ public class ApiEventsResource extends AbstractResource {
         Map<String, Object> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), List.of(api));
         final Page<EventEntity> apiEvents = eventService.search(
-            executionContext,
-            eventSearchParam.getEventTypeListParam(),
-            properties,
-            eventSearchParam.getFrom(),
-            eventSearchParam.getTo(),
-            eventSearchParam.getPage(),
-            eventSearchParam.getSize(),
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
-        );
+                executionContext,
+                eventSearchParam.getEventTypeListParam(),
+                properties,
+                eventSearchParam.getFrom(),
+                eventSearchParam.getTo(),
+                eventSearchParam.getPage(),
+                eventSearchParam.getSize(),
+                Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
 
-        apiEvents
-            .getContent()
-            .forEach(event -> {
-                Map<String, String> properties1 = event.getProperties();
-                if (!eventSearchParam.isWithPayload()) {
-                    // Remove payload content from response since it's not required anymore
-                    event.setPayload(null);
-                }
-                // complete event with API info
-                properties1.put("api_name", genericApi.getName());
-                properties1.put("api_version", genericApi.getApiVersion());
-            });
+        apiEvents.getContent().forEach(event -> {
+            Map<String, String> properties1 = event.getProperties();
+            if (!eventSearchParam.isWithPayload()) {
+                // Remove payload content from response since it's not required anymore
+                event.setPayload(null);
+            }
+            // complete event with API info
+            properties1.put("api_name", genericApi.getName());
+            properties1.put("api_version", genericApi.getApiVersion());
+        });
 
         return new EventEntityPage(apiEvents);
     }

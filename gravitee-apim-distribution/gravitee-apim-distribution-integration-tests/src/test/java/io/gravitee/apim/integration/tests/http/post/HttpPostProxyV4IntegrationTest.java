@@ -38,24 +38,23 @@ class HttpPostProxyV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
             options.setProtocolVersion(HttpVersion.HTTP_2);
             options.setHttp2ClearTextUpgrade(false);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/post/api-endpoint-http2.json" })
+        @DeployApi({"/apis/v4/http/post/api-endpoint-http2.json"})
         void should_proxy_request_body_to_http2_backend_when_using_http2_client(HttpClient httpClient) {
             makePostCall(httpClient);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/post/api-endpoint-http11.json" })
+        @DeployApi({"/apis/v4/http/post/api-endpoint-http11.json"})
         void should_proxy_request_body_to_http11_backend_when_using_http2_client(HttpClient httpClient) {
             makePostCall(httpClient);
         }
@@ -67,24 +66,23 @@ class HttpPostProxyV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
             options.setProtocolVersion(HttpVersion.HTTP_2);
             options.setHttp2ClearTextUpgrade(true);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/post/api-endpoint-http2.json" })
+        @DeployApi({"/apis/v4/http/post/api-endpoint-http2.json"})
         void should_proxy_request_body_to_http2_backend(HttpClient httpClient) {
             makePostCall(httpClient);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/post/api-endpoint-http11.json" })
+        @DeployApi({"/apis/v4/http/post/api-endpoint-http11.json"})
         void should_proxy_request_body_to_http11_backend(HttpClient httpClient) {
             makePostCall(httpClient);
         }
@@ -96,23 +94,22 @@ class HttpPostProxyV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
             options.setProtocolVersion(HttpVersion.HTTP_1_1);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/post/api-endpoint-http2.json" })
+        @DeployApi({"/apis/v4/http/post/api-endpoint-http2.json"})
         void should_proxy_request_body_to_http2_backend(HttpClient httpClient) {
             makePostCall(httpClient);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/post/api-endpoint-http11.json" })
+        @DeployApi({"/apis/v4/http/post/api-endpoint-http11.json"})
         void should_proxy_request_body_to_http11_backend(HttpClient httpClient) {
             makePostCall(httpClient);
         }

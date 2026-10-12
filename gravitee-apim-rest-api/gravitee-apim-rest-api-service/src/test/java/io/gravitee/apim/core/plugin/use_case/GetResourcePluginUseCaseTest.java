@@ -30,8 +30,10 @@ import org.junit.jupiter.api.Test;
 
 class GetResourcePluginUseCaseTest {
 
-    private final ResourcePluginQueryServiceInMemory resourcePluginQueryServiceInMemory = new ResourcePluginQueryServiceInMemory();
-    private final ResourcePluginCrudServiceInMemory resourcePluginCrudServiceInMemory = new ResourcePluginCrudServiceInMemory();
+    private final ResourcePluginQueryServiceInMemory resourcePluginQueryServiceInMemory =
+            new ResourcePluginQueryServiceInMemory();
+    private final ResourcePluginCrudServiceInMemory resourcePluginCrudServiceInMemory =
+            new ResourcePluginCrudServiceInMemory();
 
     private LicenseManager licenseManager;
 
@@ -41,17 +43,19 @@ class GetResourcePluginUseCaseTest {
     void setup() {
         licenseManager = mock(LicenseManager.class);
         getResourcePluginUseCase = new GetResourcePluginUseCase(
-            resourcePluginCrudServiceInMemory,
-            resourcePluginQueryServiceInMemory,
-            new PluginFilterByLicenseDomainService(licenseManager)
-        );
+                resourcePluginCrudServiceInMemory,
+                resourcePluginQueryServiceInMemory,
+                new PluginFilterByLicenseDomainService(licenseManager));
     }
 
     @Test
     void should_return_plugin() {
-        resourcePluginCrudServiceInMemory.initWith(
-            List.of(ResourcePlugin.builder().id("resource-1").name("Resource 1").feature("feature-resource-1").deployed(true).build())
-        );
+        resourcePluginCrudServiceInMemory.initWith(List.of(ResourcePlugin.builder()
+                .id("resource-1")
+                .name("Resource 1")
+                .feature("feature-resource-1")
+                .deployed(true)
+                .build()));
 
         var license = mock(io.gravitee.node.api.license.License.class);
         when(licenseManager.getOrganizationLicenseOrPlatform("org-id")).thenReturn(license);
@@ -59,15 +63,22 @@ class GetResourcePluginUseCaseTest {
 
         var output = getResourcePluginUseCase.execute(new GetResourcePluginUseCase.Input("org-id", "resource-1"));
         assertThat(output.plugin())
-            .extracting(ResourcePlugin::getId, ResourcePlugin::getName, ResourcePlugin::getFeature, ResourcePlugin::isDeployed)
-            .containsExactly("resource-1", "Resource 1", "feature-resource-1", true);
+                .extracting(
+                        ResourcePlugin::getId,
+                        ResourcePlugin::getName,
+                        ResourcePlugin::getFeature,
+                        ResourcePlugin::isDeployed)
+                .containsExactly("resource-1", "Resource 1", "feature-resource-1", true);
     }
 
     @Test
     void should_return_plugin_with_schema() {
-        resourcePluginCrudServiceInMemory.initWith(
-            List.of(ResourcePlugin.builder().id("resource-1").name("Resource 1").feature("feature-resource-1").deployed(true).build())
-        );
+        resourcePluginCrudServiceInMemory.initWith(List.of(ResourcePlugin.builder()
+                .id("resource-1")
+                .name("Resource 1")
+                .feature("feature-resource-1")
+                .deployed(true)
+                .build()));
 
         var license = mock(io.gravitee.node.api.license.License.class);
         when(licenseManager.getOrganizationLicenseOrPlatform("org-id")).thenReturn(license);
@@ -75,8 +86,12 @@ class GetResourcePluginUseCaseTest {
 
         var output = getResourcePluginUseCase.execute(new GetResourcePluginUseCase.Input("org-id", "resource-1", true));
         assertThat(output.plugin())
-            .extracting(ResourcePlugin::getId, ResourcePlugin::getName, ResourcePlugin::getFeature, ResourcePlugin::isDeployed)
-            .containsExactly("resource-1", "Resource 1", "feature-resource-1", true);
+                .extracting(
+                        ResourcePlugin::getId,
+                        ResourcePlugin::getName,
+                        ResourcePlugin::getFeature,
+                        ResourcePlugin::isDeployed)
+                .containsExactly("resource-1", "Resource 1", "feature-resource-1", true);
         assertThat(output.schema()).isExactlyInstanceOf(String.class);
     }
 }

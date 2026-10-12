@@ -63,12 +63,14 @@ import org.springframework.test.context.ContextConfiguration;
  * Real payloads through Jersey and the real use cases and filter catalog; only the analytics engine behind
  * the data port is mocked.
  */
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, AnalyticsTestConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class, AnalyticsTestConfiguration.class})
 class AnalyticsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
-    private static final Map<String, String> TIME_RANGE = Map.of("from", "2026-06-10T00:00:00Z", "to", "2026-06-11T00:00:00Z");
-    private static final List<Map<String, Object>> REQUEST_COUNT = List.of(Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT")));
+    private static final Map<String, String> TIME_RANGE =
+            Map.of("from", "2026-06-10T00:00:00Z", "to", "2026-06-11T00:00:00Z");
+    private static final List<Map<String, Object>> REQUEST_COUNT =
+            List.of(Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT")));
 
     @Inject
     private ObservabilityAnalyticsDataPort analyticsDataPort;
@@ -84,9 +86,8 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         env.setId(ENVIRONMENT);
         env.setOrganizationId(ORGANIZATION);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(env);
-        when(analyticsDataPort.loadAccessibleApis(any(), any())).thenReturn(
-            List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-        );
+        when(analyticsDataPort.loadAccessibleApis(any(), any()))
+                .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
         when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
         when(analyticsDataPort.computeFacets(any())).thenReturn(JsonNodeFactory.instance.objectNode());
         when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
@@ -109,25 +110,26 @@ class AnalyticsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_answer_400_when_the_time_range_misses_a_bound() {
-            var response = post("measures", Map.of("timeRange", Map.of("from", "2026-06-10T00:00:00Z"), "metrics", REQUEST_COUNT));
+            var response = post(
+                    "measures", Map.of("timeRange", Map.of("from", "2026-06-10T00:00:00Z"), "metrics", REQUEST_COUNT));
 
             assertBadRequest(response, "observability.query.time_range_required");
         }
 
         @Test
         void should_answer_400_when_no_metric_is_requested() {
-            var response = post("facets", Map.of("timeRange", TIME_RANGE, "metrics", List.of(), "by", List.of("HTTP_STATUS")));
+            var response =
+                    post("facets", Map.of("timeRange", TIME_RANGE, "metrics", List.of(), "by", List.of("HTTP_STATUS")));
 
             assertBadRequest(response, "observability.query.metrics_required");
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "filters", "metrics", "sorts", "ranges" })
+        @ValueSource(strings = {"filters", "metrics", "sorts", "ranges"})
         void should_answer_400_rather_than_500_when_an_array_holds_a_null(String field) {
             var metric = new HashMap<String, Object>(Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT")));
             var body = new HashMap<String, Object>(
-                Map.of("timeRange", TIME_RANGE, "metrics", List.of(metric), "by", List.of("HTTP_STATUS"))
-            );
+                    Map.of("timeRange", TIME_RANGE, "metrics", List.of(metric), "by", List.of("HTTP_STATUS")));
             switch (field) {
                 case "sorts" -> metric.put("sorts", Arrays.asList((Object) null));
                 case "metrics" -> body.put("metrics", Arrays.asList(metric, null));
@@ -167,23 +169,32 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         @Test
         void should_answer_400_when_a_filter_is_repeated() {
             var response = post(
-                "measures",
-                measures(List.of(filter("HTTP_METHOD", "IN", List.of("GET")), filter("HTTP_METHOD", "IN", List.of("POST"))))
-            );
+                    "measures",
+                    measures(List.of(
+                            filter("HTTP_METHOD", "IN", List.of("GET")),
+                            filter("HTTP_METHOD", "IN", List.of("POST")))));
 
             assertBadRequest(response, "observability.filter.repeated");
         }
 
         @Test
         void should_answer_200_to_a_closed_numeric_range() {
-            var response = post("measures", measures(List.of(filter("HTTP_STATUS", "GTE", 400), filter("HTTP_STATUS", "LTE", 499))));
+            var response = post(
+                    "measures",
+                    measures(List.of(filter("HTTP_STATUS", "GTE", 400), filter("HTTP_STATUS", "LTE", 499))));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         }
 
         @Test
         void should_hand_a_metric_level_condition_over_as_not_applied() {
-            var metric = Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT"), "filters", List.of(filter("PLAN", "EQ", "plan-1")));
+            var metric = Map.of(
+                    "name",
+                    "HTTP_REQUESTS",
+                    "measures",
+                    List.of("COUNT"),
+                    "filters",
+                    List.of(filter("PLAN", "EQ", "plan-1")));
 
             var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", List.of(metric)));
 
@@ -196,13 +207,12 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         @Test
         void should_answer_400_to_a_metric_level_condition_the_catalog_refuses() {
             var metric = Map.of(
-                "name",
-                "HTTP_REQUESTS",
-                "measures",
-                List.of("COUNT"),
-                "filters",
-                List.of(filter("HTTP_METHOD", "EQ", List.of("GET", "POST")))
-            );
+                    "name",
+                    "HTTP_REQUESTS",
+                    "measures",
+                    List.of("COUNT"),
+                    "filters",
+                    List.of(filter("HTTP_METHOD", "EQ", List.of("GET", "POST"))));
 
             var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", List.of(metric)));
 
@@ -228,7 +238,8 @@ class AnalyticsResourceTest extends AbstractResourceTest {
 
     private void assertBadRequest(Response response, String technicalCode) {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-        assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(technicalCode);
+        assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText())
+                .isEqualTo(technicalCode);
         verifyNoInteractions(analyticsDataPort);
     }
 
@@ -243,32 +254,24 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         @Bean
         AnalyticsRequestPipeline analyticsRequestPipeline() {
             return new AnalyticsRequestPipeline(
-                new ObservabilityFilterValidator(new SpiFilterRegistry()),
-                new AccessibleApiScopeDomainService()
-            );
+                    new ObservabilityFilterValidator(new SpiFilterRegistry()), new AccessibleApiScopeDomainService());
         }
 
         @Bean
         ComputeObservabilityMeasuresUseCase computeObservabilityMeasuresUseCase(
-            ObservabilityAnalyticsDataPort port,
-            AnalyticsRequestPipeline pipeline
-        ) {
+                ObservabilityAnalyticsDataPort port, AnalyticsRequestPipeline pipeline) {
             return new ComputeObservabilityMeasuresUseCase(port, pipeline);
         }
 
         @Bean
         ComputeObservabilityFacetsUseCase computeObservabilityFacetsUseCase(
-            ObservabilityAnalyticsDataPort port,
-            AnalyticsRequestPipeline pipeline
-        ) {
+                ObservabilityAnalyticsDataPort port, AnalyticsRequestPipeline pipeline) {
             return new ComputeObservabilityFacetsUseCase(port, pipeline);
         }
 
         @Bean
         ComputeObservabilityTimeSeriesUseCase computeObservabilityTimeSeriesUseCase(
-            ObservabilityAnalyticsDataPort port,
-            AnalyticsRequestPipeline pipeline
-        ) {
+                ObservabilityAnalyticsDataPort port, AnalyticsRequestPipeline pipeline) {
             return new ComputeObservabilityTimeSeriesUseCase(port, pipeline);
         }
     }

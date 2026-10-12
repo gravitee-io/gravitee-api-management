@@ -28,12 +28,14 @@ import org.junit.jupiter.params.provider.EnumSource;
 class DefaultSharedPolicyGroupReactorFactoryTest {
 
     @ParameterizedTest
-    @EnumSource(value = SharedPolicyGroup.Phase.class, names = { "REQUEST", "RESPONSE" })
+    @EnumSource(
+            value = SharedPolicyGroup.Phase.class,
+            names = {"REQUEST", "RESPONSE"})
     void should_create_reactor_for_supported_phases(SharedPolicyGroup.Phase phase) {
         var cut = new DefaultSharedPolicyGroupReactorFactory(null, null, null, null, null, null);
         var reactableSharedPolicyGroup = ReactableSharedPolicyGroup.builder()
-            .definition(SharedPolicyGroup.builder().phase(phase).build())
-            .build();
+                .definition(SharedPolicyGroup.builder().phase(phase).build())
+                .build();
 
         assertThat(cut.canCreate(reactableSharedPolicyGroup)).isTrue();
     }

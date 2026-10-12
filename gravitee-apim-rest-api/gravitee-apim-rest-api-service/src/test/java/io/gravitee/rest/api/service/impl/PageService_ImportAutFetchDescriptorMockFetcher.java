@@ -30,7 +30,8 @@ import java.util.Collections;
  */
 public class PageService_ImportAutFetchDescriptorMockFetcher implements FilesFetcher {
 
-    public PageService_ImportAutFetchDescriptorMockFetcher(PageService_MockAutoFetchDescriptorFetcherConfiguration cfg) {
+    public PageService_ImportAutFetchDescriptorMockFetcher(
+            PageService_MockAutoFetchDescriptorFetcherConfiguration cfg) {
         super();
     }
 
@@ -44,7 +45,7 @@ public class PageService_ImportAutFetchDescriptorMockFetcher implements FilesFet
 
     @Override
     public String[] files() throws FetcherException {
-        return new String[] { ".gravitee.json" };
+        return new String[] {".gravitee.json"};
     }
 
     @Override
@@ -52,40 +53,38 @@ public class PageService_ImportAutFetchDescriptorMockFetcher implements FilesFet
         return new PageService_MockAutoFetchDescriptorFetcherConfiguration();
     }
 
-    private static final String descriptor =
-        "{" +
-        "    \"version\": \"1\"," +
-        "    \"documentation\": {" +
-        "        \"pages\": [" +
-        "            {" +
-        "                \"src\": \"/docs/first.md\"," +
-        "                \"dest\": \"/\"," +
-        "                \"name\": \"ma premiere page\"," +
-        "                \"homepage\": true" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/docs/second.md\"," +
-        "                \"dest\": \"/\"," +
-        "                \"name\": \"ma deuxieme page\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/docs/asciidoc/asciidoc.adoc\"," +
-        "                \"dest\": \"/technical\"," +
-        "                \"name\": \"AsciiDoc\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/docs/swagger/readme.md\"," +
-        "                \"dest\": \"/technical\"," +
-        "                \"name\": \"How to use the api\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/how-to/howto.md\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/other.dir/foobar.md\"," +
-        "                \"dest\": \"/how-to\"" +
-        "            }" +
-        "        ]" +
-        "    }" +
-        "}";
+    private static final String descriptor = "{" + "    \"version\": \"1\","
+            + "    \"documentation\": {"
+            + "        \"pages\": ["
+            + "            {"
+            + "                \"src\": \"/docs/first.md\","
+            + "                \"dest\": \"/\","
+            + "                \"name\": \"ma premiere page\","
+            + "                \"homepage\": true"
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/docs/second.md\","
+            + "                \"dest\": \"/\","
+            + "                \"name\": \"ma deuxieme page\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/docs/asciidoc/asciidoc.adoc\","
+            + "                \"dest\": \"/technical\","
+            + "                \"name\": \"AsciiDoc\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/docs/swagger/readme.md\","
+            + "                \"dest\": \"/technical\","
+            + "                \"name\": \"How to use the api\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/how-to/howto.md\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/other.dir/foobar.md\","
+            + "                \"dest\": \"/how-to\""
+            + "            }"
+            + "        ]"
+            + "    }"
+            + "}";
 }

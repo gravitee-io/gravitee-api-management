@@ -38,7 +38,8 @@ public class PolicyFactoryImpl implements PolicyFactory {
         this(policyPluginFactory, null);
     }
 
-    public PolicyFactoryImpl(final PolicyPluginFactory policyPluginFactory, final ConditionEvaluator<String> conditionEvaluator) {
+    public PolicyFactoryImpl(
+            final PolicyPluginFactory policyPluginFactory, final ConditionEvaluator<String> conditionEvaluator) {
         this.policyPluginFactory = policyPluginFactory;
         this.conditionEvaluator = conditionEvaluator;
     }
@@ -50,11 +51,10 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
     @Override
     public Policy create(
-        StreamType streamType,
-        PolicyManifest policyManifest,
-        PolicyConfiguration policyConfiguration,
-        PolicyMetadata policyMetadata
-    ) {
+            StreamType streamType,
+            PolicyManifest policyManifest,
+            PolicyConfiguration policyConfiguration,
+            PolicyMetadata policyMetadata) {
         Object policy = policyPluginFactory.create(policyManifest.policy(), policyConfiguration);
 
         Method headMethod, streamMethod;
@@ -66,13 +66,14 @@ public class PolicyFactoryImpl implements PolicyFactory {
             streamMethod = policyManifest.method(OnResponseContent.class);
         }
 
-        final ExecutablePolicy executablePolicy = new ExecutablePolicy(policyManifest.id(), policy, headMethod, streamMethod);
+        final ExecutablePolicy executablePolicy =
+                new ExecutablePolicy(policyManifest.id(), policy, headMethod, streamMethod);
 
-        if (
-            conditionEvaluator != null &&
-            ExecutionMode.V4_EMULATION_ENGINE != policyMetadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
-        ) {
-            // Conditional policy are directly managed when emulating V4 Engine. ConditionalExecutablePolicy must only be instantiated for v3 execution.
+        if (conditionEvaluator != null
+                && ExecutionMode.V4_EMULATION_ENGINE
+                        != policyMetadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)) {
+            // Conditional policy are directly managed when emulating V4 Engine. ConditionalExecutablePolicy must only
+            // be instantiated for v3 execution.
             final String condition = policyMetadata.getCondition();
             if (condition != null && !condition.isBlank()) {
                 return new ConditionalExecutablePolicy(executablePolicy, condition, conditionEvaluator);

@@ -42,7 +42,8 @@ public interface ApiProductAdapter {
     @Mapping(target = "createdAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "updatedAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "analytics", qualifiedByName = "serializeAnalytics")
-    io.gravitee.repository.management.model.ApiProduct toRepository(io.gravitee.apim.core.api_product.model.ApiProduct domainApiProduct);
+    io.gravitee.repository.management.model.ApiProduct toRepository(
+            io.gravitee.apim.core.api_product.model.ApiProduct domainApiProduct);
 
     @Named("deserializeAnalytics")
     default Analytics deserializeAnalytics(String analytics) {

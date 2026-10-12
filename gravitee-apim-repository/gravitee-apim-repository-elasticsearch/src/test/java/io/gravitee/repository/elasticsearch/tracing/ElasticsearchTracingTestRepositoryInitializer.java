@@ -64,9 +64,7 @@ public class ElasticsearchTracingTestRepositoryInitializer implements TestReposi
 
     @Autowired
     public ElasticsearchTracingTestRepositoryInitializer(
-        GenericContainer<?> tracingTestOtelCollectorContainer,
-        TracingRepository tracingRepository
-    ) {
+            GenericContainer<?> tracingTestOtelCollectorContainer, TracingRepository tracingRepository) {
         this.otelCollectorContainer = tracingTestOtelCollectorContainer;
         this.tracingRepository = tracingRepository;
     }
@@ -88,44 +86,42 @@ public class ElasticsearchTracingTestRepositoryInitializer implements TestReposi
     }
 
     private void seedFixtureTraces() {
-        String otlpEndpoint =
-            "http://" +
-            otelCollectorContainer.getHost() +
-            ":" +
-            otelCollectorContainer.getMappedPort(OTEL_COLLECTOR_OTLP_HTTP_PORT) +
-            "/v1/traces";
+        String otlpEndpoint = "http://" + otelCollectorContainer.getHost()
+                + ":"
+                + otelCollectorContainer.getMappedPort(OTEL_COLLECTOR_OTLP_HTTP_PORT)
+                + "/v1/traces";
 
-        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder().setEndpoint(otlpEndpoint).build();
+        OtlpHttpSpanExporter exporter =
+                OtlpHttpSpanExporter.builder().setEndpoint(otlpEndpoint).build();
         // The contract test calls with QueryContext("test-org", "test-env"), so the impl auto-injects an env clause
         // (resource.attributes.gravitee.environment.id = "test-env"). The fixture spans must carry that resource
         // attribute or the env filter will reject them.
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
-            .setResource(
-                Resource.create(
-                    Attributes.of(stringKey("service.name"), Fixtures.SERVICE_NAME, stringKey("gravitee.environment.id"), Fixtures.ENV_ID)
-                )
-            )
-            .setIdGenerator(new FixtureIdGenerator())
-            .addSpanProcessor(SimpleSpanProcessor.create(exporter))
-            .build();
+                .setResource(Resource.create(Attributes.of(
+                        stringKey("service.name"),
+                        Fixtures.SERVICE_NAME,
+                        stringKey("gravitee.environment.id"),
+                        Fixtures.ENV_ID)))
+                .setIdGenerator(new FixtureIdGenerator())
+                .addSpanProcessor(SimpleSpanProcessor.create(exporter))
+                .build();
 
-        try (OpenTelemetrySdk sdk = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build()) {
+        try (OpenTelemetrySdk sdk =
+                OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build()) {
             Tracer tracer = sdk.getTracer("elasticsearch-tracing-test-fixtures");
 
             long okStartNanos = nanos(Fixtures.TRACE_OK_START_TIME.getEpochSecond());
-            Span okSpan = tracer
-                .spanBuilder(Fixtures.TRACE_OK_ROOT_OPERATION)
-                .setStartTimestamp(okStartNanos, TimeUnit.NANOSECONDS)
-                .setAttribute("http.status_code", "200")
-                .startSpan();
+            Span okSpan = tracer.spanBuilder(Fixtures.TRACE_OK_ROOT_OPERATION)
+                    .setStartTimestamp(okStartNanos, TimeUnit.NANOSECONDS)
+                    .setAttribute("http.status_code", "200")
+                    .startSpan();
             okSpan.end(okStartNanos + Duration.ofMillis(5).toNanos(), TimeUnit.NANOSECONDS);
 
             long errorStartNanos = nanos(Fixtures.TRACE_ERROR_START_TIME.getEpochSecond());
-            Span errorSpan = tracer
-                .spanBuilder(Fixtures.TRACE_ERROR_ROOT_OPERATION)
-                .setStartTimestamp(errorStartNanos, TimeUnit.NANOSECONDS)
-                .setAttribute("http.status_code", "500")
-                .startSpan();
+            Span errorSpan = tracer.spanBuilder(Fixtures.TRACE_ERROR_ROOT_OPERATION)
+                    .setStartTimestamp(errorStartNanos, TimeUnit.NANOSECONDS)
+                    .setAttribute("http.status_code", "500")
+                    .startSpan();
             errorSpan.setStatus(StatusCode.ERROR);
             errorSpan.end(errorStartNanos + Duration.ofMillis(7).toNanos(), TimeUnit.NANOSECONDS);
 
@@ -135,15 +131,17 @@ public class ElasticsearchTracingTestRepositoryInitializer implements TestReposi
 
     private void awaitTracesQueryable() {
         QueryContext queryContext = new QueryContext(Fixtures.ORG_ID, Fixtures.ENV_ID);
-        TraceSearchCriteria criteria = new TraceSearchCriteria(Map.of("service.name", Fixtures.SERVICE_NAME), 20, null, null, Map.of());
+        TraceSearchCriteria criteria =
+                new TraceSearchCriteria(Map.of("service.name", Fixtures.SERVICE_NAME), 20, null, null, Map.of());
 
-        await()
-            .atMost(QUERYABLE_POLL_TIMEOUT)
-            .pollInterval(QUERYABLE_POLL_INTERVAL)
-            .until(() -> {
-                var page = tracingRepository.searchTraces(queryContext, criteria).blockingGet();
-                return page.getContent().size() >= 2;
-            });
+        await().atMost(QUERYABLE_POLL_TIMEOUT)
+                .pollInterval(QUERYABLE_POLL_INTERVAL)
+                .until(() -> {
+                    var page = tracingRepository
+                            .searchTraces(queryContext, criteria)
+                            .blockingGet();
+                    return page.getContent().size() >= 2;
+                });
     }
 
     private static long nanos(long epochSeconds) {

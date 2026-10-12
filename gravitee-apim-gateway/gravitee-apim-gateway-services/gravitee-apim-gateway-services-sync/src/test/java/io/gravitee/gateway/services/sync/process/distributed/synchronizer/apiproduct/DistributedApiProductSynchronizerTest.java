@@ -69,12 +69,11 @@ class DistributedApiProductSynchronizerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new DistributedApiProductSynchronizer(
-            eventsFetcher,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            deployerFactory,
-            new ApiProductMapper(objectMapper)
-        );
+                eventsFetcher,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                deployerFactory,
+                new ApiProductMapper(objectMapper));
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiProductDeployer()).thenReturn(apiProductDeployer);
         lenient().when(apiProductDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -88,7 +87,8 @@ class DistributedApiProductSynchronizerTest {
 
         @Test
         void should_not_synchronize_api_products_when_no_events() throws InterruptedException {
-            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.API_PRODUCT), any())).thenReturn(Flowable.empty());
+            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.API_PRODUCT), any()))
+                    .thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(apiProductDeployer);
         }
@@ -97,24 +97,27 @@ class DistributedApiProductSynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                eq(-1L),
-                any(),
-                eq(DistributedEventType.API_PRODUCT),
-                eq(Set.of(DistributedSyncAction.DEPLOY))
-            );
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            eq(-1L),
+                            any(),
+                            eq(DistributedEventType.API_PRODUCT),
+                            eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                any(),
-                any(),
-                eq(DistributedEventType.API_PRODUCT),
-                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-            );
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(DistributedEventType.API_PRODUCT),
+                            eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY)));
         }
     }
 
@@ -126,22 +129,23 @@ class DistributedApiProductSynchronizerTest {
         @BeforeEach
         public void init() {
             reactableApiProduct = ReactableApiProduct.builder()
-                .id("product-id")
-                .name("Test Product")
-                .apiIds(Set.of("api-1"))
-                .plans(List.of(Plan.builder().id("plan-1").build()))
-                .build();
+                    .id("product-id")
+                    .name("Test Product")
+                    .apiIds(Set.of("api-1"))
+                    .plans(List.of(Plan.builder().id("plan-1").build()))
+                    .build();
         }
 
         @Test
-        void should_deploy_api_product_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
+        void should_deploy_api_product_when_fetching_deployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("product-id")
-                .payload(objectMapper.writeValueAsString(reactableApiProduct))
-                .type(DistributedEventType.API_PRODUCT)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("product-id")
+                    .payload(objectMapper.writeValueAsString(reactableApiProduct))
+                    .type(DistributedEventType.API_PRODUCT)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
@@ -153,11 +157,11 @@ class DistributedApiProductSynchronizerTest {
         @Test
         void should_undeploy_api_product_when_fetching_undeployed_events() throws InterruptedException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("product-id")
-                .type(DistributedEventType.API_PRODUCT)
-                .syncAction(DistributedSyncAction.UNDEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("product-id")
+                    .type(DistributedEventType.API_PRODUCT)
+                    .syncAction(DistributedSyncAction.UNDEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();

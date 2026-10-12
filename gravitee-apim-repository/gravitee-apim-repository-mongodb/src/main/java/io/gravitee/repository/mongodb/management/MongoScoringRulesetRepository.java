@@ -50,14 +50,15 @@ class MongoScoringRulesetRepository implements ScoringRulesetRepository {
         }
 
         return internalRepository
-            .findById(scoringRuleset.getId())
-            .map(found -> {
-                log.debug("Update scoring ruleset [{}]", scoringRuleset.getId());
-                ScoringRuleset updatedScoringRuleset = map(internalRepository.save(map(scoringRuleset)));
-                log.debug("Update scoring ruleset [{}] - Done", updatedScoringRuleset.getId());
-                return updatedScoringRuleset;
-            })
-            .orElseThrow(() -> new IllegalStateException(String.format("No scoring ruleset found with id [%s]", scoringRuleset.getId())));
+                .findById(scoringRuleset.getId())
+                .map(found -> {
+                    log.debug("Update scoring ruleset [{}]", scoringRuleset.getId());
+                    ScoringRuleset updatedScoringRuleset = map(internalRepository.save(map(scoringRuleset)));
+                    log.debug("Update scoring ruleset [{}] - Done", updatedScoringRuleset.getId());
+                    return updatedScoringRuleset;
+                })
+                .orElseThrow(() -> new IllegalStateException(
+                        String.format("No scoring ruleset found with id [%s]", scoringRuleset.getId())));
     }
 
     @Override
@@ -79,7 +80,9 @@ class MongoScoringRulesetRepository implements ScoringRulesetRepository {
     public List<ScoringRuleset> findAllByReferenceId(String referenceId, String referenceType) {
         log.debug("Search by reference [{}={}]", referenceType, referenceId);
 
-        var result = internalRepository.findByReferenceIdAndReferenceType(referenceId, referenceType).stream().map(mapper::map).toList();
+        var result = internalRepository.findByReferenceIdAndReferenceType(referenceId, referenceType).stream()
+                .map(mapper::map)
+                .toList();
 
         log.debug("Search by reference [{}={}] - Done", referenceType, referenceId);
         return result;
@@ -89,11 +92,10 @@ class MongoScoringRulesetRepository implements ScoringRulesetRepository {
     public List<String> deleteByReferenceId(String referenceId, String referenceType) throws TechnicalException {
         log.debug("Delete by reference: [{}={}]", referenceType, referenceId);
         try {
-            List<String> all = internalRepository
-                .deleteByReferenceIdAAndReferenceType(referenceId, referenceType)
-                .stream()
-                .map(ScoringRulesetMongo::getId)
-                .toList();
+            List<String> all =
+                    internalRepository.deleteByReferenceIdAAndReferenceType(referenceId, referenceType).stream()
+                            .map(ScoringRulesetMongo::getId)
+                            .toList();
             log.debug("Delete by reference: [{}={}] - Done", referenceType, referenceId);
             return all;
         } catch (Exception ex) {

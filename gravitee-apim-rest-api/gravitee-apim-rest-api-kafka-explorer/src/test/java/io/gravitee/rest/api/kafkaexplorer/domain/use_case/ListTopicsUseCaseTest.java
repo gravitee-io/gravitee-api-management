@@ -53,15 +53,19 @@ class ListTopicsUseCaseTest {
     @Test
     void should_return_topics_page() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var allTopics = List.of(
-            new KafkaTopic("__consumer_offsets", 50, 1, 0, true, 1024L, 100L),
-            new KafkaTopic("my-topic", 3, 2, 0, false, 2048L, 200L)
-        );
+                new KafkaTopic("__consumer_offsets", 50, 1, 0, true, 1024L, 100L),
+                new KafkaTopic("my-topic", 3, 2, 0, false, 2048L, 200L));
         clusterDomainService.givenTopics(allTopics);
 
-        var result = useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25, "name", "asc"));
+        var result =
+                useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25, "name", "asc"));
 
         assertThat(result.topicsPage().data()).hasSize(2);
         assertThat(result.topicsPage().totalCount()).isEqualTo(2);
@@ -72,16 +76,20 @@ class ListTopicsUseCaseTest {
     @Test
     void should_filter_topics_by_name() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var allTopics = List.of(
-            new KafkaTopic("__consumer_offsets", 50, 1, 0, true, 1024L, 100L),
-            new KafkaTopic("my-topic", 3, 2, 0, false, 2048L, 200L),
-            new KafkaTopic("orders", 6, 3, 0, false, 4096L, 500L)
-        );
+                new KafkaTopic("__consumer_offsets", 50, 1, 0, true, 1024L, 100L),
+                new KafkaTopic("my-topic", 3, 2, 0, false, 2048L, 200L),
+                new KafkaTopic("orders", 6, 3, 0, false, 4096L, 500L));
         clusterDomainService.givenTopics(allTopics);
 
-        var result = useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", 0, 25, "name", "asc"));
+        var result =
+                useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", 0, 25, "name", "asc"));
 
         assertThat(result.topicsPage().data()).hasSize(1);
         assertThat(result.topicsPage().data().get(0).name()).isEqualTo("my-topic");
@@ -91,12 +99,19 @@ class ListTopicsUseCaseTest {
     @Test
     void should_propagate_kafka_explorer_exception() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
-        clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
+        clusterDomainService.givenException(
+                new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
-        assertThatThrownBy(() -> useCase.execute(new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25, "name", "asc")))
-            .isInstanceOf(KafkaExplorerException.class)
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+        assertThatThrownBy(() -> useCase.execute(
+                        new ListTopicsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, 0, 25, "name", "asc")))
+                .isInstanceOf(KafkaExplorerException.class)
+                .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode())
+                        .isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 }

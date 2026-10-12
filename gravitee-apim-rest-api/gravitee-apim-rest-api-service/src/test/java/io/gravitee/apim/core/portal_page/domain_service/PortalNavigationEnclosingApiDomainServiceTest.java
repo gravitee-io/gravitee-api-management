@@ -71,18 +71,18 @@ class PortalNavigationEnclosingApiDomainServiceTest {
     @Test
     void should_find_api_from_the_items_own_reference_when_it_is_a_spliced_subtree_root() {
         var page = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.of(DOC_PAGE_ID))
-            .organizationId(PortalNavigationItemFixtures.ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Doc")
-            .segment("doc")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(new NavigationItemReference.ApiReference("api-x"))
-            .build();
+                .id(PortalNavigationItemId.of(DOC_PAGE_ID))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Doc")
+                .segment("doc")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference("api-x"))
+                .build();
         page.markAsRoot();
         itemsQueryService.initWith(List.of(page));
 

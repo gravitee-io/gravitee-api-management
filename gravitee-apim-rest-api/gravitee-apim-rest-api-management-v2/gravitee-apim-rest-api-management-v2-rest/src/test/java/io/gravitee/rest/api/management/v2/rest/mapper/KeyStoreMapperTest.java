@@ -36,16 +36,16 @@ public class KeyStoreMapperTest {
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of(KeyStoreType.JKS, io.gravitee.definition.model.ssl.KeyStoreType.JKS),
-            Arguments.of(KeyStoreType.PEM, io.gravitee.definition.model.ssl.KeyStoreType.PEM),
-            Arguments.of(KeyStoreType.PKCS12, io.gravitee.definition.model.ssl.KeyStoreType.PKCS12),
-            Arguments.of(KeyStoreType.NONE, io.gravitee.definition.model.ssl.KeyStoreType.None)
-        );
+                Arguments.of(KeyStoreType.JKS, io.gravitee.definition.model.ssl.KeyStoreType.JKS),
+                Arguments.of(KeyStoreType.PEM, io.gravitee.definition.model.ssl.KeyStoreType.PEM),
+                Arguments.of(KeyStoreType.PKCS12, io.gravitee.definition.model.ssl.KeyStoreType.PKCS12),
+                Arguments.of(KeyStoreType.NONE, io.gravitee.definition.model.ssl.KeyStoreType.None));
     }
 
     @ParameterizedTest(name = "should map trust store type {0} to model {1}")
     @MethodSource("provideParameters")
-    void shouldMapToKeyStoreTypeModel(KeyStoreType trustStoreType, io.gravitee.definition.model.ssl.KeyStoreType trustStoreTypeModel) {
+    void shouldMapToKeyStoreTypeModel(
+            KeyStoreType trustStoreType, io.gravitee.definition.model.ssl.KeyStoreType trustStoreTypeModel) {
         io.gravitee.definition.model.ssl.KeyStoreType converted = keyStoreMapper.mapToKeyStoreType(trustStoreType);
 
         assertThat(converted).isEqualTo(trustStoreTypeModel);
@@ -53,7 +53,8 @@ public class KeyStoreMapperTest {
 
     @ParameterizedTest(name = "should map trust store model {1} to type {0}")
     @MethodSource("provideParameters")
-    void shouldMapFromKeyStoreTypeModel(KeyStoreType trustStoreType, io.gravitee.definition.model.ssl.KeyStoreType trustStoreTypeModel) {
+    void shouldMapFromKeyStoreTypeModel(
+            KeyStoreType trustStoreType, io.gravitee.definition.model.ssl.KeyStoreType trustStoreTypeModel) {
         KeyStoreType converted = keyStoreMapper.mapKeyStoreType(trustStoreTypeModel);
 
         assertThat(converted).isEqualTo(trustStoreType);
@@ -61,75 +62,71 @@ public class KeyStoreMapperTest {
 
     @Test
     void shouldMapToJKSKeyStoreV2() {
-        var jksKeyStore = (JKSKeyStore) new JKSKeyStore().path("path").content("content").password("password").type(KeyStoreType.JKS);
+        var jksKeyStore = (JKSKeyStore) new JKSKeyStore()
+                .path("path")
+                .content("content")
+                .password("password")
+                .type(KeyStoreType.JKS);
 
         var jksKeyStoreEntityV2 = keyStoreMapper.mapToV2(new KeyStore(jksKeyStore));
         assertThat(jksKeyStoreEntityV2).isNotNull();
         assertThat(jksKeyStoreEntityV2).isInstanceOf(io.gravitee.definition.model.ssl.jks.JKSKeyStore.class);
-        assertThat(jksKeyStoreEntityV2.getType()).isEqualTo(
-            io.gravitee.definition.model.ssl.KeyStoreType.valueOf(jksKeyStore.getType().name())
-        );
-        assertThat(((io.gravitee.definition.model.ssl.jks.JKSKeyStore) jksKeyStoreEntityV2).getPath()).isEqualTo(jksKeyStore.getPath());
-        assertThat(((io.gravitee.definition.model.ssl.jks.JKSKeyStore) jksKeyStoreEntityV2).getContent()).isEqualTo(
-            jksKeyStore.getContent()
-        );
-        assertThat(((io.gravitee.definition.model.ssl.jks.JKSKeyStore) jksKeyStoreEntityV2).getPassword()).isEqualTo(
-            jksKeyStore.getPassword()
-        );
+        assertThat(jksKeyStoreEntityV2.getType())
+                .isEqualTo(io.gravitee.definition.model.ssl.KeyStoreType.valueOf(
+                        jksKeyStore.getType().name()));
+        assertThat(((io.gravitee.definition.model.ssl.jks.JKSKeyStore) jksKeyStoreEntityV2).getPath())
+                .isEqualTo(jksKeyStore.getPath());
+        assertThat(((io.gravitee.definition.model.ssl.jks.JKSKeyStore) jksKeyStoreEntityV2).getContent())
+                .isEqualTo(jksKeyStore.getContent());
+        assertThat(((io.gravitee.definition.model.ssl.jks.JKSKeyStore) jksKeyStoreEntityV2).getPassword())
+                .isEqualTo(jksKeyStore.getPassword());
     }
 
     @Test
     void shouldMapToPKCS12KeyStoreV2() {
         var pkcs12KeyStore = (PKCS12KeyStore) new PKCS12KeyStore()
-            .path("path")
-            .content("content")
-            .password("password")
-            .type(KeyStoreType.PKCS12);
+                .path("path")
+                .content("content")
+                .password("password")
+                .type(KeyStoreType.PKCS12);
 
         var pkcs12KeyStoreEntityV2 = keyStoreMapper.mapToV2(new KeyStore(pkcs12KeyStore));
         assertThat(pkcs12KeyStoreEntityV2).isNotNull();
         assertThat(pkcs12KeyStoreEntityV2).isInstanceOf(io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore.class);
-        assertThat(pkcs12KeyStoreEntityV2.getType()).isEqualTo(
-            io.gravitee.definition.model.ssl.KeyStoreType.valueOf(pkcs12KeyStore.getType().name())
-        );
-        assertThat(((io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore) pkcs12KeyStoreEntityV2).getPath()).isEqualTo(
-            pkcs12KeyStore.getPath()
-        );
-        assertThat(((io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore) pkcs12KeyStoreEntityV2).getContent()).isEqualTo(
-            pkcs12KeyStore.getContent()
-        );
-        assertThat(((io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore) pkcs12KeyStoreEntityV2).getPassword()).isEqualTo(
-            pkcs12KeyStore.getPassword()
-        );
+        assertThat(pkcs12KeyStoreEntityV2.getType())
+                .isEqualTo(io.gravitee.definition.model.ssl.KeyStoreType.valueOf(
+                        pkcs12KeyStore.getType().name()));
+        assertThat(((io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore) pkcs12KeyStoreEntityV2).getPath())
+                .isEqualTo(pkcs12KeyStore.getPath());
+        assertThat(((io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore) pkcs12KeyStoreEntityV2).getContent())
+                .isEqualTo(pkcs12KeyStore.getContent());
+        assertThat(((io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore) pkcs12KeyStoreEntityV2).getPassword())
+                .isEqualTo(pkcs12KeyStore.getPassword());
     }
 
     @Test
     void shouldMapToPEMKeyStoreV2() {
         var pemKeyStore = (PEMKeyStore) new PEMKeyStore()
-            .keyPath("path")
-            .keyContent("content")
-            .certPath("cert-path")
-            .certContent("cert-content")
-            .type(KeyStoreType.PEM);
+                .keyPath("path")
+                .keyContent("content")
+                .certPath("cert-path")
+                .certContent("cert-content")
+                .type(KeyStoreType.PEM);
 
         var pemKeyStoreEntityV2 = keyStoreMapper.mapToV2(new KeyStore(pemKeyStore));
         assertThat(pemKeyStoreEntityV2).isNotNull();
         assertThat(pemKeyStoreEntityV2).isInstanceOf(io.gravitee.definition.model.ssl.pem.PEMKeyStore.class);
-        assertThat(pemKeyStoreEntityV2.getType()).isEqualTo(
-            io.gravitee.definition.model.ssl.KeyStoreType.valueOf(pemKeyStore.getType().name())
-        );
-        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getKeyPath()).isEqualTo(
-            pemKeyStore.getKeyPath()
-        );
-        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getKeyContent()).isEqualTo(
-            pemKeyStore.getKeyContent()
-        );
-        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getCertPath()).isEqualTo(
-            pemKeyStore.getCertPath()
-        );
-        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getCertContent()).isEqualTo(
-            pemKeyStore.getCertContent()
-        );
+        assertThat(pemKeyStoreEntityV2.getType())
+                .isEqualTo(io.gravitee.definition.model.ssl.KeyStoreType.valueOf(
+                        pemKeyStore.getType().name()));
+        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getKeyPath())
+                .isEqualTo(pemKeyStore.getKeyPath());
+        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getKeyContent())
+                .isEqualTo(pemKeyStore.getKeyContent());
+        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getCertPath())
+                .isEqualTo(pemKeyStore.getCertPath());
+        assertThat(((io.gravitee.definition.model.ssl.pem.PEMKeyStore) pemKeyStoreEntityV2).getCertContent())
+                .isEqualTo(pemKeyStore.getCertContent());
     }
 
     @Test
@@ -145,15 +142,16 @@ public class KeyStoreMapperTest {
     @Test
     void shouldMapFromJKSKeyStoreV2() {
         var jksKeyStoreEntityV2 = io.gravitee.definition.model.ssl.jks.JKSKeyStore.builder()
-            .type(io.gravitee.definition.model.ssl.KeyStoreType.JKS)
-            .path("path")
-            .content("content")
-            .password("password")
-            .build();
+                .type(io.gravitee.definition.model.ssl.KeyStoreType.JKS)
+                .path("path")
+                .content("content")
+                .password("password")
+                .build();
 
         var jksKeyStore = keyStoreMapper.map(jksKeyStoreEntityV2);
         assertThat(jksKeyStore).isNotNull();
-        assertThat(jksKeyStore.getType()).isEqualTo(KeyStoreType.valueOf(jksKeyStoreEntityV2.getType().name()));
+        assertThat(jksKeyStore.getType())
+                .isEqualTo(KeyStoreType.valueOf(jksKeyStoreEntityV2.getType().name()));
         assertThat(jksKeyStore.getPath()).isEqualTo(jksKeyStoreEntityV2.getPath());
         assertThat(jksKeyStore.getContent()).isEqualTo(jksKeyStoreEntityV2.getContent());
         assertThat(jksKeyStore.getPassword()).isEqualTo(jksKeyStoreEntityV2.getPassword());
@@ -162,15 +160,16 @@ public class KeyStoreMapperTest {
     @Test
     void shouldMapFromPKCS12KeyStoreV2() {
         var pkcs12KeyStoreEntityV2 = io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore.builder()
-            .type(io.gravitee.definition.model.ssl.KeyStoreType.PKCS12)
-            .path("path")
-            .content("content")
-            .password("password")
-            .build();
+                .type(io.gravitee.definition.model.ssl.KeyStoreType.PKCS12)
+                .path("path")
+                .content("content")
+                .password("password")
+                .build();
 
         var pkcs12KeyStore = keyStoreMapper.map(pkcs12KeyStoreEntityV2);
         assertThat(pkcs12KeyStore).isNotNull();
-        assertThat(pkcs12KeyStore.getType()).isEqualTo(KeyStoreType.valueOf(pkcs12KeyStoreEntityV2.getType().name()));
+        assertThat(pkcs12KeyStore.getType())
+                .isEqualTo(KeyStoreType.valueOf(pkcs12KeyStoreEntityV2.getType().name()));
         assertThat(pkcs12KeyStore.getPath()).isEqualTo(pkcs12KeyStoreEntityV2.getPath());
         assertThat(pkcs12KeyStore.getContent()).isEqualTo(pkcs12KeyStoreEntityV2.getContent());
         assertThat(pkcs12KeyStore.getPassword()).isEqualTo(pkcs12KeyStoreEntityV2.getPassword());
@@ -179,16 +178,17 @@ public class KeyStoreMapperTest {
     @Test
     void shouldMapFromPEMKeyStoreV2() {
         var pemKeyStoreEntityV2 = io.gravitee.definition.model.ssl.pem.PEMKeyStore.builder()
-            .type(io.gravitee.definition.model.ssl.KeyStoreType.PEM)
-            .keyPath("key-path")
-            .keyContent("key-content")
-            .certPath("cert-path")
-            .certContent("cert-content")
-            .build();
+                .type(io.gravitee.definition.model.ssl.KeyStoreType.PEM)
+                .keyPath("key-path")
+                .keyContent("key-content")
+                .certPath("cert-path")
+                .certContent("cert-content")
+                .build();
 
         var pemKeyStore = keyStoreMapper.map(pemKeyStoreEntityV2);
         assertThat(pemKeyStore).isNotNull();
-        assertThat(pemKeyStore.getType()).isEqualTo(KeyStoreType.valueOf(pemKeyStoreEntityV2.getType().name()));
+        assertThat(pemKeyStore.getType())
+                .isEqualTo(KeyStoreType.valueOf(pemKeyStoreEntityV2.getType().name()));
         assertThat(pemKeyStore.getKeyPath()).isEqualTo(pemKeyStoreEntityV2.getKeyPath());
         assertThat(pemKeyStore.getKeyContent()).isEqualTo(pemKeyStoreEntityV2.getKeyContent());
         assertThat(pemKeyStore.getCertPath()).isEqualTo(pemKeyStoreEntityV2.getCertPath());
@@ -198,8 +198,8 @@ public class KeyStoreMapperTest {
     @Test
     void shouldMapFromNoneKeyStoreV2() {
         var noneKeyStoreEntityV2 = io.gravitee.definition.model.ssl.none.NoneKeyStore.builder()
-            .type(io.gravitee.definition.model.ssl.KeyStoreType.None)
-            .build();
+                .type(io.gravitee.definition.model.ssl.KeyStoreType.None)
+                .build();
 
         var noneKeyStore = keyStoreMapper.map(noneKeyStoreEntityV2);
         assertThat(noneKeyStore).isNotNull();

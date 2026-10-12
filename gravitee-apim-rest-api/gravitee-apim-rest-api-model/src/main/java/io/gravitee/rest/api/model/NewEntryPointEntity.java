@@ -75,7 +75,9 @@ public class NewEntryPointEntity {
         if (this == o) return true;
         if (!(o instanceof NewEntryPointEntity)) return false;
         NewEntryPointEntity that = (NewEntryPointEntity) o;
-        return Objects.equals(target, that.target) && Objects.equals(value, that.value) && Objects.deepEquals(tags, that.tags);
+        return Objects.equals(target, that.target)
+                && Objects.equals(value, that.value)
+                && Objects.deepEquals(tags, that.tags);
     }
 
     @Override
@@ -85,6 +87,7 @@ public class NewEntryPointEntity {
 
     @Override
     public String toString() {
-        return "EntryPointEntity{" + "target=" + target + ", value='" + value + '\'' + ", tags=" + String.join(", ", tags) + '}';
+        return "EntryPointEntity{" + "target=" + target + ", value='" + value + '\'' + ", tags="
+                + String.join(", ", tags) + '}';
     }
 }

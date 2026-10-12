@@ -44,6 +44,7 @@ public abstract class AbstractFailureProcessor implements Processor {
     /**
      * Code for an unknown caller / application     */
     private static final String APPLICATION_NAME_ANONYMOUS = "1";
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     protected AbstractFailureProcessor() {}
@@ -58,9 +59,8 @@ public abstract class AbstractFailureProcessor implements Processor {
         ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
         if (executionFailure == null) {
-            executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(
-                HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()
-            );
+            executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
+                    .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
             ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         }
 
@@ -83,7 +83,8 @@ public abstract class AbstractFailureProcessor implements Processor {
             ctx.metrics().setErrorMessage(message);
         }
         response.status(executionFailure.statusCode());
-        response.reason(HttpResponseStatus.valueOf(executionFailure.statusCode()).reasonPhrase());
+        response.reason(
+                HttpResponseStatus.valueOf(executionFailure.statusCode()).reasonPhrase());
         // In case of client error we don't want to force close the connection
         if (executionFailure.statusCode() / 100 != 4) {
             response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
@@ -93,19 +94,18 @@ public abstract class AbstractFailureProcessor implements Processor {
             var exception = (Throwable) executionFailure.parameters().get("exception");
 
             if (exception != null) {
-                ctx
-                    .withLogger(log)
-                    .debug(
-                        "An error occurred while executing request [requestId={}]: {}",
-                        request.id(),
-                        executionFailure.message(),
-                        exception
-                    );
+                ctx.withLogger(log)
+                        .debug(
+                                "An error occurred while executing request [requestId={}]: {}",
+                                request.id(),
+                                executionFailure.message(),
+                                exception);
             }
         }
 
         if (executionFailure.message() != null) {
-            ExecutionFailureMessage failureMessage = ExecutionFailureMessageHelper.createFailureMessage(request, executionFailure, mapper);
+            ExecutionFailureMessage failureMessage =
+                    ExecutionFailureMessageHelper.createFailureMessage(request, executionFailure, mapper);
 
             String contentType = failureMessage.getContentType();
             Buffer payload = failureMessage.getPayload();

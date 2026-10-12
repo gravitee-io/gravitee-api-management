@@ -57,7 +57,8 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
     }
 
     @Override
-    public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) throws TechnicalException {
+    public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name)
+            throws TechnicalException {
         return Optional.empty();
     }
 
@@ -72,7 +73,8 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
     }
 
     @Override
-    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         return new Page<>(Collections.emptyList(), 0, 0, 0);
     }
 
@@ -98,7 +100,7 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
 
     @Override
     public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+            throws TechnicalException {
         return new Page<>(Collections.emptyList(), 0, 0, 0);
     }
 }

@@ -29,7 +29,9 @@ public class ApiProductTagsValidationDomainServiceLegacyWrapper implements ApiPr
     private final TagsValidationService tagsValidationService;
 
     @Override
-    public void validateAndSanitize(String organizationId, String environmentId, Set<String> existingTags, Set<String> newTags) {
-        tagsValidationService.validateAndSanitize(new ExecutionContext(organizationId, environmentId), existingTags, newTags);
+    public void validateAndSanitize(
+            String organizationId, String environmentId, Set<String> existingTags, Set<String> newTags) {
+        tagsValidationService.validateAndSanitize(
+                new ExecutionContext(organizationId, environmentId), existingTags, newTags);
     }
 }

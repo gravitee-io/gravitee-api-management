@@ -60,22 +60,27 @@ public class Oauth2GenericResourceIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureResources(Map<String, ResourcePlugin> resources) {
-        resources.putIfAbsent("oauth2", ResourceBuilder.build("oauth2", OAuth2GenericResource.class, OAuth2ResourceConfiguration.class));
+        resources.putIfAbsent(
+                "oauth2",
+                ResourceBuilder.build("oauth2", OAuth2GenericResource.class, OAuth2ResourceConfiguration.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
-        policies.putIfAbsent("oauth2", PolicyBuilder.build("oauth2", Oauth2Policy.class, OAuth2PolicyConfiguration.class));
+        policies.putIfAbsent(
+                "oauth2", PolicyBuilder.build("oauth2", Oauth2Policy.class, OAuth2PolicyConfiguration.class));
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Test
@@ -97,35 +102,27 @@ public class Oauth2GenericResourceIntegrationTest extends AbstractGatewayTest {
     }
 
     private void shouldCallApiSuccessfully(HttpClient httpClient) {
-        String jwt = new PlainJWT(
-            new JWTClaimsSet.Builder()
-                .subject("test")
-                .issuer("ITTest")
-                .audience("OAuth")
-                .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
-                .issueTime(new Date())
-                .claim("test", "hello")
-                .build()
-        ).serialize();
+        String jwt = new PlainJWT(new JWTClaimsSet.Builder()
+                        .subject("test")
+                        .issuer("ITTest")
+                        .audience("OAuth")
+                        .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                        .issueTime(new Date())
+                        .claim("test", "hello")
+                        .build())
+                .serialize();
 
         // stub for introspect endpoint (called by oauth policy via oauth2 resource)
-        wiremock.stubFor(
-            get("/oauth/check_token")
+        wiremock.stubFor(get("/oauth/check_token")
                 .withBasicAuth("admin", CLIENT_SECRET)
                 .withHeader("token", equalTo(jwt))
-                .willReturn(
-                    jsonResponse(
-                        """
+                .willReturn(jsonResponse("""
                         {
                             "client_id": "admin",
                             "sub": "the_user",
                             "scope": []
                         }
-                        """,
-                        200
-                    )
-                )
-        );
+                        """, 200)));
 
         // the backend
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
@@ -138,16 +135,16 @@ public class Oauth2GenericResourceIntegrationTest extends AbstractGatewayTest {
 
     private static void callApi(HttpClient httpClient, Map<String, String> map) {
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .doOnSuccess(req -> map.forEach(req::putHeader))
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(Buffer.buffer("response from backend"))
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .doOnSuccess(req -> map.forEach(req::putHeader))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(Buffer.buffer("response from backend"))
+                .assertComplete();
     }
 }

@@ -32,10 +32,10 @@ public class PrimaryOwnerApiTemplateData {
 
     public static PrimaryOwnerApiTemplateData from(PrimaryOwnerEntity primaryOwner) {
         return PrimaryOwnerApiTemplateData.builder()
-            .id(primaryOwner.id())
-            .displayName(primaryOwner.displayName())
-            .email(primaryOwner.email())
-            .type(primaryOwner.type().name())
-            .build();
+                .id(primaryOwner.id())
+                .displayName(primaryOwner.displayName())
+                .email(primaryOwner.email())
+                .type(primaryOwner.type().name())
+                .build();
     }
 }

@@ -79,27 +79,26 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_create_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var item = PortalNavigationFolder.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             service.create(item);
 
             final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedFolderFromCreate(
-                itemId.toString(),
-                "title",
-                "organizationId",
-                "environmentId",
-                0,
-                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO
-            );
+                    itemId.toString(),
+                    "title",
+                    "organizationId",
+                    "environmentId",
+                    0,
+                    PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO);
 
             verify(repository).create(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -110,29 +109,28 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .portalPageContentId(contentId)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .portalPageContentId(contentId)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             service.create(item);
 
             final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedPageFromCreate(
-                itemId.toString(),
-                "title",
-                "organizationId",
-                "environmentId",
-                0,
-                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
-                contentId.toString()
-            );
+                    itemId.toString(),
+                    "title",
+                    "organizationId",
+                    "environmentId",
+                    0,
+                    PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                    contentId.toString());
 
             verify(repository).create(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -143,29 +141,28 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
             final var item = PortalNavigationLink.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .url(url)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .url(url)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             service.create(item);
 
             final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedLinkFromCreate(
-                itemId.toString(),
-                "title",
-                "organizationId",
-                "environmentId",
-                0,
-                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
-                url
-            );
+                    itemId.toString(),
+                    "title",
+                    "organizationId",
+                    "environmentId",
+                    0,
+                    PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                    url);
 
             verify(repository).create(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -176,59 +173,58 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var rootId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000099");
             final var item = PortalNavigationFolder.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .rootId(rootId)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .rootId(rootId)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             service.create(item);
 
             final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedFolderFromCreate(
-                itemId.toString(),
-                "title",
-                "organizationId",
-                "environmentId",
-                0,
-                "00000000-0000-0000-0000-000000000099"
-            );
+                    itemId.toString(),
+                    "title",
+                    "organizationId",
+                    "environmentId",
+                    0,
+                    "00000000-0000-0000-0000-000000000099");
 
             verify(repository).create(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
             // Given
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .portalPageContentId(contentId)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .portalPageContentId(contentId)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
             when(repository.create(any())).thenThrow(new TechnicalException("Database error"));
 
             // When & Then
             assertThatThrownBy(() -> service.create(item))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage(
-                    "An error occurred while creating portal navigation item with id 00000000-0000-0000-0000-000000000001 and environmentId environmentId"
-                )
-                .hasCauseInstanceOf(TechnicalException.class);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while creating portal navigation item with id 00000000-0000-0000-0000-000000000001 and environmentId environmentId")
+                    .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 
@@ -244,27 +240,26 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_update_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var item = PortalNavigationFolder.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             service.update(item);
 
             final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedFolderFromCreate(
-                itemId.toString(),
-                "title",
-                "organizationId",
-                "environmentId",
-                0,
-                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO
-            );
+                    itemId.toString(),
+                    "title",
+                    "organizationId",
+                    "environmentId",
+                    0,
+                    PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO);
 
             verify(repository).update(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -275,29 +270,28 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .portalPageContentId(contentId)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .portalPageContentId(contentId)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             service.update(item);
 
             final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedPageFromCreate(
-                itemId.toString(),
-                "title",
-                "organizationId",
-                "environmentId",
-                0,
-                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
-                contentId.toString()
-            );
+                    itemId.toString(),
+                    "title",
+                    "organizationId",
+                    "environmentId",
+                    0,
+                    PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                    contentId.toString());
 
             verify(repository).update(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -308,60 +302,59 @@ class PortalNavigationItemsCrudServiceImplTest {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
             final var item = PortalNavigationLink.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .url(url)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .url(url)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             service.update(item);
 
             final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedLinkFromCreate(
-                itemId.toString(),
-                "title",
-                "organizationId",
-                "environmentId",
-                0,
-                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
-                url
-            );
+                    itemId.toString(),
+                    "title",
+                    "organizationId",
+                    "environmentId",
+                    0,
+                    PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                    url);
 
             verify(repository).update(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
             // Given
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
             final var item = PortalNavigationPage.builder()
-                .id(itemId)
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .title("title")
-                .segment("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .portalPageContentId(contentId)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(itemId)
+                    .organizationId("organizationId")
+                    .environmentId("environmentId")
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .portalPageContentId(contentId)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
             when(repository.update(any())).thenThrow(new TechnicalException("Database error"));
 
             // When & Then
             assertThatThrownBy(() -> service.update(item))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage(
-                    "An error occurred while updating portal navigation item with id 00000000-0000-0000-0000-000000000001 and environmentId environmentId"
-                )
-                .hasCauseInstanceOf(TechnicalException.class);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while updating portal navigation item with id 00000000-0000-0000-0000-000000000001 and environmentId environmentId")
+                    .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 
@@ -380,16 +373,18 @@ class PortalNavigationItemsCrudServiceImplTest {
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
             // Given
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             doThrow(new TechnicalException("Database error")).when(repository).delete(any());
 
             // When & Then
             assertThatThrownBy(() -> service.delete(itemId))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while deleting portal navigation item with id 00000000-0000-0000-0000-000000000001")
-                .hasCauseInstanceOf(TechnicalException.class);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while deleting portal navigation item with id 00000000-0000-0000-0000-000000000001")
+                    .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 
@@ -398,18 +393,18 @@ class PortalNavigationItemsCrudServiceImplTest {
 
         private static final String ID = "00000000-0000-0000-0000-000000000007";
         private static final String STORED_CONFIGURATION =
-            "{\"portalPageContentId\":\"00000000-0000-0000-0000-000000000070\",\"source\":{\"type\":\"http-fetcher\",\"configuration\":\"{}\",\"lastFetchedAt\":\"2026-10-01T10:00:00Z\"}}";
+                "{\"portalPageContentId\":\"00000000-0000-0000-0000-000000000070\",\"source\":{\"type\":\"http-fetcher\",\"configuration\":\"{}\",\"lastFetchedAt\":\"2026-10-01T10:00:00Z\"}}";
         private static final PortalNavigationItemSource FETCHED_SOURCE = PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration("{}")
-            .build();
-        private static final PortalNavigationItemSource.FetchState FETCH_STATE = PortalNavigationItemSource.FetchState.succeeded(
-            Instant.parse("2026-10-08T10:00:00Z"),
-            Instant.parse("2026-10-08T10:00:00Z")
-        );
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{}")
+                .build();
+        private static final PortalNavigationItemSource.FetchState FETCH_STATE =
+                PortalNavigationItemSource.FetchState.succeeded(
+                        Instant.parse("2026-10-08T10:00:00Z"), Instant.parse("2026-10-08T10:00:00Z"));
 
         private io.gravitee.repository.management.model.PortalNavigationItem storedPage() {
-            var page = PortalNavigationItemsRepositoryFixtures.aPage(ID, "Stored title", "00000000-0000-0000-0000-000000000070", null);
+            var page = PortalNavigationItemsRepositoryFixtures.aPage(
+                    ID, "Stored title", "00000000-0000-0000-0000-000000000070", null);
             page.setConfiguration(STORED_CONFIGURATION);
             return page;
         }
@@ -417,21 +412,21 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_replace_only_the_configuration_of_the_stored_item() throws TechnicalException {
             when(repository.findById(ID)).thenReturn(Optional.of(storedPage()));
-            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), any())).thenReturn(true);
+            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), any()))
+                    .thenReturn(true);
 
             var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE);
 
             verify(repository, never()).update(any());
             var configurationCaptor = ArgumentCaptor.forClass(String.class);
-            verify(repository).updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), configurationCaptor.capture());
+            verify(repository)
+                    .updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), configurationCaptor.capture());
             assertThat(configurationCaptor.getValue()).contains("\"lastFetchedAt\":\"2026-10-08T10:00:00Z\"");
-            assertThat(updated)
-                .get()
-                .satisfies(item -> {
-                    assertThat(item.getTitle()).isEqualTo("Stored title");
-                    assertThat(item.getSource().getLastFetchedAt()).isEqualTo(FETCH_STATE.lastFetchedAt());
-                    assertThat(item.getSource().getLastFetchAttemptAt()).isEqualTo(FETCH_STATE.lastFetchAttemptAt());
-                });
+            assertThat(updated).get().satisfies(item -> {
+                assertThat(item.getTitle()).isEqualTo("Stored title");
+                assertThat(item.getSource().getLastFetchedAt()).isEqualTo(FETCH_STATE.lastFetchedAt());
+                assertThat(item.getSource().getLastFetchAttemptAt()).isEqualTo(FETCH_STATE.lastFetchAttemptAt());
+            });
         }
 
         @Test
@@ -440,32 +435,33 @@ class PortalNavigationItemsCrudServiceImplTest {
             var fresh = storedPage();
             fresh.setConfiguration(restampedConfiguration);
             when(repository.findById(ID)).thenReturn(Optional.of(storedPage()), Optional.of(fresh));
-            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), any())).thenReturn(false);
-            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(restampedConfiguration), any())).thenReturn(true);
+            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), any()))
+                    .thenReturn(false);
+            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(restampedConfiguration), any()))
+                    .thenReturn(true);
 
             var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE);
 
             assertThat(updated)
-                .get()
-                .satisfies(item -> assertThat(item.getSource().getLastFetchedAt()).isEqualTo(FETCH_STATE.lastFetchedAt()));
+                    .get()
+                    .satisfies(item ->
+                            assertThat(item.getSource().getLastFetchedAt()).isEqualTo(FETCH_STATE.lastFetchedAt()));
         }
 
         @Test
-        void should_drop_the_state_without_writing_when_the_stored_source_has_another_origin() throws TechnicalException {
+        void should_drop_the_state_without_writing_when_the_stored_source_has_another_origin()
+                throws TechnicalException {
             var swapped = storedPage();
-            swapped.setConfiguration(
-                STORED_CONFIGURATION.replace("\"configuration\":\"{}\"", "\"configuration\":\"{\\\"url\\\":\\\"x\\\"}\"")
-            );
+            swapped.setConfiguration(STORED_CONFIGURATION.replace(
+                    "\"configuration\":\"{}\"", "\"configuration\":\"{\\\"url\\\":\\\"x\\\"}\""));
             when(repository.findById(ID)).thenReturn(Optional.of(swapped));
 
             var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE);
 
-            assertThat(updated)
-                .get()
-                .satisfies(item -> {
-                    assertThat(item.getSource().getSourceConfiguration()).isEqualTo("{\"url\":\"x\"}");
-                    assertThat(item.getSource().getLastFetchedAt()).isEqualTo(Instant.parse("2026-10-01T10:00:00Z"));
-                });
+            assertThat(updated).get().satisfies(item -> {
+                assertThat(item.getSource().getSourceConfiguration()).isEqualTo("{\"url\":\"x\"}");
+                assertThat(item.getSource().getLastFetchedAt()).isEqualTo(Instant.parse("2026-10-01T10:00:00Z"));
+            });
             verify(repository, never()).updateConfigurationIfUnchanged(any(), any(), any());
         }
 
@@ -481,7 +477,8 @@ class PortalNavigationItemsCrudServiceImplTest {
         }
 
         @Test
-        void should_return_the_stored_item_without_writing_when_it_no_longer_carries_a_source() throws TechnicalException {
+        void should_return_the_stored_item_without_writing_when_it_no_longer_carries_a_source()
+                throws TechnicalException {
             var sourceless = storedPage();
             sourceless.setConfiguration("{\"portalPageContentId\":\"00000000-0000-0000-0000-000000000070\"}");
             when(repository.findById(ID)).thenReturn(Optional.of(sourceless));
@@ -489,8 +486,8 @@ class PortalNavigationItemsCrudServiceImplTest {
             var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE);
 
             assertThat(updated)
-                .get()
-                .satisfies(item -> assertThat(item.getSource()).isNull());
+                    .get()
+                    .satisfies(item -> assertThat(item.getSource()).isNull());
             verify(repository, never()).updateConfigurationIfUnchanged(any(), any(), any());
         }
 
@@ -499,20 +496,24 @@ class PortalNavigationItemsCrudServiceImplTest {
             when(repository.findById(ID)).thenReturn(Optional.of(storedPage()));
             when(repository.updateConfigurationIfUnchanged(any(), any(), any())).thenReturn(false);
 
-            assertThatThrownBy(() -> service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessageContaining(ID);
+            assertThatThrownBy(() ->
+                            service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE))
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessageContaining(ID);
             verify(repository, times(5)).updateConfigurationIfUnchanged(any(), any(), any());
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
             when(repository.findById(ID)).thenThrow(new TechnicalException("boom"));
 
-            assertThatThrownBy(() -> service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while updating the fetch state of portal navigation item with id " + ID)
-                .hasCauseInstanceOf(TechnicalException.class);
+            assertThatThrownBy(() ->
+                            service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCHED_SOURCE, FETCH_STATE))
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while updating the fetch state of portal navigation item with id " + ID)
+                    .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 }

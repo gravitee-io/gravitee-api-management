@@ -35,7 +35,8 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class EdgeConfigCollectionRenameUpgrader extends MongoUpgrader {
 
-    public static final int EDGE_CONFIG_COLLECTION_RENAME_UPGRADER_ORDER = PlanReferenceTypeUpgrader.PLAN_REFERENCE_TYPE_UPGRADER_ORDER + 1;
+    public static final int EDGE_CONFIG_COLLECTION_RENAME_UPGRADER_ORDER =
+            PlanReferenceTypeUpgrader.PLAN_REFERENCE_TYPE_UPGRADER_ORDER + 1;
 
     /** Former collection name, persisted without the management prefix. */
     static final String LEGACY_COLLECTION_NAME = "aim_module_edge_config";
@@ -60,14 +61,16 @@ public class EdgeConfigCollectionRenameUpgrader extends MongoUpgrader {
 
             if (template.collectionExists(targetCollectionName)) {
                 log.warn(
-                    "Both legacy collection '{}' and target collection '{}' exist, skipping rename to avoid data loss",
-                    LEGACY_COLLECTION_NAME,
-                    targetCollectionName
-                );
+                        "Both legacy collection '{}' and target collection '{}' exist, skipping rename to avoid data loss",
+                        LEGACY_COLLECTION_NAME,
+                        targetCollectionName);
                 return true;
             }
 
-            log.info("Renaming edge configuration collection '{}' to '{}'", LEGACY_COLLECTION_NAME, targetCollectionName);
+            log.info(
+                    "Renaming edge configuration collection '{}' to '{}'",
+                    LEGACY_COLLECTION_NAME,
+                    targetCollectionName);
             var legacyCollection = template.getCollection(LEGACY_COLLECTION_NAME);
             var targetNamespace = new MongoNamespace(template.getDb().getName(), targetCollectionName);
             legacyCollection.renameCollection(targetNamespace);

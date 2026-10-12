@@ -54,9 +54,8 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
     private static final String ENV_ID = "env-1";
     private static final Instant FROM = Instant.parse("2026-06-10T00:00:00Z");
     private static final Instant TO = Instant.parse("2026-06-11T00:00:00Z");
-    private static final List<AnalyticsFacetMetricQuery> METRICS = List.of(
-        new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())
-    );
+    private static final List<AnalyticsFacetMetricQuery> METRICS =
+            List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of()));
 
     @Mock
     private ObservabilityAnalyticsDataPort analyticsDataPort;
@@ -69,37 +68,34 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
     @BeforeEach
     void setUp() {
         var pipeline = new AnalyticsRequestPipeline(
-            new ObservabilityFilterValidator(filterRegistry),
-            new AccessibleApiScopeDomainService()
-        );
+                new ObservabilityFilterValidator(filterRegistry), new AccessibleApiScopeDomainService());
         useCase = new ComputeObservabilityTimeSeriesUseCase(analyticsDataPort, pipeline);
     }
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(longs = { 0L, -60_000L })
+    @ValueSource(longs = {0L, -60_000L})
     void should_reject_a_missing_or_non_positive_interval_before_loading_the_accessible_apis(Long interval) {
         assertThatThrownBy(() -> useCase.execute(input(interval, METRICS)))
-            .isInstanceOf(InvalidObservabilityQueryException.class)
-            .extracting("technicalCode")
-            .isEqualTo("observability.query.invalid_interval");
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.invalid_interval");
         verifyNoInteractions(analyticsDataPort);
     }
 
     @Test
     void should_reject_a_request_without_metrics_before_loading_the_accessible_apis() {
         assertThatThrownBy(() -> useCase.execute(input(60_000L, List.of())))
-            .isInstanceOf(InvalidObservabilityQueryException.class)
-            .extracting("technicalCode")
-            .isEqualTo("observability.query.metrics_required");
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.metrics_required");
         verifyNoInteractions(analyticsDataPort);
     }
 
     @Test
     void should_compute_a_well_formed_request() {
-        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-            List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-        );
+        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
         var response = JsonNodeFactory.instance.objectNode();
         when(analyticsDataPort.computeTimeSeries(any())).thenReturn(response);
 
@@ -112,25 +108,17 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
     void should_refuse_a_malformed_query_even_when_the_caller_can_read_no_api() {
         when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
         doThrow(InvalidObservabilityQueryException.unknownMeasure("HTTP_REQUESTS", "MEDIAN"))
-            .when(analyticsDataPort)
-            .validate(any(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class));
+                .when(analyticsDataPort)
+                .validate(any(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class));
 
-        assertThatThrownBy(() -> useCase.execute(input(60_000L, METRICS))).isInstanceOf(InvalidObservabilityQueryException.class);
+        assertThatThrownBy(() -> useCase.execute(input(60_000L, METRICS)))
+                .isInstanceOf(InvalidObservabilityQueryException.class);
         verify(analyticsDataPort, never()).emptyTimeSeriesResponse();
     }
 
-    private static ComputeObservabilityTimeSeriesUseCase.Input input(Long interval, List<AnalyticsFacetMetricQuery> metrics) {
+    private static ComputeObservabilityTimeSeriesUseCase.Input input(
+            Long interval, List<AnalyticsFacetMetricQuery> metrics) {
         return new ComputeObservabilityTimeSeriesUseCase.Input(
-            ORG_ID,
-            ENV_ID,
-            List.of(),
-            FROM,
-            TO,
-            interval,
-            metrics,
-            List.of(),
-            null,
-            List.of()
-        );
+                ORG_ID, ENV_ID, List.of(), FROM, TO, interval, metrics, List.of(), null, List.of());
     }
 }

@@ -32,7 +32,8 @@ public class SubscriptionCrudServiceImpl implements SubscriptionCrudService {
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionAdapter subscriptionAdapter;
 
-    public SubscriptionCrudServiceImpl(@Lazy SubscriptionRepository subscriptionRepository, SubscriptionAdapter subscriptionAdapter) {
+    public SubscriptionCrudServiceImpl(
+            @Lazy SubscriptionRepository subscriptionRepository, SubscriptionAdapter subscriptionAdapter) {
         this.subscriptionRepository = subscriptionRepository;
         this.subscriptionAdapter = subscriptionAdapter;
     }
@@ -41,11 +42,12 @@ public class SubscriptionCrudServiceImpl implements SubscriptionCrudService {
     public SubscriptionEntity get(String subscriptionId) {
         try {
             return subscriptionRepository
-                .findById(subscriptionId)
-                .map(subscriptionAdapter::toEntity)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+                    .findById(subscriptionId)
+                    .map(subscriptionAdapter::toEntity)
+                    .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to find a subscription by id: " + subscriptionId, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find a subscription by id: " + subscriptionId, e);
         }
     }
 
@@ -56,9 +58,7 @@ public class SubscriptionCrudServiceImpl implements SubscriptionCrudService {
             return subscriptionAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to update the subscription: " + subscriptionEntity.getId(),
-                e
-            );
+                    "An error occurs while trying to update the subscription: " + subscriptionEntity.getId(), e);
         }
     }
 
@@ -68,9 +68,9 @@ public class SubscriptionCrudServiceImpl implements SubscriptionCrudService {
             subscriptionRepository.delete(subscriptionId);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurs while trying to delete the subscription with id: %s", subscriptionId),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to delete the subscription with id: %s", subscriptionId),
+                    e);
         }
     }
 }

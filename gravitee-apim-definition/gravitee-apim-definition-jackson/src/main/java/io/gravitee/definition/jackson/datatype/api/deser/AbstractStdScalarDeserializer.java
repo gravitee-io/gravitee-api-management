@@ -46,7 +46,8 @@ public abstract class AbstractStdScalarDeserializer<T> extends StdScalarDeserial
     }
 
     @Override
-    public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException {
+    public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer)
+            throws IOException {
         return deserialize(p, ctxt);
     }
 }

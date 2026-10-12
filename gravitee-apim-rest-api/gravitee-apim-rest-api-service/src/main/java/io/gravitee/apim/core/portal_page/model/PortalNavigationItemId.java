@@ -45,23 +45,39 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
         return new PortalNavigationItemId(UUID.fromString(value));
     }
 
-    public static PortalNavigationItemId forPortalDocumentation(AuditInfo auditInfo, String portalId, PortalPageContentId contentId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(contentId.toString()).id());
+    public static PortalNavigationItemId forPortalDocumentation(
+            AuditInfo auditInfo, String portalId, PortalPageContentId contentId) {
+        return of(HRIDToUUID.navigation()
+                .context(auditInfo)
+                .portal(portalId)
+                .documentation(contentId.toString())
+                .id());
     }
 
-    public static PortalNavigationItemId forPortalDocumentationContent(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
-        return forPortalDocumentation(auditInfo, pageContent.getAutomationMetadata().referenceId(), pageContent.getId());
+    public static PortalNavigationItemId forPortalDocumentationContent(
+            AuditInfo auditInfo, PortalPageContent<?> pageContent) {
+        return forPortalDocumentation(
+                auditInfo, pageContent.getAutomationMetadata().referenceId(), pageContent.getId());
     }
 
-    public static @Nullable PortalNavigationItemId forPortalFolder(AuditInfo auditInfo, String portalId, @Nullable String location) {
+    public static @Nullable PortalNavigationItemId forPortalFolder(
+            AuditInfo auditInfo, String portalId, @Nullable String location) {
         if (location == null || location.isBlank() || "/".equals(location)) {
             return null;
         }
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).folder(location).id());
+        return of(HRIDToUUID.navigation()
+                .context(auditInfo)
+                .portal(portalId)
+                .folder(location)
+                .id());
     }
 
     public static PortalNavigationItemId forListingApi(AuditInfo auditInfo, String portalId, String apiId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).listingApi(apiId).id());
+        return of(HRIDToUUID.navigation()
+                .context(auditInfo)
+                .portal(portalId)
+                .listingApi(apiId)
+                .id());
     }
 
     /**
@@ -70,7 +86,11 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
      * by {@code PortalLinkSyncDomainService} (materialize/dematerialize) and {@code GetPortalLinkUseCase}.
      */
     public static PortalNavigationItemId forPortalLink(AuditInfo auditInfo, String portalId, String linkHrid) {
-        return of(HRIDToUUID.portalLink().context(auditInfo).portal(portalId).hrid(linkHrid).id());
+        return of(HRIDToUUID.portalLink()
+                .context(auditInfo)
+                .portal(portalId)
+                .hrid(linkHrid)
+                .id());
     }
 
     /**
@@ -78,20 +98,35 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
      * {@code PortalNavigationApi} row, so the id survives listings being added or removed.
      */
     public static PortalNavigationItemId forApiLink(AuditInfo auditInfo, String apiId, String linkHrid) {
-        return of(HRIDToUUID.apiLink().context(auditInfo).api(apiId).hrid(linkHrid).id());
+        return of(HRIDToUUID.apiLink()
+                .context(auditInfo)
+                .api(apiId)
+                .hrid(linkHrid)
+                .id());
     }
 
-    public static PortalNavigationItemId forApiDocumentation(AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(apiId).documentation(contentId.toString()).id());
+    public static PortalNavigationItemId forApiDocumentation(
+            AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
+        return of(HRIDToUUID.navigation()
+                .context(auditInfo)
+                .api(apiId)
+                .documentation(contentId.toString())
+                .id());
     }
 
     public static PortalNavigationItemId forApiFolder(AuditInfo auditInfo, String apiId, @Nullable String location) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(apiId).folder(normalizeLocation(location)).id());
+        return of(HRIDToUUID.navigation()
+                .context(auditInfo)
+                .api(apiId)
+                .folder(normalizeLocation(location))
+                .id());
     }
 
     private static String normalizeLocation(@Nullable String location) {
         if (location == null) return "";
-        return location.endsWith("/") && location.length() > 1 ? location.substring(0, location.length() - 1) : location;
+        return location.endsWith("/") && location.length() > 1
+                ? location.substring(0, location.length() - 1)
+                : location;
     }
 
     public UUID id() {

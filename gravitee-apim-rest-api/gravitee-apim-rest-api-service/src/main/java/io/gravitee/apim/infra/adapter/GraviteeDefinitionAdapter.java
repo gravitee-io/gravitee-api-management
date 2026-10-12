@@ -50,7 +50,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { ApiAdapter.class, PlanAdapter.class, MemberAdapter.class, MetadataAdapter.class, PageAdapter.class })
+@Mapper(uses = {ApiAdapter.class, PlanAdapter.class, MemberAdapter.class, MetadataAdapter.class, PageAdapter.class})
 public interface GraviteeDefinitionAdapter {
     GraviteeDefinitionAdapter INSTANCE = Mappers.getMapper(GraviteeDefinitionAdapter.class);
     Logger log = NodeLoggerFactory.getLogger(GraviteeDefinitionAdapter.class);
@@ -59,15 +59,17 @@ public interface GraviteeDefinitionAdapter {
 
     @Mapping(target = "id", expression = "java(ignoreId ? null : source.getId())")
     @Mapping(
-        target = "security",
-        expression = "java(source.getPlanDefinitionHttpV4() != null ? mapPlanSecurity(source.getPlanDefinitionHttpV4().getSecurity()) : null)"
-    )
+            target = "security",
+            expression =
+                    "java(source.getPlanDefinitionHttpV4() != null ? mapPlanSecurity(source.getPlanDefinitionHttpV4().getSecurity()) : null)")
     @Mapping(target = "mode", source = "source.planDefinitionHttpV4.mode")
     @Mapping(target = "status", source = "source.planDefinitionHttpV4.status")
     PlanDescriptor.V4 mapPlanV4(Plan source, boolean ignoreId);
 
     @Mapping(target = "id", expression = "java(ignoreId ? null : source.getId())")
-    @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionNativeV4().getSecurity()))")
+    @Mapping(
+            target = "security",
+            expression = "java(mapPlanSecurity(source.getPlanDefinitionNativeV4().getSecurity()))")
     @Mapping(target = "mode", source = "source.planDefinitionNativeV4.mode")
     @Mapping(target = "status", source = "source.planDefinitionNativeV4.status")
     @Mapping(target = "bootstrapPort", source = "source.planDefinitionNativeV4.bootstrapPort")
@@ -75,7 +77,9 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "brokerRangeEnd", source = "source.planDefinitionNativeV4.brokerRangeEnd")
     PlanDescriptor.Native mapPlanNative(Plan source, boolean ignoreId);
 
-    @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getFederatedPlanDefinition().getSecurity()))")
+    @Mapping(
+            target = "security",
+            expression = "java(mapPlanSecurity(source.getFederatedPlanDefinition().getSecurity()))")
     @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
     @Mapping(target = "status", source = "federatedPlanDefinition.status")
     @Mapping(target = "providerId", source = "federatedPlanDefinition.providerId")
@@ -83,9 +87,9 @@ public interface GraviteeDefinitionAdapter {
 
     @Mapping(target = "id", expression = "java(ignoreId ? null : source.getId())")
     @Mapping(
-        target = "security",
-        expression = "java(mapPlanSecurityV2(source.getPlanDefinitionV2().getSecurity(), source.getPlanDefinitionV2().getSecurityDefinition()))"
-    )
+            target = "security",
+            expression =
+                    "java(mapPlanSecurityV2(source.getPlanDefinitionV2().getSecurity(), source.getPlanDefinitionV2().getSecurityDefinition()))")
     @Mapping(target = "status", source = "source.planDefinitionV2.status")
     @Mapping(target = "securityDefinition", source = "source.planDefinitionV2.securityDefinition")
     @Mapping(target = "flows", source = "source.planDefinitionV2.flows")
@@ -107,24 +111,25 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "resources", source = "apiEntity.apiDefinitionHttpV4.resources")
     @Mapping(target = "services", source = "apiEntity.apiDefinitionHttpV4.services")
     @Mapping(
-        target = "failover",
-        expression = "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getFailover() : null)"
-    )
+            target = "failover",
+            expression =
+                    "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getFailover() : null)")
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionHttpV4.endpointGroups")
-    @Mapping(target = "allowedInApiProducts", expression = "java(exportedAllowedInApiProducts(apiEntity.getApiDefinitionHttpV4()))")
+    @Mapping(
+            target = "allowedInApiProducts",
+            expression = "java(exportedAllowedInApiProducts(apiEntity.getApiDefinitionHttpV4()))")
     @Mapping(target = "primaryOwner", source = "primaryOwner")
     @Mapping(target = "workflowState", source = "workflowState")
     @Mapping(target = "groups", source = "groups")
     @Mapping(target = "metadata", source = "metadata")
     ApiDescriptor.ApiDescriptorV4 mapV4(
-        Api apiEntity,
-        PrimaryOwnerEntity primaryOwner,
-        WorkflowState workflowState,
-        Set<String> groups,
-        Collection<NewApiMetadata> metadata,
-        List<Flow> flows,
-        boolean excludeIds
-    );
+            Api apiEntity,
+            PrimaryOwnerEntity primaryOwner,
+            WorkflowState workflowState,
+            Set<String> groups,
+            Collection<NewApiMetadata> metadata,
+            List<Flow> flows,
+            boolean excludeIds);
 
     @Mapping(target = "id", expression = "java(excludeIds ? null : apiEntity.getId())")
     @Mapping(target = "apiVersion", source = "apiEntity.version")
@@ -142,14 +147,13 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "groups", source = "groups")
     @Mapping(target = "metadata", source = "metadata")
     ApiDescriptor.Native mapNative(
-        Api apiEntity,
-        PrimaryOwnerEntity primaryOwner,
-        WorkflowState workflowState,
-        Set<String> groups,
-        Collection<NewApiMetadata> metadata,
-        List<NativeFlow> flows,
-        boolean excludeIds
-    );
+            Api apiEntity,
+            PrimaryOwnerEntity primaryOwner,
+            WorkflowState workflowState,
+            Set<String> groups,
+            Collection<NewApiMetadata> metadata,
+            List<NativeFlow> flows,
+            boolean excludeIds);
 
     @Mapping(target = "id", source = "apiEntity.id")
     @Mapping(target = "name", source = "apiEntity.name")
@@ -169,13 +173,12 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "metadata", source = "metadata")
     @Mapping(target = "originContext", source = "integration")
     ApiDescriptor.Federated mapFederated(
-        Api apiEntity,
-        PrimaryOwnerEntity primaryOwner,
-        WorkflowState workflowState,
-        Set<String> groups,
-        Collection<NewApiMetadata> metadata,
-        Integration.ApiIntegration integration
-    );
+            Api apiEntity,
+            PrimaryOwnerEntity primaryOwner,
+            WorkflowState workflowState,
+            Set<String> groups,
+            Collection<NewApiMetadata> metadata,
+            Integration.ApiIntegration integration);
 
     default String providerId(ApiDefinition apiDefinition) {
         return apiDefinition instanceof FederatedApi federatedApi ? federatedApi.getProviderId() : null;
@@ -207,28 +210,28 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "groups", source = "groups")
     @Mapping(target = "metadata", source = "metadata")
     ApiDescriptor.ApiDescriptorV2 mapV2(
-        Api apiEntity,
-        PrimaryOwnerEntity primaryOwner,
-        WorkflowState workflowState,
-        Set<String> groups,
-        Collection<NewApiMetadata> metadata,
-        Collection<io.gravitee.definition.model.flow.Flow> flows,
-        boolean excludeIds
-    );
+            Api apiEntity,
+            PrimaryOwnerEntity primaryOwner,
+            WorkflowState workflowState,
+            Set<String> groups,
+            Collection<NewApiMetadata> metadata,
+            Collection<io.gravitee.definition.model.flow.Flow> flows,
+            boolean excludeIds);
 
     NewApiMetadata mapMetadata(Metadata source);
 
     default Map<String, Object> map(Collection<NewApiMetadata> sources) {
         // Collectors.toMap() rejects null values, but an API-level metadata may have no value at all
         // (it then inherits the environment one), so collect with a null-tolerant accumulator.
-        return stream(sources).collect(
-            HashMap::new,
-            (map, metadata) -> {
-                Object value = metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue();
-                map.put(metadata.getName(), value);
-            },
-            HashMap::putAll
-        );
+        return stream(sources)
+                .collect(
+                        HashMap::new,
+                        (map, metadata) -> {
+                            Object value =
+                                    metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue();
+                            map.put(metadata.getName(), value);
+                        },
+                        HashMap::putAll);
     }
 
     default Instant map(ZonedDateTime src) {
@@ -252,9 +255,9 @@ public interface GraviteeDefinitionAdapter {
             return null;
         }
         return PlanSecurity.builder()
-            .type(PlanSecurityType.valueOfLabel(source.getType()).name())
-            .configuration(source.getConfiguration())
-            .build();
+                .type(PlanSecurityType.valueOfLabel(source.getType()).name())
+                .configuration(source.getConfiguration())
+                .build();
     }
 
     default PlanSecurity mapPlanSecurityV2(String security, String definition) {

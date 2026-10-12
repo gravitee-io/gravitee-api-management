@@ -30,7 +30,8 @@ import lombok.RequiredArgsConstructor;
  * sourced FOLDER declared earlier in the same bulk payload.
  */
 @RequiredArgsConstructor
-public class SourcedItemReadOnlyRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
+public class SourcedItemReadOnlyRule
+        implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
 
     private final SourcedAncestorFinder sourcedAncestorFinder;
 
@@ -57,11 +58,10 @@ public class SourcedItemReadOnlyRule implements CreatePortalNavigationItemValida
             }
             parentId = pendingParent.getParentId();
         }
-        sourcedAncestorFinder
-            .findSourcedAncestorFrom(environmentId, parentId)
-            .ifPresent(ancestor -> {
-                throw InvalidPortalNavigationItemDataException.cannotCreateBelowSourcedItem(ancestor.getId().json());
-            });
+        sourcedAncestorFinder.findSourcedAncestorFrom(environmentId, parentId).ifPresent(ancestor -> {
+            throw InvalidPortalNavigationItemDataException.cannotCreateBelowSourcedItem(
+                    ancestor.getId().json());
+        });
     }
 
     @Override
@@ -70,32 +70,34 @@ public class SourcedItemReadOnlyRule implements CreatePortalNavigationItemValida
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
-        if (
-            existingItem.getParentId() != null &&
-            sourcedAncestorFinder.findSourcedAncestor(existingItem.getEnvironmentId(), existingItem).isPresent()
-        ) {
-            throw InvalidPortalNavigationItemDataException.childOfSourcedItemIsReadOnly(existingItem.getId().json());
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+        if (existingItem.getParentId() != null
+                && sourcedAncestorFinder
+                        .findSourcedAncestor(existingItem.getEnvironmentId(), existingItem)
+                        .isPresent()) {
+            throw InvalidPortalNavigationItemDataException.childOfSourcedItemIsReadOnly(
+                    existingItem.getId().json());
         }
 
         // The target position matters as much as the current one
         if (toUpdate.getParentId() != null && !Objects.equals(toUpdate.getParentId(), existingItem.getParentId())) {
             sourcedAncestorFinder
-                .findSourcedAncestorFrom(existingItem.getEnvironmentId(), toUpdate.getParentId())
-                .ifPresent(ancestor -> {
-                    throw InvalidPortalNavigationItemDataException.cannotMoveBelowSourcedItem(ancestor.getId().json());
-                });
+                    .findSourcedAncestorFrom(existingItem.getEnvironmentId(), toUpdate.getParentId())
+                    .ifPresent(ancestor -> {
+                        throw InvalidPortalNavigationItemDataException.cannotMoveBelowSourcedItem(
+                                ancestor.getId().json());
+                    });
         }
 
         if (existingItem.getSource() == null || toUpdate.getSource() == null) {
             return;
         }
 
-        if (
-            !Objects.equals(toUpdate.getTitle(), existingItem.getTitle()) ||
-            !Objects.equals(toUpdate.getParentId(), existingItem.getParentId())
-        ) {
-            throw InvalidPortalNavigationItemDataException.sourcedItemCannotBeRenamedOrMoved(existingItem.getId().json());
+        if (!Objects.equals(toUpdate.getTitle(), existingItem.getTitle())
+                || !Objects.equals(toUpdate.getParentId(), existingItem.getParentId())) {
+            throw InvalidPortalNavigationItemDataException.sourcedItemCannotBeRenamedOrMoved(
+                    existingItem.getId().json());
         }
     }
 }

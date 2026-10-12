@@ -72,7 +72,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jspecify.annotations.Nullable;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -116,50 +115,55 @@ public class SubscriptionsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createSubscription(@Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
+    public Response createSubscription(
+            @Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String applicationId = subscriptionInput.getApplication();
-        if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
+        if (hasPermission(
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                applicationId,
+                RolePermissionAction.CREATE)) {
             GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionInput.getPlan());
             boolean isApiProductPlan = GenericPlanEntity.ReferenceType.API_PRODUCT == plan.getReferenceType();
 
             if (isApiProductPlan) {
                 portalApiProductAccessDomainService.findAccessible(
-                    executionContext.getEnvironmentId(),
-                    plan.getReferenceId(),
-                    PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
-                );
+                        executionContext.getEnvironmentId(),
+                        plan.getReferenceId(),
+                        PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()));
             }
 
             var auditInfo = getAuditInfo();
 
-            CreateSubscriptionUseCase.Output output = createSubscriptionUseCase.execute(
-                CreateSubscriptionUseCase.Input.builder()
-                    .referenceId(plan.getReferenceId())
-                    .referenceType(SubscriptionReferenceType.valueOf(plan.getReferenceType().name()))
-                    .planId(subscriptionInput.getPlan())
-                    .applicationId(applicationId)
-                    .requestMessage(subscriptionInput.getRequest())
-                    .metadata(subscriptionInput.getMetadata())
-                    .configuration(getSubscriptionConfiguration(subscriptionInput))
-                    .apiKeyMode(getApiKeyMode(subscriptionInput))
-                    .generalConditionsAccepted(isApiProductPlan ? null : subscriptionInput.getGeneralConditionsAccepted())
-                    .generalConditionsContentRevision(isApiProductPlan ? null : getPageRevisionId(subscriptionInput))
-                    .auditInfo(auditInfo)
-                    .subscriptionFormMetadataValidationRequired(!isApiProductPlan)
-                    .build()
-            );
+            CreateSubscriptionUseCase.Output output =
+                    createSubscriptionUseCase.execute(CreateSubscriptionUseCase.Input.builder()
+                            .referenceId(plan.getReferenceId())
+                            .referenceType(SubscriptionReferenceType.valueOf(
+                                    plan.getReferenceType().name()))
+                            .planId(subscriptionInput.getPlan())
+                            .applicationId(applicationId)
+                            .requestMessage(subscriptionInput.getRequest())
+                            .metadata(subscriptionInput.getMetadata())
+                            .configuration(getSubscriptionConfiguration(subscriptionInput))
+                            .apiKeyMode(getApiKeyMode(subscriptionInput))
+                            .generalConditionsAccepted(
+                                    isApiProductPlan ? null : subscriptionInput.getGeneralConditionsAccepted())
+                            .generalConditionsContentRevision(
+                                    isApiProductPlan ? null : getPageRevisionId(subscriptionInput))
+                            .auditInfo(auditInfo)
+                            .subscriptionFormMetadataValidationRequired(!isApiProductPlan)
+                            .build());
 
             // Fetch legacy subscription entity for response mapping
-            SubscriptionEntity createdSubscription = subscriptionService.findById(output.subscription().getId());
+            SubscriptionEntity createdSubscription =
+                    subscriptionService.findById(output.subscription().getId());
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
-            List<Key> keys = apiKeyService
-                .findBySubscription(executionContext, createdSubscription.getId())
-                .stream()
-                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
-                .map(keyMapper::convert)
-                .toList();
+            List<Key> keys = apiKeyService.findBySubscription(executionContext, createdSubscription.getId()).stream()
+                    .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                    .map(keyMapper::convert)
+                    .toList();
 
             final Subscription subscription = SubscriptionMapper.INSTANCE.map(createdSubscription);
             subscription.setKeys(keys);
@@ -175,27 +179,32 @@ public class SubscriptionsResource extends AbstractResource {
         if (inputConfiguration != null) {
             var entrypointConfigNode = graviteeMapper.valueToTree(inputConfiguration.getEntrypointConfiguration());
             configuration = SubscriptionConfiguration.builder()
-                .entrypointId(inputConfiguration.getEntrypointId())
-                .channel(inputConfiguration.getChannel())
-                .entrypointConfiguration(
-                    entrypointConfigNode != null && !entrypointConfigNode.isNull() ? entrypointConfigNode.toString() : null
-                )
-                .build();
+                    .entrypointId(inputConfiguration.getEntrypointId())
+                    .channel(inputConfiguration.getChannel())
+                    .entrypointConfiguration(
+                            entrypointConfigNode != null && !entrypointConfigNode.isNull()
+                                    ? entrypointConfigNode.toString()
+                                    : null)
+                    .build();
         }
         return configuration;
     }
 
     private static ApiKeyMode getApiKeyMode(SubscriptionInput subscriptionInput) {
-        return subscriptionInput.getApiKeyMode() != null ? ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()) : null;
+        return subscriptionInput.getApiKeyMode() != null
+                ? ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name())
+                : null;
     }
 
     private static PageRevisionId getPageRevisionId(SubscriptionInput subscriptionInput) {
         PageRevisionId generalConditionsContentRevision = null;
         if (subscriptionInput.getGeneralConditionsContentRevision() != null) {
             var pageId = subscriptionInput.getGeneralConditionsContentRevision().getPageId();
-            var revision = subscriptionInput.getGeneralConditionsContentRevision().getRevision();
+            var revision =
+                    subscriptionInput.getGeneralConditionsContentRevision().getRevision();
             if (pageId == null || revision == null) {
-                throw new IllegalArgumentException("generalConditionsContentRevision must contain pageId and revision fields");
+                throw new IllegalArgumentException(
+                        "generalConditionsContentRevision must contain pageId and revision fields");
             }
             generalConditionsContentRevision = new PageRevisionId(pageId, revision);
         }
@@ -205,16 +214,15 @@ public class SubscriptionsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSubscriptions(
-        @Deprecated @QueryParam("apiId") String apiId,
-        @Deprecated @QueryParam("applicationId") String applicationId,
-        @QueryParam("apiIds") List<String> apiIds,
-        @QueryParam("apiProductIds") List<String> apiProductIds,
-        @QueryParam("referenceTypes") List<String> referenceTypes,
-        @QueryParam("query") String targetNameQuery,
-        @QueryParam("applicationIds") List<String> applicationIds,
-        @QueryParam("statuses") List<SubscriptionStatus> statuses,
-        @BeanParam PaginationParam paginationParam
-    ) {
+            @Deprecated @QueryParam("apiId") String apiId,
+            @Deprecated @QueryParam("applicationId") String applicationId,
+            @QueryParam("apiIds") List<String> apiIds,
+            @QueryParam("apiProductIds") List<String> apiProductIds,
+            @QueryParam("referenceTypes") List<String> referenceTypes,
+            @QueryParam("query") String targetNameQuery,
+            @QueryParam("applicationIds") List<String> applicationIds,
+            @QueryParam("statuses") List<SubscriptionStatus> statuses,
+            @BeanParam PaginationParam paginationParam) {
         List<String> effectiveApiIds = resolveApiIds(apiId, apiIds);
         List<String> effectiveApplicationIds = resolveApplicationIds(applicationId, applicationIds);
         boolean hasApiFilter = effectiveApiIds != null && !effectiveApiIds.isEmpty();
@@ -224,25 +232,29 @@ public class SubscriptionsResource extends AbstractResource {
             throw new BadRequestException("API and API Product filters cannot be used together.");
         }
 
-        Set<SubscriptionReferenceType> effectiveReferenceTypes = resolveReferenceTypes(referenceTypes, hasApiFilter, hasApiProductFilter);
+        Set<SubscriptionReferenceType> effectiveReferenceTypes =
+                resolveReferenceTypes(referenceTypes, hasApiFilter, hasApiProductFilter);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (effectiveApplicationIds == null || effectiveApplicationIds.isEmpty()) {
-            final Set<ApplicationListItem> applications = applicationService.findByUser(executionContext, getAuthenticatedUser());
+            final Set<ApplicationListItem> applications =
+                    applicationService.findByUser(executionContext, getAuthenticatedUser());
             if (applications == null || applications.isEmpty()) {
-                return createListResponse(executionContext, emptyList(), paginationParam, paginationParam.hasPagination());
+                return createListResponse(
+                        executionContext, emptyList(), paginationParam, paginationParam.hasPagination());
             }
-            effectiveApplicationIds = applications.stream().map(ApplicationListItem::getId).toList();
+            effectiveApplicationIds =
+                    applications.stream().map(ApplicationListItem::getId).toList();
         } else {
             for (String appId : effectiveApplicationIds) {
-                if (!hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, appId, RolePermissionAction.READ)) {
+                if (!hasPermission(
+                        executionContext, RolePermission.APPLICATION_SUBSCRIPTION, appId, RolePermissionAction.READ)) {
                     throw new ForbiddenAccessException();
                 }
             }
         }
 
-        var output = searchPortalSubscriptionsUseCase.execute(
-            new SearchPortalSubscriptionsUseCase.Input(
+        var output = searchPortalSubscriptionsUseCase.execute(new SearchPortalSubscriptionsUseCase.Input(
                 executionContext,
                 Set.copyOf(effectiveApplicationIds),
                 statuses == null ? null : Set.copyOf(statuses),
@@ -250,49 +262,45 @@ public class SubscriptionsResource extends AbstractResource {
                 hasApiFilter ? Set.copyOf(effectiveApiIds) : null,
                 hasApiProductFilter ? Set.copyOf(apiProductIds) : null,
                 targetNameQuery,
-                paginationParam.hasPagination() ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize()) : null
-            )
-        );
+                paginationParam.hasPagination()
+                        ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
+                        : null));
         final Page<SubscriptionEntity> pagedResult = output.page();
         List<SubscriptionEntity> subscriptions = pagedResult.getContent();
         long totalElements = pagedResult.getTotalElements();
 
         if (subscriptions.isEmpty()) {
-            return createListResponse(executionContext, subscriptions, paginationParam, null, paginationParam.hasPagination());
+            return createListResponse(
+                    executionContext, subscriptions, paginationParam, null, paginationParam.hasPagination());
         }
 
-        final List<Subscription> subscriptionList = subscriptions
-            .stream()
-            .map(SubscriptionMapper.INSTANCE::map)
-            .collect(Collectors.toList());
+        final List<Subscription> subscriptionList =
+                subscriptions.stream().map(SubscriptionMapper.INSTANCE::map).collect(Collectors.toList());
 
         final Metadata metadata = buildSubscriptionMetadata(executionContext, subscriptions, totalElements);
 
-        return createListResponse(executionContext, subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
+        return createListResponse(
+                executionContext, subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
     }
 
     private Metadata buildSubscriptionMetadata(
-        ExecutionContext executionContext,
-        List<SubscriptionEntity> subscriptions,
-        long totalElements
-    ) {
+            ExecutionContext executionContext, List<SubscriptionEntity> subscriptions, long totalElements) {
         SubscriptionMetadataQuery metadataQuery = new SubscriptionMetadataQuery(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            subscriptions
-        )
-            .withApis(true)
-            .withApiProducts(true)
-            .withApplications(true)
-            .withPlans(true)
-            .withSubscribers(true)
-            .includeDetails()
-            .fillApiMetadata((metadata, api) -> {
-                String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
-                ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
-                metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
-                return api;
-            });
+                        GraviteeContext.getCurrentOrganization(),
+                        GraviteeContext.getCurrentEnvironment(),
+                        subscriptions)
+                .withApis(true)
+                .withApiProducts(true)
+                .withApplications(true)
+                .withPlans(true)
+                .withSubscribers(true)
+                .includeDetails()
+                .fillApiMetadata((metadata, api) -> {
+                    String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
+                    ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
+                    metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
+                    return api;
+                });
 
         Metadata metadata = subscriptionService.getMetadata(executionContext, metadataQuery);
 
@@ -323,10 +331,7 @@ public class SubscriptionsResource extends AbstractResource {
     }
 
     private static Set<SubscriptionReferenceType> resolveReferenceTypes(
-        List<String> referenceTypes,
-        boolean hasApiFilter,
-        boolean hasApiProductFilter
-    ) {
+            List<String> referenceTypes, boolean hasApiFilter, boolean hasApiProductFilter) {
         if (referenceTypes == null || referenceTypes.isEmpty()) {
             return Set.of(hasApiProductFilter ? SubscriptionReferenceType.API_PRODUCT : SubscriptionReferenceType.API);
         }
@@ -342,7 +347,8 @@ public class SubscriptionsResource extends AbstractResource {
             throw new BadRequestException("The API ID filter can only be used with the API reference type.");
         }
         if (hasApiProductFilter && !types.equals(Set.of(SubscriptionReferenceType.API_PRODUCT))) {
-            throw new BadRequestException("The API Product ID filter can only be used with the API_PRODUCT reference type.");
+            throw new BadRequestException(
+                    "The API Product ID filter can only be used with the API_PRODUCT reference type.");
         }
         return Set.copyOf(types);
     }

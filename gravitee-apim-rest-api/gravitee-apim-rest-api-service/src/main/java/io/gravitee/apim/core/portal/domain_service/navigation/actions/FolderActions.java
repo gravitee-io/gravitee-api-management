@@ -38,13 +38,12 @@ public final class FolderActions {
     public record DeleteFolder(PortalNavigationItem item) implements FolderAction {}
 
     public record DesiredFolder(
-        String path,
-        String parentPath,
-        Slug segment,
-        String title,
-        int order,
-        @Nullable PortalVisibility visibility
-    ) {
+            String path,
+            String parentPath,
+            Slug segment,
+            String title,
+            int order,
+            @Nullable PortalVisibility visibility) {
         public DesiredFolder(String path, String parentPath, Slug segment, String title, int order) {
             this(path, parentPath, segment, title, order, null);
         }

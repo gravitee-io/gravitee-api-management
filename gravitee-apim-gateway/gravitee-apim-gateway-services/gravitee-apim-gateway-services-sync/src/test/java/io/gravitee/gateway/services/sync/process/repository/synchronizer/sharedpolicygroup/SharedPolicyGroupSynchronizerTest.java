@@ -84,12 +84,11 @@ class SharedPolicyGroupSynchronizerTest {
     @BeforeEach
     void setUp() {
         cut = new SharedPolicyGroupSynchronizer(
-            latestEventFetcher,
-            new SharedPolicyGroupMapper(objectMapper, environmentService),
-            deployerFactory,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                latestEventFetcher,
+                new SharedPolicyGroupMapper(objectMapper, environmentService),
+                deployerFactory,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(latestEventFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createSharedPolicyGroupDeployer()).thenReturn(sharedPolicyGroupDeployer);
@@ -104,8 +103,12 @@ class SharedPolicyGroupSynchronizerTest {
 
         @Test
         void should_not_synchronize_shared_policy_group_when_no_events() throws InterruptedException {
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.empty());
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verifyNoInteractions(sharedPolicyGroupDeployer);
         }
@@ -114,36 +117,48 @@ class SharedPolicyGroupSynchronizerTest {
         void should_not_synchronize_shared_policy_group_when_events_with_unknown_type() throws InterruptedException {
             Event event = new Event();
             event.setId("event");
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verifyNoInteractions(sharedPolicyGroupDeployer);
         }
 
         @Test
         void should_fetch_init_events() throws InterruptedException {
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("event")).test().await().assertComplete();
-            verify(latestEventFetcher).fetchLatest(
-                eq(-1L),
-                any(),
-                eq(SHARED_POLICY_GROUP_ID),
-                eq(Set.of("event")),
-                eq(Set.of(DEPLOY_SHARED_POLICY_GROUP))
-            );
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.empty());
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("event"))
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(latestEventFetcher)
+                    .fetchLatest(
+                            eq(-1L),
+                            any(),
+                            eq(SHARED_POLICY_GROUP_ID),
+                            eq(Set.of("event")),
+                            eq(Set.of(DEPLOY_SHARED_POLICY_GROUP)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("event")).test().await().assertComplete();
-            verify(latestEventFetcher).fetchLatest(
-                any(),
-                any(),
-                eq(SHARED_POLICY_GROUP_ID),
-                eq(Set.of("event")),
-                eq(Set.of(DEPLOY_SHARED_POLICY_GROUP, EventType.UNDEPLOY_SHARED_POLICY_GROUP))
-            );
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.empty());
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("event"))
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(latestEventFetcher)
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(SHARED_POLICY_GROUP_ID),
+                            eq(Set.of("event")),
+                            eq(Set.of(DEPLOY_SHARED_POLICY_GROUP, EventType.UNDEPLOY_SHARED_POLICY_GROUP)));
         }
     }
 
@@ -155,24 +170,24 @@ class SharedPolicyGroupSynchronizerTest {
             Event event = new Event();
             event.setId("id");
             final io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup =
-                io.gravitee.repository.management.model.SharedPolicyGroup.builder()
-                    .id("id")
-                    .definition(
-                        objectMapper.writeValueAsString(
-                            SharedPolicyGroup.builder()
-                                .phase(SharedPolicyGroup.Phase.REQUEST)
-                                .policies(List.of())
-                                .id("spg_id")
-                                .name("name")
-                                .build()
-                        )
-                    )
-                    .build();
+                    io.gravitee.repository.management.model.SharedPolicyGroup.builder()
+                            .id("id")
+                            .definition(objectMapper.writeValueAsString(SharedPolicyGroup.builder()
+                                    .phase(SharedPolicyGroup.Phase.REQUEST)
+                                    .policies(List.of())
+                                    .id("spg_id")
+                                    .name("name")
+                                    .build()))
+                            .build();
             event.setPayload(objectMapper.writeValueAsString(sharedPolicyGroup));
             event.setType(DEPLOY_SHARED_POLICY_GROUP);
 
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verify(sharedPolicyGroupDeployer).deploy(any());
             verify(sharedPolicyGroupDeployer).doAfterDeployment(any());
@@ -186,8 +201,12 @@ class SharedPolicyGroupSynchronizerTest {
             event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "id"));
             event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
 
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verify(sharedPolicyGroupDeployer).undeploy(any());
         }
@@ -200,12 +219,15 @@ class SharedPolicyGroupSynchronizerTest {
             event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "spg-id"));
             event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
 
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("env")).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("env"))
+                    .test()
+                    .await()
+                    .assertComplete();
 
-            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
-                SharedPolicyGroupReactorDeployable.class
-            );
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor =
+                    ArgumentCaptor.forClass(SharedPolicyGroupReactorDeployable.class);
             verify(sharedPolicyGroupDeployer).undeploy(deployableCaptor.capture());
             assertThat(deployableCaptor.getValue().sharedPolicyGroupId()).isEqualTo("spg-id");
             assertThat(deployableCaptor.getValue().environmentId()).isEqualTo("env");
@@ -219,12 +241,15 @@ class SharedPolicyGroupSynchronizerTest {
             event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
             event.setPayload("description text, not a definition");
 
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
-            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
-                SharedPolicyGroupReactorDeployable.class
-            );
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor =
+                    ArgumentCaptor.forClass(SharedPolicyGroupReactorDeployable.class);
             verify(sharedPolicyGroupDeployer).undeploy(deployableCaptor.capture());
             assertThat(deployableCaptor.getValue().sharedPolicyGroupId()).isEqualTo("spg-id");
             assertThat(deployableCaptor.getValue().allEnvironments()).isTrue();
@@ -238,17 +263,22 @@ class SharedPolicyGroupSynchronizerTest {
             event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "spg-id"));
             event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
 
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
-            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
-                SharedPolicyGroupReactorDeployable.class
-            );
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor =
+                    ArgumentCaptor.forClass(SharedPolicyGroupReactorDeployable.class);
             verify(sharedPolicyGroupDeployer, times(2)).undeploy(deployableCaptor.capture());
             assertThat(deployableCaptor.getAllValues())
-                .extracting(SharedPolicyGroupReactorDeployable::environmentId)
-                .containsExactlyInAnyOrder("env-a", "env-b");
-            assertThat(deployableCaptor.getAllValues()).allSatisfy(deployable -> assertThat(deployable.allEnvironments()).isFalse());
+                    .extracting(SharedPolicyGroupReactorDeployable::environmentId)
+                    .containsExactlyInAnyOrder("env-a", "env-b");
+            assertThat(deployableCaptor.getAllValues())
+                    .allSatisfy(deployable ->
+                            assertThat(deployable.allEnvironments()).isFalse());
         }
     }
 }

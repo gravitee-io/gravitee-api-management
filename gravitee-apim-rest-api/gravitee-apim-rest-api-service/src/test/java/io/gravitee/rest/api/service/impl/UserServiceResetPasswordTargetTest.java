@@ -101,9 +101,11 @@ class UserServiceResetPasswordTargetTest {
 
     @Test
     void should_build_gamma_reset_password_page_url_from_installation_config() {
-        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.of("http://gamma.example.com/"));
+        when(installationAccessQueryService.findGammaUrl("DEFAULT"))
+                .thenReturn(Optional.of("http://gamma.example.com/"));
 
-        String resetPageUrl = ReflectionTestUtils.invokeMethod(userService, "buildGammaResetPasswordPageUrl", "DEFAULT");
+        String resetPageUrl =
+                ReflectionTestUtils.invokeMethod(userService, "buildGammaResetPasswordPageUrl", "DEFAULT");
 
         assertThat(resetPageUrl).isEqualTo("http://gamma.example.com/reset-password");
     }
@@ -113,8 +115,8 @@ class UserServiceResetPasswordTargetTest {
         when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.resetPasswordWithTarget(EXECUTION_CONTEXT, "user-id", "gamma"))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("No Gamma URL is configured");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("No Gamma URL is configured");
     }
 
     @Test
@@ -122,19 +124,19 @@ class UserServiceResetPasswordTargetTest {
         when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.of("  "));
 
         assertThatThrownBy(() -> userService.resetPasswordWithTarget(EXECUTION_CONTEXT, "user-id", "gamma"))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("No Gamma URL is configured");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("No Gamma URL is configured");
     }
 
     @Test
     void should_build_the_reset_page_url_when_gamma_is_configured_on_the_default_url() {
         // The default URL is what an unconfigured organization is *given*, not a reserved value: an organization
         // that genuinely serves Gamma there has configured it, and must be served rather than refused.
-        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(
-            Optional.of(InstallationAccessQueryService.DEFAULT_GAMMA_URL)
-        );
+        when(installationAccessQueryService.findGammaUrl("DEFAULT"))
+                .thenReturn(Optional.of(InstallationAccessQueryService.DEFAULT_GAMMA_URL));
 
-        String resetPageUrl = ReflectionTestUtils.invokeMethod(userService, "buildGammaResetPasswordPageUrl", "DEFAULT");
+        String resetPageUrl =
+                ReflectionTestUtils.invokeMethod(userService, "buildGammaResetPasswordPageUrl", "DEFAULT");
 
         assertThat(resetPageUrl).isEqualTo(InstallationAccessQueryService.DEFAULT_GAMMA_URL + "/reset-password");
     }
@@ -142,17 +144,18 @@ class UserServiceResetPasswordTargetTest {
     @Test
     void should_reject_unknown_reset_target() {
         assertThatThrownBy(() -> userService.resetPasswordWithTarget(EXECUTION_CONTEXT, "user-id", "portal"))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("portal");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("portal");
     }
 
     @Test
     void should_reset_password_with_gamma_target_and_build_registration_url() throws TechnicalException {
-        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.of("http://gamma.example.com"));
+        when(installationAccessQueryService.findGammaUrl("DEFAULT"))
+                .thenReturn(Optional.of("http://gamma.example.com"));
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(
-            environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)
-        ).thenReturn(3600);
+        when(environment.getProperty(
+                        "user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
+                .thenReturn(3600);
         when(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER)).thenReturn(DEFAULT_JWT_ISSUER);
         when(user.getId()).thenReturn("user-1");
         when(user.getSource()).thenReturn("gravitee");
@@ -174,6 +177,7 @@ class UserServiceResetPasswordTargetTest {
 
         String registrationUrl = (String) paramsCaptor.getValue().get(PARAM_REGISTRATION_URL);
         assertThat(registrationUrl).startsWith("http://gamma.example.com/reset-password/");
-        assertThat(registrationUrl.substring("http://gamma.example.com/reset-password/".length())).isNotBlank();
+        assertThat(registrationUrl.substring("http://gamma.example.com/reset-password/".length()))
+                .isNotBlank();
     }
 }

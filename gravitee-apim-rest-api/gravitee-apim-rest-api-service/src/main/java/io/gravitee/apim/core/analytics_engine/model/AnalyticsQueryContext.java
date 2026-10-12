@@ -22,13 +22,12 @@ import java.util.Map;
 import java.util.Set;
 
 public record AnalyticsQueryContext(
-    AuditInfo auditInfo,
-    ExecutionContext executionContext,
-    Set<String> authorizedApiIds,
-    Map<String, String> apiNamesById,
-    Map<String, String> applicationNamesById,
-    Map<ApiType, Set<String>> apiIdsByType
-) {
+        AuditInfo auditInfo,
+        ExecutionContext executionContext,
+        Set<String> authorizedApiIds,
+        Map<String, String> apiNamesById,
+        Map<String, String> applicationNamesById,
+        Map<ApiType, Set<String>> apiIdsByType) {
     public AnalyticsQueryContext {
         if (authorizedApiIds == null) authorizedApiIds = Set.of();
         if (apiNamesById == null) apiNamesById = Map.of();
@@ -37,10 +36,12 @@ public record AnalyticsQueryContext(
     }
 
     public AnalyticsQueryContext withApiNamesById(Map<String, String> apiNamesById) {
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
+        return new AnalyticsQueryContext(
+                auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
     }
 
     public AnalyticsQueryContext withApplicationNamesById(Map<String, String> applicationNamesById) {
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
+        return new AnalyticsQueryContext(
+                auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
     }
 }

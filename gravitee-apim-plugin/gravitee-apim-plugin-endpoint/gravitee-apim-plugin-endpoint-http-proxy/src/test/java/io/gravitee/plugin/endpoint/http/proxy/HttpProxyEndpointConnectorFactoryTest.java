@@ -60,9 +60,7 @@ class HttpProxyEndpointConnectorFactoryTest {
     void beforeEach() {
         lenient().when(deploymentContext.getTemplateEngine()).thenReturn(templateEngine);
         lenient().when(templateEngine.getTemplateContext()).thenReturn(templateContext);
-        lenient()
-            .when(templateEngine.eval(anyString(), any()))
-            .thenAnswer(i -> Maybe.just(i.getArgument(0)));
+        lenient().when(templateEngine.eval(anyString(), any())).thenAnswer(i -> Maybe.just(i.getArgument(0)));
         cut = new HttpProxyEndpointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
     }
 
@@ -77,14 +75,14 @@ class HttpProxyEndpointConnectorFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
+    @ValueSource(strings = {"wrong", "", "  ", "{\"unknown-key\":\"value\"}"})
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
         HttpProxyEndpointConnector connector = cut.createConnector(deploymentContext, configuration, SHARED_CONFIG);
         assertThat(connector).isNull();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
+    @ValueSource(strings = {"wrong", "", "  ", "{\"unknown-key\":\"value\"}"})
     void shouldNotCreateConnectorWithWrongSharedConfiguration(String sharedConfiguration) {
         HttpProxyEndpointConnector connector = cut.createConnector(deploymentContext, CONFIG, sharedConfiguration);
         assertThat(connector).isNull();
@@ -111,23 +109,23 @@ class HttpProxyEndpointConnectorFactoryTest {
 
     @Test
     void shouldCreateConnectorWithMinimalConfiguration() {
-        HttpProxyEndpointConnector connector = cut.createConnector(
-            deploymentContext,
-            "{\"target\": \"https://localhost:8082/echo?foo=bar\"}",
-            null
-        );
+        HttpProxyEndpointConnector connector =
+                cut.createConnector(deploymentContext, "{\"target\": \"https://localhost:8082/echo?foo=bar\"}", null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration.getTarget()).isEqualTo("https://localhost:8082/echo?foo=bar");
         assertThat(connector.sharedConfiguration.getHeaders()).isNull();
         assertThat(connector.sharedConfiguration.getHttpOptions())
-            .isNotNull()
-            .usingRecursiveComparison()
-            .isEqualTo(new HttpClientOptions());
+                .isNotNull()
+                .usingRecursiveComparison()
+                .isEqualTo(new HttpClientOptions());
         assertThat(connector.sharedConfiguration.getProxyOptions())
-            .isNotNull()
-            .usingRecursiveComparison()
-            .isEqualTo(new HttpProxyOptions());
-        assertThat(connector.sharedConfiguration.getSslOptions()).isNotNull().usingRecursiveComparison().isEqualTo(new SslOptions());
+                .isNotNull()
+                .usingRecursiveComparison()
+                .isEqualTo(new HttpProxyOptions());
+        assertThat(connector.sharedConfiguration.getSslOptions())
+                .isNotNull()
+                .usingRecursiveComparison()
+                .isEqualTo(new SslOptions());
     }
 
     static final String CONFIG = "{\n" + "  \"target\": \"https://localhost:8082/echo?foo=bar\"\n" + "}";

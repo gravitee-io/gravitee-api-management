@@ -89,22 +89,20 @@ class ApiDebugResourceTest extends ApiResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_DEFINITION),
-                    eq(API),
-                    eq(RolePermissionAction.UPDATE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.API_DEFINITION),
+                            eq(API),
+                            eq(RolePermissionAction.UPDATE)))
+                    .thenReturn(false);
 
             final Response response = target.request().post(null);
 
             assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -116,27 +114,28 @@ class ApiDebugResourceTest extends ApiResourceTest {
             planQueryService.initWith(List.of(plan));
             instanceQueryService.initWith(List.of(validInstance()));
 
-            final Response response = target.request().post(Entity.json(new DebugHttpRequest().path("/").method("GET")));
+            final Response response = target.request()
+                    .post(Entity.json(new DebugHttpRequest().path("/").method("GET")));
 
             assertThat(response)
-                .hasStatus(ACCEPTED_202)
-                .asEntity(DebugEvent.class)
-                .satisfies(event -> {
-                    SoftAssertions.assertSoftly(softly -> {
-                        softly.assertThat(event.getId()).isNotNull();
-                        softly.assertThat(event.getType()).isEqualTo("DEBUG_API");
+                    .hasStatus(ACCEPTED_202)
+                    .asEntity(DebugEvent.class)
+                    .satisfies(event -> {
+                        SoftAssertions.assertSoftly(softly -> {
+                            softly.assertThat(event.getId()).isNotNull();
+                            softly.assertThat(event.getType()).isEqualTo("DEBUG_API");
+                        });
                     });
-                });
         }
     }
 
     private static Instance validInstance() {
         return Instance.builder()
-            .id("gateway-instance-id")
-            .startedAt(new Date())
-            .clusterPrimaryNode(true)
-            .environments(Set.of(ENVIRONMENT))
-            .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
-            .build();
+                .id("gateway-instance-id")
+                .startedAt(new Date())
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .build();
     }
 }

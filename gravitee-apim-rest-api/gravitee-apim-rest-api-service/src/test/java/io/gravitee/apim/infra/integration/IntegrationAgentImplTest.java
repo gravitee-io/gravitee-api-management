@@ -86,38 +86,51 @@ class IntegrationAgentImplTest {
 
         @Test
         void should_return_connected_when_an_active_channel_exist() {
-            when(controller.channelsMetricsForTarget(INTEGRATION_ID)).thenReturn(
-                Flowable.just(ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(true).primary(true).build())
-            );
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
+                    .thenReturn(Flowable.just(ChannelMetric.builder()
+                            .id("c1")
+                            .targetId(INTEGRATION_ID)
+                            .active(true)
+                            .primary(true)
+                            .build()));
 
-            agent.getAgentStatusFor(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertValue(IntegrationAgent.Status.CONNECTED);
+            agent.getAgentStatusFor(INTEGRATION_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(IntegrationAgent.Status.CONNECTED);
         }
 
         @Test
         void should_return_disconnected_when_no_active_channel_exist() {
-            when(controller.channelsMetricsForTarget(INTEGRATION_ID)).thenReturn(
-                Flowable.just(
-                    ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(false).primary(false).build(),
-                    ChannelMetric.builder().id("c2").targetId(INTEGRATION_ID).active(false).primary(false).build()
-                )
-            );
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
+                    .thenReturn(Flowable.just(
+                            ChannelMetric.builder()
+                                    .id("c1")
+                                    .targetId(INTEGRATION_ID)
+                                    .active(false)
+                                    .primary(false)
+                                    .build(),
+                            ChannelMetric.builder()
+                                    .id("c2")
+                                    .targetId(INTEGRATION_ID)
+                                    .active(false)
+                                    .primary(false)
+                                    .build()));
 
-            agent
-                .getAgentStatusFor(INTEGRATION_ID)
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValue(IntegrationAgent.Status.DISCONNECTED);
+            agent.getAgentStatusFor(INTEGRATION_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(IntegrationAgent.Status.DISCONNECTED);
         }
 
         @Test
         void should_return_disconnected_when_no_channel_metrics_exist() {
             when(controller.channelsMetricsForTarget(INTEGRATION_ID)).thenReturn(Flowable.empty());
 
-            agent
-                .getAgentStatusFor(INTEGRATION_ID)
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValue(IntegrationAgent.Status.DISCONNECTED);
+            agent.getAgentStatusFor(INTEGRATION_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(IntegrationAgent.Status.DISCONNECTED);
         }
     }
 
@@ -126,7 +139,9 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            lenient().when(controller.sendCommand(any(), any())).thenReturn(Single.just(new StartIngestReply("command-id", JOB_ID, 10L)));
+            lenient()
+                    .when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new StartIngestReply("command-id", JOB_ID, 10L)));
         }
 
         @Test
@@ -137,61 +152,65 @@ class IntegrationAgentImplTest {
             Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
 
             assertThat(captor.getValue())
-                .isInstanceOf(StartIngestCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(new StartIngestCommand.Payload(JOB_ID, List.of()));
+                    .isInstanceOf(StartIngestCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new StartIngestCommand.Payload(JOB_ID, List.of()));
         }
 
         @Test
         void should_send_command_to_fetch_some_assets() {
-            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of("1", "2", "3")).test().awaitDone(10, TimeUnit.SECONDS);
+            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of("1", "2", "3"))
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
 
             assertThat(captor.getValue())
-                .isInstanceOf(StartIngestCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(new StartIngestCommand.Payload(JOB_ID, List.of("1", "2", "3")));
+                    .isInstanceOf(StartIngestCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new StartIngestCommand.Payload(JOB_ID, List.of("1", "2", "3")));
         }
 
         @Test
         void should_return_ingest_started() {
-            agent
-                .startIngest(INTEGRATION_ID, JOB_ID, List.of())
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValue(result -> {
-                    assertThat(result).isEqualTo(new IngestStarted(JOB_ID, 10L));
-                    return true;
-                });
+            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(result -> {
+                        assertThat(result).isEqualTo(new IngestStarted(JOB_ID, 10L));
+                        return true;
+                    });
         }
 
         @Test
         void should_throw_when_command_fails() {
-            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new StartIngestReply("command-id", "Fail to start ingest")));
+            when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new StartIngestReply("command-id", "Fail to start ingest")));
 
-            agent
-                .startIngest(INTEGRATION_ID, JOB_ID, List.of())
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(IntegrationIngestionException.class).hasMessage("Fail to start ingest");
-                    return true;
-                });
+            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(IntegrationIngestionException.class)
+                                .hasMessage("Fail to start ingest");
+                        return true;
+                    });
         }
 
         @Test
         void should_throw_when_no_controller() {
             agent = new IntegrationAgentImpl(Optional.empty());
-            agent
-                .startIngest(INTEGRATION_ID, JOB_ID, List.of())
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
-                    return true;
-                });
+            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(TechnicalDomainException.class)
+                                .hasMessage("Federation feature not enabled");
+                        return true;
+                    });
         }
     }
 
@@ -201,7 +220,10 @@ class IntegrationAgentImplTest {
         static final String SUBSCRIPTION_ID = "subscription-id";
         static final String APPLICATION_ID = "application-id";
         static final String APPLICATION_NAME = "application-name";
-        static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id(APPLICATION_ID).name(APPLICATION_NAME).build();
+        static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .name(APPLICATION_NAME)
+                .build();
 
         @Captor
         ArgumentCaptor<SubscribeCommand> subscribeCommandCaptor;
@@ -209,51 +231,46 @@ class IntegrationAgentImplTest {
         @BeforeEach
         void setUp() {
             lenient()
-                .when(controller.sendCommand(subscribeCommandCaptor.capture(), any()))
-                .thenReturn(
-                    Single.just(
-                        new SubscribeReply(
+                    .when(controller.sendCommand(subscribeCommandCaptor.capture(), any()))
+                    .thenReturn(Single.just(new SubscribeReply(
                             "command-id",
-                            SubscriptionResult.builder().apiKey("my-api-key").metadata(Map.of("key", "value")).build()
-                        )
-                    )
-                );
+                            SubscriptionResult.builder()
+                                    .apiKey("my-api-key")
+                                    .metadata(Map.of("key", "value"))
+                                    .build())));
         }
 
         @Test
         void should_send_command_to_subscribe_for_apikey() {
-            var subscriptionParameter = new SubscriptionParameter.ApiKey(
-                PlanFixtures.aFederatedPlan().toBuilder().providerId("plan-provider-id").build()
-            );
-            agent
-                .subscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
-                    subscriptionParameter,
-                    SUBSCRIPTION_ID,
-                    APPLICATION,
-                    Map.of()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS);
+            var subscriptionParameter = new SubscriptionParameter.ApiKey(PlanFixtures.aFederatedPlan().toBuilder()
+                    .providerId("plan-provider-id")
+                    .build());
+            agent.subscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .id("gravitee-api-id")
+                                    .providerId("api-provider-id")
+                                    .build(),
+                            subscriptionParameter,
+                            SUBSCRIPTION_ID,
+                            APPLICATION,
+                            Map.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
-                .isInstanceOf(SubscribeCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(
-                    new SubscribeCommand.Payload(
-                        "api-provider-id",
-                        new Subscription(
-                            SUBSCRIPTION_ID,
-                            APPLICATION_ID,
-                            APPLICATION_NAME,
-                            SubscriptionType.API_KEY,
-                            Map.of(Subscription.METADATA_PLAN_ID, "plan-provider-id")
-                        )
-                    )
-                );
+                    .isInstanceOf(SubscribeCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new SubscribeCommand.Payload(
+                            "api-provider-id",
+                            new Subscription(
+                                    SUBSCRIPTION_ID,
+                                    APPLICATION_ID,
+                                    APPLICATION_NAME,
+                                    SubscriptionType.API_KEY,
+                                    Map.of(Subscription.METADATA_PLAN_ID, "plan-provider-id"))));
         }
 
         @Test
@@ -261,163 +278,167 @@ class IntegrationAgentImplTest {
             String oAuthClientId = "client-id";
             String planProviderId = "plan-provider-id";
             var subscriptionParameter = new SubscriptionParameter.OAuth(
-                oAuthClientId,
-                PlanFixtures.aFederatedPlan()
-                    .toBuilder()
-                    .security(PlanSecurity.builder().type("oauth2").build())
-                    .providerId(planProviderId)
-                    .build()
-            );
-            agent
-                .subscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi()
-                        .toBuilder()
-                        .id("gravitee-api-id")
-                        .providerId("api-provider-id")
-                        .server(Map.of("k1", "v1"))
-                        .build(),
-                    subscriptionParameter,
-                    SUBSCRIPTION_ID,
-                    APPLICATION,
-                    Map.of()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS);
+                    oAuthClientId,
+                    PlanFixtures.aFederatedPlan().toBuilder()
+                            .security(PlanSecurity.builder().type("oauth2").build())
+                            .providerId(planProviderId)
+                            .build());
+            agent.subscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .id("gravitee-api-id")
+                                    .providerId("api-provider-id")
+                                    .server(Map.of("k1", "v1"))
+                                    .build(),
+                            subscriptionParameter,
+                            SUBSCRIPTION_ID,
+                            APPLICATION,
+                            Map.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS);
 
             assertThat(subscribeCommandCaptor.getValue())
-                .isInstanceOf(SubscribeCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(
-                    new SubscribeCommand.Payload(
-                        "api-provider-id",
-                        new Subscription(
-                            SUBSCRIPTION_ID,
-                            APPLICATION_ID,
-                            APPLICATION_NAME,
-                            SubscriptionType.OAUTH,
-                            Map.of(
-                                Subscription.METADATA_PLAN_ID,
-                                planProviderId,
-                                Subscription.METADATA_CONSUMER_KEY,
-                                oAuthClientId,
-                                "k1",
-                                "v1"
-                            )
-                        )
-                    )
-                );
+                    .isInstanceOf(SubscribeCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new SubscribeCommand.Payload(
+                            "api-provider-id",
+                            new Subscription(
+                                    SUBSCRIPTION_ID,
+                                    APPLICATION_ID,
+                                    APPLICATION_NAME,
+                                    SubscriptionType.OAUTH,
+                                    Map.of(
+                                            Subscription.METADATA_PLAN_ID,
+                                            planProviderId,
+                                            Subscription.METADATA_CONSUMER_KEY,
+                                            oAuthClientId,
+                                            "k1",
+                                            "v1"))));
         }
 
         @Test
         void should_return_the_API_Key() {
-            var result = agent
-                .subscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi(),
-                    PlanFixtures.subscriptionParameter(),
-                    SUBSCRIPTION_ID,
-                    APPLICATION,
-                    Map.of()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = agent.subscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi(),
+                            PlanFixtures.subscriptionParameter(),
+                            SUBSCRIPTION_ID,
+                            APPLICATION,
+                            Map.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
             assertThat(result)
-                .hasSize(1)
-                .containsExactly(
-                    new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key", Map.of("key", "value"))
-                );
+                    .hasSize(1)
+                    .containsExactly(new IntegrationSubscription(
+                            INTEGRATION_ID,
+                            IntegrationSubscription.Type.API_KEY,
+                            "my-api-key",
+                            Map.of("key", "value")));
         }
 
         @Test
         void should_send_server_map() {
-            var result = agent
-                .subscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().server(Map.of("k1", "v1")).build(),
-                    PlanFixtures.subscriptionParameter(),
-                    SUBSCRIPTION_ID,
-                    APPLICATION,
-                    Map.of()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = agent.subscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .server(Map.of("k1", "v1"))
+                                    .build(),
+                            PlanFixtures.subscriptionParameter(),
+                            SUBSCRIPTION_ID,
+                            APPLICATION,
+                            Map.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
-            assertThat(subscribeCommandCaptor.getValue().getPayload().subscription().metadata()).containsEntry("k1", "v1");
+            assertThat(subscribeCommandCaptor
+                            .getValue()
+                            .getPayload()
+                            .subscription()
+                            .metadata())
+                    .containsEntry("k1", "v1");
             assertThat(result)
-                .hasSize(1)
-                .containsExactly(
-                    new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key", Map.of("key", "value"))
-                );
+                    .hasSize(1)
+                    .containsExactly(new IntegrationSubscription(
+                            INTEGRATION_ID,
+                            IntegrationSubscription.Type.API_KEY,
+                            "my-api-key",
+                            Map.of("key", "value")));
         }
 
         @Test
         void should_send_providers_metadata() {
-            var result = agent
-                .subscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().server(Map.of()).build(),
-                    PlanFixtures.subscriptionParameter(),
-                    SUBSCRIPTION_ID,
-                    APPLICATION,
-                    Map.of("provider-metadata-key", "provider-metadata-value")
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+            var result = agent.subscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .server(Map.of())
+                                    .build(),
+                            PlanFixtures.subscriptionParameter(),
+                            SUBSCRIPTION_ID,
+                            APPLICATION,
+                            Map.of("provider-metadata-key", "provider-metadata-value"))
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
-            assertThat(subscribeCommandCaptor.getValue().getPayload().subscription().metadata()).containsExactlyInAnyOrderEntriesOf(
-                Map.of("planId", "provider-id", "provider-metadata-key", "provider-metadata-value")
-            );
+            assertThat(subscribeCommandCaptor
+                            .getValue()
+                            .getPayload()
+                            .subscription()
+                            .metadata())
+                    .containsExactlyInAnyOrderEntriesOf(
+                            Map.of("planId", "provider-id", "provider-metadata-key", "provider-metadata-value"));
             assertThat(result)
-                .hasSize(1)
-                .containsExactly(
-                    new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key", Map.of("key", "value"))
-                );
+                    .hasSize(1)
+                    .containsExactly(new IntegrationSubscription(
+                            INTEGRATION_ID,
+                            IntegrationSubscription.Type.API_KEY,
+                            "my-api-key",
+                            Map.of("key", "value")));
         }
 
         @Test
         void should_throw_when_command_fails() {
-            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new SubscribeReply("command-id", "Fail to subscribe")));
+            when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new SubscribeReply("command-id", "Fail to subscribe")));
 
-            agent
-                .subscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi(),
-                    PlanFixtures.subscriptionParameter(),
-                    SUBSCRIPTION_ID,
-                    APPLICATION,
-                    Map.of()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(IntegrationSubscriptionException.class).hasMessage("Fail to subscribe");
-                    return true;
-                });
+            agent.subscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi(),
+                            PlanFixtures.subscriptionParameter(),
+                            SUBSCRIPTION_ID,
+                            APPLICATION,
+                            Map.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(IntegrationSubscriptionException.class)
+                                .hasMessage("Fail to subscribe");
+                        return true;
+                    });
         }
 
         @Test
         void should_throw_when_no_controller() {
             agent = new IntegrationAgentImpl(Optional.empty());
-            agent
-                .subscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi(),
-                    PlanFixtures.subscriptionParameter(),
-                    SUBSCRIPTION_ID,
-                    APPLICATION,
-                    Map.of()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
-                    return true;
-                });
+            agent.subscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi(),
+                            PlanFixtures.subscriptionParameter(),
+                            SUBSCRIPTION_ID,
+                            APPLICATION,
+                            Map.of())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(TechnicalDomainException.class)
+                                .hasMessage("Federation feature not enabled");
+                        return true;
+                    });
         }
     }
 
@@ -426,113 +447,123 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            lenient().when(controller.sendCommand(any(), any())).thenReturn(Single.just(new UnsubscribeReply("command-id")));
+            lenient()
+                    .when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new UnsubscribeReply("command-id")));
         }
 
         @Test
         void should_send_command_to_unsubscribe() {
-            agent
-                .unsubscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
-                    SubscriptionEntity.builder().id("subscription-id").metadata(Map.of("aws-api-key-id", "apikey-123")).build()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+            agent.unsubscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .id("gravitee-api-id")
+                                    .providerId("api-provider-id")
+                                    .build(),
+                            SubscriptionEntity.builder()
+                                    .id("subscription-id")
+                                    .metadata(Map.of("aws-api-key-id", "apikey-123"))
+                                    .build())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
-                .isInstanceOf(UnsubscribeCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(
-                    new UnsubscribeCommand.Payload(
-                        "api-provider-id",
-                        new Subscription("subscription-id", null, null, null, Map.of("aws-api-key-id", "apikey-123"))
-                    )
-                );
+                    .isInstanceOf(UnsubscribeCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new UnsubscribeCommand.Payload(
+                            "api-provider-id",
+                            new Subscription(
+                                    "subscription-id", null, null, null, Map.of("aws-api-key-id", "apikey-123"))));
         }
 
         @Test
         void should_throw_when_command_fails() {
-            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new UnsubscribeReply("command-id", "Fail to unsubscribe")));
+            when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new UnsubscribeReply("command-id", "Fail to unsubscribe")));
 
-            agent
-                .unsubscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
-                    SubscriptionEntity.builder().id("subscription-id").metadata(Map.of("aws-api-key-id", "apikey-123")).build()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(IntegrationSubscriptionException.class).hasMessage("Fail to unsubscribe");
-                    return true;
-                });
+            agent.unsubscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .id("gravitee-api-id")
+                                    .providerId("api-provider-id")
+                                    .build(),
+                            SubscriptionEntity.builder()
+                                    .id("subscription-id")
+                                    .metadata(Map.of("aws-api-key-id", "apikey-123"))
+                                    .build())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(IntegrationSubscriptionException.class)
+                                .hasMessage("Fail to unsubscribe");
+                        return true;
+                    });
         }
 
         @Test
         void should_throw_when_metadata_is_null() {
-            agent
-                .unsubscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
-                    SubscriptionEntity.builder().id("subscription-id").build()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+            agent.unsubscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .id("gravitee-api-id")
+                                    .providerId("api-provider-id")
+                                    .build(),
+                            SubscriptionEntity.builder().id("subscription-id").build())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
-                .isInstanceOf(UnsubscribeCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(
-                    new UnsubscribeCommand.Payload("api-provider-id", new Subscription("subscription-id", null, null, null, Map.of()))
-                );
+                    .isInstanceOf(UnsubscribeCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new UnsubscribeCommand.Payload(
+                            "api-provider-id", new Subscription("subscription-id", null, null, null, Map.of())));
         }
 
         @Test
         void should_throw_when_no_controller() {
             agent = new IntegrationAgentImpl(Optional.empty());
-            agent
-                .unsubscribe(
-                    INTEGRATION_ID,
-                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
-                    SubscriptionEntity.builder().id("subscription-id").build()
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
-                    return true;
-                });
+            agent.unsubscribe(
+                            INTEGRATION_ID,
+                            ApiDefinitionFixtures.aFederatedApi().toBuilder()
+                                    .id("gravitee-api-id")
+                                    .providerId("api-provider-id")
+                                    .build(),
+                            SubscriptionEntity.builder().id("subscription-id").build())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(TechnicalDomainException.class)
+                                .hasMessage("Federation feature not enabled");
+                        return true;
+                    });
         }
     }
 
     private static io.gravitee.integration.api.model.Api buildApi(int index) {
         return io.gravitee.integration.api.model.Api.builder()
-            .uniqueId("asset-uid-" + index)
-            .id("asset-" + index)
-            .name("asset-name-" + index)
-            .version("asset-version-" + index)
-            .description("asset-description-" + index)
-            .connectionDetails(Map.of("url", "https://example.com/" + index))
-            .plans(
-                List.of(
-                    Plan.builder()
+                .uniqueId("asset-uid-" + index)
+                .id("asset-" + index)
+                .name("asset-name-" + index)
+                .version("asset-version-" + index)
+                .description("asset-description-" + index)
+                .connectionDetails(Map.of("url", "https://example.com/" + index))
+                .plans(List.of(Plan.builder()
                         .id("plan-id-" + index)
                         .name("Gold " + index)
                         .description("Gold description " + index)
                         .planSecurityType(PlanSecurityType.API_KEY)
                         .characteristics(List.of())
-                        .build()
-                )
-            )
-            .pages(List.of(new Page(PageType.SWAGGER, "swaggerDoc", "MyPage.yml")))
-            .build();
+                        .build()))
+                .pages(List.of(new Page(PageType.SWAGGER, "swaggerDoc", "MyPage.yml")))
+                .build();
     }
 
     @Nested
@@ -541,8 +572,9 @@ class IntegrationAgentImplTest {
         @BeforeEach
         void setUp() {
             lenient()
-                .when(controller.sendCommand(any(), any()))
-                .thenReturn(Single.just(new DiscoverReply("command-id", Stream.of(buildApi(1), buildApi(2)).toList())));
+                    .when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new DiscoverReply(
+                            "command-id", Stream.of(buildApi(1), buildApi(2)).toList())));
         }
 
         @Test
@@ -552,133 +584,131 @@ class IntegrationAgentImplTest {
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
             assertThat(captor.getValue())
-                .isInstanceOf(DiscoverCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(new DiscoverCommand.Payload());
+                    .isInstanceOf(DiscoverCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new DiscoverCommand.Payload());
         }
 
         @Test
         void should_discover_apis() {
-            var result = agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).values();
+            var result = agent.discoverApis(INTEGRATION_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
-            assertThat(result).containsExactly(
-                new DiscoveredApis(
-                    List.of(
-                        new IntegrationApi(
-                            INTEGRATION_ID,
-                            "asset-uid-1",
-                            "asset-1",
-                            "asset-name-1",
-                            "asset-description-1",
-                            "asset-version-1",
-                            Map.of("url", "https://example.com/1"),
+            assertThat(result)
+                    .containsExactly(new DiscoveredApis(
                             List.of(
-                                new IntegrationApi.Plan(
-                                    "plan-id-1",
-                                    "Gold 1",
-                                    "Gold description 1",
-                                    IntegrationApi.PlanType.API_KEY,
-                                    List.of()
-                                )
-                            ),
-                            List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
-                            null
-                        ),
-                        new IntegrationApi(
-                            INTEGRATION_ID,
-                            "asset-uid-2",
-                            "asset-2",
-                            "asset-name-2",
-                            "asset-description-2",
-                            "asset-version-2",
-                            Map.of("url", "https://example.com/2"),
-                            List.of(
-                                new IntegrationApi.Plan(
-                                    "plan-id-2",
-                                    "Gold 2",
-                                    "Gold description 2",
-                                    IntegrationApi.PlanType.API_KEY,
-                                    List.of()
-                                )
-                            ),
-                            List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
-                            null
-                        )
-                    ),
-                    false
-                )
-            );
+                                    new IntegrationApi(
+                                            INTEGRATION_ID,
+                                            "asset-uid-1",
+                                            "asset-1",
+                                            "asset-name-1",
+                                            "asset-description-1",
+                                            "asset-version-1",
+                                            Map.of("url", "https://example.com/1"),
+                                            List.of(new IntegrationApi.Plan(
+                                                    "plan-id-1",
+                                                    "Gold 1",
+                                                    "Gold description 1",
+                                                    IntegrationApi.PlanType.API_KEY,
+                                                    List.of())),
+                                            List.of(new IntegrationApi.Page(
+                                                    IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                                            null),
+                                    new IntegrationApi(
+                                            INTEGRATION_ID,
+                                            "asset-uid-2",
+                                            "asset-2",
+                                            "asset-name-2",
+                                            "asset-description-2",
+                                            "asset-version-2",
+                                            Map.of("url", "https://example.com/2"),
+                                            List.of(new IntegrationApi.Plan(
+                                                    "plan-id-2",
+                                                    "Gold 2",
+                                                    "Gold description 2",
+                                                    IntegrationApi.PlanType.API_KEY,
+                                                    List.of())),
+                                            List.of(new IntegrationApi.Page(
+                                                    IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                                            null)),
+                            false));
         }
 
         @Test
         void should_discover_apis_that_are_partially_discovered() {
-            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new DiscoverReply("command-id", List.of(buildApi(1)), true)));
+            when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new DiscoverReply("command-id", List.of(buildApi(1)), true)));
 
-            var result = agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).values();
+            var result = agent.discoverApis(INTEGRATION_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
-            assertThat(result).containsExactly(
-                new DiscoveredApis(
-                    List.of(
-                        new IntegrationApi(
-                            INTEGRATION_ID,
-                            "asset-uid-1",
-                            "asset-1",
-                            "asset-name-1",
-                            "asset-description-1",
-                            "asset-version-1",
-                            Map.of("url", "https://example.com/1"),
-                            List.of(
-                                new IntegrationApi.Plan(
-                                    "plan-id-1",
-                                    "Gold 1",
-                                    "Gold description 1",
-                                    IntegrationApi.PlanType.API_KEY,
-                                    List.of()
-                                )
-                            ),
-                            List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
-                            null
-                        )
-                    ),
-                    true
-                )
-            );
+            assertThat(result)
+                    .containsExactly(new DiscoveredApis(
+                            List.of(new IntegrationApi(
+                                    INTEGRATION_ID,
+                                    "asset-uid-1",
+                                    "asset-1",
+                                    "asset-name-1",
+                                    "asset-description-1",
+                                    "asset-version-1",
+                                    Map.of("url", "https://example.com/1"),
+                                    List.of(new IntegrationApi.Plan(
+                                            "plan-id-1",
+                                            "Gold 1",
+                                            "Gold description 1",
+                                            IntegrationApi.PlanType.API_KEY,
+                                            List.of())),
+                                    List.of(new IntegrationApi.Page(
+                                            IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                                    null)),
+                            true));
         }
 
         @Test
         void should_return_empty_when_nothing_discovered() {
-            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new DiscoverReply("command-id", List.of())));
+            when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new DiscoverReply("command-id", List.of())));
 
-            var result = agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).values();
+            var result = agent.discoverApis(INTEGRATION_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .values();
 
             assertThat(result).containsExactly(new DiscoveredApis(List.of(), false));
         }
 
         @Test
         void should_throw_exception_when_command_fails() {
-            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new DiscoverReply("command-id", "Fail to discover")));
+            when(controller.sendCommand(any(), any()))
+                    .thenReturn(Single.just(new DiscoverReply("command-id", "Fail to discover")));
 
-            agent
-                .discoverApis(INTEGRATION_ID)
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(IntegrationDiscoveryException.class).hasMessage("Fail to discover");
-                    return true;
-                });
+            agent.discoverApis(INTEGRATION_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(IntegrationDiscoveryException.class)
+                                .hasMessage("Fail to discover");
+                        return true;
+                    });
         }
     }
 
     @Test
     void should_throw_when_no_controller() {
         agent = new IntegrationAgentImpl(Optional.empty());
-        agent
-            .discoverApis(INTEGRATION_ID)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertError(error -> {
-                assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Federation feature not enabled");
-                return true;
-            });
+        agent.discoverApis(INTEGRATION_ID)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error)
+                            .isInstanceOf(TechnicalDomainException.class)
+                            .hasMessage("Federation feature not enabled");
+                    return true;
+                });
     }
 }

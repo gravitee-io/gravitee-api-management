@@ -60,7 +60,10 @@ class ApiDeployerTest {
         @Test
         void should_deploy_api() {
             ReactableApi reactableApi = mock(ReactableApi.class);
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(apiManager).register(reactableApi);
         }
@@ -68,7 +71,10 @@ class ApiDeployerTest {
         @Test
         void should_return_error_when_api_manager_throw_exception() {
             ReactableApi reactableApi = mock(ReactableApi.class);
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .build();
             when(apiManager.register(reactableApi)).thenThrow(new SyncException("error"));
             cut.deploy(apiReactorDeployable).test().assertFailure(SyncException.class);
             verify(apiManager).register(reactableApi);
@@ -78,10 +84,10 @@ class ApiDeployerTest {
         void should_do_post_action() {
             ReactableApi reactableApi = mock(ReactableApi.class);
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .subscribablePlans(Set.of("plan"))
-                .reactableApi(reactableApi)
-                .build();
+                    .apiId("apiId")
+                    .subscribablePlans(Set.of("plan"))
+                    .reactableApi(reactableApi)
+                    .build();
             cut.doAfterDeployment(apiReactorDeployable).test().assertComplete();
             assertThat(planService.isDeployed("apiId", "plan")).isTrue();
         }
@@ -92,14 +98,16 @@ class ApiDeployerTest {
 
         @Test
         void should_undeploy_api() {
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").build();
+            ApiReactorDeployable apiReactorDeployable =
+                    ApiReactorDeployable.builder().apiId("apiId").build();
             cut.undeploy(apiReactorDeployable).test().assertComplete();
             verify(apiManager).unregister("apiId");
         }
 
         @Test
         void should_complete_on_error_when_api_manager_throw_exception() {
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").build();
+            ApiReactorDeployable apiReactorDeployable =
+                    ApiReactorDeployable.builder().apiId("apiId").build();
             doThrow(new SyncException("error")).when(apiManager).unregister("apiId");
             cut.undeploy(apiReactorDeployable).test().assertFailure(SyncException.class);
             verify(apiManager).unregister("apiId");

@@ -40,11 +40,10 @@ public class DefaultMetadataInitializer implements Initializer {
     public boolean initialize() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         // Initialize default metadata
-        if (
-            metadataService
-                .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId())
-                .isEmpty()
-        ) {
+        if (metadataService
+                .findByReferenceTypeAndReferenceId(
+                        MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId())
+                .isEmpty()) {
             log.info("Create default env metadata for {}", executionContext);
             metadataService.initialize(executionContext);
         }

@@ -24,33 +24,35 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
     }
 
     public static InvalidPortalNavigationItemDataException fieldIsEmpty(String field) {
-        return new InvalidPortalNavigationItemDataException("The %s field is required and cannot be blank.".formatted(field));
+        return new InvalidPortalNavigationItemDataException(
+                "The %s field is required and cannot be blank.".formatted(field));
     }
 
     public static InvalidPortalNavigationItemDataException typeMismatch(String received, String expected) {
         return new InvalidPortalNavigationItemDataException(
-            "Navigation item type cannot be changed or is mismatched (expected %s, got %s).".formatted(expected, received)
-        );
+                "Navigation item type cannot be changed or is mismatched (expected %s, got %s)."
+                        .formatted(expected, received));
     }
 
     public static InvalidPortalNavigationItemDataException notApiDocumentationType(String type) {
         return new InvalidPortalNavigationItemDataException(
-            "The documentation of an API can only hold pages, folders and links (got %s).".formatted(type)
-        );
+                "The documentation of an API can only hold pages, folders and links (got %s).".formatted(type));
     }
 
     public static InvalidPortalNavigationItemDataException notAPublishLocation(String sectionId) {
         return new InvalidPortalNavigationItemDataException(
-            "An API can only be published to a published top-level folder of the main navigation (got %s).".formatted(sectionId)
-        );
+                "An API can only be published to a published top-level folder of the main navigation (got %s)."
+                        .formatted(sectionId));
     }
 
     public static InvalidPortalNavigationItemDataException notAPage(String itemId) {
-        return new InvalidPortalNavigationItemDataException("The navigation item %s is not a page and has no content.".formatted(itemId));
+        return new InvalidPortalNavigationItemDataException(
+                "The navigation item %s is not a page and has no content.".formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException apiIsNotPublished(String apiId) {
-        return new InvalidPortalNavigationItemDataException("The API %s is not published to the portal.".formatted(apiId));
+        return new InvalidPortalNavigationItemDataException(
+                "The API %s is not published to the portal.".formatted(apiId));
     }
 
     public static InvalidPortalNavigationItemDataException apiMustBeInTopNavbar() {
@@ -62,87 +64,83 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
     }
 
     public static InvalidPortalNavigationItemDataException apiDocumentationMustBeInTopNavbar() {
-        return new InvalidPortalNavigationItemDataException("API-attached documentation can only be added to TOP_NAVBAR area.");
+        return new InvalidPortalNavigationItemDataException(
+                "API-attached documentation can only be added to TOP_NAVBAR area.");
     }
 
     public static InvalidPortalNavigationItemDataException sourceNotAllowedForType(String type) {
         return new InvalidPortalNavigationItemDataException(
-            "An external source can only be configured on PAGE and FOLDER navigation items (got %s).".formatted(type)
-        );
+                "An external source can only be configured on PAGE and FOLDER navigation items (got %s)."
+                        .formatted(type));
     }
 
     public static InvalidPortalNavigationItemDataException noSourceConfigured(String itemId) {
-        return new InvalidPortalNavigationItemDataException("Navigation item %s has no external source configured.".formatted(itemId));
+        return new InvalidPortalNavigationItemDataException(
+                "Navigation item %s has no external source configured.".formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException noSourcedPageBelow(String itemId) {
         return new InvalidPortalNavigationItemDataException(
-            "No page below navigation item %s carries an external source.".formatted(itemId)
-        );
+                "No page below navigation item %s carries an external source.".formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException fileListingSourceOnlyCreatedByImport(String itemId) {
         return new InvalidPortalNavigationItemDataException(
-            "A file-listing source cannot be attached to folder %s: fetching such a folder replaces its children with the remote tree. Import the repository into a new folder instead.".formatted(
-                itemId
-            )
-        );
+                "A file-listing source cannot be attached to folder %s: fetching such a folder replaces its children with the remote tree. Import the repository into a new folder instead."
+                        .formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException importManagedFolderNeedsFileListingSource(String itemId) {
         return new InvalidPortalNavigationItemDataException(
-            "Folder %s is managed by the navigation import: its source must be able to list files. Pick a repository fetcher, or remove the source to detach the folder.".formatted(
-                itemId
-            )
-        );
+                "Folder %s is managed by the navigation import: its source must be able to list files. Pick a repository fetcher, or remove the source to detach the folder."
+                        .formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException sourcedItemCannotBeRenamedOrMoved(String itemId) {
         return new InvalidPortalNavigationItemDataException(
-            "Navigation item %s is managed by an external source and cannot be renamed or moved. Remove the source first.".formatted(itemId)
-        );
+                "Navigation item %s is managed by an external source and cannot be renamed or moved. Remove the source first."
+                        .formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException cannotCreateBelowSourcedItem(String ancestorId) {
         return new InvalidPortalNavigationItemDataException(
-            "Navigation items cannot be created below %s, whose subtree is managed by an external source.".formatted(ancestorId)
-        );
+                "Navigation items cannot be created below %s, whose subtree is managed by an external source."
+                        .formatted(ancestorId));
     }
 
     public static InvalidPortalNavigationItemDataException cannotMoveBelowSourcedItem(String ancestorId) {
         return new InvalidPortalNavigationItemDataException(
-            "Navigation items cannot be moved below %s, whose subtree is managed by an external source.".formatted(ancestorId)
-        );
+                "Navigation items cannot be moved below %s, whose subtree is managed by an external source."
+                        .formatted(ancestorId));
     }
 
     public static InvalidPortalNavigationItemDataException childOfSourcedItemIsReadOnly(String itemId) {
         return new InvalidPortalNavigationItemDataException(
-            "Navigation item %s belongs to a subtree managed by an external source and is read-only.".formatted(itemId)
-        );
+                "Navigation item %s belongs to a subtree managed by an external source and is read-only."
+                        .formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException sourcedItemCannotBeDeleted(String itemId) {
         return new InvalidPortalNavigationItemDataException(
-            "Navigation item %s is managed by an external source and cannot be deleted. Remove the source first.".formatted(itemId)
-        );
+                "Navigation item %s is managed by an external source and cannot be deleted. Remove the source first."
+                        .formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException sourcedPageContentIsReadOnly(String contentId) {
         return new InvalidPortalNavigationItemDataException(
-            "Page content %s is managed by an external source and cannot be edited. Remove the source first.".formatted(contentId)
-        );
+                "Page content %s is managed by an external source and cannot be edited. Remove the source first."
+                        .formatted(contentId));
     }
 
     public static InvalidPortalNavigationItemDataException sourceNotAllowedOnAutomationManagedItem(String itemId) {
         return new InvalidPortalNavigationItemDataException(
-            "Navigation item %s is managed by the Automation API and cannot carry an external source.".formatted(itemId)
-        );
+                "Navigation item %s is managed by the Automation API and cannot carry an external source."
+                        .formatted(itemId));
     }
 
     public static InvalidPortalNavigationItemDataException apiIdAlreadyExists(String apiId) {
         return new InvalidPortalNavigationItemDataException(
-            "The apiId %s is already used by another API navigation item.".formatted(apiId)
-        );
+                "The apiId %s is already used by another API navigation item.".formatted(apiId));
     }
 
     public static InvalidPortalNavigationItemDataException parentHierarchyContainsApi() {
@@ -157,19 +155,19 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         return new InvalidPortalNavigationItemDataException("Cyclic dependency detected in parent hierarchy.");
     }
 
-    public static InvalidPortalNavigationItemDataException apiDoesNotBelongToApiProduct(String apiId, String apiProductId) {
-        return new InvalidPortalNavigationItemDataException("API %s does not belong to API Product %s.".formatted(apiId, apiProductId));
+    public static InvalidPortalNavigationItemDataException apiDoesNotBelongToApiProduct(
+            String apiId, String apiProductId) {
+        return new InvalidPortalNavigationItemDataException(
+                "API %s does not belong to API Product %s.".formatted(apiId, apiProductId));
     }
 
     public static InvalidPortalNavigationItemDataException parentMustBePublished(String parentId) {
         return new InvalidPortalNavigationItemDataException(
-            "Parent item with id %s must be PUBLISHED to create a published child item.".formatted(parentId)
-        );
+                "Parent item with id %s must be PUBLISHED to create a published child item.".formatted(parentId));
     }
 
     public static InvalidPortalNavigationItemDataException parentMustBePublic(String parentId) {
         return new InvalidPortalNavigationItemDataException(
-            "Parent item with id %s must be PUBLIC to create a public child item.".formatted(parentId)
-        );
+                "Parent item with id %s must be PUBLIC to create a public child item.".formatted(parentId));
     }
 }

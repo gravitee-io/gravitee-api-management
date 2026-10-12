@@ -61,8 +61,10 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
     }
 
     @Test
@@ -72,45 +74,48 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
         requestBody.put("field", "value");
 
         final Subject<Void> readyObs = ReplaySubject.create();
-        final TestSubscriber<Mqtt5Publish> testSubscriber = subscribeToMqtt5(TEST_TOPIC, readyObs).take(1).test();
+        final TestSubscriber<Mqtt5Publish> testSubscriber =
+                subscribeToMqtt5(TEST_TOPIC, readyObs).take(1).test();
 
-        readyObs
-            .ignoreElements()
-            .andThen(postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS);
+        readyObs.ignoreElements()
+                .andThen(postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS);
 
-        testSubscriber
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(message -> {
-                assertThat(message.getTopic()).hasToString(TEST_TOPIC);
-                assertThat(message.getResponseTopic()).isEmpty();
-                assertThat(message.isRetain()).isFalse();
-                assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+        testSubscriber.awaitDone(10, TimeUnit.SECONDS).assertValue(message -> {
+            assertThat(message.getTopic()).hasToString(TEST_TOPIC);
+            assertThat(message.getResponseTopic()).isEmpty();
+            assertThat(message.isRetain()).isFalse();
+            assertThat(message.getPayloadAsBytes())
+                    .isEqualTo(requestBody.toBuffer().getBytes());
 
-                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
-                    "(content-length, " + requestBody.toString().length() + ")",
-                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                    "(X-Test-Header, header-value)"
-                );
-                return true;
-            });
+            assertThat(message.getUserProperties().asList().stream().map(Object::toString))
+                    .containsAnyOf(
+                            "(content-length, " + requestBody.toString().length() + ")",
+                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                            "(X-Test-Header, header-value)");
+            return true;
+        });
 
         // Verify there is no message since retain is false
-        subscribeToMqtt5(TEST_TOPIC).take(1, TimeUnit.SECONDS).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
+        subscribeToMqtt5(TEST_TOPIC)
+                .take(1, TimeUnit.SECONDS)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertNoValues();
     }
 
-    private Completable postMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
-        return client
-            .rxRequest(HttpMethod.POST, requestURI)
-            .flatMap(request -> {
-                headers.forEach(request::putHeader);
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapCompletable(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.rxBody().ignoreElement();
-            });
+    private Completable postMessage(
+            HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
+        return client.rxRequest(HttpMethod.POST, requestURI)
+                .flatMap(request -> {
+                    headers.forEach(request::putHeader);
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapCompletable(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.rxBody().ignoreElement();
+                });
     }
 
     @Test
@@ -119,23 +124,22 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
         final int messageCount = 2;
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Single<HttpClientResponse> get = client
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response))));
+        final Single<HttpClientResponse> get = client.rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response))));
 
-        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
-            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-        )
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC, MqttQos.EXACTLY_ONCE))
-            .flatMap(response -> response.rxBody().flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(get.doOnSuccess(
+                        response -> assertThat(response.statusCode()).isEqualTo(200)))
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC, MqttQos.EXACTLY_ONCE))
+                .flatMap(response -> response.rxBody()
+                        .flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
@@ -149,11 +153,11 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
         for (int i = 0; i < messageCount; i++) {
             obs.assertValueAt(i, jsonObject -> {
                 final Integer messageCounter = jsonObject.getInteger("counter");
-                final AtomicInteger requestCounter = counters.computeIfAbsent(jsonObject.getString("transactionId"), s ->
-                    new AtomicInteger(messageCounter)
-                );
+                final AtomicInteger requestCounter = counters.computeIfAbsent(
+                        jsonObject.getString("transactionId"), s -> new AtomicInteger(messageCounter));
 
-                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
+                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3
+                // then message-1).
                 assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
                 requestCounter.set(messageCounter);
                 assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);

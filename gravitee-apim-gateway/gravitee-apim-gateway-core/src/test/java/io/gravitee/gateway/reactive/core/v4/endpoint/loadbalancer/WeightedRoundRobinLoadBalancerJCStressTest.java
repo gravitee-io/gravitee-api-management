@@ -33,7 +33,7 @@ import org.openjdk.jcstress.infra.results.IIII_Result;
 public class WeightedRoundRobinLoadBalancerJCStressTest {
 
     public static void main(String[] args) throws Exception {
-        String[] jcstress = { "-v", "-t", "WeightedRoundRobinLoadBalancerJCStressTest" };
+        String[] jcstress = {"-v", "-t", "WeightedRoundRobinLoadBalancerJCStressTest"};
         Main.main(jcstress);
     }
 

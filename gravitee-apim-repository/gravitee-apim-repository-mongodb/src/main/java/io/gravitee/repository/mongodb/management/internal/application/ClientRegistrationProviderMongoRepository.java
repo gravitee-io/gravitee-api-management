@@ -26,7 +26,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface ClientRegistrationProviderMongoRepository extends MongoRepository<ClientRegistrationProviderMongo, String> {
+public interface ClientRegistrationProviderMongoRepository
+        extends MongoRepository<ClientRegistrationProviderMongo, String> {
     @Query("{ 'environmentId': ?0 }")
     List<ClientRegistrationProviderMongo> findByEnvironmentId(String environmentId);
 

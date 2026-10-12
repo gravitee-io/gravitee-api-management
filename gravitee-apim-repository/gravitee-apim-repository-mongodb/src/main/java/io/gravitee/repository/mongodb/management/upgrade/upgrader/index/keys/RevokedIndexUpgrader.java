@@ -28,9 +28,9 @@ public class RevokedIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("keys")
-            .name("r1")
-            .key("revoked", ascending())
-            .build();
+                .collection("keys")
+                .name("r1")
+                .key("revoked", ascending())
+                .build();
     }
 }

@@ -57,9 +57,8 @@ public class MemberMapper {
 
         UserEntity userEntity = userService.findById(executionContext, member.getId());
         User memberUser = userMapper.convert(userEntity);
-        memberUser.setLinks(
-            userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())
-        );
+        memberUser.setLinks(userMapper.computeUserLinks(
+                usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt()));
 
         memberItem.setUser(memberUser);
         if (member.getRoles() != null && !member.getRoles().isEmpty()) {
@@ -70,20 +69,20 @@ public class MemberMapper {
     }
 
     public List<Member> convert(
-        List<Membership> memberships,
-        List<BaseUserEntity> users,
-        Map<String, RoleEntity> rolesById,
-        UriInfo uriInfo
-    ) {
-        var usersById = users.stream().collect(Collectors.toMap(BaseUserEntity::getId, Function.identity(), (left, right) -> left));
+            List<Membership> memberships,
+            List<BaseUserEntity> users,
+            Map<String, RoleEntity> rolesById,
+            UriInfo uriInfo) {
+        var usersById = users.stream()
+                .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity(), (left, right) -> left));
 
-        return memberships
-            .stream()
-            .map(membership -> convert(membership, usersById.get(membership.getMemberId()), rolesById, uriInfo))
-            .toList();
+        return memberships.stream()
+                .map(membership -> convert(membership, usersById.get(membership.getMemberId()), rolesById, uriInfo))
+                .toList();
     }
 
-    private Member convert(Membership membership, BaseUserEntity user, Map<String, RoleEntity> rolesById, UriInfo uriInfo) {
+    private Member convert(
+            Membership membership, BaseUserEntity user, Map<String, RoleEntity> rolesById, UriInfo uriInfo) {
         var memberItem = new Member();
         memberItem.setId(membership.getMemberId());
         if (membership.getCreatedAt() != null) {
@@ -99,9 +98,8 @@ public class MemberMapper {
             memberUser.setDisplayName(user.displayName());
             memberUser.setEmail(user.getEmail());
         }
-        memberUser.setLinks(
-            userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), membership.getMemberId()), userUpdatedAt(user))
-        );
+        memberUser.setLinks(userMapper.computeUserLinks(
+                usersURL(uriInfo.getBaseUriBuilder(), membership.getMemberId()), userUpdatedAt(user)));
         memberItem.setUser(memberUser);
 
         var role = rolesById.get(membership.getRoleId());

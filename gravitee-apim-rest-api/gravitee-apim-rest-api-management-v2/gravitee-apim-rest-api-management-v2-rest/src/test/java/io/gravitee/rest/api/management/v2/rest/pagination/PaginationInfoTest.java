@@ -35,9 +35,13 @@ public class PaginationInfoTest {
 
         var pagination = computePaginationInfo(total, pageItemsCount, new PaginationParam(page, perPage));
 
-        Assertions.assertThat(pagination).isEqualTo(
-            new Pagination().page(page).perPage(perPage).totalCount(total).pageItemsCount(pageItemsCount).pageCount(4)
-        );
+        Assertions.assertThat(pagination)
+                .isEqualTo(new Pagination()
+                        .page(page)
+                        .perPage(perPage)
+                        .totalCount(total)
+                        .pageItemsCount(pageItemsCount)
+                        .pageCount(4));
     }
 
     @Test
@@ -49,22 +53,24 @@ public class PaginationInfoTest {
 
         var pagination = computePaginationInfo(total, pageItemsCount, new PaginationParam(page, perPage));
 
-        Assertions.assertThat(pagination).isEqualTo(
-            new Pagination().page(page).perPage(perPage).pageItemsCount(0).pageCount(0).totalCount(0L)
-        );
+        Assertions.assertThat(pagination)
+                .isEqualTo(new Pagination()
+                        .page(page)
+                        .perPage(perPage)
+                        .pageItemsCount(0)
+                        .pageCount(0)
+                        .totalCount(0L));
     }
 
     @ParameterizedTest
-    @CsvSource(
-        delimiterString = "|",
-        textBlock = """
+    @CsvSource(delimiterString = "|", textBlock = """
         # TOTAL | PER_PAGE | EXPECTED_PAGE_COUNT
         20      | 5        | 4
         25      | 9        | 3
         5       | 20       | 1
-        """
-    )
-    void should_count_pages_based_on_total_and_provided_pagination_param(Long total, Integer perPage, Integer expectedPageCount) {
+        """)
+    void should_count_pages_based_on_total_and_provided_pagination_param(
+            Long total, Integer perPage, Integer expectedPageCount) {
         var pagination = computePaginationInfo(total, 10, new PaginationParam(1, perPage));
 
         Assertions.assertThat(pagination).extracting(Pagination::getPageCount).isEqualTo(expectedPageCount);

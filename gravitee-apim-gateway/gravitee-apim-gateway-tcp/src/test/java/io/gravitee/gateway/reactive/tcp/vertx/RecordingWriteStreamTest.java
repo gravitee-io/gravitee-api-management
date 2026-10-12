@@ -51,11 +51,9 @@ class RecordingWriteStreamTest {
     @Test
     void should_write_buffer_with_handler() {
         // works because write is not asynchronous
-        cut
-            .write(Buffer.buffer("hey"))
-            .onComplete(b -> {
-                assertThat(b.succeeded()).isTrue();
-            });
+        cut.write(Buffer.buffer("hey")).onComplete(b -> {
+            assertThat(b.succeeded()).isTrue();
+        });
         assertThat(cut.getRecordedBuffers()).containsExactly("hey");
     }
 
@@ -77,14 +75,12 @@ class RecordingWriteStreamTest {
         IllegalStateException err = new IllegalStateException("failed");
         cut.errOnNextWrite(err);
         AtomicBoolean exec = new AtomicBoolean();
-        cut
-            .write(Buffer.buffer("hey"))
-            .onComplete(r -> {
-                assertThat(r.cause()).isEqualTo(err);
-                assertThat(r.failed()).isTrue();
-                assertThat(cut.getRecordedBuffers()).isEmpty();
-                exec.set(true);
-            });
+        cut.write(Buffer.buffer("hey")).onComplete(r -> {
+            assertThat(r.cause()).isEqualTo(err);
+            assertThat(r.failed()).isTrue();
+            assertThat(cut.getRecordedBuffers()).isEmpty();
+            exec.set(true);
+        });
         // works because write is synchronous
         assertThat(exec.get()).isTrue();
     }
@@ -94,13 +90,14 @@ class RecordingWriteStreamTest {
         var letters = List.of("A", "B", "C", "D", "E", "F", "G");
         var numbers = List.of("0", "1", "2", "3", "4", "5", "6");
 
-        Flowable<Buffer> lettersFlowable = Flowable.fromIterable(letters)
-            .map(Buffer::buffer)
-            .doOnNext(b -> cut.write(b));
-        Flowable<Buffer> numbersFlowable = Flowable.fromIterable(numbers)
-            .map(Buffer::buffer)
-            .doOnNext(b -> cut.write(b));
-        Flowable.mergeArray(lettersFlowable, numbersFlowable).test().assertValueCount(letters.size() + numbers.size()).assertComplete();
+        Flowable<Buffer> lettersFlowable =
+                Flowable.fromIterable(letters).map(Buffer::buffer).doOnNext(b -> cut.write(b));
+        Flowable<Buffer> numbersFlowable =
+                Flowable.fromIterable(numbers).map(Buffer::buffer).doOnNext(b -> cut.write(b));
+        Flowable.mergeArray(lettersFlowable, numbersFlowable)
+                .test()
+                .assertValueCount(letters.size() + numbers.size())
+                .assertComplete();
         var all = new ArrayList<>(letters);
         all.addAll(numbers);
         assertThat(cut.getRecordedBuffers()).containsAnyElementsOf(all);

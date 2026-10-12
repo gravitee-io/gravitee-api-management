@@ -109,10 +109,10 @@ class NumericRangeAccumulatorTest {
             acc.setLte(200);
 
             assertThatThrownBy(acc::build)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("gte")
-                .hasMessageContaining("lte")
-                .hasMessageContaining("HTTP_STATUS");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("gte")
+                    .hasMessageContaining("lte")
+                    .hasMessageContaining("HTTP_STATUS");
         }
 
         @Test

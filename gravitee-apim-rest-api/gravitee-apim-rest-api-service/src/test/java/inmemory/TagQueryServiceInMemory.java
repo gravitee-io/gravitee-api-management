@@ -31,11 +31,10 @@ public class TagQueryServiceInMemory implements TagQueryService, InMemoryAlterna
 
     @Override
     public List<Tag> findByName(String organizationId, String name) {
-        return storage
-            .stream()
-            .filter(group -> organizationId.equals(group.getReferenceId()))
-            .filter(group -> group.getName().equals(name))
-            .toList();
+        return storage.stream()
+                .filter(group -> organizationId.equals(group.getReferenceId()))
+                .filter(group -> group.getName().equals(name))
+                .toList();
     }
 
     @Override

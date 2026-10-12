@@ -19,7 +19,6 @@ import static io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceF
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.definition.model.v4.AbstractApi;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.reactivex.rxjava3.core.Completable;
@@ -36,9 +35,7 @@ class ManagementApiServiceFactoryTest {
 
     @Test
     void should_throw_when_creating_service_with_DeploymentContext() {
-        assertThatThrownBy(() ->
-            new TestingManagementApiServiceFactory().createService(
-                new DeploymentContext() {
+        assertThatThrownBy(() -> new TestingManagementApiServiceFactory().createService(new DeploymentContext() {
                     @Override
                     public <T> T getComponent(Class<T> componentClass) {
                         return null;
@@ -48,14 +45,13 @@ class ManagementApiServiceFactoryTest {
                     public TemplateEngine getTemplateEngine() {
                         return null;
                     }
-                }
-            )
-        )
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessage(DEPLOYMENT_CONTEXT_MESSAGE);
+                }))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessage(DEPLOYMENT_CONTEXT_MESSAGE);
     }
 
-    static class TestingManagementApiServiceFactory implements ManagementApiServiceFactory<TestingManagementApiService> {
+    static class TestingManagementApiServiceFactory
+            implements ManagementApiServiceFactory<TestingManagementApiService> {
 
         @Override
         public TestingManagementApiService createService(DefaultManagementDeploymentContext deploymentContext) {

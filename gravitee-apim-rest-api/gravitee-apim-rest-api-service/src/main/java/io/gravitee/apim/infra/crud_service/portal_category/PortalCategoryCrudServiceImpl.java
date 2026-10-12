@@ -56,7 +56,8 @@ public class PortalCategoryCrudServiceImpl implements PortalCategoryCrudService 
             var updated = portalCategoryRepository.update(repositoryModel);
             return PortalCategoryAdapter.INSTANCE.toModel(updated);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to update portal category: " + portalCategory.getId(), e);
+            throw new TechnicalDomainException(
+                    "An error occurred while trying to update portal category: " + portalCategory.getId(), e);
         }
     }
 

@@ -29,6 +29,7 @@ public class EndpointConnectorPluginLegacyWrapper implements EndpointConnectorPl
 
     @Override
     public String getDefaultSharedConfiguration(String connectorId) {
-        return endpointConnectorPluginService.validateSharedConfiguration(ConnectorPluginEntity.builder().id(connectorId).build(), "{}");
+        return endpointConnectorPluginService.validateSharedConfiguration(
+                ConnectorPluginEntity.builder().id(connectorId).build(), "{}");
     }
 }

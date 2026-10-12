@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -51,20 +50,22 @@ public class ApiEventResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get an API event with its id", description = "User must have the READ API_EVENT permission to use this service")
+    @Operation(
+            summary = "Get an API event with its id",
+            description = "User must have the READ API_EVENT permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "API event",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EventEntity.class))
-    )
+            responseCode = "200",
+            description = "API event",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = EventEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ)})
     public Response getEvent() {
         EventEntity eventById = eventService.findById(GraviteeContext.getExecutionContext(), eventId);
-        if (
-            eventById.getEnvironments().contains(GraviteeContext.getCurrentEnvironment()) &&
-            api.equalsIgnoreCase(eventById.getProperties().get("api_id"))
-        ) {
+        if (eventById.getEnvironments().contains(GraviteeContext.getCurrentEnvironment())
+                && api.equalsIgnoreCase(eventById.getProperties().get("api_id"))) {
             return Response.ok(eventById).build();
         }
         throw new EventNotFoundException(eventId);

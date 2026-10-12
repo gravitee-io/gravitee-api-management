@@ -46,7 +46,9 @@ import org.apache.commons.lang3.SystemUtils;
 public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
 
     static {
-        System.setProperty(String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()), Boolean.TRUE.toString());
+        System.setProperty(
+                String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()),
+                Boolean.TRUE.toString());
     }
 
     public OAIDescriptor parse(String content, ParseOptions options) {
@@ -62,7 +64,9 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
                 tmp = createTempFile(content);
                 path = tmp.toAbsolutePath().toString();
             } catch (RuntimeException e) {
-                log.warn("Unable to create temporary file, raw content will be passed to OAI parser: {}", e.getMessage());
+                log.warn(
+                        "Unable to create temporary file, raw content will be passed to OAI parser: {}",
+                        e.getMessage());
             }
         }
 
@@ -79,11 +83,9 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
          * See https://github.com/swagger-api/swagger-parser/issues/1451
          */
         if (parseResult.getMessages() != null) {
-            final List<String> filteredMessages = parseResult
-                .getMessages()
-                .stream()
-                .filter(message -> message != null && !message.matches("^attribute info.contact.*"))
-                .collect(Collectors.toList());
+            final List<String> filteredMessages = parseResult.getMessages().stream()
+                    .filter(message -> message != null && !message.matches("^attribute info.contact.*"))
+                    .collect(Collectors.toList());
             parseResult.setMessages(filteredMessages);
         }
 
@@ -104,7 +106,8 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
     private Path createTempFile(String content) {
         Path temp = createSecuredTempFile();
 
-        try (FileWriter out = new FileWriter(temp.toFile()); BufferedWriter bw = new BufferedWriter(out)) {
+        try (FileWriter out = new FileWriter(temp.toFile());
+                BufferedWriter bw = new BufferedWriter(out)) {
             bw.write(content);
         } catch (IOException ioe) {
             throw new TechnicalManagementException("An error occurs while trying to create temp file", ioe);
@@ -123,7 +126,8 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
     }
 
     private Path createPosixSecuredFile(String fileName) {
-        FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
+        FileAttribute<Set<PosixFilePermission>> attr =
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
         try {
             return Files.createTempFile(fileName, ".tmp", attr);
         } catch (IOException e) {

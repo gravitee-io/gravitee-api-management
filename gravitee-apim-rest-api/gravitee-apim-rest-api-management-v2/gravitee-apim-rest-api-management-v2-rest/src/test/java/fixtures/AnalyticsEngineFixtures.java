@@ -33,35 +33,44 @@ public class AnalyticsEngineFixtures {
 
     public static MeasuresRequest aCountMeasureRequest(Filter... filter) {
         var filters = Arrays.asList(filter);
-        return new MeasuresRequest().timeRange(timeRange()).filters(filters).metrics(List.of(messageCount(), httpRequestCount()));
+        return new MeasuresRequest()
+                .timeRange(timeRange())
+                .filters(filters)
+                .metrics(List.of(messageCount(), httpRequestCount()));
     }
 
     public static FacetsRequest aRequestCountFacetRequest(Filter... filters) {
         var metric = new FacetMetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT));
 
         return new FacetsRequest()
-            .timeRange(timeRange())
-            .filters(Arrays.asList(filters))
-            .by(List.of(FacetName.HTTP_STATUS))
-            .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
-            .metrics(List.of(metric));
+                .timeRange(timeRange())
+                .filters(Arrays.asList(filters))
+                .by(List.of(FacetName.HTTP_STATUS))
+                .ranges(List.of(
+                        new NumberRange().from(100).to(199),
+                        new NumberRange().from(200).to(299)))
+                .metrics(List.of(metric));
     }
 
     public static TimeSeriesRequest aRequestCountTimeSeries(Filter... filters) {
         var metric = new FacetMetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT));
 
         return new TimeSeriesRequest()
-            .timeRange(timeRange())
-            .interval(new CustomInterval(3600000L))
-            .filters(Arrays.asList(filters))
-            .ranges(List.of(new NumberRange().from(100).to(199), new NumberRange().from(200).to(299)))
-            .metrics(List.of(metric));
+                .timeRange(timeRange())
+                .interval(new CustomInterval(3600000L))
+                .filters(Arrays.asList(filters))
+                .ranges(List.of(
+                        new NumberRange().from(100).to(199),
+                        new NumberRange().from(200).to(299)))
+                .metrics(List.of(metric));
     }
 
     public static MeasuresRequest aResponseTimeMeasureRequest() {
         return new MeasuresRequest()
-            .timeRange(timeRange())
-            .metrics(List.of(new MetricRequest().name(MetricName.HTTP_GATEWAY_RESPONSE_TIME).measures(List.of(MeasureName.AVG))));
+                .timeRange(timeRange())
+                .metrics(List.of(new MetricRequest()
+                        .name(MetricName.HTTP_GATEWAY_RESPONSE_TIME)
+                        .measures(List.of(MeasureName.AVG))));
     }
 
     public static MetricRequest httpRequestCount() {

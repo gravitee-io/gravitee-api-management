@@ -47,12 +47,10 @@ public class DefaultOrganizationManager implements OrganizationManager {
 
     private boolean isRegistrable(final ReactableOrganization reactableOrganization) {
         ReactableOrganization registeredReactableOrganization = organizations.get(reactableOrganization.getId());
-        return (
-            registeredReactableOrganization == null ||
-            !registeredReactableOrganization.equals(reactableOrganization) ||
-            registeredReactableOrganization.getDeployedAt() == null ||
-            registeredReactableOrganization.getDeployedAt().before(reactableOrganization.getDeployedAt())
-        );
+        return (registeredReactableOrganization == null
+                || !registeredReactableOrganization.equals(reactableOrganization)
+                || registeredReactableOrganization.getDeployedAt() == null
+                || registeredReactableOrganization.getDeployedAt().before(reactableOrganization.getDeployedAt()));
     }
 
     @Override

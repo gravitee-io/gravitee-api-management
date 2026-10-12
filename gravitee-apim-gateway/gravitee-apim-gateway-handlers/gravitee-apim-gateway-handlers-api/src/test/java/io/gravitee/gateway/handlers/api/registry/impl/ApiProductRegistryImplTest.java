@@ -298,7 +298,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi(null, "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi(null, "env-1");
 
             assertThat(entries).isEmpty();
         }
@@ -309,7 +310,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", null);
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", null);
 
             assertThat(entries).isEmpty();
         }
@@ -321,7 +323,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).hasSize(1);
             assertThat(entries.get(0).apiProductId()).isEqualTo("product-1");
@@ -335,7 +338,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-2");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-2");
 
             assertThat(entries).isEmpty();
         }
@@ -347,7 +351,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).isEmpty();
         }
@@ -359,7 +364,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).isEmpty();
         }
@@ -368,10 +374,12 @@ class ApiProductRegistryImplTest {
         void should_return_multiple_entries_when_multiple_plans() {
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setApiIds(Set.of("api-1"));
-            product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED), createPlan("plan-2", PlanStatus.PUBLISHED)));
+            product.setPlans(
+                    List.of(createPlan("plan-1", PlanStatus.PUBLISHED), createPlan("plan-2", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).hasSize(2);
         }
@@ -383,7 +391,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(null);
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).isEmpty();
         }
@@ -395,7 +404,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-deprecated", PlanStatus.DEPRECATED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).hasSize(1);
             assertThat(entries.get(0).plan().getId()).isEqualTo("plan-deprecated");
@@ -405,16 +415,14 @@ class ApiProductRegistryImplTest {
         void should_exclude_closed_plans_from_entries() {
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setApiIds(Set.of("api-1"));
-            product.setPlans(
-                List.of(
+            product.setPlans(List.of(
                     createPlan("plan-published", PlanStatus.PUBLISHED),
                     createPlan("plan-closed", PlanStatus.CLOSED),
-                    createPlan("plan-staging", PlanStatus.STAGING)
-                )
-            );
+                    createPlan("plan-staging", PlanStatus.STAGING)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).hasSize(1);
             assertThat(entries.get(0).plan().getId()).isEqualTo("plan-published");
@@ -434,35 +442,47 @@ class ApiProductRegistryImplTest {
 
         @Test
         void should_exclude_product_when_product_tags_do_not_match_gateway() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            lenient()
+                    .when(gatewayConfiguration.hasMatchingTags(Set.of("external")))
+                    .thenReturn(false);
+            lenient()
+                    .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                    .thenReturn(true);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("external"));
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
             assertThat(entries).isEmpty();
         }
 
         @Test
         void should_include_product_when_product_tags_match_gateway() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            lenient()
+                    .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                    .thenReturn(true);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("internal"));
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
             assertThat(entries).hasSize(1);
         }
 
         @Test
         void should_exclude_plan_when_plan_tags_do_not_match_gateway() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
+            lenient()
+                    .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                    .thenReturn(true);
+            lenient()
+                    .when(gatewayConfiguration.hasMatchingTags(Set.of("external")))
+                    .thenReturn(false);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("internal"));
@@ -475,14 +495,17 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(planMatching, planNotMatching));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
             assertThat(entries).hasSize(1);
             assertThat(entries.get(0).plan().getId()).isEqualTo("plan-matching");
         }
 
         @Test
         void should_include_plan_with_no_tags_when_product_matches() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            lenient()
+                    .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                    .thenReturn(true);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("internal"));
@@ -492,7 +515,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(planNoTags));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
             assertThat(entries).hasSize(1);
             assertThat(entries.get(0).plan().getId()).isEqualTo("plan-no-tags");
         }
@@ -510,11 +534,12 @@ class ApiProductRegistryImplTest {
             registry.register(product1);
             registry.register(product2);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-shared", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-shared", "env-1");
             assertThat(entries).hasSize(2);
             assertThat(entries)
-                .extracting(ApiProductRegistry.ApiProductPlanEntry::apiProductId)
-                .containsExactlyInAnyOrder("product-1", "product-2");
+                    .extracting(ApiProductRegistry.ApiProductPlanEntry::apiProductId)
+                    .containsExactlyInAnyOrder("product-1", "product-2");
         }
 
         private Plan createPlan(String id, PlanStatus status) {
@@ -543,35 +568,30 @@ class ApiProductRegistryImplTest {
             // while the writer rebuilds, which is the window this guards.
             ReactableApiProduct wide = createApiProduct("product-wide", "env-1");
             wide.setApiIds(Set.of("api-1"));
-            wide.setPlans(
-                IntStream.range(0, 200)
+            wide.setPlans(IntStream.range(0, 200)
                     .mapToObj(i -> createPlan("wide-plan-" + i, PlanStatus.PUBLISHED))
-                    .toList()
-            );
+                    .toList());
             registry.register(wide);
 
             AtomicReference<Throwable> readerFailure = new AtomicReference<>();
             AtomicBoolean writingDone = new AtomicBoolean(false);
             int readerCount = 4;
             List<Thread> readers = IntStream.range(0, readerCount)
-                .mapToObj(r ->
-                    new Thread(() -> {
+                    .mapToObj(r -> new Thread(() -> {
                         try {
                             while (!writingDone.get()) {
-                                for (ApiProductRegistry.ApiProductPlanEntry entry : registry.getApiProductPlanEntriesForApi(
-                                    "api-1",
-                                    "env-1"
-                                )) {
+                                for (ApiProductRegistry.ApiProductPlanEntry entry :
+                                        registry.getApiProductPlanEntriesForApi("api-1", "env-1")) {
                                     assertThat(entry.apiProductId()).isNotNull();
                                 }
-                                assertThat(registry.getApiProductIdsForApi("api-1")).isNotNull();
+                                assertThat(registry.getApiProductIdsForApi("api-1"))
+                                        .isNotNull();
                             }
                         } catch (Throwable t) {
                             readerFailure.compareAndSet(null, t);
                         }
-                    })
-                )
-                .toList();
+                    }))
+                    .toList();
 
             Thread writer = new Thread(() -> {
                 for (int i = 1; i <= 2_000; i++) {
@@ -601,7 +621,8 @@ class ApiProductRegistryImplTest {
             product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).hasSize(1);
             assertThatThrownBy(entries::clear).isInstanceOf(UnsupportedOperationException.class);
@@ -639,7 +660,8 @@ class ApiProductRegistryImplTest {
 
             Thread reader = new Thread(() -> {
                 for (int i = 0; i < 1000; i++) {
-                    List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
+                    List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                            registry.getApiProductPlanEntriesForApi("api-1", "env-1");
                     assertThat(entries).isNotNull();
                 }
             });
@@ -671,15 +693,15 @@ class ApiProductRegistryImplTest {
 
     private ReactableApiProduct createApiProduct(String id, String environmentId) {
         return ReactableApiProduct.builder()
-            .id(id)
-            .name("Product " + id.substring(id.lastIndexOf('-') + 1))
-            .version("1.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(environmentId)
-            .environmentHrid("env-hrid")
-            .organizationId("org-1")
-            .organizationHrid("org-hrid")
-            .deployedAt(new Date())
-            .build();
+                .id(id)
+                .name("Product " + id.substring(id.lastIndexOf('-') + 1))
+                .version("1.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(environmentId)
+                .environmentHrid("env-hrid")
+                .organizationId("org-1")
+                .organizationHrid("org-hrid")
+                .deployedAt(new Date())
+                .build();
     }
 }

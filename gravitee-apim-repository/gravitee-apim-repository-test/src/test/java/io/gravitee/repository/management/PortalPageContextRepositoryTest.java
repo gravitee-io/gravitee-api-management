@@ -66,10 +66,8 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         PortalPageContextType contextType = PortalPageContextType.HOMEPAGE;
 
         // When
-        List<PortalPageContext> foundContexts = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(
-            contextType,
-            "test-environment"
-        );
+        List<PortalPageContext> foundContexts =
+                portalPageContextRepository.findAllByContextTypeAndEnvironmentId(contextType, "test-environment");
 
         // Then
         assertThat(foundContexts).isNotNull();
@@ -94,23 +92,28 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
     }
 
     @Test
-    public void should_not_be_able_to_create_portal_page_with_same_page_id_and_context_and_environment_id() throws Exception {
+    public void should_not_be_able_to_create_portal_page_with_same_page_id_and_context_and_environment_id()
+            throws Exception {
         // Given
-        PortalPageContext existing = portalPageContextRepository.findById("test-portal-page-context-id").orElse(null);
+        PortalPageContext existing = portalPageContextRepository
+                .findById("test-portal-page-context-id")
+                .orElse(null);
         assertThat(existing).isNotNull();
 
         PortalPageContext duplicate = PortalPageContext.builder()
-            .id("new-id-for-duplicate")
-            .pageId(existing.getPageId())
-            .contextType(existing.getContextType())
-            .environmentId(existing.getEnvironmentId())
-            .published(true)
-            .build();
+                .id("new-id-for-duplicate")
+                .pageId(existing.getPageId())
+                .contextType(existing.getContextType())
+                .environmentId(existing.getEnvironmentId())
+                .published(true)
+                .build();
 
         Throwable thrown = catchThrowable(() -> portalPageContextRepository.create(duplicate));
         assertThat(thrown).isNotNull();
         String errorMessage = thrown.getMessage().toLowerCase();
-        assertThat(errorMessage).containsAnyOf("constraint", "duplicate", "unique", "duplicate key", "already exists", "failed to create");
+        assertThat(errorMessage)
+                .containsAnyOf(
+                        "constraint", "duplicate", "unique", "duplicate key", "already exists", "failed to create");
 
         Optional<PortalPageContext> createdDuplicate = portalPageContextRepository.findById("new-id-for-duplicate");
         assertThat(createdDuplicate).isEmpty();
@@ -130,16 +133,18 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_update_by_page_id() throws Exception {
         // Given
-        PortalPageContext existing = portalPageContextRepository.findById("update-portal-page-context-id").orElse(null);
+        PortalPageContext existing = portalPageContextRepository
+                .findById("update-portal-page-context-id")
+                .orElse(null);
         assertThat(existing).isNotNull();
         assertThat(existing.isPublished()).isFalse();
 
         PortalPageContext toUpdate = PortalPageContext.builder()
-            .pageId(existing.getPageId())
-            .contextType(existing.getContextType())
-            .environmentId(existing.getEnvironmentId())
-            .published(true)
-            .build();
+                .pageId(existing.getPageId())
+                .contextType(existing.getContextType())
+                .environmentId(existing.getEnvironmentId())
+                .published(true)
+                .build();
 
         // When
         portalPageContextRepository.updateByPageId(toUpdate);
@@ -158,8 +163,8 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         Set<PortalPageContext> allContexts = portalPageContextRepository.findAll();
         assertThat(allContexts).hasSize(3);
         assertThat(allContexts.stream())
-            .filteredOn(context -> context.getEnvironmentId().equals(environmentToDelete))
-            .hasSize(2);
+                .filteredOn(context -> context.getEnvironmentId().equals(environmentToDelete))
+                .hasSize(2);
 
         // When
         portalPageContextRepository.deleteByEnvironmentId(environmentToDelete);
@@ -167,6 +172,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         // Then
         Set<PortalPageContext> updatedContexts = portalPageContextRepository.findAll();
         assertThat(updatedContexts).hasSize(1);
-        assertThat(updatedContexts).noneMatch(context -> context.getEnvironmentId().equals(environmentToDelete));
+        assertThat(updatedContexts)
+                .noneMatch(context -> context.getEnvironmentId().equals(environmentToDelete));
     }
 }

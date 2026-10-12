@@ -42,10 +42,7 @@ public class SubscriptionFailureCommandListenerImpl implements SubscriptionComma
     private final ObjectMapper objectMapper;
 
     public SubscriptionFailureCommandListenerImpl(
-        EventManager eventManager,
-        SubscriptionService subscriptionService,
-        ObjectMapper objectMapper
-    ) {
+            EventManager eventManager, SubscriptionService subscriptionService, ObjectMapper objectMapper) {
         this.subscriptionService = subscriptionService;
         this.objectMapper = objectMapper;
         eventManager.subscribeForEvents(this, CommandEvent.class);
@@ -53,15 +50,13 @@ public class SubscriptionFailureCommandListenerImpl implements SubscriptionComma
 
     @Override
     public void onEvent(Event<CommandEvent, CommandEntity> event) {
-        if (
-            CommandEvent.TO_PROCESS.equals(event.type()) &&
-            event.content() != null &&
-            event.content().getTags().contains(CommandTags.SUBSCRIPTION_FAILURE)
-        ) {
+        if (CommandEvent.TO_PROCESS.equals(event.type())
+                && event.content() != null
+                && event.content().getTags().contains(CommandTags.SUBSCRIPTION_FAILURE)) {
             log.debug("Command event: {}", event.content().getContent());
-            getSubscriptionCommand(event).ifPresent(command ->
-                subscriptionService.fail(command.getSubscriptionId(), command.getFailureCause())
-            );
+            getSubscriptionCommand(event)
+                    .ifPresent(command ->
+                            subscriptionService.fail(command.getSubscriptionId(), command.getFailureCause()));
         }
     }
 

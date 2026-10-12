@@ -52,9 +52,8 @@ public class NativeApiAnalyticsQueryService implements AnalyticsEngineQueryServi
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchNativeApiFacets(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.NATIVE, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.NATIVE, query));
     }
 
     @Override
@@ -62,8 +61,7 @@ public class NativeApiAnalyticsQueryService implements AnalyticsEngineQueryServi
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchNativeApiTimeSeries(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.NATIVE, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.NATIVE, query));
     }
 }

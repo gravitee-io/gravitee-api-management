@@ -28,7 +28,8 @@ import java.util.stream.Stream;
 public class ImportDefinitionMetadataDomainServiceTestInitializer {
 
     // In Memory
-    public final ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory();
+    public final ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory =
+            new ApiMetadataQueryServiceInMemory();
     public final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     public final MetadataCrudServiceInMemory metadataCrudServiceInMemory = new MetadataCrudServiceInMemory();
     public final UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
@@ -37,13 +38,11 @@ public class ImportDefinitionMetadataDomainServiceTestInitializer {
     private final ApiMetadataDomainService apiMetadataDomainService;
 
     ImportDefinitionMetadataDomainServiceTestInitializer() {
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
+        var auditDomainService = new AuditDomainService(
+                auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
 
         this.apiMetadataDomainService = new ApiMetadataDomainService(
-            metadataCrudServiceInMemory,
-            apiMetadataQueryServiceInMemory,
-            auditDomainService
-        );
+                metadataCrudServiceInMemory, apiMetadataQueryServiceInMemory, auditDomainService);
     }
 
     ImportDefinitionMetadataDomainService initialize() {
@@ -51,8 +50,11 @@ public class ImportDefinitionMetadataDomainServiceTestInitializer {
     }
 
     void tearDown() {
-        Stream.of(apiMetadataQueryServiceInMemory, auditCrudServiceInMemory, metadataCrudServiceInMemory, userCrudServiceInMemory).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+                        apiMetadataQueryServiceInMemory,
+                        auditCrudServiceInMemory,
+                        metadataCrudServiceInMemory,
+                        userCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
     }
 }

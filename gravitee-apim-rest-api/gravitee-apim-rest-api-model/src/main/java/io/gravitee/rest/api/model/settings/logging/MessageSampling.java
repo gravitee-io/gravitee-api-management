@@ -37,7 +37,8 @@ public class MessageSampling {
     @Valid
     @NotNull
     @Builder.Default
-    private MessageSampling.Probabilistic probabilistic = Probabilistic.builder().build();
+    private MessageSampling.Probabilistic probabilistic =
+            Probabilistic.builder().build();
 
     @Valid
     @NotNull
@@ -52,7 +53,8 @@ public class MessageSampling {
     @Valid
     @NotNull
     @Builder.Default
-    private MessageSampling.WindowedCount windowedCount = WindowedCount.builder().build();
+    private MessageSampling.WindowedCount windowedCount =
+            WindowedCount.builder().build();
 
     @Data
     @Builder

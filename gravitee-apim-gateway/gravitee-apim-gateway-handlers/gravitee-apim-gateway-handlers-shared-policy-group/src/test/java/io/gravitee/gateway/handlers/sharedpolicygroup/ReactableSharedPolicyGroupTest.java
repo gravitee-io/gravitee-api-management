@@ -51,7 +51,8 @@ class ReactableSharedPolicyGroupTest {
     @Test
     void should_return_empty_policy_dependencies_definition_policies_null() {
         final ReactableSharedPolicyGroup sharedPolicyGroup = new ReactableSharedPolicyGroup();
-        sharedPolicyGroup.setDefinition(SharedPolicyGroup.builder().policies(null).build());
+        sharedPolicyGroup.setDefinition(
+                SharedPolicyGroup.builder().policies(null).build());
         final Set<Policy> dependencies = sharedPolicyGroup.dependencies(Policy.class);
         assertThat(dependencies).isEmpty();
     }
@@ -59,7 +60,8 @@ class ReactableSharedPolicyGroupTest {
     @Test
     void should_return_empty_policy_dependencies_definition_policies_empty() {
         final ReactableSharedPolicyGroup sharedPolicyGroup = new ReactableSharedPolicyGroup();
-        sharedPolicyGroup.setDefinition(SharedPolicyGroup.builder().policies(List.of()).build());
+        sharedPolicyGroup.setDefinition(
+                SharedPolicyGroup.builder().policies(List.of()).build());
         final Set<Policy> dependencies = sharedPolicyGroup.dependencies(Policy.class);
         assertThat(dependencies).isEmpty();
     }
@@ -67,22 +69,20 @@ class ReactableSharedPolicyGroupTest {
     @Test
     void should_return_policy_dependencies() {
         final ReactableSharedPolicyGroup sharedPolicyGroup = new ReactableSharedPolicyGroup();
-        sharedPolicyGroup.setDefinition(
-            SharedPolicyGroup.builder()
-                .policies(
-                    List.of(
+        sharedPolicyGroup.setDefinition(SharedPolicyGroup.builder()
+                .policies(List.of(
                         Step.builder().policy("policy-enabled").enabled(true).build(),
                         Step.builder().policy("policy-disabled").enabled(false).build(),
-                        Step.builder().policy("another-policy-enabled").enabled(true).build()
-                    )
-                )
-                .build()
-        );
+                        Step.builder()
+                                .policy("another-policy-enabled")
+                                .enabled(true)
+                                .build()))
+                .build());
 
         final Set<Policy> dependencies = sharedPolicyGroup.dependencies(Policy.class);
         assertThat(dependencies)
-            .hasSize(2)
-            .extracting(Policy::getName)
-            .containsExactlyInAnyOrder("policy-enabled", "another-policy-enabled");
+                .hasSize(2)
+                .extracting(Policy::getName)
+                .containsExactlyInAnyOrder("policy-enabled", "another-policy-enabled");
     }
 }

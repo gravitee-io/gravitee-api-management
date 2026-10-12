@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RatingService;
@@ -90,10 +89,8 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
         subscriptionQuery.setApis(apis);
-        Set<String> apisOrderByNumberOfSubscriptions = subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(
-            subscriptionQuery,
-            Order.DESC
-        );
+        Set<String> apisOrderByNumberOfSubscriptions =
+                subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, Order.DESC);
 
         if (excluded) {
             // remove apis with subscriptions to apis already sorted by name
@@ -117,7 +114,8 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
         subscriptionQuery.setApplications(ids);
-        Set<String> ranking = subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, order);
+        Set<String> ranking =
+                subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(subscriptionQuery, order);
         // add apis already sorted by name to apis sorted by subscriptions
         ranking.addAll(ids);
         return ranking;
@@ -125,11 +123,10 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Override
     public Collection<String> filterApis(
-        ExecutionContext executionContext,
-        final Set<String> apis,
-        final FilterType filterType,
-        final FilterType excludedFilterType
-    ) {
+            ExecutionContext executionContext,
+            final Set<String> apis,
+            final FilterType filterType,
+            final FilterType excludedFilterType) {
         if (apis == null || apis.isEmpty()) {
             return apis;
         }
@@ -167,22 +164,21 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Override
     public Collection<String> filterApis(
-        ExecutionContext executionContext,
-        String userId,
-        FilterType filterType,
-        FilterType excludedFilterType,
-        ApiQuery apiQuery
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            FilterType filterType,
+            FilterType excludedFilterType,
+            ApiQuery apiQuery) {
         Set<String> apis = this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, apiQuery);
         return this.filterApis(executionContext, apis, filterType, excludedFilterType);
     }
 
     @Override
-    public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query) throws TechnicalException {
-        List<String> apiIds = apiAuthorizationService
-            .findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery())
-            .stream()
-            .toList();
+    public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query)
+            throws TechnicalException {
+        List<String> apiIds =
+                apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery()).stream()
+                        .toList();
 
         if (apiIds.isEmpty()) {
             return Collections.emptyList();
@@ -191,28 +187,24 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apiIds);
         return apiSearchService.searchIds(
-            executionContext,
-            query,
-            filters,
-            null,
-            EnumSet.noneOf(DefinitionVersion.class),
-            false, // typoTolerance: this legacy search path does not apply fuzzy matching
-            SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS
-        );
+                executionContext,
+                query,
+                filters,
+                null,
+                EnumSet.noneOf(DefinitionVersion.class),
+                false, // typoTolerance: this legacy search path does not apply fuzzy matching
+                SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS);
     }
 
     @Override
-    public Collection<String> searchApisWithCategory(ExecutionContext executionContext, String userId, String query, String category)
-        throws TechnicalException {
+    public Collection<String> searchApisWithCategory(
+            ExecutionContext executionContext, String userId, String query, String category) throws TechnicalException {
         var categoryApisOutput = getCategoryApisUseCase.execute(
-            new GetCategoryApisUseCase.Input(executionContext, category, userId, false, true)
-        );
+                new GetCategoryApisUseCase.Input(executionContext, category, userId, false, true));
 
-        List<String> apiIds = categoryApisOutput
-            .results()
-            .stream()
-            .map(result -> result.api().getId())
-            .collect(Collectors.toList());
+        List<String> apiIds = categoryApisOutput.results().stream()
+                .map(result -> result.api().getId())
+                .collect(Collectors.toList());
 
         if (apiIds.isEmpty()) {
             return Collections.emptyList();
@@ -221,30 +213,22 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apiIds);
 
-        return apiSearchService
-            .searchIds(executionContext, query, filters, null)
-            .stream()
-            .sorted(Comparator.comparingInt(apiIds::indexOf))
-            .collect(Collectors.toList());
+        return apiSearchService.searchIds(executionContext, query, filters, null).stream()
+                .sorted(Comparator.comparingInt(apiIds::indexOf))
+                .collect(Collectors.toList());
     }
 
     @Override
     public Set<CategoryEntity> listCategories(
-        ExecutionContext executionContext,
-        String userId,
-        FilterType filterType,
-        FilterType excludedFilterType
-    ) {
+            ExecutionContext executionContext, String userId, FilterType filterType, FilterType excludedFilterType) {
         Set<String> apisForUser = this.apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId);
         Collection<String> apis = this.filterApis(executionContext, apisForUser, filterType, excludedFilterType);
         return this.apiCategoryService.listCategories(apis, executionContext.getEnvironmentId());
     }
 
     private Collection<String> getTopApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {
-        Map<String, Integer> topApiIdAndOrderMap = topApiService
-            .findAll(executionContext)
-            .stream()
-            .collect(Collectors.toMap(TopApiEntity::getApi, TopApiEntity::getOrder));
+        Map<String, Integer> topApiIdAndOrderMap = topApiService.findAll(executionContext).stream()
+                .collect(Collectors.toMap(TopApiEntity::getApi, TopApiEntity::getOrder));
 
         if (topApiIdAndOrderMap.isEmpty()) {
             if (excluded) {
@@ -253,16 +237,14 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
                 return Collections.emptyList();
             }
         } else if (excluded) {
-            return apis
-                .stream()
-                .filter(api -> (!topApiIdAndOrderMap.containsKey(api)))
-                .collect(Collectors.toList());
+            return apis.stream()
+                    .filter(api -> (!topApiIdAndOrderMap.containsKey(api)))
+                    .collect(Collectors.toList());
         } else {
-            return apis
-                .stream()
-                .filter(topApiIdAndOrderMap::containsKey)
-                .sorted(Comparator.comparing(topApiIdAndOrderMap::get))
-                .collect(Collectors.toList());
+            return apis.stream()
+                    .filter(topApiIdAndOrderMap::containsKey)
+                    .sorted(Comparator.comparing(topApiIdAndOrderMap::get))
+                    .collect(Collectors.toList());
         }
     }
 
@@ -280,24 +262,24 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         }
     }
 
-    private Collection<String> getCurrentUserSubscribedApis(ExecutionContext executionContext, Set<String> apis, boolean excluded) {
-        //get Current user applications
-        Set<String> currentUserApplicationsId = applicationService.findIdsByUser(executionContext, getAuthenticatedUser().getUsername());
+    private Collection<String> getCurrentUserSubscribedApis(
+            ExecutionContext executionContext, Set<String> apis, boolean excluded) {
+        // get Current user applications
+        Set<String> currentUserApplicationsId = applicationService.findIdsByUser(
+                executionContext, getAuthenticatedUser().getUsername());
 
-        //find all subscribed apis for these applications
+        // find all subscribed apis for these applications
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApplications(currentUserApplicationsId);
-        List<String> subscribedApis = subscriptionService
-            .search(executionContext, subscriptionQuery)
-            .stream()
-            .map(SubscriptionEntity::getApi)
-            .distinct()
-            .collect(Collectors.toList());
+        List<String> subscribedApis = subscriptionService.search(executionContext, subscriptionQuery).stream()
+                .map(SubscriptionEntity::getApi)
+                .distinct()
+                .collect(Collectors.toList());
 
-        //filter apis list with subscribed apis list
-        return apis
-            .stream()
-            .filter(api -> (!excluded && subscribedApis.contains(api)) || (excluded && !subscribedApis.contains(api)))
-            .collect(Collectors.toList());
+        // filter apis list with subscribed apis list
+        return apis.stream()
+                .filter(api ->
+                        (!excluded && subscribedApis.contains(api)) || (excluded && !subscribedApis.contains(api)))
+                .collect(Collectors.toList());
     }
 }

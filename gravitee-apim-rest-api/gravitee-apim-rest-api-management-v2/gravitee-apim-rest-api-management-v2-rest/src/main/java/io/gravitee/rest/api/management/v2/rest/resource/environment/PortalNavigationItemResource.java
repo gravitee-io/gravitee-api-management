@@ -60,19 +60,17 @@ public class PortalNavigationItemResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public Response updatePortalNavigationItem(
-        @PathParam("navId") String navigationItemId,
-        @QueryParam("propagatePublishToChildren") @DefaultValue("false") boolean propagatePublishToChildren,
-        @Valid @NotNull final BaseUpdatePortalNavigationItem updatePortalNavigationItem
-    ) {
+            @PathParam("navId") String navigationItemId,
+            @QueryParam("propagatePublishToChildren") @DefaultValue("false") boolean propagatePublishToChildren,
+            @Valid @NotNull final BaseUpdatePortalNavigationItem updatePortalNavigationItem) {
         var input = new UpdatePortalNavigationItemUseCase.Input(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            navigationItemId,
-            mapper.map(updatePortalNavigationItem),
-            propagatePublishToChildren
-        );
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                navigationItemId,
+                mapper.map(updatePortalNavigationItem),
+                propagatePublishToChildren);
 
         var output = updatePortalNavigationItemUseCase.execute(input);
 
@@ -82,9 +80,10 @@ public class PortalNavigationItemResource extends AbstractResource {
     @Path("_fetch")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public Response fetchPortalNavigationItem(@PathParam("navId") String navigationItemId) {
-        var input = new FetchPortalNavigationItemUseCase.Input(GraviteeContext.getCurrentEnvironment(), navigationItemId);
+        var input =
+                new FetchPortalNavigationItemUseCase.Input(GraviteeContext.getCurrentEnvironment(), navigationItemId);
 
         var output = fetchPortalNavigationItemUseCase.execute(input);
 
@@ -92,15 +91,12 @@ public class PortalNavigationItemResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE)})
     public Response deletePortalNavigationItem(@PathParam("navId") String navigationItemId) {
         var navId = PortalNavigationItemId.of(navigationItemId);
 
         var input = new DeletePortalNavigationItemUseCase.Input(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            navId
-        );
+                GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment(), navId);
 
         deletePortalNavigationItemUseCase.execute(input);
 

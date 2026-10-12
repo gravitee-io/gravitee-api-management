@@ -33,73 +33,72 @@ import lombok.Builder;
  */
 @Builder
 public record LogDetail(
-    // Identifiers
-    String requestId,
-    String apiId,
-    /** Name of the log's API, read from the same API definition as {@link #apiType}. */
-    String apiName,
-    /**
-     * Api type of the log's API, read by id from the API definition and scoped to the environment,
-     * rather than from the document — the connection indices do not store it.
-     *
-     * <p>Present so a client can pick the right rendering for the row it opened: a Kafka connection
-     * and a Message API connection ask different questions of the same endpoint, and without this
-     * the client would have to carry the type from the list row it came from, which a direct link
-     * to the detail does not have.
-     */
-    String apiType,
-    String transactionId,
-    String clientIdentifier,
-    Instant timestamp,
-    Boolean requestEnded,
-    // Enriched metadata (v4-metrics)
-    String method,
-    String uri,
-    Integer status,
-    String endpoint,
-    /** Entrypoint plugin id that served the request, as on the log search rows. */
-    String entrypointId,
-    String host,
-    /** MCP method of an MCP request, hoisted from additional-metrics as on the log search rows. */
-    String mcpMethod,
-    String apiProductId,
-    /** Name of the API Product, or "Standalone API" when the request did not go through one, as on the log search rows. */
-    String apiProductName,
-    String subscriptionId,
-    String planId,
-    String planName,
-    String applicationId,
-    String applicationName,
-    String gateway,
-    String gatewayHostname,
-    String gatewayIp,
-    String remoteAddress,
-    Long requestContentLength,
-    Long responseContentLength,
-    Long gatewayLatency,
-    Long gatewayResponseTime,
-    Long endpointResponseTime,
-    String message,
-    String errorKey,
-    String errorComponentName,
-    String errorComponentType,
-    List<LogEntryWarning> warnings,
-    Map<String, Object> additionalMetrics,
-    // Native Kafka fields, hoisted from additional-metrics; failureOrigin is derived, not stored.
-    String connectionStatus,
-    FailureOrigin failureOrigin,
-    String clientId,
-    /** Client library advertised at the handshake; the literal "unknown" when the client advertises none. */
-    String clientSoftwareName,
-    String clientSoftwareVersion,
-    /** Credential the connection authenticated with; top-level in the document, not hoisted. */
-    String securityType,
-    String securityToken,
-    String brokerId,
-    Long connectionDurationMs,
-    // HTTP payloads (v4-log)
-    HttpPayload entrypointRequest,
-    HttpPayload entrypointResponse,
-    HttpPayload endpointRequest,
-    HttpPayload endpointResponse
-) {}
+        // Identifiers
+        String requestId,
+        String apiId,
+        /** Name of the log's API, read from the same API definition as {@link #apiType}. */
+        String apiName,
+        /**
+         * Api type of the log's API, read by id from the API definition and scoped to the environment,
+         * rather than from the document — the connection indices do not store it.
+         *
+         * <p>Present so a client can pick the right rendering for the row it opened: a Kafka connection
+         * and a Message API connection ask different questions of the same endpoint, and without this
+         * the client would have to carry the type from the list row it came from, which a direct link
+         * to the detail does not have.
+         */
+        String apiType,
+        String transactionId,
+        String clientIdentifier,
+        Instant timestamp,
+        Boolean requestEnded,
+        // Enriched metadata (v4-metrics)
+        String method,
+        String uri,
+        Integer status,
+        String endpoint,
+        /** Entrypoint plugin id that served the request, as on the log search rows. */
+        String entrypointId,
+        String host,
+        /** MCP method of an MCP request, hoisted from additional-metrics as on the log search rows. */
+        String mcpMethod,
+        String apiProductId,
+        /** Name of the API Product, or "Standalone API" when the request did not go through one, as on the log search rows. */
+        String apiProductName,
+        String subscriptionId,
+        String planId,
+        String planName,
+        String applicationId,
+        String applicationName,
+        String gateway,
+        String gatewayHostname,
+        String gatewayIp,
+        String remoteAddress,
+        Long requestContentLength,
+        Long responseContentLength,
+        Long gatewayLatency,
+        Long gatewayResponseTime,
+        Long endpointResponseTime,
+        String message,
+        String errorKey,
+        String errorComponentName,
+        String errorComponentType,
+        List<LogEntryWarning> warnings,
+        Map<String, Object> additionalMetrics,
+        // Native Kafka fields, hoisted from additional-metrics; failureOrigin is derived, not stored.
+        String connectionStatus,
+        FailureOrigin failureOrigin,
+        String clientId,
+        /** Client library advertised at the handshake; the literal "unknown" when the client advertises none. */
+        String clientSoftwareName,
+        String clientSoftwareVersion,
+        /** Credential the connection authenticated with; top-level in the document, not hoisted. */
+        String securityType,
+        String securityToken,
+        String brokerId,
+        Long connectionDurationMs,
+        // HTTP payloads (v4-log)
+        HttpPayload entrypointRequest,
+        HttpPayload entrypointResponse,
+        HttpPayload endpointRequest,
+        HttpPayload endpointResponse) {}

@@ -72,8 +72,11 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
         doReturn(returnedApi)
-            .when(apiService)
-            .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
+                .when(apiService)
+                .create(
+                        eq(GraviteeContext.getExecutionContext()),
+                        Mockito.any(NewApiEntity.class),
+                        Mockito.eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -89,8 +92,11 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
         doReturn(returnedApi)
-            .when(apiService)
-            .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
+                .when(apiService)
+                .create(
+                        eq(GraviteeContext.getExecutionContext()),
+                        Mockito.any(NewApiEntity.class),
+                        Mockito.eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -108,12 +114,17 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
         doReturn(returnedApi)
-            .when(apiService)
-            .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
+                .when(apiService)
+                .create(
+                        eq(GraviteeContext.getExecutionContext()),
+                        Mockito.any(NewApiEntity.class),
+                        Mockito.eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path("my-beautiful-api").getUri().toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
@@ -124,22 +135,26 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity createdApi = new ApiEntity();
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiService).createFromSwagger(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(createdApi)
+                .when(apiService)
+                .createFromSwagger(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
         final Response response = envTarget()
-            .path("import")
-            .path("swagger")
-            .queryParam("definitionVersion", "2.0.0")
-            .request()
-            .post(Entity.json(swaggerDescriptor));
+                .path("import")
+                .path("swagger")
+                .queryParam("definitionVersion", "2.0.0")
+                .request()
+                .post(Entity.json(swaggerDescriptor));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path("my-beautiful-api").getUri().toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        verify(swaggerService).createAPI(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())),
-            eq(DefinitionVersion.valueOfLabel("2.0.0"))
-        );
+        verify(swaggerService)
+                .createAPI(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())),
+                        eq(DefinitionVersion.valueOfLabel("2.0.0")));
     }
 
     @Test
@@ -150,13 +165,15 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity createdApi = new ApiEntity();
         createdApi.setGraviteeDefinitionVersion("2.0.0");
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(createdApi)
+                .when(apiDuplicatorService)
+                .createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget()
-            .path("import")
-            .queryParam("definitionVersion", "2.0.0")
-            .request()
-            .post(Entity.json(apiDefinition));
+                .path("import")
+                .queryParam("definitionVersion", "2.0.0")
+                .request()
+                .post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
@@ -169,7 +186,9 @@ public class ApisResourceTest extends AbstractResourceTest {
         updatedApi.setId("my-api-id");
         updatedApi.setUpdatedAt(new Date());
 
-        doReturn(updatedApi).when(apiDuplicatorService).updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(updatedApi)
+                .when(apiDuplicatorService)
+                .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget().path("import").request().put(Entity.json(apiDefinition));
 
@@ -191,17 +210,10 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDStatusEntity apiCRDStatus = new ApiCRDStatusEntity(
-            ec.getOrganizationId(),
-            ec.getEnvironmentId(),
-            "my-api-id",
-            "my-api-cross-id",
-            STARTED,
-            null,
-            null
-        );
+                ec.getOrganizationId(), ec.getEnvironmentId(), "my-api-id", "my-api-cross-id", STARTED, null, null);
         doReturn(new ApiValidationResult<>(null, List.of(), List.of()))
-            .when(apiValidationService)
-            .validateAndSanitizeApiDefinitionCRD(eq(ec), any());
+                .when(apiValidationService)
+                .validateAndSanitizeApiDefinitionCRD(eq(ec), any());
         doReturn(apiCRDStatus).when(apiCRDService).importApiDefinitionCRD(eq(ec), any());
 
         final Response response = envTarget().path("import-crd").request().put(Entity.json(apiCRD));
@@ -216,9 +228,11 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
         Page<ApiEntity> apisPage = new Page<>(resultApis, 7, 3, 54);
-        when(apiService.search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), isNull())).thenReturn(apisPage);
+        when(apiService.search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), isNull()))
+                .thenReturn(apisPage);
 
-        final Response response = envTarget().queryParam("crossId", searchedCrossId).request().get();
+        final Response response =
+                envTarget().queryParam("crossId", searchedCrossId).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -228,12 +242,12 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals("api2", resultList.get(1).getId());
         assertEquals("api15", resultList.get(2).getId());
 
-        verify(apiService, times(1)).search(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(apiQuery -> searchedCrossId.equals(apiQuery.getCrossId())),
-            isNull(),
-            isNull()
-        );
+        verify(apiService, times(1))
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(apiQuery -> searchedCrossId.equals(apiQuery.getCrossId())),
+                        isNull(),
+                        isNull());
     }
 
     @Test
@@ -244,13 +258,15 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-api-id");
         createdApi.setUpdatedAt(new Date());
         createdApi.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(createdApi)
+                .when(apiDuplicatorService)
+                .createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget()
-            .path("import-url")
-            .queryParam("definitionVersion", "2.0.0")
-            .request()
-            .post(Entity.text("http://localhost:8080/api/my-api-id"));
+                .path("import-url")
+                .queryParam("definitionVersion", "2.0.0")
+                .request()
+                .post(Entity.text("http://localhost:8080/api/my-api-id"));
 
         assertEquals(OK_200, response.getStatus());
     }
@@ -263,13 +279,15 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-api-id");
         createdApi.setUpdatedAt(new Date());
         createdApi.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(createdApi)
+                .when(apiDuplicatorService)
+                .createWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget()
-            .path("import")
-            .queryParam("definitionVersion", "2.0.0")
-            .request()
-            .post(Entity.text("http://localhost:8080/api/my-api-id"));
+                .path("import")
+                .queryParam("definitionVersion", "2.0.0")
+                .request()
+                .post(Entity.text("http://localhost:8080/api/my-api-id"));
 
         assertEquals(OK_200, response.getStatus());
     }

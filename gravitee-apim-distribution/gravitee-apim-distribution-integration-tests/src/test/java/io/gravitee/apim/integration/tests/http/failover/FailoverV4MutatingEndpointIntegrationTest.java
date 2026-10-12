@@ -93,15 +93,15 @@ public class FailoverV4MutatingEndpointIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
             endpoints.putIfAbsent(
-                "mutating-http-proxy",
-                EndpointBuilder.build("mutating-http-proxy", MutatingHttpProxyEndpointConnectorFactory.class)
-            );
+                    "mutating-http-proxy",
+                    EndpointBuilder.build("mutating-http-proxy", MutatingHttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -110,13 +110,20 @@ public class FailoverV4MutatingEndpointIntegrationTest {
                 var analytics = apiDefinition.getAnalytics() != null ? apiDefinition.getAnalytics() : new Analytics();
                 analytics.setEnabled(true);
                 if (analytics.getLogging() == null) {
-                    analytics.setLogging(
-                        Logging.builder()
-                            .mode(LoggingMode.builder().entrypoint(true).endpoint(true).build())
-                            .phase(LoggingPhase.builder().request(true).response(true).build())
-                            .content(LoggingContent.builder().headers(true).payload(true).build())
-                            .build()
-                    );
+                    analytics.setLogging(Logging.builder()
+                            .mode(LoggingMode.builder()
+                                    .entrypoint(true)
+                                    .endpoint(true)
+                                    .build())
+                            .phase(LoggingPhase.builder()
+                                    .request(true)
+                                    .response(true)
+                                    .build())
+                            .content(LoggingContent.builder()
+                                    .headers(true)
+                                    .payload(true)
+                                    .build())
+                            .build());
                 }
                 apiDefinition.setAnalytics(analytics);
             }
@@ -128,90 +135,84 @@ public class FailoverV4MutatingEndpointIntegrationTest {
             // Given backend answers in 750ms on first two endpoints (slow call), and immediately on the third
             // The mutating connector transforms the body to "transformed-request-body"
             // and sets pathInfo to "/mutated-path", so wiremock receives on /endpoint-X/mutated-path
-            wiremock.stubFor(post("/endpoint-1/mutated-path").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
-            wiremock.stubFor(post("/endpoint-2/mutated-path").willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
+            wiremock.stubFor(post("/endpoint-1/mutated-path")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(post("/endpoint-2/mutated-path")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
             wiremock.stubFor(post("/endpoint-3/mutated-path").willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
 
             // When requesting the API with a body
-            client
-                .rxRequest(HttpMethod.POST, "/test")
-                .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.POST, "/test")
+                    .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
+                        return true;
+                    });
 
             // Then each endpoint should have been called with the transformed body
-            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-1/mutated-path")).withRequestBody(equalTo("mutated-request-body")));
-            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-2/mutated-path")).withRequestBody(equalTo("mutated-request-body")));
-            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-3/mutated-path")).withRequestBody(equalTo("mutated-request-body")));
+            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-1/mutated-path"))
+                    .withRequestBody(equalTo("mutated-request-body")));
+            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-2/mutated-path"))
+                    .withRequestBody(equalTo("mutated-request-body")));
+            wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint-3/mutated-path"))
+                    .withRequestBody(equalTo("mutated-request-body")));
         }
 
         @Test
         @DeployApi("/apis/v4/http/failover/api-mutating-failure-condition-post.json")
         void should_record_failover_metrics_with_mutated_request(HttpClient client) {
             // Given a backend that returns 500 on the first call, then 200 on the second
-            wiremock.stubFor(
-                post("/endpoint/mutated-path")
+            wiremock.stubFor(post("/endpoint/mutated-path")
                     .inScenario("metrics-retry-post")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(serverError().withBody("error"))
-                    .willSetStateTo("recovered")
-            );
-            wiremock.stubFor(
-                post("/endpoint/mutated-path")
+                    .willSetStateTo("recovered"));
+            wiremock.stubFor(post("/endpoint/mutated-path")
                     .inScenario("metrics-retry-post")
                     .whenScenarioStateIs("recovered")
-                    .willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API with a body
-            client
-                .rxRequest(HttpMethod.POST, "/test")
-                .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+            client.rxRequest(HttpMethod.POST, "/test")
+                    .flatMap(request -> request.rxSend(Buffer.buffer("request-body")))
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then failover metrics should be recorded
-            metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 1L);
-                    assertThat(metrics.keywordAdditionalMetrics())
+            metricsSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.longAdditionalMetrics()).isNotNull().containsEntry("long_failover_count", 1L);
+                assertThat(metrics.keywordAdditionalMetrics())
                         .isNotNull()
                         .containsKey("keyword_failover_first-failed-endpoint")
                         .containsEntry("keyword_failover_successful-endpoint", "default");
-                    return true;
-                });
+                return true;
+            });
 
             // Then the backend should have been called twice, each time with the transformed body
-            wiremock.verify(2, postRequestedFor(urlPathEqualTo("/endpoint/mutated-path")).withRequestBody(equalTo("mutated-request-body")));
+            wiremock.verify(
+                    2,
+                    postRequestedFor(urlPathEqualTo("/endpoint/mutated-path"))
+                            .withRequestBody(equalTo("mutated-request-body")));
 
             // Then the log should contain the transformed body (not the original, not duplicated)
-            logSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(log -> {
-                    assertThat(log.getEntrypointRequest()).isNotNull();
-                    assertThat(log.getEndpointRequest()).isNotNull();
-                    assertThat(log.getEndpointRequest().getBody()).isEqualTo("mutated-request-body");
-                    return true;
-                });
+            logSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(log -> {
+                assertThat(log.getEntrypointRequest()).isNotNull();
+                assertThat(log.getEndpointRequest()).isNotNull();
+                assertThat(log.getEndpointRequest().getBody()).isEqualTo("mutated-request-body");
+                return true;
+            });
         }
     }
 }

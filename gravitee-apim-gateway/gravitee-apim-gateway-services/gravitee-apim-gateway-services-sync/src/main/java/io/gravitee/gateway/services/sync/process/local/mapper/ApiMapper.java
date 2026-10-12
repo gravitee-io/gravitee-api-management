@@ -46,7 +46,8 @@ public class ApiMapper {
 
             // Check the version of the API definition to read the right model entity
             if (DefinitionVersion.V4 != api.getDefinitionVersion()) {
-                var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
+                var eventApiDefinition =
+                        objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
 
                 // Update definition with required information for deployment phase
                 reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(eventApiDefinition);
@@ -60,29 +61,27 @@ public class ApiMapper {
                     var eventApiDefinition = objectMapper.readValue(api.getDefinition(), EdgeApi.class);
 
                     reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(eventApiDefinition);
-                } else if (
-                    api.getType() == ApiType.PROXY ||
-                    api.getType() == ApiType.LLM_PROXY ||
-                    api.getType() == ApiType.MCP_PROXY ||
-                    api.getType() == ApiType.MESSAGE ||
-                    api.getType() == ApiType.AUTHZ
-                ) {
-                    var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+                } else if (api.getType() == ApiType.PROXY
+                        || api.getType() == ApiType.LLM_PROXY
+                        || api.getType() == ApiType.MCP_PROXY
+                        || api.getType() == ApiType.MESSAGE
+                        || api.getType() == ApiType.AUTHZ) {
+                    var eventApiDefinition =
+                            objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
 
                     // Update definition with required information for deployment phase
                     reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.Api(eventApiDefinition);
                 } else {
-                    throw new IllegalArgumentException("Unsupported ApiType [" + api.getType() + "] for api: " + api.getId());
+                    throw new IllegalArgumentException(
+                            "Unsupported ApiType [" + api.getType() + "] for api: " + api.getId());
                 }
             }
 
             reactableApi.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
             reactableApi.setDeployedAt(apiEvent.getCreatedAt());
-            reactableApi.setRevision(
-                Optional.ofNullable(apiEvent.getProperties())
+            reactableApi.setRevision(Optional.ofNullable(apiEvent.getProperties())
                     .map(props -> props.get(DEPLOYMENT_NUMBER.getValue()))
-                    .orElse(null)
-            );
+                    .orElse(null));
 
             environmentService.fill(api.getEnvironmentId(), reactableApi);
 

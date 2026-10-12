@@ -39,24 +39,24 @@ public class SubscriptionSearchQueryServiceImpl implements SubscriptionSearchQue
 
     @Override
     public Page<SubscriptionEntity> search(
-        ExecutionContext executionContext,
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        Set<String> applicationIds,
-        Set<String> planIds,
-        Set<SubscriptionStatus> statuses,
-        String apiKey,
-        Pageable pageable
-    ) {
-        GenericPlanEntity.ReferenceType queryReferenceType = GenericPlanEntity.ReferenceType.valueOf(referenceType.name());
+            ExecutionContext executionContext,
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            Set<String> applicationIds,
+            Set<String> planIds,
+            Set<SubscriptionStatus> statuses,
+            String apiKey,
+            Pageable pageable) {
+        GenericPlanEntity.ReferenceType queryReferenceType =
+                GenericPlanEntity.ReferenceType.valueOf(referenceType.name());
         SubscriptionQuery query = SubscriptionQuery.builder()
-            .referenceId(referenceId)
-            .referenceType(queryReferenceType)
-            .applications(applicationIds)
-            .plans(planIds)
-            .statuses(statuses)
-            .apiKey(apiKey)
-            .build();
+                .referenceId(referenceId)
+                .referenceType(queryReferenceType)
+                .applications(applicationIds)
+                .plans(planIds)
+                .statuses(statuses)
+                .apiKey(apiKey)
+                .build();
 
         return subscriptionService.search(executionContext, query, pageable, false, false);
     }
@@ -64,21 +64,17 @@ public class SubscriptionSearchQueryServiceImpl implements SubscriptionSearchQue
     @Override
     public Page<SubscriptionEntity> search(ExecutionContext executionContext, Criteria criteria, Pageable pageable) {
         SubscriptionQuery query = SubscriptionQuery.builder()
-            .referenceTypes(
-                criteria
-                    .referenceTypes()
-                    .stream()
-                    .map(type -> GenericPlanEntity.ReferenceType.valueOf(type.name()))
-                    .collect(Collectors.toSet())
-            )
-            .apis(criteria.apiIds())
-            .apiProducts(criteria.apiProductIds())
-            .applications(criteria.applicationIds())
-            .plans(criteria.planIds())
-            .statuses(criteria.statuses())
-            .apiKey(criteria.apiKey())
-            .sortable(criteria.referenceTypes().size() > 1 ? new SortableImpl("id", true) : null)
-            .build();
+                .referenceTypes(criteria.referenceTypes().stream()
+                        .map(type -> GenericPlanEntity.ReferenceType.valueOf(type.name()))
+                        .collect(Collectors.toSet()))
+                .apis(criteria.apiIds())
+                .apiProducts(criteria.apiProductIds())
+                .applications(criteria.applicationIds())
+                .plans(criteria.planIds())
+                .statuses(criteria.statuses())
+                .apiKey(criteria.apiKey())
+                .sortable(criteria.referenceTypes().size() > 1 ? new SortableImpl("id", true) : null)
+                .build();
 
         if (pageable == null) {
             var subscriptions = subscriptionService.search(executionContext, query);

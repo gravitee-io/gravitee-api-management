@@ -61,17 +61,19 @@ class ApiProductTagDomainServiceTest {
         planQueryService.reset();
         planCrudService.reset();
         apiProductTagDomainService = new ApiProductTagDomainService(
-            apiProductQueryService,
-            apiProductCrudService,
-            planQueryService,
-            planCrudService,
-            apiProductTagsValidationDomainService
-        );
+                apiProductQueryService,
+                apiProductCrudService,
+                planQueryService,
+                planCrudService,
+                apiProductTagsValidationDomainService);
     }
 
     @Test
     void should_validate_tags_on_create_when_tags_are_present() {
-        var auditInfo = io.gravitee.apim.core.audit.model.AuditInfo.builder().organizationId("org-id").environmentId(ENV_ID).build();
+        var auditInfo = io.gravitee.apim.core.audit.model.AuditInfo.builder()
+                .organizationId("org-id")
+                .environmentId(ENV_ID)
+                .build();
 
         apiProductTagDomainService.validateTagsOnCreate(auditInfo, Set.of("internal"));
 
@@ -80,7 +82,10 @@ class ApiProductTagDomainServiceTest {
 
     @Test
     void should_skip_validation_on_create_when_tags_are_empty() {
-        var auditInfo = io.gravitee.apim.core.audit.model.AuditInfo.builder().organizationId("org-id").environmentId(ENV_ID).build();
+        var auditInfo = io.gravitee.apim.core.audit.model.AuditInfo.builder()
+                .organizationId("org-id")
+                .environmentId(ENV_ID)
+                .build();
 
         apiProductTagDomainService.validateTagsOnCreate(auditInfo, Set.of());
 
@@ -90,11 +95,11 @@ class ApiProductTagDomainServiceTest {
     @Test
     void should_remove_deleted_tag_from_product_and_its_plans() {
         ApiProduct product = ApiProduct.builder()
-            .id(PRODUCT_ID)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .tags(new HashSet<>(Set.of("internal", "external")))
-            .build();
+                .id(PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .tags(new HashSet<>(Set.of("internal", "external")))
+                .build();
         apiProductCrudService.initWith(List.of(product));
         apiProductQueryService.initWith(List.of(product));
 
@@ -105,12 +110,18 @@ class ApiProductTagDomainServiceTest {
         apiProductTagDomainService.deleteTagFromApiProducts(ENV_ID, "external");
 
         assertThat(apiProductCrudService.get(PRODUCT_ID).getTags()).containsExactly("internal");
-        assertThat(planCrudService.getById("plan-1").getPlanDefinitionHttpV4().getTags()).containsExactly("internal");
+        assertThat(planCrudService.getById("plan-1").getPlanDefinitionHttpV4().getTags())
+                .containsExactly("internal");
     }
 
     @Test
     void should_not_update_product_when_tag_is_not_present() {
-        ApiProduct product = ApiProduct.builder().id(PRODUCT_ID).name("Product").environmentId(ENV_ID).tags(Set.of("internal")).build();
+        ApiProduct product = ApiProduct.builder()
+                .id(PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .tags(Set.of("internal"))
+                .build();
         apiProductCrudService.initWith(List.of(product));
         apiProductQueryService.initWith(List.of(product));
 
@@ -121,7 +132,12 @@ class ApiProductTagDomainServiceTest {
 
     @Test
     void should_set_product_tags_to_null_when_last_tag_is_removed() {
-        ApiProduct product = ApiProduct.builder().id(PRODUCT_ID).name("Product").environmentId(ENV_ID).tags(Set.of("internal")).build();
+        ApiProduct product = ApiProduct.builder()
+                .id(PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .tags(Set.of("internal"))
+                .build();
         apiProductCrudService.initWith(List.of(product));
         apiProductQueryService.initWith(List.of(product));
 
@@ -132,7 +148,12 @@ class ApiProductTagDomainServiceTest {
 
     @Test
     void should_not_remove_tag_when_identifier_does_not_match_stored_tag_key() {
-        ApiProduct product = ApiProduct.builder().id(PRODUCT_ID).name("Product").environmentId(ENV_ID).tags(Set.of("internal")).build();
+        ApiProduct product = ApiProduct.builder()
+                .id(PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .tags(Set.of("internal"))
+                .build();
         apiProductCrudService.initWith(List.of(product));
         apiProductQueryService.initWith(List.of(product));
 
@@ -143,7 +164,12 @@ class ApiProductTagDomainServiceTest {
 
     @Test
     void should_clean_plan_tags_even_when_product_tag_was_already_removed() {
-        ApiProduct product = ApiProduct.builder().id(PRODUCT_ID).name("Product").environmentId(ENV_ID).tags(Set.of("internal")).build();
+        ApiProduct product = ApiProduct.builder()
+                .id(PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .tags(Set.of("internal"))
+                .build();
         apiProductCrudService.initWith(List.of(product));
         apiProductQueryService.initWith(List.of(product));
 
@@ -154,17 +180,18 @@ class ApiProductTagDomainServiceTest {
         apiProductTagDomainService.deleteTagFromApiProducts(ENV_ID, "external");
 
         assertThat(apiProductCrudService.get(PRODUCT_ID).getTags()).containsExactly("internal");
-        assertThat(planCrudService.getById("plan-1").getPlanDefinitionHttpV4().getTags()).isNull();
+        assertThat(planCrudService.getById("plan-1").getPlanDefinitionHttpV4().getTags())
+                .isNull();
     }
 
     @Test
     void should_be_idempotent_when_delete_tag_from_api_products_is_called_twice() {
         ApiProduct product = ApiProduct.builder()
-            .id(PRODUCT_ID)
-            .name("Product")
-            .environmentId(ENV_ID)
-            .tags(new HashSet<>(Set.of("internal", "external")))
-            .build();
+                .id(PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .tags(new HashSet<>(Set.of("internal", "external")))
+                .build();
         apiProductCrudService.initWith(List.of(product));
         apiProductQueryService.initWith(List.of(product));
 
@@ -176,23 +203,21 @@ class ApiProductTagDomainServiceTest {
         apiProductTagDomainService.deleteTagFromApiProducts(ENV_ID, "external");
 
         assertThat(apiProductCrudService.get(PRODUCT_ID).getTags()).containsExactly("internal");
-        assertThat(planCrudService.getById("plan-1").getPlanDefinitionHttpV4().getTags()).isNull();
+        assertThat(planCrudService.getById("plan-1").getPlanDefinitionHttpV4().getTags())
+                .isNull();
     }
 
     private Plan productPlanWithTags(String planId, Set<String> tags) {
-        var planDefinition = PlanFixtures.aPlanHttpV4()
-            .getPlanDefinitionHttpV4()
-            .toBuilder()
-            .status(PlanStatus.PUBLISHED)
-            .tags(tags)
-            .build();
-        return PlanFixtures.aPlanHttpV4()
-            .toBuilder()
-            .id(planId)
-            .referenceId(PRODUCT_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .environmentId(ENV_ID)
-            .planDefinitionHttpV4(planDefinition)
-            .build();
+        var planDefinition = PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                .status(PlanStatus.PUBLISHED)
+                .tags(tags)
+                .build();
+        return PlanFixtures.aPlanHttpV4().toBuilder()
+                .id(planId)
+                .referenceId(PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(planDefinition)
+                .build();
     }
 }

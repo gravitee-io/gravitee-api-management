@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/grpc/hello-world.json" })
+@DeployApi({"/apis/v4/grpc/hello-world.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
 
@@ -48,25 +48,25 @@ public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
     void should_request_and_get_response(GatewayDynamicConfig.HttpConfig httpConfig) {
         // create the backend
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
-        grpcServer.callHandler(GreeterGrpc.getSayHelloMethod(), request ->
-            request.handler(hello -> {
-                // just a simple response
-                GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
-                response.end(reply);
-            })
-        );
+        grpcServer.callHandler(
+                GreeterGrpc.getSayHelloMethod(),
+                request -> request.handler(hello -> {
+                    // just a simple response
+                    GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
+                    HelloReply reply = HelloReply.newBuilder()
+                            .setMessage("Hello " + hello.getName())
+                            .build();
+                    response.end(reply);
+                }));
 
         // prep for test
         CountDownLatch latch = new CountDownLatch(1);
 
         // Create the backend HTTP Server handling gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer
-            .listen()
-            .andThen(handler -> {
-                // call the service through the gateway
-                getGrpcClient()
+        httpServer.listen().andThen(handler -> {
+            // call the service through the gateway
+            getGrpcClient()
                     .request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
                     .compose(request -> {
                         request.end(HelloRequest.newBuilder().setName("You").build());
@@ -82,11 +82,9 @@ public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
                         fail(failure.getMessage());
                     });
 
-                await()
-                    .atMost(30, TimeUnit.SECONDS)
-                    .untilAsserted(() -> {
-                        assertThat(latch.getCount()).isZero();
-                    });
+            await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertThat(latch.getCount()).isZero();
             });
+        });
     }
 }

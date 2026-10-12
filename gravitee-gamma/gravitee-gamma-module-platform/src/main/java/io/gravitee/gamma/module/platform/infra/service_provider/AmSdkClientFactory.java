@@ -67,28 +67,26 @@ public class AmSdkClientFactory {
         // AM serialises timestamps as epoch *milliseconds*, but the SDK's JavaTimeModule parses
         // numeric input as epoch *seconds* — pushing every parsed timestamp into year ~58312.
         SimpleModule millisTimestamps = new SimpleModule();
-        millisTimestamps.addDeserializer(
-            OffsetDateTime.class,
-            new JsonDeserializer<>() {
-                @Override
-                public OffsetDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-                    if (p.currentToken() == JsonToken.VALUE_NUMBER_INT) {
-                        return OffsetDateTime.ofInstant(Instant.ofEpochMilli(p.getLongValue()), ZoneOffset.UTC);
-                    }
-                    String text = p.getValueAsString();
-                    return text == null || text.isEmpty() ? null : OffsetDateTime.parse(text);
+        millisTimestamps.addDeserializer(OffsetDateTime.class, new JsonDeserializer<>() {
+            @Override
+            public OffsetDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+                if (p.currentToken() == JsonToken.VALUE_NUMBER_INT) {
+                    return OffsetDateTime.ofInstant(Instant.ofEpochMilli(p.getLongValue()), ZoneOffset.UTC);
                 }
+                String text = p.getValueAsString();
+                return text == null || text.isEmpty() ? null : OffsetDateTime.parse(text);
             }
-        );
+        });
         apiClient.getObjectMapper().registerModule(millisTimestamps);
 
         // AM serialises these as `isX` but the SDK expects `x`; mixin bridges the gap so the full
         // domain payload (returned by findDomain/listDomains) deserialises cleanly.
         apiClient.getObjectMapper().addMixIn(ClientRegistrationSettings.class, ClientRegistrationSettingsMixin.class);
 
-        String amOrganizationId = connection.amOrganizationId() == null || connection.amOrganizationId().isBlank()
-            ? AM_DEFAULT_ORGANIZATION
-            : connection.amOrganizationId();
+        String amOrganizationId = connection.amOrganizationId() == null
+                        || connection.amOrganizationId().isBlank()
+                ? AM_DEFAULT_ORGANIZATION
+                : connection.amOrganizationId();
 
         return new AmApis(apiClient, amOrganizationId, new DefaultApiImpl(apiClient), new DomainApiImpl(apiClient));
     }

@@ -36,7 +36,8 @@ class EmailAddressesTest {
 
     @Test
     void should_unwrap_a_personal_name_address() {
-        assertThat(EmailAddresses.singleAddress("Jane Developer <jane@example.com>")).contains("jane@example.com");
+        assertThat(EmailAddresses.singleAddress("Jane Developer <jane@example.com>"))
+                .contains("jane@example.com");
     }
 
     @Test
@@ -56,8 +57,12 @@ class EmailAddressesTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = { "   ", "not-an-email", "alice@example.com, bob@example.org", "Jane <jane@example.com>, John <john@example.org>" }
-    )
+            strings = {
+                "   ",
+                "not-an-email",
+                "alice@example.com, bob@example.org",
+                "Jane <jane@example.com>, John <john@example.org>"
+            })
     void should_be_empty_for_inputs_without_a_single_resolvable_address(String input) {
         // Blank, no '@', and both multi-address forms (bare and personal-name) all resolve to no single
         // sendable address. Cases that pin a specific documented decision are kept as named tests below.
@@ -68,7 +73,8 @@ class EmailAddressesTest {
     void should_be_empty_when_an_address_precedes_the_personal_name() {
         // The greedy display-name strip used to keep only the bracketed address and accept this; the '@' count
         // on the whole value must catch the earlier address first.
-        assertThat(EmailAddresses.singleAddress("alice@example.com, Team <noreply@example.org>")).isEmpty();
+        assertThat(EmailAddresses.singleAddress("alice@example.com, Team <noreply@example.org>"))
+                .isEmpty();
     }
 
     @Test

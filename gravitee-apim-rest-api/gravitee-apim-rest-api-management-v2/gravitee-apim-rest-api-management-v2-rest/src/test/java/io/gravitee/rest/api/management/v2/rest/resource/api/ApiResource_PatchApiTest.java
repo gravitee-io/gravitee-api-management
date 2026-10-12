@@ -94,37 +94,33 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V4);
         apiEntity.setType(io.gravitee.definition.model.v4.ApiType.PROXY);
         apiEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
-        primaryOwnerDomainService.initWith(
-            List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
-        );
-        membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_NAME)
-                    .referenceId(API)
-                    .roleId("api-po-id-" + ORGANIZATION)
-                    .referenceType(Membership.ReferenceType.API)
-                    .memberType(Membership.Type.USER)
-                    .build()
-            )
-        );
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
+                        .id(USER_NAME)
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build())));
+        membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .memberId(USER_NAME)
+                .referenceId(API)
+                .roleId("api-po-id-" + ORGANIZATION)
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .build()));
 
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).updateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).validateV4(any(), any());
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService)
+                .forEach(InMemoryAlternative::reset);
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 
@@ -132,37 +128,34 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
 
     @Test
     void should_return_415_when_content_type_is_unsupported() {
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("name=plain", MediaType.TEXT_PLAIN_TYPE));
+        var response =
+                rootTarget(API).request().method("PATCH", Entity.entity("name=plain", MediaType.TEXT_PLAIN_TYPE));
 
         assertThat(response).hasStatus(UNSUPPORTED_MEDIA_TYPE_415);
     }
 
     @Test
     void should_return_403_when_missing_update_permission() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_GATEWAY_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_GATEWAY_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"new\"}", MERGE_PATCH_TYPE));
 
         assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
@@ -203,28 +196,24 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
 
     @Test
     void should_include_primary_owner_in_response() {
-        primaryOwnerDomainService.initWith(
-            List.of(
-                Map.entry(
-                    API,
-                    PrimaryOwnerEntity.builder()
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
                         .id(USER_NAME)
                         .email("jane.doe@gravitee.io")
                         .displayName("Jane Doe")
                         .type(PrimaryOwnerEntity.Type.USER)
-                        .build()
-                )
-            )
-        );
+                        .build())));
 
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"with-owner\"}", MERGE_PATCH_TYPE));
+        var response =
+                rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"with-owner\"}", MERGE_PATCH_TYPE));
 
         var primaryOwner = assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getPrimaryOwner)
-            .isNotNull()
-            .actual();
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getPrimaryOwner)
+                .isNotNull()
+                .actual();
         Assertions.assertThat(primaryOwner.getId()).isEqualTo(USER_NAME);
         Assertions.assertThat(primaryOwner.getEmail()).isEqualTo("jane.doe@gravitee.io");
         Assertions.assertThat(primaryOwner.getDisplayName()).isEqualTo("Jane Doe");
@@ -235,31 +224,43 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_render_null_allowed_in_api_products_as_false_in_patch_response() {
         var storedApi = ApiFixtures.aProxyApiV4();
         Assertions.assertThat(storedApi.getApiDefinitionHttpV4().getAllowedInApiProducts())
-            .as("precondition: fixture has null allowedInApiProducts")
-            .isNull();
+                .as("precondition: fixture has null allowedInApiProducts")
+                .isNull();
         apiCrudService.initWith(List.of(storedApi));
 
-        var capturedApi = new Api[] { null };
+        var capturedApi = new Api[] {null};
         doAnswer(inv -> {
-            capturedApi[0] = inv.getArgument(0);
-            return capturedApi[0];
-        })
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
+                    capturedApi[0] = inv.getArgument(0);
+                    return capturedApi[0];
+                })
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
 
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"description\":\"changed\"}", MERGE_PATCH_TYPE));
+        var response = rootTarget(API)
+                .request()
+                .method("PATCH", Entity.entity("{\"description\":\"changed\"}", MERGE_PATCH_TYPE));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getAllowedInApiProducts).isEqualTo(false);
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getAllowedInApiProducts)
+                .isEqualTo(false);
         Assertions.assertThat(capturedApi[0].getApiDefinitionHttpV4().getAllowedInApiProducts())
-            .as("stored value must not be coalesced before persistence")
-            .isNull();
+                .as("stored value must not be coalesced before persistence")
+                .isNull();
     }
 
     @Test
     void patch_merge_omitting_name_returns_200_with_name_unchanged() {
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"description\":\"changed\"}", MERGE_PATCH_TYPE));
+        var response = rootTarget(API)
+                .request()
+                .method("PATCH", Entity.entity("{\"description\":\"changed\"}", MERGE_PATCH_TYPE));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getName).isEqualTo("My Api");
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getName)
+                .isEqualTo("My Api");
     }
 
     // ---- Format-specific validation ----
@@ -271,12 +272,17 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         void should_treat_application_json_as_merge_patch() {
             var response = rootTarget(API).request().method("PATCH", Entity.json("{\"name\":\"patched-via-json\"}"));
 
-            assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getName).isEqualTo("patched-via-json");
+            assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(ApiV4.class)
+                    .extracting(ApiV4::getName)
+                    .isEqualTo("patched-via-json");
         }
 
         @Test
         void should_return_400_when_json_patch_body_is_malformed() {
-            var response = rootTarget(API).request().method("PATCH", Entity.entity("this is not json", JSON_PATCH_TYPE));
+            var response =
+                    rootTarget(API).request().method("PATCH", Entity.entity("this is not json", JSON_PATCH_TYPE));
 
             assertThat(response).hasStatus(BAD_REQUEST_400);
         }
@@ -289,14 +295,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_return_400_when_patching_disallowed_field(String body, String contentType, String fieldName) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessageContaining(fieldName);
+        assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessageContaining(fieldName);
     }
 
     static Stream<Arguments> disallowedFieldCases() {
         return Stream.of(
-            Arguments.of("{\"state\":\"STARTED\"}", MERGE_PATCH_TYPE, "state"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/state\",\"value\":\"STARTED\"}]", JSON_PATCH_TYPE, "state")
-        );
+                Arguments.of("{\"state\":\"STARTED\"}", MERGE_PATCH_TYPE, "state"),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/state\",\"value\":\"STARTED\"}]", JSON_PATCH_TYPE, "state"));
     }
 
     @ParameterizedTest
@@ -309,19 +319,22 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
 
     static Stream<Arguments> invalidEnumValueCases() {
         return Stream.of(
-            Arguments.of("{\"visibility\":\"NOT_A_VISIBILITY\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/visibility\",\"value\":\"NOT_A_VISIBILITY\"}]", JSON_PATCH_TYPE),
-            Arguments.of("{\"lifecycleState\":\"NOT_A_LIFECYCLE_STATE\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/lifecycleState\",\"value\":\"NOT_A_LIFECYCLE_STATE\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"visibility\":\"NOT_A_VISIBILITY\"}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/visibility\",\"value\":\"NOT_A_VISIBILITY\"}]",
+                        JSON_PATCH_TYPE),
+                Arguments.of("{\"lifecycleState\":\"NOT_A_LIFECYCLE_STATE\"}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/lifecycleState\",\"value\":\"NOT_A_LIFECYCLE_STATE\"}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
     @MethodSource("domainValidationFailureCases")
     void should_return_400_when_domain_validation_fails(String body, String contentType) {
         doThrow(new ValidationDomainException("name must not be blank", Map.of("name", "must not be blank")))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
 
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
@@ -330,9 +343,8 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
 
     static Stream<Arguments> domainValidationFailureCases() {
         return Stream.of(
-            Arguments.of("{\"name\":\"\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"name\":\"\"}", MERGE_PATCH_TYPE),
+                Arguments.of("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"\"}]", JSON_PATCH_TYPE));
     }
 
     // ---- Dry-run ----
@@ -343,100 +355,141 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         @ParameterizedTest
         @MethodSource("withoutPersistingCases")
         void should_apply_patch_without_persisting(String body, String contentType, String expectedDescription) {
-            var response = rootTarget(API).queryParam("dryRun", "true").request().method("PATCH", Entity.entity(body, contentType));
+            var response = rootTarget(API)
+                    .queryParam("dryRun", "true")
+                    .request()
+                    .method("PATCH", Entity.entity(body, contentType));
 
-            assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getDescription).isEqualTo(expectedDescription);
+            assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(ApiV4.class)
+                    .extracting(ApiV4::getDescription)
+                    .isEqualTo(expectedDescription);
             verify(updateApiDomainService).validateV4(any(), any());
             verify(updateApiDomainService, never()).updateV4(any(), any());
         }
 
         static Stream<Arguments> withoutPersistingCases() {
             return Stream.of(
-                Arguments.of("{\"description\":\"dry\"}", MERGE_PATCH_TYPE, "dry"),
-                Arguments.of("[{\"op\":\"replace\",\"path\":\"/description\",\"value\":\"dry\"}]", JSON_PATCH_TYPE, "dry")
-            );
+                    Arguments.of("{\"description\":\"dry\"}", MERGE_PATCH_TYPE, "dry"),
+                    Arguments.of(
+                            "[{\"op\":\"replace\",\"path\":\"/description\",\"value\":\"dry\"}]",
+                            JSON_PATCH_TYPE,
+                            "dry"));
         }
 
         @Test
         void should_return_200_with_sanitized_tags() {
             doAnswer(inv -> {
-                Api api = inv.getArgument(0);
-                var sanitizedDef = api.getApiDefinitionHttpV4().toBuilder().tags(Set.of("allowed")).build();
-                return api.toBuilder().apiDefinitionValue(sanitizedDef).build();
-            })
-                .when(updateApiDomainService)
-                .validateV4(any(), any());
+                        Api api = inv.getArgument(0);
+                        var sanitizedDef = api.getApiDefinitionHttpV4().toBuilder()
+                                .tags(Set.of("allowed"))
+                                .build();
+                        return api.toBuilder().apiDefinitionValue(sanitizedDef).build();
+                    })
+                    .when(updateApiDomainService)
+                    .validateV4(any(), any());
 
             var response = rootTarget(API)
-                .queryParam("dryRun", "true")
-                .request()
-                .method("PATCH", Entity.entity("{\"tags\":[\"requested\",\"forbidden\"]}", MERGE_PATCH_TYPE));
+                    .queryParam("dryRun", "true")
+                    .request()
+                    .method("PATCH", Entity.entity("{\"tags\":[\"requested\",\"forbidden\"]}", MERGE_PATCH_TYPE));
 
-            assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getTags).asList().containsExactly("allowed");
+            assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(ApiV4.class)
+                    .extracting(ApiV4::getTags)
+                    .asList()
+                    .containsExactly("allowed");
         }
 
         @ParameterizedTest
         @MethodSource("allowListRejectionCases")
         void should_return_400_when_allow_list_field_rejected(String body, String contentType) {
-            var response = rootTarget(API).queryParam("dryRun", "true").request().method("PATCH", Entity.entity(body, contentType));
+            var response = rootTarget(API)
+                    .queryParam("dryRun", "true")
+                    .request()
+                    .method("PATCH", Entity.entity(body, contentType));
 
-            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessageContaining("state");
+            assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessageContaining("state");
             verify(updateApiDomainService, never()).validateV4(any(), any());
             verify(updateApiDomainService, never()).updateV4(any(), any());
         }
 
         static Stream<Arguments> allowListRejectionCases() {
             return Stream.of(
-                Arguments.of("{\"state\":\"STARTED\"}", MERGE_PATCH_TYPE),
-                Arguments.of("[{\"op\":\"replace\",\"path\":\"/state\",\"value\":\"STARTED\"}]", JSON_PATCH_TYPE)
-            );
+                    Arguments.of("{\"state\":\"STARTED\"}", MERGE_PATCH_TYPE),
+                    Arguments.of("[{\"op\":\"replace\",\"path\":\"/state\",\"value\":\"STARTED\"}]", JSON_PATCH_TYPE));
         }
 
         @ParameterizedTest
         @MethodSource("domainValidationFailureCases")
         void should_return_400_when_domain_validation_fails(String body, String contentType) {
-            doThrow(new ValidationDomainException("tag 'forbidden' not allowed")).when(updateApiDomainService).validateV4(any(), any());
+            doThrow(new ValidationDomainException("tag 'forbidden' not allowed"))
+                    .when(updateApiDomainService)
+                    .validateV4(any(), any());
 
-            var response = rootTarget(API).queryParam("dryRun", "true").request().method("PATCH", Entity.entity(body, contentType));
+            var response = rootTarget(API)
+                    .queryParam("dryRun", "true")
+                    .request()
+                    .method("PATCH", Entity.entity(body, contentType));
 
-            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessageContaining("forbidden");
+            assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessageContaining("forbidden");
             verify(updateApiDomainService, never()).updateV4(any(), any());
         }
 
         static Stream<Arguments> domainValidationFailureCases() {
             return Stream.of(
-                Arguments.of("{\"tags\":[\"forbidden\"]}", MERGE_PATCH_TYPE),
-                Arguments.of("[{\"op\":\"replace\",\"path\":\"/tags\",\"value\":[\"forbidden\"]}]", JSON_PATCH_TYPE)
-            );
+                    Arguments.of("{\"tags\":[\"forbidden\"]}", MERGE_PATCH_TYPE),
+                    Arguments.of(
+                            "[{\"op\":\"replace\",\"path\":\"/tags\",\"value\":[\"forbidden\"]}]", JSON_PATCH_TYPE));
         }
 
         @Test
         void should_return_200_with_sanitized_listeners() {
             doAnswer(inv -> {
-                Api api = inv.getArgument(0);
-                var sanitizedListener = HttpListener.builder()
-                    .paths(List.of(Path.builder().path("/sanitized").build()))
-                    .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                    .build();
-                var sanitizedDef = api.getApiDefinitionHttpV4().toBuilder().listeners(List.of(sanitizedListener)).build();
-                return api.toBuilder().apiDefinitionValue(sanitizedDef).build();
-            })
-                .when(updateApiDomainService)
-                .validateV4(any(), any());
+                        Api api = inv.getArgument(0);
+                        var sanitizedListener = HttpListener.builder()
+                                .paths(List.of(Path.builder().path("/sanitized").build()))
+                                .entrypoints(List.of(Entrypoint.builder()
+                                        .type("http-proxy")
+                                        .configuration("{}")
+                                        .build()))
+                                .build();
+                        var sanitizedDef = api.getApiDefinitionHttpV4().toBuilder()
+                                .listeners(List.of(sanitizedListener))
+                                .build();
+                        return api.toBuilder().apiDefinitionValue(sanitizedDef).build();
+                    })
+                    .when(updateApiDomainService)
+                    .validateV4(any(), any());
 
             var response = rootTarget(API)
-                .queryParam("dryRun", "true")
-                .request()
-                .method("PATCH", Entity.entity("{\"listeners\":[" + listenerJson("/requested") + "]}", MERGE_PATCH_TYPE));
+                    .queryParam("dryRun", "true")
+                    .request()
+                    .method(
+                            "PATCH",
+                            Entity.entity("{\"listeners\":[" + listenerJson("/requested") + "]}", MERGE_PATCH_TYPE));
 
-            assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiV4.class)
-                .satisfies(apiV4 -> {
-                    var listeners = apiV4.getListeners();
-                    Assertions.assertThat(listeners).hasSize(1);
-                    Assertions.assertThat(listeners.getFirst().getHttpListener().getPaths().getFirst().getPath()).isEqualTo("/sanitized");
-                });
+            assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).satisfies(apiV4 -> {
+                var listeners = apiV4.getListeners();
+                Assertions.assertThat(listeners).hasSize(1);
+                Assertions.assertThat(listeners
+                                .getFirst()
+                                .getHttpListener()
+                                .getPaths()
+                                .getFirst()
+                                .getPath())
+                        .isEqualTo("/sanitized");
+            });
             verify(updateApiDomainService).validateV4(any(), any());
             verify(updateApiDomainService, never()).updateV4(any(), any());
         }
@@ -449,35 +502,54 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void setting_required_field_to_null_returns_400(String body, String contentType, String fieldName) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessageContaining(fieldName).hasMessageContaining("null");
+        assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasMessageContaining(fieldName)
+                .hasMessageContaining("null");
     }
 
     static Stream<Arguments> nullOnRequiredFieldCases() {
         return Stream.of(
-            Arguments.of("{\"name\":null}", MERGE_PATCH_TYPE, "name"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":null}]", JSON_PATCH_TYPE, "name"),
-            Arguments.of("{\"apiVersion\":null}", MERGE_PATCH_TYPE, "apiVersion"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/apiVersion\",\"value\":null}]", JSON_PATCH_TYPE, "apiVersion"),
-            Arguments.of("{\"visibility\":null}", MERGE_PATCH_TYPE, "visibility"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/visibility\",\"value\":null}]", JSON_PATCH_TYPE, "visibility"),
-            Arguments.of("{\"lifecycleState\":null}", MERGE_PATCH_TYPE, "lifecycleState"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/lifecycleState\",\"value\":null}]", JSON_PATCH_TYPE, "lifecycleState"),
-            Arguments.of("{\"allowedInApiProducts\":null}", MERGE_PATCH_TYPE, "allowedInApiProducts"),
-            Arguments.of("[{\"op\":\"add\",\"path\":\"/allowedInApiProducts\",\"value\":null}]", JSON_PATCH_TYPE, "allowedInApiProducts"),
-            Arguments.of("{\"allowMultiJwtOauth2Subscriptions\":null}", MERGE_PATCH_TYPE, "allowMultiJwtOauth2Subscriptions"),
-            Arguments.of(
-                "[{\"op\":\"replace\",\"path\":\"/allowMultiJwtOauth2Subscriptions\",\"value\":null}]",
-                JSON_PATCH_TYPE,
-                "allowMultiJwtOauth2Subscriptions"
-            ),
-            Arguments.of("{\"disableMembershipNotifications\":null}", MERGE_PATCH_TYPE, "disableMembershipNotifications"),
-            Arguments.of(
-                "[{\"op\":\"replace\",\"path\":\"/disableMembershipNotifications\",\"value\":null}]",
-                JSON_PATCH_TYPE,
-                "disableMembershipNotifications"
-            ),
-            Arguments.of("[{\"op\":\"remove\",\"path\":\"/name\"}]", JSON_PATCH_TYPE, "name")
-        );
+                Arguments.of("{\"name\":null}", MERGE_PATCH_TYPE, "name"),
+                Arguments.of("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":null}]", JSON_PATCH_TYPE, "name"),
+                Arguments.of("{\"apiVersion\":null}", MERGE_PATCH_TYPE, "apiVersion"),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/apiVersion\",\"value\":null}]",
+                        JSON_PATCH_TYPE,
+                        "apiVersion"),
+                Arguments.of("{\"visibility\":null}", MERGE_PATCH_TYPE, "visibility"),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/visibility\",\"value\":null}]",
+                        JSON_PATCH_TYPE,
+                        "visibility"),
+                Arguments.of("{\"lifecycleState\":null}", MERGE_PATCH_TYPE, "lifecycleState"),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/lifecycleState\",\"value\":null}]",
+                        JSON_PATCH_TYPE,
+                        "lifecycleState"),
+                Arguments.of("{\"allowedInApiProducts\":null}", MERGE_PATCH_TYPE, "allowedInApiProducts"),
+                Arguments.of(
+                        "[{\"op\":\"add\",\"path\":\"/allowedInApiProducts\",\"value\":null}]",
+                        JSON_PATCH_TYPE,
+                        "allowedInApiProducts"),
+                Arguments.of(
+                        "{\"allowMultiJwtOauth2Subscriptions\":null}",
+                        MERGE_PATCH_TYPE,
+                        "allowMultiJwtOauth2Subscriptions"),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/allowMultiJwtOauth2Subscriptions\",\"value\":null}]",
+                        JSON_PATCH_TYPE,
+                        "allowMultiJwtOauth2Subscriptions"),
+                Arguments.of(
+                        "{\"disableMembershipNotifications\":null}",
+                        MERGE_PATCH_TYPE,
+                        "disableMembershipNotifications"),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/disableMembershipNotifications\",\"value\":null}]",
+                        JSON_PATCH_TYPE,
+                        "disableMembershipNotifications"),
+                Arguments.of("[{\"op\":\"remove\",\"path\":\"/name\"}]", JSON_PATCH_TYPE, "name"));
     }
 
     @ParameterizedTest
@@ -485,15 +557,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void setting_optional_field_to_null_clears_it(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getDescription).isNull();
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getDescription)
+                .isNull();
     }
 
     static Stream<Arguments> nullOnOptionalFieldCases() {
         return Stream.of(
-            Arguments.of("{\"description\":null}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/description\",\"value\":null}]", JSON_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"remove\",\"path\":\"/description\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"description\":null}", MERGE_PATCH_TYPE),
+                Arguments.of("[{\"op\":\"replace\",\"path\":\"/description\",\"value\":null}]", JSON_PATCH_TYPE),
+                Arguments.of("[{\"op\":\"remove\",\"path\":\"/description\"}]", JSON_PATCH_TYPE));
     }
 
     // ---- Field update tests (both formats) ----
@@ -503,14 +578,17 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_name(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getName).isEqualTo("patched");
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getName)
+                .isEqualTo("patched");
     }
 
     static Stream<Arguments> nameUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"name\":\"patched\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"patched\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"name\":\"patched\"}", MERGE_PATCH_TYPE),
+                Arguments.of("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"patched\"}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -518,14 +596,19 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_description(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getDescription).isEqualTo("new-description");
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getDescription)
+                .isEqualTo("new-description");
     }
 
     static Stream<Arguments> descriptionUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"description\":\"new-description\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/description\",\"value\":\"new-description\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"description\":\"new-description\"}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/description\",\"value\":\"new-description\"}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -533,14 +616,17 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_api_version(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getApiVersion).isEqualTo("2.0.0");
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getApiVersion)
+                .isEqualTo("2.0.0");
     }
 
     static Stream<Arguments> apiVersionUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"apiVersion\":\"2.0.0\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/apiVersion\",\"value\":\"2.0.0\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"apiVersion\":\"2.0.0\"}", MERGE_PATCH_TYPE),
+                Arguments.of("[{\"op\":\"replace\",\"path\":\"/apiVersion\",\"value\":\"2.0.0\"}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -549,17 +635,16 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(a -> a.getVisibility().name())
-            .isEqualTo("PRIVATE");
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(a -> a.getVisibility().name())
+                .isEqualTo("PRIVATE");
     }
 
     static Stream<Arguments> visibilityUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"visibility\":\"PRIVATE\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/visibility\",\"value\":\"PRIVATE\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"visibility\":\"PRIVATE\"}", MERGE_PATCH_TYPE),
+                Arguments.of("[{\"op\":\"replace\",\"path\":\"/visibility\",\"value\":\"PRIVATE\"}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -568,18 +653,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getLabels)
-            .asList()
-            .containsExactlyInAnyOrder("infra", "prod");
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getLabels)
+                .asList()
+                .containsExactlyInAnyOrder("infra", "prod");
     }
 
     static Stream<Arguments> labelsUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"labels\":[\"infra\",\"prod\"]}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/labels\",\"value\":[\"infra\",\"prod\"]}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"labels\":[\"infra\",\"prod\"]}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/labels\",\"value\":[\"infra\",\"prod\"]}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -588,18 +673,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getTags)
-            .asList()
-            .containsExactlyInAnyOrder("tag-a", "tag-b");
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getTags)
+                .asList()
+                .containsExactlyInAnyOrder("tag-a", "tag-b");
     }
 
     static Stream<Arguments> tagsUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"tags\":[\"tag-a\",\"tag-b\"]}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/tags\",\"value\":[\"tag-a\",\"tag-b\"]}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"tags\":[\"tag-a\",\"tag-b\"]}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/tags\",\"value\":[\"tag-a\",\"tag-b\"]}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -608,17 +693,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(a -> a.getLifecycleState().name())
-            .isEqualTo("DEPRECATED");
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(a -> a.getLifecycleState().name())
+                .isEqualTo("DEPRECATED");
     }
 
     static Stream<Arguments> lifecycleStateUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"lifecycleState\":\"DEPRECATED\"}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/lifecycleState\",\"value\":\"DEPRECATED\"}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"lifecycleState\":\"DEPRECATED\"}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/lifecycleState\",\"value\":\"DEPRECATED\"}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -627,18 +713,19 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getCategories)
-            .asList()
-            .containsExactlyInAnyOrder("cat-a", "cat-b");
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getCategories)
+                .asList()
+                .containsExactlyInAnyOrder("cat-a", "cat-b");
     }
 
     static Stream<Arguments> categoriesUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"categories\":[\"cat-a\",\"cat-b\"]}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/categories\",\"value\":[\"cat-a\",\"cat-b\"]}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"categories\":[\"cat-a\",\"cat-b\"]}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/categories\",\"value\":[\"cat-a\",\"cat-b\"]}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -647,17 +734,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(a -> a.getAnalytics().getEnabled())
-            .isEqualTo(true);
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(a -> a.getAnalytics().getEnabled())
+                .isEqualTo(true);
     }
 
     static Stream<Arguments> analyticsUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"analytics\":{\"enabled\":true}}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/analytics\",\"value\":{\"enabled\":true}}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"analytics\":{\"enabled\":true}}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/analytics\",\"value\":{\"enabled\":true}}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -666,17 +754,17 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(a -> a.getFailover().getEnabled())
-            .isEqualTo(true);
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(a -> a.getFailover().getEnabled())
+                .isEqualTo(true);
     }
 
     static Stream<Arguments> failoverUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"failover\":{\"enabled\":true}}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/failover\",\"value\":{\"enabled\":true}}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"failover\":{\"enabled\":true}}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/failover\",\"value\":{\"enabled\":true}}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -685,20 +773,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getFlowExecution)
-            .isEqualTo(new FlowExecution().mode(FlowMode.BEST_MATCH).matchRequired(true));
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getFlowExecution)
+                .isEqualTo(new FlowExecution().mode(FlowMode.BEST_MATCH).matchRequired(true));
     }
 
     static Stream<Arguments> flowExecutionUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"flowExecution\":{\"mode\":\"BEST_MATCH\",\"matchRequired\":true}}", MERGE_PATCH_TYPE),
-            Arguments.of(
-                "[{\"op\":\"replace\",\"path\":\"/flowExecution\",\"value\":{\"mode\":\"BEST_MATCH\",\"matchRequired\":true}}]",
-                JSON_PATCH_TYPE
-            )
-        );
+                Arguments.of("{\"flowExecution\":{\"mode\":\"BEST_MATCH\",\"matchRequired\":true}}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/flowExecution\",\"value\":{\"mode\":\"BEST_MATCH\",\"matchRequired\":true}}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -706,14 +792,17 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_services(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getServices).isEqualTo(new ApiServices());
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getServices)
+                .isEqualTo(new ApiServices());
     }
 
     static Stream<Arguments> servicesUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"services\":{}}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/services\",\"value\":{}}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"services\":{}}", MERGE_PATCH_TYPE),
+                Arguments.of("[{\"op\":\"replace\",\"path\":\"/services\",\"value\":{}}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -721,14 +810,18 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_allowed_in_api_products(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getAllowedInApiProducts).isEqualTo(true);
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getAllowedInApiProducts)
+                .isEqualTo(true);
     }
 
     static Stream<Arguments> allowedInApiProductsUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"allowedInApiProducts\":true}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/allowedInApiProducts\",\"value\":true}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"allowedInApiProducts\":true}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/allowedInApiProducts\",\"value\":true}]", JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -736,14 +829,19 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_allow_multi_jwt_oauth2_subscriptions(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getAllowMultiJwtOauth2Subscriptions).isEqualTo(true);
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getAllowMultiJwtOauth2Subscriptions)
+                .isEqualTo(true);
     }
 
     static Stream<Arguments> allowMultiJwtOauth2UpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"allowMultiJwtOauth2Subscriptions\":true}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/allowMultiJwtOauth2Subscriptions\",\"value\":true}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"allowMultiJwtOauth2Subscriptions\":true}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/allowMultiJwtOauth2Subscriptions\",\"value\":true}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -751,14 +849,19 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_disable_membership_notifications(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).extracting(ApiV4::getDisableMembershipNotifications).isEqualTo(true);
+        assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getDisableMembershipNotifications)
+                .isEqualTo(true);
     }
 
     static Stream<Arguments> disableMembershipNotificationsUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"disableMembershipNotifications\":true}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/disableMembershipNotifications\",\"value\":true}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"disableMembershipNotifications\":true}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/disableMembershipNotifications\",\"value\":true}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -767,24 +870,25 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getProperties)
-            .asList()
-            .hasSize(1)
-            .first()
-            .satisfies(p -> {
-                var prop = (Property) p;
-                Assertions.assertThat(prop.getKey()).isEqualTo("foo");
-                Assertions.assertThat(prop.getValue()).isEqualTo("bar");
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getProperties)
+                .asList()
+                .hasSize(1)
+                .first()
+                .satisfies(p -> {
+                    var prop = (Property) p;
+                    Assertions.assertThat(prop.getKey()).isEqualTo("foo");
+                    Assertions.assertThat(prop.getValue()).isEqualTo("bar");
+                });
     }
 
     static Stream<Arguments> propertiesUpdateVariants() {
         return Stream.of(
-            Arguments.of("{\"properties\":[{\"key\":\"foo\",\"value\":\"bar\"}]}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"add\",\"path\":\"/properties\",\"value\":[{\"key\":\"foo\",\"value\":\"bar\"}]}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"properties\":[{\"key\":\"foo\",\"value\":\"bar\"}]}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"add\",\"path\":\"/properties\",\"value\":[{\"key\":\"foo\",\"value\":\"bar\"}]}]",
+                        JSON_PATCH_TYPE));
     }
 
     @Test
@@ -794,17 +898,17 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getProperties)
-            .asList()
-            .hasSize(1)
-            .first()
-            .satisfies(p -> {
-                var prop = (Property) p;
-                Assertions.assertThat(prop.getKey()).isEqualTo("k1");
-                Assertions.assertThat(prop.getEncrypted()).isTrue();
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getProperties)
+                .asList()
+                .hasSize(1)
+                .first()
+                .satisfies(p -> {
+                    var prop = (Property) p;
+                    Assertions.assertThat(prop.getKey()).isEqualTo("k1");
+                    Assertions.assertThat(prop.getEncrypted()).isTrue();
+                });
     }
 
     @ParameterizedTest
@@ -813,30 +917,27 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .extracting(ApiV4::getResponseTemplates)
-            .satisfies(templates -> {
-                Assertions.assertThat(templates).containsKey("FOO_KEY");
-                var fooTemplate = templates.get("FOO_KEY");
-                Assertions.assertThat(fooTemplate).containsKey("application/json");
-                var rt = fooTemplate.get("application/json");
-                Assertions.assertThat(rt.getStatusCode()).isEqualTo(400);
-                Assertions.assertThat(rt.getBody()).isEqualTo("{}");
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .extracting(ApiV4::getResponseTemplates)
+                .satisfies(templates -> {
+                    Assertions.assertThat(templates).containsKey("FOO_KEY");
+                    var fooTemplate = templates.get("FOO_KEY");
+                    Assertions.assertThat(fooTemplate).containsKey("application/json");
+                    var rt = fooTemplate.get("application/json");
+                    Assertions.assertThat(rt.getStatusCode()).isEqualTo(400);
+                    Assertions.assertThat(rt.getBody()).isEqualTo("{}");
+                });
     }
 
     static Stream<Arguments> responseTemplatesUpdateVariants() {
         return Stream.of(
-            Arguments.of(
-                "{\"responseTemplates\":{\"FOO_KEY\":{\"application/json\":{\"statusCode\":400,\"body\":\"{}\"}}}}",
-                MERGE_PATCH_TYPE
-            ),
-            Arguments.of(
-                "[{\"op\":\"replace\",\"path\":\"/responseTemplates\",\"value\":{\"FOO_KEY\":{\"application/json\":{\"statusCode\":400,\"body\":\"{}\"}}}}]",
-                JSON_PATCH_TYPE
-            )
-        );
+                Arguments.of(
+                        "{\"responseTemplates\":{\"FOO_KEY\":{\"application/json\":{\"statusCode\":400,\"body\":\"{}\"}}}}",
+                        MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/responseTemplates\",\"value\":{\"FOO_KEY\":{\"application/json\":{\"statusCode\":400,\"body\":\"{}\"}}}}]",
+                        JSON_PATCH_TYPE));
     }
 
     @ParameterizedTest
@@ -844,22 +945,26 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     void should_update_listeners(String body, String contentType) {
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
-        assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiV4.class)
-            .satisfies(apiV4 -> {
-                var listeners = apiV4.getListeners();
-                Assertions.assertThat(listeners).hasSize(1);
-                Assertions.assertThat(listeners.getFirst().getHttpListener().getPaths().getFirst().getPath()).isEqualTo("/patched");
-            });
+        assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).satisfies(apiV4 -> {
+            var listeners = apiV4.getListeners();
+            Assertions.assertThat(listeners).hasSize(1);
+            Assertions.assertThat(listeners
+                            .getFirst()
+                            .getHttpListener()
+                            .getPaths()
+                            .getFirst()
+                            .getPath())
+                    .isEqualTo("/patched");
+        });
     }
 
     static Stream<Arguments> listenersUpdateVariants() {
         var listenerJson = listenerJson("/patched");
         return Stream.of(
-            Arguments.of("{\"listeners\":[" + listenerJson + "]}", MERGE_PATCH_TYPE),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/listeners\",\"value\":[" + listenerJson + "]}]", JSON_PATCH_TYPE)
-        );
+                Arguments.of("{\"listeners\":[" + listenerJson + "]}", MERGE_PATCH_TYPE),
+                Arguments.of(
+                        "[{\"op\":\"replace\",\"path\":\"/listeners\",\"value\":[" + listenerJson + "]}]",
+                        JSON_PATCH_TYPE));
     }
 
     @Test
@@ -867,17 +972,21 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var fixture = ApiFixtures.aProxyApiV4();
         apiCrudService.initWith(List.of(fixture));
 
-        var captured = new Api[] { null };
+        var captured = new Api[] {null};
         doAnswer(inv -> {
-            captured[0] = inv.getArgument(0);
-            return captured[0];
-        })
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
+                    captured[0] = inv.getArgument(0);
+                    return captured[0];
+                })
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
 
         var response = rootTarget(API)
-            .request()
-            .method("PATCH", Entity.entity("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"patched-name\"}]", JSON_PATCH_TYPE));
+                .request()
+                .method(
+                        "PATCH",
+                        Entity.entity(
+                                "[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"patched-name\"}]",
+                                JSON_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
 
@@ -885,27 +994,23 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         var fixtureDef = fixture.getApiDefinitionHttpV4();
 
         Assertions.assertThat(persistedDef.getListeners()).hasSameSizeAs(fixtureDef.getListeners());
-        Assertions.assertThat(persistedDef.getListeners().getFirst()).isInstanceOf(
-            io.gravitee.definition.model.v4.listener.http.HttpListener.class
-        );
-        var persistedListener = (io.gravitee.definition.model.v4.listener.http.HttpListener) persistedDef.getListeners().getFirst();
-        var fixtureListener = (io.gravitee.definition.model.v4.listener.http.HttpListener) fixtureDef.getListeners().getFirst();
+        Assertions.assertThat(persistedDef.getListeners().getFirst())
+                .isInstanceOf(io.gravitee.definition.model.v4.listener.http.HttpListener.class);
+        var persistedListener = (io.gravitee.definition.model.v4.listener.http.HttpListener)
+                persistedDef.getListeners().getFirst();
+        var fixtureListener = (io.gravitee.definition.model.v4.listener.http.HttpListener)
+                fixtureDef.getListeners().getFirst();
         Assertions.assertThat(persistedListener.getPaths()).isEqualTo(fixtureListener.getPaths());
 
         Assertions.assertThat(persistedDef.getEndpointGroups()).hasSameSizeAs(fixtureDef.getEndpointGroups());
-        Assertions.assertThat(persistedDef.getEndpointGroups().getFirst().getName()).isEqualTo(
-            fixtureDef.getEndpointGroups().getFirst().getName()
-        );
-        Assertions.assertThat(persistedDef.getEndpointGroups().getFirst().getType()).isEqualTo(
-            fixtureDef.getEndpointGroups().getFirst().getType()
-        );
+        Assertions.assertThat(persistedDef.getEndpointGroups().getFirst().getName())
+                .isEqualTo(fixtureDef.getEndpointGroups().getFirst().getName());
+        Assertions.assertThat(persistedDef.getEndpointGroups().getFirst().getType())
+                .isEqualTo(fixtureDef.getEndpointGroups().getFirst().getType());
     }
 
     private static String listenerJson(String path) {
-        return (
-            "{\"type\":\"HTTP\",\"paths\":[{\"path\":\"" +
-            path +
-            "\"}],\"entrypoints\":[{\"type\":\"http-proxy\",\"configuration\":\"{}\"}]}"
-        );
+        return ("{\"type\":\"HTTP\",\"paths\":[{\"path\":\"" + path
+                + "\"}],\"entrypoints\":[{\"type\":\"http-proxy\",\"configuration\":\"{}\"}]}");
     }
 }

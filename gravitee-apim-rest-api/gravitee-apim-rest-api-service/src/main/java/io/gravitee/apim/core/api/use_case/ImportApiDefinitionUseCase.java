@@ -39,9 +39,7 @@ public class ImportApiDefinitionUseCase {
     private final ImportDefinitionCreateDomainService importDefinitionCreateDomainService;
 
     public ImportApiDefinitionUseCase(
-        ApiCrudService apiCrudService,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService
-    ) {
+            ApiCrudService apiCrudService, ImportDefinitionCreateDomainService importDefinitionCreateDomainService) {
         this.apiCrudService = apiCrudService;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
     }
@@ -66,7 +64,8 @@ public class ImportApiDefinitionUseCase {
 
     private void ensureIsV4Api(ApiExport api) {
         if (api.getDefinitionVersion() != DefinitionVersion.V4) {
-            throw new ApiDefinitionVersionNotSupportedException(api.getDefinitionVersion().getLabel());
+            throw new ApiDefinitionVersionNotSupportedException(
+                    api.getDefinitionVersion().getLabel());
         }
     }
 }

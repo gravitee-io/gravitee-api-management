@@ -47,12 +47,11 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
     private final Cache<String, CorsConfiguration> corsConfigurationByUrl;
 
     public AbstractGraviteeUrlBasedCorsConfigurationSource(
-        Environment environment,
-        ParameterService parameterService,
-        InstallationAccessQueryService installationAccessQueryService,
-        EventManager eventManager,
-        ParameterReferenceType parameterReferenceType
-    ) {
+            Environment environment,
+            ParameterService parameterService,
+            InstallationAccessQueryService installationAccessQueryService,
+            EventManager eventManager,
+            ParameterReferenceType parameterReferenceType) {
         super();
         this.environment = environment;
         this.parameterService = parameterService;
@@ -61,9 +60,9 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
         this.parameterReferenceType = parameterReferenceType;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
-            .maxSize(environment.getProperty("cors.cache.max-size", Integer.class, 1000))
-            .timeToLiveInMs(environment.getProperty("cors.cache.ttl", Long.class, 60000L))
-            .build();
+                .maxSize(environment.getProperty("cors.cache.max-size", Integer.class, 1000))
+                .timeToLiveInMs(environment.getProperty("cors.cache.ttl", Long.class, 60000L))
+                .build();
 
         this.corsConfigurationByUrl = new InMemoryCache<>("cors-config-by-url", cacheConfiguration);
         this.corsConfigurationByUrl.addCacheListener(new CorsConfigurationCacheListener());
@@ -73,24 +72,23 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
     public CorsConfiguration getCorsConfiguration(final @NonNull HttpServletRequest request) {
         String referenceId = getReferenceId();
 
-        return corsConfigurationByUrl.computeIfAbsent(extractUrl(request), id ->
-            new GraviteeCorsConfiguration(
-                environment,
-                parameterService,
-                installationAccessQueryService,
-                eventManager,
-                referenceId != null ? referenceId : UNDEFINED_REFERENCE_ID,
-                parameterReferenceType
-            )
-        );
+        return corsConfigurationByUrl.computeIfAbsent(
+                extractUrl(request),
+                id -> new GraviteeCorsConfiguration(
+                        environment,
+                        parameterService,
+                        installationAccessQueryService,
+                        eventManager,
+                        referenceId != null ? referenceId : UNDEFINED_REFERENCE_ID,
+                        parameterReferenceType));
     }
 
     protected abstract String getReferenceId();
 
     private String extractUrl(HttpServletRequest request) {
         return extractUrlFromReferer(request)
-            .or(() -> extractUrlFromOrigin(request))
-            .orElseGet(() -> extractUrlFromServer(request));
+                .or(() -> extractUrlFromOrigin(request))
+                .orElseGet(() -> extractUrlFromServer(request));
     }
 
     private Optional<String> extractUrlFromReferer(HttpServletRequest request) {

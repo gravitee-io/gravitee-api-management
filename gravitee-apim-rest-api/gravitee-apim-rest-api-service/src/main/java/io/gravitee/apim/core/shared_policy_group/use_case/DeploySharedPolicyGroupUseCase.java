@@ -46,16 +46,15 @@ public class DeploySharedPolicyGroupUseCase {
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
-        final SharedPolicyGroup existingSharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
-            input.environmentId(),
-            input.sharedPolicyGroupId()
-        );
+        final SharedPolicyGroup existingSharedPolicyGroup =
+                sharedPolicyGroupCrudService.getByEnvironmentId(input.environmentId(), input.sharedPolicyGroupId());
 
         existingSharedPolicyGroup.deploy();
 
         publishEvent(input, existingSharedPolicyGroup.toDefinition(), existingSharedPolicyGroup);
 
-        final SharedPolicyGroup updatedSharedPolicyGroup = sharedPolicyGroupCrudService.update(existingSharedPolicyGroup);
+        final SharedPolicyGroup updatedSharedPolicyGroup =
+                sharedPolicyGroupCrudService.update(existingSharedPolicyGroup);
         sharedPolicyGroupHistoryCrudService.create(updatedSharedPolicyGroup);
 
         createAuditLog(existingSharedPolicyGroup, updatedSharedPolicyGroup, input.auditInfo);
@@ -64,28 +63,28 @@ public class DeploySharedPolicyGroupUseCase {
     }
 
     private void publishEvent(
-        Input input,
-        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup definition,
-        SharedPolicyGroup sharedPolicyGroup
-    ) {
+            Input input,
+            io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup definition,
+            SharedPolicyGroup sharedPolicyGroup) {
         final Event event = eventCrudService.createEvent(
-            input.auditInfo().organizationId(),
-            input.environmentId,
-            Set.of(input.environmentId),
-            EventType.DEPLOY_SHARED_POLICY_GROUP,
-            definition,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, input.auditInfo().actor().userId()),
-                entry(Event.EventProperties.SHARED_POLICY_GROUP_ID, sharedPolicyGroup.getCrossId())
-            )
-        );
+                input.auditInfo().organizationId(),
+                input.environmentId,
+                Set.of(input.environmentId),
+                EventType.DEPLOY_SHARED_POLICY_GROUP,
+                definition,
+                Map.ofEntries(
+                        entry(
+                                Event.EventProperties.USER,
+                                input.auditInfo().actor().userId()),
+                        entry(Event.EventProperties.SHARED_POLICY_GROUP_ID, sharedPolicyGroup.getCrossId())));
 
-        eventLatestCrudService.createOrPatchLatestEvent(input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
+        eventLatestCrudService.createOrPatchLatestEvent(
+                input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
     }
 
-    private void createAuditLog(SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+    private void createAuditLog(
+            SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_DEPLOYED)
@@ -94,8 +93,7 @@ public class DeploySharedPolicyGroupUseCase {
                 .newValue(sharedPolicyGroup)
                 .createdAt(sharedPolicyGroup.getUpdatedAt())
                 .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP, sharedPolicyGroup.getId()))
-                .build()
-        );
+                .build());
     }
 
     public record Output(SharedPolicyGroup sharedPolicyGroup) {}

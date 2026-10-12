@@ -65,7 +65,8 @@ public class RateLimitRepositoryConfiguration {
     }
 
     @Bean
-    public TokenBucketRateLimitRepository<TokenBucket> tokenBucketRateLimitRepository(HazelcastInstance ratelimitHazelcastInstance) {
+    public TokenBucketRateLimitRepository<TokenBucket> tokenBucketRateLimitRepository(
+            HazelcastInstance ratelimitHazelcastInstance) {
         return new HazelcastTokenBucketRateLimitRepository(ratelimitHazelcastInstance.getMap(TOKEN_BUCKET_MAP));
     }
 

@@ -22,6 +22,9 @@ import org.mapstruct.factory.Mappers;
 public interface MembershipAdapter {
     MembershipAdapter INSTANCE = Mappers.getMapper(MembershipAdapter.class);
 
-    io.gravitee.apim.core.membership.model.Membership toEntity(io.gravitee.repository.management.model.Membership membership);
-    io.gravitee.repository.management.model.Membership toRepository(io.gravitee.apim.core.membership.model.Membership membership);
+    io.gravitee.apim.core.membership.model.Membership toEntity(
+            io.gravitee.repository.management.model.Membership membership);
+
+    io.gravitee.repository.management.model.Membership toRepository(
+            io.gravitee.apim.core.membership.model.Membership membership);
 }

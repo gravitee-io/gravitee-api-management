@@ -39,18 +39,18 @@ public class DeletePortalUseCase {
 
     public void execute(Input input) {
         var portal = portalCrudService
-            .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
-            .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
+                .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
+                .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
         navigationSyncDomainService.sync(
-            input.auditInfo(),
-            input.portalId(),
-            portal.getNavigationStructure(),
-            PortalNavigationStructure.empty()
-        );
+                input.auditInfo(),
+                input.portalId(),
+                portal.getNavigationStructure(),
+                PortalNavigationStructure.empty());
         if (portal.getActiveThemeId() != null) {
             themeCrudService
-                .findByIdAndEnvironmentId(portal.getActiveThemeId(), input.auditInfo().environmentId())
-                .ifPresent(currentThemeDomainService::deactivateAndFallback);
+                    .findByIdAndEnvironmentId(
+                            portal.getActiveThemeId(), input.auditInfo().environmentId())
+                    .ifPresent(currentThemeDomainService::deactivateAndFallback);
         }
         portalCrudService.delete(input.portalId());
     }

@@ -50,7 +50,8 @@ public class ObservabilityFiltersDefinitionResource extends AbstractResource {
         }
 
         var input = new GetAnalyticsFilterDefinitionsUseCase.Input(parseSignals(signals));
-        return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getAnalyticsFilterDefinitions.execute(input).specs());
+        return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(
+                getAnalyticsFilterDefinitions.execute(input).specs());
     }
 
     private static Set<Signal> parseSignals(List<String> raw) {

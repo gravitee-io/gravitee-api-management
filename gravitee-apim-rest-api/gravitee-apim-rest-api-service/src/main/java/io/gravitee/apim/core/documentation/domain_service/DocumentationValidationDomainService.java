@@ -94,20 +94,19 @@ public class DocumentationValidationDomainService {
     public void validateTemplate(String pageContent, String apiId, String organizationId) {
         try {
             Api exitingApi = this.apiCrudService.get(apiId);
-            var metadata = this.apiMetadataQueryService.findApiMetadata(exitingApi.getEnvironmentId(), apiId)
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, entry ->
-                        entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
-                    )
-                );
+            var metadata =
+                    this.apiMetadataQueryService
+                            .findApiMetadata(exitingApi.getEnvironmentId(), apiId)
+                            .entrySet()
+                            .stream()
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    entry -> entry.getValue().getValue() != null
+                                            ? entry.getValue().getValue()
+                                            : entry.getValue().getDefaultValue()));
 
             var api = new ApiFreemarkerTemplate(
-                exitingApi,
-                metadata,
-                apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId)
-            );
+                    exitingApi, metadata, apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId));
 
             this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", api));
         } catch (ApiNotFoundException e) {
@@ -126,11 +125,10 @@ public class DocumentationValidationDomainService {
     }
 
     public Page validateAndSanitizeForCreation(Page page, String organizationId, boolean shouldValidateParentId) {
-        var sanitizedPage = page
-            .toBuilder()
-            .name(this.sanitizeDocumentationName(page.getName()))
-            .accessControls(this.sanitizeAccessControls(page.getAccessControls()))
-            .build();
+        var sanitizedPage = page.toBuilder()
+                .name(this.sanitizeDocumentationName(page.getName()))
+                .accessControls(this.sanitizeAccessControls(page.getAccessControls()))
+                .build();
 
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
@@ -146,7 +144,9 @@ public class DocumentationValidationDomainService {
     }
 
     public Page validateAndSanitizeForUpdate(Page page, String organizationId, boolean shouldValidateParentId) {
-        var sanitizedPage = page.toBuilder().accessControls(this.sanitizeAccessControls(page.getAccessControls())).build();
+        var sanitizedPage = page.toBuilder()
+                .accessControls(this.sanitizeAccessControls(page.getAccessControls()))
+                .build();
 
         pageSourceDomainService.setContentFromSource(sanitizedPage);
 
@@ -184,49 +184,49 @@ public class DocumentationValidationDomainService {
     }
 
     private void validateNameIsUnique(Page page) {
-        this.apiDocumentationDomainService.validateNameIsUnique(page.getReferenceId(), page.getParentId(), page.getName(), page.getType());
+        this.apiDocumentationDomainService.validateNameIsUnique(
+                page.getReferenceId(), page.getParentId(), page.getName(), page.getType());
     }
 
     private Set<AccessControl> retainExistingGroupAndRoleAccessControls(Set<AccessControl> accessControls) {
-        var accessControlsByGroupAndRole = accessControls
-            .stream()
-            .filter(
-                accessControl ->
-                    Objects.equals("GROUP", accessControl.getReferenceType()) || Objects.equals("ROLE", accessControl.getReferenceType())
-            )
-            .collect(Collectors.groupingBy(AccessControl::getReferenceType));
+        var accessControlsByGroupAndRole = accessControls.stream()
+                .filter(accessControl -> Objects.equals("GROUP", accessControl.getReferenceType())
+                        || Objects.equals("ROLE", accessControl.getReferenceType()))
+                .collect(Collectors.groupingBy(AccessControl::getReferenceType));
 
         accessControlsByGroupAndRole.computeIfPresent("GROUP", (key, acs) -> {
             var referenceIds = acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet());
             var foundGroups = findGroupReferences(referenceIds);
-            return acs
-                .stream()
-                .filter(accessControl -> foundGroups.contains(accessControl.getReferenceId()))
-                .toList();
+            return acs.stream()
+                    .filter(accessControl -> foundGroups.contains(accessControl.getReferenceId()))
+                    .toList();
         });
 
         accessControlsByGroupAndRole.computeIfPresent("ROLE", (key, acs) -> {
-            var foundRoleIds = this.roleQueryService.findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
-                .stream()
-                .map(Role::getId)
-                .toList();
-            return acs
-                .stream()
-                .filter(accessControl -> foundRoleIds.contains(accessControl.getReferenceId()))
-                .toList();
+            var foundRoleIds = this.roleQueryService
+                    .findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
+                    .stream()
+                    .map(Role::getId)
+                    .toList();
+            return acs.stream()
+                    .filter(accessControl -> foundRoleIds.contains(accessControl.getReferenceId()))
+                    .toList();
         });
 
-        return accessControlsByGroupAndRole.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        return accessControlsByGroupAndRole.values().stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     // TODO this should be moved in a validator we own
     private List<String> findGroupReferences(Set<String> referenceIds) {
-        var byIds = this.groupQueryService.findByIds(referenceIds).stream().map(Group::getId).toList();
+        var byIds = this.groupQueryService.findByIds(referenceIds).stream()
+                .map(Group::getId)
+                .toList();
 
-        var byNames = this.groupQueryService.findByNames(GraviteeContext.getCurrentEnvironment(), referenceIds)
-            .stream()
-            .map(Group::getName)
-            .toList();
+        var byNames = this.groupQueryService.findByNames(GraviteeContext.getCurrentEnvironment(), referenceIds).stream()
+                .map(Group::getName)
+                .toList();
 
         return Stream.concat(byIds.stream(), byNames.stream()).toList();
     }

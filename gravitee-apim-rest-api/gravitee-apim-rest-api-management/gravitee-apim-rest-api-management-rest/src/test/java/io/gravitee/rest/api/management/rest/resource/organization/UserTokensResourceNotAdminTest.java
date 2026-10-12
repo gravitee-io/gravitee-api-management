@@ -52,14 +52,12 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
 
     @BeforeEach
     public void init() {
-        when(
-            permissionService.hasPermission(
-                any(ExecutionContext.class),
-                any(RolePermission.class),
-                anyString(),
-                any(RolePermissionAction[].class)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        any(ExecutionContext.class),
+                        any(RolePermission.class),
+                        anyString(),
+                        any(RolePermissionAction[].class)))
+                .thenReturn(false);
         reset(tokenService);
     }
 

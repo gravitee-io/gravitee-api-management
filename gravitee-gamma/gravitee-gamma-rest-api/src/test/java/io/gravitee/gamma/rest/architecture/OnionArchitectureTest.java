@@ -31,38 +31,40 @@ import com.tngtech.archunit.lang.ArchRule;
  * Catches regressions where, e.g., a use case starts importing an adapter or a JAX-RS resource starts
  * touching the platform repository SPI directly instead of going through a use case.
  */
-@AnalyzeClasses(packages = BASE_PACKAGE, importOptions = { ImportOption.DoNotIncludeTests.class })
+@AnalyzeClasses(
+        packages = BASE_PACKAGE,
+        importOptions = {ImportOption.DoNotIncludeTests.class})
 class OnionArchitectureTest {
 
     @ArchTest
     static final ArchRule core_must_not_depend_on_infra = noClasses()
-        .that()
-        .resideInAPackage(CORE_PACKAGE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(INFRA_PACKAGE);
+            .that()
+            .resideInAPackage(CORE_PACKAGE)
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage(INFRA_PACKAGE);
 
     @ArchTest
     static final ArchRule core_must_not_depend_on_rest_resources = noClasses()
-        .that()
-        .resideInAPackage(CORE_PACKAGE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(RESOURCES_PACKAGE);
+            .that()
+            .resideInAPackage(CORE_PACKAGE)
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage(RESOURCES_PACKAGE);
 
     @ArchTest
     static final ArchRule rest_resources_must_not_depend_on_infra = noClasses()
-        .that()
-        .resideInAPackage(RESOURCES_PACKAGE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(INFRA_PACKAGE);
+            .that()
+            .resideInAPackage(RESOURCES_PACKAGE)
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage(INFRA_PACKAGE);
 
     @ArchTest
     static final ArchRule infra_must_not_depend_on_rest_resources = noClasses()
-        .that()
-        .resideInAPackage(INFRA_PACKAGE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(RESOURCES_PACKAGE);
+            .that()
+            .resideInAPackage(INFRA_PACKAGE)
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage(RESOURCES_PACKAGE);
 }

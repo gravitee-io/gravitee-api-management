@@ -49,6 +49,7 @@ public class ApiMetricsDetail {
     String entrypointId;
     /** API Product the request went through, from {@code api-product-id}; absent for a standalone API. */
     String apiProductId;
+
     String message;
     String errorKey;
     String errorComponentName;
@@ -67,5 +68,6 @@ public class ApiMetricsDetail {
      * scope or redact it.
      */
     String securityToken;
+
     Map<String, Object> additionalMetrics;
 }

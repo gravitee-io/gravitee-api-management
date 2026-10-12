@@ -72,13 +72,16 @@ public class ApisResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @Valid @NotNull LegacyAPIV4Spec spec,
-        @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @QueryParam("ignoreGroups") boolean ignoreGroups
-    ) {
+            @Valid @NotNull LegacyAPIV4Spec spec,
+            @QueryParam("dryRun") boolean dryRun,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+            @QueryParam("ignoreGroups") boolean ignoreGroups) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -88,8 +91,7 @@ public class ApisResource extends AbstractResource {
         SharedPolicyGroupIdHelper.addSharedPolicyGroupIdFromHrid(spec, auditInfo);
 
         ApiCRDSpec apiCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper.INSTANCE.map(
-            ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
-        );
+                ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec));
 
         if (hridContainsUUID) {
             // As Automation API does not have any ID field,
@@ -111,37 +113,43 @@ public class ApisResource extends AbstractResource {
         if (dryRun) {
             var statusBuilder = ApiCRDStatus.builder();
             validateApiCRDDomainService
-                .validateAndSanitize(new ValidateApiCRDDomainService.Input(auditInfo, apiCRDSpec))
-                .peek(
-                    sanitized ->
-                        statusBuilder
-                            .id(sanitized.spec().getId())
-                            .crossId(sanitized.spec().getCrossId())
-                            .organizationId(auditInfo.organizationId())
-                            .environmentId(auditInfo.environmentId()),
-                    errors -> statusBuilder.errors(ApiCRDStatus.Errors.fromErrorList(errors))
-                );
-            return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, statusBuilder.build())).build();
+                    .validateAndSanitize(new ValidateApiCRDDomainService.Input(auditInfo, apiCRDSpec))
+                    .peek(
+                            sanitized -> statusBuilder
+                                    .id(sanitized.spec().getId())
+                                    .crossId(sanitized.spec().getCrossId())
+                                    .organizationId(auditInfo.organizationId())
+                                    .environmentId(auditInfo.environmentId()),
+                            errors -> statusBuilder.errors(ApiCRDStatus.Errors.fromErrorList(errors)));
+            return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, statusBuilder.build()))
+                    .build();
         }
 
-        ApiCRDStatus apiCRDStatus = importApiCRDUseCase.execute(new ImportApiCRDUseCase.Input(auditInfo, apiCRDSpec)).status();
+        ApiCRDStatus apiCRDStatus = importApiCRDUseCase
+                .execute(new ImportApiCRDUseCase.Input(auditInfo, apiCRDSpec))
+                .status();
 
         SharedPolicyGroupIdHelper.removeSharedPolicyGroupId(spec);
-        return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
+        return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus))
+                .build();
     }
 
     private void checkPlanAndPagesUnicity(@Valid @NotNull LegacyAPIV4Spec spec) {
-        if (
-            spec.getPlans() != null &&
-            spec.getPlans().size() != CollectionUtils.stream(spec.getPlans()).map(PlanV4::getHrid).distinct().count()
-        ) {
+        if (spec.getPlans() != null
+                && spec.getPlans().size()
+                        != CollectionUtils.stream(spec.getPlans())
+                                .map(PlanV4::getHrid)
+                                .distinct()
+                                .count()) {
             throw new ValidationDomainException("Duplicate hrid found in plans");
         }
 
-        if (
-            spec.getPages() != null &&
-            spec.getPages().size() != CollectionUtils.stream(spec.getPages()).map(PageV4::getHrid).distinct().count()
-        ) {
+        if (spec.getPages() != null
+                && spec.getPages().size()
+                        != CollectionUtils.stream(spec.getPages())
+                                .map(PageV4::getHrid)
+                                .distinct()
+                                .count()) {
             throw new ValidationDomainException("Duplicate hrid found in pages");
         }
     }

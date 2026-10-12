@@ -25,7 +25,6 @@ import static java.util.Comparator.comparing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
-import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -109,25 +108,24 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final ValidateApiClusterBindingService validateApiClusterBindingService;
 
     public ApiStateServiceImpl(
-        @Lazy final ApiSearchService apiSearchService,
-        @Lazy final ApiRepository apiRepository,
-        final ApiMapper apiMapper,
-        final GenericApiMapper genericApiMapper,
-        @Lazy final ApiNotificationService apiNotificationService,
-        @Lazy final PrimaryOwnerService primaryOwnerService,
-        final AuditService auditService,
-        @Lazy final EventService eventService,
-        @Lazy final EventLatestRepository eventLatestRepository,
-        final ObjectMapper objectMapper,
-        @Lazy final ApiMetadataService apiMetadataService,
-        @Lazy final ApiValidationService apiValidationService,
-        final PlanSearchService planSearchService,
-        final ApiConverter apiConverter,
-        final SynchronizationService synchronizationService,
-        final EventManager eventManager,
-        final SearchEngineService searchEngineService,
-        @Lazy final ValidateApiClusterBindingService validateApiClusterBindingService
-    ) {
+            @Lazy final ApiSearchService apiSearchService,
+            @Lazy final ApiRepository apiRepository,
+            final ApiMapper apiMapper,
+            final GenericApiMapper genericApiMapper,
+            @Lazy final ApiNotificationService apiNotificationService,
+            @Lazy final PrimaryOwnerService primaryOwnerService,
+            final AuditService auditService,
+            @Lazy final EventService eventService,
+            @Lazy final EventLatestRepository eventLatestRepository,
+            final ObjectMapper objectMapper,
+            @Lazy final ApiMetadataService apiMetadataService,
+            @Lazy final ApiValidationService apiValidationService,
+            final PlanSearchService planSearchService,
+            final ApiConverter apiConverter,
+            final SynchronizationService synchronizationService,
+            final EventManager eventManager,
+            final SearchEngineService searchEngineService,
+            @Lazy final ValidateApiClusterBindingService validateApiClusterBindingService) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -150,61 +148,58 @@ public class ApiStateServiceImpl implements ApiStateService {
 
     @Override
     public GenericApiEntity deploy(
-        ExecutionContext executionContext,
-        String apiId,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity) {
         Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
-        return deployAuditedAs(executionContext, api, api, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_ACCESSED);
+        return deployAuditedAs(
+                executionContext, api, api, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_ACCESSED);
     }
 
     @Override
     public GenericApiEntity deploy(
-        ExecutionContext executionContext,
-        Api apiToDeploy,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity
-    ) {
+            ExecutionContext executionContext,
+            Api apiToDeploy,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity) {
         Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
         return deployAuditedAs(
-            executionContext,
-            storedApi,
-            apiToDeploy,
-            authenticatedUser,
-            apiDeploymentEntity,
-            API_ENCRYPTED_PROPERTIES_ACCESSED
-        );
+                executionContext,
+                storedApi,
+                apiToDeploy,
+                authenticatedUser,
+                apiDeploymentEntity,
+                API_ENCRYPTED_PROPERTIES_ACCESSED);
     }
 
     @Override
     public GenericApiEntity redeployWithSyncedDynamicProperties(
-        ExecutionContext executionContext,
-        Api apiToDeploy,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity
-    ) {
+            ExecutionContext executionContext,
+            Api apiToDeploy,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity) {
         Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
         return deployAuditedAs(
-            executionContext,
-            storedApi,
-            apiToDeploy,
-            authenticatedUser,
-            apiDeploymentEntity,
-            API_ENCRYPTED_PROPERTIES_REFRESHED
-        );
+                executionContext,
+                storedApi,
+                apiToDeploy,
+                authenticatedUser,
+                apiDeploymentEntity,
+                API_ENCRYPTED_PROPERTIES_REFRESHED);
     }
 
     private GenericApiEntity deployAuditedAs(
-        ExecutionContext executionContext,
-        Api storedApi,
-        Api apiToDeploy,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity,
-        Api.AuditEvent accessEvent
-    ) {
-        GenericApiEntity deployedApi = deploy(executionContext, storedApi, apiToDeploy, authenticatedUser, apiDeploymentEntity);
-        auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), authenticatedUser, accessEvent);
+            ExecutionContext executionContext,
+            Api storedApi,
+            Api apiToDeploy,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity,
+            Api.AuditEvent accessEvent) {
+        GenericApiEntity deployedApi =
+                deploy(executionContext, storedApi, apiToDeploy, authenticatedUser, apiDeploymentEntity);
+        auditEncryptedPropertiesAccess(
+                executionContext, deployedApi, storedApi.getDeployedAt(), authenticatedUser, accessEvent);
         return notifyDeployment(executionContext, deployedApi);
     }
 
@@ -214,26 +209,23 @@ public class ApiStateServiceImpl implements ApiStateService {
      * @param apiToDeploy is the api to deploy in an Event. It can defer from apiFromDb in case an ApiService is still running in background
      */
     private GenericApiEntity deploy(
-        ExecutionContext executionContext,
-        Api apiFromDb,
-        Api apiToDeploy,
-        String authenticatedUser,
-        ApiDeploymentEntity apiDeploymentEntity
-    ) {
+            ExecutionContext executionContext,
+            Api apiFromDb,
+            Api apiToDeploy,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity) {
         log.debug("Deploy API: {}", apiToDeploy.getId());
 
         if (!apiValidationService.canDeploy(executionContext, apiToDeploy.getId())) {
             throw new ApiNotDeployableException(
-                "The api {" + apiToDeploy.getId() + "} can not be deployed without at least one published plan"
-            );
+                    "The api {" + apiToDeploy.getId() + "} can not be deployed without at least one published plan");
         }
 
         validateApiClusterBindingService.validateDeployable(
-            apiToDeploy.getId(),
-            apiToDeploy.getEnvironmentId(),
-            apiToDeploy.getType(),
-            apiToDeploy.getDefinition()
-        );
+                apiToDeploy.getId(),
+                apiToDeploy.getEnvironmentId(),
+                apiToDeploy.getType(),
+                apiToDeploy.getDefinition());
 
         // FIXME: improvement: what about updating deployedAt only when the user trigger it manually ?
         this.updateDeploymentDate(apiFromDb);
@@ -242,7 +234,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
         this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, apiToDeploy);
 
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiToDeploy.getId());
+        PrimaryOwnerEntity primaryOwner =
+                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiToDeploy.getId());
         return genericApiMapper.toGenericApi(apiToDeploy, primaryOwner);
     }
 
@@ -253,39 +246,35 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     private void auditEncryptedPropertiesAccess(
-        ExecutionContext executionContext,
-        GenericApiEntity deployedApi,
-        Date deployedAt,
-        String authenticatedUser,
-        Api.AuditEvent event
-    ) {
+            ExecutionContext executionContext,
+            GenericApiEntity deployedApi,
+            Date deployedAt,
+            String authenticatedUser,
+            Api.AuditEvent event) {
         List<Property> properties = v4Properties(deployedApi);
         Map<Audit.AuditProperties, String> encryptedMarker = EncryptedPropertyAuditProperties.of(null, properties);
         if (encryptedMarker.isEmpty()) {
             return;
         }
         auditService.createApiAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(encryptedMarker)
-                .event(event)
-                .createdAt(deployedAt)
-                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
-                .build(),
-            deployedApi.getId(),
-            authenticatedUser
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(encryptedMarker)
+                        .event(event)
+                        .createdAt(deployedAt)
+                        .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
+                        .build(),
+                deployedApi.getId(),
+                authenticatedUser);
     }
 
     private static Map<String, String> ciphertextByKey(List<Property> properties) {
-        return properties
-            .stream()
-            .filter(Property::isEncrypted)
-            .collect(
-                HashMap::new,
-                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
-                HashMap::putAll
-            );
+        return properties.stream()
+                .filter(Property::isEncrypted)
+                .collect(
+                        HashMap::new,
+                        (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
+                        HashMap::putAll);
     }
 
     private static List<Property> v4Properties(GenericApiEntity api) {
@@ -308,7 +297,11 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
     }
 
-    private void deployApi(ExecutionContext executionContext, String authenticatedUser, ApiDeploymentEntity apiDeploymentEntity, Api api) {
+    private void deployApi(
+            ExecutionContext executionContext,
+            String authenticatedUser,
+            ApiDeploymentEntity apiDeploymentEntity,
+            Api api) {
         // Clear useless field for history
         api.setPicture(null);
 
@@ -319,39 +312,34 @@ public class ApiStateServiceImpl implements ApiStateService {
 
         // And create event
         eventService.createApiEvent(
-            executionContext,
-            singleton(executionContext.getEnvironmentId()),
-            executionContext.getOrganizationId(),
-            EventType.PUBLISH_API,
-            api,
-            properties
-        );
+                executionContext,
+                singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
+                EventType.PUBLISH_API,
+                api,
+                properties);
     }
 
     private void addDeploymentLabelToProperties(
-        ExecutionContext executionContext,
-        String apiId,
-        Map<String, String> properties,
-        ApiDeploymentEntity apiDeploymentEntity
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            Map<String, String> properties,
+            ApiDeploymentEntity apiDeploymentEntity) {
         EventCriteria criteria = EventCriteria.builder()
-            .types(
-                Set.of(
-                    io.gravitee.repository.management.model.EventType.PUBLISH_API,
-                    io.gravitee.repository.management.model.EventType.STOP_API,
-                    io.gravitee.repository.management.model.EventType.START_API,
-                    io.gravitee.repository.management.model.EventType.UNPUBLISH_API
-                )
-            )
-            .property(Event.EventProperties.API_ID.getValue(), apiId)
-            .build();
+                .types(Set.of(
+                        io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                        io.gravitee.repository.management.model.EventType.STOP_API,
+                        io.gravitee.repository.management.model.EventType.START_API,
+                        io.gravitee.repository.management.model.EventType.UNPUBLISH_API))
+                .property(Event.EventProperties.API_ID.getValue(), apiId)
+                .build();
 
-        String lastDeployNumber = eventLatestRepository
-            .search(criteria, Event.EventProperties.API_ID, 0L, 1L)
-            .stream()
-            .findFirst()
-            .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
-            .orElse("0");
+        String lastDeployNumber = eventLatestRepository.search(criteria, Event.EventProperties.API_ID, 0L, 1L).stream()
+                .findFirst()
+                .map(eventEntity -> eventEntity
+                        .getProperties()
+                        .getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
+                .orElse("0");
 
         String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
@@ -364,7 +352,8 @@ public class ApiStateServiceImpl implements ApiStateService {
     @Override
     public GenericApiEntity start(ExecutionContext executionContext, String apiId, String userId) {
         if (!apiValidationService.canDeploy(executionContext, apiId)) {
-            throw new ApiNotDeployableException("The API {" + apiId + "} can not be started without at least one published plan");
+            throw new ApiNotDeployableException(
+                    "The API {" + apiId + "} can not be started without at least one published plan");
         }
 
         try {
@@ -442,7 +431,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
     }
 
-    private GenericApiEntity stopApi(ExecutionContext executionContext, String apiId, String userId, boolean sendNotification) {
+    private GenericApiEntity stopApi(
+            ExecutionContext executionContext, String apiId, String userId, boolean sendNotification) {
         try {
             log.debug("Stop API {}", apiId);
             GenericApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
@@ -460,22 +450,15 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     private GenericApiEntity updateLifecycle(
-        ExecutionContext executionContext,
-        String apiId,
-        LifecycleState lifecycleState,
-        String username
-    ) throws TechnicalException {
+            ExecutionContext executionContext, String apiId, LifecycleState lifecycleState, String username)
+            throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
             Api api = optApi.get();
 
             if (lifecycleState == LifecycleState.STARTED) {
                 validateApiClusterBindingService.validateDeployable(
-                    api.getId(),
-                    api.getEnvironmentId(),
-                    api.getType(),
-                    api.getDefinition()
-                );
+                        api.getId(), api.getEnvironmentId(), api.getType(), api.getDefinition());
             }
 
             Api previousApi = new Api(api);
@@ -485,16 +468,15 @@ public class ApiStateServiceImpl implements ApiStateService {
 
             // Audit
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(emptyMap())
-                    .event(API_UPDATED)
-                    .createdAt(api.getUpdatedAt())
-                    .oldValue(previousApi)
-                    .newValue(api)
-                    .build(),
-                apiId
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(emptyMap())
+                            .event(API_UPDATED)
+                            .createdAt(api.getUpdatedAt())
+                            .oldValue(previousApi)
+                            .newValue(api)
+                            .build(),
+                    apiId);
 
             EventType eventType = null;
             switch (lifecycleState) {
@@ -514,9 +496,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             }
 
             return genericApiMapper.toGenericApi(
-                updateApi,
-                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())
-            );
+                    updateApi, primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId()));
         } else {
             throw new ApiNotFoundException(apiId);
         }
@@ -530,8 +510,9 @@ public class ApiStateServiceImpl implements ApiStateService {
      * @return The persisted API or null
      * @throws TechnicalException if an exception occurs while saving the API
      */
-    private GenericApiEntity deployLastPublishedAPI(ExecutionContext executionContext, String apiId, String userId, EventType eventType)
-        throws TechnicalException {
+    private GenericApiEntity deployLastPublishedAPI(
+            ExecutionContext executionContext, String apiId, String userId, EventType eventType)
+            throws TechnicalException {
         final EventQuery query = new EventQuery();
         query.setApi(apiId);
         query.setTypes(singleton(EventType.PUBLISH_API));
@@ -542,10 +523,8 @@ public class ApiStateServiceImpl implements ApiStateService {
             query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
         }
 
-        final Optional<EventEntity> optEvent = eventService
-            .search(executionContext, query)
-            .stream()
-            .max(comparing(EventEntity::getCreatedAt));
+        final Optional<EventEntity> optEvent =
+                eventService.search(executionContext, query).stream().max(comparing(EventEntity::getCreatedAt));
 
         try {
             if (optEvent.isPresent()) {
@@ -558,23 +537,21 @@ public class ApiStateServiceImpl implements ApiStateService {
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
                 properties.put(
-                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
-                    Optional.ofNullable(event.getProperties())
-                        .map(p -> p.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
-                        .orElse("0")
-                );
+                        Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                        Optional.ofNullable(event.getProperties())
+                                .map(p -> p.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
+                                .orElse("0"));
                 // Clear useless field for history
                 lastPublishedAPI.setPicture(null);
 
                 // And create event
                 eventService.createApiEvent(
-                    executionContext,
-                    singleton(executionContext.getEnvironmentId()),
-                    executionContext.getOrganizationId(),
-                    eventType,
-                    lastPublishedAPI,
-                    properties
-                );
+                        executionContext,
+                        singleton(executionContext.getEnvironmentId()),
+                        executionContext.getOrganizationId(),
+                        eventType,
+                        lastPublishedAPI,
+                        properties);
                 return null;
             } else {
                 // this is the first time we start the api without previously deployed id.
@@ -600,7 +577,8 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lifecycleState = LifecycleState.STOPPED;
                 break;
             default:
-                throw new IllegalArgumentException("Unknown EventType " + eventType + " to convert EventType into Lifecycle");
+                throw new IllegalArgumentException(
+                        "Unknown EventType " + eventType + " to convert EventType into Lifecycle");
         }
         return lifecycleState;
     }
@@ -615,81 +593,70 @@ public class ApiStateServiceImpl implements ApiStateService {
 
             // 1 - Check if the api definition is sync with last one in events
             List<Event> events = eventLatestRepository.search(
-                EventCriteria.builder()
-                    .types(
-                        List.of(
-                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
-                            io.gravitee.repository.management.model.EventType.STOP_API,
-                            io.gravitee.repository.management.model.EventType.START_API,
-                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
-                        )
-                    )
-                    .properties(Map.of(Event.EventProperties.API_ID.getValue(), genericApiEntity.getId()))
-                    .build(),
-                Event.EventProperties.API_ID,
-                0L,
-                1L
-            );
+                    EventCriteria.builder()
+                            .types(List.of(
+                                    io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                                    io.gravitee.repository.management.model.EventType.STOP_API,
+                                    io.gravitee.repository.management.model.EventType.START_API,
+                                    io.gravitee.repository.management.model.EventType.UNPUBLISH_API))
+                            .properties(Map.of(Event.EventProperties.API_ID.getValue(), genericApiEntity.getId()))
+                            .build(),
+                    Event.EventProperties.API_ID,
+                    0L,
+                    1L);
 
             if (!events.isEmpty()) {
                 // According to page size, we know that we have only one element in the list
                 Event lastEvent = events.get(0);
                 boolean sync = false;
-                if (
-                    io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType()) ||
-                    io.gravitee.repository.management.model.EventType.START_API.equals(lastEvent.getType()) ||
-                    io.gravitee.repository.management.model.EventType.STOP_API.equals(lastEvent.getType())
-                ) {
+                if (io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType())
+                        || io.gravitee.repository.management.model.EventType.START_API.equals(lastEvent.getType())
+                        || io.gravitee.repository.management.model.EventType.STOP_API.equals(lastEvent.getType())) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
-                    if (
-                        payloadEntity != null &&
-                        getOrV2(genericApiEntity::getDefinitionVersion) != getOrV2(payloadEntity::getDefinitionVersion)
-                    ) {
+                    if (payloadEntity != null
+                            && getOrV2(genericApiEntity::getDefinitionVersion)
+                                    != getOrV2(payloadEntity::getDefinitionVersion)) {
                         return false;
                     }
 
                     if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
-                        io.gravitee.rest.api.model.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity;
+                        io.gravitee.rest.api.model.api.ApiEntity apiEntity =
+                                (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity;
 
-                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(payloadEntity, null, false);
+                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity =
+                                apiConverter.toApiEntity(payloadEntity, null, false);
 
                         removePlans(apiEntity, deployedApiEntity);
                         sync = synchronizationService.checkSynchronization(
-                            io.gravitee.rest.api.model.api.ApiEntity.class,
-                            deployedApiEntity,
-                            apiEntity
-                        );
+                                io.gravitee.rest.api.model.api.ApiEntity.class, deployedApiEntity, apiEntity);
                     } else if (genericApiEntity instanceof ApiEntity httpApiEntity) {
                         ApiEntity deployedApiEntity = apiMapper.toEntity(payloadEntity, null);
                         removePlans(httpApiEntity, deployedApiEntity);
-                        sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, httpApiEntity);
+                        sync = synchronizationService.checkSynchronization(
+                                ApiEntity.class, deployedApiEntity, httpApiEntity);
                     } else if (genericApiEntity instanceof NativeApiEntity nativeApiEntity) {
                         NativeApiEntity deployedApiEntity = apiMapper.toNativeEntity(payloadEntity, null);
 
                         removePlans(nativeApiEntity, deployedApiEntity);
-                        sync = synchronizationService.checkSynchronization(NativeApiEntity.class, deployedApiEntity, nativeApiEntity);
+                        sync = synchronizationService.checkSynchronization(
+                                NativeApiEntity.class, deployedApiEntity, nativeApiEntity);
                     }
 
                     // 2 - If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
                     if (sync) {
-                        Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, genericApiEntity, false);
-                        sync = plans
-                            .stream()
-                            .noneMatch(
-                                plan ->
-                                    plan.getPlanStatus() != PlanStatus.STAGING &&
-                                    plan.getNeedRedeployAt().after(genericApiEntity.getDeployedAt())
-                            );
+                        Set<GenericPlanEntity> plans =
+                                planSearchService.findByApi(executionContext, genericApiEntity, false);
+                        sync = plans.stream()
+                                .noneMatch(plan -> plan.getPlanStatus() != PlanStatus.STAGING
+                                        && plan.getNeedRedeployAt().after(genericApiEntity.getDeployedAt()));
                     }
                 }
                 return sync;
             }
         } catch (Exception e) {
             String errorMsg = String.format(
-                "An error occurs while trying to check API synchronization state '%s'",
-                genericApiEntity.getId()
-            );
+                    "An error occurs while trying to check API synchronization state '%s'", genericApiEntity.getId());
             log.error(errorMsg, genericApiEntity.getId(), e);
         }
 

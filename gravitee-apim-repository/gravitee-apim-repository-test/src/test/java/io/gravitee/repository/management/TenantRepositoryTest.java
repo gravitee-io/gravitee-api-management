@@ -50,9 +50,13 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
         tenant.setReferenceId("DEFAULT");
         tenant.setReferenceType(TenantReferenceType.ORGANIZATION);
 
-        int nbTenantsBeforeCreation = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
+        int nbTenantsBeforeCreation = tenantRepository
+                .findByReference("DEFAULT", TenantReferenceType.ORGANIZATION)
+                .size();
         tenantRepository.create(tenant);
-        int nbTenantsAfterCreation = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
+        int nbTenantsAfterCreation = tenantRepository
+                .findByReference("DEFAULT", TenantReferenceType.ORGANIZATION)
+                .size();
 
         assertThat(nbTenantsAfterCreation).isEqualTo(nbTenantsBeforeCreation + 1);
 
@@ -77,9 +81,13 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
         tenant.setReferenceId("DEFAULT");
         tenant.setReferenceType(TenantReferenceType.ORGANIZATION);
 
-        int nbTenantsBeforeUpdate = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
+        int nbTenantsBeforeUpdate = tenantRepository
+                .findByReference("DEFAULT", TenantReferenceType.ORGANIZATION)
+                .size();
         tenantRepository.update(tenant);
-        int nbTenantsAfterUpdate = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
+        int nbTenantsAfterUpdate = tenantRepository
+                .findByReference("DEFAULT", TenantReferenceType.ORGANIZATION)
+                .size();
 
         assertThat(nbTenantsAfterUpdate).isEqualTo(nbTenantsBeforeUpdate);
 
@@ -93,9 +101,13 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbTenantsBeforeDeletion = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
+        int nbTenantsBeforeDeletion = tenantRepository
+                .findByReference("DEFAULT", TenantReferenceType.ORGANIZATION)
+                .size();
         tenantRepository.delete("89083315-9964-469b-8833-159964069b05");
-        int nbTenantsAfterDeletion = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
+        int nbTenantsAfterDeletion = tenantRepository
+                .findByReference("DEFAULT", TenantReferenceType.ORGANIZATION)
+                .size();
 
         assertThat(nbTenantsAfterDeletion).isEqualTo(nbTenantsBeforeDeletion - 1);
     }
@@ -120,7 +132,8 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByKeyAndReference() throws Exception {
-        final Optional<Tenant> tenant = tenantRepository.findByKeyAndReference("other-us", "OTHER", TenantReferenceType.ORGANIZATION);
+        final Optional<Tenant> tenant =
+                tenantRepository.findByKeyAndReference("other-us", "OTHER", TenantReferenceType.ORGANIZATION);
 
         assertThat(tenant).isPresent();
         assertThat(tenant.get().getName()).isEqualTo("US");
@@ -130,11 +143,14 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        assertThat(tenantRepository.findByReference("ToBeDeleted", TenantReferenceType.ORGANIZATION)).isNotEmpty();
+        assertThat(tenantRepository.findByReference("ToBeDeleted", TenantReferenceType.ORGANIZATION))
+                .isNotEmpty();
 
-        List<String> deleted = tenantRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", TenantReferenceType.ORGANIZATION);
+        List<String> deleted =
+                tenantRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", TenantReferenceType.ORGANIZATION);
 
         assertThat(deleted).hasSize(2);
-        assertThat(tenantRepository.findByReference("ToBeDeleted", TenantReferenceType.ORGANIZATION)).isEmpty();
+        assertThat(tenantRepository.findByReference("ToBeDeleted", TenantReferenceType.ORGANIZATION))
+                .isEmpty();
     }
 }

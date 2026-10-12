@@ -150,12 +150,12 @@ public class PersistedClaimsToDcrInjectionTest {
         existing.setLastname("Doe");
         userStore.put(USER_ID, existing);
 
-        when(userRepository.findBySource(any(), eq(USER_ID), eq(ORGANIZATION))).thenAnswer(invocation ->
-            Optional.ofNullable(userStore.get(USER_ID)).map(User::new)
-        );
-        when(userRepository.findById(anyString())).thenAnswer(invocation ->
-            Optional.ofNullable(userStore.get(invocation.<String>getArgument(0))).map(User::new)
-        );
+        when(userRepository.findBySource(any(), eq(USER_ID), eq(ORGANIZATION)))
+                .thenAnswer(invocation ->
+                        Optional.ofNullable(userStore.get(USER_ID)).map(User::new));
+        when(userRepository.findById(anyString()))
+                .thenAnswer(invocation -> Optional.ofNullable(userStore.get(invocation.<String>getArgument(0)))
+                        .map(User::new));
         when(userRepository.update(any(User.class))).thenAnswer(invocation -> {
             User written = new User(invocation.getArgument(0));
             userStore.put(written.getId(), written);
@@ -190,8 +190,7 @@ public class PersistedClaimsToDcrInjectionTest {
         when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(List.of("service_id", "job_id"));
 
         NewApplicationEntity application = givenAProviderMapping(
-            Map.of("service_id", "metadata.organization", "job_id", "metadata.job", "email", "metadata.email")
-        );
+                Map.of("service_id", "metadata.organization", "job_id", "metadata.job", "email", "metadata.email"));
 
         login();
 
@@ -202,13 +201,13 @@ public class PersistedClaimsToDcrInjectionTest {
 
         clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, claimsForRegistration);
 
-        wireMockServer.verify(
-            postRequestedFor(urlEqualTo("/registrationEp"))
+        wireMockServer.verify(postRequestedFor(urlEqualTo("/registrationEp"))
                 .withRequestBody(matchingJsonPath("$.metadata.organization", equalTo("585252525")))
-                .withRequestBody(matchingJsonPath("$.metadata.job", equalTo("API_FRIENDLY_USER")))
-        );
+                .withRequestBody(matchingJsonPath("$.metadata.job", equalTo("API_FRIENDLY_USER"))));
         // The whitelist filter survives the join: mapping a claim the login never stored injects nothing.
-        wireMockServer.verify(0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata.email")));
+        wireMockServer.verify(
+                0,
+                postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata.email")));
     }
 
     @Test
@@ -220,7 +219,8 @@ public class PersistedClaimsToDcrInjectionTest {
         seeded.setIdpClaims(new HashMap<>(Map.of("service_id", "585252525")));
         userStore.put(USER_ID, seeded);
 
-        // No whitelist means login retains nothing (APIM-14840), so the mapped claim must be purged before the DCR call.
+        // No whitelist means login retains nothing (APIM-14840), so the mapped claim must be purged before the DCR
+        // call.
         when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(List.of());
 
         NewApplicationEntity application = givenAProviderMapping(Map.of("service_id", "metadata.organization"));
@@ -231,18 +231,15 @@ public class PersistedClaimsToDcrInjectionTest {
         assertNull(claimsForRegistration, "login should have purged the previously stored claims");
 
         ClientRegistrationResponse registration = clientRegistrationService.register(
-            GraviteeContext.getExecutionContext(),
-            application,
-            claimsForRegistration
-        );
+                GraviteeContext.getExecutionContext(), application, claimsForRegistration);
         assertNotNull(registration, "the registration itself must still succeed");
 
         // A registration really was sent — without this the negative check below would also pass if no POST happened.
         wireMockServer.verify(postRequestedFor(urlEqualTo("/registrationEp")));
         wireMockServer.verify(
-            0,
-            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata.organization"))
-        );
+                0,
+                postRequestedFor(urlEqualTo("/registrationEp"))
+                        .withRequestBody(matchingJsonPath("$.metadata.organization")));
     }
 
     /** Drives a federated login with the shared OAuth2 fixtures, which is what writes the claims to the store. */
@@ -251,7 +248,8 @@ public class PersistedClaimsToDcrInjectionTest {
         String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
         String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(
+                EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
     }
 
     /** Registers a client registration provider with the given claim mappings and stubs its DCR endpoints. */
@@ -267,25 +265,20 @@ public class PersistedClaimsToDcrInjectionTest {
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
         provider.setClaimMappings(claimMappings);
 
-        when(
-            clientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
-        ).thenReturn(newSet(provider));
+        when(clientRegistrationProviderRepository.findAllByEnvironment(
+                        eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+                .thenReturn(newSet(provider));
 
-        wireMockServer.stubFor(
-            get(urlEqualTo("/am")).willReturn(
-                aResponse().withBody(
-                    "{\"token_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/registrationEp\"}"
-                )
-            )
-        );
-        wireMockServer.stubFor(
-            post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
-        );
-        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
+        wireMockServer.stubFor(get(urlEqualTo("/am"))
+                .willReturn(aResponse()
+                        .withBody("{\"token_endpoint\": \"http://localhost:" + wireMockServer.port()
+                                + "/tokenEp\",\"registration_endpoint\": \"http://localhost:"
+                                + wireMockServer.port()
+                                + "/registrationEp\"}")));
+        wireMockServer.stubFor(post(urlEqualTo("/tokenEp"))
+                .willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}")));
+        wireMockServer.stubFor(post(urlEqualTo("/registrationEp"))
+                .willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
         return application;
     }
 

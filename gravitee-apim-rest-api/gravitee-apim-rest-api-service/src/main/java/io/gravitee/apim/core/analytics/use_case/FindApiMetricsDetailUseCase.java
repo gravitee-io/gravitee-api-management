@@ -42,11 +42,12 @@ public class FindApiMetricsDetailUseCase {
     private final PlanCrudService planCrudService;
     private final InstanceQueryService instanceQueryService;
 
-    public FindApiMetricsDetailUseCase.Output execute(ExecutionContext executionContext, FindApiMetricsDetailUseCase.Input input) {
+    public FindApiMetricsDetailUseCase.Output execute(
+            ExecutionContext executionContext, FindApiMetricsDetailUseCase.Input input) {
         return analyticsQueryService
-            .findApiMetricsDetail(executionContext, input.apiId(), input.requestId)
-            .map(apiMetricsDetail -> mapToModel(executionContext, apiMetricsDetail))
-            .orElse(new FindApiMetricsDetailUseCase.Output());
+                .findApiMetricsDetail(executionContext, input.apiId(), input.requestId)
+                .map(apiMetricsDetail -> mapToModel(executionContext, apiMetricsDetail))
+                .orElse(new FindApiMetricsDetailUseCase.Output());
     }
 
     public record Input(String apiId, String requestId) {}
@@ -62,34 +63,33 @@ public class FindApiMetricsDetailUseCase {
     }
 
     private Output mapToModel(
-        ExecutionContext executionContext,
-        io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail apiMetricsDetail
-    ) {
+            ExecutionContext executionContext,
+            io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail apiMetricsDetail) {
         var builder = ApiMetricsDetail.builder()
-            .timestamp(apiMetricsDetail.getTimestamp())
-            .apiId(apiMetricsDetail.getApiId())
-            .requestId(apiMetricsDetail.getRequestId())
-            .transactionId(apiMetricsDetail.getTransactionId())
-            .host(apiMetricsDetail.getHost())
-            .application(getApplication(executionContext.getEnvironmentId(), apiMetricsDetail.getApplicationId()))
-            .plan(getPlan(apiMetricsDetail.getPlanId()))
-            .gateway(apiMetricsDetail.getGateway())
-            .uri(apiMetricsDetail.getUri())
-            .status(apiMetricsDetail.getStatus())
-            .requestContentLength(apiMetricsDetail.getRequestContentLength())
-            .responseContentLength(apiMetricsDetail.getResponseContentLength())
-            .remoteAddress(apiMetricsDetail.getRemoteAddress())
-            .gatewayLatency(apiMetricsDetail.getGatewayLatency())
-            .gatewayResponseTime(apiMetricsDetail.getGatewayResponseTime())
-            .endpointResponseTime(apiMetricsDetail.getEndpointResponseTime())
-            .method(apiMetricsDetail.getMethod())
-            .endpoint(apiMetricsDetail.getEndpoint())
-            .message(apiMetricsDetail.getMessage())
-            .errorKey(apiMetricsDetail.getErrorKey())
-            .errorComponentName(apiMetricsDetail.getErrorComponentName())
-            .errorComponentType(apiMetricsDetail.getErrorComponentType())
-            .warnings(apiMetricsDetail.getWarnings())
-            .additionalMetrics(apiMetricsDetail.getAdditionalMetrics());
+                .timestamp(apiMetricsDetail.getTimestamp())
+                .apiId(apiMetricsDetail.getApiId())
+                .requestId(apiMetricsDetail.getRequestId())
+                .transactionId(apiMetricsDetail.getTransactionId())
+                .host(apiMetricsDetail.getHost())
+                .application(getApplication(executionContext.getEnvironmentId(), apiMetricsDetail.getApplicationId()))
+                .plan(getPlan(apiMetricsDetail.getPlanId()))
+                .gateway(apiMetricsDetail.getGateway())
+                .uri(apiMetricsDetail.getUri())
+                .status(apiMetricsDetail.getStatus())
+                .requestContentLength(apiMetricsDetail.getRequestContentLength())
+                .responseContentLength(apiMetricsDetail.getResponseContentLength())
+                .remoteAddress(apiMetricsDetail.getRemoteAddress())
+                .gatewayLatency(apiMetricsDetail.getGatewayLatency())
+                .gatewayResponseTime(apiMetricsDetail.getGatewayResponseTime())
+                .endpointResponseTime(apiMetricsDetail.getEndpointResponseTime())
+                .method(apiMetricsDetail.getMethod())
+                .endpoint(apiMetricsDetail.getEndpoint())
+                .message(apiMetricsDetail.getMessage())
+                .errorKey(apiMetricsDetail.getErrorKey())
+                .errorComponentName(apiMetricsDetail.getErrorComponentName())
+                .errorComponentType(apiMetricsDetail.getErrorComponentType())
+                .warnings(apiMetricsDetail.getWarnings())
+                .additionalMetrics(apiMetricsDetail.getAdditionalMetrics());
 
         // Fetch gateway instance details if gateway ID is available
         if (apiMetricsDetail.getGateway() != null) {
@@ -106,7 +106,8 @@ public class FindApiMetricsDetailUseCase {
     }
 
     private BaseApplicationEntity getApplication(String environmentId, String applicationId) {
-        var unknownApp = BaseApplicationEntity.builder().id(applicationId).name(UNKNOWN).build();
+        var unknownApp =
+                BaseApplicationEntity.builder().id(applicationId).name(UNKNOWN).build();
         try {
             return applicationId != null ? applicationCrudService.findById(applicationId, environmentId) : unknownApp;
         } catch (ApplicationNotFoundException | TechnicalManagementException e) {
@@ -115,7 +116,8 @@ public class FindApiMetricsDetailUseCase {
     }
 
     private GenericPlanEntity getPlan(String planId) {
-        final BasePlanEntity unknownPlan = BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
+        final BasePlanEntity unknownPlan =
+                BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
         try {
             return planId != null ? planCrudService.getById(planId) : unknownPlan;
         } catch (PlanNotFoundException | TechnicalManagementException e) {

@@ -32,12 +32,13 @@ import java.lang.annotation.Target;
  *
  * @author GraviteeSource Team
  */
-@Target({ ElementType.PARAMETER, ElementType.FIELD })
+@Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RUNTIME)
-@Constraint(validatedBy = { SenderAddressValidator.class })
+@Constraint(validatedBy = {SenderAddressValidator.class})
 @Documented
 public @interface ValidSenderAddress {
-    String message() default "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")";
+    String message() default
+            "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")";
 
     Class<?>[] groups() default {};
 

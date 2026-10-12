@@ -33,27 +33,27 @@ public class NativeApiLogSearchUseCase {
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        String apiId,
-        Long from,
-        Long to,
-        Set<String> applicationIds,
-        Set<String> planIds,
-        Set<NativeConnectionStatus> connectionStatuses,
-        int page,
-        int size
-    ) {}
+            ExecutionContext executionContext,
+            String apiId,
+            Long from,
+            Long to,
+            Set<String> applicationIds,
+            Set<String> planIds,
+            Set<NativeConnectionStatus> connectionStatuses,
+            int page,
+            int size) {}
 
     public record Output(SearchLogsResponse<NativeApiLog> response) {}
 
     public Output execute(Input input) {
         var filter = NativeApiLogCrudService.Filter.builder()
-            .from(input.from())
-            .to(input.to())
-            .applicationIds(input.applicationIds())
-            .planIds(input.planIds())
-            .connectionStatuses(input.connectionStatuses())
-            .build();
-        return new Output(nativeApiLogCrudService.searchLogs(input.executionContext(), input.apiId(), filter, input.page(), input.size()));
+                .from(input.from())
+                .to(input.to())
+                .applicationIds(input.applicationIds())
+                .planIds(input.planIds())
+                .connectionStatuses(input.connectionStatuses())
+                .build();
+        return new Output(nativeApiLogCrudService.searchLogs(
+                input.executionContext(), input.apiId(), filter, input.page(), input.size()));
     }
 }

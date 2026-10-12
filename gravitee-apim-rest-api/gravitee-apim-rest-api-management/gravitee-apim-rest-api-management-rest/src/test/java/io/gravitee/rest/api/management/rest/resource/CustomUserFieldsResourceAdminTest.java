@@ -54,7 +54,9 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         verify(customUserFieldService).create(any(), argument.capture());
         assertNotNull(argument.getValue(), "Field provided can't be null");
         assertEquals(field.getKey(), argument.getValue().getKey());
-        assertTrue(response.getHeaderString("Location").endsWith(this.contextPath() + "/" + field.getKey()), "LocationHeader value");
+        assertTrue(
+                response.getHeaderString("Location").endsWith(this.contextPath() + "/" + field.getKey()),
+                "LocationHeader value");
     }
 
     @Test
@@ -82,7 +84,8 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         field.setKey("test-update");
         field.setLabel("Test");
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
-        when(customUserFieldService.update(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(field);
+        when(customUserFieldService.update(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(field);
 
         final Response response = orgTarget("/invalid-key").request().put(Entity.json(field));
 

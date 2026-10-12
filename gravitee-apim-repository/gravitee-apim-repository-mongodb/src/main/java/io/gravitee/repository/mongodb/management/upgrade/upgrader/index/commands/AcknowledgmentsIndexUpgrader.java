@@ -28,9 +28,9 @@ public class AcknowledgmentsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("commands")
-            .name("a1")
-            .key("acknowledgments", ascending())
-            .build();
+                .collection("commands")
+                .name("a1")
+                .key("acknowledgments", ascending())
+                .build();
     }
 }

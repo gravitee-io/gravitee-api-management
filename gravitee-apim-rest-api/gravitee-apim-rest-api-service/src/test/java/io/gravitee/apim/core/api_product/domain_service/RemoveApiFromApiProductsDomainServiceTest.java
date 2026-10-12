@@ -66,26 +66,18 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateApiProductService = new ValidateApiProductService(
-            apiQueryService,
-            apiCrudService,
-            planQueryService,
-            apiProductQueryService
-        );
+                apiQueryService, apiCrudService, planQueryService, apiProductQueryService);
         var deployApiProductDomainService = new DeployApiProductDomainService(
-            planQueryService,
-            eventCrudService,
-            eventLatestCrudService,
-            new FlowCrudServiceInMemory()
-        );
+                planQueryService, eventCrudService, eventLatestCrudService, new FlowCrudServiceInMemory());
         domainService = new RemoveApiFromApiProductsDomainService(
-            apiProductQueryService,
-            apiProductCrudService,
-            validateApiProductService,
-            deployApiProductDomainService,
-            auditDomainService
-        );
+                apiProductQueryService,
+                apiProductCrudService,
+                validateApiProductService,
+                deployApiProductDomainService,
+                auditDomainService);
     }
 
     @Nested
@@ -105,12 +97,17 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            apiProductCrudService.initWith(
-                List.of(
-                    ApiProduct.builder().id(PRODUCT_1).environmentId(ENV_ID).apiIds(new HashSet<>(Set.of(API_ID, "other-api"))).build(),
-                    ApiProduct.builder().id(PRODUCT_2).environmentId(ENV_ID).apiIds(new HashSet<>(Set.of(API_ID))).build()
-                )
-            );
+            apiProductCrudService.initWith(List.of(
+                    ApiProduct.builder()
+                            .id(PRODUCT_1)
+                            .environmentId(ENV_ID)
+                            .apiIds(new HashSet<>(Set.of(API_ID, "other-api")))
+                            .build(),
+                    ApiProduct.builder()
+                            .id(PRODUCT_2)
+                            .environmentId(ENV_ID)
+                            .apiIds(new HashSet<>(Set.of(API_ID)))
+                            .build()));
             apiProductQueryService.initWith(apiProductCrudService.storage());
         }
 
@@ -118,18 +115,18 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
         void should_remove_api_id_from_all_affected_products() {
             domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
 
-            apiProductCrudService.storage().forEach(product -> assertThat(product.getApiIds()).doesNotContain(API_ID));
+            apiProductCrudService
+                    .storage()
+                    .forEach(product -> assertThat(product.getApiIds()).doesNotContain(API_ID));
         }
 
         @Test
         void should_retain_other_api_ids() {
             domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
 
-            var product1 = apiProductCrudService
-                .storage()
-                .stream()
-                .filter(p -> p.getId().equals(PRODUCT_1))
-                .findFirst();
+            var product1 = apiProductCrudService.storage().stream()
+                    .filter(p -> p.getId().equals(PRODUCT_1))
+                    .findFirst();
             assertThat(product1).isPresent();
             assertThat(product1.get().getApiIds()).containsExactly("other-api");
         }
@@ -140,8 +137,8 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
             assertThat(auditCrudService.storage()).hasSize(2);
             assertThat(auditCrudService.storage())
-                .allMatch(audit -> audit.getOrganizationId().equals(ORG_ID))
-                .allMatch(audit -> audit.getEnvironmentId().equals(ENV_ID));
+                    .allMatch(audit -> audit.getOrganizationId().equals(ORG_ID))
+                    .allMatch(audit -> audit.getEnvironmentId().equals(ENV_ID));
         }
 
         @Nested
@@ -149,22 +146,17 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
             @BeforeEach
             void setUp() {
-                planQueryService.initWith(
-                    List.of(
-                        PlanFixtures.aPlanHttpV4()
-                            .toBuilder()
-                            .id("plan-product-1")
-                            .referenceId(PRODUCT_1)
-                            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                            .build(),
-                        PlanFixtures.aPlanHttpV4()
-                            .toBuilder()
-                            .id("plan-product-2")
-                            .referenceId(PRODUCT_2)
-                            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                            .build()
-                    )
-                );
+                planQueryService.initWith(List.of(
+                        PlanFixtures.aPlanHttpV4().toBuilder()
+                                .id("plan-product-1")
+                                .referenceId(PRODUCT_1)
+                                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                                .build(),
+                        PlanFixtures.aPlanHttpV4().toBuilder()
+                                .id("plan-product-2")
+                                .referenceId(PRODUCT_2)
+                                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                                .build()));
             }
 
             @Test
@@ -180,44 +172,37 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
                 domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
 
                 ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-                verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
+                verify(eventCrudService, times(2))
+                        .createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
 
-                payloadCaptor
-                    .getAllValues()
-                    .forEach(payload -> {
-                        assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
-                        ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
-                        assertThat(deployPayload.getPlans()).isNotNull().isNotEmpty();
-                        assertThat(deployPayload.getApiIds()).doesNotContain(API_ID);
-                    });
+                payloadCaptor.getAllValues().forEach(payload -> {
+                    assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
+                    ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
+                    assertThat(deployPayload.getPlans()).isNotNull().isNotEmpty();
+                    assertThat(deployPayload.getApiIds()).doesNotContain(API_ID);
+                });
             }
 
             @Test
             void should_publish_deploy_event_with_empty_plans_when_product_has_no_product_level_plans() {
                 planQueryService.reset();
-                planQueryService.initWith(
-                    List.of(
-                        PlanFixtures.aPlanHttpV4()
-                            .toBuilder()
-                            .id("plan-other-api")
-                            .referenceId("other-api")
-                            .referenceType(GenericPlanEntity.ReferenceType.API)
-                            .build()
-                    )
-                );
+                planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                        .id("plan-other-api")
+                        .referenceId("other-api")
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
+                        .build()));
 
                 domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
 
                 ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-                verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
+                verify(eventCrudService, times(2))
+                        .createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
 
-                payloadCaptor
-                    .getAllValues()
-                    .forEach(payload -> {
-                        assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
-                        ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
-                        assertThat(deployPayload.getPlans()).isNotNull().isEmpty();
-                    });
+                payloadCaptor.getAllValues().forEach(payload -> {
+                    assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
+                    ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
+                    assertThat(deployPayload.getPlans()).isNotNull().isEmpty();
+                });
             }
 
             @Test
@@ -226,14 +211,13 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
                 domainService.removeApiFromApiProducts(API_ID, ORG_ID, ENV_ID, USER_ID);
 
                 ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-                verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
+                verify(eventCrudService, times(2))
+                        .createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
 
-                var product2Payload = payloadCaptor
-                    .getAllValues()
-                    .stream()
-                    .map(p -> (ApiProductDeploymentPayload) p)
-                    .filter(p -> PRODUCT_2.equals(p.getId()))
-                    .findFirst();
+                var product2Payload = payloadCaptor.getAllValues().stream()
+                        .map(p -> (ApiProductDeploymentPayload) p)
+                        .filter(p -> PRODUCT_2.equals(p.getId()))
+                        .findFirst();
 
                 assertThat(product2Payload).isPresent();
                 assertThat(product2Payload.get().getApiIds()).isEmpty();
@@ -246,16 +230,17 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
 
             @BeforeEach
             void setUp() {
-                apiProductCrudService.initWith(
-                    List.of(
-                        ApiProduct.builder().id(PRODUCT_1).environmentId(ENV_ID).apiIds(new HashSet<>(Set.of(API_ID, "other-api"))).build(),
+                apiProductCrudService.initWith(List.of(
                         ApiProduct.builder()
-                            .id(PRODUCT_2)
-                            .environmentId(ENV_ID)
-                            .apiIds(new HashSet<>(Set.of(API_ID, "other-api-2")))
-                            .build()
-                    )
-                );
+                                .id(PRODUCT_1)
+                                .environmentId(ENV_ID)
+                                .apiIds(new HashSet<>(Set.of(API_ID, "other-api")))
+                                .build(),
+                        ApiProduct.builder()
+                                .id(PRODUCT_2)
+                                .environmentId(ENV_ID)
+                                .apiIds(new HashSet<>(Set.of(API_ID, "other-api-2")))
+                                .build()));
                 apiProductQueryService.initWith(apiProductCrudService.storage());
             }
 

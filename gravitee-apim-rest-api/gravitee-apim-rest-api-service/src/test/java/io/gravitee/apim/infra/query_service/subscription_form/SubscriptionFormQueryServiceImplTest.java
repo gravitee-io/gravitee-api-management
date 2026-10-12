@@ -60,26 +60,27 @@ class SubscriptionFormQueryServiceImplTest {
 
         @Test
         void should_return_every_form_of_the_environment_with_its_definition() throws TechnicalException {
-            var otherRow = aRow().toBuilder().id("0d0c2d1e-5f4a-4c3b-9a8e-7f6d5c4b3a21").name("Partner onboarding").build();
+            var otherRow = aRow().toBuilder()
+                    .id("0d0c2d1e-5f4a-4c3b-9a8e-7f6d5c4b3a21")
+                    .name("Partner onboarding")
+                    .build();
             when(repository.findAllByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(aRow(), otherRow));
 
             var result = service.findAllByEnvironmentId(ENVIRONMENT_ID);
 
-            assertThat(result)
-                .extracting(form -> form.getName())
-                .containsExactly("Default", "Partner onboarding");
-            assertThat(result)
-                .extracting(form -> form.getGmdContent())
-                .containsOnly(GraviteeMarkdown.of(GMD));
+            assertThat(result).extracting(form -> form.getName()).containsExactly("Default", "Partner onboarding");
+            assertThat(result).extracting(form -> form.getGmdContent()).containsOnly(GraviteeMarkdown.of(GMD));
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
             when(repository.findAllByEnvironmentId(ENVIRONMENT_ID)).thenThrow(new TechnicalException("Database error"));
 
             assertThatThrownBy(() -> service.findAllByEnvironmentId(ENVIRONMENT_ID))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to list the SubscriptionForms of environment: " + ENVIRONMENT_ID);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to list the SubscriptionForms of environment: "
+                            + ENVIRONMENT_ID);
         }
     }
 
@@ -88,9 +89,9 @@ class SubscriptionFormQueryServiceImplTest {
 
         @Test
         void should_return_the_form_dedicated_to_the_api() throws TechnicalException {
-            when(repository.findByEnvironmentIdAndApiId(ENVIRONMENT_ID, "api-1")).thenReturn(
-                Optional.of(aRow().toBuilder().apiIds(List.of("api-1")).build())
-            );
+            when(repository.findByEnvironmentIdAndApiId(ENVIRONMENT_ID, "api-1"))
+                    .thenReturn(Optional.of(
+                            aRow().toBuilder().apiIds(List.of("api-1")).build()));
 
             var result = service.findByApiId(ENVIRONMENT_ID, "api-1");
 
@@ -100,12 +101,15 @@ class SubscriptionFormQueryServiceImplTest {
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
-            when(repository.findByEnvironmentIdAndApiId(ENVIRONMENT_ID, "api-1")).thenThrow(new TechnicalException("Database error"));
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
+            when(repository.findByEnvironmentIdAndApiId(ENVIRONMENT_ID, "api-1"))
+                    .thenThrow(new TechnicalException("Database error"));
 
             assertThatThrownBy(() -> service.findByApiId(ENVIRONMENT_ID, "api-1"))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find the SubscriptionForm of API api-1 in environment: environment-id");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while trying to find the SubscriptionForm of API api-1 in environment: environment-id");
         }
     }
 
@@ -133,26 +137,26 @@ class SubscriptionFormQueryServiceImplTest {
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
             when(repository.findByIdAndEnvironmentId(any(), any())).thenThrow(new TechnicalException("Database error"));
 
             assertThatThrownBy(() -> service.findByIdAndEnvironmentId(ENVIRONMENT_ID, SubscriptionFormId.of(FORM_ID)))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage(
-                    "An error occurred while trying to find a SubscriptionForm with id: " + FORM_ID + " in environment: " + ENVIRONMENT_ID
-                )
-                .hasCauseInstanceOf(TechnicalException.class);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find a SubscriptionForm with id: " + FORM_ID
+                            + " in environment: " + ENVIRONMENT_ID)
+                    .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 
     private static SubscriptionForm aRow() {
         return SubscriptionForm.builder()
-            .id(FORM_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .name("Default")
-            .gmdContent(GMD)
-            .enabled(true)
-            .validationConstraints("{\"company\":[{\"type\":\"required\"}]}")
-            .build();
+                .id(FORM_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name("Default")
+                .gmdContent(GMD)
+                .enabled(true)
+                .validationConstraints("{\"company\":[{\"type\":\"required\"}]}")
+                .build();
     }
 }

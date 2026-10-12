@@ -20,7 +20,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
 public interface SubscriptionTargetSearchQueryService {
-    MatchingTargetIds search(ExecutionContext executionContext, String query, Set<SubscriptionReferenceType> referenceTypes);
+    MatchingTargetIds search(
+            ExecutionContext executionContext, String query, Set<SubscriptionReferenceType> referenceTypes);
 
     record MatchingTargetIds(Set<String> apiIds, Set<String> apiProductIds) {
         public MatchingTargetIds {

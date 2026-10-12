@@ -39,7 +39,8 @@ public class CommandOrganizationUpgrader implements Upgrader {
     private final CommandRepository commandRepository;
 
     @Autowired
-    public CommandOrganizationUpgrader(@Lazy EnvironmentRepository environmentRepository, @Lazy CommandRepository commandRepository) {
+    public CommandOrganizationUpgrader(
+            @Lazy EnvironmentRepository environmentRepository, @Lazy CommandRepository commandRepository) {
         this.environmentRepository = environmentRepository;
         this.commandRepository = commandRepository;
     }
@@ -60,7 +61,8 @@ public class CommandOrganizationUpgrader implements Upgrader {
     }
 
     private void updateCommands(Environment environment) throws TechnicalException {
-        CommandCriteria criteria = new CommandCriteria.Builder().environmentId(environment.getId()).build();
+        CommandCriteria criteria =
+                new CommandCriteria.Builder().environmentId(environment.getId()).build();
         for (Command command : commandRepository.search(criteria)) {
             updateOrganizationId(command, environment.getOrganizationId());
         }

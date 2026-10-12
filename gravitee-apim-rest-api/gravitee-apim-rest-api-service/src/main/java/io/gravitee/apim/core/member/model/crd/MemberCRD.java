@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder(toBuilder = true)
-@EqualsAndHashCode(of = { "id", "source", "sourceId", "role" })
+@EqualsAndHashCode(of = {"id", "source", "sourceId", "role"})
 public class MemberCRD {
 
     private String id;

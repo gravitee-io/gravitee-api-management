@@ -57,7 +57,9 @@ class EndpointsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_list_of_endpoints() {
-        when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(ConnectorPluginEntity.builder().id("mock").name("Mock").build()));
+        when(endpointConnectorPluginService.findAll())
+                .thenReturn(Set.of(
+                        ConnectorPluginEntity.builder().id("mock").name("Mock").build()));
         final Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 

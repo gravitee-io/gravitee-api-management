@@ -37,18 +37,17 @@ public class CreateSubscriptionDomainServiceImpl implements CreateSubscriptionDo
 
     @Override
     public io.gravitee.rest.api.model.SubscriptionEntity create(
-        AuditInfo auditInfo,
-        String planId,
-        String applicationId,
-        String requestMessage,
-        String customApiKey,
-        io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
-        java.util.Map<String, String> metadata,
-        io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
-        Boolean generalConditionsAccepted,
-        io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
-        Boolean subscriptionFormMetadataValidationRequired
-    ) {
+            AuditInfo auditInfo,
+            String planId,
+            String applicationId,
+            String requestMessage,
+            String customApiKey,
+            io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
+            java.util.Map<String, String> metadata,
+            io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
+            Boolean generalConditionsAccepted,
+            io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
+            Boolean subscriptionFormMetadataValidationRequired) {
         ExecutionContext executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(planId, applicationId);
@@ -57,10 +56,10 @@ public class CreateSubscriptionDomainServiceImpl implements CreateSubscriptionDo
         }
         if (configuration != null) {
             SubscriptionConfigurationEntity configEntity = SubscriptionConfigurationEntity.builder()
-                .entrypointId(configuration.getEntrypointId())
-                .channel(configuration.getChannel())
-                .entrypointConfiguration(configuration.getEntrypointConfiguration())
-                .build();
+                    .entrypointId(configuration.getEntrypointId())
+                    .channel(configuration.getChannel())
+                    .entrypointConfiguration(configuration.getEntrypointConfiguration())
+                    .build();
             newSubscriptionEntity.setConfiguration(configEntity);
         }
         if (metadata != null) {
@@ -76,7 +75,8 @@ public class CreateSubscriptionDomainServiceImpl implements CreateSubscriptionDo
             newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
         }
         if (subscriptionFormMetadataValidationRequired != null) {
-            newSubscriptionEntity.setSubscriptionFormMetadataValidationRequired(subscriptionFormMetadataValidationRequired);
+            newSubscriptionEntity.setSubscriptionFormMetadataValidationRequired(
+                    subscriptionFormMetadataValidationRequired);
         }
 
         return subscriptionService.create(executionContext, newSubscriptionEntity, customApiKey);

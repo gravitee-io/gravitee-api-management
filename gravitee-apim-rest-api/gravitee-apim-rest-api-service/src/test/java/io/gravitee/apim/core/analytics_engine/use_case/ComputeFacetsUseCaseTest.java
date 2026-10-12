@@ -59,13 +59,12 @@ class ComputeFacetsUseCaseTest {
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("org-id", "env-id");
 
     private static final AnalyticsQueryContext ANALYTICS_CONTEXT = new AnalyticsQueryContext(
-        AUDIT_INFO,
-        EXECUTION_CONTEXT,
-        Set.of("api-1", "api-2"),
-        Map.of("api-1", "My API 1", "api-2", "My API 2"),
-        Map.of(),
-        Map.of()
-    );
+            AUDIT_INFO,
+            EXECUTION_CONTEXT,
+            Set.of("api-1", "api-2"),
+            Map.of("api-1", "My API 1", "api-2", "My API 2"),
+            Map.of(),
+            Map.of());
 
     @Mock
     private AnalyticsQueryContextProvider queryContextProvider;
@@ -94,20 +93,20 @@ class ComputeFacetsUseCaseTest {
     @BeforeEach
     void setUp() {
         when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
-        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(2));
+        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class)))
+                .thenAnswer(inv -> inv.getArgument(2));
         when(unitEnrichmentPostProcessor.enrichUnits(any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
     void should_load_context_from_audit_info() {
         var useCase = new ComputeFacetsUseCase(
-            queryContextProvider,
-            validator,
-            List.of(),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of());
@@ -123,13 +122,12 @@ class ComputeFacetsUseCaseTest {
         when(transformer1.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(apiFilter));
 
         var useCase = new ComputeFacetsUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(transformer1),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -152,13 +150,12 @@ class ComputeFacetsUseCaseTest {
         when(transformer2.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(filter1, filter2));
 
         var useCase = new ComputeFacetsUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1, transformer2),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(transformer1, transformer2),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -175,13 +172,12 @@ class ComputeFacetsUseCaseTest {
     @Test
     void should_call_post_processor_with_analytics_context() {
         var useCase = new ComputeFacetsUseCase(
-            queryContextProvider,
-            validator,
-            List.of(),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -189,31 +185,32 @@ class ComputeFacetsUseCaseTest {
 
         useCase.execute(new ComputeFacetsUseCase.Input(AUDIT_INFO, request));
 
-        verify(bucketNamesPostProcessor).mapBucketNames(eq(ANALYTICS_CONTEXT), eq(request.facets()), any(FacetsResponse.class));
+        verify(bucketNamesPostProcessor)
+                .mapBucketNames(eq(ANALYTICS_CONTEXT), eq(request.facets()), any(FacetsResponse.class));
     }
 
     @Test
     void should_return_post_processed_response() {
-        var rawBucket = new FacetBucketResponse("api-1", "api-1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
+        var rawBucket = new FacetBucketResponse(
+                "api-1", "api-1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
         var rawResponse = new FacetsResponse(
-            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(rawBucket), List.of()))
-        );
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(rawBucket), List.of())));
 
-        var mappedBucket = new FacetBucketResponse("api-1", "My API 1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
-        var mappedResponse = new FacetsResponse(
-            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(mappedBucket), List.of()))
-        );
+        var mappedBucket = new FacetBucketResponse(
+                "api-1", "My API 1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
+        var mappedResponse = new FacetsResponse(List.of(
+                new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(mappedBucket), List.of())));
 
-        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenReturn(mappedResponse);
+        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class)))
+                .thenReturn(mappedResponse);
 
         var useCase = new ComputeFacetsUseCase(
-            queryContextProvider,
-            validator,
-            List.of(),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -229,13 +226,12 @@ class ComputeFacetsUseCaseTest {
         when(transformer1.transform(any(), any())).thenAnswer(inv -> inv.getArgument(1));
 
         var useCase = new ComputeFacetsUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(transformer1),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aFacetsRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -252,12 +248,12 @@ class ComputeFacetsUseCaseTest {
 
     private static FacetsRequest aFacetsRequest() {
         return new FacetsRequest(
-            new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
-            List.of(),
-            List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
-            List.of(FacetSpec.Name.API),
-            null,
-            List.of()
-        );
+                new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(
+                        MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                List.of(FacetSpec.Name.API),
+                null,
+                List.of());
     }
 }

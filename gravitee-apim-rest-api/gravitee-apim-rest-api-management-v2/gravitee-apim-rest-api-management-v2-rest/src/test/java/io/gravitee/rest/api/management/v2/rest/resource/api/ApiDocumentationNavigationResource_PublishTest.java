@@ -72,14 +72,21 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .name("My API")
+                .environmentId(ENVIRONMENT)
+                .build()));
     }
 
     @AfterEach
@@ -98,35 +105,38 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
         Response response = publishTo(section.getId());
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiPortalPublication.class)
-            .satisfies(publication -> {
-                assertThat(publication.getPortalId()).isEqualTo(PortalId.ZERO.toString());
-                assertThat(publication.getSectionName()).isEqualTo("APIs");
-                assertThat(publication.getPortalNavigationItem().getParentId()).isEqualTo(section.getId().id());
-                assertThat(publication.getPortalNavigationItem().getApiId()).isEqualTo(API_ID);
-                assertThat(publication.getPortalNavigationItem().getPublished()).isTrue();
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApiPortalPublication.class)
+                .satisfies(publication -> {
+                    assertThat(publication.getPortalId()).isEqualTo(PortalId.ZERO.toString());
+                    assertThat(publication.getSectionName()).isEqualTo("APIs");
+                    assertThat(publication.getPortalNavigationItem().getParentId())
+                            .isEqualTo(section.getId().id());
+                    assertThat(publication.getPortalNavigationItem().getApiId()).isEqualTo(API_ID);
+                    assertThat(publication.getPortalNavigationItem().getPublished())
+                            .isTrue();
+                });
         assertThat(portalNavigationItemCrudService.storage())
-            .filteredOn(PortalNavigationApi.class::isInstance)
-            .singleElement()
-            .satisfies(listing -> {
-                assertThat(listing.getParentId()).isEqualTo(section.getId());
-                assertThat(listing.getTitle()).isEqualTo("My API");
-            });
+                .filteredOn(PortalNavigationApi.class::isInstance)
+                .singleElement()
+                .satisfies(listing -> {
+                    assertThat(listing.getParentId()).isEqualTo(section.getId());
+                    assertThat(listing.getTitle()).isEqualTo("My API");
+                });
         assertThat(portalNavigationItemCrudService.storage())
-            .filteredOn(item -> item.getId().equals(page.getId()))
-            .singleElement()
-            .satisfies(published -> {
-                assertThat(published.getPublished()).isTrue();
-                assertThat(published.getParentId()).isNull();
-            });
+                .filteredOn(item -> item.getId().equals(page.getId()))
+                .singleElement()
+                .satisfies(published -> {
+                    assertThat(published.getPublished()).isTrue();
+                    assertThat(published.getParentId()).isNull();
+                });
     }
 
     @Test
     void should_return_400_when_api_is_already_published() {
         var section = aSection("APIs");
-        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
+        var listing = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
         listing.setEnvironmentId(ENVIRONMENT);
         listing.updateParent(section);
         portalNavigationItemCrudService.initWith(List.of(section, listing));
@@ -140,7 +150,8 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     @Test
     void should_publish_by_reusing_a_listing_the_portal_editor_left_hidden() {
         var section = aSection("APIs");
-        var hiddenListing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
+        var hiddenListing = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
         hiddenListing.setEnvironmentId(ENVIRONMENT);
         hiddenListing.updateParent(section);
         hiddenListing.setPublished(false);
@@ -149,12 +160,14 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
         Response response = publishTo(section.getId());
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiPortalPublication.class)
-            .satisfies(publication -> {
-                assertThat(publication.getPortalNavigationItem().getId()).isEqualTo(hiddenListing.getId().id());
-                assertThat(publication.getPortalNavigationItem().getPublished()).isTrue();
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApiPortalPublication.class)
+                .satisfies(publication -> {
+                    assertThat(publication.getPortalNavigationItem().getId())
+                            .isEqualTo(hiddenListing.getId().id());
+                    assertThat(publication.getPortalNavigationItem().getPublished())
+                            .isTrue();
+                });
         assertThat(portalNavigationItemCrudService.storage()).hasSize(2);
     }
 
@@ -190,14 +203,12 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     void should_return_403_with_environment_documentation_permission_only() {
         var section = aSection("APIs");
         portalNavigationItemCrudService.initWith(List.of(section));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         Response response = publishTo(section.getId());
 
@@ -210,14 +221,12 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
         var section = aSection("APIs");
         portalNavigationItemCrudService.initWith(List.of(section));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
 
         Response response = publishTo(section.getId());
 
@@ -236,11 +245,10 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     }
 
     private static PortalNavigationPage aPageOwnedByTheApi() {
-        var page = PortalNavigationItemFixtures.aPage("Overview", null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .published(false)
-            .build();
+        var page = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder()
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .published(false)
+                .build();
         page.setEnvironmentId(ENVIRONMENT);
         return page;
     }

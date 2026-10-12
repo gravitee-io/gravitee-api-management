@@ -68,15 +68,9 @@ class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
     @Test
     @SneakyThrows
     void reads_the_decision_from_the_decisions_data_stream() {
-        when(client.search(any(), any(), any())).thenReturn(
-            Single.just(
-                responseWith(
-                    """
+        when(client.search(any(), any(), any())).thenReturn(Single.just(responseWith("""
                     { "event-id": "evt-1", "api-id": "api-1", "request-id": "req-1", "verdict": "PERMIT" }
-                    """
-                )
-            )
-        );
+                    """)));
 
         var decision = repository.findAuthzDecisionLog(QUERY_CONTEXT, "api-1", "evt-1");
 
@@ -95,7 +89,12 @@ class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
 
         var query = ArgumentCaptor.forClass(String.class);
         verify(client).search(eq("gravitee-decisions-*"), eq(null), query.capture());
-        assertThat(query.getValue()).contains("evt-1").contains("api-1").contains("org#1").contains("env#1").contains("\"authz\"");
+        assertThat(query.getValue())
+                .contains("evt-1")
+                .contains("api-1")
+                .contains("org#1")
+                .contains("env#1")
+                .contains("\"authz\"");
     }
 
     @Test
@@ -103,7 +102,8 @@ class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
     void finds_nothing_when_no_decision_matches() {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
-        assertThat(repository.findAuthzDecisionLog(QUERY_CONTEXT, "api-1", "missing")).isEmpty();
+        assertThat(repository.findAuthzDecisionLog(QUERY_CONTEXT, "api-1", "missing"))
+                .isEmpty();
     }
 
     @Test
@@ -111,9 +111,9 @@ class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
         when(client.search(any(), any(), any())).thenThrow(new RuntimeException("cluster unreachable"));
 
         assertThatThrownBy(() -> repository.findAuthzDecisionLog(QUERY_CONTEXT, "api-1", "evt-1"))
-            .isInstanceOf(AnalyticsException.class)
-            .hasMessageContaining("evt-1")
-            .hasMessageContaining("api-1");
+                .isInstanceOf(AnalyticsException.class)
+                .hasMessageContaining("evt-1")
+                .hasMessageContaining("api-1");
     }
 
     @SneakyThrows

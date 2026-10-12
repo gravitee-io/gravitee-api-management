@@ -59,9 +59,7 @@ public class TimeBoundedCharSequence implements CharSequence {
     @Override
     public CharSequence subSequence(int start, int end) {
         return new TimeBoundedCharSequence(
-            charSequence.subSequence(start, end),
-            Duration.ofMillis(timeThreshold - System.currentTimeMillis())
-        );
+                charSequence.subSequence(start, end), Duration.ofMillis(timeThreshold - System.currentTimeMillis()));
     }
 
     @Override

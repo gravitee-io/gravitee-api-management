@@ -29,24 +29,24 @@ import java.util.Optional;
 /**
  * @author GraviteeSource Team
  */
-public class NoOpSharedPolicyGroupHistoryRepository
-    extends AbstractNoOpManagementRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupHistoryRepository {
+public class NoOpSharedPolicyGroupHistoryRepository extends AbstractNoOpManagementRepository<SharedPolicyGroup, String>
+        implements SharedPolicyGroupHistoryRepository {
 
     @Override
-    public Page<SharedPolicyGroup> search(SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+    public Page<SharedPolicyGroup> search(
+            SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException {
         return new Page<>(List.of(), 0, 0, 0L);
     }
 
     @Override
-    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
+    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable)
+            throws TechnicalException {
         return new Page<>(List.of(), 0, 0, 0L);
     }
 
     @Override
     public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
-        throws TechnicalException {
+            throws TechnicalException {
         return Optional.empty();
     }
 

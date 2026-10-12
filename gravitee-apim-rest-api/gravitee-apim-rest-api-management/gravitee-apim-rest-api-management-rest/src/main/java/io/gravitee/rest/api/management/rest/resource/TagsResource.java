@@ -55,63 +55,69 @@ public class TagsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List sharding tags")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of sharding tags",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = TagEntity.class)))
-    )
+            responseCode = "200",
+            description = "List of sharding tags",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TagEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<TagEntity> getTags() {
         return tagService
-            .findByReference(GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
-            .stream()
-            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-            .collect(Collectors.toList());
+                .findByReference(GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
+                .stream()
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                .collect(Collectors.toList());
     }
 
     @GET
     @Path("{tag}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a sharding tag", description = "User must have the MANAGEMENT_TAG[READ] permission to use this service")
+    @Operation(
+            summary = "Get a sharding tag",
+            description = "User must have the MANAGEMENT_TAG[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Tag",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TagEntity.class))
-    )
+            responseCode = "200",
+            description = "Tag",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = TagEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.READ),
+    })
     public TagEntity getTag(@PathParam("tag") String tag) {
-        return tagService.findByKeyAndReference(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
+        return tagService.findByKeyAndReference(
+                tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a sharding tag", description = "User must have the MANAGEMENT_TAG[CREATE] permission to use this service")
+    @Operation(
+            summary = "Create a sharding tag",
+            description = "User must have the MANAGEMENT_TAG[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "A new sharding tag",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TagEntity.class))
-    )
+            responseCode = "201",
+            description = "A new sharding tag",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = TagEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.CREATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.CREATE),
+    })
     @GraviteeLicenseFeature("apim-sharding-tags")
     public TagEntity createTag(@Valid @NotNull final NewTagEntity tag) {
         return tagService.create(
-            GraviteeContext.getExecutionContext(),
-            tag,
-            GraviteeContext.getCurrentOrganization(),
-            TagReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getExecutionContext(),
+                tag,
+                GraviteeContext.getCurrentOrganization(),
+                TagReferenceType.ORGANIZATION);
     }
 
     @PUT
@@ -119,54 +125,48 @@ public class TagsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update an existing sharding tag",
-        description = "User must have the MANAGEMENT_TAG[UPDATE] permission to use this service"
-    )
+            summary = "Update an existing sharding tag",
+            description = "User must have the MANAGEMENT_TAG[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Sharding tag",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TagEntity.class))
-    )
+            responseCode = "200",
+            description = "Sharding tag",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = TagEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.UPDATE),
+    })
     @GraviteeLicenseFeature("apim-sharding-tags")
     public TagEntity updateTag(@PathParam("tag") String tagKey, @Valid @NotNull final UpdateTagEntity tag) {
         return tagService.update(
-            GraviteeContext.getExecutionContext(),
-            tagKey,
-            tag,
-            GraviteeContext.getCurrentOrganization(),
-            TagReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getExecutionContext(),
+                tagKey,
+                tag,
+                GraviteeContext.getCurrentOrganization(),
+                TagReferenceType.ORGANIZATION);
     }
 
     @Path("{tag}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Delete an existing sharding tag",
-        description = "User must have the MANAGEMENT_TAG[DELETE] permission to use this service"
-    )
+            summary = "Delete an existing sharding tag",
+            description = "User must have the MANAGEMENT_TAG[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Sharding tag successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.DELETE),
-            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.DELETE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.DELETE),
+        @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.DELETE),
+    })
     @GraviteeLicenseFeature("apim-sharding-tags")
     public void deleteTag(@PathParam("tag") String tag) {
         tagService.delete(
-            GraviteeContext.getExecutionContext(),
-            tag,
-            GraviteeContext.getCurrentOrganization(),
-            TagReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getExecutionContext(),
+                tag,
+                GraviteeContext.getCurrentOrganization(),
+                TagReferenceType.ORGANIZATION);
     }
 }

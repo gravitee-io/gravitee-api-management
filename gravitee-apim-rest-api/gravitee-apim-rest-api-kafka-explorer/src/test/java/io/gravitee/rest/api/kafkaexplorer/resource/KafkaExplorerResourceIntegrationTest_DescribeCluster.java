@@ -30,7 +30,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeCluster extends AbstractKafka
 
     @Test
     void should_return_200_with_cluster_info() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
 
@@ -71,7 +72,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeCluster extends AbstractKafka
 
     @Test
     void should_return_502_when_broker_unreachable() {
-        givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
 

@@ -36,9 +36,8 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
     private final PortalPageContentAdapter portalPageContentAdapter = PortalPageContentAdapter.INSTANCE;
 
     public PortalPageContentCrudServiceImpl(
-        @Lazy final PortalPageContentRepository portalPageContentRepository,
-        List<DefaultPortalPageContentProvider> defaultContentProviders
-    ) {
+            @Lazy final PortalPageContentRepository portalPageContentRepository,
+            List<DefaultPortalPageContentProvider> defaultContentProviders) {
         this.portalPageContentRepository = portalPageContentRepository;
         this.defaultContentProviders = defaultContentProviders;
     }
@@ -50,19 +49,21 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
             final var createdContent = portalPageContentRepository.create(repoContent);
             return portalPageContentAdapter.toEntity(createdContent);
         } catch (TechnicalException e) {
-            final var errorMessage = String.format("An error occurred while creating portal page content with id %s", content.getId());
+            final var errorMessage =
+                    String.format("An error occurred while creating portal page content with id %s", content.getId());
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
-    public PortalPageContent<?> createDefault(String organizationId, String environmentId, PortalPageContentType contentType) {
-        final var portalPageContent = defaultContentProviders
-            .stream()
-            .filter(provider -> provider.appliesTo(contentType))
-            .findFirst()
-            .map(provider -> provider.provide(organizationId, environmentId))
-            .orElseThrow(() -> new IllegalArgumentException("No default content provider for type: " + contentType));
+    public PortalPageContent<?> createDefault(
+            String organizationId, String environmentId, PortalPageContentType contentType) {
+        final var portalPageContent = defaultContentProviders.stream()
+                .filter(provider -> provider.appliesTo(contentType))
+                .findFirst()
+                .map(provider -> provider.provide(organizationId, environmentId))
+                .orElseThrow(
+                        () -> new IllegalArgumentException("No default content provider for type: " + contentType));
         return this.create(portalPageContent);
     }
 
@@ -73,7 +74,8 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
             final var updatedContent = portalPageContentRepository.update(repoContent);
             return portalPageContentAdapter.toEntity(updatedContent);
         } catch (TechnicalException e) {
-            final var errorMessage = String.format("An error occurred while updating portal page content with id %s", content.getId());
+            final var errorMessage =
+                    String.format("An error occurred while updating portal page content with id %s", content.getId());
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -83,7 +85,8 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
         try {
             portalPageContentRepository.delete(id.json());
         } catch (TechnicalException e) {
-            final var errorMessage = String.format("An error occurred while deleting portal page content with id %s", id);
+            final var errorMessage =
+                    String.format("An error occurred while deleting portal page content with id %s", id);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }

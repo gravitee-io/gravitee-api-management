@@ -29,13 +29,10 @@ final class PortalAnalyticsGate {
     private PortalAnalyticsGate() {}
 
     static void requireAnalyticsEnabled(ParameterService parameterService) {
-        if (
-            !parameterService.findAsBoolean(
+        if (!parameterService.findAsBoolean(
                 GraviteeContext.getExecutionContext(),
                 Key.PORTAL_NEXT_ANALYTICS_ENABLED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ) {
+                ParameterReferenceType.ENVIRONMENT)) {
             throw new ForbiddenAccessException();
         }
     }

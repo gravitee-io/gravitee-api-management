@@ -180,60 +180,56 @@ public class Promotion {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Promotion promotion = (Promotion) o;
-        return (
-            Objects.equals(id, promotion.id) &&
-            Objects.equals(apiDefinition, promotion.apiDefinition) &&
-            Objects.equals(apiId, promotion.apiId) &&
-            status == promotion.status &&
-            Objects.equals(targetEnvName, promotion.targetEnvName) &&
-            Objects.equals(targetEnvCockpitId, promotion.targetEnvCockpitId) &&
-            Objects.equals(sourceEnvName, promotion.sourceEnvName) &&
-            Objects.equals(sourceEnvCockpitId, promotion.sourceEnvCockpitId)
-        );
+        return (Objects.equals(id, promotion.id)
+                && Objects.equals(apiDefinition, promotion.apiDefinition)
+                && Objects.equals(apiId, promotion.apiId)
+                && status == promotion.status
+                && Objects.equals(targetEnvName, promotion.targetEnvName)
+                && Objects.equals(targetEnvCockpitId, promotion.targetEnvCockpitId)
+                && Objects.equals(sourceEnvName, promotion.sourceEnvName)
+                && Objects.equals(sourceEnvCockpitId, promotion.sourceEnvCockpitId));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, apiDefinition, apiId, status, targetEnvName, targetEnvCockpitId, sourceEnvName, sourceEnvCockpitId);
+        return Objects.hash(
+                id, apiDefinition, apiId, status, targetEnvName, targetEnvCockpitId, sourceEnvName, sourceEnvCockpitId);
     }
 
     @Override
     public String toString() {
-        return (
-            "Promotion{" +
-            "id='" +
-            id +
-            '\'' +
-            ", apiDefinition='" +
-            apiDefinition +
-            '\'' +
-            ", apiId='" +
-            apiId +
-            '\'' +
-            ", status=" +
-            status +
-            ", targetEnvironmentId='" +
-            targetEnvCockpitId +
-            '\'' +
-            ", targetEnvironmentName='" +
-            targetEnvName +
-            '\'' +
-            ", sourceEnvironmentId='" +
-            sourceEnvCockpitId +
-            '\'' +
-            ", sourceEnvironmentName='" +
-            sourceEnvName +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            ", author=" +
-            author +
-            ", targetApiId=" +
-            targetApiId +
-            '}'
-        );
+        return ("Promotion{" + "id='"
+                + id
+                + '\''
+                + ", apiDefinition='"
+                + apiDefinition
+                + '\''
+                + ", apiId='"
+                + apiId
+                + '\''
+                + ", status="
+                + status
+                + ", targetEnvironmentId='"
+                + targetEnvCockpitId
+                + '\''
+                + ", targetEnvironmentName='"
+                + targetEnvName
+                + '\''
+                + ", sourceEnvironmentId='"
+                + sourceEnvCockpitId
+                + '\''
+                + ", sourceEnvironmentName='"
+                + sourceEnvName
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + ", author="
+                + author
+                + ", targetApiId="
+                + targetApiId
+                + '}');
     }
 
     public String getTargetApiId() {

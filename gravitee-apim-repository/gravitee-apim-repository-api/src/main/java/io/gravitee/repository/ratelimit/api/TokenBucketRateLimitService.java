@@ -52,25 +52,23 @@ public interface TokenBucketRateLimitService {
      *         carries through this facade unchanged.
      */
     Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        boolean async,
-        Supplier<TokenBucket> supplier
-    );
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            boolean async,
+            Supplier<TokenBucket> supplier);
 
     default Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        boolean async,
-        Supplier<TokenBucket> supplier
-    ) {
+            String key,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            boolean async,
+            Supplier<TokenBucket> supplier) {
         return refillAndTryConsume(key, 1, refillRate, refillPeriodMillis, capacity, nowMillis, async, supplier);
     }
 }

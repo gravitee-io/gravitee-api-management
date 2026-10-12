@@ -58,9 +58,8 @@ public class PortalApplicationClientCertificateResourceTest extends AbstractReso
     public void should_get_client_certificate() {
         var certificate = createClientCertificate(CERT_ID, "My Certificate");
 
-        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenReturn(
-            new GetClientCertificateUseCase.Output(certificate)
-        );
+        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class)))
+                .thenReturn(new GetClientCertificateUseCase.Output(certificate));
 
         final Response response = target().request().get();
 
@@ -75,9 +74,8 @@ public class PortalApplicationClientCertificateResourceTest extends AbstractReso
 
     @Test
     public void should_return_404_when_certificate_not_found() {
-        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenThrow(
-            new ClientCertificateNotFoundException(CERT_ID)
-        );
+        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class)))
+                .thenThrow(new ClientCertificateNotFoundException(CERT_ID));
 
         final Response response = target().request().get();
 
@@ -91,9 +89,8 @@ public class PortalApplicationClientCertificateResourceTest extends AbstractReso
 
         ClientCertificate updated = createClientCertificate(CERT_ID, "Updated Certificate Name");
 
-        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenReturn(
-            new UpdateClientCertificateUseCase.Output(updated)
-        );
+        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class)))
+                .thenReturn(new UpdateClientCertificateUseCase.Output(updated));
 
         final Response response = target().request().put(Entity.json(updateRequest));
 
@@ -110,9 +107,8 @@ public class PortalApplicationClientCertificateResourceTest extends AbstractReso
         var updateRequest = new UpdatePortalClientCertificateInput();
         updateRequest.setName("Updated Certificate Name");
 
-        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenThrow(
-            new ClientCertificateNotFoundException(CERT_ID)
-        );
+        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class)))
+                .thenThrow(new ClientCertificateNotFoundException(CERT_ID));
 
         final Response response = target().request().put(Entity.json(updateRequest));
 
@@ -132,8 +128,8 @@ public class PortalApplicationClientCertificateResourceTest extends AbstractReso
     @Test
     public void should_return_404_when_deleting_non_existent_certificate() {
         doThrow(new ClientCertificateNotFoundException(CERT_ID))
-            .when(deleteClientCertificateUseCase)
-            .execute(any(DeleteClientCertificateUseCase.Input.class));
+                .when(deleteClientCertificateUseCase)
+                .execute(any(DeleteClientCertificateUseCase.Input.class));
 
         final Response response = target().request().delete();
 
@@ -142,21 +138,20 @@ public class PortalApplicationClientCertificateResourceTest extends AbstractReso
 
     private ClientCertificate createClientCertificate(String id, String name) {
         return new ClientCertificate(
-            id,
-            null,
-            APPLICATION_ID,
-            name,
-            null,
-            null,
-            new Date(),
-            new Date(),
-            "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
-            null,
-            null,
-            null,
-            null,
-            null,
-            ClientCertificateStatus.ACTIVE
-        );
+                id,
+                null,
+                APPLICATION_ID,
+                name,
+                null,
+                null,
+                new Date(),
+                new Date(),
+                "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
+                null,
+                null,
+                null,
+                null,
+                null,
+                ClientCertificateStatus.ACTIVE);
     }
 }

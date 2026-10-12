@@ -96,32 +96,28 @@ public class LogsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public PaginatedResponseDto<LogEntryDto> searchLogs(
-        @QueryParam("page") Integer page,
-        @QueryParam("perPage") Integer perPage,
-        SearchLogsRequestDto request
-    ) {
+            @QueryParam("page") Integer page, @QueryParam("perPage") Integer perPage, SearchLogsRequestDto request) {
         checkReadObservabilityPermission();
 
-        List<FilterCondition> filters = RequestEntries.map(
-            request != null ? request.filters() : null,
-            "filters",
-            FilterConditionDto::toCore
-        );
+        List<FilterCondition> filters =
+                RequestEntries.map(request != null ? request.filters() : null, "filters", FilterConditionDto::toCore);
 
         var ctx = GraviteeContext.getExecutionContext();
-        var output = searchLogsUseCase.execute(
-            new SearchObservabilityLogsUseCase.Input(
+        var output = searchLogsUseCase.execute(new SearchObservabilityLogsUseCase.Input(
                 ctx.getOrganizationId(),
                 ctx.getEnvironmentId(),
                 filters,
-                request != null && request.timeRange() != null ? request.timeRange().from() : null,
-                request != null && request.timeRange() != null ? request.timeRange().to() : null,
+                request != null && request.timeRange() != null
+                        ? request.timeRange().from()
+                        : null,
+                request != null && request.timeRange() != null
+                        ? request.timeRange().to()
+                        : null,
                 page,
-                perPage
-            )
-        );
+                perPage));
 
-        List<LogEntryDto> data = output.data().data().stream().map(LogEntryDto::from).toList();
+        List<LogEntryDto> data =
+                output.data().data().stream().map(LogEntryDto::from).toList();
         return PaginatedResponseDto.of(data, output.data().totalCount(), output.page(), output.perPage());
     }
 
@@ -139,13 +135,11 @@ public class LogsResource {
         checkApiLogReadPermissionOrCollapse(apiId, requestId);
 
         var ctx = GraviteeContext.getExecutionContext();
-        var output = getLogDetailUseCase.execute(
-            new GetObservabilityLogDetailUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, requestId)
-        );
-        return output
-            .detail()
-            .map(detail -> Response.ok(LogDetailDto.from(detail)).build())
-            .orElseThrow(() -> new LogDetailNotFoundException(requestId, apiId));
+        var output = getLogDetailUseCase.execute(new GetObservabilityLogDetailUseCase.Input(
+                ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, requestId));
+        return output.detail()
+                .map(detail -> Response.ok(LogDetailDto.from(detail)).build())
+                .orElseThrow(() -> new LogDetailNotFoundException(requestId, apiId));
     }
 
     /**
@@ -163,12 +157,10 @@ public class LogsResource {
 
         var ctx = GraviteeContext.getExecutionContext();
         var output = getAuthzDecisionUseCase.execute(
-            new GetAuthzDecisionUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, eventId)
-        );
-        return output
-            .decision()
-            .map(decision -> Response.ok(LogEntryDto.from(decision)).build())
-            .orElseThrow(() -> new LogDetailNotFoundException(eventId, apiId));
+                new GetAuthzDecisionUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, eventId));
+        return output.decision()
+                .map(decision -> Response.ok(LogEntryDto.from(decision)).build())
+                .orElseThrow(() -> new LogDetailNotFoundException(eventId, apiId));
     }
 
     /**
@@ -183,25 +175,16 @@ public class LogsResource {
     @Path("/{requestId}/messages")
     @Produces(MediaType.APPLICATION_JSON)
     public PaginatedResponseDto<MessageLogDto> getLogMessages(
-        @PathParam("requestId") String requestId,
-        @QueryParam("apiId") String apiId,
-        @QueryParam("page") Integer page,
-        @QueryParam("perPage") Integer perPage
-    ) {
+            @PathParam("requestId") String requestId,
+            @QueryParam("apiId") String apiId,
+            @QueryParam("page") Integer page,
+            @QueryParam("perPage") Integer perPage) {
         requireParam("apiId", apiId);
         checkApiLogReadPermissionOrCollapse(apiId, requestId);
 
         var ctx = GraviteeContext.getExecutionContext();
-        var output = searchLogMessagesUseCase.execute(
-            new SearchObservabilityLogMessagesUseCase.Input(
-                ctx.getOrganizationId(),
-                ctx.getEnvironmentId(),
-                apiId,
-                requestId,
-                page,
-                perPage
-            )
-        );
+        var output = searchLogMessagesUseCase.execute(new SearchObservabilityLogMessagesUseCase.Input(
+                ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, requestId, page, perPage));
 
         var data = output.data().data().stream().map(MessageLogDto::from).toList();
         return PaginatedResponseDto.of(data, output.data().totalCount(), output.page(), output.perPage());
@@ -219,7 +202,8 @@ public class LogsResource {
      */
     private void checkApiLogReadPermissionOrCollapse(String apiId, String requestId) {
         ExecutionContext ctx = GraviteeContext.getExecutionContext();
-        boolean allowed = permissionService.hasPermission(ctx, RolePermission.API_LOG, apiId, RolePermissionAction.READ);
+        boolean allowed =
+                permissionService.hasPermission(ctx, RolePermission.API_LOG, apiId, RolePermissionAction.READ);
         if (!allowed) {
             throw new LogDetailNotFoundException(requestId, apiId);
         }
@@ -228,14 +212,13 @@ public class LogsResource {
     private void checkReadObservabilityPermission() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String environmentId = executionContext.getEnvironmentId();
-        boolean allowed =
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                environmentId,
-                RolePermissionAction.READ
-            ) ||
-            permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+        boolean allowed = permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_DASHBOARD,
+                        environmentId,
+                        RolePermissionAction.READ)
+                || permissionService.hasPermission(
+                        executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
         if (!allowed) {
             throw new ForbiddenAccessException();
         }

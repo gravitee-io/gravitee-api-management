@@ -51,9 +51,8 @@ public class VertxReactorConfiguration {
 
     @Bean
     public ServerManager serverManager(
-        VertxServerFactory<VertxServer<?, VertxServerOptions>, VertxServerOptions> serverFactory,
-        Environment environment
-    ) {
+            VertxServerFactory<VertxServer<?, VertxServerOptions>, VertxServerOptions> serverFactory,
+            Environment environment) {
         int counter = 0;
 
         final DefaultServerManager serverManager = new DefaultServerManager();
@@ -66,7 +65,11 @@ public class VertxReactorConfiguration {
                 boolean isTcpServer = Objects.equals(property, TCP_PREFIX);
 
                 var defaultPort = isTcpServer ? TCP_DEFAULT_PORT : HTTP_DEFAULT_PORT;
-                var options = VertxServerOptions.builder().defaultPort(defaultPort).prefix(prefix).environment(environment).build();
+                var options = VertxServerOptions.builder()
+                        .defaultPort(defaultPort)
+                        .prefix(prefix)
+                        .environment(environment)
+                        .build();
 
                 if (isTcpServer) {
                     assertTcpOptions(options);
@@ -77,11 +80,11 @@ public class VertxReactorConfiguration {
         } else {
             // No server list configured, fallback to single 'http' server configuration.
             final VertxHttpServerOptions httpOptions = VertxHttpServerOptions.builder()
-                .defaultPort(HTTP_DEFAULT_PORT)
-                .prefix(HTTP_PREFIX)
-                .environment(environment)
-                .id("http")
-                .build();
+                    .defaultPort(HTTP_DEFAULT_PORT)
+                    .prefix(HTTP_PREFIX)
+                    .environment(environment)
+                    .id("http")
+                    .build();
 
             serverManager.register(serverFactory.create(httpOptions));
 
@@ -89,11 +92,11 @@ public class VertxReactorConfiguration {
             if (tcpEnabled) {
                 // No server list configured, fallback to single 'tcp' server configuration.
                 VertxTcpServerOptions tcpOptions = VertxTcpServerOptions.builder()
-                    .defaultPort(VertxServerOptions.TCP_DEFAULT_PORT)
-                    .prefix(TCP_PREFIX)
-                    .environment(environment)
-                    .id("tcp")
-                    .build();
+                        .defaultPort(VertxServerOptions.TCP_DEFAULT_PORT)
+                        .prefix(TCP_PREFIX)
+                        .environment(environment)
+                        .id("tcp")
+                        .build();
                 assertTcpOptions(tcpOptions);
                 serverManager.register(serverFactory.create(tcpOptions));
             }
@@ -115,18 +118,14 @@ public class VertxReactorConfiguration {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HttpProtocolVerticle graviteeVerticle(
-        ServerManager serverManager,
-        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
-    ) {
+            ServerManager serverManager, @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher) {
         return new HttpProtocolVerticle(serverManager, requestDispatcher);
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public TcpProtocolVerticle graviteeTcpVerticle(
-        ServerManager serverManager,
-        @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher tcpSocketDispatcher
-    ) {
+            ServerManager serverManager, @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher tcpSocketDispatcher) {
         return new TcpProtocolVerticle(serverManager, tcpSocketDispatcher);
     }
 

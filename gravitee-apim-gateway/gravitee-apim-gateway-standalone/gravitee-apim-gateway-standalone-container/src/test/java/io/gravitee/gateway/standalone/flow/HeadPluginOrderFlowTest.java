@@ -41,9 +41,11 @@ public class HeadPluginOrderFlowTest extends AbstractWiremockGatewayTest {
     public void shouldRunFlows() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        final HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
-        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
+                .withHeader("X-Gravitee-Policy", equalTo("request-header2")));
 
         assertEquals(response.getFirstHeader("X-Gravitee-Policy").getValue(), "response-header2");
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());

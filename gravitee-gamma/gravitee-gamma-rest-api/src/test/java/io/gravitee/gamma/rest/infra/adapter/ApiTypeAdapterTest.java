@@ -45,14 +45,15 @@ class ApiTypeAdapterTest {
     @ParameterizedTest
     @EnumSource(io.gravitee.definition.model.v4.ApiType.class)
     void should_translate_every_definition_type_back_to_itself(io.gravitee.definition.model.v4.ApiType definitionType) {
-        assertThat(ApiTypeAdapter.toDefinition(ApiTypeAdapter.toObservability(definitionType))).contains(definitionType);
+        assertThat(ApiTypeAdapter.toDefinition(ApiTypeAdapter.toObservability(definitionType)))
+                .contains(definitionType);
     }
 
     @Test
     void should_give_every_api_kind_a_definition_type_and_none_to_the_decision_scope() {
         var mapped = Arrays.stream(io.gravitee.definition.model.v4.ApiType.values())
-            .map(ApiTypeAdapter::toObservability)
-            .collect(Collectors.toSet());
+                .map(ApiTypeAdapter::toObservability)
+                .collect(Collectors.toSet());
 
         assertThat(mapped).isEqualTo(ApiType.API_KINDS);
         assertThat(ApiTypeAdapter.toDefinition(ApiType.AUTHZ_DECISION)).isEmpty();
@@ -65,18 +66,19 @@ class ApiTypeAdapterTest {
     void should_resolve_every_api_kind_on_the_analytics_engine(ApiType apiType) {
         var definitionType = ApiTypeAdapter.toDefinition(apiType).orElseThrow();
         var context = new AnalyticsQueryContext(
-            AuditInfo.builder().organizationId("org").environmentId("env").actor(AuditActor.builder().userId("user").build()).build(),
-            new ExecutionContext("org", "env"),
-            Set.of("api-1"),
-            Map.of(),
-            Map.of(),
-            Map.of(definitionType, Set.of("api-1"))
-        );
+                AuditInfo.builder()
+                        .organizationId("org")
+                        .environmentId("env")
+                        .actor(AuditActor.builder().userId("user").build())
+                        .build(),
+                new ExecutionContext("org", "env"),
+                Set.of("api-1"),
+                Map.of(),
+                Map.of(),
+                Map.of(definitionType, Set.of("api-1")));
 
-        var filters = new ApiTypeFilterTransformer().transform(
-            context,
-            List.of(new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, apiType.name()))
-        );
+        var filters = new ApiTypeFilterTransformer()
+                .transform(context, List.of(new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, apiType.name())));
 
         assertThat(filters).singleElement().extracting(Filter::value).isEqualTo(Set.of("api-1"));
     }

@@ -46,7 +46,11 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
     @Override
     public Api update(String apiId, ApiCRDSpec crd, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
-        var apiEntity = delegate.update(executionContext, apiId, ApiAdapter.INSTANCE.toUpdateApiEntity(crd), auditInfo.actor().userId());
+        var apiEntity = delegate.update(
+                executionContext,
+                apiId,
+                ApiAdapter.INSTANCE.toUpdateApiEntity(crd),
+                auditInfo.actor().userId());
 
         return apiCrudService.get(apiEntity.getId());
     }
@@ -57,7 +61,12 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
 
         var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
 
-        delegate.update(executionContext, api.getId(), updateApiEntity, false, auditInfo.actor().userId());
+        delegate.update(
+                executionContext,
+                api.getId(),
+                updateApiEntity,
+                false,
+                auditInfo.actor().userId());
 
         return apiCrudService.get(api.getId());
     }
@@ -67,7 +76,11 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
 
-        delegate.validate(executionContext, api.getId(), updateApiEntity, auditInfo.actor().userId());
+        delegate.validate(
+                executionContext,
+                api.getId(),
+                updateApiEntity,
+                auditInfo.actor().userId());
 
         return applySanitizedValues(api, updateApiEntity);
     }
@@ -75,40 +88,40 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
     private Api applySanitizedValues(Api original, io.gravitee.rest.api.model.v4.api.UpdateApiEntity sanitized) {
         var originalDefinition = original.getApiDefinitionHttpV4();
         var sanitizedLifecycle = sanitized.getLifecycleState() != null
-            ? Api.ApiLifecycleState.valueOf(sanitized.getLifecycleState().name())
-            : original.getApiLifecycleState();
+                ? Api.ApiLifecycleState.valueOf(sanitized.getLifecycleState().name())
+                : original.getApiLifecycleState();
         var sanitizedVisibility = sanitized.getVisibility() != null
-            ? Api.Visibility.valueOf(sanitized.getVisibility().name())
-            : original.getVisibility();
-        var sanitizedDefinition = originalDefinition
-            .toBuilder()
-            .tags(coalesce(sanitized.getTags(), originalDefinition.getTags()))
-            .endpointGroups(coalesce(sanitized.getEndpointGroups(), originalDefinition.getEndpointGroups()))
-            .flows(coalesce(sanitized.getFlows(), originalDefinition.getFlows()))
-            .analytics(coalesce(sanitized.getAnalytics(), originalDefinition.getAnalytics()))
-            .failover(coalesce(sanitized.getFailover(), originalDefinition.getFailover()))
-            .flowExecution(coalesce(sanitized.getFlowExecution(), originalDefinition.getFlowExecution()))
-            .services(coalesce(sanitized.getServices(), originalDefinition.getServices()))
-            .allowedInApiProducts(coalesce(sanitized.getAllowedInApiProducts(), originalDefinition.getAllowedInApiProducts()))
-            .responseTemplates(coalesce(sanitized.getResponseTemplates(), originalDefinition.getResponseTemplates()))
-            .resources(coalesce(sanitized.getResources(), originalDefinition.getResources()))
-            .properties(coalesce(toProperties(sanitized.getProperties()), originalDefinition.getProperties()))
-            .listeners(coalesce(sanitized.getListeners(), originalDefinition.getListeners()))
-            .build();
-        return original
-            .toBuilder()
-            .name(coalesce(sanitized.getName(), original.getName()))
-            .description(coalesce(sanitized.getDescription(), original.getDescription()))
-            .version(coalesce(sanitized.getApiVersion(), original.getVersion()))
-            .visibility(sanitizedVisibility)
-            .apiLifecycleState(sanitizedLifecycle)
-            .labels(coalesce(sanitized.getLabels(), original.getLabels()))
-            .categories(coalesce(sanitized.getCategories(), original.getCategories()))
-            .groups(coalesce(sanitized.getGroups(), original.getGroups()))
-            .allowMultiJwtOauth2Subscriptions(sanitized.isAllowMultiJwtOauth2Subscriptions())
-            .disableMembershipNotifications(sanitized.isDisableMembershipNotifications())
-            .apiDefinitionValue(sanitizedDefinition)
-            .build();
+                ? Api.Visibility.valueOf(sanitized.getVisibility().name())
+                : original.getVisibility();
+        var sanitizedDefinition = originalDefinition.toBuilder()
+                .tags(coalesce(sanitized.getTags(), originalDefinition.getTags()))
+                .endpointGroups(coalesce(sanitized.getEndpointGroups(), originalDefinition.getEndpointGroups()))
+                .flows(coalesce(sanitized.getFlows(), originalDefinition.getFlows()))
+                .analytics(coalesce(sanitized.getAnalytics(), originalDefinition.getAnalytics()))
+                .failover(coalesce(sanitized.getFailover(), originalDefinition.getFailover()))
+                .flowExecution(coalesce(sanitized.getFlowExecution(), originalDefinition.getFlowExecution()))
+                .services(coalesce(sanitized.getServices(), originalDefinition.getServices()))
+                .allowedInApiProducts(
+                        coalesce(sanitized.getAllowedInApiProducts(), originalDefinition.getAllowedInApiProducts()))
+                .responseTemplates(
+                        coalesce(sanitized.getResponseTemplates(), originalDefinition.getResponseTemplates()))
+                .resources(coalesce(sanitized.getResources(), originalDefinition.getResources()))
+                .properties(coalesce(toProperties(sanitized.getProperties()), originalDefinition.getProperties()))
+                .listeners(coalesce(sanitized.getListeners(), originalDefinition.getListeners()))
+                .build();
+        return original.toBuilder()
+                .name(coalesce(sanitized.getName(), original.getName()))
+                .description(coalesce(sanitized.getDescription(), original.getDescription()))
+                .version(coalesce(sanitized.getApiVersion(), original.getVersion()))
+                .visibility(sanitizedVisibility)
+                .apiLifecycleState(sanitizedLifecycle)
+                .labels(coalesce(sanitized.getLabels(), original.getLabels()))
+                .categories(coalesce(sanitized.getCategories(), original.getCategories()))
+                .groups(coalesce(sanitized.getGroups(), original.getGroups()))
+                .allowMultiJwtOauth2Subscriptions(sanitized.isAllowMultiJwtOauth2Subscriptions())
+                .disableMembershipNotifications(sanitized.isDisableMembershipNotifications())
+                .apiDefinitionValue(sanitizedDefinition)
+                .build();
     }
 
     private static <T> T coalesce(T sanitized, T original) {
@@ -119,9 +132,8 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
         if (properties == null) {
             return null;
         }
-        return properties
-            .stream()
-            .map(pe -> new Property(pe.getKey(), pe.getValue(), pe.isEncrypted(), pe.isDynamic()))
-            .toList();
+        return properties.stream()
+                .map(pe -> new Property(pe.getKey(), pe.getValue(), pe.isEncrypted(), pe.isDynamic()))
+                .toList();
     }
 }

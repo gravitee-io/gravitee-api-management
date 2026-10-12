@@ -28,7 +28,8 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor(force = true)
-public class FakeSpecializedApiServicePlugin implements ApiServicePlugin<FakeSpecializedApiServiceFactory, FakeApiServiceConfiguration> {
+public class FakeSpecializedApiServicePlugin
+        implements ApiServicePlugin<FakeSpecializedApiServiceFactory, FakeApiServiceConfiguration> {
 
     private final boolean deployed;
 

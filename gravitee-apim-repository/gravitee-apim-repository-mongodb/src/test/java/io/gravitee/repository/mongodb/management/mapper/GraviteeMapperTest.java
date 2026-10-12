@@ -101,7 +101,8 @@ public class GraviteeMapperTest {
         assertEquals(source.getReferenceType(), sourceBack.getReferenceType());
         assertEquals(source.getReferenceId(), sourceBack.getReferenceId());
         assertEquals(source.getSource().getType(), sourceBack.getSource().getType());
-        assertEquals(source.getSource().getConfiguration(), sourceBack.getSource().getConfiguration());
+        assertEquals(
+                source.getSource().getConfiguration(), sourceBack.getSource().getConfiguration());
         assertEquals(source.getVisibility(), sourceBack.getVisibility());
         assertEquals(source.getOrder(), sourceBack.getOrder());
         assertEquals(source.getCreatedAt(), sourceBack.getCreatedAt());
@@ -167,8 +168,12 @@ public class GraviteeMapperTest {
         assertEquals(source.getStatus().name(), target.getStatus());
         assertEquals(source.getId(), target.getId());
         assertEquals(source.getConsumerStatus().name(), target.getConsumerStatus());
-        assertEquals(source.getGeneralConditionsContentPageId(), target.getGeneralConditionsContentRevision().getPageId());
-        assertEquals(source.getGeneralConditionsContentRevision().intValue(), target.getGeneralConditionsContentRevision().getRevision());
+        assertEquals(
+                source.getGeneralConditionsContentPageId(),
+                target.getGeneralConditionsContentRevision().getPageId());
+        assertEquals(
+                source.getGeneralConditionsContentRevision().intValue(),
+                target.getGeneralConditionsContentRevision().getRevision());
         assertEquals(source.getCreatedAt(), target.getCreatedAt());
         assertEquals(source.getUpdatedAt(), target.getUpdatedAt());
 
@@ -228,7 +233,8 @@ public class GraviteeMapperTest {
         final List<FlowStep> publishSteps = List.of(step);
         final List<FlowStep> responseSteps = List.of(step, step);
         final List<FlowStep> subscribeSteps = List.of(step);
-        final List<FlowSelector> selectors = List.of(new FlowHttpSelector(), new FlowConditionSelector(), new FlowChannelSelector());
+        final List<FlowSelector> selectors =
+                List.of(new FlowHttpSelector(), new FlowConditionSelector(), new FlowChannelSelector());
 
         source.setName("name");
         source.setEnabled(true);

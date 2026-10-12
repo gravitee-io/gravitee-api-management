@@ -86,22 +86,15 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
     public void setUp() throws JsonProcessingException {
         MockitoAnnotations.initMocks(this);
 
-        when(connectorFactory.create(anyString(), anyString(), any(ConnectorBuilder.class))).thenReturn(connector);
+        when(connectorFactory.create(anyString(), anyString(), any(ConnectorBuilder.class)))
+                .thenReturn(connector);
         when(connectorRegistry.getConnector(any())).thenReturn(connectorFactory);
         JsonNode node = mock(ObjectNode.class);
         when(node.has(anyString())).thenReturn(false);
         when(mapper.readTree(anyString())).thenReturn(node);
 
         endpointLifecycleManager = new MultiTenantAwareEndpointLifecycleManager(
-            api,
-            group,
-            endpointFactory,
-            referenceRegister,
-            connectorRegistry,
-            configuration,
-            mapper,
-            "europe"
-        );
+                api, group, endpointFactory, referenceRegister, connectorRegistry, configuration, mapper, "europe");
 
         when(api.getProxy()).thenReturn(proxy);
         when(proxy.getGroups()).thenReturn(Collections.singleton(group));
@@ -116,10 +109,10 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         endpointLifecycleManager.start();
 
-        verify(endpointFactory, never()).create(
-            any(io.gravitee.definition.model.Endpoint.class),
-            any(io.gravitee.connector.api.Connector.class)
-        );
+        verify(endpointFactory, never())
+                .create(
+                        any(io.gravitee.definition.model.Endpoint.class),
+                        any(io.gravitee.connector.api.Connector.class));
 
         assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
@@ -135,10 +128,10 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         endpointLifecycleManager.start();
 
-        verify(endpointFactory, atLeastOnce()).create(
-            any(io.gravitee.definition.model.Endpoint.class),
-            any(io.gravitee.connector.api.Connector.class)
-        );
+        verify(endpointFactory, atLeastOnce())
+                .create(
+                        any(io.gravitee.definition.model.Endpoint.class),
+                        any(io.gravitee.connector.api.Connector.class));
 
         assertThat(endpointLifecycleManager.endpoints()).isEmpty();
     }
@@ -159,7 +152,8 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
         when(registeredEndpoint.connector()).thenReturn(mock(Connector.class));
         when(registeredEndpoint.name()).thenReturn("endpoint");
 
-        when(endpointFactory.create(any(), any(io.gravitee.connector.api.Connector.class))).thenReturn(registeredEndpoint);
+        when(endpointFactory.create(any(), any(io.gravitee.connector.api.Connector.class)))
+                .thenReturn(registeredEndpoint);
 
         endpointLifecycleManager.start();
 
@@ -190,7 +184,8 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
         when(registeredEndpoint.connector()).thenReturn(mock(Connector.class));
         when(registeredEndpoint.name()).thenReturn("endpoint");
 
-        when(endpointFactory.create(any(), any(io.gravitee.connector.api.Connector.class))).thenReturn(registeredEndpoint);
+        when(endpointFactory.create(any(), any(io.gravitee.connector.api.Connector.class)))
+                .thenReturn(registeredEndpoint);
 
         endpointLifecycleManager.start();
 

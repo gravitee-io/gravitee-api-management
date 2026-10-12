@@ -39,13 +39,9 @@ public interface PortalDocumentationMapper {
     PortalDocumentationMapper INSTANCE = Mappers.getMapper(PortalDocumentationMapper.class);
 
     default DocumentationState toDocumentationState(
-        DocumentationSpec spec,
-        String id,
-        List<Validator.Error> errors,
-        AuditInfo audit,
-        String portalHrid
-    ) {
-        var state = new DocumentationState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid, null);
+            DocumentationSpec spec, String id, List<Validator.Error> errors, AuditInfo audit, String portalHrid) {
+        var state = new DocumentationState(
+                id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid, null);
         state.setHrid(spec.getHrid());
         state.setName(spec.getName());
         state.setType(spec.getType());
@@ -58,12 +54,11 @@ public interface PortalDocumentationMapper {
     }
 
     default DocumentationState toDocumentationState(
-        PortalPageContent<?> pageContent,
-        PortalArea area,
-        PortalVisibility visibility,
-        String hrid,
-        String portalHrid
-    ) {
+            PortalPageContent<?> pageContent,
+            PortalArea area,
+            PortalVisibility visibility,
+            String hrid,
+            String portalHrid) {
         var meta = pageContent.getAutomationMetadata();
         String rawContent = switch (pageContent) {
             case GraviteeMarkdownPageContent gmd -> gmd.getContent().value();
@@ -71,13 +66,12 @@ public interface PortalDocumentationMapper {
             case AsyncApiPageContent aapi -> aapi.getContent().value();
         };
         var state = new DocumentationState(
-            pageContent.getId() != null ? pageContent.getId().toString() : null,
-            pageContent.getEnvironmentId(),
-            pageContent.getOrganizationId(),
-            null,
-            portalHrid,
-            null
-        );
+                pageContent.getId() != null ? pageContent.getId().toString() : null,
+                pageContent.getEnvironmentId(),
+                pageContent.getOrganizationId(),
+                null,
+                portalHrid,
+                null);
         state.setHrid(hrid);
         state.setName(meta.name());
         state.setType(toWireType(pageContent.getType()));
@@ -90,15 +84,15 @@ public interface PortalDocumentationMapper {
     }
 
     default io.gravitee.apim.core.portal.model.PortalVisibility toDomainVisibility(
-        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
-    ) {
+            io.gravitee.apim.rest.api.automation.model.PortalVisibility wire) {
         return wire == null ? null : io.gravitee.apim.core.portal.model.PortalVisibility.valueOf(wire.getValue());
     }
 
     default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
-        io.gravitee.apim.core.portal.model.PortalVisibility domain
-    ) {
-        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
+            io.gravitee.apim.core.portal.model.PortalVisibility domain) {
+        return domain == null
+                ? null
+                : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 
     default Errors toErrors(List<Validator.Error> validationErrors) {
@@ -106,8 +100,14 @@ public interface PortalDocumentationMapper {
             return null;
         }
         var wire = new Errors();
-        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
-        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        wire.setSevere(validationErrors.stream()
+                .filter(Validator.Error::isSevere)
+                .map(Validator.Error::getMessage)
+                .toList());
+        wire.setWarning(validationErrors.stream()
+                .filter(Validator.Error::isWarning)
+                .map(Validator.Error::getMessage)
+                .toList());
         return wire;
     }
 
@@ -116,16 +116,22 @@ public interface PortalDocumentationMapper {
     }
 
     default io.gravitee.apim.rest.api.automation.model.DocumentationType toWireType(PortalPageContentType domain) {
-        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationType.fromValue(domain.name());
+        return domain == null
+                ? null
+                : io.gravitee.apim.rest.api.automation.model.DocumentationType.fromValue(domain.name());
     }
 
-    default io.gravitee.apim.core.portal.model.PortalArea toDomainArea(io.gravitee.apim.rest.api.automation.model.DocumentationArea wire) {
+    default io.gravitee.apim.core.portal.model.PortalArea toDomainArea(
+            io.gravitee.apim.rest.api.automation.model.DocumentationArea wire) {
         return wire == null
-            ? io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR
-            : io.gravitee.apim.core.portal.model.PortalArea.valueOf(wire.getValue());
+                ? io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR
+                : io.gravitee.apim.core.portal.model.PortalArea.valueOf(wire.getValue());
     }
 
-    default io.gravitee.apim.rest.api.automation.model.DocumentationArea toWireArea(io.gravitee.apim.core.portal.model.PortalArea domain) {
-        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationArea.fromValue(domain.name());
+    default io.gravitee.apim.rest.api.automation.model.DocumentationArea toWireArea(
+            io.gravitee.apim.core.portal.model.PortalArea domain) {
+        return domain == null
+                ? null
+                : io.gravitee.apim.rest.api.automation.model.DocumentationArea.fromValue(domain.name());
     }
 }

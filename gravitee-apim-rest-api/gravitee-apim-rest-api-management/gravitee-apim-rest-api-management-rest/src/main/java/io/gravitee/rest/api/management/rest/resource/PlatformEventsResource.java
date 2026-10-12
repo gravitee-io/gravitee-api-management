@@ -24,12 +24,10 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.management.rest.model.wrapper.EventEntityPage;
 import io.gravitee.rest.api.management.rest.resource.param.EventSearchParam;
 import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -62,66 +60,64 @@ public class PlatformEventsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List platform events",
-        description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service"
-    )
+            summary = "List platform events",
+            description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Platform events",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EventEntityPage.class))
-    )
+            responseCode = "200",
+            description = "Platform events",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = EventEntityPage.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = READ)})
     public EventEntityPage getPlatformEvents(@BeanParam EventSearchParam eventSearchParam) {
         eventSearchParam.validate();
 
         Map<String, Object> properties = new HashMap<>();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (eventSearchParam.getApiIdsParam() != null && !eventSearchParam.getApiIdsParam().isEmpty()) {
+        if (eventSearchParam.getApiIdsParam() != null
+                && !eventSearchParam.getApiIdsParam().isEmpty()) {
             properties.put(Event.EventProperties.API_ID.getValue(), eventSearchParam.getApiIdsParam());
         } else if (!isAdmin()) {
             properties.put(
-                Event.EventProperties.API_ID.getValue(),
-                apiAuthorizationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-                    .stream()
-                    .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
-                    .collect(Collectors.joining(","))
-            );
+                    Event.EventProperties.API_ID.getValue(),
+                    apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), true).stream()
+                            .filter(apiId ->
+                                    permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
+                            .collect(Collectors.joining(",")));
         }
 
         Page<EventEntity> events = eventService.search(
-            executionContext,
-            eventSearchParam.getEventTypeListParam(),
-            properties,
-            eventSearchParam.getFrom(),
-            eventSearchParam.getTo(),
-            eventSearchParam.getPage(),
-            eventSearchParam.getSize(),
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
-        );
+                executionContext,
+                eventSearchParam.getEventTypeListParam(),
+                properties,
+                eventSearchParam.getFrom(),
+                eventSearchParam.getTo(),
+                eventSearchParam.getPage(),
+                eventSearchParam.getSize(),
+                Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
 
-        events
-            .getContent()
-            .forEach(event -> {
-                Map<String, String> properties1 = event.getProperties();
-                // Event relative to API
-                if (properties1 != null && properties1.containsKey(Event.EventProperties.API_ID.getValue())) {
-                    // Remove payload content from response since it's not required anymore
-                    event.setPayload(null);
+        events.getContent().forEach(event -> {
+            Map<String, String> properties1 = event.getProperties();
+            // Event relative to API
+            if (properties1 != null && properties1.containsKey(Event.EventProperties.API_ID.getValue())) {
+                // Remove payload content from response since it's not required anymore
+                event.setPayload(null);
 
-                    // Retrieve additional data
-                    String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
-                    try {
-                        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
-                        properties1.put("api_name", genericApiEntity.getName());
-                        properties1.put("api_version", genericApiEntity.getApiVersion());
-                    } catch (ApiNotFoundException anfe) {
-                        properties1.put("deleted", Boolean.TRUE.toString());
-                        properties1.put("api_name", "Deleted API");
-                    }
+                // Retrieve additional data
+                String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
+                try {
+                    GenericApiEntity genericApiEntity =
+                            apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+                    properties1.put("api_name", genericApiEntity.getName());
+                    properties1.put("api_version", genericApiEntity.getApiVersion());
+                } catch (ApiNotFoundException anfe) {
+                    properties1.put("deleted", Boolean.TRUE.toString());
+                    properties1.put("api_name", "Deleted API");
                 }
-            });
+            }
+        });
 
         return new EventEntityPage(events);
     }

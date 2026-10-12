@@ -109,10 +109,13 @@ class ApiProductV4SecurityIntegrationTest {
     class JwtSecurityTypeScenarios extends SecurityTestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
-        void should_return_200_success_with_jwt_and_subscription_on_the_api_product_api(HttpClient client) throws Exception {
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
+        void should_return_200_success_with_jwt_and_subscription_on_the_api_product_api(HttpClient client)
+                throws Exception {
             final String productId = "jwt-product-success";
             final String planId = "jwt-product-plan-success";
             ReactableApiProduct p = product(productId, Set.of(API_1_ID));
@@ -125,9 +128,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         void should_return_401_unauthorized_with_wrong_security_on_the_api_product_api(HttpClient client) {
             final String productId = "jwt-product-wrong-security";
             final String planId = "jwt-product-plan-wrong-security";
@@ -136,15 +141,20 @@ class ApiProductV4SecurityIntegrationTest {
             deployApiProduct(p);
 
             assertThat(getStatus(client, API_1_PATH)).isEqualTo(401);
-            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer a-jwt-token")).isEqualTo(401);
-            assertThat(getStatusWithHeader(client, API_1_PATH, "X-Gravitee-Api-Key", "an-api-key")).isEqualTo(401);
+            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer a-jwt-token"))
+                    .isEqualTo(401);
+            assertThat(getStatusWithHeader(client, API_1_PATH, "X-Gravitee-Api-Key", "an-api-key"))
+                    .isEqualTo(401);
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
-        void should_keep_sibling_api_accessible_via_jwt_after_one_api_is_removed_from_product(HttpClient client) throws Exception {
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
+        void should_keep_sibling_api_accessible_via_jwt_after_one_api_is_removed_from_product(HttpClient client)
+                throws Exception {
             final String productId = "jwt-product-deletion-sibling";
             final String planId = "jwt-product-plan-deletion-sibling";
             ReactableApiProduct p = product(productId, Set.of(API_1_ID, API_2_ID));
@@ -153,23 +163,30 @@ class ApiProductV4SecurityIntegrationTest {
             allowJwtSubscriptionForApiAndPlan(API_1_ID, planId, JWT_CLIENT_ID);
             allowJwtSubscriptionForApiAndPlan(API_2_ID, planId, JWT_CLIENT_ID);
 
-            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
-            assertThat(getStatusWithHeader(client, API_2_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
+            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000)))
+                    .isEqualTo(200);
+            assertThat(getStatusWithHeader(client, API_2_PATH, "Authorization", "Bearer " + generateJWT(5000)))
+                    .isEqualTo(200);
 
             undeploy(API_1_ID);
             ReactableApiProduct updatedProduct = product(productId, Set.of(API_2_ID));
             registerProductPlans(updatedProduct, List.of(productJwtPlan(planId, PlanStatus.PUBLISHED)));
             redeployApiProduct(updatedProduct);
 
-            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(404);
-            assertThat(getStatusWithHeader(client, API_2_PATH, "Authorization", "Bearer " + generateJWT(5000))).isEqualTo(200);
+            assertThat(getStatusWithHeader(client, API_1_PATH, "Authorization", "Bearer " + generateJWT(5000)))
+                    .isEqualTo(404);
+            assertThat(getStatusWithHeader(client, API_2_PATH, "Authorization", "Bearer " + generateJWT(5000)))
+                    .isEqualTo(200);
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
-        void should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api_product_api(HttpClient client) throws Exception {
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
+        void should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api_product_api(HttpClient client)
+                throws Exception {
             final String productId = "jwt-product-expired";
             final String planId = "jwt-product-plan-expired";
             ReactableApiProduct p = product(productId, Set.of(API_1_ID));
@@ -189,19 +206,17 @@ class ApiProductV4SecurityIntegrationTest {
 
         @Override
         protected void configureGateway(GatewayConfigurationBuilder config) {
-            config
-                .httpSecured(true)
-                .set("http.ssl.clientAuth", "request")
-                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
+            config.httpSecured(true)
+                    .set("http.ssl.clientAuth", "request")
+                    .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
         }
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             boolean withCert = parameterContext.findAnnotation(WithCert.class).isPresent();
             configureTrustedHttpClient(options, gatewayConfig.httpPort(), withCert);
         }
@@ -209,15 +224,20 @@ class ApiProductV4SecurityIntegrationTest {
         @BeforeEach
         void setupMtlsSubscriptionTrustStore() {
             subscriptionTrustStoreLoaderManager = getBean(SubscriptionTrustStoreLoaderManager.class);
-            final SubscriptionCacheService subscriptionService = (SubscriptionCacheService) getBean(SubscriptionService.class);
-            when(subscriptionService.getByApiAndSecurityToken(any(), any(), any())).thenCallRealMethod();
-            ReflectionTestUtils.setField(subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
+            final SubscriptionCacheService subscriptionService =
+                    (SubscriptionCacheService) getBean(SubscriptionService.class);
+            when(subscriptionService.getByApiAndSecurityToken(any(), any(), any()))
+                    .thenCallRealMethod();
+            ReflectionTestUtils.setField(
+                    subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         void should_be_able_to_call_api_product_with_mtls_plan(@WithCert HttpClient client) throws Exception {
             final String productId = "mtls-product-success";
             final String planId = PLAN_MTLS_ID;
@@ -235,10 +255,13 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
-        void should_be_able_to_call_api_product_with_mtls_plan_and_several_cert(@WithCert HttpClient client) throws Exception {
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
+        void should_be_able_to_call_api_product_with_mtls_plan_and_several_cert(@WithCert HttpClient client)
+                throws Exception {
             final String productId = "mtls-product-multi-cert";
             final String planId = PLAN_MTLS_ID;
             ReactableApiProduct p = product(productId, Set.of(API_1_ID));
@@ -255,9 +278,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         void should_not_be_able_to_call_api_product_with_mtls_plan_if_no_cert_in_request(HttpClient client) {
             final String productId = "mtls-product-no-cert";
             final String planId = PLAN_MTLS_ID;
@@ -275,12 +300,13 @@ class ApiProductV4SecurityIntegrationTest {
             subscription.setApplicationName("Application");
             subscription.setId("subscription-mtls-" + planId);
             subscription.setPlan(planId);
-            final String clientCertificate = Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
+            final String clientCertificate =
+                    Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
             if (withPkcs7Bundle) {
-                final String clientCertificate2 = Files.readString(Paths.get(getUrl("plans/mtls/client2.cer").getPath()));
-                subscription.setClientCertificate(
-                    Base64.getEncoder().encodeToString(PKCS7Utils.createBundle(List.of(clientCertificate, clientCertificate2)))
-                );
+                final String clientCertificate2 = Files.readString(
+                        Paths.get(getUrl("plans/mtls/client2.cer").getPath()));
+                subscription.setClientCertificate(Base64.getEncoder()
+                        .encodeToString(PKCS7Utils.createBundle(List.of(clientCertificate, clientCertificate2))));
             } else {
                 subscription.setClientCertificate(Base64.getEncoder().encodeToString(clientCertificate.getBytes()));
             }
@@ -289,7 +315,8 @@ class ApiProductV4SecurityIntegrationTest {
     }
 
     @GatewayTest
-    // Empty @DeployApiProducts({}) signals that this test class needs the "universe" license tier for API Product features.
+    // Empty @DeployApiProducts({}) signals that this test class needs the "universe" license tier for API Product
+    // features.
     @DeployApiProducts({})
     static class SecurityTestPreparer extends AbstractGatewayTest {
 
@@ -298,8 +325,10 @@ class ApiProductV4SecurityIntegrationTest {
         @BeforeEach
         void setupSecurityDefaults() {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
-            when(getBean(ApiKeyService.class).getByApiAndKey(anyString(), anyString())).thenReturn(Optional.empty());
-            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(any(), any(), any())).thenReturn(Optional.empty());
+            when(getBean(ApiKeyService.class).getByApiAndKey(anyString(), anyString()))
+                    .thenReturn(Optional.empty());
+            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(any(), any(), any()))
+                    .thenReturn(Optional.empty());
         }
 
         @AfterEach
@@ -328,7 +357,8 @@ class ApiProductV4SecurityIntegrationTest {
         @Override
         public void configureApi(io.gravitee.gateway.reactor.ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
-                final io.gravitee.definition.model.v4.Api apiDefinition = (io.gravitee.definition.model.v4.Api) api.getDefinition();
+                final io.gravitee.definition.model.v4.Api apiDefinition =
+                        (io.gravitee.definition.model.v4.Api) api.getDefinition();
                 configurePlans(apiDefinition, Set.of("api-key"));
             }
         }
@@ -336,40 +366,43 @@ class ApiProductV4SecurityIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "api-key",
-                PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-            );
+                    "api-key",
+                    PolicyBuilder.build(
+                            "api-key",
+                            ApiKeyPolicy.class,
+                            ApiKeyPolicyConfiguration.class,
+                            ApiKeyPolicyInitializer.class));
             policies.put("jwt", PolicyBuilder.build("jwt", JWTPolicy.class, JWTPolicyConfiguration.class));
             policies.put("mtls", PolicyBuilder.build("mtls", MtlsPolicy.class, MtlsPolicyConfiguration.class));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         int getStatus(HttpClient client, String path) {
-            return client
-                .rxRequest(GET, path)
-                .flatMap(HttpClientRequest::rxSend)
-                .map(response -> response.statusCode())
-                .blockingGet();
+            return client.rxRequest(GET, path)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .map(response -> response.statusCode())
+                    .blockingGet();
         }
 
         int getStatusWithHeader(HttpClient client, String path, String headerName, String headerValue) {
-            return client
-                .rxRequest(GET, path)
-                .flatMap(request -> {
-                    request.putHeader(headerName, headerValue);
-                    return request.rxSend();
-                })
-                .map(response -> response.statusCode())
-                .blockingGet();
+            return client.rxRequest(GET, path)
+                    .flatMap(request -> {
+                        request.putHeader(headerName, headerValue);
+                        return request.rxSend();
+                    })
+                    .map(response -> response.statusCode())
+                    .blockingGet();
         }
 
         void allowJwtSubscriptionForApiAndPlan(String apiId, String planId, String clientId) {
@@ -379,17 +412,15 @@ class ApiProductV4SecurityIntegrationTest {
             subscription.setId("subscription-jwt-" + planId);
             subscription.setApi(apiId);
             subscription.setPlan(planId);
-            when(
-                getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                    eq(apiId),
-                    argThat(
-                        securityToken ->
-                            securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
-                            securityToken.getTokenValue().equals(clientId)
-                    ),
-                    eq(planId)
-                )
-            ).thenReturn(Optional.of(subscription));
+            when(getBean(SubscriptionService.class)
+                            .getByApiAndSecurityToken(
+                                    eq(apiId),
+                                    argThat(securityToken -> securityToken
+                                                    .getTokenType()
+                                                    .equals(SecurityToken.TokenType.CLIENT_ID.name())
+                                            && securityToken.getTokenValue().equals(clientId)),
+                                    eq(planId)))
+                    .thenReturn(Optional.of(subscription));
         }
 
         void registerProductPlans(ReactableApiProduct product, List<Plan> plans) {
@@ -398,23 +429,23 @@ class ApiProductV4SecurityIntegrationTest {
 
         ReactableApiProduct product(String productId, Set<String> apiIds) {
             return ReactableApiProduct.builder()
-                .id(productId)
-                .name("Product-" + productId)
-                .description("Scenario product " + productId)
-                .version("1.0.0")
-                .apiIds(apiIds)
-                .environmentId(ENV_ID)
-                .build();
+                    .id(productId)
+                    .name("Product-" + productId)
+                    .description("Scenario product " + productId)
+                    .version("1.0.0")
+                    .apiIds(apiIds)
+                    .environmentId(ENV_ID)
+                    .build();
         }
 
         Plan productPlan(String planId, String securityType, PlanStatus status) {
             return Plan.builder()
-                .id(planId)
-                .name("ProductPlan-" + planId)
-                .security(PlanSecurity.builder().type(securityType).build())
-                .status(status)
-                .mode(PlanMode.STANDARD)
-                .build();
+                    .id(planId)
+                    .name("ProductPlan-" + planId)
+                    .security(PlanSecurity.builder().type(securityType).build())
+                    .status(status)
+                    .mode(PlanMode.STANDARD)
+                    .build();
         }
 
         Plan productJwtPlan(String planId, PlanStatus status) {
@@ -424,14 +455,15 @@ class ApiProductV4SecurityIntegrationTest {
                 configuration.setResolverParameter(JWT_SECRET);
                 configuration.setPublicKeyResolver(GIVEN_KEY);
                 return Plan.builder()
-                    .id(planId)
-                    .name("ProductPlan-" + planId)
-                    .security(
-                        PlanSecurity.builder().type("jwt").configuration(new ObjectMapper().writeValueAsString(configuration)).build()
-                    )
-                    .status(status)
-                    .mode(PlanMode.STANDARD)
-                    .build();
+                        .id(planId)
+                        .name("ProductPlan-" + planId)
+                        .security(PlanSecurity.builder()
+                                .type("jwt")
+                                .configuration(new ObjectMapper().writeValueAsString(configuration))
+                                .build())
+                        .status(status)
+                        .mode(PlanMode.STANDARD)
+                        .build();
             } catch (Exception e) {
                 throw new RuntimeException("Failed to create JWT product plan configuration", e);
             }

@@ -25,7 +25,6 @@ import io.gravitee.apim.infra.adapter.ApplicationAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -81,11 +80,12 @@ class ApplicationQueryServiceImplTest {
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             when(applicationRepository.search(any(), any())).thenThrow(TechnicalException.class);
 
-            Throwable throwable = catchThrowable(() -> service.searchByIds(Set.of("app-id"), null, new PageableImpl(1, 10)));
+            Throwable throwable =
+                    catchThrowable(() -> service.searchByIds(Set.of("app-id"), null, new PageableImpl(1, 10)));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred while searching applications by ids");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred while searching applications by ids");
         }
     }
 
@@ -95,15 +95,16 @@ class ApplicationQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_list_applications_matching_environment_id() {
-            //Given
+            // Given
             var env = "my-env";
             var expectedApplication = ApplicationFixture.anApplication();
-            when(applicationRepository.findAllByEnvironment("my-env", ApplicationStatus.values())).thenReturn(Set.of(expectedApplication));
+            when(applicationRepository.findAllByEnvironment("my-env", ApplicationStatus.values()))
+                    .thenReturn(Set.of(expectedApplication));
 
-            //When
+            // When
             Set<BaseApplicationEntity> result = service.findByEnvironment(env);
 
-            //Then
+            // Then
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result.size()).isOne();
                 soft.assertThat(result).contains(ApplicationAdapter.INSTANCE.toEntity(expectedApplication));
@@ -115,17 +116,16 @@ class ApplicationQueryServiceImplTest {
         void should_throw_when_technical_exception_occurs() {
             // Given
             var envId = "different-env";
-            when(applicationRepository.findAllByEnvironment("different-env", ApplicationStatus.values())).thenThrow(
-                TechnicalException.class
-            );
+            when(applicationRepository.findAllByEnvironment("different-env", ApplicationStatus.values()))
+                    .thenThrow(TechnicalException.class);
 
             // When
             Throwable throwable = catchThrowable(() -> service.findByEnvironment(envId));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred while finding applications by environment id: different-env");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred while finding applications by environment id: different-env");
         }
     }
 }

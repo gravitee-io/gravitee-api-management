@@ -50,10 +50,7 @@ public class PortalNavigationDefaultPageDomainService {
     private final ApiCrudService apiCrudService;
 
     public List<PortalNavigationItemId> seedDefaultPages(
-        String organizationId,
-        String environmentId,
-        List<PortalNavigationItemId> navigationItemIds
-    ) {
+            String organizationId, String environmentId, List<PortalNavigationItemId> navigationItemIds) {
         var seededNavigationItemIds = new ArrayList<PortalNavigationItemId>();
 
         for (var navigationItemId : navigationItemIds) {
@@ -62,47 +59,52 @@ public class PortalNavigationDefaultPageDomainService {
                     seededNavigationItemIds.add(navigationItemId);
                 }
             } catch (Exception e) {
-                log.warn("Skipping default page seed for portal navigation item {} in environment {}", navigationItemId, environmentId, e);
+                log.warn(
+                        "Skipping default page seed for portal navigation item {} in environment {}",
+                        navigationItemId,
+                        environmentId,
+                        e);
             }
         }
 
         return List.copyOf(seededNavigationItemIds);
     }
 
-    private boolean seedDefaultPage(String organizationId, String environmentId, PortalNavigationItemId navigationItemId) {
-        var navigationItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(environmentId, navigationItemId);
+    private boolean seedDefaultPage(
+            String organizationId, String environmentId, PortalNavigationItemId navigationItemId) {
+        var navigationItem =
+                portalNavigationItemsQueryService.findByIdAndEnvironmentId(environmentId, navigationItemId);
         var templatePath = resolveTemplatePath(navigationItem);
         if (templatePath == null) {
             return false;
         }
 
-        var hasChildPage = portalNavigationItemsQueryService
-            .findByParentIdAndEnvironmentId(environmentId, navigationItemId)
-            .stream()
-            .anyMatch(PortalNavigationPage.class::isInstance);
+        var hasChildPage =
+                portalNavigationItemsQueryService
+                        .findByParentIdAndEnvironmentId(environmentId, navigationItemId)
+                        .stream()
+                        .anyMatch(PortalNavigationPage.class::isInstance);
         if (hasChildPage) {
             return false;
         }
 
         var content = portalPageContentCrudService.create(
-            GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(templatePath))
-        );
+                GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(templatePath)));
 
         portalNavigationItemDomainService.create(
-            organizationId,
-            environmentId,
-            CreatePortalNavigationItem.builder()
-                .title(DEFAULT_PAGE_TITLE)
-                .type(PortalNavigationItemType.PAGE)
-                .area(navigationItem.getArea())
-                .parentId(navigationItemId)
-                .portalPageContentId(content.getId())
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .order(0)
-                .published(false)
-                .visibility(navigationItem.getVisibility())
-                .build()
-        );
+                organizationId,
+                environmentId,
+                CreatePortalNavigationItem.builder()
+                        .title(DEFAULT_PAGE_TITLE)
+                        .type(PortalNavigationItemType.PAGE)
+                        .area(navigationItem.getArea())
+                        .parentId(navigationItemId)
+                        .portalPageContentId(content.getId())
+                        .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                        .order(0)
+                        .published(false)
+                        .visibility(navigationItem.getVisibility())
+                        .build());
 
         return true;
     }
@@ -110,10 +112,10 @@ public class PortalNavigationDefaultPageDomainService {
     private String resolveTemplatePath(PortalNavigationItem navigationItem) {
         if (navigationItem instanceof PortalNavigationApi apiNavigationItem) {
             return apiCrudService
-                .findById(apiNavigationItem.getApiId())
-                .filter(api -> ApiType.MCP_PROXY == api.getType())
-                .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
-                .orElse(DEFAULT_OVERVIEW_TEMPLATE);
+                    .findById(apiNavigationItem.getApiId())
+                    .filter(api -> ApiType.MCP_PROXY == api.getType())
+                    .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
+                    .orElse(DEFAULT_OVERVIEW_TEMPLATE);
         }
         if (navigationItem instanceof PortalNavigationApiProduct) {
             return API_PRODUCT_OVERVIEW_TEMPLATE;
@@ -122,13 +124,12 @@ public class PortalNavigationDefaultPageDomainService {
     }
 
     private String loadContent(String contentPath) {
-        try (
-            var inputStream = PortalNavigationDefaultPageDomainService.class.getClassLoader().getResourceAsStream(
-                String.format("templates/%s", contentPath)
-            )
-        ) {
+        try (var inputStream = PortalNavigationDefaultPageDomainService.class
+                .getClassLoader()
+                .getResourceAsStream(String.format("templates/%s", contentPath))) {
             if (inputStream == null) {
-                throw new IllegalStateException(String.format("Could not load default portal page template for %s", contentPath));
+                throw new IllegalStateException(
+                        String.format("Could not load default portal page template for %s", contentPath));
             }
             return new String(inputStream.readAllBytes());
         } catch (Exception e) {

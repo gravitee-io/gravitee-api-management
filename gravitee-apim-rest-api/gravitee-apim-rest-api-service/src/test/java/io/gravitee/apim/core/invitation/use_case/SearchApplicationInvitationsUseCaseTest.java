@@ -62,18 +62,14 @@ class SearchApplicationInvitationsUseCaseTest {
     @Test
     void should_validate_application_existence_before_searching() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
-        Throwable throwable = catchThrowable(() ->
-            cut.execute(
-                new SearchApplicationInvitationsUseCase.Input(
-                    executionContext,
-                    APPLICATION_ID,
-                    new SearchApplicationInvitationsCriteria(Optional.empty()),
-                    new PageableImpl(1, 10)
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> cut.execute(new SearchApplicationInvitationsUseCase.Input(
+                executionContext,
+                APPLICATION_ID,
+                new SearchApplicationInvitationsCriteria(Optional.empty()),
+                new PageableImpl(1, 10))));
 
         assertThat(throwable).isInstanceOf(ApplicationNotFoundException.class).hasMessageContaining(APPLICATION_ID);
         verifyNoInteractions(invitationQueryService);
@@ -82,32 +78,42 @@ class SearchApplicationInvitationsUseCaseTest {
     @Test
     void should_filter_sort_and_paginate_invitations() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-        var application = BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build();
+        var application = BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         var criteria = new SearchApplicationInvitationsCriteria(Optional.of("JOHN"));
         var pageable = new PageableImpl(1, 1);
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(invitationQueryService.findByApplicationId(APPLICATION_ID, criteria, pageable)).thenReturn(
-            new Page<>(List.of(anInvitation("john.alpha@example.com")), 1, 1, 1)
-        );
+        when(invitationQueryService.findByApplicationId(APPLICATION_ID, criteria, pageable))
+                .thenReturn(new Page<>(List.of(anInvitation("john.alpha@example.com")), 1, 1, 1));
 
-        var result = cut.execute(new SearchApplicationInvitationsUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable));
+        var result = cut.execute(
+                new SearchApplicationInvitationsUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable));
 
         assertThat(result.invitations().getTotalElements()).isEqualTo(1);
         assertThat(result.invitations().getPageElements()).isEqualTo(1);
-        assertThat(result.invitations().getContent()).extracting(ApplicationInvitation::email).containsExactly("john.alpha@example.com");
+        assertThat(result.invitations().getContent())
+                .extracting(ApplicationInvitation::email)
+                .containsExactly("john.alpha@example.com");
         verify(invitationQueryService).findByApplicationId(APPLICATION_ID, criteria, pageable);
     }
 
     @Test
     void should_return_empty_page_when_no_invitation_matches() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-        var application = BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build();
+        var application = BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         var criteria = new SearchApplicationInvitationsCriteria(Optional.of("john"));
         var pageable = new PageableImpl(1, 10);
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(invitationQueryService.findByApplicationId(APPLICATION_ID, criteria, pageable)).thenReturn(new Page<>(List.of(), 1, 0, 0));
+        when(invitationQueryService.findByApplicationId(APPLICATION_ID, criteria, pageable))
+                .thenReturn(new Page<>(List.of(), 1, 0, 0));
 
-        var result = cut.execute(new SearchApplicationInvitationsUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable));
+        var result = cut.execute(
+                new SearchApplicationInvitationsUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable));
 
         assertThat(result.invitations().getContent()).isEmpty();
         assertThat(result.invitations().getPageElements()).isZero();
@@ -117,15 +123,18 @@ class SearchApplicationInvitationsUseCaseTest {
     @Test
     void should_throw_when_page_is_invalid() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-        var application = BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build();
+        var application = BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         var criteria = new SearchApplicationInvitationsCriteria(Optional.empty());
         var pageable = new PageableImpl(2, 10);
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(invitationQueryService.findByApplicationId(APPLICATION_ID, criteria, pageable)).thenThrow(new PaginationInvalidException());
+        when(invitationQueryService.findByApplicationId(APPLICATION_ID, criteria, pageable))
+                .thenThrow(new PaginationInvalidException());
 
-        Throwable throwable = catchThrowable(() ->
-            cut.execute(new SearchApplicationInvitationsUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable))
-        );
+        Throwable throwable = catchThrowable(() -> cut.execute(
+                new SearchApplicationInvitationsUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable)));
 
         assertThat(throwable).isInstanceOf(PaginationInvalidException.class);
     }

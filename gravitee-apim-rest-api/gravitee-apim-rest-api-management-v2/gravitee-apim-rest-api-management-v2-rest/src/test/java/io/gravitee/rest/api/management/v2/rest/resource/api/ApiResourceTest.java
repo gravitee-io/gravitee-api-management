@@ -41,23 +41,22 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() throws TechnicalException {
         Mockito.reset(
-            apiSearchServiceV4,
-            apiImagesService,
-            exportApiUseCase,
-            apiStateServiceV4,
-            parameterService,
-            workflowService,
-            apiServiceV4,
-            apiService,
-            apiLicenseService,
-            apiWorkflowStateService,
-            roleService,
-            apiDuplicatorService,
-            apiDuplicateService,
-            updateApiDefinitionUseCase,
-            oaiToUpdateApiUseCase,
-            wsdlToUpdateApiUseCase
-        );
+                apiSearchServiceV4,
+                apiImagesService,
+                exportApiUseCase,
+                apiStateServiceV4,
+                parameterService,
+                workflowService,
+                apiServiceV4,
+                apiService,
+                apiLicenseService,
+                apiWorkflowStateService,
+                roleService,
+                apiDuplicatorService,
+                apiDuplicateService,
+                updateApiDefinitionUseCase,
+                oaiToUpdateApiUseCase,
+                wsdlToUpdateApiUseCase);
         GraviteeContext.cleanContext();
 
         Api api = new Api();
@@ -73,9 +72,12 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_NAME)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
     }
 
     @AfterEach

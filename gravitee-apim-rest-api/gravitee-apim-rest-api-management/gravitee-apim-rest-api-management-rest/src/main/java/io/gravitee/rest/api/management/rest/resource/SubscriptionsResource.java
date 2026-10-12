@@ -58,21 +58,22 @@ public class SubscriptionsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List subscriptions for authenticated user")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of subscriptions",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = Subscription.class), uniqueItems = true)
-        )
-    )
+            responseCode = "200",
+            description = "List of subscriptions",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema = @Schema(implementation = Subscription.class),
+                                            uniqueItems = true)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Set<Subscription> getUserSubscriptions(@QueryParam("application") String application, @QueryParam("plan") String plan) {
+    public Set<Subscription> getUserSubscriptions(
+            @QueryParam("application") String application, @QueryParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        return subscriptionService
-            .findByApplicationAndPlan(executionContext, application, plan)
-            .stream()
-            .map(subscriptionEntity -> convert(executionContext, subscriptionEntity))
-            .collect(Collectors.toSet());
+        return subscriptionService.findByApplicationAndPlan(executionContext, application, plan).stream()
+                .map(subscriptionEntity -> convert(executionContext, subscriptionEntity))
+                .collect(Collectors.toSet());
     }
 
     private Subscription convert(ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {
@@ -91,18 +92,18 @@ public class SubscriptionsResource {
         subscription.setReferenceId(subscriptionEntity.getReferenceId());
         subscription.setReferenceType(subscriptionEntity.getReferenceType());
 
-        ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
-        subscription.setApplication(
-            new Subscription.Application(
+        ApplicationEntity application =
+                applicationService.findById(executionContext, subscriptionEntity.getApplication());
+        subscription.setApplication(new Subscription.Application(
                 application.getId(),
                 application.getName(),
                 application.getType(),
                 application.getDescription(),
                 application.getDomain(),
-                new Subscription.User(application.getPrimaryOwner().getId(), application.getPrimaryOwner().getDisplayName()),
-                application.getApiKeyMode()
-            )
-        );
+                new Subscription.User(
+                        application.getPrimaryOwner().getId(),
+                        application.getPrimaryOwner().getDisplayName()),
+                application.getApiKeyMode()));
 
         PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));

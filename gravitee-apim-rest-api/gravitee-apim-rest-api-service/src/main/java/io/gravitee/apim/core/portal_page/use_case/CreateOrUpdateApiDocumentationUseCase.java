@@ -53,22 +53,20 @@ public class CreateOrUpdateApiDocumentationUseCase {
     private final ApiDocumentationSyncDomainService syncDomainService;
 
     public record Input(
-        AuditInfo auditInfo,
-        PortalPageContentId portalPageContentId,
-        String apiId,
-        String name,
-        PortalPageContentType type,
-        String content,
-        String location,
-        Integer order,
-        PortalVisibility visibility
-    ) {}
+            AuditInfo auditInfo,
+            PortalPageContentId portalPageContentId,
+            String apiId,
+            String name,
+            PortalPageContentType type,
+            String content,
+            String location,
+            Integer order,
+            PortalVisibility visibility) {}
 
     public record Output(PortalPageContentId id, List<Validator.Error> errors) {}
 
     public Output execute(Input input) {
-        var validation = validator.validateAndSanitize(
-            new ValidateApiDocumentationDomainService.Input(
+        var validation = validator.validateAndSanitize(new ValidateApiDocumentationDomainService.Input(
                 input.auditInfo(),
                 input.portalPageContentId(),
                 input.apiId(),
@@ -76,23 +74,23 @@ public class CreateOrUpdateApiDocumentationUseCase {
                 input.type(),
                 input.content(),
                 input.location(),
-                input.order()
-            )
-        );
+                input.order()));
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                    errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
-        var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize api documentation"));
+        var sanitized = validation
+                .value()
+                .orElseThrow(() -> new ValidationDomainException("Unable to sanitize api documentation"));
 
         var automationMetadata = buildAutomationMetadata(sanitized);
         var existing = portalPageContentQueryService.findById(sanitized.portalPageContentId());
 
-        syncDomainService.validatePlacement(input.auditInfo(), buildContent(sanitized, automationMetadata), input.visibility());
+        syncDomainService.validatePlacement(
+                input.auditInfo(), buildContent(sanitized, automationMetadata), input.visibility());
 
         PortalPageContent<?> saved;
         if (existing.isPresent()) {
@@ -101,7 +99,9 @@ public class CreateOrUpdateApiDocumentationUseCase {
                 portalPageContentCrudService.delete(current.getId());
                 saved = portalPageContentCrudService.create(buildContent(sanitized, automationMetadata));
             } else {
-                var updateContent = UpdatePortalPageContent.builder().content(sanitized.content()).build();
+                var updateContent = UpdatePortalPageContent.builder()
+                        .content(sanitized.content())
+                        .build();
                 pageContentValidatorService.validateForUpdate(current, updateContent);
                 current.update(updateContent, automationMetadata);
                 saved = portalPageContentCrudService.update(current);
@@ -117,35 +117,32 @@ public class CreateOrUpdateApiDocumentationUseCase {
 
     static AutomationMetadata buildAutomationMetadata(ValidateApiDocumentationDomainService.Input sanitized) {
         return new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            sanitized.apiId(),
-            sanitized.name(),
-            Optional.ofNullable(sanitized.location()),
-            Optional.ofNullable(sanitized.order())
-        );
+                AutomationMetadata.ReferenceType.API,
+                sanitized.apiId(),
+                sanitized.name(),
+                Optional.ofNullable(sanitized.location()),
+                Optional.ofNullable(sanitized.order()));
     }
 
-    static PortalPageContent<?> buildContent(ValidateApiDocumentationDomainService.Input sanitized, AutomationMetadata automationMetadata) {
+    static PortalPageContent<?> buildContent(
+            ValidateApiDocumentationDomainService.Input sanitized, AutomationMetadata automationMetadata) {
         var id = sanitized.portalPageContentId();
         var orgId = sanitized.auditInfo().organizationId();
         var envId = sanitized.auditInfo().environmentId();
         return switch (sanitized.type()) {
-            case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(
-                id,
-                orgId,
-                envId,
-                GraviteeMarkdown.of(sanitized.content()),
-                automationMetadata
-            );
-            case OPENAPI -> new OpenApiPageContent(
-                id,
-                orgId,
-                envId,
-                OpenApi.of(sanitized.content()),
-                new RedocConfiguration(),
-                automationMetadata
-            );
-            case ASYNCAPI -> new AsyncApiPageContent(id, orgId, envId, AsyncApi.of(sanitized.content()), automationMetadata);
+            case GRAVITEE_MARKDOWN ->
+                new GraviteeMarkdownPageContent(
+                        id, orgId, envId, GraviteeMarkdown.of(sanitized.content()), automationMetadata);
+            case OPENAPI ->
+                new OpenApiPageContent(
+                        id,
+                        orgId,
+                        envId,
+                        OpenApi.of(sanitized.content()),
+                        new RedocConfiguration(),
+                        automationMetadata);
+            case ASYNCAPI ->
+                new AsyncApiPageContent(id, orgId, envId, AsyncApi.of(sanitized.content()), automationMetadata);
         };
     }
 }

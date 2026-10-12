@@ -58,7 +58,9 @@ class NewHttpApiTest {
     @Test
     void should_not_set_allowedInApiProducts_when_definition_version_is_not_v4() {
         // Given a PROXY HTTP API but not V4
-        NewHttpApi httpApiV2 = NewApiFixtures.aProxyApiV4().toBuilder().definitionVersion(DefinitionVersion.V2).build();
+        NewHttpApi httpApiV2 = NewApiFixtures.aProxyApiV4().toBuilder()
+                .definitionVersion(DefinitionVersion.V2)
+                .build();
 
         var definition = httpApiV2.toApiDefinitionBuilder().build();
         assertThat(definition.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
@@ -68,7 +70,9 @@ class NewHttpApiTest {
 
     @Test
     void should_forward_allowedInApiProducts_true_into_domain_api_definition() {
-        NewHttpApi newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder().allowedInApiProducts(true).build();
+        NewHttpApi newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder()
+                .allowedInApiProducts(true)
+                .build();
 
         var definition = newHttpApi.toApiDefinitionBuilder().build();
 
@@ -77,7 +81,9 @@ class NewHttpApiTest {
 
     @Test
     void should_forward_allowedInApiProducts_false_into_domain_api_definition() {
-        NewHttpApi newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder().allowedInApiProducts(false).build();
+        NewHttpApi newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder()
+                .allowedInApiProducts(false)
+                .build();
 
         var definition = newHttpApi.toApiDefinitionBuilder().build();
 

@@ -29,8 +29,9 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 public interface SecureHeadersConfigurer {
-    default void configure(HttpSecurity http, ConfigurableEnvironment environment, CookieCsrfSignedTokenRepository csrfTokenRepository)
-        throws Exception {
+    default void configure(
+            HttpSecurity http, ConfigurableEnvironment environment, CookieCsrfSignedTokenRepository csrfTokenRepository)
+            throws Exception {
         xframe(http, environment);
         csp(http, environment);
         xContentTypeOptions(http, environment);
@@ -62,7 +63,8 @@ public interface SecureHeadersConfigurer {
     }
 
     static void xContentTypeOptions(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
-        boolean enabled = environment.getProperty("http.secureHeaders.xContentTypeOptions.enabled", Boolean.class, true);
+        boolean enabled =
+                environment.getProperty("http.secureHeaders.xContentTypeOptions.enabled", Boolean.class, true);
         if (enabled) {
             security.headers().contentTypeOptions();
         }
@@ -70,13 +72,13 @@ public interface SecureHeadersConfigurer {
 
     static void referrerPolicy(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
         String policyString = environment.getProperty(
-            "http.secureHeaders.referrerPolicy.policy",
-            ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN.getPolicy()
-        );
+                "http.secureHeaders.referrerPolicy.policy",
+                ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN.getPolicy());
         var policy = Arrays.stream(ReferrerPolicyHeaderWriter.ReferrerPolicy.values())
-            .filter(p -> p.getPolicy().equalsIgnoreCase(policyString))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Invalid referrer policy provided: '" + policyString + "'"));
+                .filter(p -> p.getPolicy().equalsIgnoreCase(policyString))
+                .findFirst()
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Invalid referrer policy provided: '" + policyString + "'"));
         security.headers().referrerPolicy(policy);
     }
 
@@ -88,49 +90,50 @@ public interface SecureHeadersConfigurer {
     }
 
     static void hsts(HttpSecurity security, ConfigurableEnvironment environment) throws Exception {
-        HeadersConfigurer<HttpSecurity>.HstsConfig hstsConfig = security.headers().httpStrictTransportSecurity();
+        HeadersConfigurer<HttpSecurity>.HstsConfig hstsConfig =
+                security.headers().httpStrictTransportSecurity();
 
         Boolean hstsEnabled = environment.getProperty(
-            "http.secureHeaders.hsts.enabled",
-            Boolean.class,
-            environment.getProperty("http.hsts.enabled", Boolean.class, true)
-        );
+                "http.secureHeaders.hsts.enabled",
+                Boolean.class,
+                environment.getProperty("http.hsts.enabled", Boolean.class, true));
         if (hstsEnabled) {
             hstsConfig
-                .includeSubDomains(environment.getProperty("http.secureHeaders.hsts.include-sub-domains", Boolean.class, true))
-                .maxAgeInSeconds(environment.getProperty("http.secureHeaders.hsts.max-age", Long.class, 31536000L));
+                    .includeSubDomains(
+                            environment.getProperty("http.secureHeaders.hsts.include-sub-domains", Boolean.class, true))
+                    .maxAgeInSeconds(environment.getProperty("http.secureHeaders.hsts.max-age", Long.class, 31536000L));
         } else {
             hstsConfig.disable();
         }
     }
 
-    static void csrf(HttpSecurity security, ConfigurableEnvironment environment, CookieCsrfSignedTokenRepository csrfTokenRepository)
-        throws Exception {
-        if (
-            environment.getProperty(
+    static void csrf(
+            HttpSecurity security,
+            ConfigurableEnvironment environment,
+            CookieCsrfSignedTokenRepository csrfTokenRepository)
+            throws Exception {
+        if (environment.getProperty(
                 "http.secureHeaders.csrf.enabled",
                 Boolean.class,
-                environment.getProperty("http.csrf.enabled", Boolean.class, false)
-            )
-        ) {
-            // Don't use deferred csrf (see https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_need_to_opt_out_of_deferred_tokens_for_another_reason)
+                environment.getProperty("http.csrf.enabled", Boolean.class, false))) {
+            // Don't use deferred csrf (see
+            // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_need_to_opt_out_of_deferred_tokens_for_another_reason)
             final CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
             requestHandler.setCsrfRequestAttributeName(null);
 
-            security
-                .csrf(csrf ->
-                    csrf
-                        .csrfTokenRepository(csrfTokenRepository)
-                        .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
-                        .csrfTokenRequestHandler(requestHandler)
-                        .sessionAuthenticationStrategy((authentication, request, response) -> {
-                            // Force the csrf cookie to be pushed back in the response cookies to keep it across subsequent request.
-                            csrfTokenRepository.saveToken((CsrfToken) request.getAttribute(CsrfToken.class.getName()), request, response);
-                        })
-                )
-                .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
+            security.csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository)
+                            .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
+                            .csrfTokenRequestHandler(requestHandler)
+                            .sessionAuthenticationStrategy((authentication, request, response) -> {
+                                // Force the csrf cookie to be pushed back in the response cookies to keep it across
+                                // subsequent request.
+                                csrfTokenRepository.saveToken(
+                                        (CsrfToken) request.getAttribute(CsrfToken.class.getName()), request, response);
+                            }))
+                    .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
         } else {
-            // deepcode ignore DisablesCSRFProtection: CSRF Protection is disabled here to match configuration set by the user (via gravitee.yml)
+            // deepcode ignore DisablesCSRFProtection: CSRF Protection is disabled here to match configuration set by
+            // the user (via gravitee.yml)
             security.csrf(AbstractHttpConfigurer::disable);
         }
     }

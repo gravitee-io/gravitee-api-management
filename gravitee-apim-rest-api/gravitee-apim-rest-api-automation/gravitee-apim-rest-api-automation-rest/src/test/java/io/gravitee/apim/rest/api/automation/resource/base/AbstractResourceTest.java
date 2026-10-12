@@ -16,7 +16,6 @@
 package io.gravitee.apim.rest.api.automation.resource.base;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -83,7 +82,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { ResourceContextConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
@@ -225,10 +224,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @BeforeEach
     void setUp() {
-        when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(
-            EnvironmentEntity.builder().id(ENVIRONMENT).build()
-        );
+        when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                .thenReturn(true);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT))
+                .thenReturn(EnvironmentEntity.builder().id(ENVIRONMENT).build());
     }
 
     @AfterEach

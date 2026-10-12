@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.reactive.core.v4.endpoint.loadbalancer;
 
-import static org.mockito.Mockito.mock;
-
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultManagedEndpoint;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
@@ -38,7 +36,7 @@ import org.openjdk.jcstress.infra.results.II_Result;
 public class WeightedRandomLoadBalancerJCStress {
 
     public static void main(String[] args) throws Exception {
-        String[] jcstress = { "-v", "-t", "WeightedRandomLoadBalancerJCStressTest" };
+        String[] jcstress = {"-v", "-t", "WeightedRandomLoadBalancerJCStressTest"};
         Main.main(jcstress);
     }
 

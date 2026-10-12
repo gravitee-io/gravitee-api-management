@@ -50,7 +50,8 @@ class PortalCategoryQueryServiceImplTest {
         @SneakyThrows
         void should_return_categories_adapted_from_the_repository() {
             var category = PortalCategoryFixtures.aPortalCategory();
-            when(repository.findAllByEnvironmentId("env")).thenReturn(List.of(PortalCategoryAdapter.INSTANCE.toRepository(category)));
+            when(repository.findAllByEnvironmentId("env"))
+                    .thenReturn(List.of(PortalCategoryAdapter.INSTANCE.toRepository(category)));
 
             var result = service.findByEnvironmentId("env");
 
@@ -73,8 +74,8 @@ class PortalCategoryQueryServiceImplTest {
             var throwable = catchThrowable(() -> service.findByEnvironmentId("env"));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find portal categories for environment: env");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find portal categories for environment: env");
         }
     }
 }

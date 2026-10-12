@@ -101,12 +101,17 @@ public class HttpTlsSession implements TlsSession {
         try {
             final Certificate[] peerCertificates = delegate.getPeerCertificates();
             if (peerCertificates == null || peerCertificates.length == 0) {
-                log.debug("Unable to retrieve peer certificate from request, extracting from header {}", clientAuthCertHeaderName);
+                log.debug(
+                        "Unable to retrieve peer certificate from request, extracting from header {}",
+                        clientAuthCertHeaderName);
                 return extractPeerCertificatesFromHeader();
             }
             return peerCertificates;
         } catch (SSLPeerUnverifiedException e) {
-            log.debug("Unable to retrieve peer certificate from request, extracting from header {}", clientAuthCertHeaderName, e);
+            log.debug(
+                    "Unable to retrieve peer certificate from request, extracting from header {}",
+                    clientAuthCertHeaderName,
+                    e);
             return extractPeerCertificatesFromHeader();
         }
     }
@@ -167,7 +172,7 @@ public class HttpTlsSession implements TlsSession {
 
     private Certificate[] extractPeerCertificatesFromHeader() {
         return CertificateUtils.extractCertificate(headers, clientAuthCertHeaderName)
-            .map(certificate -> new Certificate[] { certificate })
-            .orElse(new Certificate[0]);
+                .map(certificate -> new Certificate[] {certificate})
+                .orElse(new Certificate[0]);
     }
 }

@@ -56,7 +56,9 @@ class ApiAnalyticsSpecificationTest {
 
         @Test
         void shouldThrowForFederated() {
-            assertThrows(ApiInvalidDefinitionVersionException.class, () -> spec.throwIfNotSatisfied(apiFederated, ctx, 0, 0));
+            assertThrows(
+                    ApiInvalidDefinitionVersionException.class,
+                    () -> spec.throwIfNotSatisfied(apiFederated, ctx, 0, 0));
         }
 
         @Test
@@ -104,7 +106,8 @@ class ApiAnalyticsSpecificationTest {
 
         ApiAnalyticsSpecification spec = new ApiAnalyticsSpecification.ApiMultiTenancyAccessSpecification();
         Api apiEnv = ApiFixtures.aProxyApiV4();
-        Api apiOtherEnv = ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build();
+        Api apiOtherEnv =
+                ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build();
         ExecutionContext ctx = new ExecutionContext("organization-id", "environment-id");
 
         @Test

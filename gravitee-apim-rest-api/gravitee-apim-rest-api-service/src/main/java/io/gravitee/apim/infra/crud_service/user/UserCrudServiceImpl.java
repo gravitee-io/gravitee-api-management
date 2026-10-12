@@ -61,7 +61,9 @@ public class UserCrudServiceImpl implements UserCrudService {
         }
         try {
             log.debug("Find users [userIds={}]", userIds);
-            return userRepository.findByIds(userIds).stream().map(UserAdapter.INSTANCE::fromUser).collect(Collectors.toSet());
+            return userRepository.findByIds(userIds).stream()
+                    .map(UserAdapter.INSTANCE::fromUser)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find user using [userIds={}]", userIds, ex);
             throw new TechnicalManagementException(ex);
@@ -72,9 +74,15 @@ public class UserCrudServiceImpl implements UserCrudService {
     public List<BaseUserEntity> findBaseUsersByEmail(String organizationId, String email) {
         try {
             log.debug("Find users [organizationId={}, email={}]", organizationId, email);
-            return userRepository.findByEmail(email, organizationId).stream().map(UserAdapter.INSTANCE::fromUser).toList();
+            return userRepository.findByEmail(email, organizationId).stream()
+                    .map(UserAdapter.INSTANCE::fromUser)
+                    .toList();
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find users using [organizationId={}, email={}]", organizationId, email, ex);
+            log.error(
+                    "An error occurs while trying to find users using [organizationId={}, email={}]",
+                    organizationId,
+                    email,
+                    ex);
             throw new TechnicalManagementException(ex);
         }
     }
@@ -133,9 +141,9 @@ public class UserCrudServiceImpl implements UserCrudService {
         try {
             log.debug("Check if password is set [userId={}]", userId);
             return userRepository
-                .findById(userId)
-                .map(u -> u.getPassword() != null && !u.getPassword().isBlank())
-                .orElse(false);
+                    .findById(userId)
+                    .map(u -> u.getPassword() != null && !u.getPassword().isBlank())
+                    .orElse(false);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to check password for user [userId={}]", userId, ex);
             throw new TechnicalManagementException(ex);

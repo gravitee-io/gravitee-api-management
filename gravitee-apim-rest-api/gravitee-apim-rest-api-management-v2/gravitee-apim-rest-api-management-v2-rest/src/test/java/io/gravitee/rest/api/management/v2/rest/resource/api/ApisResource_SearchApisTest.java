@@ -106,9 +106,11 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiSearchQuery = new ApiSearchQuery();
         apiSearchQuery.setQuery("");
 
-        shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () ->
-            rootTarget().request().post(Entity.json(apiSearchQuery))
-        );
+        shouldReturn403(
+                RolePermission.ENVIRONMENT_API,
+                ENVIRONMENT,
+                RolePermissionAction.READ,
+                () -> rootTarget().request().post(Entity.json(apiSearchQuery)));
     }
 
     @Test
@@ -121,29 +123,27 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-                assertThat(list.getFirst().getApiV4().getId()).isEqualTo("api-id");
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> {
+                    assertThat(list).hasSize(1);
+                    assertThat(list.getFirst().getApiV4().getId()).isEqualTo("api-id");
+                });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -163,30 +163,28 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-                // Check no expands fields are set
-                assertThat(list.getFirst().getApiV4().getDeploymentState()).isNull();
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> {
+                    assertThat(list).hasSize(1);
+                    // Check no expands fields are set
+                    assertThat(list.getFirst().getApiV4().getDeploymentState()).isNull();
+                });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -206,26 +204,24 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> assertThat(list).hasSize(1));
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -245,33 +241,32 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-                assertThat(list.getFirst().getApiV4().getId()).isEqualTo("id-1");
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> {
+                    assertThat(list).hasSize(1);
+                    assertThat(list.getFirst().getApiV4().getId()).isEqualTo("id-1");
+                });
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
-        SoftAssertions.assertSoftly(soft -> soft.assertThat(apiQuery.getFilters()).containsOnly(Map.entry("api", List.of("id-1", "id-2"))));
+        SoftAssertions.assertSoftly(
+                soft -> soft.assertThat(apiQuery.getFilters()).containsOnly(Map.entry("api", List.of("id-1", "id-2"))));
     }
 
     @Test
@@ -279,12 +274,13 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiSearchQuery = new ApiSearchQuery();
         apiSearchQuery.setIds(List.of("id-1", "id-2"));
 
-        final Response response = rootTarget().queryParam("sortBy", "wrong_value").request().post(Entity.json(apiSearchQuery));
+        final Response response =
+                rootTarget().queryParam("sortBy", "wrong_value").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("Invalid sortBy parameter: wrong_value");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Invalid sortBy parameter: wrong_value");
     }
 
     @Test
@@ -297,26 +293,25 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        final Response response = rootTarget().queryParam("sortBy", "name").request().post(Entity.json(apiSearchQuery));
+        final Response response =
+                rootTarget().queryParam("sortBy", "name").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> assertThat(list).hasSize(1));
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -336,26 +331,25 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        final Response response = rootTarget().queryParam("sortBy", "-paths").request().post(Entity.json(apiSearchQuery));
+        final Response response =
+                rootTarget().queryParam("sortBy", "-paths").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> assertThat(list).hasSize(1));
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -376,37 +370,34 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> assertThat(list).hasSize(1));
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(apiQuery.getQuery()).isNull();
             soft.assertThat(apiQuery.getFilters()).containsOnlyKeys("definition_version");
-            soft
-                .assertThat(apiQuery.getFilters().values())
-                .first()
-                .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
-                .containsOnly("4.0.0");
+            soft.assertThat(apiQuery.getFilters().values())
+                    .first()
+                    .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
+                    .containsOnly("4.0.0");
             soft.assertThat(apiQuery.getSort()).isNull();
         });
     }
@@ -421,37 +412,35 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        final Response response = rootTarget().queryParam("sortBy", "paths").request().post(Entity.json(apiSearchQuery));
+        final Response response =
+                rootTarget().queryParam("sortBy", "paths").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> assertThat(list).hasSize(1));
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> assertThat(list).hasSize(1));
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(apiQuery.getQuery()).isNull();
             soft.assertThat(apiQuery.getFilters()).containsOnlyKeys("definition_version");
-            soft
-                .assertThat(apiQuery.getFilters().values())
-                .first()
-                .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
-                .containsOnly("4.0.0");
+            soft.assertThat(apiQuery.getFilters().values())
+                    .first()
+                    .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
+                    .containsOnly("4.0.0");
             soft.assertThat(apiQuery.getSort()).isEqualTo(new SortableImpl("paths", true));
         });
     }
@@ -466,33 +455,33 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(true),
-                eq(true),
-                eq(Set.of("deploymentState")),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(true),
+                        eq(true),
+                        eq(Set.of("deploymentState")),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity)))
+                .thenReturn(true);
 
-        final Response response = rootTarget().queryParam("expands", "deploymentState").request().post(Entity.json(apiSearchQuery));
+        final Response response =
+                rootTarget().queryParam("expands", "deploymentState").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-                assertThat(list.getFirst().getApiV4())
-                    .extracting(ApiV4::getId, ApiV4::getDeploymentState)
-                    .containsExactly("api-id", GenericApi.DeploymentStateEnum.DEPLOYED);
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> {
+                    assertThat(list).hasSize(1);
+                    assertThat(list.getFirst().getApiV4())
+                            .extracting(ApiV4::getId, ApiV4::getDeploymentState)
+                            .containsExactly("api-id", GenericApi.DeploymentStateEnum.DEPLOYED);
+                });
     }
 
     @Test
@@ -501,67 +490,53 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiSearchQuery.setQuery("api-name");
 
         var apiEntity = FederatedApiEntity.builder()
-            .id("api-id")
-            .name("api-name")
-            .originContext(new OriginContext.Integration("integration-id"))
-            .build();
+                .id("api-id")
+                .name("api-name")
+                .originContext(new OriginContext.Integration("integration-id"))
+                .build();
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity)))
+                .thenReturn(true);
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list ->
-                assertThat(list)
-                    .extracting(Api::getApiFederated)
-                    .isEqualTo(
-                        List.of(
-                            new ApiFederated()
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> assertThat(list)
+                        .extracting(Api::getApiFederated)
+                        .isEqualTo(List.of(new ApiFederated()
                                 .id("api-id")
                                 .name("api-name")
-                                .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.FEDERATED)
-                                .originContext(
-                                    new IntegrationOriginContext()
+                                .definitionVersion(
+                                        io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.FEDERATED)
+                                .originContext(new IntegrationOriginContext()
                                         .integrationId("integration-id")
-                                        .origin(BaseOriginContext.OriginEnum.INTEGRATION)
-                                )
+                                        .origin(BaseOriginContext.OriginEnum.INTEGRATION))
                                 .visibility(io.gravitee.rest.api.management.v2.rest.model.Visibility.PRIVATE)
                                 .disableMembershipNotifications(false)
                                 .responseTemplates(Collections.emptyMap())
-                                .links(
-                                    new ApiLinks()
-                                        .pictureUrl(
-                                            rootTarget()
+                                .links(new ApiLinks()
+                                        .pictureUrl(rootTarget()
                                                 .getUriBuilder()
                                                 .replacePath("/environments/" + ENVIRONMENT + "/apis/api-id/picture")
-                                                .toTemplate()
-                                        )
-                                        .backgroundUrl(
-                                            rootTarget()
+                                                .toTemplate())
+                                        .backgroundUrl(rootTarget()
                                                 .getUriBuilder()
                                                 .replacePath("/environments/" + ENVIRONMENT + "/apis/api-id/background")
-                                                .toTemplate()
-                                        )
-                                )
-                        )
-                    )
-            );
+                                                .toTemplate())))));
     }
 
     @Test
@@ -575,32 +550,33 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setMetadata(Map.of("team-contact", "team@gravitee.io", "version", "1.0"));
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                eq(Set.of("metadata")),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        eq(Set.of("metadata")),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        final Response response = rootTarget().queryParam("expands", "metadata").request().post(Entity.json(apiSearchQuery));
+        final Response response =
+                rootTarget().queryParam("expands", "metadata").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-                assertThat(list.getFirst().getApiV4()).satisfies(api -> {
-                    assertThat(api.getId()).isEqualTo("api-id");
-                    assertThat(api.getMetadata()).containsEntry("team-contact", "team@gravitee.io").containsEntry("version", "1.0");
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> {
+                    assertThat(list).hasSize(1);
+                    assertThat(list.getFirst().getApiV4()).satisfies(api -> {
+                        assertThat(api.getId()).isEqualTo("api-id");
+                        assertThat(api.getMetadata())
+                                .containsEntry("team-contact", "team@gravitee.io")
+                                .containsEntry("version", "1.0");
+                    });
                 });
-            });
     }
 
     @Test
@@ -613,29 +589,28 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiEntity.setState(Lifecycle.State.INITIALIZED);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(false),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(false),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        final Response response = rootTarget().queryParam("manageOnly", false).request().post(Entity.json(apiSearchQuery));
+        final Response response =
+                rootTarget().queryParam("manageOnly", false).request().post(Entity.json(apiSearchQuery));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApisResponse.class)
-            .extracting(ApisResponse::getData)
-            .satisfies(list -> {
-                assertThat(list).hasSize(1);
-                assertThat(list.getFirst().getApiV4().getId()).isEqualTo("api-id");
-            });
+                .hasStatus(OK_200)
+                .asEntity(ApisResponse.class)
+                .extracting(ApisResponse::getData)
+                .satisfies(list -> {
+                    assertThat(list).hasSize(1);
+                    assertThat(list.getFirst().getApiV4().getId()).isEqualTo("api-id");
+                });
     }
 
     @Test
@@ -644,36 +619,35 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         apiSearchQuery.setAllowedInApiProducts(true);
 
         var workspaceProduct = ApiProduct.builder()
-            .id("ws-1")
-            .kind(ApiProductKind.AI_WORKSPACE)
-            .apiIds(Set.of("workspace-proxy-a", "workspace-proxy-b"))
-            .build();
+                .id("ws-1")
+                .kind(ApiProductKind.AI_WORKSPACE)
+                .apiIds(Set.of("workspace-proxy-a", "workspace-proxy-b"))
+                .build();
         // a classic api product carries no AI_WORKSPACE kind; its member apis must remain addable
-        var classicProduct = ApiProduct.builder().id("p-1").apiIds(Set.of("regular-api")).build();
-        when(apiProductQueryService.findByEnvironmentId(ENVIRONMENT)).thenReturn(Set.of(workspaceProduct, classicProduct));
+        var classicProduct =
+                ApiProduct.builder().id("p-1").apiIds(Set.of("regular-api")).build();
+        when(apiProductQueryService.findByEnvironmentId(ENVIRONMENT))
+                .thenReturn(Set.of(workspaceProduct, classicProduct));
 
-        when(
-            apiSearchServiceV4.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(false),
-                eq(true),
-                isNull(),
-                isNull()
-            )
-        ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+        when(apiSearchServiceV4.search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        apiQueryBuilderCaptor.capture(),
+                        eq(new PageableImpl(1, 10)),
+                        eq(false),
+                        eq(true),
+                        isNull(),
+                        isNull()))
+                .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response).hasStatus(OK_200);
 
         var apiQuery = apiQueryBuilderCaptor.getValue().build();
         SoftAssertions.assertSoftly(soft -> {
-            soft
-                .assertThat(apiQuery.getExcludedFilters().get(FIELD_ID))
-                .containsExactlyInAnyOrder("workspace-proxy-a", "workspace-proxy-b");
+            soft.assertThat(apiQuery.getExcludedFilters().get(FIELD_ID))
+                    .containsExactlyInAnyOrder("workspace-proxy-a", "workspace-proxy-b");
             soft.assertThat(apiQuery.getExcludedFilters().get(FIELD_ID)).doesNotContain("regular-api");
         });
     }

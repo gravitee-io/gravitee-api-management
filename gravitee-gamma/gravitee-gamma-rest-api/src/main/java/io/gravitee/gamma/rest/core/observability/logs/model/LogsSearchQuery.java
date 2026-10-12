@@ -33,14 +33,13 @@ import lombok.Builder;
  */
 @Builder
 public record LogsSearchQuery(
-    Set<String> apiIds,
-    Map<String, ApiReference> apisById,
-    List<FilterCondition> conditions,
-    Long from,
-    Long to,
-    int page,
-    int perPage,
-    RecordType recordType,
-    /** Absent for decision rows, which carry no entrypoint. */
-    EntrypointScope entrypointScope
-) {}
+        Set<String> apiIds,
+        Map<String, ApiReference> apisById,
+        List<FilterCondition> conditions,
+        Long from,
+        Long to,
+        int page,
+        int perPage,
+        RecordType recordType,
+        /** Absent for decision rows, which carry no entrypoint. */
+        EntrypointScope entrypointScope) {}

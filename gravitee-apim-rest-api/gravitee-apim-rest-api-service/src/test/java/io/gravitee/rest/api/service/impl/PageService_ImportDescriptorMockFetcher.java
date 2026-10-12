@@ -43,7 +43,7 @@ public class PageService_ImportDescriptorMockFetcher implements FilesFetcher {
 
     @Override
     public String[] files() throws FetcherException {
-        return new String[] { ".gravitee.json" };
+        return new String[] {".gravitee.json"};
     }
 
     @Override
@@ -51,40 +51,38 @@ public class PageService_ImportDescriptorMockFetcher implements FilesFetcher {
         return new PageService_MockDescriptorFetcherConfiguration();
     }
 
-    private static final String descriptor =
-        "{" +
-        "    \"version\": \"1\"," +
-        "    \"documentation\": {" +
-        "        \"pages\": [" +
-        "            {" +
-        "                \"src\": \"/docs/first.md\"," +
-        "                \"dest\": \"/\"," +
-        "                \"name\": \"ma premiere page\"," +
-        "                \"homepage\": true" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/docs/second.md\"," +
-        "                \"dest\": \"/\"," +
-        "                \"name\": \"ma deuxieme page\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/docs/asciidoc/asciidoc.adoc\"," +
-        "                \"dest\": \"/technical\"," +
-        "                \"name\": \"Asciidoc\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/docs/swagger/readme.md\"," +
-        "                \"dest\": \"/technical\"," +
-        "                \"name\": \"How to use the api\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/how-to/howto.md\"" +
-        "            }," +
-        "            {" +
-        "                \"src\": \"/other.dir/foobar.md\"," +
-        "                \"dest\": \"/how-to\"" +
-        "            }" +
-        "        ]" +
-        "    }" +
-        "}";
+    private static final String descriptor = "{" + "    \"version\": \"1\","
+            + "    \"documentation\": {"
+            + "        \"pages\": ["
+            + "            {"
+            + "                \"src\": \"/docs/first.md\","
+            + "                \"dest\": \"/\","
+            + "                \"name\": \"ma premiere page\","
+            + "                \"homepage\": true"
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/docs/second.md\","
+            + "                \"dest\": \"/\","
+            + "                \"name\": \"ma deuxieme page\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/docs/asciidoc/asciidoc.adoc\","
+            + "                \"dest\": \"/technical\","
+            + "                \"name\": \"Asciidoc\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/docs/swagger/readme.md\","
+            + "                \"dest\": \"/technical\","
+            + "                \"name\": \"How to use the api\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/how-to/howto.md\""
+            + "            },"
+            + "            {"
+            + "                \"src\": \"/other.dir/foobar.md\","
+            + "                \"dest\": \"/how-to\""
+            + "            }"
+            + "        ]"
+            + "    }"
+            + "}";
 }

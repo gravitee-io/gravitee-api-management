@@ -58,9 +58,11 @@ class DictionaryServiceImpl_ConvertTest {
         dictionary.setState(LifecycleState.STOPPED);
         dictionary.setCreatedAt(new Date());
         dictionary.setUpdatedAt(new Date());
-        dictionary.setProperties(
-            Map.of("plain", new DictionaryProperty("plain-value", false), "secret", new DictionaryProperty("ENC(cipher)", true))
-        );
+        dictionary.setProperties(Map.of(
+                "plain",
+                new DictionaryProperty("plain-value", false),
+                "secret",
+                new DictionaryProperty("ENC(cipher)", true)));
         when(dictionaryRepository.findById("dic-1")).thenReturn(Optional.of(dictionary));
 
         DictionaryEntity entity = dictionaryService.findById(new ExecutionContext("org", "DEFAULT"), "dic-1");

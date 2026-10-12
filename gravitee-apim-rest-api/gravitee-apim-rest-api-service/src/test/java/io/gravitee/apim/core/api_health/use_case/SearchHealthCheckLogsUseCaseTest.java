@@ -28,7 +28,6 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
-import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.HealthCheckLog;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
 import io.gravitee.common.data.domain.Page;
@@ -39,7 +38,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -89,19 +87,15 @@ class SearchHealthCheckLogsUseCaseTest {
         apiHealthQueryService.healthCheckLogs = expectedData;
 
         // When
-        var output = useCase
-            .execute(
-                new SearchHealthCheckLogsUseCase.Input(
-                    ORGANIZATION_ID,
-                    ENV_ID,
-                    MY_API,
-                    INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                    INSTANT_NOW,
-                    Optional.of(false),
-                    Optional.of(new PageableImpl(2, 5))
-                )
-            )
-            .blockingGet();
+        var output = useCase.execute(new SearchHealthCheckLogsUseCase.Input(
+                        ORGANIZATION_ID,
+                        ENV_ID,
+                        MY_API,
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS),
+                        INSTANT_NOW,
+                        Optional.of(false),
+                        Optional.of(new PageableImpl(2, 5))))
+                .blockingGet();
 
         // Then
         assertThat(requireNonNull(output).logs()).isSameAs(expectedData);
@@ -129,19 +123,15 @@ class SearchHealthCheckLogsUseCaseTest {
         apiHealthQueryService.healthCheckLogs = expectedData;
 
         // When
-        var output = useCase
-            .execute(
-                new SearchHealthCheckLogsUseCase.Input(
-                    ORGANIZATION_ID,
-                    ENV_ID,
-                    MY_API,
-                    INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                    INSTANT_NOW,
-                    Optional.of(false),
-                    Optional.empty()
-                )
-            )
-            .blockingGet();
+        var output = useCase.execute(new SearchHealthCheckLogsUseCase.Input(
+                        ORGANIZATION_ID,
+                        ENV_ID,
+                        MY_API,
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS),
+                        INSTANT_NOW,
+                        Optional.of(false),
+                        Optional.empty()))
+                .blockingGet();
 
         // Then
         assertThat(requireNonNull(output).logs()).isSameAs(expectedData);
@@ -166,21 +156,15 @@ class SearchHealthCheckLogsUseCaseTest {
         // Given
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(
-                    new SearchHealthCheckLogsUseCase.Input(
+        var throwable = catchThrowable(() -> useCase.execute(new SearchHealthCheckLogsUseCase.Input(
                         ORGANIZATION_ID,
                         ENV_ID,
                         MY_API,
                         INSTANT_NOW.minus(1, ChronoUnit.DAYS),
                         INSTANT_NOW,
                         Optional.of(false),
-                        Optional.empty()
-                    )
-                )
-                .blockingGet()
-        );
+                        Optional.empty()))
+                .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -192,21 +176,15 @@ class SearchHealthCheckLogsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aMessageApiV4()));
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(
-                    new SearchHealthCheckLogsUseCase.Input(
+        var throwable = catchThrowable(() -> useCase.execute(new SearchHealthCheckLogsUseCase.Input(
                         ORGANIZATION_ID,
                         "another",
                         MY_API,
                         INSTANT_NOW.minus(1, ChronoUnit.DAYS),
                         INSTANT_NOW,
                         Optional.of(false),
-                        Optional.empty()
-                    )
-                )
-                .blockingGet()
-        );
+                        Optional.empty()))
+                .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -218,21 +196,15 @@ class SearchHealthCheckLogsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(
-                    new SearchHealthCheckLogsUseCase.Input(
+        var throwable = catchThrowable(() -> useCase.execute(new SearchHealthCheckLogsUseCase.Input(
                         ORGANIZATION_ID,
                         ENV_ID,
                         MY_API,
                         INSTANT_NOW.minus(1, ChronoUnit.DAYS),
                         INSTANT_NOW,
                         Optional.of(false),
-                        Optional.empty()
-                    )
-                )
-                .blockingGet()
-        );
+                        Optional.empty()))
+                .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);

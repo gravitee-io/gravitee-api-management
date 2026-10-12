@@ -47,12 +47,13 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
-    public Optional<Metadata> findById(final String key, final String referenceId, final MetadataReferenceType referenceType)
-        throws TechnicalException {
+    public Optional<Metadata> findById(
+            final String key, final String referenceId, final MetadataReferenceType referenceType)
+            throws TechnicalException {
         log.debug("Find metadata by key '{}' ref type '{}' ref id '{}'", key, referenceType, referenceId);
         final MetadataMongo metadata = internalMetadataRepository
-            .findById(new MetadataPkMongo(key, referenceId, referenceType.name()))
-            .orElse(null);
+                .findById(new MetadataPkMongo(key, referenceId, referenceType.name()))
+                .orElse(null);
         log.debug("Find metadata by key '{}' ref type '{}' ref id '{}' done", key, referenceType, referenceId);
         return Optional.ofNullable(map(metadata));
     }
@@ -80,11 +81,11 @@ public class MongoMetadataRepository implements MetadataRepository {
         }
 
         final MetadataPkMongo metadataId = new MetadataPkMongo(
-            metadata.getKey(),
-            metadata.getReferenceId(),
-            metadata.getReferenceType().name()
-        );
-        MetadataMongo metadataMongo = internalMetadataRepository.findById(metadataId).orElse(null);
+                metadata.getKey(),
+                metadata.getReferenceId(),
+                metadata.getReferenceType().name());
+        MetadataMongo metadataMongo =
+                internalMetadataRepository.findById(metadataId).orElse(null);
 
         if (metadataMongo == null) {
             throw new IllegalStateException(String.format("No metadata found with id [%s]", metadataId));
@@ -104,7 +105,8 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
-    public void delete(final String key, final String referenceId, final MetadataReferenceType referenceType) throws TechnicalException {
+    public void delete(final String key, final String referenceId, final MetadataReferenceType referenceType)
+            throws TechnicalException {
         final MetadataPkMongo id = new MetadataPkMongo(key, referenceId, referenceType.name());
         try {
             internalMetadataRepository.deleteById(id);
@@ -128,7 +130,8 @@ public class MongoMetadataRepository implements MetadataRepository {
     public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) {
         log.debug("Find metadata by ref type '{}'", referenceType);
 
-        final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceId(referenceType, referenceId);
+        final List<MetadataMongo> metadata =
+                internalMetadataRepository.findByIdReferenceTypeAndIdReferenceId(referenceType, referenceId);
 
         log.debug("Find metadata by ref type '{}' done", referenceType);
         return metadata.stream().map(this::map).collect(Collectors.toList());
@@ -136,14 +139,13 @@ public class MongoMetadataRepository implements MetadataRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete metadata by refId: {}/{}", referenceId, referenceType);
         try {
-            final var metadata = internalMetadataRepository
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
-                .stream()
-                .map(metadataMongo -> metadataMongo.getId().getKey())
-                .toList();
+            final var metadata =
+                    internalMetadataRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType).stream()
+                            .map(metadataMongo -> metadataMongo.getId().getKey())
+                            .toList();
             log.debug("Delete metadata by refId: {}/{} - Done", referenceId, referenceType);
             return metadata;
         } catch (Exception ex) {
@@ -153,12 +155,11 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
-    public List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds) {
+    public List<Metadata> findByReferenceTypeAndReferenceIdIn(
+            MetadataReferenceType referenceType, Collection<String> referenceIds) {
         log.debug("Find metadata by ref type '{}' and ref ids '{}'", referenceType, referenceIds);
-        final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceIdIn(
-            referenceType,
-            referenceIds
-        );
+        final List<MetadataMongo> metadata =
+                internalMetadataRepository.findByIdReferenceTypeAndIdReferenceIdIn(referenceType, referenceIds);
         log.debug("Find metadata by ref type '{}' and ref ids '{}' done", referenceType, referenceIds);
         return metadata.stream().map(this::map).collect(Collectors.toList());
     }
@@ -167,7 +168,8 @@ public class MongoMetadataRepository implements MetadataRepository {
     public List<Metadata> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) {
         log.debug("Find metadata by key '{}' and ref type '{}'", key, referenceType);
 
-        final List<MetadataMongo> metadata = internalMetadataRepository.findByIdKeyAndIdReferenceType(key, referenceType);
+        final List<MetadataMongo> metadata =
+                internalMetadataRepository.findByIdKeyAndIdReferenceType(key, referenceType);
 
         log.debug("Find metadata by key '{}' and ref type '{}' done", key, referenceType);
         return metadata.stream().map(this::map).collect(Collectors.toList());
@@ -179,7 +181,8 @@ public class MongoMetadataRepository implements MetadataRepository {
         }
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataMongo.getId().getKey());
-        metadata.setReferenceType(MetadataReferenceType.valueOf(metadataMongo.getId().getReferenceType()));
+        metadata.setReferenceType(
+                MetadataReferenceType.valueOf(metadataMongo.getId().getReferenceType()));
         metadata.setReferenceId(metadataMongo.getId().getReferenceId());
         metadata.setFormat(MetadataFormat.valueOf(metadataMongo.getFormat()));
         metadata.setName(metadataMongo.getName());
@@ -191,7 +194,10 @@ public class MongoMetadataRepository implements MetadataRepository {
 
     private MetadataMongo map(final Metadata metadata) {
         MetadataMongo metadataMongo = new MetadataMongo();
-        metadataMongo.setId(new MetadataPkMongo(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType().name()));
+        metadataMongo.setId(new MetadataPkMongo(
+                metadata.getKey(),
+                metadata.getReferenceId(),
+                metadata.getReferenceType().name()));
         metadataMongo.setFormat(metadata.getFormat().name());
         metadataMongo.setName(metadata.getName());
         metadataMongo.setValue(metadata.getValue());

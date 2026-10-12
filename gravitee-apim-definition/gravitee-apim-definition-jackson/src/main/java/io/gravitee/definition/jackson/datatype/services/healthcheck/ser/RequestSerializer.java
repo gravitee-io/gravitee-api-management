@@ -32,7 +32,8 @@ public class RequestSerializer extends StdScalarSerializer<HealthCheckRequest> {
     }
 
     @Override
-    public void serialize(HealthCheckRequest request, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HealthCheckRequest request, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("path", request.getPath());
         jgen.writeStringField("method", request.getMethod().name());
@@ -40,18 +41,16 @@ public class RequestSerializer extends StdScalarSerializer<HealthCheckRequest> {
         if (request.getHeaders() != null && !request.getHeaders().isEmpty()) {
             jgen.writeArrayFieldStart("headers");
 
-            request
-                .getHeaders()
-                .forEach(httpHeader -> {
-                    try {
-                        jgen.writeStartObject();
-                        jgen.writeStringField("name", httpHeader.getName());
-                        jgen.writeStringField("value", httpHeader.getValue());
-                        jgen.writeEndObject();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            request.getHeaders().forEach(httpHeader -> {
+                try {
+                    jgen.writeStartObject();
+                    jgen.writeStringField("name", httpHeader.getName());
+                    jgen.writeStringField("value", httpHeader.getValue());
+                    jgen.writeEndObject();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jgen.writeEndArray();
         }
         if (request.getBody() != null && !request.getBody().isEmpty()) {

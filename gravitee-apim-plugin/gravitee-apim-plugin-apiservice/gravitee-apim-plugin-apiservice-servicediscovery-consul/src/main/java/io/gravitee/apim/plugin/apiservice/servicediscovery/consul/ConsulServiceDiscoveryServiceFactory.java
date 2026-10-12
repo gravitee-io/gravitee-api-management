@@ -21,7 +21,6 @@ import io.gravitee.apim.plugin.apiservice.servicediscovery.consul.helper.ConsulS
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -31,12 +30,9 @@ public class ConsulServiceDiscoveryServiceFactory implements ApiServiceFactory<C
     public ConsulServiceDiscoveryService createService(DeploymentContext deploymentContext) {
         final Api api = deploymentContext.getComponent(Api.class);
 
-        var consulEnabledGroups = api
-            .getDefinition()
-            .getEndpointGroups()
-            .stream()
-            .filter(group -> ConsulServiceDiscoveryChecker.isConsulEnabled(group.getServices()))
-            .collect(toList());
+        var consulEnabledGroups = api.getDefinition().getEndpointGroups().stream()
+                .filter(group -> ConsulServiceDiscoveryChecker.isConsulEnabled(group.getServices()))
+                .collect(toList());
 
         if (!consulEnabledGroups.isEmpty()) {
             return new ConsulServiceDiscoveryService(deploymentContext, consulEnabledGroups);

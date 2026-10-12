@@ -46,12 +46,11 @@ public class ApiPrimaryOwnerFactory {
     private final GroupQueryService groupQueryService;
 
     public ApiPrimaryOwnerFactory(
-        GroupQueryService groupQueryService,
-        MembershipQueryService membershipQueryService,
-        ParametersQueryService parametersQueryService,
-        RoleQueryService roleQueryService,
-        UserCrudService userCrudService
-    ) {
+            GroupQueryService groupQueryService,
+            MembershipQueryService membershipQueryService,
+            ParametersQueryService parametersQueryService,
+            RoleQueryService roleQueryService,
+            UserCrudService userCrudService) {
         this.membershipQueryService = membershipQueryService;
         this.parametersQueryService = parametersQueryService;
         this.roleQueryService = roleQueryService;
@@ -60,12 +59,9 @@ public class ApiPrimaryOwnerFactory {
     }
 
     public PrimaryOwnerEntity createForNewApi(String organizationId, String environmentId, String userId) {
-        var mode = ApiPrimaryOwnerMode.valueOf(
-            parametersQueryService.findAsString(
+        var mode = ApiPrimaryOwnerMode.valueOf(parametersQueryService.findAsString(
                 Key.API_PRIMARY_OWNER_MODE,
-                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
-            )
-        );
+                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)));
         return switch (mode) {
             case HYBRID, USER -> initUserPrimaryOwner(userId);
             case GROUP -> initWithFirstGroupWhereUserIsPrimaryOwner(userId, organizationId);
@@ -78,33 +74,33 @@ public class ApiPrimaryOwnerFactory {
     }
 
     private PrimaryOwnerEntity initWithFirstGroupWhereUserIsPrimaryOwner(String userId, String organizationId) {
-        var userGroupIds = membershipQueryService
-            .findGroupsThatUserBelongsTo(userId)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(Collectors.toSet());
-        var group = groupQueryService
-            .findByIds(userGroupIds)
-            .stream()
-            .filter(g -> g.getApiPrimaryOwner() != null && !g.getApiPrimaryOwner().isBlank())
-            .findFirst();
+        var userGroupIds = membershipQueryService.findGroupsThatUserBelongsTo(userId).stream()
+                .map(Membership::getReferenceId)
+                .collect(Collectors.toSet());
+        var group = groupQueryService.findByIds(userGroupIds).stream()
+                .filter(g -> g.getApiPrimaryOwner() != null
+                        && !g.getApiPrimaryOwner().isBlank())
+                .findFirst();
 
-        return group
-            .flatMap(g ->
-                membershipQueryService
-                    .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, g.getId(), getApiPrimaryOwnerRole(organizationId).getId())
-                    .stream()
-                    .findFirst()
-                    .map(membership -> userCrudService.getBaseUser(membership.getMemberId()))
-                    .map(user -> new PrimaryOwnerEntity(g.getId(), user.getEmail(), g.getName(), PrimaryOwnerEntity.Type.GROUP))
-            )
-            .orElseThrow(() -> new NoPrimaryOwnerGroupForUserException(userId));
+        return group.flatMap(g -> membershipQueryService
+                        .findByReferenceAndRoleId(
+                                Membership.ReferenceType.GROUP,
+                                g.getId(),
+                                getApiPrimaryOwnerRole(organizationId).getId())
+                        .stream()
+                        .findFirst()
+                        .map(membership -> userCrudService.getBaseUser(membership.getMemberId()))
+                        .map(user -> new PrimaryOwnerEntity(
+                                g.getId(), user.getEmail(), g.getName(), PrimaryOwnerEntity.Type.GROUP)))
+                .orElseThrow(() -> new NoPrimaryOwnerGroupForUserException(userId));
     }
 
     private Role getApiPrimaryOwnerRole(String organizationId) {
         return roleQueryService.getApiRole(
-            SystemRole.PRIMARY_OWNER.name(),
-            ReferenceContext.builder().referenceType(ReferenceContext.Type.ORGANIZATION).referenceId(organizationId).build()
-        );
+                SystemRole.PRIMARY_OWNER.name(),
+                ReferenceContext.builder()
+                        .referenceType(ReferenceContext.Type.ORGANIZATION)
+                        .referenceId(organizationId)
+                        .build());
     }
 }

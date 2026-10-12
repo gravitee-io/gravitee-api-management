@@ -45,14 +45,12 @@ import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
-import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -130,40 +128,29 @@ public class GroupService_DeleteTest {
     private void stubPrimaryOwnerGuardAllowsDeletion() {
         RoleEntity apiRole = new RoleEntity();
         apiRole.setId("API_PRIMARY_OWNER_ID");
-        when(
-            roleService.findByScopeAndName(
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name(),
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            )
-        ).thenReturn(Optional.of(apiRole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API,
+                        SystemRole.PRIMARY_OWNER.name(),
+                        GraviteeContext.getExecutionContext().getOrganizationId()))
+                .thenReturn(Optional.of(apiRole));
 
         RoleEntity apiProductRole = new RoleEntity();
         apiProductRole.setId("API_PRODUCT_PRIMARY_OWNER_ID");
-        when(
-            roleService.findByScopeAndName(
-                RoleScope.API_PRODUCT,
-                SystemRole.PRIMARY_OWNER.name(),
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            )
-        ).thenReturn(Optional.of(apiProductRole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API_PRODUCT,
+                        SystemRole.PRIMARY_OWNER.name(),
+                        GraviteeContext.getExecutionContext().getOrganizationId()))
+                .thenReturn(Optional.of(apiProductRole));
 
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                GROUP_ID,
-                MembershipReferenceType.API,
-                "API_PRIMARY_OWNER_ID"
-            )
-        ).thenReturn(Collections.emptySet());
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                GROUP_ID,
-                MembershipReferenceType.API_PRODUCT,
-                "API_PRODUCT_PRIMARY_OWNER_ID"
-            )
-        ).thenReturn(Collections.emptySet());
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, GROUP_ID, MembershipReferenceType.API, "API_PRIMARY_OWNER_ID"))
+                .thenReturn(Collections.emptySet());
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP,
+                        GROUP_ID,
+                        MembershipReferenceType.API_PRODUCT,
+                        "API_PRODUCT_PRIMARY_OWNER_ID"))
+                .thenReturn(Collections.emptySet());
     }
 
     @Test
@@ -196,21 +183,14 @@ public class GroupService_DeleteTest {
 
             RoleEntity role = new RoleEntity();
             role.setId("API_PRIMARY_OWNER_ID");
-            when(
-                roleService.findByScopeAndName(
-                    RoleScope.API,
-                    SystemRole.PRIMARY_OWNER.name(),
-                    GraviteeContext.getExecutionContext().getOrganizationId()
-                )
-            ).thenReturn(Optional.of(role));
-            when(
-                membershipService.getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.GROUP,
-                    GROUP_ID,
-                    MembershipReferenceType.API,
-                    "API_PRIMARY_OWNER_ID"
-                )
-            ).thenReturn(Set.of(new MembershipEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API,
+                            SystemRole.PRIMARY_OWNER.name(),
+                            GraviteeContext.getExecutionContext().getOrganizationId()))
+                    .thenReturn(Optional.of(role));
+            when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                            MembershipMemberType.GROUP, GROUP_ID, MembershipReferenceType.API, "API_PRIMARY_OWNER_ID"))
+                    .thenReturn(Set.of(new MembershipEntity()));
 
             groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
         });
@@ -227,41 +207,30 @@ public class GroupService_DeleteTest {
             // API guard passes (no API PO membership for the group).
             RoleEntity apiRole = new RoleEntity();
             apiRole.setId("API_PRIMARY_OWNER_ID");
-            when(
-                roleService.findByScopeAndName(
-                    RoleScope.API,
-                    SystemRole.PRIMARY_OWNER.name(),
-                    GraviteeContext.getExecutionContext().getOrganizationId()
-                )
-            ).thenReturn(Optional.of(apiRole));
-            when(
-                membershipService.getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.GROUP,
-                    GROUP_ID,
-                    MembershipReferenceType.API,
-                    "API_PRIMARY_OWNER_ID"
-                )
-            ).thenReturn(Collections.emptySet());
+            when(roleService.findByScopeAndName(
+                            RoleScope.API,
+                            SystemRole.PRIMARY_OWNER.name(),
+                            GraviteeContext.getExecutionContext().getOrganizationId()))
+                    .thenReturn(Optional.of(apiRole));
+            when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                            MembershipMemberType.GROUP, GROUP_ID, MembershipReferenceType.API, "API_PRIMARY_OWNER_ID"))
+                    .thenReturn(Collections.emptySet());
 
             // Group is the primary owner of an API Product → must refuse deletion with the
             // API-Product-specific exception so the admin gets accurate wording.
             RoleEntity apiProductRole = new RoleEntity();
             apiProductRole.setId("API_PRODUCT_PRIMARY_OWNER_ID");
-            when(
-                roleService.findByScopeAndName(
-                    RoleScope.API_PRODUCT,
-                    SystemRole.PRIMARY_OWNER.name(),
-                    GraviteeContext.getExecutionContext().getOrganizationId()
-                )
-            ).thenReturn(Optional.of(apiProductRole));
-            when(
-                membershipService.getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.GROUP,
-                    GROUP_ID,
-                    MembershipReferenceType.API_PRODUCT,
-                    "API_PRODUCT_PRIMARY_OWNER_ID"
-                )
-            ).thenReturn(Set.of(new MembershipEntity()));
+            when(roleService.findByScopeAndName(
+                            RoleScope.API_PRODUCT,
+                            SystemRole.PRIMARY_OWNER.name(),
+                            GraviteeContext.getExecutionContext().getOrganizationId()))
+                    .thenReturn(Optional.of(apiProductRole));
+            when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                            MembershipMemberType.GROUP,
+                            GROUP_ID,
+                            MembershipReferenceType.API_PRODUCT,
+                            "API_PRODUCT_PRIMARY_OWNER_ID"))
+                    .thenReturn(Set.of(new MembershipEntity()));
 
             groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
         });
@@ -276,84 +245,87 @@ public class GroupService_DeleteTest {
 
         stubPrimaryOwnerGuardAllowsDeletion();
 
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
-                null,
-                new PageableBuilder().pageSize(100).pageNumber(0).build(),
-                ApiFieldFilter.allFields()
-            )
-        )
-            .thenReturn(
-                new io.gravitee.common.data.domain.Page<>(List.of(Api.builder().groups(new HashSet<>(Set.of(GROUP_ID))).build()), 0, 1, 1)
-            )
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .groups(GROUP_ID)
+                                .build(),
+                        null,
+                        new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                        ApiFieldFilter.allFields()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(
+                        List.of(Api.builder()
+                                .groups(new HashSet<>(Set.of(GROUP_ID)))
+                                .build()),
+                        0,
+                        1,
+                        1))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
 
-        when(userService.findById(any(), any())).thenReturn(UserEntity.builder().sourceId("test").build());
+        when(userService.findById(any(), any()))
+                .thenReturn(UserEntity.builder().sourceId("test").build());
 
-        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
-        when(apiProductsRepository.findByEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId())).thenReturn(
-            Collections.emptySet()
-        );
+        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID)))
+                .thenReturn(Collections.emptySet());
+        when(apiProductsRepository.findByEnvironmentId(
+                        GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .thenReturn(Collections.emptySet());
 
-        when(
-            pageRepository.search(
-                new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).accessControlGroupId(GROUP_ID).build()
-            )
-        ).thenReturn(Collections.emptyList());
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .referenceType(PageReferenceType.API.name())
+                        .accessControlGroupId(GROUP_ID)
+                        .build()))
+                .thenReturn(Collections.emptyList());
 
-        when(
-            pageRepository.search(
-                new PageCriteria.Builder()
-                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                    .referenceType(PageReferenceType.ENVIRONMENT.name())
-                    .build()
-            )
-        ).thenReturn(Collections.emptyList());
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .referenceType(PageReferenceType.ENVIRONMENT.name())
+                        .build()))
+                .thenReturn(Collections.emptyList());
 
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
 
-        verify(membershipService, times(1)).deleteReference(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(MembershipReferenceType.GROUP),
-            eq(GROUP_ID)
-        );
+        verify(membershipService, times(1))
+                .deleteReference(
+                        eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.GROUP), eq(GROUP_ID));
 
-        verify(membershipService, times(1)).deleteReferenceMember(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(MembershipReferenceType.API),
-            eq(null),
-            eq(MembershipMemberType.GROUP),
-            eq(GROUP_ID)
-        );
+        verify(membershipService, times(1))
+                .deleteReferenceMember(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(MembershipReferenceType.API),
+                        eq(null),
+                        eq(MembershipMemberType.GROUP),
+                        eq(GROUP_ID));
 
-        verify(membershipService, times(1)).deleteReferenceMember(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(MembershipReferenceType.APPLICATION),
-            eq(null),
-            eq(MembershipMemberType.GROUP),
-            eq(GROUP_ID)
-        );
+        verify(membershipService, times(1))
+                .deleteReferenceMember(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(MembershipReferenceType.APPLICATION),
+                        eq(null),
+                        eq(MembershipMemberType.GROUP),
+                        eq(GROUP_ID));
 
-        verify(membershipService, times(1)).deleteReferenceMember(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(MembershipReferenceType.API_PRODUCT),
-            eq(null),
-            eq(MembershipMemberType.GROUP),
-            eq(GROUP_ID)
-        );
+        verify(membershipService, times(1))
+                .deleteReferenceMember(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(MembershipReferenceType.API_PRODUCT),
+                        eq(null),
+                        eq(MembershipMemberType.GROUP),
+                        eq(GROUP_ID));
 
-        verify(eventManager, times(1)).publishEvent(
-            eq(ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE),
-            any(ApplicationAlertMembershipEvent.class)
-        );
+        verify(eventManager, times(1))
+                .publishEvent(
+                        eq(ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE),
+                        any(ApplicationAlertMembershipEvent.class));
 
         verify(groupRepository, times(1)).delete(eq(GROUP_ID));
 
-        verify(auditService, times(1)).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(GROUP_DELETED) && auditLogData.getNewValue() == null)
-        );
+        verify(auditService, times(1))
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData ->
+                                auditLogData.getEvent().equals(GROUP_DELETED) && auditLogData.getNewValue() == null));
 
         verify(portalNotificationConfigService, times(1)).removeGroupIds(any(), eq(Set.of(GROUP_ID)));
     }
@@ -378,28 +350,28 @@ public class GroupService_DeleteTest {
         Api api = new Api();
         api.setId("API_ID");
         api.setGroups(new HashSet<>(Collections.singletonList(GROUP_ID)));
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
-                null,
-                new PageableBuilder().pageSize(100).pageNumber(0).build(),
-                ApiFieldFilter.allFields()
-            )
-        )
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(api), 1, 1, 1))
-            .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .groups(GROUP_ID)
+                                .build(),
+                        null,
+                        new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                        ApiFieldFilter.allFields()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(api), 1, 1, 1))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
 
         Application application = new Application();
         application.setId("APP_ID");
         application.setName("Test Application");
         application.setGroups(new HashSet<>(Arrays.asList(GROUP_ID, ANOTHER_GROUP_ID)));
 
-        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(
-            new HashSet<>(Collections.singletonList(application))
-        );
-        when(apiProductsRepository.findByEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId())).thenReturn(
-            Collections.emptySet()
-        );
+        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID)))
+                .thenReturn(new HashSet<>(Collections.singletonList(application)));
+        when(apiProductsRepository.findByEnvironmentId(
+                        GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .thenReturn(Collections.emptySet());
 
         Page page = new Page();
         AccessControl accessControlToRemove = new AccessControl();
@@ -408,29 +380,30 @@ public class GroupService_DeleteTest {
         AccessControl accessControlToKeep = new AccessControl();
         page.setAccessControls(new HashSet<>(Set.of(accessControlToRemove, accessControlToKeep)));
 
-        when(
-            pageRepository.search(
-                new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).accessControlGroupId(GROUP_ID).build()
-            )
-        ).thenReturn(Collections.emptyList());
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .referenceType(PageReferenceType.API.name())
+                        .accessControlGroupId(GROUP_ID)
+                        .build()))
+                .thenReturn(Collections.emptyList());
 
-        when(
-            pageRepository.search(
-                new PageCriteria.Builder()
-                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                    .referenceType(PageReferenceType.ENVIRONMENT.name())
-                    .build()
-            )
-        ).thenReturn(List.of(page));
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .referenceType(PageReferenceType.ENVIRONMENT.name())
+                        .build()))
+                .thenReturn(List.of(page));
 
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
 
-        verify(pageRepository, times(1)).update(argThat(arg -> arg.getAccessControls().size() == 1));
-        verify(apiRepository, times(1)).update(argThat(apiArg -> !apiArg.getGroups().contains(GROUP_ID)));
-        verify(applicationRepository, times(1)).update(argThat(applicationArg -> !applicationArg.getGroups().contains(GROUP_ID)));
-        verify(applicationRepository).update(
-            argThat(app -> app.getGroups().size() == 1 && !app.getGroups().contains(GROUP_ID) && app.getGroups().contains(ANOTHER_GROUP_ID))
-        );
+        verify(pageRepository, times(1))
+                .update(argThat(arg -> arg.getAccessControls().size() == 1));
+        verify(apiRepository, times(1))
+                .update(argThat(apiArg -> !apiArg.getGroups().contains(GROUP_ID)));
+        verify(applicationRepository, times(1))
+                .update(argThat(applicationArg -> !applicationArg.getGroups().contains(GROUP_ID)));
+        verify(applicationRepository)
+                .update(argThat(app -> app.getGroups().size() == 1
+                        && !app.getGroups().contains(GROUP_ID)
+                        && app.getGroups().contains(ANOTHER_GROUP_ID)));
     }
 
     @Test
@@ -442,15 +415,18 @@ public class GroupService_DeleteTest {
 
         stubPrimaryOwnerGuardAllowsDeletion();
 
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
-                null,
-                new PageableBuilder().pageSize(100).pageNumber(0).build(),
-                ApiFieldFilter.allFields()
-            )
-        ).thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
-        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .groups(GROUP_ID)
+                                .build(),
+                        null,
+                        new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                        ApiFieldFilter.allFields()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
+        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID)))
+                .thenReturn(Collections.emptySet());
         when(pageRepository.search(any())).thenReturn(Collections.emptyList());
         lenient().when(identityProviderRepository.findAll()).thenReturn(Collections.emptySet());
 
@@ -461,13 +437,14 @@ public class GroupService_DeleteTest {
         ApiProduct productWithoutGroup = new ApiProduct();
         productWithoutGroup.setId("product-2");
 
-        when(apiProductsRepository.findByEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId())).thenReturn(
-            Set.of(productWithGroup, productWithoutGroup)
-        );
+        when(apiProductsRepository.findByEnvironmentId(
+                        GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .thenReturn(Set.of(productWithGroup, productWithoutGroup));
 
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
 
-        verify(apiProductsRepository, times(1)).update(argThat(p -> !p.getGroups().contains(GROUP_ID)));
+        verify(apiProductsRepository, times(1))
+                .update(argThat(p -> !p.getGroups().contains(GROUP_ID)));
         verify(apiProductsRepository, never()).update(argThat(p -> p.getId().equals("product-2")));
     }
 
@@ -485,19 +462,22 @@ public class GroupService_DeleteTest {
         stubPrimaryOwnerGuardAllowsDeletion();
 
         // No APIs found by group membership search (the API is NOT in the group's groups[])
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
-                null,
-                new PageableBuilder().pageSize(100).pageNumber(0).build(),
-                ApiFieldFilter.allFields()
-            )
-        ).thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .groups(GROUP_ID)
+                                .build(),
+                        null,
+                        new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                        ApiFieldFilter.allFields()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
 
-        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
-        when(apiProductsRepository.findByEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId())).thenReturn(
-            Collections.emptySet()
-        );
+        when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID)))
+                .thenReturn(Collections.emptySet());
+        when(apiProductsRepository.findByEnvironmentId(
+                        GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .thenReturn(Collections.emptySet());
 
         // But there IS a page on some API that references this group in accessControls
         Page apiPageWithStaleRef = new Page();
@@ -512,35 +492,25 @@ public class GroupService_DeleteTest {
         validAccessControl.setReferenceId("other-group-id");
         apiPageWithStaleRef.setAccessControls(new HashSet<>(Set.of(staleAccessControl, validAccessControl)));
 
-        when(
-            pageRepository.search(
-                new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).accessControlGroupId(GROUP_ID).build()
-            )
-        ).thenReturn(List.of(apiPageWithStaleRef));
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .referenceType(PageReferenceType.API.name())
+                        .accessControlGroupId(GROUP_ID)
+                        .build()))
+                .thenReturn(List.of(apiPageWithStaleRef));
 
-        when(
-            pageRepository.search(
-                new PageCriteria.Builder()
-                    .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                    .referenceType(PageReferenceType.ENVIRONMENT.name())
-                    .build()
-            )
-        ).thenReturn(Collections.emptyList());
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .referenceId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .referenceType(PageReferenceType.ENVIRONMENT.name())
+                        .build()))
+                .thenReturn(Collections.emptyList());
 
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
 
         // Verify the stale accessControl was removed from the page, keeping the valid one
-        verify(pageRepository).update(
-            argThat(
-                p ->
-                    "PAGE_ON_UNRELATED_API".equals(p.getId()) &&
-                    p.getAccessControls().size() == 1 &&
-                    p
-                        .getAccessControls()
-                        .stream()
-                        .noneMatch(ac -> GROUP_ID.equals(ac.getReferenceId()))
-            )
-        );
+        verify(pageRepository)
+                .update(argThat(p -> "PAGE_ON_UNRELATED_API".equals(p.getId())
+                        && p.getAccessControls().size() == 1
+                        && p.getAccessControls().stream().noneMatch(ac -> GROUP_ID.equals(ac.getReferenceId()))));
 
         verify(groupRepository, times(1)).delete(eq(GROUP_ID));
     }

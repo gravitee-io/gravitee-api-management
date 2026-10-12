@@ -31,7 +31,10 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     @Override
     public Response toResponse(ConstraintViolationException cve) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(buildErrorList(cve)).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(buildErrorList(cve))
+                .build();
     }
 
     private ErrorResponse buildErrorList(ConstraintViolationException cve) {
@@ -42,7 +45,8 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
             if (invalidValue != null) {
                 detail += "\n" + invalidValue;
             }
-            Error error = new Error().code(violation.getPropertyPath().toString()).message(detail);
+            Error error =
+                    new Error().code(violation.getPropertyPath().toString()).message(detail);
             response.addErrorsItem(error);
         }
         return response;

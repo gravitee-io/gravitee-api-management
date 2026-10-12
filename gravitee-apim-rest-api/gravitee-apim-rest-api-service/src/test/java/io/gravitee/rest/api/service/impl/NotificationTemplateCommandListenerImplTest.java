@@ -58,11 +58,7 @@ class NotificationTemplateCommandListenerImplTest {
     @BeforeEach
     void setUp() {
         cut = new NotificationTemplateCommandListenerImpl(
-            eventManager,
-            objectMapper,
-            notificationTemplateService,
-            notificationTemplateMapper
-        );
+                eventManager, objectMapper, notificationTemplateService, notificationTemplateMapper);
     }
 
     @Test
@@ -81,7 +77,8 @@ class NotificationTemplateCommandListenerImplTest {
 
     @Test
     void should_do_nothing_when_event_is_not_an_email_template_update() {
-        var event = new SimpleEvent<>(CommandEvent.TO_PROCESS, buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE), "content"));
+        var event = new SimpleEvent<>(
+                CommandEvent.TO_PROCESS, buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE), "content"));
 
         cut.onEvent(event);
 
@@ -90,7 +87,8 @@ class NotificationTemplateCommandListenerImplTest {
 
     @Test
     void should_update_email_template() {
-        var event = new SimpleEvent<>(CommandEvent.TO_PROCESS, buildCommand(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE), EMAIL_CONTENT));
+        var event = new SimpleEvent<>(
+                CommandEvent.TO_PROCESS, buildCommand(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE), EMAIL_CONTENT));
 
         cut.onEvent(event);
 
@@ -103,9 +101,9 @@ class NotificationTemplateCommandListenerImplTest {
         assertThat(template.getHook()).isEqualTo("USER_REGISTRATION");
         assertThat(template.getScope()).isEqualTo("TEMPLATES_FOR_ACTION");
         assertThat(template.getName()).isEqualTo("User registration");
-        assertThat(template.getDescription()).isEqualTo(
-            "Email sent to a user who has self-registered on portal or admin console. Contains a registration link."
-        );
+        assertThat(template.getDescription())
+                .isEqualTo(
+                        "Email sent to a user who has self-registered on portal or admin console. Contains a registration link.");
         assertThat(template.getTitle()).isEqualTo("User ${registrationAction} - ${user.displayName}");
         assertThat(template.getContent()).isEqualTo("email content");
         assertThat(template.getType()).isEqualTo(NotificationTemplateType.EMAIL);

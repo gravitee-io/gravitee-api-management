@@ -80,9 +80,7 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
 
     @Autowired
     public ElasticsearchOtelLogTestRepositoryInitializer(
-        GenericContainer<?> otelLogTestOtelCollectorContainer,
-        OtelLogRepository otelLogRepository
-    ) {
+            GenericContainer<?> otelLogTestOtelCollectorContainer, OtelLogRepository otelLogRepository) {
         this.otelCollectorContainer = otelLogTestOtelCollectorContainer;
         this.otelLogRepository = otelLogRepository;
     }
@@ -92,7 +90,8 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
         if (seeded) {
             return;
         }
-        String collectorHost = otelCollectorContainer.getHost() + ":" + otelCollectorContainer.getMappedPort(OTEL_COLLECTOR_OTLP_HTTP_PORT);
+        String collectorHost = otelCollectorContainer.getHost() + ":"
+                + otelCollectorContainer.getMappedPort(OTEL_COLLECTOR_OTLP_HTTP_PORT);
         seedSpanEvents(collectorHost);
         seedPayloadLog(collectorHost);
         awaitLogsQueryable();
@@ -111,28 +110,35 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
      * set — matching what the production repository normalises back to {@code attributes["event.name"]}.
      */
     private void seedSpanEvents(String collectorHost) {
-        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder().setEndpoint("http://" + collectorHost + "/v1/traces").build();
+        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder()
+                .setEndpoint("http://" + collectorHost + "/v1/traces")
+                .build();
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
-            .setResource(Resource.create(Attributes.of(stringKey("service.name"), "otel-log-fixtures")))
-            .setIdGenerator(new FixtureIdGenerator())
-            .addSpanProcessor(SimpleSpanProcessor.create(exporter))
-            .build();
+                .setResource(Resource.create(Attributes.of(stringKey("service.name"), "otel-log-fixtures")))
+                .setIdGenerator(new FixtureIdGenerator())
+                .addSpanProcessor(SimpleSpanProcessor.create(exporter))
+                .build();
 
-        try (OpenTelemetrySdk sdk = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build()) {
+        try (OpenTelemetrySdk sdk =
+                OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build()) {
             Tracer tracer = sdk.getTracer("elasticsearch-otel-log-test-fixtures");
 
             long spanStartNanos = epochNanos(SEED_ANCHOR);
-            Span span = tracer.spanBuilder("seed-span").setStartTimestamp(spanStartNanos, TimeUnit.NANOSECONDS).startSpan();
+            Span span = tracer.spanBuilder("seed-span")
+                    .setStartTimestamp(spanStartNanos, TimeUnit.NANOSECONDS)
+                    .startSpan();
 
             // Pre event — carries the policy id attribute the contract test asserts on.
             span.addEvent(
-                Fixtures.EVENT_PRE_NAME,
-                Attributes.of(stringKey("gravitee.policy.id"), Fixtures.EVENT_PRE_POLICY_ID),
-                spanStartNanos + Duration.ofMillis(100).toNanos(),
-                TimeUnit.NANOSECONDS
-            );
+                    Fixtures.EVENT_PRE_NAME,
+                    Attributes.of(stringKey("gravitee.policy.id"), Fixtures.EVENT_PRE_POLICY_ID),
+                    spanStartNanos + Duration.ofMillis(100).toNanos(),
+                    TimeUnit.NANOSECONDS);
             // Post event — no extra attributes; ordering by @timestamp is what matters.
-            span.addEvent(Fixtures.EVENT_POST_NAME, spanStartNanos + Duration.ofMillis(200).toNanos(), TimeUnit.NANOSECONDS);
+            span.addEvent(
+                    Fixtures.EVENT_POST_NAME,
+                    spanStartNanos + Duration.ofMillis(200).toNanos(),
+                    TimeUnit.NANOSECONDS);
             span.end(spanStartNanos + Duration.ofMillis(300).toNanos(), TimeUnit.NANOSECONDS);
 
             tracerProvider.forceFlush().join(10, TimeUnit.SECONDS);
@@ -147,29 +153,30 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
      */
     private void seedPayloadLog(String collectorHost) {
         OtlpHttpLogRecordExporter exporter = OtlpHttpLogRecordExporter.builder()
-            .setEndpoint("http://" + collectorHost + "/v1/logs")
-            .build();
+                .setEndpoint("http://" + collectorHost + "/v1/logs")
+                .build();
         SdkLoggerProvider loggerProvider = SdkLoggerProvider.builder()
-            .setResource(Resource.create(Attributes.of(stringKey("service.name"), "otel-log-fixtures")))
-            .addLogRecordProcessor(SimpleLogRecordProcessor.create(exporter))
-            .build();
+                .setResource(Resource.create(Attributes.of(stringKey("service.name"), "otel-log-fixtures")))
+                .addLogRecordProcessor(SimpleLogRecordProcessor.create(exporter))
+                .build();
 
         try {
             Logger logger = loggerProvider.get("elasticsearch-otel-log-test-fixtures");
             // The OTel logs SDK ties trace/span ids to the active Context, not to LogRecordBuilder.setTraceId.
             // Wrap a no-op span carrying the fixture ids and emit the log under that context so the exporter
             // serialises trace_id / span_id correctly into the OTLP payload.
-            Context context = Context.current().with(
-                Span.wrap(FixtureIdGenerator.fixtureSpanContext(Fixtures.TRACE_OK_ID, Fixtures.TRACE_OK_SPAN_ID))
-            );
-            logger
-                .logRecordBuilder()
-                .setContext(context)
-                .setTimestamp(SEED_ANCHOR.plusMillis(400).getEpochSecond() * 1_000_000_000L + 400_000_000L, TimeUnit.NANOSECONDS)
-                .setSeverity(Severity.INFO)
-                .setSeverityText("INFO")
-                .setBody(Fixtures.PAYLOAD_BODY)
-                .emit();
+            Context context = Context.current()
+                    .with(Span.wrap(
+                            FixtureIdGenerator.fixtureSpanContext(Fixtures.TRACE_OK_ID, Fixtures.TRACE_OK_SPAN_ID)));
+            logger.logRecordBuilder()
+                    .setContext(context)
+                    .setTimestamp(
+                            SEED_ANCHOR.plusMillis(400).getEpochSecond() * 1_000_000_000L + 400_000_000L,
+                            TimeUnit.NANOSECONDS)
+                    .setSeverity(Severity.INFO)
+                    .setSeverityText("INFO")
+                    .setBody(Fixtures.PAYLOAD_BODY)
+                    .emit();
 
             loggerProvider.forceFlush().join(10, TimeUnit.SECONDS);
         } finally {
@@ -179,16 +186,17 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
 
     private void awaitLogsQueryable() {
         QueryContext queryContext = new QueryContext(Fixtures.ORG_ID, Fixtures.ENV_ID);
-        OtelLogSearchCriteria criteria = new OtelLogSearchCriteria(Fixtures.TRACE_OK_ID, Map.of(), Map.of(), null, null, null);
+        OtelLogSearchCriteria criteria =
+                new OtelLogSearchCriteria(Fixtures.TRACE_OK_ID, Map.of(), Map.of(), null, null, null);
 
         // Two span events + one payload log = 3 docs once both producer paths have flushed end-to-end.
-        await()
-            .atMost(QUERYABLE_POLL_TIMEOUT)
-            .pollInterval(QUERYABLE_POLL_INTERVAL)
-            .until(() -> {
-                List<OtelLogRecord> records = otelLogRepository.findLogs(queryContext, criteria).blockingGet();
-                return records.size() >= 3;
-            });
+        await().atMost(QUERYABLE_POLL_TIMEOUT)
+                .pollInterval(QUERYABLE_POLL_INTERVAL)
+                .until(() -> {
+                    List<OtelLogRecord> records =
+                            otelLogRepository.findLogs(queryContext, criteria).blockingGet();
+                    return records.size() >= 3;
+                });
     }
 
     private static long epochNanos(Instant instant) {
@@ -202,17 +210,23 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
      */
     private static final class FixtureIdGenerator implements IdGenerator {
 
-        private final java.util.concurrent.atomic.AtomicBoolean traceServed = new java.util.concurrent.atomic.AtomicBoolean();
-        private final java.util.concurrent.atomic.AtomicBoolean spanServed = new java.util.concurrent.atomic.AtomicBoolean();
+        private final java.util.concurrent.atomic.AtomicBoolean traceServed =
+                new java.util.concurrent.atomic.AtomicBoolean();
+        private final java.util.concurrent.atomic.AtomicBoolean spanServed =
+                new java.util.concurrent.atomic.AtomicBoolean();
 
         @Override
         public String generateTraceId() {
-            return traceServed.compareAndSet(false, true) ? Fixtures.TRACE_OK_ID : IdGenerator.random().generateTraceId();
+            return traceServed.compareAndSet(false, true)
+                    ? Fixtures.TRACE_OK_ID
+                    : IdGenerator.random().generateTraceId();
         }
 
         @Override
         public String generateSpanId() {
-            return spanServed.compareAndSet(false, true) ? Fixtures.TRACE_OK_SPAN_ID : IdGenerator.random().generateSpanId();
+            return spanServed.compareAndSet(false, true)
+                    ? Fixtures.TRACE_OK_SPAN_ID
+                    : IdGenerator.random().generateSpanId();
         }
 
         /**
@@ -222,11 +236,10 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
          */
         static io.opentelemetry.api.trace.SpanContext fixtureSpanContext(String traceId, String spanId) {
             return io.opentelemetry.api.trace.SpanContext.create(
-                traceId,
-                spanId,
-                io.opentelemetry.api.trace.TraceFlags.getSampled(),
-                io.opentelemetry.api.trace.TraceState.getDefault()
-            );
+                    traceId,
+                    spanId,
+                    io.opentelemetry.api.trace.TraceFlags.getSampled(),
+                    io.opentelemetry.api.trace.TraceState.getDefault());
         }
     }
 }

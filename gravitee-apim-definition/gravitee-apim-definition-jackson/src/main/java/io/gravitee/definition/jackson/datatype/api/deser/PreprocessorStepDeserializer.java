@@ -42,16 +42,16 @@ public class PreprocessorStepDeserializer extends StdScalarDeserializer<Preproce
 
         JsonNode initialAttributesNode = node.get("attributes");
         if (initialAttributesNode != null) {
-            preprocessorStep.setAttributes(
-                (initialAttributesNode.traverse(jp.getCodec()).readValueAs(new TypeReference<Map<String, Object>>() {}))
-            );
+            preprocessorStep.setAttributes((initialAttributesNode
+                    .traverse(jp.getCodec())
+                    .readValueAs(new TypeReference<Map<String, Object>>() {})));
         }
 
         JsonNode initialHeadersNode = node.get("headers");
         if (initialHeadersNode != null && !initialHeadersNode.isEmpty()) {
-            preprocessorStep.setHeaders(
-                (initialHeadersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<Map<String, List<String>>>() {}))
-            );
+            preprocessorStep.setHeaders((initialHeadersNode
+                    .traverse(jp.getCodec())
+                    .readValueAs(new TypeReference<Map<String, List<String>>>() {})));
         }
 
         return preprocessorStep;

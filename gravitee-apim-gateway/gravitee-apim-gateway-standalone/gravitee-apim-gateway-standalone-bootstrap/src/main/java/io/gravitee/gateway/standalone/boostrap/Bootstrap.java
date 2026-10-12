@@ -129,17 +129,18 @@ public class Bootstrap {
     private void checkInstallRoot(File graviteeHomeDir) {
         // quick sanity check on the install root
         if (!graviteeHomeDir.isDirectory()) {
-            throw new RuntimeException("Invalid Gravitee.io Node home directory. Not a directory: " + graviteeHomeDir.getAbsolutePath());
+            throw new RuntimeException(
+                    "Invalid Gravitee.io Node home directory. Not a directory: " + graviteeHomeDir.getAbsolutePath());
         }
 
         File graviteeLibDir = new File(graviteeHomeDir, LIB_DIRECTORY);
 
-        File[] files = graviteeLibDir.listFiles(pathname -> pathname.getName().startsWith("gravitee-apim-gateway-standalone-bootstrap"));
+        File[] files = graviteeLibDir.listFiles(
+                pathname -> pathname.getName().startsWith("gravitee-apim-gateway-standalone-bootstrap"));
 
         if (files == null || files.length == 0 || files.length > 1) {
-            throw new RuntimeException(
-                "Invalid Gravitee.io Node home directory. No bootstrapable jar can be found in " + graviteeLibDir.getAbsolutePath()
-            );
+            throw new RuntimeException("Invalid Gravitee.io Node home directory. No bootstrapable jar can be found in "
+                    + graviteeLibDir.getAbsolutePath());
         }
     }
 

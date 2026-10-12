@@ -68,42 +68,41 @@ class OAIServersConverterTest {
             // Given
             var server1 = new Server();
             server1.setUrl("https://api.company.com/{basePath}");
-            server1.setVariables(
-                new ServerVariables()
-                    .addServerVariable("basePath", new ServerVariable().description("Base path")._default("v1"))
-                    .addServerVariable("anotherVariable", new ServerVariable().description("Another Variable")._default("value"))
-            );
+            server1.setVariables(new ServerVariables()
+                    .addServerVariable(
+                            "basePath",
+                            new ServerVariable().description("Base path")._default("v1"))
+                    .addServerVariable(
+                            "anotherVariable",
+                            new ServerVariable().description("Another Variable")._default("value")));
 
             var server2 = new Server();
             server2.setUrl("https://api2.company.com");
 
             var server3 = new Server();
             server3.setUrl("https://api3.company.com/{basePath}");
-            server3.setVariables(
-                new ServerVariables().addServerVariable(
-                    "basePath",
-                    new ServerVariable().description("Base path")._enum(List.of("v2", "v3"))
-                )
-            );
+            server3.setVariables(new ServerVariables()
+                    .addServerVariable(
+                            "basePath",
+                            new ServerVariable().description("Base path")._enum(List.of("v2", "v3"))));
 
             var server4 = new Server();
             server4.setUrl("https://api4.company.com/{basePath}");
-            server4.setVariables(
-                new ServerVariables()
-                    .addServerVariable(null, new ServerVariable().description("Base path")._default("v1"))
-                    .addServerVariable("variable", null)
-            );
+            server4.setVariables(new ServerVariables()
+                    .addServerVariable(
+                            null, new ServerVariable().description("Base path")._default("v1"))
+                    .addServerVariable("variable", null));
 
             // When
             var result = OAIServersConverter.INSTANCE.convert(List.of(server1, server2, server3, server4));
 
             // Then
-            assertThat(result).containsExactlyInAnyOrder(
-                "https://api.company.com/v1",
-                "https://api2.company.com",
-                "https://api3.company.com/v2",
-                "https://api3.company.com/v3"
-            );
+            assertThat(result)
+                    .containsExactlyInAnyOrder(
+                            "https://api.company.com/v1",
+                            "https://api2.company.com",
+                            "https://api3.company.com/v2",
+                            "https://api3.company.com/v3");
         }
 
         @Test
@@ -111,22 +110,26 @@ class OAIServersConverterTest {
             // Given
             var server = new Server();
             server.setUrl("https://demo.gravitee.io:{port}/gateway/{version}");
-            server.setVariables(
-                new ServerVariables()
-                    .addServerVariable("port", new ServerVariable()._default("8443")._enum(List.of("443", "8443")))
-                    .addServerVariable("version", new ServerVariable().description("Version")._enum(List.of("v1", "v2"))._default("v1"))
-            );
+            server.setVariables(new ServerVariables()
+                    .addServerVariable(
+                            "port", new ServerVariable()._default("8443")._enum(List.of("443", "8443")))
+                    .addServerVariable(
+                            "version",
+                            new ServerVariable()
+                                    .description("Version")
+                                    ._enum(List.of("v1", "v2"))
+                                    ._default("v1")));
 
             // When
             var result = OAIServersConverter.INSTANCE.convert(List.of(server));
 
             // Then
-            assertThat(result).containsExactlyInAnyOrder(
-                "https://demo.gravitee.io:8443/gateway/v1",
-                "https://demo.gravitee.io:443/gateway/v1",
-                "https://demo.gravitee.io:8443/gateway/v2",
-                "https://demo.gravitee.io:443/gateway/v2"
-            );
+            assertThat(result)
+                    .containsExactlyInAnyOrder(
+                            "https://demo.gravitee.io:8443/gateway/v1",
+                            "https://demo.gravitee.io:443/gateway/v1",
+                            "https://demo.gravitee.io:8443/gateway/v2",
+                            "https://demo.gravitee.io:443/gateway/v2");
         }
     }
 }

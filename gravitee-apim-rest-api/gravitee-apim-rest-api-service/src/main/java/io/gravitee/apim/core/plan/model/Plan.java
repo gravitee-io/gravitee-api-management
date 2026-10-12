@@ -24,7 +24,6 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,7 +46,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @Setter
-// Implement GenericPlanEntity to ease transition but it should be removed once core elements only use Plan instead of GenericPlanEntity
+// Implement GenericPlanEntity to ease transition but it should be removed once core elements only use Plan instead of
+// GenericPlanEntity
 public class Plan implements GenericPlanEntity {
 
     private String id;
@@ -63,6 +63,7 @@ public class Plan implements GenericPlanEntity {
      * Plans promoted between environments will share the same crossId.
      */
     private String crossId;
+
     private String hrid;
     private String name;
     private String description;
@@ -302,39 +303,38 @@ public class Plan implements GenericPlanEntity {
         }
         final ZonedDateTime closeDateTime = TimeProvider.now();
         return toBuilder()
-            .closedAt(closeDateTime)
-            .updatedAt(closeDateTime)
-            .needRedeployAt(Date.from(closeDateTime.toInstant()))
-            .build()
-            .setPlanStatus(PlanStatus.CLOSED);
+                .closedAt(closeDateTime)
+                .updatedAt(closeDateTime)
+                .needRedeployAt(Date.from(closeDateTime.toInstant()))
+                .build()
+                .setPlanStatus(PlanStatus.CLOSED);
     }
 
     public Plan update(Plan updated) {
         return toBuilder()
-            .name(updated.name)
-            .description(updated.description)
-            .order(updated.order)
-            .hrid(updated.hrid == null ? hrid : updated.hrid)
-            .updatedAt(TimeProvider.now())
-            .planDefinitionHttpV4(updated.planDefinitionHttpV4)
-            .planDefinitionNativeV4(updated.planDefinitionNativeV4)
-            .planDefinitionV2(updated.planDefinitionV2)
-            .federatedPlanDefinition(
-                updated.federatedPlanDefinition != null
-                    ? federatedPlanDefinition.update(updated.federatedPlanDefinition)
-                    : federatedPlanDefinition
-            )
-            .commentRequired(updated.commentRequired)
-            .commentMessage(updated.commentMessage)
-            .generalConditions(updated.generalConditions)
-            .generalConditionsHrid(updated.generalConditionsHrid)
-            .excludedGroups(updated.excludedGroups)
-            .characteristics(updated.characteristics)
-            .crossId(updated.crossId == null ? crossId : updated.crossId)
-            .validation(updated.validation == null ? validation : updated.validation)
-            .referenceId(updated.referenceId)
-            .referenceType(updated.referenceType)
-            .build();
+                .name(updated.name)
+                .description(updated.description)
+                .order(updated.order)
+                .hrid(updated.hrid == null ? hrid : updated.hrid)
+                .updatedAt(TimeProvider.now())
+                .planDefinitionHttpV4(updated.planDefinitionHttpV4)
+                .planDefinitionNativeV4(updated.planDefinitionNativeV4)
+                .planDefinitionV2(updated.planDefinitionV2)
+                .federatedPlanDefinition(
+                        updated.federatedPlanDefinition != null
+                                ? federatedPlanDefinition.update(updated.federatedPlanDefinition)
+                                : federatedPlanDefinition)
+                .commentRequired(updated.commentRequired)
+                .commentMessage(updated.commentMessage)
+                .generalConditions(updated.generalConditions)
+                .generalConditionsHrid(updated.generalConditionsHrid)
+                .excludedGroups(updated.excludedGroups)
+                .characteristics(updated.characteristics)
+                .crossId(updated.crossId == null ? crossId : updated.crossId)
+                .validation(updated.validation == null ? validation : updated.validation)
+                .referenceId(updated.referenceId)
+                .referenceType(updated.referenceType)
+                .build();
     }
 
     /**
@@ -349,15 +349,24 @@ public class Plan implements GenericPlanEntity {
             case V4 -> {
                 var builder = toBuilder();
                 if (planDefinitionHttpV4 != null) {
-                    builder.planDefinitionHttpV4(planDefinitionHttpV4.toBuilder().build());
+                    builder.planDefinitionHttpV4(
+                            planDefinitionHttpV4.toBuilder().build());
                 }
                 if (planDefinitionNativeV4 != null) {
-                    builder.planDefinitionNativeV4(planDefinitionNativeV4.toBuilder().build());
+                    builder.planDefinitionNativeV4(
+                            planDefinitionNativeV4.toBuilder().build());
                 }
                 yield builder.build();
             }
-            case V2 -> toBuilder().planDefinitionV2(planDefinitionV2.toBuilder().build()).build();
-            case FEDERATED, FEDERATED_AGENT -> toBuilder().federatedPlanDefinition(federatedPlanDefinition.toBuilder().build()).build();
+            case V2 ->
+                toBuilder()
+                        .planDefinitionV2(planDefinitionV2.toBuilder().build())
+                        .build();
+            case FEDERATED, FEDERATED_AGENT ->
+                toBuilder()
+                        .federatedPlanDefinition(
+                                federatedPlanDefinition.toBuilder().build())
+                        .build();
             default -> toBuilder().build();
         };
     }

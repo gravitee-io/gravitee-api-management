@@ -105,52 +105,56 @@ public class GroupServiceImplTest {
         Pageable pageable = new PageableImpl(pageNumber, pageSize);
         String searchTerm = "test";
 
-        when(
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_GROUP,
-                executionContext.getEnvironmentId(),
-                CREATE,
-                UPDATE,
-                DELETE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_GROUP,
+                        executionContext.getEnvironmentId(),
+                        CREATE,
+                        UPDATE,
+                        DELETE))
+                .thenReturn(false);
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
         RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
-        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId())).thenReturn(
-            Optional.of(roleEntity)
-        );
+        when(roleService.findByScopeAndName(
+                        RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(roleEntity));
 
-        Set<MembershipEntity> memberships = Set.of(MembershipEntity.builder().id("m1").referenceId("gr1").build());
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                eq(MembershipMemberType.USER),
-                any(),
-                eq(MembershipReferenceType.GROUP),
-                eq(roleEntity.getId())
-            )
-        ).thenReturn(memberships);
+        Set<MembershipEntity> memberships =
+                Set.of(MembershipEntity.builder().id("m1").referenceId("gr1").build());
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        eq(MembershipMemberType.USER),
+                        any(),
+                        eq(MembershipReferenceType.GROUP),
+                        eq(roleEntity.getId())))
+                .thenReturn(memberships);
 
-        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
+        GroupCriteria groupCriteria = GroupCriteria.builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .query(searchTerm)
+                .build();
         List<Group> groups = List.of(
-            Group.builder().id("gr1").build(),
-            Group.builder().id("gr2").build(),
-            Group.builder().id("gr3").build()
-        );
+                Group.builder().id("gr1").build(),
+                Group.builder().id("gr2").build(),
+                Group.builder().id("gr3").build());
         Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 3);
         when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
 
         Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
 
         assertAll(
-            () -> assertThat(searchResult.getContent()).hasSize(3),
-            () -> assertThat(searchResult.getContent().stream().map(GroupEntity::getId).toList()).containsExactly("gr1", "gr2", "gr3"),
-            () -> assertThat(searchResult.getContent().get(0).isManageable()).isTrue(),
-            () -> assertThat(searchResult.getContent().get(1).isManageable()).isFalse(),
-            () -> assertThat(searchResult.getContent().get(2).isManageable()).isFalse()
-        );
+                () -> assertThat(searchResult.getContent()).hasSize(3),
+                () -> assertThat(searchResult.getContent().stream()
+                                .map(GroupEntity::getId)
+                                .toList())
+                        .containsExactly("gr1", "gr2", "gr3"),
+                () -> assertThat(searchResult.getContent().get(0).isManageable())
+                        .isTrue(),
+                () -> assertThat(searchResult.getContent().get(1).isManageable())
+                        .isFalse(),
+                () -> assertThat(searchResult.getContent().get(2).isManageable())
+                        .isFalse());
     }
 
     @Test
@@ -161,44 +165,44 @@ public class GroupServiceImplTest {
         Pageable pageable = new PageableImpl(pageNumber, pageSize);
         String searchTerm = "test";
 
-        when(
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_GROUP,
-                executionContext.getEnvironmentId(),
-                CREATE,
-                UPDATE,
-                DELETE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_GROUP,
+                        executionContext.getEnvironmentId(),
+                        CREATE,
+                        UPDATE,
+                        DELETE))
+                .thenReturn(false);
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
         RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
-        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId())).thenReturn(
-            Optional.of(roleEntity)
-        );
+        when(roleService.findByScopeAndName(
+                        RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(roleEntity));
 
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                eq(MembershipMemberType.USER),
-                any(),
-                eq(MembershipReferenceType.GROUP),
-                eq(roleEntity.getId())
-            )
-        ).thenReturn(Set.of());
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        eq(MembershipMemberType.USER),
+                        any(),
+                        eq(MembershipReferenceType.GROUP),
+                        eq(roleEntity.getId())))
+                .thenReturn(Set.of());
 
-        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
-        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        GroupCriteria groupCriteria = GroupCriteria.builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .query(searchTerm)
+                .build();
+        List<Group> groups = List.of(
+                Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
         Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
         when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
 
         Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
 
         assertAll(
-            () -> assertThat(searchResult.getContent()).hasSize(2),
-            () -> assertThat(searchResult.getContent().stream().noneMatch(GroupEntity::isManageable)).isTrue()
-        );
+                () -> assertThat(searchResult.getContent()).hasSize(2),
+                () -> assertThat(searchResult.getContent().stream().noneMatch(GroupEntity::isManageable))
+                        .isTrue());
     }
 
     @Test
@@ -209,34 +213,36 @@ public class GroupServiceImplTest {
         Pageable pageable = new PageableImpl(pageNumber, pageSize);
         String searchTerm = "test";
 
-        when(
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_GROUP,
-                executionContext.getEnvironmentId(),
-                CREATE,
-                UPDATE,
-                DELETE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_GROUP,
+                        executionContext.getEnvironmentId(),
+                        CREATE,
+                        UPDATE,
+                        DELETE))
+                .thenReturn(false);
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
-        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId())).thenReturn(
-            Optional.empty()
-        );
+        when(roleService.findByScopeAndName(
+                        RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.empty());
 
-        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
-        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        GroupCriteria groupCriteria = GroupCriteria.builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .query(searchTerm)
+                .build();
+        List<Group> groups = List.of(
+                Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
         Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
         when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
 
         Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
 
         assertAll(
-            () -> assertThat(searchResult.getContent()).hasSize(2),
-            () -> assertThat(searchResult.getContent().stream().noneMatch(GroupEntity::isManageable)).isTrue()
-        );
+                () -> assertThat(searchResult.getContent()).hasSize(2),
+                () -> assertThat(searchResult.getContent().stream().noneMatch(GroupEntity::isManageable))
+                        .isTrue());
     }
 
     @Test
@@ -247,19 +253,21 @@ public class GroupServiceImplTest {
         Pageable pageable = new PageableImpl(pageNumber, pageSize);
         String searchTerm = "test";
 
-        when(
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_GROUP,
-                executionContext.getEnvironmentId(),
-                CREATE,
-                UPDATE,
-                DELETE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_GROUP,
+                        executionContext.getEnvironmentId(),
+                        CREATE,
+                        UPDATE,
+                        DELETE))
+                .thenReturn(true);
 
-        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
-        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        GroupCriteria groupCriteria = GroupCriteria.builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .query(searchTerm)
+                .build();
+        List<Group> groups = List.of(
+                Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
         Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
         when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
 
@@ -268,12 +276,12 @@ public class GroupServiceImplTest {
         Page<GroupEntity> searchResult = service.search(executionContext, pageable, searchTerm);
 
         assertAll(
-            () -> assertThat(searchResult.getContent()).hasSize(2),
-            () -> assertThat(searchResult.getContent().stream().allMatch(GroupEntity::isManageable)).isTrue(),
-            () -> assertThat(searchResult.getTotalElements()).isEqualTo(2),
-            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
-            () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
-        );
+                () -> assertThat(searchResult.getContent()).hasSize(2),
+                () -> assertThat(searchResult.getContent().stream().allMatch(GroupEntity::isManageable))
+                        .isTrue(),
+                () -> assertThat(searchResult.getTotalElements()).isEqualTo(2),
+                () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+                () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize));
     }
 
     @Test
@@ -282,119 +290,113 @@ public class GroupServiceImplTest {
         String groupId = "group-1";
         String username = "user-1";
 
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
         RoleEntity apiProductPORole = RoleEntity.builder()
-            .id("api-product-po-role-id")
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .scope(RoleScope.API_PRODUCT)
-            .build();
+                .id("api-product-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API_PRODUCT)
+                .build();
 
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
-        when(
-            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiProductPORole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiProductPORole));
 
         // Group is NOT a primary owner of any API or API Product.
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API,
-                apiPORole.getId()
-            )
-        ).thenReturn(Set.of());
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API_PRODUCT,
-                apiProductPORole.getId()
-            )
-        ).thenReturn(Set.of());
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, groupId, MembershipReferenceType.API, apiPORole.getId()))
+                .thenReturn(Set.of());
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP,
+                        groupId,
+                        MembershipReferenceType.API_PRODUCT,
+                        apiProductPORole.getId()))
+                .thenReturn(Set.of());
 
         // Mock group lookup for apiPrimaryOwner check at the end
-        when(groupRepository.findById(groupId)).thenReturn(
-            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
-        );
+        when(groupRepository.findById(groupId))
+                .thenReturn(Optional.of(Group.builder()
+                        .id(groupId)
+                        .environmentId(executionContext.getEnvironmentId())
+                        .build()));
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
         service.deleteUserFromGroup(executionContext, groupId, username);
 
-        verify(membershipService).deleteReferenceMember(
-            executionContext,
-            MembershipReferenceType.GROUP,
-            groupId,
-            MembershipMemberType.USER,
-            username
-        );
+        verify(membershipService)
+                .deleteReferenceMember(
+                        executionContext, MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username);
     }
 
     @Test
-    public void deleteUserFromGroup_shouldSucceed_whenGroupIsApiPrimaryOwner_butUserDoesNotHavePrimaryOwnerRole() throws Exception {
+    public void deleteUserFromGroup_shouldSucceed_whenGroupIsApiPrimaryOwner_butUserDoesNotHavePrimaryOwnerRole()
+            throws Exception {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
 
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
         RoleEntity apiProductPORole = RoleEntity.builder()
-            .id("api-product-po-role-id")
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .scope(RoleScope.API_PRODUCT)
-            .build();
+                .id("api-product-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API_PRODUCT)
+                .build();
 
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
-        when(
-            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiProductPORole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiProductPORole));
 
         // Group IS a primary owner of some APIs
         MembershipEntity groupApiPOMembership = MembershipEntity.builder()
-            .id("membership-1")
-            .referenceId("api-1")
-            .referenceType(MembershipReferenceType.API)
-            .build();
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API,
-                apiPORole.getId()
-            )
-        ).thenReturn(Set.of(groupApiPOMembership));
+                .id("membership-1")
+                .referenceId("api-1")
+                .referenceType(MembershipReferenceType.API)
+                .build();
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, groupId, MembershipReferenceType.API, apiPORole.getId()))
+                .thenReturn(Set.of(groupApiPOMembership));
         // Group is NOT API_PRODUCT primary owner.
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API_PRODUCT,
-                apiProductPORole.getId()
-            )
-        ).thenReturn(Set.of());
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP,
+                        groupId,
+                        MembershipReferenceType.API_PRODUCT,
+                        apiProductPORole.getId()))
+                .thenReturn(Set.of());
 
         // User does NOT have API PRIMARY_OWNER role in this group (has a different role)
-        RoleEntity userApiRole = RoleEntity.builder().id("api-user-role-id").name("USER").scope(RoleScope.API).build();
-        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
-            Set.of(userApiRole)
-        );
+        RoleEntity userApiRole = RoleEntity.builder()
+                .id("api-user-role-id")
+                .name("USER")
+                .scope(RoleScope.API)
+                .build();
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username))
+                .thenReturn(Set.of(userApiRole));
 
         // Mock group lookup for apiPrimaryOwner check at the end
-        when(groupRepository.findById(groupId)).thenReturn(
-            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
-        );
+        when(groupRepository.findById(groupId))
+                .thenReturn(Optional.of(Group.builder()
+                        .id(groupId)
+                        .environmentId(executionContext.getEnvironmentId())
+                        .build()));
 
         service.deleteUserFromGroup(executionContext, groupId, username);
 
-        verify(membershipService).deleteReferenceMember(
-            executionContext,
-            MembershipReferenceType.GROUP,
-            groupId,
-            MembershipMemberType.USER,
-            username
-        );
+        verify(membershipService)
+                .deleteReferenceMember(
+                        executionContext, MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username);
     }
 
     @Test
@@ -403,150 +405,142 @@ public class GroupServiceImplTest {
         String groupId = "group-1";
         String username = "user-1";
 
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
 
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
 
         // Group IS a primary owner of some APIs
         MembershipEntity groupApiPOMembership = MembershipEntity.builder()
-            .id("membership-1")
-            .referenceId("api-1")
-            .referenceType(MembershipReferenceType.API)
-            .build();
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API,
-                apiPORole.getId()
-            )
-        ).thenReturn(Set.of(groupApiPOMembership));
+                .id("membership-1")
+                .referenceId("api-1")
+                .referenceType(MembershipReferenceType.API)
+                .build();
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, groupId, MembershipReferenceType.API, apiPORole.getId()))
+                .thenReturn(Set.of(groupApiPOMembership));
 
         // User HAS API PRIMARY_OWNER role in this group
-        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
-            Set.of(apiPORole)
-        );
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username))
+                .thenReturn(Set.of(apiPORole));
 
-        assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username)).isInstanceOf(
-            StillPrimaryOwnerException.class
-        );
+        assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username))
+                .isInstanceOf(StillPrimaryOwnerException.class);
     }
 
     @Test
-    public void deleteUserFromGroup_shouldThrow_whenGroupIsApiProductPrimaryOwner_andUserHasApiProductPrimaryOwnerRole() {
+    public void
+            deleteUserFromGroup_shouldThrow_whenGroupIsApiProductPrimaryOwner_andUserHasApiProductPrimaryOwnerRole() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
 
         // The API guard is satisfied (no API PO membership for the group).
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API,
-                apiPORole.getId()
-            )
-        ).thenReturn(Set.of());
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, groupId, MembershipReferenceType.API, apiPORole.getId()))
+                .thenReturn(Set.of());
 
         // The group IS the primary owner of an API Product.
         RoleEntity apiProductPORole = RoleEntity.builder()
-            .id("api-product-po-role-id")
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .scope(RoleScope.API_PRODUCT)
-            .build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiProductPORole));
+                .id("api-product-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API_PRODUCT)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiProductPORole));
         MembershipEntity groupApiProductPOMembership = MembershipEntity.builder()
-            .id("ap-membership-1")
-            .referenceId("api-product-1")
-            .referenceType(MembershipReferenceType.API_PRODUCT)
-            .build();
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API_PRODUCT,
-                apiProductPORole.getId()
-            )
-        ).thenReturn(Set.of(groupApiProductPOMembership));
+                .id("ap-membership-1")
+                .referenceId("api-product-1")
+                .referenceType(MembershipReferenceType.API_PRODUCT)
+                .build();
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP,
+                        groupId,
+                        MembershipReferenceType.API_PRODUCT,
+                        apiProductPORole.getId()))
+                .thenReturn(Set.of(groupApiProductPOMembership));
 
         // The user holds the API_PRODUCT PRIMARY_OWNER role inside the group.
-        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
-            Set.of(apiProductPORole)
-        );
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username))
+                .thenReturn(Set.of(apiProductPORole));
 
-        assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username)).isInstanceOf(
-            StillApiProductPrimaryOwnerException.class
-        );
+        assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username))
+                .isInstanceOf(StillApiProductPrimaryOwnerException.class);
     }
 
     @Test
-    public void deleteUserFromGroup_shouldSucceed_whenGroupIsApiProductPrimaryOwner_butUserDoesNotHaveApiProductPrimaryOwnerRole()
-        throws Exception {
+    public void
+            deleteUserFromGroup_shouldSucceed_whenGroupIsApiProductPrimaryOwner_butUserDoesNotHaveApiProductPrimaryOwnerRole()
+                    throws Exception {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
         String username = "user-1";
 
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API,
-                apiPORole.getId()
-            )
-        ).thenReturn(Set.of());
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, groupId, MembershipReferenceType.API, apiPORole.getId()))
+                .thenReturn(Set.of());
 
         RoleEntity apiProductPORole = RoleEntity.builder()
-            .id("api-product-po-role-id")
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .scope(RoleScope.API_PRODUCT)
-            .build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiProductPORole));
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API_PRODUCT,
-                apiProductPORole.getId()
-            )
-        ).thenReturn(
-            Set.of(
-                MembershipEntity.builder().id("ap").referenceId("api-product-1").referenceType(MembershipReferenceType.API_PRODUCT).build()
-            )
-        );
+                .id("api-product-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API_PRODUCT)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiProductPORole));
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP,
+                        groupId,
+                        MembershipReferenceType.API_PRODUCT,
+                        apiProductPORole.getId()))
+                .thenReturn(Set.of(MembershipEntity.builder()
+                        .id("ap")
+                        .referenceId("api-product-1")
+                        .referenceType(MembershipReferenceType.API_PRODUCT)
+                        .build()));
 
         // The user has only an API_PRODUCT USER role, not PRIMARY_OWNER → removal must succeed.
-        RoleEntity userApiProductRole = RoleEntity.builder().id("user-role").name("USER").scope(RoleScope.API_PRODUCT).build();
-        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
-            Set.of(userApiProductRole)
-        );
+        RoleEntity userApiProductRole = RoleEntity.builder()
+                .id("user-role")
+                .name("USER")
+                .scope(RoleScope.API_PRODUCT)
+                .build();
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username))
+                .thenReturn(Set.of(userApiProductRole));
 
-        when(groupRepository.findById(groupId)).thenReturn(
-            Optional.of(Group.builder().id(groupId).environmentId(executionContext.getEnvironmentId()).build())
-        );
+        when(groupRepository.findById(groupId))
+                .thenReturn(Optional.of(Group.builder()
+                        .id(groupId)
+                        .environmentId(executionContext.getEnvironmentId())
+                        .build()));
 
         service.deleteUserFromGroup(executionContext, groupId, username);
 
-        verify(membershipService).deleteReferenceMember(
-            executionContext,
-            MembershipReferenceType.GROUP,
-            groupId,
-            MembershipMemberType.USER,
-            username
-        );
+        verify(membershipService)
+                .deleteReferenceMember(
+                        executionContext, MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username);
     }
 
     @Test
@@ -558,17 +552,21 @@ public class GroupServiceImplTest {
         String groupId = "group-1";
         String username = "user-1";
 
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
-        when(
-            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.empty());
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.deleteUserFromGroup(executionContext, groupId, username))
-            .isInstanceOf(io.gravitee.rest.api.service.exceptions.TechnicalManagementException.class)
-            .hasMessageContaining("API_PRODUCT");
+                .isInstanceOf(io.gravitee.rest.api.service.exceptions.TechnicalManagementException.class)
+                .hasMessageContaining("API_PRODUCT");
     }
 
     @Test
@@ -589,7 +587,8 @@ public class GroupServiceImplTest {
     public void update_api_product_primary_owner_should_clear_field_with_null() throws Exception {
         String groupId = "group-1";
 
-        Group group = Group.builder().id(groupId).apiProductPrimaryOwner("old-user").build();
+        Group group =
+                Group.builder().id(groupId).apiProductPrimaryOwner("old-user").build();
         when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
 
         service.updateApiProductPrimaryOwner(groupId, null);
@@ -605,20 +604,20 @@ public class GroupServiceImplTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
 
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API,
-                apiPORole.getId()
-            )
-        ).thenReturn(Set.of());
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, groupId, MembershipReferenceType.API, apiPORole.getId()))
+                .thenReturn(Set.of());
 
-        assertThatCode(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API)).doesNotThrowAnyException();
+        assertThatCode(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -626,33 +625,31 @@ public class GroupServiceImplTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String groupId = "group-1";
 
-        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiPORole));
+        RoleEntity apiPORole = RoleEntity.builder()
+                .id("api-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiPORole));
 
         MembershipEntity membership1 = MembershipEntity.builder()
-            .id("membership-1")
-            .referenceId("api-1")
-            .referenceType(MembershipReferenceType.API)
-            .build();
+                .id("membership-1")
+                .referenceId("api-1")
+                .referenceType(MembershipReferenceType.API)
+                .build();
         MembershipEntity membership2 = MembershipEntity.builder()
-            .id("membership-2")
-            .referenceId("api-2")
-            .referenceType(MembershipReferenceType.API)
-            .build();
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API,
-                apiPORole.getId()
-            )
-        ).thenReturn(Set.of(membership1, membership2));
+                .id("membership-2")
+                .referenceId("api-2")
+                .referenceType(MembershipReferenceType.API)
+                .build();
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP, groupId, MembershipReferenceType.API, apiPORole.getId()))
+                .thenReturn(Set.of(membership1, membership2));
 
-        assertThatThrownBy(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API)).isInstanceOf(
-            StillPrimaryOwnerException.class
-        );
+        assertThatThrownBy(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API))
+                .isInstanceOf(StillPrimaryOwnerException.class);
     }
 
     @Test
@@ -661,50 +658,49 @@ public class GroupServiceImplTest {
         String groupId = "group-1";
 
         RoleEntity apiProductPORole = RoleEntity.builder()
-            .id("api-product-po-role-id")
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .scope(RoleScope.API_PRODUCT)
-            .build();
-        when(
-            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiProductPORole));
+                .id("api-product-po-role-id")
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API_PRODUCT)
+                .build();
+        when(roleService.findByScopeAndName(
+                        RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId()))
+                .thenReturn(Optional.of(apiProductPORole));
 
         MembershipEntity membership = MembershipEntity.builder()
-            .id("membership-1")
-            .referenceId("api-product-1")
-            .referenceType(MembershipReferenceType.API_PRODUCT)
-            .build();
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API_PRODUCT,
-                apiProductPORole.getId()
-            )
-        ).thenReturn(Set.of(membership));
+                .id("membership-1")
+                .referenceId("api-product-1")
+                .referenceType(MembershipReferenceType.API_PRODUCT)
+                .build();
+        when(membershipService.getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.GROUP,
+                        groupId,
+                        MembershipReferenceType.API_PRODUCT,
+                        apiProductPORole.getId()))
+                .thenReturn(Set.of(membership));
 
-        assertThatThrownBy(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API_PRODUCT)).isInstanceOf(
-            StillApiProductPrimaryOwnerException.class
-        );
+        assertThatThrownBy(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API_PRODUCT))
+                .isInstanceOf(StillApiProductPrimaryOwnerException.class);
     }
 
     @Test
     public void findGroupIdsAttachedToUserResources_returns_empty_for_a_blank_user() {
         ExecutionContext executionContext = new ExecutionContext("org", "env");
 
-        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, null)).isEmpty();
-        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, " ")).isEmpty();
+        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, null))
+                .isEmpty();
+        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, " "))
+                .isEmpty();
     }
 
     @Test
     public void findGroupIdsAttachedToUserResources_ignores_other_environments_and_null_groups() throws Exception {
         ExecutionContext executionContext = new ExecutionContext("org", "env");
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user", MembershipReferenceType.API)
-        ).thenReturn(Set.of("api-1"));
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user", MembershipReferenceType.APPLICATION)
-        ).thenReturn(Set.of("app-1", "app-2"));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, "user", MembershipReferenceType.API))
+                .thenReturn(Set.of("api-1"));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, "user", MembershipReferenceType.APPLICATION))
+                .thenReturn(Set.of("app-1", "app-2"));
 
         Api withGroups = new Api();
         withGroups.setGroups(Set.of("g-api"));
@@ -723,22 +719,26 @@ public class GroupServiceImplTest {
         nullGroups.setId("app-3");
         nullGroups.setEnvironmentId("env");
         nullGroups.setGroups(null);
-        when(applicationRepository.findByIds(any())).thenReturn(new HashSet<>(List.of(inEnvironment, otherEnvironment, nullGroups)));
+        when(applicationRepository.findByIds(any()))
+                .thenReturn(new HashSet<>(List.of(inEnvironment, otherEnvironment, nullGroups)));
 
-        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, "user")).containsExactlyInAnyOrder("g-api", "g-app");
+        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, "user"))
+                .containsExactlyInAnyOrder("g-api", "g-app");
     }
 
     @Test
-    public void retainGroupsTheCallerMayAssign_keeps_existing_and_member_groups_without_environment_group_read() throws Exception {
+    public void retainGroupsTheCallerMayAssign_keeps_existing_and_member_groups_without_environment_group_read()
+            throws Exception {
         ExecutionContext executionContext = new ExecutionContext("org", "env");
-        when(permissionService.hasPermission(executionContext, "user", RolePermission.ENVIRONMENT_GROUP, "env", READ)).thenReturn(false);
+        when(permissionService.hasPermission(executionContext, "user", RolePermission.ENVIRONMENT_GROUP, "env", READ))
+                .thenReturn(false);
         MembershipEntity membership = new MembershipEntity();
         membership.setReferenceId("member-group");
         MembershipEntity otherEnvironmentMembership = new MembershipEntity();
         otherEnvironmentMembership.setReferenceId("other-env-group");
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user", MembershipReferenceType.GROUP)
-        ).thenReturn(new HashSet<>(List.of(membership, otherEnvironmentMembership)));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, "user", MembershipReferenceType.GROUP))
+                .thenReturn(new HashSet<>(List.of(membership, otherEnvironmentMembership)));
         Group memberGroup = new Group();
         memberGroup.setId("member-group");
         memberGroup.setEnvironmentId("env");
@@ -748,11 +748,10 @@ public class GroupServiceImplTest {
         when(groupRepository.findByIds(any())).thenReturn(Set.of(memberGroup, otherEnvironmentGroup));
 
         Set<String> retained = service.retainGroupsTheCallerMayAssign(
-            executionContext,
-            "user",
-            Set.of("already", "member-group", "other-env-group", "foreign"),
-            Set.of("already")
-        );
+                executionContext,
+                "user",
+                Set.of("already", "member-group", "other-env-group", "foreign"),
+                Set.of("already"));
 
         assertThat(retained).containsExactlyInAnyOrder("already", "member-group");
     }

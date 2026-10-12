@@ -52,13 +52,19 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
 
         ApplicationMetadataEntity createdMetadata = new ApplicationMetadataEntity();
         createdMetadata.setKey("my-metadata-id");
-        when(applicationMetadataService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdMetadata);
+        when(applicationMetadataService.create(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(createdMetadata);
 
-        final Response response = envTarget().path(APPLICATION).path("metadata").request().post(Entity.json(newMetadata));
+        final Response response =
+                envTarget().path(APPLICATION).path("metadata").request().post(Entity.json(newMetadata));
         assertEquals(CREATED_201, response.getStatus());
         assertEquals(
-            envTarget().path(APPLICATION).path("metadata").path("my-metadata-id").getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
+                envTarget()
+                        .path(APPLICATION)
+                        .path("metadata")
+                        .path("my-metadata-id")
+                        .getUri()
+                        .toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

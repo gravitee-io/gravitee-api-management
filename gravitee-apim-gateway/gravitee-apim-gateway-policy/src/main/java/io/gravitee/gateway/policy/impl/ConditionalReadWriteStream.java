@@ -41,12 +41,11 @@ public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
     private Boolean isConditionTruthy;
 
     public ConditionalReadWriteStream(
-        ReadWriteStream<Buffer> delegate,
-        PolicyChain chain,
-        ExecutionContext context,
-        String policyId,
-        Function<ExecutionContext, Boolean> evaluationFunction
-    ) {
+            ReadWriteStream<Buffer> delegate,
+            PolicyChain chain,
+            ExecutionContext context,
+            String policyId,
+            Function<ExecutionContext, Boolean> evaluationFunction) {
         this.policyId = policyId;
         this.delegate = delegate;
         this.context = context;
@@ -164,7 +163,8 @@ public class ConditionalReadWriteStream extends SimpleReadWriteStream<Buffer> {
                 isConditionTruthy = evaluationFunction.apply(context);
             } catch (RuntimeException e) {
                 log.error("Condition evaluation fails for policy {}", policyId, e);
-                chain.streamFailWith(PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, "Request failed unintentionally"));
+                chain.streamFailWith(
+                        PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, "Request failed unintentionally"));
                 isConditionTruthy = false;
             }
         }

@@ -91,7 +91,8 @@ public class DebugConditionalExecutablePolicyTest {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(true);
 
-        ConditionalExecutablePolicy delegatePolicy = new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
+        ConditionalExecutablePolicy delegatePolicy =
+                new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
 
         final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
         toDebug.execute(policyChain, executionContext);
@@ -103,7 +104,8 @@ public class DebugConditionalExecutablePolicyTest {
     public void shouldNotExecuteConditionalPolicyConditionEvaluatedToFalse() throws PolicyException {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(false);
-        ConditionalExecutablePolicy delegatePolicy = new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
+        ConditionalExecutablePolicy delegatePolicy =
+                new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
 
         final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
         toDebug.execute(policyChain, executionContext);
@@ -117,7 +119,8 @@ public class DebugConditionalExecutablePolicyTest {
         assertThrows(PolicyException.class, () -> {
             when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
             when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
-            ConditionalExecutablePolicy delegatePolicy = new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
+            ConditionalExecutablePolicy delegatePolicy =
+                    new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
 
             final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
             toDebug.execute(policyChain, executionContext);
@@ -129,7 +132,8 @@ public class DebugConditionalExecutablePolicyTest {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(true);
         when(policy.stream(any(), any())).thenReturn(new BufferedReadWriteStream());
-        ConditionalExecutablePolicy delegatePolicy = new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
+        ConditionalExecutablePolicy delegatePolicy =
+                new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
 
         final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
         final ReadWriteStream<Buffer> conditionedStream = toDebug.stream(policyChain, executionContext);
@@ -140,11 +144,13 @@ public class DebugConditionalExecutablePolicyTest {
     }
 
     @Test
-    public void shouldNotStreamConditionalPolicyConditionEvaluatedToFalse() throws PolicyException, NoSuchMethodException {
+    public void shouldNotStreamConditionalPolicyConditionEvaluatedToFalse()
+            throws PolicyException, NoSuchMethodException {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(false);
         when(policy.stream(any(), any())).thenReturn(new BufferedReadWriteStream());
-        ConditionalExecutablePolicy delegatePolicy = new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
+        ConditionalExecutablePolicy delegatePolicy =
+                new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
 
         final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
         final ReadWriteStream<Buffer> conditionedStream = toDebug.stream(policyChain, executionContext);
@@ -159,7 +165,8 @@ public class DebugConditionalExecutablePolicyTest {
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
         when(policy.stream(any(), any())).thenReturn(new BufferedReadWriteStream());
-        ConditionalExecutablePolicy delegatePolicy = new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
+        ConditionalExecutablePolicy delegatePolicy =
+                new ConditionalExecutablePolicy(policy, "condition", conditionEvaluator);
 
         final ConditionalExecutablePolicy toDebug = new DebugConditionalExecutablePolicy(delegatePolicy, debugStep);
         final ReadWriteStream<Buffer> conditionedStream = toDebug.stream(policyChain, executionContext);

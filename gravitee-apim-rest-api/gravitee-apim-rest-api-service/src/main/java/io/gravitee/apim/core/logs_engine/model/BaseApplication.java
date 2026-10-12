@@ -16,14 +16,13 @@
 package io.gravitee.apim.core.logs_engine.model;
 
 public record BaseApplication(
-    String id,
-    String name,
-    String description,
-    String domain,
-    String type,
-    PrimaryOwner primaryOwner,
-    ApiKeyMode apiKeyMode
-) {
+        String id,
+        String name,
+        String description,
+        String domain,
+        String type,
+        PrimaryOwner primaryOwner,
+        ApiKeyMode apiKeyMode) {
     public BaseApplication withName(String name) {
         return new BaseApplication(id, name, description, domain, type, primaryOwner, apiKeyMode);
     }

@@ -24,6 +24,7 @@ import java.util.Set;
 
 public interface ApiCategoryOrderRepository extends FindAllRepository<ApiCategoryOrder> {
     ApiCategoryOrder create(ApiCategoryOrder apiCategoryOrder) throws TechnicalException;
+
     ApiCategoryOrder update(ApiCategoryOrder apiCategoryOrder) throws TechnicalException;
 
     default void delete(String apiId, String categoryId) throws TechnicalException {
@@ -33,7 +34,9 @@ public interface ApiCategoryOrderRepository extends FindAllRepository<ApiCategor
     void delete(String apiId, Collection<String> categoriesIds) throws TechnicalException;
 
     Optional<ApiCategoryOrder> findById(String apiId, String categoryId);
+
     Set<ApiCategoryOrder> findAllByCategoryId(String categoryId);
+
     Set<ApiCategoryOrder> findAllByApiId(String apiId);
 
     /**

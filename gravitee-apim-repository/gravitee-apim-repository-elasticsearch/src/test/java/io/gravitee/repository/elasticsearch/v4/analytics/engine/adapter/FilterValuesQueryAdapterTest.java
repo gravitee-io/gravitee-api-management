@@ -39,16 +39,26 @@ class FilterValuesQueryAdapterTest {
         assertThat(result.getInteger("size")).isEqualTo(0);
         assertThat(result.getJsonObject("query")).isNull();
 
-        var composite = result.getJsonObject("aggs").getJsonObject("filter_values").getJsonObject("composite");
+        var composite =
+                result.getJsonObject("aggs").getJsonObject("filter_values").getJsonObject("composite");
         assertThat(composite.getInteger("size")).isEqualTo(10);
 
-        var source = composite.getJsonArray("sources").getJsonObject(0).getJsonObject("value").getJsonObject("terms");
+        var source = composite
+                .getJsonArray("sources")
+                .getJsonObject(0)
+                .getJsonObject("value")
+                .getJsonObject("terms");
         assertThat(source.getString("field")).isEqualTo("api-id");
     }
 
     @Test
     void should_build_composite_query_with_time_range() {
-        var query = FilterValuesQuery.builder().esFieldName("gateway").from(1704067200000L).to(1735689599000L).size(10).build();
+        var query = FilterValuesQuery.builder()
+                .esFieldName("gateway")
+                .from(1704067200000L)
+                .to(1735689599000L)
+                .size(10)
+                .build();
 
         var result = new JsonObject(adapter.adapt(query));
 
@@ -62,10 +72,15 @@ class FilterValuesQueryAdapterTest {
 
     @Test
     void should_include_after_key_for_pagination() {
-        var query = FilterValuesQuery.builder().esFieldName("api-id").size(10).afterKey(Map.of("value", "last-api-id")).build();
+        var query = FilterValuesQuery.builder()
+                .esFieldName("api-id")
+                .size(10)
+                .afterKey(Map.of("value", "last-api-id"))
+                .build();
 
         var result = new JsonObject(adapter.adapt(query));
-        var composite = result.getJsonObject("aggs").getJsonObject("filter_values").getJsonObject("composite");
+        var composite =
+                result.getJsonObject("aggs").getJsonObject("filter_values").getJsonObject("composite");
 
         assertThat(composite.getJsonObject("after").getString("value")).isEqualTo("last-api-id");
     }
@@ -75,7 +90,8 @@ class FilterValuesQueryAdapterTest {
         var query = FilterValuesQuery.builder().esFieldName("api-id").size(10).build();
 
         var result = new JsonObject(adapter.adapt(query));
-        var composite = result.getJsonObject("aggs").getJsonObject("filter_values").getJsonObject("composite");
+        var composite =
+                result.getJsonObject("aggs").getJsonObject("filter_values").getJsonObject("composite");
 
         assertThat(composite.getJsonObject("after")).isNull();
     }
@@ -86,13 +102,18 @@ class FilterValuesQueryAdapterTest {
 
         var result = new JsonObject(adapter.adapt(query));
 
-        var cardinality = result.getJsonObject("aggs").getJsonObject("total_count").getJsonObject("cardinality");
+        var cardinality =
+                result.getJsonObject("aggs").getJsonObject("total_count").getJsonObject("cardinality");
         assertThat(cardinality.getString("field")).isEqualTo("api-id");
     }
 
     @Test
     void should_include_term_query_for_search_pattern() {
-        var query = FilterValuesQuery.builder().esFieldName("gateway").size(10).searchPattern("gw-1").build();
+        var query = FilterValuesQuery.builder()
+                .esFieldName("gateway")
+                .size(10)
+                .searchPattern("gw-1")
+                .build();
 
         var result = new JsonObject(adapter.adapt(query));
         var boolFilter = result.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
@@ -106,12 +127,12 @@ class FilterValuesQueryAdapterTest {
     @Test
     void should_combine_time_range_and_search_pattern() {
         var query = FilterValuesQuery.builder()
-            .esFieldName("gateway")
-            .from(1704067200000L)
-            .to(1735689599000L)
-            .size(10)
-            .searchPattern("prod")
-            .build();
+                .esFieldName("gateway")
+                .from(1704067200000L)
+                .to(1735689599000L)
+                .size(10)
+                .searchPattern("prod")
+                .build();
 
         var result = new JsonObject(adapter.adapt(query));
         var boolFilter = result.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
@@ -127,7 +148,11 @@ class FilterValuesQueryAdapterTest {
 
     @Test
     void should_add_terms_filter_on_api_id_when_api_ids_provided() {
-        var query = FilterValuesQuery.builder().esFieldName("gateway").size(10).apiIds(Set.of("a1", "a2")).build();
+        var query = FilterValuesQuery.builder()
+                .esFieldName("gateway")
+                .size(10)
+                .apiIds(Set.of("a1", "a2"))
+                .build();
 
         var result = new JsonObject(adapter.adapt(query));
         var boolFilter = result.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
@@ -139,7 +164,11 @@ class FilterValuesQueryAdapterTest {
 
     @Test
     void should_add_match_none_when_api_ids_empty_set() {
-        var query = FilterValuesQuery.builder().esFieldName("api-id").size(10).apiIds(Set.of()).build();
+        var query = FilterValuesQuery.builder()
+                .esFieldName("api-id")
+                .size(10)
+                .apiIds(Set.of())
+                .build();
 
         var result = new JsonObject(adapter.adapt(query));
         var boolFilter = result.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
@@ -150,13 +179,13 @@ class FilterValuesQueryAdapterTest {
     @Test
     void should_combine_time_range_search_pattern_and_api_ids() {
         var query = FilterValuesQuery.builder()
-            .esFieldName("gateway")
-            .from(1704067200000L)
-            .to(1735689599000L)
-            .size(10)
-            .searchPattern("prod")
-            .apiIds(Set.of("api-1"))
-            .build();
+                .esFieldName("gateway")
+                .from(1704067200000L)
+                .to(1735689599000L)
+                .size(10)
+                .searchPattern("prod")
+                .apiIds(Set.of("api-1"))
+                .build();
 
         var result = new JsonObject(adapter.adapt(query));
         var boolFilter = result.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
@@ -164,6 +193,7 @@ class FilterValuesQueryAdapterTest {
 
         assertThat(boolFilter.getJsonObject(0).getJsonObject("range")).isNotNull();
         assertThat(boolFilter.getJsonObject(1).getJsonObject("term")).isNotNull();
-        assertThat(boolFilter.getJsonObject(2).getJsonObject("terms").getJsonArray("api-id")).containsExactly("api-1");
+        assertThat(boolFilter.getJsonObject(2).getJsonObject("terms").getJsonArray("api-id"))
+                .containsExactly("api-1");
     }
 }

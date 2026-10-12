@@ -38,19 +38,20 @@ public class MessageLogsCrudServiceInMemory implements MessageLogsCrudService, I
 
     @Override
     public SearchLogsResponse<MessageLog> searchApiMessageLogs(
-        ExecutionContext executionContext,
-        String apiId,
-        SearchMessageLogsFilters filters,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext, String apiId, SearchMessageLogsFilters filters, Pageable pageable) {
         var predicate = messageMetricsPredicate(apiId, filters);
 
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage().stream().filter(predicate).sorted(Comparator.comparing(MessageLog::getTimestamp).reversed()).toList();
+        var matches = storage().stream()
+                .filter(predicate)
+                .sorted(Comparator.comparing(MessageLog::getTimestamp).reversed())
+                .toList();
 
-        var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        var page = matches.size() <= pageSize
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
         return new SearchLogsResponse<>(matches.size(), page);
     }
@@ -78,26 +79,32 @@ public class MessageLogsCrudServiceInMemory implements MessageLogsCrudService, I
         }
 
         if (filters.requestId() != null) {
-            predicate = predicate.and(messageMetrics -> Objects.equals(filters.requestId(), messageMetrics.getRequestId()));
+            predicate =
+                    predicate.and(messageMetrics -> Objects.equals(filters.requestId(), messageMetrics.getRequestId()));
         }
 
         if (filters.connectorId() != null) {
-            predicate = predicate.and(messageMetrics -> Objects.equals(filters.connectorId(), messageMetrics.getConnectorId()));
+            predicate = predicate.and(
+                    messageMetrics -> Objects.equals(filters.connectorId(), messageMetrics.getConnectorId()));
         }
 
         if (filters.connectorType() != null) {
-            predicate = predicate.and(messageMetrics -> Objects.equals(filters.connectorType(), messageMetrics.getConnectorType()));
+            predicate = predicate.and(
+                    messageMetrics -> Objects.equals(filters.connectorType(), messageMetrics.getConnectorType()));
         }
 
         if (filters.operation() != null) {
-            predicate = predicate.and(messageMetrics -> Objects.equals(filters.operation(), messageMetrics.getOperation()));
+            predicate =
+                    predicate.and(messageMetrics -> Objects.equals(filters.operation(), messageMetrics.getOperation()));
         }
 
         long from = filters.from();
         long to = filters.to();
         if (from > 0 && from < to) {
             predicate = predicate.and(messageMetrics -> {
-                long timestamp = OffsetDateTime.parse(messageMetrics.getTimestamp()).toInstant().toEpochMilli();
+                long timestamp = OffsetDateTime.parse(messageMetrics.getTimestamp())
+                        .toInstant()
+                        .toEpochMilli();
                 return timestamp >= from && timestamp < to;
             });
         }

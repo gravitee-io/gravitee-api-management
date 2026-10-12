@@ -22,7 +22,6 @@ import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.command.goodbye.GoodByeCommand;
@@ -91,7 +90,8 @@ public class GoodByeCommandHandlerTest {
         TestObserver<GoodByeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         final HashMap<String, String> expectedAdditionalInfos = new HashMap<>();
         expectedAdditionalInfos.put(CUSTOM_KEY, CUSTOM_VALUE);
@@ -106,7 +106,8 @@ public class GoodByeCommandHandlerTest {
         TestObserver<GoodByeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verifyNoInteractions(installationService);
     }
@@ -126,7 +127,8 @@ public class GoodByeCommandHandlerTest {
         TestObserver<GoodByeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     @Test
@@ -141,30 +143,30 @@ public class GoodByeCommandHandlerTest {
 
         PromotionEntity promotionEntity1 = getAPromotionEntity("promotion#1");
         PromotionEntity promotionEntity2 = getAPromotionEntity("promotion#2");
-        when(promotionService.search(any(), any(), any())).thenReturn(new Page<>(List.of(promotionEntity1, promotionEntity2), 0, 0, 0));
+        when(promotionService.search(any(), any(), any()))
+                .thenReturn(new Page<>(List.of(promotionEntity1, promotionEntity2), 0, 0, 0));
 
         TestObserver<GoodByeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         ArgumentCaptor<PromotionEntity> captor = ArgumentCaptor.forClass(PromotionEntity.class);
 
         verify(promotionService, times(2)).createOrUpdate(captor.capture());
 
         assertThat(captor.getAllValues())
-            .extracting(PromotionEntity::getId, PromotionEntity::getStatus)
-            .containsExactlyInAnyOrder(
-                tuple(promotionEntity1.getId(), PromotionEntityStatus.REJECTED),
-                tuple(promotionEntity2.getId(), PromotionEntityStatus.REJECTED)
-            );
+                .extracting(PromotionEntity::getId, PromotionEntity::getStatus)
+                .containsExactlyInAnyOrder(
+                        tuple(promotionEntity1.getId(), PromotionEntityStatus.REJECTED),
+                        tuple(promotionEntity2.getId(), PromotionEntityStatus.REJECTED));
     }
 
     private PromotionEntity getAPromotionEntity(String id) {
         final PromotionEntity promotion = new PromotionEntity();
         promotion.setApiDefinition(
-            "{\"id\" : \"api#1\",\"name\" : \"API Name\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
-        );
+                "{\"id\" : \"api#1\",\"name\" : \"API Name\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         promotion.setTargetEnvCockpitId("env#1-cockpit-id");
         promotion.setTargetEnvName("Target Env");
         promotion.setSourceEnvCockpitId("env#2-cockpit-id");

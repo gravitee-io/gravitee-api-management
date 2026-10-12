@@ -59,22 +59,19 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode
 @SuperBuilder(toBuilder = true)
 @JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type",
-    // fill 'type' field when creating instance of the object
-    visible = true,
-    // Fallback to Api definition if no type can be found in the definition string
-    defaultImpl = Api.class
-)
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = Api.class, name = PROXY_LABEL),
-        @JsonSubTypes.Type(value = Api.class, name = MESSAGE_LABEL),
-        @JsonSubTypes.Type(value = NativeApi.class, name = NATIVE_LABEL),
-        @JsonSubTypes.Type(value = EdgeApi.class, name = EDGE_LABEL),
-    }
-)
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type",
+        // fill 'type' field when creating instance of the object
+        visible = true,
+        // Fallback to Api definition if no type can be found in the definition string
+        defaultImpl = Api.class)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Api.class, name = PROXY_LABEL),
+    @JsonSubTypes.Type(value = Api.class, name = MESSAGE_LABEL),
+    @JsonSubTypes.Type(value = NativeApi.class, name = NATIVE_LABEL),
+    @JsonSubTypes.Type(value = EdgeApi.class, name = EDGE_LABEL),
+})
 public abstract class AbstractApi implements Serializable, ApiDefinition {
 
     public static final String PROXY_LABEL = "proxy";

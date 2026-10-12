@@ -70,6 +70,7 @@ public class NewApiQualityRuleEntity {
 
     @Override
     public String toString() {
-        return "NewApiQualityRuleEntity{" + "api='" + api + '\'' + ", qualityRule='" + qualityRule + '\'' + ", checked=" + checked + '}';
+        return "NewApiQualityRuleEntity{" + "api='" + api + '\'' + ", qualityRule='" + qualityRule + '\'' + ", checked="
+                + checked + '}';
     }
 }

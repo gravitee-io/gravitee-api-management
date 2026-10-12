@@ -50,8 +50,10 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.WARN)
 public class PortalNotificationConfigOriginUpgraderTest {
 
-    private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
-    private static final ZonedDateTime UPDATED_AT = Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT =
+            Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime UPDATED_AT =
+            Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
 
     @Mock
     private PortalNotificationConfigRepository portalNotificationConfigRepository;
@@ -66,46 +68,38 @@ public class PortalNotificationConfigOriginUpgraderTest {
     @Test
     public void should_upgrade_only_portal_with_no_origin() throws TechnicalException, UpgraderException {
         Set<PortalNotificationConfig> portalNotificationConfigs = Set.of(
-            // to be upgraded
-            aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#1", null),
-            aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#1", null),
-            aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#1", null),
-            // no upgrade
-            aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#2", Origin.KUBERNETES),
-            aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#2", Origin.MANAGEMENT),
-            aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#2", Origin.MANAGEMENT)
-        );
+                // to be upgraded
+                aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#1", null),
+                aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#1", null),
+                aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#1", null),
+                // no upgrade
+                aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#2", Origin.KUBERNETES),
+                aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#2", Origin.MANAGEMENT),
+                aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#2", Origin.MANAGEMENT));
         when(portalNotificationConfigRepository.findAll()).thenReturn(portalNotificationConfigs);
 
         assertTrue(upgrader.upgrade());
         verify(portalNotificationConfigRepository, never()).delete(any());
         verify(portalNotificationConfigRepository, never()).create(any());
-        verify(portalNotificationConfigRepository, atMostOnce()).update(
-            aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#1", null)
-        );
-        verify(portalNotificationConfigRepository, atMostOnce()).update(
-            aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#1", null)
-        );
-        verify(portalNotificationConfigRepository, atMostOnce()).update(
-            aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#1", null)
-        );
+        verify(portalNotificationConfigRepository, atMostOnce())
+                .update(aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#1", null));
+        verify(portalNotificationConfigRepository, atMostOnce())
+                .update(aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#1", null));
+        verify(portalNotificationConfigRepository, atMostOnce())
+                .update(aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#1", null));
     }
 
     private PortalNotificationConfig aPortalNotificationConfig(
-        String referenceId,
-        NotificationReferenceType referenceType,
-        String user,
-        Origin origin
-    ) {
+            String referenceId, NotificationReferenceType referenceType, String user, Origin origin) {
         return PortalNotificationConfig.builder()
-            .referenceId(referenceId)
-            .referenceType(referenceType)
-            .user(user)
-            .hooks(Collections.emptyList())
-            .createdAt(Date.from(CREATED_AT.toInstant()))
-            .updatedAt(Date.from(UPDATED_AT.toInstant()))
-            .origin(origin)
-            .build();
+                .referenceId(referenceId)
+                .referenceType(referenceType)
+                .user(user)
+                .hooks(Collections.emptyList())
+                .createdAt(Date.from(CREATED_AT.toInstant()))
+                .updatedAt(Date.from(UPDATED_AT.toInstant()))
+                .origin(origin)
+                .build();
     }
 
     @Test

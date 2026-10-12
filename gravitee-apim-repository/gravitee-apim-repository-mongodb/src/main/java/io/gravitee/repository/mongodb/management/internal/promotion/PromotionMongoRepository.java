@@ -22,7 +22,8 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PromotionMongoRepository extends MongoRepository<PromotionMongo, String>, PromotionMongoRepositoryCustom {
+public interface PromotionMongoRepository
+        extends MongoRepository<PromotionMongo, String>, PromotionMongoRepositoryCustom {
     @Query(value = "{ 'apiId': ?0 }", delete = true)
     Set<PromotionMongo> deleteByApiId(String apiId);
 }

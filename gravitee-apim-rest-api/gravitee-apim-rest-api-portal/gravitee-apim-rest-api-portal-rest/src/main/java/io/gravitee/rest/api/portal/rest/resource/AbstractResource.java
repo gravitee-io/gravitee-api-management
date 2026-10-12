@@ -124,33 +124,38 @@ public abstract class AbstractResource<T, K> {
     }
 
     protected UserDetails getAuthenticatedUserDetails() {
-        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return (UserDetails)
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     protected AuditInfo getAuditInfo() {
         var executionContext = GraviteeContext.getExecutionContext();
         var user = getAuthenticatedUserDetails();
         return AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(user.getUsername())
+                        .userSource(user.getSource())
+                        .userSourceId(user.getSourceId())
+                        .build())
+                .build();
     }
 
     protected boolean isAuthenticated() {
         return securityContext.getUserPrincipal() != null;
     }
 
-    protected boolean hasPermission(final ExecutionContext executionContext, RolePermission permission, RolePermissionAction... acls) {
+    protected boolean hasPermission(
+            final ExecutionContext executionContext, RolePermission permission, RolePermissionAction... acls) {
         return hasPermission(executionContext, permission, null, acls);
     }
 
     protected boolean hasPermission(
-        final ExecutionContext executionContext,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    ) {
+            final ExecutionContext executionContext,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls) {
         return isAuthenticated() && (permissionService.hasPermission(executionContext, permission, referenceId, acls));
     }
 
@@ -246,17 +251,15 @@ public abstract class AbstractResource<T, K> {
 
                     if (queryPage != null) {
                         linkTemplate = linkTemplate.replaceFirst(
-                            PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                            PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
-                        );
+                                PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
+                                PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken);
                     } else {
                         linkTemplate += "&" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
                     }
                     if (querySize != null) {
                         linkTemplate = linkTemplate.replaceFirst(
-                            PaginationParam.SIZE_QUERY_PARAM_NAME + "=(\\w*)",
-                            PaginationParam.SIZE_QUERY_PARAM_NAME + "=" + sizeToken
-                        );
+                                PaginationParam.SIZE_QUERY_PARAM_NAME + "=(\\w*)",
+                                PaginationParam.SIZE_QUERY_PARAM_NAME + "=" + sizeToken);
                     }
                 }
 
@@ -266,11 +269,19 @@ public abstract class AbstractResource<T, K> {
                 Integer prevPage = Math.max(firstPage, page - 1);
 
                 paginatedLinks = new Links()
-                    .first(linkTemplate.replace(pageToken, String.valueOf(firstPage)).replace(sizeToken, String.valueOf(size)))
-                    .last(linkTemplate.replace(pageToken, String.valueOf(lastPage)).replace(sizeToken, String.valueOf(size)))
-                    .next(linkTemplate.replace(pageToken, String.valueOf(nextPage)).replace(sizeToken, String.valueOf(size)))
-                    .prev(linkTemplate.replace(pageToken, String.valueOf(prevPage)).replace(sizeToken, String.valueOf(size)))
-                    .self(uriInfo.getRequestUri().toString());
+                        .first(linkTemplate
+                                .replace(pageToken, String.valueOf(firstPage))
+                                .replace(sizeToken, String.valueOf(size)))
+                        .last(linkTemplate
+                                .replace(pageToken, String.valueOf(lastPage))
+                                .replace(sizeToken, String.valueOf(size)))
+                        .next(linkTemplate
+                                .replace(pageToken, String.valueOf(nextPage))
+                                .replace(sizeToken, String.valueOf(size)))
+                        .prev(linkTemplate
+                                .replace(pageToken, String.valueOf(prevPage))
+                                .replace(sizeToken, String.valueOf(size)))
+                        .self(uriInfo.getRequestUri().toString());
 
                 if (page == 1) {
                     paginatedLinks.setPrev(null);
@@ -283,12 +294,7 @@ public abstract class AbstractResource<T, K> {
     }
 
     protected List paginateResultList(
-        Collection list,
-        Integer totalItems,
-        Integer page,
-        Integer size,
-        Map<String, Object> paginationMetadata
-    ) {
+            Collection list, Integer totalItems, Integer page, Integer size, Map<String, Object> paginationMetadata) {
         Integer startIndex = (page - 1) * size;
         Integer lastIndex = Math.min(startIndex + size, totalItems);
         Integer totalPages = (int) Math.ceil((double) totalItems / size);
@@ -310,12 +316,11 @@ public abstract class AbstractResource<T, K> {
     }
 
     protected DataResponse createDataResponse(
-        final ExecutionContext executionContext,
-        Collection dataList,
-        PaginationParam paginationParam,
-        Map<String, Map<String, Object>> metadata,
-        boolean withPagination
-    ) {
+            final ExecutionContext executionContext,
+            Collection dataList,
+            PaginationParam paginationParam,
+            Map<String, Map<String, Object>> metadata,
+            boolean withPagination) {
         Map<String, Object> dataMetadata = new HashMap<>();
         Map<String, Object> paginationMetadata = new HashMap<>();
 
@@ -329,12 +334,7 @@ public abstract class AbstractResource<T, K> {
         List pageContent;
         if (withPagination && totalItems > 0 && paginationParam.getSize() > 0) {
             pageContent = this.paginateResultList(
-                dataList,
-                totalItems,
-                paginationParam.getPage(),
-                paginationParam.getSize(),
-                paginationMetadata
-            );
+                    dataList, totalItems, paginationParam.getPage(), paginationParam.getSize(), paginationMetadata);
         } else {
             if (paginationParam.getSize() < -1) {
                 throw new BadRequestException("Pagination size is not valid");
@@ -343,7 +343,8 @@ public abstract class AbstractResource<T, K> {
         }
 
         if (metadata != null && metadata.containsKey(METADATA_DATA_KEY)) {
-            dataMetadata.put(METADATA_DATA_TOTAL_KEY, metadata.get(METADATA_DATA_KEY).get(METADATA_DATA_TOTAL_KEY));
+            dataMetadata.put(
+                    METADATA_DATA_TOTAL_KEY, metadata.get(METADATA_DATA_KEY).get(METADATA_DATA_TOTAL_KEY));
         } else {
             dataMetadata.put(METADATA_DATA_TOTAL_KEY, pageContent.size());
         }
@@ -353,9 +354,12 @@ public abstract class AbstractResource<T, K> {
         }
 
         return new DataResponse()
-            .data(transformPageContent(executionContext, pageContent))
-            .metadata(this.fillMetadata(executionContext, this.computeMetadata(metadata, dataMetadata, paginationMetadata), pageContent))
-            .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
+                .data(transformPageContent(executionContext, pageContent))
+                .metadata(this.fillMetadata(
+                        executionContext,
+                        this.computeMetadata(metadata, dataMetadata, paginationMetadata),
+                        pageContent))
+                .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
     protected List<T> transformPageContent(ExecutionContext executionContext, List<K> pageContent) {
@@ -367,10 +371,9 @@ public abstract class AbstractResource<T, K> {
     }
 
     protected Map<String, Map<String, Object>> computeMetadata(
-        Map<String, Map<String, Object>> metadata,
-        Map<String, Object> dataMetadata,
-        Map<String, Object> paginationMetadata
-    ) {
+            Map<String, Map<String, Object>> metadata,
+            Map<String, Object> dataMetadata,
+            Map<String, Object> paginationMetadata) {
         if (metadata == null) {
             metadata = new HashMap<>();
         }
@@ -381,36 +384,35 @@ public abstract class AbstractResource<T, K> {
         return metadata;
     }
 
-    protected Response createListResponse(final ExecutionContext executionContext, Collection dataList, PaginationParam paginationParam) {
+    protected Response createListResponse(
+            final ExecutionContext executionContext, Collection dataList, PaginationParam paginationParam) {
         return createListResponse(executionContext, dataList, paginationParam, null);
     }
 
     protected Response createListResponse(
-        final ExecutionContext executionContext,
-        Collection dataList,
-        PaginationParam paginationParam,
-        boolean withPagination
-    ) {
+            final ExecutionContext executionContext,
+            Collection dataList,
+            PaginationParam paginationParam,
+            boolean withPagination) {
         return createListResponse(executionContext, dataList, paginationParam, null, withPagination);
     }
 
     protected Response createListResponse(
-        final ExecutionContext executionContext,
-        Collection dataList,
-        PaginationParam paginationParam,
-        Map<String, Map<String, Object>> metadata
-    ) {
+            final ExecutionContext executionContext,
+            Collection dataList,
+            PaginationParam paginationParam,
+            Map<String, Map<String, Object>> metadata) {
         return createListResponse(executionContext, dataList, paginationParam, metadata, true);
     }
 
     protected Response createListResponse(
-        final ExecutionContext executionContext,
-        Collection dataList,
-        PaginationParam paginationParam,
-        Map<String, Map<String, Object>> metadata,
-        boolean withPagination
-    ) {
-        return Response.ok(createDataResponse(executionContext, dataList, paginationParam, metadata, withPagination)).build();
+            final ExecutionContext executionContext,
+            Collection dataList,
+            PaginationParam paginationParam,
+            Map<String, Map<String, Object>> metadata,
+            boolean withPagination) {
+        return Response.ok(createDataResponse(executionContext, dataList, paginationParam, metadata, withPagination))
+                .build();
     }
 
     protected Response createPictureResponse(Request request, InlinePictureEntity image) {
@@ -435,7 +437,11 @@ public abstract class AbstractResource<T, K> {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+        return Response.ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     protected Response createMediaResponse(Request request, String hashMedia, MediaEntity media) {
@@ -458,12 +464,13 @@ public abstract class AbstractResource<T, K> {
         }
 
         return Response.ok(media.getData())
-            // Add header to force download, so avoid browser to display the media and maybe render malicious attachments
-            .header("Content-Disposition", "attachment; filename=\"" + media.getFileName() + "\"")
-            .cacheControl(cc)
-            .tag(etag)
-            .type(media.getType() + "/" + media.getSubType())
-            .build();
+                // Add header to force download, so avoid browser to display the media and maybe render malicious
+                // attachments
+                .header("Content-Disposition", "attachment; filename=\"" + media.getFileName() + "\"")
+                .cacheControl(cc)
+                .tag(etag)
+                .type(media.getType() + "/" + media.getSubType())
+                .build();
     }
 
     protected URI getLocationHeader(String... paths) {
@@ -522,11 +529,9 @@ public abstract class AbstractResource<T, K> {
                 return false;
             }
             DataResponse dataResponse = (DataResponse) o;
-            return (
-                Objects.equals(this.data, dataResponse.data) &&
-                Objects.equals(this.metadata, dataResponse.metadata) &&
-                Objects.equals(this.links, dataResponse.links)
-            );
+            return (Objects.equals(this.data, dataResponse.data)
+                    && Objects.equals(this.metadata, dataResponse.metadata)
+                    && Objects.equals(this.links, dataResponse.links));
         }
 
         @Override

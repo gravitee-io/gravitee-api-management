@@ -48,11 +48,10 @@ public class DefaultDashboardsInitializer implements Initializer {
     public boolean initialize() {
         final List<DashboardEntity> dashboards = dashboardService.findAll();
 
-        findAllEnvironments()
-            .stream()
-            .filter(environment -> shouldConfigureDashboardForEnvironment(environment, dashboards))
-            .map(environment -> new ExecutionContext(environment.getOrganizationId(), environment.getId()))
-            .forEach(dashboardService::initialize);
+        findAllEnvironments().stream()
+                .filter(environment -> shouldConfigureDashboardForEnvironment(environment, dashboards))
+                .map(environment -> new ExecutionContext(environment.getOrganizationId(), environment.getId()))
+                .forEach(dashboardService::initialize);
 
         return true;
     }
@@ -72,14 +71,11 @@ public class DefaultDashboardsInitializer implements Initializer {
      * @param dashboards is the list of configured dashboards in database
      * @return true if dashboards need to be initialized for the environment.
      */
-    private static boolean shouldConfigureDashboardForEnvironment(EnvironmentEntity environment, List<DashboardEntity> dashboards) {
-        return dashboards
-            .stream()
-            .noneMatch(
-                dashboard ->
-                    dashboard.getReferenceType().equals(DashboardReferenceType.ENVIRONMENT.name()) &&
-                    dashboard.getReferenceId().equals(environment.getId())
-            );
+    private static boolean shouldConfigureDashboardForEnvironment(
+            EnvironmentEntity environment, List<DashboardEntity> dashboards) {
+        return dashboards.stream()
+                .noneMatch(dashboard -> dashboard.getReferenceType().equals(DashboardReferenceType.ENVIRONMENT.name())
+                        && dashboard.getReferenceId().equals(environment.getId()));
     }
 
     @Override

@@ -58,9 +58,8 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
     public void should_get_client_certificate() {
         var certificate = createClientCertificate(CERT_ID, "My Certificate");
 
-        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenReturn(
-            new GetClientCertificateUseCase.Output(certificate)
-        );
+        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class)))
+                .thenReturn(new GetClientCertificateUseCase.Output(certificate));
 
         final Response response = envTarget().request().get();
 
@@ -75,9 +74,8 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
     @Test
     public void should_return_404_when_certificate_not_found() {
-        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenThrow(
-            new ClientCertificateNotFoundException(CERT_ID)
-        );
+        when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class)))
+                .thenThrow(new ClientCertificateNotFoundException(CERT_ID));
 
         final Response response = envTarget().request().get();
 
@@ -87,16 +85,12 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
     @Test
     public void should_update_client_certificate() {
         UpdateClientCertificate updateRequest = new UpdateClientCertificate(
-            "Updated Certificate Name",
-            new Date(),
-            new Date(System.currentTimeMillis() + 86400000)
-        );
+                "Updated Certificate Name", new Date(), new Date(System.currentTimeMillis() + 86400000));
 
         ClientCertificate updated = createClientCertificate(CERT_ID, "Updated Certificate Name");
 
-        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenReturn(
-            new UpdateClientCertificateUseCase.Output(updated)
-        );
+        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class)))
+                .thenReturn(new UpdateClientCertificateUseCase.Output(updated));
 
         final Response response = envTarget().request().put(Entity.json(updateRequest));
 
@@ -121,9 +115,8 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
     public void should_return_404_when_updating_non_existent_certificate() {
         UpdateClientCertificate updateRequest = new UpdateClientCertificate("Updated Certificate Name", null, null);
 
-        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class))).thenThrow(
-            new ClientCertificateNotFoundException(CERT_ID)
-        );
+        when(updateClientCertificateUseCase.execute(any(UpdateClientCertificateUseCase.Input.class)))
+                .thenThrow(new ClientCertificateNotFoundException(CERT_ID));
 
         final Response response = envTarget().request().put(Entity.json(updateRequest));
 
@@ -143,8 +136,8 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
     @Test
     public void should_return_404_when_deleting_non_existent_certificate() {
         doThrow(new ClientCertificateNotFoundException(CERT_ID))
-            .when(deleteClientCertificateUseCase)
-            .execute(any(DeleteClientCertificateUseCase.Input.class));
+                .when(deleteClientCertificateUseCase)
+                .execute(any(DeleteClientCertificateUseCase.Input.class));
 
         final Response response = envTarget().request().delete();
 
@@ -153,21 +146,20 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
     private ClientCertificate createClientCertificate(String id, String name) {
         return new ClientCertificate(
-            id,
-            null,
-            APPLICATION_ID,
-            name,
-            null,
-            null,
-            new Date(),
-            new Date(),
-            "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+                id,
+                null,
+                APPLICATION_ID,
+                name,
+                null,
+                null,
+                new Date(),
+                new Date(),
+                "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 }

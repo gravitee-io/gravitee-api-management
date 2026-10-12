@@ -69,24 +69,26 @@ public class ApiProductMapper {
         return Maybe.fromCallable(() -> {
             try {
                 if (event.getPayload() == null || event.getPayload().isBlank()) {
-                    log.warn("Unable to extract API Product definition from event [{}] because payload is empty.", event.getId());
+                    log.warn(
+                            "Unable to extract API Product definition from event [{}] because payload is empty.",
+                            event.getId());
                     return null;
                 }
                 // Parse the event payload
                 ApiProductPayload payload = objectMapper.readValue(event.getPayload(), ApiProductPayload.class);
 
                 final ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-                    .id(payload.getId())
-                    .name(payload.getName())
-                    .description(payload.getDescription())
-                    .version(payload.getVersion())
-                    .apiIds(payload.getApiIds())
-                    .environmentId(payload.getEnvironmentId())
-                    .tags(payload.getTags())
-                    .deployedAt(new Date(event.getCreatedAt().getTime()))
-                    .plans(filteredPlans(payload.getPlans()))
-                    .analytics(payload.getAnalytics())
-                    .build();
+                        .id(payload.getId())
+                        .name(payload.getName())
+                        .description(payload.getDescription())
+                        .version(payload.getVersion())
+                        .apiIds(payload.getApiIds())
+                        .environmentId(payload.getEnvironmentId())
+                        .tags(payload.getTags())
+                        .deployedAt(new Date(event.getCreatedAt().getTime()))
+                        .plans(filteredPlans(payload.getPlans()))
+                        .analytics(payload.getAnalytics())
+                        .build();
 
                 // Fill environment and organization details
                 environmentService.fill(payload.getEnvironmentId(), reactableApiProduct);
@@ -106,10 +108,9 @@ public class ApiProductMapper {
         if (plans == null || plans.isEmpty()) {
             return plans;
         }
-        return plans
-            .stream()
-            .filter(p -> p.getStatus() == PlanStatus.PUBLISHED || p.getStatus() == PlanStatus.DEPRECATED)
-            .toList();
+        return plans.stream()
+                .filter(p -> p.getStatus() == PlanStatus.PUBLISHED || p.getStatus() == PlanStatus.DEPRECATED)
+                .toList();
     }
 
     /**

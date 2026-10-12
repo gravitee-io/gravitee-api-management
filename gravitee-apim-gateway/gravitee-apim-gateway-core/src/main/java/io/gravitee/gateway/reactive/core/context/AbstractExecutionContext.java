@@ -51,8 +51,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse>
-    extends AbstractBaseExecutionContext
-    implements ExecutionContext, io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext {
+        extends AbstractBaseExecutionContext
+        implements ExecutionContext, io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext {
 
     protected RQ request;
     protected RS response;
@@ -102,14 +102,8 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
         return Completable.defer(() -> {
             internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
             ComponentScope.ComponentEntry componentEntry = ComponentScope.peek(this);
-            metrics.setFailure(
-                DiagnosticReportHelper.fromExecutionFailure(
-                    componentEntry,
-                    metrics.getErrorKey(),
-                    metrics.getErrorMessage(),
-                    executionFailure
-                )
-            );
+            metrics.setFailure(DiagnosticReportHelper.fromExecutionFailure(
+                    componentEntry, metrics.getErrorKey(), metrics.getErrorMessage(), executionFailure));
             return Completable.error(new InterruptionFailureException(executionFailure));
         });
     }
@@ -275,7 +269,8 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
             prepareTemplateEngine(templateEngine);
             if (templateVariableProviders != null) {
                 templateVariableProviders.forEach(templateVariableProvider -> {
-                    if (templateVariableProvider instanceof ExecutionContextTemplateVariableProvider ctxTemplateVariableProvider) {
+                    if (templateVariableProvider
+                            instanceof ExecutionContextTemplateVariableProvider ctxTemplateVariableProvider) {
                         ctxTemplateVariableProvider.provide(this);
                     } else {
                         templateVariableProvider.provide(templateEngine.getTemplateContext());

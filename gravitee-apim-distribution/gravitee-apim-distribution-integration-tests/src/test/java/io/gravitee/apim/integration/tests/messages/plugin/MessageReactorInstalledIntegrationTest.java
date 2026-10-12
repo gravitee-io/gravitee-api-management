@@ -50,7 +50,7 @@ public class MessageReactorInstalledIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json"})
     class MessageReactorPluginInstalled extends AbstractGatewayTest {
 
         @Override
@@ -60,75 +60,80 @@ public class MessageReactorInstalledIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
         }
 
         @Test
         void should_get_messages_from_mock_endpoint(HttpClient client) throws InterruptedException {
             AtomicBoolean hasJsonContent = new AtomicBoolean(false);
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
+                            .rxSend())
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE))
+                                .isEqualTo(MediaType.APPLICATION_JSON);
 
-                    // Doing content assertion only in json because it's easier
-                    hasJsonContent.set(response.getHeader(HttpHeaderNames.CONTENT_TYPE).equals(MediaType.APPLICATION_JSON));
-                    return response.body();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(body -> {
-                    if (hasJsonContent.get()) {
-                        final JsonObject content = new JsonObject(body.toString());
+                        // Doing content assertion only in json because it's easier
+                        hasJsonContent.set(
+                                response.getHeader(HttpHeaderNames.CONTENT_TYPE).equals(MediaType.APPLICATION_JSON));
+                        return response.body();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(body -> {
+                        if (hasJsonContent.get()) {
+                            final JsonObject content = new JsonObject(body.toString());
 
-                        final JsonObject pagination = content.getJsonObject("pagination");
-                        // This value is due to the entrypoint "messagesLimitCount" configuration field
-                        assertThat(pagination.getString("nextCursor")).isEqualTo("11");
+                            final JsonObject pagination = content.getJsonObject("pagination");
+                            // This value is due to the entrypoint "messagesLimitCount" configuration field
+                            assertThat(pagination.getString("nextCursor")).isEqualTo("11");
 
-                        final JsonArray items = content.getJsonArray("items");
-                        assertThat(items)
-                            .hasSize(12)
-                            .map(json -> Integer.parseInt(((JsonObject) json).getString("id")))
-                            .containsExactly(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-                    }
-                    return true;
-                })
-                .assertNoErrors();
+                            final JsonArray items = content.getJsonArray("items");
+                            assertThat(items)
+                                    .hasSize(12)
+                                    .map(json -> Integer.parseInt(((JsonObject) json).getString("id")))
+                                    .containsExactly(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+                        }
+                        return true;
+                    })
+                    .assertNoErrors();
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json"})
     class MessageReactorPluginNotInstalled extends AbstractGatewayTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
         }
 
         @Test
         void should_not_found_api_when_no_message_reactor(HttpClient client) throws InterruptedException {
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON).rxSend())
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(404);
-                    assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
+                            .rxSend())
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(404);
+                        assertThat(response.getHeader(HttpHeaderNames.CONTENT_TYPE))
+                                .isEqualTo(MediaType.TEXT_PLAIN);
 
-                    return response.body();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body).hasToString("No context-path matches the request URI.");
-                    return true;
-                })
-                .assertNoErrors();
+                        return response.body();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body).hasToString("No context-path matches the request URI.");
+                        return true;
+                    })
+                    .assertNoErrors();
         }
     }
 }

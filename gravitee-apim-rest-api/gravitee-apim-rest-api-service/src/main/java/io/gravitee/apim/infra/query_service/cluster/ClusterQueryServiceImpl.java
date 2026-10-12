@@ -44,16 +44,23 @@ public class ClusterQueryServiceImpl implements ClusterQueryService {
     @Override
     public Page<Cluster> search(ClusterSearchCriteria criteria, Pageable pageable, Optional<Sortable> sortableOpt) {
         var result = clusterRepository.search(
-            ClusterSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(criteria),
-            new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build(),
-            sortableOpt.map(sortable -> new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build())
-        );
+                ClusterSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(criteria),
+                new PageableBuilder()
+                        .pageNumber(pageable.getPageNumber() - 1)
+                        .pageSize(pageable.getPageSize())
+                        .build(),
+                sortableOpt.map(sortable -> new SortableBuilder()
+                        .field(sortable.getField())
+                        .setAsc(sortable.isAscOrder())
+                        .build()));
 
         return result.map(clusterAdapter::fromRepository);
     }
 
     @Override
     public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
-        return clusterRepository.findByCrossIdAndEnvironmentId(crossId, environmentId).map(clusterAdapter::fromRepository);
+        return clusterRepository
+                .findByCrossIdAndEnvironmentId(crossId, environmentId)
+                .map(clusterAdapter::fromRepository);
     }
 }

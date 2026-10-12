@@ -54,13 +54,12 @@ public interface IntegrationAgent {
      * @return {String} The API Key created
      */
     Single<IntegrationSubscription> subscribe(
-        String integrationId,
-        FederatedApi api,
-        SubscriptionParameter subscriptionParameter,
-        String subscriptionId,
-        BaseApplicationEntity application,
-        Map<String, String> providerMetadata
-    );
+            String integrationId,
+            FederatedApi api,
+            SubscriptionParameter subscriptionParameter,
+            String subscriptionId,
+            BaseApplicationEntity application,
+            Map<String, String> providerMetadata);
 
     /**
      * Send Unsubscribe command

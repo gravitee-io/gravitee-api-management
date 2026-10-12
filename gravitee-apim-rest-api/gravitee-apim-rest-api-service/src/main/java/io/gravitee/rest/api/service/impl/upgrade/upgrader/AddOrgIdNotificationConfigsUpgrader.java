@@ -50,12 +50,11 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
 
     public AddOrgIdNotificationConfigsUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy ApiRepository apiRepository,
-        @Lazy ApplicationRepository applicationRepository,
-        @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
-        @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy ApiRepository apiRepository,
+            @Lazy ApplicationRepository applicationRepository,
+            @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
+            @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository) {
         this.environmentRepository = environmentRepository;
         this.apiRepository = apiRepository;
         this.applicationRepository = applicationRepository;
@@ -87,7 +86,8 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
     }
 
     private String getOrgId(String refId, NotificationReferenceType referenceType) throws TechnicalException {
-        if (referenceType == NotificationReferenceType.ENVIRONMENT || referenceType == NotificationReferenceType.PORTAL) {
+        if (referenceType == NotificationReferenceType.ENVIRONMENT
+                || referenceType == NotificationReferenceType.PORTAL) {
             return getEnvironmentOrgId(refId);
         }
         if (referenceType == NotificationReferenceType.API) {
@@ -103,15 +103,18 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
     public boolean upgrade() {
         try {
             var genericNotificationConfigs = genericNotificationConfigRepository.findAll();
-            log.info("Migrating {} genericNotificationConfigs -> adding orgId value", genericNotificationConfigs.size());
+            log.info(
+                    "Migrating {} genericNotificationConfigs -> adding orgId value", genericNotificationConfigs.size());
 
             for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigs) {
-                String orgId = getOrgId(genericNotificationConfig.getReferenceId(), genericNotificationConfig.getReferenceType());
+                String orgId = getOrgId(
+                        genericNotificationConfig.getReferenceId(), genericNotificationConfig.getReferenceType());
 
                 if (genericNotificationConfig.getReferenceType() == NotificationReferenceType.PORTAL) {
                     List<String> hooks = new ArrayList<>(
-                        genericNotificationConfig.getHooks() != null ? genericNotificationConfig.getHooks() : List.of()
-                    );
+                            genericNotificationConfig.getHooks() != null
+                                    ? genericNotificationConfig.getHooks()
+                                    : List.of());
 
                     genericNotificationConfigRepository.delete(genericNotificationConfig.getId());
 
@@ -130,15 +133,18 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
             log.info("Migrating {} portalNotificationConfigs -> adding orgId value", portalNotificationConfigs.size());
 
             for (PortalNotificationConfig portalNotificationConfig : portalNotificationConfigs) {
-                String orgId = getOrgId(portalNotificationConfig.getReferenceId(), portalNotificationConfig.getReferenceType());
+                String orgId = getOrgId(
+                        portalNotificationConfig.getReferenceId(), portalNotificationConfig.getReferenceType());
 
                 if (portalNotificationConfig.getReferenceType() == NotificationReferenceType.PORTAL) {
                     List<String> hooks = new ArrayList<>(
-                        portalNotificationConfig.getHooks() != null ? portalNotificationConfig.getHooks() : List.of()
-                    );
+                            portalNotificationConfig.getHooks() != null
+                                    ? portalNotificationConfig.getHooks()
+                                    : List.of());
                     Set<String> groups = new HashSet<>(
-                        portalNotificationConfig.getGroups() != null ? portalNotificationConfig.getGroups() : Set.of()
-                    );
+                            portalNotificationConfig.getGroups() != null
+                                    ? portalNotificationConfig.getGroups()
+                                    : Set.of());
 
                     portalNotificationConfigRepository.delete(portalNotificationConfig);
 

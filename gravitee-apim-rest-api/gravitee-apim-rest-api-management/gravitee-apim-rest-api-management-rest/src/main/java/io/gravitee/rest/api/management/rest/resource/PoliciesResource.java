@@ -69,23 +69,20 @@ public class PoliciesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List policies", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Operation(
+            summary = "List policies",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Collection<PolicyListItem> getPolicies(
-        @QueryParam("expand") List<String> expand,
-        @QueryParam("withResource") Boolean withResource
-    ) {
+            @QueryParam("expand") List<String> expand, @QueryParam("withResource") Boolean withResource) {
         License license = licenseManager.getOrganizationLicenseOrPlatform(
-            GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization()
-        );
+                GraviteeContext.getCurrentOrganization() != null
+                        ? GraviteeContext.getCurrentOrganization()
+                        : GraviteeContext.getDefaultOrganization());
         boolean includeSchema = expand.contains("schema");
         boolean includeIcon = expand.contains("icon");
-        Stream<PolicyListItem> stream = policyService
-            .findAll(withResource)
-            .stream()
-            .map(policy -> convert(policy, license, includeSchema, includeIcon));
+        Stream<PolicyListItem> stream = policyService.findAll(withResource).stream()
+                .map(policy -> convert(policy, license, includeSchema, includeIcon));
         return stream.sorted(Comparator.comparing(PolicyListItem::getName)).collect(Collectors.toList());
     }
 
@@ -98,23 +95,20 @@ public class PoliciesResource {
     @Path("swagger")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List policies which are handling Swagger / OAI definition",
-        description = "These policies are used when importing an OAI to create an API"
-    )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+            summary = "List policies which are handling Swagger / OAI definition",
+            description = "These policies are used when importing an OAI to create an API")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public List<PolicyListItem> getSwaggerPolicy() {
-        return policyOperationVisitorManager
-            .getPolicyVisitors()
-            .stream()
-            .filter(PolicyOperationVisitor::display)
-            .map(operationVisitor -> {
-                PolicyListItem item = new PolicyListItem();
-                item.setId(operationVisitor.getId());
-                item.setName(operationVisitor.getName());
-                return item;
-            })
-            .sorted(Comparator.comparing(PolicyListItem::getName))
-            .collect(Collectors.toList());
+        return policyOperationVisitorManager.getPolicyVisitors().stream()
+                .filter(PolicyOperationVisitor::display)
+                .map(operationVisitor -> {
+                    PolicyListItem item = new PolicyListItem();
+                    item.setId(operationVisitor.getId());
+                    item.setName(operationVisitor.getName());
+                    return item;
+                })
+                .sorted(Comparator.comparing(PolicyListItem::getName))
+                .collect(Collectors.toList());
     }
 
     private PolicyListItem convert(PolicyEntity policy, License license, boolean includeSchema, boolean includeIcon) {

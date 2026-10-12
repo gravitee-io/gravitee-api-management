@@ -31,7 +31,9 @@ public interface MetadataAdapter {
 
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "referenceType", expression = "java(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)")
+    @Mapping(
+            target = "referenceType",
+            expression = "java(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)")
     @Mapping(target = "referenceId", source = "apiId")
     Metadata toMetadata(ApiMetadata source);
 }

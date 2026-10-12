@@ -50,53 +50,37 @@ public class ScoringProviderImpl implements ScoringProvider {
 
     @Override
     public Completable requestScore(ScoreRequest request) {
-        ScoringRequestCommand command = new ScoringRequestCommand(
-            new ScoringRequestCommandPayload(
+        ScoringRequestCommand command = new ScoringRequestCommand(new ScoringRequestCommandPayload(
                 request.jobId(),
                 request.organizationId(),
                 request.environmentId(),
                 installationService.get().getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID),
                 new ScoringRequest(
-                    request
-                        .assets()
-                        .stream()
-                        .map(a ->
-                            new AssetToAnalyze(
-                                a.assetId(),
-                                assetType(a.assetType()),
-                                a.assetName(),
-                                a.content(),
-                                detectContentType(a.content()),
-                                format(a.assetType().format())
-                            )
-                        )
-                        .toList(),
-                    null,
-                    request
-                        .customRulesets()
-                        .stream()
-                        .map(r -> new CustomRuleset(format(r.format()), r.content()))
-                        .toList(),
-                    request
-                        .customFunctions()
-                        .stream()
-                        .map(fct -> new CustomFunction(fct.filename(), fct.content()))
-                        .toList()
-                )
-            )
-        );
+                        request.assets().stream()
+                                .map(a -> new AssetToAnalyze(
+                                        a.assetId(),
+                                        assetType(a.assetType()),
+                                        a.assetName(),
+                                        a.content(),
+                                        detectContentType(a.content()),
+                                        format(a.assetType().format())))
+                                .toList(),
+                        null,
+                        request.customRulesets().stream()
+                                .map(r -> new CustomRuleset(format(r.format()), r.content()))
+                                .toList(),
+                        request.customFunctions().stream()
+                                .map(fct -> new CustomFunction(fct.filename(), fct.content()))
+                                .toList())));
 
         log.debug("send scoring request command: {}", command);
         return cockpitConnector
-            .sendCommand(command)
-            .onErrorResumeNext(error ->
-                Single.error(new TechnicalDomainException(error.getMessage() != null ? error.getMessage() : error.toString(), error))
-            )
-            .flatMapCompletable(reply ->
-                reply.getCommandStatus() == CommandStatus.ERROR
-                    ? Completable.error(new TechnicalDomainException(reply.getErrorDetails()))
-                    : Completable.complete()
-            );
+                .sendCommand(command)
+                .onErrorResumeNext(error -> Single.error(new TechnicalDomainException(
+                        error.getMessage() != null ? error.getMessage() : error.toString(), error)))
+                .flatMapCompletable(reply -> reply.getCommandStatus() == CommandStatus.ERROR
+                        ? Completable.error(new TechnicalDomainException(reply.getErrorDetails()))
+                        : Completable.complete());
     }
 
     private AssetType assetType(ScoreRequest.AssetType source) {

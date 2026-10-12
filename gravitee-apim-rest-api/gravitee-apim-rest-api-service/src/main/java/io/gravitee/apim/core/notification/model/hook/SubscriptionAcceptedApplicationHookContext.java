@@ -28,13 +28,12 @@ public class SubscriptionAcceptedApplicationHookContext extends ApplicationHookC
     private final String applicationPrimaryOwner;
 
     public SubscriptionAcceptedApplicationHookContext(
-        String applicationId,
-        SubscriptionReferenceType referenceType,
-        String referenceId,
-        String planId,
-        String subscriptionId,
-        String applicationPrimaryOwner
-    ) {
+            String applicationId,
+            SubscriptionReferenceType referenceType,
+            String referenceId,
+            String planId,
+            String subscriptionId,
+            String applicationPrimaryOwner) {
         super(ApplicationHook.SUBSCRIPTION_ACCEPTED, applicationId);
         this.referenceType = referenceType;
         this.referenceId = referenceId;
@@ -46,17 +45,16 @@ public class SubscriptionAcceptedApplicationHookContext extends ApplicationHookC
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
         var referenceKey = referenceType == SubscriptionReferenceType.API_PRODUCT
-            ? HookContextEntry.API_PRODUCT_ID
-            : HookContextEntry.API_ID;
+                ? HookContextEntry.API_PRODUCT_ID
+                : HookContextEntry.API_ID;
         return Map.of(
-            referenceKey,
-            referenceId,
-            HookContextEntry.PLAN_ID,
-            planId,
-            HookContextEntry.SUBSCRIPTION_ID,
-            subscriptionId,
-            HookContextEntry.OWNER,
-            applicationPrimaryOwner
-        );
+                referenceKey,
+                referenceId,
+                HookContextEntry.PLAN_ID,
+                planId,
+                HookContextEntry.SUBSCRIPTION_ID,
+                subscriptionId,
+                HookContextEntry.OWNER,
+                applicationPrimaryOwner);
     }
 }

@@ -31,11 +31,11 @@ public class NoOpOtelLogRepositoryTest {
     @Test
     public void findLogs_should_return_empty_list() {
         List<OtelLogRecord> records = repository
-            .findLogs(
-                new QueryContext("org#1", "env#1"),
-                new OtelLogSearchCriteria("a1b2c3d4", Map.of(), Map.of("gravitee.api.id", "api-1"), null, null, null)
-            )
-            .blockingGet();
+                .findLogs(
+                        new QueryContext("org#1", "env#1"),
+                        new OtelLogSearchCriteria(
+                                "a1b2c3d4", Map.of(), Map.of("gravitee.api.id", "api-1"), null, null, null))
+                .blockingGet();
 
         assertThat(records).isEmpty();
     }

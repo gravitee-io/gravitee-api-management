@@ -44,9 +44,9 @@ public class AnalyticsParam {
 
     @QueryParam("query")
     @Parameter(
-        description = "The Lucene query used to filter data",
-        example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test"
-    )
+            description = "The Lucene query used to filter data",
+            example =
+                    "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test")
     private String query;
 
     @QueryParam("field")
@@ -63,20 +63,20 @@ public class AnalyticsParam {
 
     @QueryParam("ranges")
     @Parameter(
-        description = "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
-        explode = Explode.FALSE,
-        schema = @Schema(type = "array"),
-        example = "100:199,200:299,300:399,400:499,500:599"
-    )
+            description =
+                    "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
+            explode = Explode.FALSE,
+            schema = @Schema(type = "array"),
+            example = "100:199,200:299,300:399,400:499,500:599")
     private RangesParam ranges;
 
     @QueryParam("aggs")
     @Parameter(
-        description = "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
-        explode = Explode.FALSE,
-        schema = @Schema(type = "array"),
-        example = "avg:response-time,avg:api-response-time"
-    )
+            description =
+                    "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
+            explode = Explode.FALSE,
+            schema = @Schema(type = "array"),
+            example = "avg:response-time,avg:api-response-time")
     private AggregationsParam aggregations;
 
     @JsonIgnore
@@ -148,9 +148,8 @@ public class AnalyticsParam {
 
     @QueryParam("order")
     @Parameter(
-        description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
-        example = "order:-response-time"
-    )
+            description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+            example = "order:-response-time")
     public void setOrder(String param) {
         if (param != null) {
             order = Order.parse(param);
@@ -163,51 +162,47 @@ public class AnalyticsParam {
 
     public void validate() throws WebApplicationException {
         if (type == null) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'type' is not valid").build()
-            );
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'type' is not valid")
+                    .build());
         }
 
         if (from == -1) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'from' is not valid").build()
-            );
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'from' is not valid")
+                    .build());
         }
 
         if (to == -1) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'to' is not valid").build()
-            );
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'to' is not valid")
+                    .build());
         }
 
         if (interval == -1) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'interval' is not valid").build()
-            );
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Query parameter 'interval' is not valid")
+                    .build());
         }
 
         if (interval < 1_000 || interval > 1_000_000_000) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST)
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000")
-                    .build()
-            );
+                    .build());
         }
 
         if (from >= to) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST).entity("'from' query parameter value must be lesser than 'to'").build()
-            );
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("'from' query parameter value must be lesser than 'to'")
+                    .build());
         }
 
         if (type == AnalyticsType.GROUP_BY) {
             // we need a field and, optionally, a list of ranges
             if (field == null || field.trim().isEmpty()) {
-                throw new WebApplicationException(
-                    Response.status(Response.Status.BAD_REQUEST)
+                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                         .entity("'field' query parameter is required for 'group_by' request")
-                        .build()
-                );
+                        .build());
             }
         }
     }

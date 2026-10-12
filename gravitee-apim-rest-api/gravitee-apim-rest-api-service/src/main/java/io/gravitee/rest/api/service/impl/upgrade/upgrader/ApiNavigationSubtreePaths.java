@@ -53,12 +53,11 @@ final class ApiNavigationSubtreePaths {
     record PathedFolder(PortalNavigationItem folder, String path) {}
 
     static List<PathedFolder> collect(
-        String organizationId,
-        String environmentId,
-        String navApiRowId,
-        String apiId,
-        Map<String, List<PortalNavigationItem>> childrenByParentId
-    ) {
+            String organizationId,
+            String environmentId,
+            String navApiRowId,
+            String apiId,
+            Map<String, List<PortalNavigationItem>> childrenByParentId) {
         var result = new ArrayList<PathedFolder>();
         walk(organizationId, environmentId, navApiRowId, apiId, navApiRowId, "", childrenByParentId, result);
         return result;
@@ -71,48 +70,56 @@ final class ApiNavigationSubtreePaths {
      * fails the ownership test on its second visit and that branch ends there.
      */
     private static void walk(
-        String organizationId,
-        String environmentId,
-        String navApiRowId,
-        String apiId,
-        String parentId,
-        String parentPath,
-        Map<String, List<PortalNavigationItem>> childrenByParentId,
-        List<PathedFolder> result
-    ) {
-        var matches = childrenByParentId
-            .getOrDefault(parentId, List.of())
-            .stream()
-            .filter(child -> child.getType() == PortalNavigationItem.Type.FOLDER)
-            .map(child -> matchAutomationFolder(organizationId, environmentId, navApiRowId, apiId, parentPath, child))
-            .flatMap(Optional::stream)
-            .toList();
+            String organizationId,
+            String environmentId,
+            String navApiRowId,
+            String apiId,
+            String parentId,
+            String parentPath,
+            Map<String, List<PortalNavigationItem>> childrenByParentId,
+            List<PathedFolder> result) {
+        var matches = childrenByParentId.getOrDefault(parentId, List.of()).stream()
+                .filter(child -> child.getType() == PortalNavigationItem.Type.FOLDER)
+                .map(child ->
+                        matchAutomationFolder(organizationId, environmentId, navApiRowId, apiId, parentPath, child))
+                .flatMap(Optional::stream)
+                .toList();
 
         for (var match : matches) {
             result.add(match);
-            walk(organizationId, environmentId, navApiRowId, apiId, match.folder().getId(), match.path(), childrenByParentId, result);
+            walk(
+                    organizationId,
+                    environmentId,
+                    navApiRowId,
+                    apiId,
+                    match.folder().getId(),
+                    match.path(),
+                    childrenByParentId,
+                    result);
         }
     }
 
     private static Optional<PathedFolder> matchAutomationFolder(
-        String organizationId,
-        String environmentId,
-        String navApiRowId,
-        String apiId,
-        String parentPath,
-        PortalNavigationItem child
-    ) {
+            String organizationId,
+            String environmentId,
+            String navApiRowId,
+            String apiId,
+            String parentPath,
+            PortalNavigationItem child) {
         var segment = child.getSegment();
         if (segment == null || segment.isBlank()) {
             log.warn(
-                "Navigation folder [id={}] under legacy nav-api row [id={}] has a blank segment; not realigning it or its descendants",
-                child.getId(),
-                navApiRowId
-            );
+                    "Navigation folder [id={}] under legacy nav-api row [id={}] has a blank segment; not realigning it or its descendants",
+                    child.getId(),
+                    navApiRowId);
             return Optional.empty();
         }
         var path = parentPath + "/" + segment;
-        var expectedId = HRIDToUUID.navigation().context(organizationId, environmentId).api(apiId).folder(path).id();
+        var expectedId = HRIDToUUID.navigation()
+                .context(organizationId, environmentId)
+                .api(apiId)
+                .folder(path)
+                .id();
         return expectedId.equals(child.getId()) ? Optional.of(new PathedFolder(child, path)) : Optional.empty();
     }
 }

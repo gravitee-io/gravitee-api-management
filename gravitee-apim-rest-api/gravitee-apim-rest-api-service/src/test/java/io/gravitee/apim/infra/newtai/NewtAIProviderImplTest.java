@@ -49,8 +49,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class NewtAIProviderImplTest {
 
     public static final InstallationEntity INSTALLATION_ENTITY = InstallationEntity.builder()
-        .additionalInformation(Map.of(InstallationService.COCKPIT_INSTALLATION_ID, "installationId"))
-        .build();
+            .additionalInformation(Map.of(InstallationService.COCKPIT_INSTALLATION_ID, "installationId"))
+            .build();
 
     @Mock
     private CockpitConnector cockpitConnector;
@@ -69,23 +69,21 @@ class NewtAIProviderImplTest {
     void should_generate_el(VertxTestContext context) {
         when(installationService.get()).thenReturn(INSTALLATION_ENTITY);
         var query = new Input("apiId", "test message", "cid", Map.of("key", "value"));
-        var replyPayload = new ELReplyPayload("generated el", new ELReplyPayload.RequestId("chatId", "userMessageId", "agentMessageId"));
+        var replyPayload = new ELReplyPayload(
+                "generated el", new ELReplyPayload.RequestId("chatId", "userMessageId", "agentMessageId"));
         var reply = new ELReply("commandId", CommandStatus.SUCCEEDED, replyPayload);
         when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.just(reply));
 
-        cut
-            .generateEL(query)
-            .subscribe(
-                elGenReply ->
-                    context.verify(() -> {
-                        assertThat(elGenReply.message()).isEqualTo("generated el");
-                        assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
-                        assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
-                        assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
-                        context.completeNow();
-                    }),
-                context::failNow
-            );
+        cut.generateEL(query)
+                .subscribe(
+                        elGenReply -> context.verify(() -> {
+                            assertThat(elGenReply.message()).isEqualTo("generated el");
+                            assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
+                            assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
+                            assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
+                            context.completeNow();
+                        }),
+                        context::failNow);
     }
 
     @Test
@@ -96,16 +94,15 @@ class NewtAIProviderImplTest {
         var reply = new ELReply("commandId", "error details");
         when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.just(reply));
 
-        cut
-            .generateEL(query)
-            .subscribe(
-                reply1 -> context.failNow("expect error"),
-                e ->
-                    context.verify(() -> {
-                        assertThat(e).isInstanceOf(NewtAIReplyException.class).hasMessage("error details");
-                        context.completeNow();
-                    })
-            );
+        cut.generateEL(query)
+                .subscribe(
+                        reply1 -> context.failNow("expect error"),
+                        e -> context.verify(() -> {
+                            assertThat(e)
+                                    .isInstanceOf(NewtAIReplyException.class)
+                                    .hasMessage("error details");
+                            context.completeNow();
+                        }));
     }
 
     @Test
@@ -113,18 +110,18 @@ class NewtAIProviderImplTest {
     void should_throw_exception_when_send_command_fails(VertxTestContext context) {
         when(installationService.get()).thenReturn(INSTALLATION_ENTITY);
         var query = new Input("apiId", "test message", "cid");
-        when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.error(new RuntimeException("send command error")));
+        when(cockpitConnector.sendCommand(any(ELCommand.class)))
+                .thenReturn(Single.error(new RuntimeException("send command error")));
 
-        cut
-            .generateEL(query)
-            .subscribe(
-                reply1 -> context.failNow("expect error"),
-                e ->
-                    context.verify(() -> {
-                        assertThat(e).isInstanceOf(NewtAIReplyException.class).hasMessage("send command error");
-                        context.completeNow();
-                    })
-            );
+        cut.generateEL(query)
+                .subscribe(
+                        reply1 -> context.failNow("expect error"),
+                        e -> context.verify(() -> {
+                            assertThat(e)
+                                    .isInstanceOf(NewtAIReplyException.class)
+                                    .hasMessage("send command error");
+                            context.completeNow();
+                        }));
     }
 
     @Test
@@ -142,25 +139,22 @@ class NewtAIProviderImplTest {
         var reply = new ElGenFeedbackReply("commandId", "error details");
         when(cockpitConnector.sendCommand(any(ELGenFeedbackCommand.class))).thenReturn(Single.just(reply));
 
-        cut
-            .submitFeedback(feedback)
-            .test()
-            .assertError(throwable -> throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("error details"));
+        cut.submitFeedback(feedback)
+                .test()
+                .assertError(throwable -> throwable instanceof NewtAiSubmitFeedbackException
+                        && throwable.getMessage().equals("error details"));
     }
 
     @Test
     void should_throw_exception_when_send_feedback_command_fails() {
         var feedback = new FeedbackInput("chatId", "userMessageId", "agentMessageId", true);
-        when(cockpitConnector.sendCommand(any(ELGenFeedbackCommand.class))).thenReturn(
-            Single.error(new RuntimeException("send command error"))
-        );
+        when(cockpitConnector.sendCommand(any(ELGenFeedbackCommand.class)))
+                .thenReturn(Single.error(new RuntimeException("send command error")));
 
-        cut
-            .submitFeedback(feedback)
-            .test()
-            .assertError(
-                throwable -> throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("send command error")
-            );
+        cut.submitFeedback(feedback)
+                .test()
+                .assertError(throwable -> throwable instanceof NewtAiSubmitFeedbackException
+                        && throwable.getMessage().equals("send command error"));
     }
 
     @Nested
@@ -178,16 +172,12 @@ class NewtAIProviderImplTest {
 
         @Test
         void should_support_multi_lines(VertxTestContext context) {
-            assertPayload(
-                context,
-                """
+            assertPayload(context, """
                 ```{#request
                 .path}```
-                """,
-                """
+                """, """
                 {#request
-                .path}"""
-            );
+                .path}""");
         }
 
         @Test
@@ -203,23 +193,23 @@ class NewtAIProviderImplTest {
         void assertPayload(VertxTestContext context, String input, String expected) {
             when(installationService.get()).thenReturn(INSTALLATION_ENTITY);
             var query = new Input("apiId", "test message", "cid", Map.of("key", "value"));
-            var replyPayload = new ELReplyPayload(input, new ELReplyPayload.RequestId("chatId", "userMessageId", "agentMessageId"));
+            var replyPayload = new ELReplyPayload(
+                    input, new ELReplyPayload.RequestId("chatId", "userMessageId", "agentMessageId"));
             var reply = new ELReply("commandId", CommandStatus.SUCCEEDED, replyPayload);
             when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.just(reply));
 
-            cut
-                .generateEL(query)
-                .subscribe(
-                    elGenReply ->
-                        context.verify(() -> {
-                            assertThat(elGenReply.message()).isEqualTo(expected);
-                            assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
-                            assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
-                            assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
-                            context.completeNow();
-                        }),
-                    context::failNow
-                );
+            cut.generateEL(query)
+                    .subscribe(
+                            elGenReply -> context.verify(() -> {
+                                assertThat(elGenReply.message()).isEqualTo(expected);
+                                assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
+                                assertThat(elGenReply.feedbackId().userMessageId())
+                                        .isEqualTo("userMessageId");
+                                assertThat(elGenReply.feedbackId().agentMessageId())
+                                        .isEqualTo("agentMessageId");
+                                context.completeNow();
+                            }),
+                            context::failNow);
         }
     }
 
@@ -229,5 +219,6 @@ class NewtAIProviderImplTest {
         }
     }
 
-    record FeedbackInput(String chatId, String userMessageId, String agentMessageId, boolean answerHelpful) implements ELGenFeedback {}
+    record FeedbackInput(String chatId, String userMessageId, String agentMessageId, boolean answerHelpful)
+            implements ELGenFeedback {}
 }

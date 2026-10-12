@@ -71,10 +71,10 @@ public class ElasticsearchTracingTestRepositoryConfiguration {
     @Bean(destroyMethod = "stop")
     public ElasticsearchContainer tracingTestElasticsearchContainer(Network tracingTestNetwork) {
         ElasticsearchContainer container = new ElasticsearchContainer(DockerImageName.parse(ES_IMAGE))
-            .withEnv("xpack.security.enabled", "false")
-            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
-            .withNetwork(tracingTestNetwork)
-            .withNetworkAliases(ES_NETWORK_ALIAS);
+                .withEnv("xpack.security.enabled", "false")
+                .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
+                .withNetwork(tracingTestNetwork)
+                .withNetworkAliases(ES_NETWORK_ALIAS);
         container.setWaitStrategy(Wait.forLogMessage(".*started.*", 1).withStartupTimeout(Duration.ofSeconds(180)));
         container.start();
         return container;
@@ -82,19 +82,16 @@ public class ElasticsearchTracingTestRepositoryConfiguration {
 
     @Bean(destroyMethod = "stop")
     public GenericContainer<?> tracingTestOtelCollectorContainer(
-        Network tracingTestNetwork,
-        ElasticsearchContainer tracingTestElasticsearchContainer
-    ) {
+            Network tracingTestNetwork, ElasticsearchContainer tracingTestElasticsearchContainer) {
         // Depending on tracingTestElasticsearchContainer ensures Spring starts ES first; the collector retries during
         // its own startup window if ES isn't yet accepting writes.
         GenericContainer<?> collector = new GenericContainer<>(DockerImageName.parse(OTEL_COLLECTOR_IMAGE))
-            .withNetwork(tracingTestNetwork)
-            .withExposedPorts(OTEL_COLLECTOR_OTLP_HTTP_PORT)
-            .withCopyFileToContainer(
-                MountableFile.forClasspathResource("otel-collector-tracing-config.yaml"),
-                "/etc/otelcol-contrib/config.yaml"
-            )
-            .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
+                .withNetwork(tracingTestNetwork)
+                .withExposedPorts(OTEL_COLLECTOR_OTLP_HTTP_PORT)
+                .withCopyFileToContainer(
+                        MountableFile.forClasspathResource("otel-collector-tracing-config.yaml"),
+                        "/etc/otelcol-contrib/config.yaml")
+                .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
         collector.start();
         return collector;
     }
@@ -102,16 +99,9 @@ public class ElasticsearchTracingTestRepositoryConfiguration {
     @Bean(destroyMethod = "")
     public Client tracingTestElasticsearchClient(ElasticsearchContainer tracingTestElasticsearchContainer) {
         HttpClientConfiguration clientConfiguration = new HttpClientConfiguration();
-        clientConfiguration.setEndpoints(
-            List.of(
-                new Endpoint(
-                    "http://" +
-                        tracingTestElasticsearchContainer.getHost() +
-                        ":" +
-                        tracingTestElasticsearchContainer.getMappedPort(ES_HTTP_PORT)
-                )
-            )
-        );
+        clientConfiguration.setEndpoints(List.of(new Endpoint("http://" + tracingTestElasticsearchContainer.getHost()
+                + ":"
+                + tracingTestElasticsearchContainer.getMappedPort(ES_HTTP_PORT))));
         clientConfiguration.setRequestTimeout(60_000L);
         return new HttpClient(clientConfiguration);
     }

@@ -33,7 +33,8 @@ import java.util.List;
  */
 public class PatchApiV4Deserializer implements ApiV4Deserializer {
 
-    private static final List<String> POLYMORPHIC_LIST_FIELDS = List.of("listeners", "endpointGroups", "flows", "resources");
+    private static final List<String> POLYMORPHIC_LIST_FIELDS =
+            List.of("listeners", "endpointGroups", "flows", "resources");
 
     private final ObjectMapper objectMapper;
 

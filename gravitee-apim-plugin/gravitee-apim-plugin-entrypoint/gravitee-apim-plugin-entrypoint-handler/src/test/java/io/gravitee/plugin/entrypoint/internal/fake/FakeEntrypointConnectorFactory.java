@@ -58,11 +58,13 @@ public class FakeEntrypointConnectorFactory implements EntrypointAsyncConnectorF
     }
 
     @Override
-    public FakeEntrypointConnector createConnector(final DeploymentContext deploymentContext, final Qos qos, final String configuration) {
+    public FakeEntrypointConnector createConnector(
+            final DeploymentContext deploymentContext, final Qos qos, final String configuration) {
         FakeEntrypointConnector.FakeEntrypointConnectorBuilder builder = FakeEntrypointConnector.builder();
         if (configuration != null) {
             try {
-                builder.configuration(new ObjectMapper().readValue(configuration, FakeEntrypointConnectorConfiguration.class));
+                builder.configuration(
+                        new ObjectMapper().readValue(configuration, FakeEntrypointConnectorConfiguration.class));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Bad configuration");
             }

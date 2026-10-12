@@ -142,71 +142,70 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiQuery pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("1", "3", "5"));
         doReturn(List.of(publishedApi1, publishedApi2, publishedApi4))
-            .when(apiSearchService)
-            .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("3", "4", "5"));
         doReturn(List.of(publishedApi2, publishedApi3, publishedApi4))
-            .when(apiSearchService)
-            .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("1", "3", "4", "5", "6"));
         doReturn(List.of(publishedApi1, publishedApi2, publishedApi3, publishedApi4, publishedApi5))
-            .when(apiSearchService)
-            .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("1"));
-        doReturn(List.of(publishedApi1)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+        doReturn(List.of(publishedApi1))
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("3", "4"));
         doReturn(List.of(publishedApi2, publishedApi3))
-            .when(apiSearchService)
-            .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("4"));
-        doReturn(List.of(publishedApi3)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+        doReturn(List.of(publishedApi3))
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
         pageQuery = new ApiQuery();
         pageQuery.setIds(Arrays.asList("3"));
-        doReturn(List.of(publishedApi2)).when(apiSearchService).search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
+        doReturn(List.of(publishedApi2))
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), eq(pageQuery));
 
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
-        when(
-            apiAuthorizationService.findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), any(), any(Set.class))
-        ).thenReturn(mockApis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
+        Set<ApiEntity> mockApis =
+                new HashSet<>(Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
+        when(apiAuthorizationService.findAccessibleApiIdsForUser(
+                        eq(GraviteeContext.getExecutionContext()), any(), any(Set.class)))
+                .thenReturn(mockApis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
-        doReturn(
-            mockApis
-                .stream()
-                .map(api -> api.getId())
-                .collect(Collectors.toSet())
-        )
-            .when(filteringService)
-            .filterApis(any(), any(), any(), any(), any());
+        doReturn(mockApis.stream().map(api -> api.getId()).collect(Collectors.toSet()))
+                .when(filteringService)
+                .filterApis(any(), any(), any(), any(), any());
 
-        when(apiMapper.convert(eq(GraviteeContext.getExecutionContext()), any())).thenCallRealMethod();
+        when(apiMapper.convert(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenCallRealMethod();
 
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PORTAL_NEXT_SEARCH_FUZZY,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PORTAL_NEXT_SEARCH_FUZZY,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(false);
     }
 
     private void prepareInMemoryServices() {
@@ -219,82 +218,90 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         final Category myCat = Category.builder().id("myCat").build();
         categoryQueryServiceInMemory.initWith(List.of(myCat));
-        apiCategoryOrderQueryServiceInMemory.initWith(
-            List.of(
+        apiCategoryOrderQueryServiceInMemory.initWith(List.of(
                 ApiCategoryOrder.builder().apiId("1").categoryId("myCat").build(),
                 ApiCategoryOrder.builder().apiId("3").categoryId("myCat").build(),
                 ApiCategoryOrder.builder().apiId("4").categoryId("myCat").build(),
                 ApiCategoryOrder.builder().apiId("5").categoryId("myCat").build(),
-                ApiCategoryOrder.builder().apiId("6").categoryId("myCat").build()
-            )
-        );
-        apiAuthorizationDomainServiceInMemory.initWith(
-            List.of(
+                ApiCategoryOrder.builder().apiId("6").categoryId("myCat").build()));
+        apiAuthorizationDomainServiceInMemory.initWith(List.of(
                 Api.builder()
-                    .id("1")
-                    .name("1")
-                    .labels(List.of("label1", "label2"))
-                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-                    .build(),
+                        .id("1")
+                        .name("1")
+                        .labels(List.of("label1", "label2"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
                 Api.builder()
-                    .id("3")
-                    .name("3")
-                    .labels(List.of("label1", "label2"))
-                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-                    .build(),
+                        .id("3")
+                        .name("3")
+                        .labels(List.of("label1", "label2"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
                 Api.builder()
-                    .id("4")
-                    .name("4")
-                    .labels(List.of("label1", "label2", "label3"))
-                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-                    .build(),
-                Api.builder().id("5").name("5").labels(List.of("label1")).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
-                Api.builder().id("6").name("6").apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build()
-            )
-        );
-        apiQueryServiceInMemory.initWith(
-            List.of(
+                        .id("4")
+                        .name("4")
+                        .labels(List.of("label1", "label2", "label3"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
                 Api.builder()
-                    .id("1")
-                    .name("1")
-                    .labels(List.of("label1", "label2"))
-                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-                    .build(),
+                        .id("5")
+                        .name("5")
+                        .labels(List.of("label1"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
                 Api.builder()
-                    .id("3")
-                    .name("3")
-                    .labels(List.of("label1", "label2"))
-                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-                    .build(),
+                        .id("6")
+                        .name("6")
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build()));
+        apiQueryServiceInMemory.initWith(List.of(
                 Api.builder()
-                    .id("4")
-                    .name("4")
-                    .labels(List.of("label1", "label2", "label3"))
-                    .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-                    .build(),
-                Api.builder().id("5").name("5").labels(List.of("label1")).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
-                Api.builder().id("6").name("6").apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build()
-            )
-        );
+                        .id("1")
+                        .name("1")
+                        .labels(List.of("label1", "label2"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
+                Api.builder()
+                        .id("3")
+                        .name("3")
+                        .labels(List.of("label1", "label2"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
+                Api.builder()
+                        .id("4")
+                        .name("4")
+                        .labels(List.of("label1", "label2", "label3"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
+                Api.builder()
+                        .id("5")
+                        .name("5")
+                        .labels(List.of("label1"))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
+                Api.builder()
+                        .id("6")
+                        .name("6")
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build()));
     }
 
     @Test
     public void shouldGetPublishedApi() {
-        final Response response = target()
-            .queryParam("context-path", "context-path")
-            .queryParam("label", "label")
-            .queryParam("version", "version")
-            .queryParam("name", "name")
-            .queryParam("tag", "tag")
-            .request()
-            .get();
+        final Response response = target().queryParam("context-path", "context-path")
+                .queryParam("label", "label")
+                .queryParam("version", "version")
+                .queryParam("name", "name")
+                .queryParam("tag", "tag")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).computeApiLinks(
-            basePathCaptor.capture(),
-            ArgumentCaptor.forClass(Date.class).capture()
-        );
+        Mockito.verify(apiMapper, Mockito.times(5))
+                .computeApiLinks(
+                        basePathCaptor.capture(),
+                        ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath + "/1"));
@@ -304,12 +311,10 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertTrue(bastPathList.contains(expectedBasePath + "/6"));
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(5))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
@@ -330,16 +335,15 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPublishedApiWithPaginatedLink() {
-        final Response response = target().queryParam("page", 3).queryParam("size", 1).request().get();
+        final Response response =
+                target().queryParam("page", 3).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("4")));
 
@@ -357,12 +361,10 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(5))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
@@ -373,23 +375,19 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetAllApisWithoutLabels() {
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(false);
         final Response response = target().queryParam("size", -1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(5))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
@@ -404,12 +402,10 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(0)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(0))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(0, allNameValues.size());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -420,7 +416,8 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoApi() {
-        final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
+        final Response response =
+                target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -436,9 +433,9 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-        when(
-            apiAuthorizationService.findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), any(), any(Set.class))
-        ).thenReturn(Collections.emptySet());
+        when(apiAuthorizationService.findAccessibleApiIdsForUser(
+                        eq(GraviteeContext.getExecutionContext()), any(), any(Set.class)))
+                .thenReturn(Collections.emptySet());
         when(filteringService.filterApis(any(), any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         // Test with default limit
@@ -452,7 +449,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertNull(links);
 
         // Test with small limit
-        final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
+        final Response anotherResponse =
+                target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
 
         apiResponse = anotherResponse.readEntity(ApisResponse.class);
@@ -464,9 +462,12 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApis() throws TechnicalException {
-        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new HashSet<>(List.of("3")))
+                .when(filteringService)
+                .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
 
-        final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
+        final Response response =
+                target("/_search").queryParam("q", "3").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -477,10 +478,14 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Test
     public void shouldSearchApisWithCategory() throws TechnicalException {
         doReturn(new HashSet<>(List.of("3")))
-            .when(filteringService)
-            .searchApisWithCategory(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+                .when(filteringService)
+                .searchApisWithCategory(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
-        final Response response = target("/_search").queryParam("q", "3").queryParam("category", "12345").request().post(Entity.json(null));
+        final Response response = target("/_search")
+                .queryParam("q", "3")
+                .queryParam("category", "12345")
+                .request()
+                .post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -490,9 +495,12 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApisWithEmptyQ() throws TechnicalException {
-        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new HashSet<>(List.of("3")))
+                .when(filteringService)
+                .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
 
-        final Response response = target("/_search").queryParam("q", "").request().post(Entity.json(null));
+        final Response response =
+                target("/_search").queryParam("q", "").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -502,7 +510,9 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApisWithNoQParameter() throws TechnicalException {
-        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new HashSet<>(List.of("3")))
+                .when(filteringService)
+                .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
 
         final Response response = target("/_search").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -514,29 +524,31 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApisWithoutLabel() throws TechnicalException {
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(false);
 
-        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
-        final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
+        doReturn(new HashSet<>(List.of("3")))
+                .when(filteringService)
+                .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+        final Response response =
+                target("/_search").queryParam("q", "3").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(
-            basePathCaptor.capture(),
-            ArgumentCaptor.forClass(Date.class).capture()
-        );
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .computeApiLinks(
+                        basePathCaptor.capture(),
+                        ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath + "/3"));
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
         assertEquals("3", apiEntityCaptor.getValue().getName());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -546,16 +558,17 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveAllButPromotedApiIfNoCategory() throws TechnicalException {
-        final Response response = target().queryParam("size", 2).queryParam("promoted", false).request().get();
+        final Response response = target().queryParam("size", 2)
+                .queryParam("promoted", false)
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(2)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(2))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(2, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4")));
 
@@ -568,21 +581,18 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHaveAllButPromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
         doReturn(new CategoryEntity()).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
-        final Response response = target()
-            .queryParam("size", 3)
-            .queryParam("promoted", false)
-            .queryParam("category", "myCat")
-            .request()
-            .get();
+        final Response response = target().queryParam("size", 3)
+                .queryParam("promoted", false)
+                .queryParam("category", "myCat")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(3))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(3, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5")));
 
@@ -597,21 +607,18 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("4");
         doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
-        final Response response = target()
-            .queryParam("size", 3)
-            .queryParam("promoted", false)
-            .queryParam("category", "myCat")
-            .request()
-            .get();
+        final Response response = target().queryParam("size", 3)
+                .queryParam("promoted", false)
+                .queryParam("category", "myCat")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(3))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(3, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "5")));
 
@@ -626,21 +633,18 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("7");
         doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
-        final Response response = target()
-            .queryParam("size", 3)
-            .queryParam("promoted", false)
-            .queryParam("category", "myCat")
-            .request()
-            .get();
+        final Response response = target().queryParam("size", 3)
+                .queryParam("promoted", false)
+                .queryParam("category", "myCat")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(3)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(3))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(3, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5")));
 
@@ -651,16 +655,17 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHavePromotedApiIfNoCategory() throws TechnicalException {
-        final Response response = target().queryParam("size", 2).queryParam("promoted", true).request().get();
+        final Response response = target().queryParam("size", 2)
+                .queryParam("promoted", true)
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
 
@@ -673,21 +678,18 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHavePromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
         doReturn(new CategoryEntity()).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
-        final Response response = target()
-            .queryParam("size", 3)
-            .queryParam("promoted", true)
-            .queryParam("category", "myCat")
-            .request()
-            .get();
+        final Response response = target().queryParam("size", 3)
+                .queryParam("promoted", true)
+                .queryParam("category", "myCat")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
 
@@ -702,21 +704,18 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("4");
         doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
-        final Response response = target()
-            .queryParam("size", 3)
-            .queryParam("promoted", true)
-            .queryParam("category", "myCat")
-            .request()
-            .get();
+        final Response response = target().queryParam("size", 3)
+                .queryParam("promoted", true)
+                .queryParam("category", "myCat")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("4")));
 
@@ -731,21 +730,18 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("7");
         doReturn(myCatEntity).when(categoryService).findById("myCat", GraviteeContext.getCurrentEnvironment());
 
-        final Response response = target()
-            .queryParam("size", 3)
-            .queryParam("promoted", true)
-            .queryParam("category", "myCat")
-            .request()
-            .get();
+        final Response response = target().queryParam("size", 3)
+                .queryParam("promoted", true)
+                .queryParam("category", "myCat")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor
-            .getAllValues()
-            .stream()
-            .map(a -> a.getName())
-            .collect(Collectors.toList());
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .convert(eq(GraviteeContext.getExecutionContext()), apiEntityCaptor.capture());
+        final List<String> allNameValues =
+                apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
 
@@ -759,23 +755,20 @@ public class ApisResourceTest extends AbstractResourceTest {
         String envId = GraviteeContext.getExecutionContext().getEnvironmentId();
         String orgId = GraviteeContext.getExecutionContext().getOrganizationId();
 
-        portalNavigationItemsQueryServiceInMemory.initWith(
-            List.of(
-                PortalNavigationApi.builder()
-                    .id(PortalNavigationItemId.random())
-                    .organizationId(orgId)
-                    .environmentId(envId)
-                    .title("Nav for ng-api")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .apiId("ng-api")
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .segment(PortalNavigationItem.slugify("Nav for ng-api").value())
-                    .build()
-            )
-        );
-        apiPortalSearchQueryServiceInMemory.initWith(List.of(Api.builder().id("ng-api").name("ng-api").environmentId(envId).build()));
+        portalNavigationItemsQueryServiceInMemory.initWith(List.of(PortalNavigationApi.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId(orgId)
+                .environmentId(envId)
+                .title("Nav for ng-api")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId("ng-api")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Nav for ng-api").value())
+                .build()));
+        apiPortalSearchQueryServiceInMemory.initWith(List.of(
+                Api.builder().id("ng-api").name("ng-api").environmentId(envId).build()));
 
         ApiEntity ngApiEntity = new ApiEntity();
         ngApiEntity.setId("ng-api");
@@ -786,10 +779,10 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         // When
         final Response response = target("/_search")
-            .queryParam("q", "ng-api")
-            .queryParam("view", "documentation")
-            .request()
-            .post(Entity.json(null));
+                .queryParam("q", "ng-api")
+                .queryParam("view", "documentation")
+                .request()
+                .post(Entity.json(null));
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -797,17 +790,15 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     private int getmaxLabelsListSize(ApisResponse apiResponse) {
-        return apiResponse
-            .getData()
-            .stream()
-            .map(api -> {
-                if (api.getLabels() != null) {
-                    return api.getLabels().size();
-                } else {
-                    return 0;
-                }
-            })
-            .max(Comparator.comparingInt(i -> i))
-            .orElse(0);
+        return apiResponse.getData().stream()
+                .map(api -> {
+                    if (api.getLabels() != null) {
+                        return api.getLabels().size();
+                    } else {
+                        return 0;
+                    }
+                })
+                .max(Comparator.comparingInt(i -> i))
+                .orElse(0);
     }
 }

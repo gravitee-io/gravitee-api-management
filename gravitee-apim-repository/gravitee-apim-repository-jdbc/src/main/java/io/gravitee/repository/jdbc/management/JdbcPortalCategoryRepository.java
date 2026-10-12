@@ -30,7 +30,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcPortalCategoryRepository extends JdbcAbstractCrudRepository<PortalCategory, String> implements PortalCategoryRepository {
+public class JdbcPortalCategoryRepository extends JdbcAbstractCrudRepository<PortalCategory, String>
+        implements PortalCategoryRepository {
 
     JdbcPortalCategoryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_categories");
@@ -39,12 +40,12 @@ public class JdbcPortalCategoryRepository extends JdbcAbstractCrudRepository<Por
     @Override
     protected JdbcObjectMapper<PortalCategory> buildOrm() {
         return JdbcObjectMapper.builder(PortalCategory.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("visible", Types.BOOLEAN, boolean.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("visible", Types.BOOLEAN, boolean.class)
+                .build();
     }
 
     @Override
@@ -57,10 +58,9 @@ public class JdbcPortalCategoryRepository extends JdbcAbstractCrudRepository<Por
         log.debug("JdbcPortalCategoryRepository.findAllByEnvironmentId({})", environmentId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where environment_id = ? order by title",
-                getOrm().getRowMapper(),
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " where environment_id = ? order by title",
+                    getOrm().getRowMapper(),
+                    environmentId);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find portal categories by environment id", ex);
         }

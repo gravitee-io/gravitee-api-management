@@ -19,7 +19,6 @@ import io.gravitee.plugin.apiservice.ApiServicePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.rest.api.model.v4.apiservice.ApiServicePluginEntity;
-import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
@@ -32,14 +31,11 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ApiServicePluginServiceImpl
-    extends AbstractPluginService<ApiServicePlugin<?, ?>, ApiServicePluginEntity>
-    implements ApiServicePluginService {
+public class ApiServicePluginServiceImpl extends AbstractPluginService<ApiServicePlugin<?, ?>, ApiServicePluginEntity>
+        implements ApiServicePluginService {
 
     public ApiServicePluginServiceImpl(
-        JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<ApiServicePlugin<?, ?>> pluginManager
-    ) {
+            JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ApiServicePlugin<?, ?>> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 

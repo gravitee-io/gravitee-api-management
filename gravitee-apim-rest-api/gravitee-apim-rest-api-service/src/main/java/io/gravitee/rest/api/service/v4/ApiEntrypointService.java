@@ -25,6 +25,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiEntrypointService {
-    List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity);
+    List<ApiEntrypointEntity> getApiEntrypoints(
+            final ExecutionContext executionContext, final GenericApiEntity genericApiEntity);
+
     String getApiEntrypointsListenerType(final GenericApiEntity genericApiEntity);
 }

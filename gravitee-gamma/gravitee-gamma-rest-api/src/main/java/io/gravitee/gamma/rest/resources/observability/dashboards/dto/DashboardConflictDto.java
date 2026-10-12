@@ -32,17 +32,12 @@ import jakarta.ws.rs.core.Response;
  * to anything that only ever parses bodies — and to a human reading the response.
  */
 public record DashboardConflictDto(
-    String message,
-    @JsonProperty("http_status") int httpStatus,
-    Integer currentVersion,
-    DashboardDto dashboard
-) {
+        String message, @JsonProperty("http_status") int httpStatus, Integer currentVersion, DashboardDto dashboard) {
     public static DashboardConflictDto from(String message, Dashboard current) {
         return new DashboardConflictDto(
-            message,
-            Response.Status.PRECONDITION_FAILED.getStatusCode(),
-            current.version(),
-            DashboardDto.from(current)
-        );
+                message,
+                Response.Status.PRECONDITION_FAILED.getStatusCode(),
+                current.version(),
+                DashboardDto.from(current));
     }
 }

@@ -68,9 +68,11 @@ public class SubscriptionKeysResource extends AbstractResource {
     public Response renewKeySubscription(@PathParam("subscriptionId") String subscriptionId) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        boolean apiProductSubscription = SubscriptionReferenceType.API_PRODUCT.name().equals(subscriptionEntity.getReferenceType());
+        boolean apiProductSubscription =
+                SubscriptionReferenceType.API_PRODUCT.name().equals(subscriptionEntity.getReferenceType());
 
-        if (apiProductSubscription && !Objects.equals(executionContext.getEnvironmentId(), subscriptionEntity.getEnvironmentId())) {
+        if (apiProductSubscription
+                && !Objects.equals(executionContext.getEnvironmentId(), subscriptionEntity.getEnvironmentId())) {
             throw new SubscriptionNotFoundException(subscriptionId);
         }
         if (!hasUpdatePermission(executionContext, subscriptionEntity, apiProductSubscription)) {
@@ -82,47 +84,47 @@ public class SubscriptionKeysResource extends AbstractResource {
     }
 
     private boolean hasUpdatePermission(
-        ExecutionContext executionContext,
-        SubscriptionEntity subscriptionEntity,
-        boolean apiProductSubscription
-    ) {
+            ExecutionContext executionContext, SubscriptionEntity subscriptionEntity, boolean apiProductSubscription) {
         boolean hasApplicationPermission = hasPermission(
-            executionContext,
-            RolePermission.APPLICATION_SUBSCRIPTION,
-            subscriptionEntity.getApplication(),
-            RolePermissionAction.UPDATE
-        );
+                executionContext,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                subscriptionEntity.getApplication(),
+                RolePermissionAction.UPDATE);
         if (apiProductSubscription) {
             return hasApplicationPermission;
         }
-        return (
-            hasApplicationPermission ||
-            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
-        );
+        return (hasApplicationPermission
+                || hasPermission(
+                        executionContext,
+                        RolePermission.API_SUBSCRIPTION,
+                        subscriptionEntity.getApi(),
+                        RolePermissionAction.UPDATE));
     }
 
     @POST
     @Path("/{apiKey}/_revoke")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response revokeKeySubscription(@PathParam("subscriptionId") String subscriptionId, @PathParam("apiKey") String apiKey) {
+    public Response revokeKeySubscription(
+            @PathParam("subscriptionId") String subscriptionId, @PathParam("apiKey") String apiKey) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            hasPermission(
-                executionContext,
-                RolePermission.APPLICATION_SUBSCRIPTION,
-                subscriptionEntity.getApplication(),
-                RolePermissionAction.UPDATE
-            ) ||
-            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
-        ) {
+        if (hasPermission(
+                        executionContext,
+                        RolePermission.APPLICATION_SUBSCRIPTION,
+                        subscriptionEntity.getApplication(),
+                        RolePermissionAction.UPDATE)
+                || hasPermission(
+                        executionContext,
+                        RolePermission.API_SUBSCRIPTION,
+                        subscriptionEntity.getApi(),
+                        RolePermissionAction.UPDATE)) {
             final String referenceId = subscriptionEntity.getReferenceId() != null
-                ? subscriptionEntity.getReferenceId()
-                : subscriptionEntity.getApi();
-            final String referenceType = subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType() : "API";
-            revokeSubscriptionApiKeyUsecase.execute(
-                new RevokeSubscriptionApiKeyUseCase.Input(subscriptionId, apiKey, referenceId, referenceType, getAuditInfo())
-            );
+                    ? subscriptionEntity.getReferenceId()
+                    : subscriptionEntity.getApi();
+            final String referenceType =
+                    subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType() : "API";
+            revokeSubscriptionApiKeyUsecase.execute(new RevokeSubscriptionApiKeyUseCase.Input(
+                    subscriptionId, apiKey, referenceId, referenceType, getAuditInfo()));
 
             return Response.noContent().build();
         }

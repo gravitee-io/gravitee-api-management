@@ -49,60 +49,54 @@ class ApiProductMapperTest {
 
         Plan plan = Plan.builder().id("plan-1").build();
         ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
-            .id("product-id")
-            .name("Test Product")
-            .apiIds(Set.of("api-1", "api-2"))
-            .plans(List.of(plan))
-            .build();
+                .id("product-id")
+                .name("Test Product")
+                .apiIds(Set.of("api-1", "api-2"))
+                .plans(List.of(plan))
+                .build();
 
         distributedEvent = DistributedEvent.builder()
-            .id(reactableApiProduct.getId())
-            .payload(objectMapper.writeValueAsString(reactableApiProduct))
-            .updatedAt(new Date())
-            .type(DistributedEventType.API_PRODUCT)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id(reactableApiProduct.getId())
+                .payload(objectMapper.writeValueAsString(reactableApiProduct))
+                .updatedAt(new Date())
+                .type(DistributedEventType.API_PRODUCT)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
         apiProductDeployable = ApiProductReactorDeployable.builder()
-            .apiProductId(reactableApiProduct.getId())
-            .reactableApiProduct(reactableApiProduct)
-            .syncAction(SyncAction.DEPLOY)
-            .subscribablePlans(Set.of("plan-1"))
-            .build();
+                .apiProductId(reactableApiProduct.getId())
+                .reactableApiProduct(reactableApiProduct)
+                .syncAction(SyncAction.DEPLOY)
+                .subscribablePlans(Set.of("plan-1"))
+                .build();
     }
 
     @Test
     void should_return_deployable_from_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(deployable -> {
-                assertThat(deployable.apiProductId()).isEqualTo(apiProductDeployable.apiProductId());
-                assertThat(deployable.syncAction()).isEqualTo(apiProductDeployable.syncAction());
-                assertThat(deployable.reactableApiProduct()).isEqualTo(apiProductDeployable.reactableApiProduct());
-                assertThat(deployable.subscribablePlans()).isEqualTo(apiProductDeployable.subscribablePlans());
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(deployable -> {
+            assertThat(deployable.apiProductId()).isEqualTo(apiProductDeployable.apiProductId());
+            assertThat(deployable.syncAction()).isEqualTo(apiProductDeployable.syncAction());
+            assertThat(deployable.reactableApiProduct()).isEqualTo(apiProductDeployable.reactableApiProduct());
+            assertThat(deployable.subscribablePlans()).isEqualTo(apiProductDeployable.subscribablePlans());
+            return true;
+        });
     }
 
     @Test
     void should_return_deployable_for_undeploy_event() {
         DistributedEvent undeployEvent = DistributedEvent.builder()
-            .id("product-id")
-            .type(DistributedEventType.API_PRODUCT)
-            .syncAction(DistributedSyncAction.UNDEPLOY)
-            .updatedAt(new Date())
-            .build();
+                .id("product-id")
+                .type(DistributedEventType.API_PRODUCT)
+                .syncAction(DistributedSyncAction.UNDEPLOY)
+                .updatedAt(new Date())
+                .build();
 
-        cut
-            .to(undeployEvent)
-            .test()
-            .assertValue(deployable -> {
-                assertThat(deployable.apiProductId()).isEqualTo("product-id");
-                assertThat(deployable.syncAction()).isEqualTo(SyncAction.UNDEPLOY);
-                assertThat(deployable.reactableApiProduct()).isNull();
-                return true;
-            });
+        cut.to(undeployEvent).test().assertValue(deployable -> {
+            assertThat(deployable.apiProductId()).isEqualTo("product-id");
+            assertThat(deployable.syncAction()).isEqualTo(SyncAction.UNDEPLOY);
+            assertThat(deployable.reactableApiProduct()).isNull();
+            return true;
+        });
     }
 
     @Test
@@ -113,45 +107,39 @@ class ApiProductMapperTest {
     @Test
     void should_return_empty_for_deploy_event_with_missing_payload() {
         DistributedEvent deployEvent = DistributedEvent.builder()
-            .id("product-id")
-            .type(DistributedEventType.API_PRODUCT)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .updatedAt(new Date())
-            .build();
+                .id("product-id")
+                .type(DistributedEventType.API_PRODUCT)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .updatedAt(new Date())
+                .build();
 
         cut.to(deployEvent).test().assertComplete();
     }
 
     @Test
     void should_map_deployable_to_distributed_event() {
-        cut
-            .to(apiProductDeployable)
-            .test()
-            .assertValue(event -> {
-                assertThat(event.getId()).isEqualTo(distributedEvent.getId());
-                assertThat(event.getType()).isEqualTo(distributedEvent.getType());
-                assertThat(event.getPayload()).isEqualTo(distributedEvent.getPayload());
-                assertThat(event.getSyncAction()).isEqualTo(distributedEvent.getSyncAction());
-                return true;
-            });
+        cut.to(apiProductDeployable).test().assertValue(event -> {
+            assertThat(event.getId()).isEqualTo(distributedEvent.getId());
+            assertThat(event.getType()).isEqualTo(distributedEvent.getType());
+            assertThat(event.getPayload()).isEqualTo(distributedEvent.getPayload());
+            assertThat(event.getSyncAction()).isEqualTo(distributedEvent.getSyncAction());
+            return true;
+        });
     }
 
     @Test
     void should_map_undeploy_deployable_without_payload() {
         ApiProductReactorDeployable undeployDeployable = ApiProductReactorDeployable.builder()
-            .apiProductId("product-id")
-            .syncAction(SyncAction.UNDEPLOY)
-            .build();
+                .apiProductId("product-id")
+                .syncAction(SyncAction.UNDEPLOY)
+                .build();
 
-        cut
-            .to(undeployDeployable)
-            .test()
-            .assertValue(event -> {
-                assertThat(event.getId()).isEqualTo("product-id");
-                assertThat(event.getType()).isEqualTo(DistributedEventType.API_PRODUCT);
-                assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                assertThat(event.getPayload()).isNull();
-                return true;
-            });
+        cut.to(undeployDeployable).test().assertValue(event -> {
+            assertThat(event.getId()).isEqualTo("product-id");
+            assertThat(event.getType()).isEqualTo(DistributedEventType.API_PRODUCT);
+            assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+            assertThat(event.getPayload()).isNull();
+            return true;
+        });
     }
 }

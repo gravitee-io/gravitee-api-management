@@ -31,14 +31,14 @@ public interface DefinitionContextMapper {
 
         if (originContext instanceof OriginContext.Management) {
             return new DefinitionContext()
-                .origin(DefinitionContext.OriginEnum.MANAGEMENT)
-                .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
-                .syncFrom(DefinitionContext.SyncFromEnum.MANAGEMENT);
+                    .origin(DefinitionContext.OriginEnum.MANAGEMENT)
+                    .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
+                    .syncFrom(DefinitionContext.SyncFromEnum.MANAGEMENT);
         } else if (originContext instanceof OriginContext.Kubernetes) {
             return new DefinitionContext()
-                .origin(DefinitionContext.OriginEnum.KUBERNETES)
-                .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
-                .syncFrom(DefinitionContext.SyncFromEnum.KUBERNETES);
+                    .origin(DefinitionContext.OriginEnum.KUBERNETES)
+                    .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
+                    .syncFrom(DefinitionContext.SyncFromEnum.KUBERNETES);
         }
         return null;
     }

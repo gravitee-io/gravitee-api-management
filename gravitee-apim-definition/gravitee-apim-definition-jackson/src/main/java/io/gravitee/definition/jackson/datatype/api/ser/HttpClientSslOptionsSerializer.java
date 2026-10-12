@@ -32,7 +32,8 @@ public class HttpClientSslOptionsSerializer extends StdScalarSerializer<HttpClie
     }
 
     @Override
-    public void serialize(HttpClientSslOptions httpClientSslOptions, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HttpClientSslOptions httpClientSslOptions, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeBooleanField("trustAll", httpClientSslOptions.isTrustAll());
         jgen.writeBooleanField("hostnameVerifier", httpClientSslOptions.isHostnameVerifier());

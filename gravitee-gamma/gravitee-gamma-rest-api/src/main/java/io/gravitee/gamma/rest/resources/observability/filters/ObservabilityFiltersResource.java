@@ -90,44 +90,37 @@ public class ObservabilityFiltersResource {
     @Path("/definition")
     @Produces(MediaType.APPLICATION_JSON)
     public FilterSpecsResponseDto getFilterDefinitions(
-        @QueryParam("signal") List<String> signals,
-        @QueryParam("apiType") List<String> apiTypes
-    ) {
+            @QueryParam("signal") List<String> signals, @QueryParam("apiType") List<String> apiTypes) {
         checkReadObservabilityPermission();
-        var output = getFilterDefinitionsUseCase.execute(
-            new GetObservabilityFilterDefinitionsUseCase.Input(
+        var output = getFilterDefinitionsUseCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(
                 parse(signals, Signal.class, Signal::valueOf, "signal"),
-                parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType")
-            )
-        );
-        return new FilterSpecsResponseDto(output.filters().stream().map(FilterSpecDto::from).toList());
+                parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType")));
+        return new FilterSpecsResponseDto(
+                output.filters().stream().map(FilterSpecDto::from).toList());
     }
 
     @GET
     @Path("/{filterName}/values")
     @Produces(MediaType.APPLICATION_JSON)
     public PaginatedResponseDto<FilterValueDto> getFilterValues(
-        @PathParam("filterName") String filterName,
-        @QueryParam("query") String query,
-        @QueryParam("from") Long from,
-        @QueryParam("to") Long to,
-        @QueryParam("page") Integer page,
-        @QueryParam("perPage") Integer perPage,
-        @QueryParam("apiType") List<String> apiTypes
-    ) {
+            @PathParam("filterName") String filterName,
+            @QueryParam("query") String query,
+            @QueryParam("from") Long from,
+            @QueryParam("to") Long to,
+            @QueryParam("page") Integer page,
+            @QueryParam("perPage") Integer perPage,
+            @QueryParam("apiType") List<String> apiTypes) {
         checkReadObservabilityPermission();
-        var output = getFilterValuesUseCase.execute(
-            new GetObservabilityFilterValuesUseCase.Input(
+        var output = getFilterValuesUseCase.execute(new GetObservabilityFilterValuesUseCase.Input(
                 filterName,
                 query,
                 from,
                 to,
                 page,
                 perPage,
-                parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType")
-            )
-        );
-        List<FilterValueDto> data = output.values().data().stream().map(FilterValueDto::from).toList();
+                parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType")));
+        List<FilterValueDto> data =
+                output.values().data().stream().map(FilterValueDto::from).toList();
         return PaginatedResponseDto.of(data, output.values().totalElements(), output.page(), output.perPage());
     }
 
@@ -138,12 +131,10 @@ public class ObservabilityFiltersResource {
     public ResolveFilterLabelsResponseDto resolveFilterLabels(ResolveFilterLabelsRequestDto request) {
         checkReadObservabilityPermission();
         List<ResolveObservabilityFilterLabelsUseCase.Entry> entries = request == null || request.entries() == null
-            ? List.of()
-            : request
-                .entries()
-                .stream()
-                .map(e -> new ResolveObservabilityFilterLabelsUseCase.Entry(e.filterName(), e.ids()))
-                .toList();
+                ? List.of()
+                : request.entries().stream()
+                        .map(e -> new ResolveObservabilityFilterLabelsUseCase.Entry(e.filterName(), e.ids()))
+                        .toList();
         var output = resolveFilterLabelsUseCase.execute(new ResolveObservabilityFilterLabelsUseCase.Input(entries));
         return ResolveFilterLabelsResponseDto.from(output);
     }
@@ -152,7 +143,8 @@ public class ObservabilityFiltersResource {
      * Parses a multi-valued query param into an {@link EnumSet}, case-insensitively. {@code null} /
      * empty means "unconstrained" (empty set). An unknown token is a client error → {@code 400}.
      */
-    private static <E extends Enum<E>> Set<E> parse(List<String> raw, Class<E> type, Function<String, E> valueOf, String paramName) {
+    private static <E extends Enum<E>> Set<E> parse(
+            List<String> raw, Class<E> type, Function<String, E> valueOf, String paramName) {
         if (raw == null || raw.isEmpty()) {
             return Set.of();
         }
@@ -173,14 +165,13 @@ public class ObservabilityFiltersResource {
     private void checkReadObservabilityPermission() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String environmentId = executionContext.getEnvironmentId();
-        boolean allowed =
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                environmentId,
-                RolePermissionAction.READ
-            ) ||
-            permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+        boolean allowed = permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_DASHBOARD,
+                        environmentId,
+                        RolePermissionAction.READ)
+                || permissionService.hasPermission(
+                        executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
         if (!allowed) {
             throw new ForbiddenAccessException();
         }

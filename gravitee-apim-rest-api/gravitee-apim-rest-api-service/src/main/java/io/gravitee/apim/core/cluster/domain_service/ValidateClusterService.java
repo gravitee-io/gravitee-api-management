@@ -19,8 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
-import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
-import io.gravitee.apim.core.cluster.model.KafkaVirtualClusterBackend;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.utils.StringUtils;
@@ -74,7 +72,8 @@ public class ValidateClusterService {
 
     public void validateForUpdate(Cluster existingCluster, Cluster updatedCluster) {
         validate(updatedCluster);
-        if (existingCluster.getCrossId() != null && !existingCluster.getCrossId().equals(updatedCluster.getCrossId())) {
+        if (existingCluster.getCrossId() != null
+                && !existingCluster.getCrossId().equals(updatedCluster.getCrossId())) {
             throw new InvalidDataException("CrossId is immutable and cannot be changed after creation.");
         }
     }
@@ -83,23 +82,23 @@ public class ValidateClusterService {
         if (StringUtils.isEmpty(cluster.getCrossId())) {
             throw new InvalidDataException("CrossId is required.");
         }
-        var existing = clusterQueryService.findByCrossIdAndEnvironmentId(cluster.getCrossId(), cluster.getEnvironmentId());
+        var existing =
+                clusterQueryService.findByCrossIdAndEnvironmentId(cluster.getCrossId(), cluster.getEnvironmentId());
         if (existing.isPresent() && !existing.get().getId().equals(cluster.getId())) {
-            throw new InvalidDataException("A cluster with crossId '" + cluster.getCrossId() + "' already exists in this environment.");
+            throw new InvalidDataException(
+                    "A cluster with crossId '" + cluster.getCrossId() + "' already exists in this environment.");
         }
     }
 
     private void validateUniqueConnectionNames(Cluster cluster) {
         var config = cluster.getKafkaClusterConfiguration(objectMapper);
-        var duplicates = config
-            .connections()
-            .stream()
-            .collect(Collectors.groupingBy(c -> c.name(), Collectors.counting()))
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue() > 1)
-            .map(e -> e.getKey())
-            .toList();
+        var duplicates = config.connections().stream()
+                .collect(Collectors.groupingBy(c -> c.name(), Collectors.counting()))
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() > 1)
+                .map(e -> e.getKey())
+                .toList();
 
         if (!duplicates.isEmpty()) {
             throw new InvalidDataException("Connection names must be unique. Duplicates found: " + duplicates);
@@ -111,18 +110,18 @@ public class ValidateClusterService {
         if (config.backends() == null || config.backends().isEmpty()) {
             return;
         }
-        var duplicates = config
-            .backends()
-            .stream()
-            .collect(Collectors.groupingBy(b -> b, Collectors.counting()))
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue() > 1)
-            .map(e -> e.getKey())
-            .toList();
+        var duplicates =
+                config.backends().stream()
+                        .collect(Collectors.groupingBy(b -> b, Collectors.counting()))
+                        .entrySet()
+                        .stream()
+                        .filter(e -> e.getValue() > 1)
+                        .map(e -> e.getKey())
+                        .toList();
 
         if (!duplicates.isEmpty()) {
-            throw new InvalidDataException("Backend references must be unique within a virtual cluster. Duplicates found: " + duplicates);
+            throw new InvalidDataException(
+                    "Backend references must be unique within a virtual cluster. Duplicates found: " + duplicates);
         }
     }
 
@@ -131,19 +130,18 @@ public class ValidateClusterService {
         if (config.connections() == null || config.connections().isEmpty()) {
             return;
         }
-        var duplicates = config
-            .connections()
-            .stream()
-            .filter(c -> c.crossId() != null)
-            .collect(Collectors.groupingBy(c -> c.crossId(), Collectors.counting()))
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue() > 1)
-            .map(e -> e.getKey())
-            .toList();
+        var duplicates = config.connections().stream()
+                .filter(c -> c.crossId() != null)
+                .collect(Collectors.groupingBy(c -> c.crossId(), Collectors.counting()))
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() > 1)
+                .map(e -> e.getKey())
+                .toList();
 
         if (!duplicates.isEmpty()) {
-            throw new InvalidDataException("Connection crossIds must be unique within a cluster. Duplicates found: " + duplicates);
+            throw new InvalidDataException(
+                    "Connection crossIds must be unique within a cluster. Duplicates found: " + duplicates);
         }
     }
 }

@@ -57,7 +57,8 @@ public record DictionaryProperty(String value, boolean encrypted) {
     static class Serializer extends JsonSerializer<DictionaryProperty> {
 
         @Override
-        public void serialize(DictionaryProperty property, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        public void serialize(DictionaryProperty property, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
             if (property.encrypted()) {
                 gen.writeStartObject();
                 gen.writeStringField("value", property.value());
@@ -83,7 +84,8 @@ public record DictionaryProperty(String value, boolean encrypted) {
             if (value == null || !value.isTextual()) {
                 throw JsonMappingException.from(p, "A dictionary property object must have a textual 'value' field");
             }
-            boolean encrypted = node.hasNonNull("encrypted") && node.get("encrypted").asBoolean();
+            boolean encrypted =
+                    node.hasNonNull("encrypted") && node.get("encrypted").asBoolean();
             return new DictionaryProperty(value.asText(), encrypted);
         }
 

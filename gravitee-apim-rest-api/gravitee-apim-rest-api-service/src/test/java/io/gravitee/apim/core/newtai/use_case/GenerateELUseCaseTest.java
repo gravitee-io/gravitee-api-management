@@ -49,7 +49,8 @@ class GenerateELUseCaseTest {
     void should_generate_el() {
         // Given
         var input = new GenerateELUseCase.Input("message", mock(AuditInfo.class)).withApiId("apiId");
-        var expectedReply = new Reply("el-expression", new Reply.FeedbackId("chatId", "userMessageId", "agentMessageId"));
+        var expectedReply =
+                new Reply("el-expression", new Reply.FeedbackId("chatId", "userMessageId", "agentMessageId"));
         newtAIProvider.initWith(List.of(new NewtAIProviderInMemory.Tuple.Success("message", expectedReply)));
 
         // When
@@ -66,23 +67,23 @@ class GenerateELUseCaseTest {
     void fail_generate_el(VertxTestContext context) {
         // Given
         var input = new GenerateELUseCase.Input("message", mock(AuditInfo.class)).withApiId("apiId");
-        newtAIProvider.initWith(List.of(new NewtAIProviderInMemory.Tuple.Fail("message", new NewtAIReplyException("cmdId", "error"))));
+        newtAIProvider.initWith(
+                List.of(new NewtAIProviderInMemory.Tuple.Fail("message", new NewtAIReplyException("cmdId", "error"))));
 
         // When
         var genReplySingle = generateELUseCase.execute(input);
 
         // Then
         genReplySingle.subscribe(
-            reply -> context.failNow("Should not succeed"),
-            th ->
-                context.verify(() -> {
+                reply -> context.failNow("Should not succeed"),
+                th -> context.verify(() -> {
                     assertThat(th).isInstanceOf(NewtAIReplyException.class).hasMessage("error");
                     context.completeNow();
-                })
-        );
+                }));
     }
 
     private record Reply(String message, FeedbackId feedbackId) implements ELGenReply {
-        private record FeedbackId(String chatId, String userMessageId, String agentMessageId) implements ELGenReply.FeedbackId {}
+        private record FeedbackId(String chatId, String userMessageId, String agentMessageId)
+                implements ELGenReply.FeedbackId {}
     }
 }

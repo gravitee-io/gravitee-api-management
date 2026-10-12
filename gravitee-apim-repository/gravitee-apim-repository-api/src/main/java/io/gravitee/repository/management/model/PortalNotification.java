@@ -85,24 +85,21 @@ public class PortalNotification {
 
     @Override
     public String toString() {
-        return (
-            "Notification{" +
-            "id='" +
-            id +
-            '\'' +
-            ", title='" +
-            title +
-            '\'' +
-            ", message='" +
-            message +
-            '\'' +
-            ", user='" +
-            user +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            '}'
-        );
+        return ("Notification{" + "id='"
+                + id
+                + '\''
+                + ", title='"
+                + title
+                + '\''
+                + ", message='"
+                + message
+                + '\''
+                + ", user='"
+                + user
+                + '\''
+                + ", createdAt='"
+                + createdAt
+                + '\''
+                + '}');
     }
 }

@@ -37,15 +37,15 @@ public class HttpSecurityPlanFactory {
         final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(plan, policyManager);
 
         if (policy != null) {
-            return new HttpSecurityPlan(SecurityPlanContext.builder().fromV2(plan).build(), policy);
+            return new HttpSecurityPlan(
+                    SecurityPlanContext.builder().fromV2(plan).build(), policy);
         }
 
         log.warn(
-            "No policy has been found for the plan [{}] (api [{}]) with security [{}]. This plan will remain unreachable",
-            plan.getName(),
-            plan.getApi(),
-            plan.getSecurity()
-        );
+                "No policy has been found for the plan [{}] (api [{}]) with security [{}]. This plan will remain unreachable",
+                plan.getName(),
+                plan.getApi(),
+                plan.getSecurity());
         return null;
     }
 }

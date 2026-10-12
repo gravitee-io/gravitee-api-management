@@ -70,11 +70,10 @@ public class AssignDefaultApiProductRoleToGroupsUpgrader implements Upgrader {
 
     @Autowired
     public AssignDefaultApiProductRoleToGroupsUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy GroupRepository groupRepository,
-        @Lazy MembershipRepository membershipRepository,
-        @Lazy RoleRepository roleRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy GroupRepository groupRepository,
+            @Lazy MembershipRepository membershipRepository,
+            @Lazy RoleRepository roleRepository) {
         this.environmentRepository = environmentRepository;
         this.groupRepository = groupRepository;
         this.membershipRepository = membershipRepository;
@@ -87,20 +86,17 @@ public class AssignDefaultApiProductRoleToGroupsUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() throws TechnicalException {
-        environmentRepository
-            .findAll()
-            .forEach(environment -> {
-                ExecutionContext executionContext = new ExecutionContext(environment);
-                try {
-                    backfillAllGroupsInEnvironment(executionContext);
-                } catch (TechnicalException e) {
-                    log.error(
+        environmentRepository.findAll().forEach(environment -> {
+            ExecutionContext executionContext = new ExecutionContext(environment);
+            try {
+                backfillAllGroupsInEnvironment(executionContext);
+            } catch (TechnicalException e) {
+                log.error(
                         "Error backfilling default API_PRODUCT role on groups for environment {}",
                         executionContext.getEnvironmentId(),
-                        e
-                    );
-                }
-            });
+                        e);
+            }
+        });
         return true;
     }
 
@@ -108,68 +104,73 @@ public class AssignDefaultApiProductRoleToGroupsUpgrader implements Upgrader {
         Optional<String> userRoleId = findApiProductUserRoleId(executionContext.getOrganizationId());
         if (userRoleId.isEmpty()) {
             log.warn(
-                "API_PRODUCT '{}' role not found for organization {} — skipping group backfill (run ApiProductRolesUpgrader first)",
-                ROLE_API_PRODUCT_USER.getName(),
-                executionContext.getOrganizationId()
-            );
+                    "API_PRODUCT '{}' role not found for organization {} — skipping group backfill (run ApiProductRolesUpgrader first)",
+                    ROLE_API_PRODUCT_USER.getName(),
+                    executionContext.getOrganizationId());
             return;
         }
 
         Set<String> apiProductRoleIds = findAllApiProductRoleIds(executionContext.getOrganizationId());
 
         for (Group group : groupRepository.findAllByEnvironment(executionContext.getEnvironmentId())) {
-            backfillGroupMembers(executionContext.getOrganizationId(), group.getId(), userRoleId.get(), apiProductRoleIds);
+            backfillGroupMembers(
+                    executionContext.getOrganizationId(), group.getId(), userRoleId.get(), apiProductRoleIds);
         }
     }
 
-    private void backfillGroupMembers(String organizationId, String groupId, String defaultUserRoleId, Set<String> apiProductRoleIds)
-        throws TechnicalException {
+    private void backfillGroupMembers(
+            String organizationId, String groupId, String defaultUserRoleId, Set<String> apiProductRoleIds)
+            throws TechnicalException {
         String defaultRoleId = resolveOrCreateDefaultApiProductRoleId(groupId, defaultUserRoleId);
 
-        List<Membership> groupMemberships = membershipRepository.findByReferenceIdAndReferenceType(groupId, MembershipReferenceType.GROUP);
+        List<Membership> groupMemberships =
+                membershipRepository.findByReferenceIdAndReferenceType(groupId, MembershipReferenceType.GROUP);
 
-        Set<String> userIdsWithApiProductRole = groupMemberships
-            .stream()
-            .filter(m -> MembershipMemberType.USER.equals(m.getMemberType()))
-            .filter(m -> apiProductRoleIds.contains(m.getRoleId()))
-            .map(Membership::getMemberId)
-            .collect(Collectors.toSet());
+        Set<String> userIdsWithApiProductRole = groupMemberships.stream()
+                .filter(m -> MembershipMemberType.USER.equals(m.getMemberType()))
+                .filter(m -> apiProductRoleIds.contains(m.getRoleId()))
+                .map(Membership::getMemberId)
+                .collect(Collectors.toSet());
 
-        Set<String> userIds = groupMemberships
-            .stream()
-            .filter(m -> MembershipMemberType.USER.equals(m.getMemberType()))
-            .map(Membership::getMemberId)
-            .collect(Collectors.toSet());
+        Set<String> userIds = groupMemberships.stream()
+                .filter(m -> MembershipMemberType.USER.equals(m.getMemberType()))
+                .map(Membership::getMemberId)
+                .collect(Collectors.toSet());
 
         for (String userId : userIds) {
             if (userIdsWithApiProductRole.contains(userId)) {
                 continue;
             }
             createMemberApiProductRoleMembership(userId, groupId, defaultRoleId);
-            log.info("Assigned default API_PRODUCT role to user {} on group {} (organization {})", userId, groupId, organizationId);
+            log.info(
+                    "Assigned default API_PRODUCT role to user {} on group {} (organization {})",
+                    userId,
+                    groupId,
+                    organizationId);
         }
     }
 
     private Optional<String> findApiProductUserRoleId(String organizationId) throws TechnicalException {
         return roleRepository
-            .findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.API_PRODUCT,
-                ROLE_API_PRODUCT_USER.getName(),
-                organizationId,
-                RoleReferenceType.ORGANIZATION
-            )
-            .map(Role::getId);
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.API_PRODUCT,
+                        ROLE_API_PRODUCT_USER.getName(),
+                        organizationId,
+                        RoleReferenceType.ORGANIZATION)
+                .map(Role::getId);
     }
 
     private Set<String> findAllApiProductRoleIds(String organizationId) throws TechnicalException {
         return roleRepository
-            .findByScopeAndReferenceIdAndReferenceType(RoleScope.API_PRODUCT, organizationId, RoleReferenceType.ORGANIZATION)
-            .stream()
-            .map(Role::getId)
-            .collect(Collectors.toSet());
+                .findByScopeAndReferenceIdAndReferenceType(
+                        RoleScope.API_PRODUCT, organizationId, RoleReferenceType.ORGANIZATION)
+                .stream()
+                .map(Role::getId)
+                .collect(Collectors.toSet());
     }
 
-    private String resolveOrCreateDefaultApiProductRoleId(String groupId, String defaultUserRoleId) throws TechnicalException {
+    private String resolveOrCreateDefaultApiProductRoleId(String groupId, String defaultUserRoleId)
+            throws TechnicalException {
         Optional<String> existingDefaultRoleId = findDefaultApiProductRoleId(groupId);
         if (existingDefaultRoleId.isPresent()) {
             return existingDefaultRoleId.get();
@@ -182,22 +183,22 @@ public class AssignDefaultApiProductRoleToGroupsUpgrader implements Upgrader {
 
     private Optional<String> findDefaultApiProductRoleId(String groupId) throws TechnicalException {
         return membershipRepository
-            .findByMemberIdAndMemberTypeAndReferenceType(groupId, MembershipMemberType.GROUP, MembershipReferenceType.API_PRODUCT)
-            .stream()
-            .filter(m -> m.getReferenceId() == null)
-            .map(Membership::getRoleId)
-            .findFirst();
+                .findByMemberIdAndMemberTypeAndReferenceType(
+                        groupId, MembershipMemberType.GROUP, MembershipReferenceType.API_PRODUCT)
+                .stream()
+                .filter(m -> m.getReferenceId() == null)
+                .map(Membership::getRoleId)
+                .findFirst();
     }
 
     private void createDefaultApiProductRoleMembership(String groupId, String roleId) throws TechnicalException {
         Membership membership = new Membership(
-            UuidString.generateRandom(),
-            groupId,
-            MembershipMemberType.GROUP,
-            null,
-            MembershipReferenceType.API_PRODUCT,
-            roleId
-        );
+                UuidString.generateRandom(),
+                groupId,
+                MembershipMemberType.GROUP,
+                null,
+                MembershipReferenceType.API_PRODUCT,
+                roleId);
         Date now = new Date();
         membership.setCreatedAt(now);
         membership.setUpdatedAt(now);
@@ -205,15 +206,15 @@ public class AssignDefaultApiProductRoleToGroupsUpgrader implements Upgrader {
         membershipRepository.create(membership);
     }
 
-    private void createMemberApiProductRoleMembership(String userId, String groupId, String roleId) throws TechnicalException {
+    private void createMemberApiProductRoleMembership(String userId, String groupId, String roleId)
+            throws TechnicalException {
         Membership membership = new Membership(
-            UuidString.generateRandom(),
-            userId,
-            MembershipMemberType.USER,
-            groupId,
-            MembershipReferenceType.GROUP,
-            roleId
-        );
+                UuidString.generateRandom(),
+                userId,
+                MembershipMemberType.USER,
+                groupId,
+                MembershipReferenceType.GROUP,
+                roleId);
         Date now = new Date();
         membership.setCreatedAt(now);
         membership.setUpdatedAt(now);

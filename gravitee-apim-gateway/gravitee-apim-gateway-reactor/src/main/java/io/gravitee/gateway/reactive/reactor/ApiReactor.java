@@ -19,8 +19,6 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import io.gravitee.node.api.opentelemetry.Tracer;
-import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Optional;
 
@@ -40,7 +38,9 @@ public interface ApiReactor<T extends ReactableApi<?>> extends ReactorHandler {
         return Optional.empty();
     }
 
-    default void handle(io.gravitee.gateway.api.ExecutionContext context, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
+    default void handle(
+            io.gravitee.gateway.api.ExecutionContext context,
+            Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
         throw new RuntimeException(new IllegalAccessException("Handle method can't be called on ApiReactor"));
     }
 }

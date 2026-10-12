@@ -86,7 +86,10 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("1", audit.getReferenceId(), "referenceId");
         assertEquals(Audit.AuditReferenceType.API, audit.getReferenceType(), "referenceType");
         assertEquals(Plan.AuditEvent.PLAN_CREATED.name(), audit.getEvent(), "event");
-        assertEquals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123"), audit.getProperties(), "properties");
+        assertEquals(
+                Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123"),
+                audit.getProperties(),
+                "properties");
         assertEquals("JohnDoe", audit.getUser(), "user");
         assertTrue(compareDate(new Date(1486771200000L), audit.getCreatedAt()), "createdAt");
         assertEquals("diff", audit.getPatch(), "patch");
@@ -94,7 +97,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_with_pagination() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, List.of("2")).build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .references(Audit.AuditReferenceType.API, List.of("2"))
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(1).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -108,7 +113,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_with_event() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().events(List.of(Plan.AuditEvent.PLAN_UPDATED.name())).build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .events(List.of(Plan.AuditEvent.PLAN_UPDATED.name()))
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -124,7 +131,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_search_with_property() throws Exception {
         auditRepository.create(encryptedDictionaryAudit("encrypted", "DEFAULT"));
 
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.ENCRYPTED.name(), "true").build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .property(Audit.AuditProperties.ENCRYPTED.name(), "true")
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -138,7 +147,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_search_with_property_matching_nothing() throws Exception {
         auditRepository.create(encryptedDictionaryAudit("encrypted", "DEFAULT"));
 
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.ENCRYPTED.name(), "false").build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .property(Audit.AuditProperties.ENCRYPTED.name(), "false")
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -153,9 +164,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         auditRepository.create(encryptedDictionaryAudit("encryptedElsewhere", "other-env"));
 
         AuditCriteria auditCriteria = new AuditCriteria.Builder()
-            .environmentIds(List.of("DEFAULT"))
-            .property(Audit.AuditProperties.ENCRYPTED.name(), "true")
-            .build();
+                .environmentIds(List.of("DEFAULT"))
+                .property(Audit.AuditProperties.ENCRYPTED.name(), "true")
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -169,24 +180,31 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_keep_every_property_of_a_matched_audit() throws Exception {
         auditRepository.create(encryptedDictionaryAudit("encrypted", "DEFAULT"));
 
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.ENCRYPTED.name(), "true").build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .property(Audit.AuditProperties.ENCRYPTED.name(), "true")
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertEquals(1, auditPage.getTotalElements(), "total elements");
         assertEquals(
-            Map.of(Audit.AuditProperties.DICTIONARY.name(), "my-dictionary", Audit.AuditProperties.ENCRYPTED.name(), "true"),
-            auditPage.getContent().getFirst().getProperties(),
-            "every property of the matched audit"
-        );
+                Map.of(
+                        Audit.AuditProperties.DICTIONARY.name(),
+                        "my-dictionary",
+                        Audit.AuditProperties.ENCRYPTED.name(),
+                        "true"),
+                auditPage.getContent().getFirst().getProperties(),
+                "every property of the matched audit");
     }
 
     @Test
     public void should_not_inflate_total_elements_for_an_audit_with_several_properties() throws Exception {
         auditRepository.create(encryptedDictionaryAudit("multiProperty", "multi-property-env"));
 
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("multi-property-env")).build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .environmentIds(List.of("multi-property-env"))
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -200,16 +218,21 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         createEncryptedDictionaryAudit("pagedNewest", 1486771200003L);
         createEncryptedDictionaryAudit("pagedMiddle", 1486771200002L);
         createEncryptedDictionaryAudit("pagedOldest", 1486771200001L);
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("paged-env")).build();
+        AuditCriteria auditCriteria =
+                new AuditCriteria.Builder().environmentIds(List.of("paged-env")).build();
 
-        Page<Audit> firstPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
-        Page<Audit> secondPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
+        Page<Audit> firstPage = auditRepository.search(
+                auditCriteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        Page<Audit> secondPage = auditRepository.search(
+                auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertEquals(3, firstPage.getTotalElements(), "total elements");
         assertThat(firstPage.getContent()).extracting(Audit::getId).containsExactly("pagedNewest", "pagedMiddle");
         assertThat(secondPage.getContent()).extracting(Audit::getId).containsExactly("pagedOldest");
-        assertThat(firstPage.getContent()).allSatisfy(audit -> assertThat(audit.getProperties()).hasSize(2));
-        assertThat(secondPage.getContent()).allSatisfy(audit -> assertThat(audit.getProperties()).hasSize(2));
+        assertThat(firstPage.getContent())
+                .allSatisfy(audit -> assertThat(audit.getProperties()).hasSize(2));
+        assertThat(secondPage.getContent())
+                .allSatisfy(audit -> assertThat(audit.getProperties()).hasSize(2));
     }
 
     private void createEncryptedDictionaryAudit(String id, long createdAt) throws TechnicalException {
@@ -226,9 +249,11 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         audit.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);
         audit.setReferenceId(environmentId);
         audit.setEvent(Dictionary.AuditEvent.DICTIONARY_UPDATED.name());
-        audit.setProperties(
-            Map.of(Audit.AuditProperties.DICTIONARY.name(), "my-dictionary", Audit.AuditProperties.ENCRYPTED.name(), "true")
-        );
+        audit.setProperties(Map.of(
+                Audit.AuditProperties.DICTIONARY.name(),
+                "my-dictionary",
+                Audit.AuditProperties.ENCRYPTED.name(),
+                "true"));
         audit.setUser("JohnDoe");
         audit.setPatch("diff");
         audit.setCreatedAt(new Date(1486771200000L));
@@ -253,7 +278,10 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_from_to() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1900000000000L).to(2000000000005L).build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .from(1900000000000L)
+                .to(2000000000005L)
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -267,16 +295,19 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_from() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1000000000000L).build();
+        AuditCriteria auditCriteria =
+                new AuditCriteria.Builder().from(1000000000000L).build();
 
-        Page<Audit> auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(3).build());
+        Page<Audit> auditPage = auditRepository.search(
+                auditCriteria, new PageableBuilder().pageNumber(0).pageSize(3).build());
 
         assertNotNull(auditPage);
         assertEquals(5, auditPage.getTotalElements(), "total elements");
         assertEquals(3, auditPage.getPageElements(), "page elements");
         assertEquals(0, auditPage.getPageNumber(), "page number");
 
-        auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
+        auditPage = auditRepository.search(
+                auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertNotNull(auditPage);
         assertEquals(5, auditPage.getTotalElements(), "total elements");
@@ -286,7 +317,8 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_to() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().to(1000000000000L).build();
+        AuditCriteria auditCriteria =
+                new AuditCriteria.Builder().to(1000000000000L).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -299,7 +331,8 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_with_environment_ids() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
+        AuditCriteria auditCriteria =
+                new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -313,7 +346,8 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_with_organization_id() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().organizationId("DEFAULT").build();
+        AuditCriteria auditCriteria =
+                new AuditCriteria.Builder().organizationId("DEFAULT").build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -327,7 +361,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_search_with_reference_type_only() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, null).build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .references(Audit.AuditReferenceType.API, null)
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -340,12 +376,15 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, List.of("ToBeDeleted")).build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+                .references(Audit.AuditReferenceType.API, List.of("ToBeDeleted"))
+                .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
         assertEquals(2, auditPage.getTotalElements());
 
-        List<String> deleted = auditRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", Audit.AuditReferenceType.API);
+        List<String> deleted =
+                auditRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", Audit.AuditReferenceType.API);
 
         assertEquals(2, deleted.size());
         assertEquals(0, auditRepository.search(auditCriteria, page).getTotalElements());
@@ -354,7 +393,8 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_remove_too_old_data() throws Exception {
         // Given
-        var auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
+        var auditCriteria =
+                new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
         assertThat(auditRepository.search(auditCriteria, page).getContent()).hasSize(1);
 
@@ -368,10 +408,12 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_not_remove_young_data() throws Exception {
         // Given
-        var auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
+        var auditCriteria =
+                new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
         assertThat(auditRepository.search(auditCriteria, page).getContent()).hasSize(1);
-        var maxAge = Duration.between(Instant.parse("2017-01-01T00:00:00Z"), TimeProvider.instantNow().plus(Duration.ofDays(1)));
+        var maxAge = Duration.between(
+                Instant.parse("2017-01-01T00:00:00Z"), TimeProvider.instantNow().plus(Duration.ofDays(1)));
 
         // When
         auditRepository.deleteByEnvironmentIdAndAge("DEFAULT", maxAge);

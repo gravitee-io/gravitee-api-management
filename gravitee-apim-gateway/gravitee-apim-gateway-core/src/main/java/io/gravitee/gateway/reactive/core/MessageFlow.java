@@ -57,7 +57,8 @@ public class MessageFlow<T extends Message> implements OnMessagesInterceptor<T> 
         if (messagesInterceptorsPrioritized != null) {
             FlowableTransformer<T, T> composedTransformers = onMessages;
             for (MessagesInterceptor<T> messagesInterceptor : messagesInterceptorsPrioritized) {
-                composedTransformers = messagesInterceptor.transformersFunction().apply(composedTransformers);
+                composedTransformers =
+                        messagesInterceptor.transformersFunction().apply(composedTransformers);
             }
             this.messages = this.messages.compose(composedTransformers);
 
@@ -80,7 +81,8 @@ public class MessageFlow<T extends Message> implements OnMessagesInterceptor<T> 
         this.onMessagesInterceptorsMapping.put(messagesInterceptor.id(), messagesInterceptor);
 
         this.messagesInterceptorsPrioritized.add(messagesInterceptor);
-        this.messagesInterceptorsPrioritized.sort(Collections.reverseOrder(Comparator.comparingInt(MessagesInterceptor::priority)));
+        this.messagesInterceptorsPrioritized.sort(
+                Collections.reverseOrder(Comparator.comparingInt(MessagesInterceptor::priority)));
     }
 
     @Override

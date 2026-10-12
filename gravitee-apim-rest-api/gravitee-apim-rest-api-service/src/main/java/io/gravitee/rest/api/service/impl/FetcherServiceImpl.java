@@ -34,9 +34,11 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, FetcherEntity> implements FetcherService {
+public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, FetcherEntity>
+        implements FetcherService {
 
-    public FetcherServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<FetcherPlugin<?>> pluginManager) {
+    public FetcherServiceImpl(
+            JsonSchemaService jsonSchemaService, ConfigurablePluginManager<FetcherPlugin<?>> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 
@@ -52,16 +54,14 @@ public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, 
 
             if (onlyFilesFetchers) {
                 Class<?> filesFetcherClass = FilesFetcher.class;
-                fetcherDefinitions = fetcherDefinitions
-                    .stream()
-                    .filter(fetcherPlugin -> filesFetcherClass.isAssignableFrom(fetcherPlugin.fetcher()))
-                    .collect(Collectors.toSet());
+                fetcherDefinitions = fetcherDefinitions.stream()
+                        .filter(fetcherPlugin -> filesFetcherClass.isAssignableFrom(fetcherPlugin.fetcher()))
+                        .collect(Collectors.toSet());
             }
 
-            return fetcherDefinitions
-                .stream()
-                .map(fetcherDefinition -> convert(fetcherDefinition, false))
-                .collect(Collectors.toSet());
+            return fetcherDefinitions.stream()
+                    .map(fetcherDefinition -> convert(fetcherDefinition, false))
+                    .collect(Collectors.toSet());
         } catch (Exception ex) {
             throw new TechnicalManagementException("An error occurs while trying to list all fetchers", ex);
         }
@@ -92,7 +92,7 @@ public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, 
             pluginEntity.setType(plugin.type().toString().toLowerCase());
             pluginEntity.setDependencies(plugin.dependencies());
             // TODO: check the purpose of this
-            //entity.setPlugin(pluginEntity);
+            // entity.setPlugin(pluginEntity);
         }
 
         return entity;

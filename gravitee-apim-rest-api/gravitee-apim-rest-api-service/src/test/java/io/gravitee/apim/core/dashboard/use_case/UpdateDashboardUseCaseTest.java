@@ -51,52 +51,62 @@ class UpdateDashboardUseCaseTest {
 
     private static AuditInfo auditInfo() {
         return AuditInfo.builder()
-            .organizationId("org-1")
-            .environmentId("env-1")
-            .actor(io.gravitee.apim.core.audit.model.AuditActor.builder().userId("user-1").build())
-            .build();
+                .organizationId("org-1")
+                .environmentId("env-1")
+                .actor(io.gravitee.apim.core.audit.model.AuditActor.builder()
+                        .userId("user-1")
+                        .build())
+                .build();
     }
 
     private static DashboardWidget widgetWithMeasuresRequest() {
         return DashboardWidget.builder()
-            .id("1")
-            .title("Requests")
-            .type("stats")
-            .layout(DashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-            .request(
-                DashboardWidget.Request.builder()
-                    .type("measures")
-                    .timeRange(
-                        DashboardWidget.TimeRange.builder()
-                            .from(Instant.parse("2025-10-07T06:50:30Z"))
-                            .to(Instant.parse("2025-12-07T11:35:30Z"))
-                            .build()
-                    )
-                    .metrics(List.of(DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()))
-                    .build()
-            )
-            .build();
+                .id("1")
+                .title("Requests")
+                .type("stats")
+                .layout(DashboardWidget.Layout.builder()
+                        .cols(1)
+                        .rows(1)
+                        .x(0)
+                        .y(0)
+                        .build())
+                .request(DashboardWidget.Request.builder()
+                        .type("measures")
+                        .timeRange(DashboardWidget.TimeRange.builder()
+                                .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                .build())
+                        .metrics(List.of(DashboardWidget.MetricRequest.builder()
+                                .name("HTTP_REQUESTS")
+                                .measures(List.of("COUNT"))
+                                .build()))
+                        .build())
+                .build();
     }
 
     private static DashboardWidget widgetWithInvalidTimeRange() {
         return DashboardWidget.builder()
-            .id("2")
-            .title("Bad range")
-            .type("stats")
-            .layout(DashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-            .request(
-                DashboardWidget.Request.builder()
-                    .type("measures")
-                    .timeRange(
-                        DashboardWidget.TimeRange.builder()
-                            .from(Instant.parse("2025-12-07T11:35:30Z"))
-                            .to(Instant.parse("2025-10-07T06:50:30Z"))
-                            .build()
-                    )
-                    .metrics(List.of(DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()))
-                    .build()
-            )
-            .build();
+                .id("2")
+                .title("Bad range")
+                .type("stats")
+                .layout(DashboardWidget.Layout.builder()
+                        .cols(1)
+                        .rows(1)
+                        .x(0)
+                        .y(0)
+                        .build())
+                .request(DashboardWidget.Request.builder()
+                        .type("measures")
+                        .timeRange(DashboardWidget.TimeRange.builder()
+                                .from(Instant.parse("2025-12-07T11:35:30Z"))
+                                .to(Instant.parse("2025-10-07T06:50:30Z"))
+                                .build())
+                        .metrics(List.of(DashboardWidget.MetricRequest.builder()
+                                .name("HTTP_REQUESTS")
+                                .measures(List.of("COUNT"))
+                                .build()))
+                        .build())
+                .build();
     }
 
     @BeforeEach
@@ -104,10 +114,7 @@ class UpdateDashboardUseCaseTest {
         dashboardCrudServiceInMemory = new DashboardCrudServiceInMemory();
         auditCrudServiceInMemory = new inmemory.AuditCrudServiceInMemory();
         var auditDomainService = new AuditDomainService(
-            auditCrudServiceInMemory,
-            new UserCrudServiceInMemory(),
-            new JacksonJsonDiffProcessor()
-        );
+                auditCrudServiceInMemory, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
         var definitionQueryService = new AnalyticsDefinitionYAMLQueryService();
         var analyticsQueryValidator = new AnalyticsQueryValidator(definitionQueryService);
         var dashboardDomainService = new DashboardDomainService(dashboardCrudServiceInMemory, analyticsQueryValidator);
@@ -124,25 +131,35 @@ class UpdateDashboardUseCaseTest {
 
         @Test
         void should_update_dashboard_when_widgets_are_valid() {
-            var existing = Dashboard.builder().id(DASHBOARD_ID).environmentId("env-1").name("Old").widgets(List.of()).build();
+            var existing = Dashboard.builder()
+                    .id(DASHBOARD_ID)
+                    .environmentId("env-1")
+                    .name("Old")
+                    .widgets(List.of())
+                    .build();
             dashboardCrudServiceInMemory.initWith(List.of(existing));
 
-            var updatedDashboard = Dashboard.builder().name("Updated").widgets(List.of(widgetWithMeasuresRequest())).build();
+            var updatedDashboard = Dashboard.builder()
+                    .name("Updated")
+                    .widgets(List.of(widgetWithMeasuresRequest()))
+                    .build();
             var output = useCase.execute(new UpdateDashboardUseCase.Input(DASHBOARD_ID, updatedDashboard, auditInfo()));
 
             assertThat(output.dashboard().getName()).isEqualTo("Updated");
             assertThat(dashboardCrudServiceInMemory.storage()).hasSize(1);
-            assertThat(dashboardCrudServiceInMemory.storage().getFirst().getName()).isEqualTo("Updated");
+            assertThat(dashboardCrudServiceInMemory.storage().getFirst().getName())
+                    .isEqualTo("Updated");
             assertThat(auditCrudServiceInMemory.storage()).hasSize(1);
         }
 
         @Test
         void should_throw_when_dashboard_not_found() {
-            var updatedDashboard = Dashboard.builder().name("Updated").widgets(List.of()).build();
+            var updatedDashboard =
+                    Dashboard.builder().name("Updated").widgets(List.of()).build();
 
-            assertThatThrownBy(() ->
-                useCase.execute(new UpdateDashboardUseCase.Input(DASHBOARD_ID, updatedDashboard, auditInfo()))
-            ).isInstanceOf(DashboardNotFoundException.class);
+            assertThatThrownBy(() -> useCase.execute(
+                            new UpdateDashboardUseCase.Input(DASHBOARD_ID, updatedDashboard, auditInfo())))
+                    .isInstanceOf(DashboardNotFoundException.class);
         }
     }
 
@@ -151,14 +168,24 @@ class UpdateDashboardUseCaseTest {
 
         @Test
         void should_throw_when_time_range_invalid() {
-            var existing = Dashboard.builder().id(DASHBOARD_ID).environmentId("env-1").name("Old").widgets(List.of()).build();
+            var existing = Dashboard.builder()
+                    .id(DASHBOARD_ID)
+                    .environmentId("env-1")
+                    .name("Old")
+                    .widgets(List.of())
+                    .build();
             dashboardCrudServiceInMemory.initWith(List.of(existing));
-            var updatedDashboard = Dashboard.builder().name("Updated").widgets(List.of(widgetWithInvalidTimeRange())).build();
+            var updatedDashboard = Dashboard.builder()
+                    .name("Updated")
+                    .widgets(List.of(widgetWithInvalidTimeRange()))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new UpdateDashboardUseCase.Input(DASHBOARD_ID, updatedDashboard, auditInfo())))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("upper bound");
-            assertThat(dashboardCrudServiceInMemory.storage().getFirst().getName()).isEqualTo("Old");
+            assertThatThrownBy(() -> useCase.execute(
+                            new UpdateDashboardUseCase.Input(DASHBOARD_ID, updatedDashboard, auditInfo())))
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("upper bound");
+            assertThat(dashboardCrudServiceInMemory.storage().getFirst().getName())
+                    .isEqualTo("Old");
         }
     }
 }

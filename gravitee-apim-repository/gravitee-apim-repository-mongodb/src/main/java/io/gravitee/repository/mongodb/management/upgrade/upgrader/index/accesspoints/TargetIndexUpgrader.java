@@ -28,9 +28,9 @@ public class TargetIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("access_points")
-            .name("t1")
-            .key("target", ascending())
-            .build();
+                .collection("access_points")
+                .name("t1")
+                .key("target", ascending())
+                .build();
     }
 }

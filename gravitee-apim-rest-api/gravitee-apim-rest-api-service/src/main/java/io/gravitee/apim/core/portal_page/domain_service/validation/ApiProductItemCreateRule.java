@@ -49,16 +49,14 @@ public class ApiProductItemCreateRule implements CreatePortalNavigationItemValid
         }
 
         apiProductQueryService
-            .findById(apiProductId)
-            .filter(apiProduct -> environmentId.equals(apiProduct.getEnvironmentId()))
-            .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
+                .findById(apiProductId)
+                .filter(apiProduct -> environmentId.equals(apiProduct.getEnvironmentId()))
+                .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
 
-        boolean alreadyExists = ctx
-            .navigationItems()
-            .stream()
-            .filter(PortalNavigationApiProduct.class::isInstance)
-            .map(PortalNavigationApiProduct.class::cast)
-            .anyMatch(apiProductItem -> apiProductId.equals(apiProductItem.getApiProductId()));
+        boolean alreadyExists = ctx.navigationItems().stream()
+                .filter(PortalNavigationApiProduct.class::isInstance)
+                .map(PortalNavigationApiProduct.class::cast)
+                .anyMatch(apiProductItem -> apiProductId.equals(apiProductItem.getApiProductId()));
         if (alreadyExists) {
             throw new ApiProductNavigationItemAlreadyExistsException(apiProductId);
         }

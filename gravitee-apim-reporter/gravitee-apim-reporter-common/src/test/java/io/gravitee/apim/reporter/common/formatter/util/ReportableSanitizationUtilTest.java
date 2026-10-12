@@ -37,7 +37,10 @@ class ReportableSanitizationUtilTest {
 
         ReportableSanitizationUtil.sanitizeMessageMetadata(message);
 
-        assertThat(message.getMetadata()).containsEntry("key", "message").containsEntry("topic", "demo").containsEntry("partition", 0);
+        assertThat(message.getMetadata())
+                .containsEntry("key", "message")
+                .containsEntry("topic", "demo")
+                .containsEntry("partition", 0);
     }
 
     @Test

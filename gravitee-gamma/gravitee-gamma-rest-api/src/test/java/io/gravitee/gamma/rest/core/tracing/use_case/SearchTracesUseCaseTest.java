@@ -65,9 +65,9 @@ class SearchTracesUseCaseTest {
         // Module isn't part of the scope envelope — apiId alone is sufficient since each apiId belongs
         // to exactly one module (api type → module). Asserting env + api is enough to prove scoping.
         assertThat(tracingPort.getLastResourceAttributeFilters())
-            .containsEntry(TraceScopeFilters.ENV_ID_KEY, ENV)
-            .containsEntry(TraceScopeFilters.API_ID_KEY, API_ID)
-            .doesNotContainKey("gravitee.module");
+                .containsEntry(TraceScopeFilters.ENV_ID_KEY, ENV)
+                .containsEntry(TraceScopeFilters.API_ID_KEY, API_ID)
+                .doesNotContainKey("gravitee.module");
     }
 
     @Test
@@ -113,16 +113,17 @@ class SearchTracesUseCaseTest {
     @Test
     void should_translate_supported_eq_filters_into_attribute_filters_passed_to_the_port() {
         List<FilterCondition> filters = List.of(
-            new FilterCondition("HTTP_METHOD", FilterOperator.EQ, List.of("POST")),
-            new FilterCondition("HTTP_STATUS_CODE", FilterOperator.EQ, List.of("500"))
-        );
+                new FilterCondition("HTTP_METHOD", FilterOperator.EQ, List.of("POST")),
+                new FilterCondition("HTTP_STATUS_CODE", FilterOperator.EQ, List.of("500")));
 
         useCase.execute(input(API_ID, filters, null, null, null, null));
 
         // HTTP_METHOD maps to attribute key http.method; HTTP_STATUS_CODE maps to http.status_code.
         // Asserted via the in-memory port's last-seen attributeFilters map — the translator is the
         // unit covered here, not the ES adapter that lives downstream of the port.
-        assertThat(tracingPort.getLastAttributeFilters()).containsEntry("http.method", "POST").containsEntry("http.status_code", "500");
+        assertThat(tracingPort.getLastAttributeFilters())
+                .containsEntry("http.method", "POST")
+                .containsEntry("http.status_code", "500");
     }
 
     @Test
@@ -130,40 +131,34 @@ class SearchTracesUseCaseTest {
         List<FilterCondition> filters = List.of(new FilterCondition("UNKNOWN_FILTER", FilterOperator.EQ, List.of("x")));
 
         assertThatThrownBy(() -> useCase.execute(input(API_ID, filters, null, null, null, null)))
-            .isInstanceOf(UnsupportedFilterException.class)
-            .hasMessageContaining("UNKNOWN_FILTER");
+                .isInstanceOf(UnsupportedFilterException.class)
+                .hasMessageContaining("UNKNOWN_FILTER");
     }
 
     @Test
     void should_reject_unsupported_operator_with_UnsupportedFilterException() {
         // HTTP_METHOD is a supported filter, but only eq is wired through in the slim cut — `in`
         // arrives in the follow-up PR that lifts the SPI to multi-value criteria.
-        List<FilterCondition> filters = List.of(new FilterCondition("HTTP_METHOD", FilterOperator.IN, List.of("GET", "POST")));
+        List<FilterCondition> filters =
+                List.of(new FilterCondition("HTTP_METHOD", FilterOperator.IN, List.of("GET", "POST")));
 
         assertThatThrownBy(() -> useCase.execute(input(API_ID, filters, null, null, null, null)))
-            .isInstanceOf(UnsupportedFilterException.class)
-            .hasMessageContaining("in")
-            .hasMessageContaining("HTTP_METHOD");
+                .isInstanceOf(UnsupportedFilterException.class)
+                .hasMessageContaining("in")
+                .hasMessageContaining("HTTP_METHOD");
     }
 
     private void givenTrace(String traceId, Instant startTime, String apiId) {
         tracingPort.givenTrace(
-            ORG,
-            ENV,
-            Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, apiId),
-            new Trace(traceId, startTime, 1_000L, "gateway", "GET /pets", SpanStatus.OK, 1),
-            null
-        );
+                ORG,
+                ENV,
+                Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, apiId),
+                new Trace(traceId, startTime, 1_000L, "gateway", "GET /pets", SpanStatus.OK, 1),
+                null);
     }
 
     private SearchTracesUseCase.Input input(
-        String apiId,
-        List<FilterCondition> filters,
-        Instant start,
-        Instant end,
-        Integer page,
-        Integer perPage
-    ) {
+            String apiId, List<FilterCondition> filters, Instant start, Instant end, Integer page, Integer perPage) {
         return new SearchTracesUseCase.Input(ORG, ENV, apiId, filters, start, end, page, perPage);
     }
 }

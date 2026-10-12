@@ -72,10 +72,12 @@ public class MongoCustomDashboardRepository implements CustomDashboardRepository
             throw new IllegalStateException("Custom dashboard to update must have a name");
         }
 
-        var existingDashboard = internalCustomDashboardRepo.findById(customDashboard.getId()).orElse(null);
+        var existingDashboard =
+                internalCustomDashboardRepo.findById(customDashboard.getId()).orElse(null);
 
         if (existingDashboard == null) {
-            throw new IllegalStateException(String.format("No custom dashboard found with id [%s]", customDashboard.getId()));
+            throw new IllegalStateException(
+                    String.format("No custom dashboard found with id [%s]", customDashboard.getId()));
         }
 
         try {
@@ -115,7 +117,8 @@ public class MongoCustomDashboardRepository implements CustomDashboardRepository
             internalCustomDashboardRepo.deleteByEnvironmentId(environmentId);
             log.debug("Delete custom dashboards by environment ID [{}] - Done", environmentId);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when deleting custom dashboards by environment id " + environmentId, e);
+            throw new TechnicalException(
+                    "An error occurred when deleting custom dashboards by environment id " + environmentId, e);
         }
     }
 }

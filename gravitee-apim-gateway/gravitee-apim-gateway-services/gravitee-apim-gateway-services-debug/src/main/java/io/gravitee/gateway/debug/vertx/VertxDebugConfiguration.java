@@ -38,31 +38,29 @@ public class VertxDebugConfiguration {
 
     @Bean("debugHttpClientConfiguration")
     public VertxDebugHttpClientConfiguration debugHttpClientConfiguration(
-        @Qualifier("debugServer") VertxHttpServer debugServer,
-        Environment environment
-    ) {
+            @Qualifier("debugServer") VertxHttpServer debugServer, Environment environment) {
         final VertxHttpServerOptions options = debugServer.options();
         return VertxDebugHttpClientConfiguration.builder()
-            .port(options.getPort())
-            .host(options.getHost())
-            .secured(options.isSecured())
-            .openssl(options.isOpenssl())
-            .compressionSupported(options.isCompressionSupported())
-            .alpn(options.isAlpn())
-            .connectTimeout(environment.getProperty("debug.timeout.connect", Integer.class, 5000))
-            .requestTimeout(environment.getProperty("debug.timeout.request", Integer.class, 30000))
-            .globalTimeout(environment.getProperty("debug.timeout.global", Integer.class, 0))
-            .build();
+                .port(options.getPort())
+                .host(options.getHost())
+                .secured(options.isSecured())
+                .openssl(options.isOpenssl())
+                .compressionSupported(options.isCompressionSupported())
+                .alpn(options.isAlpn())
+                .connectTimeout(environment.getProperty("debug.timeout.connect", Integer.class, 5000))
+                .requestTimeout(environment.getProperty("debug.timeout.request", Integer.class, 30000))
+                .globalTimeout(environment.getProperty("debug.timeout.global", Integer.class, 0))
+                .build();
     }
 
     @Bean("debugServerFactory")
     public VertxHttpServerFactory debugHttpServerFactory(
-        Vertx vertx,
-        KeyStoreLoaderFactoryRegistry<KeyStoreLoaderOptions> keyStoreLoaderFactoryRegistry,
-        KeyStoreLoaderFactoryRegistry<TrustStoreLoaderOptions> truststoreLoaderFactoryRegistry,
-        CRLLoaderFactoryRegistry crlLoaderFactoryRegistry
-    ) {
-        return new VertxHttpServerFactory(vertx, keyStoreLoaderFactoryRegistry, truststoreLoaderFactoryRegistry, crlLoaderFactoryRegistry);
+            Vertx vertx,
+            KeyStoreLoaderFactoryRegistry<KeyStoreLoaderOptions> keyStoreLoaderFactoryRegistry,
+            KeyStoreLoaderFactoryRegistry<TrustStoreLoaderOptions> truststoreLoaderFactoryRegistry,
+            CRLLoaderFactoryRegistry crlLoaderFactoryRegistry) {
+        return new VertxHttpServerFactory(
+                vertx, keyStoreLoaderFactoryRegistry, truststoreLoaderFactoryRegistry, crlLoaderFactoryRegistry);
     }
 
     @Bean("debugServer")
@@ -71,10 +69,12 @@ public class VertxDebugConfiguration {
 
         if (environment.getProperty("servers[0].type") != null) {
             // Use the first server from the server list.
-            optionsBuilder = VertxDebugHttpServerOptions.builder().prefix("servers[0]").environment(environment);
+            optionsBuilder =
+                    VertxDebugHttpServerOptions.builder().prefix("servers[0]").environment(environment);
         } else {
             // No server list configured, fallback to single http server configuration.
-            optionsBuilder = VertxDebugHttpServerOptions.builder().prefix("http").environment(environment);
+            optionsBuilder =
+                    VertxDebugHttpServerOptions.builder().prefix("http").environment(environment);
         }
 
         return debugHttpServerFactory.create(optionsBuilder.build());
@@ -83,9 +83,8 @@ public class VertxDebugConfiguration {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
     public Verticle debugVerticle(
-        @Qualifier("debugServer") VertxHttpServer debugServer,
-        @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher
-    ) {
+            @Qualifier("debugServer") VertxHttpServer debugServer,
+            @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher) {
         return new DebugHttpProtocolVerticle(debugServer, requestDispatcher);
     }
 }

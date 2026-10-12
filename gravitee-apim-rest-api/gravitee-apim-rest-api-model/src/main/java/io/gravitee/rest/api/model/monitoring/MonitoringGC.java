@@ -73,32 +73,28 @@ public class MonitoringGC {
         if (this == o) return true;
         if (!(o instanceof MonitoringGC)) return false;
         MonitoringGC that = (MonitoringGC) o;
-        return (
-            youngCollectionCount == that.youngCollectionCount &&
-            youngCollectionTimeInMillis == that.youngCollectionTimeInMillis &&
-            oldCollectionCount == that.oldCollectionCount &&
-            oldCollectionTimeInMillis == that.oldCollectionTimeInMillis
-        );
+        return (youngCollectionCount == that.youngCollectionCount
+                && youngCollectionTimeInMillis == that.youngCollectionTimeInMillis
+                && oldCollectionCount == that.oldCollectionCount
+                && oldCollectionTimeInMillis == that.oldCollectionTimeInMillis);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(youngCollectionCount, youngCollectionTimeInMillis, oldCollectionCount, oldCollectionTimeInMillis);
+        return Objects.hash(
+                youngCollectionCount, youngCollectionTimeInMillis, oldCollectionCount, oldCollectionTimeInMillis);
     }
 
     @Override
     public String toString() {
-        return (
-            "MonitoringGC{" +
-            "youngCollectionCount=" +
-            youngCollectionCount +
-            ", youngCollectionTimeInMillis=" +
-            youngCollectionTimeInMillis +
-            ", oldCollectionCount=" +
-            oldCollectionCount +
-            ", oldCollectionTimeInMillis=" +
-            oldCollectionTimeInMillis +
-            '}'
-        );
+        return ("MonitoringGC{" + "youngCollectionCount="
+                + youngCollectionCount
+                + ", youngCollectionTimeInMillis="
+                + youngCollectionTimeInMillis
+                + ", oldCollectionCount="
+                + oldCollectionCount
+                + ", oldCollectionTimeInMillis="
+                + oldCollectionTimeInMillis
+                + '}');
     }
 }

@@ -22,13 +22,13 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
 
-public class SharedPolicyGroupEventListener
-    extends AbstractService<SharedPolicyGroupEventListener>
-    implements EventListener<SharedPolicyGroupEvent, ReactableSharedPolicyGroup> {
+public class SharedPolicyGroupEventListener extends AbstractService<SharedPolicyGroupEventListener>
+        implements EventListener<SharedPolicyGroupEvent, ReactableSharedPolicyGroup> {
 
     private final SharedPolicyGroupRegistry sharedPolicyGroupRegistry;
 
-    public SharedPolicyGroupEventListener(EventManager eventManager, SharedPolicyGroupRegistry sharedPolicyGroupRegistry) {
+    public SharedPolicyGroupEventListener(
+            EventManager eventManager, SharedPolicyGroupRegistry sharedPolicyGroupRegistry) {
         this.sharedPolicyGroupRegistry = sharedPolicyGroupRegistry;
         eventManager.subscribeForEvents(this, SharedPolicyGroupEvent.class);
     }

@@ -86,15 +86,12 @@ public class FileReporterConfiguration {
     private Map<String, String> getMapProperties(String prefix) {
         Map<String, Object> properties = EnvironmentUtils.getPropertiesStartingWith(environment, prefix);
         if (!properties.isEmpty()) {
-            return properties
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        entry -> entry.getKey().substring(EnvironmentUtils.encodedKey(prefix).length() + 1),
-                        entry -> entry.getValue().toString()
-                    )
-                );
+            return properties.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            entry -> entry.getKey()
+                                    .substring(
+                                            EnvironmentUtils.encodedKey(prefix).length() + 1),
+                            entry -> entry.getValue().toString()));
         } else {
             return Collections.emptyMap();
         }

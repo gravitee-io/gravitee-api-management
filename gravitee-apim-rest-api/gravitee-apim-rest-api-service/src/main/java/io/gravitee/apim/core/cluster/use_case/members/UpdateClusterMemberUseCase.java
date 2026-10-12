@@ -43,8 +43,14 @@ public class UpdateClusterMemberUseCase {
         validate(input.newRole);
 
         var reference = new MembershipReference(MembershipReferenceType.CLUSTER, input.clusterId);
-        var member = MembershipMember.builder().memberId(input.memberId).memberType(MembershipMemberType.USER).build();
-        var role = MembershipRole.builder().scope(io.gravitee.apim.core.member.model.RoleScope.CLUSTER).name(input.newRole).build();
+        var member = MembershipMember.builder()
+                .memberId(input.memberId)
+                .memberType(MembershipMemberType.USER)
+                .build();
+        var role = MembershipRole.builder()
+                .scope(io.gravitee.apim.core.member.model.RoleScope.CLUSTER)
+                .name(input.newRole)
+                .build();
         Member updatedMember = memberQueryService.updateRoleToMemberOnReference(reference, member, role);
 
         return new Output(updatedMember);

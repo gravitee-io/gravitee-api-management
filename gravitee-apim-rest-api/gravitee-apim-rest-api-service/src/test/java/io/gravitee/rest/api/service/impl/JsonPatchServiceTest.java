@@ -117,37 +117,37 @@ class JsonPatchServiceTest {
 
     @Test
     void should_replace_endpoint_backup() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
                 "value": false
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
         String jsonPatched = jsonPatchService.execute(API_DEFINITION, jsonPatches);
 
         JsonNode expectedJsonNode = objectMapper.readValue(API_DEFINITION, JsonNode.class);
-        ((ObjectNode) expectedJsonNode.get("proxy").get("groups").get(0).get("endpoints").get(0)).put("backup", false);
+        ((ObjectNode) expectedJsonNode
+                        .get("proxy")
+                        .get("groups")
+                        .get(0)
+                        .get("endpoints")
+                        .get(0))
+                .put("backup", false);
 
         assertThat(jsonPatched).isEqualTo(expectedJsonNode.toPrettyString());
     }
 
     @Test
     void should_remove_endpoint() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')]",
                 "operation": "REMOVE"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
         String jsonPatched = jsonPatchService.execute(API_DEFINITION, jsonPatches);
 
@@ -159,17 +159,14 @@ class JsonPatchServiceTest {
 
     @Test
     void should_add_endpoint() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
                 "value": { "name": "new-endpoint" },
                 "operation": "ADD"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
         String jsonPatched = jsonPatchService.execute(API_DEFINITION, jsonPatches);
 
@@ -183,8 +180,7 @@ class JsonPatchServiceTest {
 
     @Test
     void should_add_endpoint_and_switch_backup() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
@@ -201,14 +197,18 @@ class JsonPatchServiceTest {
                 "value": true,
                 "operation": "REPLACE"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
         String jsonPatched = jsonPatchService.execute(API_DEFINITION, jsonPatches);
 
         JsonNode expectedJsonNode = objectMapper.readValue(API_DEFINITION, JsonNode.class);
-        ((ObjectNode) expectedJsonNode.get("proxy").get("groups").get(0).get("endpoints").get(0)).put("backup", false);
+        ((ObjectNode) expectedJsonNode
+                        .get("proxy")
+                        .get("groups")
+                        .get(0)
+                        .get("endpoints")
+                        .get(0))
+                .put("backup", false);
         ObjectNode endpointNode = objectMapper.createObjectNode();
         endpointNode.put("name", "new-endpoint");
         endpointNode.put("backup", true);
@@ -219,22 +219,25 @@ class JsonPatchServiceTest {
 
     @Test
     void should_add_leaf_property_if_not_exist() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].foobar",
                 "value": 1234,
                 "operation": "REPLACE"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
         String jsonPatched = jsonPatchService.execute(API_DEFINITION, jsonPatches);
 
         JsonNode expectedJsonNode = objectMapper.readValue(API_DEFINITION, JsonNode.class);
-        ((ObjectNode) expectedJsonNode.get("proxy").get("groups").get(0).get("endpoints").get(0)).put("foobar", 1234);
+        ((ObjectNode) expectedJsonNode
+                        .get("proxy")
+                        .get("groups")
+                        .get(0)
+                        .get("endpoints")
+                        .get(0))
+                .put("foobar", 1234);
 
         assertThat(jsonPatched).isEqualTo(expectedJsonNode.toPrettyString());
     }
@@ -242,8 +245,7 @@ class JsonPatchServiceTest {
     @Test
     void should_not_replace_if_branch_not_exist() throws JsonProcessingException {
         // first operation should fail silently, and the second one you go through
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'foobar')].foobar",
@@ -255,9 +257,7 @@ class JsonPatchServiceTest {
                 "value": { "name": "new-endpoint" },
                 "operation": "ADD"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
         String jsonPatched = jsonPatchService.execute(API_DEFINITION, jsonPatches);
 
@@ -271,8 +271,8 @@ class JsonPatchServiceTest {
 
     @ParameterizedTest(name = "[{index}]")
     @ValueSource(
-        strings = {
-            """
+            strings = {
+                """
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].foobar",
@@ -280,7 +280,7 @@ class JsonPatchServiceTest {
                 "operation": "ADD"
               }
             ]""",
-            """
+                """
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
@@ -288,7 +288,7 @@ class JsonPatchServiceTest {
                 "operation": "ADD"
               }
             ]""",
-            """
+                """
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
@@ -296,35 +296,32 @@ class JsonPatchServiceTest {
                 "operation": "ADD"
               }
             ]""",
-        }
-    )
+            })
     void should_generate_an_unsafe_error(String unsafePatch) throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(unsafePatch, new TypeReference<>() {});
 
-        assertThatCode(() -> jsonPatchService.execute(API_DEFINITION, jsonPatches)).isInstanceOf(JsonPatchUnsafeException.class);
+        assertThatCode(() -> jsonPatchService.execute(API_DEFINITION, jsonPatches))
+                .isInstanceOf(JsonPatchUnsafeException.class);
     }
 
     @Test
     void shouldThrowTechnicalManagementExceptionWithInvalidJsonPath() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[name == 'default-group']",
                 "value": 1234,
                 "operation": "REPLACE"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
-        assertThatCode(() -> jsonPatchService.execute(API_DEFINITION, jsonPatches)).isInstanceOf(TechnicalManagementException.class);
+        assertThatCode(() -> jsonPatchService.execute(API_DEFINITION, jsonPatches))
+                .isInstanceOf(TechnicalManagementException.class);
     }
 
     @Test
     void shouldThrowJsonPatchTestFailedException() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
               {
                 "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
@@ -346,17 +343,15 @@ class JsonPatchServiceTest {
                 "value": true,
                 "operation": "REPLACE"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
-        assertThatCode(() -> jsonPatchService.execute(API_DEFINITION, jsonPatches)).isInstanceOf(JsonPatchTestFailedException.class);
+        assertThatCode(() -> jsonPatchService.execute(API_DEFINITION, jsonPatches))
+                .isInstanceOf(JsonPatchTestFailedException.class);
     }
 
     @Test
     void shouldManageArrays() throws JsonProcessingException {
-        Collection<JsonPatch> jsonPatches = objectMapper.readValue(
-            """
+        Collection<JsonPatch> jsonPatches = objectMapper.readValue("""
             [
              {
                "jsonPath": "$.properties",
@@ -381,9 +376,7 @@ class JsonPatchServiceTest {
                "value": { "key": "c", "value": 2 },
                "operation": "ADD"
               }
-            ]""",
-            new TypeReference<>() {}
-        );
+            ]""", new TypeReference<>() {});
 
         String jsonPatched = jsonPatchService.execute(API_DEFINITION, jsonPatches);
 

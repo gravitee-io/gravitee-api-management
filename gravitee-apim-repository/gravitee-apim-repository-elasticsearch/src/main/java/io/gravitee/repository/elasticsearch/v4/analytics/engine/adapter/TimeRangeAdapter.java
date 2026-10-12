@@ -34,6 +34,8 @@ public class TimeRangeAdapter {
     }
 
     static JsonObject buildBounds(TimeRange timeRange) {
-        return new JsonObject().put("gte", timeRange.from().toEpochMilli()).put("lte", timeRange.to().toEpochMilli());
+        return new JsonObject()
+                .put("gte", timeRange.from().toEpochMilli())
+                .put("lte", timeRange.to().toEpochMilli());
     }
 }

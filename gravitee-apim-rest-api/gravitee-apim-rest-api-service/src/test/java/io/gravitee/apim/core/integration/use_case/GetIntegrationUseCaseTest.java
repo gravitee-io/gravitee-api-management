@@ -62,7 +62,8 @@ class GetIntegrationUseCaseTest {
     private static final String NAME = "test-name";
     private static final String DESCRIPTION = "integration-description";
     private static final String PROVIDER = "test-provider";
-    private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT =
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final ZonedDateTime UPDATED_AT = CREATED_AT;
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENV_ID = "my-env";
@@ -75,7 +76,8 @@ class GetIntegrationUseCaseTest {
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
-    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
+    MembershipQueryServiceInMemory membershipQueryService =
+            new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
@@ -84,95 +86,90 @@ class GetIntegrationUseCaseTest {
     @BeforeEach
     void setUp() {
         var integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
-            membershipCrudServiceInMemory,
-            roleQueryServiceInMemory,
-            membershipQueryService,
-            userCrudService
-        );
+                membershipCrudServiceInMemory, roleQueryServiceInMemory, membershipQueryService, userCrudService);
         usecase = new GetIntegrationUseCase(
-            integrationCrudServiceInMemory,
-            asyncJobQueryService,
-            new LicenseDomainService(licenseCrudService, licenseManager),
-            integrationAgent,
-            integrationPrimaryOwnerDomainService
-        );
-        var integration = List.<Integration>of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID));
+                integrationCrudServiceInMemory,
+                asyncJobQueryService,
+                new LicenseDomainService(licenseCrudService, licenseManager),
+                integrationAgent,
+                integrationPrimaryOwnerDomainService);
+        var integration =
+                List.<Integration>of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID));
         integrationCrudServiceInMemory.initWith(integration);
 
         roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
-        givenExistingMemberships(
-            List.of(
-                Membership.builder()
-                    .referenceType(Membership.ReferenceType.INTEGRATION)
-                    .referenceId(INTEGRATION_ID)
-                    .memberType(Membership.Type.USER)
-                    .memberId(USER_ID)
-                    .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
-                    .build()
-            )
-        );
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
+        givenExistingMemberships(List.of(Membership.builder()
+                .referenceType(Membership.ReferenceType.INTEGRATION)
+                .referenceId(INTEGRATION_ID)
+                .memberType(Membership.Type.USER)
+                .memberId(USER_ID)
+                .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .build()));
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            integrationCrudServiceInMemory,
-            asyncJobQueryService,
-            licenseCrudService,
-            integrationAgent,
-            membershipCrudServiceInMemory,
-            roleQueryServiceInMemory,
-            membershipQueryService,
-            groupQueryService,
-            userCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        integrationCrudServiceInMemory,
+                        asyncJobQueryService,
+                        licenseCrudService,
+                        integrationAgent,
+                        membershipCrudServiceInMemory,
+                        roleQueryServiceInMemory,
+                        membershipQueryService,
+                        groupQueryService,
+                        userCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_get_integration() {
-        //Given
+        // Given
         integrationAgent.configureAgentFor(INTEGRATION_ID, IntegrationAgent.Status.DISCONNECTED);
         var input = new Input(INTEGRATION_ID, ORGANIZATION_ID, ENV_ID);
 
-        //When
+        // When
         GetIntegrationUseCase.Output output = usecase.execute(input);
 
-        //Then
+        // Then
         assertThat(output).isNotNull();
         assertThat(output.integration().getIntegration().id()).isEqualTo(INTEGRATION_ID);
         assertThat(output.integration())
-            .extracting(
-                view -> view.getIntegration().name(),
-                view -> view.getIntegration().description(),
-                view -> view.getIntegration().provider(),
-                view -> view.getIntegration().environmentId(),
-                view -> view.getIntegration().createdAt(),
-                view -> view.getIntegration().updatedAt(),
-                IntegrationView::getAgentStatus,
-                IntegrationView::getPrimaryOwner
-            )
-            .containsExactly(
-                NAME,
-                DESCRIPTION,
-                PROVIDER,
-                ENV_ID,
-                CREATED_AT,
-                UPDATED_AT,
-                IntegrationView.AgentStatus.DISCONNECTED,
-                new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe")
-            );
+                .extracting(
+                        view -> view.getIntegration().name(),
+                        view -> view.getIntegration().description(),
+                        view -> view.getIntegration().provider(),
+                        view -> view.getIntegration().environmentId(),
+                        view -> view.getIntegration().createdAt(),
+                        view -> view.getIntegration().updatedAt(),
+                        IntegrationView::getAgentStatus,
+                        IntegrationView::getPrimaryOwner)
+                .containsExactly(
+                        NAME,
+                        DESCRIPTION,
+                        PROVIDER,
+                        ENV_ID,
+                        CREATED_AT,
+                        UPDATED_AT,
+                        IntegrationView.AgentStatus.DISCONNECTED,
+                        new IntegrationView.PrimaryOwner(USER_ID, "jane.doe@gravitee.io", "Jane Doe"));
     }
 
     @Test
     void should_return_integration_with_a_pending_job() {
         // Given
         integrationAgent.configureAgentFor(INTEGRATION_ID, IntegrationAgent.Status.DISCONNECTED);
-        var job = givenAnAsyncJob(AsyncJobFixture.aPendingFederatedApiIngestionJob().withSourceId(INTEGRATION_ID));
+        var job = givenAnAsyncJob(
+                AsyncJobFixture.aPendingFederatedApiIngestionJob().withSourceId(INTEGRATION_ID));
 
         // When
         var output = usecase.execute(new Input(INTEGRATION_ID, ORGANIZATION_ID, ENV_ID));
@@ -186,17 +183,19 @@ class GetIntegrationUseCaseTest {
         var input = new Input("not-existing-integration-id", ORGANIZATION_ID, ENV_ID);
 
         assertThatExceptionOfType(IntegrationNotFoundException.class)
-            .isThrownBy(() -> usecase.execute(input))
-            .withMessage("Integration not found.");
+                .isThrownBy(() -> usecase.execute(input))
+                .withMessage("Integration not found.");
     }
 
     @Test
     void should_throw_when_no_enterprise_license_found() {
         // Given
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anOssLicense());
 
         // When
-        var throwable = Assertions.catchThrowable(() -> usecase.execute(new Input(INTEGRATION_ID, ORGANIZATION_ID, ENV_ID)));
+        var throwable =
+                Assertions.catchThrowable(() -> usecase.execute(new Input(INTEGRATION_ID, ORGANIZATION_ID, ENV_ID)));
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);

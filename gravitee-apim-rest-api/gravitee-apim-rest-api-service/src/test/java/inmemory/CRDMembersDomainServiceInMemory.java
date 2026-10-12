@@ -54,12 +54,7 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
 
     @Override
     public void updateGroupDefaultRoles(
-        AuditInfo auditInfo,
-        String groupId,
-        String apiRole,
-        String applicationRole,
-        String apiProductRole
-    ) {
+            AuditInfo auditInfo, String groupId, String apiRole, String applicationRole, String apiProductRole) {
         if (apiRole != null) {
             groupApiRoles.put(groupId, apiRole);
         }
@@ -72,7 +67,8 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
     }
 
     @Override
-    public void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, Map<RoleScope, String> defaultMemberRoles) {
+    public void updateGroupDefaultRoles(
+            AuditInfo auditInfo, String groupId, Map<RoleScope, String> defaultMemberRoles) {
         putOrRemove(groupApiRoles, groupId, defaultMemberRoles.get(RoleScope.API));
         putOrRemove(groupApplicationRoles, groupId, defaultMemberRoles.get(RoleScope.APPLICATION));
         putOrRemove(groupApiProductRoles, groupId, defaultMemberRoles.get(RoleScope.API_PRODUCT));

@@ -41,11 +41,10 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
 
         assertNotNull(apiQualityRules);
         assertEquals(1, apiQualityRules.size());
-        final ApiQualityRule apiQualityRuleProduct = apiQualityRules
-            .stream()
-            .filter(apiQualityRule -> "quality-rule1".equals(apiQualityRule.getQualityRule()))
-            .findAny()
-            .get();
+        final ApiQualityRule apiQualityRuleProduct = apiQualityRules.stream()
+                .filter(apiQualityRule -> "quality-rule1".equals(apiQualityRule.getQualityRule()))
+                .findAny()
+                .get();
         assertTrue(apiQualityRuleProduct.isChecked());
         assertTrue(compareDate(DATE, apiQualityRuleProduct.getCreatedAt()));
         assertTrue(compareDate(DATE, apiQualityRuleProduct.getUpdatedAt()));
@@ -60,9 +59,11 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
         apiQualityRule.setCreatedAt(DATE);
         apiQualityRule.setUpdatedAt(DATE);
 
-        int nbApiQualityRulesBeforeCreation = apiQualityRuleRepository.findByApi("api2").size();
+        int nbApiQualityRulesBeforeCreation =
+                apiQualityRuleRepository.findByApi("api2").size();
         apiQualityRuleRepository.create(apiQualityRule);
-        int nbApiQualityRulesAfterCreation = apiQualityRuleRepository.findByApi("api2").size();
+        int nbApiQualityRulesAfterCreation =
+                apiQualityRuleRepository.findByApi("api2").size();
 
         Assertions.assertEquals(nbApiQualityRulesBeforeCreation + 1, nbApiQualityRulesAfterCreation);
 
@@ -70,9 +71,12 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
         Assertions.assertTrue(optional.isPresent(), "ApiQualityRule saved not found");
 
         final ApiQualityRule apiQualityRuleSaved = optional.get();
-        Assertions.assertEquals(apiQualityRule.isChecked(), apiQualityRuleSaved.isChecked(), "Invalid saved apiQualityRule checked.");
-        Assertions.assertTrue(compareDate(apiQualityRule.getCreatedAt(), apiQualityRuleSaved.getCreatedAt()), "Invalid createdAt.");
-        Assertions.assertTrue(compareDate(apiQualityRule.getUpdatedAt(), apiQualityRuleSaved.getUpdatedAt()), "Invalid updatedAt.");
+        Assertions.assertEquals(
+                apiQualityRule.isChecked(), apiQualityRuleSaved.isChecked(), "Invalid saved apiQualityRule checked.");
+        Assertions.assertTrue(
+                compareDate(apiQualityRule.getCreatedAt(), apiQualityRuleSaved.getCreatedAt()), "Invalid createdAt.");
+        Assertions.assertTrue(
+                compareDate(apiQualityRule.getUpdatedAt(), apiQualityRuleSaved.getUpdatedAt()), "Invalid updatedAt.");
     }
 
     @Test
@@ -86,9 +90,11 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
         apiQualityRule.setCreatedAt(NEW_DATE);
         apiQualityRule.setUpdatedAt(NEW_DATE);
 
-        int nbApiQualityRulesBeforeUpdate = apiQualityRuleRepository.findByApi("api2").size();
+        int nbApiQualityRulesBeforeUpdate =
+                apiQualityRuleRepository.findByApi("api2").size();
         apiQualityRuleRepository.update(apiQualityRule);
-        int nbApiQualityRulesAfterUpdate = apiQualityRuleRepository.findByApi("api2").size();
+        int nbApiQualityRulesAfterUpdate =
+                apiQualityRuleRepository.findByApi("api2").size();
 
         Assertions.assertEquals(nbApiQualityRulesBeforeUpdate, nbApiQualityRulesAfterUpdate);
 
@@ -103,31 +109,37 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbApiQualityRulesBeforeDeletion = apiQualityRuleRepository.findByApi("api1").size();
+        int nbApiQualityRulesBeforeDeletion =
+                apiQualityRuleRepository.findByApi("api1").size();
         apiQualityRuleRepository.delete("api1", "quality-rule2");
-        int nbApiQualityRulesAfterDeletion = apiQualityRuleRepository.findByApi("api1").size();
+        int nbApiQualityRulesAfterDeletion =
+                apiQualityRuleRepository.findByApi("api1").size();
 
         Assertions.assertEquals(nbApiQualityRulesBeforeDeletion - 1, nbApiQualityRulesAfterDeletion);
     }
 
     @Test
     public void shouldDeleteByApi() throws Exception {
-        int nbApiQualityRulesBeforeDeletion = apiQualityRuleRepository.findByApi("api1").size();
+        int nbApiQualityRulesBeforeDeletion =
+                apiQualityRuleRepository.findByApi("api1").size();
         Assertions.assertNotEquals(0, nbApiQualityRulesBeforeDeletion);
 
         apiQualityRuleRepository.deleteByApi("api1");
-        int nbApiQualityRulesAfterDeletion = apiQualityRuleRepository.findByApi("api1").size();
+        int nbApiQualityRulesAfterDeletion =
+                apiQualityRuleRepository.findByApi("api1").size();
 
         Assertions.assertEquals(0, nbApiQualityRulesAfterDeletion);
     }
 
     @Test
     public void shouldDeleteByQualityRule() throws Exception {
-        int nbApiQualityRulesBeforeDeletion = apiQualityRuleRepository.findByQualityRule("quality-rule2").size();
+        int nbApiQualityRulesBeforeDeletion =
+                apiQualityRuleRepository.findByQualityRule("quality-rule2").size();
         Assertions.assertNotEquals(0, nbApiQualityRulesBeforeDeletion);
 
         apiQualityRuleRepository.deleteByQualityRule("quality-rule2");
-        int nbApiQualityRulesAfterDeletion = apiQualityRuleRepository.findByQualityRule("quality-rule2").size();
+        int nbApiQualityRulesAfterDeletion =
+                apiQualityRuleRepository.findByQualityRule("quality-rule2").size();
 
         Assertions.assertEquals(0, nbApiQualityRulesAfterDeletion);
     }

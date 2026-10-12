@@ -32,12 +32,12 @@ public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainServ
     private final List<ApiCRDSpec> storage = new ArrayList<>();
 
     @Override
-    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
-        return storage
-            .stream()
-            .filter(spec -> apiId.equals(spec.getId()))
-            .findFirst()
-            .orElseGet(ApiCRDFixtures::anApiCRD);
+    public ApiCRDSpec export(
+            String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
+        return storage.stream()
+                .filter(spec -> apiId.equals(spec.getId()))
+                .findFirst()
+                .orElseGet(ApiCRDFixtures::anApiCRD);
     }
 
     @Override

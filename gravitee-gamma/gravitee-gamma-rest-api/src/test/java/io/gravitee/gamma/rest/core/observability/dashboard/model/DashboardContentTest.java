@@ -37,14 +37,15 @@ class DashboardContentTest {
 
     @Test
     void should_accept_a_minimal_content_with_only_a_title() {
-        assertThatCode(() -> new DashboardContent("Perf", null, null, null, null).validate()).doesNotThrowAnyException();
+        assertThatCode(() -> new DashboardContent("Perf", null, null, null, null).validate())
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_reject_a_blank_title() {
         assertThatThrownBy(() -> new DashboardContent("  ", null, List.of(), null, null).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("title");
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("title");
     }
 
     @Test
@@ -52,29 +53,32 @@ class DashboardContentTest {
         assertThatCode(() -> content(widgetArray(50)).validate()).doesNotThrowAnyException();
 
         assertThatThrownBy(() -> content(widgetArray(51)).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("50");
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("50");
     }
 
     @Test
     void should_reject_widgets_that_are_not_an_array() throws Exception {
-        assertThatThrownBy(() -> content(MAPPER.readTree("{\"type\":\"metric\"}")).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("array");
+        assertThatThrownBy(
+                        () -> content(MAPPER.readTree("{\"type\":\"metric\"}")).validate())
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("array");
     }
 
     @Test
     void should_reject_a_widget_without_an_id() throws Exception {
-        assertThatThrownBy(() -> content(MAPPER.readTree("[{\"type\":\"metric\"}]")).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("id");
+        assertThatThrownBy(() ->
+                        content(MAPPER.readTree("[{\"type\":\"metric\"}]")).validate())
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("id");
     }
 
     @Test
     void should_reject_duplicate_widget_ids() throws Exception {
-        assertThatThrownBy(() -> content(MAPPER.readTree("[{\"id\":\"w1\"},{\"id\":\"w1\"}]")).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("w1");
+        assertThatThrownBy(() -> content(MAPPER.readTree("[{\"id\":\"w1\"},{\"id\":\"w1\"}]"))
+                        .validate())
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("w1");
     }
 
     @Test
@@ -83,8 +87,8 @@ class DashboardContentTest {
         JsonNode widgets = MAPPER.readTree("[{\"id\":\"w1\",\"blob\":\"" + bigValue + "\"}]");
 
         assertThatThrownBy(() -> content(widgets).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("size");
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("size");
     }
 
     @Test
@@ -92,8 +96,8 @@ class DashboardContentTest {
         TimeRange timeRange = new TimeRange(TimeRangeType.RELATIVE, null, null, null);
 
         assertThatThrownBy(() -> new DashboardContent("Perf", null, List.of(), timeRange, null).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("period");
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("period");
     }
 
     @Test
@@ -101,8 +105,8 @@ class DashboardContentTest {
         TimeRange timeRange = new TimeRange(TimeRangeType.ABSOLUTE, null, 2000L, 1000L);
 
         assertThatThrownBy(() -> new DashboardContent("Perf", null, List.of(), timeRange, null).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("before");
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("before");
     }
 
     @Test
@@ -110,8 +114,8 @@ class DashboardContentTest {
         TimeRange timeRange = new TimeRange(TimeRangeType.ABSOLUTE, null, 1000L, null);
 
         assertThatThrownBy(() -> new DashboardContent("Perf", null, List.of(), timeRange, null).validate())
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("from and to");
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("from and to");
     }
 
     private static DashboardContent content(JsonNode widgets) {

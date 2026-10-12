@@ -38,14 +38,17 @@ class SharedPolicyGroupIdHelperTest {
     static final String SPG_POLICY = SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID;
 
     private static StepV4 spgStep(String name) {
-        return new StepV4().name(name).policy(SPG_POLICY).configuration(new HashMap<>(Map.of("sharedPolicyGroupId", "some-id")));
+        return new StepV4()
+                .name(name)
+                .policy(SPG_POLICY)
+                .configuration(new HashMap<>(Map.of("sharedPolicyGroupId", "some-id")));
     }
 
     private static StepV4 spgStepWithExistingHrid(String name, String hrid) {
         return new StepV4()
-            .name(name)
-            .policy(SPG_POLICY)
-            .configuration(new HashMap<>(Map.of("sharedPolicyGroupId", "some-id", HRID_FIELD, hrid)));
+                .name(name)
+                .policy(SPG_POLICY)
+                .configuration(new HashMap<>(Map.of("sharedPolicyGroupId", "some-id", HRID_FIELD, hrid)));
     }
 
     private static StepV4 nonSpgStep(String name) {

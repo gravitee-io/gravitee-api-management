@@ -44,19 +44,18 @@ public class PlanQueryServiceImpl implements PlanQueryService {
     }
 
     @Override
-    public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId) {
+    public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(
+            String apiId, DefinitionVersion definitionVersion, String pageId) {
         try {
             return planRepository
-                .findByReferenceIdAndReferenceType(apiId, io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-                .stream()
-                .filter(
-                    plan ->
-                        Objects.equals(plan.getGeneralConditions(), pageId) &&
-                        !(io.gravitee.repository.management.model.Plan.Status.CLOSED == plan.getStatus() ||
-                            io.gravitee.repository.management.model.Plan.Status.STAGING == plan.getStatus())
-                )
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .collect(Collectors.toList());
+                    .findByReferenceIdAndReferenceType(
+                            apiId, io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+                    .stream()
+                    .filter(plan -> Objects.equals(plan.getGeneralConditions(), pageId)
+                            && !(io.gravitee.repository.management.model.Plan.Status.CLOSED == plan.getStatus()
+                                    || io.gravitee.repository.management.model.Plan.Status.STAGING == plan.getStatus()))
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .collect(Collectors.toList());
         } catch (TechnicalException e) {
             log.error("An error occurred while finding plans by API ID {}", apiId, e);
             throw new TechnicalDomainException("An error occurred while trying to find plans by API ID: " + apiId, e);
@@ -74,45 +73,44 @@ public class PlanQueryServiceImpl implements PlanQueryService {
     }
 
     @Override
-    public List<Plan> findAllByReferenceIdAndReferenceType(String referenceId, GenericPlanEntity.ReferenceType referenceType) {
+    public List<Plan> findAllByReferenceIdAndReferenceType(
+            String referenceId, GenericPlanEntity.ReferenceType referenceType) {
         try {
             return planRepository
-                .findByReferenceIdAndReferenceType(
-                    referenceId,
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name())
-                )
-                .stream()
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .collect(Collectors.toList());
+                    .findByReferenceIdAndReferenceType(
+                            referenceId,
+                            io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(
+                                    referenceType.name()))
+                    .stream()
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .collect(Collectors.toList());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to find plans by reference ID: " + referenceId, e);
+            throw new TechnicalDomainException(
+                    "An error occurred while trying to find plans by reference ID: " + referenceId, e);
         }
     }
 
     @Override
     public List<Plan> findAllByReferenceIdsAndEnvironments(
-        Set<String> referenceIds,
-        Set<String> environmentIds,
-        GenericPlanEntity.ReferenceType referenceType
-    ) {
+            Set<String> referenceIds, Set<String> environmentIds, GenericPlanEntity.ReferenceType referenceType) {
         if (CollectionUtils.isEmpty(referenceIds) || CollectionUtils.isEmpty(environmentIds)) {
             return List.of();
         }
         try {
             return planRepository
-                .findByReferenceIdsAndReferenceTypeAndEnvironment(
-                    new ArrayList<>(referenceIds),
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name()),
-                    environmentIds
-                )
-                .stream()
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .collect(Collectors.toList());
+                    .findByReferenceIdsAndReferenceTypeAndEnvironment(
+                            new ArrayList<>(referenceIds),
+                            io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(
+                                    referenceType.name()),
+                            environmentIds)
+                    .stream()
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .collect(Collectors.toList());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                "An error occurred while finding plans for reference IDs: " + referenceIds + " (" + referenceType + ")",
-                e
-            );
+                    "An error occurred while finding plans for reference IDs: " + referenceIds + " (" + referenceType
+                            + ")",
+                    e);
         }
     }
 }

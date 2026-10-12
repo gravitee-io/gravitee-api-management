@@ -41,12 +41,15 @@ public interface MemberAdapter {
     ApiMember toApiMember(Membership member, BaseUserEntity user, Role role);
 
     MemberEntity toEntity(ApiMember member);
+
     Set<MemberEntity> toEntities(Set<ApiMember> members);
 
     RoleEntity toEntity(ApiMemberRole role);
+
     List<RoleEntity> toEntities(List<ApiMemberRole> roles);
 
     Member toMember(MemberEntity member);
+
     MemberEntity toMemberEntity(Member member);
 
     default MembershipMemberType mapType(Membership.Type type) {

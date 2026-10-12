@@ -63,13 +63,12 @@ class SharedPolicyGroupQueryServiceImplTest {
             // Given
             String q = "q";
             String environmentId = "environmentId";
-            when(
-                repository.search(
-                    argThat(criteria -> criteria.getQuery().equals(q) && criteria.getEnvironmentId().equals(environmentId)),
-                    eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
-                    eq(new SortableBuilder().field(null).setAsc(false).build())
-                )
-            ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+            when(repository.search(
+                            argThat(criteria -> criteria.getQuery().equals(q)
+                                    && criteria.getEnvironmentId().equals(environmentId)),
+                            eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
+                            eq(new SortableBuilder().field(null).setAsc(false).build())))
+                    .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             // When
             Pageable pageable = new PageableImpl(1, 10);
@@ -87,20 +86,22 @@ class SharedPolicyGroupQueryServiceImplTest {
             // Given
             String q = "q";
             String environmentId = "environmentId";
-            when(
-                repository.search(
-                    argThat(criteria -> criteria.getQuery().equals(q) && criteria.getEnvironmentId().equals(environmentId)),
-                    any(),
-                    eq(new SortableBuilder().field("createdAt").setAsc(true).build())
-                )
-            ).thenReturn(
-                new Page<>(
-                    List.of(aRepositorySharedPolicyGroup("id"), aRepositorySharedPolicyGroup("id2"), aRepositorySharedPolicyGroup("id3")),
-                    1,
-                    3,
-                    42
-                )
-            );
+            when(repository.search(
+                            argThat(criteria -> criteria.getQuery().equals(q)
+                                    && criteria.getEnvironmentId().equals(environmentId)),
+                            any(),
+                            eq(new SortableBuilder()
+                                    .field("createdAt")
+                                    .setAsc(true)
+                                    .build())))
+                    .thenReturn(new Page<>(
+                            List.of(
+                                    aRepositorySharedPolicyGroup("id"),
+                                    aRepositorySharedPolicyGroup("id2"),
+                                    aRepositorySharedPolicyGroup("id3")),
+                            1,
+                            3,
+                            42));
 
             // When
             Pageable pageable = new PageableImpl(0, 3);
@@ -120,16 +121,16 @@ class SharedPolicyGroupQueryServiceImplTest {
 
     private io.gravitee.repository.management.model.SharedPolicyGroup aRepositorySharedPolicyGroup(String id) {
         return io.gravitee.repository.management.model.SharedPolicyGroup.builder()
-            .id(id)
-            .name("name")
-            .version(1)
-            .description("description")
-            .crossId("crossId")
-            .apiType(ApiType.PROXY)
-            .definition("{}")
-            .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .environmentId("environmentId")
-            .organizationId("organizationId")
-            .build();
+                .id(id)
+                .name("name")
+                .version(1)
+                .description("description")
+                .crossId("crossId")
+                .apiType(ApiType.PROXY)
+                .definition("{}")
+                .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .environmentId("environmentId")
+                .organizationId("organizationId")
+                .build();
     }
 }

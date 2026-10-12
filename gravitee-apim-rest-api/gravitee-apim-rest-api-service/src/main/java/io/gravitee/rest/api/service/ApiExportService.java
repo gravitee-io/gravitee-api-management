@@ -19,7 +19,9 @@ import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApiExportService {
-    String exportAsJson(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
+    String exportAsJson(
+            ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields);
 
-    String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, ApiExportQuery exportQuery);
+    String exportAsCustomResourceDefinition(
+            ExecutionContext executionContext, String apiId, ApiExportQuery exportQuery);
 }

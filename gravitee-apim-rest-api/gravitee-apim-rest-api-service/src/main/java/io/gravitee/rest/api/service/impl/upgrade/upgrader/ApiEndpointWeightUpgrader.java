@@ -72,46 +72,48 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
 
     private void fixApiEndpointWeights(ExecutionContext ctx) {
         apiRepository
-            .search(
-                getDefaultApiCriteriaBuilder().environmentId(ctx.getEnvironmentId()).build(),
-                null,
-                new ApiFieldFilter.Builder().excludePicture().build()
-            )
-            .forEach(api -> {
-                try {
-                    DefinitionVersion defVersion = api.getDefinitionVersion();
-                    if (defVersion == null) defVersion = DefinitionVersion.V2;
+                .search(
+                        getDefaultApiCriteriaBuilder()
+                                .environmentId(ctx.getEnvironmentId())
+                                .build(),
+                        null,
+                        new ApiFieldFilter.Builder().excludePicture().build())
+                .forEach(api -> {
+                    try {
+                        DefinitionVersion defVersion = api.getDefinitionVersion();
+                        if (defVersion == null) defVersion = DefinitionVersion.V2;
 
-                    String definition = api.getDefinition();
-                    boolean updated = false;
+                        String definition = api.getDefinition();
+                        boolean updated = false;
 
-                    if (defVersion == DefinitionVersion.V4) {
-                        // Work on the raw JSON rather than on io.gravitee.definition.model.v4.Api: a V4 Native API
-                        // deserializes to NativeApi, a sibling of Api, so binding to Api threw and skipped every
-                        // Native API. Both types expose their endpoints under the same /endpointGroups path.
-                        JsonNode rootNode = objectMapper.readTree(definition);
-                        updated = fixEndpointWeights(rootNode.at("/endpointGroups"));
-                        if (updated) {
-                            api.setDefinition(objectMapper.writeValueAsString(rootNode));
-                        }
-                    } else {
-                        if (defVersion != DefinitionVersion.FEDERATED && defVersion != DefinitionVersion.FEDERATED_AGENT) {
+                        if (defVersion == DefinitionVersion.V4) {
+                            // Work on the raw JSON rather than on io.gravitee.definition.model.v4.Api: a V4 Native API
+                            // deserializes to NativeApi, a sibling of Api, so binding to Api threw and skipped every
+                            // Native API. Both types expose their endpoints under the same /endpointGroups path.
                             JsonNode rootNode = objectMapper.readTree(definition);
-                            updated = fixEndpointWeights(rootNode.at("/proxy/groups"));
+                            updated = fixEndpointWeights(rootNode.at("/endpointGroups"));
                             if (updated) {
                                 api.setDefinition(objectMapper.writeValueAsString(rootNode));
                             }
+                        } else {
+                            if (defVersion != DefinitionVersion.FEDERATED
+                                    && defVersion != DefinitionVersion.FEDERATED_AGENT) {
+                                JsonNode rootNode = objectMapper.readTree(definition);
+                                updated = fixEndpointWeights(rootNode.at("/proxy/groups"));
+                                if (updated) {
+                                    api.setDefinition(objectMapper.writeValueAsString(rootNode));
+                                }
+                            }
                         }
+                        if (updated) {
+                            api.setUpdatedAt(new Date());
+                            apiRepository.update(api);
+                            apisUpdated.add(api.getId());
+                        }
+                    } catch (Exception e) {
+                        log.warn("Skipping API [{}] due to error: {}", api.getId(), e.getMessage(), e);
                     }
-                    if (updated) {
-                        api.setUpdatedAt(new Date());
-                        apiRepository.update(api);
-                        apisUpdated.add(api.getId());
-                    }
-                } catch (Exception e) {
-                    log.warn("Skipping API [{}] due to error: {}", api.getId(), e.getMessage(), e);
-                }
-            });
+                });
     }
 
     private boolean fixEndpointWeights(JsonNode endpointGroups) {
@@ -133,6 +135,7 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
     }
 
     private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
-        return new ApiCriteria.Builder().definitionVersion(Arrays.asList(null, DefinitionVersion.V2, DefinitionVersion.V4));
+        return new ApiCriteria.Builder()
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V2, DefinitionVersion.V4));
     }
 }

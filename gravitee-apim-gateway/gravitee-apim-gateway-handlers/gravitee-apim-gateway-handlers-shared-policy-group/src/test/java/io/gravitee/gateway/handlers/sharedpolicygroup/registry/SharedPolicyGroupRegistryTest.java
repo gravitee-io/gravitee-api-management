@@ -61,7 +61,10 @@ class SharedPolicyGroupRegistryTest {
     @Test
     void should_create_shared_policy_group_reactor() {
         when(sharedPolicyGroupReactorFactoryManager.create(any())).thenReturn(sharedPolicyGroupReactor);
-        cut.create(ReactableSharedPolicyGroup.builder().id(ID).environmentId(ENV_ID).build());
+        cut.create(ReactableSharedPolicyGroup.builder()
+                .id(ID)
+                .environmentId(ENV_ID)
+                .build());
         verify(sharedPolicyGroupReactor).start();
         assertThat(cut.get(ID, ENV_ID)).isSameAs(sharedPolicyGroupReactor);
     }
@@ -72,7 +75,10 @@ class SharedPolicyGroupRegistryTest {
         when(sharedPolicyGroupReactorFactoryManager.create(any())).thenReturn(sharedPolicyGroupReactor);
         final SharedPolicyGroupReactor previousReactor = mock(SharedPolicyGroupReactor.class);
         cut.registry.put(new SharedPolicyGroupRegistry.SharedPolicyGroupRegistryKey(ID, ENV_ID), previousReactor);
-        cut.create(ReactableSharedPolicyGroup.builder().id(ID).environmentId(ENV_ID).build());
+        cut.create(ReactableSharedPolicyGroup.builder()
+                .id(ID)
+                .environmentId(ENV_ID)
+                .build());
         verify(sharedPolicyGroupReactor).start();
         verify(previousReactor).stop();
         assertThat(cut.get(ID, ENV_ID)).isSameAs(sharedPolicyGroupReactor);
@@ -83,7 +89,10 @@ class SharedPolicyGroupRegistryTest {
     void should_remove_shared_policy_group_reactor() {
         final SharedPolicyGroupReactor previousReactor = mock(SharedPolicyGroupReactor.class);
         cut.registry.put(new SharedPolicyGroupRegistry.SharedPolicyGroupRegistryKey(ID, ENV_ID), previousReactor);
-        cut.remove(ReactableSharedPolicyGroup.builder().id(ID).environmentId(ENV_ID).build());
+        cut.remove(ReactableSharedPolicyGroup.builder()
+                .id(ID)
+                .environmentId(ENV_ID)
+                .build());
         verify(previousReactor).stop();
         assertThat(cut.registry).isEmpty();
     }

@@ -57,8 +57,10 @@ class GammaAutomationPortsTest {
         registerModulePort("aim");
         registerModulePort("authz");
 
-        assertThat(ports.module("aim")).hasValueSatisfying(port -> assertThat(port.module()).isEqualTo("aim"));
-        assertThat(ports.module("authz")).hasValueSatisfying(port -> assertThat(port.module()).isEqualTo("authz"));
+        assertThat(ports.module("aim"))
+                .hasValueSatisfying(port -> assertThat(port.module()).isEqualTo("aim"));
+        assertThat(ports.module("authz"))
+                .hasValueSatisfying(port -> assertThat(port.module()).isEqualTo("authz"));
         assertThat(ports.module("esm")).isEmpty();
         assertThat(ports.all()).hasSize(2);
     }
@@ -79,8 +81,8 @@ class GammaAutomationPortsTest {
         registerModulePort("aim");
 
         assertThatThrownBy(() -> ports.module("aim"))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("aim");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("aim");
     }
 
     private void registerModulePort(String module) {

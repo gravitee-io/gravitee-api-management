@@ -73,28 +73,29 @@ public class FailoverV3IntegrationTest {
     @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
     class CircuitBreakingCases extends AbstractGatewayTest {
 
-        final Function<HttpClient, Single<HttpClientResponse>> requestSupplier = client ->
-            client.rxRequest(HttpMethod.GET, "/test").flatMap(HttpClientRequest::rxSend);
+        final Function<HttpClient, Single<HttpClientResponse>> requestSupplier =
+                client -> client.rxRequest(HttpMethod.GET, "/test").flatMap(HttpClientRequest::rxSend);
 
         @Test
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
         void should_fail_and_open_circuit_after_five_failures(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // And Given the backend answers in 750ms
-            wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
+            wiremock.stubFor(
+                    get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
 
             // When requesting five times the API
             final List<Single<HttpClientResponse>> listOfParallelCalls = List.of(
-                requestSupplier.apply(client),
-                requestSupplier.apply(client),
-                requestSupplier.apply(client),
-                requestSupplier.apply(client),
-                requestSupplier.apply(client)
-            );
+                    requestSupplier.apply(client),
+                    requestSupplier.apply(client),
+                    requestSupplier.apply(client),
+                    requestSupplier.apply(client),
+                    requestSupplier.apply(client));
             final TestSubscriber<HttpClientResponse> test = Single.merge(listOfParallelCalls)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete();
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete();
             for (int i = 0; i < listOfParallelCalls.size(); i++) {
                 test.assertValueAt(i, response -> {
                     // Then the API response should be 502
@@ -108,15 +109,15 @@ public class FailoverV3IntegrationTest {
             // When doing a new request to the API
             wiremock.resetRequests();
             requestSupplier
-                .apply(client)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+                    .apply(client)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
 
             // Then circuit breaker should be OPEN, and do not propagate request to the backend
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -125,7 +126,8 @@ public class FailoverV3IntegrationTest {
 
     @Nested
     @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
-    // Due to Failover implementation in V3, requests are not properly cancelled and it seems to make some test fail, that's why we force the order here.
+    // Due to Failover implementation in V3, requests are not properly cancelled and it seems to make some test fail,
+    // that's why we force the order here.
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class OnlyOneEndpointInGroup extends AbstractGatewayTest {
 
@@ -133,28 +135,28 @@ public class FailoverV3IntegrationTest {
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
         @Order(1)
         void should_not_retry_on_fast_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the backend answers immediately
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
             // Then the backend should have been called 1 time
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -163,23 +165,24 @@ public class FailoverV3IntegrationTest {
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
         @Order(2)
         void should_retry_and_fail_on_slow_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the backend answers in 750ms
-            wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
+            wiremock.stubFor(
+                    get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
             // We expect three calls: the first attempt + the 2 retries
             // Then the backend should have been called 3 times (one initial request + 2 attempts)
             wiremock.verify(3, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -189,7 +192,8 @@ public class FailoverV3IntegrationTest {
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
         @Order(5)
         void should_retry_and_fail_on_connection_exception(HttpClient client, Vertx vertx) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the backend throw an exception on connection
             final int port = wiremock.port();
@@ -205,17 +209,16 @@ public class FailoverV3IntegrationTest {
             netServer.listen().subscribe();
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
             // We expect three calls: the first attempt + the 2 retries
             // Then the backend should have been called 3 times (one initial request + 2 attempts)
             assertThat(connectionCount.get()).isEqualTo(3);
@@ -229,23 +232,24 @@ public class FailoverV3IntegrationTest {
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
         @Order(4)
         void should_retry_and_fail_on_slow_call_posting_payload(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the backend answers in 750ms
-            wiremock.stubFor(post("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
+            wiremock.stubFor(
+                    post("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.POST, "/test")
-                .flatMap(request -> request.rxSend(Buffer.buffer("body")))
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.POST, "/test")
+                    .flatMap(request -> request.rxSend(Buffer.buffer("body")))
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
             // Then the backend should have been called 3 times (one initial request + 2 attempts)
             wiremock.verify(3, postRequestedFor(urlPathEqualTo("/endpoint")).withRequestBody(equalTo("body")));
         }
@@ -254,41 +258,37 @@ public class FailoverV3IntegrationTest {
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
         @Order(3)
         void should_success_on_first_retry(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with one endpoint
             // And Given the backend answers in 750ms the first time, and immediately the second time
-            wiremock.stubFor(
-                get("/endpoint")
+            wiremock.stubFor(get("/endpoint")
                     .inScenario("Slow first call scenario")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750))
-                    .willSetStateTo("First Retry")
-            );
+                    .willSetStateTo("First Retry"));
 
-            wiremock.stubFor(
-                get("/endpoint")
+            wiremock.stubFor(get("/endpoint")
                     .inScenario("Slow first call scenario")
                     .whenScenarioStateIs("First Retry")
-                    .willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
             // Then the backend should have been called 2 times (one initial request + 1 attempt)
             wiremock.verify(2, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -301,28 +301,28 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-three-endpoints.json")
         void should_not_retry_on_fast_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with 3 endpoints
             // And Given the backend answers immediately
             wiremock.stubFor(get("/endpoint-1").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1")));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 1");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 1");
+                        return true;
+                    });
             // Then the backend should have been called 1 time
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-1")));
         }
@@ -330,25 +330,28 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-three-endpoints.json")
         void should_retry_and_fail_on_slow_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with 3 endpoints (round-robin load balancing)
             // And Given backend answers in 750ms whatever the endpoint
-            wiremock.stubFor(get("/endpoint-1").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
-            wiremock.stubFor(get("/endpoint-2").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
-            wiremock.stubFor(get("/endpoint-3").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
+            wiremock.stubFor(
+                    get("/endpoint-1").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
+            wiremock.stubFor(
+                    get("/endpoint-2").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
+            wiremock.stubFor(
+                    get("/endpoint-3").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
             // Then the backend should have been called 1 time per endpoint (thanks to load balancing)
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-1")));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-2")));
@@ -358,30 +361,32 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-three-endpoints.json")
         void should_success_on_second_retry(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with 3 endpoints (round-robin load balancing)
             // And Given backend answers in 750ms on all endpoints, expect the third that answers immediately
-            wiremock.stubFor(get("/endpoint-1").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
-            wiremock.stubFor(get("/endpoint-2").willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
+            wiremock.stubFor(get("/endpoint-1")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(get("/endpoint-2")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
             wiremock.stubFor(get("/endpoint-3").willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response body should be the one from third endpoint
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response body should be the one from third endpoint
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
+                        return true;
+                    });
             // Then the backend should have been called 1 time per endpoint (thanks to load balancing)
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-1")));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-2")));
@@ -391,30 +396,32 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-three-endpoints-query-params.json")
         void should_success_on_second_retry_with_endpoint_having_query_params(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and only one group with 3 endpoints (round-robin load balancing)
             // And Given backend answers in 750ms on all endpoints, expect the third that answers immediately
-            wiremock.stubFor(get(urlPathEqualTo("/endpoint-1")).willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
-            wiremock.stubFor(get(urlPathEqualTo("/endpoint-2")).willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
+            wiremock.stubFor(get(urlPathEqualTo("/endpoint-1"))
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(get(urlPathEqualTo("/endpoint-2"))
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
             wiremock.stubFor(get(urlPathEqualTo("/endpoint-3")).willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response body should be the one from third endpoint
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response body should be the one from third endpoint
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
+                        return true;
+                    });
 
             // Then the backend should have been called 1 time per endpoint (thanks to load balancing)
             wiremock.verify(getRequestedFor(urlEqualTo("/endpoint-1?e=1")));
@@ -437,48 +444,45 @@ public class FailoverV3IntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "dynamic-routing",
-                PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class)
-            );
+                    "dynamic-routing",
+                    PolicyBuilder.build(
+                            "dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class));
         }
 
         @Override
         public void configureApi(Api api) {
-            api
-                .getProxy()
-                .getGroups()
-                .stream()
-                .filter(group -> group.getName().equals("second-group"))
-                .flatMap(group -> group.getEndpoints().stream())
-                .forEach(endpoint -> endpoint.setTarget(exchangePort(endpoint.getTarget(), wiremockPort)));
+            api.getProxy().getGroups().stream()
+                    .filter(group -> group.getName().equals("second-group"))
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .forEach(endpoint -> endpoint.setTarget(exchangePort(endpoint.getTarget(), wiremockPort)));
         }
 
         @Test
         @DeployApi("/apis/http/failover/api-second-group-routing-to-one-endpoint.json")
         void should_not_retry_on_fast_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and two endpoints groups
             // and a dynamic routing policy routing to a particular endpoint of second group
             // And Given the backend answers immediately for a endpoint of second group
             wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
             // Then the endpoint of second group should have been called 1 time
             wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group-endpoint-1/dynamic-param")));
         }
@@ -486,24 +490,25 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-second-group-routing-to-one-endpoint.json")
         void should_retry_and_fail_on_slow_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and two endpoints groups
             // and a dynamic routing policy routing to a particular endpoint of second group
             // And Given the backend answers in 750ms for a endpoint of second group
-            wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
+            wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 502
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 502
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
             // Then the endpoint of second group should have been called 3 times (retrying each time the same endpoint)
             wiremock.verify(3, getRequestedFor(urlPathEqualTo("/second-group-endpoint-1/dynamic-param")));
         }
@@ -511,42 +516,38 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-second-group-routing-to-one-endpoint.json")
         void should_success_on_first_retry(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and two endpoints groups
             // and a dynamic routing policy routing to a particular endpoint of second group
             // And Given the backend answers in 750ms first time and immediately the second time
-            wiremock.stubFor(
-                get("/second-group-endpoint-1/dynamic-param")
+            wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param")
                     .inScenario("Slow first call scenario")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(ok(RESPONSE_FROM_BACKEND).withFixedDelay(750))
-                    .willSetStateTo("First Retry")
-            );
+                    .willSetStateTo("First Retry"));
 
-            wiremock.stubFor(
-                get("/second-group-endpoint-1/dynamic-param")
+            wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param")
                     .inScenario("Slow first call scenario")
                     .whenScenarioStateIs("First Retry")
-                    .willReturn(ok(RESPONSE_FROM_BACKEND))
-            );
+                    .willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
             // Then the endpoint of second group should have been called 2 times
             wiremock.verify(2, getRequestedFor(urlPathEqualTo("/second-group-endpoint-1/dynamic-param")));
         }
@@ -566,48 +567,46 @@ public class FailoverV3IntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "dynamic-routing",
-                PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class)
-            );
+                    "dynamic-routing",
+                    PolicyBuilder.build(
+                            "dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class));
         }
 
         @Override
         public void configureApi(Api api) {
-            api
-                .getProxy()
-                .getGroups()
-                .stream()
-                .filter(group -> group.getName().equals("second-group"))
-                .flatMap(group -> group.getEndpoints().stream())
-                .forEach(endpoint -> endpoint.setTarget(exchangePort(endpoint.getTarget(), wiremockPort)));
+            api.getProxy().getGroups().stream()
+                    .filter(group -> group.getName().equals("second-group"))
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .forEach(endpoint -> endpoint.setTarget(exchangePort(endpoint.getTarget(), wiremockPort)));
         }
 
         @Test
         @DeployApi("/apis/http/failover/api-second-group-routing-to-a-endpoints-group.json")
         void should_not_retry_on_fast_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and two endpoints groups
             // and a dynamic routing policy routing to the second group
             // And Given the backend answers immediately
-            wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1")));
+            wiremock.stubFor(
+                    get("/second-group-endpoint-1/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1")));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response body should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 1");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response body should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 1");
+                        return true;
+                    });
             // Then the endpoint of second group should have been called 1 time
             wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group-endpoint-1/dynamic-param")));
         }
@@ -615,32 +614,29 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-second-group-routing-to-a-endpoints-group.json")
         void should_retry_and_fail_on_slow_call(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and two endpoints groups
             // and a dynamic routing policy routing to the second group
             // And Given the backends answer in 750ms
-            wiremock.stubFor(
-                get("/second-group-endpoint-1/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750))
-            );
-            wiremock.stubFor(
-                get("/second-group-endpoint-2/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750))
-            );
-            wiremock.stubFor(
-                get("/second-group-endpoint-3/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 3").withFixedDelay(750))
-            );
+            wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(get("/second-group-endpoint-2/dynamic-param")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
+            wiremock.stubFor(get("/second-group-endpoint-3/dynamic-param")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 3").withFixedDelay(750)));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(502);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(502);
+                        return true;
+                    });
             // Then the endpoints of second group should have been called 1 time each
             wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group-endpoint-1/dynamic-param")));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group-endpoint-2/dynamic-param")));
@@ -650,35 +646,34 @@ public class FailoverV3IntegrationTest {
         @Test
         @DeployApi("/apis/http/failover/api-second-group-routing-to-a-endpoints-group.json")
         void should_success_on_second_retry(HttpClient client) {
-            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of
+            // 5 before opening the circuit breaker
             // and two endpoints groups
             // and a dynamic routing policy routing to the second group
             // And Given the backends answer in 750ms except the third that answers immediately
+            wiremock.stubFor(get("/second-group-endpoint-1/dynamic-param")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(get("/second-group-endpoint-2/dynamic-param")
+                    .willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
             wiremock.stubFor(
-                get("/second-group-endpoint-1/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750))
-            );
-            wiremock.stubFor(
-                get("/second-group-endpoint-2/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750))
-            );
-            wiremock.stubFor(get("/second-group-endpoint-3/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
+                    get("/second-group-endpoint-3/dynamic-param").willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
 
             // When requesting the API
-            client
-                .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // Then the API response should be 200
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // Then the API response bodu should be right
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // Then the API response should be 200
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // Then the API response bodu should be right
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
+                        return true;
+                    });
             // Then the endpoints of second group should have been called 1 time each
             wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group-endpoint-1/dynamic-param")));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/second-group-endpoint-2/dynamic-param")));

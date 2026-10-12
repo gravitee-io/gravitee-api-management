@@ -49,7 +49,8 @@ class PortalPageContentValidatorServiceTest {
     void should_call_applicable_validators() {
         // Given
         PortalPageContent existingContent = GraviteeMarkdownPageContent.create("org", "env", "old");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("new content").build();
+        UpdatePortalPageContent updateContent =
+                UpdatePortalPageContent.builder().content("new content").build();
         when(mockValidator.appliesTo(existingContent)).thenReturn(true);
 
         // When
@@ -63,20 +64,23 @@ class PortalPageContentValidatorServiceTest {
     @Test
     void should_throw_when_content_exceeds_the_max_size() {
         assertThatThrownBy(() -> service.validateContentSize("a".repeat(10 * 1024 * 1024 + 1)))
-            .isInstanceOf(PortalPageContentTooLargeException.class)
-            .hasMessage("Content must not exceed 10 MB");
+                .isInstanceOf(PortalPageContentTooLargeException.class)
+                .hasMessage("Content must not exceed 10 MB");
     }
 
     @Test
     void should_accept_content_at_the_max_size() {
-        assertThatCode(() -> service.validateContentSize("a".repeat(10 * 1024 * 1024))).doesNotThrowAnyException();
+        assertThatCode(() -> service.validateContentSize("a".repeat(10 * 1024 * 1024)))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_not_check_the_size_on_update_validation() {
         // Automation API flows go through validateForUpdate: the cap must not apply to them
         PortalPageContent existingContent = GraviteeMarkdownPageContent.create("org", "env", "old");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("a".repeat(10 * 1024 * 1024 + 1)).build();
+        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder()
+                .content("a".repeat(10 * 1024 * 1024 + 1))
+                .build();
         when(mockValidator.appliesTo(existingContent)).thenReturn(true);
 
         // When
@@ -90,7 +94,8 @@ class PortalPageContentValidatorServiceTest {
     void should_skip_non_applicable_validators() {
         // Given
         PortalPageContent existingContent = GraviteeMarkdownPageContent.create("org", "env", "old");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("new content").build();
+        UpdatePortalPageContent updateContent =
+                UpdatePortalPageContent.builder().content("new content").build();
         when(mockValidator.appliesTo(existingContent)).thenReturn(false);
 
         // When

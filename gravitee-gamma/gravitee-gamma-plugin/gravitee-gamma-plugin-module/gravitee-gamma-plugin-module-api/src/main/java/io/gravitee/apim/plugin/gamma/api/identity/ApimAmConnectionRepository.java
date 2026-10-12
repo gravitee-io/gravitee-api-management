@@ -46,14 +46,13 @@ public class ApimAmConnectionRepository implements AmConnectionRepository {
 
     private AmConnection toModel(AmConnectionEntity e) {
         return new AmConnection(
-            e.getBaseUrl(),
-            e.getServiceAccountAccessToken(),
-            e.getAmOrganizationId(),
-            e.getEnvironmentId(),
-            e.getDefaultDomainId(),
-            e.getDefaultDomainHrid(),
-            e.getGatewayUrl()
-        );
+                e.getBaseUrl(),
+                e.getServiceAccountAccessToken(),
+                e.getAmOrganizationId(),
+                e.getEnvironmentId(),
+                e.getDefaultDomainId(),
+                e.getDefaultDomainHrid(),
+                e.getGatewayUrl());
     }
 
     private AmConnectionEntity toEntity(String orgId, AmConnection c) {

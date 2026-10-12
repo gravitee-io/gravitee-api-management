@@ -28,9 +28,9 @@ public class OrderIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("pages")
-            .name("o1")
-            .key("order", ascending())
-            .build();
+                .collection("pages")
+                .name("o1")
+                .key("order", ascending())
+                .build();
     }
 }

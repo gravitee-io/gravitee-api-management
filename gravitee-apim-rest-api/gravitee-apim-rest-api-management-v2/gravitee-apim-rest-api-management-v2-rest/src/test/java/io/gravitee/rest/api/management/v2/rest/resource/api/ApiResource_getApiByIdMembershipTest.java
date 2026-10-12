@@ -67,15 +67,15 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
     protected void decorate(ResourceConfig resourceConfig) {
         super.decorate(resourceConfig);
         resourceConfig.register(
-            (ContainerRequestFilter) requestContext -> {
-                if (requestContext.getHeaderString(ORGANIZATION_ADMIN_HEADER) != null) {
-                    // Leaves the non-admin principal in SecurityContextHolder on this very thread before switching to the admin context.
-                    requestContext.getSecurityContext().getUserPrincipal();
-                    new AuthenticationFilter().filter(requestContext);
-                }
-            },
-            6
-        );
+                (ContainerRequestFilter) requestContext -> {
+                    if (requestContext.getHeaderString(ORGANIZATION_ADMIN_HEADER) != null) {
+                        // Leaves the non-admin principal in SecurityContextHolder on this very thread before switching
+                        // to the admin context.
+                        requestContext.getSecurityContext().getUserPrincipal();
+                        new AuthenticationFilter().filter(requestContext);
+                    }
+                },
+                6);
     }
 
     @AfterEach
@@ -87,26 +87,27 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
 
     static Stream<Arguments> nonMemberCases() {
         return Stream.of(
-            Arguments.of("neither admin nor direct member nor group member", Set.of(), Set.of()),
-            Arguments.of("member of another api", Set.of(apiMembership(OTHER_API, OTHER_API_ROLE_ID)), Set.of()),
-            Arguments.of("member of a group not attached to the api", Set.of(), Set.of(groupMembership(OTHER_GROUP, OTHER_GROUP_ROLE_ID)))
-        );
+                Arguments.of("neither admin nor direct member nor group member", Set.of(), Set.of()),
+                Arguments.of("member of another api", Set.of(apiMembership(OTHER_API, OTHER_API_ROLE_ID)), Set.of()),
+                Arguments.of(
+                        "member of a group not attached to the api",
+                        Set.of(),
+                        Set.of(groupMembership(OTHER_GROUP, OTHER_GROUP_ROLE_ID))));
     }
 
     static Stream<Arguments> memberCases() {
         return Stream.of(
-            Arguments.of("member through the api group", Set.of(), Set.of(groupMembership(API_GROUP, API_GROUP_ROLE_ID))),
-            Arguments.of("direct member", Set.of(apiMembership(API, API_ROLE_ID)), Set.of())
-        );
+                Arguments.of(
+                        "member through the api group",
+                        Set.of(),
+                        Set.of(groupMembership(API_GROUP, API_GROUP_ROLE_ID))),
+                Arguments.of("direct member", Set.of(apiMembership(API, API_ROLE_ID)), Set.of()));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("nonMemberCases")
     void should_return_403_when_user_is_not_a_member_of_the_api(
-        String userCase,
-        Set<MembershipEntity> apiMemberships,
-        Set<MembershipEntity> groupMemberships
-    ) {
+            String userCase, Set<MembershipEntity> apiMemberships, Set<MembershipEntity> groupMemberships) {
         givenAFederatedApiOwnedByAGroup();
         givenUserMemberships(apiMemberships, groupMemberships);
 
@@ -118,21 +119,18 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
     @ParameterizedTest(name = "{0}")
     @MethodSource("memberCases")
     void should_return_the_api_when_user_is_a_member_of_the_api(
-        String userCase,
-        Set<MembershipEntity> apiMemberships,
-        Set<MembershipEntity> groupMemberships
-    ) {
+            String userCase, Set<MembershipEntity> apiMemberships, Set<MembershipEntity> groupMemberships) {
         givenAFederatedApiOwnedByAGroup();
         givenUserMemberships(apiMemberships, groupMemberships);
 
         var response = rootTarget(API).request().get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(Api.class)
-            .extracting(Api::getApiFederated)
-            .extracting(ApiFederated::getId, ApiFederated::getName)
-            .containsExactly(API, API_NAME);
+                .hasStatus(OK_200)
+                .asEntity(Api.class)
+                .extracting(Api::getApiFederated)
+                .extracting(ApiFederated::getId, ApiFederated::getName)
+                .containsExactly(API, API_NAME);
     }
 
     @Test
@@ -141,33 +139,37 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
         givenUserMemberships(Set.of(), Set.of());
 
         var nonAdminResponse = rootTarget(API).request().get();
-        var adminResponse = rootTarget(API).request().header(ORGANIZATION_ADMIN_HEADER, true).get();
+        var adminResponse = rootTarget(API)
+                .request()
+                .header(ORGANIZATION_ADMIN_HEADER, true)
+                .get();
 
         assertThat(nonAdminResponse).hasStatus(FORBIDDEN_403);
         assertThat(adminResponse)
-            .hasStatus(OK_200)
-            .asEntity(Api.class)
-            .extracting(Api::getApiFederated)
-            .extracting(ApiFederated::getId, ApiFederated::getName)
-            .containsExactly(API, API_NAME);
+                .hasStatus(OK_200)
+                .asEntity(Api.class)
+                .extracting(Api::getApiFederated)
+                .extracting(ApiFederated::getId, ApiFederated::getName)
+                .containsExactly(API, API_NAME);
     }
 
     private void givenAFederatedApiOwnedByAGroup() {
         var federatedApi = FederatedApiEntity.builder()
-            .id(API)
-            .name(API_NAME)
-            .groups(Set.of(API_GROUP))
-            .originContext(new OriginContext.Integration("integration-id"))
-            .updatedAt(new Date())
-            .build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(federatedApi);
+                .id(API)
+                .name(API_NAME)
+                .groups(Set.of(API_GROUP))
+                .originContext(new OriginContext.Integration("integration-id"))
+                .updatedAt(new Date())
+                .build();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true))
+                .thenReturn(federatedApi);
     }
 
     private void givenUserMemberships(Set<MembershipEntity> apiMemberships, Set<MembershipEntity> groupMemberships) {
-        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API)).thenReturn(apiMemberships);
-        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP)).thenReturn(
-            groupMemberships
-        );
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API))
+                .thenReturn(apiMemberships);
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP))
+                .thenReturn(groupMemberships);
         Stream.concat(apiMemberships.stream(), groupMemberships.stream()).forEach(membership -> {
             var role = RoleEntity.builder().id(membership.getRoleId()).build();
             when(roleService.findById(membership.getRoleId())).thenReturn(role);
@@ -183,13 +185,14 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
         return membership(groupId, MembershipReferenceType.GROUP, roleId);
     }
 
-    private static MembershipEntity membership(String referenceId, MembershipReferenceType referenceType, String roleId) {
+    private static MembershipEntity membership(
+            String referenceId, MembershipReferenceType referenceType, String roleId) {
         return MembershipEntity.builder()
-            .memberId(USER_NAME)
-            .memberType(USER)
-            .referenceId(referenceId)
-            .referenceType(referenceType)
-            .roleId(roleId)
-            .build();
+                .memberId(USER_NAME)
+                .memberType(USER)
+                .referenceId(referenceId)
+                .referenceType(referenceType)
+                .roleId(roleId)
+                .build();
     }
 }

@@ -92,18 +92,17 @@ public class ApplicationService_UpdateApiKeyModeTest {
     private ParameterService parameterService;
 
     @Mock
-    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService
+            clientCertificateCrudService;
 
     @Test
     public void shouldUpdate() throws TechnicalException {
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
 
         Application applicationToUpdate = new Application();
         applicationToUpdate.setId(APPLICATION_ID);
@@ -123,20 +122,18 @@ public class ApplicationService_UpdateApiKeyModeTest {
         po.setReferenceId(APPLICATION_ID);
         po.setReferenceType(MembershipReferenceType.APPLICATION);
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
-        final ApplicationEntity applicationEntity = applicationService.updateApiKeyMode(
-            GraviteeContext.getExecutionContext(),
-            APPLICATION_ID,
-            SHARED
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, SHARED);
 
         verify(applicationRepository).update(argThat(application -> application.getApiKeyMode() == ApiKeyMode.SHARED));
-        verify(auditService).createApplicationAuditLog(
-            any(),
-            argThat(auditLogData -> auditLogData.getEvent().equals(APPLICATION_UPDATED)),
-            eq(APPLICATION_ID)
-        );
+        verify(auditService)
+                .createApplicationAuditLog(
+                        any(),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(APPLICATION_UPDATED)),
+                        eq(APPLICATION_ID));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -174,16 +171,15 @@ public class ApplicationService_UpdateApiKeyModeTest {
     }
 
     @Test
-    public void should_throw_exception_trying_to_set_apiKeyMode_shared_with_env_setting_disabled() throws TechnicalException {
+    public void should_throw_exception_trying_to_set_apiKeyMode_shared_with_env_setting_disabled()
+            throws TechnicalException {
         assertThrows(InvalidApplicationApiKeyModeException.class, () -> {
             // 'Shared API KEY' setting is disabled
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(false);
 
             // existing application has a UNSPECIFIED api key mode
             when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);

@@ -39,43 +39,38 @@ class SharedPolicyGroupReactorFactoryManagerTest {
 
     @Test
     void should_create_reactable_using_the_corresponding_factory() {
-        cut = new SharedPolicyGroupReactorFactoryManager(
-            List.of(new FakeSharedPolicyGroupReactorFactory("fake-1"), new FakeSharedPolicyGroupReactorFactory("fake-2"))
-        );
-        final SharedPolicyGroupReactor expectedFake1 = cut.create(
-            new ReactableSharedPolicyGroup(SharedPolicyGroup.builder().id("fake-1").build())
-        );
+        cut = new SharedPolicyGroupReactorFactoryManager(List.of(
+                new FakeSharedPolicyGroupReactorFactory("fake-1"), new FakeSharedPolicyGroupReactorFactory("fake-2")));
+        final SharedPolicyGroupReactor expectedFake1 = cut.create(new ReactableSharedPolicyGroup(
+                SharedPolicyGroup.builder().id("fake-1").build()));
         assertThat(expectedFake1.id()).isEqualTo("fake-1");
-        final SharedPolicyGroupReactor expectedFake2 = cut.create(
-            new ReactableSharedPolicyGroup(SharedPolicyGroup.builder().id("fake-2").build())
-        );
+        final SharedPolicyGroupReactor expectedFake2 = cut.create(new ReactableSharedPolicyGroup(
+                SharedPolicyGroup.builder().id("fake-2").build()));
         assertThat(expectedFake2.id()).isEqualTo("fake-2");
     }
 
     @Test
     void should_create_reactable_using_the_corresponding_factory_with_one_factory_registered_manually() {
         cut = new SharedPolicyGroupReactorFactoryManager(List.of(new FakeSharedPolicyGroupReactorFactory("fake-1")));
-        final SharedPolicyGroupReactor expectedFake1 = cut.create(
-            new ReactableSharedPolicyGroup(SharedPolicyGroup.builder().id("fake-1").build())
-        );
+        final SharedPolicyGroupReactor expectedFake1 = cut.create(new ReactableSharedPolicyGroup(
+                SharedPolicyGroup.builder().id("fake-1").build()));
         assertThat(expectedFake1.id()).isEqualTo("fake-1");
         cut.register(new FakeSharedPolicyGroupReactorFactory("fake-2"));
-        final SharedPolicyGroupReactor expectedFake2 = cut.create(
-            new ReactableSharedPolicyGroup(SharedPolicyGroup.builder().id("fake-2").build())
-        );
+        final SharedPolicyGroupReactor expectedFake2 = cut.create(new ReactableSharedPolicyGroup(
+                SharedPolicyGroup.builder().id("fake-2").build()));
         assertThat(expectedFake2.id()).isEqualTo("fake-2");
     }
 
     @Test
     void should_throw_if_no_corresponding_factory() {
         cut = new SharedPolicyGroupReactorFactoryManager(List.of());
-        assertThatThrownBy(() -> cut.create(new ReactableSharedPolicyGroup(SharedPolicyGroup.builder().id("fake-1").build())))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("No reactor found for reactable: fake-1");
+        assertThatThrownBy(() -> cut.create(new ReactableSharedPolicyGroup(
+                        SharedPolicyGroup.builder().id("fake-1").build())))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("No reactor found for reactable: fake-1");
         cut.register(new FakeSharedPolicyGroupReactorFactory("fake-2"));
-        final SharedPolicyGroupReactor expectedFake2 = cut.create(
-            new ReactableSharedPolicyGroup(SharedPolicyGroup.builder().id("fake-2").build())
-        );
+        final SharedPolicyGroupReactor expectedFake2 = cut.create(new ReactableSharedPolicyGroup(
+                SharedPolicyGroup.builder().id("fake-2").build()));
         assertThat(expectedFake2.id()).isEqualTo("fake-2");
     }
 

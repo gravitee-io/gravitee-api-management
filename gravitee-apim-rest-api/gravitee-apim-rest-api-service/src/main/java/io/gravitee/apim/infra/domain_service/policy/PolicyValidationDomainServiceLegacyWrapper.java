@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.domain_service.policy;
 
 import io.gravitee.apim.core.plugin.model.FlowPhase;
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.policy.exception.UnexpectedPoliciesException;
 import io.gravitee.definition.model.v4.ApiType;
@@ -43,11 +42,10 @@ public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidat
     }
 
     @Override
-    public void validatePoliciesFlowPhase(List<String> policyIds, ApiType apiType, FlowPhase phase) throws UnexpectedPoliciesException {
-        Map<String, PolicyPluginEntity> policiesMap = policyPluginService
-            .findAll()
-            .stream()
-            .collect(Collectors.toMap(PolicyPluginEntity::getId, Function.identity()));
+    public void validatePoliciesFlowPhase(List<String> policyIds, ApiType apiType, FlowPhase phase)
+            throws UnexpectedPoliciesException {
+        Map<String, PolicyPluginEntity> policiesMap = policyPluginService.findAll().stream()
+                .collect(Collectors.toMap(PolicyPluginEntity::getId, Function.identity()));
 
         List<String> policyNamesUnexpected = new ArrayList<>();
         policyIds.forEach(policyId -> {
@@ -55,35 +53,23 @@ public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidat
                 PolicyPluginEntity policy = policiesMap.get(policyId);
 
                 if (apiType.equals(ApiType.PROXY)) {
-                    if (
-                        policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY) == null ||
-                        policy
-                            .getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY)
-                            .stream()
-                            .noneMatch(p -> p.name().equals(phase.name()))
-                    ) {
+                    if (policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY) == null
+                            || policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY).stream()
+                                    .noneMatch(p -> p.name().equals(phase.name()))) {
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }
                 if (apiType.equals(ApiType.MESSAGE)) {
-                    if (
-                        policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE) == null ||
-                        policy
-                            .getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE)
-                            .stream()
-                            .noneMatch(p -> p.name().equals(phase.name()))
-                    ) {
+                    if (policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE) == null
+                            || policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_MESSAGE).stream()
+                                    .noneMatch(p -> p.name().equals(phase.name()))) {
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }
                 if (apiType.equals(ApiType.NATIVE)) {
-                    if (
-                        policy.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA) == null ||
-                        policy
-                            .getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA)
-                            .stream()
-                            .noneMatch(p -> p.name().equals(phase.name()))
-                    ) {
+                    if (policy.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA) == null
+                            || policy.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA).stream()
+                                    .noneMatch(p -> p.name().equals(phase.name()))) {
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }

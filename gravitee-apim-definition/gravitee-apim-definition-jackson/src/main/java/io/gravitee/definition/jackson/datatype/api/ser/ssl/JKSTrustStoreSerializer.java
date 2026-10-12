@@ -31,7 +31,8 @@ public class JKSTrustStoreSerializer extends TrustStoreSerializer<JKSTrustStore>
     }
 
     @Override
-    protected void doSerialize(JKSTrustStore trustStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(JKSTrustStore trustStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(trustStore, jgen, serializerProvider);
 
         writeStringField(jgen, "path", trustStore.getPath());

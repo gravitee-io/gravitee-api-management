@@ -52,20 +52,19 @@ class SearchApplicationMembersDomainServiceImplTest {
 
     @Test
     void should_return_memberships_for_application() {
-        var membership1 = anApplicationMembership("00000000-0000-0000-0000-000000000001", APPLICATION_ID, "user-1", "role-1");
+        var membership1 =
+                anApplicationMembership("00000000-0000-0000-0000-000000000001", APPLICATION_ID, "user-1", "role-1");
         var membership2 = anApplicationMembership(
-            "00000000-0000-0000-0000-000000000002",
-            APPLICATION_ID,
-            "user-2",
-            "role-2"
-        ).withMemberType(Membership.Type.GROUP);
+                        "00000000-0000-0000-0000-000000000002", APPLICATION_ID, "user-2", "role-2")
+                .withMemberType(Membership.Type.GROUP);
 
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build()
-        );
-        when(membershipQueryService.findByReference(eq(Membership.ReferenceType.APPLICATION), eq(APPLICATION_ID))).thenReturn(
-            Set.of(membership1, membership2)
-        );
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenReturn(BaseApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build());
+        when(membershipQueryService.findByReference(eq(Membership.ReferenceType.APPLICATION), eq(APPLICATION_ID)))
+                .thenReturn(Set.of(membership1, membership2));
 
         var result = service.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID);
 
@@ -74,23 +73,25 @@ class SearchApplicationMembersDomainServiceImplTest {
 
     @Test
     void should_throw_when_query_service_fails() {
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build()
-        );
-        when(membershipQueryService.findByReference(eq(Membership.ReferenceType.APPLICATION), eq(APPLICATION_ID))).thenThrow(
-            new TechnicalDomainException("query failed")
-        );
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenReturn(BaseApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build());
+        when(membershipQueryService.findByReference(eq(Membership.ReferenceType.APPLICATION), eq(APPLICATION_ID)))
+                .thenThrow(new TechnicalDomainException("query failed"));
 
         Throwable throwable = catchThrowable(() -> service.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID));
 
         assertThat(throwable)
-            .isInstanceOf(TechnicalDomainException.class)
-            .hasMessage("An error occurs while trying to search members for application app-id");
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to search members for application app-id");
     }
 
     @Test
     void should_throw_when_application_does_not_exist() {
-        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
         Throwable throwable = catchThrowable(() -> service.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID));
 

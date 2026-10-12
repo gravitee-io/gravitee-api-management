@@ -44,12 +44,17 @@ import java.util.Map;
  */
 public class CsvFormatter<T extends Reportable> extends AbstractFormatter<T> {
 
-    private static final Map<Class<? extends Reportable>, AbstractFormatter<? extends Reportable>> FORMATTERS = new java.util.HashMap<>();
+    private static final Map<Class<? extends Reportable>, AbstractFormatter<? extends Reportable>> FORMATTERS =
+            new java.util.HashMap<>();
 
     static {
         FORMATTERS.put(EndpointStatus.class, new EndpointStatusFormatter());
-        FORMATTERS.put(io.gravitee.reporter.api.log.Log.class, new io.gravitee.apim.reporter.common.formatter.csv.LogFormatter());
-        FORMATTERS.put(io.gravitee.reporter.api.http.Metrics.class, new io.gravitee.apim.reporter.common.formatter.csv.MetricsFormatter());
+        FORMATTERS.put(
+                io.gravitee.reporter.api.log.Log.class,
+                new io.gravitee.apim.reporter.common.formatter.csv.LogFormatter());
+        FORMATTERS.put(
+                io.gravitee.reporter.api.http.Metrics.class,
+                new io.gravitee.apim.reporter.common.formatter.csv.MetricsFormatter());
         FORMATTERS.put(Monitor.class, new MonitorFormatter());
         FORMATTERS.put(io.gravitee.reporter.api.v4.log.Log.class, new LogFormatter());
         FORMATTERS.put(MessageLog.class, new MessageLogFormatter());

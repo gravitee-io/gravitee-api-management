@@ -38,41 +38,40 @@ public interface ApiAuthorizationService {
     }
 
     default Set<String> findAccessibleApiIdsForUser(
-        final ExecutionContext executionContext,
-        final String userId,
-        final Set<String> apiIds
-    ) {
+            final ExecutionContext executionContext, final String userId, final Set<String> apiIds) {
         ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(apiIds);
         return findAccessibleApiIdsForUser(executionContext, userId, apiQuery);
     }
 
-    Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery);
+    Set<String> findAccessibleApiIdsForUser(
+            final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery);
 
-    default Set<String> findIdsByUser(final ExecutionContext executionContext, final String userId, final boolean manageOnly) {
+    default Set<String> findIdsByUser(
+            final ExecutionContext executionContext, final String userId, final boolean manageOnly) {
         return this.findIdsByUser(executionContext, userId, new ApiQuery(), null, manageOnly);
     }
 
     default Set<String> findIdsByUser(
-        final ExecutionContext executionContext,
-        final String userId,
-        final ApiQuery apiQuery,
-        final boolean manageOnly
-    ) {
+            final ExecutionContext executionContext,
+            final String userId,
+            final ApiQuery apiQuery,
+            final boolean manageOnly) {
         return this.findIdsByUser(executionContext, userId, apiQuery, null, manageOnly);
     }
 
     Set<String> findIdsByUser(
-        final ExecutionContext executionContext,
-        final String userId,
-        final ApiQuery apiQuery,
-        final Sortable sortable,
-        final boolean manageOnly
-    );
+            final ExecutionContext executionContext,
+            final String userId,
+            final ApiQuery apiQuery,
+            final Sortable sortable,
+            final boolean manageOnly);
 
-    Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
+    Set<String> findApiIdsByUserId(
+            ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 
     Set<String> findIdsByEnvironment(final String environmentId);
 
-    List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
+    List<ApiCriteria> computeApiCriteriaForUser(
+            ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 }

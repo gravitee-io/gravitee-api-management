@@ -78,52 +78,45 @@ public class GraviteeDefinitionFixtures {
         return sampling;
     }
 
-    public static final Supplier<GraviteeDefinition.V4.V4Builder> BASE = () ->
-        GraviteeDefinition.V4.builder()
-            .members(
-                Set.of(
-                    ApiMember.builder()
-                        .displayName("John Doe")
-                        .id("member-id")
-                        .roles(List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").scope(RoleScope.API).build()))
-                        .build()
-                )
-            )
-            .metadata(
-                Set.of(
-                    NewApiMetadata.builder()
-                        .format(Metadata.MetadataFormat.MAIL)
-                        .key("email-support")
-                        .name("email-support")
-                        .value("${(api.primaryOwner.email)!''}")
-                        .build()
-                )
-            )
+    public static final Supplier<GraviteeDefinition.V4.V4Builder> BASE = () -> GraviteeDefinition.V4
+            .builder()
+            .members(Set.of(ApiMember.builder()
+                    .displayName("John Doe")
+                    .id("member-id")
+                    .roles(List.of(ApiMemberRole.builder()
+                            .name("PRIMARY_OWNER")
+                            .scope(RoleScope.API)
+                            .build()))
+                    .build()))
+            .metadata(Set.of(NewApiMetadata.builder()
+                    .format(Metadata.MetadataFormat.MAIL)
+                    .key("email-support")
+                    .name("email-support")
+                    .value("${(api.primaryOwner.email)!''}")
+                    .build()))
             .apiMedia(List.of(MediaFixtures.aMedia()))
             .apiPicture("data:image/png;base64,picture")
             .apiBackground("data:image/png;base64,background");
 
     public static GraviteeDefinition.V4 aGraviteeDefinitionProxy() {
         return BASE.get()
-            .api(
-                ApiDescriptor.ApiDescriptorV4.builder()
-                    .type(ApiType.PROXY)
-                    .listeners(
-                        List.of(
-                            HttpListener.builder()
+                .api(ApiDescriptor.ApiDescriptorV4.builder()
+                        .type(ApiType.PROXY)
+                        .listeners(List.of(HttpListener.builder()
                                 .paths(List.of(new Path(null, "/proxy-api", true)))
-                                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").qos(Qos.AUTO).configuration("{}").build()))
-                                .build()
-                        )
-                    )
-                    .endpointGroups(
-                        List.of(
-                            EndpointGroup.builder()
+                                .entrypoints(List.of(Entrypoint.builder()
+                                        .type("http-proxy")
+                                        .qos(Qos.AUTO)
+                                        .configuration("{}")
+                                        .build()))
+                                .build()))
+                        .endpointGroups(List.of(EndpointGroup.builder()
                                 .name("Default HTTP proxy group")
                                 .type("http-proxy")
-                                .loadBalancer(LoadBalancer.builder().type(LoadBalancerType.ROUND_ROBIN).build())
-                                .sharedConfiguration(
-                                    """
+                                .loadBalancer(LoadBalancer.builder()
+                                        .type(LoadBalancerType.ROUND_ROBIN)
+                                        .build())
+                                .sharedConfiguration("""
                                     {
                                       "proxy" : {
                                         "useSystemProxy" : false,
@@ -151,32 +144,22 @@ public class GraviteeDefinitionFixtures {
                                         },
                                         "trustAll" : false
                                      }
-                                    }"""
-                                )
-                                .endpoints(
-                                    List.of(
-                                        Endpoint.builder()
-                                            .name("Default HTTP proxy")
-                                            .type("http-proxy")
-                                            .inheritConfiguration(true)
-                                            .weight(1)
-                                            .configuration(
-                                                """
-                                                {"target":"https://api.gravitee.io/echo"}"""
-                                            )
-                                            .sharedConfigurationOverride("{}")
-                                            .services(new EndpointServices())
-                                            .build()
-                                    )
-                                )
-                                .services(
-                                    EndpointGroupServices.builder()
-                                        .healthCheck(
-                                            Service.builder()
+                                    }""")
+                                .endpoints(List.of(Endpoint.builder()
+                                        .name("Default HTTP proxy")
+                                        .type("http-proxy")
+                                        .inheritConfiguration(true)
+                                        .weight(1)
+                                        .configuration("""
+                                                {"target":"https://api.gravitee.io/echo"}""")
+                                        .sharedConfigurationOverride("{}")
+                                        .services(new EndpointServices())
+                                        .build()))
+                                .services(EndpointGroupServices.builder()
+                                        .healthCheck(Service.builder()
                                                 .type("http-health-check")
                                                 .enabled(true)
-                                                .configuration(
-                                                    """
+                                                .configuration("""
                                                     {
                                                       "schedule" : "*/1 * * * * *",
                                                       "headers" : [ ],
@@ -186,68 +169,73 @@ public class GraviteeDefinitionFixtures {
                                                       "assertion" : "{#response.status == 200}",
                                                       "successThreshold" : 2,
                                                       "target" : "/"
-                                                    }"""
-                                                )
-                                                .build()
-                                        )
-                                        .build()
-                                )
-                                .build()
-                        )
-                    )
-                    .analytics(
-                        Analytics.builder()
-                            .enabled(true)
-                            .logging(
-                                Logging.builder()
-                                    .condition("{#request.timestamp <= 1709737299215l}")
-                                    .content(LoggingContent.builder().headers(true).payload(true).build())
-                                    .phase(LoggingPhase.builder().request(true).response(true).build())
-                                    .mode(LoggingMode.builder().entrypoint(true).endpoint(true).build())
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .flowExecution(new FlowExecution())
-                    .flows(
-                        List.of(
-                            Flow.builder()
+                                                    }""")
+                                                .build())
+                                        .build())
+                                .build()))
+                        .analytics(Analytics.builder()
+                                .enabled(true)
+                                .logging(Logging.builder()
+                                        .condition("{#request.timestamp <= 1709737299215l}")
+                                        .content(LoggingContent.builder()
+                                                .headers(true)
+                                                .payload(true)
+                                                .build())
+                                        .phase(LoggingPhase.builder()
+                                                .request(true)
+                                                .response(true)
+                                                .build())
+                                        .mode(LoggingMode.builder()
+                                                .entrypoint(true)
+                                                .endpoint(true)
+                                                .build())
+                                        .build())
+                                .build())
+                        .flowExecution(new FlowExecution())
+                        .flows(List.of(Flow.builder()
                                 .id("flow-id")
                                 .name("api flows")
                                 .enabled(true)
-                                .selectors(
-                                    List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of()).build())
-                                )
+                                .selectors(List.of(HttpSelector.builder()
+                                        .path("/")
+                                        .pathOperator(Operator.STARTS_WITH)
+                                        .methods(Set.of())
+                                        .build()))
                                 .request(List.of())
                                 .response(List.of())
                                 .subscribe(List.of())
                                 .publish(List.of())
                                 .tags(Set.of())
-                                .build()
-                        )
-                    )
-                    .id("api-id")
-                    .name("My Api")
-                    .description("My Api description")
-                    .apiVersion("1.0.0")
-                    .createdAt(Instant.parse("2023-11-07T15:17:44.946Z"))
-                    .deployedAt(Instant.parse("2024-11-08T10:22:17.487Z"))
-                    .updatedAt(Instant.parse("2024-11-13T14:31:05.066Z"))
-                    .groups(Set.of("group1"))
-                    .state(Lifecycle.State.STARTED)
-                    .visibility(Visibility.PUBLIC)
-                    .lifecycleState(ApiLifecycleState.PUBLISHED)
-                    .tags(Set.of())
-                    .categories(Set.of())
-                    .originContext(new OriginContext.Management())
-                    .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-                    .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
-                    .resources(List.of())
-                    .build()
-            )
-            .plans(
-                Set.of(
-                    PlanDescriptor.V4.builder()
+                                .build()))
+                        .id("api-id")
+                        .name("My Api")
+                        .description("My Api description")
+                        .apiVersion("1.0.0")
+                        .createdAt(Instant.parse("2023-11-07T15:17:44.946Z"))
+                        .deployedAt(Instant.parse("2024-11-08T10:22:17.487Z"))
+                        .updatedAt(Instant.parse("2024-11-13T14:31:05.066Z"))
+                        .groups(Set.of("group1"))
+                        .state(Lifecycle.State.STARTED)
+                        .visibility(Visibility.PUBLIC)
+                        .lifecycleState(ApiLifecycleState.PUBLISHED)
+                        .tags(Set.of())
+                        .categories(Set.of())
+                        .originContext(new OriginContext.Management())
+                        .responseTemplates(Map.of(
+                                "DEFAULT",
+                                Map.of(
+                                        "*.*",
+                                        ResponseTemplate.builder()
+                                                .statusCode(200)
+                                                .build())))
+                        .properties(List.of(Property.builder()
+                                .key("prop-key")
+                                .value("prop-value")
+                                .build()))
+                        .resources(List.of())
+                        .build())
+                .plans(Set.of(PlanDescriptor.V4
+                        .builder()
                         .id("plan-id")
                         .name("Default Keyless (UNSECURED)")
                         .definitionVersion(DefinitionVersion.V4)
@@ -257,7 +245,10 @@ public class GraviteeDefinitionFixtures {
                         .updatedAt(Instant.parse("2023-12-05T07:33:32.922Z"))
                         .type(Plan.PlanType.API)
                         .mode(PlanMode.STANDARD)
-                        .security(PlanSecurity.builder().type("KEY_LESS").configuration("{}").build())
+                        .security(PlanSecurity.builder()
+                                .type("KEY_LESS")
+                                .configuration("{}")
+                                .build())
                         .status(PlanStatus.PUBLISHED)
                         .apiId("api-id")
                         .order(1)
@@ -265,20 +256,15 @@ public class GraviteeDefinitionFixtures {
                         .flows(List.of())
                         .validation(Plan.PlanValidationType.AUTO)
                         .type(Plan.PlanType.API)
-                        .build()
-                )
-            )
-            .pages(
-                List.of(
-                    PageExport.builder()
+                        .build()))
+                .pages(List.of(PageExport.builder()
                         .id("page-id")
                         .referenceType(Page.ReferenceType.API)
                         .referenceId("api-id")
                         .name("openapi.json")
                         .type(Page.Type.SWAGGER)
                         .content(
-                            "{\n  \"openapi\" : \"3.0.1\",\n  \"info\" : {\n    \"title\" : \"Echo\",\n    \"description\" : \"This is an echo API \",\n    \"version\" : \"2024-06-25T06:52:05Z\"\n  },\n  \"servers\" : [ {\n    \"url\" : \"https://5a1pbut3t9.execute-api.eu-west-3.amazonaws.com/{basePath}\",\n    \"variables\" : {\n      \"basePath\" : {\n        \"default\" : \"dev\"\n      }\n    }\n  } ],\n  \"paths\" : {\n    \"/echo\" : {\n      \"get\" : {\n        \"operationId\": \"echo\",\n        \"responses\" : {\n          \"200\" : {\n            \"description\" : \"200 response\",\n            \"headers\" : {\n              \"Access-Control-Allow-Origin\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              }\n            },\n            \"content\" : {\n              \"application/json\" : {\n                \"schema\" : {\n                  \"$ref\" : \"#/components/schemas/Empty\"\n                }\n              }\n            }\n          }\n        },\n        \"security\" : [ {\n          \"api_key\" : [ ]\n        } ]\n      },\n      \"options\" : {\n        \"responses\" : {\n          \"200\" : {\n            \"description\" : \"200 response\",\n            \"headers\" : {\n              \"Access-Control-Allow-Origin\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              },\n              \"Access-Control-Allow-Methods\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              },\n              \"Access-Control-Allow-Headers\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              }\n            },\n            \"content\" : {\n              \"application/json\" : {\n                \"schema\" : {\n                  \"$ref\" : \"#/components/schemas/Empty\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"components\" : {\n    \"schemas\" : {\n      \"Empty\" : {\n        \"title\" : \"Empty Schema\",\n        \"type\" : \"object\"\n      }\n    },\n    \"securitySchemes\" : {\n      \"api_key\" : {\n        \"type\" : \"apiKey\",\n        \"name\" : \"x-api-key\",\n        \"in\" : \"header\"\n      }\n    }\n  }\n}"
-                        )
+                                "{\n  \"openapi\" : \"3.0.1\",\n  \"info\" : {\n    \"title\" : \"Echo\",\n    \"description\" : \"This is an echo API \",\n    \"version\" : \"2024-06-25T06:52:05Z\"\n  },\n  \"servers\" : [ {\n    \"url\" : \"https://5a1pbut3t9.execute-api.eu-west-3.amazonaws.com/{basePath}\",\n    \"variables\" : {\n      \"basePath\" : {\n        \"default\" : \"dev\"\n      }\n    }\n  } ],\n  \"paths\" : {\n    \"/echo\" : {\n      \"get\" : {\n        \"operationId\": \"echo\",\n        \"responses\" : {\n          \"200\" : {\n            \"description\" : \"200 response\",\n            \"headers\" : {\n              \"Access-Control-Allow-Origin\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              }\n            },\n            \"content\" : {\n              \"application/json\" : {\n                \"schema\" : {\n                  \"$ref\" : \"#/components/schemas/Empty\"\n                }\n              }\n            }\n          }\n        },\n        \"security\" : [ {\n          \"api_key\" : [ ]\n        } ]\n      },\n      \"options\" : {\n        \"responses\" : {\n          \"200\" : {\n            \"description\" : \"200 response\",\n            \"headers\" : {\n              \"Access-Control-Allow-Origin\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              },\n              \"Access-Control-Allow-Methods\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              },\n              \"Access-Control-Allow-Headers\" : {\n                \"schema\" : {\n                  \"type\" : \"string\"\n                }\n              }\n            },\n            \"content\" : {\n              \"application/json\" : {\n                \"schema\" : {\n                  \"$ref\" : \"#/components/schemas/Empty\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"components\" : {\n    \"schemas\" : {\n      \"Empty\" : {\n        \"title\" : \"Empty Schema\",\n        \"type\" : \"object\"\n      }\n    },\n    \"securitySchemes\" : {\n      \"api_key\" : {\n        \"type\" : \"apiKey\",\n        \"name\" : \"x-api-key\",\n        \"in\" : \"header\"\n      }\n    }\n  }\n}")
                         .published(true)
                         .visibility(Page.Visibility.PUBLIC)
                         .order(0)
@@ -287,94 +273,84 @@ public class GraviteeDefinitionFixtures {
                         .accessControls(Set.of())
                         .referenceId("api-id")
                         .referenceType(Page.ReferenceType.API)
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
     }
 
     public static GraviteeDefinition.V4 aGraviteeDefinitionMessage() {
         return BASE.get()
-            .api(
-                ApiDescriptor.ApiDescriptorV4.builder()
-                    .type(ApiType.MESSAGE)
-                    .listeners(
-                        List.of(
-                            HttpListener.builder()
-                                .paths(List.of(new Path(null, "/message-api", true)))
-                                .entrypoints(List.of(Entrypoint.builder().type("http-get").qos(Qos.AUTO).configuration("{}").build()))
-                                .build(),
-                            SubscriptionListener.builder()
-                                .entrypoints(List.of(Entrypoint.builder().type("webhook").qos(Qos.AUTO).configuration("{}").build()))
-                                .build()
-                        )
-                    )
-                    .endpointGroups(
-                        List.of(
-                            EndpointGroup.builder()
+                .api(ApiDescriptor.ApiDescriptorV4.builder()
+                        .type(ApiType.MESSAGE)
+                        .listeners(List.of(
+                                HttpListener.builder()
+                                        .paths(List.of(new Path(null, "/message-api", true)))
+                                        .entrypoints(List.of(Entrypoint.builder()
+                                                .type("http-get")
+                                                .qos(Qos.AUTO)
+                                                .configuration("{}")
+                                                .build()))
+                                        .build(),
+                                SubscriptionListener.builder()
+                                        .entrypoints(List.of(Entrypoint.builder()
+                                                .type("webhook")
+                                                .qos(Qos.AUTO)
+                                                .configuration("{}")
+                                                .build()))
+                                        .build()))
+                        .endpointGroups(List.of(EndpointGroup.builder()
                                 .name("Default Kafka group")
                                 .type("kafka")
-                                .loadBalancer(LoadBalancer.builder().type(LoadBalancerType.ROUND_ROBIN).build())
-                                .endpoints(
-                                    List.of(
-                                        Endpoint.builder()
-                                            .name("Default Kafka")
-                                            .type("kafka")
-                                            .inheritConfiguration(true)
-                                            .weight(1)
-                                            .configuration("{\"bootstrapServers\":\"localhost:9092\"}")
-                                            .services(new EndpointServices())
-                                            .build()
-                                    )
-                                )
-                                .build()
-                        )
-                    )
-                    .analytics(Analytics.builder().enabled(true).messageSampling(aMessageSampling()).build())
-                    .flowExecution(new FlowExecution())
-                    .flows(
-                        List.of(
-                            Flow.builder()
+                                .loadBalancer(LoadBalancer.builder()
+                                        .type(LoadBalancerType.ROUND_ROBIN)
+                                        .build())
+                                .endpoints(List.of(Endpoint.builder()
+                                        .name("Default Kafka")
+                                        .type("kafka")
+                                        .inheritConfiguration(true)
+                                        .weight(1)
+                                        .configuration("{\"bootstrapServers\":\"localhost:9092\"}")
+                                        .services(new EndpointServices())
+                                        .build()))
+                                .build()))
+                        .analytics(Analytics.builder()
+                                .enabled(true)
+                                .messageSampling(aMessageSampling())
+                                .build())
+                        .flowExecution(new FlowExecution())
+                        .flows(List.of(Flow.builder()
                                 .id("flow-message-id")
                                 .name("message flow")
                                 .enabled(true)
-                                .selectors(
-                                    List.of(
-                                        ChannelSelector.builder()
-                                            .channel("/")
-                                            .channelOperator(Operator.STARTS_WITH)
-                                            .operations(Set.of(ChannelSelector.Operation.SUBSCRIBE, ChannelSelector.Operation.PUBLISH))
-                                            .build()
-                                    )
-                                )
+                                .selectors(List.of(ChannelSelector.builder()
+                                        .channel("/")
+                                        .channelOperator(Operator.STARTS_WITH)
+                                        .operations(Set.of(
+                                                ChannelSelector.Operation.SUBSCRIBE, ChannelSelector.Operation.PUBLISH))
+                                        .build()))
                                 .request(List.of())
                                 .response(List.of())
                                 .subscribe(List.of())
                                 .publish(List.of())
                                 .tags(Set.of())
-                                .build()
-                        )
-                    )
-                    .id("message-api-id")
-                    .name("My Message Api")
-                    .description("My Message Api description")
-                    .apiVersion("1.0.0")
-                    .createdAt(Instant.parse("2023-11-07T15:17:44.946Z"))
-                    .deployedAt(Instant.parse("2024-11-08T10:22:17.487Z"))
-                    .updatedAt(Instant.parse("2024-11-13T14:31:05.066Z"))
-                    .state(Lifecycle.State.STARTED)
-                    .visibility(Visibility.PUBLIC)
-                    .lifecycleState(ApiLifecycleState.PUBLISHED)
-                    .tags(Set.of())
-                    .categories(Set.of())
-                    .originContext(new OriginContext.Management())
-                    .properties(List.of())
-                    .resources(List.of())
-                    .build()
-            )
-            .plans(
-                Set.of(
-                    PlanDescriptor.V4.builder()
+                                .build()))
+                        .id("message-api-id")
+                        .name("My Message Api")
+                        .description("My Message Api description")
+                        .apiVersion("1.0.0")
+                        .createdAt(Instant.parse("2023-11-07T15:17:44.946Z"))
+                        .deployedAt(Instant.parse("2024-11-08T10:22:17.487Z"))
+                        .updatedAt(Instant.parse("2024-11-13T14:31:05.066Z"))
+                        .state(Lifecycle.State.STARTED)
+                        .visibility(Visibility.PUBLIC)
+                        .lifecycleState(ApiLifecycleState.PUBLISHED)
+                        .tags(Set.of())
+                        .categories(Set.of())
+                        .originContext(new OriginContext.Management())
+                        .properties(List.of())
+                        .resources(List.of())
+                        .build())
+                .plans(Set.of(PlanDescriptor.V4
+                        .builder()
                         .id("plan-message-id")
                         .name("Default Keyless (UNSECURED)")
                         .definitionVersion(DefinitionVersion.V4)
@@ -384,17 +360,18 @@ public class GraviteeDefinitionFixtures {
                         .updatedAt(Instant.parse("2023-12-05T07:33:32.922Z"))
                         .type(Plan.PlanType.API)
                         .mode(PlanMode.STANDARD)
-                        .security(PlanSecurity.builder().type("KEY_LESS").configuration("{}").build())
+                        .security(PlanSecurity.builder()
+                                .type("KEY_LESS")
+                                .configuration("{}")
+                                .build())
                         .status(PlanStatus.PUBLISHED)
                         .apiId("message-api-id")
                         .order(1)
                         .commentRequired(false)
                         .flows(List.of())
                         .validation(Plan.PlanValidationType.AUTO)
-                        .build()
-                )
-            )
-            .pages(List.of())
-            .build();
+                        .build()))
+                .pages(List.of())
+                .build();
     }
 }

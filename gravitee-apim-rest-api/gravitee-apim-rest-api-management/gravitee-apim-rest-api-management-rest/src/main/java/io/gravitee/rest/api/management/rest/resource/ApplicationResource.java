@@ -96,12 +96,14 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get an application", description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Application",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationEntity.class))
-    )
+            responseCode = "200",
+            description = "Application",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public ApplicationEntity getApplication() {
         return applicationService.findById(GraviteeContext.getExecutionContext(), application);
     }
@@ -110,18 +112,20 @@ public class ApplicationResource extends AbstractResource {
     @Path("configuration")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get application type definition of an application",
-        description = "User must have the READ permission to use this service"
-    )
+            summary = "Get application type definition of an application",
+            description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "ApplicationType",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationTypeEntity.class))
-    )
+            responseCode = "200",
+            description = "ApplicationType",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationTypeEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApplicationType() {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), application);
+        ApplicationEntity applicationEntity =
+                applicationService.findById(GraviteeContext.getExecutionContext(), application);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
         return Response.ok(applicationType).build();
     }
@@ -130,19 +134,20 @@ public class ApplicationResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update an application",
-        description = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application."
-    )
+            summary = "Update an application",
+            description = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated application",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated application",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public ApplicationEntity updateApplication(
-        @Valid @NotNull(message = "An application must be provided") final UpdateApplicationEntity updatedApplication
-    ) {
+            @Valid @NotNull(message = "An application must be provided")
+                    final UpdateApplicationEntity updatedApplication) {
         try {
             ImageUtils.verify(updatedApplication.getPicture());
             ImageUtils.verify(updatedApplication.getBackground());
@@ -151,7 +156,8 @@ public class ApplicationResource extends AbstractResource {
         }
 
         var result = applicationService.update(GraviteeContext.getExecutionContext(), application, updatedApplication);
-        if (updatedApplication.getSettings() != null && updatedApplication.getSettings().getTls() != null) {
+        if (updatedApplication.getSettings() != null
+                && updatedApplication.getSettings().getTls() != null) {
             mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(application);
         }
         return result;
@@ -159,35 +165,40 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Path("picture")
-    @Operation(summary = "Get the application's picture", description = "User must have the READ permission to use this service")
+    @Operation(
+            summary = "Get the application's picture",
+            description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Application's picture",
-        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
-    )
+            responseCode = "200",
+            description = "Application's picture",
+            content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApplicationPicture(@Context Request request) throws ApplicationNotFoundException {
-        return getImageResponse(request, applicationService.getPicture(GraviteeContext.getExecutionContext(), application));
+        return getImageResponse(
+                request, applicationService.getPicture(GraviteeContext.getExecutionContext(), application));
     }
 
     @GET
     @Path("background")
-    @Operation(summary = "Get the application's background", description = "User must have the READ permission to use this service")
+    @Operation(
+            summary = "Get the application's background",
+            description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Application's background",
-        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
-    )
+            responseCode = "200",
+            description = "Application's background",
+            content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApplicationBackground(@Context Request request) throws ApplicationNotFoundException {
-        return getImageResponse(request, applicationService.getBackground(GraviteeContext.getExecutionContext(), application));
+        return getImageResponse(
+                request, applicationService.getBackground(GraviteeContext.getExecutionContext(), application));
     }
 
     private Response getImageResponse(final Request request, PictureEntity picture) {
         if (picture instanceof UrlPictureEntity pictureEntity) {
-            return Response.temporaryRedirect(URI.create(pictureEntity.getUrl())).build();
+            return Response.temporaryRedirect(URI.create(pictureEntity.getUrl()))
+                    .build();
         }
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
@@ -212,23 +223,28 @@ public class ApplicationResource extends AbstractResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+        return Response.ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     @POST
     @Path("/renew_secret")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Renew the client secret for an OAuth2 application",
-        description = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application."
-    )
+            summary = "Renew the client secret for an OAuth2 application",
+            description = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated application",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated application",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public ApplicationEntity renewApplicationClientSecret() {
         return applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), application);
     }
@@ -236,12 +252,16 @@ public class ApplicationResource extends AbstractResource {
     @POST
     @Path("/_restore")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Restore the application", description = "User must have ORGANIZATION:ADMIN role to restore an application.")
+    @Operation(
+            summary = "Restore the application",
+            description = "User must have ORGANIZATION:ADMIN role to restore an application.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Restored application",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationEntity.class))
-    )
+            responseCode = "200",
+            description = "Restored application",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ApplicationEntity restoreApplication() {
         if (!isAdmin()) {
@@ -251,10 +271,12 @@ public class ApplicationResource extends AbstractResource {
     }
 
     @DELETE
-    @Operation(summary = "Delete an application", description = "User must have the DELETE permission to use this service")
+    @Operation(
+            summary = "Delete an application",
+            description = "User must have the DELETE permission to use this service")
     @ApiResponse(responseCode = "204", description = "Application successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)})
     public Response deleteApplication() {
         applicationService.archive(GraviteeContext.getExecutionContext(), application);
         return Response.noContent().build();
@@ -264,19 +286,17 @@ public class ApplicationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("notifiers")
     @Operation(
-        summary = "List available notifiers for application",
-        description = "User must have the APPLICATION_NOTIFICATION[READ] permission to use this service"
-    )
+            summary = "List available notifiers for application",
+            description = "User must have the APPLICATION_NOTIFICATION[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of notifiers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = NotifierEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of notifiers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = NotifierEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)})
     public List<NotifierEntity> getApplicationNotifiers() {
         return notifierService.list();
     }

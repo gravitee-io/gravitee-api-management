@@ -52,27 +52,22 @@ class PortalPageMongoRepositoryImplTest {
     void should_include_expand_field_when_non_blank() {
         PortalPageMongoRepositoryImpl repository = buildRepository();
         // When
-        repository.findPortalPagesByIdWithExpand(List.of("id1", "id2"), Collections.singletonList(ExpandsViewContext.CONTENT));
+        repository.findPortalPagesByIdWithExpand(
+                List.of("id1", "id2"), Collections.singletonList(ExpandsViewContext.CONTENT));
         // Then
         verify(mongoTemplate).find(queryCaptor.capture(), eq(PortalPageMongo.class));
 
-        JsonNode jsonQuery = MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery).isEqualTo(
-            MAPPER.readTree(
-                """
+        JsonNode jsonQuery =
+                MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
+        assertThat(jsonQuery).isEqualTo(MAPPER.readTree("""
                 {"_id":{"$in":["id1","id2"]}}
-                """
-            )
-        );
+                """));
 
-        JsonNode jsonFields = MAPPER.readTree(queryCaptor.getValue().getFieldsObject().toJson());
-        assertThat(jsonFields).isEqualTo(
-            MAPPER.readTree(
-                """
+        JsonNode jsonFields =
+                MAPPER.readTree(queryCaptor.getValue().getFieldsObject().toJson());
+        assertThat(jsonFields).isEqualTo(MAPPER.readTree("""
                 {"_id":1,"content":1}
-                """
-            )
-        );
+                """));
     }
 
     @Test
@@ -84,23 +79,17 @@ class PortalPageMongoRepositoryImplTest {
         // Then
         verify(mongoTemplate).find(queryCaptor.capture(), eq(PortalPageMongo.class));
 
-        JsonNode jsonQuery = MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery).isEqualTo(
-            MAPPER.readTree(
-                """
+        JsonNode jsonQuery =
+                MAPPER.readTree(queryCaptor.getValue().getQueryObject().toJson());
+        assertThat(jsonQuery).isEqualTo(MAPPER.readTree("""
                 {"_id":{"$in":["id1","id2"]}}
-                """
-            )
-        );
+                """));
 
-        JsonNode jsonFields = MAPPER.readTree(queryCaptor.getValue().getFieldsObject().toJson());
-        assertThat(jsonFields).isEqualTo(
-            MAPPER.readTree(
-                """
+        JsonNode jsonFields =
+                MAPPER.readTree(queryCaptor.getValue().getFieldsObject().toJson());
+        assertThat(jsonFields).isEqualTo(MAPPER.readTree("""
                 {"_id":1}
-                """
-            )
-        );
+                """));
     }
 
     @SneakyThrows

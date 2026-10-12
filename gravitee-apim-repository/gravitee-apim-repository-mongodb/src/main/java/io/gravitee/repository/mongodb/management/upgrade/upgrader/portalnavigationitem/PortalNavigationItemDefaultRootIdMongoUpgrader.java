@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 public class PortalNavigationItemDefaultRootIdMongoUpgrader extends MongoUpgrader {
 
     public static final int PORTAL_NAVIGATION_ITEM_DEFAULT_ROOT_ID_MONGO_UPGRADER_ORDER =
-        EntrypointInitTargetUpgrader.ENTRYPOINT_INIT_TARGET_UPGRADER_ORDER + 1;
+            EntrypointInitTargetUpgrader.ENTRYPOINT_INIT_TARGET_UPGRADER_ORDER + 1;
 
     public static final String ROOT_ID = "rootId";
 
@@ -42,10 +42,10 @@ public class PortalNavigationItemDefaultRootIdMongoUpgrader extends MongoUpgrade
 
     @Override
     public boolean upgrade() {
-        var result = this.getCollection("portal_navigation_items").updateMany(
-            Filters.or(Filters.eq(ROOT_ID, null), Filters.eq(ROOT_ID, "")),
-            Updates.set(ROOT_ID, "00000000-0000-0000-0000-000000000000")
-        );
+        var result = this.getCollection("portal_navigation_items")
+                .updateMany(
+                        Filters.or(Filters.eq(ROOT_ID, null), Filters.eq(ROOT_ID, "")),
+                        Updates.set(ROOT_ID, "00000000-0000-0000-0000-000000000000"));
         return result.wasAcknowledged();
     }
 

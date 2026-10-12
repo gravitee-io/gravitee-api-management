@@ -47,18 +47,16 @@ public class InMemoryDashboardRepository implements DashboardRepository {
 
     @Override
     public List<Dashboard> findByEnvironmentId(String environmentId) {
-        return dashboards
-            .stream()
-            .filter(d -> Objects.equals(d.environmentId(), environmentId))
-            .toList();
+        return dashboards.stream()
+                .filter(d -> Objects.equals(d.environmentId(), environmentId))
+                .toList();
     }
 
     @Override
     public Optional<Dashboard> findByIdAndEnvironmentId(String id, String environmentId) {
-        return dashboards
-            .stream()
-            .filter(d -> Objects.equals(d.id(), id) && Objects.equals(d.environmentId(), environmentId))
-            .findFirst();
+        return dashboards.stream()
+                .filter(d -> Objects.equals(d.id(), id) && Objects.equals(d.environmentId(), environmentId))
+                .findFirst();
     }
 
     @Override
@@ -96,8 +94,8 @@ public class InMemoryDashboardRepository implements DashboardRepository {
     public Optional<Dashboard> updateIfVersionMatches(Dashboard dashboard, int expectedVersion) {
         runPendingConcurrentSave();
         return findByIdAndEnvironmentId(dashboard.id(), dashboard.environmentId())
-            .filter(stored -> Objects.equals(stored.version(), expectedVersion))
-            .flatMap(stored -> replaceInPlace(dashboard));
+                .filter(stored -> Objects.equals(stored.version(), expectedVersion))
+                .flatMap(stored -> replaceInPlace(dashboard));
     }
 
     /**

@@ -24,8 +24,7 @@ public class ScoringFunctionFixture {
 
     private ScoringFunctionFixture() {}
 
-    public static final Supplier<ScoringFunction.ScoringFunctionBuilder> BASE = () ->
-        ScoringFunction.builder()
+    public static final Supplier<ScoringFunction.ScoringFunctionBuilder> BASE = () -> ScoringFunction.builder()
             .id("function-id")
             .name("function-name")
             .payload("function-payload")

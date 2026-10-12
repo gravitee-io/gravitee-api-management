@@ -44,7 +44,8 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void returns_empty_optional_when_search_hits_is_null() {
-            Assertions.assertThat(NativeApiMetricsFindResponseAdapter.adapt(new SearchResponse())).isEmpty();
+            Assertions.assertThat(NativeApiMetricsFindResponseAdapter.adapt(new SearchResponse()))
+                    .isEmpty();
         }
 
         @Test
@@ -86,7 +87,8 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void adapt_base_fields_for_successful_connection() {
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json"))
+                    .orElseThrow();
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(metrics.getApiId()).isEqualTo("kafka-api-001");
@@ -107,7 +109,8 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void adapt__error_fields_for_successful_connection() {
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getErrorKey()).isNull();
             assertThat(metrics.getMessage()).isNull();
@@ -115,22 +118,24 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void adapt_additional_metrics_for_successful_connection() {
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getAdditionalMetrics())
-                .containsEntry(CLIENT_ID, "consumer-app-1-A")
-                .containsEntry(CLIENT_SOFTWARE_NAME, "librdkafka")
-                .containsEntry(CLIENT_SOFTWARE_VERSION, "2.6.1")
-                .containsEntry(BROKER_ID, "broker-1")
-                .containsEntry(CONNECTION_STATUS, "CONNECTED")
-                .doesNotContainKey(CONNECTION_DURATION_MS);
+                    .containsEntry(CLIENT_ID, "consumer-app-1-A")
+                    .containsEntry(CLIENT_SOFTWARE_NAME, "librdkafka")
+                    .containsEntry(CLIENT_SOFTWARE_VERSION, "2.6.1")
+                    .containsEntry(BROKER_ID, "broker-1")
+                    .containsEntry(CONNECTION_STATUS, "CONNECTED")
+                    .doesNotContainKey(CONNECTION_DURATION_MS);
         }
 
         @Test
         void adapt_security_credential_for_successful_connection() {
             // Top-level document fields, written by the gateway alongside the HTTP request documents in the
             // same index — not additional metrics, so the source mapper has to read them explicitly.
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getSecurityType()).isEqualTo("JWT");
             assertThat(metrics.getSecurityToken()).isEqualTo("oauth-client-1");
@@ -139,7 +144,8 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
         @Test
         void adapt_security_credential_as_null_when_the_connection_is_anonymous() {
             // A key-less plan writes neither field; the document simply omits them.
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getSecurityType()).isNull();
             assertThat(metrics.getSecurityToken()).isNull();
@@ -151,7 +157,9 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void adapt_error_fields_for_terminated_connection() {
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-disconnected.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(
+                            buildSearchHit("native-connection-disconnected.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getRequestId()).isEqualTo("conn-disconnect-001");
             assertThat(metrics.getErrorKey()).isEqualTo("KAFKA_CONSUMER_LEFT_GROUP");
@@ -160,13 +168,15 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void adapt_additional_metrics_for_terminated_connection() {
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-disconnected.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(
+                            buildSearchHit("native-connection-disconnected.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getAdditionalMetrics())
-                .containsEntry(CLIENT_ID, "consumer-app-1-A")
-                .containsEntry(BROKER_ID, "broker-1")
-                .containsEntry(CONNECTION_STATUS, "DISCONNECTED")
-                .containsEntry(CONNECTION_DURATION_MS, 1800000);
+                    .containsEntry(CLIENT_ID, "consumer-app-1-A")
+                    .containsEntry(BROKER_ID, "broker-1")
+                    .containsEntry(CONNECTION_STATUS, "DISCONNECTED")
+                    .containsEntry(CONNECTION_DURATION_MS, 1800000);
         }
     }
 
@@ -175,7 +185,8 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void adapt_error_fields_for_failed_connection() {
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getRequestId()).isEqualTo("conn-error-001");
             assertThat(metrics.getErrorKey()).isEqualTo("KAFKA_AUTH_FAILED");
@@ -184,13 +195,14 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
         @Test
         void adapt_additional_metrics_for_failed_connection() {
-            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json")).orElseThrow();
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json"))
+                    .orElseThrow();
 
             assertThat(metrics.getAdditionalMetrics())
-                .containsEntry(CLIENT_ID, "consumer-app-1-B")
-                .containsEntry(CONNECTION_STATUS, "CONNECTION_ERROR")
-                .doesNotContainKey(BROKER_ID)
-                .doesNotContainKey(CONNECTION_DURATION_MS);
+                    .containsEntry(CLIENT_ID, "consumer-app-1-B")
+                    .containsEntry(CONNECTION_STATUS, "CONNECTION_ERROR")
+                    .doesNotContainKey(BROKER_ID)
+                    .doesNotContainKey(CONNECTION_DURATION_MS);
         }
     }
 }

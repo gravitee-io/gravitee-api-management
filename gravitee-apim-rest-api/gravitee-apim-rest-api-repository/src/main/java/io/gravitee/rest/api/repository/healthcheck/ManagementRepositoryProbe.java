@@ -49,16 +49,15 @@ public class ManagementRepositoryProbe implements Probe {
 
     @Override
     public CompletionStage<Result> check() {
-        return vertx
-            .executeBlocking(() -> {
-                try {
-                    // Search for the installation information to check repository connection
-                    installationRepository.find();
-                    return Result.healthy();
-                } catch (Exception ex) {
-                    return Result.unhealthy(ex);
-                }
-            })
-            .toCompletionStage();
+        return vertx.executeBlocking(() -> {
+                    try {
+                        // Search for the installation information to check repository connection
+                        installationRepository.find();
+                        return Result.healthy();
+                    } catch (Exception ex) {
+                        return Result.unhealthy(ex);
+                    }
+                })
+                .toCompletionStage();
     }
 }

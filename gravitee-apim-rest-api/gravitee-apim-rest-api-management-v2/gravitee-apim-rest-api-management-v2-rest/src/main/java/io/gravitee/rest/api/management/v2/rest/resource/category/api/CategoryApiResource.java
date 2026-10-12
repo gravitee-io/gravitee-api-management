@@ -47,23 +47,28 @@ public class CategoryApiResource extends AbstractResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_CATEGORY,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateCategoryApi(@Valid UpdateCategoryApi updateCategoryApi) {
         if (Objects.isNull(updateCategoryApi)) {
             throw new BadRequestException("Order cannot be null");
         }
 
-        var result = this.updateCategoryApiOrderUseCase.execute(
-            new UpdateCategoryApiOrderUseCase.Input(
-                GraviteeContext.getExecutionContext(),
-                categoryIdOrKey,
-                apiId,
-                getAuthenticatedUser(),
-                isAdmin(),
-                updateCategoryApi.getOrder().intValue()
-            )
-        ).result();
+        var result = this.updateCategoryApiOrderUseCase
+                .execute(new UpdateCategoryApiOrderUseCase.Input(
+                        GraviteeContext.getExecutionContext(),
+                        categoryIdOrKey,
+                        apiId,
+                        getAuthenticatedUser(),
+                        isAdmin(),
+                        updateCategoryApi.getOrder().intValue()))
+                .result();
 
-        return Response.ok().entity(CategoryApiMapper.INSTANCE.map(result.apiCategoryOrder(), result.api())).build();
+        return Response.ok()
+                .entity(CategoryApiMapper.INSTANCE.map(result.apiCategoryOrder(), result.api()))
+                .build();
     }
 }

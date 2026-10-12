@@ -60,11 +60,10 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     private final ObjectMapper objectMapper;
 
     public MediaServiceImpl(
-        @Lazy MediaRepository mediaRepository,
-        MediaValidationService mediaValidationService,
-        ConfigService configService,
-        ObjectMapper objectMapper
-    ) {
+            @Lazy MediaRepository mediaRepository,
+            MediaValidationService mediaValidationService,
+            ConfigService configService,
+            ObjectMapper objectMapper) {
         this.mediaRepository = mediaRepository;
         this.mediaValidationService = mediaValidationService;
         this.configService = configService;
@@ -89,14 +88,13 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             String id = mediaEntity.getId() != null ? mediaEntity.getId() : UuidString.generateRandom();
 
             Optional<Media> checkMedia = mediaRepository.findByHash(
-                hashString,
-                MediaCriteria.builder()
-                    .organization(context.getOrganizationId())
-                    .environment(context.getEnvironmentId())
-                    .api(api)
-                    .mediaType(mediaEntity.getType())
-                    .build()
-            );
+                    hashString,
+                    MediaCriteria.builder()
+                            .organization(context.getOrganizationId())
+                            .environment(context.getEnvironmentId())
+                            .api(api)
+                            .mediaType(mediaEntity.getType())
+                            .build());
 
             if (checkMedia.isPresent()) {
                 return checkMedia.get().getHash();
@@ -123,16 +121,15 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     public MediaEntity findByHash(ExecutionContext context, String hash) {
         try {
             return mediaRepository
-                .findByHash(
-                    hash,
-                    MediaCriteria.builder()
-                        .organization(context.getOrganizationId())
-                        .environment(context.getEnvironmentId())
-                        .mediaType(MEDIA_TYPE_IMAGE)
-                        .build()
-                )
-                .map(MediaServiceImpl::convert)
-                .orElse(null);
+                    .findByHash(
+                            hash,
+                            MediaCriteria.builder()
+                                    .organization(context.getOrganizationId())
+                                    .environment(context.getEnvironmentId())
+                                    .mediaType(MEDIA_TYPE_IMAGE)
+                                    .build())
+                    .map(MediaServiceImpl::convert)
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error has occurred trying to find media", e);
         }
@@ -142,9 +139,14 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     public MediaEntity findByHashAndApiId(String hash, String apiId) {
         try {
             return mediaRepository
-                .findByHash(hash, MediaCriteria.builder().api(apiId).mediaType(MEDIA_TYPE_IMAGE).build())
-                .map(MediaServiceImpl::convert)
-                .orElse(null);
+                    .findByHash(
+                            hash,
+                            MediaCriteria.builder()
+                                    .api(apiId)
+                                    .mediaType(MEDIA_TYPE_IMAGE)
+                                    .build())
+                    .map(MediaServiceImpl::convert)
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error as occurred trying to find media", e);
         }
@@ -154,16 +156,15 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     public MediaEntity findByHash(ExecutionContext context, String hash, boolean ignoreType) {
         try {
             return mediaRepository
-                .findByHash(
-                    hash,
-                    MediaCriteria.builder()
-                        .organization(context.getOrganizationId())
-                        .environment(context.getEnvironmentId())
-                        .mediaType(ignoreType ? null : MEDIA_TYPE_IMAGE)
-                        .build()
-                )
-                .map(MediaServiceImpl::convert)
-                .orElse(null);
+                    .findByHash(
+                            hash,
+                            MediaCriteria.builder()
+                                    .organization(context.getOrganizationId())
+                                    .environment(context.getEnvironmentId())
+                                    .mediaType(ignoreType ? null : MEDIA_TYPE_IMAGE)
+                                    .build())
+                    .map(MediaServiceImpl::convert)
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error has occurred trying to find media", e);
         }
@@ -173,9 +174,14 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     public MediaEntity findByHashAndApi(String hash, String api, boolean ignoreType) {
         try {
             return mediaRepository
-                .findByHash(hash, MediaCriteria.builder().api(api).mediaType(ignoreType ? null : MEDIA_TYPE_IMAGE).build())
-                .map(MediaServiceImpl::convert)
-                .orElse(null);
+                    .findByHash(
+                            hash,
+                            MediaCriteria.builder()
+                                    .api(api)
+                                    .mediaType(ignoreType ? null : MEDIA_TYPE_IMAGE)
+                                    .build())
+                    .map(MediaServiceImpl::convert)
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error as occurred trying to find media", e);
         }
@@ -184,22 +190,27 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     @Override
     public List<MediaEntity> findAllWithoutContent(ExecutionContext context, List<PageMediaEntity> pageMediaEntities) {
         return this.findAllWithoutContent(
-            pageMediaEntities,
-            MediaCriteria.builder().organization(context.getOrganizationId()).environment(context.getEnvironmentId()).build()
-        );
+                pageMediaEntities,
+                MediaCriteria.builder()
+                        .organization(context.getOrganizationId())
+                        .environment(context.getEnvironmentId())
+                        .build());
     }
 
     @Override
     public List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api) {
-        return this.findAllWithoutContent(pageMediaEntities, MediaCriteria.builder().api(api).build());
+        return this.findAllWithoutContent(
+                pageMediaEntities, MediaCriteria.builder().api(api).build());
     }
 
-    private List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, MediaCriteria mediaCriteria) {
+    private List<MediaEntity> findAllWithoutContent(
+            List<PageMediaEntity> pageMediaEntities, MediaCriteria mediaCriteria) {
         try {
             List<MediaEntity> result = new ArrayList<>();
             if (pageMediaEntities != null && !pageMediaEntities.isEmpty()) {
                 for (PageMediaEntity pme : pageMediaEntities) {
-                    final Optional<Media> foundMedia = mediaRepository.findByHash(pme.getMediaHash(), mediaCriteria, false);
+                    final Optional<Media> foundMedia =
+                            mediaRepository.findByHash(pme.getMediaHash(), mediaCriteria, false);
                     if (foundMedia.isPresent()) {
                         MediaEntity me = convert(foundMedia.get());
                         me.setFileName(pme.getMediaName());
@@ -216,13 +227,19 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
 
     @Override
     public Long getMediaMaxSize(final ExecutionContext executionContext) {
-        return Long.valueOf(configService.getPortalSettings(executionContext).getPortal().getUploadMedia().getMaxSizeInOctet());
+        return Long.valueOf(configService
+                .getPortalSettings(executionContext)
+                .getPortal()
+                .getUploadMedia()
+                .getMaxSizeInOctet());
     }
 
     @Override
     public List<MediaEntity> findAllByApiId(final String apiId) {
         try {
-            return mediaRepository.findAllByApi(apiId).stream().map(MediaServiceImpl::convert).toList();
+            return mediaRepository.findAllByApi(apiId).stream()
+                    .map(MediaServiceImpl::convert)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error as occurred trying to find medias", e);
         }
@@ -250,8 +267,11 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     @Override
     public void deleteByHashAndApi(String hash, String apiId) {
         try {
-            final MediaCriteria mediaCriteria = MediaCriteria.builder().api(apiId).build();
-            Media media = mediaRepository.findByHash(hash, mediaCriteria).orElseThrow(() -> new ApiMediaNotFoundException(hash, apiId));
+            final MediaCriteria mediaCriteria =
+                    MediaCriteria.builder().api(apiId).build();
+            Media media = mediaRepository
+                    .findByHash(hash, mediaCriteria)
+                    .orElseThrow(() -> new ApiMediaNotFoundException(hash, apiId));
             mediaRepository.deleteByHashAndApi(media.getHash(), apiId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error has occurred trying to delete media", e);
@@ -262,11 +282,13 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     public void deletePortalMediaByHash(ExecutionContext executionContext, String hash) {
         try {
             final MediaCriteria mediaCriteria = MediaCriteria.builder()
-                .organization(executionContext.getOrganizationId())
-                .environment(executionContext.getEnvironmentId())
-                .build();
+                    .organization(executionContext.getOrganizationId())
+                    .environment(executionContext.getEnvironmentId())
+                    .build();
 
-            Media media = mediaRepository.findByHash(hash, mediaCriteria).orElseThrow(() -> new TechnicalManagementException(hash));
+            Media media = mediaRepository
+                    .findByHash(hash, mediaCriteria)
+                    .orElseThrow(() -> new TechnicalManagementException(hash));
 
             mediaRepository.deleteByHashAndEnvironment(media.getHash(), executionContext.getEnvironmentId());
         } catch (TechnicalException e) {
@@ -276,8 +298,8 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
 
     private MediaEntity convertToEntity(String mediaDefinition) throws JsonProcessingException {
         return objectMapper
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .readValue(mediaDefinition, MediaEntity.class);
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .readValue(mediaDefinition, MediaEntity.class);
     }
 
     private static Media convert(MediaEntity imageEntity) {

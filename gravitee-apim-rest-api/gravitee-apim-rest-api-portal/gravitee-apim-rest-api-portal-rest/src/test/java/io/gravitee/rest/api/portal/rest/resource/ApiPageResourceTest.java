@@ -59,7 +59,8 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(mockApi);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false))
+                .thenReturn(mockApi);
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
         PageEntity page1 = new PageEntity();
         page1.setPublished(true);
@@ -68,7 +69,9 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setReferenceType("API");
         page1.setReferenceId(API);
         doReturn(page1).when(pageService).findById(PAGE, null);
-        doReturn(true).when(accessControlService).canAccessApiPageFromPortal(eq(GraviteeContext.getExecutionContext()), any(), eq(page1));
+        doReturn(true)
+                .when(accessControlService)
+                .canAccessApiPageFromPortal(eq(GraviteeContext.getExecutionContext()), any(), eq(page1));
 
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
@@ -77,9 +80,9 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFoundApiWhileGettingApiPage() {
         // init
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(false);
 
         // test
         final Response response = target(API).path("pages").path(PAGE).request().get();
@@ -98,12 +101,13 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundPageWhileGettingApiPage() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
         doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
 
-        final Response response = target(API).path("pages").path(UNKNOWN_PAGE).request().get();
+        final Response response =
+                target(API).path("pages").path(UNKNOWN_PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -118,16 +122,12 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPage() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
 
         final Response response = target(API).path("pages").path(PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
@@ -148,16 +148,12 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setReferenceId("Another_api");
         doReturn(page1).when(pageService).findById(PAGE, null);
 
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
 
         final Response response = target(API).path("pages").path(PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -165,18 +161,19 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPageWithInclude() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
 
-        final Response response = target(API).path("pages").path(PAGE).queryParam("include", "content").request().get();
+        final Response response = target(API)
+                .path("pages")
+                .path(PAGE)
+                .queryParam("include", "content")
+                .request()
+                .get();
         assertEquals(OK_200, response.getStatus());
 
         final Page pageResponse = response.readEntity(Page.class);
@@ -187,16 +184,12 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetApiPage() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(false);
 
         final Builder request = target(API).path("pages").path(PAGE).request();
 
@@ -206,16 +199,12 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotHaveMetadataCleared() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
 
         PageEntity mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
@@ -227,7 +216,8 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         mockAnotherPage.setReferenceId(API);
         doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
 
-        Response response = target(API).path("pages").path(ANOTHER_PAGE).request().get();
+        Response response =
+                target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
 
         Page pageResponse = response.readEntity(Page.class);
@@ -244,7 +234,8 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         doReturn(false).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
 
         // test
-        final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
+        final Response response =
+                target(API).path("pages").path(PAGE).path("content").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -260,20 +251,21 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundPageWhileGettingApiPageContent() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
 
         doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
 
-        final Response response = target(API).path("pages").path(UNKNOWN_PAGE).path("content").request().get();
+        final Response response = target(API)
+                .path("pages")
+                .path(UNKNOWN_PAGE)
+                .path("content")
+                .request()
+                .get();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -288,18 +280,15 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPageContent() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
 
-        final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
+        final Response response =
+                target(API).path("pages").path(PAGE).path("content").request().get();
         assertEquals(OK_200, response.getStatus());
 
         final String pageContent = response.readEntity(String.class);
@@ -308,18 +297,15 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetApiPageContent() {
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(false);
 
-        final Builder request = target(API).path("pages").path(PAGE).path("content").request();
+        final Builder request =
+                target(API).path("pages").path(PAGE).path("content").request();
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -335,18 +321,15 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setReferenceId("Another_api");
         doReturn(page1).when(pageService).findById(PAGE, null);
 
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
 
-        final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
+        final Response response =
+                target(API).path("pages").path(PAGE).path("content").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
 }

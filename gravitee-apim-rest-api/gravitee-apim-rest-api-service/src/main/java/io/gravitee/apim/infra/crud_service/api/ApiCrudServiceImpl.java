@@ -60,7 +60,8 @@ public class ApiCrudServiceImpl implements ApiCrudService {
             log.debug("Find an Api by id : {}", id);
             return apiRepository.findById(id).map(ApiAdapter.INSTANCE::toCoreModel);
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurs while trying to find an api by id: %s", id), ex);
+            throw new TechnicalDomainException(
+                    String.format("An error occurs while trying to find an api by id: %s", id), ex);
         }
     }
 
@@ -68,10 +69,10 @@ public class ApiCrudServiceImpl implements ApiCrudService {
     public List<Api> findByIds(List<String> apiIds) {
         log.debug("Find all Api by ids : {}", apiIds);
         return apiRepository
-            .search(new ApiCriteria.Builder().ids(apiIds).build(), ApiFieldFilter.defaultFields())
-            .stream()
-            .map(ApiAdapter.INSTANCE::toCoreModel)
-            .collect(Collectors.toList());
+                .search(new ApiCriteria.Builder().ids(apiIds).build(), ApiFieldFilter.defaultFields())
+                .stream()
+                .map(ApiAdapter.INSTANCE::toCoreModel)
+                .collect(Collectors.toList());
     }
 
     @Override

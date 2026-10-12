@@ -58,9 +58,15 @@ class HazelcastRateLimitRepositoryTest {
 
     @Test
     void increments_counter_on_repeat_calls_within_window() {
-        RateLimit first = repository.incrementAndGet("key", 1, () -> initial("key", 60_000)).blockingGet();
-        RateLimit second = repository.incrementAndGet("key", 1, () -> initial("key", 60_000)).blockingGet();
-        RateLimit third = repository.incrementAndGet("key", 1, () -> initial("key", 60_000)).blockingGet();
+        RateLimit first = repository
+                .incrementAndGet("key", 1, () -> initial("key", 60_000))
+                .blockingGet();
+        RateLimit second = repository
+                .incrementAndGet("key", 1, () -> initial("key", 60_000))
+                .blockingGet();
+        RateLimit third = repository
+                .incrementAndGet("key", 1, () -> initial("key", 60_000))
+                .blockingGet();
 
         assertThat(first.getCounter()).isEqualTo(1);
         assertThat(second.getCounter()).isEqualTo(2);
@@ -69,12 +75,17 @@ class HazelcastRateLimitRepositoryTest {
 
     @Test
     void resets_counter_when_window_expired() {
-        RateLimit beforeWindow = repository.incrementAndGet("key", 1, () -> initial("key", 100)).blockingGet();
-        await()
-            .atMost(2, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertThat(hazelcast.<String, RateLimit>getMap(RATE_LIMIT_MAP).get("key")).isNull());
+        RateLimit beforeWindow =
+                repository.incrementAndGet("key", 1, () -> initial("key", 100)).blockingGet();
+        await().atMost(2, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(hazelcast
+                                .<String, RateLimit>getMap(RATE_LIMIT_MAP)
+                                .get("key"))
+                        .isNull());
 
-        RateLimit afterWindow = repository.incrementAndGet("key", 1, () -> initial("key", 60_000)).blockingGet();
+        RateLimit afterWindow = repository
+                .incrementAndGet("key", 1, () -> initial("key", 60_000))
+                .blockingGet();
 
         assertThat(afterWindow.getCounter()).isEqualTo(1);
         // Reset time must come from the new supplier — not the prior expired entry — so a regression
@@ -84,20 +95,25 @@ class HazelcastRateLimitRepositoryTest {
 
     @Test
     void increments_by_weight() {
-        RateLimit r = repository.incrementAndGet("key", 5, () -> initial("key", 60_000)).blockingGet();
+        RateLimit r = repository
+                .incrementAndGet("key", 5, () -> initial("key", 60_000))
+                .blockingGet();
         assertThat(r.getCounter()).isEqualTo(5);
     }
 
     @Test
     void isolates_keys() {
         repository.incrementAndGet("a", 3, () -> initial("a", 60_000)).blockingGet();
-        RateLimit b = repository.incrementAndGet("b", 1, () -> initial("b", 60_000)).blockingGet();
+        RateLimit b =
+                repository.incrementAndGet("b", 1, () -> initial("b", 60_000)).blockingGet();
         assertThat(b.getCounter()).isEqualTo(1);
     }
 
     @Test
     void preserves_subscription_on_fresh_window() {
-        RateLimit r = repository.incrementAndGet("sub-key", 1, () -> initial("sub-key", 60_000)).blockingGet();
+        RateLimit r = repository
+                .incrementAndGet("sub-key", 1, () -> initial("sub-key", 60_000))
+                .blockingGet();
         assertThat(r.getSubscription()).isEqualTo("test-sub");
         RateLimit stored = hazelcast.<String, RateLimit>getMap(RATE_LIMIT_MAP).get("sub-key");
         assertThat(stored.getSubscription()).isEqualTo("test-sub");
@@ -106,9 +122,11 @@ class HazelcastRateLimitRepositoryTest {
     @Test
     void evicts_entry_after_ttl() {
         repository.incrementAndGet("ttl", 1, () -> initial("ttl", 100)).blockingGet();
-        await()
-            .atMost(2, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertThat(hazelcast.<String, RateLimit>getMap(RATE_LIMIT_MAP).get("ttl")).isNull());
+        await().atMost(2, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(hazelcast
+                                .<String, RateLimit>getMap(RATE_LIMIT_MAP)
+                                .get("ttl"))
+                        .isNull());
     }
 
     @Test
@@ -127,7 +145,9 @@ class HazelcastRateLimitRepositoryTest {
                     try {
                         start.await();
                         for (int i = 0; i < iterations; i++) {
-                            repository.incrementAndGet("contended", 1, () -> initial("contended", 60_000)).blockingGet();
+                            repository
+                                    .incrementAndGet("contended", 1, () -> initial("contended", 60_000))
+                                    .blockingGet();
                         }
                     } catch (InterruptedException ignored) {
                         Thread.currentThread().interrupt();
@@ -140,7 +160,8 @@ class HazelcastRateLimitRepositoryTest {
             start.countDown();
             assertThat(done.await(30, TimeUnit.SECONDS)).isTrue();
 
-            RateLimit finalState = hazelcast.<String, RateLimit>getMap(RATE_LIMIT_MAP).get("contended");
+            RateLimit finalState =
+                    hazelcast.<String, RateLimit>getMap(RATE_LIMIT_MAP).get("contended");
             assertThat(finalState.getCounter()).isEqualTo(expected);
         } finally {
             pool.shutdownNow();

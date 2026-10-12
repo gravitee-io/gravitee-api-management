@@ -35,7 +35,6 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -56,35 +55,36 @@ public class UpdateClusterUseCase {
     public record Output(Cluster cluster) {}
 
     public Output execute(Input input) {
-        Cluster clusterToUpdate = clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.auditInfo.environmentId());
+        Cluster clusterToUpdate =
+                clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.auditInfo.environmentId());
 
-        if (
-            !permissionDomainService.hasPermission(
+        if (!permissionDomainService.hasPermission(
                 input.auditInfo.organizationId(),
                 input.auditInfo.actor().userId(),
                 RolePermission.CLUSTER_CONFIGURATION,
                 input.clusterId,
-                RolePermissionAction.UPDATE
-            )
-        ) {
+                RolePermissionAction.UPDATE)) {
             input.updateCluster().setConfiguration(null);
         }
 
-        if (input.updateCluster().getConfiguration() != null && clusterToUpdate.getType() == ClusterType.KAFKA_CLUSTER) {
-            input.updateCluster().setConfiguration(generateConnectionCrossIds(input.updateCluster().getConfiguration()));
+        if (input.updateCluster().getConfiguration() != null
+                && clusterToUpdate.getType() == ClusterType.KAFKA_CLUSTER) {
+            input.updateCluster()
+                    .setConfiguration(
+                            generateConnectionCrossIds(input.updateCluster().getConfiguration()));
         }
 
         // Emptying the backends of a virtual cluster is a plain edit: a DEPLOYED cluster flips to
         // PENDING (gateway keeps serving the previous configuration) and the emptied configuration
         // is simply not deployable (DeployClusterUseCase rejects virtual clusters without backends).
         Cluster existingClusterSnapshot = Cluster.builder()
-            .id(clusterToUpdate.getId())
-            .crossId(clusterToUpdate.getCrossId())
-            .type(clusterToUpdate.getType())
-            .name(clusterToUpdate.getName())
-            .environmentId(clusterToUpdate.getEnvironmentId())
-            .organizationId(clusterToUpdate.getOrganizationId())
-            .build();
+                .id(clusterToUpdate.getId())
+                .crossId(clusterToUpdate.getCrossId())
+                .type(clusterToUpdate.getType())
+                .name(clusterToUpdate.getName())
+                .environmentId(clusterToUpdate.getEnvironmentId())
+                .organizationId(clusterToUpdate.getOrganizationId())
+                .build();
 
         clusterToUpdate.update(input.updateCluster());
 
@@ -94,13 +94,10 @@ public class UpdateClusterUseCase {
 
         createAuditLog(clusterToUpdate, updatedCluster, input.auditInfo());
 
-        return new Output(
-            clusterConfigurationAccessDomainService.visibleTo(
+        return new Output(clusterConfigurationAccessDomainService.visibleTo(
                 updatedCluster,
                 input.auditInfo().organizationId(),
-                input.auditInfo().actor().userId()
-            )
-        );
+                input.auditInfo().actor().userId()));
     }
 
     private Object generateConnectionCrossIds(Object configuration) {
@@ -108,33 +105,28 @@ public class UpdateClusterUseCase {
         if (config.connections() == null || config.connections().isEmpty()) {
             return configuration;
         }
-        List<KafkaClusterConnection> updatedConnections = config
-            .connections()
-            .stream()
-            .map(conn ->
-                new KafkaClusterConnection(
-                    StringUtils.isEmpty(conn.crossId()) ? StringUtils.slugify(conn.name()) : conn.crossId(),
-                    conn.name(),
-                    conn.bootstrapServers(),
-                    conn.security()
-                )
-            )
-            .toList();
+        List<KafkaClusterConnection> updatedConnections = config.connections().stream()
+                .map(conn -> new KafkaClusterConnection(
+                        StringUtils.isEmpty(conn.crossId()) ? StringUtils.slugify(conn.name()) : conn.crossId(),
+                        conn.name(),
+                        conn.bootstrapServers(),
+                        conn.security()))
+                .toList();
         return objectMapper.convertValue(new KafkaClusterConfiguration(updatedConnections), Object.class);
     }
 
     private void createAuditLog(Cluster clusterBeforeUpdate, Cluster updatedCluster, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_UPDATED)
                 .actor(auditInfo.actor())
                 .oldValue(clusterBeforeUpdate)
                 .newValue(updatedCluster)
-                .createdAt(updatedCluster.getUpdatedAt().atZone(TimeProvider.clock().getZone()))
+                .createdAt(updatedCluster
+                        .getUpdatedAt()
+                        .atZone(TimeProvider.clock().getZone()))
                 .properties(Map.of(AuditProperties.CLUSTER, updatedCluster.getId()))
-                .build()
-        );
+                .build());
     }
 }

@@ -68,16 +68,17 @@ public class PlatformAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get platform analytics",
-        description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service"
-    )
+            summary = "Get platform analytics",
+            description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Platform analytics",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Analytics.class))
-    )
+            responseCode = "200",
+            description = "Platform analytics",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = Analytics.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = ENVIRONMENT_PLATFORM, acls = READ) })
+    @Permissions({@Permission(value = ENVIRONMENT_PLATFORM, acls = READ)})
     public Response getPlatformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
@@ -125,11 +126,9 @@ public class PlatformAnalyticsResource extends AbstractResource {
         if (isAdmin()) {
             return apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
         }
-        return apiAuthorizationService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-            .stream()
-            .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
-            .collect(Collectors.toSet());
+        return apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), true).stream()
+                .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
+                .collect(Collectors.toSet());
     }
 
     private Set<String> findApplicationIds() {
@@ -137,7 +136,8 @@ public class PlatformAnalyticsResource extends AbstractResource {
         if (isAdmin()) {
             return applicationService.findIdsByEnvironment(executionContext);
         }
-        return applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ);
+        return applicationService.findIdsByUserAndPermission(
+                executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ);
     }
 
     private Analytics executeStats(AnalyticsParam analyticsParam, Map<String, Set<String>> terms) {
@@ -169,23 +169,21 @@ public class PlatformAnalyticsResource extends AbstractResource {
         query.setQuery(analyticsParam.getQuery());
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
-            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
-                .stream()
-                .map(
-                    (Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation ->
-                        new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-                            @Override
-                            public AggregationType type() {
-                                return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
-                            }
+            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations.stream()
+                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>)
+                            aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                                @Override
+                                public AggregationType type() {
+                                    return AggregationType.valueOf(
+                                            aggregation.getType().name().toUpperCase());
+                                }
 
-                            @Override
-                            public String field() {
-                                return aggregation.getField();
-                            }
-                        }
-                )
-                .collect(Collectors.toList());
+                                @Override
+                                public String field() {
+                                    return aggregation.getField();
+                                }
+                            })
+                    .collect(Collectors.toList());
 
             query.setAggregations(aggregationList);
         }

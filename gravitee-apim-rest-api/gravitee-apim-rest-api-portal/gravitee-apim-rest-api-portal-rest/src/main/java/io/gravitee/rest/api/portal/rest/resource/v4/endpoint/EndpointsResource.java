@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.resource.v4.endpoint;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ConnectorMapper;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
@@ -49,17 +48,16 @@ public class EndpointsResource extends AbstractConnectorsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Response getEndpoints(@QueryParam("expand") List<String> expands) {
         final Collection<ConnectorExpandPluginEntity> connectors = super.expand(endpointService.findAll(), expands);
 
         return createListResponse(
-            GraviteeContext.getExecutionContext(),
-            connectorMapper.convert(connectors),
-            PaginationParam.builder().page(1).size(-1).build(),
-            null,
-            false
-        );
+                GraviteeContext.getExecutionContext(),
+                connectorMapper.convert(connectors),
+                PaginationParam.builder().page(1).size(-1).build(),
+                null,
+                false);
     }
 
     @Override

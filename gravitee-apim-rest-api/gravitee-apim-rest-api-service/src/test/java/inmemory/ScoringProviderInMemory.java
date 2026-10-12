@@ -28,6 +28,7 @@ public class ScoringProviderInMemory implements ScoringProvider {
      * If defined, this error will be thrown when a request is received.
      */
     public Throwable errorToThrow = null;
+
     List<ScoreRequest> pendingRequests = new ArrayList<>();
 
     @Override

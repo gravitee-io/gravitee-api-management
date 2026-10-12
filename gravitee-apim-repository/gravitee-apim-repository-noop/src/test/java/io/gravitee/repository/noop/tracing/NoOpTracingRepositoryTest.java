@@ -30,11 +30,10 @@ public class NoOpTracingRepositoryTest {
     @Test
     public void searchTraces_should_return_empty_page() {
         var page = repository
-            .searchTraces(
-                new QueryContext("org#1", "env#1"),
-                new TraceSearchCriteria(Map.of(), 100, null, null, Map.of("gravitee.api.id", "api-1"))
-            )
-            .blockingGet();
+                .searchTraces(
+                        new QueryContext("org#1", "env#1"),
+                        new TraceSearchCriteria(Map.of(), 100, null, null, Map.of("gravitee.api.id", "api-1")))
+                .blockingGet();
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isZero();
@@ -42,7 +41,9 @@ public class NoOpTracingRepositoryTest {
 
     @Test
     public void getTrace_should_return_empty_maybe() {
-        Trace trace = repository.getTrace(new QueryContext("org#1", "env#1"), "a1b2c3d4", Map.of("gravitee.api.id", "api-1")).blockingGet();
+        Trace trace = repository
+                .getTrace(new QueryContext("org#1", "env#1"), "a1b2c3d4", Map.of("gravitee.api.id", "api-1"))
+                .blockingGet();
 
         assertThat(trace).isNull();
     }

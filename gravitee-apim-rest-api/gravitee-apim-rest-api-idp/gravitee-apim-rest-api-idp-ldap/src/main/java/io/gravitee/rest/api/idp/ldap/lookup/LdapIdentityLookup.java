@@ -88,17 +88,14 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             };
         } else {
             userAttributes = new String[] {
-                LDAP_ATTRIBUTE_GIVENNAME,
-                LDAP_ATTRIBUTE_SURNAME,
-                LDAP_ATTRIBUTE_MAIL,
-                LDAP_ATTRIBUTE_DISPLAYNAME,
+                LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME, LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME,
             };
         }
 
         // Base DN to search for users
         baseDn = LdapNameBuilder.newInstance(environment.getProperty("context.base"))
-            .add(environment.getProperty("lookup.user.base", ""))
-            .build();
+                .add(environment.getProperty("lookup.user.base", ""))
+                .build();
 
         log.info("User search is based on DN [{}]", baseDn);
     }
@@ -112,12 +109,16 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             String hardcodedFilter = usersSearchFilter.replaceAll("\\{0}", LdapUtils.addWhitespaceWildcards(query));
 
             LdapQuery ldapQuery = LdapQueryBuilder.query()
-                .base(baseDn)
-                .countLimit(20)
-                .timeLimit(5000)
-                .searchScope(SearchScope.SUBTREE)
-                .attributes(LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME, LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME)
-                .filter(new HardcodedFilter(hardcodedFilter));
+                    .base(baseDn)
+                    .countLimit(20)
+                    .timeLimit(5000)
+                    .searchScope(SearchScope.SUBTREE)
+                    .attributes(
+                            LDAP_ATTRIBUTE_GIVENNAME,
+                            LDAP_ATTRIBUTE_SURNAME,
+                            LDAP_ATTRIBUTE_MAIL,
+                            LDAP_ATTRIBUTE_DISPLAYNAME)
+                    .filter(new HardcodedFilter(hardcodedFilter));
 
             return ldapTemplate.search(ldapQuery, USER_CONTEXT_MAPPER);
         } catch (LimitExceededException lee) {

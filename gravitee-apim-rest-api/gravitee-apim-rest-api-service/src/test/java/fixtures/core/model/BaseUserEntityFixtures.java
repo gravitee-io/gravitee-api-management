@@ -26,40 +26,45 @@ public class BaseUserEntityFixtures {
 
     public static BaseUserEntity aBaseUserEntity() {
         return BaseUserEntity.builder()
-            .id("user-id")
-            .organizationId("organization-id")
-            .source(IdpSource.of("source"))
-            .sourceId("source-id")
-            .email("jane.doe@gravitee.io")
-            .firstname("Jane")
-            .lastname("Doe")
-            .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
-            .build();
+                .id("user-id")
+                .organizationId("organization-id")
+                .source(IdpSource.of("source"))
+                .sourceId("source-id")
+                .email("jane.doe@gravitee.io")
+                .firstname("Jane")
+                .lastname("Doe")
+                .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
+                .build();
     }
 
     public static BaseUserEntity aBaseUserEntity(String userId) {
         return BaseUserEntity.builder()
-            .id(userId)
-            .source(IdpSource.of("test"))
-            .sourceId("test-source-id")
-            .email("user@example.com")
-            .firstname("John")
-            .lastname("Smith")
-            .build();
+                .id(userId)
+                .source(IdpSource.of("test"))
+                .sourceId("test-source-id")
+                .email("user@example.com")
+                .firstname("John")
+                .lastname("Smith")
+                .build();
     }
 
     public static BaseUserEntity aBaseUserEntity(String id, String email) {
-        return BaseUserEntity.builder().id(id).email(email).source(IdpSource.GRAVITEE).sourceId(email).build();
+        return BaseUserEntity.builder()
+                .id(id)
+                .email(email)
+                .source(IdpSource.GRAVITEE)
+                .sourceId(email)
+                .build();
     }
 
     public static BaseUserEntity aBaseUserEntity(String id, String organizationId, String email) {
         return BaseUserEntity.builder()
-            .id(id)
-            .organizationId(organizationId)
-            .source(IdpSource.GRAVITEE)
-            .sourceId(email)
-            .email(email)
-            .build();
+                .id(id)
+                .organizationId(organizationId)
+                .source(IdpSource.GRAVITEE)
+                .sourceId(email)
+                .email(email)
+                .build();
     }
 }

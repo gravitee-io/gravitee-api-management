@@ -86,7 +86,8 @@ class ReadWriteStreamAdapterTest {
         verify(requestAdapter).onResume(onResumeCaptor.capture());
 
         final CountDownLatch latch = new CountDownLatch(1);
-        final Flowable<Buffer> chunks = Flowable.just(requestChunk1, requestChunk2).doOnTerminate(latch::countDown);
+        final Flowable<Buffer> chunks =
+                Flowable.just(requestChunk1, requestChunk2).doOnTerminate(latch::countDown);
         when(request.chunks()).thenReturn(chunks);
 
         // Force call of onResume handler.
@@ -118,9 +119,8 @@ class ReadWriteStreamAdapterTest {
         verify(requestAdapter).onResume(onResumeCaptor.capture());
 
         final CountDownLatch latch = new CountDownLatch(1);
-        final Flowable<Buffer> chunks = Flowable.<Buffer>error(new RuntimeException(MOCK_EXCEPTION_MESSAGE)).doOnTerminate(
-            latch::countDown
-        );
+        final Flowable<Buffer> chunks = Flowable.<Buffer>error(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
+                .doOnTerminate(latch::countDown);
         when(request.chunks()).thenReturn(chunks);
 
         // Force call of onResume handler.

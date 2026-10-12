@@ -84,7 +84,9 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
     private void cancelPendingConnection(AtomicReference<ProxyConnection> pendingConnection) {
         final ProxyConnection connection = pendingConnection.getAndSet(null);
         if (connection != null) {
-            ctx.withLogger(log).debug("Invoker execution has been disposed before the backend responded, cancelling the connection");
+            ctx.withLogger(log)
+                    .debug(
+                            "Invoker execution has been disposed before the backend responded, cancelling the connection");
             try {
                 connection.cancel();
             } catch (Throwable t) {
@@ -122,7 +124,8 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
     }
 
     private void handleResponse(ProxyConnection connection, ProxyResponse proxyResponse) {
-        // In case of connectivity error, a 502 error may already have been returned to the client and the response is complete.
+        // In case of connectivity error, a 502 error may already have been returned to the client and the response is
+        // complete.
         if (!ctx.response().ended()) {
             // Set the response status and reason with the ones coming from the invoker.
             ctx.response().status(proxyResponse.status());
@@ -131,18 +134,15 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
             // Capture invoker headers and copy them to the response.
             proxyResponse.headers().forEach(entry -> ctx.response().headers().add(entry.getKey(), entry.getValue()));
 
-            // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the Flowable<Buffer> chunks.
-            chunks
-                .initialize(ctx, connection, proxyResponse)
-                .doOnComplete(
-                    (Runnable) () -> {
-                        // Capture invoker trailers and copy them to the response.
-                        final HttpHeaders trailers = proxyResponse.trailers();
-                        if (trailers != null && !trailers.isEmpty()) {
-                            trailers.forEach((entry -> ctx.response().trailers().add(entry.getKey(), entry.getValue())));
-                        }
-                    }
-                );
+            // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the
+            // Flowable<Buffer> chunks.
+            chunks.initialize(ctx, connection, proxyResponse).doOnComplete((Runnable) () -> {
+                // Capture invoker trailers and copy them to the response.
+                final HttpHeaders trailers = proxyResponse.trailers();
+                if (trailers != null && !trailers.isEmpty()) {
+                    trailers.forEach((entry -> ctx.response().trailers().add(entry.getKey(), entry.getValue())));
+                }
+            });
         } else {
             tryCancel(proxyResponse);
         }
@@ -161,10 +161,10 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
 
     private ExecutionFailure toExecutionFailure(ProcessorFailure failureResponse) {
         return new ExecutionFailure(failureResponse.statusCode())
-            .key(failureResponse.key())
-            .message(failureResponse.message())
-            .contentType(failureResponse.contentType())
-            .parameters(failureResponse.parameters());
+                .key(failureResponse.key())
+                .message(failureResponse.message())
+                .contentType(failureResponse.contentType())
+                .parameters(failureResponse.parameters());
     }
 
     private void tryCancel(ProxyResponse proxyResponse) {

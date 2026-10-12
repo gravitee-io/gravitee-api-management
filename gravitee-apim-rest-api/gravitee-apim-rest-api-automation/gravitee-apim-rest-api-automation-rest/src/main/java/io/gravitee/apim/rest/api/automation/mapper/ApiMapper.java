@@ -61,7 +61,7 @@ import org.mapstruct.factory.Mappers;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class })
+@Mapper(uses = {DateMapper.class, OriginContextMapper.class, ServiceMapper.class})
 public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
@@ -77,7 +77,8 @@ public interface ApiMapper {
     @Mapping(target = "consoleNotificationConfiguration", source = "consoleNotification")
     ApiCRDSpec apiV4SpecToApiCRDSpec(LegacyAPIV4Spec apiV4Spec);
 
-    default ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4Spec, String id, String crossId, String organizationId, String environmentId) {
+    default ApiV4State apiV4SpecToApiV4State(
+            ApiV4Spec apiV4Spec, String id, String crossId, String organizationId, String environmentId) {
         var state = new ApiV4State(id, environmentId, organizationId, null, crossId);
         mapApiSpecToState(apiV4Spec, state);
         return state;
@@ -91,12 +92,11 @@ public interface ApiMapper {
 
     default ApiV4State apiV4SpecAndStatusToApiV4State(ApiV4Spec spec, ApiCRDStatus status) {
         var state = new ApiV4State(
-            status.getId(),
-            status.getEnvironmentId(),
-            status.getOrganizationId(),
-            toErrors(status.getErrors()),
-            status.getCrossId()
-        );
+                status.getId(),
+                status.getEnvironmentId(),
+                status.getOrganizationId(),
+                toErrors(status.getErrors()),
+                status.getCrossId());
         mapApiSpecToState(spec, state);
         return state;
     }
@@ -122,9 +122,11 @@ public interface ApiMapper {
     @Mapping(target = "status", source = "statusCode")
     ResponseTemplate mapResponseTemplate(io.gravitee.definition.model.ResponseTemplate src);
 
-    Map<String, io.gravitee.definition.model.ResponseTemplate> mapToModelResponseTemplate(Map<String, ResponseTemplate> value);
+    Map<String, io.gravitee.definition.model.ResponseTemplate> mapToModelResponseTemplate(
+            Map<String, ResponseTemplate> value);
 
-    Map<String, ResponseTemplate> mapToAutomationResponseTemplate(Map<String, io.gravitee.definition.model.ResponseTemplate> value);
+    Map<String, ResponseTemplate> mapToAutomationResponseTemplate(
+            Map<String, io.gravitee.definition.model.ResponseTemplate> value);
 
     io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener listener);
 
@@ -181,7 +183,9 @@ public interface ApiMapper {
     PageV4 map(PageCRD pageCRD);
 
     @Mapping(target = "hooks", source = "events")
-    @Mapping(target = "configType", expression = "java(io.gravitee.rest.api.model.notification.NotificationConfigType.PORTAL)")
+    @Mapping(
+            target = "configType",
+            expression = "java(io.gravitee.rest.api.model.notification.NotificationConfigType.PORTAL)")
     @Mapping(target = "origin", expression = "java(io.gravitee.definition.model.Origin.KUBERNETES)")
     PortalNotificationConfigEntity map(ApiV4SpecConsoleNotification apiV4Spec);
 
@@ -189,28 +193,29 @@ public interface ApiMapper {
     ApiV4SpecConsoleNotification map(PortalNotificationConfigEntity portalNotificationConfig);
 
     default io.gravitee.apim.rest.api.automation.model.PlanSecurityType map(
-        io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType type
-    ) {
+            io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType type) {
         if (type == null) {
             return null;
         }
         return io.gravitee.apim.rest.api.automation.model.PlanSecurityType.valueOf(type.name());
     }
 
-    io.gravitee.apim.core.portal.model.NavigationPath map(io.gravitee.apim.rest.api.automation.model.NavigationPath src);
+    io.gravitee.apim.core.portal.model.NavigationPath map(
+            io.gravitee.apim.rest.api.automation.model.NavigationPath src);
 
-    io.gravitee.apim.rest.api.automation.model.NavigationPath mapNavigationPath(io.gravitee.apim.core.portal.model.NavigationPath src);
+    io.gravitee.apim.rest.api.automation.model.NavigationPath mapNavigationPath(
+            io.gravitee.apim.core.portal.model.NavigationPath src);
 
     default io.gravitee.apim.core.portal.model.PortalVisibility toDomainVisibility(
-        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
-    ) {
+            io.gravitee.apim.rest.api.automation.model.PortalVisibility wire) {
         return wire == null ? null : io.gravitee.apim.core.portal.model.PortalVisibility.valueOf(wire.getValue());
     }
 
     default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
-        io.gravitee.apim.core.portal.model.PortalVisibility domain
-    ) {
-        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
+            io.gravitee.apim.core.portal.model.PortalVisibility domain) {
+        return domain == null
+                ? null
+                : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 
     default List<io.gravitee.rest.api.management.v2.rest.model.Selector> mapApiV4SpecSelectors(FlowV4 flowV4) {
@@ -218,24 +223,22 @@ public interface ApiMapper {
             return List.of();
         }
 
-        return flowV4
-            .getSelectors()
-            .stream()
-            .map(selector -> {
-                if (selector.getActualInstance() instanceof HttpSelector httpSelector) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(httpSelector));
-                } else if (selector.getActualInstance() instanceof ChannelSelector channelSelector) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(channelSelector));
-                } else if (selector.getActualInstance() instanceof ConditionSelector conditionSelector) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(conditionSelector));
-                } else if (selector.getActualInstance() instanceof McpSelector mcpSelector) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(mcpSelector));
-                }
+        return flowV4.getSelectors().stream()
+                .map(selector -> {
+                    if (selector.getActualInstance() instanceof HttpSelector httpSelector) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(httpSelector));
+                    } else if (selector.getActualInstance() instanceof ChannelSelector channelSelector) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(channelSelector));
+                    } else if (selector.getActualInstance() instanceof ConditionSelector conditionSelector) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(conditionSelector));
+                    } else if (selector.getActualInstance() instanceof McpSelector mcpSelector) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(mcpSelector));
+                    }
 
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .toList();
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     default List<Selector> mapApiCRDSpecSelectors(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flowV4) {
@@ -243,50 +246,50 @@ public interface ApiMapper {
             return List.of();
         }
 
-        return flowV4
-            .getSelectors()
-            .stream()
-            .map(selector -> {
-                if (selector.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.HttpSelector httpSelector) {
-                    return new Selector(map(httpSelector));
-                } else if (
-                    selector.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.ChannelSelector channelSelector
-                ) {
-                    return new Selector(map(channelSelector));
-                } else if (
-                    selector.getActualInstance() instanceof
-                        io.gravitee.rest.api.management.v2.rest.model.ConditionSelector conditionSelector
-                ) {
-                    return new Selector(map(conditionSelector));
-                } else if (selector.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.McpSelector mcpSelector) {
-                    return new Selector(map(mcpSelector));
-                }
+        return flowV4.getSelectors().stream()
+                .map(selector -> {
+                    if (selector.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.HttpSelector httpSelector) {
+                        return new Selector(map(httpSelector));
+                    } else if (selector.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.ChannelSelector channelSelector) {
+                        return new Selector(map(channelSelector));
+                    } else if (selector.getActualInstance()
+                            instanceof
+                            io.gravitee.rest.api.management.v2.rest.model.ConditionSelector conditionSelector) {
+                        return new Selector(map(conditionSelector));
+                    } else if (selector.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.McpSelector mcpSelector) {
+                        return new Selector(map(mcpSelector));
+                    }
 
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .toList();
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     default List<io.gravitee.rest.api.management.v2.rest.model.Listener> mapApiV4SpecListeners(ApiV4Spec apiV4Spec) {
-        return apiV4Spec
-            .getListeners()
-            .stream()
-            .map(listener -> {
-                if (listener.getActualInstance() instanceof HttpListener) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(map(listener.getHttpListener()));
-                } else if (listener.getActualInstance() instanceof TcpListener) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(map(listener.getTcpListener()));
-                } else if (listener.getActualInstance() instanceof KafkaListener) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(map(listener.getKafkaListener()));
-                } else if (listener.getActualInstance() instanceof SubscriptionListener) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(map(listener.getSubscriptionListener()));
-                }
+        return apiV4Spec.getListeners().stream()
+                .map(listener -> {
+                    if (listener.getActualInstance() instanceof HttpListener) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                map(listener.getHttpListener()));
+                    } else if (listener.getActualInstance() instanceof TcpListener) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                map(listener.getTcpListener()));
+                    } else if (listener.getActualInstance() instanceof KafkaListener) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                map(listener.getKafkaListener()));
+                    } else if (listener.getActualInstance() instanceof SubscriptionListener) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                map(listener.getSubscriptionListener()));
+                    }
 
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .toList();
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     default Map<String, PlanCRD> mapApiV4SpecPlans(ApiV4Spec apiV4Spec) {
@@ -308,16 +311,13 @@ public interface ApiMapper {
         }
 
         Comparator<PlanCRD> comparator = comparingInt(PlanCRD::getOrder).thenComparing(PlanCRD::getStatus);
-        return apiCRD
-            .getPlans()
-            .values()
-            .stream()
-            .sorted(comparator)
-            .map(planCRD -> {
-                planCRD.setType(planCRD.getType() == null ? PlanType.API : planCRD.getType());
-                return this.map(planCRD);
-            })
-            .toList();
+        return apiCRD.getPlans().values().stream()
+                .sorted(comparator)
+                .map(planCRD -> {
+                    planCRD.setType(planCRD.getType() == null ? PlanType.API : planCRD.getType());
+                    return this.map(planCRD);
+                })
+                .toList();
     }
 
     default Map<String, PageCRD> mapApiV4SpecPages(ApiV4Spec apiV4Spec) {
@@ -338,36 +338,35 @@ public interface ApiMapper {
             return List.of();
         }
 
-        return apiCRD
-            .getPages()
-            .entrySet()
-            .stream()
-            .map(entry -> {
-                PageV4 pageV4 = map(entry.getValue());
-                pageV4.setHrid(entry.getKey());
-                return pageV4;
-            })
-            .toList();
+        return apiCRD.getPages().entrySet().stream()
+                .map(entry -> {
+                    PageV4 pageV4 = map(entry.getValue());
+                    pageV4.setHrid(entry.getKey());
+                    return pageV4;
+                })
+                .toList();
     }
 
     default List<Listener> mapApiCRDSpecListeners(ApiCRDSpec apiCRDSpec) {
-        return apiCRDSpec
-            .getListeners()
-            .stream()
-            .map(listener -> {
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.HttpListener) {
-                    return new Listener(map(listener.getHttpListener()));
-                } else if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.TcpListener) {
-                    return new Listener(map(listener.getTcpListener()));
-                } else if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.KafkaListener) {
-                    return new Listener(map(listener.getKafkaListener()));
-                } else if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener) {
-                    return new Listener(map(listener.getSubscriptionListener()));
-                }
+        return apiCRDSpec.getListeners().stream()
+                .map(listener -> {
+                    if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.HttpListener) {
+                        return new Listener(map(listener.getHttpListener()));
+                    } else if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.TcpListener) {
+                        return new Listener(map(listener.getTcpListener()));
+                    } else if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.KafkaListener) {
+                        return new Listener(map(listener.getKafkaListener()));
+                    } else if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener) {
+                        return new Listener(map(listener.getSubscriptionListener()));
+                    }
 
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .toList();
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

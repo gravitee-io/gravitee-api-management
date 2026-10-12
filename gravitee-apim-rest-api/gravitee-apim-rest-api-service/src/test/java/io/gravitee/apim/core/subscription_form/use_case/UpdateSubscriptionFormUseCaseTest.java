@@ -53,11 +53,10 @@ class UpdateSubscriptionFormUseCaseTest {
         queryService.reset();
         apiCrudService.reset();
         var definitionDomainService = new SubscriptionFormDefinitionDomainService(
-            new GraviteeMarkdownValidator(),
-            new SubscriptionFormSchemaGeneratorImpl(),
-            queryService,
-            apiCrudService
-        );
+                new GraviteeMarkdownValidator(),
+                new SubscriptionFormSchemaGeneratorImpl(),
+                queryService,
+                apiCrudService);
         useCase = new UpdateSubscriptionFormUseCase(crudService, queryService, definitionDomainService);
     }
 
@@ -67,48 +66,49 @@ class UpdateSubscriptionFormUseCaseTest {
         crudService.initWith(List.of(existingForm));
         queryService.initWith(List.of(existingForm));
 
-        var result = useCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), "  Partners  ", GMD)
-        );
+        var result = useCase.execute(new UpdateSubscriptionFormUseCase.Input(
+                existingForm.getEnvironmentId(), existingForm.getId(), "  Partners  ", GMD));
 
         assertThat(result.subscriptionForm().getId()).isEqualTo(existingForm.getId());
         assertThat(result.subscriptionForm().getName()).isEqualTo("Partners");
         assertThat(result.subscriptionForm().getGmdContent()).isEqualTo(GraviteeMarkdown.of(GMD));
-        assertThat(result.subscriptionForm().getValidationConstraints().byFieldKey()).containsKey("updated");
+        assertThat(result.subscriptionForm().getValidationConstraints().byFieldKey())
+                .containsKey("updated");
         assertThat(result.subscriptionForm().isEnabled()).isEqualTo(existingForm.isEnabled());
     }
 
     @Test
     void should_replace_the_dedicated_apis() {
-        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-old")).build();
+        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .apiIds(List.of("api-old"))
+                .build();
         crudService.initWith(List.of(existingForm));
         queryService.initWith(List.of(existingForm));
-        apiCrudService.initWith(
-            List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-new").environmentId(existingForm.getEnvironmentId()).build())
-        );
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id("api-new")
+                .environmentId(existingForm.getEnvironmentId())
+                .build()));
 
-        var result = useCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(
+        var result = useCase.execute(new UpdateSubscriptionFormUseCase.Input(
                 existingForm.getEnvironmentId(),
                 existingForm.getId(),
                 existingForm.getName(),
                 GMD,
-                List.of("api-new")
-            )
-        );
+                List.of("api-new")));
 
         assertThat(result.subscriptionForm().getApiIds()).containsExactly("api-new");
     }
 
     @Test
     void should_clear_the_dedicated_apis_when_none_is_given() {
-        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-old")).build();
+        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .apiIds(List.of("api-old"))
+                .build();
         crudService.initWith(List.of(existingForm));
         queryService.initWith(List.of(existingForm));
 
-        var result = useCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), existingForm.getName(), GMD)
-        );
+        var result = useCase.execute(new UpdateSubscriptionFormUseCase.Input(
+                existingForm.getEnvironmentId(), existingForm.getId(), existingForm.getName(), GMD));
 
         assertThat(result.subscriptionForm().getApiIds()).isEmpty();
     }
@@ -119,9 +119,8 @@ class UpdateSubscriptionFormUseCaseTest {
         crudService.initWith(List.of(existingForm));
         queryService.initWith(List.of(existingForm));
 
-        var result = useCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), existingForm.getName(), GMD)
-        );
+        var result = useCase.execute(new UpdateSubscriptionFormUseCase.Input(
+                existingForm.getEnvironmentId(), existingForm.getId(), existingForm.getName(), GMD));
 
         assertThat(result.subscriptionForm().getName()).isEqualTo(SubscriptionFormFixtures.FORM_NAME);
     }
@@ -132,26 +131,23 @@ class UpdateSubscriptionFormUseCaseTest {
         crudService.initWith(List.of(existingForm));
         queryService.initWith(List.of(existingForm));
 
-        var result = useCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(
+        var result = useCase.execute(new UpdateSubscriptionFormUseCase.Input(
                 existingForm.getEnvironmentId(),
                 existingForm.getId(),
                 existingForm.getName(),
-                "<p>Only static content</p>"
-            )
-        );
+                "<p>Only static content</p>"));
 
-        assertThat(result.subscriptionForm().getValidationConstraints().isEmpty()).isTrue();
+        assertThat(result.subscriptionForm().getValidationConstraints().isEmpty())
+                .isTrue();
     }
 
     @Test
     void should_throw_exception_when_form_not_exists() {
         var input = new UpdateSubscriptionFormUseCase.Input(
-            "env-1",
-            SubscriptionFormId.of("550e8400-e29b-41d4-a716-446655440000"),
-            "Any",
-            "<gmd-input name=\"test\" fieldKey=\"test\"/>"
-        );
+                "env-1",
+                SubscriptionFormId.of("550e8400-e29b-41d4-a716-446655440000"),
+                "Any",
+                "<gmd-input name=\"test\" fieldKey=\"test\"/>");
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
@@ -160,16 +156,19 @@ class UpdateSubscriptionFormUseCaseTest {
     void should_throw_when_renaming_to_the_name_of_another_form() {
         SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionForm();
         SubscriptionForm otherForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .id(SubscriptionFormId.random())
-            .name("Partners")
-            .build();
+                .id(SubscriptionFormId.random())
+                .name("Partners")
+                .build();
         crudService.initWith(List.of(existingForm, otherForm));
         queryService.initWith(List.of(existingForm, otherForm));
 
-        var input = new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), "partners", GMD);
+        var input = new UpdateSubscriptionFormUseCase.Input(
+                existingForm.getEnvironmentId(), existingForm.getId(), "partners", GMD);
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNameAlreadyExistsException.class);
-        assertThat(crudService.storage()).extracting(SubscriptionForm::getGmdContent).doesNotContain(GraviteeMarkdown.of(GMD));
+        assertThat(crudService.storage())
+                .extracting(SubscriptionForm::getGmdContent)
+                .doesNotContain(GraviteeMarkdown.of(GMD));
     }
 
     @Test
@@ -183,20 +182,14 @@ class UpdateSubscriptionFormUseCaseTest {
             gmd.append("<gmd-input fieldKey=\"field").append(i).append("\"/>");
         }
         var input = new UpdateSubscriptionFormUseCase.Input(
-            existingForm.getEnvironmentId(),
-            existingForm.getId(),
-            existingForm.getName(),
-            gmd.toString()
-        );
+                existingForm.getEnvironmentId(), existingForm.getId(), existingForm.getName(), gmd.toString());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-            .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
-            .satisfies(errors ->
-                assertThat(errors).containsExactly(
-                    "Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields"
-                )
-            );
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
+                .satisfies(errors -> assertThat(errors)
+                        .containsExactly("Subscription form must not exceed "
+                                + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields"));
     }
 
     @Test
@@ -205,18 +198,17 @@ class UpdateSubscriptionFormUseCaseTest {
         crudService.initWith(List.of(existingForm));
         queryService.initWith(List.of(existingForm));
         var input = new UpdateSubscriptionFormUseCase.Input(
-            existingForm.getEnvironmentId(),
-            existingForm.getId(),
-            existingForm.getName(),
-            "<gmd-input required=\"true\"/>"
-        );
+                existingForm.getEnvironmentId(),
+                existingForm.getId(),
+                existingForm.getName(),
+                "<gmd-input required=\"true\"/>");
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-            .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
-            .satisfies(errors ->
-                assertThat(errors).containsExactly("GMD form field is missing required 'fieldkey' attribute for element: gmd-input")
-            );
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
+                .satisfies(errors -> assertThat(errors)
+                        .containsExactly(
+                                "GMD form field is missing required 'fieldkey' attribute for element: gmd-input"));
     }
 
     @Test
@@ -224,14 +216,10 @@ class UpdateSubscriptionFormUseCaseTest {
         SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionForm();
         queryService.initWith(List.of(existingForm));
         var input = new UpdateSubscriptionFormUseCase.Input(
-            existingForm.getEnvironmentId(),
-            existingForm.getId(),
-            existingForm.getName(),
-            ""
-        );
+                existingForm.getEnvironmentId(), existingForm.getId(), existingForm.getName(), "");
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
-            .hasMessage("Content must not be null or empty");
+                .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
+                .hasMessage("Content must not be null or empty");
     }
 }

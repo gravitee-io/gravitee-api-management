@@ -111,7 +111,9 @@ public class VertxTcpRequest extends AbstractRequest {
     @Override
     public String remoteAddress() {
         if (this.remoteAddress == null) {
-            this.remoteAddress = Optional.ofNullable(proxySocket.remoteAddress()).map(Objects::toString).orElse(null);
+            this.remoteAddress = Optional.ofNullable(proxySocket.remoteAddress())
+                    .map(Objects::toString)
+                    .orElse(null);
         }
         return this.remoteAddress;
     }
@@ -120,8 +122,8 @@ public class VertxTcpRequest extends AbstractRequest {
     public String originalHost() {
         if (this.originalHost == null) {
             this.originalHost = Optional.ofNullable(proxySocket.remoteAddress())
-                .map(address -> proxySocket.remoteAddress().host())
-                .orElse(null);
+                    .map(address -> proxySocket.remoteAddress().host())
+                    .orElse(null);
         }
         return this.originalHost;
     }

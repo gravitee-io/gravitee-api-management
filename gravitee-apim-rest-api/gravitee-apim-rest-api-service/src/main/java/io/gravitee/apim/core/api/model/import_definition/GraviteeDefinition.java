@@ -30,66 +30,74 @@ import lombok.Builder;
  */
 public sealed interface GraviteeDefinition {
     Export export();
+
     ApiDescriptor api();
+
     Set<ApiMember> members();
+
     Collection<NewApiMetadata> metadata();
+
     List<PageExport> pages();
+
     Collection<? extends PlanDescriptor> plans();
+
     List<Media> apiMedia();
+
     String apiPicture();
+
     String apiBackground();
 
     @Builder(toBuilder = true)
     record V4(
-        Export export,
-        ApiDescriptor.ApiDescriptorV4 api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.V4> plans,
-        List<Media> apiMedia,
-        String apiPicture,
-        String apiBackground
-    ) implements GraviteeDefinition {}
+            Export export,
+            ApiDescriptor.ApiDescriptorV4 api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.V4> plans,
+            List<Media> apiMedia,
+            String apiPicture,
+            String apiBackground)
+            implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record Native(
-        Export export,
-        ApiDescriptor.Native api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.Native> plans,
-        List<Media> apiMedia,
-        String apiPicture,
-        String apiBackground
-    ) implements GraviteeDefinition {}
+            Export export,
+            ApiDescriptor.Native api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.Native> plans,
+            List<Media> apiMedia,
+            String apiPicture,
+            String apiBackground)
+            implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record Federated(
-        Export export,
-        ApiDescriptor.Federated api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.Federated> plans,
-        List<Media> apiMedia,
-        String apiPicture,
-        String apiBackground
-    ) implements GraviteeDefinition {}
+            Export export,
+            ApiDescriptor.Federated api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.Federated> plans,
+            List<Media> apiMedia,
+            String apiPicture,
+            String apiBackground)
+            implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record V2(
-        Export export,
-        ApiDescriptor.ApiDescriptorV2 api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.V2> plans,
-        List<Media> apiMedia,
-        String apiPicture,
-        String apiBackground
-    ) implements GraviteeDefinition {}
+            Export export,
+            ApiDescriptor.ApiDescriptorV2 api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.V2> plans,
+            List<Media> apiMedia,
+            String apiPicture,
+            String apiBackground)
+            implements GraviteeDefinition {}
 
     record Export(Instant date, String apimVersion) {
         public Export() {
@@ -98,57 +106,53 @@ public sealed interface GraviteeDefinition {
     }
 
     static GraviteeDefinition from(
-        ApiDescriptor.ApiDescriptorV2 api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.V2> plans,
-        List<Media> media,
-        String picture,
-        String bckgrnd
-    ) {
+            ApiDescriptor.ApiDescriptorV2 api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.V2> plans,
+            List<Media> media,
+            String picture,
+            String bckgrnd) {
         var export = new Export();
         return new V2(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
     }
 
     static GraviteeDefinition from(
-        ApiDescriptor.ApiDescriptorV4 api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.V4> plans,
-        List<Media> media,
-        String picture,
-        String bckgrnd
-    ) {
+            ApiDescriptor.ApiDescriptorV4 api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.V4> plans,
+            List<Media> media,
+            String picture,
+            String bckgrnd) {
         var export = new Export();
         return new V4(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
     }
 
     static GraviteeDefinition from(
-        ApiDescriptor.Native api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.Native> plans,
-        List<Media> media,
-        String picture,
-        String bckgrnd
-    ) {
+            ApiDescriptor.Native api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.Native> plans,
+            List<Media> media,
+            String picture,
+            String bckgrnd) {
         var export = new Export();
         return new Native(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
     }
 
     static GraviteeDefinition from(
-        ApiDescriptor.Federated api,
-        Set<ApiMember> members,
-        Collection<NewApiMetadata> metadata,
-        List<PageExport> pages,
-        Collection<PlanDescriptor.Federated> plans,
-        List<Media> media,
-        String picture,
-        String bckgrnd
-    ) {
+            ApiDescriptor.Federated api,
+            Set<ApiMember> members,
+            Collection<NewApiMetadata> metadata,
+            List<PageExport> pages,
+            Collection<PlanDescriptor.Federated> plans,
+            List<Media> media,
+            String picture,
+            String bckgrnd) {
         var export = new Export();
         return new Federated(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
     }

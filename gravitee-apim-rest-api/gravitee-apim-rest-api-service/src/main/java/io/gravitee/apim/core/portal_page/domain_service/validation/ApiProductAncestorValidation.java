@@ -51,17 +51,14 @@ public final class ApiProductAncestorValidation {
     }
 
     public static Optional<String> findApiProductId(
-        PortalNavigationItemId parentId,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById
-    ) {
+            PortalNavigationItemId parentId, Map<PortalNavigationItemId, PortalNavigationItem> itemsById) {
         return findApiProductId(parentId, itemsById, Map.of());
     }
 
     private static Optional<String> findApiProductId(
-        PortalNavigationItemId parentId,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
-    ) {
+            PortalNavigationItemId parentId,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+            Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById) {
         ParentHierarchyValidation.ensureAcyclic(parentId, itemsById, pendingItemsById);
 
         var currentId = parentId;

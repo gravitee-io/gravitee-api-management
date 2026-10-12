@@ -55,19 +55,20 @@ public class ThemeServiceLegacyWrapperImplTest {
             var executionContext = new ExecutionContext("ORG_ID", "ENV_ID");
 
             var themeEntity = ThemeEntity.builder()
-                .id("portal-id")
-                .type(io.gravitee.rest.api.model.theme.ThemeType.PORTAL)
-                .definition(definitionPortal)
-                .build();
+                    .id("portal-id")
+                    .type(io.gravitee.rest.api.model.theme.ThemeType.PORTAL)
+                    .definition(definitionPortal)
+                    .build();
 
-            when(themeService.findOrCreateDefaultPortalTheme(eq(executionContext))).thenReturn(themeEntity);
+            when(themeService.findOrCreateDefaultPortalTheme(eq(executionContext)))
+                    .thenReturn(themeEntity);
 
             var result = service.getCurrentOrCreateDefaultPortalTheme(executionContext);
 
             assertThat(result)
-                .hasFieldOrPropertyWithValue("id", themeEntity.getId())
-                .hasFieldOrPropertyWithValue("type", ThemeType.PORTAL)
-                .hasFieldOrPropertyWithValue("definitionPortal", definitionPortal);
+                    .hasFieldOrPropertyWithValue("id", themeEntity.getId())
+                    .hasFieldOrPropertyWithValue("type", ThemeType.PORTAL)
+                    .hasFieldOrPropertyWithValue("definitionPortal", definitionPortal);
 
             verify(themeService, times(1)).findOrCreateDefaultPortalTheme(any());
         }

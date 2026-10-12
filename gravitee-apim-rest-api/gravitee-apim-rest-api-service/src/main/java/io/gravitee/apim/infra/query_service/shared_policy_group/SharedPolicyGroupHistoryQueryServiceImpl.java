@@ -43,9 +43,8 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
     private final SharedPolicyGroupAdapter sharedPolicyGroupAdapter;
 
     public SharedPolicyGroupHistoryQueryServiceImpl(
-        @Lazy final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
-        SharedPolicyGroupAdapter sharedPolicyGroupAdapter
-    ) {
+            @Lazy final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
+            SharedPolicyGroupAdapter sharedPolicyGroupAdapter) {
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
         this.sharedPolicyGroupAdapter = sharedPolicyGroupAdapter;
     }
@@ -53,76 +52,79 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
     @Override
     public Stream<SharedPolicyGroup> streamLatestBySharedPolicyGroupId(String environmentId) {
         try {
-            return PageUtils.toStream(repositoryPageable ->
-                sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(environmentId, repositoryPageable)
-            ).map(sharedPolicyGroupAdapter::toEntity);
+            return PageUtils.toStream(
+                            repositoryPageable -> sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
+                                    environmentId, repositoryPageable))
+                    .map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
-            log.error("An error occurred while streaming all last shared policy groups by environment ID {}", environmentId, e);
+            log.error(
+                    "An error occurred while streaming all last shared policy groups by environment ID {}",
+                    environmentId,
+                    e);
             throw new TechnicalDomainException(
-                "An error occurred while trying to stream all last shared policy groups by environment ID: " + environmentId,
-                e
-            );
+                    "An error occurred while trying to stream all last shared policy groups by environment ID: "
+                            + environmentId,
+                    e);
         }
     }
 
     @Override
-    public Page<SharedPolicyGroup> search(String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable) {
+    public Page<SharedPolicyGroup> search(
+            String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable) {
         Assert.notNull(environmentId, "EnvironmentId must not be null");
         Assert.notNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
         try {
             var criteria = SharedPolicyGroupHistoryCriteria.builder()
-                .sharedPolicyGroupId(sharedPolicyGroupId)
-                .environmentId(environmentId)
-                .build();
+                    .sharedPolicyGroupId(sharedPolicyGroupId)
+                    .environmentId(environmentId)
+                    .build();
 
             var result = sharedPolicyGroupHistoryRepository.search(
-                criteria,
-                new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build(),
-                new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build()
-            );
+                    criteria,
+                    new PageableBuilder()
+                            .pageNumber(pageable.getPageNumber() - 1)
+                            .pageSize(pageable.getPageSize())
+                            .build(),
+                    new SortableBuilder()
+                            .field(sortable.getField())
+                            .setAsc(sortable.isAscOrder())
+                            .build());
 
             return result.map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
             log.error(
-                "An error occurred while searching shared policy group histories by environment ID {} and sharedPolicyGroupId {}",
-                environmentId,
-                sharedPolicyGroupId,
-                e
-            );
-            throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to search shared policy group histories by environment ID: %s and sharedPolicyGroupId: %s",
+                    "An error occurred while searching shared policy group histories by environment ID {} and sharedPolicyGroupId {}",
                     environmentId,
-                    sharedPolicyGroupId
-                ),
-                e
-            );
+                    sharedPolicyGroupId,
+                    e);
+            throw new TechnicalDomainException(
+                    String.format(
+                            "An error occurred while trying to search shared policy group histories by environment ID: %s and sharedPolicyGroupId: %s",
+                            environmentId, sharedPolicyGroupId),
+                    e);
         }
     }
 
     @Override
-    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId) {
+    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(
+            String environmentId, String sharedPolicyGroupId) {
         Assert.notNull(environmentId, "EnvironmentId must not be null");
         Assert.notNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
         try {
             return sharedPolicyGroupHistoryRepository
-                .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
-                .map(sharedPolicyGroupAdapter::toEntity);
+                    .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
+                    .map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
             log.error(
-                "An error occurred while getting the latest shared policy group by environment ID {} and sharedPolicyGroupId {}",
-                environmentId,
-                sharedPolicyGroupId,
-                e
-            );
-            throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to get the latest shared policy group by environment ID: %s and sharedPolicyGroupId: %s",
+                    "An error occurred while getting the latest shared policy group by environment ID {} and sharedPolicyGroupId {}",
                     environmentId,
-                    sharedPolicyGroupId
-                ),
-                e
-            );
+                    sharedPolicyGroupId,
+                    e);
+            throw new TechnicalDomainException(
+                    String.format(
+                            "An error occurred while trying to get the latest shared policy group by environment ID: %s and sharedPolicyGroupId: %s",
+                            environmentId, sharedPolicyGroupId),
+                    e);
         }
     }
 }

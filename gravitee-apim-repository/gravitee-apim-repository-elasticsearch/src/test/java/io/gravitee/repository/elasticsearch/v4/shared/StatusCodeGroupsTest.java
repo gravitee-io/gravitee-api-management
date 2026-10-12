@@ -37,34 +37,31 @@ class StatusCodeGroupsTest {
         void should_build_range_for_2xx_group() {
             var result = StatusCodeGroups.rangeForGroup(FIELD, "2XX");
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "range": { "status": { "gte": 200, "lte": 299 } } }
-                """
-            );
+                """);
         }
 
         @Test
         void should_be_case_insensitive() {
             var result = StatusCodeGroups.rangeForGroup(FIELD, "4xx");
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "range": { "status": { "gte": 400, "lte": 499 } } }
-                """
-            );
+                """);
         }
 
         @Test
         void should_throw_for_null_group() {
-            assertThatThrownBy(() -> StatusCodeGroups.rangeForGroup(FIELD, null)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> StatusCodeGroups.rangeForGroup(FIELD, null))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
         void should_throw_for_unknown_group() {
             assertThatThrownBy(() -> StatusCodeGroups.rangeForGroup(FIELD, "9XX"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("9XX");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("9XX");
         }
     }
 
@@ -75,11 +72,9 @@ class StatusCodeGroupsTest {
         void should_return_single_range_for_one_group() {
             var result = StatusCodeGroups.shouldForGroups(FIELD, List.of("5XX"));
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "range": { "status": { "gte": 500, "lte": 599 } } }
-                """
-            );
+                """);
         }
 
         @Test
@@ -87,29 +82,27 @@ class StatusCodeGroupsTest {
             var result = StatusCodeGroups.shouldForGroups(FIELD, Set.of("2XX", "4XX"));
 
             assertThatJson(result.encode()).inPath("$.bool.should").isArray().hasSize(2);
-            assertThatJson(result.encode()).inPath("$.bool.minimum_should_match").isEqualTo(1);
+            assertThatJson(result.encode())
+                    .inPath("$.bool.minimum_should_match")
+                    .isEqualTo(1);
         }
 
         @Test
         void should_return_match_none_for_empty_groups() {
             var result = StatusCodeGroups.shouldForGroups(FIELD, List.of());
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "match_none": {} }
-                """
-            );
+                """);
         }
 
         @Test
         void should_return_match_none_for_null_groups() {
             var result = StatusCodeGroups.shouldForGroups(FIELD, null);
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "match_none": {} }
-                """
-            );
+                """);
         }
     }
 
@@ -120,40 +113,34 @@ class StatusCodeGroupsTest {
         void should_build_range_with_both_bounds() {
             var result = StatusCodeGroups.rangeForBounds(FIELD, 200, 299);
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "range": { "status": { "gte": 200, "lte": 299 } } }
-                """
-            );
+                """);
         }
 
         @Test
         void should_build_range_with_only_gte() {
             var result = StatusCodeGroups.rangeForBounds(FIELD, 500, null);
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "range": { "status": { "gte": 500 } } }
-                """
-            );
+                """);
         }
 
         @Test
         void should_build_range_with_only_lte() {
             var result = StatusCodeGroups.rangeForBounds(FIELD, null, 299);
 
-            assertThatJson(result.encode()).isEqualTo(
-                """
+            assertThatJson(result.encode()).isEqualTo("""
                     { "range": { "status": { "lte": 299 } } }
-                """
-            );
+                """);
         }
 
         @Test
         void should_throw_when_both_bounds_are_null() {
             assertThatThrownBy(() -> StatusCodeGroups.rangeForBounds(FIELD, null, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("At least one bound");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("At least one bound");
         }
     }
 }

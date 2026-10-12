@@ -39,11 +39,10 @@ public class ScheduledCertificateRevocationService extends AbstractService imple
     private final AtomicLong counter = new AtomicLong(0);
 
     public ScheduledCertificateRevocationService(
-        @Qualifier("certificateRevocationTaskScheduler") TaskScheduler scheduler,
-        @Value("${services.certificate-revocation.cron:0 0 0 * * *}") String cronTrigger,
-        @Value("${services.certificate-revocation.enabled:true}") boolean enabled,
-        ProcessPendingCertificateTransitionsUseCase processPendingCertificateTransitionsUseCase
-    ) {
+            @Qualifier("certificateRevocationTaskScheduler") TaskScheduler scheduler,
+            @Value("${services.certificate-revocation.cron:0 0 0 * * *}") String cronTrigger,
+            @Value("${services.certificate-revocation.enabled:true}") boolean enabled,
+            ProcessPendingCertificateTransitionsUseCase processPendingCertificateTransitionsUseCase) {
         this.scheduler = scheduler;
         this.cronTrigger = cronTrigger;
         this.enabled = enabled;
@@ -64,10 +63,9 @@ public class ScheduledCertificateRevocationService extends AbstractService imple
                 scheduler.schedule(this, new CronTrigger(cronTrigger));
             } catch (IllegalArgumentException e) {
                 log.error(
-                    "Certificate Revocation service failed to start: invalid cron expression [{}] " +
-                        "in property 'services.certificate-revocation.cron'. Service will not run.",
-                    cronTrigger
-                );
+                        "Certificate Revocation service failed to start: invalid cron expression [{}] "
+                                + "in property 'services.certificate-revocation.cron'. Service will not run.",
+                        cronTrigger);
                 throw e;
             }
         } else {
@@ -80,9 +78,8 @@ public class ScheduledCertificateRevocationService extends AbstractService imple
         log.debug("Certificate revocation #{} started at {}", counter.incrementAndGet(), Instant.now());
 
         try {
-            processPendingCertificateTransitionsUseCase.execute(
-                new ProcessPendingCertificateTransitionsUseCase.Input(AuditActor.builder().userId("system").build())
-            );
+            processPendingCertificateTransitionsUseCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(
+                    AuditActor.builder().userId("system").build()));
         } catch (Exception e) {
             log.error("Error during certificate revocation processing", e);
         }

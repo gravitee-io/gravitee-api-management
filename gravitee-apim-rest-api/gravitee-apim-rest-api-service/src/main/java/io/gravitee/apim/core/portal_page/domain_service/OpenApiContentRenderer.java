@@ -47,7 +47,8 @@ public class OpenApiContentRenderer implements ContentRenderer {
     public RenderedPageContent render(PortalNavigationItem item, PortalPageContent<?> content) {
         var openApiPage = (OpenApiPageContent) content;
         var configuration = openApiPage.getViewerSettings();
-        var rendered = RenderedPageContent.of(openApiPage.getContent().value(), PortalPageContentType.OPENAPI, configuration);
+        var rendered =
+                RenderedPageContent.of(openApiPage.getContent().value(), PortalPageContentType.OPENAPI, configuration);
 
         if (!(configuration instanceof SwaggerUiConfiguration swaggerUiConfiguration)) {
             return rendered;
@@ -58,32 +59,26 @@ public class OpenApiContentRenderer implements ContentRenderer {
         }
 
         return RenderedPageContent.of(
-            openApiContentTransformer.transform(
-                rendered.value(),
-                swaggerUiConfiguration,
-                buildApiContext(content, (PortalNavigationPage) item)
-            ),
-            rendered.type(),
-            rendered.configuration()
-        );
+                openApiContentTransformer.transform(
+                        rendered.value(), swaggerUiConfiguration, buildApiContext(content, (PortalNavigationPage)
+                                item)),
+                rendered.type(),
+                rendered.configuration());
     }
 
-    private Optional<OpenApiContentTransformer.ApiContext> buildApiContext(PortalPageContent<?> content, PortalNavigationPage page) {
+    private Optional<OpenApiContentTransformer.ApiContext> buildApiContext(
+            PortalPageContent<?> content, PortalNavigationPage page) {
         return enclosingApiDomainService
-            .findEnclosingApiId(content.getEnvironmentId(), page)
-            .flatMap(apiCrudService::findById)
-            .map(api ->
-                new OpenApiContentTransformer.ApiContext(
-                    apiExposedEntrypointDomainService
-                        .get(content.getOrganizationId(), content.getEnvironmentId(), api)
-                        .stream()
-                        .map(entrypoint -> entrypoint.value())
-                        .toList(),
-                    ApiPathExtractor.extractPaths(api)
-                        .stream()
-                        .map(path -> path.getPath())
-                        .findFirst()
-                )
-            );
+                .findEnclosingApiId(content.getEnvironmentId(), page)
+                .flatMap(apiCrudService::findById)
+                .map(api -> new OpenApiContentTransformer.ApiContext(
+                        apiExposedEntrypointDomainService
+                                .get(content.getOrganizationId(), content.getEnvironmentId(), api)
+                                .stream()
+                                .map(entrypoint -> entrypoint.value())
+                                .toList(),
+                        ApiPathExtractor.extractPaths(api).stream()
+                                .map(path -> path.getPath())
+                                .findFirst()));
     }
 }

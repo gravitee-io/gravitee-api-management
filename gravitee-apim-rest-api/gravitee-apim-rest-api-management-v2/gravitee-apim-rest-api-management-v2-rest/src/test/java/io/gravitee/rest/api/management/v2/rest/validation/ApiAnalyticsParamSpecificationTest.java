@@ -33,7 +33,9 @@ class ApiAnalyticsParamSpecificationTest {
         assertTrue(ApiAnalyticsParamSpecification.hasFromParam().satisfies(param));
         param.setFrom(null);
         assertFalse(ApiAnalyticsParamSpecification.hasFromParam().satisfies(param));
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.hasFromParam().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.hasFromParam().throwIfNotSatisfied(param));
     }
 
     @Test
@@ -43,7 +45,9 @@ class ApiAnalyticsParamSpecificationTest {
         assertTrue(ApiAnalyticsParamSpecification.hasToParam().satisfies(param));
         param.setTo(null);
         assertFalse(ApiAnalyticsParamSpecification.hasToParam().satisfies(param));
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.hasToParam().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.hasToParam().throwIfNotSatisfied(param));
     }
 
     @Test
@@ -53,73 +57,73 @@ class ApiAnalyticsParamSpecificationTest {
         assertTrue(ApiAnalyticsParamSpecification.hasField().satisfies(param));
         param.setField("");
         assertFalse(ApiAnalyticsParamSpecification.hasField().satisfies(param));
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.hasField().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.hasField().throwIfNotSatisfied(param));
     }
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            // General Properties
-            "gateway",
-            "@timestamp",
-            "transaction-id",
-            "api-id",
-            "api-name",
-            "request-id",
-            "plan-id",
-            "application-id",
-            "subscription-id",
-            "client-identifier",
-            "tenant",
-            "zone",
-            // HTTP Properties
-            "http-method",
-            "local-address",
-            "remote-address",
-            "host",
-            "uri",
-            "path",
-            "mapped-path",
-            // User-Agent Properties
-            "user-agent",
-            "user_agent.device.name",
-            "user_agent.name",
-            "user_agent.original",
-            "user_agent.os.full",
-            "user_agent.os.name",
-            "user_agent.os.version",
-            "user_agent.os_name",
-            "user_agent.version",
-            // Metrics Properties
-            "request-content-length",
-            "request-ended",
-            "endpoint-response-time-ms",
-            "status",
-            "response-content-length",
-            "gateway-latency-ms",
-            "gateway-response-time-ms",
-            // GeoIP Properties
-            "geoip.continent_name",
-            "geoip.country_iso_code",
-            "geoip.region_name",
-            "geoip.city_name",
-            "geoip.location",
-            // Security Properties
-            "security-type",
-            "security-token",
-            // Error Properties
-            "error-message",
-            "error-key",
-        }
-    )
+            strings = {
+                // General Properties
+                "gateway",
+                "@timestamp",
+                "transaction-id",
+                "api-id",
+                "api-name",
+                "request-id",
+                "plan-id",
+                "application-id",
+                "subscription-id",
+                "client-identifier",
+                "tenant",
+                "zone",
+                // HTTP Properties
+                "http-method",
+                "local-address",
+                "remote-address",
+                "host",
+                "uri",
+                "path",
+                "mapped-path",
+                // User-Agent Properties
+                "user-agent",
+                "user_agent.device.name",
+                "user_agent.name",
+                "user_agent.original",
+                "user_agent.os.full",
+                "user_agent.os.name",
+                "user_agent.os.version",
+                "user_agent.os_name",
+                "user_agent.version",
+                // Metrics Properties
+                "request-content-length",
+                "request-ended",
+                "endpoint-response-time-ms",
+                "status",
+                "response-content-length",
+                "gateway-latency-ms",
+                "gateway-response-time-ms",
+                // GeoIP Properties
+                "geoip.continent_name",
+                "geoip.country_iso_code",
+                "geoip.region_name",
+                "geoip.city_name",
+                "geoip.location",
+                // Security Properties
+                "security-type",
+                "security-token",
+                // Error Properties
+                "error-message",
+                "error-key",
+            })
     void testHasField_parametrized(String field) {
         ApiAnalyticsParam param = new ApiAnalyticsParam();
         param.setField(field);
         assertTrue(ApiAnalyticsParamSpecification.hasField().satisfies(param), "Should satisfy for field: " + field);
         assertDoesNotThrow(
-            () -> ApiAnalyticsParamSpecification.hasField().throwIfNotSatisfied(param),
-            "Should not throw for field: " + field
-        );
+                () -> ApiAnalyticsParamSpecification.hasField().throwIfNotSatisfied(param),
+                "Should not throw for field: " + field);
     }
 
     @Test
@@ -129,7 +133,9 @@ class ApiAnalyticsParamSpecificationTest {
         assertTrue(ApiAnalyticsParamSpecification.hasType().satisfies(param));
         param.setType(null);
         assertFalse(ApiAnalyticsParamSpecification.hasType().satisfies(param));
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.hasType().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.hasType().throwIfNotSatisfied(param));
     }
 
     @Test
@@ -141,7 +147,9 @@ class ApiAnalyticsParamSpecificationTest {
         assertFalse(ApiAnalyticsParamSpecification.hasInterval().satisfies(param));
         param.setInterval(-1L);
         assertFalse(ApiAnalyticsParamSpecification.hasInterval().satisfies(param));
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.hasInterval().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.hasInterval().throwIfNotSatisfied(param));
     }
 
     @Test
@@ -160,7 +168,9 @@ class ApiAnalyticsParamSpecificationTest {
         assertTrue(ApiAnalyticsParamSpecification.aggregationsOfValidType().satisfies(param));
         param.setAggregations("foo:field1");
         assertFalse(ApiAnalyticsParamSpecification.aggregationsOfValidType().satisfies(param));
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.aggregationsOfValidType().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.aggregationsOfValidType().throwIfNotSatisfied(param));
     }
 
     @Test
@@ -179,9 +189,13 @@ class ApiAnalyticsParamSpecificationTest {
         param.setOrder(":field1");
         assertFalse(ApiAnalyticsParamSpecification.validOrder().satisfies(param));
         param.setOrder("asc");
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.validOrder().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.validOrder().throwIfNotSatisfied(param));
         param.setOrder("foo:bar");
-        assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.validOrder().throwIfNotSatisfied(param));
+        assertThrows(
+                BadRequestException.class,
+                () -> ApiAnalyticsParamSpecification.validOrder().throwIfNotSatisfied(param));
     }
 
     @Test
@@ -190,8 +204,7 @@ class ApiAnalyticsParamSpecificationTest {
         param.setFrom(1L);
         param.setTo(2L);
         var andSpec = ApiAnalyticsParamSpecification.and(
-            List.of(ApiAnalyticsParamSpecification.hasFromParam(), ApiAnalyticsParamSpecification.hasToParam())
-        );
+                List.of(ApiAnalyticsParamSpecification.hasFromParam(), ApiAnalyticsParamSpecification.hasToParam()));
         assertTrue(andSpec.satisfies(param));
         param.setFrom(null);
         assertFalse(andSpec.satisfies(param));
@@ -206,8 +219,12 @@ class ApiAnalyticsParamSpecificationTest {
         List<ApiAnalyticsParam.Term> terms = param.getTerms();
 
         assertEquals(2, terms.size());
-        assertTrue(terms.stream().allMatch(term -> term.getKey().equals("app-id") || term.getKey().equals("plan-id")));
-        assertTrue(terms.stream().allMatch(term -> term.getValue().equals("123") || term.getValue().equals("456")));
+        assertTrue(terms.stream()
+                .allMatch(
+                        term -> term.getKey().equals("app-id") || term.getKey().equals("plan-id")));
+        assertTrue(terms.stream()
+                .allMatch(
+                        term -> term.getValue().equals("123") || term.getValue().equals("456")));
     }
 
     @Test

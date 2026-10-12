@@ -41,15 +41,15 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
     @Override
     protected JdbcObjectMapper<Token> buildOrm() {
         return JdbcObjectMapper.builder(Token.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("token", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("expires_at", Types.TIMESTAMP, Date.class)
-            .addColumn("last_use_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("token", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("expires_at", Types.TIMESTAMP, Date.class)
+                .addColumn("last_use_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -62,11 +62,10 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
         log.debug("JdbcTokenRepository.findByReference({}, {})", referenceType, referenceId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
-                getOrm().getRowMapper(),
-                referenceType,
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    referenceType,
+                    referenceId);
         } catch (final Exception ex) {
             final String message = "Failed to find tokens by reference";
             log.error(message, ex);
@@ -75,25 +74,27 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType)
+            throws TechnicalException {
         log.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceType, referenceId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType,
-                referenceId
-            );
+                    "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType,
+                    referenceId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
-                    referenceType,
-                    referenceId
-                );
+                        "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                        referenceType,
+                        referenceId);
             }
 
-            log.debug("JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceType, referenceId);
+            log.debug(
+                    "JdbcTokenRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done",
+                    referenceType,
+                    referenceId);
             return rows;
         } catch (final Exception ex) {
             log.error("Failed to delete tokens for refId: {}/{}", referenceId, referenceType, ex);

@@ -64,9 +64,7 @@ class PortalPageContentCrudServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new PortalPageContentCrudServiceImpl(
-            repository,
-            java.util.List.of(new DefaultOpenApiProvider(), new DefaultGraviteeMarkdownProvider())
-        );
+                repository, java.util.List.of(new DefaultOpenApiProvider(), new DefaultGraviteeMarkdownProvider()));
     }
 
     @Nested
@@ -82,11 +80,10 @@ class PortalPageContentCrudServiceImplTest {
             // Given
             final var pageContentId = PortalPageContentId.random();
             final var portalPageContent = new GraviteeMarkdownPageContent(
-                pageContentId,
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                new GraviteeMarkdown("# Welcome\n\nThis is a sample page content.")
-            );
+                    pageContentId,
+                    ORGANIZATION_ID,
+                    ENVIRONMENT_ID,
+                    new GraviteeMarkdown("# Welcome\n\nThis is a sample page content."));
             final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
 
             // When
@@ -150,11 +147,10 @@ class PortalPageContentCrudServiceImplTest {
 
             final var pageContentId = PortalPageContentId.random();
             final var portalPageContent = new GraviteeMarkdownPageContent(
-                pageContentId,
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                new GraviteeMarkdown("# Updated Content\n\nThis is the updated content.")
-            );
+                    pageContentId,
+                    ORGANIZATION_ID,
+                    ENVIRONMENT_ID,
+                    new GraviteeMarkdown("# Updated Content\n\nThis is the updated content."));
             final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
 
             // When

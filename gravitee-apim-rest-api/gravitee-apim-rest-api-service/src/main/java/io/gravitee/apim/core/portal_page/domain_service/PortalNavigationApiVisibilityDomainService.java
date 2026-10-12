@@ -46,9 +46,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
 
     @Override
     public Predicate<PortalNavigationItem> prepareVisibilityPredicate(
-        String environmentId,
-        PortalNavigationItemViewerContext viewerContext
-    ) {
+            String environmentId, PortalNavigationItemViewerContext viewerContext) {
         return item -> !isApiItemHidden((PortalNavigationApi) item, viewerContext);
     }
 
@@ -65,10 +63,9 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * no membership/subscription lookups since there is no authenticated user to check access for.
      */
     public List<PortalNavigationApi> resolveVisiblePublicItems(String environmentId, @Nullable String categoryId) {
-        return fetchApiItems(environmentId, categoryId)
-            .stream()
-            .filter(i -> PortalVisibility.PUBLIC.equals(i.getVisibility()))
-            .toList();
+        return fetchApiItems(environmentId, categoryId).stream()
+                .filter(i -> PortalVisibility.PUBLIC.equals(i.getVisibility()))
+                .toList();
     }
 
     /**
@@ -82,7 +79,8 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * Enforces portal navigation access control by filtering APIs based on visibility rules and user permissions,
      * optionally restricted to a single category.
      */
-    public List<PortalNavigationApi> resolveVisibleItems(String environmentId, String userId, @Nullable String categoryId) {
+    public List<PortalNavigationApi> resolveVisibleItems(
+            String environmentId, String userId, @Nullable String categoryId) {
         List<PortalNavigationApi> apiItems = fetchApiItems(environmentId, categoryId);
 
         Set<String> publicIds = new HashSet<>();
@@ -99,28 +97,23 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         allowedIds.addAll(apiMembershipDomainService.filterApiIdsByUserMembership(userId, privateIds));
         allowedIds.addAll(apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, privateIds));
 
-        return apiItems
-            .stream()
-            .filter(i -> allowedIds.contains(i.getApiId()))
-            .toList();
+        return apiItems.stream().filter(i -> allowedIds.contains(i.getApiId())).toList();
     }
 
     private List<PortalNavigationApi> fetchApiItems(String environmentId, @Nullable String categoryId) {
         PortalCategoryId parsedCategoryId = categoryId != null ? PortalCategoryId.of(categoryId) : null;
         return queryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(environmentId)
-                    .published(true)
-                    .root(false)
-                    .type(PortalNavigationItemType.API)
-                    .categoryId(parsedCategoryId)
-                    .build()
-            )
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .toList();
+                .search(PortalNavigationItemQueryCriteria.builder()
+                        .environmentId(environmentId)
+                        .published(true)
+                        .root(false)
+                        .type(PortalNavigationItemType.API)
+                        .categoryId(parsedCategoryId)
+                        .build())
+                .stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .toList();
     }
 
     /**
@@ -128,21 +121,19 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      */
     public boolean isApiVisibleToUser(String environmentId, String apiId, @Nullable String userId) {
         return queryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(environmentId)
-                    .published(true)
-                    .root(false)
-                    .type(PortalNavigationItemType.API)
-                    .apiIds(Set.of(apiId))
-                    .build()
-            )
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .findFirst()
-            .map(item -> isVisibleToUser(item, userId))
-            .orElse(false);
+                .search(PortalNavigationItemQueryCriteria.builder()
+                        .environmentId(environmentId)
+                        .published(true)
+                        .root(false)
+                        .type(PortalNavigationItemType.API)
+                        .apiIds(Set.of(apiId))
+                        .build())
+                .stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .findFirst()
+                .map(item -> isVisibleToUser(item, userId))
+                .orElse(false);
     }
 
     /**
@@ -153,10 +144,12 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
             return true;
         }
         Set<String> candidate = Set.of(item.getApiId());
-        return (
-            !apiMembershipDomainService.filterApiIdsByUserMembership(userId, candidate).isEmpty() ||
-            !apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, candidate).isEmpty()
-        );
+        return (!apiMembershipDomainService
+                        .filterApiIdsByUserMembership(userId, candidate)
+                        .isEmpty()
+                || !apiMembershipDomainService
+                        .filterAllowedApiIdsBySubscription(userId, candidate)
+                        .isEmpty());
     }
 
     /**
@@ -175,10 +168,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         if (!viewerContext.isAuthenticated()) {
             return true;
         }
-        return viewerContext
-            .userId()
-            .map(uid -> !isVisibleToUser(item, uid))
-            .orElse(true);
+        return viewerContext.userId().map(uid -> !isVisibleToUser(item, uid)).orElse(true);
     }
 
     /**
@@ -186,7 +176,8 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * {@link PortalNavigationApi} hidden from the viewer. Used to prevent direct access (by id)
      * to descendants of an API navigation item the viewer cannot see.
      */
-    public boolean hasHiddenApiAncestor(String environmentId, PortalNavigationItem item, PortalNavigationItemViewerContext viewerContext) {
+    public boolean hasHiddenApiAncestor(
+            String environmentId, PortalNavigationItem item, PortalNavigationItemViewerContext viewerContext) {
         if (!viewerContext.isPortalMode()) {
             return false;
         }

@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface InstanceQueryService {
     List<Instance> findAllStarted(String organizationId, String environmentId);
+
     BaseInstance findById(ExecutionContext executionContext, String instanceId);
+
     List<BaseInstance> findByIds(ExecutionContext executionContext, Collection<String> instanceIds);
 }

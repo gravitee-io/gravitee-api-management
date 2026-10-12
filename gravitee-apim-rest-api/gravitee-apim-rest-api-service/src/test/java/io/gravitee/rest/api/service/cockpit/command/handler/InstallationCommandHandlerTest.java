@@ -73,9 +73,9 @@ public class InstallationCommandHandlerTest {
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
         InstallationCommandPayload installationPayload = InstallationCommandPayload.builder()
-            .id(INSTALLATION_ID)
-            .status("ACCEPTED")
-            .build();
+                .id(INSTALLATION_ID)
+                .status("ACCEPTED")
+                .build();
         InstallationCommand command = new InstallationCommand(installationPayload);
 
         when(installationService.getOrInitialize()).thenReturn(installation);
@@ -83,7 +83,8 @@ public class InstallationCommandHandlerTest {
         TestObserver<InstallationReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         final HashMap<String, String> expectedAdditionalInfos = new HashMap<>();
         expectedAdditionalInfos.put(CUSTOM_KEY, CUSTOM_VALUE);
@@ -98,9 +99,9 @@ public class InstallationCommandHandlerTest {
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
         InstallationCommandPayload installationPayload = InstallationCommandPayload.builder()
-            .id(INSTALLATION_ID)
-            .status("ACCEPTED")
-            .build();
+                .id(INSTALLATION_ID)
+                .status("ACCEPTED")
+                .build();
         InstallationCommand command = new InstallationCommand(installationPayload);
 
         when(installationService.getOrInitialize()).thenReturn(installation);
@@ -109,6 +110,7 @@ public class InstallationCommandHandlerTest {
         TestObserver<InstallationReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 }

@@ -28,9 +28,9 @@ public class VersionIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("ve1")
-            .key("version", ascending())
-            .build();
+                .collection("apis")
+                .name("ve1")
+                .key("version", ascending())
+                .build();
     }
 }

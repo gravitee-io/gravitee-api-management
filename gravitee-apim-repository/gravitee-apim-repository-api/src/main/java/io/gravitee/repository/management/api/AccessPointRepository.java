@@ -33,10 +33,8 @@ public interface AccessPointRepository extends CrudRepository<AccessPoint, Strin
     List<AccessPoint> findByTarget(final AccessPointTarget target) throws TechnicalException;
 
     List<AccessPoint> findByReferenceAndTarget(
-        final AccessPointReferenceType referenceType,
-        final String referenceId,
-        final AccessPointTarget target
-    ) throws TechnicalException;
+            final AccessPointReferenceType referenceType, final String referenceId, final AccessPointTarget target)
+            throws TechnicalException;
 
     List<AccessPoint> findByCriteria(AccessPointCriteria criteria, Long page, Long size) throws TechnicalException;
 
@@ -47,5 +45,6 @@ public interface AccessPointRepository extends CrudRepository<AccessPoint, Strin
      * @return List of IDs for deleted access points
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, AccessPointReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, AccessPointReferenceType referenceType)
+            throws TechnicalException;
 }

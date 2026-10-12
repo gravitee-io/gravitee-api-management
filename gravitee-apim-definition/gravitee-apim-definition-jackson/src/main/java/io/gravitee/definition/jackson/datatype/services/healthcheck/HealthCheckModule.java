@@ -32,14 +32,17 @@ public class HealthCheckModule extends GraviteeModule {
     public HealthCheckModule() {
         super(HealthCheckService.SERVICE_KEY);
         // first deserializers
-        addDeserializer(EndpointHealthCheckService.class, new EndpointHealthCheckDeserializer(EndpointHealthCheckService.class));
+        addDeserializer(
+                EndpointHealthCheckService.class,
+                new EndpointHealthCheckDeserializer(EndpointHealthCheckService.class));
         addDeserializer(HealthCheckService.class, new HealthCheckDeserializer(HealthCheckService.class));
         addDeserializer(HealthCheckStep.class, new StepDeserializer(HealthCheckStep.class));
         addDeserializer(HealthCheckRequest.class, new RequestDeserializer(HealthCheckRequest.class));
         addDeserializer(HealthCheckResponse.class, new ResponseDeserializer(HealthCheckResponse.class));
 
         // then serializers:
-        addSerializer(EndpointHealthCheckService.class, new EndpointHealthCheckSerializer(EndpointHealthCheckService.class));
+        addSerializer(
+                EndpointHealthCheckService.class, new EndpointHealthCheckSerializer(EndpointHealthCheckService.class));
         addSerializer(HealthCheckService.class, new HealthCheckSerializer(HealthCheckService.class));
         addSerializer(HealthCheckStep.class, new StepSerializer(HealthCheckStep.class));
         addSerializer(HealthCheckRequest.class, new RequestSerializer(HealthCheckRequest.class));

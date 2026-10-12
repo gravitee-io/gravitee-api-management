@@ -34,11 +34,8 @@ public class DictionaryPropertyValueRequiredException extends AbstractValidation
 
     @Override
     public String getMessage() {
-        return (
-            "Dictionary property [" +
-            propertyKey +
-            "] has no value. A property without a value cannot be deployed to the gateway; remove the property or give it a value."
-        );
+        return ("Dictionary property [" + propertyKey
+                + "] has no value. A property without a value cannot be deployed to the gateway; remove the property or give it a value.");
     }
 
     @Override

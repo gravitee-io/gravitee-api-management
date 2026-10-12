@@ -58,11 +58,8 @@ class DefaultApiServicePluginManagerTest {
 
     @Test
     void should_register_new_api_service_plugin() {
-        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
-            new FakeApiServicePlugin(true),
-            FakeApiServiceFactory.class,
-            null
-        );
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin =
+                new DefaultApiServicePlugin<>(new FakeApiServicePlugin(true), FakeApiServiceFactory.class, null);
 
         cut.register(apiServicePlugin);
 
@@ -81,11 +78,8 @@ class DefaultApiServicePluginManagerTest {
 
     @Test
     void should_register_not_deployed_plugin() {
-        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
-            new FakeApiServicePlugin(false),
-            FakeApiServiceFactory.class,
-            null
-        );
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin =
+                new DefaultApiServicePlugin<>(new FakeApiServicePlugin(false), FakeApiServiceFactory.class, null);
 
         cut.register(apiServicePlugin);
 
@@ -98,14 +92,11 @@ class DefaultApiServicePluginManagerTest {
 
     @Test
     void should_retrieve_all_factories() {
-        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
-            new FakeApiServicePlugin(true),
-            FakeApiServiceFactory.class,
-            null
-        );
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin =
+                new DefaultApiServicePlugin<>(new FakeApiServicePlugin(true), FakeApiServiceFactory.class, null);
 
         final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePluginNotDeployed =
-            new DefaultApiServicePlugin<>(new FakeApiServicePlugin(false), FakeApiServiceFactory.class, null);
+                new DefaultApiServicePlugin<>(new FakeApiServicePlugin(false), FakeApiServiceFactory.class, null);
 
         cut.register(apiServicePlugin);
         cut.register(apiServicePluginNotDeployed);
@@ -117,35 +108,31 @@ class DefaultApiServicePluginManagerTest {
 
     @Test
     void should_retrieve_all_factories_of_specialized_type() {
-        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
-            new FakeApiServicePlugin(true),
-            FakeApiServiceFactory.class,
-            null
-        );
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin =
+                new DefaultApiServicePlugin<>(new FakeApiServicePlugin(true), FakeApiServiceFactory.class, null);
 
-        final DefaultApiServicePlugin<FakeSpecializedApiServiceFactory, FakeApiServiceConfiguration> specializedApiServicePlugin =
-            new DefaultApiServicePlugin<>(new FakeSpecializedApiServicePlugin(true), FakeSpecializedApiServiceFactory.class, null);
+        final DefaultApiServicePlugin<FakeSpecializedApiServiceFactory, FakeApiServiceConfiguration>
+                specializedApiServicePlugin = new DefaultApiServicePlugin<>(
+                        new FakeSpecializedApiServicePlugin(true), FakeSpecializedApiServiceFactory.class, null);
 
         cut.register(apiServicePlugin);
         cut.register(specializedApiServicePlugin);
 
-        List<ApiServiceFactory<FakeApiService>> factoryList = cut.getAllFactories(FakeSpecializedApiServiceFactory.class);
+        List<ApiServiceFactory<FakeApiService>> factoryList =
+                cut.getAllFactories(FakeSpecializedApiServiceFactory.class);
 
         assertThat(factoryList)
-            .hasSize(1)
-            .satisfiesExactly(factory -> SpecializedApiServiceFactory.class.isAssignableFrom(factory.getClass()));
+                .hasSize(1)
+                .satisfiesExactly(factory -> SpecializedApiServiceFactory.class.isAssignableFrom(factory.getClass()));
     }
 
     @Test
     void should_only_retrieve_deployed_plugin_factories() {
-        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
-            new FakeApiServicePlugin(true),
-            FakeApiServiceFactory.class,
-            null
-        );
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin =
+                new DefaultApiServicePlugin<>(new FakeApiServicePlugin(true), FakeApiServiceFactory.class, null);
 
         final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePluginNotDeployed =
-            new DefaultApiServicePlugin<>(new FakeApiServicePlugin(false), FakeApiServiceFactory.class, null);
+                new DefaultApiServicePlugin<>(new FakeApiServicePlugin(false), FakeApiServiceFactory.class, null);
 
         cut.register(apiServicePlugin);
         cut.register(apiServicePluginNotDeployed);

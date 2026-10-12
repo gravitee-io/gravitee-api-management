@@ -73,24 +73,22 @@ public class ApiProductRolesUpgraderTest {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
         ExecutionContext expectedExecutionContext = new ExecutionContext(organization);
-        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_USER.getName()), eq(organizationId))).thenReturn(
-            Optional.empty()
-        );
-        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_OWNER.getName()), eq(organizationId))).thenReturn(
-            Optional.empty()
-        );
+        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_USER.getName()), eq(organizationId)))
+                .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_OWNER.getName()), eq(organizationId)))
+                .thenReturn(Optional.empty());
 
         upgrader.upgrade();
 
         verify(roleService).create(expectedExecutionContext, ROLE_API_PRODUCT_USER);
         verify(roleService).create(expectedExecutionContext, ROLE_API_PRODUCT_OWNER);
-        verify(roleService).createOrUpdateSystemRole(
-            eq(expectedExecutionContext),
-            eq(PRIMARY_OWNER),
-            eq(API_PRODUCT),
-            any(Permission[].class),
-            eq(organizationId)
-        );
+        verify(roleService)
+                .createOrUpdateSystemRole(
+                        eq(expectedExecutionContext),
+                        eq(PRIMARY_OWNER),
+                        eq(API_PRODUCT),
+                        any(Permission[].class),
+                        eq(organizationId));
     }
 
     @Test
@@ -100,24 +98,18 @@ public class ApiProductRolesUpgraderTest {
         when(organization.getId()).thenReturn(organizationId);
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
-        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_USER.getName()), eq(organizationId))).thenReturn(
-            Optional.of(new RoleEntity())
-        );
-        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_OWNER.getName()), eq(organizationId))).thenReturn(
-            Optional.of(new RoleEntity())
-        );
+        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_USER.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_OWNER.getName()), eq(organizationId)))
+                .thenReturn(Optional.of(new RoleEntity()));
 
         upgrader.upgrade();
 
         verify(roleService, never()).create(any(), eq(ROLE_API_PRODUCT_USER));
         verify(roleService, never()).create(any(), eq(ROLE_API_PRODUCT_OWNER));
-        verify(roleService).createOrUpdateSystemRole(
-            any(),
-            eq(PRIMARY_OWNER),
-            eq(API_PRODUCT),
-            any(Permission[].class),
-            eq(organizationId)
-        );
+        verify(roleService)
+                .createOrUpdateSystemRole(
+                        any(), eq(PRIMARY_OWNER), eq(API_PRODUCT), any(Permission[].class), eq(organizationId));
     }
 
     @Test

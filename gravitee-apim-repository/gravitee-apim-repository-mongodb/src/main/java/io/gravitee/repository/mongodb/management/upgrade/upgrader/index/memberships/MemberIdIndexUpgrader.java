@@ -28,9 +28,9 @@ public class MemberIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("memberships")
-            .name("mi1")
-            .key("memberId", ascending())
-            .build();
+                .collection("memberships")
+                .name("mi1")
+                .key("memberId", ascending())
+                .build();
     }
 }

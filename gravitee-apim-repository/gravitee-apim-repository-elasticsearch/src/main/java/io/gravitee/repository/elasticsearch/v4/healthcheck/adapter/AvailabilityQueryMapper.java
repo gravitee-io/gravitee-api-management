@@ -40,15 +40,21 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
     private ObjectNode query(ApiFieldPeriod query) {
         JsonNode termFilter = json().set("term", json().put("api", query.apiId()));
 
-        ObjectNode timestamp = json().put("gte", query.from().toEpochMilli()).put("lte", query.to().toEpochMilli());
+        ObjectNode timestamp = json().put("gte", query.from().toEpochMilli())
+                .put("lte", query.to().toEpochMilli());
         JsonNode rangeFilter = json().set("range", json().set("@timestamp", timestamp));
 
         return json().set("bool", json().set("filter", array().add(termFilter).add(rangeFilter)));
     }
 
     private ObjectNode aggregations(ApiFieldPeriod query) {
-        var deep = json().set(RESULTS_AGGS, json().set("terms", json().put("field", "available").set("include", array().add(true))));
-        return json().set(BY_FIELD_AGGS, json().<ObjectNode>set("terms", json().put("field", query.field())).set("aggregations", deep));
+        var deep = json().set(
+                        RESULTS_AGGS,
+                        json().set("terms", json().put("field", "available").set("include", array().add(true))));
+        return json().set(
+                        BY_FIELD_AGGS,
+                        json().<ObjectNode>set("terms", json().put("field", query.field()))
+                                .set("aggregations", deep));
     }
 
     @Override
@@ -65,30 +71,26 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
 
         // Did it this way because of 10.000 hits results per query limit for ElasticSearchQuery
         // https://www.elastic.co/guide/en/app-search/8.12/limits.html
-        var total = entrypointsAggregation
-            .getBuckets()
-            .stream()
-            .map(jsonNode -> jsonNode.get("doc_count").asLong())
-            .reduce(0L, Long::sum);
+        var total = entrypointsAggregation.getBuckets().stream()
+                .map(jsonNode -> jsonNode.get("doc_count").asLong())
+                .reduce(0L, Long::sum);
 
-        final var byFieldValue = entrypointsAggregation
-            .getBuckets()
-            .stream()
-            .collect(Collectors.toMap(json -> json.get("key").asText(), AvailabilityQueryMapper::getByField));
+        final var byFieldValue = entrypointsAggregation.getBuckets().stream()
+                .collect(Collectors.toMap(json -> json.get("key").asText(), AvailabilityQueryMapper::getByField));
 
         long sum = byFieldValue.values().stream().mapToLong(ByField::success).sum();
 
-        var collect = byFieldValue.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().round()));
+        var collect = byFieldValue.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().round()));
 
         return Maybe.just(new AvailabilityResponse(AvailabilityQueryMapper.round(sum, total), collect));
     }
 
     private static ByField getByField(JsonNode json) {
         return new ByField(
-            json.get("key").asText(),
-            json.get("doc_count").asLong(),
-            json.at("/%s/buckets/0/doc_count".formatted(RESULTS_AGGS)).asLong(0)
-        );
+                json.get("key").asText(),
+                json.get("doc_count").asLong(),
+                json.at("/%s/buckets/0/doc_count".formatted(RESULTS_AGGS)).asLong(0));
     }
 
     private record ByField(String name, long total, long success) {

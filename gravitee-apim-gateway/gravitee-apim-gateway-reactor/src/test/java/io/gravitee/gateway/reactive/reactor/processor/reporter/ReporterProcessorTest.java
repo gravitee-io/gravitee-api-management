@@ -102,8 +102,10 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             assertNull(ctx.metrics().getLog());
             assertThat(ctx.metrics().getEntrypointId()).isEqualTo("fake-connector");
 
-            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.limit", 10L));
-            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.count", 4L));
+            assertThat(ctx.metrics().getAdditionalMetrics())
+                    .contains(new AdditionalMetric.LongMetric("long_quota.limit", 10L));
+            assertThat(ctx.metrics().getAdditionalMetrics())
+                    .contains(new AdditionalMetric.LongMetric("long_quota.count", 4L));
             verify(reporterService, never()).report(ctx.metrics().getLog());
         }
 
@@ -259,7 +261,8 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             Log log = Log.builder().entrypointResponse(response).build();
             HttpHeaders headers = HttpHeaders.create();
             when(response.getHeaders()).thenReturn(headers);
-            when(response.getOnReportActions()).thenReturn(List.of(response -> response.getHeaders().set("X-Gravitee-Test", "test")));
+            when(response.getOnReportActions())
+                    .thenReturn(List.of(response -> response.getHeaders().set("X-Gravitee-Test", "test")));
             ctx.metrics().setLog(log);
 
             // When
@@ -267,7 +270,9 @@ class ReporterProcessorTest extends AbstractProcessorTest {
 
             // Then
             assertNotNull(ctx.metrics().getLog());
-            assertEquals("test", ctx.metrics().getLog().getEntrypointResponse().getHeaders().get("X-Gravitee-Test"));
+            assertEquals(
+                    "test",
+                    ctx.metrics().getLog().getEntrypointResponse().getHeaders().get("X-Gravitee-Test"));
         }
     }
 
@@ -291,8 +296,10 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             assertNull(ctx.metrics().getLog());
             verify(reporterService, never()).report(any(io.gravitee.reporter.api.log.Log.class));
             verify(reporterService, never()).report(any(Log.class));
-            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.limit", 10L));
-            assertThat(ctx.metrics().getAdditionalMetrics()).contains(new AdditionalMetric.LongMetric("long_quota.count", 4L));
+            assertThat(ctx.metrics().getAdditionalMetrics())
+                    .contains(new AdditionalMetric.LongMetric("long_quota.limit", 10L));
+            assertThat(ctx.metrics().getAdditionalMetrics())
+                    .contains(new AdditionalMetric.LongMetric("long_quota.count", 4L));
         }
 
         @Test
@@ -334,7 +341,8 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             Log log = Log.builder().entrypointResponse(response).build();
             HttpHeaders headers = HttpHeaders.create();
             when(response.getHeaders()).thenReturn(headers);
-            when(response.getOnReportActions()).thenReturn(List.of(response -> response.getHeaders().set("X-Gravitee-Test", "test")));
+            when(response.getOnReportActions())
+                    .thenReturn(List.of(response -> response.getHeaders().set("X-Gravitee-Test", "test")));
             ctx.metrics().setLog(log);
 
             // When
@@ -342,7 +350,9 @@ class ReporterProcessorTest extends AbstractProcessorTest {
 
             // Then
             assertNotNull(ctx.metrics().getLog());
-            assertEquals("test", ctx.metrics().getLog().getEntrypointResponse().getHeaders().get("X-Gravitee-Test"));
+            assertEquals(
+                    "test",
+                    ctx.metrics().getLog().getEntrypointResponse().getHeaders().get("X-Gravitee-Test"));
         }
     }
 
@@ -417,7 +427,8 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             reporterProcessor.execute(ctx).test().assertResult();
 
             assertThat(ctx.metrics().getEntrypointId()).isEqualTo("mcp");
-            assertThat((Object) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).isNull();
+            assertThat((Object) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
+                    .isNull();
             verify(reporterService).report(ctx.metrics());
         }
 

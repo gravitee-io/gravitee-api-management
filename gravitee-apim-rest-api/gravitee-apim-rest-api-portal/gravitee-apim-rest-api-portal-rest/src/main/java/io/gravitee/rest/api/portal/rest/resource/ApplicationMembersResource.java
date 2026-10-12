@@ -79,20 +79,19 @@ public class ApplicationMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)})
     public Response getMembersByApplicationId(
-        @PathParam("applicationId") String applicationId,
-        @BeanParam PaginationParam paginationParam
-    ) {
-        //Does application exist ?
+            @PathParam("applicationId") String applicationId, @BeanParam PaginationParam paginationParam) {
+        // Does application exist ?
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         applicationService.findById(executionContext, applicationId);
 
-        List<Member> membersList = membershipService
-            .getMembersByReference(executionContext, MembershipReferenceType.APPLICATION, applicationId)
-            .stream()
-            .map(membership -> memberMapper.convert(executionContext, membership, uriInfo))
-            .collect(Collectors.toList());
+        List<Member> membersList =
+                membershipService
+                        .getMembersByReference(executionContext, MembershipReferenceType.APPLICATION, applicationId)
+                        .stream()
+                        .map(membership -> memberMapper.convert(executionContext, membership, uriInfo))
+                        .collect(Collectors.toList());
 
         return createListResponse(executionContext, membersList, paginationParam);
     }
@@ -101,34 +100,28 @@ public class ApplicationMembersResource extends AbstractResource {
     @Path("/_search")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)})
     public Response searchMembersByApplicationId(
-        @PathParam("applicationId") String applicationId,
-        @Valid @BeanParam PaginationParam paginationParam,
-        @Valid @NotNull(message = "Input must not be null.") ApplicationMembersSearchInput input
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @Valid @BeanParam PaginationParam paginationParam,
+            @Valid @NotNull(message = "Input must not be null.") ApplicationMembersSearchInput input) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var result = searchApplicationMembersUseCase.execute(
-            new SearchApplicationMembersUseCase.Input(
+        var result = searchApplicationMembersUseCase.execute(new SearchApplicationMembersUseCase.Input(
                 executionContext,
                 applicationId,
                 ApplicationMembersSearchCriteriaMapper.INSTANCE.toSearchCriteria(input),
-                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
-            )
-        );
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())));
 
-        var roleIds = result
-            .memberships()
-            .getContent()
-            .stream()
-            .map(Membership::getRoleId)
-            .filter(id -> id != null && !id.isBlank())
-            .collect(Collectors.toSet());
+        var roleIds = result.memberships().getContent().stream()
+                .map(Membership::getRoleId)
+                .filter(id -> id != null && !id.isBlank())
+                .collect(Collectors.toSet());
         Map<String, RoleEntity> rolesById = roleIds.isEmpty() ? Map.of() : roleService.findByIds(roleIds);
-        List<Member> membersList = memberMapper.convert(result.memberships().getContent(), result.users(), rolesById, uriInfo);
-        Map<String, Map<String, Object>> metadata = new HashMap<>(
-            Map.of("paginateMetaData", new HashMap<>(Map.of("totalElements", result.memberships().getTotalElements())))
-        );
+        List<Member> membersList =
+                memberMapper.convert(result.memberships().getContent(), result.users(), rolesById, uriInfo);
+        Map<String, Map<String, Object>> metadata = new HashMap<>(Map.of(
+                "paginateMetaData",
+                new HashMap<>(Map.of("totalElements", result.memberships().getTotalElements()))));
 
         return createListResponse(executionContext, membersList, paginationParam, metadata);
     }
@@ -136,53 +129,47 @@ public class ApplicationMembersResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE)})
     public Response createApplicationMember(
-        @PathParam("applicationId") String applicationId,
-        @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput
-    ) {
-        //Does application exist ?
+            @PathParam("applicationId") String applicationId,
+            @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput) {
+        // Does application exist ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        //There can be only one
+        // There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(memberInput.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
 
         MemberEntity membership = membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
-            new MembershipService.MembershipMember(memberInput.getUser(), memberInput.getReference(), MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole())
-        );
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
+                new MembershipService.MembershipMember(
+                        memberInput.getUser(), memberInput.getReference(), MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole()));
 
         return Response.created(this.getLocationHeader(membership.getId()))
-            .entity(memberMapper.convert(GraviteeContext.getExecutionContext(), membership, uriInfo))
-            .build();
+                .entity(memberMapper.convert(GraviteeContext.getExecutionContext(), membership, uriInfo))
+                .build();
     }
 
     @GET
     @Path("/{memberId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)})
     public Response getApplicationMemberByApplicationIdAndMemberId(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("memberId") String memberId
-    ) {
-        //Does application exist ?
+            @PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId) {
+        // Does application exist ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        //Does user exist ?
+        // Does user exist ?
         userService.findById(GraviteeContext.getExecutionContext(), memberId);
 
         MemberEntity memberEntity = membershipService.getUserMember(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.APPLICATION,
-            applicationId,
-            memberId
-        );
+                GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, applicationId, memberId);
         if (memberEntity != null) {
-            return Response.ok(memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo)).build();
+            return Response.ok(memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo))
+                    .build();
         }
         throw new NotFoundException();
     }
@@ -190,21 +177,21 @@ public class ApplicationMembersResource extends AbstractResource {
     @DELETE
     @Path("/{memberId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationMember(@PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId) {
-        //Does application exist ?
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE)})
+    public Response deleteApplicationMember(
+            @PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId) {
+        // Does application exist ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        //Does user exist ?
+        // Does user exist ?
         userService.findById(GraviteeContext.getExecutionContext(), memberId);
 
         membershipService.deleteReferenceMember(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.APPLICATION,
-            applicationId,
-            MembershipMemberType.USER,
-            memberId
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.APPLICATION,
+                applicationId,
+                MembershipMemberType.USER,
+                memberId);
         return Response.noContent().build();
     }
 
@@ -212,50 +199,48 @@ public class ApplicationMembersResource extends AbstractResource {
     @Path("/{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response updateApplicationMemberByApplicationIdAndMemberId(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("memberId") String memberId,
-        @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput
-    ) {
-        //Does application exist ?
+            @PathParam("applicationId") String applicationId,
+            @PathParam("memberId") String memberId,
+            @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput) {
+        // Does application exist ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        //Does user exist ?
+        // Does user exist ?
         userService.findById(GraviteeContext.getExecutionContext(), memberId);
 
         if (memberInput.getUser() != null && !memberId.equals(memberInput.getUser())) {
             throw new BadRequestException("'memberInput.user' should the same as 'memberId'");
         }
 
-        //There can be only one
+        // There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(memberInput.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
 
         MemberEntity membership = membershipService.updateRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
-            new MembershipService.MembershipMember(memberId, memberInput.getReference(), MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole())
-        );
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
+                new MembershipService.MembershipMember(memberId, memberInput.getReference(), MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole()));
 
-        return Response.ok(memberMapper.convert(GraviteeContext.getExecutionContext(), membership, uriInfo)).build();
+        return Response.ok(memberMapper.convert(GraviteeContext.getExecutionContext(), membership, uriInfo))
+                .build();
     }
 
     @POST
     @Path("/_transfer_ownership")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response transferMemberOwnership(
-        @PathParam("applicationId") String applicationId,
-        @NotNull(message = "Input must not be null.") TransferOwnershipInput transferOwnershipInput
-    ) {
-        //Does application exist ?
+            @PathParam("applicationId") String applicationId,
+            @NotNull(message = "Input must not be null.") TransferOwnershipInput transferOwnershipInput) {
+        // Does application exist ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        //There can be only one
+        // There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(transferOwnershipInput.getPrimaryOwnerNewrole())) {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
@@ -263,25 +248,22 @@ public class ApplicationMembersResource extends AbstractResource {
         List<RoleEntity> newRoles = new ArrayList<>();
 
         Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
-            RoleScope.APPLICATION,
-            transferOwnershipInput.getPrimaryOwnerNewrole(),
-            GraviteeContext.getCurrentOrganization()
-        );
+                RoleScope.APPLICATION,
+                transferOwnershipInput.getPrimaryOwnerNewrole(),
+                GraviteeContext.getCurrentOrganization());
         if (optionalRole.isPresent()) {
             newRoles.add(optionalRole.get());
         }
         // else condition doesn't matter because default role will be applied on former PrimaryOwner
 
         membershipService.transferApplicationOwnership(
-            GraviteeContext.getExecutionContext(),
-            applicationId,
-            new MembershipService.MembershipMember(
-                transferOwnershipInput.getNewPrimaryOwnerId(),
-                transferOwnershipInput.getNewPrimaryOwnerReference(),
-                MembershipMemberType.USER
-            ),
-            newRoles
-        );
+                GraviteeContext.getExecutionContext(),
+                applicationId,
+                new MembershipService.MembershipMember(
+                        transferOwnershipInput.getNewPrimaryOwnerId(),
+                        transferOwnershipInput.getNewPrimaryOwnerReference(),
+                        MembershipMemberType.USER),
+                newRoles);
         return Response.noContent().build();
     }
 }

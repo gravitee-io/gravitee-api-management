@@ -42,9 +42,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcClientCertificateRepository
-    extends JdbcAbstractCrudRepository<ClientCertificate, String>
-    implements ClientCertificateRepository {
+public class JdbcClientCertificateRepository extends JdbcAbstractCrudRepository<ClientCertificate, String>
+        implements ClientCertificateRepository {
 
     JdbcClientCertificateRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "client_certificates");
@@ -53,22 +52,22 @@ public class JdbcClientCertificateRepository
     @Override
     protected JdbcObjectMapper<ClientCertificate> buildOrm() {
         return JdbcObjectMapper.builder(ClientCertificate.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("cross_id", Types.NVARCHAR, String.class)
-            .addColumn("application_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("starts_at", Types.TIMESTAMP, Date.class)
-            .addColumn("ends_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("certificate", Types.NCLOB, String.class)
-            .addColumn("certificate_expiration", Types.TIMESTAMP, Date.class)
-            .addColumn("subject", Types.NVARCHAR, String.class)
-            .addColumn("issuer", Types.NVARCHAR, String.class)
-            .addColumn("fingerprint", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, ClientCertificateStatus.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("cross_id", Types.NVARCHAR, String.class)
+                .addColumn("application_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("starts_at", Types.TIMESTAMP, Date.class)
+                .addColumn("ends_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("certificate", Types.NCLOB, String.class)
+                .addColumn("certificate_expiration", Types.TIMESTAMP, Date.class)
+                .addColumn("subject", Types.NVARCHAR, String.class)
+                .addColumn("issuer", Types.NVARCHAR, String.class)
+                .addColumn("fingerprint", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("status", Types.NVARCHAR, ClientCertificateStatus.class)
+                .build();
     }
 
     @Override
@@ -77,11 +76,13 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable) throws TechnicalException {
+    public Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable)
+            throws TechnicalException {
         log.debug("JdbcClientCertificateRepository.findByApplicationId({})", applicationId);
         try {
             String sql = getOrm().getSelectAllSql() + " WHERE application_id = ?";
-            List<ClientCertificate> clientCertificates = jdbcTemplate.query(sql, getOrm().getRowMapper(), applicationId);
+            List<ClientCertificate> clientCertificates =
+                    jdbcTemplate.query(sql, getOrm().getRowMapper(), applicationId);
             return getResultAsPage(pageable, clientCertificates);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find client certificates by application id", ex);
@@ -89,24 +90,27 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
-        throws TechnicalException {
-        log.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, Arrays.toString(statuses));
+    public List<ClientCertificate> findByApplicationIdAndStatuses(
+            String applicationId, ClientCertificateStatus... statuses) throws TechnicalException {
+        log.debug(
+                "JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})",
+                applicationId,
+                Arrays.toString(statuses));
 
         if (statuses == null || statuses.length == 0) {
             return List.of();
         }
 
         try {
-            List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
-            String statusPlaceholders = statusStrings
-                .stream()
-                .map(s -> "?")
-                .collect(Collectors.joining(", "));
+            List<String> statusStrings =
+                    Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+            String statusPlaceholders = statusStrings.stream().map(s -> "?").collect(Collectors.joining(", "));
 
-            String sql = getOrm().getSelectAllSql() + " WHERE application_id = ? AND status IN (" + statusPlaceholders + ")";
+            String sql =
+                    getOrm().getSelectAllSql() + " WHERE application_id = ? AND status IN (" + statusPlaceholders + ")";
 
-            var args = Stream.concat(Stream.of(applicationId), statusStrings.stream()).toArray();
+            var args = Stream.concat(Stream.of(applicationId), statusStrings.stream())
+                    .toArray();
 
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), args);
         } catch (Exception ex) {
@@ -115,16 +119,20 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
-        throws TechnicalException {
-        log.debug("JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})", applicationIds, Arrays.toString(statuses));
+    public List<ClientCertificate> findByApplicationIdsAndStatuses(
+            Collection<String> applicationIds, ClientCertificateStatus... statuses) throws TechnicalException {
+        log.debug(
+                "JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})",
+                applicationIds,
+                Arrays.toString(statuses));
 
         if (applicationIds == null || applicationIds.isEmpty() || statuses == null || statuses.length == 0) {
             return List.of();
         }
 
         try {
-            List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+            List<String> statusStrings =
+                    Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
             List<String> applicationIdList = new ArrayList<>(applicationIds);
 
             List<ClientCertificate> result = new ArrayList<>();
@@ -134,22 +142,19 @@ public class JdbcClientCertificateRepository
             for (int i = 0; i < applicationIdList.size(); i += batchSize) {
                 List<String> batch = applicationIdList.subList(i, Math.min(i + batchSize, applicationIdList.size()));
 
-                String sql =
-                    getOrm().getSelectAllSql() +
-                    " WHERE application_id IN (" +
-                    getOrm().buildInClause(batch) +
-                    ") AND status IN (" +
-                    getOrm().buildInClause(statusStrings) +
-                    ")";
+                String sql = getOrm().getSelectAllSql() + " WHERE application_id IN ("
+                        + getOrm().buildInClause(batch)
+                        + ") AND status IN ("
+                        + getOrm().buildInClause(statusStrings)
+                        + ")";
 
                 List<ClientCertificate> clientCertificates = jdbcTemplate.query(
-                    sql,
-                    ps -> {
-                        int index = getOrm().setArguments(ps, batch, 1);
-                        getOrm().setArguments(ps, statusStrings, index);
-                    },
-                    getOrm().getRowMapper()
-                );
+                        sql,
+                        ps -> {
+                            int index = getOrm().setArguments(ps, batch, 1);
+                            getOrm().setArguments(ps, statusStrings, index);
+                        },
+                        getOrm().getRowMapper());
                 result.addAll(clientCertificates);
             }
 
@@ -168,7 +173,8 @@ public class JdbcClientCertificateRepository
         }
 
         try {
-            var statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+            var statusStrings =
+                    Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
 
             var sql = getOrm().getSelectAllSql() + " WHERE status IN (" + getOrm().buildInClause(statusStrings) + ")";
 
@@ -179,37 +185,39 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId)
-        throws TechnicalException {
+    public boolean existsByFingerprintAndActiveApplication(
+            String fingerprint, String environmentId, String excludeApplicationId) throws TechnicalException {
         log.debug(
-            "JdbcClientCertificateRepository.existsByFingerprintAndActiveApplication({}, {}, {})",
-            fingerprint,
-            environmentId,
-            excludeApplicationId
-        );
+                "JdbcClientCertificateRepository.existsByFingerprintAndActiveApplication({}, {}, {})",
+                fingerprint,
+                environmentId,
+                excludeApplicationId);
 
         try {
-            String sql =
-                "SELECT 1 FROM " +
-                tableName +
-                " cc INNER JOIN " +
-                getTableNameFor("applications") +
-                " a ON cc.application_id = a.id " +
-                "WHERE cc.fingerprint = ? AND cc.environment_id = ? AND cc.status != ? AND a.status = ?";
+            String sql = "SELECT 1 FROM " + tableName
+                    + " cc INNER JOIN "
+                    + getTableNameFor("applications")
+                    + " a ON cc.application_id = a.id "
+                    + "WHERE cc.fingerprint = ? AND cc.environment_id = ? AND cc.status != ? AND a.status = ?";
 
             if (excludeApplicationId != null) {
                 sql += " AND cc.application_id != ?";
             }
 
             Object[] args = excludeApplicationId != null
-                ? new Object[] {
-                    fingerprint,
-                    environmentId,
-                    ClientCertificateStatus.REVOKED.name(),
-                    ApplicationStatus.ACTIVE.name(),
-                    excludeApplicationId,
-                }
-                : new Object[] { fingerprint, environmentId, ClientCertificateStatus.REVOKED.name(), ApplicationStatus.ACTIVE.name() };
+                    ? new Object[] {
+                        fingerprint,
+                        environmentId,
+                        ClientCertificateStatus.REVOKED.name(),
+                        ApplicationStatus.ACTIVE.name(),
+                        excludeApplicationId,
+                    }
+                    : new Object[] {
+                        fingerprint,
+                        environmentId,
+                        ClientCertificateStatus.REVOKED.name(),
+                        ApplicationStatus.ACTIVE.name()
+                    };
 
             List<Integer> results = jdbcTemplate.queryForList(sql, Integer.class, args);
 

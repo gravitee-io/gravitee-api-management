@@ -45,9 +45,7 @@ public abstract class AbstractKeyProcessorTest {
     protected static String EC_KID = "ec";
 
     protected final DefaultJWTClaimsVerifier<SecurityContext> claimsVerifier = new DefaultJWTClaimsVerifier<>(
-        new JWTClaimsSet.Builder().issuer("iss").build(),
-        new HashSet<>(Arrays.asList("sub", "iss", "iat"))
-    );
+            new JWTClaimsSet.Builder().issuer("iss").build(), new HashSet<>(Arrays.asList("sub", "iss", "iat")));
 
     protected static KeyPair getRsaKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -63,7 +61,10 @@ public abstract class AbstractKeyProcessorTest {
     }
 
     protected String generateRSAToken(KeyPair keyPair) throws JOSEException {
-        JWSHeader header = new JWSHeader.Builder(Algorithm.RS256.getAlgorithm()).type(JOSEObjectType.JWT).keyID(RSA_KID).build();
+        JWSHeader header = new JWSHeader.Builder(Algorithm.RS256.getAlgorithm())
+                .type(JOSEObjectType.JWT)
+                .keyID(RSA_KID)
+                .build();
 
         SignedJWT signedJWT = new SignedJWT(header, getJwtClaimsSet());
         signedJWT.sign(new RSASSASigner(keyPair.getPrivate()));
@@ -71,7 +72,10 @@ public abstract class AbstractKeyProcessorTest {
     }
 
     protected String generateECToken(KeyPair keyPair) throws JOSEException {
-        JWSHeader header = new JWSHeader.Builder(Algorithm.ES256.getAlgorithm()).type(JOSEObjectType.JWT).keyID(EC_KID).build();
+        JWSHeader header = new JWSHeader.Builder(Algorithm.ES256.getAlgorithm())
+                .type(JOSEObjectType.JWT)
+                .keyID(EC_KID)
+                .build();
 
         SignedJWT signedJWT = new SignedJWT(header, getJwtClaimsSet());
         signedJWT.sign(new ECDSASigner((ECPrivateKey) keyPair.getPrivate()));
@@ -80,12 +84,12 @@ public abstract class AbstractKeyProcessorTest {
 
     protected static JWTClaimsSet getJwtClaimsSet() {
         return new JWTClaimsSet.Builder()
-            .issuer("iss")
-            .subject("sub")
-            .claim("token", "test-token")
-            .issueTime(new Date())
-            .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)))
-            .build();
+                .issuer("iss")
+                .subject("sub")
+                .claim("token", "test-token")
+                .issueTime(new Date())
+                .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)))
+                .build();
     }
 
     protected String formatPem(PublicKey publicKey) {

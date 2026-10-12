@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.processor.pathparameters;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -49,12 +48,10 @@ public abstract class AbstractPathParametersExtractor<A, F, P> {
      * @return true if at least one flow is configured with a path parameter.
      */
     public boolean canExtractPathParams() {
-        return patternsByHttpMethod
-            .values()
-            .stream()
-            .flatMap(Collection::stream)
-            .flatMap(p -> p.getParameters().stream())
-            .anyMatch(parameters -> !parameters.getName().isEmpty());
+        return patternsByHttpMethod.values().stream()
+                .flatMap(Collection::stream)
+                .flatMap(p -> p.getParameters().stream())
+                .anyMatch(parameters -> !parameters.getName().isEmpty());
     }
 
     /**
@@ -78,17 +75,17 @@ public abstract class AbstractPathParametersExtractor<A, F, P> {
         flowsWithParam = Stream.empty();
 
         if (getApiFlows(api) != null) {
-            flowsWithParam = Stream.concat(flowsWithParam, getApiFlows(api).stream().filter(this::isEnabled).filter(this::hasPathParam));
+            flowsWithParam = Stream.concat(
+                    flowsWithParam,
+                    getApiFlows(api).stream().filter(this::isEnabled).filter(this::hasPathParam));
         }
         if (getPlans(api) != null) {
             flowsWithParam = Stream.concat(
-                flowsWithParam,
-                getPlans(api)
-                    .stream()
-                    .flatMap(plan -> getPlanFlows(plan) == null ? Stream.empty() : getPlanFlows(plan).stream())
-                    .filter(this::isEnabled)
-                    .filter(this::hasPathParam)
-            );
+                    flowsWithParam,
+                    getPlans(api).stream()
+                            .flatMap(plan -> getPlanFlows(plan) == null ? Stream.empty() : getPlanFlows(plan).stream())
+                            .filter(this::isEnabled)
+                            .filter(this::hasPathParam));
         }
         return flowsWithParam;
     }
@@ -128,25 +125,25 @@ public abstract class AbstractPathParametersExtractor<A, F, P> {
         return pathParameters;
     }
 
-    private void computePathParam(final String requestMethod, final String requestPathInfo, Map<String, String> pathParameters) {
+    private void computePathParam(
+            final String requestMethod, final String requestPathInfo, Map<String, String> pathParameters) {
         computePathParam(PathParameterHttpMethod.valueOf(requestMethod), requestPathInfo, pathParameters);
     }
 
-    private void computePathParam(final PathParameterHttpMethod method, final String requestPathInfo, Map<String, String> pathParameters) {
-        patternsByHttpMethod
-            .get(method)
-            .forEach(pattern -> {
-                String path = requestPathInfo;
-                try {
-                    path = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
-                } catch (IllegalArgumentException ignored) {
-                    // Keep path as it is in case of exception
-                }
+    private void computePathParam(
+            final PathParameterHttpMethod method, final String requestPathInfo, Map<String, String> pathParameters) {
+        patternsByHttpMethod.get(method).forEach(pattern -> {
+            String path = requestPathInfo;
+            try {
+                path = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
+            } catch (IllegalArgumentException ignored) {
+                // Keep path as it is in case of exception
+            }
 
-                final Matcher matcher = pattern.getPathPattern().matcher(path);
-                if (matcher.find()) {
-                    pattern.getParameters().forEach(p -> pathParameters.put(p.getName(), matcher.group(p.getId())));
-                }
-            });
+            final Matcher matcher = pattern.getPathPattern().matcher(path);
+            if (matcher.find()) {
+                pattern.getParameters().forEach(p -> pathParameters.put(p.getName(), matcher.group(p.getId())));
+            }
+        });
     }
 }

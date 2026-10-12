@@ -27,7 +27,6 @@ import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -42,9 +41,8 @@ public class GetCurrentThemeUseCase {
 
     public Output execute(Input input) {
         var environmentId = input.executionContext().getEnvironmentId();
-        var theme = resolveByPortal(input.portalId(), environmentId).orElseGet(() ->
-            resolveEnabledOrCreate(input.type(), environmentId, input.executionContext())
-        );
+        var theme = resolveByPortal(input.portalId(), environmentId)
+                .orElseGet(() -> resolveEnabledOrCreate(input.type(), environmentId, input.executionContext()));
         return new Output(theme);
     }
 
@@ -53,18 +51,16 @@ public class GetCurrentThemeUseCase {
             return Optional.empty();
         }
         return portalCrudService
-            .findByIdAndEnvironmentId(portalId, environmentId)
-            .map(Portal::getActiveThemeId)
-            .flatMap(themeId -> themeCrudService.findByIdAndEnvironmentId(themeId, environmentId));
+                .findByIdAndEnvironmentId(portalId, environmentId)
+                .map(Portal::getActiveThemeId)
+                .flatMap(themeId -> themeCrudService.findByIdAndEnvironmentId(themeId, environmentId));
     }
 
     private Theme resolveEnabledOrCreate(ThemeType type, String environmentId, ExecutionContext executionContext) {
-        return themeQueryService
-            .findByThemeTypeAndEnvironmentId(type, environmentId)
-            .stream()
-            .filter(theme -> Objects.equals(true, theme.isEnabled()))
-            .findFirst()
-            .orElseGet(() -> defaultThemeDomainService.createAndEnableDefaultTheme(type, executionContext));
+        return themeQueryService.findByThemeTypeAndEnvironmentId(type, environmentId).stream()
+                .filter(theme -> Objects.equals(true, theme.isEnabled()))
+                .findFirst()
+                .orElseGet(() -> defaultThemeDomainService.createAndEnableDefaultTheme(type, executionContext));
     }
 
     @Builder

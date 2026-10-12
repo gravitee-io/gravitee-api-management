@@ -73,17 +73,21 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractApiKeyResour
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List all API Keys for a subscription", description = "User must have the READ permission to use this service")
+    @Operation(
+            summary = "List all API Keys for a subscription",
+            description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of API Keys for a subscription",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApiKeyEntity.class), uniqueItems = true)
-        )
-    )
+            responseCode = "200",
+            description = "List of API Keys for a subscription",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema = @Schema(implementation = ApiKeyEntity.class),
+                                            uniqueItems = true)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)})
     public List<ApiKeyEntity> getApiKeysForApplicationSubscription() {
         // Check subscription exists and belongs to application
         checkSubscription(subscription);
@@ -94,14 +98,18 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractApiKeyResour
     @POST
     @Path("/_renew")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Renew an API Key", description = "User must have the MANAGE_API_KEYS permission to use this service")
+    @Operation(
+            summary = "Renew an API Key",
+            description = "User must have the MANAGE_API_KEYS permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "A new API Key",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiKeyEntity.class))
-    )
+            responseCode = "201",
+            description = "A new API Key",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiKeyEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)})
     public Response renewApiKeyForApplicationSubscription() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         checkApplicationDoesntUseSharedApiKey(executionContext, application);

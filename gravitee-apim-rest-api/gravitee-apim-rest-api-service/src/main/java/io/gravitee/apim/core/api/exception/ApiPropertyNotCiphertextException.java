@@ -22,11 +22,9 @@ public class ApiPropertyNotCiphertextException extends ValidationDomainException
 
     public ApiPropertyNotCiphertextException(String propertyKey) {
         super(
-            "Property [" +
-                propertyKey +
-                "] is marked encrypted but its value is not ciphertext this installation can decrypt. Send a new value with encryptable set to true instead.",
-            Map.of("property", propertyKey),
-            "api.property.notCiphertext"
-        );
+                "Property [" + propertyKey
+                        + "] is marked encrypted but its value is not ciphertext this installation can decrypt. Send a new value with encryptable set to true instead.",
+                Map.of("property", propertyKey),
+                "api.property.notCiphertext");
     }
 }

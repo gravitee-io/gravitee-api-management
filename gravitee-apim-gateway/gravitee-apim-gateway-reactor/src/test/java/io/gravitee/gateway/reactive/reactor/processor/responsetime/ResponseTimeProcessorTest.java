@@ -19,9 +19,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
-import io.gravitee.gateway.reactive.core.context.MutableRequest;
-import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -46,12 +43,11 @@ class ResponseTimeProcessorTest extends AbstractProcessorTest {
         ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor();
         ctx.metrics().setEndpointResponseTimeMs(100);
         responseTimeProcessor.execute(ctx).test().assertResult();
-        assertThat(ctx.metrics().getGatewayResponseTimeMs()).isLessThanOrEqualTo(
-            System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs()
-        );
-        assertThat(ctx.metrics().getGatewayLatencyMs()).isEqualTo(
-            ctx.metrics().getGatewayResponseTimeMs() - ctx.metrics().getEndpointResponseTimeMs()
-        );
+        assertThat(ctx.metrics().getGatewayResponseTimeMs())
+                .isLessThanOrEqualTo(System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs());
+        assertThat(ctx.metrics().getGatewayLatencyMs())
+                .isEqualTo(
+                        ctx.metrics().getGatewayResponseTimeMs() - ctx.metrics().getEndpointResponseTimeMs());
     }
 
     @Test
@@ -63,7 +59,8 @@ class ResponseTimeProcessorTest extends AbstractProcessorTest {
         new ResponseTimeProcessor().execute(ctx).test().assertResult();
 
         assertThat(metrics.getGatewayResponseTimeNs()).isGreaterThanOrEqualTo(ELAPSED_NS);
-        assertThat(metrics.getGatewayLatencyNs()).isEqualTo(metrics.getGatewayResponseTimeNs() - ENDPOINT_RESPONSE_TIME_NS);
+        assertThat(metrics.getGatewayLatencyNs())
+                .isEqualTo(metrics.getGatewayResponseTimeNs() - ENDPOINT_RESPONSE_TIME_NS);
         // Both sets of fields describe the same measure, the milliseconds being the nanoseconds rounded to the nearest.
         assertThat(metrics.getGatewayResponseTimeMs()).isEqualTo(Math.round(metrics.getGatewayResponseTimeNs() / 1e6));
         assertThat(metrics.getGatewayLatencyMs()).isEqualTo(Math.round(metrics.getGatewayLatencyNs() / 1e6));
@@ -95,7 +92,8 @@ class ResponseTimeProcessorTest extends AbstractProcessorTest {
 
         // Not the whole response time: the endpoint's share still has to be taken out.
         assertThat(metrics.getGatewayLatencyNs()).isLessThan(metrics.getGatewayResponseTimeNs());
-        assertThat(metrics.getGatewayLatencyNs()).isEqualTo(metrics.getGatewayResponseTimeNs() - ENDPOINT_RESPONSE_TIME_NS);
+        assertThat(metrics.getGatewayLatencyNs())
+                .isEqualTo(metrics.getGatewayResponseTimeNs() - ENDPOINT_RESPONSE_TIME_NS);
     }
 
     @Test

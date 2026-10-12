@@ -51,17 +51,17 @@ class CockpitPromotionServiceProviderImplTest {
     private static final String TARGET_COCKPIT_ENV_ID = "target-env-id";
     private static final String TARGET_ENV_NAME = "target-env-name";
     private static final String USER_ID = "user-id";
-    private static final PromotionAuthor PROMOTION_AUTHOR = PromotionFixtures.aPromotionAuthor().toBuilder().userId(USER_ID).build();
+    private static final PromotionAuthor PROMOTION_AUTHOR =
+            PromotionFixtures.aPromotionAuthor().toBuilder().userId(USER_ID).build();
     private static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-    private static final Promotion PROMOTION = PromotionFixtures.aPromotion()
-        .toBuilder()
-        .apiId(API_ID)
-        .targetEnvCockpitId(TARGET_COCKPIT_ENV_ID)
-        .targetEnvName(TARGET_ENV_NAME)
-        .author(PROMOTION_AUTHOR)
-        .createdAt(NOW)
-        .updatedAt(NOW)
-        .build();
+    private static final Promotion PROMOTION = PromotionFixtures.aPromotion().toBuilder()
+            .apiId(API_ID)
+            .targetEnvCockpitId(TARGET_COCKPIT_ENV_ID)
+            .targetEnvName(TARGET_ENV_NAME)
+            .author(PROMOTION_AUTHOR)
+            .createdAt(NOW)
+            .updatedAt(NOW)
+            .build();
     private final CockpitPromotionService cockpitPromotionService = mock(CockpitPromotionService.class);
     private final PromotionService promotionService = mock(PromotionService.class);
 
@@ -77,18 +77,18 @@ class CockpitPromotionServiceProviderImplTest {
 
         @Test
         void should_succeed() {
-            when(cockpitPromotionService.requestPromotion(any(), any())).thenReturn(new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED));
-            assertThat(service.requestPromotion(ORGANIZATION_ID, ENVIRONMENT_ID, PROMOTION)).isEqualTo(
-                io.gravitee.apim.core.cockpit.model.CockpitReplyStatus.SUCCEEDED
-            );
+            when(cockpitPromotionService.requestPromotion(any(), any()))
+                    .thenReturn(new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED));
+            assertThat(service.requestPromotion(ORGANIZATION_ID, ENVIRONMENT_ID, PROMOTION))
+                    .isEqualTo(io.gravitee.apim.core.cockpit.model.CockpitReplyStatus.SUCCEEDED);
         }
 
         @Test
         void should_fail() {
-            when(cockpitPromotionService.requestPromotion(any(), any())).thenReturn(new CockpitReply<>(null, CockpitReplyStatus.ERROR));
-            assertThat(service.requestPromotion(ORGANIZATION_ID, ENVIRONMENT_ID, PROMOTION)).isEqualTo(
-                io.gravitee.apim.core.cockpit.model.CockpitReplyStatus.ERROR
-            );
+            when(cockpitPromotionService.requestPromotion(any(), any()))
+                    .thenReturn(new CockpitReply<>(null, CockpitReplyStatus.ERROR));
+            assertThat(service.requestPromotion(ORGANIZATION_ID, ENVIRONMENT_ID, PROMOTION))
+                    .isEqualTo(io.gravitee.apim.core.cockpit.model.CockpitReplyStatus.ERROR);
         }
     }
 
@@ -114,28 +114,28 @@ class CockpitPromotionServiceProviderImplTest {
             createdPromotion.setUpdatedAt(Date.from(PROMOTION.getUpdatedAt()));
             createdPromotion.setAuthor(promotionEntityAuthor);
 
-            when(promotionService.create(any(), eq(ENVIRONMENT_ID), eq(API_ID), any(PromotionRequestEntity.class), eq(USER_ID))).thenReturn(
-                createdPromotion
-            );
+            when(promotionService.create(
+                            any(), eq(ENVIRONMENT_ID), eq(API_ID), any(PromotionRequestEntity.class), eq(USER_ID)))
+                    .thenReturn(createdPromotion);
 
             var result = service.createPromotion(
-                API_ID,
-                PromotionRequest.builder().targetEnvName(TARGET_ENV_NAME).targetEnvCockpitId(TARGET_COCKPIT_ENV_ID).build(),
-                USER_ID
-            );
+                    API_ID,
+                    PromotionRequest.builder()
+                            .targetEnvName(TARGET_ENV_NAME)
+                            .targetEnvCockpitId(TARGET_COCKPIT_ENV_ID)
+                            .build(),
+                    USER_ID);
 
-            assertThat(result)
-                .isNotNull()
-                .satisfies(promotion -> {
-                    assertThat(promotion.getId()).isEqualTo(PROMOTION.getId());
-                    assertThat(promotion.getApiId()).isEqualTo(PROMOTION.getApiId());
-                    assertThat(promotion.getTargetEnvCockpitId()).isEqualTo(PROMOTION.getTargetEnvCockpitId());
-                    assertThat(promotion.getTargetEnvName()).isEqualTo(PROMOTION.getTargetEnvName());
-                    assertThat(promotion.getApiDefinition()).isEqualTo(PROMOTION.getApiDefinition());
-                    assertThat(promotion.getCreatedAt()).isEqualTo(PROMOTION.getCreatedAt());
-                    assertThat(promotion.getUpdatedAt()).isEqualTo(PROMOTION.getUpdatedAt());
-                    assertThat(promotion.getAuthor()).isEqualTo(PROMOTION_AUTHOR);
-                });
+            assertThat(result).isNotNull().satisfies(promotion -> {
+                assertThat(promotion.getId()).isEqualTo(PROMOTION.getId());
+                assertThat(promotion.getApiId()).isEqualTo(PROMOTION.getApiId());
+                assertThat(promotion.getTargetEnvCockpitId()).isEqualTo(PROMOTION.getTargetEnvCockpitId());
+                assertThat(promotion.getTargetEnvName()).isEqualTo(PROMOTION.getTargetEnvName());
+                assertThat(promotion.getApiDefinition()).isEqualTo(PROMOTION.getApiDefinition());
+                assertThat(promotion.getCreatedAt()).isEqualTo(PROMOTION.getCreatedAt());
+                assertThat(promotion.getUpdatedAt()).isEqualTo(PROMOTION.getUpdatedAt());
+                assertThat(promotion.getAuthor()).isEqualTo(PROMOTION_AUTHOR);
+            });
         }
     }
 }

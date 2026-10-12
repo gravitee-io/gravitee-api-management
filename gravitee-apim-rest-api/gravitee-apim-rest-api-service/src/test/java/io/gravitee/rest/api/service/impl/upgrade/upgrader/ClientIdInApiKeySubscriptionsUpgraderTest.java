@@ -60,19 +60,19 @@ public class ClientIdInApiKeySubscriptionsUpgraderTest {
     }
 
     @Test
-    public void testUpgrade_shouldRemoveClientIdFromApiKeySubscriptionsOnly() throws TechnicalException, UpgraderException {
+    public void testUpgrade_shouldRemoveClientIdFromApiKeySubscriptionsOnly()
+            throws TechnicalException, UpgraderException {
         Subscription apiKeySubscriptionWithoutClientId = apiKeySubscription(null);
         Subscription apiKeySubscriptionWithClientId = apiKeySubscription("client-id");
 
-        when(subscriptionRepository.search(any())).thenReturn(List.of(apiKeySubscriptionWithoutClientId, apiKeySubscriptionWithClientId));
+        when(subscriptionRepository.search(any()))
+                .thenReturn(List.of(apiKeySubscriptionWithoutClientId, apiKeySubscriptionWithClientId));
 
         upgrader.upgrade();
 
-        verify(subscriptionRepository, times(1)).update(
-            argThat(
-                subscription -> subscription.getId().equals(apiKeySubscriptionWithClientId.getId()) && subscription.getClientId() == null
-            )
-        );
+        verify(subscriptionRepository, times(1))
+                .update(argThat(subscription -> subscription.getId().equals(apiKeySubscriptionWithClientId.getId())
+                        && subscription.getClientId() == null));
     }
 
     @Test

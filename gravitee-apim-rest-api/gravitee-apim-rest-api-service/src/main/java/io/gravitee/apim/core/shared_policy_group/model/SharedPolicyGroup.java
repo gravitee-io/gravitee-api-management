@@ -129,45 +129,48 @@ public class SharedPolicyGroup {
 
     public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup toDefinition() {
         return io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.builder()
-            .id(crossId)
-            .environmentId(environmentId)
-            .policies(steps)
-            .phase(toDefinitionPhase(phase))
-            .name(name)
-            .version(version != null ? String.valueOf(version) : null)
-            .deployedAt(Date.from(deployedAt.toInstant()))
-            .build();
+                .id(crossId)
+                .environmentId(environmentId)
+                .policies(steps)
+                .phase(toDefinitionPhase(phase))
+                .name(name)
+                .version(version != null ? String.valueOf(version) : null)
+                .deployedAt(Date.from(deployedAt.toInstant()))
+                .build();
     }
 
-    static io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase toDefinitionPhase(FlowPhase phase) {
+    static io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase toDefinitionPhase(
+            FlowPhase phase) {
         return switch (phase) {
             case REQUEST -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST;
             case RESPONSE -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.RESPONSE;
             case PUBLISH -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_REQUEST;
-            case SUBSCRIBE -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_RESPONSE;
-            case ENTRYPOINT_CONNECT, INTERACT -> throw new IllegalArgumentException("Unsupported shared policy group phase: " + phase);
+            case SUBSCRIBE ->
+                io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_RESPONSE;
+            case ENTRYPOINT_CONNECT, INTERACT ->
+                throw new IllegalArgumentException("Unsupported shared policy group phase: " + phase);
         };
     }
 
     public SharedPolicyGroupBuilder toBuilder() {
         return new SharedPolicyGroupBuilder()
-            .id(this.id)
-            .hrid(this.hrid)
-            .environmentId(this.environmentId)
-            .organizationId(this.organizationId)
-            .crossId(this.crossId)
-            .name(this.name)
-            .description(this.description)
-            .prerequisiteMessage(this.prerequisiteMessage)
-            .version(this.version)
-            .apiType(this.apiType)
-            .originContext(this.originContext)
-            .phase(this.phase)
-            .steps(this.steps)
-            .deployedAt(this.deployedAt)
-            .createdAt(this.createdAt)
-            .updatedAt(this.updatedAt)
-            .lifecycleState(this.lifecycleState);
+                .id(this.id)
+                .hrid(this.hrid)
+                .environmentId(this.environmentId)
+                .organizationId(this.organizationId)
+                .crossId(this.crossId)
+                .name(this.name)
+                .description(this.description)
+                .prerequisiteMessage(this.prerequisiteMessage)
+                .version(this.version)
+                .apiType(this.apiType)
+                .originContext(this.originContext)
+                .phase(this.phase)
+                .steps(this.steps)
+                .deployedAt(this.deployedAt)
+                .createdAt(this.createdAt)
+                .updatedAt(this.updatedAt)
+                .lifecycleState(this.lifecycleState);
     }
 
     /**
@@ -189,39 +192,47 @@ public class SharedPolicyGroup {
 
     public static SharedPolicyGroup from(CreateSharedPolicyGroup createSharedPolicyGroup) {
         return SharedPolicyGroup.builder()
-            .hrid(createSharedPolicyGroup.getHrid())
-            .crossId(createSharedPolicyGroup.getCrossId() == null ? UuidString.generateRandom() : createSharedPolicyGroup.getCrossId())
-            .name(createSharedPolicyGroup.getName())
-            .description(createSharedPolicyGroup.getDescription())
-            .prerequisiteMessage(createSharedPolicyGroup.getPrerequisiteMessage())
-            .apiType(createSharedPolicyGroup.getApiType())
-            .originContext(createSharedPolicyGroup.getOriginContext())
-            .phase(createSharedPolicyGroup.getPhase())
-            .steps(ofNullable(createSharedPolicyGroup.getSteps()).orElse(emptyList()))
-            .build();
+                .hrid(createSharedPolicyGroup.getHrid())
+                .crossId(
+                        createSharedPolicyGroup.getCrossId() == null
+                                ? UuidString.generateRandom()
+                                : createSharedPolicyGroup.getCrossId())
+                .name(createSharedPolicyGroup.getName())
+                .description(createSharedPolicyGroup.getDescription())
+                .prerequisiteMessage(createSharedPolicyGroup.getPrerequisiteMessage())
+                .apiType(createSharedPolicyGroup.getApiType())
+                .originContext(createSharedPolicyGroup.getOriginContext())
+                .phase(createSharedPolicyGroup.getPhase())
+                .steps(ofNullable(createSharedPolicyGroup.getSteps()).orElse(emptyList()))
+                .build();
     }
 
     public SharedPolicyGroup update(UpdateSharedPolicyGroup updateSharedPolicyGroup) {
         return this.toBuilder()
-            .hrid(updateSharedPolicyGroup.getHrid() == null ? this.getHrid() : updateSharedPolicyGroup.getHrid())
-            .crossId(updateSharedPolicyGroup.getCrossId() == null ? this.getCrossId() : updateSharedPolicyGroup.getCrossId())
-            .name(updateSharedPolicyGroup.getName() == null ? this.getName() : updateSharedPolicyGroup.getName())
-            .description(
-                updateSharedPolicyGroup.getDescription() == null ? this.getDescription() : updateSharedPolicyGroup.getDescription()
-            )
-            .prerequisiteMessage(
-                updateSharedPolicyGroup.getPrerequisiteMessage() == null
-                    ? this.getPrerequisiteMessage()
-                    : updateSharedPolicyGroup.getPrerequisiteMessage()
-            )
-            .steps(updateSharedPolicyGroup.getSteps() == null ? this.getSteps() : updateSharedPolicyGroup.getSteps())
-            .updatedAt(TimeProvider.now())
-            .lifecycleState(
-                this.lifecycleState == SharedPolicyGroupLifecycleState.DEPLOYED
-                    ? SharedPolicyGroupLifecycleState.PENDING
-                    : this.lifecycleState
-            )
-            .build();
+                .hrid(updateSharedPolicyGroup.getHrid() == null ? this.getHrid() : updateSharedPolicyGroup.getHrid())
+                .crossId(
+                        updateSharedPolicyGroup.getCrossId() == null
+                                ? this.getCrossId()
+                                : updateSharedPolicyGroup.getCrossId())
+                .name(updateSharedPolicyGroup.getName() == null ? this.getName() : updateSharedPolicyGroup.getName())
+                .description(
+                        updateSharedPolicyGroup.getDescription() == null
+                                ? this.getDescription()
+                                : updateSharedPolicyGroup.getDescription())
+                .prerequisiteMessage(
+                        updateSharedPolicyGroup.getPrerequisiteMessage() == null
+                                ? this.getPrerequisiteMessage()
+                                : updateSharedPolicyGroup.getPrerequisiteMessage())
+                .steps(
+                        updateSharedPolicyGroup.getSteps() == null
+                                ? this.getSteps()
+                                : updateSharedPolicyGroup.getSteps())
+                .updatedAt(TimeProvider.now())
+                .lifecycleState(
+                        this.lifecycleState == SharedPolicyGroupLifecycleState.DEPLOYED
+                                ? SharedPolicyGroupLifecycleState.PENDING
+                                : this.lifecycleState)
+                .build();
     }
 
     public boolean hasName() {
@@ -236,12 +247,10 @@ public class SharedPolicyGroup {
         if (this.apiType == ApiType.PROXY) {
             return this.phase == FlowPhase.REQUEST || this.phase == FlowPhase.RESPONSE;
         } else if (this.apiType == ApiType.MESSAGE) {
-            return (
-                this.phase == FlowPhase.REQUEST ||
-                this.phase == FlowPhase.RESPONSE ||
-                this.phase == FlowPhase.PUBLISH ||
-                this.phase == FlowPhase.SUBSCRIBE
-            );
+            return (this.phase == FlowPhase.REQUEST
+                    || this.phase == FlowPhase.RESPONSE
+                    || this.phase == FlowPhase.PUBLISH
+                    || this.phase == FlowPhase.SUBSCRIBE);
         }
         return false;
     }
@@ -359,64 +368,60 @@ public class SharedPolicyGroup {
             }
 
             return new SharedPolicyGroup(
-                this.hrid,
-                this.id,
-                this.environmentId,
-                this.organizationId,
-                this.crossId,
-                this.name,
-                this.description,
-                this.prerequisiteMessage,
-                this.version,
-                this.apiType,
-                this.originContext,
-                this.phase,
-                this.steps,
-                this.deployedAt,
-                this.createdAt,
-                this.updatedAt,
-                this.lifecycleState
-            );
+                    this.hrid,
+                    this.id,
+                    this.environmentId,
+                    this.organizationId,
+                    this.crossId,
+                    this.name,
+                    this.description,
+                    this.prerequisiteMessage,
+                    this.version,
+                    this.apiType,
+                    this.originContext,
+                    this.phase,
+                    this.steps,
+                    this.deployedAt,
+                    this.createdAt,
+                    this.updatedAt,
+                    this.lifecycleState);
         }
 
         public String toString() {
-            return (
-                "SharedPolicyGroup.SharedPolicyGroupBuilder(id=" +
-                this.id +
-                ", hrid=" +
-                this.hrid +
-                ", environmentId=" +
-                this.environmentId +
-                ", organizationId=" +
-                this.organizationId +
-                ", crossId=" +
-                this.crossId +
-                ", name=" +
-                this.name +
-                ", description=" +
-                this.description +
-                ", prerequisiteMessage=" +
-                this.prerequisiteMessage +
-                ", version=" +
-                this.version +
-                ", apiType=" +
-                this.apiType +
-                ", originContext=" +
-                this.originContext +
-                ", phase=" +
-                this.phase +
-                ", steps=" +
-                this.steps +
-                ", deployedAt=" +
-                this.deployedAt +
-                ", createdAt=" +
-                this.createdAt +
-                ", updatedAt=" +
-                this.updatedAt +
-                ", lifecycleState=" +
-                this.lifecycleState +
-                ")"
-            );
+            return ("SharedPolicyGroup.SharedPolicyGroupBuilder(id=" + this.id
+                    + ", hrid="
+                    + this.hrid
+                    + ", environmentId="
+                    + this.environmentId
+                    + ", organizationId="
+                    + this.organizationId
+                    + ", crossId="
+                    + this.crossId
+                    + ", name="
+                    + this.name
+                    + ", description="
+                    + this.description
+                    + ", prerequisiteMessage="
+                    + this.prerequisiteMessage
+                    + ", version="
+                    + this.version
+                    + ", apiType="
+                    + this.apiType
+                    + ", originContext="
+                    + this.originContext
+                    + ", phase="
+                    + this.phase
+                    + ", steps="
+                    + this.steps
+                    + ", deployedAt="
+                    + this.deployedAt
+                    + ", createdAt="
+                    + this.createdAt
+                    + ", updatedAt="
+                    + this.updatedAt
+                    + ", lifecycleState="
+                    + this.lifecycleState
+                    + ")");
         }
     }
 }

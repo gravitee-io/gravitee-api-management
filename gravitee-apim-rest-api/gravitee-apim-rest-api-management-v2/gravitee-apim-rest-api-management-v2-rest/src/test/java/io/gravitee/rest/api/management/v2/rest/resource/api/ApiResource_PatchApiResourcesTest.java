@@ -64,51 +64,48 @@ public class ApiResource_PatchApiResourcesTest extends ApiResourceTest {
 
     @BeforeEach
     void setUpApiAndPrimaryOwner() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
+        apiCrudService.initWith(
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
 
         var apiEntity = new ApiEntity();
         apiEntity.setId(API);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
-        primaryOwnerDomainService.initWith(
-            List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
-        );
-        membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_NAME)
-                    .referenceId(API)
-                    .roleId("api-po-id-" + ORGANIZATION)
-                    .referenceType(Membership.ReferenceType.API)
-                    .memberType(Membership.Type.USER)
-                    .build()
-            )
-        );
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
+                        .id(USER_NAME)
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build())));
+        membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .memberId(USER_NAME)
+                .referenceId(API)
+                .roleId("api-po-id-" + ORGANIZATION)
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .build()));
 
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).updateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).validateV4(any(), any());
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService)
+                .forEach(InMemoryAlternative::reset);
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 
     @Test
     void merge_patch_resources_returns_them_in_response_body() {
         var body =
-            "{\"resources\":[{\"name\":\"my-cache\",\"type\":\"cache\",\"enabled\":true,\"configuration\":{\"timeToIdleSeconds\":0,\"timeToLiveSeconds\":0,\"maxEntriesLocalHeap\":1000}}]}";
+                "{\"resources\":[{\"name\":\"my-cache\",\"type\":\"cache\",\"enabled\":true,\"configuration\":{\"timeToIdleSeconds\":0,\"timeToLiveSeconds\":0,\"maxEntriesLocalHeap\":1000}}]}";
 
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
 
@@ -120,30 +117,31 @@ public class ApiResource_PatchApiResourcesTest extends ApiResourceTest {
 
     @Test
     void json_patch_tests_and_replaces_existing_resource_configuration() {
-        var resource = Resource.builder().name("my-cache").type("cache").enabled(true).configuration("{\"timeToLiveSeconds\":10}").build();
+        var resource = Resource.builder()
+                .name("my-cache")
+                .type("cache")
+                .enabled(true)
+                .configuration("{\"timeToLiveSeconds\":10}")
+                .build();
         var baseApi = ApiFixtures.aProxyApiV4();
-        apiCrudService.initWith(
-            List.of(
-                baseApi
-                    .toBuilder()
-                    .id(API)
-                    .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-                    .build()
-            )
-        );
+        apiCrudService.initWith(List.of(baseApi.toBuilder()
+                .id(API)
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build()));
 
         var body =
-            "[" +
-            "{\"op\":\"test\",\"path\":\"/resources/0/configuration\",\"value\":{\"timeToLiveSeconds\":10}}," +
-            "{\"op\":\"replace\",\"path\":\"/resources/0/configuration\",\"value\":{\"timeToLiveSeconds\":60}}" +
-            "]";
+                "[" + "{\"op\":\"test\",\"path\":\"/resources/0/configuration\",\"value\":{\"timeToLiveSeconds\":10}},"
+                        + "{\"op\":\"replace\",\"path\":\"/resources/0/configuration\",\"value\":{\"timeToLiveSeconds\":60}}"
+                        + "]";
 
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
 
         var apiV4 = assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
         Assertions.assertThat(apiV4.getResources()).hasSize(1);
         Assertions.assertThat(apiV4.getResources().getFirst().getConfiguration())
-            .asInstanceOf(InstanceOfAssertFactories.MAP)
-            .containsEntry("timeToLiveSeconds", 60);
+                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                .containsEntry("timeToLiveSeconds", 60);
     }
 }

@@ -51,7 +51,8 @@ class ApplicationPrimaryOwnerDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ApplicationPrimaryOwnerDomainService(groupQueryService, membershipQueryService, roleQueryService, userCrudService);
+        service = new ApplicationPrimaryOwnerDomainService(
+                groupQueryService, membershipQueryService, roleQueryService, userCrudService);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
     }
@@ -67,110 +68,105 @@ class ApplicationPrimaryOwnerDomainServiceTest {
         @Test
         @SneakyThrows
         public void should_return_a_user_primary_owner_of_an_application() {
-            givenExistingUsers(
-                List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-            );
-            givenExistingMemberships(
-                List.of(
-                    Membership.builder()
-                        .referenceType(Membership.ReferenceType.APPLICATION)
-                        .referenceId("application-id")
-                        .memberType(Membership.Type.USER)
-                        .memberId("user-id")
-                        .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
-                        .build()
-                )
-            );
+            givenExistingUsers(List.of(BaseUserEntity.builder()
+                    .id("user-id")
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .email("jane.doe@gravitee.io")
+                    .build()));
+            givenExistingMemberships(List.of(Membership.builder()
+                    .referenceType(Membership.ReferenceType.APPLICATION)
+                    .referenceId("application-id")
+                    .memberType(Membership.Type.USER)
+                    .memberId("user-id")
+                    .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
+                    .build()));
 
             var result = service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id");
 
-            Assertions.assertThat(result).isEqualTo(
-                PrimaryOwnerEntity.builder()
-                    .id("user-id")
-                    .displayName("Jane Doe")
-                    .email("jane.doe@gravitee.io")
-                    .type(PrimaryOwnerEntity.Type.USER)
-                    .build()
-            );
+            Assertions.assertThat(result)
+                    .isEqualTo(PrimaryOwnerEntity.builder()
+                            .id("user-id")
+                            .displayName("Jane Doe")
+                            .email("jane.doe@gravitee.io")
+                            .type(PrimaryOwnerEntity.Type.USER)
+                            .build());
         }
 
         @Test
         @SneakyThrows
         public void should_return_a_group_primary_owner_of_an_api() {
-            givenExistingUsers(
-                List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-            );
-            givenExistingGroup(List.of(Group.builder().id("group-id").name("Group name").build()));
-            givenExistingMemberships(
-                List.of(
+            givenExistingUsers(List.of(BaseUserEntity.builder()
+                    .id("user-id")
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .email("jane.doe@gravitee.io")
+                    .build()));
+            givenExistingGroup(
+                    List.of(Group.builder().id("group-id").name("Group name").build()));
+            givenExistingMemberships(List.of(
                     Membership.builder()
-                        .referenceType(Membership.ReferenceType.APPLICATION)
-                        .referenceId("application-id")
-                        .memberType(Membership.Type.GROUP)
-                        .memberId("group-id")
-                        .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
-                        .build(),
+                            .referenceType(Membership.ReferenceType.APPLICATION)
+                            .referenceId("application-id")
+                            .memberType(Membership.Type.GROUP)
+                            .memberId("group-id")
+                            .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
+                            .build(),
                     Membership.builder()
-                        .referenceType(Membership.ReferenceType.GROUP)
-                        .referenceId("group-id")
-                        .memberType(Membership.Type.USER)
-                        .memberId("user-id")
-                        .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
-                        .build()
-                )
-            );
+                            .referenceType(Membership.ReferenceType.GROUP)
+                            .referenceId("group-id")
+                            .memberType(Membership.Type.USER)
+                            .memberId("user-id")
+                            .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
+                            .build()));
 
             var result = service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id");
 
-            Assertions.assertThat(result).isEqualTo(
-                PrimaryOwnerEntity.builder()
-                    .id("group-id")
-                    .displayName("Group name")
-                    .email("jane.doe@gravitee.io")
-                    .type(PrimaryOwnerEntity.Type.GROUP)
-                    .build()
-            );
+            Assertions.assertThat(result)
+                    .isEqualTo(PrimaryOwnerEntity.builder()
+                            .id("group-id")
+                            .displayName("Group name")
+                            .email("jane.doe@gravitee.io")
+                            .type(PrimaryOwnerEntity.Type.GROUP)
+                            .build());
         }
 
         @Test
         @SneakyThrows
         public void should_return_a_group_primary_owner_with_no_email_when_group_has_no_users() {
-            givenExistingGroup(List.of(Group.builder().id("group-id").name("Group name").build()));
-            givenExistingMemberships(
-                List.of(
-                    Membership.builder()
-                        .referenceType(Membership.ReferenceType.APPLICATION)
-                        .referenceId("application-id")
-                        .memberType(Membership.Type.GROUP)
-                        .memberId("group-id")
-                        .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
-                        .build()
-                )
-            );
+            givenExistingGroup(
+                    List.of(Group.builder().id("group-id").name("Group name").build()));
+            givenExistingMemberships(List.of(Membership.builder()
+                    .referenceType(Membership.ReferenceType.APPLICATION)
+                    .referenceId("application-id")
+                    .memberType(Membership.Type.GROUP)
+                    .memberId("group-id")
+                    .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
+                    .build()));
 
             var result = service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id");
 
-            Assertions.assertThat(result).isEqualTo(
-                PrimaryOwnerEntity.builder().id("group-id").displayName("Group name").type(PrimaryOwnerEntity.Type.GROUP).build()
-            );
+            Assertions.assertThat(result)
+                    .isEqualTo(PrimaryOwnerEntity.builder()
+                            .id("group-id")
+                            .displayName("Group name")
+                            .type(PrimaryOwnerEntity.Type.GROUP)
+                            .build());
         }
 
         @Test
         public void should_return_no_user_primary_owner_found() {
             givenExistingUsers(List.of());
-            givenExistingMemberships(
-                List.of(
-                    Membership.builder()
-                        .referenceType(Membership.ReferenceType.APPLICATION)
-                        .referenceId("application-id")
-                        .memberType(Membership.Type.USER)
-                        .memberId("user-id")
-                        .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
-                        .build()
-                )
-            );
+            givenExistingMemberships(List.of(Membership.builder()
+                    .referenceType(Membership.ReferenceType.APPLICATION)
+                    .referenceId("application-id")
+                    .memberType(Membership.Type.USER)
+                    .memberId("user-id")
+                    .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
+                    .build()));
 
-            Throwable throwable = catchThrowable(() -> service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id"));
+            Throwable throwable =
+                    catchThrowable(() -> service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id"));
 
             assertThat(throwable).isInstanceOf(ApplicationPrimaryOwnerNotFoundException.class);
         }

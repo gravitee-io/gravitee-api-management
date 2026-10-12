@@ -70,14 +70,20 @@ class DebugPolicyHookTest {
     @Test
     public void shouldCallPostOnExceptionOnCtx() {
         when(debugCtx.postPolicyExecution(any(RuntimeException.class))).thenReturn(Completable.complete());
-        debugPolicyHook.error("id", debugCtx, ExecutionPhase.REQUEST, new RuntimeException()).test().assertResult();
+        debugPolicyHook
+                .error("id", debugCtx, ExecutionPhase.REQUEST, new RuntimeException())
+                .test()
+                .assertResult();
         verify(debugCtx).postPolicyExecution(any(RuntimeException.class));
     }
 
     @Test
     public void shouldCallPostOnInterruptWithFailureOnCtx() {
         when(debugCtx.postPolicyExecution(any(ExecutionFailure.class))).thenReturn(Completable.complete());
-        debugPolicyHook.interruptWith("id", debugCtx, ExecutionPhase.REQUEST, new ExecutionFailure(400)).test().assertResult();
+        debugPolicyHook
+                .interruptWith("id", debugCtx, ExecutionPhase.REQUEST, new ExecutionFailure(400))
+                .test()
+                .assertResult();
         verify(debugCtx).postPolicyExecution(any(ExecutionFailure.class));
     }
 

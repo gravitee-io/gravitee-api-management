@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
 
-public class UpdateCategoryApiDomainServiceInMemory implements UpdateCategoryApiDomainService, InMemoryAlternative<ApiCategoryOrder> {
+public class UpdateCategoryApiDomainServiceInMemory
+        implements UpdateCategoryApiDomainService, InMemoryAlternative<ApiCategoryOrder> {
 
     private final List<ApiCategoryOrder> storage;
 
@@ -53,11 +54,9 @@ public class UpdateCategoryApiDomainServiceInMemory implements UpdateCategoryApi
     @Override
     public void changeOrder(ApiCategoryOrder apiCategoryOrder, int newOrder) {
         OptionalInt index = this.findIndex(
-            this.storage,
-            apiCategoryOrder1 ->
-                Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId()) &&
-                Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId())
-        );
+                this.storage,
+                apiCategoryOrder1 -> Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId())
+                        && Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId()));
         if (index.isPresent()) {
             apiCategoryOrder.setOrder(newOrder);
             storage.set(index.getAsInt(), apiCategoryOrder);

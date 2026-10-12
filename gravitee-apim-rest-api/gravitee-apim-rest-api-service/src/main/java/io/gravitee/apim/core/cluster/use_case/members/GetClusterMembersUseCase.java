@@ -37,11 +37,12 @@ public class GetClusterMembersUseCase {
 
     public Output execute(Input input) {
         var members = memberDomainService
-            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.CLUSTER, input.clusterId)
-            .stream()
-            .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
-            .sorted(Comparator.comparing(MemberEntity::getId))
-            .toList();
+                .getMembersByReference(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.CLUSTER, input.clusterId)
+                .stream()
+                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
+                .sorted(Comparator.comparing(MemberEntity::getId))
+                .toList();
         return new Output(members);
     }
 }

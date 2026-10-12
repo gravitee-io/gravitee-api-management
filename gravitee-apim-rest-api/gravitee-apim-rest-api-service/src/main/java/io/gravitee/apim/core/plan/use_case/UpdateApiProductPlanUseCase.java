@@ -44,12 +44,11 @@ public class UpdateApiProductPlanUseCase {
         log.debug("Updating plan {} for reference {}", input.planToUpdate.getId(), input.referenceId);
 
         final Plan planEntity = planCrudService
-            .findByPlanIdAndReferenceIdAndReferenceType(
-                input.planToUpdate.getId(),
-                input.referenceId,
-                GenericPlanEntity.ReferenceType.API_PRODUCT.name()
-            )
-            .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
+                .findByPlanIdAndReferenceIdAndReferenceType(
+                        input.planToUpdate.getId(),
+                        input.referenceId,
+                        GenericPlanEntity.ReferenceType.API_PRODUCT.name())
+                .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
 
         if (planEntity.getValidation() == null) {
             planEntity.setValidation(input.planToUpdate.getValidation());
@@ -58,9 +57,11 @@ public class UpdateApiProductPlanUseCase {
 
         var apiProduct = apiProductCrudService.get(input.referenceId);
 
-        planExcludedGroupsDomainService.validateExcludedGroups(apiProduct.getEnvironmentId(), input.planToUpdate.getExcludedGroups());
+        planExcludedGroupsDomainService.validateExcludedGroups(
+                apiProduct.getEnvironmentId(), input.planToUpdate.getExcludedGroups());
 
-        var updated = updatePlanDomainService.updatePlanForApiProduct(updatedEntity, Map.of(), apiProduct, input.auditInfo);
+        var updated =
+                updatePlanDomainService.updatePlanForApiProduct(updatedEntity, Map.of(), apiProduct, input.auditInfo);
 
         log.debug("Plan {} updated for reference {}", updated.getId(), input.referenceId);
         return new Output(updated);

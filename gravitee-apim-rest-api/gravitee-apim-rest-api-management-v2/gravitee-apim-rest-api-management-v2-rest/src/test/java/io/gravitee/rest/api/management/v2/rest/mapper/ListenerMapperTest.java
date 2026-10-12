@@ -43,8 +43,7 @@ public class ListenerMapperTest {
         var tcpListener = ListenerFixtures.aTcpListener();
 
         var listenerEntityV4List = listenerMapper.mapToListenerEntityV4List(
-            List.of(new Listener(httpListener), new Listener(subscriptionListener), new Listener(tcpListener))
-        );
+                List.of(new Listener(httpListener), new Listener(subscriptionListener), new Listener(tcpListener)));
 
         assertThat(listenerEntityV4List).isNotNull();
         assertThat(listenerEntityV4List).asList().hasSize(3);
@@ -53,41 +52,46 @@ public class ListenerMapperTest {
         assertThat(httpListenerEntityV4.getType()).isEqualTo(ListenerType.HTTP);
         assertThat(httpListenerEntityV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(httpListenerEntityV4.getServers())
-            .asList()
-            .hasSameSizeAs(httpListener.getServers())
-            .contains(Objects.requireNonNull(httpListener.getServers()).toArray());
+                .asList()
+                .hasSameSizeAs(httpListener.getServers())
+                .contains(Objects.requireNonNull(httpListener.getServers()).toArray());
         assertThat(httpListenerEntityV4).isInstanceOf(HttpListener.class);
 
         assertThat(((HttpListener) httpListenerEntityV4).getPaths()).asList().hasSize(1);
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0)).isNotNull();
-        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getHost()).isEqualTo(httpListener.getPaths().get(0).getHost());
-        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getPath()).isEqualTo(httpListener.getPaths().get(0).getPath());
-        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).isOverrideAccess()).isEqualTo(
-            httpListener.getPaths().get(0).getOverrideAccess()
-        );
-        assertThat(((HttpListener) httpListenerEntityV4).getPathMappings()).isEqualTo(
-            new HashSet<>(Objects.requireNonNull(httpListener.getPathMappings()))
-        );
-        assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern()).isNotNull();
-        assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern().get("/test")).isNotNull().isInstanceOf(Pattern.class);
+        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getHost())
+                .isEqualTo(httpListener.getPaths().get(0).getHost());
+        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getPath())
+                .isEqualTo(httpListener.getPaths().get(0).getPath());
+        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).isOverrideAccess())
+                .isEqualTo(httpListener.getPaths().get(0).getOverrideAccess());
+        assertThat(((HttpListener) httpListenerEntityV4).getPathMappings())
+                .isEqualTo(new HashSet<>(Objects.requireNonNull(httpListener.getPathMappings())));
+        assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern())
+                .isNotNull();
+        assertThat(((HttpListener) httpListenerEntityV4)
+                        .getPathMappingsPattern()
+                        .get("/test"))
+                .isNotNull()
+                .isInstanceOf(Pattern.class);
         assertThat(((HttpListener) httpListenerEntityV4).getCors()).isNotNull(); // Tested in CorsMapperTest
 
         var subscriptionEntityV4 = listenerEntityV4List.get(1);
         assertThat(subscriptionEntityV4.getType()).isEqualTo(ListenerType.SUBSCRIPTION);
         assertThat(subscriptionEntityV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(subscriptionEntityV4.getServers())
-            .asList()
-            .hasSameSizeAs(httpListener.getServers())
-            .contains(httpListener.getServers().toArray());
+                .asList()
+                .hasSameSizeAs(httpListener.getServers())
+                .contains(httpListener.getServers().toArray());
         assertThat(subscriptionEntityV4).isInstanceOf(SubscriptionListener.class);
 
         var tcpListenerEntityV4 = listenerEntityV4List.get(2);
         assertThat(tcpListenerEntityV4.getType()).isEqualTo(ListenerType.TCP);
         assertThat(tcpListenerEntityV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(tcpListenerEntityV4.getServers())
-            .asList()
-            .hasSameSizeAs(httpListener.getServers())
-            .contains(httpListener.getServers().toArray());
+                .asList()
+                .hasSameSizeAs(httpListener.getServers())
+                .contains(httpListener.getServers().toArray());
         assertThat(tcpListenerEntityV4).isInstanceOf(TcpListener.class);
     }
 
@@ -98,8 +102,7 @@ public class ListenerMapperTest {
         var tcpListenerEntotyV4 = ListenerFixtures.aModelTcpListener();
 
         var listenerV4List = listenerMapper.mapFromListenerEntityV4List(
-            List.of(httpListenerEntityV4, subscriptionListenerEntityV4, tcpListenerEntotyV4)
-        );
+                List.of(httpListenerEntityV4, subscriptionListenerEntityV4, tcpListenerEntotyV4));
 
         assertThat(listenerV4List).isNotNull();
         assertThat(listenerV4List).asList().hasSize(3);
@@ -108,34 +111,36 @@ public class ListenerMapperTest {
         assertThat(httpListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP);
         assertThat(httpListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(httpListenerV4.getServers())
-            .asList()
-            .hasSameSizeAs(httpListenerEntityV4.getServers())
-            .contains(httpListenerEntityV4.getServers().toArray());
+                .asList()
+                .hasSameSizeAs(httpListenerEntityV4.getServers())
+                .contains(httpListenerEntityV4.getServers().toArray());
         assertThat(httpListenerV4.getPaths()).asList().hasSize(1);
         assertThat(httpListenerV4.getPaths().get(0)).isNotNull();
-        assertThat(httpListenerV4.getPaths().get(0).getHost()).isEqualTo(httpListenerEntityV4.getPaths().get(0).getHost());
-        assertThat(httpListenerV4.getPaths().get(0).getPath()).isEqualTo(httpListenerEntityV4.getPaths().get(0).getPath());
-        assertThat(httpListenerV4.getPaths().get(0).getOverrideAccess()).isEqualTo(
-            httpListenerEntityV4.getPaths().get(0).isOverrideAccess()
-        );
+        assertThat(httpListenerV4.getPaths().get(0).getHost())
+                .isEqualTo(httpListenerEntityV4.getPaths().get(0).getHost());
+        assertThat(httpListenerV4.getPaths().get(0).getPath())
+                .isEqualTo(httpListenerEntityV4.getPaths().get(0).getPath());
+        assertThat(httpListenerV4.getPaths().get(0).getOverrideAccess())
+                .isEqualTo(httpListenerEntityV4.getPaths().get(0).isOverrideAccess());
         assertThat(httpListenerV4.getPathMappings()).isEqualTo(new ArrayList<>(httpListenerEntityV4.getPathMappings()));
         assertThat(httpListenerV4.getCors()).isNotNull(); // Tested in CorsMapperTest
 
         var subscriptionListenerV4 = listenerV4List.get(1).getSubscriptionListener();
-        assertThat(subscriptionListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.SUBSCRIPTION);
+        assertThat(subscriptionListenerV4.getType())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.SUBSCRIPTION);
         assertThat(subscriptionListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(subscriptionListenerV4.getServers())
-            .asList()
-            .hasSameSizeAs(httpListenerEntityV4.getServers())
-            .contains(httpListenerEntityV4.getServers().toArray());
+                .asList()
+                .hasSameSizeAs(httpListenerEntityV4.getServers())
+                .contains(httpListenerEntityV4.getServers().toArray());
 
         var tcpListenerV4 = listenerV4List.get(2).getTcpListener();
         assertThat(tcpListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.TCP);
         assertThat(tcpListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(tcpListenerV4.getServers())
-            .asList()
-            .hasSameSizeAs(httpListenerEntityV4.getServers())
-            .contains(httpListenerEntityV4.getServers().toArray());
+                .asList()
+                .hasSameSizeAs(httpListenerEntityV4.getServers())
+                .contains(httpListenerEntityV4.getServers().toArray());
     }
 
     @Test
@@ -147,14 +152,15 @@ public class ListenerMapperTest {
         assertThat(listenerV4List).asList().isNotNull().hasSize(1);
 
         var kafkaListenerV4 = listenerV4List.get(0).getKafkaListener();
-        assertThat(kafkaListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.KAFKA);
+        assertThat(kafkaListenerV4.getType())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.KAFKA);
         assertThat(kafkaListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(kafkaListenerV4.getHost()).isEqualTo(modelKafkaListener.getHost());
         assertThat(kafkaListenerV4.getPort()).isEqualTo(modelKafkaListener.getPort());
         assertThat(kafkaListenerV4.getServers())
-            .asList()
-            .hasSameSizeAs(modelKafkaListener.getServers())
-            .contains(modelKafkaListener.getServers().toArray());
+                .asList()
+                .hasSameSizeAs(modelKafkaListener.getServers())
+                .contains(modelKafkaListener.getServers().toArray());
     }
 
     @Test
@@ -171,8 +177,8 @@ public class ListenerMapperTest {
         assertThat(kafkaListenerV4.getHost()).isEqualTo(listenerV4.getHost());
         assertThat(kafkaListenerV4.getPort()).isEqualTo(listenerV4.getPort());
         assertThat(kafkaListenerV4.getServers())
-            .asList()
-            .hasSameSizeAs(listenerV4.getServers())
-            .contains(listenerV4.getServers().toArray());
+                .asList()
+                .hasSameSizeAs(listenerV4.getServers())
+                .contains(listenerV4.getServers().toArray());
     }
 }

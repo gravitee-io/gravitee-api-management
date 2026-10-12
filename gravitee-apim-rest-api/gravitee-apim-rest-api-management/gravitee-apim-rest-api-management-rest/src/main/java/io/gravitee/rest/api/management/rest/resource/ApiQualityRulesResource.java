@@ -54,11 +54,10 @@ public class ApiQualityRulesResource extends AbstractResource {
 
     @GET
     @Operation(
-        summary = "List quality rules for an API",
-        description = "User must have the API_QUALITY_RULE[READ] permission to use this service"
-    )
+            summary = "List quality rules for an API",
+            description = "User must have the API_QUALITY_RULE[READ] permission to use this service")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_QUALITY_RULE, acls = READ) })
+    @Permissions({@Permission(value = API_QUALITY_RULE, acls = READ)})
     public List<ApiQualityRuleEntity> getApiQualityRules() {
         return apiQualityRuleService.findByApi(api);
     }
@@ -67,11 +66,11 @@ public class ApiQualityRulesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create a new quality rules for an API",
-        description = "User must have the API_QUALITY_RULE[CREATE] permission to use this service"
-    )
-    @Permissions({ @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
-    public ApiQualityRuleEntity createApiQualityRule(@Valid @NotNull final NewApiQualityRuleEntity apiQualityRuleEntity) {
+            summary = "Create a new quality rules for an API",
+            description = "User must have the API_QUALITY_RULE[CREATE] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE)})
+    public ApiQualityRuleEntity createApiQualityRule(
+            @Valid @NotNull final NewApiQualityRuleEntity apiQualityRuleEntity) {
         apiQualityRuleEntity.setApi(api);
         return apiQualityRuleService.create(GraviteeContext.getExecutionContext(), apiQualityRuleEntity);
     }
@@ -81,14 +80,12 @@ public class ApiQualityRulesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update an existing quality rules for an API",
-        description = "User must have the API_QUALITY_RULE[UPDATE] permission to use this service"
-    )
-    @Permissions({ @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.UPDATE) })
+            summary = "Update an existing quality rules for an API",
+            description = "User must have the API_QUALITY_RULE[UPDATE] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.UPDATE)})
     public ApiQualityRuleEntity updateApiQualityRule(
-        @PathParam("qualityRule") String qualityRule,
-        @Valid @NotNull final UpdateApiQualityRuleEntity apiQualityRuleEntity
-    ) {
+            @PathParam("qualityRule") String qualityRule,
+            @Valid @NotNull final UpdateApiQualityRuleEntity apiQualityRuleEntity) {
         apiQualityRuleEntity.setApi(api);
         apiQualityRuleEntity.setQualityRule(qualityRule);
         return apiQualityRuleService.update(GraviteeContext.getExecutionContext(), apiQualityRuleEntity);

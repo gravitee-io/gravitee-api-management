@@ -40,10 +40,10 @@ public class StatusEndingAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscriptions")
-            .name("s1ea1")
-            .key("status", ascending())
-            .key("endingAt", ascending())
-            .build();
+                .collection("subscriptions")
+                .name("s1ea1")
+                .key("status", ascending())
+                .key("endingAt", ascending())
+                .build();
     }
 }

@@ -32,9 +32,8 @@ public class NativeApiDeploymentPreparer implements ApiDeploymentPreparer<Native
 
     @Override
     public ReactableApi<NativeApi> toReactable(NativeApi definition, String environmentId) {
-        final io.gravitee.gateway.reactive.handlers.api.v4.NativeApi api = new io.gravitee.gateway.reactive.handlers.api.v4.NativeApi(
-            definition
-        );
+        final io.gravitee.gateway.reactive.handlers.api.v4.NativeApi api =
+                new io.gravitee.gateway.reactive.handlers.api.v4.NativeApi(definition);
         api.setEnvironmentId(environmentId);
         return api;
     }
@@ -65,11 +64,9 @@ public class NativeApiDeploymentPreparer implements ApiDeploymentPreparer<Native
 
             api.setPlans(Collections.singletonList(plan));
         } else {
-            api
-                .getPlans()
-                .stream()
-                .filter(plan -> plan.getStatus() == null)
-                .forEach(plan -> plan.setStatus(PlanStatus.PUBLISHED));
+            api.getPlans().stream()
+                    .filter(plan -> plan.getStatus() == null)
+                    .forEach(plan -> plan.setStatus(PlanStatus.PUBLISHED));
         }
     }
 }

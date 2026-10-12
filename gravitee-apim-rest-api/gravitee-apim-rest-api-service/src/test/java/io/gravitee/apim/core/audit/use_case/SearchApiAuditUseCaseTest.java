@@ -41,7 +41,8 @@ class SearchApiAuditUseCaseTest {
     public static final String ENVIRONMENT_ID = "environment-id";
     AuditQueryServiceInMemory auditQueryService = new AuditQueryServiceInMemory();
     AuditMetadataQueryServiceInMemory auditMetadataQueryService = new AuditMetadataQueryServiceInMemory();
-    SearchAuditDomainService searchAuditDomainService = new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
+    SearchAuditDomainService searchAuditDomainService =
+            new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
 
     SearchApiAuditUseCase useCase;
 
@@ -59,62 +60,64 @@ class SearchApiAuditUseCaseTest {
     void should_return_audits_with_metadata_of_the_requested_api() {
         // Given
         var expected = AuditFixtures.anApiAudit();
-        auditQueryService.initWith(
-            List.of(
+        auditQueryService.initWith(List.of(
                 expected,
-                AuditFixtures.anApiAudit().toBuilder().id("audit2").referenceId("other-api").build(),
-                AuditFixtures.anApiAudit().toBuilder().id("audit3").environmentId("env2").build(),
-                AuditFixtures.anApiAudit().toBuilder().id("audit4").organizationId("org2").build()
-            )
-        );
+                AuditFixtures.anApiAudit().toBuilder()
+                        .id("audit2")
+                        .referenceId("other-api")
+                        .build(),
+                AuditFixtures.anApiAudit().toBuilder()
+                        .id("audit3")
+                        .environmentId("env2")
+                        .build(),
+                AuditFixtures.anApiAudit().toBuilder()
+                        .id("audit4")
+                        .organizationId("org2")
+                        .build()));
 
-        var result = useCase.execute(
-            new SearchApiAuditUseCase.Input(
-                new ApiAuditQueryFilters(
-                    API_ID,
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    Optional.of(0L),
-                    Optional.of(Instant.now().toEpochMilli()),
-                    Set.of(),
-                    false
-                )
-            )
-        );
+        var result = useCase.execute(new SearchApiAuditUseCase.Input(new ApiAuditQueryFilters(
+                API_ID,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                Optional.of(0L),
+                Optional.of(Instant.now().toEpochMilli()),
+                Set.of(),
+                false)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
             soft.assertThat(result.data()).containsExactly(expected);
-            soft
-                .assertThat(result.metadata())
-                .containsExactlyInAnyOrderEntriesOf(Map.of("USER:user-id:name", "user-id-name", "API:api-id:name", "api-id-name"));
+            soft.assertThat(result.metadata())
+                    .containsExactlyInAnyOrderEntriesOf(
+                            Map.of("USER:user-id:name", "user-id-name", "API:api-id:name", "api-id-name"));
         });
     }
 
     @Test
     void should_return_audits_sorted_by_desc_createdAt() {
         // Given
-        auditQueryService.initWith(
-            List.of(
-                AuditFixtures.anApiAudit().toBuilder().id("1").createdAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z")).build(),
-                AuditFixtures.anApiAudit().toBuilder().id("2").createdAt(ZonedDateTime.parse("2020-02-02T20:22:02.00Z")).build(),
-                AuditFixtures.anApiAudit().toBuilder().id("3").createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z")).build()
-            )
-        );
+        auditQueryService.initWith(List.of(
+                AuditFixtures.anApiAudit().toBuilder()
+                        .id("1")
+                        .createdAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z"))
+                        .build(),
+                AuditFixtures.anApiAudit().toBuilder()
+                        .id("2")
+                        .createdAt(ZonedDateTime.parse("2020-02-02T20:22:02.00Z"))
+                        .build(),
+                AuditFixtures.anApiAudit().toBuilder()
+                        .id("3")
+                        .createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z"))
+                        .build()));
 
-        var result = useCase.execute(
-            new SearchApiAuditUseCase.Input(
-                new ApiAuditQueryFilters(
-                    API_ID,
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    Optional.of(0L),
-                    Optional.of(Instant.now().toEpochMilli()),
-                    Set.of(),
-                    false
-                )
-            )
-        );
+        var result = useCase.execute(new SearchApiAuditUseCase.Input(new ApiAuditQueryFilters(
+                API_ID,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                Optional.of(0L),
+                Optional.of(Instant.now().toEpochMilli()),
+                Set.of(),
+                false)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -128,26 +131,22 @@ class SearchApiAuditUseCaseTest {
         var expectedTotal = 15;
         var pageNumber = 2;
         var pageSize = 5;
-        auditQueryService.initWith(
-            IntStream.range(0, expectedTotal)
-                .mapToObj(i -> AuditFixtures.anApiAudit().toBuilder().id(String.valueOf(i)).build())
-                .toList()
-        );
+        auditQueryService.initWith(IntStream.range(0, expectedTotal)
+                .mapToObj(i -> AuditFixtures.anApiAudit().toBuilder()
+                        .id(String.valueOf(i))
+                        .build())
+                .toList());
 
-        var result = useCase.execute(
-            new SearchApiAuditUseCase.Input(
+        var result = useCase.execute(new SearchApiAuditUseCase.Input(
                 new ApiAuditQueryFilters(
-                    API_ID,
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    Optional.of(0L),
-                    Optional.of(Instant.now().toEpochMilli()),
-                    Set.of(),
-                    false
-                ),
-                new PageableImpl(pageNumber, pageSize)
-            )
-        );
+                        API_ID,
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        Optional.of(0L),
+                        Optional.of(Instant.now().toEpochMilli()),
+                        Set.of(),
+                        false),
+                new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);

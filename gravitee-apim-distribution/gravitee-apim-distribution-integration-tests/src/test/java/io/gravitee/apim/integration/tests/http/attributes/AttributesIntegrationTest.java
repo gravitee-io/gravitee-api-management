@@ -47,7 +47,7 @@ public class AttributesIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/http/attributes-to-headers.json" })
+    @DeployApi({"/apis/http/attributes-to-headers.json"})
     class CheckingAttributes extends AbstractAttributesIntegrationTest {
 
         @Test
@@ -55,30 +55,30 @@ public class AttributesIntegrationTest {
             wiremock.stubFor(get("/endpoint").willReturn(ok()));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/attributes-to-headers")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response)).contains(
-                        Map.entry(ExecutionContext.ATTR_APPLICATION, "1"),
-                        Map.entry(ExecutionContext.ATTR_API, "attributes-to-headers"),
-                        Map.entry(ExecutionContext.ATTR_CONTEXT_PATH, "/attributes-to-headers/"),
-                        Map.entry(ExecutionContext.ATTR_PLAN, "default_plan"),
-                        Map.entry(ExecutionContext.ATTR_SUBSCRIPTION_ID, "127.0.0.1")
-                    );
+                    .rxRequest(HttpMethod.GET, "/attributes-to-headers")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(extractHeaders(response))
+                                .contains(
+                                        Map.entry(ExecutionContext.ATTR_APPLICATION, "1"),
+                                        Map.entry(ExecutionContext.ATTR_API, "attributes-to-headers"),
+                                        Map.entry(ExecutionContext.ATTR_CONTEXT_PATH, "/attributes-to-headers/"),
+                                        Map.entry(ExecutionContext.ATTR_PLAN, "default_plan"),
+                                        Map.entry(ExecutionContext.ATTR_SUBSCRIPTION_ID, "127.0.0.1"));
 
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors();
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/http/attributes-to-headers.json" })
+    @DeployApi({"/apis/http/attributes-to-headers.json"})
     class CheckingClientIdAttribute extends AbstractAttributesIntegrationTest {
 
         @Override
@@ -87,46 +87,51 @@ public class AttributesIntegrationTest {
         }
 
         @Test
-        void should_generate_client_id_attribute_by_hashing_subscription_id_attribute_when_equals_to_remote_address(HttpClient httpClient)
-            throws InterruptedException {
+        void should_generate_client_id_attribute_by_hashing_subscription_id_attribute_when_equals_to_remote_address(
+                HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok()));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/attributes-to-headers")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
+                    .rxRequest(HttpMethod.GET, "/attributes-to-headers")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
 
-                    assertThat(extractHeaders(response).get(ExecutionContext.ATTR_CLIENT_IDENTIFIER)).doesNotMatch(UUID_PATTERN);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
+                        assertThat(extractHeaders(response).get(ExecutionContext.ATTR_CLIENT_IDENTIFIER))
+                                .doesNotMatch(UUID_PATTERN);
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors();
         }
 
         @Test
-        void should_use_subscription_id_for_client_id_when_not_equal_to_remote_address(HttpClient httpClient) throws InterruptedException {
+        void should_use_subscription_id_for_client_id_when_not_equal_to_remote_address(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok()));
 
             when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
-            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(apiKey.getApi()), any(), eq(apiKey.getPlan()))).thenReturn(
-                Optional.of(aSubscription())
-            );
+            when(getBean(SubscriptionService.class)
+                            .getByApiAndSecurityToken(eq(apiKey.getApi()), any(), eq(apiKey.getPlan())))
+                    .thenReturn(Optional.of(aSubscription()));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/attributes-to-headers")
-                .flatMap(httpClientRequest -> httpClientRequest.putHeader("X-Gravitee-Api-Key", apiKey.getKey()).rxSend())
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response)).contains(Map.entry(ExecutionContext.ATTR_CLIENT_IDENTIFIER, "subscription-id"));
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/attributes-to-headers")
+                    .flatMap(httpClientRequest -> httpClientRequest
+                            .putHeader("X-Gravitee-Api-Key", apiKey.getKey())
+                            .rxSend())
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(extractHeaders(response))
+                                .contains(Map.entry(ExecutionContext.ATTR_CLIENT_IDENTIFIER, "subscription-id"));
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors();
         }
 
         @Test
@@ -134,17 +139,20 @@ public class AttributesIntegrationTest {
             wiremock.stubFor(get("/endpoint").willReturn(ok()));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/attributes-to-headers")
-                .flatMap(httpClientRequest -> httpClientRequest.putHeader("X-Gravitee-Client-Identifier", "my-client-id").rxSend())
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response).get(ExecutionContext.ATTR_CLIENT_IDENTIFIER)).startsWith("my-client-id-");
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/attributes-to-headers")
+                    .flatMap(httpClientRequest -> httpClientRequest
+                            .putHeader("X-Gravitee-Client-Identifier", "my-client-id")
+                            .rxSend())
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(extractHeaders(response).get(ExecutionContext.ATTR_CLIENT_IDENTIFIER))
+                                .startsWith("my-client-id-");
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors();
         }
 
         @Test
@@ -152,72 +160,71 @@ public class AttributesIntegrationTest {
             wiremock.stubFor(get("/endpoint").willReturn(ok()));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/attributes-to-headers")
-                .flatMap(httpClientRequest ->
-                    httpClientRequest
-                        .putHeader("X-Gravitee-Transaction-Id", "1234")
-                        .putHeader("X-Gravitee-Client-Identifier", "my-client-id-1234")
-                        .rxSend()
-                )
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response)).contains(Map.entry(ExecutionContext.ATTR_CLIENT_IDENTIFIER, "my-client-id-1234"));
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/attributes-to-headers")
+                    .flatMap(httpClientRequest -> httpClientRequest
+                            .putHeader("X-Gravitee-Transaction-Id", "1234")
+                            .putHeader("X-Gravitee-Client-Identifier", "my-client-id-1234")
+                            .rxSend())
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(extractHeaders(response))
+                                .contains(Map.entry(ExecutionContext.ATTR_CLIENT_IDENTIFIER, "my-client-id-1234"));
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors();
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/http/mapped-path-attribute.json" })
+    @DeployApi({"/apis/http/mapped-path-attribute.json"})
     class CheckingMappedPathAttribute extends AbstractAttributesIntegrationTest {
 
         @Test
         void should_set_mapped_path_attribute(HttpClient httpClient) throws InterruptedException {
             httpClient
-                .rxRequest(HttpMethod.GET, "/mapped/test/mock")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors()
-                .assertValue(body -> {
-                    assertThat(body.toString()).contains("/test/:testId");
-                    return true;
-                });
+                    .rxRequest(HttpMethod.GET, "/mapped/test/mock")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors()
+                    .assertValue(body -> {
+                        assertThat(body.toString()).contains("/test/:testId");
+                        return true;
+                    });
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/mapped-path-attribute.json" })
+    @DeployApi({"/apis/v4/http/mapped-path-attribute.json"})
     class CheckingMappedPathAttributeV4 extends AbstractAttributesIntegrationTest {
 
         @Test
         void should_set_mapped_path_attribute(HttpClient httpClient) throws InterruptedException {
             httpClient
-                .rxRequest(HttpMethod.GET, "/mapped/test/mock")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors()
-                .assertValue(body -> {
-                    assertThat(body.toString()).contains("/test/:testId");
-                    return true;
-                });
+                    .rxRequest(HttpMethod.GET, "/mapped/test/mock")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors()
+                    .assertValue(body -> {
+                        assertThat(body.toString()).contains("/test/:testId");
+                        return true;
+                    });
         }
     }
 }

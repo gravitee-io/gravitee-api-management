@@ -42,12 +42,13 @@ public class ReorderPlanDomainService {
      * @return The updated plan
      */
     public Plan reorderAfterUpdate(Plan toUpdate) {
-        var toReorder = planQueryService
-            .findAllByReferenceIdAndReferenceType(toUpdate.getReferenceId(), toUpdate.getReferenceType())
-            .stream()
-            .filter(p -> p.isPublished() && !Objects.equals(p.getId(), toUpdate.getId()))
-            .sorted(Comparator.comparingInt(Plan::getOrder))
-            .toList();
+        var toReorder =
+                planQueryService
+                        .findAllByReferenceIdAndReferenceType(toUpdate.getReferenceId(), toUpdate.getReferenceType())
+                        .stream()
+                        .filter(p -> p.isPublished() && !Objects.equals(p.getId(), toUpdate.getId()))
+                        .sorted(Comparator.comparingInt(Plan::getOrder))
+                        .toList();
 
         if (toUpdate.getOrder() < 1) {
             toUpdate.setOrder(1);
@@ -73,18 +74,17 @@ public class ReorderPlanDomainService {
      * @param referenceType The reference type (API or API_PRODUCT)
      */
     public void refreshOrderAfterDelete(String referenceId, GenericPlanEntity.ReferenceType referenceType) {
-        var toReorder = planQueryService
-            .findAllByReferenceIdAndReferenceType(referenceId, referenceType)
-            .stream()
-            .filter(Plan::isPublished)
-            .sorted(Comparator.comparingInt(Plan::getOrder))
-            .toList();
+        var toReorder = planQueryService.findAllByReferenceIdAndReferenceType(referenceId, referenceType).stream()
+                .filter(Plan::isPublished)
+                .sorted(Comparator.comparingInt(Plan::getOrder))
+                .toList();
 
         for (int i = 0; i < toReorder.size(); i++) {
             int expectedOrder = i + 1;
             var planToReorder = toReorder.get(i);
             if (planToReorder.getOrder() != expectedOrder) {
-                planCrudService.update(planToReorder.toBuilder().order(expectedOrder).build());
+                planCrudService.update(
+                        planToReorder.toBuilder().order(expectedOrder).build());
             }
         }
     }

@@ -48,7 +48,8 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     public Optional<QualityRule> findById(String qualityRuleId) throws TechnicalException {
         log.debug("Find quality rule by ID [{}]", qualityRuleId);
 
-        final QualityRuleMongo qualityRule = internalQualityRuleRepo.findById(qualityRuleId).orElse(null);
+        final QualityRuleMongo qualityRule =
+                internalQualityRuleRepo.findById(qualityRuleId).orElse(null);
 
         log.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
         return Optional.ofNullable(mapper.map(qualityRule));
@@ -74,7 +75,8 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
             throw new IllegalStateException("QualityRule to update must have a name");
         }
 
-        final QualityRuleMongo qualityRuleMongo = internalQualityRuleRepo.findById(qualityRule.getId()).orElse(null);
+        final QualityRuleMongo qualityRuleMongo =
+                internalQualityRuleRepo.findById(qualityRule.getId()).orElse(null);
 
         if (qualityRuleMongo == null) {
             throw new IllegalStateException(String.format("No quality rule found with name [%s]", qualityRule.getId()));
@@ -112,37 +114,33 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     @Override
     public Set<QualityRule> findAll() {
         final List<QualityRuleMongo> qualityRules = internalQualityRuleRepo.findAll();
-        return qualityRules
-            .stream()
-            .map(qualityRuleMongo -> mapper.map(qualityRuleMongo))
-            .collect(toSet());
+        return qualityRules.stream()
+                .map(qualityRuleMongo -> mapper.map(qualityRuleMongo))
+                .collect(toSet());
     }
 
     @Override
-    public List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId)
+            throws TechnicalException {
         try {
-            return internalQualityRuleRepo
-                .findByReference(referenceType.name(), referenceId)
-                .stream()
-                .map(qualityRuleMongo -> mapper.map(qualityRuleMongo))
-                .toList();
+            return internalQualityRuleRepo.findByReference(referenceType.name(), referenceId).stream()
+                    .map(qualityRuleMongo -> mapper.map(qualityRuleMongo))
+                    .toList();
         } catch (Exception e) {
-            final String error =
-                "An error occurred when finding all quality rules with findByReference " + referenceType + " [" + referenceId + "]";
+            final String error = "An error occurred when finding all quality rules with findByReference "
+                    + referenceType + " [" + referenceId + "]";
             log.error(error, e);
             throw new TechnicalException(error);
         }
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final QualityRule.ReferenceType referenceType)
-        throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            final String referenceId, final QualityRule.ReferenceType referenceType) throws TechnicalException {
         log.debug("Delete quality rules by reference [{}, {}]", referenceType, referenceId);
         try {
-            List<QualityRuleMongo> qualityRuleMongos = internalQualityRuleRepo.deleteByReferenceIdAndReferenceType(
-                referenceId,
-                referenceType.name()
-            );
+            List<QualityRuleMongo> qualityRuleMongos =
+                    internalQualityRuleRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name());
             log.debug("Delete quality rules by reference [{}, {}] - Done", referenceType, referenceId);
             return qualityRuleMongos.stream().map(QualityRuleMongo::getId).toList();
         } catch (Exception e) {

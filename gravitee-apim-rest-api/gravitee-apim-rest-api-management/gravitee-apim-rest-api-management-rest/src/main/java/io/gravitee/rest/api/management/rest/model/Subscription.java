@@ -161,14 +161,13 @@ public class Subscription {
         private final ApiKeyMode apiKeyMode;
 
         public Application(
-            final String id,
-            final String name,
-            final String type,
-            final String description,
-            final String domain,
-            final User owner,
-            final ApiKeyMode apiKeyMode
-        ) {
+                final String id,
+                final String name,
+                final String type,
+                final String description,
+                final String domain,
+                final User owner,
+                final ApiKeyMode apiKeyMode) {
             this.id = id;
             this.name = name;
             this.type = type;

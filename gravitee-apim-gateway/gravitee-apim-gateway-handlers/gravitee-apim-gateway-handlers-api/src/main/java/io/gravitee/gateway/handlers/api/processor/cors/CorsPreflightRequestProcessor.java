@@ -81,7 +81,8 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         String accessControlRequestMethod = request.headers().getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
         if (!isRequestMethodsValid(accessControlRequestMethod)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
-            request.metrics().setMessage(String.format("Request method '%s' is not allowed", accessControlRequestMethod));
+            request.metrics()
+                    .setMessage(String.format("Request method '%s' is not allowed", accessControlRequestMethod));
             return;
         }
 
@@ -89,7 +90,8 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         String accessControlRequestHeaders = request.headers().getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
         if (!isRequestHeadersValid(accessControlRequestHeaders)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
-            request.metrics().setMessage(String.format("Request headers '%s' are not valid", accessControlRequestHeaders));
+            request.metrics()
+                    .setMessage(String.format("Request headers '%s' are not valid", accessControlRequestHeaders));
             return;
         }
 
@@ -100,7 +102,10 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         // the string "*" as value.
         if (cors.isAccessControlAllowCredentials()) {
             response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
-            response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.headers().getFirst(HttpHeaders.ORIGIN));
+            response.headers()
+                    .set(
+                            HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                            request.headers().getFirst(HttpHeaders.ORIGIN));
         } else {
             response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOW_ORIGIN_PUBLIC_WILDCARD);
         }
@@ -108,20 +113,21 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         if (cors.getAccessControlAllowMethods().contains("*")) {
             response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "*");
         } else {
-            response
-                .headers()
-                .set(
-                    HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
-                    cors.getAccessControlAllowMethods().stream().map(String::toUpperCase).collect(Collectors.joining(JOINER_CHAR_SEQUENCE))
-                );
+            response.headers()
+                    .set(
+                            HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                            cors.getAccessControlAllowMethods().stream()
+                                    .map(String::toUpperCase)
+                                    .collect(Collectors.joining(JOINER_CHAR_SEQUENCE)));
         }
 
         if (cors.getAccessControlAllowHeaders().contains("*")) {
             response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*");
         } else {
-            response
-                .headers()
-                .set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
+            response.headers()
+                    .set(
+                            HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                            String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
         }
 
         // 8. Optionally add a single Access-Control-Max-Age header with as value the amount of seconds the user agent
@@ -132,18 +138,19 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
 
         // 9. If method is a simple method this step may be skipped.
         // Add one or more Access-Control-Allow-Methods headers consisting of (a subset of) the list of methods.
-        response
-            .headers()
-            .set(
-                HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
-                cors.getAccessControlAllowMethods().stream().map(String::toUpperCase).collect(Collectors.joining(JOINER_CHAR_SEQUENCE))
-            );
+        response.headers()
+                .set(
+                        HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                        cors.getAccessControlAllowMethods().stream()
+                                .map(String::toUpperCase)
+                                .collect(Collectors.joining(JOINER_CHAR_SEQUENCE)));
 
         // 10. If each of the header field-names is a simple header and none is Content-Type, this step may be skipped.
         // Add one or more Access-Control-Allow-Headers headers consisting of (a subset of) the list of headers.
-        response
-            .headers()
-            .set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
+        response.headers()
+                .set(
+                        HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                        String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
 
         // 11. Private Network Access: if enabled and request includes Access-Control-Request-Private-Network,
         // respond with Access-Control-Allow-Private-Network: true
@@ -158,17 +165,13 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     }
 
     private boolean isRequestHeadersValid(String accessControlRequestHeaders) {
-        return (
-            cors.getAccessControlAllowHeaders().contains("*") ||
-            isRequestValid(accessControlRequestHeaders, cors.getAccessControlAllowHeaders(), false)
-        );
+        return (cors.getAccessControlAllowHeaders().contains("*")
+                || isRequestValid(accessControlRequestHeaders, cors.getAccessControlAllowHeaders(), false));
     }
 
     private boolean isRequestMethodsValid(String accessControlRequestMethods) {
-        return (
-            cors.getAccessControlAllowMethods().contains("*") ||
-            isRequestValid(accessControlRequestMethods, cors.getAccessControlAllowMethods(), true)
-        );
+        return (cors.getAccessControlAllowMethods().contains("*")
+                || isRequestValid(accessControlRequestMethods, cors.getAccessControlAllowMethods(), true));
     }
 
     private boolean isRequestValid(String incoming, Set<String> configuredValues, boolean required) {
@@ -176,10 +179,8 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         if ((inputs == null || (inputs.length == 1 && inputs[0].isEmpty()))) {
             return true;
         }
-        return (
-            (inputs == null && (configuredValues == null || configuredValues.isEmpty())) ||
-            (inputs != null && containsAll(configuredValues, inputs))
-        );
+        return ((inputs == null && (configuredValues == null || configuredValues.isEmpty()))
+                || (inputs != null && containsAll(configuredValues, inputs)));
     }
 
     private static String[] splitAndTrim(String value, String regex) {

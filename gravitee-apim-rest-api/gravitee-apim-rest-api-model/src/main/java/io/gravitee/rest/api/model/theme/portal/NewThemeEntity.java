@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model.theme.portal;
 
-import io.gravitee.rest.api.model.theme.GenericThemeEntity;
 import io.gravitee.rest.api.model.theme.ThemeType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

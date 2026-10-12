@@ -66,7 +66,10 @@ class ApiDocumentationNavigationItemResource_GetTest extends AbstractResourceTes
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -89,30 +92,32 @@ class ApiDocumentationNavigationItemResource_GetTest extends AbstractResourceTes
 
         assertThat(response).hasStatus(OK_200);
         assertThat(response.readEntity(PortalNavigationPage.class))
-            .hasFieldOrPropertyWithValue("id", page.getId().id())
-            .hasFieldOrPropertyWithValue("title", "Overview")
-            .hasFieldOrPropertyWithValue("published", false)
-            .hasFieldOrPropertyWithValue("parentId", null);
+                .hasFieldOrPropertyWithValue("id", page.getId().id())
+                .hasFieldOrPropertyWithValue("title", "Overview")
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue("parentId", null);
     }
 
     @Test
     void should_not_return_the_secrets_of_a_source() {
         var source = PortalNavigationItemSource.builder()
-            .sourceType("github")
-            .sourceConfiguration(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
-            .build();
+                .sourceType("github")
+                .sourceConfiguration(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
+                .build();
         var page = aPageOwnedBy(API_ID).toBuilder().source(source).build();
         portalNavigationItemsQueryService.initWith(List.of(page));
 
         Response response = rootTarget(page.getId().json()).request().get();
 
         assertThat(response).hasStatus(OK_200);
-        assertThat(response.readEntity(String.class)).doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+        assertThat(response.readEntity(String.class))
+                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
     }
 
     @Test
     void should_return_404_for_an_unknown_item() {
-        Response response = rootTarget(PortalNavigationItemId.random().json()).request().get();
+        Response response =
+                rootTarget(PortalNavigationItemId.random().json()).request().get();
 
         assertThat(response).hasStatus(NOT_FOUND_404);
     }
@@ -142,14 +147,12 @@ class ApiDocumentationNavigationItemResource_GetTest extends AbstractResourceTes
     void should_return_403_with_environment_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID);
         portalNavigationItemsQueryService.initWith(List.of(page));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         Response response = rootTarget(page.getId().json()).request().get();
 
@@ -161,14 +164,12 @@ class ApiDocumentationNavigationItemResource_GetTest extends AbstractResourceTes
         var page = aPageOwnedBy(API_ID);
         portalNavigationItemsQueryService.initWith(List.of(page));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(true);
 
         Response response = rootTarget(page.getId().json()).request().get();
 
@@ -176,11 +177,10 @@ class ApiDocumentationNavigationItemResource_GetTest extends AbstractResourceTes
     }
 
     private static io.gravitee.apim.core.portal_page.model.PortalNavigationPage aPageOwnedBy(String apiId) {
-        var page = PortalNavigationItemFixtures.aPage("Overview", null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .published(false)
-            .build();
+        var page = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .published(false)
+                .build();
         page.setEnvironmentId(ENVIRONMENT);
         return page;
     }

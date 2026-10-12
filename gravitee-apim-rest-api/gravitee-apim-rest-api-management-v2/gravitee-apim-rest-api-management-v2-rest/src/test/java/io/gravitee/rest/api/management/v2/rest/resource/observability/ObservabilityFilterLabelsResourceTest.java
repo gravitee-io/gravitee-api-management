@@ -59,46 +59,41 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(
-            (ContainerRequestFilter) requestContext ->
-                requestContext.setSecurityContext(
-                    new SecurityContext() {
-                        @Override
-                        public Principal getUserPrincipal() {
-                            var userDetails = new UserDetails(USER_NAME, "", List.of());
-                            userDetails.setOrganizationId(ORGANIZATION);
-                            var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
-                            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(principal);
-                            return principal;
-                        }
-
-                        @Override
-                        public boolean isUserInRole(String string) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean isSecure() {
-                            return true;
-                        }
-
-                        @Override
-                        public String getAuthenticationScheme() {
-                            return "BASIC";
-                        }
+                (ContainerRequestFilter) requestContext -> requestContext.setSecurityContext(new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        var userDetails = new UserDetails(USER_NAME, "", List.of());
+                        userDetails.setOrganizationId(ORGANIZATION);
+                        var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
+                        org.springframework.security.core.context.SecurityContextHolder.getContext()
+                                .setAuthentication(principal);
+                        return principal;
                     }
-                ),
-            5
-        );
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
+                }),
+                5);
         resourceConfig.register(GraviteeContextRequestFilter.class);
         var mockResponse = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(
-            new org.glassfish.hk2.utilities.binding.AbstractBinder() {
-                @Override
-                protected void configure() {
-                    bind(mockResponse).to(HttpServletResponse.class);
-                }
+        resourceConfig.register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(mockResponse).to(HttpServletResponse.class);
             }
-        );
+        });
     }
 
     @BeforeEach
@@ -128,23 +123,22 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_resolve_filter_labels() {
-        when(filterValueNameResolver.resolveNames(ENVIRONMENT, FilterSpec.Name.API, List.of("api-id-1"))).thenReturn(
-            Map.of("api-id-1", "Public API")
-        );
+        when(filterValueNameResolver.resolveNames(ENVIRONMENT, FilterSpec.Name.API, List.of("api-id-1")))
+                .thenReturn(Map.of("api-id-1", "Public API"));
 
         var response = rootTarget()
-            .request()
-            .post(json(Map.of("entries", List.of(Map.of("filterName", "API", "ids", List.of("api-id-1"))))));
+                .request()
+                .post(json(Map.of("entries", List.of(Map.of("filterName", "API", "ids", List.of("api-id-1"))))));
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(ResolveFilterLabelsResponse.class)
-            .extracting(ResolveFilterLabelsResponse::getEntries)
-            .satisfies(entries -> {
-                assertThat(entries).hasSize(1);
-                assertThat(entries.get(0).getFilterName().getValue()).isEqualTo("API");
-                assertThat(entries.get(0).getLabels()).containsEntry("api-id-1", "Public API");
-            });
+                .hasStatus(200)
+                .asEntity(ResolveFilterLabelsResponse.class)
+                .extracting(ResolveFilterLabelsResponse::getEntries)
+                .satisfies(entries -> {
+                    assertThat(entries).hasSize(1);
+                    assertThat(entries.get(0).getFilterName().getValue()).isEqualTo("API");
+                    assertThat(entries.get(0).getLabels()).containsEntry("api-id-1", "Public API");
+                });
     }
 
     @Test
@@ -152,31 +146,28 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
         var response = rootTarget().request().post(json(Map.of("entries", List.of())));
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(ResolveFilterLabelsResponse.class)
-            .extracting(ResolveFilterLabelsResponse::getEntries)
-            .satisfies(assertions -> assertThat(assertions).isEmpty());
+                .hasStatus(200)
+                .asEntity(ResolveFilterLabelsResponse.class)
+                .extracting(ResolveFilterLabelsResponse::getEntries)
+                .satisfies(assertions -> assertThat(assertions).isEmpty());
     }
 
     @Test
     void should_return_403_when_missing_dashboard_read_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DASHBOARD,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
+                .thenReturn(Set.of());
 
         var response = rootTarget().request().post(json(Map.of("entries", List.of())));
 
@@ -186,11 +177,15 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_400_for_validation_error() {
         var entries = IntStream.range(0, 11)
-            .mapToObj(index -> Map.of("filterName", "API", "ids", List.of("api-id-" + index)))
-            .toList();
+                .mapToObj(index -> Map.of("filterName", "API", "ids", List.of("api-id-" + index)))
+                .toList();
 
         var response = rootTarget().request().post(json(Map.of("entries", entries)));
 
-        assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Too many filter entries to resolve");
+        assertThat(response)
+                .hasStatus(400)
+                .asError()
+                .hasHttpStatus(400)
+                .hasMessage("Too many filter entries to resolve");
     }
 }

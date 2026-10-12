@@ -44,12 +44,11 @@ public class BridgeCommandHandler implements CommandHandler<BridgeCommand, Bridg
 
     @Override
     public Single<BridgeReply> handle(BridgeCommand command) {
-        return operationHandlers
-            .stream()
-            .filter(handle -> handle.canHandle(command.getPayload().operation()))
-            .findFirst()
-            .orElse(noOperationHandler)
-            .handle(command);
+        return operationHandlers.stream()
+                .filter(handle -> handle.canHandle(command.getPayload().operation()))
+                .findFirst()
+                .orElse(noOperationHandler)
+                .handle(command);
     }
 
     private final BridgeOperationHandler noOperationHandler = new BridgeOperationHandler() {
@@ -60,10 +59,13 @@ public class BridgeCommandHandler implements CommandHandler<BridgeCommand, Bridg
 
         @Override
         public Single<BridgeReply> handle(BridgeCommand command) {
-            log.warn("No handler found for this operation {} ", command.getPayload().operation());
-            return Single.just(
-                new BridgeReply(command.getId(), "No handler found for this operation: " + command.getPayload().operation())
-            );
+            log.warn(
+                    "No handler found for this operation {} ",
+                    command.getPayload().operation());
+            return Single.just(new BridgeReply(
+                    command.getId(),
+                    "No handler found for this operation: "
+                            + command.getPayload().operation()));
         }
     };
 }

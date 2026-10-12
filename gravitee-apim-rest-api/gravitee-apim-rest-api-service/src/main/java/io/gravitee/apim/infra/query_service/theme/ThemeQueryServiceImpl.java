@@ -42,12 +42,16 @@ public class ThemeQueryServiceImpl extends AbstractService implements ThemeQuery
 
     @Override
     public Page<Theme> searchByCriteria(ThemeSearchCriteria criteria, Pageable pageable) {
-        var type = criteria.getType() == null ? null : ThemeType.valueOf(criteria.getType().name());
+        var type = criteria.getType() == null
+                ? null
+                : ThemeType.valueOf(criteria.getType().name());
         try {
             var page = this.themeRepository.search(
-                ThemeCriteria.builder().enabled(criteria.getEnabled()).type(type).build(),
-                convert(pageable)
-            );
+                    ThemeCriteria.builder()
+                            .enabled(criteria.getEnabled())
+                            .type(type)
+                            .build(),
+                    convert(pageable));
 
             return page.map(ThemeAdapter.INSTANCE::map);
         } catch (TechnicalException e) {
@@ -56,15 +60,11 @@ public class ThemeQueryServiceImpl extends AbstractService implements ThemeQuery
     }
 
     @Override
-    public Set<Theme> findByThemeTypeAndEnvironmentId(io.gravitee.apim.core.theme.model.ThemeType themeType, String environmentId) {
+    public Set<Theme> findByThemeTypeAndEnvironmentId(
+            io.gravitee.apim.core.theme.model.ThemeType themeType, String environmentId) {
         try {
-            return ThemeAdapter.INSTANCE.map(
-                this.themeRepository.findByReferenceIdAndReferenceTypeAndType(
-                    environmentId,
-                    Theme.ReferenceType.ENVIRONMENT.name(),
-                    ThemeType.valueOf(themeType.name())
-                )
-            );
+            return ThemeAdapter.INSTANCE.map(this.themeRepository.findByReferenceIdAndReferenceTypeAndType(
+                    environmentId, Theme.ReferenceType.ENVIRONMENT.name(), ThemeType.valueOf(themeType.name())));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);
         }

@@ -33,32 +33,35 @@ public class ServiceFixture {
 
     private ServiceFixture() {}
 
-    private static final Supplier<EndpointDiscoveryService> BASE_ENDPOINT_DISCOVERY_SERVICE = () ->
-        new EndpointDiscoveryService().enabled(true).provider("consul").configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
-    private static final Supplier<DynamicPropertyService> BASE_DYNAMIC_PROPERTY_SERVICE = () ->
-        new DynamicPropertyService()
-            .enabled(true)
-            .schedule("0 */5 * * * *")
-            .provider(DynamicPropertyProvider.HTTP)
-            .configuration(
-                new DynamicPropertyServiceConfiguration(
-                    new HttpDynamicPropertyProviderConfiguration()
-                        .url("http://localhost")
-                        .method(HttpMethod.GET)
-                        .specification(String.valueOf(new LinkedHashMap<>(Map.of("nice", "configuration"))))
-                        .body("body")
-                )
-            );
+    private static final Supplier<EndpointDiscoveryService> BASE_ENDPOINT_DISCOVERY_SERVICE =
+            () -> new EndpointDiscoveryService()
+                    .enabled(true)
+                    .provider("consul")
+                    .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
+    private static final Supplier<DynamicPropertyService> BASE_DYNAMIC_PROPERTY_SERVICE =
+            () -> new DynamicPropertyService()
+                    .enabled(true)
+                    .schedule("0 */5 * * * *")
+                    .provider(DynamicPropertyProvider.HTTP)
+                    .configuration(
+                            new DynamicPropertyServiceConfiguration(new HttpDynamicPropertyProviderConfiguration()
+                                    .url("http://localhost")
+                                    .method(HttpMethod.GET)
+                                    .specification(String.valueOf(new LinkedHashMap<>(Map.of("nice", "configuration"))))
+                                    .body("body")));
     private static final Supplier<HealthCheckService> BASE_HEALTH_CHECK_SERVICE = HealthCheckService::new;
 
-    private static final Supplier<ApiServicesV2> BASE_API_SERVICES_V2 = () ->
-        new ApiServicesV2().dynamicProperty(BASE_DYNAMIC_PROPERTY_SERVICE.get()).healthCheck(BASE_HEALTH_CHECK_SERVICE.get());
+    private static final Supplier<ApiServicesV2> BASE_API_SERVICES_V2 = () -> new ApiServicesV2()
+            .dynamicProperty(BASE_DYNAMIC_PROPERTY_SERVICE.get())
+            .healthCheck(BASE_HEALTH_CHECK_SERVICE.get());
 
-    private static final Supplier<EndpointGroupServicesV2> BASE_ENDPOINT_GROUP_SERVICES_V2 = () ->
-        new EndpointGroupServicesV2().discovery(BASE_ENDPOINT_DISCOVERY_SERVICE.get());
+    private static final Supplier<EndpointGroupServicesV2> BASE_ENDPOINT_GROUP_SERVICES_V2 =
+            () -> new EndpointGroupServicesV2().discovery(BASE_ENDPOINT_DISCOVERY_SERVICE.get());
 
-    private static final Supplier<ServiceV4> BASE_API_V4_SERVICE = () ->
-        new ServiceV4().type("dynamicProperty").configuration(new LinkedHashMap<>(Map.of("url", "http://localhost"))).enabled(true);
+    private static final Supplier<ServiceV4> BASE_API_V4_SERVICE = () -> new ServiceV4()
+            .type("dynamicProperty")
+            .configuration(new LinkedHashMap<>(Map.of("url", "http://localhost")))
+            .enabled(true);
 
     public static ApiServicesV2 anApiServicesV2() {
         return BASE_API_SERVICES_V2.get();

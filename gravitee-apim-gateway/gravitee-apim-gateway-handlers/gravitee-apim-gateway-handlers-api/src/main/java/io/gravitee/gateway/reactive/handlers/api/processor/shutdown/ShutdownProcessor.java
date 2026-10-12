@@ -20,7 +20,6 @@ import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.node.api.Node;
 import io.reactivex.rxjava3.core.Completable;
@@ -50,7 +49,8 @@ public class ShutdownProcessor implements Processor {
             if (node.lifecycleState() != Lifecycle.State.STARTED) {
                 // The node is certainly shutting down, explicitly ask for closing connection.
                 if (ctx.request().version() == HttpVersion.HTTP_2) {
-                    // Create a fake internal header to notify the underlying layer to gracefully close the connection (aka: goAway).
+                    // Create a fake internal header to notify the underlying layer to gracefully close the connection
+                    // (aka: goAway).
                     ctx.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY);
                 } else {
                     ctx.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);

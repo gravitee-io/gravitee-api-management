@@ -48,10 +48,9 @@ public final class FailureOriginClassifier {
         if (NativeFailureOriginRules.CLIENT_SIDE_ERROR_KEYS.contains(key)) {
             return FailureOrigin.CLIENT_TO_GATEWAY;
         }
-        if (
-            NativeFailureOriginRules.BROKER_SIDE_ERROR_KEYS.contains(key) ||
-            NativeFailureOriginRules.BROKER_SIDE_ERROR_KEY_PREFIXES.stream().anyMatch(key::startsWith)
-        ) {
+        if (NativeFailureOriginRules.BROKER_SIDE_ERROR_KEYS.contains(key)
+                || NativeFailureOriginRules.BROKER_SIDE_ERROR_KEY_PREFIXES.stream()
+                        .anyMatch(key::startsWith)) {
             return FailureOrigin.GATEWAY_TO_BROKER;
         }
         if (NativeFailureOriginRules.UNKNOWN_SERVER_ERROR_KEY.equals(key) || internalStatus) {

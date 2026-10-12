@@ -103,13 +103,9 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         when(userMembership.getReferenceId()).thenReturn(API);
         when(userMembership.getRoleId()).thenReturn(userRoleId);
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.API)
-            )
-        ).thenReturn(Set.of(userMembership));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.API)))
+                .thenReturn(Set.of(userMembership));
 
         final Response response = envTarget(API).request().get();
 
@@ -132,21 +128,13 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         when(groupMemberShip.getReferenceId()).thenReturn(groupId);
         when(groupMemberShip.getReferenceType()).thenReturn(MembershipReferenceType.GROUP);
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.API)
-            )
-        ).thenReturn(Collections.emptySet());
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.API)))
+                .thenReturn(Collections.emptySet());
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.GROUP)
-            )
-        ).thenReturn(Sets.newSet(groupMemberShip));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.GROUP)))
+                .thenReturn(Sets.newSet(groupMemberShip));
 
         when(role.getScope()).thenReturn(RoleScope.API);
         when(roleService.findById(eq(roleId))).thenReturn(role);
@@ -166,9 +154,12 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotAccessToApiState_BecauseNotAMember() {
-        when(
-            apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any(ApiQuery.class), any(PageableImpl.class), isNull())
-        ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
+        when(apiService.searchIds(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(ApiQuery.class),
+                        any(PageableImpl.class),
+                        isNull()))
+                .thenReturn(new Page<>(emptyList(), 0, 0, 0));
 
         final Response response = envTarget(API + "/state").request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -179,13 +170,9 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         MembershipEntity membershipEntity = mock(MembershipEntity.class);
         when(membershipEntity.getReferenceType()).thenReturn(MembershipReferenceType.API);
         when(membershipEntity.getReferenceId()).thenReturn(API);
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.API)
-            )
-        ).thenReturn(Sets.newSet(membershipEntity));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.API)))
+                .thenReturn(Sets.newSet(membershipEntity));
 
         final Response response = envTarget(API + "/state").request().get();
 
@@ -207,26 +194,21 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.API);
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.API)
-            )
-        ).thenReturn(Collections.emptySet());
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.API)))
+                .thenReturn(Collections.emptySet());
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.GROUP)
-            )
-        ).thenReturn(Sets.newSet(membershipEntity));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.GROUP)))
+                .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
-        when(
-            apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any(ApiQuery.class), any(PageableImpl.class), isNull())
-        ).thenReturn(new Page<>(Collections.singletonList(mockApi.getId()), 0, 1, 1));
+        when(apiService.searchIds(
+                        eq(GraviteeContext.getExecutionContext()),
+                        any(ApiQuery.class),
+                        any(PageableImpl.class),
+                        isNull()))
+                .thenReturn(new Page<>(Collections.singletonList(mockApi.getId()), 0, 1, 1));
 
         final Response response = envTarget(API + "/state").request().get();
 
@@ -247,21 +229,13 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.APPLICATION);
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.API)
-            )
-        ).thenReturn(Collections.emptySet());
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.API)))
+                .thenReturn(Collections.emptySet());
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(
-                eq(MembershipMemberType.USER),
-                eq(USER_NAME),
-                eq(MembershipReferenceType.GROUP)
-            )
-        ).thenReturn(Sets.newSet(membershipEntity));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        eq(MembershipMemberType.USER), eq(USER_NAME), eq(MembershipReferenceType.GROUP)))
+                .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
 

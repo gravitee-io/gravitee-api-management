@@ -63,10 +63,8 @@ public class FlowChannelSelector extends FlowSelector {
     }
 
     public abstract static class FlowChannelSelectorBuilder<
-        C extends FlowChannelSelector,
-        B extends FlowChannelSelector.FlowChannelSelectorBuilder<C, B>
-    >
-        extends FlowSelector.FlowSelectorBuilder<C, B> {
+                    C extends FlowChannelSelector, B extends FlowChannelSelector.FlowChannelSelectorBuilder<C, B>>
+            extends FlowSelector.FlowSelectorBuilder<C, B> {
 
         FlowChannelSelectorBuilder() {
             type(FlowSelectorType.CHANNEL);

@@ -41,26 +41,28 @@ public class RateLimitRepositoryConfiguration {
     @Bean("redisRateLimitClient")
     public RedisClient redisRedisClient(Environment environment, Vertx vertx) {
         return new RedisConnectionFactory(
-            environment,
-            vertx,
-            Scope.RATE_LIMIT.getName(),
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA, SCRIPT_TOKEN_BUCKET_KEY, SCRIPTS_TOKEN_BUCKET_LUA)
-        ).createRedisClient();
+                        environment,
+                        vertx,
+                        Scope.RATE_LIMIT.getName(),
+                        Map.of(
+                                SCRIPT_RATELIMIT_KEY,
+                                SCRIPTS_RATELIMIT_LUA,
+                                SCRIPT_TOKEN_BUCKET_KEY,
+                                SCRIPTS_TOKEN_BUCKET_LUA))
+                .createRedisClient();
     }
 
     @Bean
     public RedisRateLimitRepository redisRateLimitRepository(
-        @Qualifier("redisRateLimitClient") RedisClient redisClient,
-        @Value("${ratelimit.redis.operation.timeout:10}") int operationTimeout
-    ) {
+            @Qualifier("redisRateLimitClient") RedisClient redisClient,
+            @Value("${ratelimit.redis.operation.timeout:10}") int operationTimeout) {
         return new RedisRateLimitRepository(redisClient, operationTimeout);
     }
 
     @Bean
     public TokenBucketRateLimitRepository<TokenBucket> tokenBucketRateLimitRepository(
-        @Qualifier("redisRateLimitClient") RedisClient redisClient,
-        @Value("${ratelimit.redis.operation.timeout:10}") int operationTimeout
-    ) {
+            @Qualifier("redisRateLimitClient") RedisClient redisClient,
+            @Value("${ratelimit.redis.operation.timeout:10}") int operationTimeout) {
         return new RedisTokenBucketRateLimitRepository(redisClient, operationTimeout);
     }
 }

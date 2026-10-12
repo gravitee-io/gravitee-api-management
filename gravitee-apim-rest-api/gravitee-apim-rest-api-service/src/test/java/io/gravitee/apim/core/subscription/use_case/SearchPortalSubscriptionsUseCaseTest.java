@@ -57,30 +57,27 @@ class SearchPortalSubscriptionsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SearchPortalSubscriptionsUseCase(subscriptionSearchQueryService, subscriptionTargetSearchQueryService);
+        useCase = new SearchPortalSubscriptionsUseCase(
+                subscriptionSearchQueryService, subscriptionTargetSearchQueryService);
     }
 
     @Test
     void should_default_to_api_subscriptions() {
         var page = new Page<SubscriptionEntity>(List.of(), 2, 0, 0);
-        when(
-            subscriptionSearchQueryService.search(
-                EXECUTION_CONTEXT,
-                new SubscriptionSearchQueryService.Criteria(
-                    Set.of(SubscriptionReferenceType.API),
-                    null,
-                    null,
-                    Set.of("app-id"),
-                    null,
-                    Set.of(SubscriptionStatus.ACCEPTED),
-                    null
-                ),
-                PAGEABLE
-            )
-        ).thenReturn(page);
+        when(subscriptionSearchQueryService.search(
+                        EXECUTION_CONTEXT,
+                        new SubscriptionSearchQueryService.Criteria(
+                                Set.of(SubscriptionReferenceType.API),
+                                null,
+                                null,
+                                Set.of("app-id"),
+                                null,
+                                Set.of(SubscriptionStatus.ACCEPTED),
+                                null),
+                        PAGEABLE))
+                .thenReturn(page);
 
-        var output = useCase.execute(
-            new SearchPortalSubscriptionsUseCase.Input(
+        var output = useCase.execute(new SearchPortalSubscriptionsUseCase.Input(
                 EXECUTION_CONTEXT,
                 Set.of("app-id"),
                 Set.of(SubscriptionStatus.ACCEPTED),
@@ -88,32 +85,29 @@ class SearchPortalSubscriptionsUseCaseTest {
                 null,
                 null,
                 null,
-                PAGEABLE
-            )
-        );
+                PAGEABLE));
 
         assertThat(output.page().getContent()).isEmpty();
         assertThat(output.page().getPageNumber()).isEqualTo(page.getPageNumber());
         assertThat(output.page().getTotalElements()).isEqualTo(page.getTotalElements());
-        verify(subscriptionTargetSearchQueryService, never()).search(EXECUTION_CONTEXT, null, Set.of(SubscriptionReferenceType.API));
+        verify(subscriptionTargetSearchQueryService, never())
+                .search(EXECUTION_CONTEXT, null, Set.of(SubscriptionReferenceType.API));
     }
 
     @Test
     void should_resolve_matching_target_ids_before_searching_subscriptions() {
-        Set<SubscriptionReferenceType> referenceTypes = Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT);
-        when(subscriptionTargetSearchQueryService.search(EXECUTION_CONTEXT, "payment", referenceTypes)).thenReturn(
-            new SubscriptionTargetSearchQueryService.MatchingTargetIds(Set.of("api-1", "api-2"), Set.of("product-1"))
-        );
-        when(
-            subscriptionSearchQueryService.search(
-                org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.eq(PAGEABLE)
-            )
-        ).thenReturn(new Page<>(List.of(), 2, 0, 3));
+        Set<SubscriptionReferenceType> referenceTypes =
+                Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT);
+        when(subscriptionTargetSearchQueryService.search(EXECUTION_CONTEXT, "payment", referenceTypes))
+                .thenReturn(new SubscriptionTargetSearchQueryService.MatchingTargetIds(
+                        Set.of("api-1", "api-2"), Set.of("product-1")));
+        when(subscriptionSearchQueryService.search(
+                        org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.eq(PAGEABLE)))
+                .thenReturn(new Page<>(List.of(), 2, 0, 3));
 
-        useCase.execute(
-            new SearchPortalSubscriptionsUseCase.Input(
+        useCase.execute(new SearchPortalSubscriptionsUseCase.Input(
                 EXECUTION_CONTEXT,
                 Set.of("app-id"),
                 Set.of(SubscriptionStatus.ACCEPTED),
@@ -121,15 +115,13 @@ class SearchPortalSubscriptionsUseCaseTest {
                 null,
                 null,
                 " payment ",
-                PAGEABLE
-            )
-        );
+                PAGEABLE));
 
-        verify(subscriptionSearchQueryService).search(
-            org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
-            criteriaCaptor.capture(),
-            org.mockito.ArgumentMatchers.eq(PAGEABLE)
-        );
+        verify(subscriptionSearchQueryService)
+                .search(
+                        org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
+                        criteriaCaptor.capture(),
+                        org.mockito.ArgumentMatchers.eq(PAGEABLE));
         assertThat(criteriaCaptor.getValue().apiIds()).containsExactlyInAnyOrder("api-1", "api-2");
         assertThat(criteriaCaptor.getValue().apiProductIds()).containsExactly("product-1");
         assertThat(criteriaCaptor.getValue().referenceTypes()).isEqualTo(referenceTypes);
@@ -137,19 +129,17 @@ class SearchPortalSubscriptionsUseCaseTest {
 
     @Test
     void should_intersect_name_matches_with_explicit_target_ids() {
-        when(subscriptionTargetSearchQueryService.search(EXECUTION_CONTEXT, "payment", Set.of(SubscriptionReferenceType.API))).thenReturn(
-            new SubscriptionTargetSearchQueryService.MatchingTargetIds(Set.of("api-1", "api-2"), Set.of())
-        );
-        when(
-            subscriptionSearchQueryService.search(
-                org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.eq(PAGEABLE)
-            )
-        ).thenReturn(new Page<>(List.of(), 2, 0, 1));
+        when(subscriptionTargetSearchQueryService.search(
+                        EXECUTION_CONTEXT, "payment", Set.of(SubscriptionReferenceType.API)))
+                .thenReturn(
+                        new SubscriptionTargetSearchQueryService.MatchingTargetIds(Set.of("api-1", "api-2"), Set.of()));
+        when(subscriptionSearchQueryService.search(
+                        org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.eq(PAGEABLE)))
+                .thenReturn(new Page<>(List.of(), 2, 0, 1));
 
-        useCase.execute(
-            new SearchPortalSubscriptionsUseCase.Input(
+        useCase.execute(new SearchPortalSubscriptionsUseCase.Input(
                 EXECUTION_CONTEXT,
                 Set.of("app-id"),
                 null,
@@ -157,26 +147,23 @@ class SearchPortalSubscriptionsUseCaseTest {
                 Set.of("api-2", "api-3"),
                 null,
                 "payment",
-                PAGEABLE
-            )
-        );
+                PAGEABLE));
 
-        verify(subscriptionSearchQueryService).search(
-            org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
-            criteriaCaptor.capture(),
-            org.mockito.ArgumentMatchers.eq(PAGEABLE)
-        );
+        verify(subscriptionSearchQueryService)
+                .search(
+                        org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
+                        criteriaCaptor.capture(),
+                        org.mockito.ArgumentMatchers.eq(PAGEABLE));
         assertThat(criteriaCaptor.getValue().apiIds()).containsExactly("api-2");
     }
 
     @Test
     void should_return_an_empty_page_without_searching_subscriptions_when_no_target_matches() {
-        when(
-            subscriptionTargetSearchQueryService.search(EXECUTION_CONTEXT, "missing", Set.of(SubscriptionReferenceType.API_PRODUCT))
-        ).thenReturn(new SubscriptionTargetSearchQueryService.MatchingTargetIds(Set.of(), Set.of()));
+        when(subscriptionTargetSearchQueryService.search(
+                        EXECUTION_CONTEXT, "missing", Set.of(SubscriptionReferenceType.API_PRODUCT)))
+                .thenReturn(new SubscriptionTargetSearchQueryService.MatchingTargetIds(Set.of(), Set.of()));
 
-        var output = useCase.execute(
-            new SearchPortalSubscriptionsUseCase.Input(
+        var output = useCase.execute(new SearchPortalSubscriptionsUseCase.Input(
                 EXECUTION_CONTEXT,
                 Set.of("app-id"),
                 null,
@@ -184,33 +171,29 @@ class SearchPortalSubscriptionsUseCaseTest {
                 null,
                 null,
                 "missing",
-                PAGEABLE
-            )
-        );
+                PAGEABLE));
 
         assertThat(output.page().getContent()).isEmpty();
         assertThat(output.page().getPageNumber()).isEqualTo(2);
         assertThat(output.page().getTotalElements()).isZero();
-        verify(subscriptionSearchQueryService, never()).search(
-            org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
-            org.mockito.ArgumentMatchers.any(),
-            org.mockito.ArgumentMatchers.eq(PAGEABLE)
-        );
+        verify(subscriptionSearchQueryService, never())
+                .search(
+                        org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.eq(PAGEABLE));
     }
 
     @Test
     void should_normalize_legacy_api_subscription_reference() {
-        SubscriptionEntity legacySubscription = SubscriptionEntity.builder().id("subscription-id").api("api-id").build();
-        when(
-            subscriptionSearchQueryService.search(
-                org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.eq(PAGEABLE)
-            )
-        ).thenReturn(new Page<>(List.of(legacySubscription), 2, 1, 1));
+        SubscriptionEntity legacySubscription =
+                SubscriptionEntity.builder().id("subscription-id").api("api-id").build();
+        when(subscriptionSearchQueryService.search(
+                        org.mockito.ArgumentMatchers.eq(EXECUTION_CONTEXT),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.eq(PAGEABLE)))
+                .thenReturn(new Page<>(List.of(legacySubscription), 2, 1, 1));
 
-        var output = useCase.execute(
-            new SearchPortalSubscriptionsUseCase.Input(
+        var output = useCase.execute(new SearchPortalSubscriptionsUseCase.Input(
                 EXECUTION_CONTEXT,
                 Set.of("app-id"),
                 null,
@@ -218,9 +201,7 @@ class SearchPortalSubscriptionsUseCaseTest {
                 null,
                 null,
                 null,
-                PAGEABLE
-            )
-        );
+                PAGEABLE));
 
         SubscriptionEntity normalized = output.page().getContent().getFirst();
         assertThat(normalized.getApi()).isEqualTo("api-id");

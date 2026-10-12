@@ -59,7 +59,8 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
     protected static final String TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON = TEMPLATE_ATTRIBUTE_REQUEST + ".jsonContent";
     protected static final String TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML = TEMPLATE_ATTRIBUTE_REQUEST + ".xmlContent";
     protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT = TEMPLATE_ATTRIBUTE_RESPONSE + ".content";
-    protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON = TEMPLATE_ATTRIBUTE_RESPONSE + ".jsonContent";
+    protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON =
+            TEMPLATE_ATTRIBUTE_RESPONSE + ".jsonContent";
     protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML = TEMPLATE_ATTRIBUTE_RESPONSE + ".xmlContent";
 
     private static final TypeReference<HashMap<String, Object>> MAPPER_TYPE_REFERENCE = new TypeReference<>() {};
@@ -84,8 +85,10 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
         HttpExecutionContext ctx = (HttpExecutionContext) executionContext;
         final TemplateEngine templateEngine = ctx.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
-        final EvaluableRequest evaluableRequest = (EvaluableRequest) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST);
-        final EvaluableResponse evaluableResponse = (EvaluableResponse) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE);
+        final EvaluableRequest evaluableRequest =
+                (EvaluableRequest) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST);
+        final EvaluableResponse evaluableResponse =
+                (EvaluableResponse) templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE);
         final HttpRequest request = ctx.request();
         final HttpResponse response = ctx.response();
 
@@ -93,43 +96,49 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
             var bodyRequestDefer = defer(request::bodyOrEmpty);
 
             templateContext.setDeferredVariable(
-                TEMPLATE_ATTRIBUTE_REQUEST_CONTENT,
-                bodyRequestDefer.map(Buffer::toString).doOnSuccess(evaluableRequest::setContent).ignoreElement()
-            );
+                    TEMPLATE_ATTRIBUTE_REQUEST_CONTENT,
+                    bodyRequestDefer
+                            .map(Buffer::toString)
+                            .doOnSuccess(evaluableRequest::setContent)
+                            .ignoreElement());
 
             templateContext.setDeferredVariable(
-                TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON,
-                bodyRequestDefer.map(this::jsonToMap).doOnSuccess(evaluableRequest::setJsonContent).ignoreElement()
-            );
+                    TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON,
+                    bodyRequestDefer
+                            .map(this::jsonToMap)
+                            .doOnSuccess(evaluableRequest::setJsonContent)
+                            .ignoreElement());
 
             templateContext.setDeferredVariable(
-                TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML,
-                bodyRequestDefer
-                    .map(buffer -> xmlToMap(ctx, buffer))
-                    .doOnSuccess(evaluableRequest::setXmlContent)
-                    .ignoreElement()
-            );
+                    TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML,
+                    bodyRequestDefer
+                            .map(buffer -> xmlToMap(ctx, buffer))
+                            .doOnSuccess(evaluableRequest::setXmlContent)
+                            .ignoreElement());
         }
 
         if (evaluableResponse != null) {
             var bodyResponseDefer = defer(response::bodyOrEmpty);
 
             templateContext.setDeferredVariable(
-                TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT,
-                bodyResponseDefer.map(Buffer::toString).doOnSuccess(evaluableResponse::setContent).ignoreElement()
-            );
+                    TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT,
+                    bodyResponseDefer
+                            .map(Buffer::toString)
+                            .doOnSuccess(evaluableResponse::setContent)
+                            .ignoreElement());
             templateContext.setDeferredVariable(
-                TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON,
-                bodyResponseDefer.map(this::jsonToMap).doOnSuccess(evaluableResponse::setJsonContent).ignoreElement()
-            );
+                    TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON,
+                    bodyResponseDefer
+                            .map(this::jsonToMap)
+                            .doOnSuccess(evaluableResponse::setJsonContent)
+                            .ignoreElement());
 
             templateContext.setDeferredVariable(
-                TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML,
-                bodyResponseDefer
-                    .map(buffer -> xmlToMap(ctx, buffer))
-                    .doOnSuccess(evaluableResponse::setXmlContent)
-                    .ignoreElement()
-            );
+                    TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML,
+                    bodyResponseDefer
+                            .map(buffer -> xmlToMap(ctx, buffer))
+                            .doOnSuccess(evaluableResponse::setXmlContent)
+                            .ignoreElement());
         }
     }
 
@@ -157,7 +166,9 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
             String wrappedContent = wrapContent(sanitizedContent);
             return XML_MAPPER.readValue(wrappedContent, MAPPER_TYPE_REFERENCE);
         } catch (XMLStreamException | JsonProcessingException e) {
-            executionContext.warnWith(new ExecutionWarn("INVALID_XML").message("XML content is invalid").cause(e));
+            executionContext.warnWith(new ExecutionWarn("INVALID_XML")
+                    .message("XML content is invalid")
+                    .cause(e));
             return Collections.emptyMap();
         }
     }

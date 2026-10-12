@@ -101,12 +101,11 @@ public class Cluster {
     private static Object withoutCredentials(Object node) {
         if (node instanceof Map<?, ?> map) {
             var copy = new LinkedHashMap<Object, Object>();
-            map.forEach((key, value) ->
-                copy.put(
+            map.forEach((key, value) -> copy.put(
                     key,
-                    "security".equals(key) && value instanceof Map<?, ?> security ? protocolOnly(security) : withoutCredentials(value)
-                )
-            );
+                    "security".equals(key) && value instanceof Map<?, ?> security
+                            ? protocolOnly(security)
+                            : withoutCredentials(value)));
             return copy;
         }
         if (node instanceof List<?> list) {

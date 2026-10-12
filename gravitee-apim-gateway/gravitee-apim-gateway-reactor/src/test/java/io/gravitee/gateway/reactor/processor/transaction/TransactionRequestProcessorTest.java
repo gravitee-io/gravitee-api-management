@@ -62,7 +62,8 @@ public class TransactionRequestProcessorTest {
         Mockito.when(request.id()).thenReturn(UUID.random().toString());
         Mockito.when(request.headers()).thenReturn(HttpHeaders.create());
         Mockito.when(request.parameters()).thenReturn(new VertxHttpHeaders(MultiMap.caseInsensitiveMultiMap()));
-        Mockito.when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
+        Mockito.when(request.metrics())
+                .thenReturn(Metrics.on(System.currentTimeMillis()).build());
     }
 
     @Test
@@ -72,9 +73,12 @@ public class TransactionRequestProcessorTest {
         new TransactionRequestProcessor().handler(context -> {}).handle(context);
 
         Assertions.assertNotNull(context.request().transactionId());
-        Assertions.assertEquals(context.request().transactionId(), context.request().headers().get(DEFAULT_TRANSACTION_ID_HEADER));
-        Assertions.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
-        Assertions.assertEquals(context.request().id(), context.request().headers().get(DEFAULT_REQUEST_ID_HEADER));
+        Assertions.assertEquals(
+                context.request().transactionId(), context.request().headers().get(DEFAULT_TRANSACTION_ID_HEADER));
+        Assertions.assertEquals(
+                context.request().transactionId(), context.request().metrics().getTransactionId());
+        Assertions.assertEquals(
+                context.request().id(), context.request().headers().get(DEFAULT_REQUEST_ID_HEADER));
     }
 
     @Test
@@ -111,11 +115,15 @@ public class TransactionRequestProcessorTest {
     public void shouldHaveTransactionIdWithCustomHeader() {
         Mockito.when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER)
+                .handler(context -> {})
+                .handle(context);
 
         Assertions.assertNotNull(context.request().transactionId());
-        Assertions.assertEquals(context.request().transactionId(), context.request().headers().get(CUSTOM_TRANSACTION_ID_HEADER));
-        Assertions.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
+        Assertions.assertEquals(
+                context.request().transactionId(), context.request().headers().get(CUSTOM_TRANSACTION_ID_HEADER));
+        Assertions.assertEquals(
+                context.request().transactionId(), context.request().metrics().getTransactionId());
     }
 
     @Test
@@ -123,7 +131,9 @@ public class TransactionRequestProcessorTest {
         String transactionId = UUID.toString(UUID.random());
 
         request.headers().set(CUSTOM_TRANSACTION_ID_HEADER, transactionId);
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER)
+                .handler(context -> {})
+                .handle(context);
 
         Assertions.assertNotNull(context.request().transactionId());
         Assertions.assertEquals(transactionId, context.request().transactionId());
@@ -136,7 +146,9 @@ public class TransactionRequestProcessorTest {
         String transactionId = UUID.toString(UUID.random());
 
         request.parameters().set(CUSTOM_TRANSACTION_ID_HEADER, transactionId);
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER)
+                .handler(context -> {})
+                .handle(context);
 
         Assertions.assertNotNull(context.request().transactionId());
         Assertions.assertEquals(transactionId, context.request().transactionId());

@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.logs_engine.model.ApiKeyMode;
 import io.gravitee.apim.core.logs_engine.model.ApiLog;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
@@ -48,7 +47,8 @@ import org.junit.jupiter.api.Test;
 class LogNamesPostProcessorImplTest {
 
     private static final Pagination PAGINATION = new Pagination(1, 10, 1, 1, 1L);
-    private static final UserContext BASE_CONTEXT = new UserContext(AuditInfoFixtures.anAuditInfo("org", "env", "user"));
+    private static final UserContext BASE_CONTEXT =
+            new UserContext(AuditInfoFixtures.anAuditInfo("org", "env", "user"));
 
     private LogNamesPostProcessorImpl processor;
 
@@ -63,13 +63,13 @@ class LogNamesPostProcessorImplTest {
 
     private static ApiLog aLogWith(String apiId, BasePlan plan, BaseApplication application, String gateway) {
         return ApiLog.builder()
-            .apiId(apiId)
-            .plan(plan)
-            .application(application)
-            .gateway(gateway)
-            .warnings(List.of())
-            .additionalMetrics(Map.of())
-            .build();
+                .apiId(apiId)
+                .plan(plan)
+                .application(application)
+                .gateway(gateway)
+                .warnings(List.of())
+                .additionalMetrics(Map.of())
+                .build();
     }
 
     private static BasePlan aPlan(String planId) {
@@ -115,10 +115,12 @@ class LogNamesPostProcessorImplTest {
 
         @Test
         void should_resolve_all_names_at_once() {
-            var context = BASE_CONTEXT.withApiNamesById(Map.of("api-1", "My API"))
-                .withPlanNameById(Map.of("plan-1", "My Plan"))
-                .withApplicationNameById(Map.of("app-1", "My App"));
-            var response = new SearchLogsResponse(List.of(aLogWith("api-1", aPlan("plan-1"), anApplication("app-1"))), PAGINATION);
+            var context = BASE_CONTEXT
+                    .withApiNamesById(Map.of("api-1", "My API"))
+                    .withPlanNameById(Map.of("plan-1", "My Plan"))
+                    .withApplicationNameById(Map.of("app-1", "My App"));
+            var response = new SearchLogsResponse(
+                    List.of(aLogWith("api-1", aPlan("plan-1"), anApplication("app-1"))), PAGINATION);
 
             var result = processor.mapLogNames(context, response);
 
@@ -192,7 +194,8 @@ class LogNamesPostProcessorImplTest {
 
         @Test
         void should_return_null_names_when_context_has_empty_optionals() {
-            var response = new SearchLogsResponse(List.of(aLogWith("api-1", aPlan("plan-1"), anApplication("app-1"))), PAGINATION);
+            var response = new SearchLogsResponse(
+                    List.of(aLogWith("api-1", aPlan("plan-1"), anApplication("app-1"))), PAGINATION);
 
             var result = processor.mapLogNames(BASE_CONTEXT, response);
 
@@ -213,50 +216,45 @@ class LogNamesPostProcessorImplTest {
             var primaryOwner = new PrimaryOwner("owner-1", "owner@test.com", "Owner", MembershipMemberType.USER);
             var warning = new ApiLogDiagnostic("comp-type", "comp-name", "warn-key", "warn-msg");
 
-            var originalPlan = new BasePlan("plan-1", "old-plan-name", "plan-desc", "api-1", security, PlanMode.STANDARD);
+            var originalPlan =
+                    new BasePlan("plan-1", "old-plan-name", "plan-desc", "api-1", security, PlanMode.STANDARD);
             var originalApp = new BaseApplication(
-                "app-1",
-                "old-app-name",
-                "app-desc",
-                "domain.com",
-                "web",
-                primaryOwner,
-                ApiKeyMode.SHARED
-            );
+                    "app-1", "old-app-name", "app-desc", "domain.com", "web", primaryOwner, ApiKeyMode.SHARED);
             var originalLog = new ApiLog(
-                "api-1",
-                "old-api-name",
-                ApiType.PROXY,
-                timestamp,
-                "log-id",
-                "req-1",
-                HttpMethod.GET,
-                "client-1",
-                originalPlan,
-                originalApp,
-                "tx-1",
-                200,
-                true,
-                42,
-                "gw-1",
-                "/path",
-                "http://backend",
-                "msg",
-                "err-key",
-                "err-comp",
-                "err-type",
-                List.of(warning),
-                Map.of("k", "v"),
-                "tools/list",
-                null,
-                null
-            );
+                    "api-1",
+                    "old-api-name",
+                    ApiType.PROXY,
+                    timestamp,
+                    "log-id",
+                    "req-1",
+                    HttpMethod.GET,
+                    "client-1",
+                    originalPlan,
+                    originalApp,
+                    "tx-1",
+                    200,
+                    true,
+                    42,
+                    "gw-1",
+                    "/path",
+                    "http://backend",
+                    "msg",
+                    "err-key",
+                    "err-comp",
+                    "err-type",
+                    List.of(warning),
+                    Map.of("k", "v"),
+                    "tools/list",
+                    null,
+                    null);
 
-            var context = BASE_CONTEXT.withApiNamesById(Map.of("api-1", "New API"))
-                .withPlanNameById(Map.of("plan-1", "New Plan"))
-                .withApplicationNameById(Map.of("app-1", "New App"))
-                .withGatewayHostnameById(Map.of("gw-1", "resolved-hostname"))
-                .withApis(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build()));
+            var context = BASE_CONTEXT
+                    .withApiNamesById(Map.of("api-1", "New API"))
+                    .withPlanNameById(Map.of("plan-1", "New Plan"))
+                    .withApplicationNameById(Map.of("app-1", "New App"))
+                    .withGatewayHostnameById(Map.of("gw-1", "resolved-hostname"))
+                    .withApis(List.of(
+                            ApiFixtures.aProxyApiV4().toBuilder().id("api-1").build()));
             var response = new SearchLogsResponse(List.of(originalLog), PAGINATION);
 
             var result = processor.mapLogNames(context, response);
@@ -312,9 +310,10 @@ class LogNamesPostProcessorImplTest {
 
         @Test
         void should_enrich_multiple_logs_independently() {
-            var context = BASE_CONTEXT.withApiNamesById(Map.of("api-1", "API One", "api-2", "API Two"))
-                .withPlanNameById(Map.of("plan-1", "Plan One", "plan-2", "Plan Two"))
-                .withApplicationNameById(Map.of("app-1", "App One", "app-2", "App Two"));
+            var context = BASE_CONTEXT
+                    .withApiNamesById(Map.of("api-1", "API One", "api-2", "API Two"))
+                    .withPlanNameById(Map.of("plan-1", "Plan One", "plan-2", "Plan Two"))
+                    .withApplicationNameById(Map.of("app-1", "App One", "app-2", "App Two"));
             var log1 = aLogWith("api-1", aPlan("plan-1"), anApplication("app-1"));
             var log2 = aLogWith("api-2", aPlan("plan-2"), anApplication("app-2"));
             var response = new SearchLogsResponse(List.of(log1, log2), PAGINATION);

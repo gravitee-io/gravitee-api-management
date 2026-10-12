@@ -41,18 +41,22 @@ public class FileListingSourceOnFolderRule implements UpdatePortalNavigationItem
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
-        var importManaged = existingItem.getSource() != null && existingItem.getSource().isSubtreeImport();
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+        var importManaged =
+                existingItem.getSource() != null && existingItem.getSource().isSubtreeImport();
         if (supportsFileListing.test(toUpdate.getSource())) {
             if (!importManaged) {
-                throw InvalidPortalNavigationItemDataException.fileListingSourceOnlyCreatedByImport(existingItem.getId().json());
+                throw InvalidPortalNavigationItemDataException.fileListingSourceOnlyCreatedByImport(
+                        existingItem.getId().json());
             }
             return;
         }
         // The symmetric hole: fetching an import-managed folder re-runs the import, which starts by
         // listing the source — a source that cannot list files would break the folder at the next fetch
         if (importManaged) {
-            throw InvalidPortalNavigationItemDataException.importManagedFolderNeedsFileListingSource(existingItem.getId().json());
+            throw InvalidPortalNavigationItemDataException.importManagedFolderNeedsFileListingSource(
+                    existingItem.getId().json());
         }
     }
 }

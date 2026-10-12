@@ -114,13 +114,7 @@ public class SyncConfiguration {
     public ThreadPoolExecutor syncFetcherExecutor(@Value("${services.sync.fetcher:-1}") int syncFetcher) {
         int poolSize = syncFetcher != -1 ? syncFetcher : POOL_SIZE;
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-            1,
-            poolSize,
-            15L,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            newThreadFactory("gio.sync-fetcher-")
-        );
+                1, poolSize, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), newThreadFactory("gio.sync-fetcher-"));
 
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         threadPoolExecutor.prestartCoreThread();
@@ -132,13 +126,12 @@ public class SyncConfiguration {
     public ThreadPoolExecutor syncDeployerExecutor(@Value("${services.sync.deployer:-1}") int syncDeployer) {
         int poolSize = syncDeployer != -1 ? syncDeployer : POOL_SIZE;
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-            1,
-            poolSize,
-            15L,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            newThreadFactory("gio.sync-deployer-")
-        );
+                1,
+                poolSize,
+                15L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                newThreadFactory("gio.sync-deployer-"));
 
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         threadPoolExecutor.prestartCoreThread();
@@ -186,10 +179,9 @@ public class SyncConfiguration {
     @Bean
     @Conditional(GammaEnabledCondition.class)
     public AuthzEnginePort authzEnginePort(
-        io.vertx.rxjava3.core.Vertx vertx,
-        AuthzHostedScopes authzHostedScopes,
-        AuthzAppliedRevisions authzAppliedRevisions
-    ) {
+            io.vertx.rxjava3.core.Vertx vertx,
+            AuthzHostedScopes authzHostedScopes,
+            AuthzAppliedRevisions authzAppliedRevisions) {
         return new EventBusAuthzEnginePort(vertx, authzHostedScopes, authzAppliedRevisions);
     }
 
@@ -201,40 +193,34 @@ public class SyncConfiguration {
 
     @Bean
     public EnvironmentService environmentEnhanceService(
-        EnvironmentRepository environmentRepository,
-        OrganizationRepository organizationRepository
-    ) {
+            EnvironmentRepository environmentRepository, OrganizationRepository organizationRepository) {
         return new EnvironmentService(environmentRepository, organizationRepository);
     }
 
     @Bean
     public PlanAppender planAppender(
-        ObjectMapper objectMapper,
-        PlanRepository planRepository,
-        GatewayConfiguration gatewayConfiguration,
-        @Autowired(required = false) ApiProductRegistry apiProductRegistry
-    ) {
+            ObjectMapper objectMapper,
+            PlanRepository planRepository,
+            GatewayConfiguration gatewayConfiguration,
+            @Autowired(required = false) ApiProductRegistry apiProductRegistry) {
         return new PlanAppender(objectMapper, planRepository, gatewayConfiguration, apiProductRegistry);
     }
 
     @Bean
     public SubscriptionAppender subscriptionAppender(
-        SubscriptionRepository subscriptionRepository,
-        SubscriptionMapper subscriptionMapper,
-        @Value("${services.sync.subscription.bulk_items:" + DEFAULT_SUBSCRIPTION_BULK_ITEMS + "}") int bulkItems
-    ) {
+            SubscriptionRepository subscriptionRepository,
+            SubscriptionMapper subscriptionMapper,
+            @Value("${services.sync.subscription.bulk_items:" + DEFAULT_SUBSCRIPTION_BULK_ITEMS + "}") int bulkItems) {
         return new SubscriptionAppender(subscriptionRepository, subscriptionMapper, bulkItems);
     }
 
     @Bean
     public ApiKeyAppender apiKeyAppender(
-        ApiKeyRepository apiKeyRepository,
-        ApiKeyMapper apiKeyMapper,
-        @Value("${services.sync.apikey.bulk_items:" + DEFAULT_APIKEY_BULK_ITEMS + "}") int bulkItems,
-        @Value(
-            "${services.sync.apikey.subscriptions_chunk_size:" + DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE + "}"
-        ) int subscriptionsChunkSize
-    ) {
+            ApiKeyRepository apiKeyRepository,
+            ApiKeyMapper apiKeyMapper,
+            @Value("${services.sync.apikey.bulk_items:" + DEFAULT_APIKEY_BULK_ITEMS + "}") int bulkItems,
+            @Value("${services.sync.apikey.subscriptions_chunk_size:" + DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE + "}")
+                    int subscriptionsChunkSize) {
         return new ApiKeyAppender(apiKeyRepository, apiKeyMapper, bulkItems, subscriptionsChunkSize);
     }
 
@@ -246,54 +232,53 @@ public class SyncConfiguration {
 
     @Bean
     public DeployerFactory deployerFactory(
-        ApiKeyService apiKeyService,
-        SubscriptionService subscriptionService,
-        PlanService planCache,
-        @Lazy SubscriptionDispatcher subscriptionDispatcher,
-        CommandRepository commandRepository,
-        Node node,
-        GatewayConfiguration gatewayConfiguration,
-        ObjectMapper objectMapper,
-        ApiManager apiManager,
-        DictionaryManager dictionaryManager,
-        OrganizationManager organizationManager,
-        EventManager eventManager,
-        LicenseManager licenseManager,
-        LicenseFactory licenseFactory,
-        AccessPointManager accessPointManager,
-        SharedPolicyGroupManager sharedPolicyGroupManager,
-        ClusterManager clusterManager,
-        DistributedSyncService distributedSyncService,
-        ApiProductManager apiProductManager,
-        @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher,
-        AuthzEnginePort authzEnginePort,
-        CredentialManager credentialManager
-    ) {
-        Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
+            ApiKeyService apiKeyService,
+            SubscriptionService subscriptionService,
+            PlanService planCache,
+            @Lazy SubscriptionDispatcher subscriptionDispatcher,
+            CommandRepository commandRepository,
+            Node node,
+            GatewayConfiguration gatewayConfiguration,
+            ObjectMapper objectMapper,
+            ApiManager apiManager,
+            DictionaryManager dictionaryManager,
+            OrganizationManager organizationManager,
+            EventManager eventManager,
+            LicenseManager licenseManager,
+            LicenseFactory licenseFactory,
+            AccessPointManager accessPointManager,
+            SharedPolicyGroupManager sharedPolicyGroupManager,
+            ClusterManager clusterManager,
+            DistributedSyncService distributedSyncService,
+            ApiProductManager apiProductManager,
+            @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher,
+            AuthzEnginePort authzEnginePort,
+            CredentialManager credentialManager) {
+        Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier =
+                provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
-            apiKeyService,
-            subscriptionService,
-            planCache,
-            subscriptionDispatcherSupplier,
-            commandRepository,
-            node,
-            gatewayConfiguration,
-            objectMapper,
-            apiManager,
-            dictionaryManager,
-            organizationManager,
-            eventManager,
-            licenseManager,
-            licenseFactory,
-            accessPointManager,
-            sharedPolicyGroupManager,
-            clusterManager,
-            distributedSyncService,
-            apiProductManager,
-            apiProductSubscriptionRefresher,
-            authzEnginePort,
-            credentialManager
-        );
+                apiKeyService,
+                subscriptionService,
+                planCache,
+                subscriptionDispatcherSupplier,
+                commandRepository,
+                node,
+                gatewayConfiguration,
+                objectMapper,
+                apiManager,
+                dictionaryManager,
+                organizationManager,
+                eventManager,
+                licenseManager,
+                licenseFactory,
+                accessPointManager,
+                sharedPolicyGroupManager,
+                clusterManager,
+                distributedSyncService,
+                apiProductManager,
+                apiProductSubscriptionRefresher,
+                authzEnginePort,
+                credentialManager);
     }
 
     @Bean
@@ -306,7 +291,8 @@ public class SyncConfiguration {
      * @param subscriptionDispatcher
      * @return a supplier of SubscriptionDispatcher
      */
-    protected Supplier<SubscriptionDispatcher> provideSubscriptionDispatcher(SubscriptionDispatcher subscriptionDispatcher) {
+    protected Supplier<SubscriptionDispatcher> provideSubscriptionDispatcher(
+            SubscriptionDispatcher subscriptionDispatcher) {
         return () -> {
             SubscriptionDispatcher dispatcher = subscriptionDispatcher;
             try {

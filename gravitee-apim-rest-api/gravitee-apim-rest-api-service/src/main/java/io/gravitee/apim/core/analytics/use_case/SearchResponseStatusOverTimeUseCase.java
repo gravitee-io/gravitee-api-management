@@ -45,15 +45,9 @@ public class SearchResponseStatusOverTimeUseCase {
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(input.from(), input.to());
 
         var result = analyticsQueryService.searchResponseStatusOvertime(
-            executionContext,
-            new AnalyticsQueryService.ResponseStatusOverTimeQuery(
-                List.of(api.getId()),
-                input.from(),
-                input.to(),
-                interval,
-                List.of(api.getDefinitionVersion())
-            )
-        );
+                executionContext,
+                new AnalyticsQueryService.ResponseStatusOverTimeQuery(
+                        List.of(api.getId()), input.from(), input.to(), interval, List.of(api.getDefinitionVersion())));
 
         return new Output(result);
     }

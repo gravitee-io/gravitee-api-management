@@ -28,9 +28,9 @@ public class TypeIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("themes")
-            .name("t1")
-            .key("type", ascending())
-            .build();
+                .collection("themes")
+                .name("t1")
+                .key("type", ascending())
+                .build();
     }
 }

@@ -43,7 +43,8 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     private static final String UNKNOWN_APPLICATION = "Unknown";
 
-    private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY = HttpStatusCodeGroups.esBucketKeyToFriendlyGroupLabel();
+    private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY =
+            HttpStatusCodeGroups.esBucketKeyToFriendlyGroupLabel();
 
     private static final Map<String, String> HTTP_METHOD_BY_CODE = buildHttpMethodCodeMap();
 
@@ -60,42 +61,35 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
     private final ApplicationService applicationSearchService;
 
     @Override
-    public FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetsResponse response) {
-        var buckets = response
-            .metrics()
-            .stream()
-            .flatMap(r -> r.buckets().stream())
-            .toList();
+    public FacetsResponse mapBucketNames(
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetsResponse response) {
+        var buckets =
+                response.metrics().stream().flatMap(r -> r.buckets().stream()).toList();
 
         var updatedContext = populateNames(context, facets, buckets);
 
-        var mappedMetrics = response
-            .metrics()
-            .stream()
-            .map(metricsFacetResponse -> mapFacetMetrics(updatedContext, facets, metricsFacetResponse))
-            .toList();
+        var mappedMetrics = response.metrics().stream()
+                .map(metricsFacetResponse -> mapFacetMetrics(updatedContext, facets, metricsFacetResponse))
+                .toList();
 
         return new FacetsResponse(mappedMetrics);
     }
 
-    MetricFacetsResponse mapFacetMetrics(AnalyticsQueryContext context, List<FacetSpec.Name> facets, MetricFacetsResponse metric) {
+    MetricFacetsResponse mapFacetMetrics(
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, MetricFacetsResponse metric) {
         var mappedBuckets = this.mapFacetBuckets(context, facets, metric.buckets());
         return new MetricFacetsResponse(metric.metric(), metric.unit(), mappedBuckets, metric.ignoredFilters());
     }
 
     List<FacetBucketResponse> mapFacetBuckets(
-        AnalyticsQueryContext context,
-        List<FacetSpec.Name> facets,
-        List<FacetBucketResponse> buckets
-    ) {
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
         if (facets.isEmpty()) {
             return buckets;
         }
 
-        return buckets
-            .stream()
-            .map(bucket -> mapFacetBucket(context, facets, bucket))
-            .toList();
+        return buckets.stream()
+                .map(bucket -> mapFacetBucket(context, facets, bucket))
+                .toList();
     }
 
     Map<String, String> loadApplicationNames(Set<String> applicationIds) {
@@ -113,14 +107,18 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         var query = new ApplicationQuery();
         query.setIds(applicationIds);
 
-        var content = applicationSearchService.search(GraviteeContext.getExecutionContext(), query, null, null).getContent();
+        var content = applicationSearchService
+                .search(GraviteeContext.getExecutionContext(), query, null, null)
+                .getContent();
 
         return content.stream().collect(Collectors.toMap(ApplicationListItem::getId, ApplicationListItem::getName));
     }
 
-    FacetBucketResponse mapFacetBucket(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetBucketResponse bucket) {
+    FacetBucketResponse mapFacetBucket(
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetBucketResponse bucket) {
         var bucketName = switch (facets.getFirst()) {
-            case FacetSpec.Name.HTTP_STATUS_CODE_GROUP -> STATUS_CODE_GROUP_FROM_ES_KEY.getOrDefault(bucket.key(), bucket.key());
+            case FacetSpec.Name.HTTP_STATUS_CODE_GROUP ->
+                STATUS_CODE_GROUP_FROM_ES_KEY.getOrDefault(bucket.key(), bucket.key());
             case FacetSpec.Name.HTTP_METHOD -> HTTP_METHOD_BY_CODE.getOrDefault(bucket.key(), bucket.key());
             case FacetSpec.Name.HTTP_STATUS -> HttpStatusLabels.labelForCode(bucket.key());
             case FacetSpec.Name.API -> {
@@ -140,69 +138,52 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
     }
 
     @Override
-    public TimeSeriesResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response) {
-        var buckets = response
-            .metrics()
-            .stream()
-            .filter(timeSeriesMetricResponse -> timeSeriesMetricResponse.buckets() != null)
-            .flatMap(timeSeriesMetricResponse -> timeSeriesMetricResponse.buckets().stream())
-            .filter(timeSeriesBucketResponse -> timeSeriesBucketResponse.buckets() != null)
-            .flatMap(timeSeriesBucketResponse -> timeSeriesBucketResponse.buckets().stream())
-            .toList();
+    public TimeSeriesResponse mapBucketNames(
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response) {
+        var buckets = response.metrics().stream()
+                .filter(timeSeriesMetricResponse -> timeSeriesMetricResponse.buckets() != null)
+                .flatMap(timeSeriesMetricResponse -> timeSeriesMetricResponse.buckets().stream())
+                .filter(timeSeriesBucketResponse -> timeSeriesBucketResponse.buckets() != null)
+                .flatMap(timeSeriesBucketResponse -> timeSeriesBucketResponse.buckets().stream())
+                .toList();
 
         var updatedContext = populateNames(context, facets, buckets);
 
-        var mappedMetrics = response
-            .metrics()
-            .stream()
-            .map(metricsFacetResponse -> mapTimeSeriesMetrics(updatedContext, facets, metricsFacetResponse))
-            .toList();
+        var mappedMetrics = response.metrics().stream()
+                .map(metricsFacetResponse -> mapTimeSeriesMetrics(updatedContext, facets, metricsFacetResponse))
+                .toList();
 
         return new TimeSeriesResponse(mappedMetrics);
     }
 
     private TimeSeriesMetricResponse mapTimeSeriesMetrics(
-        AnalyticsQueryContext context,
-        List<FacetSpec.Name> facets,
-        TimeSeriesMetricResponse metric
-    ) {
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesMetricResponse metric) {
         var mappedBuckets = mapTimeSeriesBuckets(context, facets, metric.buckets());
         return new TimeSeriesMetricResponse(metric.name(), metric.unit(), mappedBuckets, metric.ignoredFilters());
     }
 
     private List<TimeSeriesBucketResponse> mapTimeSeriesBuckets(
-        AnalyticsQueryContext context,
-        List<FacetSpec.Name> filters,
-        List<TimeSeriesBucketResponse> buckets
-    ) {
+            AnalyticsQueryContext context, List<FacetSpec.Name> filters, List<TimeSeriesBucketResponse> buckets) {
         if (filters.isEmpty()) {
             return buckets;
         }
 
-        return buckets
-            .stream()
-            .map(bucket -> mapTimeSeriesBucket(context, filters, bucket))
-            .toList();
+        return buckets.stream()
+                .map(bucket -> mapTimeSeriesBucket(context, filters, bucket))
+                .toList();
     }
 
     private TimeSeriesBucketResponse mapTimeSeriesBucket(
-        AnalyticsQueryContext context,
-        List<FacetSpec.Name> facets,
-        TimeSeriesBucketResponse bucket
-    ) {
-        var updatedBuckets = bucket
-            .buckets()
-            .stream()
-            .map(b -> mapFacetBucket(context, facets, b))
-            .toList();
-        return new TimeSeriesBucketResponse(bucket.key(), bucket.name(), bucket.timestamp(), updatedBuckets, bucket.measures());
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesBucketResponse bucket) {
+        var updatedBuckets = bucket.buckets().stream()
+                .map(b -> mapFacetBucket(context, facets, b))
+                .toList();
+        return new TimeSeriesBucketResponse(
+                bucket.key(), bucket.name(), bucket.timestamp(), updatedBuckets, bucket.measures());
     }
 
     private AnalyticsQueryContext populateNames(
-        AnalyticsQueryContext context,
-        List<FacetSpec.Name> facets,
-        List<FacetBucketResponse> buckets
-    ) {
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
         var updatedContext = context;
 
         if (updatedContext.apiNamesById().isEmpty()) {
@@ -229,7 +210,8 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         return apis.stream().collect(Collectors.toMap(Api::getId, Api::getName));
     }
 
-    private Set<String> getIdsFromBuckets(FacetSpec.Name target, List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
+    private Set<String> getIdsFromBuckets(
+            FacetSpec.Name target, List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
         if (facets.isEmpty()) {
             return Set.of();
         }
@@ -239,13 +221,11 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         }
 
         return getIdsFromBuckets(
-            target,
-            facets.subList(1, facets.size()),
-            buckets
-                .stream()
-                .filter(b -> b.buckets() != null)
-                .flatMap(b -> b.buckets().stream())
-                .toList()
-        );
+                target,
+                facets.subList(1, facets.size()),
+                buckets.stream()
+                        .filter(b -> b.buckets() != null)
+                        .flatMap(b -> b.buckets().stream())
+                        .toList());
     }
 }

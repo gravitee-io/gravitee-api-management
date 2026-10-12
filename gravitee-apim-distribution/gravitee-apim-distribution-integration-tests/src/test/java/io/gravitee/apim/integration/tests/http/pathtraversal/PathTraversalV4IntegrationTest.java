@@ -72,25 +72,27 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+@DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json"})
 class PathTraversalV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
+                "api-key",
+                PolicyBuilder.build(
+                        "api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class));
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     /** Only beta carries a plan, so any bypass below is obtained with no credential at all. */
@@ -127,7 +129,8 @@ class PathTraversalV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    void should_reach_beta_backend_through_dot_segments_without_any_credential(HttpClient httpClient) throws InterruptedException {
+    void should_reach_beta_backend_through_dot_segments_without_any_credential(HttpClient httpClient)
+            throws InterruptedException {
         wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
         // Same resource as the call above, spelled so that the raw path still starts with alpha's
@@ -152,7 +155,8 @@ class PathTraversalV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    void should_forward_a_path_that_escapes_the_configured_endpoint_target(HttpClient httpClient) throws InterruptedException {
+    void should_forward_a_path_that_escapes_the_configured_endpoint_target(HttpClient httpClient)
+            throws InterruptedException {
         wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
         // Nothing to do with a second API: the emitted URI simply leaves the subtree of the target
@@ -162,18 +166,19 @@ class PathTraversalV4IntegrationTest extends AbstractGatewayTest {
         assertThat(singleUpstreamRequestUrl()).isEqualTo("/alpha/api/../../elsewhere/resource");
     }
 
-    private void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus) throws InterruptedException {
+    private void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus)
+            throws InterruptedException {
         httpClient
-            .rxRequest(HttpMethod.GET, rawPath)
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(expectedStatus);
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, rawPath)
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(expectedStatus);
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     /** The request line the gateway emitted upstream, verbatim. */

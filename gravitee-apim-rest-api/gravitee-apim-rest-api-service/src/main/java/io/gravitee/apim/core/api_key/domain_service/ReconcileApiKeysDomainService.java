@@ -23,7 +23,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.crd.ApiKeyCRDSpec;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -57,8 +56,8 @@ public class ReconcileApiKeysDomainService {
         }
 
         var existingByKey = apiKeyQueryService
-            .findBySubscription(subscription.getId())
-            .collect(Collectors.toMap(ApiKeyEntity::getKey, Function.identity(), (a, b) -> a));
+                .findBySubscription(subscription.getId())
+                .collect(Collectors.toMap(ApiKeyEntity::getKey, Function.identity(), (a, b) -> a));
 
         var desiredByKey = desiredKeys.stream().collect(Collectors.toMap(ApiKeyCRDSpec::getKey, Function.identity()));
 
@@ -85,7 +84,8 @@ public class ReconcileApiKeysDomainService {
         log.debug("Creating API key [{}] for subscription [{}]", desired.getKey(), subscription.getId());
         var created = generateApiKeyDomainService.generate(subscription, auditInfo, desired.getKey());
         if (desired.getExpireAt() != null) {
-            apiKeyCrudService.update(created.toBuilder().expireAt(desired.getExpireAt()).build());
+            apiKeyCrudService.update(
+                    created.toBuilder().expireAt(desired.getExpireAt()).build());
         }
     }
 
@@ -93,7 +93,8 @@ public class ReconcileApiKeysDomainService {
         log.debug("Reactivating revoked API key [{}]", existing.getKey());
         var reactivated = existing.reactivate();
         if (desired.getExpireAt() != null) {
-            reactivated = reactivated.toBuilder().expireAt(desired.getExpireAt()).build();
+            reactivated =
+                    reactivated.toBuilder().expireAt(desired.getExpireAt()).build();
         }
         apiKeyCrudService.update(reactivated);
     }
@@ -101,7 +102,8 @@ public class ReconcileApiKeysDomainService {
     private void updateExpiryIfChanged(ApiKeyEntity existing, ApiKeyCRDSpec desired) {
         if (!Objects.equals(desired.getExpireAt(), existing.getExpireAt())) {
             log.debug("Updating expireAt for API key [{}]", existing.getKey());
-            apiKeyCrudService.update(existing.toBuilder().expireAt(desired.getExpireAt()).build());
+            apiKeyCrudService.update(
+                    existing.toBuilder().expireAt(desired.getExpireAt()).build());
         }
     }
 }

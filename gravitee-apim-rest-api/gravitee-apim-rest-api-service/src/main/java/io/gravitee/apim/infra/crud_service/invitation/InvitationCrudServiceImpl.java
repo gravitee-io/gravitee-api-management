@@ -43,8 +43,7 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     public ApplicationInvitation create(ApplicationInvitation invitation) {
         try {
             return InvitationAdapter.INSTANCE.toApplicationInvitation(
-                invitationRepository.create(InvitationAdapter.INSTANCE.toRepository(invitation))
-            );
+                    invitationRepository.create(InvitationAdapter.INSTANCE.toRepository(invitation)));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to create application invitation", e);
         }
@@ -54,8 +53,7 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     public ApplicationInvitation update(ApplicationInvitation invitation) {
         try {
             return InvitationAdapter.INSTANCE.toApplicationInvitation(
-                invitationRepository.update(InvitationAdapter.INSTANCE.toRepository(invitation))
-            );
+                    invitationRepository.update(InvitationAdapter.INSTANCE.toRepository(invitation)));
         } catch (TechnicalException | IllegalStateException e) {
             throw new TechnicalDomainException("An error occurs while trying to update application invitation", e);
         }
@@ -65,9 +63,10 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     public Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
         try {
             return invitationRepository
-                .findById(invitationId.toString())
-                .filter(invitation -> InvitationReferenceType.APPLICATION.name().equals(invitation.getReferenceType()))
-                .map(InvitationAdapter.INSTANCE::toApplicationInvitation);
+                    .findById(invitationId.toString())
+                    .filter(invitation ->
+                            InvitationReferenceType.APPLICATION.name().equals(invitation.getReferenceType()))
+                    .map(InvitationAdapter.INSTANCE::toApplicationInvitation);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find application invitation by id", e);
         }
@@ -76,7 +75,9 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     @Override
     public List<Invitation> findByEmail(String email) {
         try {
-            return invitationRepository.findByEmail(email).stream().map(InvitationAdapter.INSTANCE::toEntity).toList();
+            return invitationRepository.findByEmail(email).stream()
+                    .map(InvitationAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find invitations by email", e);
         }

@@ -53,14 +53,12 @@ public class Tag {
         if (this == o) return true;
         if (!(o instanceof Tag)) return false;
         Tag tag = (Tag) o;
-        return (
-            Objects.equals(id, tag.id) &&
-            Objects.equals(key, tag.key) &&
-            Objects.equals(name, tag.name) &&
-            Objects.equals(description, tag.description) &&
-            Objects.equals(referenceId, tag.referenceId) &&
-            Objects.equals(referenceType, tag.referenceType)
-        );
+        return (Objects.equals(id, tag.id)
+                && Objects.equals(key, tag.key)
+                && Objects.equals(name, tag.name)
+                && Objects.equals(description, tag.description)
+                && Objects.equals(referenceId, tag.referenceId)
+                && Objects.equals(referenceType, tag.referenceType));
     }
 
     @Override
@@ -70,29 +68,26 @@ public class Tag {
 
     @Override
     public String toString() {
-        return (
-            "Tag{" +
-            "id='" +
-            id +
-            '\'' +
-            ", key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", restrictedGroups=" +
-            restrictedGroups +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            '}'
-        );
+        return ("Tag{" + "id='"
+                + id
+                + '\''
+                + ", key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", restrictedGroups="
+                + restrictedGroups
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + '}');
     }
 }

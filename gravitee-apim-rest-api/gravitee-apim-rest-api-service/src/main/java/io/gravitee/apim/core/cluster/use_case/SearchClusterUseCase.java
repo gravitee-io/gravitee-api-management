@@ -43,22 +43,20 @@ public class SearchClusterUseCase {
 
     @Builder
     public record Input(
-        String environmentId,
-        ClusterType type,
-        List<String> lifecycleStates,
-        String query,
-        Pageable pageable,
-        String sortBy,
-        boolean isAdmin,
-        String userId
-    ) {}
+            String environmentId,
+            ClusterType type,
+            List<String> lifecycleStates,
+            String query,
+            Pageable pageable,
+            String sortBy,
+            boolean isAdmin,
+            String userId) {}
 
     public record Output(Page<Cluster> pageResult) {}
 
     public Output execute(Input input) {
-        ClusterSearchCriteria.ClusterSearchCriteriaBuilder criteriaBuilder = ClusterSearchCriteria.builder().environmentId(
-            input.environmentId
-        );
+        ClusterSearchCriteria.ClusterSearchCriteriaBuilder criteriaBuilder =
+                ClusterSearchCriteria.builder().environmentId(input.environmentId);
 
         if (!input.isAdmin) {
             var clustersIdsUserCanRead = membershipQueryService.findClustersIdsThatUserBelongsTo(input.userId);
@@ -83,13 +81,10 @@ public class SearchClusterUseCase {
 
         var pageable = Optional.ofNullable(input.pageable).orElse(new PageableImpl(1, 10));
 
-        return new SearchClusterUseCase.Output(
-            clusterQueryService
+        return new SearchClusterUseCase.Output(clusterQueryService
                 .search(criteriaBuilder.build(), pageable, generateSortable(input.sortBy))
-                .map(cluster ->
-                    clusterConfigurationAccessDomainService.visibleInListTo(cluster, cluster.getOrganizationId(), input.userId())
-                )
-        );
+                .map(cluster -> clusterConfigurationAccessDomainService.visibleInListTo(
+                        cluster, cluster.getOrganizationId(), input.userId())));
     }
 
     private Optional<Sortable> generateSortable(String sortBy) {

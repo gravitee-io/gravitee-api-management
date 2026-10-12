@@ -72,7 +72,10 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(user.getEmail(), userFound.getEmail(), "Invalid saved user mail.");
         assertEquals(user.getStatus(), userFound.getStatus(), "Invalid saved user status.");
         assertEquals(user.getLoginCount(), userFound.getLoginCount(), "Invalid saved user login count.");
-        assertEquals(user.getFirstConnectionAt(), userFound.getFirstConnectionAt(), "Invalid saved user first connection at.");
+        assertEquals(
+                user.getFirstConnectionAt(),
+                userFound.getFirstConnectionAt(),
+                "Invalid saved user first connection at.");
         assertEquals(user.getNewsletterSubscribed(), false, "Invalid saved user newsletter.");
     }
 
@@ -95,10 +98,9 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<User> optional = userRepository.findById("user-idp-claims");
         assertTrue(optional.isPresent(), "Unable to find saved user");
         assertEquals(
-            Map.of("org_id", "org_acme_12345", "https://acme.example/org", "org_ns"),
-            optional.get().getIdpClaims(),
-            "Invalid saved idp claims."
-        );
+                Map.of("org_id", "org_acme_12345", "https://acme.example/org", "org_ns"),
+                optional.get().getIdpClaims(),
+                "Invalid saved idp claims.");
 
         // The claims must also survive an update (refreshed on each login, not dropped)
         final User toUpdate = optional.get();
@@ -136,7 +138,10 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
         Optional<User> optional = userRepository.findById("user-registration-origin");
         assertTrue(optional.isPresent(), "Unable to find saved user");
-        assertEquals(RegistrationOrigin.PORTAL, optional.get().getRegistrationOrigin(), "Invalid saved registration origin.");
+        assertEquals(
+                RegistrationOrigin.PORTAL,
+                optional.get().getRegistrationOrigin(),
+                "Invalid saved registration origin.");
 
         final User toUpdate = optional.get();
         toUpdate.setRegistrationOrigin(RegistrationOrigin.GAMMA);
@@ -144,7 +149,10 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
         Optional<User> updated = userRepository.findById("user-registration-origin");
         assertTrue(updated.isPresent(), "Unable to find updated user");
-        assertEquals(RegistrationOrigin.GAMMA, updated.get().getRegistrationOrigin(), "Invalid updated registration origin.");
+        assertEquals(
+                RegistrationOrigin.GAMMA,
+                updated.get().getRegistrationOrigin(),
+                "Invalid updated registration origin.");
     }
 
     @Test
@@ -210,12 +218,22 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         user.setFirstConnectionAt(new Date(1439052010883L));
 
         long nbUsersBeforeUpdate = userRepository
-            .search(null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getTotalElements();
+                .search(
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getTotalElements();
         userRepository.update(user);
         long nbUsersAfterUpdate = userRepository
-            .search(null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getTotalElements();
+                .search(
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getTotalElements();
 
         assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
 
@@ -233,21 +251,28 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("pictureUpdated", userUpdated.getPicture(), "Invalid saved picture");
         assertTrue(compareDate(new Date(1439032010883L), userUpdated.getCreatedAt()), "Invalid saved createDate");
         assertTrue(compareDate(new Date(1439042010883L), userUpdated.getUpdatedAt()), "Invalid saved updateDate");
-        assertTrue(compareDate(new Date(1439052010883L), userUpdated.getLastConnectionAt()), "Invalid saved lastConnection");
+        assertTrue(
+                compareDate(new Date(1439052010883L), userUpdated.getLastConnectionAt()),
+                "Invalid saved lastConnection");
         assertEquals(UserStatus.ARCHIVED, userUpdated.getStatus(), "Invalid status");
         assertEquals(123, userUpdated.getLoginCount(), "Invalid saved user login count.");
         assertEquals(true, userUpdated.getNewsletterSubscribed(), "Invalid saved user newsletter subscribed");
-        assertEquals(user.getFirstConnectionAt(), userUpdated.getFirstConnectionAt(), "Invalid saved user first connection at.");
+        assertEquals(
+                user.getFirstConnectionAt(),
+                userUpdated.getFirstConnectionAt(),
+                "Invalid saved user first connection at.");
     }
 
     @Test
     public void shouldSearchAllWithEnvironment() throws Exception {
         List<User> users = userRepository
-            .search(
-                new UserCriteria.Builder().organizationId("DEFAULT").build(),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getContent();
+                .search(
+                        new UserCriteria.Builder().organizationId("DEFAULT").build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertNotNull(users);
         assertEquals(1, users.size(), "Invalid user numbers in search");
@@ -257,8 +282,13 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchAllWithNullCriteria() throws Exception {
         List<User> users = userRepository
-            .search(null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertNotNull(users);
         assertEquals(11, users.size(), "Invalid user numbers in search");
@@ -278,18 +308,25 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchAllWithEmptyCriteria() throws Exception {
         List<User> users = userRepository
-            .search(new UserCriteria.Builder().build(), new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        new UserCriteria.Builder().build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
     }
 
     @Test
     public void shouldSearchArchivedUsers() throws Exception {
         List<User> users = userRepository
-            .search(
-                new UserCriteria.Builder().statuses(UserStatus.ARCHIVED).build(),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getContent();
+                .search(
+                        new UserCriteria.Builder().statuses(UserStatus.ARCHIVED).build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         Assertions.assertNotNull(users);
         assertEquals(1, users.size(), "Invalid user numbers in find archived");
@@ -315,15 +352,21 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findUserBySourceSpecialCharacters() throws Exception {
-        Optional<User> user = userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me [IT] & others", "DEV");
+        Optional<User> user =
+                userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me [IT] & others", "DEV");
         assertTrue(user.isPresent());
     }
 
     @Test
     public void shouldSearchUsersWithNoStatus() throws Exception {
         List<User> users = userRepository
-            .search(new UserCriteria.Builder().noStatus().build(), new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        new UserCriteria.Builder().noStatus().build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         Assertions.assertNotNull(users);
         assertEquals(1, users.size(), "Invalid user numbers in find no status");
@@ -332,11 +375,13 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchActiveUsers() throws Exception {
         List<User> users = userRepository
-            .search(
-                new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getContent();
+                .search(
+                        new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         Assertions.assertNotNull(users);
         assertEquals(9, users.size(), "Invalid user numbers in find active");
@@ -393,21 +438,25 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_delete_by_organization_id() throws Exception {
         Page<User> usersBeforeDelete = userRepository.search(
-            new UserCriteria.Builder().organizationId("ToBeDeleted").build(),
-            new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-        );
+                new UserCriteria.Builder().organizationId("ToBeDeleted").build(),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build());
 
         List<String> deleted = userRepository.deleteByOrganizationId("ToBeDeleted");
 
         long nbUsersAfterDelete = userRepository
-            .search(
-                new UserCriteria.Builder().organizationId("ToBeDeleted").build(),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getTotalElements();
+                .search(
+                        new UserCriteria.Builder().organizationId("ToBeDeleted").build(),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getTotalElements();
         assertEquals(usersBeforeDelete.getTotalElements(), deleted.size());
         assertEquals(usersBeforeDelete.getContent().size(), deleted.size());
-        assertTrue(usersBeforeDelete.getContent().stream().map(User::getId).toList().containsAll(deleted));
+        assertTrue(usersBeforeDelete.getContent().stream()
+                .map(User::getId)
+                .toList()
+                .containsAll(deleted));
         assertEquals(0, nbUsersAfterDelete);
     }
 

@@ -71,7 +71,10 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -105,7 +108,8 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
         var section = PortalNavigationItemFixtures.aFolder("APIs");
         section.setEnvironmentId(ENVIRONMENT);
         section.markAsRoot();
-        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
+        var listing = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
         listing.setEnvironmentId(ENVIRONMENT);
         listing.updateParent(section);
         portalNavigationItemCrudService.initWith(List.of(page, sibling, section, listing));
@@ -124,7 +128,8 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
         var page = aPageOwnedBy(API_ID, "Overview", 1);
         portalNavigationItemCrudService.initWith(List.of(folder, page));
 
-        Response response = put(page.getId(), anUpdateOf(page).parentId(folder.getId().id()).order(0));
+        Response response =
+                put(page.getId(), anUpdateOf(page).parentId(folder.getId().id()).order(0));
 
         assertThat(response).hasStatus(OK_200);
         assertThat(stored(page.getId()).getParentId()).isEqualTo(folder.getId());
@@ -169,7 +174,8 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
         var page = aPageOwnedBy(API_ID, "Overview", 0);
         portalNavigationItemCrudService.initWith(List.of(foreignFolder, page));
 
-        Response response = put(page.getId(), anUpdateOf(page).parentId(foreignFolder.getId().id()));
+        Response response = put(
+                page.getId(), anUpdateOf(page).parentId(foreignFolder.getId().id()));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
         assertThat(stored(page.getId()).getParentId()).isNull();
@@ -183,7 +189,8 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
         var page = aPageOwnedBy(API_ID, "Overview", 0);
         portalNavigationItemCrudService.initWith(List.of(section, page));
 
-        Response response = put(page.getId(), anUpdateOf(page).parentId(section.getId().id()));
+        Response response =
+                put(page.getId(), anUpdateOf(page).parentId(section.getId().id()));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
         assertThat(stored(page.getId()).getParentId()).isNull();
@@ -194,17 +201,18 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
         var section = PortalNavigationItemFixtures.aFolder("APIs");
         section.setEnvironmentId(ENVIRONMENT);
         section.markAsRoot();
-        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
+        var listing = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
         listing.setEnvironmentId(ENVIRONMENT);
         listing.updateParent(section);
         portalNavigationItemCrudService.initWith(List.of(section, listing));
         var update = new UpdatePortalNavigationPage()
-            .type(PortalNavigationItemType.PAGE)
-            .title("My API")
-            .order(0)
-            .parentId(section.getId().id())
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC);
+                .type(PortalNavigationItemType.PAGE)
+                .title("My API")
+                .order(0)
+                .parentId(section.getId().id())
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC);
 
         Response response = put(listing.getId(), update);
 
@@ -216,14 +224,12 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
     void should_return_403_with_environment_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID, "Overview", 0);
         portalNavigationItemCrudService.initWith(List.of(page));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         Response response = put(page.getId(), anUpdateOf(page).title("Introduction"));
 
@@ -236,14 +242,12 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
         var page = aPageOwnedBy(API_ID, "Overview", 0);
         portalNavigationItemCrudService.initWith(List.of(page));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
 
         Response response = put(page.getId(), anUpdateOf(page).title("Introduction"));
 
@@ -255,42 +259,40 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
     }
 
     private PortalNavigationItem stored(PortalNavigationItemId id) {
-        return portalNavigationItemCrudService
-            .storage()
-            .stream()
-            .filter(item -> item.getId().equals(id))
-            .findFirst()
-            .orElseThrow();
+        return portalNavigationItemCrudService.storage().stream()
+                .filter(item -> item.getId().equals(id))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static BaseUpdatePortalNavigationItem anUpdateOf(PortalNavigationPage page) {
         return new UpdatePortalNavigationPage()
-            .type(PortalNavigationItemType.PAGE)
-            .title(page.getTitle())
-            .order(page.getOrder())
-            .published(page.getPublished())
-            .visibility(PortalVisibility.PUBLIC);
+                .type(PortalNavigationItemType.PAGE)
+                .title(page.getTitle())
+                .order(page.getOrder())
+                .published(page.getPublished())
+                .visibility(PortalVisibility.PUBLIC);
     }
 
     private static PortalNavigationPage aPageOwnedBy(String apiId, String title, int order) {
-        var page = PortalNavigationItemFixtures.aPage(title, null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .order(order)
-            .published(false)
-            .build();
+        var page = PortalNavigationItemFixtures.aPage(title, null).toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .order(order)
+                .published(false)
+                .build();
         page.setEnvironmentId(ENVIRONMENT);
         page.markAsRoot();
         return page;
     }
 
     private static PortalNavigationFolder aFolderOwnedBy(String apiId) {
-        var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .order(0)
-            .published(false)
-            .build();
+        var folder = PortalNavigationItemFixtures.aFolder(
+                        PortalNavigationItemId.random().json(), "Guides")
+                .toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .order(0)
+                .published(false)
+                .build();
         folder.setEnvironmentId(ENVIRONMENT);
         folder.markAsRoot();
         return folder;

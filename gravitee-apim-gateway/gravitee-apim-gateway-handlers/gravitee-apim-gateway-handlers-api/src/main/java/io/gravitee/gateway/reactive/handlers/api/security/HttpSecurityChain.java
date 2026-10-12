@@ -44,26 +44,19 @@ import java.util.stream.Collectors;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpSecurityChain
-    extends AbstractSecurityChain<HttpSecurityPlan, HttpPlainExecutionContext>
-    implements Hookable<SecurityPlanHook> {
+public class HttpSecurityChain extends AbstractSecurityChain<HttpSecurityPlan, HttpPlainExecutionContext>
+        implements Hookable<SecurityPlanHook> {
 
     private final ExecutionPhase executionPhase;
 
     private List<SecurityPlanHook> securityPlanHooks;
 
     public HttpSecurityChain(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
-        super(
-            Flowable.fromIterable(
-                api
-                    .getPlans()
-                    .stream()
-                    .map(plan -> HttpSecurityPlanFactory.forPlan(plan, policyManager))
-                    .filter(Objects::nonNull)
-                    .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
-                    .collect(Collectors.toList())
-            )
-        );
+        super(Flowable.fromIterable(api.getPlans().stream()
+                .map(plan -> HttpSecurityPlanFactory.forPlan(plan, policyManager))
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
+                .collect(Collectors.toList())));
         this.executionPhase = executionPhase;
     }
 
@@ -80,12 +73,12 @@ public class HttpSecurityChain
     @Override
     protected Single<Boolean> executePlan(HttpSecurityPlan httpSecurityPlan, HttpPlainExecutionContext ctx) {
         return HookHelper.hook(
-            () -> httpSecurityPlan.execute(ctx, executionPhase),
-            httpSecurityPlan.id(),
-            securityPlanHooks,
-            (HttpExecutionContext) ctx,
-            executionPhase
-        ).andThen(TRUE);
+                        () -> httpSecurityPlan.execute(ctx, executionPhase),
+                        httpSecurityPlan.id(),
+                        securityPlanHooks,
+                        (HttpExecutionContext) ctx,
+                        executionPhase)
+                .andThen(TRUE);
     }
 
     @Override

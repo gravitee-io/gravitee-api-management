@@ -98,7 +98,8 @@ public class SynchronizationServiceTest {
         entityToDeploy.setServices(new Services());
         entityToDeploy.setEntrypoints(new ArrayList<>());
 
-        boolean isSynchronized = synchronizationService.checkSynchronization(ApiEntity.class, deployedEntity, entityToDeploy);
+        boolean isSynchronized =
+                synchronizationService.checkSynchronization(ApiEntity.class, deployedEntity, entityToDeploy);
 
         assertThat(isSynchronized).isTrue();
     }
@@ -132,7 +133,8 @@ public class SynchronizationServiceTest {
         entityToDeploy.setEntrypoints(null);
         entityToDeploy.setId("2");
 
-        boolean isSynchronized = synchronizationService.checkSynchronization(ApiEntity.class, deployedEntity, entityToDeploy);
+        boolean isSynchronized =
+                synchronizationService.checkSynchronization(ApiEntity.class, deployedEntity, entityToDeploy);
 
         assertThat(isSynchronized).isFalse();
     }
@@ -162,6 +164,7 @@ public class SynchronizationServiceTest {
 
         SynchronizationService synchronizationServiceWithMock = new SynchronizationService(objectMapperMock);
 
-        assertThat(synchronizationServiceWithMock.checkSynchronization(null, null, null)).isFalse();
+        assertThat(synchronizationServiceWithMock.checkSynchronization(null, null, null))
+                .isFalse();
     }
 }

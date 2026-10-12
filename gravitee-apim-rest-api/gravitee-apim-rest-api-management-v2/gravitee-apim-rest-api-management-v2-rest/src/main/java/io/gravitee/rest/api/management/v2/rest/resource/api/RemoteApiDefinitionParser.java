@@ -38,7 +38,8 @@ import lombok.CustomLog;
 @CustomLog
 public class RemoteApiDefinitionParser {
 
-    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+    private static final Validator VALIDATOR =
+            Validation.buildDefaultValidatorFactory().getValidator();
 
     private final ObjectMapper objectMapper;
 

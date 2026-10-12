@@ -107,8 +107,8 @@ public class PlanHelper {
 
     public static String generateJWT(long secondsToAdd, Map<String, Object> customClaims) throws Exception {
         JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder()
-            .claim("client_id", JWT_CLIENT_ID)
-            .expirationTime(Date.from(Instant.now().plusSeconds(secondsToAdd)));
+                .claim("client_id", JWT_CLIENT_ID)
+                .expirationTime(Date.from(Instant.now().plusSeconds(secondsToAdd)));
 
         if (customClaims != null) {
             customClaims.forEach(jwtClaimsSetBuilder::claim);
@@ -206,23 +206,23 @@ public class PlanHelper {
         List<io.gravitee.definition.model.v4.plan.Plan> plans = new ArrayList<>();
         if (planIds.contains("key-less")) {
             io.gravitee.definition.model.v4.plan.Plan keylessPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                .id(PLAN_KEYLESS_ID)
-                .name("plan-name")
-                .security(PlanSecurity.builder().type("key-less").build())
-                .status(PlanStatus.PUBLISHED)
-                .mode(PlanMode.STANDARD)
-                .build();
+                    .id(PLAN_KEYLESS_ID)
+                    .name("plan-name")
+                    .security(PlanSecurity.builder().type("key-less").build())
+                    .status(PlanStatus.PUBLISHED)
+                    .mode(PlanMode.STANDARD)
+                    .build();
             plans.add(keylessPlan);
         }
 
         if (planIds.contains("api-key")) {
             io.gravitee.definition.model.v4.plan.Plan apiKeyPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                .id(PLAN_APIKEY_ID)
-                .name("plan-apikey-name")
-                .security(PlanSecurity.builder().type("api-key").build())
-                .status(PlanStatus.PUBLISHED)
-                .mode(PlanMode.STANDARD)
-                .build();
+                    .id(PLAN_APIKEY_ID)
+                    .name("plan-apikey-name")
+                    .security(PlanSecurity.builder().type("api-key").build())
+                    .status(PlanStatus.PUBLISHED)
+                    .mode(PlanMode.STANDARD)
+                    .build();
             plans.add(apiKeyPlan);
         }
 
@@ -234,14 +234,15 @@ public class PlanHelper {
                 configuration.setPublicKeyResolver(GIVEN_KEY);
 
                 io.gravitee.definition.model.v4.plan.Plan jwtPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .id(PLAN_JWT_ID)
-                    .name("plan-jwt-name")
-                    .security(
-                        PlanSecurity.builder().type("jwt").configuration(new ObjectMapper().writeValueAsString(configuration)).build()
-                    )
-                    .status(PlanStatus.PUBLISHED)
-                    .mode(PlanMode.STANDARD)
-                    .build();
+                        .id(PLAN_JWT_ID)
+                        .name("plan-jwt-name")
+                        .security(PlanSecurity.builder()
+                                .type("jwt")
+                                .configuration(new ObjectMapper().writeValueAsString(configuration))
+                                .build())
+                        .status(PlanStatus.PUBLISHED)
+                        .mode(PlanMode.STANDARD)
+                        .build();
                 plans.add(jwtPlan);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to set JWT policy configuration", e);
@@ -257,14 +258,15 @@ public class PlanHelper {
                 configuration.setClientIdClaim("act.repository");
 
                 io.gravitee.definition.model.v4.plan.Plan jwtPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .id(PLAN_JWT_NESTED_ID)
-                    .name("plan-jwt-nested-name")
-                    .security(
-                        PlanSecurity.builder().type("jwt").configuration(new ObjectMapper().writeValueAsString(configuration)).build()
-                    )
-                    .status(PlanStatus.PUBLISHED)
-                    .mode(PlanMode.STANDARD)
-                    .build();
+                        .id(PLAN_JWT_NESTED_ID)
+                        .name("plan-jwt-nested-name")
+                        .security(PlanSecurity.builder()
+                                .type("jwt")
+                                .configuration(new ObjectMapper().writeValueAsString(configuration))
+                                .build())
+                        .status(PlanStatus.PUBLISHED)
+                        .mode(PlanMode.STANDARD)
+                        .build();
                 plans.add(jwtPlan);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to set JWT policy configuration", e);
@@ -273,20 +275,25 @@ public class PlanHelper {
 
         if (planIds.contains("oauth2")) {
             List<io.gravitee.definition.model.v4.resource.Resource> resources = new ArrayList<>();
-            resources.add(io.gravitee.definition.model.v4.resource.Resource.builder().name(RESOURCE_ID).type(RESOURCE_ID).build());
+            resources.add(io.gravitee.definition.model.v4.resource.Resource.builder()
+                    .name(RESOURCE_ID)
+                    .type(RESOURCE_ID)
+                    .build());
             api.setResources(resources);
             try {
                 OAuth2PolicyConfiguration configuration = new OAuth2PolicyConfiguration();
                 configuration.setOauthResource(RESOURCE_ID);
-                io.gravitee.definition.model.v4.plan.Plan oauth2Plan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .id(PLAN_OAUTH2_ID)
-                    .name("plan-oauth2-name")
-                    .security(
-                        PlanSecurity.builder().type("oauth2").configuration(new ObjectMapper().writeValueAsString(configuration)).build()
-                    )
-                    .status(PlanStatus.PUBLISHED)
-                    .mode(PlanMode.STANDARD)
-                    .build();
+                io.gravitee.definition.model.v4.plan.Plan oauth2Plan =
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
+                                .id(PLAN_OAUTH2_ID)
+                                .name("plan-oauth2-name")
+                                .security(PlanSecurity.builder()
+                                        .type("oauth2")
+                                        .configuration(new ObjectMapper().writeValueAsString(configuration))
+                                        .build())
+                                .status(PlanStatus.PUBLISHED)
+                                .mode(PlanMode.STANDARD)
+                                .build();
                 plans.add(oauth2Plan);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to set OAuth2 policy configuration", e);
@@ -295,12 +302,12 @@ public class PlanHelper {
 
         if (planIds.contains("mtls")) {
             io.gravitee.definition.model.v4.plan.Plan mtlsPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                .id(PLAN_MTLS_ID)
-                .name("plan-name")
-                .security(PlanSecurity.builder().type("mtls").build())
-                .status(PlanStatus.PUBLISHED)
-                .mode(PlanMode.STANDARD)
-                .build();
+                    .id(PLAN_MTLS_ID)
+                    .name("plan-name")
+                    .security(PlanSecurity.builder().type("mtls").build())
+                    .status(PlanStatus.PUBLISHED)
+                    .mode(PlanMode.STANDARD)
+                    .build();
             plans.add(mtlsPlan);
         }
         if (plans.isEmpty()) {
@@ -313,11 +320,9 @@ public class PlanHelper {
     public static void configureTrustedHttpClient(HttpClientOptions options, int gatewayPort, boolean withCert) {
         options.setSsl(true).setTrustAll(true).setDefaultPort(gatewayPort).setDefaultHost("localhost");
         if (withCert) {
-            options.setKeyCertOptions(
-                new PemKeyCertOptions()
+            options.setKeyCertOptions(new PemKeyCertOptions()
                     .addCertPath(getUrl("plans/mtls/client.cer").getPath())
-                    .addKeyPath(getUrl("plans/mtls/client.key").getPath())
-            );
+                    .addKeyPath(getUrl("plans/mtls/client.key").getPath()));
         }
     }
 

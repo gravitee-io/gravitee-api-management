@@ -28,14 +28,18 @@ import java.util.List;
  */
 public interface QualityRuleService {
     QualityRuleEntity create(
-        ExecutionContext executionContext,
-        NewQualityRuleEntity newEntity,
-        QualityRuleReferenceType referenceType,
-        String referenceId
-    );
+            ExecutionContext executionContext,
+            NewQualityRuleEntity newEntity,
+            QualityRuleReferenceType referenceType,
+            String referenceId);
+
     void delete(ExecutionContext executionContext, String id);
+
     QualityRuleEntity update(ExecutionContext executionContext, UpdateQualityRuleEntity updateEntity);
+
     QualityRuleEntity findByReferenceAndId(QualityRuleReferenceType referenceType, String referenceId, String id);
+
     List<QualityRuleEntity> findAll();
+
     List<QualityRuleEntity> findByReference(QualityRuleReferenceType referenceType, String referenceId);
 }

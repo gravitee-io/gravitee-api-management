@@ -77,60 +77,58 @@ public class JerseyClientBuilder {
         final String httpsProxyAuth = buildProxyAuth(environment, HTTPS_SCHEME);
 
         final List<String> proxyExcludeHosts = EnvironmentUtils.getPropertiesStartingWith(
-            (ConfigurableEnvironment) environment,
-            "httpClient.proxy.exclude-hosts"
-        )
-            .values()
-            .stream()
-            .map(String::valueOf)
-            .collect(Collectors.toList());
+                        (ConfigurableEnvironment) environment, "httpClient.proxy.exclude-hosts")
+                .values()
+                .stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList());
 
-        final ClientConfig clientConfig = new ClientConfig().connectorProvider(
-            new HttpUrlConnectorProvider().connectionFactory(url -> {
-                final String host = url.getHost();
-                final boolean excluded = proxyExcludeHosts
-                    .stream()
-                    .anyMatch(excludedHost -> {
+        final ClientConfig clientConfig = new ClientConfig()
+                .connectorProvider(new HttpUrlConnectorProvider().connectionFactory(url -> {
+                    final String host = url.getHost();
+                    final boolean excluded = proxyExcludeHosts.stream().anyMatch(excludedHost -> {
                         if (excludedHost.startsWith("*.")) {
-                            return host.endsWith(WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
+                            return host.endsWith(
+                                    WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
                         } else {
                             return host.equals(excludedHost);
                         }
                     });
 
-                if (excluded || (httpProxy == null && httpsProxy == null)) {
-                    return (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-                }
-
-                final HttpURLConnection uc;
-
-                if (url.getProtocol().equals(HTTPS_SCHEME) && httpsProxy != null) {
-                    uc = (HttpURLConnection) url.openConnection(httpsProxy);
-                    if (useSockProxy(environment, HTTPS_SCHEME)) {
-                        buildSockProxyAuth(environment, HTTPS_SCHEME);
-                    } else if (httpsProxyAuth != null) {
-                        uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpsProxyAuth);
+                    if (excluded || (httpProxy == null && httpsProxy == null)) {
+                        return (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
                     }
-                } else if (url.getProtocol().equals(HTTP_SCHEME) && httpProxy != null) {
-                    uc = (HttpURLConnection) url.openConnection(httpProxy);
-                    if (useSockProxy(environment, HTTP_SCHEME)) {
-                        buildSockProxyAuth(environment, HTTP_SCHEME);
-                    } else if (httpProxyAuth != null) {
-                        uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpProxyAuth);
-                    }
-                } else {
-                    uc = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-                }
 
-                return uc;
-            })
-        );
+                    final HttpURLConnection uc;
+
+                    if (url.getProtocol().equals(HTTPS_SCHEME) && httpsProxy != null) {
+                        uc = (HttpURLConnection) url.openConnection(httpsProxy);
+                        if (useSockProxy(environment, HTTPS_SCHEME)) {
+                            buildSockProxyAuth(environment, HTTPS_SCHEME);
+                        } else if (httpsProxyAuth != null) {
+                            uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpsProxyAuth);
+                        }
+                    } else if (url.getProtocol().equals(HTTP_SCHEME) && httpProxy != null) {
+                        uc = (HttpURLConnection) url.openConnection(httpProxy);
+                        if (useSockProxy(environment, HTTP_SCHEME)) {
+                            buildSockProxyAuth(environment, HTTP_SCHEME);
+                        } else if (httpProxyAuth != null) {
+                            uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpProxyAuth);
+                        }
+                    } else {
+                        uc = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+                    }
+
+                    return uc;
+                }));
 
         builder.withConfig(clientConfig);
     }
 
     private static boolean useSockProxy(Environment environment, String type) {
-        return environment.getProperty("httpClient.proxy.type", String.class, "HTTP").startsWith("SOCK");
+        return environment
+                .getProperty("httpClient.proxy.type", String.class, "HTTP")
+                .startsWith("SOCK");
     }
 
     private static Proxy buildProxy(Environment environment, String type) {
@@ -150,30 +148,31 @@ public class JerseyClientBuilder {
     }
 
     private static String buildProxyAuth(Environment environment, String type) {
-        final String proxyHttpUsername = environment.getProperty("httpClient.proxy." + type + ".username", String.class);
-        final String proxyHttpPassword = environment.getProperty("httpClient.proxy." + type + ".password", String.class);
+        final String proxyHttpUsername =
+                environment.getProperty("httpClient.proxy." + type + ".username", String.class);
+        final String proxyHttpPassword =
+                environment.getProperty("httpClient.proxy." + type + ".password", String.class);
 
         return proxyHttpUsername != null
-            ? new String(Base64.getEncoder().encode((proxyHttpUsername + ':' + proxyHttpPassword).getBytes()))
-            : null;
+                ? new String(Base64.getEncoder().encode((proxyHttpUsername + ':' + proxyHttpPassword).getBytes()))
+                : null;
     }
 
     private static void buildSockProxyAuth(Environment environment, String type) {
-        final String proxyHttpUsername = environment.getProperty("httpClient.proxy." + type + ".username", String.class);
-        final String proxyHttpPassword = environment.getProperty("httpClient.proxy." + type + ".password", String.class);
+        final String proxyHttpUsername =
+                environment.getProperty("httpClient.proxy." + type + ".username", String.class);
+        final String proxyHttpPassword =
+                environment.getProperty("httpClient.proxy." + type + ".password", String.class);
 
         if (proxyHttpUsername != null) {
-            Authenticator.setDefault(
-                new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(
+            Authenticator.setDefault(new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(
                             proxyHttpUsername,
-                            proxyHttpPassword != null ? proxyHttpPassword.toCharArray() : new char[0]
-                        );
-                    }
+                            proxyHttpPassword != null ? proxyHttpPassword.toCharArray() : new char[0]);
                 }
-            );
+            });
         }
     }
 }

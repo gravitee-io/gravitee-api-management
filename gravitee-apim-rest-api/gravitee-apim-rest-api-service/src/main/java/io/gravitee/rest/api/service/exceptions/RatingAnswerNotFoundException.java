@@ -40,14 +40,11 @@ public class RatingAnswerNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return (
-            "Answer [" +
-            answer +
-            "] cannot be found" +
-            (rating == null ? "" : " on rating [" + rating + "]") +
-            (rating != null && api != null ? " and" : "") +
-            (api == null ? "" : " on api [" + api + "]")
-        );
+        return ("Answer [" + answer
+                + "] cannot be found"
+                + (rating == null ? "" : " on rating [" + rating + "]")
+                + (rating != null && api != null ? " and" : "")
+                + (api == null ? "" : " on api [" + api + "]"));
     }
 
     @Override

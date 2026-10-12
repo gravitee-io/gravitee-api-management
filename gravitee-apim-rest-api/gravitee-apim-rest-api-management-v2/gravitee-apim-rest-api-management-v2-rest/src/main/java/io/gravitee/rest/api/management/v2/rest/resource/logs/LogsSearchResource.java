@@ -52,14 +52,11 @@ public class LogsSearchResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public SearchLogsResponse searchLogs(
-        @QueryParam(PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("1") @Min(1) int page,
-        @QueryParam(PER_PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("10") @Min(1) @Max(100) int perPage,
-        @Valid SearchLogsRequest request
-    ) {
+            @QueryParam(PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("1") @Min(1) int page,
+            @QueryParam(PER_PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("10") @Min(1) @Max(100) int perPage,
+            @Valid SearchLogsRequest request) {
         var input = new SearchEnvironmentLogsUseCase.Input(
-            getAuditInfo(),
-            LogsEngineMapper.INSTANCE.fromRequestEntity(request, page, perPage)
-        );
+                getAuditInfo(), LogsEngineMapper.INSTANCE.fromRequestEntity(request, page, perPage));
         var output = searchEnvironmentLogsUseCase.execute(input);
         SearchLogsResponse searchLogsResponse = LogsEngineMapper.INSTANCE.fromResponseModel(output.response());
 
@@ -98,11 +95,10 @@ public class LogsSearchResource extends AbstractResource {
         Pagination pagination = searchLogsResponse.getPagination();
 
         var paginationLinks = PaginationLinks.computePaginationLinks(
-            uriInfo.getRequestUri(),
-            uriInfo.getQueryParameters(),
-            pagination.getTotalCount(),
-            new PaginationParam(input.request().page(), input.request().perPage())
-        );
+                uriInfo.getRequestUri(),
+                uriInfo.getQueryParameters(),
+                pagination.getTotalCount(),
+                new PaginationParam(input.request().page(), input.request().perPage()));
 
         if (paginationLinks != null) {
             responseLinks.setFirst(paginationLinks.getFirst());

@@ -53,7 +53,8 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
         apiKeys.get(0).setId("apikey-1");
         apiKeys.get(1).setId("apikey-2");
 
-        when(apiKeyService.findByApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(apiKeys);
+        when(apiKeyService.findByApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+                .thenReturn(apiKeys);
 
         Response response = envTarget().request().get();
 
@@ -70,7 +71,8 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("my-api-key");
-        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class))).thenReturn(apiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class)))
+                .thenReturn(apiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
@@ -83,7 +85,8 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("my-api-key");
-        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class))).thenReturn(apiKey);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(ApplicationEntity.class)))
+                .thenReturn(apiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
@@ -94,7 +97,8 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
     private ApplicationEntity mockExistingApplication(ApiKeyMode apiKeyMode) {
         ApplicationEntity application = new ApplicationEntity();
         application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+                .thenReturn(application);
         return application;
     }
 }

@@ -35,10 +35,10 @@ public class DebugApiV2V2Test {
         final DebugApiV2 result = new DebugApiV2(EVENT_ID, debugApi);
 
         assertThat(result.getDefinition().getProxy().getVirtualHosts())
-            .hasSize(3)
-            .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path1"))
-            .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path2"))
-            .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path3"));
+                .hasSize(3)
+                .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path1"))
+                .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path2"))
+                .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path3"));
     }
 
     @Test

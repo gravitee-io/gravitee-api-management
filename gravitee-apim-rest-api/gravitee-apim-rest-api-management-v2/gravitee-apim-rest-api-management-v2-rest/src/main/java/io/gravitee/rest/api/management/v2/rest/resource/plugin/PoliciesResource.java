@@ -47,11 +47,11 @@ public class PoliciesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Set<PolicyPlugin> getPolicies() {
         String organizationId = GraviteeContext.getCurrentOrganization() != null
-            ? GraviteeContext.getCurrentOrganization()
-            : GraviteeContext.getDefaultOrganization();
-        return PolicyPluginMapper.INSTANCE.mapFromCore(
-            getPolicyPluginsUseCase.getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input(organizationId)).plugins()
-        );
+                ? GraviteeContext.getCurrentOrganization()
+                : GraviteeContext.getDefaultOrganization();
+        return PolicyPluginMapper.INSTANCE.mapFromCore(getPolicyPluginsUseCase
+                .getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input(organizationId))
+                .plugins());
     }
 
     @Path("/{policyId}")
@@ -65,10 +65,9 @@ public class PoliciesResource extends AbstractResource {
     @Path("/{policyId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
     public String getPolicySchema(
-        @PathParam("policyId") String policyId,
-        @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType,
-        @QueryParam("display") SchemaDisplayFormat display
-    ) {
+            @PathParam("policyId") String policyId,
+            @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType,
+            @QueryParam("display") SchemaDisplayFormat display) {
         // Check that the endpoint exists
         policyPluginService.findById(policyId);
         return policyPluginService.getSchema(policyId, apiProtocolType, display);
@@ -78,9 +77,7 @@ public class PoliciesResource extends AbstractResource {
     @Path("/{policyId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)
     public String getPolicyDocumentation(
-        @PathParam("policyId") String policyId,
-        @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType
-    ) {
+            @PathParam("policyId") String policyId, @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType) {
         // Check that the endpoint exists
         policyPluginService.findById(policyId);
 
@@ -95,9 +92,7 @@ public class PoliciesResource extends AbstractResource {
     @Path("/{policyId}/documentation-ext")
     @Produces(MediaType.APPLICATION_JSON)
     public PluginDocumentationEntity getPolicyDocumentationWithExtension(
-        @PathParam("policyId") String policyId,
-        @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType
-    ) {
+            @PathParam("policyId") String policyId, @QueryParam("apiProtocolType") ApiProtocolType apiProtocolType) {
         // Check that the endpoint exists
         policyPluginService.findById(policyId);
         return PluginDocumentationMapper.INSTANCE.map(policyPluginService.getDocumentation(policyId, apiProtocolType));

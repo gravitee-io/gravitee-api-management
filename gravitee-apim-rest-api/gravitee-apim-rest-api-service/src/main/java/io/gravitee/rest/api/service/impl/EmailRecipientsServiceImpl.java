@@ -47,37 +47,37 @@ public class EmailRecipientsServiceImpl implements EmailRecipientsService {
     private final UserService userService;
 
     @Override
-    public Set<String> processTemplatedRecipients(Collection<String> templatedRecipientsEmail, final Map<String, Object> templateData) {
-        return templatedRecipientsEmail
-            .stream()
-            .flatMap(splittableRecipientsStr ->
-                Arrays.stream(SPLIT_PATTERN.split(splittableRecipientsStr))
-                    .filter(not(String::isEmpty))
-                    .map(recipient -> {
-                        if (recipient.contains("$")) {
-                            try {
-                                return Optional.ofNullable(templateProcessor.processInlineTemplate(recipient, templateData));
-                            } catch (TemplateProcessorException e) {
-                                log.error("Error while processing template '{}' skipping this email", recipient, e);
-                                return Optional.<String>empty();
+    public Set<String> processTemplatedRecipients(
+            Collection<String> templatedRecipientsEmail, final Map<String, Object> templateData) {
+        return templatedRecipientsEmail.stream()
+                .flatMap(splittableRecipientsStr -> Arrays.stream(SPLIT_PATTERN.split(splittableRecipientsStr))
+                        .filter(not(String::isEmpty))
+                        .map(recipient -> {
+                            if (recipient.contains("$")) {
+                                try {
+                                    return Optional.ofNullable(
+                                            templateProcessor.processInlineTemplate(recipient, templateData));
+                                } catch (TemplateProcessorException e) {
+                                    log.error("Error while processing template '{}' skipping this email", recipient, e);
+                                    return Optional.<String>empty();
+                                }
                             }
-                        }
-                        return Optional.of(recipient);
-                    })
-            )
-            .flatMap(Optional::stream)
-            .filter(not(StringUtils::isEmpty))
-            .collect(Collectors.toSet());
+                            return Optional.of(recipient);
+                        }))
+                .flatMap(Optional::stream)
+                .filter(not(StringUtils::isEmpty))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<String> filterRegisteredUser(ExecutionContext executionContext, Collection<String> recipientsEmail) {
-        return recipientsEmail
-            .stream()
-            .filter(email -> {
-                List<UserEntity> users = userService.findByEmail(executionContext, email);
-                return CollectionUtils.isNotEmpty(users) && users.size() == 1 && users.getFirst().optedIn();
-            })
-            .collect(Collectors.toSet());
+        return recipientsEmail.stream()
+                .filter(email -> {
+                    List<UserEntity> users = userService.findByEmail(executionContext, email);
+                    return CollectionUtils.isNotEmpty(users)
+                            && users.size() == 1
+                            && users.getFirst().optedIn();
+                })
+                .collect(Collectors.toSet());
     }
 }

@@ -27,7 +27,11 @@ class ApiProductMapperTest {
 
     @Test
     void map_should_include_sharding_tags_in_rest_response() {
-        var coreProduct = ApiProduct.builder().id("product-1").name("aa").tags(Set.of("external", "internal")).build();
+        var coreProduct = ApiProduct.builder()
+                .id("product-1")
+                .name("aa")
+                .tags(Set.of("external", "internal"))
+                .build();
 
         var restProduct = apiProductMapper.map(coreProduct);
 

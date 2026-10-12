@@ -79,7 +79,10 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -102,10 +105,10 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
         Response response = fetch(page.getId());
 
         assertThat(response).hasStatus(OK_200);
-        var item = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage) response
-            .readEntity(FetchPortalNavigationItemResponse.class)
-            .getItem()
-            .getActualInstance();
+        var item = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage)
+                response.readEntity(FetchPortalNavigationItemResponse.class)
+                        .getItem()
+                        .getActualInstance();
         assertThat(item.getSource().getLastFetchedAt()).isNotNull();
         assertThat(item.getPublished()).isFalse();
         assertThat(stored(page.getId()).getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
@@ -151,14 +154,12 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
     @Test
     void should_return_403_with_environment_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID, aSource());
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         Response response = fetch(page.getId());
 
@@ -170,14 +171,12 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
     void should_succeed_with_api_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID, aSource());
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
 
         Response response = fetch(page.getId());
 
@@ -189,22 +188,19 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
     }
 
     private PortalNavigationItem stored(PortalNavigationItemId id) {
-        return portalNavigationItemCrudService
-            .storage()
-            .stream()
-            .filter(item -> item.getId().equals(id))
-            .findFirst()
-            .orElseThrow();
+        return portalNavigationItemCrudService.storage().stream()
+                .filter(item -> item.getId().equals(id))
+                .findFirst()
+                .orElseThrow();
     }
 
     private String storedContentOf(PortalNavigationPage page) {
-        return portalPageContentCrudService
-            .storage()
-            .stream()
-            .filter(content -> content.getId().equals(page.getPortalPageContentId()))
-            .findFirst()
-            .map(content -> ((GraviteeMarkdownPageContent) content).getContent().value())
-            .orElseThrow();
+        return portalPageContentCrudService.storage().stream()
+                .filter(content -> content.getId().equals(page.getPortalPageContentId()))
+                .findFirst()
+                .map(content ->
+                        ((GraviteeMarkdownPageContent) content).getContent().value())
+                .orElseThrow();
     }
 
     private PortalNavigationPage aPageOwnedBy(String apiId, PortalNavigationItemSource source) {
@@ -218,27 +214,27 @@ class ApiDocumentationNavigationItemResource_FetchTest extends AbstractResourceT
         portalPageContentQueryService.storage().add(content);
 
         var page = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .title("Sourced Page")
-            .segment("sourced-page")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(content.getId())
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(reference)
-            .source(source)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .title("Sourced Page")
+                .segment("sourced-page")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(content.getId())
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(reference)
+                .source(source)
+                .build();
         portalNavigationItemCrudService.create(page);
         return page;
     }
 
     private static PortalNavigationItemSource aSource() {
         return PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
-            .build();
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                .build();
     }
 }

@@ -19,4 +19,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(name = "ValidateCertificateRequest", description = "Request to validate a PEM-encoded client certificate")
-public record ValidateCertificateRequest(@NotNull @Schema(description = "The certificate in PEM format to validate.") String certificate) {}
+public record ValidateCertificateRequest(
+        @NotNull @Schema(description = "The certificate in PEM format to validate.")
+        String certificate) {}

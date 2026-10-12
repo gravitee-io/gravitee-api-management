@@ -42,7 +42,8 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
     private final ValidatePageAccessControlsDomainService accessControlsValidator;
     private final DocumentationValidationDomainService validationDomainService;
 
-    public record Input(AuditInfo auditInfo, String apiId, String apiHrid, Map<String, PageCRD> pages) implements Validator.Input {
+    public record Input(AuditInfo auditInfo, String apiId, String apiHrid, Map<String, PageCRD> pages)
+            implements Validator.Input {
         ValidatePagesDomainService.Input sanitized(Map<String, PageCRD> sanitizedPages) {
             return new ValidatePagesDomainService.Input(auditInfo, apiId, apiHrid, sanitizedPages);
         }
@@ -66,19 +67,17 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                 page.setHrid(key);
 
                 pageSourceValidator
-                    .validateAndSanitize(new ValidatePageSourceDomainService.Input(key, page.getSource()))
-                    .peek(sanitized -> page.setSource(sanitized.source()), errors::addAll);
+                        .validateAndSanitize(new ValidatePageSourceDomainService.Input(key, page.getSource()))
+                        .peek(sanitized -> page.setSource(sanitized.source()), errors::addAll);
 
                 accessControlsValidator
-                    .validateAndSanitize(new ValidatePageAccessControlsDomainService.Input(input.auditInfo, page.getAccessControls()))
-                    .peek(sanitized -> page.setAccessControls(sanitized.accessControls()), errors::addAll);
+                        .validateAndSanitize(new ValidatePageAccessControlsDomainService.Input(
+                                input.auditInfo, page.getAccessControls()))
+                        .peek(sanitized -> page.setAccessControls(sanitized.accessControls()), errors::addAll);
 
                 if (errors.stream().noneMatch(Error::isSevere)) {
                     Page sanitizedPage = validationDomainService.validateAndSanitizeForUpdate(
-                        page,
-                        input.auditInfo.organizationId(),
-                        false
-                    );
+                            page, input.auditInfo.organizationId(), false);
                     sanitizedPages.put(key, PageModelFactory.toCRDSpec(sanitizedPage));
                 }
 

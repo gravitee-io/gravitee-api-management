@@ -66,14 +66,11 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
     @Override
     public void register(IdentityProviderDefinition identityProviderPluginDefinition) {
         identityProviders.putIfAbsent(
-            identityProviderPluginDefinition.getIdentityProvider().type(),
-            identityProviderPluginDefinition.getIdentityProvider()
-        );
+                identityProviderPluginDefinition.getIdentityProvider().type(),
+                identityProviderPluginDefinition.getIdentityProvider());
 
         identityProviderPlugins.putIfAbsent(
-            identityProviderPluginDefinition.getIdentityProvider(),
-            identityProviderPluginDefinition.getPlugin()
-        );
+                identityProviderPluginDefinition.getIdentityProvider(), identityProviderPluginDefinition.getPlugin());
     }
 
     @Override
@@ -96,7 +93,10 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         IdentityProvider identityProvider = identityProviders.get(identityProviderType);
 
         if (identityProvider != null) {
-            return create(identityProviderPlugins.get(identityProvider), identityProvider.authenticationProvider(), properties);
+            return create(
+                    identityProviderPlugins.get(identityProvider),
+                    identityProvider.authenticationProvider(),
+                    properties);
         } else {
             log.error("No identity provider is registered for type {}", identityProviderType);
             throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
@@ -123,42 +123,46 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         try {
             T identityObj = createInstance(identityClass);
             final Import annImport = identityClass.getAnnotation(Import.class);
-            Set<Class<?>> configurations = (annImport != null) ? new HashSet<>(Arrays.asList(annImport.value())) : Collections.emptySet();
+            Set<Class<?>> configurations =
+                    (annImport != null) ? new HashSet<>(Arrays.asList(annImport.value())) : Collections.emptySet();
 
-            ApplicationContext idpApplicationContext = pluginContextFactory.create(
-                new AnnotationBasedPluginContextConfigurer(plugin) {
-                    @Override
-                    public Set<Class<?>> configurations() {
-                        return configurations;
-                    }
+            ApplicationContext idpApplicationContext =
+                    pluginContextFactory.create(new AnnotationBasedPluginContextConfigurer(plugin) {
+                        @Override
+                        public Set<Class<?>> configurations() {
+                            return configurations;
+                        }
 
-                    @Override
-                    public ConfigurableEnvironment environment() {
-                        return new StandardEnvironment() {
-                            @Override
-                            protected void customizePropertySources(MutablePropertySources propertySources) {
-                                propertySources.addFirst(new RelaxedPropertySource(plugin.id(), properties));
-                                super.customizePropertySources(propertySources);
+                        @Override
+                        public ConfigurableEnvironment environment() {
+                            return new StandardEnvironment() {
+                                @Override
+                                protected void customizePropertySources(MutablePropertySources propertySources) {
+                                    propertySources.addFirst(new RelaxedPropertySource(plugin.id(), properties));
+                                    super.customizePropertySources(propertySources);
 
-                                // add missing converters in this newly created environment
-                                // this syntax allows a property of any kind to be converted from a secret. eg. Secret +> String -> Double
-                                this.getConversionService().addConverterFactory(
-                                    new ConverterFactory<Secret, Object>() {
-                                        final ConversionService conversionService = DefaultConversionService.getSharedInstance();
+                                    // add missing converters in this newly created environment
+                                    // this syntax allows a property of any kind to be converted from a secret. eg.
+                                    // Secret +> String -> Double
+                                    this.getConversionService()
+                                            .addConverterFactory(new ConverterFactory<Secret, Object>() {
+                                                final ConversionService conversionService =
+                                                        DefaultConversionService.getSharedInstance();
 
-                                        @Nonnull
-                                        public <C> Converter<Secret, C> getConverter(@Nonnull Class<C> targetType) {
-                                            return source -> conversionService.convert(source.asString(), targetType);
-                                        }
-                                    }
-                                );
-                                // byte[] has to be created separately
-                                this.getConversionService().addConverter(Secret.class, String.class, Secret::asString);
-                            }
-                        };
-                    }
-                }
-            );
+                                                @Nonnull
+                                                public <C> Converter<Secret, C> getConverter(
+                                                        @Nonnull Class<C> targetType) {
+                                                    return source ->
+                                                            conversionService.convert(source.asString(), targetType);
+                                                }
+                                            });
+                                    // byte[] has to be created separately
+                                    this.getConversionService()
+                                            .addConverter(Secret.class, String.class, Secret::asString);
+                                }
+                            };
+                        }
+                    });
 
             idpApplicationContext.getAutowireCapableBeanFactory().autowireBean(identityObj);
 

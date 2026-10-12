@@ -45,11 +45,10 @@ class ApiProductPlanFlowResolver extends AbstractFlowResolver {
     private final ApiProductRegistry apiProductRegistry;
 
     ApiProductPlanFlowResolver(
-        Api api,
-        String environmentId,
-        ApiProductRegistry apiProductRegistry,
-        ConditionFilter<BaseExecutionContext, Flow> filter
-    ) {
+            Api api,
+            String environmentId,
+            ApiProductRegistry apiProductRegistry,
+            ConditionFilter<BaseExecutionContext, Flow> filter) {
         super(filter);
         this.api = api;
         this.environmentId = environmentId;
@@ -76,16 +75,14 @@ class ApiProductPlanFlowResolver extends AbstractFlowResolver {
     }
 
     private List<Flow> resolveFlows(String planId) {
-        return apiProductRegistry
-            .getApiProductPlanEntriesForApi(api.getId(), environmentId)
-            .stream()
-            .map(ApiProductPlanEntry::plan)
-            .filter(plan -> Objects.equals(plan.getId(), planId))
-            .filter(Plan.class::isInstance)
-            .map(Plan.class::cast)
-            .filter(plan -> Objects.nonNull(plan.getFlows()))
-            .flatMap(plan -> plan.getFlows().stream())
-            .filter(Flow::isEnabled)
-            .collect(Collectors.toList());
+        return apiProductRegistry.getApiProductPlanEntriesForApi(api.getId(), environmentId).stream()
+                .map(ApiProductPlanEntry::plan)
+                .filter(plan -> Objects.equals(plan.getId(), planId))
+                .filter(Plan.class::isInstance)
+                .map(Plan.class::cast)
+                .filter(plan -> Objects.nonNull(plan.getFlows()))
+                .flatMap(plan -> plan.getFlows().stream())
+                .filter(Flow::isEnabled)
+                .collect(Collectors.toList());
     }
 }

@@ -29,16 +29,14 @@ import org.junit.jupiter.params.provider.CsvSource;
 class PropertyTest {
 
     // Mirrors GraviteeMapper, which parses stored definitions: unknown fields must not break deserialization.
-    private final ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     @Test
     void should_deserialize_a_property_stored_before_encrypted_and_dynamic_existed() throws Exception {
-        var read = objectMapper.readValue(
-            """
+        var read = objectMapper.readValue("""
             { "key": "my-key", "value": "my-value" }
-            """,
-            Property.class
-        );
+            """, Property.class);
 
         assertThat(read.isEncrypted()).isFalse();
         assertThat(read.isDynamic()).isFalse();
@@ -47,19 +45,16 @@ class PropertyTest {
 
     @Test
     void should_tolerate_an_unknown_field_the_same_way_the_production_mapper_does() throws Exception {
-        var read = objectMapper.readValue(
-            """
+        var read = objectMapper.readValue("""
             { "key": "my-key", "value": "my-value", "someFieldFromANewerVersion": "ignored" }
-            """,
-            Property.class
-        );
+            """, Property.class);
 
         assertThat(read.getKey()).isEqualTo("my-key");
         assertThat(read.getValue()).isEqualTo("my-value");
     }
 
     @ParameterizedTest
-    @CsvSource({ "false,false", "false,true", "true,false", "true,true" })
+    @CsvSource({"false,false", "false,true", "true,false", "true,true"})
     void should_round_trip_encrypted_and_dynamic(boolean encrypted, boolean dynamic) throws Exception {
         var property = new Property("my-key", "my-value", encrypted, dynamic);
 

@@ -21,13 +21,12 @@ import lombok.With;
 
 @Builder(toBuilder = true)
 public record ScoringFunction(
-    String id,
-    String name,
-    @With String referenceId,
-    ReferenceType referenceType,
-    String payload,
-    ZonedDateTime createdAt
-) {
+        String id,
+        String name,
+        @With String referenceId,
+        ReferenceType referenceType,
+        String payload,
+        ZonedDateTime createdAt) {
     public enum ReferenceType {
         ENVIRONMENT,
     }

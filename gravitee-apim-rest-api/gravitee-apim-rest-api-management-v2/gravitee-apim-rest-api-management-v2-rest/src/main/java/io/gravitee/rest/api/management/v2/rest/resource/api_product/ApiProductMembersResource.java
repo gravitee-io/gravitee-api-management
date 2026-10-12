@@ -80,47 +80,54 @@ public class ApiProductMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_MEMBER,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiProductMembers(@BeanParam @Valid PaginationParam paginationParam) {
         var output = getApiProductMembersUseCase.execute(new GetApiProductMembersUseCase.Input(apiProductId));
         var members = output.members().stream().map(MemberMapper.INSTANCE::map).toList();
 
         List<Member> membersSubList = computePaginationData(members, paginationParam);
 
-        return Response.ok(
-            new MembersResponse()
-                .data(membersSubList)
-                .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubList.size(), paginationParam))
-                .links(computePaginationLinks(members.size(), paginationParam))
-        ).build();
+        return Response.ok(new MembersResponse()
+                        .data(membersSubList)
+                        .pagination(PaginationInfo.computePaginationInfo(
+                                members.size(), membersSubList.size(), paginationParam))
+                        .links(computePaginationLinks(members.size(), paginationParam)))
+                .build();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.CREATE)})
     public Response createApiProductMembership(@Valid @NotNull AddMember apiProductMembership) {
         var output = addApiProductMemberUseCase.execute(
-            new AddApiProductMemberUseCase.Input(MemberMapper.INSTANCE.map(apiProductMembership), apiProductId)
-        );
-        return Response.status(Response.Status.CREATED).entity(MemberMapper.INSTANCE.map(output.createdMember())).build();
+                new AddApiProductMemberUseCase.Input(MemberMapper.INSTANCE.map(apiProductMembership), apiProductId));
+        return Response.status(Response.Status.CREATED)
+                .entity(MemberMapper.INSTANCE.map(output.createdMember()))
+                .build();
     }
 
     @PUT
     @Path("/{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiProductMembership(@PathParam("memberId") String memberId, @Valid @NotNull UpdateMember updateMember) {
+    @Permissions({@Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE)})
+    public Response updateApiProductMembership(
+            @PathParam("memberId") String memberId, @Valid @NotNull UpdateMember updateMember) {
         var output = updateApiProductMemberUseCase.execute(
-            new UpdateApiProductMemberUseCase.Input(updateMember.getRoleName(), memberId, apiProductId)
-        );
-        return Response.ok().entity(MemberMapper.INSTANCE.map(output.updatedMember())).build();
+                new UpdateApiProductMemberUseCase.Input(updateMember.getRoleName(), memberId, apiProductId));
+        return Response.ok()
+                .entity(MemberMapper.INSTANCE.map(output.updatedMember()))
+                .build();
     }
 
     @Path("/{memberId}")
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.DELETE)})
     public Response deleteApiProductMembership(@PathParam("memberId") String memberId) {
         deleteApiProductMemberUseCase.execute(new DeleteApiProductMemberUseCase.Input(apiProductId, memberId));
         return Response.noContent().build();
@@ -145,11 +152,10 @@ public class ApiProductMembersResource extends AbstractResource {
                 }
             } else {
                 permissions = membershipService.getUserMemberPermissions(
-                    GraviteeContext.getExecutionContext(),
-                    MembershipReferenceType.API_PRODUCT,
-                    apiProductId,
-                    userId
-                );
+                        GraviteeContext.getExecutionContext(),
+                        MembershipReferenceType.API_PRODUCT,
+                        apiProductId,
+                        userId);
             }
         }
         return Response.ok(permissions).build();
@@ -158,12 +164,11 @@ public class ApiProductMembersResource extends AbstractResource {
     @POST
     @Path("/_transfer-ownership")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_PRODUCT_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response transferApiProductOwnership(@Valid @NotNull ApiProductTransferOwnership transferOwnership) {
         AuditInfo audit = getAuditInfo();
-        transferApiProductOwnershipUseCase.execute(
-            new TransferApiProductOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), apiProductId, audit)
-        );
+        transferApiProductOwnershipUseCase.execute(new TransferApiProductOwnershipUseCase.Input(
+                MembershipMapper.INSTANCE.map(transferOwnership), apiProductId, audit));
         return Response.noContent().build();
     }
 }

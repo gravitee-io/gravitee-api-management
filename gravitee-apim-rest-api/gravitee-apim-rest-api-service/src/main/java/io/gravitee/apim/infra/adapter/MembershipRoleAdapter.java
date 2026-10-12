@@ -29,5 +29,6 @@ public interface MembershipRoleAdapter {
     MembershipRoleAdapter INSTANCE = Mappers.getMapper(MembershipRoleAdapter.class);
 
     MembershipRole map(MembershipService.MembershipRole membershipRole);
+
     MembershipService.MembershipRole map(MembershipRole membershipRole);
 }

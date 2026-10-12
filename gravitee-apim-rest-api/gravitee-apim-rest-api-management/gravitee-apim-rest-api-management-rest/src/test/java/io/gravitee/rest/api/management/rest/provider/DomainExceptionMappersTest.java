@@ -27,7 +27,8 @@ public class DomainExceptionMappersTest {
 
     @Test
     public void conflict_domain_exception_maps_to_409_with_its_id() {
-        var response = new ConflictDomainExceptionMapper().toResponse(new ConflictDomainException("Slug already used", "my-slug"));
+        var response = new ConflictDomainExceptionMapper()
+                .toResponse(new ConflictDomainException("Slug already used", "my-slug"));
 
         assertThat(response.getStatus()).isEqualTo(409);
         var body = (ErrorEntity) response.getEntity();
@@ -45,9 +46,8 @@ public class DomainExceptionMappersTest {
 
     @Test
     public void validation_domain_exception_keeps_its_technical_code() {
-        var response = new ValidationDomainExceptionMapper().toResponse(
-            new ValidationDomainException("Credential rejected", "provider.credential.rejected")
-        );
+        var response = new ValidationDomainExceptionMapper()
+                .toResponse(new ValidationDomainException("Credential rejected", "provider.credential.rejected"));
 
         assertThat(response.getStatus()).isEqualTo(400);
         var body = (ErrorEntity) response.getEntity();
@@ -62,9 +62,9 @@ public class DomainExceptionMappersTest {
      */
     @Test
     public void validation_domain_exception_forwards_its_parameters() {
-        var response = new ValidationDomainExceptionMapper().toResponse(
-            new ValidationDomainException("Invalid value", Map.of("location", "/endpointGroups"), "invalidValue")
-        );
+        var response = new ValidationDomainExceptionMapper()
+                .toResponse(new ValidationDomainException(
+                        "Invalid value", Map.of("location", "/endpointGroups"), "invalidValue"));
 
         assertThat(response.getStatus()).isEqualTo(400);
         var body = (ErrorEntity) response.getEntity();

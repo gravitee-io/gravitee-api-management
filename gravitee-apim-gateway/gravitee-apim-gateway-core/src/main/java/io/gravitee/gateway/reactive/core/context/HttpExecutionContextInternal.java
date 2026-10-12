@@ -20,7 +20,6 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.EntityResolver;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
@@ -28,7 +27,6 @@ import io.gravitee.node.logging.LogEntry;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -56,7 +54,8 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
      * @param templateVariableProviders collection of TemplateVariableProvider
      * @return the current instance of HttpExecutionContextInternal
      */
-    HttpExecutionContextInternal templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
+    HttpExecutionContextInternal templateVariableProviders(
+            final Collection<TemplateVariableProvider> templateVariableProviders);
 
     HttpExecutionContextInternal tracer(Tracer tracer);
 

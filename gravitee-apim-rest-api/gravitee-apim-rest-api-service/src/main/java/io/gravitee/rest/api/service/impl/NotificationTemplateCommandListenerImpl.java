@@ -38,11 +38,10 @@ public class NotificationTemplateCommandListenerImpl implements NotificationTemp
     private final NotificationTemplateMapper notificationTemplateMapper;
 
     public NotificationTemplateCommandListenerImpl(
-        EventManager eventManager,
-        ObjectMapper objectMapper,
-        NotificationTemplateService notificationTemplateService,
-        NotificationTemplateMapper notificationTemplateMapper
-    ) {
+            EventManager eventManager,
+            ObjectMapper objectMapper,
+            NotificationTemplateService notificationTemplateService,
+            NotificationTemplateMapper notificationTemplateMapper) {
         this.objectMapper = objectMapper;
         this.notificationTemplateService = notificationTemplateService;
         this.notificationTemplateMapper = notificationTemplateMapper;
@@ -51,20 +50,16 @@ public class NotificationTemplateCommandListenerImpl implements NotificationTemp
 
     @Override
     public void onEvent(Event<CommandEvent, CommandEntity> event) {
-        if (
-            event != null &&
-            CommandEvent.TO_PROCESS.equals(event.type()) &&
-            event.content() != null &&
-            event.content().getTags().contains(CommandTags.EMAIL_TEMPLATE_UPDATE)
-        ) {
+        if (event != null
+                && CommandEvent.TO_PROCESS.equals(event.type())
+                && event.content() != null
+                && event.content().getTags().contains(CommandTags.EMAIL_TEMPLATE_UPDATE)) {
             log.debug("Command event: {}", event.content().getContent());
             var notificationTemplate = getNotificationTemplate(event.content().getContent());
             var organizationId = event.content().getOrganizationId();
             if (notificationTemplate != null && organizationId != null) {
                 notificationTemplateService.updateFreemarkerCache(
-                    notificationTemplateMapper.toNotificationTemplateEntity(notificationTemplate),
-                    organizationId
-                );
+                        notificationTemplateMapper.toNotificationTemplateEntity(notificationTemplate), organizationId);
             }
         }
     }

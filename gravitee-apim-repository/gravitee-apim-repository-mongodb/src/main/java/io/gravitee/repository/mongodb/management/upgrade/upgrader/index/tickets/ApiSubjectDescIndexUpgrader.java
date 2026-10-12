@@ -31,17 +31,17 @@ public class ApiSubjectDescIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("tickets")
-            .name("s-1")
-            .key("subject", descending())
-            .collation(collation())
-            .build();
+                .collection("tickets")
+                .name("s-1")
+                .key("subject", descending())
+                .collation(collation())
+                .build();
     }
 
     private static Collation collation() {
         return Collation.builder()
-            .locale(Locale.ENGLISH.getLanguage())
-            .collationStrength(CollationStrength.SECONDARY)
-            .build();
+                .locale(Locale.ENGLISH.getLanguage())
+                .collationStrength(CollationStrength.SECONDARY)
+                .build();
     }
 }

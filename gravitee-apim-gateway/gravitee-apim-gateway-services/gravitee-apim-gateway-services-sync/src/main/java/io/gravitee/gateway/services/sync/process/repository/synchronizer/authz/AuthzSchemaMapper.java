@@ -47,16 +47,20 @@ public class AuthzSchemaMapper {
                     log.warn("Skipping authz schema DEPLOY event [{}] — missing environmentId", event.getId());
                     return null;
                 }
-                String resolvedName = wire.getName() != null && !wire.getName().isBlank() ? wire.getName() : wire.getId();
+                String resolvedName =
+                        wire.getName() != null && !wire.getName().isBlank() ? wire.getName() : wire.getId();
                 return AuthzSchemaReactorDeployable.builder()
-                    .docId(wire.getId())
-                    .name(resolvedName)
-                    .schemaText(wire.getSchemaText())
-                    .environmentId(wire.getEnvironmentId())
-                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
-                    .updatedAt(event.getUpdatedAt() != null ? event.getUpdatedAt().getTime() : 0L)
-                    .syncAction(SyncAction.DEPLOY)
-                    .build();
+                        .docId(wire.getId())
+                        .name(resolvedName)
+                        .schemaText(wire.getSchemaText())
+                        .environmentId(wire.getEnvironmentId())
+                        .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
+                        .updatedAt(
+                                event.getUpdatedAt() != null
+                                        ? event.getUpdatedAt().getTime()
+                                        : 0L)
+                        .syncAction(SyncAction.DEPLOY)
+                        .build();
             } catch (Exception e) {
                 log.error("Unable to extract authz schema from PUBLISH event [{}]", event.getId(), e);
                 return null;
@@ -79,12 +83,12 @@ public class AuthzSchemaMapper {
                     return null;
                 }
                 return AuthzSchemaReactorDeployable.builder()
-                    .docId(wire.getId())
-                    .name(wire.getId())
-                    .environmentId(wire.getEnvironmentId())
-                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
-                    .syncAction(SyncAction.UNDEPLOY)
-                    .build();
+                        .docId(wire.getId())
+                        .name(wire.getId())
+                        .environmentId(wire.getEnvironmentId())
+                        .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .build();
             } catch (Exception e) {
                 log.error("Unable to extract authz schema from UNPUBLISH event [{}]", event.getId(), e);
                 return null;

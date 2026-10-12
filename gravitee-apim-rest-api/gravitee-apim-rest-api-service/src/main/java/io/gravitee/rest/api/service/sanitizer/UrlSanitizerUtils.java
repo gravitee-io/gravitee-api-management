@@ -48,15 +48,10 @@ public class UrlSanitizerUtils {
         checkUrlForbiddenCharacters(url);
         checkUriSyntax(url);
         if (whitelist != null && !whitelist.isEmpty()) {
-            if (
-                whitelist
-                    .stream()
-                    .noneMatch(whitelistUrl ->
-                        whitelistUrl.endsWith("/")
+            if (whitelist.stream()
+                    .noneMatch(whitelistUrl -> whitelistUrl.endsWith("/")
                             ? url.startsWith(whitelistUrl)
-                            : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
-                    )
-            ) {
+                            : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/')))) {
                 throw new UrlForbiddenException();
             }
         } else if (!allowPrivate && UrlSanitizerUtils.isPrivate(url)) {
@@ -66,16 +61,15 @@ public class UrlSanitizerUtils {
 
     public static boolean isPrivate(String url) {
         try {
-            InetAddress inetAddress = Inet6Address.getByName(URI.create(url).toURL().getHost());
+            InetAddress inetAddress =
+                    Inet6Address.getByName(URI.create(url).toURL().getHost());
 
-            return (
-                inetAddress.isSiteLocalAddress() ||
-                inetAddress.isAnyLocalAddress() ||
-                inetAddress.isLoopbackAddress() ||
-                inetAddress.isLinkLocalAddress() ||
-                inetAddress.isMulticastAddress() ||
-                isPrivateOwasp(inetAddress.getHostAddress())
-            );
+            return (inetAddress.isSiteLocalAddress()
+                    || inetAddress.isAnyLocalAddress()
+                    || inetAddress.isLoopbackAddress()
+                    || inetAddress.isLinkLocalAddress()
+                    || inetAddress.isMulticastAddress()
+                    || isPrivateOwasp(inetAddress.getHostAddress()));
         } catch (Exception e) {
             throw new InvalidDataException("Url [" + url + "] is invalid");
         }
@@ -145,7 +139,8 @@ public class UrlSanitizerUtils {
 
         // Verify the provided IP address
         // Remove whitespace characters from the beginning/end of the string and convert it to lower case
-        // Lower case is for preventing any IPV6 case bypass using mixed case depending on the source used to get the IP address
+        // Lower case is for preventing any IPV6 case bypass using mixed case depending on the source used to get the IP
+        // address
 
         String ipToVerify = ipAddress.toLowerCase();
         // Perform the check against the list of prefix

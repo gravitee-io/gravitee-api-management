@@ -26,11 +26,10 @@ import io.gravitee.policy.api.PolicyConfiguration;
  */
 public interface PolicyFactory {
     Policy create(
-        StreamType streamType,
-        PolicyManifest policyManifest,
-        PolicyConfiguration policyConfiguration,
-        PolicyMetadata policyMetadata
-    );
+            StreamType streamType,
+            PolicyManifest policyManifest,
+            PolicyConfiguration policyConfiguration,
+            PolicyMetadata policyMetadata);
 
     void cleanup(PolicyManifest policyManifest);
 }

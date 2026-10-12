@@ -110,27 +110,24 @@ public class UpdateUserEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateUserEntity{" +
-            "firstname='" +
-            firstname +
-            '\'' +
-            ", lastname='" +
-            lastname +
-            '\'' +
-            ", email='" +
-            email +
-            '\'' +
-            ", picture='" +
-            picture +
-            '\'' +
-            ", status='" +
-            status +
-            '\'' +
-            ", newsletter='" +
-            newsletter +
-            '\'' +
-            '}'
-        );
+        return ("UpdateUserEntity{" + "firstname='"
+                + firstname
+                + '\''
+                + ", lastname='"
+                + lastname
+                + '\''
+                + ", email='"
+                + email
+                + '\''
+                + ", picture='"
+                + picture
+                + '\''
+                + ", status='"
+                + status
+                + '\''
+                + ", newsletter='"
+                + newsletter
+                + '\''
+                + '}');
     }
 }

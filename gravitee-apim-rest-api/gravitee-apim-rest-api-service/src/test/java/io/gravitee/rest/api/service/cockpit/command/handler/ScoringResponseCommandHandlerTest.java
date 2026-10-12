@@ -76,9 +76,8 @@ class ScoringResponseCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new ScoringResponseCommandHandler(
-            new SaveScoringResponseUseCase(asyncJobCrudService, scoringReportCrudService, new ScoreComputingDomainService())
-        );
+        handler = new ScoringResponseCommandHandler(new SaveScoringResponseUseCase(
+                asyncJobCrudService, scoringReportCrudService, new ScoreComputingDomainService()));
     }
 
     @AfterEach
@@ -92,69 +91,68 @@ class ScoringResponseCommandHandlerTest {
         givenAPendingJob();
 
         // When
-        handler.handle(aCommand(new ScoringResult(List.of(anAssetDiagnostic())))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        handler.handle(aCommand(new ScoringResult(List.of(anAssetDiagnostic()))))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
-        assertThat(asyncJobCrudService.storage()).singleElement().extracting(AsyncJob::getStatus).isEqualTo(AsyncJob.Status.SUCCESS);
-        assertThat(scoringReportCrudService.storage()).singleElement().extracting(ScoringReport::apiId).isEqualTo(API_ID);
+        assertThat(asyncJobCrudService.storage())
+                .singleElement()
+                .extracting(AsyncJob::getStatus)
+                .isEqualTo(AsyncJob.Status.SUCCESS);
+        assertThat(scoringReportCrudService.storage())
+                .singleElement()
+                .extracting(ScoringReport::apiId)
+                .isEqualTo(API_ID);
     }
 
     @Test
     void should_flag_the_job_in_error_and_keep_the_previous_report_when_scoring_failed() {
         // Given a previously scored API, and a provider failure reported by Cockpit
-        var previousReport = ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build();
+        var previousReport =
+                ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build();
         scoringReportCrudService.initWith(List.of(previousReport));
         givenAPendingJob();
 
         // When
-        handler
-            .handle(aCommand(new ScoringResult(List.of(), false, "Error while scoring with provider spectral")))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+        handler.handle(aCommand(new ScoringResult(List.of(), false, "Error while scoring with provider spectral")))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then the failure is surfaced on the job instead of being recorded as an empty successful report
-        assertThat(asyncJobCrudService.storage())
-            .singleElement()
-            .satisfies(job -> {
-                assertThat(job.getStatus()).isEqualTo(AsyncJob.Status.ERROR);
-                assertThat(job.getErrorMessage()).isEqualTo("Error while scoring with provider spectral");
-            });
+        assertThat(asyncJobCrudService.storage()).singleElement().satisfies(job -> {
+            assertThat(job.getStatus()).isEqualTo(AsyncJob.Status.ERROR);
+            assertThat(job.getErrorMessage()).isEqualTo("Error while scoring with provider spectral");
+        });
         assertThat(scoringReportCrudService.storage()).containsExactly(previousReport);
     }
 
     private void givenAPendingJob() {
-        asyncJobCrudService.initWith(
-            List.of(
-                aPendingScoringRequestJob()
-                    .toBuilder()
-                    .id(JOB_ID)
-                    .sourceId(API_ID)
-                    .initiatorId(USER_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .build()
-            )
-        );
+        asyncJobCrudService.initWith(List.of(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
     }
 
     private static ScoringResponseCommand aCommand(ScoringResult result) {
-        return new ScoringResponseCommand(new ScoringResponseCommandPayload(JOB_ID, ORGANIZATION_ID, ENVIRONMENT_ID, result));
+        return new ScoringResponseCommand(
+                new ScoringResponseCommandPayload(JOB_ID, ORGANIZATION_ID, ENVIRONMENT_ID, result));
     }
 
     private static AssetDiagnostic anAssetDiagnostic() {
         return new AssetDiagnostic(
-            new AssetAnalyzed("page-id", AssetType.OPEN_API, "swagger.json", ContentType.JSON),
-            List.of(
-                new Diagnostic(
-                    new Range(new Position(1, 0), new Position(1, 5)),
-                    Severity.WARN,
-                    "operation-operationId",
-                    "Operation must have \"operationId\".",
-                    "swagger.json",
-                    "paths./echo.options"
-                )
-            ),
-            List.of()
-        );
+                new AssetAnalyzed("page-id", AssetType.OPEN_API, "swagger.json", ContentType.JSON),
+                List.of(new Diagnostic(
+                        new Range(new Position(1, 0), new Position(1, 5)),
+                        Severity.WARN,
+                        "operation-operationId",
+                        "Operation must have \"operationId\".",
+                        "swagger.json",
+                        "paths./echo.options")),
+                List.of());
     }
 }

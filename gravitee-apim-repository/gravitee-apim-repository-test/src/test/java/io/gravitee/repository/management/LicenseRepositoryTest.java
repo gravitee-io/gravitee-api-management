@@ -37,12 +37,12 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldCreate() throws Exception {
         var date = new Date();
         final License license = License.builder()
-            .referenceId("my-org")
-            .referenceType(License.ReferenceType.ORGANIZATION)
-            .license("a-great-license")
-            .createdAt(date)
-            .updatedAt(date)
-            .build();
+                .referenceId("my-org")
+                .referenceType(License.ReferenceType.ORGANIZATION)
+                .license("a-great-license")
+                .createdAt(date)
+                .updatedAt(date)
+                .build();
 
         final License createdOrg = licenseRepository.create(license);
 
@@ -55,18 +55,19 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<License> optional = licenseRepository.findById("cockpitId-org-update", License.ReferenceType.ORGANIZATION);
+        Optional<License> optional =
+                licenseRepository.findById("cockpitId-org-update", License.ReferenceType.ORGANIZATION);
         assertThat(optional).as("License to update not found").isPresent();
 
         final License orgLicenseBeforeUpdate = optional.get();
 
         final License license = License.builder()
-            .referenceId(orgLicenseBeforeUpdate.getReferenceId())
-            .referenceType(orgLicenseBeforeUpdate.getReferenceType())
-            .license("new license")
-            .createdAt(orgLicenseBeforeUpdate.getCreatedAt())
-            .updatedAt(new Date())
-            .build();
+                .referenceId(orgLicenseBeforeUpdate.getReferenceId())
+                .referenceType(orgLicenseBeforeUpdate.getReferenceType())
+                .license("new license")
+                .createdAt(orgLicenseBeforeUpdate.getCreatedAt())
+                .updatedAt(new Date())
+                .build();
 
         final License fetchedOrganization = licenseRepository.update(license);
 
@@ -82,19 +83,22 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindById() throws Exception {
-        Optional<License> optional = licenseRepository.findById("cockpitId-org-find-by-id", License.ReferenceType.ORGANIZATION);
+        Optional<License> optional =
+                licenseRepository.findById("cockpitId-org-find-by-id", License.ReferenceType.ORGANIZATION);
         assertThat(optional).as("License to find not found").isPresent();
     }
 
     @Test
     public void shouldNotFindByIdIfMissing() throws Exception {
-        Optional<License> optional = licenseRepository.findById("id-does-not-exist", License.ReferenceType.ORGANIZATION);
+        Optional<License> optional =
+                licenseRepository.findById("id-does-not-exist", License.ReferenceType.ORGANIZATION);
         assertThat(optional.isEmpty()).as("License is found").isTrue();
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        Optional<License> optional = licenseRepository.findById("cockpitId-org-delete", License.ReferenceType.ORGANIZATION);
+        Optional<License> optional =
+                licenseRepository.findById("cockpitId-org-delete", License.ReferenceType.ORGANIZATION);
         assertThat(optional).as("License to delete not found").isPresent();
         licenseRepository.delete("cockpitId-org-delete", License.ReferenceType.ORGANIZATION);
         optional = licenseRepository.findById("cockpitId-org-delete", License.ReferenceType.ORGANIZATION);
@@ -110,36 +114,38 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByReferenceType() throws Exception {
         final Collection<License> licenses = licenseRepository
-            .findByCriteria(
-                LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).build(),
-                new PageableBuilder().pageSize(50).pageNumber(0).build()
-            )
-            .getContent();
+                .findByCriteria(
+                        LicenseCriteria.builder()
+                                .referenceType(License.ReferenceType.ORGANIZATION)
+                                .build(),
+                        new PageableBuilder().pageSize(50).pageNumber(0).build())
+                .getContent();
         assertThat(licenses.size()).as("License count should be 3").isEqualTo(3L);
     }
 
     @Test
     public void shouldFindByReferenceTypeAndId() throws Exception {
         final Collection<License> licenses = licenseRepository
-            .findByCriteria(
-                LicenseCriteria.builder()
-                    .referenceType(License.ReferenceType.ORGANIZATION)
-                    .referenceIds(Set.of("cockpitId-org-find-by-id"))
-                    .build(),
-                new PageableBuilder().pageSize(50).pageNumber(0).build()
-            )
-            .getContent();
+                .findByCriteria(
+                        LicenseCriteria.builder()
+                                .referenceType(License.ReferenceType.ORGANIZATION)
+                                .referenceIds(Set.of("cockpitId-org-find-by-id"))
+                                .build(),
+                        new PageableBuilder().pageSize(50).pageNumber(0).build())
+                .getContent();
         assertThat(licenses.size()).as("License count should be 1").isEqualTo(1L);
     }
 
     @Test
     public void shouldFindByTimeInterval() throws Exception {
         final Collection<License> licenses = licenseRepository
-            .findByCriteria(
-                LicenseCriteria.builder().from(1539022010000L).to(1639022020000L).build(),
-                new PageableBuilder().pageSize(50).pageNumber(0).build()
-            )
-            .getContent();
+                .findByCriteria(
+                        LicenseCriteria.builder()
+                                .from(1539022010000L)
+                                .to(1639022020000L)
+                                .build(),
+                        new PageableBuilder().pageSize(50).pageNumber(0).build())
+                .getContent();
         assertThat(licenses.size()).as("License count should be 2").isEqualTo(2L);
     }
 }

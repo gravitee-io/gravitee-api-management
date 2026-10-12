@@ -56,12 +56,12 @@ class PortalPageContentQueryServiceImplTest {
             // Given
             var contentId = "00000000-0000-0000-0000-000000000001";
             var repoContent = io.gravitee.repository.management.model.PortalPageContent.builder()
-                .id(contentId)
-                .organizationId("DEFAULT_ORG")
-                .environmentId("DEFAULT_ENV")
-                .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
-                .content("# Welcome\n\nThis is a sample page content.")
-                .build();
+                    .id(contentId)
+                    .organizationId("DEFAULT_ORG")
+                    .environmentId("DEFAULT_ENV")
+                    .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
+                    .content("# Welcome\n\nThis is a sample page content.")
+                    .build();
 
             when(repository.findById(contentId)).thenReturn(Optional.of(repoContent));
 
@@ -74,9 +74,8 @@ class PortalPageContentQueryServiceImplTest {
             assertThat(result.get().getId()).isEqualTo(PortalPageContentId.of(contentId));
             assertThat(result.get().getOrganizationId()).isEqualTo("DEFAULT_ORG");
             assertThat(result.get().getEnvironmentId()).isEqualTo("DEFAULT_ENV");
-            assertThat(((GraviteeMarkdownPageContent) result.get()).getContent().value()).isEqualTo(
-                "# Welcome\n\nThis is a sample page content."
-            );
+            assertThat(((GraviteeMarkdownPageContent) result.get()).getContent().value())
+                    .isEqualTo("# Welcome\n\nThis is a sample page content.");
         }
 
         @Test
@@ -93,16 +92,18 @@ class PortalPageContentQueryServiceImplTest {
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception()
+                throws TechnicalException {
             // Given
             var contentId = "00000000-0000-0000-0000-000000000001";
             when(repository.findById(contentId)).thenThrow(new TechnicalException("Database error"));
 
             // When & Then
             assertThatThrownBy(() -> service.findById(PortalPageContentId.of(contentId)))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while finding portal page content by id 00000000-0000-0000-0000-000000000001")
-                .hasCauseInstanceOf(TechnicalException.class);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while finding portal page content by id 00000000-0000-0000-0000-000000000001")
+                    .hasCauseInstanceOf(TechnicalException.class);
         }
     }
 }

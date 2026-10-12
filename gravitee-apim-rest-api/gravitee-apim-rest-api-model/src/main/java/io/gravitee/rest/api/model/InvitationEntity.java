@@ -126,30 +126,27 @@ public class InvitationEntity {
 
     @Override
     public String toString() {
-        return (
-            "InvitationEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", email='" +
-            email +
-            '\'' +
-            ", apiRole='" +
-            apiRole +
-            '\'' +
-            ", applicationRole='" +
-            applicationRole +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("InvitationEntity{" + "id='"
+                + id
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", email='"
+                + email
+                + '\''
+                + ", apiRole='"
+                + apiRole
+                + '\''
+                + ", applicationRole='"
+                + applicationRole
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

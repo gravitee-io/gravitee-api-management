@@ -40,23 +40,27 @@ public class ApiProductsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
-    public Response getApiProductsForApi(@PathParam("apiId") String apiId, @BeanParam @Valid PaginationParam paginationParam) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
+    public Response getApiProductsForApi(
+            @PathParam("apiId") String apiId, @BeanParam @Valid PaginationParam paginationParam) {
         var input = GetApiProductInfosByApiIdUseCase.Input.of(apiId);
         var output = getApiProductInfosByApiIdUseCase.execute(input);
-        List<ApiProductInfo> restInfos = output.apiProductInfos().stream().map(ApiProductMapper.INSTANCE::map).toList();
+        List<ApiProductInfo> restInfos = output.apiProductInfos().stream()
+                .map(ApiProductMapper.INSTANCE::map)
+                .toList();
         List<ApiProductInfo> paginationInfos = computePaginationData(restInfos, paginationParam);
         return Response.ok()
-            .entity(
-                Map.of(
-                    "data",
-                    paginationInfos,
-                    "pagination",
-                    PaginationInfo.computePaginationInfo(restInfos.size(), paginationInfos.size(), paginationParam),
-                    "links",
-                    computePaginationLinks(restInfos.size(), paginationParam)
-                )
-            )
-            .build();
+                .entity(Map.of(
+                        "data",
+                        paginationInfos,
+                        "pagination",
+                        PaginationInfo.computePaginationInfo(restInfos.size(), paginationInfos.size(), paginationParam),
+                        "links",
+                        computePaginationLinks(restInfos.size(), paginationParam)))
+                .build();
     }
 }

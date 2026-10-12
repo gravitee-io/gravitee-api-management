@@ -22,11 +22,8 @@ import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.gateway.opentelemetry.TracingContext;
-import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
-import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsSimpleRequestProcessor;
@@ -67,14 +64,13 @@ public class ApiProcessorChainFactory {
     protected final Configuration configuration;
     protected final ReporterService reporterService;
 
-    public ApiProcessorChainFactory(final Configuration configuration, final Node node, final ReporterService reporterService) {
+    public ApiProcessorChainFactory(
+            final Configuration configuration, final Node node, final ReporterService reporterService) {
         this.configuration = configuration;
-        this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
+        this.overrideXForwardedPrefix =
+                configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
         this.clientIdentifierHeader = configuration.getProperty(
-            "handlers.request.client.header",
-            String.class,
-            DEFAULT_CLIENT_IDENTIFIER_HEADER
-        );
+                "handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
         this.node = node;
         this.reporterService = reporterService;
     }
@@ -227,12 +223,11 @@ public class ApiProcessorChainFactory {
 
     private Optional<HttpListener> getHttpListener(final Api api) {
         return stream(api.getDefinition().getListeners())
-            .flatMap(listener ->
-                listener.getType() == ListenerType.HTTP && listener instanceof HttpListener httpListener
-                    ? Stream.of(httpListener)
-                    : Stream.empty()
-            )
-            .findFirst();
+                .flatMap(listener ->
+                        listener.getType() == ListenerType.HTTP && listener instanceof HttpListener httpListener
+                                ? Stream.of(httpListener)
+                                : Stream.empty())
+                .findFirst();
     }
 
     private boolean isNotEmpty(Iterable<?> iterable) {

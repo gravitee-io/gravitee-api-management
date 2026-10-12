@@ -70,57 +70,57 @@ public class SearchMessageLogResponseAdapterTest extends AbstractAdapterTest {
         JsonNode json = mapper.readTree(jsonString);
         AggregatedMessageLog.Message message = SearchMessageLogResponseAdapter.adaptMessage(json);
         assertAll(
-            () -> assertThat(message.getConnectorId()).isEqualTo("c-id"),
-            () -> assertThat(message.getTimestamp()).isEqualTo("1759469723")
-        );
+                () -> assertThat(message.getConnectorId()).isEqualTo("c-id"),
+                () -> assertThat(message.getTimestamp()).isEqualTo("1759469723"));
     }
 
     private static Stream<Arguments> generate() {
         AggregatedMessageLog.AggregatedMessageLogBuilder messageLog = AggregatedMessageLog.builder()
-            .apiId("api-id")
-            .clientIdentifier("client-identifier")
-            .requestId("request-id")
-            .correlationId("correlation-id")
-            .operation("subscribe")
-            .timestamp("2023-11-07T15:18:56.868+01:00");
+                .apiId("api-id")
+                .clientIdentifier("client-identifier")
+                .requestId("request-id")
+                .correlationId("correlation-id")
+                .operation("subscribe")
+                .timestamp("2023-11-07T15:18:56.868+01:00");
 
         AggregatedMessageLog.Message.MessageBuilder message = AggregatedMessageLog.Message.builder()
-            .id("message-id")
-            .timestamp("2023-11-07T15:18:56.868+01:00")
-            .connectorId("connector-id")
-            .isError(false);
+                .id("message-id")
+                .timestamp("2023-11-07T15:18:56.868+01:00")
+                .connectorId("connector-id")
+                .isError(false);
 
         return Stream.of(
-            Arguments.of(
-                "message-log.json",
-                List.of(
-                    messageLog
-                        .endpoint(
-                            message.payload("mock message").headers(Map.of("foo", List.of("bar"))).metadata(Map.of("foo", "bar")).build()
-                        )
-                        .build()
-                )
-            ),
-            Arguments.of(
-                "message-without-headers.json",
-                List.of(messageLog.endpoint(message.payload("mock message").headers(null).metadata(Map.of("foo", "bar")).build()).build())
-            ),
-            Arguments.of(
-                "message-without-metadata.json",
-                List.of(
-                    messageLog
-                        .endpoint(message.payload("mock message").headers(Map.of("foo", List.of("bar"))).metadata(null).build())
-                        .build()
-                )
-            ),
-            Arguments.of(
-                "message-without-payload.json",
-                List.of(
-                    messageLog
-                        .endpoint(message.payload(null).headers(Map.of("foo", List.of("bar"))).metadata(Map.of("foo", "bar")).build())
-                        .build()
-                )
-            )
-        );
+                Arguments.of(
+                        "message-log.json",
+                        List.of(messageLog
+                                .endpoint(message.payload("mock message")
+                                        .headers(Map.of("foo", List.of("bar")))
+                                        .metadata(Map.of("foo", "bar"))
+                                        .build())
+                                .build())),
+                Arguments.of(
+                        "message-without-headers.json",
+                        List.of(messageLog
+                                .endpoint(message.payload("mock message")
+                                        .headers(null)
+                                        .metadata(Map.of("foo", "bar"))
+                                        .build())
+                                .build())),
+                Arguments.of(
+                        "message-without-metadata.json",
+                        List.of(messageLog
+                                .endpoint(message.payload("mock message")
+                                        .headers(Map.of("foo", List.of("bar")))
+                                        .metadata(null)
+                                        .build())
+                                .build())),
+                Arguments.of(
+                        "message-without-payload.json",
+                        List.of(messageLog
+                                .endpoint(message.payload(null)
+                                        .headers(Map.of("foo", List.of("bar")))
+                                        .metadata(Map.of("foo", "bar"))
+                                        .build())
+                                .build())));
     }
 }

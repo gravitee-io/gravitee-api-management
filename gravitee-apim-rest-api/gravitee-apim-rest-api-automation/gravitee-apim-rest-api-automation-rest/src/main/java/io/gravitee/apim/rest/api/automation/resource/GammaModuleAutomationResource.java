@@ -74,6 +74,7 @@ public class GammaModuleAutomationResource extends AbstractResource {
 
     /** Same grammar as the {@code Hrid} schema of the Automation API document. */
     private static final Pattern HRID_PATTERN = Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_-]+[a-zA-Z0-9]$");
+
     private static final int HRID_MAX_LENGTH = 256;
 
     private static final String HRID_FIELD = "hrid";
@@ -94,11 +95,10 @@ public class GammaModuleAutomationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createOrUpdate(
-        @PathParam("module") String module,
-        @PathParam("path") String kindPath,
-        @QueryParam("dryRun") boolean dryRun,
-        @NotNull ObjectNode spec
-    ) {
+            @PathParam("module") String module,
+            @PathParam("path") String kindPath,
+            @QueryParam("dryRun") boolean dryRun,
+            @NotNull ObjectNode spec) {
         var port = port(module);
         var kind = kind(port, module, kindPath);
         checkLicense(port);
@@ -133,10 +133,10 @@ public class GammaModuleAutomationResource extends AbstractResource {
         var audit = getAuditInfo();
         var id = idOf(audit, module, kind.path(), item.hrid());
 
-        return port
-            .findById(context(audit, module), kind, id)
-            .map(view -> Response.ok(stamp(view, id, item.hrid(), audit, List.of())).build())
-            .orElseThrow(() -> new HRIDNotFoundException(item.hrid()));
+        return port.findById(context(audit, module), kind, id)
+                .map(view -> Response.ok(stamp(view, id, item.hrid(), audit, List.of()))
+                        .build())
+                .orElseThrow(() -> new HRIDNotFoundException(item.hrid()));
     }
 
     @DELETE
@@ -166,22 +166,19 @@ public class GammaModuleAutomationResource extends AbstractResource {
     }
 
     private void checkLicense(GammaAutomationPort port) {
-        port
-            .licenseFeature()
-            .ifPresent(feature -> {
-                if (!licenseManager.getPlatformLicense().isFeatureEnabled(feature)) {
-                    throw new ForbiddenFeatureException(feature);
-                }
-            });
+        port.licenseFeature().ifPresent(feature -> {
+            if (!licenseManager.getPlatformLicense().isFeatureEnabled(feature)) {
+                throw new ForbiddenFeatureException(feature);
+            }
+        });
     }
 
     private void checkPermission(ResourceKind kind, RolePermissionAction... acls) {
         // Automation resources are addressed per environment; any other scope is a module authoring error,
         // and answering it with a permission grant would fail open.
         if (kind.permission().getScope() != RoleScope.ENVIRONMENT) {
-            throw new IllegalStateException(
-                "Automation resource kind [" + kind.path() + "] declares a non-environment permission " + kind.permission()
-            );
+            throw new IllegalStateException("Automation resource kind [" + kind.path()
+                    + "] declares a non-environment permission " + kind.permission());
         }
         var executionContext = GraviteeContext.getExecutionContext();
         if (!hasPermission(executionContext, kind.permission(), executionContext.getEnvironmentId(), acls)) {
@@ -196,28 +193,32 @@ public class GammaModuleAutomationResource extends AbstractResource {
         }
         var value = hrid.asText();
         if (value.length() > HRID_MAX_LENGTH || !HRID_PATTERN.matcher(value).matches()) {
-            throw new BadRequestException(
-                "[" + HRID_FIELD + "] must match " + HRID_PATTERN.pattern() + " and be at most " + HRID_MAX_LENGTH + " characters"
-            );
+            throw new BadRequestException("[" + HRID_FIELD + "] must match " + HRID_PATTERN.pattern()
+                    + " and be at most " + HRID_MAX_LENGTH + " characters");
         }
         return value;
     }
 
     private static String idOf(AuditInfo audit, String module, String kindPath, String hrid) {
-        return HRIDToUUID.gamma().context(audit).module(module).kind(kindPath).hrid(hrid).id();
+        return HRIDToUUID.gamma()
+                .context(audit)
+                .module(module)
+                .kind(kindPath)
+                .hrid(hrid)
+                .id();
     }
 
     private static AutomationContext context(AuditInfo audit, String module) {
-        return new AutomationContext(audit.organizationId(), audit.environmentId(), (kindPath, hrid) ->
-            idOf(audit, module, kindPath, hrid)
-        );
+        return new AutomationContext(
+                audit.organizationId(), audit.environmentId(), (kindPath, hrid) -> idOf(audit, module, kindPath, hrid));
     }
 
     /**
      * The module's view plus the envelope every automation state carries; the module never sets these. The hrid is
      * an automation identifier: it comes from the request (body on apply, path on read), so modules need not store it.
      */
-    private static ObjectNode stamp(ObjectNode view, String id, String hrid, AuditInfo audit, List<AutomationIssue> issues) {
+    private static ObjectNode stamp(
+            ObjectNode view, String id, String hrid, AuditInfo audit, List<AutomationIssue> issues) {
         var state = view.deepCopy();
         state.put(HRID_FIELD, hrid);
         state.put(ID_FIELD, id);

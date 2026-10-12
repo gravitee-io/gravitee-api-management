@@ -67,7 +67,10 @@ public class PortalNavigationItemDefaultSegmentMongoUpgraderTest extends Abstrac
     }
 
     private Document findById(String id) {
-        return mongoTemplate.getCollection(targetCollectionName).find(new Document("_id", id)).first();
+        return mongoTemplate
+                .getCollection(targetCollectionName)
+                .find(new Document("_id", id))
+                .first();
     }
 
     @Test
@@ -86,7 +89,9 @@ public class PortalNavigationItemDefaultSegmentMongoUpgraderTest extends Abstrac
     @Test
     public void upgrade_should_backfill_segment_when_field_is_null() throws Exception {
         // Given
-        mongoTemplate.getCollection(targetCollectionName).insertOne(new Document("_id", "item-null").append(SEGMENT, null));
+        mongoTemplate
+                .getCollection(targetCollectionName)
+                .insertOne(new Document("_id", "item-null").append(SEGMENT, null));
 
         // When
         boolean result = upgrader.upgrade();
@@ -99,7 +104,9 @@ public class PortalNavigationItemDefaultSegmentMongoUpgraderTest extends Abstrac
     @Test
     public void upgrade_should_backfill_segment_when_field_is_empty() throws Exception {
         // Given
-        mongoTemplate.getCollection(targetCollectionName).insertOne(new Document("_id", "item-empty").append(SEGMENT, ""));
+        mongoTemplate
+                .getCollection(targetCollectionName)
+                .insertOne(new Document("_id", "item-empty").append(SEGMENT, ""));
 
         // When
         boolean result = upgrader.upgrade();
@@ -112,7 +119,9 @@ public class PortalNavigationItemDefaultSegmentMongoUpgraderTest extends Abstrac
     @Test
     public void upgrade_should_leave_existing_segment_untouched() throws Exception {
         // Given
-        mongoTemplate.getCollection(targetCollectionName).insertOne(new Document("_id", "item-set").append(SEGMENT, "my-page"));
+        mongoTemplate
+                .getCollection(targetCollectionName)
+                .insertOne(new Document("_id", "item-set").append(SEGMENT, "my-page"));
 
         // When
         boolean result = upgrader.upgrade();

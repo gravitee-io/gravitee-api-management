@@ -70,7 +70,8 @@ public abstract class AbstractBinding implements SoapVersion {
     @Override
     public boolean useEncoded(BindingOperation bindingOperation) {
         if (hasBodyElement(bindingOperation.getBindingInput().getExtensibilityElements())) {
-            return extractBodyParts(bindingOperation.getBindingInput().getExtensibilityElements()).useEncoded();
+            return extractBodyParts(bindingOperation.getBindingInput().getExtensibilityElements())
+                    .useEncoded();
         }
         return false;
     }

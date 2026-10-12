@@ -25,7 +25,6 @@ import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.definition.model.v4.analytics.tracing.TracingMaskingStrategy;
 import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionConfig;
 import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionRule;
-import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.node.api.opentelemetry.redaction.FullMaskingStrategy;
 import io.gravitee.node.api.opentelemetry.redaction.MaskingStrategy;
 import io.gravitee.node.api.opentelemetry.redaction.PartialMaskingStrategy;
@@ -49,21 +48,24 @@ class TracingRedactionMapperTest {
 
         @Test
         void should_return_empty_when_analytics_is_null() {
-            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(null))).isSameAs(RedactionConfig.EMPTY);
+            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(null)))
+                    .isSameAs(RedactionConfig.EMPTY);
         }
 
         @Test
         void should_return_empty_when_rules_list_is_null() {
             var redaction = new TracingRedactionConfig();
             redaction.setRules(null);
-            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(redaction))).isSameAs(RedactionConfig.EMPTY);
+            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(redaction)))
+                    .isSameAs(RedactionConfig.EMPTY);
         }
 
         @Test
         void should_return_empty_when_rules_list_is_empty() {
             var redaction = new TracingRedactionConfig();
             redaction.setRules(List.of());
-            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(redaction))).isSameAs(RedactionConfig.EMPTY);
+            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(redaction)))
+                    .isSameAs(RedactionConfig.EMPTY);
         }
 
         @Test
@@ -72,7 +74,8 @@ class TracingRedactionMapperTest {
             rule.setAttributeNamePattern(null);
             var redaction = new TracingRedactionConfig();
             redaction.setRules(List.of(rule));
-            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(redaction))).isSameAs(RedactionConfig.EMPTY);
+            assertThat(TracingRedactionMapper.toRedactionConfig(apiWithRedaction(redaction)))
+                    .isSameAs(RedactionConfig.EMPTY);
         }
 
         @Test
@@ -85,7 +88,8 @@ class TracingRedactionMapperTest {
 
             assertThat(config.rules()).hasSize(1);
             assertThat(config.rules().get(0).maskingStrategy()).isInstanceOf(FullMaskingStrategy.class);
-            assertThat(((FullMaskingStrategy) config.rules().get(0).maskingStrategy()).replacement()).isEqualTo("[HIDDEN]");
+            assertThat(((FullMaskingStrategy) config.rules().get(0).maskingStrategy()).replacement())
+                    .isEqualTo("[HIDDEN]");
         }
 
         @Test
@@ -134,7 +138,8 @@ class TracingRedactionMapperTest {
             var rule = redactionRule("api.key", strategy);
             var config = TracingRedactionMapper.toRedactionConfig(apiWithRules(rule));
 
-            assertThat(((PartialMaskingStrategy) config.rules().get(0).maskingStrategy()).maskChar()).isEqualTo("*");
+            assertThat(((PartialMaskingStrategy) config.rules().get(0).maskingStrategy()).maskChar())
+                    .isEqualTo("*");
         }
 
         @Test

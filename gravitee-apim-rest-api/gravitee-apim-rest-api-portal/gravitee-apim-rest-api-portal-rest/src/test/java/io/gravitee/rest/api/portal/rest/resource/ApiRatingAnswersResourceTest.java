@@ -53,7 +53,8 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
 
         RatingEntity ratingEntity = new RatingEntity();
         ratingEntity.setId(RATING);
@@ -68,7 +69,12 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveBadRequestWhenCreateApiRatingAnswerWithoutInput() {
-        final Response response = target(API).path("ratings").path(RATING).path("answers").request().post(null);
+        final Response response = target(API)
+                .path("ratings")
+                .path(RATING)
+                .path("answers")
+                .request()
+                .post(null);
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -88,11 +94,11 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
 
         final String fakeId = "fake";
         final Response response = target(fakeId)
-            .path("ratings")
-            .path(RATING)
-            .path("answers")
-            .request()
-            .post(Entity.json(ratingAnswerInput));
+                .path("ratings")
+                .path(RATING)
+                .path("answers")
+                .request()
+                .post(Entity.json(ratingAnswerInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -111,7 +117,12 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
     public void shouldHaveRatingNotFoundWhenCreateApiRatingAnswerWithFakeRatingId() {
         RatingAnswerInput ratingAnswerInput = new RatingAnswerInput().comment(RATING);
         final String fakeId = "fake";
-        final Response response = target(API).path("ratings").path(fakeId).path("answers").request().post(Entity.json(ratingAnswerInput));
+        final Response response = target(API)
+                .path("ratings")
+                .path(fakeId)
+                .path("answers")
+                .request()
+                .post(Entity.json(ratingAnswerInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -134,7 +145,12 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
         rating.setValue(2);
 
         doReturn(rating).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
-        final Response response = target(API).path("ratings").path(RATING).path("answers").request().post(Entity.json(ratingAnswerInput));
+        final Response response = target(API)
+                .path("ratings")
+                .path(RATING)
+                .path("answers")
+                .request()
+                .post(Entity.json(ratingAnswerInput));
         Rating updatedRatingResponse = response.readEntity(Rating.class);
         assertNotNull(updatedRatingResponse);
         assertEquals(rating.getValue(), updatedRatingResponse.getValue());

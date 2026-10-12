@@ -54,16 +54,20 @@ class ListConsumerGroupsUseCaseTest {
     @Test
     void should_return_consumer_groups_page() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var coordinator = new KafkaNode(0, "kafka-0", 9092);
         var allGroups = List.of(
-            new ConsumerGroup("group-a", "STABLE", 2, 100L, 3, coordinator),
-            new ConsumerGroup("group-b", "EMPTY", 0, 0L, 0, coordinator)
-        );
+                new ConsumerGroup("group-a", "STABLE", 2, 100L, 3, coordinator),
+                new ConsumerGroup("group-b", "EMPTY", 0, 0L, 0, coordinator));
         clusterDomainService.givenConsumerGroups(allGroups);
 
-        var result = useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25, "groupId", "asc"));
+        var result = useCase.execute(
+                new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25, "groupId", "asc"));
 
         assertThat(result.consumerGroupsPage().data()).hasSize(2);
         assertThat(result.consumerGroupsPage().totalCount()).isEqualTo(2);
@@ -74,17 +78,21 @@ class ListConsumerGroupsUseCaseTest {
     @Test
     void should_filter_consumer_groups_by_name() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var coordinator = new KafkaNode(0, "kafka-0", 9092);
         var allGroups = List.of(
-            new ConsumerGroup("my-group", "STABLE", 2, 100L, 3, coordinator),
-            new ConsumerGroup("other-group", "EMPTY", 0, 0L, 0, coordinator),
-            new ConsumerGroup("my-other-group", "STABLE", 1, 50L, 1, coordinator)
-        );
+                new ConsumerGroup("my-group", "STABLE", 2, 100L, 3, coordinator),
+                new ConsumerGroup("other-group", "EMPTY", 0, 0L, 0, coordinator),
+                new ConsumerGroup("my-other-group", "STABLE", 1, 50L, 1, coordinator));
         clusterDomainService.givenConsumerGroups(allGroups);
 
-        var result = useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", null, 0, 25, "groupId", "asc"));
+        var result = useCase.execute(
+                new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my", null, 0, 25, "groupId", "asc"));
 
         assertThat(result.consumerGroupsPage().data()).hasSize(2);
         assertThat(result.consumerGroupsPage().data().get(0).groupId()).isEqualTo("my-group");
@@ -95,14 +103,19 @@ class ListConsumerGroupsUseCaseTest {
     @Test
     void should_propagate_kafka_explorer_exception() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
-        clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
+        clusterDomainService.givenException(
+                new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
-        assertThatThrownBy(() ->
-            useCase.execute(new ListConsumerGroupsUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25, "groupId", "asc"))
-        )
-            .isInstanceOf(KafkaExplorerException.class)
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+        assertThatThrownBy(() -> useCase.execute(new ListConsumerGroupsUseCase.Input(
+                        CLUSTER_ID, ENVIRONMENT_ID, null, null, 0, 25, "groupId", "asc")))
+                .isInstanceOf(KafkaExplorerException.class)
+                .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode())
+                        .isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 }

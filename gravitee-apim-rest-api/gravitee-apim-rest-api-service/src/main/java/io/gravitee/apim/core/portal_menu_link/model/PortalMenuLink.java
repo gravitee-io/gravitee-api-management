@@ -36,10 +36,10 @@ public class PortalMenuLink {
 
     public PortalMenuLink update(UpdatePortalMenuLink updatePortalMenuLink) {
         return this.toBuilder()
-            .name(updatePortalMenuLink.getName())
-            .target(updatePortalMenuLink.getTarget())
-            .visibility(updatePortalMenuLink.getVisibility())
-            .order(updatePortalMenuLink.getOrder())
-            .build();
+                .name(updatePortalMenuLink.getName())
+                .target(updatePortalMenuLink.getTarget())
+                .visibility(updatePortalMenuLink.getVisibility())
+                .order(updatePortalMenuLink.getOrder())
+                .build();
     }
 }

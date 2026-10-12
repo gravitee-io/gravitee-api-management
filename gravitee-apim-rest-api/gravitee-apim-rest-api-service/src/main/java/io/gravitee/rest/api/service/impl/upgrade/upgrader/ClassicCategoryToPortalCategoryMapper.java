@@ -32,9 +32,9 @@ public final class ClassicCategoryToPortalCategoryMapper {
 
     public static CreatePortalCategory toCreatePortalCategory(Category classicCategory) {
         return CreatePortalCategory.builder()
-            .title(classicCategory.getName())
-            .description(classicCategory.getDescription())
-            .visible(true)
-            .build();
+                .title(classicCategory.getName())
+                .description(classicCategory.getDescription())
+                .visible(true)
+                .build();
     }
 }

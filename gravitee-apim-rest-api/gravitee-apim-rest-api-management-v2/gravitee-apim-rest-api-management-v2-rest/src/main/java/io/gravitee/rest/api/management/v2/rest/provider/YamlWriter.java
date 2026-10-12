@@ -56,14 +56,14 @@ public class YamlWriter<T> implements MessageBodyWriter<T> {
 
     @Override
     public void writeTo(
-        T t,
-        Class<?> type,
-        Type genericType,
-        Annotation[] annotations,
-        MediaType mediaType,
-        MultivaluedMap<String, Object> httpHeaders,
-        OutputStream entityStream
-    ) throws IOException, WebApplicationException {
+            T t,
+            Class<?> type,
+            Type genericType,
+            Annotation[] annotations,
+            MediaType mediaType,
+            MultivaluedMap<String, Object> httpHeaders,
+            OutputStream entityStream)
+            throws IOException, WebApplicationException {
         // Because the YAML mapper does not support the @JsonRawValue annotation,
         // we need to serialize as JSON and then deserialize back as an ObjectNode
         // before converting to YAML

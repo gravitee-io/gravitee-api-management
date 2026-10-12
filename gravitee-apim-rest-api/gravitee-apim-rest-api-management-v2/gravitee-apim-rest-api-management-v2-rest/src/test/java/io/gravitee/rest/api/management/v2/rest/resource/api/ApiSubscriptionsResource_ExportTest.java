@@ -45,9 +45,10 @@ import org.junit.jupiter.api.Test;
 
 public class ApiSubscriptionsResource_ExportTest extends AbstractApiSubscriptionsResourceTest {
 
-    protected static final String CSV_HEADERS = "Plan;Application;Creation date;Process date;Start date;End date date;Status";
+    protected static final String CSV_HEADERS =
+            "Plan;Application;Creation date;Process date;Start date;End date date;Status";
     protected static final String CSV_CONTENT =
-        "Plan value;Application value;Creation date value;Process date value;Start date value;End date date value;Status value";
+            "Plan value;Application value;Creation date value;Process date value;Start date value;End date date value;Status value";
     protected static final String CSV = CSV_HEADERS + "\n" + CSV_CONTENT;
 
     @Override
@@ -57,18 +58,22 @@ public class ApiSubscriptionsResource_ExportTest extends AbstractApiSubscription
 
     @Test
     public void should_return_empty_export_if_no_subscriptions() {
-        var subscriptionQuery = SubscriptionQuery.builder().apis(List.of(API)).statuses(Set.of(SubscriptionStatus.ACCEPTED)).build();
+        var subscriptionQuery = SubscriptionQuery.builder()
+                .apis(List.of(API))
+                .statuses(Set.of(SubscriptionStatus.ACCEPTED))
+                .build();
 
-        when(
-            subscriptionService.search(eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false))
-        ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+        when(subscriptionService.search(
+                        eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false)))
+                .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
         when(subscriptionService.exportAsCsv(any(), any())).thenReturn(CSV_HEADERS);
 
         final Response response = rootTarget().request().get();
 
         assertEquals(OK_200, response.getStatus());
-        assertTrue(response.getHeaderString("content-disposition").matches("attachment;filename=subscriptions-" + API + "-\\d+.csv"));
+        assertTrue(response.getHeaderString("content-disposition")
+                .matches("attachment;filename=subscriptions-" + API + "-\\d+.csv"));
 
         var csv = response.readEntity(String.class);
         assertEquals(CSV_HEADERS, csv);
@@ -79,14 +84,12 @@ public class ApiSubscriptionsResource_ExportTest extends AbstractApiSubscription
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -98,100 +101,106 @@ public class ApiSubscriptionsResource_ExportTest extends AbstractApiSubscription
 
     @Test
     public void should_export_subscriptions_as_csv() {
-        var subscriptionQuery = SubscriptionQuery.builder().apis(List.of(API)).statuses(Set.of(SubscriptionStatus.ACCEPTED)).build();
+        var subscriptionQuery = SubscriptionQuery.builder()
+                .apis(List.of(API))
+                .statuses(Set.of(SubscriptionStatus.ACCEPTED))
+                .build();
 
         final List<SubscriptionEntity> subscriptionEntities = List.of(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-1").build(),
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-2").build()
-        );
-        when(
-            subscriptionService.search(eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false))
-        ).thenReturn(new Page<>(subscriptionEntities, 1, 10, 2));
+                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("subscription-1")
+                        .build(),
+                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("subscription-2")
+                        .build());
+        when(subscriptionService.search(
+                        eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false)))
+                .thenReturn(new Page<>(subscriptionEntities, 1, 10, 2));
 
         final Metadata metadata = new Metadata();
         metadata.put(API, "name", "my-api-name");
         metadata.put(PLAN, "name", "my-plan-name");
         metadata.put(APPLICATION, "name", "my-application-name");
-        when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(metadata);
+        when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(metadata);
         when(subscriptionService.exportAsCsv(any(), any())).thenReturn(CSV);
 
         final Response response = rootTarget().request().get();
 
         assertEquals(OK_200, response.getStatus());
-        assertTrue(response.getHeaderString("content-disposition").matches("attachment;filename=subscriptions-" + API + "-\\d+.csv"));
+        assertTrue(response.getHeaderString("content-disposition")
+                .matches("attachment;filename=subscriptions-" + API + "-\\d+.csv"));
 
         var csv = response.readEntity(String.class);
         assertEquals(CSV, csv);
 
-        verify(subscriptionService).getMetadata(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(metadataQuery -> {
-                assertEquals(subscriptionEntities, metadataQuery.getSubscriptions());
-                assertEquals(ORGANIZATION, metadataQuery.getOrganization());
-                assertEquals(ENVIRONMENT, metadataQuery.getEnvironment());
-                assertTrue(metadataQuery.ifApis().orElse(false));
-                assertTrue(metadataQuery.ifApplications().orElse(false));
-                assertTrue(metadataQuery.ifPlans().orElse(false));
-                return true;
-            })
-        );
+        verify(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), argThat(metadataQuery -> {
+            assertEquals(subscriptionEntities, metadataQuery.getSubscriptions());
+            assertEquals(ORGANIZATION, metadataQuery.getOrganization());
+            assertEquals(ENVIRONMENT, metadataQuery.getEnvironment());
+            assertTrue(metadataQuery.ifApis().orElse(false));
+            assertTrue(metadataQuery.ifApplications().orElse(false));
+            assertTrue(metadataQuery.ifPlans().orElse(false));
+            return true;
+        }));
         verify(subscriptionService).exportAsCsv(subscriptionEntities, metadata.toMap());
     }
 
     @Test
     public void should_export_with_multi_criteria() {
         var subscriptionQuery = SubscriptionQuery.builder()
-            .apis(List.of(API))
-            .apiKey("apiKey")
-            .plans(Set.of("plan-1", "plan-2"))
-            .applications(Set.of("application-1", "application-2"))
-            .statuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.CLOSED))
-            .build();
+                .apis(List.of(API))
+                .apiKey("apiKey")
+                .plans(Set.of("plan-1", "plan-2"))
+                .applications(Set.of("application-1", "application-2"))
+                .statuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.CLOSED))
+                .build();
 
-        final List<SubscriptionEntity> subscriptionEntities = List.of(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-1").build()
-        );
-        when(subscriptionService.search(any(), any(), any(), eq(false), eq(false))).thenReturn(new Page<>(subscriptionEntities, 1, 10, 1));
+        final List<SubscriptionEntity> subscriptionEntities =
+                List.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("subscription-1")
+                        .build());
+        when(subscriptionService.search(any(), any(), any(), eq(false), eq(false)))
+                .thenReturn(new Page<>(subscriptionEntities, 1, 10, 1));
 
         final Metadata metadata = new Metadata();
-        when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(metadata);
+        when(subscriptionService.getMetadata(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(metadata);
         when(subscriptionService.exportAsCsv(any(), any())).thenReturn(CSV);
 
         final Response response = rootTarget()
-            .queryParam("applicationIds", "application-1, application-2")
-            .queryParam("planIds", "plan-1, plan-2")
-            .queryParam("statuses", "ACCEPTED, CLOSED")
-            .queryParam("apiKey", "apiKey")
-            .queryParam("page", 2)
-            .queryParam("perPage", 20)
-            .request()
-            .get();
+                .queryParam("applicationIds", "application-1, application-2")
+                .queryParam("planIds", "plan-1, plan-2")
+                .queryParam("statuses", "ACCEPTED, CLOSED")
+                .queryParam("apiKey", "apiKey")
+                .queryParam("page", 2)
+                .queryParam("perPage", 20)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
-        assertTrue(response.getHeaderString("content-disposition").matches("attachment;filename=subscriptions-" + API + "-\\d+.csv"));
+        assertTrue(response.getHeaderString("content-disposition")
+                .matches("attachment;filename=subscriptions-" + API + "-\\d+.csv"));
 
         var csv = response.readEntity(String.class);
         assertEquals(CSV, csv);
 
-        verify(subscriptionService).search(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(subscriptionQuery),
-            eq(new PageableImpl(2, 20)),
-            eq(false),
-            eq(false)
-        );
-        verify(subscriptionService).getMetadata(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(metadataQuery -> {
-                assertEquals(subscriptionEntities, metadataQuery.getSubscriptions());
-                assertEquals(ORGANIZATION, metadataQuery.getOrganization());
-                assertEquals(ENVIRONMENT, metadataQuery.getEnvironment());
-                assertTrue(metadataQuery.ifApis().orElse(false));
-                assertTrue(metadataQuery.ifApplications().orElse(false));
-                assertTrue(metadataQuery.ifPlans().orElse(false));
-                return true;
-            })
-        );
+        verify(subscriptionService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(subscriptionQuery),
+                        eq(new PageableImpl(2, 20)),
+                        eq(false),
+                        eq(false));
+        verify(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), argThat(metadataQuery -> {
+            assertEquals(subscriptionEntities, metadataQuery.getSubscriptions());
+            assertEquals(ORGANIZATION, metadataQuery.getOrganization());
+            assertEquals(ENVIRONMENT, metadataQuery.getEnvironment());
+            assertTrue(metadataQuery.ifApis().orElse(false));
+            assertTrue(metadataQuery.ifApplications().orElse(false));
+            assertTrue(metadataQuery.ifPlans().orElse(false));
+            return true;
+        }));
         verify(subscriptionService).exportAsCsv(subscriptionEntities, metadata.toMap());
     }
 }

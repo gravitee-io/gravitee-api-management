@@ -34,33 +34,31 @@ public class PortalCatalogNavigationVisibilityDomainService {
     private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
 
     public <T extends PortalNavigationItem> List<T> filterVisibleItems(
-        List<T> items,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-        PortalNavigationItemViewerContext viewerContext,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
-    ) {
-        return items
-            .stream()
-            .filter(
-                item ->
-                    !isHidden(item, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds) &&
-                    !hasHiddenAncestor(item, itemsById, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds)
-            )
-            .toList();
+            List<T> items,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+            PortalNavigationItemViewerContext viewerContext,
+            Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
+            Set<String> accessibleApiProductIds) {
+        return items.stream()
+                .filter(item -> !isHidden(item, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds)
+                        && !hasHiddenAncestor(
+                                item,
+                                itemsById,
+                                viewerContext,
+                                accessibleApiNavigationItemIds,
+                                accessibleApiProductIds))
+                .toList();
     }
 
     public List<PortalNavigationApi> filterStandaloneApis(
-        List<PortalNavigationApi> items,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById
-    ) {
-        return items
-            .stream()
-            .filter(item -> !hasApiProductAncestor(item, itemsById))
-            .toList();
+            List<PortalNavigationApi> items, Map<PortalNavigationItemId, PortalNavigationItem> itemsById) {
+        return items.stream()
+                .filter(item -> !hasApiProductAncestor(item, itemsById))
+                .toList();
     }
 
-    private boolean hasApiProductAncestor(PortalNavigationItem item, Map<PortalNavigationItemId, PortalNavigationItem> itemsById) {
+    private boolean hasApiProductAncestor(
+            PortalNavigationItem item, Map<PortalNavigationItemId, PortalNavigationItem> itemsById) {
         Set<PortalNavigationItemId> visited = new HashSet<>();
         PortalNavigationItem current = item;
         while (current != null && current.getParentId() != null && visited.add(current.getId())) {
@@ -73,17 +71,17 @@ public class PortalCatalogNavigationVisibilityDomainService {
     }
 
     private boolean hasHiddenAncestor(
-        PortalNavigationItem item,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-        PortalNavigationItemViewerContext viewerContext,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
-    ) {
+            PortalNavigationItem item,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+            PortalNavigationItemViewerContext viewerContext,
+            Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
+            Set<String> accessibleApiProductIds) {
         Set<PortalNavigationItemId> visited = new HashSet<>();
         PortalNavigationItem current = item;
         while (current != null && current.getParentId() != null && visited.add(current.getId())) {
             current = itemsById.get(current.getParentId());
-            if (current != null && isHidden(current, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds)) {
+            if (current != null
+                    && isHidden(current, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds)) {
                 return true;
             }
         }
@@ -91,11 +89,10 @@ public class PortalCatalogNavigationVisibilityDomainService {
     }
 
     private boolean isHidden(
-        PortalNavigationItem item,
-        PortalNavigationItemViewerContext viewerContext,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
-    ) {
+            PortalNavigationItem item,
+            PortalNavigationItemViewerContext viewerContext,
+            Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
+            Set<String> accessibleApiProductIds) {
         if (viewerContext.shouldNotShow(item)) {
             return true;
         }
@@ -103,7 +100,8 @@ public class PortalCatalogNavigationVisibilityDomainService {
             return !accessibleApiNavigationItemIds.contains(item.getId());
         }
         if (item instanceof PortalNavigationApiProduct apiProduct) {
-            return apiProductVisibilityDomainService.isApiProductItemHidden(apiProduct, viewerContext, accessibleApiProductIds);
+            return apiProductVisibilityDomainService.isApiProductItemHidden(
+                    apiProduct, viewerContext, accessibleApiProductIds);
         }
         return false;
     }

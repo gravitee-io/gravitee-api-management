@@ -38,14 +38,15 @@ public class WebSocketClientFactory {
     private final AtomicBoolean webSocketClientCreated = new AtomicBoolean(false);
 
     public WebSocketClient getOrBuildWebSocketClient(
-        final HttpExecutionContext ctx,
-        final HttpProxyEndpointConnectorConfiguration configuration,
-        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            final HttpExecutionContext ctx,
+            final HttpProxyEndpointConnectorConfiguration configuration,
+            final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         if (webSocketClient == null) {
             synchronized (this) {
                 if (webSocketClientCreated.compareAndSet(false, true)) {
-                    webSocketClient = buildWebSocketClient(ctx, configuration, sharedConfiguration).build().createWebSocketClient();
+                    webSocketClient = buildWebSocketClient(ctx, configuration, sharedConfiguration)
+                            .build()
+                            .createWebSocketClient();
                 }
             }
         }
@@ -53,17 +54,16 @@ public class WebSocketClientFactory {
     }
 
     protected VertxWebSocketClientFactory.VertxWebSocketClientFactoryBuilder buildWebSocketClient(
-        final HttpExecutionContext ctx,
-        final HttpProxyEndpointConnectorConfiguration configuration,
-        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            final HttpExecutionContext ctx,
+            final HttpProxyEndpointConnectorConfiguration configuration,
+            final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         return VertxWebSocketClientFactory.builder()
-            .vertx(ctx.getComponent(Vertx.class))
-            .nodeConfiguration(ctx.getComponent(Configuration.class))
-            .defaultTarget(configuration.getTarget())
-            .httpOptions(HttpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getHttpOptions()))
-            .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))
-            .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()));
+                .vertx(ctx.getComponent(Vertx.class))
+                .nodeConfiguration(ctx.getComponent(Configuration.class))
+                .defaultTarget(configuration.getTarget())
+                .httpOptions(HttpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getHttpOptions()))
+                .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))
+                .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()));
     }
 
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")

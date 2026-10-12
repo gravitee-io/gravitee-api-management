@@ -43,16 +43,16 @@ public class ConnectionErrorHttpProxyEndpointConnector extends HttpProxyEndpoint
     final AtomicInteger connectAttempts = new AtomicInteger(0);
 
     public ConnectionErrorHttpProxyEndpointConnector(
-        ConnectionErrorHttpProxyEndpointConnectorConfiguration failureConfiguration,
-        HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            ConnectionErrorHttpProxyEndpointConnectorConfiguration failureConfiguration,
+            HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         super(failureConfiguration, sharedConfiguration);
         this.failureConfiguration = failureConfiguration;
     }
 
     @Override
     public Completable connect(HttpExecutionContext ctx) {
-        Failure failure = Optional.ofNullable(failureConfiguration.connectionErrors.pollFirst()).orElse(new Failure(200, "ok"));
+        Failure failure = Optional.ofNullable(failureConfiguration.connectionErrors.pollFirst())
+                .orElse(new Failure(200, "ok"));
         // Return the connection attempts counter as a header to simplify the assertions
         ctx.response().headers().set(MOCK_CONNECTION_ATTEMPTS, Integer.toString(connectAttempts.incrementAndGet()));
         if (failure.status() == 200) {

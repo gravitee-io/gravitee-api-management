@@ -24,16 +24,15 @@ import org.junit.jupiter.api.Test;
 class EndpointTest {
 
     private String expectedJsonString = String.join(
-        ",",
-        "{\"name\":\"my-name\"",
-        "\"target\":\"my-target\"",
-        "\"weight\":1",
-        "\"backup\":false",
-        "\"tenants\":null",
-        "\"type\":\"my-type\"",
-        "\"inherit\":null",
-        "\"healthcheck\":null}"
-    );
+            ",",
+            "{\"name\":\"my-name\"",
+            "\"target\":\"my-target\"",
+            "\"weight\":1",
+            "\"backup\":false",
+            "\"tenants\":null",
+            "\"type\":\"my-type\"",
+            "\"inherit\":null",
+            "\"healthcheck\":null}");
 
     @Test
     void shouldSerializeEndpoint() throws JsonProcessingException {

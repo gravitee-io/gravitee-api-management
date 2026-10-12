@@ -66,27 +66,28 @@ public class ApiKeyQueryServiceImplTest {
         void should_return_api_key_and_adapt_it() throws TechnicalException {
             // Given
             var id = "api-key-id";
-            when(apiKeyRepository.findById(id)).thenAnswer(invocation -> Optional.of(anApiKey().id(invocation.getArgument(0)).build()));
+            when(apiKeyRepository.findById(id))
+                    .thenAnswer(invocation ->
+                            Optional.of(anApiKey().id(invocation.getArgument(0)).build()));
 
             // When
             var result = service.findById(id);
 
             // Then
-            assertThat(result).contains(
-                ApiKeyEntity.builder()
-                    .id(id)
-                    .subscriptions(List.of("subscription-id"))
-                    .key("c080f684-2c35-40a1-903c-627c219e0567")
-                    .applicationId("application-id")
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
-                    .daysToExpirationOnLastNotification(310)
-                    .build()
-            );
+            assertThat(result)
+                    .contains(ApiKeyEntity.builder()
+                            .id(id)
+                            .subscriptions(List.of("subscription-id"))
+                            .key("c080f684-2c35-40a1-903c-627c219e0567")
+                            .applicationId("application-id")
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revoked(true)
+                            .paused(true)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
         }
 
         @Test
@@ -113,8 +114,8 @@ public class ApiKeyQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find API key by id: " + id);
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find API key by id: " + id);
         }
     }
 
@@ -125,30 +126,29 @@ public class ApiKeyQueryServiceImplTest {
         void should_return_api_keys_and_adapt_them() throws TechnicalException {
             // Given
             var applicationId = "application-id";
-            when(apiKeyRepository.findByApplication(applicationId)).thenAnswer(invocation ->
-                List.of(anApiKeyForApplication(invocation.getArgument(0)).build())
-            );
+            when(apiKeyRepository.findByApplication(applicationId))
+                    .thenAnswer(invocation -> List.of(
+                            anApiKeyForApplication(invocation.getArgument(0)).build()));
 
             // When
             var result = service.findByApplication(applicationId);
 
             // Then
-            assertThat(result).containsExactly(
-                ApiKeyEntity.builder()
-                    .id("api-key-id")
-                    .applicationId(applicationId)
-                    .subscriptions(List.of("subscription-id"))
-                    .key("c080f684-2c35-40a1-903c-627c219e0567")
-                    .applicationId("application-id")
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
-                    .daysToExpirationOnLastNotification(310)
-                    .build()
-            );
+            assertThat(result)
+                    .containsExactly(ApiKeyEntity.builder()
+                            .id("api-key-id")
+                            .applicationId(applicationId)
+                            .subscriptions(List.of("subscription-id"))
+                            .key("c080f684-2c35-40a1-903c-627c219e0567")
+                            .applicationId("application-id")
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revoked(true)
+                            .paused(true)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
         }
 
         @Test
@@ -175,8 +175,8 @@ public class ApiKeyQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find API keys by application id: " + applicationId);
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find API keys by application id: " + applicationId);
         }
     }
 
@@ -188,29 +188,28 @@ public class ApiKeyQueryServiceImplTest {
             // Given
             var key = "my-key";
             var apiId = "my-api";
-            when(apiKeyRepository.findByKeyAndApi(key, apiId)).thenAnswer(invocation ->
-                Optional.of(anApiKey().key(invocation.getArgument(0)).build())
-            );
+            when(apiKeyRepository.findByKeyAndApi(key, apiId))
+                    .thenAnswer(invocation -> Optional.of(
+                            anApiKey().key(invocation.getArgument(0)).build()));
 
             // When
             var result = service.findByKeyAndApiId(key, apiId);
 
             // Then
-            assertThat(result).contains(
-                ApiKeyEntity.builder()
-                    .id("api-key-id")
-                    .subscriptions(List.of("subscription-id"))
-                    .key(key)
-                    .applicationId("application-id")
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
-                    .daysToExpirationOnLastNotification(310)
-                    .build()
-            );
+            assertThat(result)
+                    .contains(ApiKeyEntity.builder()
+                            .id("api-key-id")
+                            .subscriptions(List.of("subscription-id"))
+                            .key(key)
+                            .applicationId("application-id")
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revoked(true)
+                            .paused(true)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
         }
 
         @Test
@@ -239,8 +238,8 @@ public class ApiKeyQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find API key by [key=my-key] and [apiId=my-api]");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find API key by [key=my-key] and [apiId=my-api]");
         }
     }
 
@@ -252,27 +251,26 @@ public class ApiKeyQueryServiceImplTest {
             var key = "my-key";
             var referenceId = "api-id";
             var referenceType = "API";
-            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenAnswer(invocation ->
-                Optional.of(anApiKey().key(invocation.getArgument(0)).build())
-            );
+            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType))
+                    .thenAnswer(invocation -> Optional.of(
+                            anApiKey().key(invocation.getArgument(0)).build()));
 
             var result = service.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType);
 
-            assertThat(result).contains(
-                ApiKeyEntity.builder()
-                    .id("api-key-id")
-                    .subscriptions(List.of("subscription-id"))
-                    .key(key)
-                    .applicationId("application-id")
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
-                    .daysToExpirationOnLastNotification(310)
-                    .build()
-            );
+            assertThat(result)
+                    .contains(ApiKeyEntity.builder()
+                            .id("api-key-id")
+                            .subscriptions(List.of("subscription-id"))
+                            .key(key)
+                            .applicationId("application-id")
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revoked(true)
+                            .paused(true)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
         }
 
         @Test
@@ -280,7 +278,8 @@ public class ApiKeyQueryServiceImplTest {
             var key = "my-key";
             var referenceId = "api-id";
             var referenceType = "API_PRODUCT";
-            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenReturn(Optional.empty());
+            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType))
+                    .thenReturn(Optional.empty());
 
             var result = service.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType);
 
@@ -292,15 +291,16 @@ public class ApiKeyQueryServiceImplTest {
             var key = "my-key";
             var referenceId = "api-id";
             var referenceType = "API";
-            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenThrow(
-                TechnicalException.class
-            );
+            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType))
+                    .thenThrow(TechnicalException.class);
 
-            Throwable throwable = catchThrowable(() -> service.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType));
+            Throwable throwable = catchThrowable(
+                    () -> service.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find API key by [key=my-key], [referenceId=api-id], [referenceType=API]");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage(
+                            "An error occurs while trying to find API key by [key=my-key], [referenceId=api-id], [referenceType=API]");
         }
     }
 
@@ -311,29 +311,28 @@ public class ApiKeyQueryServiceImplTest {
         void should_return_api_keys_and_adapt_them() throws TechnicalException {
             // Given
             var subscriptionId = "subscription-id";
-            when(apiKeyRepository.findBySubscription(subscriptionId)).thenAnswer(invocation ->
-                Set.of(anApiKeyForSubscription(invocation.getArgument(0)).build())
-            );
+            when(apiKeyRepository.findBySubscription(subscriptionId))
+                    .thenAnswer(invocation -> Set.of(
+                            anApiKeyForSubscription(invocation.getArgument(0)).build()));
 
             // When
             var result = service.findBySubscription(subscriptionId);
 
             // Then
-            assertThat(result).containsExactly(
-                ApiKeyEntity.builder()
-                    .id("api-key-id")
-                    .subscriptions(List.of(subscriptionId))
-                    .key("c080f684-2c35-40a1-903c-627c219e0567")
-                    .applicationId("application-id")
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
-                    .daysToExpirationOnLastNotification(310)
-                    .build()
-            );
+            assertThat(result)
+                    .containsExactly(ApiKeyEntity.builder()
+                            .id("api-key-id")
+                            .subscriptions(List.of(subscriptionId))
+                            .key("c080f684-2c35-40a1-903c-627c219e0567")
+                            .applicationId("application-id")
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revoked(true)
+                            .paused(true)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
         }
 
         @Test
@@ -360,8 +359,8 @@ public class ApiKeyQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find API keys by subscription id: " + subscriptionId);
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find API keys by subscription id: " + subscriptionId);
         }
     }
 
@@ -381,8 +380,10 @@ public class ApiKeyQueryServiceImplTest {
         }
 
         @Test
-        void should_emit_one_query_with_subscriptions_in_clause_including_revoked_and_federated() throws TechnicalException {
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of());
+        void should_emit_one_query_with_subscriptions_in_clause_including_revoked_and_federated()
+                throws TechnicalException {
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenReturn(List.of());
 
             service.findBySubscriptions(List.of("sub-a", "sub-b")).toList();
 
@@ -396,32 +397,31 @@ public class ApiKeyQueryServiceImplTest {
 
         @Test
         void should_return_api_keys_and_adapt_them() throws TechnicalException {
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(
-                List.of(anApiKeyForSubscription("sub-a").build())
-            );
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenReturn(List.of(anApiKeyForSubscription("sub-a").build()));
 
             var result = service.findBySubscriptions(List.of("sub-a"));
 
-            assertThat(result).containsExactly(
-                ApiKeyEntity.builder()
-                    .id("api-key-id")
-                    .subscriptions(List.of("sub-a"))
-                    .key("c080f684-2c35-40a1-903c-627c219e0567")
-                    .applicationId("application-id")
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
-                    .daysToExpirationOnLastNotification(310)
-                    .build()
-            );
+            assertThat(result)
+                    .containsExactly(ApiKeyEntity.builder()
+                            .id("api-key-id")
+                            .subscriptions(List.of("sub-a"))
+                            .key("c080f684-2c35-40a1-903c-627c219e0567")
+                            .applicationId("application-id")
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .revoked(true)
+                            .paused(true)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
         }
 
         @Test
         void should_query_once_regardless_of_subscription_count() throws TechnicalException {
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of());
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenReturn(List.of());
 
             service.findBySubscriptions(List.of("s1", "s2", "s3", "s4", "s5")).toList();
 
@@ -431,7 +431,8 @@ public class ApiKeyQueryServiceImplTest {
 
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenThrow(TechnicalException.class);
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenThrow(TechnicalException.class);
 
             Throwable throwable = catchThrowable(() -> service.findBySubscriptions(List.of("sub-a")));
 
@@ -456,7 +457,8 @@ public class ApiKeyQueryServiceImplTest {
             var now = Instant.ofEpochMilli(1_700_000_000_000L);
             long oneDay = 24L * 60L * 60L * 1000L;
             long windowMs = 60L * 60L * 1000L;
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of());
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenReturn(List.of());
 
             service.findExpiringApiKeys(now, List.of(30, 45, 90), windowMs);
 
@@ -474,41 +476,58 @@ public class ApiKeyQueryServiceImplTest {
         void should_skip_orphaned_subscription_references() throws TechnicalException {
             var now = Instant.ofEpochMilli(1_700_000_000_000L);
             ApiKey repoKey = ApiKey.builder()
-                .id("key-id")
-                .key("the-key-value")
-                .application("app-id")
-                .subscriptions(List.of("sub-found", "sub-missing"))
-                .expireAt(new Date(now.toEpochMilli() + 30L * 24 * 60 * 60 * 1000))
-                .build();
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of(repoKey));
+                    .id("key-id")
+                    .key("the-key-value")
+                    .application("app-id")
+                    .subscriptions(List.of("sub-found", "sub-missing"))
+                    .expireAt(new Date(now.toEpochMilli() + 30L * 24 * 60 * 60 * 1000))
+                    .build();
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenReturn(List.of(repoKey));
             // sub-missing is intentionally not returned — simulates deletion between key write and our query
-            Subscription subFound = Subscription.builder().id("sub-found").api("api-x").plan("plan-x").subscribedBy("user-x").build();
+            Subscription subFound = Subscription.builder()
+                    .id("sub-found")
+                    .api("api-x")
+                    .plan("plan-x")
+                    .subscribedBy("user-x")
+                    .build();
             when(subscriptionRepository.findByIdIn(any())).thenReturn(List.of(subFound));
 
             List<ExpiringApiKey> result = service.findExpiringApiKeys(now, List.of(30), 60_000L);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).subscriptions()).containsExactly(
-                new ExpiringApiKeySubscription("sub-found", "api-x", "plan-x", "user-x")
-            );
+            assertThat(result.get(0).subscriptions())
+                    .containsExactly(new ExpiringApiKeySubscription("sub-found", "api-x", "plan-x", "user-x"));
         }
 
         @Test
-        void should_map_api_keys_with_inline_subscription_projections_resolved_in_one_batch() throws TechnicalException {
+        void should_map_api_keys_with_inline_subscription_projections_resolved_in_one_batch()
+                throws TechnicalException {
             var now = Instant.ofEpochMilli(1_700_000_000_000L);
             Date expireDate = new Date(now.toEpochMilli() + 30L * 24 * 60 * 60 * 1000);
             ApiKey repoKey = ApiKey.builder()
-                .id("key-id")
-                .key("the-key-value")
-                .application("app-id")
-                .subscriptions(List.of("sub-a", "sub-b"))
-                .expireAt(expireDate)
-                .daysToExpirationOnLastNotification(45)
-                .build();
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of(repoKey));
+                    .id("key-id")
+                    .key("the-key-value")
+                    .application("app-id")
+                    .subscriptions(List.of("sub-a", "sub-b"))
+                    .expireAt(expireDate)
+                    .daysToExpirationOnLastNotification(45)
+                    .build();
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenReturn(List.of(repoKey));
 
-            Subscription subA = Subscription.builder().id("sub-a").api("api-a").plan("plan-a").subscribedBy("user-a").build();
-            Subscription subB = Subscription.builder().id("sub-b").api("api-b").plan("plan-b").subscribedBy("user-b").build();
+            Subscription subA = Subscription.builder()
+                    .id("sub-a")
+                    .api("api-a")
+                    .plan("plan-a")
+                    .subscribedBy("user-a")
+                    .build();
+            Subscription subB = Subscription.builder()
+                    .id("sub-b")
+                    .api("api-b")
+                    .plan("plan-b")
+                    .subscribedBy("user-b")
+                    .build();
             when(subscriptionRepository.findByIdIn(any())).thenReturn(List.of(subA, subB));
 
             List<ExpiringApiKey> result = service.findExpiringApiKeys(now, List.of(30), 60_000L);
@@ -520,10 +539,10 @@ public class ApiKeyQueryServiceImplTest {
             assertThat(mapped.applicationId()).isEqualTo("app-id");
             assertThat(mapped.daysToExpirationOnLastNotification()).isEqualTo(45);
             assertThat(mapped.expireAt().toInstant()).isEqualTo(expireDate.toInstant());
-            assertThat(mapped.subscriptions()).containsExactlyInAnyOrder(
-                new ExpiringApiKeySubscription("sub-a", "api-a", "plan-a", "user-a"),
-                new ExpiringApiKeySubscription("sub-b", "api-b", "plan-b", "user-b")
-            );
+            assertThat(mapped.subscriptions())
+                    .containsExactlyInAnyOrder(
+                            new ExpiringApiKeySubscription("sub-a", "api-a", "plan-a", "user-a"),
+                            new ExpiringApiKeySubscription("sub-b", "api-b", "plan-b", "user-b"));
 
             ArgumentCaptor<Collection<String>> idsCaptor = ArgumentCaptor.forClass(Collection.class);
             Mockito.verify(subscriptionRepository, Mockito.times(1)).findByIdIn(idsCaptor.capture());
@@ -532,7 +551,8 @@ public class ApiKeyQueryServiceImplTest {
 
         @Test
         void should_throw_technical_management_exception_when_repo_fails() throws TechnicalException {
-            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenThrow(TechnicalException.class);
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class)))
+                    .thenThrow(TechnicalException.class);
 
             Throwable thrown = catchThrowable(() -> service.findExpiringApiKeys(Instant.now(), List.of(30), 60_000L));
 
@@ -550,16 +570,16 @@ public class ApiKeyQueryServiceImplTest {
 
     private ApiKey.ApiKeyBuilder anApiKey() {
         return ApiKey.builder()
-            .key("c080f684-2c35-40a1-903c-627c219e0567")
-            .id("api-key-id")
-            .application("application-id")
-            .subscriptions(List.of("subscription-id"))
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .revokedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .expireAt(Date.from(Instant.parse("2021-02-01T20:22:02.00Z")))
-            .revoked(true)
-            .paused(true)
-            .daysToExpirationOnLastNotification(310);
+                .key("c080f684-2c35-40a1-903c-627c219e0567")
+                .id("api-key-id")
+                .application("application-id")
+                .subscriptions(List.of("subscription-id"))
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .revokedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .expireAt(Date.from(Instant.parse("2021-02-01T20:22:02.00Z")))
+                .revoked(true)
+                .paused(true)
+                .daysToExpirationOnLastNotification(310);
     }
 }

@@ -24,19 +24,29 @@ public class ConnectionLogDetailFixtures {
     public static final String X_HEADER = "X-Header";
     public static final String HEADER_VALUE = "header-value";
     private static final ConnectionLogDetail.ConnectionLogDetailBuilder<?, ?> BASE = ConnectionLogDetail.builder()
-        .apiId("api-id")
-        .requestId("request-id")
-        .clientIdentifier("client-identifier")
-        .requestEnded(true)
-        .timestamp("2020-02-01T20:00:00.00Z")
-        .entrypointRequest(
-            ConnectionLogDetail.Request.builder().method("GET").uri("/uri").headers(Map.of(X_HEADER, List.of(HEADER_VALUE))).build()
-        )
-        .endpointRequest(
-            ConnectionLogDetail.Request.builder().method("GET").uri("/uri").headers(Map.of(X_HEADER, List.of(HEADER_VALUE))).build()
-        )
-        .entrypointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of(X_HEADER, List.of(HEADER_VALUE))).build())
-        .endpointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of()).build());
+            .apiId("api-id")
+            .requestId("request-id")
+            .clientIdentifier("client-identifier")
+            .requestEnded(true)
+            .timestamp("2020-02-01T20:00:00.00Z")
+            .entrypointRequest(ConnectionLogDetail.Request.builder()
+                    .method("GET")
+                    .uri("/uri")
+                    .headers(Map.of(X_HEADER, List.of(HEADER_VALUE)))
+                    .build())
+            .endpointRequest(ConnectionLogDetail.Request.builder()
+                    .method("GET")
+                    .uri("/uri")
+                    .headers(Map.of(X_HEADER, List.of(HEADER_VALUE)))
+                    .build())
+            .entrypointResponse(ConnectionLogDetail.Response.builder()
+                    .status(200)
+                    .headers(Map.of(X_HEADER, List.of(HEADER_VALUE)))
+                    .build())
+            .endpointResponse(ConnectionLogDetail.Response.builder()
+                    .status(200)
+                    .headers(Map.of())
+                    .build());
 
     public ConnectionLogDetailFixtures(String defaultApiId, String requestId) {
         BASE.apiId(defaultApiId).requestId(requestId);

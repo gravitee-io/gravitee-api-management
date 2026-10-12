@@ -43,76 +43,65 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
 
     @Override
     public Completable ready() {
-        return Completable.defer(() -> Completable.fromCompletionStage(redisClient.redisApi().toCompletionStage()));
+        return Completable.defer(
+                () -> Completable.fromCompletionStage(redisClient.redisApi().toCompletionStage()));
     }
 
     @Override
     public Maybe<DistributedSyncState> findByClusterId(final String clusterId) {
-        return Maybe.defer(() ->
-            Maybe.fromCompletionStage(
-                redisClient
-                    .redisApi()
-                    .flatMap(redisAPI -> redisAPI.hgetall(REDIS_KEY_PREFIX + clusterId))
-                    .toCompletionStage()
-            )
-        )
-            .filter(response -> response.type() == ResponseType.MULTI && response.size() != 0)
-            .map(item -> {
-                DistributedSyncState.DistributedSyncStateBuilder distributedSyncStateBuilder = DistributedSyncState.builder();
-                // Get cluster id
-                Response clusterIdResponse = item.get(DistributedSyncState.Fields.clusterId);
-                if (clusterIdResponse != null) {
-                    distributedSyncStateBuilder.clusterId(clusterIdResponse.toString());
-                }
-                // Get node id
-                Response nodeIdResponse = item.get(DistributedSyncState.Fields.nodeId);
-                if (nodeIdResponse != null) {
-                    distributedSyncStateBuilder.nodeId(nodeIdResponse.toString());
-                }
-                // Get node version
-                Response nodeVersionResponse = item.get(DistributedSyncState.Fields.nodeVersion);
-                if (nodeVersionResponse != null) {
-                    distributedSyncStateBuilder.nodeVersion(nodeVersionResponse.toString());
-                }
-                // Get from time
-                Response fromResponse = item.get(DistributedSyncState.Fields.from);
-                if (fromResponse != null) {
-                    distributedSyncStateBuilder.from(fromResponse.toLong());
-                }
-                // Get to time
-                Response toResponse = item.get(DistributedSyncState.Fields.to);
-                if (toResponse != null) {
-                    distributedSyncStateBuilder.to(toResponse.toLong());
-                }
-                return distributedSyncStateBuilder.build();
-            });
+        return Maybe.defer(() -> Maybe.fromCompletionStage(redisClient
+                        .redisApi()
+                        .flatMap(redisAPI -> redisAPI.hgetall(REDIS_KEY_PREFIX + clusterId))
+                        .toCompletionStage()))
+                .filter(response -> response.type() == ResponseType.MULTI && response.size() != 0)
+                .map(item -> {
+                    DistributedSyncState.DistributedSyncStateBuilder distributedSyncStateBuilder =
+                            DistributedSyncState.builder();
+                    // Get cluster id
+                    Response clusterIdResponse = item.get(DistributedSyncState.Fields.clusterId);
+                    if (clusterIdResponse != null) {
+                        distributedSyncStateBuilder.clusterId(clusterIdResponse.toString());
+                    }
+                    // Get node id
+                    Response nodeIdResponse = item.get(DistributedSyncState.Fields.nodeId);
+                    if (nodeIdResponse != null) {
+                        distributedSyncStateBuilder.nodeId(nodeIdResponse.toString());
+                    }
+                    // Get node version
+                    Response nodeVersionResponse = item.get(DistributedSyncState.Fields.nodeVersion);
+                    if (nodeVersionResponse != null) {
+                        distributedSyncStateBuilder.nodeVersion(nodeVersionResponse.toString());
+                    }
+                    // Get from time
+                    Response fromResponse = item.get(DistributedSyncState.Fields.from);
+                    if (fromResponse != null) {
+                        distributedSyncStateBuilder.from(fromResponse.toLong());
+                    }
+                    // Get to time
+                    Response toResponse = item.get(DistributedSyncState.Fields.to);
+                    if (toResponse != null) {
+                        distributedSyncStateBuilder.to(toResponse.toLong());
+                    }
+                    return distributedSyncStateBuilder.build();
+                });
     }
 
     @Override
     public Completable createOrUpdate(final DistributedSyncState distributedSyncState) {
-        return Completable.defer(() ->
-            Completable.fromCompletionStage(
-                redisClient
-                    .redisApi()
-                    .flatMap(redisAPI ->
-                        redisAPI.hset(
-                            List.of(
-                                REDIS_KEY_PREFIX + distributedSyncState.getClusterId(),
-                                DistributedSyncState.Fields.clusterId,
-                                distributedSyncState.getClusterId(),
-                                DistributedSyncState.Fields.nodeId,
-                                distributedSyncState.getNodeId(),
-                                DistributedSyncState.Fields.nodeVersion,
-                                distributedSyncState.getNodeVersion(),
-                                DistributedSyncState.Fields.from,
-                                String.valueOf(distributedSyncState.getFrom()),
-                                DistributedSyncState.Fields.to,
-                                String.valueOf(distributedSyncState.getTo())
-                            )
-                        )
-                    )
-                    .toCompletionStage()
-            )
-        );
+        return Completable.defer(() -> Completable.fromCompletionStage(redisClient
+                .redisApi()
+                .flatMap(redisAPI -> redisAPI.hset(List.of(
+                        REDIS_KEY_PREFIX + distributedSyncState.getClusterId(),
+                        DistributedSyncState.Fields.clusterId,
+                        distributedSyncState.getClusterId(),
+                        DistributedSyncState.Fields.nodeId,
+                        distributedSyncState.getNodeId(),
+                        DistributedSyncState.Fields.nodeVersion,
+                        distributedSyncState.getNodeVersion(),
+                        DistributedSyncState.Fields.from,
+                        String.valueOf(distributedSyncState.getFrom()),
+                        DistributedSyncState.Fields.to,
+                        String.valueOf(distributedSyncState.getTo()))))
+                .toCompletionStage()));
     }
 }

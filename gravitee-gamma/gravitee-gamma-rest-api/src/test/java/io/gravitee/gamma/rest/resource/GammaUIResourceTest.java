@@ -68,7 +68,10 @@ class GammaUIResourceTest extends AbstractResourceTest {
 
         @Test
         void should_use_enforced_organization_id_when_provided() {
-            final Response response = rootTarget().queryParam("organizationId", "custom-org").request().get();
+            final Response response = rootTarget()
+                    .queryParam("organizationId", "custom-org")
+                    .request()
+                    .get();
 
             var body = response.readEntity(GammaUIResource.GammaBootstrap.class);
             assertThat(body.organizationId()).isEqualTo("custom-org");
@@ -103,7 +106,8 @@ class GammaUIResourceTest extends AbstractResourceTest {
         @Test
         void should_use_management_api_url_from_service() {
             installationAccessQueryService.setConsoleAPIUrl("http://management.example.com/management");
-            installationAccessQueryService.setGammaManagementAPIUrl("http://api.gamma.management.example.com/management");
+            installationAccessQueryService.setGammaManagementAPIUrl(
+                    "http://api.gamma.management.example.com/management");
             installationAccessQueryService.setGammaAPIUrl("http://api.gamma.management.example.com/gamma");
 
             final Response response = rootTarget().request().get();

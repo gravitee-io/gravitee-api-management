@@ -39,15 +39,16 @@ public class DeleteSubscriptionFormUseCase {
 
     public void execute(Input input) {
         var form = subscriptionFormQueryService
-            .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
-            .orElseThrow(() ->
-                new SubscriptionFormNotFoundException(
-                    "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
-                    input.subscriptionFormId().toString()
-                )
-            );
+                .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
+                .orElseThrow(() -> new SubscriptionFormNotFoundException(
+                        "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
+                        input.subscriptionFormId().toString()));
         subscriptionFormCrudService.delete(form);
-        log.info("Deleted subscription form [{}] '{}' from environment [{}]", form.getId(), form.getName(), input.environmentId());
+        log.info(
+                "Deleted subscription form [{}] '{}' from environment [{}]",
+                form.getId(),
+                form.getName(),
+                input.environmentId());
     }
 
     public record Input(String environmentId, SubscriptionFormId subscriptionFormId) {}

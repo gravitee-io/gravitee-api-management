@@ -46,14 +46,14 @@ class TagKeyUpgraderTest {
     @Test
     void shouldMigrateTags() throws Exception {
         var tag = Tag.builder()
-            .id("tag-key")
-            .key(null)
-            .name("Tag Name")
-            .description("description")
-            .restrictedGroups(List.of())
-            .referenceId("DEFAULT")
-            .referenceType(TagReferenceType.ORGANIZATION)
-            .build();
+                .id("tag-key")
+                .key(null)
+                .name("Tag Name")
+                .description("description")
+                .restrictedGroups(List.of())
+                .referenceId("DEFAULT")
+                .referenceType(TagReferenceType.ORGANIZATION)
+                .build();
 
         when(tagRepository.findAll()).thenReturn(Set.of(tag));
         assertThat(upgrader.upgrade()).isTrue();

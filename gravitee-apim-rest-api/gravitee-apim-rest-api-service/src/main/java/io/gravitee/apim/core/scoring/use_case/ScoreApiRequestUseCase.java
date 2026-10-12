@@ -71,70 +71,58 @@ public class ScoreApiRequestUseCase {
 
     public Completable execute(Input input) {
         var pages$ = Flowable.fromIterable(apiDocumentationDomainService.getApiPages(input.apiId, null))
-            .filter(page -> page.isAsyncApi() || page.isSwagger())
-            .map(this::assetToScore);
-        var customRulesets$ = Flowable.fromCallable(() ->
-            scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
-        )
-            .flatMap(Flowable::fromIterable)
-            .flatMapMaybe(this::customRuleset)
-            .toList();
-        var customFunctions$ = Flowable.fromCallable(() ->
-            scoringFunctionQueryService.findByReference(input.auditInfo.environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT)
-        )
-            .flatMap(Flowable::fromIterable)
-            .map(r -> new ScoreRequest.Function(r.name(), r.payload()))
-            .toList();
+                .filter(page -> page.isAsyncApi() || page.isSwagger())
+                .map(this::assetToScore);
+        var customRulesets$ = Flowable.fromCallable(() -> scoringRulesetQueryService.findByReference(
+                        input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT))
+                .flatMap(Flowable::fromIterable)
+                .flatMapMaybe(this::customRuleset)
+                .toList();
+        var customFunctions$ = Flowable.fromCallable(() -> scoringFunctionQueryService.findByReference(
+                        input.auditInfo.environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT))
+                .flatMap(Flowable::fromIterable)
+                .map(r -> new ScoreRequest.Function(r.name(), r.payload()))
+                .toList();
 
         var export$ = Flowable.fromCallable(() ->
-            apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(Excludable.class))
-        )
-            .map(this::assetToScore)
-            .doOnError(throwable -> log.error("An error occurs while exporting API [{}]", input.apiId, throwable));
+                        apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(Excludable.class)))
+                .map(this::assetToScore)
+                .doOnError(throwable -> log.error("An error occurs while exporting API [{}]", input.apiId, throwable));
 
         return Maybe.fromOptional(apiCrudService.findById(input.apiId()))
-            .subscribeOn(Schedulers.io())
-            .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
-            .flatMap(api -> Flowable.merge(pages$, export$).toList())
-            .flatMap(assets ->
-                Single.zip(customRulesets$, customFunctions$, RulesetAndFunctions::new).map(entry ->
-                    new ScoreRequest(
-                        UuidString.generateRandom(),
-                        input.auditInfo.organizationId(),
-                        input.auditInfo.environmentId(),
-                        input.apiId,
-                        assets,
-                        entry.rulesets(),
-                        entry.functions()
-                    )
-                )
-            )
-            .flatMap(request ->
-                Single.fromCallable(() ->
-                    asyncJobCrudService.create(newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request)))
-                ).map(job -> Map.entry(request, job))
-            )
-            .flatMapCompletable(entry -> {
-                var request = entry.getKey();
-                var job = entry.getValue();
-                return scoringProvider
-                    .requestScore(request)
-                    .onErrorResumeNext(throwable ->
-                        Completable.fromRunnable(() -> asyncJobCrudService.update(job.error(throwable.getMessage()))).andThen(
-                            Completable.error(throwable)
-                        )
-                    );
-            });
+                .subscribeOn(Schedulers.io())
+                .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
+                .flatMap(api -> Flowable.merge(pages$, export$).toList())
+                .flatMap(assets -> Single.zip(customRulesets$, customFunctions$, RulesetAndFunctions::new)
+                        .map(entry -> new ScoreRequest(
+                                UuidString.generateRandom(),
+                                input.auditInfo.organizationId(),
+                                input.auditInfo.environmentId(),
+                                input.apiId,
+                                assets,
+                                entry.rulesets(),
+                                entry.functions())))
+                .flatMap(request -> Single.fromCallable(() -> asyncJobCrudService.create(
+                                newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request))))
+                        .map(job -> Map.entry(request, job)))
+                .flatMapCompletable(entry -> {
+                    var request = entry.getKey();
+                    var job = entry.getValue();
+                    return scoringProvider
+                            .requestScore(request)
+                            .onErrorResumeNext(throwable -> Completable.fromRunnable(
+                                            () -> asyncJobCrudService.update(job.error(throwable.getMessage())))
+                                    .andThen(Completable.error(throwable)));
+                });
     }
 
     private ScoreRequest.AssetToScore assetToScore(Page page) {
         var assetType = ScoringAssetType.fromPageType(page.getType());
         return new ScoreRequest.AssetToScore(
-            page.getId(),
-            new ScoreRequest.AssetType(assetType, documentationFormat(assetType)),
-            page.getName(),
-            page.getContent()
-        );
+                page.getId(),
+                new ScoreRequest.AssetType(assetType, documentationFormat(assetType)),
+                page.getName(),
+                page.getContent());
     }
 
     private static ScoreRequest.Format documentationFormat(ScoringAssetType assetType) {
@@ -147,11 +135,10 @@ public class ScoreApiRequestUseCase {
 
     private ScoreRequest.AssetToScore assetToScore(GraviteeDefinition definition) throws JsonProcessingException {
         return new ScoreRequest.AssetToScore(
-            definition.api().id(),
-            new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, getFormat(definition)),
-            definition.api().name(),
-            graviteeDefinitionSerializer.serialize(definition)
-        );
+                definition.api().id(),
+                new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, getFormat(definition)),
+                definition.api().name(),
+                graviteeDefinitionSerializer.serialize(definition));
     }
 
     private static ScoreRequest.Format getFormat(GraviteeDefinition definition) {
@@ -159,19 +146,20 @@ public class ScoreApiRequestUseCase {
             case GraviteeDefinition.V2 ignored -> ScoreRequest.Format.GRAVITEE_V2;
             case GraviteeDefinition.Federated ignored -> ScoreRequest.Format.GRAVITEE_FEDERATED;
             case GraviteeDefinition.Native ignored -> ScoreRequest.Format.GRAVITEE_NATIVE;
-            case GraviteeDefinition.V4 v4 -> switch (v4.api().type()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
-                case AUTHZ, EDGE -> null;
-                case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
-                case NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
-            };
+            case GraviteeDefinition.V4 v4 ->
+                switch (v4.api().type()) {
+                    case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
+                    case AUTHZ, EDGE -> null;
+                    case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
+                    case NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
+                };
         };
     }
 
     private Maybe<ScoreRequest.CustomRuleset> customRuleset(ScoringRuleset scoringRuleset) {
         return StringUtils.isEmpty(scoringRuleset.payload())
-            ? Maybe.empty()
-            : Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())));
+                ? Maybe.empty()
+                : Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())));
     }
 
     private ScoreRequest.Format format(ScoringRuleset.Format format) {
@@ -190,22 +178,23 @@ public class ScoreApiRequestUseCase {
     public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId, Duration ttl) {
         var now = TimeProvider.now();
         return AsyncJob.builder()
-            .id(id)
-            .sourceId(apiId)
-            .environmentId(auditInfo.environmentId())
-            .initiatorId(auditInfo.actor().userId())
-            .type(AsyncJob.Type.SCORING_REQUEST)
-            .status(AsyncJob.Status.PENDING)
-            .upperLimit(1L)
-            .createdAt(now)
-            .updatedAt(now)
-            .deadLine(now.plus(ttl))
-            .build();
+                .id(id)
+                .sourceId(apiId)
+                .environmentId(auditInfo.environmentId())
+                .initiatorId(auditInfo.actor().userId())
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(1L)
+                .createdAt(now)
+                .updatedAt(now)
+                .deadLine(now.plus(ttl))
+                .build();
     }
 
     public record Input(String apiId, AuditInfo auditInfo) {}
 
-    private record RulesetAndFunctions(List<ScoreRequest.CustomRuleset> rulesets, List<ScoreRequest.Function> functions) {}
+    private record RulesetAndFunctions(
+            List<ScoreRequest.CustomRuleset> rulesets, List<ScoreRequest.Function> functions) {}
 
     /**
      * Compute the TTL of the scoring job.

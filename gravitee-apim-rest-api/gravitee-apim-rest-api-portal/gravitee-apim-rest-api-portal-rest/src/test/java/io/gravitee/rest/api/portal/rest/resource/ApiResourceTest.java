@@ -87,14 +87,16 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API, false, false, true);
+        doReturn(mockApi)
+                .when(apiSearchService)
+                .findGenericById(GraviteeContext.getExecutionContext(), API, false, false, true);
 
         doReturn(true)
-            .when(accessControlService)
-            .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
+                .when(accessControlService)
+                .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
         doReturn(Set.of(API))
-            .when(apiAuthorizationService)
-            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
+                .when(apiAuthorizationService)
+                .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
 
         Api api = new Api();
         api.setId(API);
@@ -114,7 +116,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(responseApi);
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture(), ArgumentCaptor.forClass(Date.class).capture());
+        Mockito.verify(apiMapper, Mockito.times(1))
+                .computeApiLinks(
+                        ac.capture(), ArgumentCaptor.forClass(Date.class).capture());
 
         String expectedBasePath = target(API).getUriBuilder().build().toString();
         List<String> bastPathList = ac.getAllValues();
@@ -129,7 +133,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         pagePublished.setType("SWAGGER");
         pagePublished.setLastModificationDate(Date.from(Instant.now()));
         pagePublished.setContent("some page content");
-        doReturn(Arrays.asList(pagePublished)).when(pageService).search(eq(GraviteeContext.getCurrentEnvironment()), any());
+        doReturn(Arrays.asList(pagePublished))
+                .when(pageService)
+                .search(eq(GraviteeContext.getCurrentEnvironment()), any());
 
         // mock plans
         PlanEntity plan1 = new PlanEntity();
@@ -151,17 +157,20 @@ public class ApiResourceTest extends AbstractResourceTest {
         plan3.setStatus(PlanStatus.CLOSED);
 
         doReturn(new HashSet<>(Arrays.asList(plan1, plan2, plan3)))
-            .when(planSearchService)
-            .findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(true));
+                .when(planSearchService)
+                .findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(true));
 
         // For pages
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pagePublished);
+        doReturn(true)
+                .when(accessControlService)
+                .canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pagePublished);
         // For plans
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
 
         // test
-        final Response response = target(API).queryParam("include", "pages", "plans").request().get();
+        final Response response =
+                target(API).queryParam("include", "pages", "plans").request().get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -183,8 +192,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         doReturn(false)
-            .when(accessControlService)
-            .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
+                .when(accessControlService)
+                .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class));
 
         // test
         final Response response = target(API).request().get();
@@ -206,7 +215,8 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void shouldGetApiPicture() throws IOException, URISyntaxException {
         // init
         InlinePictureEntity mockImage = new InlinePictureEntity();
-        byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
+        byte[] apiLogoContent = Files.readAllBytes(Paths.get(
+                this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
         doReturn(mockImage).when(apiService).getPicture(GraviteeContext.getExecutionContext(), API);
@@ -219,9 +229,8 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveNotFoundWhileGettingApiPicture() {
         // init
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false))).thenReturn(
-            Set.of("1")
-        );
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
+                .thenReturn(Set.of("1"));
 
         // test
         final Response response = target(API).path("picture").request().get();
@@ -288,21 +297,21 @@ public class ApiResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull())).thenAnswer(
-            (Answer<List<PageEntity>>) invocation -> {
-                PageQuery pq = invocation.getArgument(1);
-                if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
-                    return Collections.singletonList(sysFolder);
-                } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
-                } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                    return Collections.singletonList(markdownFolderSysFolder);
-                }
-                return null;
-            }
-        );
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull()))
+                .thenAnswer((Answer<List<PageEntity>>) invocation -> {
+                    PageQuery pq = invocation.getArgument(1);
+                    if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
+                        return Collections.singletonList(sysFolder);
+                    } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                        return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
+                    } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                        return Collections.singletonList(markdownFolderSysFolder);
+                    }
+                    return null;
+                });
 
-        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(true);
 
         final Response response = target(API).path("links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -352,27 +361,23 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_api_with_documentation_view() {
-        portalNavigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationApi.builder()
-                    .id(PortalNavigationItemId.random())
-                    .organizationId("DEFAULT")
-                    .environmentId(ENV_ID)
-                    .title("Nav for " + API)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .apiId(API)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
-                    .build()
-            )
-        );
+        portalNavigationItemsQueryService.initWith(List.of(PortalNavigationApi.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId("DEFAULT")
+                .environmentId(ENV_ID)
+                .title("Nav for " + API)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(API)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Nav for " + API).value())
+                .build()));
 
         final Response response = target(API)
-            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
-            .request()
-            .get();
+                .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
         final Api responseApi = response.readEntity(Api.class);
@@ -381,27 +386,23 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_not_found_with_documentation_view_when_not_visible() {
-        portalNavigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationApi.builder()
-                    .id(PortalNavigationItemId.random())
-                    .organizationId("DEFAULT")
-                    .environmentId(ENV_ID)
-                    .title("Nav for " + API)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .apiId(API)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
-                    .build()
-            )
-        );
+        portalNavigationItemsQueryService.initWith(List.of(PortalNavigationApi.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId("DEFAULT")
+                .environmentId(ENV_ID)
+                .title("Nav for " + API)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(API)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .segment(PortalNavigationItem.slugify("Nav for " + API).value())
+                .build()));
 
         final Response response = target(API)
-            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
-            .request()
-            .get();
+                .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+                .request()
+                .get();
 
         assertEquals(NOT_FOUND_404, response.getStatus());
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -413,39 +414,31 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_api_with_documentation_view_when_private_and_member() {
-        portalNavigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationApi.builder()
-                    .id(PortalNavigationItemId.random())
-                    .organizationId("DEFAULT")
-                    .environmentId(ENV_ID)
-                    .title("Nav for " + API)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .apiId(API)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
-                    .build()
-            )
-        );
+        portalNavigationItemsQueryService.initWith(List.of(PortalNavigationApi.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId("DEFAULT")
+                .environmentId(ENV_ID)
+                .title("Nav for " + API)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(API)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .segment(PortalNavigationItem.slugify("Nav for " + API).value())
+                .build()));
 
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-" + USER_NAME + "-" + API)
-                    .memberId(USER_NAME)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API)
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("membership-" + USER_NAME + "-" + API)
+                .memberId(USER_NAME)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API)
+                .build()));
 
         final Response response = target(API)
-            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
-            .request()
-            .get();
+                .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
         final Api responseApi = response.readEntity(Api.class);

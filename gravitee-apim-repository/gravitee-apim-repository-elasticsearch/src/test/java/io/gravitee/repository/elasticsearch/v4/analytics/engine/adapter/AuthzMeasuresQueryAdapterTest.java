@@ -36,210 +36,225 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     @Test
     void should_count_decisions_with_a_value_count_on_the_event_id_every_record_carries() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))));
 
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
 
-        assertThat(aggs.getJsonObject("AUTHZ_DECISIONS#COUNT").getJsonObject("value_count").getString("field")).isEqualTo("event-id");
+        assertThat(aggs.getJsonObject("AUTHZ_DECISIONS#COUNT")
+                        .getJsonObject("value_count")
+                        .getString("field"))
+                .isEqualTo("event-id");
     }
 
     @Test
     void should_read_only_the_resolved_decisions_of_the_authz_decision_point() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))));
 
-        var filters = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+        var filters = new JsonObject(adapter.adapt(query))
+                .getJsonObject("query")
+                .getJsonObject("bool")
+                .getJsonArray("filter");
 
-        assertThat(
-            filters
-                .stream()
-                .map(JsonObject.class::cast)
-                .map(filter -> filter.getJsonObject("term"))
-                .filter(Objects::nonNull)
-        ).contains(new JsonObject().put("decision-point-type", "authz"), new JsonObject().put("phase", "RESOLVED"));
+        assertThat(filters.stream()
+                        .map(JsonObject.class::cast)
+                        .map(filter -> filter.getJsonObject("term"))
+                        .filter(Objects::nonNull))
+                .contains(
+                        new JsonObject().put("decision-point-type", "authz"),
+                        new JsonObject().put("phase", "RESOLVED"));
     }
 
     @Test
     void should_wrap_a_decision_scoped_metric_in_a_filter_aggregation() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_FORBIDS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_FORBIDS, Set.of(Measure.COUNT))));
 
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
         var wrapper = aggs.getJsonObject("AUTHZ_FORBIDS#__FILTER__");
 
-        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("verdict")).isEqualTo("FORBID");
-        assertThat(
-            wrapper.getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#COUNT").getJsonObject("value_count").getString("field")
-        ).isEqualTo("verdict");
+        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("verdict"))
+                .isEqualTo("FORBID");
+        assertThat(wrapper.getJsonObject("aggs")
+                        .getJsonObject("AUTHZ_FORBIDS#COUNT")
+                        .getJsonObject("value_count")
+                        .getString("field"))
+                .isEqualTo("verdict");
     }
 
     @Test
     void should_count_not_applicable_by_the_indeterminate_cause() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_NOT_APPLICABLE, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_NOT_APPLICABLE, Set.of(Measure.COUNT))));
 
-        var wrapper = new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_NOT_APPLICABLE#__FILTER__");
+        var wrapper = new JsonObject(adapter.adapt(query))
+                .getJsonObject("aggs")
+                .getJsonObject("AUTHZ_NOT_APPLICABLE#__FILTER__");
 
-        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("indeterminate-cause")).isEqualTo("NOT_APPLICABLE");
-        assertThat(
-            wrapper.getJsonObject("aggs").getJsonObject("AUTHZ_NOT_APPLICABLE#COUNT").getJsonObject("value_count").getString("field")
-        ).isEqualTo("indeterminate-cause");
+        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("indeterminate-cause"))
+                .isEqualTo("NOT_APPLICABLE");
+        assertThat(wrapper.getJsonObject("aggs")
+                        .getJsonObject("AUTHZ_NOT_APPLICABLE#COUNT")
+                        .getJsonObject("value_count")
+                        .getString("field"))
+                .isEqualTo("indeterminate-cause");
     }
 
     @Test
     void should_count_failures_by_the_error_status() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_FAILURES, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_FAILURES, Set.of(Measure.COUNT))));
 
-        var wrapper = new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_FAILURES#__FILTER__");
+        var wrapper =
+                new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_FAILURES#__FILTER__");
 
-        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("status")).isEqualTo("error");
+        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("status"))
+                .isEqualTo("error");
     }
 
     @Test
     void should_support_percentiles_on_the_duration_metric() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.P50, Measure.P95, Measure.AVG)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(
+                        Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.P50, Measure.P95, Measure.AVG))));
 
         var wrapped = new JsonObject(adapter.adapt(query))
-            .getJsonObject("aggs")
-            .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
-            .getJsonObject("aggs");
+                .getJsonObject("aggs")
+                .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
+                .getJsonObject("aggs");
 
-        assertThat(wrapped.fieldNames()).contains("AUTHZ_EVAL_DURATION#P50", "AUTHZ_EVAL_DURATION#P95", "AUTHZ_EVAL_DURATION#AVG");
-        assertThat(wrapped.getJsonObject("AUTHZ_EVAL_DURATION#AVG").getJsonObject("avg").getString("field")).isEqualTo("duration-nanos");
+        assertThat(wrapped.fieldNames())
+                .contains("AUTHZ_EVAL_DURATION#P50", "AUTHZ_EVAL_DURATION#P95", "AUTHZ_EVAL_DURATION#AVG");
+        assertThat(wrapped.getJsonObject("AUTHZ_EVAL_DURATION#AVG")
+                        .getJsonObject("avg")
+                        .getString("field"))
+                .isEqualTo("duration-nanos");
     }
 
     @Test
     void should_scale_the_duration_metric_from_nanoseconds_to_milliseconds() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.AVG, Measure.P50)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.AVG, Measure.P50))));
 
         var wrapped = new JsonObject(adapter.adapt(query))
-            .getJsonObject("aggs")
-            .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
-            .getJsonObject("aggs");
+                .getJsonObject("aggs")
+                .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
+                .getJsonObject("aggs");
 
-        assertThat(
-            wrapped.getJsonObject("AUTHZ_EVAL_DURATION#AVG").getJsonObject("avg").getJsonObject("script").getString("source")
-        ).isEqualTo("_value / 1000000.0");
-        assertThat(
-            wrapped.getJsonObject("AUTHZ_EVAL_DURATION#P50").getJsonObject("percentiles").getJsonObject("script").getString("source")
-        ).isEqualTo("_value / 1000000.0");
+        assertThat(wrapped.getJsonObject("AUTHZ_EVAL_DURATION#AVG")
+                        .getJsonObject("avg")
+                        .getJsonObject("script")
+                        .getString("source"))
+                .isEqualTo("_value / 1000000.0");
+        assertThat(wrapped.getJsonObject("AUTHZ_EVAL_DURATION#P50")
+                        .getJsonObject("percentiles")
+                        .getJsonObject("script")
+                        .getString("source"))
+                .isEqualTo("_value / 1000000.0");
     }
 
     @Test
     void should_not_scale_counter_metrics() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))));
 
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
 
-        assertThat(aggs.getJsonObject("AUTHZ_DECISIONS#COUNT").getJsonObject("value_count").containsKey("script")).isFalse();
+        assertThat(aggs.getJsonObject("AUTHZ_DECISIONS#COUNT")
+                        .getJsonObject("value_count")
+                        .containsKey("script"))
+                .isFalse();
     }
 
     @Test
     void should_scope_the_duration_metric_to_successful_evaluations_with_a_recorded_duration() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.AVG)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.AVG))));
 
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
         var wrapper = aggs.getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__");
 
         assertThat(wrapper).isNotNull();
-        var filterClauses = wrapper.getJsonObject("filter").getJsonObject("bool").getJsonArray("filter");
-        assertThat(
-            filterClauses
-                .stream()
-                .map(JsonObject.class::cast)
-                .map(f -> f.getJsonObject("term"))
-                .filter(Objects::nonNull)
-                .toList()
-        )
-            .singleElement()
-            .satisfies(term -> assertThat(term.getString("status")).isEqualTo("success"));
-        assertThat(
-            filterClauses
-                .stream()
-                .map(JsonObject.class::cast)
-                .map(f -> f.getJsonObject("exists"))
-                .filter(Objects::nonNull)
-                .toList()
-        ).anySatisfy(exists -> assertThat(exists.getString("field")).isEqualTo("duration-nanos"));
-        assertThat(
-            wrapper.getJsonObject("aggs").getJsonObject("AUTHZ_EVAL_DURATION#AVG").getJsonObject("avg").getString("field")
-        ).isEqualTo("duration-nanos");
+        var filterClauses =
+                wrapper.getJsonObject("filter").getJsonObject("bool").getJsonArray("filter");
+        assertThat(filterClauses.stream()
+                        .map(JsonObject.class::cast)
+                        .map(f -> f.getJsonObject("term"))
+                        .filter(Objects::nonNull)
+                        .toList())
+                .singleElement()
+                .satisfies(term -> assertThat(term.getString("status")).isEqualTo("success"));
+        assertThat(filterClauses.stream()
+                        .map(JsonObject.class::cast)
+                        .map(f -> f.getJsonObject("exists"))
+                        .filter(Objects::nonNull)
+                        .toList())
+                .anySatisfy(exists -> assertThat(exists.getString("field")).isEqualTo("duration-nanos"));
+        assertThat(wrapper.getJsonObject("aggs")
+                        .getJsonObject("AUTHZ_EVAL_DURATION#AVG")
+                        .getJsonObject("avg")
+                        .getString("field"))
+                .isEqualTo("duration-nanos");
     }
 
     @Test
     void should_not_scope_a_counter_metric_with_an_exists_clause() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))));
 
         var json = new JsonObject(adapter.adapt(query));
 
-        assertThat(json.getJsonObject("aggs").containsKey("AUTHZ_DECISIONS#__FILTER__")).isFalse();
+        assertThat(json.getJsonObject("aggs").containsKey("AUTHZ_DECISIONS#__FILTER__"))
+                .isFalse();
     }
 
     @Test
     void should_reject_per_metric_filters() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(
-                new MetricMeasuresQuery(
-                    Metric.AUTHZ_DECISIONS,
-                    Set.of(Measure.COUNT),
-                    List.of(new Filter(Filter.Name.AUTHZ_CALLER, Filter.Operator.IN, List.of("pep"))),
-                    List.of()
-                )
-            )
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(
+                        Metric.AUTHZ_DECISIONS,
+                        Set.of(Measure.COUNT),
+                        List.of(new Filter(Filter.Name.AUTHZ_CALLER, Filter.Operator.IN, List.of("pep"))),
+                        List.of())));
 
         assertThatThrownBy(() -> adapter.adapt(query))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("per-metric filters");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("per-metric filters");
     }
 
     @Test
     void should_adapt_an_authz_filter_to_its_field() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(new Filter(Filter.Name.AUTHZ_CALLER, Filter.Operator.IN, List.of("pep"))),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(new Filter(Filter.Name.AUTHZ_CALLER, Filter.Operator.IN, List.of("pep"))),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))));
 
-        var filters = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+        var filters = new JsonObject(adapter.adapt(query))
+                .getJsonObject("query")
+                .getJsonObject("bool")
+                .getJsonArray("filter");
 
         assertThat(filters.encode()).contains("caller").contains("pep");
     }
@@ -247,12 +262,14 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     @Test
     void should_adapt_the_pdp_filter_to_the_decision_point_id() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(new Filter(Filter.Name.AUTHZ_PDP, Filter.Operator.IN, List.of("pdp-b"))),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(new Filter(Filter.Name.AUTHZ_PDP, Filter.Operator.IN, List.of("pdp-b"))),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))));
 
-        var filters = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+        var filters = new JsonObject(adapter.adapt(query))
+                .getJsonObject("query")
+                .getJsonObject("bool")
+                .getJsonArray("filter");
 
         assertThat(filters.encode()).contains("\"decision-point-id\"").contains("pdp-b");
     }
@@ -260,47 +277,49 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     @Test
     void should_not_scale_a_count_taken_on_the_duration_metric() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.COUNT))));
 
         var wrapped = new JsonObject(adapter.adapt(query))
-            .getJsonObject("aggs")
-            .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
-            .getJsonObject("aggs");
+                .getJsonObject("aggs")
+                .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
+                .getJsonObject("aggs");
 
-        assertThat(wrapped.getJsonObject("AUTHZ_EVAL_DURATION#COUNT").getJsonObject("value_count").containsKey("script")).isFalse();
+        assertThat(wrapped.getJsonObject("AUTHZ_EVAL_DURATION#COUNT")
+                        .getJsonObject("value_count")
+                        .containsKey("script"))
+                .isFalse();
     }
 
     @Test
     void should_support_p90_on_the_duration_metric() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.P90)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.P90))));
 
         var wrapped = new JsonObject(adapter.adapt(query))
-            .getJsonObject("aggs")
-            .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
-            .getJsonObject("aggs");
+                .getJsonObject("aggs")
+                .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
+                .getJsonObject("aggs");
 
-        assertThat(
-            wrapped.getJsonObject("AUTHZ_EVAL_DURATION#P90").getJsonObject("percentiles").getJsonObject("script").getString("source")
-        ).isEqualTo("_value / 1000000.0");
+        assertThat(wrapped.getJsonObject("AUTHZ_EVAL_DURATION#P90")
+                        .getJsonObject("percentiles")
+                        .getJsonObject("script")
+                        .getString("source"))
+                .isEqualTo("_value / 1000000.0");
     }
 
     @Test
     void should_reject_a_measure_the_adapter_cannot_express() {
         var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.SUM)))
-        );
+                buildTimeRange(),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.SUM))));
 
         assertThatThrownBy(() -> adapter.adapt(query))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("does not support measure");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("does not support measure");
     }
 }

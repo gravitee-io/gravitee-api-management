@@ -74,16 +74,19 @@ public class CategoryService_CreateTest {
     public void shouldCreateCategory() throws TechnicalException {
         NewCategoryEntity v1 = new NewCategoryEntity();
         v1.setName("v1");
-        when(mockCategoryRepository.create(argThat(cat -> cat.getCreatedAt() != null))).thenReturn(new Category());
+        when(mockCategoryRepository.create(argThat(cat -> cat.getCreatedAt() != null)))
+                .thenReturn(new Category());
         when(mockEnvironmentService.findById("DEFAULT")).thenReturn(new EnvironmentEntity());
         CategoryEntity category = categoryService.create(GraviteeContext.getExecutionContext(), v1);
 
         assertNotNull(category, "result is null");
-        verify(mockAuditService, times(1)).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_CREATED) && auditLogData.getOldValue() == null)
-        );
-        verify(mockCategoryRepository, times(1)).create(argThat(arg -> arg != null && arg.getName().equals("v1")));
+        verify(mockAuditService, times(1))
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_CREATED)
+                                && auditLogData.getOldValue() == null));
+        verify(mockCategoryRepository, times(1))
+                .create(argThat(arg -> arg != null && arg.getName().equals("v1")));
     }
 
     @Test

@@ -36,7 +36,8 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
 
     @Test
     public void shouldFindById() throws Exception {
-        final Optional<CustomUserField> optionalCustomUserField = customUserFieldsRepository.findById("string", "DEFAULT", ORGANIZATION);
+        final Optional<CustomUserField> optionalCustomUserField =
+                customUserFieldsRepository.findById("string", "DEFAULT", ORGANIZATION);
         assertThat(optionalCustomUserField).isNotNull();
         assertThat(optionalCustomUserField.isPresent()).isTrue();
         assertThat(optionalCustomUserField.get().getKey()).isEqualTo("string");
@@ -51,18 +52,12 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
 
     @Test
     public void shouldFindByRef() throws Exception {
-        final List<CustomUserField> customUserFields = customUserFieldsRepository.findByReferenceIdAndReferenceType(
-            "DEFAULT",
-            ORGANIZATION
-        );
+        final List<CustomUserField> customUserFields =
+                customUserFieldsRepository.findByReferenceIdAndReferenceType("DEFAULT", ORGANIZATION);
         assertThat(customUserFields).isNotNull();
         assertThat(customUserFields).size().isEqualTo(4);
-        assertThat(customUserFields.stream().map(CustomUserField::getKey).collect(Collectors.toList())).containsExactlyInAnyOrder(
-            "string",
-            "boolean",
-            "updateKey",
-            "deleteKey"
-        );
+        assertThat(customUserFields.stream().map(CustomUserField::getKey).collect(Collectors.toList()))
+                .containsExactlyInAnyOrder("string", "boolean", "updateKey", "deleteKey");
     }
 
     @Test
@@ -77,16 +72,10 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
         newCufCustomUserField.setValues(Arrays.asList("test@domain.net"));
 
         final Optional<CustomUserField> beforeCreateBean = customUserFieldsRepository.findById(
-            newCufCustomUserField.getKey(),
-            newCufCustomUserField.getReferenceId(),
-            ORGANIZATION
-        );
+                newCufCustomUserField.getKey(), newCufCustomUserField.getReferenceId(), ORGANIZATION);
         CustomUserField createdCustomUserField = customUserFieldsRepository.create(newCufCustomUserField);
         final Optional<CustomUserField> afterCreateBean = customUserFieldsRepository.findById(
-            newCufCustomUserField.getKey(),
-            newCufCustomUserField.getReferenceId(),
-            ORGANIZATION
-        );
+                newCufCustomUserField.getKey(), newCufCustomUserField.getReferenceId(), ORGANIZATION);
 
         assertThat(createdCustomUserField).isNotNull();
         assertThat(beforeCreateBean).isNotNull();
@@ -94,19 +83,26 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
         assertThat(afterCreateBean).isNotNull();
         assertThat(afterCreateBean.isPresent()).isTrue();
 
-        assertThat(newCufCustomUserField.getKey()).isEqualTo(afterCreateBean.get().getKey());
-        assertThat(newCufCustomUserField.getLabel()).isEqualTo(afterCreateBean.get().getLabel());
-        assertThat(newCufCustomUserField.getFormat()).isEqualTo(afterCreateBean.get().getFormat());
-        assertThat(newCufCustomUserField.getReferenceId()).isEqualTo(afterCreateBean.get().getReferenceId());
-        assertThat(newCufCustomUserField.getReferenceType()).isEqualTo(afterCreateBean.get().getReferenceType());
-        assertThat(newCufCustomUserField.getValues().get(0)).isEqualTo(afterCreateBean.get().getValues().get(0));
+        assertThat(newCufCustomUserField.getKey())
+                .isEqualTo(afterCreateBean.get().getKey());
+        assertThat(newCufCustomUserField.getLabel())
+                .isEqualTo(afterCreateBean.get().getLabel());
+        assertThat(newCufCustomUserField.getFormat())
+                .isEqualTo(afterCreateBean.get().getFormat());
+        assertThat(newCufCustomUserField.getReferenceId())
+                .isEqualTo(afterCreateBean.get().getReferenceId());
+        assertThat(newCufCustomUserField.getReferenceType())
+                .isEqualTo(afterCreateBean.get().getReferenceType());
+        assertThat(newCufCustomUserField.getValues().get(0))
+                .isEqualTo(afterCreateBean.get().getValues().get(0));
 
         assertThat(newCufCustomUserField.getKey()).isEqualTo(createdCustomUserField.getKey());
         assertThat(newCufCustomUserField.getLabel()).isEqualTo(createdCustomUserField.getLabel());
         assertThat(newCufCustomUserField.getFormat()).isEqualTo(createdCustomUserField.getFormat());
         assertThat(newCufCustomUserField.getReferenceId()).isEqualTo(createdCustomUserField.getReferenceId());
         assertThat(newCufCustomUserField.getReferenceType()).isEqualTo(createdCustomUserField.getReferenceType());
-        assertThat(newCufCustomUserField.getValues().get(0)).isEqualTo(createdCustomUserField.getValues().get(0));
+        assertThat(newCufCustomUserField.getValues().get(0))
+                .isEqualTo(createdCustomUserField.getValues().get(0));
     }
 
     @Test
@@ -121,16 +117,10 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
         customUserField.setValues(Arrays.asList("test@domain.net2"));
 
         final Optional<CustomUserField> beforeUpdateBean = customUserFieldsRepository.findById(
-            customUserField.getKey(),
-            customUserField.getReferenceId(),
-            customUserField.getReferenceType()
-        );
+                customUserField.getKey(), customUserField.getReferenceId(), customUserField.getReferenceType());
         CustomUserField updatedCustomUserField = customUserFieldsRepository.update(customUserField);
         final Optional<CustomUserField> afterUpdateBean = customUserFieldsRepository.findById(
-            customUserField.getKey(),
-            customUserField.getReferenceId(),
-            customUserField.getReferenceType()
-        );
+                customUserField.getKey(), customUserField.getReferenceId(), customUserField.getReferenceType());
 
         assertThat(customUserField).isNotNull();
         assertThat(beforeUpdateBean).isNotNull();
@@ -142,22 +132,31 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
         assertThat(customUserField.getKey()).isEqualTo(afterUpdateBean.get().getKey());
         assertThat(customUserField.getLabel()).isEqualTo(afterUpdateBean.get().getLabel());
         assertThat(customUserField.getFormat()).isEqualTo(afterUpdateBean.get().getFormat());
-        assertThat(customUserField.getReferenceId()).isEqualTo(afterUpdateBean.get().getReferenceId());
-        assertThat(customUserField.getValues()).hasSameSizeAs(afterUpdateBean.get().getValues());
+        assertThat(customUserField.getReferenceId())
+                .isEqualTo(afterUpdateBean.get().getReferenceId());
+        assertThat(customUserField.getValues())
+                .hasSameSizeAs(afterUpdateBean.get().getValues());
 
-        assertThat(beforeUpdateBean.get().getKey()).isEqualTo(afterUpdateBean.get().getKey());
-        assertThat(beforeUpdateBean.get().getReferenceId()).isEqualTo(afterUpdateBean.get().getReferenceId());
-        assertThat(beforeUpdateBean.get().getFormat()).isEqualTo(afterUpdateBean.get().getFormat());
-        assertThat(beforeUpdateBean.get().getLabel()).isNotEqualTo(afterUpdateBean.get().getLabel());
-        assertThat(beforeUpdateBean.get().isRequired()).isNotEqualTo(afterUpdateBean.get().isRequired());
+        assertThat(beforeUpdateBean.get().getKey())
+                .isEqualTo(afterUpdateBean.get().getKey());
+        assertThat(beforeUpdateBean.get().getReferenceId())
+                .isEqualTo(afterUpdateBean.get().getReferenceId());
+        assertThat(beforeUpdateBean.get().getFormat())
+                .isEqualTo(afterUpdateBean.get().getFormat());
+        assertThat(beforeUpdateBean.get().getLabel())
+                .isNotEqualTo(afterUpdateBean.get().getLabel());
+        assertThat(beforeUpdateBean.get().isRequired())
+                .isNotEqualTo(afterUpdateBean.get().isRequired());
         assertThat(beforeUpdateBean.get().getValues()).isNullOrEmpty();
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        final Optional<CustomUserField> beforeDelete = customUserFieldsRepository.findById("deleteKey", "DEFAULT", ORGANIZATION);
+        final Optional<CustomUserField> beforeDelete =
+                customUserFieldsRepository.findById("deleteKey", "DEFAULT", ORGANIZATION);
         customUserFieldsRepository.delete("deleteKey", "DEFAULT", ORGANIZATION);
-        final Optional<CustomUserField> afterDelete = customUserFieldsRepository.findById("deleteKey", "DEFAULT", ORGANIZATION);
+        final Optional<CustomUserField> afterDelete =
+                customUserFieldsRepository.findById("deleteKey", "DEFAULT", ORGANIZATION);
 
         assertThat(beforeDelete).isNotNull();
         assertThat(beforeDelete.isPresent()).isTrue();
@@ -167,13 +166,12 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        final List<CustomUserField> beforeDelete = customUserFieldsRepository.findByReferenceIdAndReferenceType(
-            "ToBeDeleted",
-            ORGANIZATION
-        );
+        final List<CustomUserField> beforeDelete =
+                customUserFieldsRepository.findByReferenceIdAndReferenceType("ToBeDeleted", ORGANIZATION);
         List<String> keys = customUserFieldsRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", ORGANIZATION);
 
-        final List<CustomUserField> afterDelete = customUserFieldsRepository.findByReferenceIdAndReferenceType("ToBeDeleted", ORGANIZATION);
+        final List<CustomUserField> afterDelete =
+                customUserFieldsRepository.findByReferenceIdAndReferenceType("ToBeDeleted", ORGANIZATION);
 
         assertThat(beforeDelete).isNotNull();
         assertThat(beforeDelete.size()).isEqualTo(2);

@@ -44,41 +44,42 @@ class AddApiProductMemberUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_add_api_product_member() {
-        AddMember addMember = AddMember.builder().roleName("API_PRODUCT_USER").userId("user-1").build();
+        AddMember addMember = AddMember.builder()
+                .roleName("API_PRODUCT_USER")
+                .userId("user-1")
+                .build();
 
         addApiProductMemberUseCase.execute(new AddApiProductMemberUseCase.Input(addMember, "ap-1"));
 
         var membership = membershipDomainService.storage().stream().findFirst().orElseThrow();
-        assertAll(() ->
-            assertThat(membership)
+        assertAll(() -> assertThat(membership)
                 .usingRecursiveComparison()
-                .isEqualTo(
-                    MemberEntity.builder()
+                .isEqualTo(MemberEntity.builder()
                         .referenceType(MembershipReferenceType.API_PRODUCT)
                         .referenceId("ap-1")
-                        .roles(List.of(RoleEntity.builder().name("API_PRODUCT_USER").build()))
+                        .roles(List.of(
+                                RoleEntity.builder().name("API_PRODUCT_USER").build()))
                         .type(MembershipMemberType.USER)
                         .id("user-1")
-                        .build()
-                )
-        );
+                        .build()));
     }
 
     @Test
     void should_throw_validation_error_when_role_is_primary_owner() {
-        AddMember addMember = AddMember.builder().roleName("PRIMARY_OWNER").userId("u1").build();
+        AddMember addMember =
+                AddMember.builder().roleName("PRIMARY_OWNER").userId("u1").build();
 
-        assertThrows(SinglePrimaryOwnerException.class, () ->
-            addApiProductMemberUseCase.execute(new AddApiProductMemberUseCase.Input(addMember, "ap-1"))
-        );
+        assertThrows(
+                SinglePrimaryOwnerException.class,
+                () -> addApiProductMemberUseCase.execute(new AddApiProductMemberUseCase.Input(addMember, "ap-1")));
     }
 
     @Test
     void should_throw_when_user_id_and_external_reference_missing() {
         AddMember addMember = AddMember.builder().roleName("API_PRODUCT_USER").build();
 
-        assertThrows(InvalidDataException.class, () ->
-            addApiProductMemberUseCase.execute(new AddApiProductMemberUseCase.Input(addMember, "ap-1"))
-        );
+        assertThrows(
+                InvalidDataException.class,
+                () -> addApiProductMemberUseCase.execute(new AddApiProductMemberUseCase.Input(addMember, "ap-1")));
     }
 }

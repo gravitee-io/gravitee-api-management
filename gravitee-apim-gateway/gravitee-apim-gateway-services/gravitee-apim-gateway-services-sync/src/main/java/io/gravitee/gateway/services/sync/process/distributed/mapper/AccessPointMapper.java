@@ -34,11 +34,12 @@ public class AccessPointMapper {
     public Maybe<AccessPointDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
             try {
-                final ReactableAccessPoint accessPoint = objectMapper.readValue(event.getPayload(), ReactableAccessPoint.class);
+                final ReactableAccessPoint accessPoint =
+                        objectMapper.readValue(event.getPayload(), ReactableAccessPoint.class);
                 return AccessPointDeployable.builder()
-                    .reactableAccessPoint(accessPoint)
-                    .syncAction(SyncActionMapper.to(event.getSyncAction()))
-                    .build();
+                        .reactableAccessPoint(accessPoint)
+                        .syncAction(SyncActionMapper.to(event.getSyncAction()))
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while determining access point into event payload", e);
                 return null;
@@ -50,12 +51,12 @@ public class AccessPointMapper {
         return Maybe.fromCallable(() -> {
             try {
                 return DistributedEvent.builder()
-                    .payload(objectMapper.writeValueAsString(deployable.reactableAccessPoint()))
-                    .id(deployable.id())
-                    .type(DistributedEventType.ACCESS_POINT)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date())
-                    .build();
+                        .payload(objectMapper.writeValueAsString(deployable.reactableAccessPoint()))
+                        .id(deployable.id())
+                        .type(DistributedEventType.ACCESS_POINT)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date())
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while building distributed event from access point", e);
                 return null;

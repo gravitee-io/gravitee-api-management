@@ -50,87 +50,85 @@ abstract class AbstractMultiServersApiDeployIntegrationTest extends AbstractGate
         gatewayConfigurationBuilder.set("servers[1].port", 0);
     }
 
-    void should_get_200_when_calling_on_both_first_and_second_servers(HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig)
-        throws InterruptedException {
+    void should_get_200_when_calling_on_both_first_and_second_servers(
+            HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         // Call the gateway on the 'first' server.
         httpClient
-            .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(firstServerId), "localhost", "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("response from backend");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(firstServerId), "localhost", "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("response from backend");
+                    return true;
+                })
+                .assertNoErrors();
 
         // Call the gateway on the 'second' server.
         httpClient
-            .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(secondServerId), "localhost", "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("response from backend");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(secondServerId), "localhost", "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("response from backend");
+                    return true;
+                })
+                .assertNoErrors();
 
         // Check that 2 calls effectively reached the endpoint.
         wiremock.verify(2, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
     void should_get_200_when_calling_on_second_server_and_404_on_first_server(
-        HttpClient httpClient,
-        GatewayDynamicConfig.Config gatewayConfig
-    ) throws InterruptedException {
+            HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         // Call the gateway on the 'first' server and expect a 404 No context-path.
         httpClient
-            .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(firstServerId), "localhost", "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(404);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("No context-path matches the request URI.");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(firstServerId), "localhost", "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(404);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("No context-path matches the request URI.");
+                    return true;
+                })
+                .assertNoErrors();
 
         // Call the gateway on the 'second' server.
         httpClient
-            .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(secondServerId), "localhost", "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("response from backend");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, gatewayConfig.httpPort(secondServerId), "localhost", "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("response from backend");
+                    return true;
+                })
+                .assertNoErrors();
 
         // Check that 1 calls effectively reached the endpoint.
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));

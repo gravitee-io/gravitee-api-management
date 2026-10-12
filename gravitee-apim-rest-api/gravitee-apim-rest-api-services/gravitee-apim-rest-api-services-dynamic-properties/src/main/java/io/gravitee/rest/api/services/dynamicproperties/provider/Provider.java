@@ -17,7 +17,6 @@ package io.gravitee.rest.api.services.dynamicproperties.provider;
 
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Collection;
 import java.util.List;
 
 /**

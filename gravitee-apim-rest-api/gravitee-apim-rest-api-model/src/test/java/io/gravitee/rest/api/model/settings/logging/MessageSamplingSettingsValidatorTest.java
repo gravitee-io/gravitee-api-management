@@ -53,11 +53,23 @@ class MessageSamplingSettingsValidatorTest {
     @Test
     void should_accept_valid_message_sampling() {
         final MessageSampling messageSampling = MessageSampling.builder()
-            .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
-            .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
-            .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT2S").build())
-            .windowedCount(MessageSampling.WindowedCount.builder().limit("2/PT1S").defaultValue("1/PT1M").build())
-            .build();
+                .count(MessageSampling.Count.builder()
+                        .defaultValue(40)
+                        .limit(15)
+                        .build())
+                .probabilistic(MessageSampling.Probabilistic.builder()
+                        .defaultValue(0.25)
+                        .limit(0.75)
+                        .build())
+                .temporal(MessageSampling.Temporal.builder()
+                        .defaultValue("PT5S")
+                        .limit("PT2S")
+                        .build())
+                .windowedCount(MessageSampling.WindowedCount.builder()
+                        .limit("2/PT1S")
+                        .defaultValue("1/PT1M")
+                        .build())
+                .build();
 
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isTrue();
         verify(constraintViolationBuilder, never()).addConstraintViolation();
@@ -66,63 +78,87 @@ class MessageSamplingSettingsValidatorTest {
     @Test
     void should_fail_when_count_settings_default_lower_than_limit() {
         final MessageSampling messageSampling = MessageSampling.builder()
-            .count(MessageSampling.Count.builder().defaultValue(40).limit(150).build())
-            .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
-            .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT2S").build())
-            .build();
+                .count(MessageSampling.Count.builder()
+                        .defaultValue(40)
+                        .limit(150)
+                        .build())
+                .probabilistic(MessageSampling.Probabilistic.builder()
+                        .defaultValue(0.25)
+                        .limit(0.75)
+                        .build())
+                .temporal(MessageSampling.Temporal.builder()
+                        .defaultValue("PT5S")
+                        .limit("PT2S")
+                        .build())
+                .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
-            constraintViolationBuilder
-        );
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
+                .thenReturn(constraintViolationBuilder);
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder).addConstraintViolation();
         assertThat(violationCaptor.getAllValues())
-            .hasSize(1)
-            .first()
-            .hasToString("Invalid count default value, 'default' should be greater than 'limit'");
+                .hasSize(1)
+                .first()
+                .hasToString("Invalid count default value, 'default' should be greater than 'limit'");
     }
 
     @Test
     void should_fail_when_probabilistic_settings_default_greater_than_limit() {
         final MessageSampling messageSampling = MessageSampling.builder()
-            .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
-            .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(1.0).limit(0.75).build())
-            .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT2S").build())
-            .build();
+                .count(MessageSampling.Count.builder()
+                        .defaultValue(40)
+                        .limit(15)
+                        .build())
+                .probabilistic(MessageSampling.Probabilistic.builder()
+                        .defaultValue(1.0)
+                        .limit(0.75)
+                        .build())
+                .temporal(MessageSampling.Temporal.builder()
+                        .defaultValue("PT5S")
+                        .limit("PT2S")
+                        .build())
+                .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
-            constraintViolationBuilder
-        );
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
+                .thenReturn(constraintViolationBuilder);
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder).addConstraintViolation();
         assertThat(violationCaptor.getAllValues())
-            .hasSize(1)
-            .first()
-            .hasToString("Invalid probabilistic default value, 'default' should be lower than 'limit'");
+                .hasSize(1)
+                .first()
+                .hasToString("Invalid probabilistic default value, 'default' should be lower than 'limit'");
     }
 
     @ParameterizedTest
     @CsvSource(
-        delimiterString = ";",
-        value = {
-            "PT-five-seconds;   PT2S;             Invalid temporal default value, 'default' should be a valid ISO-8601 date",
-            "PT5S;              PT-two-seconds;   Invalid temporal limit value, 'limit' should be a valid ISO-8601 date",
-            "PT5S;              PT20S;            Invalid temporal default value, 'default' should be greater than 'limit'",
-        }
-    )
-    void should_fail_when_temporal_settings_are_badly_configured(String defaultValue, String limit, String expectedMessage) {
+            delimiterString = ";",
+            value = {
+                "PT-five-seconds;   PT2S;             Invalid temporal default value, 'default' should be a valid ISO-8601 date",
+                "PT5S;              PT-two-seconds;   Invalid temporal limit value, 'limit' should be a valid ISO-8601 date",
+                "PT5S;              PT20S;            Invalid temporal default value, 'default' should be greater than 'limit'",
+            })
+    void should_fail_when_temporal_settings_are_badly_configured(
+            String defaultValue, String limit, String expectedMessage) {
         final MessageSampling messageSampling = MessageSampling.builder()
-            .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
-            .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
-            .temporal(MessageSampling.Temporal.builder().defaultValue(defaultValue).limit(limit).build())
-            .build();
+                .count(MessageSampling.Count.builder()
+                        .defaultValue(40)
+                        .limit(15)
+                        .build())
+                .probabilistic(MessageSampling.Probabilistic.builder()
+                        .defaultValue(0.25)
+                        .limit(0.75)
+                        .build())
+                .temporal(MessageSampling.Temporal.builder()
+                        .defaultValue(defaultValue)
+                        .limit(limit)
+                        .build())
+                .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
-            constraintViolationBuilder
-        );
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
+                .thenReturn(constraintViolationBuilder);
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder).addConstraintViolation();
         assertThat(violationCaptor.getAllValues()).hasSize(1).first().hasToString(expectedMessage);
@@ -130,27 +166,38 @@ class MessageSamplingSettingsValidatorTest {
 
     @ParameterizedTest
     @CsvSource(
-        delimiterString = ";",
-        value = {
-            "invalid;   2/PT1S;     Invalid windowed count 'default' value: cannot parse",
-            "-1/PT1S;   2/PT1S;     Invalid windowed count 'default' value: count must be positive",
-            "2/PT1S;    invalid;    Invalid windowed count 'limit' value: cannot parse",
-            "1/PT1M;    -1/PT1S;    Invalid windowed count 'limit' value: count must be positive",
-            "10/PT1S;   1/PT1S;     Invalid windowed count default value, 'default' should have a lower rate than 'limit'",
-        }
-    )
-    void should_fail_when_windowed_count_settings_are_badly_configured(String defaultValue, String limit, String expectedMessage) {
+            delimiterString = ";",
+            value = {
+                "invalid;   2/PT1S;     Invalid windowed count 'default' value: cannot parse",
+                "-1/PT1S;   2/PT1S;     Invalid windowed count 'default' value: count must be positive",
+                "2/PT1S;    invalid;    Invalid windowed count 'limit' value: cannot parse",
+                "1/PT1M;    -1/PT1S;    Invalid windowed count 'limit' value: count must be positive",
+                "10/PT1S;   1/PT1S;     Invalid windowed count default value, 'default' should have a lower rate than 'limit'",
+            })
+    void should_fail_when_windowed_count_settings_are_badly_configured(
+            String defaultValue, String limit, String expectedMessage) {
         final MessageSampling messageSampling = MessageSampling.builder()
-            .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
-            .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
-            .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT2S").build())
-            .windowedCount(MessageSampling.WindowedCount.builder().defaultValue(defaultValue).limit(limit).build())
-            .build();
+                .count(MessageSampling.Count.builder()
+                        .defaultValue(40)
+                        .limit(15)
+                        .build())
+                .probabilistic(MessageSampling.Probabilistic.builder()
+                        .defaultValue(0.25)
+                        .limit(0.75)
+                        .build())
+                .temporal(MessageSampling.Temporal.builder()
+                        .defaultValue("PT5S")
+                        .limit("PT2S")
+                        .build())
+                .windowedCount(MessageSampling.WindowedCount.builder()
+                        .defaultValue(defaultValue)
+                        .limit(limit)
+                        .build())
+                .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
-            constraintViolationBuilder
-        );
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
+                .thenReturn(constraintViolationBuilder);
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder).addConstraintViolation();
         assertThat(violationCaptor.getAllValues()).hasSize(1).first().hasToString(expectedMessage);
@@ -159,25 +206,35 @@ class MessageSamplingSettingsValidatorTest {
     @Test
     void should_fail_when_multiple_settings_are_not_valid() {
         final MessageSampling messageSampling = MessageSampling.builder()
-            .count(MessageSampling.Count.builder().defaultValue(40).limit(105).build())
-            .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(1.0).limit(0.75).build())
-            .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT20S").build())
-            .windowedCount(MessageSampling.WindowedCount.builder().defaultValue("-1/PT1S").limit("2/PT1S").build())
-            .build();
+                .count(MessageSampling.Count.builder()
+                        .defaultValue(40)
+                        .limit(105)
+                        .build())
+                .probabilistic(MessageSampling.Probabilistic.builder()
+                        .defaultValue(1.0)
+                        .limit(0.75)
+                        .build())
+                .temporal(MessageSampling.Temporal.builder()
+                        .defaultValue("PT5S")
+                        .limit("PT20S")
+                        .build())
+                .windowedCount(MessageSampling.WindowedCount.builder()
+                        .defaultValue("-1/PT1S")
+                        .limit("2/PT1S")
+                        .build())
+                .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
-            constraintViolationBuilder
-        );
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
+                .thenReturn(constraintViolationBuilder);
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder, times(4)).addConstraintViolation();
         assertThat(violationCaptor.getAllValues())
-            .hasSize(4)
-            .containsExactly(
-                "Invalid count default value, 'default' should be greater than 'limit'",
-                "Invalid probabilistic default value, 'default' should be lower than 'limit'",
-                "Invalid temporal default value, 'default' should be greater than 'limit'",
-                "Invalid windowed count 'default' value: count must be positive"
-            );
+                .hasSize(4)
+                .containsExactly(
+                        "Invalid count default value, 'default' should be greater than 'limit'",
+                        "Invalid probabilistic default value, 'default' should be lower than 'limit'",
+                        "Invalid temporal default value, 'default' should be greater than 'limit'",
+                        "Invalid windowed count 'default' value: count must be positive");
     }
 }

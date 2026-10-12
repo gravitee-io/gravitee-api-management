@@ -40,46 +40,42 @@ public class FindApiMetricsDetailResponseAdapter {
             return Optional.empty();
         }
 
-        return hits
-            .getHits()
-            .stream()
-            .findFirst()
-            .map(h -> buildFromSource(h.getSource(), h.getId()));
+        return hits.getHits().stream().findFirst().map(h -> buildFromSource(h.getSource(), h.getId()));
     }
 
     private static ApiMetricsDetail buildFromSource(JsonNode json, String hitId) {
         var requestId = coalesceText(json, "request-id", "id");
         return ApiMetricsDetail.builder()
-            .timestamp(asTextOrNull(json.get("@timestamp")))
-            .apiId(coalesceText(json, "api-id", "api"))
-            .requestId(requestId != null ? requestId : hitId)
-            .transactionId(coalesceText(json, "transaction-id", "transaction"))
-            .host(asTextOrNull(json.get("host")))
-            .applicationId(coalesceText(json, "application-id", "application"))
-            .planId(coalesceText(json, "plan-id", "plan"))
-            .subscriptionId(coalesceText(json, "subscription-id", "subscription"))
-            .gateway(asTextOrNull(json.get("gateway")))
-            .status(asIntOr(json.get("status"), 0))
-            .uri(asTextOrNull(json.get("uri")))
-            .requestContentLength(asLongOr(json.get("request-content-length"), 0))
-            .responseContentLength(asLongOr(json.get("response-content-length"), 0))
-            .remoteAddress(asTextOrNull(json.get("remote-address")))
-            .gatewayLatency(coalesceLong(json, "gateway-latency-ms", "proxy-latency"))
-            .gatewayResponseTime(coalesceLong(json, "gateway-response-time-ms", "response-time"))
-            .endpointResponseTime(coalesceLong(json, "endpoint-response-time-ms", "api-response-time"))
-            .method(HttpMethod.get(coalesceInt(json, "http-method", "method")))
-            .endpoint(asTextOrNull(json.get("endpoint")))
-            .entrypointId(asTextOrNull(json.get("entrypoint-id")))
-            .apiProductId(asTextOrNull(json.get("api-product-id")))
-            .message(asTextOrNull(json.get("error-message")))
-            .errorKey(asTextOrNull(json.get("error-key")))
-            .errorComponentName(asTextOrNull(json.get("error-component-name")))
-            .errorComponentType(asTextOrNull(json.get("error-component-type")))
-            .warnings(buildWarnings(json.get("warnings")))
-            .securityType(asTextOrNull(json.get("security-type")))
-            .securityToken(asTextOrNull(json.get("security-token")))
-            .additionalMetrics(asMapOrNull(json.get("additional-metrics")))
-            .build();
+                .timestamp(asTextOrNull(json.get("@timestamp")))
+                .apiId(coalesceText(json, "api-id", "api"))
+                .requestId(requestId != null ? requestId : hitId)
+                .transactionId(coalesceText(json, "transaction-id", "transaction"))
+                .host(asTextOrNull(json.get("host")))
+                .applicationId(coalesceText(json, "application-id", "application"))
+                .planId(coalesceText(json, "plan-id", "plan"))
+                .subscriptionId(coalesceText(json, "subscription-id", "subscription"))
+                .gateway(asTextOrNull(json.get("gateway")))
+                .status(asIntOr(json.get("status"), 0))
+                .uri(asTextOrNull(json.get("uri")))
+                .requestContentLength(asLongOr(json.get("request-content-length"), 0))
+                .responseContentLength(asLongOr(json.get("response-content-length"), 0))
+                .remoteAddress(asTextOrNull(json.get("remote-address")))
+                .gatewayLatency(coalesceLong(json, "gateway-latency-ms", "proxy-latency"))
+                .gatewayResponseTime(coalesceLong(json, "gateway-response-time-ms", "response-time"))
+                .endpointResponseTime(coalesceLong(json, "endpoint-response-time-ms", "api-response-time"))
+                .method(HttpMethod.get(coalesceInt(json, "http-method", "method")))
+                .endpoint(asTextOrNull(json.get("endpoint")))
+                .entrypointId(asTextOrNull(json.get("entrypoint-id")))
+                .apiProductId(asTextOrNull(json.get("api-product-id")))
+                .message(asTextOrNull(json.get("error-message")))
+                .errorKey(asTextOrNull(json.get("error-key")))
+                .errorComponentName(asTextOrNull(json.get("error-component-name")))
+                .errorComponentType(asTextOrNull(json.get("error-component-type")))
+                .warnings(buildWarnings(json.get("warnings")))
+                .securityType(asTextOrNull(json.get("security-type")))
+                .securityToken(asTextOrNull(json.get("security-token")))
+                .additionalMetrics(asMapOrNull(json.get("additional-metrics")))
+                .build();
     }
 
     private static String coalesceText(JsonNode json, String v4Field, String v2Field) {
@@ -108,9 +104,9 @@ public class FindApiMetricsDetailResponseAdapter {
             return List.of();
         }
         return StreamSupport.stream(json.spliterator(), false)
-            .map(FindApiMetricsDetailResponseAdapter::buildDiagnostic)
-            .filter(Objects::nonNull)
-            .toList();
+                .map(FindApiMetricsDetailResponseAdapter::buildDiagnostic)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private static ConnectionDiagnostic buildDiagnostic(JsonNode json) {
@@ -118,10 +114,10 @@ public class FindApiMetricsDetailResponseAdapter {
             return null;
         }
         return ConnectionDiagnostic.builder()
-            .componentType(asTextOrNull(json.get("component-type")))
-            .componentName(asTextOrNull(json.get("component-name")))
-            .key(asTextOrNull(json.get("key")))
-            .message(asTextOrNull(json.get("message")))
-            .build();
+                .componentType(asTextOrNull(json.get("component-type")))
+                .componentName(asTextOrNull(json.get("component-name")))
+                .key(asTextOrNull(json.get("key")))
+                .message(asTextOrNull(json.get("message")))
+                .build();
     }
 }

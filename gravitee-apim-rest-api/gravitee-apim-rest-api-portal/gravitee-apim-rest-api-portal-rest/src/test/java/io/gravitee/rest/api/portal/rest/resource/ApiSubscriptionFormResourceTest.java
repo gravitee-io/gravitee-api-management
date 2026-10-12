@@ -62,22 +62,18 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     @BeforeEach
     void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        portalNavigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationApi.builder()
-                    .id(PortalNavigationItemId.random())
-                    .organizationId("DEFAULT")
-                    .environmentId(ENV_ID)
-                    .title("Nav for " + API_ID)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .apiId(API_ID)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .segment(PortalNavigationItem.slugify("Nav for " + API_ID).value())
-                    .build()
-            )
-        );
+        portalNavigationItemsQueryService.initWith(List.of(PortalNavigationApi.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId("DEFAULT")
+                .environmentId(ENV_ID)
+                .title("Nav for " + API_ID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(API_ID)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Nav for " + API_ID).value())
+                .build()));
     }
 
     @AfterEach
@@ -91,11 +87,12 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     @Test
     void should_return_200_with_subscription_form_and_resolved_options() {
         var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .apiIds(List.of(API_ID))
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
-            .build();
+                .apiIds(List.of(API_ID))
+                .environmentId(ENV_ID)
+                .enabled(true)
+                .gmdContent(GraviteeMarkdown.of(
+                        "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
+                .build();
         subscriptionFormQueryService.initWith(List.of(form));
         subscriptionFormElResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("Dev", "Staging", "Prod")));
 
@@ -119,23 +116,23 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_404_api_not_found_when_api_not_visible_in_portal_navigation() {
-        portalNavigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationApi.builder()
-                    .id(PortalNavigationItemId.random())
-                    .organizationId("DEFAULT")
-                    .environmentId(ENV_ID)
-                    .title("Private " + API_ID)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .apiId(API_ID)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .segment(PortalNavigationItem.slugify("Private " + API_ID).value())
-                    .build()
-            )
-        );
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of(API_ID)).environmentId(ENV_ID).enabled(true).build();
+        portalNavigationItemsQueryService.initWith(List.of(PortalNavigationApi.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId("DEFAULT")
+                .environmentId(ENV_ID)
+                .title("Private " + API_ID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(API_ID)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .segment(PortalNavigationItem.slugify("Private " + API_ID).value())
+                .build()));
+        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .apiIds(List.of(API_ID))
+                .environmentId(ENV_ID)
+                .enabled(true)
+                .build();
         subscriptionFormQueryService.initWith(List.of(form));
 
         Response response = target(API_ID + "/subscription-form").request().get();
@@ -149,7 +146,11 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_404_when_form_disabled() {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of(API_ID)).environmentId(ENV_ID).enabled(false).build();
+        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .apiIds(List.of(API_ID))
+                .environmentId(ENV_ID)
+                .enabled(false)
+                .build();
         subscriptionFormQueryService.initWith(List.of(form));
 
         Response response = target(API_ID + "/subscription-form").request().get();
@@ -160,11 +161,12 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     @Test
     void should_return_fallback_options_when_el_resolver_has_no_resolved_values() {
         var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .apiIds(List.of(API_ID))
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"plan\" options=\"{#api.metadata['plans']}:Free,Pro\"/>"))
-            .build();
+                .apiIds(List.of(API_ID))
+                .environmentId(ENV_ID)
+                .enabled(true)
+                .gmdContent(GraviteeMarkdown.of(
+                        "<gmd-select fieldKey=\"plan\" options=\"{#api.metadata['plans']}:Free,Pro\"/>"))
+                .build();
         subscriptionFormQueryService.initWith(List.of(form));
         // no resolved values → should fall back to "Free,Pro"
 

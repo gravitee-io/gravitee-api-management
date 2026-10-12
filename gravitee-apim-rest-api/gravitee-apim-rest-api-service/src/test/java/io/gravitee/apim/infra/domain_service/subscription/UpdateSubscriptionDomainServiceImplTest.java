@@ -52,8 +52,10 @@ class UpdateSubscriptionDomainServiceImplTest {
 
     @Test
     void should_delegate_to_subscription_service() {
-        AuditInfo auditInfo = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
-        SubscriptionConfigurationEntity config = SubscriptionConfigurationEntity.builder().entrypointId("ep").build();
+        AuditInfo auditInfo =
+                AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        SubscriptionConfigurationEntity config =
+                SubscriptionConfigurationEntity.builder().entrypointId("ep").build();
         ZonedDateTime start = ZonedDateTime.now();
         ZonedDateTime end = ZonedDateTime.now().plusDays(1);
 
@@ -73,7 +75,8 @@ class UpdateSubscriptionDomainServiceImplTest {
 
     @Test
     void should_handle_null_optional_fields() {
-        AuditInfo auditInfo = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        AuditInfo auditInfo =
+                AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
 
         cut.update(auditInfo, SUB_ID, null, null, null, null);
 

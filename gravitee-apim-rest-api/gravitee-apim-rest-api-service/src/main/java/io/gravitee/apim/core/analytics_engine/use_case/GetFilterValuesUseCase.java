@@ -53,29 +53,24 @@ public class GetFilterValuesUseCase {
     /** Upper bound aligned with OpenAPI `page` parameter for observability filter values. */
     private static final int MAX_PAGE = 10_000;
 
-    private static final Set<FilterSpec.Name> ID_BASED_FILTERS = Set.of(
-        FilterSpec.Name.API,
-        FilterSpec.Name.APPLICATION,
-        FilterSpec.Name.PLAN,
-        FilterSpec.Name.API_PRODUCT
-    );
+    private static final Set<FilterSpec.Name> ID_BASED_FILTERS =
+            Set.of(FilterSpec.Name.API, FilterSpec.Name.APPLICATION, FilterSpec.Name.PLAN, FilterSpec.Name.API_PRODUCT);
 
     private static final Map<ApiType, String> PLATFORM_TO_WIRE_API_TYPE = Map.of(
-        ApiType.PROXY,
-        "HTTP_PROXY",
-        ApiType.LLM_PROXY,
-        "LLM",
-        ApiType.MCP_PROXY,
-        "MCP",
-        ApiType.A2A_PROXY,
-        "A2A",
-        ApiType.MESSAGE,
-        "MESSAGE",
-        ApiType.NATIVE,
-        "NATIVE",
-        ApiType.EDGE,
-        "EDGE"
-    );
+            ApiType.PROXY,
+            "HTTP_PROXY",
+            ApiType.LLM_PROXY,
+            "LLM",
+            ApiType.MCP_PROXY,
+            "MCP",
+            ApiType.A2A_PROXY,
+            "A2A",
+            ApiType.MESSAGE,
+            "MESSAGE",
+            ApiType.NATIVE,
+            "NATIVE",
+            ApiType.EDGE,
+            "EDGE");
 
     private final AnalyticsDefinitionQueryService definitionQueryService;
     private final FilterValuesQueryService filterValuesQueryService;
@@ -86,21 +81,6 @@ public class GetFilterValuesUseCase {
     private final ApiProductQueryService apiProductQueryService;
 
     public record Input(
-        AuditInfo auditInfo,
-        String filterName,
-        Instant from,
-        Instant to,
-        int page,
-        int perPage,
-        String query,
-        Set<ApiType> apiTypes,
-        AnalyticsScope scope
-    ) {
-        public Input(AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {
-            this(auditInfo, filterName, from, to, page, perPage, query, Set.of(), AnalyticsScope.MANAGEMENT);
-        }
-
-        public Input(
             AuditInfo auditInfo,
             String filterName,
             Instant from,
@@ -108,8 +88,22 @@ public class GetFilterValuesUseCase {
             int page,
             int perPage,
             String query,
-            Set<ApiType> apiTypes
-        ) {
+            Set<ApiType> apiTypes,
+            AnalyticsScope scope) {
+        public Input(
+                AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {
+            this(auditInfo, filterName, from, to, page, perPage, query, Set.of(), AnalyticsScope.MANAGEMENT);
+        }
+
+        public Input(
+                AuditInfo auditInfo,
+                String filterName,
+                Instant from,
+                Instant to,
+                int page,
+                int perPage,
+                String query,
+                Set<ApiType> apiTypes) {
             this(auditInfo, filterName, from, to, page, perPage, query, apiTypes, AnalyticsScope.MANAGEMENT);
         }
     }
@@ -118,10 +112,12 @@ public class GetFilterValuesUseCase {
 
     public Output execute(Input input) {
         if (input.page() < 1 || input.page() > MAX_PAGE) {
-            throw new ValidationDomainException("page must be between 1 and " + MAX_PAGE, Map.of("page", String.valueOf(input.page())));
+            throw new ValidationDomainException(
+                    "page must be between 1 and " + MAX_PAGE, Map.of("page", String.valueOf(input.page())));
         }
         if (input.perPage() < 1 || input.perPage() > 100) {
-            throw new ValidationDomainException("perPage must be between 1 and 100", Map.of("perPage", String.valueOf(input.perPage())));
+            throw new ValidationDomainException(
+                    "perPage must be between 1 and 100", Map.of("perPage", String.valueOf(input.perPage())));
         }
 
         var filterSpecName = validateFilterName(input.filterName());
@@ -135,10 +131,14 @@ public class GetFilterValuesUseCase {
         return switch (filterSpec.type()) {
             case ENUM -> handleEnum(filterSpec, input);
             case KEYWORD -> handleKeyword(input, filterSpecName, analyticsContext);
-            case NUMBER, STRING -> throw new ValidationDomainException(
-                "Filter type " + filterSpec.type() + " does not support value listing",
-                Map.of("filterName", input.filterName(), "filterType", filterSpec.type().name())
-            );
+            case NUMBER, STRING ->
+                throw new ValidationDomainException(
+                        "Filter type " + filterSpec.type() + " does not support value listing",
+                        Map.of(
+                                "filterName",
+                                input.filterName(),
+                                "filterType",
+                                filterSpec.type().name()));
         };
     }
 
@@ -150,13 +150,13 @@ public class GetFilterValuesUseCase {
 
         var stream = enumValues.stream();
 
-        if (filterSpec.name() == FilterSpec.Name.API_TYPE && input.apiTypes() != null && !input.apiTypes().isEmpty()) {
-            Set<String> allowedWireValues = input
-                .apiTypes()
-                .stream()
-                .map(PLATFORM_TO_WIRE_API_TYPE::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        if (filterSpec.name() == FilterSpec.Name.API_TYPE
+                && input.apiTypes() != null
+                && !input.apiTypes().isEmpty()) {
+            Set<String> allowedWireValues = input.apiTypes().stream()
+                    .map(PLATFORM_TO_WIRE_API_TYPE::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
             stream = stream.filter(allowedWireValues::contains);
         }
 
@@ -190,7 +190,8 @@ public class GetFilterValuesUseCase {
         return handleDirectValueKeyword(input, filterSpecName, analyticsContext);
     }
 
-    private Output handleIdBasedSearch(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
+    private Output handleIdBasedSearch(
+            Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
         boolean hasQuery = input.query() != null && !input.query().isBlank();
         var lowerQuery = hasQuery ? input.query().toLowerCase() : null;
 
@@ -210,52 +211,42 @@ public class GetFilterValuesUseCase {
     }
 
     private Output searchApisByNameFromContext(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
-        var matching = analyticsContext
-            .apiNamesById()
-            .entrySet()
-            .stream()
-            .filter(e -> {
-                var name = e.getValue();
-                return name != null && name.toLowerCase().contains(lowerQuery);
-            })
-            .sorted(
-                Comparator.comparing(Map.Entry<String, String>::getValue, String.CASE_INSENSITIVE_ORDER).thenComparing(Map.Entry::getKey)
-            )
-            .toList();
+        var matching = analyticsContext.apiNamesById().entrySet().stream()
+                .filter(e -> {
+                    var name = e.getValue();
+                    return name != null && name.toLowerCase().contains(lowerQuery);
+                })
+                .sorted(Comparator.comparing(Map.Entry<String, String>::getValue, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(Map.Entry::getKey))
+                .toList();
 
         var totalFiltered = (long) matching.size();
         var fromIndex = Math.min((input.page() - 1) * input.perPage(), matching.size());
         var toIndex = Math.min(fromIndex + input.perPage(), matching.size());
         var pageEntries = matching.subList(fromIndex, toIndex);
-        var values = pageEntries
-            .stream()
-            .map(e -> new FilterValue(e.getValue(), e.getKey()))
-            .toList();
+        var values = pageEntries.stream()
+                .map(e -> new FilterValue(e.getValue(), e.getKey()))
+                .toList();
 
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
     private Output searchApplicationsByNameFromEnvironment(Input input, String lowerQuery) {
         var environmentId = input.auditInfo().environmentId();
-        var matching = applicationQueryService
-            .findByEnvironment(environmentId)
-            .stream()
-            .filter(app -> app.getName() != null && app.getName().toLowerCase().contains(lowerQuery))
-            .sorted(
-                Comparator.comparing(BaseApplicationEntity::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(
-                    BaseApplicationEntity::getId
-                )
-            )
-            .toList();
+        var matching = applicationQueryService.findByEnvironment(environmentId).stream()
+                .filter(app ->
+                        app.getName() != null && app.getName().toLowerCase().contains(lowerQuery))
+                .sorted(Comparator.comparing(BaseApplicationEntity::getName, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(BaseApplicationEntity::getId))
+                .toList();
 
         var totalFiltered = (long) matching.size();
         var fromIndex = Math.min((input.page() - 1) * input.perPage(), matching.size());
         var toIndex = Math.min(fromIndex + input.perPage(), matching.size());
         var pageApps = matching.subList(fromIndex, toIndex);
-        var values = pageApps
-            .stream()
-            .map(app -> new FilterValue(app.getName(), app.getId()))
-            .toList();
+        var values = pageApps.stream()
+                .map(app -> new FilterValue(app.getName(), app.getId()))
+                .toList();
 
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
@@ -263,33 +254,31 @@ public class GetFilterValuesUseCase {
     private Output searchApiProductsByNameFromEnvironment(Input input, String lowerQuery) {
         var environmentId = input.auditInfo().environmentId();
 
-        var stream = apiProductQueryService
-            .findByEnvironmentId(environmentId)
-            .stream()
-            // Exclude products with no name — they cannot be meaningfully displayed.
-            .filter(ap -> ap.getName() != null);
+        var stream = apiProductQueryService.findByEnvironmentId(environmentId).stream()
+                // Exclude products with no name — they cannot be meaningfully displayed.
+                .filter(ap -> ap.getName() != null);
 
         if (lowerQuery != null) {
             stream = stream.filter(ap -> ap.getName().toLowerCase().contains(lowerQuery));
         }
 
-        var matching = stream
-            .sorted(Comparator.comparing(ApiProduct::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(ApiProduct::getId))
-            .toList();
+        var matching = stream.sorted(Comparator.comparing(ApiProduct::getName, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(ApiProduct::getId))
+                .toList();
 
         var totalFiltered = (long) matching.size();
         var fromIndex = Math.min((input.page() - 1) * input.perPage(), matching.size());
         var toIndex = Math.min(fromIndex + input.perPage(), matching.size());
         var pageProducts = matching.subList(fromIndex, toIndex);
-        var values = pageProducts
-            .stream()
-            .map(ap -> new FilterValue(ap.getName(), ap.getId()))
-            .toList();
+        var values = pageProducts.stream()
+                .map(ap -> new FilterValue(ap.getName(), ap.getId()))
+                .toList();
 
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output searchPlansByNameFromAuthorizedApis(Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
+    private Output searchPlansByNameFromAuthorizedApis(
+            Input input, String lowerQuery, AnalyticsQueryContext analyticsContext) {
         Objects.requireNonNull(analyticsContext);
         var environmentId = input.auditInfo().environmentId();
         var apiIds = analyticsContext.authorizedApiIds();
@@ -298,81 +287,78 @@ public class GetFilterValuesUseCase {
         }
 
         var plans = planQueryService.findAllByApiIds(apiIds, Set.of(environmentId));
-        var matching = plans
-            .stream()
-            .filter(plan -> plan.getName() != null && plan.getName().toLowerCase().contains(lowerQuery))
-            .collect(Collectors.toMap(Plan::getId, p -> p, (a, b) -> a, LinkedHashMap::new))
-            .values()
-            .stream()
-            .sorted(Comparator.comparing(Plan::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(Plan::getId))
-            .toList();
+        var matching = plans.stream()
+                .filter(plan ->
+                        plan.getName() != null && plan.getName().toLowerCase().contains(lowerQuery))
+                .collect(Collectors.toMap(Plan::getId, p -> p, (a, b) -> a, LinkedHashMap::new))
+                .values()
+                .stream()
+                .sorted(Comparator.comparing(Plan::getName, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(Plan::getId))
+                .toList();
 
         var totalFiltered = (long) matching.size();
         var fromIndex = Math.min((input.page() - 1) * input.perPage(), matching.size());
         var toIndex = Math.min(fromIndex + input.perPage(), matching.size());
         var pagePlans = matching.subList(fromIndex, toIndex);
-        var values = pagePlans
-            .stream()
-            .map(plan -> new FilterValue(plan.getName(), plan.getId()))
-            .toList();
+        var values = pagePlans.stream()
+                .map(plan -> new FilterValue(plan.getName(), plan.getId()))
+                .toList();
 
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output handleIdBasedNoSearch(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
+    private Output handleIdBasedNoSearch(
+            Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
         var organizationId = input.auditInfo().organizationId();
         var environmentId = input.auditInfo().environmentId();
 
         var esPage = filterValuesQueryService.searchFilterValues(
-            organizationId,
-            environmentId,
-            filterSpecName,
-            input.from(),
-            input.to(),
-            input.page(),
-            input.perPage(),
-            null,
-            null,
-            analyticsContext.authorizedApiIds()
-        );
+                organizationId,
+                environmentId,
+                filterSpecName,
+                input.from(),
+                input.to(),
+                input.page(),
+                input.perPage(),
+                null,
+                null,
+                analyticsContext.authorizedApiIds());
 
         if (filterSpecName == FilterSpec.Name.API) {
-            var resolvedValues = esPage
-                .data()
-                .stream()
-                .map(fv -> new FilterValue(analyticsContext.apiNamesById().getOrDefault(fv.value(), fv.value()), fv.value()))
-                .toList();
+            var resolvedValues = esPage.data().stream()
+                    .map(fv -> new FilterValue(
+                            analyticsContext.apiNamesById().getOrDefault(fv.value(), fv.value()), fv.value()))
+                    .toList();
             return new Output(new FilterValuesPage(resolvedValues, esPage.afterKey()));
         }
 
         var ids = esPage.data().stream().map(FilterValue::value).toList();
         var namesByIds = filterValueNameResolver.resolveNames(environmentId, filterSpecName, ids);
 
-        var resolvedValues = esPage
-            .data()
-            .stream()
-            .map(fv -> new FilterValue(namesByIds.getOrDefault(fv.value(), fv.value()), fv.value()))
-            .toList();
+        var resolvedValues = esPage.data().stream()
+                .map(fv -> new FilterValue(namesByIds.getOrDefault(fv.value(), fv.value()), fv.value()))
+                .toList();
 
         return new Output(new FilterValuesPage(resolvedValues, esPage.afterKey()));
     }
 
-    private Output handleDirectValueKeyword(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
+    private Output handleDirectValueKeyword(
+            Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
         var organizationId = input.auditInfo().organizationId();
         var environmentId = input.auditInfo().environmentId();
 
         var page = filterValuesQueryService.searchFilterValues(
-            organizationId,
-            environmentId,
-            filterSpecName,
-            input.from(),
-            input.to(),
-            input.page(),
-            input.perPage(),
-            null,
-            input.query(),
-            analyticsContext.authorizedApiIds()
-        );
+                organizationId,
+                environmentId,
+                filterSpecName,
+                input.from(),
+                input.to(),
+                input.page(),
+                input.perPage(),
+                null,
+                input.query(),
+                analyticsContext.authorizedApiIds());
         return new Output(page);
     }
 
@@ -381,9 +367,8 @@ public class GetFilterValuesUseCase {
             return FilterSpec.Name.valueOf(filterName);
         } catch (IllegalArgumentException e) {
             throw new ValidationDomainException(
-                "Invalid filter name",
-                Map.of("invalidName", filterName, "validNames", Arrays.toString(FilterSpec.Name.values()))
-            );
+                    "Invalid filter name",
+                    Map.of("invalidName", filterName, "validNames", Arrays.toString(FilterSpec.Name.values())));
         }
     }
 
@@ -395,29 +380,25 @@ public class GetFilterValuesUseCase {
                 allowedIds.addAll(idsForType);
             }
         }
-        var narrowedAuthorizedIds = context.authorizedApiIds().stream().filter(allowedIds::contains).collect(Collectors.toSet());
-        var narrowedNames = context
-            .apiNamesById()
-            .entrySet()
-            .stream()
-            .filter(e -> narrowedAuthorizedIds.contains(e.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        var narrowedAuthorizedIds =
+                context.authorizedApiIds().stream().filter(allowedIds::contains).collect(Collectors.toSet());
+        var narrowedNames = context.apiNamesById().entrySet().stream()
+                .filter(e -> narrowedAuthorizedIds.contains(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         return new AnalyticsQueryContext(
-            context.auditInfo(),
-            context.executionContext(),
-            narrowedAuthorizedIds,
-            narrowedNames,
-            context.applicationNamesById(),
-            context.apiIdsByType()
-        );
+                context.auditInfo(),
+                context.executionContext(),
+                narrowedAuthorizedIds,
+                narrowedNames,
+                context.applicationNamesById(),
+                context.apiIdsByType());
     }
 
     private FilterSpec findFilterSpec(FilterSpec.Name name) {
-        return definitionQueryService
-            .getAllFilters()
-            .stream()
-            .filter(f -> f.name() == name)
-            .findFirst()
-            .orElseThrow(() -> new ValidationDomainException("Filter not found", Map.of("filterName", name.name())));
+        return definitionQueryService.getAllFilters().stream()
+                .filter(f -> f.name() == name)
+                .findFirst()
+                .orElseThrow(
+                        () -> new ValidationDomainException("Filter not found", Map.of("filterName", name.name())));
     }
 }

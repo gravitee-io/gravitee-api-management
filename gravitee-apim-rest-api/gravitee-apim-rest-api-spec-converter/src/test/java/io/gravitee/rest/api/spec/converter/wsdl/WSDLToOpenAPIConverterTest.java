@@ -35,15 +35,13 @@ public class WSDLToOpenAPIConverterTest {
     private WSDLToOpenAPIConverter converter = new WSDLToOpenAPIConverter();
 
     public static Iterable<Object[]> data() {
-        return Arrays.asList(
-            new Object[][] {
-                { "/calculator.asmx", 8, 8, 1 },
-                { "/example.wsdl", 1, 1, 1 },
-                { "/rpc_style.wsdl", 1, 1, 1 },
-                { "/rpc_style_2args.wsdl", 1, 1, 1 },
-                { "/tempconvert.wsdl", 6, 4, 3 },
-            }
-        );
+        return Arrays.asList(new Object[][] {
+            {"/calculator.asmx", 8, 8, 1},
+            {"/example.wsdl", 1, 1, 1},
+            {"/rpc_style.wsdl", 1, 1, 1},
+            {"/rpc_style_2args.wsdl", 1, 1, 1},
+            {"/tempconvert.wsdl", 6, 4, 3},
+        });
     }
 
     @MethodSource("data")
@@ -68,14 +66,13 @@ public class WSDLToOpenAPIConverterTest {
         int soapEnvelopes = 0;
         for (PathItem path : paths.values()) {
             Optional<State> optState = Arrays.asList(
-                checkOperation(path.getPost()),
-                checkOperation(path.getGet()),
-                checkOperation(path.getPut()),
-                checkOperation(path.getDelete())
-            )
-                .stream()
-                .filter(state -> state != State.NO_OP)
-                .findFirst();
+                            checkOperation(path.getPost()),
+                            checkOperation(path.getGet()),
+                            checkOperation(path.getPut()),
+                            checkOperation(path.getDelete()))
+                    .stream()
+                    .filter(state -> state != State.NO_OP)
+                    .findFirst();
             if (optState.isPresent()) {
                 if (optState.get().equals(State.ENVELOPE)) {
                     ++soapEnvelopes;

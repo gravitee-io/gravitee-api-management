@@ -46,15 +46,14 @@ import org.springframework.stereotype.Component;
 public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
 
     private static final Map<String, Float> API_PRODUCT_FIELD_BOOST = Map.ofEntries(
-        Map.entry(FIELD_NAME, 20.0f),
-        Map.entry(FIELD_NAME_LOWERCASE, 20.0f),
-        Map.entry(FIELD_NAME_SPLIT, 18.0f),
-        Map.entry(FIELD_DESCRIPTION, 5.0f),
-        Map.entry(FIELD_DESCRIPTION_LOWERCASE, 5.0f),
-        Map.entry(FIELD_DESCRIPTION_SPLIT, 4.0f),
-        Map.entry(FIELD_OWNER, 3.0f),
-        Map.entry(FIELD_OWNER_LOWERCASE, 3.0f)
-    );
+            Map.entry(FIELD_NAME, 20.0f),
+            Map.entry(FIELD_NAME_LOWERCASE, 20.0f),
+            Map.entry(FIELD_NAME_SPLIT, 18.0f),
+            Map.entry(FIELD_DESCRIPTION, 5.0f),
+            Map.entry(FIELD_DESCRIPTION_LOWERCASE, 5.0f),
+            Map.entry(FIELD_DESCRIPTION_SPLIT, 4.0f),
+            Map.entry(FIELD_OWNER, 3.0f),
+            Map.entry(FIELD_OWNER_LOWERCASE, 3.0f));
 
     private static final String[] API_PRODUCT_FIELD_SEARCH = new String[] {
         FIELD_ID,
@@ -74,10 +73,8 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     private BooleanQuery.Builder buildApiProductQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
-        BooleanQuery.Builder builder = new BooleanQuery.Builder().add(
-            new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)),
-            BooleanClause.Occur.FILTER
-        );
+        BooleanQuery.Builder builder = new BooleanQuery.Builder()
+                .add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.FILTER);
 
         if (executionContext.hasEnvironmentId()) {
             builder.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
@@ -90,21 +87,26 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
 
     private BooleanQuery buildEnvCriteria(ExecutionContext executionContext) {
         return new BooleanQuery.Builder()
-            .add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, ReferenceContext.Type.ENVIRONMENT.name())), BooleanClause.Occur.FILTER)
-            .add(new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getEnvironmentId())), BooleanClause.Occur.FILTER)
-            .build();
+                .add(
+                        new TermQuery(new Term(FIELD_REFERENCE_TYPE, ReferenceContext.Type.ENVIRONMENT.name())),
+                        BooleanClause.Occur.FILTER)
+                .add(
+                        new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getEnvironmentId())),
+                        BooleanClause.Occur.FILTER)
+                .build();
     }
 
     private Optional<BooleanQuery> buildTextQuery(
-        ExecutionContext executionContext,
-        io.gravitee.rest.api.service.search.query.Query<?> query,
-        Optional<Query> filterQuery
-    ) throws ParseException {
+            ExecutionContext executionContext,
+            io.gravitee.rest.api.service.search.query.Query<?> query,
+            Optional<Query> filterQuery)
+            throws ParseException {
         if (isBlank(query.getQuery())) {
             return Optional.empty();
         }
         BooleanQuery.Builder baseQuery = buildApiProductQuery(executionContext, filterQuery);
-        MultiFieldQueryParser parser = new MultiFieldQueryParser(API_PRODUCT_FIELD_SEARCH, new KeywordAnalyzer(), API_PRODUCT_FIELD_BOOST);
+        MultiFieldQueryParser parser =
+                new MultiFieldQueryParser(API_PRODUCT_FIELD_SEARCH, new KeywordAnalyzer(), API_PRODUCT_FIELD_BOOST);
         String escaped = QueryParserBase.escape(query.getQuery());
         Query parsed = parser.parse(escaped);
         baseQuery.add(parsed, BooleanClause.Occur.MUST);
@@ -112,10 +114,9 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     private Optional<BooleanQuery> buildWildcardQuery(
-        ExecutionContext executionContext,
-        io.gravitee.rest.api.service.search.query.Query<?> query,
-        Optional<Query> filterQuery
-    ) {
+            ExecutionContext executionContext,
+            io.gravitee.rest.api.service.search.query.Query<?> query,
+            Optional<Query> filterQuery) {
         if (isBlank(query.getQuery())) {
             return Optional.empty();
         }
@@ -132,33 +133,33 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
         for (String token : query.split("\\s+")) {
             if (!token.isEmpty()) {
                 builder.add(new WildcardQuery(new Term(FIELD_NAME, '*' + token + '*')), BooleanClause.Occur.SHOULD);
-                builder.add(new WildcardQuery(new Term(FIELD_NAME_LOWERCASE, '*' + token.toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
+                builder.add(
+                        new WildcardQuery(new Term(FIELD_NAME_LOWERCASE, '*' + token.toLowerCase() + '*')),
+                        BooleanClause.Occur.SHOULD);
             }
         }
         return builder.build();
     }
 
     @Override
-    public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
-        throws TechnicalException {
+    public SearchResult search(
+            ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
+            throws TechnicalException {
         BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
 
         try {
-            final Optional<Query> baseFilterQuery = buildFilterQuery(query.getFilters(), Map.of(FIELD_TYPE_VALUE, FIELD_ID));
-            buildExcludedFilters(query.getExcludedFilters()).ifPresent(q -> mainQuery.add(q, BooleanClause.Occur.MUST_NOT));
-            buildTextQuery(executionContext, query, baseFilterQuery).ifPresent(q ->
-                mainQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD)
-            );
-            buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> mainQuery.add(q, BooleanClause.Occur.SHOULD));
+            final Optional<Query> baseFilterQuery =
+                    buildFilterQuery(query.getFilters(), Map.of(FIELD_TYPE_VALUE, FIELD_ID));
+            buildExcludedFilters(query.getExcludedFilters())
+                    .ifPresent(q -> mainQuery.add(q, BooleanClause.Occur.MUST_NOT));
+            buildTextQuery(executionContext, query, baseFilterQuery)
+                    .ifPresent(q -> mainQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD));
+            buildWildcardQuery(executionContext, query, baseFilterQuery)
+                    .ifPresent(q -> mainQuery.add(q, BooleanClause.Occur.SHOULD));
 
-            if (
-                mainQuery
-                    .build()
-                    .clauses()
-                    .stream()
-                    .noneMatch(c -> c.occur() != BooleanClause.Occur.MUST_NOT)
-            ) {
-                mainQuery.add(buildApiProductQuery(executionContext, baseFilterQuery).build(), BooleanClause.Occur.MUST);
+            if (mainQuery.build().clauses().stream().noneMatch(c -> c.occur() != BooleanClause.Occur.MUST_NOT)) {
+                mainQuery.add(
+                        buildApiProductQuery(executionContext, baseFilterQuery).build(), BooleanClause.Occur.MUST);
             }
         } catch (ParseException pe) {
             throw new TechnicalException("Invalid query to search for API Product documents", pe);
@@ -180,13 +181,11 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
             return Optional.empty();
         }
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        excludedFilters
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())
-            .forEach(entry ->
-                entry.getValue().forEach(value -> builder.add(new TermQuery(new Term(entry.getKey(), value)), BooleanClause.Occur.SHOULD))
-            );
+        excludedFilters.entrySet().stream()
+                .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())
+                .forEach(entry -> entry.getValue()
+                        .forEach(value -> builder.add(
+                                new TermQuery(new Term(entry.getKey(), value)), BooleanClause.Occur.SHOULD)));
         return Optional.of(builder.build());
     }
 

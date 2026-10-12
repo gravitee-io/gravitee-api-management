@@ -35,22 +35,24 @@ public class SearchObservabilityLogMessagesUseCase {
 
     private final ObservabilityLogsDataPort logsDataPort;
 
-    public record Input(String organizationId, String environmentId, String apiId, String requestId, Integer page, Integer perPage) {}
+    public record Input(
+            String organizationId,
+            String environmentId,
+            String apiId,
+            String requestId,
+            Integer page,
+            Integer perPage) {}
 
     public record Output(MessageLogsPage data, int page, int perPage) {}
 
     public Output execute(Input input) {
         var page = input.page() == null || input.page() < 1 ? DEFAULT_PAGE : input.page();
-        var perPage = input.perPage() == null || input.perPage() < 1 ? DEFAULT_PER_PAGE : Math.min(input.perPage(), MAX_PER_PAGE);
+        var perPage = input.perPage() == null || input.perPage() < 1
+                ? DEFAULT_PER_PAGE
+                : Math.min(input.perPage(), MAX_PER_PAGE);
 
         var messages = logsDataPort.searchMessages(
-            input.organizationId(),
-            input.environmentId(),
-            input.apiId(),
-            input.requestId(),
-            page,
-            perPage
-        );
+                input.organizationId(), input.environmentId(), input.apiId(), input.requestId(), page, perPage);
 
         return new Output(messages, page, perPage);
     }

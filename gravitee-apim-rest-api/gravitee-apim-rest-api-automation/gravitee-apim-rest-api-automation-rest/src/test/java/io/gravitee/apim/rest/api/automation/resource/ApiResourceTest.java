@@ -87,7 +87,10 @@ class ApiResourceTest extends AbstractResourceTest {
     static final String API_ID = "api-id";
     static final String API_CROSS_ID = "api-cross-id";
     static final String HRID = "api-hrid";
-    static final AuditInfo auditInfo = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
+    static final AuditInfo auditInfo = AuditInfo.builder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
 
     @AfterEach
     void tearDown() {
@@ -100,10 +103,14 @@ class ApiResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
-                    new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build())
-                );
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                        .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder()
+                                .id(API_ID)
+                                .crossId(API_CROSS_ID)
+                                .hrid(HRID)
+                                .build()));
                 var state = expectEntity(HRID, false);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -133,29 +140,36 @@ class ApiResourceTest extends AbstractResourceTest {
             tracing.setEnabled(true);
             tracing.setRedaction(redaction);
             var spec = ApiCRDSpec.builder()
-                .id(API_ID)
-                .crossId(API_CROSS_ID)
-                .hrid(HRID)
-                .listeners(
-                    List.of(
-                        HttpListener.builder()
+                    .id(API_ID)
+                    .crossId(API_CROSS_ID)
+                    .hrid(HRID)
+                    .listeners(List.of(HttpListener.builder()
                             .paths(List.of(Path.builder().path("/test-hrid").build()))
                             .pathMappings(Set.of("/products/:productId"))
-                            .cors(Cors.builder().enabled(true).allowPrivateNetwork(true).build())
-                            .requestValidation(RequestValidation.builder().rejectNullByte(true).build())
-                            .entrypoints(List.of(Entrypoint.builder().type("http-proxy").build()))
-                            .build()
-                    )
-                )
-                .analytics(Analytics.builder().enabled(true).tracing(tracing).build())
-                .failover(
-                    Failover.builder().enabled(true).failureCondition("{#response.status >= 500}").forceNextEndpointOnFailure(true).build()
-                )
-                .build();
+                            .cors(Cors.builder()
+                                    .enabled(true)
+                                    .allowPrivateNetwork(true)
+                                    .build())
+                            .requestValidation(RequestValidation.builder()
+                                    .rejectNullByte(true)
+                                    .build())
+                            .entrypoints(List.of(
+                                    Entrypoint.builder().type("http-proxy").build()))
+                            .build()))
+                    .analytics(
+                            Analytics.builder().enabled(true).tracing(tracing).build())
+                    .failover(Failover.builder()
+                            .enabled(true)
+                            .failureCondition("{#response.status >= 500}")
+                            .forceNextEndpointOnFailure(true)
+                            .build())
+                    .build();
 
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(new ExportApiCRDUseCase.Output(spec));
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                        .thenReturn(new ExportApiCRDUseCase.Output(spec));
 
                 var state = expectEntity(HRID, false);
 
@@ -165,16 +179,22 @@ class ApiResourceTest extends AbstractResourceTest {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(listener.getPathMappings()).containsExactly("/products/:productId");
                     soft.assertThat(listener.getCors().getAllowPrivateNetwork()).isTrue();
-                    soft.assertThat(listener.getRequestValidation().getRejectNullByte()).isTrue();
+                    soft.assertThat(listener.getRequestValidation().getRejectNullByte())
+                            .isTrue();
                     soft.assertThat(stateRedaction.getDefaultReplacement()).isEqualTo("[MASKED]");
                     soft.assertThat(stateRule.getAttributeNamePattern()).isEqualTo("http.request.header.authorization");
                     soft.assertThat(stateRule.getValuePattern()).isEqualTo("^Bearer ");
-                    soft.assertThat(stateRule.getMaskingStrategy().getType().getValue()).isEqualTo("PARTIAL");
-                    soft.assertThat(stateRule.getMaskingStrategy().getReplacement()).isEqualTo("#");
-                    soft.assertThat(stateRule.getMaskingStrategy().getPrefixLength()).isEqualTo(7);
-                    soft.assertThat(stateRule.getMaskingStrategy().getSuffixLength()).isEqualTo(2);
+                    soft.assertThat(stateRule.getMaskingStrategy().getType().getValue())
+                            .isEqualTo("PARTIAL");
+                    soft.assertThat(stateRule.getMaskingStrategy().getReplacement())
+                            .isEqualTo("#");
+                    soft.assertThat(stateRule.getMaskingStrategy().getPrefixLength())
+                            .isEqualTo(7);
+                    soft.assertThat(stateRule.getMaskingStrategy().getSuffixLength())
+                            .isEqualTo(2);
                     soft.assertThat(state.getFailover().getFailureCondition()).isEqualTo("{#response.status >= 500}");
-                    soft.assertThat(state.getFailover().getForceNextEndpointOnFailure()).isTrue();
+                    soft.assertThat(state.getFailover().getForceNextEndpointOnFailure())
+                            .isTrue();
                 });
             }
         }
@@ -182,10 +202,14 @@ class ApiResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_from_known_guid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
-                    new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(API_ID).build())
-                );
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                        .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder()
+                                .id(API_ID)
+                                .crossId(API_CROSS_ID)
+                                .hrid(API_ID)
+                                .build()));
                 var state = expectEntity(API_ID, true);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -200,47 +224,44 @@ class ApiResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_from_known_id_and_populate_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
                 Map<String, @Valid PageCRD> pages = new LinkedHashMap<>();
                 pages.put("Home", PageCRD.builder().id("pages-abc").name("Home").build());
-                pages.put("General Conditions", PageCRD.builder().id("pages-xyz").parentId("pages-abc").name("General Conditions").build());
-                var flow = List.of(
-                    Flow.builder()
-                        .request(
-                            List.of(
-                                Step.builder()
-                                    .name("No Op")
-                                    .policy(SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID)
-                                    .configuration(
-                                        """
+                pages.put(
+                        "General Conditions",
+                        PageCRD.builder()
+                                .id("pages-xyz")
+                                .parentId("pages-abc")
+                                .name("General Conditions")
+                                .build());
+                var flow = List.of(Flow.builder()
+                        .request(List.of(Step.builder()
+                                .name("No Op")
+                                .policy(SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID)
+                                .configuration("""
                                         {
                                             "sharedPolicyGroupId": "666"
                                         }
-                                        """
-                                    )
-                                    .build()
-                            )
-                        )
-                        .build()
-                );
+                                        """)
+                                .build()))
+                        .build());
                 var planFlow = List.copyOf(flow);
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
-                    new ExportApiCRDUseCase.Output(
-                        ApiCRDSpec.builder()
-                            .id(API_ID)
-                            .crossId(API_CROSS_ID)
-                            .name("Test HRID")
-                            .plans(
-                                Map.of(
-                                    "Keyless plan",
-                                    PlanCRD.builder().name("Keyless plan").generalConditions("pages-xyz").flows(planFlow).build()
-                                )
-                            )
-                            .pages(pages)
-                            .flows(flow)
-                            .build()
-                    )
-                );
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                        .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder()
+                                .id(API_ID)
+                                .crossId(API_CROSS_ID)
+                                .name("Test HRID")
+                                .plans(Map.of(
+                                        "Keyless plan",
+                                        PlanCRD.builder()
+                                                .name("Keyless plan")
+                                                .generalConditions("pages-xyz")
+                                                .flows(planFlow)
+                                                .build()))
+                                .pages(pages)
+                                .flows(flow)
+                                .build()));
                 var state = expectEntityFromUUIDWithPopulatedHRIDs(API_ID);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -248,26 +269,32 @@ class ApiResourceTest extends AbstractResourceTest {
                     assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
                     assertThat(state.getPlans()).isNotEmpty();
                     assertThat(state.getPlans())
-                        .first()
-                        .extracting("hrid", "generalConditionsHrid")
-                        .containsExactly("keyless-plan", "general-conditions");
+                            .first()
+                            .extracting("hrid", "generalConditionsHrid")
+                            .containsExactly("keyless-plan", "general-conditions");
                     assertThat(state.getPages())
-                        .extracting("hrid", "parentHrid")
-                        .containsExactly(Tuple.tuple("home", null), Tuple.tuple("general-conditions", "home"));
+                            .extracting("hrid", "parentHrid")
+                            .containsExactly(Tuple.tuple("home", null), Tuple.tuple("general-conditions", "home"));
                     assertThat(state.getFlows()).isNotEmpty();
                     assertThat(state.getFlows().getFirst().getRequest()).isNotEmpty();
                     assertThat(state.getFlows().getFirst().getRequest().getFirst())
-                        .extracting(StepV4::getConfiguration)
-                        .asInstanceOf(MAP)
-                        .containsEntry("hrid", "no-op")
-                        .doesNotContainKey("sharedPolicyGroupId");
+                            .extracting(StepV4::getConfiguration)
+                            .asInstanceOf(MAP)
+                            .containsEntry("hrid", "no-op")
+                            .doesNotContainKey("sharedPolicyGroupId");
                     assertThat(state.getPlans().getFirst().getFlows()).isNotEmpty();
-                    assertThat(state.getPlans().getFirst().getFlows().getFirst().getRequest()).isNotEmpty();
-                    assertThat(state.getPlans().getFirst().getFlows().getFirst().getRequest().getFirst())
-                        .extracting(StepV4::getConfiguration)
-                        .asInstanceOf(MAP)
-                        .containsEntry("hrid", "no-op")
-                        .doesNotContainKey("sharedPolicyGroupId");
+                    assertThat(state.getPlans().getFirst().getFlows().getFirst().getRequest())
+                            .isNotEmpty();
+                    assertThat(state.getPlans()
+                                    .getFirst()
+                                    .getFlows()
+                                    .getFirst()
+                                    .getRequest()
+                                    .getFirst())
+                            .extracting(StepV4::getConfiguration)
+                            .asInstanceOf(MAP)
+                            .containsEntry("hrid", "no-op")
+                            .doesNotContainKey("sharedPolicyGroupId");
                     assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 });
@@ -277,12 +304,16 @@ class ApiResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_from_known_id_and_populate_hrid_with_null_pages_and_plans() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
-                    new ExportApiCRDUseCase.Output(
-                        ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).name("Test HRID").pages(null).plans(null).build()
-                    )
-                );
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                        .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder()
+                                .id(API_ID)
+                                .crossId(API_CROSS_ID)
+                                .name("Test HRID")
+                                .pages(null)
+                                .plans(null)
+                                .build()));
                 var state = expectEntityFromUUIDWithPopulatedHRIDs(API_ID);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -296,19 +327,17 @@ class ApiResourceTest extends AbstractResourceTest {
         @Test
         void should_preserve_existing_non_uuid_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
-                    new ExportApiCRDUseCase.Output(
-                        ApiCRDSpec.builder()
-                            .id(API_ID)
-                            .crossId(API_CROSS_ID)
-                            .name("Test HRID")
-                            .hrid("my-custom-hrid")
-                            .pages(null)
-                            .plans(null)
-                            .build()
-                    )
-                );
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                        .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder()
+                                .id(API_ID)
+                                .crossId(API_CROSS_ID)
+                                .name("Test HRID")
+                                .hrid("my-custom-hrid")
+                                .pages(null)
+                                .plans(null)
+                                .build()));
                 var state = expectEntityFromUUIDWithPopulatedHRIDs(API_ID);
                 assertThat(state.getHrid()).isEqualTo("my-custom-hrid");
             }
@@ -318,18 +347,22 @@ class ApiResourceTest extends AbstractResourceTest {
         @MethodSource("securityTypes")
         void should_get_api_with_security_plan_type(String securityType, PlanSecurityType expectedType) {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
 
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
-                    new ExportApiCRDUseCase.Output(
-                        ApiCRDSpec.builder()
-                            .id(API_ID)
-                            .crossId(API_CROSS_ID)
-                            .hrid(HRID)
-                            .plans(Map.of("plan", PlanCRD.builder().security(PlanSecurity.builder().type(securityType).build()).build()))
-                            .build()
-                    )
-                );
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                        .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder()
+                                .id(API_ID)
+                                .crossId(API_CROSS_ID)
+                                .hrid(HRID)
+                                .plans(Map.of(
+                                        "plan",
+                                        PlanCRD.builder()
+                                                .security(PlanSecurity.builder()
+                                                        .type(securityType)
+                                                        .build())
+                                                .build()))
+                                .build()));
 
                 var state = expectEntity(HRID, false);
 
@@ -341,19 +374,18 @@ class ApiResourceTest extends AbstractResourceTest {
                     assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                     assertThat(state.getPlans()).hasSize(1);
                     assertThat(state.getPlans().stream().findFirst())
-                        .get()
-                        .extracting(PlanV4::getSecurity)
-                        .extracting(io.gravitee.apim.rest.api.automation.model.PlanSecurity::getType)
-                        .isEqualTo(expectedType);
+                            .get()
+                            .extracting(PlanV4::getSecurity)
+                            .extracting(io.gravitee.apim.rest.api.automation.model.PlanSecurity::getType)
+                            .isEqualTo(expectedType);
                 });
             }
         }
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenThrow(
-                new NotFoundException("No API found with hrid: unknown")
-            );
+            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                    .thenThrow(new NotFoundException("No API found with hrid: unknown"));
 
             expectNotFound("unknown");
         }
@@ -365,34 +397,34 @@ class ApiResourceTest extends AbstractResourceTest {
         }
 
         private ApiV4State expectEntity(String hrid, boolean legacy) {
-            try (
-                var response = rootTarget().queryParam("legacy", legacy).path(hrid).request().accept(MediaType.APPLICATION_JSON_TYPE).get()
-            ) {
+            try (var response = rootTarget()
+                    .queryParam("legacy", legacy)
+                    .path(hrid)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 return response.readEntity(ApiV4State.class);
             }
         }
 
         private ApiV4State expectEntityFromUUIDWithPopulatedHRIDs(String hrid) {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .path(hrid)
                     .request()
                     .header(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID, true)
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .get()
-            ) {
+                    .get()) {
                 return response.readEntity(ApiV4State.class);
             }
         }
 
         private static Stream<Arguments> securityTypes() {
             return Stream.of(
-                Arguments.of("API_KEY", PlanSecurityType.API_KEY),
-                Arguments.of("KEY_LESS", PlanSecurityType.KEY_LESS),
-                Arguments.of("OAUTH2", PlanSecurityType.OAUTH2),
-                Arguments.of("JWT", PlanSecurityType.JWT),
-                Arguments.of("MTLS", PlanSecurityType.MTLS)
-            );
+                    Arguments.of("API_KEY", PlanSecurityType.API_KEY),
+                    Arguments.of("KEY_LESS", PlanSecurityType.KEY_LESS),
+                    Arguments.of("OAUTH2", PlanSecurityType.OAUTH2),
+                    Arguments.of("JWT", PlanSecurityType.JWT),
+                    Arguments.of("MTLS", PlanSecurityType.MTLS));
         }
     }
 
@@ -408,7 +440,11 @@ class ApiResourceTest extends AbstractResourceTest {
         void should_delete_api_and_return_no_content() {
             expectNoContent(HRID);
 
-            verify(apiService, atLeastOnce()).delete(any(), eq(HRIDToUUID.api().context(auditInfo).hrid(HRID).id()), eq(true));
+            verify(apiService, atLeastOnce())
+                    .delete(
+                            any(),
+                            eq(HRIDToUUID.api().context(auditInfo).hrid(HRID).id()),
+                            eq(true));
         }
 
         @Test
@@ -430,7 +466,11 @@ class ApiResourceTest extends AbstractResourceTest {
         }
 
         private void expectNoContent(String hrid, boolean hridContainsUUID) {
-            try (var response = rootTarget().queryParam("hridContainsUUID", hridContainsUUID).path(hrid).request().delete()) {
+            try (var response = rootTarget()
+                    .queryParam("hridContainsUUID", hridContainsUUID)
+                    .path(hrid)
+                    .request()
+                    .delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }

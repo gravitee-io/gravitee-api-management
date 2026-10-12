@@ -45,7 +45,8 @@ class SubscriptionMetadataSanitizerTest {
     void should_throw_when_metadata_key_is_invalid() {
         Map<String, String> invalidKeyMetadata = Map.of("bad key", "value");
 
-        var throwable = assertThrows(SubscriptionMetadataInvalidException.class, () -> cut.sanitizeAndValidate(invalidKeyMetadata));
+        var throwable = assertThrows(
+                SubscriptionMetadataInvalidException.class, () -> cut.sanitizeAndValidate(invalidKeyMetadata));
 
         assertThat(throwable.getTechnicalCode()).isEqualTo("subscription.metadata.key.invalid");
         assertThat(throwable.getMessage()).isEqualTo("Invalid metadata key: bad key");
@@ -80,9 +81,9 @@ class SubscriptionMetadataSanitizerTest {
         var result = cut.sanitizeAndValidate(metadata);
 
         assertThat(result)
-            .containsEntry("field_a", "key=value+1")
-            .containsEntry("field_b", "it's a \"test\"")
-            .containsEntry("field_c", "code`snippet");
+                .containsEntry("field_a", "key=value+1")
+                .containsEntry("field_b", "it's a \"test\"")
+                .containsEntry("field_c", "code`snippet");
     }
 
     @Test

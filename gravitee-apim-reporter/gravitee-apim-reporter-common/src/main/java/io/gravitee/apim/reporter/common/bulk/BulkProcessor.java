@@ -62,58 +62,55 @@ public class BulkProcessor extends AbstractService<BulkProcessor> {
         super.doStart();
         bulkSender.start();
         subscribe = processor
-            .observeOn(Schedulers.io())
-            .flatMapMaybe(this::transform)
-            .buffer(bulkConfiguration.flushInterval(), TimeUnit.SECONDS, bulkConfiguration.items())
-            .filter(reports -> !reports.isEmpty())
-            .flatMapMaybe(this::compress)
-            .compose(bulks ->
-                new FlowableBackPressureMemoryAware(bulks, bulkConfiguration.maxMemorySize(), bulk ->
-                    bulkDropper.drop(bulk, BulkDropper.Reason.OVERFLOW)
-                )
-            )
-            .flatMapCompletable(this::send, true, bulkConfiguration.maxConcurrentSend())
-            .retry()
-            .subscribe();
+                .observeOn(Schedulers.io())
+                .flatMapMaybe(this::transform)
+                .buffer(bulkConfiguration.flushInterval(), TimeUnit.SECONDS, bulkConfiguration.items())
+                .filter(reports -> !reports.isEmpty())
+                .flatMapMaybe(this::compress)
+                .compose(bulks -> new FlowableBackPressureMemoryAware(
+                        bulks,
+                        bulkConfiguration.maxMemorySize(),
+                        bulk -> bulkDropper.drop(bulk, BulkDropper.Reason.OVERFLOW)))
+                .flatMapCompletable(this::send, true, bulkConfiguration.maxConcurrentSend())
+                .retry()
+                .subscribe();
     }
 
     private Maybe<@NonNull TransformedReport> transform(final Reportable reportable) {
         return Maybe.fromCallable(() -> bulkTransformer.transform(reportable))
-            .filter(transformedReport -> Objects.nonNull(transformedReport.transformed()))
-            .doOnError(throwable -> log.warn("Unable to format incoming reportable", throwable))
-            .onErrorComplete();
+                .filter(transformedReport -> Objects.nonNull(transformedReport.transformed()))
+                .doOnError(throwable -> log.warn("Unable to format incoming reportable", throwable))
+                .onErrorComplete();
     }
 
     private Maybe<CompressedBulk> compress(List<@NonNull TransformedReport> reports) {
         return Maybe.fromCallable(() -> bulkCompressor.compress(reports))
-            .doOnError(throwable -> log.warn("Unable to compress incoming reports", throwable))
-            .onErrorComplete();
+                .doOnError(throwable -> log.warn("Unable to compress incoming reports", throwable))
+                .onErrorComplete();
     }
 
     private Completable send(CompressedBulk bulk) {
         final AtomicInteger attempts = new AtomicInteger(0);
 
         return Completable.defer(() -> bulkSender.send(bulk))
-            .doOnSubscribe(s -> log.debug("Sending bulk of reports [{}] (attempt {}).", bulk, attempts.get()))
-            .doOnComplete(() -> log.debug("Bulk of reports successfully sent."))
-            .retryWhen(
-                RxHelper.retryExponentialBackoff(
-                    bulkConfiguration.retryInitialDelay(),
-                    bulkConfiguration.retryMaxDelay(),
-                    TimeUnit.MILLISECONDS,
-                    RETRY_FACTOR,
-                    t -> {
-                        log.warn("An error occurred when sending bulk of reports [{}]", bulk, t);
-                        if (t instanceof NonRetryableException || attempts.incrementAndGet() > bulkConfiguration.maxRetries()) {
-                            bulkDropper.drop(bulk, BulkDropper.Reason.ERROR);
-                            return false;
-                        }
+                .doOnSubscribe(s -> log.debug("Sending bulk of reports [{}] (attempt {}).", bulk, attempts.get()))
+                .doOnComplete(() -> log.debug("Bulk of reports successfully sent."))
+                .retryWhen(RxHelper.retryExponentialBackoff(
+                        bulkConfiguration.retryInitialDelay(),
+                        bulkConfiguration.retryMaxDelay(),
+                        TimeUnit.MILLISECONDS,
+                        RETRY_FACTOR,
+                        t -> {
+                            log.warn("An error occurred when sending bulk of reports [{}]", bulk, t);
+                            if (t instanceof NonRetryableException
+                                    || attempts.incrementAndGet() > bulkConfiguration.maxRetries()) {
+                                bulkDropper.drop(bulk, BulkDropper.Reason.ERROR);
+                                return false;
+                            }
 
-                        return true;
-                    }
-                )
-            )
-            .onErrorComplete();
+                            return true;
+                        }))
+                .onErrorComplete();
     }
 
     @Override

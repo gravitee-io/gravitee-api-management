@@ -18,21 +18,21 @@ package io.gravitee.apim.core.portal_page.model;
 import jakarta.validation.constraints.NotNull;
 
 public record SwaggerUiConfiguration(
-    boolean displayOperationId,
-    @NotNull String docExpansion,
-    boolean enableFiltering,
-    int maxDisplayedTags,
-    boolean showCommonExtensions,
-    boolean showExtensions,
-    boolean showUrl,
-    boolean tryIt,
-    boolean disableSyntaxHighlight,
-    boolean tryItAnonymous,
-    @NotNull String tryItUrl,
-    boolean usePkce,
-    boolean entrypointsAsServers,
-    boolean contextPathAsServerPath
-) implements OpenApiConfiguration {
+        boolean displayOperationId,
+        @NotNull String docExpansion,
+        boolean enableFiltering,
+        int maxDisplayedTags,
+        boolean showCommonExtensions,
+        boolean showExtensions,
+        boolean showUrl,
+        boolean tryIt,
+        boolean disableSyntaxHighlight,
+        boolean tryItAnonymous,
+        @NotNull String tryItUrl,
+        boolean usePkce,
+        boolean entrypointsAsServers,
+        boolean contextPathAsServerPath)
+        implements OpenApiConfiguration {
     @Override
     public Viewer viewer() {
         return Viewer.SWAGGER;

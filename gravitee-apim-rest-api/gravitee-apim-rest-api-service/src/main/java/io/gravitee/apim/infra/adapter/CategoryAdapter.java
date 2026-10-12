@@ -31,5 +31,6 @@ public interface CategoryAdapter {
 
     ApiCategoryOrder toCoreModel(io.gravitee.repository.management.model.ApiCategoryOrder apiCategoryOrder);
 
-    Set<ApiCategoryOrder> toCoreModel(Collection<io.gravitee.repository.management.model.ApiCategoryOrder> apiCategoryOrders);
+    Set<ApiCategoryOrder> toCoreModel(
+            Collection<io.gravitee.repository.management.model.ApiCategoryOrder> apiCategoryOrders);
 }

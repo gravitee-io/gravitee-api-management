@@ -53,22 +53,22 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         final JsonNode virtualHostsNode = node.get("virtual_hosts");
         if (virtualHostsNode != null && virtualHostsNode.isArray()) {
             List<VirtualHost> virtualHosts = new ArrayList<>();
-            virtualHostsNode
-                .elements()
-                .forEachRemaining(node1 -> {
-                    try {
-                        virtualHosts.add(node1.traverse(jp.getCodec()).readValueAs(VirtualHost.class));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            virtualHostsNode.elements().forEachRemaining(node1 -> {
+                try {
+                    virtualHosts.add(node1.traverse(jp.getCodec()).readValueAs(VirtualHost.class));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
 
             proxy.setVirtualHosts(virtualHosts);
         }
 
         // Check that there is, at least, a virtual host
         if (proxy.getVirtualHosts() == null || proxy.getVirtualHosts().isEmpty()) {
-            ctxt.reportBadDefinition(Proxy.class, "[api] API must define at least a single context_path or one or multiple virtual_hosts");
+            ctxt.reportBadDefinition(
+                    Proxy.class,
+                    "[api] API must define at least a single context_path or one or multiple virtual_hosts");
         }
 
         final JsonNode nodeEndpoints = node.get("endpoints");
@@ -80,16 +80,18 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             createEndpointGroups(node, jp.getCodec(), proxy, ctxt);
         }
 
-        //check that endpoint groups and endpoints don't have the same name
-        //deser have already check that group names are unique
+        // check that endpoint groups and endpoints don't have the same name
+        // deser have already check that group names are unique
         // and endpoint names too (in the same group)
         if (proxy.getGroups() != null && !proxy.getGroups().isEmpty()) {
-            Set<String> endpointNames = proxy.getGroups().stream().map(EndpointGroup::getName).collect(Collectors.toSet());
+            Set<String> endpointNames =
+                    proxy.getGroups().stream().map(EndpointGroup::getName).collect(Collectors.toSet());
             for (EndpointGroup group : proxy.getGroups()) {
                 if (group.getEndpoints() != null) {
                     for (Endpoint endpoint : group.getEndpoints()) {
                         if (endpointNames.contains(endpoint.getName())) {
-                            ctxt.reportBadDefinition(Proxy.class, "[api] API endpoint names and group names must be unique");
+                            ctxt.reportBadDefinition(
+                                    Proxy.class, "[api] API endpoint names and group names must be unique");
                         }
                         endpointNames.add(endpoint.getName());
                     }
@@ -149,7 +151,8 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         proxy.setGroups(Collections.singleton(group));
     }
 
-    private void createEndpointGroups(JsonNode node, ObjectCodec codec, Proxy proxy, DeserializationContext ctxt) throws IOException {
+    private void createEndpointGroups(JsonNode node, ObjectCodec codec, Proxy proxy, DeserializationContext ctxt)
+            throws IOException {
         final JsonNode nodeGroups = node.get("groups");
 
         Set<EndpointGroup> groups = new LinkedHashSet<>(nodeGroups.size());

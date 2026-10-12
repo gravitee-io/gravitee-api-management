@@ -58,12 +58,7 @@ class ApiProductPrimaryOwnerFactoryTest {
     @BeforeEach
     void setUp() {
         factory = new ApiProductPrimaryOwnerFactory(
-            membershipQueryService,
-            parametersQueryService,
-            roleQueryService,
-            userCrudService,
-            groupQueryService
-        );
+                membershipQueryService, parametersQueryService, roleQueryService, userCrudService, groupQueryService);
     }
 
     @Nested
@@ -71,29 +66,27 @@ class ApiProductPrimaryOwnerFactoryTest {
 
         @BeforeEach
         void setUp() {
-            parametersQueryService.initWith(
-                List.of(
-                    new Parameter(
-                        Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
-                        ENVIRONMENT_ID,
-                        ParameterReferenceType.ENVIRONMENT,
-                        ApiPrimaryOwnerMode.USER.name()
-                    )
-                )
-            );
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.USER.name())));
         }
 
         @Test
         void should_build_a_user_primary_owner() {
-            givenExistingUsers(
-                List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-            );
+            givenExistingUsers(List.of(BaseUserEntity.builder()
+                    .id(USER_ID)
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .email("jane.doe@gravitee.io")
+                    .build()));
 
             var primaryOwner = factory.createForNewApiProduct(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
-            assertThat(primaryOwner).isEqualTo(
-                new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER)
-            );
+            assertThat(primaryOwner)
+                    .isEqualTo(new PrimaryOwnerEntity(
+                            USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER));
         }
     }
 
@@ -102,77 +95,78 @@ class ApiProductPrimaryOwnerFactoryTest {
 
         @BeforeEach
         void setUp() {
-            parametersQueryService.initWith(
-                List.of(
-                    new Parameter(
-                        Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
-                        ENVIRONMENT_ID,
-                        ParameterReferenceType.ENVIRONMENT,
-                        ApiPrimaryOwnerMode.GROUP.name()
-                    )
-                )
-            );
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.GROUP.name())));
             roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-            givenExistingUsers(
-                List.of(
-                    BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build(),
-                    BaseUserEntity.builder().id(MEMBER_ID).firstname("John").lastname("Doe").email("john.doe@gravitee.io").build()
-                )
-            );
+            givenExistingUsers(List.of(
+                    BaseUserEntity.builder()
+                            .id(USER_ID)
+                            .firstname("Jane")
+                            .lastname("Doe")
+                            .email("jane.doe@gravitee.io")
+                            .build(),
+                    BaseUserEntity.builder()
+                            .id(MEMBER_ID)
+                            .firstname("John")
+                            .lastname("Doe")
+                            .email("john.doe@gravitee.io")
+                            .build()));
         }
 
         @Test
         void should_build_a_group_primary_owner_with_the_1st_group_having_primary_owner() {
             // Given
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").apiProductPrimaryOwner(MEMBER_ID).build()));
-            givenExistingMemberships(
-                List.of(
+            givenExistingGroup(List.of(Group.builder()
+                    .id(GROUP_ID)
+                    .name("My Group")
+                    .apiProductPrimaryOwner(MEMBER_ID)
+                    .build()));
+            givenExistingMemberships(List.of(
                     // PO role for member-id
                     Membership.builder()
-                        .referenceType(Membership.ReferenceType.GROUP)
-                        .referenceId(GROUP_ID)
-                        .memberType(Membership.Type.USER)
-                        .memberId(MEMBER_ID)
-                        .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
-                        .build(),
+                            .referenceType(Membership.ReferenceType.GROUP)
+                            .referenceId(GROUP_ID)
+                            .memberType(Membership.Type.USER)
+                            .memberId(MEMBER_ID)
+                            .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
+                            .build(),
                     // Regular role for user-id
                     Membership.builder()
-                        .referenceType(Membership.ReferenceType.GROUP)
-                        .referenceId(GROUP_ID)
-                        .memberType(Membership.Type.USER)
-                        .memberId(USER_ID)
-                        .roleId("role-id")
-                        .build()
-                )
-            );
+                            .referenceType(Membership.ReferenceType.GROUP)
+                            .referenceId(GROUP_ID)
+                            .memberType(Membership.Type.USER)
+                            .memberId(USER_ID)
+                            .roleId("role-id")
+                            .build()));
 
             // When
             var primaryOwner = factory.createForNewApiProduct(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
             // Then
-            assertThat(primaryOwner).isEqualTo(
-                new PrimaryOwnerEntity(GROUP_ID, "john.doe@gravitee.io", "My Group", PrimaryOwnerEntity.Type.GROUP)
-            );
+            assertThat(primaryOwner)
+                    .isEqualTo(new PrimaryOwnerEntity(
+                            GROUP_ID, "john.doe@gravitee.io", "My Group", PrimaryOwnerEntity.Type.GROUP));
         }
 
         @Test
         void should_throw_when_user_does_not_belong_to_a_group_having_primary_owner() {
             // Given
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").build()));
-            givenExistingMemberships(
-                List.of(
-                    Membership.builder()
-                        .referenceType(Membership.ReferenceType.GROUP)
-                        .referenceId(GROUP_ID)
-                        .memberType(Membership.Type.USER)
-                        .memberId(USER_ID)
-                        .roleId("role-id")
-                        .build()
-                )
-            );
+            givenExistingGroup(
+                    List.of(Group.builder().id(GROUP_ID).name("My Group").build()));
+            givenExistingMemberships(List.of(Membership.builder()
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId(GROUP_ID)
+                    .memberType(Membership.Type.USER)
+                    .memberId(USER_ID)
+                    .roleId("role-id")
+                    .build()));
 
             // When
-            Throwable throwable = catchThrowable(() -> factory.createForNewApiProduct(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+            Throwable throwable =
+                    catchThrowable(() -> factory.createForNewApiProduct(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
 
             // Then
             assertThat(throwable).isInstanceOf(NoPrimaryOwnerGroupForUserException.class);
@@ -182,30 +176,32 @@ class ApiProductPrimaryOwnerFactoryTest {
         void should_throw_when_primary_owner_role_does_not_exist_for_organization() {
             // Given
             roleQueryService.reset();
-            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").apiProductPrimaryOwner(MEMBER_ID).build()));
-            givenExistingMemberships(
-                List.of(
+            givenExistingGroup(List.of(Group.builder()
+                    .id(GROUP_ID)
+                    .name("My Group")
+                    .apiProductPrimaryOwner(MEMBER_ID)
+                    .build()));
+            givenExistingMemberships(List.of(
                     // PO role for member-id
                     Membership.builder()
-                        .referenceType(Membership.ReferenceType.GROUP)
-                        .referenceId(GROUP_ID)
-                        .memberType(Membership.Type.USER)
-                        .memberId(MEMBER_ID)
-                        .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
-                        .build(),
+                            .referenceType(Membership.ReferenceType.GROUP)
+                            .referenceId(GROUP_ID)
+                            .memberType(Membership.Type.USER)
+                            .memberId(MEMBER_ID)
+                            .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
+                            .build(),
                     // Regular role for user-id
                     Membership.builder()
-                        .referenceType(Membership.ReferenceType.GROUP)
-                        .referenceId(GROUP_ID)
-                        .memberType(Membership.Type.USER)
-                        .memberId(USER_ID)
-                        .roleId("role-id")
-                        .build()
-                )
-            );
+                            .referenceType(Membership.ReferenceType.GROUP)
+                            .referenceId(GROUP_ID)
+                            .memberType(Membership.Type.USER)
+                            .memberId(USER_ID)
+                            .roleId("role-id")
+                            .build()));
 
             // When
-            Throwable throwable = catchThrowable(() -> factory.createForNewApiProduct(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
+            Throwable throwable =
+                    catchThrowable(() -> factory.createForNewApiProduct(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID));
 
             // Then
             assertThat(throwable).isInstanceOf(RoleNotFoundException.class);
@@ -217,29 +213,27 @@ class ApiProductPrimaryOwnerFactoryTest {
 
         @BeforeEach
         void setUp() {
-            parametersQueryService.initWith(
-                List.of(
-                    new Parameter(
-                        Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
-                        ENVIRONMENT_ID,
-                        ParameterReferenceType.ENVIRONMENT,
-                        ApiPrimaryOwnerMode.HYBRID.name()
-                    )
-                )
-            );
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.API_PRODUCT_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.HYBRID.name())));
         }
 
         @Test
         void should_build_a_user_primary_owner() {
-            givenExistingUsers(
-                List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-            );
+            givenExistingUsers(List.of(BaseUserEntity.builder()
+                    .id(USER_ID)
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .email("jane.doe@gravitee.io")
+                    .build()));
 
             var primaryOwner = factory.createForNewApiProduct(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
-            assertThat(primaryOwner).isEqualTo(
-                new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER)
-            );
+            assertThat(primaryOwner)
+                    .isEqualTo(new PrimaryOwnerEntity(
+                            USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER));
         }
     }
 

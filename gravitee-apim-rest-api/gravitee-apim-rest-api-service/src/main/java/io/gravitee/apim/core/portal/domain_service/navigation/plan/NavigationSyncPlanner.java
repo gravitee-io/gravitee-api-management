@@ -57,56 +57,52 @@ public final class NavigationSyncPlanner {
      * "unmanaged" (created outside the automation API) and are left untouched.
      */
     public static NavigationSyncPlan plan(
-        List<NavigationPath> desired,
-        List<? extends PortalNavigationItem> currentFolders,
-        List<NavigationPath> previouslyPersisted
-    ) {
+            List<NavigationPath> desired,
+            List<? extends PortalNavigationItem> currentFolders,
+            List<NavigationPath> previouslyPersisted) {
         final var desiredFolders = computeDesiredFolders(desired);
         final var currentByPath = indexByPath(currentFolders);
-        final var desiredPaths = desiredFolders.stream().map(DesiredFolder::path).collect(Collectors.toSet());
+        final var desiredPaths =
+                desiredFolders.stream().map(DesiredFolder::path).collect(Collectors.toSet());
         final var managedPaths = expandToFullPaths(previouslyPersisted);
-        final var depthOrder = Comparator.comparingInt((FolderMutation m) -> PathExpander.depth(m.desired().path()));
+        final var depthOrder = Comparator.comparingInt(
+                (FolderMutation m) -> PathExpander.depth(m.desired().path()));
 
-        final var mutations = desiredFolders
-            .stream()
-            .<FolderMutation>map(df ->
-                currentByPath.containsKey(df.path()) ? new UpdateFolder(currentByPath.get(df.path()), df) : new CreateFolder(df)
-            )
-            .sorted(depthOrder);
+        final var mutations = desiredFolders.stream()
+                .<FolderMutation>map(df -> currentByPath.containsKey(df.path())
+                        ? new UpdateFolder(currentByPath.get(df.path()), df)
+                        : new CreateFolder(df))
+                .sorted(depthOrder);
 
-        final var deletes = currentByPath
-            .entrySet()
-            .stream()
-            .filter(e -> !desiredPaths.contains(e.getKey()))
-            .filter(e -> managedPaths.contains(e.getKey()))
-            .map(Map.Entry::getValue)
-            .map(DeleteFolder::new);
+        final var deletes = currentByPath.entrySet().stream()
+                .filter(e -> !desiredPaths.contains(e.getKey()))
+                .filter(e -> managedPaths.contains(e.getKey()))
+                .map(Map.Entry::getValue)
+                .map(DeleteFolder::new);
 
-        return new NavigationSyncPlan(Stream.<NavigationAction>concat(mutations, deletes).toList());
+        return new NavigationSyncPlan(
+                Stream.<NavigationAction>concat(mutations, deletes).toList());
     }
 
     /** Throws {@link PathConflictException} when the plan would create or update a folder squatted by a non-automation item. */
     public static NavigationSyncPlan plan(
-        List<NavigationPath> desired,
-        List<? extends PortalNavigationItem> currentFolders,
-        List<NavigationPath> previouslyPersisted,
-        NavigationOwnership ownership
-    ) {
+            List<NavigationPath> desired,
+            List<? extends PortalNavigationItem> currentFolders,
+            List<NavigationPath> previouslyPersisted,
+            NavigationOwnership ownership) {
         final var base = plan(desired, currentFolders, previouslyPersisted);
         rejectConflicts(base, currentFolders, ownership);
         return base;
     }
 
     private static void rejectConflicts(
-        NavigationSyncPlan plan,
-        List<? extends PortalNavigationItem> currentFolders,
-        NavigationOwnership ownership
-    ) {
-        final var foldersById = currentFolders
-            .stream()
-            .filter(PortalNavigationFolder.class::isInstance)
-            .map(PortalNavigationFolder.class::cast)
-            .collect(Collectors.toMap(PortalNavigationItem::getId, f -> f));
+            NavigationSyncPlan plan,
+            List<? extends PortalNavigationItem> currentFolders,
+            NavigationOwnership ownership) {
+        final var foldersById = currentFolders.stream()
+                .filter(PortalNavigationFolder.class::isInstance)
+                .map(PortalNavigationFolder.class::cast)
+                .collect(Collectors.toMap(PortalNavigationItem::getId, f -> f));
         for (var action : plan.actions()) {
             switch (action) {
                 case UpdateFolder(PortalNavigationFolder existing, DesiredFolder desiredFolder) -> {
@@ -115,8 +111,10 @@ public final class NavigationSyncPlanner {
                     }
                 }
                 case CreateFolder create -> {
-                    final var holder = foldersById.get(ownership.folderIdByPath().apply(create.desired().path()));
-                    if (holder != null && !isAutomationOwned(holder, create.desired().path(), ownership)) {
+                    final var holder = foldersById.get(
+                            ownership.folderIdByPath().apply(create.desired().path()));
+                    if (holder != null
+                            && !isAutomationOwned(holder, create.desired().path(), ownership)) {
                         throw PathConflictException.folderPath(create.desired().path());
                     }
                 }
@@ -125,26 +123,27 @@ public final class NavigationSyncPlanner {
         }
     }
 
-    private static boolean isAutomationOwned(PortalNavigationFolder folder, String path, NavigationOwnership ownership) {
-        return ownership.managedFolderPaths().contains(path) && folder.getId().equals(ownership.folderIdByPath().apply(path));
+    private static boolean isAutomationOwned(
+            PortalNavigationFolder folder, String path, NavigationOwnership ownership) {
+        return ownership.managedFolderPaths().contains(path)
+                && folder.getId().equals(ownership.folderIdByPath().apply(path));
     }
 
     public static Set<String> expandToFullPaths(List<NavigationPath> previouslyPersisted) {
         if (previouslyPersisted == null) return Set.of();
-        return previouslyPersisted
-            .stream()
-            .flatMap(e -> PathExpander.expand(e.path()).stream())
-            .map(PathExpander.PathEntry::fullPath)
-            .collect(Collectors.toSet());
+        return previouslyPersisted.stream()
+                .flatMap(e -> PathExpander.expand(e.path()).stream())
+                .map(PathExpander.PathEntry::fullPath)
+                .collect(Collectors.toSet());
     }
 
     /** Reconstructs the path of every current folder by walking from its root, using {@code segment} (fallback to {@code title}). */
-    private static Map<String, PortalNavigationFolder> indexByPath(List<? extends PortalNavigationItem> currentFolders) {
-        final var byId = currentFolders
-            .stream()
-            .filter(PortalNavigationFolder.class::isInstance)
-            .map(PortalNavigationFolder.class::cast)
-            .collect(Collectors.toMap(PortalNavigationItem::getId, f -> f));
+    private static Map<String, PortalNavigationFolder> indexByPath(
+            List<? extends PortalNavigationItem> currentFolders) {
+        final var byId = currentFolders.stream()
+                .filter(PortalNavigationFolder.class::isInstance)
+                .map(PortalNavigationFolder.class::cast)
+                .collect(Collectors.toMap(PortalNavigationItem::getId, f -> f));
         final var result = new HashMap<String, PortalNavigationFolder>();
         for (PortalNavigationFolder folder : byId.values()) {
             result.put(reconstructPath(folder, byId), folder);
@@ -152,15 +151,18 @@ public final class NavigationSyncPlanner {
         return result;
     }
 
-    private static String reconstructPath(PortalNavigationFolder folder, Map<PortalNavigationItemId, PortalNavigationFolder> byId) {
+    private static String reconstructPath(
+            PortalNavigationFolder folder, Map<PortalNavigationItemId, PortalNavigationFolder> byId) {
         return PATH_DELIMITER + String.join(PATH_DELIMITER, walkSegmentChain(folder, byId));
     }
 
     /** Walks the parent chain from {@code folder} up to the root, returning segments in root-first order. */
-    private static Deque<String> walkSegmentChain(PortalNavigationFolder folder, Map<PortalNavigationItemId, PortalNavigationFolder> byId) {
-        List<String> segments = Stream.iterate(folder, Objects::nonNull, item -> item.hasParent() ? byId.get(item.getParentId()) : null)
-            .map(PortalNavigationItem::getEffectiveSegment)
-            .collect(Collectors.toCollection(ArrayList::new));
+    private static Deque<String> walkSegmentChain(
+            PortalNavigationFolder folder, Map<PortalNavigationItemId, PortalNavigationFolder> byId) {
+        List<String> segments = Stream.iterate(
+                        folder, Objects::nonNull, item -> item.hasParent() ? byId.get(item.getParentId()) : null)
+                .map(PortalNavigationItem::getEffectiveSegment)
+                .collect(Collectors.toCollection(ArrayList::new));
         Collections.reverse(segments);
         return new ArrayDeque<>(segments);
     }
@@ -170,32 +172,29 @@ public final class NavigationSyncPlanner {
         final var explicitVisibilities = explicitVisibilities(input);
         final var uniqueEntries = deduplicateByPath(input);
         final var orderByPath = assignSiblingOrder(uniqueEntries);
-        return uniqueEntries
-            .stream()
-            .map(pe -> buildDesiredFolder(pe, displayNames, explicitVisibilities, orderByPath.get(pe.fullPath())))
-            .toList();
+        return uniqueEntries.stream()
+                .map(pe -> buildDesiredFolder(pe, displayNames, explicitVisibilities, orderByPath.get(pe.fullPath())))
+                .toList();
     }
 
     private static Map<String, String> explicitDisplayNames(List<NavigationPath> input) {
-        return input
-            .stream()
-            .filter(e -> e.displayName() != null)
-            .collect(Collectors.toMap(NavigationPath::path, NavigationPath::displayName, (first, second) -> first));
+        return input.stream()
+                .filter(e -> e.displayName() != null)
+                .collect(Collectors.toMap(NavigationPath::path, NavigationPath::displayName, (first, second) -> first));
     }
 
     private static Map<String, PortalVisibility> explicitVisibilities(List<NavigationPath> input) {
-        return input
-            .stream()
-            .filter(e -> e.visibility() != null)
-            .collect(Collectors.toMap(NavigationPath::path, NavigationPath::visibility, (first, second) -> first));
+        return input.stream()
+                .filter(e -> e.visibility() != null)
+                .collect(Collectors.toMap(NavigationPath::path, NavigationPath::visibility, (first, second) -> first));
     }
 
     private static Collection<PathExpander.PathEntry> deduplicateByPath(List<NavigationPath> input) {
-        return input
-            .stream()
-            .flatMap(e -> PathExpander.expand(e.path()).stream())
-            .collect(Collectors.toMap(PathExpander.PathEntry::fullPath, pe -> pe, (first, second) -> first, LinkedHashMap::new))
-            .values();
+        return input.stream()
+                .flatMap(e -> PathExpander.expand(e.path()).stream())
+                .collect(Collectors.toMap(
+                        PathExpander.PathEntry::fullPath, pe -> pe, (first, second) -> first, LinkedHashMap::new))
+                .values();
     }
 
     private static Map<String, Integer> assignSiblingOrder(Collection<PathExpander.PathEntry> entries) {
@@ -209,18 +208,16 @@ public final class NavigationSyncPlanner {
     }
 
     private static DesiredFolder buildDesiredFolder(
-        PathExpander.PathEntry pe,
-        Map<String, String> displayNames,
-        Map<String, PortalVisibility> visibilities,
-        int order
-    ) {
+            PathExpander.PathEntry pe,
+            Map<String, String> displayNames,
+            Map<String, PortalVisibility> visibilities,
+            int order) {
         return new DesiredFolder(
-            pe.fullPath(),
-            pe.parentPath(),
-            pe.segment(),
-            displayNames.getOrDefault(pe.fullPath(), pe.segment().value()),
-            order,
-            visibilities.get(pe.fullPath())
-        );
+                pe.fullPath(),
+                pe.parentPath(),
+                pe.segment(),
+                displayNames.getOrDefault(pe.fullPath(), pe.segment().value()),
+                order,
+                visibilities.get(pe.fullPath()));
     }
 }

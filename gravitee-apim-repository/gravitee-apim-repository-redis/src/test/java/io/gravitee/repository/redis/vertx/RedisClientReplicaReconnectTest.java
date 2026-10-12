@@ -75,15 +75,17 @@ class RedisClientReplicaReconnectTest {
 
     @Test
     void should_not_start_a_new_connect_on_every_redisApi_call_while_backoff_pending() throws Exception {
-        GenericContainer<?> isolated = new GenericContainer<>(DockerImageName.parse("redis:7.4-alpine")).withExposedPorts(6379);
+        GenericContainer<?> isolated =
+                new GenericContainer<>(DockerImageName.parse("redis:7.4-alpine")).withExposedPorts(6379);
         isolated.start();
         CountingRedisClientFactory factory = new CountingRedisClientFactory(vertx);
         RedisClientOptions options = RedisClientOptions.builder()
-            .host(isolated.getHost())
-            .port(isolated.getFirstMappedPort())
-            .connectTimeout(500)
-            .build();
-        RedisClient client = new RedisClient(vertx, factory, options, Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA));
+                .host(isolated.getHost())
+                .port(isolated.getFirstMappedPort())
+                .connectTimeout(500)
+                .build();
+        RedisClient client =
+                new RedisClient(vertx, factory, options, Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA));
         try {
             await_connected(client);
             isolated.stop();
@@ -96,8 +98,8 @@ class RedisClientReplicaReconnectTest {
             assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
 
             assertThat(factory.creates.get() - before)
-                .as("reconnects should follow backoff, not one connect per redisApi() call")
-                .isLessThan(12);
+                    .as("reconnects should follow backoff, not one connect per redisApi() call")
+                    .isLessThan(12);
         } finally {
             if (isolated.isRunning()) {
                 isolated.stop();
@@ -121,7 +123,8 @@ class RedisClientReplicaReconnectTest {
         await_connected_on_context(client);
 
         replicaof("127.0.0.1", "1");
-        notify_connection_failure_on_context(client, new Exception("READONLY You can't write against a read only replica."));
+        notify_connection_failure_on_context(
+                client, new Exception("READONLY You can't write against a read only replica."));
 
         replicaof("NO", "ONE");
         await_connected_passive_on_context(client);
@@ -130,19 +133,18 @@ class RedisClientReplicaReconnectTest {
 
     @Test
     void should_connect_as_acl_user_without_dangerous_category() throws Exception {
-        var acl = redis.execInContainer("redis-cli", "ACL", "SETUSER", "limited", "on", "nopass", "~*", "&*", "+@all", "-@dangerous");
+        var acl = redis.execInContainer(
+                "redis-cli", "ACL", "SETUSER", "limited", "on", "nopass", "~*", "&*", "+@all", "-@dangerous");
         assertThat(acl.getExitCode()).as(acl.getStderr()).isZero();
 
         MockEnvironment environment = new MockEnvironment();
         environment.setProperty("ratelimit.redis.host", redis.getHost());
-        environment.setProperty("ratelimit.redis.port", redis.getFirstMappedPort().toString());
+        environment.setProperty(
+                "ratelimit.redis.port", redis.getFirstMappedPort().toString());
         environment.setProperty("ratelimit.redis.username", "limited");
         RedisClient client = new RedisConnectionFactory(
-            environment,
-            vertx,
-            "ratelimit",
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-        ).createRedisClient();
+                        environment, vertx, "ratelimit", Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA))
+                .createRedisClient();
 
         await_connected(client);
         assertThat(ping_on_context(client)).isEqualTo("PONG");
@@ -151,31 +153,32 @@ class RedisClientReplicaReconnectTest {
     @Test
     void should_connect_when_sentinel_live_role_is_master() throws Exception {
         RedisClient client = new RedisClient(
-            vertx,
-            new StandaloneIgnoringSentinelFactory(vertx),
-            sentinelOptions(redis.getHost(), redis.getFirstMappedPort()),
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-        );
+                vertx,
+                new StandaloneIgnoringSentinelFactory(vertx),
+                sentinelOptions(redis.getHost(), redis.getFirstMappedPort()),
+                Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA));
         await_connected(client);
         assertThat(ping_on_context(client)).isEqualTo("PONG");
     }
 
     @Test
     void should_fail_sentinel_connect_when_live_role_is_slave() throws Exception {
-        GenericContainer<?> replica = new GenericContainer<>(DockerImageName.parse("redis:7.4-alpine")).withExposedPorts(6379);
+        GenericContainer<?> replica =
+                new GenericContainer<>(DockerImageName.parse("redis:7.4-alpine")).withExposedPorts(6379);
         replica.start();
         try {
             var replicaof = replica.execInContainer("redis-cli", "REPLICAOF", "127.0.0.1", "1");
             assertThat(replicaof.getExitCode()).as(replicaof.getStderr()).isZero();
 
             RedisClient client = new RedisClient(
-                vertx,
-                new StandaloneIgnoringSentinelFactory(vertx),
-                sentinelOptions(replica.getHost(), replica.getFirstMappedPort()),
-                Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-            );
+                    vertx,
+                    new StandaloneIgnoringSentinelFactory(vertx),
+                    sentinelOptions(replica.getHost(), replica.getFirstMappedPort()),
+                    Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA));
             TimeUnit.MILLISECONDS.sleep(1_500);
-            assertThat(client.isConnected()).as("ROLE on a replica must fail connect when Sentinel options are set").isFalse();
+            assertThat(client.isConnected())
+                    .as("ROLE on a replica must fail connect when Sentinel options are set")
+                    .isFalse();
         } finally {
             replica.stop();
         }
@@ -183,28 +186,27 @@ class RedisClientReplicaReconnectTest {
 
     private static RedisClientOptions sentinelOptions(String host, int port) {
         return RedisClientOptions.builder()
-            .host(host)
-            .port(port)
-            .connectTimeout(500)
-            .sentinel(
-                RedisSentinelOptions.builder()
-                    .masterId("mymaster")
-                    .nodes(List.of(HostAndPort.builder().host("127.0.0.1").port(26379).build()))
-                    .build()
-            )
-            .build();
+                .host(host)
+                .port(port)
+                .connectTimeout(500)
+                .sentinel(RedisSentinelOptions.builder()
+                        .masterId("mymaster")
+                        .nodes(List.of(HostAndPort.builder()
+                                .host("127.0.0.1")
+                                .port(26379)
+                                .build()))
+                        .build())
+                .build();
     }
 
     private RedisClient createClient() {
         MockEnvironment environment = new MockEnvironment();
         environment.setProperty("ratelimit.redis.host", redis.getHost());
-        environment.setProperty("ratelimit.redis.port", redis.getFirstMappedPort().toString());
+        environment.setProperty(
+                "ratelimit.redis.port", redis.getFirstMappedPort().toString());
         return new RedisConnectionFactory(
-            environment,
-            vertx,
-            "ratelimit",
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-        ).createRedisClient();
+                        environment, vertx, "ratelimit", Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA))
+                .createRedisClient();
     }
 
     private void await_connected(RedisClient redisClient) throws Exception {
@@ -216,11 +218,13 @@ class RedisClientReplicaReconnectTest {
     }
 
     private void await_connected_on_context(RedisClient redisClient) throws Exception {
-        poll_connected_on_context(redisClient, System.currentTimeMillis() + 30_000).get(35, TimeUnit.SECONDS);
+        poll_connected_on_context(redisClient, System.currentTimeMillis() + 30_000)
+                .get(35, TimeUnit.SECONDS);
     }
 
     private void await_connected_passive_on_context(RedisClient redisClient) throws Exception {
-        poll_connected_on_context(redisClient, System.currentTimeMillis() + 30_000).get(35, TimeUnit.SECONDS);
+        poll_connected_on_context(redisClient, System.currentTimeMillis() + 30_000)
+                .get(35, TimeUnit.SECONDS);
     }
 
     private CompletableFuture<Void> poll_connected_on_context(RedisClient redisClient, long deadline) {
@@ -260,13 +264,11 @@ class RedisClientReplicaReconnectTest {
 
     private String ping_on_context(RedisClient redisClient) throws Exception {
         CompletableFuture<String> ping = new CompletableFuture<>();
-        vertx.runOnContext(v ->
-            redisClient
+        vertx.runOnContext(v -> redisClient
                 .redisApi()
                 .compose(api -> api.ping(List.of()))
                 .onSuccess(response -> ping.complete(response.toString()))
-                .onFailure(ping::completeExceptionally)
-        );
+                .onFailure(ping::completeExceptionally));
         return ping.get(10, TimeUnit.SECONDS);
     }
 
@@ -297,13 +299,11 @@ class RedisClientReplicaReconnectTest {
 
         @Override
         public Redis createClient(RedisClientOptions options) {
-            return super.createClient(
-                RedisClientOptions.builder()
+            return super.createClient(RedisClientOptions.builder()
                     .host(options.getHost())
                     .port(options.getPort())
                     .connectTimeout(options.getConnectTimeout())
-                    .build()
-            );
+                    .build());
         }
     }
 }

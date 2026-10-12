@@ -63,7 +63,8 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
 
         mockPage = new PageEntity();
         mockPage.setPublished(true);
@@ -87,7 +88,8 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     public void shouldHaveMetadataCleared() {
         allowPortalAccessToApiPages();
 
-        Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
+        Response anotherResponse =
+                target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());
 
         assertTrue(mockAnotherPage.getMetadata().isEmpty());
@@ -98,7 +100,12 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         allowPortalAccessToApiPages();
         mockAnotherPage.setContent(PAGE_CONTENT);
 
-        Response response = target(API).path("pages").path(ANOTHER_PAGE).path("content").request().get();
+        Response response = target(API)
+                .path("pages")
+                .path(ANOTHER_PAGE)
+                .path("content")
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
         assertEquals(PAGE_CONTENT, response.readEntity(String.class));
@@ -110,24 +117,24 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         mockAnotherPage.setContent(PAGE_CONTENT);
         doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
 
-        Response response = target(API).path("pages").path(ANOTHER_PAGE).path("content").request().get();
+        Response response = target(API)
+                .path("pages")
+                .path(ANOTHER_PAGE)
+                .path("content")
+                .request()
+                .get();
 
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 
     private void allowPortalAccessToApiPages() {
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(
-            mock(GenericApiEntity.class)
-        );
-        when(
-            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
-        ).thenReturn(true);
-        when(
-            accessControlService.canAccessApiPageFromPortal(
-                eq(GraviteeContext.getExecutionContext()),
-                any(GenericApiEntity.class),
-                any(PageEntity.class)
-            )
-        ).thenReturn(true);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false))
+                .thenReturn(mock(GenericApiEntity.class));
+        when(accessControlService.canAccessApiFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+                .thenReturn(true);
+        when(accessControlService.canAccessApiPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), any(PageEntity.class)))
+                .thenReturn(true);
     }
 }

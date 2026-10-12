@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.manager.endpoint;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -67,12 +66,10 @@ public class ApiManagementEndpoint implements Handler<RoutingContext>, Managemen
                 response.setStatusCode(HttpStatusCode.OK_200);
                 response.setChunked(true);
 
-                response.write(
-                    DatabindCodec.mapper()
+                response.write(DatabindCodec.mapper()
                         .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                         .writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(api)
-                );
+                        .writeValueAsString(api));
             }
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);

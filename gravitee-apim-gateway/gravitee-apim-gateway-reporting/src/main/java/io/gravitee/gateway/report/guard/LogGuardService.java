@@ -43,7 +43,8 @@ public class LogGuardService extends AbstractService<LogGuardService> {
     public void doStart() throws Exception {
         if (isLogGuardEnabled) {
             if (!strategy.isEmpty() && strategy.equals("cooldown")) {
-                logGuardStrategy = new CoolDownLogGuardStrategy(nodeHealthCheckService, Duration.ofSeconds(cooldownDurationInSeconds));
+                logGuardStrategy = new CoolDownLogGuardStrategy(
+                        nodeHealthCheckService, Duration.ofSeconds(cooldownDurationInSeconds));
             } else {
                 throw new IllegalStateException("Log guard strategy unknown: " + strategy);
             }

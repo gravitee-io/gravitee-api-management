@@ -26,7 +26,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,7 +88,8 @@ public class ChannelSelector extends Selector {
         SUBSCRIBE(ConnectorMode.SUBSCRIBE.getLabel(), ConnectorMode.SUBSCRIBE),
         PUBLISH(ConnectorMode.PUBLISH.getLabel(), ConnectorMode.PUBLISH);
 
-        private static final Map<ConnectorMode, Operation> MAP = Map.of(SUBSCRIBE.connectorMode, SUBSCRIBE, PUBLISH.connectorMode, PUBLISH);
+        private static final Map<ConnectorMode, Operation> MAP =
+                Map.of(SUBSCRIBE.connectorMode, SUBSCRIBE, PUBLISH.connectorMode, PUBLISH);
 
         @JsonValue
         private final String label;
@@ -105,8 +105,9 @@ public class ChannelSelector extends Selector {
         }
     }
 
-    public abstract static class ChannelSelectorBuilder<C extends ChannelSelector, B extends ChannelSelectorBuilder<C, B>>
-        extends SelectorBuilder<C, B> {
+    public abstract static class ChannelSelectorBuilder<
+                    C extends ChannelSelector, B extends ChannelSelectorBuilder<C, B>>
+            extends SelectorBuilder<C, B> {
 
         ChannelSelectorBuilder() {
             type(SelectorType.CHANNEL);

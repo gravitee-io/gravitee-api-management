@@ -76,7 +76,9 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
         // Operators may run with traces but not payload logs configured (or vice-versa); a missing data
         // stream raises an error from the client. Translate to empty list so the consumer can stitch the
         // trace anyway.
-        return client.search(index, null, body).onErrorReturnItem(new SearchResponse()).map(ElasticsearchOtelLogRepository::parseResponse);
+        return client.search(index, null, body)
+                .onErrorReturnItem(new SearchResponse())
+                .map(ElasticsearchOtelLogRepository::parseResponse);
     }
 
     private String resolveIndex(String template, QueryContext queryContext) {
@@ -121,7 +123,8 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
             filter.add(buildTermFilter(field, entry.getValue()));
         }
 
-        for (Map.Entry<String, String> entry : criteria.resourceAttributeFilters().entrySet()) {
+        for (Map.Entry<String, String> entry :
+                criteria.resourceAttributeFilters().entrySet()) {
             filter.add(buildTermFilter("resource.attributes." + entry.getKey(), entry.getValue()));
         }
 
@@ -169,15 +172,14 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
     }
 
     private static List<OtelLogRecord> parseResponse(SearchResponse response) {
-        if (
-            response == null ||
-            response.getSearchHits() == null ||
-            response.getSearchHits().getHits() == null ||
-            response.getSearchHits().getHits().isEmpty()
-        ) {
+        if (response == null
+                || response.getSearchHits() == null
+                || response.getSearchHits().getHits() == null
+                || response.getSearchHits().getHits().isEmpty()) {
             return List.of();
         }
-        List<OtelLogRecord> records = new ArrayList<>(response.getSearchHits().getHits().size());
+        List<OtelLogRecord> records =
+                new ArrayList<>(response.getSearchHits().getHits().size());
         for (SearchHit hit : response.getSearchHits().getHits()) {
             JsonNode source = hit.getSource();
             if (source == null) {
@@ -201,7 +203,8 @@ public class ElasticsearchOtelLogRepository implements OtelLogRepository {
             if (eventName != null) {
                 attributes.putIfAbsent(EVENT_NAME_ATTRIBUTE, eventName);
             }
-            Map<String, String> resourceAttributes = flattenStringMap(source.path("resource").path("attributes"), "");
+            Map<String, String> resourceAttributes =
+                    flattenStringMap(source.path("resource").path("attributes"), "");
             records.add(new OtelLogRecord(traceId, spanId, timestamp, severity, body, attributes, resourceAttributes));
         }
         return records;

@@ -39,24 +39,20 @@ public class EntrypointScopeCoverageInitializer implements Initializer {
 
     @Override
     public boolean initialize() {
-        undecidedEntrypointIds().forEach(id ->
-            log.warn(
-                "Entrypoint plugin [{}] has no observability scope decision: its traffic is counted as HTTP request traffic until a scope is recorded in ObservabilityEntrypoints (only this node's plugin tree was inspected)",
-                id
-            )
-        );
+        undecidedEntrypointIds()
+                .forEach(id -> log.warn(
+                        "Entrypoint plugin [{}] has no observability scope decision: its traffic is counted as HTTP request traffic until a scope is recorded in ObservabilityEntrypoints (only this node's plugin tree was inspected)",
+                        id));
         return true;
     }
 
     /** Installed entrypoint plugins, deployed or not, whose id the registry does not declare. */
     public List<String> undecidedEntrypointIds() {
-        return entrypointPluginQueryService
-            .findAll()
-            .stream()
-            .map(ConnectorPlugin::getId)
-            .filter(id -> !ObservabilityEntrypoints.declares(id))
-            .sorted()
-            .toList();
+        return entrypointPluginQueryService.findAll().stream()
+                .map(ConnectorPlugin::getId)
+                .filter(id -> !ObservabilityEntrypoints.declares(id))
+                .sorted()
+                .toList();
     }
 
     @Override

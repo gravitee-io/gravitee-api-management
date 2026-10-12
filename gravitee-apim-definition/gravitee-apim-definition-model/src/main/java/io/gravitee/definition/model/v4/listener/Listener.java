@@ -44,23 +44,20 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
-        @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
-        @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
+    @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
+    @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
+})
 @Schema(
-    name = "ListenerV4",
-    discriminatorProperty = "type",
-    discriminatorMapping = {
-        @DiscriminatorMapping(value = HTTP_LABEL, schema = HttpListener.class),
-        @DiscriminatorMapping(value = TCP_LABEL, schema = TcpListener.class),
-        @DiscriminatorMapping(value = SUBSCRIPTION_LABEL, schema = SubscriptionListener.class),
-    },
-    oneOf = { HttpListener.class, TcpListener.class, SubscriptionListener.class }
-)
+        name = "ListenerV4",
+        discriminatorProperty = "type",
+        discriminatorMapping = {
+            @DiscriminatorMapping(value = HTTP_LABEL, schema = HttpListener.class),
+            @DiscriminatorMapping(value = TCP_LABEL, schema = TcpListener.class),
+            @DiscriminatorMapping(value = SUBSCRIPTION_LABEL, schema = SubscriptionListener.class),
+        },
+        oneOf = {HttpListener.class, TcpListener.class, SubscriptionListener.class})
 @SuperBuilder(toBuilder = true)
 public abstract class Listener extends AbstractListener<Entrypoint> {
 

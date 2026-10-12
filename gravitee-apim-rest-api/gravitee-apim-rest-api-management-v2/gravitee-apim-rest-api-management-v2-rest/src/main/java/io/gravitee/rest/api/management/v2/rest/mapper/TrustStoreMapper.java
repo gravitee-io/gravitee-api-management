@@ -31,8 +31,11 @@ public interface TrustStoreMapper {
 
     // V4
     io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore mapToV4(JKSTrustStore jksTrustStore);
+
     io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore mapToV4(PKCS12TrustStore pkcs12TrustStore);
+
     io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore mapToV4(PEMTrustStore pemTrustStore);
+
     io.gravitee.definition.model.v4.ssl.none.NoneTrustStore mapToV4(NoneTrustStore noneTrustStore);
 
     default io.gravitee.definition.model.v4.ssl.TrustStore mapToV4(TrustStore trustStore) {
@@ -55,8 +58,11 @@ public interface TrustStoreMapper {
     }
 
     JKSTrustStore map(io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore jksTrustStore);
+
     PKCS12TrustStore map(io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore pkcs12TrustStore);
+
     PEMTrustStore map(io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore pemTrustStore);
+
     NoneTrustStore map(io.gravitee.definition.model.v4.ssl.none.NoneTrustStore noneTrustStore);
 
     default TrustStore map(io.gravitee.definition.model.v4.ssl.TrustStore trustStore) {
@@ -79,8 +85,11 @@ public interface TrustStoreMapper {
 
     // V2
     io.gravitee.definition.model.ssl.jks.JKSTrustStore mapToV2(JKSTrustStore jksTrustStore);
+
     io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore mapToV2(PKCS12TrustStore pkcs12TrustStore);
+
     io.gravitee.definition.model.ssl.pem.PEMTrustStore mapToV2(PEMTrustStore pemTrustStore);
+
     io.gravitee.definition.model.ssl.none.NoneTrustStore mapToV2(NoneTrustStore noneTrustStore);
 
     default io.gravitee.definition.model.ssl.TrustStoreType mapTrustStoreType(TrustStoreType type) {
@@ -117,8 +126,11 @@ public interface TrustStoreMapper {
     }
 
     JKSTrustStore map(io.gravitee.definition.model.ssl.jks.JKSTrustStore jksTrustStore);
+
     PKCS12TrustStore map(io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore pkcs12TrustStore);
+
     PEMTrustStore map(io.gravitee.definition.model.ssl.pem.PEMTrustStore pemTrustStore);
+
     NoneTrustStore map(io.gravitee.definition.model.ssl.none.NoneTrustStore noneTrustStore);
 
     default TrustStoreType mapTrustStoreType(io.gravitee.definition.model.ssl.TrustStoreType type) {

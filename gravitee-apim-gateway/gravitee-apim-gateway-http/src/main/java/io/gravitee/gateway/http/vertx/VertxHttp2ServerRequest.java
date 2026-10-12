@@ -36,10 +36,14 @@ public class VertxHttp2ServerRequest extends VertxHttpServerRequest {
      */
     @Deprecated
     public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+        this(
+                httpServerRequest,
+                idGenerator,
+                VertxHttpServerRequestOptions.builder().build());
     }
 
-    public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+    public VertxHttp2ServerRequest(
+            HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         super(httpServerRequest, idGenerator, options);
     }
 
@@ -50,9 +54,9 @@ public class VertxHttp2ServerRequest extends VertxHttpServerRequest {
 
     @Override
     public Request customFrameHandler(Handler<HttpFrame> frameHandler) {
-        getNativeServerRequest().customFrameHandler(frame ->
-            frameHandler.handle(HttpFrame.create(frame.type(), frame.flags(), Buffer.buffer(frame.payload())))
-        );
+        getNativeServerRequest()
+                .customFrameHandler(frame -> frameHandler.handle(
+                        HttpFrame.create(frame.type(), frame.flags(), Buffer.buffer(frame.payload()))));
 
         return this;
     }

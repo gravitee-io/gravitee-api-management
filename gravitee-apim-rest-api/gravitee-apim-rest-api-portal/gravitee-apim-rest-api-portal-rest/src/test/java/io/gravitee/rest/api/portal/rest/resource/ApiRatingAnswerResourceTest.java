@@ -55,7 +55,8 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
 
         RatingEntity ratingEntity = new RatingEntity();
         ratingEntity.setId(RATING);
@@ -74,7 +75,13 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveApiNotFoundWhenDeleteWithFakeApi() {
         final String fakeId = "fake";
-        final Response response = target(fakeId).path("ratings").path(RATING).path("answers").path(ANSWER).request().delete();
+        final Response response = target(fakeId)
+                .path("ratings")
+                .path(RATING)
+                .path("answers")
+                .path(ANSWER)
+                .request()
+                .delete();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -92,7 +99,13 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveRatingNotFoundWhenDeleteWithFakeRating() {
         final String fakeId = "fake";
-        final Response response = target(API).path("ratings").path(fakeId).path("answers").path(ANSWER).request().delete();
+        final Response response = target(API)
+                .path("ratings")
+                .path(fakeId)
+                .path("answers")
+                .path(ANSWER)
+                .request()
+                .delete();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -110,7 +123,13 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveRatingAnswerNotFoundWhenDeleteWithFakeId() {
         final String fakeId = "fake";
-        final Response response = target(API).path("ratings").path(fakeId).path("answers").path(ANSWER).request().delete();
+        final Response response = target(API)
+                .path("ratings")
+                .path(fakeId)
+                .path("answers")
+                .path(ANSWER)
+                .request()
+                .delete();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -127,7 +146,13 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldDeleteApiRatingAnswer() {
-        final Response response = target(API).path("ratings").path(RATING).path("answers").path(ANSWER).request().delete();
+        final Response response = target(API)
+                .path("ratings")
+                .path(RATING)
+                .path("answers")
+                .path(ANSWER)
+                .request()
+                .delete();
         assertEquals(NO_CONTENT_204, response.getStatus());
     }
 }

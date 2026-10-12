@@ -37,8 +37,7 @@ class VertxReadStreamUtilTest {
         RecordingWriteStream recorder = new RecordingWriteStream();
 
         var readStream = VertxReadStreamUtil.toVertxRxReadStream(
-            Flowable.just(Buffer.buffer("foo"), Buffer.buffer("bar"), Buffer.buffer("baz"))
-        );
+                Flowable.just(Buffer.buffer("foo"), Buffer.buffer("bar"), Buffer.buffer("baz")));
         readStream.rxPipeTo(WriteStream.newInstance(recorder)).blockingAwait();
 
         assertThat(recorder.getRecordedBuffers()).containsExactly("foo", "bar", "baz");

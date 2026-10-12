@@ -15,12 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.eventLatest.event;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
-import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import java.util.List;
 
 /**

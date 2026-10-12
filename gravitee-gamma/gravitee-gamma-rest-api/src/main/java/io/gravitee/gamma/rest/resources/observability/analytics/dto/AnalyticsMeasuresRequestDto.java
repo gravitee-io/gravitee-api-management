@@ -22,4 +22,5 @@ import java.util.List;
 /**
  * POST body for {@code /observability/analytics/measures}.
  */
-public record AnalyticsMeasuresRequestDto(TimeRangeDto timeRange, List<FilterConditionDto> filters, List<MetricQueryDto> metrics) {}
+public record AnalyticsMeasuresRequestDto(
+        TimeRangeDto timeRange, List<FilterConditionDto> filters, List<MetricQueryDto> metrics) {}

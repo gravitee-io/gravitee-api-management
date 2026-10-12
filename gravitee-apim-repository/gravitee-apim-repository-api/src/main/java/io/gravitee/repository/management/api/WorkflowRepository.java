@@ -25,8 +25,11 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface WorkflowRepository extends CrudRepository<Workflow, String> {
-    List<Workflow> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException;
-    List<Workflow> findByReferencesAndType(String referenceType, Collection<String> referenceIds, String type) throws TechnicalException;
+    List<Workflow> findByReferenceAndType(String referenceType, String referenceId, String type)
+            throws TechnicalException;
+
+    List<Workflow> findByReferencesAndType(String referenceType, Collection<String> referenceIds, String type)
+            throws TechnicalException;
 
     /**
      * Delete workflows by reference
@@ -35,5 +38,6 @@ public interface WorkflowRepository extends CrudRepository<Workflow, String> {
      * @return List of IDs for deleted workflows
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType)
+            throws TechnicalException;
 }

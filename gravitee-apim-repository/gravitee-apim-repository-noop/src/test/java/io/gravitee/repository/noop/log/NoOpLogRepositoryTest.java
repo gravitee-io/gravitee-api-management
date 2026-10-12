@@ -18,7 +18,6 @@ package io.gravitee.repository.noop.log;
 import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
 import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
@@ -46,10 +45,7 @@ public class NoOpLogRepositoryTest extends AbstractNoOpRepositoryTest {
         Assertions.assertNotNull(logRepository);
 
         ExtendedLog log = logRepository.findById(
-            queryContext,
-            "29381bce-df59-47b2-b81b-cedf59c7b23e",
-            System.currentTimeMillis() - 24 * 60 * 60 * 1000
-        );
+                queryContext, "29381bce-df59-47b2-b81b-cedf59c7b23e", System.currentTimeMillis() - 24 * 60 * 60 * 1000);
 
         assertNull(log);
     }
@@ -59,9 +55,13 @@ public class NoOpLogRepositoryTest extends AbstractNoOpRepositoryTest {
         Assertions.assertNotNull(logRepository);
 
         TabularResponse response = logRepository.query(
-            queryContext,
-            tabular().timeRange(lastDays(60), hours(1)).query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").page(1).size(20).build()
-        );
+                queryContext,
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("api:be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                        .page(1)
+                        .size(20)
+                        .build());
 
         assertNull(response);
     }

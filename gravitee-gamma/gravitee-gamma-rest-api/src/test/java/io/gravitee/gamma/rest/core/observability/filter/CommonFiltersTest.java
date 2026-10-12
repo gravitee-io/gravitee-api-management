@@ -30,14 +30,8 @@ class CommonFiltersTest {
     @Test
     void should_union_static_and_extensible_host_filter_names() {
         assertThat(CommonFilters.names()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
-        assertThat(CommonFilters.names()).contains(
-            "API",
-            "HTTP_STATUS",
-            "API_TYPE",
-            "HTTP_GATEWAY_RESPONSE_TIME",
-            "MCP_PROXY_METHOD",
-            "URI"
-        );
+        assertThat(CommonFilters.names())
+                .contains("API", "HTTP_STATUS", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI");
     }
 
     @Test

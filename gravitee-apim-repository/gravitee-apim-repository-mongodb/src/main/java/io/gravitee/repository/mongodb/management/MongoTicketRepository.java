@@ -62,7 +62,8 @@ public class MongoTicketRepository implements TicketRepository {
     }
 
     @Override
-    public Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         log.debug("Search tickets");
 
         var tickets = internalTicketRepo.search(criteria, sortable, pageable).map(mapper::map);
@@ -85,18 +86,18 @@ public class MongoTicketRepository implements TicketRepository {
 
     @Override
     public Set<Ticket> findAll() throws TechnicalException {
-        return internalTicketRepo
-            .findAll()
-            .stream()
-            .map(ticketMongo -> mapper.map(ticketMongo))
-            .collect(Collectors.toSet());
+        return internalTicketRepo.findAll().stream()
+                .map(ticketMongo -> mapper.map(ticketMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
         log.debug("Delete by apiId [{}]", apiId);
         try {
-            final var tickets = internalTicketRepo.deleteByApi(apiId).stream().map(TicketMongo::getId).toList();
+            final var tickets = internalTicketRepo.deleteByApi(apiId).stream()
+                    .map(TicketMongo::getId)
+                    .toList();
             log.debug("Delete by apiId [{}] - Done", apiId);
             return tickets;
         } catch (Exception ex) {
@@ -109,7 +110,9 @@ public class MongoTicketRepository implements TicketRepository {
     public List<String> deleteByApplicationId(String applicationId) throws TechnicalException {
         log.debug("Delete by applicationId [{}]", applicationId);
         try {
-            final var tickets = internalTicketRepo.deleteByApplication(applicationId).stream().map(TicketMongo::getId).toList();
+            final var tickets = internalTicketRepo.deleteByApplication(applicationId).stream()
+                    .map(TicketMongo::getId)
+                    .toList();
             log.debug("Delete by applicationId [{}] - Done", applicationId);
             return tickets;
         } catch (Exception ex) {

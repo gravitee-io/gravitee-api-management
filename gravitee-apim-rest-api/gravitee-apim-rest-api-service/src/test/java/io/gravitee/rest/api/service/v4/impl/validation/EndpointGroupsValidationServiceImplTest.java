@@ -81,11 +81,11 @@ public class EndpointGroupsValidationServiceImplTest {
     @BeforeEach
     public void setUp() throws Exception {
         lenient()
-            .when(endpointService.validateConnectorConfiguration(any(String.class), any()))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+                .when(endpointService.validateConnectorConfiguration(any(String.class), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
         lenient()
-            .when(endpointService.validateSharedConfiguration(any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+                .when(endpointService.validateSharedConfiguration(any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
 
         var httpEndpoint = new ConnectorPluginEntity();
         httpEndpoint.setId("http");
@@ -112,7 +112,8 @@ public class EndpointGroupsValidationServiceImplTest {
         llmProxyEndpoint.setSupportedApiType(ApiType.LLM_PROXY);
         lenient().when(endpointService.findById("llm-proxy")).thenReturn(llmProxyEndpoint);
 
-        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(endpointService, apiServicePluginService);
+        endpointGroupsValidationService =
+                new EndpointGroupsValidationServiceImpl(endpointService, apiServicePluginService);
     }
 
     @Test
@@ -122,9 +123,8 @@ public class EndpointGroupsValidationServiceImplTest {
         endpointGroup.setType("http");
         endpointGroup.setEndpoints(List.of());
 
-        var exception = catchException(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        var exception = catchException(
+                () -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)));
 
         assertThat(exception).isInstanceOf(EndpointMissingException.class);
     }
@@ -140,9 +140,8 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroupServices services = new EndpointGroupServices();
         services.setDiscovery(discovery);
         endpointGroup.setServices(services);
-        var exception = catchException(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        var exception = catchException(
+                () -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)));
         assertThat(exception).isInstanceOf(EndpointMissingException.class);
     }
 
@@ -157,10 +156,8 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroupServices services = new EndpointGroupServices();
         services.setDiscovery(discovery);
         endpointGroup.setServices(services);
-        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-            ApiType.PROXY,
-            List.of(endpointGroup)
-        );
+        List<EndpointGroup> endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
         assertThat(endpointGroups).hasSize(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -182,10 +179,8 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setType("http");
         endpoint.setSharedConfigurationOverride("minimalSharedConfiguration");
         endpointGroup.setEndpoints(List.of(endpoint));
-        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-            ApiType.PROXY,
-            List.of(endpointGroup)
-        );
+        List<EndpointGroup> endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
         assertThat(endpointGroups).hasSize(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -220,12 +215,11 @@ public class EndpointGroupsValidationServiceImplTest {
         healthCheck.setConfiguration("{}");
         endpointGroup.getServices().setHealthCheck(healthCheck);
 
-        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any()))
+                .thenReturn(FIXED_HC_CONFIG);
 
-        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-            ApiType.PROXY,
-            List.of(endpointGroup)
-        );
+        List<EndpointGroup> endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
         assertThat(endpointGroups.size()).isEqualTo(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -237,8 +231,8 @@ public class EndpointGroupsValidationServiceImplTest {
         assertThat(validatedEndpoint.getType()).isEqualTo("http");
         assertThat(validatedEndpoint.getWeight()).isEqualTo(1);
         assertThat(validatedEndpointGroup.getServices())
-            .isNotNull()
-            .matches(svc -> svc.getHealthCheck().getConfiguration().equals(FIXED_HC_CONFIG));
+                .isNotNull()
+                .matches(svc -> svc.getHealthCheck().getConfiguration().equals(FIXED_HC_CONFIG));
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
@@ -259,9 +253,8 @@ public class EndpointGroupsValidationServiceImplTest {
         healthCheck.setConfiguration("{}");
         endpointGroup.getServices().setHealthCheck(healthCheck);
 
-        var exception = catchException(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        var exception = catchException(
+                () -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)));
         assertThat(exception).isInstanceOf(HealthcheckInvalidException.class);
     }
 
@@ -286,10 +279,10 @@ public class EndpointGroupsValidationServiceImplTest {
         healthCheck.setConfiguration("{}");
         endpoint.getServices().setHealthCheck(healthCheck);
 
-        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
-        var exception = catchException(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any()))
+                .thenReturn(FIXED_HC_CONFIG);
+        var exception = catchException(
+                () -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)));
         assertThat(exception).isInstanceOf(HealthcheckInvalidException.class);
     }
 
@@ -310,10 +303,10 @@ public class EndpointGroupsValidationServiceImplTest {
         healthCheck.setOverrideConfiguration(false);
         endpoint.getServices().setHealthCheck(healthCheck);
 
-        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
-        var exception = catchException(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any()))
+                .thenReturn(FIXED_HC_CONFIG);
+        var exception = catchException(
+                () -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)));
         assertThat(exception).isInstanceOf(HealthcheckInheritanceException.class);
     }
 
@@ -334,10 +327,10 @@ public class EndpointGroupsValidationServiceImplTest {
         healthCheck.setOverrideConfiguration(true);
         endpoint.getServices().setHealthCheck(healthCheck);
 
-        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(null);
-        var exception = catchException(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any()))
+                .thenReturn(null);
+        var exception = catchException(
+                () -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)));
         assertThat(exception).isInstanceOf(HealthcheckInheritanceException.class);
     }
 
@@ -363,12 +356,13 @@ public class EndpointGroupsValidationServiceImplTest {
         healthCheck.setConfiguration("{}");
         endpoint.getServices().setHealthCheck(healthCheck);
 
-        when(apiServicePluginService.validateApiServiceConfiguration(eq(grpHealthCheck.getType()), any())).thenReturn(FIXED_HC_CONFIG);
-        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(FIXED_HC_CONFIG);
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(grpHealthCheck.getType()), any()))
+                .thenReturn(FIXED_HC_CONFIG);
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any()))
+                .thenReturn(FIXED_HC_CONFIG);
 
-        var exception = catchException(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        var exception = catchException(
+                () -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)));
         assertThat(exception).isInstanceOf(HealthcheckInheritanceException.class);
     }
 
@@ -376,9 +370,9 @@ public class EndpointGroupsValidationServiceImplTest {
     public void shouldThrowValidationExceptionWithWrongEndpointGroupName() {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName(":");
-        assertThatExceptionOfType(EndpointNameInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointNameInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup)));
     }
 
     @Test
@@ -391,9 +385,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setType("http");
         endpointGroup.setEndpoints(List.of(endpoint));
 
-        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup)));
     }
 
     @Test
@@ -416,9 +410,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint2.setSharedConfigurationOverride("minimalSharedConfiguration");
         endpointGroup2.setEndpoints(List.of(endpoint2));
 
-        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup, endpointGroup2))
-        );
+        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup, endpointGroup2)));
     }
 
     @Test
@@ -443,18 +437,18 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint2.setInheritConfiguration(true);
         endpointGroup2.setEndpoints(List.of(endpoint2));
 
-        assertThatExceptionOfType(EndpointGroupNameAlreadyExistsException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup, endpointGroup2))
-        );
+        assertThatExceptionOfType(EndpointGroupNameAlreadyExistsException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup, endpointGroup2)));
     }
 
     @Test
     public void shouldThrowValidationExceptionWithMissingEndpointGroupType() {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("name");
-        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup)));
     }
 
     @Test
@@ -462,9 +456,9 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("name");
         endpointGroup.setType("http");
-        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.MESSAGE, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.MESSAGE, List.of(endpointGroup)));
     }
 
     @Test
@@ -472,9 +466,9 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("name");
         endpointGroup.setType("http");
-        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.MESSAGE, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.MESSAGE, List.of(endpointGroup)));
     }
 
     @Test
@@ -486,9 +480,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setName(":");
         endpoint.setType("http");
         endpointGroup.setEndpoints(List.of(endpoint));
-        assertThatExceptionOfType(EndpointNameInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointNameInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup)));
     }
 
     @Test
@@ -499,9 +493,9 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint endpoint = new Endpoint();
         endpoint.setName("endpoint");
         endpointGroup.setEndpoints(List.of(endpoint));
-        assertThatExceptionOfType(EndpointTypeInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointTypeInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup)));
     }
 
     @Test
@@ -513,9 +507,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setName("endpoint");
         endpoint.setType("wrong");
         endpointGroup.setEndpoints(List.of(endpoint));
-        assertThatExceptionOfType(EndpointGroupTypeMismatchInvalidException.class).isThrownBy(() ->
-            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
-        );
+        assertThatExceptionOfType(EndpointGroupTypeMismatchInvalidException.class)
+                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup)));
     }
 
     @Test
@@ -528,17 +522,17 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setType("http");
         endpoint.setWeight(0);
         endpointGroup.setEndpoints(List.of(endpoint));
-        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-            ApiType.PROXY,
-            List.of(endpointGroup)
-        );
+        List<EndpointGroup> endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
 
-        assertThat(endpointGroups.getFirst().getEndpoints().getFirst().getWeight()).isEqualTo(1);
+        assertThat(endpointGroups.getFirst().getEndpoints().getFirst().getWeight())
+                .isEqualTo(1);
     }
 
     @Test
     public void shouldThrowExceptionWithNullParameter() {
-        var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, null));
+        var exception =
+                catchException(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, null));
         assertThat(exception).isInstanceOf(EndpointMissingException.class);
     }
 
@@ -554,10 +548,8 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroupServices services = new EndpointGroupServices();
         services.setDiscovery(discovery);
         endpointGroup.setServices(services);
-        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-            ApiType.PROXY,
-            List.of(endpointGroup)
-        );
+        List<EndpointGroup> endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
         assertThat(endpointGroups).hasSize(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -573,8 +565,9 @@ public class EndpointGroupsValidationServiceImplTest {
     @Test
     public void should_normalize_legacy_http_proxy_ssl_store_types_before_validating_shared_configuration() {
         String legacySharedConfiguration =
-            "{\"ssl\":{\"trustStore\":{\"type\":\"\",\"path\":\"\"},\"keyStore\":{\"type\":\"\",\"content\":\"\"}}}";
-        String normalizedSharedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}";
+                "{\"ssl\":{\"trustStore\":{\"type\":\"\",\"path\":\"\"},\"keyStore\":{\"type\":\"\",\"content\":\"\"}}}";
+        String normalizedSharedConfiguration =
+                "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}";
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("my name");
         endpointGroup.setType(HTTP_PROXY_ENDPOINT_TYPE);
@@ -586,7 +579,8 @@ public class EndpointGroupsValidationServiceImplTest {
         services.setDiscovery(discovery);
         endpointGroup.setServices(services);
 
-        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+        var endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
 
         assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(normalizedSharedConfiguration);
         verify(endpointService).validateSharedConfiguration(any(), eq(normalizedSharedConfiguration));
@@ -606,7 +600,8 @@ public class EndpointGroupsValidationServiceImplTest {
         services.setDiscovery(discovery);
         endpointGroup.setServices(services);
 
-        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+        var endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
 
         assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(sharedConfiguration);
         verify(endpointService).validateSharedConfiguration(any(), eq(sharedConfiguration));
@@ -632,10 +627,8 @@ public class EndpointGroupsValidationServiceImplTest {
 
         endpointGroup.setEndpoints(List.of(endpoint));
 
-        List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-            ApiType.PROXY,
-            List.of(endpointGroup)
-        );
+        List<EndpointGroup> endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
         assertThat(endpointGroups).hasSize(1);
         EndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
         assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -645,10 +638,10 @@ public class EndpointGroupsValidationServiceImplTest {
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
         assertThat(validatedEndpointGroup.getEndpoints())
-            .hasSize(1)
-            .first()
-            .extracting("sharedConfigurationOverride")
-            .isEqualTo("overriddenSharedConfiguration");
+                .hasSize(1)
+                .first()
+                .extracting("sharedConfigurationOverride")
+                .isEqualTo("overriddenSharedConfiguration");
         verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
         verify(endpointService).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
     }
@@ -674,11 +667,11 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setSharedConfigurationOverride(legacySharedConfigurationOverride);
         endpointGroup.setEndpoints(List.of(endpoint));
 
-        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+        var endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
 
-        assertThat(endpointGroups.getFirst().getEndpoints().getFirst().getSharedConfigurationOverride()).isEqualTo(
-            normalizedSharedConfigurationOverride
-        );
+        assertThat(endpointGroups.getFirst().getEndpoints().getFirst().getSharedConfigurationOverride())
+                .isEqualTo(normalizedSharedConfigurationOverride);
         verify(endpointService).validateSharedConfiguration(any(), eq(normalizedSharedConfigurationOverride));
     }
 
@@ -697,7 +690,8 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setInheritConfiguration(true);
         endpointGroup.setEndpoints(List.of(endpoint));
 
-        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+        var endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
 
         assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(normalizedSharedConfiguration);
         verify(endpointService).validateSharedConfiguration(any(), eq(normalizedSharedConfiguration));
@@ -717,7 +711,8 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setInheritConfiguration(true);
         endpointGroup.setEndpoints(List.of(endpoint));
 
-        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+        var endpointGroups =
+                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
 
         assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(sharedConfigurationWithoutSsl);
         verify(endpointService).validateSharedConfiguration(any(), eq(sharedConfigurationWithoutSsl));
@@ -743,11 +738,13 @@ public class EndpointGroupsValidationServiceImplTest {
 
         endpointGroup.setEndpoints(List.of(endpoint));
 
-        assertThatThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup)))
-            .isInstanceOf(EndpointConfigurationValidationException.class)
-            .hasMessage("Impossible to inherit from a null shared configuration for endpoint: endpoint");
+        assertThatThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                        ApiType.PROXY, List.of(endpointGroup)))
+                .isInstanceOf(EndpointConfigurationValidationException.class)
+                .hasMessage("Impossible to inherit from a null shared configuration for endpoint: endpoint");
         verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
-        verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+        verify(endpointService, never())
+                .validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
     }
 
     @Test
@@ -772,7 +769,8 @@ public class EndpointGroupsValidationServiceImplTest {
 
         endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
         verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
-        verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+        verify(endpointService, never())
+                .validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
         verify(endpointService).validateSharedConfiguration(any(), eq("{}"));
     }
 
@@ -788,7 +786,8 @@ public class EndpointGroupsValidationServiceImplTest {
             endpointGroup.setName("my name");
             endpointGroup.setType(NATIVE_ENDPOINT_TYPE);
             endpointGroup.setEndpoints(List.of());
-            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
+            var exception = catchException(
+                    () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
             assertThat(exception).isInstanceOf(EndpointMissingException.class);
         }
 
@@ -802,7 +801,8 @@ public class EndpointGroupsValidationServiceImplTest {
             endpoint.setType(NATIVE_ENDPOINT_TYPE);
             endpoint.setSharedConfigurationOverride("minimalSharedConfiguration");
             endpointGroup.setEndpoints(List.of(endpoint));
-            List<NativeEndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup));
+            List<NativeEndpointGroup> endpointGroups =
+                    endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup));
             assertThat(endpointGroups).hasSize(1);
             NativeEndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
             assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -826,7 +826,8 @@ public class EndpointGroupsValidationServiceImplTest {
             endpoint.setName(":");
             endpoint.setType(NATIVE_ENDPOINT_TYPE);
             endpointGroup.setEndpoints(List.of(endpoint));
-            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
+            var exception = catchException(
+                    () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
             assertThat(exception).isInstanceOf(EndpointNameInvalidException.class);
         }
 
@@ -834,7 +835,8 @@ public class EndpointGroupsValidationServiceImplTest {
         public void should_throw_validation_exception_with_wrong_native_endpoint_group_name() {
             NativeEndpointGroup endpointGroup = new NativeEndpointGroup();
             endpointGroup.setName(":");
-            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
+            var exception = catchException(
+                    () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
             assertThat(exception).isInstanceOf(EndpointNameInvalidException.class);
         }
 
@@ -848,7 +850,8 @@ public class EndpointGroupsValidationServiceImplTest {
             endpoint.setType(NATIVE_ENDPOINT_TYPE);
             endpointGroup.setEndpoints(List.of(endpoint));
 
-            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
+            var exception = catchException(
+                    () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
             assertThat(exception).isInstanceOf(EndpointNameAlreadyExistsException.class);
         }
 
@@ -872,14 +875,14 @@ public class EndpointGroupsValidationServiceImplTest {
             endpoint2.setSharedConfigurationOverride("minimalSharedConfiguration");
             endpointGroup2.setEndpoints(List.of(endpoint2));
 
-            var exception = catchException(() ->
-                endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup, endpointGroup2))
-            );
+            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(
+                    List.of(endpointGroup, endpointGroup2)));
             assertThat(exception).isInstanceOf(EndpointNameAlreadyExistsException.class);
         }
 
         @Test
-        public void should_throw_validation_exception_with_native_endpoint_group_name_already_exists_in_another_group() {
+        public void
+                should_throw_validation_exception_with_native_endpoint_group_name_already_exists_in_another_group() {
             NativeEndpointGroup endpointGroup = new NativeEndpointGroup();
             endpointGroup.setName("group1");
             endpointGroup.setType(NATIVE_ENDPOINT_TYPE);
@@ -900,9 +903,8 @@ public class EndpointGroupsValidationServiceImplTest {
             endpoint2.setInheritConfiguration(true);
             endpointGroup2.setEndpoints(List.of(endpoint2));
 
-            var exception = catchException(() ->
-                endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup, endpointGroup2))
-            );
+            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(
+                    List.of(endpointGroup, endpointGroup2)));
             assertThat(exception).isInstanceOf(EndpointGroupNameAlreadyExistsException.class);
         }
 
@@ -910,7 +912,8 @@ public class EndpointGroupsValidationServiceImplTest {
         public void should_throw_validation_exception_with_missing_native_endpoint_group_type() {
             NativeEndpointGroup endpointGroup = new NativeEndpointGroup();
             endpointGroup.setName("name");
-            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
+            var exception = catchException(
+                    () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
             assertThat(exception).isInstanceOf(EndpointGroupTypeInvalidException.class);
         }
 
@@ -922,7 +925,8 @@ public class EndpointGroupsValidationServiceImplTest {
             NativeEndpoint endpoint = new NativeEndpoint();
             endpoint.setName("endpoint");
             endpointGroup.setEndpoints(List.of(endpoint));
-            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
+            var exception = catchException(
+                    () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
             assertThat(exception).isInstanceOf(EndpointTypeInvalidException.class);
         }
 
@@ -935,7 +939,8 @@ public class EndpointGroupsValidationServiceImplTest {
             endpoint.setName("endpoint");
             endpoint.setType("wrong");
             endpointGroup.setEndpoints(List.of(endpoint));
-            var exception = catchException(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
+            var exception = catchException(
+                    () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)));
             assertThat(exception).isInstanceOf(EndpointGroupTypeMismatchInvalidException.class);
         }
 
@@ -951,8 +956,10 @@ public class EndpointGroupsValidationServiceImplTest {
             endpointGroup.setName("my name");
             endpointGroup.setType(NATIVE_ENDPOINT_TYPE);
             endpointGroup.setSharedConfiguration("sharedConfiguration");
-            endpointGroup.setEndpoints(List.of(NativeEndpoint.builder().type(NATIVE_ENDPOINT_TYPE).build()));
-            List<NativeEndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup));
+            endpointGroup.setEndpoints(
+                    List.of(NativeEndpoint.builder().type(NATIVE_ENDPOINT_TYPE).build()));
+            List<NativeEndpointGroup> endpointGroups =
+                    endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup));
             assertThat(endpointGroups).hasSize(1);
             NativeEndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
             assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -979,7 +986,8 @@ public class EndpointGroupsValidationServiceImplTest {
 
             endpointGroup.setEndpoints(List.of(endpoint));
 
-            List<NativeEndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup));
+            List<NativeEndpointGroup> endpointGroups =
+                    endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup));
             assertThat(endpointGroups).hasSize(1);
             NativeEndpointGroup validatedEndpointGroup = endpointGroups.getFirst();
             assertThat(validatedEndpointGroup.getName()).isEqualTo(endpointGroup.getName());
@@ -988,10 +996,10 @@ public class EndpointGroupsValidationServiceImplTest {
             assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
             assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
             assertThat(validatedEndpointGroup.getEndpoints())
-                .hasSize(1)
-                .first()
-                .extracting("sharedConfigurationOverride")
-                .isEqualTo("overriddenSharedConfiguration");
+                    .hasSize(1)
+                    .first()
+                    .extracting("sharedConfigurationOverride")
+                    .isEqualTo("overriddenSharedConfiguration");
             verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
             verify(endpointService).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
         }
@@ -1011,11 +1019,14 @@ public class EndpointGroupsValidationServiceImplTest {
 
             endpointGroup.setEndpoints(List.of(endpoint));
 
-            assertThatThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)))
-                .isInstanceOf(EndpointConfigurationValidationException.class)
-                .hasMessage("Impossible to inherit from a null shared configuration for endpoint: endpoint");
-            verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
-            verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+            assertThatThrownBy(
+                            () -> endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup)))
+                    .isInstanceOf(EndpointConfigurationValidationException.class)
+                    .hasMessage("Impossible to inherit from a null shared configuration for endpoint: endpoint");
+            verify(endpointService, never())
+                    .validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
+            verify(endpointService, never())
+                    .validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
         }
 
         @Test
@@ -1035,7 +1046,8 @@ public class EndpointGroupsValidationServiceImplTest {
 
             endpointGroupsValidationService.validateAndSanitizeNativeV4(List.of(endpointGroup));
             verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
-            verify(endpointService, never()).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+            verify(endpointService, never())
+                    .validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
             verify(endpointService).validateSharedConfiguration(any(), eq("{}"));
         }
     }
@@ -1065,9 +1077,7 @@ public class EndpointGroupsValidationServiceImplTest {
             endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
             List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-                ApiType.LLM_PROXY,
-                List.of(endpointGroup)
-            );
+                    ApiType.LLM_PROXY, List.of(endpointGroup));
             assertThat(result).hasSize(1);
         }
 
@@ -1090,7 +1100,8 @@ public class EndpointGroupsValidationServiceImplTest {
 
             endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
-            List<EndpointGroup> result = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+            List<EndpointGroup> result =
+                    endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
             assertThat(result).hasSize(1);
         }
 
@@ -1103,8 +1114,7 @@ public class EndpointGroupsValidationServiceImplTest {
             Endpoint endpoint1 = new Endpoint();
             endpoint1.setName("openai-endpoint");
             endpoint1.setType("llm-proxy");
-            endpoint1.setConfiguration(
-                """
+            endpoint1.setConfiguration("""
                 {
                  "models": [
                    {"name": "gemini-2.5-flash-lite"},
@@ -1112,14 +1122,12 @@ public class EndpointGroupsValidationServiceImplTest {
                  ],
                  "provider": "OPEN_AI"
                 }
-                """
-            );
+                """);
 
             Endpoint endpoint2 = new Endpoint();
             endpoint2.setName("azure-endpoint");
             endpoint2.setType("llm-proxy");
-            endpoint2.setConfiguration(
-                """
+            endpoint2.setConfiguration("""
                 {
                  "models": [
                    {"name": "gemini-2.5-flash-lite", "aliases": ["light"]},
@@ -1127,15 +1135,12 @@ public class EndpointGroupsValidationServiceImplTest {
                  ],
                  "provider": "OPEN_AI"
                 }
-                """
-            );
+                """);
 
             endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
             List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-                ApiType.LLM_PROXY,
-                List.of(endpointGroup)
-            );
+                    ApiType.LLM_PROXY, List.of(endpointGroup));
 
             assertThat(endpointGroups).hasSize(1);
         }
@@ -1149,8 +1154,7 @@ public class EndpointGroupsValidationServiceImplTest {
             Endpoint endpoint1 = new Endpoint();
             endpoint1.setName("openai-endpoint");
             endpoint1.setType("llm-proxy");
-            endpoint1.setConfiguration(
-                """
+            endpoint1.setConfiguration("""
                 {
                  "models": [
                    {"name": "gemini-2.5-flash-lite", "aliases": ["fast"]},
@@ -1158,14 +1162,12 @@ public class EndpointGroupsValidationServiceImplTest {
                  ],
                  "provider": "OPEN_AI"
                 }
-                """
-            );
+                """);
 
             Endpoint endpoint2 = new Endpoint();
             endpoint2.setName("azure-endpoint");
             endpoint2.setType("llm-proxy");
-            endpoint2.setConfiguration(
-                """
+            endpoint2.setConfiguration("""
                 {
                  "models": [
                    {"name": "gemini-2.5-flash-lite", "aliases": ["light"]},
@@ -1173,8 +1175,7 @@ public class EndpointGroupsValidationServiceImplTest {
                  ],
                  "provider": "OPEN_AI"
                 }
-                """
-            );
+                """);
 
             endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
@@ -1183,9 +1184,7 @@ public class EndpointGroupsValidationServiceImplTest {
             // unreachable. The gateway only routes an alias to the endpoints that declare it, and the
             // console shows an advisory warning until the group converges.
             List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
-                ApiType.LLM_PROXY,
-                List.of(endpointGroup)
-            );
+                    ApiType.LLM_PROXY, List.of(endpointGroup));
 
             assertThat(endpointGroups).hasSize(1);
         }

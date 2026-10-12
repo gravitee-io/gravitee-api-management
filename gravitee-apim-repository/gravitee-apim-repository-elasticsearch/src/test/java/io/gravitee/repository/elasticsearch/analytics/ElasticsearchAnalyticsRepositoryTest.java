@@ -54,7 +54,8 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
 
     @Test
     public void testDateHistogram() throws Exception {
-        DateHistogramResponse response = analyticsRepository.query(queryContext, dateHistogram().timeRange(lastDays(30), hours(1)).build());
+        DateHistogramResponse response = analyticsRepository.query(
+                queryContext, dateHistogram().timeRange(lastDays(30), hours(1)).build());
 
         assertThat(response).isNotNull();
     }
@@ -62,9 +63,11 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_root() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
-            queryContext,
-            dateHistogram().timeRange(lastDays(90), hours(1)).root("api", "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab").build()
-        );
+                queryContext,
+                dateHistogram()
+                        .timeRange(lastDays(90), hours(1))
+                        .root("api", "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")
+                        .build());
 
         assertThat(response).isNotNull();
     }
@@ -72,9 +75,11 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_singleAggregation() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
-            queryContext,
-            dateHistogram().timeRange(lastDays(60), hours(1)).aggregation(AggregationType.AVG, "response-time").build()
-        );
+                queryContext,
+                dateHistogram()
+                        .timeRange(lastDays(60), hours(1))
+                        .aggregation(AggregationType.AVG, "response-time")
+                        .build());
 
         assertThat(response).isNotNull();
     }
@@ -82,14 +87,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_multipleAggregation_average() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
-            queryContext,
-            dateHistogram()
-                .timeRange(lastDays(30), hours(1))
-                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
-                .aggregation(AggregationType.AVG, "response-time")
-                .aggregation(AggregationType.AVG, "api-response-time")
-                .build()
-        );
+                queryContext,
+                dateHistogram()
+                        .timeRange(lastDays(30), hours(1))
+                        .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                        .aggregation(AggregationType.AVG, "response-time")
+                        .aggregation(AggregationType.AVG, "api-response-time")
+                        .build());
 
         assertThat(response).isNotNull();
     }
@@ -97,14 +101,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testDateHistogram_multipleAggregation_averageAndField() throws Exception {
         DateHistogramResponse response = analyticsRepository.query(
-            queryContext,
-            dateHistogram()
-                .timeRange(lastDays(30), hours(1))
-                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
-                .aggregation(AggregationType.AVG, "response-time")
-                .aggregation(AggregationType.FIELD, "application")
-                .build()
-        );
+                queryContext,
+                dateHistogram()
+                        .timeRange(lastDays(30), hours(1))
+                        .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                        .aggregation(AggregationType.AVG, "response-time")
+                        .aggregation(AggregationType.FIELD, "application")
+                        .build());
 
         assertThat(response).isNotNull();
     }
@@ -112,13 +115,12 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testGroupBy_simpleField() throws Exception {
         GroupByResponse response = analyticsRepository.query(
-            queryContext,
-            groupBy()
-                .timeRange(lastDays(60), hours(1))
-                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
-                .field("application")
-                .build()
-        );
+                queryContext,
+                groupBy()
+                        .timeRange(lastDays(60), hours(1))
+                        .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                        .field("application")
+                        .build());
 
         assertThat(response).isNotNull();
     }
@@ -126,14 +128,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testGroupBy_simpleField_withOrder() throws Exception {
         GroupByResponse response = analyticsRepository.query(
-            queryContext,
-            groupBy()
-                .timeRange(lastDays(30), hours(1))
-                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
-                .field("application")
-                .sort(SortBuilder.on("response-time", Order.DESC, SortType.AVG))
-                .build()
-        );
+                queryContext,
+                groupBy()
+                        .timeRange(lastDays(30), hours(1))
+                        .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                        .field("application")
+                        .sort(SortBuilder.on("response-time", Order.DESC, SortType.AVG))
+                        .build());
 
         assertThat(response).isNotNull();
     }
@@ -141,17 +142,16 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testGroupBy_simpleField_withRanges() throws Exception {
         GroupByResponse response = analyticsRepository.query(
-            queryContext,
-            groupBy()
-                .timeRange(lastDays(30), hours(1))
-                .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
-                .field("status")
-                .range(100, 199)
-                .range(200, 299)
-                .range(300, 399)
-                .range(400, 499)
-                .build()
-        );
+                queryContext,
+                groupBy()
+                        .timeRange(lastDays(30), hours(1))
+                        .terms(Map.of("api", Set.of("be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab")))
+                        .field("status")
+                        .range(100, 199)
+                        .range(200, 299)
+                        .range(300, 399)
+                        .range(400, 499)
+                        .build());
 
         assertThat(response).isNotNull();
         for (Bucket bucket : response.getValues()) {
@@ -159,13 +159,13 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
                 assertThat(bucket.value()).isZero();
             }
             if (bucket.name().startsWith("200")) {
-                assertThat(bucket.value()).isEqualTo(6); //line 56 in bulk.ftl
+                assertThat(bucket.value()).isEqualTo(6); // line 56 in bulk.ftl
             }
             if (bucket.name().startsWith("300")) {
                 assertThat(bucket.value()).isZero();
             }
             if (bucket.name().startsWith("400")) {
-                assertThat(bucket.value()).isOne(); //line 42 in bulk.ftl
+                assertThat(bucket.value()).isOne(); // line 42 in bulk.ftl
             }
         }
     }
@@ -173,9 +173,10 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCount() throws Exception {
         CountResponse response = analyticsRepository.query(
-            queryContext,
-            count().timeRange(lastDays(30), hours(1)).terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1"))).build()
-        );
+                queryContext,
+                count().timeRange(lastDays(30), hours(1))
+                        .terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")))
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getCount()).isEqualTo(3);
@@ -184,12 +185,12 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCountWithTwoApis() throws Exception {
         CountResponse response = analyticsRepository.query(
-            queryContext,
-            count()
-                .timeRange(lastDays(30), hours(1))
-                .terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1", "e2c0ecd5-893a-458d-80ec-d5893ab58d12")))
-                .build()
-        );
+                queryContext,
+                count().timeRange(lastDays(30), hours(1))
+                        .terms(Map.of(
+                                "api",
+                                Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1", "e2c0ecd5-893a-458d-80ec-d5893ab58d12")))
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getCount()).isEqualTo(7);
@@ -198,9 +199,10 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCountByPath() throws Exception {
         CountResponse response = analyticsRepository.query(
-            queryContext,
-            count().timeRange(lastDays(30), hours(1)).query("(path:/mypath)").build()
-        );
+                queryContext,
+                count().timeRange(lastDays(30), hours(1))
+                        .query("(path:/mypath)")
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getCount()).isOne();
@@ -209,9 +211,10 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCountByHost() throws Exception {
         CountResponse response = analyticsRepository.query(
-            queryContext,
-            count().timeRange(lastDays(30), hours(1)).query("(host:localhost:8082)").build()
-        );
+                queryContext,
+                count().timeRange(lastDays(30), hours(1))
+                        .query("(host:localhost:8082)")
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getCount()).isOne();
@@ -220,9 +223,10 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testCountByHostAndPath() throws Exception {
         CountResponse response = analyticsRepository.query(
-            queryContext,
-            count().timeRange(lastDays(30), hours(1)).query("((path:/mypath) AND (host:localhost:8082))").build()
-        );
+                queryContext,
+                count().timeRange(lastDays(30), hours(1))
+                        .query("((path:/mypath) AND (host:localhost:8082))")
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getCount()).isOne();
@@ -231,13 +235,11 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     @Test
     public void testStats() throws Exception {
         final StatsResponse response = analyticsRepository.query(
-            queryContext,
-            stats()
-                .timeRange(lastDays(30), hours(1))
-                .terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")))
-                .field("response-time")
-                .build()
-        );
+                queryContext,
+                stats().timeRange(lastDays(30), hours(1))
+                        .terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")))
+                        .field("response-time")
+                        .build());
 
         assertThat(response).isNotNull();
         assertThat(response.getCount()).isEqualTo(valueOf(3));

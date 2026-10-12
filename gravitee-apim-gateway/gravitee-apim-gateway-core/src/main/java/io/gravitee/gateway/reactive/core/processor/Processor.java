@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.core.processor;
 
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 
 /**

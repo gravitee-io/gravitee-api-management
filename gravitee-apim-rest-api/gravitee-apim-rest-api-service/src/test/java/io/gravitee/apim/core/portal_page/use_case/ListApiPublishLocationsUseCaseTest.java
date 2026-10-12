@@ -37,10 +37,10 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ListApiPublishLocationsUseCaseTest {
 
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory queryService =
+            new PortalNavigationItemsQueryServiceInMemory();
     private final ListApiPublishLocationsUseCase useCase = new ListApiPublishLocationsUseCase(
-        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory())
-    );
+            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()));
 
     @Test
     void should_return_id_and_name_of_each_top_level_section_in_display_order() {
@@ -48,7 +48,9 @@ class ListApiPublishLocationsUseCaseTest {
         var apis = aFolder("APIs").toBuilder().order(0).build();
         queryService.initWith(List.of(guides, apis));
 
-        assertThat(locations()).containsExactly(new PublishLocation(apis.getId(), "APIs"), new PublishLocation(guides.getId(), "Guides"));
+        assertThat(locations())
+                .containsExactly(
+                        new PublishLocation(apis.getId(), "APIs"), new PublishLocation(guides.getId(), "Guides"));
     }
 
     @Test
@@ -77,7 +79,8 @@ class ListApiPublishLocationsUseCaseTest {
 
     @Test
     void should_not_return_sections_outside_the_main_navigation() {
-        var homepageFolder = aFolder("Homepage blocks").toBuilder().area(PortalArea.HOMEPAGE).build();
+        var homepageFolder =
+                aFolder("Homepage blocks").toBuilder().area(PortalArea.HOMEPAGE).build();
         queryService.initWith(List.of(homepageFolder));
 
         assertThat(locations()).isEmpty();
@@ -85,7 +88,9 @@ class ListApiPublishLocationsUseCaseTest {
 
     @Test
     void should_not_return_folders_owned_by_an_api() {
-        var apiFolder = aFolder("Auth").toBuilder().reference(new NavigationItemReference.ApiReference("api-a")).build();
+        var apiFolder = aFolder("Auth").toBuilder()
+                .reference(new NavigationItemReference.ApiReference("api-a"))
+                .build();
         queryService.initWith(List.of(apiFolder));
 
         assertThat(locations()).isEmpty();

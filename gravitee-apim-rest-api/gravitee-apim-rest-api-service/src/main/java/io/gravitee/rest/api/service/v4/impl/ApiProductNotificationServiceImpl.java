@@ -51,10 +51,9 @@ public class ApiProductNotificationServiceImpl extends AbstractService implement
     private final UserService userService;
 
     public ApiProductNotificationServiceImpl(
-        final NotifierService notifierService,
-        final MembershipService membershipService,
-        final UserService userService
-    ) {
+            final NotifierService notifierService,
+            final MembershipService membershipService,
+            final UserService userService) {
         this.notifierService = notifierService;
         this.membershipService = membershipService;
         this.userService = userService;
@@ -72,33 +71,34 @@ public class ApiProductNotificationServiceImpl extends AbstractService implement
         triggerNotification(executionContext, ApiProductHook.API_PRODUCT_DEPLOYED, apiProduct);
     }
 
-    private void triggerNotification(final ExecutionContext executionContext, final ApiProductHook hook, final ApiProduct apiProduct) {
+    private void triggerNotification(
+            final ExecutionContext executionContext, final ApiProductHook hook, final ApiProduct apiProduct) {
         UserDetails auth = getAuthenticatedUser();
         if (auth != null && !auth.isSystem()) {
             UserEntity userEntity = userService.findById(executionContext, auth.getUsername());
             PrimaryOwnerEntity primaryOwner = resolvePrimaryOwner(executionContext, apiProduct);
             ApiProductTemplateModel model = ApiProductTemplateModel.builder()
-                .id(apiProduct.getId())
-                .name(apiProduct.getName())
-                .version(apiProduct.getVersion())
-                .primaryOwner(primaryOwner)
-                .build();
+                    .id(apiProduct.getId())
+                    .name(apiProduct.getName())
+                    .version(apiProduct.getVersion())
+                    .primaryOwner(primaryOwner)
+                    .build();
             notifierService.trigger(
-                executionContext,
-                hook,
-                apiProduct.getId(),
-                new NotificationParamsBuilder().apiProduct(model).user(userEntity).build()
-            );
+                    executionContext,
+                    hook,
+                    apiProduct.getId(),
+                    new NotificationParamsBuilder()
+                            .apiProduct(model)
+                            .user(userEntity)
+                            .build());
         }
     }
 
-    private PrimaryOwnerEntity resolvePrimaryOwner(final ExecutionContext executionContext, final ApiProduct apiProduct) {
+    private PrimaryOwnerEntity resolvePrimaryOwner(
+            final ExecutionContext executionContext, final ApiProduct apiProduct) {
         try {
             String ownerUserId = membershipService.getPrimaryOwnerUserId(
-                executionContext.getOrganizationId(),
-                MembershipReferenceType.API_PRODUCT,
-                apiProduct.getId()
-            );
+                    executionContext.getOrganizationId(), MembershipReferenceType.API_PRODUCT, apiProduct.getId());
             if (ownerUserId != null) {
                 return new PrimaryOwnerEntity(userService.findById(executionContext, ownerUserId));
             }

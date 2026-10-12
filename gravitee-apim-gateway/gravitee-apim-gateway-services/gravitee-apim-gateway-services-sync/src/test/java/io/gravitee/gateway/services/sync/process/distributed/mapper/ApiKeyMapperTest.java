@@ -56,25 +56,25 @@ class ApiKeyMapperTest {
         apiKey.setApi("api");
 
         distributedEvent = DistributedEvent.builder()
-            .id("id")
-            .payload(objectMapper.writeValueAsString(apiKey))
-            .updatedAt(new Date())
-            .type(DistributedEventType.API_KEY)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id("id")
+                .payload(objectMapper.writeValueAsString(apiKey))
+                .updatedAt(new Date())
+                .type(DistributedEventType.API_KEY)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
-        apiKeyDeployable = SingleApiKeyDeployable.builder().apiKey(apiKey).syncAction(SyncAction.DEPLOY).build();
+        apiKeyDeployable = SingleApiKeyDeployable.builder()
+                .apiKey(apiKey)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(singleApiKeyDeployable -> {
-                assertThat(singleApiKeyDeployable).isEqualTo(apiKeyDeployable);
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(singleApiKeyDeployable -> {
+            assertThat(singleApiKeyDeployable).isEqualTo(apiKeyDeployable);
+            return true;
+        });
     }
 
     @Test
@@ -84,15 +84,12 @@ class ApiKeyMapperTest {
 
     @Test
     void should_map_api_key_deployable() {
-        cut
-            .to(apiKeyDeployable)
-            .test()
-            .assertValue(distributedEvent -> {
-                assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
-                assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
-                assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
-                return true;
-            });
+        cut.to(apiKeyDeployable).test().assertValue(distributedEvent -> {
+            assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
+            assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
+            assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
+            return true;
+        });
     }
 }

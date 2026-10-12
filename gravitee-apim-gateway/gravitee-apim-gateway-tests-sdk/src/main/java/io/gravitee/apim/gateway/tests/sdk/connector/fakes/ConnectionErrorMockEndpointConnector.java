@@ -40,14 +40,16 @@ public class ConnectionErrorMockEndpointConnector extends MockEndpointConnector 
     final ConnectionErrorMockEndpointConnectorConfiguration failureConfiguration;
     final AtomicInteger connectAttempts = new AtomicInteger(0);
 
-    public ConnectionErrorMockEndpointConnector(ConnectionErrorMockEndpointConnectorConfiguration failureConfiguration) {
+    public ConnectionErrorMockEndpointConnector(
+            ConnectionErrorMockEndpointConnectorConfiguration failureConfiguration) {
         super(failureConfiguration);
         this.failureConfiguration = failureConfiguration;
     }
 
     @Override
     public Completable connect(HttpExecutionContext ctx) {
-        Failure failure = Optional.ofNullable(failureConfiguration.connectionErrors.pollFirst()).orElse(new Failure(200, "ok"));
+        Failure failure = Optional.ofNullable(failureConfiguration.connectionErrors.pollFirst())
+                .orElse(new Failure(200, "ok"));
         // Return the connection attempts counter as a header to simplify the assertions
         ctx.response().headers().set(MOCK_CONNECTION_ATTEMPTS, Integer.toString(connectAttempts.incrementAndGet()));
         if (failure.status() == 200) {

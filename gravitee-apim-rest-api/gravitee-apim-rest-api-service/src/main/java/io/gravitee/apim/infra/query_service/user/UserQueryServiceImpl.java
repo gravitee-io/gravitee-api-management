@@ -32,6 +32,8 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public List<User> search(UserSearchQuery searchQuery) {
-        return identityManager.search(searchQuery.query()).stream().map(SearchUserAdapter.INSTANCE::toUser).toList();
+        return identityManager.search(searchQuery.query()).stream()
+                .map(SearchUserAdapter.INSTANCE::toUser)
+                .toList();
     }
 }

@@ -57,24 +57,23 @@ public class SearchTracesUseCase {
     private final TracingPort tracingPort;
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        // Required — the explorer always scopes to one API, never to "every API I can see". Per-API
-        // auth scope is enforced by the caller picking from APIs they can see (mandatory API picker
-        // before any search); pinning to one apiId keeps each query bounded to a single
-        // resource-attribute term, portable across backends (works on Tempo too, which doesn't
-        // efficiently OR over hundreds of api-ids). Module isn't carried separately because every
-        // apiId belongs to exactly one module — the apiId alone is sufficient to scope.
-        String apiId,
-        // Abstract filters from the UI — translated to attribute filters by SearchTraceFilterTranslator.
-        // Empty / null means "no filters beyond the required scope envelope".
-        List<FilterCondition> filters,
-        Instant start,
-        Instant end,
-        // 1-based page number aligned with apim's v2 logs/analytics convention. Null defers to default.
-        Integer page,
-        Integer perPage
-    ) {}
+            String organizationId,
+            String environmentId,
+            // Required — the explorer always scopes to one API, never to "every API I can see". Per-API
+            // auth scope is enforced by the caller picking from APIs they can see (mandatory API picker
+            // before any search); pinning to one apiId keeps each query bounded to a single
+            // resource-attribute term, portable across backends (works on Tempo too, which doesn't
+            // efficiently OR over hundreds of api-ids). Module isn't carried separately because every
+            // apiId belongs to exactly one module — the apiId alone is sufficient to scope.
+            String apiId,
+            // Abstract filters from the UI — translated to attribute filters by SearchTraceFilterTranslator.
+            // Empty / null means "no filters beyond the required scope envelope".
+            List<FilterCondition> filters,
+            Instant start,
+            Instant end,
+            // 1-based page number aligned with apim's v2 logs/analytics convention. Null defers to default.
+            Integer page,
+            Integer perPage) {}
 
     public record Output(Page<Trace> traces) {}
 
@@ -91,15 +90,14 @@ public class SearchTracesUseCase {
 
         // TracingPort still takes a 0-based page (internal pagination math); convert at the boundary.
         Page<Trace> traces = tracingPort.searchTraces(
-            input.organizationId,
-            input.environmentId,
-            TraceScopeFilters.forApi(input.environmentId, input.apiId),
-            attributeFilters,
-            resolvedStart,
-            resolvedEnd,
-            resolvedPage - 1,
-            resolvedPerPage
-        );
+                input.organizationId,
+                input.environmentId,
+                TraceScopeFilters.forApi(input.environmentId, input.apiId),
+                attributeFilters,
+                resolvedStart,
+                resolvedEnd,
+                resolvedPage - 1,
+                resolvedPerPage);
         return new Output(traces);
     }
 }

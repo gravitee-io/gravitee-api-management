@@ -30,7 +30,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom {
+public interface ApplicationMongoRepository
+        extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom {
     default Set<ApplicationMongo> findByIds(Collection<String> ids) {
         return this.findByIds(ids, null);
     }
@@ -44,7 +45,9 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
     @Query("{ name: { $regex: ?0, $options: 'i'}}")
     Set<ApplicationMongo> findByName(String name);
 
-    @Query(value = "{ name: { $regex: ?0, $options: 'i'}, status: {$in: ?1} }", fields = "{ 'background' : 0, 'picture': 0}")
+    @Query(
+            value = "{ name: { $regex: ?0, $options: 'i'}, status: {$in: ?1} }",
+            fields = "{ 'background' : 0, 'picture': 0}")
     Set<ApplicationMongo> findByNameAndStatuses(String name, List<ApplicationStatus> statuses);
 
     @Query(value = "{ status: {$in: ?0} }", fields = "{ 'background' : 0, 'picture': 0}")

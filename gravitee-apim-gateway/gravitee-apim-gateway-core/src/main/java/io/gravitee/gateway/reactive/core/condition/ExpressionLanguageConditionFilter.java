@@ -29,7 +29,8 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> implements ConditionFilter<BaseExecutionContext, T> {
+public class ExpressionLanguageConditionFilter<T extends ConditionSupplier>
+        implements ConditionFilter<BaseExecutionContext, T> {
 
     @Override
     public Maybe<T> filter(BaseExecutionContext ctx, T elt) {
@@ -39,27 +40,24 @@ public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> impl
             return Maybe.just(elt);
         }
 
-        return ctx
-            .getTemplateEngine()
-            .eval(condition, Boolean.class)
-            .filter(Boolean::booleanValue)
-            .map(aBoolean -> elt)
-            .onErrorComplete(throwable -> {
-                if (throwable instanceof ExpressionEvaluationException elException) {
-                    // Report the EL exception as a warning.
-                    ctx.withLogger(log).warn("Error parsing condition {}", condition, throwable);
-                    ctx.warnWith(
-                        new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
-                            .message("Unable to execute EL condition " + condition)
-                            .cause(elException)
-                    );
+        return ctx.getTemplateEngine()
+                .eval(condition, Boolean.class)
+                .filter(Boolean::booleanValue)
+                .map(aBoolean -> elt)
+                .onErrorComplete(throwable -> {
+                    if (throwable instanceof ExpressionEvaluationException elException) {
+                        // Report the EL exception as a warning.
+                        ctx.withLogger(log).warn("Error parsing condition {}", condition, throwable);
+                        ctx.warnWith(new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
+                                .message("Unable to execute EL condition " + condition)
+                                .cause(elException));
 
-                    // And let the execution continues.
-                    return true;
-                }
+                        // And let the execution continues.
+                        return true;
+                    }
 
-                // Don't complete, propagate to interrupt the execution.
-                return false;
-            });
+                    // Don't complete, propagate to interrupt the execution.
+                    return false;
+                });
     }
 }

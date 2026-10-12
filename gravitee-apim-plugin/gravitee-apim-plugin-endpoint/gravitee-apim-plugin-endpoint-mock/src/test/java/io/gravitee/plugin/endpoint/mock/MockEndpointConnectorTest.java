@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,8 +94,12 @@ class MockEndpointConnectorTest {
 
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
-        lenient().when(entrypointConnector.supportedModes()).thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
-        lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointConnector);
+        lenient()
+                .when(entrypointConnector.supportedModes())
+                .thenReturn(Set.of(ConnectorMode.SUBSCRIBE, ConnectorMode.PUBLISH));
+        lenient()
+                .when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
+                .thenReturn(entrypointConnector);
 
         // get Logback Logger
         Logger logger = (Logger) LoggerFactory.getLogger(MockEndpointConnector.class);
@@ -134,13 +137,17 @@ class MockEndpointConnectorTest {
         ArgumentCaptor<Function<Message, Maybe<Message>>> messagesCaptor = ArgumentCaptor.forClass(Function.class);
 
         verify(request).onMessage(messagesCaptor.capture());
-        messagesCaptor.getValue().apply(DefaultMessage.builder().content(MESSAGE_TO_LOG).build()).test().assertComplete();
+        messagesCaptor
+                .getValue()
+                .apply(DefaultMessage.builder().content(MESSAGE_TO_LOG).build())
+                .test()
+                .assertComplete();
         final List<ILoggingEvent> logList = listAppender.list;
         assertThat(logList)
-            .hasSize(1)
-            .element(0)
-            .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
-            .containsExactly("Received message: " + MESSAGE_TO_LOG, Level.INFO);
+                .hasSize(1)
+                .element(0)
+                .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
+                .containsExactly("Received message: " + MESSAGE_TO_LOG, Level.INFO);
     }
 
     @Test
@@ -154,12 +161,20 @@ class MockEndpointConnectorTest {
         final TestSubscriber<Message> obs = messagesCaptor.getValue().test(3);
 
         testScheduler.triggerActions();
-        obs
-            .awaitCount(3)
-            .assertValueCount(3)
-            .assertValueAt(0, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("0"))
-            .assertValueAt(1, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("1"))
-            .assertValueAt(2, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("2"));
+        obs.awaitCount(3)
+                .assertValueCount(3)
+                .assertValueAt(
+                        0,
+                        message -> message.content().toString().equals(MESSAGE_CONTENT)
+                                && message.id().equals("0"))
+                .assertValueAt(
+                        1,
+                        message -> message.content().toString().equals(MESSAGE_CONTENT)
+                                && message.id().equals("1"))
+                .assertValueAt(
+                        2,
+                        message -> message.content().toString().equals(MESSAGE_CONTENT)
+                                && message.id().equals("2"));
     }
 
     @Test
@@ -178,9 +193,12 @@ class MockEndpointConnectorTest {
     @Test
     @DisplayName("Should generate messages flow with a limited count of messages from the client request")
     void shouldGenerateLimitedMessagesFlowFromClientRequest() throws InterruptedException {
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(3);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT))
+                .thenReturn(3);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
+                .thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID))
+                .thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -192,15 +210,19 @@ class MockEndpointConnectorTest {
     }
 
     @ParameterizedTest(name = "configurationLimitCount: {0}, ctxLimitCount: {1}")
-    @CsvSource({ "3,4", "4,2" })
-    @DisplayName("Should generate messages flow with a limited count of messages from the client request and the configuration")
-    void shouldGenerateLimitedMessagesFlowFromClientRequestAndConfiguration(int configurationLimitCount, int ctxLimitCount)
-        throws InterruptedException {
+    @CsvSource({"3,4", "4,2"})
+    @DisplayName(
+            "Should generate messages flow with a limited count of messages from the client request and the configuration")
+    void shouldGenerateLimitedMessagesFlowFromClientRequestAndConfiguration(
+            int configurationLimitCount, int ctxLimitCount) throws InterruptedException {
         configuration.setMessageCount(configurationLimitCount);
 
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(ctxLimitCount);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT))
+                .thenReturn(ctxLimitCount);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
+                .thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID))
+                .thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -214,9 +236,12 @@ class MockEndpointConnectorTest {
     @Test
     @DisplayName("Should generate messages flow during a specific amount of time requested by the client")
     void shouldGenerateLimitedInTimeMessagesFlowFromClientRequest() throws InterruptedException {
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(1_000L);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT))
+                .thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
+                .thenReturn(1_000L);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID))
+                .thenReturn(null);
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -224,16 +249,23 @@ class MockEndpointConnectorTest {
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
 
-        messagesCaptor.getValue().test().awaitDone(1_500L, TimeUnit.MILLISECONDS).assertComplete();
+        messagesCaptor
+                .getValue()
+                .test()
+                .awaitDone(1_500L, TimeUnit.MILLISECONDS)
+                .assertComplete();
     }
 
     @Test
     @DisplayName("Should generate messages flow from lastId")
     void shouldGenerateMessagesFlowFromLastId() throws InterruptedException {
         configuration.setMessageCount(4);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS)).thenReturn(null);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID)).thenReturn("1");
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_COUNT))
+                .thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_LIMIT_DURATION_MS))
+                .thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_MESSAGES_RECOVERY_LAST_ID))
+                .thenReturn("1");
         when(request.onMessage(any())).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -252,23 +284,21 @@ class MockEndpointConnectorTest {
     @DisplayName("Should generate message with metadata")
     void shouldGenerateMessageWithMetadata() throws InterruptedException {
         configuration.setMessageCount(1);
-        configuration.setMetadata(List.of(new HttpHeader("mock-metadata1", "foo"), new HttpHeader("mock-metadata2", "bar")));
+        configuration.setMetadata(
+                List.of(new HttpHeader("mock-metadata1", "foo"), new HttpHeader("mock-metadata2", "bar")));
 
         cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
 
-        messagesCaptor
-            .getValue()
-            .test()
-            .await()
-            .assertValue(message -> {
-                assertThat(message.metadata()).containsOnlyKeys("sourceTimestamp", "mock-metadata1", "mock-metadata2");
-                assertThat(message.metadata()).containsAllEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
-                assertThat(message.headers()).isEmpty();
-                return true;
-            });
+        messagesCaptor.getValue().test().await().assertValue(message -> {
+            assertThat(message.metadata()).containsOnlyKeys("sourceTimestamp", "mock-metadata1", "mock-metadata2");
+            assertThat(message.metadata())
+                    .containsAllEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
+            assertThat(message.headers()).isEmpty();
+            return true;
+        });
     }
 
     @Test
@@ -282,41 +312,35 @@ class MockEndpointConnectorTest {
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
 
-        messagesCaptor
-            .getValue()
-            .test()
-            .await()
-            .assertValue(message -> {
-                assertThat(message.headers().toSingleValueMap()).containsExactlyInAnyOrderEntriesOf(
-                    Map.of("header1", "foo", "header2", "bar")
-                );
-                assertThat(message.metadata()).hasEntrySatisfying("sourceTimestamp", value -> assertThat(value).isInstanceOf(Long.class));
-                return true;
-            });
+        messagesCaptor.getValue().test().await().assertValue(message -> {
+            assertThat(message.headers().toSingleValueMap())
+                    .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
+            assertThat(message.metadata())
+                    .hasEntrySatisfying(
+                            "sourceTimestamp", value -> assertThat(value).isInstanceOf(Long.class));
+            return true;
+        });
     }
 
     @Test
     @DisplayName("Should generate message with headers and metadata")
     void shouldGenerateMessageWithHeadersAndMetadata() throws InterruptedException {
         configuration.setMessageCount(1);
-        configuration.setMetadata(List.of(new HttpHeader("mock-metadata1", "foo"), new HttpHeader("mock-metadata2", "bar")));
+        configuration.setMetadata(
+                List.of(new HttpHeader("mock-metadata1", "foo"), new HttpHeader("mock-metadata2", "bar")));
         configuration.setHeaders(List.of(new HttpHeader("header1", "foo"), new HttpHeader("header2", "bar")));
         cut.connect(ctx).test().assertComplete();
 
         ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(response).messages(messagesCaptor.capture());
 
-        messagesCaptor
-            .getValue()
-            .test()
-            .await()
-            .assertValue(message -> {
-                assertThat(message.metadata()).containsOnlyKeys("sourceTimestamp", "mock-metadata1", "mock-metadata2");
-                assertThat(message.metadata()).containsAllEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
-                assertThat(message.headers().toSingleValueMap()).containsExactlyInAnyOrderEntriesOf(
-                    Map.of("header1", "foo", "header2", "bar")
-                );
-                return true;
-            });
+        messagesCaptor.getValue().test().await().assertValue(message -> {
+            assertThat(message.metadata()).containsOnlyKeys("sourceTimestamp", "mock-metadata1", "mock-metadata2");
+            assertThat(message.metadata())
+                    .containsAllEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
+            assertThat(message.headers().toSingleValueMap())
+                    .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
+            return true;
+        });
     }
 }

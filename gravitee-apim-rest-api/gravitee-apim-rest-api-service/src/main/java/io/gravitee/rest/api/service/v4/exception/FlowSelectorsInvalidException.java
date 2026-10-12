@@ -46,15 +46,12 @@ public class FlowSelectorsInvalidException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return (
-            "The flow [" +
-            name +
-            "] contains selectors " +
-            invalidSelectors +
-            " that couldn't apply to api type [" +
-            apiType.getLabel() +
-            "]."
-        );
+        return ("The flow [" + name
+                + "] contains selectors "
+                + invalidSelectors
+                + " that couldn't apply to api type ["
+                + apiType.getLabel()
+                + "].");
     }
 
     @Override

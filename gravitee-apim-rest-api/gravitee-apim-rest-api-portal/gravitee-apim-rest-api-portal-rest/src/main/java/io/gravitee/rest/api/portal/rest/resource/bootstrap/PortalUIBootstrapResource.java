@@ -65,15 +65,16 @@ public class PortalUIBootstrapResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the portal bootstrap", description = "Every users can use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Portal UI bootstrap information",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalUIBootstrapEntity.class))
-    )
+            responseCode = "200",
+            description = "Portal UI bootstrap information",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalUIBootstrapEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response bootstrap(
-        @Context final HttpServletRequest httpServletRequest,
-        @QueryParam("environmentId") final String enforceEnvironmentId
-    ) {
+            @Context final HttpServletRequest httpServletRequest,
+            @QueryParam("environmentId") final String enforceEnvironmentId) {
         String environmentId;
         String organizationId;
         if (enforceEnvironmentId != null) {
@@ -81,32 +82,34 @@ public class PortalUIBootstrapResource {
             organizationId = environmentService.findById(environmentId).getOrganizationId();
         } else {
             environmentId = GraviteeContext.getCurrentEnvironment() != null
-                ? GraviteeContext.getCurrentEnvironment()
-                : GraviteeContext.getDefaultEnvironment();
+                    ? GraviteeContext.getCurrentEnvironment()
+                    : GraviteeContext.getDefaultEnvironment();
             organizationId = GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization();
+                    ? GraviteeContext.getCurrentOrganization()
+                    : GraviteeContext.getDefaultOrganization();
         }
 
         String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);
         if (portalApiUrl != null) {
-            return Response.ok(
-                PortalUIBootstrapEntity.builder().organizationId(organizationId).environmentId(environmentId).baseURL(portalApiUrl).build()
-            ).build();
+            return Response.ok(PortalUIBootstrapEntity.builder()
+                            .organizationId(organizationId)
+                            .environmentId(environmentId)
+                            .baseURL(portalApiUrl)
+                            .build())
+                    .build();
         }
 
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
         UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request)
-            .replacePath(getPortalProxyPath())
-            .replaceQuery(null)
-            .build();
-        return Response.ok(
-            PortalUIBootstrapEntity.builder()
-                .organizationId(organizationId)
-                .environmentId(environmentId)
-                .baseURL(uriComponents.toUriString())
-                .build()
-        ).build();
+                .replacePath(getPortalProxyPath())
+                .replaceQuery(null)
+                .build();
+        return Response.ok(PortalUIBootstrapEntity.builder()
+                        .organizationId(organizationId)
+                        .environmentId(environmentId)
+                        .baseURL(uriComponents.toUriString())
+                        .build())
+                .build();
     }
 
     private String getPortalProxyPath() {

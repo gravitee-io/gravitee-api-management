@@ -23,7 +23,6 @@ import lombok.*;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Setter
 @Getter
 @EqualsAndHashCode(of = "id")

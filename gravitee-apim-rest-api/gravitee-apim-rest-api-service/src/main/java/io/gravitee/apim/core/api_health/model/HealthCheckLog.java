@@ -22,15 +22,14 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record HealthCheckLog(
-    String id,
-    Instant timestamp,
-    String apiId,
-    String endpointName,
-    String gatewayId,
-    long responseTime,
-    boolean success,
-    List<Step> steps
-) {
+        String id,
+        Instant timestamp,
+        String apiId,
+        String endpointName,
+        String gatewayId,
+        long responseTime,
+        boolean success,
+        List<Step> steps) {
     public record Step(String name, boolean success, String message, Request request, Response response) {}
 
     public record Request(String uri, String method, Map<String, String> headers) {}

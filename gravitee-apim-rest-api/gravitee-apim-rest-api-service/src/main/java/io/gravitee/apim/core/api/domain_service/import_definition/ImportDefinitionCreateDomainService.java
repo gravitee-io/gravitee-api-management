@@ -79,19 +79,18 @@ public class ImportDefinitionCreateDomainService {
     private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     public ImportDefinitionCreateDomainService(
-        ApiImportDomainService apiImportDomainService,
-        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
-        CreateApiDomainService createApiDomainService,
-        ValidateApiDomainService validateApiDomainService,
-        ApiMetadataDomainService apiMetadataDomainService,
-        CreatePlanDomainService createPlanDomainService,
-        CreateApiDocumentationDomainService createApiDocumentationDomainService,
-        ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
-        MetadataCrudService metadataCrudService,
-        DocumentationValidationDomainService documentationValidationDomainService,
-        CategoryDomainService categoryDomainService,
-        ImportApiGroupsDomainService importApiGroupsDomainService
-    ) {
+            ApiImportDomainService apiImportDomainService,
+            ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+            CreateApiDomainService createApiDomainService,
+            ValidateApiDomainService validateApiDomainService,
+            ApiMetadataDomainService apiMetadataDomainService,
+            CreatePlanDomainService createPlanDomainService,
+            CreateApiDocumentationDomainService createApiDocumentationDomainService,
+            ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
+            MetadataCrudService metadataCrudService,
+            DocumentationValidationDomainService documentationValidationDomainService,
+            CategoryDomainService categoryDomainService,
+            ImportApiGroupsDomainService importApiGroupsDomainService) {
         this.apiImportDomainService = apiImportDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.createApiDomainService = createApiDomainService;
@@ -110,10 +109,10 @@ public class ImportDefinitionCreateDomainService {
         var environmentId = auditInfo.environmentId();
         var organizationId = auditInfo.organizationId();
         var primaryOwnerId = Optional.ofNullable(importDefinition)
-            .map(ImportDefinition::getApiExport)
-            .map(ApiExport::getPrimaryOwner)
-            .map(PrimaryOwnerEntity::id)
-            .orElse(auditInfo.actor().userId());
+                .map(ImportDefinition::getApiExport)
+                .map(ApiExport::getPrimaryOwner)
+                .map(PrimaryOwnerEntity::id)
+                .orElse(auditInfo.actor().userId());
         PrimaryOwnerEntity primaryOwner = resolvePrimaryOwner(organizationId, environmentId, primaryOwnerId, auditInfo);
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(environmentId, importDefinition);
         var apiExport = apiWithIds.getApiExport();
@@ -124,33 +123,32 @@ public class ImportDefinitionCreateDomainService {
         var api = ApiModelFactory.fromApiExport(apiExport, environmentId);
         var apiWithResolvedCategories = resolveCategoriesForImport(api, environmentId);
         var createdApi = createApiDomainService.create(
-            apiWithResolvedCategories,
-            primaryOwner,
-            auditInfo,
-            apiToValidate -> {
-                var validated = validateApiDomainService.validateAndSanitizeForCreation(
-                    apiToValidate,
-                    primaryOwner,
-                    environmentId,
-                    organizationId
-                );
-                // Merge resolved group IDs with groups validation added (defaults, primary-owner group)
-                var resolvedGroupIds = importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo);
-                var mergedGroups = mergeGroups(validated.getGroups(), resolvedGroupIds);
-                return validated.toBuilder().groups(mergedGroups).build();
-            },
-            oneShotIndexation(auditInfo)
-        );
+                apiWithResolvedCategories,
+                primaryOwner,
+                auditInfo,
+                apiToValidate -> {
+                    var validated = validateApiDomainService.validateAndSanitizeForCreation(
+                            apiToValidate, primaryOwner, environmentId, organizationId);
+                    // Merge resolved group IDs with groups validation added (defaults, primary-owner group)
+                    var resolvedGroupIds = importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo);
+                    var mergedGroups = mergeGroups(validated.getGroups(), resolvedGroupIds);
+                    return validated.toBuilder().groups(mergedGroups).build();
+                },
+                oneShotIndexation(auditInfo));
 
         new ImportDefinitionSubEntityProcessor(createdApi.getId())
-            .addSubEntity("Metadata", () -> createMetadata(importDefinition.getMetadata(), createdApi.getId(), auditInfo))
-            .addSubEntity("Pages", () -> createPages(importDefinition.getPages(), createdApi.getId(), auditInfo))
-            .addSubEntity("Plans", () -> createPlans(importDefinition.getPlans(), createdApi, auditInfo))
-            .addSubEntity("Media", () ->
-                createMedias(importDefinition.getApiMedia(), createdApi.getId(), new ExecutionContext(organizationId, environmentId))
-            )
-            .addSubEntity("Members", () -> createMembers(importDefinition.getMembers(), createdApi.getId()))
-            .process();
+                .addSubEntity(
+                        "Metadata", () -> createMetadata(importDefinition.getMetadata(), createdApi.getId(), auditInfo))
+                .addSubEntity("Pages", () -> createPages(importDefinition.getPages(), createdApi.getId(), auditInfo))
+                .addSubEntity("Plans", () -> createPlans(importDefinition.getPlans(), createdApi, auditInfo))
+                .addSubEntity(
+                        "Media",
+                        () -> createMedias(
+                                importDefinition.getApiMedia(),
+                                createdApi.getId(),
+                                new ExecutionContext(organizationId, environmentId)))
+                .addSubEntity("Members", () -> createMembers(importDefinition.getMembers(), createdApi.getId()))
+                .process();
 
         return createdApi;
     }
@@ -182,86 +180,80 @@ public class ImportDefinitionCreateDomainService {
     }
 
     private PrimaryOwnerEntity resolvePrimaryOwner(
-        String organizationId,
-        String environmentId,
-        String primaryOwnerId,
-        AuditInfo auditInfo
-    ) {
+            String organizationId, String environmentId, String primaryOwnerId, AuditInfo auditInfo) {
         try {
             return apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, primaryOwnerId);
         } catch (UserNotFoundException unfe) {
-            return apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, auditInfo.actor().userId());
+            return apiPrimaryOwnerFactory.createForNewApi(
+                    organizationId, environmentId, auditInfo.actor().userId());
         }
     }
 
     private void createMetadata(Set<NewApiMetadata> metadataSet, String apiId, AuditInfo auditInfo) {
         if (metadataSet != null) {
-            metadataSet
-                .stream()
-                .map(metadata -> metadata.toBuilder().apiId(apiId).build())
-                .forEach(metadata ->
-                    metadataCrudService
-                        .findById(
-                            MetadataId.builder().key(metadata.getKey()).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build()
-                        )
-                        .ifPresentOrElse(
-                            existingMetadata ->
-                                apiMetadataDomainService.update(
-                                    existingMetadata.toBuilder().name(metadata.getName()).value(metadata.getValue()).build(),
-                                    auditInfo
-                                ),
-                            () -> apiMetadataDomainService.create(metadata, auditInfo)
-                        )
-                );
+            metadataSet.stream()
+                    .map(metadata -> metadata.toBuilder().apiId(apiId).build())
+                    .forEach(metadata -> metadataCrudService
+                            .findById(MetadataId.builder()
+                                    .key(metadata.getKey())
+                                    .referenceId(apiId)
+                                    .referenceType(Metadata.ReferenceType.API)
+                                    .build())
+                            .ifPresentOrElse(
+                                    existingMetadata -> apiMetadataDomainService.update(
+                                            existingMetadata.toBuilder()
+                                                    .name(metadata.getName())
+                                                    .value(metadata.getValue())
+                                                    .build(),
+                                            auditInfo),
+                                    () -> apiMetadataDomainService.create(metadata, auditInfo)));
         }
     }
 
     private void createPlans(Set<PlanWithFlows> plans, ApiWithFlows api, AuditInfo auditInfo) {
         if (plans != null) {
-            plans
-                .stream()
-                .map(plan -> plan.toBuilder().referenceId(api.getId()).build())
-                .forEach(plan -> createPlanDomainService.create(plan, plan.getFlows(), api.toApi(), auditInfo));
+            plans.stream()
+                    .map(plan -> plan.toBuilder().referenceId(api.getId()).build())
+                    .forEach(plan -> createPlanDomainService.create(plan, plan.getFlows(), api.toApi(), auditInfo));
         }
     }
 
     private void createPages(List<Page> pages, String apiId, AuditInfo auditInfo) {
         if (pages != null) {
             var now = Date.from(TimeProvider.now().toInstant());
-            pages
-                .stream()
-                .map(page -> {
-                    if (page.getParentId() != null) {
-                        validatePageParent(pages, page.getParentId());
-                    }
-                    return documentationValidationDomainService.validateAndSanitizeForCreation(
-                        page
-                            .toBuilder()
-                            .id(page.getId() == null ? UuidString.generateRandom() : page.getId())
-                            .crossId(page.getCrossId() == null ? UuidString.generateRandom() : page.getCrossId())
-                            .referenceType(Page.ReferenceType.API)
-                            .referenceId(apiId)
-                            .createdAt(now)
-                            .updatedAt(now)
-                            .build(),
-                        auditInfo.organizationId(),
-                        false
-                    );
-                })
-                .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
+            pages.stream()
+                    .map(page -> {
+                        if (page.getParentId() != null) {
+                            validatePageParent(pages, page.getParentId());
+                        }
+                        return documentationValidationDomainService.validateAndSanitizeForCreation(
+                                page.toBuilder()
+                                        .id(page.getId() == null ? UuidString.generateRandom() : page.getId())
+                                        .crossId(
+                                                page.getCrossId() == null
+                                                        ? UuidString.generateRandom()
+                                                        : page.getCrossId())
+                                        .referenceType(Page.ReferenceType.API)
+                                        .referenceId(apiId)
+                                        .createdAt(now)
+                                        .updatedAt(now)
+                                        .build(),
+                                auditInfo.organizationId(),
+                                false);
+                    })
+                    .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
         }
     }
 
     private void validatePageParent(List<Page> pages, String parentId) {
-        pages
-            .stream()
-            .filter(parent -> parentId.equals(parent.getId()))
-            .findFirst()
-            .ifPresent(parent -> {
-                if (!(parent.isFolder() || parent.isRoot())) {
-                    throw new InvalidPageParentException(parent.getId());
-                }
-            });
+        pages.stream()
+                .filter(parent -> parentId.equals(parent.getId()))
+                .findFirst()
+                .ifPresent(parent -> {
+                    if (!(parent.isFolder() || parent.isRoot())) {
+                        throw new InvalidPageParentException(parent.getId());
+                    }
+                });
     }
 
     private void createMedias(List<Media> mediaList, String apiId, ExecutionContext executionContext) {

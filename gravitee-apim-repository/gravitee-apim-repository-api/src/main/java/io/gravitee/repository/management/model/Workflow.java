@@ -124,31 +124,28 @@ public class Workflow {
 
     @Override
     public String toString() {
-        return (
-            "Workflow{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", type='" +
-            type +
-            '\'' +
-            ", state=" +
-            state +
-            ", comment='" +
-            comment +
-            '\'' +
-            ", user='" +
-            user +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            '}'
-        );
+        return ("Workflow{" + "id='"
+                + id
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", type='"
+                + type
+                + '\''
+                + ", state="
+                + state
+                + ", comment='"
+                + comment
+                + '\''
+                + ", user='"
+                + user
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + '}');
     }
 }

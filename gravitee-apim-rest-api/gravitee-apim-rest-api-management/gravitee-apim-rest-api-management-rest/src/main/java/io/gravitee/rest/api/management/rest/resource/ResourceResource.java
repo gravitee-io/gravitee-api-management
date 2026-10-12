@@ -51,15 +51,19 @@ public class ResourceResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a resource", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "Get a resource",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Resource plugin",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlatformPluginEntity.class))
-    )
+            responseCode = "200",
+            description = "Resource plugin",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlatformPluginEntity.class)))
     @ApiResponse(responseCode = "404", description = "Resource not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public PlatformPluginEntity getResource(@PathParam("resource") String resource) {
         return resourceService.findById(resource);
     }
@@ -67,8 +71,10 @@ public class ResourceResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a resource's schema", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Operation(
+            summary = "Get a resource's schema",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getResourceSchema(@PathParam("resource") String resource) {
         // Check that the resource exists
         resourceService.findById(resource);
@@ -80,10 +86,9 @@ public class ResourceResource {
     @Path("documentation")
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(
-        summary = "Get a resource's documentation",
-        description = "User must have the MANAGEMENT_API[READ] permission to use this service"
-    )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+            summary = "Get a resource's documentation",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getResourceDoc(@PathParam("resource") String resource) {
         // Check that the policy exists
         resourceService.findById(resource);

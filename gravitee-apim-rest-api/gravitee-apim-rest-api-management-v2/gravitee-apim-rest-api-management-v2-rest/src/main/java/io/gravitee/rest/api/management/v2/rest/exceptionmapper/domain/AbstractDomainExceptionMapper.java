@@ -25,7 +25,12 @@ public abstract class AbstractDomainExceptionMapper<T extends Throwable> impleme
         return convert(t, status, null, null);
     }
 
-    protected Error convert(final Throwable t, final int status, final String technicalCode, final Map<String, String> parameters) {
-        return new Error().httpStatus(status).message(t.getMessage()).parameters(parameters).technicalCode(technicalCode);
+    protected Error convert(
+            final Throwable t, final int status, final String technicalCode, final Map<String, String> parameters) {
+        return new Error()
+                .httpStatus(status)
+                .message(t.getMessage())
+                .parameters(parameters)
+                .technicalCode(technicalCode);
     }
 }

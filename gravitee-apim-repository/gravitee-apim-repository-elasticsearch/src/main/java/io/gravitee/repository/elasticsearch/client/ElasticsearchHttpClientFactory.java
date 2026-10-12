@@ -73,16 +73,16 @@ public class ElasticsearchHttpClientFactory {
         cfg.setRequestTimeout(readProperty("http.timeout", Long.class, 10_000L));
 
         cfg.setProxyType(readProperty("http.proxy.type", String.class, "HTTP"));
-        cfg.setProxyHttpHost(readProperty("http.proxy.http.host", String.class, System.getProperty("http.proxyHost", "localhost")));
-        cfg.setProxyHttpPort(
-            readProperty("http.proxy.http.port", int.class, Integer.parseInt(System.getProperty("http.proxyPort", "3128")))
-        );
+        cfg.setProxyHttpHost(
+                readProperty("http.proxy.http.host", String.class, System.getProperty("http.proxyHost", "localhost")));
+        cfg.setProxyHttpPort(readProperty(
+                "http.proxy.http.port", int.class, Integer.parseInt(System.getProperty("http.proxyPort", "3128"))));
         cfg.setProxyHttpUsername(readProperty("http.proxy.http.username", String.class, null));
         cfg.setProxyHttpPassword(readProperty("http.proxy.http.password", String.class, null));
-        cfg.setProxyHttpsHost(readProperty("http.proxy.https.host", String.class, System.getProperty("https.proxyHost", "localhost")));
-        cfg.setProxyHttpsPort(
-            readProperty("http.proxy.https.port", int.class, Integer.parseInt(System.getProperty("https.proxyPort", "3128")))
-        );
+        cfg.setProxyHttpsHost(readProperty(
+                "http.proxy.https.host", String.class, System.getProperty("https.proxyHost", "localhost")));
+        cfg.setProxyHttpsPort(readProperty(
+                "http.proxy.https.port", int.class, Integer.parseInt(System.getProperty("https.proxyPort", "3128"))));
         cfg.setProxyHttpsUsername(readProperty("http.proxy.https.username", String.class, null));
         cfg.setProxyHttpsPassword(readProperty("http.proxy.https.password", String.class, null));
         cfg.setProxyConfigured(isProxyConfigured());
@@ -97,26 +97,16 @@ public class ElasticsearchHttpClientFactory {
             return;
         }
         if (keystoreType.equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
-            cfg.setSslConfig(
-                new HttpClientJksSslConfiguration(
+            cfg.setSslConfig(new HttpClientJksSslConfiguration(
                     readProperty("ssl.keystore.path", String.class, null),
-                    readProperty("ssl.keystore.password", String.class, null)
-                )
-            );
+                    readProperty("ssl.keystore.password", String.class, null)));
         } else if (keystoreType.equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
-            cfg.setSslConfig(
-                new HttpClientPfxSslConfiguration(
+            cfg.setSslConfig(new HttpClientPfxSslConfiguration(
                     readProperty("ssl.keystore.path", String.class, null),
-                    readProperty("ssl.keystore.password", String.class, null)
-                )
-            );
+                    readProperty("ssl.keystore.password", String.class, null)));
         } else if (keystoreType.equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
-            cfg.setSslConfig(
-                new HttpClientPemSslConfiguration(
-                    readIndexedListProperty("ssl.keystore.certs"),
-                    readIndexedListProperty("ssl.keystore.keys")
-                )
-            );
+            cfg.setSslConfig(new HttpClientPemSslConfiguration(
+                    readIndexedListProperty("ssl.keystore.certs"), readIndexedListProperty("ssl.keystore.keys")));
         }
     }
 
@@ -157,13 +147,11 @@ public class ElasticsearchHttpClientFactory {
      * {@code RepositoryConfiguration.isProxyConfigured()} did — same behaviour, but per-scope.
      */
     private boolean isProxyConfigured() {
-        return (
-            environment.containsProperty(propertyPrefix + "http.proxy.type") ||
-            environment.containsProperty(propertyPrefix + "http.proxy.http.host") ||
-            environment.containsProperty(propertyPrefix + "http.proxy.https.host") ||
-            environment.containsProperty(propertyPrefix + "http.proxy.http.port") ||
-            environment.containsProperty(propertyPrefix + "http.proxy.https.port")
-        );
+        return (environment.containsProperty(propertyPrefix + "http.proxy.type")
+                || environment.containsProperty(propertyPrefix + "http.proxy.http.host")
+                || environment.containsProperty(propertyPrefix + "http.proxy.https.host")
+                || environment.containsProperty(propertyPrefix + "http.proxy.http.port")
+                || environment.containsProperty(propertyPrefix + "http.proxy.https.port"));
     }
 
     private <T> T readProperty(String name, Class<T> type, T defaultValue) {

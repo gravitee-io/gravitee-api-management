@@ -43,10 +43,9 @@ public class UpdateApiDefinitionFromImportUseCase {
     private final FlowCrudService flowCrudService;
 
     public UpdateApiDefinitionFromImportUseCase(
-        ApiCrudService apiCrudService,
-        ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService,
-        FlowCrudService flowCrudService
-    ) {
+            ApiCrudService apiCrudService,
+            ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService,
+            FlowCrudService flowCrudService) {
         this.apiCrudService = apiCrudService;
         this.importDefinitionUpdateDomainService = importDefinitionUpdateDomainService;
         this.flowCrudService = flowCrudService;
@@ -55,14 +54,16 @@ public class UpdateApiDefinitionFromImportUseCase {
     public Output execute(Input input) {
         ensureIsV4Api(input.importDefinition().getApiExport());
 
-        var existingApi = apiCrudService.findById(input.apiId()).orElseThrow(() -> new ApiNotFoundException(input.apiId()));
+        var existingApi =
+                apiCrudService.findById(input.apiId()).orElseThrow(() -> new ApiNotFoundException(input.apiId()));
 
-        var updatedApi = importDefinitionUpdateDomainService.update(input.importDefinition(), existingApi, input.auditInfo());
+        var updatedApi =
+                importDefinitionUpdateDomainService.update(input.importDefinition(), existingApi, input.auditInfo());
 
         var apiId = updatedApi.getId();
         var flows = ApiType.NATIVE.equals(updatedApi.getType())
-            ? flowCrudService.getNativeApiFlows(apiId)
-            : flowCrudService.getApiV4Flows(apiId);
+                ? flowCrudService.getNativeApiFlows(apiId)
+                : flowCrudService.getApiV4Flows(apiId);
 
         return new Output(new ApiWithFlows(updatedApi, flows));
     }
@@ -72,7 +73,8 @@ public class UpdateApiDefinitionFromImportUseCase {
             throw new InvalidApiDefinitionException("The API definition is required");
         }
         if (api.getDefinitionVersion() != DefinitionVersion.V4) {
-            throw new ApiDefinitionVersionNotSupportedException(api.getDefinitionVersion().getLabel());
+            throw new ApiDefinitionVersionNotSupportedException(
+                    api.getDefinitionVersion().getLabel());
         }
     }
 }

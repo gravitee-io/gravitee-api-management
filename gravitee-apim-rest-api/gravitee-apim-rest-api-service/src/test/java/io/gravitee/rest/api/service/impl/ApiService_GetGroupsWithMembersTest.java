@@ -28,8 +28,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.GroupMemberEntity;
 import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -97,13 +95,12 @@ public class ApiService_GetGroupsWithMembersTest {
     public void setUp() throws Exception {
         GraviteeContext.cleanContext();
         apiGroupService = new ApiGroupServiceImpl(
-            apiRepository,
-            apiNotificationService,
-            groupService,
-            membershipService,
-            primaryOwnerService,
-            roleService
-        );
+                apiRepository,
+                apiNotificationService,
+                groupService,
+                membershipService,
+                primaryOwnerService,
+                roleService);
 
         UserEntity user = new UserEntity();
         user.setId("random");
@@ -111,7 +108,8 @@ public class ApiService_GetGroupsWithMembersTest {
     }
 
     @Test
-    public void shouldGetApiGroupsWithMembers_WithPrimaryOwnerPrivilege_ifGroupIsTheApiPrimaryOwner() throws TechnicalException {
+    public void shouldGetApiGroupsWithMembers_WithPrimaryOwnerPrivilege_ifGroupIsTheApiPrimaryOwner()
+            throws TechnicalException {
         final String expectedUserRole = "PRIMARY_OWNER";
 
         String apiId = UuidString.generateRandom();
@@ -124,7 +122,8 @@ public class ApiService_GetGroupsWithMembersTest {
 
         GroupEntity group = new GroupEntity();
         group.setId(groupId);
-        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId))).thenReturn(group);
+        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId)))
+                .thenReturn(group);
 
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(group, PO_MAIL));
 
@@ -135,23 +134,17 @@ public class ApiService_GetGroupsWithMembersTest {
         MemberEntity groupMember = new MemberEntity();
         groupMember.setReferenceId(groupId);
         groupMember.setRoles(List.of(groupMemberApiRole));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.GROUP,
-                List.of(groupId),
-                null
-            )
-        ).thenReturn(Set.of(groupMember));
+        when(membershipService.getMembersByReferencesAndRole(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, List.of(groupId), null))
+                .thenReturn(Set.of(groupMember));
 
         //        GroupEntity apiPrimaryOwner = new GroupEntity();
         //        apiPrimaryOwner.setId(groupId);
-        //        when(primaryOwnerService.getPrimaryOwner(any(), apiId)).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner));
+        //        when(primaryOwnerService.getPrimaryOwner(any(), apiId)).thenReturn(new
+        // PrimaryOwnerEntity(apiPrimaryOwner));
 
-        Map<String, List<GroupMemberEntity>> groupsWithMembers = apiGroupService.getGroupsWithMembers(
-            GraviteeContext.getExecutionContext(),
-            apiId
-        );
+        Map<String, List<GroupMemberEntity>> groupsWithMembers =
+                apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId);
         assertEquals(1, groupsWithMembers.size());
 
         List<GroupMemberEntity> groupMembers = groupsWithMembers.get(groupId);
@@ -167,7 +160,8 @@ public class ApiService_GetGroupsWithMembersTest {
     }
 
     @Test
-    public void shouldGetApiGroupsWithMembers_RevokingPrimaryOwnerPrivilege_ifApiPrimaryOwnerIsOfTypeUser() throws TechnicalException {
+    public void shouldGetApiGroupsWithMembers_RevokingPrimaryOwnerPrivilege_ifApiPrimaryOwnerIsOfTypeUser()
+            throws TechnicalException {
         final String expectedUserRole = "OWNER";
 
         String apiId = UuidString.generateRandom();
@@ -186,7 +180,8 @@ public class ApiService_GetGroupsWithMembersTest {
         GroupEntity group = new GroupEntity();
         group.setId(groupId);
         group.setRoles(Map.of(RoleScope.API, expectedUserRole));
-        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId))).thenReturn(group);
+        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId)))
+                .thenReturn(group);
 
         RoleEntity groupMemberApiRole = new RoleEntity();
         groupMemberApiRole.setName(SystemRole.PRIMARY_OWNER.name());
@@ -195,26 +190,19 @@ public class ApiService_GetGroupsWithMembersTest {
         MemberEntity groupMember = new MemberEntity();
         groupMember.setReferenceId(groupId);
         groupMember.setRoles(List.of(groupMemberApiRole));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.GROUP,
-                List.of(groupId),
-                null
-            )
-        ).thenReturn(Set.of(groupMember));
+        when(membershipService.getMembersByReferencesAndRole(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, List.of(groupId), null))
+                .thenReturn(Set.of(groupMember));
 
         RoleEntity groupDefaultApiRole = new RoleEntity();
         groupDefaultApiRole.setScope(RoleScope.API);
         groupDefaultApiRole.setName(expectedUserRole);
-        when(
-            roleService.findByScopeAndName(eq(RoleScope.API), eq(expectedUserRole), eq(GraviteeContext.getCurrentOrganization()))
-        ).thenReturn(Optional.of(groupDefaultApiRole));
+        when(roleService.findByScopeAndName(
+                        eq(RoleScope.API), eq(expectedUserRole), eq(GraviteeContext.getCurrentOrganization())))
+                .thenReturn(Optional.of(groupDefaultApiRole));
 
-        Map<String, List<GroupMemberEntity>> groupsWithMembers = apiGroupService.getGroupsWithMembers(
-            GraviteeContext.getExecutionContext(),
-            apiId
-        );
+        Map<String, List<GroupMemberEntity>> groupsWithMembers =
+                apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId);
         assertEquals(1, groupsWithMembers.size());
 
         List<GroupMemberEntity> groupMembers = groupsWithMembers.get(groupId);
@@ -230,7 +218,8 @@ public class ApiService_GetGroupsWithMembersTest {
     }
 
     @Test
-    public void shouldGetApiGroupsWithMembers_RevokingPrimaryOwnerPrivilege_ifGroupIsNotTheApiPrimaryOwner() throws TechnicalException {
+    public void shouldGetApiGroupsWithMembers_RevokingPrimaryOwnerPrivilege_ifGroupIsNotTheApiPrimaryOwner()
+            throws TechnicalException {
         final String expectedUserRole = "REVIEWER";
 
         String apiId = UuidString.generateRandom();
@@ -239,7 +228,8 @@ public class ApiService_GetGroupsWithMembersTest {
 
         GroupEntity apiPrimaryOwner = new GroupEntity();
         apiPrimaryOwner.setId(apiPrimaryOwnerGroupId);
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
+        when(primaryOwnerService.getPrimaryOwner(any(), any()))
+                .thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
 
         Api api = new Api();
         api.setId(apiId);
@@ -249,7 +239,8 @@ public class ApiService_GetGroupsWithMembersTest {
         GroupEntity group = new GroupEntity();
         group.setId(groupId);
         group.setRoles(Map.of(RoleScope.API, expectedUserRole));
-        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId))).thenReturn(group);
+        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId)))
+                .thenReturn(group);
 
         RoleEntity groupMemberApiRole = new RoleEntity();
         groupMemberApiRole.setName(SystemRole.PRIMARY_OWNER.name());
@@ -258,25 +249,18 @@ public class ApiService_GetGroupsWithMembersTest {
         MemberEntity groupMember = new MemberEntity();
         groupMember.setReferenceId(groupId);
         groupMember.setRoles(List.of(groupMemberApiRole));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.GROUP,
-                List.of(groupId),
-                null
-            )
-        ).thenReturn(Set.of(groupMember));
+        when(membershipService.getMembersByReferencesAndRole(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, List.of(groupId), null))
+                .thenReturn(Set.of(groupMember));
 
         RoleEntity groupDefaultApiRole = Mockito.mock(RoleEntity.class);
         when(groupDefaultApiRole.getName()).thenReturn(expectedUserRole);
-        when(
-            roleService.findByScopeAndName(eq(RoleScope.API), eq(expectedUserRole), eq(GraviteeContext.getCurrentOrganization()))
-        ).thenReturn(Optional.of(groupDefaultApiRole));
+        when(roleService.findByScopeAndName(
+                        eq(RoleScope.API), eq(expectedUserRole), eq(GraviteeContext.getCurrentOrganization())))
+                .thenReturn(Optional.of(groupDefaultApiRole));
 
-        Map<String, List<GroupMemberEntity>> groupsWithMembers = apiGroupService.getGroupsWithMembers(
-            GraviteeContext.getExecutionContext(),
-            apiId
-        );
+        Map<String, List<GroupMemberEntity>> groupsWithMembers =
+                apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId);
         assertEquals(1, groupsWithMembers.size());
 
         List<GroupMemberEntity> groupMembers = groupsWithMembers.get(groupId);
@@ -292,15 +276,17 @@ public class ApiService_GetGroupsWithMembersTest {
     }
 
     @Test
-    public void shouldGetApiGroupsWithMembers_RemovingPrimaryOwnerPrivilege_ifGroupIsNotTheApiPrimaryOwner_andNoDefaultRole()
-        throws TechnicalException {
+    public void
+            shouldGetApiGroupsWithMembers_RemovingPrimaryOwnerPrivilege_ifGroupIsNotTheApiPrimaryOwner_andNoDefaultRole()
+                    throws TechnicalException {
         String apiId = UuidString.generateRandom();
         String groupId = UuidString.generateRandom();
         String apiPrimaryOwnerGroupId = UuidString.generateRandom();
 
         GroupEntity apiPrimaryOwner = new GroupEntity();
         apiPrimaryOwner.setId(apiPrimaryOwnerGroupId);
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
+        when(primaryOwnerService.getPrimaryOwner(any(), any()))
+                .thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
 
         Api api = new Api();
         api.setId(apiId);
@@ -310,7 +296,8 @@ public class ApiService_GetGroupsWithMembersTest {
         GroupEntity group = new GroupEntity();
         group.setId(groupId);
         group.setRoles(Map.of());
-        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId))).thenReturn(group);
+        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId)))
+                .thenReturn(group);
 
         RoleEntity groupMemberApiRole = new RoleEntity();
         groupMemberApiRole.setName(SystemRole.PRIMARY_OWNER.name());
@@ -319,19 +306,12 @@ public class ApiService_GetGroupsWithMembersTest {
         MemberEntity groupMember = new MemberEntity();
         groupMember.setReferenceId(groupId);
         groupMember.setRoles(List.of(groupMemberApiRole));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.GROUP,
-                List.of(groupId),
-                null
-            )
-        ).thenReturn(Set.of(groupMember));
+        when(membershipService.getMembersByReferencesAndRole(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, List.of(groupId), null))
+                .thenReturn(Set.of(groupMember));
 
-        Map<String, List<GroupMemberEntity>> groupsWithMembers = apiGroupService.getGroupsWithMembers(
-            GraviteeContext.getExecutionContext(),
-            apiId
-        );
+        Map<String, List<GroupMemberEntity>> groupsWithMembers =
+                apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId);
         assertEquals(1, groupsWithMembers.size());
 
         List<GroupMemberEntity> groupMembers = groupsWithMembers.get(groupId);
@@ -347,7 +327,8 @@ public class ApiService_GetGroupsWithMembersTest {
     }
 
     @Test
-    public void shouldGetApiGroupsWithMembers_RemovingPrimaryOwnerPrivilege_withTwoGroupsAssociated() throws TechnicalException {
+    public void shouldGetApiGroupsWithMembers_RemovingPrimaryOwnerPrivilege_withTwoGroupsAssociated()
+            throws TechnicalException {
         final String expectedRoleForGroup1 = "REVIEWER";
         final String expectedRoleForGroup2 = "USER";
 
@@ -365,17 +346,20 @@ public class ApiService_GetGroupsWithMembersTest {
 
         GroupEntity apiPrimaryOwner = new GroupEntity();
         apiPrimaryOwner.setId(apiPrimaryOwnerGroupId);
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
+        when(primaryOwnerService.getPrimaryOwner(any(), any()))
+                .thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
 
         GroupEntity group1 = new GroupEntity();
         group1.setId(groupId1);
         group1.setRoles(Map.of(RoleScope.API, expectedRoleForGroup1));
-        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId1))).thenReturn(group1);
+        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId1)))
+                .thenReturn(group1);
 
         GroupEntity group2 = new GroupEntity();
         group2.setId(groupId2);
         group2.setRoles(Map.of(RoleScope.API, expectedRoleForGroup2));
-        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId2))).thenReturn(group2);
+        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId2)))
+                .thenReturn(group2);
 
         RoleEntity groupMemberApiRole = new RoleEntity();
         groupMemberApiRole.setName(SystemRole.PRIMARY_OWNER.name());
@@ -391,33 +375,29 @@ public class ApiService_GetGroupsWithMembersTest {
         groupMemberForGroup2.setReferenceId(groupId2);
         groupMemberForGroup2.setRoles(List.of(groupMemberApiRole));
 
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(MembershipReferenceType.GROUP),
-                argThat(groupIds -> groupIds.containsAll(List.of(groupId1, groupId2))),
-                isNull()
-            )
-        ).thenReturn(Set.of(groupMemberForGroup1, groupMemberForGroup2));
+        when(membershipService.getMembersByReferencesAndRole(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(MembershipReferenceType.GROUP),
+                        argThat(groupIds -> groupIds.containsAll(List.of(groupId1, groupId2))),
+                        isNull()))
+                .thenReturn(Set.of(groupMemberForGroup1, groupMemberForGroup2));
 
         RoleEntity defaultApiRoleForGroup1 = new RoleEntity();
         defaultApiRoleForGroup1.setScope(RoleScope.API);
         defaultApiRoleForGroup1.setName(expectedRoleForGroup1);
-        when(
-            roleService.findByScopeAndName(eq(RoleScope.API), eq(expectedRoleForGroup1), eq(GraviteeContext.getCurrentOrganization()))
-        ).thenReturn(Optional.of(defaultApiRoleForGroup1));
+        when(roleService.findByScopeAndName(
+                        eq(RoleScope.API), eq(expectedRoleForGroup1), eq(GraviteeContext.getCurrentOrganization())))
+                .thenReturn(Optional.of(defaultApiRoleForGroup1));
 
         RoleEntity defaultApiRoleForGroup2 = new RoleEntity();
         defaultApiRoleForGroup2.setScope(RoleScope.API);
         defaultApiRoleForGroup2.setName(expectedRoleForGroup2);
-        when(
-            roleService.findByScopeAndName(eq(RoleScope.API), eq(expectedRoleForGroup2), eq(GraviteeContext.getCurrentOrganization()))
-        ).thenReturn(Optional.of(defaultApiRoleForGroup2));
+        when(roleService.findByScopeAndName(
+                        eq(RoleScope.API), eq(expectedRoleForGroup2), eq(GraviteeContext.getCurrentOrganization())))
+                .thenReturn(Optional.of(defaultApiRoleForGroup2));
 
-        Map<String, List<GroupMemberEntity>> groupsWithMembers = apiGroupService.getGroupsWithMembers(
-            GraviteeContext.getExecutionContext(),
-            apiId
-        );
+        Map<String, List<GroupMemberEntity>> groupsWithMembers =
+                apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId);
         assertEquals(2, groupsWithMembers.size());
 
         List<GroupMemberEntity> membersForGroup1 = groupsWithMembers.get(groupId1);
@@ -436,8 +416,9 @@ public class ApiService_GetGroupsWithMembersTest {
     }
 
     @Test
-    public void shouldGetApiGroupsWithMembers_RemovingPrimaryOwnerPrivilege_ifGroupIsNotTheApiPrimaryOwner_andDefaultRoleHasBeenDeleted()
-        throws TechnicalException {
+    public void
+            shouldGetApiGroupsWithMembers_RemovingPrimaryOwnerPrivilege_ifGroupIsNotTheApiPrimaryOwner_andDefaultRoleHasBeenDeleted()
+                    throws TechnicalException {
         final String deletedRole = "USER";
 
         String apiId = UuidString.generateRandom();
@@ -456,7 +437,8 @@ public class ApiService_GetGroupsWithMembersTest {
         GroupEntity group = new GroupEntity();
         group.setId(groupId);
         group.setRoles(Map.of(RoleScope.API, deletedRole));
-        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId))).thenReturn(group);
+        when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId)))
+                .thenReturn(group);
 
         RoleEntity groupMemberApiRole = new RoleEntity();
         groupMemberApiRole.setName(SystemRole.PRIMARY_OWNER.name());
@@ -465,23 +447,16 @@ public class ApiService_GetGroupsWithMembersTest {
         MemberEntity groupMember = new MemberEntity();
         groupMember.setReferenceId(groupId);
         groupMember.setRoles(List.of(groupMemberApiRole));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.GROUP,
-                List.of(groupId),
-                null
-            )
-        ).thenReturn(Set.of(groupMember));
+        when(membershipService.getMembersByReferencesAndRole(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, List.of(groupId), null))
+                .thenReturn(Set.of(groupMember));
 
-        when(roleService.findByScopeAndName(eq(RoleScope.API), eq(deletedRole), eq(GraviteeContext.getCurrentOrganization()))).thenReturn(
-            Optional.empty()
-        );
+        when(roleService.findByScopeAndName(
+                        eq(RoleScope.API), eq(deletedRole), eq(GraviteeContext.getCurrentOrganization())))
+                .thenReturn(Optional.empty());
 
-        Map<String, List<GroupMemberEntity>> groupsWithMembers = apiGroupService.getGroupsWithMembers(
-            GraviteeContext.getExecutionContext(),
-            apiId
-        );
+        Map<String, List<GroupMemberEntity>> groupsWithMembers =
+                apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId);
         assertEquals(1, groupsWithMembers.size());
 
         List<GroupMemberEntity> groupMembers = groupsWithMembers.get(groupId);

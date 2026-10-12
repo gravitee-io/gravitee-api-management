@@ -37,7 +37,8 @@ public class AggregationsParam extends AbstractParam<List<Aggregation>> {
             List<Aggregation> aggregations = new ArrayList<>(inputAggs.length);
             for (String inputAgg : inputAggs) {
                 String[] inputRangeValues = inputAgg.trim().split(":");
-                aggregations.add(new Aggregation(AggregationType.valueOf(inputRangeValues[0].toUpperCase()), inputRangeValues[1]));
+                aggregations.add(new Aggregation(
+                        AggregationType.valueOf(inputRangeValues[0].toUpperCase()), inputRangeValues[1]));
             }
 
             return aggregations;

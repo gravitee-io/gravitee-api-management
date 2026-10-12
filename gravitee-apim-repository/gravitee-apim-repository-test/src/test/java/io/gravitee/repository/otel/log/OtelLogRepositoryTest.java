@@ -67,8 +67,10 @@ public abstract class OtelLogRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_all_logs_for_known_trace_in_timestamp_ascending_order() {
         List<OtelLogRecord> records = otelLogRepository
-            .findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria(Fixtures.TRACE_OK_ID, Map.of(), Map.of(), null, null, null))
-            .blockingGet();
+                .findLogs(
+                        QUERY_CONTEXT,
+                        new OtelLogSearchCriteria(Fixtures.TRACE_OK_ID, Map.of(), Map.of(), null, null, null))
+                .blockingGet();
 
         // Fixtures: 2 span events (with event.name attribute, no body) then 1 payload log (body populated,
         // no event.name). Single query returns everything for the trace.
@@ -94,8 +96,10 @@ public abstract class OtelLogRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_empty_list_when_trace_id_is_unknown() {
         List<OtelLogRecord> records = otelLogRepository
-            .findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria(Fixtures.UNKNOWN_TRACE_ID, Map.of(), Map.of(), null, null, null))
-            .blockingGet();
+                .findLogs(
+                        QUERY_CONTEXT,
+                        new OtelLogSearchCriteria(Fixtures.UNKNOWN_TRACE_ID, Map.of(), Map.of(), null, null, null))
+                .blockingGet();
 
         assertThat(records).isEmpty();
     }

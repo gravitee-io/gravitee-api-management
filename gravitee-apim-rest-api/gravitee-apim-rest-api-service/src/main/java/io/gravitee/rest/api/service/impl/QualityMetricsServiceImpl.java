@@ -67,24 +67,23 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
     }
 
     private Map<String, Integer> getWeights(ExecutionContext executionContext) {
-        List<Key> keys = apiQualityMetricLoader
-            .getApiQualityMetrics()
-            .stream()
-            .map(ApiQualityMetric::getWeightKey)
-            .collect(Collectors.toList());
+        List<Key> keys = apiQualityMetricLoader.getApiQualityMetrics().stream()
+                .map(ApiQualityMetric::getWeightKey)
+                .collect(Collectors.toList());
 
         return Collections.unmodifiableMap(
-            parameterService
-                .findAll(executionContext, keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)))
-        );
+                parameterService
+                        .findAll(executionContext, keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey, e -> e.getValue().get(0))));
     }
 
     @Override
     public boolean isApiMetricsEnabled(ExecutionContext executionContext) {
-        return parameterService.findAsBoolean(executionContext, Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        return parameterService.findAsBoolean(
+                executionContext, Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
@@ -93,11 +92,9 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
             throw new ApiQualityMetricsDisableException();
         }
 
-        Map<String, Integer> weights = getWeights(executionContext)
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue() > 0)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Integer> weights = getWeights(executionContext).entrySet().stream()
+                .filter(e -> e.getValue() > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         ApiQualityMetricsEntity result = new ApiQualityMetricsEntity();
         result.setMetricsPassed(new HashMap<>(weights.size()));
@@ -119,18 +116,16 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
 
         // manual quality rules
         final List<QualityRuleEntity> qualityRules = qualityRuleService.findByReference(
-            QualityRuleReferenceType.ENVIRONMENT,
-            executionContext.getEnvironmentId()
-        );
+                QualityRuleReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
         if (qualityRules != null && !qualityRules.isEmpty()) {
             final List<ApiQualityRuleEntity> apiQualityRules = apiQualityRuleService.findByApi(apiEntity.getId());
             for (final QualityRuleEntity qualityRule : qualityRules) {
                 if (qualityRule.getWeight() > 0) {
-                    final ApiQualityRuleEntity apiQualityRule = apiQualityRules
-                        .stream()
-                        .filter(aqr -> apiEntity.getId().equals(aqr.getApi()) && qualityRule.getId().equals(aqr.getQualityRule()))
-                        .findFirst()
-                        .orElse(null);
+                    final ApiQualityRuleEntity apiQualityRule = apiQualityRules.stream()
+                            .filter(aqr -> apiEntity.getId().equals(aqr.getApi())
+                                    && qualityRule.getId().equals(aqr.getQualityRule()))
+                            .findFirst()
+                            .orElse(null);
                     final boolean checked = apiQualityRule != null && apiQualityRule.isChecked();
                     result.getMetricsPassed().put(qualityRule.getId(), checked);
                     score += qualityRule.getWeight() * (checked ? 1 : 0);

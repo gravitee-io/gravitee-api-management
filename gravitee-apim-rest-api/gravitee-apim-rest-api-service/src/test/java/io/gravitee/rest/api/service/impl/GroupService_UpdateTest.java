@@ -100,7 +100,8 @@ public class GroupService_UpdateTest {
         updatedGroupEntity.setLockApplicationRole(true);
         updatedGroupEntity.setMaxInvitation(100);
         updatedGroupEntity.setName("my-group-name");
-        updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder().put(RoleScope.API, "OWNER").build());
+        updatedGroupEntity.setRoles(
+                Maps.<RoleScope, String>builder().put(RoleScope.API, "OWNER").build());
         updatedGroupEntity.setSystemInvitation(false);
 
         final Group group = new Group();
@@ -110,87 +111,81 @@ public class GroupService_UpdateTest {
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_GROUP),
-                eq("DEFAULT"),
-                eq(CREATE),
-                eq(UPDATE),
-                eq(DELETE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_GROUP),
+                        eq("DEFAULT"),
+                        eq(CREATE),
+                        eq(UPDATE),
+                        eq(DELETE)))
+                .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
-        verify(groupRepository).update(
-            argThat(
-                updatedGroup ->
-                    updatedGroup.isDisableMembershipNotifications() &&
-                    updatedGroup.isEmailInvitation() &&
-                    updatedGroup.getEventRules() == null &&
-                    updatedGroup.isLockApiRole() &&
-                    updatedGroup.isLockApplicationRole() &&
-                    updatedGroup.getMaxInvitation() == 100 &&
-                    updatedGroup.getName().equals("my-group-name") &&
-                    !updatedGroup.isSystemInvitation() &&
-                    updatedGroup.getApiPrimaryOwner().equals("api-primary-owner") &&
-                    "my-group-hrid".equals(updatedGroup.getHrid())
-            )
-        );
+        verify(groupRepository)
+                .update(argThat(updatedGroup -> updatedGroup.isDisableMembershipNotifications()
+                        && updatedGroup.isEmailInvitation()
+                        && updatedGroup.getEventRules() == null
+                        && updatedGroup.isLockApiRole()
+                        && updatedGroup.isLockApplicationRole()
+                        && updatedGroup.getMaxInvitation() == 100
+                        && updatedGroup.getName().equals("my-group-name")
+                        && !updatedGroup.isSystemInvitation()
+                        && updatedGroup.getApiPrimaryOwner().equals("api-primary-owner")
+                        && "my-group-hrid".equals(updatedGroup.getHrid())));
 
-        verify(membershipService).addRoleToMemberOnReference(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                membershipReference -> membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null
-            ),
-            argThat(
-                membershipMember ->
-                    membershipMember.getMemberId().equals(GROUP_ID) &&
-                    membershipMember.getReference() == null &&
-                    membershipMember.getMemberType() == MembershipMemberType.GROUP
-            ),
-            argThat(membershipRole -> membershipRole.getScope() == RoleScope.API && membershipRole.getName().equals("OWNER"))
-        );
+        verify(membershipService)
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(membershipReference -> membershipReference.getType() == MembershipReferenceType.API
+                                && membershipReference.getId() == null),
+                        argThat(membershipMember ->
+                                membershipMember.getMemberId().equals(GROUP_ID)
+                                        && membershipMember.getReference() == null
+                                        && membershipMember.getMemberType() == MembershipMemberType.GROUP),
+                        argThat(membershipRole -> membershipRole.getScope() == RoleScope.API
+                                && membershipRole.getName().equals("OWNER")));
     }
 
     @Test
     public void shouldNotUpdateDefaultRoleBecausePrimaryOwner() throws Exception {
         UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
-        updatedGroupEntity.setRoles(
-            Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
-        );
+        updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder()
+                .put(RoleScope.API, "PRIMARY_OWNER")
+                .put(RoleScope.APPLICATION, "PRIMARY_OWNER")
+                .build());
 
         final Group group = new Group();
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_GROUP),
-                eq("DEFAULT"),
-                eq(CREATE),
-                eq(UPDATE),
-                eq(DELETE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_GROUP),
+                        eq("DEFAULT"),
+                        eq(CREATE),
+                        eq(UPDATE),
+                        eq(DELETE)))
+                .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
-        verify(membershipService, never()).deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
-        verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        verify(membershipService, never())
+                .deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
+        verify(membershipService, never())
+                .addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
 
     @Test
     public void shouldNotUpdateGroupBecauseDoesNotBelongToEnvironment() throws Exception {
         assertThrows(GroupNotFoundException.class, () -> {
             UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
-            updatedGroupEntity.setRoles(
-                Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
-            );
+            updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder()
+                    .put(RoleScope.API, "PRIMARY_OWNER")
+                    .put(RoleScope.APPLICATION, "PRIMARY_OWNER")
+                    .build());
 
             final Group group = new Group();
             group.setEnvironmentId("Another_environment");
@@ -199,8 +194,10 @@ public class GroupService_UpdateTest {
 
             groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
-            verify(membershipService, never()).deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
-            verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+            verify(membershipService, never())
+                    .deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
+            verify(membershipService, never())
+                    .addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
         });
     }
 
@@ -226,18 +223,13 @@ public class GroupService_UpdateTest {
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(existingGroup));
         when(groupRepository.update(any())).thenReturn(updatedGroup);
-        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization())).thenReturn(
-            Optional.of(mockedRole)
-        );
-        when(
-            membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
-                MembershipMemberType.GROUP,
-                GROUP_ID,
-                MembershipReferenceType.API,
-                Set.of("po-role-id")
-            )
-        ).thenReturn(Set.of("api-id-1"));
-        when(apiSearchService.findGenericById(any(), eq("api-id-1"), eq(false), eq(false), eq(true))).thenReturn(apiEntity);
+        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(mockedRole));
+        when(membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
+                        MembershipMemberType.GROUP, GROUP_ID, MembershipReferenceType.API, Set.of("po-role-id")))
+                .thenReturn(Set.of("api-id-1"));
+        when(apiSearchService.findGenericById(any(), eq("api-id-1"), eq(false), eq(false), eq(true)))
+                .thenReturn(apiEntity);
         when(apiMetadataService.fetchMetadataForApi(any(), eq(apiEntity))).thenReturn(apiEntity);
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updateGroup);
@@ -249,40 +241,38 @@ public class GroupService_UpdateTest {
     public void shouldUpdateGroupWithApiProductDefaultRole() throws Exception {
         UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
         updatedGroupEntity.setName("my-group-name");
-        updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder().put(RoleScope.API_PRODUCT, "USER").build());
+        updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder()
+                .put(RoleScope.API_PRODUCT, "USER")
+                .build());
 
         final Group group = new Group();
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_GROUP),
-                eq("DEFAULT"),
-                eq(CREATE),
-                eq(UPDATE),
-                eq(DELETE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_GROUP),
+                        eq("DEFAULT"),
+                        eq(CREATE),
+                        eq(UPDATE),
+                        eq(DELETE)))
+                .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
-        verify(membershipService).addRoleToMemberOnReference(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                membershipReference ->
-                    membershipReference.getType() == MembershipReferenceType.API_PRODUCT && membershipReference.getId() == null
-            ),
-            argThat(
-                membershipMember ->
-                    membershipMember.getMemberId().equals(GROUP_ID) &&
-                    membershipMember.getReference() == null &&
-                    membershipMember.getMemberType() == MembershipMemberType.GROUP
-            ),
-            argThat(membershipRole -> membershipRole.getScope() == RoleScope.API_PRODUCT && membershipRole.getName().equals("USER"))
-        );
+        verify(membershipService)
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(membershipReference ->
+                                membershipReference.getType() == MembershipReferenceType.API_PRODUCT
+                                        && membershipReference.getId() == null),
+                        argThat(membershipMember ->
+                                membershipMember.getMemberId().equals(GROUP_ID)
+                                        && membershipMember.getReference() == null
+                                        && membershipMember.getMemberType() == MembershipMemberType.GROUP),
+                        argThat(membershipRole -> membershipRole.getScope() == RoleScope.API_PRODUCT
+                                && membershipRole.getName().equals("USER")));
     }
 
     @Test

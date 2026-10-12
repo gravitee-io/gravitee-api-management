@@ -49,14 +49,10 @@ public class MockEndpointConnectorFactory implements HttpEndpointAsyncConnectorF
 
     @Override
     public MockEndpointConnector createConnector(
-        final DeploymentContext deploymentContext,
-        final String configuration,
-        final String sharedConfiguration
-    ) {
+            final DeploymentContext deploymentContext, final String configuration, final String sharedConfiguration) {
         try {
-            return new MockEndpointConnector(
-                pluginConfigurationHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration)
-            );
+            return new MockEndpointConnector(pluginConfigurationHelper.readConfiguration(
+                    MockEndpointConnectorConfiguration.class, configuration));
         } catch (PluginConfigurationException e) {
             log.error("Can't create connector cause no valid configuration", e);
             return null;

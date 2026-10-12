@@ -57,10 +57,9 @@ public class LocalSyncManager extends AbstractService<SyncManager> implements Sy
     private final AtomicBoolean synced = new AtomicBoolean();
 
     public LocalSyncManager(
-        final String localRegistryPath,
-        final List<LocalSynchronizer> synchronizers,
-        final DistributedSyncService distributedSyncService
-    ) {
+            final String localRegistryPath,
+            final List<LocalSynchronizer> synchronizers,
+            final DistributedSyncService distributedSyncService) {
         this.synchronizers = synchronizers;
         this.distributedSyncService = distributedSyncService;
         this.localRegistryPath = localRegistryPath;
@@ -77,39 +76,39 @@ public class LocalSyncManager extends AbstractService<SyncManager> implements Sy
                     try {
                         WatchService watcher = registry.getFileSystem().newWatchService();
                         registry.register(
-                            watcher,
-                            StandardWatchEventKinds.ENTRY_CREATE,
-                            StandardWatchEventKinds.ENTRY_DELETE,
-                            StandardWatchEventKinds.ENTRY_MODIFY
-                        );
+                                watcher,
+                                StandardWatchEventKinds.ENTRY_CREATE,
+                                StandardWatchEventKinds.ENTRY_DELETE,
+                                StandardWatchEventKinds.ENTRY_MODIFY);
 
                         watcherDisposable = sync(localRegistryDir)
-                            .doOnComplete(() -> {
-                                log.debug("Moving to ready state as all resources have been synchronized");
-                                synced.set(true);
-                            })
-                            .andThen(watch(registry, watcher))
-                            .doOnError(throwable -> log.error("An error occurred during local synchronization. Restarting ...", throwable))
-                            .retryWhen(
-                                RxHelper.retryExponentialBackoff(
-                                    EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
-                                    EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS,
-                                    TimeUnit.MILLISECONDS,
-                                    EXPONENTIAL_BACKOFF_RETRY_FACTOR
-                                )
-                            )
-                            .subscribe();
+                                .doOnComplete(() -> {
+                                    log.debug("Moving to ready state as all resources have been synchronized");
+                                    synced.set(true);
+                                })
+                                .andThen(watch(registry, watcher))
+                                .doOnError(throwable -> log.error(
+                                        "An error occurred during local synchronization. Restarting ...", throwable))
+                                .retryWhen(RxHelper.retryExponentialBackoff(
+                                        EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
+                                        EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS,
+                                        TimeUnit.MILLISECONDS,
+                                        EXPONENTIAL_BACKOFF_RETRY_FACTOR))
+                                .subscribe();
                     } catch (IOException ex) {
                         log.error("An error occurred during local synchronization", ex);
                     }
                 } else {
-                    log.error("Invalid API definitions registry directory, {} is not a directory.", localRegistryDir.getAbsolutePath());
+                    log.error(
+                            "Invalid API definitions registry directory, {} is not a directory.",
+                            localRegistryDir.getAbsolutePath());
                 }
             } else {
                 log.error("Local API definitions registry path is not specified.");
             }
         } else {
-            log.warn("Local synchronization is disabled as distributed sync is enabled, and current node is secondary.");
+            log.warn(
+                    "Local synchronization is disabled as distributed sync is enabled, and current node is secondary.");
         }
     }
 
@@ -127,13 +126,13 @@ public class LocalSyncManager extends AbstractService<SyncManager> implements Sy
 
     private Completable sync(File localRegistryDir) {
         return Flowable.fromIterable(synchronizers)
-            .doOnNext(sync -> log.debug("{} will synchronize all resources ...", sync))
-            .concatMapCompletable(sync -> sync.synchronize(localRegistryDir));
+                .doOnNext(sync -> log.debug("{} will synchronize all resources ...", sync))
+                .concatMapCompletable(sync -> sync.synchronize(localRegistryDir));
     }
 
     private Completable watch(Path localRegistryPath, WatchService watcher) {
         return Flowable.fromIterable(synchronizers)
-            .doOnNext(sync -> log.debug("{} will start watching on resources ...", sync))
-            .concatMapCompletable(sync -> sync.watch(localRegistryPath, watcher));
+                .doOnNext(sync -> log.debug("{} will start watching on resources ...", sync))
+                .concatMapCompletable(sync -> sync.watch(localRegistryPath, watcher));
     }
 }

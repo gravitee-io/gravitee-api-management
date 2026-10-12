@@ -33,16 +33,18 @@ public interface MetadataRepository extends FindAllRepository<Metadata> {
 
     void delete(String key, String referenceId, MetadataReferenceType referenceType) throws TechnicalException;
 
-    Optional<Metadata> findById(String key, String referenceId, MetadataReferenceType referenceType) throws TechnicalException;
+    Optional<Metadata> findById(String key, String referenceId, MetadataReferenceType referenceType)
+            throws TechnicalException;
 
     List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType) throws TechnicalException;
 
     List<Metadata> findByReferenceType(MetadataReferenceType referenceType) throws TechnicalException;
 
-    List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) throws TechnicalException;
+    List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId)
+            throws TechnicalException;
 
-    List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds)
-        throws TechnicalException;
+    List<Metadata> findByReferenceTypeAndReferenceIdIn(
+            MetadataReferenceType referenceType, Collection<String> referenceIds) throws TechnicalException;
 
     /**
      * Delete Metadata by reference
@@ -52,5 +54,6 @@ public interface MetadataRepository extends FindAllRepository<Metadata> {
      * @return List of deleted IDs for metadata
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType)
+            throws TechnicalException;
 }

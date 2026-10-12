@@ -58,14 +58,13 @@ public final class SearchTraceFilterTranslator {
      * per span document downstream, so an attribute only some spans carry could never be combined.
      */
     private static final Map<String, String> SUPPORTED_ATTRIBUTE_BY_FILTER_NAME = Map.ofEntries(
-        Map.entry("HTTP_METHOD", "http.method"),
-        Map.entry("HTTP_STATUS_CODE", "http.status_code"),
-        Map.entry("HTTP_ROUTE", "http.route"),
-        // ESM — native Kafka. `kafka.api.key` carries the protocol request name (PRODUCE, FETCH…),
-        // set on every per-request span by KafkaTracing.
-        Map.entry("KAFKA_API_KEY", "kafka.api.key"),
-        Map.entry("KAFKA_CLIENT_ID", "messaging.client.id")
-    );
+            Map.entry("HTTP_METHOD", "http.method"),
+            Map.entry("HTTP_STATUS_CODE", "http.status_code"),
+            Map.entry("HTTP_ROUTE", "http.route"),
+            // ESM — native Kafka. `kafka.api.key` carries the protocol request name (PRODUCE, FETCH…),
+            // set on every per-request span by KafkaTracing.
+            Map.entry("KAFKA_API_KEY", "kafka.api.key"),
+            Map.entry("KAFKA_CLIENT_ID", "messaging.client.id"));
 
     private SearchTraceFilterTranslator() {}
 
@@ -86,15 +85,18 @@ public final class SearchTraceFilterTranslator {
                 throw UnsupportedFilterException.unknownName(condition.name());
             }
             if (condition.operator() != FilterOperator.EQ) {
-                throw UnsupportedFilterException.unsupportedOperator(condition.name(), condition.operator().name().toLowerCase());
+                throw UnsupportedFilterException.unsupportedOperator(
+                        condition.name(), condition.operator().name().toLowerCase());
             }
             // EQ + values.size() != 1 is a UI mistake — eq is intrinsically single-valued; the
             // wire shape uses a list for forward-compat with `in` (next PR), not for multi-eq.
             if (condition.values() == null || condition.values().size() != 1) {
                 throw UnsupportedFilterException.unsupportedOperator(
-                    condition.name(),
-                    "eq with " + (condition.values() == null ? 0 : condition.values().size()) + " values"
-                );
+                        condition.name(),
+                        "eq with "
+                                + (condition.values() == null
+                                        ? 0
+                                        : condition.values().size()) + " values");
             }
             result.put(attributeKey, condition.values().get(0));
         }

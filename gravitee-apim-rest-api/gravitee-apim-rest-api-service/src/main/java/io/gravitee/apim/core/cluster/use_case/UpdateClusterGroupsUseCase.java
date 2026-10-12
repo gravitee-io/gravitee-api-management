@@ -21,10 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
-import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
-import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
-import io.gravitee.common.utils.TimeProvider;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Map;
@@ -46,8 +43,8 @@ public class UpdateClusterGroupsUseCase {
         clusterCrudService.updateGroups(input.clusterId, input.auditInfo().environmentId(), input.groups());
 
         Set<String> updatedGroups = clusterCrudService
-            .findByIdAndEnvironmentId(input.clusterId, input.auditInfo().environmentId())
-            .getGroups();
+                .findByIdAndEnvironmentId(input.clusterId, input.auditInfo().environmentId())
+                .getGroups();
 
         createAuditLog(updatedGroups, input.groups(), input.clusterId, input.auditInfo());
 
@@ -55,13 +52,11 @@ public class UpdateClusterGroupsUseCase {
     }
 
     private void createAuditLog(
-        Set<String> clusterGroupsBeforeUpdate,
-        Set<String> clusterGroupsAfterUpdate,
-        String clusterId,
-        AuditInfo auditInfo
-    ) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+            Set<String> clusterGroupsBeforeUpdate,
+            Set<String> clusterGroupsAfterUpdate,
+            String clusterId,
+            AuditInfo auditInfo) {
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_GROUPS_UPDATED)
@@ -70,7 +65,6 @@ public class UpdateClusterGroupsUseCase {
                 .newValue(clusterGroupsAfterUpdate)
                 .createdAt(Instant.now().atZone(ZoneId.of("UTC")))
                 .properties(Map.of(AuditProperties.CLUSTER, clusterId))
-                .build()
-        );
+                .build());
     }
 }

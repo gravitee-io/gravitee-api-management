@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.service.notifiers;
 
-import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,5 +25,9 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface EmailNotifierService {
-    void trigger(ExecutionContext executionContext, final Hook hook, final Map<String, Object> templateData, Collection<String> recipients);
+    void trigger(
+            ExecutionContext executionContext,
+            final Hook hook,
+            final Map<String, Object> templateData,
+            Collection<String> recipients);
 }

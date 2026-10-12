@@ -84,10 +84,10 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
         var response = getState.request().get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiSpecGenRequestState.class)
-            .extracting(requestState -> String.valueOf(requestState.getState()))
-            .isEqualTo(state.name());
+                .hasStatus(200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiSpecGenRequestState.class)
+                .extracting(requestState -> String.valueOf(requestState.getState()))
+                .isEqualTo(state.name());
     }
 
     @ParameterizedTest
@@ -98,9 +98,9 @@ public class ApiSpecGenResourceTest extends AbstractResourceTest {
         var response = postJob.request().post(null);
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiSpecGenRequestState.class)
-            .extracting(requestState -> String.valueOf(requestState.getState()))
-            .isEqualTo(state.name());
+                .hasStatus(200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiSpecGenRequestState.class)
+                .extracting(requestState -> String.valueOf(requestState.getState()))
+                .isEqualTo(state.name());
     }
 }

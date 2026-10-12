@@ -32,18 +32,18 @@ import lombok.CustomLog;
  * Distributed peer-to-peer authz policy synchronizer. Mirrors {@code DistributedSharedPolicyGroupSynchronizer}.
  */
 @CustomLog
-public class DistributedAuthzPolicySynchronizer extends AbstractDistributedSynchronizer<AuthzPolicyReactorDeployable, AuthzPolicyDeployer> {
+public class DistributedAuthzPolicySynchronizer
+        extends AbstractDistributedSynchronizer<AuthzPolicyReactorDeployable, AuthzPolicyDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final AuthzPolicyMapper authzPolicyMapper;
 
     public DistributedAuthzPolicySynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final AuthzPolicyMapper authzPolicyMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final AuthzPolicyMapper authzPolicyMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.authzPolicyMapper = authzPolicyMapper;

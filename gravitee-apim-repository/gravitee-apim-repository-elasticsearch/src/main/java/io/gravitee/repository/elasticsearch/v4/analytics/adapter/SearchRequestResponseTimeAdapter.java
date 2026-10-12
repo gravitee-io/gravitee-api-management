@@ -38,7 +38,10 @@ public class SearchRequestResponseTimeAdapter {
     private static final String AVG_RESPONSE_TIME_AGG = "avg_response_time";
 
     public String adaptQuery(RequestResponseTimeQueryCriteria queryCriteria) {
-        return json().put("size", 0).<ObjectNode>set("query", buildQuery(queryCriteria)).set("aggs", buildAggregation()).toString();
+        return json().put("size", 0)
+                .<ObjectNode>set("query", buildQuery(queryCriteria))
+                .set("aggs", buildAggregation())
+                .toString();
     }
 
     private ObjectNode buildQuery(RequestResponseTimeQueryCriteria queryCriteria) {
@@ -46,7 +49,8 @@ public class SearchRequestResponseTimeAdapter {
 
         if (queryCriteria.definitionVersions().contains(DefinitionVersion.V4)) {
             var idsV4 = json().set("terms", json().set("api-id", toArray(queryCriteria.apiIds())));
-            var filterV4 = json().set("bool", json().set("must", array().add(idsV4).add(entrypointFilterForQuery())));
+            var filterV4 =
+                    json().set("bool", json().set("must", array().add(idsV4).add(entrypointFilterForQuery())));
             apiFilter.add(filterV4);
         }
         if (queryCriteria.definitionVersions().contains(DefinitionVersion.V2)) {
@@ -65,7 +69,9 @@ public class SearchRequestResponseTimeAdapter {
 
     private ObjectNode dateRangeFilterForQuery(Long from, Long to) {
         log.info("Top Hits Query: filtering date range from {} to {}", from, to);
-        return json().set("range", json().set("@timestamp", json().put("gte", from).put("lte", to)));
+        return json().set(
+                        "range",
+                        json().set("@timestamp", json().put("gte", from).put("lte", to)));
     }
 
     private ObjectNode entrypointFilterForQuery() {
@@ -74,20 +80,35 @@ public class SearchRequestResponseTimeAdapter {
 
     private ObjectNode buildAggregation() {
         String script =
-            "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }";
-        return json()
-            .<ObjectNode>set(
-                MAX_RESPONSE_TIME_AGG,
-                json().set("max", json().set("script", json().put("lang", "painless").put("source", script)))
-            )
-            .<ObjectNode>set(
-                MIN_RESPONSE_TIME_AGG,
-                json().set("min", json().set("script", json().put("lang", "painless").put("source", script)))
-            )
-            .set(AVG_RESPONSE_TIME_AGG, json().set("avg", json().set("script", json().put("lang", "painless").put("source", script))));
+                "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }";
+        return json().<ObjectNode>set(
+                        MAX_RESPONSE_TIME_AGG,
+                        json().set(
+                                        "max",
+                                        json().set(
+                                                        "script",
+                                                        json().put("lang", "painless")
+                                                                .put("source", script))))
+                .<ObjectNode>set(
+                        MIN_RESPONSE_TIME_AGG,
+                        json().set(
+                                        "min",
+                                        json().set(
+                                                        "script",
+                                                        json().put("lang", "painless")
+                                                                .put("source", script))))
+                .set(
+                        AVG_RESPONSE_TIME_AGG,
+                        json().set(
+                                        "avg",
+                                        json().set(
+                                                        "script",
+                                                        json().put("lang", "painless")
+                                                                .put("source", script))));
     }
 
-    public RequestResponseTimeAggregate adaptResponse(SearchResponse response, RequestResponseTimeQueryCriteria queryCriteria) {
+    public RequestResponseTimeAggregate adaptResponse(
+            SearchResponse response, RequestResponseTimeQueryCriteria queryCriteria) {
         final Map<String, Aggregation> aggregations = response.getAggregations();
         var requestResponseTimeAggregateBuilder = RequestResponseTimeAggregate.builder();
 
@@ -95,9 +116,12 @@ public class SearchRequestResponseTimeAdapter {
             return requestResponseTimeAggregateBuilder.build();
         }
 
-        requestResponseTimeAggregateBuilder.responseMinTime(getAggregationResponseValue(aggregations, MIN_RESPONSE_TIME_AGG));
-        requestResponseTimeAggregateBuilder.responseMaxTime(getAggregationResponseValue(aggregations, MAX_RESPONSE_TIME_AGG));
-        requestResponseTimeAggregateBuilder.responseAvgTime(getAggregationResponseValue(aggregations, AVG_RESPONSE_TIME_AGG));
+        requestResponseTimeAggregateBuilder.responseMinTime(
+                getAggregationResponseValue(aggregations, MIN_RESPONSE_TIME_AGG));
+        requestResponseTimeAggregateBuilder.responseMaxTime(
+                getAggregationResponseValue(aggregations, MAX_RESPONSE_TIME_AGG));
+        requestResponseTimeAggregateBuilder.responseAvgTime(
+                getAggregationResponseValue(aggregations, AVG_RESPONSE_TIME_AGG));
 
         if (response.getSearchHits() != null && response.getSearchHits().getTotal() != null) {
             var totalRequestValue = response.getSearchHits().getTotal().getValue();

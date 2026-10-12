@@ -20,7 +20,6 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
@@ -64,7 +63,8 @@ public class ReversedPolicyChainTest {
 
     @Test
     public void buildPolicyChain_withEmptyPolicies() {
-        io.gravitee.policy.api.PolicyChain chain = ReversedPolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
+        io.gravitee.policy.api.PolicyChain chain =
+                ReversedPolicyChain.create(new ArrayList<>(), mock(ExecutionContext.class));
 
         Assertions.assertNotNull(chain);
     }
@@ -137,7 +137,8 @@ public class ReversedPolicyChainTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
         ReadWriteStream stream = spy(new BufferedReadWriteStream());
-        when(policy4.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext))).thenReturn(stream);
+        when(policy4.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)))
+                .thenReturn(stream);
 
         PolicyChain chain = ReversedPolicyChain.create(Collections.singletonList(policy4), executionContext);
         chain.handler(result -> {});
@@ -156,10 +157,12 @@ public class ReversedPolicyChainTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
         ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
-        when(policy4.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext))).thenReturn(streamPolicy4);
+        when(policy4.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)))
+                .thenReturn(streamPolicy4);
 
         ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
-        when(policy5.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext))).thenReturn(streamPolicy5);
+        when(policy5.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)))
+                .thenReturn(streamPolicy5);
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
 
@@ -184,10 +187,12 @@ public class ReversedPolicyChainTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
         ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
-        when(policy4.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext))).thenReturn(streamPolicy4);
+        when(policy4.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)))
+                .thenReturn(streamPolicy4);
 
         ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
-        when(policy5.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext))).thenReturn(streamPolicy5);
+        when(policy5.stream(any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)))
+                .thenReturn(streamPolicy5);
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
 

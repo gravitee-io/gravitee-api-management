@@ -35,7 +35,8 @@ public class InvalidateRoleCacheCommandListener implements EventListener<Command
     private final ObjectMapper objectMapper;
     private final MembershipService membershipService;
 
-    public InvalidateRoleCacheCommandListener(ObjectMapper objectMapper, MembershipService membershipService, EventManager eventManager) {
+    public InvalidateRoleCacheCommandListener(
+            ObjectMapper objectMapper, MembershipService membershipService, EventManager eventManager) {
         this.objectMapper = objectMapper;
         this.membershipService = membershipService;
         eventManager.subscribeForEvents(this, CommandEvent.class);
@@ -43,12 +44,10 @@ public class InvalidateRoleCacheCommandListener implements EventListener<Command
 
     @Override
     public void onEvent(Event<CommandEvent, CommandEntity> event) {
-        if (
-            event != null &&
-            CommandEvent.TO_PROCESS.equals(event.type()) &&
-            event.content() != null &&
-            event.content().getTags().contains(CommandTags.GROUP_DEFAULT_ROLES_UPDATE)
-        ) {
+        if (event != null
+                && CommandEvent.TO_PROCESS.equals(event.type())
+                && event.content() != null
+                && event.content().getTags().contains(CommandTags.GROUP_DEFAULT_ROLES_UPDATE)) {
             String content = event.content().getContent();
             log.debug("Command event: {}", content);
 
@@ -62,11 +61,10 @@ public class InvalidateRoleCacheCommandListener implements EventListener<Command
 
             if (eventData != null) {
                 membershipService.invalidateRoleCache(
-                    eventData.getReferenceType(),
-                    eventData.getReferenceId(),
-                    eventData.getMemberType(),
-                    eventData.getMemberId()
-                );
+                        eventData.getReferenceType(),
+                        eventData.getReferenceId(),
+                        eventData.getMemberType(),
+                        eventData.getMemberId());
             }
         }
     }

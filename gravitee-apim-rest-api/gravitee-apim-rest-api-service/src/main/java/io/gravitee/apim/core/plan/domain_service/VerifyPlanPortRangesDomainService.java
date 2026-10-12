@@ -59,13 +59,13 @@ public class VerifyPlanPortRangesDomainService {
         ensurePortInBounds(rangeEnd, "brokerRangeEnd");
 
         if (rangeStart > rangeEnd) {
-            throw new PlanInvalidException("brokerRangeStart (" + rangeStart + ") must be <= brokerRangeEnd (" + rangeEnd + ")");
+            throw new PlanInvalidException(
+                    "brokerRangeStart (" + rangeStart + ") must be <= brokerRangeEnd (" + rangeEnd + ")");
         }
 
         if (bootstrapPort >= rangeStart && bootstrapPort <= rangeEnd) {
-            throw new PlanInvalidException(
-                "bootstrapPort (" + bootstrapPort + ") must not fall within brokerRange [" + rangeStart + "-" + rangeEnd + "]"
-            );
+            throw new PlanInvalidException("bootstrapPort (" + bootstrapPort + ") must not fall within brokerRange ["
+                    + rangeStart + "-" + rangeEnd + "]");
         }
 
         // Locking variant: rows returned (or the index range scanned, depending on DB) are held for
@@ -73,16 +73,19 @@ public class VerifyPlanPortRangesDomainService {
         // would conflict blocks here until we commit, then re-runs the conflict check and fails
         // cleanly — preventing the TOCTOU race where two saves both observe "no conflict" and both
         // persist.
-        var conflicts = kafkaPortRangeCrudService.findConflictingForUpdate(environmentId, bootstrapPort, rangeStart, rangeEnd, planId);
+        var conflicts = kafkaPortRangeCrudService.findConflictingForUpdate(
+                environmentId, bootstrapPort, rangeStart, rangeEnd, planId);
         if (!conflicts.isEmpty()) {
             var first = conflicts.get(0);
-            throw new PortRangeConflictException(first.getPlanId(), first.getApiId(), rangeStart, rangeEnd, bootstrapPort);
+            throw new PortRangeConflictException(
+                    first.getPlanId(), first.getApiId(), rangeStart, rangeEnd, bootstrapPort);
         }
     }
 
     private static void ensurePortInBounds(int port, String fieldName) {
         if (port < MIN_PORT || port > MAX_PORT) {
-            throw new PlanInvalidException(fieldName + " (" + port + ") must be in range [" + MIN_PORT + "-" + MAX_PORT + "]");
+            throw new PlanInvalidException(
+                    fieldName + " (" + port + ") must be in range [" + MIN_PORT + "-" + MAX_PORT + "]");
         }
     }
 }

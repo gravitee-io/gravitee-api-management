@@ -31,7 +31,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}plans")
 @Getter
 @Setter
-@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@EqualsAndHashCode(
+        of = {"id"},
+        callSuper = false)
 public class PlanMongo extends Auditable {
 
     @Id
@@ -44,6 +46,7 @@ public class PlanMongo extends Auditable {
      * Plans promoted between environments will share the same crossId.
      */
     private String crossId;
+
     private String hrid;
 
     private String name;

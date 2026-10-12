@@ -83,9 +83,9 @@ public class MongoGammaDashboardRepository implements GammaDashboardRepository {
             throw new IllegalStateException("Unable to update a null gamma dashboard");
         }
 
-        return updateIfPresent(gammaDashboard).orElseThrow(() ->
-            new IllegalStateException(String.format("No gamma dashboard found with id [%s]", gammaDashboard.getId()))
-        );
+        return updateIfPresent(gammaDashboard)
+                .orElseThrow(() -> new IllegalStateException(
+                        String.format("No gamma dashboard found with id [%s]", gammaDashboard.getId())));
     }
 
     @Override
@@ -102,24 +102,27 @@ public class MongoGammaDashboardRepository implements GammaDashboardRepository {
      * comparing and writing stay a single atomic operation.
      */
     @Override
-    public Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion) throws TechnicalException {
+    public Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion)
+            throws TechnicalException {
         if (gammaDashboard == null) {
             throw new IllegalStateException("Unable to update a null gamma dashboard");
         }
 
-        return replaceMatching(Criteria.where("_id").is(gammaDashboard.getId()).and("version").is(expectedVersion), gammaDashboard);
+        return replaceMatching(
+                Criteria.where("_id").is(gammaDashboard.getId()).and("version").is(expectedVersion), gammaDashboard);
     }
 
-    private Optional<GammaDashboard> replaceMatching(Criteria criteria, GammaDashboard gammaDashboard) throws TechnicalException {
+    private Optional<GammaDashboard> replaceMatching(Criteria criteria, GammaDashboard gammaDashboard)
+            throws TechnicalException {
         try {
             var replaced = mongoTemplate.findAndReplace(
-                Query.query(criteria),
-                mapper.map(gammaDashboard),
-                FindAndReplaceOptions.options().returnNew()
-            );
+                    Query.query(criteria),
+                    mapper.map(gammaDashboard),
+                    FindAndReplaceOptions.options().returnNew());
             return Optional.ofNullable(replaced).map(mapper::map);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when updating gamma dashboard " + gammaDashboard.getId(), e);
+            throw new TechnicalException(
+                    "An error occurred when updating gamma dashboard " + gammaDashboard.getId(), e);
         }
     }
 
@@ -141,9 +144,12 @@ public class MongoGammaDashboardRepository implements GammaDashboardRepository {
     }
 
     @Override
-    public Optional<GammaDashboard> findByIdAndEnvironmentId(String id, String environmentId) throws TechnicalException {
+    public Optional<GammaDashboard> findByIdAndEnvironmentId(String id, String environmentId)
+            throws TechnicalException {
         log.debug("Find gamma dashboard by ID [{}] and environment ID [{}]", id, environmentId);
-        var dashboard = internalGammaDashboardRepo.findByIdAndEnvironmentId(id, environmentId).map(mapper::map);
+        var dashboard = internalGammaDashboardRepo
+                .findByIdAndEnvironmentId(id, environmentId)
+                .map(mapper::map);
         log.debug("Find gamma dashboard by ID [{}] and environment ID [{}] - Done", id, environmentId);
         return dashboard;
     }
@@ -155,7 +161,8 @@ public class MongoGammaDashboardRepository implements GammaDashboardRepository {
             internalGammaDashboardRepo.deleteByEnvironmentId(environmentId);
             log.debug("Delete gamma dashboards by environment ID [{}] - Done", environmentId);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when deleting gamma dashboards by environment id " + environmentId, e);
+            throw new TechnicalException(
+                    "An error occurred when deleting gamma dashboards by environment id " + environmentId, e);
         }
     }
 }

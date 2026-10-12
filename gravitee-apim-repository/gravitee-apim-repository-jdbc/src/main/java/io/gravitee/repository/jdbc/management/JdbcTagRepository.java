@@ -50,13 +50,13 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     @Override
     protected JdbcObjectMapper<Tag> buildOrm() {
         return JdbcObjectMapper.builder(Tag.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, TagReferenceType.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, TagReferenceType.class)
+                .build();
     }
 
     @Override
@@ -73,78 +73,76 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
 
     @Override
     public Optional<Tag> findByKeyAndReference(final String key, String referenceId, TagReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         try {
             Optional<Tag> tag = jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() +
-                        " t where " +
-                        escapeReservedWord("key") +
-                        "= ? and reference_id = ? and reference_type = ? ",
-                    getOrm().getRowMapper(),
-                    key,
-                    referenceId,
-                    referenceType.name()
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " t where "
+                                    + escapeReservedWord("key")
+                                    + "= ? and reference_id = ? and reference_type = ? ",
+                            getOrm().getRowMapper(),
+                            key,
+                            referenceId,
+                            referenceType.name())
+                    .stream()
+                    .findFirst();
             tag.ifPresent(this::addGroups);
             return tag;
         } catch (final Exception ex) {
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by key, referenceId and referenceType", ex);
+            throw new TechnicalException(
+                    "Failed to find " + getOrm().getTableName() + " tags by key, referenceId and referenceType", ex);
         }
     }
 
     @Override
-    public Set<Tag> findByKeysAndReference(Set<String> keys, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+    public Set<Tag> findByKeysAndReference(Set<String> keys, String referenceId, TagReferenceType referenceType)
+            throws TechnicalException {
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() +
-                        " where reference_id = ? and reference_type = ? and " +
-                        escapeReservedWord("key") +
-                        " in ( " +
-                        getOrm().buildInClause(keys) +
-                        " )",
-                    (PreparedStatement ps) -> {
-                        ps.setString(1, referenceId);
-                        ps.setString(2, referenceType.name());
-                        getOrm().setArguments(ps, keys, 3);
-                    },
-                    getOrm().getRowMapper()
-                )
-                .stream()
-                .peek(this::addGroups)
-                .collect(toSet());
+                    .query(
+                            getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ? and "
+                                    + escapeReservedWord("key")
+                                    + " in ( "
+                                    + getOrm().buildInClause(keys)
+                                    + " )",
+                            (PreparedStatement ps) -> {
+                                ps.setString(1, referenceId);
+                                ps.setString(2, referenceType.name());
+                                getOrm().setArguments(ps, keys, 3);
+                            },
+                            getOrm().getRowMapper())
+                    .stream()
+                    .peek(this::addGroups)
+                    .collect(toSet());
         } catch (final Exception ex) {
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by keys, referenceId and referenceType", ex);
+            throw new TechnicalException(
+                    "Failed to find " + getOrm().getTableName() + " tags by keys, referenceId and referenceType", ex);
         }
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType)
+            throws TechnicalException {
         log.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + TAG_GROUPS + " where tag_id IN (" + getOrm().buildInClause(rows) + ")",
-                    rows.toArray()
-                );
+                        "delete from " + TAG_GROUPS + " where tag_id IN (" + getOrm().buildInClause(rows) + ")",
+                        rows.toArray());
 
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
-            log.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{}) - Done", referenceId, referenceType);
             return rows;
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to delete tags by reference", ex);
@@ -155,17 +153,17 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? ",
-                    getOrm().getRowMapper(),
-                    referenceId,
-                    referenceType.name()
-                )
-                .stream()
-                .peek(this::addGroups)
-                .collect(toSet());
+                    .query(
+                            getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? ",
+                            getOrm().getRowMapper(),
+                            referenceId,
+                            referenceType.name())
+                    .stream()
+                    .peek(this::addGroups)
+                    .collect(toSet());
         } catch (final Exception ex) {
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by referenceId and referenceType", ex);
+            throw new TechnicalException(
+                    "Failed to find " + getOrm().getTableName() + " tags by referenceId and referenceType", ex);
         }
     }
 
@@ -197,9 +195,8 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
         List<String> filteredGroups = getOrm().filterStrings(tag.getRestrictedGroups());
         if (!filteredGroups.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + TAG_GROUPS + " (tag_id, group_id) values ( ?, ? )",
-                getOrm().getBatchStringSetter(tag.getId(), filteredGroups)
-            );
+                    "insert into " + TAG_GROUPS + " (tag_id, group_id) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(tag.getId(), filteredGroups));
         }
     }
 
@@ -209,6 +206,7 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     }
 
     private List<String> getGroups(final String tagId) {
-        return jdbcTemplate.queryForList("select group_id from " + TAG_GROUPS + " where tag_id = ?", String.class, tagId);
+        return jdbcTemplate.queryForList(
+                "select group_id from " + TAG_GROUPS + " where tag_id = ?", String.class, tagId);
     }
 }

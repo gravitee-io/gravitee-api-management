@@ -34,7 +34,8 @@ import org.springframework.stereotype.Component;
 @Component
 @CustomLog
 @RequiredArgsConstructor
-public class DeleteTargetTokenCommandHandler implements CommandHandler<DeleteTargetTokenCommand, DeleteTargetTokenReply> {
+public class DeleteTargetTokenCommandHandler
+        implements CommandHandler<DeleteTargetTokenCommand, DeleteTargetTokenReply> {
 
     private final UserService userService;
 
@@ -47,7 +48,8 @@ public class DeleteTargetTokenCommandHandler implements CommandHandler<DeleteTar
         DeleteTargetTokenCommandPayload payload = command.getPayload();
         ExecutionContext context = new ExecutionContext(payload.organizationId(), payload.environmentId());
         try {
-            var userEntity = userService.findBySource(payload.organizationId(), CLOUD_TOKEN_SOURCE, payload.id(), false);
+            var userEntity =
+                    userService.findBySource(payload.organizationId(), CLOUD_TOKEN_SOURCE, payload.id(), false);
             userService.delete(context, userEntity.getId());
             log.info("User with id [{}] has been deleted.", userEntity.getId());
         } catch (UserNotFoundException e) {

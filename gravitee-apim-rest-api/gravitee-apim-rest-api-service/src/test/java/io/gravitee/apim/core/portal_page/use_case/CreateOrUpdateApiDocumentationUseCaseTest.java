@@ -53,43 +53,45 @@ import org.junit.jupiter.api.Test;
 class CreateOrUpdateApiDocumentationUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String API_HRID = "pets-api";
     private static final String DOC_HRID = "getting-started";
-    private static final String API_ID = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
-    private static final PortalPageContentId DOC_ID = PortalPageContentId.of(
-        HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid(DOC_HRID).id()
-    );
+    private static final String API_ID =
+            HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+    private static final PortalPageContentId DOC_ID = PortalPageContentId.of(HRIDToUUID.apiDocumentation()
+            .context(AUDIT_INFO)
+            .api(API_HRID)
+            .hrid(DOC_HRID)
+            .id());
 
     private final PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
     private final ValidateApiDocumentationDomainService validator = new ValidateApiDocumentationDomainService();
     private CreateOrUpdateApiDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
         var gmdContentValidator = new GraviteePortalPageContentValidatorService(
-            new GraviteeMarkdownValidator(),
-            navQueryService,
-            mock(PortalNavigationEnclosingApiDomainService.class),
-            mock(PortalNavigationTemplatingService.class),
-            mock(ApiTemplateModelProvider.class),
-            mock(EnvironmentTemplateModelProvider.class)
-        );
+                new GraviteeMarkdownValidator(),
+                navQueryService,
+                mock(PortalNavigationEnclosingApiDomainService.class),
+                mock(PortalNavigationTemplatingService.class),
+                mock(ApiTemplateModelProvider.class),
+                mock(EnvironmentTemplateModelProvider.class));
         useCase = new CreateOrUpdateApiDocumentationUseCase(
-            validator,
-            crudService,
-            queryService,
-            new PortalPageContentValidatorService(List.of(gmdContentValidator)),
-            new ApiDocumentationSyncDomainService(navCrudService, navQueryService, mock(PortalNavigationItemValidatorService.class))
-        );
+                validator,
+                crudService,
+                queryService,
+                new PortalPageContentValidatorService(List.of(gmdContentValidator)),
+                new ApiDocumentationSyncDomainService(
+                        navCrudService, navQueryService, mock(PortalNavigationItemValidatorService.class)));
     }
 
     @AfterEach
@@ -101,7 +103,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_create_when_not_existing() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
 
         assertThat(output.id()).isEqualTo(DOC_ID);
         assertThat(output.errors()).isEmpty();
@@ -115,10 +118,12 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_update_when_existing() {
-        useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
+        useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
         queryService.initWith(crudService.storage());
 
-        var output = useCase.execute(input("Renamed", PortalPageContentType.OPENAPI, "openapi: 3.0.0", "/getting-started/v2", 5));
+        var output = useCase.execute(
+                input("Renamed", PortalPageContentType.OPENAPI, "openapi: 3.0.0", "/getting-started/v2", 5));
 
         assertThat(output.id()).isEqualTo(DOC_ID);
         assertThat(crudService.storage()).hasSize(1);
@@ -132,12 +137,13 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_reject_update_when_content_becomes_blank() {
-        useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
+        useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
         queryService.initWith(crudService.storage());
 
-        assertThatThrownBy(() ->
-            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "   ", "/getting-started", 1))
-        ).isInstanceOf(GraviteeMarkdownContentEmptyException.class);
+        assertThatThrownBy(() -> useCase.execute(input(
+                        "Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "   ", "/getting-started", 1)))
+                .isInstanceOf(GraviteeMarkdownContentEmptyException.class);
     }
 
     @Test
@@ -154,7 +160,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_persist_even_when_parent_api_does_not_exist() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1));
 
         assertThat(output.errors()).isEmpty();
         assertThat(crudService.storage()).hasSize(1);
@@ -162,7 +169,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_persist_with_null_location_and_order() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", null, null));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", null, null));
 
         assertThat(output.errors()).isEmpty();
         var stored = crudService.storage().get(0);
@@ -172,9 +180,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_location_is_malformed() {
-        var throwable = catchThrowable(() ->
-            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "getting-started", 1))
-        );
+        var throwable = catchThrowable(() -> useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "getting-started", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("location");
@@ -183,9 +190,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_name_is_null() {
-        var throwable = catchThrowable(() ->
-            useCase.execute(input(null, PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1))
-        );
+        var throwable = catchThrowable(() -> useCase.execute(
+                input(null, PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("name");
@@ -194,7 +200,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_type_is_null() {
-        var throwable = catchThrowable(() -> useCase.execute(input("Getting Started", null, "# Hello", "/getting-started", 1)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(input("Getting Started", null, "# Hello", "/getting-started", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("type");
@@ -203,9 +210,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_name_is_blank() {
-        var throwable = catchThrowable(() ->
-            useCase.execute(input("  ", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1))
-        );
+        var throwable = catchThrowable(() -> useCase.execute(
+                input("  ", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/getting-started", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("name");
@@ -214,9 +220,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_content_is_null() {
-        var throwable = catchThrowable(() ->
-            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, null, "/getting-started", 1))
-        );
+        var throwable = catchThrowable(() -> useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, null, "/getting-started", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("content");
@@ -224,12 +229,8 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
     }
 
     private static CreateOrUpdateApiDocumentationUseCase.Input input(
-        String name,
-        PortalPageContentType type,
-        String content,
-        String location,
-        Integer order
-    ) {
-        return new CreateOrUpdateApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID, API_ID, name, type, content, location, order, null);
+            String name, PortalPageContentType type, String content, String location, Integer order) {
+        return new CreateOrUpdateApiDocumentationUseCase.Input(
+                AUDIT_INFO, DOC_ID, API_ID, name, type, content, location, order, null);
     }
 }

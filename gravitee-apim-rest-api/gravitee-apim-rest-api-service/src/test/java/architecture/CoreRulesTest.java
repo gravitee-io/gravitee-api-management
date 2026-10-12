@@ -32,36 +32,33 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
     @Test
     public void core_should_be_independent() {
         classes()
-            .that()
-            .resideInAPackage(anyPackageThatContains(GRAVITEE_APIM_PACKAGE + "." + CORE_PACKAGE + ".(**)"))
-            .should()
-            .onlyDependOnClassesThat(
-                resideInAnyPackage(
-                    anyPackageThatContains(GRAVITEE_APIM_PACKAGE + "." + CORE_PACKAGE),
-                    "java..",
-                    "javax.annotation..",
-                    "org.slf4j..",
-                    "lombok..",
-                    "com.fasterxml..",
-                    "jakarta..",
-                    "io.reactivex.rxjava3..",
-                    // Api Definition can't be in core because it is required for the Gateway
-                    "io.gravitee.definition..",
-                    "io.gravitee.plugin.configurations..",
-                    // Allow Gravitee node API to be used in core
-                    "io.gravitee.node.api..",
-                    "io.gravitee.node.logging..",
-                    // TODO: ideally, core should be independent from model.
-                    "io.gravitee.rest.api.model..",
-                    // Common and Exceptions are an accepted case of reusability
-                    "io.gravitee.definition.model..",
-                    "io.gravitee.common..",
-                    "io.gravitee.rest.api.service.common..",
-                    "io.gravitee.rest.api.service.exceptions..",
-                    "io.gravitee.rest.api.service.notification.."
-                )
-            )
-            .because("Core should be free from framework")
-            .check(apimClassesWithoutTests());
+                .that()
+                .resideInAPackage(anyPackageThatContains(GRAVITEE_APIM_PACKAGE + "." + CORE_PACKAGE + ".(**)"))
+                .should()
+                .onlyDependOnClassesThat(resideInAnyPackage(
+                        anyPackageThatContains(GRAVITEE_APIM_PACKAGE + "." + CORE_PACKAGE),
+                        "java..",
+                        "javax.annotation..",
+                        "org.slf4j..",
+                        "lombok..",
+                        "com.fasterxml..",
+                        "jakarta..",
+                        "io.reactivex.rxjava3..",
+                        // Api Definition can't be in core because it is required for the Gateway
+                        "io.gravitee.definition..",
+                        "io.gravitee.plugin.configurations..",
+                        // Allow Gravitee node API to be used in core
+                        "io.gravitee.node.api..",
+                        "io.gravitee.node.logging..",
+                        // TODO: ideally, core should be independent from model.
+                        "io.gravitee.rest.api.model..",
+                        // Common and Exceptions are an accepted case of reusability
+                        "io.gravitee.definition.model..",
+                        "io.gravitee.common..",
+                        "io.gravitee.rest.api.service.common..",
+                        "io.gravitee.rest.api.service.exceptions..",
+                        "io.gravitee.rest.api.service.notification.."))
+                .because("Core should be free from framework")
+                .check(apimClassesWithoutTests());
     }
 }

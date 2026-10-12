@@ -46,39 +46,38 @@ public class PlanOAuth2V3IntegrationTest extends PlanOAuth2V4EmulationIntegratio
      * - in V3 its searches with api/clientId/plan
      */
     @Override
-    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
+    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(
+            String api, String clientId, String plan) {
         return when(getBean(SubscriptionService.class).getByApiAndClientIdAndPlan(api, clientId, plan));
     }
 
     @Override
     protected void should_return_401_unauthorized_with_wrong_security(
-        final String apiId,
-        final String headerName,
-        final String headerValue,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) {
+            final String apiId,
+            final String headerName,
+            final String headerValue,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                if (headerName != null && headerValue != null) {
-                    request.putHeader(headerName, headerValue);
-                }
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("Unauthorized");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    if (headerName != null && headerValue != null) {
+                        request.putHeader(headerName, headerValue);
+                    }
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("Unauthorized");
+                    return true;
+                });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }

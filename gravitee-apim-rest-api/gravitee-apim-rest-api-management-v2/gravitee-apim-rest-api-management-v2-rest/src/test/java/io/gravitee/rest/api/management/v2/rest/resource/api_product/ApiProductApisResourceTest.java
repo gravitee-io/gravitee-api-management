@@ -88,7 +88,9 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
     }
 
     private void givenApiProductMissing() {
-        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID))
+                .when(verifyApiProductExistsUseCase)
+                .execute(any());
     }
 
     @Nested
@@ -106,18 +108,22 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
         @Test
         void should_return_empty_list_when_product_has_no_apis() {
             givenApiProductExists();
-            when(getApiProductApisUseCase.execute(any())).thenReturn(new GetApiProductApisUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+            when(getApiProductApisUseCase.execute(any()))
+                    .thenReturn(new GetApiProductApisUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
 
-            Response response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
+            Response response = rootTarget()
+                    .queryParam("page", 1)
+                    .queryParam("perPage", 10)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             ApisResponse result = response.readEntity(ApisResponse.class);
             assertAll(
-                () -> assertThat(result.getData()).isEmpty(),
-                () -> assertThat(result.getPagination()).isNotNull(),
-                () -> assertThat(result.getPagination().getTotalCount()).isEqualTo(0),
-                () -> assertThat(result.getLinks()).isNotNull()
-            );
+                    () -> assertThat(result.getData()).isEmpty(),
+                    () -> assertThat(result.getPagination()).isNotNull(),
+                    () -> assertThat(result.getPagination().getTotalCount()).isEqualTo(0),
+                    () -> assertThat(result.getLinks()).isNotNull());
         }
 
         @Test
@@ -129,40 +135,45 @@ class ApiProductApisResourceTest extends AbstractResourceTest {
             genericApi.setName("My API");
             genericApi.setDefinitionVersion(DefinitionVersion.V4);
 
-            when(getApiProductApisUseCase.execute(any())).thenReturn(
-                new GetApiProductApisUseCase.Output(new Page<>(List.of(genericApi), 1, 10, 2))
-            );
+            when(getApiProductApisUseCase.execute(any()))
+                    .thenReturn(new GetApiProductApisUseCase.Output(new Page<>(List.of(genericApi), 1, 10, 2)));
 
-            Response response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
+            Response response = rootTarget()
+                    .queryParam("page", 1)
+                    .queryParam("perPage", 10)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             ApisResponse result = response.readEntity(ApisResponse.class);
             assertAll(
-                () -> assertThat(result.getData()).hasSize(1),
-                () -> assertThat(result.getData().get(0).getApiV4().getId()).isEqualTo("api-1"),
-                () -> assertThat(result.getData().get(0).getApiV4().getName()).isEqualTo("My API"),
-                () -> assertThat(result.getPagination()).isNotNull(),
-                () -> assertThat(result.getPagination().getTotalCount()).isEqualTo(2),
-                () -> assertThat(result.getLinks()).isNotNull()
-            );
+                    () -> assertThat(result.getData()).hasSize(1),
+                    () -> assertThat(result.getData().get(0).getApiV4().getId()).isEqualTo("api-1"),
+                    () -> assertThat(result.getData().get(0).getApiV4().getName())
+                            .isEqualTo("My API"),
+                    () -> assertThat(result.getPagination()).isNotNull(),
+                    () -> assertThat(result.getPagination().getTotalCount()).isEqualTo(2),
+                    () -> assertThat(result.getLinks()).isNotNull());
         }
 
         @Test
         void should_pass_pagination_and_query_to_use_case() {
             givenApiProductExists();
-            when(getApiProductApisUseCase.execute(any())).thenReturn(new GetApiProductApisUseCase.Output(new Page<>(List.of(), 2, 20, 0)));
+            when(getApiProductApisUseCase.execute(any()))
+                    .thenReturn(new GetApiProductApisUseCase.Output(new Page<>(List.of(), 2, 20, 0)));
 
-            rootTarget().queryParam("page", 2).queryParam("perPage", 20).queryParam("query", "search-term").request().get();
+            rootTarget()
+                    .queryParam("page", 2)
+                    .queryParam("perPage", 20)
+                    .queryParam("query", "search-term")
+                    .request()
+                    .get();
 
-            verify(getApiProductApisUseCase).execute(
-                argThat(
-                    input ->
-                        API_PRODUCT_ID.equals(input.apiProductId()) &&
-                        "search-term".equals(input.query()) &&
-                        input.pageable().getPageNumber() == 2 &&
-                        input.pageable().getPageSize() == 20
-                )
-            );
+            verify(getApiProductApisUseCase)
+                    .execute(argThat(input -> API_PRODUCT_ID.equals(input.apiProductId())
+                            && "search-term".equals(input.query())
+                            && input.pageable().getPageNumber() == 2
+                            && input.pageable().getPageSize() == 20));
         }
     }
 }

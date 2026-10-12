@@ -59,24 +59,23 @@ public class ConnectorsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List connector plugins", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "List connector plugins",
+            description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of connectors",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ConnectorListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of connectors",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ConnectorListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Collection<ConnectorListItem> getConnectors(@QueryParam("expand") List<String> expand) {
         boolean includeSchema = expand.contains("schema");
         boolean includeIcon = expand.contains("icon");
-        Stream<ConnectorListItem> stream = connectorService
-            .findAll()
-            .stream()
-            .map(connector -> convert(connector, includeSchema, includeIcon));
+        Stream<ConnectorListItem> stream =
+                connectorService.findAll().stream().map(connector -> convert(connector, includeSchema, includeIcon));
 
         return stream.sorted(Comparator.comparing(ConnectorListItem::getName)).collect(Collectors.toList());
     }

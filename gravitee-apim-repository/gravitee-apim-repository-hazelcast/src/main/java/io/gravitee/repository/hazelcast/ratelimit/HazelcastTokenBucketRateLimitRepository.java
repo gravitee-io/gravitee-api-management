@@ -37,20 +37,18 @@ public final class HazelcastTokenBucketRateLimitRepository implements TokenBucke
 
     @Override
     public Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
-    ) {
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<TokenBucket> supplier) {
         TokenBucket seed = supplier.get();
-        return Single.fromCompletionStage(
-            buckets.submitToKey(
-                key,
-                new RefillAndTryConsumeEntryProcessor(tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis, seed)
-            )
-        ).doOnError(t -> log.warn("Hazelcast token-bucket consume failed for key={}", key, t));
+        return Single.fromCompletionStage(buckets.submitToKey(
+                        key,
+                        new RefillAndTryConsumeEntryProcessor(
+                                tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis, seed)))
+                .doOnError(t -> log.warn("Hazelcast token-bucket consume failed for key={}", key, t));
     }
 }

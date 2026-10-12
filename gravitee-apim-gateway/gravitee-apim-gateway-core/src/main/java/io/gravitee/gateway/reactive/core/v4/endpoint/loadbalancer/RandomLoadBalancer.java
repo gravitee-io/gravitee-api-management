@@ -25,7 +25,8 @@ import java.util.Random;
  */
 public class RandomLoadBalancer extends AbstractLoadBalancerStrategy {
 
-    private static final Random RANDOM = new Random(); //NOSONAR the random value is not used for security purposes here
+    private static final Random RANDOM =
+            new Random(); // NOSONAR the random value is not used for security purposes here
 
     public RandomLoadBalancer(final List<ManagedEndpoint> endpoints) {
         super(endpoints);

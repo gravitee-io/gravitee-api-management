@@ -36,7 +36,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -69,15 +68,20 @@ public class EnvironmentResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get an Environment", tags = { "Environment" })
+    @Operation(
+            summary = "Get an Environment",
+            tags = {"Environment"})
     @ApiResponse(
-        responseCode = "200",
-        description = "Found Environment",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EnvironmentEntity.class))
-    )
+            responseCode = "200",
+            description = "Found Environment",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = EnvironmentEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getEnvironment() {
-        return Response.ok(environmentService.findById(GraviteeContext.getCurrentEnvironment())).build();
+        return Response.ok(environmentService.findById(GraviteeContext.getCurrentEnvironment()))
+                .build();
     }
 
     @GET
@@ -85,51 +89,50 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/identities")
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = READ))
     @Operation(
-        summary = "Get the list of identity provider activations for current environment",
-        description = "User must have the ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service"
-    )
+            summary = "Get the list of identity provider activations for current environment",
+            description =
+                    "User must have the ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List identity provider activations for current environment",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = IdentityProviderActivationEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List identity provider activations for current environment",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema = @Schema(implementation = IdentityProviderActivationEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Set<IdentityProviderActivationEntity> getIdentityProviderActivations() {
-        return identityProviderActivationService.findAllByTarget(
-            new IdentityProviderActivationService.ActivationTarget(
-                GraviteeContext.getCurrentEnvironment(),
-                IdentityProviderActivationReferenceType.ENVIRONMENT
-            )
-        );
+        return identityProviderActivationService.findAllByTarget(new IdentityProviderActivationService.ActivationTarget(
+                GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT));
     }
 
     @PUT
     @Path("/identities")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = { CREATE, DELETE, UPDATE }))
-    @Operation(summary = "Update available environment identities", tags = { "Environment" })
+    @Permissions(
+            @Permission(
+                    value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION,
+                    acls = {CREATE, DELETE, UPDATE}))
+    @Operation(
+            summary = "Update available environment identities",
+            tags = {"Environment"})
     @ApiResponse(responseCode = "204", description = "Environment successfully updated")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateEnvironmentIdentities(List<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
-            GraviteeContext.getExecutionContext(),
-            new IdentityProviderActivationService.ActivationTarget(
-                GraviteeContext.getCurrentEnvironment(),
-                IdentityProviderActivationReferenceType.ENVIRONMENT
-            ),
-            identityProviderActivations
-                .stream()
-                .filter(ipa -> {
-                    final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
-                    return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
-                })
-                .map(IdentityProviderActivationEntity::getIdentityProvider)
-                .collect(Collectors.toList())
-        );
+                GraviteeContext.getExecutionContext(),
+                new IdentityProviderActivationService.ActivationTarget(
+                        GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT),
+                identityProviderActivations.stream()
+                        .filter(ipa -> {
+                            final IdentityProviderEntity idp =
+                                    this.identityProviderService.findById(ipa.getIdentityProvider());
+                            return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
+                        })
+                        .map(IdentityProviderActivationEntity::getIdentityProvider)
+                        .collect(Collectors.toList()));
         return Response.noContent().build();
     }
 
@@ -138,10 +141,12 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/permissions")
     @Operation(summary = "Get permissions for the current user on the environment")
     @ApiResponse(
-        responseCode = "200",
-        description = "Current user permissions on environment",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PermissionMap.class))
-    )
+            responseCode = "200",
+            description = "Current user permissions on environment",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PermissionMap.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getEnvironmentPermissions() {
         Map<String, char[]> permissions = new HashMap<>();
@@ -149,16 +154,16 @@ public class EnvironmentResource extends AbstractResource {
             final String username = getAuthenticatedUser();
             // Search for the environment in any  case to make sure it exists
             // We use the env resolved from context to make sure the hrid has been resolved
-            final EnvironmentEntity environmentEntity = environmentService.findById(GraviteeContext.getCurrentEnvironment());
+            final EnvironmentEntity environmentEntity =
+                    environmentService.findById(GraviteeContext.getCurrentEnvironment());
             if (isAdmin()) {
-                final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
+                final char[] rights = new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
                 for (EnvironmentPermission perm : EnvironmentPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions.putAll(
-                    membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), environmentEntity, username)
-                );
+                permissions.putAll(membershipService.getUserMemberPermissions(
+                        GraviteeContext.getExecutionContext(), environmentEntity, username));
             }
         }
         return Response.ok(permissions).build();

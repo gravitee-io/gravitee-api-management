@@ -38,10 +38,9 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     @Test
     void shouldAdaptQueryWithAllFields() throws Exception {
         var query = new RequestsCountByEventQuery(
-            new SearchTermId(SearchTermId.SearchTerm.API, "api-123"),
-            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)),
-            Optional.empty()
-        );
+                new SearchTermId(SearchTermId.SearchTerm.API, "api-123"),
+                new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)),
+                Optional.empty());
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
         assertNotNull(result);
 
@@ -49,11 +48,20 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         JsonNode node = mapper.readTree(result);
 
         assertEquals(0, node.at("/size").asInt());
-        assertTrue(node.at("/track_total_hits").asBoolean(), "the count is read from hits.total, which caps at 10 000 without it");
-        assertEquals("api-123", node.at("/query/bool/must/0/bool/should/0/term/api-id").asText());
-        assertEquals("api-123", node.at("/query/bool/must/0/bool/should/1/term/api").asText());
-        assertEquals(1650000000000L, node.at("/query/bool/must/1/range/@timestamp/gte").asLong());
-        assertEquals(1650003600000L, node.at("/query/bool/must/1/range/@timestamp/lte").asLong());
+        assertTrue(
+                node.at("/track_total_hits").asBoolean(),
+                "the count is read from hits.total, which caps at 10 000 without it");
+        assertEquals(
+                "api-123",
+                node.at("/query/bool/must/0/bool/should/0/term/api-id").asText());
+        assertEquals(
+                "api-123", node.at("/query/bool/must/0/bool/should/1/term/api").asText());
+        assertEquals(
+                1650000000000L,
+                node.at("/query/bool/must/1/range/@timestamp/gte").asLong());
+        assertEquals(
+                1650003600000L,
+                node.at("/query/bool/must/1/range/@timestamp/lte").asLong());
     }
 
     @Test
@@ -87,10 +95,9 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     void shouldIncludeQueryStringIfPresent() throws Exception {
         String queryString = "status:200 AND method:GET";
         var query = new RequestsCountByEventQuery(
-            new SearchTermId(SearchTermId.SearchTerm.API, "api-123"),
-            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)),
-            Optional.of(queryString)
-        );
+                new SearchTermId(SearchTermId.SearchTerm.API, "api-123"),
+                new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)),
+                Optional.of(queryString));
 
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
         assertNotNull(result);
@@ -103,23 +110,25 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         var mustArray = boolQuery.getJsonArray("must");
 
         assertEquals(3, mustArray.size());
-        JsonObject boolEntry = mustArray
-            .stream()
-            .map(JsonObject.class::cast)
-            .filter(o -> o.containsKey("bool"))
-            .findFirst()
-            .orElseThrow();
-        JsonObject queryEntry = mustArray
-            .stream()
-            .map(JsonObject.class::cast)
-            .filter(o -> o.containsKey("query_string"))
-            .findFirst()
-            .orElseThrow();
+        JsonObject boolEntry = mustArray.stream()
+                .map(JsonObject.class::cast)
+                .filter(o -> o.containsKey("bool"))
+                .findFirst()
+                .orElseThrow();
+        JsonObject queryEntry = mustArray.stream()
+                .map(JsonObject.class::cast)
+                .filter(o -> o.containsKey("query_string"))
+                .findFirst()
+                .orElseThrow();
 
         assertEquals(
-            "api-123",
-            boolEntry.getJsonObject("bool").getJsonArray("should").getJsonObject(0).getJsonObject("term").getString("api-id")
-        );
+                "api-123",
+                boolEntry
+                        .getJsonObject("bool")
+                        .getJsonArray("should")
+                        .getJsonObject(0)
+                        .getJsonObject("term")
+                        .getString("api-id"));
         assertEquals(queryString, queryEntry.getJsonObject("query_string").getString("query"));
     }
 }

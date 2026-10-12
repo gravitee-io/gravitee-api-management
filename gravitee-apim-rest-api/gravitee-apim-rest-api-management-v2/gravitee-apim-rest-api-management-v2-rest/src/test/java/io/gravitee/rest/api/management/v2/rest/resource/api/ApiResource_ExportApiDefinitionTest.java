@@ -109,14 +109,12 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_not_export_when_no_definition_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
     }
@@ -130,7 +128,8 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_export_ApiEntityV4() {
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeApiEntityV4())));
+        when(exportApiUseCase.execute(any()))
+                .thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeApiEntityV4())));
 
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -156,7 +155,8 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_export_allowedInApiProducts_false_for_v4_proxy_api() {
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeApiEntityV4())));
+        when(exportApiUseCase.execute(any()))
+                .thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeApiEntityV4())));
 
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -167,7 +167,8 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     void should_export_NativeApiEntityV4() {
-        when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeNativeApiEntityV4())));
+        when(exportApiUseCase.execute(any()))
+                .thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeNativeApiEntityV4())));
 
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -193,32 +194,35 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     private GraviteeDefinition fakeExportApiEntity(ApiDescriptor apiEntity) {
         return switch (apiEntity) {
-            case ApiDescriptor.ApiDescriptorV4 v4 -> GraviteeDefinition.from(
-                v4,
-                fakeApiMembers(),
-                fakeApiMetadata(),
-                fakeApiPages(),
-                fakeApiPlansV4(),
-                fakeApiMedia(),
-                null,
-                null
-            );
-            case ApiDescriptor.Native v4Native -> GraviteeDefinition.from(
-                v4Native,
-                fakeApiMembers(),
-                fakeApiMetadata(),
-                fakeApiPages(),
-                fakeApiPlansNative(),
-                fakeApiMedia(),
-                null,
-                null
-            );
+            case ApiDescriptor.ApiDescriptorV4 v4 ->
+                GraviteeDefinition.from(
+                        v4,
+                        fakeApiMembers(),
+                        fakeApiMetadata(),
+                        fakeApiPages(),
+                        fakeApiPlansV4(),
+                        fakeApiMedia(),
+                        null,
+                        null);
+            case ApiDescriptor.Native v4Native ->
+                GraviteeDefinition.from(
+                        v4Native,
+                        fakeApiMembers(),
+                        fakeApiMetadata(),
+                        fakeApiPages(),
+                        fakeApiPlansNative(),
+                        fakeApiMedia(),
+                        null,
+                        null);
             case null, default -> throw new RuntimeException("Unsupported api descriptor");
         };
     }
 
     private ApiDescriptor.ApiDescriptorV4 fakeApiEntityV4() {
-        var httpListener = HttpListener.builder().paths(List.of(new Path("my.fake.host", "/test"))).pathMappings(Set.of("/test")).build();
+        var httpListener = HttpListener.builder()
+                .paths(List.of(new Path("my.fake.host", "/test")))
+                .pathMappings(Set.of("/test"))
+                .build();
 
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         Entrypoint entrypoint = new Entrypoint();
@@ -233,10 +237,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         tcpListener.setType(ListenerType.TCP);
         tcpListener.setEntrypoints(List.of(entrypoint));
 
-        var endpoint = Endpoint.builder()
-            .type("http-get")
-            .configuration(
-                """
+        var endpoint = Endpoint.builder().type("http-get").configuration("""
                 {
                                         "bootstrapServers": "kafka:9092",
                                         "topics": [
@@ -250,10 +251,11 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                                             "enabled": true,
                                             "autoOffsetReset": "earliest"
                                         }
-                                    }"""
-            )
-            .build();
-        var endpointGroup = EndpointGroup.builder().type("http-get").endpoints(List.of(endpoint)).build();
+                                    }""").build();
+        var endpointGroup = EndpointGroup.builder()
+                .type("http-get")
+                .endpoints(List.of(endpoint))
+                .build();
 
         Flow flow = new Flow();
         flow.setName("flowName");
@@ -283,44 +285,66 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));
 
         return ApiDescriptor.ApiDescriptorV4.builder()
-            .id(API)
-            .name(API)
-            .apiVersion("v1.0")
-            .listeners(List.of(httpListener, subscriptionListener, tcpListener))
-            .properties(List.of(new Property()))
-            .services(new ApiServices())
-            .resources(List.of(new Resource()))
-            .responseTemplates(Map.of("key", new HashMap<>()))
-            .updatedAt(Instant.now())
-            .analytics(new Analytics())
-            .endpointGroups(List.of(endpointGroup))
-            .flows(List.of(flow))
-            .allowedInApiProducts(false)
-            .build();
+                .id(API)
+                .name(API)
+                .apiVersion("v1.0")
+                .listeners(List.of(httpListener, subscriptionListener, tcpListener))
+                .properties(List.of(new Property()))
+                .services(new ApiServices())
+                .resources(List.of(new Resource()))
+                .responseTemplates(Map.of("key", new HashMap<>()))
+                .updatedAt(Instant.now())
+                .analytics(new Analytics())
+                .endpointGroups(List.of(endpointGroup))
+                .flows(List.of(flow))
+                .allowedInApiProducts(false)
+                .build();
     }
 
     private ApiDescriptor.Native fakeNativeApiEntityV4() {
-        var endpoint = NativeEndpoint.builder().type("kafka").configuration("{\"bootstrapServers\": \"kafka:9092\"}").build();
-        var endpointGroup = NativeEndpointGroup.builder().type("kafka").endpoints(List.of(endpoint)).build();
+        var endpoint = NativeEndpoint.builder()
+                .type("kafka")
+                .configuration("{\"bootstrapServers\": \"kafka:9092\"}")
+                .build();
+        var endpointGroup = NativeEndpointGroup.builder()
+                .type("kafka")
+                .endpoints(List.of(endpoint))
+                .build();
 
         var kafkaListener = KafkaListener.builder().host("my.fake.host").build();
-        var step = Step.builder().enabled(true).policy("my-policy").condition("my-condition").build();
+        var step = Step.builder()
+                .enabled(true)
+                .policy("my-policy")
+                .condition("my-condition")
+                .build();
 
-        var flow = NativeFlow.builder().name("flowName").enabled(true).interact(List.of(step)).tags(Set.of("tag1", "tag2")).build();
+        var flow = NativeFlow.builder()
+                .name("flowName")
+                .enabled(true)
+                .interact(List.of(step))
+                .tags(Set.of("tag1", "tag2"))
+                .build();
 
         return ApiDescriptor.Native.builder()
-            .id(API)
-            .name(API)
-            .apiVersion("v1.0")
-            .listeners(List.of(kafkaListener))
-            .properties(List.of(new Property()))
-            .resources(List.of(new Resource()))
-            .updatedAt(Instant.now())
-            .analytics(NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(true).build())
-            .endpointGroups(List.of(endpointGroup))
-            .flows(List.of(flow))
-            .services(new NativeApiServices(Service.builder().type("http-dynamic-properties").enabled(true).configuration("{}").build()))
-            .build();
+                .id(API)
+                .name(API)
+                .apiVersion("v1.0")
+                .listeners(List.of(kafkaListener))
+                .properties(List.of(new Property()))
+                .resources(List.of(new Resource()))
+                .updatedAt(Instant.now())
+                .analytics(NativeAnalytics.builder()
+                        .enabled(true)
+                        .reporterMetricsEnabled(true)
+                        .build())
+                .endpointGroups(List.of(endpointGroup))
+                .flows(List.of(flow))
+                .services(new NativeApiServices(Service.builder()
+                        .type("http-dynamic-properties")
+                        .enabled(true)
+                        .configuration("{}")
+                        .build()))
+                .build();
     }
 
     private Set<ApiMember> fakeApiMembers() {
@@ -333,7 +357,8 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         var poUserMember = new ApiMember();
         poUserMember.setId("poMemberId");
         poUserMember.setDisplayName("Thomas Pesquet");
-        poUserMember.setRoles(List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").build()));
+        poUserMember.setRoles(
+                List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").build()));
         poUserMember.setType(MembershipMemberType.USER);
 
         return Set.of(userMember, poUserMember);
@@ -384,8 +409,8 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         planFlow.setSelectors(List.of(httpSelector));
         planFlow.setTags(null);
 
-        return Set.of(
-            PlanDescriptor.V4.builder()
+        return Set.of(PlanDescriptor.V4
+                .builder()
                 .apiId(API)
                 .characteristics(List.of("characteristic1", "characteristic2"))
                 .commentMessage("commentMessage")
@@ -398,7 +423,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 .generalConditions("generalConditions")
                 .id("planId")
                 .name("planName")
-                //.needRedeployAt(null)
+                // .needRedeployAt(null)
                 .order(1)
                 .publishedAt(Instant.ofEpochMilli(5026000))
                 .status(PlanStatus.PUBLISHED)
@@ -407,10 +432,12 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 .type(Plan.PlanType.API)
                 .updatedAt(Instant.ofEpochMilli(5027000))
                 .validation(Plan.PlanValidationType.AUTO)
-                .security(PlanSecurity.builder().type("key-less").configuration("{}").build())
+                .security(PlanSecurity.builder()
+                        .type("key-less")
+                        .configuration("{}")
+                        .build())
                 .flows(List.of(planFlow))
-                .build()
-        );
+                .build());
     }
 
     private Set<PlanDescriptor.Native> fakeApiPlansNative() {
@@ -435,8 +462,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         httpSelector.setPathOperator(Operator.STARTS_WITH);
         planFlow.setTags(null);
 
-        return Set.of(
-            PlanDescriptor.Native.builder()
+        return Set.of(PlanDescriptor.Native.builder()
                 .apiId(API)
                 .characteristics(List.of("characteristic1", "characteristic2"))
                 .commentMessage("commentMessage")
@@ -449,7 +475,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 .generalConditions("generalConditions")
                 .id("planId")
                 .name("planName")
-                //.needRedeployAt(null)
+                // .needRedeployAt(null)
                 .order(1)
                 .publishedAt(Instant.ofEpochMilli(5026000))
                 .status(PlanStatus.PUBLISHED)
@@ -458,10 +484,12 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 .type(Plan.PlanType.API)
                 .updatedAt(Instant.ofEpochMilli(5027000))
                 .validation(Plan.PlanValidationType.AUTO)
-                .security(PlanSecurity.builder().type("key-less").configuration("{}").build())
+                .security(PlanSecurity.builder()
+                        .type("key-less")
+                        .configuration("{}")
+                        .build())
                 .flows(List.of(planFlow))
-                .build()
-        );
+                .build());
     }
 
     private List<PageExport> fakeApiPages() {
@@ -585,18 +613,19 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         var httpSelector = flow.getSelectors().getFirst().getHttpSelector();
         assertThat(httpSelector).isNotNull();
         assertThat(httpSelector.getPath()).isEqualTo("/test");
-        assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
-        assertThat(httpSelector.getMethods()).containsOnly(
-            io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
-            io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-        );
+        assertThat(httpSelector.getPathOperator())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
+        assertThat(httpSelector.getMethods())
+                .containsOnly(
+                        io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
+                        io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST);
 
         var channelSelector = flow.getSelectors().get(1).getChannelSelector();
         assertThat(channelSelector.getChannel()).isEqualTo("my-channel");
-        assertThat(channelSelector.getChannelOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
-        assertThat(channelSelector.getOperations()).containsOnly(
-            io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE
-        );
+        assertThat(channelSelector.getChannelOperator())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
+        assertThat(channelSelector.getOperations())
+                .containsOnly(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE);
         assertThat(channelSelector.getEntrypoints()).containsOnly("my-entrypoint");
 
         var conditionSelector = flow.getSelectors().get(2).getConditionSelector();
@@ -661,25 +690,28 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     private void testReturnedMembers(Set<Member> members) {
         var userMember = new Member().displayName("John Doe").id("memberId").roles(List.of(new Role().name("OWNER")));
-        var poUserMember = new Member().displayName("Thomas Pesquet").id("poMemberId").roles(List.of(new Role().name("PRIMARY_OWNER")));
+        var poUserMember = new Member()
+                .displayName("Thomas Pesquet")
+                .id("poMemberId")
+                .roles(List.of(new Role().name("PRIMARY_OWNER")));
 
         assertThat(members).containsOnly(userMember, poUserMember);
     }
 
     private void testReturnedMetadata(Set<Metadata> metadata) {
         var firstMetadata = new Metadata()
-            .key("my-metadata-1")
-            .name("My first metadata")
-            .format(io.gravitee.rest.api.management.v2.rest.model.MetadataFormat.NUMERIC)
-            .value("1")
-            .defaultValue("5");
+                .key("my-metadata-1")
+                .name("My first metadata")
+                .format(io.gravitee.rest.api.management.v2.rest.model.MetadataFormat.NUMERIC)
+                .value("1")
+                .defaultValue("5");
 
         var secondMetadata = new Metadata()
-            .key("my-metadata-2")
-            .name("My second metadata")
-            .format(io.gravitee.rest.api.management.v2.rest.model.MetadataFormat.STRING)
-            .value("Very important data !!")
-            .defaultValue("Important data");
+                .key("my-metadata-2")
+                .name("My second metadata")
+                .format(io.gravitee.rest.api.management.v2.rest.model.MetadataFormat.STRING)
+                .value("Very important data !!")
+                .defaultValue("Important data");
 
         assertThat(metadata).containsOnly(firstMetadata, secondMetadata);
     }
@@ -740,16 +772,18 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             var httpSelector = flowV4.getSelectors().getFirst().getHttpSelector();
             assertThat(httpSelector).isNotNull();
             assertThat(httpSelector.getPath()).isEqualTo("/test");
-            assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
-            assertThat(httpSelector.getMethods()).containsOnly(
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-            );
+            assertThat(httpSelector.getPathOperator())
+                    .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
+            assertThat(httpSelector.getMethods())
+                    .containsOnly(
+                            io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
+                            io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST);
         }
 
         assertThat(plan.getSecurity()).isNotNull();
         var planSecurity = plan.getSecurity();
-        assertThat(planSecurity.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.KEY_LESS);
+        assertThat(planSecurity.getType())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.KEY_LESS);
         assertThat(planSecurity.getConfiguration()).isEqualTo(new LinkedHashMap<>());
     }
 
@@ -810,17 +844,15 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     private Condition<Media> testReturnedMedia() {
         var created = OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         return new Condition<>(
-            media ->
-                media != null &&
-                "media-id".equals(media.getId()) &&
-                "media-hash".equals(media.getHash()) &&
-                Objects.equals(1_000L, media.getSize()) &&
-                "media-file-name".equals(media.getFileName()) &&
-                "media-type".equals(media.getType()) &&
-                "media-sub-type".equals(media.getSubType()) &&
-                Arrays.equals("media-data".getBytes(UTF_8), media.getData()) &&
-                created.equals(media.getCreatedAt()),
-            "media-id"
-        );
+                media -> media != null
+                        && "media-id".equals(media.getId())
+                        && "media-hash".equals(media.getHash())
+                        && Objects.equals(1_000L, media.getSize())
+                        && "media-file-name".equals(media.getFileName())
+                        && "media-type".equals(media.getType())
+                        && "media-sub-type".equals(media.getSubType())
+                        && Arrays.equals("media-data".getBytes(UTF_8), media.getData())
+                        && created.equals(media.getCreatedAt()),
+                "media-id");
     }
 }

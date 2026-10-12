@@ -49,12 +49,13 @@ public class PortalMenuLinksResource extends AbstractResource {
 
         if (isAuthenticated()) {
             portalMenuLinks = listAllPortalMenuLinksForEnvironmentUseCase
-                .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
-                .portalMenuLinkList();
+                    .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
+                    .portalMenuLinkList();
         } else {
             portalMenuLinks = listPublicPortalMenuLinksForEnvironmentUseCase
-                .execute(new ListPublicPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
-                .portalMenuLinkList();
+                    .execute(new ListPublicPortalMenuLinksForEnvironmentUseCase.Input(
+                            executionContext.getEnvironmentId()))
+                    .portalMenuLinkList();
         }
 
         return Response.ok(mapper.map(portalMenuLinks)).build();

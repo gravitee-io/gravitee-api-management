@@ -66,14 +66,13 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
     protected final DefaultClassLoader classLoader;
 
     public LegacyPolicyManager(
-        final DefaultClassLoader classLoader,
-        final PolicyFactory policyFactory,
-        final PolicyConfigurationFactory policyConfigurationFactory,
-        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        final PolicyClassLoaderFactory policyClassLoaderFactory,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ComponentProvider componentProvider
-    ) {
+            final DefaultClassLoader classLoader,
+            final PolicyFactory policyFactory,
+            final PolicyConfigurationFactory policyConfigurationFactory,
+            final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            final PolicyClassLoaderFactory policyClassLoaderFactory,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ComponentProvider componentProvider) {
         this.classLoader = classLoader;
         this.policyFactory = policyFactory;
         this.policyConfigurationFactory = policyConfigurationFactory;
@@ -96,7 +95,8 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
 
         this.resourcesClassLoader = null;
 
-        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by Jackson TypeFactory.
+        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by
+        // Jackson TypeFactory.
         TypeFactory.defaultInstance().clearCache();
     }
 
@@ -110,18 +110,14 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
         // Load dependant resources to enhance policy classloader
         Collection<? extends Resource> resources = resourceLifecycleManager.getResources();
         if (!resources.isEmpty()) {
-            ClassLoader[] resourceClassLoaders = resourceLifecycleManager
-                .getResources()
-                .stream()
-                .map(
-                    new Function<Resource, ClassLoader>() {
+            ClassLoader[] resourceClassLoaders = resourceLifecycleManager.getResources().stream()
+                    .map(new Function<Resource, ClassLoader>() {
                         @Override
                         public ClassLoader apply(Resource resource) {
                             return resource.getClass().getClassLoader();
                         }
-                    }
-                )
-                .toArray(ClassLoader[]::new);
+                    })
+                    .toArray(ClassLoader[]::new);
 
             this.resourcesClassLoader = new LegacyClassLoader(globalClassLoader, resourceClassLoaders);
             parentClassLoader = resourcesClassLoader;
@@ -136,7 +132,8 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
                 throw new IllegalStateException("Policy [" + policy.getName() + "] cannot be found in policy registry");
             }
 
-            PluginClassLoader policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, parentClassLoader);
+            PluginClassLoader policyClassLoader =
+                    policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, parentClassLoader);
 
             log.debug("Loading policy {}", policy.getName());
 
@@ -147,30 +144,25 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
                 // Prepare metadata
                 Class<?> policyClass = ClassUtils.forName(policyPlugin.policy().getName(), policyClassLoader);
 
-                builder
-                    .setPolicy(policyClass)
-                    .setClassLoader(policyClassLoader)
-                    .setMethods(new PolicyMethodResolver().resolve(policyClass));
+                builder.setPolicy(policyClass)
+                        .setClassLoader(policyClassLoader)
+                        .setMethods(new PolicyMethodResolver().resolve(policyClass));
 
                 if (policyPlugin.configuration() != null) {
-                    builder.setConfiguration(
-                        (Class<? extends PolicyConfiguration>) ClassUtils.forName(policyPlugin.configuration().getName(), policyClassLoader)
-                    );
+                    builder.setConfiguration((Class<? extends PolicyConfiguration>)
+                            ClassUtils.forName(policyPlugin.configuration().getName(), policyClassLoader));
                 }
 
                 // Prepare context if defined
                 if (policyPlugin.context() != null) {
-                    Class<? extends PolicyContext> policyContextClass = (Class<? extends PolicyContext>) ClassUtils.forName(
-                        policyPlugin.context().getName(),
-                        policyClassLoader
-                    );
+                    Class<? extends PolicyContext> policyContextClass = (Class<? extends PolicyContext>)
+                            ClassUtils.forName(policyPlugin.context().getName(), policyClassLoader);
                     // Create policy context instance and initialize context provider (if used)
                     PolicyContext context = new PolicyContextFactory().create(policyContextClass);
 
                     if (context instanceof PolicyContextProviderAware) {
-                        ((PolicyContextProviderAware) context).setPolicyContextProvider(
-                            new DefaultPolicyContextProvider(componentProvider)
-                        );
+                        ((PolicyContextProviderAware) context)
+                                .setPolicyContextProvider(new DefaultPolicyContextProvider(componentProvider));
                     }
 
                     builder.setContext(context);
@@ -189,11 +181,9 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
                 }
             } catch (Error error) {
                 log.error(
-                    "Unable to load policy id[" +
-                        policyPlugin.id() +
-                        "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
-                    error
-                );
+                        "Unable to load policy id[" + policyPlugin.id()
+                                + "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
+                        error);
 
                 if (policyClassLoader != null) {
                     try {
@@ -215,10 +205,8 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
         PolicyManifest manifest = policies.get(policyMetadata.getName());
 
         if (manifest != null && manifest.accept(streamType)) {
-            PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
-                manifest.configuration(),
-                policyMetadata.getConfiguration()
-            );
+            PolicyConfiguration policyConfiguration =
+                    policyConfigurationFactory.create(manifest.configuration(), policyMetadata.getConfiguration());
 
             return policyFactory.create(streamType, manifest, policyConfiguration, policyMetadata);
         }

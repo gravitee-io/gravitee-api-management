@@ -67,7 +67,8 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
-        policies.put("path-param-to-header", PolicyBuilder.build("path-param-to-header", PathParamToHeaderPolicy.class));
+        policies.put(
+                "path-param-to-header", PolicyBuilder.build("path-param-to-header", PathParamToHeaderPolicy.class));
     }
 
     @Test
@@ -76,14 +77,14 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         callUrl(httpClient, HttpMethod.GET, "/test")
-            .test()
-            .await()
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(body -> {
-                assertThat(body).hasToString("response from backend");
-                return true;
-            });
+                .test()
+                .await()
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("response from backend");
+                    return true;
+                });
 
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -92,26 +93,27 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
     @DeployApi("/apis/http/pathparams/api-path-param.json")
     @MethodSource("provideParameters")
     void should_add_path_param_to_headers_when_no_param(
-        String method,
-        String path,
-        Map<String, String> expectedHeaders,
-        Set<String> excludedHeaders,
-        HttpClient httpClient
-    ) throws InterruptedException {
+            String method,
+            String path,
+            Map<String, String> expectedHeaders,
+            Set<String> excludedHeaders,
+            HttpClient httpClient)
+            throws InterruptedException {
         wiremock.stubFor(request(method, urlEqualTo("/endpoint" + path)).willReturn(ok("response from backend")));
 
         callUrl(httpClient, HttpMethod.valueOf(method), "/test" + path)
-            .test()
-            .await()
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(body -> {
-                assertThat(body).hasToString("response from backend");
-                return true;
-            });
+                .test()
+                .await()
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("response from backend");
+                    return true;
+                });
 
         final RequestPatternBuilder requestedFor = requestedFor(method, urlPathEqualTo("/endpoint" + path));
-        expectedHeaders.forEach((key, value) -> requestedFor.withHeader(PathParamToHeaderPolicy.X_PATH_PARAM + key, equalTo(value)));
+        expectedHeaders.forEach(
+                (key, value) -> requestedFor.withHeader(PathParamToHeaderPolicy.X_PATH_PARAM + key, equalTo(value)));
         excludedHeaders.forEach(key -> requestedFor.withoutHeader(PathParamToHeaderPolicy.X_PATH_PARAM + key));
 
         wiremock.verify(1, requestedFor);
@@ -119,12 +121,12 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
 
     private static Single<Buffer> callUrl(HttpClient httpClient, HttpMethod method, String path) {
         return httpClient
-            .rxRequest(method, path)
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            });
+                .rxRequest(method, path)
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                });
     }
 
     @Test
@@ -135,18 +137,17 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
         int nbCall = 1_000;
 
         Flowable.range(1, nbCall)
-            .subscribeOn(Schedulers.io()) // Change scheduler to avoid blocking the main thread
-            .flatMap(i -> callUrl(httpClient, HttpMethod.GET, "/test/products").toFlowable())
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValueCount(nbCall)
-            .assertValueSequence(
-                IntStream.range(0, nbCall)
-                    .mapToObj(i -> Buffer.buffer("response from backend"))
-                    .collect(Collectors.toList())
-            );
+                .subscribeOn(Schedulers.io()) // Change scheduler to avoid blocking the main thread
+                .flatMap(i ->
+                        callUrl(httpClient, HttpMethod.GET, "/test/products").toFlowable())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValueCount(nbCall)
+                .assertValueSequence(IntStream.range(0, nbCall)
+                        .mapToObj(i -> Buffer.buffer("response from backend"))
+                        .collect(Collectors.toList()));
 
         final RequestPatternBuilder requestedFor = requestedFor("GET", urlPathEqualTo("/endpoint/products"));
         wiremock.verify(nbCall, requestedFor);
@@ -158,14 +159,23 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
 
     public Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("GET", "/products", Map.of(), Set.of()),
-            Arguments.of("TRACE", "/products", Map.of(), Set.of()),
-            Arguments.of("GET", "/products/my-product", Map.of("productId", "my-product"), Set.of("disabledProductId")),
-            Arguments.of("GET", "/products/my-product/hello", Map.of("productId", "my-product", "id", "my-product"), Set.of()),
-            Arguments.of("DELETE", "/products/my-product/hello", Map.of("productId", "my-product"), Set.of("id")),
-            Arguments.of("PUT", "/products/my-product/hello", Map.of("id", "my-product"), Set.of("productId")),
-            Arguments.of("GET", "/products/my-product/hello/something", Map.of("productId", "my-product"), Set.of("id")),
-            Arguments.of("GET", "/products/my-product/items/my-item", Map.of("productId", "my-product", "itemId", "my-item"), Set.of())
-        );
+                Arguments.of("GET", "/products", Map.of(), Set.of()),
+                Arguments.of("TRACE", "/products", Map.of(), Set.of()),
+                Arguments.of(
+                        "GET", "/products/my-product", Map.of("productId", "my-product"), Set.of("disabledProductId")),
+                Arguments.of(
+                        "GET",
+                        "/products/my-product/hello",
+                        Map.of("productId", "my-product", "id", "my-product"),
+                        Set.of()),
+                Arguments.of("DELETE", "/products/my-product/hello", Map.of("productId", "my-product"), Set.of("id")),
+                Arguments.of("PUT", "/products/my-product/hello", Map.of("id", "my-product"), Set.of("productId")),
+                Arguments.of(
+                        "GET", "/products/my-product/hello/something", Map.of("productId", "my-product"), Set.of("id")),
+                Arguments.of(
+                        "GET",
+                        "/products/my-product/items/my-item",
+                        Map.of("productId", "my-product", "itemId", "my-item"),
+                        Set.of()));
     }
 }

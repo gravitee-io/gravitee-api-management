@@ -33,7 +33,7 @@ public class NoOpRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT, Scope.OTEL_TRACES, Scope.OTEL_LOGS };
+        return new Scope[] {Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT, Scope.OTEL_TRACES, Scope.OTEL_LOGS};
     }
 
     @Override

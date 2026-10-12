@@ -41,7 +41,8 @@ import org.mockito.quality.Strictness;
 public class AlertService_DeleteTest extends AlertServiceTest {
 
     @Test
-    public void delete_should_throw_AlertNotFoundException_cause_alert_not_found() throws TechnicalException, JsonProcessingException {
+    public void delete_should_throw_AlertNotFoundException_cause_alert_not_found()
+            throws TechnicalException, JsonProcessingException {
         assertThrows(AlertNotFoundException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
@@ -53,7 +54,7 @@ public class AlertService_DeleteTest extends AlertServiceTest {
 
     @Test
     public void delete_should_throw_AlertNotFoundException_cause_alert_found_with_different_referenceId()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         assertThrows(AlertNotFoundException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
             final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
@@ -66,7 +67,7 @@ public class AlertService_DeleteTest extends AlertServiceTest {
 
     @Test
     public void delete_should_throw_TechnicalManagementException_cause_technicalException_thrown()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         assertThrows(TechnicalManagementException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
@@ -87,16 +88,19 @@ public class AlertService_DeleteTest extends AlertServiceTest {
 
         verify(alertTriggerRepository, times(1)).delete(alertTrigger.getId());
         verify(alertEventRepository, times(1)).deleteAll(alert.getId());
-        verify(triggerProvider, times(1)).unregister(argThat(trigger -> trigger.getId().equals(alertTrigger.getId())));
+        verify(triggerProvider, times(1))
+                .unregister(argThat(trigger -> trigger.getId().equals(alertTrigger.getId())));
     }
 
     @Test
-    public void must_throw_TechnicalManagementException_delete_alert_trigger_entity_with_email_notifier_definition_and_disable_trigger()
-        throws TechnicalException {
+    public void
+            must_throw_TechnicalManagementException_delete_alert_trigger_entity_with_email_notifier_definition_and_disable_trigger()
+                    throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-            when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.findById(any()))
+                    .thenThrow(new TechnicalException("An unexpected error has occurred"));
 
             alertService.delete(alert.getId(), alert.getReferenceId());
 
@@ -107,8 +111,9 @@ public class AlertService_DeleteTest extends AlertServiceTest {
     }
 
     @Test
-    public void must_throw_AlertNotFoundException_delete_alert_trigger_entity_with_email_notifier_definition_and_disable_trigger()
-        throws TechnicalException {
+    public void
+            must_throw_AlertNotFoundException_delete_alert_trigger_entity_with_email_notifier_definition_and_disable_trigger()
+                    throws TechnicalException {
         assertThrows(AlertNotFoundException.class, () -> {
             final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
@@ -124,7 +129,7 @@ public class AlertService_DeleteTest extends AlertServiceTest {
 
     @Test
     public void must_delete_alert_trigger_entity_with_email_notifier_definition_and_disable_trigger()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromUpdate(alert);
 

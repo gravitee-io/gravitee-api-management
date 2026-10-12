@@ -91,25 +91,19 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             applicationCrudService.reset();
             reset(applicationRepository);
             reset(parameterService);
-            when(
-                parameterService.findAsBoolean(
-                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
-                    Key.APPLICATION_REGISTRATION_ENABLED,
-                    ENVIRONMENT,
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(true);
-            roleQueryService.initWith(
-                List.of(
-                    Role.builder()
-                        .name(PRIMARY_OWNER.name())
-                        .referenceType(Role.ReferenceType.ORGANIZATION)
-                        .referenceId(ORGANIZATION)
-                        .id("primary_owner_id")
-                        .scope(Role.Scope.APPLICATION)
-                        .build()
-                )
-            );
+            when(parameterService.findAsBoolean(
+                            new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                            Key.APPLICATION_REGISTRATION_ENABLED,
+                            ENVIRONMENT,
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(true);
+            roleQueryService.initWith(List.of(Role.builder()
+                    .name(PRIMARY_OWNER.name())
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION)
+                    .id("primary_owner_id")
+                    .scope(Role.Scope.APPLICATION)
+                    .build()));
         }
 
         @Test
@@ -117,21 +111,17 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/application/simple-app-with-unknown-group.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder()
-                            .id(APPLICATION_ID)
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(
-                                ApplicationCRDStatus.Errors.builder()
-                                    .warning(List.of("Group [unknown-group] could not be found in environment [fake-env]"))
-                                    .severe(List.of())
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id(APPLICATION_ID)
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .errors(ApplicationCRDStatus.Errors.builder()
+                                        .warning(List.of(
+                                                "Group [unknown-group] could not be found in environment [fake-env]"))
+                                        .severe(List.of())
+                                        .build())
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -143,11 +133,12 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/application/backend-app.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder().id(APPLICATION_ID).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id(APPLICATION_ID)
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -156,38 +147,28 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         @Test
         @SneakyThrows
         void should_return_client_id_error_in_status_without_saving_if_dry_run() {
-            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE)).thenReturn(
-                Set.of(
-                    Application.builder()
-                        .name("conflicting-app")
-                        .id("conflicting-app-id")
-                        .metadata(Map.of("client_id", "test-client-id"))
-                        .build()
-                )
-            );
+            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE))
+                    .thenReturn(Set.of(Application.builder()
+                            .name("conflicting-app")
+                            .id("conflicting-app-id")
+                            .metadata(Map.of("client_id", "test-client-id"))
+                            .build()));
 
             var crdStatus = doImport("/crd/application/simple-app-with-client-id.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder()
-                            .id("app-id")
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(
-                                ApplicationCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(
-                                        List.of(
-                                            "client id [test-client-id] is already defined for application [conflicting-app] with id [conflicting-app-id] on environment [fake-env]"
-                                        )
-                                    )
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id("app-id")
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .errors(ApplicationCRDStatus.Errors.builder()
+                                        .warning(List.of())
+                                        .severe(
+                                                List.of(
+                                                        "client id [test-client-id] is already defined for application [conflicting-app] with id [conflicting-app-id] on environment [fake-env]"))
+                                        .build())
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -196,16 +177,21 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         @Test
         @SneakyThrows
         void should_return_no_client_id_error_in_status_on_updates_without_saving_if_dry_run() {
-            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE)).thenReturn(
-                Set.of(Application.builder().id("app-id").metadata(Map.of("client_id", "test-client-id")).build())
-            );
+            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE))
+                    .thenReturn(Set.of(Application.builder()
+                            .id("app-id")
+                            .metadata(Map.of("client_id", "test-client-id"))
+                            .build()));
 
             var crdStatus = doImport("/crd/application/simple-app-with-client-id.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(ApplicationCRDStatus.builder().id("app-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build());
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id("app-id")
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -217,21 +203,18 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/application/browser-app-with-invalid-grant-type.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder()
-                            .id(APPLICATION_ID)
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(
-                                ApplicationCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(List.of("unknown grant types [client_credentials] for OAuth application of type [SPA]"))
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id(APPLICATION_ID)
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .errors(ApplicationCRDStatus.Errors.builder()
+                                        .warning(List.of())
+                                        .severe(
+                                                List.of(
+                                                        "unknown grant types [client_credentials] for OAuth application of type [SPA]"))
+                                        .build())
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -240,35 +223,28 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         @Test
         @SneakyThrows
         void should_return_disabled_dcr_error_in_status_without_saving_if_dry_run() {
-            when(
-                parameterService.findAsBoolean(
-                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
-                    Key.APPLICATION_REGISTRATION_ENABLED,
-                    ENVIRONMENT,
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                            Key.APPLICATION_REGISTRATION_ENABLED,
+                            ENVIRONMENT,
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(false);
 
             var crdStatus = doImport("/crd/application/browser-app.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder()
-                            .id(APPLICATION_ID)
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(
-                                ApplicationCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(
-                                        List.of("configuring OAuth requires client registration to be enabled on environment [fake-env]")
-                                    )
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id(APPLICATION_ID)
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .errors(ApplicationCRDStatus.Errors.builder()
+                                        .warning(List.of())
+                                        .severe(
+                                                List.of(
+                                                        "configuring OAuth requires client registration to be enabled on environment [fake-env]"))
+                                        .build())
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -280,21 +256,16 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/application/browser-app-with-invalid-redirect-uri.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder()
-                            .id(APPLICATION_ID)
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(
-                                ApplicationCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(List.of("invalid redirect URI [https://invalid my-redirect-url.com]"))
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id(APPLICATION_ID)
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .errors(ApplicationCRDStatus.Errors.builder()
+                                        .warning(List.of())
+                                        .severe(List.of("invalid redirect URI [https://invalid my-redirect-url.com]"))
+                                        .build())
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -306,21 +277,16 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/application/browser-app-with-empty-redirect-uri.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder()
-                            .id(APPLICATION_ID)
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(
-                                ApplicationCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(List.of("application type [SPA] requires redirect URIs to be defined"))
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id(APPLICATION_ID)
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .errors(ApplicationCRDStatus.Errors.builder()
+                                        .warning(List.of())
+                                        .severe(List.of("application type [SPA] requires redirect URIs to be defined"))
+                                        .build())
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -332,23 +298,18 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/application/web-app-with-missing-mandatory-grant-type.json", true);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApplicationCRDStatus.builder()
-                            .id(APPLICATION_ID)
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .errors(
-                                ApplicationCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(
-                                        List.of("OAuth application of type [Web] must have at least [authorization_code] as a grant type")
-                                    )
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApplicationCRDStatus.builder()
+                                .id(APPLICATION_ID)
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .errors(ApplicationCRDStatus.Errors.builder()
+                                        .warning(List.of())
+                                        .severe(
+                                                List.of(
+                                                        "OAuth application of type [Web] must have at least [authorization_code] as a grant type"))
+                                        .build())
+                                .build());
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });

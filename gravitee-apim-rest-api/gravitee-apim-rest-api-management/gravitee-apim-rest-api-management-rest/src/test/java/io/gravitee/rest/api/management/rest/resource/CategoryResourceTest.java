@@ -63,8 +63,8 @@ public class CategoryResourceTest extends AbstractResourceTest {
         updateCategoryEntity.setName(CATEGORY);
 
         doReturn(mockCategory)
-            .when(categoryService)
-            .update(eq(GraviteeContext.getExecutionContext()), eq(CATEGORY), any(UpdateCategoryEntity.class));
+                .when(categoryService)
+                .update(eq(GraviteeContext.getExecutionContext()), eq(CATEGORY), any(UpdateCategoryEntity.class));
     }
 
     @Test

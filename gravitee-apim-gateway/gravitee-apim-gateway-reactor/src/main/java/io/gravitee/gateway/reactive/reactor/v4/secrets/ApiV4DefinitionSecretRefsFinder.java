@@ -51,87 +51,79 @@ public class ApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRefFinde
     @Override
     public DefinitionDescriptor toDefinitionDescriptor(Api definition, DefinitionMetadata metadata) {
         return new DefinitionDescriptor(
-            new Definition(API_V4_DEFINITION_KIND, definition.getId()),
-            Optional.ofNullable(metadata.revision())
-        );
+                new Definition(API_V4_DEFINITION_KIND, definition.getId()), Optional.ofNullable(metadata.revision()));
     }
 
     @Override
     public void findSecretRefs(Api definition, DefinitionSecretRefsListener listener) {
         // listeners
         safeStream(definition.getListeners())
-            .flatMap(l -> safeStream(l.getEntrypoints()))
-            .forEach(entrypoint -> processEntrypoint(listener, entrypoint));
+                .flatMap(l -> safeStream(l.getEntrypoints()))
+                .forEach(entrypoint -> processEntrypoint(listener, entrypoint));
 
         // resources
         safeStream(definition.getResources()).forEach(resource -> processResource(listener, resource));
 
         // flows api and plan
-        List<Flow> flows = safeList(definition.getPlans())
-            .stream()
-            .flatMap(p -> safeStream(p.getFlows()))
-            .collect(Collectors.toCollection(ArrayList::new));
+        List<Flow> flows = safeList(definition.getPlans()).stream()
+                .flatMap(p -> safeStream(p.getFlows()))
+                .collect(Collectors.toCollection(ArrayList::new));
         flows.addAll(safeList(definition.getFlows()));
         Stream.concat(
-            Stream.concat(
-                flows.stream().flatMap(flow -> safeStream(flow.getRequest())),
-                flows.stream().flatMap(flow -> safeStream(flow.getResponse()))
-            ),
-            Stream.concat(
-                flows.stream().flatMap(flow -> safeStream(flow.getPublish())),
-                flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))
-            )
-        ).forEach(step -> processStep(listener, step));
+                        Stream.concat(
+                                flows.stream().flatMap(flow -> safeStream(flow.getRequest())),
+                                flows.stream().flatMap(flow -> safeStream(flow.getResponse()))),
+                        Stream.concat(
+                                flows.stream().flatMap(flow -> safeStream(flow.getPublish())),
+                                flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))))
+                .forEach(step -> processStep(listener, step));
 
         safeStream(definition.getPlans()).forEach(plan -> processPlanConfiguration(listener, plan));
 
         // endpoint groups
         safeStream(definition.getEndpointGroups())
-            .flatMap(endpointGroup -> {
-                EndpointGroupServices services = endpointGroup.getServices();
-                List<Service> list = new ArrayList<>();
-                if (services.getDiscovery() != null) {
-                    list.add(services.getDiscovery());
-                }
-                if (services.getHealthCheck() != null) {
-                    list.add(services.getHealthCheck());
-                }
-                list
-                    .stream()
-                    .filter(Service::isEnabled)
-                    .forEach(service -> processService(listener, service));
-                return processEndpointGroup(listener, endpointGroup);
-            })
-            .forEach(endpoint -> {
-                Optional.ofNullable(endpoint.getServices())
-                    .map(EndpointServices::getHealthCheck)
-                    .filter(Service::isEnabled)
-                    .ifPresent(service -> processService(listener, service));
-                processEndpoint(listener, endpoint);
-            });
+                .flatMap(endpointGroup -> {
+                    EndpointGroupServices services = endpointGroup.getServices();
+                    List<Service> list = new ArrayList<>();
+                    if (services.getDiscovery() != null) {
+                        list.add(services.getDiscovery());
+                    }
+                    if (services.getHealthCheck() != null) {
+                        list.add(services.getHealthCheck());
+                    }
+                    list.stream().filter(Service::isEnabled).forEach(service -> processService(listener, service));
+                    return processEndpointGroup(listener, endpointGroup);
+                })
+                .forEach(endpoint -> {
+                    Optional.ofNullable(endpoint.getServices())
+                            .map(EndpointServices::getHealthCheck)
+                            .filter(Service::isEnabled)
+                            .ifPresent(service -> processService(listener, service));
+                    processEndpoint(listener, endpoint);
+                });
 
         // services
         Optional.ofNullable(definition.getServices())
-            .map(ApiServices::getDynamicProperty)
-            .ifPresent(dynamicProperty -> processService(listener, dynamicProperty));
+                .map(ApiServices::getDynamicProperty)
+                .ifPresent(dynamicProperty -> processService(listener, dynamicProperty));
 
         // response templates
         Map<String, Map<String, ResponseTemplate>> responseTemplates = definition.getResponseTemplates();
-        safeKeySetStream(responseTemplates).forEach(key ->
-            safeKeySetStream(responseTemplates.get(key)).forEach(contentType -> {
-                ResponseTemplate responseTemplate = responseTemplates.get(key).get(contentType);
-                Optional.ofNullable(responseTemplate.getBody()).ifPresent(body ->
-                    listener.onCandidate(body, new SecretRefsLocation(RESPONSE_TEMPLATES_KIND, key), responseTemplate::setBody)
-                );
-                safeKeySetStream(responseTemplate.getHeaders()).forEach(headerName ->
-                    listener.onCandidate(
-                        responseTemplate.getHeaders().get(headerName),
-                        new SecretRefsLocation(RESPONSE_TEMPLATES_KIND, key),
-                        updated -> responseTemplate.getHeaders().put(headerName, updated)
-                    )
-                );
-            })
-        );
+        safeKeySetStream(responseTemplates)
+                .forEach(key -> safeKeySetStream(responseTemplates.get(key)).forEach(contentType -> {
+                    ResponseTemplate responseTemplate =
+                            responseTemplates.get(key).get(contentType);
+                    Optional.ofNullable(responseTemplate.getBody())
+                            .ifPresent(body -> listener.onCandidate(
+                                    body,
+                                    new SecretRefsLocation(RESPONSE_TEMPLATES_KIND, key),
+                                    responseTemplate::setBody));
+                    safeKeySetStream(responseTemplate.getHeaders())
+                            .forEach(headerName -> listener.onCandidate(
+                                    responseTemplate.getHeaders().get(headerName),
+                                    new SecretRefsLocation(RESPONSE_TEMPLATES_KIND, key),
+                                    updated -> responseTemplate.getHeaders().put(headerName, updated)));
+                }));
     }
 
     public <K, V> Stream<K> safeKeySetStream(Map<K, V> map) {

@@ -75,35 +75,29 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
             }
 
             IndexPreparer preparer = beanFactory.createIndexPreparer(
-                reporterConfiguration,
-                pipelineConfiguration,
-                freeMarkerComponent,
-                client
-            );
-            preparer
-                .prepare()
-                .doOnComplete(() -> {
-                    log.debug("Index mapping template successfully defined");
-                    log.info("Starting Elastic reporter engine... DONE");
-                })
-                .doOnError(throwable -> {
-                    log.warn("An error occurs while creating index mapping template", throwable);
-                    log.error("Starting Elastic reporter engine... ERROR");
-                })
-                .subscribe();
+                    reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
+            preparer.prepare()
+                    .doOnComplete(() -> {
+                        log.debug("Index mapping template successfully defined");
+                        log.info("Starting Elastic reporter engine... DONE");
+                    })
+                    .doOnError(throwable -> {
+                        log.warn("An error occurs while creating index mapping template", throwable);
+                        log.error("Starting Elastic reporter engine... ERROR");
+                    })
+                    .subscribe();
 
-            FormatterFactoryConfiguration formatterFactoryConfiguration = beanFactory.createFormatterFactoryConfiguration();
+            FormatterFactoryConfiguration formatterFactoryConfiguration =
+                    beanFactory.createFormatterFactoryConfiguration();
             bulkProcessor = new BulkProcessor(
-                new ElasticBulkSender(client),
-                reporterConfiguration.getBulkConfiguration(),
-                new ElasticBulkTransformer(
-                    new FormatterFactory(node, formatterFactoryConfiguration).getFormatter(Type.ELASTICSEARCH),
-                    pipelineConfiguration,
-                    beanFactory.createIndexNameGenerator(reporterConfiguration)
-                ),
-                new NoneBulkCompressor(),
-                new BulkDropper()
-            );
+                    new ElasticBulkSender(client),
+                    reporterConfiguration.getBulkConfiguration(),
+                    new ElasticBulkTransformer(
+                            new FormatterFactory(node, formatterFactoryConfiguration).getFormatter(Type.ELASTICSEARCH),
+                            pipelineConfiguration,
+                            beanFactory.createIndexNameGenerator(reporterConfiguration)),
+                    new NoneBulkCompressor(),
+                    new BulkDropper());
             bulkProcessor.start();
         }
     }

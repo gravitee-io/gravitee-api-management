@@ -48,5 +48,5 @@ public class OpenApiResourceTest extends AbstractResourceTest {
         String result = response.readEntity(String.class);
         assertEquals("DUMMY OPENAPI", result);
     }
-    //APIPortal: add a test if spec file does not exist
+    // APIPortal: add a test if spec file does not exist
 }

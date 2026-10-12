@@ -29,7 +29,8 @@ import lombok.CustomLog;
 @CustomLog
 public class ResourceConfigurationFactoryImpl implements ResourceConfigurationFactory {
 
-    private static final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper mapper =
+            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends ResourceConfiguration> T create(Class<T> resourceConfigurationClass, String configuration) {

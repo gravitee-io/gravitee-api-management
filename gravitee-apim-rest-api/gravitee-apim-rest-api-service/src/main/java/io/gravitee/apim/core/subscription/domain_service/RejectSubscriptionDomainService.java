@@ -61,7 +61,8 @@ public class RejectSubscriptionDomainService {
         if (subscriptionEntity == null) {
             throw new IllegalArgumentException("Subscription should not be null");
         }
-        var rejectedSubscriptionEntity = subscriptionEntity.rejectBy(auditInfo.actor().userId(), reason);
+        var rejectedSubscriptionEntity =
+                subscriptionEntity.rejectBy(auditInfo.actor().userId(), reason);
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
@@ -70,71 +71,64 @@ public class RejectSubscriptionDomainService {
         return rejectedSubscriptionEntity;
     }
 
-    private void triggerNotifications(String organizationId, String environmentId, SubscriptionEntity rejectedSubscriptionEntity) {
+    private void triggerNotifications(
+            String organizationId, String environmentId, SubscriptionEntity rejectedSubscriptionEntity) {
         var subscriberEmail = userCrudService
-            .findBaseUserById(rejectedSubscriptionEntity.getSubscribedBy())
-            .map(BaseUserEntity::getEmail)
-            .filter(email -> !email.isEmpty())
-            .map(email -> new Recipient("EMAIL", email));
+                .findBaseUserById(rejectedSubscriptionEntity.getSubscribedBy())
+                .map(BaseUserEntity::getEmail)
+                .filter(email -> !email.isEmpty())
+                .map(email -> new Recipient("EMAIL", email));
 
         var additionalRecipients = subscriberEmail.map(List::of).orElse(Collections.emptyList());
 
         var applicationPrimaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(
-            organizationId,
-            rejectedSubscriptionEntity.getApplicationId()
-        );
+                organizationId, rejectedSubscriptionEntity.getApplicationId());
 
         String referenceId = rejectedSubscriptionEntity.getReferenceId();
         var referenceType = rejectedSubscriptionEntity.getReferenceType();
         if (SubscriptionReferenceType.API_PRODUCT == referenceType) {
             triggerNotificationDomainService.triggerApiProductNotification(
-                organizationId,
-                environmentId,
-                new SubscriptionRejectedApiProductHookContext(
-                    referenceId,
-                    rejectedSubscriptionEntity.getApplicationId(),
-                    rejectedSubscriptionEntity.getPlanId(),
-                    rejectedSubscriptionEntity.getId(),
-                    applicationPrimaryOwner.id()
-                )
-            );
+                    organizationId,
+                    environmentId,
+                    new SubscriptionRejectedApiProductHookContext(
+                            referenceId,
+                            rejectedSubscriptionEntity.getApplicationId(),
+                            rejectedSubscriptionEntity.getPlanId(),
+                            rejectedSubscriptionEntity.getId(),
+                            applicationPrimaryOwner.id()));
         } else {
             triggerNotificationDomainService.triggerApiSubscriptionNotification(
-                organizationId,
-                environmentId,
-                referenceId,
-                new SubscriptionRejectedApiHookContext(
+                    organizationId,
+                    environmentId,
                     referenceId,
-                    rejectedSubscriptionEntity.getApplicationId(),
-                    rejectedSubscriptionEntity.getPlanId(),
-                    rejectedSubscriptionEntity.getId(),
-                    applicationPrimaryOwner.id()
-                )
-            );
+                    new SubscriptionRejectedApiHookContext(
+                            referenceId,
+                            rejectedSubscriptionEntity.getApplicationId(),
+                            rejectedSubscriptionEntity.getPlanId(),
+                            rejectedSubscriptionEntity.getId(),
+                            applicationPrimaryOwner.id()));
         }
         triggerNotificationDomainService.triggerApplicationNotification(
-            organizationId,
-            environmentId,
-            new SubscriptionRejectedApplicationHookContext(
-                rejectedSubscriptionEntity.getApplicationId(),
-                referenceType,
-                referenceId,
-                rejectedSubscriptionEntity.getPlanId(),
-                rejectedSubscriptionEntity.getId(),
-                applicationPrimaryOwner.id()
-            ),
-            additionalRecipients
-        );
+                organizationId,
+                environmentId,
+                new SubscriptionRejectedApplicationHookContext(
+                        rejectedSubscriptionEntity.getApplicationId(),
+                        referenceType,
+                        referenceId,
+                        rejectedSubscriptionEntity.getPlanId(),
+                        rejectedSubscriptionEntity.getId(),
+                        applicationPrimaryOwner.id()),
+                additionalRecipients);
     }
 
-    private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity rejectedSubscriptionEntity, AuditInfo auditInfo) {
+    private void createAudit(
+            SubscriptionEntity subscriptionEntity, SubscriptionEntity rejectedSubscriptionEntity, AuditInfo auditInfo) {
         String referenceId = subscriptionEntity.getReferenceId();
         boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == subscriptionEntity.getReferenceType();
         var createdAt = rejectedSubscriptionEntity.getClosedAt();
 
         if (isApiProduct) {
-            auditDomainService.createApiProductAuditLog(
-                ApiProductAuditLogEntity.builder()
+            auditDomainService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                     .actor(auditInfo.actor())
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
@@ -143,12 +137,11 @@ public class RejectSubscriptionDomainService {
                     .oldValue(subscriptionEntity)
                     .newValue(rejectedSubscriptionEntity)
                     .createdAt(createdAt)
-                    .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
-                    .build()
-            );
+                    .properties(Collections.singletonMap(
+                            AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
+                    .build());
         } else {
-            auditDomainService.createApiAuditLog(
-                ApiAuditLogEntity.builder()
+            auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                     .actor(auditInfo.actor())
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
@@ -157,12 +150,11 @@ public class RejectSubscriptionDomainService {
                     .oldValue(subscriptionEntity)
                     .newValue(rejectedSubscriptionEntity)
                     .createdAt(createdAt)
-                    .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
-                    .build()
-            );
+                    .properties(Collections.singletonMap(
+                            AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
+                    .build());
         }
-        auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity.builder()
+        auditDomainService.createApplicationAuditLog(ApplicationAuditLogEntity.builder()
                 .actor(auditInfo.actor())
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
@@ -171,8 +163,8 @@ public class RejectSubscriptionDomainService {
                 .oldValue(subscriptionEntity)
                 .newValue(rejectedSubscriptionEntity)
                 .createdAt(createdAt)
-                .properties(Collections.singletonMap(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId))
-                .build()
-        );
+                .properties(Collections.singletonMap(
+                        isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId))
+                .build());
     }
 }

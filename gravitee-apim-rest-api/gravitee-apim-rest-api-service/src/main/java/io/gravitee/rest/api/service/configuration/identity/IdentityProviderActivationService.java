@@ -28,24 +28,20 @@ import java.util.Set;
  */
 public interface IdentityProviderActivationService {
     Set<IdentityProviderActivationEntity> activateIdpOnTargets(
-        ExecutionContext executionContext,
-        String identityProviderId,
-        ActivationTarget... targetsToAdd
-    );
+            ExecutionContext executionContext, String identityProviderId, ActivationTarget... targetsToAdd);
 
     Set<IdentityProviderActivationEntity> addIdpsOnTarget(
-        ExecutionContext executionContext,
-        ActivationTarget target,
-        String... identityProviderIdsToAdd
-    );
+            ExecutionContext executionContext, ActivationTarget target, String... identityProviderIdsToAdd);
 
     Set<IdentityProviderActivationEntity> findAllByIdentityProviderId(String identityProviderId);
 
     Set<IdentityProviderActivationEntity> findAllByTarget(ActivationTarget target);
 
-    void deactivateIdpOnTargets(ExecutionContext executionContext, String identityProviderId, ActivationTarget... targetsToRemove);
+    void deactivateIdpOnTargets(
+            ExecutionContext executionContext, String identityProviderId, ActivationTarget... targetsToRemove);
 
-    void removeIdpsFromTarget(ExecutionContext executionContext, ActivationTarget target, String... identityProviderIdsToRemove);
+    void removeIdpsFromTarget(
+            ExecutionContext executionContext, ActivationTarget target, String... identityProviderIdsToRemove);
 
     void deactivateIdpOnAllTargets(ExecutionContext executionContext, String identityProviderId);
 

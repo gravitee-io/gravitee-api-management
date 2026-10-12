@@ -36,9 +36,10 @@ public class DeletePortalDocumentationUseCase {
 
     public void execute(Input input) {
         var pageContent = portalPageContentQueryService
-            .findById(input.portalPageContentId())
-            .filter(pc -> pc.getAutomationMetadata() != null)
-            .orElseThrow(() -> new PortalDocumentationNotFoundException(input.portalPageContentId().toString()));
+                .findById(input.portalPageContentId())
+                .filter(pc -> pc.getAutomationMetadata() != null)
+                .orElseThrow(() -> new PortalDocumentationNotFoundException(
+                        input.portalPageContentId().toString()));
         var referenceId = pageContent.getAutomationMetadata().referenceId();
         syncDomainService.dematerialize(input.auditInfo(), referenceId, input.portalPageContentId());
         portalPageContentCrudService.delete(input.portalPageContentId());

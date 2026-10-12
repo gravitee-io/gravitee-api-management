@@ -15,4 +15,5 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
-public record BrokerDetail(int id, String host, int port, String rack, int leaderPartitions, int replicaPartitions, Long logDirSize) {}
+public record BrokerDetail(
+        int id, String host, int port, String rack, int leaderPartitions, int replicaPartitions, Long logDirSize) {}

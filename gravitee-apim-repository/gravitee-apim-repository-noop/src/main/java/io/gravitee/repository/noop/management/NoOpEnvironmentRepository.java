@@ -29,7 +29,8 @@ import java.util.Set;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpEnvironmentRepository extends AbstractNoOpManagementRepository<Environment, String> implements EnvironmentRepository {
+public class NoOpEnvironmentRepository extends AbstractNoOpManagementRepository<Environment, String>
+        implements EnvironmentRepository {
 
     @Override
     public Optional<Environment> findById(String environmentId) throws TechnicalException {
@@ -49,11 +50,12 @@ public class NoOpEnvironmentRepository extends AbstractNoOpManagementRepository<
     }
 
     @Override
-    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids) throws TechnicalException {
-        if (
-            organizationsHrids.stream().anyMatch(orgHrid -> Organization.DEFAULT.getHrids().contains(orgHrid)) &&
-            hrids.stream().anyMatch(envHrid -> Environment.DEFAULT.getHrids().contains(envHrid))
-        ) {
+    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids)
+            throws TechnicalException {
+        if (organizationsHrids.stream()
+                        .anyMatch(orgHrid -> Organization.DEFAULT.getHrids().contains(orgHrid))
+                && hrids.stream()
+                        .anyMatch(envHrid -> Environment.DEFAULT.getHrids().contains(envHrid))) {
             return Set.of(Environment.DEFAULT);
         }
         return Set.of();

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TokenMongoRepository extends MongoRepository<TokenMongo, String> {
     Optional<TokenMongo> findByToken(String token);
+
     List<TokenMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)

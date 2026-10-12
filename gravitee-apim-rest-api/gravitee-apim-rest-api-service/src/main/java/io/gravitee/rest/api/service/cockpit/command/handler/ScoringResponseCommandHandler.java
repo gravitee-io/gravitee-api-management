@@ -53,48 +53,42 @@ public class ScoringResponseCommandHandler implements CommandHandler<ScoringResp
 
         if (!result.success()) {
             return saveScoringResponseUseCase
-                .execute(SaveScoringResponseUseCase.Input.failure(payload.correlationId(), result.error()))
-                .andThen(Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED)));
+                    .execute(SaveScoringResponseUseCase.Input.failure(payload.correlationId(), result.error()))
+                    .andThen(Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED)));
         }
 
-        var analyzedAssets = result
-            .assetDiagnostics()
-            .stream()
-            .map(a ->
-                new ScoringReport.Asset(
-                    a.asset().assetId(),
-                    switch (a.asset().type()) {
-                        case OPEN_API -> ScoringAssetType.SWAGGER;
-                        case ASYNC_API -> ScoringAssetType.ASYNCAPI;
-                        case GRAVITEE_API -> ScoringAssetType.GRAVITEE_DEFINITION;
-                    },
-                    a
-                        .diagnostics()
-                        .stream()
-                        .map(d -> {
-                            return new ScoringReport.Diagnostic(
-                                ScoringReport.Severity.valueOf(d.severity().name()),
-                                new ScoringReport.Range(
-                                    new ScoringReport.Position(d.range().start().line(), d.range().start().character()),
-                                    new ScoringReport.Position(d.range().end().line(), d.range().end().character())
-                                ),
-                                d.rule(),
-                                d.message(),
-                                d.path()
-                            );
-                        })
-                        .toList(),
-                    a
-                        .errors()
-                        .stream()
-                        .map(e -> new ScoringReport.ScoringError(e.code(), e.path()))
-                        .toList()
-                )
-            )
-            .toList();
+        var analyzedAssets = result.assetDiagnostics().stream()
+                .map(a -> new ScoringReport.Asset(
+                        a.asset().assetId(),
+                        switch (a.asset().type()) {
+                            case OPEN_API -> ScoringAssetType.SWAGGER;
+                            case ASYNC_API -> ScoringAssetType.ASYNCAPI;
+                            case GRAVITEE_API -> ScoringAssetType.GRAVITEE_DEFINITION;
+                        },
+                        a.diagnostics().stream()
+                                .map(d -> {
+                                    return new ScoringReport.Diagnostic(
+                                            ScoringReport.Severity.valueOf(
+                                                    d.severity().name()),
+                                            new ScoringReport.Range(
+                                                    new ScoringReport.Position(
+                                                            d.range().start().line(),
+                                                            d.range().start().character()),
+                                                    new ScoringReport.Position(
+                                                            d.range().end().line(),
+                                                            d.range().end().character())),
+                                            d.rule(),
+                                            d.message(),
+                                            d.path());
+                                })
+                                .toList(),
+                        a.errors().stream()
+                                .map(e -> new ScoringReport.ScoringError(e.code(), e.path()))
+                                .toList()))
+                .toList();
 
         return saveScoringResponseUseCase
-            .execute(SaveScoringResponseUseCase.Input.success(payload.correlationId(), analyzedAssets))
-            .andThen(Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED)));
+                .execute(SaveScoringResponseUseCase.Input.success(payload.correlationId(), analyzedAssets))
+                .andThen(Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED)));
     }
 }

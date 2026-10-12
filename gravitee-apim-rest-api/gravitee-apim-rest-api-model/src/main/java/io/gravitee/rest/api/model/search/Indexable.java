@@ -24,8 +24,10 @@ import io.gravitee.rest.api.model.Identifiable;
  */
 public interface Indexable extends Identifiable {
     String getReferenceType();
+
     void setReferenceType(String referenceType);
 
     String getReferenceId();
+
     void setReferenceId(String referenceId);
 }

@@ -46,10 +46,9 @@ public class CompositeIdentityManager implements IdentityManager {
         try {
             IdentityReference identityReference = referenceSerializer.deserialize(reference);
             log.debug(
-                "Lookup identity information from reference: source[{}] id[{}]",
-                identityReference.getSource(),
-                identityReference.getReference()
-            );
+                    "Lookup identity information from reference: source[{}] id[{}]",
+                    identityReference.getSource(),
+                    identityReference.getReference());
             for (final IdentityLookup identityLookup : identityLookups) {
                 if (identityLookup.canHandle(identityReference)) {
                     final User user = identityLookup.retrieve(identityReference);
@@ -72,12 +71,9 @@ public class CompositeIdentityManager implements IdentityManager {
                 Collection<User> lookupUsers = identityLookup.search(query);
                 if (lookupUsers != null) {
                     boolean allowEmailInSearchResults = identityLookup.allowEmailInSearchResults();
-                    users.addAll(
-                        lookupUsers
-                            .stream()
+                    users.addAll(lookupUsers.stream()
                             .map(user -> new DefaultSearchableUser(user, allowEmailInSearchResults))
-                            .collect(Collectors.toSet())
-                    );
+                            .collect(Collectors.toSet()));
                 }
             }
         }

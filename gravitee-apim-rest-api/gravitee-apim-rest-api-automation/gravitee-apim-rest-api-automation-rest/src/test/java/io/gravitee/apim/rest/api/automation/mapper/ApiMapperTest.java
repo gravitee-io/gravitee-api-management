@@ -35,7 +35,11 @@ class ApiMapperTest {
 
     @Test
     void should_map_automation_navigation_path_to_core_with_all_fields() {
-        var automation = new NavigationPath().path("/reference").displayName("Reference").order(1).visibility(PortalVisibility.PRIVATE);
+        var automation = new NavigationPath()
+                .path("/reference")
+                .displayName("Reference")
+                .order(1)
+                .visibility(PortalVisibility.PRIVATE);
 
         var core = ApiMapper.INSTANCE.map(automation);
 
@@ -69,11 +73,7 @@ class ApiMapperTest {
     @Test
     void should_map_core_navigation_path_to_automation_with_all_fields() {
         var core = new io.gravitee.apim.core.portal.model.NavigationPath(
-            "/reference",
-            "Reference",
-            1,
-            io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC
-        );
+                "/reference", "Reference", 1, io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
 
         var automation = ApiMapper.INSTANCE.mapNavigationPath(core);
 
@@ -113,12 +113,13 @@ class ApiMapperTest {
         var management = ApiMapper.INSTANCE.map(automation);
 
         assertThat(management.getSelectors())
-            .singleElement()
-            .extracting(io.gravitee.rest.api.management.v2.rest.model.Selector::getActualInstance)
-            .isInstanceOfSatisfying(io.gravitee.rest.api.management.v2.rest.model.McpSelector.class, selector -> {
-                assertThat(selector.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.BaseSelector.TypeEnum.MCP);
-                assertThat(selector.getMethods()).containsExactly("tools/call");
-            });
+                .singleElement()
+                .extracting(io.gravitee.rest.api.management.v2.rest.model.Selector::getActualInstance)
+                .isInstanceOfSatisfying(io.gravitee.rest.api.management.v2.rest.model.McpSelector.class, selector -> {
+                    assertThat(selector.getType())
+                            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.BaseSelector.TypeEnum.MCP);
+                    assertThat(selector.getMethods()).containsExactly("tools/call");
+                });
     }
 
     @Test
@@ -126,17 +127,17 @@ class ApiMapperTest {
         var mcpSelector = new io.gravitee.rest.api.management.v2.rest.model.McpSelector().methods(Set.of("tools/call"));
         mcpSelector.setType(io.gravitee.rest.api.management.v2.rest.model.BaseSelector.TypeEnum.MCP);
         var management = new io.gravitee.rest.api.management.v2.rest.model.FlowV4()
-            .name("mcp-flow")
-            .selectors(List.of(new io.gravitee.rest.api.management.v2.rest.model.Selector(mcpSelector)));
+                .name("mcp-flow")
+                .selectors(List.of(new io.gravitee.rest.api.management.v2.rest.model.Selector(mcpSelector)));
 
         var automation = ApiMapper.INSTANCE.map(management);
 
         assertThat(automation.getSelectors())
-            .singleElement()
-            .extracting(Selector::getActualInstance)
-            .isInstanceOfSatisfying(McpSelector.class, selector -> {
-                assertThat(selector.getType()).isEqualTo(BaseSelector.TypeEnum.MCP);
-                assertThat(selector.getMethods()).containsExactly("tools/call");
-            });
+                .singleElement()
+                .extracting(Selector::getActualInstance)
+                .isInstanceOfSatisfying(McpSelector.class, selector -> {
+                    assertThat(selector.getType()).isEqualTo(BaseSelector.TypeEnum.MCP);
+                    assertThat(selector.getMethods()).containsExactly("tools/call");
+                });
     }
 }

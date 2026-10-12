@@ -44,39 +44,34 @@ public final class ApiServicesMigration {
     private static final List<String> ALLOWED_DISCOVERY_PLUGIN_IDS = List.of("consul-service-discovery");
 
     public MigrationResult<io.gravitee.definition.model.v4.service.Service> convert(
-        io.gravitee.definition.model.Service v2Service,
-        String type,
-        String name
-    ) {
+            io.gravitee.definition.model.Service v2Service, String type, String name) {
         return switch (v2Service) {
-            case io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService v2dynamicPropertyService -> convertDynamicPropertyService(
-                v2dynamicPropertyService
-            );
-            case io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService vEP2HealthCheckService -> convertEPHealthCheckService(
-                vEP2HealthCheckService,
-                type,
-                name
-            );
-            case io.gravitee.definition.model.services.healthcheck.HealthCheckService v2HealthCheckService -> convertHealthCheckService(
-                v2HealthCheckService,
-                type,
-                name
-            );
+            case io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService
+                    v2dynamicPropertyService -> convertDynamicPropertyService(v2dynamicPropertyService);
+            case io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService vEP2HealthCheckService ->
+                convertEPHealthCheckService(vEP2HealthCheckService, type, name);
+            case io.gravitee.definition.model.services.healthcheck.HealthCheckService v2HealthCheckService ->
+                convertHealthCheckService(v2HealthCheckService, type, name);
             case io.gravitee.definition.model.services.schedule.ScheduledService v2ScheduledService -> null;
-            case io.gravitee.definition.model.services.discovery.EndpointDiscoveryService v2EndpointDiscoveryService -> mapServiceDiscovery(
-                v2EndpointDiscoveryService
-            );
+            case io.gravitee.definition.model.services.discovery.EndpointDiscoveryService v2EndpointDiscoveryService ->
+                mapServiceDiscovery(v2EndpointDiscoveryService);
             case null -> null;
-            default -> MigrationResult.issue(MigrationWarnings.SERVICE_NOT_SUPPORTED.formatted(v2Service.getName()), IMPOSSIBLE);
+            default ->
+                MigrationResult.issue(
+                        MigrationWarnings.SERVICE_NOT_SUPPORTED.formatted(v2Service.getName()), IMPOSSIBLE);
         };
     }
 
-    private MigrationResult<Service> convertHealthCheckService(HealthCheckService v2HealthCheckService, String type, String name) {
+    private MigrationResult<Service> convertHealthCheckService(
+            HealthCheckService v2HealthCheckService, String type, String name) {
         ObjectNode config = jsonMapper.createObjectNode();
-        var migrationResult = MigrationResult.value(
-            Service.builder().enabled(v2HealthCheckService.isEnabled()).overrideConfiguration(false).type("http-health-check").build()
-        );
-        String endpointReferenceForMessage = String.format("%s : %s", type.equals(TYPE_ENDPOINT) ? "endpoint" : "endpointgroup", name);
+        var migrationResult = MigrationResult.value(Service.builder()
+                .enabled(v2HealthCheckService.isEnabled())
+                .overrideConfiguration(false)
+                .type("http-health-check")
+                .build());
+        String endpointReferenceForMessage =
+                String.format("%s : %s", type.equals(TYPE_ENDPOINT) ? "endpoint" : "endpointgroup", name);
 
         config.put("schedule", v2HealthCheckService.getSchedule());
         config.put("failureThreshold", 2);
@@ -92,22 +87,26 @@ public final class ApiServicesMigration {
                 HealthCheckStep step = steps.getFirst();
                 if (size(step.getResponse().getAssertions()) > 1) {
                     log.error("Health check for {} cannot have more than one assertion", endpointReferenceForMessage);
-                    migrationResult.addIssue(MigrationWarnings.HEALTHCHECK_ASSERTION.formatted(endpointReferenceForMessage), IMPOSSIBLE);
+                    migrationResult.addIssue(
+                            MigrationWarnings.HEALTHCHECK_ASSERTION.formatted(endpointReferenceForMessage), IMPOSSIBLE);
                 }
                 try {
                     config.set(
-                        "headers",
-                        (step.getRequest().getHeaders() == null
-                                ? jsonMapper.createArrayNode()
-                                : jsonMapper.valueToTree(step.getRequest().getHeaders()))
-                    );
-                    config.set("method", jsonMapper.valueToTree(step.getRequest().getMethod()));
-                    config.set("target", jsonMapper.valueToTree(step.getRequest().getPath()));
+                            "headers",
+                            (step.getRequest().getHeaders() == null
+                                    ? jsonMapper.createArrayNode()
+                                    : jsonMapper.valueToTree(step.getRequest().getHeaders())));
                     config.set(
-                        "assertion",
-                        jsonMapper.valueToTree(StringUtils.appendCurlyBraces(step.getResponse().getAssertions().getFirst()))
-                    );
-                    config.set("overrideEndpointPath", jsonMapper.valueToTree(step.getRequest().isFromRoot()));
+                            "method", jsonMapper.valueToTree(step.getRequest().getMethod()));
+                    config.set(
+                            "target", jsonMapper.valueToTree(step.getRequest().getPath()));
+                    config.set(
+                            "assertion",
+                            jsonMapper.valueToTree(StringUtils.appendCurlyBraces(
+                                    step.getResponse().getAssertions().getFirst())));
+                    config.set(
+                            "overrideEndpointPath",
+                            jsonMapper.valueToTree(step.getRequest().isFromRoot()));
                 } catch (Exception e) {
                     log.error("Unable to map configuration for Health check ", e);
                     return migrationResult.addIssue(MigrationWarnings.HEALTHCHECK_GENERAL_PARSE_ERROR, IMPOSSIBLE);
@@ -116,9 +115,8 @@ public final class ApiServicesMigration {
             default -> {
                 log.error("Health check for {} cannot have more than one step ", endpointReferenceForMessage);
                 migrationResult.addIssue(
-                    MigrationWarnings.HEALTHCHECK_STEPS.formatted(endpointReferenceForMessage.formatted()),
-                    IMPOSSIBLE
-                );
+                        MigrationWarnings.HEALTHCHECK_STEPS.formatted(endpointReferenceForMessage.formatted()),
+                        IMPOSSIBLE);
             }
         }
 
@@ -130,10 +128,7 @@ public final class ApiServicesMigration {
     }
 
     private MigrationResult<Service> convertEPHealthCheckService(
-        EndpointHealthCheckService v2EPHealthCheckService,
-        String type,
-        String name
-    ) {
+            EndpointHealthCheckService v2EPHealthCheckService, String type, String name) {
         return convertHealthCheckService(v2EPHealthCheckService, type, name).map(plainHealthCheckService -> {
             plainHealthCheckService.setOverrideConfiguration(!v2EPHealthCheckService.isInherit());
             return plainHealthCheckService;
@@ -141,42 +136,33 @@ public final class ApiServicesMigration {
     }
 
     private MigrationResult<io.gravitee.definition.model.v4.service.Service> convertDynamicPropertyService(
-        DynamicPropertyService v2dynamicPropertyService
-    ) {
+            DynamicPropertyService v2dynamicPropertyService) {
         if (v2dynamicPropertyService == null) {
             return MigrationResult.value(new Service());
         }
         ObjectNode configNode = jsonMapper.createObjectNode();
-        MigrationResult<Service> migrationResult = MigrationResult.value(
-            Service.builder()
+        MigrationResult<Service> migrationResult = MigrationResult.value(Service.builder()
                 .overrideConfiguration(false)
                 .type("http-dynamic-properties")
                 .enabled(v2dynamicPropertyService.isEnabled())
-                .build()
-        );
+                .build());
         try {
             configNode.put("schedule", v2dynamicPropertyService.getSchedule());
 
-            if (
-                v2dynamicPropertyService.getProvider() != null &&
-                !v2dynamicPropertyService.getProvider().equals(DynamicPropertyProvider.HTTP)
-            ) {
+            if (v2dynamicPropertyService.getProvider() != null
+                    && !v2dynamicPropertyService.getProvider().equals(DynamicPropertyProvider.HTTP)) {
                 log.error(MigrationWarnings.DYNAMIC_PROPERTY_HTTP_ONLY);
-                return migrationResult.addIssue(
-                    new MigrationResult.Issue(MigrationWarnings.DYNAMIC_PROPERTY_HTTP_ONLY, MigrationResult.State.IMPOSSIBLE)
-                );
+                return migrationResult.addIssue(new MigrationResult.Issue(
+                        MigrationWarnings.DYNAMIC_PROPERTY_HTTP_ONLY, MigrationResult.State.IMPOSSIBLE));
             }
-            if (
-                v2dynamicPropertyService.getConfiguration() instanceof HttpDynamicPropertyProviderConfiguration httpDPProviderConfiguration
-            ) {
+            if (v2dynamicPropertyService.getConfiguration()
+                    instanceof HttpDynamicPropertyProviderConfiguration httpDPProviderConfiguration) {
                 configNode.set(
-                    "headers",
-                    jsonMapper.valueToTree(
-                        httpDPProviderConfiguration.getHeaders() != null
-                            ? httpDPProviderConfiguration.getHeaders()
-                            : jsonMapper.createArrayNode()
-                    )
-                );
+                        "headers",
+                        jsonMapper.valueToTree(
+                                httpDPProviderConfiguration.getHeaders() != null
+                                        ? httpDPProviderConfiguration.getHeaders()
+                                        : jsonMapper.createArrayNode()));
                 configNode.put("method", httpDPProviderConfiguration.getMethod().name());
                 configNode.put("systemProxy", httpDPProviderConfiguration.isUseSystemProxy());
                 configNode.put("transformation", httpDPProviderConfiguration.getSpecification());
@@ -184,9 +170,8 @@ public final class ApiServicesMigration {
             }
         } catch (Exception e) {
             log.error(MigrationWarnings.DYNAMIC_PROPERTY_PARSE_ERROR, e);
-            return migrationResult.addIssue(
-                new MigrationResult.Issue(MigrationWarnings.DYNAMIC_PROPERTY_PARSE_ERROR, MigrationResult.State.IMPOSSIBLE)
-            );
+            return migrationResult.addIssue(new MigrationResult.Issue(
+                    MigrationWarnings.DYNAMIC_PROPERTY_PARSE_ERROR, MigrationResult.State.IMPOSSIBLE));
         }
         return migrationResult.map(service -> {
             service.setConfiguration(configNode.toString());
@@ -201,17 +186,17 @@ public final class ApiServicesMigration {
 
         if (!ALLOWED_DISCOVERY_PLUGIN_IDS.contains(discoveryService.getProvider())) {
             return MigrationResult.issue(
-                MigrationWarnings.SERVICE_DISCOVERY_NOT_SUPPORTED.formatted(discoveryService.getProvider()),
-                IMPOSSIBLE
-            );
+                    MigrationWarnings.SERVICE_DISCOVERY_NOT_SUPPORTED.formatted(discoveryService.getProvider()),
+                    IMPOSSIBLE);
         }
 
         var service = Service.builder()
-            .configuration(discoveryService.getConfiguration())
-            .type(discoveryService.getProvider())
-            .enabled(discoveryService.isEnabled())
-            .build();
+                .configuration(discoveryService.getConfiguration())
+                .type(discoveryService.getProvider())
+                .enabled(discoveryService.isEnabled())
+                .build();
 
-        return MigrationResult.value(service).addIssue(MigrationWarnings.SERVICE_DISCOVERY_LIMITATION, MigrationResult.State.CAN_BE_FORCED);
+        return MigrationResult.value(service)
+                .addIssue(MigrationWarnings.SERVICE_DISCOVERY_LIMITATION, MigrationResult.State.CAN_BE_FORCED);
     }
 }

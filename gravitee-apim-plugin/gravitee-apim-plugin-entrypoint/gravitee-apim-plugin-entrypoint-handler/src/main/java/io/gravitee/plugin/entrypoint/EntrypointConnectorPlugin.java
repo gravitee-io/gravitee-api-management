@@ -25,8 +25,9 @@ import io.gravitee.plugin.core.api.ConfigurablePlugin;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EntrypointConnectorPlugin<T extends EntrypointConnectorFactory<?>, C extends EntrypointConnectorConfiguration>
-    extends ConfigurablePlugin<C> {
+public interface EntrypointConnectorPlugin<
+                T extends EntrypointConnectorFactory<?>, C extends EntrypointConnectorConfiguration>
+        extends ConfigurablePlugin<C> {
     String PLUGIN_TYPE = "entrypoint-connector";
 
     /**

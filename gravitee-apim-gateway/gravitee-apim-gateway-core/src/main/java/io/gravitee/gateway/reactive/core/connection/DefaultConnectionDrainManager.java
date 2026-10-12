@@ -19,14 +19,13 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.UUID;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultConnectionDrainManager extends AbstractService<DefaultConnectionDrainManager> implements ConnectionDrainManager {
+public class DefaultConnectionDrainManager extends AbstractService<DefaultConnectionDrainManager>
+        implements ConnectionDrainManager {
 
     private long drainRequestedAt = -1;
     private final Map<String, ConnectionDrainListener> listeners = new ConcurrentHashMap<>();

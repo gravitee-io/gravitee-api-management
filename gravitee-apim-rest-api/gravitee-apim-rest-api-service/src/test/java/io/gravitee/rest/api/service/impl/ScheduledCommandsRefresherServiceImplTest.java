@@ -75,7 +75,8 @@ public class ScheduledCommandsRefresherServiceImplTest {
 
     @BeforeEach
     public void setUp() {
-        cut = new ScheduledCommandsRefresherServiceImpl(commandService, node, taskScheduler, "0/5 * * * * *", eventManager, clusterManager);
+        cut = new ScheduledCommandsRefresherServiceImpl(
+                commandService, node, taskScheduler, "0/5 * * * * *", eventManager, clusterManager);
         when(node.id()).thenReturn("node-id");
         when(clusterManager.self()).thenReturn(clusterMember);
         when(clusterMember.primary()).thenReturn(true);
@@ -83,13 +84,10 @@ public class ScheduledCommandsRefresherServiceImplTest {
 
     @Test
     public void shouldNotFindCommand() {
-        when(
-            commandService.search(
-                ArgumentMatchers.argThat(
-                    query -> query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
-                )
-            )
-        ).thenReturn(List.of());
+        when(commandService.search(
+                        ArgumentMatchers.argThat(query -> query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name())
+                                && query.getNotAckBy().equals("node-id"))))
+                .thenReturn(List.of());
         cut.run();
 
         verify(commandService, never()).delete(any());
@@ -103,24 +101,25 @@ public class ScheduledCommandsRefresherServiceImplTest {
         final CommandEntity dataCommand2 = buildCommand("data-2", List.of(CommandTags.DATA_TO_INDEX), false);
         // this case has no real business sense but is here to test the code
         final CommandEntity dataCommand3 = buildCommand(
-            "data-subscription-3",
-            List.of(CommandTags.DATA_TO_INDEX, CommandTags.SUBSCRIPTION_FAILURE),
-            false
-        );
-        final CommandEntity subscriptionCommand1 = buildCommand("subscription-1", List.of(CommandTags.SUBSCRIPTION_FAILURE), false);
-        final CommandEntity subscriptionCommand2 = buildCommand("subscription-2", List.of(CommandTags.SUBSCRIPTION_FAILURE), false);
-        final CommandEntity subscriptionCommand3 = buildCommand("subscription-3", List.of(CommandTags.SUBSCRIPTION_FAILURE), true);
+                "data-subscription-3", List.of(CommandTags.DATA_TO_INDEX, CommandTags.SUBSCRIPTION_FAILURE), false);
+        final CommandEntity subscriptionCommand1 =
+                buildCommand("subscription-1", List.of(CommandTags.SUBSCRIPTION_FAILURE), false);
+        final CommandEntity subscriptionCommand2 =
+                buildCommand("subscription-2", List.of(CommandTags.SUBSCRIPTION_FAILURE), false);
+        final CommandEntity subscriptionCommand3 =
+                buildCommand("subscription-3", List.of(CommandTags.SUBSCRIPTION_FAILURE), true);
 
-        when(
-            commandService.search(
-                ArgumentMatchers.argThat(
-                    query ->
-                        query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) &&
-                        query.getNotAckBy().equals("node-id") &&
-                        !query.getTags().contains(CommandTags.DATA_TO_INDEX)
-                )
-            )
-        ).thenReturn(List.of(dataCommand1, dataCommand2, dataCommand3, subscriptionCommand1, subscriptionCommand2, subscriptionCommand3));
+        when(commandService.search(
+                        ArgumentMatchers.argThat(query -> query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name())
+                                && query.getNotAckBy().equals("node-id")
+                                && !query.getTags().contains(CommandTags.DATA_TO_INDEX))))
+                .thenReturn(List.of(
+                        dataCommand1,
+                        dataCommand2,
+                        dataCommand3,
+                        subscriptionCommand1,
+                        subscriptionCommand2,
+                        subscriptionCommand3));
         cut.run();
 
         ArgumentCaptor<String> deleteCaptor = ArgumentCaptor.forClass(String.class);
@@ -135,8 +134,8 @@ public class ScheduledCommandsRefresherServiceImplTest {
         ArgumentCaptor<CommandEntity> argumentCaptor = ArgumentCaptor.forClass(CommandEntity.class);
         verify(eventManager, times(5)).publishEvent(eq(CommandEvent.TO_PROCESS), argumentCaptor.capture());
         assertThat(argumentCaptor.getAllValues())
-            .extracting(CommandEntity::getId)
-            .containsOnly("data-1", "data-2", "data-subscription-3", "subscription-1", "subscription-2");
+                .extracting(CommandEntity::getId)
+                .containsOnly("data-1", "data-2", "data-subscription-3", "subscription-1", "subscription-2");
     }
 
     @Test

@@ -62,7 +62,12 @@ public abstract class DebugStep<T> {
 
     protected DebugStepContent policyInputContent;
 
-    public DebugStep(String policyId, StreamType streamType, String uuid, PolicyScope policyScope, PolicyMetadata policyMetadata) {
+    public DebugStep(
+            String policyId,
+            StreamType streamType,
+            String uuid,
+            PolicyScope policyScope,
+            PolicyMetadata policyMetadata) {
         this.policyId = policyId;
         this.streamType = streamType;
         this.policyInstanceId = uuid;
@@ -87,7 +92,8 @@ public abstract class DebugStep<T> {
         this.status = this.status == null ? DebugStepStatus.COMPLETED : this.status;
     }
 
-    protected abstract void generateDiffMap(T source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer);
+    protected abstract void generateDiffMap(
+            T source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer);
 
     public Map<String, Object> getDebugDiffContent() {
         return diffMap;
@@ -179,21 +185,18 @@ public abstract class DebugStep<T> {
 
     @Override
     public String toString() {
-        return (
-            getClass().getSimpleName() +
-            "{" +
-            "policyId='" +
-            policyId +
-            '\'' +
-            ", streamType=" +
-            streamType +
-            ", stopwatch=" +
-            stopwatch.elapsed(TimeUnit.NANOSECONDS) +
-            " ns" +
-            ", diffMap='" +
-            diffMap +
-            '\'' +
-            '}'
-        );
+        return (getClass().getSimpleName() + "{"
+                + "policyId='"
+                + policyId
+                + '\''
+                + ", streamType="
+                + streamType
+                + ", stopwatch="
+                + stopwatch.elapsed(TimeUnit.NANOSECONDS)
+                + " ns"
+                + ", diffMap='"
+                + diffMap
+                + '\''
+                + '}');
     }
 }

@@ -73,7 +73,8 @@ class RevokeApiKeyDomainServiceTest {
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+            new TriggerNotificationDomainServiceInMemory();
     RevokeApiKeyDomainService service;
 
     @BeforeEach
@@ -81,12 +82,11 @@ class RevokeApiKeyDomainServiceTest {
         UuidString.overrideGenerator(() -> "audit-id");
 
         service = new RevokeApiKeyDomainService(
-            apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-            subscriptionCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            triggerNotificationDomainService
-        );
+                apiKeyCrudService,
+                new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+                subscriptionCrudService,
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                triggerNotificationDomainService);
     }
 
     @AfterEach
@@ -110,9 +110,12 @@ class RevokeApiKeyDomainServiceTest {
 
             // When
             service.revokeAllSubscriptionsApiKeys(
-                SubscriptionEntity.builder().id("subscription-id").apiId("api-id").applicationId("application-id").build(),
-                AUDIT_INFO
-            );
+                    SubscriptionEntity.builder()
+                            .id("subscription-id")
+                            .apiId("api-id")
+                            .applicationId("application-id")
+                            .build(),
+                    AUDIT_INFO);
 
             // Then
             assertThat(auditCrudService.storage()).isEmpty();
@@ -121,28 +124,26 @@ class RevokeApiKeyDomainServiceTest {
         @Test
         void should_do_nothing_when_no_active_api_keys_for_subscription() {
             // Given no API key for subscription
-            givenApiKeys(
-                List.of(
-                    ApiKeyFixtures.anApiKey()
-                        .toBuilder()
-                        .subscriptions(List.of("subscription-id"))
-                        .id("revoked-api-key")
-                        .revoked(true)
-                        .build(),
-                    ApiKeyFixtures.anApiKey()
-                        .toBuilder()
-                        .subscriptions(List.of("subscription-id"))
-                        .id("expired-api-key")
-                        .expireAt(Instant.now().minus(1, ChronoUnit.DAYS).atZone(ZoneOffset.systemDefault()))
-                        .build()
-                )
-            );
+            givenApiKeys(List.of(
+                    ApiKeyFixtures.anApiKey().toBuilder()
+                            .subscriptions(List.of("subscription-id"))
+                            .id("revoked-api-key")
+                            .revoked(true)
+                            .build(),
+                    ApiKeyFixtures.anApiKey().toBuilder()
+                            .subscriptions(List.of("subscription-id"))
+                            .id("expired-api-key")
+                            .expireAt(Instant.now().minus(1, ChronoUnit.DAYS).atZone(ZoneOffset.systemDefault()))
+                            .build()));
 
             // When
             service.revokeAllSubscriptionsApiKeys(
-                SubscriptionEntity.builder().id("subscription-id").apiId("api-id").applicationId("application-id").build(),
-                AUDIT_INFO
-            );
+                    SubscriptionEntity.builder()
+                            .id("subscription-id")
+                            .apiId("api-id")
+                            .applicationId("application-id")
+                            .build(),
+                    AUDIT_INFO);
 
             // Then
             // No modification
@@ -152,25 +153,23 @@ class RevokeApiKeyDomainServiceTest {
         @Test
         void should_revoke_active_api_keys_for_subscription() {
             ZonedDateTime now = ZonedDateTime.now();
-            givenApiKeys(
-                List.of(
-                    ApiKeyFixtures.anApiKey()
-                        .toBuilder()
-                        .subscriptions(List.of("subscription-id"))
-                        .id("api-key")
-                        .revoked(false)
-                        .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneOffset.systemDefault()))
-                        .key("key")
-                        .applicationId("application-id")
-                        .build()
-                )
-            );
+            givenApiKeys(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                    .subscriptions(List.of("subscription-id"))
+                    .id("api-key")
+                    .revoked(false)
+                    .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneOffset.systemDefault()))
+                    .key("key")
+                    .applicationId("application-id")
+                    .build()));
 
             // When
             var revokedKeys = service.revokeAllSubscriptionsApiKeys(
-                SubscriptionEntity.builder().id("subscription-id").apiId("api-id").applicationId("application-id").build(),
-                AUDIT_INFO
-            );
+                    SubscriptionEntity.builder()
+                            .id("subscription-id")
+                            .apiId("api-id")
+                            .applicationId("application-id")
+                            .build(),
+                    AUDIT_INFO);
 
             // Then
             assertThat(revokedKeys.size()).isOne();
@@ -180,58 +179,52 @@ class RevokeApiKeyDomainServiceTest {
             assertThat(revokedKey.get().getRevokedAt()).isAfterOrEqualTo(now);
 
             assertThat(auditCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-                .containsExactly(
-                    AuditEntity.builder()
-                        .id("audit-id")
-                        .organizationId(ORGANIZATION_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId("api-id")
-                        .user(USER_ID)
-                        .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "api-key"))
-                        .event(ApiKeyAuditEvent.APIKEY_REVOKED.name())
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                    .containsExactly(AuditEntity.builder()
+                            .id("audit-id")
+                            .organizationId(ORGANIZATION_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .referenceType(AuditEntity.AuditReferenceType.API)
+                            .referenceId("api-id")
+                            .user(USER_ID)
+                            .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "api-key"))
+                            .event(ApiKeyAuditEvent.APIKEY_REVOKED.name())
+                            .build());
         }
 
         @Test
         void should_create_an_audit_when_revoking_an_api_key() {
-            givenApiKeys(
-                List.of(
-                    ApiKeyFixtures.anApiKey()
-                        .toBuilder()
-                        .subscriptions(List.of("subscription-id"))
-                        .id("api-key")
-                        .revoked(false)
-                        .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneOffset.systemDefault()))
-                        .key("key")
-                        .applicationId("application-id")
-                        .build()
-                )
-            );
+            givenApiKeys(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                    .subscriptions(List.of("subscription-id"))
+                    .id("api-key")
+                    .revoked(false)
+                    .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneOffset.systemDefault()))
+                    .key("key")
+                    .applicationId("application-id")
+                    .build()));
 
             // When
             service.revokeAllSubscriptionsApiKeys(
-                SubscriptionEntity.builder().id("subscription-id").apiId("api-id").applicationId("application-id").build(),
-                AUDIT_INFO
-            );
+                    SubscriptionEntity.builder()
+                            .id("subscription-id")
+                            .apiId("api-id")
+                            .applicationId("application-id")
+                            .build(),
+                    AUDIT_INFO);
 
             // Then
             assertThat(auditCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-                .containsExactly(
-                    AuditEntity.builder()
-                        .id("audit-id")
-                        .organizationId(ORGANIZATION_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId("api-id")
-                        .user(USER_ID)
-                        .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "api-key"))
-                        .event(ApiKeyAuditEvent.APIKEY_REVOKED.name())
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                    .containsExactly(AuditEntity.builder()
+                            .id("audit-id")
+                            .organizationId(ORGANIZATION_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .referenceType(AuditEntity.AuditReferenceType.API)
+                            .referenceId("api-id")
+                            .user(USER_ID)
+                            .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "api-key"))
+                            .event(ApiKeyAuditEvent.APIKEY_REVOKED.name())
+                            .build());
         }
     }
 
@@ -254,7 +247,9 @@ class RevokeApiKeyDomainServiceTest {
         @Test
         void should_do_nothing_when_api_key_is_expired() {
             // Given
-            var apiKey = ApiKeyFixtures.anApiKey().toBuilder().expireAt(ZonedDateTime.now().minusSeconds(30)).build();
+            var apiKey = ApiKeyFixtures.anApiKey().toBuilder()
+                    .expireAt(ZonedDateTime.now().minusSeconds(30))
+                    .build();
 
             // When
             var result = service.revoke(apiKey, AUDIT_INFO);
@@ -268,18 +263,24 @@ class RevokeApiKeyDomainServiceTest {
         void should_revoke_api_key() {
             // Given
             var now = ZonedDateTime.now();
-            var subscriptionIds = givenSubscriptions(List.of(SubscriptionFixtures.aSubscription(), SubscriptionFixtures.aSubscription()))
-                .stream()
-                .map(SubscriptionEntity::getId)
-                .toList();
-            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder().subscriptions(subscriptionIds).build());
+            var subscriptionIds =
+                    givenSubscriptions(
+                                    List.of(SubscriptionFixtures.aSubscription(), SubscriptionFixtures.aSubscription()))
+                            .stream()
+                            .map(SubscriptionEntity::getId)
+                            .toList();
+            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder()
+                    .subscriptions(subscriptionIds)
+                    .build());
 
             // When
             var result = service.revoke(apiKey, AUDIT_INFO);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(result.isRevoked()).describedAs("ApiKey is not revoked").isTrue();
+                soft.assertThat(result.isRevoked())
+                        .describedAs("ApiKey is not revoked")
+                        .isTrue();
                 soft.assertThat(result.getRevokedAt()).isEqualTo(result.getUpdatedAt());
                 soft.assertThat(result.getRevokedAt()).isAfterOrEqualTo(now);
             });
@@ -289,84 +290,86 @@ class RevokeApiKeyDomainServiceTest {
         void should_create_an_audit_for_each_subscriptions() {
             // Given
             var subscriptions = givenSubscriptions();
-            var apiKey = givenApiKey(
-                ApiKeyFixtures.anApiKey().toBuilder().subscriptions(subscriptions.stream().map(SubscriptionEntity::getId).toList()).build()
-            );
+            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder()
+                    .subscriptions(subscriptions.stream()
+                            .map(SubscriptionEntity::getId)
+                            .toList())
+                    .build());
 
             // When
             var result = service.revoke(apiKey, AUDIT_INFO);
 
             // Then
             assertThat(auditCrudService.storage())
-                .hasSize(2)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-                .contains(
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.API,
-                        API_ID_2,
-                        USER_ID,
-                        Map.of("API_KEY", apiKey.getId(), "API", API_ID_2, "APPLICATION", APPLICATION_ID_2),
-                        ApiKeyAuditEvent.APIKEY_REVOKED.name(),
-                        result.getRevokedAt(),
-                        ""
-                    ),
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.API,
-                        API_ID_1,
-                        USER_ID,
-                        Map.of("API_KEY", apiKey.getId(), "API", API_ID_1, "APPLICATION", APPLICATION_ID_1),
-                        ApiKeyAuditEvent.APIKEY_REVOKED.name(),
-                        result.getRevokedAt(),
-                        ""
-                    )
-                );
+                    .hasSize(2)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                    .contains(
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.API,
+                                    API_ID_2,
+                                    USER_ID,
+                                    Map.of("API_KEY", apiKey.getId(), "API", API_ID_2, "APPLICATION", APPLICATION_ID_2),
+                                    ApiKeyAuditEvent.APIKEY_REVOKED.name(),
+                                    result.getRevokedAt(),
+                                    ""),
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.API,
+                                    API_ID_1,
+                                    USER_ID,
+                                    Map.of("API_KEY", apiKey.getId(), "API", API_ID_1, "APPLICATION", APPLICATION_ID_1),
+                                    ApiKeyAuditEvent.APIKEY_REVOKED.name(),
+                                    result.getRevokedAt(),
+                                    ""));
         }
 
         @Test
         void should_trigger_api_notification_for_each_subscription() {
             // Given
             var subscriptions = givenSubscriptions();
-            var apiKey = givenApiKey(
-                ApiKeyFixtures.anApiKey().toBuilder().subscriptions(subscriptions.stream().map(SubscriptionEntity::getId).toList()).build()
-            );
+            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder()
+                    .subscriptions(subscriptions.stream()
+                            .map(SubscriptionEntity::getId)
+                            .toList())
+                    .build());
 
             // When
             service.revoke(apiKey, AUDIT_INFO);
 
             // Then
-            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-                new ApiKeyRevokedApiHookContext(API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
-                new ApiKeyRevokedApiHookContext(API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
-            );
+            assertThat(triggerNotificationDomainService.getHookNotifications())
+                    .containsExactly(
+                            new ApiKeyRevokedApiHookContext(API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
+                            new ApiKeyRevokedApiHookContext(API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey()));
         }
 
         @Test
         void should_trigger_api_product_notification_for_api_product_subscription() {
             // Given - subscription for API Product
-            var subscription = SubscriptionFixtures.aSubscription()
-                .toBuilder()
-                .id(SUBSCRIPTION_ID_1)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(SubscriptionReferenceType.API_PRODUCT)
-                .applicationId(APPLICATION_ID_1)
-                .planId(PLAN_ID_1)
-                .build();
+            var subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                    .id(SUBSCRIPTION_ID_1)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                    .applicationId(APPLICATION_ID_1)
+                    .planId(PLAN_ID_1)
+                    .build();
             givenSubscriptions(List.of(subscription));
-            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder().subscriptions(List.of(SUBSCRIPTION_ID_1)).build());
+            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder()
+                    .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                    .build());
 
             // When
             service.revoke(apiKey, AUDIT_INFO);
 
             // Then - context uses API_PRODUCT and API_PRODUCT_ID
-            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-                new ApiKeyRevokedApiProductHookContext(API_PRODUCT_ID, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey())
-            );
+            assertThat(triggerNotificationDomainService.getHookNotifications())
+                    .containsExactly(new ApiKeyRevokedApiProductHookContext(
+                            API_PRODUCT_ID, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()));
         }
     }
 
@@ -388,23 +391,20 @@ class RevokeApiKeyDomainServiceTest {
 
     private List<SubscriptionEntity> givenSubscriptions() {
         var subscriptions = List.of(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
-                .id(SUBSCRIPTION_ID_1)
-                .apiId(API_ID_1)
-                .referenceId(API_ID_1)
-                .applicationId(APPLICATION_ID_1)
-                .planId(PLAN_ID_1)
-                .build(),
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
-                .id(SUBSCRIPTION_ID_2)
-                .apiId(API_ID_2)
-                .referenceId(API_ID_2)
-                .applicationId(APPLICATION_ID_2)
-                .planId(PLAN_ID_2)
-                .build()
-        );
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id(SUBSCRIPTION_ID_1)
+                        .apiId(API_ID_1)
+                        .referenceId(API_ID_1)
+                        .applicationId(APPLICATION_ID_1)
+                        .planId(PLAN_ID_1)
+                        .build(),
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id(SUBSCRIPTION_ID_2)
+                        .apiId(API_ID_2)
+                        .referenceId(API_ID_2)
+                        .applicationId(APPLICATION_ID_2)
+                        .planId(PLAN_ID_2)
+                        .build());
         subscriptionCrudService.initWith(subscriptions);
         return subscriptions;
     }

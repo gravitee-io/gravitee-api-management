@@ -38,20 +38,19 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
     @SneakyThrows
     @Override
     public Event createEvent(
-        String organizationId,
-        String environmentId,
-        Set<String> environmentIds,
-        EventType eventType,
-        Object content,
-        Map<Event.EventProperties, String> properties
-    ) {
+            String organizationId,
+            String environmentId,
+            Set<String> environmentIds,
+            EventType eventType,
+            Object content,
+            Map<Event.EventProperties, String> properties) {
         Event event = Event.builder()
-            .id(UuidString.generateRandom())
-            .type(eventType)
-            .environments(environmentIds)
-            .properties(new EnumMap<>(properties))
-            .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(content))
-            .build();
+                .id(UuidString.generateRandom())
+                .type(eventType)
+                .environments(environmentIds)
+                .properties(new EnumMap<>(properties))
+                .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(content))
+                .build();
         storage.add(event);
         return event;
     }
@@ -59,29 +58,26 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
     @SneakyThrows
     @Override
     public Event get(String organizationId, String environmentId, String eventId) {
-        return storage
-            .stream()
-            .filter(event -> event.getId().equals(eventId))
-            .findFirst()
-            .orElseThrow(() -> new EventNotFoundException(eventId));
+        return storage.stream()
+                .filter(event -> event.getId().equals(eventId))
+                .findFirst()
+                .orElseThrow(() -> new EventNotFoundException(eventId));
     }
 
     @Override
     public void cleanupEvents(String environmentId, int nbEventsToKeep, Duration timeToLive) {
         String NO_REMOVE = "NO_API";
-        var byAPIs = storage
-            .stream()
-            .filter(event -> event.getEnvironments().contains(environmentId))
-            .collect(Collectors.groupingBy(event -> event.getProperties().getOrDefault(Event.EventProperties.API_ID, "NO_API")));
+        var byAPIs = storage.stream()
+                .filter(event -> event.getEnvironments().contains(environmentId))
+                .collect(Collectors.groupingBy(
+                        event -> event.getProperties().getOrDefault(Event.EventProperties.API_ID, "NO_API")));
         for (var entry : byAPIs.entrySet()) {
             if (!NO_REMOVE.equals(entry.getKey())) {
-                var keep = entry
-                    .getValue()
-                    .stream()
-                    .sorted(Comparator.comparing(Event::getUpdatedAt))
-                    .limit(nbEventsToKeep)
-                    .map(Event::getId)
-                    .toList();
+                var keep = entry.getValue().stream()
+                        .sorted(Comparator.comparing(Event::getUpdatedAt))
+                        .limit(nbEventsToKeep)
+                        .map(Event::getId)
+                        .toList();
                 storage.removeIf(event -> keep.contains(event.getId()));
             }
         }

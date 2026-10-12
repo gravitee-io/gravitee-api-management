@@ -32,15 +32,14 @@ class ApiProductMapperTest {
     @Test
     void should_map_consumer_safe_api_product_details() {
         var source = new PortalApiProductDetails(
-            API_PRODUCT_ID.toString(),
-            "AI Workspace",
-            "Description",
-            "1.0.0",
-            ApiProductKind.AI_WORKSPACE,
-            NAVIGATION_ITEM_ID.toString(),
-            List.of("ai"),
-            List.of(new PortalApiProductDetails.ApiSummary("api-id", "API", "2.0.0"))
-        );
+                API_PRODUCT_ID.toString(),
+                "AI Workspace",
+                "Description",
+                "1.0.0",
+                ApiProductKind.AI_WORKSPACE,
+                NAVIGATION_ITEM_ID.toString(),
+                List.of("ai"),
+                List.of(new PortalApiProductDetails.ApiSummary("api-id", "API", "2.0.0")));
 
         var result = ApiProductMapper.INSTANCE.map(source);
 
@@ -48,28 +47,26 @@ class ApiProductMapperTest {
         assertThat(result.getName()).isEqualTo("AI Workspace");
         assertThat(result.getDescription()).isEqualTo("Description");
         assertThat(result.getVersion()).isEqualTo("1.0.0");
-        assertThat(result.getKind()).isEqualTo(io.gravitee.rest.api.portal.rest.model.PortalApiProductDetails.KindEnum.AI_WORKSPACE);
+        assertThat(result.getKind())
+                .isEqualTo(io.gravitee.rest.api.portal.rest.model.PortalApiProductDetails.KindEnum.AI_WORKSPACE);
         assertThat(result.getNavigationItemId()).isEqualTo(NAVIGATION_ITEM_ID);
         assertThat(result.getTags()).containsExactly("ai");
-        assertThat(result.getApis())
-            .singleElement()
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo("api-id");
-                assertThat(api.getName()).isEqualTo("API");
-                assertThat(api.getVersion()).isEqualTo("2.0.0");
-            });
+        assertThat(result.getApis()).singleElement().satisfies(api -> {
+            assertThat(api.getId()).isEqualTo("api-id");
+            assertThat(api.getName()).isEqualTo("API");
+            assertThat(api.getVersion()).isEqualTo("2.0.0");
+        });
     }
 
     @Test
     void should_map_catalog_api_product_summary() {
         var source = new PortalCatalogApiProductSummary(
-            API_PRODUCT_ID.toString(),
-            "AI Workspace",
-            "Description",
-            "1.0.0",
-            NAVIGATION_ITEM_ID.toString(),
-            List.of(new PortalCatalogApiProductSummary.ApiSummary("api-id", "API", "2.0.0"))
-        );
+                API_PRODUCT_ID.toString(),
+                "AI Workspace",
+                "Description",
+                "1.0.0",
+                NAVIGATION_ITEM_ID.toString(),
+                List.of(new PortalCatalogApiProductSummary.ApiSummary("api-id", "API", "2.0.0")));
 
         var result = ApiProductMapper.INSTANCE.map(source);
 
@@ -78,12 +75,10 @@ class ApiProductMapperTest {
         assertThat(result.getDescription()).isEqualTo("Description");
         assertThat(result.getVersion()).isEqualTo("1.0.0");
         assertThat(result.getNavigationItemId()).isEqualTo(NAVIGATION_ITEM_ID);
-        assertThat(result.getApis())
-            .singleElement()
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo("api-id");
-                assertThat(api.getName()).isEqualTo("API");
-                assertThat(api.getVersion()).isEqualTo("2.0.0");
-            });
+        assertThat(result.getApis()).singleElement().satisfies(api -> {
+            assertThat(api.getId()).isEqualTo("api-id");
+            assertThat(api.getName()).isEqualTo("API");
+            assertThat(api.getVersion()).isEqualTo("2.0.0");
+        });
     }
 }

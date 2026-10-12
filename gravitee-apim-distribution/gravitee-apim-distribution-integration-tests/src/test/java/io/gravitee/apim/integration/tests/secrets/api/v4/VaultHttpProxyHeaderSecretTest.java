@@ -92,11 +92,10 @@ public class VaultHttpProxyHeaderSecretTest {
     }
 
     static void addPlugin(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins) {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class));
     }
 
     abstract static class AbstractVaultApiTest extends AbstractGatewayTest {
@@ -113,44 +112,45 @@ public class VaultHttpProxyHeaderSecretTest {
 
         Map<String, Object> vaultInstanceConfig(SecuredVaultContainer vaultContainer) {
             return Map.of(
-                "api.secrets.providers[0].configuration.host",
-                vaultContainer.getHost(),
-                "api.secrets.providers[0].configuration.port",
-                vaultContainer.getPort(),
-                "api.secrets.providers[0].configuration.ssl.enabled",
-                true,
-                "api.secrets.providers[0].configuration.ssl.format",
-                "pemfile",
-                "api.secrets.providers[0].configuration.ssl.file",
-                SecuredVaultContainer.CERT_PEMFILE
-            );
+                    "api.secrets.providers[0].configuration.host",
+                    vaultContainer.getHost(),
+                    "api.secrets.providers[0].configuration.port",
+                    vaultContainer.getPort(),
+                    "api.secrets.providers[0].configuration.ssl.enabled",
+                    true,
+                    "api.secrets.providers[0].configuration.ssl.format",
+                    "pemfile",
+                    "api.secrets.providers[0].configuration.ssl.file",
+                    SecuredVaultContainer.CERT_PEMFILE);
         }
 
         protected Map<String, Object> authConfig() {
             return Map.of(
-                "api.secrets.providers[0].configuration.auth.method",
-                "userpass",
-                "api.secrets.providers[0].configuration.auth.config.username",
-                SecuredVaultContainer.USER_ID,
-                "api.secrets.providers[0].configuration.auth.config.password",
-                SecuredVaultContainer.PASSWORD
-            );
+                    "api.secrets.providers[0].configuration.auth.method",
+                    "userpass",
+                    "api.secrets.providers[0].configuration.auth.config.username",
+                    SecuredVaultContainer.USER_ID,
+                    "api.secrets.providers[0].configuration.auth.config.password",
+                    SecuredVaultContainer.PASSWORD);
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
         public void configureSecretProviders(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) throws Exception {
+                Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                        secretProviderPlugins)
+                throws Exception {
             addPlugin(secretProviderPlugins);
             createSecrets();
         }
@@ -190,18 +190,21 @@ public class VaultHttpProxyHeaderSecretTest {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    // just asserting we get a response (hence no SSL errors), no need for an API.
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        // just asserting we get a response (hence no SSL errors), no need for an API.
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+            wiremock.verify(
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
         }
     }
 

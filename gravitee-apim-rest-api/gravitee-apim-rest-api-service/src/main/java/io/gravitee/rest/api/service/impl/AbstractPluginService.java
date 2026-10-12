@@ -36,8 +36,7 @@ import org.slf4j.Logger;
  * @author GraviteeSource Team
  */
 public abstract class AbstractPluginService<T extends ConfigurablePlugin, E extends PlatformPluginEntity>
-    extends TransactionalService
-    implements PluginService<E> {
+        extends TransactionalService implements PluginService<E> {
 
     protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
@@ -78,7 +77,8 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             log.debug("Find plugin schema by ID: {}", pluginId);
             return pluginManager.getSchema(pluginId, true);
         } catch (IOException ioex) {
-            throw new TechnicalManagementException("An error occurs while trying to get plugin schema for plugin " + pluginId, ioex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to get plugin schema for plugin " + pluginId, ioex);
         }
     }
 
@@ -88,7 +88,8 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             log.debug("Find plugin icon by ID: {}", pluginId);
             return pluginManager.getIcon(pluginId, true);
         } catch (IOException ioex) {
-            throw new TechnicalManagementException("An error occurs while trying to get plugin icon for plugin " + pluginId, ioex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to get plugin icon for plugin " + pluginId, ioex);
         }
     }
 
@@ -98,7 +99,8 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             log.debug("Find plugin documentation by ID: {}", pluginId);
             return pluginManager.getDocumentation(pluginId, true);
         } catch (IOException ioex) {
-            throw new TechnicalManagementException("An error occurs while trying to get plugin documentation for plugin " + pluginId, ioex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to get plugin documentation for plugin " + pluginId, ioex);
         }
     }
 
@@ -131,9 +133,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             return pluginManager.getMoreInformation(pluginId, true);
         } catch (IOException ioex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to get plugin more information for plugin " + pluginId,
-                ioex
-            );
+                    "An error occurs while trying to get plugin more information for plugin " + pluginId, ioex);
         }
     }
 }

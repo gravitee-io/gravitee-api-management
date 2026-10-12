@@ -51,22 +51,19 @@ public class PromotionTargetsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List available targets (environments) for a promotion")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of promotion targets",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = PromotionTargetEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of promotion targets",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = PromotionTargetEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @ApiResponse(responseCode = "503", description = "Installation not connected to cockpit")
     public Response getPromotionTargets() {
         InstallationStatus status = this.installationService.getInstallationStatus();
         if (InstallationStatus.ACCEPTED == status) {
             final List<PromotionTargetEntity> promotionTargetEntities = this.promotionService.listPromotionTargets(
-                GraviteeContext.getCurrentOrganization(),
-                GraviteeContext.getCurrentEnvironment()
-            );
+                    GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment());
             return Response.ok(promotionTargetEntities).build();
         }
         throw new InstallationNotAcceptedException(this.installationService.get(), status);

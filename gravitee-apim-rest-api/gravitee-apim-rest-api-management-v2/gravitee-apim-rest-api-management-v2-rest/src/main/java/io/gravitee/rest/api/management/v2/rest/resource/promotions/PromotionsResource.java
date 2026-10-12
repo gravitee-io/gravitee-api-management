@@ -55,35 +55,30 @@ public class PromotionsResource extends AbstractResource {
         if (DefinitionVersion.V4.equals(expectedDefinitionVersion)) {
             var authenticatedUser = getAuthenticatedUserDetails();
             var auditInfo = AuditInfo.builder()
-                .organizationId(GraviteeContext.getCurrentOrganization())
-                .environmentId(promotionContext.targetEnvId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(authenticatedUser.getUsername())
-                        .userSource(authenticatedUser.getSource())
-                        .userSourceId(authenticatedUser.getSourceId())
-                        .build()
-                )
-                .build();
+                    .organizationId(GraviteeContext.getCurrentOrganization())
+                    .environmentId(promotionContext.targetEnvId())
+                    .actor(AuditActor.builder()
+                            .userId(authenticatedUser.getUsername())
+                            .userSource(authenticatedUser.getSource())
+                            .userSourceId(authenticatedUser.getSourceId())
+                            .build())
+                    .build();
 
             ImportDefinition importApi = null;
             if (isAccepted) {
-                ExportApiV4 exportApi = ImportExportApiMapper.INSTANCE.definitionToExportApiV4(promotion.getApiDefinition());
+                ExportApiV4 exportApi =
+                        ImportExportApiMapper.INSTANCE.definitionToExportApiV4(promotion.getApiDefinition());
                 importApi = ImportExportApiMapper.INSTANCE.toImportDefinition(exportApi);
             }
 
             input = new ProcessPromotionUseCase.Input(
-                promotion,
-                expectedDefinitionVersion,
-                isAccepted,
-                existingPromotedApi,
-                importApi,
-                auditInfo
-            );
+                    promotion, expectedDefinitionVersion, isAccepted, existingPromotedApi, importApi, auditInfo);
         } else {
             input = new ProcessPromotionUseCase.Input(promotion, isAccepted, expectedDefinitionVersion);
         }
 
-        return Response.ok(PromotionMapper.INSTANCE.map(promotionUseCase.execute(input).promotion())).build();
+        return Response.ok(PromotionMapper.INSTANCE.map(
+                        promotionUseCase.execute(input).promotion()))
+                .build();
     }
 }

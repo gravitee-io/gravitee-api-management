@@ -189,11 +189,21 @@ class DebugHttpRequestDispatcherTest {
         lenient().when(response.end()).thenReturn(Future.succeededFuture());
 
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
-        lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10L);
-        lenient().when(notFoundProcessorChainFactory.rejectedPathProcessorChain()).thenReturn(new ProcessorChain("rejected", List.of()));
-        lenient().when(notFoundProcessorChainFactory.processorChain()).thenReturn(new ProcessorChain("not-found", List.of()));
-        lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
-        lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
+        lenient()
+                .when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay())
+                .thenReturn(10L);
+        lenient()
+                .when(notFoundProcessorChainFactory.rejectedPathProcessorChain())
+                .thenReturn(new ProcessorChain("rejected", List.of()));
+        lenient()
+                .when(notFoundProcessorChainFactory.processorChain())
+                .thenReturn(new ProcessorChain("not-found", List.of()));
+        lenient()
+                .when(platformProcessorChainFactory.preProcessorChain())
+                .thenReturn(new ProcessorChain("pre", List.of()));
+        lenient()
+                .when(platformProcessorChainFactory.postProcessorChain())
+                .thenReturn(new ProcessorChain("post", List.of()));
         lenient().when(debugCompletionProcessor.execute(any())).thenReturn(Completable.complete());
 
         // Contextual logging resolves a Node through the component provider, and the rejection path
@@ -214,37 +224,38 @@ class DebugHttpRequestDispatcherTest {
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
         lenient().when(httpServerConnection.channelHandlerContext()).thenReturn(channelHandlerContext);
         lenient().when(channelHandlerContext.channel()).thenReturn(channel);
-        lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
+        lenient()
+                .when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)))
+                .thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
 
     private DebugHttpRequestDispatcher dispatcher(final RequestPathHandling handling) {
         return new DebugHttpRequestDispatcher(
-            gatewayConfiguration,
-            httpAcceptorResolver,
-            idGenerator,
-            globalComponentProvider,
-            new RequestProcessorChainFactory(),
-            responseProcessorChainFactory,
-            platformProcessorChainFactory,
-            notFoundProcessorChainFactory,
-            requestTimeoutConfiguration,
-            requestClientAuthConfiguration,
-            new RequestPathConfiguration(handling),
-            debugCompletionProcessor,
-            vertx,
-            true
-        );
+                gatewayConfiguration,
+                httpAcceptorResolver,
+                idGenerator,
+                globalComponentProvider,
+                new RequestProcessorChainFactory(),
+                responseProcessorChainFactory,
+                platformProcessorChainFactory,
+                notFoundProcessorChainFactory,
+                requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
+                new RequestPathConfiguration(handling),
+                debugCompletionProcessor,
+                vertx,
+                true);
     }
 
     private void resolveDebugApi() {
         ApiReactor<?> apiReactor = mock(ApiReactor.class);
         HttpAcceptor acceptor = mock(HttpAcceptor.class);
-        lenient()
-            .when(apiReactor.api())
-            .thenAnswer(invocation -> debugApi);
+        lenient().when(apiReactor.api()).thenAnswer(invocation -> debugApi);
         lenient().when(acceptor.reactor()).thenReturn(apiReactor);
-        lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+        lenient()
+                .when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID))
+                .thenReturn(acceptor);
     }
 
     @Nested
@@ -257,7 +268,11 @@ class DebugHttpRequestDispatcherTest {
             resolveDebugApi();
 
             // When it is dispatched on the debug port.
-            dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            dispatcher(RequestPathHandling.REJECT)
+                    .dispatch(rxRequest, SERVER_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then the session is completed rather than abandoned mid-flight.
             verify(debugCompletionProcessor).execute(any());
@@ -271,15 +286,21 @@ class DebugHttpRequestDispatcherTest {
             resolveDebugApi();
 
             // When it is dispatched.
-            dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            dispatcher(RequestPathHandling.REJECT)
+                    .dispatch(rxRequest, SERVER_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then the context carries the debug API, and it is a debug context so the completion
             // processor can read the steps — empty here, since no policy ran.
-            ArgumentCaptor<HttpExecutionContextInternal> captor = ArgumentCaptor.forClass(HttpExecutionContextInternal.class);
+            ArgumentCaptor<HttpExecutionContextInternal> captor =
+                    ArgumentCaptor.forClass(HttpExecutionContextInternal.class);
             verify(debugCompletionProcessor).execute(captor.capture());
 
             assertThat(captor.getValue()).isInstanceOf(DebugExecutionContext.class);
-            assertThat((Object) captor.getValue().getInternalAttribute(ATTR_INTERNAL_REACTABLE_API)).isSameAs(debugApi);
+            assertThat((Object) captor.getValue().getInternalAttribute(ATTR_INTERNAL_REACTABLE_API))
+                    .isSameAs(debugApi);
         }
 
         @Test
@@ -290,14 +311,18 @@ class DebugHttpRequestDispatcherTest {
             when(rxRequest.path()).thenReturn(PATH_WITH_DOT_SEGMENTS);
             final DebugApiReactorHandler handler = mock(DebugApiReactorHandler.class);
             final HttpAcceptor acceptor = mock(HttpAcceptor.class);
-            lenient()
-                .when(handler.debugApi())
-                .thenAnswer(invocation -> debugApi);
+            lenient().when(handler.debugApi()).thenAnswer(invocation -> debugApi);
             lenient().when(acceptor.reactor()).thenReturn(handler);
-            lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+            lenient()
+                    .when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID))
+                    .thenReturn(acceptor);
 
             // When the request is refused on its path.
-            dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            dispatcher(RequestPathHandling.REJECT)
+                    .dispatch(rxRequest, SERVER_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then the session is closed for this engine too. Matching only ApiReactor left the
             // console spinning on exactly the dead end this override exists to remove, and the only
@@ -310,9 +335,14 @@ class DebugHttpRequestDispatcherTest {
             // Given a refused path that matches no acceptor: there is no session to close, but the
             // request must still be answered rather than hang.
             when(rxRequest.path()).thenReturn(PATH_WITH_DOT_SEGMENTS);
-            when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(null);
+            when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID))
+                    .thenReturn(null);
 
-            dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            dispatcher(RequestPathHandling.REJECT)
+                    .dispatch(rxRequest, SERVER_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
             verify(debugCompletionProcessor, never()).execute(any());
         }
@@ -348,7 +378,11 @@ class DebugHttpRequestDispatcherTest {
             final DebugHttpRequestDispatcher dispatcher = dispatcherWithRealChain();
 
             // When a path the gateway refuses to route on arrives on the debug port.
-            dispatcher.dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            dispatcher
+                    .dispatch(rxRequest, SERVER_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
             // Then the caller got a 400...
             verify(rxResponse).setStatusCode(400);
@@ -356,11 +390,13 @@ class DebugHttpRequestDispatcherTest {
             // ...and the session was closed, so the console stops waiting.
             final ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
             verify(eventRepository, timeout(5_000)).update(captor.capture());
-            assertThat(captor.getValue().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.SUCCESS.name());
+            assertThat(captor.getValue().getProperties())
+                    .containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.SUCCESS.name());
         }
 
         private void resolveRealDebugApi() {
-            final io.gravitee.definition.model.debug.DebugApiV2 definition = new io.gravitee.definition.model.debug.DebugApiV2();
+            final io.gravitee.definition.model.debug.DebugApiV2 definition =
+                    new io.gravitee.definition.model.debug.DebugApiV2();
             definition.setId("api-id");
             definition.setName("alpha");
             definition.setVersion("1.0");
@@ -368,38 +404,36 @@ class DebugHttpRequestDispatcherTest {
 
             final ApiReactor<?> apiReactor = mock(ApiReactor.class);
             final HttpAcceptor acceptor = mock(HttpAcceptor.class);
-            lenient()
-                .when(apiReactor.api())
-                .thenAnswer(invocation -> realDebugApi);
+            lenient().when(apiReactor.api()).thenAnswer(invocation -> realDebugApi);
             lenient().when(acceptor.reactor()).thenReturn(apiReactor);
-            lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+            lenient()
+                    .when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID))
+                    .thenReturn(acceptor);
         }
 
         private DebugHttpRequestDispatcher dispatcherWithRealChain() {
             final NotFoundProcessorChainFactory realChainFactory = new NotFoundProcessorChainFactory(
-                new TransactionPreProcessorFactory(null, null),
-                new StandardEnvironment(),
-                reporterService,
-                false,
-                true,
-                gatewayConfiguration
-            );
+                    new TransactionPreProcessorFactory(null, null),
+                    new StandardEnvironment(),
+                    reporterService,
+                    false,
+                    true,
+                    gatewayConfiguration);
             return new DebugHttpRequestDispatcher(
-                gatewayConfiguration,
-                httpAcceptorResolver,
-                idGenerator,
-                globalComponentProvider,
-                new RequestProcessorChainFactory(),
-                responseProcessorChainFactory,
-                platformProcessorChainFactory,
-                realChainFactory,
-                requestTimeoutConfiguration,
-                requestClientAuthConfiguration,
-                new RequestPathConfiguration(RequestPathHandling.REJECT),
-                new DebugCompletionProcessor(eventRepository, new ObjectMapper()),
-                vertx,
-                true
-            );
+                    gatewayConfiguration,
+                    httpAcceptorResolver,
+                    idGenerator,
+                    globalComponentProvider,
+                    new RequestProcessorChainFactory(),
+                    responseProcessorChainFactory,
+                    platformProcessorChainFactory,
+                    realChainFactory,
+                    requestTimeoutConfiguration,
+                    requestClientAuthConfiguration,
+                    new RequestPathConfiguration(RequestPathHandling.REJECT),
+                    new DebugCompletionProcessor(eventRepository, new ObjectMapper()),
+                    vertx,
+                    true);
         }
     }
 
@@ -414,7 +448,10 @@ class DebugHttpRequestDispatcherTest {
 
             // When it is dispatched, the ordinary flow runs — here it finds no acceptor, which is
             // the not-found branch and none of this class's business.
-            dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS);
+            dispatcher(RequestPathHandling.REJECT)
+                    .dispatch(rxRequest, SERVER_ID)
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS);
 
             // Then the rejection path was never taken.
             verify(debugCompletionProcessor, never()).execute(any());

@@ -78,13 +78,11 @@ public class ClientRegistrationService_RegisterTest {
 
     @Test
     public void shouldRegisterProvider() throws TechnicalException {
-        NewApplicationEntity application = setupApplicationAndProvider(new OAuthClientSettings(), "{ \"client_name\": \"gravitee\"}");
+        NewApplicationEntity application =
+                setupApplicationAndProvider(new OAuthClientSettings(), "{ \"client_name\": \"gravitee\"}");
 
-        ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
-            GraviteeContext.getExecutionContext(),
-            application,
-            null
-        );
+        ClientRegistrationResponse clientRegistration =
+                clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, null);
         assertNotNull(clientRegistration, "Result is null");
 
         assertEquals(clientRegistration.getClientName(), "gravitee");
@@ -98,15 +96,11 @@ public class ClientRegistrationService_RegisterTest {
         oAuthClientSettings.setAdditionalClientMetadata(additionalClientMetadata);
 
         NewApplicationEntity application = setupApplicationAndProvider(
-            oAuthClientSettings,
-            "{ \"client_name\": \"gravitee\", \"policy_uri\": \"https://example.com/policy\"}"
-        );
+                oAuthClientSettings,
+                "{ \"client_name\": \"gravitee\", \"policy_uri\": \"https://example.com/policy\"}");
 
-        ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
-            GraviteeContext.getExecutionContext(),
-            application,
-            null
-        );
+        ClientRegistrationResponse clientRegistration =
+                clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, null);
         assertNotNull(clientRegistration, "Result is null");
 
         assertEquals(clientRegistration.getClientName(), "gravitee");
@@ -128,38 +122,32 @@ public class ClientRegistrationService_RegisterTest {
         // absent from the user claims and must be skipped.
         provider.setClaimMappings(Map.of("org_id", "metadata.organization", "tenant", "metadata.tenant"));
 
-        when(
-            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
-        ).thenReturn(newSet(provider));
+        when(mockClientRegistrationProviderRepository.findAllByEnvironment(
+                        eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+                .thenReturn(newSet(provider));
 
-        wireMockServer.stubFor(
-            get(urlEqualTo("/am")).willReturn(
-                aResponse().withBody(
-                    "{\"token_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/registrationEp\"}"
-                )
-            )
-        );
-        wireMockServer.stubFor(
-            post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
-        );
-        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
+        wireMockServer.stubFor(get(urlEqualTo("/am"))
+                .willReturn(aResponse()
+                        .withBody("{\"token_endpoint\": \"http://localhost:" + wireMockServer.port()
+                                + "/tokenEp\",\"registration_endpoint\": \"http://localhost:"
+                                + wireMockServer.port()
+                                + "/registrationEp\"}")));
+        wireMockServer.stubFor(post(urlEqualTo("/tokenEp"))
+                .willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}")));
+        wireMockServer.stubFor(post(urlEqualTo("/registrationEp"))
+                .willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
 
         Map<String, String> idpClaims = Map.of("org_id", "org_acme_12345");
 
         clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, idpClaims);
 
         // the mapped, present claim is injected at the nested DCR field path
-        wireMockServer.verify(
-            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(
-                matchingJsonPath("$.metadata.organization", equalTo("org_acme_12345"))
-            )
-        );
+        wireMockServer.verify(postRequestedFor(urlEqualTo("/registrationEp"))
+                .withRequestBody(matchingJsonPath("$.metadata.organization", equalTo("org_acme_12345"))));
         // the mapped but missing 'tenant' claim is skipped: no request carried metadata.tenant
-        wireMockServer.verify(0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata.tenant")));
+        wireMockServer.verify(
+                0,
+                postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata.tenant")));
     }
 
     @Test
@@ -179,43 +167,42 @@ public class ClientRegistrationService_RegisterTest {
         // a mapping onto a standard field (client_name) is not injectable — the allowlist skips it defensively
         provider.setClaimMappings(Map.of("org_id", "client_name"));
 
-        when(
-            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
-        ).thenReturn(newSet(provider));
+        when(mockClientRegistrationProviderRepository.findAllByEnvironment(
+                        eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+                .thenReturn(newSet(provider));
 
-        wireMockServer.stubFor(
-            get(urlEqualTo("/am")).willReturn(
-                aResponse().withBody(
-                    "{\"token_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/registrationEp\"}"
-                )
-            )
-        );
-        wireMockServer.stubFor(
-            post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
-        );
-        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
+        wireMockServer.stubFor(get(urlEqualTo("/am"))
+                .willReturn(aResponse()
+                        .withBody("{\"token_endpoint\": \"http://localhost:" + wireMockServer.port()
+                                + "/tokenEp\",\"registration_endpoint\": \"http://localhost:"
+                                + wireMockServer.port()
+                                + "/registrationEp\"}")));
+        wireMockServer.stubFor(post(urlEqualTo("/tokenEp"))
+                .willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}")));
+        wireMockServer.stubFor(post(urlEqualTo("/registrationEp"))
+                .willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
 
-        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, Map.of("org_id", "Injected Name"));
+        clientRegistrationService.register(
+                GraviteeContext.getExecutionContext(), application, Map.of("org_id", "Injected Name"));
 
         // the claim value never reaches the standard client_name field
         wireMockServer.verify(
-            0,
-            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.client_name", equalTo("Injected Name")))
-        );
+                0,
+                postRequestedFor(urlEqualTo("/registrationEp"))
+                        .withRequestBody(matchingJsonPath("$.client_name", equalTo("Injected Name"))));
     }
 
     @Test
     public void should_inject_nothing_when_no_claim_mappings_configured() throws TechnicalException {
-        NewApplicationEntity application = setupApplicationAndProvider(new OAuthClientSettings(), "{ \"client_name\": \"gravitee\"}");
+        NewApplicationEntity application =
+                setupApplicationAndProvider(new OAuthClientSettings(), "{ \"client_name\": \"gravitee\"}");
         // provider has no claimMappings; even with user claims present, nothing is injected
-        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, Map.of("org_id", "org_acme_12345"));
+        clientRegistrationService.register(
+                GraviteeContext.getExecutionContext(), application, Map.of("org_id", "org_acme_12345"));
 
         // no mappings → nothing injected: no request carried a metadata field
-        wireMockServer.verify(0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata")));
+        wireMockServer.verify(
+                0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata")));
     }
 
     @Test
@@ -224,43 +211,33 @@ public class ClientRegistrationService_RegisterTest {
         oAuthClientSettings.setAdditionalClientMetadata(Map.of("software_id", "APP_TEMPLATE"));
 
         NewApplicationEntity application = setupApplicationAndProvider(
-            oAuthClientSettings,
-            "{ \"client_name\": \"gravitee\"}",
-            "PROVIDER_TEMPLATE"
-        );
+                oAuthClientSettings, "{ \"client_name\": \"gravitee\"}", "PROVIDER_TEMPLATE");
 
         clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, null);
 
-        wireMockServer.verify(
-            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE")))
-        );
+        wireMockServer.verify(postRequestedFor(urlEqualTo("/registrationEp"))
+                .withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE"))));
     }
 
     @Test
     public void should_fall_back_on_the_provider_software_id_when_the_application_has_none() throws TechnicalException {
         NewApplicationEntity application = setupApplicationAndProvider(
-            new OAuthClientSettings(),
-            "{ \"client_name\": \"gravitee\"}",
-            "PROVIDER_TEMPLATE"
-        );
+                new OAuthClientSettings(), "{ \"client_name\": \"gravitee\"}", "PROVIDER_TEMPLATE");
 
         clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, null);
 
-        wireMockServer.verify(
-            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.software_id", equalTo("PROVIDER_TEMPLATE")))
-        );
+        wireMockServer.verify(postRequestedFor(urlEqualTo("/registrationEp"))
+                .withRequestBody(matchingJsonPath("$.software_id", equalTo("PROVIDER_TEMPLATE"))));
     }
 
-    private NewApplicationEntity setupApplicationAndProvider(OAuthClientSettings oAuthClientSettings, String registrationEndpointResponse)
-        throws TechnicalException {
+    private NewApplicationEntity setupApplicationAndProvider(
+            OAuthClientSettings oAuthClientSettings, String registrationEndpointResponse) throws TechnicalException {
         return setupApplicationAndProvider(oAuthClientSettings, registrationEndpointResponse, null);
     }
 
     private NewApplicationEntity setupApplicationAndProvider(
-        OAuthClientSettings oAuthClientSettings,
-        String registrationEndpointResponse,
-        String providerSoftwareId
-    ) throws TechnicalException {
+            OAuthClientSettings oAuthClientSettings, String registrationEndpointResponse, String providerSoftwareId)
+            throws TechnicalException {
         NewApplicationEntity application = new NewApplicationEntity();
 
         ApplicationSettings applicationSettings = new ApplicationSettings();
@@ -273,25 +250,20 @@ public class ClientRegistrationService_RegisterTest {
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
         provider.setSoftwareId(providerSoftwareId);
 
-        when(
-            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
-        ).thenReturn(newSet(provider));
+        when(mockClientRegistrationProviderRepository.findAllByEnvironment(
+                        eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+                .thenReturn(newSet(provider));
 
+        wireMockServer.stubFor(get(urlEqualTo("/am"))
+                .willReturn(aResponse()
+                        .withBody("{\"token_endpoint\": \"http://localhost:" + wireMockServer.port()
+                                + "/tokenEp\",\"registration_endpoint\": \"http://localhost:"
+                                + wireMockServer.port()
+                                + "/registrationEp\"}")));
+        wireMockServer.stubFor(post(urlEqualTo("/tokenEp"))
+                .willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}")));
         wireMockServer.stubFor(
-            get(urlEqualTo("/am")).willReturn(
-                aResponse().withBody(
-                    "{\"token_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
-                        wireMockServer.port() +
-                        "/registrationEp\"}"
-                )
-            )
-        );
-        wireMockServer.stubFor(
-            post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
-        );
-        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody(registrationEndpointResponse)));
+                post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody(registrationEndpointResponse)));
         return application;
     }
 }

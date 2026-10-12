@@ -32,7 +32,7 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class})
 public interface ScoringReportMapper {
     Logger log = NodeLoggerFactory.getLogger(ScoringReportMapper.class);
     ScoringReportMapper INSTANCE = Mappers.getMapper(ScoringReportMapper.class);

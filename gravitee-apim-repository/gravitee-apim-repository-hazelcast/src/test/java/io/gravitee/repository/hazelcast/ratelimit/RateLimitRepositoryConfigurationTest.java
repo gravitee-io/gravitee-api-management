@@ -59,26 +59,27 @@ class RateLimitRepositoryConfigurationTest {
 
         try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext()) {
             String instanceName = "test-config-" + System.nanoTime();
-            ctx
-                .getEnvironment()
-                .getPropertySources()
-                .addFirst(
-                    new MapPropertySource(
-                        "test",
-                        Map.of("ratelimit.hazelcast.config-path", xml.toString(), "ratelimit.hazelcast.instance-name", instanceName)
-                    )
-                );
+            ctx.getEnvironment()
+                    .getPropertySources()
+                    .addFirst(new MapPropertySource(
+                            "test",
+                            Map.of(
+                                    "ratelimit.hazelcast.config-path",
+                                    xml.toString(),
+                                    "ratelimit.hazelcast.instance-name",
+                                    instanceName)));
             ctx.register(RateLimitRepositoryConfiguration.class);
             ctx.refresh();
 
             HazelcastInstance hz = ctx.getBean(HazelcastInstance.class);
             assertThat(hz.getName()).isEqualTo(instanceName);
-            assertThat(hz.getMap(RateLimitRepositoryConfiguration.RATE_LIMIT_MAP).getName()).isEqualTo(
-                RateLimitRepositoryConfiguration.RATE_LIMIT_MAP
-            );
+            assertThat(hz.getMap(RateLimitRepositoryConfiguration.RATE_LIMIT_MAP)
+                            .getName())
+                    .isEqualTo(RateLimitRepositoryConfiguration.RATE_LIMIT_MAP);
 
             @SuppressWarnings("unchecked")
-            RateLimitRepository<RateLimit> repo = (RateLimitRepository<RateLimit>) ctx.getBean(RateLimitRepository.class);
+            RateLimitRepository<RateLimit> repo =
+                    (RateLimitRepository<RateLimit>) ctx.getBean(RateLimitRepository.class);
             assertThat(repo).isInstanceOf(HazelcastRateLimitRepository.class);
         }
     }

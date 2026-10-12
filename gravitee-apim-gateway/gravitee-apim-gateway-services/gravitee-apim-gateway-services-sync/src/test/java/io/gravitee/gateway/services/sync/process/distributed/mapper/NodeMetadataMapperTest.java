@@ -20,9 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.gateway.dictionary.model.Dictionary;
-import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -50,32 +47,31 @@ class NodeMetadataMapperTest {
     public void beforeEach() throws JsonProcessingException {
         cut = new NodeMetadataMapper(objectMapper);
 
-        NodeMetadataMapper.DistributedNodeMetadataDeployable metadataDeployable = new NodeMetadataMapper.DistributedNodeMetadataDeployable(
-            ORGANIZATION_IDS,
-            INSTALLATION_ID
-        );
+        NodeMetadataMapper.DistributedNodeMetadataDeployable metadataDeployable =
+                new NodeMetadataMapper.DistributedNodeMetadataDeployable(ORGANIZATION_IDS, INSTALLATION_ID);
 
         distributedEvent = DistributedEvent.builder()
-            .id(UUID.randomUUID().toString())
-            .payload(objectMapper.writeValueAsString(metadataDeployable))
-            .updatedAt(new Date())
-            .type(DistributedEventType.NODE_METADATA)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id(UUID.randomUUID().toString())
+                .payload(objectMapper.writeValueAsString(metadataDeployable))
+                .updatedAt(new Date())
+                .type(DistributedEventType.NODE_METADATA)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
-        nodeMetadataDeployable = NodeMetadataDeployable.builder().organizationIds(ORGANIZATION_IDS).installationId(INSTALLATION_ID).build();
+        nodeMetadataDeployable = NodeMetadataDeployable.builder()
+                .organizationIds(ORGANIZATION_IDS)
+                .installationId(INSTALLATION_ID)
+                .build();
     }
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(nodeMetadataDeployable -> {
-                assertThat(nodeMetadataDeployable.organizationIds()).isEqualTo(this.nodeMetadataDeployable.organizationIds());
-                assertThat(nodeMetadataDeployable.installationId()).isEqualTo(this.nodeMetadataDeployable.installationId());
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(nodeMetadataDeployable -> {
+            assertThat(nodeMetadataDeployable.organizationIds())
+                    .isEqualTo(this.nodeMetadataDeployable.organizationIds());
+            assertThat(nodeMetadataDeployable.installationId()).isEqualTo(this.nodeMetadataDeployable.installationId());
+            return true;
+        });
     }
 
     @Test
@@ -85,14 +81,11 @@ class NodeMetadataMapperTest {
 
     @Test
     void should_map_node_metadata_deployable() {
-        cut
-            .to(nodeMetadataDeployable)
-            .test()
-            .assertValue(distributedEvent -> {
-                assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
-                assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
-                return true;
-            });
+        cut.to(nodeMetadataDeployable).test().assertValue(distributedEvent -> {
+            assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
+            assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
+            return true;
+        });
     }
 }

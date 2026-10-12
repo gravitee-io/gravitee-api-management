@@ -48,7 +48,10 @@ public class CustomUserFieldException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder().put("key", key).put("action", action).build();
+        return Maps.<String, String>builder()
+                .put("key", key)
+                .put("action", action)
+                .build();
     }
 
     @Override

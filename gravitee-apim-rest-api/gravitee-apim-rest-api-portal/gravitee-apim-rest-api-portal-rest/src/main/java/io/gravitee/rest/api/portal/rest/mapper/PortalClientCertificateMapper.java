@@ -34,6 +34,7 @@ import org.mapstruct.factory.Mappers;
 @Mapper(uses = DateMapper.class)
 public interface PortalClientCertificateMapper {
     PortalClientCertificateMapper INSTANCE = Mappers.getMapper(PortalClientCertificateMapper.class);
+
     PortalClientCertificate toDto(ClientCertificate domain);
 
     List<PortalClientCertificate> toDto(List<ClientCertificate> domain);

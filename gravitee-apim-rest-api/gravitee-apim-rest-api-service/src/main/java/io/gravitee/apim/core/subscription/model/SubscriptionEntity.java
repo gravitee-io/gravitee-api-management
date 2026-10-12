@@ -66,12 +66,14 @@ public class SubscriptionEntity {
     private String processedBy;
     /** The username of the user who has subscribed to the plan. */
     private String subscribedBy;
+
     private ZonedDateTime startingAt;
     private ZonedDateTime endingAt;
     /** Subscription creation date */
     private ZonedDateTime createdAt;
     /** Subscription last update date */
     private ZonedDateTime updatedAt;
+
     private ZonedDateTime closedAt;
     private ZonedDateTime pausedAt;
     private ZonedDateTime consumerPausedAt;
@@ -81,6 +83,7 @@ public class SubscriptionEntity {
     private Boolean generalConditionsAccepted;
     /** Number of days before the expiration of this subscription when the last pre-expiration notification was sent */
     private Integer daysToExpirationOnLastNotification;
+
     private SubscriptionConfiguration configuration;
     private Map<String, String> metadata;
 
@@ -119,7 +122,11 @@ public class SubscriptionEntity {
         return switch (this.status) {
             case ACCEPTED, PAUSED -> {
                 final ZonedDateTime now = ZonedDateTime.now();
-                yield this.toBuilder().updatedAt(now).closedAt(now).status(Status.CLOSED).build();
+                yield this.toBuilder()
+                        .updatedAt(now)
+                        .closedAt(now)
+                        .status(Status.CLOSED)
+                        .build();
             }
             case REJECTED, CLOSED -> this;
             case PENDING -> throw new IllegalStateException("Pending subscription is not closable");
@@ -130,41 +137,41 @@ public class SubscriptionEntity {
         if (Status.PENDING.equals(this.status)) {
             final ZonedDateTime now = TimeProvider.now();
             return this.toBuilder()
-                .processedBy(userId)
-                .processedAt(now)
-                .updatedAt(now)
-                .closedAt(now)
-                .status(Status.REJECTED)
-                .reasonMessage(reason)
-                .build();
+                    .processedBy(userId)
+                    .processedAt(now)
+                    .updatedAt(now)
+                    .closedAt(now)
+                    .status(Status.REJECTED)
+                    .reasonMessage(reason)
+                    .build();
         }
         throw new IllegalStateException("Cannot reject subscription");
     }
 
-    public SubscriptionEntity acceptBy(String userId, ZonedDateTime startingAt, ZonedDateTime endingAt, String reasonMessage) {
+    public SubscriptionEntity acceptBy(
+            String userId, ZonedDateTime startingAt, ZonedDateTime endingAt, String reasonMessage) {
         return acceptBy(userId, startingAt, endingAt, reasonMessage, null);
     }
 
     public SubscriptionEntity acceptBy(
-        String userId,
-        ZonedDateTime startingAt,
-        ZonedDateTime endingAt,
-        String reasonMessage,
-        Map<String, String> metadata
-    ) {
+            String userId,
+            ZonedDateTime startingAt,
+            ZonedDateTime endingAt,
+            String reasonMessage,
+            Map<String, String> metadata) {
         return switch (this.status) {
             case PENDING -> {
                 final ZonedDateTime now = TimeProvider.now();
                 yield this.toBuilder()
-                    .processedBy(userId)
-                    .updatedAt(now)
-                    .startingAt(startingAt != null ? startingAt : now)
-                    .endingAt(endingAt)
-                    .processedAt(now)
-                    .status(Status.ACCEPTED)
-                    .reasonMessage(reasonMessage)
-                    .metadata(metadata != null ? metadata : this.metadata)
-                    .build();
+                        .processedBy(userId)
+                        .updatedAt(now)
+                        .startingAt(startingAt != null ? startingAt : now)
+                        .endingAt(endingAt)
+                        .processedAt(now)
+                        .status(Status.ACCEPTED)
+                        .reasonMessage(reasonMessage)
+                        .metadata(metadata != null ? metadata : this.metadata)
+                        .build();
             }
             case ACCEPTED -> this;
             default -> throw new IllegalStateException("Cannot accept subscription");

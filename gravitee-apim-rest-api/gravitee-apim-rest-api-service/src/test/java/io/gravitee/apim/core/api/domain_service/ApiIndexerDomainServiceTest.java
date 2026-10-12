@@ -50,12 +50,8 @@ class ApiIndexerDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String API_ID = "api-id";
     private static final String USER_ID = "user-id";
-    private static final PrimaryOwnerEntity PRIMARY_OWNER = new PrimaryOwnerEntity(
-        USER_ID,
-        "jane.doe@gravitee.io",
-        "Jane Doe",
-        PrimaryOwnerEntity.Type.USER
-    );
+    private static final PrimaryOwnerEntity PRIMARY_OWNER =
+            new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER);
 
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
@@ -67,18 +63,16 @@ class ApiIndexerDomainServiceTest {
     @BeforeEach
     void setUp() {
         service = new ApiIndexerDomainService(
-            new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
-            new ApiPrimaryOwnerDomainService(
-                null,
-                new GroupQueryServiceInMemory(),
-                null,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
-            apiCategoryQueryService,
-            null
-        );
+                new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
+                new ApiPrimaryOwnerDomainService(
+                        null,
+                        new GroupQueryServiceInMemory(),
+                        null,
+                        membershipQueryService,
+                        roleQueryService,
+                        userCrudService),
+                apiCategoryQueryService,
+                null);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
     }
@@ -96,81 +90,89 @@ class ApiIndexerDomainServiceTest {
 
         @Test
         void should_build_indexable_api_with_decoded_metadata() {
-            Api apiToIndex = givenApi(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build());
+            Api apiToIndex =
+                    givenApi(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build());
             givenApiMetadata(
-                MetadataFixtures.anApiMetadata(API_ID, "api-name", "${api.name}", "my-value", "api-name", Metadata.MetadataFormat.STRING),
-                MetadataFixtures.anApiMetadata(
-                    API_ID,
-                    "support",
-                    "${(api.primaryOwner.email)!''}",
-                    "my-value",
-                    "email-support",
-                    Metadata.MetadataFormat.MAIL
-                )
-            );
+                    MetadataFixtures.anApiMetadata(
+                            API_ID, "api-name", "${api.name}", "my-value", "api-name", Metadata.MetadataFormat.STRING),
+                    MetadataFixtures.anApiMetadata(
+                            API_ID,
+                            "support",
+                            "${(api.primaryOwner.email)!''}",
+                            "my-value",
+                            "email-support",
+                            Metadata.MetadataFormat.MAIL));
 
             var result = service.toIndexableApi(apiToIndex, PRIMARY_OWNER);
 
             assertThat(result)
-                .extracting(IndexableApi::getDecodedMetadata)
-                .isEqualTo(Map.ofEntries(Map.entry("api-name", apiToIndex.getName()), Map.entry("support", PRIMARY_OWNER.email())));
+                    .extracting(IndexableApi::getDecodedMetadata)
+                    .isEqualTo(Map.ofEntries(
+                            Map.entry("api-name", apiToIndex.getName()), Map.entry("support", PRIMARY_OWNER.email())));
         }
 
         @Test
         void should_build_indexable_api_with_categories() {
-            Api apiToIndex = givenApi(
-                ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).categories(Set.of("category1", "category2")).build()
-            );
+            Api apiToIndex = givenApi(ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(API_ID)
+                    .categories(Set.of("category1", "category2"))
+                    .build());
             givenApiCategories(
-                Category.builder().id("category1").key("category-key-1").build(),
-                Category.builder().id("category2").key("category-key-2").build()
-            );
+                    Category.builder().id("category1").key("category-key-1").build(),
+                    Category.builder().id("category2").key("category-key-2").build());
 
             var result = service.toIndexableApi(apiToIndex, PRIMARY_OWNER);
 
-            assertThat(result).extracting(IndexableApi::getCategoryKeys).isEqualTo(Set.of("category-key-1", "category-key-2"));
+            assertThat(result)
+                    .extracting(IndexableApi::getCategoryKeys)
+                    .isEqualTo(Set.of("category-key-1", "category-key-2"));
         }
 
         @Test
         void should_fetch_primary_owner_if_not_defined() {
-            Api apiToIndex = givenApi(
-                ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).categories(Set.of("category1", "category2")).build()
-            );
-            givenExistingUsers(
-                BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build()
-            );
-            givenExistingMembership(MembershipFixtures.anApiPrimaryOwnerUserMembership(API_ID, USER_ID, ORGANIZATION_ID));
+            Api apiToIndex = givenApi(ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(API_ID)
+                    .categories(Set.of("category1", "category2"))
+                    .build());
+            givenExistingUsers(BaseUserEntity.builder()
+                    .id(USER_ID)
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .email("jane.doe@gravitee.io")
+                    .build());
+            givenExistingMembership(
+                    MembershipFixtures.anApiPrimaryOwnerUserMembership(API_ID, USER_ID, ORGANIZATION_ID));
 
-            var result = service.toIndexableApi(new Indexer.IndexationContext(ORGANIZATION_ID, ENVIRONMENT_ID), apiToIndex);
+            var result =
+                    service.toIndexableApi(new Indexer.IndexationContext(ORGANIZATION_ID, ENVIRONMENT_ID), apiToIndex);
 
             assertThat(result).extracting(IndexableApi::getPrimaryOwner).isEqualTo(PRIMARY_OWNER);
         }
 
         @Test
         void should_build_indexable_api_without_primary_owner_when_fetching_fails() {
-            Api apiToIndex = givenApi(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build());
+            Api apiToIndex =
+                    givenApi(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build());
             givenApiMetadata(
-                MetadataFixtures.anApiMetadata(API_ID, "api-name", "${api.name}", "my-value", "api-name", Metadata.MetadataFormat.STRING),
-                MetadataFixtures.anApiMetadata(
-                    API_ID,
-                    "support",
-                    "${(api.primaryOwner.email)!''}",
-                    "my-value",
-                    "email-support",
-                    Metadata.MetadataFormat.MAIL
-                )
-            );
+                    MetadataFixtures.anApiMetadata(
+                            API_ID, "api-name", "${api.name}", "my-value", "api-name", Metadata.MetadataFormat.STRING),
+                    MetadataFixtures.anApiMetadata(
+                            API_ID,
+                            "support",
+                            "${(api.primaryOwner.email)!''}",
+                            "my-value",
+                            "email-support",
+                            Metadata.MetadataFormat.MAIL));
 
-            var result = service.toIndexableApi(new Indexer.IndexationContext(ORGANIZATION_ID, ENVIRONMENT_ID), apiToIndex);
+            var result =
+                    service.toIndexableApi(new Indexer.IndexationContext(ORGANIZATION_ID, ENVIRONMENT_ID), apiToIndex);
 
-            assertThat(result).isEqualTo(
-                new IndexableApi(
-                    apiToIndex,
-                    null,
-                    Map.ofEntries(Map.entry("api-name", apiToIndex.getName()), Map.entry("support", "")),
-                    Set.of()
-                )
-            );
+            assertThat(result)
+                    .isEqualTo(new IndexableApi(
+                            apiToIndex,
+                            null,
+                            Map.ofEntries(Map.entry("api-name", apiToIndex.getName()), Map.entry("support", "")),
+                            Set.of()));
         }
     }
 

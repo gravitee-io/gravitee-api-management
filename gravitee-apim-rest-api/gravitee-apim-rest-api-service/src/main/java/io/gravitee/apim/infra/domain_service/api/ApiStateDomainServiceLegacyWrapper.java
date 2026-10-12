@@ -49,7 +49,8 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
 
         return switch (api.getDefinitionVersion()) {
             case V4 -> {
-                var genericApiEntity = apiSearchService.findGenericById(executionContext, api.getId(), true, false, false);
+                var genericApiEntity =
+                        apiSearchService.findGenericById(executionContext, api.getId(), true, false, false);
                 yield apiStateService.isSynchronized(executionContext, genericApiEntity);
             }
             case V2 -> apiService.isSynchronized(executionContext, api.getId());
@@ -63,11 +64,10 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         var deployed = apiStateService.deploy(
-            executionContext,
-            apiAdapter.toRepository(api),
-            auditInfo.actor().userId(),
-            new ApiDeploymentEntity(deploymentLabel)
-        );
+                executionContext,
+                apiAdapter.toRepository(api),
+                auditInfo.actor().userId(),
+                new ApiDeploymentEntity(deploymentLabel));
         return apiAdapter.fromApiEntity(deployed);
     }
 
@@ -76,11 +76,10 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         var deployed = apiStateService.redeployWithSyncedDynamicProperties(
-            executionContext,
-            apiAdapter.toRepository(api),
-            auditInfo.actor().userId(),
-            new ApiDeploymentEntity(deploymentLabel)
-        );
+                executionContext,
+                apiAdapter.toRepository(api),
+                auditInfo.actor().userId(),
+                new ApiDeploymentEntity(deploymentLabel));
         return apiAdapter.fromApiEntity(deployed);
     }
 

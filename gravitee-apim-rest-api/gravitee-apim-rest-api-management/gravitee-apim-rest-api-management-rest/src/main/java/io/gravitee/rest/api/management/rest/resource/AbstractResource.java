@@ -96,7 +96,8 @@ public abstract class AbstractResource {
     protected LicenseManager licenseManager;
 
     protected UserDetails getAuthenticatedUserDetails() {
-        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return (UserDetails)
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     protected String getAuthenticatedUser() {
@@ -120,11 +121,10 @@ public abstract class AbstractResource {
     }
 
     protected boolean hasPermission(
-        ExecutionContext executionContext,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    ) {
+            ExecutionContext executionContext,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls) {
         return isAuthenticated() && permissionService.hasPermission(executionContext, permission, referenceId, acls);
     }
 
@@ -139,14 +139,16 @@ public abstract class AbstractResource {
      * @return The list of API Membership for the authenticated user (direct membership or through groups)
      */
     private Stream<MembershipEntity> retrieveApiMembership() {
-        Stream<MembershipEntity> streamUserMembership = membershipService
-            .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API)
-            .stream();
+        Stream<MembershipEntity> streamUserMembership =
+                membershipService.getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API).stream();
 
-        Stream<MembershipEntity> streamGroupMembership = membershipService
-            .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP)
-            .stream()
-            .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API));
+        Stream<MembershipEntity> streamGroupMembership =
+                membershipService.getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP).stream()
+                        .filter(m -> m.getRoleId() != null
+                                && roleService
+                                        .findById(m.getRoleId())
+                                        .getScope()
+                                        .equals(RoleScope.API));
 
         return Stream.concat(streamUserMembership, streamGroupMembership);
     }
@@ -156,15 +158,13 @@ public abstract class AbstractResource {
     }
 
     private boolean isDirectMember(String apiId) {
-        return membershipService
-            .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API)
-            .stream()
-            .filter(membership -> membership.getReferenceId().equals(apiId))
-            .filter(membership -> membership.getRoleId() != null)
-            .anyMatch(membership -> {
-                RoleEntity role = roleService.findById(membership.getRoleId());
-                return apiAuthorizationService.canManageApi(role);
-            });
+        return membershipService.getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API).stream()
+                .filter(membership -> membership.getReferenceId().equals(apiId))
+                .filter(membership -> membership.getRoleId() != null)
+                .anyMatch(membership -> {
+                    RoleEntity role = roleService.findById(membership.getRoleId());
+                    return apiAuthorizationService.canManageApi(role);
+                });
     }
 
     private boolean isMemberThroughGroup(Set<String> apiGroups) {
@@ -172,16 +172,15 @@ public abstract class AbstractResource {
             return false;
         }
 
-        Set<String> groups = membershipService
-            .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP)
-            .stream()
-            .filter(membership -> membership.getRoleId() != null)
-            .filter(membership -> {
-                RoleEntity role = roleService.findById(membership.getRoleId());
-                return apiAuthorizationService.canManageApi(role);
-            })
-            .map(MembershipEntity::getReferenceId)
-            .collect(Collectors.toSet());
+        Set<String> groups =
+                membershipService.getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP).stream()
+                        .filter(membership -> membership.getRoleId() != null)
+                        .filter(membership -> {
+                            RoleEntity role = roleService.findById(membership.getRoleId());
+                            return apiAuthorizationService.canManageApi(role);
+                        })
+                        .map(MembershipEntity::getReferenceId)
+                        .collect(Collectors.toSet());
 
         groups.retainAll(apiGroups);
 
@@ -199,26 +198,26 @@ public abstract class AbstractResource {
             List<MembershipEntity> memberships = retrieveApiMembership().collect(Collectors.toList());
 
             // if the current user is member of the API, continue
-            Optional<MembershipEntity> directMembershipEntity = memberships
-                .stream()
-                .filter(m -> API.equals(m.getReferenceType()))
-                .findAny();
+            Optional<MembershipEntity> directMembershipEntity = memberships.stream()
+                    .filter(m -> API.equals(m.getReferenceType()))
+                    .findAny();
 
             if (directMembershipEntity.isPresent()) {
                 return;
             }
 
             // fetch group memberships
-            Set<String> groups = memberships
-                .stream()
-                .filter(m -> GROUP.equals(m.getReferenceType()))
-                .map(MembershipEntity::getReferenceId)
-                .collect(Collectors.toSet());
+            Set<String> groups = memberships.stream()
+                    .filter(m -> GROUP.equals(m.getReferenceType()))
+                    .map(MembershipEntity::getReferenceId)
+                    .collect(Collectors.toSet());
 
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(new ArrayList<>(groups));
             apiQuery.setIds(Collections.singletonList(apiId));
-            final Collection<String> ids = apiService.searchIds(executionContext, apiQuery, new PageableImpl(1, 1), null).getContent();
+            final Collection<String> ids = apiService
+                    .searchIds(executionContext, apiQuery, new PageableImpl(1, 1), null)
+                    .getContent();
             final boolean canReadAPI = ids != null && ids.contains(apiId);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();
@@ -253,8 +252,8 @@ public abstract class AbstractResource {
             EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
 
             return matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)
-                ? Response.status(Response.Status.PRECONDITION_FAILED)
-                : null;
+                    ? Response.status(Response.Status.PRECONDITION_FAILED)
+                    : null;
         } catch (java.text.ParseException e) {
             return null;
         }
@@ -264,10 +263,14 @@ public abstract class AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var user = getAuthenticatedUserDetails();
         return AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(user.getUsername())
+                        .userSource(user.getSource())
+                        .userSourceId(user.getSourceId())
+                        .build())
+                .build();
     }
 
     protected void assertLegacyApiSupported(ExecutionContext executionContext, String apiId) {
@@ -276,7 +279,8 @@ public abstract class AbstractResource {
 
     protected void assertLegacyApiSupported(GenericApiEntity api) {
         if (!usesLegacyApiDefinition(api.getDefinitionVersion())) {
-            throw new ManagementV1UnsupportedApiDefinitionVersionException(api.getDefinitionVersion().getLabel());
+            throw new ManagementV1UnsupportedApiDefinitionVersionException(
+                    api.getDefinitionVersion().getLabel());
         }
     }
 

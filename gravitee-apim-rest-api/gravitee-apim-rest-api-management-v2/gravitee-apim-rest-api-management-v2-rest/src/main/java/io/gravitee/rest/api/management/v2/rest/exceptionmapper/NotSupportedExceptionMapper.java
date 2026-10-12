@@ -26,6 +26,9 @@ public class NotSupportedExceptionMapper extends AbstractExceptionMapper<NotSupp
     @Override
     public Response toResponse(NotSupportedException e) {
         final Response.Status status = Response.Status.UNSUPPORTED_MEDIA_TYPE;
-        return Response.status(status).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, status.getStatusCode())).build();
+        return Response.status(status)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(e, status.getStatusCode()))
+                .build();
     }
 }

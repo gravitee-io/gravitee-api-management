@@ -42,7 +42,8 @@ class HttpClientOptionsMapperTest {
         assertThat(result.isKeepAlive()).isEqualTo(VertxHttpClientOptions.DEFAULT_KEEP_ALIVE);
         assertThat(result.getReadTimeout()).isEqualTo(VertxHttpClientOptions.DEFAULT_READ_TIMEOUT);
         assertThat(result.isPipelining()).isEqualTo(VertxHttpClientOptions.DEFAULT_PIPELINING);
-        assertThat(result.getMaxConcurrentConnections()).isEqualTo(VertxHttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
+        assertThat(result.getMaxConcurrentConnections())
+                .isEqualTo(VertxHttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
         assertThat(result.isUseCompression()).isEqualTo(VertxHttpClientOptions.DEFAULT_USE_COMPRESSION);
         assertThat(result.isClearTextUpgrade()).isEqualTo(VertxHttpClientOptions.DEFAULT_CLEAR_TEXT_UPGRADE);
         assertThat(result.getVersion()).isEqualTo(VertxHttpClientOptions.DEFAULT_PROTOCOL_VERSION);
@@ -51,16 +52,16 @@ class HttpClientOptionsMapperTest {
     @Test
     void should_build_http_client_options_with_defined_values() {
         final HttpClientOptions httpClientOptions = HttpClientOptions.builder()
-            .connectTimeout(1000)
-            .idleTimeout(2000)
-            .keepAlive(false)
-            .readTimeout(500)
-            .pipelining(false)
-            .maxConcurrentConnections(1)
-            .useCompression(false)
-            .clearTextUpgrade(false)
-            .version(ProtocolVersion.HTTP_2)
-            .build();
+                .connectTimeout(1000)
+                .idleTimeout(2000)
+                .keepAlive(false)
+                .readTimeout(500)
+                .pipelining(false)
+                .maxConcurrentConnections(1)
+                .useCompression(false)
+                .clearTextUpgrade(false)
+                .version(ProtocolVersion.HTTP_2)
+                .build();
 
         final VertxHttpClientOptions result = HttpClientOptionsMapper.INSTANCE.map(httpClientOptions);
         assertThat(result.getConnectTimeout()).isEqualTo(1000);

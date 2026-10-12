@@ -32,7 +32,8 @@ public enum ApiProductHook implements Hook {
     SUBSCRIPTION_PAUSED("Subscription Paused", "Triggered when a Subscription is paused.", "SUBSCRIPTION"),
     SUBSCRIPTION_RESUMED("Subscription Resumed", "Triggered when a Subscription is resumed.", "SUBSCRIPTION"),
     SUBSCRIPTION_REJECTED("Subscription Rejected", "Triggered when a Subscription is rejected.", "SUBSCRIPTION"),
-    SUBSCRIPTION_TRANSFERRED("Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
+    SUBSCRIPTION_TRANSFERRED(
+            "Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
     SUBSCRIPTION_FAILED("Subscription Failed", "Triggered when a Subscription fails.", "SUBSCRIPTION"),
     API_PRODUCT_DEPLOYED("API Product Deployed", "Triggered when an API Product is deployed.", "LIFECYCLE"),
     API_PRODUCT_UPDATED("API Product Updated", "Triggered when an API Product is updated.", "LIFECYCLE");

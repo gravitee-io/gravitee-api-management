@@ -25,19 +25,16 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.model.GroupEventRule;
-import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -65,11 +62,10 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
         try {
             log.debug("findByIds {}", ids);
             Set<io.gravitee.repository.management.model.Group> groups = groupRepository.findByIds(ids);
-            return groups
-                .stream()
-                .map(GroupAdapter.INSTANCE::toModel)
-                .sorted(Comparator.comparing(Group::getName))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+            return groups.stream()
+                    .map(GroupAdapter.INSTANCE::toModel)
+                    .sorted(Comparator.comparing(Group::getName))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find groups", ex);
         }
@@ -79,21 +75,16 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
     public Set<Group> findByEvent(String environmentId, Group.GroupEvent event) {
         try {
             log.debug("findByEvent {}", event);
-            Set<io.gravitee.repository.management.model.Group> groups = groupRepository.findAllByEnvironment(environmentId);
-            return groups
-                .stream()
-                .filter(
-                    g ->
-                        g.getEventRules() != null &&
-                        g
-                            .getEventRules()
-                            .stream()
-                            .map(GroupEventRule::getEvent)
-                            .anyMatch(repoEvent -> repoEvent == GroupAdapter.INSTANCE.mapEvent(event))
-                )
-                .map(GroupAdapter.INSTANCE::toModel)
-                .sorted(Comparator.comparing(Group::getName))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+            Set<io.gravitee.repository.management.model.Group> groups =
+                    groupRepository.findAllByEnvironment(environmentId);
+            return groups.stream()
+                    .filter(g -> g.getEventRules() != null
+                            && g.getEventRules().stream()
+                                    .map(GroupEventRule::getEvent)
+                                    .anyMatch(repoEvent -> repoEvent == GroupAdapter.INSTANCE.mapEvent(event)))
+                    .map(GroupAdapter.INSTANCE::toModel)
+                    .sorted(Comparator.comparing(Group::getName))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find groups by event", ex);
         }
@@ -106,13 +97,11 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
             if (CollectionUtils.isEmpty(names)) {
                 return List.of();
             }
-            return groupRepository
-                .findAllByEnvironment(environmentId)
-                .stream()
-                .filter(group -> names.contains(group.getName()))
-                .map(GroupAdapter.INSTANCE::toModel)
-                .sorted(Comparator.comparing(Group::getName))
-                .toList();
+            return groupRepository.findAllByEnvironment(environmentId).stream()
+                    .filter(group -> names.contains(group.getName()))
+                    .map(GroupAdapter.INSTANCE::toModel)
+                    .sorted(Comparator.comparing(Group::getName))
+                    .toList();
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find groups by names", ex);
         }
@@ -125,12 +114,10 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
             if (CollectionUtils.isEmpty(hrids)) {
                 return List.of();
             }
-            return groupRepository
-                .findByHridsAndEnvironmentId(hrids, environmentId)
-                .stream()
-                .map(GroupAdapter.INSTANCE::toModel)
-                .sorted(Comparator.comparing(Group::getName))
-                .toList();
+            return groupRepository.findByHridsAndEnvironmentId(hrids, environmentId).stream()
+                    .map(GroupAdapter.INSTANCE::toModel)
+                    .sorted(Comparator.comparing(Group::getName))
+                    .toList();
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find groups by hrids", ex);
         }
@@ -139,14 +126,19 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
     @Override
     public Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable) {
         return groupRepository
-            .search(GroupCriteria.builder().idIn(groupIds).build(), convert(pageable))
-            .map(GroupAdapter.INSTANCE::toModel);
+                .search(GroupCriteria.builder().idIn(groupIds).build(), convert(pageable))
+                .map(GroupAdapter.INSTANCE::toModel);
     }
 
     @Override
     public Page<Group> searchByIds(Set<String> groupIds, String environmentId, Pageable pageable) {
         return groupRepository
-            .search(GroupCriteria.builder().idIn(groupIds).environmentId(environmentId).build(), convert(pageable))
-            .map(GroupAdapter.INSTANCE::toModel);
+                .search(
+                        GroupCriteria.builder()
+                                .idIn(groupIds)
+                                .environmentId(environmentId)
+                                .build(),
+                        convert(pageable))
+                .map(GroupAdapter.INSTANCE::toModel);
     }
 }

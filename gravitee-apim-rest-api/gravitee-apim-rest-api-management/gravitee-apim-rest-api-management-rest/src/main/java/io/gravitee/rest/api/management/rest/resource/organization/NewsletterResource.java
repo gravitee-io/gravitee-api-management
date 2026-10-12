@@ -59,10 +59,9 @@ public class NewsletterResource extends AbstractResource {
     @Path("/_subscribe")
     @Operation(summary = "Subscribe to the newsletter the authenticated user")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated user",
-        content = @Content(schema = @Schema(implementation = UserEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated user",
+            content = @Content(schema = @Schema(implementation = UserEntity.class)))
     @ApiResponse(responseCode = "400", description = "Invalid user profile")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -70,17 +69,20 @@ public class NewsletterResource extends AbstractResource {
         UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
         UpdateUserEntity user = new UpdateUserEntity(userEntity);
         user.setNewsletter(true);
-        return ok(userService.update(GraviteeContext.getExecutionContext(), userEntity.getId(), user, email)).build();
+        return ok(userService.update(GraviteeContext.getExecutionContext(), userEntity.getId(), user, email))
+                .build();
     }
 
     @GET
     @Path("/taglines")
     @Operation(summary = "Get taglines to display in the newsletter")
     @ApiResponse(
-        responseCode = "200",
-        description = "Retrieved taglines",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, array = @ArraySchema(schema = @Schema(type = "string")))
-    )
+            responseCode = "200",
+            description = "Retrieved taglines",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(type = "string"))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getTaglines() {
         return ok(newsletterService.getTaglines()).build();

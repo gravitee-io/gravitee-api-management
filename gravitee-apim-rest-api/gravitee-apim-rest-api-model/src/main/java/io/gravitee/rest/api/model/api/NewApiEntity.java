@@ -44,9 +44,8 @@ public class NewApiEntity {
 
     @NotNull
     @Schema(
-        description = "API's description. A short description of your API.",
-        example = "I can use a hundred characters to describe this API."
-    )
+            description = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
 
     @NotNull
@@ -74,7 +73,10 @@ public class NewApiEntity {
     @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
-    @Schema(description = "API's visibility. Can be PUBLIC or PRIVATE.", example = "PUBLIC", allowableValues = { "PUBLIC", "PRIVATE" })
+    @Schema(
+            description = "API's visibility. Can be PUBLIC or PRIVATE.",
+            example = "PUBLIC",
+            allowableValues = {"PUBLIC", "PRIVATE"})
     private Visibility visibility;
 
     public String getName() {
@@ -167,33 +169,30 @@ public class NewApiEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewApiEntity{" +
-            "name='" +
-            name +
-            '\'' +
-            ", version='" +
-            version +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", contextPath='" +
-            contextPath +
-            '\'' +
-            ", endpoint='" +
-            endpoint +
-            '\'' +
-            ", groups='" +
-            groups +
-            '\'' +
-            ", flowMode='" +
-            flowMode +
-            '\'' +
-            ", visibility='" +
-            visibility +
-            '\'' +
-            '}'
-        );
+        return ("NewApiEntity{" + "name='"
+                + name
+                + '\''
+                + ", version='"
+                + version
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", contextPath='"
+                + contextPath
+                + '\''
+                + ", endpoint='"
+                + endpoint
+                + '\''
+                + ", groups='"
+                + groups
+                + '\''
+                + ", flowMode='"
+                + flowMode
+                + '\''
+                + ", visibility='"
+                + visibility
+                + '\''
+                + '}');
     }
 }

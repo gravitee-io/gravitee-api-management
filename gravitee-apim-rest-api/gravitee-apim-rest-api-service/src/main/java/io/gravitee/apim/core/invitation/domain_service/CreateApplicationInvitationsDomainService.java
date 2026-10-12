@@ -56,37 +56,30 @@ public class CreateApplicationInvitationsDomainService {
     private final MembershipDomainService membershipDomainService;
 
     public List<ApplicationInvitation> create(
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String applicationId,
-        @Nonnull Set<String> recipientEmails,
-        @Nonnull String roleName,
-        boolean notifyUsers,
-        URI confirmationPageUrl
-    ) {
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String applicationId,
+            @Nonnull Set<String> recipientEmails,
+            @Nonnull String roleName,
+            boolean notifyUsers,
+            URI confirmationPageUrl) {
         validateApplicationInvitationRoleDomainService.validate(organizationId, roleName);
         var emails = validateRecipients(recipientEmails);
 
         validateNoPendingInvitation(applicationId, emails);
         var resolvedRecipients = resolveRecipients(organizationId, emails);
         validateDirectMemberAdditionRole(roleName, resolvedRecipients);
-        addExistingUsersAsApplicationMembers(organizationId, environmentId, applicationId, roleName, resolvedRecipients);
+        addExistingUsersAsApplicationMembers(
+                organizationId, environmentId, applicationId, roleName, resolvedRecipients);
 
-        var createdInvitations = resolvedRecipients
-            .invitationRecipients()
-            .stream()
-            .map(email -> ApplicationInvitation.create(applicationId, email, roleName))
-            .map(invitationCrudService::create)
-            .toList();
+        var createdInvitations = resolvedRecipients.invitationRecipients().stream()
+                .map(email -> ApplicationInvitation.create(applicationId, email, roleName))
+                .map(invitationCrudService::create)
+                .toList();
 
         if (notifyUsers && !createdInvitations.isEmpty()) {
             applicationInvitationNotificationDomainService.dispatchAsync(
-                organizationId,
-                environmentId,
-                applicationId,
-                createdInvitations,
-                confirmationPageUrl
-            );
+                    organizationId, environmentId, applicationId, createdInvitations, confirmationPageUrl);
         }
 
         return createdInvitations;
@@ -116,10 +109,12 @@ public class CreateApplicationInvitationsDomainService {
         emails.forEach(email -> {
             var users = userCrudService.findBaseUsersByEmail(organizationId, email.toLowerCase(Locale.ROOT));
             if (users.size() > 1) {
-                throw new ConflictDomainException("Application invitation email [" + email + "] matches multiple users.", email);
+                throw new ConflictDomainException(
+                        "Application invitation email [" + email + "] matches multiple users.", email);
             }
             if (users.size() == 1) {
-                existingUserRecipients.add(new ExistingUserRecipient(users.getFirst().getId()));
+                existingUserRecipients.add(
+                        new ExistingUserRecipient(users.getFirst().getId()));
             } else {
                 invitationRecipients.add(email);
             }
@@ -129,48 +124,47 @@ public class CreateApplicationInvitationsDomainService {
     }
 
     private void validateDirectMemberAdditionRole(String roleName, ResolvedRecipients resolvedRecipients) {
-        if (!resolvedRecipients.existingUserRecipients().isEmpty() && PRIMARY_OWNER.name().equals(roleName)) {
+        if (!resolvedRecipients.existingUserRecipients().isEmpty()
+                && PRIMARY_OWNER.name().equals(roleName)) {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
     }
 
     private void addExistingUsersAsApplicationMembers(
-        String organizationId,
-        String environmentId,
-        String applicationId,
-        String roleName,
-        ResolvedRecipients resolvedRecipients
-    ) {
+            String organizationId,
+            String environmentId,
+            String applicationId,
+            String roleName,
+            ResolvedRecipients resolvedRecipients) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
-        filterAlreadyApplicationMembers(applicationId, resolvedRecipients.existingUserRecipients()).forEach(recipient ->
-            membershipDomainService.createNewMembership(
-                executionContext,
-                MembershipReferenceType.APPLICATION,
-                applicationId,
-                recipient.userId(),
-                null,
-                roleName
-            )
-        );
+        filterAlreadyApplicationMembers(applicationId, resolvedRecipients.existingUserRecipients())
+                .forEach(recipient -> membershipDomainService.createNewMembership(
+                        executionContext,
+                        MembershipReferenceType.APPLICATION,
+                        applicationId,
+                        recipient.userId(),
+                        null,
+                        roleName));
     }
 
-    private List<ExistingUserRecipient> filterAlreadyApplicationMembers(String applicationId, List<ExistingUserRecipient> recipients) {
+    private List<ExistingUserRecipient> filterAlreadyApplicationMembers(
+            String applicationId, List<ExistingUserRecipient> recipients) {
         if (recipients.isEmpty()) {
             return recipients;
         }
 
         var userIds = recipients.stream().map(ExistingUserRecipient::userId).collect(Collectors.toSet());
         var existingApplicationMemberIds = membershipQueryService
-            .findByMemberIdsAndMemberTypeAndReferenceType(userIds, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
-            .stream()
-            .filter(membership -> applicationId.equals(membership.getReferenceId()))
-            .map(Membership::getMemberId)
-            .collect(Collectors.toSet());
+                .findByMemberIdsAndMemberTypeAndReferenceType(
+                        userIds, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
+                .stream()
+                .filter(membership -> applicationId.equals(membership.getReferenceId()))
+                .map(Membership::getMemberId)
+                .collect(Collectors.toSet());
 
-        return recipients
-            .stream()
-            .filter(recipient -> !existingApplicationMemberIds.contains(recipient.userId()))
-            .toList();
+        return recipients.stream()
+                .filter(recipient -> !existingApplicationMemberIds.contains(recipient.userId()))
+                .toList();
     }
 
     private boolean isValidEmail(String email) {
@@ -184,18 +178,18 @@ public class CreateApplicationInvitationsDomainService {
     }
 
     private void validateNoPendingInvitation(String applicationId, Set<String> emails) {
-        invitationQueryService
-            .findByReference(InvitationReference.application(applicationId))
-            .stream()
-            .map(ApplicationInvitation::email)
-            .filter(emails::contains)
-            .findFirst()
-            .ifPresent(email -> {
-                throw new ConflictDomainException("A pending application invitation already exists for email [" + email + "].", email);
-            });
+        invitationQueryService.findByReference(InvitationReference.application(applicationId)).stream()
+                .map(ApplicationInvitation::email)
+                .filter(emails::contains)
+                .findFirst()
+                .ifPresent(email -> {
+                    throw new ConflictDomainException(
+                            "A pending application invitation already exists for email [" + email + "].", email);
+                });
     }
 
     private record ExistingUserRecipient(String userId) {}
 
-    private record ResolvedRecipients(List<ExistingUserRecipient> existingUserRecipients, List<String> invitationRecipients) {}
+    private record ResolvedRecipients(
+            List<ExistingUserRecipient> existingUserRecipients, List<String> invitationRecipients) {}
 }

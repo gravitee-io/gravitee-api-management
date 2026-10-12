@@ -28,54 +28,53 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQueryService, InMemoryAlternative<ConnectorPlugin> {
+public class EntrypointPluginQueryServiceInMemory
+        implements EntrypointPluginQueryService, InMemoryAlternative<ConnectorPlugin> {
 
     public static final String HTTP_PROXY_CONNECTOR_ID = "http-proxy";
     public static final String SSE_CONNECTOR_ID = "sse";
     public static final String MOCK_CONNECTOR_ID = "mock";
     private static final List<ConnectorPlugin> DEFAULT_LIST = List.of(
-        ConnectorPlugin.builder()
-            .id(HTTP_PROXY_CONNECTOR_ID)
-            .name("HTTP Proxy")
-            .version("1.0.0")
-            .supportedApiType(ApiType.PROXY)
-            .supportedListenerType(ListenerType.HTTP)
-            .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
-            .feature("apim-proxy")
-            .deployed(true)
-            .build(),
-        ConnectorPlugin.builder()
-            .id(SSE_CONNECTOR_ID)
-            .name("SSE Entrypoint")
-            .version("1.0.0")
-            .supportedApiType(ApiType.MESSAGE)
-            .supportedListenerType(ListenerType.HTTP)
-            .supportedModes(Set.of(ConnectorMode.SUBSCRIBE))
-            .supportedQos(Set.of(Qos.AUTO))
-            .feature("apim-en-connector-sse")
-            .deployed(true)
-            .build(),
-        ConnectorPlugin.builder()
-            .id(MOCK_CONNECTOR_ID)
-            .name("Mock Endpoint")
-            .version("1.0.0")
-            .supportedApiType(ApiType.MESSAGE)
-            .supportedListenerType(ListenerType.HTTP)
-            .supportedModes(Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE))
-            .supportedQos(Set.of(Qos.AUTO))
-            .feature("apim-en-connector-mock")
-            .deployed(false)
-            .build()
-    );
+            ConnectorPlugin.builder()
+                    .id(HTTP_PROXY_CONNECTOR_ID)
+                    .name("HTTP Proxy")
+                    .version("1.0.0")
+                    .supportedApiType(ApiType.PROXY)
+                    .supportedListenerType(ListenerType.HTTP)
+                    .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
+                    .feature("apim-proxy")
+                    .deployed(true)
+                    .build(),
+            ConnectorPlugin.builder()
+                    .id(SSE_CONNECTOR_ID)
+                    .name("SSE Entrypoint")
+                    .version("1.0.0")
+                    .supportedApiType(ApiType.MESSAGE)
+                    .supportedListenerType(ListenerType.HTTP)
+                    .supportedModes(Set.of(ConnectorMode.SUBSCRIBE))
+                    .supportedQos(Set.of(Qos.AUTO))
+                    .feature("apim-en-connector-sse")
+                    .deployed(true)
+                    .build(),
+            ConnectorPlugin.builder()
+                    .id(MOCK_CONNECTOR_ID)
+                    .name("Mock Endpoint")
+                    .version("1.0.0")
+                    .supportedApiType(ApiType.MESSAGE)
+                    .supportedListenerType(ListenerType.HTTP)
+                    .supportedModes(Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE))
+                    .supportedQos(Set.of(Qos.AUTO))
+                    .feature("apim-en-connector-mock")
+                    .deployed(false)
+                    .build());
 
     private List<ConnectorPlugin> storage = DEFAULT_LIST;
 
     @Override
     public Set<ConnectorPlugin> findBySupportedApi(ApiType apiType) {
-        return storage
-            .stream()
-            .filter(connectorPlugin -> connectorPlugin.getSupportedApiType().equals(apiType))
-            .collect(toSet());
+        return storage.stream()
+                .filter(connectorPlugin -> connectorPlugin.getSupportedApiType().equals(apiType))
+                .collect(toSet());
     }
 
     @Override

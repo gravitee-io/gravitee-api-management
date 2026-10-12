@@ -71,12 +71,11 @@ class DistributedReactableOrganizationSynchronizerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new DistributedOrganizationSynchronizer(
-            eventsFetcher,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            deployerFactory,
-            new OrganizationMapper(objectMapper)
-        );
+                eventsFetcher,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                deployerFactory,
+                new OrganizationMapper(objectMapper));
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createOrganizationDeployer()).thenReturn(organizationDeployer);
         lenient().when(organizationDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -90,7 +89,8 @@ class DistributedReactableOrganizationSynchronizerTest {
 
         @Test
         void should_not_synchronize_organizations_when_no_events() throws InterruptedException {
-            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.ORGANIZATION), any())).thenReturn(Flowable.empty());
+            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.ORGANIZATION), any()))
+                    .thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(organizationDeployer);
         }
@@ -99,24 +99,27 @@ class DistributedReactableOrganizationSynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                eq(-1L),
-                any(),
-                eq(DistributedEventType.ORGANIZATION),
-                eq(Set.of(DistributedSyncAction.DEPLOY))
-            );
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            eq(-1L),
+                            any(),
+                            eq(DistributedEventType.ORGANIZATION),
+                            eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                any(),
-                any(),
-                eq(DistributedEventType.ORGANIZATION),
-                eq(Set.of(DistributedSyncAction.DEPLOY))
-            );
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(DistributedEventType.ORGANIZATION),
+                            eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
     }
 
@@ -132,14 +135,15 @@ class DistributedReactableOrganizationSynchronizerTest {
         }
 
         @Test
-        void should_deploy_organization_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
+        void should_deploy_organization_when_fetching_deployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("organization")
-                .payload(objectMapper.writeValueAsString(organization))
-                .type(DistributedEventType.ORGANIZATION)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("organization")
+                    .payload(objectMapper.writeValueAsString(organization))
+                    .type(DistributedEventType.ORGANIZATION)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();

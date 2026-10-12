@@ -44,8 +44,14 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
             reporterService.report(context.request().metrics());
 
             if (context.request().metrics().getLog() != null) {
-                context.request().metrics().getLog().setApi(context.request().metrics().getApi());
-                context.request().metrics().getLog().setApiName(context.request().metrics().getApiName());
+                context.request()
+                        .metrics()
+                        .getLog()
+                        .setApi(context.request().metrics().getApi());
+                context.request()
+                        .metrics()
+                        .getLog()
+                        .setApiName(context.request().metrics().getApiName());
                 reporterService.report(context.request().metrics().getLog());
             }
         } catch (Exception ex) {
@@ -83,7 +89,8 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
             String errorMessage = metrics.getMessage();
 
             if (errorMessage != null && !errorMessage.isBlank()) {
-                metrics.setFailure(new Diagnostic(errorKey != null ? errorKey : "internal_error", errorMessage, null, null));
+                metrics.setFailure(
+                        new Diagnostic(errorKey != null ? errorKey : "internal_error", errorMessage, null, null));
             }
         }
     }

@@ -30,18 +30,29 @@ import java.util.Set;
  */
 public interface ThemeService {
     Set<GenericThemeEntity> findAllByType(final ExecutionContext executionContext, ThemeType type);
+
     GenericThemeEntity findById(final ExecutionContext executionContext, String themeId);
+
     void delete(final ExecutionContext executionContext, String themeId);
+
     GenericThemeEntity resetToDefaultTheme(final ExecutionContext executionContext, String themeId);
+
     PictureEntity getLogo(final ExecutionContext executionContext, String themeId);
+
     PictureEntity getOptionalLogo(final ExecutionContext executionContext, String themeId);
+
     PictureEntity getBackgroundImage(final ExecutionContext executionContext, String themeId);
+
     PictureEntity getFavicon(final ExecutionContext executionContext, String themeId);
 
     // PORTAL THEME
     ThemeEntity findOrCreateDefaultPortalTheme(ExecutionContext executionContext);
+
     ThemeEntity findEnabledPortalTheme(final ExecutionContext executionContext);
+
     void updateDefaultPortalTheme(final ExecutionContext executionContext);
+
     ThemeEntity createPortalTheme(final ExecutionContext executionContext, NewThemeEntity theme);
+
     ThemeEntity updatePortalTheme(final ExecutionContext executionContext, UpdateThemeEntity theme);
 }

@@ -58,13 +58,13 @@ public class FailoverInvoker extends EndpointInvoker {
     }
 
     @Override
-    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+    public void invoke(
+            ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         ((MutableExecutionContext) context).request(new FailoverRequest(context.request()));
 
         final String apiId = String.valueOf(context.getAttribute(ExecutionContext.ATTR_API));
         circuitBreaker
-            .execute(
-                new io.vertx.core.Handler<Promise<ProxyConnection>>() {
+                .execute(new io.vertx.core.Handler<Promise<ProxyConnection>>() {
                     @Override
                     public void handle(Promise<ProxyConnection> event) {
                         FailoverInvoker.super.invoke(context, stream, proxyConnection -> {
@@ -75,13 +75,13 @@ public class FailoverInvoker extends EndpointInvoker {
                                     final Future<ProxyConnection> future = event.future();
                                     if (future.failed()) {
                                         log.error(
-                                            String.format(
-                                                errorMessageFormat,
-                                                apiId,
-                                                future.cause() == null ? null : future.cause().getMessage()
-                                            ),
-                                            future.cause()
-                                        );
+                                                String.format(
+                                                        errorMessageFormat,
+                                                        apiId,
+                                                        future.cause() == null
+                                                                ? null
+                                                                : future.cause().getMessage()),
+                                                future.cause());
                                     } else {
                                         log.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
                                     }
@@ -95,53 +95,54 @@ public class FailoverInvoker extends EndpointInvoker {
                                     final Future<ProxyConnection> future = event.future();
                                     if (future.failed()) {
                                         log.error(
-                                            String.format(
-                                                errorMessageFormat,
-                                                apiId,
-                                                future.cause() == null ? null : future.cause().getMessage()
-                                            ),
-                                            future.cause()
-                                        );
+                                                String.format(
+                                                        errorMessageFormat,
+                                                        apiId,
+                                                        future.cause() == null
+                                                                ? null
+                                                                : future.cause().getMessage()),
+                                                future.cause());
                                     } else {
                                         log.error(
-                                            String.format(
-                                                errorMessageFormat,
-                                                apiId,
-                                                "Failover invocation has succeeded but result already completed"
-                                            ),
-                                            e
-                                        );
+                                                String.format(
+                                                        errorMessageFormat,
+                                                        apiId,
+                                                        "Failover invocation has succeeded but result already completed"),
+                                                e);
                                     }
                                     throw e; // rethrow the exception to let vertx handle this case
                                 }
                             });
                         });
                     }
-                }
-            )
-            .onComplete(event -> {
-                if (event.failed()) {
-                    FailoverConnection connection = new FailoverConnection();
-                    connectionHandler.handle(connection);
-                    connection.sendBadGatewayResponse();
-                } else {
-                    FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
-                    connectionHandler.handle(proxyConnection);
-                    proxyConnection.sendResponse();
-                }
-            });
+                })
+                .onComplete(event -> {
+                    if (event.failed()) {
+                        FailoverConnection connection = new FailoverConnection();
+                        connectionHandler.handle(connection);
+                        connection.sendBadGatewayResponse();
+                    } else {
+                        FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
+                        connectionHandler.handle(proxyConnection);
+                        proxyConnection.sendResponse();
+                    }
+                });
     }
 
     private void initialize() {
         circuitBreaker = CircuitBreaker.create(
-            "cb-" + options.hashCode(),
-            vertx,
-            new CircuitBreakerOptions()
-                .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
-                .setTimeout(options.getRetryTimeout()) // consider a failure if the operation does not succeed in time
-                .setResetTimeout(10000L) // time spent in open state before attempting to pass in half-open state. Half-open state would only let one attempt and if it fails, it goes back to open
-                .setNotificationAddress(null)
-        );
+                "cb-" + options.hashCode(),
+                vertx,
+                new CircuitBreakerOptions()
+                        .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
+                        .setTimeout(
+                                options.getRetryTimeout()) // consider a failure if the operation does not succeed in
+                        // time
+                        .setResetTimeout(
+                                10000L) // time spent in open state before attempting to pass in half-open state.
+                        // Half-open state would only let one attempt and if it fails, it goes back to
+                        // open
+                        .setNotificationAddress(null));
     }
 
     private class FailoverConnection implements ProxyConnection {

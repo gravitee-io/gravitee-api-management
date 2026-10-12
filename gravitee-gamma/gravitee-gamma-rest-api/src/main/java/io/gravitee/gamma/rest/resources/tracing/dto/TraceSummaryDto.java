@@ -32,23 +32,21 @@ import io.gravitee.gamma.rest.core.tracing.model.Trace;
  * a status badge per row from this exact vocabulary.
  */
 public record TraceSummaryDto(
-    String traceId,
-    long startTimeEpochMs,
-    long durationNanos,
-    String rootServiceName,
-    String rootOperationName,
-    String status,
-    int spanCount
-) {
+        String traceId,
+        long startTimeEpochMs,
+        long durationNanos,
+        String rootServiceName,
+        String rootOperationName,
+        String status,
+        int spanCount) {
     public static TraceSummaryDto from(Trace trace) {
         return new TraceSummaryDto(
-            trace.traceId(),
-            trace.startTime() != null ? trace.startTime().toEpochMilli() : 0L,
-            trace.durationNanos(),
-            trace.rootServiceName(),
-            trace.rootOperationName(),
-            trace.status().name().toLowerCase(),
-            trace.spanCount()
-        );
+                trace.traceId(),
+                trace.startTime() != null ? trace.startTime().toEpochMilli() : 0L,
+                trace.durationNanos(),
+                trace.rootServiceName(),
+                trace.rootOperationName(),
+                trace.status().name().toLowerCase(),
+                trace.spanCount());
     }
 }

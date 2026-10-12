@@ -44,31 +44,34 @@ public class SubscriptionSearchQueryServiceInMemory implements SubscriptionSearc
 
     @Override
     public Page<SubscriptionEntity> search(
-        ExecutionContext executionContext,
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        Set<String> applicationIds,
-        Set<String> planIds,
-        Set<SubscriptionStatus> statuses,
-        String apiKey,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext,
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            Set<String> applicationIds,
+            Set<String> planIds,
+            Set<SubscriptionStatus> statuses,
+            String apiKey,
+            Pageable pageable) {
         int pageNumber = pageable != null ? pageable.getPageNumber() : 0;
         int pageSize = pageable != null ? pageable.getPageSize() : 10;
         if (storage.isEmpty()) {
             return new Page<>(Collections.emptyList(), pageNumber + 1, pageSize, 0);
         }
-        List<SubscriptionEntity> matched = storage
-            .stream()
-            .filter(subscription -> referenceId == null || referenceId.equals(subscription.getReferenceId()))
-            .filter(subscription -> referenceType == null || referenceType.name().equals(subscription.getReferenceType()))
-            .filter(
-                subscription -> applicationIds == null || applicationIds.isEmpty() || applicationIds.contains(subscription.getApplication())
-            )
-            .filter(subscription -> planIds == null || planIds.isEmpty() || planIds.contains(subscription.getPlan()))
-            .filter(subscription -> statuses == null || statuses.isEmpty() || statuses.contains(subscription.getStatus()))
-            .filter(subscription -> apiKey == null || (subscription.getKeys() != null && subscription.getKeys().contains(apiKey)))
-            .toList();
+        List<SubscriptionEntity> matched = storage.stream()
+                .filter(subscription -> referenceId == null || referenceId.equals(subscription.getReferenceId()))
+                .filter(subscription ->
+                        referenceType == null || referenceType.name().equals(subscription.getReferenceType()))
+                .filter(subscription -> applicationIds == null
+                        || applicationIds.isEmpty()
+                        || applicationIds.contains(subscription.getApplication()))
+                .filter(subscription ->
+                        planIds == null || planIds.isEmpty() || planIds.contains(subscription.getPlan()))
+                .filter(subscription ->
+                        statuses == null || statuses.isEmpty() || statuses.contains(subscription.getStatus()))
+                .filter(subscription -> apiKey == null
+                        || (subscription.getKeys() != null
+                                && subscription.getKeys().contains(apiKey)))
+                .toList();
         return page(matched, pageable, pageNumber + 1, pageSize);
     }
 
@@ -79,10 +82,9 @@ public class SubscriptionSearchQueryServiceInMemory implements SubscriptionSearc
         if (storage.isEmpty()) {
             return new Page<>(Collections.emptyList(), pageNumber, pageSize, 0);
         }
-        List<SubscriptionEntity> matched = storage
-            .stream()
-            .filter(subscription -> matches(subscription, criteria))
-            .toList();
+        List<SubscriptionEntity> matched = storage.stream()
+                .filter(subscription -> matches(subscription, criteria))
+                .toList();
         return page(matched, pageable, pageNumber, pageSize);
     }
 
@@ -91,48 +93,51 @@ public class SubscriptionSearchQueryServiceInMemory implements SubscriptionSearc
             return true;
         }
         if (criteria.referenceTypes() != null && !criteria.referenceTypes().isEmpty()) {
-            boolean typeMatches = criteria
-                .referenceTypes()
-                .stream()
-                .anyMatch(type -> type.name().equals(subscription.getReferenceType()));
+            boolean typeMatches = criteria.referenceTypes().stream()
+                    .anyMatch(type -> type.name().equals(subscription.getReferenceType()));
             if (!typeMatches) {
                 return false;
             }
         }
-        if (
-            criteria.applicationIds() != null &&
-            !criteria.applicationIds().isEmpty() &&
-            !criteria.applicationIds().contains(subscription.getApplication())
-        ) {
+        if (criteria.applicationIds() != null
+                && !criteria.applicationIds().isEmpty()
+                && !criteria.applicationIds().contains(subscription.getApplication())) {
             return false;
         }
-        if (criteria.planIds() != null && !criteria.planIds().isEmpty() && !criteria.planIds().contains(subscription.getPlan())) {
+        if (criteria.planIds() != null
+                && !criteria.planIds().isEmpty()
+                && !criteria.planIds().contains(subscription.getPlan())) {
             return false;
         }
-        if (criteria.statuses() != null && !criteria.statuses().isEmpty() && !criteria.statuses().contains(subscription.getStatus())) {
+        if (criteria.statuses() != null
+                && !criteria.statuses().isEmpty()
+                && !criteria.statuses().contains(subscription.getStatus())) {
             return false;
         }
         if (criteria.apiIds() != null && !criteria.apiIds().isEmpty()) {
-            if (!"API".equals(subscription.getReferenceType()) || !criteria.apiIds().contains(subscription.getReferenceId())) {
+            if (!"API".equals(subscription.getReferenceType())
+                    || !criteria.apiIds().contains(subscription.getReferenceId())) {
                 return false;
             }
         }
         if (criteria.apiProductIds() != null && !criteria.apiProductIds().isEmpty()) {
-            if (
-                !"API_PRODUCT".equals(subscription.getReferenceType()) || !criteria.apiProductIds().contains(subscription.getReferenceId())
-            ) {
+            if (!"API_PRODUCT".equals(subscription.getReferenceType())
+                    || !criteria.apiProductIds().contains(subscription.getReferenceId())) {
                 return false;
             }
         }
-        return criteria.apiKey() == null || (subscription.getKeys() != null && subscription.getKeys().contains(criteria.apiKey()));
+        return criteria.apiKey() == null
+                || (subscription.getKeys() != null && subscription.getKeys().contains(criteria.apiKey()));
     }
 
-    private static Page<SubscriptionEntity> page(List<SubscriptionEntity> matched, Pageable pageable, int reportedPage, int pageSize) {
+    private static Page<SubscriptionEntity> page(
+            List<SubscriptionEntity> matched, Pageable pageable, int reportedPage, int pageSize) {
         int size = pageSize < 1 ? matched.size() : pageSize;
         int index = pageable == null ? 0 : Math.max(0, pageable.getPageNumber() - 1) * size;
         if (index >= matched.size()) {
             return new Page<>(List.of(), reportedPage, size, matched.size());
         }
-        return new Page<>(matched.subList(index, Math.min(index + size, matched.size())), reportedPage, size, matched.size());
+        return new Page<>(
+                matched.subList(index, Math.min(index + size, matched.size())), reportedPage, size, matched.size());
     }
 }

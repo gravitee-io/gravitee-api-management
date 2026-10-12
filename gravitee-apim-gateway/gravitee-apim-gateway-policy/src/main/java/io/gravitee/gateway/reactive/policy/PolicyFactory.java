@@ -36,11 +36,10 @@ public interface PolicyFactory {
     boolean accept(PolicyManifest policyManifest);
 
     <P extends BasePolicy> P create(
-        final ExecutionPhase phase,
-        final PolicyManifest policyManifest,
-        final PolicyConfiguration policyConfiguration,
-        final PolicyMetadata policyMetadata
-    );
+            final ExecutionPhase phase,
+            final PolicyManifest policyManifest,
+            final PolicyConfiguration policyConfiguration,
+            final PolicyMetadata policyMetadata);
 
     void cleanup(final PolicyManifest policyManifest);
 }

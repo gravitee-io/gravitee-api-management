@@ -16,7 +16,6 @@
 package assertions;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -65,7 +64,9 @@ public class ApiAssert extends AbstractObjectAssert<ApiAssert, Api> {
     public ApiAssert hasDefinitionVersion(DefinitionVersion definitionVersion) {
         isNotNull();
         if (!actual.getDefinitionVersion().equals(definitionVersion)) {
-            failWithMessage("Expected api definition version to be <%s> but was <%s>", definitionVersion, actual.getDefinitionVersion());
+            failWithMessage(
+                    "Expected api definition version to be <%s> but was <%s>",
+                    definitionVersion, actual.getDefinitionVersion());
         }
         return this;
     }
@@ -165,7 +166,8 @@ public class ApiAssert extends AbstractObjectAssert<ApiAssert, Api> {
     public ApiAssert hasOriginContext(OriginContext originContext) {
         isNotNull();
         if (!actual.getOriginContext().equals(originContext)) {
-            failWithMessage("Expected api origin context to be <%s> but was <%s>", originContext, actual.getOriginContext());
+            failWithMessage(
+                    "Expected api origin context to be <%s> but was <%s>", originContext, actual.getOriginContext());
         }
         return this;
     }
@@ -190,10 +192,8 @@ public class ApiAssert extends AbstractObjectAssert<ApiAssert, Api> {
         isNotNull();
         if (!actual.isDisableMembershipNotifications() == disableMembershipNotifications) {
             failWithMessage(
-                "Expected api disable membership notifications to be <%s> but was <%s>",
-                disableMembershipNotifications,
-                actual.isDisableMembershipNotifications()
-            );
+                    "Expected api disable membership notifications to be <%s> but was <%s>",
+                    disableMembershipNotifications, actual.isDisableMembershipNotifications());
         }
         return this;
     }

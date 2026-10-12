@@ -34,10 +34,12 @@ public class AmSdkConnectionTester implements AmConnectionTester {
         if (connection.baseUrl() == null || connection.baseUrl().isBlank()) {
             return AmConnectionTestResult.failure(400, "baseUrl is required");
         }
-        if (connection.serviceAccountAccessToken() == null || connection.serviceAccountAccessToken().isBlank()) {
+        if (connection.serviceAccountAccessToken() == null
+                || connection.serviceAccountAccessToken().isBlank()) {
             return AmConnectionTestResult.failure(400, "service-account access token is required");
         }
-        if (connection.amOrganizationId() == null || connection.amOrganizationId().isBlank()) {
+        if (connection.amOrganizationId() == null
+                || connection.amOrganizationId().isBlank()) {
             return AmConnectionTestResult.failure(400, "AM organization is required");
         }
 
@@ -52,8 +54,13 @@ public class AmSdkConnectionTester implements AmConnectionTester {
             // and preserved the upstream status. The status still rides along on the result for the
             // network/log trail, but the user-facing message frames it as a rejected connection.
             int status = e.upstreamStatus() != null ? e.upstreamStatus() : 503;
-            log.warn("AM test connection failed for AM organization {}: {} ({})", amOrganizationId, status, e.getMessage());
-            return AmConnectionTestResult.failure(status, "Access Management rejected the connection: " + e.getMessage());
+            log.warn(
+                    "AM test connection failed for AM organization {}: {} ({})",
+                    amOrganizationId,
+                    status,
+                    e.getMessage());
+            return AmConnectionTestResult.failure(
+                    status, "Access Management rejected the connection: " + e.getMessage());
         } catch (RuntimeException e) {
             log.warn("AM test connection failed for AM organization {}: {}", amOrganizationId, e.getMessage());
             return AmConnectionTestResult.failure(503, "Could not reach Access Management. Check the base URL.");

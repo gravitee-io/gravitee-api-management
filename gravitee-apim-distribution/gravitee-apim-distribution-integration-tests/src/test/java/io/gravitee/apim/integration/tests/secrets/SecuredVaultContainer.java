@@ -74,38 +74,41 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
     public SecuredVaultContainer() {
         super(HASHICORP_VAULT_IMAGE);
         this.withNetworkAliases("vault")
-            // script that will create certs and start vault
-            .withClasspathResourceMapping("/vault/startup.sh", CONTAINER_STARTUP_SCRIPT, BindMode.READ_ONLY)
-            // config to setup vault as secured
-            .withClasspathResourceMapping("/vault/config.json", CONTAINER_CONFIG_FILE, BindMode.READ_ONLY)
-            // conf for openssl when setting up scripts for openssl
-            .withClasspathResourceMapping("/vault/libressl.conf", CONTAINER_OPENSSL_CONFIG_FILE, BindMode.READ_ONLY)
-            // policy to bind to various auth
-            .withClasspathResourceMapping("/vault/testPolicy.hcl", TEST_POLICY_FILE, BindMode.READ_ONLY)
-            .withFileSystemBind(SSL_DIRECTORY, CONTAINER_SSL_DIRECTORY, BindMode.READ_WRITE)
-            .withCreateContainerCmdModifier(command -> command.getHostConfig().withCapAdd(Capability.IPC_LOCK))
-            .withExposedPorts(8200, 8280)
-            .withCommand("/bin/sh " + CONTAINER_STARTUP_SCRIPT)
-            .withLogConsumer(new Slf4jLogConsumer(log))
-            .waitingFor(
-                // Vault is configured to run a plain HTTP listener on port 8280, purely for purposes of detecting
-                // when the Docker container is fully ready.
-                new HttpWaitStrategy().forPort(8280).forPath("/v1/sys/seal-status").forStatusCode(HttpURLConnection.HTTP_OK)
-            );
+                // script that will create certs and start vault
+                .withClasspathResourceMapping("/vault/startup.sh", CONTAINER_STARTUP_SCRIPT, BindMode.READ_ONLY)
+                // config to setup vault as secured
+                .withClasspathResourceMapping("/vault/config.json", CONTAINER_CONFIG_FILE, BindMode.READ_ONLY)
+                // conf for openssl when setting up scripts for openssl
+                .withClasspathResourceMapping("/vault/libressl.conf", CONTAINER_OPENSSL_CONFIG_FILE, BindMode.READ_ONLY)
+                // policy to bind to various auth
+                .withClasspathResourceMapping("/vault/testPolicy.hcl", TEST_POLICY_FILE, BindMode.READ_ONLY)
+                .withFileSystemBind(SSL_DIRECTORY, CONTAINER_SSL_DIRECTORY, BindMode.READ_WRITE)
+                .withCreateContainerCmdModifier(
+                        command -> command.getHostConfig().withCapAdd(Capability.IPC_LOCK))
+                .withExposedPorts(8200, 8280)
+                .withCommand("/bin/sh " + CONTAINER_STARTUP_SCRIPT)
+                .withLogConsumer(new Slf4jLogConsumer(log))
+                .waitingFor(
+                        // Vault is configured to run a plain HTTP listener on port 8280, purely for purposes of
+                        // detecting
+                        // when the Docker container is fully ready.
+                        new HttpWaitStrategy()
+                                .forPort(8280)
+                                .forPath("/v1/sys/seal-status")
+                                .forStatusCode(HttpURLConnection.HTTP_OK));
     }
 
     public void initAndUnsealVault() throws IOException, InterruptedException {
         // Initialize the Vault server
         final ExecResult initResult = runCommand(
-            false,
-            "vault",
-            "operator",
-            "init",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "-key-shares=1",
-            "-key-threshold=1",
-            "-format=json"
-        );
+                false,
+                "vault",
+                "operator",
+                "init",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "-key-shares=1",
+                "-key-threshold=1",
+                "-format=json");
 
         final String stdout = initResult.getStdout().replaceAll("\\r?\\n", "");
         JsonObject initJson = Json.parse(stdout).asObject();
@@ -120,19 +123,19 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
 
     public void loginAndLoadTestPolicy() throws IOException, InterruptedException {
         runCommand("vault", "login", "-ca-cert=" + CONTAINER_CERT_PEMFILE, rootToken);
-        runCommand("vault", "policy", "write", "-ca-cert=" + CONTAINER_CERT_PEMFILE, TEST_POLICY_NAME, TEST_POLICY_FILE);
+        runCommand(
+                "vault", "policy", "write", "-ca-cert=" + CONTAINER_CERT_PEMFILE, TEST_POLICY_NAME, TEST_POLICY_FILE);
     }
 
     public void setupUserPassAuth() throws IOException, InterruptedException {
         runCommand("vault", "auth", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "userpass");
         runCommand(
-            "vault",
-            "write",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "auth/userpass/users/" + USER_ID,
-            "password=" + PASSWORD,
-            "policies=" + TEST_POLICY_NAME
-        );
+                "vault",
+                "write",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "auth/userpass/users/" + USER_ID,
+                "password=" + PASSWORD,
+                "policies=" + TEST_POLICY_NAME);
     }
 
     /**
@@ -142,16 +145,15 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
     public void setupAppRoleAuth() throws IOException, InterruptedException {
         runCommand("vault", "auth", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "approle");
         runCommand(
-            "vault",
-            "write",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "auth/approle/role/" + TESTROLE,
-            "secret_id_ttl=10m",
-            "token_ttl=20m",
-            "token_max_ttl=30m",
-            "secret_id_num_uses=40",
-            "policies=" + TEST_POLICY_NAME
-        );
+                "vault",
+                "write",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "auth/approle/role/" + TESTROLE,
+                "secret_id_ttl=10m",
+                "token_ttl=20m",
+                "token_max_ttl=30m",
+                "secret_id_num_uses=40",
+                "policies=" + TEST_POLICY_NAME);
     }
 
     /**
@@ -162,53 +164,50 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
         runCommand("vault", "auth", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "cert");
         copyFileToContainer(Transferable.of(cert), CONTAINER_CLIENT_CERT_PEMFILE);
         runCommand(
-            "vault",
-            "write",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "auth/cert/certs/web",
-            "display_name=web",
-            "policies=" + TEST_POLICY_NAME,
-            "certificate=@" + CONTAINER_CLIENT_CERT_PEMFILE,
-            "ttl=3600"
-        );
+                "vault",
+                "write",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "auth/cert/certs/web",
+                "display_name=web",
+                "policies=" + TEST_POLICY_NAME,
+                "certificate=@" + CONTAINER_CLIENT_CERT_PEMFILE,
+                "ttl=3600");
     }
 
     public void setupKubernetesRoleAuth(Path kubeConfigFile, String workloadSA, String reviewerToken, String dockerHost)
-        throws IOException, InterruptedException {
+            throws IOException, InterruptedException {
         runCommand("vault", "auth", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "kubernetes");
         KubernetesConfig kubernetesConfig = KubernetesConfig.newInstance(kubeConfigFile.toString());
         copyFileToContainer(Transferable.of(kubernetesConfig.getCaCertData()), CONTAINER_KUBE_CA_PEMFILE);
         runCommand(
-            "vault",
-            "write",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "auth/kubernetes/config",
-            "disable_local_ca_jwt=true",
-            "token_reviewer_jwt=" + reviewerToken,
-            "kubernetes_host=" + "https://" + dockerHost + ":" + kubernetesConfig.getApiServerPort(),
-            "kubernetes_ca_cert=@" + CONTAINER_KUBE_CA_PEMFILE
-        );
+                "vault",
+                "write",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "auth/kubernetes/config",
+                "disable_local_ca_jwt=true",
+                "token_reviewer_jwt=" + reviewerToken,
+                "kubernetes_host=" + "https://" + dockerHost + ":" + kubernetesConfig.getApiServerPort(),
+                "kubernetes_ca_cert=@" + CONTAINER_KUBE_CA_PEMFILE);
         runCommand(
-            "vault",
-            "write",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "auth/kubernetes/role/" + TESTROLE,
-            "bound_service_account_names=" + workloadSA,
-            "bound_service_account_namespaces=default",
-            "policies=" + TEST_POLICY_NAME,
-            "ttl=3600"
-        );
+                "vault",
+                "write",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "auth/kubernetes/role/" + TESTROLE,
+                "bound_service_account_names=" + workloadSA,
+                "bound_service_account_namespaces=default",
+                "policies=" + TEST_POLICY_NAME,
+                "ttl=3600");
     }
 
     /**
      * Prepares the Vault server for testing of the Database Backend using Postgres
      */
-
     public void setEngineVersions() throws IOException, InterruptedException {
         // Upgrade default secrets/ Engine to V2, set a new V1 secrets path at "kv-v1/"
         runCommand("vault", "secrets", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "-path=secret", "kv");
         runCommand("vault", "kv", "enable-versioning", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "secret/");
-        runCommand("vault", "secrets", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "-path=kv-v1", "-version=1", "kv");
+        runCommand(
+                "vault", "secrets", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "-path=kv-v1", "-version=1", "kv");
     }
 
     /**
@@ -217,12 +216,12 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
      */
     public Vault getVault(final String token) throws VaultException {
         final VaultConfig config = new VaultConfig()
-            .address(getAddress())
-            .token(token)
-            .openTimeout(5)
-            .readTimeout(30)
-            .sslConfig(new SslConfig().pemFile(new File(CERT_PEMFILE)).build())
-            .build();
+                .address(getAddress())
+                .token(token)
+                .openTimeout(5)
+                .readTimeout(30)
+                .sslConfig(new SslConfig().pemFile(new File(CERT_PEMFILE)).build())
+                .build();
         return Vault.create(config).withRetries(MAX_RETRIES, RETRY_MILLIS);
     }
 
@@ -246,7 +245,8 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
         return runCommand(true, command);
     }
 
-    public ExecResult runCommand(boolean checkResult, final String... command) throws IOException, InterruptedException {
+    public ExecResult runCommand(boolean checkResult, final String... command)
+            throws IOException, InterruptedException {
         log.info("Command: {}", String.join(" ", command));
         final ExecResult result = execInContainer(command);
         final String out = result.getStdout();
@@ -268,25 +268,23 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
 
     public AppRoleIDs newAppRoleSecretId() throws IOException, InterruptedException {
         Container.ExecResult result = runCommand(
-            false,
-            "vault",
-            "read",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "-field=role_id",
-            "auth/approle/role/" + TESTROLE + "/role-id"
-        );
+                false,
+                "vault",
+                "read",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "-field=role_id",
+                "auth/approle/role/" + TESTROLE + "/role-id");
         assertThat(result.getStderr()).isEmpty();
         assertThat(result.getStdout()).isNotEmpty();
         var roleId = result.getStdout();
         result = runCommand(
-            false,
-            "vault",
-            "write",
-            "-f",
-            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-            "-field=secret_id",
-            "auth/approle/role/" + TESTROLE + "/secret-id"
-        );
+                false,
+                "vault",
+                "write",
+                "-f",
+                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+                "-field=secret_id",
+                "auth/approle/role/" + TESTROLE + "/secret-id");
         assertThat(result.getStderr()).isEmpty();
         assertThat(result.getStdout()).isNotEmpty();
         var secretId = result.getStdout();

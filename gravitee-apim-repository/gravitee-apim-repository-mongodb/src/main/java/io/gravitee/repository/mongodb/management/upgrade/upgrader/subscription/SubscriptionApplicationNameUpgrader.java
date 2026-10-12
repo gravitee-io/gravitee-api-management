@@ -32,26 +32,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscriptionApplicationNameUpgrader extends MongoUpgrader {
 
-    public static final int SUBSCRIPTION_APPLICATION_NAME_UPGRADER_ORDER = SHARED_POLICY_GROUP_HISTORIES_PHASE_UPGRADER_ORDER + 1;
+    public static final int SUBSCRIPTION_APPLICATION_NAME_UPGRADER_ORDER =
+            SHARED_POLICY_GROUP_HISTORIES_PHASE_UPGRADER_ORDER + 1;
 
     @Override
     public boolean upgrade() {
         // Fetch all documents from applications
         var applicationDocs = getCollection("applications").find().projection(new Document("_id", 1).append("name", 1));
         Function<List<WriteModel<Document>>, Boolean> bulkWriteFunction = bulkActions ->
-            getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged();
+                getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged();
 
         return StreamSupport.stream(applicationDocs.spliterator(), false)
-            .map(applicationDoc -> {
-                String applicationId = applicationDoc.get("_id").toString();
-                String applicationName = applicationDoc.getString("name");
-                // Create UpdateManyModel for each application
-                return new UpdateManyModel<Document>(
-                    Filters.eq("application", applicationId),
-                    Updates.set("applicationName", applicationName)
-                );
-            })
-            .collect(new BulkWriteCollector(1000, bulkWriteFunction));
+                .map(applicationDoc -> {
+                    String applicationId = applicationDoc.get("_id").toString();
+                    String applicationName = applicationDoc.getString("name");
+                    // Create UpdateManyModel for each application
+                    return new UpdateManyModel<Document>(
+                            Filters.eq("application", applicationId), Updates.set("applicationName", applicationName));
+                })
+                .collect(new BulkWriteCollector(1000, bulkWriteFunction));
     }
 
     @Override

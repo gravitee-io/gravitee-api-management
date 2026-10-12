@@ -56,6 +56,7 @@ public class InMemoryOtelLogPort implements OtelLogPort {
     @Override
     public TraceLogs findLogs(String orgId, String envId, String traceId, Map<String, String> attributeFilters) {
         this.lastAttributeFilters = attributeFilters;
-        return new TraceLogs(eventsByTraceId.getOrDefault(traceId, List.of()), payloadsByTraceId.getOrDefault(traceId, List.of()));
+        return new TraceLogs(
+                eventsByTraceId.getOrDefault(traceId, List.of()), payloadsByTraceId.getOrDefault(traceId, List.of()));
     }
 }

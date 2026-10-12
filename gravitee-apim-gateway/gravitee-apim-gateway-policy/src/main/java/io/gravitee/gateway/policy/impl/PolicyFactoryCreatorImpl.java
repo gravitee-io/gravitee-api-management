@@ -34,10 +34,9 @@ public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
     private final boolean tracingEnabled;
 
     public PolicyFactoryCreatorImpl(
-        final PolicyPluginFactory policyPluginFactory,
-        final ConditionEvaluator<String> conditionEvaluator,
-        final boolean tracingEnabled
-    ) {
+            final PolicyPluginFactory policyPluginFactory,
+            final ConditionEvaluator<String> conditionEvaluator,
+            final boolean tracingEnabled) {
         this.tracingEnabled = tracingEnabled;
         this.policyPluginFactory = policyPluginFactory;
         this.conditionEvaluator = conditionEvaluator;
@@ -50,8 +49,8 @@ public class PolicyFactoryCreatorImpl implements PolicyFactoryCreator {
         }
 
         final PolicyFactory policyFactory = tracingEnabled
-            ? new TracingPolicyPluginFactory(policyPluginFactory, conditionEvaluator)
-            : new PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
+                ? new TracingPolicyPluginFactory(policyPluginFactory, conditionEvaluator)
+                : new PolicyFactoryImpl(policyPluginFactory, conditionEvaluator);
         return new CachedPolicyFactory(policyFactory);
     }
 }

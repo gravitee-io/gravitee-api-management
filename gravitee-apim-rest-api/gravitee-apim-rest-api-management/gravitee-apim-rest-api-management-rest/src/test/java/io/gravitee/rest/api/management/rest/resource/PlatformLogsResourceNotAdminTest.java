@@ -66,180 +66,130 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPlatformLogsAsNonAdmin() {
-        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
-        when(
-            applicationService.findIdsByUserAndPermission(
-                any(ExecutionContext.class),
-                eq(USER_NAME),
-                isNull(),
-                eq(APPLICATION_LOG),
-                eq(READ)
-            )
-        ).thenReturn(Set.of("app1"));
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
-            Set.of("api1")
-        );
+        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class)))
+                .thenReturn(new SearchLogResponse<>(10));
+        when(applicationService.findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ)))
+                .thenReturn(Set.of("app1"));
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
+                .thenReturn(Set.of("api1"));
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService).findIdsByUserAndPermission(
-            any(ExecutionContext.class),
-            eq(USER_NAME),
-            isNull(),
-            eq(APPLICATION_LOG),
-            eq(READ)
-        );
+        verify(applicationService)
+                .findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
-        verify(logsService).findPlatform(
-            any(ExecutionContext.class),
-            argThat(
-                query ->
-                    Objects.equals(query.getQuery(), "foo:bar") &&
-                    query.getTerms().size() == 2 &&
-                    query.getTerms().containsKey("application") &&
-                    query.getTerms().get("application").equals(Set.of("app1")) &&
-                    query.getTerms().containsKey("api") &&
-                    query.getTerms().get("api").equals(Set.of("api1")) &&
-                    query.getPage() == 1 &&
-                    query.getSize() == 10 &&
-                    query.getFrom() == 0 &&
-                    query.getTo() == 1 &&
-                    Objects.equals(query.getField(), "@timestamp") &&
-                    query.isOrder()
-            )
-        );
+        verify(logsService)
+                .findPlatform(
+                        any(ExecutionContext.class),
+                        argThat(query -> Objects.equals(query.getQuery(), "foo:bar")
+                                && query.getTerms().size() == 2
+                                && query.getTerms().containsKey("application")
+                                && query.getTerms().get("application").equals(Set.of("app1"))
+                                && query.getTerms().containsKey("api")
+                                && query.getTerms().get("api").equals(Set.of("api1"))
+                                && query.getPage() == 1
+                                && query.getSize() == 10
+                                && query.getFrom() == 0
+                                && query.getTo() == 1
+                                && Objects.equals(query.getField(), "@timestamp")
+                                && query.isOrder()));
     }
 
     @Test
     public void shouldGetPlatformLogsAsNonAdminFilterOnlyApp() {
-        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
-        when(
-            applicationService.findIdsByUserAndPermission(
-                any(ExecutionContext.class),
-                eq(USER_NAME),
-                isNull(),
-                eq(APPLICATION_LOG),
-                eq(READ)
-            )
-        ).thenReturn(Set.of("app1"));
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
-            emptySet()
-        );
+        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class)))
+                .thenReturn(new SearchLogResponse<>(10));
+        when(applicationService.findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ)))
+                .thenReturn(Set.of("app1"));
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
+                .thenReturn(emptySet());
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService).findIdsByUserAndPermission(
-            any(ExecutionContext.class),
-            eq(USER_NAME),
-            isNull(),
-            eq(APPLICATION_LOG),
-            eq(READ)
-        );
+        verify(applicationService)
+                .findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
-        verify(logsService).findPlatform(
-            any(ExecutionContext.class),
-            argThat(
-                query ->
-                    Objects.equals(query.getQuery(), "foo:bar") &&
-                    query.getTerms().size() == 1 &&
-                    query.getTerms().containsKey("application") &&
-                    query.getTerms().get("application").equals(Set.of("app1")) &&
-                    query.getPage() == 1 &&
-                    query.getSize() == 10 &&
-                    query.getFrom() == 0 &&
-                    query.getTo() == 1 &&
-                    Objects.equals(query.getField(), "@timestamp") &&
-                    query.isOrder()
-            )
-        );
+        verify(logsService)
+                .findPlatform(
+                        any(ExecutionContext.class),
+                        argThat(query -> Objects.equals(query.getQuery(), "foo:bar")
+                                && query.getTerms().size() == 1
+                                && query.getTerms().containsKey("application")
+                                && query.getTerms().get("application").equals(Set.of("app1"))
+                                && query.getPage() == 1
+                                && query.getSize() == 10
+                                && query.getFrom() == 0
+                                && query.getTo() == 1
+                                && Objects.equals(query.getField(), "@timestamp")
+                                && query.isOrder()));
     }
 
     @Test
     public void shouldGetPlatformLogsAsNonAdminFilterOnlyAPI() {
-        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
-        when(
-            applicationService.findIdsByUserAndPermission(
-                any(ExecutionContext.class),
-                eq(USER_NAME),
-                isNull(),
-                eq(APPLICATION_LOG),
-                eq(READ)
-            )
-        ).thenReturn(emptySet());
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
-            Set.of("api1")
-        );
+        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class)))
+                .thenReturn(new SearchLogResponse<>(10));
+        when(applicationService.findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ)))
+                .thenReturn(emptySet());
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
+                .thenReturn(Set.of("api1"));
 
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService).findIdsByUserAndPermission(
-            any(ExecutionContext.class),
-            eq(USER_NAME),
-            isNull(),
-            eq(APPLICATION_LOG),
-            eq(READ)
-        );
+        verify(applicationService)
+                .findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
-        verify(logsService).findPlatform(
-            any(ExecutionContext.class),
-            argThat(
-                query ->
-                    Objects.equals(query.getQuery(), "foo:bar") &&
-                    query.getTerms().size() == 1 &&
-                    query.getTerms().containsKey("api") &&
-                    query.getTerms().get("api").equals(Set.of("api1")) &&
-                    query.getPage() == 1 &&
-                    query.getSize() == 10 &&
-                    query.getFrom() == 0 &&
-                    query.getTo() == 1 &&
-                    Objects.equals(query.getField(), "@timestamp") &&
-                    query.isOrder()
-            )
-        );
+        verify(logsService)
+                .findPlatform(
+                        any(ExecutionContext.class),
+                        argThat(query -> Objects.equals(query.getQuery(), "foo:bar")
+                                && query.getTerms().size() == 1
+                                && query.getTerms().containsKey("api")
+                                && query.getTerms().get("api").equals(Set.of("api1"))
+                                && query.getPage() == 1
+                                && query.getSize() == 10
+                                && query.getFrom() == 0
+                                && query.getTo() == 1
+                                && Objects.equals(query.getField(), "@timestamp")
+                                && query.isOrder()));
     }
 
     @Test
     public void shouldGetNoLogsAsNonAdminWithNoAPINoApp() {
-        when(
-            applicationService.findIdsByUserAndPermission(
-                any(ExecutionContext.class),
-                eq(USER_NAME),
-                isNull(),
-                eq(APPLICATION_LOG),
-                eq(READ)
-            )
-        ).thenReturn(emptySet());
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
-            emptySet()
-        );
+        when(applicationService.findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ)))
+                .thenReturn(emptySet());
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
+                .thenReturn(emptySet());
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
         JsonNode jsonNode = logs.readEntity(JsonNode.class);
         assertEquals(0, jsonNode.get("total").intValue());
         assertNull(jsonNode.get("logs"));
-        verify(applicationService).findIdsByUserAndPermission(
-            any(ExecutionContext.class),
-            eq(USER_NAME),
-            isNull(),
-            eq(APPLICATION_LOG),
-            eq(READ)
-        );
+        verify(applicationService)
+                .findIdsByUserAndPermission(
+                        any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
         verify(logsService, never()).findPlatform(any(ExecutionContext.class), any(LogQuery.class));
     }
 
     private Response sendRequest() {
         return envTarget()
-            .queryParam("query", "foo:bar")
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-            .queryParam("from", 0)
-            .queryParam("to", 1)
-            .queryParam("field", "@timestamp")
-            .queryParam("order", true)
-            .request()
-            .get();
+                .queryParam("query", "foo:bar")
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .queryParam("from", 0)
+                .queryParam("to", 1)
+                .queryParam("field", "@timestamp")
+                .queryParam("order", true)
+                .request()
+                .get();
     }
 }

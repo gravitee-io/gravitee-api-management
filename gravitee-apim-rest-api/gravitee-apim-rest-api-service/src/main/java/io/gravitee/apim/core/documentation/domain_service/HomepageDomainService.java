@@ -32,13 +32,11 @@ public class HomepageDomainService {
     private final PageCrudService pageCrudService;
 
     public void setPreviousHomepageToFalse(String apiId, String currentHomepageId) {
-        List<String> previous = pageQueryService
-            .findHomepageByApiId(apiId)
-            .stream()
-            .filter(Page::isHomepage)
-            .map(Page::getId)
-            .filter(not(currentHomepageId::equals))
-            .toList();
+        List<String> previous = pageQueryService.findHomepageByApiId(apiId).stream()
+                .filter(Page::isHomepage)
+                .map(Page::getId)
+                .filter(not(currentHomepageId::equals))
+                .toList();
         if (!previous.isEmpty()) {
             pageCrudService.unsetHomepage(previous);
         }

@@ -46,13 +46,12 @@ public class ResourceLoader {
     private final DeploymentContext deploymentContext;
 
     public ResourceLoader(
-        final DefaultClassLoader classLoader,
-        final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
-        final ResourceClassLoaderFactory resourceClassLoaderFactory,
-        final ResourceConfigurationFactory resourceConfigurationFactory,
-        final ApplicationContext applicationContext,
-        final DeploymentContext deploymentContext
-    ) {
+            final DefaultClassLoader classLoader,
+            final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
+            final ResourceClassLoaderFactory resourceClassLoaderFactory,
+            final ResourceConfigurationFactory resourceConfigurationFactory,
+            final ApplicationContext applicationContext,
+            final DeploymentContext deploymentContext) {
         this.classLoader = classLoader;
         this.resourcePluginManager = resourcePluginManager;
         this.resourceClassLoaderFactory = resourceClassLoaderFactory;
@@ -69,26 +68,23 @@ public class ResourceLoader {
             throw new IllegalStateException("Resource [" + resourceType + "] cannot be found in plugin registry");
         }
 
-        classLoader.addClassLoader(resourcePlugin.resource().getCanonicalName(), () ->
-            resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, classLoader)
-        );
+        classLoader.addClassLoader(
+                resourcePlugin.resource().getCanonicalName(),
+                () -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, classLoader));
 
         try {
-            Class<? extends Resource> resourceClass = (Class<? extends Resource>) ClassUtils.forName(
-                resourcePlugin.resource().getName(),
-                classLoader
-            );
+            Class<? extends Resource> resourceClass = (Class<? extends Resource>)
+                    ClassUtils.forName(resourcePlugin.resource().getName(), classLoader);
             Map<Class<?>, Object> injectables = new HashMap<>();
             injectables.put(DeploymentContext.class, deploymentContext);
 
             if (resourcePlugin.configuration() != null) {
-                Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<
-                    ? extends ResourceConfiguration
-                >) ClassUtils.forName(resourcePlugin.configuration().getName(), classLoader);
+                Class<? extends ResourceConfiguration> resourceConfigurationClass =
+                        (Class<? extends ResourceConfiguration>) ClassUtils.forName(
+                                resourcePlugin.configuration().getName(), classLoader);
                 injectables.put(
-                    resourceConfigurationClass,
-                    resourceConfigurationFactory.create(resourceConfigurationClass, resourceConfiguration)
-                );
+                        resourceConfigurationClass,
+                        resourceConfigurationFactory.create(resourceConfigurationClass, resourceConfiguration));
             }
 
             Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);

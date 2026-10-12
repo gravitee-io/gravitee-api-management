@@ -27,7 +27,10 @@ class CrdIdHelperTest {
 
     private static final String ORGANIZATION = "org-id";
     private static final String ENVIRONMENT = "env-id";
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
 
     @Nested
     class GenerateGroupId {
@@ -38,13 +41,22 @@ class CrdIdHelperTest {
 
             CrdIdHelper.generateGroupId(spec, AUDIT_INFO);
 
-            assertThat(spec.getId()).isNotNull().isEqualTo(HRIDToUUID.group().context(AUDIT_INFO).hrid("my-group").id());
+            assertThat(spec.getId())
+                    .isNotNull()
+                    .isEqualTo(HRIDToUUID.group()
+                            .context(AUDIT_INFO)
+                            .hrid("my-group")
+                            .id());
         }
 
         @Test
         void should_not_override_existing_id() {
             var existingId = "existing-uuid";
-            var spec = GroupCRDSpec.builder().id(existingId).hrid("my-group").name("My Group").build();
+            var spec = GroupCRDSpec.builder()
+                    .id(existingId)
+                    .hrid("my-group")
+                    .name("My Group")
+                    .build();
 
             CrdIdHelper.generateGroupId(spec, AUDIT_INFO);
 
@@ -75,8 +87,14 @@ class CrdIdHelperTest {
 
         @Test
         void should_generate_different_ids_for_different_environments() {
-            var audit1 = AuditInfo.builder().organizationId(ORGANIZATION).environmentId("env-1").build();
-            var audit2 = AuditInfo.builder().organizationId(ORGANIZATION).environmentId("env-2").build();
+            var audit1 = AuditInfo.builder()
+                    .organizationId(ORGANIZATION)
+                    .environmentId("env-1")
+                    .build();
+            var audit2 = AuditInfo.builder()
+                    .organizationId(ORGANIZATION)
+                    .environmentId("env-2")
+                    .build();
 
             var spec1 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
             var spec2 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
@@ -89,8 +107,14 @@ class CrdIdHelperTest {
 
         @Test
         void should_generate_different_ids_for_different_organizations() {
-            var audit1 = AuditInfo.builder().organizationId("org-1").environmentId(ENVIRONMENT).build();
-            var audit2 = AuditInfo.builder().organizationId("org-2").environmentId(ENVIRONMENT).build();
+            var audit1 = AuditInfo.builder()
+                    .organizationId("org-1")
+                    .environmentId(ENVIRONMENT)
+                    .build();
+            var audit2 = AuditInfo.builder()
+                    .organizationId("org-2")
+                    .environmentId(ENVIRONMENT)
+                    .build();
 
             var spec1 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();
             var spec2 = GroupCRDSpec.builder().hrid("my-group").name("My Group").build();

@@ -19,7 +19,8 @@ package io.gravitee.gateway.policy;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class ConfigurablePolicyChainProvider extends AbstractPolicyChainProvider implements PolicyChainProvider {
+public abstract class ConfigurablePolicyChainProvider extends AbstractPolicyChainProvider
+        implements PolicyChainProvider {
 
     public abstract StreamType getStreamType();
 

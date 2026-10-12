@@ -16,7 +16,6 @@
 package io.gravitee.repository.analytics.query.stats;
 
 import io.gravitee.repository.analytics.query.AbstractQueryBuilder;
-import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

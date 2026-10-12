@@ -101,38 +101,44 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
 
         var modelCounter = new AtomicInteger(0);
         apiRepository
-            .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(), null, ApiFieldFilter.allFields())
-            .filter(v4Api -> Objects.nonNull(v4Api.getCategories()) && !v4Api.getCategories().isEmpty())
-            .forEach(v4Api -> {
-                try {
-                    var newCategories = v4Api
-                        .getCategories()
-                        .stream()
-                        .map(category -> {
-                            // If the category is a key
-                            if (
-                                envByCategoryKeyId.containsKey(v4Api.getEnvironmentId()) &&
-                                envByCategoryKeyId.get(v4Api.getEnvironmentId()).containsKey(category)
-                            ) {
-                                return envByCategoryKeyId.get(v4Api.getEnvironmentId()).get(category);
-                            }
-                            // If the category is an id
-                            if (categoryIdKeyMap.containsKey(category)) {
-                                return category;
-                            }
-                            // If not found
-                            return null;
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
+                .search(
+                        new ApiCriteria.Builder()
+                                .definitionVersion(List.of(DefinitionVersion.V4))
+                                .build(),
+                        null,
+                        ApiFieldFilter.allFields())
+                .filter(v4Api -> Objects.nonNull(v4Api.getCategories())
+                        && !v4Api.getCategories().isEmpty())
+                .forEach(v4Api -> {
+                    try {
+                        var newCategories = v4Api.getCategories().stream()
+                                .map(category -> {
+                                    // If the category is a key
+                                    if (envByCategoryKeyId.containsKey(v4Api.getEnvironmentId())
+                                            && envByCategoryKeyId
+                                                    .get(v4Api.getEnvironmentId())
+                                                    .containsKey(category)) {
+                                        return envByCategoryKeyId
+                                                .get(v4Api.getEnvironmentId())
+                                                .get(category);
+                                    }
+                                    // If the category is an id
+                                    if (categoryIdKeyMap.containsKey(category)) {
+                                        return category;
+                                    }
+                                    // If not found
+                                    return null;
+                                })
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet());
 
-                    v4Api.setCategories(newCategories);
-                    apiRepository.update(v4Api);
-                    modelCounter.incrementAndGet();
-                } catch (Exception e) {
-                    log.error("Unable to migrate categories for api {}", v4Api.getId(), e);
-                }
-            });
+                        v4Api.setCategories(newCategories);
+                        apiRepository.update(v4Api);
+                        modelCounter.incrementAndGet();
+                    } catch (Exception e) {
+                        log.error("Unable to migrate categories for api {}", v4Api.getId(), e);
+                    }
+                });
         log.info("{} v4 APIs have been migrated to use category ids instead of keys", modelCounter.get());
         return true;
     }

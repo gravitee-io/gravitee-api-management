@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @EnableForGatewayTestingExtensionTesting
-@DeployApi({ "/apis/success-flow.json" })
+@DeployApi({"/apis/success-flow.json"})
 public class ManuallyDeployTestCase extends AbstractGatewayTest {
 
     @Test

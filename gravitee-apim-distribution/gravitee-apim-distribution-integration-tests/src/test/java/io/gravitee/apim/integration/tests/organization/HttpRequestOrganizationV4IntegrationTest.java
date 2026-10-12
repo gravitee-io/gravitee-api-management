@@ -42,19 +42,15 @@ import org.junit.jupiter.api.BeforeEach;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author Gravitee Team
  */
-@DeployOrganizations(
-    {
-        @DeployOrganization(
+@DeployOrganizations({
+    @DeployOrganization(
             organization = "/organizations/organization-1-add-header-1.json",
-            apis = { "/organizations/apis/v4/api-1.json" }
-        ),
-        @DeployOrganization(
+            apis = {"/organizations/apis/v4/api-1.json"}),
+    @DeployOrganization(
             organization = "/organizations/organization-2-add-header-2.json",
-            apis = { "/organizations/apis/v4/api-2.json" }
-        ),
-        @DeployOrganization(organization = "/organizations/organization-3.json"),
-    }
-)
+            apis = {"/organizations/apis/v4/api-2.json"}),
+    @DeployOrganization(organization = "/organizations/organization-3.json"),
+})
 class HttpRequestOrganizationV4IntegrationTest extends HttpRequestOrganizationV4EmulationIntegrationTest {
 
     @Override
@@ -65,14 +61,17 @@ class HttpRequestOrganizationV4IntegrationTest extends HttpRequestOrganizationV4
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         super.configureEntrypoints(entrypoints);
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
         super.configureEndpoints(endpoints);
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", PersistentMockEndpointConnectorFactory.class));
     }
 
@@ -91,13 +90,9 @@ class HttpRequestOrganizationV4IntegrationTest extends HttpRequestOrganizationV4
     // Api 2 is a message api when testing V4
     @Override
     protected void assertOrganization2RequestHeaders() {
-        messageStorage
-            .subject()
-            .take(1)
-            .test()
-            .assertValue(message -> {
-                assertThat(message.headers().get(AddHeader2Policy.HEADER_NAME)).isEqualTo(AddHeader2Policy.REQUEST_HEADER);
-                return true;
-            });
+        messageStorage.subject().take(1).test().assertValue(message -> {
+            assertThat(message.headers().get(AddHeader2Policy.HEADER_NAME)).isEqualTo(AddHeader2Policy.REQUEST_HEADER);
+            return true;
+        });
     }
 }

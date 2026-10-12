@@ -25,9 +25,9 @@ public class PortalNavigationItemSegmentIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_navigation_items")
-            .key("segment", ascending())
-            .name("s1")
-            .build();
+                .collection("portal_navigation_items")
+                .key("segment", ascending())
+                .name("s1")
+                .build();
     }
 }

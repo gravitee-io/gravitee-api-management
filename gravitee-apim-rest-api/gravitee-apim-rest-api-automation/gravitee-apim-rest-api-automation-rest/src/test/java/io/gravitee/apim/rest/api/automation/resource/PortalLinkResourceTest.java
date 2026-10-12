@@ -69,7 +69,10 @@ class PortalLinkResourceTest extends AbstractResourceTest {
         void should_return_the_link() {
             when(getPortalLinkUseCase.execute(any())).thenReturn(new GetPortalLinkUseCase.Output(aLink()));
 
-            try (var response = rootTarget(LINK_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(LINK_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(getPortalLinkUseCase).execute(any(GetPortalLinkUseCase.Input.class));
 
@@ -88,7 +91,10 @@ class PortalLinkResourceTest extends AbstractResourceTest {
         void should_return_404_when_link_is_missing() {
             when(getPortalLinkUseCase.execute(any())).thenThrow(new PortalLinkNotFoundException(LINK_HRID));
 
-            try (var response = rootTarget(LINK_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(LINK_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
@@ -107,7 +113,9 @@ class PortalLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_link_is_missing() {
-            doThrow(new PortalLinkNotFoundException(LINK_HRID)).when(deletePortalLinkUseCase).execute(any());
+            doThrow(new PortalLinkNotFoundException(LINK_HRID))
+                    .when(deletePortalLinkUseCase)
+                    .execute(any());
 
             try (var response = rootTarget(LINK_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -117,16 +125,16 @@ class PortalLinkResourceTest extends AbstractResourceTest {
 
     private static PortalNavigationLink aLink() {
         return PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.of("11111111-1111-1111-1111-111111111111"))
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .title("External Docs")
-            .segment(LINK_HRID)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of("11111111-1111-1111-1111-111111111111"))
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .title("External Docs")
+                .segment(LINK_HRID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 }

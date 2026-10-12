@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -55,12 +54,11 @@ class NodeMetadataSynchronizerTest {
     @BeforeEach
     void setUp() {
         cut = new NodeMetadataSynchronizer(
-            organizationIdsFetcher,
-            installationIdFetcher,
-            deployerFactory,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                organizationIdsFetcher,
+                installationIdFetcher,
+                deployerFactory,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(deployerFactory.createNodeMetadataDeployer()).thenReturn(nodeMetadataDeployer);
         lenient().when(nodeMetadataDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -73,7 +71,10 @@ class NodeMetadataSynchronizerTest {
     void should_add_node_metadata_when_fetching_ids() throws InterruptedException {
         when(organizationIdsFetcher.fetch(any())).thenReturn(Maybe.just(Set.of("orga-id")));
         when(installationIdFetcher.fetch()).thenReturn(Maybe.just("installation-id"));
-        cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+        cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                .test()
+                .await()
+                .assertComplete();
 
         verify(nodeMetadataDeployer).deploy(any());
         verify(nodeMetadataDeployer).doAfterDeployment(any());
@@ -81,7 +82,10 @@ class NodeMetadataSynchronizerTest {
 
     @Test
     void should_not_fetch_incremental() throws InterruptedException {
-        cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("env")).test().await().assertComplete();
+        cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("env"))
+                .test()
+                .await()
+                .assertComplete();
         verifyNoInteractions(installationIdFetcher);
         verifyNoInteractions(organizationIdsFetcher);
     }

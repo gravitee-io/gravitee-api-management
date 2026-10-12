@@ -96,22 +96,29 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiByHRID(
-        @PathParam("apiHrid") String apiHrid,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @HeaderParam(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID) boolean setHRIDFromName
-    ) {
+            @PathParam("apiHrid") String apiHrid,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+            @HeaderParam(HRIDHelper.HEADER_X_GRAVITEE_SET_HRID) boolean setHRIDFromName) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         hridContainsUUID = hridContainsUUID || setHRIDFromName;
         var input = new ExportApiCRDUseCase.Input(
-            hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
-            IDExportStrategy.ALL,
-            buildAuditInfo(executionContext, userDetails),
-            true
-        );
+                hridContainsUUID
+                        ? apiHrid
+                        : HRIDToUUID.api()
+                                .context(executionContext)
+                                .hrid(apiHrid)
+                                .id(),
+                IDExportStrategy.ALL,
+                buildAuditInfo(executionContext, userDetails),
+                true);
 
         try {
             ApiCRDSpec apiCRDSpec = exportApiCRDUseCase.execute(input).spec();
@@ -131,15 +138,13 @@ public class ApiResource extends AbstractResource {
             }
             replaceGroupNamesWithHrids(executionContext.getEnvironmentId(), apiV4Spec);
 
-            return Response.ok(
-                ApiMapper.INSTANCE.apiV4SpecToApiV4State(
-                    apiV4Spec,
-                    apiCRDSpec.getId(),
-                    apiCRDSpec.getCrossId(),
-                    executionContext.getOrganizationId(),
-                    executionContext.getEnvironmentId()
-                )
-            ).build();
+            return Response.ok(ApiMapper.INSTANCE.apiV4SpecToApiV4State(
+                            apiV4Spec,
+                            apiCRDSpec.getId(),
+                            apiCRDSpec.getCrossId(),
+                            executionContext.getOrganizationId(),
+                            executionContext.getEnvironmentId()))
+                    .build();
         } catch (ApiNotFoundException e) {
             log.warn("API not found for HRID: {}, operation: getApiByHRID", apiHrid, e);
             throw new HRIDNotFoundException(apiHrid);
@@ -156,11 +161,14 @@ public class ApiResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE)})
+    public Response deleteApi(
+            @PathParam("apiHrid") String apiHrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var apiId = hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id();
+        var apiId = hridContainsUUID
+                ? apiHrid
+                : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id();
 
         try {
             apiServiceV4.delete(GraviteeContext.getExecutionContext(), apiId, true);
@@ -176,26 +184,20 @@ public class ApiResource extends AbstractResource {
         Map<String, String> pageIDsToHrid = new HashMap<>();
         if (api.getPages() != null) {
             api.getPages().forEach((k, v) -> pageIDsToHrid.put(v.getId(), nameToHRID(v.getName())));
-            api
-                .getPages()
-                .values()
-                .stream()
-                .filter(p -> p.getParentId() != null)
-                .forEach(p -> {
-                    String hrid = pageIDsToHrid.get(p.getParentId());
-                    if (hrid == null) {
-                        log.warn("Could not resolve HRID for parentId={}", p.getParentId());
-                    }
-                    p.setParentHrid(hrid);
-                });
+            api.getPages().values().stream()
+                    .filter(p -> p.getParentId() != null)
+                    .forEach(p -> {
+                        String hrid = pageIDsToHrid.get(p.getParentId());
+                        if (hrid == null) {
+                            log.warn("Could not resolve HRID for parentId={}", p.getParentId());
+                        }
+                        p.setParentHrid(hrid);
+                    });
         }
         if (api.getPlans() != null) {
-            api
-                .getPlans()
-                .values()
-                .stream()
-                .filter(p -> p.getGeneralConditions() != null)
-                .forEach(p -> p.setGeneralConditionsHrid(pageIDsToHrid.get(p.getGeneralConditions())));
+            api.getPlans().values().stream()
+                    .filter(p -> p.getGeneralConditions() != null)
+                    .forEach(p -> p.setGeneralConditionsHrid(pageIDsToHrid.get(p.getGeneralConditions())));
         }
     }
 
@@ -203,22 +205,21 @@ public class ApiResource extends AbstractResource {
         if (apiV4Spec.getGroups() != null && !apiV4Spec.getGroups().isEmpty()) {
             var groups = new ArrayList<>(apiV4Spec.getGroups());
             List<String> notificationGroups = new ArrayList<>();
-            if (apiV4Spec.getConsoleNotification() != null && apiV4Spec.getConsoleNotification().getGroups() != null) {
+            if (apiV4Spec.getConsoleNotification() != null
+                    && apiV4Spec.getConsoleNotification().getGroups() != null) {
                 notificationGroups.addAll(apiV4Spec.getConsoleNotification().getGroups());
             }
             // all groups in notifications are included in API groups
-            groupQueryService
-                .findByNames(environmentId, new LinkedHashSet<>(groups))
-                .stream()
-                .filter(group -> group.getHrid() != null)
-                .forEach(group -> {
-                    groups.set(groups.indexOf(group.getName()), group.getHrid());
-                    // update notification groups if this group is included in notification groups
-                    int index = notificationGroups.indexOf(group.getName());
-                    if (index != -1) {
-                        notificationGroups.set(index, group.getHrid());
-                    }
-                });
+            groupQueryService.findByNames(environmentId, new LinkedHashSet<>(groups)).stream()
+                    .filter(group -> group.getHrid() != null)
+                    .forEach(group -> {
+                        groups.set(groups.indexOf(group.getName()), group.getHrid());
+                        // update notification groups if this group is included in notification groups
+                        int index = notificationGroups.indexOf(group.getName());
+                        if (index != -1) {
+                            notificationGroups.set(index, group.getHrid());
+                        }
+                    });
             apiV4Spec.setGroups(groups);
             if (!notificationGroups.isEmpty()) {
                 apiV4Spec.getConsoleNotification().setGroups(notificationGroups);

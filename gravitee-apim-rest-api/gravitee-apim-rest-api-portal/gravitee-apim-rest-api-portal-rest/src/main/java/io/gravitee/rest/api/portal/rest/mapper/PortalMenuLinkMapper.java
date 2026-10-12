@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import java.util.List;
-import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
@@ -28,16 +27,14 @@ public class PortalMenuLinkMapper {
         if (portalMenuLinks == null) {
             return null;
         }
-        return portalMenuLinks
-            .stream()
-            .map(menuLink ->
-                new io.gravitee.rest.api.portal.rest.model.PortalMenuLink()
-                    .id(menuLink.getId())
-                    .name(menuLink.getName())
-                    .target(menuLink.getTarget())
-                    .type(io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.valueOf(menuLink.getType().name()))
-                    .order(menuLink.getOrder())
-            )
-            .toList();
+        return portalMenuLinks.stream()
+                .map(menuLink -> new io.gravitee.rest.api.portal.rest.model.PortalMenuLink()
+                        .id(menuLink.getId())
+                        .name(menuLink.getName())
+                        .target(menuLink.getTarget())
+                        .type(io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.valueOf(
+                                menuLink.getType().name()))
+                        .order(menuLink.getOrder()))
+                .toList();
     }
 }

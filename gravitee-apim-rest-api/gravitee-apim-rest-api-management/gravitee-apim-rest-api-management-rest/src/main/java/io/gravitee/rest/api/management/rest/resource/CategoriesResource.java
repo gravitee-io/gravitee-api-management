@@ -63,37 +63,35 @@ public class CategoriesResource extends AbstractCategoryResource {
     public List<CategoryEntity> getCategories(@QueryParam("include") List<String> include) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         boolean hasAllPermissions = hasPermission(
-            executionContext,
-            RolePermission.ENVIRONMENT_CATEGORY,
-            executionContext.getEnvironmentId(),
-            RolePermissionAction.UPDATE,
-            RolePermissionAction.CREATE,
-            RolePermissionAction.DELETE
-        );
+                executionContext,
+                RolePermission.ENVIRONMENT_CATEGORY,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.CREATE,
+                RolePermissionAction.DELETE);
 
-        return categoryService
-            .findAll(GraviteeContext.getCurrentEnvironment())
-            .stream()
-            .filter(c -> hasAllPermissions || !c.isHidden())
-            .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
-            // set picture
-            .map(c -> setPictures(c, true))
-            .map(categoryEntity -> {
-                if (include.contains(INCLUDE_TOTAL_APIS)) {
-                    categoryEntity.setTotalApis(
-                        apiService.countByCategoryForUser(executionContext, categoryEntity.getId(), getAuthenticatedUser())
-                    );
-                }
-                return categoryEntity;
-            })
-            .collect(Collectors.toList());
+        return categoryService.findAll(GraviteeContext.getCurrentEnvironment()).stream()
+                .filter(c -> hasAllPermissions || !c.isHidden())
+                .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
+                // set picture
+                .map(c -> setPictures(c, true))
+                .map(categoryEntity -> {
+                    if (include.contains(INCLUDE_TOTAL_APIS)) {
+                        categoryEntity.setTotalApis(apiService.countByCategoryForUser(
+                                executionContext, categoryEntity.getId(), getAuthenticatedUser()));
+                    }
+                    return categoryEntity;
+                })
+                .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a category", description = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
+    @Operation(
+            summary = "Create a category",
+            description = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE)})
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
         try {
             ImageUtils.verify(category.getPicture());
@@ -109,10 +107,9 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update an existing category",
-        description = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service"
-    )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE) })
+            summary = "Update an existing category",
+            description = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)})
     public List<CategoryEntity> updateCategories(@Valid @NotNull final List<UpdateCategoryEntity> categories) {
         return categoryService.update(GraviteeContext.getExecutionContext(), categories);
     }

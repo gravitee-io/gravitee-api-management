@@ -40,7 +40,8 @@ class UriHelperTest {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
 
         parameters.put("foo", List.of("bar"));
-        UriHelper.configureAbsoluteUri(requestOptions, "http://api.gravitee.io/echo?foo=bar1&hello=gravitee", parameters);
+        UriHelper.configureAbsoluteUri(
+                requestOptions, "http://api.gravitee.io/echo?foo=bar1&hello=gravitee", parameters);
 
         assertThat(requestOptions.getURI()).isEqualTo("/echo?foo=bar1&hello=gravitee&foo=bar");
         assertThat(requestOptions.getHost()).isEqualTo("api.gravitee.io");
@@ -54,7 +55,8 @@ class UriHelperTest {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
 
         parameters.put("foo", List.of("bar"));
-        UriHelper.configureAbsoluteUri(requestOptions, "https://api.gravitee.io/echo?foo=bar1&hello=gravitee", parameters);
+        UriHelper.configureAbsoluteUri(
+                requestOptions, "https://api.gravitee.io/echo?foo=bar1&hello=gravitee", parameters);
 
         assertThat(requestOptions.getURI()).isEqualTo("/echo?foo=bar1&hello=gravitee&foo=bar");
         assertThat(requestOptions.getHost()).isEqualTo("api.gravitee.io");

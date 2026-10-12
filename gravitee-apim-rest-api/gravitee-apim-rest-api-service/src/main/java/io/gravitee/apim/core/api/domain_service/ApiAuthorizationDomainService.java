@@ -22,10 +22,9 @@ import java.util.Set;
 
 public interface ApiAuthorizationDomainService {
     Set<String> findIdsByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQueryCriteria apiQueryCriteria,
-        Sortable sortable,
-        boolean manageOnly
-    );
+            ExecutionContext executionContext,
+            String userId,
+            ApiQueryCriteria apiQueryCriteria,
+            Sortable sortable,
+            boolean manageOnly);
 }

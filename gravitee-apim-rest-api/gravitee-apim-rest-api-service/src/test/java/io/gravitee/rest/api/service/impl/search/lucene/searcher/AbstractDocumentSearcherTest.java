@@ -58,7 +58,8 @@ class AbstractDocumentSearcherTest {
             return false;
         }
 
-        public Optional<org.apache.lucene.search.Query> buildFilterQuery(Map<String, Object> filters, Map<String, String> remapFields) {
+        public Optional<org.apache.lucene.search.Query> buildFilterQuery(
+                Map<String, Object> filters, Map<String, String> remapFields) {
             return super.buildFilterQuery(filters, remapFields);
         }
     }
@@ -112,11 +113,16 @@ class AbstractDocumentSearcherTest {
             var query = customSearcher.buildFilterQuery(filters, remapFields).orElseThrow();
 
             // Then
-            Pattern compile = Pattern.compile("(?<outerparenthesis>[^ ]+ [^ ]+) \\+\\((?<inerparenthesis>[^ ]+ [^ ]+)\\)");
+            Pattern compile =
+                    Pattern.compile("(?<outerparenthesis>[^ ]+ [^ ]+) \\+\\((?<inerparenthesis>[^ ]+ [^ ]+)\\)");
             Matcher matcher = compile.matcher(query.toString());
             assertThat(matcher.find()).isTrue();
-            assertThat(matcher.group("outerparenthesis")).contains("+field1_remap:value1").contains("+field2:value2");
-            assertThat(matcher.group("inerparenthesis")).contains("+field1_remap:value1").contains("+field2:value2");
+            assertThat(matcher.group("outerparenthesis"))
+                    .contains("+field1_remap:value1")
+                    .contains("+field2:value2");
+            assertThat(matcher.group("inerparenthesis"))
+                    .contains("+field1_remap:value1")
+                    .contains("+field2:value2");
         }
     }
 }

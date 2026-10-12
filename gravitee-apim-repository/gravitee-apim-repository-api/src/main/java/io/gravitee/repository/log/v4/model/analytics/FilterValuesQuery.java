@@ -21,11 +21,10 @@ import lombok.Builder;
 
 @Builder
 public record FilterValuesQuery(
-    String esFieldName,
-    Long from,
-    Long to,
-    int size,
-    Map<String, Object> afterKey,
-    String searchPattern,
-    Set<String> apiIds
-) {}
+        String esFieldName,
+        Long from,
+        Long to,
+        int size,
+        Map<String, Object> afterKey,
+        String searchPattern,
+        Set<String> apiIds) {}

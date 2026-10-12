@@ -60,24 +60,22 @@ public class ApiMediaResource extends AbstractResource {
 
     @POST
     @Operation(
-        summary = "Create a media for an API",
-        description = "User must have the API_DOCUMENTATION[CREATE] permission to use this service"
-    )
+            summary = "Create a media for an API",
+            description = "User must have the API_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Media successfully created",
-        content = @Content(mediaType = "text/plain", schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Media successfully created",
+            content = @Content(mediaType = "text/plain", schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)})
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces("text/plain")
     public Response uploadApiMediaImage(
-        @FormDataParam("file") InputStream uploadedInputStream,
-        @FormDataParam("file") FormDataContentDisposition fileDetail,
-        @FormDataParam("file") final FormDataBodyPart body
-    ) throws IOException {
+            @FormDataParam("file") InputStream uploadedInputStream,
+            @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("file") final FormDataBodyPart body)
+            throws IOException {
         final String mediaId;
 
         if (fileDetail.getSize() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
@@ -91,9 +89,12 @@ public class ApiMediaResource extends AbstractResource {
             mediaEntity.setFileName(fileDetail.getFileName());
 
             try {
-                ImageUtils.verify(body.getMediaType().getType(), body.getMediaType().getSubtype(), mediaEntity.getData());
+                ImageUtils.verify(
+                        body.getMediaType().getType(), body.getMediaType().getSubtype(), mediaEntity.getData());
             } catch (InvalidImageException e) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Invalid image format")
+                        .build();
             }
 
             mediaId = mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), api, mediaEntity);
@@ -126,24 +127,26 @@ public class ApiMediaResource extends AbstractResource {
             return builder.cacheControl(cc).build();
         }
 
-        return Response.ok(mediaEntity.getData()).type(mediaEntity.getMimeType()).cacheControl(cc).tag(etag).build();
+        return Response.ok(mediaEntity.getData())
+                .type(mediaEntity.getMimeType())
+                .cacheControl(cc)
+                .tag(etag)
+                .build();
     }
 
     @DELETE
     @Path("/{hash}")
     @Operation(
-        summary = "Delete media matching hash and API id",
-        description = "User must have the API_DOCUMENTATION[UPDATE] permission to use this endpoint"
-    )
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+            summary = "Delete media matching hash and API id",
+            description = "User must have the API_DOCUMENTATION[UPDATE] permission to use this endpoint")
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     @ApiResponse(responseCode = "204", description = "Media successfully deleted")
     @ApiResponse(responseCode = "404", description = "Media not found")
     @ApiResponse(responseCode = "403", description = "Unauthorized user")
     @ApiResponse(responseCode = "500", description = "Unexpected error")
     public Response deleteApiMedia(
-        @Context Request request,
-        @PathParam("hash") @ApiParam(name = "hash", value = "The MD5 sum of the media") String hash
-    ) {
+            @Context Request request,
+            @PathParam("hash") @ApiParam(name = "hash", value = "The MD5 sum of the media") String hash) {
         mediaService.deleteByHashAndApi(hash, api);
         return Response.noContent().build();
     }

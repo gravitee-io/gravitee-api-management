@@ -47,13 +47,13 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     public Optional<Role> findApiRole(String name, ReferenceContext referenceContext) {
         try {
             return roleRepository
-                .findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.API,
-                    name,
-                    referenceContext.getReferenceId(),
-                    RoleReferenceType.valueOf(referenceContext.getReferenceType().name())
-                )
-                .map(RoleAdapter.INSTANCE::toEntity);
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.API,
+                            name,
+                            referenceContext.getReferenceId(),
+                            RoleReferenceType.valueOf(
+                                    referenceContext.getReferenceType().name()))
+                    .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find api role", e);
         }
@@ -65,13 +65,9 @@ public class RoleQueryServiceImpl implements RoleQueryService {
             log.debug("Find Roles by scope and name");
 
             return roleRepository
-                .findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.valueOf(scope.name()),
-                    name,
-                    organizationId,
-                    RoleReferenceType.ORGANIZATION
-                )
-                .map(RoleAdapter.INSTANCE::toEntity);
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.valueOf(scope.name()), name, organizationId, RoleReferenceType.ORGANIZATION)
+                    .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find roles by scope", ex);
             throw new TechnicalManagementException("An error occurs while trying to find roles by scope", ex);
@@ -82,13 +78,13 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     public Optional<Role> findApplicationRole(String name, ReferenceContext referenceContext) {
         try {
             return roleRepository
-                .findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.APPLICATION,
-                    name,
-                    referenceContext.getReferenceId(),
-                    RoleReferenceType.valueOf(referenceContext.getReferenceType().name())
-                )
-                .map(RoleAdapter.INSTANCE::toEntity);
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.APPLICATION,
+                            name,
+                            referenceContext.getReferenceId(),
+                            RoleReferenceType.valueOf(
+                                    referenceContext.getReferenceType().name()))
+                    .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find application role", e);
         }
@@ -98,13 +94,13 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     public Optional<Role> findIntegrationRole(String name, ReferenceContext referenceContext) {
         try {
             return roleRepository
-                .findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.INTEGRATION,
-                    name,
-                    referenceContext.getReferenceId(),
-                    RoleReferenceType.valueOf(referenceContext.getReferenceType().name())
-                )
-                .map(RoleAdapter.INSTANCE::toEntity);
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.INTEGRATION,
+                            name,
+                            referenceContext.getReferenceId(),
+                            RoleReferenceType.valueOf(
+                                    referenceContext.getReferenceType().name()))
+                    .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find integration role", e);
         }
@@ -114,13 +110,13 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     public Optional<Role> findApiProductRole(String name, ReferenceContext referenceContext) {
         try {
             return roleRepository
-                .findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.API_PRODUCT,
-                    name,
-                    referenceContext.getReferenceId(),
-                    RoleReferenceType.valueOf(referenceContext.getReferenceType().name())
-                )
-                .map(RoleAdapter.INSTANCE::toEntity);
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.API_PRODUCT,
+                            name,
+                            referenceContext.getReferenceId(),
+                            RoleReferenceType.valueOf(
+                                    referenceContext.getReferenceType().name()))
+                    .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find api product role", e);
         }
@@ -130,13 +126,9 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     public Optional<Role> findByScopeAndNameAndOrganizationId(Role.Scope scope, String name, String organizationId) {
         try {
             return roleRepository
-                .findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.valueOf(scope.name()),
-                    name,
-                    organizationId,
-                    RoleReferenceType.ORGANIZATION
-                )
-                .map(RoleAdapter.INSTANCE::toEntity);
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.valueOf(scope.name()), name, organizationId, RoleReferenceType.ORGANIZATION)
+                    .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find " + scope.name() + " role", e);
         }
@@ -148,7 +140,9 @@ public class RoleQueryServiceImpl implements RoleQueryService {
             return Set.of();
         }
         try {
-            return roleRepository.findAllByIdIn(ids).stream().map(RoleAdapter.INSTANCE::toEntity).collect(Collectors.toSet());
+            return roleRepository.findAllByIdIn(ids).stream()
+                    .map(RoleAdapter.INSTANCE::toEntity)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while trying to find role by list of ids", e);
         }

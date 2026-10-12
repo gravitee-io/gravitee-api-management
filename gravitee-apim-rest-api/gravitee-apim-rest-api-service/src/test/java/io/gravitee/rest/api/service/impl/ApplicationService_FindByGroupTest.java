@@ -61,12 +61,11 @@ public class ApplicationService_FindByGroupTest {
     @Test
     public void shouldTryFindByGroup() throws Exception {
         Set<ApplicationListItem> set = applicationService.findByGroups(
-            GraviteeContext.getExecutionContext(),
-            Collections.singletonList(GROUP_ID)
-        );
+                GraviteeContext.getExecutionContext(), Collections.singletonList(GROUP_ID));
         assertNotNull(set);
         assertTrue(set.isEmpty(), "result is empty");
-        verify(applicationRepository, times(1)).findByGroups(Collections.singletonList(GROUP_ID), ApplicationStatus.ACTIVE);
+        verify(applicationRepository, times(1))
+                .findByGroups(Collections.singletonList(GROUP_ID), ApplicationStatus.ACTIVE);
     }
 
     @Test

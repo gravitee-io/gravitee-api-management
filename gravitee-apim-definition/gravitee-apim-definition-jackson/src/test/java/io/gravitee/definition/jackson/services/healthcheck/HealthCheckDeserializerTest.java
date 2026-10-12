@@ -32,9 +32,7 @@ class HealthCheckDeserializerTest extends AbstractTest {
     @Test
     void testHealthCheckDeserializer() throws IOException {
         HealthCheckService healthCheck = load(
-            "/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck.json",
-            HealthCheckService.class
-        );
+                "/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck.json", HealthCheckService.class);
         assertNotNull(healthCheck);
         assertEquals("*/1 * * * * *", healthCheck.getSchedule());
         assertNotNull(healthCheck.getSteps());
@@ -52,9 +50,8 @@ class HealthCheckDeserializerTest extends AbstractTest {
     @Test
     void testHealthCheckDeserializer_compatMode() throws IOException {
         HealthCheckService healthCheck = load(
-            "/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-compat.json",
-            HealthCheckService.class
-        );
+                "/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-compat.json",
+                HealthCheckService.class);
         assertNotNull(healthCheck);
         assertEquals("*/1 * * * * *", healthCheck.getSchedule());
         assertNotNull(healthCheck.getSteps());

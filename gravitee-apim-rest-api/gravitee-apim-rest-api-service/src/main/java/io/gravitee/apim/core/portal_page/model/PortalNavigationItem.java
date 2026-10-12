@@ -30,7 +30,11 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 public abstract sealed class PortalNavigationItem
-    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi, PortalNavigationApiProduct {
+        permits PortalNavigationPage,
+                PortalNavigationLink,
+                PortalNavigationFolder,
+                PortalNavigationApi,
+                PortalNavigationApiProduct {
 
     @Nonnull
     private final PortalNavigationItemId id;
@@ -87,15 +91,14 @@ public abstract sealed class PortalNavigationItem
     protected AutomationMetadata automationMetadata;
 
     protected PortalNavigationItem(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull Boolean published,
-        @Nonnull PortalVisibility visibility
-    ) {
+            @Nonnull PortalNavigationItemId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String title,
+            @Nonnull PortalArea area,
+            @Nonnull Integer order,
+            @Nonnull Boolean published,
+            @Nonnull PortalVisibility visibility) {
         this.id = id;
         this.organizationId = organizationId;
         this.environmentId = environmentId;
@@ -161,11 +164,10 @@ public abstract sealed class PortalNavigationItem
     }
 
     public static PortalNavigationItem from(
-        CreatePortalNavigationItem item,
-        String organizationId,
-        String environmentId,
-        @Nullable PortalNavigationItemContainer parent
-    ) {
+            CreatePortalNavigationItem item,
+            String organizationId,
+            String environmentId,
+            @Nullable PortalNavigationItemContainer parent) {
         final var id = Optional.ofNullable(item.getId()).orElse(PortalNavigationItemId.random());
         final var title = item.getTitle();
         final var area = item.getArea();
@@ -175,37 +177,44 @@ public abstract sealed class PortalNavigationItem
         final var apiProductId = item.getApiProductId();
         final var categoryIds = item.getCategoryIds();
         final var order = item.getOrder();
-        final var visibility = PortalVisibility.resolve(item.getVisibility(), parent == null ? null : parent.getVisibility());
+        final var visibility =
+                PortalVisibility.resolve(item.getVisibility(), parent == null ? null : parent.getVisibility());
         final var published = null != item.getPublished() ? item.getPublished() : false;
 
         final PortalNavigationItem newItem = switch (item.getType()) {
-            case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order, published, visibility);
-            case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId, published, visibility);
-            case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, published, visibility);
-            case API -> new PortalNavigationApi(
-                id,
-                organizationId,
-                environmentId,
-                title,
-                area,
-                order,
-                apiId,
-                published,
-                visibility,
-                categoryIds
-            );
-            case API_PRODUCT -> new PortalNavigationApiProduct(
-                id,
-                organizationId,
-                environmentId,
-                title,
-                area,
-                order,
-                apiProductId,
-                published,
-                visibility,
-                categoryIds
-            );
+            case FOLDER ->
+                new PortalNavigationFolder(
+                        id, organizationId, environmentId, title, area, order, published, visibility);
+            case PAGE ->
+                new PortalNavigationPage(
+                        id, organizationId, environmentId, title, area, order, contentId, published, visibility);
+            case LINK ->
+                new PortalNavigationLink(
+                        id, organizationId, environmentId, title, area, order, url, published, visibility);
+            case API ->
+                new PortalNavigationApi(
+                        id,
+                        organizationId,
+                        environmentId,
+                        title,
+                        area,
+                        order,
+                        apiId,
+                        published,
+                        visibility,
+                        categoryIds);
+            case API_PRODUCT ->
+                new PortalNavigationApiProduct(
+                        id,
+                        organizationId,
+                        environmentId,
+                        title,
+                        area,
+                        order,
+                        apiProductId,
+                        published,
+                        visibility,
+                        categoryIds);
         };
         newItem.setSegment(segmentFor(item));
         newItem.reference = Objects.requireNonNullElse(item.getReference(), NavigationItemReference.defaultReference());
@@ -228,7 +237,11 @@ public abstract sealed class PortalNavigationItem
     }
 
     private static String segmentFor(UpdatePortalNavigationItem item) {
-        return slugify(item.getSegment() != null ? item.getSegment() : item.getTitle().trim()).value();
+        return slugify(
+                        item.getSegment() != null
+                                ? item.getSegment()
+                                : item.getTitle().trim())
+                .value();
     }
 
     public void update(UpdatePortalNavigationItem navItem) {
@@ -254,12 +267,14 @@ public abstract sealed class PortalNavigationItem
             this.source = null;
             return;
         }
-        var builder = newSource.toBuilder().lastFetchedAt(null).lastFetchAttemptAt(null).lastFetchError(null);
+        var builder = newSource.toBuilder()
+                .lastFetchedAt(null)
+                .lastFetchAttemptAt(null)
+                .lastFetchError(null);
         if (this.source != null && this.source.sameOriginAs(newSource)) {
-            builder
-                .lastFetchedAt(this.source.getLastFetchedAt())
-                .lastFetchAttemptAt(this.source.getLastFetchAttemptAt())
-                .lastFetchError(this.source.getLastFetchError());
+            builder.lastFetchedAt(this.source.getLastFetchedAt())
+                    .lastFetchAttemptAt(this.source.getLastFetchAttemptAt())
+                    .lastFetchError(this.source.getLastFetchError());
         }
         this.source = builder.build();
     }

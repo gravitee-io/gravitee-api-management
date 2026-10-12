@@ -84,11 +84,7 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     }
 
     private void processProtocolHeader(
-        ContainerRequestContext ctx,
-        UriBuilder baseBuilder,
-        UriBuilder requestBuilder,
-        ApiContext apiContext
-    ) {
+            ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
         String protoHeaderValue = getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_PROTO);
         if (protoHeaderValue != null) {
             baseBuilder.scheme(protoHeaderValue);
@@ -100,10 +96,12 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
         }
     }
 
-    private void applyDefaultScheme(ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
+    private void applyDefaultScheme(
+            ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
         String apiUrl = switch (apiContext) {
             case PORTAL -> installationAccessQueryService.getPortalAPIUrl(GraviteeContext.getDefaultEnvironment());
-            case MANAGEMENT -> installationAccessQueryService.getConsoleAPIUrl(GraviteeContext.getDefaultOrganization());
+            case MANAGEMENT ->
+                installationAccessQueryService.getConsoleAPIUrl(GraviteeContext.getDefaultOrganization());
             case GAMMA -> installationAccessQueryService.getGammaAPIUrl(GraviteeContext.getDefaultOrganization());
             default -> null;
         };
@@ -124,22 +122,23 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     }
 
     private boolean processHostHeader(
-        ContainerRequestContext ctx,
-        UriBuilder baseBuilder,
-        UriBuilder requestBuilder,
-        ApiContext apiContext
-    ) {
-        // Check for X-Original-Forwarded-Host first (used in multi-proxy scenarios to preserve the original client host)
+            ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
+        // Check for X-Original-Forwarded-Host first (used in multi-proxy scenarios to preserve the original client
+        // host)
         String originalHostHeaderValue = getFirstHeaderValueOrNull(ctx, X_ORIGINAL_FORWARDED_HOST);
         boolean usedOriginalHost = originalHostHeaderValue != null;
 
         // Fall back to X-Forwarded-Host if X-Original-Forwarded-Host is not present
-        String hostHeaderValue = usedOriginalHost ? originalHostHeaderValue : getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_HOST);
+        String hostHeaderValue = usedOriginalHost
+                ? originalHostHeaderValue
+                : getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_HOST);
 
         if (hostHeaderValue != null) {
             // Split the header value in case of multiple entries (e.g., localhost,localhost)
             int commaIndex = hostHeaderValue.indexOf(',');
-            String effectiveHost = commaIndex == -1 ? hostHeaderValue : hostHeaderValue.substring(0, commaIndex).trim(); // Use the first host in the chain
+            String effectiveHost = commaIndex == -1
+                    ? hostHeaderValue
+                    : hostHeaderValue.substring(0, commaIndex).trim(); // Use the first host in the chain
 
             if (effectiveHost.contains(":")) {
                 int lastColonIdx = effectiveHost.lastIndexOf(':');
@@ -161,10 +160,12 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
         return usedOriginalHost;
     }
 
-    private void applyDefaultHost(ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
+    private void applyDefaultHost(
+            ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
         String apiUrl = switch (apiContext) {
             case PORTAL -> installationAccessQueryService.getPortalAPIUrl(GraviteeContext.getDefaultEnvironment());
-            case MANAGEMENT -> installationAccessQueryService.getConsoleAPIUrl(GraviteeContext.getDefaultOrganization());
+            case MANAGEMENT ->
+                installationAccessQueryService.getConsoleAPIUrl(GraviteeContext.getDefaultOrganization());
             case GAMMA -> installationAccessQueryService.getGammaAPIUrl(GraviteeContext.getDefaultOrganization());
             default -> null;
         };
@@ -194,12 +195,9 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     }
 
     private void processPortHeader(
-        ContainerRequestContext ctx,
-        UriBuilder baseBuilder,
-        UriBuilder requestBuilder,
-        boolean usedOriginalHost
-    ) {
-        // If we used X-Original-Forwarded-Host, we should NOT use X-Forwarded-Port because they're from different proxy hops
+            ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, boolean usedOriginalHost) {
+        // If we used X-Original-Forwarded-Host, we should NOT use X-Forwarded-Port because they're from different proxy
+        // hops
         // Only use X-Forwarded-Port if we used X-Forwarded-Host (same proxy level)
         if (!usedOriginalHost) {
             String portHeaderValue = getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_PORT);
@@ -218,11 +216,7 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     }
 
     private void processPrefixHeader(
-        ContainerRequestContext ctx,
-        UriBuilder baseBuilder,
-        UriBuilder requestBuilder,
-        ApiContext apiContext
-    ) {
+            ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
         String prefixHeaderValue = getFirstHeaderValueOrNull(ctx, HttpHeaders.X_FORWARDED_PREFIX);
 
         if (prefixHeaderValue != null && !prefixHeaderValue.isEmpty()) {
@@ -230,12 +224,11 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
             String currentPath = baseBuilder.build().getPath();
             String currentRequestPath = requestBuilder.build().getPath();
             updatePaths(
-                ctx,
-                baseBuilder,
-                requestBuilder,
-                joinPaths(prefixHeaderValue, currentPath),
-                joinPaths(prefixHeaderValue, currentRequestPath)
-            );
+                    ctx,
+                    baseBuilder,
+                    requestBuilder,
+                    joinPaths(prefixHeaderValue, currentPath),
+                    joinPaths(prefixHeaderValue, currentRequestPath));
         } else if (installationAccessQueryService != null && apiContext != ApiContext.UNKNOWN) {
             // No header - replace local path prefix with configured proxy path
             applyProxyPathReplacement(ctx, baseBuilder, requestBuilder, apiContext);
@@ -243,11 +236,7 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     }
 
     private void applyProxyPathReplacement(
-        ContainerRequestContext ctx,
-        UriBuilder baseBuilder,
-        UriBuilder requestBuilder,
-        ApiContext apiContext
-    ) {
+            ContainerRequestContext ctx, UriBuilder baseBuilder, UriBuilder requestBuilder, ApiContext apiContext) {
         String localPrefix = switch (apiContext) {
             case PORTAL -> LOCAL_PORTAL_PREFIX;
             case MANAGEMENT -> LOCAL_MANAGEMENT_PREFIX;
@@ -295,8 +284,10 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
      * Removes trailing slash from prefix and ensures suffix starts with a slash.
      */
     private String joinPaths(String prefix, String suffix) {
-        String normalizedPrefix = prefix != null && prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
-        String normalizedSuffix = suffix != null && !suffix.isEmpty() && !suffix.startsWith("/") ? "/" + suffix : suffix;
+        String normalizedPrefix =
+                prefix != null && prefix.endsWith("/") ? prefix.substring(0, prefix.length() - 1) : prefix;
+        String normalizedSuffix =
+                suffix != null && !suffix.isEmpty() && !suffix.startsWith("/") ? "/" + suffix : suffix;
         return (normalizedPrefix != null ? normalizedPrefix : "") + (normalizedSuffix != null ? normalizedSuffix : "");
     }
 
@@ -304,12 +295,11 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
      * Updates the path in both builders and sets the request URI.
      */
     private void updatePaths(
-        ContainerRequestContext ctx,
-        UriBuilder baseBuilder,
-        UriBuilder requestBuilder,
-        String basePath,
-        String requestPath
-    ) {
+            ContainerRequestContext ctx,
+            UriBuilder baseBuilder,
+            UriBuilder requestBuilder,
+            String basePath,
+            String requestPath) {
         baseBuilder.replacePath(basePath);
         requestBuilder.replacePath(requestPath);
         ctx.setRequestUri(baseBuilder.build(), requestBuilder.build());

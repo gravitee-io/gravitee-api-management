@@ -75,16 +75,15 @@ public class MigrateApiUseCase {
 
     @Inject
     public MigrateApiUseCase(
-        ApiCrudService apiCrudService,
-        AuditDomainService auditService,
-        ApiIndexerDomainService apiIndexerDomainService,
-        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        PlanCrudService planService,
-        FlowCrudService flowCrudService,
-        ApiStateDomainService apiStateService,
-        JsonMapper jsonMapper,
-        PageQueryService pageQueryService
-    ) {
+            ApiCrudService apiCrudService,
+            AuditDomainService auditService,
+            ApiIndexerDomainService apiIndexerDomainService,
+            ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
+            PlanCrudService planService,
+            FlowCrudService flowCrudService,
+            ApiStateDomainService apiStateService,
+            JsonMapper jsonMapper,
+            PageQueryService pageQueryService) {
         this.apiCrudService = apiCrudService;
         this.auditService = auditService;
         this.apiIndexerDomainService = apiIndexerDomainService;
@@ -104,15 +103,16 @@ public class MigrateApiUseCase {
         } else {
             // Fatal issue, we don’t try to do anything in this case
             return new Output(
-                input.apiId(),
-                List.of(new MigrationResult.Issue(MigrationWarnings.API_NOT_V2_DEFINITION, MigrationResult.State.IMPOSSIBLE))
-            );
+                    input.apiId(),
+                    List.of(new MigrationResult.Issue(
+                            MigrationWarnings.API_NOT_V2_DEFINITION, MigrationResult.State.IMPOSSIBLE)));
         }
         MigrationResult<?> precondition = chekPreconditions(input, api, apiDefinition);
         var pageEntities = pageQueryService.searchByApiId(input.apiId());
         precondition = precondition.addIssues(checkPages(pageEntities));
         // Migration
-        var migrationResult = precondition.flatMap(ignored -> migrationOperator.mapApi(api)).map(Migration::new);
+        var migrationResult =
+                precondition.flatMap(ignored -> migrationOperator.mapApi(api)).map(Migration::new);
 
         var plans = planService.findByApiId(input.apiId());
         for (var plan : plans) {
@@ -122,13 +122,16 @@ public class MigrateApiUseCase {
 
         var apiV2Flows = flowCrudService.getApiV2Flows(input.apiId());
         MigrationResult<Migration.ReferencedFlow> result = migrationOperator
-            .mapFlows(apiV2Flows)
-            .map(flows -> new Migration.ReferencedFlow.Api(input.apiId(), flows));
+                .mapFlows(apiV2Flows)
+                .map(flows -> new Migration.ReferencedFlow.Api(input.apiId(), flows));
         migrationResult = migrationResult.foldLeft(result, Migration::withFlow);
 
-        for (String planId : stream(plans).map(io.gravitee.apim.core.plan.model.Plan::getId).toList()) {
+        for (String planId :
+                stream(plans).map(io.gravitee.apim.core.plan.model.Plan::getId).toList()) {
             var planV2Flows = flowCrudService.getPlanV2Flows(planId);
-            result = migrationOperator.mapFlows(planV2Flows).map(flows -> new Migration.ReferencedFlow.Plan(planId, flows));
+            result = migrationOperator
+                    .mapFlows(planV2Flows)
+                    .map(flows -> new Migration.ReferencedFlow.Plan(planId, flows));
             migrationResult = migrationResult.foldLeft(result, Migration::withFlow);
         }
 
@@ -148,11 +151,14 @@ public class MigrateApiUseCase {
         return precondition;
     }
 
-    private <T> MigrationResult.State applyMigration(MigrationResult<T> result, Input.UpgradeMode mode, Consumer<T> consumer) {
+    private <T> MigrationResult.State applyMigration(
+            MigrationResult<T> result, Input.UpgradeMode mode, Consumer<T> consumer) {
         if (mode == Input.UpgradeMode.DRY_RUN) {
             return result.state();
         }
-        var acceptableLimit = mode == Input.UpgradeMode.FORCE ? MigrationResult.State.CAN_BE_FORCED : MigrationResult.State.MIGRATABLE;
+        var acceptableLimit = mode == Input.UpgradeMode.FORCE
+                ? MigrationResult.State.CAN_BE_FORCED
+                : MigrationResult.State.MIGRATABLE;
         if (result.state().getWeight() <= acceptableLimit.getWeight()) {
             result.processValue(consumer);
             return MigrationResult.State.MIGRATED;
@@ -169,19 +175,28 @@ public class MigrateApiUseCase {
         @Nullable
         public static Migration withPlan(@Nullable Migration migration, Plan plan) {
             return migration == null
-                ? null
-                : new Migration(migration.api, Stream.concat(migration.plans.stream(), Stream.of(plan)).toList(), migration.flows);
+                    ? null
+                    : new Migration(
+                            migration.api,
+                            Stream.concat(migration.plans.stream(), Stream.of(plan))
+                                    .toList(),
+                            migration.flows);
         }
 
         @Nullable
         public static Migration withFlow(@Nullable Migration migration, ReferencedFlow flow) {
             return migration == null
-                ? null
-                : new Migration(migration.api, migration.plans, Stream.concat(migration.flows.stream(), Stream.of(flow)).toList());
+                    ? null
+                    : new Migration(
+                            migration.api,
+                            migration.plans,
+                            Stream.concat(migration.flows.stream(), Stream.of(flow))
+                                    .toList());
         }
 
         public sealed interface ReferencedFlow {
             String id();
+
             List<Flow> flows();
 
             record Api(String id, List<Flow> flows) implements ReferencedFlow {}
@@ -198,14 +213,17 @@ public class MigrateApiUseCase {
     }
 
     public record Output(String apiId, Collection<MigrationResult.Issue> issues, MigrationResult.State state) {
-        private static final Comparator<MigrationResult.State> STATE_COMPARATOR = Comparator.comparing(MigrationResult.State::getWeight);
+        private static final Comparator<MigrationResult.State> STATE_COMPARATOR =
+                Comparator.comparing(MigrationResult.State::getWeight);
 
         public Output(String apiId, Collection<MigrationResult.Issue> issues) {
             this(
-                apiId,
-                issues,
-                stream(issues).map(MigrationResult.Issue::state).max(STATE_COMPARATOR).orElse(MigrationResult.State.MIGRATABLE)
-            );
+                    apiId,
+                    issues,
+                    stream(issues)
+                            .map(MigrationResult.Issue::state)
+                            .max(STATE_COMPARATOR)
+                            .orElse(MigrationResult.State.MIGRATABLE));
         }
     }
 
@@ -215,57 +233,54 @@ public class MigrateApiUseCase {
         for (Page page : pageEntities) {
             if (page.getType() == Page.Type.TRANSLATION) {
                 String pageName = pagesById.get(page.getParentId()).getName();
-                issues.add(new MigrationResult.Issue(MigrationWarnings.DOC_WITH_TRANSLATIONS.formatted(pageName), IMPOSSIBLE));
+                issues.add(new MigrationResult.Issue(
+                        MigrationWarnings.DOC_WITH_TRANSLATIONS.formatted(pageName), IMPOSSIBLE));
             }
             if (isNotEmpty(page.getAccessControls())) {
-                issues.add(new MigrationResult.Issue(MigrationWarnings.DOC_WITH_ACCESS_CONTROL.formatted(page.getName()), IMPOSSIBLE));
+                issues.add(new MigrationResult.Issue(
+                        MigrationWarnings.DOC_WITH_ACCESS_CONTROL.formatted(page.getName()), IMPOSSIBLE));
             }
             if (isNotEmpty(page.getAttachedMedia())) {
-                issues.add(new MigrationResult.Issue(MigrationWarnings.DOC_WITH_ATTACHED_RESOURCES.formatted(page.getName()), IMPOSSIBLE));
+                issues.add(new MigrationResult.Issue(
+                        MigrationWarnings.DOC_WITH_ATTACHED_RESOURCES.formatted(page.getName()), IMPOSSIBLE));
             }
         }
         return issues;
     }
 
     private void storeMigration(Input input, Migration migration, Api api) {
-        if (
-            migration.api().getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4 &&
-            v4.getServices() != null &&
-            v4.getServices().getDynamicProperty() != null &&
-            v4.getServices().getDynamicProperty().isEnabled()
-        ) {
+        if (migration.api().getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4
+                && v4.getServices() != null
+                && v4.getServices().getDynamicProperty() != null
+                && v4.getServices().getDynamicProperty().isEnabled()) {
             apiStateService.stopV2DynamicProperties(input.apiId());
         }
         var upgraded = apiCrudService.update(migration.api());
-        if (
-            migration.api().getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4 &&
-            v4.getServices() != null &&
-            v4.getServices().getDynamicProperty() != null &&
-            v4.getServices().getDynamicProperty().isEnabled()
-        ) {
+        if (migration.api().getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4
+                && v4.getServices() != null
+                && v4.getServices().getDynamicProperty() != null
+                && v4.getServices().getDynamicProperty().isEnabled()) {
             apiStateService.startV4DynamicProperties(input.apiId());
         }
-        var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
+        var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(
+                input.auditInfo().organizationId(), input.apiId());
 
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .event(ApiAuditEvent.API_UPDATED)
-                .actor(AuditActor.builder().userId(input.auditInfo().actor().userId()).build())
+                .actor(AuditActor.builder()
+                        .userId(input.auditInfo().actor().userId())
+                        .build())
                 .apiId(input.apiId())
                 .environmentId(input.auditInfo().environmentId())
                 .organizationId(input.auditInfo().organizationId())
                 .createdAt(TimeProvider.now())
                 .oldValue(api)
                 .newValue(upgraded)
-                .properties(
-                    EncryptedPropertyAuditMarker.mark(
+                .properties(EncryptedPropertyAuditMarker.mark(
                         Map.of(AuditProperties.API, input.apiId()),
                         api.getApiDefinitionValue(),
-                        upgraded.getApiDefinitionValue()
-                    )
-                )
-                .build()
-        );
+                        upgraded.getApiDefinitionValue()))
+                .build());
         var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
         apiIndexerDomainService.index(indexerContext, upgraded, apiPrimaryOwner);
         // Plans
@@ -273,8 +288,10 @@ public class MigrateApiUseCase {
 
         for (var a : migration.flows()) {
             switch (a) {
-                case Migration.ReferencedFlow.Plan planFlows -> flowCrudService.savePlanFlows(planFlows.id(), planFlows.flows());
-                case Migration.ReferencedFlow.Api apiFlows -> flowCrudService.saveApiFlows(apiFlows.id(), apiFlows.flows());
+                case Migration.ReferencedFlow.Plan planFlows ->
+                    flowCrudService.savePlanFlows(planFlows.id(), planFlows.flows());
+                case Migration.ReferencedFlow.Api apiFlows ->
+                    flowCrudService.saveApiFlows(apiFlows.id(), apiFlows.flows());
             }
         }
     }

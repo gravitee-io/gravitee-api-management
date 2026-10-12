@@ -62,61 +62,62 @@ class DeleteTargetTokenCommandHandlerTest {
     void should_delete_user() {
         command = new DeleteTargetTokenCommand(generatePayload());
 
-        when(userService.findBySource(ORGANISATION_ID, CLOUD_TOKEN_SOURCE, COMMAND_ID, false)).thenReturn(user);
+        when(userService.findBySource(ORGANISATION_ID, CLOUD_TOKEN_SOURCE, COMMAND_ID, false))
+                .thenReturn(user);
 
         deleteTargetTokenCommandHandler
-            .handle(command)
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> nonNull(reply.getCommandId()))
-            .assertValue(reply -> CommandStatus.SUCCEEDED.equals(reply.getCommandStatus()));
+                .handle(command)
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> nonNull(reply.getCommandId()))
+                .assertValue(reply -> CommandStatus.SUCCEEDED.equals(reply.getCommandStatus()));
     }
 
     @Test
     void should_not_failed_if_user_not_found() {
         command = new DeleteTargetTokenCommand(generatePayload());
 
-        when(userService.findBySource(ORGANISATION_ID, CLOUD_TOKEN_SOURCE, COMMAND_ID, false)).thenThrow(
-            new UserNotFoundException(user.getId())
-        );
+        when(userService.findBySource(ORGANISATION_ID, CLOUD_TOKEN_SOURCE, COMMAND_ID, false))
+                .thenThrow(new UserNotFoundException(user.getId()));
 
         deleteTargetTokenCommandHandler
-            .handle(command)
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> nonNull(reply.getCommandId()))
-            .assertValue(reply -> CommandStatus.SUCCEEDED.equals(reply.getCommandStatus()));
+                .handle(command)
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> nonNull(reply.getCommandId()))
+                .assertValue(reply -> CommandStatus.SUCCEEDED.equals(reply.getCommandStatus()));
     }
 
     @Test
     void should_failed_if_error_when_delete_user() {
         command = new DeleteTargetTokenCommand(generatePayload());
 
-        when(userService.findBySource(ORGANISATION_ID, CLOUD_TOKEN_SOURCE, COMMAND_ID, false)).thenReturn(user);
+        when(userService.findBySource(ORGANISATION_ID, CLOUD_TOKEN_SOURCE, COMMAND_ID, false))
+                .thenReturn(user);
         doThrow(new RuntimeException("Error during deletion"))
-            .when(userService)
-            .delete(new ExecutionContext(ORGANISATION_ID, ENVIRONMENT_ID), user.getId());
+                .when(userService)
+                .delete(new ExecutionContext(ORGANISATION_ID, ENVIRONMENT_ID), user.getId());
 
         deleteTargetTokenCommandHandler
-            .handle(command)
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> nonNull(reply.getCommandId()))
-            .assertValue(reply -> CommandStatus.ERROR.equals(reply.getCommandStatus()))
-            .assertValue(reply -> "Error during deletion".equals(reply.getErrorDetails()));
+                .handle(command)
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> nonNull(reply.getCommandId()))
+                .assertValue(reply -> CommandStatus.ERROR.equals(reply.getCommandStatus()))
+                .assertValue(reply -> "Error during deletion".equals(reply.getErrorDetails()));
     }
 
     private static DeleteTargetTokenCommandPayload generatePayload() {
         return DeleteTargetTokenCommandPayload.builder()
-            .organizationId(ORGANISATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .id(COMMAND_ID)
-            .build();
+                .organizationId(ORGANISATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .id(COMMAND_ID)
+                .build();
     }
 }

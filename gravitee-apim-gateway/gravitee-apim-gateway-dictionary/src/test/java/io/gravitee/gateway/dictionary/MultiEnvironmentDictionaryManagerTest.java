@@ -40,10 +40,7 @@ class MultiEnvironmentDictionaryManagerTest {
     private static final String OTHER_ENV = "OTHER";
 
     private static final DataEncryptor DATA_ENCRYPTOR = new DataEncryptor(
-        new StandardEnvironment(),
-        "api.properties.encryption.secret",
-        "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6"
-    );
+            new StandardEnvironment(), "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
 
     private MultiEnvironmentDictionaryManager cut;
 
@@ -159,12 +156,14 @@ class MultiEnvironmentDictionaryManagerTest {
 
         @Test
         void should_resolve_a_decrypted_value_through_the_dictionaries_el_variable() throws GeneralSecurityException {
-            cut.deploy(dictionary(Map.of("MY_PROP", new DictionaryProperty(DATA_ENCRYPTOR.encrypt("s3cr3t-api-key"), true))));
+            cut.deploy(dictionary(
+                    Map.of("MY_PROP", new DictionaryProperty(DATA_ENCRYPTOR.encrypt("s3cr3t-api-key"), true))));
 
             TemplateEngine engine = TemplateEngine.templateEngine();
             new EnvironmentDictionaryTemplateVariableProvider(ENV, cut).provide(engine.getTemplateContext());
 
-            assertThat(engine.getValue("{#dictionaries['idp-server-details']['MY_PROP']}", String.class)).isEqualTo("s3cr3t-api-key");
+            assertThat(engine.getValue("{#dictionaries['idp-server-details']['MY_PROP']}", String.class))
+                    .isEqualTo("s3cr3t-api-key");
         }
 
         @Test
@@ -176,11 +175,9 @@ class MultiEnvironmentDictionaryManagerTest {
 
             cut.deploy(dictionary(properties));
 
-            assertThat(cut.getDictionaries(ENV).get("idp-server-details")).containsOnly(
-                entry("MY_PROP", "s3cr3t-api-key"),
-                entry("BROKEN", "***"),
-                entry("PLAIN", "not-a-secret")
-            );
+            assertThat(cut.getDictionaries(ENV).get("idp-server-details"))
+                    .containsOnly(
+                            entry("MY_PROP", "s3cr3t-api-key"), entry("BROKEN", "***"), entry("PLAIN", "not-a-secret"));
         }
     }
 
@@ -243,7 +240,8 @@ class MultiEnvironmentDictionaryManagerTest {
         return dictionary;
     }
 
-    private static Dictionary dictionary(String id, String key, String environmentId, String propertyValue, long deployedAt) {
+    private static Dictionary dictionary(
+            String id, String key, String environmentId, String propertyValue, long deployedAt) {
         Dictionary dictionary = new Dictionary();
         dictionary.setId(id);
         dictionary.setKey(key);

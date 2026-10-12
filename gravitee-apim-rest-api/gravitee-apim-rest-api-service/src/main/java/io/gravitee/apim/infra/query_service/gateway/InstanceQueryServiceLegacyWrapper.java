@@ -36,7 +36,8 @@ public class InstanceQueryServiceLegacyWrapper implements InstanceQueryService {
 
     @Override
     public List<Instance> findAllStarted(String organizationId, String environmentId) {
-        return InstanceAdapter.INSTANCE.fromEntities(instanceService.findAllStarted(new ExecutionContext(organizationId, environmentId)));
+        return InstanceAdapter.INSTANCE.fromEntities(
+                instanceService.findAllStarted(new ExecutionContext(organizationId, environmentId)));
     }
 
     @Override
@@ -46,15 +47,14 @@ public class InstanceQueryServiceLegacyWrapper implements InstanceQueryService {
 
     @Override
     public List<BaseInstance> findByIds(ExecutionContext executionContext, Collection<String> instanceIds) {
-        return instanceIds
-            .stream()
-            .flatMap(id -> {
-                try {
-                    return Stream.of(findById(executionContext, id));
-                } catch (InstanceNotFoundException e) {
-                    return Stream.empty();
-                }
-            })
-            .toList();
+        return instanceIds.stream()
+                .flatMap(id -> {
+                    try {
+                        return Stream.of(findById(executionContext, id));
+                    } catch (InstanceNotFoundException e) {
+                        return Stream.empty();
+                    }
+                })
+                .toList();
     }
 }

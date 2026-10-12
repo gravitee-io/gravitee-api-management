@@ -37,14 +37,18 @@ import org.junit.jupiter.api.Test;
 class PortalDocumentationMapperTest {
 
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1");
-    private static final AuditInfo AUDIT = AuditInfo.builder().organizationId("organization-id").environmentId("environment-id").build();
+    private static final AuditInfo AUDIT = AuditInfo.builder()
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .build();
 
     @Test
     void put_state_includes_severe_and_warning_errors() {
         var spec = aSpec();
         var errors = List.of(Validator.Error.severe("boom"), Validator.Error.warning("careful"));
 
-        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(spec, DOC_ID.toString(), errors, AUDIT, "default-portal");
+        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
+                spec, DOC_ID.toString(), errors, AUDIT, "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getErrors()).isNotNull();
@@ -55,21 +59,24 @@ class PortalDocumentationMapperTest {
 
     @Test
     void put_state_returns_null_errors_when_list_is_empty() {
-        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(aSpec(), DOC_ID.toString(), List.of(), AUDIT, "default-portal");
+        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
+                aSpec(), DOC_ID.toString(), List.of(), AUDIT, "default-portal");
 
         assertThat(state.getErrors()).isNull();
     }
 
     @Test
     void put_state_returns_null_errors_when_list_is_null() {
-        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(aSpec(), DOC_ID.toString(), null, AUDIT, "default-portal");
+        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
+                aSpec(), DOC_ID.toString(), null, AUDIT, "default-portal");
 
         assertThat(state.getErrors()).isNull();
     }
 
     @Test
     void put_state_emits_null_id_when_use_case_did_not_produce_one() {
-        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(aSpec(), null, List.of(), AUDIT, "default-portal");
+        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
+                aSpec(), null, List.of(), AUDIT, "default-portal");
 
         assertThat(state.getId()).isNull();
     }
@@ -77,27 +84,24 @@ class PortalDocumentationMapperTest {
     @Test
     void get_state_copies_persisted_entity_fields() {
         var pageContent = new OpenApiPageContent(
-            DOC_ID,
-            "organization-id",
-            "environment-id",
-            OpenApi.of("openapi: 3.0.0"),
-            new RedocConfiguration(),
-            new AutomationMetadata(
-                AutomationMetadata.ReferenceType.PORTAL,
-                "portal-id",
-                "Getting Started",
-                Optional.of("/projects/alpha"),
-                Optional.of(7)
-            )
-        );
+                DOC_ID,
+                "organization-id",
+                "environment-id",
+                OpenApi.of("openapi: 3.0.0"),
+                new RedocConfiguration(),
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        "portal-id",
+                        "Getting Started",
+                        Optional.of("/projects/alpha"),
+                        Optional.of(7)));
 
         var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
-            pageContent,
-            io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR,
-            null,
-            "getting-started",
-            "default-portal"
-        );
+                pageContent,
+                io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR,
+                null,
+                "getting-started",
+                "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getId()).isEqualTo(DOC_ID.toString());
@@ -131,23 +135,21 @@ class PortalDocumentationMapperTest {
     void wire_visibility_round_trips_through_domain() {
         SoftAssertions.assertSoftly(soft -> {
             var publicDomain = PortalDocumentationMapper.INSTANCE.toDomainVisibility(
-                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
-            );
+                    io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
             soft.assertThat(publicDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
-            soft
-                .assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(publicDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+            soft.assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(publicDomain))
+                    .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
 
             var privateDomain = PortalDocumentationMapper.INSTANCE.toDomainVisibility(
-                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
-            );
+                    io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
             soft.assertThat(privateDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
-            soft
-                .assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(privateDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+            soft.assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(privateDomain))
+                    .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
 
-            soft.assertThat(PortalDocumentationMapper.INSTANCE.toDomainVisibility(null)).isNull();
-            soft.assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(null)).isNull();
+            soft.assertThat(PortalDocumentationMapper.INSTANCE.toDomainVisibility(null))
+                    .isNull();
+            soft.assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(null))
+                    .isNull();
         });
     }
 

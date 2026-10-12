@@ -21,7 +21,10 @@ import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGrou
 import org.springframework.data.domain.PageRequest;
 
 public interface SharedPolicyGroupHistoryMongoRepositoryCustom {
-    Page<SharedPolicyGroupHistoryMongo> search(SharedPolicyGroupHistoryCriteria sharedPolicyGroupHistoryCriteria, PageRequest pageRequest);
+    Page<SharedPolicyGroupHistoryMongo> search(
+            SharedPolicyGroupHistoryCriteria sharedPolicyGroupHistoryCriteria, PageRequest pageRequest);
+
     Page<SharedPolicyGroupHistoryMongo> searchLatestBySharedPolicyGroupId(String environmentId, int page, int size);
+
     void deleteBySharedPolicyGroupId(String sharedPolicyGroupId);
 }

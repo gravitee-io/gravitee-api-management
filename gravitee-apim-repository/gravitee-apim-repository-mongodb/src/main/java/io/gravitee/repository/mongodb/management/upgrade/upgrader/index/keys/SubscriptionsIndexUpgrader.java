@@ -28,9 +28,9 @@ public class SubscriptionsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("keys")
-            .name("s1")
-            .key("subscriptions", ascending())
-            .build();
+                .collection("keys")
+                .name("s1")
+                .key("subscriptions", ascending())
+                .build();
     }
 }

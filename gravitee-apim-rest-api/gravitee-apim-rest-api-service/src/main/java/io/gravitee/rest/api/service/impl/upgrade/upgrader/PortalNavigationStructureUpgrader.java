@@ -44,7 +44,8 @@ public class PortalNavigationStructureUpgrader implements Upgrader {
     private final EnvironmentRepository environmentRepository;
     private final PortalRepository portalRepository;
 
-    public PortalNavigationStructureUpgrader(@Lazy EnvironmentRepository environmentRepository, @Lazy PortalRepository portalRepository) {
+    public PortalNavigationStructureUpgrader(
+            @Lazy EnvironmentRepository environmentRepository, @Lazy PortalRepository portalRepository) {
         this.environmentRepository = environmentRepository;
         this.portalRepository = portalRepository;
     }

@@ -46,22 +46,22 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
     }
 
     private List<Flow> buildFlows() {
-        return flowPaths
-            .stream()
-            .map(path -> {
-                Flow flow = new Flow();
-                PathOperator pathOperator = new PathOperator();
-                pathOperator.setPath(path);
-                // No need to test different operator in this test.
-                // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
-                pathOperator.setOperator(operator);
-                flow.setPathOperator(pathOperator);
-                return flow;
-            })
-            .collect(Collectors.toList());
+        return flowPaths.stream()
+                .map(path -> {
+                    Flow flow = new Flow();
+                    PathOperator pathOperator = new PathOperator();
+                    pathOperator.setPath(path);
+                    // No need to test different operator in this test.
+                    // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
+                    pathOperator.setOperator(operator);
+                    flow.setPathOperator(pathOperator);
+                    return flow;
+                })
+                .collect(Collectors.toList());
     }
 
-    protected static class TestFlowResolver extends ConditionalFlowResolver implements FlowResolver<BaseExecutionContext> {
+    protected static class TestFlowResolver extends ConditionalFlowResolver
+            implements FlowResolver<BaseExecutionContext> {
 
         private final List<Flow> flows;
 
@@ -82,7 +82,8 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
         @Override
         public Flowable<Flow> resolve(BaseExecutionContext ctx) {
-            return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((HttpPlainExecutionContext) ctx)));
+            return Flowable.fromIterable(
+                    super.resolve(ExecutionContextAdapter.create((HttpPlainExecutionContext) ctx)));
         }
     }
 }

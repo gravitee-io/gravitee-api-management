@@ -59,28 +59,28 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
         this.licenseManager = licenseManager;
 
         eventManager.subscribeForEvents(
-            event -> {
-                if (!(event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent)) {
-                    return;
-                }
-                if (!(secretDiscoveryEvent.definition() instanceof Definition definition)) {
-                    return;
-                }
-                if (!SHARED_POLICY_GROUP_DEFINITION_KIND.equals(definition.kind())) {
-                    return;
-                }
-                ReactableSharedPolicyGroup spg = sharedPolicyGroups.get(
-                    new SharedPolicyGroupKey(definition.id(), secretDiscoveryEvent.envId())
-                );
-                if (spg == null) {
-                    log.trace("Received SecretDiscoveryEvent for Shared Policy Group {}, but not found in manager", definition.id());
-                    return;
-                }
-                log.info("Secret value changed for Shared Policy Group {}, updating it", definition.id());
-                eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, spg);
-            },
-            SecretDiscoveryEventType.VALUE_CHANGED
-        );
+                event -> {
+                    if (!(event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent)) {
+                        return;
+                    }
+                    if (!(secretDiscoveryEvent.definition() instanceof Definition definition)) {
+                        return;
+                    }
+                    if (!SHARED_POLICY_GROUP_DEFINITION_KIND.equals(definition.kind())) {
+                        return;
+                    }
+                    ReactableSharedPolicyGroup spg = sharedPolicyGroups.get(
+                            new SharedPolicyGroupKey(definition.id(), secretDiscoveryEvent.envId()));
+                    if (spg == null) {
+                        log.trace(
+                                "Received SecretDiscoveryEvent for Shared Policy Group {}, but not found in manager",
+                                definition.id());
+                        return;
+                    }
+                    log.info("Secret value changed for Shared Policy Group {}, updating it", definition.id());
+                    eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, spg);
+                },
+                SecretDiscoveryEventType.VALUE_CHANGED);
     }
 
     @Override
@@ -95,11 +95,9 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
 
     @Override
     public void unregisterAll(String sharedPolicyGroupId) {
-        List<SharedPolicyGroupKey> keys = sharedPolicyGroups
-            .keySet()
-            .stream()
-            .filter(key -> Objects.equals(key.sharedPolicyGroupId(), sharedPolicyGroupId))
-            .toList();
+        List<SharedPolicyGroupKey> keys = sharedPolicyGroups.keySet().stream()
+                .filter(key -> Objects.equals(key.sharedPolicyGroupId(), sharedPolicyGroupId))
+                .toList();
         if (keys.isEmpty()) {
             log.warn("Shared Policy Group [{}] is not deployed in any environment", sharedPolicyGroupId);
             return;
@@ -112,21 +110,22 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
         if (!sharedPolicyGroups.isEmpty()) {
             final long begin = System.currentTimeMillis();
 
-            log.info("Starting shared policy groups refresh. {} shared policy groups to be refreshed.", sharedPolicyGroups.size());
+            log.info(
+                    "Starting shared policy groups refresh. {} shared policy groups to be refreshed.",
+                    sharedPolicyGroups.size());
 
             // Create an executor to parallelize a refresh for all the shared policy groups.
             final ExecutorService refreshAllExecutor = createExecutor(Math.min(PARALLELISM, sharedPolicyGroups.size()));
 
-            final List<Callable<Boolean>> toInvoke = sharedPolicyGroups
-                .values()
-                .stream()
-                .map(sharedPolicyGroup -> ((Callable<Boolean>) () -> register(sharedPolicyGroup, true)))
-                .toList();
+            final List<Callable<Boolean>> toInvoke = sharedPolicyGroups.values().stream()
+                    .map(sharedPolicyGroup -> ((Callable<Boolean>) () -> register(sharedPolicyGroup, true)))
+                    .toList();
 
             try {
                 refreshAllExecutor.invokeAll(toInvoke);
                 refreshAllExecutor.shutdown();
-                while (!refreshAllExecutor.awaitTermination(100, TimeUnit.MILLISECONDS));
+                while (!refreshAllExecutor.awaitTermination(100, TimeUnit.MILLISECONDS))
+                    ;
             } catch (InterruptedException e) {
                 log.error("Unable to refresh shared policy groups", e);
                 Thread.currentThread().interrupt();
@@ -150,30 +149,28 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
 
     private boolean register(ReactableSharedPolicyGroup sharedPolicyGroup, boolean force) {
         // Get deployed Shared Policy Group. Copies that share a cross id in different environments are independent.
-        ReactableSharedPolicyGroup deployedSharedPolicyGroup = get(sharedPolicyGroup.getId(), sharedPolicyGroup.getEnvironmentId());
+        ReactableSharedPolicyGroup deployedSharedPolicyGroup =
+                get(sharedPolicyGroup.getId(), sharedPolicyGroup.getEnvironmentId());
 
         List<Plugin> plugins = sharedPolicyGroup.getDefinition().getPlugins();
 
         try {
             licenseManager.validatePluginFeatures(
-                sharedPolicyGroup.getOrganizationId(),
-                plugins
-                    .stream()
-                    .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
-                    .collect(Collectors.toSet())
-            );
+                    sharedPolicyGroup.getOrganizationId(),
+                    plugins.stream()
+                            .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
+                            .collect(Collectors.toSet()));
         } catch (InvalidLicenseException | ForbiddenFeatureException e) {
             log.warn(
-                "The Shared Policy Group {} could not be deployed because it is not allowed by the current license",
-                sharedPolicyGroup.getName(),
-                e
-            );
+                    "The Shared Policy Group {} could not be deployed because it is not allowed by the current license",
+                    sharedPolicyGroup.getName(),
+                    e);
             return false;
         }
 
         boolean sharedPolicyGroupToDeploy = deployedSharedPolicyGroup == null || force;
-        boolean sharedPolicyGroupToUpdate =
-            !sharedPolicyGroupToDeploy && deployedSharedPolicyGroup.getDeployedAt().before(sharedPolicyGroup.getDeployedAt());
+        boolean sharedPolicyGroupToUpdate = !sharedPolicyGroupToDeploy
+                && deployedSharedPolicyGroup.getDeployedAt().before(sharedPolicyGroup.getDeployedAt());
 
         // if Shared Policy Group will be deployed or updated
         if (sharedPolicyGroupToDeploy || sharedPolicyGroupToUpdate) {
@@ -196,79 +193,70 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
         log.debug("Deployment of {}", sharedPolicyGroup);
 
         eventManager.publishEvent(
-            SecretDiscoveryEventType.DISCOVER,
-            new SecretDiscoveryEvent(
-                sharedPolicyGroup.getEnvironmentId(),
-                sharedPolicyGroup.getDefinition(),
-                new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())
-            )
-        );
+                SecretDiscoveryEventType.DISCOVER,
+                new SecretDiscoveryEvent(
+                        sharedPolicyGroup.getEnvironmentId(),
+                        sharedPolicyGroup.getDefinition(),
+                        new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())));
         sharedPolicyGroups.put(keyOf(sharedPolicyGroup), sharedPolicyGroup);
         eventManager.publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
         log.info(
-            "Shared Policy Group [{}] of environment [{}] has been deployed",
-            sharedPolicyGroup.getId(),
-            sharedPolicyGroup.getEnvironmentId()
-        );
+                "Shared Policy Group [{}] of environment [{}] has been deployed",
+                sharedPolicyGroup.getId(),
+                sharedPolicyGroup.getEnvironmentId());
     }
 
     private void update(ReactableSharedPolicyGroup sharedPolicyGroup) {
         log.debug("Updating {}", sharedPolicyGroup);
 
         eventManager.publishEvent(
-            SecretDiscoveryEventType.DISCOVER,
-            new SecretDiscoveryEvent(
-                sharedPolicyGroup.getEnvironmentId(),
-                sharedPolicyGroup.getDefinition(),
-                new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())
-            )
-        );
-        ReactableSharedPolicyGroup previousSharedPolicyGroup = sharedPolicyGroups.put(keyOf(sharedPolicyGroup), sharedPolicyGroup);
+                SecretDiscoveryEventType.DISCOVER,
+                new SecretDiscoveryEvent(
+                        sharedPolicyGroup.getEnvironmentId(),
+                        sharedPolicyGroup.getDefinition(),
+                        new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())));
+        ReactableSharedPolicyGroup previousSharedPolicyGroup =
+                sharedPolicyGroups.put(keyOf(sharedPolicyGroup), sharedPolicyGroup);
         eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, sharedPolicyGroup);
         if (previousSharedPolicyGroup != null) {
             eventManager.publishEvent(
-                SecretDiscoveryEventType.REVOKE,
-                new SecretDiscoveryEvent(
-                    previousSharedPolicyGroup.getEnvironmentId(),
-                    previousSharedPolicyGroup.getDefinition(),
-                    new DefinitionMetadata(previousSharedPolicyGroup.getDefinition().getVersion())
-                )
-            );
+                    SecretDiscoveryEventType.REVOKE,
+                    new SecretDiscoveryEvent(
+                            previousSharedPolicyGroup.getEnvironmentId(),
+                            previousSharedPolicyGroup.getDefinition(),
+                            new DefinitionMetadata(
+                                    previousSharedPolicyGroup.getDefinition().getVersion())));
         }
         log.info(
-            "Shared Policy Group [{}] of environment [{}] has been updated",
-            sharedPolicyGroup.getId(),
-            sharedPolicyGroup.getEnvironmentId()
-        );
+                "Shared Policy Group [{}] of environment [{}] has been updated",
+                sharedPolicyGroup.getId(),
+                sharedPolicyGroup.getEnvironmentId());
     }
 
     private void undeploy(String sharedPolicyGroupId, String environmentId) {
-        ReactableSharedPolicyGroup currentSharedPolicyGroup = sharedPolicyGroups.remove(
-            new SharedPolicyGroupKey(sharedPolicyGroupId, environmentId)
-        );
+        ReactableSharedPolicyGroup currentSharedPolicyGroup =
+                sharedPolicyGroups.remove(new SharedPolicyGroupKey(sharedPolicyGroupId, environmentId));
         if (currentSharedPolicyGroup != null) {
             log.debug(
-                "Undeployment of Shared Policy Group [{}] of environment [{}]",
-                currentSharedPolicyGroup.getId(),
-                currentSharedPolicyGroup.getEnvironmentId()
-            );
+                    "Undeployment of Shared Policy Group [{}] of environment [{}]",
+                    currentSharedPolicyGroup.getId(),
+                    currentSharedPolicyGroup.getEnvironmentId());
 
             eventManager.publishEvent(SharedPolicyGroupEvent.UNDEPLOY, currentSharedPolicyGroup);
             eventManager.publishEvent(
-                SecretDiscoveryEventType.REVOKE,
-                new SecretDiscoveryEvent(
-                    currentSharedPolicyGroup.getEnvironmentId(),
-                    currentSharedPolicyGroup.getDefinition(),
-                    new DefinitionMetadata(currentSharedPolicyGroup.getDefinition().getVersion())
-                )
-            );
+                    SecretDiscoveryEventType.REVOKE,
+                    new SecretDiscoveryEvent(
+                            currentSharedPolicyGroup.getEnvironmentId(),
+                            currentSharedPolicyGroup.getDefinition(),
+                            new DefinitionMetadata(
+                                    currentSharedPolicyGroup.getDefinition().getVersion())));
             log.info(
-                "Shared Policy Group [{}] of environment [{}] has been undeployed",
-                currentSharedPolicyGroup.getId(),
-                currentSharedPolicyGroup.getEnvironmentId()
-            );
+                    "Shared Policy Group [{}] of environment [{}] has been undeployed",
+                    currentSharedPolicyGroup.getId(),
+                    currentSharedPolicyGroup.getEnvironmentId());
         } else {
-            log.warn("Shared Policy Group [{}] of environment [{}] is not deployed", sharedPolicyGroupId, environmentId);
+            log.warn(
+                    "Shared Policy Group [{}] of environment [{}] is not deployed", sharedPolicyGroupId, environmentId);
         }
     }
 
@@ -283,16 +271,13 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
     private record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
     private ExecutorService createExecutor(int threadCount) {
-        return Executors.newFixedThreadPool(
-            threadCount,
-            new ThreadFactory() {
-                private int counter = 0;
+        return Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
+            private int counter = 0;
 
-                @Override
-                public Thread newThread(Runnable r) {
-                    return new Thread(r, "gio.shared-policy-group-manager-" + counter++);
-                }
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r, "gio.shared-policy-group-manager-" + counter++);
             }
-        );
+        });
     }
 }

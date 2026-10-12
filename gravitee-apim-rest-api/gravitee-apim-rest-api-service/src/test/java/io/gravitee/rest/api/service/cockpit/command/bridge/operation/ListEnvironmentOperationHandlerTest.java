@@ -21,8 +21,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.legacy.bridge.BridgeMultiReply;
-import io.gravitee.cockpit.api.command.legacy.bridge.BridgeSimpleReply;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
@@ -111,11 +109,11 @@ public class ListEnvironmentOperationHandlerTest {
         when(installationService.get()).thenReturn(installationEntity);
 
         BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload.builder()
-            .operation(BridgeOperation.LIST_ENVIRONMENT.name())
-            .installationId(INSTALLATION_ID)
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+                .operation(BridgeOperation.LIST_ENVIRONMENT.name())
+                .installationId(INSTALLATION_ID)
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
 
         BridgeCommand command = new BridgeCommand(bridgeCommandPayload);
         // When
@@ -124,7 +122,8 @@ public class ListEnvironmentOperationHandlerTest {
         // Then
         obs.await();
         obs.assertValue(reply -> {
-            if (reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED)) {
+            if (reply.getCommandId().equals(command.getId())
+                    && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED)) {
                 BridgeReplyPayload replyPayload = reply.getPayload();
                 List<BridgeReplyPayload.BridgeReplyContent> contents = replyPayload.contents();
                 assertEquals(3, contents.size());
@@ -139,11 +138,15 @@ public class ListEnvironmentOperationHandlerTest {
                         return false;
                     }
                 }
-                assertTrue(contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.getEnvironmentId().equals(envA.getId())));
-                assertTrue(contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.getEnvironmentId().equals(envB.getId())));
-                assertTrue(
-                    contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.getEnvironmentId().equals(envC_ERROR.getId()))
-                );
+                assertTrue(contents.stream()
+                        .anyMatch(bridgeReplyContent ->
+                                bridgeReplyContent.getEnvironmentId().equals(envA.getId())));
+                assertTrue(contents.stream()
+                        .anyMatch(bridgeReplyContent ->
+                                bridgeReplyContent.getEnvironmentId().equals(envB.getId())));
+                assertTrue(contents.stream()
+                        .anyMatch(bridgeReplyContent ->
+                                bridgeReplyContent.getEnvironmentId().equals(envC_ERROR.getId())));
                 return true;
             }
             return false;
@@ -155,7 +158,8 @@ public class ListEnvironmentOperationHandlerTest {
         // Given
         when(environmentService.findByOrganization(ORGANIZATION_ID)).thenThrow(new TechnicalManagementException());
 
-        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload.builder().organizationId(ORGANIZATION_ID).build();
+        BridgeCommandPayload bridgeCommandPayload =
+                BridgeCommandPayload.builder().organizationId(ORGANIZATION_ID).build();
 
         BridgeCommand command = new BridgeCommand(bridgeCommandPayload);
 
@@ -164,11 +168,8 @@ public class ListEnvironmentOperationHandlerTest {
 
         // Then
         obs.await();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getErrorDetails().equals("No environment available for organization: " + ORGANIZATION_ID)
-        );
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR)
+                && reply.getErrorDetails().equals("No environment available for organization: " + ORGANIZATION_ID));
     }
 }

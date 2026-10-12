@@ -26,11 +26,11 @@ import java.util.Optional;
 
 public interface LogRepository {
     Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query)
-        throws AnalyticsException;
+            throws AnalyticsException;
 
-    LogResponse<ConnectionLogDetail> searchConnectionLogDetails(QueryContext queryContext, ConnectionLogDetailQuery query)
-        throws AnalyticsException;
+    LogResponse<ConnectionLogDetail> searchConnectionLogDetails(
+            QueryContext queryContext, ConnectionLogDetailQuery query) throws AnalyticsException;
 
     LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(QueryContext queryContext, MessageLogQuery query)
-        throws AnalyticsException;
+            throws AnalyticsException;
 }

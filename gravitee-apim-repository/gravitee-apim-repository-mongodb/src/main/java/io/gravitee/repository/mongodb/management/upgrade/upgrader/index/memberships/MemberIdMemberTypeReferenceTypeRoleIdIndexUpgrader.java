@@ -28,12 +28,12 @@ public class MemberIdMemberTypeReferenceTypeRoleIdIndexUpgrader extends IndexUpg
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("memberships")
-            .name("mi1mt1rt1ro1")
-            .key("memberId", ascending())
-            .key("memberType", ascending())
-            .key("referenceType", ascending())
-            .key("roleId", ascending())
-            .build();
+                .collection("memberships")
+                .name("mi1mt1rt1ro1")
+                .key("memberId", ascending())
+                .key("memberType", ascending())
+                .key("referenceType", ascending())
+                .key("roleId", ascending())
+                .build();
     }
 }

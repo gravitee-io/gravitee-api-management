@@ -33,8 +33,7 @@ class NativeApiMetricsFindQueryAdapterTest {
     void builds_size_one_search_filtered_by_api_id_request_id_and_inclusive_timestamp_range() {
         var json = NativeApiMetricsFindQueryAdapter.adapt(API_ID, REQUEST_ID, FROM, TO);
 
-        assertThatJson(json).isEqualTo(
-            """
+        assertThatJson(json).isEqualTo("""
             {
               "size": 1,
               "query": {
@@ -50,8 +49,7 @@ class NativeApiMetricsFindQueryAdapterTest {
                 { "@timestamp": { "order": "desc" } }
               ]
             }
-            """
-        );
+            """);
     }
 
     @Test
@@ -64,12 +62,8 @@ class NativeApiMetricsFindQueryAdapterTest {
         // Elasticsearch returns an arbitrary one and the detail page shows different data on each reload.
         var json = NativeApiMetricsFindQueryAdapter.adapt(API_ID, REQUEST_ID, FROM, TO);
 
-        assertThatJson(json)
-            .node("sort")
-            .isEqualTo(
-                """
+        assertThatJson(json).node("sort").isEqualTo("""
                 [ { "@timestamp": { "order": "desc" } } ]
-                """
-            );
+                """);
     }
 }

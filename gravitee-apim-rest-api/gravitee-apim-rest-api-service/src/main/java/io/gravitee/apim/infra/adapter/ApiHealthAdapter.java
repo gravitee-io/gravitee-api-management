@@ -33,16 +33,21 @@ public interface ApiHealthAdapter {
     ApiHealthAdapter INSTANCE = Mappers.getMapper(ApiHealthAdapter.class);
 
     ApiFieldPeriod map(ApiHealthQueryService.ApiFieldPeriodQuery source);
-    AverageHealthCheckResponseTime map(io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime source);
+
+    AverageHealthCheckResponseTime map(
+            io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTime source);
 
     io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery map(
-        ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery source
-    );
+            ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery source);
 
     HealthCheckLogQuery map(ApiHealthQueryService.SearchLogsQuery source);
+
     HealthCheckLog map(io.gravitee.repository.healthcheck.v4.model.HealthCheckLog source);
 
     default Pageable map(io.gravitee.rest.api.model.common.Pageable source) {
-        return new PageableBuilder().pageSize(source.getPageSize()).pageNumber(source.getPageNumber()).build();
+        return new PageableBuilder()
+                .pageSize(source.getPageSize())
+                .pageNumber(source.getPageNumber())
+                .build();
     }
 }

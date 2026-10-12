@@ -17,4 +17,5 @@ package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
 import java.util.List;
 
-public record TopicDetail(String name, boolean internal, List<TopicPartitionDetail> partitions, List<TopicConfigEntry> configs) {}
+public record TopicDetail(
+        String name, boolean internal, List<TopicPartitionDetail> partitions, List<TopicConfigEntry> configs) {}

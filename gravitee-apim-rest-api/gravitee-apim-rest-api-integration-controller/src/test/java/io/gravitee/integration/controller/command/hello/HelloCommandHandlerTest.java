@@ -57,16 +57,16 @@ class HelloCommandHandlerTest {
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String USER_ID = "user-id";
-    private static final Environment ENVIRONMENT = Environment.builder().id("env1").organizationId(ORGANIZATION_ID).build();
+    private static final Environment ENVIRONMENT =
+            Environment.builder().id("env1").organizationId(ORGANIZATION_ID).build();
     private static final String COMMAND_ID = "command-id";
     private static final String INTEGRATION_ID = "my-integration-id";
     private static final String INTEGRATION_PROVIDER = "aws-api-gateway";
 
-    private static final IntegrationCommandContext CONTEXT = new IntegrationCommandContext(true, ORGANIZATION_ID, USER_ID);
-    private static final HelloCommand COMMAND = new HelloCommand(
-        COMMAND_ID,
-        new HelloCommand.Payload(INTEGRATION_ID, INTEGRATION_PROVIDER)
-    );
+    private static final IntegrationCommandContext CONTEXT =
+            new IntegrationCommandContext(true, ORGANIZATION_ID, USER_ID);
+    private static final HelloCommand COMMAND =
+            new HelloCommand(COMMAND_ID, new HelloCommand.Payload(INTEGRATION_ID, INTEGRATION_PROVIDER));
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
     EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
@@ -86,16 +86,14 @@ class HelloCommandHandlerTest {
     @BeforeEach
     void setUp() {
         var factory = new IntegrationControllerCommandHandlerFactory(
-            new CheckIntegrationUseCase(integrationCrudServiceInMemory, environmentCrudService, permissionDomainService),
-            null
-        );
+                new CheckIntegrationUseCase(
+                        integrationCrudServiceInMemory, environmentCrudService, permissionDomainService),
+                null);
 
-        commandHandler = (HelloCommandHandler) factory
-            .buildCommandHandlers(CONTEXT)
-            .stream()
-            .filter(handler -> handler.supportType().equals(IntegrationCommandType.HELLO.name()))
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("No handler found for type [HELLO]"));
+        commandHandler = (HelloCommandHandler) factory.buildCommandHandlers(CONTEXT).stream()
+                .filter(handler -> handler.supportType().equals(IntegrationCommandType.HELLO.name()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No handler found for type [HELLO]"));
 
         environmentCrudService.initWith(List.of(ENVIRONMENT));
     }
@@ -107,8 +105,7 @@ class HelloCommandHandlerTest {
 
     @Test
     void should_reply_succeeded_when_integration_exists() {
-        var integration = givenIntegration(
-            new Integration.ApiIntegration(
+        var integration = givenIntegration(new Integration.ApiIntegration(
                 INTEGRATION_ID,
                 "test-name",
                 "integration-description",
@@ -116,56 +113,56 @@ class HelloCommandHandlerTest {
                 ENVIRONMENT.getId(),
                 Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
                 Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                Set.of()
-            )
-        );
+                Set.of()));
         givenPermission(
-            RolePermission.ENVIRONMENT_INTEGRATION,
-            ENVIRONMENT.getId(),
-            RolePermissionAction.CREATE,
-            RolePermissionAction.READ,
-            RolePermissionAction.UPDATE,
-            RolePermissionAction.DELETE
-        );
+                RolePermission.ENVIRONMENT_INTEGRATION,
+                ENVIRONMENT.getId(),
+                RolePermissionAction.CREATE,
+                RolePermissionAction.READ,
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.DELETE);
 
         commandHandler
-            .handle(COMMAND)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(reply -> {
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.SUCCEEDED);
-                    soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
-                    soft.assertThat(reply.getPayload()).isEqualTo(HelloReplyPayload.builder().targetId(integration.id()).build());
-                });
+                .handle(COMMAND)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(reply -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.SUCCEEDED);
+                        soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
+                        soft.assertThat(reply.getPayload())
+                                .isEqualTo(HelloReplyPayload.builder()
+                                        .targetId(integration.id())
+                                        .build());
+                    });
 
-                return true;
-            })
-            .assertNoErrors();
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     @Test
     void should_reply_error_when_integration_does_not_exist() {
         commandHandler
-            .handle(COMMAND)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(reply -> {
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
-                    soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
-                    soft.assertThat(reply.getErrorDetails()).isEqualTo("Integration [id=my-integration-id] not found");
-                });
+                .handle(COMMAND)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(reply -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
+                        soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
+                        soft.assertThat(reply.getErrorDetails())
+                                .isEqualTo("Integration [id=my-integration-id] not found");
+                    });
 
-                return true;
-            })
-            .assertNoErrors();
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     @Test
     void should_reply_error_when_integration_exist_but_provider_mismatch() {
-        givenIntegration(
-            new Integration.ApiIntegration(
+        givenIntegration(new Integration.ApiIntegration(
                 "my-integration-id",
                 "test-name",
                 "integration-description",
@@ -173,34 +170,31 @@ class HelloCommandHandlerTest {
                 ENVIRONMENT.getId(),
                 Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
                 Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                Set.of()
-            )
-        );
+                Set.of()));
         givenPermission(
-            RolePermission.ENVIRONMENT_INTEGRATION,
-            ENVIRONMENT.getId(),
-            RolePermissionAction.CREATE,
-            RolePermissionAction.READ,
-            RolePermissionAction.UPDATE,
-            RolePermissionAction.DELETE
-        );
+                RolePermission.ENVIRONMENT_INTEGRATION,
+                ENVIRONMENT.getId(),
+                RolePermissionAction.CREATE,
+                RolePermissionAction.READ,
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.DELETE);
 
         commandHandler
-            .handle(COMMAND)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(reply -> {
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
-                    soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
-                    soft
-                        .assertThat(reply.getErrorDetails())
-                        .isEqualTo("Integration [id=my-integration-id] does not match. Expected provider [provider=other]");
-                });
+                .handle(COMMAND)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(reply -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
+                        soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
+                        soft.assertThat(reply.getErrorDetails())
+                                .isEqualTo(
+                                        "Integration [id=my-integration-id] does not match. Expected provider [provider=other]");
+                    });
 
-                return true;
-            })
-            .assertNoErrors();
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     @Test
@@ -208,24 +202,22 @@ class HelloCommandHandlerTest {
         var spied = Mockito.spy(integrationCrudServiceInMemory);
         lenient().when(spied.findById(any())).thenThrow(new TechnicalDomainException("error"));
         commandHandler = new HelloCommandHandler(
-            new CheckIntegrationUseCase(spied, environmentCrudService, permissionDomainService),
-            CONTEXT
-        );
+                new CheckIntegrationUseCase(spied, environmentCrudService, permissionDomainService), CONTEXT);
 
         commandHandler
-            .handle(COMMAND)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(reply -> {
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
-                    soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
-                    soft.assertThat(reply.getErrorDetails()).isEqualTo("error");
-                });
+                .handle(COMMAND)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(reply -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
+                        soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
+                        soft.assertThat(reply.getErrorDetails()).isEqualTo("error");
+                    });
 
-                return true;
-            })
-            .assertNoErrors();
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     private Integration givenIntegration(Integration integration) {
@@ -234,6 +226,7 @@ class HelloCommandHandlerTest {
     }
 
     private void givenPermission(RolePermission rolePermission, String referenceId, RolePermissionAction... acls) {
-        when(permissionDomainService.hasExactPermissions(ORGANIZATION_ID, USER_ID, rolePermission, referenceId, acls)).thenReturn(true);
+        when(permissionDomainService.hasExactPermissions(ORGANIZATION_ID, USER_ID, rolePermission, referenceId, acls))
+                .thenReturn(true);
     }
 }

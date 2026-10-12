@@ -36,12 +36,14 @@ public class RemoveApiFromSubscriptionFormDomainService {
     private final SubscriptionFormCrudService subscriptionFormCrudService;
 
     public void removeApi(String environmentId, String apiId) {
-        subscriptionFormQueryService
-            .findByApiId(environmentId, apiId)
-            .ifPresent(form -> {
-                form.unassignApi(apiId);
-                subscriptionFormCrudService.update(form);
-                log.debug("Removed API [{}] from subscription form [{}] of environment [{}]", apiId, form.getId(), environmentId);
-            });
+        subscriptionFormQueryService.findByApiId(environmentId, apiId).ifPresent(form -> {
+            form.unassignApi(apiId);
+            subscriptionFormCrudService.update(form);
+            log.debug(
+                    "Removed API [{}] from subscription form [{}] of environment [{}]",
+                    apiId,
+                    form.getId(),
+                    environmentId);
+        });
     }
 }

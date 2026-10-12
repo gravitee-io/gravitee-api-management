@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,14 +54,12 @@ public class ApiResource_PromoteTest extends ApiResourceTest {
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var promotionRequest = new PromotionRequest();
         promotionRequest.setTargetEnvName(TARGET_COCKPIT_ENV_NAME);
@@ -71,37 +68,34 @@ public class ApiResource_PromoteTest extends ApiResourceTest {
         final Response response = rootTarget().request().post(Entity.json(promotionRequest));
 
         assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
     public void should_return_promotion() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
 
         var createdAt = Instant.now();
-        var createdPromotion = fixtures.core.model.PromotionFixtures.aPromotion()
-            .toBuilder()
-            .id(PROMOTION_ID)
-            .apiId(API)
-            .apiDefinition(FAKE_API_DEFINITION)
-            .status(PromotionStatus.TO_BE_VALIDATED)
-            .sourceEnvCockpitId(SOURCE_ENV_ID)
-            .sourceEnvName(SOURCE_ENV_NAME)
-            .targetApiId(TARGET_API_ID)
-            .targetEnvCockpitId(TARGET_COCKPIT_ENV_ID)
-            .targetEnvName(TARGET_COCKPIT_ENV_NAME)
-            .createdAt(createdAt)
-            .build();
+        var createdPromotion = fixtures.core.model.PromotionFixtures.aPromotion().toBuilder()
+                .id(PROMOTION_ID)
+                .apiId(API)
+                .apiDefinition(FAKE_API_DEFINITION)
+                .status(PromotionStatus.TO_BE_VALIDATED)
+                .sourceEnvCockpitId(SOURCE_ENV_ID)
+                .sourceEnvName(SOURCE_ENV_NAME)
+                .targetApiId(TARGET_API_ID)
+                .targetEnvCockpitId(TARGET_COCKPIT_ENV_ID)
+                .targetEnvName(TARGET_COCKPIT_ENV_NAME)
+                .createdAt(createdAt)
+                .build();
         when(createPromotionUseCase.execute(any())).thenReturn(new CreatePromotionUseCase.Output(createdPromotion));
 
         var promotionRequest = new PromotionRequest();

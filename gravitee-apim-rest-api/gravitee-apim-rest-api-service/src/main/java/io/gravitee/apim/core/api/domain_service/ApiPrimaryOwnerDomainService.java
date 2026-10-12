@@ -17,8 +17,8 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApiPrimaryOwnerDomainService {
-    PrimaryOwnerEntity getApiPrimaryOwner(final String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException;
+    PrimaryOwnerEntity getApiPrimaryOwner(final String organizationId, String apiId)
+            throws ApiPrimaryOwnerNotFoundException;
 }

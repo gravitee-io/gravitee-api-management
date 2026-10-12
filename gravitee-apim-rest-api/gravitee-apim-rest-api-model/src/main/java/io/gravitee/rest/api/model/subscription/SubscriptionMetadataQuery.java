@@ -54,7 +54,8 @@ public class SubscriptionMetadataQuery {
 
     private Map<DelegateType, List<BiFunction>> delegates = new HashMap<>();
 
-    public SubscriptionMetadataQuery(String organization, String environment, Collection<SubscriptionEntity> subscriptions) {
+    public SubscriptionMetadataQuery(
+            String organization, String environment, Collection<SubscriptionEntity> subscriptions) {
         this.organization = organization;
         this.environment = environment;
         this.subscriptions = subscriptions;
@@ -155,7 +156,8 @@ public class SubscriptionMetadataQuery {
         return this;
     }
 
-    public SubscriptionMetadataQuery fillApiMetadata(BiFunction<Metadata, GenericApiEntity, GenericApiEntity>... delegate) {
+    public SubscriptionMetadataQuery fillApiMetadata(
+            BiFunction<Metadata, GenericApiEntity, GenericApiEntity>... delegate) {
         return this.fillMetadata(DelegateType.API, delegate);
     }
 

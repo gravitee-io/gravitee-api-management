@@ -103,12 +103,13 @@ public class UserResource extends AbstractResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @Operation(summary = "Retrieve a user", description = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
+    @Operation(
+            summary = "Retrieve a user",
+            description = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "A user",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
-    )
+            responseCode = "200",
+            description = "A user",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class)))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ))
@@ -123,7 +124,9 @@ public class UserResource extends AbstractResource {
     }
 
     @DELETE
-    @Operation(summary = "Delete a user", description = "User must have the ORGANIZATION_USERS[DELETE] permission to use this service")
+    @Operation(
+            summary = "Delete a user",
+            description = "User must have the ORGANIZATION_USERS[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "User successfully deleted")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -137,14 +140,15 @@ public class UserResource extends AbstractResource {
     @Path("/groups")
     @Produces(APPLICATION_JSON)
     @Operation(
-        summary = "List of groups the user belongs to",
-        description = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
-    )
+            summary = "List of groups the user belongs to",
+            description = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of user groups",
-        content = @Content(mediaType = APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = UserGroupEntity.class)))
-    )
+            responseCode = "200",
+            description = "List of user groups",
+            content =
+                    @Content(
+                            mediaType = APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = UserGroupEntity.class))))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ))
@@ -161,13 +165,10 @@ public class UserResource extends AbstractResource {
             userGroupEntity.setRoles(new HashMap<>());
             userGroupEntity.setEnvironmentId(groupEntity.getEnvironmentId());
             Set<RoleEntity> roles = membershipService.getRoles(
-                MembershipReferenceType.GROUP,
-                groupEntity.getId(),
-                MembershipMemberType.USER,
-                userId
-            );
+                    MembershipReferenceType.GROUP, groupEntity.getId(), MembershipMemberType.USER, userId);
             if (!roles.isEmpty()) {
-                roles.forEach(role -> userGroupEntity.getRoles().put(role.getScope().name(), role.getName()));
+                roles.forEach(
+                        role -> userGroupEntity.getRoles().put(role.getScope().name(), role.getName()));
             }
             result.add(userGroupEntity);
         });
@@ -179,14 +180,13 @@ public class UserResource extends AbstractResource {
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
     @Operation(
-        summary = "List of memberships the user belongs to",
-        description = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
-    )
+            summary = "List of memberships the user belongs to",
+            description = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of user memberships",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserMembershipList.class))
-    )
+            responseCode = "200",
+            description = "List of user memberships",
+            content =
+                    @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserMembershipList.class)))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ))
@@ -198,7 +198,8 @@ public class UserResource extends AbstractResource {
         if (sType != null) {
             type = MembershipReferenceType.valueOf(sType.toUpperCase());
         }
-        List<UserMembership> userMemberships = membershipService.findUserMembership(GraviteeContext.getExecutionContext(), type, userId);
+        List<UserMembership> userMemberships =
+                membershipService.findUserMembership(GraviteeContext.getExecutionContext(), type, userId);
         Metadata metadata = membershipService.findUserMembershipMetadata(userMemberships, type);
         UserMembershipList userMembershipList = new UserMembershipList();
         userMembershipList.setMemberships(userMemberships);
@@ -208,23 +209,23 @@ public class UserResource extends AbstractResource {
 
     @POST
     @Operation(
-        summary = "Reset the user's password",
-        description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service"
-    )
+            summary = "Reset the user's password",
+            description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "User's password reset")
     @ApiResponse(responseCode = "400", description = "Unsupported reset target, or no Gamma URL configured")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
-        // if permission changes or a new one is added, please update io.gravitee.rest.api.service.impl.UserServiceImpl#canResetPassword
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
+    // if permission changes or a new one is added, please update
+    // io.gravitee.rest.api.service.impl.UserServiceImpl#canResetPassword
     )
     @Path("resetPassword")
     public Response resetUserPassword(
-        @Parameter(
-            description = "Optional reset page target. When set to `gamma`, the password reset email link targets the Gravitee Gamma console reset page. When omitted, the APIM Console reset page is used."
-        ) @QueryParam("resetTarget") String resetTarget
-    ) {
+            @Parameter(
+                            description =
+                                    "Optional reset page target. When set to `gamma`, the password reset email link targets the Gravitee Gamma console reset page. When omitted, the APIM Console reset page is used.")
+                    @QueryParam("resetTarget")
+                    String resetTarget) {
         userService.resetPasswordWithTarget(GraviteeContext.getExecutionContext(), userId, resetTarget);
         return Response.noContent().build();
     }
@@ -232,9 +233,8 @@ public class UserResource extends AbstractResource {
     @PATCH
     @Consumes(APPLICATION_JSON)
     @Operation(
-        summary = "Update user service account status",
-        description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service"
-    )
+            summary = "Update user service account status",
+            description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "User service account status updated")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -242,10 +242,7 @@ public class UserResource extends AbstractResource {
     @Path("serviceAccount")
     public Response updateServiceAccountStatus(@Valid @NotNull UpdateServiceAccountEntity updateServiceAccountEntity) {
         userService.updateServiceAccountStatus(
-            GraviteeContext.getExecutionContext(),
-            userId,
-            updateServiceAccountEntity.isServiceAccount()
-        );
+                GraviteeContext.getExecutionContext(), userId, updateServiceAccountEntity.isServiceAccount());
         return Response.noContent().build();
     }
 
@@ -253,17 +250,17 @@ public class UserResource extends AbstractResource {
     @Path("/avatar")
     @Operation(summary = "Get the user's avatar")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's avatar",
-        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
-    )
+            responseCode = "200",
+            description = "User's avatar",
+            content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getUserAvatar(@Context Request request) {
         PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl()))
+                    .build();
         }
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
@@ -288,7 +285,12 @@ public class UserResource extends AbstractResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response.ok().entity(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+        return Response.ok()
+                .entity(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     @PUT
@@ -297,12 +299,11 @@ public class UserResource extends AbstractResource {
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
     public Response updateUserRoles(@NotNull UserReferenceRoleEntity userReferenceRoles) {
         userService.updateUserRoles(
-            GraviteeContext.getExecutionContext(),
-            userId,
-            userReferenceRoles.getReferenceType(),
-            userReferenceRoles.getReferenceId(),
-            userReferenceRoles.getRoles()
-        );
+                GraviteeContext.getExecutionContext(),
+                userId,
+                userReferenceRoles.getReferenceType(),
+                userReferenceRoles.getReferenceId(),
+                userReferenceRoles.getRoles());
         return Response.ok().build();
     }
 
@@ -311,10 +312,9 @@ public class UserResource extends AbstractResource {
     @Path("/changePassword")
     @Operation(summary = "Change user password after a reset", description = "User registration must be enabled")
     @ApiResponse(
-        responseCode = "200",
-        description = "User successfully updated",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
-    )
+            responseCode = "200",
+            description = "User successfully updated",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response finalizeResetPassword(@Valid ResetPasswordUserEntity resetPwdEntity) {
         // Check that user belongs to current organization
@@ -334,15 +334,17 @@ public class UserResource extends AbstractResource {
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
     @Operation(summary = "Process a user registration by accepting or rejecting it")
     @ApiResponse(
-        responseCode = "200",
-        description = "Processed user",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
-    )
-    @ApiResponse(responseCode = "400", description = "No Gamma URL is configured, so the activation link cannot be built")
+            responseCode = "200",
+            description = "Processed user",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class)))
+    @ApiResponse(
+            responseCode = "400",
+            description = "No Gamma URL is configured, so the activation link cannot be built")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response validateRegistration(boolean accepted) {
-        return Response.ok(userService.processRegistration(GraviteeContext.getExecutionContext(), userId, accepted)).build();
+        return Response.ok(userService.processRegistration(GraviteeContext.getExecutionContext(), userId, accepted))
+                .build();
     }
 
     @Path("tokens")

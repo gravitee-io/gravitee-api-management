@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
 import java.time.Instant;
@@ -98,13 +97,11 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
         query.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
 
         try {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext organizationContext = new ExecutionContext(organization);
-                    List<CommandEntity> commands = commandService.search(organizationContext, query);
-                    processCommands(organization, commands);
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext organizationContext = new ExecutionContext(organization);
+                List<CommandEntity> commands = commandService.search(organizationContext, query);
+                processCommands(organization, commands);
+            });
         } catch (TechnicalException e) {
             log.error("An error occurred while trying to process organization commands", e);
         }
@@ -128,7 +125,8 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
         if (!command.isProcessedInCurrentNode()) {
             commandService.ack(command.getId());
             try {
-                searchEngineService.process(executionContext, mapper.readValue(command.getContent(), CommandSearchIndexerEntity.class));
+                searchEngineService.process(
+                        executionContext, mapper.readValue(command.getContent(), CommandSearchIndexerEntity.class));
             } catch (IOException e) {
                 log.error("Search Indexer has received a bad message.", e);
             }

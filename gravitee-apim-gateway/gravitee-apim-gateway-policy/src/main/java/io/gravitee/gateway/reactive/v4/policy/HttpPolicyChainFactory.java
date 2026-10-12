@@ -74,12 +74,11 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
 
     @Override
     protected HttpPolicyChain buildPolicyChain(
-        String flowChainId,
-        Flow flow,
-        ExecutionPhase phase,
-        List<HttpPolicy> policies,
-        Map<HttpPolicy, String> descriptions
-    ) {
+            String flowChainId,
+            Flow flow,
+            ExecutionPhase phase,
+            List<HttpPolicy> policies,
+            Map<HttpPolicy, String> descriptions) {
         String policyChainId = getPolicyChainId(flowChainId, flow);
         HttpPolicyChain httpPolicyChain = new HttpPolicyChain(policyChainId, policies, phase);
         httpPolicyChain.addHooks(policyHooks);
@@ -91,7 +90,8 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
 
     @Override
     protected PolicyMetadata buildPolicyMetadata(Step step) {
-        final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
+        final PolicyMetadata policyMetadata =
+                new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
 
         return policyMetadata;
@@ -100,17 +100,18 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     private String getPolicyChainId(final String flowChainId, final Flow flow) {
         StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
         if (StringUtil.isNullOrEmpty(flow.getName())) {
-            flow
-                .selectorByType(SelectorType.HTTP)
-                .map(HttpSelector.class::cast)
-                .ifPresent(httpSelector -> {
-                    if (httpSelector.getMethods() == null || httpSelector.getMethods().isEmpty()) {
-                        flowNameBuilder.append("ALL").append(ID_SEPARATOR);
-                    } else {
-                        httpSelector.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
-                    }
-                    flowNameBuilder.append(httpSelector.getPath());
-                });
+            flow.selectorByType(SelectorType.HTTP).map(HttpSelector.class::cast).ifPresent(httpSelector -> {
+                if (httpSelector.getMethods() == null
+                        || httpSelector.getMethods().isEmpty()) {
+                    flowNameBuilder.append("ALL").append(ID_SEPARATOR);
+                } else {
+                    httpSelector
+                            .getMethods()
+                            .forEach(httpMethod ->
+                                    flowNameBuilder.append(httpMethod).append("-"));
+                }
+                flowNameBuilder.append(httpSelector.getPath());
+            });
         } else {
             flowNameBuilder.append(flow.getName());
         }

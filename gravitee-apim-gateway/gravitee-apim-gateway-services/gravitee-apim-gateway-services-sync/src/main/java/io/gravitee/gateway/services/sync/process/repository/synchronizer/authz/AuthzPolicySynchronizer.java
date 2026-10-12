@@ -30,14 +30,13 @@ public class AuthzPolicySynchronizer extends AbstractAuthzReactorSynchronizer<Au
     private final DeployerFactory deployerFactory;
 
     public AuthzPolicySynchronizer(
-        LatestEventFetcher eventsFetcher,
-        AuthzPolicyMapper mapper,
-        DeployerFactory deployerFactory,
-        AuthzEnginePort enginePort,
-        AuthzScopePlacement placement,
-        ThreadPoolExecutor syncFetcherExecutor,
-        ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            AuthzPolicyMapper mapper,
+            DeployerFactory deployerFactory,
+            AuthzEnginePort enginePort,
+            AuthzScopePlacement placement,
+            ThreadPoolExecutor syncFetcherExecutor,
+            ThreadPoolExecutor syncDeployerExecutor) {
         super(eventsFetcher, enginePort, placement, syncFetcherExecutor, syncDeployerExecutor);
         this.mapper = mapper;
         this.deployerFactory = deployerFactory;

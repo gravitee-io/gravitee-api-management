@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * @author GraviteeSource Team
  */
 public class GatewayTestingExtension
-    implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver {
+        implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GatewayTestingExtension.class);
     public static final String GATEWAY_DYNAMIC_CONFIG_KEY = "integration-test-gateway-dynamic-config";
@@ -61,12 +61,11 @@ public class GatewayTestingExtension
     private Exception exception;
 
     private final Set<GatewayTestParameterResolver> parameterResolvers = Set.of(
-        new HttpClientParameterResolver(),
-        new WebSocketClientParameterResolver(),
-        new ApiParameterResolver(),
-        new AllApisParameterResolver(),
-        new GatewayDynamicConfigParameterResolver()
-    );
+            new HttpClientParameterResolver(),
+            new WebSocketClientParameterResolver(),
+            new ApiParameterResolver(),
+            new AllApisParameterResolver(),
+            new GatewayDynamicConfigParameterResolver());
 
     /**
      * Starts the gateway and deploy apis declared at class level.
@@ -106,7 +105,9 @@ public class GatewayTestingExtension
         deploySharedPolicyGroupsForMethod(context);
         deployApiProductsForMethod(context);
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
-            LOGGER.debug("Deploying apis for test {}", context.getRequiredTestMethod().getName());
+            LOGGER.debug(
+                    "Deploying apis for test {}",
+                    context.getRequiredTestMethod().getName());
             final DeployApi annotation = context.getRequiredTestMethod().getAnnotation(DeployApi.class);
             for (String apiDefinition : annotation.value()) {
                 try {
@@ -129,19 +130,24 @@ public class GatewayTestingExtension
     private void deployOrganizationForMethod(ExtensionContext context) throws Exception {
         List<DeployOrganization> deployOrganizations = new ArrayList<>();
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganizations.class)) {
-            final DeployOrganizations annotation = context.getRequiredTestMethod().getAnnotation(DeployOrganizations.class);
+            final DeployOrganizations annotation =
+                    context.getRequiredTestMethod().getAnnotation(DeployOrganizations.class);
             deployOrganizations.addAll(Arrays.asList(annotation.value()));
         }
 
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
-            final DeployOrganization annotation = context.getRequiredTestMethod().getAnnotation(DeployOrganization.class);
+            final DeployOrganization annotation =
+                    context.getRequiredTestMethod().getAnnotation(DeployOrganization.class);
             deployOrganizations.add(annotation);
         }
         if (!deployOrganizations.isEmpty()) {
-            LOGGER.debug("Deploying organizations for test {}", context.getRequiredTestMethod().getName());
+            LOGGER.debug(
+                    "Deploying organizations for test {}",
+                    context.getRequiredTestMethod().getName());
             for (DeployOrganization deployOrganization : deployOrganizations) {
                 try {
-                    gatewayRunner.deployOrganizationForTest(deployOrganization.organization(), deployOrganization.apis());
+                    gatewayRunner.deployOrganizationForTest(
+                            deployOrganization.organization(), deployOrganization.apis());
                 } catch (Exception e) {
                     exception = e;
                     throw e;
@@ -158,12 +164,15 @@ public class GatewayTestingExtension
     private void deploySharedPolicyGroupsForMethod(ExtensionContext context) throws Exception {
         List<String> deploySharedPolicyGroups = new ArrayList<>();
         if (context.getRequiredTestMethod().isAnnotationPresent(DeploySharedPolicyGroups.class)) {
-            final DeploySharedPolicyGroups annotation = context.getRequiredTestMethod().getAnnotation(DeploySharedPolicyGroups.class);
+            final DeploySharedPolicyGroups annotation =
+                    context.getRequiredTestMethod().getAnnotation(DeploySharedPolicyGroups.class);
             deploySharedPolicyGroups.addAll(Arrays.asList(annotation.value()));
         }
 
         if (!deploySharedPolicyGroups.isEmpty()) {
-            LOGGER.debug("Deploying shared policy groups for test {}", context.getRequiredTestMethod().getName());
+            LOGGER.debug(
+                    "Deploying shared policy groups for test {}",
+                    context.getRequiredTestMethod().getName());
             for (String deploySharedPolicyGroup : deploySharedPolicyGroups) {
                 try {
                     gatewayRunner.deploySharedPolicyGroupForTest(deploySharedPolicyGroup);
@@ -252,7 +261,8 @@ public class GatewayTestingExtension
     private void deployApisForClass(ExtensionContext context) throws IOException {
         final Class<?> requiredTestClass = context.getRequiredTestClass();
         if (requiredTestClass.isAnnotationPresent(DeployApi.class)) {
-            for (String apiDefinition : requiredTestClass.getAnnotation(DeployApi.class).value()) {
+            for (String apiDefinition :
+                    requiredTestClass.getAnnotation(DeployApi.class).value()) {
                 gatewayRunner.deployForClass(apiDefinition);
             }
         }
@@ -261,7 +271,9 @@ public class GatewayTestingExtension
     private void deploySharedPolicyGroupsForClass(final ExtensionContext context) throws IOException {
         final Class<?> requiredTestClass = context.getRequiredTestClass();
         if (requiredTestClass.isAnnotationPresent(DeploySharedPolicyGroups.class)) {
-            for (String sharedPolicyGroupDefinition : requiredTestClass.getAnnotation(DeploySharedPolicyGroups.class).value()) {
+            for (String sharedPolicyGroupDefinition : requiredTestClass
+                    .getAnnotation(DeploySharedPolicyGroups.class)
+                    .value()) {
                 gatewayRunner.deploySharedPolicyGroupForClass(sharedPolicyGroupDefinition);
             }
         }
@@ -270,7 +282,8 @@ public class GatewayTestingExtension
     private void deployApiProductsForClass(final ExtensionContext context) throws IOException {
         final Class<?> requiredTestClass = context.getRequiredTestClass();
         if (requiredTestClass.isAnnotationPresent(DeployApiProducts.class)) {
-            for (String apiProductDefinition : requiredTestClass.getAnnotation(DeployApiProducts.class).value()) {
+            for (String apiProductDefinition :
+                    requiredTestClass.getAnnotation(DeployApiProducts.class).value()) {
                 gatewayRunner.deployApiProductForClass(apiProductDefinition);
             }
         }
@@ -284,7 +297,9 @@ public class GatewayTestingExtension
         }
 
         if (!deployApiProducts.isEmpty()) {
-            LOGGER.debug("Deploying API Products for test {}", context.getRequiredTestMethod().getName());
+            LOGGER.debug(
+                    "Deploying API Products for test {}",
+                    context.getRequiredTestMethod().getName());
             for (String apiProductDefinition : deployApiProducts) {
                 try {
                     gatewayRunner.deployApiProductForTest(apiProductDefinition);
@@ -297,10 +312,12 @@ public class GatewayTestingExtension
     }
 
     private void startGateway(ExtensionContext context) throws IOException, InterruptedException {
-        final Object testInstance = context.getTestInstance().orElseThrow(() -> new IllegalStateException("Cannot find a test instance"));
+        final Object testInstance =
+                context.getTestInstance().orElseThrow(() -> new IllegalStateException("Cannot find a test instance"));
         if (testInstance instanceof AbstractGatewayTest gtwTest) {
             this.gatewayTest = gtwTest;
-            final GatewayConfigurationBuilder gatewayConfigurationBuilder = GatewayConfigurationBuilder.emptyConfiguration();
+            final GatewayConfigurationBuilder gatewayConfigurationBuilder =
+                    GatewayConfigurationBuilder.emptyConfiguration();
             gatewayConfigurationBuilder.set("http.instances", 1);
             gatewayConfigurationBuilder.set("tcp.instances", 1);
             gatewayTest.configureGateway(gatewayConfigurationBuilder);
@@ -315,7 +332,7 @@ public class GatewayTestingExtension
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
-        throws ParameterResolutionException {
+            throws ParameterResolutionException {
         return parameterResolvers.stream().anyMatch(resolver -> resolver.supports(parameterContext));
     }
 
@@ -330,11 +347,12 @@ public class GatewayTestingExtension
      */
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
-        throws ParameterResolutionException {
+            throws ParameterResolutionException {
         final AbstractGatewayTest test = parameterContext
-            .getTarget()
-            .map(AbstractGatewayTest.class::cast)
-            .orElseThrow(() -> new PreconditionViolationException("You need to inject this in a child of AbstractGatewayTest"));
+                .getTarget()
+                .map(AbstractGatewayTest.class::cast)
+                .orElseThrow(() -> new PreconditionViolationException(
+                        "You need to inject this in a child of AbstractGatewayTest"));
 
         for (GatewayTestParameterResolver parameterResolver : parameterResolvers) {
             if (parameterResolver.supports(parameterContext)) {

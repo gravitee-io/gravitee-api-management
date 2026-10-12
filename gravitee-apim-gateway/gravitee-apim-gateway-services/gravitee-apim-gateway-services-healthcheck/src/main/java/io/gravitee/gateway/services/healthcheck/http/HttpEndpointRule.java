@@ -32,17 +32,15 @@ import org.springframework.core.env.Environment;
  */
 public class HttpEndpointRule extends AbstractEndpointRule<HttpEndpoint> {
 
-    public HttpEndpointRule(Api api, HttpEndpoint endpoint, HealthCheckService service, ProxyOptions systemProxyOptions) {
+    public HttpEndpointRule(
+            Api api, HttpEndpoint endpoint, HealthCheckService service, ProxyOptions systemProxyOptions) {
         super(api, endpoint, service, systemProxyOptions);
     }
 
     @Override
     public EndpointRuleHandler<HttpEndpoint> createRunner(
-        Vertx vertx,
-        EndpointRule<HttpEndpoint> rule,
-        TemplateEngine templateEngine,
-        Environment environment
-    ) throws Exception {
+            Vertx vertx, EndpointRule<HttpEndpoint> rule, TemplateEngine templateEngine, Environment environment)
+            throws Exception {
         return new HttpEndpointRuleHandler<>(vertx, rule, templateEngine, environment);
     }
 }

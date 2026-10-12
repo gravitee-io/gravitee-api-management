@@ -38,7 +38,8 @@ public abstract class WeightedLoadBalancer extends AbstractLoadBalancerStrategy 
 
         int position = 0;
         for (ManagedEndpoint managedEndpoint : endpoints) {
-            computedDistribution.add(new WeightDistributions.WeightDistribution(position++, computeWeight(managedEndpoint)));
+            computedDistribution.add(
+                    new WeightDistributions.WeightDistribution(position++, computeWeight(managedEndpoint)));
         }
         weightDistributions.set(new WeightDistributions(computedDistribution));
     }

@@ -46,10 +46,7 @@ class PortalNavigationItemAdapterTest {
         void should_map_folder_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aFolder(
-                "550e8400-e29b-41d4-a716-446655440000",
-                "My Folder",
-                "550e8400-e29b-41d4-a716-446655440001"
-            );
+                    "550e8400-e29b-41d4-a716-446655440000", "My Folder", "550e8400-e29b-41d4-a716-446655440001");
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -62,7 +59,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(folder.getEnvironmentId()).isEqualTo("env-id");
             assertThat(folder.getTitle()).isEqualTo("My Folder");
             assertThat(folder.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-            assertThat(folder.getParentId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
+            assertThat(folder.getParentId())
+                    .isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
             assertThat(folder.getOrder()).isEqualTo(0);
             assertThat(folder.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
         }
@@ -71,11 +69,7 @@ class PortalNavigationItemAdapterTest {
         void should_map_page_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440002",
-                "My Page",
-                "550e8400-e29b-41d4-a716-446655440003",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440002", "My Page", "550e8400-e29b-41d4-a716-446655440003", null);
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -88,7 +82,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(page.getEnvironmentId()).isEqualTo("env-id");
             assertThat(page.getTitle()).isEqualTo("My Page");
             assertThat(page.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
-            assertThat(page.getPortalPageContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
+            assertThat(page.getPortalPageContentId())
+                    .isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
             assertThat(page.getOrder()).isEqualTo(0);
             assertThat(page.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440002"));
         }
@@ -97,11 +92,7 @@ class PortalNavigationItemAdapterTest {
         void should_map_link_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
-                "550e8400-e29b-41d4-a716-446655440004",
-                "My Link",
-                "https://example.com",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440004", "My Link", "https://example.com", null);
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -123,11 +114,7 @@ class PortalNavigationItemAdapterTest {
         void should_map_api_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.anApi(
-                "550e8400-e29b-41d4-a716-446655440004",
-                "My Link",
-                "testApi",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440004", "My Link", "testApi", null);
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -149,11 +136,10 @@ class PortalNavigationItemAdapterTest {
         void should_map_api_product_to_entity() {
             var categoryId = PortalCategoryId.random();
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.anApiProduct(
-                "550e8400-e29b-41d4-a716-446655440020",
-                "My API Product",
-                "550e8400-e29b-41d4-a716-446655440021",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440020",
+                    "My API Product",
+                    "550e8400-e29b-41d4-a716-446655440021",
+                    null);
             repositoryItem.setCategoryIds(List.of(categoryId.toString()));
 
             var entity = adapter.toEntity(repositoryItem);
@@ -163,18 +149,15 @@ class PortalNavigationItemAdapterTest {
             assertThat(apiProduct.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440020"));
             assertThat(apiProduct.getApiProductId()).isEqualTo("550e8400-e29b-41d4-a716-446655440021");
             assertThat(apiProduct.getCategoryIds()).containsExactly(categoryId);
-            assertThat(apiProduct.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440020"));
+            assertThat(apiProduct.getRootId())
+                    .isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440020"));
         }
 
         @Test
         void should_map_blank_or_empty_rootId_to_zero() {
             // Given - repository item with empty rootId (rootId is non-nullable; empty/blank still mapped defensively)
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aFolder(
-                "550e8400-e29b-41d4-a716-446655440000",
-                "My Folder",
-                "550e8400-e29b-41d4-a716-446655440001",
-                ""
-            );
+                    "550e8400-e29b-41d4-a716-446655440000", "My Folder", "550e8400-e29b-41d4-a716-446655440001", "");
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -201,25 +184,23 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_default_null_visibility_to_public_for_every_type() {
             // Given
-            var folder = PortalNavigationItemsRepositoryFixtures.aFolder("550e8400-e29b-41d4-a716-446655440040", "My Folder", null);
+            var folder = PortalNavigationItemsRepositoryFixtures.aFolder(
+                    "550e8400-e29b-41d4-a716-446655440040", "My Folder", null);
             folder.setVisibility(null);
             var page = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440041",
-                "My Page",
-                PortalPageContentId.random().toString(),
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440041",
+                    "My Page",
+                    PortalPageContentId.random().toString(),
+                    null);
             page.setVisibility(null);
-            var link = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440042", "My Link", null, null);
+            var link = PortalNavigationItemsRepositoryFixtures.aLink(
+                    "550e8400-e29b-41d4-a716-446655440042", "My Link", null, null);
             link.setVisibility(null);
-            var api = PortalNavigationItemsRepositoryFixtures.anApi("550e8400-e29b-41d4-a716-446655440043", "My Api", "apiId", null);
+            var api = PortalNavigationItemsRepositoryFixtures.anApi(
+                    "550e8400-e29b-41d4-a716-446655440043", "My Api", "apiId", null);
             api.setVisibility(null);
             var apiProduct = PortalNavigationItemsRepositoryFixtures.anApiProduct(
-                "550e8400-e29b-41d4-a716-446655440044",
-                "My API Product",
-                "apiProductId",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440044", "My API Product", "apiProductId", null);
             apiProduct.setVisibility(null);
 
             // Then
@@ -238,25 +219,23 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_private_visibility_to_private_for_every_type() {
             // Given
-            var folder = PortalNavigationItemsRepositoryFixtures.aFolder("550e8400-e29b-41d4-a716-446655440050", "My Folder", null);
+            var folder = PortalNavigationItemsRepositoryFixtures.aFolder(
+                    "550e8400-e29b-41d4-a716-446655440050", "My Folder", null);
             folder.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
             var page = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440051",
-                "My Page",
-                PortalPageContentId.random().toString(),
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440051",
+                    "My Page",
+                    PortalPageContentId.random().toString(),
+                    null);
             page.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
-            var link = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440052", "My Link", null, null);
+            var link = PortalNavigationItemsRepositoryFixtures.aLink(
+                    "550e8400-e29b-41d4-a716-446655440052", "My Link", null, null);
             link.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
-            var api = PortalNavigationItemsRepositoryFixtures.anApi("550e8400-e29b-41d4-a716-446655440053", "My Api", "apiId", null);
+            var api = PortalNavigationItemsRepositoryFixtures.anApi(
+                    "550e8400-e29b-41d4-a716-446655440053", "My Api", "apiId", null);
             api.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
             var apiProduct = PortalNavigationItemsRepositoryFixtures.anApiProduct(
-                "550e8400-e29b-41d4-a716-446655440054",
-                "My API Product",
-                "apiProductId",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440054", "My API Product", "apiProductId", null);
             apiProduct.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
 
             // Then
@@ -271,62 +250,55 @@ class PortalNavigationItemAdapterTest {
         void should_throw_when_page_configuration_is_missing() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440005",
-                "page",
-                PortalPageContentId.random().toString(),
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440005",
+                    "page",
+                    PortalPageContentId.random().toString(),
+                    null);
             repositoryItem.setConfiguration(null);
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("PortalNavigationItem configuration is missing for PAGE type");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("PortalNavigationItem configuration is missing for PAGE type");
         }
 
         @Test
         void should_throw_when_page_configuration_is_empty() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440006",
-                "page",
-                PortalPageContentId.random().toString(),
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440006",
+                    "page",
+                    PortalPageContentId.random().toString(),
+                    null);
             repositoryItem.setConfiguration("");
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("PortalNavigationItem configuration is missing for PAGE type");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("PortalNavigationItem configuration is missing for PAGE type");
         }
 
         @Test
         void should_throw_when_page_configuration_is_invalid_json() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440007",
-                "page",
-                PortalPageContentId.random().toString(),
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440007",
+                    "page",
+                    PortalPageContentId.random().toString(),
+                    null);
             repositoryItem.setConfiguration("invalid json");
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid configuration for PortalNavigationItem PAGE type");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid configuration for PortalNavigationItem PAGE type");
         }
 
         @Test
         void should_map_api_category_ids_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.anApi(
-                "550e8400-e29b-41d4-a716-446655440026",
-                "My Api",
-                "apiId",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440026", "My Api", "apiId", null);
             var categoryId = PortalCategoryId.random();
             repositoryItem.setCategoryIds(List.of(categoryId.toString()));
 
@@ -341,25 +313,27 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_throw_when_link_configuration_is_missing() {
             // Given
-            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440008", "link", null, null);
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
+                    "550e8400-e29b-41d4-a716-446655440008", "link", null, null);
             repositoryItem.setConfiguration(null);
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("PortalNavigationItem configuration is missing for LINK type");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("PortalNavigationItem configuration is missing for LINK type");
         }
 
         @Test
         void should_throw_when_link_configuration_is_invalid_json() {
             // Given
-            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440009", "link", null, null);
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
+                    "550e8400-e29b-41d4-a716-446655440009", "link", null, null);
             repositoryItem.setConfiguration("invalid json");
 
             // When & Then
             assertThatThrownBy(() -> adapter.toEntity(repositoryItem))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid configuration for PortalNavigationItem LINK type");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid configuration for PortalNavigationItem LINK type");
         }
     }
 
@@ -370,13 +344,13 @@ class PortalNavigationItemAdapterTest {
         void should_map_folder_to_repository() {
             // Given
             var entity = PortalNavigationItemFixtures.aFolder(
-                "550e8400-e29b-41d4-a716-446655440010",
-                "My Folder",
-                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011")
-            );
+                    "550e8400-e29b-41d4-a716-446655440010",
+                    "My Folder",
+                    PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440010");
@@ -396,13 +370,15 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_page_to_repository() {
             // Given
-            var entity = PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440012", "My Page", null)
-                .toBuilder()
-                .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
-                .build();
+            var entity =
+                    PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440012", "My Page", null)
+                            .toBuilder()
+                            .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
+                            .build();
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440012");
@@ -413,7 +389,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
             assertThat(repositoryItem.getOrder()).isEqualTo(0);
             assertThat(repositoryItem.getRootId()).isEqualTo("00000000-0000-0000-0000-000000000000");
-            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}");
+            assertThat(repositoryItem.getConfiguration())
+                    .isEqualTo("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
         }
@@ -424,7 +401,8 @@ class PortalNavigationItemAdapterTest {
             var entity = PortalNavigationItemFixtures.aLink("550e8400-e29b-41d4-a716-446655440014", "My Link", null);
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440014");
@@ -443,10 +421,12 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_api_to_repository() {
             // Given
-            var entity = PortalNavigationItemFixtures.anApi("550e8400-e29b-41d4-a716-446655440014", "My Link", null, "apiId");
+            var entity = PortalNavigationItemFixtures.anApi(
+                    "550e8400-e29b-41d4-a716-446655440014", "My Link", null, "apiId");
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440014");
@@ -466,16 +446,16 @@ class PortalNavigationItemAdapterTest {
         void should_map_api_product_to_repository() {
             var categoryId = PortalCategoryId.random();
             var entity = PortalNavigationItemFixtures.anApiProduct(
-                "550e8400-e29b-41d4-a716-446655440022",
-                "My API Product",
-                null,
-                "550e8400-e29b-41d4-a716-446655440023"
-            )
-                .toBuilder()
-                .categoryIds(List.of(categoryId))
-                .build();
+                            "550e8400-e29b-41d4-a716-446655440022",
+                            "My API Product",
+                            null,
+                            "550e8400-e29b-41d4-a716-446655440023")
+                    .toBuilder()
+                    .categoryIds(List.of(categoryId))
+                    .build();
 
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440022");
             assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.API_PRODUCT);
@@ -489,11 +469,13 @@ class PortalNavigationItemAdapterTest {
         void should_map_api_category_ids_to_repository() {
             // Given
             var categoryId = PortalCategoryId.random();
-            var entity = PortalNavigationItemFixtures.anApi("550e8400-e29b-41d4-a716-446655440027", "My Api", null, "apiId");
+            var entity =
+                    PortalNavigationItemFixtures.anApi("550e8400-e29b-41d4-a716-446655440027", "My Api", null, "apiId");
             entity.update(PortalNavigationItemFixtures.anUpdatePortalNavigationApi(List.of(categoryId)));
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getCategoryIds()).containsExactly(categoryId.toString());
@@ -522,28 +504,30 @@ class PortalNavigationItemAdapterTest {
 
         private PortalNavigationItemSource aSource() {
             return PortalNavigationItemSource.builder()
-                .sourceType("github-fetcher")
-                .sourceConfiguration("{\"repository\":\"docs\"}")
-                .useAutoFetch(true)
-                .fetchCron("0 */10 * * * *")
-                .lastFetchedAt(LAST_FETCHED_AT)
-                .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
-                .lastFetchError("boom")
-                .subtreeImport(true)
-                .build();
+                    .sourceType("github-fetcher")
+                    .sourceConfiguration("{\"repository\":\"docs\"}")
+                    .useAutoFetch(true)
+                    .fetchCron("0 */10 * * * *")
+                    .lastFetchedAt(LAST_FETCHED_AT)
+                    .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
+                    .lastFetchError("boom")
+                    .subtreeImport(true)
+                    .build();
         }
 
         @Test
         void should_map_page_source_to_repository() {
             // Given
-            var entity = PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440020", "My Page", null)
-                .toBuilder()
-                .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
-                .source(aSource())
-                .build();
+            var entity =
+                    PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440020", "My Page", null)
+                            .toBuilder()
+                            .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
+                            .source(aSource())
+                            .build();
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then: everything but the auto-fetch flag lives in the configuration JSON
             assertThat(repositoryItem.isUseAutoFetch()).isTrue();
@@ -560,29 +544,34 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_folder_source_to_repository() {
             // Given
-            var entity = PortalNavigationItemFixtures.aFolder("550e8400-e29b-41d4-a716-446655440021", "My Folder")
-                .toBuilder()
-                .source(aSource())
-                .build();
+            var entity =
+                    PortalNavigationItemFixtures.aFolder("550e8400-e29b-41d4-a716-446655440021", "My Folder")
+                            .toBuilder()
+                            .source(aSource())
+                            .build();
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.isUseAutoFetch()).isTrue();
-            assertThat(configurationSourceOf(repositoryItem).get("type").asText()).isEqualTo("github-fetcher");
+            assertThat(configurationSourceOf(repositoryItem).get("type").asText())
+                    .isEqualTo("github-fetcher");
         }
 
         @Test
         void should_map_null_source_to_no_source_in_configuration() {
             // Given
-            var entity = PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440022", "My Page", null)
-                .toBuilder()
-                .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
-                .build();
+            var entity =
+                    PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440022", "My Page", null)
+                            .toBuilder()
+                            .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
+                            .build();
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.isUseAutoFetch()).isFalse();
@@ -593,13 +582,8 @@ class PortalNavigationItemAdapterTest {
         void should_map_configuration_source_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440023",
-                "My Page",
-                "550e8400-e29b-41d4-a716-446655440013",
-                null
-            );
-            repositoryItem.setConfiguration(
-                """
+                    "550e8400-e29b-41d4-a716-446655440023", "My Page", "550e8400-e29b-41d4-a716-446655440013", null);
+            repositoryItem.setConfiguration("""
                 {
                   "portalPageContentId": "550e8400-e29b-41d4-a716-446655440013",
                   "source": {
@@ -612,8 +596,7 @@ class PortalNavigationItemAdapterTest {
                     "subtreeImport": true
                   }
                 }
-                """
-            );
+                """);
             repositoryItem.setUseAutoFetch(true);
 
             // When
@@ -636,13 +619,8 @@ class PortalNavigationItemAdapterTest {
         void should_map_configuration_without_last_fetch_attempt_at_to_null() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440026",
-                "My Page",
-                "550e8400-e29b-41d4-a716-446655440013",
-                null
-            );
-            repositoryItem.setConfiguration(
-                """
+                    "550e8400-e29b-41d4-a716-446655440026", "My Page", "550e8400-e29b-41d4-a716-446655440013", null);
+            repositoryItem.setConfiguration("""
                 {
                   "portalPageContentId": "550e8400-e29b-41d4-a716-446655440013",
                   "source": {
@@ -652,8 +630,7 @@ class PortalNavigationItemAdapterTest {
                     "lastFetchedAt": "2026-07-17T10:00:00Z"
                   }
                 }
-                """
-            );
+                """);
             repositoryItem.setUseAutoFetch(true);
 
             // When
@@ -670,11 +647,7 @@ class PortalNavigationItemAdapterTest {
         void should_map_configuration_without_source_to_null_source() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440024",
-                "My Page",
-                "550e8400-e29b-41d4-a716-446655440013",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440024", "My Page", "550e8400-e29b-41d4-a716-446655440013", null);
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -684,10 +657,11 @@ class PortalNavigationItemAdapterTest {
         }
 
         private com.fasterxml.jackson.databind.JsonNode configurationSourceOf(
-            io.gravitee.repository.management.model.PortalNavigationItem repositoryItem
-        ) {
+                io.gravitee.repository.management.model.PortalNavigationItem repositoryItem) {
             try {
-                return new com.fasterxml.jackson.databind.ObjectMapper().readTree(repositoryItem.getConfiguration()).get("source");
+                return new com.fasterxml.jackson.databind.ObjectMapper()
+                        .readTree(repositoryItem.getConfiguration())
+                        .get("source");
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -696,16 +670,16 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_round_trip_source_through_repository() {
             // Given
-            var entity = PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440025", "My Page", null)
-                .toBuilder()
-                .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
-                .source(aSource())
-                .build();
+            var entity =
+                    PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440025", "My Page", null)
+                            .toBuilder()
+                            .portalPageContentId(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440013"))
+                            .source(aSource())
+                            .build();
 
             // When
             var roundTripped = adapter.toEntity(
-                adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity)
-            );
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity));
 
             // Then
             assertThat(roundTripped.getSource()).usingRecursiveComparison().isEqualTo(entity.getSource());
@@ -722,9 +696,7 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_rewrite_only_the_fetch_state_of_the_source() throws Exception {
             var rewritten = adapter.configurationWithFetchState(
-                STORED_CONFIGURATION,
-                PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT)
-            );
+                    STORED_CONFIGURATION, PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT));
 
             var config = new ObjectMapper().readTree(rewritten);
             assertThat(config.get("portalPageContentId").asText()).isEqualTo("550e8400-e29b-41d4-a716-446655440013");
@@ -741,9 +713,7 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_leave_the_stored_last_success_when_the_state_carries_none() throws Exception {
             var rewritten = adapter.configurationWithFetchState(
-                STORED_CONFIGURATION,
-                PortalNavigationItemSource.FetchState.failed(FETCHED_AT, "still failing")
-            );
+                    STORED_CONFIGURATION, PortalNavigationItemSource.FetchState.failed(FETCHED_AT, "still failing"));
 
             var source = new ObjectMapper().readTree(rewritten).get("source");
             assertThat(source.get("lastFetchedAt").asText()).isEqualTo("2026-07-17T10:00:00Z");
@@ -754,40 +724,32 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_read_back_the_same_source_as_a_full_write_would() {
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
-                "550e8400-e29b-41d4-a716-446655440023",
-                "My Page",
-                "550e8400-e29b-41d4-a716-446655440013",
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440023", "My Page", "550e8400-e29b-41d4-a716-446655440013", null);
             repositoryItem.setUseAutoFetch(true);
             repositoryItem.setConfiguration(STORED_CONFIGURATION);
-            var expected = adapter
-                .toEntity(repositoryItem)
-                .getSource()
-                .toBuilder()
-                .lastFetchedAt(FETCHED_AT)
-                .lastFetchAttemptAt(FETCHED_AT)
-                .lastFetchError(null)
-                .build();
+            var expected = adapter.toEntity(repositoryItem).getSource().toBuilder()
+                    .lastFetchedAt(FETCHED_AT)
+                    .lastFetchAttemptAt(FETCHED_AT)
+                    .lastFetchError(null)
+                    .build();
 
-            repositoryItem.setConfiguration(
-                adapter.configurationWithFetchState(
-                    STORED_CONFIGURATION,
-                    PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT)
-                )
-            );
+            repositoryItem.setConfiguration(adapter.configurationWithFetchState(
+                    STORED_CONFIGURATION, PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT)));
 
-            assertThat(adapter.toEntity(repositoryItem).getSource()).usingRecursiveComparison().isEqualTo(expected);
+            assertThat(adapter.toEntity(repositoryItem).getSource())
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
         }
 
         @Test
         void should_throw_when_the_configuration_carries_no_source() {
             var fetchState = PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT);
 
-            assertThatThrownBy(() ->
-                adapter.configurationWithFetchState("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}", fetchState)
-            ).isInstanceOf(IllegalArgumentException.class);
-            assertThatThrownBy(() -> adapter.configurationWithFetchState("", fetchState)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> adapter.configurationWithFetchState(
+                            "{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}", fetchState))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> adapter.configurationWithFetchState("", fetchState))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
     }
 
@@ -798,27 +760,22 @@ class PortalNavigationItemAdapterTest {
         void should_map_automation_metadata_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
-                "550e8400-e29b-41d4-a716-446655440030",
-                "My Link",
-                null,
-                null
-            );
-            repositoryItem.setAutomationMetadata(
-                io.gravitee.repository.management.model.AutomationMetadata.builder()
+                    "550e8400-e29b-41d4-a716-446655440030", "My Link", null, null);
+            repositoryItem.setAutomationMetadata(io.gravitee.repository.management.model.AutomationMetadata.builder()
                     .referenceType(io.gravitee.repository.management.model.AutomationTargetReferenceType.PORTAL)
                     .referenceId("portal-id")
                     .name("ignored-on-read")
                     .location("/projects/alpha")
                     .order(7)
-                    .build()
-            );
+                    .build());
 
             // When
             var entity = (PortalNavigationLink) adapter.toEntity(repositoryItem);
 
             // Then: name/order are dropped on the core-facing copy (already live natively on the nav item)
             assertThat(entity.getAutomationMetadata()).isNotNull();
-            assertThat(entity.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.PORTAL);
+            assertThat(entity.getAutomationMetadata().referenceType())
+                    .isEqualTo(AutomationMetadata.ReferenceType.PORTAL);
             assertThat(entity.getAutomationMetadata().referenceId()).isEqualTo("portal-id");
             assertThat(entity.getAutomationMetadata().name()).isNull();
             assertThat(entity.getAutomationMetadata().location()).contains("/projects/alpha");
@@ -829,11 +786,7 @@ class PortalNavigationItemAdapterTest {
         void should_map_null_automation_metadata_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
-                "550e8400-e29b-41d4-a716-446655440031",
-                "My Link",
-                null,
-                null
-            );
+                    "550e8400-e29b-41d4-a716-446655440031", "My Link", null, null);
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -846,26 +799,24 @@ class PortalNavigationItemAdapterTest {
         void should_map_automation_metadata_to_repository() {
             // Given
             var entity = PortalNavigationItemFixtures.aLink(
-                "550e8400-e29b-41d4-a716-446655440032",
-                "My Link",
-                null,
-                new AutomationMetadata(
-                    AutomationMetadata.ReferenceType.PORTAL,
-                    "portal-id",
-                    "ignored-on-write",
-                    Optional.of("/x"),
-                    Optional.of(3)
-                )
-            );
+                    "550e8400-e29b-41d4-a716-446655440032",
+                    "My Link",
+                    null,
+                    new AutomationMetadata(
+                            AutomationMetadata.ReferenceType.PORTAL,
+                            "portal-id",
+                            "ignored-on-write",
+                            Optional.of("/x"),
+                            Optional.of(3)));
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then: name/order aren't part of the trimmed core-facing metadata, so they're absent on write too
             assertThat(repositoryItem.getAutomationMetadata()).isNotNull();
-            assertThat(repositoryItem.getAutomationMetadata().getReferenceType()).isEqualTo(
-                io.gravitee.repository.management.model.AutomationTargetReferenceType.PORTAL
-            );
+            assertThat(repositoryItem.getAutomationMetadata().getReferenceType())
+                    .isEqualTo(io.gravitee.repository.management.model.AutomationTargetReferenceType.PORTAL);
             assertThat(repositoryItem.getAutomationMetadata().getReferenceId()).isEqualTo("portal-id");
             assertThat(repositoryItem.getAutomationMetadata().getLocation()).isEqualTo("/x");
         }
@@ -876,7 +827,8 @@ class PortalNavigationItemAdapterTest {
             var entity = PortalNavigationItemFixtures.aLink("550e8400-e29b-41d4-a716-446655440033", "My Link", null);
 
             // When
-            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+            var repositoryItem =
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getAutomationMetadata()).isNull();
@@ -886,16 +838,19 @@ class PortalNavigationItemAdapterTest {
         void should_round_trip_automation_metadata_through_repository() {
             // Given
             var entity = PortalNavigationItemFixtures.aLink(
-                "550e8400-e29b-41d4-a716-446655440034",
-                "My Link",
-                null,
-                new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, "portal-id", null, Optional.of("/x"), Optional.empty())
-            );
+                    "550e8400-e29b-41d4-a716-446655440034",
+                    "My Link",
+                    null,
+                    new AutomationMetadata(
+                            AutomationMetadata.ReferenceType.PORTAL,
+                            "portal-id",
+                            null,
+                            Optional.of("/x"),
+                            Optional.empty()));
 
             // When
             var roundTripped = adapter.toEntity(
-                adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity)
-            );
+                    adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity));
 
             // Then
             assertThat(roundTripped.getAutomationMetadata()).isEqualTo(entity.getAutomationMetadata());

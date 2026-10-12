@@ -40,48 +40,46 @@ public class UpdateCategoryApiOrderUseCase {
     private final CategoryApiCrudService categoryApiCrudService;
 
     public Output execute(Input input) {
-        var categoryId = validateAndGetCategoryId(input.categoryIdOrKey(), input.executionContext().getEnvironmentId());
+        var categoryId = validateAndGetCategoryId(
+                input.categoryIdOrKey(), input.executionContext().getEnvironmentId());
 
-        this.validateUserHasAccessToApi(input.executionContext(), input.userId(), input.isAdmin(), categoryId, input.apiId());
+        this.validateUserHasAccessToApi(
+                input.executionContext(), input.userId(), input.isAdmin(), categoryId, input.apiId());
 
         var apiCategoryOrder = validateAndGetApiCategoryAssociation(categoryId, input.apiId());
 
         // Change order of api category order
         this.updateCategoryApiDomainService.changeOrder(apiCategoryOrder, input.newOrder());
 
-        return new Output(
-            new Result(validateAndGetApiCategoryAssociation(categoryId, input.apiId()), this.apiCrudService.get(input.apiId()))
-        );
+        return new Output(new Result(
+                validateAndGetApiCategoryAssociation(categoryId, input.apiId()),
+                this.apiCrudService.get(input.apiId())));
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        String categoryIdOrKey,
-        String apiId,
-        String userId,
-        boolean isAdmin,
-        int newOrder
-    ) {}
+            ExecutionContext executionContext,
+            String categoryIdOrKey,
+            String apiId,
+            String userId,
+            boolean isAdmin,
+            int newOrder) {}
 
     public record Output(Result result) {}
 
     public record Result(ApiCategoryOrder apiCategoryOrder, Api api) {}
 
     private void validateUserHasAccessToApi(
-        ExecutionContext executionContext,
-        String userId,
-        boolean isAdmin,
-        String categoryId,
-        String apiId
-    ) {
+            ExecutionContext executionContext, String userId, boolean isAdmin, String categoryId, String apiId) {
         if (!isAdmin) {
             var apiIdsInUserScope = this.apiAuthorizationDomainService.findIdsByUser(
-                executionContext,
-                userId,
-                ApiQueryCriteria.builder().ids(List.of(apiId)).category(categoryId).build(),
-                null,
-                false
-            );
+                    executionContext,
+                    userId,
+                    ApiQueryCriteria.builder()
+                            .ids(List.of(apiId))
+                            .category(categoryId)
+                            .build(),
+                    null,
+                    false);
             if (apiIdsInUserScope.contains(apiId)) {
                 return;
             }

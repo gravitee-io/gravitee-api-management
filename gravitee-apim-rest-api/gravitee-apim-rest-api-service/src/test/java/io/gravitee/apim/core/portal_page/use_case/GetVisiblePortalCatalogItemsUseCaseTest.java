@@ -84,31 +84,23 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         parametersQueryService = new ParametersQueryServiceInMemory();
         var membershipQueryService = new MembershipQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
-            membershipQueryService,
-            new SubscriptionQueryServiceInMemory(),
-            apiQueryService
-        );
-        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
-            navigationItemsQueryService,
-            apiMembershipDomainService
-        );
+                membershipQueryService, new SubscriptionQueryServiceInMemory(), apiQueryService);
+        var apiVisibilityDomainService =
+                new PortalNavigationApiVisibilityDomainService(navigationItemsQueryService, apiMembershipDomainService);
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
-            navigationItemsQueryService,
-            new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService)
-        );
-        var catalogNavigationVisibilityDomainService = new PortalCatalogNavigationVisibilityDomainService(
-            apiProductVisibilityDomainService
-        );
+                navigationItemsQueryService,
+                new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService));
+        var catalogNavigationVisibilityDomainService =
+                new PortalCatalogNavigationVisibilityDomainService(apiProductVisibilityDomainService);
         useCase = new GetVisiblePortalCatalogItemsUseCase(
-            navigationItemsQueryService,
-            apiVisibilityDomainService,
-            apiProductVisibilityDomainService,
-            catalogNavigationVisibilityDomainService,
-            apiPortalSearchQueryService,
-            apiQueryService,
-            apiProductQueryService,
-            new CheckTypoToleranceDomainService(parametersQueryService)
-        );
+                navigationItemsQueryService,
+                apiVisibilityDomainService,
+                apiProductVisibilityDomainService,
+                catalogNavigationVisibilityDomainService,
+                apiPortalSearchQueryService,
+                apiQueryService,
+                apiProductQueryService,
+                new CheckTypoToleranceDomainService(parametersQueryService));
     }
 
     @Test
@@ -124,8 +116,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
 
         assertThat(output.items().getTotalElements()).isEqualTo(2);
         assertThat(output.items().getContent())
-            .extracting(PortalNavigationItem::getType)
-            .containsExactly(PortalNavigationItemType.API_PRODUCT, PortalNavigationItemType.API);
+                .extracting(PortalNavigationItem::getType)
+                .containsExactly(PortalNavigationItemType.API_PRODUCT, PortalNavigationItemType.API);
         assertThat(output.includedApis()).isEmpty();
         assertThat(output.includedApiProducts()).isEmpty();
     }
@@ -134,29 +126,30 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     void should_exclude_direct_and_nested_product_apis_while_preserving_the_product_summary() {
         var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
         var folder = folder("folder-id", "Product APIs", productItem.getId());
-        var directApiItem = apiItem("direct-api-item-id", "direct-api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var directApiItem =
+                apiItem("direct-api-item-id", "direct-api-id", productItem.getId(), PortalVisibility.PUBLIC);
         var nestedApiItem = apiItem("nested-api-item-id", "nested-api-id", folder.getId(), PortalVisibility.PUBLIC);
         navigationItemsQueryService.initWith(List.of(productItem, folder, directApiItem, nestedApiItem));
         initApis(List.of(api("direct-api-id", "Direct API", "1.0.0"), api("nested-api-id", "Nested API", "2.0.0")));
-        apiProductQueryService.initWith(List.of(apiProduct("product-id", "API Product", Set.of("direct-api-id", "nested-api-id"))));
+        apiProductQueryService.initWith(
+                List.of(apiProduct("product-id", "API Product", Set.of("direct-api-id", "nested-api-id"))));
 
         var output = useCase.execute(input(Optional.empty(), Set.of(PortalNavigationSearchInclude.API_PRODUCT), 1, 10));
 
         assertThat(output.items().getTotalElements()).isEqualTo(1);
         assertThat(output.items().getContent()).containsExactly(productItem);
         assertThat(output.includedApiProducts())
-            .singleElement()
-            .satisfies(summary ->
-                assertThat(summary.apis())
-                    .extracting(PortalCatalogApiProductSummary.ApiSummary::id)
-                    .containsExactly("direct-api-id", "nested-api-id")
-            );
+                .singleElement()
+                .satisfies(summary -> assertThat(summary.apis())
+                        .extracting(PortalCatalogApiProductSummary.ApiSummary::id)
+                        .containsExactly("direct-api-id", "nested-api-id"));
     }
 
     @Test
     void should_return_a_standalone_api_once_when_the_same_api_is_also_product_scoped() {
         var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
-        var productScopedApiItem = apiItem("product-api-item-id", "api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var productScopedApiItem =
+                apiItem("product-api-item-id", "api-id", productItem.getId(), PortalVisibility.PUBLIC);
         var standaloneApiItem = apiItem("standalone-api-item-id", "api-id", null, PortalVisibility.PUBLIC);
         navigationItemsQueryService.initWith(List.of(productItem, productScopedApiItem, standaloneApiItem));
         initApis(List.of(api("api-id", "Zebra API", "1.0.0")));
@@ -165,14 +158,17 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         var output = useCase.execute(input(Optional.empty(), Set.of(PortalNavigationSearchInclude.API), 1, 10));
 
         assertThat(output.items().getTotalElements()).isEqualTo(2);
-        assertThat(output.items().getContent()).containsExactly(productItem, standaloneApiItem).doesNotContain(productScopedApiItem);
+        assertThat(output.items().getContent())
+                .containsExactly(productItem, standaloneApiItem)
+                .doesNotContain(productScopedApiItem);
         assertThat(output.includedApis()).singleElement().extracting(Api::getId).isEqualTo("api-id");
     }
 
     @Test
     void should_not_match_a_product_scoped_api_as_an_independent_catalog_result() {
         var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
-        var productScopedApiItem = apiItem("product-api-item-id", "api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var productScopedApiItem =
+                apiItem("product-api-item-id", "api-id", productItem.getId(), PortalVisibility.PUBLIC);
         navigationItemsQueryService.initWith(List.of(productItem, productScopedApiItem));
         initApis(List.of(api("api-id", "Payments API", "1.0.0")));
         apiProductQueryService.initWith(List.of(apiProduct("product-id", "Commerce Product", Set.of("api-id"))));
@@ -186,7 +182,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     @Test
     void should_paginate_after_excluding_product_scoped_apis() {
         var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
-        var productScopedApiItem = apiItem("product-api-item-id", "product-api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var productScopedApiItem =
+                apiItem("product-api-item-id", "product-api-id", productItem.getId(), PortalVisibility.PUBLIC);
         var standaloneApiItem = apiItem("standalone-api-item-id", "standalone-api-id", null, PortalVisibility.PUBLIC);
         navigationItemsQueryService.initWith(List.of(productItem, productScopedApiItem, standaloneApiItem));
         initApis(List.of(api("product-api-id", "Middle API", "1.0.0"), api("standalone-api-id", "Zebra API", "1.0.0")));
@@ -203,7 +200,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         var apiFolder = folder("api-folder-id", "APIs", null);
         var productFolder = folder("product-folder-id", "Products", null);
         var apiItem = apiItem("api-item-id", "api-id", apiFolder.getId(), PortalVisibility.PUBLIC);
-        var apiProductItem = apiProductItem("product-item-id", "product-id", productFolder.getId(), PortalVisibility.PUBLIC);
+        var apiProductItem =
+                apiProductItem("product-item-id", "product-id", productFolder.getId(), PortalVisibility.PUBLIC);
         navigationItemsQueryService.initWith(List.of(apiFolder, productFolder, apiItem, apiProductItem));
         initApis(List.of(api("api-id", "API", "1.0.0")));
         apiProductQueryService.initWith(List.of(apiProduct("product-id", "Product", Set.of())));
@@ -227,8 +225,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         var output = useCase.execute(input(Optional.of("payments"), Set.of(), 1, 10));
 
         assertThat(output.items().getContent())
-            .extracting(PortalNavigationItem::getType)
-            .containsExactly(PortalNavigationItemType.API, PortalNavigationItemType.API_PRODUCT);
+                .extracting(PortalNavigationItem::getType)
+                .containsExactly(PortalNavigationItemType.API, PortalNavigationItemType.API_PRODUCT);
     }
 
     @Test
@@ -291,28 +289,30 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
 
         assertThat(output.items().getTotalElements()).isEqualTo(2);
         assertThat(output.items().getContent())
-            .singleElement()
-            .extracting(PortalNavigationItem::getType)
-            .isEqualTo(PortalNavigationItemType.API_PRODUCT);
+                .singleElement()
+                .extracting(PortalNavigationItem::getType)
+                .isEqualTo(PortalNavigationItemType.API_PRODUCT);
     }
 
     @Test
     void should_return_all_sorted_entries_when_pagination_is_disabled() {
         var folder = folder("folder-id", "Catalog", null);
         var apiItem = apiItem("api-item-id", "api-id", folder.getId(), PortalVisibility.PUBLIC);
-        var firstProductItem = apiProductItem("first-product-item-id", "first-product-id", null, PortalVisibility.PUBLIC);
-        var secondProductItem = apiProductItem("second-product-item-id", "second-product-id", null, PortalVisibility.PUBLIC);
+        var firstProductItem =
+                apiProductItem("first-product-item-id", "first-product-id", null, PortalVisibility.PUBLIC);
+        var secondProductItem =
+                apiProductItem("second-product-item-id", "second-product-id", null, PortalVisibility.PUBLIC);
         navigationItemsQueryService.initWith(List.of(folder, apiItem, firstProductItem, secondProductItem));
         initApis(List.of(api("api-id", "Zebra API", "1.0.0")));
-        apiProductQueryService.initWith(
-            List.of(apiProduct("first-product-id", "Apple Product", Set.of()), apiProduct("second-product-id", "Middle Product", Set.of()))
-        );
+        apiProductQueryService.initWith(List.of(
+                apiProduct("first-product-id", "Apple Product", Set.of()),
+                apiProduct("second-product-id", "Middle Product", Set.of())));
 
         var output = useCase.execute(input(Optional.empty(), Set.of(), 1, -1));
 
         assertThat(output.items().getContent())
-            .extracting(PortalNavigationItem::getId)
-            .containsExactly(firstProductItem.getId(), secondProductItem.getId(), apiItem.getId());
+                .extracting(PortalNavigationItem::getId)
+                .containsExactly(firstProductItem.getId(), secondProductItem.getId(), apiItem.getId());
         assertThat(output.items().getTotalElements()).isEqualTo(3);
     }
 
@@ -327,26 +327,25 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     @Test
     void should_include_only_visible_apis_in_api_product_summary() {
         var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
-        var publicApiItem = apiItem("public-api-item-id", "public-api-id", productItem.getId(), PortalVisibility.PUBLIC);
-        var privateApiItem = apiItem("private-api-item-id", "private-api-id", productItem.getId(), PortalVisibility.PRIVATE);
+        var publicApiItem =
+                apiItem("public-api-item-id", "public-api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var privateApiItem =
+                apiItem("private-api-item-id", "private-api-id", productItem.getId(), PortalVisibility.PRIVATE);
         navigationItemsQueryService.initWith(List.of(productItem, publicApiItem, privateApiItem));
         initApis(List.of(api("public-api-id", "Public API", "1.0.0"), api("private-api-id", "Private API", "2.0.0")));
-        apiProductQueryService.initWith(List.of(apiProduct("product-id", "Product", Set.of("public-api-id", "private-api-id"))));
+        apiProductQueryService.initWith(
+                List.of(apiProduct("product-id", "Product", Set.of("public-api-id", "private-api-id"))));
 
         var output = useCase.execute(input(Optional.empty(), Set.of(PortalNavigationSearchInclude.API_PRODUCT), 1, 10));
 
-        assertThat(output.includedApiProducts())
-            .singleElement()
-            .satisfies(summary -> {
-                assertThat(summary.id()).isEqualTo("product-id");
-                assertThat(summary.navigationItemId()).isEqualTo(productItem.getId().json());
-                assertThat(summary.apis())
-                    .singleElement()
-                    .satisfies(api -> {
-                        assertThat(api.id()).isEqualTo("public-api-id");
-                        assertThat(api.name()).isEqualTo("Public API");
-                    });
+        assertThat(output.includedApiProducts()).singleElement().satisfies(summary -> {
+            assertThat(summary.id()).isEqualTo("product-id");
+            assertThat(summary.navigationItemId()).isEqualTo(productItem.getId().json());
+            assertThat(summary.apis()).singleElement().satisfies(api -> {
+                assertThat(api.id()).isEqualTo("public-api-id");
+                assertThat(api.name()).isEqualTo("Public API");
             });
+        });
     }
 
     @Test
@@ -380,22 +379,17 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     void should_filter_catalog_apis_by_category_id() {
         var folder = folder("folder-id", "Catalog", null);
         var apiInCategory = apiItem(
-            "api-item-in-category-id",
-            "api-in-category-id",
-            folder.getId(),
-            PortalVisibility.PUBLIC,
-            List.of(PortalCategoryId.of(CATEGORY_ID_1))
-        );
+                "api-item-in-category-id",
+                "api-in-category-id",
+                folder.getId(),
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_1)));
         var apiOutsideCategory = apiItem(
-            "api-item-outside-category-id",
-            "api-outside-category-id",
-            folder.getId(),
-            PortalVisibility.PUBLIC
-        );
+                "api-item-outside-category-id", "api-outside-category-id", folder.getId(), PortalVisibility.PUBLIC);
         navigationItemsQueryService.initWith(List.of(folder, apiInCategory, apiOutsideCategory));
-        initApis(
-            List.of(api("api-in-category-id", "In Category API", "1.0.0"), api("api-outside-category-id", "Outside Category API", "1.0.0"))
-        );
+        initApis(List.of(
+                api("api-in-category-id", "In Category API", "1.0.0"),
+                api("api-outside-category-id", "Outside Category API", "1.0.0")));
 
         var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10, Optional.of(CATEGORY_ID_1)));
 
@@ -406,34 +400,28 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     void should_filter_catalog_apis_and_api_products_by_category_id() {
         var folder = folder("folder-id", "Catalog", null);
         var apiInCategory = apiItem(
-            "api-item-in-category-id",
-            "api-in-category-id",
-            folder.getId(),
-            PortalVisibility.PUBLIC,
-            List.of(PortalCategoryId.of(CATEGORY_ID_1))
-        );
+                "api-item-in-category-id",
+                "api-in-category-id",
+                folder.getId(),
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_1)));
         var productInCategory = apiProductItem(
-            "product-item-in-category-id",
-            "product-in-category-id",
-            null,
-            PortalVisibility.PUBLIC,
-            List.of(PortalCategoryId.of(CATEGORY_ID_1))
-        );
+                "product-item-in-category-id",
+                "product-in-category-id",
+                null,
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_1)));
         var productOutsideCategory = apiProductItem(
-            "product-item-outside-category-id",
-            "product-outside-category-id",
-            null,
-            PortalVisibility.PUBLIC,
-            List.of(PortalCategoryId.of(CATEGORY_ID_2))
-        );
+                "product-item-outside-category-id",
+                "product-outside-category-id",
+                null,
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_2)));
         navigationItemsQueryService.initWith(List.of(folder, apiInCategory, productInCategory, productOutsideCategory));
         initApis(List.of(api("api-in-category-id", "In Category API", "1.0.0")));
-        apiProductQueryService.initWith(
-            List.of(
+        apiProductQueryService.initWith(List.of(
                 apiProduct("product-in-category-id", "Matching Product", Set.of()),
-                apiProduct("product-outside-category-id", "Outside Product", Set.of())
-            )
-        );
+                apiProduct("product-outside-category-id", "Outside Product", Set.of())));
 
         var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10, Optional.of(CATEGORY_ID_1)));
 
@@ -444,40 +432,44 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     @Test
     void should_preserve_visible_product_api_summaries_when_filtering_catalog_by_product_category() {
         var productItem = apiProductItem(
-            "product-item-id",
-            "product-id",
-            null,
-            PortalVisibility.PUBLIC,
-            List.of(PortalCategoryId.of(CATEGORY_ID_1))
-        );
-        var publicApiItem = apiItem("public-api-item-id", "public-api-id", productItem.getId(), PortalVisibility.PUBLIC);
-        var privateApiItem = apiItem("private-api-item-id", "private-api-id", productItem.getId(), PortalVisibility.PRIVATE);
+                "product-item-id",
+                "product-id",
+                null,
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_1)));
+        var publicApiItem =
+                apiItem("public-api-item-id", "public-api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var privateApiItem =
+                apiItem("private-api-item-id", "private-api-id", productItem.getId(), PortalVisibility.PRIVATE);
         navigationItemsQueryService.initWith(List.of(productItem, publicApiItem, privateApiItem));
         initApis(List.of(api("public-api-id", "Public API", "1.0.0"), api("private-api-id", "Private API", "1.0.0")));
-        apiProductQueryService.initWith(List.of(apiProduct("product-id", "Product", Set.of("public-api-id", "private-api-id"))));
+        apiProductQueryService.initWith(
+                List.of(apiProduct("product-id", "Product", Set.of("public-api-id", "private-api-id"))));
 
-        var output = useCase.execute(
-            input(Optional.empty(), Set.of(PortalNavigationSearchInclude.API_PRODUCT), 1, 10, Optional.of(CATEGORY_ID_1))
-        );
+        var output = useCase.execute(input(
+                Optional.empty(),
+                Set.of(PortalNavigationSearchInclude.API_PRODUCT),
+                1,
+                10,
+                Optional.of(CATEGORY_ID_1)));
 
         assertThat(output.items().getContent()).containsExactly(productItem);
         assertThat(output.includedApiProducts())
-            .singleElement()
-            .satisfies(summary ->
-                assertThat(summary.apis()).extracting(PortalCatalogApiProductSummary.ApiSummary::id).containsExactly("public-api-id")
-            );
+                .singleElement()
+                .satisfies(summary -> assertThat(summary.apis())
+                        .extracting(PortalCatalogApiProductSummary.ApiSummary::id)
+                        .containsExactly("public-api-id"));
     }
 
     @Test
     void should_not_inherit_api_product_category_from_an_included_api() {
         var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
         var includedApi = apiItem(
-            "included-api-item-id",
-            "included-api-id",
-            productItem.getId(),
-            PortalVisibility.PUBLIC,
-            List.of(PortalCategoryId.of(CATEGORY_ID_1))
-        );
+                "included-api-item-id",
+                "included-api-id",
+                productItem.getId(),
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_1)));
         navigationItemsQueryService.initWith(List.of(productItem, includedApi));
         initApis(List.of(api("included-api-id", "Included API", "1.0.0")));
         apiProductQueryService.initWith(List.of(apiProduct("product-id", "Product", Set.of("included-api-id"))));
@@ -491,12 +483,11 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     void should_return_empty_catalog_results_when_category_id_does_not_match() {
         var folder = folder("folder-id", "Catalog", null);
         var apiInCategory = apiItem(
-            "api-item-in-category-id",
-            "api-in-category-id",
-            folder.getId(),
-            PortalVisibility.PUBLIC,
-            List.of(PortalCategoryId.of(CATEGORY_ID_1))
-        );
+                "api-item-in-category-id",
+                "api-in-category-id",
+                folder.getId(),
+                PortalVisibility.PUBLIC,
+                List.of(PortalCategoryId.of(CATEGORY_ID_1)));
         navigationItemsQueryService.initWith(List.of(folder, apiInCategory));
         initApis(List.of(api("api-in-category-id", "In Category API", "1.0.0")));
 
@@ -506,30 +497,24 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     }
 
     private GetVisiblePortalCatalogItemsUseCase.Input input(
-        Optional<String> query,
-        Set<PortalNavigationSearchInclude> includes,
-        int page,
-        int size
-    ) {
+            Optional<String> query, Set<PortalNavigationSearchInclude> includes, int page, int size) {
         return input(query, includes, page, size, Optional.empty());
     }
 
     private GetVisiblePortalCatalogItemsUseCase.Input input(
-        Optional<String> query,
-        Set<PortalNavigationSearchInclude> includes,
-        int page,
-        int size,
-        Optional<String> categoryId
-    ) {
+            Optional<String> query,
+            Set<PortalNavigationSearchInclude> includes,
+            int page,
+            int size,
+            Optional<String> categoryId) {
         return new GetVisiblePortalCatalogItemsUseCase.Input(
-            ENV_ID,
-            ORG_ID,
-            PortalNavigationItemViewerContext.forPortal((String) null),
-            new PageableImpl(page, size),
-            query,
-            includes,
-            categoryId.map(PortalCategoryId::of)
-        );
+                ENV_ID,
+                ORG_ID,
+                PortalNavigationItemViewerContext.forPortal((String) null),
+                new PageableImpl(page, size),
+                query,
+                includes,
+                categoryId.map(PortalCategoryId::of));
     }
 
     private void initApis(List<Api> apis) {
@@ -538,102 +523,105 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     }
 
     private void enableTypoTolerance() {
-        parametersQueryService.define(
-            new Parameter(Key.PORTAL_NEXT_SEARCH_FUZZY.key(), ENV_ID, ParameterReferenceType.ENVIRONMENT, Boolean.TRUE.toString())
-        );
+        parametersQueryService.define(new Parameter(
+                Key.PORTAL_NEXT_SEARCH_FUZZY.key(),
+                ENV_ID,
+                ParameterReferenceType.ENVIRONMENT,
+                Boolean.TRUE.toString()));
     }
 
     private Api api(String id, String name, String version) {
-        return Api.builder().id(id).environmentId(ENV_ID).name(name).version(version).build();
+        return Api.builder()
+                .id(id)
+                .environmentId(ENV_ID)
+                .name(name)
+                .version(version)
+                .build();
     }
 
     private ApiProduct apiProduct(String id, String name, Set<String> apiIds) {
         return ApiProduct.builder()
-            .id(id)
-            .environmentId(ENV_ID)
-            .name(name)
-            .description("Description")
-            .version("1.0.0")
-            .apiIds(apiIds)
-            .build();
+                .id(id)
+                .environmentId(ENV_ID)
+                .name(name)
+                .description("Description")
+                .version("1.0.0")
+                .apiIds(apiIds)
+                .build();
     }
 
     private PortalNavigationFolder folder(String id, String title, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
-            .id(navigationItemId(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(parentId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(navigationItemId(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(parentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
-    private PortalNavigationApi apiItem(String id, String apiId, PortalNavigationItemId parentId, PortalVisibility visibility) {
+    private PortalNavigationApi apiItem(
+            String id, String apiId, PortalNavigationItemId parentId, PortalVisibility visibility) {
         return apiItem(id, apiId, parentId, visibility, List.of());
     }
 
     private PortalNavigationApi apiItem(
-        String id,
-        String apiId,
-        PortalNavigationItemId parentId,
-        PortalVisibility visibility,
-        List<PortalCategoryId> categoryIds
-    ) {
+            String id,
+            String apiId,
+            PortalNavigationItemId parentId,
+            PortalVisibility visibility,
+            List<PortalCategoryId> categoryIds) {
         return PortalNavigationApi.builder()
-            .id(navigationItemId(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(apiId)
-            .segment(apiId)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(parentId)
-            .apiId(apiId)
-            .published(true)
-            .visibility(visibility)
-            .categoryIds(categoryIds)
-            .build();
+                .id(navigationItemId(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(apiId)
+                .segment(apiId)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(parentId)
+                .apiId(apiId)
+                .published(true)
+                .visibility(visibility)
+                .categoryIds(categoryIds)
+                .build();
     }
 
     private PortalNavigationApiProduct apiProductItem(
-        String id,
-        String apiProductId,
-        PortalNavigationItemId parentId,
-        PortalVisibility visibility
-    ) {
+            String id, String apiProductId, PortalNavigationItemId parentId, PortalVisibility visibility) {
         return apiProductItem(id, apiProductId, parentId, visibility, List.of());
     }
 
     private PortalNavigationApiProduct apiProductItem(
-        String id,
-        String apiProductId,
-        PortalNavigationItemId parentId,
-        PortalVisibility visibility,
-        List<PortalCategoryId> categoryIds
-    ) {
+            String id,
+            String apiProductId,
+            PortalNavigationItemId parentId,
+            PortalVisibility visibility,
+            List<PortalCategoryId> categoryIds) {
         return PortalNavigationApiProduct.builder()
-            .id(navigationItemId(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(apiProductId)
-            .segment(apiProductId)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(parentId)
-            .apiProductId(apiProductId)
-            .published(true)
-            .visibility(visibility)
-            .categoryIds(categoryIds)
-            .build();
+                .id(navigationItemId(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(apiProductId)
+                .segment(apiProductId)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(parentId)
+                .apiProductId(apiProductId)
+                .published(true)
+                .visibility(visibility)
+                .categoryIds(categoryIds)
+                .build();
     }
 
     private PortalNavigationItemId navigationItemId(String value) {
-        return PortalNavigationItemId.of(UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8)).toString());
+        return PortalNavigationItemId.of(
+                UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8)).toString());
     }
 
     private static class CountingPortalNavigationItemsQueryService extends PortalNavigationItemsQueryServiceInMemory {

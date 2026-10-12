@@ -50,27 +50,31 @@ public class SearchEnvironmentResponseStatusRangesUseCase {
         var apiIds = apisIdsForEnv(envId);
         var apis = apiIds.values().stream().flatMap(List::stream).toList();
 
-        log.debug("Searching environment API response status ranges, found: {} v4 APIs for env: {}", apis.size(), envId);
+        log.debug(
+                "Searching environment API response status ranges, found: {} v4 APIs for env: {}", apis.size(), envId);
         return analyticsQueryService
-            .searchResponseStatusRanges(
-                input.executionContext(),
-                input.parameters().withApiIds(apis).withDefinitionVersions(apiIds.keySet())
-            )
-            .map(SearchEnvironmentResponseStatusRangesUseCase.Output::new)
-            .orElse(new SearchEnvironmentResponseStatusRangesUseCase.Output());
+                .searchResponseStatusRanges(
+                        input.executionContext(),
+                        input.parameters().withApiIds(apis).withDefinitionVersions(apiIds.keySet()))
+                .map(SearchEnvironmentResponseStatusRangesUseCase.Output::new)
+                .orElse(new SearchEnvironmentResponseStatusRangesUseCase.Output());
     }
 
     private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(groupingBy(SearchEnvironmentResponseStatusRangesUseCase::getDefinitionVersion, mapping(Api::getId, toList())));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(envId)
+                                .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .collect(groupingBy(
+                        SearchEnvironmentResponseStatusRangesUseCase::getDefinitionVersion,
+                        mapping(Api::getId, toList())));
     }
 
     private static DefinitionVersion getDefinitionVersion(Api api) {

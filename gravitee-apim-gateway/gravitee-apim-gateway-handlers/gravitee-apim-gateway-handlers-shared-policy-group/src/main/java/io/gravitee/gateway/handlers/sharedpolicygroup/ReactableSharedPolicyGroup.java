@@ -77,19 +77,19 @@ public class ReactableSharedPolicyGroup implements Reactable, Serializable {
     }
 
     private Set<Policy> policies() {
-        if (definition == null || definition.getPolicies() == null || definition.getPolicies().isEmpty()) {
+        if (definition == null
+                || definition.getPolicies() == null
+                || definition.getPolicies().isEmpty()) {
             return Set.of();
         }
-        return definition
-            .getPolicies()
-            .stream()
-            .filter(Step::isEnabled)
-            .map(step -> {
-                Policy policy = new Policy();
-                policy.setName(step.getPolicy());
-                policy.setConfiguration(step.getConfiguration());
-                return policy;
-            })
-            .collect(Collectors.toSet());
+        return definition.getPolicies().stream()
+                .filter(Step::isEnabled)
+                .map(step -> {
+                    Policy policy = new Policy();
+                    policy.setName(step.getPolicy());
+                    policy.setConfiguration(step.getConfiguration());
+                    return policy;
+                })
+                .collect(Collectors.toSet());
     }
 }

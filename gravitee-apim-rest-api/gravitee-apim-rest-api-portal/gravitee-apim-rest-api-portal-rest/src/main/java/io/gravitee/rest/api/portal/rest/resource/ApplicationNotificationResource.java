@@ -51,50 +51,43 @@ public class ApplicationNotificationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)})
     public Response get(@PathParam("applicationId") String applicationId) {
-        //Does application exists ?
+        // Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
-            getAuthenticatedUser(),
-            NotificationReferenceType.APPLICATION,
-            applicationId
-        );
+                getAuthenticatedUser(), NotificationReferenceType.APPLICATION, applicationId);
 
         final Set<String> hooks = new HashSet<>(portalConfig.getHooks());
 
         genericNotificationConfigService
-            .findByReference(NotificationReferenceType.APPLICATION, applicationId)
-            .forEach(genericNotif -> hooks.addAll(genericNotif.getHooks()));
+                .findByReference(NotificationReferenceType.APPLICATION, applicationId)
+                .forEach(genericNotif -> hooks.addAll(genericNotif.getHooks()));
         return Response.ok(hooks).build();
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.UPDATE)})
     public Response update(
-        @PathParam("applicationId") String applicationId,
-        @NotNull(message = "Input must not be null.") NotificationInput notification
-    ) {
-        //Does application exists ?
+            @PathParam("applicationId") String applicationId,
+            @NotNull(message = "Input must not be null.") NotificationInput notification) {
+        // Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
-            getAuthenticatedUser(),
-            NotificationReferenceType.APPLICATION,
-            applicationId
-        );
+                getAuthenticatedUser(), NotificationReferenceType.APPLICATION, applicationId);
         portalConfig.setHooks(notification.getHooks());
         portalNotificationConfigService.save(portalConfig);
 
         genericNotificationConfigService
-            .findByReference(NotificationReferenceType.APPLICATION, applicationId)
-            .forEach(genericConfig -> {
-                genericConfig.setHooks(notification.getHooks());
-                genericNotificationConfigService.update(genericConfig);
-            });
+                .findByReference(NotificationReferenceType.APPLICATION, applicationId)
+                .forEach(genericConfig -> {
+                    genericConfig.setHooks(notification.getHooks());
+                    genericNotificationConfigService.update(genericConfig);
+                });
         return Response.ok(notification.getHooks()).build();
     }
 }

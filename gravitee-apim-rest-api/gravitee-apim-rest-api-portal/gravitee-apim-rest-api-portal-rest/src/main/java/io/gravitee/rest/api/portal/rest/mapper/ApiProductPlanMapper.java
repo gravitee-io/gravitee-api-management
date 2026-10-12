@@ -39,7 +39,8 @@ public final class ApiProductPlanMapper {
         result.setCommentRequired(plan.isCommentRequired());
         result.setCommentQuestion(plan.getCommentMessage());
         if (plan.getPlanSecurity() != null && plan.getPlanSecurity().getType() != null) {
-            var securityType = PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
+            var securityType =
+                    PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
             result.setSecurity(SecurityEnum.fromValue(securityType.name()));
         }
         result.setValidation(ValidationEnum.fromValue(plan.getPlanValidation().name()));

@@ -38,6 +38,9 @@ public class HtmlSanitizerImpl implements HtmlSanitizer {
     @Override
     public SanitizeResult isSafe(String content) {
         var sanitizeInfos = this.delegate.isSafe(content);
-        return SanitizeResult.builder().safe(sanitizeInfos.isSafe()).rejectedMessage(sanitizeInfos.getRejectedMessage()).build();
+        return SanitizeResult.builder()
+                .safe(sanitizeInfos.isSafe())
+                .rejectedMessage(sanitizeInfos.getRejectedMessage())
+                .build();
     }
 }

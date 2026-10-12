@@ -65,9 +65,10 @@ public class JdbcCommandRepositoryConcurrentUpdateTest extends AbstractRepositor
         // The race depends on PostgreSQL READ COMMITTED semantics (a blocked DELETE re-checks the
         // rows it waited on, but never sees rows inserted concurrently).
         assumeTrue(
-            jdbcDatabaseContainer.getDockerImageName().contains(DatabaseConfigurationEnum.POSTGRESQL.getDockerImageName()),
-            "Only reproducible on PostgreSQL"
-        );
+                jdbcDatabaseContainer
+                        .getDockerImageName()
+                        .contains(DatabaseConfigurationEnum.POSTGRESQL.getDockerImageName()),
+                "Only reproducible on PostgreSQL");
         String prefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
         String acknowledgments = prefix + "command_acknowledgments";
         String tags = prefix + "command_tags";
@@ -92,7 +93,11 @@ public class JdbcCommandRepositoryConcurrentUpdateTest extends AbstractRepositor
             // Node 1's acknowledgment, as written by an update that rewrites the child rows, left
             // uncommitted while node 2 acknowledges.
             execute(node1, "delete from " + acknowledgments + " where command_id = ?", command.getId());
-            execute(node1, "insert into " + acknowledgments + " ( command_id, acknowledgment ) values ( ?, ? )", command.getId(), "node-1");
+            execute(
+                    node1,
+                    "insert into " + acknowledgments + " ( command_id, acknowledgment ) values ( ?, ? )",
+                    command.getId(),
+                    "node-1");
             execute(node1, "delete from " + tags + " where command_id = ?", command.getId());
             execute(node1, "insert into " + tags + " ( command_id, tag ) values ( ?, ? )", command.getId(), TAG);
 
@@ -113,10 +118,8 @@ public class JdbcCommandRepositoryConcurrentUpdateTest extends AbstractRepositor
     private static void waitUntilDoneOrBlocked(Connection observer, Future<?> future) throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         while (!future.isDone() && System.nanoTime() < deadline) {
-            try (
-                PreparedStatement ps = observer.prepareStatement("select count(*) from pg_locks where not granted");
-                ResultSet rs = ps.executeQuery()
-            ) {
+            try (PreparedStatement ps = observer.prepareStatement("select count(*) from pg_locks where not granted");
+                    ResultSet rs = ps.executeQuery()) {
                 if (rs.next() && rs.getInt(1) > 0) {
                     return;
                 }

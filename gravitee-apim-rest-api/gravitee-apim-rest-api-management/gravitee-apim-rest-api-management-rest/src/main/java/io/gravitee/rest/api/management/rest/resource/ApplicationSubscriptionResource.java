@@ -31,7 +31,6 @@ import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -102,14 +101,18 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get subscription information", description = "User must have the READ permission to use this service")
+    @Operation(
+            summary = "Get subscription information",
+            description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Subscription information",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
-    )
+            responseCode = "200",
+            description = "Subscription information",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = Subscription.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)})
     public Subscription getApplicationSubscription() {
         return convert(GraviteeContext.getExecutionContext(), checkSubscription(subscription));
     }
@@ -117,41 +120,36 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Close the subscription",
-        description = "User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service"
-    )
+            summary = "Close the subscription",
+            description = "User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Subscription has been closed successfully",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
-    )
+            responseCode = "200",
+            description = "Subscription has been closed successfully",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = Subscription.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE)})
     public Response closeApplicationSubscription() {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
         if (subscriptionEntity.getApplication().equals(application)) {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             final var user = getAuthenticatedUserDetails();
 
-            var result = closeSubscriptionUsecase.execute(
-                CloseSubscriptionUseCase.Input.builder()
+            var result = closeSubscriptionUsecase.execute(CloseSubscriptionUseCase.Input.builder()
                     .subscriptionId(subscription)
                     .applicationId(application)
-                    .auditInfo(
-                        AuditInfo.builder()
+                    .auditInfo(AuditInfo.builder()
                             .organizationId(executionContext.getOrganizationId())
                             .environmentId(executionContext.getEnvironmentId())
-                            .actor(
-                                AuditActor.builder()
+                            .actor(AuditActor.builder()
                                     .userId(user.getUsername())
                                     .userSource(user.getSource())
                                     .userSourceId(user.getSourceId())
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .build()
-            );
+                                    .build())
+                            .build())
+                    .build());
 
             return Response.ok(convert(executionContext, result.subscription())).build();
         }
@@ -168,29 +166,29 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update a subscription configuration",
-        description = "User must have the APPLICATION_SUBSCRIPTION[UPDATE] permission to use this service"
-    )
+            summary = "Update a subscription configuration",
+            description = "User must have the APPLICATION_SUBSCRIPTION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Update a subscription configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = SubscriptionEntity.class))
-    )
+            responseCode = "200",
+            description = "Update a subscription configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = SubscriptionEntity.class)))
     @ApiResponse(responseCode = "404", description = "Subscription not found")
-    @ApiResponse(responseCode = "400", description = "Subscription not updatable, or bad subscription configuration format")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Subscription not updatable, or bad subscription configuration format")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = UPDATE)})
     public Response updateApplicationSubscription(
-        @Valid @NotNull UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity
-    ) {
+            @Valid @NotNull UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity) {
         // Check subscription exists and belongs to application
         checkSubscription(subscription);
 
         updateSubscriptionConfigurationEntity.setSubscriptionId(subscription);
         SubscriptionEntity updatedSubscription = subscriptionService.update(
-            GraviteeContext.getExecutionContext(),
-            updateSubscriptionConfigurationEntity
-        );
+                GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
         return Response.ok(updatedSubscription).build();
     }
 
@@ -198,23 +196,23 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     @Path("/_changeConsumerStatus")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Change the status of a subscription",
-        description = "User must have the APPLICATION_SUBSCRIPTION[UPDATE] permission to use this service"
-    )
+            summary = "Change the status of a subscription",
+            description = "User must have the APPLICATION_SUBSCRIPTION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Subscription status successfully updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Subscription.class))
-    )
+            responseCode = "200",
+            description = "Subscription status successfully updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = Subscription.class)))
     @ApiResponse(responseCode = "400", description = "Status changes not authorized")
     @ApiResponse(responseCode = "404", description = "API subscription does not exist")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)})
     public Response changeSubscriptionConsumerStatus(
-        @Parameter(required = true, schema = @Schema(allowableValues = { "STARTED", "STOPPED" })) @QueryParam(
-            "status"
-        ) SubscriptionConsumerStatus subscriptionConsumerStatus
-    ) {
+            @Parameter(required = true, schema = @Schema(allowableValues = {"STARTED", "STOPPED"}))
+                    @QueryParam("status")
+                    SubscriptionConsumerStatus subscriptionConsumerStatus) {
         // Check subscription exists and belongs to application
         checkSubscription(subscription);
 
@@ -226,12 +224,16 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
         switch (subscriptionConsumerStatus) {
             case STARTED: {
-                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscription);
-                return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
+                SubscriptionEntity updatedSubscriptionEntity =
+                        subscriptionService.resumeConsumer(executionContext, subscription);
+                return Response.ok(convert(executionContext, updatedSubscriptionEntity))
+                        .build();
             }
             case STOPPED: {
-                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscription);
-                return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
+                SubscriptionEntity updatedSubscriptionEntity =
+                        subscriptionService.pauseConsumer(executionContext, subscription);
+                return Response.ok(convert(executionContext, updatedSubscriptionEntity))
+                        .build();
             }
             default:
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -252,12 +254,11 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setRequest(subscriptionEntity.getRequest());
         subscription.setStatus(subscriptionEntity.getStatus());
         subscription.setConsumerStatus(subscriptionEntity.getConsumerStatus());
-        subscription.setSubscribedBy(
-            new Subscription.User(
+        subscription.setSubscribedBy(new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
-            )
-        );
+                userService
+                        .findById(executionContext, subscriptionEntity.getSubscribedBy(), true)
+                        .getDisplayName()));
 
         subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlan()));
         subscription.setReferenceId(subscriptionEntity.getReferenceId());
@@ -277,8 +278,9 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
         subscription.setConsumerPausedAt(subscriptionEntity.getConsumerPausedAt());
         subscription.setOrigin(
-            subscriptionEntity.getOrigin() != null ? OriginContext.Origin.valueOf(subscriptionEntity.getOrigin()) : null
-        );
+                subscriptionEntity.getOrigin() != null
+                        ? OriginContext.Origin.valueOf(subscriptionEntity.getOrigin())
+                        : null);
         subscription.setConfiguration(subscriptionEntity.getConfiguration());
         subscription.setMetadata(subscriptionEntity.getMetadata());
 
@@ -286,55 +288,66 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     }
 
     private Subscription convert(
-        final ExecutionContext executionContext,
-        io.gravitee.apim.core.subscription.model.SubscriptionEntity subscriptionEntity
-    ) {
+            final ExecutionContext executionContext,
+            io.gravitee.apim.core.subscription.model.SubscriptionEntity subscriptionEntity) {
         Subscription subscription = new Subscription();
 
         subscription.setId(subscriptionEntity.getId());
         subscription.setCreatedAt(Date.from(subscriptionEntity.getCreatedAt().toInstant()));
         subscription.setUpdatedAt(Date.from(subscriptionEntity.getUpdatedAt().toInstant()));
         subscription.setStartingAt(
-            subscriptionEntity.getStartingAt() != null ? Date.from(subscriptionEntity.getStartingAt().toInstant()) : null
-        );
-        subscription.setEndingAt(subscriptionEntity.getEndingAt() != null ? Date.from(subscriptionEntity.getEndingAt().toInstant()) : null);
-        subscription.setClosedAt(subscriptionEntity.getClosedAt() != null ? Date.from(subscriptionEntity.getClosedAt().toInstant()) : null);
-        subscription.setPausedAt(subscriptionEntity.getPausedAt() != null ? Date.from(subscriptionEntity.getPausedAt().toInstant()) : null);
+                subscriptionEntity.getStartingAt() != null
+                        ? Date.from(subscriptionEntity.getStartingAt().toInstant())
+                        : null);
+        subscription.setEndingAt(
+                subscriptionEntity.getEndingAt() != null
+                        ? Date.from(subscriptionEntity.getEndingAt().toInstant())
+                        : null);
+        subscription.setClosedAt(
+                subscriptionEntity.getClosedAt() != null
+                        ? Date.from(subscriptionEntity.getClosedAt().toInstant())
+                        : null);
+        subscription.setPausedAt(
+                subscriptionEntity.getPausedAt() != null
+                        ? Date.from(subscriptionEntity.getPausedAt().toInstant())
+                        : null);
         subscription.setConsumerPausedAt(
-            subscriptionEntity.getConsumerPausedAt() != null ? Date.from(subscriptionEntity.getConsumerPausedAt().toInstant()) : null
-        );
+                subscriptionEntity.getConsumerPausedAt() != null
+                        ? Date.from(subscriptionEntity.getConsumerPausedAt().toInstant())
+                        : null);
         subscription.setProcessedAt(
-            subscriptionEntity.getProcessedAt() != null ? Date.from(subscriptionEntity.getProcessedAt().toInstant()) : null
-        );
+                subscriptionEntity.getProcessedAt() != null
+                        ? Date.from(subscriptionEntity.getProcessedAt().toInstant())
+                        : null);
         subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
         subscription.setRequest(subscriptionEntity.getRequestMessage());
         subscription.setReason(subscriptionEntity.getReasonMessage());
         subscription.setStatus(
-            switch (subscriptionEntity.getStatus()) {
-                case PENDING -> SubscriptionStatus.PENDING;
-                case REJECTED -> SubscriptionStatus.REJECTED;
-                case ACCEPTED -> SubscriptionStatus.ACCEPTED;
-                case CLOSED -> SubscriptionStatus.CLOSED;
-                case PAUSED -> SubscriptionStatus.PAUSED;
-            }
-        );
+                switch (subscriptionEntity.getStatus()) {
+                    case PENDING -> SubscriptionStatus.PENDING;
+                    case REJECTED -> SubscriptionStatus.REJECTED;
+                    case ACCEPTED -> SubscriptionStatus.ACCEPTED;
+                    case CLOSED -> SubscriptionStatus.CLOSED;
+                    case PAUSED -> SubscriptionStatus.PAUSED;
+                });
         subscription.setConsumerStatus(
-            switch (subscriptionEntity.getConsumerStatus()) {
-                case STARTED -> SubscriptionConsumerStatus.STARTED;
-                case STOPPED -> SubscriptionConsumerStatus.STOPPED;
-                case FAILURE -> SubscriptionConsumerStatus.FAILURE;
-            }
-        );
-        subscription.setSubscribedBy(
-            new Subscription.User(
+                switch (subscriptionEntity.getConsumerStatus()) {
+                    case STARTED -> SubscriptionConsumerStatus.STARTED;
+                    case STOPPED -> SubscriptionConsumerStatus.STOPPED;
+                    case FAILURE -> SubscriptionConsumerStatus.FAILURE;
+                });
+        subscription.setSubscribedBy(new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
-            )
-        );
+                userService
+                        .findById(executionContext, subscriptionEntity.getSubscribedBy(), true)
+                        .getDisplayName()));
 
         subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlanId()));
         subscription.setReferenceId(subscriptionEntity.getReferenceId());
-        subscription.setReferenceType(subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType().name() : null);
+        subscription.setReferenceType(
+                subscriptionEntity.getReferenceType() != null
+                        ? subscriptionEntity.getReferenceType().name()
+                        : null);
         if (subscriptionEntity.getReferenceId() != null && subscriptionEntity.getReferenceType() != null) {
             String refType = subscriptionEntity.getReferenceType().name();
             if (SubscriptionReferenceType.API_PRODUCT.name().equals(refType)) {
@@ -350,46 +363,41 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     }
 
     private Subscription.Api fetchApi(ExecutionContext executionContext, String apiId) {
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+        GenericApiEntity genericApiEntity =
+                apiSearchService.findGenericById(executionContext, apiId, false, false, false);
         return new Subscription.Api(
-            genericApiEntity.getId(),
-            genericApiEntity.getName(),
-            genericApiEntity.getApiVersion(),
-            genericApiEntity.getDefinitionVersion(),
-            new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
-        );
+                genericApiEntity.getId(),
+                genericApiEntity.getName(),
+                genericApiEntity.getApiVersion(),
+                genericApiEntity.getDefinitionVersion(),
+                new Subscription.User(
+                        genericApiEntity.getPrimaryOwner().getId(),
+                        genericApiEntity.getPrimaryOwner().getDisplayName()));
     }
 
-    private void fetchAndSetSubscriptionApiProduct(ExecutionContext executionContext, Subscription subscription, String referenceId) {
+    private void fetchAndSetSubscriptionApiProduct(
+            ExecutionContext executionContext, Subscription subscription, String referenceId) {
         subscriptionService
-            .getReferenceDisplayInfo(executionContext, SubscriptionReferenceType.API_PRODUCT.name(), referenceId)
-            .ifPresent(ref -> {
-                var input = GetApiProductsUseCase.Input.of(
-                    executionContext.getEnvironmentId(),
-                    referenceId,
-                    executionContext.getOrganizationId()
-                );
-                Subscription.User owner = getApiProductsUseCase
-                    .execute(input)
-                    .apiProduct()
-                    .filter(ap -> ap.getPrimaryOwner() != null)
-                    .map(ap -> {
-                        var po = ap.getPrimaryOwner();
-                        return new Subscription.User(
-                            Objects.requireNonNullElse(po.id(), ""),
-                            Objects.requireNonNullElse(po.displayName(), "API Product")
-                        );
-                    })
-                    .orElse(
-                        new Subscription.User(
-                            Objects.requireNonNullElse(ref.getOwnerId(), ""),
-                            Objects.requireNonNullElse(ref.getOwnerDisplayName(), "")
-                        )
-                    );
-                subscription.setApiProduct(
-                    new Subscription.ApiProduct(ref.getId(), ref.getName(), Objects.requireNonNullElse(ref.getVersion(), ""), owner)
-                );
-            });
+                .getReferenceDisplayInfo(executionContext, SubscriptionReferenceType.API_PRODUCT.name(), referenceId)
+                .ifPresent(ref -> {
+                    var input = GetApiProductsUseCase.Input.of(
+                            executionContext.getEnvironmentId(), referenceId, executionContext.getOrganizationId());
+                    Subscription.User owner = getApiProductsUseCase
+                            .execute(input)
+                            .apiProduct()
+                            .filter(ap -> ap.getPrimaryOwner() != null)
+                            .map(ap -> {
+                                var po = ap.getPrimaryOwner();
+                                return new Subscription.User(
+                                        Objects.requireNonNullElse(po.id(), ""),
+                                        Objects.requireNonNullElse(po.displayName(), "API Product"));
+                            })
+                            .orElse(new Subscription.User(
+                                    Objects.requireNonNullElse(ref.getOwnerId(), ""),
+                                    Objects.requireNonNullElse(ref.getOwnerDisplayName(), "")));
+                    subscription.setApiProduct(new Subscription.ApiProduct(
+                            ref.getId(), ref.getName(), Objects.requireNonNullElse(ref.getVersion(), ""), owner));
+                });
     }
 
     private Subscription.Plan fetchPlan(ExecutionContext executionContext, String planId) {
@@ -397,7 +405,9 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
         var plan = new Subscription.Plan(genericPlan.getId(), genericPlan.getName());
         if (genericPlan.getPlanSecurity() != null) {
-            plan.setSecurity(PlanSecurityType.valueOfLabel(genericPlan.getPlanSecurity().getType()).name());
+            plan.setSecurity(
+                    PlanSecurityType.valueOfLabel(genericPlan.getPlanSecurity().getType())
+                            .name());
         }
 
         return plan;

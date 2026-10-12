@@ -40,56 +40,57 @@ public class GenericNotificationConfigServiceImplTest {
     @Test
     public void convert_fromBasicToEntity() {
         GenericNotificationConfig notifConfig = GenericNotificationConfig.builder()
-            .id("nc1")
-            .name("notif 1")
-            .referenceType(NotificationReferenceType.ENVIRONMENT)
-            .referenceId("env1")
-            .notifier("notifier1")
-            .config("config1")
-            .useSystemProxy(true)
-            .hooks(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED"))
-            .organizationId("org1")
-            .build();
+                .id("nc1")
+                .name("notif 1")
+                .referenceType(NotificationReferenceType.ENVIRONMENT)
+                .referenceId("env1")
+                .notifier("notifier1")
+                .config("config1")
+                .useSystemProxy(true)
+                .hooks(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED"))
+                .organizationId("org1")
+                .build();
         GenericNotificationConfigEntity notifConfigEntity = service.convert(notifConfig);
         assertAll(
-            () -> assertThat(notifConfigEntity.getId()).isEqualTo("nc1"),
-            () -> assertThat(notifConfigEntity.getName()).isEqualTo("notif 1"),
-            () -> assertThat(notifConfigEntity.getReferenceType()).isEqualTo(NotificationReferenceType.ENVIRONMENT.name()),
-            () -> assertThat(notifConfigEntity.getReferenceId()).isEqualTo("env1"),
-            () -> assertThat(notifConfigEntity.getNotifier()).isEqualTo("notifier1"),
-            () -> assertThat(notifConfigEntity.getConfig()).isEqualTo("config1"),
-            () -> assertTrue(notifConfigEntity.isUseSystemProxy()),
-            () -> assertThat(notifConfigEntity.getHooks().size()).isEqualTo(2),
-            () -> assertThat(notifConfigEntity.getHooks()).containsAll(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED")),
-            () -> assertThat(notifConfigEntity.getOrganizationId()).isEqualTo("org1")
-        );
+                () -> assertThat(notifConfigEntity.getId()).isEqualTo("nc1"),
+                () -> assertThat(notifConfigEntity.getName()).isEqualTo("notif 1"),
+                () -> assertThat(notifConfigEntity.getReferenceType())
+                        .isEqualTo(NotificationReferenceType.ENVIRONMENT.name()),
+                () -> assertThat(notifConfigEntity.getReferenceId()).isEqualTo("env1"),
+                () -> assertThat(notifConfigEntity.getNotifier()).isEqualTo("notifier1"),
+                () -> assertThat(notifConfigEntity.getConfig()).isEqualTo("config1"),
+                () -> assertTrue(notifConfigEntity.isUseSystemProxy()),
+                () -> assertThat(notifConfigEntity.getHooks().size()).isEqualTo(2),
+                () -> assertThat(notifConfigEntity.getHooks())
+                        .containsAll(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED")),
+                () -> assertThat(notifConfigEntity.getOrganizationId()).isEqualTo("org1"));
     }
 
     @Test
     public void convert_fromEntityToBasic() {
         GenericNotificationConfigEntity notifConfigEntity = GenericNotificationConfigEntity.builder()
-            .id("nc1")
-            .name("notif 1")
-            .referenceType("ENVIRONMENT")
-            .referenceId("env1")
-            .notifier("notifier1")
-            .config("config1")
-            .useSystemProxy(true)
-            .hooks(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED"))
-            .organizationId("org1")
-            .build();
+                .id("nc1")
+                .name("notif 1")
+                .referenceType("ENVIRONMENT")
+                .referenceId("env1")
+                .notifier("notifier1")
+                .config("config1")
+                .useSystemProxy(true)
+                .hooks(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED"))
+                .organizationId("org1")
+                .build();
         GenericNotificationConfig notifConfig = service.convert(notifConfigEntity);
         assertAll(
-            () -> assertThat(notifConfig.getId()).isEqualTo("nc1"),
-            () -> assertThat(notifConfig.getName()).isEqualTo("notif 1"),
-            () -> assertThat(notifConfig.getReferenceType()).isEqualTo(NotificationReferenceType.ENVIRONMENT),
-            () -> assertThat(notifConfig.getReferenceId()).isEqualTo("env1"),
-            () -> assertThat(notifConfig.getNotifier()).isEqualTo("notifier1"),
-            () -> assertThat(notifConfig.getConfig()).isEqualTo("config1"),
-            () -> assertTrue(notifConfig.isUseSystemProxy()),
-            () -> assertThat(notifConfig.getHooks().size()).isEqualTo(2),
-            () -> assertThat(notifConfig.getHooks()).containsAll(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED")),
-            () -> assertThat(notifConfig.getOrganizationId()).isEqualTo("org1")
-        );
+                () -> assertThat(notifConfig.getId()).isEqualTo("nc1"),
+                () -> assertThat(notifConfig.getName()).isEqualTo("notif 1"),
+                () -> assertThat(notifConfig.getReferenceType()).isEqualTo(NotificationReferenceType.ENVIRONMENT),
+                () -> assertThat(notifConfig.getReferenceId()).isEqualTo("env1"),
+                () -> assertThat(notifConfig.getNotifier()).isEqualTo("notifier1"),
+                () -> assertThat(notifConfig.getConfig()).isEqualTo("config1"),
+                () -> assertTrue(notifConfig.isUseSystemProxy()),
+                () -> assertThat(notifConfig.getHooks().size()).isEqualTo(2),
+                () -> assertThat(notifConfig.getHooks())
+                        .containsAll(List.of("USER_REGISTRATION_REQUEST", "USER_REGISTERED")),
+                () -> assertThat(notifConfig.getOrganizationId()).isEqualTo("org1"));
     }
 }

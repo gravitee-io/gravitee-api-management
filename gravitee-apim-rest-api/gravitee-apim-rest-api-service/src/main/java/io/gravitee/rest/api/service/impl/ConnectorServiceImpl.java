@@ -25,7 +25,6 @@ import io.gravitee.rest.api.service.JsonSchemaService;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,9 +32,11 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ConnectorServiceImpl extends AbstractPluginService<ConnectorPlugin, ConnectorPluginEntity> implements ConnectorService {
+public class ConnectorServiceImpl extends AbstractPluginService<ConnectorPlugin, ConnectorPluginEntity>
+        implements ConnectorService {
 
-    public ConnectorServiceImpl(JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ConnectorPlugin> pluginManager) {
+    public ConnectorServiceImpl(
+            JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ConnectorPlugin> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 
@@ -60,18 +61,21 @@ public class ConnectorServiceImpl extends AbstractPluginService<ConnectorPlugin,
         entity.setVersion(plugin.manifest().version());
         entity.setDeployed(plugin.deployed());
 
-        entity.setSupportedTypes(((ConnectorPluginManager) pluginManager).getConnector(plugin.id()).supportedTypes());
+        entity.setSupportedTypes(((ConnectorPluginManager) pluginManager)
+                .getConnector(plugin.id())
+                .supportedTypes());
 
         return entity;
     }
 
     @Override
     public Optional<ConnectorPluginEntity> findBySupportedType(String type) {
-        return super
-            .list()
-            .stream()
-            .filter(plugin -> ((ConnectorPluginManager) pluginManager).getConnector(plugin.id()).supportedTypes().contains(type))
-            .map(this::convert)
-            .findAny();
+        return super.list().stream()
+                .filter(plugin -> ((ConnectorPluginManager) pluginManager)
+                        .getConnector(plugin.id())
+                        .supportedTypes()
+                        .contains(type))
+                .map(this::convert)
+                .findAny();
     }
 }

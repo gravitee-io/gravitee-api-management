@@ -43,7 +43,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.time.Duration;
@@ -67,14 +66,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public abstract class AbstractAuthenticationResource {
 
     public static final String CLIENT_ID_KEY = "client_id",
-        REDIRECT_URI_KEY = "redirect_uri",
-        CLIENT_SECRET = "client_secret",
-        CODE_KEY = "code",
-        GRANT_TYPE_KEY = "grant_type",
-        AUTH_CODE = "authorization_code",
-        CODE_VERIFIER_KEY = "code_verifier",
-        TOKEN = "token",
-        STATE = "state";
+            REDIRECT_URI_KEY = "redirect_uri",
+            CLIENT_SECRET = "client_secret",
+            CODE_KEY = "code",
+            GRANT_TYPE_KEY = "grant_type",
+            AUTH_CODE = "authorization_code",
+            CODE_VERIFIER_KEY = "code_verifier",
+            TOKEN = "token",
+            STATE = "state";
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired
@@ -105,12 +104,11 @@ public abstract class AbstractAuthenticationResource {
     }
 
     protected Response connectUser(
-        String userId,
-        final String state,
-        final HttpServletResponse servletResponse,
-        final String accessToken,
-        final String idToken
-    ) {
+            String userId,
+            final String state,
+            final HttpServletResponse servletResponse,
+            final String accessToken,
+            final String idToken) {
         UserEntity user = userService.connect(GraviteeContext.getExecutionContext(), userId);
         return this.connectUserInternal(user, state, servletResponse, accessToken, idToken);
     }
@@ -120,18 +118,15 @@ public abstract class AbstractAuthenticationResource {
     }
 
     protected Response connectUserInternal(
-        UserEntity user,
-        final String state,
-        final HttpServletResponse servletResponse,
-        final String accessToken,
-        final String idToken
-    ) {
+            UserEntity user,
+            final String state,
+            final HttpServletResponse servletResponse,
+            final String accessToken,
+            final String idToken) {
         TokenEntity tokenEntity = generateToken(user, state, accessToken, idToken, null);
 
         final Cookie bearerCookie = cookieGenerator.generate(
-            TokenAuthenticationFilter.AUTH_COOKIE_NAME,
-            "Bearer%20" + tokenEntity.getToken()
-        );
+                TokenAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + tokenEntity.getToken());
         servletResponse.addCookie(bearerCookie);
 
         return Response.ok(tokenEntity).build();
@@ -142,59 +137,56 @@ public abstract class AbstractAuthenticationResource {
     }
 
     protected TokenEntity generateToken(
-        final UserEntity user,
-        final String state,
-        final String accessToken,
-        final String idToken,
-        final Integer expireAfter
-    ) {
+            final UserEntity user,
+            final String state,
+            final String accessToken,
+            final String idToken,
+            final Integer expireAfter) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
         // Manage authorities, initialize it with dynamic permissions from the IDP
-        List<Map<String, String>> authorities = userDetails
-            .getAuthorities()
-            .stream()
-            .map(authority -> Maps.<String, String>builder().put("authority", authority.getAuthority()).build())
-            .collect(Collectors.toList());
+        List<Map<String, String>> authorities = userDetails.getAuthorities().stream()
+                .map(authority -> Maps.<String, String>builder()
+                        .put("authority", authority.getAuthority())
+                        .build())
+                .collect(Collectors.toList());
 
         // We must also load permissions from repository for configured management or portal role
         Set<RoleEntity> userRoles = membershipService.getRoles(
-            MembershipReferenceType.ORGANIZATION,
-            GraviteeContext.getCurrentOrganization(),
-            MembershipMemberType.USER,
-            userDetails.getId()
-        );
+                MembershipReferenceType.ORGANIZATION,
+                GraviteeContext.getCurrentOrganization(),
+                MembershipMemberType.USER,
+                userDetails.getId());
         if (!userRoles.isEmpty()) {
-            userRoles.forEach(role ->
-                authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build())
-            );
+            userRoles.forEach(role -> authorities.add(Maps.<String, String>builder()
+                    .put("authority", role.getScope().toString() + ':' + role.getName())
+                    .build()));
         }
         // JWT signer
         Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
 
         Date issueAt = new Date();
-        Instant expireAt = issueAt
-            .toInstant()
-            .plus(
-                Duration.ofSeconds(
-                    expireAfter != null ? expireAfter : environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)
-                )
-            );
+        Instant expireAt = issueAt.toInstant()
+                .plus(Duration.ofSeconds(
+                        expireAfter != null
+                                ? expireAfter
+                                : environment.getProperty(
+                                        "jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
 
         final String token = JWT.create()
-            .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
-            .withIssuedAt(issueAt)
-            .withExpiresAt(Date.from(expireAt))
-            .withSubject(user.getId())
-            .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
-            .withClaim(JWTHelper.Claims.EMAIL, user.getEmail())
-            .withClaim(JWTHelper.Claims.FIRSTNAME, user.getFirstname())
-            .withClaim(JWTHelper.Claims.LASTNAME, user.getLastname())
-            .withClaim(JWTHelper.Claims.ORG, user.getOrganizationId())
-            .withJWTId(UUID.randomUUID().toString())
-            .sign(algorithm);
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(user.getId())
+                .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
+                .withClaim(JWTHelper.Claims.EMAIL, user.getEmail())
+                .withClaim(JWTHelper.Claims.FIRSTNAME, user.getFirstname())
+                .withClaim(JWTHelper.Claims.LASTNAME, user.getLastname())
+                .withClaim(JWTHelper.Claims.ORG, user.getOrganizationId())
+                .withJWTId(UUID.randomUUID().toString())
+                .sign(algorithm);
 
         final TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setType(BEARER);
@@ -207,22 +199,18 @@ public abstract class AbstractAuthenticationResource {
         return tokenEntity;
     }
 
-    private void applyIdpTokensIfExposed(final TokenEntity tokenEntity, final String accessToken, final String idToken) {
+    private void applyIdpTokensIfExposed(
+            final TokenEntity tokenEntity, final String accessToken, final String idToken) {
         if (accessToken == null && idToken == null) {
             return;
         }
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         boolean exposeAccessToken = parameterService.findAsBoolean(
-            executionContext,
-            Key.CONSOLE_AUTHENTICATION_EXPOSE_ACCESS_TOKEN,
-            ParameterReferenceType.SYSTEM
-        );
+                executionContext, Key.CONSOLE_AUTHENTICATION_EXPOSE_ACCESS_TOKEN, ParameterReferenceType.SYSTEM);
         boolean exposeIdToken = parameterService.findAsBoolean(
-            executionContext,
-            Key.CONSOLE_AUTHENTICATION_EXPOSE_ID_TOKEN,
-            ParameterReferenceType.SYSTEM
-        );
-        IdpOAuthTokenResponseUtils.accessTokenField(accessToken, idToken, exposeAccessToken).ifPresent(tokenEntity::setAccessToken);
+                executionContext, Key.CONSOLE_AUTHENTICATION_EXPOSE_ID_TOKEN, ParameterReferenceType.SYSTEM);
+        IdpOAuthTokenResponseUtils.accessTokenField(accessToken, idToken, exposeAccessToken)
+                .ifPresent(tokenEntity::setAccessToken);
         IdpOAuthTokenResponseUtils.idTokenField(idToken, exposeIdToken).ifPresent(tokenEntity::setIdToken);
     }
 }

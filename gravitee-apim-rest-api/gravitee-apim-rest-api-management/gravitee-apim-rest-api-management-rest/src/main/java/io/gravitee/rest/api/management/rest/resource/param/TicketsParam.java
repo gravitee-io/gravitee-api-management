@@ -51,7 +51,9 @@ public class TicketsParam {
     }
 
     @QueryParam("order")
-    @Parameter(description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-subject")
+    @Parameter(
+            description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+            example = "-subject")
     public void setOrder(String param) {
         if (param != null) {
             orderParam = Order.parse(param);

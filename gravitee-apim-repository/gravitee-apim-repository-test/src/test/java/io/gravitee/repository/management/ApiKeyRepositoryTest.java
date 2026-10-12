@@ -74,10 +74,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(apiKey.isPaused(), keyFound.isPaused(), "Key paused status doesn't match");
         assertEquals(apiKey.isRevoked(), keyFound.isRevoked(), "Key revoked status doesn't match");
         assertEquals(
-            apiKey.getDaysToExpirationOnLastNotification(),
-            keyFound.getDaysToExpirationOnLastNotification(),
-            "Days to expiration on last notification don't match"
-        );
+                apiKey.getDaysToExpirationOnLastNotification(),
+                keyFound.getDaysToExpirationOnLastNotification(),
+                "Days to expiration on last notification don't match");
     }
 
     @Test
@@ -85,13 +84,13 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         String id = "id-of-new-apikey";
 
         ApiKey apiKey = ApiKey.builder()
-            .id(id)
-            .key("apiKey")
-            .environmentId("DEFAULT")
-            .subscriptions(List.of("subscription-id"))
-            .createdAt(new Date())
-            .federated(true)
-            .build();
+                .id(id)
+                .key("apiKey")
+                .environmentId("DEFAULT")
+                .subscriptions(List.of("subscription-id"))
+                .createdAt(new Date())
+                .federated(true)
+                .build();
 
         apiKeyRepository.create(apiKey);
 
@@ -113,10 +112,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(keyFound.isPaused(), "Key paused status doesn't match");
         assertTrue(keyFound.isRevoked(), "Key revoked status doesn't match");
         assertEquals(
-            Integer.valueOf(30),
-            keyFound.getDaysToExpirationOnLastNotification(),
-            "Days to expiration on last notification don't match"
-        );
+                Integer.valueOf(30),
+                keyFound.getDaysToExpirationOnLastNotification(),
+                "Days to expiration on last notification don't match");
 
         /*
          * 3.17 backward compatibility checks
@@ -140,7 +138,8 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(apiKeys, "API Keys not found");
         assertEquals(2, apiKeys.size());
-        assertTrue(Set.of("id-of-apikey-1", "id-of-apikey-2").containsAll(apiKeys.stream().map(ApiKey::getId).collect(toList())));
+        assertTrue(Set.of("id-of-apikey-1", "id-of-apikey-2")
+                .containsAll(apiKeys.stream().map(ApiKey::getId).collect(toList())));
     }
 
     @Test
@@ -213,9 +212,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_find_by_criteria_without_time_range() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(false).subscriptions(singleton("sub3")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .includeRevoked(false)
+                .subscriptions(singleton("sub3"))
+                .build());
 
         assertNotNull(apiKeys, "found API Key");
         assertFalse(apiKeys.isEmpty(), "found API Key");
@@ -228,51 +228,61 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_find_by_subscriptions() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(false).subscriptions(List.of("sub4", "sub5", "sub6")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .includeRevoked(false)
+                .subscriptions(List.of("sub4", "sub5", "sub6"))
+                .build());
         assertEquals(1, apiKeys.size());
         assertTrue(Set.of("sub4", "sub5", "sub6").containsAll(apiKeys.get(0).getSubscriptions()));
     }
 
     @Test
     public void findByCriteria_should_find_by_environments() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(false).environments(Set.of("DEFAULT")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .includeRevoked(false)
+                .environments(Set.of("DEFAULT"))
+                .build());
         assertThat(apiKeys).hasSize(1);
         assertThat(apiKeys).extracting(ApiKey::getId).containsOnly("id-of-apikey-2");
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_time_range() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).subscriptions(singleton("sub3")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .includeRevoked(false)
+                .from(1486771200000L)
+                .to(1486771400000L)
+                .subscriptions(singleton("sub3"))
+                .build());
 
         assertNotNull(apiKeys, "found API Key");
         assertFalse(apiKeys.isEmpty(), "found API Key");
-        assertEquals(1, apiKeys.size(), "found 1 API Key " + apiKeys.stream().map(ApiKey::getKey).collect(toList()));
+        assertEquals(
+                1,
+                apiKeys.size(),
+                "found 1 API Key " + apiKeys.stream().map(ApiKey::getKey).collect(toList()));
         assertEquals("findByCriteria1", apiKeys.get(0).getKey());
     }
 
     @Test
     public void findByCriteria_should_find_multiple_by_subscriptions_criteria_with_time_range() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().from(1486771200000L).to(1486771900000L).subscriptions(Set.of("sub3", "sub4")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .from(1486771200000L)
+                .to(1486771900000L)
+                .subscriptions(Set.of("sub3", "sub4"))
+                .build());
 
         assertEquals(3, apiKeys.size());
-        assertTrue(
-            Set.of("id-of-apikey-4", "id-of-apikey-6", "id-of-apikey-7").containsAll(apiKeys.stream().map(ApiKey::getId).collect(toList()))
-        );
+        assertTrue(Set.of("id-of-apikey-4", "id-of-apikey-6", "id-of-apikey-7")
+                .containsAll(apiKeys.stream().map(ApiKey::getId).collect(toList())));
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_without_time_range_and_revoked() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(true).subscriptions(singleton("sub3")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .includeRevoked(true)
+                .subscriptions(singleton("sub3"))
+                .build());
 
         assertNotNull(apiKeys, "found API Key");
         assertFalse(apiKeys.isEmpty(), "found API Key");
@@ -284,19 +294,24 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_between_dates() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().expireAfter(1439022010000L).expireBefore(1439022020000L).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .expireAfter(1439022010000L)
+                .expireBefore(1439022020000L)
+                .build());
 
         assertEquals(2, apiKeys.size(), "found 2 API Keys");
 
-        List<String> expectedKeys = List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
+        List<String> expectedKeys =
+                List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
     public void findByCriteriaUnordered_should_return_same_set_as_findByCriteria() throws Exception {
-        ApiKeyCriteria criteria = ApiKeyCriteria.builder().expireAfter(1439022010000L).expireBefore(1439022020000L).build();
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder()
+                .expireAfter(1439022010000L)
+                .expireBefore(1439022020000L)
+                .build();
 
         List<ApiKey> sorted = apiKeyRepository.findByCriteria(criteria);
         List<ApiKey> unordered = apiKeyRepository.findByCriteriaUnordered(criteria);
@@ -312,10 +327,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findByCriteriaUnordered_should_exclude_revoked_key_in_window() throws Exception {
         // id-of-apikey-1 is revoked AND has expireAt=1439022010883 (inside the window). It must not surface.
         ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-            .includeRevoked(false)
-            .expireAfter(1439022010000L)
-            .expireBefore(1439022020000L)
-            .build();
+                .includeRevoked(false)
+                .expireAfter(1439022010000L)
+                .expireBefore(1439022020000L)
+                .build();
 
         List<ApiKey> result = apiKeyRepository.findByCriteriaUnordered(criteria);
 
@@ -325,45 +340,43 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().expireAfter(30019401755L).environments(Set.of("DEFAULT", "env5", "env7", "env8")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .expireAfter(30019401755L)
+                .environments(Set.of("DEFAULT", "env5", "env7", "env8"))
+                .build());
 
         assertEquals(2, apiKeys.size(), "found 2 API Keys");
 
-        List<String> expectedKeys = List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
+        List<String> expectedKeys =
+                List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
-    public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates_including_no_expire_date() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder()
+    public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates_including_no_expire_date()
+            throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
                 .expireAfter(30019401755L)
                 .includeWithoutExpiration(true)
                 .environments(Set.of("DEFAULT", "env5", "env7", "env8"))
-                .build()
-        );
+                .build());
 
         assertEquals(4, apiKeys.size(), "found 4 API Keys");
 
         List<String> expectedKeys = List.of(
-            "the-key-of-api-key-7",
-            "the-key-of-api-key-8",
-            "d449098d-8c31-4275-ad59-8dd707865a34",
-            "d449098d-8c31-4275-ad59-8dd707865a35"
-        );
+                "the-key-of-api-key-7",
+                "the-key-of-api-key-8",
+                "d449098d-8c31-4275-ad59-8dd707865a34",
+                "d449098d-8c31-4275-ad59-8dd707865a35");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder()
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
                 .expireBefore(30019401755L)
                 .environments(Set.of("DEFAULT", "env4", "env5", "env6", "env7", "env8"))
-                .build()
-        );
+                .build());
 
         assertEquals(4, apiKeys.size(), "found 4 API Keys");
 
@@ -372,48 +385,49 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates_including_no_expire_date() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder()
+    public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates_including_no_expire_date()
+            throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
                 .expireBefore(30019401755L)
                 .includeWithoutExpiration(true)
                 .environments(Set.of("DEFAULT", "env4", "env5", "env6", "env7", "env8"))
-                .build()
-        );
+                .build());
 
         assertEquals(6, apiKeys.size(), "found 6 API Keys");
 
         List<String> expectedKeys = List.of(
-            "findByCriteria2",
-            "the-key-of-api-key-7",
-            "the-key-of-api-key-8",
-            "findByCriteria1",
-            "12345678",
-            "12345678"
-        );
+                "findByCriteria2",
+                "the-key-of-api-key-7",
+                "the-key-of-api-key-8",
+                "findByCriteria1",
+                "12345678",
+                "12345678");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
     }
 
     @Test
     public void findByCriteria_should_read_subscriptions_list() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().expireAfter(30019401755L).environments(Set.of("DEFAULT", "env5", "env7", "env8")).build()
-        );
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder()
+                .expireAfter(30019401755L)
+                .environments(Set.of("DEFAULT", "env5", "env7", "env8"))
+                .build());
         apiKeys.sort(Comparator.comparing(apikey -> apikey.getSubscriptions().size()));
 
         assertEquals(1, apiKeys.get(0).getSubscriptions().size());
         assertEquals("subscription1", apiKeys.get(0).getSubscriptions().get(0));
         assertEquals(2, apiKeys.get(1).getSubscriptions().size());
-        assertTrue(List.of("subscription2", "subscriptionX").containsAll(apiKeys.get(1).getSubscriptions()));
+        assertTrue(List.of("subscription2", "subscriptionX")
+                .containsAll(apiKeys.get(1).getSubscriptions()));
     }
 
     @Test
     public void findByCriteria_should_find_federated_keys() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().includeFederated(true).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+                ApiKeyCriteria.builder().includeFederated(true).build());
 
         assertThat(apiKeys)
-            .extracting(ApiKey::getId, ApiKey::isFederated)
-            .contains(tuple("id-of-federated-9", true), tuple("id-of-federated-10", true));
+                .extracting(ApiKey::getId, ApiKey::isFederated)
+                .contains(tuple("id-of-federated-9", true), tuple("id-of-federated-10", true));
     }
 
     @Test
@@ -468,9 +482,11 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchSortedById() throws TechnicalException {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(true).subscription("sub3").build(),
-            new SortableBuilder().order(Order.ASC).field("id").build()
-        );
+                ApiKeyCriteria.builder()
+                        .includeRevoked(true)
+                        .subscription("sub3")
+                        .build(),
+                new SortableBuilder().order(Order.ASC).field("id").build());
         assertNotNull(apiKeys, "found API Key");
         assertFalse(apiKeys.isEmpty(), "found API Key");
         assertEquals(3, apiKeys.size(), "found 3 API Keys");
@@ -482,9 +498,11 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchSortedByCreated() throws TechnicalException {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(true).subscription("sub3").build(),
-            new SortableBuilder().order(Order.DESC).field("updatedAt").build()
-        );
+                ApiKeyCriteria.builder()
+                        .includeRevoked(true)
+                        .subscription("sub3")
+                        .build(),
+                new SortableBuilder().order(Order.DESC).field("updatedAt").build());
         assertNotNull(apiKeys, "found API Key");
         assertFalse(apiKeys.isEmpty(), "found API Key");
         assertEquals(3, apiKeys.size(), "found 3 API Keys");
@@ -527,11 +545,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchAfter_shouldReturnSingleApiKeyForEnvironment() throws TechnicalException {
         List<ApiKey> page = apiKeyRepository.searchAfter(
-            ApiKeyCriteria.builder().environments(singleton("env-ka-1")).build(),
-            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
-            null,
-            10
-        );
+                ApiKeyCriteria.builder().environments(singleton("env-ka-1")).build(),
+                new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+                null,
+                10);
 
         assertNotNull(page);
         assertEquals(1, page.size());
@@ -540,7 +557,8 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void searchAfter_shouldTerminateOnExactMultipleOfPageSize() throws TechnicalException {
-        ApiKeyCriteria criteria = ApiKeyCriteria.builder().environments(singleton("env-ka-term")).build();
+        ApiKeyCriteria criteria =
+                ApiKeyCriteria.builder().environments(singleton("env-ka-term")).build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
         int pageSize = 2;
 
@@ -549,20 +567,12 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
         ApiKey last = page1.getLast();
         List<ApiKey> page2 = apiKeyRepository.searchAfter(
-            criteria,
-            sortable,
-            ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            pageSize
-        );
+                criteria, sortable, ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()), pageSize);
         assertEquals(2, page2.size());
 
         last = page2.getLast();
         List<ApiKey> page3 = apiKeyRepository.searchAfter(
-            criteria,
-            sortable,
-            ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            pageSize
-        );
+                criteria, sortable, ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()), pageSize);
         assertTrue(page3.isEmpty(), "Page after exact-multiple total must be empty");
     }
 
@@ -572,10 +582,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         // warmup criteria shape. Of the four flt fixtures: revoked one excluded; expired one excluded
         // (expireAt < expireAfter); active one and no-expire one included.
         ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-            .environments(singleton("env-ka-flt"))
-            .expireAfter(10000L)
-            .includeWithoutExpiration(true)
-            .build();
+                .environments(singleton("env-ka-flt"))
+                .expireAfter(10000L)
+                .includeWithoutExpiration(true)
+                .build();
         var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
 
         Set<String> collected = new LinkedHashSet<>();
@@ -604,10 +614,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         // Compare searchAfter and legacy findByCriteria for the warmup criteria shape — they must
         // return identical id sets.
         ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-            .environments(singleton("env-ka-flt"))
-            .expireAfter(10000L)
-            .includeWithoutExpiration(true)
-            .build();
+                .environments(singleton("env-ka-flt"))
+                .expireAfter(10000L)
+                .includeWithoutExpiration(true)
+                .build();
         var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
 
         Set<String> viaSearchAfter = new LinkedHashSet<>();
@@ -626,13 +636,14 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             }
         }
 
-        Set<String> viaLegacy = apiKeyRepository.findByCriteria(criteria).stream().map(ApiKey::getId).collect(Collectors.toSet());
+        Set<String> viaLegacy = apiKeyRepository.findByCriteria(criteria).stream()
+                .map(ApiKey::getId)
+                .collect(Collectors.toSet());
 
         assertEquals(
-            viaLegacy,
-            viaSearchAfter,
-            "searchAfter and legacy findByCriteria must return identical set for expireAfter+includeWithoutExpiration"
-        );
+                viaLegacy,
+                viaSearchAfter,
+                "searchAfter and legacy findByCriteria must return identical set for expireAfter+includeWithoutExpiration");
     }
 
     @Test
@@ -642,40 +653,35 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         // (3 + 2 subscription rows), a naive LIMIT 2 on the join returns only the first key
         // with partial subscriptions list. The page must contain exactly the two api keys with
         // their complete subscriptions lists.
-        ApiKeyCriteria criteria = ApiKeyCriteria.builder().environments(singleton("env-ka-join")).build();
+        ApiKeyCriteria criteria =
+                ApiKeyCriteria.builder().environments(singleton("env-ka-join")).build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
         List<ApiKey> page = apiKeyRepository.searchAfter(criteria, sortable, null, 2);
         assertEquals(2, page.size());
-        ApiKey a = page
-            .stream()
-            .filter(k -> "apikey-ka-join-a".equals(k.getId()))
-            .findFirst()
-            .orElseThrow();
-        ApiKey b = page
-            .stream()
-            .filter(k -> "apikey-ka-join-b".equals(k.getId()))
-            .findFirst()
-            .orElseThrow();
+        ApiKey a = page.stream()
+                .filter(k -> "apikey-ka-join-a".equals(k.getId()))
+                .findFirst()
+                .orElseThrow();
+        ApiKey b = page.stream()
+                .filter(k -> "apikey-ka-join-b".equals(k.getId()))
+                .findFirst()
+                .orElseThrow();
         assertEquals(Set.of("sub-ka-join-a1", "sub-ka-join-a2", "sub-ka-join-a3"), Set.copyOf(a.getSubscriptions()));
         assertEquals(Set.of("sub-ka-join-b1", "sub-ka-join-b2"), Set.copyOf(b.getSubscriptions()));
 
         // Short page contract: next call past last key returns empty
         ApiKey last = page.getLast();
         List<ApiKey> next = apiKeyRepository.searchAfter(
-            criteria,
-            sortable,
-            ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
-            2
-        );
+                criteria, sortable, ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()), 2);
         assertTrue(next.isEmpty());
     }
 
     @Test
     public void searchAfter_shouldPaginateByIdWithSubscriptionsFilter() throws TechnicalException {
         ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-            .subscriptions(Set.of("sub-ka-warmup-a", "sub-ka-warmup-b", "sub-ka-warmup-c"))
-            .build();
+                .subscriptions(Set.of("sub-ka-warmup-a", "sub-ka-warmup-b", "sub-ka-warmup-c"))
+                .build();
         var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
 
         Set<String> collected = new LinkedHashSet<>();
@@ -698,15 +704,15 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         }
 
         assertEquals(
-            Set.of("apikey-ka-warmup-1", "apikey-ka-warmup-2", "apikey-ka-warmup-3"),
-            collected,
-            "Warmup IN filter returns matching api keys exactly — no leak from unrelated subscription"
-        );
+                Set.of("apikey-ka-warmup-1", "apikey-ka-warmup-2", "apikey-ka-warmup-3"),
+                collected,
+                "Warmup IN filter returns matching api keys exactly — no leak from unrelated subscription");
     }
 
     @Test
     public void searchAfter_shouldNotSkipOrDuplicateAcrossSameMsBoundary() throws TechnicalException {
-        ApiKeyCriteria criteria = ApiKeyCriteria.builder().environments(singleton("env-ka-3")).build();
+        ApiKeyCriteria criteria =
+                ApiKeyCriteria.builder().environments(singleton("env-ka-3")).build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
         Set<String> collected = new LinkedHashSet<>();
@@ -729,10 +735,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         }
 
         assertEquals(
-            Set.of("apikey-ka-3-a", "apikey-ka-3-b", "apikey-ka-3-c", "apikey-ka-3-d", "apikey-ka-3-e"),
-            collected,
-            "All 5 same-ms api keys returned exactly once"
-        );
+                Set.of("apikey-ka-3-a", "apikey-ka-3-b", "apikey-ka-3-c", "apikey-ka-3-d", "apikey-ka-3-e"),
+                collected,
+                "All 5 same-ms api keys returned exactly once");
     }
 
     @Test
@@ -749,11 +754,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchAfter_shouldReturnEmptyWhenNoMatch() throws TechnicalException {
         List<ApiKey> page = apiKeyRepository.searchAfter(
-            ApiKeyCriteria.builder().environments(singleton("env-ka-empty")).build(),
-            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
-            null,
-            10
-        );
+                ApiKeyCriteria.builder().environments(singleton("env-ka-empty")).build(),
+                new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+                null,
+                10);
 
         assertNotNull(page);
         assertTrue(page.isEmpty());
@@ -761,19 +765,15 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
-        final var beforeDeletion = apiKeyRepository
-            .findAll()
-            .stream()
-            .filter(apiKey -> "DEFAULT".equals(apiKey.getEnvironmentId()))
-            .map(ApiKey::getId)
-            .toList();
+        final var beforeDeletion = apiKeyRepository.findAll().stream()
+                .filter(apiKey -> "DEFAULT".equals(apiKey.getEnvironmentId()))
+                .map(ApiKey::getId)
+                .toList();
 
         var deleted = apiKeyRepository.deleteByEnvironmentId("DEFAULT");
-        final var nbAfterDeletion = apiKeyRepository
-            .findAll()
-            .stream()
-            .filter(apiKey -> "DEFAULT".equals(apiKey.getEnvironmentId()))
-            .count();
+        final var nbAfterDeletion = apiKeyRepository.findAll().stream()
+                .filter(apiKey -> "DEFAULT".equals(apiKey.getEnvironmentId()))
+                .count();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertEquals(Set.copyOf(beforeDeletion), Set.copyOf(deleted));

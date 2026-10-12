@@ -51,7 +51,8 @@ class PaginationFilteringTest {
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
         @SuppressWarnings("unchecked")
-        List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
+        List<Integer> resultList =
+                paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
         assertEquals(10, resultList.size());
         assertEquals(20, resultList.get(0).intValue());
         assertEquals(29, resultList.get(9).intValue());
@@ -76,7 +77,8 @@ class PaginationFilteringTest {
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
         @SuppressWarnings("unchecked")
-        List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
+        List<Integer> resultList =
+                paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
         assertEquals(8, resultList.size());
         assertEquals(0, resultList.get(0).intValue());
         assertEquals(7, resultList.get(7).intValue());
@@ -100,9 +102,9 @@ class PaginationFilteringTest {
         initList = initIntegerList(totalItems);
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
-        assertThrows(PaginationInvalidException.class, () ->
-            paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
-        );
+        assertThrows(
+                PaginationInvalidException.class,
+                () -> paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata));
     }
 
     @Test
@@ -114,9 +116,9 @@ class PaginationFilteringTest {
         initList = initIntegerList(totalItems);
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
-        assertThrows(PaginationInvalidException.class, () ->
-            paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
-        );
+        assertThrows(
+                PaginationInvalidException.class,
+                () -> paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata));
     }
 
     private List<Integer> initIntegerList(int n) {
@@ -130,7 +132,8 @@ class PaginationFilteringTest {
         Map<String, Object> paginationMetadata = new HashMap<>();
         paginationMetadata.put("KEY", true);
 
-        Map<String, Map<String, Object>> metadata = paginatedResourceForTest.computeMetadata(null, dataMetadata, paginationMetadata);
+        Map<String, Map<String, Object>> metadata =
+                paginatedResourceForTest.computeMetadata(null, dataMetadata, paginationMetadata);
         assertNotNull(metadata);
         assertEquals(2, metadata.size());
 
@@ -149,11 +152,8 @@ class PaginationFilteringTest {
         dataMetadata.put("KEY", 12);
         Map<String, Object> paginationMetadata = new HashMap<>();
 
-        Map<String, Map<String, Object>> metadata = paginatedResourceForTest.computeMetadata(
-            initMetadata,
-            dataMetadata,
-            paginationMetadata
-        );
+        Map<String, Map<String, Object>> metadata =
+                paginatedResourceForTest.computeMetadata(initMetadata, dataMetadata, paginationMetadata);
 
         assertNotNull(metadata);
         assertEquals(2, metadata.size());

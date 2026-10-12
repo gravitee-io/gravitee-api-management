@@ -99,8 +99,8 @@ public class DashboardCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.create(aDashboard()));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to create a dashboard");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to create a dashboard");
         }
     }
 
@@ -134,8 +134,8 @@ public class DashboardCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.findById(DASHBOARD_ID));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find dashboard: " + DASHBOARD_ID);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find dashboard: " + DASHBOARD_ID);
         }
     }
 
@@ -145,7 +145,8 @@ public class DashboardCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_dashboards_by_environment_id() {
-            when(customDashboardRepository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(aRepositoryDashboard()));
+            when(customDashboardRepository.findByEnvironmentId(ENVIRONMENT_ID))
+                    .thenReturn(List.of(aRepositoryDashboard()));
 
             var result = service.findByEnvironmentId(ENVIRONMENT_ID);
 
@@ -170,8 +171,8 @@ public class DashboardCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.findByEnvironmentId(ENVIRONMENT_ID));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find dashboards for environment: " + ENVIRONMENT_ID);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find dashboards for environment: " + ENVIRONMENT_ID);
         }
     }
 
@@ -212,8 +213,8 @@ public class DashboardCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.update(aDashboard()));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to update dashboard: " + DASHBOARD_ID);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to update dashboard: " + DASHBOARD_ID);
         }
     }
 
@@ -229,11 +230,13 @@ public class DashboardCrudServiceImplTest {
 
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
-            doThrow(new TechnicalException("exception")).when(customDashboardRepository).delete(DASHBOARD_ID);
+            doThrow(new TechnicalException("exception"))
+                    .when(customDashboardRepository)
+                    .delete(DASHBOARD_ID);
 
             assertThatThrownBy(() -> service.delete(DASHBOARD_ID))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to delete dashboard: " + DASHBOARD_ID);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to delete dashboard: " + DASHBOARD_ID);
 
             verify(customDashboardRepository).delete(DASHBOARD_ID);
         }
@@ -241,80 +244,69 @@ public class DashboardCrudServiceImplTest {
 
     private static Dashboard aDashboard() {
         return Dashboard.builder()
-            .id(DASHBOARD_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .name(DASHBOARD_NAME)
-            .createdBy(CREATED_BY)
-            .createdAt(CREATED_AT.atZone(ZoneId.systemDefault()))
-            .lastModified(LAST_MODIFIED.atZone(ZoneId.systemDefault()))
-            .labels(Map.of("team", "apim"))
-            .widgets(
-                List.of(
-                    DashboardWidget.builder()
+                .id(DASHBOARD_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name(DASHBOARD_NAME)
+                .createdBy(CREATED_BY)
+                .createdAt(CREATED_AT.atZone(ZoneId.systemDefault()))
+                .lastModified(LAST_MODIFIED.atZone(ZoneId.systemDefault()))
+                .labels(Map.of("team", "apim"))
+                .widgets(List.of(DashboardWidget.builder()
                         .id("1")
                         .title("Requests")
                         .type("stats")
-                        .layout(DashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-                        .request(
-                            DashboardWidget.Request.builder()
+                        .layout(DashboardWidget.Layout.builder()
+                                .cols(1)
+                                .rows(1)
+                                .x(0)
+                                .y(0)
+                                .build())
+                        .request(DashboardWidget.Request.builder()
                                 .type("measures")
-                                .timeRange(
-                                    DashboardWidget.TimeRange.builder()
+                                .timeRange(DashboardWidget.TimeRange.builder()
                                         .from(Instant.parse("2025-10-07T06:50:30Z"))
                                         .to(Instant.parse("2025-12-07T11:35:30Z"))
-                                        .build()
-                                )
-                                .metrics(
-                                    List.of(
-                                        DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()
-                                    )
-                                )
-                                .build()
-                        )
-                        .build()
-                )
-            )
-            .build();
+                                        .build())
+                                .metrics(List.of(DashboardWidget.MetricRequest.builder()
+                                        .name("HTTP_REQUESTS")
+                                        .measures(List.of("COUNT"))
+                                        .build()))
+                                .build())
+                        .build()))
+                .build();
     }
 
     private static CustomDashboard aRepositoryDashboard() {
         return CustomDashboard.builder()
-            .id(DASHBOARD_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .name(DASHBOARD_NAME)
-            .createdBy(CREATED_BY)
-            .createdAt(Date.from(CREATED_AT))
-            .lastModified(Date.from(LAST_MODIFIED))
-            .labels(Map.of("team", "apim"))
-            .widgets(
-                List.of(
-                    CustomDashboardWidget.builder()
+                .id(DASHBOARD_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name(DASHBOARD_NAME)
+                .createdBy(CREATED_BY)
+                .createdAt(Date.from(CREATED_AT))
+                .lastModified(Date.from(LAST_MODIFIED))
+                .labels(Map.of("team", "apim"))
+                .widgets(List.of(CustomDashboardWidget.builder()
                         .id("1")
                         .title("Requests")
                         .type("stats")
-                        .layout(CustomDashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-                        .request(
-                            CustomDashboardWidget.Request.builder()
+                        .layout(CustomDashboardWidget.Layout.builder()
+                                .cols(1)
+                                .rows(1)
+                                .x(0)
+                                .y(0)
+                                .build())
+                        .request(CustomDashboardWidget.Request.builder()
                                 .type("measures")
-                                .timeRange(
-                                    CustomDashboardWidget.TimeRange.builder()
+                                .timeRange(CustomDashboardWidget.TimeRange.builder()
                                         .from("2025-10-07T06:50:30Z")
                                         .to("2025-12-07T11:35:30Z")
-                                        .build()
-                                )
-                                .metrics(
-                                    List.of(
-                                        CustomDashboardWidget.MetricRequest.builder()
-                                            .name("HTTP_REQUESTS")
-                                            .measures(List.of("COUNT"))
-                                            .build()
-                                    )
-                                )
-                                .build()
-                        )
-                        .build()
-                )
-            )
-            .build();
+                                        .build())
+                                .metrics(List.of(CustomDashboardWidget.MetricRequest.builder()
+                                        .name("HTTP_REQUESTS")
+                                        .measures(List.of("COUNT"))
+                                        .build()))
+                                .build())
+                        .build()))
+                .build();
     }
 }

@@ -41,7 +41,7 @@ public class PasswordPolicyServiceImpl implements PasswordPolicyService {
      * inherited. {@code RegexPasswordValidator} still holds its own copy of the same literal.
      */
     static final String DEFAULT_PATTERN =
-        "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\\-#\\\"'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$";
+            "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\\-#\\\"'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$";
 
     @Value("${user.password.policy.pattern:" + DEFAULT_PATTERN + "}")
     private String passwordPolicyPattern;
@@ -58,10 +58,10 @@ public class PasswordPolicyServiceImpl implements PasswordPolicyService {
     public PasswordPolicyEntity getPasswordPolicy() {
         String pattern = trimmedPattern();
         return PasswordPolicyEntity.builder()
-            .description(StringUtils.hasText(passwordPolicyDescription) ? passwordPolicyDescription.trim() : "")
-            .pattern(pattern)
-            .rules(resolveRules(pattern))
-            .build();
+                .description(StringUtils.hasText(passwordPolicyDescription) ? passwordPolicyDescription.trim() : "")
+                .pattern(pattern)
+                .rules(resolveRules(pattern))
+                .build();
     }
 
     /**
@@ -80,28 +80,25 @@ public class PasswordPolicyServiceImpl implements PasswordPolicyService {
 
         if (!StringUtils.hasText(pattern)) {
             warnings.add(
-                "user.password.policy.pattern is set but blank. The password policy carries no rule at all, and the " +
-                    "validator built from the same property accepts no password. Set a pattern, or remove the key to " +
-                    "fall back to the shipped default."
-            );
+                    "user.password.policy.pattern is set but blank. The password policy carries no rule at all, and the "
+                            + "validator built from the same property accepts no password. Set a pattern, or remove the key to "
+                            + "fall back to the shipped default.");
         } else if (!DEFAULT_PATTERN.equals(pattern) && !StringUtils.hasText(passwordPolicyDescription)) {
             warnings.add(
-                "user.password.policy.pattern is customized but user.password.policy.description is blank. The password " +
-                    "policy then carries only the rules this service can derive from the pattern, so a requirement it " +
-                    "cannot express reaches no client before a password is rejected. Write a description to explain the " +
-                    "policy in your own words."
-            );
+                    "user.password.policy.pattern is customized but user.password.policy.description is blank. The password "
+                            + "policy then carries only the rules this service can derive from the pattern, so a requirement it "
+                            + "cannot express reaches no client before a password is rejected. Write a description to explain the "
+                            + "policy in your own words.");
         }
 
         List<String> untranslated = patternParser.untranslatedFragments(pattern);
         if (!untranslated.isEmpty()) {
             warnings.add(
-                "user.password.policy.pattern contains requirements that could not be turned into a readable rule: " +
-                    String.join(", ", untranslated) +
-                    ". The password policy carries no rule for them. This check only inspects '(?=.*[...])' groups, so " +
-                    "it finds gaps rather than proving there are none: a requirement written another way can be just as " +
-                    "invisible without appearing here."
-            );
+                    "user.password.policy.pattern contains requirements that could not be turned into a readable rule: "
+                            + String.join(", ", untranslated)
+                            + ". The password policy carries no rule for them. This check only inspects '(?=.*[...])' groups, so "
+                            + "it finds gaps rather than proving there are none: a requirement written another way can be just as "
+                            + "invisible without appearing here.");
         }
 
         return warnings;
@@ -121,9 +118,9 @@ public class PasswordPolicyServiceImpl implements PasswordPolicyService {
 
     private static PasswordPolicyRuleEntity buildFallbackRule(String policyPattern) {
         return PasswordPolicyRuleEntity.builder()
-            .id("policyPattern")
-            .label("Matches the configured password policy")
-            .pattern(policyPattern)
-            .build();
+                .id("policyPattern")
+                .label("Matches the configured password policy")
+                .pattern(policyPattern)
+                .build();
     }
 }

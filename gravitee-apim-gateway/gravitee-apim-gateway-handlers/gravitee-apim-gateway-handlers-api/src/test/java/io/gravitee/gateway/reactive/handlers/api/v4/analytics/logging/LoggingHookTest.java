@@ -83,14 +83,17 @@ class LoggingHookTest {
         lenient().when(analyticsContext.isEnabled()).thenReturn(true);
         lenient().when(analyticsContext.isLoggingEnabled()).thenReturn(true);
         lenient().when(analyticsContext.getLoggingContext()).thenReturn(loggingContext);
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT)).thenReturn(analyticsContext);
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT))
+                .thenReturn(analyticsContext);
     }
 
     @Test
     void should_not_log_endpoint_request_when_no_log() {
         when(metrics.getLog()).thenReturn(null);
 
-        final TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
     }
 
@@ -101,7 +104,8 @@ class LoggingHookTest {
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointRequest()).thenReturn(false);
 
-        final TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertNull(log.getEntrypointRequest());
@@ -114,7 +118,8 @@ class LoggingHookTest {
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointRequest()).thenReturn(true);
 
-        final TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertNotNull(log.getEndpointRequest());
@@ -129,7 +134,8 @@ class LoggingHookTest {
         when(loggingContext.endpointRequestHeaders()).thenReturn(true);
         when(request.headers()).thenReturn(HttpHeaders.create());
 
-        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.post("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertNotNull(log.getEndpointRequest().getHeaders());
@@ -143,7 +149,8 @@ class LoggingHookTest {
         when(loggingContext.endpointRequest()).thenReturn(true);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
 
-        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.post("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertNull(log.getEndpointRequest().getHeaders());
@@ -158,7 +165,8 @@ class LoggingHookTest {
         when(loggingContext.endpointRequestHeaders()).thenReturn(true);
         when(request.headers()).thenReturn(HttpHeaders.create());
 
-        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
+        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500))
+                .test();
         obs.assertComplete();
 
         assertNotNull(log.getEndpointRequest().getHeaders());
@@ -172,7 +180,8 @@ class LoggingHookTest {
         when(loggingContext.endpointRequest()).thenReturn(true);
         when(request.method()).thenReturn(HttpMethod.CONNECT);
 
-        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.post("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertEquals(HttpMethod.CONNECT, log.getEndpointRequest().getMethod());
@@ -186,7 +195,8 @@ class LoggingHookTest {
         when(loggingContext.endpointRequest()).thenReturn(true);
         when(request.method()).thenReturn(HttpMethod.CONNECT);
 
-        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
+        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500))
+                .test();
         obs.assertComplete();
 
         assertEquals(HttpMethod.CONNECT, log.getEndpointRequest().getMethod());
@@ -196,7 +206,8 @@ class LoggingHookTest {
     void should_not_log_endpoint_response_when_no_log() {
         when(metrics.getLog()).thenReturn(null);
 
-        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.post("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
     }
 
@@ -207,7 +218,8 @@ class LoggingHookTest {
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(false);
 
-        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.post("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertNull(log.getEndpointResponse());
@@ -220,7 +232,8 @@ class LoggingHookTest {
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
 
-        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.post("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertNotNull(log.getEndpointResponse());
@@ -233,7 +246,8 @@ class LoggingHookTest {
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
 
-        final TestObserver<Void> obs = cut.interrupt("test", ctx, ExecutionPhase.REQUEST).test();
+        final TestObserver<Void> obs =
+                cut.interrupt("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
         assertNotNull(log.getEndpointResponse());
@@ -246,7 +260,8 @@ class LoggingHookTest {
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
 
-        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
+        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500))
+                .test();
         obs.assertComplete();
 
         assertNotNull(log.getEndpointResponse());
@@ -346,9 +361,9 @@ class LoggingHookTest {
 
     private Log initLog() {
         return Log.builder()
-            .timestamp(System.currentTimeMillis())
-            .endpointRequest(new LogEndpointRequest(loggingContext, request))
-            .endpointResponse(new LogEndpointResponse(loggingContext, response))
-            .build();
+                .timestamp(System.currentTimeMillis())
+                .endpointRequest(new LogEndpointRequest(loggingContext, request))
+                .endpointResponse(new LogEndpointResponse(loggingContext, response))
+                .build();
     }
 }

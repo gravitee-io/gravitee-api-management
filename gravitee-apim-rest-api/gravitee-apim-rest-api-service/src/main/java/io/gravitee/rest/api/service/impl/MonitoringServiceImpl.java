@@ -40,7 +40,8 @@ public class MonitoringServiceImpl implements MonitoringService {
     @Override
     public MonitoringData findMonitoring(final ExecutionContext executionContext, final String gatewayId) {
         log.debug("Running monitoring query for Gateway instance '{}'", gatewayId);
-        final MonitoringResponse monitoringResponse = monitoringRepository.query(executionContext.getQueryContext(), gatewayId);
+        final MonitoringResponse monitoringResponse =
+                monitoringRepository.query(executionContext.getQueryContext(), gatewayId);
         return monitoringResponse != null ? convert(monitoringResponse) : null;
     }
 

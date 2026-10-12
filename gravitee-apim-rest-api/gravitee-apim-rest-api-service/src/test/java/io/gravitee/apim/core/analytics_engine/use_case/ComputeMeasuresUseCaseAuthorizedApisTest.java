@@ -55,32 +55,29 @@ class ComputeMeasuresUseCaseAuthorizedApisTest {
         when(queryService.metrics()).thenReturn(Set.of(MetricSpec.Name.HTTP_REQUESTS));
         when(queryService.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of()));
         var useCase = new ComputeMeasuresUseCase(
-            new AnalyticsQueryContextProvider(List.of(queryService)),
-            mock(AnalyticsQueryValidator.class),
-            List.of(new ApiTypeFilterTransformer()),
-            enrichment,
-            loader
-        );
+                new AnalyticsQueryContextProvider(List.of(queryService)),
+                mock(AnalyticsQueryValidator.class),
+                List.of(new ApiTypeFilterTransformer()),
+                enrichment,
+                loader);
         var request = new MeasuresRequest(
-            new TimeRange(Instant.parse("2026-09-06T00:00:00Z"), Instant.parse("2026-10-06T00:00:00Z")),
-            List.of(
-                new Filter(FilterSpec.Name.API_PRODUCT, FilterOperator.EQ, "ws-1"),
-                new Filter(FilterSpec.Name.APPLICATION, FilterOperator.EQ, "app-1")
-            ),
-            List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
-        );
+                new TimeRange(Instant.parse("2026-09-06T00:00:00Z"), Instant.parse("2026-10-06T00:00:00Z")),
+                List.of(
+                        new Filter(FilterSpec.Name.API_PRODUCT, FilterOperator.EQ, "ws-1"),
+                        new Filter(FilterSpec.Name.APPLICATION, FilterOperator.EQ, "app-1")),
+                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT))));
 
-        useCase.executeForApis(AuditInfoFixtures.anAuditInfo("org-id", "env-id", "user-id"), request, Set.of("proxy-1"));
+        useCase.executeForApis(
+                AuditInfoFixtures.anAuditInfo("org-id", "env-id", "user-id"), request, Set.of("proxy-1"));
 
         verify(loader, never()).load(any(), any());
         var captured = ArgumentCaptor.forClass(MeasuresRequest.class);
         verify(queryService).searchMeasures(any(), captured.capture());
         assertThat(captured.getValue().filters())
-            .extracting(Filter::name, Filter::value)
-            .contains(
-                tuple(FilterSpec.Name.API_PRODUCT, "ws-1"),
-                tuple(FilterSpec.Name.APPLICATION, "app-1"),
-                tuple(FilterSpec.Name.API, Set.of("proxy-1"))
-            );
+                .extracting(Filter::name, Filter::value)
+                .contains(
+                        tuple(FilterSpec.Name.API_PRODUCT, "ws-1"),
+                        tuple(FilterSpec.Name.APPLICATION, "app-1"),
+                        tuple(FilterSpec.Name.API, Set.of("proxy-1")));
     }
 }

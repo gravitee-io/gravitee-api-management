@@ -34,16 +34,14 @@ public class ValidateApplicationCRDUseCase {
         var statusBuilder = ApplicationCRDStatus.builder();
 
         validator
-            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(input.auditInfo(), input.crd()))
-            .peek(
-                sanitized ->
-                    statusBuilder
-                        .id(sanitized.spec().getId())
-                        .organizationId(sanitized.auditInfo().organizationId())
-                        .environmentId(sanitized.auditInfo().environmentId())
-                        .build(),
-                errors -> statusBuilder.errors(ApplicationCRDStatus.Errors.fromErrorList(errors))
-            );
+                .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(input.auditInfo(), input.crd()))
+                .peek(
+                        sanitized -> statusBuilder
+                                .id(sanitized.spec().getId())
+                                .organizationId(sanitized.auditInfo().organizationId())
+                                .environmentId(sanitized.auditInfo().environmentId())
+                                .build(),
+                        errors -> statusBuilder.errors(ApplicationCRDStatus.Errors.fromErrorList(errors)));
 
         return new ImportApplicationCRDUseCase.Output(statusBuilder.build());
     }

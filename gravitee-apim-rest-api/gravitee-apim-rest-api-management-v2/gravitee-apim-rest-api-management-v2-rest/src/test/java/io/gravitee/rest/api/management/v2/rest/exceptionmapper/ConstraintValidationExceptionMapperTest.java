@@ -50,44 +50,36 @@ class ConstraintValidationExceptionMapperTest {
     @Test
     void shouldMapExceptionToResponse() {
         final ConstraintViolationException exception = new FakeValidationException(
-            "fake message",
-            Set.of(
-                violation("path1", "Size must be between 1 and 2147483647", List.of()),
-                violation("path2", "This value is not allowed", "InvalidValue")
-            )
-        );
+                "fake message",
+                Set.of(
+                        violation("path1", "Size must be between 1 and 2147483647", List.of()),
+                        violation("path2", "This value is not allowed", "InvalidValue")));
 
         try (Response response = cve.toResponse(exception)) {
             assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
             assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
-            assertThat(response.getEntity())
-                .isInstanceOf(Error.class)
-                .satisfies(errorObject -> {
-                    Error error = ((Error) errorObject);
-                    assertThat(error.getHttpStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
-                    assertThat(error.getMessage()).isEqualTo("Validation error");
-                    assertThat(error.getDetails())
-                        .hasSize(2)
-                        .satisfies(listErrorDetails -> {
-                            final ErrorDetailsInner firstDetail = listErrorDetails
-                                .stream()
-                                .filter(detail -> "path1".equals(detail.getLocation()))
-                                .findFirst()
-                                .get();
-                            assertThat(firstDetail.getInvalidValue()).isEqualTo(JsonNullable.of(List.of()));
-                            assertThat(firstDetail.getMessage()).isEqualTo("Size must be between 1 and 2147483647");
-                            assertThat(firstDetail.getLocation()).isEqualTo("path1");
+            assertThat(response.getEntity()).isInstanceOf(Error.class).satisfies(errorObject -> {
+                Error error = ((Error) errorObject);
+                assertThat(error.getHttpStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+                assertThat(error.getMessage()).isEqualTo("Validation error");
+                assertThat(error.getDetails()).hasSize(2).satisfies(listErrorDetails -> {
+                    final ErrorDetailsInner firstDetail = listErrorDetails.stream()
+                            .filter(detail -> "path1".equals(detail.getLocation()))
+                            .findFirst()
+                            .get();
+                    assertThat(firstDetail.getInvalidValue()).isEqualTo(JsonNullable.of(List.of()));
+                    assertThat(firstDetail.getMessage()).isEqualTo("Size must be between 1 and 2147483647");
+                    assertThat(firstDetail.getLocation()).isEqualTo("path1");
 
-                            final ErrorDetailsInner secondDetail = listErrorDetails
-                                .stream()
-                                .filter(detail -> "path2".equals(detail.getLocation()))
-                                .findFirst()
-                                .get();
-                            assertThat(secondDetail.getInvalidValue()).isEqualTo(JsonNullable.of("InvalidValue"));
-                            assertThat(secondDetail.getMessage()).isEqualTo("This value is not allowed");
-                            assertThat(secondDetail.getLocation()).isEqualTo("path2");
-                        });
+                    final ErrorDetailsInner secondDetail = listErrorDetails.stream()
+                            .filter(detail -> "path2".equals(detail.getLocation()))
+                            .findFirst()
+                            .get();
+                    assertThat(secondDetail.getInvalidValue()).isEqualTo(JsonNullable.of("InvalidValue"));
+                    assertThat(secondDetail.getMessage()).isEqualTo("This value is not allowed");
+                    assertThat(secondDetail.getLocation()).isEqualTo("path2");
                 });
+            });
         }
     }
 

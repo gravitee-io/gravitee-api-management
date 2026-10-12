@@ -28,10 +28,13 @@ import java.util.Set;
  */
 public interface CRDMembersDomainService {
     void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
+
     void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members);
+
     void updateGroupMembers(AuditInfo auditInfo, String groupId, Set<GroupCRDSpec.Member> members);
 
-    void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, String apiRole, String applicationRole, String apiProductRole);
+    void updateGroupDefaultRoles(
+            AuditInfo auditInfo, String groupId, String apiRole, String applicationRole, String apiProductRole);
 
     /**
      * Converge the group's default roles on the declared map: each of API, APPLICATION and API_PRODUCT is set to the

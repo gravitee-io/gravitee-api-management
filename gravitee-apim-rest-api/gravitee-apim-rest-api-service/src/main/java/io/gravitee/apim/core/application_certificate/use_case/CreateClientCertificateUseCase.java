@@ -34,22 +34,21 @@ public class CreateClientCertificateUseCase {
         var certInfo = clientCertificateValidationDomainService.validateForCreation(input.toCreate(), environmentId);
 
         ClientCertificate enriched = new ClientCertificate(
-            null,
-            null,
-            null,
-            input.toCreate().name(),
-            input.toCreate().startsAt(),
-            input.toCreate().endsAt(),
-            null,
-            null,
-            input.toCreate().certificate(),
-            certInfo.certificateExpiration(),
-            certInfo.subject(),
-            certInfo.issuer(),
-            certInfo.fingerprint(),
-            null,
-            null
-        );
+                null,
+                null,
+                null,
+                input.toCreate().name(),
+                input.toCreate().startsAt(),
+                input.toCreate().endsAt(),
+                null,
+                null,
+                input.toCreate().certificate(),
+                certInfo.certificateExpiration(),
+                certInfo.subject(),
+                certInfo.issuer(),
+                certInfo.fingerprint(),
+                null,
+                null);
 
         var certificate = clientCertificateDomainService.create(input.applicationId(), enriched);
         return new Output(certificate);

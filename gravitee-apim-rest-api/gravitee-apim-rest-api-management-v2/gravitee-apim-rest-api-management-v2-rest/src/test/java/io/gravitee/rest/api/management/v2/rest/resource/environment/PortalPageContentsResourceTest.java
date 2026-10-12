@@ -76,7 +76,10 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -99,53 +102,46 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
     void should_return_portal_page_content() {
         // Given
         var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-            PortalPageContentId.of(CONTENT_ID),
-            ORGANIZATION,
-            ENVIRONMENT,
-            PortalPageContentFixtures.CONTENT
-        );
+                PortalPageContentId.of(CONTENT_ID), ORGANIZATION, ENVIRONMENT, PortalPageContentFixtures.CONTENT);
 
-        when(getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(PortalPageContentId.of(CONTENT_ID)))).thenReturn(
-            new GetPortalPageContentUseCase.Output(content)
-        );
+        when(getPortalPageContentUseCase.execute(
+                        new GetPortalPageContentUseCase.Input(PortalPageContentId.of(CONTENT_ID))))
+                .thenReturn(new GetPortalPageContentUseCase.Output(content));
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
         Response response = target.path(CONTENT_ID).request().get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
-            .isNotNull()
-            .satisfies(result -> {
-                assertThat(result.getId()).isEqualTo(CONTENT_ID);
-                assertThat(result.getContent()).isEqualTo(PortalPageContentFixtures.CONTENT);
-                assertThat(result.getType()).isEqualTo(
-                    io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType.GRAVITEE_MARKDOWN
-                );
-            });
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
+                .isNotNull()
+                .satisfies(result -> {
+                    assertThat(result.getId()).isEqualTo(CONTENT_ID);
+                    assertThat(result.getContent()).isEqualTo(PortalPageContentFixtures.CONTENT);
+                    assertThat(result.getType())
+                            .isEqualTo(
+                                    io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType
+                                            .GRAVITEE_MARKDOWN);
+                });
     }
 
     @Test
     void should_return_403_when_insufficient_permissions() {
         // Given
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
 
         // When
         Response response = target.path(CONTENT_ID).request().get();
@@ -159,14 +155,12 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         // Given
         String invalidContentId = "invalid-uuid-format";
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
         Response response = target.path(invalidContentId).request().get();
@@ -181,39 +175,29 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                PortalPageContentId.of(CONTENT_ID),
-                ORGANIZATION,
-                ENVIRONMENT,
-                PortalPageContentFixtures.CONTENT
-            );
+                    PortalPageContentId.of(CONTENT_ID), ORGANIZATION, ENVIRONMENT, PortalPageContentFixtures.CONTENT);
 
             portalPageContentCrudService.initWith(List.of(content));
             portalPageContentQueryService.initWith(List.of(content));
 
             var navigationPage = PortalNavigationItemFixtures.aPage(
-                PortalNavigationItemFixtures.PAGE_ID,
-                "Test Page",
-                null,
-                PortalPageContentId.of(CONTENT_ID)
-            )
-                .toBuilder()
-                .organizationId(ORGANIZATION)
-                .environmentId(ENVIRONMENT)
-                .build();
+                            PortalNavigationItemFixtures.PAGE_ID, "Test Page", null, PortalPageContentId.of(CONTENT_ID))
+                    .toBuilder()
+                    .organizationId(ORGANIZATION)
+                    .environmentId(ENVIRONMENT)
+                    .build();
             portalNavigationItemsQueryService.initWith(List.of(navigationPage));
         }
 
         @Test
         void should_update_portal_page_content() {
             // Given
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.UPDATE
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DOCUMENTATION,
+                            ENVIRONMENT,
+                            RolePermissionAction.UPDATE))
+                    .thenReturn(true);
 
             var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
             updateRequest.setContent("Updated content");
@@ -223,25 +207,23 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
 
             // Then
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
-                .satisfies(result -> {
-                    assertThat(result.getId()).isEqualTo(CONTENT_ID);
-                    assertThat(result.getContent()).isEqualTo("Updated content");
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
+                    .satisfies(result -> {
+                        assertThat(result.getId()).isEqualTo(CONTENT_ID);
+                        assertThat(result.getContent()).isEqualTo("Updated content");
+                    });
         }
 
         @Test
         void should_return_400_when_content_is_empty() {
             // Given
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.UPDATE
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DOCUMENTATION,
+                            ENVIRONMENT,
+                            RolePermissionAction.UPDATE))
+                    .thenReturn(true);
 
             var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
             updateRequest.setContent(" ");
@@ -256,14 +238,12 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_when_content_is_null() {
             // Given
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.UPDATE
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DOCUMENTATION,
+                            ENVIRONMENT,
+                            RolePermissionAction.UPDATE))
+                    .thenReturn(true);
 
             var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
 
@@ -277,14 +257,12 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_when_insufficient_permissions() {
             // Given
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.UPDATE
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DOCUMENTATION,
+                            ENVIRONMENT,
+                            RolePermissionAction.UPDATE))
+                    .thenReturn(false);
 
             var updateRequest = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent();
             updateRequest.setContent("Updated content");
@@ -305,12 +283,11 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             var content = PortalPageContentFixtures.anOpenApiPageContent(
-                PortalPageContentId.of(CONTENT_ID),
-                ORGANIZATION,
-                ENVIRONMENT,
-                OPENAPI_CONTENT,
-                new RedocConfiguration()
-            );
+                    PortalPageContentId.of(CONTENT_ID),
+                    ORGANIZATION,
+                    ENVIRONMENT,
+                    OPENAPI_CONTENT,
+                    new RedocConfiguration());
 
             portalPageContentCrudService.initWith(List.of(content));
             portalPageContentQueryService.initWith(List.of(content));
@@ -319,108 +296,110 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         @Test
         void should_update_portal_page_content_configuration_without_changing_content() {
             // Given
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.UPDATE
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DOCUMENTATION,
+                            ENVIRONMENT,
+                            RolePermissionAction.UPDATE))
+                    .thenReturn(true);
 
             var configuration = Map.ofEntries(
-                Map.entry("viewer", "SWAGGER"),
-                Map.entry("displayOperationId", true),
-                Map.entry("docExpansion", "full"),
-                Map.entry("enableFiltering", true),
-                Map.entry("maxDisplayedTags", 10),
-                Map.entry("showCommonExtensions", true),
-                Map.entry("showExtensions", true),
-                Map.entry("showURL", true),
-                Map.entry("tryIt", true),
-                Map.entry("disableSyntaxHighlight", true),
-                Map.entry("tryItAnonymous", true),
-                Map.entry("tryItURL", "https://example.com"),
-                Map.entry("usePkce", true),
-                Map.entry("entrypointsAsServers", true),
-                Map.entry("contextPathAsServerPath", true)
-            );
+                    Map.entry("viewer", "SWAGGER"),
+                    Map.entry("displayOperationId", true),
+                    Map.entry("docExpansion", "full"),
+                    Map.entry("enableFiltering", true),
+                    Map.entry("maxDisplayedTags", 10),
+                    Map.entry("showCommonExtensions", true),
+                    Map.entry("showExtensions", true),
+                    Map.entry("showURL", true),
+                    Map.entry("tryIt", true),
+                    Map.entry("disableSyntaxHighlight", true),
+                    Map.entry("tryItAnonymous", true),
+                    Map.entry("tryItURL", "https://example.com"),
+                    Map.entry("usePkce", true),
+                    Map.entry("entrypointsAsServers", true),
+                    Map.entry("contextPathAsServerPath", true));
 
             // When
-            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
+            Response response =
+                    target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
 
             // Then
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
-                .satisfies(result -> {
-                    assertThat(result.getId()).isEqualTo(CONTENT_ID);
-                    assertThat(result.getContent()).isEqualTo(OPENAPI_CONTENT);
-                    assertThat(result.getConfiguration().getActualInstance()).isInstanceOf(
-                        io.gravitee.rest.api.management.v2.rest.model.PortalPageSwaggerConfiguration.class
-                    );
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
+                    .satisfies(result -> {
+                        assertThat(result.getId()).isEqualTo(CONTENT_ID);
+                        assertThat(result.getContent()).isEqualTo(OPENAPI_CONTENT);
+                        assertThat(result.getConfiguration().getActualInstance())
+                                .isInstanceOf(
+                                        io.gravitee.rest.api.management.v2.rest.model.PortalPageSwaggerConfiguration
+                                                .class);
+                    });
 
-            var storedContent = (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
+            var storedContent =
+                    (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
             assertThat(storedContent.getContent().value()).isEqualTo(OPENAPI_CONTENT);
-            assertThat(storedContent.getViewerSettings().viewer()).isEqualTo(
-                io.gravitee.apim.core.portal_page.model.OpenApiConfiguration.Viewer.SWAGGER
-            );
+            assertThat(storedContent.getViewerSettings().viewer())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.OpenApiConfiguration.Viewer.SWAGGER);
         }
 
         @Test
         void should_update_redoc_configuration_with_try_it_url() {
             // Given
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.UPDATE
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DOCUMENTATION,
+                            ENVIRONMENT,
+                            RolePermissionAction.UPDATE))
+                    .thenReturn(true);
 
             var configuration = Map.of("viewer", "REDOC", "tryItURL", "https://redoc.example.com");
 
             // When
-            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
+            Response response =
+                    target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
 
             // Then
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
-                .satisfies(result -> {
-                    assertThat(result.getId()).isEqualTo(CONTENT_ID);
-                    assertThat(result.getContent()).isEqualTo(OPENAPI_CONTENT);
-                    assertThat(result.getConfiguration().getActualInstance()).isInstanceOfSatisfying(
-                        io.gravitee.rest.api.management.v2.rest.model.PortalPageRedocConfiguration.class,
-                        redocConfiguration -> assertThat(redocConfiguration.getTryItURL()).isEqualTo("https://redoc.example.com")
-                    );
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.class)
+                    .satisfies(result -> {
+                        assertThat(result.getId()).isEqualTo(CONTENT_ID);
+                        assertThat(result.getContent()).isEqualTo(OPENAPI_CONTENT);
+                        assertThat(result.getConfiguration().getActualInstance())
+                                .isInstanceOfSatisfying(
+                                        io.gravitee.rest.api.management.v2.rest.model.PortalPageRedocConfiguration
+                                                .class,
+                                        redocConfiguration -> assertThat(redocConfiguration.getTryItURL())
+                                                .isEqualTo("https://redoc.example.com"));
+                    });
 
-            var storedContent = (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
+            var storedContent =
+                    (OpenApiPageContent) portalPageContentCrudService.storage().getFirst();
             assertThat(storedContent.getContent().value()).isEqualTo(OPENAPI_CONTENT);
-            assertThat(storedContent.getViewerSettings()).isInstanceOfSatisfying(RedocConfiguration.class, redocConfiguration ->
-                assertThat(redocConfiguration.tryItUrl()).isEqualTo("https://redoc.example.com")
-            );
+            assertThat(storedContent.getViewerSettings())
+                    .isInstanceOfSatisfying(
+                            RedocConfiguration.class,
+                            redocConfiguration ->
+                                    assertThat(redocConfiguration.tryItUrl()).isEqualTo("https://redoc.example.com"));
         }
 
         @Test
         void should_return_403_when_insufficient_permissions() {
             // Given
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DOCUMENTATION,
-                    ENVIRONMENT,
-                    RolePermissionAction.UPDATE
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DOCUMENTATION,
+                            ENVIRONMENT,
+                            RolePermissionAction.UPDATE))
+                    .thenReturn(false);
 
             var configuration = Map.of("viewer", "REDOC");
 
             // When
-            Response response = target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
+            Response response =
+                    target.path(CONTENT_ID).path("configuration").request().method("PATCH", Entity.json(configuration));
 
             // Then
             assertThat(response).hasStatus(FORBIDDEN_403);

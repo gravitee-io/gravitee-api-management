@@ -40,7 +40,8 @@ public class HealthCheckDeserializer<T extends HealthCheckService> extends Sched
     }
 
     @Override
-    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException {
+    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
+            throws IOException {
         super.deserialize(service, jsonParser, node, ctxt);
 
         if (service.isEnabled()) {
@@ -50,7 +51,8 @@ public class HealthCheckDeserializer<T extends HealthCheckService> extends Sched
                 List<HealthCheckStep> steps = new ArrayList<>(stepsNode.size());
 
                 for (JsonNode stepNode : stepsNode) {
-                    HealthCheckStep step = stepNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckStep.class);
+                    HealthCheckStep step =
+                            stepNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckStep.class);
                     steps.add(step);
                 }
 
@@ -68,7 +70,8 @@ public class HealthCheckDeserializer<T extends HealthCheckService> extends Sched
 
                 final JsonNode expectationNode = node.get("expectation");
                 if (expectationNode != null) {
-                    step.setResponse(expectationNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckResponse.class));
+                    step.setResponse(
+                            expectationNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckResponse.class));
                 } else {
                     HealthCheckResponse response = new HealthCheckResponse();
                     response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));

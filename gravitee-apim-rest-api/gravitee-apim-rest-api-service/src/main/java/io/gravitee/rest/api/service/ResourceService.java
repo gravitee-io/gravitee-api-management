@@ -24,5 +24,6 @@ import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
  */
 public interface ResourceService extends PluginService<PlatformPluginEntity> {
     void validateResourceConfiguration(Resource resource);
+
     void validateResourceConfiguration(io.gravitee.definition.model.v4.resource.Resource resource);
 }

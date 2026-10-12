@@ -73,10 +73,10 @@ public class ElasticsearchOtelLogTestRepositoryConfiguration {
     @Bean(destroyMethod = "stop")
     public ElasticsearchContainer otelLogTestElasticsearchContainer(Network otelLogTestNetwork) {
         ElasticsearchContainer container = new ElasticsearchContainer(DockerImageName.parse(ES_IMAGE))
-            .withEnv("xpack.security.enabled", "false")
-            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
-            .withNetwork(otelLogTestNetwork)
-            .withNetworkAliases(ES_NETWORK_ALIAS);
+                .withEnv("xpack.security.enabled", "false")
+                .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
+                .withNetwork(otelLogTestNetwork)
+                .withNetworkAliases(ES_NETWORK_ALIAS);
         container.setWaitStrategy(Wait.forLogMessage(".*started.*", 1).withStartupTimeout(Duration.ofSeconds(180)));
         container.start();
         return container;
@@ -84,19 +84,16 @@ public class ElasticsearchOtelLogTestRepositoryConfiguration {
 
     @Bean(destroyMethod = "stop")
     public GenericContainer<?> otelLogTestOtelCollectorContainer(
-        Network otelLogTestNetwork,
-        ElasticsearchContainer otelLogTestElasticsearchContainer
-    ) {
+            Network otelLogTestNetwork, ElasticsearchContainer otelLogTestElasticsearchContainer) {
         // Depending on otelLogTestElasticsearchContainer ensures Spring starts ES first; the collector
         // retries during its own startup window if ES isn't yet accepting writes.
         GenericContainer<?> collector = new GenericContainer<>(DockerImageName.parse(OTEL_COLLECTOR_IMAGE))
-            .withNetwork(otelLogTestNetwork)
-            .withExposedPorts(OTEL_COLLECTOR_OTLP_HTTP_PORT)
-            .withCopyFileToContainer(
-                MountableFile.forClasspathResource("otel-collector-otel-logs-config.yaml"),
-                "/etc/otelcol-contrib/config.yaml"
-            )
-            .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
+                .withNetwork(otelLogTestNetwork)
+                .withExposedPorts(OTEL_COLLECTOR_OTLP_HTTP_PORT)
+                .withCopyFileToContainer(
+                        MountableFile.forClasspathResource("otel-collector-otel-logs-config.yaml"),
+                        "/etc/otelcol-contrib/config.yaml")
+                .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
         collector.start();
         return collector;
     }
@@ -104,16 +101,9 @@ public class ElasticsearchOtelLogTestRepositoryConfiguration {
     @Bean(destroyMethod = "")
     public Client otelLogTestElasticsearchClient(ElasticsearchContainer otelLogTestElasticsearchContainer) {
         HttpClientConfiguration clientConfiguration = new HttpClientConfiguration();
-        clientConfiguration.setEndpoints(
-            List.of(
-                new Endpoint(
-                    "http://" +
-                        otelLogTestElasticsearchContainer.getHost() +
-                        ":" +
-                        otelLogTestElasticsearchContainer.getMappedPort(ES_HTTP_PORT)
-                )
-            )
-        );
+        clientConfiguration.setEndpoints(List.of(new Endpoint("http://" + otelLogTestElasticsearchContainer.getHost()
+                + ":"
+                + otelLogTestElasticsearchContainer.getMappedPort(ES_HTTP_PORT))));
         clientConfiguration.setRequestTimeout(60_000L);
         return new HttpClient(clientConfiguration);
     }

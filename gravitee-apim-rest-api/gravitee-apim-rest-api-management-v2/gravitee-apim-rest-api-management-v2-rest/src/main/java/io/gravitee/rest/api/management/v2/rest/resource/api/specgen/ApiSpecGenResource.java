@@ -43,16 +43,28 @@ public class ApiSpecGenResource extends AbstractResource {
     @GET
     @Path("/_state")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.READ})
+    })
     public void getState(@Suspended final AsyncResponse response) {
-        useCase.getState(apiId, getAuthenticatedUser()).map(SpecGenStateMapper.INSTANCE::map).subscribe(response::resume, response::resume);
+        useCase.getState(apiId, getAuthenticatedUser())
+                .map(SpecGenStateMapper.INSTANCE::map)
+                .subscribe(response::resume, response::resume);
     }
 
     @POST
     @Path("/_start")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.CREATE})
+    })
     public void postJob(@Suspended final AsyncResponse response) {
-        useCase.postJob(apiId, getAuthenticatedUser()).map(SpecGenStateMapper.INSTANCE::map).subscribe(response::resume, response::resume);
+        useCase.postJob(apiId, getAuthenticatedUser())
+                .map(SpecGenStateMapper.INSTANCE::map)
+                .subscribe(response::resume, response::resume);
     }
 }

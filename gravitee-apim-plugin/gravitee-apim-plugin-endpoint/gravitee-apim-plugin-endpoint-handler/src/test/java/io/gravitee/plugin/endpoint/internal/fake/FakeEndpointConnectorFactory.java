@@ -37,14 +37,12 @@ public class FakeEndpointConnectorFactory implements EndpointAsyncConnectorFacto
 
     @Override
     public FakeEndpointConnector createConnector(
-        final DeploymentContext deploymentContext,
-        final String configuration,
-        final String sharedConfiguration
-    ) {
+            final DeploymentContext deploymentContext, final String configuration, final String sharedConfiguration) {
         FakeEndpointConnector.FakeEndpointConnectorBuilder builder = FakeEndpointConnector.builder();
         if (configuration != null) {
             try {
-                builder.configuration(new ObjectMapper().readValue(configuration, FakeEndpointConnectorConfiguration.class));
+                builder.configuration(
+                        new ObjectMapper().readValue(configuration, FakeEndpointConnectorConfiguration.class));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Bad configuration");
             }

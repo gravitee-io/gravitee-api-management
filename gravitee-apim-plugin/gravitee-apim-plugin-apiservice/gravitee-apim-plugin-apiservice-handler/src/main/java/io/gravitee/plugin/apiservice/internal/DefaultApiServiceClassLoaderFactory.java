@@ -23,6 +23,5 @@ import io.gravitee.plugin.core.internal.PluginClassLoaderFactoryImpl;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultApiServiceClassLoaderFactory
-    extends PluginClassLoaderFactoryImpl<ApiServicePlugin<?, ?>>
-    implements ApiServiceClassLoaderFactory {}
+public class DefaultApiServiceClassLoaderFactory extends PluginClassLoaderFactoryImpl<ApiServicePlugin<?, ?>>
+        implements ApiServiceClassLoaderFactory {}

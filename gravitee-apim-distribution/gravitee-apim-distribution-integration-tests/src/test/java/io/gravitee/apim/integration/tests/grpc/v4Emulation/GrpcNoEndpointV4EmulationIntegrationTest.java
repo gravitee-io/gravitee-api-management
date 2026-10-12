@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/grpc/no-endpoint.json" })
+@DeployApi({"/apis/grpc/no-endpoint.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewayTest {
 
@@ -54,8 +54,8 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
     }
 
     @Test
-    void should_have_request_in_error_when_no_endpoint(VertxTestContext testContext, GatewayDynamicConfig.HttpConfig httpConfig)
-        throws InterruptedException {
+    void should_have_request_in_error_when_no_endpoint(
+            VertxTestContext testContext, GatewayDynamicConfig.HttpConfig httpConfig) throws InterruptedException {
         // Prepare gRPC Client
         GrpcIoClientChannel channel = new GrpcIoClientChannel(getGrpcClient(), gatewayAddress(httpConfig));
 
@@ -65,37 +65,32 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
         HelloRequest request = HelloRequest.newBuilder().setName("David").build();
 
         // Call the remote service
-        stub.sayHello(
-            request,
-            new StreamObserver<>() {
-                @Override
-                public void onNext(HelloReply helloReply) {
-                    testContext.failNow("Should not reply");
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    // Wrap in verify(): this runs on a Vert.x event-loop thread, so a bare AssertionError
-                    // would be swallowed and the test would hang for 30s instead of failing fast.
-                    testContext.verify(() -> {
-                        assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
-                        // Code is environment-dependent: UNAVAILABLE if the gateway delivered HTTP 503
-                        // cleanly (vertx-grpc maps 503 -> UNAVAILABLE since 5.0.12), UNKNOWN if the stream
-                        // was reset before the :status frame reached the client. See PR description.
-                        assertThat(((StatusRuntimeException) throwable).getStatus().getCode()).isIn(
-                            Status.Code.UNKNOWN,
-                            Status.Code.UNAVAILABLE
-                        );
-                    });
-
-                    testContext.completeNow();
-                }
-
-                @Override
-                public void onCompleted() {
-                    testContext.failNow("Should not complete");
-                }
+        stub.sayHello(request, new StreamObserver<>() {
+            @Override
+            public void onNext(HelloReply helloReply) {
+                testContext.failNow("Should not reply");
             }
-        );
+
+            @Override
+            public void onError(Throwable throwable) {
+                // Wrap in verify(): this runs on a Vert.x event-loop thread, so a bare AssertionError
+                // would be swallowed and the test would hang for 30s instead of failing fast.
+                testContext.verify(() -> {
+                    assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
+                    // Code is environment-dependent: UNAVAILABLE if the gateway delivered HTTP 503
+                    // cleanly (vertx-grpc maps 503 -> UNAVAILABLE since 5.0.12), UNKNOWN if the stream
+                    // was reset before the :status frame reached the client. See PR description.
+                    assertThat(((StatusRuntimeException) throwable).getStatus().getCode())
+                            .isIn(Status.Code.UNKNOWN, Status.Code.UNAVAILABLE);
+                });
+
+                testContext.completeNow();
+            }
+
+            @Override
+            public void onCompleted() {
+                testContext.failNow("Should not complete");
+            }
+        });
     }
 }

@@ -53,9 +53,11 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     static final String REQUEST_TIMEOUT = ConnectionFailureClassifier.REQUEST_TIMEOUT;
     private static final String SERVER_NULL_PATTERN = " for server null";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
-    static final String CLIENT_ABORTED_DURING_RESPONSE_MESSAGE = "The response cannot be sent to the client because the client has aborted";
+    static final String CLIENT_ABORTED_DURING_RESPONSE_MESSAGE =
+            "The response cannot be sent to the client because the client has aborted";
     static final String CLIENT_ABORTED_DURING_REQUEST_ERROR = "CLIENT_ABORTED_DURING_REQUEST_ERROR";
-    static final String CLIENT_ABORTED_DURING_REQUEST_MESSAGE = "The request was aborted by the client before it was fully received";
+    static final String CLIENT_ABORTED_DURING_REQUEST_MESSAGE =
+            "The request was aborted by the client before it was fully received";
 
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
@@ -67,12 +69,12 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private final boolean targetStartWithGrpc;
 
     public HttpProxyEndpointConnector(
-        HttpProxyEndpointConnectorConfiguration configuration,
-        HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            HttpProxyEndpointConnectorConfiguration configuration,
+            HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         this.configuration = configuration;
         this.sharedConfiguration = sharedConfiguration;
-        if (this.configuration.getTarget() == null || this.configuration.getTarget().isBlank()) {
+        if (this.configuration.getTarget() == null
+                || this.configuration.getTarget().isBlank()) {
             throw new IllegalArgumentException("target cannot be null or empty");
         }
         this.httpClientFactory = new HttpClientFactory();
@@ -100,17 +102,17 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     @Override
     public Completable connect(HttpExecutionContext ctx) {
         return Completable.defer(() -> {
-            // Reset per-attempt state: FailoverInvoker re-subscribes this Completable on retry against the same
-            // context, so a connection acquired on a previous attempt must not leak into this attempt's timeout
-            // classification (else a connect-timeout on retry would be misread as a read-timeout). APIM-12769.
-            ctx.removeInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
-            // Http status set to 0 to detect client abort before backend response
-            ctx.response().status(0);
-            HttpRequest request = ctx.request();
-            return getConnector(request).connect(ctx);
-        })
-            .doOnDispose(() -> handleClientAbort(ctx))
-            .onErrorResumeNext(throwable -> handleException(throwable, ctx));
+                    // Reset per-attempt state: FailoverInvoker re-subscribes this Completable on retry against the same
+                    // context, so a connection acquired on a previous attempt must not leak into this attempt's timeout
+                    // classification (else a connect-timeout on retry would be misread as a read-timeout). APIM-12769.
+                    ctx.removeInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
+                    // Http status set to 0 to detect client abort before backend response
+                    ctx.response().status(0);
+                    HttpRequest request = ctx.request();
+                    return getConnector(request).connect(ctx);
+                })
+                .doOnDispose(() -> handleClientAbort(ctx))
+                .onErrorResumeNext(throwable -> handleException(throwable, ctx));
     }
 
     /**
@@ -127,7 +129,8 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
             final var metrics = ctx.metrics();
             // Skip when a more specific reason was already recorded — by the gateway HTTP layer (ClientCloseClassifier)
             // via errorKey, or by interruptWith via failure (which sets failure but not errorKey). Never overwrite it.
-            final boolean metricsIsWritable = metrics != null && metrics.getErrorKey() == null && metrics.getFailure() == null;
+            final boolean metricsIsWritable =
+                    metrics != null && metrics.getErrorKey() == null && metrics.getFailure() == null;
             if (!metricsIsWritable) {
                 return;
             }
@@ -158,17 +161,16 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
 
     private ProxyConnector getConnector(HttpRequest request) {
         if (request.isWebSocket()) {
-            return this.connectors.computeIfAbsent("ws", type ->
-                new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory, webSocketClientFactory)
-            );
+            return this.connectors.computeIfAbsent(
+                    "ws",
+                    type -> new WebSocketConnector(
+                            configuration, sharedConfiguration, httpClientFactory, webSocketClientFactory));
         } else if (isGrpc(request)) {
-            return this.connectors.computeIfAbsent("grpc", type ->
-                new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory)
-            );
+            return this.connectors.computeIfAbsent(
+                    "grpc", type -> new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory));
         } else {
-            return this.connectors.computeIfAbsent("http", type ->
-                new HttpConnector(configuration, sharedConfiguration, httpClientFactory)
-            );
+            return this.connectors.computeIfAbsent(
+                    "http", type -> new HttpConnector(configuration, sharedConfiguration, httpClientFactory));
         }
     }
 
@@ -187,15 +189,19 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
             return Completable.error(interruption);
         }
 
-        Throwable cause = throwable instanceof NoStackTraceTimeoutException timeout ? rewriteServerNull(timeout, ctx) : throwable;
-        boolean connectionEstablished = Boolean.TRUE.equals(
-            ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)
-        );
-        ConnectionFailureClassifier.Classification classification = ConnectionFailureClassifier.classify(cause, connectionEstablished);
+        Throwable cause =
+                throwable instanceof NoStackTraceTimeoutException timeout ? rewriteServerNull(timeout, ctx) : throwable;
+        boolean connectionEstablished =
+                Boolean.TRUE.equals(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED));
+        ConnectionFailureClassifier.Classification classification =
+                ConnectionFailureClassifier.classify(cause, connectionEstablished);
 
-        ExecutionFailure failure = new ExecutionFailure(classification.statusCode()).key(classification.key()).cause(cause);
+        ExecutionFailure failure = new ExecutionFailure(classification.statusCode())
+                .key(classification.key())
+                .cause(cause);
         if (classification.parentKey() != null) {
-            failure.parameters(Map.of(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, classification.parentKey()));
+            failure.parameters(
+                    Map.of(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, classification.parentKey()));
         }
         return ctx.interruptWith(failure);
     }
@@ -204,7 +210,7 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
         String msg = e.getMessage();
         String endpoint = ctx.metrics().getEndpoint();
         return (msg != null && msg.endsWith(SERVER_NULL_PATTERN) && endpoint != null)
-            ? new NoStackTraceTimeoutException(msg.replace(SERVER_NULL_PATTERN, " for endpoint " + endpoint))
-            : e;
+                ? new NoStackTraceTimeoutException(msg.replace(SERVER_NULL_PATTERN, " for endpoint " + endpoint))
+                : e;
     }
 }

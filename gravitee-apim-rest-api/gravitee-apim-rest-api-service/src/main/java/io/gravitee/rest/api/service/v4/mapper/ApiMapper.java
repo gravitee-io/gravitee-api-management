@@ -25,7 +25,6 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -81,7 +80,8 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class ApiMapper {
 
-    public static final String API_DEFINITION_UNEXPECTED_ERROR_MESSAGE = "Unexpected error while generating API definition";
+    public static final String API_DEFINITION_UNEXPECTED_ERROR_MESSAGE =
+            "Unexpected error while generating API definition";
     private final ObjectMapper objectMapper;
     private final PlanService planService;
     private final FlowService flowService;
@@ -90,13 +90,12 @@ public class ApiMapper {
     private final CategoryMapper categoryMapper;
 
     public ApiMapper(
-        final ObjectMapper objectMapper,
-        @Lazy final PlanService planService,
-        @Lazy final FlowService flowService,
-        final ParameterService parameterService,
-        final WorkflowService workflowService,
-        final CategoryMapper categoryMapper
-    ) {
+            final ObjectMapper objectMapper,
+            @Lazy final PlanService planService,
+            @Lazy final FlowService flowService,
+            final ParameterService parameterService,
+            final WorkflowService workflowService,
+            final CategoryMapper categoryMapper) {
         this.objectMapper = objectMapper;
         this.planService = planService;
         this.flowService = flowService;
@@ -123,23 +122,17 @@ public class ApiMapper {
         endpointGroups.forEach(endpointGroup -> {
             final String connectorType = endpointGroup.getType();
             if (endpointGroup.getSharedConfiguration() != null) {
-                endpointGroup.setSharedConfiguration(
-                    LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(connectorType, endpointGroup.getSharedConfiguration())
-                );
+                endpointGroup.setSharedConfiguration(LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+                        connectorType, endpointGroup.getSharedConfiguration()));
             }
             if (endpointGroup.getEndpoints() != null) {
-                endpointGroup
-                    .getEndpoints()
-                    .forEach(endpoint -> {
-                        if (endpoint.getSharedConfigurationOverride() != null) {
-                            endpoint.setSharedConfigurationOverride(
+                endpointGroup.getEndpoints().forEach(endpoint -> {
+                    if (endpoint.getSharedConfigurationOverride() != null) {
+                        endpoint.setSharedConfigurationOverride(
                                 LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
-                                    connectorType,
-                                    endpoint.getSharedConfigurationOverride()
-                                )
-                            );
-                        }
-                    });
+                                        connectorType, endpoint.getSharedConfigurationOverride()));
+                    }
+                });
             }
         });
         return endpointGroups;
@@ -155,9 +148,8 @@ public class ApiMapper {
         }
         final Service dynamicProperty = services.getDynamicProperty();
         if (dynamicProperty != null && dynamicProperty.getConfiguration() != null) {
-            dynamicProperty.setConfiguration(
-                LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(dynamicProperty.getType(), dynamicProperty.getConfiguration())
-            );
+            dynamicProperty.setConfiguration(LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+                    dynamicProperty.getType(), dynamicProperty.getConfiguration()));
         }
         return services;
     }
@@ -177,7 +169,8 @@ public class ApiMapper {
 
         if (api.getDefinition() != null) {
             try {
-                var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+                var apiDefinition =
+                        objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
                 apiEntity.setDefinitionVersion(apiDefinition.getDefinitionVersion());
                 apiEntity.setAnalytics(apiDefinition.getAnalytics());
                 apiEntity.setFailover(apiDefinition.getFailover());
@@ -218,12 +211,14 @@ public class ApiMapper {
             apiEntity.setState(Lifecycle.State.valueOf(state.name()));
         }
         if (api.getVisibility() != null) {
-            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
+            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(
+                    api.getVisibility().toString()));
         }
 
         final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
         if (lifecycleState != null) {
-            apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
+            apiEntity.setLifecycleState(
+                    io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
         apiEntity.setOriginContext(ApiAdapterDecorator.toOriginContext(api));
@@ -248,7 +243,8 @@ public class ApiMapper {
 
         if (api.getDefinition() != null) {
             try {
-                var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class);
+                var apiDefinition = objectMapper.readValue(
+                        api.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class);
                 apiEntity.setDefinitionVersion(apiDefinition.getDefinitionVersion());
                 apiEntity.setListeners(apiDefinition.getListeners());
                 apiEntity.setEndpointGroups(apiDefinition.getEndpointGroups());
@@ -281,12 +277,14 @@ public class ApiMapper {
             apiEntity.setState(Lifecycle.State.valueOf(state.name()));
         }
         if (api.getVisibility() != null) {
-            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
+            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(
+                    api.getVisibility().toString()));
         }
 
         final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
         if (lifecycleState != null) {
-            apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
+            apiEntity.setLifecycleState(
+                    io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
         apiEntity.setOriginContext(ApiAdapterDecorator.toOriginContext(api));
@@ -301,23 +299,21 @@ public class ApiMapper {
     }
 
     public ApiEntity toEntity(
-        final ExecutionContext executionContext,
-        final Api api,
-        final boolean withApiFlow,
-        final boolean withPlans,
-        final boolean withApiCategories
-    ) {
+            final ExecutionContext executionContext,
+            final Api api,
+            final boolean withApiFlow,
+            final boolean withPlans,
+            final boolean withApiCategories) {
         return toEntity(executionContext, api, (PrimaryOwnerEntity) null, withApiFlow, withPlans, withApiCategories);
     }
 
     public ApiEntity toEntity(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner,
-        final boolean withApiFlows,
-        final boolean withPlans,
-        final boolean withApiCategories
-    ) {
+            final ExecutionContext executionContext,
+            final Api api,
+            final PrimaryOwnerEntity primaryOwner,
+            final boolean withApiFlows,
+            final boolean withPlans,
+            final boolean withApiCategories) {
         ApiEntity apiEntity = toEntity(api, primaryOwner);
 
         if (withPlans) {
@@ -331,20 +327,16 @@ public class ApiMapper {
         }
 
         if (withApiCategories) {
-            apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+            apiEntity.setCategories(
+                    categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
         }
 
-        if (
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.API_REVIEW_ENABLED,
-                api.getEnvironmentId(),
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ) {
+        if (parameterService.findAsBoolean(
+                executionContext, Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
-                apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));
+                apiEntity.setWorkflowState(
+                        WorkflowState.valueOf(workflows.get(0).getState()));
             }
         }
 
@@ -352,13 +344,12 @@ public class ApiMapper {
     }
 
     public NativeApiEntity toNativeEntity(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner,
-        final boolean withApiFlows,
-        final boolean withPlans,
-        final boolean withApiCategories
-    ) {
+            final ExecutionContext executionContext,
+            final Api api,
+            final PrimaryOwnerEntity primaryOwner,
+            final boolean withApiFlows,
+            final boolean withPlans,
+            final boolean withApiCategories) {
         NativeApiEntity apiEntity = toNativeEntity(api, primaryOwner);
 
         if (withPlans) {
@@ -372,20 +363,16 @@ public class ApiMapper {
         }
 
         if (withApiCategories) {
-            apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+            apiEntity.setCategories(
+                    categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
         }
 
-        if (
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.API_REVIEW_ENABLED,
-                api.getEnvironmentId(),
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ) {
+        if (parameterService.findAsBoolean(
+                executionContext, Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
-                apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));
+                apiEntity.setWorkflowState(
+                        WorkflowState.valueOf(workflows.get(0).getState()));
             }
         }
 
@@ -393,10 +380,7 @@ public class ApiMapper {
     }
 
     public FederatedApiEntity federatedToEntity(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner
-    ) {
+            final ExecutionContext executionContext, final Api api, final PrimaryOwnerEntity primaryOwner) {
         api.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
     }
@@ -405,8 +389,10 @@ public class ApiMapper {
         try {
             api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
             var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
-            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
-            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+            OriginContext.Integration a2a =
+                    new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
+            return ApiAdapter.INSTANCE.toFederatedAgentEntity(
+                    api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
         } catch (JsonProcessingException e) {
             log.warn("Unable to parse api definition for agent {}", api.getId(), e);
             return null;
@@ -414,15 +400,14 @@ public class ApiMapper {
     }
 
     public FederatedApiAgentEntity federatedAgentToEntity(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner
-    ) {
+            final ExecutionContext executionContext, final Api api, final PrimaryOwnerEntity primaryOwner) {
         try {
             api.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
             var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
-            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
-            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+            OriginContext.Integration a2a =
+                    new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
+            return ApiAdapter.INSTANCE.toFederatedAgentEntity(
+                    api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
         } catch (JsonProcessingException e) {
             log.warn("Unable to parse api definition for agent {}", api.getId(), e);
             return null;
@@ -489,10 +474,12 @@ public class ApiMapper {
         repoApi.setType(updateApiEntity.getType());
         repoApi.setUpdatedAt(new Date());
         if (updateApiEntity.getLifecycleState() != null) {
-            repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(updateApiEntity.getLifecycleState().name()));
+            repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(
+                    updateApiEntity.getLifecycleState().name()));
         }
         if (updateApiEntity.getVisibility() != null) {
-            repoApi.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
+            repoApi.setVisibility(
+                    Visibility.valueOf(updateApiEntity.getVisibility().toString()));
         }
 
         repoApi.setName(updateApiEntity.getName().trim());
@@ -505,7 +492,8 @@ public class ApiMapper {
         repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(updateApiEntity));
 
-        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
+        repoApi.setCategories(
+                categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
 
         if (updateApiEntity.getLabels() != null) {
             repoApi.setLabels(new ArrayList<>(new LinkedHashSet<>(updateApiEntity.getLabels())));
@@ -540,7 +528,8 @@ public class ApiMapper {
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
-            if (ApiProductComposition.supports(updateApiEntity.getType()) && updateApiEntity.getAllowedInApiProducts() != null) {
+            if (ApiProductComposition.supports(updateApiEntity.getType())
+                    && updateApiEntity.getAllowedInApiProducts() != null) {
                 apiDefinition.setAllowedInApiProducts(updateApiEntity.getAllowedInApiProducts());
             }
 
@@ -554,10 +543,12 @@ public class ApiMapper {
     public Api toRepository(final ExecutionContext executionContext, final ApiEntity apiEntity) {
         Api repoApi = new Api();
         if (apiEntity.getLifecycleState() != null) {
-            repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(apiEntity.getLifecycleState().name()));
+            repoApi.setApiLifecycleState(
+                    ApiLifecycleState.valueOf(apiEntity.getLifecycleState().name()));
         }
         repoApi.setBackground(apiEntity.getBackground());
-        repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), apiEntity.getCategories()));
+        repoApi.setCategories(
+                categoryMapper.toCategoryId(executionContext.getEnvironmentId(), apiEntity.getCategories()));
         repoApi.setCrossId(apiEntity.getCrossId());
         repoApi.setHrid(apiEntity.getHrid());
         repoApi.setCreatedAt(apiEntity.getCreatedAt());
@@ -574,7 +565,8 @@ public class ApiMapper {
             repoApi.setLabels(new ArrayList<>(new LinkedHashSet<>(apiEntity.getLabels())));
         }
         if (apiEntity.getState() != null) {
-            repoApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
+            repoApi.setLifecycleState(
+                    LifecycleState.valueOf(apiEntity.getState().name()));
         }
 
         repoApi.setOrigin(apiEntity.getOriginContext().name());
@@ -629,9 +621,9 @@ public class ApiMapper {
     }
 
     private static List<Property> toDefinitionProperties(List<? extends Property> properties) {
-        return properties
-            .stream()
-            .map(property -> new Property(property.getKey(), property.getValue(), property.isEncrypted(), property.isDynamic()))
-            .toList();
+        return properties.stream()
+                .map(property -> new Property(
+                        property.getKey(), property.getValue(), property.isEncrypted(), property.isDynamic()))
+                .toList();
     }
 }

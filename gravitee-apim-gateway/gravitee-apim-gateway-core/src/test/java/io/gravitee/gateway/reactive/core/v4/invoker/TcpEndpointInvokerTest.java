@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.connector.endpoint.TcpEndpointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.TcpEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
@@ -60,14 +59,12 @@ class TcpEndpointInvokerTest {
     @Test
     void should_not_connect_to_endpoint_connector_not_resolved() {
         when(endpointManager.next()).thenReturn(null);
-        cut
-            .invoke(ctx)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertError(t -> {
-                assertThat(t).isInstanceOf(IllegalStateException.class).hasMessage(TcpEndpointInvoker.NO_ENDPOINT_FOUND_KEY);
-                return true;
-            });
+        cut.invoke(ctx).test().awaitDone(10, TimeUnit.SECONDS).assertError(t -> {
+            assertThat(t)
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage(TcpEndpointInvoker.NO_ENDPOINT_FOUND_KEY);
+            return true;
+        });
     }
 
     @Test

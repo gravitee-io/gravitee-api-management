@@ -34,7 +34,8 @@ public class EnvironmentScoringFunctionResource extends AbstractResource {
 
     @DELETE
     public Response deleteFunction() {
-        deleteEnvironmentFunctionUseCase.execute(new DeleteEnvironmentFunctionUseCase.Input(functionName, getAuditInfo()));
+        deleteEnvironmentFunctionUseCase.execute(
+                new DeleteEnvironmentFunctionUseCase.Input(functionName, getAuditInfo()));
         return Response.noContent().build();
     }
 }

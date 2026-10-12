@@ -28,7 +28,7 @@ public final class HazelcastRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.RATE_LIMIT };
+        return new Scope[] {Scope.RATE_LIMIT};
     }
 
     @Override
@@ -37,7 +37,6 @@ public final class HazelcastRepositoryProvider implements RepositoryProvider {
             return RateLimitRepositoryConfiguration.class;
         }
         throw new IllegalArgumentException(
-            "HazelcastRepositoryProvider does not support scope " + scope + " (only RATE_LIMIT is supported)"
-        );
+                "HazelcastRepositoryProvider does not support scope " + scope + " (only RATE_LIMIT is supported)");
     }
 }

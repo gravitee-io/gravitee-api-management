@@ -47,11 +47,11 @@ public class PortalNavigationItemRootIdUpgraderTest {
     private static final String ZERO_ROOT_ID = "00000000-0000-0000-0000-000000000000";
 
     private static final Environment ANOTHER_ENVIRONMENT = Environment.builder()
-        .id("ANOTHER_ENVIRONMENT")
-        .hrids(List.of("another environment"))
-        .name("another environment")
-        .organizationId("ANOTHER_ORG")
-        .build();
+            .id("ANOTHER_ENVIRONMENT")
+            .hrids(List.of("another environment"))
+            .name("another environment")
+            .organizationId("ANOTHER_ORG")
+            .build();
 
     @Mock
     EnvironmentRepository environmentRepository;
@@ -80,9 +80,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
     @SneakyThrows
     void should_return_true_when_no_nav_items_in_environment() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            Collections.emptyList()
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(Collections.emptyList());
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -108,9 +107,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
         PortalNavigationItem rootFolder = navItem("folder-1", null, ZERO_ROOT_ID);
         PortalNavigationItem rootPage = navItem("page-1", null, ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(rootFolder, rootPage)
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(rootFolder, rootPage));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -130,19 +128,18 @@ public class PortalNavigationItemRootIdUpgraderTest {
         PortalNavigationItem root = navItem("root", null, ZERO_ROOT_ID);
         PortalNavigationItem child = navItem("child", "root", ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(root, child));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(root, child));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<PortalNavigationItem> captor = ArgumentCaptor.forClass(PortalNavigationItem.class);
         verify(portalNavigationItemRepository, times(2)).update(captor.capture());
 
-        PortalNavigationItem updatedChild = captor
-            .getAllValues()
-            .stream()
-            .filter(i -> "child".equals(i.getId()))
-            .findFirst()
-            .orElseThrow();
+        PortalNavigationItem updatedChild = captor.getAllValues().stream()
+                .filter(i -> "child".equals(i.getId()))
+                .findFirst()
+                .orElseThrow();
         assertThat(updatedChild.getRootId()).isEqualTo("root");
     }
 
@@ -156,9 +153,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
         PortalNavigationItem level2 = navItem("level2", "level1", ZERO_ROOT_ID);
         PortalNavigationItem level3 = navItem("level3", "level2", ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(root, level1, level2, level3)
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(root, level1, level2, level3));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -178,9 +174,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
         PortalNavigationItem alreadyMigrated = navItem("item-1", null, "item-1");
         PortalNavigationItem needsMigration = navItem("item-2", null, ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(alreadyMigrated, needsMigration)
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(alreadyMigrated, needsMigration));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -197,9 +192,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
 
         PortalNavigationItem itemWithZeroRoot = navItem("item-zero", null, ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(itemWithZeroRoot)
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(itemWithZeroRoot));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -218,10 +212,11 @@ public class PortalNavigationItemRootIdUpgraderTest {
         PortalNavigationItem itemEnv1 = navItem("item-env1", null, ZERO_ROOT_ID);
         PortalNavigationItem itemEnv2 = navItem("item-env2", null, ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(itemEnv1));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("ANOTHER_ORG", "ANOTHER_ENVIRONMENT")).thenReturn(
-            List.of(itemEnv2)
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(itemEnv1));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(
+                        "ANOTHER_ORG", "ANOTHER_ENVIRONMENT"))
+                .thenReturn(List.of(itemEnv2));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -235,7 +230,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
 
         PortalNavigationItem orphan = navItem("orphan", "missing-parent", ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(orphan));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(orphan));
 
         final Executable throwing = () -> upgrader.upgrade();
 
@@ -252,9 +248,8 @@ public class PortalNavigationItemRootIdUpgraderTest {
         PortalNavigationItem nodeA = navItem("A", "B", ZERO_ROOT_ID);
         PortalNavigationItem nodeB = navItem("B", "A", ZERO_ROOT_ID);
 
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(
-            List.of(nodeA, nodeB)
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT"))
+                .thenReturn(List.of(nodeA, nodeB));
 
         final Executable throwing = () -> upgrader.upgrade();
 
@@ -270,17 +265,17 @@ public class PortalNavigationItemRootIdUpgraderTest {
 
     private static PortalNavigationItem navItem(String id, String parentId, String rootId) {
         return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId("DEFAULT")
-            .environmentId("DEFAULT")
-            .title("Nav Item " + id)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .area(PortalNavigationItem.Area.TOP_NAVBAR)
-            .parentId(parentId)
-            .rootId(rootId)
-            .order(0)
-            .published(true)
-            .visibility(PortalNavigationItem.Visibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("DEFAULT")
+                .environmentId("DEFAULT")
+                .title("Nav Item " + id)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .area(PortalNavigationItem.Area.TOP_NAVBAR)
+                .parentId(parentId)
+                .rootId(rootId)
+                .order(0)
+                .published(true)
+                .visibility(PortalNavigationItem.Visibility.PUBLIC)
+                .build();
     }
 }

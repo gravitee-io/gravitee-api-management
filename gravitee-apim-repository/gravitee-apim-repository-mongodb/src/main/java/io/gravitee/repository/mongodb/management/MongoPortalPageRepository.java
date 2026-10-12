@@ -64,8 +64,8 @@ public class MongoPortalPageRepository implements PortalPageRepository {
         }
 
         internalRepo
-            .findById(portalPage.getId())
-            .orElseThrow(() -> new TechnicalException("Unable to find PortalPage with id " + portalPage.getId()));
+                .findById(portalPage.getId())
+                .orElseThrow(() -> new TechnicalException("Unable to find PortalPage with id " + portalPage.getId()));
 
         log.debug("Update PortalPage [{}]", portalPage.getId());
         PortalPageMongo updatedPortalPageMongo = internalRepo.save(map(portalPage));
@@ -84,7 +84,8 @@ public class MongoPortalPageRepository implements PortalPageRepository {
     @Override
     public Set<PortalPage> findAll() throws TechnicalException {
         log.debug("Find all PortalPages");
-        Set<PortalPage> portalPages = internalRepo.findAll().stream().map(this::map).collect(Collectors.toSet());
+        Set<PortalPage> portalPages =
+                internalRepo.findAll().stream().map(this::map).collect(Collectors.toSet());
         log.debug("Find all PortalPages - Done");
         return portalPages;
     }
@@ -102,13 +103,13 @@ public class MongoPortalPageRepository implements PortalPageRepository {
 
     private PortalPage map(PortalPageMongo portalPageMongo) {
         return PortalPage.builder()
-            .id(portalPageMongo.getId())
-            .environmentId(portalPageMongo.getEnvironmentId())
-            .name(portalPageMongo.getName())
-            .content(portalPageMongo.getContent())
-            .createdAt(portalPageMongo.getCreatedAt())
-            .updatedAt(portalPageMongo.getUpdatedAt())
-            .build();
+                .id(portalPageMongo.getId())
+                .environmentId(portalPageMongo.getEnvironmentId())
+                .name(portalPageMongo.getName())
+                .content(portalPageMongo.getContent())
+                .createdAt(portalPageMongo.getCreatedAt())
+                .updatedAt(portalPageMongo.getUpdatedAt())
+                .build();
     }
 
     @Override
@@ -126,19 +127,18 @@ public class MongoPortalPageRepository implements PortalPageRepository {
             return List.of();
         }
         var projections = internalRepo.findPortalPagesByIdWithExpand(ids, expands);
-        return projections
-            .stream()
-            .map(p -> {
-                var builder = PortalPage.builder()
-                    .id(p.getId())
-                    .environmentId(p.getEnvironmentId())
-                    .name(p.getName())
-                    .createdAt(p.getCreatedAt())
-                    .updatedAt(p.getUpdatedAt())
-                    .content(p.getContent());
-                return builder.build();
-            })
-            .collect(Collectors.toList());
+        return projections.stream()
+                .map(p -> {
+                    var builder = PortalPage.builder()
+                            .id(p.getId())
+                            .environmentId(p.getEnvironmentId())
+                            .name(p.getName())
+                            .createdAt(p.getCreatedAt())
+                            .updatedAt(p.getUpdatedAt())
+                            .content(p.getContent());
+                    return builder.build();
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

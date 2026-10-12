@@ -110,26 +110,31 @@ public class EsmTraceFilterContributor implements TraceFilterContributor {
      * its own {@code Authentication} span, so no span ever carries {@code kafka.api.key=SASL_*}.
      */
     private static final List<String> KAFKA_API_KEYS = List.of(
-        "PRODUCE",
-        "FETCH",
-        "METADATA",
-        "API_VERSIONS",
-        "FIND_COORDINATOR",
-        "JOIN_GROUP",
-        "SYNC_GROUP",
-        "HEARTBEAT",
-        "LEAVE_GROUP",
-        "OFFSET_COMMIT",
-        "OFFSET_FETCH",
-        "LIST_OFFSETS",
-        "CREATE_TOPICS",
-        "DELETE_TOPICS",
-        "DESCRIBE_GROUPS",
-        "LIST_GROUPS"
-    );
+            "PRODUCE",
+            "FETCH",
+            "METADATA",
+            "API_VERSIONS",
+            "FIND_COORDINATOR",
+            "JOIN_GROUP",
+            "SYNC_GROUP",
+            "HEARTBEAT",
+            "LEAVE_GROUP",
+            "OFFSET_COMMIT",
+            "OFFSET_FETCH",
+            "LIST_OFFSETS",
+            "CREATE_TOPICS",
+            "DELETE_TOPICS",
+            "DESCRIBE_GROUPS",
+            "LIST_GROUPS");
 
     private static final List<TraceFilterSpec> ESM_FILTERS = List.of(
-        new TraceFilterSpec("KAFKA_API_KEY", "Kafka operation", FilterType.ENUM, List.of(FilterOperator.EQ), KAFKA_API_KEYS, null),
-        new TraceFilterSpec("KAFKA_CLIENT_ID", "Kafka client id", FilterType.STRING, List.of(FilterOperator.EQ), null, null)
-    );
+            new TraceFilterSpec(
+                    "KAFKA_API_KEY",
+                    "Kafka operation",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ),
+                    KAFKA_API_KEYS,
+                    null),
+            new TraceFilterSpec(
+                    "KAFKA_CLIENT_ID", "Kafka client id", FilterType.STRING, List.of(FilterOperator.EQ), null, null));
 }

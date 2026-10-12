@@ -106,7 +106,8 @@ public class SSLUtils {
     private static KeyStore getClientKeystore(KeyPair keyPair, X509Certificate clientCertificate) {
         try {
             final KeyStore keyStore = emptyStore();
-            keyStore.setKeyEntry("privatekey", keyPair.getPrivate(), PASSWORD.toCharArray(), new Certificate[] { clientCertificate });
+            keyStore.setKeyEntry(
+                    "privatekey", keyPair.getPrivate(), PASSWORD.toCharArray(), new Certificate[] {clientCertificate});
             keyStore.setCertificateEntry("cert", clientCertificate);
             return keyStore;
         } catch (KeyStoreException | IOException e) {
@@ -126,7 +127,9 @@ public class SSLUtils {
 
     private static X509Certificate getCertificate(X509CertificateHolder certificateHolder) {
         try {
-            return new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certificateHolder);
+            return new JcaX509CertificateConverter()
+                    .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                    .getCertificate(certificateHolder);
         } catch (CertificateException e) {
             return null;
         }
@@ -149,13 +152,12 @@ public class SSLUtils {
     private static X509Certificate generateCert(final KeyPair keyPair) {
         String issuer = "C=AU, O=The Legion of the Bouncy Castle, OU=Client Certificate, CN=localhost";
         final X509v3CertificateBuilder certificateBuilder = new X509v3CertificateBuilder(
-            new X500Name(issuer),
-            BigInteger.ONE,
-            new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30),
-            new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 30)),
-            new X500Name(issuer),
-            SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
-        );
+                new X500Name(issuer),
+                BigInteger.ONE,
+                new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30),
+                new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 30)),
+                new X500Name(issuer),
+                SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
         final GeneralNames subjectAltNames = new GeneralNames(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
         try {
@@ -165,12 +167,14 @@ public class SSLUtils {
             return null;
         }
 
-        final AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
+        final AlgorithmIdentifier sigAlgId =
+                new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
         final AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         final BcContentSignerBuilder signerBuilder = new BcRSAContentSignerBuilder(sigAlgId, digAlgId);
         final X509CertificateHolder x509CertificateHolder;
         try {
-            final AsymmetricKeyParameter keyp = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
+            final AsymmetricKeyParameter keyp =
+                    PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
             final ContentSigner signer = signerBuilder.build(keyp);
             x509CertificateHolder = certificateBuilder.build(signer);
         } catch (IOException | OperatorCreationException e) {
@@ -183,7 +187,11 @@ public class SSLUtils {
             certificate = new JcaX509CertificateConverter().getCertificate(x509CertificateHolder);
             certificate.checkValidity(new Date());
             certificate.verify(keyPair.getPublic());
-        } catch (CertificateException | SignatureException | InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {
+        } catch (CertificateException
+                | SignatureException
+                | InvalidKeyException
+                | NoSuchAlgorithmException
+                | NoSuchProviderException e) {
             log.warn("cert error", e);
             return null;
         }

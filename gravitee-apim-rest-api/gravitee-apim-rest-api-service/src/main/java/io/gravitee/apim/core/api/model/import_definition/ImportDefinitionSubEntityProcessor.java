@@ -16,18 +16,18 @@
 package io.gravitee.apim.core.api.model.import_definition;
 
 import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ImportDefinitionSubEntityProcessor {
 
     private final Map<String, Runnable> operations = new LinkedHashMap<>();
-    private final ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder apiImportedWithErrorExceptionBuilder;
+    private final ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder
+            apiImportedWithErrorExceptionBuilder;
 
     public ImportDefinitionSubEntityProcessor(String apiId) {
-        this.apiImportedWithErrorExceptionBuilder = new ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder().apiId(apiId);
+        this.apiImportedWithErrorExceptionBuilder =
+                new ApiImportedWithErrorException.ApiImportedWithErrorExceptionBuilder().apiId(apiId);
     }
 
     public ImportDefinitionSubEntityProcessor addSubEntity(String partName, Runnable creationPart) {

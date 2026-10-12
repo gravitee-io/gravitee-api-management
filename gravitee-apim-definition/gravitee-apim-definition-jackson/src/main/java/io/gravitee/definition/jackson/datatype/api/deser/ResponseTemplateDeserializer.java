@@ -47,7 +47,8 @@ public class ResponseTemplateDeserializer extends StdScalarDeserializer<Response
 
         JsonNode headersNode = node.get("headers");
         if (headersNode != null && !headersNode.isEmpty(null)) {
-            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
+            Map<String, String> headers =
+                    headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
             if (headers != null && !headers.isEmpty()) {
                 if (template.getHeaders() == null) {
                     template.setHeaders(headers);

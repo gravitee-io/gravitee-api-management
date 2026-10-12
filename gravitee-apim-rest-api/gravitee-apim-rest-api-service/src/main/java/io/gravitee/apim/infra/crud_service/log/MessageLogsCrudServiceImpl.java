@@ -47,41 +47,34 @@ public class MessageLogsCrudServiceImpl implements MessageLogsCrudService {
 
     @Override
     public SearchLogsResponse<MessageLog> searchApiMessageLogs(
-        ExecutionContext executionContext,
-        String apiId,
-        SearchMessageLogsFilters filters,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext, String apiId, SearchMessageLogsFilters filters, Pageable pageable) {
         try {
             var response = metricsRepository.searchMessageMetrics(
-                executionContext.getQueryContext(),
-                MessageMetricsQuery.builder()
-                    .filter(
-                        MessageMetricsQuery.Filter.builder()
-                            .apiId(apiId)
-                            .requestId(filters.requestId())
-                            .connectorId(filters.connectorId())
-                            .connectorType(filters.connectorType())
-                            .operation(filters.operation())
-                            .from(filters.from())
-                            .to(filters.to())
-                            .additional(filters.additional())
-                            .requiresAdditional(filters.requiresAdditional())
-                            .build()
-                    )
-                    .page(pageable.getPageNumber())
-                    .size(pageable.getPageSize())
-                    .build()
-            );
+                    executionContext.getQueryContext(),
+                    MessageMetricsQuery.builder()
+                            .filter(MessageMetricsQuery.Filter.builder()
+                                    .apiId(apiId)
+                                    .requestId(filters.requestId())
+                                    .connectorId(filters.connectorId())
+                                    .connectorType(filters.connectorType())
+                                    .operation(filters.operation())
+                                    .from(filters.from())
+                                    .to(filters.to())
+                                    .additional(filters.additional())
+                                    .requiresAdditional(filters.requiresAdditional())
+                                    .build())
+                            .page(pageable.getPageNumber())
+                            .size(pageable.getPageSize())
+                            .build());
             return mapToMessageResponse(response);
         } catch (AnalyticsException e) {
-            throw new TechnicalManagementException("An error occurs while searching message metrics for api [" + apiId + "]", e);
+            throw new TechnicalManagementException(
+                    "An error occurs while searching message metrics for api [" + apiId + "]", e);
         }
     }
 
     private SearchLogsResponse<MessageLog> mapToMessageResponse(
-        LogResponse<io.gravitee.repository.log.v4.model.message.MessageMetrics> logs
-    ) {
+            LogResponse<io.gravitee.repository.log.v4.model.message.MessageMetrics> logs) {
         var total = logs.total();
         var data = MessageLogAdapter.INSTANCE.mapToMessageMetrics(logs.data());
 

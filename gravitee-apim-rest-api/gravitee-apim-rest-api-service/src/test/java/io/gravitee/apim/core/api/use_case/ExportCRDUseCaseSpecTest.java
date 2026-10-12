@@ -35,7 +35,8 @@ class ExportApiCRDUseCaseTest {
 
     @Test
     void should_export_as_a_crd() {
-        var input = new ExportApiCRDUseCase.Input(ApiCRDFixtures.API_ID, IDExportStrategy.ALL, AuditInfo.builder().build(), false);
+        var input = new ExportApiCRDUseCase.Input(
+                ApiCRDFixtures.API_ID, IDExportStrategy.ALL, AuditInfo.builder().build(), false);
         var output = useCase.execute(input);
         var spec = output.spec();
         SoftAssertions.assertSoftly(soft -> {

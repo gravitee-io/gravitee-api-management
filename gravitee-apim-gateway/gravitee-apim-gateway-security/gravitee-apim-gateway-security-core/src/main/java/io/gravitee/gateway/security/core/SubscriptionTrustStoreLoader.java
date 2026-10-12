@@ -38,16 +38,19 @@ import lombok.experimental.SuperBuilder;
 import org.bouncycastle.util.encoders.Hex;
 
 @CustomLog
-public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<SubscriptionTrustStoreLoader.SubscriptionTrustStoreLoaderOption> {
+public class SubscriptionTrustStoreLoader
+        extends AbstractKeyStoreLoader<SubscriptionTrustStoreLoader.SubscriptionTrustStoreLoaderOption> {
 
     private final String id;
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final KeyStore keystore;
 
-    public SubscriptionTrustStoreLoader(SubscriptionCertificate subscriptionCertificate) throws MalformedCertificateException {
+    public SubscriptionTrustStoreLoader(SubscriptionCertificate subscriptionCertificate)
+            throws MalformedCertificateException {
         super(SubscriptionTrustStoreLoaderOption.empty());
         try {
-            // using hex for fingerprint, as uppercase letters found in base64 are lower cased in KeyStore aliases, cause unregistering issues
+            // using hex for fingerprint, as uppercase letters found in base64 are lower cased in KeyStore aliases,
+            // cause unregistering issues
             this.id = formatLoaderId(subscriptionCertificate);
             // Not a hardcoded PKCS12: under a BC-FIPS "approved only" JVM the PKCS12 key derivation has no
             // provider, so KeyStoreUtils resolves the default to BCFKS there and to PKCS12 everywhere else.
@@ -59,15 +62,14 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
             // field is still unset and the message reads "for loader null" — in the one place it has to identify
             // which subscription failed. Definite assignment does not catch it, the read goes through a method.
             throw new MalformedCertificateException(
-                "An error occurred while processing certificate for subscription %s".formatted(
-                    subscriptionCertificate.subscription().getId()
-                ),
-                e
-            );
+                    "An error occurred while processing certificate for subscription %s"
+                            .formatted(subscriptionCertificate.subscription().getId()),
+                    e);
         }
     }
 
-    public static Set<SubscriptionCertificate> readSubscriptionCertificate(Subscription subscription) throws MalformedCertificateException {
+    public static Set<SubscriptionCertificate> readSubscriptionCertificate(Subscription subscription)
+            throws MalformedCertificateException {
         var clientCertificate = subscription.getClientCertificate();
         if (StringUtils.isBlank(clientCertificate)) {
             log.debug("Subscription {} has no client certificate, returning empty set", subscription.getId());
@@ -75,9 +77,8 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
         }
         try {
             final byte[] decodedData = Base64.getDecoder().decode(clientCertificate);
-            var keystore = PKCS7Utils.pkcs7ToTruststore(decodedData, null, i -> "pkcs7-" + i, false).orElseGet(() ->
-                KeyStoreUtils.initFromPemCertificate(new String(decodedData), null, "solo")
-            );
+            var keystore = PKCS7Utils.pkcs7ToTruststore(decodedData, null, i -> "pkcs7-" + i, false)
+                    .orElseGet(() -> KeyStoreUtils.initFromPemCertificate(new String(decodedData), null, "solo"));
 
             Set<SubscriptionCertificate> subscriptionCertificates = new HashSet<>();
             // compute digests from all certificates to be able to find them later
@@ -88,9 +89,9 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
             return subscriptionCertificates;
         } catch (Exception e) {
             throw new MalformedCertificateException(
-                "An error occurred while processing certificate for Subscription %s".formatted(subscription.getId()),
-                e
-            );
+                    "An error occurred while processing certificate for Subscription %s"
+                            .formatted(subscription.getId()),
+                    e);
         }
     }
 
@@ -117,10 +118,11 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
         // keystore aliases are made lowercase...
         // need to be compliant with it to avoid issue when removing the loader
 
-        return "sub_%s_cert_%s".formatted(
-            subscriptionCertificate.subscription().getId().toLowerCase(),
-            Hex.toHexString(Base64URL.from(subscriptionCertificate.fingerprint()).decode())
-        );
+        return "sub_%s_cert_%s"
+                .formatted(
+                        subscriptionCertificate.subscription().getId().toLowerCase(),
+                        Hex.toHexString(Base64URL.from(subscriptionCertificate.fingerprint())
+                                .decode()));
     }
 
     @Getter

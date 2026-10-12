@@ -50,18 +50,17 @@ public class ResourceCrudServiceImplTest {
         void should_return_resource_and_adapt_it() throws TechnicalException {
             // Given
             var resourceId = "resource-id";
-            when(resourceService.findById(resourceId)).thenAnswer(invocation ->
-                PlatformPluginEntity.builder()
-                    .id(invocation.getArgument(0))
-                    .name("name")
-                    .description("description")
-                    .icon("icon")
-                    .feature("feature")
-                    .deployed(true)
-                    .category("category")
-                    .version("1")
-                    .build()
-            );
+            when(resourceService.findById(resourceId))
+                    .thenAnswer(invocation -> PlatformPluginEntity.builder()
+                            .id(invocation.getArgument(0))
+                            .name("name")
+                            .description("description")
+                            .icon("icon")
+                            .feature("feature")
+                            .deployed(true)
+                            .category("category")
+                            .version("1")
+                            .build());
 
             // When
             var resource = service.get(resourceId);
@@ -92,8 +91,8 @@ public class ResourceCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Resource [" + resourceId + "] cannot be found.");
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Resource [" + resourceId + "] cannot be found.");
         }
     }
 }

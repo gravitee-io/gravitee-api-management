@@ -48,11 +48,11 @@ public class RSAECKeyProcessor<C extends SecurityContext> extends AbstractKeyPro
                 } else if (JWSAlgorithm.Family.RSA.contains(algorithm) || JWSAlgorithm.Family.EC.contains(algorithm)) {
                     // RSA or EC key matcher
                     return new JWKMatcher.Builder()
-                        .keyType(KeyType.forAlgorithm(algorithm))
-                        .keyUses(KeyUse.SIGNATURE, null)
-                        .algorithms(algorithm, null)
-                        .x509CertSHA256Thumbprint(jwsHeader.getX509CertSHA256Thumbprint())
-                        .build();
+                            .keyType(KeyType.forAlgorithm(algorithm))
+                            .keyUses(KeyUse.SIGNATURE, null)
+                            .algorithms(algorithm, null)
+                            .x509CertSHA256Thumbprint(jwsHeader.getX509CertSHA256Thumbprint())
+                            .build();
                 } else {
                     return null; // Unsupported algorithm
                 }

@@ -53,7 +53,7 @@ public class InstancesResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List gateway instances")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)})
     public Page<InstanceListItem> getInstances(@BeanParam InstanceSearchParam param) {
         InstanceQuery query = new InstanceQuery();
         query.setIncludeStopped(param.isIncludeStopped());

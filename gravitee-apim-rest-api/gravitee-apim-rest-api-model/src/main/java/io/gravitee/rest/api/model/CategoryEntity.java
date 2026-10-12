@@ -184,12 +184,10 @@ public class CategoryEntity {
         if (this == o) return true;
         if (!(o instanceof CategoryEntity)) return false;
         CategoryEntity that = (CategoryEntity) o;
-        return (
-            Objects.equals(id, that.id) &&
-            Objects.equals(key, that.key) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(description, that.description)
-        );
+        return (Objects.equals(id, that.id)
+                && Objects.equals(key, that.key)
+                && Objects.equals(name, that.name)
+                && Objects.equals(description, that.description));
     }
 
     @Override
@@ -199,36 +197,33 @@ public class CategoryEntity {
 
     @Override
     public String toString() {
-        return (
-            "CategoryEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", order='" +
-            order +
-            '\'' +
-            ", hidden='" +
-            hidden +
-            '\'' +
-            ", page='" +
-            page +
-            '\'' +
-            ", updatedAt='" +
-            updatedAt +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            '}'
-        );
+        return ("CategoryEntity{" + "id='"
+                + id
+                + '\''
+                + ", key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", order='"
+                + order
+                + '\''
+                + ", hidden='"
+                + hidden
+                + '\''
+                + ", page='"
+                + page
+                + '\''
+                + ", updatedAt='"
+                + updatedAt
+                + '\''
+                + ", createdAt='"
+                + createdAt
+                + '\''
+                + '}');
     }
 }

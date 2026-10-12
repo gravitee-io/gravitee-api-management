@@ -39,16 +39,8 @@ public enum ListenerType {
     TCP(TCP_LABEL),
     KAFKA(KAFKA_LABEL);
 
-    private static final Map<String, ListenerType> LABELS_MAP = Map.of(
-        HTTP.label,
-        HTTP,
-        SUBSCRIPTION.label,
-        SUBSCRIPTION,
-        TCP.label,
-        TCP,
-        KAFKA.label,
-        KAFKA
-    );
+    private static final Map<String, ListenerType> LABELS_MAP =
+            Map.of(HTTP.label, HTTP, SUBSCRIPTION.label, SUBSCRIPTION, TCP.label, TCP, KAFKA.label, KAFKA);
 
     @JsonValue
     private final String label;

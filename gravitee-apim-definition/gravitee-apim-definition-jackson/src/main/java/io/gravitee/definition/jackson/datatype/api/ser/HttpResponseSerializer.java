@@ -28,7 +28,8 @@ public class HttpResponseSerializer extends StdScalarSerializer<HttpResponse> {
     }
 
     @Override
-    public void serialize(HttpResponse httpResponse, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HttpResponse httpResponse, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("body", httpResponse.getBody());
 

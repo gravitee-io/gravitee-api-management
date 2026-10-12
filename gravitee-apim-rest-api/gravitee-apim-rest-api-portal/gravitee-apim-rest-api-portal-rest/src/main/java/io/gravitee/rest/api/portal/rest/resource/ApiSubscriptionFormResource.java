@@ -49,13 +49,12 @@ public class ApiSubscriptionFormResource extends AbstractResource<Object, Object
     @RequirePortalAuth
     public Response getSubscriptionForm(@PathParam("apiId") String apiId) {
         var executionContext = getExecutionContext();
-        var result = getSubscriptionFormForApiPortalUseCase.execute(
-            GetSubscriptionFormForApiPortalUseCase.Input.builder()
-                .environmentId(executionContext.getEnvironmentId())
-                .apiId(apiId)
-                .userId(getAuthenticatedUserOrNull())
-                .build()
-        );
+        var result =
+                getSubscriptionFormForApiPortalUseCase.execute(GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                        .environmentId(executionContext.getEnvironmentId())
+                        .apiId(apiId)
+                        .userId(getAuthenticatedUserOrNull())
+                        .build());
 
         return Response.ok(subscriptionFormMapper.map(result)).build();
     }

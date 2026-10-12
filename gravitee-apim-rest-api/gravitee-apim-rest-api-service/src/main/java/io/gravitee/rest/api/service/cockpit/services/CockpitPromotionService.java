@@ -25,6 +25,8 @@ import java.util.List;
  */
 public interface CockpitPromotionService {
     CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId, String environmentId);
+
     CockpitReply<PromotionEntity> requestPromotion(ExecutionContext executionContext, PromotionEntity promotionEntity);
+
     CockpitReply<PromotionEntity> processPromotion(ExecutionContext executionContext, PromotionEntity promotionEntity);
 }

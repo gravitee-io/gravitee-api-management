@@ -29,11 +29,10 @@ import java.util.List;
  */
 public interface ApiKeyService {
     ApiKeyEntity generate(
-        ExecutionContext executionContext,
-        ApplicationEntity application,
-        SubscriptionEntity subscription,
-        String customApiKey
-    );
+            ExecutionContext executionContext,
+            ApplicationEntity application,
+            SubscriptionEntity subscription,
+            String customApiKey);
 
     ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application);
 
@@ -59,11 +58,17 @@ public interface ApiKeyService {
 
     ApiKeyEntity update(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity);
 
-    ApiKeyEntity updateDaysToExpirationOnLastNotification(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, Integer value);
+    ApiKeyEntity updateDaysToExpirationOnLastNotification(
+            ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, Integer value);
 
     boolean canCreate(ExecutionContext executionContext, String apiKey, SubscriptionEntity subscription);
 
-    boolean canCreate(ExecutionContext executionContext, String apiKey, String referenceId, String referenceType, String applicationId);
+    boolean canCreate(
+            ExecutionContext executionContext,
+            String apiKey,
+            String referenceId,
+            String referenceType,
+            String applicationId);
 
     Collection<ApiKeyEntity> search(ExecutionContext executionContext, ApiKeyQuery query);
 }

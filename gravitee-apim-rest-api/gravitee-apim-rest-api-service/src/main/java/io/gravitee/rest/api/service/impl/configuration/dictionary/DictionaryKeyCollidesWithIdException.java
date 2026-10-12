@@ -25,7 +25,8 @@ public class DictionaryKeyCollidesWithIdException extends AbstractManagementExce
     private final String existingDictionaryId;
     private final String existingDictionaryName;
 
-    public DictionaryKeyCollidesWithIdException(String key, String existingDictionaryId, String existingDictionaryName) {
+    public DictionaryKeyCollidesWithIdException(
+            String key, String existingDictionaryId, String existingDictionaryName) {
         this.key = key;
         this.existingDictionaryId = existingDictionaryId;
         this.existingDictionaryName = existingDictionaryName;
@@ -38,13 +39,10 @@ public class DictionaryKeyCollidesWithIdException extends AbstractManagementExce
 
     @Override
     public String getMessage() {
-        return (
-            "A dictionary with key [" +
-            key +
-            "] cannot be created because dictionary [" +
-            existingDictionaryName +
-            "] already uses that value as its id in this environment."
-        );
+        return ("A dictionary with key [" + key
+                + "] cannot be created because dictionary ["
+                + existingDictionaryName
+                + "] already uses that value as its id in this environment.");
     }
 
     @Override
@@ -55,12 +53,11 @@ public class DictionaryKeyCollidesWithIdException extends AbstractManagementExce
     @Override
     public Map<String, String> getParameters() {
         return Map.of(
-            "key",
-            key,
-            "existingDictionaryId",
-            existingDictionaryId,
-            "existingDictionaryName",
-            String.valueOf(existingDictionaryName)
-        );
+                "key",
+                key,
+                "existingDictionaryId",
+                existingDictionaryId,
+                "existingDictionaryName",
+                String.valueOf(existingDictionaryName));
     }
 }

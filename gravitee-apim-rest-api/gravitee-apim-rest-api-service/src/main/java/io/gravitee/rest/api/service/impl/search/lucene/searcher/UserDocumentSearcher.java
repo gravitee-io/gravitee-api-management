@@ -74,17 +74,16 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public SearchResult search(ExecutionContext executionContext, Query<?> query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(
-            new String[] {
-                FIELD_DISPLAYNAME,
-                FIELD_LASTNAME_FIRSTNAME,
-                FIELD_LASTNAME_FIRSTNAME_SORTED,
-                FIELD_EMAIL,
-                FIELD_REFERENCE,
-                FIELD_CUSTOM,
-                FIELD_CUSTOM_SPLIT,
-            },
-            analyzer
-        );
+                new String[] {
+                    FIELD_DISPLAYNAME,
+                    FIELD_LASTNAME_FIRSTNAME,
+                    FIELD_LASTNAME_FIRSTNAME_SORTED,
+                    FIELD_EMAIL,
+                    FIELD_REFERENCE,
+                    FIELD_CUSTOM,
+                    FIELD_CUSTOM_SPLIT,
+                },
+                analyzer);
         parser.setFuzzyMinSim(0.6f);
         parser.setAllowLeadingWildcard(true);
 
@@ -92,7 +91,8 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
         BooleanQuery.Builder userFieldsQuery = new BooleanQuery.Builder();
 
         try {
-            final String normalizedQuery = StringUtils.stripAccents(query.getQuery().toLowerCase());
+            final String normalizedQuery =
+                    StringUtils.stripAccents(query.getQuery().toLowerCase());
 
             if (isUserIdFormat(query)) {
                 userFieldsQuery.add(new WildcardQuery(new Term("id", normalizedQuery)), BooleanClause.Occur.MUST);
@@ -100,13 +100,25 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
                 String[] tokens = normalizedQuery.split(" ");
                 for (String token : tokens) {
                     userFieldsQuery
-                        .add(new WildcardQuery(new Term(FIELD_DISPLAYNAME, '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term(FIELD_LASTNAME_FIRSTNAME, '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term(FIELD_LASTNAME_FIRSTNAME_SORTED, '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term(FIELD_EMAIL, '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term(FIELD_REFERENCE, '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term(FIELD_CUSTOM, '*' + token + '*')), BooleanClause.Occur.SHOULD)
-                        .add(new WildcardQuery(new Term(FIELD_CUSTOM_SPLIT, token)), BooleanClause.Occur.SHOULD);
+                            .add(
+                                    new WildcardQuery(new Term(FIELD_DISPLAYNAME, '*' + token + '*')),
+                                    BooleanClause.Occur.SHOULD)
+                            .add(
+                                    new WildcardQuery(new Term(FIELD_LASTNAME_FIRSTNAME, '*' + token + '*')),
+                                    BooleanClause.Occur.SHOULD)
+                            .add(
+                                    new WildcardQuery(new Term(FIELD_LASTNAME_FIRSTNAME_SORTED, '*' + token + '*')),
+                                    BooleanClause.Occur.SHOULD)
+                            .add(
+                                    new WildcardQuery(new Term(FIELD_EMAIL, '*' + token + '*')),
+                                    BooleanClause.Occur.SHOULD)
+                            .add(
+                                    new WildcardQuery(new Term(FIELD_REFERENCE, '*' + token + '*')),
+                                    BooleanClause.Occur.SHOULD)
+                            .add(
+                                    new WildcardQuery(new Term(FIELD_CUSTOM, '*' + token + '*')),
+                                    BooleanClause.Occur.SHOULD)
+                            .add(new WildcardQuery(new Term(FIELD_CUSTOM_SPLIT, token)), BooleanClause.Occur.SHOULD);
                 }
             }
 
@@ -116,10 +128,11 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
             BooleanQuery.Builder orgCriteria = new BooleanQuery.Builder();
             orgCriteria.add(
-                new TermQuery(new Term(FIELD_REFERENCE_TYPE, ReferenceContext.Type.ORGANIZATION.name())),
-                BooleanClause.Occur.MUST
-            );
-            orgCriteria.add(new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getOrganizationId())), BooleanClause.Occur.MUST);
+                    new TermQuery(new Term(FIELD_REFERENCE_TYPE, ReferenceContext.Type.ORGANIZATION.name())),
+                    BooleanClause.Occur.MUST);
+            orgCriteria.add(
+                    new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getOrganizationId())),
+                    BooleanClause.Occur.MUST);
 
             userQuery.add(orgCriteria.build(), BooleanClause.Occur.FILTER);
 
@@ -130,8 +143,9 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     @Override
-    protected SearchResult search(org.apache.lucene.search.Query query, Sortable sort, Pageable pageable, String fieldReference)
-        throws TechnicalException {
+    protected SearchResult search(
+            org.apache.lucene.search.Query query, Sortable sort, Pageable pageable, String fieldReference)
+            throws TechnicalException {
         log.debug("Searching for: {}", query.toString());
 
         try {
@@ -151,7 +165,8 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
                 // arithmetic to the index size (and at least 1, matching IndexSearcher's own
                 // handling of an empty index) before it reaches the collector.
                 long window = (long) pageable.getPageNumber() * pageable.getPageSize();
-                int to = (int) Math.max(1, Math.min(window, searcher.getIndexReader().maxDoc()));
+                int to = (int)
+                        Math.max(1, Math.min(window, searcher.getIndexReader().maxDoc()));
                 // Plain searcher.search(query, to, sort) lets Lucene stop early (block-max WAND)
                 // once it's confident of the top `to` hits, which turns totalHits into a lower
                 // bound past ~1000 matches instead of an exact count -- silently breaking
@@ -164,7 +179,8 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
                 int end = Math.min(to, allMatchingDocs.scoreDocs.length);
 
                 topDocs = allMatchingDocs;
-                collectedDocs = Arrays.stream(allMatchingDocs.scoreDocs, from, end).collect(LinkedHashSet::new, Set::add, Set::addAll);
+                collectedDocs = Arrays.stream(allMatchingDocs.scoreDocs, from, end)
+                        .collect(LinkedHashSet::new, Set::add, Set::addAll);
             } else if (sort != null) {
                 topDocs = searcher.search(query, Integer.MAX_VALUE, withIdTieBreak(convert(sort)));
                 collectedDocs = Arrays.stream(topDocs.scoreDocs).collect(LinkedHashSet::new, Set::add, Set::addAll);

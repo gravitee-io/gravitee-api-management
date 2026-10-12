@@ -66,7 +66,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { ElasticsearchReporterTest.TestConfig.class })
+@ContextConfiguration(classes = {ElasticsearchReporterTest.TestConfig.class})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ElasticsearchReporterTest {
 
@@ -81,13 +81,13 @@ class ElasticsearchReporterTest {
 
         @Bean
         public ElasticsearchReporter reporter(
-            final Node node,
-            final Client client,
-            final ReporterConfiguration reporterConfiguration,
-            final PipelineConfiguration pipelineConfiguration,
-            final FreeMarkerComponent freeMarkerComponent
-        ) {
-            return new ElasticsearchReporter(node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
+                final Node node,
+                final Client client,
+                final ReporterConfiguration reporterConfiguration,
+                final PipelineConfiguration pipelineConfiguration,
+                final FreeMarkerComponent freeMarkerComponent) {
+            return new ElasticsearchReporter(
+                    node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
         }
     }
 
@@ -141,37 +141,34 @@ class ElasticsearchReporterTest {
     @Test
     void should_report_message_metrics() throws InterruptedException {
         final MessageMetrics messageMetrics = MessageMetrics.builder()
-            .apiId("api")
-            .apiName("API Name")
-            .clientIdentifier("client")
-            .connectorId("webhook")
-            .connectorType(MessageConnectorType.ENTRYPOINT)
-            .contentLength(42)
-            .correlationId("123456789-a")
-            .count(1)
-            .countIncrement(8)
-            .error(false)
-            .errorCount(0)
-            .errorCountIncrement(2)
-            .gatewayLatencyMs(3L)
-            .operation(MessageOperation.PUBLISH)
-            .parentCorrelationId("b-987654321")
-            .requestId("0000000-r")
-            .timestamp(Instant.now().toEpochMilli())
-            .customMetrics(Map.of("foo", "bar"))
-            .additionalMetrics(
-                Set.of(
-                    new AdditionalMetric.StringMetric("string_additional", "on top of it"),
-                    new AdditionalMetric.JSONMetric("json_additional", "{\"hello\":\"world\"}"),
-                    new AdditionalMetric.DoubleMetric("double_additional", 3.14),
-                    new AdditionalMetric.IntegerMetric("int_additional", 42),
-                    new AdditionalMetric.LongMetric("long_additional", 1L),
-                    new AdditionalMetric.KeywordMetric("keyword_additional", "alpha"),
-                    new AdditionalMetric.KeywordListMetric("keyword_additional_list", List.of("alpha", "beta")),
-                    new AdditionalMetric.BooleanMetric("bool_additional", true)
-                )
-            )
-            .build();
+                .apiId("api")
+                .apiName("API Name")
+                .clientIdentifier("client")
+                .connectorId("webhook")
+                .connectorType(MessageConnectorType.ENTRYPOINT)
+                .contentLength(42)
+                .correlationId("123456789-a")
+                .count(1)
+                .countIncrement(8)
+                .error(false)
+                .errorCount(0)
+                .errorCountIncrement(2)
+                .gatewayLatencyMs(3L)
+                .operation(MessageOperation.PUBLISH)
+                .parentCorrelationId("b-987654321")
+                .requestId("0000000-r")
+                .timestamp(Instant.now().toEpochMilli())
+                .customMetrics(Map.of("foo", "bar"))
+                .additionalMetrics(Set.of(
+                        new AdditionalMetric.StringMetric("string_additional", "on top of it"),
+                        new AdditionalMetric.JSONMetric("json_additional", "{\"hello\":\"world\"}"),
+                        new AdditionalMetric.DoubleMetric("double_additional", 3.14),
+                        new AdditionalMetric.IntegerMetric("int_additional", 42),
+                        new AdditionalMetric.LongMetric("long_additional", 1L),
+                        new AdditionalMetric.KeywordMetric("keyword_additional", "alpha"),
+                        new AdditionalMetric.KeywordListMetric("keyword_additional_list", List.of("alpha", "beta")),
+                        new AdditionalMetric.BooleanMetric("bool_additional", true)))
+                .build();
 
         reportAndAssert(messageMetrics);
     }
@@ -179,28 +176,31 @@ class ElasticsearchReporterTest {
     @Test
     void should_accept_a_decision_report() {
         var decision = DecisionReport.builder()
-            .timestamp(Instant.now().toEpochMilli())
-            .gatewayId("gateway")
-            .organizationId("org")
-            .environmentId("env")
-            .apiId("api")
-            .eventId("evt-1")
-            .phase(DecisionReport.Phase.RESOLVED)
-            .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
-            .decisionPointId("default")
-            .outcome(DecisionReport.Outcome.DENY)
-            .enforced(DecisionReport.Enforced.DENY)
-            .status(DecisionReport.Status.SUCCESS)
-            .build();
+                .timestamp(Instant.now().toEpochMilli())
+                .gatewayId("gateway")
+                .organizationId("org")
+                .environmentId("env")
+                .apiId("api")
+                .eventId("evt-1")
+                .phase(DecisionReport.Phase.RESOLVED)
+                .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
+                .decisionPointId("default")
+                .outcome(DecisionReport.Outcome.DENY)
+                .enforced(DecisionReport.Enforced.DENY)
+                .status(DecisionReport.Status.SUCCESS)
+                .build();
 
         assertThat(reporter.canHandle(decision)).isTrue();
     }
 
     private void reportAndAssert(Reportable reportable) throws InterruptedException {
         // bulk of three line
-        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(reportable)).test();
-        TestObserver<Void> metrics2 = Completable.fromRunnable(() -> reporter.report(reportable)).test();
-        TestObserver<Void> metrics3 = Completable.fromRunnable(() -> reporter.report(reportable)).test();
+        TestObserver<Void> metrics1 =
+                Completable.fromRunnable(() -> reporter.report(reportable)).test();
+        TestObserver<Void> metrics2 =
+                Completable.fromRunnable(() -> reporter.report(reportable)).test();
+        TestObserver<Void> metrics3 =
+                Completable.fromRunnable(() -> reporter.report(reportable)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -222,11 +222,11 @@ class ElasticsearchReporterTest {
         defaultRequest.setUri("https://api.gravitee.io/echo/echo");
         defaultRequest.setMethod(HttpMethod.GET);
         final Step defaultStep = EndpointStatus.forStep("default-step")
-            .responseTime(117)
-            .success()
-            .request(defaultRequest)
-            .response(defaultResponse)
-            .build();
+                .responseTime(117)
+                .success()
+                .request(defaultRequest)
+                .response(defaultResponse)
+                .build();
 
         final Response anotherResponse = new Response();
         anotherResponse.setStatus(500);
@@ -235,26 +235,25 @@ class ElasticsearchReporterTest {
         anotherRequest.setMethod(HttpMethod.GET);
 
         final Step anotherStep = EndpointStatus.forStep("another-step")
-            .responseTime(57)
-            .fail("NPE")
-            .request(defaultRequest)
-            .response(defaultResponse)
-            .build();
+                .responseTime(57)
+                .fail("NPE")
+                .request(defaultRequest)
+                .response(defaultResponse)
+                .build();
 
         final EndpointStatus endpointHealthStatus = EndpointStatus.forEndpoint(
-            "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab",
-            "https://api.gravitee.io/echo/"
-        )
-            .on(Instant.now().toEpochMilli())
-            .step(defaultStep)
-            .step(anotherStep)
-            .build();
+                        "be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab", "https://api.gravitee.io/echo/")
+                .on(Instant.now().toEpochMilli())
+                .step(defaultStep)
+                .step(anotherStep)
+                .build();
 
         endpointHealthStatus.setAvailable(true);
         endpointHealthStatus.setState(3);
         endpointHealthStatus.setResponseTime(175);
 
-        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(endpointHealthStatus)).test();
+        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(endpointHealthStatus))
+                .test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -278,7 +277,7 @@ class ElasticsearchReporterTest {
         oldInfo.name = "old";
 
         jvmInfo.gc = new JvmInfo.GarbageCollectors();
-        jvmInfo.gc.collectors = new JvmInfo.GarbageCollector[] { youngInfo, oldInfo };
+        jvmInfo.gc.collectors = new JvmInfo.GarbageCollector[] {youngInfo, oldInfo};
 
         jvmInfo.mem = new JvmInfo.Mem();
         jvmInfo.mem.heapCommitted = 1;
@@ -289,7 +288,7 @@ class ElasticsearchReporterTest {
         JvmInfo.MemoryPool young = new JvmInfo.MemoryPool("young", 85549752, 137363456, 134742016, 137363456);
         JvmInfo.MemoryPool survivor = new JvmInfo.MemoryPool("survivor", 16821208, 137363456, 134742016, 137363456);
         JvmInfo.MemoryPool old = new JvmInfo.MemoryPool("old", 17060240, 137363456, 134742016, 137363456);
-        jvmInfo.mem.pools = new JvmInfo.MemoryPool[] { young, survivor, old };
+        jvmInfo.mem.pools = new JvmInfo.MemoryPool[] {young, survivor, old};
 
         jvmInfo.threads = new JvmInfo.Threads();
         jvmInfo.threads.count = 3;
@@ -316,13 +315,14 @@ class ElasticsearchReporterTest {
         processInfo.timestamp = 10;
 
         final Monitor monitor = Monitor.on("b187fe8f-98fa-4aa9-87fe-8f98facaa956")
-            .at(Instant.now().toEpochMilli())
-            .jvm(jvmInfo)
-            .os(osInfo)
-            .process(processInfo)
-            .build();
+                .at(Instant.now().toEpochMilli())
+                .jvm(jvmInfo)
+                .os(osInfo)
+                .process(processInfo)
+                .build();
 
-        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(monitor)).test();
+        TestObserver<Void> metrics1 =
+                Completable.fromRunnable(() -> reporter.report(monitor)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -373,7 +373,8 @@ class ElasticsearchReporterTest {
         log.setProxyResponse(proxyResp);
         log.setClientResponse(clientResp);
 
-        TestObserver<Void> logObs = Completable.fromRunnable(() -> reporter.report(log)).test();
+        TestObserver<Void> logObs =
+                Completable.fromRunnable(() -> reporter.report(log)).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -384,7 +385,8 @@ class ElasticsearchReporterTest {
 
     @Test
     void report_test() throws InterruptedException {
-        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(mockRequestMetrics())).test();
+        TestObserver<Void> metrics1 = Completable.fromRunnable(() -> reporter.report(mockRequestMetrics()))
+                .test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);

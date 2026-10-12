@@ -46,32 +46,30 @@ public class PortalNavigationItemResource extends AbstractResource {
     @RequirePortalAuth
     public Response getPortalNavigationItemById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
         var executionContext = getExecutionContext();
-        var result = getPortalNavigationItemUseCase.execute(
-            new GetPortalNavigationItemUseCase.Input(
+        var result = getPortalNavigationItemUseCase.execute(new GetPortalNavigationItemUseCase.Input(
                 PortalNavigationItemId.of(portalNavigationItemId),
                 executionContext.getEnvironmentId(),
-                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
-            )
-        );
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())));
 
-        return Response.ok(portalNavigationItemMapper.getBasePortalNavigationItem(result.portalNavigationItem())).build();
+        return Response.ok(portalNavigationItemMapper.getBasePortalNavigationItem(result.portalNavigationItem()))
+                .build();
     }
 
     @GET
     @Path("/content")
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    public Response getPortalNavigationItemContentById(@PathParam("portalNavigationItemId") String portalNavigationItemId) {
+    public Response getPortalNavigationItemContentById(
+            @PathParam("portalNavigationItemId") String portalNavigationItemId) {
         var executionContext = getExecutionContext();
-        var result = getPortalPageContentByNavigationIdUseCase.execute(
-            new GetPortalPageContentByNavigationIdUseCase.Input(
-                portalNavigationItemId,
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
-            )
-        );
+        var result =
+                getPortalPageContentByNavigationIdUseCase.execute(new GetPortalPageContentByNavigationIdUseCase.Input(
+                        portalNavigationItemId,
+                        executionContext.getOrganizationId(),
+                        executionContext.getEnvironmentId(),
+                        PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())));
 
-        return Response.ok(portalNavigationItemMapper.map(result.renderedContent())).build();
+        return Response.ok(portalNavigationItemMapper.map(result.renderedContent()))
+                .build();
     }
 }

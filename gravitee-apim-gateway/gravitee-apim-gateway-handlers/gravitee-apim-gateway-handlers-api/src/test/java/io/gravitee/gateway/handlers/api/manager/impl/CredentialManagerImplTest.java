@@ -104,7 +104,9 @@ class CredentialManagerImplTest {
 
             manager.deploy(credential("credential-1", "env-1", "secret-v2", 2L));
 
-            assertThat(manager.get("env-1", "credential-1")).map(DeployedCredential::encryptedSecret).contains("secret-v2");
+            assertThat(manager.get("env-1", "credential-1"))
+                    .map(DeployedCredential::encryptedSecret)
+                    .contains("secret-v2");
         }
 
         @Test
@@ -113,7 +115,9 @@ class CredentialManagerImplTest {
 
             manager.deploy(credential("credential-1", "env-1", "secret-v1", 1L));
 
-            assertThat(manager.get("env-1", "credential-1")).map(DeployedCredential::encryptedSecret).contains("secret-v2");
+            assertThat(manager.get("env-1", "credential-1"))
+                    .map(DeployedCredential::encryptedSecret)
+                    .contains("secret-v2");
         }
     }
 
@@ -187,7 +191,8 @@ class CredentialManagerImplTest {
     class ConcurrencyTest {
 
         @Test
-        void should_not_lose_a_deployed_credential_while_another_one_in_the_same_environment_is_undeployed() throws Exception {
+        void should_not_lose_a_deployed_credential_while_another_one_in_the_same_environment_is_undeployed()
+                throws Exception {
             ExecutorService executor = Executors.newFixedThreadPool(2);
             try {
                 for (int round = 0; round < 50_000; round++) {
@@ -210,7 +215,9 @@ class CredentialManagerImplTest {
                     undeploy.get();
                     deploy.get();
 
-                    assertThat(manager.get("env-1", deployed)).as("round %d", round).isPresent();
+                    assertThat(manager.get("env-1", deployed))
+                            .as("round %d", round)
+                            .isPresent();
                     manager.undeploy("env-1", deployed);
                 }
             } finally {
@@ -221,10 +228,13 @@ class CredentialManagerImplTest {
 
     @Test
     void should_keep_the_encrypted_secret_out_of_toString() {
-        assertThat(credential("credential-1", "env-1", "secret-v1", 1L).toString()).contains("credential-1").doesNotContain("secret-v1");
+        assertThat(credential("credential-1", "env-1", "secret-v1", 1L).toString())
+                .contains("credential-1")
+                .doesNotContain("secret-v1");
     }
 
-    private static DeployedCredential credential(String id, String environmentId, String encryptedSecret, long updatedAt) {
+    private static DeployedCredential credential(
+            String id, String environmentId, String encryptedSecret, long updatedAt) {
         return new DeployedCredential(id, environmentId, "org-1", Set.of("api-1"), encryptedSecret, updatedAt);
     }
 }

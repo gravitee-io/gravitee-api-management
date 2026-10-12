@@ -60,36 +60,41 @@ public interface AnalyticsMeasuresMapper {
         var bucket = new Bucket();
         if (responseModel.buckets() == null) {
             var leaf = new BucketLeaf()
-                .type(BucketLeaf.TypeEnum.LEAF)
-                .key(responseModel.key())
-                .name(responseModel.name() != null ? responseModel.name() : responseModel.key())
-                .measures(fromResponseModel(responseModel.measures()));
+                    .type(BucketLeaf.TypeEnum.LEAF)
+                    .key(responseModel.key())
+                    .name(responseModel.name() != null ? responseModel.name() : responseModel.key())
+                    .measures(fromResponseModel(responseModel.measures()));
             bucket.setActualInstance(leaf);
             return bucket;
         }
         var group = new BucketGroup()
-            .type(BucketGroup.TypeEnum.GROUP)
-            .key(responseModel.key())
-            .name(responseModel.name() != null ? responseModel.name() : responseModel.key());
-        group.setBuckets(responseModel.buckets().stream().map(this::fromResponseModel).toList());
+                .type(BucketGroup.TypeEnum.GROUP)
+                .key(responseModel.key())
+                .name(responseModel.name() != null ? responseModel.name() : responseModel.key());
+        group.setBuckets(
+                responseModel.buckets().stream().map(this::fromResponseModel).toList());
         bucket.setActualInstance(group);
         return bucket;
     }
 
-    MeasuresRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest requestEntity);
+    MeasuresRequest fromRequestEntity(
+            io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRequest requestEntity);
 
     FacetMetricMeasuresRequest fromRequestEntity(FacetMetricRequest facetMetricRequest);
 
     MetricMeasuresRequest fromRequestEntity(MetricRequest metricRequest);
 
     @Mapping(target = "facets", source = "by")
-    FacetsRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest requestEntity);
+    FacetsRequest fromRequestEntity(
+            io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsRequest requestEntity);
 
-    default TimeRange fromTimeRangeEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange timeRangeEntity) {
+    default TimeRange fromTimeRangeEntity(
+            io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange timeRangeEntity) {
         return new TimeRange(toInstant(timeRangeEntity.getFrom()), toInstant(timeRangeEntity.getTo()));
     }
 
-    default Filter fromFilterEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter filterEntity) {
+    default Filter fromFilterEntity(
+            io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter filterEntity) {
         var instance = filterEntity.getActualInstance();
         return switch (instance) {
             case NumberFilter n -> new Filter(mapFilterName(n.getName()), mapOperator(n.getOperator()), n.getValue());
@@ -123,24 +128,26 @@ public interface AnalyticsMeasuresMapper {
         var bucket = new TimeSeriesBucket();
         if (responseModel.buckets() == null) {
             var leaf = new TimeSeriesBucketLeaf()
-                .type(TimeSeriesBucketLeaf.TypeEnum.LEAF)
-                .key(OffsetDateTime.parse(responseModel.key()))
-                .timestamp(responseModel.timestamp())
-                .measures(fromResponseModel(responseModel.measures()));
+                    .type(TimeSeriesBucketLeaf.TypeEnum.LEAF)
+                    .key(OffsetDateTime.parse(responseModel.key()))
+                    .timestamp(responseModel.timestamp())
+                    .measures(fromResponseModel(responseModel.measures()));
             bucket.setActualInstance(leaf);
             return bucket;
         }
         var group = new TimeSeriesBucketGroup()
-            .type(TimeSeriesBucketGroup.TypeEnum.GROUP)
-            .key(OffsetDateTime.parse(responseModel.key()))
-            .timestamp(responseModel.timestamp());
-        group.setBuckets(responseModel.buckets().stream().map(this::fromResponseModel).toList());
+                .type(TimeSeriesBucketGroup.TypeEnum.GROUP)
+                .key(OffsetDateTime.parse(responseModel.key()))
+                .timestamp(responseModel.timestamp());
+        group.setBuckets(
+                responseModel.buckets().stream().map(this::fromResponseModel).toList());
         bucket.setActualInstance(group);
         return bucket;
     }
 
     @Mapping(target = "facets", source = "by")
-    TimeSeriesRequest fromRequestEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest requestEntity);
+    TimeSeriesRequest fromRequestEntity(
+            io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest requestEntity);
 
     default Long map(CustomInterval interval) {
         return interval.toMillis();

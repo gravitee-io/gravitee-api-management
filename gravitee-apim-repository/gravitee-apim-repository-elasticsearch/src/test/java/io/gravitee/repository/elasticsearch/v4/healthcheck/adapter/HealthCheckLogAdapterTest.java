@@ -18,7 +18,6 @@ package io.gravitee.repository.elasticsearch.v4.healthcheck.adapter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import java.time.Duration;
 import java.time.Instant;
@@ -49,8 +48,7 @@ class HealthCheckLogAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result).isEqualTo(
-                """
+            assertThatJson(result).isEqualTo("""
                 {
                    "query": {
                      "bool": {
@@ -70,8 +68,7 @@ class HealthCheckLogAdapterTest {
                    "sort": [{ "@timestamp": { "order": "asc" } }],
                    "size": 5,
                    "from": 0
-                 }"""
-            );
+                 }""");
         }
 
         @Test
@@ -85,8 +82,7 @@ class HealthCheckLogAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result).isEqualTo(
-                """
+            assertThatJson(result).isEqualTo("""
                 {
                    "query": {
                      "bool": {
@@ -107,8 +103,7 @@ class HealthCheckLogAdapterTest {
                    "sort": [{ "@timestamp": { "order": "asc" } }],
                    "size": 5,
                    "from": 0
-                 }"""
-            );
+                 }""");
         }
 
         @Test
@@ -122,8 +117,7 @@ class HealthCheckLogAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result).isEqualTo(
-                """
+            assertThatJson(result).isEqualTo("""
                 {
                    "query": {
                      "bool": {
@@ -143,8 +137,7 @@ class HealthCheckLogAdapterTest {
                    "sort": [{ "@timestamp": { "order": "asc" } }],
                    "size": 5,
                    "from": 10
-                 }"""
-            );
+                 }""");
         }
     }
 }

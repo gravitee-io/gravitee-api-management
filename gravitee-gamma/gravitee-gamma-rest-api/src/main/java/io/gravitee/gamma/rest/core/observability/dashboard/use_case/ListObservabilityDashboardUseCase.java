@@ -70,11 +70,10 @@ public class ListObservabilityDashboardUseCase {
         input.modules().forEach(DashboardModule::requireValidOrAbsent);
         List<Dashboard> all = dashboardRepository.findByEnvironmentId(input.environmentId());
         return input.modules().isEmpty()
-            ? all
-            : all
-                .stream()
-                .filter(dashboard -> dashboard.belongsToOneOf(input.modules()))
-                .toList();
+                ? all
+                : all.stream()
+                        .filter(dashboard -> dashboard.belongsToOneOf(input.modules()))
+                        .toList();
     }
 
     private static int resolvePage(Input input) {
@@ -82,6 +81,8 @@ public class ListObservabilityDashboardUseCase {
     }
 
     private static int resolvePerPage(Input input) {
-        return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        return (input.perPage() != null && input.perPage() > 0)
+                ? Math.min(input.perPage(), MAX_PER_PAGE)
+                : DEFAULT_PER_PAGE;
     }
 }

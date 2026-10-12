@@ -23,13 +23,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
 
-public class PortalMenuLinkCrudServiceInMemory implements PortalMenuLinkCrudService, InMemoryAlternative<PortalMenuLink> {
+public class PortalMenuLinkCrudServiceInMemory
+        implements PortalMenuLinkCrudService, InMemoryAlternative<PortalMenuLink> {
 
     final ArrayList<PortalMenuLink> storage = new ArrayList<>();
 
     @Override
     public PortalMenuLink update(PortalMenuLink portalMenuLink) {
-        OptionalInt index = this.findIndex(this.storage, menuLink -> menuLink.getId().equals(portalMenuLink.getId()));
+        OptionalInt index =
+                this.findIndex(this.storage, menuLink -> menuLink.getId().equals(portalMenuLink.getId()));
         if (index.isPresent()) {
             storage.set(index.getAsInt(), portalMenuLink);
             return portalMenuLink;
@@ -40,11 +42,11 @@ public class PortalMenuLinkCrudServiceInMemory implements PortalMenuLinkCrudServ
 
     @Override
     public PortalMenuLink getByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) {
-        return storage
-            .stream()
-            .filter(menuLink -> portalMenuLinkId.equals(menuLink.getId()) && environmentId.equals(menuLink.getEnvironmentId()))
-            .findFirst()
-            .orElseThrow(() -> new PortalMenuLinkNotFoundException(portalMenuLinkId));
+        return storage.stream()
+                .filter(menuLink ->
+                        portalMenuLinkId.equals(menuLink.getId()) && environmentId.equals(menuLink.getEnvironmentId()))
+                .findFirst()
+                .orElseThrow(() -> new PortalMenuLinkNotFoundException(portalMenuLinkId));
     }
 
     @Override

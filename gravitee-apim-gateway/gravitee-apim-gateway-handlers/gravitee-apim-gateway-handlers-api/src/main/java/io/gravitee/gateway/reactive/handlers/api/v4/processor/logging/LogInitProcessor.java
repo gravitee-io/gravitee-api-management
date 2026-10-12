@@ -20,8 +20,6 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_AP
 import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
@@ -47,7 +45,8 @@ import lombok.CustomLog;
 public class LogInitProcessor implements Processor {
 
     public static final String ID = "processor-init-logging";
-    private static final ExpressionLanguageConditionFilter<LoggingContext> CONDITION_FILTER = new ExpressionLanguageConditionFilter<>();
+    private static final ExpressionLanguageConditionFilter<LoggingContext> CONDITION_FILTER =
+            new ExpressionLanguageConditionFilter<>();
 
     public static LogInitProcessor instance() {
         return Holder.INSTANCE;
@@ -61,32 +60,39 @@ public class LogInitProcessor implements Processor {
     @Override
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.defer(() -> {
-            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final AnalyticsContext analyticsContext =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
             if (!analyticsContext.isLoggingEnabled()) {
                 return Completable.complete();
             }
 
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
-            return CONDITION_FILTER.filter(ctx, loggingContext)
-                // The filter propagates a condition that cannot be parsed, so that a broken policy condition fails closed.
-                // Logging enforces nothing: a condition it cannot evaluate only skips logging, never the request.
-                .doOnError(throwable -> reportUnusableCondition(ctx, loggingContext.getCondition(), throwable))
-                .onErrorComplete()
-                .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
-                .ignoreElement();
+            return CONDITION_FILTER
+                    .filter(ctx, loggingContext)
+                    // The filter propagates a condition that cannot be parsed, so that a broken policy condition fails
+                    // closed.
+                    // Logging enforces nothing: a condition it cannot evaluate only skips logging, never the request.
+                    .doOnError(throwable -> reportUnusableCondition(ctx, loggingContext.getCondition(), throwable))
+                    .onErrorComplete()
+                    .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
+                    .ignoreElement();
         });
     }
 
-    private void reportUnusableCondition(final HttpExecutionContextInternal ctx, final String condition, final Throwable throwable) {
-        // A condition that cannot be parsed fails identically on every request: a stack trace each time would flood the log.
-        ctx.withLogger(log).warn("Logging condition {} cannot be evaluated, logging is skipped: {}", condition, throwable.getMessage());
+    private void reportUnusableCondition(
+            final HttpExecutionContextInternal ctx, final String condition, final Throwable throwable) {
+        // A condition that cannot be parsed fails identically on every request: a stack trace each time would flood the
+        // log.
+        ctx.withLogger(log)
+                .warn(
+                        "Logging condition {} cannot be evaluated, logging is skipped: {}",
+                        condition,
+                        throwable.getMessage());
         ctx.withLogger(log).debug("Logging condition {} evaluation failure", condition, throwable);
-        ctx.warnWith(
-            new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
+        ctx.warnWith(new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
                 .message("Unable to execute logging condition " + condition + ", logging is skipped")
-                .cause(throwable)
-        );
+                .cause(throwable));
     }
 
     private void initLogEntity(final HttpExecutionContextInternal ctx, final LoggingContext loggingContext) {
@@ -94,15 +100,15 @@ public class LogInitProcessor implements Processor {
         HttpResponseInternal response = ctx.response();
 
         Log log = Log.builder()
-            .timestamp(request.timestamp())
-            .requestId(request.id())
-            .clientIdentifier(request.clientIdentifier())
-            .apiId(ctx.getAttribute(ATTR_API))
-            .apiName(ctx.getAttribute(ContextAttributes.ATTR_API_NAME))
-            .organizationId(ctx.metrics().getOrganizationId())
-            .environmentId(ctx.metrics().getEnvironmentId())
-            .targets(loggingContext.computeReportTargets())
-            .build();
+                .timestamp(request.timestamp())
+                .requestId(request.id())
+                .clientIdentifier(request.clientIdentifier())
+                .apiId(ctx.getAttribute(ATTR_API))
+                .apiName(ctx.getAttribute(ContextAttributes.ATTR_API_NAME))
+                .organizationId(ctx.metrics().getOrganizationId())
+                .environmentId(ctx.metrics().getEnvironmentId())
+                .targets(loggingContext.computeReportTargets())
+                .build();
         ctx.metrics().setLog(log);
 
         if (loggingContext.entrypointRequest()) {

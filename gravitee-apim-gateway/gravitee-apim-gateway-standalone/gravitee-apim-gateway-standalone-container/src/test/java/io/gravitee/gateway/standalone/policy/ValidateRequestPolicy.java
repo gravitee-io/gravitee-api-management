@@ -46,9 +46,8 @@ public class ValidateRequestPolicy {
 
             @Override
             public void end() {
-                policyChain.streamFailWith(
-                    PolicyResult.failure(GATEWAY_INVALID_REQUEST_KEY, HttpStatusCode.BAD_REQUEST_400, "Bad request")
-                );
+                policyChain.streamFailWith(PolicyResult.failure(
+                        GATEWAY_INVALID_REQUEST_KEY, HttpStatusCode.BAD_REQUEST_400, "Bad request"));
             }
         };
     }

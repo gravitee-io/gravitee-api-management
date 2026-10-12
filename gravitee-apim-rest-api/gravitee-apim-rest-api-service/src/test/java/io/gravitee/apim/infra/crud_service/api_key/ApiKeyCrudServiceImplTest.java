@@ -62,24 +62,24 @@ public class ApiKeyCrudServiceImplTest {
             verify(apiKeyRepository).create(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    ApiKey.builder()
-                        .id("api-key-id")
-                        .subscriptions(apiKey.getSubscriptions())
-                        .key("c080f684-2c35-40a1-903c-627c219e0567")
-                        .application("application-id")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")))
-                        .revokedAt(null)
-                        .revoked(false)
-                        .paused(false)
-                        .daysToExpirationOnLastNotification(310)
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(ApiKey.builder()
+                            .id("api-key-id")
+                            .subscriptions(apiKey.getSubscriptions())
+                            .key("c080f684-2c35-40a1-903c-627c219e0567")
+                            .application("application-id")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")))
+                            .revokedAt(null)
+                            .revoked(false)
+                            .paused(false)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
 
-            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(ApiKeyAdapter.INSTANCE.fromEntity(apiKey));
+            assertThat(captor.getValue())
+                    .usingRecursiveComparison()
+                    .isEqualTo(ApiKeyAdapter.INSTANCE.fromEntity(apiKey));
         }
 
         @Test
@@ -103,8 +103,8 @@ public class ApiKeyCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to create the api key: api-key-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to create the api key: api-key-id");
         }
     }
 
@@ -121,24 +121,24 @@ public class ApiKeyCrudServiceImplTest {
             verify(apiKeyRepository).update(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    ApiKey.builder()
-                        .id("api-key-id")
-                        .subscriptions(apiKey.getSubscriptions())
-                        .key("c080f684-2c35-40a1-903c-627c219e0567")
-                        .application("application-id")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")))
-                        .revokedAt(null)
-                        .revoked(false)
-                        .paused(false)
-                        .daysToExpirationOnLastNotification(310)
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(ApiKey.builder()
+                            .id("api-key-id")
+                            .subscriptions(apiKey.getSubscriptions())
+                            .key("c080f684-2c35-40a1-903c-627c219e0567")
+                            .application("application-id")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")))
+                            .revokedAt(null)
+                            .revoked(false)
+                            .paused(false)
+                            .daysToExpirationOnLastNotification(310)
+                            .build());
 
-            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(ApiKeyAdapter.INSTANCE.fromEntity(apiKey));
+            assertThat(captor.getValue())
+                    .usingRecursiveComparison()
+                    .isEqualTo(ApiKeyAdapter.INSTANCE.fromEntity(apiKey));
         }
 
         @Test
@@ -162,8 +162,8 @@ public class ApiKeyCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to update the api key: api-key-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to update the api key: api-key-id");
         }
     }
 }

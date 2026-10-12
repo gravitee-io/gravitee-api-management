@@ -45,7 +45,8 @@ public class PromotionTargetEntity {
 
     public PromotionTargetEntity() {}
 
-    public PromotionTargetEntity(EnvironmentEntity environmentEntity, String organizationId, String environmentId, String installationId) {
+    public PromotionTargetEntity(
+            EnvironmentEntity environmentEntity, String organizationId, String environmentId, String installationId) {
         this.organizationId = organizationId;
         this.id = environmentId;
         this.installationId = installationId;
@@ -107,14 +108,12 @@ public class PromotionTargetEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionTargetEntity that = (PromotionTargetEntity) o;
-        return (
-            Objects.equals(id, that.id) &&
-            Objects.equals(hrids, that.hrids) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(description, that.description) &&
-            Objects.equals(organizationId, that.organizationId) &&
-            Objects.equals(installationId, that.installationId)
-        );
+        return (Objects.equals(id, that.id)
+                && Objects.equals(hrids, that.hrids)
+                && Objects.equals(name, that.name)
+                && Objects.equals(description, that.description)
+                && Objects.equals(organizationId, that.organizationId)
+                && Objects.equals(installationId, that.installationId));
     }
 
     @Override
@@ -124,25 +123,22 @@ public class PromotionTargetEntity {
 
     @Override
     public String toString() {
-        return (
-            "EnvironmentEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", hrids=" +
-            hrids +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", organizationId='" +
-            organizationId +
-            '\'' +
-            ", installationId=" +
-            installationId +
-            '}'
-        );
+        return ("EnvironmentEntity{" + "id='"
+                + id
+                + '\''
+                + ", hrids="
+                + hrids
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", organizationId='"
+                + organizationId
+                + '\''
+                + ", installationId="
+                + installationId
+                + '}');
     }
 }

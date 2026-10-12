@@ -64,7 +64,8 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
                 }
                 final Map<String, Object> newsletterInfo = new HashMap<>();
                 newsletterInfo.put("email", email);
-                httpClientService.request(POST, newsletterUrl, emptyMap(), mapper.writeValueAsString(newsletterInfo), null);
+                httpClientService.request(
+                        POST, newsletterUrl, emptyMap(), mapper.writeValueAsString(newsletterInfo), null);
             }
         } catch (final Exception e) {
             log.error("Error while subscribing to newsletters cause: {}", e.getMessage());
@@ -79,7 +80,8 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
                 if (newsletterUrl.lastIndexOf('/') != newsletterUrl.length() - 1) {
                     taglinesPath = "/" + taglinesPath;
                 }
-                final Buffer buffer = httpClientService.request(GET, newsletterUrl + taglinesPath, emptyMap(), null, null);
+                final Buffer buffer =
+                        httpClientService.request(GET, newsletterUrl + taglinesPath, emptyMap(), null, null);
                 return mapper.readValue(buffer.toString(), List.class);
             }
         } catch (Exception e) {

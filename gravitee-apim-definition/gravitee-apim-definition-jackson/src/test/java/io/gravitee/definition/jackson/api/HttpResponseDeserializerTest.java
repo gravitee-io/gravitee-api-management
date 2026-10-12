@@ -28,24 +28,30 @@ public class HttpResponseDeserializerTest extends AbstractTest {
 
     @Test
     public void definition_defaultHttpResponse() throws Exception {
-        HttpResponse response = load("/io/gravitee/definition/jackson/httpresponse-simpleheaders.json", HttpResponse.class);
+        HttpResponse response =
+                load("/io/gravitee/definition/jackson/httpresponse-simpleheaders.json", HttpResponse.class);
 
         Assertions.assertEquals(200, response.getStatusCode());
         Assertions.assertEquals("response-body", response.getBody());
         Assertions.assertEquals(4, response.getHeaders().size());
-        Assertions.assertEquals(1, response.getHeaders().get("transfer-encoding").size());
-        Assertions.assertEquals("chunked", response.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals(
+                1, response.getHeaders().get("transfer-encoding").size());
+        Assertions.assertEquals(
+                "chunked", response.getHeaders().get("transfer-encoding").get(0));
     }
 
     @Test
     public void definition_defaultHttpResponseMultiValueHeaders() throws Exception {
-        HttpResponse response = load("/io/gravitee/definition/jackson/httpresponse-multivalueheaders.json", HttpResponse.class);
+        HttpResponse response =
+                load("/io/gravitee/definition/jackson/httpresponse-multivalueheaders.json", HttpResponse.class);
 
         Assertions.assertEquals(200, response.getStatusCode());
         Assertions.assertEquals("response-body", response.getBody());
         Assertions.assertEquals(5, response.getHeaders().size());
-        Assertions.assertEquals(1, response.getHeaders().get("transfer-encoding").size());
-        Assertions.assertEquals("chunked", response.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals(
+                1, response.getHeaders().get("transfer-encoding").size());
+        Assertions.assertEquals(
+                "chunked", response.getHeaders().get("transfer-encoding").get(0));
         Assertions.assertEquals(3, response.getHeaders().get("accept-encoding").size());
         Assertions.assertTrue(response.getHeaders().get("accept-encoding").contains("deflate"));
         Assertions.assertTrue(response.getHeaders().get("accept-encoding").contains("gzip"));

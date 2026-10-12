@@ -62,69 +62,67 @@ public class NotificationConfigsResourceTest {
 
     @Test
     public void getNotificationConfigs_hasNotPermission() {
-        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_NOTIFICATION), any(), eq(CREATE), eq(UPDATE), eq(DELETE))).thenReturn(
-            false
-        );
+        when(permissionService.hasPermission(
+                        any(), eq(ENVIRONMENT_NOTIFICATION), any(), eq(CREATE), eq(UPDATE), eq(DELETE)))
+                .thenReturn(false);
         when(securityContext.getUserPrincipal()).thenReturn(mockPrincipal);
         var portalNotificationConfig = PortalNotificationConfigEntity.builder()
-            .referenceType("refType")
-            .referenceId("refId")
-            .user("user")
-            .build();
-        when(portalNotificationConfigService.findById(any(), eq(NotificationReferenceType.ENVIRONMENT), any())).thenReturn(
-            portalNotificationConfig
-        );
+                .referenceType("refType")
+                .referenceId("refId")
+                .user("user")
+                .build();
+        when(portalNotificationConfigService.findById(any(), eq(NotificationReferenceType.ENVIRONMENT), any()))
+                .thenReturn(portalNotificationConfig);
         List<Object> configs = resource.getNotificationConfigs();
         assertThat(configs).containsExactlyInAnyOrder(portalNotificationConfig);
     }
 
     @Test
     public void getNotificationConfigs_hasPermission() {
-        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_NOTIFICATION), any(), eq(CREATE), eq(UPDATE), eq(DELETE))).thenReturn(
-            true
-        );
+        when(permissionService.hasPermission(
+                        any(), eq(ENVIRONMENT_NOTIFICATION), any(), eq(CREATE), eq(UPDATE), eq(DELETE)))
+                .thenReturn(true);
         when(securityContext.getUserPrincipal()).thenReturn(mockPrincipal);
         var portalNotificationConfig = PortalNotificationConfigEntity.builder()
-            .referenceType("refType")
-            .referenceId("refId")
-            .user("user")
-            .build();
-        when(portalNotificationConfigService.findById(any(), eq(NotificationReferenceType.ENVIRONMENT), any())).thenReturn(
-            portalNotificationConfig
-        );
+                .referenceType("refType")
+                .referenceId("refId")
+                .user("user")
+                .build();
+        when(portalNotificationConfigService.findById(any(), eq(NotificationReferenceType.ENVIRONMENT), any()))
+                .thenReturn(portalNotificationConfig);
         List<GenericNotificationConfigEntity> genericNotificationConfigs = List.of(
-            GenericNotificationConfigEntity.builder().id("gn1").build(),
-            GenericNotificationConfigEntity.builder().id("gn2").build()
-        );
-        when(genericNotificationConfigService.findByReference(eq(NotificationReferenceType.ENVIRONMENT), any())).thenReturn(
-            genericNotificationConfigs
-        );
+                GenericNotificationConfigEntity.builder().id("gn1").build(),
+                GenericNotificationConfigEntity.builder().id("gn2").build());
+        when(genericNotificationConfigService.findByReference(eq(NotificationReferenceType.ENVIRONMENT), any()))
+                .thenReturn(genericNotificationConfigs);
         List<Object> configs = resource.getNotificationConfigs();
-        assertThat(configs).containsExactlyInAnyOrder(
-            portalNotificationConfig,
-            genericNotificationConfigs.get(0),
-            genericNotificationConfigs.get(1)
-        );
+        assertThat(configs)
+                .containsExactlyInAnyOrder(
+                        portalNotificationConfig, genericNotificationConfigs.get(0), genericNotificationConfigs.get(1));
     }
 
     @Test
     public void createGenericNotificationSetting_refTypeForbiddenAccess() {
         GenericNotificationConfigEntity genericNotificationConfig = GenericNotificationConfigEntity.builder()
-            .referenceType(NotificationReferenceType.API.name())
-            .build();
-        assertThrows(ForbiddenAccessException.class, () -> resource.createGenericNotificationSetting(genericNotificationConfig));
+                .referenceType(NotificationReferenceType.API.name())
+                .build();
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> resource.createGenericNotificationSetting(genericNotificationConfig));
     }
 
     @Test
     public void createGenericNotificationSetting_configTypeGeneric() {
         GenericNotificationConfigEntity config = GenericNotificationConfigEntity.builder()
-            .referenceType(NotificationReferenceType.ENVIRONMENT.name())
-            .configType(NotificationConfigType.GENERIC)
-            .build();
+                .referenceType(NotificationReferenceType.ENVIRONMENT.name())
+                .configType(NotificationConfigType.GENERIC)
+                .build();
         when(genericNotificationConfigService.create(config)).thenAnswer(i -> i.getArguments()[0]);
         when(securityContext.getUserPrincipal()).thenReturn(mockPrincipal);
-        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_NOTIFICATION), eq("DEFAULT"), any())).thenReturn(true);
-        GenericNotificationConfigEntity result = (GenericNotificationConfigEntity) resource.createGenericNotificationSetting(config);
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_NOTIFICATION), eq("DEFAULT"), any()))
+                .thenReturn(true);
+        GenericNotificationConfigEntity result =
+                (GenericNotificationConfigEntity) resource.createGenericNotificationSetting(config);
         assertThat(result).isEqualTo(config);
         assertThat(result.getOrganizationId()).isEqualTo("DEFAULT");
     }
@@ -132,14 +130,16 @@ public class NotificationConfigsResourceTest {
     @Test
     public void createGenericNotificationSetting_configTypePortal() {
         GenericNotificationConfigEntity config = GenericNotificationConfigEntity.builder()
-            .referenceType(NotificationReferenceType.ENVIRONMENT.name())
-            .referenceId("DEFAULT")
-            .configType(NotificationConfigType.PORTAL)
-            .build();
+                .referenceType(NotificationReferenceType.ENVIRONMENT.name())
+                .referenceId("DEFAULT")
+                .configType(NotificationConfigType.PORTAL)
+                .build();
         when(securityContext.getUserPrincipal()).thenReturn(mockPrincipal);
         when(portalNotificationConfigService.save(resource.convert(config))).thenAnswer(i -> i.getArguments()[0]);
-        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_NOTIFICATION), eq("DEFAULT"), any())).thenReturn(true);
-        PortalNotificationConfigEntity result = (PortalNotificationConfigEntity) resource.createGenericNotificationSetting(config);
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_NOTIFICATION), eq("DEFAULT"), any()))
+                .thenReturn(true);
+        PortalNotificationConfigEntity result =
+                (PortalNotificationConfigEntity) resource.createGenericNotificationSetting(config);
         assertThat(result).isEqualTo(resource.convert(config));
         assertThat(result.getOrganizationId()).isEqualTo("DEFAULT");
     }
@@ -147,24 +147,25 @@ public class NotificationConfigsResourceTest {
     @Test
     public void updateGenericNotificationSettings_refTypeForbiddenAccess() {
         GenericNotificationConfigEntity genericNotificationConfig = GenericNotificationConfigEntity.builder()
-            .id("gn1")
-            .referenceId("DEFAULT")
-            .referenceType(NotificationReferenceType.API.name())
-            .configType(NotificationConfigType.GENERIC)
-            .build();
-        assertThrows(ForbiddenAccessException.class, () ->
-            resource.updateGenericNotificationSettings(genericNotificationConfig.getId(), genericNotificationConfig)
-        );
+                .id("gn1")
+                .referenceId("DEFAULT")
+                .referenceType(NotificationReferenceType.API.name())
+                .configType(NotificationConfigType.GENERIC)
+                .build();
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> resource.updateGenericNotificationSettings(
+                        genericNotificationConfig.getId(), genericNotificationConfig));
     }
 
     @Test
     public void updateGenericNotificationSettings_OK() {
         GenericNotificationConfigEntity config = GenericNotificationConfigEntity.builder()
-            .id("gn1")
-            .referenceId("DEFAULT")
-            .referenceType(NotificationReferenceType.ENVIRONMENT.name())
-            .configType(NotificationConfigType.GENERIC)
-            .build();
+                .id("gn1")
+                .referenceId("DEFAULT")
+                .referenceType(NotificationReferenceType.ENVIRONMENT.name())
+                .configType(NotificationConfigType.GENERIC)
+                .build();
         when(genericNotificationConfigService.update(config)).thenReturn(config);
         GenericNotificationConfigEntity result = resource.updateGenericNotificationSettings(config.getId(), config);
         assertThat(result).isEqualTo(config);
@@ -173,20 +174,20 @@ public class NotificationConfigsResourceTest {
     @Test
     public void updatePortalNotificationSettings_refTypeForbiddenAccess() {
         PortalNotificationConfigEntity config = PortalNotificationConfigEntity.builder()
-            .referenceId("DEFAULT")
-            .referenceType(NotificationReferenceType.API.name())
-            .configType(NotificationConfigType.PORTAL)
-            .build();
+                .referenceId("DEFAULT")
+                .referenceType(NotificationReferenceType.API.name())
+                .configType(NotificationConfigType.PORTAL)
+                .build();
         assertThrows(ForbiddenAccessException.class, () -> resource.updatePortalNotificationSettings(config));
     }
 
     @Test
     public void updatePortalNotificationSettings_OK() {
         PortalNotificationConfigEntity config = PortalNotificationConfigEntity.builder()
-            .referenceId("DEFAULT")
-            .referenceType(NotificationReferenceType.ENVIRONMENT.name())
-            .configType(NotificationConfigType.PORTAL)
-            .build();
+                .referenceId("DEFAULT")
+                .referenceType(NotificationReferenceType.ENVIRONMENT.name())
+                .configType(NotificationConfigType.PORTAL)
+                .build();
         when(securityContext.getUserPrincipal()).thenReturn(mockPrincipal);
         when(portalNotificationConfigService.save(config)).thenAnswer(i -> i.getArguments()[0]);
         PortalNotificationConfigEntity result = resource.updatePortalNotificationSettings(config);

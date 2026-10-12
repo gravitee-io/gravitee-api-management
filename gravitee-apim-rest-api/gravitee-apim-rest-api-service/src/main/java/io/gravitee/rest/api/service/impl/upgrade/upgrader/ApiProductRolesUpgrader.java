@@ -52,14 +52,12 @@ public class ApiProductRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeApiProductRoles(executionContext);
-                    ensureApiProductRolesHaveNotificationPermission(executionContext);
-                    ensureApiProductPrimaryOwner(executionContext, organization.getId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                initializeApiProductRoles(executionContext);
+                ensureApiProductRolesHaveNotificationPermission(executionContext);
+                ensureApiProductPrimaryOwner(executionContext, organization.getId());
+            });
             return true;
         });
     }
@@ -70,7 +68,9 @@ public class ApiProductRolesUpgrader implements Upgrader {
     }
 
     private void createRoleIfMissing(ExecutionContext executionContext, NewRoleEntity role) {
-        if (roleService.findByScopeAndName(API_PRODUCT, role.getName(), executionContext.getOrganizationId()).isEmpty()) {
+        if (roleService
+                .findByScopeAndName(API_PRODUCT, role.getName(), executionContext.getOrganizationId())
+                .isEmpty()) {
             log.info("     - <API_PRODUCT> {}", role.getName());
             roleService.create(executionContext, role);
         }
@@ -79,26 +79,21 @@ public class ApiProductRolesUpgrader implements Upgrader {
     private void ensureApiProductRolesHaveNotificationPermission(ExecutionContext executionContext) {
         String orgId = executionContext.getOrganizationId();
         roleService
-            .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), orgId)
-            .ifPresent(role ->
-                addNotificationPermissionIfMissing(
-                    executionContext,
-                    role,
-                    ROLE_API_PRODUCT_OWNER.getPermissions().get(ApiProductPermission.NOTIFICATION.getName())
-                )
-            );
+                .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), orgId)
+                .ifPresent(role -> addNotificationPermissionIfMissing(
+                        executionContext,
+                        role,
+                        ROLE_API_PRODUCT_OWNER.getPermissions().get(ApiProductPermission.NOTIFICATION.getName())));
         roleService
-            .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), orgId)
-            .ifPresent(role ->
-                addNotificationPermissionIfMissing(
-                    executionContext,
-                    role,
-                    ROLE_API_PRODUCT_USER.getPermissions().get(ApiProductPermission.NOTIFICATION.getName())
-                )
-            );
+                .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), orgId)
+                .ifPresent(role -> addNotificationPermissionIfMissing(
+                        executionContext,
+                        role,
+                        ROLE_API_PRODUCT_USER.getPermissions().get(ApiProductPermission.NOTIFICATION.getName())));
     }
 
-    private void addNotificationPermissionIfMissing(ExecutionContext executionContext, RoleEntity role, char[] expectedNotificationPerms) {
+    private void addNotificationPermissionIfMissing(
+            ExecutionContext executionContext, RoleEntity role, char[] expectedNotificationPerms) {
         if (expectedNotificationPerms == null) {
             return;
         }
@@ -116,7 +111,8 @@ public class ApiProductRolesUpgrader implements Upgrader {
     }
 
     private void ensureApiProductPrimaryOwner(ExecutionContext executionContext, String organizationId) {
-        roleService.createOrUpdateSystemRole(executionContext, PRIMARY_OWNER, API_PRODUCT, ApiProductPermission.values(), organizationId);
+        roleService.createOrUpdateSystemRole(
+                executionContext, PRIMARY_OWNER, API_PRODUCT, ApiProductPermission.values(), organizationId);
     }
 
     @Override

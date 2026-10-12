@@ -44,29 +44,30 @@ public class PerTypeIndexNameGeneratorTest {
 
     @Test
     public void generate_should_route_decisions_to_their_own_index() {
-        assertThat(
-            cut.generate(
-                DecisionReport.builder()
-                    .gatewayId("gw")
-                    .organizationId("org")
-                    .environmentId("env")
-                    .apiId("api")
-                    .eventId("evt-1")
-                    .phase(DecisionReport.Phase.RESOLVED)
-                    .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
-                    .decisionPointId("default")
-                    .outcome(DecisionReport.Outcome.ALLOW)
-                    .enforced(DecisionReport.Enforced.ALLOW)
-                    .status(DecisionReport.Status.SUCCESS)
-                    .build()
-            )
-        ).isEqualTo("indexName-decisions");
+        assertThat(cut.generate(DecisionReport.builder()
+                        .gatewayId("gw")
+                        .organizationId("org")
+                        .environmentId("env")
+                        .apiId("api")
+                        .eventId("evt-1")
+                        .phase(DecisionReport.Phase.RESOLVED)
+                        .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
+                        .decisionPointId("default")
+                        .outcome(DecisionReport.Outcome.ALLOW)
+                        .enforced(DecisionReport.Enforced.ALLOW)
+                        .status(DecisionReport.Status.SUCCESS)
+                        .build()))
+                .isEqualTo("indexName-decisions");
     }
 
     @Test
     public void generate_should_keep_the_other_event_metrics_on_the_shared_index() {
-        assertThat(
-            cut.generate(ApiEventMetrics.builder().gatewayId("gw").organizationId("org").environmentId("env").apiId("api").build())
-        ).isEqualTo("indexName-event-metrics");
+        assertThat(cut.generate(ApiEventMetrics.builder()
+                        .gatewayId("gw")
+                        .organizationId("org")
+                        .environmentId("env")
+                        .apiId("api")
+                        .build()))
+                .isEqualTo("indexName-event-metrics");
     }
 }

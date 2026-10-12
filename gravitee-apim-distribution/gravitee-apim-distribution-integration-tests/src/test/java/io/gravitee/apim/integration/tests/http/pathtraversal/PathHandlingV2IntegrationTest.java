@@ -67,18 +67,18 @@ class PathHandlingV2IntegrationTest {
         public abstract void configureGateway(GatewayConfigurationBuilder configurationBuilder);
 
         protected void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus)
-            throws InterruptedException {
+                throws InterruptedException {
             httpClient
-                .rxRequest(HttpMethod.GET, rawPath)
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response.statusCode()).isEqualTo(expectedStatus);
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, rawPath)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response.statusCode()).isEqualTo(expectedStatus);
+                        return true;
+                    })
+                    .assertNoErrors();
         }
 
         protected String singleUpstreamRequestUrl() {

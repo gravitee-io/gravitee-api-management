@@ -49,7 +49,8 @@ public interface SubscriptionService {
      */
     SubscriptionEntity findById(String subscription);
 
-    Collection<SubscriptionEntity> findByApplicationAndPlan(ExecutionContext executionContext, String application, String plan);
+    Collection<SubscriptionEntity> findByApplicationAndPlan(
+            ExecutionContext executionContext, String application, String plan);
 
     Collection<SubscriptionEntity> findByApi(ExecutionContext executionContext, String api);
 
@@ -57,34 +58,34 @@ public interface SubscriptionService {
 
     SubscriptionEntity create(ExecutionContext executionContext, NewSubscriptionEntity newSubscriptionEntity);
 
-    SubscriptionEntity create(ExecutionContext executionContext, NewSubscriptionEntity newSubscriptionEntity, String customApiKey);
+    SubscriptionEntity create(
+            ExecutionContext executionContext, NewSubscriptionEntity newSubscriptionEntity, String customApiKey);
 
     SubscriptionEntity create(
-        ExecutionContext executionContext,
-        NewSubscriptionEntity newSubscriptionEntity,
-        String customApiKey,
-        String customId
-    );
+            ExecutionContext executionContext,
+            NewSubscriptionEntity newSubscriptionEntity,
+            String customApiKey,
+            String customId);
 
     SubscriptionEntity update(ExecutionContext executionContext, UpdateSubscriptionEntity subscription);
 
     SubscriptionEntity update(
-        ExecutionContext executionContext,
-        UpdateSubscriptionEntity updateSubscription,
-        Consumer<Subscription> subscriptionTransformer
-    );
+            ExecutionContext executionContext,
+            UpdateSubscriptionEntity updateSubscription,
+            Consumer<Subscription> subscriptionTransformer);
 
     SubscriptionEntity update(
-        ExecutionContext executionContext,
-        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity
-    );
+            ExecutionContext executionContext,
+            UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity);
 
     SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
 
     SubscriptionEntity pauseConsumer(ExecutionContext executionContext, String subscription);
+
     SubscriptionEntity pause(ExecutionContext executionContext, String subscription);
 
     SubscriptionEntity resumeConsumer(ExecutionContext executionContext, String subscriptionId);
+
     SubscriptionEntity resumeFailed(ExecutionContext executionContext, String subscriptionId);
 
     SubscriptionEntity resume(ExecutionContext executionContext, String subscription);
@@ -102,16 +103,16 @@ public interface SubscriptionService {
     Page<SubscriptionEntity> search(ExecutionContext executionContext, SubscriptionQuery query, Pageable pageable);
 
     Page<SubscriptionEntity> search(
-        ExecutionContext executionContext,
-        SubscriptionQuery query,
-        Pageable pageable,
-        boolean fillApiKeys,
-        boolean fillPlansSecurityType
-    );
+            ExecutionContext executionContext,
+            SubscriptionQuery query,
+            Pageable pageable,
+            boolean fillApiKeys,
+            boolean fillPlansSecurityType);
 
     Metadata getMetadata(ExecutionContext executionContext, SubscriptionMetadataQuery query);
 
-    SubscriptionEntity transfer(ExecutionContext executionContext, TransferSubscriptionEntity transferSubscription, String userId);
+    SubscriptionEntity transfer(
+            ExecutionContext executionContext, TransferSubscriptionEntity transferSubscription, String userId);
 
     String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata);
 
@@ -121,5 +122,6 @@ public interface SubscriptionService {
 
     List<SubscribedReference> getSubscribedReferences(ExecutionContext executionContext, String applicationId);
 
-    Optional<ReferenceDisplayInfo> getReferenceDisplayInfo(ExecutionContext executionContext, String referenceType, String referenceId);
+    Optional<ReferenceDisplayInfo> getReferenceDisplayInfo(
+            ExecutionContext executionContext, String referenceType, String referenceId);
 }

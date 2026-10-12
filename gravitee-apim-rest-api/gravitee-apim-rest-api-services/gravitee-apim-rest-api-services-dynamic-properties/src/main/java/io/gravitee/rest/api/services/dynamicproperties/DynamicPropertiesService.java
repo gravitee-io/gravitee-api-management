@@ -89,7 +89,8 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     @Override
     public void onEvent(Event<ApiEvent, Api> event) {
         final Api eventPayload = event.content();
-        if (eventPayload.getDefinitionVersion() != null && eventPayload.getDefinitionVersion() == DefinitionVersion.V4) {
+        if (eventPayload.getDefinitionVersion() != null
+                && eventPayload.getDefinitionVersion() == DefinitionVersion.V4) {
             return;
         }
         ApiEntity apiEntity = convert(eventPayload);
@@ -106,19 +107,19 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     }
 
     private void update(ApiEntity api) {
-        final ApiEntity currentApi = schedulers
-            .keySet()
-            .stream()
-            .filter(entity -> entity.equals(api))
-            .findFirst()
-            .orElse(null);
+        final ApiEntity currentApi = schedulers.keySet().stream()
+                .filter(entity -> entity.equals(api))
+                .findFirst()
+                .orElse(null);
 
         if (currentApi == null) {
             // There is no dynamic properties handler for this api, start the dynamic properties.
             startDynamicProperties(api);
         } else {
-            // We need to check if the dynamic properties has changed. If that is the case, stop en start the dynamic properties handler.
-            DynamicPropertyService currentDynamicPropertyService = currentApi.getServices().get(DynamicPropertyService.class);
+            // We need to check if the dynamic properties has changed. If that is the case, stop en start the dynamic
+            // properties handler.
+            DynamicPropertyService currentDynamicPropertyService =
+                    currentApi.getServices().get(DynamicPropertyService.class);
             DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
 
             if (currentDynamicPropertyService != null) {
@@ -142,23 +143,31 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
         }
         DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
         if (dynamicPropertyService == null || !dynamicPropertyService.isEnabled()) {
-            log.info("{} Dynamic properties service is disabled for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
+            log.info(
+                    "{} Dynamic properties service is disabled for API: {} [{}]",
+                    api.getId(),
+                    api.getName(),
+                    api.getVersion());
             return;
         }
 
         EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
         DynamicPropertyScheduler scheduler = DynamicPropertyScheduler.builder()
-            .clusterManager(clusterManager)
-            .schedule(dynamicPropertyService.getSchedule())
-            .api(api)
-            .apiConverter(apiConverter)
-            .apiService(apiService)
-            .executionContext(executionContext)
-            .build();
+                .clusterManager(clusterManager)
+                .schedule(dynamicPropertyService.getSchedule())
+                .api(api)
+                .apiConverter(apiConverter)
+                .apiService(apiService)
+                .executionContext(executionContext)
+                .build();
         if (DynamicPropertyProvider.HTTP == dynamicPropertyService.getProvider()) {
-            HttpProvider provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, node);
-            log.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), dynamicPropertyService.getSchedule());
+            HttpProvider provider =
+                    new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, node);
+            log.info(
+                    "{} Add a scheduled task to poll dynamic properties each {}",
+                    api.getId(),
+                    dynamicPropertyService.getSchedule());
 
             // Force the first refresh, and then run it periodically
             scheduler.schedule(provider);
@@ -169,7 +178,11 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     private void stopDynamicProperties(ApiEntity api) {
         DynamicPropertyScheduler scheduler = schedulers.remove(api);
         if (scheduler != null) {
-            log.info("{} Stopping dynamic properties service for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
+            log.info(
+                    "{} Stopping dynamic properties service for API: {} [{}]",
+                    api.getId(),
+                    api.getName(),
+                    api.getVersion());
             scheduler.cancel();
         }
     }

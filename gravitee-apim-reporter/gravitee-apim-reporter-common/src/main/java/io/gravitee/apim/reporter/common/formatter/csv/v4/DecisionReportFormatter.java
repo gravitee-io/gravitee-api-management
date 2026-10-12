@@ -56,16 +56,26 @@ public class DecisionReportFormatter extends SingleValueFormatter<DecisionReport
         appendString(buffer, data.getResourceId());
         appendString(buffer, data.getArgsHash());
 
-        appendString(buffer, data.getOutcome() == null ? null : data.getOutcome().getLabel());
-        appendString(buffer, data.getEnforced() == null ? null : data.getEnforced().getLabel());
+        appendString(
+                buffer, data.getOutcome() == null ? null : data.getOutcome().getLabel());
+        appendString(
+                buffer, data.getEnforced() == null ? null : data.getEnforced().getLabel());
         appendString(buffer, data.getVerdict());
-        appendString(buffer, data.getIndeterminateCause() == null ? null : data.getIndeterminateCause().getLabel());
+        appendString(
+                buffer,
+                data.getIndeterminateCause() == null
+                        ? null
+                        : data.getIndeterminateCause().getLabel());
         appendString(buffer, data.getConfidence() == null ? null : String.valueOf(data.getConfidence()));
         appendString(buffer, join(data.getReasons()));
         appendString(buffer, joinRuleNames(data));
 
         appendString(buffer, data.getTransformed() == null ? null : String.valueOf(data.getTransformed()));
-        appendString(buffer, data.getTransformationType() == null ? null : data.getTransformationType().getLabel());
+        appendString(
+                buffer,
+                data.getTransformationType() == null
+                        ? null
+                        : data.getTransformationType().getLabel());
 
         appendString(buffer, data.getRequiredApprover());
         appendString(buffer, data.getDeciderType());
@@ -90,12 +100,10 @@ public class DecisionReportFormatter extends SingleValueFormatter<DecisionReport
         if (data.getMatchedRules() == null || data.getMatchedRules().isEmpty()) {
             return null;
         }
-        String collect = data
-            .getMatchedRules()
-            .stream()
-            .map(DecisionReport.MatchedRule::name)
-            .filter(Objects::nonNull)
-            .collect(Collectors.joining(LIST_SEPARATOR));
+        String collect = data.getMatchedRules().stream()
+                .map(DecisionReport.MatchedRule::name)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(LIST_SEPARATOR));
         return collect.isBlank() ? null : collect;
     }
 

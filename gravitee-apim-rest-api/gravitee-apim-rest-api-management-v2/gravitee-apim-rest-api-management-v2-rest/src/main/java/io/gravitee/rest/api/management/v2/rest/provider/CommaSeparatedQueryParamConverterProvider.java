@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.provider;
 
 import jakarta.annotation.Nonnull;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.ParamConverter;
 import jakarta.ws.rs.ext.ParamConverterProvider;
 import jakarta.ws.rs.ext.Provider;
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.glassfish.jersey.internal.inject.InjectionManager;
-import org.glassfish.jersey.internal.inject.ParamConverters;
 import org.glassfish.jersey.internal.inject.Providers;
 
 /**
@@ -43,7 +41,7 @@ import org.glassfish.jersey.internal.inject.Providers;
  * @author GraviteeSource Team
  */
 @Provider
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class CommaSeparatedQueryParamConverterProvider implements ParamConverterProvider {
 
     @Inject
@@ -52,7 +50,8 @@ public class CommaSeparatedQueryParamConverterProvider implements ParamConverter
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
         if (List.class.isAssignableFrom(rawType) || Set.class.isAssignableFrom(rawType)) {
-            final boolean nonNull = Stream.of(annotations).anyMatch(annotation -> Nonnull.class == annotation.annotationType());
+            final boolean nonNull =
+                    Stream.of(annotations).anyMatch(annotation -> Nonnull.class == annotation.annotationType());
 
             final Type actualTypeArgument = ((ParameterizedType) genericType).getActualTypeArguments()[0];
             var providers = Providers.getProviders(injectionManager, ParamConverterProvider.class);
@@ -60,7 +59,8 @@ public class CommaSeparatedQueryParamConverterProvider implements ParamConverter
             for (ParamConverterProvider provider : providers) {
                 var converter = provider.getConverter((Class<?>) actualTypeArgument, genericType, annotations);
                 if (converter != null) {
-                    return (ParamConverter<T>) new CommaSeparatedQueryParamConverter(collectorFromRawType(rawType), converter, nonNull);
+                    return (ParamConverter<T>)
+                            new CommaSeparatedQueryParamConverter(collectorFromRawType(rawType), converter, nonNull);
                 }
             }
         }
@@ -77,7 +77,8 @@ public class CommaSeparatedQueryParamConverterProvider implements ParamConverter
     }
 
     @AllArgsConstructor
-    private static class CommaSeparatedQueryParamConverter<U extends Type, T extends Collection<U>> implements ParamConverter<T> {
+    private static class CommaSeparatedQueryParamConverter<U extends Type, T extends Collection<U>>
+            implements ParamConverter<T> {
 
         private static final Pattern SEPARATOR_PATTERN = Pattern.compile(",\\s*");
 
@@ -93,7 +94,9 @@ public class CommaSeparatedQueryParamConverterProvider implements ParamConverter
                 }
                 return null;
             }
-            return Stream.of(SEPARATOR_PATTERN.split(value)).map(converter::fromString).collect(collector);
+            return Stream.of(SEPARATOR_PATTERN.split(value))
+                    .map(converter::fromString)
+                    .collect(collector);
         }
 
         @Override

@@ -18,10 +18,9 @@ package io.gravitee.rest.api.kafkaexplorer.domain.model;
 import java.util.List;
 
 public record ConsumerGroupDetail(
-    String groupId,
-    String state,
-    KafkaNode coordinator,
-    String partitionAssignor,
-    List<ConsumerGroupMember> members,
-    List<ConsumerGroupOffset> offsets
-) {}
+        String groupId,
+        String state,
+        KafkaNode coordinator,
+        String partitionAssignor,
+        List<ConsumerGroupMember> members,
+        List<ConsumerGroupOffset> offsets) {}

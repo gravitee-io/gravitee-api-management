@@ -52,23 +52,24 @@ public class PlanKeylessJwtV4IntegrationTest {
         final Api apiDefinition = (Api) api.getDefinition();
         configurePlans(apiDefinition, Set.of("key-less", "jwt"));
         if (api.getId().endsWith("-selection-rule")) {
-            io.gravitee.definition.model.v4.plan.Plan jwtPlan = apiDefinition
-                .getPlans()
-                .stream()
-                .filter(plan -> plan.getSecurity().getType().equals("jwt"))
-                .findFirst()
-                .get();
+            io.gravitee.definition.model.v4.plan.Plan jwtPlan = apiDefinition.getPlans().stream()
+                    .filter(plan -> plan.getSecurity().getType().equals("jwt"))
+                    .findFirst()
+                    .get();
             jwtPlan.setSelectionRule("#context.attributes['jwt'].claims['aud'][0] != '" + CUSTOM_AUDIENCE + "'");
         }
     }
 
     public static void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     public static void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
@@ -81,7 +82,7 @@ public class PlanKeylessJwtV4IntegrationTest {
     }
 
     @Nested
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectJwtTest extends PlanKeylessJwtV4EmulationIntegrationTest.AbstractSelectJwtTest {
 
         @Override
@@ -111,7 +112,7 @@ public class PlanKeylessJwtV4IntegrationTest {
     }
 
     @Nested
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectKeylessTest extends PlanKeylessJwtV4EmulationIntegrationTest.AbstractSelectKeylessTest {
 
         @Override
@@ -141,8 +142,11 @@ public class PlanKeylessJwtV4IntegrationTest {
 
         @ParameterizedTest
         @MethodSource("provideSelectionRuleApis")
-        @DeployApi(value = { "/apis/plan/v4-proxy-api-selection-rule.json", "/apis/plan/v4-message-api-selection-rule.json" })
-        void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client) throws Exception {
+        @DeployApi(
+                value = {"/apis/plan/v4-proxy-api-selection-rule.json", "/apis/plan/v4-message-api-selection-rule.json"
+                })
+        void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client)
+                throws Exception {
             expect_return_200_success_when_selection_rules_on_jwt_doesnt_match(apiId, client);
         }
     }

@@ -36,7 +36,8 @@ public class SearchAuditDomainService {
     private final AuditQueryService auditQueryService;
     private final AuditMetadataQueryService auditMetadataQueryService;
 
-    public SearchAuditDomainService(AuditQueryService auditQueryService, AuditMetadataQueryService auditMetadataQueryService) {
+    public SearchAuditDomainService(
+            AuditQueryService auditQueryService, AuditMetadataQueryService auditMetadataQueryService) {
         this.auditQueryService = auditQueryService;
         this.auditMetadataQueryService = auditMetadataQueryService;
     }
@@ -45,23 +46,21 @@ public class SearchAuditDomainService {
         var response = auditQueryService.searchApiAudit(query, pageable);
 
         return new MetadataPage<>(
-            response.audits(),
-            pageable.getPageNumber(),
-            pageable.getPageSize(),
-            response.total(),
-            buildMetadata(response.audits())
-        );
+                response.audits(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                response.total(),
+                buildMetadata(response.audits()));
     }
 
     public MetadataPage<AuditEntity> searchApiProductAudit(ApiProductAuditQueryFilters query, Pageable pageable) {
         var response = auditQueryService.searchApiProductAudit(query, pageable);
         return new MetadataPage<>(
-            response.audits(),
-            pageable.getPageNumber(),
-            pageable.getPageSize(),
-            response.total(),
-            buildMetadata(response.audits())
-        );
+                response.audits(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                response.total(),
+                buildMetadata(response.audits()));
     }
 
     private Map<String, String> buildMetadata(List<AuditEntity> audits) {
@@ -82,9 +81,9 @@ public class SearchAuditDomainService {
                     var propertyMetadataKey = nameMetadataKey(property.getKey(), property.getValue());
                     if (!metadata.containsKey(propertyMetadataKey)) {
                         metadata.put(
-                            propertyMetadataKey,
-                            auditMetadataQueryService.fetchPropertyMetadata(audit, property.getKey(), property.getValue())
-                        );
+                                propertyMetadataKey,
+                                auditMetadataQueryService.fetchPropertyMetadata(
+                                        audit, property.getKey(), property.getValue()));
                     }
                 }
             }
@@ -100,8 +99,8 @@ public class SearchAuditDomainService {
      */
     private String fetchReferenceName(AuditEntity audit) {
         return audit.getReferenceType() == AuditEntity.AuditReferenceType.API
-            ? auditMetadataQueryService.fetchApiNameMetadata(audit.getReferenceId())
-            : audit.getReferenceId();
+                ? auditMetadataQueryService.fetchApiNameMetadata(audit.getReferenceId())
+                : audit.getReferenceId();
     }
 
     public static String nameMetadataKey(String type, String value) {

@@ -74,9 +74,12 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
     public void shouldReturn404WhenApplicationNotFoundForUser() {
         // applicationService.search returns empty page
         Page<ApplicationListItem> emptyPage = new Page<>(Collections.emptyList(), 1, 1, 0);
-        doReturn(emptyPage).when(applicationService).search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), any());
+        doReturn(emptyPage)
+                .when(applicationService)
+                .search(eq(GraviteeContext.getExecutionContext()), any(), isNull(), any());
 
-        final Response response = target(APPLICATION_ID).path("subscribers").request().get();
+        final Response response =
+                target(APPLICATION_ID).path("subscribers").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -91,12 +94,17 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         ApplicationListItem app = buildAppItem(APPLICATION_ID, "someone-else");
         Page<ApplicationListItem> page = new Page<>(Collections.singletonList(app), 1, 1, 1);
         doReturn(page)
-            .when(applicationService)
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(q -> q.getIds().contains(APPLICATION_ID)), isNull(), any());
+                .when(applicationService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(q -> q.getIds().contains(APPLICATION_ID)),
+                        isNull(),
+                        any());
 
         doReturn(Collections.emptySet()).when(apiAuthorizationService).findAccessibleApiIdsForUser(any(), any());
 
-        final Response response = target(APPLICATION_ID).path("subscribers").request().get();
+        final Response response =
+                target(APPLICATION_ID).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
         ApisResponse apisResponse = response.readEntity(ApisResponse.class);
         assertNotNull(apisResponse);
@@ -110,13 +118,17 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         ApplicationListItem app = buildAppItem(APPLICATION_ID, "owner-other");
         Page<ApplicationListItem> page = new Page<>(Collections.singletonList(app), 1, 1, 1);
         doReturn(page)
-            .when(applicationService)
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(q -> q.getIds().contains(APPLICATION_ID)), isNull(), any());
+                .when(applicationService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(q -> q.getIds().contains(APPLICATION_ID)),
+                        isNull(),
+                        any());
 
         Set<String> accessibleApis = new HashSet<>(Arrays.asList("api-1", "api-2"));
         doReturn(accessibleApis)
-            .when(apiAuthorizationService)
-            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), anyString());
+                .when(apiAuthorizationService)
+                .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), anyString());
 
         SubscriptionEntity s1 = new SubscriptionEntity();
         s1.setApi("api-1");
@@ -128,25 +140,31 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         s2.setReferenceId("api-2");
         s2.setApplication(APPLICATION_ID);
         s2.setStatus(SubscriptionStatus.ACCEPTED);
-        doReturn(Arrays.asList(s1, s2)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Arrays.asList(s1, s2))
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
         TopHitsAnalytics analytics = new TopHitsAnalytics();
         Map<String, Long> values = new HashMap<>();
         values.put("api-1", 5L);
         values.put("api-2", 10L);
         analytics.setValues(values);
-        doReturn(analytics).when(analyticsService).execute(eq(GraviteeContext.getExecutionContext()), any(GroupByQuery.class));
+        doReturn(analytics)
+                .when(analyticsService)
+                .execute(eq(GraviteeContext.getExecutionContext()), any(GroupByQuery.class));
 
         io.gravitee.rest.api.model.v4.api.ApiEntity api1 = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api1.setId("api-1");
         io.gravitee.rest.api.model.v4.api.ApiEntity api2 = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api2.setId("api-2");
         doReturn(api1)
-            .when(apiSearchService)
-            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-1"), eq(false), eq(false), eq(true));
+                .when(apiSearchService)
+                .findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq("api-1"), eq(false), eq(false), eq(true));
         doReturn(api2)
-            .when(apiSearchService)
-            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-2"), eq(false), eq(false), eq(true));
+                .when(apiSearchService)
+                .findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq("api-2"), eq(false), eq(false), eq(true));
 
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         Api mapped1 = new Api().id("api-1").name("API 1").updatedAt(now);
@@ -155,10 +173,10 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         doReturn(mapped2).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(api2));
 
         final Response response = target(APPLICATION_ID)
-            .path("subscribers")
-            .queryParam("statuses", SubscriptionStatus.ACCEPTED.name())
-            .request()
-            .get();
+                .path("subscribers")
+                .queryParam("statuses", SubscriptionStatus.ACCEPTED.name())
+                .request()
+                .get();
         assertEquals(OK_200, response.getStatus());
 
         ArgumentCaptor<SubscriptionQuery> captor = ArgumentCaptor.forClass(SubscriptionQuery.class);
@@ -185,12 +203,18 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         ApplicationListItem app = buildAppItem(APPLICATION_ID, USER_NAME);
         Page<ApplicationListItem> page = new Page<>(Collections.singletonList(app), 1, 1, 1);
         doReturn(page)
-            .when(applicationService)
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(q -> q.getIds().contains(APPLICATION_ID)), isNull(), any());
+                .when(applicationService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(q -> q.getIds().contains(APPLICATION_ID)),
+                        isNull(),
+                        any());
 
         TopHitsAnalytics emptyAnalytics = new TopHitsAnalytics();
         emptyAnalytics.setValues(new HashMap<>());
-        doReturn(emptyAnalytics).when(analyticsService).execute(eq(GraviteeContext.getExecutionContext()), any(GroupByQuery.class));
+        doReturn(emptyAnalytics)
+                .when(analyticsService)
+                .execute(eq(GraviteeContext.getExecutionContext()), any(GroupByQuery.class));
 
         SubscriptionEntity s1 = new SubscriptionEntity();
         s1.setApi("api-A");
@@ -200,25 +224,30 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         s2.setApi("api-B");
         s2.setReferenceId("api-B");
         s2.setApplication(APPLICATION_ID);
-        doReturn(Arrays.asList(s2, s1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Arrays.asList(s2, s1))
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
         io.gravitee.rest.api.model.v4.api.ApiEntity apiA = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiA.setId("api-A");
         io.gravitee.rest.api.model.v4.api.ApiEntity apiB = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiB.setId("api-B");
         doReturn(apiA)
-            .when(apiSearchService)
-            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-A"), eq(false), eq(false), eq(true));
+                .when(apiSearchService)
+                .findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq("api-A"), eq(false), eq(false), eq(true));
         doReturn(apiB)
-            .when(apiSearchService)
-            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-B"), eq(false), eq(false), eq(true));
+                .when(apiSearchService)
+                .findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq("api-B"), eq(false), eq(false), eq(true));
 
         Api mappedA = new Api().id("api-A").name("AAA");
         Api mappedB = new Api().id("api-B").name("BBB");
         doReturn(mappedA).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(apiA));
         doReturn(mappedB).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(apiB));
 
-        final Response response = target(APPLICATION_ID).path("subscribers").request().get();
+        final Response response =
+                target(APPLICATION_ID).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
         ApisResponse apisResponse = response.readEntity(ApisResponse.class);
         assertEquals(2, apisResponse.getData().size());
@@ -231,12 +260,18 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         ApplicationListItem app = buildAppItem(APPLICATION_ID, USER_NAME);
         Page<ApplicationListItem> page = new Page<>(Collections.singletonList(app), 1, 1, 1);
         doReturn(page)
-            .when(applicationService)
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(q -> q.getIds().contains(APPLICATION_ID)), isNull(), any());
+                .when(applicationService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(q -> q.getIds().contains(APPLICATION_ID)),
+                        isNull(),
+                        any());
 
         TopHitsAnalytics emptyAnalytics = new TopHitsAnalytics();
         emptyAnalytics.setValues(new HashMap<>());
-        doReturn(emptyAnalytics).when(analyticsService).execute(eq(GraviteeContext.getExecutionContext()), any(GroupByQuery.class));
+        doReturn(emptyAnalytics)
+                .when(analyticsService)
+                .execute(eq(GraviteeContext.getExecutionContext()), any(GroupByQuery.class));
 
         SubscriptionEntity apiSub = new SubscriptionEntity();
         apiSub.setReferenceId("api-only");
@@ -245,17 +280,21 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         apiProductSub.setReferenceId("api-product-id");
         apiProductSub.setReferenceType("API_PRODUCT");
         apiProductSub.setApplication(APPLICATION_ID);
-        doReturn(Arrays.asList(apiSub, apiProductSub)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Arrays.asList(apiSub, apiProductSub))
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
         io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiEntity.setId("api-only");
         doReturn(apiEntity)
-            .when(apiSearchService)
-            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-only"), eq(false), eq(false), eq(true));
+                .when(apiSearchService)
+                .findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq("api-only"), eq(false), eq(false), eq(true));
         Api mappedApi = new Api().id("api-only").name("API Only");
         doReturn(mappedApi).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
 
-        final Response response = target(APPLICATION_ID).path("subscribers").request().get();
+        final Response response =
+                target(APPLICATION_ID).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
         ApisResponse apisResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apisResponse.getData().size());

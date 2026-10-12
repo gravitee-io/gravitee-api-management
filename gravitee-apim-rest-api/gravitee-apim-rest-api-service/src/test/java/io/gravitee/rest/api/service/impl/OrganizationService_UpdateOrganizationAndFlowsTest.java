@@ -94,7 +94,9 @@ public class OrganizationService_UpdateOrganizationAndFlowsTest {
 
         List<Flow> previousFlows = Collections.emptyList();
         List<Flow> newFlows = List.of(mock(Flow.class));
-        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, ORG_ID)).thenReturn(previousFlows).thenReturn(newFlows);
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, ORG_ID))
+                .thenReturn(previousFlows)
+                .thenReturn(newFlows);
 
         UpdateOrganizationEntity updateEntity = new UpdateOrganizationEntity();
         updateEntity.setName("My Org");
@@ -113,14 +115,12 @@ public class OrganizationService_UpdateOrganizationAndFlowsTest {
 
         assertNotNull(result);
         verify(mockFlowService).save(FlowReferenceType.ORGANIZATION, ORG_ID, newFlows);
-        verify(mockAuditService).createOrganizationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> {
-                assertEquals(Organization.AuditEvent.ORGANIZATION_FLOWS_UPDATED, auditLogData.getEvent());
-                assertEquals(Collections.singletonMap("flows", previousFlows), auditLogData.getOldValue());
-                assertEquals(Collections.singletonMap("flows", newFlows), auditLogData.getNewValue());
-                return true;
-            })
-        );
+        verify(mockAuditService)
+                .createOrganizationAuditLog(eq(GraviteeContext.getExecutionContext()), argThat(auditLogData -> {
+                    assertEquals(Organization.AuditEvent.ORGANIZATION_FLOWS_UPDATED, auditLogData.getEvent());
+                    assertEquals(Collections.singletonMap("flows", previousFlows), auditLogData.getOldValue());
+                    assertEquals(Collections.singletonMap("flows", newFlows), auditLogData.getNewValue());
+                    return true;
+                }));
     }
 }

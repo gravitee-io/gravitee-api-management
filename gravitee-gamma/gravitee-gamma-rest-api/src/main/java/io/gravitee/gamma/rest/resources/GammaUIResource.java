@@ -17,7 +17,6 @@ package io.gravitee.gamma.rest.resources;
 
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.bootstrap.ManagementUIBootstrapEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +33,6 @@ import jakarta.ws.rs.core.Response;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.ForwardedHeaderUtils;
-import org.springframework.web.util.UriComponents;
 
 @Path("/ui")
 public class GammaUIResource {
@@ -47,41 +45,42 @@ public class GammaUIResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the Gamma ControlPlane bootstrap", description = "Every users can use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Gamma ControlPlane bootstrap information",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = GammaBootstrap.class))
-    )
+            responseCode = "200",
+            description = "Gamma ControlPlane bootstrap information",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = GammaBootstrap.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response bootstrap(
-        @Context final HttpServletRequest httpServletRequest,
-        @QueryParam("organizationId") final String enforceOrganizationId
-    ) {
+            @Context final HttpServletRequest httpServletRequest,
+            @QueryParam("organizationId") final String enforceOrganizationId) {
         String organizationId;
         if (enforceOrganizationId != null) {
             organizationId = enforceOrganizationId;
         } else {
             organizationId = GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization();
+                    ? GraviteeContext.getCurrentOrganization()
+                    : GraviteeContext.getDefaultOrganization();
         }
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
 
         String gammaApiUrl = installationAccessQueryService.getGammaAPIUrl(organizationId);
         if (gammaApiUrl == null) {
             gammaApiUrl = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())
-                .replacePath(installationAccessQueryService.getGammaApiPath())
-                .replaceQuery(null)
-                .build()
-                .toUriString();
+                    .replacePath(installationAccessQueryService.getGammaApiPath())
+                    .replaceQuery(null)
+                    .build()
+                    .toUriString();
         }
 
         String managementApiUrl = installationAccessQueryService.getGammaManagementAPIUrl(organizationId);
         if (managementApiUrl == null) {
             managementApiUrl = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())
-                .replacePath(installationAccessQueryService.getConsoleApiPath())
-                .replaceQuery(null)
-                .build()
-                .toUriString();
+                    .replacePath(installationAccessQueryService.getConsoleApiPath())
+                    .replaceQuery(null)
+                    .build()
+                    .toUriString();
         }
 
         String consoleUrl = installationAccessQueryService.getConsoleUrl(organizationId);
@@ -89,8 +88,10 @@ public class GammaUIResource {
             consoleUrl = InstallationAccessQueryService.DEFAULT_CONSOLE_URL;
         }
 
-        return Response.ok(new GammaBootstrap(gammaApiUrl, managementApiUrl, organizationId, consoleUrl)).build();
+        return Response.ok(new GammaBootstrap(gammaApiUrl, managementApiUrl, organizationId, consoleUrl))
+                .build();
     }
 
-    public record GammaBootstrap(String gammaBaseURL, String managementBaseURL, String organizationId, String consoleUrl) {}
+    public record GammaBootstrap(
+            String gammaBaseURL, String managementBaseURL, String organizationId, String consoleUrl) {}
 }

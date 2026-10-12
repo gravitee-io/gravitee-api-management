@@ -62,18 +62,20 @@ public class FlowChain implements Hookable<ChainHook> {
     private final boolean interruptIfNoMatch;
     private List<ChainHook> hooks;
 
-    public FlowChain(final String id, final FlowResolver flowResolver, final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory) {
+    public FlowChain(
+            final String id,
+            final FlowResolver flowResolver,
+            final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory) {
         this(id, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, false, false);
     }
 
     public FlowChain(
-        final String id,
-        final FlowResolver flowResolver,
-        final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory,
-        final ConditionFilter<BaseExecutionContext, Flow> conditionFilter,
-        final boolean validateFlowMatching,
-        final boolean interruptIfNoMatch
-    ) {
+            final String id,
+            final FlowResolver flowResolver,
+            final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory,
+            final ConditionFilter<BaseExecutionContext, Flow> conditionFilter,
+            final boolean validateFlowMatching,
+            final boolean interruptIfNoMatch) {
         this.id = id;
         this.flowResolver = flowResolver;
         this.resolvedFlowAttribute = "flow." + id;
@@ -107,19 +109,21 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     public Completable execute(HttpExecutionContext ctx, ExecutionPhase phase) {
         return Completable.defer(() -> {
-            final List<Flow> alreadyExecutedFlows = ctx.getInternalAttribute(resolvedFlowAttribute);
+                    final List<Flow> alreadyExecutedFlows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
-            return alreadyExecutedFlows != null
-                ? replayExecutedFlows(ctx, phase, alreadyExecutedFlows)
-                : resolveAndExecuteFlows(ctx, phase);
-        }).doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
+                    return alreadyExecutedFlows != null
+                            ? replayExecutedFlows(ctx, phase, alreadyExecutedFlows)
+                            : resolveAndExecuteFlows(ctx, phase);
+                })
+                .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
 
     /**
      * Replays, in the same order, the flows a previous phase has executed. Their condition is not evaluated again:
      * it is evaluated once for the whole chain, and the outcome then applies to every phase.
      */
-    private Completable replayExecutedFlows(final HttpExecutionContext ctx, final ExecutionPhase phase, final List<Flow> executedFlows) {
+    private Completable replayExecutedFlows(
+            final HttpExecutionContext ctx, final ExecutionPhase phase, final List<Flow> executedFlows) {
         return Flowable.fromIterable(executedFlows).concatMapCompletable(flow -> executeFlow(ctx, flow, phase));
     }
 
@@ -136,8 +140,8 @@ public class FlowChain implements Hookable<ChainHook> {
         final Flowable<Flow> resolvedFlows = flowResolver.resolve(ctx);
 
         return resolvedFlows
-            .concatMapCompletable(flow -> executeFlowIfConditionMatches(ctx, flow, phase, executedFlows))
-            .andThen(Completable.defer(() -> interruptIfNoFlowExecuted(ctx, phase, executedFlows.isEmpty())));
+                .concatMapCompletable(flow -> executeFlowIfConditionMatches(ctx, flow, phase, executedFlows))
+                .andThen(Completable.defer(() -> interruptIfNoFlowExecuted(ctx, phase, executedFlows.isEmpty())));
     }
 
     /**
@@ -146,24 +150,18 @@ public class FlowChain implements Hookable<ChainHook> {
      * previous flow of the chain has fully completed.
      */
     private Completable executeFlowIfConditionMatches(
-        final HttpExecutionContext ctx,
-        final Flow flow,
-        final ExecutionPhase phase,
-        final List<Flow> executedFlows
-    ) {
-        return conditionFilter
-            .filter(ctx, flow)
-            .flatMapCompletable(matchedFlow -> {
-                executedFlows.add(matchedFlow);
-                return executeFlow(ctx, matchedFlow, phase);
-            });
+            final HttpExecutionContext ctx,
+            final Flow flow,
+            final ExecutionPhase phase,
+            final List<Flow> executedFlows) {
+        return conditionFilter.filter(ctx, flow).flatMapCompletable(matchedFlow -> {
+            executedFlows.add(matchedFlow);
+            return executeFlow(ctx, matchedFlow, phase);
+        });
     }
 
     private Completable interruptIfNoFlowExecuted(
-        final HttpExecutionContext ctx,
-        final ExecutionPhase phase,
-        final boolean noFlowExecuted
-    ) {
+            final HttpExecutionContext ctx, final ExecutionPhase phase, final boolean noFlowExecuted) {
         // Chains sharing the same request report whether any of them matched a flow, so that the last one can
         // interrupt with a 404 when none did. Only the request phase feeds that decision.
         if (!noFlowExecuted || !validateFlowMatching || ExecutionPhase.REQUEST != phase) {
@@ -181,7 +179,8 @@ public class FlowChain implements Hookable<ChainHook> {
 
         if (interruptIfNoMatch && !flowsMatch) {
             ctx.withLogger(log).debug("No flow matched for chain [{}], interrupting with 404", id);
-            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE));
+            return ctx.interruptWith(
+                    new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE));
         }
 
         return Completable.complete();
@@ -218,8 +217,8 @@ public class FlowChain implements Hookable<ChainHook> {
     private @NonNull Completable executeFlow0(HttpExecutionContext ctx, Flow flow, ExecutionPhase phase) {
         final HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
 
-        return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase).doOnSubscribe(subscription ->
-            ctx.withLogger(log).debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
-        );
+        return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)
+                .doOnSubscribe(subscription -> ctx.withLogger(log)
+                        .debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()));
     }
 }

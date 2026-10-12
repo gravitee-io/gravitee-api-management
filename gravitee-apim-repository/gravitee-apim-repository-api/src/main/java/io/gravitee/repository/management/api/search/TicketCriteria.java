@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import io.gravitee.repository.analytics.query.Sort;
-
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team

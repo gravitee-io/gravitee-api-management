@@ -31,25 +31,24 @@ public class SearchApplicationInvitationsUseCase {
     private final InvitationQueryService invitationQueryService;
 
     public SearchApplicationInvitationsUseCase(
-        ApplicationCrudService applicationCrudService,
-        InvitationQueryService invitationQueryService
-    ) {
+            ApplicationCrudService applicationCrudService, InvitationQueryService invitationQueryService) {
         this.applicationCrudService = applicationCrudService;
         this.invitationQueryService = invitationQueryService;
     }
 
     public Output execute(Input input) {
-        applicationCrudService.findById(input.applicationId(), input.executionContext().getEnvironmentId());
+        applicationCrudService.findById(
+                input.applicationId(), input.executionContext().getEnvironmentId());
 
-        return new Output(invitationQueryService.findByApplicationId(input.applicationId(), input.criteria(), input.pageable()));
+        return new Output(
+                invitationQueryService.findByApplicationId(input.applicationId(), input.criteria(), input.pageable()));
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        String applicationId,
-        SearchApplicationInvitationsCriteria criteria,
-        Pageable pageable
-    ) {}
+            ExecutionContext executionContext,
+            String applicationId,
+            SearchApplicationInvitationsCriteria criteria,
+            Pageable pageable) {}
 
     public record Output(Page<ApplicationInvitation> invitations) {}
 }

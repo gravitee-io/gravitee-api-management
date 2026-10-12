@@ -49,7 +49,7 @@ public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandle
     @Override
     protected EntrypointConnectorPlugin<?, ?> create(final Plugin plugin, final Class<?> pluginClass) {
         Class<? extends EntrypointConnectorConfiguration> configurationClass =
-            new EntrypointConnectorConfigurationClassFinder().lookupFirst(pluginClass);
+                new EntrypointConnectorConfigurationClassFinder().lookupFirst(pluginClass);
 
         return new DefaultEntrypointConnectorPlugin(plugin, pluginClass, configurationClass);
     }
@@ -59,7 +59,8 @@ public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandle
         entrypointPluginManager.register(entrypointConnectorPlugin);
 
         // Once registered, the classloader should be released
-        final ClassLoader policyClassLoader = entrypointConnectorPlugin.connectorFactory().getClassLoader();
+        final ClassLoader policyClassLoader =
+                entrypointConnectorPlugin.connectorFactory().getClassLoader();
 
         if (policyClassLoader instanceof URLClassLoader) {
             URLClassLoader classLoader = (URLClassLoader) policyClassLoader;

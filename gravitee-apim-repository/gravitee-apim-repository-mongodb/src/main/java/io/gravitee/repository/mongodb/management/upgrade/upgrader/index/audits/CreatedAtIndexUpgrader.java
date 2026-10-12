@@ -28,9 +28,9 @@ public class CreatedAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("audits")
-            .name("c1")
-            .key("createdAt", ascending())
-            .build();
+                .collection("audits")
+                .name("c1")
+                .key("createdAt", ascending())
+                .build();
     }
 }

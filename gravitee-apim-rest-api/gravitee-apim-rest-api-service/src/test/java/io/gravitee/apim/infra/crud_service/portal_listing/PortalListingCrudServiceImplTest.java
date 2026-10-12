@@ -77,8 +77,9 @@ class PortalListingCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.create(listing));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to create a Portal Listing with id: " + listing.getId());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while trying to create a Portal Listing with id: " + listing.getId());
         }
     }
 
@@ -89,9 +90,8 @@ class PortalListingCrudServiceImplTest {
         @SneakyThrows
         void should_return_listing_and_adapt_it() {
             var listing = PortalListingFixtures.aPortalListing();
-            when(repository.findByIdAndEnvironmentId(listing.getId().toString(), listing.getEnvironmentId())).thenReturn(
-                Optional.of(PortalListingAdapter.INSTANCE.toRepository(listing))
-            );
+            when(repository.findByIdAndEnvironmentId(listing.getId().toString(), listing.getEnvironmentId()))
+                    .thenReturn(Optional.of(PortalListingAdapter.INSTANCE.toRepository(listing)));
 
             var result = service.findByIdAndEnvironmentId(listing.getId(), listing.getEnvironmentId());
 
@@ -104,7 +104,8 @@ class PortalListingCrudServiceImplTest {
         void should_return_empty_when_not_found() {
             when(repository.findByIdAndEnvironmentId(any(), any())).thenReturn(Optional.empty());
 
-            assertThat(service.findByIdAndEnvironmentId(PortalListingFixtures.PORTAL_LISTING_ID, "environment-id")).isEmpty();
+            assertThat(service.findByIdAndEnvironmentId(PortalListingFixtures.PORTAL_LISTING_ID, "environment-id"))
+                    .isEmpty();
         }
 
         @Test
@@ -116,10 +117,9 @@ class PortalListingCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.findByIdAndEnvironmentId(listingId, "environment-id"));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage(
-                    "An error occurred while trying to find a Portal Listing with id (" + listingId + ") in environment (environment-id)"
-                );
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find a Portal Listing with id (" + listingId
+                            + ") in environment (environment-id)");
         }
     }
 
@@ -147,8 +147,9 @@ class PortalListingCrudServiceImplTest {
             var throwable = catchThrowable(() -> service.update(listing));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to update a Portal Listing with id: " + listing.getId());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while trying to update a Portal Listing with id: " + listing.getId());
         }
     }
 
@@ -170,8 +171,8 @@ class PortalListingCrudServiceImplTest {
             doThrow(new TechnicalException("boom")).when(repository).delete(listingId.toString());
 
             assertThatThrownBy(() -> service.delete(listingId))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to delete the Portal Listing with id: " + listingId);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to delete the Portal Listing with id: " + listingId);
         }
     }
 }

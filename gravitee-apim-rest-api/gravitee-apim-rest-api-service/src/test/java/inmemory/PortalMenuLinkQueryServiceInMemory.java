@@ -23,7 +23,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class PortalMenuLinkQueryServiceInMemory implements PortalMenuLinkQueryService, InMemoryAlternative<PortalMenuLink> {
+public class PortalMenuLinkQueryServiceInMemory
+        implements PortalMenuLinkQueryService, InMemoryAlternative<PortalMenuLink> {
 
     ArrayList<PortalMenuLink> storage;
 
@@ -33,20 +34,20 @@ public class PortalMenuLinkQueryServiceInMemory implements PortalMenuLinkQuerySe
 
     @Override
     public List<PortalMenuLink> findByEnvironmentIdSortByOrder(String environmentId) {
-        return storage
-            .stream()
-            .filter(menuLink -> environmentId.equals(menuLink.getEnvironmentId()))
-            .sorted(Comparator.comparingInt(PortalMenuLink::getOrder))
-            .toList();
+        return storage.stream()
+                .filter(menuLink -> environmentId.equals(menuLink.getEnvironmentId()))
+                .sorted(Comparator.comparingInt(PortalMenuLink::getOrder))
+                .toList();
     }
 
     @Override
-    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(String environmentId, PortalMenuLinkVisibility visibility) {
-        return storage
-            .stream()
-            .filter(menuLink -> environmentId.equals(menuLink.getEnvironmentId()) && visibility.equals(menuLink.getVisibility()))
-            .sorted(Comparator.comparingInt(PortalMenuLink::getOrder))
-            .toList();
+    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
+            String environmentId, PortalMenuLinkVisibility visibility) {
+        return storage.stream()
+                .filter(menuLink -> environmentId.equals(menuLink.getEnvironmentId())
+                        && visibility.equals(menuLink.getVisibility()))
+                .sorted(Comparator.comparingInt(PortalMenuLink::getOrder))
+                .toList();
     }
 
     @Override

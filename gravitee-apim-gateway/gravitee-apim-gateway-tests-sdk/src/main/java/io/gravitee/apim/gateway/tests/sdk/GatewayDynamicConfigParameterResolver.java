@@ -27,10 +27,9 @@ import org.junit.jupiter.api.extension.ParameterContext;
 public class GatewayDynamicConfigParameterResolver implements GatewayTestParameterResolver {
 
     private static final Collection<Class<?>> SUPPORTED_TYPES = Set.of(
-        GatewayDynamicConfig.HttpConfig.class,
-        GatewayDynamicConfig.TcpConfig.class,
-        GatewayDynamicConfig.Config.class
-    );
+            GatewayDynamicConfig.HttpConfig.class,
+            GatewayDynamicConfig.TcpConfig.class,
+            GatewayDynamicConfig.Config.class);
 
     @Override
     public boolean supports(ParameterContext parameterContext) {
@@ -38,11 +37,10 @@ public class GatewayDynamicConfigParameterResolver implements GatewayTestParamet
     }
 
     @Override
-    public Object resolve(ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
-        if (
-            extensionContext.getStore(ExtensionContext.Namespace.GLOBAL).get(GATEWAY_DYNAMIC_CONFIG_KEY) instanceof
-                GatewayDynamicConfig.GatewayDynamicConfigImpl config
-        ) {
+    public Object resolve(
+            ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
+        if (extensionContext.getStore(ExtensionContext.Namespace.GLOBAL).get(GATEWAY_DYNAMIC_CONFIG_KEY)
+                instanceof GatewayDynamicConfig.GatewayDynamicConfigImpl config) {
             return config;
         }
         throw new IllegalArgumentException("Gateway seems not deployed");

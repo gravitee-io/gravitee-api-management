@@ -56,7 +56,8 @@ public final class FetcherConfigurationAddress {
         oldNode.fieldNames().forEachRemaining(addressFields::add);
         newNode.fieldNames().forEachRemaining(addressFields::add);
         addressFields.removeIf(field -> !ADDRESS_FIELD.matcher(field).matches());
-        return addressFields.stream().allMatch(field -> Objects.equals(valueOf(oldNode, field), valueOf(newNode, field)));
+        return addressFields.stream()
+                .allMatch(field -> Objects.equals(valueOf(oldNode, field), valueOf(newNode, field)));
     }
 
     private static JsonNode valueOf(JsonNode configuration, String field) {

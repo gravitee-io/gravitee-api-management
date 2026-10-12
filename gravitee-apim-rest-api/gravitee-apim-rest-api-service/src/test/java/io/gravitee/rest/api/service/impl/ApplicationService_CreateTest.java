@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -144,12 +143,14 @@ public class ApplicationService_CreateTest {
     @Mock
     private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
 
-    private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
+    private static final CertificateInfo VALID_CERT_INFO =
+            new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
 
     @BeforeEach
     public void setup() {
         GraviteeContext.cleanContext();
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenReturn(VALID_CERT_INFO);
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any()))
+                .thenReturn(VALID_CERT_INFO);
     }
 
     @Test
@@ -167,19 +168,20 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
 
-        final ApplicationEntity applicationEntity = applicationService.create(
-            GraviteeContext.getExecutionContext(),
-            newApplication,
-            USER_NAME
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
-        verify(applicationRepository).create(argThat(appToCreate -> appToCreate.getGroups().isEmpty()));
+        verify(applicationRepository)
+                .create(argThat(appToCreate -> appToCreate.getGroups().isEmpty()));
     }
 
     @Test
@@ -200,20 +202,20 @@ public class ApplicationService_CreateTest {
 
         GroupEntity defaultGroupToAdd = new GroupEntity();
         defaultGroupToAdd.setId("default-group-to-add");
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Set.of(defaultGroupToAdd));
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Set.of(defaultGroupToAdd));
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
 
-        final ApplicationEntity applicationEntity = applicationService.create(
-            GraviteeContext.getExecutionContext(),
-            newApplication,
-            USER_NAME
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
 
         assertNotNull(applicationEntity);
-        verify(applicationRepository).create(
-            argThat(appToCreate -> appToCreate.getGroups().size() == 1 && appToCreate.getGroups().contains("default-group-to-add"))
-        );
+        verify(applicationRepository)
+                .create(argThat(appToCreate -> appToCreate.getGroups().size() == 1
+                        && appToCreate.getGroups().contains("default-group-to-add")));
     }
 
     @Test
@@ -226,7 +228,8 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(newApplication.getGroups()).thenReturn(Set.of("foreign-group"));
         when(newApplication.getOrigin()).thenReturn(Origin.KUBERNETES);
-        when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any())).thenReturn(Set.of());
+        when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any()))
+                .thenReturn(Set.of());
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
@@ -234,13 +237,17 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
 
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
 
-        verify(groupService).retainGroupsTheCallerMayAssign(any(), eq(USER_NAME), eq(Set.of("foreign-group")), eq(Set.of()));
+        verify(groupService)
+                .retainGroupsTheCallerMayAssign(any(), eq(USER_NAME), eq(Set.of("foreign-group")), eq(Set.of()));
         verify(newApplication).setGroups(Set.of());
     }
 
@@ -250,16 +257,13 @@ public class ApplicationService_CreateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificates(
-                    java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("cert-1", null, null, VALID_PEM),
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("cert-2", null, null, "another-pem")
-                    )
-                )
-                .build()
-        );
+        settings.setTls(TlsSettings.builder()
+                .clientCertificates(java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "cert-1", null, null, VALID_PEM),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "cert-2", null, null, "another-pem")))
+                .build());
         when(newApplication.getSettings()).thenReturn(settings);
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
@@ -268,27 +272,25 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
 
-        final ApplicationEntity applicationEntity = applicationService.create(
-            GraviteeContext.getExecutionContext(),
-            newApplication,
-            USER_NAME
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
 
         assertNotNull(applicationEntity);
         // Verify both certificates were created with their names
         verify(clientCertificateCrudService, times(2)).create(any(), any());
-        verify(clientCertificateCrudService).create(
-            any(),
-            argThat(cert -> "cert-1".equals(cert.name()) && VALID_PEM.equals(cert.certificate()))
-        );
-        verify(clientCertificateCrudService).create(
-            any(),
-            argThat(cert -> "cert-2".equals(cert.name()) && "another-pem".equals(cert.certificate()))
-        );
+        verify(clientCertificateCrudService)
+                .create(any(), argThat(cert -> "cert-1".equals(cert.name()) && VALID_PEM.equals(cert.certificate())));
+        verify(clientCertificateCrudService)
+                .create(
+                        any(),
+                        argThat(cert -> "cert-2".equals(cert.name()) && "another-pem".equals(cert.certificate())));
     }
 
     @Test
@@ -300,14 +302,12 @@ public class ApplicationService_CreateTest {
             settings.setOauth(clientSettings);
             when(newApplication.getSettings()).thenReturn(settings);
 
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_REGISTRATION_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.FALSE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_REGISTRATION_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.FALSE);
 
             applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
         });
@@ -321,14 +321,12 @@ public class ApplicationService_CreateTest {
             clientSettings.setApplicationType("web");
             settings.setOauth(clientSettings);
             when(newApplication.getSettings()).thenReturn(settings);
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_REGISTRATION_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.TRUE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_REGISTRATION_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.TRUE);
             applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
         });
     }
@@ -341,22 +339,18 @@ public class ApplicationService_CreateTest {
             clientSettings.setApplicationType("web");
             settings.setOauth(clientSettings);
             when(newApplication.getSettings()).thenReturn(settings);
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_REGISTRATION_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.TRUE);
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_TYPE_WEB_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.TRUE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_REGISTRATION_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.TRUE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_TYPE_WEB_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.TRUE);
             applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
         });
     }
@@ -372,22 +366,18 @@ public class ApplicationService_CreateTest {
             ApplicationTypeEntity applicationType = mock(ApplicationTypeEntity.class);
             when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
             when(newApplication.getSettings()).thenReturn(settings);
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_REGISTRATION_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.TRUE);
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_TYPE_WEB_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.TRUE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_REGISTRATION_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.TRUE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_TYPE_WEB_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.TRUE);
             applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
         });
     }
@@ -407,22 +397,18 @@ public class ApplicationService_CreateTest {
             when(applicationType.getAllowed_grant_types()).thenReturn(Arrays.asList(foobar));
             when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
             when(newApplication.getSettings()).thenReturn(settings);
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_REGISTRATION_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.TRUE);
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.APPLICATION_TYPE_WEB_ENABLED,
-                    "DEFAULT",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(Boolean.TRUE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_REGISTRATION_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.TRUE);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.APPLICATION_TYPE_WEB_ENABLED,
+                            "DEFAULT",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(Boolean.TRUE);
             applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
         });
     }
@@ -439,7 +425,8 @@ public class ApplicationService_CreateTest {
             settings.setApp(clientSettings);
             when(newApplication.getSettings()).thenReturn(settings);
 
-            when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
+            when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT"))
+                    .thenReturn(true);
 
             applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
         });
@@ -454,10 +441,13 @@ public class ApplicationService_CreateTest {
             settings.setApp(clientSettings);
             when(newApplication.getSettings()).thenReturn(settings);
             when(newApplication.getName()).thenReturn(APPLICATION_NAME);
-            when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-            when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+            when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                    .thenReturn(Collections.emptySet());
+            when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                    .thenCallRealMethod();
 
-            when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(false);
+            when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT"))
+                    .thenReturn(false);
             when(applicationRepository.create(any())).thenThrow(new DuplicateKeyException("client_id already used"));
 
             applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
@@ -473,13 +463,11 @@ public class ApplicationService_CreateTest {
             settings.setApp(clientSettings);
             when(newApplication.getSettings()).thenReturn(settings);
 
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(false);
 
             when(newApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
 
@@ -494,28 +482,23 @@ public class ApplicationService_CreateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificate(
-                    """
+        settings.setTls(TlsSettings.builder().clientCertificate("""
                     -----BEGIN CERTIFICATE-----
                     This one is invalid
                     -----END CERTIFICATE-----
-                    """
-                )
-                .build()
-        );
+                    """).build());
         when(newApplication.getSettings()).thenReturn(settings);
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
-            new ClientCertificateInvalidException()
-        );
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any()))
+                .thenThrow(new ClientCertificateInvalidException());
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
-            .isInstanceOf(ClientCertificateInvalidException.class)
-            .hasMessage("An error has occurred while parsing client certificate");
+                .isInstanceOf(ClientCertificateInvalidException.class)
+                .hasMessage("An error has occurred while parsing client certificate");
     }
 
     @SneakyThrows
@@ -525,26 +508,21 @@ public class ApplicationService_CreateTest {
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificate(
-                    """
+        settings.setTls(TlsSettings.builder().clientCertificate("""
                     no certificate header, so no parsed as an exception by the library.
-                    """
-                )
-                .build()
-        );
+                    """).build());
         when(newApplication.getSettings()).thenReturn(settings);
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
-            new ClientCertificateEmptyException()
-        );
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any()))
+                .thenThrow(new ClientCertificateEmptyException());
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
-            .isInstanceOf(ClientCertificateEmptyException.class)
-            .hasMessage("No certificate can be extracted");
+                .isInstanceOf(ClientCertificateEmptyException.class)
+                .hasMessage("No certificate can be extracted");
     }
 
     @SneakyThrows
@@ -556,16 +534,17 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM).build());
         when(newApplication.getSettings()).thenReturn(settings);
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
-            ClientCertificateAlreadyUsedException.class
-        );
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any()))
+                .thenThrow(ClientCertificateAlreadyUsedException.class);
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
-            .isInstanceOf(ClientCertificateAlreadyUsedException.class)
-            .hasMessageContaining("is already used by another active application");
+                .isInstanceOf(ClientCertificateAlreadyUsedException.class)
+                .hasMessageContaining("is already used by another active application");
     }
 
     @SneakyThrows
@@ -577,16 +556,17 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_CA_PEM).build());
         when(newApplication.getSettings()).thenReturn(settings);
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
-            new ClientCertificateAuthorityException()
-        );
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any()))
+                .thenThrow(new ClientCertificateAuthorityException());
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
-            .isInstanceOf(ClientCertificateAuthorityException.class)
-            .hasMessage("Certificate Authorities are not supported, requires a client certificate");
+                .isInstanceOf(ClientCertificateAuthorityException.class)
+                .hasMessage("Certificate Authorities are not supported, requires a client certificate");
     }
 
     @Test
@@ -597,16 +577,17 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
         when(userService.findById(any(), any())).thenReturn(mock(UserEntity.class));
 
         // client registration is enabled, and browser app type also
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
-        when(
-            parameterService.findAsBoolean(any(), eq(Key.APPLICATION_TYPE_BROWSER_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.APPLICATION_TYPE_BROWSER_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
 
         // oauth app setting contains everything required
         ApplicationSettings settings = new ApplicationSettings();
@@ -633,14 +614,15 @@ public class ApplicationService_CreateTest {
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
         when(clientRegistrationService.register(any(), any(), any())).thenReturn(clientRegistrationResponse);
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
 
         applicationService.create(EXECUTION_CONTEXT, newApplication, USER_NAME);
 
         // ensure app has been created with client_id from DCR in metadata
-        verify(applicationRepository).create(
-            argThat(app -> app.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration"))
-        );
+        verify(applicationRepository)
+                .create(argThat(
+                        app -> app.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration")));
         // ensure the user's persisted IdP claims were passed through to the DCR registration (the new wiring)
         verify(clientRegistrationService).register(any(), any(), eq(idpClaims));
     }
@@ -740,7 +722,8 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
         when(userService.findById(any(), any())).thenReturn(mock(UserEntity.class));
 
         // Mock application type service
@@ -756,27 +739,24 @@ public class ApplicationService_CreateTest {
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
         when(clientRegistrationService.register(any(), any(), any())).thenReturn(clientRegistrationResponse);
-        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class)))
+                .thenCallRealMethod();
 
         // Enable DCR
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_REGISTRATION_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.APPLICATION_REGISTRATION_ENABLED,
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(Boolean.TRUE);
 
         // Enable BROWSER application type
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_TYPE_BROWSER_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.APPLICATION_TYPE_BROWSER_ENABLED,
+                        "DEFAULT",
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(Boolean.TRUE);
 
         // Call the create method
         ApplicationEntity applicationEntity = applicationService.create(EXECUTION_CONTEXT, newApplication, USER_NAME);

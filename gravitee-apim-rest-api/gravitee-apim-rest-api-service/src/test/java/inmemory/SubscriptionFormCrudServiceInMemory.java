@@ -28,23 +28,24 @@ import java.util.OptionalInt;
  *
  * @author Gravitee.io Team
  */
-public class SubscriptionFormCrudServiceInMemory implements SubscriptionFormCrudService, InMemoryAlternative<SubscriptionForm> {
+public class SubscriptionFormCrudServiceInMemory
+        implements SubscriptionFormCrudService, InMemoryAlternative<SubscriptionForm> {
 
     final List<SubscriptionForm> storage = new ArrayList<>();
 
     @Override
     public SubscriptionForm create(SubscriptionForm subscriptionForm) {
         SubscriptionForm toStore = subscriptionForm.getId() == null
-            ? SubscriptionForm.builder()
-                .id(SubscriptionFormId.random())
-                .environmentId(subscriptionForm.getEnvironmentId())
-                .name(subscriptionForm.getName())
-                .gmdContent(subscriptionForm.getGmdContent())
-                .enabled(subscriptionForm.isEnabled())
-                .apiIds(subscriptionForm.getApiIds())
-                .validationConstraints(subscriptionForm.getValidationConstraints())
-                .build()
-            : subscriptionForm;
+                ? SubscriptionForm.builder()
+                        .id(SubscriptionFormId.random())
+                        .environmentId(subscriptionForm.getEnvironmentId())
+                        .name(subscriptionForm.getName())
+                        .gmdContent(subscriptionForm.getGmdContent())
+                        .enabled(subscriptionForm.isEnabled())
+                        .apiIds(subscriptionForm.getApiIds())
+                        .validationConstraints(subscriptionForm.getValidationConstraints())
+                        .build()
+                : subscriptionForm;
         storage.add(toStore);
         return toStore;
     }

@@ -48,21 +48,22 @@ public class ApiLinkResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public Response getApiLinkByHRID(@PathParam("apiHrid") String apiHrid, @PathParam("linkHrid") String linkHrid) {
         var auditInfo = getAuditInfo();
         var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
         var linkId = PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid);
         try {
             var output = getApiLinkUseCase.execute(new GetApiLinkUseCase.Input(auditInfo, linkId));
-            return Response.ok(PortalLinkMapper.INSTANCE.toApiLinkState(output.link(), linkHrid, List.of(), apiHrid)).build();
+            return Response.ok(PortalLinkMapper.INSTANCE.toApiLinkState(output.link(), linkHrid, List.of(), apiHrid))
+                    .build();
         } catch (PortalLinkNotFoundException e) {
             throw new HRIDNotFoundException(linkHrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE)})
     public Response deleteApiLinkByHrid(@PathParam("apiHrid") String apiHrid, @PathParam("linkHrid") String linkHrid) {
         var auditInfo = getAuditInfo();
         var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();

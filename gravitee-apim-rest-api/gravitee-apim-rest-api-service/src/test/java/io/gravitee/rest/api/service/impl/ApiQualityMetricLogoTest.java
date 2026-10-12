@@ -52,7 +52,8 @@ public class ApiQualityMetricLogoTest {
     @Test
     public void shouldNotBeValidIfNull() {
         InlinePictureEntity apiPicture = mock(InlinePictureEntity.class);
-        when(mockApiService.getPicture(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiPicture);
+        when(mockApiService.getPicture(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(apiPicture);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -65,7 +66,8 @@ public class ApiQualityMetricLogoTest {
     public void shouldBeValidIfNotNull() {
         InlinePictureEntity apiPicture = mock(InlinePictureEntity.class);
         when(apiPicture.getContent()).thenReturn("abcd".getBytes());
-        when(mockApiService.getPicture(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiPicture);
+        when(mockApiService.getPicture(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(apiPicture);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 

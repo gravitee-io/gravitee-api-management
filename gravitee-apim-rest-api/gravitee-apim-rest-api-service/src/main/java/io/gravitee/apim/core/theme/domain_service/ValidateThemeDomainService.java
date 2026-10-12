@@ -38,15 +38,15 @@ public class ValidateThemeDomainService implements Validator<ValidateThemeDomain
     private final ThemeCrudService themeCrudService;
 
     public record Input(
-        AuditInfo auditInfo,
-        String themeHrid,
-        String name,
-        ThemeDefinition definitionPortalNext,
-        String logo,
-        String optionalLogo,
-        String favicon,
-        String backgroundImage
-    ) implements Validator.Input {}
+            AuditInfo auditInfo,
+            String themeHrid,
+            String name,
+            ThemeDefinition definitionPortalNext,
+            String logo,
+            String optionalLogo,
+            String favicon,
+            String backgroundImage)
+            implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
@@ -62,25 +62,22 @@ public class ValidateThemeDomainService implements Validator<ValidateThemeDomain
             errors.add(Error.severe("spec.definitionPortalNext must not be null"));
         }
         var sanitized = new Input(
-            input.auditInfo(),
-            input.themeHrid(),
-            sanitizedName,
-            input.definitionPortalNext(),
-            input.logo(),
-            input.optionalLogo(),
-            input.favicon(),
-            input.backgroundImage()
-        );
+                input.auditInfo(),
+                input.themeHrid(),
+                sanitizedName,
+                input.definitionPortalNext(),
+                input.logo(),
+                input.optionalLogo(),
+                input.favicon(),
+                input.backgroundImage());
         return Result.ofBoth(sanitized, errors);
     }
 
     public void validateUpdateTheme(UpdateTheme updateTheme, ExecutionContext executionContext) {
         var existingTheme = this.themeCrudService.get(updateTheme.getId());
 
-        if (
-            !Objects.equals(existingTheme.getReferenceId(), executionContext.getEnvironmentId()) &&
-            Theme.ReferenceType.ENVIRONMENT.equals(existingTheme.getReferenceType())
-        ) {
+        if (!Objects.equals(existingTheme.getReferenceId(), executionContext.getEnvironmentId())
+                && Theme.ReferenceType.ENVIRONMENT.equals(existingTheme.getReferenceType())) {
             throw new ThemeNotFoundException(updateTheme.getId());
         }
 
@@ -88,7 +85,8 @@ public class ValidateThemeDomainService implements Validator<ValidateThemeDomain
             throw new ThemeTypeInvalidException(updateTheme.getType().name());
         }
 
-        if (ThemeType.PORTAL_NEXT.equals(updateTheme.getType()) && Objects.isNull(updateTheme.getDefinitionPortalNext())) {
+        if (ThemeType.PORTAL_NEXT.equals(updateTheme.getType())
+                && Objects.isNull(updateTheme.getDefinitionPortalNext())) {
             throw new ThemeDefinitionInvalidException(updateTheme.getType().name(), null);
         }
 

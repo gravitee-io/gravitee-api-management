@@ -140,7 +140,8 @@ class HttpProxyEndpointConnectorTest {
         lenient().when(ctx.getTracer()).thenReturn(new Tracer(null, new NoOpTracer()));
 
         requestHeaders = HttpHeaders.create();
-        // request.parameters() can't be null. See https://github.com/gravitee-io/gravitee-common/blob/master/src/main/java/io/gravitee/common/util/URIUtils.java#L74
+        // request.parameters() can't be null. See
+        // https://github.com/gravitee-io/gravitee-common/blob/master/src/main/java/io/gravitee/common/util/URIUtils.java#L74
         lenient().when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
         lenient().when(request.pathInfo()).thenReturn("");
         lenient().when(request.headers()).thenReturn(requestHeaders);
@@ -159,7 +160,8 @@ class HttpProxyEndpointConnectorTest {
     static Stream<Throwable> timeoutExceptionsProvider() {
         // Read/idle timeouts keep the legacy REQUEST_TIMEOUT umbrella. Connect timeout is asserted separately as it
         // is now reclassified into its own GATEWAY_CLIENT_CONNECT_TIMEOUT key.
-        return Stream.of(new NoStackTraceTimeoutException("Vertx no stack trace timeout"), ReadTimeoutException.INSTANCE);
+        return Stream.of(
+                new NoStackTraceTimeoutException("Vertx no stack trace timeout"), ReadTimeoutException.INSTANCE);
     }
 
     @Test
@@ -211,7 +213,8 @@ class HttpProxyEndpointConnectorTest {
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
         // Connection was acquired before the timeout fired: it is a backend read timeout.
-        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)).thenReturn(Boolean.TRUE);
+        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED))
+                .thenReturn(Boolean.TRUE);
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
 
@@ -221,7 +224,8 @@ class HttpProxyEndpointConnectorTest {
         ExecutionFailure capturedFailure = failureCaptor.getValue();
         assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
         assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.READ_TIMEOUT);
-        assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
+        assertThat(capturedFailure.parameters())
+                .containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
 
         testObserver.assertComplete();
         testObserver.assertNoErrors();
@@ -244,7 +248,8 @@ class HttpProxyEndpointConnectorTest {
         ExecutionFailure capturedFailure = failureCaptor.getValue();
         assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
         assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECT_TIMEOUT);
-        assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
+        assertThat(capturedFailure.parameters())
+                .containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
     }
 
     @Test
@@ -253,7 +258,8 @@ class HttpProxyEndpointConnectorTest {
         mockConnectors.put("http", proxyConnector);
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
-        when(proxyConnector.connect(ctx)).thenReturn(Completable.error(new ConnectTimeoutException("Netty connect timeout")));
+        when(proxyConnector.connect(ctx))
+                .thenReturn(Completable.error(new ConnectTimeoutException("Netty connect timeout")));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -262,7 +268,8 @@ class HttpProxyEndpointConnectorTest {
         ExecutionFailure capturedFailure = failureCaptor.getValue();
         assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
         assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECT_TIMEOUT);
-        assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
+        assertThat(capturedFailure.parameters())
+                .containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
     }
 
     @Test
@@ -271,7 +278,8 @@ class HttpProxyEndpointConnectorTest {
         mockConnectors.put("http", proxyConnector);
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
-        when(proxyConnector.connect(ctx)).thenReturn(Completable.error(new java.net.ConnectException("Connection refused")));
+        when(proxyConnector.connect(ctx))
+                .thenReturn(Completable.error(new java.net.ConnectException("Connection refused")));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
 
         cut.connect(ctx).test().assertComplete();
@@ -280,10 +288,8 @@ class HttpProxyEndpointConnectorTest {
         ExecutionFailure capturedFailure = failureCaptor.getValue();
         assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
         assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECTION_REFUSED);
-        assertThat(capturedFailure.parameters()).containsEntry(
-            ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER,
-            GATEWAY_CLIENT_CONNECTION_ERROR
-        );
+        assertThat(capturedFailure.parameters())
+                .containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, GATEWAY_CLIENT_CONNECTION_ERROR);
     }
 
     @Test
@@ -293,7 +299,8 @@ class HttpProxyEndpointConnectorTest {
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
         Throwable timeoutException = new NoStackTraceTimeoutException("timeout");
-        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)).thenReturn(Boolean.TRUE);
+        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED))
+                .thenReturn(Boolean.TRUE);
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
         TestObserver<Void> testObserver = cut.connect(ctx).test();
@@ -379,7 +386,8 @@ class HttpProxyEndpointConnectorTest {
     void shouldNotOverwrite_clientAbort_whenFailureAlreadySet() {
         givenConnectorNeverCompletes();
         when(response.status()).thenReturn(0);
-        when(metrics.getFailure()).thenReturn(new Diagnostic("GATEWAY_OAUTH2_ACCESS_DENIED", "denied", "SECURITY", "oauth2"));
+        when(metrics.getFailure())
+                .thenReturn(new Diagnostic("GATEWAY_OAUTH2_ACCESS_DENIED", "denied", "SECURITY", "oauth2"));
 
         cut.connect(ctx).test(true);
 
@@ -400,7 +408,8 @@ class HttpProxyEndpointConnectorTest {
         mockConnectors.put("http", proxyConnector);
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
-        InterruptionFailureException interruptionFailureException = new InterruptionFailureException(new ExecutionFailure());
+        InterruptionFailureException interruptionFailureException =
+                new InterruptionFailureException(new ExecutionFailure());
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(interruptionFailureException));
 
         cut.connect(ctx).test();
@@ -415,9 +424,9 @@ class HttpProxyEndpointConnectorTest {
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
         NoStackTraceTimeoutException timeoutException = new NoStackTraceTimeoutException(
-            "The timeout period of 10000ms has been exceeded while executing GET /late for server null"
-        );
-        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)).thenReturn(Boolean.TRUE);
+                "The timeout period of 10000ms has been exceeded while executing GET /late for server null");
+        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED))
+                .thenReturn(Boolean.TRUE);
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
         when(metrics.getEndpoint()).thenReturn("https://test34.free.beeceptor.com/late");
@@ -428,9 +437,9 @@ class HttpProxyEndpointConnectorTest {
         ExecutionFailure capturedFailure = failureCaptor.getValue();
         assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
         assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.READ_TIMEOUT);
-        assertThat(capturedFailure.cause().getMessage()).isEqualTo(
-            "The timeout period of 10000ms has been exceeded while executing GET /late for endpoint https://test34.free.beeceptor.com/late"
-        );
+        assertThat(capturedFailure.cause().getMessage())
+                .isEqualTo(
+                        "The timeout period of 10000ms has been exceeded while executing GET /late for endpoint https://test34.free.beeceptor.com/late");
 
         testObserver.assertComplete();
         testObserver.assertNoErrors();
@@ -463,11 +472,16 @@ class HttpProxyEndpointConnectorTest {
             lenient().doReturn(mockHttpClient).when(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             lenient().when(mockHttpClient.getDelegate()).thenReturn(mockDelegateHttpClient);
             ReflectionTestUtils.setField(cut, "httpClientFactory", spyHttpClientFactory);
-            spyGrpcHttpClientFactory = spy((GrpcHttpClientFactory) ReflectionTestUtils.getField(cut, "grpcHttpClientFactory"));
+            spyGrpcHttpClientFactory =
+                    spy((GrpcHttpClientFactory) ReflectionTestUtils.getField(cut, "grpcHttpClientFactory"));
             lenient().doReturn(mockHttpClient).when(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "grpcHttpClientFactory", spyGrpcHttpClientFactory);
-            spyWebSocketClientFactory = spy((WebSocketClientFactory) ReflectionTestUtils.getField(cut, "webSocketClientFactory"));
-            lenient().doReturn(mockWebSocketClient).when(spyWebSocketClientFactory).getOrBuildWebSocketClient(any(), any(), any());
+            spyWebSocketClientFactory =
+                    spy((WebSocketClientFactory) ReflectionTestUtils.getField(cut, "webSocketClientFactory"));
+            lenient()
+                    .doReturn(mockWebSocketClient)
+                    .when(spyWebSocketClientFactory)
+                    .getOrBuildWebSocketClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "webSocketClientFactory", spyWebSocketClientFactory);
         }
 
@@ -480,12 +494,15 @@ class HttpProxyEndpointConnectorTest {
             injectSpyIntoEndpointConnector(cut);
 
             // We don't want to test the request itself just that the correct factory is used
-            when(mockDelegateHttpClient.request(any(RequestOptions.class))).thenReturn(Future.failedFuture(new IllegalStateException()));
-            cut.connect(ctx).onErrorComplete(IllegalStateException.class::isInstance).test().assertComplete();
+            when(mockDelegateHttpClient.request(any(RequestOptions.class)))
+                    .thenReturn(Future.failedFuture(new IllegalStateException()));
+            cut.connect(ctx)
+                    .onErrorComplete(IllegalStateException.class::isInstance)
+                    .test()
+                    .assertComplete();
 
-            ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor = ArgumentCaptor.forClass(
-                HttpProxyEndpointConnectorSharedConfiguration.class
-            );
+            ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor =
+                    ArgumentCaptor.forClass(HttpProxyEndpointConnectorSharedConfiguration.class);
             verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), sharedConfigurationCaptor.capture());
             verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
 
@@ -512,12 +529,15 @@ class HttpProxyEndpointConnectorTest {
             injectSpyIntoEndpointConnector(cut);
 
             // We don't want to test the request itself just that the correct factory is used
-            when(mockDelegateHttpClient.request(any(RequestOptions.class))).thenReturn(Future.failedFuture(new IllegalStateException()));
-            cut.connect(ctx).onErrorComplete(IllegalStateException.class::isInstance).test().assertComplete();
+            when(mockDelegateHttpClient.request(any(RequestOptions.class)))
+                    .thenReturn(Future.failedFuture(new IllegalStateException()));
+            cut.connect(ctx)
+                    .onErrorComplete(IllegalStateException.class::isInstance)
+                    .test()
+                    .assertComplete();
 
-            ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor = ArgumentCaptor.forClass(
-                HttpProxyEndpointConnectorSharedConfiguration.class
-            );
+            ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor =
+                    ArgumentCaptor.forClass(HttpProxyEndpointConnectorSharedConfiguration.class);
             verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), sharedConfigurationCaptor.capture());
             verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
 
@@ -533,15 +553,15 @@ class HttpProxyEndpointConnectorTest {
         @Test
         void should_use_websocket_client_factory_with_ws() {
             // We don't want to test the request itself just that the correct factory is used
-            when(mockWebSocketClient.rxConnect(any(WebSocketConnectOptions.class))).thenThrow(new IllegalStateException());
+            when(mockWebSocketClient.rxConnect(any(WebSocketConnectOptions.class)))
+                    .thenThrow(new IllegalStateException());
             when(request.isWebSocket()).thenReturn(true);
 
             // connect will throw an exception
-            cut
-                .connect(ctx)
-                .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
-                .test()
-                .assertComplete();
+            cut.connect(ctx)
+                    .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
+                    .test()
+                    .assertComplete();
             verify(spyWebSocketClientFactory).getOrBuildWebSocketClient(any(), any(), any());
             verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
@@ -551,12 +571,12 @@ class HttpProxyEndpointConnectorTest {
         @Test
         void should_use_http_client_factory() {
             // We don't want to test the request itself just that the correct factory is used
-            when(mockDelegateHttpClient.request(any(RequestOptions.class))).thenReturn(Future.failedFuture(new IllegalStateException()));
-            cut
-                .connect(ctx)
-                .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
-                .test()
-                .assertComplete();
+            when(mockDelegateHttpClient.request(any(RequestOptions.class)))
+                    .thenReturn(Future.failedFuture(new IllegalStateException()));
+            cut.connect(ctx)
+                    .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
+                    .test()
+                    .assertComplete();
             verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(spyWebSocketClientFactory, never()).getOrBuildWebSocketClient(any(), any(), any());
@@ -568,16 +588,14 @@ class HttpProxyEndpointConnectorTest {
             when(ctx.withLogger(any())).thenReturn(mock(Logger.class));
 
             final HttpClientRequest pooledUpstreamRequest = mock(HttpClientRequest.class);
-            when(pooledUpstreamRequest.send()).thenReturn(Future.failedFuture(new HttpClosedException("Connection was closed")));
+            when(pooledUpstreamRequest.send())
+                    .thenReturn(Future.failedFuture(new HttpClosedException("Connection was closed")));
             // First attempt takes a pooled connection the peer then closes without answering, which is what makes the
             // connector retry; the retried attempt never gets a connection of its own before the timeout fires.
             when(mockDelegateHttpClient.request(any(RequestOptions.class)))
-                .thenReturn(Future.succeededFuture(pooledUpstreamRequest))
-                .thenReturn(
-                    Future.failedFuture(
-                        new NoStackTraceTimeoutException("The timeout period of 10000ms has been exceeded while executing GET /team")
-                    )
-                );
+                    .thenReturn(Future.succeededFuture(pooledUpstreamRequest))
+                    .thenReturn(Future.failedFuture(new NoStackTraceTimeoutException(
+                            "The timeout period of 10000ms has been exceeded while executing GET /team")));
 
             cut.connect(ctx).test().assertComplete();
 
@@ -585,24 +603,26 @@ class HttpProxyEndpointConnectorTest {
             final ExecutionFailure capturedFailure = failureCaptor.getValue();
             assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
             assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECT_TIMEOUT);
-            assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
+            assertThat(capturedFailure.parameters())
+                    .containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
         }
 
         private void givenContextStoringInternalAttributes() {
             final Map<String, Object> internalAttributes = new ConcurrentHashMap<>();
-            when(ctx.getInternalAttribute(anyString())).thenAnswer(invocation -> internalAttributes.get(invocation.getArgument(0)));
+            when(ctx.getInternalAttribute(anyString()))
+                    .thenAnswer(invocation -> internalAttributes.get(invocation.getArgument(0)));
             doAnswer(invocation -> {
-                internalAttributes.put(invocation.getArgument(0), invocation.getArgument(1));
-                return null;
-            })
-                .when(ctx)
-                .setInternalAttribute(anyString(), any());
+                        internalAttributes.put(invocation.getArgument(0), invocation.getArgument(1));
+                        return null;
+                    })
+                    .when(ctx)
+                    .setInternalAttribute(anyString(), any());
             doAnswer(invocation -> {
-                internalAttributes.remove(invocation.getArgument(0));
-                return null;
-            })
-                .when(ctx)
-                .removeInternalAttribute(anyString());
+                        internalAttributes.remove(invocation.getArgument(0));
+                        return null;
+                    })
+                    .when(ctx)
+                    .removeInternalAttribute(anyString());
         }
     }
 }

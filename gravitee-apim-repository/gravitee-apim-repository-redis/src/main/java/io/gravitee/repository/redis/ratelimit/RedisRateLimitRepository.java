@@ -63,72 +63,67 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
 
         final RateLimit newRate = supplier.get();
 
-        return SingleHelper.toSingle(
-            (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
-                redisClient
-                    .redisApi()
-                    .flatMap(redisAPI -> {
-                        // Timeout must start when the Redis command is dispatched, on the Vert.x context.
-                        // An RxJava timeout around the whole Single incorrectly includes event-loop queue
-                        // time and fires RedisOperationTimeoutException while Redis itself answered quickly.
-                        List<String> scriptArgs = convertToList(
-                            this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY),
-                            REDIS_KEY_PREFIX + key,
-                            weight,
-                            newRate
-                        );
-                        return redisAPI
-                            .evalsha(scriptArgs)
-                            .recover(t -> {
-                                if (!RedisScriptSupport.isNoScript(t)) {
-                                    return Future.failedFuture(t);
-                                }
-                                final String source = this.redisClient.scriptSource(SCRIPT_RATELIMIT_KEY);
-                                if (source == null) {
-                                    return Future.failedFuture(
-                                        new IllegalStateException(
-                                            "Cannot recover from NOSCRIPT: rate-limit script source unavailable (script was never loaded)"
-                                        )
-                                    );
-                                }
-                                // On Redis Cluster, SCRIPT LOAD only reaches the contacted node, so an
-                                // EVALSHA routed by hash slot to another master returns NOSCRIPT. Fall back
-                                // to EVAL with the script source, which caches it on that node for next time.
-                                // NOSCRIPT means the script did not execute, so replaying via EVAL cannot double-count.
-                                log.debug(
-                                    "EVALSHA returned NOSCRIPT; falling back to EVAL to load the rate-limit script on the target node"
-                                );
-                                return redisAPI
-                                    .eval(convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate))
-                                    .recover(evalError -> {
-                                        // Preserve the original NOSCRIPT cause for diagnostics under a fallback storm.
-                                        evalError.addSuppressed(t);
-                                        return Future.failedFuture(evalError);
-                                    });
-                            })
-                            .timeout(operationTimeout, TimeUnit.MILLISECONDS)
-                            .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout));
-                    })
-                    .onFailure(t -> {
-                        logOperationFailure(t);
-                        redisClient.notifyConnectionFailure(t);
-                    })
-                    .onComplete(asyncResultHandler)
-        ).map(response -> {
-            // It may happen when the rate has been expired while running the script
-            // expired values return a list of 'null'
-            if (response.size() > 0 && response.get(0) != null) {
-                RateLimit rateLimit = new RateLimit(key);
-                rateLimit.setCounter(response.get(0).toLong());
-                rateLimit.setLimit(response.get(1).toLong());
-                rateLimit.setResetTime(response.get(2).toLong());
-                rateLimit.setSubscription(response.get(3).toString());
+        return SingleHelper.toSingle((Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler -> redisClient
+                        .redisApi()
+                        .flatMap(redisAPI -> {
+                            // Timeout must start when the Redis command is dispatched, on the Vert.x context.
+                            // An RxJava timeout around the whole Single incorrectly includes event-loop queue
+                            // time and fires RedisOperationTimeoutException while Redis itself answered quickly.
+                            List<String> scriptArgs = convertToList(
+                                    this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY),
+                                    REDIS_KEY_PREFIX + key,
+                                    weight,
+                                    newRate);
+                            return redisAPI.evalsha(scriptArgs)
+                                    .recover(t -> {
+                                        if (!RedisScriptSupport.isNoScript(t)) {
+                                            return Future.failedFuture(t);
+                                        }
+                                        final String source = this.redisClient.scriptSource(SCRIPT_RATELIMIT_KEY);
+                                        if (source == null) {
+                                            return Future.failedFuture(
+                                                    new IllegalStateException(
+                                                            "Cannot recover from NOSCRIPT: rate-limit script source unavailable (script was never loaded)"));
+                                        }
+                                        // On Redis Cluster, SCRIPT LOAD only reaches the contacted node, so an
+                                        // EVALSHA routed by hash slot to another master returns NOSCRIPT. Fall back
+                                        // to EVAL with the script source, which caches it on that node for next time.
+                                        // NOSCRIPT means the script did not execute, so replaying via EVAL cannot
+                                        // double-count.
+                                        log.debug(
+                                                "EVALSHA returned NOSCRIPT; falling back to EVAL to load the rate-limit script on the target node");
+                                        return redisAPI.eval(
+                                                        convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate))
+                                                .recover(evalError -> {
+                                                    // Preserve the original NOSCRIPT cause for diagnostics under a
+                                                    // fallback storm.
+                                                    evalError.addSuppressed(t);
+                                                    return Future.failedFuture(evalError);
+                                                });
+                                    })
+                                    .timeout(operationTimeout, TimeUnit.MILLISECONDS)
+                                    .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout));
+                        })
+                        .onFailure(t -> {
+                            logOperationFailure(t);
+                            redisClient.notifyConnectionFailure(t);
+                        })
+                        .onComplete(asyncResultHandler))
+                .map(response -> {
+                    // It may happen when the rate has been expired while running the script
+                    // expired values return a list of 'null'
+                    if (response.size() > 0 && response.get(0) != null) {
+                        RateLimit rateLimit = new RateLimit(key);
+                        rateLimit.setCounter(response.get(0).toLong());
+                        rateLimit.setLimit(response.get(1).toLong());
+                        rateLimit.setResetTime(response.get(2).toLong());
+                        rateLimit.setSubscription(response.get(3).toString());
 
-                return rateLimit;
-            }
+                        return rateLimit;
+                    }
 
-            return newRate;
-        });
+                    return newRate;
+                });
     }
 
     private void logOperationFailure(Throwable t) {
@@ -145,14 +140,13 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
     // scriptRef is a SHA on the EVALSHA path and the script source on the EVAL fallback path.
     static List<String> convertToList(String scriptRef, String key, long weight, RateLimit rate) {
         return Arrays.asList(
-            scriptRef,
-            "1", // numkeys
-            key,
-            Long.toString(weight),
-            Long.toString(rate.getCounter()),
-            Long.toString(rate.getLimit()),
-            Long.toString(rate.getResetTime()),
-            rate.getSubscription()
-        );
+                scriptRef,
+                "1", // numkeys
+                key,
+                Long.toString(weight),
+                Long.toString(rate.getCounter()),
+                Long.toString(rate.getLimit()),
+                Long.toString(rate.getResetTime()),
+                rate.getSubscription());
     }
 }

@@ -78,10 +78,10 @@ class JdbcTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRateLimi
 
         try (Connection connection = dataSource.getConnection()) {
             new Liquibase(
-                "liquibase/master.yml",
-                new ClassLoaderResourceAccessor(getClass().getClassLoader()),
-                new JdbcConnection(connection)
-            ).update((Contexts) null);
+                            "liquibase/master.yml",
+                            new ClassLoaderResourceAccessor(getClass().getClassLoader()),
+                            new JdbcConnection(connection))
+                    .update((Contexts) null);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to set up the JDBC schema via Liquibase", e);
         } finally {

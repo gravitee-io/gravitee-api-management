@@ -26,15 +26,17 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpDynamicPropertyProviderConfigurationSerializer extends StdScalarSerializer<HttpDynamicPropertyProviderConfiguration> {
+public class HttpDynamicPropertyProviderConfigurationSerializer
+        extends StdScalarSerializer<HttpDynamicPropertyProviderConfiguration> {
 
     public HttpDynamicPropertyProviderConfigurationSerializer(Class<HttpDynamicPropertyProviderConfiguration> t) {
         super(t);
     }
 
     @Override
-    public void serialize(HttpDynamicPropertyProviderConfiguration configuration, JsonGenerator jgen, SerializerProvider provider)
-        throws IOException {
+    public void serialize(
+            HttpDynamicPropertyProviderConfiguration configuration, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("url", configuration.getUrl());
         jgen.writeStringField("specification", configuration.getSpecification());

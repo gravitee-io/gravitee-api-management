@@ -67,7 +67,8 @@ class HttpPostEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         super.configureEntrypoints(entrypoints);
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -78,11 +79,10 @@ class HttpPostEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest 
 
     @Override
     protected void configureHttpClient(
-        HttpClientOptions options,
-        PoolOptions poolOptions,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
+            HttpClientOptions options,
+            PoolOptions poolOptions,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {
         super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
         // Force pool to 1 connection. This allows to ease the connection drain test.
         poolOptions.setHttp1MaxSize(1);
@@ -101,89 +101,87 @@ class HttpPostEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest 
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint.json"})
     void should_publish_to_mock_endpoint(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")).test().awaitDone(30, TimeUnit.SECONDS);
+        postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS);
 
-        messageStorage
-            .subject()
-            .take(1)
-            .test()
-            .assertValue(message -> {
-                assertThat(message.headers()).isEmpty();
-                assertThat(new JsonObject(message.content().toString())).isEqualTo(requestBody);
-                return true;
-            });
+        messageStorage.subject().take(1).test().assertValue(message -> {
+            assertThat(message.headers()).isEmpty();
+            assertThat(new JsonObject(message.content().toString())).isEqualTo(requestBody);
+            return true;
+        });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint-with-headers.json" })
+    @DeployApi({"/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint-with-headers.json"})
     void should_publish_to_mock_endpoint_with_headers(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")).test().awaitDone(30, TimeUnit.SECONDS);
+        postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS);
 
-        messageStorage
-            .subject()
-            .take(1)
-            .test()
-            .assertValue(message -> {
-                assertThat(message.headers()).isNotEmpty();
-                assertThat(message.headers().get("X-Test-Header")).isEqualTo("header-value");
-                assertThat(new JsonObject(message.content().toString())).isEqualTo(requestBody);
-                return true;
-            });
+        messageStorage.subject().take(1).test().assertValue(message -> {
+            assertThat(message.headers()).isNotEmpty();
+            assertThat(message.headers().get("X-Test-Header")).isEqualTo("header-value");
+            assertThat(new JsonObject(message.content().toString())).isEqualTo(requestBody);
+            return true;
+        });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint.json"})
     void should_publish_multiples_messages_to_mock_endpoint(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
         final int messageCount = 10;
-        postMessage(client, "/test", requestBody, Map.of()).repeat(messageCount).test().awaitDone(30, TimeUnit.SECONDS);
+        postMessage(client, "/test", requestBody, Map.of())
+                .repeat(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS);
 
         messageStorage.subject().take(messageCount).test().assertValueCount(messageCount);
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-post/http-post-entrypoint-mock-endpoint.json"})
     void should_return_connection_close_header_when_connection_is_drained(HttpClient client) {
         final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
         final JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        client
-            .rxRequest(HttpMethod.POST, "/test")
-            .concatMap(request -> request.rxSend(requestBody.toString()))
-            .concatMap(response -> response.end().andThen(Single.just(response.headers())))
-            // Request connection drain after first request. The second request should be asked to close connection.
-            .doOnSuccess(headers -> connectionDrainManager.requestDrain())
-            .repeat(2)
-            // Keep the last response only.
-            .lastElement()
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            // Last response should contain a Connection: close header.
-            .assertValue(headers -> headers.get(HttpHeaders.CONNECTION).equals("close"));
+        client.rxRequest(HttpMethod.POST, "/test")
+                .concatMap(request -> request.rxSend(requestBody.toString()))
+                .concatMap(response -> response.end().andThen(Single.just(response.headers())))
+                // Request connection drain after first request. The second request should be asked to close connection.
+                .doOnSuccess(headers -> connectionDrainManager.requestDrain())
+                .repeat(2)
+                // Keep the last response only.
+                .lastElement()
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                // Last response should contain a Connection: close header.
+                .assertValue(headers -> headers.get(HttpHeaders.CONNECTION).equals("close"));
     }
 
-    private Completable postMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
-        return client
-            .rxRequest(HttpMethod.POST, requestURI)
-            .flatMap(request -> {
-                headers.forEach(request::putHeader);
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapCompletable(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.rxBody().ignoreElement();
-            });
+    private Completable postMessage(
+            HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
+        return client.rxRequest(HttpMethod.POST, requestURI)
+                .flatMap(request -> {
+                    headers.forEach(request::putHeader);
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapCompletable(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.rxBody().ignoreElement();
+                });
     }
 }

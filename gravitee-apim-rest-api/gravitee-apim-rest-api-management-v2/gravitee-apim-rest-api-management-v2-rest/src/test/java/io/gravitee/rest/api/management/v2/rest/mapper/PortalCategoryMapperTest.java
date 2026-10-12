@@ -31,12 +31,7 @@ class PortalCategoryMapperTest {
     @Test
     void should_map_domain_portal_category_to_rest_model() {
         var domain = PortalCategory.of(
-            PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
-            "env-1",
-            "Weather",
-            "Weather APIs",
-            true
-        );
+                PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"), "env-1", "Weather", "Weather APIs", true);
 
         var result = mapper.map(domain);
 
@@ -48,7 +43,8 @@ class PortalCategoryMapperTest {
 
     @Test
     void should_map_list_of_domain_portal_categories() {
-        var domain = PortalCategory.of(PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"), "env-1", "Weather", null, true);
+        var domain = PortalCategory.of(
+                PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"), "env-1", "Weather", null, true);
 
         var result = mapper.mapList(List.of(domain));
 
@@ -59,9 +55,9 @@ class PortalCategoryMapperTest {
     @Test
     void should_map_create_rest_model_to_domain() {
         var createPortalCategory = new io.gravitee.rest.api.management.v2.rest.model.CreatePortalCategory()
-            .title("Weather")
-            .description("Weather APIs")
-            .visible(false);
+                .title("Weather")
+                .description("Weather APIs")
+                .visible(false);
 
         var result = mapper.map(createPortalCategory);
 
@@ -73,9 +69,9 @@ class PortalCategoryMapperTest {
     @Test
     void should_map_update_rest_model_to_domain() {
         var updatePortalCategory = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalCategory()
-            .title("Weather")
-            .description("Weather APIs")
-            .visible(false);
+                .title("Weather")
+                .description("Weather APIs")
+                .visible(false);
 
         var result = mapper.map(updatePortalCategory);
 

@@ -27,19 +27,17 @@ public final class ParentHierarchyValidation {
     private ParentHierarchyValidation() {}
 
     public static void ensureAcyclic(
-        PortalNavigationItemId parentId,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
-    ) {
+            PortalNavigationItemId parentId,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+            Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById) {
         ensureAcyclic(null, parentId, itemsById, pendingItemsById);
     }
 
     public static void ensureAcyclic(
-        PortalNavigationItemId itemId,
-        PortalNavigationItemId parentId,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
-    ) {
+            PortalNavigationItemId itemId,
+            PortalNavigationItemId parentId,
+            Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+            Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById) {
         var visited = new HashSet<PortalNavigationItemId>();
         if (itemId != null) {
             visited.add(itemId);

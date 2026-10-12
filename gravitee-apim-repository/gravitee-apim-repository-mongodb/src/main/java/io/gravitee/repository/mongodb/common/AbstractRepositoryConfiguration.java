@@ -44,7 +44,8 @@ import org.springframework.util.StringUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractRepositoryConfiguration extends AbstractMongoClientConfiguration implements InitializingBean {
+public abstract class AbstractRepositoryConfiguration extends AbstractMongoClientConfiguration
+        implements InitializingBean {
 
     protected final Environment environment;
 
@@ -57,19 +58,22 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
 
     @Override
     public void afterPropertiesSet() {
-        final ConfigurableListableBeanFactory beanFactory = getConfigurableApplicationContext(applicationContext).getBeanFactory();
+        final ConfigurableListableBeanFactory beanFactory =
+                getConfigurableApplicationContext(applicationContext).getBeanFactory();
         beanFactory.registerSingleton("graviteeTransactionManager", new NoTransactionManager());
     }
 
     private ConfigurableApplicationContext getConfigurableApplicationContext(ApplicationContext applicationContext) {
-        return (ConfigurableApplicationContext) Optional.ofNullable(applicationContext.getParent()).orElse(applicationContext);
+        return (ConfigurableApplicationContext)
+                Optional.ofNullable(applicationContext.getParent()).orElse(applicationContext);
     }
 
     @Override
     protected String getDatabaseName() {
         String uri = environment.getProperty("management.mongodb.uri");
         if (uri != null && !uri.isEmpty()) {
-            // Remove user:password from the URI as it can contain special characters and isn't needed for the database name
+            // Remove user:password from the URI as it can contain special characters and isn't needed for the database
+            // name
             String uriWithoutCredentials = uri.replaceAll("://.*@", "://");
             return URI.create(uriWithoutCredentials).getPath().substring(1);
         }
@@ -89,12 +93,14 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
 
         for (String basePackage : basePackages) {
             if (StringUtils.hasText(basePackage)) {
-                ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
+                ClassPathScanningCandidateComponentProvider componentProvider =
+                        new ClassPathScanningCandidateComponentProvider(false);
                 componentProvider.addIncludeFilter(new AnnotationTypeFilter(Document.class));
                 componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
 
                 for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
-                    Class<?> entity = ClassUtils.forName(candidate.getBeanClassName(), this.getClass().getClassLoader());
+                    Class<?> entity = ClassUtils.forName(
+                            candidate.getBeanClassName(), this.getClass().getClassLoader());
                     initialEntitySet.add(entity);
                 }
             }
@@ -104,6 +110,7 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
 
     @Override
     protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
-        adapter.registerPropertyValueConverterFactory(PropertyValueConverterFactory.beanFactoryAware(applicationContext));
+        adapter.registerPropertyValueConverterFactory(
+                PropertyValueConverterFactory.beanFactoryAware(applicationContext));
     }
 }

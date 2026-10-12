@@ -34,25 +34,26 @@ import java.util.Optional;
 public class NoOpAnalyticsRepository implements AnalyticsRepository {
 
     @Override
-    public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery) {
+    public Optional<CountAggregate> searchRequestsCount(
+            QueryContext queryContext, RequestsCountQuery requestsCountQuery) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query) {
+    public Optional<AverageAggregate> searchAverageMessagesPerRequest(
+            QueryContext queryContext, AverageMessagesPerRequestQuery query) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query) {
+    public Optional<AverageAggregate> searchAverageConnectionDuration(
+            QueryContext queryContext, AverageConnectionDurationQuery query) {
         return Optional.empty();
     }
 
     @Override
     public @NonNull Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(
-        QueryContext queryContext,
-        ResponseStatusQueryCriteria query
-    ) {
+            QueryContext queryContext, ResponseStatusQueryCriteria query) {
         return Optional.empty();
     }
 
@@ -62,17 +63,20 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
-    public @NonNull Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query) {
+    public @NonNull Maybe<AverageAggregate> searchResponseTimeOverTime(
+            QueryContext queryContext, ResponseTimeRangeQuery query) {
         return Maybe.empty();
     }
 
     @Override
-    public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query) {
+    public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(
+            QueryContext queryContext, ResponseStatusOverTimeQuery query) {
         return new ResponseStatusOverTimeAggregate();
     }
 
     @Override
-    public RequestResponseTimeAggregate searchRequestResponseTimes(QueryContext queryContext, RequestResponseTimeQueryCriteria query) {
+    public RequestResponseTimeAggregate searchRequestResponseTimes(
+            QueryContext queryContext, RequestResponseTimeQueryCriteria query) {
         return RequestResponseTimeAggregate.builder().build();
     }
 
@@ -82,7 +86,8 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
-    public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
+    public Optional<TopFailedAggregate> searchTopFailedApis(
+            QueryContext queryContext, TopFailedQueryCriteria criteria) {
         return Optional.empty();
     }
 
@@ -97,7 +102,8 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
-    public Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery requestsCountQuery) {
+    public Optional<CountByAggregate> searchRequestsCountByEvent(
+            QueryContext queryContext, RequestsCountByEventQuery requestsCountQuery) {
         return Optional.empty();
     }
 

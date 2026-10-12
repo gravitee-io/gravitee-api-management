@@ -58,7 +58,8 @@ public class DictionaryManagerTest {
 
     @Test
     public void shouldStart() {
-        final DictionaryEntity dictionary = DictionaryEntity.builder().id(DICTIONARY_ID).build();
+        final DictionaryEntity dictionary =
+                DictionaryEntity.builder().id(DICTIONARY_ID).build();
 
         when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary);
         cut.start(DICTIONARY_ID);
@@ -71,7 +72,11 @@ public class DictionaryManagerTest {
         final DictionaryProviderEntity provider = new DictionaryProviderEntity();
         provider.setConfiguration(JsonNodeFactory.instance.nullNode());
 
-        final DictionaryEntity dictionary = DictionaryEntity.builder().updatedAt(new Date()).provider(provider).id(DICTIONARY_ID).build();
+        final DictionaryEntity dictionary = DictionaryEntity.builder()
+                .updatedAt(new Date())
+                .provider(provider)
+                .id(DICTIONARY_ID)
+                .build();
 
         when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary);
 
@@ -92,24 +97,27 @@ public class DictionaryManagerTest {
         trigger.setUnit(TimeUnit.SECONDS);
 
         final DictionaryEntity dictionary = DictionaryEntity.builder()
-            .updatedAt(new Date())
-            .provider(provider)
-            .id(DICTIONARY_ID)
-            .trigger(trigger)
-            .build();
+                .updatedAt(new Date())
+                .provider(provider)
+                .id(DICTIONARY_ID)
+                .trigger(trigger)
+                .build();
 
         final DictionaryTriggerEntity triggerUpdated = new DictionaryTriggerEntity();
         triggerUpdated.setRate(1);
         triggerUpdated.setUnit(TimeUnit.MINUTES);
 
         final DictionaryEntity dictionaryUpdated = DictionaryEntity.builder()
-            .updatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
-            .provider(provider)
-            .id(DICTIONARY_ID)
-            .trigger(triggerUpdated)
-            .build();
+                .updatedAt(
+                        new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
+                .provider(provider)
+                .id(DICTIONARY_ID)
+                .trigger(triggerUpdated)
+                .build();
 
-        when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
+        when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID))
+                .thenReturn(dictionary)
+                .thenReturn(dictionaryUpdated);
 
         cut.start(DICTIONARY_ID);
         cut.start(DICTIONARY_ID);
@@ -129,23 +137,26 @@ public class DictionaryManagerTest {
         trigger.setUnit(TimeUnit.SECONDS);
 
         final DictionaryEntity dictionary = DictionaryEntity.builder()
-            .updatedAt(new Date())
-            .provider(provider)
-            .id(DICTIONARY_ID)
-            .trigger(trigger)
-            .build();
+                .updatedAt(new Date())
+                .provider(provider)
+                .id(DICTIONARY_ID)
+                .trigger(trigger)
+                .build();
 
         final DictionaryProviderEntity providerUpdated = new DictionaryProviderEntity();
         providerUpdated.setConfiguration(JsonNodeFactory.instance.arrayNode());
 
         final DictionaryEntity dictionaryUpdated = DictionaryEntity.builder()
-            .updatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
-            .provider(providerUpdated)
-            .id(DICTIONARY_ID)
-            .trigger(trigger)
-            .build();
+                .updatedAt(
+                        new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
+                .provider(providerUpdated)
+                .id(DICTIONARY_ID)
+                .trigger(trigger)
+                .build();
 
-        when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
+        when(dictionaryService.findById(new ExecutionContext(), DICTIONARY_ID))
+                .thenReturn(dictionary)
+                .thenReturn(dictionaryUpdated);
 
         cut.start(DICTIONARY_ID);
         cut.start(DICTIONARY_ID);
@@ -158,9 +169,10 @@ public class DictionaryManagerTest {
     @Test
     public void shouldStop() {
         cut.stop(DICTIONARY_ID);
-        verify(eventManager, times(1)).publishEvent(
-            eq(DictionaryEvent.STOP),
-            argThat(dictionary -> (((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID)))
-        );
+        verify(eventManager, times(1))
+                .publishEvent(
+                        eq(DictionaryEvent.STOP),
+                        argThat(dictionary ->
+                                (((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID))));
     }
 }

@@ -77,17 +77,17 @@ public class RateLimitRepositoryConfiguration {
 
     @Bean
     public TokenBucketRateLimitRepository<TokenBucket> tokenBucketRateLimitRepository(
-        @Qualifier("rateLimitMongoTemplate") ReactiveMongoOperations rateLimitMongoTemplate
-    ) {
+            @Qualifier("rateLimitMongoTemplate") ReactiveMongoOperations rateLimitMongoTemplate) {
         String prefix = environment.getProperty("ratelimit.mongodb.prefix", "");
         // Evict idle buckets via a TTL index on expire_at. Created here on the rate-limit datastore —
         // the only place this collection lives — mirroring MongoRateLimitRepository's gateway-side TTL
         // index. The management upgrader framework runs against the management datastore, so it cannot
         // create indexes here.
         rateLimitMongoTemplate
-            .indexOps(prefix + MongoTokenBucketRateLimitRepository.COLLECTION)
-            .ensureIndex(new Index(MongoTokenBucketRateLimitRepository.FIELD_EXPIRE_AT, Sort.Direction.ASC).expire(0L))
-            .subscribe();
+                .indexOps(prefix + MongoTokenBucketRateLimitRepository.COLLECTION)
+                .ensureIndex(
+                        new Index(MongoTokenBucketRateLimitRepository.FIELD_EXPIRE_AT, Sort.Direction.ASC).expire(0L))
+                .subscribe();
         return new MongoTokenBucketRateLimitRepository(rateLimitMongoTemplate, prefix);
     }
 }

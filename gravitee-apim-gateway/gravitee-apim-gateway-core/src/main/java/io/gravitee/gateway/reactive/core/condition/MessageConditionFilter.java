@@ -16,9 +16,7 @@
 package io.gravitee.gateway.reactive.core.condition;
 
 import io.gravitee.definition.model.MessageConditionSupplier;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.gateway.reactive.api.context.base.BaseMessageExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.reactivex.rxjava3.core.Maybe;
 

@@ -39,15 +39,13 @@ public class EndpointHealthcheckService extends AbstractService {
         final EndpointHealthcheckVerticle healthcheckVerticle = new EndpointHealthcheckVerticle();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(healthcheckVerticle);
 
-        vertx
-            .deployVerticle(healthcheckVerticle)
-            .onComplete(event -> {
-                if (event.failed()) {
-                    log.error("Health-check service cannot be started", event.cause());
-                }
+        vertx.deployVerticle(healthcheckVerticle).onComplete(event -> {
+            if (event.failed()) {
+                log.error("Health-check service cannot be started", event.cause());
+            }
 
-                deploymentId = event.result();
-            });
+            deploymentId = event.result();
+        });
         return this;
     }
 

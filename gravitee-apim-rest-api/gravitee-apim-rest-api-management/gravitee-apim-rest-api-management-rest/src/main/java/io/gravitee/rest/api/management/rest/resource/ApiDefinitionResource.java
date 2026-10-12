@@ -67,16 +67,15 @@ public class ApiDefinitionResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Export the API definition in JSON format",
-        description = "User must have the API_DEFINITION[READ] permission to use this service"
-    )
+            summary = "Export the API definition in JSON format",
+            description = "User must have the API_DEFINITION[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "API definition",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = JsonNode.class))
-    )
+            responseCode = "200",
+            description = "API definition",
+            content =
+                    @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = JsonNode.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApiDefinition() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiDefinition = apiExportService.exportAsJson(executionContext, api, EXPORT_VERSION);
@@ -87,20 +86,18 @@ public class ApiDefinitionResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update the API with json patches",
-        description = "User must have the API_DEFINITION[UPDATE] permission to use this service"
-    )
+            summary = "Update the API with json patches",
+            description = "User must have the API_DEFINITION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "API successfully updated with json patches",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = JsonNode.class))
-    )
+            responseCode = "200",
+            description = "API successfully updated with json patches",
+            content =
+                    @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = JsonNode.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response patch(
-        @RequestBody(required = true) @Valid @NotNull final Collection<JsonPatch> patches,
-        @QueryParam("dryRun") @DefaultValue("false") boolean dryRun
-    ) {
+            @RequestBody(required = true) @Valid @NotNull final Collection<JsonPatch> patches,
+            @QueryParam("dryRun") @DefaultValue("false") boolean dryRun) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiEntity apiEntity = getApi(executionContext);
         String apiDefinition = apiExportService.exportAsJson(executionContext, apiEntity.getId(), EXPORT_VERSION);
@@ -109,17 +106,18 @@ public class ApiDefinitionResource extends AbstractResource {
             if (dryRun) {
                 return Response.ok(apiDefinitionModified).build();
             }
-            ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(executionContext, apiDefinitionModified);
+            ApiEntity updatedApi =
+                    apiDuplicatorService.updateWithImportedDefinition(executionContext, apiDefinitionModified);
             final String apiDefinitionUpdated = apiExportService.exportAsJson(executionContext, api, EXPORT_VERSION);
             return Response.ok(apiDefinitionUpdated)
-                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
-                .lastModified(updatedApi.getUpdatedAt())
-                .build();
+                    .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                    .lastModified(updatedApi.getUpdatedAt())
+                    .build();
         } catch (JsonPatchTestFailedException e) {
             return Response.noContent()
-                .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
-                .lastModified(apiEntity.getUpdatedAt())
-                .build();
+                    .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
+                    .lastModified(apiEntity.getUpdatedAt())
+                    .build();
         }
     }
 

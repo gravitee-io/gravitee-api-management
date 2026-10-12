@@ -32,7 +32,8 @@ public class PreprocessorStepSerializer extends StdScalarSerializer<Preprocessor
     }
 
     @Override
-    public void serialize(PreprocessorStep preprocessorStep, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(PreprocessorStep preprocessorStep, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         if (preprocessorStep.getAttributes() != null) {
             jgen.writeObjectField("attributes", preprocessorStep.getAttributes());

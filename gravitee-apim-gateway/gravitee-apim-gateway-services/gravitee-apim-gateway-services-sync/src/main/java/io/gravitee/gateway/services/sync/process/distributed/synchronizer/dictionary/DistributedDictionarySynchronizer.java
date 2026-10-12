@@ -33,18 +33,18 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class DistributedDictionarySynchronizer extends AbstractDistributedSynchronizer<DictionaryDeployable, DictionaryDeployer> {
+public class DistributedDictionarySynchronizer
+        extends AbstractDistributedSynchronizer<DictionaryDeployable, DictionaryDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final DictionaryMapper dictionaryMapper;
 
     public DistributedDictionarySynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final DictionaryMapper dictionaryMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final DictionaryMapper dictionaryMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.dictionaryMapper = dictionaryMapper;

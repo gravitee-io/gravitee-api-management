@@ -40,33 +40,30 @@ public class SecurityContextFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(final ContainerRequestContext requestContext) throws IOException {
-        requestContext.setSecurityContext(
-            new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                    return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
-                }
-
-                @Override
-                public boolean isUserInRole(final String role) {
-                    return SecurityContextHolder.getContext()
-                        .getAuthentication()
-                        .getAuthorities()
-                        .stream()
-                        .anyMatch((Predicate<GrantedAuthority>) grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase(role));
-                }
-
-                @Override
-                public boolean isSecure() {
-                    return requestContext.getUriInfo().getRequestUri().getScheme().equalsIgnoreCase("https");
-                }
-
-                @Override
-                public String getAuthenticationScheme() {
-                    return requestContext.getUriInfo().getRequestUri().getScheme();
-                }
+        requestContext.setSecurityContext(new SecurityContext() {
+            @Override
+            public Principal getUserPrincipal() {
+                Authentication authentication =
+                        SecurityContextHolder.getContext().getAuthentication();
+                return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
             }
-        );
+
+            @Override
+            public boolean isUserInRole(final String role) {
+                return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                        .anyMatch((Predicate<GrantedAuthority>) grantedAuthority ->
+                                grantedAuthority.getAuthority().equalsIgnoreCase(role));
+            }
+
+            @Override
+            public boolean isSecure() {
+                return requestContext.getUriInfo().getRequestUri().getScheme().equalsIgnoreCase("https");
+            }
+
+            @Override
+            public String getAuthenticationScheme() {
+                return requestContext.getUriInfo().getRequestUri().getScheme();
+            }
+        });
     }
 }

@@ -57,7 +57,8 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
         ApiKeyEntity apiKeyFromService = new ApiKeyEntity();
         apiKeyFromService.setId("test-id");
         List<ApiKeyEntity> apiKeysFromService = List.of(apiKeyFromService);
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(apiKeysFromService);
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID))
+                .thenReturn(apiKeysFromService);
 
         Response response = envTarget().request().get();
 
@@ -86,15 +87,16 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
 
         SubscriptionEntity subscription = mockExistingSubscription();
 
-        when(apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription)).thenReturn(renewedApiKey);
+        when(apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription))
+                .thenReturn(renewedApiKey);
 
         Response response = envTarget("/_renew").request().post(null);
 
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(renewedApiKey, response.readEntity(ApiKeyEntity.class));
-        assertTrue(
-            response.getLocation().toString().endsWith("/applications/my-application/subscriptions/my-subscription/apikeys/test-id")
-        );
+        assertTrue(response.getLocation()
+                .toString()
+                .endsWith("/applications/my-application/subscriptions/my-subscription/apikeys/test-id"));
     }
 
     @Test
@@ -111,7 +113,8 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
 
     @Test
     public void post_on_renew_should_return_http_404_if_application_not_found() {
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(null);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+                .thenReturn(null);
 
         Response response = envTarget("/_renew").request().post(null);
 
@@ -130,7 +133,8 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
     private void mockExistingApplication(ApiKeyMode apiKeyMode) {
         ApplicationEntity application = new ApplicationEntity();
         application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+                .thenReturn(application);
     }
 
     private SubscriptionEntity mockExistingSubscription() {

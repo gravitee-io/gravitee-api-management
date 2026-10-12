@@ -40,15 +40,15 @@ import org.slf4j.Logger;
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class})
 public interface IntegrationMapper {
     Logger log = NodeLoggerFactory.getLogger(IntegrationMapper.class);
     IntegrationMapper INSTANCE = Mappers.getMapper(IntegrationMapper.class);
 
     default Integration map(CreateIntegration source, String environmentId) {
         return "A2A".equals(source.getProvider())
-            ? mapToA2aIntegration(source).withEnvironmentId(environmentId)
-            : mapToApiIntegration(source).withEnvironmentId(environmentId);
+                ? mapToA2aIntegration(source).withEnvironmentId(environmentId)
+                : mapToApiIntegration(source).withEnvironmentId(environmentId);
     }
 
     Integration.ApiIntegration mapToApiIntegration(CreateIntegration source);
@@ -83,49 +83,36 @@ public interface IntegrationMapper {
     @Mapping(target = "description", expression = "java(integration.description())")
     @Mapping(target = "provider", expression = "java(integration.provider())")
     @Mapping(target = "groups", expression = "java(List.copyOf(integration.groups()))")
-    io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source, Integration.A2aIntegration integration);
+    io.gravitee.rest.api.management.v2.rest.model.Integration map(
+            IntegrationView source, Integration.A2aIntegration integration);
 
     List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> source);
 
-    UpdateIntegrationUseCase.Input.UpdateFields map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
+    UpdateIntegrationUseCase.Input.UpdateFields map(
+            io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
 
     AsyncJobStatus map(AsyncJob.Status source);
 
     static IngestionPreviewResponse mapper(DiscoveryUseCase.Output preview) {
         return new IngestionPreviewResponse()
-            .totalCount(preview.apis().size())
-            .newCount(
-                preview
-                    .apis()
-                    .stream()
-                    .filter(api -> api.state() == NEW)
-                    .count()
-            )
-            .updateCount(
-                preview
-                    .apis()
-                    .stream()
-                    .filter(api -> api.state() == UPDATE)
-                    .count()
-            )
-            .apis(
-                preview
-                    .apis()
-                    .stream()
-                    .map(a ->
-                        new IngestionPreviewResponseApisInner()
-                            .id(a.id())
-                            .name(a.name())
-                            .version(a.version())
-                            .state(
-                                switch (a.state()) {
-                                    case NEW -> IngestionPreviewResponseApisInner.StateEnum.NEW;
-                                    case UPDATE -> IngestionPreviewResponseApisInner.StateEnum.UPDATE;
-                                }
-                            )
-                    )
-                    .toList()
-            )
-            .isPartiallyDiscovered(preview.isPartialDiscovery());
+                .totalCount(preview.apis().size())
+                .newCount(preview.apis().stream()
+                        .filter(api -> api.state() == NEW)
+                        .count())
+                .updateCount(preview.apis().stream()
+                        .filter(api -> api.state() == UPDATE)
+                        .count())
+                .apis(preview.apis().stream()
+                        .map(a -> new IngestionPreviewResponseApisInner()
+                                .id(a.id())
+                                .name(a.name())
+                                .version(a.version())
+                                .state(
+                                        switch (a.state()) {
+                                            case NEW -> IngestionPreviewResponseApisInner.StateEnum.NEW;
+                                            case UPDATE -> IngestionPreviewResponseApisInner.StateEnum.UPDATE;
+                                        }))
+                        .toList())
+                .isPartiallyDiscovered(preview.isPartialDiscovery());
     }
 }

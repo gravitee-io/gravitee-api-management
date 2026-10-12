@@ -56,65 +56,66 @@ public class ClientAuthenticationPEMInlineTestCase extends AbstractGatewayTest {
     @Override
     protected void configureWireMock(WireMockConfiguration configuration) {
         configuration
-            .needClientAuth(true)
-            .trustStorePath(ResourceUtils.toPath("certs/truststore01.jks"))
-            .trustStorePassword("password")
-            .keystorePath(ResourceUtils.toPath("certs/keystore01.jks"))
-            .keystorePassword("password");
+                .needClientAuth(true)
+                .trustStorePath(ResourceUtils.toPath("certs/truststore01.jks"))
+                .trustStorePassword("password")
+                .keystorePath(ResourceUtils.toPath("certs/keystore01.jks"))
+                .keystorePassword("password");
     }
 
     @Test
-    @DisplayName("Should test the different endpoints thanks to round robin and have the correct status depending on their configuration")
+    @DisplayName(
+            "Should test the different endpoints thanks to round robin and have the correct status depending on their configuration")
     void simple_request_client_auth(HttpClient httpClient) throws Exception {
         wiremock.stubFor(get(ENDPOINT).willReturn(ok()));
 
         // First call is calling an HTTPS endpoint without ssl configuration => 502
         httpClient
-            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
-            .flatMap(request -> request.rxSend())
-            .test()
-            .await()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+                .flatMap(request -> request.rxSend())
+                .test()
+                .await()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
+                    return true;
+                })
+                .assertNoErrors();
 
         // Second call is calling an endpoint where trustAll = false, without keystore => 502
         httpClient
-            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
-            .flatMap(request -> request.rxSend())
-            .test()
-            .await()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+                .flatMap(request -> request.rxSend())
+                .test()
+                .await()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
+                    return true;
+                })
+                .assertNoErrors();
 
         // Third call is calling an endpoint where trustAll = true, with keystore => 200
         httpClient
-            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
-            .flatMap(request -> request.rxSend())
-            .test()
-            .await()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+                .flatMap(request -> request.rxSend())
+                .test()
+                .await()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return true;
+                })
+                .assertNoErrors();
 
         // Fourth call is calling an endpoint where trustAll = false, with truststore and keystore => 200
         httpClient
-            .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
-            .flatMap(request -> request.rxSend())
-            .test()
-            .await()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, API_ENTRYPOINT)
+                .flatMap(request -> request.rxSend())
+                .test()
+                .await()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return true;
+                })
+                .assertNoErrors();
 
         // Check that the stub has been successfully invoked by the gateway
         wiremock.verify(2, getRequestedFor(urlPathEqualTo(ENDPOINT)));

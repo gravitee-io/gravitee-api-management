@@ -16,18 +16,15 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class GroupFixtures {
 
     private GroupFixtures() {}
 
-    private static final Supplier<Group.GroupBuilder> BASE = () ->
-        Group.builder()
+    private static final Supplier<Group.GroupBuilder> BASE = () -> Group.builder()
             .id("group-id")
             .name("Group name")
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))

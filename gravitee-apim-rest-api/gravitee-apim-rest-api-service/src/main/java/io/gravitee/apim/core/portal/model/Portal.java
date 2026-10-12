@@ -39,24 +39,25 @@ public class Portal {
     private final String activeThemeId;
 
     private Portal(
-        PortalId id,
-        String environmentId,
-        String organizationId,
-        String name,
-        PortalNavigationStructure navigationStructure,
-        String activeThemeId
-    ) {
+            PortalId id,
+            String environmentId,
+            String organizationId,
+            String name,
+            PortalNavigationStructure navigationStructure,
+            String activeThemeId) {
         this.id = id;
         this.environmentId = environmentId;
         this.organizationId = organizationId;
         this.name = name;
-        this.navigationStructure = navigationStructure == null ? PortalNavigationStructure.empty() : navigationStructure;
+        this.navigationStructure =
+                navigationStructure == null ? PortalNavigationStructure.empty() : navigationStructure;
         this.activeThemeId = activeThemeId;
     }
 
     /** New portal with a random id and no navigation. */
     public static Portal create(String environmentId, String organizationId, String name) {
-        return new Portal(PortalId.random(), environmentId, organizationId, name, PortalNavigationStructure.empty(), null);
+        return new Portal(
+                PortalId.random(), environmentId, organizationId, name, PortalNavigationStructure.empty(), null);
     }
 
     /** Reconstitute a portal from a known id (HRID-derived, persistence, etc.). */
@@ -66,21 +67,22 @@ public class Portal {
 
     /** Reconstitute a portal with a persisted navigation structure. */
     public static Portal of(
-        PortalId id,
-        String environmentId,
-        String organizationId,
-        String name,
-        PortalNavigationStructure navigationStructure
-    ) {
+            PortalId id,
+            String environmentId,
+            String organizationId,
+            String name,
+            PortalNavigationStructure navigationStructure) {
         return new Portal(id, environmentId, organizationId, name, navigationStructure, null);
     }
 
     public Portal withNavigationStructure(PortalNavigationStructure navigationStructure) {
-        return new Portal(this.id, this.environmentId, this.organizationId, this.name, navigationStructure, this.activeThemeId);
+        return new Portal(
+                this.id, this.environmentId, this.organizationId, this.name, navigationStructure, this.activeThemeId);
     }
 
     public Portal withActiveThemeId(String activeThemeId) {
-        return new Portal(this.id, this.environmentId, this.organizationId, this.name, this.navigationStructure, activeThemeId);
+        return new Portal(
+                this.id, this.environmentId, this.organizationId, this.name, this.navigationStructure, activeThemeId);
     }
 
     @Override

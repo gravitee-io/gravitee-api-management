@@ -23,7 +23,8 @@ import java.util.Map;
  */
 public class PlanNotSubscribableWithSharedApiKeyException extends AbstractManagementException {
 
-    private final String message = "You cannot subscribe to a second API Key plan on the same API in shared API Key mode";
+    private final String message =
+            "You cannot subscribe to a second API Key plan on the same API in shared API Key mode";
 
     @Override
     public String getMessage() {

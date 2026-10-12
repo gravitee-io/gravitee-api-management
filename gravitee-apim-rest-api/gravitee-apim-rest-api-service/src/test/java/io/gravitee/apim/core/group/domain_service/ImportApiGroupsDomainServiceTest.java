@@ -39,10 +39,12 @@ class ImportApiGroupsDomainServiceTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String OTHER_ENVIRONMENT_ID = "other-environment-id";
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id");
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id");
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
-    private final CreateGroupDomainServiceInMemory createGroupDomainService = new CreateGroupDomainServiceInMemory(groupQueryService);
+    private final CreateGroupDomainServiceInMemory createGroupDomainService =
+            new CreateGroupDomainServiceInMemory(groupQueryService);
 
     private ImportApiGroupsDomainService service;
 
@@ -61,9 +63,10 @@ class ImportApiGroupsDomainServiceTest {
 
     @Test
     void should_resolve_existing_group_by_name() {
-        groupQueryService.initWith(
-            List.of(GroupFixtures.aGroup("group-1").toBuilder().name("Helios").environmentId(ENVIRONMENT_ID).build())
-        );
+        groupQueryService.initWith(List.of(GroupFixtures.aGroup("group-1").toBuilder()
+                .name("Helios")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         var resolved = service.resolveOrCreateGroupIds(Set.of("Helios"), AUDIT_INFO);
 
@@ -73,30 +76,32 @@ class ImportApiGroupsDomainServiceTest {
 
     @Test
     void should_not_bind_group_by_id_even_when_id_exists_in_same_environment() {
-        groupQueryService.initWith(
-            List.of(GroupFixtures.aGroup("group-1").toBuilder().name("Helios").environmentId(ENVIRONMENT_ID).build())
-        );
+        groupQueryService.initWith(List.of(GroupFixtures.aGroup("group-1").toBuilder()
+                .name("Helios")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         var resolved = service.resolveOrCreateGroupIds(Set.of("group-1"), AUDIT_INFO);
 
         // Name-only: "group-1" is treated as a name, not as an ID → creates a new empty group.
         assertThat(resolved).containsExactly("created-group-id");
-        assertThat(createGroupDomainService.storage().values())
-            .singleElement()
-            .satisfies(group -> {
-                assertThat(group.getName()).isEqualTo("group-1");
-                assertThat(group.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-            });
+        assertThat(createGroupDomainService.storage().values()).singleElement().satisfies(group -> {
+            assertThat(group.getName()).isEqualTo("group-1");
+            assertThat(group.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+        });
     }
 
     @Test
     void should_resolve_by_name_in_target_environment_only() {
-        groupQueryService.initWith(
-            List.of(
-                GroupFixtures.aGroup("source-group-id").toBuilder().name("Helios").environmentId(OTHER_ENVIRONMENT_ID).build(),
-                GroupFixtures.aGroup("target-group-id").toBuilder().name("Helios").environmentId(ENVIRONMENT_ID).build()
-            )
-        );
+        groupQueryService.initWith(List.of(
+                GroupFixtures.aGroup("source-group-id").toBuilder()
+                        .name("Helios")
+                        .environmentId(OTHER_ENVIRONMENT_ID)
+                        .build(),
+                GroupFixtures.aGroup("target-group-id").toBuilder()
+                        .name("Helios")
+                        .environmentId(ENVIRONMENT_ID)
+                        .build()));
 
         var resolved = service.resolveOrCreateGroupIds(Set.of("Helios"), AUDIT_INFO);
 
@@ -109,19 +114,18 @@ class ImportApiGroupsDomainServiceTest {
         var resolved = service.resolveOrCreateGroupIds(Set.of("Helios"), AUDIT_INFO);
 
         assertThat(resolved).containsExactly("created-group-id");
-        assertThat(createGroupDomainService.storage().values())
-            .singleElement()
-            .satisfies(group -> {
-                assertThat(group.getName()).isEqualTo("Helios");
-                assertThat(group.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-            });
+        assertThat(createGroupDomainService.storage().values()).singleElement().satisfies(group -> {
+            assertThat(group.getName()).isEqualTo("Helios");
+            assertThat(group.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+        });
     }
 
     @Test
     void should_reuse_group_when_name_appears_before_create() {
-        groupQueryService.initWith(
-            List.of(GroupFixtures.aGroup("existing-group-id").toBuilder().name("Helios").environmentId(ENVIRONMENT_ID).build())
-        );
+        groupQueryService.initWith(List.of(GroupFixtures.aGroup("existing-group-id").toBuilder()
+                .name("Helios")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         var resolved = service.resolveOrCreateGroupIds(Set.of("Helios"), AUDIT_INFO);
 
@@ -135,9 +139,10 @@ class ImportApiGroupsDomainServiceTest {
         var createThatSeesConcurrentInsert = new CreateGroupDomainService() {
             @Override
             public CreateResult createEmpty(String name, AuditInfo auditInfo) {
-                groupQueryService.initWith(
-                    List.of(GroupFixtures.aGroup("raced-group-id").toBuilder().name(name).environmentId(ENVIRONMENT_ID).build())
-                );
+                groupQueryService.initWith(List.of(GroupFixtures.aGroup("raced-group-id").toBuilder()
+                        .name(name)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build()));
                 return createGroupDomainService.createEmpty(name, auditInfo);
             }
         };
@@ -151,9 +156,10 @@ class ImportApiGroupsDomainServiceTest {
 
     @Test
     void should_keep_matching_group_and_create_missing_one() {
-        groupQueryService.initWith(
-            List.of(GroupFixtures.aGroup("developers-id").toBuilder().name("Developers").environmentId(ENVIRONMENT_ID).build())
-        );
+        groupQueryService.initWith(List.of(GroupFixtures.aGroup("developers-id").toBuilder()
+                .name("Developers")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         var resolved = service.resolveOrCreateGroupIds(Set.of("Developers", "Helios"), AUDIT_INFO);
 
@@ -172,17 +178,18 @@ class ImportApiGroupsDomainServiceTest {
 
     @Test
     void should_filter_out_blank_group_names() {
-        groupQueryService.initWith(
-            List.of(GroupFixtures.aGroup("developers-id").toBuilder().name("Developers").environmentId(ENVIRONMENT_ID).build())
-        );
+        groupQueryService.initWith(List.of(GroupFixtures.aGroup("developers-id").toBuilder()
+                .name("Developers")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         var resolved = service.resolveOrCreateGroupIds(Set.of("Developers", "", "  ", "Helios"), AUDIT_INFO);
 
         // Blank names filtered out, Developers resolved, Helios created
         assertThat(resolved).hasSize(2).contains("developers-id", "created-group-id");
         assertThat(createGroupDomainService.storage().values())
-            .singleElement()
-            .satisfies(group -> assertThat(group.getName()).isEqualTo("Helios"));
+                .singleElement()
+                .satisfies(group -> assertThat(group.getName()).isEqualTo("Helios"));
     }
 
     @Test

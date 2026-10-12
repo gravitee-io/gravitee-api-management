@@ -71,19 +71,17 @@ public class ApiMetadataResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List metadata for the given API",
-        description = "User must have the API_METADATA[READ] permission to use this service"
-    )
+            summary = "List metadata for the given API",
+            description = "User must have the API_METADATA[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of metadata",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApiMetadataEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of metadata",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApiMetadataEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ)})
     public List<ApiMetadataEntity> getApiMetadatas() {
         return apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), api);
     }
@@ -92,17 +90,18 @@ public class ApiMetadataResource extends AbstractResource {
     @Path("{metadata}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "A metadata for the given API and metadata id",
-        description = "User must have the API_METADATA[READ] permission to use this service"
-    )
+            summary = "A metadata for the given API and metadata id",
+            description = "User must have the API_METADATA[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "A metadata",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiMetadataEntity.class))
-    )
+            responseCode = "200",
+            description = "A metadata",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiMetadataEntity.class)))
     @ApiResponse(responseCode = "404", description = "Metadata not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ)})
     public ApiMetadataEntity getApiMetadata(@PathParam("metadata") String metadata) {
         return apiMetadataService.findByIdAndApi(GraviteeContext.getExecutionContext(), metadata, api);
     }
@@ -110,14 +109,18 @@ public class ApiMetadataResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create an API metadata", description = "User must have the API_METADATA[CREATE] permission to use this service")
+    @Operation(
+            summary = "Create an API metadata",
+            description = "User must have the API_METADATA[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "A new API metadata",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiMetadataEntity.class))
-    )
+            responseCode = "201",
+            description = "A new API metadata",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiMetadataEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.CREATE)})
     public Response createApiMetadata(@Valid @NotNull final NewApiMetadataEntity metadata) {
         // prevent creation of a metadata on an another API
         metadata.setApiId(api);
@@ -125,47 +128,51 @@ public class ApiMetadataResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiMetadataEntity apiMetadataEntity = apiMetadataService.create(executionContext, metadata);
         GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(
-            executionContext,
-            apiSearchService.findGenericById(executionContext, api, false, false, true)
-        );
+                executionContext, apiSearchService.findGenericById(executionContext, api, false, false, true));
         searchEngineService.index(executionContext, genericApiEntity, false);
-        return Response.created(this.getLocationHeader(apiMetadataEntity.getKey())).entity(apiMetadataEntity).build();
+        return Response.created(this.getLocationHeader(apiMetadataEntity.getKey()))
+                .entity(apiMetadataEntity)
+                .build();
     }
 
     @PUT
     @Path("{metadata}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update an API metadata", description = "User must have the API_METADATA[UPDATE] permission to use this service")
+    @Operation(
+            summary = "Update an API metadata",
+            description = "User must have the API_METADATA[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "API metadata",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiMetadataEntity.class))
-    )
+            responseCode = "201",
+            description = "API metadata",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiMetadataEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.UPDATE)})
     public Response updateApiMetadata(
-        @PathParam("metadata") String metadataPathParam,
-        @Valid @NotNull final UpdateApiMetadataEntity metadata
-    ) {
+            @PathParam("metadata") String metadataPathParam, @Valid @NotNull final UpdateApiMetadataEntity metadata) {
         // prevent update of a metadata on an another API
         metadata.setApiId(api);
 
-        return Response.ok(apiMetadataService.update(GraviteeContext.getExecutionContext(), metadata)).build();
+        return Response.ok(apiMetadataService.update(GraviteeContext.getExecutionContext(), metadata))
+                .build();
     }
 
     @DELETE
     @Path("{metadata}")
-    @Operation(summary = "Delete a metadata", description = "User must have the API_METADATA[DELETE] permission to use this service")
+    @Operation(
+            summary = "Delete a metadata",
+            description = "User must have the API_METADATA[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Metadata successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.DELETE)})
     public Response deleteApiMetadata(@PathParam("metadata") String metadata) {
         apiMetadataService.delete(GraviteeContext.getExecutionContext(), metadata, api);
         GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(
-            GraviteeContext.getExecutionContext(),
-            apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api, false, false, true)
-        );
+                GraviteeContext.getExecutionContext(),
+                apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), api, false, false, true));
         searchEngineService.index(GraviteeContext.getExecutionContext(), genericApiEntity, false);
         return Response.noContent().build();
     }

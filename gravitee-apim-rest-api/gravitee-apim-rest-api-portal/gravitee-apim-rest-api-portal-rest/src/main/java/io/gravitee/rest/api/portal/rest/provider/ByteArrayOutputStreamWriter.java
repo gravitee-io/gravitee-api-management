@@ -38,20 +38,21 @@ public class ByteArrayOutputStreamWriter implements MessageBodyWriter<ByteArrayO
     }
 
     @Override
-    public long getSize(ByteArrayOutputStream t, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+    public long getSize(
+            ByteArrayOutputStream t, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return -1;
     }
 
     @Override
     public void writeTo(
-        ByteArrayOutputStream t,
-        Class<?> type,
-        Type genericType,
-        Annotation[] annotations,
-        MediaType mediaType,
-        MultivaluedMap<String, Object> httpHeaders,
-        OutputStream entityStream
-    ) throws IOException {
+            ByteArrayOutputStream t,
+            Class<?> type,
+            Type genericType,
+            Annotation[] annotations,
+            MediaType mediaType,
+            MultivaluedMap<String, Object> httpHeaders,
+            OutputStream entityStream)
+            throws IOException {
         t.writeTo(entityStream);
     }
 }

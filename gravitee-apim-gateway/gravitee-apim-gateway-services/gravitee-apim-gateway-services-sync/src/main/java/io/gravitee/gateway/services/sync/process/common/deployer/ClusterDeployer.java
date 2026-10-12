@@ -35,7 +35,8 @@ public class ClusterDeployer implements Deployer<ClusterReactorDeployable> {
                 clusterManager.register(deployable.reactableCluster());
                 log.debug("Cluster [{}] deployed", deployable.clusterId());
             } catch (Exception e) {
-                throw new SyncException("An error occurred when trying to deploy cluster [" + deployable.clusterId() + "].", e);
+                throw new SyncException(
+                        "An error occurred when trying to deploy cluster [" + deployable.clusterId() + "].", e);
             }
         });
     }
@@ -52,7 +53,8 @@ public class ClusterDeployer implements Deployer<ClusterReactorDeployable> {
                 clusterManager.unregister(deployable.clusterId());
                 log.debug("Cluster [{}] undeployed", deployable.clusterId());
             } catch (Exception e) {
-                throw new SyncException("An error occurred when trying to undeploy cluster [" + deployable.clusterId() + "].", e);
+                throw new SyncException(
+                        "An error occurred when trying to undeploy cluster [" + deployable.clusterId() + "].", e);
             }
         });
     }

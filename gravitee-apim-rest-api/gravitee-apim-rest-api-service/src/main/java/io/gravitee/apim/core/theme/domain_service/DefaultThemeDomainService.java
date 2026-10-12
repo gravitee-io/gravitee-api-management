@@ -39,15 +39,14 @@ public class DefaultThemeDomainService {
     private final ThemePortalNextAssetsDomainService themePortalNextAssetsDomainService;
 
     private static final List<Key> PORTAL_NEXT_THEME_KEYS = List.of(
-        Key.PORTAL_NEXT_THEME_COLOR_PRIMARY,
-        Key.PORTAL_NEXT_THEME_COLOR_SECONDARY,
-        Key.PORTAL_NEXT_THEME_COLOR_TERTIARY,
-        Key.PORTAL_NEXT_THEME_COLOR_ERROR,
-        Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE,
-        Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD,
-        Key.PORTAL_NEXT_THEME_CUSTOM_CSS,
-        Key.PORTAL_NEXT_THEME_FONT_FAMILY
-    );
+            Key.PORTAL_NEXT_THEME_COLOR_PRIMARY,
+            Key.PORTAL_NEXT_THEME_COLOR_SECONDARY,
+            Key.PORTAL_NEXT_THEME_COLOR_TERTIARY,
+            Key.PORTAL_NEXT_THEME_COLOR_ERROR,
+            Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE,
+            Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD,
+            Key.PORTAL_NEXT_THEME_CUSTOM_CSS,
+            Key.PORTAL_NEXT_THEME_FONT_FAMILY);
 
     public Theme getDefaultTheme(ThemeType themeType, ExecutionContext executionContext) {
         if (Objects.requireNonNull(themeType) == ThemeType.PORTAL_NEXT) {
@@ -60,8 +59,7 @@ public class DefaultThemeDomainService {
     public Theme createAndEnableDefaultTheme(ThemeType themeType, ExecutionContext executionContext) {
         if (ThemeType.PORTAL_NEXT.equals(themeType)) {
             var defaultTheme = this.getDefaultTheme(themeType, executionContext);
-            return this.themeDomainService.create(
-                NewTheme.builder()
+            return this.themeDomainService.create(NewTheme.builder()
                     .referenceId(defaultTheme.getReferenceId())
                     .referenceType(defaultTheme.getReferenceType())
                     .name(defaultTheme.getName())
@@ -70,8 +68,7 @@ public class DefaultThemeDomainService {
                     .enabled(true)
                     .logo(defaultTheme.getLogo())
                     .favicon(defaultTheme.getFavicon())
-                    .build()
-            );
+                    .build());
         } else if (ThemeType.PORTAL.equals(themeType)) {
             return this.themeServiceLegacyWrapper.getCurrentOrCreateDefaultPortalTheme(executionContext);
         }
@@ -80,35 +77,32 @@ public class DefaultThemeDomainService {
     }
 
     private Theme getPortalNextDefaultTheme(ExecutionContext executionContext) {
-        Map<Key, String> parameters = parametersDomainService.getEnvironmentParameters(executionContext, PORTAL_NEXT_THEME_KEYS);
+        Map<Key, String> parameters =
+                parametersDomainService.getEnvironmentParameters(executionContext, PORTAL_NEXT_THEME_KEYS);
 
         return Theme.builder()
-            .type(ThemeType.PORTAL_NEXT)
-            .name("Default Portal Next Theme")
-            .referenceId(executionContext.getEnvironmentId())
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .logo(themePortalNextAssetsDomainService.getPortalNextLogo())
-            .favicon(themePortalNextAssetsDomainService.getPortalNextFavicon())
-            .definitionPortalNext(
-                ThemeDefinition.builder()
-                    .color(
-                        ThemeDefinition.Color.builder()
-                            .primary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY))
-                            .secondary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_SECONDARY))
-                            .tertiary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_TERTIARY))
-                            .error(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_ERROR))
-                            .background(
-                                ThemeDefinition.Background.builder()
-                                    .card(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD))
-                                    .page(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE))
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .customCss(parameters.get(Key.PORTAL_NEXT_THEME_CUSTOM_CSS))
-                    .font(ThemeDefinition.Font.builder().fontFamily(parameters.get(Key.PORTAL_NEXT_THEME_FONT_FAMILY)).build())
-                    .build()
-            )
-            .build();
+                .type(ThemeType.PORTAL_NEXT)
+                .name("Default Portal Next Theme")
+                .referenceId(executionContext.getEnvironmentId())
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .logo(themePortalNextAssetsDomainService.getPortalNextLogo())
+                .favicon(themePortalNextAssetsDomainService.getPortalNextFavicon())
+                .definitionPortalNext(ThemeDefinition.builder()
+                        .color(ThemeDefinition.Color.builder()
+                                .primary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY))
+                                .secondary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_SECONDARY))
+                                .tertiary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_TERTIARY))
+                                .error(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_ERROR))
+                                .background(ThemeDefinition.Background.builder()
+                                        .card(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD))
+                                        .page(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE))
+                                        .build())
+                                .build())
+                        .customCss(parameters.get(Key.PORTAL_NEXT_THEME_CUSTOM_CSS))
+                        .font(ThemeDefinition.Font.builder()
+                                .fontFamily(parameters.get(Key.PORTAL_NEXT_THEME_FONT_FAMILY))
+                                .build())
+                        .build())
+                .build();
     }
 }

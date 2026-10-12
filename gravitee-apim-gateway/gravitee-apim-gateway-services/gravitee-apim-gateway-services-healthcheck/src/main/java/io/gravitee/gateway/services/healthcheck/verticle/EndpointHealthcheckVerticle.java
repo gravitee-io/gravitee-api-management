@@ -105,19 +105,15 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void startHealthCheck(Api api) {
-        api
-            .getDefinition()
-            .getProxy()
-            .getGroups()
-            .stream()
-            .filter(group -> group.getEndpoints() != null)
-            .forEach(group -> {
-                final Set<Endpoint> endpoints = group.getEndpoints();
-                if (endpoints instanceof ObservableSet) {
-                    apiHandlers.computeIfAbsent(api, key -> new ArrayList<>());
-                    ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
-                }
-            });
+        api.getDefinition().getProxy().getGroups().stream()
+                .filter(group -> group.getEndpoints() != null)
+                .forEach(group -> {
+                    final Set<Endpoint> endpoints = group.getEndpoints();
+                    if (endpoints instanceof ObservableSet) {
+                        apiHandlers.computeIfAbsent(api, key -> new ArrayList<>());
+                        ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
+                    }
+                });
 
         // Configure handlers on resolved API endpoints
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
@@ -134,16 +130,16 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     private void addHandler(Api api, EndpointRule rule) {
         try {
-            final HealthCheckContext healthCheckContext = healthCheckContextFactory.create(
-                new ApiTemplateVariableProvider(api),
-                api.getEnvironmentId()
-            );
+            final HealthCheckContext healthCheckContext =
+                    healthCheckContextFactory.create(new ApiTemplateVariableProvider(api), api.getEnvironmentId());
 
-            EndpointRuleHandler runner = rule.createRunner(vertx, rule, healthCheckContext.getTemplateEngine(), environment);
+            EndpointRuleHandler runner =
+                    rule.createRunner(vertx, rule, healthCheckContext.getTemplateEngine(), environment);
             runner.setStatusHandler(statusReporter);
             runner.setAlertEventProducer(alertEventProducer);
             runner.setNode(node);
-            EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(vertx, rule, gatewayConfiguration.healthCheckJitterInMs());
+            EndpointRuleCronHandler cronHandler =
+                    new EndpointRuleCronHandler(vertx, rule, gatewayConfiguration.healthCheckJitterInMs());
             cronHandler.schedule(runner);
 
             // computeIfPresent() so the add is atomic with respect to a concurrent removeHandlers():
@@ -158,11 +154,10 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             }
 
             log.debug(
-                "Add health-check for endpoint name[{}] target[{}] with cron[{}]",
-                rule.endpoint().getName(),
-                rule.endpoint().getTarget(),
-                rule.schedule()
-            );
+                    "Add health-check for endpoint name[{}] target[{}] with cron[{}]",
+                    rule.endpoint().getName(),
+                    rule.endpoint().getTarget(),
+                    rule.schedule());
         } catch (Exception ex) {
             log.error("An error occurs while creating an health-check runner", ex);
         }
@@ -180,21 +175,19 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         // computeIfPresent() so the lookup + cancel + remove is atomic with respect to
         // concurrent addHandler()/removeHandlers() calls for the same API.
         apiHandlers.computeIfPresent(api, (key, cronHandlers) -> {
-            cronHandlers
-                .stream()
-                .filter(handler -> handler.getEndpoint().equals(endpoint))
-                .findFirst()
-                .ifPresent(handler -> {
-                    log.debug(
-                        "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
-                        handler.getTimerId(),
-                        endpoint.getName(),
-                        endpoint.getType(),
-                        endpoint.getTarget()
-                    );
-                    handler.cancel();
-                    cronHandlers.remove(handler);
-                });
+            cronHandlers.stream()
+                    .filter(handler -> handler.getEndpoint().equals(endpoint))
+                    .findFirst()
+                    .ifPresent(handler -> {
+                        log.debug(
+                                "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
+                                handler.getTimerId(),
+                                endpoint.getName(),
+                                endpoint.getType(),
+                                endpoint.getTarget());
+                        handler.cancel();
+                        cronHandlers.remove(handler);
+                    });
             return cronHandlers;
         });
     }

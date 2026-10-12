@@ -59,7 +59,8 @@ public class PortalNavigationItem {
 
     private String environmentId;
 
-    // Follow-up (multi-portal): items carrying the UNATTACHED sentinel must be reassigned to the first real Portal created in the environment.
+    // Follow-up (multi-portal): items carrying the UNATTACHED sentinel must be reassigned to the first real Portal
+    // created in the environment.
     @Nonnull
     @Builder.Default
     private PortalNavigationReferenceType referenceType = PortalNavigationReferenceType.PORTAL;

@@ -28,7 +28,6 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.Set;
@@ -59,91 +58,83 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
         } else {
             AtomicLong launchTime = new AtomicLong();
             return subscriptionFetcher
-                .fetchLatest(from, to, environments)
-                .subscribeOn(Schedulers.from(syncFetcherExecutor))
-                // append per page
-                .flatMap(subscriptions ->
-                    Flowable.just(subscriptions)
-                        .flatMapIterable(s -> s)
-                        .filter(this::isPlanDeployed)
-                        .flatMapIterable(subscription -> subscriptionMapper.to(subscription))
-                        .map(subscription ->
-                            SingleSubscriptionDeployable.builder()
-                                .subscription(subscription)
-                                .syncAction(
-                                    subscription.getStatus().equals(Subscription.Status.ACCEPTED.name())
-                                        ? SyncAction.DEPLOY
-                                        : SyncAction.UNDEPLOY
-                                )
-                                .build()
-                        )
-                )
-                // per deployable
-                .compose(upstream -> {
-                    SubscriptionDeployer subscriptionDeployer = deployerFactory.createSubscriptionDeployer();
-                    return upstream
-                        .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                        .runOn(Schedulers.from(syncDeployerExecutor))
-                        .flatMap(deployable -> {
-                            if (deployable.syncAction() == SyncAction.DEPLOY) {
-                                return deploy(subscriptionDeployer, deployable);
-                            } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                                return undeploy(subscriptionDeployer, deployable);
-                            } else {
-                                return Flowable.empty();
-                            }
-                        })
-                        .sequential();
-                })
-                .count()
-                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-                .doOnSuccess(count ->
-                    log.debug("Subscriptions of {} apis refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
-                )
-                .ignoreElement();
+                    .fetchLatest(from, to, environments)
+                    .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                    // append per page
+                    .flatMap(subscriptions -> Flowable.just(subscriptions)
+                            .flatMapIterable(s -> s)
+                            .filter(this::isPlanDeployed)
+                            .flatMapIterable(subscription -> subscriptionMapper.to(subscription))
+                            .map(subscription -> SingleSubscriptionDeployable.builder()
+                                    .subscription(subscription)
+                                    .syncAction(
+                                            subscription.getStatus().equals(Subscription.Status.ACCEPTED.name())
+                                                    ? SyncAction.DEPLOY
+                                                    : SyncAction.UNDEPLOY)
+                                    .build()))
+                    // per deployable
+                    .compose(upstream -> {
+                        SubscriptionDeployer subscriptionDeployer = deployerFactory.createSubscriptionDeployer();
+                        return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                                .runOn(Schedulers.from(syncDeployerExecutor))
+                                .flatMap(deployable -> {
+                                    if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                        return deploy(subscriptionDeployer, deployable);
+                                    } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                        return undeploy(subscriptionDeployer, deployable);
+                                    } else {
+                                        return Flowable.empty();
+                                    }
+                                })
+                                .sequential();
+                    })
+                    .count()
+                    .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                    .doOnSuccess(count -> log.debug(
+                            "Subscriptions of {} apis refreshed in {}ms",
+                            count,
+                            (System.currentTimeMillis() - launchTime.get())))
+                    .ignoreElement();
         }
     }
 
     private Flowable<SingleSubscriptionDeployable> deploy(
-        final SubscriptionDeployer subscriptionDeployer,
-        final SingleSubscriptionDeployable deployable
-    ) {
+            final SubscriptionDeployer subscriptionDeployer, final SingleSubscriptionDeployable deployable) {
         return subscriptionDeployer
-            .deploy(deployable)
-            .andThen(subscriptionDeployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .deploy(deployable)
+                .andThen(subscriptionDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     private Flowable<SingleSubscriptionDeployable> undeploy(
-        final SubscriptionDeployer subscriptionDeployer,
-        final SingleSubscriptionDeployable deployable
-    ) {
+            final SubscriptionDeployer subscriptionDeployer, final SingleSubscriptionDeployable deployable) {
         return subscriptionDeployer
-            .undeploy(deployable)
-            .andThen(subscriptionDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .undeploy(deployable)
+                .andThen(subscriptionDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     private boolean isPlanDeployed(Subscription subscription) {
         Plan.PlanReferenceType referenceType = subscription.getReferenceType() != null
-            ? toPlanReferenceType(subscription.getReferenceType())
-            : Plan.PlanReferenceType.API;
-        String identifier = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+                ? toPlanReferenceType(subscription.getReferenceType())
+                : Plan.PlanReferenceType.API;
+        String identifier =
+                subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
         return planCache.isDeployed(identifier, subscription.getPlan(), referenceType);
     }
 
     private static Plan.PlanReferenceType toPlanReferenceType(SubscriptionReferenceType subscriptionReferenceType) {
         return subscriptionReferenceType == SubscriptionReferenceType.API_PRODUCT
-            ? Plan.PlanReferenceType.API_PRODUCT
-            : Plan.PlanReferenceType.API;
+                ? Plan.PlanReferenceType.API_PRODUCT
+                : Plan.PlanReferenceType.API;
     }
 
     @Override

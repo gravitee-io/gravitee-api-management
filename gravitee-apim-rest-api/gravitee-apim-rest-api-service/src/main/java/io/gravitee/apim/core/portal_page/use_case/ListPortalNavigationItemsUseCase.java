@@ -57,16 +57,13 @@ public class ListPortalNavigationItemsUseCase {
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
-    private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
+    private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE =
+            i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
         Map<PortalNavigationItemId, Boolean> productContextById = new HashMap<>();
         var visibilityEvaluator = new PortalNavigationItemVisibilityEvaluator(
-            input.environmentId(),
-            input.viewerContext(),
-            queryService,
-            visibilityServices
-        );
+                input.environmentId(), input.viewerContext(), queryService, visibilityServices);
 
         List<PortalNavigationItem> rootItems;
         if (input.parentId().isPresent()) {
@@ -82,11 +79,15 @@ public class ListPortalNavigationItemsUseCase {
         List<PortalNavigationItem> allItems = new ArrayList<>(rootItems);
 
         if (input.loadChildren()) {
-            List<PortalNavigationItem> descendants = loadDescendants(rootItems, input, visibilityEvaluator, productContextById);
+            List<PortalNavigationItem> descendants =
+                    loadDescendants(rootItems, input, visibilityEvaluator, productContextById);
             allItems.addAll(descendants);
         }
 
-        allItems.stream().map(PortalNavigationItem::getSource).filter(Objects::nonNull).forEach(sourceDomainService::removeSensitiveData);
+        allItems.stream()
+                .map(PortalNavigationItem::getSource)
+                .filter(Objects::nonNull)
+                .forEach(sourceDomainService::removeSensitiveData);
 
         return new Output(sortItems(allItems), resolveApis(input, allItems));
     }
@@ -96,21 +97,20 @@ public class ListPortalNavigationItemsUseCase {
             return Map.of();
         }
 
-        List<PortalNavigationApi> apiItems = allItems
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .toList();
+        List<PortalNavigationApi> apiItems = allItems.stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .map(PortalNavigationApi.class::cast)
+                .toList();
 
         if (apiItems.isEmpty()) {
             return Map.of();
         }
 
-        Set<String> apiIds = apiItems.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toSet());
-        Map<String, Api> apisByApiId = apiPortalSearchQueryService
-            .search(input.environmentId(), input.organizationId(), apiIds)
-            .stream()
-            .collect(Collectors.toMap(Api::getId, api -> api));
+        Set<String> apiIds =
+                apiItems.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toSet());
+        Map<String, Api> apisByApiId =
+                apiPortalSearchQueryService.search(input.environmentId(), input.organizationId(), apiIds).stream()
+                        .collect(Collectors.toMap(Api::getId, api -> api));
 
         Map<PortalNavigationItemId, Api> apisByNavigationItemId = new HashMap<>();
         for (PortalNavigationApi navItem : apiItems) {
@@ -122,8 +122,10 @@ public class ListPortalNavigationItemsUseCase {
         return apisByNavigationItemId;
     }
 
-    private PortalNavigationItem findAndValidateParent(Input input, PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
-        var parent = queryService.findByIdAndEnvironmentId(input.environmentId(), input.parentId().get());
+    private PortalNavigationItem findAndValidateParent(
+            Input input, PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
+        var parent = queryService.findByIdAndEnvironmentId(
+                input.environmentId(), input.parentId().get());
 
         if (parent == null) {
             return null;
@@ -145,11 +147,10 @@ public class ListPortalNavigationItemsUseCase {
      * Prunes children by discarding if a child is found but deemed "not visible".
      */
     private List<PortalNavigationItem> loadDescendants(
-        List<PortalNavigationItem> initialItems,
-        Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
-        Map<PortalNavigationItemId, Boolean> productContextById
-    ) {
+            List<PortalNavigationItem> initialItems,
+            Input input,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
+            Map<PortalNavigationItemId, Boolean> productContextById) {
         List<PortalNavigationItem> childrenAccumulator = new ArrayList<>();
         LinkedList<PortalNavigationItem> queue = new LinkedList<>();
 
@@ -170,16 +171,15 @@ public class ListPortalNavigationItemsUseCase {
     }
 
     private List<PortalNavigationItem> searchItems(
-        Input input,
-        PortalNavigationItemId parentId,
-        boolean isRootSearch,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
+            Input input,
+            PortalNavigationItemId parentId,
+            boolean isRootSearch,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
         var builder = PortalNavigationItemQueryCriteria.builder()
-            .environmentId(input.environmentId())
-            .area(input.portalArea())
-            .parentId(parentId)
-            .root(isRootSearch);
+                .environmentId(input.environmentId())
+                .area(input.portalArea())
+                .parentId(parentId)
+                .root(isRootSearch);
 
         if (input.viewerContext().isPortalMode()) {
             builder.published(true);
@@ -193,10 +193,9 @@ public class ListPortalNavigationItemsUseCase {
         if (isRootSearch) {
             // An API's subtree is materialized once, as a root, and spliced in under every portal's
             // standalone nav-api row by childrenOf(...) — it must never also surface at the portal's own top level.
-            items = items
-                .stream()
-                .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
-                .toList();
+            items = items.stream()
+                    .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+                    .toList();
         }
         return filterHiddenItems(items, input.viewerContext(), visibilityEvaluator);
     }
@@ -207,21 +206,20 @@ public class ListPortalNavigationItemsUseCase {
      * their physical children because product documentation has an independent lifecycle.
      */
     private List<PortalNavigationItem> childrenOf(
-        PortalNavigationItem parent,
-        Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
-        Map<PortalNavigationItemId, Boolean> productContextById
-    ) {
+            PortalNavigationItem parent,
+            Input input,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
+            Map<PortalNavigationItemId, Boolean> productContextById) {
         if (parent instanceof PortalNavigationApi navApi) {
             var physicalChildren = searchItems(input, navApi.getId(), false, visibilityEvaluator);
-            if (apiOwnedNavigationDomainService.isInApiProductContext(input.environmentId(), navApi, productContextById)) {
+            if (apiOwnedNavigationDomainService.isInApiProductContext(
+                    input.environmentId(), navApi, productContextById)) {
                 return physicalChildren;
             }
             var splicedRoots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-                input.environmentId(),
-                input.portalArea(),
-                new NavigationItemReference.ApiReference(navApi.getApiId())
-            );
+                    input.environmentId(),
+                    input.portalArea(),
+                    new NavigationItemReference.ApiReference(navApi.getApiId()));
             var combined = new ArrayList<>(physicalChildren);
             combined.addAll(renderUnder(navApi, filterForViewer(splicedRoots, input, visibilityEvaluator)));
             return combined;
@@ -235,22 +233,19 @@ public class ListPortalNavigationItemsUseCase {
      * applied here in Java before the shared {@link #filterHiddenItems} pass.
      */
     private List<PortalNavigationItem> filterForViewer(
-        List<PortalNavigationItem> items,
-        Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
+            List<PortalNavigationItem> items,
+            Input input,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
         var viewerContext = input.viewerContext();
         var narrowed = items;
         if (viewerContext.isPortalMode()) {
-            narrowed = narrowed
-                .stream()
-                .filter(item -> Boolean.TRUE.equals(item.getPublished()))
-                .toList();
-            if (!viewerContext.isAuthenticated()) {
-                narrowed = narrowed
-                    .stream()
-                    .filter(item -> item.getVisibility() == PortalVisibility.PUBLIC)
+            narrowed = narrowed.stream()
+                    .filter(item -> Boolean.TRUE.equals(item.getPublished()))
                     .toList();
+            if (!viewerContext.isAuthenticated()) {
+                narrowed = narrowed.stream()
+                        .filter(item -> item.getVisibility() == PortalVisibility.PUBLIC)
+                        .toList();
             }
         }
         return filterHiddenItems(narrowed, viewerContext, visibilityEvaluator);
@@ -262,60 +257,63 @@ public class ListPortalNavigationItemsUseCase {
      * rebuilding the tree from {@code parentId} unchanged. The original stored item — root, with no
      * parent — is never mutated; the same root renders differently under each portal that lists the API.
      */
-    private List<PortalNavigationItem> renderUnder(PortalNavigationItemContainer navApiRow, List<PortalNavigationItem> roots) {
-        return roots
-            .stream()
-            .map(root -> renderedCopy(root, navApiRow))
-            .toList();
+    private List<PortalNavigationItem> renderUnder(
+            PortalNavigationItemContainer navApiRow, List<PortalNavigationItem> roots) {
+        return roots.stream().map(root -> renderedCopy(root, navApiRow)).toList();
     }
 
     private PortalNavigationItem renderedCopy(PortalNavigationItem item, PortalNavigationItemContainer parent) {
         PortalNavigationItem copy = switch (item) {
-            case PortalNavigationPage page -> PortalNavigationPage.builder()
-                .id(page.getId())
-                .organizationId(page.getOrganizationId())
-                .environmentId(page.getEnvironmentId())
-                .reference(page.getReference())
-                .title(page.getTitle())
-                .segment(page.getSegment())
-                .area(page.getArea())
-                .order(page.getOrder())
-                .published(page.getPublished())
-                .visibility(page.getVisibility())
-                .source(page.getSource())
-                .automationMetadata(page.getAutomationMetadata())
-                .portalPageContentId(page.getPortalPageContentId())
-                .build();
-            case PortalNavigationFolder folder -> PortalNavigationFolder.builder()
-                .id(folder.getId())
-                .organizationId(folder.getOrganizationId())
-                .environmentId(folder.getEnvironmentId())
-                .reference(folder.getReference())
-                .title(folder.getTitle())
-                .segment(folder.getSegment())
-                .area(folder.getArea())
-                .order(folder.getOrder())
-                .published(folder.getPublished())
-                .visibility(folder.getVisibility())
-                .source(folder.getSource())
-                .automationMetadata(folder.getAutomationMetadata())
-                .build();
-            case PortalNavigationLink link -> PortalNavigationLink.builder()
-                .id(link.getId())
-                .organizationId(link.getOrganizationId())
-                .environmentId(link.getEnvironmentId())
-                .reference(link.getReference())
-                .title(link.getTitle())
-                .segment(link.getSegment())
-                .area(link.getArea())
-                .order(link.getOrder())
-                .published(link.getPublished())
-                .visibility(link.getVisibility())
-                .source(link.getSource())
-                .automationMetadata(link.getAutomationMetadata())
-                .url(link.getUrl())
-                .build();
-            default -> throw new IllegalStateException("Unexpected API subtree root type: " + item.getClass().getSimpleName());
+            case PortalNavigationPage page ->
+                PortalNavigationPage.builder()
+                        .id(page.getId())
+                        .organizationId(page.getOrganizationId())
+                        .environmentId(page.getEnvironmentId())
+                        .reference(page.getReference())
+                        .title(page.getTitle())
+                        .segment(page.getSegment())
+                        .area(page.getArea())
+                        .order(page.getOrder())
+                        .published(page.getPublished())
+                        .visibility(page.getVisibility())
+                        .source(page.getSource())
+                        .automationMetadata(page.getAutomationMetadata())
+                        .portalPageContentId(page.getPortalPageContentId())
+                        .build();
+            case PortalNavigationFolder folder ->
+                PortalNavigationFolder.builder()
+                        .id(folder.getId())
+                        .organizationId(folder.getOrganizationId())
+                        .environmentId(folder.getEnvironmentId())
+                        .reference(folder.getReference())
+                        .title(folder.getTitle())
+                        .segment(folder.getSegment())
+                        .area(folder.getArea())
+                        .order(folder.getOrder())
+                        .published(folder.getPublished())
+                        .visibility(folder.getVisibility())
+                        .source(folder.getSource())
+                        .automationMetadata(folder.getAutomationMetadata())
+                        .build();
+            case PortalNavigationLink link ->
+                PortalNavigationLink.builder()
+                        .id(link.getId())
+                        .organizationId(link.getOrganizationId())
+                        .environmentId(link.getEnvironmentId())
+                        .reference(link.getReference())
+                        .title(link.getTitle())
+                        .segment(link.getSegment())
+                        .area(link.getArea())
+                        .order(link.getOrder())
+                        .published(link.getPublished())
+                        .visibility(link.getVisibility())
+                        .source(link.getSource())
+                        .automationMetadata(link.getAutomationMetadata())
+                        .url(link.getUrl())
+                        .build();
+            default ->
+                throw new IllegalStateException(
+                        "Unexpected API subtree root type: " + item.getClass().getSimpleName());
         };
         copy.updateParent(parent);
         return copy;
@@ -327,10 +325,9 @@ public class ListPortalNavigationItemsUseCase {
      * descendants are naturally excluded from the result.
      */
     private List<PortalNavigationItem> filterHiddenItems(
-        List<PortalNavigationItem> items,
-        PortalNavigationItemViewerContext viewerContext,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
-    ) {
+            List<PortalNavigationItem> items,
+            PortalNavigationItemViewerContext viewerContext,
+            PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
         if (!viewerContext.isPortalMode()) {
             return items;
         }
@@ -338,18 +335,19 @@ public class ListPortalNavigationItemsUseCase {
     }
 
     private List<PortalNavigationItem> sortItems(List<PortalNavigationItem> items) {
-        return items.stream().sorted(PortalNavigationItemComparator.byNullableParentIdThenNullableOrder()).toList();
+        return items.stream()
+                .sorted(PortalNavigationItemComparator.byNullableParentIdThenNullableOrder())
+                .toList();
     }
 
     public record Output(List<PortalNavigationItem> items, Map<PortalNavigationItemId, Api> apis) {}
 
     public record Input(
-        String environmentId,
-        String organizationId,
-        PortalArea portalArea,
-        Optional<PortalNavigationItemId> parentId,
-        boolean loadChildren,
-        PortalNavigationItemViewerContext viewerContext,
-        boolean includeApis
-    ) {}
+            String environmentId,
+            String organizationId,
+            PortalArea portalArea,
+            Optional<PortalNavigationItemId> parentId,
+            boolean loadChildren,
+            PortalNavigationItemViewerContext viewerContext,
+            boolean includeApis) {}
 }

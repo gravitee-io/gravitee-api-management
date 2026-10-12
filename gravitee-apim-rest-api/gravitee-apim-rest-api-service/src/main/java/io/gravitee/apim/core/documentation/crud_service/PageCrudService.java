@@ -22,11 +22,18 @@ import java.util.Optional;
 
 public interface PageCrudService {
     Page createDocumentationPage(Page page);
+
     Page updateDocumentationPage(Page pageToUpdate);
+
     Page get(String id);
+
     Optional<Page> findById(String id);
+
     void delete(String id);
+
     void unsetHomepage(Collection<String> ids);
+
     List<Page> findByApiId(String apiId);
+
     void updateCrossIds(List<Page> pages);
 }

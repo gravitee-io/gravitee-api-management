@@ -43,7 +43,8 @@ public class DeleteClusterUseCase {
     public Output execute(Input input) {
         Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.auditInfo.environmentId());
 
-        if (cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED || cluster.getLifecycleState() == ClusterLifecycleState.PENDING) {
+        if (cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED
+                || cluster.getLifecycleState() == ClusterLifecycleState.PENDING) {
             throw new InvalidDataException("Cluster must be undeployed before deletion.");
         }
 
@@ -55,8 +56,7 @@ public class DeleteClusterUseCase {
     }
 
     private void createAuditLog(String deletedClusterId, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_DELETED)
@@ -64,7 +64,6 @@ public class DeleteClusterUseCase {
                 .newValue(null)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.CLUSTER, deletedClusterId))
-                .build()
-        );
+                .build());
     }
 }

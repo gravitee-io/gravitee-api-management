@@ -35,7 +35,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.UriBuilder;
 import java.time.Instant;
 import java.util.*;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -79,21 +78,27 @@ public class PageMapperTest {
 
     @Test
     public void should_convert_api_page() {
-        //init
+        // init
         PageEntity pageEntity = new PageEntity();
 
         pageEntity.setLastContributor(PAGE_CONTRIBUTOR);
 
         Map<String, String> configuration = new HashMap<>();
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DOC_EXPANSION, PAGE_CONFIGURATION_DOC_EXPANSION);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_ENABLE_FILTERING, PAGE_CONFIGURATION_ENABLE_FILTERING);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_MAX_DISPLAYED_TAGS, PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_COMMON_EXTENSIONS, PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_ENABLE_FILTERING, PAGE_CONFIGURATION_ENABLE_FILTERING);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_MAX_DISPLAYED_TAGS, PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_COMMON_EXTENSIONS,
+                PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_EXTENSIONS, PAGE_CONFIGURATION_SHOW_EXTENSIONS);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_URL, PAGE_CONFIGURATION_SHOW_URL);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT, PAGE_CONFIGURATION_TRY_IT);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL, PAGE_CONFIGURATION_TRY_IT_URL);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_USE_PKCE, PAGE_CONFIGURATION_USE_PKCE);
         configuration.put(PageConfigurationKeys.SWAGGER_VIEWER, PAGE_CONFIGURATION_VIEWER);
@@ -119,11 +124,10 @@ public class PageMapperTest {
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
 
-        when(mediaService.findAllWithoutContent(attachedMedia, API_ID)).thenReturn(
-            Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class))
-        );
+        when(mediaService.findAllWithoutContent(attachedMedia, API_ID))
+                .thenReturn(Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class)));
 
-        //Test
+        // Test
         Page responsePage = pageMapper.convert(UriBuilder.fromPath("/"), API_ID, pageEntity);
         assertNotNull(responsePage);
 
@@ -165,21 +169,27 @@ public class PageMapperTest {
 
     @Test
     public void should_convert_org_page() {
-        //init
+        // init
         PageEntity pageEntity = new PageEntity();
 
         pageEntity.setLastContributor(PAGE_CONTRIBUTOR);
 
         Map<String, String> configuration = new HashMap<>();
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DOC_EXPANSION, PAGE_CONFIGURATION_DOC_EXPANSION);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_ENABLE_FILTERING, PAGE_CONFIGURATION_ENABLE_FILTERING);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_MAX_DISPLAYED_TAGS, PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_COMMON_EXTENSIONS, PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_ENABLE_FILTERING, PAGE_CONFIGURATION_ENABLE_FILTERING);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_MAX_DISPLAYED_TAGS, PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_COMMON_EXTENSIONS,
+                PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_EXTENSIONS, PAGE_CONFIGURATION_SHOW_EXTENSIONS);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_URL, PAGE_CONFIGURATION_SHOW_URL);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT, PAGE_CONFIGURATION_TRY_IT);
-        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
+        configuration.put(
+                PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL, PAGE_CONFIGURATION_TRY_IT_URL);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_USE_PKCE, PAGE_CONFIGURATION_USE_PKCE);
         configuration.put(PageConfigurationKeys.SWAGGER_VIEWER, PAGE_CONFIGURATION_VIEWER);
@@ -205,11 +215,10 @@ public class PageMapperTest {
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
 
-        when(mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), attachedMedia)).thenReturn(
-            Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class))
-        );
+        when(mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), attachedMedia))
+                .thenReturn(Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class)));
 
-        //Test
+        // Test
         Page responsePage = pageMapper.convert(UriBuilder.fromPath("/"), null, pageEntity);
         assertNotNull(responsePage);
 
@@ -251,14 +260,14 @@ public class PageMapperTest {
 
     @Test
     public void should_convert_minimal_page() {
-        //init
+        // init
         PageEntity minimalPageEntity = new PageEntity();
         minimalPageEntity.setType(PAGE_TYPE);
 
         Instant now = Instant.now();
         minimalPageEntity.setLastModificationDate(Date.from(now));
 
-        //Test
+        // Test
         Page responsePage = pageMapper.convert(minimalPageEntity);
         assertNotNull(responsePage);
 

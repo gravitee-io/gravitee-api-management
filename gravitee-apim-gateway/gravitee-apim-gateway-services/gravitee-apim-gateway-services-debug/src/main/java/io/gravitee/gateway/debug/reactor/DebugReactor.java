@@ -25,18 +25,16 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 public class DebugReactor extends DefaultReactor {
 
     public DebugReactor(
-        AcceptorResolver acceptorResolver,
-        GatewayConfiguration gatewayConfiguration,
-        RequestProcessorChainFactory requestProcessorChainFactory,
-        ResponseProcessorChainFactory responseProcessorChainFactory,
-        NotFoundProcessorChainFactory notFoundProcessorChainFactory
-    ) {
+            AcceptorResolver acceptorResolver,
+            GatewayConfiguration gatewayConfiguration,
+            RequestProcessorChainFactory requestProcessorChainFactory,
+            ResponseProcessorChainFactory responseProcessorChainFactory,
+            NotFoundProcessorChainFactory notFoundProcessorChainFactory) {
         super(
-            acceptorResolver,
-            gatewayConfiguration,
-            requestProcessorChainFactory,
-            responseProcessorChainFactory,
-            notFoundProcessorChainFactory
-        );
+                acceptorResolver,
+                gatewayConfiguration,
+                requestProcessorChainFactory,
+                responseProcessorChainFactory,
+                notFoundProcessorChainFactory);
     }
 }

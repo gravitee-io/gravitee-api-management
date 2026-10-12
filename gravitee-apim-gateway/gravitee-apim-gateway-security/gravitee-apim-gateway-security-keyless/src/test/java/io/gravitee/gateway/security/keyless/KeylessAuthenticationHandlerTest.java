@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.security.keyless;
 
-import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
 import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_NONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -60,7 +59,8 @@ public class KeylessAuthenticationHandlerTest {
 
         Assertions.assertEquals(1, keylessProviderPolicies.size());
 
-        PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) keylessProviderPolicies.iterator().next();
+        PluginAuthenticationPolicy policy =
+                (PluginAuthenticationPolicy) keylessProviderPolicies.iterator().next();
         Assertions.assertEquals(policy.name(), KeylessAuthenticationHandler.KEYLESS_POLICY);
     }
 

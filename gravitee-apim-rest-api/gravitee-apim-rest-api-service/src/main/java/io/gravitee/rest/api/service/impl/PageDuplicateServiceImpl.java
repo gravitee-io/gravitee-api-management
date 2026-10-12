@@ -40,45 +40,41 @@ public class PageDuplicateServiceImpl implements PageDuplicateService {
 
     @Override
     public Map<String, String> duplicatePages(
-        ExecutionContext executionContext,
-        String sourceApiId,
-        String duplicatedApiId,
-        String userId
-    ) {
+            ExecutionContext executionContext, String sourceApiId, String duplicatedApiId, String userId) {
         final List<PageEntity> pagesToDuplicate = pageService.search(
-            executionContext.getEnvironmentId(),
-            new PageQuery.Builder().api(sourceApiId).build(),
-            true
-        );
+                executionContext.getEnvironmentId(),
+                new PageQuery.Builder().api(sourceApiId).build(),
+                true);
 
         var root = new PageServiceImpl.PageEntityTreeNode(new PageEntity()).appendListToTree(pagesToDuplicate);
         return duplicateChildrenPages(executionContext, userId, duplicatedApiId, null, root.children);
     }
 
     private Map<String, String> duplicateChildrenPages(
-        final ExecutionContext executionContext,
-        String userId,
-        String duplicateApiId,
-        String parentId,
-        List<PageServiceImpl.PageEntityTreeNode> children
-    ) {
+            final ExecutionContext executionContext,
+            String userId,
+            String duplicateApiId,
+            String parentId,
+            List<PageServiceImpl.PageEntityTreeNode> children) {
         Map<String, String> idsMap = new HashMap<>();
 
         for (final PageServiceImpl.PageEntityTreeNode child : children) {
             var sourcePageId = child.data.getId();
-            var newPageId = UuidString.generateForEnvironment(executionContext.getEnvironmentId(), duplicateApiId, sourcePageId);
+            var newPageId = UuidString.generateForEnvironment(
+                    executionContext.getEnvironmentId(), duplicateApiId, sourcePageId);
             var newPageEntity = pageConverter.toNewPageEntity(
-                child.data.toBuilder().lastContributor(userId).parentId(parentId).build(),
-                true
-            );
+                    child.data.toBuilder()
+                            .lastContributor(userId)
+                            .parentId(parentId)
+                            .build(),
+                    true);
 
             var duplicatedPage = pageService.createPage(executionContext, duplicateApiId, newPageEntity, newPageId);
             idsMap.put(sourcePageId, duplicatedPage.getId());
 
             if (child.children != null && !child.children.isEmpty()) {
-                idsMap.putAll(
-                    this.duplicateChildrenPages(executionContext, userId, duplicateApiId, duplicatedPage.getId(), child.children)
-                );
+                idsMap.putAll(this.duplicateChildrenPages(
+                        executionContext, userId, duplicateApiId, duplicatedPage.getId(), child.children));
             }
         }
 

@@ -90,21 +90,24 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
     }
 
     public static void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     public static void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
     public static void configurePolicies(final Map<String, PolicyPlugin> policies) {
         policies.put("key-less", PolicyBuilder.build("key-less", KeylessPolicy.class));
         policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
+                "api-key",
+                PolicyBuilder.build(
+                        "api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class));
         policies.put("jwt", PolicyBuilder.build("jwt", JWTPolicy.class, JWTPolicyConfiguration.class));
         policies.put("oauth2", PolicyBuilder.build("oauth2", Oauth2Policy.class, OAuth2PolicyConfiguration.class));
         policies.put("mtls", PolicyBuilder.build("mtls", MtlsPolicy.class, MtlsPolicyConfiguration.class));
@@ -119,15 +122,14 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
     }
 
     public static void configureGateway(GatewayConfigurationBuilder config) {
-        config
-            .httpSecured(true)
-            .set("http.ssl.clientAuth", "request")
-            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
+        config.httpSecured(true)
+                .set("http.ssl.clientAuth", "request")
+                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
     }
 
     @Nested
     @GatewayTest
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectKeylessTest extends PlanKeylessV4IntegrationTest {
 
         @Override
@@ -175,11 +177,10 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             configureTrustedHttpClient(options, gatewayConfig.httpPort(), false);
         }
 
@@ -188,38 +189,37 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
                 String path = (String) arguments.get()[0];
                 boolean requireWiremock = (boolean) arguments.get()[1];
                 return Stream.of(
-                    Arguments.of(path, requireWiremock, "Authorization", ""),
-                    Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
-                    Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
-                    Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
-                    Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token")
-                );
+                        Arguments.of(path, requireWiremock, "Authorization", ""),
+                        Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
+                        Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
+                        Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
+                        Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token"));
             });
         }
 
         @Disabled("Disabled as all security type are defined on the api")
         @Override
         protected void should_access_api_and_ignore_security(
-            final String apiId,
-            boolean requireWiremock,
-            final String headerName,
-            final String headerValue,
-            HttpClient client
-        ) {
+                final String apiId,
+                boolean requireWiremock,
+                final String headerName,
+                final String headerValue,
+                HttpClient client) {
             // This is disabled as all security type are defined on the api
         }
 
         @Override
         @ParameterizedTest
         @MethodSource("provideApis")
-        protected void should_return_200_success_without_any_security(String apiId, boolean requireWiremock, HttpClient client) {
+        protected void should_return_200_success_without_any_security(
+                String apiId, boolean requireWiremock, HttpClient client) {
             super.should_return_200_success_without_any_security(apiId, requireWiremock, client);
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectApiKeyTest extends PlanApiKeyV4IntegrationTest {
 
         @Override
@@ -267,18 +267,19 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             configureTrustedHttpClient(options, gatewayConfig.httpPort(), false);
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
             return provideApis().flatMap(arguments -> {
                 String apiId = (String) arguments.get()[0];
-                return Stream.of(Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"), Arguments.of(apiId, "X-Gravitee-Api-Key", ""));
+                return Stream.of(
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", ""));
             });
         }
 
@@ -286,10 +287,7 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         @MethodSource("provideApis")
         @Override
         protected void should_return_200_success_with_api_key_and_subscription_on_the_api(
-            final String apiId,
-            final boolean requireWiremock,
-            final HttpClient client
-        ) {
+                final String apiId, final boolean requireWiremock, final HttpClient client) {
             super.should_return_200_success_with_api_key_and_subscription_on_the_api(apiId, requireWiremock, client);
         }
 
@@ -297,11 +295,7 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         @MethodSource("provideWrongSecurityHeaders")
         @Override
         protected void should_return_401_unauthorized_with_wrong_security(
-            final String apiId,
-            final String headerName,
-            final String headerValue,
-            final HttpClient client
-        ) {
+                final String apiId, final String headerName, final String headerValue, final HttpClient client) {
             super.should_return_401_unauthorized_with_wrong_security(apiId, headerName, headerValue, client);
         }
 
@@ -309,38 +303,32 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         @MethodSource("provideApis")
         @Override
         protected void should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(
-            final String path,
-            final boolean requireWiremock,
-            final HttpClient client
-        ) {
-            super.should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(path, requireWiremock, client);
+                final String path, final boolean requireWiremock, final HttpClient client) {
+            super.should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(
+                    path, requireWiremock, client);
         }
 
         @ParameterizedTest
         @MethodSource("provideApis")
         @Override
         protected void should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(
-            final String path,
-            final boolean requireWiremock,
-            final HttpClient client
-        ) {
-            super.should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(path, requireWiremock, client);
+                final String path, final boolean requireWiremock, final HttpClient client) {
+            super.should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(
+                    path, requireWiremock, client);
         }
 
         @ParameterizedTest
         @MethodSource("provideApis")
         protected void should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(
-            final String path,
-            final boolean requireWiremock,
-            final HttpClient client
-        ) {
-            super.should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(path, requireWiremock, client);
+                final String path, final boolean requireWiremock, final HttpClient client) {
+            super.should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(
+                    path, requireWiremock, client);
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectJwtTest extends PlanJwtV4IntegrationTest {
 
         @Override
@@ -388,11 +376,10 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             configureTrustedHttpClient(options, gatewayConfig.httpPort(), false);
         }
 
@@ -400,12 +387,11 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
             return provideApis().flatMap(arguments -> {
                 String apiId = (String) arguments.get()[0];
                 return Stream.of(
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                );
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                        Arguments.of(apiId, "Authorization", "Bearer"),
+                        Arguments.of(apiId, "Authorization", "Bearer "),
+                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"));
             });
         }
 
@@ -413,55 +399,58 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         @MethodSource("provideApis")
         @Override
         protected void should_return_200_success_with_jwt_and_subscription_on_the_api(
-            final String apiId,
-            final boolean requireWiremock,
-            final HttpClient client,
-            GatewayDynamicConfig.HttpConfig httpConfig
-        ) throws Exception {
-            super.should_return_200_success_with_jwt_and_subscription_on_the_api(apiId, requireWiremock, client, httpConfig);
+                final String apiId,
+                final boolean requireWiremock,
+                final HttpClient client,
+                GatewayDynamicConfig.HttpConfig httpConfig)
+                throws Exception {
+            super.should_return_200_success_with_jwt_and_subscription_on_the_api(
+                    apiId, requireWiremock, client, httpConfig);
         }
 
         @ParameterizedTest
         @MethodSource("provideWrongSecurityHeaders")
         @Override
         protected void should_return_401_unauthorized_with_wrong_security(
-            final String apiId,
-            final String headerName,
-            final String headerValue,
-            final HttpClient client,
-            GatewayDynamicConfig.HttpConfig httpConfig
-        ) {
-            super.should_return_401_unauthorized_with_wrong_security(apiId, headerName, headerValue, client, httpConfig);
+                final String apiId,
+                final String headerName,
+                final String headerValue,
+                final HttpClient client,
+                GatewayDynamicConfig.HttpConfig httpConfig) {
+            super.should_return_401_unauthorized_with_wrong_security(
+                    apiId, headerName, headerValue, client, httpConfig);
         }
 
         @ParameterizedTest
         @MethodSource("provideApis")
         @Override
         protected void should_return_401_unauthorized_with_valid_jwt_but_no_subscription_on_the_api(
-            final String path,
-            final boolean requireWiremock,
-            final HttpClient client,
-            GatewayDynamicConfig.HttpConfig httpConfig
-        ) throws Exception {
-            super.should_return_401_unauthorized_with_valid_jwt_but_no_subscription_on_the_api(path, requireWiremock, client, httpConfig);
+                final String path,
+                final boolean requireWiremock,
+                final HttpClient client,
+                GatewayDynamicConfig.HttpConfig httpConfig)
+                throws Exception {
+            super.should_return_401_unauthorized_with_valid_jwt_but_no_subscription_on_the_api(
+                    path, requireWiremock, client, httpConfig);
         }
 
         @ParameterizedTest
         @MethodSource("provideApis")
         @Override
         protected void should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api(
-            final String path,
-            final boolean requireWiremock,
-            final HttpClient client,
-            GatewayDynamicConfig.HttpConfig httpConfig
-        ) throws Exception {
-            super.should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api(path, requireWiremock, client, httpConfig);
+                final String path,
+                final boolean requireWiremock,
+                final HttpClient client,
+                GatewayDynamicConfig.HttpConfig httpConfig)
+                throws Exception {
+            super.should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api(
+                    path, requireWiremock, client, httpConfig);
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectOAuth2Test extends PlanOAuth2V4IntegrationTest {
 
         @Override
@@ -514,11 +503,10 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
             configureTrustedHttpClient(options, gatewayConfig.httpPort(), false);
         }
 
@@ -526,59 +514,55 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
             return provideApis().flatMap(arguments -> {
                 String apiId = (String) arguments.get()[0];
                 return Stream.of(
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                );
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                        Arguments.of(apiId, "Authorization", "Bearer"),
+                        Arguments.of(apiId, "Authorization", "Bearer "),
+                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"));
             });
         }
 
         @ParameterizedTest
         @MethodSource("provideApis")
         protected void should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(
-            final String apiId,
-            final boolean requireWiremock,
-            final HttpClient client,
-            GatewayDynamicConfig.HttpConfig httpConfig
-        ) throws Exception {
-            super.should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(apiId, requireWiremock, client, httpConfig);
+                final String apiId,
+                final boolean requireWiremock,
+                final HttpClient client,
+                GatewayDynamicConfig.HttpConfig httpConfig)
+                throws Exception {
+            super.should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(
+                    apiId, requireWiremock, client, httpConfig);
         }
 
         @ParameterizedTest
         @MethodSource("provideWrongSecurityHeaders")
         @Override
         protected void should_return_401_unauthorized_with_wrong_security(
-            final String apiId,
-            final String headerName,
-            final String headerValue,
-            final HttpClient client,
-            GatewayDynamicConfig.HttpConfig httpConfig
-        ) {
-            super.should_return_401_unauthorized_with_wrong_security(apiId, headerName, headerValue, client, httpConfig);
+                final String apiId,
+                final String headerName,
+                final String headerValue,
+                final HttpClient client,
+                GatewayDynamicConfig.HttpConfig httpConfig) {
+            super.should_return_401_unauthorized_with_wrong_security(
+                    apiId, headerName, headerValue, client, httpConfig);
         }
 
         @ParameterizedTest
         @MethodSource("provideApis")
         @Override
         protected void should_return_401_unauthorized_with_valid_oauth2_token_but_no_subscription_on_the_api(
-            final String apiId,
-            final boolean requireWiremock,
-            final HttpClient client,
-            GatewayDynamicConfig.HttpConfig httpConfig
-        ) throws Exception {
+                final String apiId,
+                final boolean requireWiremock,
+                final HttpClient client,
+                GatewayDynamicConfig.HttpConfig httpConfig)
+                throws Exception {
             super.should_return_401_unauthorized_with_valid_oauth2_token_but_no_subscription_on_the_api(
-                apiId,
-                requireWiremock,
-                client,
-                httpConfig
-            );
+                    apiId, requireWiremock, client, httpConfig);
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectMtlsTest extends PlanMutualTLSClientAuthRequestIntegrationTest {
 
         @Override
@@ -628,12 +612,11 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         @MethodSource("provideApis")
         @Override
         protected void should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_request(
-            final String apiId,
-            final boolean requireWiremock,
-            final HttpClient client
-        ) {
-            // In this case, the mtls plan will simply be skipped and pass to the Keyless one, letting the request success
-            should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_request(apiId, requireWiremock, client, OK_200, ENDPOINT_RESPONSE);
+                final String apiId, final boolean requireWiremock, final HttpClient client) {
+            // In this case, the mtls plan will simply be skipped and pass to the Keyless one, letting the request
+            // success
+            should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_request(
+                    apiId, requireWiremock, client, OK_200, ENDPOINT_RESPONSE);
         }
     }
 }

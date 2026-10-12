@@ -56,18 +56,18 @@ public class DistributedSyncStateRepositoryTest extends AbstractRepositoryTest {
     public void should_return_state_from_existing_clusterId() throws InterruptedException {
         log.info("should_return_state_from_existing_clusterId");
         distributedSyncStateRepository
-            .findByClusterId("clusterId")
-            .test()
-            .await()
-            .assertValue(distributedSyncState -> {
-                assertThat(distributedSyncState).isNotNull();
-                assertThat(distributedSyncState.getClusterId()).isEqualTo("clusterId");
-                assertThat(distributedSyncState.getNodeId()).isEqualTo("nodeId");
-                assertThat(distributedSyncState.getNodeVersion()).isEqualTo("nodeVersion");
-                assertThat(distributedSyncState.getFrom()).isEqualTo(1683877018L);
-                assertThat(distributedSyncState.getTo()).isEqualTo(1683877618L);
-                return true;
-            });
+                .findByClusterId("clusterId")
+                .test()
+                .await()
+                .assertValue(distributedSyncState -> {
+                    assertThat(distributedSyncState).isNotNull();
+                    assertThat(distributedSyncState.getClusterId()).isEqualTo("clusterId");
+                    assertThat(distributedSyncState.getNodeId()).isEqualTo("nodeId");
+                    assertThat(distributedSyncState.getNodeVersion()).isEqualTo("nodeVersion");
+                    assertThat(distributedSyncState.getFrom()).isEqualTo(1683877018L);
+                    assertThat(distributedSyncState.getTo()).isEqualTo(1683877618L);
+                    return true;
+                });
     }
 
     @Test

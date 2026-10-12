@@ -42,7 +42,8 @@ public class ClusterCrossIdUpgraderTest {
 
     @Test
     public void should_generate_crossId_for_cluster_without_one() throws Exception {
-        var cluster = Cluster.builder().id("cluster-id-1").name("My Cluster Name").build();
+        var cluster =
+                Cluster.builder().id("cluster-id-1").name("My Cluster Name").build();
 
         when(clusterRepository.findAll()).thenReturn(Set.of(cluster));
         assertThat(upgrader.upgrade()).isTrue();
@@ -68,7 +69,11 @@ public class ClusterCrossIdUpgraderTest {
 
     @Test
     public void should_skip_cluster_with_existing_crossId() throws Exception {
-        var cluster = Cluster.builder().id("cluster-id-1").name("My Cluster").crossId("existing-cross-id").build();
+        var cluster = Cluster.builder()
+                .id("cluster-id-1")
+                .name("My Cluster")
+                .crossId("existing-cross-id")
+                .build();
 
         when(clusterRepository.findAll()).thenReturn(Set.of(cluster));
         assertThat(upgrader.upgrade()).isTrue();
@@ -88,7 +93,9 @@ public class ClusterCrossIdUpgraderTest {
         var cluster2 = Cluster.builder().id("cluster-2").name("Cluster 2").build();
 
         when(clusterRepository.findAll()).thenReturn(Set.of(cluster1, cluster2));
-        when(clusterRepository.update(any())).thenThrow(new RuntimeException("update failed")).thenReturn(cluster2);
+        when(clusterRepository.update(any()))
+                .thenThrow(new RuntimeException("update failed"))
+                .thenReturn(cluster2);
 
         assertThat(upgrader.upgrade()).isTrue();
         verify(clusterRepository, times(2)).update(any());

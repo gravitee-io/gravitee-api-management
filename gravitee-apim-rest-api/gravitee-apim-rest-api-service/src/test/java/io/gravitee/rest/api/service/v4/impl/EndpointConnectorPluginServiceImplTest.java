@@ -77,7 +77,8 @@ public class EndpointConnectorPluginServiceImplTest {
         when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
         when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
         when(mockFactory.supportedApi()).thenReturn(ApiType.MESSAGE);
-        when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.reactive.api.ConnectorMode.REQUEST_RESPONSE));
+        when(mockFactory.supportedModes())
+                .thenReturn(Set.of(io.gravitee.gateway.reactive.api.ConnectorMode.REQUEST_RESPONSE));
     }
 
     @Test
@@ -158,7 +159,8 @@ public class EndpointConnectorPluginServiceImplTest {
         when(pluginManager.getSharedConfigurationSchema(PLUGIN_ID, true)).thenThrow(IOException.class);
 
         assertThatThrownBy(() -> cut.getSharedConfigurationSchema(PLUGIN_ID))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessage("An error occurs while trying to get endpoint shared configuration schema for plugin " + PLUGIN_ID);
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to get endpoint shared configuration schema for plugin "
+                        + PLUGIN_ID);
     }
 }

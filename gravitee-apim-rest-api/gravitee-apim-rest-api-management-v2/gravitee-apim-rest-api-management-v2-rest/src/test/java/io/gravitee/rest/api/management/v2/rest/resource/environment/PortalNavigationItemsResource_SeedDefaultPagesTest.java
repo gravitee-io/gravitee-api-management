@@ -69,21 +69,22 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
     public void setUp() {
         target = rootTarget();
 
-        var environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        var environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.CREATE))
+                .thenReturn(true);
     }
 
     @AfterEach
@@ -95,14 +96,12 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
     @Test
     void should_not_seed_default_pages_when_no_permission() {
         var request = new SeedDefaultPagesRequest().ids(List.of(UUID.fromString(API1_ID)));
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.CREATE))
+                .thenReturn(false);
 
         Response response = target.request().post(json(request));
 
@@ -112,9 +111,8 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
     @Test
     void should_seed_default_pages() {
         var request = new SeedDefaultPagesRequest().ids(List.of(UUID.fromString(API1_ID), UUID.fromString(API2_ID)));
-        when(seedDefaultPagesForPortalNavigationItemsUseCase.execute(any())).thenReturn(
-            new SeedDefaultPagesForPortalNavigationItemsUseCase.Output(List.of())
-        );
+        when(seedDefaultPagesForPortalNavigationItemsUseCase.execute(any()))
+                .thenReturn(new SeedDefaultPagesForPortalNavigationItemsUseCase.Output(List.of()));
 
         Response response = target.request().post(json(request));
 

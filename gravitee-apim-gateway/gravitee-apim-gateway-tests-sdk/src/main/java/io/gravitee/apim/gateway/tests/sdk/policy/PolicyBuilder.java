@@ -36,16 +36,16 @@ public class PolicyBuilder {
         return build(id, policy, null, null);
     }
 
-    public static PolicyPlugin<?> build(String id, Class<?> policy, Class<? extends PolicyConfiguration> policyConfiguration) {
+    public static PolicyPlugin<?> build(
+            String id, Class<?> policy, Class<? extends PolicyConfiguration> policyConfiguration) {
         return build(id, policy, policyConfiguration, null);
     }
 
     public static PolicyPlugin<?> build(
-        String id,
-        Class<?> policy,
-        Class<? extends PolicyConfiguration> policyConfiguration,
-        Class<? extends PolicyContext> policyContext
-    ) {
+            String id,
+            Class<?> policy,
+            Class<? extends PolicyConfiguration> policyConfiguration,
+            Class<? extends PolicyContext> policyContext) {
         return new PolicyPlugin<>() {
             @Override
             public Class<?> policy() {

@@ -22,7 +22,6 @@ import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistrib
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.node.license.DefaultLicenseManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -58,7 +57,8 @@ public class LicenseDeployerTest {
 
         @Test
         void should_deploy_license() throws Exception {
-            var licenseDeployable = LicenseDeployable.builder().license("license").id("id").build();
+            var licenseDeployable =
+                    LicenseDeployable.builder().license("license").id("id").build();
             var license = licenseFactory.create("ORGANIZATION", "id", "license");
             cut.deploy(licenseDeployable).test().assertComplete();
             verify(licenseManager).registerOrganizationLicense("id", license);
@@ -66,7 +66,8 @@ public class LicenseDeployerTest {
 
         @Test
         void should_return_error_when_license_manager_throw_exception() throws Exception {
-            var licenseDeployable = LicenseDeployable.builder().license("license").id("id").build();
+            var licenseDeployable =
+                    LicenseDeployable.builder().license("license").id("id").build();
             var license = licenseFactory.create("ORGANIZATION", "id", "license");
             doThrow(new SyncException("test")).when(licenseManager).registerOrganizationLicense("id", license);
             cut.deploy(licenseDeployable).test().assertFailure(SyncException.class);

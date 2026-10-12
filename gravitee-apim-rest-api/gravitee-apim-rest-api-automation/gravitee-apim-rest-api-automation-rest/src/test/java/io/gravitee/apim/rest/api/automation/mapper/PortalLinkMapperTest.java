@@ -35,15 +35,20 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalLinkMapperTest {
 
-    private static final PortalNavigationItemId LINK_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000c1");
-    private static final AuditInfo AUDIT = AuditInfo.builder().organizationId("organization-id").environmentId("environment-id").build();
+    private static final PortalNavigationItemId LINK_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000c1");
+    private static final AuditInfo AUDIT = AuditInfo.builder()
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .build();
 
     @Test
     void put_state_includes_severe_and_warning_errors() {
         var spec = aSpec();
         var errors = List.of(Validator.Error.severe("boom"), Validator.Error.warning("careful"));
 
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(spec, LINK_ID.toString(), errors, AUDIT, "default-portal");
+        var state =
+                PortalLinkMapper.INSTANCE.toPortalLinkState(spec, LINK_ID.toString(), errors, AUDIT, "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getErrors()).isNotNull();
@@ -54,14 +59,16 @@ class PortalLinkMapperTest {
 
     @Test
     void put_state_returns_null_errors_when_list_is_empty() {
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
+                aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
 
         assertThat(state.getErrors()).isNull();
     }
 
     @Test
     void put_state_returns_null_errors_when_list_is_null() {
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), null, AUDIT, "default-portal");
+        var state =
+                PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), null, AUDIT, "default-portal");
 
         assertThat(state.getErrors()).isNull();
     }
@@ -75,7 +82,8 @@ class PortalLinkMapperTest {
 
     @Test
     void put_state_copies_spec_fields() {
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
+                aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getId()).isEqualTo(LINK_ID.toString());
@@ -93,26 +101,23 @@ class PortalLinkMapperTest {
     @Test
     void get_state_copies_persisted_entity_fields() {
         var link = PortalNavigationLink.builder()
-            .id(LINK_ID)
-            .organizationId("organization-id")
-            .environmentId("environment-id")
-            .title("External Docs")
-            .segment("external-docs")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .automationMetadata(
-                new AutomationMetadata(
-                    AutomationMetadata.ReferenceType.PORTAL,
-                    "portal-ref-id",
-                    null,
-                    Optional.of("/projects/alpha"),
-                    Optional.empty()
-                )
-            )
-            .build();
+                .id(LINK_ID)
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .title("External Docs")
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .automationMetadata(new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        "portal-ref-id",
+                        null,
+                        Optional.of("/projects/alpha"),
+                        Optional.empty()))
+                .build();
 
         var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", List.of(), "default-portal");
 
@@ -134,20 +139,16 @@ class PortalLinkMapperTest {
     void wire_visibility_round_trips_through_domain() {
         SoftAssertions.assertSoftly(soft -> {
             var publicDomain = PortalLinkMapper.INSTANCE.toDomainVisibility(
-                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
-            );
+                    io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
             soft.assertThat(publicDomain).isEqualTo(PortalVisibility.PUBLIC);
-            soft
-                .assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(publicDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+            soft.assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(publicDomain))
+                    .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
 
             var privateDomain = PortalLinkMapper.INSTANCE.toDomainVisibility(
-                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
-            );
+                    io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
             soft.assertThat(privateDomain).isEqualTo(PortalVisibility.PRIVATE);
-            soft
-                .assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(privateDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+            soft.assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(privateDomain))
+                    .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
 
             soft.assertThat(PortalLinkMapper.INSTANCE.toDomainVisibility(null)).isNull();
             soft.assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(null)).isNull();
@@ -157,17 +158,17 @@ class PortalLinkMapperTest {
     @Test
     void get_state_returns_null_location_when_automation_metadata_is_null() {
         var link = PortalNavigationLink.builder()
-            .id(LINK_ID)
-            .organizationId("organization-id")
-            .environmentId("environment-id")
-            .title("External Docs")
-            .segment("external-docs")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(LINK_ID)
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .title("External Docs")
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
         var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", List.of(), "default-portal");
 
@@ -186,7 +187,8 @@ class PortalLinkMapperTest {
 
     @Test
     void portal_link_state_still_populates_portal_hrid_and_leaves_api_hrid_null() {
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
+                aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getPortalHrid()).isEqualTo("default-portal");
@@ -196,7 +198,8 @@ class PortalLinkMapperTest {
 
     @Test
     void put_state_carries_the_spec_visibility() {
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
+                aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
 
         assertThat(state.getVisibility()).isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
     }
@@ -211,25 +214,25 @@ class PortalLinkMapperTest {
     @Test
     void get_state_carries_the_persisted_visibility() {
         var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
-            aLink(PortalVisibility.PRIVATE),
-            "external-docs",
-            List.of(),
-            "default-portal"
-        );
+                aLink(PortalVisibility.PRIVATE), "external-docs", List.of(), "default-portal");
 
-        assertThat(state.getVisibility()).isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+        assertThat(state.getVisibility())
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
     }
 
     @Test
     void api_get_state_carries_the_persisted_visibility() {
-        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aLink(PortalVisibility.PRIVATE), "external-docs", List.of(), "my-api");
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(
+                aLink(PortalVisibility.PRIVATE), "external-docs", List.of(), "my-api");
 
-        assertThat(state.getVisibility()).isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+        assertThat(state.getVisibility())
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
     }
 
     @Test
     void api_get_state_populates_api_hrid_and_leaves_portal_hrid_null() {
-        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aLink(PortalVisibility.PUBLIC), "external-docs", List.of(), "my-api");
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(
+                aLink(PortalVisibility.PUBLIC), "external-docs", List.of(), "my-api");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getApiHrid()).isEqualTo("my-api");
@@ -240,11 +243,7 @@ class PortalLinkMapperTest {
     @Test
     void portal_get_state_populates_portal_hrid_and_leaves_api_hrid_null() {
         var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
-            aLink(PortalVisibility.PUBLIC),
-            "external-docs",
-            List.of(),
-            "default-portal"
-        );
+                aLink(PortalVisibility.PUBLIC), "external-docs", List.of(), "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getPortalHrid()).isEqualTo("default-portal");
@@ -259,11 +258,7 @@ class PortalLinkMapperTest {
         var warnings = List.of(Validator.Error.warning("careful"));
 
         var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
-            aLink(PortalVisibility.PUBLIC),
-            "external-docs",
-            warnings,
-            "default-portal"
-        );
+                aLink(PortalVisibility.PUBLIC), "external-docs", warnings, "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getErrors()).isNotNull();
@@ -275,7 +270,8 @@ class PortalLinkMapperTest {
     void api_apply_state_from_the_persisted_link_still_reports_warnings() {
         var warnings = List.of(Validator.Error.warning("careful"));
 
-        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aLink(PortalVisibility.PUBLIC), "external-docs", warnings, "my-api");
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(
+                aLink(PortalVisibility.PUBLIC), "external-docs", warnings, "my-api");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getErrors()).isNotNull();
@@ -285,26 +281,23 @@ class PortalLinkMapperTest {
 
     private static PortalNavigationLink aLink(PortalVisibility visibility) {
         return PortalNavigationLink.builder()
-            .id(LINK_ID)
-            .organizationId("organization-id")
-            .environmentId("environment-id")
-            .title("External Docs")
-            .segment("external-docs")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(visibility)
-            .automationMetadata(
-                new AutomationMetadata(
-                    AutomationMetadata.ReferenceType.PORTAL,
-                    "portal-ref-id",
-                    null,
-                    Optional.of("/projects/alpha"),
-                    Optional.empty()
-                )
-            )
-            .build();
+                .id(LINK_ID)
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .title("External Docs")
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(visibility)
+                .automationMetadata(new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        "portal-ref-id",
+                        null,
+                        Optional.of("/projects/alpha"),
+                        Optional.empty()))
+                .build();
     }
 
     private static PortalLinkSpec aSpec() {

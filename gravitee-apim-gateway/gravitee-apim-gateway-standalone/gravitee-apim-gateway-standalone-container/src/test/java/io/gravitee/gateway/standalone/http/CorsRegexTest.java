@@ -37,11 +37,10 @@ public class CorsRegexTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void preflight_request() throws Exception {
-        HttpResponse response = execute(
-            Request.Options("http://localhost:8082/test/my_team")
-                .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://api.mycompany.com")
-        ).returnResponse();
+        HttpResponse response = execute(Request.Options("http://localhost:8082/test/my_team")
+                        .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
+                        .addHeader(HttpHeaders.ORIGIN, "http://api.mycompany.com"))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -50,11 +49,10 @@ public class CorsRegexTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void preflight_request_unauthorized() throws Exception {
-        HttpResponse response = execute(
-            Request.Options("http://localhost:8082/test/my_team")
-                .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://mycompany.com")
-        ).returnResponse();
+        HttpResponse response = execute(Request.Options("http://localhost:8082/test/my_team")
+                        .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
+                        .addHeader(HttpHeaders.ORIGIN, "http://mycompany.com"))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 
@@ -65,7 +63,8 @@ public class CorsRegexTest extends AbstractWiremockGatewayTest {
     public void simple_request_no_origin() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         assertNull(response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
@@ -77,18 +76,28 @@ public class CorsRegexTest extends AbstractWiremockGatewayTest {
     public void simple_request_with_origin() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        HttpResponse response = execute(
-            Request.Get("http://localhost:8082/test/my_team").addHeader(HttpHeaders.ORIGIN, "https://api2.mycompany.com")
-        ).returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")
+                        .addHeader(HttpHeaders.ORIGIN, "https://api2.mycompany.com"))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        // CORS behavior differs from V3 to V4 emulation. Jupiter fixes default '*' return to use instead the Origin header from the request.
+        // CORS behavior differs from V3 to V4 emulation. Jupiter fixes default '*' return to use instead the Origin
+        // header from the request.
         if (isV2EmulateV4Engine()) {
-            assertEquals("https://api2.mycompany.com", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
+            assertEquals(
+                    "https://api2.mycompany.com",
+                    response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+                            .getValue());
         } else {
-            assertEquals("*", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
+            assertEquals(
+                    "*",
+                    response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+                            .getValue());
         }
-        assertEquals("x-forwarded-host", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS).getValue());
+        assertEquals(
+                "x-forwarded-host",
+                response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS)
+                        .getValue());
 
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }

@@ -40,17 +40,14 @@ public class ScoringFunctionQueryServiceImpl extends AbstractService implements 
     @Override
     public List<ScoringFunction> findByReference(String referenceId, ScoringFunction.ReferenceType referenceType) {
         try {
-            return scoringFunctionRepository
-                .findAllByReferenceId(referenceId, referenceType.name())
-                .stream()
-                .map(ScoringFunctionAdapter.INSTANCE::toEntity)
-                .toList();
+            return scoringFunctionRepository.findAllByReferenceId(referenceId, referenceType.name()).stream()
+                    .map(ScoringFunctionAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Scoring function [{}:{}]", referenceType, referenceId, e);
             throw new TechnicalManagementException(
-                "An error occurred while finding Scoring function [%s:%s] ".formatted(referenceType, referenceId),
-                e
-            );
+                    "An error occurred while finding Scoring function [%s:%s] ".formatted(referenceType, referenceId),
+                    e);
         }
     }
 }

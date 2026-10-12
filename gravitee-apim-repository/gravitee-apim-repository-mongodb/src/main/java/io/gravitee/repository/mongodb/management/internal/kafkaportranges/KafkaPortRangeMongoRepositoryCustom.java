@@ -19,5 +19,6 @@ import io.gravitee.repository.mongodb.management.internal.model.KafkaPortRangeMo
 import java.util.List;
 
 public interface KafkaPortRangeMongoRepositoryCustom {
-    List<KafkaPortRangeMongo> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId);
+    List<KafkaPortRangeMongo> findConflicting(
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId);
 }

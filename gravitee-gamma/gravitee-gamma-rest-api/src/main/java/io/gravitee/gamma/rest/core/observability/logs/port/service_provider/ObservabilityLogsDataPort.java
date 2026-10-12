@@ -81,5 +81,6 @@ public interface ObservabilityLogsDataPort {
      * indexed when {@code analytics.logging} enables the message content flags, which is off by
      * default and forbidden entirely on non-message api types.
      */
-    MessageLogsPage searchMessages(String organizationId, String environmentId, String apiId, String requestId, int page, int perPage);
+    MessageLogsPage searchMessages(
+            String organizationId, String environmentId, String apiId, String requestId, int page, int perPage);
 }

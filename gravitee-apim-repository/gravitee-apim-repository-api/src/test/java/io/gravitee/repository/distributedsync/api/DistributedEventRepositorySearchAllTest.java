@@ -44,7 +44,8 @@ class DistributedEventRepositorySearchAllTest {
             @Override
             public Flowable<DistributedEvent> search(DistributedEventCriteria criteria, Long page, Long size) {
                 searchCalls.incrementAndGet();
-                return Flowable.fromIterable(events.stream().skip(page * size).limit(size).toList());
+                return Flowable.fromIterable(
+                        events.stream().skip(page * size).limit(size).toList());
             }
 
             @Override
@@ -54,12 +55,11 @@ class DistributedEventRepositorySearchAllTest {
 
             @Override
             public Completable updateAll(
-                String clusterId,
-                DistributedEventType refType,
-                String refId,
-                DistributedSyncAction syncAction,
-                Date updateAt
-            ) {
+                    String clusterId,
+                    DistributedEventType refType,
+                    String refId,
+                    DistributedSyncAction syncAction,
+                    Date updateAt) {
                 return Completable.complete();
             }
         };
@@ -68,10 +68,14 @@ class DistributedEventRepositorySearchAllTest {
     @Test
     void should_page_through_all_events_until_an_empty_page() {
         List<DistributedEvent> events = IntStream.range(0, 5)
-            .mapToObj(i -> DistributedEvent.builder().id(String.valueOf(i)).build())
-            .toList();
+                .mapToObj(i -> DistributedEvent.builder().id(String.valueOf(i)).build())
+                .toList();
 
-        repositoryOf(events).searchAll(null, 2L).test().assertValueSequence(events).assertComplete();
+        repositoryOf(events)
+                .searchAll(null, 2L)
+                .test()
+                .assertValueSequence(events)
+                .assertComplete();
 
         // pages of 2: [0,1], [2,3], [4] and the empty page ending the loop
         assertThat(searchCalls).hasValue(4);

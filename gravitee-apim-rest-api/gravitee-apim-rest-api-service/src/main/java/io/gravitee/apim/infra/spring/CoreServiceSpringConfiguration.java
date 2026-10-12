@@ -22,7 +22,6 @@ import org.springframework.context.annotation.FilterType;
 
 @Configuration
 @ComponentScan(
-    basePackages = { "io.gravitee.apim.core" },
-    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class)
-)
+        basePackages = {"io.gravitee.apim.core"},
+        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class))
 public class CoreServiceSpringConfiguration {}

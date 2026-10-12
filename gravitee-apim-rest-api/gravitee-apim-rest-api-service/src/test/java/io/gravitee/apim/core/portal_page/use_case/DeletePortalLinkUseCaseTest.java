@@ -40,25 +40,28 @@ import org.junit.jupiter.api.Test;
 class DeletePortalLinkUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String PORTAL_ID = "11111111-1111-1111-1111-111111111111";
     private static final String LINK_HRID = "external-docs";
-    private static final PortalNavigationItemId LINK_ID = PortalNavigationItemId.of(
-        HRIDToUUID.portalLink().context(AUDIT_INFO).portal(PORTAL_ID).hrid(LINK_HRID).id()
-    );
+    private static final PortalNavigationItemId LINK_ID = PortalNavigationItemId.of(HRIDToUUID.portalLink()
+            .context(AUDIT_INFO)
+            .portal(PORTAL_ID)
+            .hrid(LINK_HRID)
+            .id());
 
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
     private DeletePortalLinkUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new DeletePortalLinkUseCase(navQueryService, new PortalLinkSyncDomainService(navCrudService, navQueryService));
+        useCase = new DeletePortalLinkUseCase(
+                navQueryService, new PortalLinkSyncDomainService(navCrudService, navQueryService));
     }
 
     @AfterEach
@@ -68,16 +71,9 @@ class DeletePortalLinkUseCaseTest {
 
     @Test
     void should_delete_an_existing_link() {
-        new PortalLinkSyncDomainService(navCrudService, navQueryService).materialize(
-            AUDIT_INFO,
-            PORTAL_ID,
-            LINK_HRID,
-            "External Docs",
-            "https://docs.example.com",
-            null,
-            0,
-            null
-        );
+        new PortalLinkSyncDomainService(navCrudService, navQueryService)
+                .materialize(
+                        AUDIT_INFO, PORTAL_ID, LINK_HRID, "External Docs", "https://docs.example.com", null, 0, null);
 
         useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, LINK_ID));
 
@@ -93,21 +89,17 @@ class DeletePortalLinkUseCaseTest {
 
     @Test
     void should_throw_when_the_id_resolves_to_a_foreign_non_link_item() {
-        navCrudService.initWith(
-            List.of(
-                PortalNavigationFolder.builder()
-                    .id(LINK_ID)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("external-docs")
-                    .segment("external-docs")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .build()
-            )
-        );
+        navCrudService.initWith(List.of(PortalNavigationFolder.builder()
+                .id(LINK_ID)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("external-docs")
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build()));
 
         var throwable = catchThrowable(() -> useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, LINK_ID)));
 

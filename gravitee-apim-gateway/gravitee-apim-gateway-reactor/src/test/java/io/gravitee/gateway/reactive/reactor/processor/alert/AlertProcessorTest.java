@@ -69,7 +69,9 @@ class AlertProcessorTest extends AbstractProcessorTest {
         when(mockNode.id()).thenReturn("node.id");
         when(mockNode.hostname()).thenReturn("node.hostname");
         when(mockNode.application()).thenReturn("node.application");
-        when(mockNode.metadata()).thenReturn(Map.ofEntries(Map.entry("tenant", "tenant-id"), Map.entry("installation", "installation-id")));
+        when(mockNode.metadata())
+                .thenReturn(
+                        Map.ofEntries(Map.entry("tenant", "tenant-id"), Map.entry("installation", "installation-id")));
     }
 
     @Test
@@ -80,12 +82,11 @@ class AlertProcessorTest extends AbstractProcessorTest {
         SoftAssertions.assertSoftly(softly -> {
             var event = eventCaptor.getValue();
 
-            softly
-                .assertThat(event.properties())
-                .containsEntry("tenant", "tenant-id")
-                .containsEntry("installation", "installation-id")
-                .containsEntry("organization", "organization")
-                .containsEntry("environment", "environment");
+            softly.assertThat(event.properties())
+                    .containsEntry("tenant", "tenant-id")
+                    .containsEntry("installation", "installation-id")
+                    .containsEntry("organization", "organization")
+                    .containsEntry("environment", "environment");
         });
     }
 

@@ -36,7 +36,8 @@ public class DeployModelToApiDomainService {
     private final UpdateApiDomainService updateApiDomainService;
     private final ApiStateDomainService apiStateDomainService;
 
-    public DeployModelToApiDomainService(UpdateApiDomainService updateApiDomainService, ApiStateDomainService apiStateDomainService) {
+    public DeployModelToApiDomainService(
+            UpdateApiDomainService updateApiDomainService, ApiStateDomainService apiStateDomainService) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiStateDomainService = apiStateDomainService;
     }
@@ -81,12 +82,12 @@ public class DeployModelToApiDomainService {
 
     public Plan createDefaultPlan() {
         return Plan.builder()
-            .id(UuidString.generateRandom())
-            .name("Default plan")
-            .mode(PlanMode.STANDARD)
-            .status(PlanStatus.PUBLISHED)
-            .security(PlanSecurity.builder().type("key-less").build())
-            .build();
+                .id(UuidString.generateRandom())
+                .name("Default plan")
+                .mode(PlanMode.STANDARD)
+                .status(PlanStatus.PUBLISHED)
+                .security(PlanSecurity.builder().type("key-less").build())
+                .build();
     }
 
     public enum Mode {

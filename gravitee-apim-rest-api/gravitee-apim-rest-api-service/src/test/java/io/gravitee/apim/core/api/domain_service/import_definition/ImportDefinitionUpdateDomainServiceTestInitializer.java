@@ -72,7 +72,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     // In Memory
     public ApiCrudServiceInMemory apiCrudServiceInMemory;
     public final ApiQueryServiceInMemory apiQueryServiceInMemory = new ApiQueryServiceInMemory();
-    public final ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory();
+    public final ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory =
+            new ApiMetadataQueryServiceInMemory();
     public final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     public final FlowCrudServiceInMemory flowCrudServiceInMemory = new FlowCrudServiceInMemory();
     public final GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
@@ -83,7 +84,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     public final PlanQueryServiceInMemory planQueryServiceInMemory = new PlanQueryServiceInMemory();
     public final PlanCrudServiceInMemory planCrudServiceInMemory = new PlanCrudServiceInMemory();
     public final RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
-    public final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    public final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+            new TriggerNotificationDomainServiceInMemory();
     public final UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
 
     // Domain Services
@@ -95,11 +97,11 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
 
     // Sub entities initializers
     private final ImportDefinitionMetadataDomainServiceTestInitializer metadataDomainServiceInitializer =
-        new ImportDefinitionMetadataDomainServiceTestInitializer();
+            new ImportDefinitionMetadataDomainServiceTestInitializer();
     public final ImportDefinitionPlanDomainServiceTestInitializer planDomainServiceInitializer =
-        new ImportDefinitionPlanDomainServiceTestInitializer();
+            new ImportDefinitionPlanDomainServiceTestInitializer();
     private final ImportDefinitionPageDomainServiceTestInitializer pageDomainServiceTestInitializer =
-        new ImportDefinitionPageDomainServiceTestInitializer();
+            new ImportDefinitionPageDomainServiceTestInitializer();
 
     public ImportDefinitionUpdateDomainServiceTestInitializer() {
         this(null);
@@ -112,75 +114,70 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
         doNothing().when(apiImportDomainService).createMedias(any(), any(), any());
 
         apiIdsCalculatorDomainService = new ApiIdsCalculatorDomainService(
-            apiQueryServiceInMemory,
-            pageQueryServiceInMemory,
-            planQueryServiceInMemory
-        );
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
+                apiQueryServiceInMemory, pageQueryServiceInMemory, planQueryServiceInMemory);
+        var auditDomainService = new AuditDomainService(
+                auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
         var deprecatePlanDomainService = new DeprecatePlanDomainService(planCrudServiceInMemory, auditDomainService);
 
         apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryServiceInMemory,
-            membershipCrudServiceInMemory,
-            membershipQueryServiceInMemory,
-            roleQueryServiceInMemory,
-            userCrudServiceInMemory
-        );
+                auditDomainService,
+                groupQueryServiceInMemory,
+                membershipCrudServiceInMemory,
+                membershipQueryServiceInMemory,
+                roleQueryServiceInMemory,
+                userCrudServiceInMemory);
 
         var apiIndexerDomainService = new ApiIndexerDomainService(
-            new ApiMetadataDecoderDomainService(apiMetadataQueryServiceInMemory, new FreemarkerTemplateProcessor()),
-            apiPrimaryOwnerDomainService,
-            new ApiCategoryQueryServiceInMemory(),
-            indexer
-        );
+                new ApiMetadataDecoderDomainService(apiMetadataQueryServiceInMemory, new FreemarkerTemplateProcessor()),
+                apiPrimaryOwnerDomainService,
+                new ApiCategoryQueryServiceInMemory(),
+                indexer);
         updateNativeApiDomainService = new UpdateNativeApiDomainService(
-            apiCrudServiceInMemory,
-            planQueryServiceInMemory,
-            deprecatePlanDomainService,
-            triggerNotificationDomainService,
-            flowCrudServiceInMemory,
-            categoryDomainService,
-            auditDomainService,
-            apiIndexerDomainService
-        );
+                apiCrudServiceInMemory,
+                planQueryServiceInMemory,
+                deprecatePlanDomainService,
+                triggerNotificationDomainService,
+                flowCrudServiceInMemory,
+                categoryDomainService,
+                auditDomainService,
+                apiIndexerDomainService);
         updateApiDomainService = new UpdateApiDomainServiceImpl(apiService, apiCrudServiceInMemory);
         apiImagesServiceProvider = new FakeApiImagesService();
     }
 
     public ImportDefinitionUpdateDomainService initialize(String environmentId) {
         return new ImportDefinitionUpdateDomainService(
-            updateApiDomainService,
-            apiImagesServiceProvider,
-            apiIdsCalculatorDomainService,
-            updateNativeApiDomainService,
-            validateApiDomainService,
-            apiPrimaryOwnerDomainService,
-            metadataDomainServiceInitializer.initialize(),
-            planDomainServiceInitializer.initialize(environmentId),
-            pageDomainServiceTestInitializer.initialize(),
-            apiImportDomainService,
-            new ImportApiGroupsDomainService(groupQueryServiceInMemory, new CreateGroupDomainServiceInMemory(groupQueryServiceInMemory)),
-            new PropertyDomainService(dataEncryptor)
-        );
+                updateApiDomainService,
+                apiImagesServiceProvider,
+                apiIdsCalculatorDomainService,
+                updateNativeApiDomainService,
+                validateApiDomainService,
+                apiPrimaryOwnerDomainService,
+                metadataDomainServiceInitializer.initialize(),
+                planDomainServiceInitializer.initialize(environmentId),
+                pageDomainServiceTestInitializer.initialize(),
+                apiImportDomainService,
+                new ImportApiGroupsDomainService(
+                        groupQueryServiceInMemory, new CreateGroupDomainServiceInMemory(groupQueryServiceInMemory)),
+                new PropertyDomainService(dataEncryptor));
     }
 
     public void tearDown() {
         Stream.of(
-            apiCrudServiceInMemory,
-            apiQueryServiceInMemory,
-            apiMetadataQueryServiceInMemory,
-            auditCrudServiceInMemory,
-            flowCrudServiceInMemory,
-            groupQueryServiceInMemory,
-            membershipCrudServiceInMemory,
-            membershipQueryServiceInMemory,
-            pageQueryServiceInMemory,
-            planQueryServiceInMemory,
-            planCrudServiceInMemory,
-            roleQueryServiceInMemory,
-            userCrudServiceInMemory
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudServiceInMemory,
+                        apiQueryServiceInMemory,
+                        apiMetadataQueryServiceInMemory,
+                        auditCrudServiceInMemory,
+                        flowCrudServiceInMemory,
+                        groupQueryServiceInMemory,
+                        membershipCrudServiceInMemory,
+                        membershipQueryServiceInMemory,
+                        pageQueryServiceInMemory,
+                        planQueryServiceInMemory,
+                        planCrudServiceInMemory,
+                        roleQueryServiceInMemory,
+                        userCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
 
         metadataDomainServiceInitializer.tearDown();
         planDomainServiceInitializer.tearDown();

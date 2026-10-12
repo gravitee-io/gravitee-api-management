@@ -32,7 +32,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}subscriptions")
 @Getter
 @Setter
-@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@EqualsAndHashCode(
+        of = {"id"},
+        callSuper = false)
 public class SubscriptionMongo extends DeprecatedAuditable {
 
     /**

@@ -27,7 +27,6 @@ import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
@@ -79,7 +78,8 @@ public class ApiAuditResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_filter_the_api_audits_by_encrypted() {
-        final Response response = apiAuditsTarget().queryParam("encrypted", true).request().get();
+        final Response response =
+                apiAuditsTarget().queryParam("encrypted", true).request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals("true", capturedQuery().getProperties().get("ENCRYPTED"));
@@ -87,7 +87,8 @@ public class ApiAuditResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_reject_an_encrypted_filter_it_cannot_answer() {
-        final Response response = apiAuditsTarget().queryParam("encrypted", false).request().get();
+        final Response response =
+                apiAuditsTarget().queryParam("encrypted", false).request().get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         verify(auditService, never()).search(any(), any());

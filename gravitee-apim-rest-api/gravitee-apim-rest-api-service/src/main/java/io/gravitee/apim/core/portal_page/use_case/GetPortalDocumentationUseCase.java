@@ -41,11 +41,13 @@ public class GetPortalDocumentationUseCase {
 
     public Output execute(Input input) {
         var pageContent = portalPageContentQueryService
-            .findById(input.portalPageContentId())
-            .filter(pc -> pc.getAutomationMetadata() != null)
-            .orElseThrow(() -> new PortalDocumentationNotFoundException(input.portalPageContentId().toString()));
+                .findById(input.portalPageContentId())
+                .filter(pc -> pc.getAutomationMetadata() != null)
+                .orElseThrow(() -> new PortalDocumentationNotFoundException(
+                        input.portalPageContentId().toString()));
         var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(input.auditInfo(), pageContent);
-        var navItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), navigationItemId);
+        var navItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), navigationItemId);
         var area = navItem instanceof PortalNavigationPage page ? page.getArea() : PortalArea.TOP_NAVBAR;
         var visibility = navItem instanceof PortalNavigationPage page ? page.getVisibility() : null;
         return new Output(pageContent, area, visibility);

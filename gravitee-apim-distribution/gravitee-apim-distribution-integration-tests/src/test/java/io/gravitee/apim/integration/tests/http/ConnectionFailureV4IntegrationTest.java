@@ -94,36 +94,39 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Test
     @DeployApi("/apis/v4/http/connectionfailure/api-refused-with-umbrella-template.json")
     void should_fall_back_to_the_umbrella_response_template_for_a_fine_grained_key(HttpClient httpClient) {
-        // The connection is refused → fine key GATEWAY_CLIENT_CONNECTION_REFUSED, parent GATEWAY_CLIENT_CONNECTION_ERROR.
+        // The connection is refused → fine key GATEWAY_CLIENT_CONNECTION_REFUSED, parent
+        // GATEWAY_CLIENT_CONNECTION_ERROR.
         // No template targets the fine key, so the parentErrorKey carried on the ExecutionFailure must drive the
         // umbrella template — an end-to-end check of the cross-module parentErrorKey contract between the http-proxy
         // classifier and ResponseTemplateBasedFailureProcessor.
         // The umbrella template status (503) is deliberately different from the connection-refused default (502), so a
         // 503 here proves the template — resolved via the parent fallback — actually drove the response status.
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(503);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("umbrella template fired");
-                return true;
-            });
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(503);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("umbrella template fired");
+                    return true;
+                });
     }
 
     @Test
@@ -135,19 +138,20 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
         // of the empty string {#error.message} would have produced.
         // Capture the Metrics that get reported (this is exactly what is indexed in Elasticsearch analytics).
         var reportedMetrics = metricsSubject
-            .filter(metrics -> metrics.getFailure() != null)
-            .take(1)
-            .test();
+                .filter(metrics -> metrics.getFailure() != null)
+                .take(1)
+                .test();
 
         String json = httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> request.putHeader("Accept", "application/json").rxSend())
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(502);
-                return response.rxBody();
-            })
-            .blockingGet()
-            .toString();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request ->
+                        request.putHeader("Accept", "application/json").rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    return response.rxBody();
+                })
+                .blockingGet()
+                .toString();
 
         assertThat(json).contains("\"code\": \"GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR\"");
         assertThat(json).contains("\"status\": 502");
@@ -158,13 +162,11 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
         assertThat(json).contains("\"message\": \"\"");
 
         // {#error.cause} equals the Diagnostic message reported to analytics (Elasticsearch).
-        reportedMetrics
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(metrics -> {
-                String esDetail = metrics.getFailure().getMessage();
-                assertThat(json).contains("\"detail\": \"" + esDetail + "\"");
-                return true;
-            });
+        reportedMetrics.awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+            String esDetail = metrics.getFailure().getMessage();
+            assertThat(json).contains("\"detail\": \"" + esDetail + "\"");
+            return true;
+        });
     }
 
     @Test
@@ -173,35 +175,36 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(get("/endpoint").willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(502);
-                return response.toFlowable();
-            })
-            .ignoreElements()
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    return response.toFlowable();
+                })
+                .ignoreElements()
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete();
 
         metricsSubject
-            .filter(metrics -> metrics.getErrorKey() != null)
-            .take(1)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(metrics -> {
-                assertThat(metrics.getStatus()).isEqualTo(502);
-                assertThat(metrics.getErrorKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_RESET");
-                assertThat(metrics.getFailure()).isNotNull();
-                assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_RESET");
-                assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
-                return true;
-            });
+                .filter(metrics -> metrics.getErrorKey() != null)
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(metrics -> {
+                    assertThat(metrics.getStatus()).isEqualTo(502);
+                    assertThat(metrics.getErrorKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_RESET");
+                    assertThat(metrics.getFailure()).isNotNull();
+                    assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_RESET");
+                    assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
+                    return true;
+                });
     }
 
     @Test
     @DeployApi("/apis/v4/http/connectionfailure/api-tiny-pool.json")
-    void should_report_connect_timeout_when_request_times_out_before_acquiring_a_connection(HttpClient httpClient) throws Exception {
+    void should_report_connect_timeout_when_request_times_out_before_acquiring_a_connection(HttpClient httpClient)
+            throws Exception {
         // Single-connection pool + silent backend: the first request occupies the only upstream connection and times
         // out reading the backend (READ_TIMEOUT), while the others time out QUEUED for a connection — they never
         // reached the backend, so they are CONNECT_TIMEOUT, not a misleading backend read timeout. The distinction is
@@ -224,42 +227,39 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
             // awaited, and the BehaviorSubject only replays the latest one to a late subscriber. Both keys are 504, so
             // status alone can't tell them apart — assert each key explicitly to prove the connect-vs-read split.
             var connectTimeoutMetrics = metricsSubject
-                .filter(metrics -> "GATEWAY_CLIENT_CONNECT_TIMEOUT".equals(metrics.getErrorKey()))
-                .take(1)
-                .test();
+                    .filter(metrics -> "GATEWAY_CLIENT_CONNECT_TIMEOUT".equals(metrics.getErrorKey()))
+                    .take(1)
+                    .test();
             var readTimeoutMetrics = metricsSubject
-                .filter(metrics -> "GATEWAY_CLIENT_READ_TIMEOUT".equals(metrics.getErrorKey()))
-                .take(1)
-                .test();
+                    .filter(metrics -> "GATEWAY_CLIENT_READ_TIMEOUT".equals(metrics.getErrorKey()))
+                    .take(1)
+                    .test();
 
             Flowable.range(0, 3)
-                .flatMapSingle(i -> httpClient.rxRequest(HttpMethod.GET, "/test").flatMap(HttpClientRequest::rxSend))
-                .map(HttpClientResponse::statusCode)
-                .toList()
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(statuses -> statuses.stream().allMatch(status -> status == 504));
+                    .flatMapSingle(
+                            i -> httpClient.rxRequest(HttpMethod.GET, "/test").flatMap(HttpClientRequest::rxSend))
+                    .map(HttpClientResponse::statusCode)
+                    .toList()
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValue(statuses -> statuses.stream().allMatch(status -> status == 504));
 
             // The queued requests never acquired a connection → CONNECT_TIMEOUT.
-            connectTimeoutMetrics
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.getStatus()).isEqualTo(504);
-                    assertThat(metrics.getFailure()).isNotNull();
-                    assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECT_TIMEOUT");
-                    assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
-                    return true;
-                });
+            connectTimeoutMetrics.awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.getStatus()).isEqualTo(504);
+                assertThat(metrics.getFailure()).isNotNull();
+                assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECT_TIMEOUT");
+                assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
+                return true;
+            });
 
             // The request that held the single connection read-timed-out on the silent backend → READ_TIMEOUT.
-            readTimeoutMetrics
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.getStatus()).isEqualTo(504);
-                    assertThat(metrics.getFailure()).isNotNull();
-                    assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
-                    return true;
-                });
+            readTimeoutMetrics.awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.getStatus()).isEqualTo(504);
+                assertThat(metrics.getFailure()).isNotNull();
+                assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
+                return true;
+            });
 
             synchronized (held) {
                 for (Socket socket : held) {
@@ -273,28 +273,28 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
     @DeployApi("/apis/v4/http/connectionfailure/api-dns-failure.json")
     void should_report_dns_resolution_error_when_backend_host_is_unresolvable(HttpClient httpClient) {
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(502);
-                return response.toFlowable();
-            })
-            .ignoreElements()
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    return response.toFlowable();
+                })
+                .ignoreElements()
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete();
 
         metricsSubject
-            .filter(metrics -> metrics.getErrorKey() != null)
-            .take(1)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(metrics -> {
-                assertThat(metrics.getStatus()).isEqualTo(502);
-                assertThat(metrics.getErrorKey()).isEqualTo("GATEWAY_CLIENT_DNS_RESOLUTION_ERROR");
-                assertThat(metrics.getFailure()).isNotNull();
-                assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
-                return true;
-            });
+                .filter(metrics -> metrics.getErrorKey() != null)
+                .take(1)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(metrics -> {
+                    assertThat(metrics.getStatus()).isEqualTo(502);
+                    assertThat(metrics.getErrorKey()).isEqualTo("GATEWAY_CLIENT_DNS_RESOLUTION_ERROR");
+                    assertThat(metrics.getFailure()).isNotNull();
+                    assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
+                    return true;
+                });
     }
 }

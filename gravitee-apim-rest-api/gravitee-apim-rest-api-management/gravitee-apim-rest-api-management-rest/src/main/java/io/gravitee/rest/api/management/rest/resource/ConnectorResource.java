@@ -50,15 +50,19 @@ public class ConnectorResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a connector", description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "Get a connector",
+            description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Connector plugin",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlatformPluginEntity.class))
-    )
+            responseCode = "200",
+            description = "Connector plugin",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlatformPluginEntity.class)))
     @ApiResponse(responseCode = "404", description = "Connector not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public PlatformPluginEntity getConnector(@PathParam("connector") String connector) {
         return connectorService.findById(connector);
     }
@@ -67,17 +71,15 @@ public class ConnectorResource {
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get a connector's schema",
-        description = "User must have the ENVIRONMENT_API[READ] permission to use this service"
-    )
+            summary = "Get a connector's schema",
+            description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Connector schema",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = String.class))
-    )
+            responseCode = "200",
+            description = "Connector schema",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = String.class)))
     @ApiResponse(responseCode = "404", description = "Connector not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getConnectorSchema(@PathParam("connector") String connector) {
         // Check that the connector exists
         connectorService.findById(connector);
@@ -89,17 +91,15 @@ public class ConnectorResource {
     @Path("documentation")
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(
-        summary = "Get a connector's documentation",
-        description = "User must have the ENVIRONMENT_API[READ] permission to use this service"
-    )
+            summary = "Get a connector's documentation",
+            description = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Connector documentation",
-        content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(implementation = String.class))
-    )
+            responseCode = "200",
+            description = "Connector documentation",
+            content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(implementation = String.class)))
     @ApiResponse(responseCode = "404", description = "Connector not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getConnectorDoc(@PathParam("connector") String connector) {
         // Check that the connector exists
         connectorService.findById(connector);

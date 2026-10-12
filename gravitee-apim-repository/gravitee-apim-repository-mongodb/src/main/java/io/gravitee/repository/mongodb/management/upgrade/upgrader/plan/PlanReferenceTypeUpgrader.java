@@ -27,7 +27,8 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class PlanReferenceTypeUpgrader extends MongoUpgrader {
 
-    public static final int PLAN_REFERENCE_TYPE_UPGRADER_ORDER = PlanDefinitionVersionUpgrader.PLAN_DEFINITION_VERSION_UPGRADER_ORDER + 1;
+    public static final int PLAN_REFERENCE_TYPE_UPGRADER_ORDER =
+            PlanDefinitionVersionUpgrader.PLAN_DEFINITION_VERSION_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
@@ -40,13 +41,13 @@ public class PlanReferenceTypeUpgrader extends MongoUpgrader {
             log.debug("Starting plan reference type upgrader");
 
             var filter = Filters.and(
-                Filters.exists("api", true),
-                Filters.ne("api", null),
-                Filters.ne("api", ""),
-                Filters.or(Filters.exists("referenceType", false), Filters.eq("referenceType", null))
-            );
+                    Filters.exists("api", true),
+                    Filters.ne("api", null),
+                    Filters.ne("api", ""),
+                    Filters.or(Filters.exists("referenceType", false), Filters.eq("referenceType", null)));
 
-            var pipeline = List.of(new Document("$set", new Document("referenceType", "API").append("referenceId", "$api")));
+            var pipeline =
+                    List.of(new Document("$set", new Document("referenceType", "API").append("referenceId", "$api")));
 
             var result = this.getCollection("plans").updateMany(filter, pipeline);
             log.debug("Upgraded {} plan(s) with reference type and reference id", result.getModifiedCount());

@@ -37,7 +37,8 @@ import org.junit.jupiter.api.Test;
 class PortalCategoryDomainServiceTest {
 
     private static final String ENVIRONMENT_ID = "env-1";
-    private static final PortalCategoryId PORTAL_CATEGORY_ID = PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
+    private static final PortalCategoryId PORTAL_CATEGORY_ID =
+            PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
     private static final PortalCategoryId UNKNOWN_ID = PortalCategoryId.of("00000000-0000-0000-0000-000000000bad");
 
     private PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory;
@@ -48,7 +49,8 @@ class PortalCategoryDomainServiceTest {
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
         portalCategoryQueryServiceInMemory = new PortalCategoryQueryServiceInMemory();
-        domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
+        domainService =
+                new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
     }
 
     @AfterEach
@@ -74,39 +76,42 @@ class PortalCategoryDomainServiceTest {
 
     @Test
     void validateTitleUniqueness_accepts_a_title_not_used_in_the_environment() {
-        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
+        portalCategoryQueryServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
 
         assertThatNoException().isThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "News"));
     }
 
     @Test
     void validateTitleUniqueness_throws_when_title_already_used_in_the_environment() {
-        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
+        portalCategoryQueryServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
 
-        assertThatThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "Weather")).isInstanceOf(
-            PortalCategoryTitleAlreadyExistsException.class
-        );
+        assertThatThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "Weather"))
+                .isInstanceOf(PortalCategoryTitleAlreadyExistsException.class);
     }
 
     @Test
     void validateTitleUniqueness_throws_when_title_already_used_with_different_casing() {
-        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
+        portalCategoryQueryServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
 
-        assertThatThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "WEATHER")).isInstanceOf(
-            PortalCategoryTitleAlreadyExistsException.class
-        );
+        assertThatThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "WEATHER"))
+                .isInstanceOf(PortalCategoryTitleAlreadyExistsException.class);
     }
 
     @Test
     void validateTitleUniqueness_accepts_a_duplicate_title_in_another_environment() {
-        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, "other-env", "Weather", null, true)));
+        portalCategoryQueryServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, "other-env", "Weather", null, true)));
 
         assertThatNoException().isThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "Weather"));
     }
 
     @Test
     void findByIdAndEnvironmentId_returns_the_matching_portal_category() {
-        portalCategoryCrudServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Title", null, true)));
+        portalCategoryCrudServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Title", null, true)));
 
         var found = domainService.findByIdAndEnvironmentId(ENVIRONMENT_ID, PORTAL_CATEGORY_ID);
 
@@ -115,17 +120,16 @@ class PortalCategoryDomainServiceTest {
 
     @Test
     void findByIdAndEnvironmentId_throws_not_found_when_id_is_unknown() {
-        assertThatThrownBy(() -> domainService.findByIdAndEnvironmentId(ENVIRONMENT_ID, UNKNOWN_ID)).isInstanceOf(
-            PortalCategoryNotFoundException.class
-        );
+        assertThatThrownBy(() -> domainService.findByIdAndEnvironmentId(ENVIRONMENT_ID, UNKNOWN_ID))
+                .isInstanceOf(PortalCategoryNotFoundException.class);
     }
 
     @Test
     void findByIdAndEnvironmentId_throws_not_found_when_category_belongs_to_another_environment() {
-        portalCategoryCrudServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, "other-env", "Title", null, true)));
+        portalCategoryCrudServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, "other-env", "Title", null, true)));
 
-        assertThatThrownBy(() -> domainService.findByIdAndEnvironmentId(ENVIRONMENT_ID, PORTAL_CATEGORY_ID)).isInstanceOf(
-            PortalCategoryNotFoundException.class
-        );
+        assertThatThrownBy(() -> domainService.findByIdAndEnvironmentId(ENVIRONMENT_ID, PORTAL_CATEGORY_ID))
+                .isInstanceOf(PortalCategoryNotFoundException.class);
     }
 }

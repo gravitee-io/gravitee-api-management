@@ -39,12 +39,11 @@ public class DistributedApiKeySynchronizer extends AbstractDistributedSynchroniz
     private final ApiKeyMapper apiKeyMapper;
 
     public DistributedApiKeySynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final ApiKeyMapper apiKeyMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final ApiKeyMapper apiKeyMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.apiKeyMapper = apiKeyMapper;

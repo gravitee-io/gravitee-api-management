@@ -62,11 +62,10 @@ public class QualityRulesScopingUpgrader implements Upgrader {
 
     @Autowired
     public QualityRulesScopingUpgrader(
-        @Lazy QualityRuleRepository qualityRuleRepository,
-        @Lazy ApiQualityRuleRepository apiQualityRuleRepository,
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy ApiRepository apiRepository
-    ) {
+            @Lazy QualityRuleRepository qualityRuleRepository,
+            @Lazy ApiQualityRuleRepository apiQualityRuleRepository,
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy ApiRepository apiRepository) {
         this.qualityRuleRepository = qualityRuleRepository;
         this.apiQualityRuleRepository = apiQualityRuleRepository;
         this.environmentRepository = environmentRepository;
@@ -94,20 +93,16 @@ public class QualityRulesScopingUpgrader implements Upgrader {
      */
     private boolean isUpgradeSuccessful() throws TechnicalException {
         // Check that all quality rules have been scoped
-        List<QualityRule> qualityRulesWithNoReference = qualityRuleRepository
-            .findAll()
-            .stream()
-            .filter(qr -> qr.getReferenceType() == null)
-            .toList();
+        List<QualityRule> qualityRulesWithNoReference = qualityRuleRepository.findAll().stream()
+                .filter(qr -> qr.getReferenceType() == null)
+                .toList();
         if (!qualityRulesWithNoReference.isEmpty()) {
             log.error("Upgrade failed!");
             log.error(
-                "The following quality rules have not been scoped at the environment level: {}",
-                qualityRulesWithNoReference.stream().map(QualityRule::getId).toList()
-            );
+                    "The following quality rules have not been scoped at the environment level: {}",
+                    qualityRulesWithNoReference.stream().map(QualityRule::getId).toList());
             log.error(
-                "You can try to manually set the reference_type and reference_id to your default environment for these quality rules."
-            );
+                    "You can try to manually set the reference_type and reference_id to your default environment for these quality rules.");
             log.error("Then you can run the upgrader again.");
             return false;
         }
@@ -123,42 +118,42 @@ public class QualityRulesScopingUpgrader implements Upgrader {
         log.info("Start scoping existing quality rules at the environment level");
 
         // Get all quality rules with no reference type
-        List<QualityRule> qualityRules = qualityRuleRepository
-            .findAll()
-            .stream()
-            .filter(qr -> qr.getReferenceType() == null)
-            .toList();
+        List<QualityRule> qualityRules = qualityRuleRepository.findAll().stream()
+                .filter(qr -> qr.getReferenceType() == null)
+                .toList();
 
         // Log the number of quality rules to scope
         log.info("Found {} quality rules with no reference", qualityRules.size());
 
         // Get all environments
-        List<Environment> environments = environmentRepository.findAll().stream().toList();
+        List<Environment> environments =
+                environmentRepository.findAll().stream().toList();
         if (environments.isEmpty()) {
             log.error("No environment found, skipping scoping of quality rules");
             return;
         }
 
         // Get the default environment
-        Environment defaultEnv = environments
-            .stream()
-            .filter(env -> env.getId().equals(GraviteeContext.getDefaultEnvironment()))
-            .findFirst()
-            .orElse(environments.get(0));
+        Environment defaultEnv = environments.stream()
+                .filter(env -> env.getId().equals(GraviteeContext.getDefaultEnvironment()))
+                .findFirst()
+                .orElse(environments.get(0));
 
         log.info("Default environment is [{}]", defaultEnv.getId());
-        List<Environment> otherEnvs = environments
-            .stream()
-            .filter(env -> !env.getId().equals(defaultEnv.getId()))
-            .toList();
-        log.info("Other environments are {}", otherEnvs.stream().map(Environment::getId).toList());
+        List<Environment> otherEnvs = environments.stream()
+                .filter(env -> !env.getId().equals(defaultEnv.getId()))
+                .toList();
+        log.info(
+                "Other environments are {}",
+                otherEnvs.stream().map(Environment::getId).toList());
 
         // Scope the quality rules to the environments
         for (var qualityRule : qualityRules) {
             try {
                 scopeQualityRuleToEnvironments(qualityRule, defaultEnv, otherEnvs);
             } catch (TechnicalException e) {
-                throw new TechnicalException("Error while scoping quality rule " + qualityRule.getId() + " to environments", e);
+                throw new TechnicalException(
+                        "Error while scoping quality rule " + qualityRule.getId() + " to environments", e);
             }
         }
     }
@@ -171,8 +166,8 @@ public class QualityRulesScopingUpgrader implements Upgrader {
      * @param otherEnvs The set of other environments to scope the quality rule to.
      * @throws TechnicalException If any technical error occurs during the scoping process.
      */
-    private void scopeQualityRuleToEnvironments(QualityRule qualityRule, Environment defaultEnv, List<Environment> otherEnvs)
-        throws TechnicalException {
+    private void scopeQualityRuleToEnvironments(
+            QualityRule qualityRule, Environment defaultEnv, List<Environment> otherEnvs) throws TechnicalException {
         log.info("Scoping quality rule [{}] to environments", qualityRule.getId());
         // First, scope the quality rule to the default environment
         qualityRule.setReferenceType(QualityRule.ReferenceType.ENVIRONMENT);
@@ -198,17 +193,18 @@ public class QualityRulesScopingUpgrader implements Upgrader {
      * @param otherEnv The other environment for which the quality rule will be updated.
      * @throws TechnicalException If there is an error while updating the API quality rules.
      */
-    private void updateApiQualityRules(QualityRule qualityRuleForDefaultEnv, QualityRule qualityRuleForOtherEnv, Environment otherEnv)
-        throws TechnicalException {
-        List<ApiQualityRule> apiQualityRules = apiQualityRuleRepository.findByQualityRule(qualityRuleForDefaultEnv.getId());
+    private void updateApiQualityRules(
+            QualityRule qualityRuleForDefaultEnv, QualityRule qualityRuleForOtherEnv, Environment otherEnv)
+            throws TechnicalException {
+        List<ApiQualityRule> apiQualityRules =
+                apiQualityRuleRepository.findByQualityRule(qualityRuleForDefaultEnv.getId());
 
         for (ApiQualityRule apiQualityRule : apiQualityRules) {
             log.debug(
-                "Updating api quality rule API [{}] - Quality rule [{}] for Environment [{}]",
-                apiQualityRule.getApi(),
-                apiQualityRule.getQualityRule(),
-                otherEnv.getId()
-            );
+                    "Updating api quality rule API [{}] - Quality rule [{}] for Environment [{}]",
+                    apiQualityRule.getApi(),
+                    apiQualityRule.getQualityRule(),
+                    otherEnv.getId());
             Optional<Api> apiOptional = apiRepository.findById(apiQualityRule.getApi());
 
             // Is the API still existing and related to the "otherEnv"?
@@ -229,14 +225,13 @@ public class QualityRulesScopingUpgrader implements Upgrader {
      */
     private QualityRule duplicateForEnv(QualityRule source, Environment environment) {
         return new QualityRule(
-            UuidString.generateRandom(),
-            QualityRule.ReferenceType.ENVIRONMENT,
-            environment.getId(),
-            source.getName(),
-            source.getDescription(),
-            source.getWeight(),
-            source.getCreatedAt(),
-            source.getUpdatedAt()
-        );
+                UuidString.generateRandom(),
+                QualityRule.ReferenceType.ENVIRONMENT,
+                environment.getId(),
+                source.getName(),
+                source.getDescription(),
+                source.getWeight(),
+                source.getCreatedAt(),
+                source.getUpdatedAt());
     }
 }

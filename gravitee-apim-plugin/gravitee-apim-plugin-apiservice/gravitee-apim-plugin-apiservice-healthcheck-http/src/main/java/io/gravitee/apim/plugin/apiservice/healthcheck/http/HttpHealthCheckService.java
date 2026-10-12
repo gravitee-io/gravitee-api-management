@@ -119,10 +119,12 @@ public class HttpHealthCheckService implements ApiService {
 
         final Configuration configuration = deploymentContext.getComponent(Configuration.class);
         if (configuration != null) {
-            bodyReadTimeoutMs = configuration.getProperty(BODY_READ_TIMEOUT_PROPERTY, Long.class, DEFAULT_BODY_READ_TIMEOUT_MS);
+            bodyReadTimeoutMs =
+                    configuration.getProperty(BODY_READ_TIMEOUT_PROPERTY, Long.class, DEFAULT_BODY_READ_TIMEOUT_MS);
         }
 
-        // Make sure to listen to any endpoint event (add, remove, disable, ...), so we don't miss endpoint that could be added during the service startup.
+        // Make sure to listen to any endpoint event (add, remove, disable, ...), so we don't miss endpoint that could
+        // be added during the service startup.
         listenerId = endpointManager.addListener(this::processEvent);
 
         final List<ManagedEndpoint> endpoints = endpointManager.all();
@@ -157,23 +159,29 @@ public class HttpHealthCheckService implements ApiService {
 
     private void startHealthCheck(ManagedEndpoint endpoint) {
         try {
-            if (HttpHealthCheckHelper.isServiceEnabled(endpoint, gatewayConfiguration.tenant().orElse(null))) {
-                final Service groupHC = ofNullable(endpoint.getGroup().getDefinition().getServices())
-                    .map(EndpointGroupServices::getHealthCheck)
-                    .orElse(null);
+            if (HttpHealthCheckHelper.isServiceEnabled(
+                    endpoint, gatewayConfiguration.tenant().orElse(null))) {
+                final Service groupHC = ofNullable(
+                                endpoint.getGroup().getDefinition().getServices())
+                        .map(EndpointGroupServices::getHealthCheck)
+                        .orElse(null);
                 final Service endpointHC = ofNullable(endpoint.getDefinition().getServices())
-                    .map(EndpointServices::getHealthCheck)
-                    .orElse(null);
+                        .map(EndpointServices::getHealthCheck)
+                        .orElse(null);
                 final HttpHealthCheckServiceConfiguration hcConfiguration = buildConfig(groupHC, endpointHC);
 
                 jobs.computeIfAbsent(endpoint, managedEndpoint -> scheduleInBackground(endpoint, hcConfiguration));
             }
         } catch (PluginConfigurationException e) {
-            log.warn("Unable to start healthcheck for api [{}] and endpoint [{}].", api.getId(), endpoint.getDefinition().getName());
+            log.warn(
+                    "Unable to start healthcheck for api [{}] and endpoint [{}].",
+                    api.getId(),
+                    endpoint.getDefinition().getName());
         }
     }
 
-    private HttpHealthCheckServiceConfiguration buildConfig(Service groupHC, Service endpointHC) throws PluginConfigurationException {
+    private HttpHealthCheckServiceConfiguration buildConfig(Service groupHC, Service endpointHC)
+            throws PluginConfigurationException {
         final String configuration;
         // Get the configuration from the endpoint if overridden or from the group otherwise.
         if (endpointHC != null && endpointHC.isOverrideConfiguration()) {
@@ -185,44 +193,44 @@ public class HttpHealthCheckService implements ApiService {
         return pluginConfigurationHelper.readConfiguration(HttpHealthCheckServiceConfiguration.class, configuration);
     }
 
-    private Disposable scheduleInBackground(ManagedEndpoint endpoint, HttpHealthCheckServiceConfiguration hcConfiguration) {
+    private Disposable scheduleInBackground(
+            ManagedEndpoint endpoint, HttpHealthCheckServiceConfiguration hcConfiguration) {
         final HealthCheckManagedEndpoint hcManagedEndpoint = new HealthCheckManagedEndpoint(
-            api,
-            deploymentContext.getComponent(Node.class),
-            endpoint,
-            endpointManager,
-            deploymentContext.getComponent(ReporterService.class),
-            deploymentContext.getComponent(AlertEventProducer.class),
-            hcConfiguration.getSuccessThreshold(),
-            hcConfiguration.getFailureThreshold()
-        );
+                api,
+                deploymentContext.getComponent(Node.class),
+                endpoint,
+                endpointManager,
+                deploymentContext.getComponent(ReporterService.class),
+                deploymentContext.getComponent(AlertEventProducer.class),
+                hcConfiguration.getSuccessThreshold(),
+                hcConfiguration.getFailureThreshold());
         final CronTrigger cron = new CronTrigger(hcConfiguration.getSchedule());
         final AtomicLong errorCount = new AtomicLong(0);
         final AtomicReference<HttpHealthCheckExecutionContext> lastCtx = new AtomicReference<>();
 
         final int jitterMs = gatewayConfiguration.healthCheckJitterInMs();
-        final int spreadOffsetMs = Math.floorMod(Objects.hash(api.getId(), endpoint.getDefinition().getName()), jitterMs + 1);
+        final int spreadOffsetMs =
+                Math.floorMod(Objects.hash(api.getId(), endpoint.getDefinition().getName()), jitterMs + 1);
 
         return Observable.defer(() -> Observable.timer(cron.nextExecutionIn() + spreadOffsetMs, TimeUnit.MILLISECONDS))
-            .switchMapCompletable(aLong -> {
-                final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
-                lastCtx.set(ctx);
+                .switchMapCompletable(aLong -> {
+                    final HttpHealthCheckExecutionContext ctx =
+                            new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
+                    lastCtx.set(ctx);
 
-                if (endpoint.getDefinition().getType().startsWith("http")) {
-                    return checkUsingEndpointConnector(hcConfiguration, hcManagedEndpoint, ctx);
-                } else {
-                    return checkUsingHttpClient(hcConfiguration, hcManagedEndpoint, ctx);
-                }
-            })
-            .onErrorResumeNext(throwable -> continueOnError(lastCtx, endpoint, errorCount, throwable))
-            .repeat()
-            .subscribe(
-                () -> {},
-                throwable -> {
-                    logFromNullableExecutionContext(lastCtx).error("Unable to run health check for API {}", api.getId(), throwable);
+                    if (endpoint.getDefinition().getType().startsWith("http")) {
+                        return checkUsingEndpointConnector(hcConfiguration, hcManagedEndpoint, ctx);
+                    } else {
+                        return checkUsingHttpClient(hcConfiguration, hcManagedEndpoint, ctx);
+                    }
+                })
+                .onErrorResumeNext(throwable -> continueOnError(lastCtx, endpoint, errorCount, throwable))
+                .repeat()
+                .subscribe(() -> {}, throwable -> {
+                    logFromNullableExecutionContext(lastCtx)
+                            .error("Unable to run health check for API {}", api.getId(), throwable);
                     jobs.remove(endpoint);
-                }
-            );
+                });
     }
 
     private static Logger logFromNullableExecutionContext(AtomicReference<HttpHealthCheckExecutionContext> ctxRef) {
@@ -231,30 +239,25 @@ public class HttpHealthCheckService implements ApiService {
     }
 
     private Completable checkUsingEndpointConnector(
-        HttpHealthCheckServiceConfiguration hcConfiguration,
-        HealthCheckManagedEndpoint hcManagedEndpoint,
-        HttpHealthCheckExecutionContext ctx
-    ) {
+            HttpHealthCheckServiceConfiguration hcConfiguration,
+            HealthCheckManagedEndpoint hcManagedEndpoint,
+            HttpHealthCheckExecutionContext ctx) {
         // The endpoint is a http one. Reuse it for efficiency.
         final String endpointName = hcManagedEndpoint.getDefinition().getName();
         return hcManagedEndpoint
-            .<BaseEndpointConnector>getConnector()
-            .connect(ctx)
-            .onErrorResumeNext(error -> this.handleConnectError(ctx, endpointName, error))
-            .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
+                .<BaseEndpointConnector>getConnector()
+                .connect(ctx)
+                .onErrorResumeNext(error -> this.handleConnectError(ctx, endpointName, error))
+                .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
     }
 
     private Completable checkUsingHttpClient(
-        HttpHealthCheckServiceConfiguration hcConfiguration,
-        HealthCheckManagedEndpoint hcManagedEndpoint,
-        HttpHealthCheckExecutionContext ctx
-    ) {
+            HttpHealthCheckServiceConfiguration hcConfiguration,
+            HealthCheckManagedEndpoint hcManagedEndpoint,
+            HttpHealthCheckExecutionContext ctx) {
         if (!URIUtils.isAbsolute(hcConfiguration.getTarget())) {
-            return Completable.error(
-                new IllegalArgumentException(
-                    "Target url [" + hcConfiguration.getTarget() + "] must be absolute to perform health check against non http endpoint."
-                )
-            );
+            return Completable.error(new IllegalArgumentException("Target url [" + hcConfiguration.getTarget()
+                    + "] must be absolute to perform health check against non http endpoint."));
         }
 
         final Response response = ctx.response();
@@ -262,18 +265,20 @@ public class HttpHealthCheckService implements ApiService {
         final String endpointName = hcManagedEndpoint.getDefinition().getName();
 
         return getOrBuildHttpClient(hcConfiguration)
-            .rxRequest(requestOptions)
-            .flatMap(httpClientRequest ->
-                hcConfiguration.getBody() != null ? httpClientRequest.rxSend(hcConfiguration.getBody()) : httpClientRequest.rxSend()
-            )
-            .doOnSuccess(endpointResponse -> {
-                response.status(endpointResponse.statusCode());
-                response.chunks(endpointResponse.toFlowable().map(Buffer::buffer));
-                endpointResponse.headers().forEach(header -> response.headers().add(header.getKey(), header.getValue()));
-            })
-            .ignoreElement()
-            .onErrorResumeNext(error -> this.handleConnectError(ctx, endpointName, error))
-            .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
+                .rxRequest(requestOptions)
+                .flatMap(httpClientRequest -> hcConfiguration.getBody() != null
+                        ? httpClientRequest.rxSend(hcConfiguration.getBody())
+                        : httpClientRequest.rxSend())
+                .doOnSuccess(endpointResponse -> {
+                    response.status(endpointResponse.statusCode());
+                    response.chunks(endpointResponse.toFlowable().map(Buffer::buffer));
+                    endpointResponse
+                            .headers()
+                            .forEach(header -> response.headers().add(header.getKey(), header.getValue()));
+                })
+                .ignoreElement()
+                .onErrorResumeNext(error -> this.handleConnectError(ctx, endpointName, error))
+                .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
     }
 
     /**
@@ -283,36 +288,46 @@ public class HttpHealthCheckService implements ApiService {
      * the endpoint would stay in its last known state (typically UP after deployment), even though the
      * backend is unreachable.
      */
-    private CompletableSource handleConnectError(HttpHealthCheckExecutionContext ctx, String endpointName, Throwable err) {
+    private CompletableSource handleConnectError(
+            HttpHealthCheckExecutionContext ctx, String endpointName, Throwable err) {
         final Response response = ctx.response();
         final int statusCode;
 
         // Order matters: ConnectTimeoutException extends SocketException, so we check timeouts first.
         // Netty's read/write timeouts share a single io.netty.handler.timeout.TimeoutException superclass.
-        if (
-            err instanceof TimeoutException ||
-            err instanceof ConnectTimeoutException ||
-            err instanceof io.netty.handler.timeout.TimeoutException
-        ) {
-            ctx.withLogger(log).debug("HealthCheck failed for API [{}] endpoint [{}], request timed out", api.getId(), endpointName, err);
+        if (err instanceof TimeoutException
+                || err instanceof ConnectTimeoutException
+                || err instanceof io.netty.handler.timeout.TimeoutException) {
+            ctx.withLogger(log)
+                    .debug(
+                            "HealthCheck failed for API [{}] endpoint [{}], request timed out",
+                            api.getId(),
+                            endpointName,
+                            err);
             statusCode = HttpStatusCode.GATEWAY_TIMEOUT_504;
         } else if (err instanceof UnknownHostException || err instanceof SocketException) {
-            ctx
-                .withLogger(log)
-                .debug("HealthCheck failed for API [{}] endpoint [{}], unable to connect to the service", api.getId(), endpointName, err);
+            ctx.withLogger(log)
+                    .debug(
+                            "HealthCheck failed for API [{}] endpoint [{}], unable to connect to the service",
+                            api.getId(),
+                            endpointName,
+                            err);
             statusCode = UNREACHABLE_SERVICE;
         } else if (err instanceof InterruptionFailureException ife && ife.getExecutionFailure() != null) {
-            ctx
-                .withLogger(log)
-                .debug(
-                    "HealthCheck failed for API [{}] endpoint [{}], connector raised an execution failure",
-                    api.getId(),
-                    endpointName,
-                    err
-                );
+            ctx.withLogger(log)
+                    .debug(
+                            "HealthCheck failed for API [{}] endpoint [{}], connector raised an execution failure",
+                            api.getId(),
+                            endpointName,
+                            err);
             statusCode = ife.getExecutionFailure().statusCode();
         } else {
-            ctx.withLogger(log).debug("HealthCheck failed for API [{}] endpoint [{}], unexpected error", api.getId(), endpointName, err);
+            ctx.withLogger(log)
+                    .debug(
+                            "HealthCheck failed for API [{}] endpoint [{}], unexpected error",
+                            api.getId(),
+                            endpointName,
+                            err);
             statusCode = HttpStatusCode.BAD_GATEWAY_502;
         }
 
@@ -324,25 +339,24 @@ public class HttpHealthCheckService implements ApiService {
     }
 
     private Completable continueOnError(
-        AtomicReference<HttpHealthCheckExecutionContext> ctxRef,
-        ManagedEndpoint endpoint,
-        AtomicLong errorCount,
-        Throwable throwable
-    ) {
+            AtomicReference<HttpHealthCheckExecutionContext> ctxRef,
+            ManagedEndpoint endpoint,
+            AtomicLong errorCount,
+            Throwable throwable) {
         if (errorCount.incrementAndGet() == 1) {
-            logFromNullableExecutionContext(ctxRef).warn(
-                "Unable to run health check for api [{}] and endpoint [{}].",
-                api.getId(),
-                endpoint.getDefinition().getName(),
-                throwable
-            );
+            logFromNullableExecutionContext(ctxRef)
+                    .warn(
+                            "Unable to run health check for api [{}] and endpoint [{}].",
+                            api.getId(),
+                            endpoint.getDefinition().getName(),
+                            throwable);
         } else if ((errorCount.get() % LOG_ERROR_COUNT == 0)) {
-            logFromNullableExecutionContext(ctxRef).warn(
-                "Unable to run health check for api [{}] and endpoint [{}] (times: {}, see previous log report for details).",
-                api.getId(),
-                endpoint.getDefinition().getName(),
-                errorCount.get()
-            );
+            logFromNullableExecutionContext(ctxRef)
+                    .warn(
+                            "Unable to run health check for api [{}] and endpoint [{}] (times: {}, see previous log report for details).",
+                            api.getId(),
+                            endpoint.getDefinition().getName(),
+                            errorCount.get());
         }
         return Completable.complete();
     }
@@ -361,11 +375,11 @@ public class HttpHealthCheckService implements ApiService {
                 // Double-checked locking.
                 if (httpClientCreated.compareAndSet(false, true)) {
                     httpClient = VertxHttpClientFactory.builder()
-                        .vertx(deploymentContext.getComponent(Vertx.class))
-                        .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
-                        .defaultTarget(hcConfiguration.getTarget())
-                        .build()
-                        .createHttpClient();
+                            .vertx(deploymentContext.getComponent(Vertx.class))
+                            .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
+                            .defaultTarget(hcConfiguration.getTarget())
+                            .build()
+                            .createHttpClient();
                 }
             }
         }
@@ -373,66 +387,68 @@ public class HttpHealthCheckService implements ApiService {
         return httpClient;
     }
 
-    private RequestOptions buildRequestOptions(final ExecutionContext ctx, final HttpHealthCheckServiceConfiguration hcConfiguration) {
+    private RequestOptions buildRequestOptions(
+            final ExecutionContext ctx, final HttpHealthCheckServiceConfiguration hcConfiguration) {
         final RequestOptions options = RequestOptionsBuilder.build(ctx, hcConfiguration);
         final URL target = VertxHttpClientFactory.buildUrl(hcConfiguration.getTarget());
-        ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(options, target.getHost(), target.getDefaultPort()));
+        ctx.metrics()
+                .setEndpoint(VertxHttpClientFactory.toAbsoluteUri(options, target.getHost(), target.getDefaultPort()));
         return options;
     }
 
     private Completable evaluateAndReport(
-        final HealthCheckManagedEndpoint hcEndpoint,
-        final ExecutionContext ctx,
-        final HttpHealthCheckServiceConfiguration hcConfiguration
-    ) {
+            final HealthCheckManagedEndpoint hcEndpoint,
+            final ExecutionContext ctx,
+            final HttpHealthCheckServiceConfiguration hcConfiguration) {
         return defer(() -> {
             final long currentTimestamp = System.currentTimeMillis();
             final Request request = ctx.request();
             final Response response = ctx.response();
             final io.gravitee.reporter.api.common.Request reportRequest = new io.gravitee.reporter.api.common.Request();
-            final io.gravitee.reporter.api.common.Response reportResponse = new io.gravitee.reporter.api.common.Response();
+            final io.gravitee.reporter.api.common.Response reportResponse =
+                    new io.gravitee.reporter.api.common.Response();
 
-            return ctx
-                .getTemplateEngine()
-                .eval(hcConfiguration.getAssertion(), Boolean.class)
-                .defaultIfEmpty(false)
-                .onErrorReturnItem(false)
-                .flatMapCompletable(success -> {
-                    reportRequest.setMethod(request.method());
-                    reportRequest.setUri(ctx.metrics().getEndpoint());
-                    reportResponse.setStatus(response.status());
+            return ctx.getTemplateEngine()
+                    .eval(hcConfiguration.getAssertion(), Boolean.class)
+                    .defaultIfEmpty(false)
+                    .onErrorReturnItem(false)
+                    .flatMapCompletable(success -> {
+                        reportRequest.setMethod(request.method());
+                        reportRequest.setUri(ctx.metrics().getEndpoint());
+                        reportResponse.setStatus(response.status());
 
-                    final EndpointStatus.Builder statusBuilder = EndpointStatus.forEndpoint(
-                        api.getId(),
-                        api.getName(),
-                        hcEndpoint.getDefinition().getName()
-                    ).on(request.timestamp());
+                        final EndpointStatus.Builder statusBuilder = EndpointStatus.forEndpoint(
+                                        api.getId(),
+                                        api.getName(),
+                                        hcEndpoint.getDefinition().getName())
+                                .on(request.timestamp());
 
-                    final EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(DEFAULT_STEP)
-                        .request(reportRequest)
-                        .response(reportResponse)
-                        .responseTime(currentTimestamp - request.timestamp());
+                        final EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(DEFAULT_STEP)
+                                .request(reportRequest)
+                                .response(reportResponse)
+                                .responseTime(currentTimestamp - request.timestamp());
 
-                    if (success) {
-                        statusBuilder.step(stepBuilder.success().build());
-                        return Completable.fromRunnable(() -> hcEndpoint.reportStatus(true, statusBuilder.build()));
-                    } else {
-                        reportRequest.setHeaders(request.headers());
-                        reportRequest.setBody(hcConfiguration.getBody());
-                        reportResponse.setHeaders(response.headers());
+                        if (success) {
+                            statusBuilder.step(stepBuilder.success().build());
+                            return Completable.fromRunnable(() -> hcEndpoint.reportStatus(true, statusBuilder.build()));
+                        } else {
+                            reportRequest.setHeaders(request.headers());
+                            reportRequest.setBody(hcConfiguration.getBody());
+                            reportResponse.setHeaders(response.headers());
 
-                        return response
-                            .bodyOrEmpty()
-                            .timeout(bodyReadTimeoutMs, TimeUnit.MILLISECONDS, Single.just(Buffer.buffer()))
-                            .onErrorReturnItem(Buffer.buffer())
-                            .doOnSuccess(body -> reportResponse.setBody(body.toString()))
-                            .ignoreElement()
-                            .doOnComplete(() -> {
-                                statusBuilder.step(stepBuilder.fail("Assertion not validated: " + hcConfiguration.getAssertion()).build());
-                                hcEndpoint.reportStatus(false, statusBuilder.build());
-                            });
-                    }
-                });
+                            return response.bodyOrEmpty()
+                                    .timeout(bodyReadTimeoutMs, TimeUnit.MILLISECONDS, Single.just(Buffer.buffer()))
+                                    .onErrorReturnItem(Buffer.buffer())
+                                    .doOnSuccess(body -> reportResponse.setBody(body.toString()))
+                                    .ignoreElement()
+                                    .doOnComplete(() -> {
+                                        statusBuilder.step(stepBuilder
+                                                .fail("Assertion not validated: " + hcConfiguration.getAssertion())
+                                                .build());
+                                        hcEndpoint.reportStatus(false, statusBuilder.build());
+                                    });
+                        }
+                    });
         });
     }
 }

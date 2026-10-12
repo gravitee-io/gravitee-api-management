@@ -31,5 +31,5 @@ public interface ApiGroupService {
     void removeGroup(ExecutionContext executionContext, String apiId, String group);
 
     Map<String, List<GroupMemberEntity>> getGroupsWithMembers(ExecutionContext executionContext, String apiId)
-        throws TechnicalManagementException;
+            throws TechnicalManagementException;
 }

@@ -26,7 +26,7 @@ import org.mapstruct.factory.Mappers;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { ConfigurationSerializationMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class})
 public interface ServiceMapper {
     ServiceMapper INSTANCE = Mappers.getMapper(ServiceMapper.class);
 

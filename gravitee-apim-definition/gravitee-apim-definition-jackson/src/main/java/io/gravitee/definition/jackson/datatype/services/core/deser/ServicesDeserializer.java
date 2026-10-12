@@ -67,16 +67,12 @@ public class ServicesDeserializer extends StdScalarDeserializer<Services> {
 
                 Class<? extends Service> serviceClass = registeredServices.get(serviceType);
                 if (serviceClass != null) {
-                    Service service = serviceNode
-                        .traverse(jp.getCodec())
-                        .readValueAs(
-                            new TypeReference<Service>() {
-                                @Override
-                                public Type getType() {
-                                    return serviceClass;
-                                }
-                            }
-                        );
+                    Service service = serviceNode.traverse(jp.getCodec()).readValueAs(new TypeReference<Service>() {
+                        @Override
+                        public Type getType() {
+                            return serviceClass;
+                        }
+                    });
 
                     if (service != null) {
                         individualServices.add(service);

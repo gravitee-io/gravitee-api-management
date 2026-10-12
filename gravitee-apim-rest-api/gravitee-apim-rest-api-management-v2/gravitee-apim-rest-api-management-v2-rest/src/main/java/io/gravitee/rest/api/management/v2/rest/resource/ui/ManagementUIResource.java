@@ -68,44 +68,52 @@ public class ManagementUIResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the console bootstrap", description = "Every users can use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Management UI bootstrap information",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ManagementUIBootstrapEntity.class))
-    )
+            responseCode = "200",
+            description = "Management UI bootstrap information",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ManagementUIBootstrapEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response bootstrap(
-        @Context final HttpServletRequest httpServletRequest,
-        @QueryParam("organizationId") final String enforceOrganizationId
-    ) {
+            @Context final HttpServletRequest httpServletRequest,
+            @QueryParam("organizationId") final String enforceOrganizationId) {
         String organizationId;
         if (enforceOrganizationId != null) {
             organizationId = enforceOrganizationId;
         } else {
             organizationId = GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization();
+                    ? GraviteeContext.getCurrentOrganization()
+                    : GraviteeContext.getDefaultOrganization();
         }
 
         String consoleApiUrl = installationAccessQueryService.getConsoleAPIUrl(organizationId);
         if (consoleApiUrl != null) {
-            return Response.ok(ManagementUIBootstrapEntity.builder().organizationId(organizationId).baseURL(consoleApiUrl).build()).build();
+            return Response.ok(ManagementUIBootstrapEntity.builder()
+                            .organizationId(organizationId)
+                            .baseURL(consoleApiUrl)
+                            .build())
+                    .build();
         }
 
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
         UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request)
-            .replacePath(installationAccessQueryService.getConsoleApiPath())
-            .replaceQuery(null)
-            .build();
+                .replacePath(installationAccessQueryService.getConsoleApiPath())
+                .replaceQuery(null)
+                .build();
 
-        return Response.ok(
-            ManagementUIBootstrapEntity.builder().organizationId(organizationId).baseURL(uriComponents.toUriString()).build()
-        ).build();
+        return Response.ok(ManagementUIBootstrapEntity.builder()
+                        .organizationId(organizationId)
+                        .baseURL(uriComponents.toUriString())
+                        .build())
+                .build();
     }
 
     @Path("/customization")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ConsoleCustomization getConsoleCustomization() {
-        return ConsoleCustomizationMapper.INSTANCE.map(getConsoleCustomizationUseCase.execute().consoleCustomization());
+        return ConsoleCustomizationMapper.INSTANCE.map(
+                getConsoleCustomizationUseCase.execute().consoleCustomization());
     }
 }

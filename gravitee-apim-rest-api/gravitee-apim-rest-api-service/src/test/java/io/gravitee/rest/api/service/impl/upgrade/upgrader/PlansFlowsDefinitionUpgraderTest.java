@@ -88,13 +88,13 @@ public class PlansFlowsDefinitionUpgraderTest {
 
         Api api2 = buildApi("api2", "2.0.0");
         Api api4 = buildApi("api4", "2.0.0");
-        when(
-            apiRepository.search(
-                eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()),
-                eq(null),
-                any(ApiFieldFilter.class)
-            )
-        ).thenReturn(Stream.of(api2, api4));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .definitionVersion(List.of(DefinitionVersion.V2))
+                                .build()),
+                        eq(null),
+                        any(ApiFieldFilter.class)))
+                .thenReturn(Stream.of(api2, api4));
 
         upgrader.upgrade();
 
@@ -106,7 +106,8 @@ public class PlansFlowsDefinitionUpgraderTest {
     }
 
     @Test
-    public void migrateApiFlows_should_convert_flows_for_each_plan_in_definition_having_flows_and_which_exists_in_api() throws Exception {
+    public void migrateApiFlows_should_convert_flows_for_each_plan_in_definition_having_flows_and_which_exists_in_api()
+            throws Exception {
         // API has 3 plans in database : plan1, plan2, plan4 and plan5
         Plan plan1 = buildPlan("plan1");
         Plan plan2 = buildPlan("plan2");
@@ -117,7 +118,8 @@ public class PlansFlowsDefinitionUpgraderTest {
         // API has 3 plans in definition : plan1, plan3, plan4 and plan5
         io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
         apiDefinition.setId(API_ID);
-        io.gravitee.definition.model.Plan definitionPlan1 = buildDefinitionPlan("plan1", List.of(buildFlow("flow1"), buildFlow("flow2")));
+        io.gravitee.definition.model.Plan definitionPlan1 =
+                buildDefinitionPlan("plan1", List.of(buildFlow("flow1"), buildFlow("flow2")));
         io.gravitee.definition.model.Plan definitionPlan3 = buildDefinitionPlan("plan3", List.of(buildFlow("flow3")));
         io.gravitee.definition.model.Plan definitionPlan4 = buildDefinitionPlan("plan4", List.of());
         io.gravitee.definition.model.Plan definitionPlan5 = buildDefinitionPlan("plan5", List.of(buildFlow("flow4")));

@@ -29,7 +29,7 @@ import org.springframework.util.CollectionUtils;
 public final class NativeApiMetricsSearchQueryAdapter {
 
     private static final String CONNECTION_STATUS_FIELD =
-        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
 
     private NativeApiMetricsSearchQueryAdapter() {}
 
@@ -51,16 +51,13 @@ public final class NativeApiMetricsSearchQueryAdapter {
         // Elasticsearch as a 400 — the very outcome this guard exists to replace.
         long from = (long) (query.getPage() - 1) * query.getSize();
         if (from + query.getSize() > maxResultWindow) {
-            throw new IllegalArgumentException(
-                "page " +
-                    query.getPage() +
-                    " of size " +
-                    query.getSize() +
-                    " reaches beyond the first " +
-                    maxResultWindow +
-                    " connection events; " +
-                    remedy(query, maxResultWindow)
-            );
+            throw new IllegalArgumentException("page " + query.getPage()
+                    + " of size "
+                    + query.getSize()
+                    + " reaches beyond the first "
+                    + maxResultWindow
+                    + " connection events; "
+                    + remedy(query, maxResultWindow));
         }
         var must = new ArrayList<JsonObject>();
         must.add(JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v4Metrics(), query.getApiId())));
@@ -70,27 +67,27 @@ public final class NativeApiMetricsSearchQueryAdapter {
         addTermsFilter(must, CONNECTION_STATUS_FIELD, query.getConnectionStatuses());
 
         var json = JsonObject.of(
-            "from",
-            from,
-            "size",
-            query.getSize(),
-            // Without it Elasticsearch stops counting at 10 000 and the page count silently caps with it.
-            ElasticsearchDsl.Keys.TRACK_TOTAL_HITS,
-            true,
-            "query",
-            JsonObject.of("bool", JsonObject.of("must", JsonArray.of(must.toArray()))),
-            // request-id breaks ties: connection events are stamped in bursts and share a millisecond, and
-            // ordering within a tie is not stable across shards, so from/size paging repeats and skips rows.
-            // Unique per document for anything the gateway writes from now on — the Elasticsearch reporter
-            // uses it as the document `_id`. Documents written before that change share one id across a
-            // connection, so the tie-break is only a partial one for them: it keeps a connection's events
-            // together, which is already better than no second key at all.
-            "sort",
-            JsonArray.of(
-                JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")),
-                JsonObject.of(RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics(), JsonObject.of("order", "asc", "unmapped_type", "keyword"))
-            )
-        );
+                "from",
+                from,
+                "size",
+                query.getSize(),
+                // Without it Elasticsearch stops counting at 10 000 and the page count silently caps with it.
+                ElasticsearchDsl.Keys.TRACK_TOTAL_HITS,
+                true,
+                "query",
+                JsonObject.of("bool", JsonObject.of("must", JsonArray.of(must.toArray()))),
+                // request-id breaks ties: connection events are stamped in bursts and share a millisecond, and
+                // ordering within a tie is not stable across shards, so from/size paging repeats and skips rows.
+                // Unique per document for anything the gateway writes from now on — the Elasticsearch reporter
+                // uses it as the document `_id`. Documents written before that change share one id across a
+                // connection, so the tie-break is only a partial one for them: it keeps a connection's events
+                // together, which is already better than no second key at all.
+                "sort",
+                JsonArray.of(
+                        JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")),
+                        JsonObject.of(
+                                RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics(),
+                                JsonObject.of("order", "asc", "unmapped_type", "keyword"))));
         return json.encode();
     }
 
@@ -103,8 +100,8 @@ public final class NativeApiMetricsSearchQueryAdapter {
      */
     private static String remedy(NativeApiMetricsQuery query, int maxResultWindow) {
         return query.getSize() > maxResultWindow
-            ? "ask for a smaller page size"
-            : "narrow the time range or the filters to bring these events onto an earlier page";
+                ? "ask for a smaller page size"
+                : "narrow the time range or the filters to bring these events onto an earlier page";
     }
 
     private static void addTimestampRange(NativeApiMetricsQuery query, ArrayList<JsonObject> must) {

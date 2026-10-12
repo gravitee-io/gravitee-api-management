@@ -27,18 +27,16 @@ import java.util.Objects;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OrganizationEventListener
-    extends AbstractService<OrganizationEventListener>
-    implements EventListener<OrganizationEvent, ReactableOrganization> {
+public class OrganizationEventListener extends AbstractService<OrganizationEventListener>
+        implements EventListener<OrganizationEvent, ReactableOrganization> {
 
     private final OrganizationReactorRegistry v3OrganizationReactorRegistry;
     private final OrganizationReactorRegistry organizationReactorRegistry;
 
     public OrganizationEventListener(
-        final EventManager eventManager,
-        final OrganizationReactorRegistry v3OrganizationReactorRegistry,
-        final OrganizationReactorRegistry organizationReactorRegistry
-    ) {
+            final EventManager eventManager,
+            final OrganizationReactorRegistry v3OrganizationReactorRegistry,
+            final OrganizationReactorRegistry organizationReactorRegistry) {
         this.v3OrganizationReactorRegistry = v3OrganizationReactorRegistry;
         this.organizationReactorRegistry = organizationReactorRegistry;
 

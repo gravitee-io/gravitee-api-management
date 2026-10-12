@@ -25,9 +25,9 @@ public class PortalNavigationItemRootIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_navigation_items")
-            .key("rootId", ascending())
-            .name("ri1")
-            .build();
+                .collection("portal_navigation_items")
+                .key("rootId", ascending())
+                .name("ri1")
+                .build();
     }
 }

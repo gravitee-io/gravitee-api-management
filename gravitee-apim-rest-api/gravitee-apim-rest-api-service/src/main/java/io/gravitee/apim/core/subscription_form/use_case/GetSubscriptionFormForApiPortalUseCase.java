@@ -47,13 +47,14 @@ public class GetSubscriptionFormForApiPortalUseCase {
     private final SubscriptionFormElResolverDomainService elResolver;
 
     public Output execute(Input input) {
-        if (!portalNavigationApiVisibilityDomainService.isApiVisibleToUser(input.environmentId(), input.apiId(), input.userId())) {
+        if (!portalNavigationApiVisibilityDomainService.isApiVisibleToUser(
+                input.environmentId(), input.apiId(), input.userId())) {
             throw new ApiNotFoundException(input.apiId());
         }
 
         var subscriptionForm = subscriptionFormResolutionDomainService
-            .resolveForApi(input.environmentId(), input.apiId())
-            .orElseThrow(() -> new SubscriptionFormNotFoundException(input.environmentId()));
+                .resolveForApi(input.environmentId(), input.apiId())
+                .orElseThrow(() -> new SubscriptionFormNotFoundException(input.environmentId()));
 
         var schema = schemaGenerator.generate(subscriptionForm.getGmdContent());
         var resolvedOptions = elResolver.resolveSchemaOptions(schema, input.environmentId(), input.apiId());
@@ -62,7 +63,8 @@ public class GetSubscriptionFormForApiPortalUseCase {
     }
 
     @Builder
-    public record Input(String environmentId, String apiId, @Nullable String userId) {}
+    public record Input(
+            String environmentId, String apiId, @Nullable String userId) {}
 
     public record Output(SubscriptionForm subscriptionForm, Map<String, List<String>> resolvedOptions) {}
 }

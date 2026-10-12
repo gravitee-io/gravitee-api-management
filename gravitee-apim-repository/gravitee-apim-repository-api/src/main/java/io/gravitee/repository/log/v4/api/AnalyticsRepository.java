@@ -35,21 +35,26 @@ import java.util.Optional;
 public interface AnalyticsRepository {
     Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery);
 
-    Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query);
+    Optional<AverageAggregate> searchAverageMessagesPerRequest(
+            QueryContext queryContext, AverageMessagesPerRequestQuery query);
 
-    Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query);
+    Optional<AverageAggregate> searchAverageConnectionDuration(
+            QueryContext queryContext, AverageConnectionDurationQuery query);
 
     @NonNull
-    Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(QueryContext queryContext, ResponseStatusQueryCriteria query);
+    Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(
+            QueryContext queryContext, ResponseStatusQueryCriteria query);
 
     Optional<TopHitsAggregate> searchTopHitsApi(QueryContext queryContext, TopHitsQueryCriteria criteria);
 
     @NonNull
     Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query);
 
-    ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query);
+    ResponseStatusOverTimeAggregate searchResponseStatusOvertime(
+            QueryContext queryContext, ResponseStatusOverTimeQuery query);
 
-    RequestResponseTimeAggregate searchRequestResponseTimes(QueryContext queryContext, RequestResponseTimeQueryCriteria query);
+    RequestResponseTimeAggregate searchRequestResponseTimes(
+            QueryContext queryContext, RequestResponseTimeQueryCriteria query);
 
     Optional<TopHitsAggregate> searchTopApps(QueryContext queryContext, TopHitsQueryCriteria criteria);
 
@@ -59,7 +64,8 @@ public interface AnalyticsRepository {
 
     Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query);
 
-    Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery requestsCountQuery);
+    Optional<CountByAggregate> searchRequestsCountByEvent(
+            QueryContext queryContext, RequestsCountByEventQuery requestsCountQuery);
 
     Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query);
 

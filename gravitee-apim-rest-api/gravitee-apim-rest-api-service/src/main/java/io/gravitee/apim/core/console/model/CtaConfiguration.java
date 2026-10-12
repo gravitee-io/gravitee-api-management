@@ -18,4 +18,5 @@ package io.gravitee.apim.core.console.model;
 import lombok.Builder;
 
 @Builder
-public record CtaConfiguration(String customEnterpriseName, String title, String trialButtonLabel, String trialURL, boolean hideDays) {}
+public record CtaConfiguration(
+        String customEnterpriseName, String title, String trialButtonLabel, String trialURL, boolean hideDays) {}

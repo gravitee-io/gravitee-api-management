@@ -51,7 +51,9 @@ public class ECJWKSourceResolver<C extends SecurityContext> implements JWKSource
             log.error("unable to parse public key {}", e.getMessage());
         }
 
-        this.jwk = ecPublicKey != null ? new ECKey.Builder(Curve.forECParameterSpec(ecPublicKey.getParams()), ecPublicKey).build() : null;
+        this.jwk = ecPublicKey != null
+                ? new ECKey.Builder(Curve.forECParameterSpec(ecPublicKey.getParams()), ecPublicKey).build()
+                : null;
     }
 
     public ECJWKSourceResolver(PublicKeyResolver publicKeyResolver) {

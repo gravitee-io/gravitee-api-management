@@ -84,27 +84,35 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = { RolePermissionAction.READ }) })
-    public Response getApplicationByHRID(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.APPLICATION_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
+    public Response getApplicationByHRID(
+            @PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             ApplicationEntity applicationEntity = applicationService.findById(
-                executionContext,
-                hridContainsUUID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id()
-            );
+                    executionContext,
+                    hridContainsUUID
+                            ? hrid
+                            : HRIDToUUID.application()
+                                    .context(executionContext)
+                                    .hrid(hrid)
+                                    .id());
 
-            ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
+            ApplicationSpec applicationSpec =
+                    ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
             addMembers(executionContext, applicationEntity, applicationSpec);
             addMetadata(applicationEntity, applicationSpec);
             replaceGroupIdsWithHrids(applicationSpec);
-            return Response.ok(
-                ApplicationMapper.INSTANCE.applicationSpecToApplicationState(
-                    applicationSpec,
-                    applicationEntity.getId(),
-                    executionContext.getOrganizationId(),
-                    executionContext.getEnvironmentId()
-                )
-            ).build();
+            return Response.ok(ApplicationMapper.INSTANCE.applicationSpecToApplicationState(
+                            applicationSpec,
+                            applicationEntity.getId(),
+                            executionContext.getOrganizationId(),
+                            executionContext.getEnvironmentId()))
+                    .build();
         } catch (ApplicationNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }
@@ -113,42 +121,42 @@ public class ApplicationResource extends AbstractResource {
     private void replaceGroupIdsWithHrids(ApplicationSpec applicationSpec) {
         if (applicationSpec.getGroups() != null && !applicationSpec.getGroups().isEmpty()) {
             var groups = new ArrayList<>(applicationSpec.getGroups());
-            groupService
-                .findByIds(new LinkedHashSet<>(groups))
-                .stream()
-                .filter(group -> group.getHrid() != null)
-                .forEach(group -> groups.set(groups.indexOf(group.getId()), group.getHrid()));
+            groupService.findByIds(new LinkedHashSet<>(groups)).stream()
+                    .filter(group -> group.getHrid() != null)
+                    .forEach(group -> groups.set(groups.indexOf(group.getId()), group.getHrid()));
             applicationSpec.setGroups(groups);
         }
     }
 
-    private void addMembers(ExecutionContext executionContext, ApplicationEntity applicationEntity, ApplicationSpec applicationSpec) {
+    private void addMembers(
+            ExecutionContext executionContext, ApplicationEntity applicationEntity, ApplicationSpec applicationSpec) {
         Set<MemberEntity> memberEntities = membershipService.getMembersByReferenceAndRole(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.APPLICATION,
-            applicationEntity.getId(),
-            null
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.APPLICATION,
+                applicationEntity.getId(),
+                null);
 
         Map<String, RoleEntity> membersAndRoles = new HashMap<>();
-        memberEntities
-            .stream()
-            .filter(m -> !Objects.equals(m.getId(), applicationEntity.getPrimaryOwner().getId()))
-            .filter(m -> Objects.equals(m.getType(), MembershipMemberType.USER))
-            .forEach(m -> membersAndRoles.put(m.getId(), Optional.ofNullable(m.getRoles()).map(List::getFirst).orElse(null)));
+        memberEntities.stream()
+                .filter(m -> !Objects.equals(
+                        m.getId(), applicationEntity.getPrimaryOwner().getId()))
+                .filter(m -> Objects.equals(m.getType(), MembershipMemberType.USER))
+                .forEach(m -> membersAndRoles.put(
+                        m.getId(),
+                        Optional.ofNullable(m.getRoles()).map(List::getFirst).orElse(null)));
 
         if (!membersAndRoles.isEmpty()) {
-            var members = userService
-                .findByIds(executionContext, membersAndRoles.keySet())
-                .stream()
-                .map(user -> {
-                    Member member = new Member();
-                    member.setSource(user.getSource());
-                    member.setSourceId(user.getSourceId());
-                    Optional.ofNullable(membersAndRoles.get(user.getId())).map(RoleEntity::getName).ifPresent(member::setRole);
-                    return member;
-                })
-                .collect(Collectors.toSet());
+            var members = userService.findByIds(executionContext, membersAndRoles.keySet()).stream()
+                    .map(user -> {
+                        Member member = new Member();
+                        member.setSource(user.getSource());
+                        member.setSourceId(user.getSourceId());
+                        Optional.ofNullable(membersAndRoles.get(user.getId()))
+                                .map(RoleEntity::getName)
+                                .ifPresent(member::setRole);
+                        return member;
+                    })
+                    .collect(Collectors.toSet());
 
             applicationSpec.setMembers(members);
         }
@@ -160,12 +168,18 @@ public class ApplicationResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationByHrid(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)})
+    public Response deleteApplicationByHrid(
+            @PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            String applicationId = hridContainsUUID ? hrid : HRIDToUUID.application().context(executionContext).hrid(hrid).id();
+            String applicationId = hridContainsUUID
+                    ? hrid
+                    : HRIDToUUID.application()
+                            .context(executionContext)
+                            .hrid(hrid)
+                            .id();
             applicationService.archive(executionContext, applicationId);
             removeMetadata(applicationId);
         } catch (ApplicationNotFoundException e) {
@@ -175,6 +189,8 @@ public class ApplicationResource extends AbstractResource {
     }
 
     private void removeMetadata(String applicationId) {
-        applicationMetadataQueryService.findAllByApplication(applicationId).forEach(applicationMetadataCrudService::delete);
+        applicationMetadataQueryService
+                .findAllByApplication(applicationId)
+                .forEach(applicationMetadataCrudService::delete);
     }
 }

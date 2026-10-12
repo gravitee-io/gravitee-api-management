@@ -27,17 +27,21 @@ import java.util.List;
  * sending. Optional fields ({@code enumValues}, {@code range}) are omitted when null.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record TraceFilterSpecDto(String name, String label, String type, List<String> operators, List<String> enumValues, RangeDto range) {
-    public record RangeDto(@JsonInclude(JsonInclude.Include.NON_NULL) Number min, @JsonInclude(JsonInclude.Include.NON_NULL) Number max) {}
+public record TraceFilterSpecDto(
+        String name, String label, String type, List<String> operators, List<String> enumValues, RangeDto range) {
+    public record RangeDto(
+            @JsonInclude(JsonInclude.Include.NON_NULL) Number min,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Number max) {}
 
     public static TraceFilterSpecDto from(TraceFilterSpec spec) {
         return new TraceFilterSpecDto(
-            spec.name(),
-            spec.label(),
-            spec.type().name().toLowerCase(),
-            spec.operators().stream().map(Enum::name).toList(),
-            spec.enumValues(),
-            spec.range() == null ? null : new RangeDto(spec.range().min(), spec.range().max())
-        );
+                spec.name(),
+                spec.label(),
+                spec.type().name().toLowerCase(),
+                spec.operators().stream().map(Enum::name).toList(),
+                spec.enumValues(),
+                spec.range() == null
+                        ? null
+                        : new RangeDto(spec.range().min(), spec.range().max()));
     }
 }

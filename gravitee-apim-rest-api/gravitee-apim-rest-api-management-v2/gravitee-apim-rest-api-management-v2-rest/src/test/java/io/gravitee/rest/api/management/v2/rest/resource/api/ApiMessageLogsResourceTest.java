@@ -76,66 +76,77 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
 
     @Test
     void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_LOG, API, RolePermissionAction.READ)
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(), RolePermission.API_LOG, API, RolePermissionAction.READ))
+                .thenReturn(false);
 
         final Response response = messageMetricsTarget.request().get();
 
         assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
     void should_return_message_metrics() {
-        messageMetricsCrudServiceInMemory.initWith(List.of(MessageLog.builder().apiId(API).timestamp("2025-11-11T06:57:44.893Z").build()));
+        messageMetricsCrudServiceInMemory.initWith(List.of(MessageLog.builder()
+                .apiId(API)
+                .timestamp("2025-11-11T06:57:44.893Z")
+                .build()));
 
         final Response response = messageMetricsTarget.request().get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiMessageLogsResponse.class)
-            .satisfies(metricResponse -> {
-                assertThat(metricResponse.getPagination()).isEqualTo(
-                    new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L)
-                );
-                assertThat(metricResponse.getLinks()).isEqualTo(new Links().self(messageMetricsTarget.getUri().toString()));
-                assertThat(metricResponse.getData())
-                    .hasSize(1)
-                    .first()
-                    .satisfies(mm -> {
+                .hasStatus(OK_200)
+                .asEntity(ApiMessageLogsResponse.class)
+                .satisfies(metricResponse -> {
+                    assertThat(metricResponse.getPagination())
+                            .isEqualTo(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(1)
+                                    .totalCount(1L));
+                    assertThat(metricResponse.getLinks())
+                            .isEqualTo(new Links()
+                                    .self(messageMetricsTarget.getUri().toString()));
+                    assertThat(metricResponse.getData()).hasSize(1).first().satisfies(mm -> {
                         assertThat(mm.getApiId()).isEqualTo(API);
-                        assertThat(mm.getTimestamp()).isEqualTo(
-                            OffsetDateTime.of(2025, 11, 11, 6, 57, 44, 893 * 1_000_000, ZoneOffset.UTC)
-                        );
+                        assertThat(mm.getTimestamp())
+                                .isEqualTo(OffsetDateTime.of(2025, 11, 11, 6, 57, 44, 893 * 1_000_000, ZoneOffset.UTC));
                     });
-            });
+                });
     }
 
     @Test
     void should_compute_pagination() {
         var total = 20L;
         var pageSize = 5;
-        messageMetricsCrudServiceInMemory.initWith(
-            LongStream.range(0, total)
-                .mapToObj(i -> MessageLog.builder().timestamp("2025-11-11T06:57:44.893Z").apiId(API).build())
-                .toList()
-        );
+        messageMetricsCrudServiceInMemory.initWith(LongStream.range(0, total)
+                .mapToObj(i -> MessageLog.builder()
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .apiId(API)
+                        .build())
+                .toList());
 
         final Response response = messageMetricsTarget
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-            .request()
-            .get();
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiMessageLogsResponse.class)
-            .extracting(ApiMessageLogsResponse::getPagination)
-            .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
+                .hasStatus(OK_200)
+                .asEntity(ApiMessageLogsResponse.class)
+                .extracting(ApiMessageLogsResponse::getPagination)
+                .isEqualTo(new Pagination()
+                        .page(2)
+                        .perPage(pageSize)
+                        .pageCount(4)
+                        .pageItemsCount(pageSize)
+                        .totalCount(total));
     }
 
     @Test
@@ -143,53 +154,75 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
         var total = 20L;
         var page = 2;
         var pageSize = 5;
-        messageMetricsCrudServiceInMemory.initWith(
-            LongStream.range(0, total)
-                .mapToObj(i -> MessageLog.builder().timestamp("2025-11-11T06:57:44.893Z").apiId(API).build())
-                .toList()
-        );
+        messageMetricsCrudServiceInMemory.initWith(LongStream.range(0, total)
+                .mapToObj(i -> MessageLog.builder()
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .apiId(API)
+                        .build())
+                .toList());
 
         final Response response = messageMetricsTarget
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-            .request()
-            .get();
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiMessageLogsResponse.class)
-            .extracting(ApiMessageLogsResponse::getLinks)
-            .isEqualTo(
-                new Links()
-                    .self(messageMetricsTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
-                    .first(messageMetricsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                    .last(messageMetricsTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
-                    .previous(messageMetricsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                    .next(messageMetricsTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-            );
+                .hasStatus(OK_200)
+                .asEntity(ApiMessageLogsResponse.class)
+                .extracting(ApiMessageLogsResponse::getLinks)
+                .isEqualTo(new Links()
+                        .self(messageMetricsTarget
+                                .queryParam("page", page)
+                                .queryParam("perPage", pageSize)
+                                .getUri()
+                                .toString())
+                        .first(messageMetricsTarget
+                                .queryParam("page", 1)
+                                .queryParam("perPage", pageSize)
+                                .getUri()
+                                .toString())
+                        .last(messageMetricsTarget
+                                .queryParam("page", 4)
+                                .queryParam("perPage", pageSize)
+                                .getUri()
+                                .toString())
+                        .previous(messageMetricsTarget
+                                .queryParam("page", 1)
+                                .queryParam("perPage", pageSize)
+                                .getUri()
+                                .toString())
+                        .next(messageMetricsTarget
+                                .queryParam("page", 3)
+                                .queryParam("perPage", pageSize)
+                                .getUri()
+                                .toString()));
     }
 
     @Test
     void should_filter_on_api_id() {
-        messageMetricsCrudServiceInMemory.initWith(
-            List.of(
-                MessageLog.builder().apiId(API).timestamp("2025-11-11T06:57:44.893Z").build(),
-                MessageLog.builder().apiId("other-api").timestamp("2025-11-11T06:57:44.893Z").build()
-            )
-        );
+        messageMetricsCrudServiceInMemory.initWith(List.of(
+                MessageLog.builder()
+                        .apiId(API)
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .build(),
+                MessageLog.builder()
+                        .apiId("other-api")
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .build()));
 
         final Response response = messageMetricsTarget.request().get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(ApiMessageLogsResponse.class)
-            .extracting(ApiMessageLogsResponse::getData)
-            .satisfies(data -> {
-                assertThat(data).hasSize(1);
-                assertThat(data)
-                    .first()
-                    .satisfies(m -> assertThat(m.getApiId()).isEqualTo(API));
-            });
+                .hasStatus(200)
+                .asEntity(ApiMessageLogsResponse.class)
+                .extracting(ApiMessageLogsResponse::getData)
+                .satisfies(data -> {
+                    assertThat(data).hasSize(1);
+                    assertThat(data)
+                            .first()
+                            .satisfies(m -> assertThat(m.getApiId()).isEqualTo(API));
+                });
     }
 
     @Test
@@ -199,157 +232,157 @@ class ApiMessageLogsResourceTest extends ApiResourceTest {
         String expectedConnectorId = "webhook";
         String expectedOperation = "subscribe";
         String expectedRequestId = "123456789";
-        messageMetricsCrudServiceInMemory.initWith(
-            List.of(
+        messageMetricsCrudServiceInMemory.initWith(List.of(
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T06:57:44.893Z")
-                    .connectorType(expectedConnectorType)
-                    .connectorId(expectedConnectorId)
-                    .operation(expectedOperation)
-                    .requestId(expectedRequestId)
-                    .correlationId(expectedCorrelationId)
-                    .build(),
+                        .apiId(API)
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .connectorType(expectedConnectorType)
+                        .connectorId(expectedConnectorId)
+                        .operation(expectedOperation)
+                        .requestId(expectedRequestId)
+                        .correlationId(expectedCorrelationId)
+                        .build(),
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T06:57:44.893Z")
-                    .connectorType("endpoint")
-                    .connectorId(expectedConnectorId)
-                    .operation(expectedOperation)
-                    .requestId(expectedRequestId)
-                    .correlationId("don't want this one (endpoint)")
-                    .build(),
+                        .apiId(API)
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .connectorType("endpoint")
+                        .connectorId(expectedConnectorId)
+                        .operation(expectedOperation)
+                        .requestId(expectedRequestId)
+                        .correlationId("don't want this one (endpoint)")
+                        .build(),
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T06:57:44.893Z")
-                    .connectorType(expectedConnectorType)
-                    .connectorId("http-get")
-                    .operation(expectedOperation)
-                    .requestId(expectedRequestId)
-                    .correlationId("don't want this one (http-get)")
-                    .build(),
+                        .apiId(API)
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .connectorType(expectedConnectorType)
+                        .connectorId("http-get")
+                        .operation(expectedOperation)
+                        .requestId(expectedRequestId)
+                        .correlationId("don't want this one (http-get)")
+                        .build(),
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T06:57:44.893Z")
-                    .connectorType(expectedConnectorType)
-                    .connectorId(expectedConnectorId)
-                    .operation("publish")
-                    .requestId(expectedRequestId)
-                    .correlationId("don't want this one (publish)")
-                    .build(),
+                        .apiId(API)
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .connectorType(expectedConnectorType)
+                        .connectorId(expectedConnectorId)
+                        .operation("publish")
+                        .requestId(expectedRequestId)
+                        .correlationId("don't want this one (publish)")
+                        .build(),
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T06:57:44.893Z")
-                    .connectorType(expectedConnectorType)
-                    .connectorId(expectedConnectorId)
-                    .operation(expectedOperation)
-                    .requestId("0000000000")
-                    .correlationId("don't want this one (wrong request id)")
-                    .build()
-            )
-        );
+                        .apiId(API)
+                        .timestamp("2025-11-11T06:57:44.893Z")
+                        .connectorType(expectedConnectorType)
+                        .connectorId(expectedConnectorId)
+                        .operation(expectedOperation)
+                        .requestId("0000000000")
+                        .correlationId("don't want this one (wrong request id)")
+                        .build()));
 
         final Response response = messageMetricsTarget
-            .queryParam(SearchMessageLogsParam.CONNECTOR_ID_PARAM_NAME, expectedConnectorId)
-            .queryParam(SearchMessageLogsParam.CONNECTOR_TYPE_PARAM_NAME, ConnectorType.ENTRYPOINT.getValue())
-            .queryParam(SearchMessageLogsParam.OPERATION_PARAM_NAME, MessageOperation.SUBSCRIBE.getValue())
-            .queryParam(SearchMessageLogsParam.REQUEST_ID_PARAM_NAME, expectedRequestId)
-            .request()
-            .get();
+                .queryParam(SearchMessageLogsParam.CONNECTOR_ID_PARAM_NAME, expectedConnectorId)
+                .queryParam(SearchMessageLogsParam.CONNECTOR_TYPE_PARAM_NAME, ConnectorType.ENTRYPOINT.getValue())
+                .queryParam(SearchMessageLogsParam.OPERATION_PARAM_NAME, MessageOperation.SUBSCRIBE.getValue())
+                .queryParam(SearchMessageLogsParam.REQUEST_ID_PARAM_NAME, expectedRequestId)
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(ApiMessageLogsResponse.class)
-            .extracting(ApiMessageLogsResponse::getData)
-            .satisfies(data -> {
-                assertThat(data).hasSize(1);
-                assertThat(data)
-                    .first()
-                    .satisfies(m -> assertThat(m.getCorrelationId()).isEqualTo(expectedCorrelationId));
-            });
+                .hasStatus(200)
+                .asEntity(ApiMessageLogsResponse.class)
+                .extracting(ApiMessageLogsResponse::getData)
+                .satisfies(data -> {
+                    assertThat(data).hasSize(1);
+                    assertThat(data)
+                            .first()
+                            .satisfies(m -> assertThat(m.getCorrelationId()).isEqualTo(expectedCorrelationId));
+                });
     }
 
     @Test
     void should_filter_on_time_range() {
         String expectedCorrelationId = "this is the one we want to find";
-        messageMetricsCrudServiceInMemory.initWith(
-            List.of(
+        messageMetricsCrudServiceInMemory.initWith(List.of(
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T05:59:44.893Z")
-                    .connectorType("entrypoint")
-                    .connectorId("webhook")
-                    .operation("subscribe")
-                    .requestId("123456789")
-                    .correlationId("don't want this one (too soon)")
-                    .build(),
+                        .apiId(API)
+                        .timestamp("2025-11-11T05:59:44.893Z")
+                        .connectorType("entrypoint")
+                        .connectorId("webhook")
+                        .operation("subscribe")
+                        .requestId("123456789")
+                        .correlationId("don't want this one (too soon)")
+                        .build(),
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T06:30:45.893Z")
-                    .connectorType("entrypoint")
-                    .connectorId("webhook")
-                    .operation("subscribe")
-                    .requestId("123456789")
-                    .correlationId(expectedCorrelationId)
-                    .build(),
+                        .apiId(API)
+                        .timestamp("2025-11-11T06:30:45.893Z")
+                        .connectorType("entrypoint")
+                        .connectorId("webhook")
+                        .operation("subscribe")
+                        .requestId("123456789")
+                        .correlationId(expectedCorrelationId)
+                        .build(),
                 MessageLog.builder()
-                    .apiId(API)
-                    .timestamp("2025-11-11T07:00:44.893Z")
-                    .connectorType("entrypoint")
-                    .connectorId("webhook")
-                    .operation("subscribe")
-                    .requestId("123456789")
-                    .correlationId("don't want this one (too late)")
-                    .build()
-            )
-        );
+                        .apiId(API)
+                        .timestamp("2025-11-11T07:00:44.893Z")
+                        .connectorType("entrypoint")
+                        .connectorId("webhook")
+                        .operation("subscribe")
+                        .requestId("123456789")
+                        .correlationId("don't want this one (too late)")
+                        .build()));
 
         final Response response = messageMetricsTarget
-            .queryParam(SearchMessageLogsParam.CONNECTOR_ID_PARAM_NAME, "webhook")
-            .queryParam(SearchMessageLogsParam.CONNECTOR_TYPE_PARAM_NAME, ConnectorType.ENTRYPOINT.getValue())
-            .queryParam(SearchMessageLogsParam.OPERATION_PARAM_NAME, MessageOperation.SUBSCRIBE.getValue())
-            .queryParam(SearchMessageLogsParam.REQUEST_ID_PARAM_NAME, "123456789")
-            .queryParam(
-                SearchMessageLogsParam.FROM_QUERY_PARAM_NAME,
-                OffsetDateTime.of(2025, 11, 11, 6, 0, 0, 0, ZoneOffset.UTC).toInstant().toEpochMilli()
-            )
-            .queryParam(
-                SearchMessageLogsParam.TO_QUERY_PARAM_NAME,
-                OffsetDateTime.of(2025, 11, 11, 7, 0, 0, 0, ZoneOffset.UTC).toInstant().toEpochMilli()
-            )
-            .request()
-            .get();
+                .queryParam(SearchMessageLogsParam.CONNECTOR_ID_PARAM_NAME, "webhook")
+                .queryParam(SearchMessageLogsParam.CONNECTOR_TYPE_PARAM_NAME, ConnectorType.ENTRYPOINT.getValue())
+                .queryParam(SearchMessageLogsParam.OPERATION_PARAM_NAME, MessageOperation.SUBSCRIBE.getValue())
+                .queryParam(SearchMessageLogsParam.REQUEST_ID_PARAM_NAME, "123456789")
+                .queryParam(
+                        SearchMessageLogsParam.FROM_QUERY_PARAM_NAME,
+                        OffsetDateTime.of(2025, 11, 11, 6, 0, 0, 0, ZoneOffset.UTC)
+                                .toInstant()
+                                .toEpochMilli())
+                .queryParam(
+                        SearchMessageLogsParam.TO_QUERY_PARAM_NAME,
+                        OffsetDateTime.of(2025, 11, 11, 7, 0, 0, 0, ZoneOffset.UTC)
+                                .toInstant()
+                                .toEpochMilli())
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(ApiMessageLogsResponse.class)
-            .extracting(ApiMessageLogsResponse::getData)
-            .satisfies(data -> {
-                assertThat(data).hasSize(1);
-                assertThat(data)
-                    .first()
-                    .satisfies(m -> assertThat(m.getCorrelationId()).isEqualTo(expectedCorrelationId));
-            });
+                .hasStatus(200)
+                .asEntity(ApiMessageLogsResponse.class)
+                .extracting(ApiMessageLogsResponse::getData)
+                .satisfies(data -> {
+                    assertThat(data).hasSize(1);
+                    assertThat(data)
+                            .first()
+                            .satisfies(m -> assertThat(m.getCorrelationId()).isEqualTo(expectedCorrelationId));
+                });
     }
 
     @Test
     void should_get_400_error_on_invalid_connector_type() {
         final Response response = messageMetricsTarget
-            .queryParam(SearchMessageLogsParam.CONNECTOR_TYPE_PARAM_NAME, "invalid-connector-type")
-            .request()
-            .get();
+                .queryParam(SearchMessageLogsParam.CONNECTOR_TYPE_PARAM_NAME, "invalid-connector-type")
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
-        assertThat(response.readEntity(String.class)).contains("invalid-connector-type").contains("ENTRYPOINT");
+        assertThat(response.readEntity(String.class))
+                .contains("invalid-connector-type")
+                .contains("ENTRYPOINT");
     }
 
     @Test
     void should_get_400_error_on_invalid_operation() {
         final Response response = messageMetricsTarget
-            .queryParam(SearchMessageLogsParam.OPERATION_PARAM_NAME, "invalid-operation")
-            .request()
-            .get();
+                .queryParam(SearchMessageLogsParam.OPERATION_PARAM_NAME, "invalid-operation")
+                .request()
+                .get();
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
-        assertThat(response.readEntity(String.class)).contains("invalid-operation").contains("PUBLISH");
+        assertThat(response.readEntity(String.class))
+                .contains("invalid-operation")
+                .contains("PUBLISH");
     }
 }

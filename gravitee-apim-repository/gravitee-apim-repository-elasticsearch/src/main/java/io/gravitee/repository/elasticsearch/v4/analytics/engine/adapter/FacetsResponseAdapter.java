@@ -32,8 +32,8 @@ public class FacetsResponseAdapter extends AbstractResponseAdapter {
 
     public FacetsResult adapt(SearchResponse esResponse, FacetsQuery query) {
         return lookupForAggregations(esResponse)
-            .map(aggregations -> toFacetsResult(aggregations, query))
-            .orElseGet(() -> empty(query));
+                .map(aggregations -> toFacetsResult(aggregations, query))
+                .orElseGet(() -> empty(query));
     }
 
     private FacetsResult toFacetsResult(Map<String, Aggregation> aggregations, FacetsQuery query) {

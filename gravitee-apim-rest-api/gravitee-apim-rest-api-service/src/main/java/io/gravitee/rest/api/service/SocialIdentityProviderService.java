@@ -25,7 +25,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface SocialIdentityProviderService {
-    Set<SocialIdentityProviderEntity> findAll(ExecutionContext executionContext, IdentityProviderActivationService.ActivationTarget target);
+    Set<SocialIdentityProviderEntity> findAll(
+            ExecutionContext executionContext, IdentityProviderActivationService.ActivationTarget target);
 
     SocialIdentityProviderEntity findById(String id, IdentityProviderActivationService.ActivationTarget target);
 }

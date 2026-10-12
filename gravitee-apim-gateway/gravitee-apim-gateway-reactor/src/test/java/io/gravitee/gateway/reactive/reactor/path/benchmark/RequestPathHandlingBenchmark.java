@@ -64,28 +64,33 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 public class RequestPathHandlingBenchmark {
 
     private static final Map<String, String> PATHS = Map.of(
-        "ordinary",
-        "/v1/orders/list",
-        "ordinary_deep",
-        "/api/v2/customers/8f3a/orders/2026/08/13/items/447/details",
-        "ordinary_uuids",
-        "/v1/customers/3f2504e0-4f89-11d3-9a0c-0305e82c3301/orders/7c9e6679-7425-40de-944b-e07fc1f90ae7/items/0f8fad5b-d9cb-469f-a165-70867728950e",
-        "ordinary_with_dot",
-        "/v1/orders/12345.json",
-        "ordinary_encoded",
-        "/v1/orders/a%20b/details",
-        "dot_segments",
-        "/alpha/api/../../beta/api/echo",
-        "encoded_dot_segments",
-        "/alpha/api/%2e%2e/%2e%2e/beta/api/echo"
-    );
+            "ordinary",
+            "/v1/orders/list",
+            "ordinary_deep",
+            "/api/v2/customers/8f3a/orders/2026/08/13/items/447/details",
+            "ordinary_uuids",
+            "/v1/customers/3f2504e0-4f89-11d3-9a0c-0305e82c3301/orders/7c9e6679-7425-40de-944b-e07fc1f90ae7/items/0f8fad5b-d9cb-469f-a165-70867728950e",
+            "ordinary_with_dot",
+            "/v1/orders/12345.json",
+            "ordinary_encoded",
+            "/v1/orders/a%20b/details",
+            "dot_segments",
+            "/alpha/api/../../beta/api/echo",
+            "encoded_dot_segments",
+            "/alpha/api/%2e%2e/%2e%2e/beta/api/echo");
 
-    @Param({ "RAW", "REJECT", "NORMALIZE" })
+    @Param({"RAW", "REJECT", "NORMALIZE"})
     public String mode;
 
-    @Param(
-        { "ordinary", "ordinary_deep", "ordinary_uuids", "ordinary_with_dot", "ordinary_encoded", "dot_segments", "encoded_dot_segments" }
-    )
+    @Param({
+        "ordinary",
+        "ordinary_deep",
+        "ordinary_uuids",
+        "ordinary_with_dot",
+        "ordinary_encoded",
+        "dot_segments",
+        "encoded_dot_segments"
+    })
     public String shape;
 
     private RequestPathHandling handling;
@@ -93,7 +98,9 @@ public class RequestPathHandlingBenchmark {
 
     // Run directly from the IDE.
     public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder().include(RequestPathHandlingBenchmark.class.getSimpleName()).build();
+        Options opt = new OptionsBuilder()
+                .include(RequestPathHandlingBenchmark.class.getSimpleName())
+                .build();
         new Runner(opt).run();
     }
 

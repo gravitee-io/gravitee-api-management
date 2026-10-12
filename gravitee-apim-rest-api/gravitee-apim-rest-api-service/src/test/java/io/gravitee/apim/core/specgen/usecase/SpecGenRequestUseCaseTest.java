@@ -62,39 +62,36 @@ public class SpecGenRequestUseCaseTest {
 
         GraviteeContext.setCurrentEnvironment(CURRENT_ENV);
         crudService.initWith(List.of());
-        queryService.initWith(
-            List.of(
-                new ApiSpecGen(generateRandom(), "api-1", "some description", "some-version", ApiType.MESSAGE, CURRENT_ENV),
-                new ApiSpecGen(generateRandom(), "api-2", "some description", "some-version", ApiType.NATIVE, CURRENT_ENV),
+        queryService.initWith(List.of(
+                new ApiSpecGen(
+                        generateRandom(), "api-1", "some description", "some-version", ApiType.MESSAGE, CURRENT_ENV),
+                new ApiSpecGen(
+                        generateRandom(), "api-2", "some description", "some-version", ApiType.NATIVE, CURRENT_ENV),
                 new ApiSpecGen(API_ID, "api-3", "some description", "some-version", ApiType.PROXY, "otherEnvId"),
-                new ApiSpecGen(API_ID, "api-4", "some description", "some-version", ApiType.PROXY, CURRENT_ENV)
-            )
-        );
+                new ApiSpecGen(API_ID, "api-4", "some description", "some-version", ApiType.PROXY, CURRENT_ENV)));
     }
 
     @Test
     void must_return_unavailable_get_state_with_absent_api() {
         queryService.initWith(List.of());
 
-        useCase
-            .getState(API_ID, generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(state -> UNAVAILABLE.equals(state.state()));
+        useCase.getState(API_ID, generateRandom())
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(state -> UNAVAILABLE.equals(state.state()));
     }
 
     @Test
     void must_return_unavailable_post_job_with_absent_api() {
         queryService.initWith(List.of());
-        useCase
-            .postJob(API_ID, generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(state -> UNAVAILABLE.equals(state.state()));
+        useCase.postJob(API_ID, generateRandom())
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(state -> UNAVAILABLE.equals(state.state()));
     }
 
     static Stream<Arguments> params_that_must_return_post_job_request_state() {
@@ -106,13 +103,12 @@ public class SpecGenRequestUseCaseTest {
     void must_return_post_job_request_state(ApiSpecGenRequestState state, int crudSize) {
         specGenProvider.initWith(List.of(Single.just(new ApiSpecGenRequestReply(state))));
 
-        useCase
-            .postJob(API_ID, generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> state.equals(reply.state()));
+        useCase.postJob(API_ID, generateRandom())
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> state.equals(reply.state()));
 
         assertThat(crudService.storage()).hasSize(crudSize);
     }
@@ -126,13 +122,12 @@ public class SpecGenRequestUseCaseTest {
     void must_return_get_state_request_state(ApiSpecGenRequestState state, int crudSize) {
         specGenProvider.initWith(List.of(Single.just(new ApiSpecGenRequestReply(state))));
 
-        useCase
-            .getState(API_ID, generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> state.equals(reply.state()));
+        useCase.getState(API_ID, generateRandom())
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> state.equals(reply.state()));
 
         assertThat(crudService.storage()).hasSize(crudSize);
     }

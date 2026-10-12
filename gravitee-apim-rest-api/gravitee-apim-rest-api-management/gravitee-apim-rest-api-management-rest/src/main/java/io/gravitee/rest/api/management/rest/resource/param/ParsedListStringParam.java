@@ -25,7 +25,7 @@ import lombok.CustomLog;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties({ "empty", "values" })
+@JsonIgnoreProperties({"empty", "values"})
 @CustomLog
 public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */ {
 

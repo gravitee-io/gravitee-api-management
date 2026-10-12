@@ -29,16 +29,18 @@ public abstract class AbstractHttp2GatewayTest extends AbstractGatewayTest {
 
     @Override
     protected void configureHttpClient(
-        HttpClientOptions options,
-        PoolOptions poolOptions,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
+            HttpClientOptions options,
+            PoolOptions poolOptions,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {
         options.setDefaultHost("localhost").setSsl(true).setVerifyHost(false).setTrustAll(true);
     }
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        gatewayConfigurationBuilder.set("http.secured", true).set("http.alpn", true).set("http.ssl.keystore.type", "self-signed");
+        gatewayConfigurationBuilder
+                .set("http.secured", true)
+                .set("http.alpn", true)
+                .set("http.ssl.keystore.type", "self-signed");
     }
 }

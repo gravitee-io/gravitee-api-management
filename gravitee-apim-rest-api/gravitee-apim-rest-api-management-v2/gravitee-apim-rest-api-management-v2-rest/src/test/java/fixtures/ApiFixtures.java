@@ -47,20 +47,17 @@ public class ApiFixtures {
 
     private ApiFixtures() {}
 
-    private static final Supplier<DefinitionContext> BASE_DEFINITION_CONTEXT = () ->
-        new DefinitionContext().origin(DefinitionContext.OriginEnum.MANAGEMENT).mode(DefinitionContext.ModeEnum.FULLY_MANAGED);
+    private static final Supplier<DefinitionContext> BASE_DEFINITION_CONTEXT = () -> new DefinitionContext()
+            .origin(DefinitionContext.OriginEnum.MANAGEMENT)
+            .mode(DefinitionContext.ModeEnum.FULLY_MANAGED);
 
-    private static final Supplier<ApiV4> BASE_API_V4 = () ->
-        (ApiV4) new ApiV4()
+    private static final Supplier<ApiV4> BASE_API_V4 = () -> (ApiV4) new ApiV4()
             // ApiV4 specific
             .type(ApiType.PROXY)
-            .listeners(
-                List.of(
+            .listeners(List.of(
                     new Listener(ListenerFixtures.aHttpListener()),
                     new Listener(ListenerFixtures.aSubscriptionListener()),
-                    new Listener(ListenerFixtures.aTcpListener())
-                )
-            )
+                    new Listener(ListenerFixtures.aTcpListener())))
             .endpointGroups(List.of(EndpointFixtures.anEndpointGroupV4()))
             .services(new ApiServices())
             .analytics(new Analytics())
@@ -90,8 +87,7 @@ public class ApiFixtures {
             .resources(List.of(ResourceFixtures.aResource()))
             .properties(List.of(PropertyFixtures.aProperty()));
 
-    private static final Supplier<UpdateApiV2> BASE_UPDATE_API_V2 = () ->
-        (UpdateApiV2) new UpdateApiV2()
+    private static final Supplier<UpdateApiV2> BASE_UPDATE_API_V2 = () -> (UpdateApiV2) new UpdateApiV2()
             .executionMode(ExecutionMode.V4_EMULATION_ENGINE)
             .proxy(new Proxy())
             .flowMode(FlowMode.DEFAULT)
@@ -112,8 +108,7 @@ public class ApiFixtures {
             .lifecycleState(ApiLifecycleState.CREATED)
             .disableMembershipNotifications(true);
 
-    private static final Supplier<UpdateApiV4> BASE_UPDATE_API_V4 = () ->
-        (UpdateApiV4) new UpdateApiV4()
+    private static final Supplier<UpdateApiV4> BASE_UPDATE_API_V4 = () -> (UpdateApiV4) new UpdateApiV4()
             .type(ApiType.MESSAGE)
             .analytics(new Analytics())
             .listeners(List.of(new Listener(ListenerFixtures.aHttpListener())))
@@ -135,20 +130,20 @@ public class ApiFixtures {
             .disableMembershipNotifications(true)
             .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())));
 
-    private static final Supplier<UpdateApiFederated> BASE_UPDATE_API_FEDERATED = () ->
-        (UpdateApiFederated) new UpdateApiFederated()
-            .apiVersion("1.0.0")
-            .definitionVersion(DefinitionVersion.FEDERATED)
-            .name("api-name")
-            .description("api-description")
-            .visibility(Visibility.PRIVATE)
-            .tags(List.of("tag1", "tag2"))
-            .groups(List.of("group1", "group2"))
-            .labels(List.of("label1", "label2"))
-            .categories(List.of("category1", "category2"))
-            .resources(List.of(ResourceFixtures.aResource()))
-            .properties(List.of(PropertyFixtures.aProperty()))
-            .lifecycleState(ApiLifecycleState.CREATED);
+    private static final Supplier<UpdateApiFederated> BASE_UPDATE_API_FEDERATED =
+            () -> (UpdateApiFederated) new UpdateApiFederated()
+                    .apiVersion("1.0.0")
+                    .definitionVersion(DefinitionVersion.FEDERATED)
+                    .name("api-name")
+                    .description("api-description")
+                    .visibility(Visibility.PRIVATE)
+                    .tags(List.of("tag1", "tag2"))
+                    .groups(List.of("group1", "group2"))
+                    .labels(List.of("label1", "label2"))
+                    .categories(List.of("category1", "category2"))
+                    .resources(List.of(ResourceFixtures.aResource()))
+                    .properties(List.of(PropertyFixtures.aProperty()))
+                    .lifecycleState(ApiLifecycleState.CREATED);
 
     public static ApiV4 anApiV4() {
         return BASE_API_V4.get();
@@ -156,7 +151,10 @@ public class ApiFixtures {
 
     public static BaseApi aBaseApi() {
         final ApiV4 apiV4 = anApiV4();
-        return new BaseApi().id(apiV4.getId()).description(apiV4.getDescription()).name(apiV4.getName());
+        return new BaseApi()
+                .id(apiV4.getId())
+                .description(apiV4.getDescription())
+                .name(apiV4.getName());
     }
 
     public static UpdateApiV4 anUpdateApiV4() {

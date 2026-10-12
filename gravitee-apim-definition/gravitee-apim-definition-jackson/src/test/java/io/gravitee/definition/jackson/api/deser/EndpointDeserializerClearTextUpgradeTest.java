@@ -35,26 +35,29 @@ class EndpointDeserializerClearTextUpgradeTest {
     private final GraviteeMapper mapper = new GraviteeMapper();
 
     private static String apiJson(String endpointHttp) {
-        return (
-            "{\"id\":\"test-id\",\"name\":\"test-api\",\"version\":\"1\"," +
-            "\"proxy\":{\"context_path\":\"/test\",\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{" +
-            "\"name\":\"ep1\",\"target\":\"http://localhost:5555/echo\",\"weight\":1,\"backup\":false,\"type\":\"http\",\"inherit\":false," +
-            "\"http\":" +
-            endpointHttp +
-            "}]}]}}"
-        );
+        return ("{\"id\":\"test-id\",\"name\":\"test-api\",\"version\":\"1\","
+                + "\"proxy\":{\"context_path\":\"/test\",\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{"
+                + "\"name\":\"ep1\",\"target\":\"http://localhost:5555/echo\",\"weight\":1,\"backup\":false,\"type\":\"http\",\"inherit\":false,"
+                + "\"http\":"
+                + endpointHttp
+                + "}]}]}}");
     }
 
     private JsonNode endpointHttpNode(String rawJson) throws Exception {
         Api api = mapper.readValue(rawJson, Api.class);
         String reserialized = mapper.writeValueAsString(api);
-        JsonNode endpoints = mapper.readTree(reserialized).path("proxy").path("groups").get(0).path("endpoints");
+        JsonNode endpoints = mapper.readTree(reserialized)
+                .path("proxy")
+                .path("groups")
+                .get(0)
+                .path("endpoints");
         return endpoints.get(0).path("http");
     }
 
     @Test
     void should_force_clear_text_upgrade_to_false_when_explicitly_true_for_http_1_1() throws Exception {
-        JsonNode http = endpointHttpNode(apiJson("{\"version\":\"HTTP_1_1\",\"clearTextUpgrade\":true,\"connectTimeout\":5000}"));
+        JsonNode http = endpointHttpNode(
+                apiJson("{\"version\":\"HTTP_1_1\",\"clearTextUpgrade\":true,\"connectTimeout\":5000}"));
 
         assertThat(http.path("clearTextUpgrade").asBoolean()).isFalse();
     }
@@ -69,7 +72,8 @@ class EndpointDeserializerClearTextUpgradeTest {
 
     @Test
     void should_preserve_clear_text_upgrade_for_http_2() throws Exception {
-        JsonNode http = endpointHttpNode(apiJson("{\"version\":\"HTTP_2\",\"clearTextUpgrade\":true,\"connectTimeout\":5000}"));
+        JsonNode http =
+                endpointHttpNode(apiJson("{\"version\":\"HTTP_2\",\"clearTextUpgrade\":true,\"connectTimeout\":5000}"));
 
         assertThat(http.path("clearTextUpgrade").asBoolean()).isTrue();
     }

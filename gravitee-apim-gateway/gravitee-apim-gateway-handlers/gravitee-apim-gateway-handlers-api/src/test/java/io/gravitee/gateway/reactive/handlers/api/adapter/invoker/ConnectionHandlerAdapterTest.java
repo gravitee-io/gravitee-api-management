@@ -64,8 +64,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 class ConnectionHandlerAdapterTest {
 
     protected static final String MOCK_EXCEPTION_MESSAGE = "Mock exception";
-    protected static final HttpHeaders MOCK_HTTP_HEADERS = HttpHeaders.create().add("X-Test1", "X-Value1").add("X-Test2", "X-Value2");
-    protected static final HttpHeaders MOCK_HTTP_TRAILERS = HttpHeaders.create().add("X-Test3", "X-Value3").add("X-Test4", "X-Value4");
+    protected static final HttpHeaders MOCK_HTTP_HEADERS =
+            HttpHeaders.create().add("X-Test1", "X-Value1").add("X-Test2", "X-Value2");
+    protected static final HttpHeaders MOCK_HTTP_TRAILERS =
+            HttpHeaders.create().add("X-Test3", "X-Value3").add("X-Test4", "X-Value4");
 
     @Mock
     private HttpPlainExecutionContext ctx;
@@ -141,7 +143,8 @@ class ConnectionHandlerAdapterTest {
         when(proxyResponse.headers()).thenReturn(MOCK_HTTP_HEADERS);
         when(proxyResponse.trailers()).thenReturn(MOCK_HTTP_TRAILERS);
 
-        when(flowableProxyResponse.initialize(ctx, proxyConnection, proxyResponse)).thenReturn(flowableProxyResponse);
+        when(flowableProxyResponse.initialize(ctx, proxyConnection, proxyResponse))
+                .thenReturn(flowableProxyResponse);
 
         final Handler<ProxyResponse> proxyResponseHandler = handlerCaptor.getValue();
         proxyResponseHandler.handle(proxyResponse);
@@ -168,7 +171,8 @@ class ConnectionHandlerAdapterTest {
         obs.assertComplete();
         obs.assertNoValues();
 
-        final ArgumentCaptor<InterruptionFailureException> exceptionCaptor = ArgumentCaptor.forClass(InterruptionFailureException.class);
+        final ArgumentCaptor<InterruptionFailureException> exceptionCaptor =
+                ArgumentCaptor.forClass(InterruptionFailureException.class);
 
         verify(nextEmitter).tryOnError(exceptionCaptor.capture());
 
@@ -181,7 +185,8 @@ class ConnectionHandlerAdapterTest {
     void shouldErrorWithInterruptionFailureExceptionWhenProxyResponseIsAProcessorFailure() {
         ReflectionTestUtils.setField(cut, "chunks", flowableProxyResponse);
 
-        final ProxyResponse proxyResponse = mock(ProxyResponse.class, withSettings().extraInterfaces(ProcessorFailure.class));
+        final ProxyResponse proxyResponse =
+                mock(ProxyResponse.class, withSettings().extraInterfaces(ProcessorFailure.class));
         final ProcessorFailure processorFailure = (ProcessorFailure) proxyResponse;
 
         when(processorFailure.statusCode()).thenReturn(SERVICE_UNAVAILABLE_503);
@@ -203,7 +208,8 @@ class ConnectionHandlerAdapterTest {
         obs.assertComplete();
         obs.assertNoValues();
 
-        final ArgumentCaptor<InterruptionFailureException> exceptionCaptor = ArgumentCaptor.forClass(InterruptionFailureException.class);
+        final ArgumentCaptor<InterruptionFailureException> exceptionCaptor =
+                ArgumentCaptor.forClass(InterruptionFailureException.class);
 
         verify(nextEmitter).tryOnError(exceptionCaptor.capture());
 
@@ -237,9 +243,9 @@ class ConnectionHandlerAdapterTest {
 
     @Test
     void shouldCancelConnectionWhenDisposedBeforeBackendResponds() {
-        final TestObserver<Void> obs = Completable.create(emitter ->
-            new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection)
-        ).test();
+        final TestObserver<Void> obs = Completable.create(
+                        emitter -> new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection))
+                .test();
 
         verify(proxyConnection, never()).cancel();
 
@@ -250,9 +256,9 @@ class ConnectionHandlerAdapterTest {
 
     @Test
     void shouldCancelConnectionOnlyOnceWhenDisposedTwice() {
-        final TestObserver<Void> obs = Completable.create(emitter ->
-            new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection)
-        ).test();
+        final TestObserver<Void> obs = Completable.create(
+                        emitter -> new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection))
+                .test();
 
         obs.dispose();
         obs.dispose();
@@ -262,9 +268,9 @@ class ConnectionHandlerAdapterTest {
 
     @Test
     void shouldNotCancelConnectionWhenDisposedAfterBackendResponded() {
-        final TestObserver<Void> obs = Completable.create(emitter ->
-            new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection)
-        ).test();
+        final TestObserver<Void> obs = Completable.create(
+                        emitter -> new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection))
+                .test();
 
         verify(proxyConnection).responseHandler(handlerCaptor.capture());
         when(ctx.response()).thenReturn(response);

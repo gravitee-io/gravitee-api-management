@@ -76,44 +76,42 @@ public class SearchTopFailedApisAdapter {
     }
 
     private static Object buildAggregations() {
-        return API_ID_FIELDS.stream().reduce(JsonObject.of(), (a, b) -> a.mergeIn(buildAggregationForField(b)), JsonObject::mergeIn);
+        return API_ID_FIELDS.stream()
+                .reduce(JsonObject.of(), (a, b) -> a.mergeIn(buildAggregationForField(b)), JsonObject::mergeIn);
     }
 
     private static JsonObject buildAggregationForField(String field) {
         return JsonObject.of(
-            "failed_apis_agg_" + field,
-            JsonObject.of(
-                "terms",
-                JsonObject.of("field", field),
-                "aggs",
+                "failed_apis_agg_" + field,
                 JsonObject.of(
-                    "total_requests",
-                    JsonObject.of("value_count", JsonObject.of("field", field)),
-                    FAILED_REQUESTS,
-                    JsonObject.of(
-                        "filter",
-                        JsonObject.of("range", JsonObject.of(STATUS_FIELD, JsonObject.of("gte", 500, "lt", 600))),
+                        "terms",
+                        JsonObject.of("field", field),
                         "aggs",
-                        JsonObject.of(FAILED_REQUESTS_COUNT, JsonObject.of("value_count", JsonObject.of("field", STATUS_FIELD)))
-                    ),
-                    FAILED_REQUESTS_RATIO,
-                    JsonObject.of(
-                        "bucket_script",
                         JsonObject.of(
-                            "buckets_path",
-                            JsonObject.of(
-                                "failed_count",
-                                String.join(">", FAILED_REQUESTS, FAILED_REQUESTS_COUNT),
-                                "total_count",
-                                "total_requests"
-                            ),
-                            "script",
-                            "params.failed_count / params.total_count"
-                        )
-                    )
-                )
-            )
-        );
+                                "total_requests",
+                                JsonObject.of("value_count", JsonObject.of("field", field)),
+                                FAILED_REQUESTS,
+                                JsonObject.of(
+                                        "filter",
+                                        JsonObject.of(
+                                                "range",
+                                                JsonObject.of(STATUS_FIELD, JsonObject.of("gte", 500, "lt", 600))),
+                                        "aggs",
+                                        JsonObject.of(
+                                                FAILED_REQUESTS_COUNT,
+                                                JsonObject.of("value_count", JsonObject.of("field", STATUS_FIELD)))),
+                                FAILED_REQUESTS_RATIO,
+                                JsonObject.of(
+                                        "bucket_script",
+                                        JsonObject.of(
+                                                "buckets_path",
+                                                JsonObject.of(
+                                                        "failed_count",
+                                                        String.join(">", FAILED_REQUESTS, FAILED_REQUESTS_COUNT),
+                                                        "total_count",
+                                                        "total_requests"),
+                                                "script",
+                                                "params.failed_count / params.total_count")))));
     }
 
     public static Optional<TopFailedAggregate> adaptResponse(SearchResponse response) {
@@ -123,23 +121,27 @@ public class SearchTopFailedApisAdapter {
             return Optional.empty();
         }
 
-        final var result = aggregations
-            .values()
-            .stream()
-            .filter(aggregation -> aggregation.getBuckets() != null)
-            .flatMap(aggregation -> aggregation.getBuckets().stream())
-            .filter(bucket -> bucket.get(FAILED_REQUESTS).get(FAILED_REQUESTS_COUNT).get("value").asLong() > 0)
-            .collect(
-                Collectors.toMap(
-                    bucket -> bucket.get("key").asText(),
-                    bucket -> {
-                        final var failedRequestsCount = bucket.get(FAILED_REQUESTS).get(FAILED_REQUESTS_COUNT).get("value").asLong();
-                        final var failedRequestsRatio = bucket.get(FAILED_REQUESTS_RATIO).get("value").asDouble();
-                        return new TopFailedAggregate.FailedApiInfo(failedRequestsCount, failedRequestsRatio);
-                    },
-                    (existing, duplicate) -> existing
-                )
-            );
+        final var result = aggregations.values().stream()
+                .filter(aggregation -> aggregation.getBuckets() != null)
+                .flatMap(aggregation -> aggregation.getBuckets().stream())
+                .filter(bucket -> bucket.get(FAILED_REQUESTS)
+                                .get(FAILED_REQUESTS_COUNT)
+                                .get("value")
+                                .asLong()
+                        > 0)
+                .collect(Collectors.toMap(
+                        bucket -> bucket.get("key").asText(),
+                        bucket -> {
+                            final var failedRequestsCount = bucket.get(FAILED_REQUESTS)
+                                    .get(FAILED_REQUESTS_COUNT)
+                                    .get("value")
+                                    .asLong();
+                            final var failedRequestsRatio = bucket.get(FAILED_REQUESTS_RATIO)
+                                    .get("value")
+                                    .asDouble();
+                            return new TopFailedAggregate.FailedApiInfo(failedRequestsCount, failedRequestsRatio);
+                        },
+                        (existing, duplicate) -> existing));
 
         return Optional.of(TopFailedAggregate.builder().failedApis(result).build());
     }

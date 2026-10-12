@@ -36,17 +36,17 @@ class ConnectionLogAdapterTest {
     @Test
     void should_convert_connection_log_to_connection_log_entity() {
         final Metrics toConvert = Metrics.builder()
-            .apiId("api-id")
-            .requestId("request-id")
-            .timestamp("timestamp")
-            .applicationId("app-id")
-            .clientIdentifier("client-id")
-            .method(HttpMethod.GET)
-            .planId("plan-id")
-            .requestEnded(true)
-            .transactionId("transaction-id")
-            .status(200)
-            .build();
+                .apiId("api-id")
+                .requestId("request-id")
+                .timestamp("timestamp")
+                .applicationId("app-id")
+                .clientIdentifier("client-id")
+                .method(HttpMethod.GET)
+                .planId("plan-id")
+                .requestEnded(true)
+                .transactionId("transaction-id")
+                .status(200)
+                .build();
 
         final BaseConnectionLog result = ConnectionLogAdapter.INSTANCE.toEntity(toConvert);
 
@@ -65,9 +65,9 @@ class ConnectionLogAdapterTest {
     @Test
     void should_extract_mcp_method_from_additional_metrics() {
         final Metrics toConvert = Metrics.builder()
-            .requestId("request-id")
-            .additionalMetrics(Map.of(ConnectionLogAdapter.MCP_PROXY_METHOD_KEY, "tools/call"))
-            .build();
+                .requestId("request-id")
+                .additionalMetrics(Map.of(ConnectionLogAdapter.MCP_PROXY_METHOD_KEY, "tools/call"))
+                .build();
 
         final BaseConnectionLog result = ConnectionLogAdapter.INSTANCE.toEntity(toConvert);
 
@@ -86,37 +86,35 @@ class ConnectionLogAdapterTest {
     @Test
     void should_convert_connection_logs_to_connection_log_entities() {
         final Metrics toConvert = Metrics.builder()
-            .apiId("api-id")
-            .requestId("request-id")
-            .timestamp("timestamp")
-            .applicationId("app-id")
-            .clientIdentifier("client-id")
-            .method(HttpMethod.GET)
-            .planId("plan-id")
-            .requestEnded(true)
-            .transactionId("transaction-id")
-            .status(200)
-            .build();
+                .apiId("api-id")
+                .requestId("request-id")
+                .timestamp("timestamp")
+                .applicationId("app-id")
+                .clientIdentifier("client-id")
+                .method(HttpMethod.GET)
+                .planId("plan-id")
+                .requestEnded(true)
+                .transactionId("transaction-id")
+                .status(200)
+                .build();
 
         final List<BaseConnectionLog> result = ConnectionLogAdapter.INSTANCE.toEntitiesList(List.of(toConvert));
 
         assertThat(result)
-            .hasSize(1)
-            .containsExactly(
-                BaseConnectionLog.builder()
-                    .apiId("api-id")
-                    .requestId("request-id")
-                    .timestamp("timestamp")
-                    .applicationId("app-id")
-                    .clientIdentifier("client-id")
-                    .method(HttpMethod.GET)
-                    .planId("plan-id")
-                    .requestEnded(true)
-                    .transactionId("transaction-id")
-                    .status(200)
-                    .requestContentLength(0L)
-                    .responseContentLength(0L)
-                    .build()
-            );
+                .hasSize(1)
+                .containsExactly(BaseConnectionLog.builder()
+                        .apiId("api-id")
+                        .requestId("request-id")
+                        .timestamp("timestamp")
+                        .applicationId("app-id")
+                        .clientIdentifier("client-id")
+                        .method(HttpMethod.GET)
+                        .planId("plan-id")
+                        .requestEnded(true)
+                        .transactionId("transaction-id")
+                        .status(200)
+                        .requestContentLength(0L)
+                        .responseContentLength(0L)
+                        .build());
     }
 }

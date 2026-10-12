@@ -64,12 +64,12 @@ class ApiKeyFetcherTest {
         ApiKey apiKey = new ApiKey();
         apiKey.setId("k");
         apiKey.setUpdatedAt(new Date(1));
-        when(apiKeyRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(apiKey));
-        cut
-            .fetchLatest(null, null, Set.of())
-            .test()
-            .assertValueCount(1)
-            .assertValue(apiKeys -> apiKeys.contains(apiKey));
+        when(apiKeyRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS)))
+                .thenReturn(List.of(apiKey));
+        cut.fetchLatest(null, null, Set.of())
+                .test()
+                .assertValueCount(1)
+                .assertValue(apiKeys -> apiKeys.contains(apiKey));
     }
 
     @Test
@@ -79,25 +79,20 @@ class ApiKeyFetcherTest {
         ApiKey apiKey = new ApiKey();
         apiKey.setId("k");
         apiKey.setUpdatedAt(new Date(from.toEpochMilli()));
-        when(
-            apiKeyRepository.searchAfter(
-                argThat(
-                    argument ->
-                        argument.getEnvironments().contains("env") &&
-                        argument.isIncludeRevoked() &&
-                        argument.getFrom() < from.toEpochMilli() &&
-                        argument.getTo() > to.toEpochMilli()
-                ),
-                argThat(argument -> argument.field().equals("updatedAt") && argument.order().equals(Order.ASC)),
-                isNull(),
-                eq(BULK_ITEMS)
-            )
-        ).thenReturn(List.of(apiKey));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
-            .test()
-            .assertValueCount(1)
-            .assertValue(apiKeys -> apiKeys.contains(apiKey));
+        when(apiKeyRepository.searchAfter(
+                        argThat(argument -> argument.getEnvironments().contains("env")
+                                && argument.isIncludeRevoked()
+                                && argument.getFrom() < from.toEpochMilli()
+                                && argument.getTo() > to.toEpochMilli()),
+                        argThat(argument -> argument.field().equals("updatedAt")
+                                && argument.order().equals(Order.ASC)),
+                        isNull(),
+                        eq(BULK_ITEMS)))
+                .thenReturn(List.of(apiKey));
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
+                .test()
+                .assertValueCount(1)
+                .assertValue(apiKeys -> apiKeys.contains(apiKey));
     }
 
     @Test
@@ -115,23 +110,20 @@ class ApiKeyFetcherTest {
         ApiKey last1 = page1.get(page1.size() - 1);
         ApiKey last2 = page2.get(page2.size() - 1);
 
-        when(apiKeyRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(page1);
-        when(
-            apiKeyRepository.searchAfter(
-                any(),
-                any(),
-                argThat(cursor -> cursor != null && cursor.id().equals(last1.getId())),
-                eq(BULK_ITEMS)
-            )
-        ).thenReturn(page2);
-        when(
-            apiKeyRepository.searchAfter(
-                any(),
-                any(),
-                argThat(cursor -> cursor != null && cursor.id().equals(last2.getId())),
-                eq(BULK_ITEMS)
-            )
-        ).thenReturn(shortPage);
+        when(apiKeyRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS)))
+                .thenReturn(page1);
+        when(apiKeyRepository.searchAfter(
+                        any(),
+                        any(),
+                        argThat(cursor -> cursor != null && cursor.id().equals(last1.getId())),
+                        eq(BULK_ITEMS)))
+                .thenReturn(page2);
+        when(apiKeyRepository.searchAfter(
+                        any(),
+                        any(),
+                        argThat(cursor -> cursor != null && cursor.id().equals(last2.getId())),
+                        eq(BULK_ITEMS)))
+                .thenReturn(shortPage);
 
         cut.fetchLatest(0L, 1L, Set.of("env")).test().assertValueCount(3).assertComplete();
     }
@@ -147,9 +139,14 @@ class ApiKeyFetcherTest {
         poisoned.setId("poisoned");
         poisoned.setUpdatedAt(null);
 
-        when(apiKeyRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(good, poisoned));
+        when(apiKeyRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS)))
+                .thenReturn(List.of(good, poisoned));
 
-        cut.fetchLatest(0L, 1L, Set.of("env")).test().assertValueCount(1).assertComplete().assertNoErrors();
+        cut.fetchLatest(0L, 1L, Set.of("env"))
+                .test()
+                .assertValueCount(1)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     private static List<ApiKey> bulkKeys(String idPrefix, int count, long baseMs) {

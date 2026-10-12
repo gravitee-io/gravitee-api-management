@@ -55,50 +55,52 @@ public class GraviteePropertiesValidator {
         final MessageSampling.Count.CountBuilder countBuilder = MessageSampling.Count.builder();
 
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), Integer.class) != null) {
-            countBuilder.defaultValue(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), Integer.class));
+            countBuilder.defaultValue(
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), Integer.class));
         }
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), Integer.class) != null) {
-            countBuilder.limit(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), Integer.class));
+            countBuilder.limit(
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), Integer.class));
         }
 
-        final MessageSampling.Probabilistic.ProbabilisticBuilder probabilisticSettingsBuilder = MessageSampling.Probabilistic.builder();
+        final MessageSampling.Probabilistic.ProbabilisticBuilder probabilisticSettingsBuilder =
+                MessageSampling.Probabilistic.builder();
 
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), Double.class) != null) {
             probabilisticSettingsBuilder.defaultValue(
-                configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), Double.class)
-            );
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), Double.class));
         }
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), Double.class) != null) {
             probabilisticSettingsBuilder.limit(
-                configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), Double.class)
-            );
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), Double.class));
         }
 
         final MessageSampling.Temporal.TemporalBuilder temporalSettingsBuilder = MessageSampling.Temporal.builder();
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class) != null) {
             temporalSettingsBuilder.defaultValue(
-                configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class)
-            );
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT.key(), String.class));
         }
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class) != null) {
-            temporalSettingsBuilder.limit(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class));
+            temporalSettingsBuilder.limit(
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), String.class));
         }
-        final MessageSampling.WindowedCount.WindowedCountBuilder windowedSettingsBuilder = MessageSampling.WindowedCount.builder();
-        if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class) != null) {
+        final MessageSampling.WindowedCount.WindowedCountBuilder windowedSettingsBuilder =
+                MessageSampling.WindowedCount.builder();
+        if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class)
+                != null) {
             windowedSettingsBuilder.defaultValue(
-                configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class)
-            );
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_DEFAULT.key(), String.class));
         }
         if (configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class) != null) {
-            windowedSettingsBuilder.limit(configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class));
+            windowedSettingsBuilder.limit(
+                    configuration.getProperty(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.key(), String.class));
         }
 
-        final MessageSampling messageSampling = builder
-            .count(countBuilder.build())
-            .probabilistic(probabilisticSettingsBuilder.build())
-            .temporal(temporalSettingsBuilder.build())
-            .windowedCount(windowedSettingsBuilder.build())
-            .build();
+        final MessageSampling messageSampling = builder.count(countBuilder.build())
+                .probabilistic(probabilisticSettingsBuilder.build())
+                .temporal(temporalSettingsBuilder.build())
+                .windowedCount(windowedSettingsBuilder.build())
+                .build();
 
         return validator.validate(messageSampling);
     }

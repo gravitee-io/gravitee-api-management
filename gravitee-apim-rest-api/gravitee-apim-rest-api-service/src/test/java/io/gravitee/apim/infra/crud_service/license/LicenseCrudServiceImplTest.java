@@ -84,16 +84,14 @@ class LicenseCrudServiceImplTest {
         verify(licenseRepository).create(captor.capture());
 
         assertThat(captor.getValue())
-            .usingRecursiveComparison()
-            .isEqualTo(
-                io.gravitee.repository.management.model.License.builder()
-                    .referenceId("new")
-                    .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
-                    .license("new license")
-                    .createdAt(Date.from(INSTANT_NOW))
-                    .updatedAt(Date.from(INSTANT_NOW))
-                    .build()
-            );
+                .usingRecursiveComparison()
+                .isEqualTo(io.gravitee.repository.management.model.License.builder()
+                        .referenceId("new")
+                        .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
+                        .license("new license")
+                        .createdAt(Date.from(INSTANT_NOW))
+                        .updatedAt(Date.from(INSTANT_NOW))
+                        .build());
     }
 
     @Test
@@ -107,32 +105,31 @@ class LicenseCrudServiceImplTest {
         verify(licenseRepository).update(captor.capture());
 
         assertThat(captor.getValue())
-            .usingRecursiveComparison()
-            .isEqualTo(
-                io.gravitee.repository.management.model.License.builder()
-                    .referenceId(license.getReferenceId())
-                    .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
-                    .license("updated license")
-                    .createdAt(Date.from(INSTANT_NOW))
-                    .updatedAt(Date.from(INSTANT_NOW))
-                    .build()
-            );
+                .usingRecursiveComparison()
+                .isEqualTo(io.gravitee.repository.management.model.License.builder()
+                        .referenceId(license.getReferenceId())
+                        .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
+                        .license("updated license")
+                        .createdAt(Date.from(INSTANT_NOW))
+                        .updatedAt(Date.from(INSTANT_NOW))
+                        .build());
     }
 
     @SneakyThrows
     private void givenOrganizationLicense(License license) {
-        when(
-            licenseRepository.findById(license.getReferenceId(), io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
-        ).thenReturn(Optional.of(LicenseAdapter.INSTANCE.toRepository(license)));
+        when(licenseRepository.findById(
+                        license.getReferenceId(),
+                        io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION))
+                .thenReturn(Optional.of(LicenseAdapter.INSTANCE.toRepository(license)));
     }
 
     private License anOrganizationLicense() {
         return License.builder()
-            .referenceType(License.ReferenceType.ORGANIZATION)
-            .referenceId("organization-id")
-            .license("fakeLicenseFileAsBase64")
-            .createdAt(TimeProvider.now())
-            .updatedAt(TimeProvider.now())
-            .build();
+                .referenceType(License.ReferenceType.ORGANIZATION)
+                .referenceId("organization-id")
+                .license("fakeLicenseFileAsBase64")
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .build();
     }
 }

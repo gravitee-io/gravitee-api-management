@@ -31,7 +31,8 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
     @Override
     protected Buffer format0(Metrics metrics) {
         ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
-        final Map<String, String> customMetrics = metrics.getCustomMetrics() == null ? Map.of() : metrics.getCustomMetrics();
+        final Map<String, String> customMetrics =
+                metrics.getCustomMetrics() == null ? Map.of() : metrics.getCustomMetrics();
 
         final Buffer buffer = Buffer.buffer();
 
@@ -65,9 +66,14 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
         appendLong(buffer, metrics.getEndpointResponseTimeMs());
         appendLong(buffer, metrics.getGatewayResponseTimeMs());
         appendLong(buffer, metrics.getGatewayLatencyMs());
-        appendString(buffer, metrics.getSecurityType() != null ? metrics.getSecurityType().name() : null);
+        appendString(
+                buffer,
+                metrics.getSecurityType() != null ? metrics.getSecurityType().name() : null);
         appendString(buffer, metrics.getSecurityToken());
-        appendString(buffer, metrics.getApiProductId(), customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty());
+        appendString(
+                buffer,
+                metrics.getApiProductId(),
+                customMetrics.isEmpty() && metrics.getAdditionalMetrics().isEmpty());
         appendAdditional(metrics, buffer);
 
         for (Iterator<String> i = customMetrics.keySet().iterator(); i.hasNext(); ) {

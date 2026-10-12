@@ -40,11 +40,10 @@ public class ApiMetadataDomainServiceLegacyWrapper extends ApiMetadataDomainServ
     private final ApiMetadataService metadataService;
 
     public ApiMetadataDomainServiceLegacyWrapper(
-        ApiMetadataService metadataService,
-        AuditDomainService auditDomainService,
-        MetadataCrudService metadataCrudService,
-        ApiMetadataQueryService apiMetadataQueryService
-    ) {
+            ApiMetadataService metadataService,
+            AuditDomainService auditDomainService,
+            MetadataCrudService metadataCrudService,
+            ApiMetadataQueryService apiMetadataQueryService) {
         super(metadataCrudService, apiMetadataQueryService, auditDomainService);
         this.metadataService = metadataService;
     }
@@ -52,25 +51,29 @@ public class ApiMetadataDomainServiceLegacyWrapper extends ApiMetadataDomainServ
     @Override
     public void importApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
-        metadata
-            .stream()
-            .map(apiMetadata -> {
-                UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
-                updateApiMetadataEntity.setApiId(apiId);
-                updateApiMetadataEntity.setDefaultValue(apiMetadata.getDefaultValue());
-                updateApiMetadataEntity.setFormat(MetadataFormat.valueOf(apiMetadata.getFormat().name()));
-                updateApiMetadataEntity.setKey(apiMetadata.getKey());
-                updateApiMetadataEntity.setName(apiMetadata.getName());
-                updateApiMetadataEntity.setValue(apiMetadata.getValue());
-                return updateApiMetadataEntity;
-            })
-            .forEach(entity -> {
-                try {
-                    metadataService.update(executionContext, entity);
-                } catch (Exception e) {
-                    log.warn("Unable to save metadata {} for API {}' due to : {}", entity.getName(), apiId, e.getMessage());
-                }
-            });
+        metadata.stream()
+                .map(apiMetadata -> {
+                    UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
+                    updateApiMetadataEntity.setApiId(apiId);
+                    updateApiMetadataEntity.setDefaultValue(apiMetadata.getDefaultValue());
+                    updateApiMetadataEntity.setFormat(
+                            MetadataFormat.valueOf(apiMetadata.getFormat().name()));
+                    updateApiMetadataEntity.setKey(apiMetadata.getKey());
+                    updateApiMetadataEntity.setName(apiMetadata.getName());
+                    updateApiMetadataEntity.setValue(apiMetadata.getValue());
+                    return updateApiMetadataEntity;
+                })
+                .forEach(entity -> {
+                    try {
+                        metadataService.update(executionContext, entity);
+                    } catch (Exception e) {
+                        log.warn(
+                                "Unable to save metadata {} for API {}' due to : {}",
+                                entity.getName(),
+                                apiId,
+                                e.getMessage());
+                    }
+                });
         log.debug("Metadata successfully created for api {}", apiId);
     }
 }

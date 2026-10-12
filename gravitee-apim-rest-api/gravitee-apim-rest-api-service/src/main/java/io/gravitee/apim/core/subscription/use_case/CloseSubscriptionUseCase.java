@@ -31,9 +31,8 @@ public class CloseSubscriptionUseCase {
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     public CloseSubscriptionUseCase(
-        SubscriptionCrudService subscriptionCrudService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService
-    ) {
+            SubscriptionCrudService subscriptionCrudService,
+            CloseSubscriptionDomainService closeSubscriptionDomainService) {
         this.subscriptionCrudService = subscriptionCrudService;
         this.closeSubscriptionDomainService = closeSubscriptionDomainService;
     }
@@ -52,29 +51,28 @@ public class CloseSubscriptionUseCase {
             throw new SubscriptionNotFoundException(input.subscriptionId);
         }
 
-        SubscriptionEntity closedSubscription = closeSubscriptionDomainService.closeSubscription(input.subscriptionId, input.auditInfo);
+        SubscriptionEntity closedSubscription =
+                closeSubscriptionDomainService.closeSubscription(input.subscriptionId, input.auditInfo);
         return new Output(closedSubscription);
     }
 
-    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
-        if (
-            subscription.getReferenceType() == null ||
-            !referenceType.equals(subscription.getReferenceType()) ||
-            subscription.getReferenceId() == null ||
-            !referenceId.equals(subscription.getReferenceId())
-        ) {
+    private void validateSubscription(
+            SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (subscription.getReferenceType() == null
+                || !referenceType.equals(subscription.getReferenceType())
+                || subscription.getReferenceId() == null
+                || !referenceId.equals(subscription.getReferenceId())) {
             throw new SubscriptionNotFoundException(subscription.getId());
         }
     }
 
     @Builder
     public record Input(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        String applicationId,
-        AuditInfo auditInfo
-    ) {
+            String subscriptionId,
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            String applicationId,
+            AuditInfo auditInfo) {
         public Input(String subscriptionId, AuditInfo auditInfo) {
             this(subscriptionId, null, null, null, auditInfo);
         }

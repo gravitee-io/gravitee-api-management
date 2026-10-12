@@ -51,7 +51,8 @@ public class FlowConsumer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FlowConsumer flowConsumer = (FlowConsumer) o;
-        return Objects.equals(consumerType, flowConsumer.consumerType) && Objects.equals(consumerId, flowConsumer.consumerId);
+        return Objects.equals(consumerType, flowConsumer.consumerType)
+                && Objects.equals(consumerId, flowConsumer.consumerId);
     }
 
     @Override

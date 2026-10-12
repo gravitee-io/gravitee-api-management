@@ -52,29 +52,26 @@ class DictionaryMapperTest {
         dictionary.setId("id");
 
         distributedEvent = DistributedEvent.builder()
-            .id(dictionary.getId())
-            .payload(objectMapper.writeValueAsString(dictionary))
-            .updatedAt(new Date())
-            .type(DistributedEventType.DICTIONARY)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id(dictionary.getId())
+                .payload(objectMapper.writeValueAsString(dictionary))
+                .updatedAt(new Date())
+                .type(DistributedEventType.DICTIONARY)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
         dictionaryDeployable = DictionaryDeployable.builder()
-            .id(dictionary.getId())
-            .dictionary(dictionary)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .id(dictionary.getId())
+                .dictionary(dictionary)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(dictionaryDeployable -> {
-                assertThat(dictionaryDeployable).isEqualTo(this.dictionaryDeployable);
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(dictionaryDeployable -> {
+            assertThat(dictionaryDeployable).isEqualTo(this.dictionaryDeployable);
+            return true;
+        });
     }
 
     @Test
@@ -84,15 +81,12 @@ class DictionaryMapperTest {
 
     @Test
     void should_map_dictionary_deployable() {
-        cut
-            .to(dictionaryDeployable)
-            .test()
-            .assertValue(distributedEvent -> {
-                assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
-                assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
-                assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
-                return true;
-            });
+        cut.to(dictionaryDeployable).test().assertValue(distributedEvent -> {
+            assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
+            assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
+            assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
+            return true;
+        });
     }
 }

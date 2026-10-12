@@ -62,15 +62,17 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
     protected void createModel(Object object) {
         RateLimit rateLimit = (RateLimit) object;
         RateLimit updatedRateLimit = rateLimitRepository
-            .incrementAndGet(rateLimit.getKey(), rateLimit.getCounter(), () -> initialize(rateLimit))
-            .blockingGet();
+                .incrementAndGet(rateLimit.getKey(), rateLimit.getCounter(), () -> initialize(rateLimit))
+                .blockingGet();
 
         RATE_LIMITS.put(updatedRateLimit.getKey(), updatedRateLimit);
 
         LOG.debug("Created {}", updatedRateLimit);
-        RATE_LIMITS.computeIfAbsent(rateLimit.getKey(), key ->
-            rateLimitRepository.incrementAndGet(key, rateLimit.getCounter(), () -> initialize(rateLimit)).blockingGet()
-        );
+        RATE_LIMITS.computeIfAbsent(
+                rateLimit.getKey(),
+                key -> rateLimitRepository
+                        .incrementAndGet(key, rateLimit.getCounter(), () -> initialize(rateLimit))
+                        .blockingGet());
     }
 
     @Test
@@ -81,12 +83,11 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
 
         observer.await(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        observer
-            .assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getSubscription(), rl.getSubscription())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getResetTime(), rl.getResetTime())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getLimit(), rl.getLimit())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getKey(), rl.getKey())));
+        observer.assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getSubscription(), rl.getSubscription())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getResetTime(), rl.getResetTime())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getLimit(), rl.getLimit())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getKey(), rl.getKey())));
     }
 
     @Test
@@ -97,12 +98,11 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
 
         observer.await(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        observer
-            .assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getSubscription(), rl.getSubscription())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getResetTime(), rl.getResetTime())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getLimit(), rl.getLimit())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getKey(), rl.getKey())));
+        observer.assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getSubscription(), rl.getSubscription())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getResetTime(), rl.getResetTime())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getLimit(), rl.getLimit())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getKey(), rl.getKey())));
     }
 
     @Test
@@ -113,16 +113,17 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
 
         observer.await(OPERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        observer
-            .assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getSubscription(), rl.getSubscription())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getResetTime(), rl.getResetTime())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getLimit(), rl.getLimit())))
-            .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getKey(), rl.getKey())));
+        observer.assertValue(shouldNotFail(rl -> assertEquals(expectedCounter, rl.getCounter())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getSubscription(), rl.getSubscription())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getResetTime(), rl.getResetTime())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getLimit(), rl.getLimit())))
+                .assertValue(shouldNotFail(rl -> assertEquals(rateLimit.getKey(), rl.getKey())));
     }
 
     private TestObserver<RateLimit> incrementAndObserve(RateLimit rateLimit, long weight) {
-        return rateLimitRepository.incrementAndGet(rateLimit.getKey(), weight, () -> rateLimit).test();
+        return rateLimitRepository
+                .incrementAndGet(rateLimit.getKey(), weight, () -> rateLimit)
+                .test();
     }
 
     /*
@@ -163,6 +164,11 @@ public class RateLimitRepositoryTest extends AbstractRepositoryTest {
      */
     private static RateLimit initialize(RateLimit rateLimit) {
         final long counter = 0;
-        return of(rateLimit.getKey(), counter, rateLimit.getResetTime(), rateLimit.getLimit(), rateLimit.getSubscription());
+        return of(
+                rateLimit.getKey(),
+                counter,
+                rateLimit.getResetTime(),
+                rateLimit.getLimit(),
+                rateLimit.getSubscription());
     }
 }

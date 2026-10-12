@@ -43,6 +43,7 @@ public class ApiImportDomainServiceLegacyWrapper implements ApiImportDomainServi
 
     @Override
     public void createMembers(Set<ApiMember> members, String apiId) {
-        apiImportExportService.createMembers(GraviteeContext.getExecutionContext(), apiId, MemberAdapter.INSTANCE.toEntities(members));
+        apiImportExportService.createMembers(
+                GraviteeContext.getExecutionContext(), apiId, MemberAdapter.INSTANCE.toEntities(members));
     }
 }

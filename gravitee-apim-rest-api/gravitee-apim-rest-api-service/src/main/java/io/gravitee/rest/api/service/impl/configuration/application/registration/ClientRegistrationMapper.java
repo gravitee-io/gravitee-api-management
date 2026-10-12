@@ -29,7 +29,9 @@ import org.mapstruct.factory.Mappers;
 public interface ClientRegistrationMapper {
     ClientRegistrationMapper INSTANCE = Mappers.getMapper(ClientRegistrationMapper.class);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
+    @BeanMapping(
+            nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE,
+            ignoreByDefault = true)
     @Mapping(source = "name", target = "clientName")
     @Mapping(source = "settings.oauth.applicationType", target = "applicationType")
     @Mapping(source = "settings.oauth.clientUri", target = "clientUri")
@@ -38,11 +40,11 @@ public interface ClientRegistrationMapper {
     @Mapping(source = "settings.oauth.redirectUris", target = "redirectUris")
     @Mapping(source = "settings.oauth.responseTypes", target = "responseTypes")
     ClientRegistrationRequest toClientRegistrationRequest(
-        @MappingTarget ClientRegistrationRequest target,
-        NewApplicationEntity application
-    );
+            @MappingTarget ClientRegistrationRequest target, NewApplicationEntity application);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
+    @BeanMapping(
+            nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE,
+            ignoreByDefault = true)
     @Mapping(source = "name", target = "clientName")
     @Mapping(source = "settings.oauth.applicationType", target = "applicationType")
     @Mapping(source = "settings.oauth.clientUri", target = "clientUri")
@@ -50,10 +52,12 @@ public interface ClientRegistrationMapper {
     @Mapping(source = "settings.oauth.logoUri", target = "logoUri")
     @Mapping(source = "settings.oauth.redirectUris", target = "redirectUris")
     @Mapping(source = "settings.oauth.responseTypes", target = "responseTypes")
-    void toClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, UpdateApplicationEntity application);
+    void toClientRegistrationRequest(
+            @MappingTarget ClientRegistrationRequest target, UpdateApplicationEntity application);
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
-    void mergeClientRegistrationRequest(@MappingTarget ClientRegistrationRequest target, ClientRegistrationRequest source);
+    void mergeClientRegistrationRequest(
+            @MappingTarget ClientRegistrationRequest target, ClientRegistrationRequest source);
 
     default String map(List<String> value) {
         return value != null ? String.join(ClientRegistrationRequest.SCOPE_DELIMITER, value) : null;

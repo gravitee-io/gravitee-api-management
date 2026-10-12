@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.user.model.RawPassword;
 import io.gravitee.rest.api.service.PasswordValidator;
 import io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 

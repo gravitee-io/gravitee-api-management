@@ -54,7 +54,8 @@ public class ThemesResourceTest extends AbstractResourceTest {
         createdTheme.setId(THEME_ID);
         createdTheme.setName("my-theme");
 
-        when(themeService.createPortalTheme(eq(GraviteeContext.getExecutionContext()), eq(newTheme))).thenReturn(createdTheme);
+        when(themeService.createPortalTheme(eq(GraviteeContext.getExecutionContext()), eq(newTheme)))
+                .thenReturn(createdTheme);
 
         final Response response = envTarget().request().post(json(newTheme));
 
@@ -72,7 +73,8 @@ public class ThemesResourceTest extends AbstractResourceTest {
         activeTheme.setId(THEME_ID);
         activeTheme.setName("my-theme");
 
-        when(themeService.findOrCreateDefaultPortalTheme(eq(GraviteeContext.getExecutionContext()))).thenReturn(activeTheme);
+        when(themeService.findOrCreateDefaultPortalTheme(eq(GraviteeContext.getExecutionContext())))
+                .thenReturn(activeTheme);
 
         final Response response = envTarget("/current").request().get();
 

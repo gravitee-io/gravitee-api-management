@@ -58,7 +58,8 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID + "/documentations";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID
+                + "/documentations";
     }
 
     @Nested
@@ -66,17 +67,15 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_populated_state_when_validation_passes() {
-            when(validateApiDocumentationUseCase.execute(any())).thenReturn(
-                new CreateOrUpdateApiDocumentationUseCase.Output(PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"), List.of())
-            );
+            when(validateApiDocumentationUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiDocumentationUseCase.Output(
+                            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(validateApiDocumentationUseCase).execute(any(CreateOrUpdateApiDocumentationUseCase.Input.class));
                 verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
@@ -101,20 +100,16 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_errors_when_validation_fails() {
-            when(validateApiDocumentationUseCase.execute(any())).thenReturn(
-                new CreateOrUpdateApiDocumentationUseCase.Output(
-                    PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
-                    List.of(Validator.Error.severe("location must start with '/'"))
-                )
-            );
+            when(validateApiDocumentationUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiDocumentationUseCase.Output(
+                            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
+                            List.of(Validator.Error.severe("location must start with '/'"))));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
 
@@ -127,13 +122,11 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_hrid_is_missing() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("invalid-api-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("invalid-api-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(validateApiDocumentationUseCase);
                 verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
@@ -142,13 +135,11 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_area_is_not_top_navbar() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-documentation-homepage.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-documentation-homepage.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(validateApiDocumentationUseCase);
                 verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
@@ -161,18 +152,17 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_api_documentation() {
-            when(createOrUpdateApiDocumentationUseCase.execute(any())).thenReturn(
-                new CreateOrUpdateApiDocumentationUseCase.Output(PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"), List.of())
-            );
+            when(createOrUpdateApiDocumentationUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiDocumentationUseCase.Output(
+                            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                verify(createOrUpdateApiDocumentationUseCase).execute(any(CreateOrUpdateApiDocumentationUseCase.Input.class));
+                verify(createOrUpdateApiDocumentationUseCase)
+                        .execute(any(CreateOrUpdateApiDocumentationUseCase.Input.class));
 
                 var state = response.readEntity(DocumentationState.class);
                 SoftAssertions.assertSoftly(soft -> {
@@ -186,28 +176,23 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_validation_severe_error_raised() {
-            when(createOrUpdateApiDocumentationUseCase.execute(any())).thenThrow(
-                new ValidationDomainException("location must start with '/'")
-            );
+            when(createOrUpdateApiDocumentationUseCase.execute(any()))
+                    .thenThrow(new ValidationDomainException("location must start with '/'"));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
 
         @Test
         void should_return_400_when_area_is_not_top_navbar() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-documentation-homepage.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-documentation-homepage.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
                 verifyNoInteractions(validateApiDocumentationUseCase);

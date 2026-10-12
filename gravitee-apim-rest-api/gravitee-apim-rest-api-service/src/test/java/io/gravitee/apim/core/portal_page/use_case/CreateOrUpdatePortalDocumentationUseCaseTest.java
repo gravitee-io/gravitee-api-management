@@ -65,51 +65,53 @@ import org.junit.jupiter.api.Test;
 class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String PORTAL_HRID = "default-portal";
     private static final String DOC_HRID = "getting-started";
-    private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
-    private static final PortalPageContentId DOC_ID = PortalPageContentId.of(
-        HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid(DOC_HRID).id()
-    );
+    private static final PortalId PORTAL_ID = PortalId.of(
+            HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
+    private static final PortalPageContentId DOC_ID = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+            .context(AUDIT_INFO)
+            .portal(PORTAL_HRID)
+            .hrid(DOC_HRID)
+            .id());
 
     private final PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
-    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
-    private final ValidatePortalDocumentationDomainService validator = new ValidatePortalDocumentationDomainService(scopeEnforcer);
+    private final PortalAutomationScopeDomainService scopeEnforcer =
+            new PortalAutomationScopeDomainService(portalCrudService, () -> false);
+    private final ValidatePortalDocumentationDomainService validator =
+            new ValidatePortalDocumentationDomainService(scopeEnforcer);
     private CreateOrUpdatePortalDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
         var gmdContentValidator = new GraviteePortalPageContentValidatorService(
-            new GraviteeMarkdownValidator(),
-            navQueryService,
-            mock(PortalNavigationEnclosingApiDomainService.class),
-            mock(PortalNavigationTemplatingService.class),
-            mock(ApiTemplateModelProvider.class),
-            mock(EnvironmentTemplateModelProvider.class)
-        );
-        useCase = new CreateOrUpdatePortalDocumentationUseCase(
-            validator,
-            crudService,
-            queryService,
-            new PortalPageContentValidatorService(List.of(gmdContentValidator)),
-            new PortalDocumentationSyncDomainService(
-                navCrudService,
+                new GraviteeMarkdownValidator(),
                 navQueryService,
-                new HomepageReconciler(navQueryService, navCrudService, crudService),
-                mock(PortalNavigationItemValidatorService.class)
-            ),
-            scopeEnforcer
-        );
+                mock(PortalNavigationEnclosingApiDomainService.class),
+                mock(PortalNavigationTemplatingService.class),
+                mock(ApiTemplateModelProvider.class),
+                mock(EnvironmentTemplateModelProvider.class));
+        useCase = new CreateOrUpdatePortalDocumentationUseCase(
+                validator,
+                crudService,
+                queryService,
+                new PortalPageContentValidatorService(List.of(gmdContentValidator)),
+                new PortalDocumentationSyncDomainService(
+                        navCrudService,
+                        navQueryService,
+                        new HomepageReconciler(navQueryService, navCrudService, crudService),
+                        mock(PortalNavigationItemValidatorService.class)),
+                scopeEnforcer);
     }
 
     @AfterEach
@@ -123,7 +125,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     void should_create_when_not_existing() {
         seedDefaultPortal();
 
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
 
         assertThat(output.id()).isEqualTo(DOC_ID);
         assertThat(output.errors()).isEmpty();
@@ -138,10 +141,12 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_update_when_existing() {
         seedDefaultPortal();
-        useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
+        useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
 
-        var output = useCase.execute(input("Renamed", PortalPageContentType.OPENAPI, "openapi: 3.0.0", "/projects/alpha/v2", 5));
+        var output = useCase.execute(
+                input("Renamed", PortalPageContentType.OPENAPI, "openapi: 3.0.0", "/projects/alpha/v2", 5));
 
         assertThat(output.id()).isEqualTo(DOC_ID);
         assertThat(crudService.storage()).hasSize(1);
@@ -156,12 +161,13 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_reject_update_when_content_becomes_blank() {
         seedDefaultPortal();
-        useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
+        useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
 
-        assertThatThrownBy(() ->
-            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "   ", "/projects/alpha", 1))
-        ).isInstanceOf(GraviteeMarkdownContentEmptyException.class);
+        assertThatThrownBy(() -> useCase.execute(
+                        input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "   ", "/projects/alpha", 1)))
+                .isInstanceOf(GraviteeMarkdownContentEmptyException.class);
     }
 
     @Test
@@ -180,7 +186,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_persist_with_null_location_and_order() {
         seedDefaultPortal();
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", null, null));
+        var output = useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", null, null));
 
         assertThat(output.errors()).isEmpty();
         var stored = crudService.storage().get(0);
@@ -190,9 +197,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_location_is_malformed() {
-        var throwable = catchThrowable(() ->
-            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "projects/alpha", 1))
-        );
+        var throwable = catchThrowable(() -> useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "projects/alpha", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("location");
@@ -202,8 +208,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_throw_validation_error_when_name_is_null() {
         var throwable = catchThrowable(() ->
-            useCase.execute(input(null, PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1))
-        );
+                useCase.execute(input(null, PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("name");
@@ -212,7 +217,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_type_is_null() {
-        var throwable = catchThrowable(() -> useCase.execute(input("Getting Started", null, "# Hello", "/projects/alpha", 1)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(input("Getting Started", null, "# Hello", "/projects/alpha", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("type");
@@ -222,8 +228,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_throw_validation_error_when_name_is_blank() {
         var throwable = catchThrowable(() ->
-            useCase.execute(input("  ", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1))
-        );
+                useCase.execute(input("  ", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("name");
@@ -232,9 +237,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_content_is_null() {
-        var throwable = catchThrowable(() ->
-            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, null, "/projects/alpha", 1))
-        );
+        var throwable = catchThrowable(() -> useCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, null, "/projects/alpha", 1)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("content");
@@ -244,39 +248,35 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_reject_portal_when_environment_already_has_a_different_portal() {
         var establishedCrud = new PortalCrudServiceInMemory();
-        establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
+        establishedCrud.initWith(
+                List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
         var restrictedEnforcer = new PortalAutomationScopeDomainService(establishedCrud, () -> false);
         var restrictedUseCase = new CreateOrUpdatePortalDocumentationUseCase(
-            new ValidatePortalDocumentationDomainService(restrictedEnforcer),
-            crudService,
-            queryService,
-            mock(PortalPageContentValidatorService.class),
-            new PortalDocumentationSyncDomainService(
-                navCrudService,
-                navQueryService,
-                new HomepageReconciler(navQueryService, navCrudService, crudService),
-                mock(PortalNavigationItemValidatorService.class)
-            ),
-            restrictedEnforcer
-        );
-        var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
+                new ValidatePortalDocumentationDomainService(restrictedEnforcer),
+                crudService,
+                queryService,
+                mock(PortalPageContentValidatorService.class),
+                new PortalDocumentationSyncDomainService(
+                        navCrudService,
+                        navQueryService,
+                        new HomepageReconciler(navQueryService, navCrudService, crudService),
+                        mock(PortalNavigationItemValidatorService.class)),
+                restrictedEnforcer);
+        var nonDefaultPortalId = PortalId.of(
+                HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
 
-        var throwable = catchThrowable(() ->
-            restrictedUseCase.execute(
-                new CreateOrUpdatePortalDocumentationUseCase.Input(
-                    AUDIT_INFO,
-                    DOC_ID,
-                    nonDefaultPortalId,
-                    "Getting Started",
-                    PortalPageContentType.GRAVITEE_MARKDOWN,
-                    "# Hello",
-                    "/projects/alpha",
-                    1,
-                    null,
-                    null
-                )
-            )
-        );
+        var throwable =
+                catchThrowable(() -> restrictedUseCase.execute(new CreateOrUpdatePortalDocumentationUseCase.Input(
+                        AUDIT_INFO,
+                        DOC_ID,
+                        nonDefaultPortalId,
+                        "Getting Started",
+                        PortalPageContentType.GRAVITEE_MARKDOWN,
+                        "# Hello",
+                        "/projects/alpha",
+                        1,
+                        null,
+                        null)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("portalHrid").contains("established portal");
@@ -286,30 +286,29 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     @Test
     void should_reject_the_apply_and_persist_nothing_when_the_portal_is_not_in_the_environment() {
         // portalCrudService is empty in this class, so nonDefaultPortalId resolves to no portal here.
-        var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
-        var nonDefaultDocId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal("foo-portal").hrid(DOC_HRID).id()
-        );
+        var nonDefaultPortalId = PortalId.of(
+                HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
+        var nonDefaultDocId = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+                .context(AUDIT_INFO)
+                .portal("foo-portal")
+                .hrid(DOC_HRID)
+                .id());
 
-        var throwable = catchThrowable(() ->
-            useCase.execute(
-                new CreateOrUpdatePortalDocumentationUseCase.Input(
-                    AUDIT_INFO,
-                    nonDefaultDocId,
-                    nonDefaultPortalId,
-                    "Getting Started",
-                    PortalPageContentType.GRAVITEE_MARKDOWN,
-                    "# Hello",
-                    "/projects/alpha",
-                    1,
-                    null,
-                    null
-                )
-            )
-        );
+        var throwable = catchThrowable(() -> useCase.execute(new CreateOrUpdatePortalDocumentationUseCase.Input(
+                AUDIT_INFO,
+                nonDefaultDocId,
+                nonDefaultPortalId,
+                "Getting Started",
+                PortalPageContentType.GRAVITEE_MARKDOWN,
+                "# Hello",
+                "/projects/alpha",
+                1,
+                null,
+                null)));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
-        assertThat(throwable.getMessage()).contains("the portal to attach the documentation to does not exist in this environment");
+        assertThat(throwable.getMessage())
+                .contains("the portal to attach the documentation to does not exist in this environment");
         assertThat(crudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).isEmpty();
     }
@@ -318,17 +317,22 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     void should_not_persist_content_when_a_second_homepage_is_rejected() {
         seedDefaultPortal();
         var realUseCase = useCaseWithRealNavigationValidation();
-        var firstHomepageId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-1").id()
-        );
-        var secondHomepageId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-2").id()
-        );
+        var firstHomepageId = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+                .context(AUDIT_INFO)
+                .portal(PORTAL_HRID)
+                .hrid("home-1")
+                .id());
+        var secondHomepageId = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+                .context(AUDIT_INFO)
+                .portal(PORTAL_HRID)
+                .hrid("home-2")
+                .id());
 
         realUseCase.execute(homepageInput(firstHomepageId, "Home", "# Hello"));
         queryService.initWith(crudService.storage());
 
-        var throwable = catchThrowable(() -> realUseCase.execute(homepageInput(secondHomepageId, "Home 2", "# Hello 2")));
+        var throwable =
+                catchThrowable(() -> realUseCase.execute(homepageInput(secondHomepageId, "Home 2", "# Hello 2")));
 
         assertThat(throwable).isInstanceOf(HomepageAlreadyExistsException.class);
         assertThat(crudService.storage()).hasSize(1);
@@ -341,11 +345,11 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         seedDefaultPortal();
         var realUseCase = useCaseWithRealNavigationValidation();
 
-        realUseCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
+        realUseCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
 
-        realUseCase.execute(
-            new CreateOrUpdatePortalDocumentationUseCase.Input(
+        realUseCase.execute(new CreateOrUpdatePortalDocumentationUseCase.Input(
                 AUDIT_INFO,
                 DOC_ID,
                 PORTAL_ID,
@@ -355,147 +359,115 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
                 null,
                 0,
                 PortalArea.HOMEPAGE,
-                null
-            )
-        );
+                null));
 
-        var stored = crudService
-            .storage()
-            .stream()
-            .filter(c -> c.getId().equals(DOC_ID))
-            .findFirst()
-            .orElseThrow();
+        var stored = crudService.storage().stream()
+                .filter(c -> c.getId().equals(DOC_ID))
+                .findFirst()
+                .orElseThrow();
         assertThat(((GraviteeMarkdownPageContent) stored).getContent().value()).isEqualTo("# New content");
-        var navPages = navCrudService
-            .storage()
-            .stream()
-            .filter(PortalNavigationPage.class::isInstance)
-            .map(PortalNavigationPage.class::cast)
-            .filter(page -> DOC_ID.equals(page.getPortalPageContentId()))
-            .toList();
+        var navPages = navCrudService.storage().stream()
+                .filter(PortalNavigationPage.class::isInstance)
+                .map(PortalNavigationPage.class::cast)
+                .filter(page -> DOC_ID.equals(page.getPortalPageContentId()))
+                .toList();
         assertThat(navPages)
-            .singleElement()
-            .satisfies(page -> assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE));
+                .singleElement()
+                .satisfies(page -> assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE));
     }
 
     @Test
     void should_reject_moving_an_existing_page_to_a_conflicting_homepage_without_losing_it() {
         seedDefaultPortal();
         var realUseCase = useCaseWithRealNavigationValidation();
-        var otherHomepageId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-1").id()
-        );
+        var otherHomepageId = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+                .context(AUDIT_INFO)
+                .portal(PORTAL_HRID)
+                .hrid("home-1")
+                .id());
         realUseCase.execute(homepageInput(otherHomepageId, "Home", "# Hello"));
         queryService.initWith(crudService.storage());
 
-        realUseCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
+        realUseCase.execute(
+                input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
 
-        var throwable = catchThrowable(() ->
-            realUseCase.execute(
-                new CreateOrUpdatePortalDocumentationUseCase.Input(
-                    AUDIT_INFO,
-                    DOC_ID,
-                    PORTAL_ID,
-                    "Getting Started",
-                    PortalPageContentType.GRAVITEE_MARKDOWN,
-                    "# New content",
-                    "/projects/alpha",
-                    1,
-                    PortalArea.HOMEPAGE,
-                    null
-                )
-            )
-        );
+        var throwable = catchThrowable(() -> realUseCase.execute(new CreateOrUpdatePortalDocumentationUseCase.Input(
+                AUDIT_INFO,
+                DOC_ID,
+                PORTAL_ID,
+                "Getting Started",
+                PortalPageContentType.GRAVITEE_MARKDOWN,
+                "# New content",
+                "/projects/alpha",
+                1,
+                PortalArea.HOMEPAGE,
+                null)));
 
         assertThat(throwable).isInstanceOf(HomepageAlreadyExistsException.class);
-        var stored = crudService
-            .storage()
-            .stream()
-            .filter(c -> c.getId().equals(DOC_ID))
-            .findFirst()
-            .orElseThrow();
+        var stored = crudService.storage().stream()
+                .filter(c -> c.getId().equals(DOC_ID))
+                .findFirst()
+                .orElseThrow();
         assertThat(((GraviteeMarkdownPageContent) stored).getContent().value()).isEqualTo("# Original");
-        var navPage = navCrudService
-            .storage()
-            .stream()
-            .filter(PortalNavigationPage.class::isInstance)
-            .map(PortalNavigationPage.class::cast)
-            .filter(page -> DOC_ID.equals(page.getPortalPageContentId()))
-            .findFirst()
-            .orElseThrow();
+        var navPage = navCrudService.storage().stream()
+                .filter(PortalNavigationPage.class::isInstance)
+                .map(PortalNavigationPage.class::cast)
+                .filter(page -> DOC_ID.equals(page.getPortalPageContentId()))
+                .findFirst()
+                .orElseThrow();
         assertThat(navPage.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
     }
 
     private CreateOrUpdatePortalDocumentationUseCase useCaseWithRealNavigationValidation() {
         var gmdContentValidator = new GraviteePortalPageContentValidatorService(
-            new GraviteeMarkdownValidator(),
-            navQueryService,
-            mock(PortalNavigationEnclosingApiDomainService.class),
-            mock(PortalNavigationTemplatingService.class),
-            mock(ApiTemplateModelProvider.class),
-            mock(EnvironmentTemplateModelProvider.class)
-        );
-        return new CreateOrUpdatePortalDocumentationUseCase(
-            validator,
-            crudService,
-            queryService,
-            new PortalPageContentValidatorService(List.of(gmdContentValidator)),
-            new PortalDocumentationSyncDomainService(
-                navCrudService,
+                new GraviteeMarkdownValidator(),
                 navQueryService,
-                new HomepageReconciler(navQueryService, navCrudService, crudService),
-                new PortalNavigationItemValidatorService(
-                    navQueryService,
-                    PortalPageContentQueryServiceInMemory.sharing(crudService.storage()),
-                    new ApiProductQueryServiceInMemory(),
-                    new PortalNavigationItemSourceDomainServiceInMemory(),
-                    new ApiCrudServiceInMemory()
-                )
-            ),
-            scopeEnforcer
-        );
+                mock(PortalNavigationEnclosingApiDomainService.class),
+                mock(PortalNavigationTemplatingService.class),
+                mock(ApiTemplateModelProvider.class),
+                mock(EnvironmentTemplateModelProvider.class));
+        return new CreateOrUpdatePortalDocumentationUseCase(
+                validator,
+                crudService,
+                queryService,
+                new PortalPageContentValidatorService(List.of(gmdContentValidator)),
+                new PortalDocumentationSyncDomainService(
+                        navCrudService,
+                        navQueryService,
+                        new HomepageReconciler(navQueryService, navCrudService, crudService),
+                        new PortalNavigationItemValidatorService(
+                                navQueryService,
+                                PortalPageContentQueryServiceInMemory.sharing(crudService.storage()),
+                                new ApiProductQueryServiceInMemory(),
+                                new PortalNavigationItemSourceDomainServiceInMemory(),
+                                new ApiCrudServiceInMemory())),
+                scopeEnforcer);
     }
 
-    private static CreateOrUpdatePortalDocumentationUseCase.Input homepageInput(PortalPageContentId id, String name, String content) {
+    private static CreateOrUpdatePortalDocumentationUseCase.Input homepageInput(
+            PortalPageContentId id, String name, String content) {
         return new CreateOrUpdatePortalDocumentationUseCase.Input(
-            AUDIT_INFO,
-            id,
-            PORTAL_ID,
-            name,
-            PortalPageContentType.GRAVITEE_MARKDOWN,
-            content,
-            null,
-            0,
-            PortalArea.HOMEPAGE,
-            null
-        );
+                AUDIT_INFO,
+                id,
+                PORTAL_ID,
+                name,
+                PortalPageContentType.GRAVITEE_MARKDOWN,
+                content,
+                null,
+                0,
+                PortalArea.HOMEPAGE,
+                null);
     }
 
     private void seedDefaultPortal() {
-        portalCrudService.initWith(
-            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
-        );
+        portalCrudService.initWith(List.of(
+                Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal")));
     }
 
     private static CreateOrUpdatePortalDocumentationUseCase.Input input(
-        String name,
-        PortalPageContentType type,
-        String content,
-        String location,
-        Integer order
-    ) {
+            String name, PortalPageContentType type, String content, String location, Integer order) {
         return new CreateOrUpdatePortalDocumentationUseCase.Input(
-            AUDIT_INFO,
-            DOC_ID,
-            PORTAL_ID,
-            name,
-            type,
-            content,
-            location,
-            order,
-            null,
-            null
-        );
+                AUDIT_INFO, DOC_ID, PORTAL_ID, name, type, content, location, order, null, null);
     }
 }

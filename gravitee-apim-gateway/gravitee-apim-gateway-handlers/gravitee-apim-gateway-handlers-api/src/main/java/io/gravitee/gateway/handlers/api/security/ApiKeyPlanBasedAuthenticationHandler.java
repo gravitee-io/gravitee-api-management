@@ -34,7 +34,8 @@ public class ApiKeyPlanBasedAuthenticationHandler extends PlanBasedAuthenticatio
 
     private SubscriptionService subscriptionService;
 
-    public ApiKeyPlanBasedAuthenticationHandler(AuthenticationHandler handler, Plan plan, SubscriptionService subscriptionService) {
+    public ApiKeyPlanBasedAuthenticationHandler(
+            AuthenticationHandler handler, Plan plan, SubscriptionService subscriptionService) {
         super(handler, plan);
         this.subscriptionService = subscriptionService;
     }
@@ -51,10 +52,10 @@ public class ApiKeyPlanBasedAuthenticationHandler extends PlanBasedAuthenticatio
         }
 
         Optional<Subscription> optSubscription = subscriptionService.getByApiAndSecurityToken(
-            plan.getApi(),
-            SecurityToken.forApiKey(optApikey.get().getKey()),
-            plan.getId()
-        );
-        return optSubscription.isPresent() && optSubscription.get().isTimeValid(authenticationContext.request().timestamp());
+                plan.getApi(), SecurityToken.forApiKey(optApikey.get().getKey()), plan.getId());
+        return optSubscription.isPresent()
+                && optSubscription
+                        .get()
+                        .isTimeValid(authenticationContext.request().timestamp());
     }
 }

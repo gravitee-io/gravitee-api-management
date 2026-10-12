@@ -49,12 +49,13 @@ public class InitializeSharedPolicyGroupUseCaseTest {
     private final String ORG_ID = "org-id";
     private final String ENV_ID = "env-id";
 
-    private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory();
+    private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService =
+            new SharedPolicyGroupCrudServiceInMemory();
     private final PolicyPluginCrudServiceInMemory policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
     private final EventCrudInMemory eventCrudInMemory = new EventCrudInMemory();
     private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private final SharedPolicyGroupHistoryCrudServiceInMemory sharedPolicyGroupHistoryCrudService =
-        new SharedPolicyGroupHistoryCrudServiceInMemory();
+            new SharedPolicyGroupHistoryCrudServiceInMemory();
     private InitializeSharedPolicyGroupUseCase initializeSharedPolicyGroupUseCase;
 
     @BeforeAll
@@ -70,84 +71,89 @@ public class InitializeSharedPolicyGroupUseCaseTest {
     @BeforeEach
     void setUp() {
         initializeSharedPolicyGroupUseCase = new InitializeSharedPolicyGroupUseCase(
-            sharedPolicyGroupCrudService,
-            policyPluginCrudService,
-            eventCrudInMemory,
-            eventLatestCrudInMemory,
-            sharedPolicyGroupHistoryCrudService
-        );
+                sharedPolicyGroupCrudService,
+                policyPluginCrudService,
+                eventCrudInMemory,
+                eventLatestCrudInMemory,
+                sharedPolicyGroupHistoryCrudService);
     }
 
     @Test
     void should_initialize_all_shared_policy_group() {
         // Given
-        policyPluginCrudService.initWith(
-            List.of(
+        policyPluginCrudService.initWith(List.of(
                 PolicyPlugin.builder().id("groovy").name("Groovy").build(),
                 PolicyPlugin.builder().id("rate-limit").name("Rate Limit").build(),
-                PolicyPlugin.builder().id("policy-assign-attributes").name("Assign Attributes").build(),
-                PolicyPlugin.builder().id("policy-http-callout").name("HTTP Callout").build(),
-                PolicyPlugin.builder().id("policy-assign-content").name("Assign Content").build(),
-                PolicyPlugin.builder().id("dynamic-routing").name("Dynamic Routing").build()
-            )
-        );
+                PolicyPlugin.builder()
+                        .id("policy-assign-attributes")
+                        .name("Assign Attributes")
+                        .build(),
+                PolicyPlugin.builder()
+                        .id("policy-http-callout")
+                        .name("HTTP Callout")
+                        .build(),
+                PolicyPlugin.builder()
+                        .id("policy-assign-content")
+                        .name("Assign Content")
+                        .build(),
+                PolicyPlugin.builder()
+                        .id("dynamic-routing")
+                        .name("Dynamic Routing")
+                        .build()));
 
         // When
-        initializeSharedPolicyGroupUseCase.execute(
-            InitializeSharedPolicyGroupUseCase.Input.builder().organizationId(ORG_ID).environmentId(ENV_ID).build()
-        );
+        initializeSharedPolicyGroupUseCase.execute(InitializeSharedPolicyGroupUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .build());
 
         // Then
         // - Check shared policy group is created
         assertThat(sharedPolicyGroupCrudService.storage()).hasSize(3);
         assertThat(sharedPolicyGroupCrudService.storage())
-            .extracting(
-                SharedPolicyGroup::getName,
-                SharedPolicyGroup::getLifecycleState,
-                SharedPolicyGroup::getVersion,
-                SharedPolicyGroup::getApiType,
-                SharedPolicyGroup::getPhase,
-                SharedPolicyGroup::getEnvironmentId
-            )
-            .containsExactly(
-                tuple("AI - Redirect to HuggingFace", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID),
-                tuple("AI - Prompt Templating Example", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID),
-                tuple("AI - Rate Limit & Request token limit", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID)
-            );
+                .extracting(
+                        SharedPolicyGroup::getName,
+                        SharedPolicyGroup::getLifecycleState,
+                        SharedPolicyGroup::getVersion,
+                        SharedPolicyGroup::getApiType,
+                        SharedPolicyGroup::getPhase,
+                        SharedPolicyGroup::getEnvironmentId)
+                .containsExactly(
+                        tuple("AI - Redirect to HuggingFace", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID),
+                        tuple("AI - Prompt Templating Example", DEPLOYED, 0, ApiType.PROXY, FlowPhase.REQUEST, ENV_ID),
+                        tuple(
+                                "AI - Rate Limit & Request token limit",
+                                DEPLOYED,
+                                0,
+                                ApiType.PROXY,
+                                FlowPhase.REQUEST,
+                                ENV_ID));
 
         // - Check events
-        assertThat(eventCrudInMemory.storage())
-            .hasSize(3)
-            .first()
-            .satisfies(event -> {
-                assertThat(event.getEnvironments()).containsExactly(ENV_ID);
-                assertThat(event.getType()).isEqualTo(EventType.DEPLOY_SHARED_POLICY_GROUP);
-                final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup sharedPolicyGroupDefinition =
-                    GraviteeJacksonMapper.getInstance().readValue(
-                        event.getPayload(),
-                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class
-                    );
-                assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
-                assertThat(sharedPolicyGroupDefinition.getPhase()).isEqualTo(
-                    io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST
-                );
-            });
-        assertThat(eventLatestCrudInMemory.storage())
-            .hasSize(3)
-            .first()
-            .satisfies(event -> {
-                assertThat(event.getEnvironments()).containsExactly(ENV_ID);
-                assertThat(event.getType()).isEqualTo(EventType.DEPLOY_SHARED_POLICY_GROUP);
-                final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup sharedPolicyGroupDefinition =
-                    GraviteeJacksonMapper.getInstance().readValue(
-                        event.getPayload(),
-                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class
-                    );
-                assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
-                assertThat(sharedPolicyGroupDefinition.getPhase()).isEqualTo(
-                    io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST
-                );
-            });
+        assertThat(eventCrudInMemory.storage()).hasSize(3).first().satisfies(event -> {
+            assertThat(event.getEnvironments()).containsExactly(ENV_ID);
+            assertThat(event.getType()).isEqualTo(EventType.DEPLOY_SHARED_POLICY_GROUP);
+            final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup sharedPolicyGroupDefinition =
+                    GraviteeJacksonMapper.getInstance()
+                            .readValue(
+                                    event.getPayload(),
+                                    io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class);
+            assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
+            assertThat(sharedPolicyGroupDefinition.getPhase())
+                    .isEqualTo(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST);
+        });
+        assertThat(eventLatestCrudInMemory.storage()).hasSize(3).first().satisfies(event -> {
+            assertThat(event.getEnvironments()).containsExactly(ENV_ID);
+            assertThat(event.getType()).isEqualTo(EventType.DEPLOY_SHARED_POLICY_GROUP);
+            final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup sharedPolicyGroupDefinition =
+                    GraviteeJacksonMapper.getInstance()
+                            .readValue(
+                                    event.getPayload(),
+                                    io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class);
+            assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
+            assertThat(sharedPolicyGroupDefinition.getPhase())
+                    .isEqualTo(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST);
+        });
 
         // - Check shared policy group history is created
         assertThat(sharedPolicyGroupHistoryCrudService.storage()).hasSize(3);
@@ -156,17 +162,15 @@ public class InitializeSharedPolicyGroupUseCaseTest {
     @Test
     void should_not_throw_exception_when_shared_policy_group_have_missing_policies() {
         // Given
-        policyPluginCrudService.initWith(
-            List.of(
+        policyPluginCrudService.initWith(List.of(
                 PolicyPlugin.builder().id("groovy").name("Groovy").build(),
-                PolicyPlugin.builder().id("rate-limit").name("Rate Limit").build()
-            )
-        );
+                PolicyPlugin.builder().id("rate-limit").name("Rate Limit").build()));
 
         // When
-        initializeSharedPolicyGroupUseCase.execute(
-            InitializeSharedPolicyGroupUseCase.Input.builder().organizationId(ORG_ID).environmentId(ENV_ID).build()
-        );
+        initializeSharedPolicyGroupUseCase.execute(InitializeSharedPolicyGroupUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .build());
 
         // Then
         // Only one example is created as the other two have missing policies

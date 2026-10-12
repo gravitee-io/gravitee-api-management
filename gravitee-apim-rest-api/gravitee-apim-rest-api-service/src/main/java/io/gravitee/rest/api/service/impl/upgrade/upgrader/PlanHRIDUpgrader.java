@@ -20,7 +20,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -49,16 +48,14 @@ public class PlanHRIDUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
-            planRepository
-                .findAll()
-                .forEach(plan -> {
-                    plan.setHrid(plan.getId());
-                    try {
-                        planRepository.update(plan);
-                    } catch (TechnicalException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+            planRepository.findAll().forEach(plan -> {
+                plan.setHrid(plan.getId());
+                try {
+                    planRepository.update(plan);
+                } catch (TechnicalException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             return true;
         } catch (TechnicalException e) {
             log.error("Error applying upgrader", e);

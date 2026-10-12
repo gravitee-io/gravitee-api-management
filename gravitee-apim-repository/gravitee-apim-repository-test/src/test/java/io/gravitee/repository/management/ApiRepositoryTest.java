@@ -24,7 +24,6 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.*;
@@ -108,9 +107,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(apiSaved.isAllowMultiJwtOauth2Subscriptions(), "Invalid api allow multi JwtOauth2 subscriptions");
 
         // test delete
-        int nbApplicationBefore = apiRepository.search(null, ApiFieldFilter.allFields()).size();
+        int nbApplicationBefore =
+                apiRepository.search(null, ApiFieldFilter.allFields()).size();
         apiRepository.delete(apiId);
-        int nbApplicationAfter = apiRepository.search(null, ApiFieldFilter.allFields()).size();
+        int nbApplicationAfter =
+                apiRepository.search(null, ApiFieldFilter.allFields()).size();
         assertFalse(apiRepository.findById(apiId).isPresent(), "api was deleted");
         assertEquals(nbApplicationBefore - 1, nbApplicationAfter, "Invalid number of apis after deletion");
     }
@@ -120,31 +121,32 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         String apiId = "newApi-Id";
 
         var api = Api.builder()
-            .id(apiId)
-            .environmentId("DEFAULT")
-            .origin("integration")
-            .integrationId("integration-id")
-            .name("A Federated API")
-            .description("federated-api-description")
-            .definition("{}")
-            .version("1.0")
-            .visibility(PRIVATE)
-            .createdAt(parse("11/02/2024"))
-            .updatedAt(parse("11/02/2024"))
-            .lifecycleState(null)
-            .mode(null)
-            .labels(List.of())
-            .categories(Set.of())
-            .groups(Set.of())
-            .apiLifecycleState(CREATED)
-            .syncFrom("MANAGEMENT")
-            .build();
+                .id(apiId)
+                .environmentId("DEFAULT")
+                .origin("integration")
+                .integrationId("integration-id")
+                .name("A Federated API")
+                .description("federated-api-description")
+                .definition("{}")
+                .version("1.0")
+                .visibility(PRIVATE)
+                .createdAt(parse("11/02/2024"))
+                .updatedAt(parse("11/02/2024"))
+                .lifecycleState(null)
+                .mode(null)
+                .labels(List.of())
+                .categories(Set.of())
+                .groups(Set.of())
+                .apiLifecycleState(CREATED)
+                .syncFrom("MANAGEMENT")
+                .build();
         apiRepository.create(api);
 
         assertThat(apiRepository.findById(apiId))
-            .isPresent()
-            .get()
-            .satisfies(result -> assertThat(result).usingRecursiveComparison().isEqualTo(api));
+                .isPresent()
+                .get()
+                .satisfies(
+                        result -> assertThat(result).usingRecursiveComparison().isEqualTo(api));
 
         // test delete
         apiRepository.delete(apiId);
@@ -176,9 +178,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         api.setDisableMembershipNotifications(false);
         api.setAllowMultiJwtOauth2Subscriptions(true);
 
-        int nbAPIsBeforeUpdate = apiRepository.search(null, ApiFieldFilter.allFields()).size();
+        int nbAPIsBeforeUpdate =
+                apiRepository.search(null, ApiFieldFilter.allFields()).size();
         apiRepository.update(api);
-        int nbAPIsAfterUpdate = apiRepository.search(null, ApiFieldFilter.allFields()).size();
+        int nbAPIsAfterUpdate =
+                apiRepository.search(null, ApiFieldFilter.allFields()).size();
 
         assertEquals(nbAPIsBeforeUpdate, nbAPIsAfterUpdate);
 
@@ -189,7 +193,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("New API name", apiUpdated.getName(), "Invalid saved API name.");
         assertEquals("new_DEFAULT", apiUpdated.getEnvironmentId(), "Invalid saved environment id.");
         assertEquals("New description", apiUpdated.getDescription(), "Invalid API description.");
-        assertEquals(new HashSet<>(asList("category1", "category2")), apiUpdated.getCategories(), "Invalid API categories.");
+        assertEquals(
+                new HashSet<>(asList("category1", "category2")), apiUpdated.getCategories(), "Invalid API categories.");
         assertEquals("New definition", apiUpdated.getDefinition(), "Invalid API definition.");
         assertTrue(compareDate("11/02/2016", apiUpdated.getDeployedAt()), "Invalid API deployment date.");
         assertEquals(Collections.singleton("New group"), apiUpdated.getGroups(), "Invalid API group.");
@@ -269,9 +274,10 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByIds() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .ids("api-to-delete", "api-to-update", "unknown")
+                        .build(),
+                ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
@@ -281,33 +287,40 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByEnvironmentsDevs() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().environments(Arrays.asList("DEV", "DEVS")).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .environments(Arrays.asList("DEV", "DEVS"))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "big-name")));
+        assertTrue(apis.stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("api-to-delete", "api-to-update", "big-name")));
     }
 
     @Test
     public void shouldFindByDefinitionVersion() {
         List<Api> v2Apis = apiRepository.search(
-            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .definitionVersion(List.of(DefinitionVersion.V2))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertThat(v2Apis).hasSize(11);
 
         List<Api> v4Apis = apiRepository.search(
-            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .definitionVersion(List.of(DefinitionVersion.V4))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertThat(v4Apis).hasSize(2);
 
         List<Api> federatedApis = apiRepository.search(
-            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.FEDERATED)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .definitionVersion(List.of(DefinitionVersion.FEDERATED))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertThat(federatedApis).hasSize(1);
     }
 
@@ -331,7 +344,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByGroups() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository.search(
+                new ApiCriteria.Builder().groups("api-group", "unknown").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -340,7 +354,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByName() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository.search(
+                new ApiCriteria.Builder().name("api-to-findById name").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -349,7 +364,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByLabel() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().label("label 1").build(), ApiFieldFilter.allFields());
+        List<Api> apis =
+                apiRepository.search(new ApiCriteria.Builder().label("label 1").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -358,38 +374,47 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByState() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build(), ApiFieldFilter.allFields());
+        List<Api> apis =
+                apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
-        assertTrue(
-            apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
-        );
+        assertTrue(apis.stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api")));
     }
 
     @Test
     public void shouldFindByEnvironment() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository.search(
+                new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("grouped-api", "api-to-findById", "edge-api")));
+        assertTrue(apis.stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("grouped-api", "api-to-findById", "edge-api")));
     }
 
     @Test
     public void shouldFindByVersion() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().version("1").build(), ApiFieldFilter.allFields());
+        List<Api> apis =
+                apiRepository.search(new ApiCriteria.Builder().version("1").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
-        assertTrue(
-            apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
-        );
+        assertTrue(apis.stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api")));
     }
 
     @Test
     public void shouldFindByView() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().category("my-category").build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository.search(
+                new ApiCriteria.Builder().category("my-category").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -398,7 +423,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByVisibility() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository.search(
+                new ApiCriteria.Builder().visibility(PUBLIC).build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
@@ -408,9 +434,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByNameAndVersion() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .name("api-to-findById name")
+                        .version("1")
+                        .build(),
+                ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -420,9 +448,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByNameAndVersionWithoutDefinition() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
-            new ApiFieldFilter.Builder().excludeDefinition().build()
-        );
+                new ApiCriteria.Builder()
+                        .name("api-to-findById name")
+                        .version("1")
+                        .build(),
+                new ApiFieldFilter.Builder().excludeDefinition().build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -432,7 +462,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByCrossId() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().crossId("searched-crossId").build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository.search(
+                new ApiCriteria.Builder().crossId("searched-crossId").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -442,9 +473,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByCrossId_andReturnEmptyListIfNotFound() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().crossId("api-cross-id-not-existing").build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().crossId("api-cross-id-not-existing").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertTrue(apis.isEmpty());
     }
@@ -452,9 +481,10 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByLifecycleStates() {
         final List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .lifecycleStates(singletonList(PUBLISHED))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
@@ -467,17 +497,17 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByDefinitionVersionV4() {
         final List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().definitionVersion(singletonList(DefinitionVersion.V4)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .definitionVersion(singletonList(DefinitionVersion.V4))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertEquals(2, apis.size());
         assertThat(apis.stream().map(Api::getId).toList()).containsExactlyInAnyOrder("async-api", "edge-api");
-        Api asyncApi = apis
-            .stream()
-            .filter(a -> "async-api".equals(a.getId()))
-            .findFirst()
-            .orElseThrow();
+        Api asyncApi = apis.stream()
+                .filter(a -> "async-api".equals(a.getId()))
+                .findFirst()
+                .orElseThrow();
         assertEquals(DefinitionVersion.V4, asyncApi.getDefinitionVersion());
         assertEquals(ApiType.MESSAGE, asyncApi.getType());
         assertEquals("async-searched-crossId", asyncApi.getCrossId());
@@ -489,9 +519,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByDefinitionVersionNull() {
         final List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().definitionVersion(singletonList(null)).environmentId("DEV").build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .definitionVersion(singletonList(null))
+                        .environmentId("DEV")
+                        .build(),
+                ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertEquals(2, apis.size());
         assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "big-name")));
@@ -502,61 +534,57 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByDefinitionVersion_V2AndV4_includesLegacyNullDocs() {
         final List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertThat(apis).hasSize(13);
-        assertThat(apis.stream().map(Api::getId).toList()).contains(
-            "async-api",
-            "edge-api",
-            "api-with-many-categories",
-            "legacy-explicit-null-defv-api",
-            "api-to-delete",
-            "big-name"
-        );
+        assertThat(apis.stream().map(Api::getId).toList())
+                .contains(
+                        "async-api",
+                        "edge-api",
+                        "api-with-many-categories",
+                        "legacy-explicit-null-defv-api",
+                        "api-to-delete",
+                        "big-name");
     }
 
     @Test
     public void shouldFindByApiTypes() {
         List<Api> proxyApis = apiRepository.search(
-            new ApiCriteria.Builder().apiTypes(List.of(ApiType.PROXY)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().apiTypes(List.of(ApiType.PROXY)).build(), ApiFieldFilter.allFields());
         assertThat(proxyApis).hasSize(2);
-        assertThat(proxyApis.stream().map(Api::getId).toList()).containsExactlyInAnyOrder("api-to-findById", "grouped-api");
+        assertThat(proxyApis.stream().map(Api::getId).toList())
+                .containsExactlyInAnyOrder("api-to-findById", "grouped-api");
 
         List<Api> messageApis = apiRepository.search(
-            new ApiCriteria.Builder().apiTypes(List.of(ApiType.MESSAGE)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().apiTypes(List.of(ApiType.MESSAGE)).build(), ApiFieldFilter.allFields());
         assertThat(messageApis).hasSize(1);
         assertThat(messageApis.get(0).getId()).isEqualTo("async-api");
 
         List<Api> proxyAndMessageApis = apiRepository.search(
-            new ApiCriteria.Builder().apiTypes(List.of(ApiType.PROXY, ApiType.MESSAGE)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .apiTypes(List.of(ApiType.PROXY, ApiType.MESSAGE))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertThat(proxyAndMessageApis).hasSize(3);
-        assertThat(proxyAndMessageApis.stream().map(Api::getId).toList()).containsExactlyInAnyOrder(
-            "api-to-findById",
-            "grouped-api",
-            "async-api"
-        );
+        assertThat(proxyAndMessageApis.stream().map(Api::getId).toList())
+                .containsExactlyInAnyOrder("api-to-findById", "grouped-api", "async-api");
 
         List<Api> mcpApis = apiRepository.search(
-            new ApiCriteria.Builder().apiTypes(List.of(ApiType.MCP_PROXY)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().apiTypes(List.of(ApiType.MCP_PROXY)).build(), ApiFieldFilter.allFields());
         assertThat(mcpApis).isEmpty();
     }
 
     @Test
     public void should_exclude_by_notApiTypes() {
         List<Api> apisWithoutEdge = apiRepository.search(
-            new ApiCriteria.Builder().environmentId("DEFAULT").notApiTypes(List.of(ApiType.EDGE)).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .environmentId("DEFAULT")
+                        .notApiTypes(List.of(ApiType.EDGE))
+                        .build(),
+                ApiFieldFilter.allFields());
         assertThat(apisWithoutEdge).isNotEmpty();
         assertThat(apisWithoutEdge.stream().map(Api::getType).toList()).doesNotContain(ApiType.EDGE);
         assertThat(apisWithoutEdge.stream().map(Api::getId).toList()).doesNotContain("edge-api");
@@ -566,25 +594,24 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByIntegrationId() {
         var integrationId = "integration-id";
         final List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().integrationId(integrationId).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().integrationId(integrationId).build(), ApiFieldFilter.allFields());
         assertThat(apis).isNotNull().isNotEmpty().hasSize(1);
     }
 
     @Test
     public void should_return_the_integration_id_of_apis_found_by_search() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().integrationId("integration-id").build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().integrationId("integration-id").build(), ApiFieldFilter.allFields());
 
-        assertThat(apis).extracting(Api::getId, Api::getIntegrationId).containsExactly(tuple("federated-api", "integration-id"));
+        assertThat(apis)
+                .extracting(Api::getId, Api::getIntegrationId)
+                .containsExactly(tuple("federated-api", "integration-id"));
     }
 
     @Test
     public void should_return_no_integration_id_for_a_non_federated_api_found_by_search() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().ids("api-to-findById").build(), ApiFieldFilter.allFields());
+        List<Api> apis = apiRepository.search(
+                new ApiCriteria.Builder().ids("api-to-findById").build(), ApiFieldFilter.allFields());
 
         assertThat(apis).extracting(Api::getId, Api::getIntegrationId).containsExactly(tuple("api-to-findById", null));
     }
@@ -592,18 +619,16 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("paginatedSearchFieldFilters")
     public void should_project_the_payload_columns_of_a_paginated_search_as_the_field_filter_asks(
-        String caseName,
-        ApiFieldFilter fieldFilter,
-        String expectedDefinition,
-        String expectedPicture,
-        String expectedBackground
-    ) {
+            String caseName,
+            ApiFieldFilter fieldFilter,
+            String expectedDefinition,
+            String expectedPicture,
+            String expectedBackground) {
         Page<Api> page = apiRepository.search(
-            new ApiCriteria.Builder().integrationId("integration-id").build(),
-            null,
-            new PageableBuilder().pageNumber(0).pageSize(10).build(),
-            fieldFilter
-        );
+                new ApiCriteria.Builder().integrationId("integration-id").build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                fieldFilter);
 
         assertThat(page.getContent()).hasSize(1);
         assertThat(page.getContent().get(0).getId()).isEqualTo("federated-api");
@@ -614,50 +639,48 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     private static Stream<Arguments> paginatedSearchFieldFilters() {
         return Stream.of(
-            Arguments.of(
-                "an excluded definition is left unread while the images stay readable",
-                new ApiFieldFilter.Builder().excludeDefinition().build(),
-                null,
-                FEDERATED_API_PICTURE,
-                FEDERATED_API_BACKGROUND
-            ),
-            Arguments.of(
-                "an excluded picture takes the background with it while the definition stays readable",
-                new ApiFieldFilter.Builder().excludePicture().build(),
-                FEDERATED_API_DEFINITION,
-                null,
-                null
-            ),
-            Arguments.of(
-                "the exclusions this listing asks for are honored together",
-                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build(),
-                null,
-                null,
-                null
-            ),
-            Arguments.of(
-                "a caller asking for no filter at all is handed every column",
-                null,
-                FEDERATED_API_DEFINITION,
-                FEDERATED_API_PICTURE,
-                FEDERATED_API_BACKGROUND
-            ),
-            Arguments.of(
-                "an unexcluded column is read whole",
-                ApiFieldFilter.allFields(),
-                FEDERATED_API_DEFINITION,
-                FEDERATED_API_PICTURE,
-                FEDERATED_API_BACKGROUND
-            )
-        );
+                Arguments.of(
+                        "an excluded definition is left unread while the images stay readable",
+                        new ApiFieldFilter.Builder().excludeDefinition().build(),
+                        null,
+                        FEDERATED_API_PICTURE,
+                        FEDERATED_API_BACKGROUND),
+                Arguments.of(
+                        "an excluded picture takes the background with it while the definition stays readable",
+                        new ApiFieldFilter.Builder().excludePicture().build(),
+                        FEDERATED_API_DEFINITION,
+                        null,
+                        null),
+                Arguments.of(
+                        "the exclusions this listing asks for are honored together",
+                        new ApiFieldFilter.Builder()
+                                .excludeDefinition()
+                                .excludePicture()
+                                .build(),
+                        null,
+                        null,
+                        null),
+                Arguments.of(
+                        "a caller asking for no filter at all is handed every column",
+                        null,
+                        FEDERATED_API_DEFINITION,
+                        FEDERATED_API_PICTURE,
+                        FEDERATED_API_BACKGROUND),
+                Arguments.of(
+                        "an unexcluded column is read whole",
+                        ApiFieldFilter.allFields(),
+                        FEDERATED_API_DEFINITION,
+                        FEDERATED_API_PICTURE,
+                        FEDERATED_API_BACKGROUND));
     }
 
     @Test
     public void shouldReturnUniqueApiWhenSearchApisWithCategories() {
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().ids(List.of("api-with-many-categories")).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .ids(List.of("api-with-many-categories"))
+                        .build(),
+                ApiFieldFilter.allFields());
 
         assertNotNull(apis);
         assertEquals(1, apis.size());
@@ -681,7 +704,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldListCategoriesWithCriteria() throws TechnicalException {
-        final Set<String> categories = apiRepository.listCategories(new ApiCriteria.Builder().ids("api-to-findById").build());
+        final Set<String> categories = apiRepository.listCategories(
+                new ApiCriteria.Builder().ids("api-to-findById").build());
         assertNotNull(categories);
         Set<String> expectedCategories = new LinkedHashSet<>();
         expectedCategories.add("my-category");
@@ -709,10 +733,9 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchIdsWithPageable() {
         Page<String> apiIds = apiRepository.searchIds(
-            List.of(new ApiCriteria.Builder().version("1").build()),
-            new PageableBuilder().pageNumber(0).pageSize(2).build(),
-            null
-        );
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(2).build(),
+                null);
 
         assertEquals(4, apiIds.getTotalElements());
         assertEquals(2, apiIds.getPageElements());
@@ -721,10 +744,9 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("api-to-findById", apiIds.getContent().get(1));
 
         apiIds = apiRepository.searchIds(
-            List.of(new ApiCriteria.Builder().version("1").build()),
-            new PageableBuilder().pageNumber(1).pageSize(2).build(),
-            null
-        );
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(1).pageSize(2).build(),
+                null);
 
         assertEquals(4, apiIds.getTotalElements());
         assertEquals(2, apiIds.getPageElements());
@@ -733,10 +755,9 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("grouped-api", apiIds.getContent().get(1));
 
         apiIds = apiRepository.searchIds(
-            List.of(new ApiCriteria.Builder().version("1").build()),
-            new PageableBuilder().pageNumber(0).pageSize(4).build(),
-            new SortableBuilder().field("updated_at").order(Order.DESC).build()
-        );
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(4).build(),
+                new SortableBuilder().field("updated_at").order(Order.DESC).build());
 
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("api-to-delete", apiIds.getContent().get(1));
@@ -745,10 +766,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldReturnUniqueIdsWhenSearchApisWithCategories() {
         Page<String> apiIds = apiRepository.searchIds(
-            List.of(new ApiCriteria.Builder().ids(List.of("api-with-many-categories")).build()),
-            new PageableBuilder().pageNumber(0).pageSize(2).build(),
-            null
-        );
+                List.of(new ApiCriteria.Builder()
+                        .ids(List.of("api-with-many-categories"))
+                        .build()),
+                new PageableBuilder().pageNumber(0).pageSize(2).build(),
+                null);
 
         assertEquals(1, apiIds.getTotalElements());
         assertEquals(1, apiIds.getPageElements());
@@ -756,10 +778,9 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("api-with-many-categories", apiIds.getContent().get(0));
 
         apiIds = apiRepository.searchIds(
-            List.of(new ApiCriteria.Builder().version("1").build()),
-            new PageableBuilder().pageNumber(1).pageSize(2).build(),
-            null
-        );
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(1).pageSize(2).build(),
+                null);
 
         assertEquals(4, apiIds.getTotalElements());
         assertEquals(2, apiIds.getPageElements());
@@ -768,10 +789,9 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("grouped-api", apiIds.getContent().get(1));
 
         apiIds = apiRepository.searchIds(
-            List.of(new ApiCriteria.Builder().version("1").build()),
-            new PageableBuilder().pageNumber(0).pageSize(4).build(),
-            new SortableBuilder().field("updated_at").order(Order.DESC).build()
-        );
+                List.of(new ApiCriteria.Builder().version("1").build()),
+                new PageableBuilder().pageNumber(0).pageSize(4).build(),
+                new SortableBuilder().field("updated_at").order(Order.DESC).build());
 
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("api-to-delete", apiIds.getContent().get(1));
@@ -779,7 +799,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldStreamSearch() {
-        List<Api> apis = apiRepository.search(null, null, ApiFieldFilter.allFields(), 2).toList();
+        List<Api> apis =
+                apiRepository.search(null, null, ApiFieldFilter.allFields(), 2).toList();
 
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
@@ -807,8 +828,12 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         }
 
         try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId("DEFAULT").build();
-            List<String> streamedIds = apiRepository.search(criteria, null, ApiFieldFilter.defaultFields(), 100).map(Api::getId).toList();
+            ApiCriteria criteria =
+                    new ApiCriteria.Builder().ids(ids).environmentId("DEFAULT").build();
+            List<String> streamedIds = apiRepository
+                    .search(criteria, null, ApiFieldFilter.defaultFields(), 100)
+                    .map(Api::getId)
+                    .toList();
 
             assertThat(streamedIds).doesNotHaveDuplicates();
             assertThat(streamedIds).containsExactlyInAnyOrderElementsOf(ids);
@@ -828,12 +853,12 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     private List<String> createDefaultOrderApis() throws TechnicalException {
         // id, name, definition version, category
         String[][] rows = {
-            { "order-3", "beta", "V4", "cat-order" },
-            { "order-1", "beta", null, "cat-order" },
-            { "order-2", "beta", "V2", null },
-            { "order-5", "alpha", "V4", "cat-order" },
-            { "order-4", "gamma", null, null },
-            { "order-6", "alpha", "FEDERATED", "cat-order" },
+            {"order-3", "beta", "V4", "cat-order"},
+            {"order-1", "beta", null, "cat-order"},
+            {"order-2", "beta", "V2", null},
+            {"order-5", "alpha", "V4", "cat-order"},
+            {"order-4", "gamma", null, null},
+            {"order-6", "alpha", "FEDERATED", "cat-order"},
         };
         List<String> ids = new ArrayList<>();
         for (String[] row : rows) {
@@ -867,15 +892,19 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         try {
             // PromotionContextDomainService.searchPathBearingApis: environment + V2/V4, no sort, picture excluded
             ApiCriteria criteria = new ApiCriteria.Builder()
-                .environmentId(DEFAULT_ORDER_ENV)
-                .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                .build();
+                    .environmentId(DEFAULT_ORDER_ENV)
+                    .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                    .build();
 
             // batch size 2 forces several offset pages over the shared names
             List<String> streamed = apiRepository
-                .search(criteria, null, new ApiFieldFilter.Builder().excludePicture().build(), 2)
-                .map(Api::getId)
-                .toList();
+                    .search(
+                            criteria,
+                            null,
+                            new ApiFieldFilter.Builder().excludePicture().build(),
+                            2)
+                    .map(Api::getId)
+                    .toList();
 
             // FEDERATED excluded; legacy documents without definitionVersion count as V2
             assertThat(streamed).containsExactly("order-5", "order-1", "order-2", "order-3", "order-4");
@@ -889,12 +918,19 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         List<String> ids = createDefaultOrderApis();
         try {
             // GetCategoryApisUseCase: category (+ environment), no sort, picture excluded
-            ApiCriteria criteria = new ApiCriteria.Builder().environmentId(DEFAULT_ORDER_ENV).category("cat-order").build();
+            ApiCriteria criteria = new ApiCriteria.Builder()
+                    .environmentId(DEFAULT_ORDER_ENV)
+                    .category("cat-order")
+                    .build();
 
             List<String> streamed = apiRepository
-                .search(criteria, null, new ApiFieldFilter.Builder().excludePicture().build(), 2)
-                .map(Api::getId)
-                .toList();
+                    .search(
+                            criteria,
+                            null,
+                            new ApiFieldFilter.Builder().excludePicture().build(),
+                            2)
+                    .map(Api::getId)
+                    .toList();
 
             assertThat(streamed).containsExactly("order-5", "order-6", "order-1", "order-3");
         } finally {
@@ -906,15 +942,15 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldSearchIdsWithoutSortable_orderedByNameThenIdAcrossPages() throws TechnicalException {
         List<String> ids = createDefaultOrderApis();
         try {
-            List<ApiCriteria> criteria = List.of(new ApiCriteria.Builder().environmentId(DEFAULT_ORDER_ENV).build());
+            List<ApiCriteria> criteria = List.of(
+                    new ApiCriteria.Builder().environmentId(DEFAULT_ORDER_ENV).build());
 
             List<String> collected = new ArrayList<>();
             for (int pageNumber = 0; pageNumber < 3; pageNumber++) {
                 Page<String> page = apiRepository.searchIds(
-                    criteria,
-                    new PageableBuilder().pageNumber(pageNumber).pageSize(2).build(),
-                    null
-                );
+                        criteria,
+                        new PageableBuilder().pageNumber(pageNumber).pageSize(2).build(),
+                        null);
                 assertThat(page.getTotalElements()).isEqualTo(6);
                 collected.addAll(page.getContent());
             }
@@ -949,18 +985,19 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         }
 
         try {
-            List<String> expected = ids
-                .stream()
-                .sorted(Comparator.comparing((String id) -> nameById.get(id)).thenComparing(Comparator.naturalOrder()))
-                .toList();
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId("DEFAULT").build();
+            List<String> expected = ids.stream()
+                    .sorted(Comparator.comparing((String id) -> nameById.get(id))
+                            .thenComparing(Comparator.naturalOrder()))
+                    .toList();
+            ApiCriteria criteria =
+                    new ApiCriteria.Builder().ids(ids).environmentId("DEFAULT").build();
 
             // exact multiple of the batch size, batch size that does not divide the total, and a single page
-            for (int batchSize : new int[] { 100, 70, 1000 }) {
+            for (int batchSize : new int[] {100, 70, 1000}) {
                 List<String> streamedIds = apiRepository
-                    .search(criteria, null, ApiFieldFilter.defaultFields(), batchSize)
-                    .map(Api::getId)
-                    .toList();
+                        .search(criteria, null, ApiFieldFilter.defaultFields(), batchSize)
+                        .map(Api::getId)
+                        .toList();
 
                 assertThat(streamedIds).as("batch size %d", batchSize).containsExactlyElementsOf(expected);
             }
@@ -993,15 +1030,15 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
         final var beforeDeletion = apiRepository
-            .search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.defaultFields())
-            .stream()
-            .map(Api::getId)
-            .toList();
+                .search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.defaultFields())
+                .stream()
+                .map(Api::getId)
+                .toList();
 
         final var deleted = apiRepository.deleteByEnvironmentId("DEFAULT");
         final var nbAfterDeletion = apiRepository
-            .search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.defaultFields())
-            .size();
+                .search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.defaultFields())
+                .size();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(deleted.containsAll(beforeDeletion));

@@ -58,56 +58,49 @@ public class GroupsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)})
     public Response findAll(@BeanParam PaginationParam paginationParam) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        List<Group> groups = groupService
-            .findAll(executionContext)
-            .stream()
-            .map(group -> new Group().id(group.getId()).name(group.getName()))
-            .collect(Collectors.toList());
+        List<Group> groups = groupService.findAll(executionContext).stream()
+                .map(group -> new Group().id(group.getId()).name(group.getName()))
+                .collect(Collectors.toList());
         return createListResponse(executionContext, groups, paginationParam);
     }
 
     @GET
     @Path("/{groupId}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getMembersByGroupId(@PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
+    public Response getMembersByGroupId(
+            @PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!canReadGroupMembers(executionContext, groupId)) {
             throw new ForbiddenAccessException();
         }
         groupService.findById(executionContext, groupId);
 
-        List<Member> groupsMembers = membershipService
-            .getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
-            .stream()
-            .filter(
-                groupMemberEntity ->
-                    groupMemberEntity != null &&
-                    groupMemberEntity
-                        .getRoles()
+        List<Member> groupsMembers =
+                membershipService
+                        .getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
                         .stream()
-                        .anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
-            )
-            .map(groupMemberEntity -> memberMapper.convert(executionContext, groupMemberEntity, uriInfo))
-            .collect(toList());
+                        .filter(groupMemberEntity -> groupMemberEntity != null
+                                && groupMemberEntity.getRoles().stream()
+                                        .anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION)))
+                        .map(groupMemberEntity -> memberMapper.convert(executionContext, groupMemberEntity, uriInfo))
+                        .collect(toList());
 
         return createListResponse(executionContext, groupsMembers, paginationParam);
     }
 
     private boolean canReadGroupMembers(ExecutionContext executionContext, String groupId) {
-        if (
-            hasPermission(
+        if (hasPermission(
                 executionContext,
                 RolePermission.ENVIRONMENT_GROUP,
                 executionContext.getEnvironmentId(),
-                RolePermissionAction.READ
-            )
-        ) {
+                RolePermissionAction.READ)) {
             return true;
         }
-        Set<String> attached = groupService.findGroupIdsAttachedToUserResources(executionContext, getAuthenticatedUser());
+        Set<String> attached =
+                groupService.findGroupIdsAttachedToUserResources(executionContext, getAuthenticatedUser());
         return attached != null && attached.contains(groupId);
     }
 }

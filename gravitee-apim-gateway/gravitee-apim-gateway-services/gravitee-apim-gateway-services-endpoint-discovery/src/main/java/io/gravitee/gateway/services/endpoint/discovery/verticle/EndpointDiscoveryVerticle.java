@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.services.endpoint.discovery.verticle;
 
-import static io.reactivex.rxjava3.core.Observable.interval;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.event.Event;
@@ -36,7 +34,6 @@ import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryF
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -128,20 +125,18 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
     }
 
     private synchronized void startServiceDiscovery(
-        final Api api,
-        final EndpointGroup group,
-        final EndpointDiscoveryService discoveryService
-    ) {
+            final Api api, final EndpointGroup group, final EndpointDiscoveryService discoveryService) {
         log.info(
-            "A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]",
-            api.getId(),
-            api.getName(),
-            group.getName(),
-            discoveryService.getProvider()
-        );
-        ServiceDiscoveryPlugin serviceDiscoveryPlugin = serviceDiscoveryPluginManager.get(discoveryService.getProvider());
+                "A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]",
+                api.getId(),
+                api.getName(),
+                group.getName(),
+                discoveryService.getProvider());
+        ServiceDiscoveryPlugin serviceDiscoveryPlugin =
+                serviceDiscoveryPluginManager.get(discoveryService.getProvider());
         if (serviceDiscoveryPlugin != null) {
-            ServiceDiscovery serviceDiscovery = serviceDiscoveryFactory.create(serviceDiscoveryPlugin, discoveryService.getConfiguration());
+            ServiceDiscovery serviceDiscovery =
+                    serviceDiscoveryFactory.create(serviceDiscoveryPlugin, discoveryService.getConfiguration());
 
             List<ServiceDiscovery> discoveries = apiServiceDiscoveries.getOrDefault(api, new ArrayList<>());
             discoveries.add(serviceDiscovery);
@@ -153,7 +148,10 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                     group.setEndpoints(endpoints);
                 }
                 serviceDiscovery.listen(event -> {
-                    log.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
+                    log.info(
+                            "Receiving a service discovery event id[{}] type[{}]",
+                            event.service().id(),
+                            event.type());
                     Endpoint endpoint = createEndpoint(event.service(), group);
                     switch (event.type()) {
                         case REGISTER:
@@ -167,12 +165,12 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                                 }
                             }
                             Completable.defer(() -> {
-                                endpoints.remove(endpoint);
-                                return Completable.complete();
-                            })
-                                .onErrorComplete()
-                                .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
-                                .subscribe();
+                                        endpoints.remove(endpoint);
+                                        return Completable.complete();
+                                    })
+                                    .onErrorComplete()
+                                    .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
+                                    .subscribe();
                             break;
                     }
                 });
@@ -181,23 +179,24 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
             }
         } else {
             log.error(
-                "No Service Discovery plugin found for type[{}] api[{}] group[{}]",
-                discoveryService.getProvider(),
-                api.getId(),
-                group.getName()
-            );
+                    "No Service Discovery plugin found for type[{}] api[{}] group[{}]",
+                    discoveryService.getProvider(),
+                    api.getId(),
+                    group.getName());
         }
     }
 
     private Endpoint createEndpoint(final Service service, final EndpointGroup group) {
-        final String scheme = (service.scheme() != null) ? service.scheme() : (service.port() == 443 ? "https" : "http");
+        final String scheme =
+                (service.scheme() != null) ? service.scheme() : (service.port() == 443 ? "https" : "http");
         final String basePath = (service.basePath() != null) ? service.basePath() : Service.DEFAULT_BASE_PATH;
 
         // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
         final String serviceName = "sd#" + service.id().replaceAll(":", "#");
         String target = scheme + "://" + service.host() + (service.port() > 0 ? ":" + service.port() : "") + basePath;
 
-        io.gravitee.definition.model.endpoint.HttpEndpoint endpoint = HttpEndpoint.builder().name(serviceName).target(target).build();
+        io.gravitee.definition.model.endpoint.HttpEndpoint endpoint =
+                HttpEndpoint.builder().name(serviceName).target(target).build();
 
         endpoint.setConfiguration(getEndpointConfiguration(group, endpoint, scheme));
 
@@ -210,12 +209,15 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
         if (Service.HTTPS_SCHEME.equalsIgnoreCase(scheme)) {
             HttpClientSslOptions groupHttpClientOptions = group.getHttpClientSslOptions();
             // If truststore is defined at the group level, let's use the configuration
-            if (groupHttpClientOptions != null && !groupHttpClientOptions.isTrustAll() && groupHttpClientOptions.getTrustStore() != null) {
+            if (groupHttpClientOptions != null
+                    && !groupHttpClientOptions.isTrustAll()
+                    && groupHttpClientOptions.getTrustStore() != null) {
                 endpointNode.putPOJO("ssl", groupHttpClientOptions);
             } else {
                 // If SSL configuration has been done at the group level, let's use it
                 // If not, made a proper configuration for the discovered endpoint
-                groupHttpClientOptions = (groupHttpClientOptions != null) ? groupHttpClientOptions : new HttpClientSslOptions();
+                groupHttpClientOptions =
+                        (groupHttpClientOptions != null) ? groupHttpClientOptions : new HttpClientSslOptions();
                 groupHttpClientOptions.setTrustAll(true);
                 endpointNode.putPOJO("ssl", groupHttpClientOptions);
             }

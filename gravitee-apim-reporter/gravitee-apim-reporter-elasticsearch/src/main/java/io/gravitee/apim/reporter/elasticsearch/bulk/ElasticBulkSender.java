@@ -37,19 +37,21 @@ public class ElasticBulkSender extends AbstractService<BulkSender> implements Bu
     @Override
     public Completable send(final CompressedBulk bulk) {
         return elasticClient
-            .bulk(bulk.compressed())
-            .flatMapCompletable(bulkResponse -> {
-                if (bulkResponse.getErrors()) {
-                    return Completable.error(buildException(bulkResponse.getError().getReason(), null));
-                }
-                return Completable.complete();
-            })
-            .onErrorReturn(e -> buildException(e.getMessage(), e))
-            .ignoreElement();
+                .bulk(bulk.compressed())
+                .flatMapCompletable(bulkResponse -> {
+                    if (bulkResponse.getErrors()) {
+                        return Completable.error(
+                                buildException(bulkResponse.getError().getReason(), null));
+                    }
+                    return Completable.complete();
+                })
+                .onErrorReturn(e -> buildException(e.getMessage(), e))
+                .ignoreElement();
     }
 
     private Exception buildException(final String errorMessage, final Throwable throwable) {
-        final String message = "Unable to send bulk data to elasticsearch. Failure reason from ES is [%s].".formatted(errorMessage);
+        final String message =
+                "Unable to send bulk data to elasticsearch. Failure reason from ES is [%s].".formatted(errorMessage);
         return new SendReportException(message, throwable);
     }
 }

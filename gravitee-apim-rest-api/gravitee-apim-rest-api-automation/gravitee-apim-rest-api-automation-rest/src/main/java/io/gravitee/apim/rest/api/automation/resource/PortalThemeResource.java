@@ -43,20 +43,21 @@ public class PortalThemeResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ)})
     public Response getThemeByHrid(@PathParam("hrid") String hrid) {
         var auditInfo = getAuditInfo();
         var themeId = HRIDToUUID.portalTheme().context(auditInfo).hrid(hrid).id();
         try {
             var output = getPortalThemeUseCase.execute(new GetPortalThemeUseCase.Input(auditInfo, themeId));
-            return Response.ok(PortalThemeMapper.INSTANCE.toPortalThemeState(output.theme(), hrid, auditInfo, null)).build();
+            return Response.ok(PortalThemeMapper.INSTANCE.toPortalThemeState(output.theme(), hrid, auditInfo, null))
+                    .build();
         } catch (ThemeNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE)})
     public Response deleteThemeByHrid(@PathParam("hrid") String hrid) {
         var auditInfo = getAuditInfo();
         var themeId = HRIDToUUID.portalTheme().context(auditInfo).hrid(hrid).id();

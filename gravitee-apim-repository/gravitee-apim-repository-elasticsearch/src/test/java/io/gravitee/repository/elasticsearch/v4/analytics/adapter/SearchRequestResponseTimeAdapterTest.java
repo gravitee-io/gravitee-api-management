@@ -45,11 +45,7 @@ class SearchRequestResponseTimeAdapterTest {
         @Test
         void should_build_request_response_time_query_searching_for_ids_and_time_ranges() {
             var queryParams = new RequestResponseTimeQueryCriteria(
-                API_IDS,
-                FROM,
-                TO,
-                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
-            );
+                    API_IDS, FROM, TO, EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2));
 
             var result = sut.adaptQuery(queryParams);
 
@@ -59,11 +55,7 @@ class SearchRequestResponseTimeAdapterTest {
         @Test
         void should_build_top_hits_query_with_empty_id_filter_array_for_empty_api_ids_query_params() {
             var queryParams = new RequestResponseTimeQueryCriteria(
-                List.of(),
-                FROM,
-                TO,
-                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2)
-            );
+                    List.of(), FROM, TO, EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2));
             var result = sut.adaptQuery(queryParams);
 
             assertThatJson(result).isEqualTo(REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST);
@@ -177,35 +169,35 @@ class SearchRequestResponseTimeAdapterTest {
     class Response {
 
         private final SearchResponse searchResponse = new SearchResponse();
-        private final RequestResponseTimeQueryCriteria queryParams = new RequestResponseTimeQueryCriteria(
-            API_IDS,
-            FROM,
-            TO,
-            EnumSet.of(DefinitionVersion.V4)
-        );
+        private final RequestResponseTimeQueryCriteria queryParams =
+                new RequestResponseTimeQueryCriteria(API_IDS, FROM, TO, EnumSet.of(DefinitionVersion.V4));
 
         @Test
         void should_return_empty_result_if_aggregations_is_null() {
-            assertThat(sut.adaptResponse(searchResponse, queryParams)).isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, queryParams))
+                    .isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
         void should_return_just_zeros_result_if_no_aggregation_exist() {
             searchResponse.setAggregations(Map.of());
 
-            assertThat(sut.adaptResponse(searchResponse, queryParams)).isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, queryParams))
+                    .isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
         void should_return_just_zeros_result_if_no_top_hits_count_aggregation_exist() {
             searchResponse.setAggregations(Map.of("fake_aggregation", new Aggregation()));
 
-            assertThat(sut.adaptResponse(searchResponse, queryParams)).isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, queryParams))
+                    .isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
         void should_return_just_zeros_result_if_query_criteria_is_null() {
-            assertThat(sut.adaptResponse(searchResponse, null)).isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(sut.adaptResponse(searchResponse, null))
+                    .isEqualTo(RequestResponseTimeAggregate.builder().build());
         }
 
         @Test
@@ -217,16 +209,13 @@ class SearchRequestResponseTimeAdapterTest {
             final Aggregation avgResponseTimeAggregation = new Aggregation();
             avgResponseTimeAggregation.setValue(335.23d);
 
-            searchResponse.setAggregations(
-                Map.of(
+            searchResponse.setAggregations(Map.of(
                     "max_response_time",
                     maxResponseTimeAggregation,
                     "min_response_time",
                     minResponseTimeAggregation,
                     "avg_response_time",
-                    avgResponseTimeAggregation
-                )
-            );
+                    avgResponseTimeAggregation));
 
             final SearchHits searchHits = new SearchHits();
             searchHits.setTotal(new TotalHits(4L));

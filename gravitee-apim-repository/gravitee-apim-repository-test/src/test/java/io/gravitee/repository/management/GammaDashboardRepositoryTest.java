@@ -28,7 +28,7 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
 
     /** Widget payload with a dotted map key — Mongo rejects those as document keys, hence the opaque String column. */
     private static final String DOTTED_KEY_WIDGETS =
-        "{\"widgets\":[{\"id\":\"w-1\",\"type\":\"line\",\"colorByGroup\":{\"api.example.com\":\"#fff\",\"other.host\":\"#000\"}}]}";
+            "{\"widgets\":[{\"id\":\"w-1\",\"type\":\"line\",\"colorByGroup\":{\"api.example.com\":\"#fff\",\"other.host\":\"#000\"}}]}";
 
     @Override
     protected String getTestCasesPath() {
@@ -55,16 +55,16 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldReturnEnvironmentDashboardsInStableOrder() throws Exception {
         assertThat(gammaDashboardRepository.findByEnvironmentId("DEFAULT"))
-            .extracting(GammaDashboard::getId)
-            .containsExactly("gd-1", "gd-2", "gd-3");
+                .extracting(GammaDashboard::getId)
+                .containsExactly("gd-1", "gd-2", "gd-3");
     }
 
     /** Every module of the environment, the dashboard stored without one ({@code gd-3}) included. */
     @Test
     public void shouldFindByEnvironmentIdWhateverTheModule() throws Exception {
         assertThat(gammaDashboardRepository.findByEnvironmentId("DEFAULT"))
-            .extracting(GammaDashboard::getModule)
-            .containsExactly("aim", "apim", null);
+                .extracting(GammaDashboard::getModule)
+                .containsExactly("aim", "apim", null);
     }
 
     @Test
@@ -82,8 +82,10 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
             assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
             assertThat(result.getModule()).isEqualTo("aim");
             assertThat(result.getCreatedBy()).isEqualTo("user-1");
-            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
-            assertThat(compareDate(result.getUpdatedAt(), new Date(1111111111111L))).isTrue();
+            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L)))
+                    .isTrue();
+            assertThat(compareDate(result.getUpdatedAt(), new Date(1111111111111L)))
+                    .isTrue();
             assertThat(result.getVersion()).isEqualTo(3);
         });
     }
@@ -91,13 +93,15 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldRoundTripAbsentVersionAsNull() throws Exception {
         var dashboard = gammaDashboardRepository.findById("gd-3");
-        assertThat(dashboard).hasValueSatisfying(result -> assertThat(result.getVersion()).isNull());
+        assertThat(dashboard)
+                .hasValueSatisfying(result -> assertThat(result.getVersion()).isNull());
     }
 
     @Test
     public void shouldRoundTripAbsentModuleAsNull() throws Exception {
         var dashboard = gammaDashboardRepository.findById("gd-3");
-        assertThat(dashboard).hasValueSatisfying(result -> assertThat(result.getModule()).isNull());
+        assertThat(dashboard)
+                .hasValueSatisfying(result -> assertThat(result.getModule()).isNull());
     }
 
     @Test
@@ -109,20 +113,24 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldFindByIdAndEnvironmentId() throws Exception {
         var dashboard = gammaDashboardRepository.findByIdAndEnvironmentId("gd-1", "DEFAULT");
-        assertThat(dashboard).hasValueSatisfying(result -> assertThat(result.getTitle()).isEqualTo("Performance Overview"));
+        assertThat(dashboard)
+                .hasValueSatisfying(result -> assertThat(result.getTitle()).isEqualTo("Performance Overview"));
     }
 
     /** Cross-environment isolation is a property of the query, not of a caller-side check. */
     @Test
     public void shouldNotFindByIdWhenEnvironmentDoesNotMatch() throws Exception {
         assertThat(gammaDashboardRepository.findById("gd-4")).isPresent();
-        assertThat(gammaDashboardRepository.findByIdAndEnvironmentId("gd-4", "DEFAULT")).isEmpty();
-        assertThat(gammaDashboardRepository.findByIdAndEnvironmentId("gd-1", "OTHER_ENV")).isEmpty();
+        assertThat(gammaDashboardRepository.findByIdAndEnvironmentId("gd-4", "DEFAULT"))
+                .isEmpty();
+        assertThat(gammaDashboardRepository.findByIdAndEnvironmentId("gd-1", "OTHER_ENV"))
+                .isEmpty();
     }
 
     @Test
     public void shouldNotFindByIdAndEnvironmentIdForUnknownId() throws Exception {
-        assertThat(gammaDashboardRepository.findByIdAndEnvironmentId("unknown", "DEFAULT")).isEmpty();
+        assertThat(gammaDashboardRepository.findByIdAndEnvironmentId("unknown", "DEFAULT"))
+                .isEmpty();
     }
 
     /**
@@ -136,24 +144,20 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
         assertThat(dashboard).hasValueSatisfying(result -> {
             assertThat(result.getFilters()).hasSize(2);
 
-            var editable = result
-                .getFilters()
-                .stream()
-                .filter(f -> "API_TYPE".equals(f.getField()))
-                .findFirst()
-                .orElseThrow();
+            var editable = result.getFilters().stream()
+                    .filter(f -> "API_TYPE".equals(f.getField()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(editable.getLabel()).isEqualTo("API Type");
             assertThat(editable.getOperator()).isEqualTo("in");
             assertThat(editable.getValue()).containsExactly("MCP", "A2A");
             assertThat(editable.isEditable()).isTrue();
 
             // The "all values" placeholder: locked filter carrying an empty value list.
-            var locked = result
-                .getFilters()
-                .stream()
-                .filter(f -> "HTTP_STATUS".equals(f.getField()))
-                .findFirst()
-                .orElseThrow();
+            var locked = result.getFilters().stream()
+                    .filter(f -> "HTTP_STATUS".equals(f.getField()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(locked.getLabel()).isEqualTo("Status");
             assertThat(locked.getOperator()).isEqualTo("eq");
             assertThat(locked.getValue()).isEmpty();
@@ -188,35 +192,35 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldRoundTripWidgetsWithDottedMapKey() throws Exception {
         var dashboard = gammaDashboardRepository.findById("gd-1");
-        assertThat(dashboard).hasValueSatisfying(result -> assertThat(result.getWidgets()).isEqualTo(DOTTED_KEY_WIDGETS));
+        assertThat(dashboard)
+                .hasValueSatisfying(result -> assertThat(result.getWidgets()).isEqualTo(DOTTED_KEY_WIDGETS));
     }
 
     @Test
     public void shouldCreate() throws Exception {
         var dashboard = GammaDashboard.builder()
-            .id("new-gd")
-            .environmentId("DEFAULT")
-            .module("apim")
-            .title("New Dashboard")
-            .description("Created by the TCK")
-            .createdBy("user-new")
-            .createdAt(new Date(1000000000000L))
-            .updatedAt(new Date(1111111111111L))
-            .version(1)
-            .filters(
-                List.of(
-                    GammaDashboard.Filter.builder()
+                .id("new-gd")
+                .environmentId("DEFAULT")
+                .module("apim")
+                .title("New Dashboard")
+                .description("Created by the TCK")
+                .createdBy("user-new")
+                .createdAt(new Date(1000000000000L))
+                .updatedAt(new Date(1111111111111L))
+                .version(1)
+                .filters(List.of(GammaDashboard.Filter.builder()
                         .field("API_TYPE")
                         .label("API Type")
                         .operator("eq")
                         .value(List.of("MCP"))
                         .editable(true)
-                        .build()
-                )
-            )
-            .timeRange(GammaDashboard.TimeRange.builder().type("relative").period("1h").build())
-            .widgets(DOTTED_KEY_WIDGETS)
-            .build();
+                        .build()))
+                .timeRange(GammaDashboard.TimeRange.builder()
+                        .type("relative")
+                        .period("1h")
+                        .build())
+                .widgets(DOTTED_KEY_WIDGETS)
+                .build();
 
         var nbBefore = gammaDashboardRepository.findByEnvironmentId("DEFAULT").size();
         gammaDashboardRepository.create(dashboard);
@@ -232,8 +236,10 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
             assertThat(result.getTitle()).isEqualTo("New Dashboard");
             assertThat(result.getDescription()).isEqualTo("Created by the TCK");
             assertThat(result.getCreatedBy()).isEqualTo("user-new");
-            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
-            assertThat(compareDate(result.getUpdatedAt(), new Date(1111111111111L))).isTrue();
+            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L)))
+                    .isTrue();
+            assertThat(compareDate(result.getUpdatedAt(), new Date(1111111111111L)))
+                    .isTrue();
             assertThat(result.getFilters()).hasSize(1);
             assertThat(result.getFilters().get(0).getField()).isEqualTo("API_TYPE");
             assertThat(result.getFilters().get(0).isEditable()).isTrue();
@@ -255,12 +261,14 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
 
         untouched.setTitle("Same version");
         gammaDashboardRepository.update(untouched);
-        assertThat(gammaDashboardRepository.findById("gd-2")).hasValueSatisfying(result -> assertThat(result.getVersion()).isEqualTo(7));
+        assertThat(gammaDashboardRepository.findById("gd-2"))
+                .hasValueSatisfying(result -> assertThat(result.getVersion()).isEqualTo(7));
 
         var bumped = gammaDashboardRepository.findById("gd-2").orElseThrow();
         bumped.setVersion(8);
         gammaDashboardRepository.update(bumped);
-        assertThat(gammaDashboardRepository.findById("gd-2")).hasValueSatisfying(result -> assertThat(result.getVersion()).isEqualTo(8));
+        assertThat(gammaDashboardRepository.findById("gd-2"))
+                .hasValueSatisfying(result -> assertThat(result.getVersion()).isEqualTo(8));
     }
 
     @Test
@@ -272,10 +280,17 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
         var dashboard = optional.get();
         dashboard.setTitle("Updated Dashboard");
         dashboard.setDescription("Updated description");
-        dashboard.setFilters(
-            List.of(GammaDashboard.Filter.builder().field("PLAN").label("Plan").operator("in").value(List.of()).editable(true).build())
-        );
-        dashboard.setTimeRange(GammaDashboard.TimeRange.builder().type("relative").period("30d").build());
+        dashboard.setFilters(List.of(GammaDashboard.Filter.builder()
+                .field("PLAN")
+                .label("Plan")
+                .operator("in")
+                .value(List.of())
+                .editable(true)
+                .build()));
+        dashboard.setTimeRange(GammaDashboard.TimeRange.builder()
+                .type("relative")
+                .period("30d")
+                .build());
         dashboard.setWidgets(DOTTED_KEY_WIDGETS);
         dashboard.setUpdatedAt(new Date(1222222222222L));
 
@@ -288,8 +303,10 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
             assertThat(result.getTitle()).isEqualTo("Updated Dashboard");
             assertThat(result.getDescription()).isEqualTo("Updated description");
             assertThat(result.getCreatedBy()).isEqualTo("user-2");
-            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
-            assertThat(compareDate(result.getUpdatedAt(), new Date(1222222222222L))).isTrue();
+            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L)))
+                    .isTrue();
+            assertThat(compareDate(result.getUpdatedAt(), new Date(1222222222222L)))
+                    .isTrue();
             assertThat(result.getFilters()).hasSize(1);
             assertThat(result.getFilters().get(0).getValue()).isEmpty();
             assertThat(result.getFilters().get(0).isEditable()).isTrue();
@@ -313,9 +330,8 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
             assertThat(result.getTitle()).isEqualTo("Guarded update");
             assertThat(result.getVersion()).isEqualTo(8);
         });
-        assertThat(gammaDashboardRepository.findById("gd-2")).hasValueSatisfying(result ->
-            assertThat(result.getTitle()).isEqualTo("Guarded update")
-        );
+        assertThat(gammaDashboardRepository.findById("gd-2"))
+                .hasValueSatisfying(result -> assertThat(result.getTitle()).isEqualTo("Guarded update"));
     }
 
     /**
@@ -330,11 +346,13 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
 
         firstWriter.setTitle("First writer wins");
         firstWriter.setVersion(8);
-        assertThat(gammaDashboardRepository.updateIfVersionMatches(firstWriter, 7)).isPresent();
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(firstWriter, 7))
+                .isPresent();
 
         secondWriter.setTitle("Second writer loses");
         secondWriter.setVersion(8);
-        assertThat(gammaDashboardRepository.updateIfVersionMatches(secondWriter, 7)).isEmpty();
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(secondWriter, 7))
+                .isEmpty();
 
         assertThat(gammaDashboardRepository.findById("gd-2")).hasValueSatisfying(result -> {
             assertThat(result.getTitle()).isEqualTo("First writer wins");
@@ -349,7 +367,8 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
         gammaDashboardRepository.delete("gd-2");
 
         dashboard.setTitle("Resurrected by the guarded write");
-        assertThat(gammaDashboardRepository.updateIfVersionMatches(dashboard, 7)).isEmpty();
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(dashboard, 7))
+                .isEmpty();
         assertThat(gammaDashboardRepository.findById("gd-2")).isEmpty();
     }
 
@@ -364,10 +383,11 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
         assertThat(dashboard.getVersion()).isNull();
 
         dashboard.setTitle("Guarded against a null version");
-        assertThat(gammaDashboardRepository.updateIfVersionMatches(dashboard, 1)).isEmpty();
-        assertThat(gammaDashboardRepository.findById("gd-3")).hasValueSatisfying(result ->
-            assertThat(result.getTitle()).isNotEqualTo("Guarded against a null version")
-        );
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(dashboard, 1))
+                .isEmpty();
+        assertThat(gammaDashboardRepository.findById("gd-3"))
+                .hasValueSatisfying(
+                        result -> assertThat(result.getTitle()).isNotEqualTo("Guarded against a null version"));
     }
 
     @Test
@@ -390,9 +410,8 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
         assertThat(unversioned.getVersion()).isNull();
         unversioned.setTitle("Overwritten too");
         unversioned.setVersion(1);
-        assertThat(gammaDashboardRepository.updateIfPresent(unversioned)).hasValueSatisfying(result ->
-            assertThat(result.getVersion()).isEqualTo(1)
-        );
+        assertThat(gammaDashboardRepository.updateIfPresent(unversioned))
+                .hasValueSatisfying(result -> assertThat(result.getVersion()).isEqualTo(1));
     }
 
     /**
@@ -440,7 +459,8 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldNotUpdateUnknownDashboard() throws Exception {
         assertThrows(IllegalStateException.class, () -> {
-            var unknown = GammaDashboard.builder().id("unknown").title("Unknown").build();
+            var unknown =
+                    GammaDashboard.builder().id("unknown").title("Unknown").build();
             gammaDashboardRepository.update(unknown);
             fail("An unknown gamma dashboard should not be updated");
         });

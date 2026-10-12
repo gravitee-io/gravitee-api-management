@@ -29,9 +29,8 @@ import lombok.NoArgsConstructor;
 public class PasswordPolicyEntity {
 
     @Schema(
-        description = "The operator's own explanation of the policy, carried exactly as configured. " +
-            "Empty when none was configured: this service never writes one on their behalf."
-    )
+            description = "The operator's own explanation of the policy, carried exactly as configured. "
+                    + "Empty when none was configured: this service never writes one on their behalf.")
     private String description;
 
     private String pattern;

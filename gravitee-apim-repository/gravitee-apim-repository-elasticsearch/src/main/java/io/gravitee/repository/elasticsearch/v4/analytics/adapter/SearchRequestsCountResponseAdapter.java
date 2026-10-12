@@ -39,18 +39,11 @@ public class SearchRequestsCountResponseAdapter {
             return Optional.empty();
         }
 
-        final var requestsCountByEntrypoint = entrypointsAggregation
-            .getBuckets()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    jsonNode -> jsonNode.get("key").asText(),
-                    jsonNode -> {
-                        final long docCount = jsonNode.get("doc_count").asLong();
-                        return docCount;
-                    }
-                )
-            );
+        final var requestsCountByEntrypoint = entrypointsAggregation.getBuckets().stream()
+                .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> {
+                    final long docCount = jsonNode.get("doc_count").asLong();
+                    return docCount;
+                }));
 
         return Optional.of(buildFromSource(requestsCountByEntrypoint, totalCount(response, requestsCountByEntrypoint)));
     }
@@ -68,10 +61,15 @@ public class SearchRequestsCountResponseAdapter {
         // Degenerate response without hits: the entrypoint breakdown is the best lower bound we
         // have, and it keeps the total consistent with what the breakdown displays.
         log.warn("Requests count response carries no total hits, falling back to the entrypoint breakdown");
-        return requestsCountByEntrypoint.values().stream().mapToLong(Long::longValue).sum();
+        return requestsCountByEntrypoint.values().stream()
+                .mapToLong(Long::longValue)
+                .sum();
     }
 
     private static CountAggregate buildFromSource(Map<String, Long> requestsCountByEntrypoint, long totalCount) {
-        return CountAggregate.builder().total(totalCount).countBy(requestsCountByEntrypoint).build();
+        return CountAggregate.builder()
+                .total(totalCount)
+                .countBy(requestsCountByEntrypoint)
+                .build();
     }
 }

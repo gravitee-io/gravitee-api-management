@@ -37,13 +37,9 @@ public class DashboardVersionConflictException extends ConflictDomainException {
 
     public DashboardVersionConflictException(Dashboard current, VersionPrecondition precondition) {
         super(
-            "Dashboard '%s' has been modified since you loaded it (you required %s, the current version is %s)".formatted(
-                current.id(),
-                describe(precondition),
-                current.version()
-            ),
-            current.id()
-        );
+                "Dashboard '%s' has been modified since you loaded it (you required %s, the current version is %s)"
+                        .formatted(current.id(), describe(precondition), current.version()),
+                current.id());
         this.current = current;
     }
 
@@ -52,6 +48,8 @@ public class DashboardVersionConflictException extends ConflictDomainException {
      * version the caller never claimed.
      */
     private static String describe(VersionPrecondition precondition) {
-        return precondition instanceof VersionPrecondition.OneOf oneOf ? "version " + oneOf.versions() : "any current revision";
+        return precondition instanceof VersionPrecondition.OneOf oneOf
+                ? "version " + oneOf.versions()
+                : "any current revision";
     }
 }

@@ -22,7 +22,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Set;
 
 public interface PromotionQueryService {
-    record PromotionQuery(String apiId, Set<String> targetEnvCockpitIds, Set<PromotionStatus> statuses, Boolean targetApiExists) {}
+    record PromotionQuery(
+            String apiId, Set<String> targetEnvCockpitIds, Set<PromotionStatus> statuses, Boolean targetApiExists) {}
 
     Page<Promotion> search(PromotionQuery promotionQuery) throws TechnicalManagementException;
 }

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,14 +28,12 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -81,14 +78,12 @@ class ApiResource_RollbackTest extends ApiResourceTest {
 
     @Test
     void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
@@ -117,8 +112,8 @@ class ApiResource_RollbackTest extends ApiResourceTest {
         // the use case no longer refuses NATIVE APIs; this pins that any ValidationDomainException it raises
         // reaches the caller as a 400 carrying its technical code
         doThrow(new ValidationDomainException("Cannot rollback this API", "api.rollback.unsupported"))
-            .when(rollbackApiUseCase)
-            .execute(any(RollbackApiUseCase.Input.class));
+                .when(rollbackApiUseCase)
+                .execute(any(RollbackApiUseCase.Input.class));
 
         final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);

@@ -58,9 +58,10 @@ public class PortalCategoriesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public Response getPortalCategories() {
-        var output = listPortalCategoriesUseCase.execute(new ListPortalCategoriesUseCase.Input(GraviteeContext.getCurrentEnvironment()));
+        var output = listPortalCategoriesUseCase.execute(
+                new ListPortalCategoriesUseCase.Input(GraviteeContext.getCurrentEnvironment()));
 
         return Response.ok(mapper.mapList(output.portalCategories())).build();
     }
@@ -68,15 +69,19 @@ public class PortalCategoriesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DOCUMENTATION,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createPortalCategory(@Valid @NotNull final CreatePortalCategory createPortalCategory) {
-        var output = createPortalCategoryUseCase.execute(
-            new CreatePortalCategoryUseCase.Input(GraviteeContext.getCurrentEnvironment(), mapper.map(createPortalCategory))
-        );
+        var output = createPortalCategoryUseCase.execute(new CreatePortalCategoryUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(), mapper.map(createPortalCategory)));
 
-        return Response.created(this.getLocationHeader(output.portalCategory().getId().toString()))
-            .entity(mapper.map(output.portalCategory()))
-            .build();
+        return Response.created(
+                        this.getLocationHeader(output.portalCategory().getId().toString()))
+                .entity(mapper.map(output.portalCategory()))
+                .build();
     }
 
     @Path("{categoryId}")

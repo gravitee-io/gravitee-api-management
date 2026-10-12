@@ -89,7 +89,8 @@ class FailoverRequest extends RequestWrapper {
             this.bodyHandler.handle(result);
         } catch (Exception ignored) {
             // Ignore eventual exception occurring when trying to handle body buffer.
-            // Some exception may occur when trying to write body to upstream while something goes wrong during connection.
+            // Some exception may occur when trying to write body to upstream while something goes wrong during
+            // connection.
         }
     }
 }

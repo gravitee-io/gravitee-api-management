@@ -43,30 +43,54 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
 
     @Override
     public PortalNotificationConfig create(PortalNotificationConfig pnc) throws TechnicalException {
-        log.debug("Create PortalNotificationConfig [{}, {}, {}]", pnc.getUser(), pnc.getReferenceType(), pnc.getReferenceId());
+        log.debug(
+                "Create PortalNotificationConfig [{}, {}, {}]",
+                pnc.getUser(),
+                pnc.getReferenceType(),
+                pnc.getReferenceId());
         PortalNotificationConfig cfg = map(internalRepo.insert(map(pnc)));
-        log.debug("Create PortalNotificationConfig [{}, {}, {}] - Done", cfg.getUser(), cfg.getReferenceType(), cfg.getReferenceId());
+        log.debug(
+                "Create PortalNotificationConfig [{}, {}, {}] - Done",
+                cfg.getUser(),
+                cfg.getReferenceType(),
+                cfg.getReferenceId());
         return cfg;
     }
 
     @Override
     public PortalNotificationConfig update(PortalNotificationConfig pnc) throws TechnicalException {
-        log.debug("Update PortalNotificationConfig [{}, {}, {}]", pnc.getUser(), pnc.getReferenceType(), pnc.getReferenceId());
+        log.debug(
+                "Update PortalNotificationConfig [{}, {}, {}]",
+                pnc.getUser(),
+                pnc.getReferenceType(),
+                pnc.getReferenceId());
         PortalNotificationConfig cfg = map(internalRepo.save(map(pnc)));
-        log.debug("Update PortalNotificationConfig [{}, {}, {}] - Done", cfg.getUser(), cfg.getReferenceType(), cfg.getReferenceId());
+        log.debug(
+                "Update PortalNotificationConfig [{}, {}, {}] - Done",
+                cfg.getUser(),
+                cfg.getReferenceType(),
+                cfg.getReferenceId());
         return cfg;
     }
 
     @Override
     public void delete(PortalNotificationConfig pnc) throws TechnicalException {
-        log.debug("Delete PortalNotificationConfig [{}, {}, {}]", pnc.getUser(), pnc.getReferenceType(), pnc.getReferenceId());
+        log.debug(
+                "Delete PortalNotificationConfig [{}, {}, {}]",
+                pnc.getUser(),
+                pnc.getReferenceType(),
+                pnc.getReferenceId());
         internalRepo.deleteById(map(pnc).getId());
-        log.debug("Delete PortalNotificationConfig [{}, {}, {}] - Done", pnc.getUser(), pnc.getReferenceType(), pnc.getReferenceId());
+        log.debug(
+                "Delete PortalNotificationConfig [{}, {}, {}] - Done",
+                pnc.getUser(),
+                pnc.getReferenceType(),
+                pnc.getReferenceId());
     }
 
     @Override
-    public Optional<PortalNotificationConfig> findById(String userId, NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public Optional<PortalNotificationConfig> findById(
+            String userId, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         log.debug("Find PortalNotificationConfig [{}, {}, {}]", userId, referenceType, referenceId);
         PortalNotificationConfigPkMongo pk = new PortalNotificationConfigPkMongo();
         pk.setReferenceType(referenceType);
@@ -82,13 +106,18 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     @Override
     public List<PortalNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) {
         log.debug("Find PortalNotificationConfigs by hook and orgId [{}, {}]", hook, orgId);
-        return internalRepo.findByHookAndOrganizationId(hook, orgId).stream().map(this::map).collect(Collectors.toList());
+        return internalRepo.findByHookAndOrganizationId(hook, orgId).stream()
+                .map(this::map)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) {
+    public List<PortalNotificationConfig> findByReferenceAndHook(
+            String hook, NotificationReferenceType referenceType, String referenceId) {
         log.debug("Find PortalNotificationConfigs [{}, {}, {}]", hook, referenceType, referenceId);
-        return internalRepo.findByReferenceAndHook(hook, referenceType.name(), referenceId).stream().map(this::map).toList();
+        return internalRepo.findByReferenceAndHook(hook, referenceType.name(), referenceId).stream()
+                .map(this::map)
+                .toList();
     }
 
     @Override
@@ -123,16 +152,16 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
 
     private PortalNotificationConfig map(PortalNotificationConfigMongo mongo) {
         return PortalNotificationConfig.builder()
-            .referenceType(mongo.getId().getReferenceType())
-            .referenceId(mongo.getId().getReferenceId())
-            .user(mongo.getId().getUser())
-            .hooks(mongo.getHooks())
-            .groups(mongo.getGroups())
-            .createdAt(mongo.getCreatedAt())
-            .updatedAt(mongo.getUpdatedAt())
-            .origin(mongo.getOrigin())
-            .organizationId(mongo.getOrganizationId())
-            .build();
+                .referenceType(mongo.getId().getReferenceType())
+                .referenceId(mongo.getId().getReferenceId())
+                .user(mongo.getId().getUser())
+                .hooks(mongo.getHooks())
+                .groups(mongo.getGroups())
+                .createdAt(mongo.getCreatedAt())
+                .updatedAt(mongo.getUpdatedAt())
+                .origin(mongo.getOrigin())
+                .organizationId(mongo.getOrganizationId())
+                .build();
     }
 
     @Override

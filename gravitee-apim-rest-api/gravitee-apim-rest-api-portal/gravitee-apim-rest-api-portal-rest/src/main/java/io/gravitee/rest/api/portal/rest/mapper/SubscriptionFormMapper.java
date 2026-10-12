@@ -18,8 +18,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForApiPortalUseCase;
-import java.util.List;
-import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -36,7 +34,8 @@ public interface SubscriptionFormMapper {
     @Mapping(target = "resolvedOptions", ignore = true)
     io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(SubscriptionForm subscriptionForm);
 
-    default io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(GetSubscriptionFormForApiPortalUseCase.Output output) {
+    default io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(
+            GetSubscriptionFormForApiPortalUseCase.Output output) {
         var model = map(output.subscriptionForm());
         model.setResolvedOptions(output.resolvedOptions().isEmpty() ? null : output.resolvedOptions());
         return model;

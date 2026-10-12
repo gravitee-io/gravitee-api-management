@@ -26,7 +26,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -57,13 +56,17 @@ public class PromotionResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Process an API promotion by accepting or rejecting it")
     @ApiResponse(
-        responseCode = "200",
-        description = "Processed promotion",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PromotionEntity.class))
-    )
+            responseCode = "200",
+            description = "Processed promotion",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PromotionEntity.class)))
     @ApiResponse(responseCode = "404", description = "Promotion not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response processPromotion(boolean accepted) {
-        return Response.ok(promotionService.processPromotion(GraviteeContext.getExecutionContext(), promotion, accepted)).build();
+        return Response.ok(
+                        promotionService.processPromotion(GraviteeContext.getExecutionContext(), promotion, accepted))
+                .build();
     }
 }

@@ -74,14 +74,13 @@ class ApiProductMapperTest {
             event.setId("event-id");
             event.setProperties(Map.of(API_PRODUCT_ID.getValue(), "api-product-123"));
 
-            cut
-                .toId(event)
-                .test()
-                .assertValue(id -> {
-                    assertThat(id).isEqualTo("api-product-123");
-                    return true;
-                })
-                .assertComplete();
+            cut.toId(event)
+                    .test()
+                    .assertValue(id -> {
+                        assertThat(id).isEqualTo("api-product-123");
+                        return true;
+                    })
+                    .assertComplete();
         }
 
         @Test
@@ -125,8 +124,7 @@ class ApiProductMapperTest {
             event.setCreatedAt(createdDate);
 
             // Create API Product payload matching MAPI structure
-            String payload = objectMapper.writeValueAsString(
-                Map.of(
+            String payload = objectMapper.writeValueAsString(Map.of(
                     "id",
                     "api-product-123",
                     "name",
@@ -144,30 +142,30 @@ class ApiProductMapperTest {
                     "organizationId",
                     "org-id",
                     "organizationHrid",
-                    "org-hrid"
-                )
-            );
+                    "org-hrid"));
             event.setPayload(payload);
 
-            cut
-                .to(event)
-                .test()
-                .assertValue(reactableApiProduct -> {
-                    assertThat(reactableApiProduct.getId()).isEqualTo("api-product-123");
-                    assertThat(reactableApiProduct.getName()).isEqualTo("Test API Product");
-                    assertThat(reactableApiProduct.getDescription()).isEqualTo("Test Description");
-                    assertThat(reactableApiProduct.getVersion()).isEqualTo("1.0");
-                    assertThat(reactableApiProduct.getApiIds()).containsExactlyInAnyOrder("api-1", "api-2", "api-3");
-                    assertThat(reactableApiProduct.getEnvironmentId()).isEqualTo("env-id");
-                    assertThat(reactableApiProduct.getEnvironmentHrid()).isEqualTo("env-hrid");
-                    assertThat(reactableApiProduct.getOrganizationId()).isEqualTo("org-id");
-                    assertThat(reactableApiProduct.getOrganizationHrid()).isEqualTo("org-hrid");
-                    assertThat(reactableApiProduct.getDeployedAt()).isEqualTo(createdDate);
-                    assertThat(reactableApiProduct.enabled()).isTrue();
-                    assertThat(reactableApiProduct.dependencies(String.class)).isNotNull().isEmpty();
-                    return true;
-                })
-                .assertComplete();
+            cut.to(event)
+                    .test()
+                    .assertValue(reactableApiProduct -> {
+                        assertThat(reactableApiProduct.getId()).isEqualTo("api-product-123");
+                        assertThat(reactableApiProduct.getName()).isEqualTo("Test API Product");
+                        assertThat(reactableApiProduct.getDescription()).isEqualTo("Test Description");
+                        assertThat(reactableApiProduct.getVersion()).isEqualTo("1.0");
+                        assertThat(reactableApiProduct.getApiIds())
+                                .containsExactlyInAnyOrder("api-1", "api-2", "api-3");
+                        assertThat(reactableApiProduct.getEnvironmentId()).isEqualTo("env-id");
+                        assertThat(reactableApiProduct.getEnvironmentHrid()).isEqualTo("env-hrid");
+                        assertThat(reactableApiProduct.getOrganizationId()).isEqualTo("org-id");
+                        assertThat(reactableApiProduct.getOrganizationHrid()).isEqualTo("org-hrid");
+                        assertThat(reactableApiProduct.getDeployedAt()).isEqualTo(createdDate);
+                        assertThat(reactableApiProduct.enabled()).isTrue();
+                        assertThat(reactableApiProduct.dependencies(String.class))
+                                .isNotNull()
+                                .isEmpty();
+                        return true;
+                    })
+                    .assertComplete();
         }
 
         @SneakyThrows
@@ -187,8 +185,7 @@ class ApiProductMapperTest {
             Event event = new Event();
             event.setCreatedAt(new Date());
 
-            String payload = objectMapper.writeValueAsString(
-                Map.of(
+            String payload = objectMapper.writeValueAsString(Map.of(
                     "id",
                     "api-product-456",
                     "name",
@@ -198,25 +195,22 @@ class ApiProductMapperTest {
                     "apiIds",
                     Set.of("api-1"),
                     "environmentId",
-                    "env-id"
-                )
-            );
+                    "env-id"));
             event.setPayload(payload);
 
-            cut
-                .to(event)
-                .test()
-                .assertValue(reactableApiProduct -> {
-                    assertThat(reactableApiProduct.getId()).isEqualTo("api-product-456");
-                    assertThat(reactableApiProduct.getName()).isEqualTo("Minimal Product");
-                    assertThat(reactableApiProduct.getDescription()).isNull();
-                    assertThat(reactableApiProduct.getVersion()).isEqualTo("2.0");
-                    assertThat(reactableApiProduct.getApiIds()).containsExactly("api-1");
-                    assertThat(reactableApiProduct.getEnvironmentId()).isEqualTo("env-id");
-                    assertThat(reactableApiProduct.getAnalytics()).isNull();
-                    return true;
-                })
-                .assertComplete();
+            cut.to(event)
+                    .test()
+                    .assertValue(reactableApiProduct -> {
+                        assertThat(reactableApiProduct.getId()).isEqualTo("api-product-456");
+                        assertThat(reactableApiProduct.getName()).isEqualTo("Minimal Product");
+                        assertThat(reactableApiProduct.getDescription()).isNull();
+                        assertThat(reactableApiProduct.getVersion()).isEqualTo("2.0");
+                        assertThat(reactableApiProduct.getApiIds()).containsExactly("api-1");
+                        assertThat(reactableApiProduct.getEnvironmentId()).isEqualTo("env-id");
+                        assertThat(reactableApiProduct.getAnalytics()).isNull();
+                        return true;
+                    })
+                    .assertComplete();
         }
 
         @SneakyThrows
@@ -235,35 +229,35 @@ class ApiProductMapperTest {
 
             Event event = new Event();
             event.setCreatedAt(new Date());
-            event.setPayload(
-                objectMapper.writeValueAsString(
-                    Map.of(
-                        "id",
-                        "api-product-789",
-                        "name",
-                        "Analytics Product",
-                        "version",
-                        "1.0",
-                        "apiIds",
-                        Set.of("api-1"),
-                        "environmentId",
-                        "env-id",
-                        "analytics",
-                        Map.of("enabled", true, "logging", Map.of("content", Map.of("headers", true)))
-                    )
-                )
-            );
+            event.setPayload(objectMapper.writeValueAsString(Map.of(
+                    "id",
+                    "api-product-789",
+                    "name",
+                    "Analytics Product",
+                    "version",
+                    "1.0",
+                    "apiIds",
+                    Set.of("api-1"),
+                    "environmentId",
+                    "env-id",
+                    "analytics",
+                    Map.of("enabled", true, "logging", Map.of("content", Map.of("headers", true))))));
 
-            cut
-                .to(event)
-                .test()
-                .assertValue(reactableApiProduct -> {
-                    assertThat(reactableApiProduct.getAnalytics()).isNotNull();
-                    assertThat(reactableApiProduct.getAnalytics().isEnabled()).isTrue();
-                    assertThat(reactableApiProduct.getAnalytics().getLogging().getContent().isHeaders()).isTrue();
-                    return true;
-                })
-                .assertComplete();
+            cut.to(event)
+                    .test()
+                    .assertValue(reactableApiProduct -> {
+                        assertThat(reactableApiProduct.getAnalytics()).isNotNull();
+                        assertThat(reactableApiProduct.getAnalytics().isEnabled())
+                                .isTrue();
+                        assertThat(reactableApiProduct
+                                        .getAnalytics()
+                                        .getLogging()
+                                        .getContent()
+                                        .isHeaders())
+                                .isTrue();
+                        return true;
+                    })
+                    .assertComplete();
         }
 
         @SneakyThrows
@@ -303,20 +297,27 @@ class ApiProductMapperTest {
             Event event = new Event();
             event.setCreatedAt(new Date());
 
-            String payload = objectMapper.writeValueAsString(
-                Map.of("id", "api-product-empty", "name", "Empty Product", "version", "1.0", "apiIds", Set.of(), "environmentId", "env-id")
-            );
+            String payload = objectMapper.writeValueAsString(Map.of(
+                    "id",
+                    "api-product-empty",
+                    "name",
+                    "Empty Product",
+                    "version",
+                    "1.0",
+                    "apiIds",
+                    Set.of(),
+                    "environmentId",
+                    "env-id"));
             event.setPayload(payload);
 
-            cut
-                .to(event)
-                .test()
-                .assertValue(reactableApiProduct -> {
-                    assertThat(reactableApiProduct.getId()).isEqualTo("api-product-empty");
-                    assertThat(reactableApiProduct.getApiIds()).isEmpty();
-                    return true;
-                })
-                .assertComplete();
+            cut.to(event)
+                    .test()
+                    .assertValue(reactableApiProduct -> {
+                        assertThat(reactableApiProduct.getId()).isEqualTo("api-product-empty");
+                        assertThat(reactableApiProduct.getApiIds()).isEmpty();
+                        return true;
+                    })
+                    .assertComplete();
         }
     }
 }

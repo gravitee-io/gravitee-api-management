@@ -44,7 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@TestPropertySource(properties = "reporters.elasticsearch.template_mapping.path=src/test/resources/freemarker-v4-analytics")
+@TestPropertySource(
+        properties = "reporters.elasticsearch.template_mapping.path=src/test/resources/freemarker-v4-analytics")
 class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticsearchRepositoryTest {
 
     private static final String AUTHZ_TRAFFIC_API = "authz-traffic-api-001";
@@ -67,7 +68,8 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
     private long count(Metric metric, Filter... filters) {
         var metrics = List.of(new MetricMeasuresQuery(metric, Set.of(Measure.COUNT)));
         var allFilters = Stream.concat(Stream.of(api()), Stream.of(filters)).toList();
-        var result = cut.searchAuthzTrafficMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), allFilters, metrics));
+        var result =
+                cut.searchAuthzTrafficMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), allFilters, metrics));
         return result.measures().getFirst().measures().get(Measure.COUNT).longValue();
     }
 
@@ -83,57 +85,67 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
 
     @Test
     void should_count_no_operation_when_filtered_on_a_caller_that_only_decisions_carry() {
-        assertThat(count(Metric.AUTHZ_OPERATIONS, new Filter(Filter.Name.AUTHZ_CALLER, Filter.Operator.EQ, "pep"))).isZero();
+        assertThat(count(Metric.AUTHZ_OPERATIONS, new Filter(Filter.Name.AUTHZ_CALLER, Filter.Operator.EQ, "pep")))
+                .isZero();
     }
 
     @Test
     void should_count_no_search_when_filtered_on_a_verdict() {
-        assertThat(count(Metric.AUTHZ_SEARCHES, new Filter(Filter.Name.AUTHZ_DECISION, Filter.Operator.EQ, "PERMIT"))).isZero();
+        assertThat(count(Metric.AUTHZ_SEARCHES, new Filter(Filter.Name.AUTHZ_DECISION, Filter.Operator.EQ, "PERMIT")))
+                .isZero();
     }
 
     @ParameterizedTest
     @CsvSource(
-        delimiter = '|',
-        value = { "AUTHZ_SUBJECT_ID | User::\"alice\"", "AUTHZ_ACTION | read", "AUTHZ_RESOURCE_ID | Document::\"doc1\"" }
-    )
+            delimiter = '|',
+            value = {
+                "AUTHZ_SUBJECT_ID | User::\"alice\"",
+                "AUTHZ_ACTION | read",
+                "AUTHZ_RESOURCE_ID | Document::\"doc1\""
+            })
     void should_count_no_operation_when_filtered_on_a_field_only_searches_carry(Filter.Name name, String value) {
-        assertThat(count(Metric.AUTHZ_OPERATIONS, new Filter(name, Filter.Operator.EQ, value))).isZero();
+        assertThat(count(Metric.AUTHZ_OPERATIONS, new Filter(name, Filter.Operator.EQ, value)))
+                .isZero();
     }
 
     @Test
     void should_filter_searches_on_a_typed_subject() {
-        assertThat(count(Metric.AUTHZ_SEARCHES, new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\""))).isEqualTo(
-            1L
-        );
+        assertThat(count(
+                        Metric.AUTHZ_SEARCHES,
+                        new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\"")))
+                .isEqualTo(1L);
     }
 
     @Test
     void should_filter_searches_on_a_typed_resource() {
-        assertThat(
-            count(Metric.AUTHZ_SEARCHES, new Filter(Filter.Name.AUTHZ_RESOURCE_ID, Filter.Operator.EQ, "Document::\"doc1\""))
-        ).isEqualTo(1L);
+        assertThat(count(
+                        Metric.AUTHZ_SEARCHES,
+                        new Filter(Filter.Name.AUTHZ_RESOURCE_ID, Filter.Operator.EQ, "Document::\"doc1\"")))
+                .isEqualTo(1L);
     }
 
     @Test
     void should_still_count_searches_next_to_operations_filtered_on_a_subject() {
         var metrics = List.of(
-            new MetricMeasuresQuery(Metric.AUTHZ_OPERATIONS, Set.of(Measure.COUNT)),
-            new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT))
-        );
+                new MetricMeasuresQuery(Metric.AUTHZ_OPERATIONS, Set.of(Measure.COUNT)),
+                new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT)));
         var filters = List.of(api(), new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\""));
 
-        var result = cut.searchAuthzTrafficMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), filters, metrics));
+        var result =
+                cut.searchAuthzTrafficMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), filters, metrics));
 
-        assertThat(result.measures()).satisfiesExactlyInAnyOrder(
-            measure -> {
-                assertThat(measure.metric()).isEqualTo(Metric.AUTHZ_OPERATIONS);
-                assertThat(measure.measures().get(Measure.COUNT).longValue()).isZero();
-            },
-            measure -> {
-                assertThat(measure.metric()).isEqualTo(Metric.AUTHZ_SEARCHES);
-                assertThat(measure.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
-            }
-        );
+        assertThat(result.measures())
+                .satisfiesExactlyInAnyOrder(
+                        measure -> {
+                            assertThat(measure.metric()).isEqualTo(Metric.AUTHZ_OPERATIONS);
+                            assertThat(measure.measures().get(Measure.COUNT).longValue())
+                                    .isZero();
+                        },
+                        measure -> {
+                            assertThat(measure.metric()).isEqualTo(Metric.AUTHZ_SEARCHES);
+                            assertThat(measure.measures().get(Measure.COUNT).longValue())
+                                    .isEqualTo(1L);
+                        });
     }
 
     @Test
@@ -142,9 +154,7 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
         var filters = List.of(api(), new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\""));
 
         var result = cut.searchAuthzTrafficFacets(
-            QUERY_CONTEXT,
-            new FacetsQuery(buildTimeRange(), filters, metrics, List.of(Facet.AUTHZ_OPERATION))
-        );
+                QUERY_CONTEXT, new FacetsQuery(buildTimeRange(), filters, metrics, List.of(Facet.AUTHZ_OPERATION)));
 
         assertThat(result.metrics().getFirst().buckets()).isEmpty();
     }
@@ -154,20 +164,21 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
         var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT)));
 
         var result = cut.searchAuthzTrafficFacets(
-            QUERY_CONTEXT,
-            new FacetsQuery(buildTimeRange(), List.of(api()), metrics, List.of(Facet.AUTHZ_SEARCH_TYPE))
-        );
+                QUERY_CONTEXT,
+                new FacetsQuery(buildTimeRange(), List.of(api()), metrics, List.of(Facet.AUTHZ_SEARCH_TYPE)));
 
-        assertThat(result.metrics().getFirst().buckets()).satisfiesExactlyInAnyOrder(
-            bucket -> {
-                assertThat(bucket.key()).isEqualTo("subject");
-                assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
-            },
-            bucket -> {
-                assertThat(bucket.key()).isEqualTo("resource");
-                assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
-            }
-        );
+        assertThat(result.metrics().getFirst().buckets())
+                .satisfiesExactlyInAnyOrder(
+                        bucket -> {
+                            assertThat(bucket.key()).isEqualTo("subject");
+                            assertThat(bucket.measures().get(Measure.COUNT).longValue())
+                                    .isEqualTo(1L);
+                        },
+                        bucket -> {
+                            assertThat(bucket.key()).isEqualTo("resource");
+                            assertThat(bucket.measures().get(Measure.COUNT).longValue())
+                                    .isEqualTo(1L);
+                        });
     }
 
     @Test
@@ -175,9 +186,8 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
         var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT)));
 
         var result = cut.searchAuthzTrafficFacets(
-            QUERY_CONTEXT,
-            new FacetsQuery(buildTimeRange(), List.of(api()), metrics, List.of(Facet.AUTHZ_OPERATION))
-        );
+                QUERY_CONTEXT,
+                new FacetsQuery(buildTimeRange(), List.of(api()), metrics, List.of(Facet.AUTHZ_OPERATION)));
 
         assertThat(result.metrics().getFirst().buckets()).satisfiesExactly(bucket -> {
             assertThat(bucket.key()).isEqualTo("search");
@@ -186,16 +196,17 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
     }
 
     private static MetricMeasuresQuery searchesSortedAscending() {
-        return new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT), List.of(new Sort(Measure.COUNT, Sort.Order.ASC)));
+        return new MetricMeasuresQuery(
+                Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT), List.of(new Sort(Measure.COUNT, Sort.Order.ASC)));
     }
 
     @ParameterizedTest
-    @CsvSource({ "AUTHZ_OPERATION, search", "AUTHZ_ACTION, read" })
+    @CsvSource({"AUTHZ_OPERATION, search", "AUTHZ_ACTION, read"})
     void should_limit_an_ascending_search_top_list_to_the_buckets_searches_counted(Facet facet, String searchedKey) {
         var result = cut.searchAuthzTrafficFacets(
-            QUERY_CONTEXT,
-            new FacetsQuery(buildTimeRange(), List.of(api()), List.of(searchesSortedAscending()), List.of(facet), 1)
-        );
+                QUERY_CONTEXT,
+                new FacetsQuery(
+                        buildTimeRange(), List.of(api()), List.of(searchesSortedAscending()), List.of(facet), 1));
 
         assertThat(result.metrics().getFirst().buckets()).satisfiesExactly(bucket -> {
             assertThat(bucket.key()).isEqualTo(searchedKey);
@@ -206,25 +217,19 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
     @Test
     void should_limit_an_ascending_search_time_series_facet_to_the_buckets_searches_counted() {
         var result = cut.searchAuthzTrafficTimeSeries(
-            QUERY_CONTEXT,
-            new TimeSeriesQuery(
-                buildTimeRange(),
-                List.of(api()),
-                Duration.ofDays(1).toMillis(),
-                List.of(searchesSortedAscending()),
-                List.of(Facet.AUTHZ_OPERATION),
-                1,
-                null
-            )
-        );
+                QUERY_CONTEXT,
+                new TimeSeriesQuery(
+                        buildTimeRange(),
+                        List.of(api()),
+                        Duration.ofDays(1).toMillis(),
+                        List.of(searchesSortedAscending()),
+                        List.of(Facet.AUTHZ_OPERATION),
+                        1,
+                        null));
 
-        var facetBuckets = result
-            .metrics()
-            .getFirst()
-            .buckets()
-            .stream()
-            .flatMap(bucket -> bucket.buckets().stream())
-            .toList();
+        var facetBuckets = result.metrics().getFirst().buckets().stream()
+                .flatMap(bucket -> bucket.buckets().stream())
+                .toList();
         assertThat(facetBuckets).satisfiesExactly(bucket -> {
             assertThat(bucket.key()).isEqualTo("search");
             assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(2L);
@@ -237,9 +242,8 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
         var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT)));
 
         var result = cut.searchAuthzTrafficFacets(
-            QUERY_CONTEXT,
-            new FacetsQuery(buildTimeRange(), List.of(topListApi), metrics, List.of(Facet.AUTHZ_ACTION), 1)
-        );
+                QUERY_CONTEXT,
+                new FacetsQuery(buildTimeRange(), List.of(topListApi), metrics, List.of(Facet.AUTHZ_ACTION), 1));
 
         assertThat(result.metrics().getFirst().buckets()).satisfiesExactly(bucket -> {
             assertThat(bucket.key()).isEqualTo("read");
@@ -253,25 +257,19 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
         var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT)));
 
         var result = cut.searchAuthzTrafficTimeSeries(
-            QUERY_CONTEXT,
-            new TimeSeriesQuery(
-                buildTimeRange(),
-                List.of(topListApi),
-                Duration.ofDays(1).toMillis(),
-                metrics,
-                List.of(Facet.AUTHZ_ACTION),
-                1,
-                null
-            )
-        );
+                QUERY_CONTEXT,
+                new TimeSeriesQuery(
+                        buildTimeRange(),
+                        List.of(topListApi),
+                        Duration.ofDays(1).toMillis(),
+                        metrics,
+                        List.of(Facet.AUTHZ_ACTION),
+                        1,
+                        null));
 
-        var facetBuckets = result
-            .metrics()
-            .getFirst()
-            .buckets()
-            .stream()
-            .flatMap(bucket -> bucket.buckets().stream())
-            .toList();
+        var facetBuckets = result.metrics().getFirst().buckets().stream()
+                .flatMap(bucket -> bucket.buckets().stream())
+                .toList();
         assertThat(facetBuckets).satisfiesExactly(bucket -> {
             assertThat(bucket.key()).isEqualTo("read");
             assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
@@ -283,18 +281,14 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
         var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_OPERATIONS, Set.of(Measure.COUNT)));
 
         var result = cut.searchAuthzTrafficTimeSeries(
-            QUERY_CONTEXT,
-            new TimeSeriesQuery(buildTimeRange(), List.of(api()), Duration.ofHours(1).toMillis(), metrics)
-        );
+                QUERY_CONTEXT,
+                new TimeSeriesQuery(
+                        buildTimeRange(), List.of(api()), Duration.ofHours(1).toMillis(), metrics));
 
         assertThat(result.metrics()).hasSize(1);
-        var counts = result
-            .metrics()
-            .getFirst()
-            .buckets()
-            .stream()
-            .map(bucket -> bucket.measures().get(Measure.COUNT).longValue())
-            .toList();
+        var counts = result.metrics().getFirst().buckets().stream()
+                .map(bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                .toList();
         assertThat(counts.stream().mapToLong(Long::longValue).sum()).isEqualTo(3L);
     }
 
@@ -303,17 +297,13 @@ class AnalyticsElasticsearchRepositoryAuthzTrafficTest extends AbstractElasticse
         var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_SEARCHES, Set.of(Measure.COUNT)));
 
         var result = cut.searchAuthzTrafficTimeSeries(
-            QUERY_CONTEXT,
-            new TimeSeriesQuery(buildTimeRange(), List.of(api()), Duration.ofHours(1).toMillis(), metrics)
-        );
+                QUERY_CONTEXT,
+                new TimeSeriesQuery(
+                        buildTimeRange(), List.of(api()), Duration.ofHours(1).toMillis(), metrics));
 
-        var counts = result
-            .metrics()
-            .getFirst()
-            .buckets()
-            .stream()
-            .map(bucket -> bucket.measures().get(Measure.COUNT).longValue())
-            .toList();
+        var counts = result.metrics().getFirst().buckets().stream()
+                .map(bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                .toList();
         assertThat(counts.stream().mapToLong(Long::longValue).sum()).isEqualTo(2L);
     }
 }

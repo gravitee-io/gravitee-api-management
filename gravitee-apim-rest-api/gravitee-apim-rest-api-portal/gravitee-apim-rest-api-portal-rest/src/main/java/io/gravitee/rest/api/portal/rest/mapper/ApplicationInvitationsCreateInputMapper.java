@@ -31,11 +31,10 @@ public interface ApplicationInvitationsCreateInputMapper {
 
     default CreateApplicationInvitations toCreateApplicationInvitations(InvitationCreateInput input) {
         return new CreateApplicationInvitations(
-            toRecipientEmails(input.getRecipients()),
-            normalizeRoleName(input.getRole()),
-            input.getNotify() == null || input.getNotify(),
-            input.getConfirmationPageUrl()
-        );
+                toRecipientEmails(input.getRecipients()),
+                normalizeRoleName(input.getRole()),
+                input.getNotify() == null || input.getNotify(),
+                input.getConfirmationPageUrl());
     }
 
     private Set<String> toRecipientEmails(List<InvitationRecipientInput> recipients) {

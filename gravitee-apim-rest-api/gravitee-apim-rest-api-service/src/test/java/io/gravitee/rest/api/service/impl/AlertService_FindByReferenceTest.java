@@ -52,12 +52,12 @@ public class AlertService_FindByReferenceTest extends AlertServiceTest {
         NewAlertTriggerEntity newAlertTriggerEntity3 = getNewAlertTriggerEntity();
 
         List<AlertTrigger> alertTriggers = List.of(
-            getAlertTriggerFromNew(newAlertTriggerEntity1),
-            getAlertTriggerFromNew(newAlertTriggerEntity2),
-            getAlertTriggerFromNew(newAlertTriggerEntity3)
-        );
+                getAlertTriggerFromNew(newAlertTriggerEntity1),
+                getAlertTriggerFromNew(newAlertTriggerEntity2),
+                getAlertTriggerFromNew(newAlertTriggerEntity3));
 
-        when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID)).thenReturn(alertTriggers);
+        when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID))
+                .thenReturn(alertTriggers);
 
         List<AlertTriggerEntity> results = alertService.findByReference(REFERENCE_TYPE, REFERENCE_ID);
 
@@ -67,24 +67,24 @@ public class AlertService_FindByReferenceTest extends AlertServiceTest {
     }
 
     @Test
-    public void findByReference_should_throw_TechnicalManagementException_when_technicalException() throws TechnicalException {
+    public void findByReference_should_throw_TechnicalManagementException_when_technicalException()
+            throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
-            when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID)).thenThrow(
-                TechnicalException.class
-            );
+            when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID))
+                    .thenThrow(TechnicalException.class);
 
             alertService.findByReference(REFERENCE_TYPE, REFERENCE_ID);
         });
     }
 
     @Test
-    public void must_TechnicalManagementException_when_find_alert_trigger_entity_by_reference() throws TechnicalException {
+    public void must_TechnicalManagementException_when_find_alert_trigger_entity_by_reference()
+            throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-            when(alertTriggerRepository.findByReferenceAndReferenceId(any(), any())).thenThrow(
-                new TechnicalException("An unexpected error has occurred")
-            );
+            when(alertTriggerRepository.findByReferenceAndReferenceId(any(), any()))
+                    .thenThrow(new TechnicalException("An unexpected error has occurred"));
 
             alertService.findByReference(alert.getReferenceType(), alert.getReferenceId());
         });

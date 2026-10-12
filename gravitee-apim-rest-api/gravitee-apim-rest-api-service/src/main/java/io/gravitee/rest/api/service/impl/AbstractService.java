@@ -40,7 +40,8 @@ public abstract class AbstractService extends TransactionalService {
 
     protected UserDetails getAuthenticatedUser() {
         if (isAuthenticated()) {
-            return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return (UserDetails)
+                    SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         }
         return null;
     }
@@ -48,19 +49,17 @@ public abstract class AbstractService extends TransactionalService {
     protected AuditActor getAuthenticatedUserAsAuditActor() {
         UserDetails authenticatedUser = getAuthenticatedUser();
         return authenticatedUser == null
-            ? null
-            : AuditActor.builder()
-                .userId(getAuthenticatedUser().getUsername())
-                .userSource(getAuthenticatedUser().getSource())
-                .userSourceId(getAuthenticatedUser().getSourceId())
-                .build();
+                ? null
+                : AuditActor.builder()
+                        .userId(getAuthenticatedUser().getUsername())
+                        .userSource(getAuthenticatedUser().getSource())
+                        .userSourceId(getAuthenticatedUser().getSourceId())
+                        .build();
     }
 
     protected boolean isAuthenticated() {
-        return (
-            SecurityContextHolder.getContext().getAuthentication() != null &&
-            SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails
-        );
+        return (SecurityContextHolder.getContext().getAuthentication() != null
+                && SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails);
     }
 
     protected boolean isEnvironmentAdmin() {
@@ -68,24 +67,27 @@ public abstract class AbstractService extends TransactionalService {
     }
 
     private boolean isUserInRole(final String role) {
-        return SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getAuthorities()
-            .stream()
-            .anyMatch(auth -> role.equals(auth.getAuthority()));
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(auth -> role.equals(auth.getAuthority()));
     }
 
     protected static io.gravitee.repository.management.api.search.Pageable convert(Pageable pageable) {
         if (pageable == null) {
             return null;
         }
-        return new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
+        return new PageableBuilder()
+                .pageNumber(pageable.getPageNumber() - 1)
+                .pageSize(pageable.getPageSize())
+                .build();
     }
 
     protected static io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {
         if (sortable == null) {
             return null;
         }
-        return new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build();
+        return new SortableBuilder()
+                .field(sortable.getField())
+                .setAsc(sortable.isAscOrder())
+                .build();
     }
 }

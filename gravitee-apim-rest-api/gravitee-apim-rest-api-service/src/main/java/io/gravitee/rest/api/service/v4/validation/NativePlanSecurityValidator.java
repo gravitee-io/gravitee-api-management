@@ -45,11 +45,11 @@ public final class NativePlanSecurityValidator {
 
         // No self-exclusion needed: callers reject non-STAGING plans before publishing, so the plan
         // being published never matches the PUBLISHED/DEPRECATED filter below.
-        boolean hasConflict = apiPlans
-            .stream()
-            .filter(existingPlan -> existingPlan.getStatus() == Plan.Status.PUBLISHED || existingPlan.getStatus() == Plan.Status.DEPRECATED)
-            .filter(existingPlan -> existingPlan.getSecurity() != null)
-            .anyMatch(existingPlan -> categoryOf(existingPlan.getSecurity()) != categoryToPublish);
+        boolean hasConflict = apiPlans.stream()
+                .filter(existingPlan -> existingPlan.getStatus() == Plan.Status.PUBLISHED
+                        || existingPlan.getStatus() == Plan.Status.DEPRECATED)
+                .filter(existingPlan -> existingPlan.getSecurity() != null)
+                .anyMatch(existingPlan -> categoryOf(existingPlan.getSecurity()) != categoryToPublish);
 
         if (hasConflict) {
             throw new NativePlanAuthenticationConflictException(planToPublish.getSecurity());

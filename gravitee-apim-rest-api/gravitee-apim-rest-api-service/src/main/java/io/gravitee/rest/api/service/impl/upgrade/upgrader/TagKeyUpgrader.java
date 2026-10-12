@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
-import io.gravitee.repository.management.model.Tag;
 import lombok.CustomLog;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,19 +39,17 @@ public class TagKeyUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
-            tagRepository
-                .findAll()
-                .forEach(tag -> {
-                    log.info("Migrating sharding tag {}", tag.getName());
+            tagRepository.findAll().forEach(tag -> {
+                log.info("Migrating sharding tag {}", tag.getName());
 
-                    tag.setKey(tag.getId());
+                tag.setKey(tag.getId());
 
-                    try {
-                        tagRepository.update(tag);
-                    } catch (TechnicalException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                try {
+                    tagRepository.update(tag);
+                } catch (TechnicalException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             return true;
         } catch (Exception ex) {
             log.error("TagKeyUpgrader failed. Fail to upgrade tag key");

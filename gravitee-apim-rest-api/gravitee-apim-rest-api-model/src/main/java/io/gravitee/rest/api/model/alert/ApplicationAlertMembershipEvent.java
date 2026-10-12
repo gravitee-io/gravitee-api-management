@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.alert;
 
 import io.gravitee.rest.api.model.event.AbstractOrganizationEvent;
-import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -69,7 +69,8 @@ class ApiEventQueryServiceImplTest {
 
     @Test
     void search_should_return_empty_if_no_event() {
-        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(List.of());
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L)))
+                .thenReturn(List.of());
         final Optional<Api> lastPublishedApi = cut.findLastPublishedApi("org-id", "env-id", "api-id");
         assertThat(lastPublishedApi).isEmpty();
         verifyEventCriteria();
@@ -81,17 +82,17 @@ class ApiEventQueryServiceImplTest {
         final Api api = ApiFixtures.aProxyApiV4();
 
         final Event event = new Event(
-            "event-id",
-            Set.of("env-id"),
-            Set.of("org-id"),
-            EventType.PUBLISH_API,
-            GraviteeJacksonMapper.getInstance().writeValueAsString(ApiAdapter.INSTANCE.toRepository(api)),
-            null,
-            Map.of(),
-            new Date(),
-            new Date()
-        );
-        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(List.of(event));
+                "event-id",
+                Set.of("env-id"),
+                Set.of("org-id"),
+                EventType.PUBLISH_API,
+                GraviteeJacksonMapper.getInstance().writeValueAsString(ApiAdapter.INSTANCE.toRepository(api)),
+                null,
+                Map.of(),
+                new Date(),
+                new Date());
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L)))
+                .thenReturn(List.of(event));
         final Optional<Api> lastPublishedApi = cut.findLastPublishedApi("org-id", "env-id", "api-id");
         assertThat(lastPublishedApi).hasValueSatisfying(result -> {
             assertThat(result.getApiDefinitionHttpV4()).isEqualTo(api.getApiDefinitionHttpV4());
@@ -100,14 +101,15 @@ class ApiEventQueryServiceImplTest {
     }
 
     private void verifyEventCriteria() {
-        verify(eventLatestRepository).search(eventCriteriaCaptor.capture(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L));
+        verify(eventLatestRepository)
+                .search(eventCriteriaCaptor.capture(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L));
         final EventCriteria builtEventCriteria = eventCriteriaCaptor.getValue();
         assertThat(builtEventCriteria).satisfies(eventCriteria -> {
             assertThat(eventCriteria.getEnvironments()).containsExactly("env-id");
             assertThat(eventCriteria.getTypes()).containsExactly(EventType.PUBLISH_API);
             assertThat(eventCriteria.getProperties())
-                .hasSize(1)
-                .containsExactly(Map.entry(Event.EventProperties.API_ID.getValue(), "api-id"));
+                    .hasSize(1)
+                    .containsExactly(Map.entry(Event.EventProperties.API_ID.getValue(), "api-id"));
         });
     }
 }

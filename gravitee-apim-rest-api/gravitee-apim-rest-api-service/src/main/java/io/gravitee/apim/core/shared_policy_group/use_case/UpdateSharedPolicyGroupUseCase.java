@@ -39,13 +39,12 @@ public class UpdateSharedPolicyGroupUseCase {
 
     public Output execute(Input input) {
         var existingSharedPolicyGroup = this.sharedPolicyGroupCrudService.getByEnvironmentId(
-            input.auditInfo().environmentId(),
-            input.sharedPolicyGroupId()
-        );
+                input.auditInfo().environmentId(), input.sharedPolicyGroupId());
 
         var sharedPolicyGroupToUpdate = existingSharedPolicyGroup.update(input.sharedPolicyGroupToUpdate());
 
-        validateUpdateSharedPolicyGroupDomainService.validate(sharedPolicyGroupToUpdate, input.auditInfo().environmentId());
+        validateUpdateSharedPolicyGroupDomainService.validate(
+                sharedPolicyGroupToUpdate, input.auditInfo().environmentId());
 
         var updatedSharedPolicyGroup = this.sharedPolicyGroupCrudService.update(sharedPolicyGroupToUpdate);
         createAuditLog(existingSharedPolicyGroup, updatedSharedPolicyGroup, input.auditInfo());
@@ -53,13 +52,14 @@ public class UpdateSharedPolicyGroupUseCase {
     }
 
     @Builder
-    public record Input(String sharedPolicyGroupId, UpdateSharedPolicyGroup sharedPolicyGroupToUpdate, AuditInfo auditInfo) {}
+    public record Input(
+            String sharedPolicyGroupId, UpdateSharedPolicyGroup sharedPolicyGroupToUpdate, AuditInfo auditInfo) {}
 
     public record Output(SharedPolicyGroup sharedPolicyGroup) {}
 
-    private void createAuditLog(SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+    private void createAuditLog(
+            SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_UPDATED)
@@ -68,7 +68,6 @@ public class UpdateSharedPolicyGroupUseCase {
                 .newValue(sharedPolicyGroup)
                 .createdAt(sharedPolicyGroup.getUpdatedAt())
                 .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP, sharedPolicyGroup.getId()))
-                .build()
-        );
+                .build());
     }
 }

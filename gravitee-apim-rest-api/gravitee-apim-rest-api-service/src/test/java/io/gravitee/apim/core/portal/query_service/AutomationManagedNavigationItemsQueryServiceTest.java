@@ -44,24 +44,26 @@ import org.junit.jupiter.api.Test;
 class AutomationManagedNavigationItemsQueryServiceTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
 
     private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
     private static final String PORTAL_HRID = "default-portal";
-    private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
-    private static final PortalListingId LISTING_ID = PortalListingId.of(
-        HRIDToUUID.portalListing().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("default-listing").id()
-    );
+    private static final PortalId PORTAL_ID = PortalId.of(
+            HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
+    private static final PortalListingId LISTING_ID = PortalListingId.of(HRIDToUUID.portalListing()
+            .context(AUDIT_INFO)
+            .portal(PORTAL_HRID)
+            .hrid("default-listing")
+            .id());
 
     private final PortalListingCrudServiceInMemory listingCrud = new PortalListingCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQuery = new PortalNavigationItemsQueryServiceInMemory();
-    private final AutomationManagedNavigationItemsQueryService queryService = new AutomationManagedNavigationItemsQueryService(
-        listingCrud,
-        navigationItemsQuery
-    );
+    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQuery =
+            new PortalNavigationItemsQueryServiceInMemory();
+    private final AutomationManagedNavigationItemsQueryService queryService =
+            new AutomationManagedNavigationItemsQueryService(listingCrud, navigationItemsQuery);
 
     @BeforeEach
     void setUp() {
@@ -73,27 +75,21 @@ class AutomationManagedNavigationItemsQueryServiceTest {
     void active_listing_api_rows_returns_deterministic_ids_for_every_entry_under_portal() {
         var petsApiId = HRIDToUUID.api().context(AUDIT_INFO).hrid("pets-api").id();
         var shopApiId = HRIDToUUID.api().context(AUDIT_INFO).hrid("shop-api").id();
-        listingCrud.initWith(
-            List.of(
-                PortalListing.of(
-                    LISTING_ID,
-                    AUDIT_INFO.environmentId(),
-                    AUDIT_INFO.organizationId(),
-                    PORTAL_ID,
-                    List.of(
+        listingCrud.initWith(List.of(PortalListing.of(
+                LISTING_ID,
+                AUDIT_INFO.environmentId(),
+                AUDIT_INFO.organizationId(),
+                PORTAL_ID,
+                List.of(
                         new PortalListingApiEntry("pets-api", "/projects/alpha", 1),
-                        new PortalListingApiEntry("shop-api", "/projects/beta", 2)
-                    )
-                )
-            )
-        );
+                        new PortalListingApiEntry("shop-api", "/projects/beta", 2)))));
 
         var result = queryService.activeListingApiRows(AUDIT_INFO, PORTAL_ID);
 
-        assertThat(result).containsExactlyInAnyOrder(
-            PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), petsApiId),
-            PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), shopApiId)
-        );
+        assertThat(result)
+                .containsExactlyInAnyOrder(
+                        PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), petsApiId),
+                        PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), shopApiId));
     }
 
     @Test
@@ -103,7 +99,8 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     @Test
     void automation_managed_portal_doc_pages_returns_pages_with_matching_automation_metadata() {
-        var managedPage = pageRow("about", automationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString()));
+        var managedPage =
+                pageRow("about", automationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString()));
         var unmanagedPage = pageRow("manual", null);
         navigationItemsQuery.initWith(List.of(managedPage, unmanagedPage));
 
@@ -149,7 +146,8 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     @Test
     void automation_managed_portal_links_returns_links_with_matching_automation_metadata() {
-        var managedLink = linkRow("managed-link", automationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString()));
+        var managedLink = linkRow(
+                "managed-link", automationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString()));
         var manualLink = linkRow("manual-link", null);
         navigationItemsQuery.initWith(List.of(managedLink, manualLink));
 
@@ -172,7 +170,8 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     @Test
     void automation_managed_portal_links_returns_empty_when_no_links_exist() {
-        assertThat(queryService.automationManagedPortalLinks(AUDIT_INFO, PORTAL_ID)).isEmpty();
+        assertThat(queryService.automationManagedPortalLinks(AUDIT_INFO, PORTAL_ID))
+                .isEmpty();
     }
 
     @Test
@@ -188,36 +187,36 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     private static PortalNavigationLink linkRow(String title, AutomationMetadata metadata) {
         var link = PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title(title)
-            .segment(title)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .url("https://example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .automationMetadata(metadata)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title(title)
+                .segment(title)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url("https://example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .automationMetadata(metadata)
+                .build();
         link.markAsRoot();
         return link;
     }
 
     private static PortalNavigationPage pageRow(String title, AutomationMetadata metadata) {
         var page = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title(title)
-            .segment(title)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .automationMetadata(metadata)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title(title)
+                .segment(title)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .automationMetadata(metadata)
+                .build();
         page.markAsRoot();
         return page;
     }

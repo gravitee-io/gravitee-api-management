@@ -92,13 +92,12 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
      */
     protected Stream<Arguments> qosParameters() {
         return Stream.of(
-            Arguments.of(Qos.NONE, MqttQos.AT_MOST_ONCE, false),
-            Arguments.of(Qos.NONE, MqttQos.AT_LEAST_ONCE, false),
-            Arguments.of(Qos.NONE, MqttQos.EXACTLY_ONCE, false),
-            Arguments.of(Qos.AUTO, MqttQos.AT_MOST_ONCE, false),
-            Arguments.of(Qos.AUTO, MqttQos.AT_LEAST_ONCE, true),
-            Arguments.of(Qos.AUTO, MqttQos.EXACTLY_ONCE, true)
-        );
+                Arguments.of(Qos.NONE, MqttQos.AT_MOST_ONCE, false),
+                Arguments.of(Qos.NONE, MqttQos.AT_LEAST_ONCE, false),
+                Arguments.of(Qos.NONE, MqttQos.EXACTLY_ONCE, false),
+                Arguments.of(Qos.AUTO, MqttQos.AT_MOST_ONCE, false),
+                Arguments.of(Qos.AUTO, MqttQos.AT_LEAST_ONCE, true),
+                Arguments.of(Qos.AUTO, MqttQos.EXACTLY_ONCE, true));
     }
 
     /**
@@ -113,22 +112,21 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
      */
     protected Stream<Arguments> allQosParameters() {
         return Stream.concat(
-            qosParameters(),
-            Stream.of(
-                Arguments.of(Qos.AT_MOST_ONCE, MqttQos.AT_MOST_ONCE, false),
-                Arguments.of(Qos.AT_MOST_ONCE, MqttQos.AT_LEAST_ONCE, false),
-                Arguments.of(Qos.AT_MOST_ONCE, MqttQos.EXACTLY_ONCE, false),
-                Arguments.of(Qos.AT_LEAST_ONCE, MqttQos.AT_MOST_ONCE, false),
-                Arguments.of(Qos.AT_LEAST_ONCE, MqttQos.AT_LEAST_ONCE, true),
-                Arguments.of(Qos.AT_LEAST_ONCE, MqttQos.EXACTLY_ONCE, true)
-            )
-        );
+                qosParameters(),
+                Stream.of(
+                        Arguments.of(Qos.AT_MOST_ONCE, MqttQos.AT_MOST_ONCE, false),
+                        Arguments.of(Qos.AT_MOST_ONCE, MqttQos.AT_LEAST_ONCE, false),
+                        Arguments.of(Qos.AT_MOST_ONCE, MqttQos.EXACTLY_ONCE, false),
+                        Arguments.of(Qos.AT_LEAST_ONCE, MqttQos.AT_MOST_ONCE, false),
+                        Arguments.of(Qos.AT_LEAST_ONCE, MqttQos.AT_LEAST_ONCE, true),
+                        Arguments.of(Qos.AT_LEAST_ONCE, MqttQos.EXACTLY_ONCE, true)));
     }
 
     @Container
-    protected static final HiveMQContainer mqtt5 = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce").withTag("2024.4"))
-        .withTmpFs(null)
-        .withStartupTimeout(java.time.Duration.ofMinutes(2));
+    protected static final HiveMQContainer mqtt5 = new HiveMQContainer(
+                    DockerImageName.parse("hivemq/hivemq-ce").withTag("2024.4"))
+            .withTmpFs(null)
+            .withStartupTimeout(java.time.Duration.ofMinutes(2));
 
     @Override
     public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
@@ -143,23 +141,24 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     @BeforeEach
     public void waitForMqtt5Ready() {
         Awaitility.await()
-            .atMost(60, TimeUnit.SECONDS)
-            .pollInterval(1, TimeUnit.SECONDS)
-            .pollDelay(java.time.Duration.ZERO)
-            .ignoreExceptions()
-            .until(() -> {
-                Mqtt5RxClient testClient = prepareMqtt5Client();
-                try {
-                    var connAck = RxJavaBridge.toV3Single(testClient.connect()).blockingGet();
-                    boolean success = connAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS);
-                    if (success) {
-                        testClient.disconnect().blockingAwait();
+                .atMost(60, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .pollDelay(java.time.Duration.ZERO)
+                .ignoreExceptions()
+                .until(() -> {
+                    Mqtt5RxClient testClient = prepareMqtt5Client();
+                    try {
+                        var connAck =
+                                RxJavaBridge.toV3Single(testClient.connect()).blockingGet();
+                        boolean success = connAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS);
+                        if (success) {
+                            testClient.disconnect().blockingAwait();
+                        }
+                        return success;
+                    } catch (Exception e) {
+                        return false;
                     }
-                    return success;
-                } catch (Exception e) {
-                    return false;
-                }
-            });
+                });
         log.info("MQTT5 broker is ready to accept connections");
     }
 
@@ -167,60 +166,51 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         if (definitionClass.isAssignableFrom(Api.class)) {
             Api apiDefinition = (Api) api.getDefinition();
-            apiDefinition
-                .getEndpointGroups()
-                .stream()
-                .flatMap(eg -> eg.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getType().equals("mqtt5"))
-                .forEach(endpoint ->
-                    endpoint.setConfiguration(
-                        endpoint
-                            .getConfiguration()
+            apiDefinition.getEndpointGroups().stream()
+                    .flatMap(eg -> eg.getEndpoints().stream())
+                    .filter(endpoint -> endpoint.getType().equals("mqtt5"))
+                    .forEach(endpoint -> endpoint.setConfiguration(endpoint.getConfiguration()
                             .replace("mqtt5-host", mqtt5.getHost())
-                            .replace("mqtt5-port", Integer.toString(mqtt5.getMqttPort()))
-                    )
-                );
+                            .replace("mqtt5-port", Integer.toString(mqtt5.getMqttPort()))));
         }
     }
 
     protected Flowable<Mqtt5PublishResult> publishToMqtt5(String topic, String payload, MqttQos publishQos) {
         final AtomicInteger i = new AtomicInteger(0);
 
-        return connectToMqtt5().flatMapPublisher(mqtt5RxClient ->
-            RxJavaBridge.toV3Flowable(
-                mqtt5RxClient.publish(
-                    io.reactivex.Flowable.fromCallable(() ->
-                        Mqtt5Publish.builder()
-                            .topic(topic)
-                            .payload(payload != null ? Buffer.buffer(payload + "-" + i.getAndIncrement()).getBytes() : null)
-                            .qos(publishQos)
-                            .noMessageExpiry()
-                            .retain(true)
-                            .build()
-                    )
-                        .delay(5, TimeUnit.MILLISECONDS)
-                        .repeat()
-                )
-            )
-                .doFinally(() -> {
-                    log.info("Stopping publish messages");
-                    mqtt5RxClient.disconnect().blockingAwait();
-                })
-                .doOnSubscribe(s -> log.info("Starting publish messages"))
-        );
+        return connectToMqtt5()
+                .flatMapPublisher(mqtt5RxClient -> RxJavaBridge.toV3Flowable(mqtt5RxClient.publish(
+                                io.reactivex.Flowable.fromCallable(() -> Mqtt5Publish.builder()
+                                                .topic(topic)
+                                                .payload(
+                                                        payload != null
+                                                                ? Buffer.buffer(payload + "-" + i.getAndIncrement())
+                                                                        .getBytes()
+                                                                : null)
+                                                .qos(publishQos)
+                                                .noMessageExpiry()
+                                                .retain(true)
+                                                .build())
+                                        .delay(5, TimeUnit.MILLISECONDS)
+                                        .repeat()))
+                        .doFinally(() -> {
+                            log.info("Stopping publish messages");
+                            mqtt5RxClient.disconnect().blockingAwait();
+                        })
+                        .doOnSubscribe(s -> log.info("Starting publish messages")));
     }
 
     protected Flowable<Mqtt5Publish> subscribeToMqtt5(String topic, Subject<Void> readyObs) {
         return connectToMqtt5()
-            .flatMapPublisher(mqtt5RxClient ->
-                RxJavaBridge.toV3Flowable(
-                    mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe()
-                )
-                    .doOnSubscribe(subscription -> readyObs.onComplete())
-                    .doFinally(() -> mqtt5RxClient.disconnect().subscribe())
-            )
-            .doFinally(() -> log.info("Subscribe message completed"))
-            .doOnSubscribe(s -> log.info("Subscribe message subscribed"));
+                .flatMapPublisher(mqtt5RxClient -> RxJavaBridge.toV3Flowable(mqtt5RxClient
+                                .subscribePublishesWith()
+                                .topicFilter(topic)
+                                .qos(Mqtt5Publish.DEFAULT_QOS)
+                                .applySubscribe())
+                        .doOnSubscribe(subscription -> readyObs.onComplete())
+                        .doFinally(() -> mqtt5RxClient.disconnect().subscribe()))
+                .doFinally(() -> log.info("Subscribe message completed"))
+                .doOnSubscribe(s -> log.info("Subscribe message subscribed"));
     }
 
     protected Flowable<Mqtt5Publish> subscribeToMqtt5(String topic) {
@@ -229,30 +219,29 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
 
     private Single<Mqtt5RxClient> connectToMqtt5() {
         final Mqtt5RxClient mqtt5RxClient = prepareMqtt5Client();
-        return RxJavaBridge.toV3Single(
-            mqtt5RxClient
-                .connect()
-                .flatMap(mqtt5ConnAck -> {
-                    if (!mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
-                        return mqtt5RxClient.disconnect().andThen(io.reactivex.Single.error(new Exception("Unable to connect to MQTT5")));
-                    }
-                    return io.reactivex.Single.just(mqtt5RxClient);
-                })
-        );
+        return RxJavaBridge.toV3Single(mqtt5RxClient.connect().flatMap(mqtt5ConnAck -> {
+            if (!mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
+                return mqtt5RxClient
+                        .disconnect()
+                        .andThen(io.reactivex.Single.error(new Exception("Unable to connect to MQTT5")));
+            }
+            return io.reactivex.Single.just(mqtt5RxClient);
+        }));
     }
 
     protected Mqtt5RxClient prepareMqtt5Client() {
         return Mqtt5Client.builder()
-            .serverHost(mqtt5.getHost())
-            .serverPort(mqtt5.getMqttPort())
-            .automaticReconnectWithDefaultConfig()
-            .identifier(UUID.randomUUID().toString())
-            .buildRx();
+                .serverHost(mqtt5.getHost())
+                .serverPort(mqtt5.getMqttPort())
+                .automaticReconnectWithDefaultConfig()
+                .identifier(UUID.randomUUID().toString())
+                .buildRx();
     }
 
     @NonNull
     protected Completable publishMessagesWhenReady(List<Completable> readyObs, String topic, MqttQos publishQos) {
-        return Completable.defer(() -> Completable.merge(readyObs).andThen(publishToMqtt5(topic, "message", publishQos).ignoreElements()));
+        return Completable.defer(() -> Completable.merge(readyObs)
+                .andThen(publishToMqtt5(topic, "message", publishQos).ignoreElements()));
     }
 
     protected String extractTransactionId(HttpClientResponse response) {

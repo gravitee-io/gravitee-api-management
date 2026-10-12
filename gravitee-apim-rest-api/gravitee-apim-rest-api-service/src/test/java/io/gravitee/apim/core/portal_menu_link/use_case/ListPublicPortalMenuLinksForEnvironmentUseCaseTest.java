@@ -29,62 +29,53 @@ import org.junit.jupiter.api.Test;
 class ListPublicPortalMenuLinksForEnvironmentUseCaseTest {
 
     private final PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService = new PortalMenuLinkCrudServiceInMemory();
-    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService = new PortalMenuLinkQueryServiceInMemory(
-        portalMenuLinkCrudService
-    );
+    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService =
+            new PortalMenuLinkQueryServiceInMemory(portalMenuLinkCrudService);
     private ListPublicPortalMenuLinksForEnvironmentUseCase listPublicPortalMenuLinksForEnvironmentUseCase;
 
     @BeforeEach
     void setUp() {
-        listPublicPortalMenuLinksForEnvironmentUseCase = new ListPublicPortalMenuLinksForEnvironmentUseCase(portalMenuLinkQueryService);
+        listPublicPortalMenuLinksForEnvironmentUseCase =
+                new ListPublicPortalMenuLinksForEnvironmentUseCase(portalMenuLinkQueryService);
     }
 
     @Test
     void should_return_portal_menu_link() {
         // Given
-        portalMenuLinkQueryService.initWith(
-            List.of(
-                PortalMenuLinkFixtures.aPortalMenuLink()
-                    .toBuilder()
-                    .id("id1")
-                    .environmentId("env1")
-                    .visibility(PortalMenuLinkVisibility.PUBLIC)
-                    .order(2)
-                    .build(),
-                PortalMenuLinkFixtures.aPortalMenuLink()
-                    .toBuilder()
-                    .id("id2")
-                    .environmentId("env2")
-                    .visibility(PortalMenuLinkVisibility.PUBLIC)
-                    .order(1)
-                    .build(),
-                PortalMenuLinkFixtures.aPortalMenuLink()
-                    .toBuilder()
-                    .id("id3")
-                    .environmentId("env1")
-                    .visibility(PortalMenuLinkVisibility.PUBLIC)
-                    .order(1)
-                    .build(),
-                PortalMenuLinkFixtures.aPortalMenuLink()
-                    .toBuilder()
-                    .id("id4")
-                    .environmentId("env3")
-                    .visibility(PortalMenuLinkVisibility.PUBLIC)
-                    .order(1)
-                    .build(),
-                PortalMenuLinkFixtures.aPortalMenuLink()
-                    .toBuilder()
-                    .id("id5")
-                    .environmentId("env1")
-                    .visibility(PortalMenuLinkVisibility.PRIVATE)
-                    .order(3)
-                    .build()
-            )
-        );
+        portalMenuLinkQueryService.initWith(List.of(
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id1")
+                        .environmentId("env1")
+                        .visibility(PortalMenuLinkVisibility.PUBLIC)
+                        .order(2)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id2")
+                        .environmentId("env2")
+                        .visibility(PortalMenuLinkVisibility.PUBLIC)
+                        .order(1)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id3")
+                        .environmentId("env1")
+                        .visibility(PortalMenuLinkVisibility.PUBLIC)
+                        .order(1)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id4")
+                        .environmentId("env3")
+                        .visibility(PortalMenuLinkVisibility.PUBLIC)
+                        .order(1)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id5")
+                        .environmentId("env1")
+                        .visibility(PortalMenuLinkVisibility.PRIVATE)
+                        .order(3)
+                        .build()));
         // When
         var result = listPublicPortalMenuLinksForEnvironmentUseCase.execute(
-            new ListPublicPortalMenuLinksForEnvironmentUseCase.Input("env1")
-        );
+                new ListPublicPortalMenuLinksForEnvironmentUseCase.Input("env1"));
 
         // Then
         assertNotNull(result.portalMenuLinkList());
@@ -99,8 +90,7 @@ class ListPublicPortalMenuLinksForEnvironmentUseCaseTest {
         portalMenuLinkQueryService.initWith(List.of());
         // When
         var result = listPublicPortalMenuLinksForEnvironmentUseCase.execute(
-            new ListPublicPortalMenuLinksForEnvironmentUseCase.Input("env1")
-        );
+                new ListPublicPortalMenuLinksForEnvironmentUseCase.Input("env1"));
 
         // Then
         assertNotNull(result.portalMenuLinkList());

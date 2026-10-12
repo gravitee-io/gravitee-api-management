@@ -86,16 +86,15 @@ public class GroupInvitationsResource extends AbstractResource {
 
     @GET
     @Operation(
-        summary = "List existing invitations of a group",
-        description = "User must have the GROUP_INVITATION[READ] permission to use this service"
-    )
+            summary = "List existing invitations of a group",
+            description = "User must have the GROUP_INVITATION[READ] permission to use this service")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { READ, CREATE, UPDATE, DELETE }),
-            @Permission(value = GROUP_INVITATION, acls = READ),
-        }
-    )
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_GROUP,
+                acls = {READ, CREATE, UPDATE, DELETE}),
+        @Permission(value = GROUP_INVITATION, acls = READ),
+    })
     public List<InvitationEntity> getGroupInvitations() {
         return invitationService.findByReference(GROUP, group);
     }
@@ -104,50 +103,42 @@ public class GroupInvitationsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create an invitation to join a group",
-        description = "User must have the GROUP_INVITATION[CREATE] permission to use this service"
-    )
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { UPDATE, CREATE }),
-            @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.CREATE),
-        }
-    )
-    @ApiResponses(
-        {
-            @ApiResponse(
+            summary = "Create an invitation to join a group",
+            description = "User must have the GROUP_INVITATION[CREATE] permission to use this service")
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_GROUP,
+                acls = {UPDATE, CREATE}),
+        @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.CREATE),
+    })
+    @ApiResponses({
+        @ApiResponse(
                 responseCode = "200",
                 description = "Invitation sent successfully",
-                content = @Content(schema = @Schema(implementation = InvitationEntity.class))
-            ),
-            @ApiResponse(
+                content = @Content(schema = @Schema(implementation = InvitationEntity.class))),
+        @ApiResponse(
                 responseCode = "202",
                 description = "Request is accepted and list of users to select and invite sent successfully",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON,
-                    array = @ArraySchema(schema = @Schema(implementation = UserEntity.class))
-                )
-            ),
-        }
-    )
+                content =
+                        @Content(
+                                mediaType = MediaType.APPLICATION_JSON,
+                                array = @ArraySchema(schema = @Schema(implementation = UserEntity.class)))),
+    })
     public Response createGroupInvitation(@Valid @NotNull final NewInvitationEntity invitationEntity) {
         // Check that group exists
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GroupEntity groupEntity = groupService.findById(executionContext, group);
         // check if user is a 'simple group admin' or a platform admin
         final boolean hasPermission = permissionService.hasPermission(
-            executionContext,
-            RolePermission.ENVIRONMENT_GROUP,
-            GraviteeContext.getCurrentEnvironment(),
-            CREATE,
-            UPDATE,
-            DELETE
-        );
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                GraviteeContext.getCurrentEnvironment(),
+                CREATE,
+                UPDATE,
+                DELETE);
         if (!hasPermission) {
-            if (
-                groupEntity.getMaxInvitation() != null &&
-                groupService.getNumberOfMembers(executionContext, group) >= groupEntity.getMaxInvitation()
-            ) {
+            if (groupEntity.getMaxInvitation() != null
+                    && groupService.getNumberOfMembers(executionContext, group) >= groupEntity.getMaxInvitation()) {
                 throw new GroupMembersLimitationExceededException(groupEntity.getMaxInvitation());
             }
             if (!groupEntity.isEmailInvitation()) {
@@ -166,27 +157,25 @@ public class GroupInvitationsResource extends AbstractResource {
 
         invitationEntity.setReferenceType(GROUP);
         invitationEntity.setReferenceId(group);
-        return Response.ok(invitationService.create(executionContext, invitationEntity)).build();
+        return Response.ok(invitationService.create(executionContext, invitationEntity))
+                .build();
     }
 
     @Path("{invitation}")
     @PUT
     @Operation(
-        summary = "Update an invitation to join a group",
-        description = "User must have the GROUP_INVITATION[UPDATE] permission to use this service"
-    )
+            summary = "Update an invitation to join a group",
+            description = "User must have the GROUP_INVITATION[UPDATE] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { UPDATE, CREATE }),
-            @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_GROUP,
+                acls = {UPDATE, CREATE}),
+        @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.UPDATE),
+    })
     public InvitationEntity updateGroupInvitation(
-        @PathParam("invitation") String invitation,
-        @Valid @NotNull final UpdateInvitationEntity invitationEntity
-    ) {
+            @PathParam("invitation") String invitation, @Valid @NotNull final UpdateInvitationEntity invitationEntity) {
         invitationEntity.setId(invitation);
         invitationEntity.setReferenceType(GROUP);
         invitationEntity.setReferenceId(group);
@@ -196,16 +185,15 @@ public class GroupInvitationsResource extends AbstractResource {
     @Path("{invitation}")
     @DELETE
     @Operation(
-        summary = "Delete an invitation to join a group",
-        description = "User must have the GROUP_INVITATION[DELETE] permission to use this service"
-    )
+            summary = "Delete an invitation to join a group",
+            description = "User must have the GROUP_INVITATION[DELETE] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { UPDATE, CREATE }),
-            @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.DELETE),
-        }
-    )
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_GROUP,
+                acls = {UPDATE, CREATE}),
+        @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.DELETE),
+    })
     public void deleteGroupInvitation(@PathParam("invitation") String invitation) {
         invitationService.delete(invitation, group);
     }

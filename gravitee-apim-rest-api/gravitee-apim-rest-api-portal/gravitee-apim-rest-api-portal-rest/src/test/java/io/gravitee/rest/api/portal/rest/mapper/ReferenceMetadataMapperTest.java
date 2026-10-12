@@ -44,7 +44,7 @@ public class ReferenceMetadataMapperTest {
 
     @Test
     public void testConvertEntityToPojo() {
-        //init
+        // init
         ApplicationMetadataEntity applicationMetadataEntity = new ApplicationMetadataEntity();
         applicationMetadataEntity.setApplicationId(METADATA_APPLICATION_ID);
         applicationMetadataEntity.setDefaultValue(METADATA_DEFAULT_VALUE);
@@ -53,7 +53,7 @@ public class ReferenceMetadataMapperTest {
         applicationMetadataEntity.setKey(METADATA_KEY);
         applicationMetadataEntity.setName(METADATA_NAME);
 
-        //Test
+        // Test
         final ReferenceMetadata referenceMetadata = referenceMetadataMapper.convert(applicationMetadataEntity);
         assertNotNull(referenceMetadata);
         assertEquals(METADATA_APPLICATION_ID, referenceMetadata.getApplication());
@@ -66,18 +66,16 @@ public class ReferenceMetadataMapperTest {
 
     @Test
     public void testConvertInputToNewMetadataEntity() {
-        //init
+        // init
         ReferenceMetadataInput metadataInput = new ReferenceMetadataInput();
         metadataInput.setDefaultValue(METADATA_DEFAULT_VALUE);
         metadataInput.setValue(METADATA_VALUE);
         metadataInput.setFormat(ReferenceMetadataFormatType.valueOf(METADATA_FORMAT));
         metadataInput.setName(METADATA_NAME);
 
-        //Test
-        final NewApplicationMetadataEntity newApplicationMetadataEntity = referenceMetadataMapper.convert(
-            metadataInput,
-            METADATA_APPLICATION_ID
-        );
+        // Test
+        final NewApplicationMetadataEntity newApplicationMetadataEntity =
+                referenceMetadataMapper.convert(metadataInput, METADATA_APPLICATION_ID);
         assertNotNull(newApplicationMetadataEntity);
         assertEquals(METADATA_APPLICATION_ID, newApplicationMetadataEntity.getApplicationId());
         assertEquals(METADATA_DEFAULT_VALUE, newApplicationMetadataEntity.getDefaultValue());
@@ -88,19 +86,16 @@ public class ReferenceMetadataMapperTest {
 
     @Test
     public void testConvertInputToUpdateMetadataEntity() {
-        //init
+        // init
         ReferenceMetadataInput metadataInput = new ReferenceMetadataInput();
         metadataInput.setDefaultValue(METADATA_DEFAULT_VALUE);
         metadataInput.setValue(METADATA_VALUE);
         metadataInput.setFormat(ReferenceMetadataFormatType.valueOf(METADATA_FORMAT));
         metadataInput.setName(METADATA_NAME);
 
-        //Test
-        final UpdateApplicationMetadataEntity updateApplicationMetadataEntity = referenceMetadataMapper.convert(
-            metadataInput,
-            METADATA_APPLICATION_ID,
-            METADATA_KEY
-        );
+        // Test
+        final UpdateApplicationMetadataEntity updateApplicationMetadataEntity =
+                referenceMetadataMapper.convert(metadataInput, METADATA_APPLICATION_ID, METADATA_KEY);
         assertNotNull(updateApplicationMetadataEntity);
         assertEquals(METADATA_APPLICATION_ID, updateApplicationMetadataEntity.getApplicationId());
         assertEquals(METADATA_DEFAULT_VALUE, updateApplicationMetadataEntity.getDefaultValue());

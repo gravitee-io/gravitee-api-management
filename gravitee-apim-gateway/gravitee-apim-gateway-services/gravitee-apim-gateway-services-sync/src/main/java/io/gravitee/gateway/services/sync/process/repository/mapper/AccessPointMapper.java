@@ -24,10 +24,14 @@ public class AccessPointMapper {
     public ReactableAccessPoint to(io.gravitee.repository.management.model.AccessPoint accessPointModel) {
         // At this point we know that the access point is only referencing a Environment
         return ReactableAccessPoint.builder()
-            .id(accessPointModel.getId())
-            .environmentId(accessPointModel.getReferenceId())
-            .host(accessPointModel.getHost())
-            .target(accessPointModel.getTarget() != null ? ReactableAccessPoint.Target.valueOf(accessPointModel.getTarget().name()) : null)
-            .build();
+                .id(accessPointModel.getId())
+                .environmentId(accessPointModel.getReferenceId())
+                .host(accessPointModel.getHost())
+                .target(
+                        accessPointModel.getTarget() != null
+                                ? ReactableAccessPoint.Target.valueOf(
+                                        accessPointModel.getTarget().name())
+                                : null)
+                .build();
     }
 }

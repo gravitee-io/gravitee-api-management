@@ -59,11 +59,11 @@ import org.junit.jupiter.api.Test;
 class ApiEventsResourceTest extends ApiResourceTest {
 
     private static final BaseUserEntity USER = BaseUserEntity.builder()
-        .id("user-id")
-        .firstname("John")
-        .lastname("Doe")
-        .email("john.doe@gravitee.io")
-        .build();
+            .id("user-id")
+            .firstname("John")
+            .lastname("Doe")
+            .email("john.doe@gravitee.io")
+            .build();
 
     @Inject
     EventQueryServiceInMemory eventQueryService;
@@ -100,129 +100,139 @@ class ApiEventsResourceTest extends ApiResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_EVENT),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.API_EVENT),
+                            eq(API),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
 
             final Response response = target.request().get();
 
             assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
         public void should_return_events() {
-            eventQueryService.initWith(List.of(EventFixtures.anApiEvent(API).toBuilder().environments(Set.of(ENVIRONMENT)).build()));
+            eventQueryService.initWith(List.of(EventFixtures.anApiEvent(API).toBuilder()
+                    .environments(Set.of(ENVIRONMENT))
+                    .build()));
 
             final Response response = target.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(EventsResponse.class)
-                .extracting(EventsResponse::getData)
-                .isEqualTo(
-                    List.of(
-                        new Event()
+                    .hasStatus(OK_200)
+                    .asEntity(EventsResponse.class)
+                    .extracting(EventsResponse::getData)
+                    .isEqualTo(List.of(new Event()
                             .id("event-id")
                             .environmentIds(List.of(ENVIRONMENT))
                             .initiator(new BaseUser().id("user-id").displayName("John Doe"))
                             .type(io.gravitee.rest.api.management.v2.rest.model.EventType.PUBLISH_API)
                             .createdAt(OffsetDateTime.parse("2020-02-01T20:22:02.00Z"))
                             .payload("event-payload")
-                            .properties(Map.of("API_ID", API, "USER", "user-id"))
-                    )
-                );
+                            .properties(Map.of("API_ID", API, "USER", "user-id"))));
         }
 
         @Test
         public void should_return_audits_filtered_by_interval() {
-            eventQueryService.initWith(
-                List.of(
-                    EventFixtures.anApiEvent(API)
-                        .toBuilder()
-                        .id("1")
-                        .environments(Set.of(ENVIRONMENT))
-                        .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
-                        .build(),
-                    EventFixtures.anApiEvent(API)
-                        .toBuilder()
-                        .id("2")
-                        .environments(Set.of(ENVIRONMENT))
-                        .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
-                        .build(),
-                    EventFixtures.anApiEvent(API)
-                        .toBuilder()
-                        .id("3")
-                        .environments(Set.of(ENVIRONMENT))
-                        .createdAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
-                        .build()
-                )
-            );
+            eventQueryService.initWith(List.of(
+                    EventFixtures.anApiEvent(API).toBuilder()
+                            .id("1")
+                            .environments(Set.of(ENVIRONMENT))
+                            .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
+                            .build(),
+                    EventFixtures.anApiEvent(API).toBuilder()
+                            .id("2")
+                            .environments(Set.of(ENVIRONMENT))
+                            .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
+                            .build(),
+                    EventFixtures.anApiEvent(API).toBuilder()
+                            .id("3")
+                            .environments(Set.of(ENVIRONMENT))
+                            .createdAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
+                            .build()));
 
-            final Response response = target
-                .queryParam(SearchApiEventsParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
-                .queryParam(SearchApiEventsParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli())
-                .request()
-                .get();
+            final Response response = target.queryParam(
+                            SearchApiEventsParam.FROM_QUERY_PARAM_NAME,
+                            Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
+                    .queryParam(
+                            SearchApiEventsParam.TO_QUERY_PARAM_NAME,
+                            Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli())
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(EventsResponse.class)
-                .extracting(r -> r.getData() != null ? r.getData().stream().map(Event::getId).toList() : null)
-                .isEqualTo(List.of("2", "1"));
+                    .hasStatus(OK_200)
+                    .asEntity(EventsResponse.class)
+                    .extracting(r -> r.getData() != null
+                            ? r.getData().stream().map(Event::getId).toList()
+                            : null)
+                    .isEqualTo(List.of("2", "1"));
         }
 
         @Test
         public void should_return_audits_filtered_by_event_type() {
-            eventQueryService.initWith(
-                List.of(
-                    EventFixtures.anApiEvent(API).toBuilder().id("1").environments(Set.of(ENVIRONMENT)).type(EventType.PUBLISH_API).build(),
-                    EventFixtures.anApiEvent(API).toBuilder().id("2").environments(Set.of(ENVIRONMENT)).type(EventType.START_API).build(),
-                    EventFixtures.anApiEvent(API).toBuilder().id("3").environments(Set.of(ENVIRONMENT)).type(EventType.STOP_API).build()
-                )
-            );
+            eventQueryService.initWith(List.of(
+                    EventFixtures.anApiEvent(API).toBuilder()
+                            .id("1")
+                            .environments(Set.of(ENVIRONMENT))
+                            .type(EventType.PUBLISH_API)
+                            .build(),
+                    EventFixtures.anApiEvent(API).toBuilder()
+                            .id("2")
+                            .environments(Set.of(ENVIRONMENT))
+                            .type(EventType.START_API)
+                            .build(),
+                    EventFixtures.anApiEvent(API).toBuilder()
+                            .id("3")
+                            .environments(Set.of(ENVIRONMENT))
+                            .type(EventType.STOP_API)
+                            .build()));
 
-            final Response response = target
-                .queryParam(SearchApiEventsParam.EVENT_TYPES_QUERY_PARAM_NAME, "PUBLISH_API,STOP_API")
-                .request()
-                .get();
+            final Response response = target.queryParam(
+                            SearchApiEventsParam.EVENT_TYPES_QUERY_PARAM_NAME, "PUBLISH_API,STOP_API")
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(EventsResponse.class)
-                .extracting(r -> r.getData() != null ? r.getData().stream().map(Event::getId).toList() : null)
-                .isEqualTo(List.of("1", "3"));
+                    .hasStatus(OK_200)
+                    .asEntity(EventsResponse.class)
+                    .extracting(r -> r.getData() != null
+                            ? r.getData().stream().map(Event::getId).toList()
+                            : null)
+                    .isEqualTo(List.of("1", "3"));
         }
 
         @Test
         public void should_compute_pagination() {
             var total = 20L;
             var pageSize = 5;
-            eventQueryService.initWith(
-                LongStream.range(0, total)
-                    .mapToObj(i -> EventFixtures.anApiEvent(API).toBuilder().environments(Set.of(ENVIRONMENT)).build())
-                    .collect(Collectors.toList())
-            );
+            eventQueryService.initWith(LongStream.range(0, total)
+                    .mapToObj(i -> EventFixtures.anApiEvent(API).toBuilder()
+                            .environments(Set.of(ENVIRONMENT))
+                            .build())
+                    .collect(Collectors.toList()));
 
-            final Response response = target
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-                .request()
-                .get();
+            final Response response = target.queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(EventsResponse.class)
-                .extracting(EventsResponse::getPagination)
-                .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
+                    .hasStatus(OK_200)
+                    .asEntity(EventsResponse.class)
+                    .extracting(EventsResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(2)
+                            .perPage(pageSize)
+                            .pageCount(4)
+                            .pageItemsCount(pageSize)
+                            .totalCount(total));
         }
 
         @Test
@@ -230,30 +240,42 @@ class ApiEventsResourceTest extends ApiResourceTest {
             var total = 20L;
             var page = 2;
             var pageSize = 5;
-            eventQueryService.initWith(
-                LongStream.range(0, total)
-                    .mapToObj(i -> EventFixtures.anApiEvent(API).toBuilder().environments(Set.of(ENVIRONMENT)).build())
-                    .collect(Collectors.toList())
-            );
+            eventQueryService.initWith(LongStream.range(0, total)
+                    .mapToObj(i -> EventFixtures.anApiEvent(API).toBuilder()
+                            .environments(Set.of(ENVIRONMENT))
+                            .build())
+                    .collect(Collectors.toList()));
 
-            final Response response = target
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-                .request()
-                .get();
+            final Response response = target.queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(EventsResponse.class)
-                .extracting(EventsResponse::getLinks)
-                .isEqualTo(
-                    new Links()
-                        .self(target.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
-                        .first(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .last(target.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
-                        .previous(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .next(target.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(EventsResponse.class)
+                    .extracting(EventsResponse::getLinks)
+                    .isEqualTo(new Links()
+                            .self(target.queryParam("page", page)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .first(target.queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .last(target.queryParam("page", 4)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .previous(target.queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .next(target.queryParam("page", 3)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString()));
         }
 
         @Nested
@@ -261,24 +283,30 @@ class ApiEventsResourceTest extends ApiResourceTest {
 
             @Test
             public void should_return_400_if_negative_interval_params() {
-                final Response response = target
-                    .queryParam(SearchApiEventsParam.FROM_QUERY_PARAM_NAME, -1)
-                    .queryParam(SearchApiEventsParam.TO_QUERY_PARAM_NAME, -1)
-                    .request()
-                    .get();
+                final Response response = target.queryParam(SearchApiEventsParam.FROM_QUERY_PARAM_NAME, -1)
+                        .queryParam(SearchApiEventsParam.TO_QUERY_PARAM_NAME, -1)
+                        .request()
+                        .get();
 
-                assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+                assertThat(response)
+                        .hasStatus(BAD_REQUEST_400)
+                        .asError()
+                        .hasHttpStatus(BAD_REQUEST_400)
+                        .hasMessage("Validation error");
             }
 
             @Test
             public void should_return_400_if_to_is_before_from_param() {
-                final Response response = target
-                    .queryParam(SearchApiEventsParam.FROM_QUERY_PARAM_NAME, 2)
-                    .queryParam(SearchApiEventsParam.TO_QUERY_PARAM_NAME, 1)
-                    .request()
-                    .get();
+                final Response response = target.queryParam(SearchApiEventsParam.FROM_QUERY_PARAM_NAME, 2)
+                        .queryParam(SearchApiEventsParam.TO_QUERY_PARAM_NAME, 1)
+                        .request()
+                        .get();
 
-                assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+                assertThat(response)
+                        .hasStatus(BAD_REQUEST_400)
+                        .asError()
+                        .hasHttpStatus(BAD_REQUEST_400)
+                        .hasMessage("Validation error");
             }
         }
     }

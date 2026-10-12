@@ -62,10 +62,9 @@ public class DebugSyncApiReactorTest {
             context.metrics(Metrics.builder().build());
             debugSyncApiReactor.handleProcess(context);
             assertAll(
-                () -> assertThat(context.request().path()).isEqualTo("/test/v1/"),
-                () -> assertThat(context.request().contextPath()).isEqualTo("/test/"),
-                () -> assertThat(context.request().pathInfo()).isEqualTo("/v1/")
-            );
+                    () -> assertThat(context.request().path()).isEqualTo("/test/v1/"),
+                    () -> assertThat(context.request().contextPath()).isEqualTo("/test/"),
+                    () -> assertThat(context.request().pathInfo()).isEqualTo("/v1/"));
         }
 
         @Test
@@ -83,10 +82,9 @@ public class DebugSyncApiReactorTest {
             context.metrics(Metrics.builder().build());
             debugSyncApiReactor.handleProcess(context);
             assertAll(
-                () -> assertThat(context.request().path()).isEqualTo("/test/v1"),
-                () -> assertThat(context.request().contextPath()).isEqualTo("/test/"),
-                () -> assertThat(context.request().pathInfo()).isEqualTo("/v1")
-            );
+                    () -> assertThat(context.request().path()).isEqualTo("/test/v1"),
+                    () -> assertThat(context.request().contextPath()).isEqualTo("/test/"),
+                    () -> assertThat(context.request().pathInfo()).isEqualTo("/v1"));
         }
 
         @Test
@@ -104,10 +102,9 @@ public class DebugSyncApiReactorTest {
             context.metrics(Metrics.builder().build());
             debugSyncApiReactor.handleProcess(context);
             assertAll(
-                () -> assertThat(context.request().path()).isEqualTo("/v3/debug-slash-repro/anything/8077"),
-                () -> assertThat(context.request().contextPath()).isEqualTo("/v3/debug-slash-repro/"),
-                () -> assertThat(context.request().pathInfo()).isEqualTo("/anything/8077")
-            );
+                    () -> assertThat(context.request().path()).isEqualTo("/v3/debug-slash-repro/anything/8077"),
+                    () -> assertThat(context.request().contextPath()).isEqualTo("/v3/debug-slash-repro/"),
+                    () -> assertThat(context.request().pathInfo()).isEqualTo("/anything/8077"));
         }
     }
 }

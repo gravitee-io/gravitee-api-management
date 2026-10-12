@@ -49,7 +49,8 @@ public class MongoAlertEventRepository implements AlertEventRepository {
     public Optional<AlertEvent> findById(String eventId) throws TechnicalException {
         log.debug("Find an alert event by ID [{}]", eventId);
 
-        final AlertEventMongo alertEvent = internalAlertEventRepo.findById(eventId).orElse(null);
+        final AlertEventMongo alertEvent =
+                internalAlertEventRepo.findById(eventId).orElse(null);
 
         log.debug("Find an alert event by ID [{}] - Done", eventId);
         return Optional.ofNullable(mapper.map(alertEvent));
@@ -75,14 +76,15 @@ public class MongoAlertEventRepository implements AlertEventRepository {
             throw new IllegalStateException("Alert event to update must have an ID");
         }
 
-        final AlertEventMongo alertEventMongo = internalAlertEventRepo.findById(event.getId()).orElse(null);
+        final AlertEventMongo alertEventMongo =
+                internalAlertEventRepo.findById(event.getId()).orElse(null);
 
         if (alertEventMongo == null) {
             throw new IllegalStateException(String.format("No alert event found with id [%s]", event.getId()));
         }
 
         try {
-            //Update
+            // Update
             alertEventMongo.setMessage(event.getMessage());
             alertEventMongo.setCreatedAt(event.getCreatedAt());
             alertEventMongo.setUpdatedAt(event.getUpdatedAt());
@@ -124,10 +126,8 @@ public class MongoAlertEventRepository implements AlertEventRepository {
 
     @Override
     public Set<AlertEvent> findAll() throws TechnicalException {
-        return internalAlertEventRepo
-            .findAll()
-            .stream()
-            .map(alertEventMongo -> mapper.map(alertEventMongo))
-            .collect(Collectors.toSet());
+        return internalAlertEventRepo.findAll().stream()
+                .map(alertEventMongo -> mapper.map(alertEventMongo))
+                .collect(Collectors.toSet());
     }
 }

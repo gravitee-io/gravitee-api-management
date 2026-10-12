@@ -51,23 +51,22 @@ public class ClusterRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    updateEnvironmentApiPublisher(executionContext, organization.getId());
-                    initializeClusterRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                updateEnvironmentApiPublisher(executionContext, organization.getId());
+                initializeClusterRoles(executionContext);
+                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+            });
             return true;
         });
     }
 
     private void updateEnvironmentApiPublisher(ExecutionContext executionContext, String organizationId) {
-        Optional<RoleEntity> environmentApiPublisher = roleService.findByScopeAndName(ENVIRONMENT, "API_PUBLISHER", organizationId);
+        Optional<RoleEntity> environmentApiPublisher =
+                roleService.findByScopeAndName(ENVIRONMENT, "API_PUBLISHER", organizationId);
         if (environmentApiPublisher.isPresent()) {
             UpdateRoleEntity updateRole = UpdateRoleEntity.from(environmentApiPublisher.get());
-            updateRole.getPermissions().put(EnvironmentPermission.CLUSTER.getName(), new char[] { READ.getId() });
+            updateRole.getPermissions().put(EnvironmentPermission.CLUSTER.getName(), new char[] {READ.getId()});
             roleService.update(executionContext, updateRole);
         }
     }
@@ -84,11 +83,15 @@ public class ClusterRolesUpgrader implements Upgrader {
     }
 
     private boolean shouldCreateClusterUserRole(final ExecutionContext executionContext) {
-        return roleService.findByScopeAndName(CLUSTER, CLUSTER_ROLE_USER.getName(), executionContext.getOrganizationId()).isEmpty();
+        return roleService
+                .findByScopeAndName(CLUSTER, CLUSTER_ROLE_USER.getName(), executionContext.getOrganizationId())
+                .isEmpty();
     }
 
     private boolean shouldCreateClusterOwnerRole(final ExecutionContext executionContext) {
-        return roleService.findByScopeAndName(CLUSTER, CLUSTER_ROLE_OWNER.getName(), executionContext.getOrganizationId()).isEmpty();
+        return roleService
+                .findByScopeAndName(CLUSTER, CLUSTER_ROLE_OWNER.getName(), executionContext.getOrganizationId())
+                .isEmpty();
     }
 
     @Override

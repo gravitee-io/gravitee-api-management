@@ -62,7 +62,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
 
     private static final String DUMMY_FETCHER = "dummy-fetcher";
     private static final String SENSITIVE_VALUE = "I'm a sensitive data";
-    private static final String DUMMY_FETCHER_CLASS = "io.gravitee.apim.infra.domain_service.documentation.DummyFetcher";
+    private static final String DUMMY_FETCHER_CLASS =
+            "io.gravitee.apim.infra.domain_service.documentation.DummyFetcher";
 
     @Mock
     FetcherConfigurationFactory fetcherConfigurationFactory;
@@ -85,11 +86,7 @@ class PortalNavigationItemSourceDomainServiceImplTest {
     @BeforeEach
     void setUp() {
         cut = new PortalNavigationItemSourceDomainServiceImpl(
-            fetcherConfigurationFactory,
-            pluginManager,
-            applicationContext,
-            importConfiguration
-        );
+                fetcherConfigurationFactory, pluginManager, applicationContext, importConfiguration);
         lenient().when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
     }
 
@@ -124,8 +121,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             when(pluginManager.get(DUMMY_FETCHER)).thenReturn(null);
 
             assertThatThrownBy(() -> cut.fetchContent(dummySource()))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining(DUMMY_FETCHER);
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining(DUMMY_FETCHER);
         }
 
         @Test
@@ -133,27 +130,25 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             when(pluginManager.get(DUMMY_FETCHER)).thenReturn(fetcherPlugin);
 
             assertThatThrownBy(() -> cut.fetchContent(dummySource()))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("unable to build fetcher instance");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("unable to build fetcher instance");
         }
 
         @Test
         void should_not_leak_the_configuration_in_the_fetch_error() {
             mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
-            DummyFetcher.nextStream.set(
-                new InputStream() {
-                    @Override
-                    public int read() throws IOException {
-                        throw new IOException("stream failure");
-                    }
+            DummyFetcher.nextStream.set(new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    throw new IOException("stream failure");
                 }
-            );
+            });
 
             // This message is stored in lastFetchError and returned by the API: it must carry no secret
             assertThatThrownBy(() -> cut.fetchContent(dummySource()))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessageContaining(DUMMY_FETCHER)
-                .hasMessageNotContaining(SENSITIVE_VALUE);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessageContaining(DUMMY_FETCHER)
+                    .hasMessageNotContaining(SENSITIVE_VALUE);
         }
     }
 
@@ -175,9 +170,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             cut.removeSensitiveData(source);
 
             JsonNode configuration = new ObjectMapper().readTree(source.getSourceConfiguration());
-            assertThat(configuration.get("sensitiveData").textValue()).isEqualTo(
-                PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
-            );
+            assertThat(configuration.get("sensitiveData").textValue())
+                    .isEqualTo(PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT);
             assertThat(configuration.get("nonSensitiveData").textValue()).isEqualTo("I'm not a sensitive data");
             assertThat(configuration.size()).isEqualTo(2);
         }
@@ -210,7 +204,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
 
             cut.removeSensitiveData(source);
 
-            assertThat(source.getSourceConfiguration()).isEqualTo(PortalNavigationItemSourceDomainServiceImpl.BLANKED_CONFIGURATION);
+            assertThat(source.getSourceConfiguration())
+                    .isEqualTo(PortalNavigationItemSourceDomainServiceImpl.BLANKED_CONFIGURATION);
         }
 
         @Test
@@ -220,7 +215,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
 
             cut.removeSensitiveData(source);
 
-            assertThat(source.getSourceConfiguration()).isEqualTo(PortalNavigationItemSourceDomainServiceImpl.BLANKED_CONFIGURATION);
+            assertThat(source.getSourceConfiguration())
+                    .isEqualTo(PortalNavigationItemSourceDomainServiceImpl.BLANKED_CONFIGURATION);
         }
     }
 
@@ -231,11 +227,9 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_restore_masked_values_from_old_source() throws Exception {
             mockDummyConfigurationClass();
             var oldSource = dummySource("{\"nonSensitiveData\":\"data\",\"sensitiveData\":\"original-secret-token\"}");
-            var newSource = dummySource(
-                "{\"nonSensitiveData\":\"data\",\"sensitiveData\":\"" +
-                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
-                    "\"}"
-            );
+            var newSource = dummySource("{\"nonSensitiveData\":\"data\",\"sensitiveData\":\""
+                    + PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+                    + "\"}");
 
             cut.mergeSensitiveData(oldSource, newSource);
 
@@ -247,11 +241,11 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         @Test
         void should_not_restore_masked_values_when_the_address_changes() {
             mockDummyConfigurationClass();
-            var oldSource = dummySource("{\"url\":\"https://a.example/doc.md\",\"sensitiveData\":\"original-secret-token\"}");
-            var maskedConfiguration =
-                "{\"url\":\"https://b.example/doc.md\",\"sensitiveData\":\"" +
-                PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
-                "\"}";
+            var oldSource =
+                    dummySource("{\"url\":\"https://a.example/doc.md\",\"sensitiveData\":\"original-secret-token\"}");
+            var maskedConfiguration = "{\"url\":\"https://b.example/doc.md\",\"sensitiveData\":\""
+                    + PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+                    + "\"}";
             var newSource = dummySource(maskedConfiguration);
 
             cut.mergeSensitiveData(oldSource, newSource);
@@ -263,13 +257,11 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_restore_masked_values_when_only_non_address_fields_change() throws Exception {
             mockDummyConfigurationClass();
             var oldSource = dummySource(
-                "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"main\",\"sensitiveData\":\"original-secret-token\"}"
-            );
-            var newSource = dummySource(
-                "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"dev\",\"sensitiveData\":\"" +
-                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
-                    "\"}"
-            );
+                    "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"main\",\"sensitiveData\":\"original-secret-token\"}");
+            var newSource =
+                    dummySource("{\"url\":\"https://a.example\",\"nonSensitiveData\":\"dev\",\"sensitiveData\":\""
+                            + PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+                            + "\"}");
 
             cut.mergeSensitiveData(oldSource, newSource);
 
@@ -281,11 +273,9 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_clear_a_masked_value_with_no_stored_secret_when_the_address_changes() throws Exception {
             mockDummyConfigurationClass();
             var oldSource = dummySource("{\"url\":\"https://a.example\"}");
-            var newSource = dummySource(
-                "{\"url\":\"https://b.example\",\"sensitiveData\":\"" +
-                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
-                    "\"}"
-            );
+            var newSource = dummySource("{\"url\":\"https://b.example\",\"sensitiveData\":\""
+                    + PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+                    + "\"}");
 
             cut.mergeSensitiveData(oldSource, newSource);
 
@@ -297,11 +287,9 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_restore_an_explicit_null_stored_value_when_the_address_changes() throws Exception {
             mockDummyConfigurationClass();
             var oldSource = dummySource("{\"url\":\"https://a.example\",\"sensitiveData\":null}");
-            var newSource = dummySource(
-                "{\"url\":\"https://b.example\",\"sensitiveData\":\"" +
-                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
-                    "\"}"
-            );
+            var newSource = dummySource("{\"url\":\"https://b.example\",\"sensitiveData\":\""
+                    + PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+                    + "\"}");
 
             cut.mergeSensitiveData(oldSource, newSource);
 
@@ -324,14 +312,13 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         @Test
         void should_not_restore_masked_values_across_a_source_type_change() {
             var oldSource = dummySource("{\"nonSensitiveData\":\"data\",\"sensitiveData\":\"original-secret-token\"}");
-            var maskedConfiguration =
-                "{\"nonSensitiveData\":\"data\",\"sensitiveData\":\"" +
-                PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
-                "\"}";
+            var maskedConfiguration = "{\"nonSensitiveData\":\"data\",\"sensitiveData\":\""
+                    + PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+                    + "\"}";
             var newSource = PortalNavigationItemSource.builder()
-                .sourceType("another-fetcher")
-                .sourceConfiguration(maskedConfiguration)
-                .build();
+                    .sourceType("another-fetcher")
+                    .sourceConfiguration(maskedConfiguration)
+                    .build();
 
             cut.mergeSensitiveData(oldSource, newSource);
 
@@ -402,23 +389,22 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { PRIVATE_URL, LOOPBACK_URL, "http://169.254.169.254/latest/meta-data" })
+        @ValueSource(strings = {PRIVATE_URL, LOOPBACK_URL, "http://169.254.169.254/latest/meta-data"})
         void should_reject_a_private_address_on_validation(String address) {
             forbidPrivateAddresses();
 
             assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", address)))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining("not allowed");
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining("not allowed");
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "url", "githubUrl", "gitlabUrl", "repository" })
+        @ValueSource(strings = {"url", "githubUrl", "gitlabUrl", "repository"})
         void should_check_every_configuration_field_that_holds_an_address(String key) {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith(key, PRIVATE_URL))).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith(key, PRIVATE_URL)))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
         }
 
         /**
@@ -426,7 +412,7 @@ class PortalNavigationItemSourceDomainServiceImplTest {
          * git fetcher uses for an address.
          */
         @ParameterizedTest
-        @ValueSource(strings = { "noon", "gravitee-api-management", "my_repo.v2" })
+        @ValueSource(strings = {"noon", "gravitee-api-management", "my_repo.v2"})
         void should_accept_a_repository_name_next_to_an_allowed_address(String repositoryName) {
             forbidPrivateAddresses();
             mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
@@ -446,19 +432,23 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_still_reject_a_private_address_next_to_a_repository_name() {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.validateSourceConfiguration(aGithubSource(PRIVATE_URL, "noon"))).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(aGithubSource(PRIVATE_URL, "noon")))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "git@10.0.0.1:docs.git", "ssh://git@10.0.0.1/docs.git", "10.0.0.1:docs.git", "//10.0.0.1/docs" })
+        @ValueSource(
+                strings = {
+                    "git@10.0.0.1:docs.git",
+                    "ssh://git@10.0.0.1/docs.git",
+                    "10.0.0.1:docs.git",
+                    "//10.0.0.1/docs"
+                })
         void should_reject_a_repository_that_is_an_address_in_any_form(String repository) {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("repository", repository))).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("repository", repository)))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
         }
 
         @Test
@@ -472,11 +462,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
 
         private static PortalNavigationItemSource aGithubSource(String githubUrl, String repositoryName) {
             return dummySource(
-                "{\"githubUrl\":\"%s\",\"owner\":\"gravitee-io\",\"repository\":\"%s\",\"branchOrTag\":\"master\"}".formatted(
-                    githubUrl,
-                    repositoryName
-                )
-            );
+                    "{\"githubUrl\":\"%s\",\"owner\":\"gravitee-io\",\"repository\":\"%s\",\"branchOrTag\":\"master\"}"
+                            .formatted(githubUrl, repositoryName));
         }
 
         @Test
@@ -484,18 +471,16 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             forbidPrivateAddresses();
             var source = dummySource("{\"url\":\"%s\",\"gitlabUrl\":\"%s\"}".formatted(PUBLIC_URL, PRIVATE_URL));
 
-            assertThatThrownBy(() -> cut.validateSourceConfiguration(source)).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(source))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
         }
 
         @Test
         void should_reject_before_any_fetcher_is_built() {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", PRIVATE_URL))).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", PRIVATE_URL)))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
 
             verifyNoInteractions(fetcherConfigurationFactory);
         }
@@ -519,9 +504,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_reject_an_address_outside_the_whitelist() {
             forbidPrivateAddresses("https://93.184.216.34/docs");
 
-            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", "https://93.184.216.35/docs"))).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", "https://93.184.216.35/docs")))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
         }
 
         @Test
@@ -536,19 +520,19 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_not_quote_the_address_in_the_error() {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", "http://user:hunter2@10.0.0.1/docs")))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageNotContaining("hunter2")
-                .hasMessageNotContaining("10.0.0.1");
+            assertThatThrownBy(() ->
+                            cut.validateSourceConfiguration(sourceWith("url", "http://user:hunter2@10.0.0.1/docs")))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageNotContaining("hunter2")
+                    .hasMessageNotContaining("10.0.0.1");
         }
 
         @Test
         void should_not_fetch_content_from_a_private_address() {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.fetchContent(sourceWith("url", PRIVATE_URL))).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.fetchContent(sourceWith("url", PRIVATE_URL)))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
 
             verifyNoInteractions(pluginManager, fetcherConfigurationFactory);
         }
@@ -557,9 +541,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_not_list_files_from_a_private_address() {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.listFiles(sourceWith("repository", PRIVATE_URL))).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.listFiles(sourceWith("repository", PRIVATE_URL)))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
 
             verifyNoInteractions(pluginManager, fetcherConfigurationFactory);
         }
@@ -568,9 +551,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         void should_not_fetch_a_file_from_a_private_address() {
             forbidPrivateAddresses();
 
-            assertThatThrownBy(() -> cut.fetchFileContent(sourceWith("repository", PRIVATE_URL), "/docs/guide.md")).isInstanceOf(
-                InvalidPortalNavigationItemSourceException.class
-            );
+            assertThatThrownBy(() -> cut.fetchFileContent(sourceWith("repository", PRIVATE_URL), "/docs/guide.md"))
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class);
 
             verifyNoInteractions(pluginManager, fetcherConfigurationFactory);
         }
@@ -591,8 +573,8 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             when(pluginManager.get(DUMMY_FETCHER)).thenReturn(null);
 
             assertThatThrownBy(() -> cut.validateSourceConfiguration(dummySource()))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining(DUMMY_FETCHER);
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining(DUMMY_FETCHER);
         }
 
         @Test
@@ -600,24 +582,21 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             when(pluginManager.get(DUMMY_FETCHER)).thenReturn(fetcherPlugin);
 
             assertThatThrownBy(() -> cut.validateSourceConfiguration(dummySource()))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining("not valid");
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining("not valid");
         }
 
         @Test
         void should_reject_a_sensitive_field_still_holding_the_masked_placeholder() {
             // Validation runs after the merge: a leftover placeholder means there was nothing to restore
             mockDummyConfigurationClass();
-            var source = dummySource(
-                "{\"nonSensitiveData\":\"data\",\"sensitiveData\":\"%s\"}".formatted(
-                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
-                )
-            );
+            var source = dummySource("{\"nonSensitiveData\":\"data\",\"sensitiveData\":\"%s\"}"
+                    .formatted(PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT));
 
             assertThatThrownBy(() -> cut.validateSourceConfiguration(source))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining("sensitiveData")
-                .hasMessageContaining("actual value");
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining("sensitiveData")
+                    .hasMessageContaining("actual value");
         }
 
         @Test
@@ -627,34 +606,41 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             when(fetcherConfigurationFactory.create(any(), any())).thenReturn(null);
 
             assertThatThrownBy(() -> cut.validateSourceConfiguration(dummySource()))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining("not valid");
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining("not valid");
         }
 
         @Test
         void should_reject_invalid_cron_expression() {
             mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
-            var source = dummySource().toBuilder().useAutoFetch(true).fetchCron("not-a-cron").build();
+            var source = dummySource().toBuilder()
+                    .useAutoFetch(true)
+                    .fetchCron("not-a-cron")
+                    .build();
 
             assertThatThrownBy(() -> cut.validateSourceConfiguration(source))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining("not-a-cron");
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining("not-a-cron");
         }
 
         @Test
         void should_reject_auto_fetch_without_cron() {
             mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
-            var source = dummySource().toBuilder().useAutoFetch(true).fetchCron(null).build();
+            var source =
+                    dummySource().toBuilder().useAutoFetch(true).fetchCron(null).build();
 
             assertThatThrownBy(() -> cut.validateSourceConfiguration(source))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining("auto-fetch");
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining("auto-fetch");
         }
 
         @Test
         void should_accept_valid_cron_expression() {
             mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
-            var source = dummySource().toBuilder().useAutoFetch(true).fetchCron("0 */5 * * * *").build();
+            var source = dummySource().toBuilder()
+                    .useAutoFetch(true)
+                    .fetchCron("0 */5 * * * *")
+                    .build();
 
             cut.validateSourceConfiguration(source);
         }
@@ -695,28 +681,26 @@ class PortalNavigationItemSourceDomainServiceImplTest {
          */
         @Test
         void should_not_be_due_when_the_last_attempt_failed_before_the_cron_elapsed() {
-            var source = dummySource()
-                .toBuilder()
-                .useAutoFetch(true)
-                .fetchCron("0 0 * * * *")
-                .lastFetchedAt(null)
-                .lastFetchAttemptAt(NOW.minus(5, ChronoUnit.MINUTES))
-                .lastFetchError("Unable to fetch content from source type dummy-fetcher.")
-                .build();
+            var source = dummySource().toBuilder()
+                    .useAutoFetch(true)
+                    .fetchCron("0 0 * * * *")
+                    .lastFetchedAt(null)
+                    .lastFetchAttemptAt(NOW.minus(5, ChronoUnit.MINUTES))
+                    .lastFetchError("Unable to fetch content from source type dummy-fetcher.")
+                    .build();
 
             assertThat(cut.isAutoFetchDue(source)).isFalse();
         }
 
         @Test
         void should_be_due_again_once_the_cron_elapsed_since_a_failed_attempt() {
-            var source = dummySource()
-                .toBuilder()
-                .useAutoFetch(true)
-                .fetchCron("0 0 * * * *")
-                .lastFetchedAt(null)
-                .lastFetchAttemptAt(NOW.minus(2, ChronoUnit.HOURS))
-                .lastFetchError("Unable to fetch content from source type dummy-fetcher.")
-                .build();
+            var source = dummySource().toBuilder()
+                    .useAutoFetch(true)
+                    .fetchCron("0 0 * * * *")
+                    .lastFetchedAt(null)
+                    .lastFetchAttemptAt(NOW.minus(2, ChronoUnit.HOURS))
+                    .lastFetchError("Unable to fetch content from source type dummy-fetcher.")
+                    .build();
 
             assertThat(cut.isAutoFetchDue(source)).isTrue();
         }
@@ -724,13 +708,12 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         /** Items stored before lastFetchAttemptAt existed still honour their cron via lastFetchedAt. */
         @Test
         void should_fall_back_on_last_fetched_at_when_no_attempt_was_ever_recorded() {
-            var source = dummySource()
-                .toBuilder()
-                .useAutoFetch(true)
-                .fetchCron("0 0 * * * *")
-                .lastFetchedAt(NOW.minus(5, ChronoUnit.MINUTES))
-                .lastFetchAttemptAt(null)
-                .build();
+            var source = dummySource().toBuilder()
+                    .useAutoFetch(true)
+                    .fetchCron("0 0 * * * *")
+                    .lastFetchedAt(NOW.minus(5, ChronoUnit.MINUTES))
+                    .lastFetchAttemptAt(null)
+                    .build();
 
             assertThat(cut.isAutoFetchDue(source)).isFalse();
         }
@@ -744,19 +727,22 @@ class PortalNavigationItemSourceDomainServiceImplTest {
 
         @Test
         void should_not_be_due_when_auto_fetch_is_disabled() {
-            var source = dummySource()
-                .toBuilder()
-                .useAutoFetch(false)
-                .fetchCron("0 */10 * * * *")
-                .lastFetchAttemptAt(Instant.EPOCH)
-                .build();
+            var source = dummySource().toBuilder()
+                    .useAutoFetch(false)
+                    .fetchCron("0 */10 * * * *")
+                    .lastFetchAttemptAt(Instant.EPOCH)
+                    .build();
 
             assertThat(cut.isAutoFetchDue(source)).isFalse();
         }
 
         @Test
         void should_not_be_due_when_no_cron_is_configured() {
-            var source = dummySource().toBuilder().useAutoFetch(true).fetchCron(null).lastFetchAttemptAt(Instant.EPOCH).build();
+            var source = dummySource().toBuilder()
+                    .useAutoFetch(true)
+                    .fetchCron(null)
+                    .lastFetchAttemptAt(Instant.EPOCH)
+                    .build();
 
             assertThat(cut.isAutoFetchDue(source)).isFalse();
         }
@@ -769,22 +755,27 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         }
 
         private PortalNavigationItemSource autoFetchSource(String cron, Instant lastFetchAttemptAt) {
-            return dummySource().toBuilder().useAutoFetch(true).fetchCron(cron).lastFetchAttemptAt(lastFetchAttemptAt).build();
+            return dummySource().toBuilder()
+                    .useAutoFetch(true)
+                    .fetchCron(cron)
+                    .lastFetchAttemptAt(lastFetchAttemptAt)
+                    .build();
         }
     }
 
     private static PortalNavigationItemSource dummySource() {
-        return dummySource(
-            """
+        return dummySource("""
             {
                "nonSensitiveData" : "I'm not a sensitive data",
                "sensitiveData" : "%s"
             }
-            """.formatted(SENSITIVE_VALUE)
-        );
+            """.formatted(SENSITIVE_VALUE));
     }
 
     private static PortalNavigationItemSource dummySource(String configuration) {
-        return PortalNavigationItemSource.builder().sourceType(DUMMY_FETCHER).sourceConfiguration(configuration).build();
+        return PortalNavigationItemSource.builder()
+                .sourceType(DUMMY_FETCHER)
+                .sourceConfiguration(configuration)
+                .build();
     }
 }

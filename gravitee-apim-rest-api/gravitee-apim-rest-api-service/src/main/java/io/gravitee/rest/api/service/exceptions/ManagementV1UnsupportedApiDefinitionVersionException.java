@@ -44,10 +44,7 @@ public class ManagementV1UnsupportedApiDefinitionVersionException extends Abstra
 
     @Override
     public String getMessage() {
-        return (
-            "API definition version " +
-            version +
-            " is not supported by Management API v1. Use Management API v2 instead (/management/v2/environments/{envId}/apis/{apiId}/...)."
-        );
+        return ("API definition version " + version
+                + " is not supported by Management API v1. Use Management API v2 instead (/management/v2/environments/{envId}/apis/{apiId}/...).");
     }
 }

@@ -178,95 +178,103 @@ public class ApisResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createApi(@Valid @NotNull final CreateApiV4 api) {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
         AuditInfo audit = getAuditInfo();
 
         var createdApi = api.getType() == ApiType.NATIVE
-            ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit)).api()
-            : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
+                ? createNativeApiUseCase
+                        .execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit))
+                        .api()
+                : createHttpApiUseCase
+                        .execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit))
+                        .api();
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(createdApi, audit);
-        GenericApi.DeploymentStateEnum deploymentState = isSynchronized
-            ? GenericApi.DeploymentStateEnum.DEPLOYED
-            : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+        GenericApi.DeploymentStateEnum deploymentState =
+                isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         return Response.created(this.getLocationHeader(createdApi.getId()))
-            .entity(ApiMapper.INSTANCE.mapToV4(createdApi, uriInfo, deploymentState))
-            .build();
+                .entity(ApiMapper.INSTANCE.mapToV4(createdApi, uriInfo, deploymentState))
+                .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
-    public ApisResponse getApis(@BeanParam @Valid PaginationParam paginationParam, @QueryParam("expands") Set<String> expands) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.READ})
+    })
+    public ApisResponse getApis(
+            @BeanParam @Valid PaginationParam paginationParam, @QueryParam("expands") Set<String> expands) {
         Page<GenericApiEntity> apis = apiServiceV4.findAll(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUser(),
-            isAdmin(),
-            expands,
-            new SortableImpl("name", true),
-            paginationParam.toPageable()
-        );
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUser(),
+                isAdmin(),
+                expands,
+                new SortableImpl("name", true),
+                paginationParam.toPageable());
 
         long totalCount = apis.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
-            .data(
-                ApiMapper.INSTANCE.map(
-                    apis.getContent(),
-                    uriInfo,
-                    api -> {
-                        if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
-                            return null;
-                        }
-                        return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
-                    },
-                    expands
-                )
-            )
-            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(totalCount, paginationParam));
+                .data(ApiMapper.INSTANCE.map(
+                        apis.getContent(),
+                        uriInfo,
+                        api -> {
+                            if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
+                                return null;
+                            }
+                            return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
+                        },
+                        expands))
+                .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
+                .links(computePaginationLinks(totalCount, paginationParam));
     }
 
     @PUT
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response createApiWithCRD(@Valid ApiCRDSpec crd, @QueryParam("dryRun") boolean dryRun) {
         var input = new ImportApiCRDUseCase.Input(getAuditInfo(), ApiMapper.INSTANCE.map(crd));
 
         return dryRun
-            ? Response.ok(validateApiCRDUseCase.execute(input).status()).build()
-            : Response.ok(importCRDUseCase.execute(input).status()).build();
+                ? Response.ok(validateApiCRDUseCase.execute(input).status()).build()
+                : Response.ok(importCRDUseCase.execute(input).status()).build();
     }
 
     @POST
     @Path("/_import/swagger")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response createApiFromSwagger(@Valid @NotNull ImportSwaggerDescriptor descriptor) {
         try {
             var audit = getAuditInfo();
             var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
-                .payload(descriptor.getPayload())
-                .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
-                .build();
-
-            OAIToImportApiUseCase.Output importOutput = oaiToImportApiUseCase.execute(
-                OAIToImportApiUseCase.Input.builder()
-                    .importSwaggerDescriptor(importSwaggerDescriptor)
-                    .auditInfo(audit)
+                    .payload(descriptor.getPayload())
                     .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
-                    .withOASValidationPolicy(Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()))
-                    .build()
-            );
+                    .build();
+
+            OAIToImportApiUseCase.Output importOutput =
+                    oaiToImportApiUseCase.execute(OAIToImportApiUseCase.Input.builder()
+                            .importSwaggerDescriptor(importSwaggerDescriptor)
+                            .auditInfo(audit)
+                            .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
+                            .withOASValidationPolicy(Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()))
+                            .build());
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);
 
-            return Response.created(this.getLocationHeader(importOutput.apiWithFlows().getId()))
-                .entity(ApiMapper.INSTANCE.map(importOutput.apiWithFlows(), uriInfo, isSynchronized))
-                .build();
+            return Response.created(
+                            this.getLocationHeader(importOutput.apiWithFlows().getId()))
+                    .entity(ApiMapper.INSTANCE.map(importOutput.apiWithFlows(), uriInfo, isSynchronized))
+                    .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);
         }
@@ -276,26 +284,25 @@ public class ApisResource extends AbstractResource {
     @Path("/_import/wsdl")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response createApiFromWsdl(@Valid @NotNull ImportWsdlDescriptor descriptor) {
         try {
             var audit = getAuditInfo();
-            var output = wsdlToImportApiUseCase.execute(
-                WsdlToImportApiUseCase.Input.of(
+            var output = wsdlToImportApiUseCase.execute(WsdlToImportApiUseCase.Input.of(
                     descriptor.getPayload(),
                     ImportWsdlDescriptor.TypeEnum.URL.equals(descriptor.getType()),
                     Boolean.TRUE.equals(descriptor.getWithDocumentation()),
                     Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()),
-                    Optional.ofNullable(descriptor.getWithPolicies()).map(ArrayList::new).orElse(null),
-                    audit
-                )
-            );
+                    Optional.ofNullable(descriptor.getWithPolicies())
+                            .map(ArrayList::new)
+                            .orElse(null),
+                    audit));
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(output.apiWithFlows(), audit);
 
             return Response.created(this.getLocationHeader(output.apiWithFlows().getId()))
-                .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
-                .build();
+                    .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+                    .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);
         }
@@ -304,7 +311,7 @@ public class ApisResource extends AbstractResource {
     @POST
     @Path("/_import/definition")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response createApiWithDefinition(@Valid ExportApiV4 apiToImport) {
         verifyImage(apiToImport.getApiPicture(), "picture");
         verifyImage(apiToImport.getApiBackground(), "background");
@@ -313,15 +320,14 @@ public class ApisResource extends AbstractResource {
 
         try {
             var audit = getAuditInfo();
-            ImportApiDefinitionUseCase.Output output = importApiDefinitionUseCase.execute(
-                new ImportApiDefinitionUseCase.Input(importDefinition, audit)
-            );
+            ImportApiDefinitionUseCase.Output output =
+                    importApiDefinitionUseCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, audit));
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(output.apiWithFlows(), audit);
 
             return Response.created(this.getLocationHeader(output.apiWithFlows().getId()))
-                .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
-                .build();
+                    .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+                    .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);
         }
@@ -331,13 +337,12 @@ public class ApisResource extends AbstractResource {
     @Path("/_import/definition-url")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response createApiWithDefinitionFromUrl(@NotNull String apiDefinitionUrl) {
         var input = new ImportApiDefinitionFromUrlUseCase.Input(
-            apiDefinitionUrl,
-            importConfiguration.getImportWhitelist(),
-            importConfiguration.isAllowImportFromPrivate()
-        );
+                apiDefinitionUrl,
+                importConfiguration.getImportWhitelist(),
+                importConfiguration.isAllowImportFromPrivate());
         var output = importApiDefinitionFromUrlUseCase.execute(input);
 
         ExportApiV4 apiToImport = remoteApiDefinitionParser.parseAndValidate(output.apiDefinitionContent());
@@ -357,14 +362,17 @@ public class ApisResource extends AbstractResource {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.READ})
+    })
     public ApisResponse searchApis(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @BeanParam ApiSortByParam apiSortByParam,
-        final @Valid @NotNull ApiSearchQuery apiSearchQuery,
-        @QueryParam("expands") Set<String> expands,
-        @QueryParam("manageOnly") @DefaultValue("true") boolean manageOnly
-    ) {
+            @BeanParam @Valid PaginationParam paginationParam,
+            @BeanParam ApiSortByParam apiSortByParam,
+            final @Valid @NotNull ApiSearchQuery apiSearchQuery,
+            @QueryParam("expands") Set<String> expands,
+            @QueryParam("manageOnly") @DefaultValue("true") boolean manageOnly) {
         apiSortByParam.validate();
 
         QueryBuilder<ApiEntity> apiQueryBuilder = QueryBuilder.create(ApiEntity.class);
@@ -377,11 +385,13 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.addFilter(FIELD_TYPE_VALUE, apiSearchQuery.getIds());
         }
 
-        if (apiSearchQuery.getApiTypes() != null && !apiSearchQuery.getApiTypes().isEmpty()) {
+        if (apiSearchQuery.getApiTypes() != null
+                && !apiSearchQuery.getApiTypes().isEmpty()) {
             apiQueryBuilder.addFilter(FIELD_API_TYPE, apiSearchQuery.getApiTypes());
         }
 
-        if (apiSearchQuery.getStatuses() != null && !apiSearchQuery.getStatuses().isEmpty()) {
+        if (apiSearchQuery.getStatuses() != null
+                && !apiSearchQuery.getStatuses().isEmpty()) {
             apiQueryBuilder.addFilter(FIELD_STATUS, apiSearchQuery.getStatuses());
         }
 
@@ -389,11 +399,13 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.addFilter(FIELD_TAGS, apiSearchQuery.getTags());
         }
 
-        if (apiSearchQuery.getCategories() != null && !apiSearchQuery.getCategories().isEmpty()) {
+        if (apiSearchQuery.getCategories() != null
+                && !apiSearchQuery.getCategories().isEmpty()) {
             apiQueryBuilder.addFilter(FIELD_CATEGORIES, apiSearchQuery.getCategories());
         }
 
-        if (apiSearchQuery.getPublished() != null && !apiSearchQuery.getPublished().isEmpty()) {
+        if (apiSearchQuery.getPublished() != null
+                && !apiSearchQuery.getPublished().isEmpty()) {
             apiQueryBuilder.addFilter(FIELD_PORTAL_STATUS, apiSearchQuery.getPublished());
         }
 
@@ -405,29 +417,34 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.addFilter(FIELD_ALLOW_IN_API_PRODUCTS, apiSearchQuery.getAllowedInApiProducts());
         }
 
-        // An AI Workspace default proxy is an ordinary API that carries the "allowed in api products" flag, but it belongs
-        // to an AI_WORKSPACE product and must never be addable to another product. When the caller is the product "Add API"
-        // picker (allowedInApiProducts=true), exclude every API that is a member of an AI_WORKSPACE product in this environment.
+        // An AI Workspace default proxy is an ordinary API that carries the "allowed in api products" flag, but it
+        // belongs
+        // to an AI_WORKSPACE product and must never be addable to another product. When the caller is the product "Add
+        // API"
+        // picker (allowedInApiProducts=true), exclude every API that is a member of an AI_WORKSPACE product in this
+        // environment.
         if (Boolean.TRUE.equals(apiSearchQuery.getAllowedInApiProducts())) {
-            Set<String> aiWorkspaceApiIds = apiProductQueryService
-                .findByEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                .stream()
-                .filter(apiProduct -> apiProduct.getKind() == ApiProductKind.AI_WORKSPACE)
-                .flatMap(apiProduct -> apiProduct.getApiIds() == null ? Stream.empty() : apiProduct.getApiIds().stream())
-                .collect(Collectors.toSet());
+            Set<String> aiWorkspaceApiIds =
+                    apiProductQueryService
+                            .findByEnvironmentId(
+                                    GraviteeContext.getExecutionContext().getEnvironmentId())
+                            .stream()
+                            .filter(apiProduct -> apiProduct.getKind() == ApiProductKind.AI_WORKSPACE)
+                            .flatMap(apiProduct ->
+                                    apiProduct.getApiIds() == null ? Stream.empty() : apiProduct.getApiIds().stream())
+                            .collect(Collectors.toSet());
             if (!aiWorkspaceApiIds.isEmpty()) {
                 apiQueryBuilder.addExcludedFilter(FIELD_ID, aiWorkspaceApiIds);
             }
         }
 
         var selectedDefinitions = Stream.concat(
-            Stream.ofNullable(apiSearchQuery.getDefinitionVersion()),
-            stream(apiSearchQuery.getDefinitionVersions())
-        )
-            .filter(Objects::nonNull)
-            .map(ApiMapper.INSTANCE::mapDefinitionVersion)
-            .map(DefinitionVersion::getLabel)
-            .collect(Collectors.toSet());
+                        Stream.ofNullable(apiSearchQuery.getDefinitionVersion()),
+                        stream(apiSearchQuery.getDefinitionVersions()))
+                .filter(Objects::nonNull)
+                .map(ApiMapper.INSTANCE::mapDefinitionVersion)
+                .map(DefinitionVersion::getLabel)
+                .collect(Collectors.toSet());
         if (isNotEmpty(selectedDefinitions)) {
             apiQueryBuilder.addFilter(FIELD_DEFINITION_VERSION, selectedDefinitions);
         }
@@ -437,59 +454,55 @@ public class ApisResource extends AbstractResource {
         boolean expandDeploymentState = Objects.nonNull(expands) && expands.contains(EXPAND_DEPLOYMENT_STATE);
 
         Page<GenericApiEntity> apis = apiSearchService.search(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUser(),
-            isAdmin(),
-            apiQueryBuilder,
-            paginationParam.toPageable(),
-            expandDeploymentState,
-            manageOnly,
-            expands,
-            apiSearchQuery.getHasOpenApiDocumentation()
-        );
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUser(),
+                isAdmin(),
+                apiQueryBuilder,
+                paginationParam.toPageable(),
+                expandDeploymentState,
+                manageOnly,
+                expands,
+                apiSearchQuery.getHasOpenApiDocumentation());
 
         long totalCount = apis.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
-            .data(
-                ApiMapper.INSTANCE.map(
-                    apis.getContent(),
-                    uriInfo,
-                    api -> expandDeploymentState ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api) : null,
-                    expands
-                )
-            )
-            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(totalCount, paginationParam));
+                .data(ApiMapper.INSTANCE.map(
+                        apis.getContent(),
+                        uriInfo,
+                        api -> expandDeploymentState
+                                ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api)
+                                : null,
+                        expands))
+                .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
+                .links(computePaginationLinks(totalCount, paginationParam));
     }
 
     @POST
     @Path("_verify/paths")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.READ})
+    })
     public Response verifyPaths(VerifyApiPaths verifyPayload) {
         try {
-            verifyApiPathsUsecase.execute(
-                new VerifyApiPathsUseCase.Request(
+            verifyApiPathsUsecase.execute(new VerifyApiPathsUseCase.Request(
                     verifyPayload.getApiId(),
-                    verifyPayload
-                        .getPaths()
-                        .stream()
-                        .map(p ->
-                            io.gravitee.apim.core.api.model.Path.builder()
-                                .path(p.getPath())
-                                .host(p.getHost())
-                                .overrideAccess(Boolean.TRUE.equals(p.getOverrideAccess()))
-                                .build()
-                        )
-                        .toList()
-                )
-            );
+                    verifyPayload.getPaths().stream()
+                            .map(p -> io.gravitee.apim.core.api.model.Path.builder()
+                                    .path(p.getPath())
+                                    .host(p.getHost())
+                                    .overrideAccess(Boolean.TRUE.equals(p.getOverrideAccess()))
+                                    .build())
+                            .toList()));
 
             return Response.accepted(new VerifyApiPathsResponse().ok(true)).build();
         } catch (InvalidPathsException e) {
-            return Response.accepted(new VerifyApiPathsResponse().ok(false).reason(e.getMessage())).build();
+            return Response.accepted(new VerifyApiPathsResponse().ok(false).reason(e.getMessage()))
+                    .build();
         }
     }
 
@@ -497,21 +510,23 @@ public class ApisResource extends AbstractResource {
     @Path("_verify/hosts")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.READ})
+    })
     public Response verifyHosts(VerifyApiHosts verifyPayload) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            verifyApiHostsUseCase.execute(
-                new VerifyApiHostsUseCase.Input(
+            verifyApiHostsUseCase.execute(new VerifyApiHostsUseCase.Input(
                     executionContext.getEnvironmentId(),
                     verifyPayload.getApiId(),
                     ListenerMapper.INSTANCE.map(verifyPayload.getListenerType()),
-                    verifyPayload.getHosts()
-                )
-            );
+                    verifyPayload.getHosts()));
             return Response.accepted(new VerifyApiHostsResponse().ok(true)).build();
         } catch (Exception e) {
-            return Response.accepted(new VerifyApiHostsResponse().ok(false).reason(e.getMessage())).build();
+            return Response.accepted(new VerifyApiHostsResponse().ok(false).reason(e.getMessage()))
+                    .build();
         }
     }
 }

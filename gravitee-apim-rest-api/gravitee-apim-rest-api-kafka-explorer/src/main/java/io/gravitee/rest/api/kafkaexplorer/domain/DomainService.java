@@ -28,6 +28,6 @@ import java.lang.annotation.Target;
  * {@link io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration}
  * and registered as Spring beans.</p>
  */
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DomainService {}

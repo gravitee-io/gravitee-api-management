@@ -35,38 +35,36 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
     private OpenApiConfiguration viewerSettings;
 
     public OpenApiPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull OpenApi content
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull OpenApi content) {
         this(id, organizationId, environmentId, content, new RedocConfiguration(), null);
     }
 
     public OpenApiPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull OpenApi content,
-        @Nonnull OpenApiConfiguration viewerSettings
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull OpenApi content,
+            @Nonnull OpenApiConfiguration viewerSettings) {
         this(id, organizationId, environmentId, content, viewerSettings, null);
     }
 
     public OpenApiPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull OpenApi content,
-        @Nonnull OpenApiConfiguration viewerSettings,
-        @Nullable AutomationMetadata automationMetadata
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull OpenApi content,
+            @Nonnull OpenApiConfiguration viewerSettings,
+            @Nullable AutomationMetadata automationMetadata) {
         super(id, organizationId, environmentId, automationMetadata);
         this.content = content;
         this.viewerSettings = viewerSettings;
     }
 
-    public static OpenApiPageContent create(@Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
+    public static OpenApiPageContent create(
+            @Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
         return new OpenApiPageContent(PortalPageContentId.random(), organizationId, environmentId, OpenApi.of(content));
     }
 

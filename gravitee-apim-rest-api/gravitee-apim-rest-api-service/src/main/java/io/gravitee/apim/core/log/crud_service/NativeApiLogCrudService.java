@@ -24,10 +24,17 @@ import java.util.Set;
 import lombok.Builder;
 
 public interface NativeApiLogCrudService {
-    Optional<NativeApiLog> findLog(ExecutionContext executionContext, String apiId, String requestId, Long from, Long to);
+    Optional<NativeApiLog> findLog(
+            ExecutionContext executionContext, String apiId, String requestId, Long from, Long to);
 
-    SearchLogsResponse<NativeApiLog> searchLogs(ExecutionContext executionContext, String apiId, Filter filter, int page, int size);
+    SearchLogsResponse<NativeApiLog> searchLogs(
+            ExecutionContext executionContext, String apiId, Filter filter, int page, int size);
 
     @Builder
-    record Filter(Long from, Long to, Set<String> applicationIds, Set<String> planIds, Set<NativeConnectionStatus> connectionStatuses) {}
+    record Filter(
+            Long from,
+            Long to,
+            Set<String> applicationIds,
+            Set<String> planIds,
+            Set<NativeConnectionStatus> connectionStatuses) {}
 }

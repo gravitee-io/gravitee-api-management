@@ -16,20 +16,15 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.GENERIC_NOTIFICATION_CONFIG_UPGRADER;
-import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.PORTAL_NOTIFICATION_CONFIG_UPGRADER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
-import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
-import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.repository.management.model.PortalNotificationConfig;
-import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
@@ -49,9 +44,8 @@ public class GenericNotificationConfigUpgrader implements Upgrader {
     GenericNotificationConfigRepository genericNotificationConfigRepository;
 
     public GenericNotificationConfigUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository) {
         this.environmentRepository = environmentRepository;
         this.genericNotificationConfigRepository = genericNotificationConfigRepository;
     }
@@ -64,60 +58,59 @@ public class GenericNotificationConfigUpgrader implements Upgrader {
     private boolean applyUpgrade() throws TechnicalException {
         Set<Environment> environments = environmentRepository.findAll();
 
-        List<GenericNotificationConfig> genericNotificationConfigs = genericNotificationConfigRepository
-            .findAll()
-            .stream()
-            .filter(
-                genericNotificationConfig ->
-                    genericNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
-                    genericNotificationConfig.getReferenceId().equals("DEFAULT")
-            )
-            .flatMap(
-                (Function<GenericNotificationConfig, Stream<GenericNotificationConfig>>) genericNotificationConfig ->
-                    migrateGenericNotificationConfigToEnvironments(environments, genericNotificationConfig)
-            )
-            .toList();
-        log.info("Migrating genericNotificationConfig: {} for environments {}", genericNotificationConfigs.size(), environments);
+        List<GenericNotificationConfig> genericNotificationConfigs =
+                genericNotificationConfigRepository.findAll().stream()
+                        .filter(genericNotificationConfig -> genericNotificationConfig
+                                        .getReferenceType()
+                                        .equals(NotificationReferenceType.PORTAL)
+                                && genericNotificationConfig.getReferenceId().equals("DEFAULT"))
+                        .flatMap((Function<GenericNotificationConfig, Stream<GenericNotificationConfig>>)
+                                genericNotificationConfig -> migrateGenericNotificationConfigToEnvironments(
+                                        environments, genericNotificationConfig))
+                        .toList();
+        log.info(
+                "Migrating genericNotificationConfig: {} for environments {}",
+                genericNotificationConfigs.size(),
+                environments);
         return true;
     }
 
     private Stream<GenericNotificationConfig> migrateGenericNotificationConfigToEnvironments(
-        Set<Environment> environments,
-        GenericNotificationConfig genericNotificationConfig
-    ) {
-        Stream<GenericNotificationConfig> stream = environments
-            .stream()
-            .map(environment -> {
-                GenericNotificationConfig genericNotificationConfigToCreate = duplicate(environment, genericNotificationConfig);
-                try {
-                    return genericNotificationConfigRepository.create(genericNotificationConfigToCreate);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(
-                        "Failed to duplicate portalNotificationConfig " + genericNotificationConfig + " to " + environment,
-                        e
-                    );
-                }
-            });
+            Set<Environment> environments, GenericNotificationConfig genericNotificationConfig) {
+        Stream<GenericNotificationConfig> stream = environments.stream().map(environment -> {
+            GenericNotificationConfig genericNotificationConfigToCreate =
+                    duplicate(environment, genericNotificationConfig);
+            try {
+                return genericNotificationConfigRepository.create(genericNotificationConfigToCreate);
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(
+                        "Failed to duplicate portalNotificationConfig " + genericNotificationConfig + " to "
+                                + environment,
+                        e);
+            }
+        });
         try {
             genericNotificationConfigRepository.delete(genericNotificationConfig.getId());
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Failed to delete genericNotificationConfig " + genericNotificationConfig, e);
+            throw new TechnicalManagementException(
+                    "Failed to delete genericNotificationConfig " + genericNotificationConfig, e);
         }
         return stream;
     }
 
-    private GenericNotificationConfig duplicate(Environment environment, GenericNotificationConfig genericNotificationConfig) {
+    private GenericNotificationConfig duplicate(
+            Environment environment, GenericNotificationConfig genericNotificationConfig) {
         return GenericNotificationConfig.builder()
-            .id(UuidString.generateRandom())
-            .config(genericNotificationConfig.getConfig())
-            .notifier(genericNotificationConfig.getNotifier())
-            .useSystemProxy(genericNotificationConfig.isUseSystemProxy())
-            .referenceId(environment.getId())
-            .referenceType(NotificationReferenceType.ENVIRONMENT)
-            .hooks(genericNotificationConfig.getHooks())
-            .createdAt(genericNotificationConfig.getCreatedAt())
-            .updatedAt(genericNotificationConfig.getUpdatedAt())
-            .build();
+                .id(UuidString.generateRandom())
+                .config(genericNotificationConfig.getConfig())
+                .notifier(genericNotificationConfig.getNotifier())
+                .useSystemProxy(genericNotificationConfig.isUseSystemProxy())
+                .referenceId(environment.getId())
+                .referenceType(NotificationReferenceType.ENVIRONMENT)
+                .hooks(genericNotificationConfig.getHooks())
+                .createdAt(genericNotificationConfig.getCreatedAt())
+                .updatedAt(genericNotificationConfig.getUpdatedAt())
+                .build();
     }
 
     @Override

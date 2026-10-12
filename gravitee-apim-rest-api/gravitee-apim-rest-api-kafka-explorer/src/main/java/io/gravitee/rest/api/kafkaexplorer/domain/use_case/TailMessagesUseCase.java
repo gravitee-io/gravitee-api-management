@@ -29,10 +29,9 @@ public class TailMessagesUseCase {
     private final ObjectMapper objectMapper;
 
     public TailMessagesUseCase(
-        ClusterCrudService clusterCrudService,
-        KafkaClusterDomainService kafkaClusterDomainService,
-        ObjectMapper objectMapper
-    ) {
+            ClusterCrudService clusterCrudService,
+            KafkaClusterDomainService kafkaClusterDomainService,
+            ObjectMapper objectMapper) {
         this.clusterCrudService = clusterCrudService;
         this.kafkaClusterDomainService = kafkaClusterDomainService;
         this.objectMapper = objectMapper;
@@ -42,25 +41,23 @@ public class TailMessagesUseCase {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
         var config = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
         kafkaClusterDomainService.tailMessages(
-            config,
-            input.topicName(),
-            input.partition(),
-            input.keyFilter(),
-            input.valueFilter(),
-            input.maxMessages(),
-            input.durationSeconds(),
-            consumer
-        );
+                config,
+                input.topicName(),
+                input.partition(),
+                input.keyFilter(),
+                input.valueFilter(),
+                input.maxMessages(),
+                input.durationSeconds(),
+                consumer);
     }
 
     public record Input(
-        String clusterId,
-        String environmentId,
-        String topicName,
-        Integer partition,
-        String keyFilter,
-        String valueFilter,
-        int maxMessages,
-        int durationSeconds
-    ) {}
+            String clusterId,
+            String environmentId,
+            String topicName,
+            Integer partition,
+            String keyFilter,
+            String valueFilter,
+            int maxMessages,
+            int durationSeconds) {}
 }

@@ -18,4 +18,5 @@ package io.gravitee.apim.core.ai_workspace.model;
 import java.util.Date;
 
 /** One accepted API Product subscription that may be a Gamma AI Workspace membership. */
-public record AiWorkspaceMembership(String apiProductId, String planId, String applicationId, String subscriptionId, Date createdAt) {}
+public record AiWorkspaceMembership(
+        String apiProductId, String planId, String applicationId, String subscriptionId, Date createdAt) {}

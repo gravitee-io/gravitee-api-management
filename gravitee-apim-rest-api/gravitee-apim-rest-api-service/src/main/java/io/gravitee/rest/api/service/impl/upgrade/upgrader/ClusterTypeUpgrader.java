@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.ClusterRepository;
-import io.gravitee.repository.management.model.Cluster;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -46,19 +45,17 @@ public class ClusterTypeUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            clusterRepository
-                .findAll()
-                .stream()
-                .filter(cluster -> cluster.getType() == null || LEGACY_CLUSTER_TYPE.equals(cluster.getType()))
-                .forEach(cluster -> {
-                    try {
-                        log.info("Setting type '{}' on cluster '{}'", DEFAULT_CLUSTER_TYPE, cluster.getId());
-                        cluster.setType(DEFAULT_CLUSTER_TYPE);
-                        clusterRepository.update(cluster);
-                    } catch (Exception e) {
-                        log.error("Failed to update type for cluster '{}'", cluster.getId(), e);
-                    }
-                });
+            clusterRepository.findAll().stream()
+                    .filter(cluster -> cluster.getType() == null || LEGACY_CLUSTER_TYPE.equals(cluster.getType()))
+                    .forEach(cluster -> {
+                        try {
+                            log.info("Setting type '{}' on cluster '{}'", DEFAULT_CLUSTER_TYPE, cluster.getId());
+                            cluster.setType(DEFAULT_CLUSTER_TYPE);
+                            clusterRepository.update(cluster);
+                        } catch (Exception e) {
+                            log.error("Failed to update type for cluster '{}'", cluster.getId(), e);
+                        }
+                    });
             return true;
         });
     }

@@ -73,8 +73,12 @@ public class SharedPolicyGroup implements Serializable {
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return this.policies == null
-            ? List.of()
-            : this.policies.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).toList();
+                ? List.of()
+                : this.policies.stream()
+                        .filter(Step::isEnabled)
+                        .map(Step::getPlugins)
+                        .flatMap(List::stream)
+                        .toList();
     }
 
     public enum Phase {

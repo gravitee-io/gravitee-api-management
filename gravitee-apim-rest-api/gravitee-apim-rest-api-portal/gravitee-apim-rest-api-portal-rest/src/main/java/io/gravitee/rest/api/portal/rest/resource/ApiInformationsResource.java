@@ -38,21 +38,20 @@ import java.util.stream.Collectors;
 public class ApiInformationsResource extends AbstractResource {
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @RequirePortalAuth
     public Response getApiInformations(@Context Request request, @PathParam("apiId") String apiId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             List<ApiHeaderEntity> all = apiService.getPortalHeaders(executionContext, apiId);
-            List<ApiInformation> information = all
-                .stream()
-                .map(apiHeaderEntity -> {
-                    ApiInformation ai = new ApiInformation();
-                    ai.setName(apiHeaderEntity.getName());
-                    ai.setValue(apiHeaderEntity.getValue());
-                    return ai;
-                })
-                .collect(Collectors.toList());
+            List<ApiInformation> information = all.stream()
+                    .map(apiHeaderEntity -> {
+                        ApiInformation ai = new ApiInformation();
+                        ai.setName(apiHeaderEntity.getName());
+                        ai.setValue(apiHeaderEntity.getValue());
+                        return ai;
+                    })
+                    .collect(Collectors.toList());
 
             return Response.ok(information).build();
         }

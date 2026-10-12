@@ -156,8 +156,9 @@ class DefaultExecutionContextTest {
         cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThatThrownBy(() -> {
-            final Float value = cut.getAttribute(ATTRIBUTE_KEY);
-        }).isInstanceOf(ClassCastException.class);
+                    final Float value = cut.getAttribute(ATTRIBUTE_KEY);
+                })
+                .isInstanceOf(ClassCastException.class);
     }
 
     @Test
@@ -219,8 +220,9 @@ class DefaultExecutionContextTest {
         cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThatThrownBy(() -> {
-            final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
-        }).isInstanceOf(ClassCastException.class);
+                    final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
+                })
+                .isInstanceOf(ClassCastException.class);
     }
 
     @Test
@@ -233,9 +235,9 @@ class DefaultExecutionContextTest {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
 
-        Stream.of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_RESPONSE).forEach(attribute ->
-            assertThat(templateContext.lookupVariable(attribute)).isNotNull()
-        );
+        Stream.of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_RESPONSE)
+                .forEach(attribute ->
+                        assertThat(templateContext.lookupVariable(attribute)).isNotNull());
     }
 
     @Test
@@ -254,17 +256,15 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_with_interruption_failure_exception() {
-        cut
-            .interruptWith(new ExecutionFailure(404))
-            .test()
-            .assertError(throwable -> {
-                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
-                assertThat(executionFailure.statusCode()).isEqualTo(404);
-                return true;
-            });
+        cut.interruptWith(new ExecutionFailure(404)).test().assertError(throwable -> {
+            assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+            InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+            ExecutionFailure executionFailure =
+                    cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+            assertThat(executionFailure.statusCode()).isEqualTo(404);
+            return true;
+        });
     }
 
     @Test
@@ -274,17 +274,15 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_body_with_interruption_failure_exception() {
-        cut
-            .interruptBodyWith(new ExecutionFailure(404))
-            .test()
-            .assertError(throwable -> {
-                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                ExecutionFailure executionFailure = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
-                assertThat(executionFailure.statusCode()).isEqualTo(404);
-                return true;
-            });
+        cut.interruptBodyWith(new ExecutionFailure(404)).test().assertError(throwable -> {
+            assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+            InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+            ExecutionFailure executionFailure =
+                    cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+            assertThat(executionFailure.statusCode()).isEqualTo(404);
+            return true;
+        });
     }
 
     @Test
@@ -294,15 +292,12 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_messages_with_interruption_failure_exception() {
-        cut
-            .interruptMessagesWith(new ExecutionFailure(404))
-            .test()
-            .assertError(throwable -> {
-                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                return true;
-            });
+        cut.interruptMessagesWith(new ExecutionFailure(404)).test().assertError(throwable -> {
+            assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+            InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+            return true;
+        });
     }
 
     @Test
@@ -312,15 +307,12 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_message_with_interruption_failure_exception() {
-        cut
-            .interruptMessageWith(new ExecutionFailure(404))
-            .test()
-            .assertError(throwable -> {
-                assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
-                InterruptionFailureException failureException = (InterruptionFailureException) throwable;
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
-                return true;
-            });
+        cut.interruptMessageWith(new ExecutionFailure(404)).test().assertError(throwable -> {
+            assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
+            InterruptionFailureException failureException = (InterruptionFailureException) throwable;
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(404);
+            return true;
+        });
     }
 
     @Test
@@ -346,9 +338,9 @@ class DefaultExecutionContextTest {
             assertThat(templateContext).isNotSameAs(otherTemplateContext);
 
             // But evaluable request/response/context are common.
-            Stream.of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_CONTEXT).forEach(key ->
-                assertThat(otherTemplateContext.lookupVariable(key)).isSameAs(otherTemplateContext.lookupVariable(key))
-            );
+            Stream.of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_CONTEXT)
+                    .forEach(key -> assertThat(otherTemplateContext.lookupVariable(key))
+                            .isSameAs(otherTemplateContext.lookupVariable(key)));
         }
     }
 
@@ -371,24 +363,25 @@ class DefaultExecutionContextTest {
 
     static Stream<Arguments> listableAttribute() {
         return Stream.of(
-            arguments("a,b,c", List.of("a", "b", "c")),
-            arguments("a , b, c ", List.of("a", "b", "c")),
-            arguments(" a , b, c ", List.of("a", "b", "c")),
-            arguments("a   ,   b,    c    ", List.of("a", "b", "c")),
-            arguments("a\t,\tb,\tc\t", List.of("a", "b", "c")),
-            arguments("a\t\t,\t\tb,\t\tc\t\t", List.of("a", "b", "c")),
-            arguments("a b c", List.of("a b c")),
-            arguments(" a b c ", List.of("a b c")),
-            arguments("[\"a\", \"b\", \"c\"]", List.of("a", "b", "c")),
-            arguments("[\"a\", {}, \"c\"]", List.of("a", "{}", "c")),
-            arguments("[\"a\", 1, \"c\"]", List.of("a", "1", "c")),
-            arguments("[\"a\", 123456789123456789123456789123456789, \"c\"]", List.of("a", "123456789123456789123456789123456789", "c")),
-            arguments("[\"a\", true, \"c\"]", List.of("a", "true", "c")),
-            arguments(List.of("a", "b", "c"), List.of("a", "b", "c")),
-            arguments(new ArrayList<>(List.of(1, 2, 3)), List.of(1, 2, 3)),
-            arguments(Collections.emptyList(), Collections.emptyList()),
-            arguments(1, List.of(1))
-        );
+                arguments("a,b,c", List.of("a", "b", "c")),
+                arguments("a , b, c ", List.of("a", "b", "c")),
+                arguments(" a , b, c ", List.of("a", "b", "c")),
+                arguments("a   ,   b,    c    ", List.of("a", "b", "c")),
+                arguments("a\t,\tb,\tc\t", List.of("a", "b", "c")),
+                arguments("a\t\t,\t\tb,\t\tc\t\t", List.of("a", "b", "c")),
+                arguments("a b c", List.of("a b c")),
+                arguments(" a b c ", List.of("a b c")),
+                arguments("[\"a\", \"b\", \"c\"]", List.of("a", "b", "c")),
+                arguments("[\"a\", {}, \"c\"]", List.of("a", "{}", "c")),
+                arguments("[\"a\", 1, \"c\"]", List.of("a", "1", "c")),
+                arguments(
+                        "[\"a\", 123456789123456789123456789123456789, \"c\"]",
+                        List.of("a", "123456789123456789123456789123456789", "c")),
+                arguments("[\"a\", true, \"c\"]", List.of("a", "true", "c")),
+                arguments(List.of("a", "b", "c"), List.of("a", "b", "c")),
+                arguments(new ArrayList<>(List.of(1, 2, 3)), List.of(1, 2, 3)),
+                arguments(Collections.emptyList(), Collections.emptyList()),
+                arguments(1, List.of(1)));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -421,10 +414,8 @@ class DefaultExecutionContextTest {
         assertThat(actual).hasSize(3);
         assertThat(actual.get(0)).isEqualTo("a");
         assertThat(actual.get(2)).isEqualTo("c");
-        assertThat(parseDouble(actual.get(1).toString())).isEqualTo(
-            123_456_789_123_456_789.123_456_789_123_456_789,
-            offset(0.000_000_000_000_000_1d)
-        );
+        assertThat(parseDouble(actual.get(1).toString()))
+                .isEqualTo(123_456_789_123_456_789.123_456_789_123_456_789, offset(0.000_000_000_000_000_1d));
         assertThatCode(() -> actual.add(new Object())).isOfAnyClassIn(UnsupportedOperationException.class);
     }
 
@@ -442,7 +433,8 @@ class DefaultExecutionContextTest {
             cut.warnWith(warning);
 
             // Then
-            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            List<ExecutionWarn> warnings =
+                    cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
             assertThat(warnings).isNotNull();
             assertThat(warnings).hasSize(1);
             assertThat(warnings.get(0)).isEqualTo(warning);
@@ -458,7 +450,8 @@ class DefaultExecutionContextTest {
             cut.warnWith(warning);
 
             // Then
-            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            List<ExecutionWarn> warnings =
+                    cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
             assertThat(warnings).isNull();
         }
 
@@ -474,7 +467,8 @@ class DefaultExecutionContextTest {
             cut.warnWith(warning2);
 
             // Then
-            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            List<ExecutionWarn> warnings =
+                    cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
             assertThat(warnings).isNotNull();
             assertThat(warnings).hasSize(2);
             assertThat(warnings).containsExactly(warning1, warning2);
@@ -484,14 +478,17 @@ class DefaultExecutionContextTest {
         void should_add_warning_with_cause() {
             // Given
             RuntimeException cause = new RuntimeException("Root cause");
-            ExecutionWarn warning = new ExecutionWarn("WARNING_KEY").message("This is a warning").cause(cause);
+            ExecutionWarn warning = new ExecutionWarn("WARNING_KEY")
+                    .message("This is a warning")
+                    .cause(cause);
             ((DefaultExecutionContext) cut).setWarningsEnabled(true);
 
             // When
             cut.warnWith(warning);
 
             // Then
-            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            List<ExecutionWarn> warnings =
+                    cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
             assertThat(warnings).isNotNull();
             assertThat(warnings).hasSize(1);
             assertThat(warnings.get(0).cause()).isEqualTo(cause);
@@ -506,7 +503,8 @@ class DefaultExecutionContextTest {
             cut.warnWith(warning);
 
             // Then
-            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            List<ExecutionWarn> warnings =
+                    cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
             assertThat(warnings).isNotNull();
             assertThat(warnings).hasSize(1);
         }

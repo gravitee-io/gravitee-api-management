@@ -46,28 +46,27 @@ public class ApiResource_UpdateGroupsTest extends ApiResourceTest {
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_MEMBER),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_MEMBER),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var response = rootTarget().request().put(Entity.json(List.of("group-1")));
 
         assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
     public void should_update_api_groups() {
         var groups = List.of("group-1", "group-2");
-        when(updateApiGroupsUseCase.execute(any())).thenReturn(new UpdateApiGroupsUseCase.Output(Set.of("group-1", "group-2")));
+        when(updateApiGroupsUseCase.execute(any()))
+                .thenReturn(new UpdateApiGroupsUseCase.Output(Set.of("group-1", "group-2")));
 
         var response = rootTarget().request().put(Entity.json(groups));
 

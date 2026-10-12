@@ -47,17 +47,21 @@ class VerifyApiProductNameUseCaseTest extends AbstractUseCaseTest {
     void should_throw_exception_if_name_is_empty() {
         var input = new VerifyApiProductNameUseCase.Input(ENV_ID, "", null);
         Assertions.assertThatThrownBy(() -> verifyApiProductNameUseCase.execute(input))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("cannot be empty");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("cannot be empty");
     }
 
     @Test
     void should_throw_exception_if_name_exists() {
-        ApiProduct existing = ApiProduct.builder().id("id1").name("Existing Name").environmentId(ENV_ID).build();
+        ApiProduct existing = ApiProduct.builder()
+                .id("id1")
+                .name("Existing Name")
+                .environmentId(ENV_ID)
+                .build();
         apiProductQueryService.initWith(Collections.singletonList(existing));
         var input = new VerifyApiProductNameUseCase.Input(ENV_ID, "Existing Name", null);
         Assertions.assertThatThrownBy(() -> verifyApiProductNameUseCase.execute(input))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("already exists");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("already exists");
     }
 }

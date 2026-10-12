@@ -36,13 +36,16 @@ class DashboardWidgetRequestMapperTest {
 
     private static DashboardWidget.TimeRange validTimeRange() {
         return DashboardWidget.TimeRange.builder()
-            .from(Instant.parse("2025-10-07T06:50:30Z"))
-            .to(Instant.parse("2025-12-07T11:35:30Z"))
-            .build();
+                .from(Instant.parse("2025-10-07T06:50:30Z"))
+                .to(Instant.parse("2025-12-07T11:35:30Z"))
+                .build();
     }
 
     private static DashboardWidget.MetricRequest metricRequest(String name, String... measures) {
-        return DashboardWidget.MetricRequest.builder().name(name).measures(List.of(measures)).build();
+        return DashboardWidget.MetricRequest.builder()
+                .name(name)
+                .measures(List.of(measures))
+                .build();
     }
 
     @Nested
@@ -51,32 +54,32 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_throw_when_request_is_null() {
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toAnalyticsRequest(null))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Widget request cannot be null");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Widget request cannot be null");
         }
 
         @Test
         void should_throw_when_type_is_null() {
             var request = DashboardWidget.Request.builder()
-                .type(null)
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .build();
+                    .type(null)
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toAnalyticsRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("type is required");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("type is required");
         }
 
         @Test
         void should_throw_when_type_is_unknown() {
             var request = DashboardWidget.Request.builder()
-                .type("unknown")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .build();
+                    .type("unknown")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toAnalyticsRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Unknown widget request type");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Unknown widget request type");
         }
     }
 
@@ -86,10 +89,10 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_map_valid_measures_request() {
             var request = DashboardWidget.Request.builder()
-                .type("measures")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .build();
+                    .type("measures")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toMeasuresRequest(request);
 
@@ -99,65 +102,73 @@ class DashboardWidgetRequestMapperTest {
             assertThat(measuresRequest.timeRange().to()).isNotNull();
             assertThat(measuresRequest.metrics()).hasSize(1);
             assertThat(measuresRequest.metrics().get(0).name().name()).isEqualTo("HTTP_REQUESTS");
-            assertThat(measuresRequest.metrics().get(0).measures()).containsExactly(
-                io.gravitee.apim.core.analytics_engine.model.MetricSpec.Measure.COUNT
-            );
+            assertThat(measuresRequest.metrics().get(0).measures())
+                    .containsExactly(io.gravitee.apim.core.analytics_engine.model.MetricSpec.Measure.COUNT);
         }
 
         @Test
         void should_throw_when_time_range_is_null() {
             var request = DashboardWidget.Request.builder()
-                .type("measures")
-                .timeRange(null)
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .build();
+                    .type("measures")
+                    .timeRange(null)
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("timeRange");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("timeRange");
         }
 
         @Test
         void should_throw_when_metrics_empty() {
-            var request = DashboardWidget.Request.builder().type("measures").timeRange(validTimeRange()).metrics(List.of()).build();
+            var request = DashboardWidget.Request.builder()
+                    .type("measures")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of())
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("at least one metric");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("at least one metric");
         }
 
         @Test
         void should_throw_when_metric_has_unknown_name() {
             var request = DashboardWidget.Request.builder()
-                .type("measures")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("UNKNOWN_METRIC", "COUNT")))
-                .build();
+                    .type("measures")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("UNKNOWN_METRIC", "COUNT")))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Unknown metric name");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Unknown metric name");
         }
 
         @Test
         void should_throw_when_measure_is_unknown() {
             var request = DashboardWidget.Request.builder()
-                .type("measures")
-                .timeRange(validTimeRange())
-                .metrics(
-                    List.of(DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("UNKNOWN_MEASURE")).build())
-                )
-                .build();
+                    .type("measures")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(DashboardWidget.MetricRequest.builder()
+                            .name("HTTP_REQUESTS")
+                            .measures(List.of("UNKNOWN_MEASURE"))
+                            .build()))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toMeasuresRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Unknown measure name");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Unknown measure name");
         }
 
         @Test
         void should_map_request_level_filters() {
             var request = DashboardWidget.Request.builder()
-                .type("measures")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .filters(List.of(DashboardWidget.Filter.builder().name("API").operator("EQ").value("my-api-id").build()))
-                .build();
+                    .type("measures")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .filters(List.of(DashboardWidget.Filter.builder()
+                            .name("API")
+                            .operator("EQ")
+                            .value("my-api-id")
+                            .build()))
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toMeasuresRequest(request);
 
@@ -170,15 +181,19 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_map_metric_level_filters() {
             var metricReq = DashboardWidget.MetricRequest.builder()
-                .name("HTTP_REQUESTS")
-                .measures(List.of("COUNT"))
-                .filters(List.of(DashboardWidget.Filter.builder().name("API_TYPE").operator("EQ").value("LLM").build()))
-                .build();
+                    .name("HTTP_REQUESTS")
+                    .measures(List.of("COUNT"))
+                    .filters(List.of(DashboardWidget.Filter.builder()
+                            .name("API_TYPE")
+                            .operator("EQ")
+                            .value("LLM")
+                            .build()))
+                    .build();
             var request = DashboardWidget.Request.builder()
-                .type("measures")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricReq))
-                .build();
+                    .type("measures")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricReq))
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toMeasuresRequest(request);
 
@@ -191,10 +206,10 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_default_to_empty_filters_when_null() {
             var request = DashboardWidget.Request.builder()
-                .type("measures")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .build();
+                    .type("measures")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toMeasuresRequest(request);
 
@@ -209,12 +224,12 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_map_valid_facets_request() {
             var request = DashboardWidget.Request.builder()
-                .type("facets")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .by(List.of("HTTP_STATUS_CODE_GROUP"))
-                .limit(10)
-                .build();
+                    .type("facets")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .by(List.of("HTTP_STATUS_CODE_GROUP"))
+                    .limit(10)
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toFacetsRequest(request);
 
@@ -228,30 +243,38 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_throw_when_facet_name_unknown() {
             var request = DashboardWidget.Request.builder()
-                .type("facets")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .by(List.of("UNKNOWN_FACET"))
-                .build();
+                    .type("facets")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .by(List.of("UNKNOWN_FACET"))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toFacetsRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Unknown facet name");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Unknown facet name");
         }
 
         @Test
         void should_map_filters_in_facets_request() {
             var metricReq = DashboardWidget.MetricRequest.builder()
-                .name("HTTP_REQUESTS")
-                .measures(List.of("COUNT"))
-                .filters(List.of(DashboardWidget.Filter.builder().name("API_TYPE").operator("EQ").value("LLM").build()))
-                .build();
+                    .name("HTTP_REQUESTS")
+                    .measures(List.of("COUNT"))
+                    .filters(List.of(DashboardWidget.Filter.builder()
+                            .name("API_TYPE")
+                            .operator("EQ")
+                            .value("LLM")
+                            .build()))
+                    .build();
             var request = DashboardWidget.Request.builder()
-                .type("facets")
-                .timeRange(validTimeRange())
-                .metrics(List.of(metricReq))
-                .by(List.of("HTTP_STATUS_CODE_GROUP"))
-                .filters(List.of(DashboardWidget.Filter.builder().name("ZONE").operator("EQ").value("EU").build()))
-                .build();
+                    .type("facets")
+                    .timeRange(validTimeRange())
+                    .metrics(List.of(metricReq))
+                    .by(List.of("HTTP_STATUS_CODE_GROUP"))
+                    .filters(List.of(DashboardWidget.Filter.builder()
+                            .name("ZONE")
+                            .operator("EQ")
+                            .value("EU")
+                            .build()))
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toFacetsRequest(request);
 
@@ -268,13 +291,13 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_map_valid_time_series_request() {
             var request = DashboardWidget.Request.builder()
-                .type("time-series")
-                .timeRange(validTimeRange())
-                .interval(3600000L)
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .by(List.of("API"))
-                .limit(5)
-                .build();
+                    .type("time-series")
+                    .timeRange(validTimeRange())
+                    .interval(3600000L)
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .by(List.of("API"))
+                    .limit(5)
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toTimeSeriesRequest(request);
 
@@ -288,38 +311,42 @@ class DashboardWidgetRequestMapperTest {
         @Test
         void should_throw_when_interval_null() {
             var request = DashboardWidget.Request.builder()
-                .type("time-series")
-                .timeRange(validTimeRange())
-                .interval(null)
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .build();
+                    .type("time-series")
+                    .timeRange(validTimeRange())
+                    .interval(null)
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toTimeSeriesRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Negative or zero intervals");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Negative or zero intervals");
         }
 
         @Test
         void should_throw_when_interval_zero() {
             var request = DashboardWidget.Request.builder()
-                .type("time-series")
-                .timeRange(validTimeRange())
-                .interval(0L)
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .build();
+                    .type("time-series")
+                    .timeRange(validTimeRange())
+                    .interval(0L)
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .build();
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toTimeSeriesRequest(request))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("Negative or zero intervals");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("Negative or zero intervals");
         }
 
         @Test
         void should_map_filters_in_time_series_request() {
             var request = DashboardWidget.Request.builder()
-                .type("time-series")
-                .timeRange(validTimeRange())
-                .interval(3600000L)
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
-                .filters(List.of(DashboardWidget.Filter.builder().name("API").operator("EQ").value("my-api-id").build()))
-                .build();
+                    .type("time-series")
+                    .timeRange(validTimeRange())
+                    .interval(3600000L)
+                    .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                    .filters(List.of(DashboardWidget.Filter.builder()
+                            .name("API")
+                            .operator("EQ")
+                            .value("my-api-id")
+                            .build()))
+                    .build();
 
             var result = DashboardWidgetRequestMapper.toTimeSeriesRequest(request);
 

@@ -76,20 +76,21 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (failure.message() != null) {
-            final List<MediaType> acceptMediaTypes = MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
+            final List<MediaType> acceptMediaTypes =
+                    MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
             MediaType.sortByQualityValue(acceptMediaTypes);
 
             Buffer payload;
             String contentType;
 
-            if (
-                acceptMediaTypes != null &&
-                (acceptMediaTypes.contains(MediaType.MEDIA_APPLICATION_JSON) || acceptMediaTypes.contains(MediaType.MEDIA_ALL))
-            ) {
+            if (acceptMediaTypes != null
+                    && (acceptMediaTypes.contains(MediaType.MEDIA_APPLICATION_JSON)
+                            || acceptMediaTypes.contains(MediaType.MEDIA_ALL))) {
                 // Write error as json when accepted by the client.
                 contentType = MediaType.APPLICATION_JSON;
 
-                if (failure.contentType() != null && failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
+                if (failure.contentType() != null
+                        && failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
                     // Message is already json string.
                     payload = Buffer.buffer(failure.message());
                 } else {

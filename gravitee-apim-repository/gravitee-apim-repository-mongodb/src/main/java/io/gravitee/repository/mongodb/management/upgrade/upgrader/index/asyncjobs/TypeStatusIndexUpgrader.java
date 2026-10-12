@@ -25,10 +25,10 @@ public class TypeStatusIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("asyncjobs")
-            .name("t1s1")
-            .key("type", ascending())
-            .key("status", ascending())
-            .build();
+                .collection("asyncjobs")
+                .name("t1s1")
+                .key("type", ascending())
+                .key("status", ascending())
+                .build();
     }
 }

@@ -65,11 +65,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     @ParameterizedTest
     @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
     public void should_resolve_bestMatchFlow_with_api_sync(
-        List<String> flowPaths,
-        Operator operator,
-        String expectedBestMatchResult,
-        String requestPath
-    ) {
+            List<String> flowPaths, Operator operator, String expectedBestMatchResult, String requestPath) {
         initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
         init();
 
@@ -80,7 +76,8 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         Api api = new Api();
         api.setType(ApiType.PROXY);
         when(reactableApi.getDefinition()).thenReturn(api);
-        when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(reactableApi);
+        when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API))
+                .thenReturn(reactableApi);
 
         final TestSubscriber<Flow> obs = cut.resolve(executionContext).test();
         obs.assertComplete();
@@ -101,11 +98,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     @ParameterizedTest
     @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
     public void should_resolve_bestMatchFlow_with_api_async(
-        List<String> flowPaths,
-        Operator operator,
-        String expectedBestMatchResult,
-        String requestPath
-    ) {
+            List<String> flowPaths, Operator operator, String expectedBestMatchResult, String requestPath) {
         initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
         init();
 
@@ -116,7 +109,8 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         Api api = new Api();
         api.setType(ApiType.MESSAGE);
         when(reactableApi.getDefinition()).thenReturn(api);
-        when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(reactableApi);
+        when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API))
+                .thenReturn(reactableApi);
 
         final TestSubscriber<Flow> obs = cut.resolve(executionContext).test();
         obs.assertComplete();

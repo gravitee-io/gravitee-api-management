@@ -64,30 +64,22 @@ public class EnvironmentScoringResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public EnvironmentApisScoringResponse getApisScoring(
-        @QueryParam("apiTypes") List<ApiType> apiTypes,
-        @BeanParam @Valid PaginationParam paginationParam
-    ) {
+            @QueryParam("apiTypes") List<ApiType> apiTypes, @BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var result = getEnvironmentReportsUseCase.execute(
-            new GetEnvironmentReportsUseCase.Input(
+        var result = getEnvironmentReportsUseCase.execute(new GetEnvironmentReportsUseCase.Input(
                 executionContext.getEnvironmentId(),
                 ScoringReportMapper.INSTANCE.mapApiTypes(apiTypes),
-                Optional.of(new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()))
-            )
-        );
+                Optional.of(new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()))));
 
         var page = result.reports();
         var totalElements = page.getTotalElements();
         return new EnvironmentApisScoringResponse()
-            .data(
-                page
-                    .getContent()
-                    .stream()
-                    .map(r -> ScoringReportMapper.INSTANCE.map(r, uriInfo))
-                    .toList()
-            )
-            .pagination(PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(page.getPageElements()), paginationParam))
-            .links(computePaginationLinks(totalElements, paginationParam));
+                .data(page.getContent().stream()
+                        .map(r -> ScoringReportMapper.INSTANCE.map(r, uriInfo))
+                        .toList())
+                .pagination(PaginationInfo.computePaginationInfo(
+                        totalElements, Math.toIntExact(page.getPageElements()), paginationParam))
+                .links(computePaginationLinks(totalElements, paginationParam));
     }
 
     @Path("overview")
@@ -96,8 +88,8 @@ public class EnvironmentScoringResource extends AbstractResource {
     public EnvironmentScoringOverview getScoringEnvironmentOverview() {
         var executionContext = GraviteeContext.getExecutionContext();
         var overview = getEnvironmentScoringOverviewUseCase
-            .execute(new GetEnvironmentScoringOverviewUseCase.Input(executionContext.getEnvironmentId()))
-            .overview();
+                .execute(new GetEnvironmentScoringOverviewUseCase.Input(executionContext.getEnvironmentId()))
+                .overview();
         return ScoringReportMapper.INSTANCE.map(overview);
     }
 

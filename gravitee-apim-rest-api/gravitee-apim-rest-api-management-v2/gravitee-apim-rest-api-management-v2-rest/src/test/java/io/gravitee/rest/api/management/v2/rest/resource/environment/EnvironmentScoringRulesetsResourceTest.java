@@ -63,7 +63,10 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
     void setup() {
         target = rootTarget();
 
-        var environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        var environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -88,17 +91,25 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         void should_create_ruleset() {
             // Given
             var request = new ImportScoringRuleset()
-                .name("ruleset-name")
-                .description("ruleset-description")
-                .payload("ruleset-payload")
-                .format(ScoringAssetFormat.GRAVITEE_PROXY);
+                    .name("ruleset-name")
+                    .description("ruleset-description")
+                    .payload("ruleset-payload")
+                    .format(ScoringAssetFormat.GRAVITEE_PROXY);
 
             // When
             try (var ignored = target.request().post(json(request))) {
                 // Then
                 assertThat(scoringRulesetCrudService.storage())
-                    .extracting(ScoringRuleset::name, ScoringRuleset::description, ScoringRuleset::payload, ScoringRuleset::format)
-                    .containsExactly(tuple("ruleset-name", "ruleset-description", "ruleset-payload", ScoringRuleset.Format.GRAVITEE_PROXY));
+                        .extracting(
+                                ScoringRuleset::name,
+                                ScoringRuleset::description,
+                                ScoringRuleset::payload,
+                                ScoringRuleset::format)
+                        .containsExactly(tuple(
+                                "ruleset-name",
+                                "ruleset-description",
+                                "ruleset-payload",
+                                ScoringRuleset.Format.GRAVITEE_PROXY));
             }
         }
 
@@ -106,16 +117,17 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         void should_create_ruleset_without_description() {
             // Given
             var request = new ImportScoringRuleset()
-                .name("ruleset-name")
-                .payload("ruleset-payload")
-                .format(ScoringAssetFormat.GRAVITEE_PROXY);
+                    .name("ruleset-name")
+                    .payload("ruleset-payload")
+                    .format(ScoringAssetFormat.GRAVITEE_PROXY);
 
             // When
             try (var ignored = target.request().post(json(request))) {
                 // Then
                 assertThat(scoringRulesetCrudService.storage())
-                    .extracting(ScoringRuleset::name, ScoringRuleset::payload, ScoringRuleset::format)
-                    .containsExactly(tuple("ruleset-name", "ruleset-payload", ScoringRuleset.Format.GRAVITEE_PROXY));
+                        .extracting(ScoringRuleset::name, ScoringRuleset::payload, ScoringRuleset::format)
+                        .containsExactly(
+                                tuple("ruleset-name", "ruleset-payload", ScoringRuleset.Format.GRAVITEE_PROXY));
             }
         }
 
@@ -124,18 +136,18 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
             // Given
             UuidString.overrideGenerator(() -> "generated-id");
             var request = new ImportScoringRuleset()
-                .name("ruleset-name")
-                .description("ruleset-description")
-                .payload("ruleset-payload")
-                .format(ScoringAssetFormat.GRAVITEE_PROXY);
+                    .name("ruleset-name")
+                    .description("ruleset-description")
+                    .payload("ruleset-payload")
+                    .format(ScoringAssetFormat.GRAVITEE_PROXY);
 
             // When
             Response response = target.request().post(json(request));
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.CREATED_201)
-                .hasHeader("Location", target.path("generated-id").getUri().toString());
+                    .hasStatus(HttpStatusCode.CREATED_201)
+                    .hasHeader("Location", target.path("generated-id").getUri().toString());
         }
     }
 
@@ -145,42 +157,50 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_rulesets() {
             // Given
-            scoringRulesetCrudService.initWith(
-                List.of(
-                    ScoringRulesetFixture.aRuleset().toBuilder().id("ruleset1").referenceId(ENVIRONMENT).build(),
-                    ScoringRulesetFixture.aRuleset().toBuilder().id("ruleset2").referenceId(ENVIRONMENT).build()
-                )
-            );
+            scoringRulesetCrudService.initWith(List.of(
+                    ScoringRulesetFixture.aRuleset().toBuilder()
+                            .id("ruleset1")
+                            .referenceId(ENVIRONMENT)
+                            .build(),
+                    ScoringRulesetFixture.aRuleset().toBuilder()
+                            .id("ruleset2")
+                            .referenceId(ENVIRONMENT)
+                            .build()));
 
             // When
             var response = target.request().get();
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(ScoringRulesetsResponse.class)
-                .extracting(ScoringRulesetsResponse::getData)
-                .asInstanceOf(InstanceOfAssertFactories.LIST)
-                .containsExactly(
-                    new io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset()
-                        .id("ruleset1")
-                        .name("ruleset-name")
-                        .description("ruleset-description")
-                        .payload("ruleset-payload")
-                        .format(ScoringAssetFormat.GRAVITEE_PROXY)
-                        .referenceId(ENVIRONMENT)
-                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType.ENVIRONMENT)
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC)),
-                    new io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset()
-                        .id("ruleset2")
-                        .name("ruleset-name")
-                        .description("ruleset-description")
-                        .payload("ruleset-payload")
-                        .format(ScoringAssetFormat.GRAVITEE_PROXY)
-                        .referenceId(ENVIRONMENT)
-                        .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType.ENVIRONMENT)
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(ScoringRulesetsResponse.class)
+                    .extracting(ScoringRulesetsResponse::getData)
+                    .asInstanceOf(InstanceOfAssertFactories.LIST)
+                    .containsExactly(
+                            new io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset()
+                                    .id("ruleset1")
+                                    .name("ruleset-name")
+                                    .description("ruleset-description")
+                                    .payload("ruleset-payload")
+                                    .format(ScoringAssetFormat.GRAVITEE_PROXY)
+                                    .referenceId(ENVIRONMENT)
+                                    .referenceType(
+                                            io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType
+                                                    .ENVIRONMENT)
+                                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z")
+                                            .atOffset(ZoneOffset.UTC)),
+                            new io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset()
+                                    .id("ruleset2")
+                                    .name("ruleset-name")
+                                    .description("ruleset-description")
+                                    .payload("ruleset-payload")
+                                    .format(ScoringAssetFormat.GRAVITEE_PROXY)
+                                    .referenceId(ENVIRONMENT)
+                                    .referenceType(
+                                            io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType
+                                                    .ENVIRONMENT)
+                                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z")
+                                            .atOffset(ZoneOffset.UTC)));
         }
     }
 }

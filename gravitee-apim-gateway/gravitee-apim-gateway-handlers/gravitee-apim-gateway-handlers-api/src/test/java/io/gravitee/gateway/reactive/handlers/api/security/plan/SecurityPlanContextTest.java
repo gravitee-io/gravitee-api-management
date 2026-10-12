@@ -52,7 +52,8 @@ class SecurityPlanContextTest {
             when(v2Plan.getSelectionRule()).thenReturn("{#selection-rule}");
 
             // When
-            SecurityPlanContext context = SecurityPlanContext.builder().fromV2(v2Plan).build();
+            SecurityPlanContext context =
+                    SecurityPlanContext.builder().fromV2(v2Plan).build();
 
             // Then
             assertThat(context.planId()).isEqualTo("plan-id");
@@ -74,7 +75,8 @@ class SecurityPlanContextTest {
             when(v4Plan.getSelectionRule()).thenReturn("#selection-rule");
 
             // When
-            SecurityPlanContext context = SecurityPlanContext.builder().fromV4(v4Plan).build();
+            SecurityPlanContext context =
+                    SecurityPlanContext.builder().fromV4(v4Plan).build();
 
             // Then
             assertThat(context.planId()).isEqualTo("plan-id");

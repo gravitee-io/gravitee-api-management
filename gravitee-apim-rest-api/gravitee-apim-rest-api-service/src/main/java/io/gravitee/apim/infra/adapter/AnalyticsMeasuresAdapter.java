@@ -78,11 +78,13 @@ public interface AnalyticsMeasuresAdapter {
         if (result == null) {
             return null;
         }
-        return new MeasuresResponse(result.measures().stream().map(this::fromResult).toList());
+        return new MeasuresResponse(
+                result.measures().stream().map(this::fromResult).toList());
     }
 
     default MetricMeasuresResponse fromResult(MetricMeasuresResult result) {
-        // The unit is set to null here, because it is populated later by a post processor according to the definition model.
+        // The unit is set to null here, because it is populated later by a post processor according to the definition
+        // model.
         return new MetricMeasuresResponse(fromResult(result.metric()), null, fromResult(result.measures()), List.of());
     }
 
@@ -90,11 +92,9 @@ public interface AnalyticsMeasuresAdapter {
         if (result == null) {
             return null;
         }
-        return result
-            .entrySet()
-            .stream()
-            .map(entry -> new Measure(fromResult(entry.getKey()), entry.getValue()))
-            .toList();
+        return result.entrySet().stream()
+                .map(entry -> new Measure(fromResult(entry.getKey()), entry.getValue()))
+                .toList();
     }
 
     /** Every engine filter has a catalog name; MapStruct fails the build if one is added without. */

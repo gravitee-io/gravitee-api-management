@@ -189,7 +189,8 @@ public class CommandConverterTest {
 
         final ExecutionContext executionContext = new ExecutionContext(organization);
 
-        Command command = converter.toCommand(executionContext, newCommandEntity("{}", List.of(CommandTags.DATA_TO_INDEX)));
+        Command command =
+                converter.toCommand(executionContext, newCommandEntity("{}", List.of(CommandTags.DATA_TO_INDEX)));
 
         assertNotNull(command.getTags());
         assertEquals(List.of("DATA_TO_INDEX"), command.getTags());

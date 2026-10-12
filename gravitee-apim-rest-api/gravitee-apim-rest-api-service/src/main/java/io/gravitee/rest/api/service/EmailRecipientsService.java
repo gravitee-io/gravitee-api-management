@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,7 +28,8 @@ public interface EmailRecipientsService {
      * @param templateData             is the dateset used to process emails.
      * @return a set of not empty emails.
      */
-    Set<String> processTemplatedRecipients(Collection<String> templatedRecipientsEmail, Map<String, Object> templateData);
+    Set<String> processTemplatedRecipients(
+            Collection<String> templatedRecipientsEmail, Map<String, Object> templateData);
 
     /**
      * Checks that each email has an opted-in user attached to it. If it is not the case, then the email is excluded from the result.

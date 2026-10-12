@@ -90,8 +90,9 @@ public class PortalMenuLinkCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to create a PortalMenuLink with id: " + portalMenuLink.getId());
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to create a PortalMenuLink with id: "
+                            + portalMenuLink.getId());
         }
     }
 
@@ -105,18 +106,18 @@ public class PortalMenuLinkCrudServiceImplTest {
             var portalMenuLinkId = "portalMenuLink-id";
             var environmentId = "portalMenuLink-environmentId";
             var portalMenuLinkInRepositoryBuilder = io.gravitee.repository.management.model.PortalMenuLink.builder()
-                .id(portalMenuLinkId)
-                .environmentId(environmentId)
-                .name("portalMenuLink-name")
-                .target("portalMenuLink-target")
-                .type(io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkType.EXTERNAL)
-                .order(1);
+                    .id(portalMenuLinkId)
+                    .environmentId(environmentId)
+                    .name("portalMenuLink-name")
+                    .target("portalMenuLink-target")
+                    .type(io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkType.EXTERNAL)
+                    .order(1);
 
-            when(repository.findByIdAndEnvironmentId(portalMenuLinkId, environmentId)).thenAnswer(invocation ->
-                Optional.of(
-                    portalMenuLinkInRepositoryBuilder.id(invocation.getArgument(0)).environmentId(invocation.getArgument(1)).build()
-                )
-            );
+            when(repository.findByIdAndEnvironmentId(portalMenuLinkId, environmentId))
+                    .thenAnswer(invocation -> Optional.of(portalMenuLinkInRepositoryBuilder
+                            .id(invocation.getArgument(0))
+                            .environmentId(invocation.getArgument(1))
+                            .build()));
 
             // When
             var result = service.getByIdAndEnvironmentId(portalMenuLinkId, environmentId);
@@ -140,12 +141,13 @@ public class PortalMenuLinkCrudServiceImplTest {
             when(repository.findById(portalMenuLinkId)).thenReturn(Optional.empty());
 
             // When
-            Throwable throwable = catchThrowable(() -> service.getByIdAndEnvironmentId(portalMenuLinkId, environmentId));
+            Throwable throwable =
+                    catchThrowable(() -> service.getByIdAndEnvironmentId(portalMenuLinkId, environmentId));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(PortalMenuLinkNotFoundException.class)
-                .hasMessage("PortalMenuLink [ " + portalMenuLinkId + " ] not found");
+                    .isInstanceOf(PortalMenuLinkNotFoundException.class)
+                    .hasMessage("PortalMenuLink [ " + portalMenuLinkId + " ] not found");
         }
 
         @Test
@@ -154,17 +156,18 @@ public class PortalMenuLinkCrudServiceImplTest {
             // Given
             var portalMenuLinkId = "portalMenuLink-id";
             var environmentId = "portalMenuLink-environmentId";
-            when(repository.findByIdAndEnvironmentId(portalMenuLinkId, environmentId)).thenThrow(TechnicalException.class);
+            when(repository.findByIdAndEnvironmentId(portalMenuLinkId, environmentId))
+                    .thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.getByIdAndEnvironmentId(portalMenuLinkId, environmentId));
+            Throwable throwable =
+                    catchThrowable(() -> service.getByIdAndEnvironmentId(portalMenuLinkId, environmentId));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage(
-                    "An error occurred while trying to find a PortalMenuLink with id (portalMenuLink-id) in environment (portalMenuLink-environmentId)"
-                );
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while trying to find a PortalMenuLink with id (portalMenuLink-id) in environment (portalMenuLink-environmentId)");
         }
     }
 
@@ -187,9 +190,8 @@ public class PortalMenuLinkCrudServiceImplTest {
             assertThat(captor.getValue()).isEqualTo(PortalMenuLinkAdapter.INSTANCE.toRepository(portalMenuLink));
             assertThat(captor.getValue().getName()).isEqualTo("newName");
             assertThat(captor.getValue().getTarget()).isEqualTo("newTarget");
-            assertThat(captor.getValue().getVisibility()).isEqualTo(
-                io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkVisibility.PUBLIC
-            );
+            assertThat(captor.getValue().getVisibility())
+                    .isEqualTo(io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkVisibility.PUBLIC);
             assertThat(captor.getValue().getOrder()).isEqualTo(1000);
         }
 
@@ -214,8 +216,8 @@ public class PortalMenuLinkCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to update a PortalMenuLink with id: portalMenuLinkId");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to update a PortalMenuLink with id: portalMenuLinkId");
         }
     }
 
@@ -234,8 +236,9 @@ public class PortalMenuLinkCrudServiceImplTest {
             var portalMenuLinkId = "portalMenuLink-id";
             doThrow(new TechnicalException("exception")).when(repository).delete(portalMenuLinkId);
             assertThatThrownBy(() -> service.delete(portalMenuLinkId))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to delete the PortalMenuLink with id: " + portalMenuLinkId);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while trying to delete the PortalMenuLink with id: " + portalMenuLinkId);
             verify(repository).delete(portalMenuLinkId);
         }
     }

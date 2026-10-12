@@ -67,36 +67,38 @@ import org.junit.jupiter.api.Test;
 class SharedPolicyGroupMessageIntegrationTest {
 
     @Nested
-    @DeploySharedPolicyGroups(
-        { "/sharedpolicygroups/messages/spg-header-message-request.json", "/sharedpolicygroups/messages/spg-header-message-response.json" }
-    )
+    @DeploySharedPolicyGroups({
+        "/sharedpolicygroups/messages/spg-header-message-request.json",
+        "/sharedpolicygroups/messages/spg-header-message-response.json"
+    })
     class GeneralCases extends TestPreparer {
 
         @Test
         @DeployApi("/apis/v4/messages/sharedpolicygroups/shared-policy-group.json")
         void should_use_shared_policy_group_on_message_request(HttpClient httpClient) {
             httpClient
-                .rxRequest(HttpMethod.POST, "/test")
-                .flatMap(request -> {
-                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                    return request.rxSend("a message");
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(response -> {
-                    assertThat(response.statusCode()).isEqualTo(202);
-                    return true;
-                })
-                .assertComplete();
+                    .rxRequest(HttpMethod.POST, "/test")
+                    .flatMap(request -> {
+                        request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                        return request.rxSend("a message");
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValue(response -> {
+                        assertThat(response.statusCode()).isEqualTo(202);
+                        return true;
+                    })
+                    .assertComplete();
 
             messageStorage
-                .subject()
-                .test()
-                .assertValue(message -> {
-                    assertThat(message.headers().get("X-Request-Header-Dev-0")).isEqualTo("Header Dev 0");
-                    return true;
-                })
-                .dispose();
+                    .subject()
+                    .test()
+                    .assertValue(message -> {
+                        assertThat(message.headers().get("X-Request-Header-Dev-0"))
+                                .isEqualTo("Header Dev 0");
+                        return true;
+                    })
+                    .dispose();
         }
 
         @Test
@@ -105,17 +107,17 @@ class SharedPolicyGroupMessageIntegrationTest {
             final int messageCount = 12;
 
             final TestSubscriber<JsonObject> obs = httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> {
-                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                    return request.rxSend();
-                })
-                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValueCount(messageCount)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(request -> {
+                        request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                        return request.rxSend();
+                    })
+                    .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                    .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValueCount(messageCount)
+                    .assertComplete();
 
             for (int i = 0; i < messageCount; i++) {
                 final int counter = i;
@@ -123,7 +125,8 @@ class SharedPolicyGroupMessageIntegrationTest {
                     final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
                     assertThat(messageCounter).isEqualTo(counter);
                     assertThat(jsonObject.getString("content")).matches("message");
-                    assertThat(jsonObject.getJsonObject("headers").getJsonArray("X-Response-Header-Dev-0")).contains("Header Dev 0");
+                    assertThat(jsonObject.getJsonObject("headers").getJsonArray("X-Response-Header-Dev-0"))
+                            .contains("Header Dev 0");
 
                     return true;
                 });
@@ -132,7 +135,7 @@ class SharedPolicyGroupMessageIntegrationTest {
     }
 
     @Nested
-    @DeploySharedPolicyGroups({ "/sharedpolicygroups/messages/spg-header-message-response-conditional.json" })
+    @DeploySharedPolicyGroups({"/sharedpolicygroups/messages/spg-header-message-response-conditional.json"})
     class Conditions extends TestPreparer {
 
         @Test
@@ -141,19 +144,18 @@ class SharedPolicyGroupMessageIntegrationTest {
             final int messageCount = 12;
 
             final TestSubscriber<JsonObject> obs = httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> {
-                    request
-                        .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
-                        .putHeader("execute-shared-policy-group", "false");
-                    return request.rxSend();
-                })
-                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValueCount(messageCount)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(request -> {
+                        request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
+                                .putHeader("execute-shared-policy-group", "false");
+                        return request.rxSend();
+                    })
+                    .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                    .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValueCount(messageCount)
+                    .assertComplete();
 
             for (int i = 0; i < messageCount; i++) {
                 final int counter = i;
@@ -174,19 +176,18 @@ class SharedPolicyGroupMessageIntegrationTest {
             final int messageCount = 12;
 
             final TestSubscriber<JsonObject> obs = httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> {
-                    request
-                        .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
-                        .putHeader("execute-shared-policy-group", "yes");
-                    return request.rxSend();
-                })
-                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValueCount(messageCount)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(request -> {
+                        request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON)
+                                .putHeader("execute-shared-policy-group", "yes");
+                        return request.rxSend();
+                    })
+                    .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                    .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValueCount(messageCount)
+                    .assertComplete();
 
             for (int i = 0; i < messageCount; i++) {
                 final int counter = i;
@@ -194,14 +195,19 @@ class SharedPolicyGroupMessageIntegrationTest {
                     final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
                     assertThat(messageCounter).isEqualTo(counter);
                     assertThat(jsonObject.getString("content")).matches("message");
-                    // Because of the condition, we expect only messages with even id to have the X-Response-Header-Dev-0 added
+                    // Because of the condition, we expect only messages with even id to have the
+                    // X-Response-Header-Dev-0 added
                     final JsonObject headers = jsonObject.getJsonObject("headers");
                     if (counter % 2 == 0) {
-                        assertThat(headers.getJsonArray("X-Response-Header-Dev-0").getList()).isEqualTo(List.of("I'm an even message!"));
+                        assertThat(headers.getJsonArray("X-Response-Header-Dev-0")
+                                        .getList())
+                                .isEqualTo(List.of("I'm an even message!"));
                     } else {
-                        assertThat(headers.getJsonArray("X-Response-Header-Dev-0")).isNull();
+                        assertThat(headers.getJsonArray("X-Response-Header-Dev-0"))
+                                .isNull();
                     }
-                    assertThat(headers.getJsonArray("X-Response-Header-Dev-1").getList()).isEqualTo(List.of("Header Dev 1"));
+                    assertThat(headers.getJsonArray("X-Response-Header-Dev-1").getList())
+                            .isEqualTo(List.of("Header Dev 1"));
 
                     return true;
                 });
@@ -231,8 +237,10 @@ class SharedPolicyGroupMessageIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
-            entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
         }
 
         @Override
@@ -244,9 +252,11 @@ class SharedPolicyGroupMessageIntegrationTest {
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             super.configurePolicies(policies);
             policies.put(
-                "transform-headers",
-                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-            );
+                    "transform-headers",
+                    PolicyBuilder.build(
+                            "transform-headers",
+                            TransformHeadersPolicy.class,
+                            TransformHeadersPolicyConfiguration.class));
         }
 
         @NonNull

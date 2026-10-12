@@ -37,8 +37,8 @@ public final class DashboardModule {
     public static void requireValidOrAbsent(String module) {
         if (module != null && !VALID_MODULE.matcher(module).matches()) {
             throw new InvalidDashboardException(
-                "Dashboard module '%s' is invalid: expected 1 to 64 lowercase letters, digits or hyphens".formatted(module)
-            );
+                    "Dashboard module '%s' is invalid: expected 1 to 64 lowercase letters, digits or hyphens"
+                            .formatted(module));
         }
     }
 }

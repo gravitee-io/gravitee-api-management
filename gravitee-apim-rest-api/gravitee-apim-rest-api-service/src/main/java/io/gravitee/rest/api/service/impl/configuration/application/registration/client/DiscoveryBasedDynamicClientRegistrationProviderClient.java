@@ -40,11 +40,10 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
     private final Map<String, Object> metadata = new HashMap<>();
 
     public DiscoveryBasedDynamicClientRegistrationProviderClient(
-        String discoveryEndpoint,
-        InitialAccessTokenProvider initialAccessTokenProvider,
-        TrustStoreEntity trustStore,
-        KeyStoreEntity keyStore
-    ) {
+            String discoveryEndpoint,
+            InitialAccessTokenProvider initialAccessTokenProvider,
+            TrustStoreEntity trustStore,
+            KeyStoreEntity keyStore) {
         this.discoveryEndpoint = discoveryEndpoint;
         this.initialAccessTokenProvider = initialAccessTokenProvider;
         this.trustStore = trustStore;
@@ -66,7 +65,8 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
                         throw new DynamicClientRegistrationException("OIDC Discovery response is not well-formed");
                     }
                 } else {
-                    throw new DynamicClientRegistrationException("Unexpected response status from OIDC Discovery endpoint");
+                    throw new DynamicClientRegistrationException(
+                            "Unexpected response status from OIDC Discovery endpoint");
                 }
             });
 
@@ -76,9 +76,7 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
             metadata.put("token_endpoint", discovery.getTokenEndpoint());
         } catch (Exception ex) {
             throw new DynamicClientRegistrationException(
-                "Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(),
-                ex
-            );
+                    "Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
         }
     }
 

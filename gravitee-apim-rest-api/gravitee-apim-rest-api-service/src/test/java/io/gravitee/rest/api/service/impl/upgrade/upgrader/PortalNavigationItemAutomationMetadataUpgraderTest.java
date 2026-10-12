@@ -61,7 +61,8 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
 
     @BeforeEach
     void setUp() {
-        upgrader = new PortalNavigationItemAutomationMetadataUpgrader(portalPageContentRepository, portalNavigationItemRepository);
+        upgrader = new PortalNavigationItemAutomationMetadataUpgrader(
+                portalPageContentRepository, portalNavigationItemRepository);
     }
 
     @Test
@@ -104,7 +105,8 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         PortalNavigationItem page = navItem("page-1", ORG, ENV, "content-1", null);
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(content));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(page));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(page));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -120,17 +122,18 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
     @SneakyThrows
     void should_trim_name_and_order_off_backfilled_automation_metadata() {
         AutomationMetadata metadata = AutomationMetadata.builder()
-            .referenceType(AutomationTargetReferenceType.API)
-            .referenceId("api-1")
-            .name("Some Page Name")
-            .location("/some/location")
-            .order(3)
-            .build();
+                .referenceType(AutomationTargetReferenceType.API)
+                .referenceId("api-1")
+                .name("Some Page Name")
+                .location("/some/location")
+                .order(3)
+                .build();
         PortalPageContent content = content("content-1", ORG, ENV, metadata);
         PortalNavigationItem page = navItem("page-1", ORG, ENV, "content-1", null);
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(content));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(page));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(page));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -154,7 +157,8 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         PortalNavigationItem pageB = navItem("page-b", ORG, ENV, "content-1", null);
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(content));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(pageA, pageB));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(pageA, pageB));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -163,7 +167,8 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
 
         List<PortalNavigationItem> updated = captor.getAllValues();
         assertThat(updated).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder("page-a", "page-b");
-        assertThat(updated).allSatisfy(item -> assertThat(item.getAutomationMetadata()).isNotNull());
+        assertThat(updated)
+                .allSatisfy(item -> assertThat(item.getAutomationMetadata()).isNotNull());
     }
 
     @Test
@@ -173,7 +178,8 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         PortalNavigationItem unrelatedPage = navItem("page-1", ORG, ENV, "some-other-content-id", null);
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(content));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(unrelatedPage));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(unrelatedPage));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -189,7 +195,8 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         PortalNavigationItem alreadyMigrated = navItem("page-1", ORG, ENV, "content-1", existing);
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(content));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(alreadyMigrated));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(alreadyMigrated));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -201,16 +208,17 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
     void should_ignore_non_page_nav_items() {
         PortalPageContent content = content("content-1", ORG, ENV, automationMetadata("api-1"));
         PortalNavigationItem folder = PortalNavigationItem.builder()
-            .id("folder-1")
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .rootId("folder-1")
-            .configuration("{\"portalPageContentId\":\"content-1\"}")
-            .build();
+                .id("folder-1")
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .rootId("folder-1")
+                .configuration("{\"portalPageContentId\":\"content-1\"}")
+                .build();
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(content));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(folder));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(folder));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -228,10 +236,10 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         PortalNavigationItem pageEnv2 = navItem("page-2", ANOTHER_ORG, ANOTHER_ENV, "content-2", null);
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(contentEnv1, contentEnv2));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(pageEnv1));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ANOTHER_ORG, ANOTHER_ENV)).thenReturn(
-            List.of(pageEnv2)
-        );
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(pageEnv1));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ANOTHER_ORG, ANOTHER_ENV))
+                .thenReturn(List.of(pageEnv2));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -241,13 +249,13 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         List<PortalNavigationItem> updated = captor.getAllValues();
         assertThat(updated).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder("page-1", "page-2");
         assertThat(updated)
-            .filteredOn(item -> "page-1".equals(item.getId()))
-            .singleElement()
-            .satisfies(item -> assertThat(item.getAutomationMetadata()).isEqualTo(metadataEnv1));
+                .filteredOn(item -> "page-1".equals(item.getId()))
+                .singleElement()
+                .satisfies(item -> assertThat(item.getAutomationMetadata()).isEqualTo(metadataEnv1));
         assertThat(updated)
-            .filteredOn(item -> "page-2".equals(item.getId()))
-            .singleElement()
-            .satisfies(item -> assertThat(item.getAutomationMetadata()).isEqualTo(metadataEnv2));
+                .filteredOn(item -> "page-2".equals(item.getId()))
+                .singleElement()
+                .satisfies(item -> assertThat(item.getAutomationMetadata()).isEqualTo(metadataEnv2));
     }
 
     @Test
@@ -255,16 +263,17 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
     void should_skip_page_with_unparsable_configuration() {
         PortalPageContent content = content("content-1", ORG, ENV, automationMetadata("api-1"));
         PortalNavigationItem malformedPage = PortalNavigationItem.builder()
-            .id("page-1")
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.PAGE)
-            .rootId("page-1")
-            .configuration("not-json")
-            .build();
+                .id("page-1")
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.PAGE)
+                .rootId("page-1")
+                .configuration("not-json")
+                .build();
 
         when(portalPageContentRepository.findAll()).thenReturn(Set.of(content));
-        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV)).thenReturn(List.of(malformedPage));
+        when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG, ENV))
+                .thenReturn(List.of(malformedPage));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -276,41 +285,44 @@ class PortalNavigationItemAutomationMetadataUpgraderTest {
         assertThat(upgrader.getOrder()).isEqualTo(UpgraderOrder.PORTAL_NAVIGATION_ITEM_AUTOMATION_METADATA_UPGRADER);
     }
 
-    private static PortalPageContent content(String id, String organizationId, String environmentId, AutomationMetadata metadata) {
+    private static PortalPageContent content(
+            String id, String organizationId, String environmentId, AutomationMetadata metadata) {
         return PortalPageContent.builder()
-            .id(id)
-            .organizationId(organizationId)
-            .environmentId(environmentId)
-            .type(PortalPageContent.Type.GRAVITEE_MARKDOWN)
-            .content("some content")
-            .automationMetadata(metadata)
-            .build();
+                .id(id)
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .type(PortalPageContent.Type.GRAVITEE_MARKDOWN)
+                .content("some content")
+                .automationMetadata(metadata)
+                .build();
     }
 
     private static PortalNavigationItem navItem(
-        String id,
-        String organizationId,
-        String environmentId,
-        String portalPageContentId,
-        AutomationMetadata automationMetadata
-    ) {
+            String id,
+            String organizationId,
+            String environmentId,
+            String portalPageContentId,
+            AutomationMetadata automationMetadata) {
         return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId(organizationId)
-            .environmentId(environmentId)
-            .title("Nav Item " + id)
-            .type(PortalNavigationItem.Type.PAGE)
-            .area(PortalNavigationItem.Area.TOP_NAVBAR)
-            .rootId(id)
-            .order(0)
-            .published(true)
-            .visibility(PortalNavigationItem.Visibility.PUBLIC)
-            .configuration("{\"portalPageContentId\":\"" + portalPageContentId + "\"}")
-            .automationMetadata(automationMetadata)
-            .build();
+                .id(id)
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .title("Nav Item " + id)
+                .type(PortalNavigationItem.Type.PAGE)
+                .area(PortalNavigationItem.Area.TOP_NAVBAR)
+                .rootId(id)
+                .order(0)
+                .published(true)
+                .visibility(PortalNavigationItem.Visibility.PUBLIC)
+                .configuration("{\"portalPageContentId\":\"" + portalPageContentId + "\"}")
+                .automationMetadata(automationMetadata)
+                .build();
     }
 
     private static AutomationMetadata automationMetadata(String referenceId) {
-        return AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId(referenceId).build();
+        return AutomationMetadata.builder()
+                .referenceType(AutomationTargetReferenceType.API)
+                .referenceId(referenceId)
+                .build();
     }
 }

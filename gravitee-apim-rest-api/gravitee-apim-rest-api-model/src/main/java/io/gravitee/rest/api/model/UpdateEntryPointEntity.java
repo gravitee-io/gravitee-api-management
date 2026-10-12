@@ -85,12 +85,10 @@ public class UpdateEntryPointEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateEntryPointEntity)) return false;
         UpdateEntryPointEntity that = (UpdateEntryPointEntity) o;
-        return (
-            Objects.equals(id, that.id) &&
-            Objects.equals(target, that.target) &&
-            Objects.equals(value, that.value) &&
-            Objects.deepEquals(tags, that.tags)
-        );
+        return (Objects.equals(id, that.id)
+                && Objects.equals(target, that.target)
+                && Objects.equals(value, that.value)
+                && Objects.deepEquals(tags, that.tags));
     }
 
     @Override
@@ -100,19 +98,16 @@ public class UpdateEntryPointEntity {
 
     @Override
     public String toString() {
-        return (
-            "EntryPointEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", target=" +
-            target +
-            ", value='" +
-            value +
-            '\'' +
-            ", tags=" +
-            String.join(", ", tags) +
-            '}'
-        );
+        return ("EntryPointEntity{" + "id='"
+                + id
+                + '\''
+                + ", target="
+                + target
+                + ", value='"
+                + value
+                + '\''
+                + ", tags="
+                + String.join(", ", tags)
+                + '}');
     }
 }

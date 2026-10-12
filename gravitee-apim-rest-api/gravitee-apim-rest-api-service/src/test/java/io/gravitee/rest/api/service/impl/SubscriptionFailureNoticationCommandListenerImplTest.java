@@ -45,10 +45,10 @@ import org.mockito.quality.Strictness;
 public class SubscriptionFailureNoticationCommandListenerImplTest {
 
     public static final String VALID_COMMAND_CONTENT =
-        "{\n" + "  \"subscriptionId\": \"subscription-id\",\n" + "  \"failureCause\": \"failure-cause\"\n" + "}";
+            "{\n" + "  \"subscriptionId\": \"subscription-id\",\n" + "  \"failureCause\": \"failure-cause\"\n" + "}";
 
     public static final String INVALID_COMMAND_CONTENT =
-        "{\n" + "  \"subscriptionId\": \"subscription-id\",\n" + "  \"failureCause\": \"failu";
+            "{\n" + "  \"subscriptionId\": \"subscription-id\",\n" + "  \"failureCause\": \"failu";
 
     @Mock
     private SubscriptionService subscriptionService;
@@ -74,40 +74,35 @@ public class SubscriptionFailureNoticationCommandListenerImplTest {
 
     @Test
     public void shouldDoNothingWhenCommandIsNotSubscriptionFailure() {
-        cut.onEvent(new SimpleEvent<>(CommandEvent.TO_PROCESS, buildCommand(List.of(CommandTags.DATA_TO_INDEX), VALID_COMMAND_CONTENT)));
+        cut.onEvent(new SimpleEvent<>(
+                CommandEvent.TO_PROCESS, buildCommand(List.of(CommandTags.DATA_TO_INDEX), VALID_COMMAND_CONTENT)));
 
         verify(subscriptionService, never()).fail(any(), any());
     }
 
     @Test
     public void shouldDoNothingWhenCommandHasNoContent() {
-        cut.onEvent(
-            new SimpleEvent<>(CommandEvent.TO_PROCESS, buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY), null))
-        );
+        cut.onEvent(new SimpleEvent<>(
+                CommandEvent.TO_PROCESS,
+                buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY), null)));
 
         verify(subscriptionService, never()).fail(any(), any());
     }
 
     @Test
     public void shouldDoNothingWhenCommandHasInvalidContent() {
-        cut.onEvent(
-            new SimpleEvent<>(
+        cut.onEvent(new SimpleEvent<>(
                 CommandEvent.TO_PROCESS,
-                buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY), INVALID_COMMAND_CONTENT)
-            )
-        );
+                buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY), INVALID_COMMAND_CONTENT)));
 
         verify(subscriptionService, never()).fail(any(), any());
     }
 
     @Test
     public void shouldCallSubscriptionServiceFailWhenEventIsGood() {
-        cut.onEvent(
-            new SimpleEvent<>(
+        cut.onEvent(new SimpleEvent<>(
                 CommandEvent.TO_PROCESS,
-                buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY), VALID_COMMAND_CONTENT)
-            )
-        );
+                buildCommand(List.of(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY), VALID_COMMAND_CONTENT)));
 
         verify(subscriptionService).notifyError("subscription-id", "failure-cause");
     }

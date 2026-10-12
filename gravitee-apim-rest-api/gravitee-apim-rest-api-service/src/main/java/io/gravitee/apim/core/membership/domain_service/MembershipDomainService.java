@@ -24,22 +24,21 @@ import java.util.Map;
 
 public interface MembershipDomainService {
     Map<String, char[]> getUserMemberPermissions(
-        ExecutionContext executionContext,
-        MembershipReferenceType referenceType,
-        String referenceId,
-        String userId
-    );
+            ExecutionContext executionContext,
+            MembershipReferenceType referenceType,
+            String referenceId,
+            String userId);
 
     void transferOwnership(TransferOwnership transferOwnership, RoleScope roleScope, String itemId);
 
     MemberEntity createNewMembership(
-        ExecutionContext executionContext,
-        io.gravitee.apim.core.member.model.MembershipReferenceType referenceType,
-        String referenceId,
-        String userId,
-        String externalReference,
-        String roleName
-    );
+            ExecutionContext executionContext,
+            io.gravitee.apim.core.member.model.MembershipReferenceType referenceType,
+            String referenceId,
+            String userId,
+            String externalReference,
+            String roleName);
 
-    void addGroupMemberships(ExecutionContext executionContext, String groupId, String userId, String apiRole, String applicationRole);
+    void addGroupMemberships(
+            ExecutionContext executionContext, String groupId, String userId, String apiRole, String applicationRole);
 }

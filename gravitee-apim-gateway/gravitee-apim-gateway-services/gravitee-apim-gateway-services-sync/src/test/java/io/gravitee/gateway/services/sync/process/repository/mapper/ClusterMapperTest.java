@@ -28,7 +28,6 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +47,8 @@ class ClusterMapperTest {
     void should_extract_cluster_id_from_event() {
         Event event = new Event();
         event.setId("event-id");
-        event.setProperties(Map.of(io.gravitee.repository.management.model.Event.EventProperties.CLUSTER_ID.getValue(), "my-cluster"));
+        event.setProperties(Map.of(
+                io.gravitee.repository.management.model.Event.EventProperties.CLUSTER_ID.getValue(), "my-cluster"));
 
         cut.toId(event).test().assertValue("my-cluster");
     }
@@ -66,8 +66,7 @@ class ClusterMapperTest {
     void should_map_kafka_cluster_event_to_reactable() {
         Event event = new Event();
         event.setId("event-id");
-        event.setPayload(
-            """
+        event.setPayload("""
             {
                 "id": "cluster-id",
                 "crossId": "my-kafka-cluster",
@@ -87,8 +86,7 @@ class ClusterMapperTest {
                     ]
                 }
             }
-            """
-        );
+            """);
 
         ReactableCluster result = cut.to(event).blockingGet();
 
@@ -107,8 +105,7 @@ class ClusterMapperTest {
     void should_return_null_for_kafka_standalone_type() {
         Event event = new Event();
         event.setId("event-id");
-        event.setPayload(
-            """
+        event.setPayload("""
             {
                 "id": "conn-id",
                 "crossId": "my-connection",
@@ -117,8 +114,7 @@ class ClusterMapperTest {
                 "environmentId": "env-1",
                 "configuration": {}
             }
-            """
-        );
+            """);
 
         cut.to(event).test().assertComplete().assertNoValues();
     }
@@ -127,8 +123,7 @@ class ClusterMapperTest {
     void should_map_kafka_virtual_cluster_event_to_reactable() {
         Event event = new Event();
         event.setId("event-id");
-        event.setPayload(
-            """
+        event.setPayload("""
             {
                 "id": "vcluster-id",
                 "crossId": "my-virtual-cluster",
@@ -150,8 +145,7 @@ class ClusterMapperTest {
                     ]
                 }
             }
-            """
-        );
+            """);
 
         ReactableCluster result = cut.to(event).blockingGet();
 
@@ -172,8 +166,7 @@ class ClusterMapperTest {
     void should_map_version_from_payload() {
         Event event = new Event();
         event.setId("event-id");
-        event.setPayload(
-            """
+        event.setPayload("""
             {
                 "id": "cluster-id",
                 "crossId": "my-kafka-cluster",
@@ -184,8 +177,7 @@ class ClusterMapperTest {
                 "version": 3,
                 "configuration": { "connections": [] }
             }
-            """
-        );
+            """);
 
         ReactableCluster result = cut.to(event).blockingGet();
 

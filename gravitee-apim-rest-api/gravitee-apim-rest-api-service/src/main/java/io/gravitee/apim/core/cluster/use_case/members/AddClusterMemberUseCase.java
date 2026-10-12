@@ -41,13 +41,12 @@ public class AddClusterMemberUseCase {
         validateMembership(input.addMember);
 
         membershipDomainService.createNewMembership(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.CLUSTER,
-            input.clusterId,
-            input.addMember.getUserId(),
-            input.addMember.getExternalReference(),
-            input.addMember.getRoleName()
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.CLUSTER,
+                input.clusterId,
+                input.addMember.getUserId(),
+                input.addMember.getExternalReference(),
+                input.addMember.getRoleName());
 
         return new Output();
     }

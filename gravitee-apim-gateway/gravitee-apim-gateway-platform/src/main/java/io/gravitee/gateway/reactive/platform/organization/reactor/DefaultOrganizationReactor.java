@@ -32,10 +32,9 @@ public class DefaultOrganizationReactor extends AbstractOrganizationReactor {
     private final OrganizationPolicyManager organizationPolicyManager;
 
     public DefaultOrganizationReactor(
-        final ReactableOrganization reactableOrganization,
-        final PolicyChainFactory<HttpPolicyChain> policyChainFactory,
-        final OrganizationPolicyManager organizationPolicyManager
-    ) {
+            final ReactableOrganization reactableOrganization,
+            final PolicyChainFactory<HttpPolicyChain> policyChainFactory,
+            final OrganizationPolicyManager organizationPolicyManager) {
         super(reactableOrganization);
         this.policyChainFactory = policyChainFactory;
         this.organizationPolicyManager = organizationPolicyManager;

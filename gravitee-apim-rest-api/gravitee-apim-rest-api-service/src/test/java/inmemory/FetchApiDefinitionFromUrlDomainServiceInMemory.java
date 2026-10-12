@@ -19,7 +19,8 @@ import io.gravitee.apim.core.api.domain_service.FetchApiDefinitionFromUrlDomainS
 import java.util.ArrayList;
 import java.util.List;
 
-public class FetchApiDefinitionFromUrlDomainServiceInMemory implements FetchApiDefinitionFromUrlDomainService, InMemoryAlternative<String> {
+public class FetchApiDefinitionFromUrlDomainServiceInMemory
+        implements FetchApiDefinitionFromUrlDomainService, InMemoryAlternative<String> {
 
     private final List<String> storage = new ArrayList<>();
     private RuntimeException toThrow;

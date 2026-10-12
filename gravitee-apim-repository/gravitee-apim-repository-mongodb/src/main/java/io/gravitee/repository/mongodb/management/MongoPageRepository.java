@@ -175,11 +175,15 @@ public class MongoPageRepository implements PageRepository {
 
     @Override
     public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         try {
             return internalPageRepo.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType.name());
         } catch (Exception e) {
-            log.error("An error occurred when searching max order page for reference [{}, {}]", referenceId, referenceType, e);
+            log.error(
+                    "An error occurred when searching max order page for reference [{}, {}]",
+                    referenceId,
+                    referenceType,
+                    e);
             throw new TechnicalException("An error occurred when searching max order page for reference");
         }
     }
@@ -189,7 +193,8 @@ public class MongoPageRepository implements PageRepository {
         try {
             io.gravitee.common.data.domain.Page<PageMongo> page = internalPageRepo.findAll(pageable);
             List<Page> pageItems = mapper.mapPages(page.getContent());
-            return new io.gravitee.common.data.domain.Page<>(pageItems, page.getPageNumber(), pageItems.size(), page.getTotalElements());
+            return new io.gravitee.common.data.domain.Page<>(
+                    pageItems, page.getPageNumber(), pageItems.size(), page.getTotalElements());
         } catch (Exception e) {
             log.error("An error occurred when searching all pages", e);
             throw new TechnicalException("An error occurred when searching all pages");
@@ -207,21 +212,20 @@ public class MongoPageRepository implements PageRepository {
     }
 
     @Override
-    public Map<String, List<String>> deleteByReferenceIdAndReferenceType(String referenceId, PageReferenceType referenceType)
-        throws TechnicalException {
+    public Map<String, List<String>> deleteByReferenceIdAndReferenceType(
+            String referenceId, PageReferenceType referenceType) throws TechnicalException {
         log.debug("Delete pages by refId: {}/{}", referenceId, referenceType);
         try {
             final var pageIdAndMedias = new HashMap<String, List<String>>();
             internalPageRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .forEach(page ->
-                    pageIdAndMedias.put(
-                        page.getId(),
-                        page.getAttachedMedia() != null
-                            ? page.getAttachedMedia().stream().map(PageMediaMongo::getMediaHash).toList()
-                            : Collections.emptyList()
-                    )
-                );
+                    .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                    .forEach(page -> pageIdAndMedias.put(
+                            page.getId(),
+                            page.getAttachedMedia() != null
+                                    ? page.getAttachedMedia().stream()
+                                            .map(PageMediaMongo::getMediaHash)
+                                            .toList()
+                                    : Collections.emptyList()));
             log.debug("Delete pages by refId: {}/{}", referenceId, referenceType);
             return pageIdAndMedias;
         } catch (Exception e) {
@@ -248,24 +252,21 @@ public class MongoPageRepository implements PageRepository {
     }
 
     private List<PageMediaMongo> convert(List<PageMedia> attachedMedia) {
-        return attachedMedia
-            .stream()
-            .map(pageMedia -> {
-                PageMediaMongo pmm = new PageMediaMongo();
-                pmm.setMediaHash(pageMedia.getMediaHash());
-                pmm.setMediaName(pageMedia.getMediaName());
-                pmm.setAttachedAt(pageMedia.getAttachedAt());
-                return pmm;
-            })
-            .toList();
+        return attachedMedia.stream()
+                .map(pageMedia -> {
+                    PageMediaMongo pmm = new PageMediaMongo();
+                    pmm.setMediaHash(pageMedia.getMediaHash());
+                    pmm.setMediaName(pageMedia.getMediaName());
+                    pmm.setAttachedAt(pageMedia.getAttachedAt());
+                    return pmm;
+                })
+                .toList();
     }
 
     @Override
     public Set<Page> findAll() throws TechnicalException {
-        return internalPageRepo
-            .findAll()
-            .stream()
-            .map(pageMongo -> mapper.map(pageMongo))
-            .collect(Collectors.toSet());
+        return internalPageRepo.findAll().stream()
+                .map(pageMongo -> mapper.map(pageMongo))
+                .collect(Collectors.toSet());
     }
 }

@@ -107,26 +107,23 @@ public class UpdateInvitationEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateInvitationEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", email='" +
-            email +
-            '\'' +
-            ", apiRole='" +
-            apiRole +
-            '\'' +
-            ", applicationRole='" +
-            applicationRole +
-            '\'' +
-            '}'
-        );
+        return ("UpdateInvitationEntity{" + "id='"
+                + id
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", email='"
+                + email
+                + '\''
+                + ", apiRole='"
+                + apiRole
+                + '\''
+                + ", applicationRole='"
+                + applicationRole
+                + '\''
+                + '}');
     }
 }

@@ -37,7 +37,8 @@ import org.junit.jupiter.api.Test;
 class UpdatePortalCategoryUseCaseTest {
 
     private static final String ENVIRONMENT_ID = "env-1";
-    private static final PortalCategoryId PORTAL_CATEGORY_ID = PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
+    private static final PortalCategoryId PORTAL_CATEGORY_ID =
+            PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
     private static final PortalCategoryId UNKNOWN_ID = PortalCategoryId.of("00000000-0000-0000-0000-000000000bad");
 
     private PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory;
@@ -46,7 +47,8 @@ class UpdatePortalCategoryUseCaseTest {
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, new PortalCategoryQueryServiceInMemory());
+        var domainService = new PortalCategoryDomainService(
+                portalCategoryCrudServiceInMemory, new PortalCategoryQueryServiceInMemory());
         useCase = new UpdatePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 
@@ -57,11 +59,17 @@ class UpdatePortalCategoryUseCaseTest {
 
     @Test
     void should_update_existing_portal_category() {
-        portalCategoryCrudServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Old Title", null, true)));
+        portalCategoryCrudServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Old Title", null, true)));
 
-        var toUpdate = UpdatePortalCategory.builder().title("New Title").description("New description").visible(false).build();
+        var toUpdate = UpdatePortalCategory.builder()
+                .title("New Title")
+                .description("New description")
+                .visible(false)
+                .build();
 
-        var output = useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, PORTAL_CATEGORY_ID, toUpdate));
+        var output =
+                useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, PORTAL_CATEGORY_ID, toUpdate));
 
         assertThat(output.portalCategory().getTitle()).isEqualTo("New Title");
         assertThat(output.portalCategory().getDescription()).isEqualTo("New description");
@@ -72,27 +80,28 @@ class UpdatePortalCategoryUseCaseTest {
     void should_throw_not_found_when_id_is_unknown() {
         var toUpdate = UpdatePortalCategory.builder().title("New Title").build();
 
-        assertThatThrownBy(() -> useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID, toUpdate))).isInstanceOf(
-            PortalCategoryNotFoundException.class
-        );
+        assertThatThrownBy(() ->
+                        useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID, toUpdate)))
+                .isInstanceOf(PortalCategoryNotFoundException.class);
     }
 
     @Test
     void should_throw_not_found_rather_than_validation_error_when_id_is_unknown_and_title_is_blank() {
         var toUpdate = UpdatePortalCategory.builder().title("   ").build();
 
-        assertThatThrownBy(() -> useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID, toUpdate))).isInstanceOf(
-            PortalCategoryNotFoundException.class
-        );
+        assertThatThrownBy(() ->
+                        useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID, toUpdate)))
+                .isInstanceOf(PortalCategoryNotFoundException.class);
     }
 
     @Test
     void should_throw_validation_error_when_category_exists_but_title_is_blank() {
-        portalCategoryCrudServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Old Title", null, true)));
+        portalCategoryCrudServiceInMemory.initWith(
+                List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Old Title", null, true)));
         var toUpdate = UpdatePortalCategory.builder().title("   ").build();
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, PORTAL_CATEGORY_ID, toUpdate))
-        ).isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> useCase.execute(
+                        new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, PORTAL_CATEGORY_ID, toUpdate)))
+                .isInstanceOf(ValidationDomainException.class);
     }
 }

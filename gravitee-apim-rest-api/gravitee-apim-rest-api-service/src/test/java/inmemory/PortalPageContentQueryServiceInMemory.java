@@ -23,7 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class PortalPageContentQueryServiceInMemory implements InMemoryAlternative<PortalPageContent<?>>, PortalPageContentQueryService {
+public class PortalPageContentQueryServiceInMemory
+        implements InMemoryAlternative<PortalPageContent<?>>, PortalPageContentQueryService {
 
     List<PortalPageContent<?>> storage = new ArrayList<>();
 
@@ -47,30 +48,21 @@ public class PortalPageContentQueryServiceInMemory implements InMemoryAlternativ
 
     @Override
     public Optional<PortalPageContent<?>> findById(PortalPageContentId id) {
-        return storage
-            .stream()
-            .filter(content -> content.getId().equals(id))
-            .findFirst();
+        return storage.stream().filter(content -> content.getId().equals(id)).findFirst();
     }
 
     @Override
     public List<PortalPageContent<?>> findByReference(
-        String environmentId,
-        AutomationMetadata.ReferenceType referenceType,
-        String referenceId
-    ) {
-        return storage
-            .stream()
-            .filter(content -> {
-                var meta = content.getAutomationMetadata();
-                return (
-                    meta != null &&
-                    meta.referenceType() == referenceType &&
-                    meta.referenceId().equals(referenceId) &&
-                    content.getEnvironmentId().equals(environmentId)
-                );
-            })
-            .toList();
+            String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId) {
+        return storage.stream()
+                .filter(content -> {
+                    var meta = content.getAutomationMetadata();
+                    return (meta != null
+                            && meta.referenceType() == referenceType
+                            && meta.referenceId().equals(referenceId)
+                            && content.getEnvironmentId().equals(environmentId));
+                })
+                .toList();
     }
 
     @Override

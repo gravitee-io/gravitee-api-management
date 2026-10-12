@@ -29,7 +29,8 @@ public class HttpResponseSerializerTest extends AbstractTest {
 
     @Test
     public void definition_defaultHttpResponse() throws Exception {
-        HttpResponse response = load("/io/gravitee/definition/jackson/httpresponse-simpleheaders.json", HttpResponse.class);
+        HttpResponse response =
+                load("/io/gravitee/definition/jackson/httpresponse-simpleheaders.json", HttpResponse.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/httpresponse-simpleheaders-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(response);
@@ -38,14 +39,14 @@ public class HttpResponseSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         Assertions.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
+                objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+                objectMapper().readTree(generatedJsonDefinition.getBytes()));
     }
 
     @Test
     public void definition_defaultHttpResponseMultiValueHeaders() throws Exception {
-        HttpResponse response = load("/io/gravitee/definition/jackson/httpresponse-multivalueheaders.json", HttpResponse.class);
+        HttpResponse response =
+                load("/io/gravitee/definition/jackson/httpresponse-multivalueheaders.json", HttpResponse.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/httpresponse-multivalueheaders-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(response);
@@ -55,8 +56,7 @@ public class HttpResponseSerializerTest extends AbstractTest {
         Assertions.assertTrue(generatedJsonDefinition.contains("[ \"deflate\", \"gzip\", \"compress\" ]"));
 
         Assertions.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
+                objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+                objectMapper().readTree(generatedJsonDefinition.getBytes()));
     }
 }

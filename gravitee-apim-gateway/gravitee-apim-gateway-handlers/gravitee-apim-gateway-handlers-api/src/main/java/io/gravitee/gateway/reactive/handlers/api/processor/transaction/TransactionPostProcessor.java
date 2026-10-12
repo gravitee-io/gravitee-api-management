@@ -40,27 +40,24 @@ public class TransactionPostProcessor implements Processor {
     public Completable execute(final HttpExecutionContextInternal context) {
         return Completable.fromRunnable(() -> {
             setHeaderAccordingToBackendOverrideMode(
-                context.request().headers(),
-                context.response().headers(),
-                this.configuration.transactionHeader,
-                this.configuration.transactionHeaderHeaderOverrideMode
-            );
+                    context.request().headers(),
+                    context.response().headers(),
+                    this.configuration.transactionHeader,
+                    this.configuration.transactionHeaderHeaderOverrideMode);
 
             setHeaderAccordingToBackendOverrideMode(
-                context.request().headers(),
-                context.response().headers(),
-                this.configuration.requestHeader,
-                this.configuration.requestHeaderHeaderOverrideMode
-            );
+                    context.request().headers(),
+                    context.response().headers(),
+                    this.configuration.requestHeader,
+                    this.configuration.requestHeaderHeaderOverrideMode);
         });
     }
 
     private void setHeaderAccordingToBackendOverrideMode(
-        final HttpHeaders requestHeaders,
-        final HttpHeaders responseHeaders,
-        final String headerName,
-        final TransactionHeaderOverrideMode headerOverrideMode
-    ) {
+            final HttpHeaders requestHeaders,
+            final HttpHeaders responseHeaders,
+            final String headerName,
+            final TransactionHeaderOverrideMode headerOverrideMode) {
         String requestHeaderValue = requestHeaders.get(headerName);
         String backendHeaderValue = responseHeaders.get(headerName);
 

@@ -63,12 +63,11 @@ public class ApiSubscribersResource extends AbstractResource {
     private ApplicationService applicationService;
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response getSubscriberApplicationsByApiId(
-        @BeanParam PaginationParam paginationParam,
-        @PathParam("apiId") String apiId,
-        @QueryParam("statuses") List<SubscriptionStatus> statuses
-    ) {
+            @BeanParam PaginationParam paginationParam,
+            @PathParam("apiId") String apiId,
+            @QueryParam("statuses") List<SubscriptionStatus> statuses) {
         String currentUser = getAuthenticatedUserOrNull();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
@@ -77,20 +76,27 @@ public class ApiSubscribersResource extends AbstractResource {
 
             subscriptionQuery.setStatuses(statuses);
 
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+            GenericApiEntity genericApiEntity =
+                    apiSearchService.findGenericById(executionContext, apiId, false, false, false);
             if (!genericApiEntity.getPrimaryOwner().getId().equals(currentUser)) {
-                Set<ApplicationListItem> userApplications = this.applicationService.findByUser(executionContext, currentUser);
+                Set<ApplicationListItem> userApplications =
+                        this.applicationService.findByUser(executionContext, currentUser);
                 if (userApplications == null || userApplications.isEmpty()) {
                     return createListResponse(executionContext, Collections.emptyList(), paginationParam);
                 }
-                subscriptionQuery.setApplications(userApplications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+                subscriptionQuery.setApplications(userApplications.stream()
+                        .map(ApplicationListItem::getId)
+                        .collect(Collectors.toList()));
             }
 
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(apiId);
 
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
+            Collection<SubscriptionEntity> subscriptions =
+                    subscriptionService.search(executionContext, subscriptionQuery);
 
-            Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
+            Set<String> applicationIds = subscriptions.stream()
+                    .map(SubscriptionEntity::getApplication)
+                    .collect(Collectors.toSet());
 
             if (applicationIds.isEmpty()) {
                 return createListResponse(executionContext, Collections.emptyList(), paginationParam);
@@ -101,23 +107,17 @@ public class ApiSubscribersResource extends AbstractResource {
 
             Sortable sortable = new SortableImpl("name", true);
 
-            Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
-                executionContext,
-                applicationQuery,
-                sortable,
-                null
-            );
+            Page<ApplicationListItem> subscribersApplicationPage =
+                    applicationService.search(executionContext, applicationQuery, sortable, null);
 
             if (subscribersApplicationPage == null) {
                 return createListResponse(executionContext, Collections.emptyList(), paginationParam);
             }
 
-            List<Application> subscribersApplication = subscribersApplicationPage
-                .getContent()
-                .stream()
-                .map(application -> applicationMapper.convert(executionContext, application, uriInfo))
-                .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
-                .collect(Collectors.toList());
+            List<Application> subscribersApplication = subscribersApplicationPage.getContent().stream()
+                    .map(application -> applicationMapper.convert(executionContext, application, uriInfo))
+                    .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
+                    .collect(Collectors.toList());
 
             return createListResponse(executionContext, subscribersApplication, paginationParam);
         }

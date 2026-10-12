@@ -33,48 +33,47 @@ import org.junit.jupiter.api.TestInstance;
 public class WebsocketAcceptV4EmulationIntegrationTest extends AbstractWebsocketGatewayTest {
 
     @Test
-    @DeployApi({ "/apis/http/api.json" })
-    public void websocket_accepted_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
+    @DeployApi({"/apis/http/api.json"})
+    public void websocket_accepted_request(VertxTestContext testContext, WebSocketClient webSocketClient)
+            throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
 
         Promise<Void> clientReady = Promise.promise();
 
-        websocketServerHandler = serverWebSocket ->
-            Completable.fromRunnable(() -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
+        websocketServerHandler = serverWebSocket -> Completable.fromRunnable(() -> {
+                    serverConnected.flag();
+                    serverWebSocket.exceptionHandler(testContext::failNow);
 
-                clientReady
-                    .future()
-                    .onSuccess(__ ->
-                        serverWebSocket
-                            .writeTextMessage("PING")
-                            .doOnComplete(serverMessageSent::flag)
-                            .doOnError(testContext::failNow)
-                            .subscribe()
-                    );
-            })
+                    clientReady
+                            .future()
+                            .onSuccess(__ -> serverWebSocket
+                                    .writeTextMessage("PING")
+                                    .doOnComplete(serverMessageSent::flag)
+                                    .doOnError(testContext::failNow)
+                                    .subscribe());
+                })
                 .subscribeOn(Schedulers.io())
                 .subscribe();
 
         webSocketClient
-            .connect("/test")
-            .doOnSuccess(webSocket -> {
-                webSocket.exceptionHandler(testContext::failNow);
-                webSocket.frameHandler(frame -> {
-                    if (frame.isText()) {
-                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                        serverMessageChecked.flag();
-                    } else {
-                        testContext.failNow("The frame is not a text frame");
-                    }
-                });
-                clientReady.complete();
-            })
-            .doOnError(testContext::failNow)
-            .test()
-            .await();
+                .connect("/test")
+                .doOnSuccess(webSocket -> {
+                    webSocket.exceptionHandler(testContext::failNow);
+                    webSocket.frameHandler(frame -> {
+                        if (frame.isText()) {
+                            testContext.verify(
+                                    () -> assertThat(frame.textData()).isEqualTo("PING"));
+                            serverMessageChecked.flag();
+                        } else {
+                            testContext.failNow("The frame is not a text frame");
+                        }
+                    });
+                    clientReady.complete();
+                })
+                .doOnError(testContext::failNow)
+                .test()
+                .await();
     }
 }

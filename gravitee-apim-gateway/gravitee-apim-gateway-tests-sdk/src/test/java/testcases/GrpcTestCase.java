@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/grpc/hello-world.json" })
+@DeployApi({"/apis/grpc/hello-world.json"})
 @EnableForGatewayTestingExtensionTesting
 public class GrpcTestCase extends AbstractGrpcGatewayTest {
 
@@ -51,7 +51,9 @@ public class GrpcTestCase extends AbstractGrpcGatewayTest {
         grpcServer.callHandler(GreeterGrpc.getSayHelloMethod(), request -> {
             request.handler(hello -> {
                 GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
+                HelloReply reply = HelloReply.newBuilder()
+                        .setMessage("Hello " + hello.getName())
+                        .build();
                 response.end(reply);
             });
         });
@@ -65,26 +67,23 @@ public class GrpcTestCase extends AbstractGrpcGatewayTest {
         httpServer.listen();
 
         // call the service through the gateway
-        client
-            .request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
-            .compose(request -> {
-                request.end(HelloRequest.newBuilder().setName("You").build());
-                return request.response().compose(GrpcReadStream::last);
-            })
-            .onSuccess(helloReply -> {
-                assertThat(helloReply).isNotNull();
-                assertThat(helloReply.getMessage()).isEqualTo("Hello You");
-                latch.countDown();
-            })
-            .onFailure(failure -> {
-                failure.printStackTrace();
-                fail(failure.getMessage());
-            });
+        client.request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
+                .compose(request -> {
+                    request.end(HelloRequest.newBuilder().setName("You").build());
+                    return request.response().compose(GrpcReadStream::last);
+                })
+                .onSuccess(helloReply -> {
+                    assertThat(helloReply).isNotNull();
+                    assertThat(helloReply.getMessage()).isEqualTo("Hello You");
+                    latch.countDown();
+                })
+                .onFailure(failure -> {
+                    failure.printStackTrace();
+                    fail(failure.getMessage());
+                });
 
-        await()
-            .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                assertThat(latch.getCount()).isZero();
-            });
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            assertThat(latch.getCount()).isZero();
+        });
     }
 }

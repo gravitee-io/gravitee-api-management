@@ -17,7 +17,6 @@ package io.gravitee.gamma.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
-import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.gamma.internal.GammaModuleService;
 import io.gravitee.rest.api.service.EnvironmentService;

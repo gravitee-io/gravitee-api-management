@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.documentation.exception;
 
-import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Map;
 

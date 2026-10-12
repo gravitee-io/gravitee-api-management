@@ -43,39 +43,32 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
     private final ValidateApplicationSettingsDomainService settingsValidator;
 
     @Override
-    public Result<ValidateApplicationCRDDomainService.Input> validateAndSanitize(ValidateApplicationCRDDomainService.Input input) {
+    public Result<ValidateApplicationCRDDomainService.Input> validateAndSanitize(
+            ValidateApplicationCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.spec().toBuilder();
 
         groupsValidator
-            .validateAndSanitize(
-                new ValidateGroupsDomainService.Input(
-                    input.auditInfo.environmentId(),
-                    // ignoreGroups: validate nothing that will not be applied; default groups are still injected on create
-                    input.spec().isIgnoreGroups() ? null : input.spec().getGroups(),
-                    null,
-                    null,
-                    Group.GroupEvent.APPLICATION_CREATE,
-                    true
-                )
-            )
-            .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
+                .validateAndSanitize(new ValidateGroupsDomainService.Input(
+                        input.auditInfo.environmentId(),
+                        // ignoreGroups: validate nothing that will not be applied; default groups are still injected on
+                        // create
+                        input.spec().isIgnoreGroups() ? null : input.spec().getGroups(),
+                        null,
+                        null,
+                        Group.GroupEvent.APPLICATION_CREATE,
+                        true))
+                .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
 
         membersValidator
-            .validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(input.auditInfo, MembershipReferenceType.APPLICATION, input.spec.getMembers())
-            )
-            .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
+                .validateAndSanitize(new ValidateCRDMembersDomainService.Input(
+                        input.auditInfo, MembershipReferenceType.APPLICATION, input.spec.getMembers()))
+                .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
         settingsValidator
-            .validateAndSanitize(
-                new ValidateApplicationSettingsDomainService.Input(
-                    input.auditInfo,
-                    sanitizedBuilder.build().getId(),
-                    input.spec.getSettings()
-                )
-            )
-            .peek(sanitized -> sanitizedBuilder.settings(sanitized.settings()), errors::addAll);
+                .validateAndSanitize(new ValidateApplicationSettingsDomainService.Input(
+                        input.auditInfo, sanitizedBuilder.build().getId(), input.spec.getSettings()))
+                .peek(sanitized -> sanitizedBuilder.settings(sanitized.settings()), errors::addAll);
 
         return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }

@@ -23,13 +23,10 @@ import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -43,40 +40,34 @@ import lombok.CustomLog;
 public class ApiSynchronizer extends AbstractApiSynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.PUBLISH_API, EventType.START_API);
-    private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(
-        EventType.PUBLISH_API,
-        EventType.START_API,
-        EventType.UNPUBLISH_API,
-        EventType.STOP_API
-    );
+    private static final Set<EventType> INCREMENTAL_EVENT_TYPES =
+            Set.of(EventType.PUBLISH_API, EventType.START_API, EventType.UNPUBLISH_API, EventType.STOP_API);
     private static final Set<EventType> MEMBER_API_RESYNC_EVENT_TYPES = INCREMENTAL_EVENT_TYPES;
     private final LatestEventFetcher eventsFetcher;
 
     public ApiSynchronizer(
-        final LatestEventFetcher eventsFetcher,
-        final ApiManager apiManager,
-        final ApiMapper apiMapper,
-        final PlanAppender planAppender,
-        final SubscriptionAppender subscriptionAppender,
-        final ApiKeyAppender apiKeyAppender,
-        final AuthzAppender authzAppender,
-        final DeployerFactory deployerFactory,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final int appenderParallelism
-    ) {
+            final LatestEventFetcher eventsFetcher,
+            final ApiManager apiManager,
+            final ApiMapper apiMapper,
+            final PlanAppender planAppender,
+            final SubscriptionAppender subscriptionAppender,
+            final ApiKeyAppender apiKeyAppender,
+            final AuthzAppender authzAppender,
+            final DeployerFactory deployerFactory,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final int appenderParallelism) {
         super(
-            apiManager,
-            apiMapper,
-            planAppender,
-            subscriptionAppender,
-            apiKeyAppender,
-            authzAppender,
-            deployerFactory,
-            syncFetcherExecutor,
-            syncDeployerExecutor,
-            appenderParallelism
-        );
+                apiManager,
+                apiMapper,
+                planAppender,
+                subscriptionAppender,
+                apiKeyAppender,
+                authzAppender,
+                deployerFactory,
+                syncFetcherExecutor,
+                syncDeployerExecutor,
+                appenderParallelism);
         this.eventsFetcher = eventsFetcher;
     }
 
@@ -85,33 +76,32 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         AtomicLong launchTime = new AtomicLong();
         boolean initialSync = from == null || from == -1;
         return eventsFetcher
-            .fetchLatest(from, to, API_ID, environments, initialSync ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(eventsFlowable -> processEvents(initialSync, eventsFlowable, environments))
-            .count()
-            .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                long durationMs = System.currentTimeMillis() - launchTime.get();
-                // "count" is only the number of apis (re)deployed/undeployed in THIS cycle, not the total
-                // running on the gateway — so a steady incremental cycle legitimately reports 0. Spell out
-                // which kind of sync it is and recall the total currently deployed to avoid confusion.
-                if (initialSync) {
-                    // A (cold-start) initial sync has nothing deployed beforehand, so the running total equals
-                    // the count deployed this cycle — no need to repeat it.
-                    log.info("Initial sync completed in {}ms: {} apis deployed", durationMs, count);
-                } else if (log.isDebugEnabled()) {
-                    // On incremental cycles "count" is only what changed this cycle, so recall the total
-                    // currently deployed to avoid the misleading "0 synchronized" reading.
-                    log.debug(
-                        "Incremental sync completed in {}ms: {} apis changed ({} apis currently deployed)",
-                        durationMs,
-                        count,
-                        apiManager.apis().size()
-                    );
-                }
-            })
-            .ignoreElement();
+                .fetchLatest(from, to, API_ID, environments, initialSync ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+                .compose(eventsFlowable -> processEvents(initialSync, eventsFlowable, environments))
+                .count()
+                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(count -> {
+                    long durationMs = System.currentTimeMillis() - launchTime.get();
+                    // "count" is only the number of apis (re)deployed/undeployed in THIS cycle, not the total
+                    // running on the gateway — so a steady incremental cycle legitimately reports 0. Spell out
+                    // which kind of sync it is and recall the total currently deployed to avoid confusion.
+                    if (initialSync) {
+                        // A (cold-start) initial sync has nothing deployed beforehand, so the running total equals
+                        // the count deployed this cycle — no need to repeat it.
+                        log.info("Initial sync completed in {}ms: {} apis deployed", durationMs, count);
+                    } else if (log.isDebugEnabled()) {
+                        // On incremental cycles "count" is only what changed this cycle, so recall the total
+                        // currently deployed to avoid the misleading "0 synchronized" reading.
+                        log.debug(
+                                "Incremental sync completed in {}ms: {} apis changed ({} apis currently deployed)",
+                                durationMs,
+                                count,
+                                apiManager.apis().size());
+                    }
+                })
+                .ignoreElement();
     }
 
     public Completable resyncMemberApis(Set<String> apiIds, Set<String> environments) {
@@ -121,9 +111,12 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         log.debug("Resyncing {} member API(s) after API Product change", apiIds.size());
         // The fetcher already emits pages of bulkEvents(), so events are deployed as they arrive
         // instead of being materialized as a whole.
-        return processEvents(false, eventsFetcher.fetchLatestForApiIds(apiIds, environments, MEMBER_API_RESYNC_EVENT_TYPES), environments)
-            .ignoreElements()
-            .subscribeOn(Schedulers.from(syncFetcherExecutor));
+        return processEvents(
+                        false,
+                        eventsFetcher.fetchLatestForApiIds(apiIds, environments, MEMBER_API_RESYNC_EVENT_TYPES),
+                        environments)
+                .ignoreElements()
+                .subscribeOn(Schedulers.from(syncFetcherExecutor));
     }
 
     @Override

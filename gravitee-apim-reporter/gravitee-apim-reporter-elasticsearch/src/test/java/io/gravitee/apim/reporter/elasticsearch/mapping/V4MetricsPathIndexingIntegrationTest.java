@@ -90,28 +90,30 @@ class V4MetricsPathIndexingIntegrationTest {
         configuration.setIndexName(indexName);
 
         new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client)
-            .prepare()
-            .test()
-            .awaitDone(60, TimeUnit.SECONDS)
-            .assertComplete();
+                .prepare()
+                .test()
+                .awaitDone(60, TimeUnit.SECONDS)
+                .assertComplete();
 
         String index = indexName + "-v4-metrics-test";
         var document = JsonObject.of(
-            "@timestamp",
-            "2026-09-08T10:00:00.000Z",
-            "api-id",
-            "an-api",
-            "request-id",
-            "a-request",
-            "uri",
-            LONG_PATH + "?page=2",
-            "path-info",
-            LONG_PATH
-        );
-        var bulk = Buffer.buffer(JsonObject.of("index", JsonObject.of("_index", index)).encode() + "\n" + document.encode() + "\n");
+                "@timestamp",
+                "2026-09-08T10:00:00.000Z",
+                "api-id",
+                "an-api",
+                "request-id",
+                "a-request",
+                "uri",
+                LONG_PATH + "?page=2",
+                "path-info",
+                LONG_PATH);
+        var bulk = Buffer.buffer(
+                JsonObject.of("index", JsonObject.of("_index", index)).encode() + "\n" + document.encode() + "\n");
 
         var response = client.bulk(bulk, true).blockingGet();
-        assertThat(response.getErrors()).as("bulk indexing into %s reported errors: %s", index, response.getItems()).isFalse();
+        assertThat(response.getErrors())
+                .as("bulk indexing into %s reported errors: %s", index, response.getItems())
+                .isFalse();
 
         return index;
     }
@@ -120,26 +122,29 @@ class V4MetricsPathIndexingIntegrationTest {
     private long termHits(String index, String path) {
         var query = JsonObject.of("query", JsonObject.of("term", JsonObject.of(PATH_KEYWORD, path)));
 
-        return client.search(index, null, query.encode()).blockingGet().getSearchHits().getTotal().getValue();
+        return client.search(index, null, query.encode())
+                .blockingGet()
+                .getSearchHits()
+                .getTotal()
+                .getValue();
     }
 
     /** The shape the analytics engine builds for the {@code HTTP_PATH} facet. */
     private List<String> facetKeys(String index) {
         var query = JsonObject.of(
-            "size",
-            0,
-            "aggs",
-            JsonObject.of("paths", JsonObject.of("terms", JsonObject.of("field", PATH_KEYWORD, "size", 10)))
-        );
+                "size",
+                0,
+                "aggs",
+                JsonObject.of("paths", JsonObject.of("terms", JsonObject.of("field", PATH_KEYWORD, "size", 10))));
 
         return client
-            .search(index, null, query.encode())
-            .blockingGet()
-            .getAggregations()
-            .get("paths")
-            .getBuckets()
-            .stream()
-            .map(bucket -> bucket.get("key").asText())
-            .toList();
+                .search(index, null, query.encode())
+                .blockingGet()
+                .getAggregations()
+                .get("paths")
+                .getBuckets()
+                .stream()
+                .map(bucket -> bucket.get("key").asText())
+                .toList();
     }
 }

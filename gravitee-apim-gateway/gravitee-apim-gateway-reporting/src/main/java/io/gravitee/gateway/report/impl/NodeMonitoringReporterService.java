@@ -52,14 +52,12 @@ public class NodeMonitoringReporterService extends AbstractService<NodeMonitorin
         final Monitor nodeMonitor = message.body();
 
         // Convert node monitoring to a reporter monitoring
-        reporterService.report(
-            io.gravitee.reporter.api.monitor.Monitor.on(nodeMonitor.getNodeId())
+        reporterService.report(io.gravitee.reporter.api.monitor.Monitor.on(nodeMonitor.getNodeId())
                 .at(nodeMonitor.getTimestamp())
                 .os(map(nodeMonitor.getOs()))
                 .jvm(map(nodeMonitor.getJvm()))
                 .process(map(nodeMonitor.getProcess()))
-                .build()
-        );
+                .build());
     }
 
     private JvmInfo map(io.gravitee.node.api.monitor.JvmInfo jvmInfo) {
@@ -76,7 +74,8 @@ public class NodeMonitoringReporterService extends AbstractService<NodeMonitorin
             info.mem.pools = new JvmInfo.MemoryPool[jvmInfo.mem.pools.length];
             for (int i = 0; i < jvmInfo.mem.pools.length; i++) {
                 io.gravitee.node.api.monitor.JvmInfo.MemoryPool nodePool = jvmInfo.mem.pools[i];
-                info.mem.pools[i] = new JvmInfo.MemoryPool(nodePool.name, nodePool.used, nodePool.max, nodePool.peakUsed, nodePool.peakMax);
+                info.mem.pools[i] = new JvmInfo.MemoryPool(
+                        nodePool.name, nodePool.used, nodePool.max, nodePool.peakUsed, nodePool.peakMax);
             }
         }
 

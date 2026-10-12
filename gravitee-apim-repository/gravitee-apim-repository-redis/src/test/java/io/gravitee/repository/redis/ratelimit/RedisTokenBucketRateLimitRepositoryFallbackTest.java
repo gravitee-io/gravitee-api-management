@@ -54,7 +54,8 @@ class RedisTokenBucketRateLimitRepositoryFallbackTest {
         when(redisClient.scriptSource("token-bucket")).thenReturn("the-script-source");
         when(redisClient.redisApi()).thenReturn(Future.succeededFuture(redisAPI));
         // EVALSHA fails: the slot's master never received the SCRIPT LOAD (NOSCRIPT = script did not run).
-        when(redisAPI.evalsha(anyList())).thenReturn(Future.failedFuture(new RuntimeException("NOSCRIPT No matching script")));
+        when(redisAPI.evalsha(anyList()))
+                .thenReturn(Future.failedFuture(new RuntimeException("NOSCRIPT No matching script")));
         // EVAL with the source succeeds; the Lua returns { allowed = 1, tokens = 5 }.
         // Build the response mock first — calling a stubbing method inside when(...) breaks Mockito.
         Response evalResponse = consumeResponse(1L, 5L);
@@ -62,8 +63,8 @@ class RedisTokenBucketRateLimitRepositoryFallbackTest {
 
         var repository = new RedisTokenBucketRateLimitRepository(redisClient, 2000);
         TokenBucketConsumeResult result = repository
-            .refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key"))
-            .blockingGet();
+                .refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key"))
+                .blockingGet();
 
         // Result is mapped from the fallback EVAL response, not the supplier default.
         assertThat(result.allowed()).isTrue();
@@ -81,13 +82,15 @@ class RedisTokenBucketRateLimitRepositoryFallbackTest {
         when(redisClient.scriptSha1("token-bucket")).thenReturn("the-sha");
         when(redisClient.redisApi()).thenReturn(Future.succeededFuture(redisAPI));
         // A non-NOSCRIPT error (e.g. LOADING) must NOT trigger an EVAL replay — the script may have run.
-        when(redisAPI.evalsha(anyList())).thenReturn(Future.failedFuture(new RuntimeException("LOADING Redis is loading the dataset")));
+        when(redisAPI.evalsha(anyList()))
+                .thenReturn(Future.failedFuture(new RuntimeException("LOADING Redis is loading the dataset")));
 
         var repository = new RedisTokenBucketRateLimitRepository(redisClient, 2000);
 
-        assertThatThrownBy(() ->
-            repository.refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key")).blockingGet()
-        ).hasMessageContaining("LOADING");
+        assertThatThrownBy(() -> repository
+                        .refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key"))
+                        .blockingGet())
+                .hasMessageContaining("LOADING");
         verify(redisAPI, never()).eval(anyList());
         verify(redisClient).notifyConnectionFailure(any());
     }
@@ -100,15 +103,16 @@ class RedisTokenBucketRateLimitRepositoryFallbackTest {
         when(redisClient.isConnected()).thenReturn(true);
         when(redisClient.scriptSha1("token-bucket")).thenReturn("the-sha");
         when(redisClient.redisApi()).thenReturn(Future.succeededFuture(redisAPI));
-        when(redisAPI.evalsha(anyList())).thenReturn(
-            Future.failedFuture(new RuntimeException("READONLY You can't write against a read only replica."))
-        );
+        when(redisAPI.evalsha(anyList()))
+                .thenReturn(Future.failedFuture(
+                        new RuntimeException("READONLY You can't write against a read only replica.")));
 
         var repository = new RedisTokenBucketRateLimitRepository(redisClient, 2000);
 
-        assertThatThrownBy(() ->
-            repository.refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key")).blockingGet()
-        ).hasMessageContaining("READONLY");
+        assertThatThrownBy(() -> repository
+                        .refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key"))
+                        .blockingGet())
+                .hasMessageContaining("READONLY");
         verify(redisAPI, never()).eval(anyList());
         verify(redisClient).notifyConnectionFailure(any());
     }
@@ -129,6 +133,7 @@ class RedisTokenBucketRateLimitRepositoryFallbackTest {
     }
 
     private static List<String> argThatStartsWith(String first) {
-        return org.mockito.ArgumentMatchers.argThat(list -> list != null && !list.isEmpty() && first.equals(list.get(0)));
+        return org.mockito.ArgumentMatchers.argThat(
+                list -> list != null && !list.isEmpty() && first.equals(list.get(0)));
     }
 }

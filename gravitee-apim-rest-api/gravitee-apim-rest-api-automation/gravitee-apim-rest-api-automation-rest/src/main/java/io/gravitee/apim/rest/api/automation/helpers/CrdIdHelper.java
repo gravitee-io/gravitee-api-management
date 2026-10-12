@@ -57,11 +57,15 @@ public class CrdIdHelper {
                 planCRD.setId(idGenerator.id());
                 planCRD.setCrossId(idGenerator.crossId());
             }
-            if (
-                (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
-                (planCRD.getGeneralConditionsHrid() != null && !planCRD.getGeneralConditionsHrid().isEmpty())
-            ) {
-                planCRD.setGeneralConditions(HRIDToUUID.page().context(audit).api(apiHrid).page(planCRD.getGeneralConditionsHrid()).id());
+            if ((planCRD.getGeneralConditions() == null
+                            || planCRD.getGeneralConditions().isEmpty())
+                    && (planCRD.getGeneralConditionsHrid() != null
+                            && !planCRD.getGeneralConditionsHrid().isEmpty())) {
+                planCRD.setGeneralConditions(HRIDToUUID.page()
+                        .context(audit)
+                        .api(apiHrid)
+                        .page(planCRD.getGeneralConditionsHrid())
+                        .id());
             }
         });
     }
@@ -72,11 +76,17 @@ public class CrdIdHelper {
         }
         pages.forEach((key, pageCRD) -> {
             if (pageCRD.getId() == null) {
-                pageCRD.setId(HRIDToUUID.page().context(audit).api(apiHrid).page(key).id());
-                pageCRD.setCrossId(HRIDToUUID.page().context(audit).api(apiHrid).page(key).crossId());
+                pageCRD.setId(
+                        HRIDToUUID.page().context(audit).api(apiHrid).page(key).id());
+                pageCRD.setCrossId(
+                        HRIDToUUID.page().context(audit).api(apiHrid).page(key).crossId());
             }
             if (pageCRD.getParentId() == null && pageCRD.getParentHrid() != null) {
-                pageCRD.setParentId(HRIDToUUID.page().context(audit).api(apiHrid).page(pageCRD.getParentHrid()).id());
+                pageCRD.setParentId(HRIDToUUID.page()
+                        .context(audit)
+                        .api(apiHrid)
+                        .page(pageCRD.getParentHrid())
+                        .id());
             }
         });
     }
@@ -89,7 +99,8 @@ public class CrdIdHelper {
 
     public static void generateApplicationId(ApplicationCRDSpec spec, AuditInfo audit) {
         if (spec.getId() == null) {
-            spec.setId(HRIDToUUID.application().context(audit).hrid(spec.getHrid()).id());
+            spec.setId(
+                    HRIDToUUID.application().context(audit).hrid(spec.getHrid()).id());
         }
     }
 

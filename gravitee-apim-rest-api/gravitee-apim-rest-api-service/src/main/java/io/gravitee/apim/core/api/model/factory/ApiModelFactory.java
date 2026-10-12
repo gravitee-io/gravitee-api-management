@@ -28,10 +28,8 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -49,61 +47,68 @@ public class ApiModelFactory {
         var id = newHttpApi.getId() != null ? newHttpApi.getId() : UuidString.generateRandom();
         var now = TimeProvider.now();
         return newHttpApi
-            .toApiBuilder()
-            .id(id)
-            .environmentId(environmentId)
-            .createdAt(now)
-            .updatedAt(now)
-            .apiDefinitionHttpV4(
-                newHttpApi.toApiDefinitionBuilder().id(id).listeners(withRequestValidationDefaults(newHttpApi.getListeners())).build()
-            )
-            .lifecycleState(Api.LifecycleState.STOPPED)
-            .build();
+                .toApiBuilder()
+                .id(id)
+                .environmentId(environmentId)
+                .createdAt(now)
+                .updatedAt(now)
+                .apiDefinitionHttpV4(newHttpApi
+                        .toApiDefinitionBuilder()
+                        .id(id)
+                        .listeners(withRequestValidationDefaults(newHttpApi.getListeners()))
+                        .build())
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .build();
     }
 
     private static List<Listener> withRequestValidationDefaults(List<Listener> listeners) {
         if (listeners == null) {
             return null;
         }
-        return listeners
-            .stream()
-            .map(listener -> {
-                if (listener instanceof HttpListener httpListener && httpListener.getRequestValidation() == null) {
-                    return httpListener.toBuilder().requestValidation(RequestValidation.builder().rejectNullByte(true).build()).build();
-                }
-                return listener;
-            })
-            .collect(Collectors.toList());
+        return listeners.stream()
+                .map(listener -> {
+                    if (listener instanceof HttpListener httpListener && httpListener.getRequestValidation() == null) {
+                        return httpListener.toBuilder()
+                                .requestValidation(RequestValidation.builder()
+                                        .rejectNullByte(true)
+                                        .build())
+                                .build();
+                    }
+                    return listener;
+                })
+                .collect(Collectors.toList());
     }
 
     public static Api fromNewNativeApi(NewNativeApi newNativeApi, String environmentId) {
         var id = UuidString.generateRandom();
         var now = TimeProvider.now();
         return newNativeApi
-            .toApiBuilder()
-            .id(id)
-            .environmentId(environmentId)
-            .createdAt(now)
-            .updatedAt(now)
-            .apiDefinitionNativeV4(newNativeApi.toNativeApiDefinitionBuilder().id(id).build())
-            .lifecycleState(Api.LifecycleState.STOPPED)
-            .build();
+                .toApiBuilder()
+                .id(id)
+                .environmentId(environmentId)
+                .createdAt(now)
+                .updatedAt(now)
+                .apiDefinitionNativeV4(
+                        newNativeApi.toNativeApiDefinitionBuilder().id(id).build())
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .build();
     }
 
     public static Api fromCrd(ApiCRDSpec crd, String environmentId) {
         var id = crd.getId() != null ? crd.getId() : UuidString.generateRandom();
         var now = TimeProvider.now();
-        Api api = crd
-            .toApiBuilder()
-            .id(id)
-            .environmentId(environmentId)
-            .createdAt(now)
-            .updatedAt(now)
-            .visibility(Api.Visibility.valueOf(crd.getVisibility()))
-            .disableMembershipNotifications(!crd.isNotifyMembers())
-            .build();
+        Api api = crd.toApiBuilder()
+                .id(id)
+                .environmentId(environmentId)
+                .createdAt(now)
+                .updatedAt(now)
+                .visibility(Api.Visibility.valueOf(crd.getVisibility()))
+                .disableMembershipNotifications(!crd.isNotifyMembers())
+                .build();
 
-        var definition = api.isNative() ? crd.toNativeApiDefinitionBuilder().id(id).build() : crd.toApiDefinitionBuilder().id(id).build();
+        var definition = api.isNative()
+                ? crd.toNativeApiDefinitionBuilder().id(id).build()
+                : crd.toApiDefinitionBuilder().id(id).build();
         api.setApiDefinitionValue(definition);
 
         return api;
@@ -111,49 +116,60 @@ public class ApiModelFactory {
 
     public static UpdateNativeApi toUpdateNativeApi(ApiCRDSpec spec) {
         return UpdateNativeApi.builder()
-            .id(spec.getId())
-            .name(spec.getName())
-            .description(spec.getDescription())
-            .visibility(Api.Visibility.valueOf(spec.getVisibility()))
-            .resources(spec.getResources())
-            .disableMembershipNotifications(!spec.isNotifyMembers())
-            .endpointGroups(spec.getEndpointGroups() != null ? (List<NativeEndpointGroup>) spec.getEndpointGroups() : null)
-            .apiVersion(spec.getVersion())
-            .definitionVersion(DefinitionVersion.valueOf(spec.getDefinitionVersion()))
-            .categories(spec.getCategories())
-            .groups(spec.getGroups())
-            .labels(spec.getLabels() != null ? spec.getLabels().stream().collect(Collectors.toList()) : null)
-            .lifecycleState(Api.ApiLifecycleState.valueOf(spec.getLifecycleState()))
-            .services(spec.getServices() != null ? new NativeApiServices(spec.getServices().getDynamicProperty()) : null)
-            .tags(spec.getTags())
-            .listeners(spec.getListeners() != null ? (List<NativeListener>) spec.getListeners() : null)
-            .flows(spec.getFlows() != null ? (List<NativeFlow>) spec.getFlows() : null)
-            .properties(spec.getProperties())
-            .allowMultiJwtOauth2Subscriptions(spec.isAllowMultiJwtOauth2Subscriptions())
-            .analytics(spec.getNativeAnalytics())
-            .build();
+                .id(spec.getId())
+                .name(spec.getName())
+                .description(spec.getDescription())
+                .visibility(Api.Visibility.valueOf(spec.getVisibility()))
+                .resources(spec.getResources())
+                .disableMembershipNotifications(!spec.isNotifyMembers())
+                .endpointGroups(
+                        spec.getEndpointGroups() != null ? (List<NativeEndpointGroup>) spec.getEndpointGroups() : null)
+                .apiVersion(spec.getVersion())
+                .definitionVersion(DefinitionVersion.valueOf(spec.getDefinitionVersion()))
+                .categories(spec.getCategories())
+                .groups(spec.getGroups())
+                .labels(spec.getLabels() != null ? spec.getLabels().stream().collect(Collectors.toList()) : null)
+                .lifecycleState(Api.ApiLifecycleState.valueOf(spec.getLifecycleState()))
+                .services(
+                        spec.getServices() != null
+                                ? new NativeApiServices(spec.getServices().getDynamicProperty())
+                                : null)
+                .tags(spec.getTags())
+                .listeners(spec.getListeners() != null ? (List<NativeListener>) spec.getListeners() : null)
+                .flows(spec.getFlows() != null ? (List<NativeFlow>) spec.getFlows() : null)
+                .properties(spec.getProperties())
+                .allowMultiJwtOauth2Subscriptions(spec.isAllowMultiJwtOauth2Subscriptions())
+                .analytics(spec.getNativeAnalytics())
+                .build();
     }
 
     public static Api fromApiExport(ApiExport api, String environmentId) {
         var id = api.getId() != null ? api.getId() : UuidString.generateRandom();
         var now = TimeProvider.now();
-        var apiExport = api
-            .toApiBuilder()
-            .id(id)
-            .environmentId(environmentId)
-            .definitionVersion(api.getDefinitionVersion())
-            .type(api.getType())
-            .createdAt(now)
-            .updatedAt(now)
-            .lifecycleState(Api.LifecycleState.STOPPED)
-            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .visibility(api.getVisibility() == null ? Api.Visibility.PRIVATE : Api.Visibility.valueOf(api.getVisibility().name()));
+        var apiExport = api.toApiBuilder()
+                .id(id)
+                .environmentId(environmentId)
+                .definitionVersion(api.getDefinitionVersion())
+                .type(api.getType())
+                .createdAt(now)
+                .updatedAt(now)
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+                .visibility(
+                        api.getVisibility() == null
+                                ? Api.Visibility.PRIVATE
+                                : Api.Visibility.valueOf(api.getVisibility().name()));
 
         if (api.getType() == ApiType.NATIVE) {
-            return apiExport.apiDefinitionNativeV4(api.toNativeApiDefinitionBuilder().id(id).build()).build();
+            return apiExport
+                    .apiDefinitionNativeV4(
+                            api.toNativeApiDefinitionBuilder().id(id).build())
+                    .build();
         }
 
-        return apiExport.apiDefinitionHttpV4(api.toApiDefinitionBuilder().id(id).build()).build();
+        return apiExport
+                .apiDefinitionHttpV4(api.toApiDefinitionBuilder().id(id).build())
+                .build();
     }
 
     public static Api fromIntegration(IntegrationApi integrationApi, Integration integration) {
@@ -162,18 +178,20 @@ public class ApiModelFactory {
         var defaultVersion = "0.0.0";
         var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
         return Api.builder()
-            .id(id)
-            .version(version)
-            .definitionVersion(DefinitionVersion.FEDERATED)
-            .name(integrationApi.name())
-            .description(integrationApi.description())
-            .createdAt(now)
-            .updatedAt(now)
-            .environmentId(integration.environmentId())
-            .lifecycleState(null)
-            .originContext(new OriginContext.Integration(integration.id(), integration.name(), integration.provider()))
-            .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
-            .build();
+                .id(id)
+                .version(version)
+                .definitionVersion(DefinitionVersion.FEDERATED)
+                .name(integrationApi.name())
+                .description(integrationApi.description())
+                .createdAt(now)
+                .updatedAt(now)
+                .environmentId(integration.environmentId())
+                .lifecycleState(null)
+                .originContext(
+                        new OriginContext.Integration(integration.id(), integration.name(), integration.provider()))
+                .federatedApiDefinition(
+                        integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
+                .build();
     }
 
     public static Api fromIngestionJob(IntegrationApi integrationApi, AsyncJob job, Integration integration) {
@@ -182,18 +200,20 @@ public class ApiModelFactory {
         var defaultVersion = "0.0.0";
         var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
         return Api.builder()
-            .id(id)
-            .version(version)
-            .definitionVersion(DefinitionVersion.FEDERATED)
-            .name(integrationApi.name())
-            .description(integrationApi.description())
-            .createdAt(now)
-            .updatedAt(now)
-            .environmentId(job.getEnvironmentId())
-            .lifecycleState(null)
-            .originContext(new OriginContext.Integration(job.getSourceId(), integration.name(), integration.provider()))
-            .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
-            .build();
+                .id(id)
+                .version(version)
+                .definitionVersion(DefinitionVersion.FEDERATED)
+                .name(integrationApi.name())
+                .description(integrationApi.description())
+                .createdAt(now)
+                .updatedAt(now)
+                .environmentId(job.getEnvironmentId())
+                .lifecycleState(null)
+                .originContext(
+                        new OriginContext.Integration(job.getSourceId(), integration.name(), integration.provider()))
+                .federatedApiDefinition(
+                        integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
+                .build();
     }
 
     /**
@@ -219,7 +239,8 @@ public class ApiModelFactory {
         return generateFederatedApiId(integration.environmentId(), integration.id(), integrationApi);
     }
 
-    public static String generateFederatedApiId(String environmentId, String integrationId, IntegrationApi integrationApi) {
+    public static String generateFederatedApiId(
+            String environmentId, String integrationId, IntegrationApi integrationApi) {
         return UuidString.generateForEnvironment(environmentId, integrationId, integrationApi.uniqueId());
     }
 

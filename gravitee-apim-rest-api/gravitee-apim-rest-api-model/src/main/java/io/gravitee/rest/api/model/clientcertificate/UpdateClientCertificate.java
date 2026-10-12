@@ -26,13 +26,15 @@ import java.util.Date;
  */
 @Schema(name = "UpdateClientCertificate", description = "DTO for updating a client certificate")
 public record UpdateClientCertificate(
-    @NotNull @Size(max = 255) @Schema(description = "Name of this client certificate.") String name,
-    @Schema(
-        description = "Date when this certificate will become available. If null it will be deployed along with current or future subscription."
-    )
-    Date startsAt,
-    @Schema(
-        description = "Date when this certificate will be removed from existing subscriptions. If null it will stay until the subscription is removed."
-    )
-    Date endsAt
-) {}
+        @NotNull @Size(max = 255) @Schema(description = "Name of this client certificate.")
+        String name,
+
+        @Schema(
+                description =
+                        "Date when this certificate will become available. If null it will be deployed along with current or future subscription.")
+        Date startsAt,
+
+        @Schema(
+                description =
+                        "Date when this certificate will be removed from existing subscriptions. If null it will stay until the subscription is removed.")
+        Date endsAt) {}

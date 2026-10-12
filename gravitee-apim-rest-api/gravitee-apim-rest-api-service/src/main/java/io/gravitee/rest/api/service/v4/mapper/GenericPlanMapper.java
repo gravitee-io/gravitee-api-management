@@ -51,12 +51,11 @@ public class GenericPlanMapper {
     private final FlowCrudService flowCrudService;
 
     public GenericPlanMapper(
-        final PlanMapper planMapper,
-        @Lazy final FlowService flowService,
-        final PlanConverter planConverter,
-        @Lazy final io.gravitee.rest.api.service.configuration.flow.FlowService flowServiceV2,
-        @Lazy final FlowCrudService flowCrudService
-    ) {
+            final PlanMapper planMapper,
+            @Lazy final FlowService flowService,
+            final PlanConverter planConverter,
+            @Lazy final io.gravitee.rest.api.service.configuration.flow.FlowService flowServiceV2,
+            @Lazy final FlowCrudService flowCrudService) {
         this.planMapper = planMapper;
         this.flowService = flowService;
         this.planConverter = planConverter;
@@ -69,50 +68,49 @@ public class GenericPlanMapper {
     }
 
     public Set<GenericPlanEntity> toGenericPlansWithFlow(final Api api, final Set<Plan> plans) {
-        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        var apiDefinitionVersion =
+                api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         final Set<String> planIds = plans.stream().map(Plan::getId).collect(Collectors.toSet());
 
         return switch (apiDefinitionVersion) {
-            case V4 -> switch (api.getType()) {
-                case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
-                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> {
-                    final Map<String, List<Flow>> flowsByPlanId = flowService != null
-                        ? flowService.findByReferences(FlowReferenceType.PLAN, planIds)
-                        : Map.of();
+            case V4 ->
+                switch (api.getType()) {
+                    case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
+                    case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> {
+                        final Map<String, List<Flow>> flowsByPlanId = flowService != null
+                                ? flowService.findByReferences(FlowReferenceType.PLAN, planIds)
+                                : Map.of();
 
-                    yield plans
-                        .stream()
-                        .map(plan -> planMapper.toEntity(plan, flowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))
-                        .collect(Collectors.toSet());
-                }
-                case NATIVE -> {
-                    final Map<String, List<NativeFlow>> nativeFlowsByPlanId = flowCrudService != null
-                        ? flowCrudService.getNativePlanFlows(planIds)
-                        : Map.of();
+                        yield plans.stream()
+                                .map(plan -> planMapper.toEntity(
+                                        plan, flowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))
+                                .collect(Collectors.toSet());
+                    }
+                    case NATIVE -> {
+                        final Map<String, List<NativeFlow>> nativeFlowsByPlanId =
+                                flowCrudService != null ? flowCrudService.getNativePlanFlows(planIds) : Map.of();
 
-                    yield plans
-                        .stream()
-                        .map(plan ->
-                            planMapper.toNativeEntity(plan, nativeFlowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList()))
-                        )
-                        .collect(Collectors.toSet());
-                }
-            };
+                        yield plans.stream()
+                                .map(plan -> planMapper.toNativeEntity(
+                                        plan, nativeFlowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))
+                                .collect(Collectors.toSet());
+                    }
+                };
             case FEDERATED, FEDERATED_AGENT -> handleGenericPlanWithoutFlow(plans);
             default -> {
-                final Map<String, List<io.gravitee.definition.model.flow.Flow>> v2FlowsByPlanId = flowCrudService != null
-                    ? flowCrudService.getPlanV2Flows(planIds)
-                    : Map.of();
-                yield plans
-                    .stream()
-                    .map(plan -> planConverter.toPlanEntity(plan, v2FlowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))
-                    .collect(Collectors.toSet());
+                final Map<String, List<io.gravitee.definition.model.flow.Flow>> v2FlowsByPlanId =
+                        flowCrudService != null ? flowCrudService.getPlanV2Flows(planIds) : Map.of();
+                yield plans.stream()
+                        .map(plan -> planConverter.toPlanEntity(
+                                plan, v2FlowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))
+                        .collect(Collectors.toSet());
             }
         };
     }
 
     public GenericPlanEntity toGenericPlanWithFlow(final GenericApiEntity api, final Plan plan) {
-        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        var apiDefinitionVersion =
+                api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> {
                 if (api instanceof NativeApiEntity) {
@@ -124,51 +122,54 @@ public class GenericPlanMapper {
                 throw new IllegalStateException("Unsupported GenericApiEntity type");
             }
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
-            default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
+            default ->
+                planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
         };
     }
 
     private @NonNull Set<GenericPlanEntity> handleGenericPlanWithoutFlow(Set<Plan> plans) {
-        return plans
-            .stream()
-            .map(plan -> planMapper.toEntity(plan, null))
-            .collect(Collectors.toSet());
+        return plans.stream().map(plan -> planMapper.toEntity(plan, null)).collect(Collectors.toSet());
     }
 
     public GenericPlanEntity toGenericPlanWithoutFlow(final Api api, final Plan plan) {
-        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        var apiDefinitionVersion =
+                api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
-            case V4 -> switch (api.getType()) {
-                case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
-                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> planMapper.toEntity(plan, null);
-                case NATIVE -> planMapper.toNativeEntity(plan, null);
-            };
+            case V4 ->
+                switch (api.getType()) {
+                    case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
+                    case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> planMapper.toEntity(plan, null);
+                    case NATIVE -> planMapper.toNativeEntity(plan, null);
+                };
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, null);
         };
     }
 
     public Set<GenericPlanEntity> toGenericPlansWithoutFlow(final Api api, final Set<Plan> plans) {
-        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        var apiDefinitionVersion =
+                api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
-            case V4 -> switch (api.getType()) {
-                case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
-                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> handleGenericPlanWithoutFlow(plans);
-                case NATIVE -> plans
-                    .stream()
-                    .map(plan -> planMapper.toNativeEntity(plan, null))
-                    .collect(Collectors.toSet());
-            };
+            case V4 ->
+                switch (api.getType()) {
+                    case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
+                    case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> handleGenericPlanWithoutFlow(plans);
+                    case NATIVE ->
+                        plans.stream()
+                                .map(plan -> planMapper.toNativeEntity(plan, null))
+                                .collect(Collectors.toSet());
+                };
             case FEDERATED, FEDERATED_AGENT -> handleGenericPlanWithoutFlow(plans);
-            default -> plans
-                .stream()
-                .map(plan -> planConverter.toPlanEntity(plan, null))
-                .collect(Collectors.toSet());
+            default ->
+                plans.stream()
+                        .map(plan -> planConverter.toPlanEntity(plan, null))
+                        .collect(Collectors.toSet());
         };
     }
 
     public GenericPlanEntity toGenericPlanWithoutFlow(final GenericApiEntity api, final Plan plan) {
-        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        var apiDefinitionVersion =
+                api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> {
                 if (api instanceof NativeApiEntity) {

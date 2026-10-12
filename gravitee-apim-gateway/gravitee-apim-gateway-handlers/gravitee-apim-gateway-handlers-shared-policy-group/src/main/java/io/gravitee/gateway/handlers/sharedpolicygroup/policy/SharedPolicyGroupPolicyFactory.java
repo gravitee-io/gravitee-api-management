@@ -29,10 +29,9 @@ import io.gravitee.policy.api.PolicyConfiguration;
 public class SharedPolicyGroupPolicyFactory extends HttpPolicyFactory {
 
     public SharedPolicyGroupPolicyFactory(
-        Configuration configuration,
-        PolicyPluginFactory policyPluginFactory,
-        ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
-    ) {
+            Configuration configuration,
+            PolicyPluginFactory policyPluginFactory,
+            ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter) {
         super(configuration, policyPluginFactory, filter);
     }
 
@@ -43,15 +42,14 @@ public class SharedPolicyGroupPolicyFactory extends HttpPolicyFactory {
 
     @Override
     protected HttpPolicy createPolicy(
-        ExecutionPhase phase,
-        PolicyManifest policyManifest,
-        PolicyConfiguration policyConfiguration,
-        PolicyMetadata policyMetadata
-    ) {
+            ExecutionPhase phase,
+            PolicyManifest policyManifest,
+            PolicyConfiguration policyConfiguration,
+            PolicyMetadata policyMetadata) {
         HttpPolicy policy = new SharedPolicyGroupPolicy(
-            policyMetadata.getName(),
-            (io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration) policyConfiguration
-        );
+                policyMetadata.getName(),
+                (io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration)
+                        policyConfiguration);
         policy = decoratePolicy(policyMetadata, policy);
         return policy;
     }

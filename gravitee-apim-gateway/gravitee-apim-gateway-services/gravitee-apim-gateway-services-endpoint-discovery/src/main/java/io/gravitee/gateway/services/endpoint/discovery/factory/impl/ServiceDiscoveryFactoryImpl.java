@@ -41,33 +41,36 @@ public class ServiceDiscoveryFactoryImpl implements ServiceDiscoveryFactory {
 
     @Override
     public <T extends ServiceDiscovery> T create(ServiceDiscoveryPlugin sdPlugin, String sdConfiguration) {
-        log.debug("Create a new service discovery instance for {}", sdPlugin.serviceDiscovery().getName());
+        log.debug(
+                "Create a new service discovery instance for {}",
+                sdPlugin.serviceDiscovery().getName());
 
-        ApplicationContext sdContext = pluginContextFactory.create(
-            new AnnotationBasedPluginContextConfigurer(sdPlugin) {
-                @Override
-                public ClassLoader classLoader() {
-                    return sdPlugin.serviceDiscovery().getClassLoader();
-                }
-
-                @Override
-                public void registerBeans() {
-                    BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(sdPlugin.clazz());
-                    if (sdPlugin.configuration() != null) {
-                        builder.addConstructorArgValue(
-                            serviceDiscoveryConfigurationFactory.create(sdPlugin.configuration(), sdConfiguration)
-                        );
+        ApplicationContext sdContext =
+                pluginContextFactory.create(new AnnotationBasedPluginContextConfigurer(sdPlugin) {
+                    @Override
+                    public ClassLoader classLoader() {
+                        return sdPlugin.serviceDiscovery().getClassLoader();
                     }
 
-                    pluginContext.registerBeanDefinition(sdPlugin.clazz(), builder.getBeanDefinition());
-                }
-            }
-        );
+                    @Override
+                    public void registerBeans() {
+                        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(sdPlugin.clazz());
+                        if (sdPlugin.configuration() != null) {
+                            builder.addConstructorArgValue(serviceDiscoveryConfigurationFactory.create(
+                                    sdPlugin.configuration(), sdConfiguration));
+                        }
+
+                        pluginContext.registerBeanDefinition(sdPlugin.clazz(), builder.getBeanDefinition());
+                    }
+                });
 
         try {
             return (T) sdContext.getBean(sdPlugin.clazz());
         } catch (Exception ex) {
-            log.error("Unable to get service discovery {}", sdPlugin.serviceDiscovery().getName(), ex);
+            log.error(
+                    "Unable to get service discovery {}",
+                    sdPlugin.serviceDiscovery().getName(),
+                    ex);
             return null;
         }
     }

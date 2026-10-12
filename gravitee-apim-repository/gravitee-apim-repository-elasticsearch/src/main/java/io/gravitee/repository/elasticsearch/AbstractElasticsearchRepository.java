@@ -58,17 +58,18 @@ public abstract class AbstractElasticsearchRepository {
     protected ElasticsearchInfo info;
 
     protected String getQueryIndexesFromDefinitionVersions(
-        Type v2Index,
-        Type v4Index,
-        RepositoryConfiguration configuration,
-        QueryContext queryContext,
-        List<DefinitionVersion> definitionVersions
-    ) {
+            Type v2Index,
+            Type v4Index,
+            RepositoryConfiguration configuration,
+            QueryContext queryContext,
+            List<DefinitionVersion> definitionVersions) {
         var isDefinitionVersionsNullOrEmpty = definitionVersions == null || definitionVersions.isEmpty();
 
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v2Index, clusters);
-        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v4Index, clusters);
+        var indexV2Request =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v2Index, clusters);
+        var indexV4Metrics =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v4Index, clusters);
 
         var indexes = new ArrayList<String>();
 

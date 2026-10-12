@@ -45,33 +45,31 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
 
     @Override
     public void triggerApiSubscriptionNotification(
-        String organizationId,
-        String environmentId,
-        String referenceId,
-        ApiHookContext context
-    ) {
+            String organizationId, String environmentId, String referenceId, ApiHookContext context) {
         hookNotifications.add(context);
     }
 
     @Override
-    public void triggerApiProductNotification(String organizationId, String environmentId, ApiProductHookContext context) {
+    public void triggerApiProductNotification(
+            String organizationId, String environmentId, ApiProductHookContext context) {
         hookNotifications.add(context);
     }
 
     @Override
-    public void triggerApplicationNotification(String organizationId, String environmentId, ApplicationHookContext hookContext) {
+    public void triggerApplicationNotification(
+            String organizationId, String environmentId, ApplicationHookContext hookContext) {
         triggerApplicationNotification(organizationId, environmentId, hookContext, Collections.emptyList());
     }
 
     @Override
     public void triggerApplicationNotification(
-        String organizationId,
-        String environmentId,
-        ApplicationHookContext context,
-        List<Recipient> additionalRecipients
-    ) {
+            String organizationId,
+            String environmentId,
+            ApplicationHookContext context,
+            List<Recipient> additionalRecipients) {
         applicationNotifications.add(new ApplicationNotification(context));
-        additionalRecipients.forEach(recipient -> applicationNotifications.add(new ApplicationNotification(recipient, context)));
+        additionalRecipients.forEach(
+                recipient -> applicationNotifications.add(new ApplicationNotification(recipient, context)));
     }
 
     @Override

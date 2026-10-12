@@ -40,13 +40,13 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
     @Override
     protected JdbcObjectMapper<Portal> buildOrm() {
         return JdbcObjectMapper.builder(Portal.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("portal_navigation", Types.NVARCHAR, String.class)
-            .addColumn("active_theme_id", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("portal_navigation", Types.NVARCHAR, String.class)
+                .addColumn("active_theme_id", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -59,16 +59,16 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
         log.debug("JdbcPortalRepository.findByIdAndEnvironmentId({}, {})", portalId, environmentId);
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() + " WHERE id = ? and environment_id = ?",
-                    getOrm().getRowMapper(),
-                    portalId,
-                    environmentId
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " WHERE id = ? and environment_id = ?",
+                            getOrm().getRowMapper(),
+                            portalId,
+                            environmentId)
+                    .stream()
+                    .findFirst();
         } catch (final Exception ex) {
-            final String error = String.format("Failed to find portal by id (%s) and environment id (%s)", portalId, environmentId);
+            final String error =
+                    String.format("Failed to find portal by id (%s) and environment id (%s)", portalId, environmentId);
             log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
@@ -78,7 +78,8 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
     public List<Portal> findByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcPortalRepository.findByEnvironmentId({})", environmentId);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " WHERE environment_id = ?", getOrm().getRowMapper(), environmentId);
+            return jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " WHERE environment_id = ?", getOrm().getRowMapper(), environmentId);
         } catch (final Exception ex) {
             final String error = "Failed to find portals by environment id: " + environmentId;
             log.error(error, ex);
@@ -87,21 +88,19 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
     }
 
     @Override
-    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) throws TechnicalException {
+    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId)
+            throws TechnicalException {
         log.debug("JdbcPortalRepository.findByActiveThemeIdAndEnvironmentId({}, {})", activeThemeId, environmentId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE active_theme_id = ? AND environment_id = ?",
-                getOrm().getRowMapper(),
-                activeThemeId,
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " WHERE active_theme_id = ? AND environment_id = ?",
+                    getOrm().getRowMapper(),
+                    activeThemeId,
+                    environmentId);
         } catch (final Exception ex) {
             final String error = String.format(
-                "Failed to find portals by active theme id (%s) and environment id (%s)",
-                activeThemeId,
-                environmentId
-            );
+                    "Failed to find portals by active theme id (%s) and environment id (%s)",
+                    activeThemeId, environmentId);
             log.error(error, ex);
             throw new TechnicalException(error, ex);
         }

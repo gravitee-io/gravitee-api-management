@@ -38,40 +38,42 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
 
         HttpClientOptions httpClientOptions = new HttpClientOptions();
 
-        httpClientOptions.setConnectTimeout(node.path("connectTimeout").asLong(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT));
+        httpClientOptions.setConnectTimeout(
+                node.path("connectTimeout").asLong(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT));
 
         httpClientOptions.setReadTimeout(node.path("readTimeout").asLong(HttpClientOptions.DEFAULT_READ_TIMEOUT));
 
         httpClientOptions.setIdleTimeout(node.path("idleTimeout").asLong(HttpClientOptions.DEFAULT_IDLE_TIMEOUT));
 
-        httpClientOptions.setKeepAliveTimeout(node.path("keepAliveTimeout").asLong(HttpClientOptions.DEFAULT_KEEP_ALIVE_TIMEOUT));
+        httpClientOptions.setKeepAliveTimeout(
+                node.path("keepAliveTimeout").asLong(HttpClientOptions.DEFAULT_KEEP_ALIVE_TIMEOUT));
 
         httpClientOptions.setKeepAlive(node.path("keepAlive").asBoolean(HttpClientOptions.DEFAULT_KEEP_ALIVE));
 
         httpClientOptions.setPipelining(node.path("pipelining").asBoolean(HttpClientOptions.DEFAULT_PIPELINING));
 
         httpClientOptions.setMaxConcurrentConnections(
-            node.path("maxConcurrentConnections").asInt(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS)
-        );
+                node.path("maxConcurrentConnections").asInt(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS));
 
-        httpClientOptions.setUseCompression(node.path("useCompression").asBoolean(HttpClientOptions.DEFAULT_USE_COMPRESSION));
+        httpClientOptions.setUseCompression(
+                node.path("useCompression").asBoolean(HttpClientOptions.DEFAULT_USE_COMPRESSION));
 
         if (node.get("propagateClientAcceptEncoding") != null) {
-            httpClientOptions.setPropagateClientAcceptEncoding(
-                node.path("propagateClientAcceptEncoding").asBoolean(HttpClientOptions.DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING)
-            );
+            httpClientOptions.setPropagateClientAcceptEncoding(node.path("propagateClientAcceptEncoding")
+                    .asBoolean(HttpClientOptions.DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING));
         }
 
-        httpClientOptions.setFollowRedirects(node.path("followRedirects").asBoolean(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS));
+        httpClientOptions.setFollowRedirects(
+                node.path("followRedirects").asBoolean(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS));
 
         if (node.get("clearTextUpgrade") != null) {
-            httpClientOptions.setClearTextUpgrade(node.get("clearTextUpgrade").asBoolean(HttpClientOptions.DEFAULT_CLEAR_TEXT_UPGRADE));
+            httpClientOptions.setClearTextUpgrade(
+                    node.get("clearTextUpgrade").asBoolean(HttpClientOptions.DEFAULT_CLEAR_TEXT_UPGRADE));
         }
 
         if (node.get("version") != null) {
-            httpClientOptions.setVersion(
-                ProtocolVersion.valueOf(node.path("version").asText(HttpClientOptions.DEFAULT_PROTOCOL_VERSION.name()))
-            );
+            httpClientOptions.setVersion(ProtocolVersion.valueOf(
+                    node.path("version").asText(HttpClientOptions.DEFAULT_PROTOCOL_VERSION.name())));
         }
 
         httpClientOptions.setMaxHeaderSize(node.path("maxHeaderSize").asInt(HttpClientOptions.DEFAULT_MAX_HEADER_SIZE));

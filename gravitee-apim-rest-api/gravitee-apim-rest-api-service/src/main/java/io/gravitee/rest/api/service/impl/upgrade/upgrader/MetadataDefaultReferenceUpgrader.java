@@ -44,9 +44,7 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
     MetadataRepository metadataRepository;
 
     public MetadataDefaultReferenceUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy MetadataRepository metadataRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository, @Lazy MetadataRepository metadataRepository) {
         this.environmentRepository = environmentRepository;
         this.metadataRepository = metadataRepository;
     }
@@ -55,31 +53,28 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
             Set<Environment> environments = environmentRepository.findAll();
-            List<Metadata> metadataList = metadataRepository
-                .findAll()
-                .stream()
-                .filter(metadata -> metadata.getReferenceId().equals("_"))
-                .flatMap((Function<Metadata, Stream<Metadata>>) metadata -> migrateDefaultMetadataToEnvironments(environments, metadata))
-                .toList();
+            List<Metadata> metadataList = metadataRepository.findAll().stream()
+                    .filter(metadata -> metadata.getReferenceId().equals("_"))
+                    .flatMap((Function<Metadata, Stream<Metadata>>)
+                            metadata -> migrateDefaultMetadataToEnvironments(environments, metadata))
+                    .toList();
             log.info("Migrating metadata: {} for environments {}", metadataList.size(), environments);
             return true;
         });
     }
 
     private Stream<Metadata> migrateDefaultMetadataToEnvironments(Set<Environment> environments, Metadata metadata) {
-        Stream<Metadata> metadataStream = environments
-            .stream()
-            .map(environment -> {
-                Metadata metadataToCreate = duplicateMetadata(environment, metadata);
-                try {
-                    return metadataRepository.create(metadataToCreate);
-                } catch (DuplicateKeyException e) {
-                    log.warn("Failed to duplicate metadata {} to {}", metadata, environment, e);
-                    return metadataToCreate;
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+        Stream<Metadata> metadataStream = environments.stream().map(environment -> {
+            Metadata metadataToCreate = duplicateMetadata(environment, metadata);
+            try {
+                return metadataRepository.create(metadataToCreate);
+            } catch (DuplicateKeyException e) {
+                log.warn("Failed to duplicate metadata {} to {}", metadata, environment, e);
+                return metadataToCreate;
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(e);
+            }
+        });
         try {
             metadataRepository.delete(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType());
         } catch (TechnicalException e) {
@@ -90,15 +85,15 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
 
     private Metadata duplicateMetadata(Environment environment, Metadata metadata) {
         return Metadata.builder()
-            .referenceId(environment.getId())
-            .referenceType(MetadataReferenceType.ENVIRONMENT)
-            .name(metadata.getName())
-            .key(metadata.getKey())
-            .value(metadata.getValue())
-            .createdAt(metadata.getCreatedAt())
-            .updatedAt(metadata.getUpdatedAt())
-            .format(metadata.getFormat())
-            .build();
+                .referenceId(environment.getId())
+                .referenceType(MetadataReferenceType.ENVIRONMENT)
+                .name(metadata.getName())
+                .key(metadata.getKey())
+                .value(metadata.getValue())
+                .createdAt(metadata.getCreatedAt())
+                .updatedAt(metadata.getUpdatedAt())
+                .format(metadata.getFormat())
+                .build();
     }
 
     @Override

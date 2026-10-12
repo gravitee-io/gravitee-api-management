@@ -54,30 +54,32 @@ public class PortalRedirectResource extends AbstractAuthenticationResource {
     private InstallationAccessQueryService installationAccessQueryService;
 
     @GET
-    public Response redirectToPortal(@Context final HttpServletRequest httpServletRequest, @QueryParam("version") final String version) {
+    public Response redirectToPortal(
+            @Context final HttpServletRequest httpServletRequest, @QueryParam("version") final String version) {
         try {
-            final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            final Authentication authentication =
+                    SecurityContextHolder.getContext().getAuthentication();
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             UserEntity user = userService.findById(GraviteeContext.getExecutionContext(), userDetails.getUsername());
 
             TokenEntity tokenEntity = generateToken(user, 30);
             String environmentId = GraviteeContext.getCurrentEnvironment() != null
-                ? GraviteeContext.getCurrentEnvironment()
-                : GraviteeContext.getDefaultEnvironment();
+                    ? GraviteeContext.getCurrentEnvironment()
+                    : GraviteeContext.getDefaultEnvironment();
             String url = installationAccessQueryService.getPortalAPIUrl(environmentId);
             if (url == null) {
                 ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
                 UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request)
-                    .replacePath(getPortalProxyPath())
-                    .replaceQuery(null)
-                    .build();
+                        .replacePath(getPortalProxyPath())
+                        .replaceQuery(null)
+                        .build();
                 url = uriComponents.toUriString();
             }
-            var versionQueryParam = version != null && version.equals(PORTAL_NEXT_VERSION) ? PORTAL_NEXT_QUERY_PARAM : "";
+            var versionQueryParam =
+                    version != null && version.equals(PORTAL_NEXT_VERSION) ? PORTAL_NEXT_QUERY_PARAM : "";
             // Redirect the user.
-            URI location = new URI(
-                "%s/environments/%s/auth/console?%stoken=%s".formatted(url, environmentId, versionQueryParam, tokenEntity.getToken())
-            );
+            URI location = new URI("%s/environments/%s/auth/console?%stoken=%s"
+                    .formatted(url, environmentId, versionQueryParam, tokenEntity.getToken()));
             return Response.temporaryRedirect(location).build();
         } catch (InvalidTokenException | UserNotFoundException e) {
             log.error("Authentication failed", e);

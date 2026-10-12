@@ -31,10 +31,10 @@ public class CycleChecksTest extends AbstractApimArchitectureTest {
     @Test
     public void should_be_free_of_cycles() {
         slices()
-            // checks all subpackages of APIM_PACKAGE for cycles
-            .matching(GRAVITEE_APIM_PACKAGE + ".(**)..")
-            .should()
-            .beFreeOfCycles()
-            .check(apimClasses());
+                // checks all subpackages of APIM_PACKAGE for cycles
+                .matching(GRAVITEE_APIM_PACKAGE + ".(**)..")
+                .should()
+                .beFreeOfCycles()
+                .check(apimClasses());
     }
 }

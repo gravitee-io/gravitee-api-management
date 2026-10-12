@@ -126,38 +126,41 @@ public class ApiReactorHandlerFactoryTest {
 
     @BeforeEach
     public void setUp() {
-        when(configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)).thenReturn(false);
-        when(configuration.getProperty(CLASSLOADER_LEGACY_ENABLED_PROPERTY, Boolean.class, false)).thenReturn(false);
-        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
-        when(configuration.getProperty(TRACING_V2_ENABLED_PROPERTY, Boolean.class, true)).thenReturn(true);
+        when(configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false))
+                .thenReturn(false);
+        when(configuration.getProperty(CLASSLOADER_LEGACY_ENABLED_PROPERTY, Boolean.class, false))
+                .thenReturn(false);
+        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L))
+                .thenReturn(10_000L);
+        when(configuration.getProperty(TRACING_V2_ENABLED_PROPERTY, Boolean.class, true))
+                .thenReturn(true);
         when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(false);
         when(applicationContext.getBean(GatewayConfiguration.class)).thenReturn(gatewayConfiguration);
-        when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class)).thenReturn(apiTemplateVariableProviderFactory);
-        when(applicationContext.getBeanNamesForType(any(ResolvableType.class))).thenReturn(
-            new String[] { "configurablePluginManager", "resourcePlugin" }
-        );
+        when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class))
+                .thenReturn(apiTemplateVariableProviderFactory);
+        when(applicationContext.getBeanNamesForType(any(ResolvableType.class)))
+                .thenReturn(new String[] {"configurablePluginManager", "resourcePlugin"});
 
         apiContextHandlerFactory = new ApiReactorHandlerFactory(
-            applicationContext,
-            configuration,
-            node,
-            v3PolicyFactoryCreator,
-            null,
-            organizationPolicyChainFactoryManager,
-            null,
-            policyChainProviderLoader,
-            apiProcessorChainFactory,
-            flowResolverFactory,
-            new RequestTimeoutConfiguration(2000L, 10L),
-            accessPointManager,
-            eventManager,
-            new HttpAcceptorFactory(false),
-            openTelemetryConfiguration,
-            openTelemetryFactory,
-            List.of(),
-            dictionaryManager,
-            logGuardService
-        );
+                applicationContext,
+                configuration,
+                node,
+                v3PolicyFactoryCreator,
+                null,
+                organizationPolicyChainFactoryManager,
+                null,
+                policyChainProviderLoader,
+                apiProcessorChainFactory,
+                flowResolverFactory,
+                new RequestTimeoutConfiguration(2000L, 10L),
+                accessPointManager,
+                eventManager,
+                new HttpAcceptorFactory(false),
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                List.of(),
+                dictionaryManager,
+                logGuardService);
     }
 
     @Test
@@ -211,14 +214,15 @@ public class ApiReactorHandlerFactoryTest {
         apiContextHandlerFactory.create(api);
 
         ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(openTelemetryFactory).createTracer(eq("node-id"), eq("apim-gateway"), eq("gravitee"), any(), anyList(), mapCaptor.capture());
+        verify(openTelemetryFactory)
+                .createTracer(eq("node-id"), eq("apim-gateway"), eq("gravitee"), any(), anyList(), mapCaptor.capture());
         assertThat(mapCaptor.getValue())
-            .containsEntry("gravitee.module", "apim")
-            .containsEntry("gravitee.api.id", "api-id")
-            .containsEntry("gravitee.api.name", "api-name")
-            .containsEntry("gravitee.api.type", "API_V2_EMULATED")
-            .containsEntry("gravitee.org.id", "org-id")
-            .containsEntry("gravitee.env.id", "env-id");
+                .containsEntry("gravitee.module", "apim")
+                .containsEntry("gravitee.api.id", "api-id")
+                .containsEntry("gravitee.api.name", "api-name")
+                .containsEntry("gravitee.api.type", "API_V2_EMULATED")
+                .containsEntry("gravitee.org.id", "org-id")
+                .containsEntry("gravitee.env.id", "env-id");
     }
 
     @Test
@@ -227,7 +231,8 @@ public class ApiReactorHandlerFactoryTest {
         // the v2 factory must short-circuit and never build a tracer (V2 has no per-API opt-in, unlike V4).
         when(api.enabled()).thenReturn(true);
         when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
-        when(configuration.getProperty(TRACING_V2_ENABLED_PROPERTY, Boolean.class, true)).thenReturn(false);
+        when(configuration.getProperty(TRACING_V2_ENABLED_PROPERTY, Boolean.class, true))
+                .thenReturn(false);
         io.gravitee.definition.model.Api definition = mock(io.gravitee.definition.model.Api.class);
         when(definition.getProxy()).thenReturn(mock(io.gravitee.definition.model.Proxy.class));
         when(api.getDefinition()).thenReturn(definition);

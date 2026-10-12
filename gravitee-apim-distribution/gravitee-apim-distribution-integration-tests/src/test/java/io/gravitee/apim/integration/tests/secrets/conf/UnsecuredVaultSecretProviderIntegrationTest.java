@@ -42,7 +42,6 @@ import org.testcontainers.containers.Container;
  *
  * Using the test containers vaul that is unsecured by default to test our plugin is able to connect to an unsecured instance too.
  */
-
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class UnsecuredVaultSecretProviderIntegrationTest {
 
@@ -53,11 +52,12 @@ class UnsecuredVaultSecretProviderIntegrationTest {
     @BeforeAll
     static void startAndConfigure() throws IOException, InterruptedException {
         vaultContainer = new org.testcontainers.vault.VaultContainer<>(SecuredVaultContainer.HASHICORP_VAULT_IMAGE)
-            .withVaultToken(VAULT_TOKEN)
-            .withInitCommand("kv put secret/test top_secret=thatWillRemainOurDirtyLittleSecret");
+                .withVaultToken(VAULT_TOKEN)
+                .withInitCommand("kv put secret/test top_secret=thatWillRemainOurDirtyLittleSecret");
         vaultContainer.start();
         // create a renewable token so the plugin does not start panicking
-        Container.ExecResult execResult = vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token");
+        Container.ExecResult execResult =
+                vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token");
         token = execResult.getStdout();
     }
 
@@ -83,8 +83,8 @@ class UnsecuredVaultSecretProviderIntegrationTest {
 
         @Override
         public void configureSecretProviders(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) {
+                Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                        secretProviderPlugins) {
             SecuredVaultSecretProviderIntegrationTest.addPlugin(secretProviderPlugins);
         }
 

@@ -62,7 +62,8 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     @Override
     public Optional<ClientCertificate> findById(String id) throws TechnicalException {
         log.debug("Find client certificate by ID [{}]", id);
-        ClientCertificateMongo clientCertificateMongo = internalRepository.findById(id).orElse(null);
+        ClientCertificateMongo clientCertificateMongo =
+                internalRepository.findById(id).orElse(null);
         return Optional.ofNullable(mapper.map(clientCertificateMongo));
     }
 
@@ -82,16 +83,21 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
 
         log.debug("Update client certificate [{}]", clientCertificate.getId());
 
-        ClientCertificateMongo clientCertificateMongo = internalRepository.findById(clientCertificate.getId()).orElse(null);
+        ClientCertificateMongo clientCertificateMongo =
+                internalRepository.findById(clientCertificate.getId()).orElse(null);
         if (clientCertificateMongo == null) {
-            throw new IllegalStateException(String.format("No client certificate found with id [%s]", clientCertificate.getId()));
+            throw new IllegalStateException(
+                    String.format("No client certificate found with id [%s]", clientCertificate.getId()));
         }
 
         clientCertificateMongo.setName(clientCertificate.getName());
         clientCertificateMongo.setStartsAt(clientCertificate.getStartsAt());
         clientCertificateMongo.setEndsAt(clientCertificate.getEndsAt());
         clientCertificateMongo.setUpdatedAt(clientCertificate.getUpdatedAt());
-        clientCertificateMongo.setStatus(clientCertificate.getStatus() != null ? clientCertificate.getStatus().name() : null);
+        clientCertificateMongo.setStatus(
+                clientCertificate.getStatus() != null
+                        ? clientCertificate.getStatus().name()
+                        : null);
 
         ClientCertificateMongo updatedClientCertificateMongo = internalRepository.save(clientCertificateMongo);
         return mapper.map(updatedClientCertificateMongo);
@@ -111,44 +117,47 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     }
 
     @Override
-    public Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable) throws TechnicalException {
+    public Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable)
+            throws TechnicalException {
         log.debug("Find client certificates by application ID [{}]", applicationId);
 
         org.springframework.data.domain.Page<ClientCertificateMongo> mongoPage = internalRepository.findByApplicationId(
-            applicationId,
-            PageRequest.of(pageable.pageNumber(), pageable.pageSize())
-        );
+                applicationId, PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
 
-        List<ClientCertificate> content = mongoPage.getContent().stream().map(mapper::map).toList();
+        List<ClientCertificate> content =
+                mongoPage.getContent().stream().map(mapper::map).toList();
 
         return new Page<>(content, pageable.pageNumber(), pageable.pageSize(), mongoPage.getTotalElements());
     }
 
     @Override
-    public List<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
-        throws TechnicalException {
+    public List<ClientCertificate> findByApplicationIdAndStatuses(
+            String applicationId, ClientCertificateStatus... statuses) throws TechnicalException {
         log.debug("Find client certificates by application ID [{}] and statuses [{}]", applicationId, statuses);
 
         if (statuses == null || statuses.length == 0) {
             return List.of();
         }
 
-        List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+        List<String> statusStrings =
+                Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
 
-        List<ClientCertificateMongo> clientCertificates = internalRepository.findByApplicationIdAndStatuses(applicationId, statusStrings);
+        List<ClientCertificateMongo> clientCertificates =
+                internalRepository.findByApplicationIdAndStatuses(applicationId, statusStrings);
         return clientCertificates.stream().map(mapper::map).toList();
     }
 
     @Override
-    public List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
-        throws TechnicalException {
+    public List<ClientCertificate> findByApplicationIdsAndStatuses(
+            Collection<String> applicationIds, ClientCertificateStatus... statuses) throws TechnicalException {
         log.debug("Find client certificates by application IDs [{}] and statuses [{}]", applicationIds, statuses);
 
         if (applicationIds == null || applicationIds.isEmpty() || statuses == null || statuses.length == 0) {
             return List.of();
         }
 
-        List<String> statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+        List<String> statusStrings =
+                Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
         List<String> applicationIdList = new ArrayList<>(applicationIds);
 
         List<ClientCertificate> result = new ArrayList<>();
@@ -158,7 +167,8 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
         for (int i = 0; i < applicationIdList.size(); i += batchSize) {
             List<String> batch = applicationIdList.subList(i, Math.min(i + batchSize, applicationIdList.size()));
 
-            List<ClientCertificateMongo> clientCertificates = internalRepository.findByApplicationIdsAndStatuses(batch, statusStrings);
+            List<ClientCertificateMongo> clientCertificates =
+                    internalRepository.findByApplicationIdsAndStatuses(batch, statusStrings);
             clientCertificates.stream().map(mapper::map).forEach(result::add);
         }
 
@@ -174,7 +184,8 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
         }
 
         try {
-            var statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+            var statusStrings =
+                    Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
             var clientCertificates = internalRepository.findByStatuses(statusStrings);
             return clientCertificates.stream().map(mapper::map).toList();
         } catch (Exception e) {
@@ -183,14 +194,13 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     }
 
     @Override
-    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId)
-        throws TechnicalException {
+    public boolean existsByFingerprintAndActiveApplication(
+            String fingerprint, String environmentId, String excludeApplicationId) throws TechnicalException {
         log.debug(
-            "Check if client certificate with fingerprint [{}] exists for an active application in environment [{}], excluding application [{}]",
-            fingerprint,
-            environmentId,
-            excludeApplicationId
-        );
+                "Check if client certificate with fingerprint [{}] exists for an active application in environment [{}], excluding application [{}]",
+                fingerprint,
+                environmentId,
+                excludeApplicationId);
 
         try {
             Query query = new Query();

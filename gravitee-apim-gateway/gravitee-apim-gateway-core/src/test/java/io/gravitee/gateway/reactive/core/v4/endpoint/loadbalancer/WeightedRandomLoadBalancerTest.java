@@ -46,10 +46,9 @@ class WeightedRandomLoadBalancerTest {
         List<ManagedEndpoint> endpoints = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(
-                new Endpoint(),
-                new DefaultManagedEndpointGroup(new EndpointGroup()),
-                mock(EndpointConnector.class)
-            );
+                    new Endpoint(),
+                    new DefaultManagedEndpointGroup(new EndpointGroup()),
+                    mock(EndpointConnector.class));
             endpoints.add(managedEndpoint);
         }
         WeightedRandomLoadBalancer cut = new WeightedRandomLoadBalancer(endpoints);

@@ -26,15 +26,14 @@ public final class PortalNavigationFolder extends PortalNavigationItem implement
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.FOLDER;
 
     PortalNavigationFolder(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull Boolean published,
-        @Nonnull PortalVisibility visibility
-    ) {
+            @Nonnull PortalNavigationItemId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String title,
+            @Nonnull PortalArea area,
+            @Nonnull Integer order,
+            @Nonnull Boolean published,
+            @Nonnull PortalVisibility visibility) {
         super(id, organizationId, environmentId, title, area, order, published, visibility);
     }
 

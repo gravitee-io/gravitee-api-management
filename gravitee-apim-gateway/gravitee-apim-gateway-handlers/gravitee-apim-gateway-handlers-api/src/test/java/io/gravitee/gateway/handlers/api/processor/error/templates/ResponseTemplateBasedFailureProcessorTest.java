@@ -72,7 +72,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
     @BeforeEach
     public void setUp() {
-        when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
+        when(request.metrics())
+                .thenReturn(Metrics.on(System.currentTimeMillis()).build());
         when(request.headers()).thenReturn(requestHeaders);
         when(response.headers()).thenReturn(responseHeaders);
         when(context.request()).thenReturn(request);
@@ -176,7 +177,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         failure.key("POLICY_ERROR_KEY");
         failure.statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT))
+                .thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
         processor.handle(context);
@@ -204,10 +206,11 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                .key("POLICY_ERROR_KEY")
+                .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT))
+                .thenReturn(Collections.singletonList(MediaType.APPLICATION_XML));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
         processor.handle(context);
@@ -232,10 +235,11 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                .key("POLICY_ERROR_KEY")
+                .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
-        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(Collections.singletonList(MediaType.APPLICATION_JSON));
+        when(requestHeaders.getAll(HttpHeaderNames.ACCEPT))
+                .thenReturn(Collections.singletonList(MediaType.APPLICATION_JSON));
         when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
 
         processor.handle(context);
@@ -260,8 +264,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
 
         // Set failure
         DummyProcessorFailure failure = new DummyProcessorFailure()
-            .key("POLICY_ERROR_KEY")
-            .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                .key("POLICY_ERROR_KEY")
+                .statusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
 
         HttpHeaders headers = HttpHeaders.create();
         headers.set(HttpHeaderNames.ACCEPT, "text/html, application/json, */*;q=0.8, application/xml;q=0.9");

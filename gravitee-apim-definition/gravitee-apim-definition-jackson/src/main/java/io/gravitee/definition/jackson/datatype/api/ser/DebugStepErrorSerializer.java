@@ -18,7 +18,6 @@ package io.gravitee.definition.jackson.datatype.api.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.DebugStepError;
 import java.io.IOException;
 
@@ -29,7 +28,8 @@ public class DebugStepErrorSerializer extends StdScalarSerializer<DebugStepError
     }
 
     @Override
-    public void serialize(DebugStepError error, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    public void serialize(DebugStepError error, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("contentType", error.getContentType());
         jgen.writeStringField("key", error.getKey());

@@ -18,14 +18,13 @@ package io.gravitee.rest.api.kafkaexplorer.domain.model;
 import java.util.List;
 
 public record BrokerInfo(
-    int id,
-    String host,
-    int port,
-    String rack,
-    boolean isController,
-    int leaderPartitions,
-    int replicaPartitions,
-    Long logDirSize,
-    List<BrokerLogDirEntry> logDirEntries,
-    List<TopicConfigEntry> configs
-) {}
+        int id,
+        String host,
+        int port,
+        String rack,
+        boolean isController,
+        int leaderPartitions,
+        int replicaPartitions,
+        Long logDirSize,
+        List<BrokerLogDirEntry> logDirEntries,
+        List<TopicConfigEntry> configs) {}

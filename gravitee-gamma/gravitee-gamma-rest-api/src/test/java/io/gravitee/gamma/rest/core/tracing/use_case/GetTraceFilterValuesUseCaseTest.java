@@ -35,43 +35,29 @@ import org.junit.jupiter.api.Test;
 class GetTraceFilterValuesUseCaseTest {
 
     private static final TraceFilterSpec ENUM_HTTP_METHOD = new TraceFilterSpec(
-        "HTTP_METHOD",
-        "HTTP method",
-        FilterType.ENUM,
-        List.of(FilterOperator.EQ),
-        List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"),
-        null
-    );
+            "HTTP_METHOD",
+            "HTTP method",
+            FilterType.ENUM,
+            List.of(FilterOperator.EQ),
+            List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"),
+            null);
 
     private static final TraceFilterSpec NUMBER_FILTER = new TraceFilterSpec(
-        "HTTP_STATUS_CODE",
-        "HTTP status code",
-        FilterType.NUMBER,
-        List.of(FilterOperator.EQ),
-        null,
-        null
-    );
+            "HTTP_STATUS_CODE", "HTTP status code", FilterType.NUMBER, List.of(FilterOperator.EQ), null, null);
 
-    private static final TraceFilterSpec STRING_FILTER = new TraceFilterSpec(
-        "HTTP_ROUTE",
-        "HTTP route",
-        FilterType.STRING,
-        List.of(FilterOperator.EQ),
-        null,
-        null
-    );
+    private static final TraceFilterSpec STRING_FILTER =
+            new TraceFilterSpec("HTTP_ROUTE", "HTTP route", FilterType.STRING, List.of(FilterOperator.EQ), null, null);
 
-    private final GetTraceFilterValuesUseCase useCase = useCaseWith(
-        contributor(null, List.of(ENUM_HTTP_METHOD, NUMBER_FILTER, STRING_FILTER))
-    );
+    private final GetTraceFilterValuesUseCase useCase =
+            useCaseWith(contributor(null, List.of(ENUM_HTTP_METHOD, NUMBER_FILTER, STRING_FILTER)));
 
     @Test
     void should_return_all_enum_values_when_no_query_filter_supplied() {
         var output = useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "HTTP_METHOD", null, null, null));
 
         assertThat(output.page().data())
-            .extracting(TraceFilterValue::value)
-            .containsExactly("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS");
+                .extracting(TraceFilterValue::value)
+                .containsExactly("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS");
         assertThat(output.page().totalElements()).isEqualTo(7L);
     }
 
@@ -86,7 +72,8 @@ class GetTraceFilterValuesUseCaseTest {
 
     @Test
     void should_paginate_enum_values_with_1_based_pages_mirroring_apim() {
-        // perPage=3 on the 7-element enum → page 1 = [GET, POST, PUT], page 2 = [PATCH, DELETE, HEAD], page 3 = [OPTIONS].
+        // perPage=3 on the 7-element enum → page 1 = [GET, POST, PUT], page 2 = [PATCH, DELETE, HEAD], page 3 =
+        // [OPTIONS].
         var page1 = useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "HTTP_METHOD", null, 1, 3));
         var page2 = useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "HTTP_METHOD", null, 2, 3));
         var page3 = useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "HTTP_METHOD", null, 3, 3));
@@ -110,26 +97,29 @@ class GetTraceFilterValuesUseCaseTest {
 
     @Test
     void should_reject_NUMBER_filter_with_UnsupportedFilterException() {
-        assertThatThrownBy(() -> useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "HTTP_STATUS_CODE", null, null, null)))
-            .isInstanceOf(UnsupportedFilterException.class)
-            .hasMessageContaining("NUMBER")
-            .hasMessageContaining("HTTP_STATUS_CODE");
+        assertThatThrownBy(() -> useCase.execute(
+                        new GetTraceFilterValuesUseCase.Input(null, "HTTP_STATUS_CODE", null, null, null)))
+                .isInstanceOf(UnsupportedFilterException.class)
+                .hasMessageContaining("NUMBER")
+                .hasMessageContaining("HTTP_STATUS_CODE");
     }
 
     @Test
     void should_reject_STRING_filter_with_UnsupportedFilterException() {
-        assertThatThrownBy(() -> useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "HTTP_ROUTE", null, null, null)))
-            .isInstanceOf(UnsupportedFilterException.class)
-            .hasMessageContaining("STRING")
-            .hasMessageContaining("HTTP_ROUTE");
+        assertThatThrownBy(() ->
+                        useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "HTTP_ROUTE", null, null, null)))
+                .isInstanceOf(UnsupportedFilterException.class)
+                .hasMessageContaining("STRING")
+                .hasMessageContaining("HTTP_ROUTE");
     }
 
     @Test
     void should_throw_TraceFilterNotFoundException_for_unknown_filter_name() {
         // The addressed sub-resource doesn't exist in the registry → 404 path via NotFoundDomainException.
-        assertThatThrownBy(() -> useCase.execute(new GetTraceFilterValuesUseCase.Input(null, "UNKNOWN_FILTER", null, null, null)))
-            .isInstanceOf(TraceFilterNotFoundException.class)
-            .hasMessageContaining("UNKNOWN_FILTER");
+        assertThatThrownBy(() -> useCase.execute(
+                        new GetTraceFilterValuesUseCase.Input(null, "UNKNOWN_FILTER", null, null, null)))
+                .isInstanceOf(TraceFilterNotFoundException.class)
+                .hasMessageContaining("UNKNOWN_FILTER");
     }
 
     private static GetTraceFilterValuesUseCase useCaseWith(TraceFilterContributor... contributors) {

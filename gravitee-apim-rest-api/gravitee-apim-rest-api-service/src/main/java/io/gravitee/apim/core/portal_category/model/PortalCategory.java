@@ -35,7 +35,8 @@ public class PortalCategory {
     private boolean visible;
 
     /** Raw constructor - only used for database mapping, use {@link #create} or {@link #of} instead. */
-    private PortalCategory(PortalCategoryId id, String environmentId, String title, String description, boolean visible) {
+    private PortalCategory(
+            PortalCategoryId id, String environmentId, String title, String description, boolean visible) {
         this.id = id;
         this.environmentId = environmentId;
         this.title = title;
@@ -48,7 +49,8 @@ public class PortalCategory {
     }
 
     /** Reconstitute a portal category from a known id (database mapping). */
-    public static PortalCategory of(PortalCategoryId id, String environmentId, String title, String description, boolean visible) {
+    public static PortalCategory of(
+            PortalCategoryId id, String environmentId, String title, String description, boolean visible) {
         return new PortalCategory(id, environmentId, title, description, visible);
     }
 

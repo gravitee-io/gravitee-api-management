@@ -46,11 +46,13 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     @Override
-    public SearchResult searchReference(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
-        throws TechnicalException {
+    public SearchResult searchReference(
+            ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
+            throws TechnicalException {
         try {
             BooleanQuery.Builder pageQuery = this.buildQuery(query);
-            // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.
+            // Note: Page search does not seem to be used so for now we don't implement any filtering for organization
+            // or environment.
             return searchReference(pageQuery.build());
         } catch (ParseException pe) {
             throw new TechnicalException("Invalid query to search for page documents", pe);
@@ -58,19 +60,22 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     @Override
-    public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
-        throws TechnicalException {
+    public SearchResult search(
+            ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
+            throws TechnicalException {
         try {
             BooleanQuery.Builder pageQuery = this.buildQuery(query);
-            // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.
+            // Note: Page search does not seem to be used so for now we don't implement any filtering for organization
+            // or environment.
             return search(pageQuery.build());
         } catch (ParseException pe) {
             throw new TechnicalException("Invalid query to search for page documents", pe);
         }
     }
 
-    private BooleanQuery.Builder buildQuery(io.gravitee.rest.api.service.search.query.Query<?> query) throws ParseException {
-        QueryParser parser = new MultiFieldQueryParser(new String[] { "name", "name_lowercase", "content" }, analyzer);
+    private BooleanQuery.Builder buildQuery(io.gravitee.rest.api.service.search.query.Query<?> query)
+            throws ParseException {
+        QueryParser parser = new MultiFieldQueryParser(new String[] {"name", "name_lowercase", "content"}, analyzer);
         parser.setFuzzyMinSim(0.6f);
 
         BooleanQuery.Builder pageQuery = new BooleanQuery.Builder();
@@ -79,17 +84,20 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
             BooleanQuery.Builder pageFieldsQuery = new BooleanQuery.Builder();
             final Query parse = parser.parse(QueryParserBase.escape(query.getQuery()));
             pageFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
-            pageFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             pageFieldsQuery.add(
-                new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')),
-                BooleanClause.Occur.SHOULD
-            );
-            pageFieldsQuery.add(new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+                    new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(
+                    new WildcardQuery(
+                            new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')),
+                    BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(
+                    new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
         }
 
         pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
-        var baseFilterQuery = this.buildFilterQuery(query.getFilters(), Map.of(FIELD_API_TYPE_VALUE, FIELD_REFERENCE_ID));
+        var baseFilterQuery =
+                this.buildFilterQuery(query.getFilters(), Map.of(FIELD_API_TYPE_VALUE, FIELD_REFERENCE_ID));
         baseFilterQuery.ifPresent(q -> pageQuery.add(q, BooleanClause.Occur.FILTER));
         return pageQuery;
     }

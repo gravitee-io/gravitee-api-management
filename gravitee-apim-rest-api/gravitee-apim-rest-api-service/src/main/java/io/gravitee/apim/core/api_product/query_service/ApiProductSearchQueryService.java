@@ -27,22 +27,20 @@ import java.util.Set;
 
 public interface ApiProductSearchQueryService {
     Page<ApiProduct> search(
-        String environmentId,
-        String organizationId,
-        String query,
-        Set<String> ids,
-        Pageable pageable,
-        Sortable sortable,
-        ApiProductKindFilter kindFilter
-    );
+            String environmentId,
+            String organizationId,
+            String query,
+            Set<String> ids,
+            Pageable pageable,
+            Sortable sortable,
+            ApiProductKindFilter kindFilter);
 
     Page<GenericApiEntity> searchApis(
-        ExecutionContext executionContext,
-        String userId,
-        boolean isAdmin,
-        List<String> apiIds,
-        String query,
-        Sortable sortable,
-        Pageable pageable
-    );
+            ExecutionContext executionContext,
+            String userId,
+            boolean isAdmin,
+            List<String> apiIds,
+            String query,
+            Sortable sortable,
+            Pageable pageable);
 }

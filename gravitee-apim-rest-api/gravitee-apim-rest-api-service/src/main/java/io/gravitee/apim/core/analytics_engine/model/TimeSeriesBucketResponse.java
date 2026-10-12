@@ -22,9 +22,4 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record TimeSeriesBucketResponse(
-    String key,
-    String name,
-    Long timestamp,
-    List<FacetBucketResponse> buckets,
-    List<Measure> measures
-) {}
+        String key, String name, Long timestamp, List<FacetBucketResponse> buckets, List<Measure> measures) {}

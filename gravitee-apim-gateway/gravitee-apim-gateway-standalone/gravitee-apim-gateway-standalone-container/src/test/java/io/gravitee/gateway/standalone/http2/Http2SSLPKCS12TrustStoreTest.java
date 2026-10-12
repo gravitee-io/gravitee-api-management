@@ -49,14 +49,12 @@ public class Http2SSLPKCS12TrustStoreTest extends AbstractWiremockGatewayTest {
     @Override
     protected WireMockExtension getWiremockRule() {
         return WireMockExtension.newInstance()
-            .options(
-                wireMockConfig()
-                    .dynamicPort()
-                    .dynamicHttpsPort()
-                    .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
-                    .keystorePassword("password")
-            )
-            .build();
+                .options(wireMockConfig()
+                        .dynamicPort()
+                        .dynamicHttpsPort()
+                        .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
+                        .keystorePassword("password"))
+                .build();
     }
 
     @Test
@@ -64,24 +62,26 @@ public class Http2SSLPKCS12TrustStoreTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         // First call is calling an endpoint where trustAll is defined to true, no need for truststore => 200
-        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
-            HttpStatus.SC_OK,
-            response.getStatusLine().getStatusCode(),
-            "trustAll is defined to true, no need for truststore => 200"
-        );
+                HttpStatus.SC_OK,
+                response.getStatusLine().getStatusCode(),
+                "trustAll is defined to true, no need for truststore => 200");
 
         // Second call is calling an endpoint where trustAll is defined to false, without truststore => 502
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
-            HttpStatus.SC_BAD_GATEWAY,
-            response.getStatusLine().getStatusCode(),
-            "trustAll is defined to false, without truststore => 502"
-        );
+                HttpStatus.SC_BAD_GATEWAY,
+                response.getStatusLine().getStatusCode(),
+                "trustAll is defined to false, without truststore => 502");
 
         // Third call is calling an endpoint where trustAll is defined to false, with truststore => 200
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode(), "trustAll is defined to false, with truststore => 200");
+        assertEquals(
+                HttpStatus.SC_OK,
+                response.getStatusLine().getStatusCode(),
+                "trustAll is defined to false, with truststore => 200");
 
         // Check that the stub has been successfully invoked by the gateway
         wireMockRule.verify(2, getRequestedFor(urlPathEqualTo("/team/my_team")));
@@ -92,14 +92,18 @@ public class Http2SSLPKCS12TrustStoreTest extends AbstractWiremockGatewayTest {
         super.before(api);
 
         try {
-            for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
+            for (Endpoint endpoint :
+                    api.getProxy().getGroups().iterator().next().getEndpoints()) {
                 URL target = new URL(endpoint.getTarget());
-                URL newTarget = new URL(target.getProtocol(), target.getHost(), wireMockRule.getHttpsPort(), target.getFile());
+                URL newTarget =
+                        new URL(target.getProtocol(), target.getHost(), wireMockRule.getHttpsPort(), target.getFile());
                 endpoint.setTarget(newTarget.toString());
 
                 HttpEndpoint httpEndpoint = mapper.readValue(endpoint.getConfiguration(), HttpEndpoint.class);
-                if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getTrustStore() != null) {
-                    PKCS12TrustStore trustStore = (PKCS12TrustStore) httpEndpoint.getHttpClientSslOptions().getTrustStore();
+                if (httpEndpoint.getHttpClientSslOptions() != null
+                        && httpEndpoint.getHttpClientSslOptions().getTrustStore() != null) {
+                    PKCS12TrustStore trustStore = (PKCS12TrustStore)
+                            httpEndpoint.getHttpClientSslOptions().getTrustStore();
                     trustStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore.p12"));
                 }
                 endpoint.setConfiguration(mapper.writeValueAsString(httpEndpoint));

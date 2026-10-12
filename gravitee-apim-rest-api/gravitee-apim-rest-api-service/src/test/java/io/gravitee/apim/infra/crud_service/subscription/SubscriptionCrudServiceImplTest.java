@@ -73,9 +73,9 @@ public class SubscriptionCrudServiceImplTest {
         void should_return_subscription_and_adapt_it() throws TechnicalException {
             // Given
             var subscriptionId = "subscription-id";
-            when(subscriptionRepository.findById(subscriptionId)).thenAnswer(invocation ->
-                Optional.of(aSubscription().id(invocation.getArgument(0)).build())
-            );
+            when(subscriptionRepository.findById(subscriptionId))
+                    .thenAnswer(invocation -> Optional.of(
+                            aSubscription().id(invocation.getArgument(0)).build()));
 
             // When
             var result = service.get(subscriptionId);
@@ -93,27 +93,32 @@ public class SubscriptionCrudServiceImplTest {
                 soft.assertThat(result.getConsumerStatus()).isEqualTo(SubscriptionEntity.ConsumerStatus.STOPPED);
                 soft.assertThat(result.getProcessedBy()).isEqualTo("a-user");
                 soft.assertThat(result.getSubscribedBy()).isEqualTo("another-user");
-                soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getProcessedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getStartingAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getEndingAt()).isEqualTo(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getPausedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getConsumerPausedAt()).isEqualTo(Instant.parse("2020-02-05T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getClosedAt()).isEqualTo(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(result.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getProcessedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getStartingAt())
+                        .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getEndingAt())
+                        .isEqualTo(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getPausedAt())
+                        .isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getConsumerPausedAt())
+                        .isEqualTo(Instant.parse("2020-02-05T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getClosedAt())
+                        .isEqualTo(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(result.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(result.getGeneralConditionsContentRevision()).isEqualTo(12);
                 soft.assertThat(result.getGeneralConditionsContentPageId()).isEqualTo("page-id");
                 soft.assertThat(result.getGeneralConditionsAccepted()).isTrue();
                 soft.assertThat(result.getDaysToExpirationOnLastNotification()).isEqualTo(310);
-                soft
-                    .assertThat(result.getConfiguration())
-                    .isEqualTo(
-                        SubscriptionConfiguration.builder()
-                            .entrypointId("entrypoint-id")
-                            .channel("my-channel")
-                            .entrypointConfiguration("\"{}\"")
-                            .build()
-                    );
+                soft.assertThat(result.getConfiguration())
+                        .isEqualTo(SubscriptionConfiguration.builder()
+                                .entrypointId("entrypoint-id")
+                                .channel("my-channel")
+                                .entrypointConfiguration("\"{}\"")
+                                .build());
                 soft.assertThat(result.getMetadata()).containsExactly(Map.entry("metadata1", "value1"));
                 soft.assertThat(result.getType()).isEqualTo(SubscriptionEntity.Type.STANDARD);
                 soft.assertThat(result.getFailureCause()).isEqualTo("failure-cause");
@@ -131,8 +136,8 @@ public class SubscriptionCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(SubscriptionNotFoundException.class)
-                .hasMessage("Subscription [" + subscriptionId + "] cannot be found.");
+                    .isInstanceOf(SubscriptionNotFoundException.class)
+                    .hasMessage("Subscription [" + subscriptionId + "] cannot be found.");
         }
 
         @Test
@@ -146,8 +151,8 @@ public class SubscriptionCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find a subscription by id: " + subscriptionId);
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find a subscription by id: " + subscriptionId);
         }
     }
 
@@ -187,8 +192,8 @@ public class SubscriptionCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to update the subscription: subscription-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to update the subscription: subscription-id");
         }
     }
 
@@ -203,45 +208,45 @@ public class SubscriptionCrudServiceImplTest {
 
         @Test
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
-            doThrow(new TechnicalException("exception")).when(subscriptionRepository).delete("subscription-id");
+            doThrow(new TechnicalException("exception"))
+                    .when(subscriptionRepository)
+                    .delete("subscription-id");
             assertThatThrownBy(() -> service.delete("subscription-id"))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to delete the subscription with id: subscription-id");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to delete the subscription with id: subscription-id");
             verify(subscriptionRepository).delete("subscription-id");
         }
     }
 
     private Subscription.SubscriptionBuilder aSubscription() {
         return Subscription.builder()
-            .api("api-id")
-            .plan("plan-id")
-            .application("application-id")
-            .clientId("client-id")
-            .request("request-message")
-            .reason("reason-message")
-            .status(Subscription.Status.CLOSED)
-            .consumerStatus(Subscription.ConsumerStatus.STOPPED)
-            .type(Subscription.Type.STANDARD)
-            .processedBy("a-user")
-            .subscribedBy("another-user")
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-06T20:22:02.00Z")))
-            .processedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .pausedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
-            .consumerPausedAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
-            .startingAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .endingAt(Date.from(Instant.parse("2021-02-01T20:22:02.00Z")))
-            .closedAt(Date.from(Instant.parse("2020-02-06T20:22:02.00Z")))
-            .generalConditionsAccepted(true)
-            .generalConditionsContentRevision(12)
-            .generalConditionsContentPageId("page-id")
-            .daysToExpirationOnLastNotification(310)
-            .configuration(
-                """
+                .api("api-id")
+                .plan("plan-id")
+                .application("application-id")
+                .clientId("client-id")
+                .request("request-message")
+                .reason("reason-message")
+                .status(Subscription.Status.CLOSED)
+                .consumerStatus(Subscription.ConsumerStatus.STOPPED)
+                .type(Subscription.Type.STANDARD)
+                .processedBy("a-user")
+                .subscribedBy("another-user")
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-06T20:22:02.00Z")))
+                .processedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .pausedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                .consumerPausedAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                .startingAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .endingAt(Date.from(Instant.parse("2021-02-01T20:22:02.00Z")))
+                .closedAt(Date.from(Instant.parse("2020-02-06T20:22:02.00Z")))
+                .generalConditionsAccepted(true)
+                .generalConditionsContentRevision(12)
+                .generalConditionsContentPageId("page-id")
+                .daysToExpirationOnLastNotification(310)
+                .configuration("""
                 { "entrypointId": "entrypoint-id", "channel": "my-channel", "entrypointConfiguration": "{}" }
-                """
-            )
-            .metadata(Map.of("metadata1", "value1"))
-            .failureCause("failure-cause");
+                """)
+                .metadata(Map.of("metadata1", "value1"))
+                .failureCause("failure-cause");
     }
 }

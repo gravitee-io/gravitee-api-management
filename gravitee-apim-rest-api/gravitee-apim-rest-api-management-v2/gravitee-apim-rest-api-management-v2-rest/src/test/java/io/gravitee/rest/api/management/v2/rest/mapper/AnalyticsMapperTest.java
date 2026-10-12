@@ -35,7 +35,8 @@ public class AnalyticsMapperTest {
         assertThat(mappedAnalytics.getEnabled()).isEqualTo(analytics.isEnabled());
         assertThat(mappedAnalytics.getSampling()).isNotNull();
         assertThat("10").isEqualTo(mappedAnalytics.getSampling().getValue());
-        assertThat(Sampling.TypeEnum.COUNT).isEqualTo(mappedAnalytics.getSampling().getType());
+        assertThat(Sampling.TypeEnum.COUNT)
+                .isEqualTo(mappedAnalytics.getSampling().getType());
         assertThat(mappedAnalytics.getLogging()).isNotNull();
     }
 
@@ -47,7 +48,8 @@ public class AnalyticsMapperTest {
         assertThat(mappedAnalytics.isEnabled()).isEqualTo(analytics.getEnabled());
         assertThat(mappedAnalytics.getMessageSampling()).isNotNull();
         assertThat("10").isEqualTo(mappedAnalytics.getMessageSampling().getValue());
-        assertThat(Sampling.TypeEnum.COUNT.toString()).isEqualTo(mappedAnalytics.getMessageSampling().getType().toString());
+        assertThat(Sampling.TypeEnum.COUNT.toString())
+                .isEqualTo(mappedAnalytics.getMessageSampling().getType().toString());
         assertThat(mappedAnalytics.getLogging()).isNotNull();
     }
 }

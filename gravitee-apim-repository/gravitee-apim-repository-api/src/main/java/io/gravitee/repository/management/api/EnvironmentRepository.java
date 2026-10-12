@@ -27,7 +27,8 @@ import java.util.Set;
 public interface EnvironmentRepository extends CrudRepository<Environment, String> {
     Set<Environment> findByOrganization(String organizationId) throws TechnicalException;
 
-    Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids) throws TechnicalException;
+    Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids)
+            throws TechnicalException;
 
     Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException;
 

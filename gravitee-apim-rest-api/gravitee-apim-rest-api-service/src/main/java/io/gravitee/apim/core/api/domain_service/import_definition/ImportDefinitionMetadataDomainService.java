@@ -21,7 +21,6 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.Set;
-import lombok.CustomLog;
 
 @DomainService
 class ImportDefinitionMetadataDomainService {
@@ -35,22 +34,18 @@ class ImportDefinitionMetadataDomainService {
     void upsertMetadata(String apiId, Set<NewApiMetadata> metadataSet, AuditInfo auditInfo) {
         if (metadataSet != null) {
             apiMetadataDomainService.saveApiMetadata(
-                apiId,
-                metadataSet
-                    .stream()
-                    .map(importMetadata ->
-                        ApiMetadata.builder()
-                            .apiId(apiId)
-                            .key(importMetadata.getKey())
-                            .format(importMetadata.getFormat())
-                            .name(importMetadata.getName())
-                            .value(importMetadata.getValue())
-                            .defaultValue(importMetadata.getDefaultValue())
-                            .build()
-                    )
-                    .toList(),
-                auditInfo
-            );
+                    apiId,
+                    metadataSet.stream()
+                            .map(importMetadata -> ApiMetadata.builder()
+                                    .apiId(apiId)
+                                    .key(importMetadata.getKey())
+                                    .format(importMetadata.getFormat())
+                                    .name(importMetadata.getName())
+                                    .value(importMetadata.getValue())
+                                    .defaultValue(importMetadata.getDefaultValue())
+                                    .build())
+                            .toList(),
+                    auditInfo);
         }
     }
 }

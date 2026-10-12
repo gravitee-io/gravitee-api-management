@@ -45,11 +45,8 @@ class DefaultOrganizationReactorTest {
         Organization organization = new Organization();
         organization.setId("id");
         ReactableOrganization reactableOrganization = new ReactableOrganization(organization);
-        DefaultOrganizationReactor cut = new DefaultOrganizationReactor(
-            reactableOrganization,
-            policyChainFactory,
-            organizationPolicyManager
-        );
+        DefaultOrganizationReactor cut =
+                new DefaultOrganizationReactor(reactableOrganization, policyChainFactory, organizationPolicyManager);
 
         assertThat(cut.id()).isEqualTo(organization.getId());
         assertThat(cut.reactableOrganization()).isEqualTo(reactableOrganization);
@@ -61,11 +58,8 @@ class DefaultOrganizationReactorTest {
         Organization organization = new Organization();
         organization.setId("id");
         ReactableOrganization reactableOrganization = new ReactableOrganization(organization);
-        DefaultOrganizationReactor cut = new DefaultOrganizationReactor(
-            reactableOrganization,
-            policyChainFactory,
-            organizationPolicyManager
-        );
+        DefaultOrganizationReactor cut =
+                new DefaultOrganizationReactor(reactableOrganization, policyChainFactory, organizationPolicyManager);
 
         cut.start();
         verify(organizationPolicyManager).start();
@@ -76,11 +70,8 @@ class DefaultOrganizationReactorTest {
         Organization organization = new Organization();
         organization.setId("id");
         ReactableOrganization reactableOrganization = new ReactableOrganization(organization);
-        DefaultOrganizationReactor cut = new DefaultOrganizationReactor(
-            reactableOrganization,
-            policyChainFactory,
-            organizationPolicyManager
-        );
+        DefaultOrganizationReactor cut =
+                new DefaultOrganizationReactor(reactableOrganization, policyChainFactory, organizationPolicyManager);
 
         cut.stop();
         verify(organizationPolicyManager).stop();

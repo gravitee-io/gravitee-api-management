@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -84,7 +83,8 @@ public class GroupService_FindAllTest {
     @Test
     public void shouldThrowTechnicalManagementExceptionWhenRepositoryFails() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
-            when(groupRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenThrow(new TechnicalException("Database error"));
+            when(groupRepository.findAllByEnvironment(ENVIRONMENT_ID))
+                    .thenThrow(new TechnicalException("Database error"));
             groupService.findAllByEnvironment(ENVIRONMENT_ID);
         });
     }
@@ -108,7 +108,8 @@ public class GroupService_FindAllTest {
         environmentEntity.setName("env-name");
 
         when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(groups);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION_ID, ENVIRONMENT_ID))
+                .thenReturn(environmentEntity);
 
         List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
 

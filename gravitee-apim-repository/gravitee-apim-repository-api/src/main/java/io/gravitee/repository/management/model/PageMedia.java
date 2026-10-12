@@ -75,18 +75,15 @@ public class PageMedia {
 
     @Override
     public String toString() {
-        return (
-            "PageMedia{" +
-            "mediaHash='" +
-            mediaHash +
-            '\'' +
-            ", mediaName='" +
-            mediaName +
-            '\'' +
-            ", attachedAt='" +
-            attachedAt +
-            '\'' +
-            '}'
-        );
+        return ("PageMedia{" + "mediaHash='"
+                + mediaHash
+                + '\''
+                + ", mediaName='"
+                + mediaName
+                + '\''
+                + ", attachedAt='"
+                + attachedAt
+                + '\''
+                + '}');
     }
 }

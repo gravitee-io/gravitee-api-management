@@ -36,7 +36,8 @@ class KeyStoreMigrationTest {
 
         var result = KeyStoreMigration.convert(v2Jks);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore.class);
-        io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore jks = (io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore) result;
+        io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore jks =
+                (io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore) result;
         assertThat(jks.getPath()).isEqualTo("path");
         assertThat(jks.getContent()).isEqualTo("content");
         assertThat(jks.getPassword()).isEqualTo("password");
@@ -52,7 +53,8 @@ class KeyStoreMigrationTest {
 
         var result = KeyStoreMigration.convert(v2Pem);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore.class);
-        io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore pem = (io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore) result;
+        io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore pem =
+                (io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore) result;
         assertThat(pem.getKeyPath()).isEqualTo("keyPath");
         assertThat(pem.getKeyContent()).isEqualTo("keyContent");
         assertThat(pem.getCertPath()).isEqualTo("certPath");
@@ -61,7 +63,8 @@ class KeyStoreMigrationTest {
 
     @Test
     void shouldConvertPKCS12KeyStore() {
-        io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore v2Pkcs12 = new io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore();
+        io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore v2Pkcs12 =
+                new io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore();
         v2Pkcs12.setPath("pkcsPath");
         v2Pkcs12.setPassword("pkcsPassword");
         v2Pkcs12.setContent("pkcsContent");
@@ -69,7 +72,7 @@ class KeyStoreMigrationTest {
         var result = KeyStoreMigration.convert(v2Pkcs12);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore.class);
         io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore pkcs12 =
-            (io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore) result;
+                (io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore) result;
         assertThat(pkcs12.getPath()).isEqualTo("pkcsPath");
         assertThat(pkcs12.getPassword()).isEqualTo("pkcsPassword");
         assertThat(pkcs12.getContent()).isEqualTo("pkcsContent");
@@ -77,9 +80,8 @@ class KeyStoreMigrationTest {
 
     @Test
     void shouldConvertNoneKeyStore() {
-        io.gravitee.definition.model.ssl.none.NoneKeyStore v2None = new io.gravitee.definition.model.ssl.none.NoneKeyStore(
-            KeyStoreType.None
-        );
+        io.gravitee.definition.model.ssl.none.NoneKeyStore v2None =
+                new io.gravitee.definition.model.ssl.none.NoneKeyStore(KeyStoreType.None);
 
         var result = KeyStoreMigration.convert(v2None);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.none.NoneKeyStore.class);

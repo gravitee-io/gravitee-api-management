@@ -42,16 +42,13 @@ public class GraviteeApiDefinition implements ReaderListener {
         if (openAPI.getTags() != null) {
             openAPI.getTags().forEach(tag -> tags.put(tag.getName(), tag));
         }
-        openAPI
-            .getPaths()
-            .values()
-            .stream()
-            .map(PathItem::readOperations)
-            .flatMap(Collection::stream)
-            .map(Operation::getTags)
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .forEach(tag -> tags.computeIfAbsent(tag, s -> new Tag().name(s)));
+        openAPI.getPaths().values().stream()
+                .map(PathItem::readOperations)
+                .flatMap(Collection::stream)
+                .map(Operation::getTags)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .forEach(tag -> tags.computeIfAbsent(tag, s -> new Tag().name(s)));
         // sort tags for better comparisons
         openAPI.tags(new ArrayList<>(tags.values()));
         // sort paths for better comparisons
@@ -61,7 +58,9 @@ public class GraviteeApiDefinition implements ReaderListener {
         // sort definitions for better comparisons
         Components components = new Components();
         components.schemas(new TreeMap<>(openAPI.getComponents().getSchemas()));
-        components.addSecuritySchemes(TOKEN_AUTH_SCHEME, new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic"));
+        components.addSecuritySchemes(
+                TOKEN_AUTH_SCHEME,
+                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic"));
         openAPI.components(components);
         openAPI.addSecurityItem(new SecurityRequirement().addList(TOKEN_AUTH_SCHEME));
     }

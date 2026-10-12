@@ -27,11 +27,11 @@ public interface ResponseTemplateMapper {
     ResponseTemplateMapper INSTANCE = Mappers.getMapper(ResponseTemplateMapper.class);
 
     // ResponseTemplate
-    Map<String, ResponseTemplate> mapToApiModel(Map<String, io.gravitee.definition.model.ResponseTemplate> responseTemplate);
+    Map<String, ResponseTemplate> mapToApiModel(
+            Map<String, io.gravitee.definition.model.ResponseTemplate> responseTemplate);
 
     default Map<String, Map<String, ResponseTemplate>> mapResponseTemplateToApiModel(
-        Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> value
-    ) {
+            Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> value) {
         if (Objects.isNull(value)) {
             return null;
         }
@@ -40,11 +40,11 @@ public interface ResponseTemplateMapper {
         return convertedMap;
     }
 
-    Map<String, io.gravitee.definition.model.ResponseTemplate> mapToEntity(Map<String, ResponseTemplate> responseTemplate);
+    Map<String, io.gravitee.definition.model.ResponseTemplate> mapToEntity(
+            Map<String, ResponseTemplate> responseTemplate);
 
     default Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> mapResponseTemplateToEntity(
-        Map<String, Map<String, ResponseTemplate>> value
-    ) {
+            Map<String, Map<String, ResponseTemplate>> value) {
         if (Objects.isNull(value)) {
             return null;
         }

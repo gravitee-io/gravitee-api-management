@@ -29,11 +29,11 @@ public class EnvironmentIdUpdatedAtIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("keys")
-            .name("e1ua1i1")
-            .key("environmentId", ascending())
-            .key("updatedAt", ascending())
-            .key("_id", ascending())
-            .build();
+                .collection("keys")
+                .name("e1ua1i1")
+                .key("environmentId", ascending())
+                .key("updatedAt", ascending())
+                .key("_id", ascending())
+                .build();
     }
 }

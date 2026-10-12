@@ -73,9 +73,9 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
     @Override
     public void configurePolicies(final Map<String, PolicyPlugin> policies) {
         policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
+                "api-key",
+                PolicyBuilder.build(
+                        "api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class));
     }
 
     protected Stream<Arguments> provideApis() {
@@ -86,49 +86,45 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
         return provideApis().flatMap(arguments -> {
             String apiId = (String) arguments.get()[0];
             return Stream.of(
-                Arguments.of(apiId, null, null),
-                Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                Arguments.of(apiId, "Authorization", ""),
-                Arguments.of(apiId, "Authorization", "Bearer"),
-                Arguments.of(apiId, "Authorization", "Bearer "),
-                Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-            );
+                    Arguments.of(apiId, null, null),
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                    Arguments.of(apiId, "Authorization", ""),
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
+                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"));
         });
     }
 
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_200_success_with_api_key_and_subscription_on_the_api(
-        final String apiId,
-        final boolean requireWiremock,
-        final HttpClient client
-    ) {
+            final String apiId, final boolean requireWiremock, final HttpClient client) {
         final ApiKey apiKey = createApiKey(apiId, false, false);
         when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
-        whenSearchingSubscription(apiKey).thenReturn(Optional.of(createSubscription(apiKey.getApi(), PLAN_APIKEY_ID, false)));
+        whenSearchingSubscription(apiKey)
+                .thenReturn(Optional.of(createSubscription(apiKey.getApi(), PLAN_APIKEY_ID, false)));
 
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("X-Gravitee-Api-Key", apiKey.getKey());
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("X-Gravitee-Api-Key", apiKey.getKey());
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         if (requireWiremock) {
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -138,32 +134,27 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideWrongSecurityHeaders")
     protected void should_return_401_unauthorized_with_wrong_security(
-        final String apiId,
-        final String headerName,
-        final String headerValue,
-        final HttpClient client
-    ) {
+            final String apiId, final String headerName, final String headerValue, final HttpClient client) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                if (headerName != null) {
-                    request.putHeader(headerName, headerValue);
-                }
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("Unauthorized");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    if (headerName != null) {
+                        request.putHeader(headerName, headerValue);
+                    }
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("Unauthorized");
+                    return true;
+                });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -171,10 +162,7 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(
-        final String path,
-        final boolean requireWiremock,
-        final HttpClient client
-    ) {
+            final String path, final boolean requireWiremock, final HttpClient client) {
         final ApiKey apiKey = createApiKey("another-api", false, false);
         assertUnauthorizedWithKey(path, client, apiKey, false);
     }
@@ -182,10 +170,7 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(
-        final String path,
-        final boolean requireWiremock,
-        final HttpClient client
-    ) {
+            final String path, final boolean requireWiremock, final HttpClient client) {
         final ApiKey apiKey = createApiKey("my-v2-api", true, false);
         assertUnauthorizedWithKey(path, client, apiKey, true);
     }
@@ -193,46 +178,39 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(
-        final String path,
-        final boolean requireWiremock,
-        final HttpClient client
-    ) {
+            final String path, final boolean requireWiremock, final HttpClient client) {
         final ApiKey apiKey = createApiKey("my-v2-api", false, true);
         assertUnauthorizedWithKey(path, client, apiKey, true);
     }
 
     private void assertUnauthorizedWithKey(
-        final String apiId,
-        final HttpClient client,
-        final ApiKey apiKey,
-        final boolean withSubscription
-    ) {
+            final String apiId, final HttpClient client, final ApiKey apiKey, final boolean withSubscription) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("data")));
 
         when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
         if (withSubscription) {
-            whenSearchingSubscription(apiKey).thenReturn(Optional.of(createSubscription(apiKey.getApi(), PLAN_APIKEY_ID, false)));
+            whenSearchingSubscription(apiKey)
+                    .thenReturn(Optional.of(createSubscription(apiKey.getApi(), PLAN_APIKEY_ID, false)));
         } else {
             whenSearchingSubscription(apiKey).thenReturn(Optional.empty());
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("X-Gravitee-Api-Key", apiKey.getKey());
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("Unauthorized");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("X-Gravitee-Api-Key", apiKey.getKey());
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("Unauthorized");
+                    return true;
+                });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -256,15 +234,11 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
     }
 
     private OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(ApiKey apiKey) {
-        return when(
-            getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                eq(apiKey.getApi()),
-                argThat(
-                    securityToken ->
-                        securityToken.getTokenType().equals(API_KEY.name()) && securityToken.getTokenValue().equals(apiKey.getKey())
-                ),
-                eq(apiKey.getPlan())
-            )
-        );
+        return when(getBean(SubscriptionService.class)
+                .getByApiAndSecurityToken(
+                        eq(apiKey.getApi()),
+                        argThat(securityToken -> securityToken.getTokenType().equals(API_KEY.name())
+                                && securityToken.getTokenValue().equals(apiKey.getKey())),
+                        eq(apiKey.getPlan())));
     }
 }

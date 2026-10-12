@@ -233,13 +233,15 @@ public final class HRIDToUUID {
         }
     }
 
-    public record PortalNavigationItemResult(String organizationId, String environmentId, String portalId, String kind, String identifier) {
+    public record PortalNavigationItemResult(
+            String organizationId, String environmentId, String portalId, String kind, String identifier) {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, portalId, kind, identifier);
         }
     }
 
-    public record ApiNavigationItemResult(String organizationId, String environmentId, String apiId, String kind, String identifier) {
+    public record ApiNavigationItemResult(
+            String organizationId, String environmentId, String apiId, String kind, String identifier) {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, apiId, kind, identifier);
         }
@@ -258,7 +260,8 @@ public final class HRIDToUUID {
 
     public record PortalSubResourceWithContext(String organizationId, String environmentId) {
         public PortalSubResourceWithPortal portal(String portalHrid) {
-            return new PortalSubResourceWithPortal(UuidString.generateFrom(organizationId, "portal", portalHrid), environmentId);
+            return new PortalSubResourceWithPortal(
+                    UuidString.generateFrom(organizationId, "portal", portalHrid), environmentId);
         }
     }
 

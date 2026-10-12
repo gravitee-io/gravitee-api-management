@@ -89,7 +89,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @GatewayTest
-@DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+@DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
 class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest {
 
     private SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
@@ -105,13 +105,16 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
@@ -130,11 +133,10 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
 
     @Override
     protected void configureHttpClient(
-        HttpClientOptions options,
-        PoolOptions poolOptions,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
+            HttpClientOptions options,
+            PoolOptions poolOptions,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {
         boolean withCert = parameterContext.findAnnotation(WithCert.class).isPresent();
         configureTrustedHttpClient(options, gatewayConfig.httpPort(), withCert);
     }
@@ -142,40 +144,37 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
     @SneakyThrows
     @Override
     protected void configureGateway(GatewayConfigurationBuilder config) {
-        config
-            .httpSecured(true)
-            .set("http.ssl.clientAuth", "required")
-            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
+        config.httpSecured(true)
+                .set("http.ssl.clientAuth", "required")
+                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
     }
 
     @BeforeEach
     void setUp() {
         subscriptionTrustStoreLoaderManager = getBean(SubscriptionTrustStoreLoaderManager.class);
         // Cheat to use the real SubscriptionTrustStoreLoaderManager instance with SubscriptionService mock
-        final SubscriptionCacheService subscriptionService = (SubscriptionCacheService) getBean(SubscriptionService.class);
+        final SubscriptionCacheService subscriptionService =
+                (SubscriptionCacheService) getBean(SubscriptionService.class);
         when(subscriptionService.getByApiAndSecurityToken(any(), any(), any())).thenCallRealMethod();
-        ReflectionTestUtils.setField(subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
+        ReflectionTestUtils.setField(
+                subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
     }
 
     @ParameterizedTest
     @MethodSource("provideApis")
     void should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_unsecured_request(
-        final String apiId,
-        final boolean requireWiremock,
-        final HttpClient client
-    ) {
+            final String apiId, final boolean requireWiremock, final HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
-        client
-            .rxRequest(GET, PlanHelper.getApiPath(apiId))
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertError(t -> {
-                assertThat(t.getCause()).isInstanceOf(SSLHandshakeException.class);
-                return true;
-            });
+        client.rxRequest(GET, PlanHelper.getApiPath(apiId))
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertError(t -> {
+                    assertThat(t.getCause()).isInstanceOf(SSLHandshakeException.class);
+                    return true;
+                });
         if (requireWiremock) {
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -184,22 +183,18 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
     @ParameterizedTest
     @MethodSource("provideApis")
     void should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_secured_request(
-        final String apiId,
-        final boolean requireWiremock,
-        HttpClient client
-    ) {
+            final String apiId, final boolean requireWiremock, HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
-        client
-            .rxRequest(GET, PlanHelper.getApiPath(apiId))
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertError(t -> {
-                assertThat(t.getCause()).isInstanceOf(SSLException.class);
-                return true;
-            });
+        client.rxRequest(GET, PlanHelper.getApiPath(apiId))
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertError(t -> {
+                    assertThat(t.getCause()).isInstanceOf(SSLException.class);
+                    return true;
+                });
         if (requireWiremock) {
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -208,22 +203,18 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
     @ParameterizedTest
     @MethodSource("provideApis")
     void should_not_be_able_to_call_api_with_mtls_plan_if_certificate_not_registered_from_subscription(
-        final String apiId,
-        final boolean requireWiremock,
-        @WithCert HttpClient client
-    ) {
+            final String apiId, final boolean requireWiremock, @WithCert HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
-        client
-            .rxRequest(GET, PlanHelper.getApiPath(apiId))
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertError(t -> {
-                assertThat(t.getCause()).isInstanceOf(SSLException.class);
-                return true;
-            });
+        client.rxRequest(GET, PlanHelper.getApiPath(apiId))
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertError(t -> {
+                    assertThat(t.getCause()).isInstanceOf(SSLException.class);
+                    return true;
+                });
         if (requireWiremock) {
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -231,27 +222,28 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_be_able_to_call_api_with_mtls_plan(final String apiId, final boolean requireWiremock, @WithCert HttpClient client) {
+    void should_be_able_to_call_api_with_mtls_plan(
+            final String apiId, final boolean requireWiremock, @WithCert HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
         final Subscription subscription = aSubscription(apiId);
-        // Directly use the SubscriptionTrustStoreLoaderManager to fake the sync process of a subscription and register the certificate
+        // Directly use the SubscriptionTrustStoreLoaderManager to fake the sync process of a subscription and register
+        // the certificate
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
-        client
-            .rxRequest(GET, PlanHelper.getApiPath(apiId))
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(OK_200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, PlanHelper.getApiPath(apiId))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(OK_200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         subscriptionTrustStoreLoaderManager.unregisterSubscription(subscription);
         if (requireWiremock) {
@@ -262,32 +254,29 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
     @ParameterizedTest
     @MethodSource("provideApis")
     void should_be_able_to_call_api_with_mtls_plan_and_several_cert(
-        final String apiId,
-        final boolean requireWiremock,
-        @WithCert HttpClient client
-    ) {
+            final String apiId, final boolean requireWiremock, @WithCert HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
         final Subscription subscription = aSubscriptionWithTwoCertificate(apiId);
 
-        // Directly use the SubscriptionTrustStoreLoaderManager to fake the sync process of a subscription and register the certificate
+        // Directly use the SubscriptionTrustStoreLoaderManager to fake the sync process of a subscription and register
+        // the certificate
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
-        client
-            .rxRequest(GET, PlanHelper.getApiPath(apiId))
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(OK_200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, PlanHelper.getApiPath(apiId))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(OK_200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         subscriptionTrustStoreLoaderManager.unregisterSubscription(subscription);
         if (requireWiremock) {
@@ -311,12 +300,13 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
         subscription.setApplication("application-id");
         subscription.setId("subscription-id");
         subscription.setPlan(PlanHelper.PLAN_MTLS_ID);
-        final String clientCertificate = Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
+        final String clientCertificate =
+                Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
         if (pkcs7) {
-            final String clientCertificate2 = Files.readString(Paths.get(getUrl("plans/mtls/client2.cer").getPath()));
-            subscription.setClientCertificate(
-                Base64.getEncoder().encodeToString(PKCS7Utils.createBundle(List.of(clientCertificate, clientCertificate2)))
-            );
+            final String clientCertificate2 =
+                    Files.readString(Paths.get(getUrl("plans/mtls/client2.cer").getPath()));
+            subscription.setClientCertificate(Base64.getEncoder()
+                    .encodeToString(PKCS7Utils.createBundle(List.of(clientCertificate, clientCertificate2))));
         } else {
             subscription.setClientCertificate(Base64.getEncoder().encodeToString(clientCertificate.getBytes()));
         }

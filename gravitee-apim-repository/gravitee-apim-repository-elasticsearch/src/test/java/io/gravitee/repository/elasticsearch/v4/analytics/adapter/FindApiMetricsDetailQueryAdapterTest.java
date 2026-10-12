@@ -34,9 +34,7 @@ class FindApiMetricsDetailQueryAdapterTest {
 
     static Stream<Arguments> apiMetricsDetailQueries() {
         return Stream.of(
-            Arguments.of(
-                new ApiMetricsDetailQuery("apiId", "requestId"),
-                """
+                Arguments.of(new ApiMetricsDetailQuery("apiId", "requestId"), """
                 {
                   "query": {
                     "bool": {
@@ -47,11 +45,8 @@ class FindApiMetricsDetailQueryAdapterTest {
                     }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                new ApiMetricsDetailQuery("apiId", null),
-                """
+                """),
+                Arguments.of(new ApiMetricsDetailQuery("apiId", null), """
                 {
                   "query": {
                     "bool": {
@@ -61,11 +56,8 @@ class FindApiMetricsDetailQueryAdapterTest {
                     }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                new ApiMetricsDetailQuery(null, "requestId"),
-                """
+                """),
+                Arguments.of(new ApiMetricsDetailQuery(null, "requestId"), """
                 {
                   "query": {
                     "bool": {
@@ -75,14 +67,9 @@ class FindApiMetricsDetailQueryAdapterTest {
                     }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                new ApiMetricsDetailQuery(null, null),
-                """
+                """),
+                Arguments.of(new ApiMetricsDetailQuery(null, null), """
                 {}
-                """
-            )
-        );
+                """));
     }
 }

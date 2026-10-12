@@ -52,25 +52,23 @@ class GetObservabilityDashboardUseCaseTest {
 
     @Test
     void should_return_the_dashboard_with_filters_and_time_range_restored() {
-        dashboardRepository.givenDashboard(
-            new Dashboard(
+        dashboardRepository.givenDashboard(new Dashboard(
                 DASHBOARD_ID,
                 ENV,
                 null,
                 "Performance overview",
                 "desc",
                 List.of(
-                    new DashboardFilter(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MCP")), "API Type", false),
-                    new DashboardFilter(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of()), "Status Code", true)
-                ),
+                        new DashboardFilter(
+                                new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MCP")), "API Type", false),
+                        new DashboardFilter(
+                                new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of()), "Status Code", true)),
                 new TimeRange(TimeRangeType.RELATIVE, "24h", null, null),
                 NullNode.getInstance(),
                 3,
                 "user-1",
                 Instant.parse("2026-06-10T00:00:00Z"),
-                Instant.parse("2026-06-11T00:00:00Z")
-            )
-        );
+                Instant.parse("2026-06-11T00:00:00Z")));
 
         var output = useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, null));
 
@@ -83,15 +81,13 @@ class GetObservabilityDashboardUseCaseTest {
 
     @Test
     void should_throw_not_found_when_dashboard_does_not_exist() {
-        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, "unknown", null))).isInstanceOf(
-            DashboardNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, "unknown", null)))
+                .isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
     void should_throw_not_found_when_dashboard_belongs_to_another_environment() {
-        dashboardRepository.givenDashboard(
-            new Dashboard(
+        dashboardRepository.givenDashboard(new Dashboard(
                 DASHBOARD_ID,
                 OTHER_ENV,
                 null,
@@ -103,13 +99,10 @@ class GetObservabilityDashboardUseCaseTest {
                 1,
                 "user-1",
                 Instant.parse("2026-06-10T00:00:00Z"),
-                Instant.parse("2026-06-10T00:00:00Z")
-            )
-        );
+                Instant.parse("2026-06-10T00:00:00Z")));
 
-        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, null))).isInstanceOf(
-            DashboardNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, null)))
+                .isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
@@ -125,43 +118,40 @@ class GetObservabilityDashboardUseCaseTest {
     void should_throw_not_found_when_the_requested_module_does_not_match() {
         dashboardRepository.givenDashboard(moduleDashboard("apim"));
 
-        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "aim"))).isInstanceOf(
-            DashboardNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "aim")))
+                .isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
     void should_throw_not_found_when_a_module_is_requested_for_a_dashboard_without_one() {
         dashboardRepository.givenDashboard(moduleDashboard(null));
 
-        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "aim"))).isInstanceOf(
-            DashboardNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "aim")))
+                .isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
     void should_reject_an_invalid_module() {
         dashboardRepository.givenDashboard(moduleDashboard("aim"));
 
-        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "a i m"))).isInstanceOf(
-            InvalidDashboardException.class
-        );
+        assertThatThrownBy(
+                        () -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "a i m")))
+                .isInstanceOf(InvalidDashboardException.class);
     }
 
     private static Dashboard moduleDashboard(String module) {
         return new Dashboard(
-            DASHBOARD_ID,
-            ENV,
-            module,
-            "Performance overview",
-            null,
-            List.of(),
-            null,
-            NullNode.getInstance(),
-            1,
-            "user-1",
-            Instant.parse("2026-06-10T00:00:00Z"),
-            Instant.parse("2026-06-10T00:00:00Z")
-        );
+                DASHBOARD_ID,
+                ENV,
+                module,
+                "Performance overview",
+                null,
+                List.of(),
+                null,
+                NullNode.getInstance(),
+                1,
+                "user-1",
+                Instant.parse("2026-06-10T00:00:00Z"),
+                Instant.parse("2026-06-10T00:00:00Z"));
     }
 }

@@ -61,9 +61,8 @@ public class SubscriptionFormDefinitionDomainService {
         graviteeMarkdownValidator.validateNotEmpty(gmd);
         var schema = schemaGenerator.generate(gmd);
         if (schema != null && schema.fields().size() > SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT) {
-            throw new SubscriptionFormDefinitionValidationException(
-                "Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields"
-            );
+            throw new SubscriptionFormDefinitionValidationException("Subscription form must not exceed "
+                    + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields");
         }
         return new Definition(gmd, SubscriptionFormConstraintsFactory.fromSchema(schema));
     }
@@ -80,13 +79,11 @@ public class SubscriptionFormDefinitionDomainService {
         var trimmed = name.trim();
         if (trimmed.length() > MAX_NAME_LENGTH) {
             throw new SubscriptionFormDefinitionValidationException(
-                "Subscription form name must not exceed " + MAX_NAME_LENGTH + " characters"
-            );
+                    "Subscription form name must not exceed " + MAX_NAME_LENGTH + " characters");
         }
-        var taken = subscriptionFormQueryService
-            .findAllByEnvironmentId(environmentId)
-            .stream()
-            .anyMatch(form -> form.getName().equalsIgnoreCase(trimmed) && !form.getId().equals(subscriptionFormId));
+        var taken = subscriptionFormQueryService.findAllByEnvironmentId(environmentId).stream()
+                .anyMatch(form -> form.getName().equalsIgnoreCase(trimmed)
+                        && !form.getId().equals(subscriptionFormId));
         if (taken) {
             throw new SubscriptionFormNameAlreadyExistsException(trimmed);
         }
@@ -99,52 +96,38 @@ public class SubscriptionFormDefinitionDomainService {
      * @param subscriptionFormId the form being updated, or {@code null} when creating one
      */
     public List<String> validateApiIds(
-        String environmentId,
-        @Nullable List<String> apiIds,
-        @Nullable SubscriptionFormId subscriptionFormId
-    ) {
+            String environmentId, @Nullable List<String> apiIds, @Nullable SubscriptionFormId subscriptionFormId) {
         if (apiIds == null || apiIds.isEmpty()) {
             return List.of();
         }
-        var distinctIds = apiIds
-            .stream()
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(id -> !id.isEmpty())
-            .distinct()
-            .toList();
+        var distinctIds = apiIds.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(id -> !id.isEmpty())
+                .distinct()
+                .toList();
         if (distinctIds.isEmpty()) {
             return List.of();
         }
 
-        Set<String> known = apiCrudService
-            .findByIds(distinctIds)
-            .stream()
-            .filter(api -> environmentId.equals(api.getEnvironmentId()))
-            .map(Api::getId)
-            .collect(Collectors.toSet());
-        var unknown = distinctIds
-            .stream()
-            .filter(id -> !known.contains(id))
-            .toList();
+        Set<String> known = apiCrudService.findByIds(distinctIds).stream()
+                .filter(api -> environmentId.equals(api.getEnvironmentId()))
+                .map(Api::getId)
+                .collect(Collectors.toSet());
+        var unknown = distinctIds.stream().filter(id -> !known.contains(id)).toList();
         if (!unknown.isEmpty()) {
-            throw new SubscriptionFormDefinitionValidationException("Unknown APIs in this environment: " + String.join(", ", unknown));
+            throw new SubscriptionFormDefinitionValidationException(
+                    "Unknown APIs in this environment: " + String.join(", ", unknown));
         }
 
-        subscriptionFormQueryService
-            .findAllByEnvironmentId(environmentId)
-            .stream()
-            .filter(form -> !form.getId().equals(subscriptionFormId))
-            .forEach(form ->
-                form
-                    .getApiIds()
-                    .stream()
-                    .filter(distinctIds::contains)
-                    .findFirst()
-                    .ifPresent(apiId -> {
-                        throw new SubscriptionFormApiAlreadyMappedException(apiId, form.getName());
-                    })
-            );
+        subscriptionFormQueryService.findAllByEnvironmentId(environmentId).stream()
+                .filter(form -> !form.getId().equals(subscriptionFormId))
+                .forEach(form -> form.getApiIds().stream()
+                        .filter(distinctIds::contains)
+                        .findFirst()
+                        .ifPresent(apiId -> {
+                            throw new SubscriptionFormApiAlreadyMappedException(apiId, form.getName());
+                        }));
         return distinctIds;
     }
 

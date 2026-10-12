@@ -51,12 +51,24 @@ import org.junit.jupiter.api.*;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiLogsResourceTest extends ApiResourceTest {
 
-    private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").apiId(API).build();
-    private static final Plan PLAN_2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan2").name("2nd plan").apiId(API).build();
-    private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
+    private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder()
+            .id("plan1")
+            .name("1st plan")
+            .apiId(API)
+            .build();
+    private static final Plan PLAN_2 = PlanFixtures.aPlanHttpV4().toBuilder()
+            .id("plan2")
+            .name("2nd plan")
+            .apiId(API)
+            .build();
+    private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder()
+            .id("app1")
+            .name("an application name")
+            .build();
     public static final String REQUEST_ID = "request-id";
 
-    final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN_1.getId());
+    final ConnectionLogFixtures connectionLogFixtures =
+            new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN_1.getId());
 
     @Inject
     ConnectionLogsCrudServiceInMemory connectionLogStorageService;
@@ -98,12 +110,12 @@ class ApiLogsResourceTest extends ApiResourceTest {
         GraviteeContext.cleanContext();
 
         Stream.of(
-            apiCrudService,
-            applicationStorageService,
-            connectionLogStorageService,
-            messageLogStorageService,
-            planStorageService
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudService,
+                        applicationStorageService,
+                        connectionLogStorageService,
+                        messageLogStorageService,
+                        planStorageService)
+                .forEach(InMemoryAlternative::reset);
         fakeAnalyticsQueryService.reset();
         fakeAnalyticsQueryService.apiMetricsDetail = null;
     }
@@ -118,22 +130,20 @@ class ApiLogsResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.API_LOG,
-                    API,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.API_LOG,
+                            API,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
 
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -143,60 +153,64 @@ class ApiLogsResourceTest extends ApiResourceTest {
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .isEqualTo(
-                    new ApiLogsResponse()
-                        .data(
-                            List.of(
-                                new ApiLog()
-                                    .application(new BaseApplication().id(APPLICATION.getId()).name(APPLICATION.getName()))
-                                    .plan(
-                                        new BasePlan()
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .isEqualTo(new ApiLogsResponse()
+                            .data(List.of(new ApiLog()
+                                    .application(new BaseApplication()
+                                            .id(APPLICATION.getId())
+                                            .name(APPLICATION.getName()))
+                                    .plan(new BasePlan()
                                             .id(PLAN_1.getId())
                                             .name(PLAN_1.getName())
                                             .apiId(API)
                                             .description(PLAN_1.getDescription())
                                             .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS))
-                                            .mode(PlanMode.STANDARD)
-                                    )
+                                            .mode(PlanMode.STANDARD))
                                     .method(HttpMethod.GET)
                                     .status(200)
                                     .clientIdentifier("client-identifier")
                                     .requestEnded(true)
                                     .requestId("req1")
                                     .transactionId("transaction-id")
-                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z")
+                                            .atOffset(ZoneOffset.UTC))
                                     .gatewayResponseTime(42)
                                     .uri("/my-api")
-                                    .endpoint("https://my-api-example.com")
-                            )
-                        )
-                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
-                        .links(new Links().self(connectionLogsTarget.getUri().toString()))
-                );
+                                    .endpoint("https://my-api-example.com")))
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(1)
+                                    .totalCount(1L))
+                            .links(new Links()
+                                    .self(connectionLogsTarget.getUri().toString())));
         }
 
         @Test
         void should_compute_pagination() {
             var total = 20L;
             var pageSize = 5;
-            connectionLogStorageService.initWithConnectionLogs(
-                LongStream.range(0, total)
+            connectionLogStorageService.initWithConnectionLogs(LongStream.range(0, total)
                     .mapToObj(i -> connectionLogFixtures.aConnectionLog())
-                    .toList()
-            );
+                    .toList());
 
             connectionLogsTarget = connectionLogsTarget
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
+                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .extracting(ApiLogsResponse::getPagination)
-                .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .extracting(ApiLogsResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(2)
+                            .perPage(pageSize)
+                            .pageCount(4)
+                            .pageItemsCount(pageSize)
+                            .totalCount(total));
         }
 
         @Test
@@ -204,97 +218,121 @@ class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var page = 2;
             var pageSize = 5;
-            connectionLogStorageService.initWithConnectionLogs(
-                LongStream.range(0, total)
+            connectionLogStorageService.initWithConnectionLogs(LongStream.range(0, total)
                     .mapToObj(i -> connectionLogFixtures.aConnectionLog())
-                    .toList()
-            );
+                    .toList());
 
             final Response response = connectionLogsTarget
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-                .request()
-                .get();
+                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .extracting(ApiLogsResponse::getLinks)
-                .isEqualTo(
-                    new Links()
-                        .self(connectionLogsTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
-                        .first(connectionLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .last(connectionLogsTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
-                        .previous(connectionLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .next(connectionLogsTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .extracting(ApiLogsResponse::getLinks)
+                    .isEqualTo(new Links()
+                            .self(connectionLogsTarget
+                                    .queryParam("page", page)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .first(connectionLogsTarget
+                                    .queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .last(connectionLogsTarget
+                                    .queryParam("page", 4)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .previous(connectionLogsTarget
+                                    .queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .next(connectionLogsTarget
+                                    .queryParam("page", 3)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString()));
         }
 
         @Test
         void should_return_400_if_negative_interval_params() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.API_LOG,
-                    API,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.API_LOG,
+                            API,
+                            RolePermissionAction.READ))
+                    .thenReturn(true);
 
             connectionLogsTarget = connectionLogsTarget
-                .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, -1)
-                .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, -1);
+                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, -1)
+                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, -1);
             final Response response = connectionLogsTarget.request().get();
 
-            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+            assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Validation error");
         }
 
         @Test
         void should_return_400_if_to_is_before_from_param() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.API_LOG,
-                    API,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.API_LOG,
+                            API,
+                            RolePermissionAction.READ))
+                    .thenReturn(true);
 
             connectionLogsTarget = connectionLogsTarget
-                .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, 2)
-                .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, 1);
+                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, 2)
+                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, 1);
             final Response response = connectionLogsTarget.request().get();
 
-            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+            assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Validation error");
         }
 
         @Test
         void should_return_connection_logs_filtered_by_interval() {
-            connectionLogStorageService.initWith(
-                List.of(
-                    connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                    connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                    connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-                )
-            );
+            connectionLogStorageService.initWith(List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .timestamp("2020-02-01T20:00:00.00Z")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                            .timestamp("2020-02-02T20:00:00.00Z")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                            .timestamp("2020-02-04T20:00:00.00Z")
+                            .build()));
 
             connectionLogsTarget = connectionLogsTarget
-                .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
-                .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli());
+                    .queryParam(
+                            SearchLogsParam.FROM_QUERY_PARAM_NAME,
+                            Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
+                    .queryParam(
+                            SearchLogsParam.TO_QUERY_PARAM_NAME,
+                            Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli());
             final Response response = connectionLogsTarget.request().get();
 
-            Supplier<ApiLog> expectedApiLog = () ->
-                new ApiLog()
+            Supplier<ApiLog> expectedApiLog = () -> new ApiLog()
                     .application(new BaseApplication().id(APPLICATION.getId()).name(APPLICATION.getName()))
-                    .plan(
-                        new BasePlan()
+                    .plan(new BasePlan()
                             .id(PLAN_1.getId())
                             .name(PLAN_1.getName())
                             .apiId(API)
                             .description(PLAN_1.getDescription())
                             .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS))
-                            .mode(PlanMode.STANDARD)
-                    )
+                            .mode(PlanMode.STANDARD))
                     .method(HttpMethod.GET)
                     .status(200)
                     .clientIdentifier("client-identifier")
@@ -305,52 +343,56 @@ class ApiLogsResourceTest extends ApiResourceTest {
                     .endpoint("https://my-api-example.com");
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .isEqualTo(
-                    new ApiLogsResponse()
-                        .data(
-                            List.of(
-                                expectedApiLog
-                                    .get()
-                                    .requestId("req2")
-                                    .timestamp(Instant.parse("2020-02-02T20:00:00.00Z").atOffset(ZoneOffset.UTC)),
-                                expectedApiLog
-                                    .get()
-                                    .requestId("req1")
-                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
-                            )
-                        )
-                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L))
-                        .links(new Links().self(connectionLogsTarget.getUri().toString()))
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .isEqualTo(new ApiLogsResponse()
+                            .data(List.of(
+                                    expectedApiLog
+                                            .get()
+                                            .requestId("req2")
+                                            .timestamp(Instant.parse("2020-02-02T20:00:00.00Z")
+                                                    .atOffset(ZoneOffset.UTC)),
+                                    expectedApiLog
+                                            .get()
+                                            .requestId("req1")
+                                            .timestamp(Instant.parse("2020-02-01T20:00:00.00Z")
+                                                    .atOffset(ZoneOffset.UTC))))
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(2)
+                                    .totalCount(2L))
+                            .links(new Links()
+                                    .self(connectionLogsTarget.getUri().toString())));
         }
 
         @Test
         void should_return_connection_logs_filtered_by_applications() {
-            connectionLogStorageService.initWith(
-                List.of(
-                    connectionLogFixtures.aConnectionLog("req1").toBuilder().applicationId("app1").build(),
-                    connectionLogFixtures.aConnectionLog("req2").toBuilder().applicationId("app1").build(),
-                    connectionLogFixtures.aConnectionLog("req3").toBuilder().applicationId("app2").build()
-                )
-            );
+            connectionLogStorageService.initWith(List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .applicationId("app1")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                            .applicationId("app1")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                            .applicationId("app2")
+                            .build()));
 
-            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.APPLICATION_IDS_QUERY_PARAM_NAME, "app1");
+            connectionLogsTarget =
+                    connectionLogsTarget.queryParam(SearchLogsParam.APPLICATION_IDS_QUERY_PARAM_NAME, "app1");
             final Response response = connectionLogsTarget.request().get();
 
-            Supplier<ApiLog> expectedApiLog = () ->
-                new ApiLog()
+            Supplier<ApiLog> expectedApiLog = () -> new ApiLog()
                     .application(new BaseApplication().id("app1").name(APPLICATION.getName()))
-                    .plan(
-                        new BasePlan()
+                    .plan(new BasePlan()
                             .id(PLAN_1.getId())
                             .name(PLAN_1.getName())
                             .apiId(API)
                             .description(PLAN_1.getDescription())
                             .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS))
-                            .mode(PlanMode.STANDARD)
-                    )
+                            .mode(PlanMode.STANDARD))
                     .method(HttpMethod.GET)
                     .status(200)
                     .clientIdentifier("client-identifier")
@@ -362,41 +404,48 @@ class ApiLogsResourceTest extends ApiResourceTest {
                     .endpoint("https://my-api-example.com");
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .isEqualTo(
-                    new ApiLogsResponse()
-                        .data(List.of(expectedApiLog.get().requestId("req1"), expectedApiLog.get().requestId("req2")))
-                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L))
-                        .links(new Links().self(connectionLogsTarget.getUri().toString()))
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .isEqualTo(new ApiLogsResponse()
+                            .data(List.of(
+                                    expectedApiLog.get().requestId("req1"),
+                                    expectedApiLog.get().requestId("req2")))
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(2)
+                                    .totalCount(2L))
+                            .links(new Links()
+                                    .self(connectionLogsTarget.getUri().toString())));
         }
 
         @Test
         void should_return_connection_logs_filtered_by_plans() {
-            connectionLogStorageService.initWith(
-                List.of(
-                    connectionLogFixtures.aConnectionLog("req1").toBuilder().planId(PLAN_1.getId()).build(),
-                    connectionLogFixtures.aConnectionLog("req2").toBuilder().planId(PLAN_1.getId()).build(),
-                    connectionLogFixtures.aConnectionLog("req3").toBuilder().planId(PLAN_2.getId()).build()
-                )
-            );
+            connectionLogStorageService.initWith(List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .planId(PLAN_1.getId())
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                            .planId(PLAN_1.getId())
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                            .planId(PLAN_2.getId())
+                            .build()));
 
-            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.PLAN_IDS_QUERY_PARAM_NAME, PLAN_1.getId());
+            connectionLogsTarget =
+                    connectionLogsTarget.queryParam(SearchLogsParam.PLAN_IDS_QUERY_PARAM_NAME, PLAN_1.getId());
             final Response response = connectionLogsTarget.request().get();
 
-            Supplier<ApiLog> expectedApiLog = () ->
-                new ApiLog()
+            Supplier<ApiLog> expectedApiLog = () -> new ApiLog()
                     .application(new BaseApplication().id("app1").name(APPLICATION.getName()))
-                    .plan(
-                        new BasePlan()
+                    .plan(new BasePlan()
                             .id(PLAN_1.getId())
                             .name(PLAN_1.getName())
                             .apiId(API)
                             .description(PLAN_1.getDescription())
                             .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS))
-                            .mode(PlanMode.STANDARD)
-                    )
+                            .mode(PlanMode.STANDARD))
                     .method(HttpMethod.GET)
                     .status(200)
                     .clientIdentifier("client-identifier")
@@ -408,137 +457,156 @@ class ApiLogsResourceTest extends ApiResourceTest {
                     .endpoint("https://my-api-example.com");
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .isEqualTo(
-                    new ApiLogsResponse()
-                        .data(List.of(expectedApiLog.get().requestId("req1"), expectedApiLog.get().requestId("req2")))
-                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L))
-                        .links(new Links().self(connectionLogsTarget.getUri().toString()))
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .isEqualTo(new ApiLogsResponse()
+                            .data(List.of(
+                                    expectedApiLog.get().requestId("req1"),
+                                    expectedApiLog.get().requestId("req2")))
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(2)
+                                    .totalCount(2L))
+                            .links(new Links()
+                                    .self(connectionLogsTarget.getUri().toString())));
         }
 
         @Test
         void should_return_connection_logs_filtered_by_methods() {
-            connectionLogStorageService.initWith(
-                List.of(
-                    connectionLogFixtures.aConnectionLog("req1").toBuilder().method(io.gravitee.common.http.HttpMethod.POST).build(),
-                    connectionLogFixtures.aConnectionLog("req2").toBuilder().method(io.gravitee.common.http.HttpMethod.GET).build(),
-                    connectionLogFixtures.aConnectionLog("req3").toBuilder().method(io.gravitee.common.http.HttpMethod.POST).build()
-                )
-            );
+            connectionLogStorageService.initWith(List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .method(io.gravitee.common.http.HttpMethod.POST)
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                            .method(io.gravitee.common.http.HttpMethod.GET)
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                            .method(io.gravitee.common.http.HttpMethod.POST)
+                            .build()));
 
-            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.METHODS_QUERY_PARAM_NAME, HttpMethod.GET);
+            connectionLogsTarget =
+                    connectionLogsTarget.queryParam(SearchLogsParam.METHODS_QUERY_PARAM_NAME, HttpMethod.GET);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .isEqualTo(
-                    new ApiLogsResponse()
-                        .data(
-                            List.of(
-                                new ApiLog()
-                                    .application(new BaseApplication().id("app1").name(APPLICATION.getName()))
-                                    .plan(
-                                        new BasePlan()
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .isEqualTo(new ApiLogsResponse()
+                            .data(List.of(new ApiLog()
+                                    .application(
+                                            new BaseApplication().id("app1").name(APPLICATION.getName()))
+                                    .plan(new BasePlan()
                                             .id(PLAN_1.getId())
                                             .name(PLAN_1.getName())
                                             .apiId(API)
                                             .description(PLAN_1.getDescription())
                                             .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS))
-                                            .mode(PlanMode.STANDARD)
-                                    )
+                                            .mode(PlanMode.STANDARD))
                                     .method(HttpMethod.GET)
                                     .status(200)
                                     .clientIdentifier("client-identifier")
                                     .requestEnded(true)
                                     .transactionId("transaction-id")
-                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z")
+                                            .atOffset(ZoneOffset.UTC))
                                     .requestId("req2")
                                     .gatewayResponseTime(42)
                                     .uri("/my-api")
-                                    .endpoint("https://my-api-example.com")
-                            )
-                        )
-                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
-                        .links(new Links().self(connectionLogsTarget.getUri().toString()))
-                );
+                                    .endpoint("https://my-api-example.com")))
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(1)
+                                    .totalCount(1L))
+                            .links(new Links()
+                                    .self(connectionLogsTarget.getUri().toString())));
         }
 
         @Test
         void should_return_connection_logs_filtered_by_statuses() {
-            connectionLogStorageService.initWith(
-                List.of(
-                    connectionLogFixtures.aConnectionLog("req1").toBuilder().status(200).build(),
-                    connectionLogFixtures.aConnectionLog("req2").toBuilder().status(202).build(),
-                    connectionLogFixtures.aConnectionLog("req3").toBuilder().status(200).build()
-                )
-            );
+            connectionLogStorageService.initWith(List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .status(200)
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                            .status(202)
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                            .status(200)
+                            .build()));
 
             connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.STATUSES_QUERY_PARAM_NAME, 202);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .isEqualTo(
-                    new ApiLogsResponse()
-                        .data(
-                            List.of(
-                                new ApiLog()
-                                    .application(new BaseApplication().id("app1").name(APPLICATION.getName()))
-                                    .plan(
-                                        new BasePlan()
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .isEqualTo(new ApiLogsResponse()
+                            .data(List.of(new ApiLog()
+                                    .application(
+                                            new BaseApplication().id("app1").name(APPLICATION.getName()))
+                                    .plan(new BasePlan()
                                             .id(PLAN_1.getId())
                                             .name(PLAN_1.getName())
                                             .apiId(API)
                                             .description(PLAN_1.getDescription())
                                             .security(new PlanSecurity().type(PlanSecurityType.KEY_LESS))
-                                            .mode(PlanMode.STANDARD)
-                                    )
+                                            .mode(PlanMode.STANDARD))
                                     .method(HttpMethod.GET)
                                     .status(202)
                                     .clientIdentifier("client-identifier")
                                     .requestEnded(true)
                                     .transactionId("transaction-id")
-                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z")
+                                            .atOffset(ZoneOffset.UTC))
                                     .requestId("req2")
                                     .gatewayResponseTime(42)
                                     .uri("/my-api")
-                                    .endpoint("https://my-api-example.com")
-                            )
-                        )
-                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
-                        .links(new Links().self(connectionLogsTarget.getUri().toString()))
-                );
+                                    .endpoint("https://my-api-example.com")))
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(1)
+                                    .totalCount(1L))
+                            .links(new Links()
+                                    .self(connectionLogsTarget.getUri().toString())));
         }
 
         @Test
         void should_return_connection_logs_filtered_by_api_product_ids() {
-            connectionLogStorageService.initWith(
-                List.of(
-                    connectionLogFixtures.aConnectionLog("req1").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001").build(),
-                    connectionLogFixtures.aConnectionLog("req2").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001").build(),
-                    connectionLogFixtures.aConnectionLog("req3").toBuilder().apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000002").build()
-                )
-            );
+            connectionLogStorageService.initWith(List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                            .apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000001")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                            .apiProductId("f5e6a5a0-1234-4b3a-9c1e-000000000002")
+                            .build()));
 
             connectionLogsTarget = connectionLogsTarget.queryParam(
-                SearchLogsParam.API_PRODUCT_IDS_QUERY_PARAM_NAME,
-                "f5e6a5a0-1234-4b3a-9c1e-000000000001"
-            );
+                    SearchLogsParam.API_PRODUCT_IDS_QUERY_PARAM_NAME, "f5e6a5a0-1234-4b3a-9c1e-000000000001");
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response).hasStatus(OK_200);
 
-            var apiLogsResponse = assertThat(response).asEntity(ApiLogsResponse.class).actual();
-            assertThat(apiLogsResponse.getPagination()).isEqualTo(
-                new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L)
-            );
+            var apiLogsResponse =
+                    assertThat(response).asEntity(ApiLogsResponse.class).actual();
+            assertThat(apiLogsResponse.getPagination())
+                    .isEqualTo(new Pagination()
+                            .page(1)
+                            .perPage(10)
+                            .pageCount(1)
+                            .pageItemsCount(2)
+                            .totalCount(2L));
             assertThat(apiLogsResponse.getData())
-                .extracting(io.gravitee.rest.api.management.v2.rest.model.ApiLog::getRequestId)
-                .containsExactlyInAnyOrder("req1", "req2");
+                    .extracting(io.gravitee.rest.api.management.v2.rest.model.ApiLog::getRequestId)
+                    .containsExactlyInAnyOrder("req1", "req2");
         }
     }
 
@@ -547,22 +615,20 @@ class ApiLogsResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.API_LOG,
-                    API,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.API_LOG,
+                            API,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
 
             final Response response = messageLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -572,62 +638,63 @@ class ApiLogsResourceTest extends ApiResourceTest {
             final Response response = messageLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiAggregatedMessageLogsResponse.class)
-                .isEqualTo(
-                    new ApiAggregatedMessageLogsResponse()
-                        .data(
-                            List.of(
-                                new ApiAggregatedMessageLog()
+                    .hasStatus(OK_200)
+                    .asEntity(ApiAggregatedMessageLogsResponse.class)
+                    .isEqualTo(new ApiAggregatedMessageLogsResponse()
+                            .data(List.of(new ApiAggregatedMessageLog()
                                     .requestId(REQUEST_ID)
                                     .clientIdentifier("client-identifier")
-                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z")
+                                            .atOffset(ZoneOffset.UTC))
                                     .correlationId("correlation-id")
                                     .parentCorrelationId("parent-correlation-id")
                                     .operation(MessageOperation.SUBSCRIBE.name())
-                                    .entrypoint(
-                                        new ApiMessageLogContent()
+                                    .entrypoint(new ApiMessageLogContent()
                                             .connectorId("http-get")
                                             .id("message-id")
                                             .payload("message-payload")
                                             .headers(Map.of("X-Header", List.of("header-value")))
-                                            .metadata(Map.of("X-Metdata", "metadata-value"))
-                                    )
-                                    .endpoint(
-                                        new ApiMessageLogContent()
+                                            .metadata(Map.of("X-Metdata", "metadata-value")))
+                                    .endpoint(new ApiMessageLogContent()
                                             .connectorId("kafka")
                                             .id("message-id")
                                             .payload("message-payload")
                                             .headers(Map.of("X-Header", List.of("header-value")))
-                                            .metadata(Map.of("X-Metdata", "metadata-value"))
-                                    )
-                            )
-                        )
-                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
-                        .links(new Links().self(messageLogsTarget.getUri().toString()))
-                );
+                                            .metadata(Map.of("X-Metdata", "metadata-value")))))
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .perPage(10)
+                                    .pageCount(1)
+                                    .pageItemsCount(1)
+                                    .totalCount(1L))
+                            .links(new Links().self(messageLogsTarget.getUri().toString())));
         }
 
         @Test
         void should_compute_pagination() {
             var total = 20L;
             var pageSize = 5;
-            messageLogStorageService.initWith(
-                LongStream.range(0, total)
-                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
-                    .toList()
-            );
+            messageLogStorageService.initWith(LongStream.range(0, total)
+                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder()
+                            .correlationId(String.valueOf(i))
+                            .build())
+                    .toList());
 
             messageLogsTarget = messageLogsTarget
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
+                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
             final Response response = messageLogsTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiAggregatedMessageLogsResponse.class)
-                .extracting(ApiAggregatedMessageLogsResponse::getPagination)
-                .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
+                    .hasStatus(OK_200)
+                    .asEntity(ApiAggregatedMessageLogsResponse.class)
+                    .extracting(ApiAggregatedMessageLogsResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(2)
+                            .perPage(pageSize)
+                            .pageCount(4)
+                            .pageItemsCount(pageSize)
+                            .totalCount(total));
         }
 
         @Test
@@ -635,30 +702,48 @@ class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var page = 2;
             var pageSize = 5;
-            messageLogStorageService.initWith(
-                LongStream.range(0, total)
-                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
-                    .toList()
-            );
+            messageLogStorageService.initWith(LongStream.range(0, total)
+                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder()
+                            .correlationId(String.valueOf(i))
+                            .build())
+                    .toList());
 
             final Response response = messageLogsTarget
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-                .request()
-                .get();
+                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiAggregatedMessageLogsResponse.class)
-                .extracting(ApiAggregatedMessageLogsResponse::getLinks)
-                .isEqualTo(
-                    new Links()
-                        .self(messageLogsTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
-                        .first(messageLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .last(messageLogsTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
-                        .previous(messageLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .next(messageLogsTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiAggregatedMessageLogsResponse.class)
+                    .extracting(ApiAggregatedMessageLogsResponse::getLinks)
+                    .isEqualTo(new Links()
+                            .self(messageLogsTarget
+                                    .queryParam("page", page)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .first(messageLogsTarget
+                                    .queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .last(messageLogsTarget
+                                    .queryParam("page", 4)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .previous(messageLogsTarget
+                                    .queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .next(messageLogsTarget
+                                    .queryParam("page", 3)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString()));
         }
     }
 
@@ -667,109 +752,120 @@ class ApiLogsResourceTest extends ApiResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.API_LOG,
-                    API,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.API_LOG,
+                            API,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
 
             final Response response = connectionLogTarget.request().get();
 
             assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
         void should_return_connection_log() {
-            final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, REQUEST_ID).aConnectionLogDetail();
+            final ConnectionLogDetail connectionLogDetail =
+                    new ConnectionLogDetailFixtures(API, REQUEST_ID).aConnectionLogDetail();
             connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
 
             final Response response = connectionLogTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogResponse.class)
-                .isEqualTo(
-                    new ApiLogResponse()
-                        .requestId(connectionLogDetail.getRequestId())
-                        .apiId(connectionLogDetail.getApiId())
-                        .timestamp(Instant.parse(connectionLogDetail.getTimestamp()).atOffset(ZoneOffset.UTC))
-                        .requestEnded(connectionLogDetail.isRequestEnded())
-                        .clientIdentifier(connectionLogDetail.getClientIdentifier())
-                        .entrypointRequest(
-                            new ApiLogRequestContent()
-                                .uri(connectionLogDetail.getEntrypointRequest().getUri())
-                                .method(HttpMethod.valueOf(connectionLogDetail.getEntrypointRequest().getMethod()))
-                                .headers(connectionLogDetail.getEntrypointRequest().getHeaders())
-                        )
-                        .endpointRequest(
-                            new ApiLogRequestContent()
-                                .uri(connectionLogDetail.getEndpointRequest().getUri())
-                                .method(HttpMethod.valueOf(connectionLogDetail.getEndpointRequest().getMethod()))
-                                .headers(connectionLogDetail.getEndpointRequest().getHeaders())
-                        )
-                        .endpointResponse(
-                            new ApiLogResponseContent()
-                                .status(connectionLogDetail.getEndpointResponse().getStatus())
-                                .headers(connectionLogDetail.getEndpointResponse().getHeaders())
-                        )
-                        .entrypointResponse(
-                            new ApiLogResponseContent()
-                                .status(connectionLogDetail.getEntrypointResponse().getStatus())
-                                .headers(connectionLogDetail.getEntrypointResponse().getHeaders())
-                        )
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogResponse.class)
+                    .isEqualTo(new ApiLogResponse()
+                            .requestId(connectionLogDetail.getRequestId())
+                            .apiId(connectionLogDetail.getApiId())
+                            .timestamp(Instant.parse(connectionLogDetail.getTimestamp())
+                                    .atOffset(ZoneOffset.UTC))
+                            .requestEnded(connectionLogDetail.isRequestEnded())
+                            .clientIdentifier(connectionLogDetail.getClientIdentifier())
+                            .entrypointRequest(new ApiLogRequestContent()
+                                    .uri(connectionLogDetail
+                                            .getEntrypointRequest()
+                                            .getUri())
+                                    .method(HttpMethod.valueOf(connectionLogDetail
+                                            .getEntrypointRequest()
+                                            .getMethod()))
+                                    .headers(connectionLogDetail
+                                            .getEntrypointRequest()
+                                            .getHeaders()))
+                            .endpointRequest(new ApiLogRequestContent()
+                                    .uri(connectionLogDetail
+                                            .getEndpointRequest()
+                                            .getUri())
+                                    .method(HttpMethod.valueOf(connectionLogDetail
+                                            .getEndpointRequest()
+                                            .getMethod()))
+                                    .headers(connectionLogDetail
+                                            .getEndpointRequest()
+                                            .getHeaders()))
+                            .endpointResponse(new ApiLogResponseContent()
+                                    .status(connectionLogDetail
+                                            .getEndpointResponse()
+                                            .getStatus())
+                                    .headers(connectionLogDetail
+                                            .getEndpointResponse()
+                                            .getHeaders()))
+                            .entrypointResponse(new ApiLogResponseContent()
+                                    .status(connectionLogDetail
+                                            .getEntrypointResponse()
+                                            .getStatus())
+                                    .headers(connectionLogDetail
+                                            .getEntrypointResponse()
+                                            .getHeaders())));
         }
 
         @Test
         void should_return_404_if_no_connection_log_and_no_metrics_detail() {
-            final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, "other-request-id").aConnectionLogDetail();
+            final ConnectionLogDetail connectionLogDetail =
+                    new ConnectionLogDetailFixtures(API, "other-request-id").aConnectionLogDetail();
             connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
 
             final Response response = connectionLogTarget.request().get();
 
             assertThat(response)
-                .asError()
-                .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("No log found for api: " + API + " and requestId: request-id");
+                    .asError()
+                    .hasHttpStatus(NOT_FOUND_404)
+                    .hasMessage("No log found for api: " + API + " and requestId: request-id");
         }
 
         @Test
         void should_fallback_to_metrics_detail_when_no_connection_log() {
             var metricsDetail = io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
-                .timestamp("2023-10-22T10:15:30.000Z")
-                .apiId(API)
-                .requestId(REQUEST_ID)
-                .transactionId("tx-id")
-                .applicationId(APPLICATION.getId())
-                .planId(PLAN_1.getId())
-                .uri("/my-api/resource")
-                .status(200)
-                .method(io.gravitee.common.http.HttpMethod.GET)
-                .build();
+                    .timestamp("2023-10-22T10:15:30.000Z")
+                    .apiId(API)
+                    .requestId(REQUEST_ID)
+                    .transactionId("tx-id")
+                    .applicationId(APPLICATION.getId())
+                    .planId(PLAN_1.getId())
+                    .uri("/my-api/resource")
+                    .status(200)
+                    .method(io.gravitee.common.http.HttpMethod.GET)
+                    .build();
             fakeAnalyticsQueryService.apiMetricsDetail = metricsDetail;
 
             final Response response = connectionLogTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogResponse.class)
-                .isEqualTo(
-                    new ApiLogResponse()
-                        .apiId(API)
-                        .requestId(REQUEST_ID)
-                        .transactionId("tx-id")
-                        .timestamp(Instant.parse("2023-10-22T10:15:30.000Z").atOffset(ZoneOffset.UTC))
-                        .requestEnded(true)
-                        .entrypointRequest(new ApiLogRequestContent().method(HttpMethod.GET).uri("/my-api/resource"))
-                        .entrypointResponse(new ApiLogResponseContent().status(200))
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogResponse.class)
+                    .isEqualTo(new ApiLogResponse()
+                            .apiId(API)
+                            .requestId(REQUEST_ID)
+                            .transactionId("tx-id")
+                            .timestamp(Instant.parse("2023-10-22T10:15:30.000Z").atOffset(ZoneOffset.UTC))
+                            .requestEnded(true)
+                            .entrypointRequest(new ApiLogRequestContent()
+                                    .method(HttpMethod.GET)
+                                    .uri("/my-api/resource"))
+                            .entrypointResponse(new ApiLogResponseContent().status(200)));
         }
     }
 
@@ -784,53 +880,57 @@ class ApiLogsResourceTest extends ApiResourceTest {
 
         @AfterEach
         void tearDown() {
-            Stream.of(connectionLogStorageService, planStorageService, applicationStorageService).forEach(InMemoryAlternative::reset);
+            Stream.of(connectionLogStorageService, planStorageService, applicationStorageService)
+                    .forEach(InMemoryAlternative::reset);
         }
 
         @Test
         void should_return_distinct_error_keys() {
-            connectionLogStorageService.initWithConnectionLogs(
-                List.of(
-                    connectionLogFixtures.aConnectionLog("req1").toBuilder().errorKey("GATEWAY_CLIENT_CONNECTION_ERROR").build(),
-                    connectionLogFixtures.aConnectionLog("req2").toBuilder().errorKey("NO_ENDPOINT_FOUND").build(),
-                    connectionLogFixtures.aConnectionLog("req3").toBuilder().errorKey("GATEWAY_CLIENT_CONNECTION_ERROR").build() // duplicate
-                )
-            );
+            connectionLogStorageService.initWithConnectionLogs(List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .errorKey("GATEWAY_CLIENT_CONNECTION_ERROR")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                            .errorKey("NO_ENDPOINT_FOUND")
+                            .build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                            .errorKey("GATEWAY_CLIENT_CONNECTION_ERROR")
+                            .build() // duplicate
+                    ));
 
             final Response response = rootTarget().path("error-keys").request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(List.class)
-                .satisfies(keys ->
-                    assertThat(keys).hasSize(2).containsExactlyInAnyOrder("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND")
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(List.class)
+                    .satisfies(keys -> assertThat(keys)
+                            .hasSize(2)
+                            .containsExactlyInAnyOrder("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND"));
         }
 
         @Test
         void should_return_empty_list_when_no_error_keys() {
             connectionLogStorageService.initWithConnectionLogs(
-                List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().errorKey(null).build())
-            );
+                    List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                            .errorKey(null)
+                            .build()));
 
             final Response response = rootTarget().path("error-keys").request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(List.class)
-                .satisfies(keys -> assertThat(keys).isEmpty());
+                    .hasStatus(OK_200)
+                    .asEntity(List.class)
+                    .satisfies(keys -> assertThat(keys).isEmpty());
         }
 
         @Test
         void should_return_403_when_insufficient_permissions() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.API_LOG,
-                    API,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.API_LOG,
+                            API,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
 
             final Response response = rootTarget().path("error-keys").request().get();
 

@@ -70,15 +70,13 @@ public interface KafkaExplorerMapper {
 
     default ListTopicsResponse map(TopicsPage topicsPage, int page, int perPage) {
         return new ListTopicsResponse()
-            .data(mapTopics(topicsPage.data()))
-            .pagination(
-                new Pagination()
-                    .page(page)
-                    .perPage(perPage)
-                    .pageCount((int) Math.ceil((double) topicsPage.totalCount() / perPage))
-                    .pageItemsCount(topicsPage.data().size())
-                    .totalCount(topicsPage.totalCount())
-            );
+                .data(mapTopics(topicsPage.data()))
+                .pagination(new Pagination()
+                        .page(page)
+                        .perPage(perPage)
+                        .pageCount((int) Math.ceil((double) topicsPage.totalCount() / perPage))
+                        .pageItemsCount(topicsPage.data().size())
+                        .totalCount(topicsPage.totalCount()));
     }
 
     ConsumerGroupSummary map(ConsumerGroup consumerGroup);
@@ -87,30 +85,25 @@ public interface KafkaExplorerMapper {
 
     default ListConsumerGroupsResponse map(ConsumerGroupsPage consumerGroupsPage, int page, int perPage) {
         return new ListConsumerGroupsResponse()
-            .data(mapConsumerGroups(consumerGroupsPage.data()))
-            .pagination(
-                new Pagination()
-                    .page(page)
-                    .perPage(perPage)
-                    .pageCount((int) Math.ceil((double) consumerGroupsPage.totalCount() / perPage))
-                    .pageItemsCount(consumerGroupsPage.data().size())
-                    .totalCount(consumerGroupsPage.totalCount())
-            );
+                .data(mapConsumerGroups(consumerGroupsPage.data()))
+                .pagination(new Pagination()
+                        .page(page)
+                        .perPage(perPage)
+                        .pageCount((int) Math.ceil((double) consumerGroupsPage.totalCount() / perPage))
+                        .pageItemsCount(consumerGroupsPage.data().size())
+                        .totalCount(consumerGroupsPage.totalCount()));
     }
 
     DescribeConsumerGroupResponse map(ConsumerGroupDetail consumerGroupDetail);
 
     io.gravitee.rest.api.kafkaexplorer.rest.model.ConsumerGroupMember map(
-        io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupMember member
-    );
+            io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupMember member);
 
     io.gravitee.rest.api.kafkaexplorer.rest.model.MemberAssignment map(
-        io.gravitee.rest.api.kafkaexplorer.domain.model.MemberAssignment assignment
-    );
+            io.gravitee.rest.api.kafkaexplorer.domain.model.MemberAssignment assignment);
 
     io.gravitee.rest.api.kafkaexplorer.rest.model.ConsumerGroupOffset map(
-        io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupOffset offset
-    );
+            io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupOffset offset);
 
     io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaMessage map(KafkaMessage message);
 

@@ -35,9 +35,7 @@ public class CredentialConfiguration {
 
     @Bean
     public CredentialResolver credentialResolver(
-        CredentialManager credentialManager,
-        @Qualifier("apiPropertiesEncryptor") DataEncryptor dataEncryptor
-    ) {
+            CredentialManager credentialManager, @Qualifier("apiPropertiesEncryptor") DataEncryptor dataEncryptor) {
         return new CredentialResolver(credentialManager, dataEncryptor, new ObjectMapper());
     }
 }

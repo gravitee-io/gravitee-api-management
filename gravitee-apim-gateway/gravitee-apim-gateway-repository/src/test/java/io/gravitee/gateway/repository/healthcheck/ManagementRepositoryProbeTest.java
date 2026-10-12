@@ -56,7 +56,8 @@ class ManagementRepositoryProbeTest {
     }
 
     @Test
-    void should_check_completed_with_unhealthy_state_when_repository_failed() throws ExecutionException, InterruptedException {
+    void should_check_completed_with_unhealthy_state_when_repository_failed()
+            throws ExecutionException, InterruptedException {
         RuntimeException runtimeException = new RuntimeException();
         when(eventRepository.search(any())).thenThrow(runtimeException);
         Result result = cut.check().get();

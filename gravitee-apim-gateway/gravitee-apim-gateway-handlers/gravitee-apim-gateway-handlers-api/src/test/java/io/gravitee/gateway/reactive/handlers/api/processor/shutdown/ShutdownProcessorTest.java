@@ -60,38 +60,44 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(
+            value = Lifecycle.State.class,
+            names = {"STARTED"},
+            mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp2(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_2);
         shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
-        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(
-            HttpHeadersValues.CONNECTION_GO_AWAY
-        );
+        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
+                .isEqualTo(HttpHeadersValues.CONNECTION_GO_AWAY);
     }
 
     @ParameterizedTest
-    @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(
+            value = Lifecycle.State.class,
+            names = {"STARTED"},
+            mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp10(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_0);
         shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
-        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(
-            HttpHeadersValues.CONNECTION_CLOSE
-        );
+        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
+                .isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
     }
 
     @ParameterizedTest
-    @EnumSource(value = Lifecycle.State.class, names = { "STARTED" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(
+            value = Lifecycle.State.class,
+            names = {"STARTED"},
+            mode = EnumSource.Mode.EXCLUDE)
     public void shouldAddConnectionHeaderWhenNodeStateIsNotStartedAndRequestHttp11(Lifecycle.State state) {
         lenient().when(mockNode.lifecycleState()).thenReturn(state);
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
         shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
-        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(
-            HttpHeadersValues.CONNECTION_CLOSE
-        );
+        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
+                .isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
     }
 }

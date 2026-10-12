@@ -28,9 +28,9 @@ public class RoleIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("memberships")
-            .name("ro1")
-            .key("roleId", ascending())
-            .build();
+                .collection("memberships")
+                .name("ro1")
+                .key("roleId", ascending())
+                .build();
     }
 }

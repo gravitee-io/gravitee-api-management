@@ -48,13 +48,10 @@ public class ApiProductResource extends AbstractResource {
     @RequirePortalAuth
     public Response getApiProductByApiProductId(@PathParam("apiProductId") UUID apiProductId) {
         var executionContext = getExecutionContext();
-        var output = getPortalApiProductUseCase.execute(
-            new GetPortalApiProductUseCase.Input(
+        var output = getPortalApiProductUseCase.execute(new GetPortalApiProductUseCase.Input(
                 executionContext.getEnvironmentId(),
                 apiProductId.toString(),
-                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
-            )
-        );
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())));
 
         return Response.ok(apiProductMapper.map(output.apiProduct())).build();
     }

@@ -27,11 +27,7 @@ import java.util.List;
  * @param sorts       Optional sort directives applied to facet buckets.
  */
 public record AnalyticsFacetMetricQuery(
-    String metricName,
-    List<String> measures,
-    List<AnalyticsSortSpec> sorts,
-    List<FilterCondition> filters
-) {
+        String metricName, List<String> measures, List<AnalyticsSortSpec> sorts, List<FilterCondition> filters) {
     public AnalyticsFacetMetricQuery {
         filters = filters == null ? List.of() : List.copyOf(filters);
     }

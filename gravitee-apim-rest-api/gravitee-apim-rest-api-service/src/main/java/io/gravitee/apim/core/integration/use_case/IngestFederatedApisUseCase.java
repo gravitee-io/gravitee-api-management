@@ -105,111 +105,110 @@ public class IngestFederatedApisUseCase {
         var organizationId = input.organizationId();
 
         return Maybe.defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(ingestJobId)))
-            .subscribeOn(Schedulers.computation())
-            .doOnSuccess(job -> {
-                var environmentId = job.getEnvironmentId();
-                var userId = job.getInitiatorId();
-                var auditInfo = new AuditInfo(organizationId, environmentId, new AuditActor(userId, null, null));
-                var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
+                .subscribeOn(Schedulers.computation())
+                .doOnSuccess(job -> {
+                    var environmentId = job.getEnvironmentId();
+                    var userId = job.getInitiatorId();
+                    var auditInfo = new AuditInfo(organizationId, environmentId, new AuditActor(userId, null, null));
+                    var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
 
-                try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
-                    for (IntegrationApi api : input.apisToIngest) {
-                        var integration = integrationCrudService
-                            .findApiIntegrationById(job.getSourceId())
-                            .orElseThrow(() -> new IllegalStateException("Integration %s not found".formatted(job.getSourceId())));
-                        var federatedApi = ApiModelFactory.fromIngestionJob(api, job, integration);
+                    try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
+                        for (IntegrationApi api : input.apisToIngest) {
+                            var integration = integrationCrudService
+                                    .findApiIntegrationById(job.getSourceId())
+                                    .orElseThrow(() -> new IllegalStateException(
+                                            "Integration %s not found".formatted(job.getSourceId())));
+                            var federatedApi = ApiModelFactory.fromIngestionJob(api, job, integration);
 
-                        apiCrudService
-                            .findById(federatedApi.getId())
-                            .ifPresentOrElse(
-                                existingApi -> updateApi(bulk, federatedApi, api, auditInfo, primaryOwner),
-                                () -> createApi(bulk, federatedApi, api, auditInfo, primaryOwner)
-                            );
-                        List<ApiMetadata> metadata = metadata(api, federatedApi);
-                        apiMetadataDomainService.saveApiMetadata(federatedApi.getId(), metadata, bulk.auditInfo());
+                            apiCrudService
+                                    .findById(federatedApi.getId())
+                                    .ifPresentOrElse(
+                                            existingApi -> updateApi(bulk, federatedApi, api, auditInfo, primaryOwner),
+                                            () -> createApi(bulk, federatedApi, api, auditInfo, primaryOwner));
+                            List<ApiMetadata> metadata = metadata(api, federatedApi);
+                            apiMetadataDomainService.saveApiMetadata(federatedApi.getId(), metadata, bulk.auditInfo());
+                        }
                     }
-                }
-                if (input.completed) {
-                    asyncJobCrudService.update(job.complete());
-                    triggerNotificationDomainService.triggerPortalNotification(
-                        organizationId,
-                        environmentId,
-                        new FederatedApisIngestionCompleteHookContext(job.getSourceId())
-                    );
-                } else {
-                    asyncJobCrudService.delay(job.getId(), TimeProvider.now().plusMinutes(5));
-                }
-            })
-            .ignoreElement();
+                    if (input.completed) {
+                        asyncJobCrudService.update(job.complete());
+                        triggerNotificationDomainService.triggerPortalNotification(
+                                organizationId,
+                                environmentId,
+                                new FederatedApisIngestionCompleteHookContext(job.getSourceId()));
+                    } else {
+                        asyncJobCrudService.delay(
+                                job.getId(), TimeProvider.now().plusMinutes(5));
+                    }
+                })
+                .ignoreElement();
     }
 
     private void createApi(
-        ApiIndexerDomainService.Bulk bulk,
-        Api federatedApi,
-        IntegrationApi integrationApi,
-        AuditInfo auditInfo,
-        PrimaryOwnerEntity primaryOwner
-    ) {
+            ApiIndexerDomainService.Bulk bulk,
+            Api federatedApi,
+            IntegrationApi integrationApi,
+            AuditInfo auditInfo,
+            PrimaryOwnerEntity primaryOwner) {
         try {
             createApiDomainService.create(
-                federatedApi,
-                primaryOwner,
-                auditInfo,
-                newApi -> validateFederatedApi.validateAndSanitizeForCreation(newApi, primaryOwner),
-                bulk.get()
-            );
+                    federatedApi,
+                    primaryOwner,
+                    auditInfo,
+                    newApi -> validateFederatedApi.validateAndSanitizeForCreation(newApi, primaryOwner),
+                    bulk.get());
 
             stream(integrationApi.plans())
-                .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
-                .forEach(p -> createPlanDomainService.create(p, List.of(), federatedApi, bulk.auditInfo()));
+                    .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
+                    .forEach(p -> createPlanDomainService.create(p, List.of(), federatedApi, bulk.auditInfo()));
 
             var pages = stream(integrationApi.pages())
-                .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
-                .map(page -> createApiDocumentationDomainService.createPage(page, bulk.auditInfo()))
-                .toList();
-            pages
-                .stream()
-                .filter(Page::isHomepage)
-                .sorted(Comparator.comparing(Page::getCreatedAt).reversed())
-                .map(Page::getId)
-                .distinct()
-                .findFirst()
-                .ifPresent(homepageId -> homepageDomainService.setPreviousHomepageToFalse(federatedApi.getId(), homepageId));
+                    .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
+                    .map(page -> createApiDocumentationDomainService.createPage(page, bulk.auditInfo()))
+                    .toList();
+            pages.stream()
+                    .filter(Page::isHomepage)
+                    .sorted(Comparator.comparing(Page::getCreatedAt).reversed())
+                    .map(Page::getId)
+                    .distinct()
+                    .findFirst()
+                    .ifPresent(homepageId ->
+                            homepageDomainService.setPreviousHomepageToFalse(federatedApi.getId(), homepageId));
         } catch (Exception e) {
             log.warn("An error occurred while importing api {}", federatedApi, e);
         }
     }
 
     private void updateApi(
-        ApiIndexerDomainService.Bulk bulk,
-        Api federatedApi,
-        IntegrationApi integrationApi,
-        AuditInfo auditInfo,
-        PrimaryOwnerEntity primaryOwner
-    ) {
-        log.debug("API already ingested [id={}] [name={}], performing update", federatedApi.getId(), federatedApi.getName());
+            ApiIndexerDomainService.Bulk bulk,
+            Api federatedApi,
+            IntegrationApi integrationApi,
+            AuditInfo auditInfo,
+            PrimaryOwnerEntity primaryOwner) {
+        log.debug(
+                "API already ingested [id={}] [name={}], performing update",
+                federatedApi.getId(),
+                federatedApi.getName());
         try {
             UnaryOperator<Api> updater = update(federatedApi);
             updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner, bulk.get());
             Collection<Plan> plans = planCrudService.findByApiId(federatedApi.getId());
             Map<String, Plan> existingPlanMap = plans.stream().collect(Collectors.toMap(Plan::getId, p -> p));
             Map<String, Plan> integrationPlanMap = stream(integrationApi.plans())
-                .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
-                .collect(Collectors.toMap(Plan::getId, p -> p));
+                    .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
+                    .collect(Collectors.toMap(Plan::getId, p -> p));
 
             for (Plan existing : plans) {
                 if (!integrationPlanMap.containsKey(existing.getId())) {
                     log.debug("Plan has been removed in provider, so close and delete all subscriptions from APIM");
                     subscriptionQueryService
-                        .findActiveSubscriptionsByPlan(existing.getId())
-                        .forEach(activeSubscription ->
-                            closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), federatedApi, auditInfo)
-                        );
+                            .findActiveSubscriptionsByPlan(existing.getId())
+                            .forEach(activeSubscription -> closeSubscriptionDomainService.closeSubscription(
+                                    activeSubscription.getId(), federatedApi, auditInfo));
 
-                    //Delete all subscriptions
+                    // Delete all subscriptions
                     subscriptionQueryService
-                        .findSubscriptionsByPlan(existing.getId())
-                        .forEach(subscription -> deleteSubscriptionDomainService.delete(subscription, auditInfo));
+                            .findSubscriptionsByPlan(existing.getId())
+                            .forEach(subscription -> deleteSubscriptionDomainService.delete(subscription, auditInfo));
                     log.debug("Plan has been removed in provider, so finally delete the plan from APIM");
                     deletePlanDomainService.delete(existing, bulk.auditInfo());
                 }
@@ -224,45 +223,52 @@ public class IngestFederatedApisUseCase {
                     createPlanDomainService.create(planToUpdate, List.of(), federatedApi, bulk.auditInfo());
                 }
             }
-            var ingestedPagesNames = integrationApi.pages().stream().map(IntegrationApi.Page::filename).toList();
-            clearIngestedApiDocumentationDomainService.clearIngestedPagesOf(federatedApi.getId(), ingestedPagesNames, bulk.auditInfo());
+            var ingestedPagesNames = integrationApi.pages().stream()
+                    .map(IntegrationApi.Page::filename)
+                    .toList();
+            clearIngestedApiDocumentationDomainService.clearIngestedPagesOf(
+                    federatedApi.getId(), ingestedPagesNames, bulk.auditInfo());
             var pagesOfApi = pageQueryService.searchByApiId(federatedApi.getId());
-            var existingPages = pagesOfApi
-                .stream()
-                .filter(IngestFederatedApisUseCase::isUpdatableByProvider)
-                .collect(Collectors.toMap(Page::getName, Function.identity(), (first, second) -> first.isIngested() ? first : second));
+            var existingPages = pagesOfApi.stream()
+                    .filter(IngestFederatedApisUseCase::isUpdatableByProvider)
+                    .collect(Collectors.toMap(
+                            Page::getName,
+                            Function.identity(),
+                            (first, second) -> first.isIngested() ? first : second));
             List<Page> updatedOrNewPages = stream(integrationApi.pages())
-                .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
-                .filter(page -> existingPages.containsKey(page.getName()) || !isNameTakenInGravitee(page, pagesOfApi))
-                .map(page -> {
-                    /*
-                     * We let agent choose coherent page name and rely on it to updating
-                     */
-                    Page existingPage = existingPages.get(page.getName());
-                    if (existingPage == null) {
-                        return createApiDocumentationDomainService.createPage(page, bulk.auditInfo());
-                    } else {
-                        // The provider owns the content; visibility, publication, placement and viewer settings belong to the publisher
-                        var updatedPage = existingPage
-                            .toBuilder()
-                            .name(page.getName())
-                            .type(page.getType())
-                            .content(page.getContent())
-                            .updatedAt(page.getUpdatedAt())
-                            .ingested(true)
-                            .build();
-                        return updateApiDocumentationDomainService.updatePage(updatedPage, existingPage, bulk.auditInfo());
-                    }
-                })
-                .toList();
-            updatedOrNewPages
-                .stream()
-                .filter(Page::isHomepage)
-                .sorted(Comparator.comparing(Page::getCreatedAt).reversed())
-                .map(Page::getId)
-                .distinct()
-                .findFirst()
-                .ifPresent(homepageId -> homepageDomainService.setPreviousHomepageToFalse(federatedApi.getId(), homepageId));
+                    .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
+                    .filter(page ->
+                            existingPages.containsKey(page.getName()) || !isNameTakenInGravitee(page, pagesOfApi))
+                    .map(page -> {
+                        /*
+                         * We let agent choose coherent page name and rely on it to updating
+                         */
+                        Page existingPage = existingPages.get(page.getName());
+                        if (existingPage == null) {
+                            return createApiDocumentationDomainService.createPage(page, bulk.auditInfo());
+                        } else {
+                            // The provider owns the content; visibility, publication, placement and viewer settings
+                            // belong to the publisher
+                            var updatedPage = existingPage.toBuilder()
+                                    .name(page.getName())
+                                    .type(page.getType())
+                                    .content(page.getContent())
+                                    .updatedAt(page.getUpdatedAt())
+                                    .ingested(true)
+                                    .build();
+                            return updateApiDocumentationDomainService.updatePage(
+                                    updatedPage, existingPage, bulk.auditInfo());
+                        }
+                    })
+                    .toList();
+            updatedOrNewPages.stream()
+                    .filter(Page::isHomepage)
+                    .sorted(Comparator.comparing(Page::getCreatedAt).reversed())
+                    .map(Page::getId)
+                    .distinct()
+                    .findFirst()
+                    .ifPresent(homepageId ->
+                            homepageDomainService.setPreviousHomepageToFalse(federatedApi.getId(), homepageId));
         } catch (Exception e) {
             log.warn("An error occurred while updating api {}", federatedApi, e);
         }
@@ -278,21 +284,17 @@ public class IngestFederatedApisUseCase {
 
     /** Page names are unique per parent and type: a root page written in Gravitee keeps its name over a provider page. */
     private static boolean isNameTakenInGravitee(Page page, Collection<Page> pagesOfApi) {
-        var taken = pagesOfApi
-            .stream()
-            .anyMatch(
-                existing ->
-                    !isUpdatableByProvider(existing) &&
-                    (existing.getParentId() == null || existing.getParentId().isEmpty()) &&
-                    existing.getType() == page.getType() &&
-                    page.getName().equals(existing.getName())
-            );
+        var taken = pagesOfApi.stream()
+                .anyMatch(existing -> !isUpdatableByProvider(existing)
+                        && (existing.getParentId() == null
+                                || existing.getParentId().isEmpty())
+                        && existing.getType() == page.getType()
+                        && page.getName().equals(existing.getName()));
         if (taken) {
             log.warn(
-                "Skipping ingested page {} of API {}: a page with the same name was created in Gravitee",
-                page.getName(),
-                page.getReferenceId()
-            );
+                    "Skipping ingested page {} of API {}: a page with the same name was created in Gravitee",
+                    page.getName(),
+                    page.getReferenceId());
         }
         return taken;
     }
@@ -308,11 +310,10 @@ public class IngestFederatedApisUseCase {
                 var safety = htmlSanitizer.isSafe(page.content());
                 if (!safety.isSafe()) {
                     log.warn(
-                        "Skipping ingested markdown page {} of API {}: unsafe content ({}); a version ingested before is kept",
-                        page.filename(),
-                        referenceId,
-                        safety.getRejectedMessage()
-                    );
+                            "Skipping ingested markdown page {} of API {}: unsafe content ({}); a version ingested before is kept",
+                            page.filename(),
+                            referenceId,
+                            safety.getRejectedMessage());
                     yield Stream.empty();
                 }
                 yield Stream.of(buildDocumentationPage(referenceId, page, Page.Type.MARKDOWN));
@@ -328,62 +329,60 @@ public class IngestFederatedApisUseCase {
     private Page buildSwaggerPage(String referenceId, IntegrationApi.Page page) {
         var now = Date.from(TimeProvider.instantNow());
         return Page.builder()
-            .id(UuidString.generateRandom())
-            .name(page.filename())
-            .content(page.content())
-            .type(Page.Type.SWAGGER)
-            .referenceId(referenceId)
-            .referenceType(Page.ReferenceType.API)
-            .published(true)
-            .visibility(Page.Visibility.PRIVATE)
-            .homepage(true)
-            .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
-            .createdAt(now)
-            .updatedAt(now)
-            .ingested(true)
-            .build();
+                .id(UuidString.generateRandom())
+                .name(page.filename())
+                .content(page.content())
+                .type(Page.Type.SWAGGER)
+                .referenceId(referenceId)
+                .referenceType(Page.ReferenceType.API)
+                .published(true)
+                .visibility(Page.Visibility.PRIVATE)
+                .homepage(true)
+                .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+                .createdAt(now)
+                .updatedAt(now)
+                .ingested(true)
+                .build();
     }
 
     private Page buildAsyncApiPage(String referenceId, IntegrationApi.Page page) {
         var now = Date.from(TimeProvider.instantNow());
         return Page.builder()
-            .id(UuidString.generateRandom())
-            .name(page.filename())
-            .content(page.content())
-            .type(Page.Type.ASYNCAPI)
-            .referenceId(referenceId)
-            .referenceType(Page.ReferenceType.API)
-            .published(true)
-            .visibility(Page.Visibility.PRIVATE)
-            .homepage(true)
-            .createdAt(now)
-            .updatedAt(now)
-            .ingested(true)
-            .build();
+                .id(UuidString.generateRandom())
+                .name(page.filename())
+                .content(page.content())
+                .type(Page.Type.ASYNCAPI)
+                .referenceId(referenceId)
+                .referenceType(Page.ReferenceType.API)
+                .published(true)
+                .visibility(Page.Visibility.PRIVATE)
+                .homepage(true)
+                .createdAt(now)
+                .updatedAt(now)
+                .ingested(true)
+                .build();
     }
 
     private Page buildDocumentationPage(String referenceId, IntegrationApi.Page page, Page.Type type) {
         var now = Date.from(TimeProvider.instantNow());
         return Page.builder()
-            .id(UuidString.generateRandom())
-            .name(page.filename())
-            .content(page.content())
-            .type(type)
-            .referenceId(referenceId)
-            .referenceType(Page.ReferenceType.API)
-            .published(true)
-            .visibility(Page.Visibility.PRIVATE)
-            .homepage(false)
-            .createdAt(now)
-            .updatedAt(now)
-            .ingested(true)
-            .build();
+                .id(UuidString.generateRandom())
+                .name(page.filename())
+                .content(page.content())
+                .type(type)
+                .referenceId(referenceId)
+                .referenceType(Page.ReferenceType.API)
+                .published(true)
+                .visibility(Page.Visibility.PRIVATE)
+                .homepage(false)
+                .createdAt(now)
+                .updatedAt(now)
+                .ingested(true)
+                .build();
     }
 
     static UnaryOperator<Api> update(Api newOne) {
-        return previousApi ->
-            previousApi
-                .toBuilder()
+        return previousApi -> previousApi.toBuilder()
                 .name(newOne.getName())
                 .description(newOne.getDescription())
                 .version(newOne.getVersion())
@@ -393,25 +392,26 @@ public class IngestFederatedApisUseCase {
 
     private static List<ApiMetadata> metadata(IntegrationApi api, Api federatedApi) {
         return stream(api.metadata())
-            .map(md -> {
-                var format = switch (md.format()) {
-                    case STRING -> Metadata.MetadataFormat.STRING;
-                    case NUMERIC -> Metadata.MetadataFormat.NUMERIC;
-                    case MAIL -> Metadata.MetadataFormat.MAIL;
-                    case DATE -> Metadata.MetadataFormat.DATE;
-                    case URL -> Metadata.MetadataFormat.URL;
-                    case BOOLEAN -> Metadata.MetadataFormat.BOOLEAN;
-                };
-                return ApiMetadata.builder()
-                    .apiId(federatedApi.getId())
-                    .name(md.name())
-                    .key(md.name())
-                    .value(md.value())
-                    .format(format)
-                    .build();
-            })
-            .toList();
+                .map(md -> {
+                    var format = switch (md.format()) {
+                        case STRING -> Metadata.MetadataFormat.STRING;
+                        case NUMERIC -> Metadata.MetadataFormat.NUMERIC;
+                        case MAIL -> Metadata.MetadataFormat.MAIL;
+                        case DATE -> Metadata.MetadataFormat.DATE;
+                        case URL -> Metadata.MetadataFormat.URL;
+                        case BOOLEAN -> Metadata.MetadataFormat.BOOLEAN;
+                    };
+                    return ApiMetadata.builder()
+                            .apiId(federatedApi.getId())
+                            .name(md.name())
+                            .key(md.name())
+                            .value(md.value())
+                            .format(format)
+                            .build();
+                })
+                .toList();
     }
 
-    public record Input(String organizationId, String ingestJobId, List<IntegrationApi> apisToIngest, boolean completed) {}
+    public record Input(
+            String organizationId, String ingestJobId, List<IntegrationApi> apisToIngest, boolean completed) {}
 }

@@ -30,14 +30,11 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ServiceDiscoveryServiceImpl
-    extends AbstractPluginService<ServiceDiscoveryPlugin<?>, PlatformPluginEntity>
-    implements ServiceDiscoveryService {
+public class ServiceDiscoveryServiceImpl extends AbstractPluginService<ServiceDiscoveryPlugin<?>, PlatformPluginEntity>
+        implements ServiceDiscoveryService {
 
     public ServiceDiscoveryServiceImpl(
-        JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<ServiceDiscoveryPlugin<?>> pluginManager
-    ) {
+            JsonSchemaService jsonSchemaService, ConfigurablePluginManager<ServiceDiscoveryPlugin<?>> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 

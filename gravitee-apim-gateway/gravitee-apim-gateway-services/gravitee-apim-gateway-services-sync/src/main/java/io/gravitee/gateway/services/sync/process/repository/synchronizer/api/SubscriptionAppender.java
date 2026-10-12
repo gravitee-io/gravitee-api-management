@@ -42,12 +42,14 @@ import lombok.CustomLog;
 public class SubscriptionAppender {
 
     private static final List<String> INITIAL_STATUS = List.of(ACCEPTED.name());
-    private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
+    private static final List<String> INCREMENTAL_STATUS =
+            List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionMapper subscriptionMapper;
     private final int bulkItems;
 
-    public SubscriptionAppender(SubscriptionRepository subscriptionRepository, SubscriptionMapper subscriptionMapper, int bulkItems) {
+    public SubscriptionAppender(
+            SubscriptionRepository subscriptionRepository, SubscriptionMapper subscriptionMapper, int bulkItems) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
         }
@@ -67,13 +69,9 @@ public class SubscriptionAppender {
      * @return the deployables updated with subscriptions
      */
     public List<ApiReactorDeployable> appends(
-        final boolean initialSync,
-        final List<ApiReactorDeployable> deployables,
-        final Set<String> environments
-    ) {
-        final Map<String, ApiReactorDeployable> deployableByApi = deployables
-            .stream()
-            .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
+            final boolean initialSync, final List<ApiReactorDeployable> deployables, final Set<String> environments) {
+        final Map<String, ApiReactorDeployable> deployableByApi =
+                deployables.stream().collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
 
         List<String> allPlans = collectApiPlans(deployableByApi);
 
@@ -83,10 +81,9 @@ public class SubscriptionAppender {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 if (deployable == null) {
                     log.warn(
-                        "Cannot find api {} for subscriptions [{}]",
-                        api,
-                        subscriptions.stream().map(Subscription::getId).collect(Collectors.joining(","))
-                    );
+                            "Cannot find api {} for subscriptions [{}]",
+                            api,
+                            subscriptions.stream().map(Subscription::getId).collect(Collectors.joining(",")));
                 } else {
                     deployable.subscriptions(subscriptions);
                 }
@@ -96,19 +93,21 @@ public class SubscriptionAppender {
     }
 
     private List<String> collectApiPlans(Map<String, ApiReactorDeployable> deployableByApi) {
-        return deployableByApi.values().stream().map(ApiReactorDeployable::subscribablePlans).flatMap(Collection::stream).toList();
+        return deployableByApi.values().stream()
+                .map(ApiReactorDeployable::subscribablePlans)
+                .flatMap(Collection::stream)
+                .toList();
     }
 
     protected Map<String, List<Subscription>> loadSubscriptions(
-        final boolean initialSync,
-        final List<String> plans,
-        final Set<String> environments
-    ) {
-        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
-            .plans(plans)
-            .environments(environments);
+            final boolean initialSync, final List<String> plans, final Set<String> environments) {
+        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder =
+                SubscriptionCriteria.builder().plans(plans).environments(environments);
         if (initialSync) {
-            criteriaBuilder.statuses(INITIAL_STATUS).endingAtAfter(Instant.now().toEpochMilli()).includeWithoutEnd(true);
+            criteriaBuilder
+                    .statuses(INITIAL_STATUS)
+                    .endingAtAfter(Instant.now().toEpochMilli())
+                    .includeWithoutEnd(true);
         } else {
             criteriaBuilder.statuses(INCREMENTAL_STATUS);
         }
@@ -122,27 +121,23 @@ public class SubscriptionAppender {
         SubscriptionCursor cursor = null;
         try {
             while (true) {
-                List<io.gravitee.repository.management.model.Subscription> page = subscriptionRepository.searchAfter(
-                    criteria,
-                    sortable,
-                    cursor,
-                    bulkItems
-                );
+                List<io.gravitee.repository.management.model.Subscription> page =
+                        subscriptionRepository.searchAfter(criteria, sortable, cursor, bulkItems);
                 if (page == null || page.isEmpty()) {
                     return grouped;
                 }
                 for (io.gravitee.repository.management.model.Subscription record : page) {
-                    subscriptionMapper
-                        .to(record)
-                        .forEach(converted -> {
-                            converted.setForceDispatch(true);
-                            grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>()).add(converted);
-                        });
+                    subscriptionMapper.to(record).forEach(converted -> {
+                        converted.setForceDispatch(true);
+                        grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>())
+                                .add(converted);
+                    });
                 }
                 if (page.size() < bulkItems) {
                     return grouped;
                 }
-                cursor = SubscriptionCursor.byPlanAndId(page.getLast().getPlan(), page.getLast().getId());
+                cursor = SubscriptionCursor.byPlanAndId(
+                        page.getLast().getPlan(), page.getLast().getId());
             }
         } catch (Exception ex) {
             throw new SyncException("Error occurred when retrieving subscriptions", ex);

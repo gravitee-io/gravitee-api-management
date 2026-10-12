@@ -31,8 +31,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class HRIDHelperTest {
 
     @ParameterizedTest
-    @CsvSource(
-        textBlock = """
+    @CsvSource(textBlock = """
         hello world,           hello-world
         hello awesome world,   hello-awesome-world
         hello-world,           hello-world
@@ -43,15 +42,16 @@ class HRIDHelperTest {
         ( Hello world ),       hello-world
         -- --Hello World-- --, hello-world
         123 POLIZEI,           123-polizei
-        """
-    )
+        """)
     void should_produce_clean_hrid(String given, String expected) {
         assertThat(HRIDHelper.nameToHRID(given)).isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { " ", "", "__" })
+    @ValueSource(strings = {" ", "", "__"})
     void should_fail_bad_empty_input(String given) {
-        assertThat(HRIDHelper.nameToHRID(given)).startsWith(HRIDHelper.HRID_PREFIX).hasSizeGreaterThan(HRIDHelper.HRID_PREFIX.length());
+        assertThat(HRIDHelper.nameToHRID(given))
+                .startsWith(HRIDHelper.HRID_PREFIX)
+                .hasSizeGreaterThan(HRIDHelper.HRID_PREFIX.length());
     }
 }

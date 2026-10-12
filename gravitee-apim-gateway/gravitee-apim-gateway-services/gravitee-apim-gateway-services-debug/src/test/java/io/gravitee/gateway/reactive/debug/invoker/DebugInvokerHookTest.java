@@ -64,13 +64,19 @@ class DebugInvokerHookTest {
 
     @Test
     public void shouldNotDoAnythingWhenCallingInterrupt() {
-        debugInvokerHook.interrupt("id", debugCtx, ExecutionPhase.REQUEST).test().assertResult();
+        debugInvokerHook
+                .interrupt("id", debugCtx, ExecutionPhase.REQUEST)
+                .test()
+                .assertResult();
         verifyNoInteractions(debugCtx);
     }
 
     @Test
     public void shouldNotDoAnythingWhenCallingInterruptWith() {
-        debugInvokerHook.interruptWith("id", debugCtx, ExecutionPhase.REQUEST, new ExecutionFailure(200)).test().assertResult();
+        debugInvokerHook
+                .interruptWith("id", debugCtx, ExecutionPhase.REQUEST, new ExecutionFailure(200))
+                .test()
+                .assertResult();
         verifyNoInteractions(debugCtx);
     }
 
@@ -98,7 +104,10 @@ class DebugInvokerHookTest {
         when(debugCtx.response()).thenReturn(mutableResponse);
         InvokerResponse invokerResponse = new InvokerResponse();
         when(debugCtx.getInvokerResponse()).thenReturn(invokerResponse);
-        debugInvokerHook.error("id", debugCtx, ExecutionPhase.REQUEST, new RuntimeException()).test().assertResult();
+        debugInvokerHook
+                .error("id", debugCtx, ExecutionPhase.REQUEST, new RuntimeException())
+                .test()
+                .assertResult();
         assertThat(invokerResponse.getStatus()).isEqualTo(200);
         assertThat(invokerResponse.getHeaders()).isNotNull();
         assertThat(invokerResponse.getBuffer().toString()).isEqualTo("body");

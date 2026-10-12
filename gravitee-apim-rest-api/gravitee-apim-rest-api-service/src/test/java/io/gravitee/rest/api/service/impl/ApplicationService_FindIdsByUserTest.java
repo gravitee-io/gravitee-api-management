@@ -92,9 +92,9 @@ public class ApplicationService_FindIdsByUserTest {
         GraviteeContext.setCurrentEnvironment("envId");
 
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
+                .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .status(ApplicationStatus.ACTIVE)
+                .build();
         when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(APPLICATION_ID));
 
         Set<String> apps = applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), null);
@@ -108,15 +108,15 @@ public class ApplicationService_FindIdsByUserTest {
     public void should_find_ids_with_non_null_user() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
 
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        ).thenReturn(Collections.singleton(APPLICATION_ID));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+                .thenReturn(Collections.singleton(APPLICATION_ID));
 
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Set.of(APPLICATION_ID))
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
+                .restrictedToIds(Set.of(APPLICATION_ID))
+                .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .status(ApplicationStatus.ACTIVE)
+                .build();
 
         when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(APPLICATION_ID));
 

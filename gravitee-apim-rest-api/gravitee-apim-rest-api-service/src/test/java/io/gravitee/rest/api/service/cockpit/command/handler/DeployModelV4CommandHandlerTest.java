@@ -94,19 +94,20 @@ public class DeployModelV4CommandHandlerTest {
     @BeforeEach
     public void setUp() throws Exception {
         lenient()
-            .when(environmentService.findByCockpitId(COCKPIT_ENVIRONMENT_ID))
-            .thenReturn(
-                EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
-            );
+                .when(environmentService.findByCockpitId(COCKPIT_ENVIRONMENT_ID))
+                .thenReturn(EnvironmentEntity.builder()
+                        .id(ENVIRONMENT_ID)
+                        .organizationId(ORGANIZATION_ID)
+                        .cockpitId(COCKPIT_ENVIRONMENT_ID)
+                        .build());
         cut = new DeployModelCommandHandler(
-            apiSearchService,
-            cockpitApiService,
-            permissionChecker,
-            userService,
-            environmentService,
-            deployModelToApiCreateUseCase,
-            deployModelToApiUpdateUseCase
-        );
+                apiSearchService,
+                cockpitApiService,
+                permissionChecker,
+                userService,
+                environmentService,
+                deployModelToApiCreateUseCase,
+                deployModelToApiUpdateUseCase);
     }
 
     @Nested
@@ -114,68 +115,68 @@ public class DeployModelV4CommandHandlerTest {
 
         @ParameterizedTest
         @MethodSource
-        public void create_API(DeployModelCommandPayload.DeploymentMode deploymentMode, DeploymentMode expectedPermissionMode) {
+        public void create_API(
+                DeployModelCommandPayload.DeploymentMode deploymentMode, DeploymentMode expectedPermissionMode) {
             var payload = createDeployPayload(deploymentMode);
             var command = new DeployModelCommand(payload);
             var user = createUserEntity(payload);
 
-            when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-            when(
-                permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, expectedPermissionMode)
-            ).thenReturn(Optional.empty());
+            when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true))
+                    .thenReturn(user);
+            when(permissionChecker.checkCreatePermission(
+                            EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, expectedPermissionMode))
+                    .thenReturn(Optional.empty());
 
-            when(deployModelToApiCreateUseCase.execute(any())).thenReturn(new DeployModelToApiCreateUseCase.Output(new ApiWithFlows()));
+            when(deployModelToApiCreateUseCase.execute(any()))
+                    .thenReturn(new DeployModelToApiCreateUseCase.Output(new ApiWithFlows()));
 
-            cut
-                .handle(command)
-                .test()
-                .assertValue(
-                    reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED)
-                );
+            cut.handle(command)
+                    .test()
+                    .assertValue(reply -> reply.getCommandId().equals(command.getId())
+                            && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
         }
 
         static Stream<Arguments> create_API() {
             return Stream.of(
-                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_MOCKED, DeploymentMode.API_MOCKED),
-                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_PUBLISHED, DeploymentMode.API_PUBLISHED),
-                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED, DeploymentMode.API_DOCUMENTED)
-            );
+                    Arguments.of(DeployModelCommandPayload.DeploymentMode.API_MOCKED, DeploymentMode.API_MOCKED),
+                    Arguments.of(DeployModelCommandPayload.DeploymentMode.API_PUBLISHED, DeploymentMode.API_PUBLISHED),
+                    Arguments.of(
+                            DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED, DeploymentMode.API_DOCUMENTED));
         }
 
         @Test
         public void fails_to_create_due_to_context_path_already_used() {
-            DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
+            DeployModelCommandPayload payload =
+                    createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
             DeployModelCommand command = new DeployModelCommand(payload);
 
             UserEntity user = createUserEntity(payload);
-            when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
+            when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true))
+                    .thenReturn(user);
 
-            when(
-                permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
-            ).thenReturn(Optional.empty());
+            when(permissionChecker.checkCreatePermission(
+                            EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
+                    .thenReturn(Optional.empty());
 
-            when(
-                deployModelToApiCreateUseCase.execute(
-                    argThat(
-                        input ->
-                            input.swaggerDefinition().equals(payload.swaggerDefinition()) &&
-                            input.auditInfo().organizationId().equals("organization#id") &&
-                            input.auditInfo().environmentId().equals(ENVIRONMENT_ID)
-                    )
-                )
-            ).thenThrow(new InvalidPathsException("Path [/test/] already exists"));
+            when(deployModelToApiCreateUseCase.execute(
+                            argThat(input -> input.swaggerDefinition().equals(payload.swaggerDefinition())
+                                    && input.auditInfo().organizationId().equals("organization#id")
+                                    && input.auditInfo().environmentId().equals(ENVIRONMENT_ID))))
+                    .thenThrow(new InvalidPathsException("Path [/test/] already exists"));
 
-            cut
-                .handle(command)
-                .test()
-                .assertNoErrors()
-                .assertValue(reply -> {
-                    Assertions.assertThat(reply)
-                        .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
-                        .containsExactly(command.getId(), CommandStatus.ERROR, "Failed to import API [context path not available].");
-                    return true;
-                });
+            cut.handle(command).test().assertNoErrors().assertValue(reply -> {
+                Assertions.assertThat(reply)
+                        .extracting(
+                                DeployModelReply::getCommandId,
+                                DeployModelReply::getCommandStatus,
+                                DeployModelReply::getErrorDetails)
+                        .containsExactly(
+                                command.getId(),
+                                CommandStatus.ERROR,
+                                "Failed to import API [context path not available].");
+                return true;
+            });
         }
     }
 
@@ -184,38 +185,41 @@ public class DeployModelV4CommandHandlerTest {
 
         @ParameterizedTest
         @MethodSource
-        public void update_API(DeployModelCommandPayload.DeploymentMode deploymentMode, DeploymentMode expectedPermissionMode) {
+        public void update_API(
+                DeployModelCommandPayload.DeploymentMode deploymentMode, DeploymentMode expectedPermissionMode) {
             var payload = createDeployPayload(deploymentMode);
             var command = new DeployModelCommand(payload);
             var user = createUserEntity(payload);
             var apiId = "api#id";
 
-            when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-            when(
-                permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, expectedPermissionMode)
-            ).thenReturn(Optional.empty());
+            when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true))
+                    .thenReturn(user);
+            when(permissionChecker.checkUpdatePermission(
+                            EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, expectedPermissionMode))
+                    .thenReturn(Optional.empty());
 
-            when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
-            when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId)).thenReturn(
-                io.gravitee.repository.management.model.Api.builder().definitionVersion(DefinitionVersion.V4).build()
-            );
+            when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId()))
+                    .thenReturn(Optional.of(apiId));
+            when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, apiId))
+                    .thenReturn(io.gravitee.repository.management.model.Api.builder()
+                            .definitionVersion(DefinitionVersion.V4)
+                            .build());
 
-            when(deployModelToApiUpdateUseCase.execute(any())).thenReturn(new DeployModelToApiUpdateUseCase.Output(new Api()));
+            when(deployModelToApiUpdateUseCase.execute(any()))
+                    .thenReturn(new DeployModelToApiUpdateUseCase.Output(new Api()));
 
-            cut
-                .handle(command)
-                .test()
-                .assertValue(
-                    reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED)
-                );
+            cut.handle(command)
+                    .test()
+                    .assertValue(reply -> reply.getCommandId().equals(command.getId())
+                            && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
         }
 
         static Stream<Arguments> update_API() {
             return Stream.of(
-                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_MOCKED, DeploymentMode.API_MOCKED),
-                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_PUBLISHED, DeploymentMode.API_PUBLISHED),
-                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED, DeploymentMode.API_DOCUMENTED)
-            );
+                    Arguments.of(DeployModelCommandPayload.DeploymentMode.API_MOCKED, DeploymentMode.API_MOCKED),
+                    Arguments.of(DeployModelCommandPayload.DeploymentMode.API_PUBLISHED, DeploymentMode.API_PUBLISHED),
+                    Arguments.of(
+                            DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED, DeploymentMode.API_DOCUMENTED));
         }
     }
 
@@ -224,16 +228,17 @@ public class DeployModelV4CommandHandlerTest {
         assertEquals(CockpitCommandType.DEPLOY_MODEL.name(), cut.supportType());
     }
 
-    private static DeployModelCommandPayload createDeployPayload(final DeployModelCommandPayload.DeploymentMode deploymentMode) {
+    private static DeployModelCommandPayload createDeployPayload(
+            final DeployModelCommandPayload.DeploymentMode deploymentMode) {
         return DeployModelCommandPayload.builder()
-            .modelId("model#1")
-            .swaggerDefinition("swagger-definition")
-            .userId("cockpit_user#id")
-            .mode(deploymentMode)
-            .labels(List.of("label1", "label2"))
-            .environmentId(DeployModelV4CommandHandlerTest.COCKPIT_ENVIRONMENT_ID)
-            .organizationId(DeployModelV4CommandHandlerTest.COCKPIT_ORGANIZATION_ID)
-            .build();
+                .modelId("model#1")
+                .swaggerDefinition("swagger-definition")
+                .userId("cockpit_user#id")
+                .mode(deploymentMode)
+                .labels(List.of("label1", "label2"))
+                .environmentId(DeployModelV4CommandHandlerTest.COCKPIT_ENVIRONMENT_ID)
+                .organizationId(DeployModelV4CommandHandlerTest.COCKPIT_ORGANIZATION_ID)
+                .build();
     }
 
     private static UserEntity createUserEntity(final DeployModelCommandPayload payload) {

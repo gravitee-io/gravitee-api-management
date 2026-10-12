@@ -42,6 +42,7 @@ public class GetAuthzDecisionUseCase {
     public record Output(Optional<LogEntry> decision) {}
 
     public Output execute(Input input) {
-        return new Output(logsDataPort.getDecision(input.organizationId, input.environmentId, input.apiId, input.eventId));
+        return new Output(
+                logsDataPort.getDecision(input.organizationId, input.environmentId, input.apiId, input.eventId));
     }
 }

@@ -56,26 +56,33 @@ public class PageRevisionCrudServiceImplTest {
         void should_create_a_page_revision() throws TechnicalException {
             var date = new Date();
             String PAGE_ID = "page-id";
-            service.create(Page.builder().id(PAGE_ID).name("page name").createdAt(date).updatedAt(date).content("nice content").build());
+            service.create(Page.builder()
+                    .id(PAGE_ID)
+                    .name("page name")
+                    .createdAt(date)
+                    .updatedAt(date)
+                    .content("nice content")
+                    .build());
 
             var expectedPageRevision = PageRevision.builder()
-                .createdAt(date)
-                .pageId(PAGE_ID)
-                .name("page name")
-                .content("nice content")
-                .revision(1)
-                .build();
+                    .createdAt(date)
+                    .pageId(PAGE_ID)
+                    .name("page name")
+                    .content("nice content")
+                    .revision(1)
+                    .build();
 
             verify(pageRevisionRepository).create(pageRevisionArgumentCaptor.capture());
             Assertions.assertThat(pageRevisionArgumentCaptor.getValue())
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("name", expectedPageRevision.getName())
-                .hasFieldOrPropertyWithValue("createdAt", expectedPageRevision.getCreatedAt())
-                .hasFieldOrPropertyWithValue("pageId", expectedPageRevision.getPageId())
-                .hasFieldOrPropertyWithValue("content", expectedPageRevision.getContent())
-                .hasFieldOrPropertyWithValue("revision", expectedPageRevision.getRevision());
+                    .isNotNull()
+                    .hasFieldOrPropertyWithValue("name", expectedPageRevision.getName())
+                    .hasFieldOrPropertyWithValue("createdAt", expectedPageRevision.getCreatedAt())
+                    .hasFieldOrPropertyWithValue("pageId", expectedPageRevision.getPageId())
+                    .hasFieldOrPropertyWithValue("content", expectedPageRevision.getContent())
+                    .hasFieldOrPropertyWithValue("revision", expectedPageRevision.getRevision());
 
-            Assertions.assertThat(pageRevisionArgumentCaptor.getValue().getHash()).isNotNull();
+            Assertions.assertThat(pageRevisionArgumentCaptor.getValue().getHash())
+                    .isNotNull();
         }
     }
 }

@@ -85,8 +85,10 @@ class AcceptSubscriptionUseCaseTest {
     private static final String USER_ID = "user-id";
     private static final String APPLICATION_ID = "my-application";
 
-    private static final ZonedDateTime STARTING_AT = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
-    private static final ZonedDateTime ENDING_AT = Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime STARTING_AT =
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime ENDING_AT =
+            Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final String REASON = "Subscription accepted";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
@@ -96,7 +98,8 @@ class AcceptSubscriptionUseCaseTest {
     AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+            new TriggerNotificationDomainServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
@@ -116,69 +119,68 @@ class AcceptSubscriptionUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
 
         var generateApiKeyDomainService = new GenerateApiKeyDomainService(
-            apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-            applicationCrudService,
-            auditDomainService,
-            new ParametersQueryServiceInMemory()
-        );
+                apiKeyCrudService,
+                new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+                applicationCrudService,
+                auditDomainService,
+                new ParametersQueryServiceInMemory());
 
-        ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
-            groupQueryService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+        ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService =
+                new ApplicationPrimaryOwnerDomainService(
+                        groupQueryService, membershipQueryService, roleQueryService, userCrudService);
 
         var acceptSubscriptionDomainService = new AcceptSubscriptionDomainService(
-            subscriptionCrudService,
-            auditDomainService,
-            apiCrudService,
-            applicationCrudService,
-            planCrudService,
-            generateApiKeyDomainService,
-            integrationAgent,
-            triggerNotificationDomainService,
-            userCrudService,
-            applicationPrimaryOwnerDomainService,
-            metadataCrudService,
-            integrationCrudService
-        );
+                subscriptionCrudService,
+                auditDomainService,
+                apiCrudService,
+                applicationCrudService,
+                planCrudService,
+                generateApiKeyDomainService,
+                integrationAgent,
+                triggerNotificationDomainService,
+                userCrudService,
+                applicationPrimaryOwnerDomainService,
+                metadataCrudService,
+                integrationCrudService);
 
-        useCase = new AcceptSubscriptionUseCase(subscriptionCrudService, planCrudService, acceptSubscriptionDomainService);
+        useCase = new AcceptSubscriptionUseCase(
+                subscriptionCrudService, planCrudService, acceptSubscriptionDomainService);
 
-        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
-        applicationCrudService.initWith(
-            List.of(
-                ApplicationModelFixtures.anApplicationEntity()
-                    .toBuilder()
-                    .id(APPLICATION_ID)
-                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(
+                List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .primaryOwner(PrimaryOwnerEntity.builder()
+                        .id(USER_ID)
+                        .displayName("Jane")
+                        .build())
+                .build()));
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
         integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration()));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiCrudService,
-            apiKeyCrudService,
-            applicationCrudService,
-            auditCrudServiceInMemory,
-            integrationAgent,
-            planCrudService,
-            subscriptionCrudService,
-            userCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudService,
+                        apiKeyCrudService,
+                        applicationCrudService,
+                        auditCrudServiceInMemory,
+                        integrationAgent,
+                        planCrudService,
+                        subscriptionCrudService,
+                        userCrudService)
+                .forEach(InMemoryAlternative::reset);
         triggerNotificationDomainService.reset();
     }
 
@@ -201,14 +203,13 @@ class AcceptSubscriptionUseCaseTest {
 
         // Then
         assertThat(result.subscription())
-            .extracting(
-                SubscriptionEntity::getId,
-                SubscriptionEntity::getStatus,
-                SubscriptionEntity::getReasonMessage,
-                SubscriptionEntity::getStartingAt,
-                SubscriptionEntity::getEndingAt
-            )
-            .contains(subscription.getId(), SubscriptionEntity.Status.ACCEPTED, REASON, STARTING_AT, ENDING_AT);
+                .extracting(
+                        SubscriptionEntity::getId,
+                        SubscriptionEntity::getStatus,
+                        SubscriptionEntity::getReasonMessage,
+                        SubscriptionEntity::getStartingAt,
+                        SubscriptionEntity::getEndingAt)
+                .contains(subscription.getId(), SubscriptionEntity.Status.ACCEPTED, REASON, STARTING_AT, ENDING_AT);
     }
 
     @Test
@@ -224,14 +225,18 @@ class AcceptSubscriptionUseCaseTest {
 
         // Then
         assertThat(result.subscription())
-            .extracting(
-                SubscriptionEntity::getId,
-                SubscriptionEntity::getStatus,
-                SubscriptionEntity::getReasonMessage,
-                SubscriptionEntity::getStartingAt,
-                SubscriptionEntity::getEndingAt
-            )
-            .contains(subscription.getId(), SubscriptionEntity.Status.ACCEPTED, REASON, INSTANT_NOW.atZone(ZoneId.systemDefault()), null);
+                .extracting(
+                        SubscriptionEntity::getId,
+                        SubscriptionEntity::getStatus,
+                        SubscriptionEntity::getReasonMessage,
+                        SubscriptionEntity::getStartingAt,
+                        SubscriptionEntity::getEndingAt)
+                .contains(
+                        subscription.getId(),
+                        SubscriptionEntity.Status.ACCEPTED,
+                        REASON,
+                        INSTANT_NOW.atZone(ZoneId.systemDefault()),
+                        null);
     }
 
     @Test
@@ -246,17 +251,16 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId(), STARTING_AT, ENDING_AT, "custom_key");
 
         // Then
-        assertThat(apiKeyCrudService.storage()).containsOnly(
-            ApiKeyEntity.builder()
-                .id("generated-id")
-                .applicationId(subscription.getApplicationId())
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .key("custom_key")
-                .subscriptions(List.of(subscription.getId()))
-                .expireAt(ENDING_AT)
-                .build()
-        );
+        assertThat(apiKeyCrudService.storage())
+                .containsOnly(ApiKeyEntity.builder()
+                        .id("generated-id")
+                        .applicationId(subscription.getApplicationId())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .key("custom_key")
+                        .subscriptions(List.of(subscription.getId()))
+                        .expireAt(ENDING_AT)
+                        .build());
     }
 
     @Test
@@ -270,15 +274,14 @@ class AcceptSubscriptionUseCaseTest {
         var providerMetadataKey = "test-provider-metadata";
         var providerMetadataValue = "test-provider-metadata-value";
         var providerMetadata = new Metadata(
-            providerMetadataKey,
-            Metadata.ReferenceType.API,
-            api.getId(),
-            providerMetadataKey,
-            Metadata.MetadataFormat.STRING,
-            providerMetadataValue,
-            STARTING_AT,
-            STARTING_AT
-        );
+                providerMetadataKey,
+                Metadata.ReferenceType.API,
+                api.getId(),
+                providerMetadataKey,
+                Metadata.MetadataFormat.STRING,
+                providerMetadataValue,
+                STARTING_AT,
+                STARTING_AT);
         givenExistingMetadata(providerMetadata);
 
         // When
@@ -286,22 +289,20 @@ class AcceptSubscriptionUseCaseTest {
 
         // Then
         assertThat(result.subscription())
-            .extracting(
-                SubscriptionEntity::getId,
-                SubscriptionEntity::getStatus,
-                SubscriptionEntity::getReasonMessage,
-                SubscriptionEntity::getStartingAt,
-                SubscriptionEntity::getEndingAt,
-                SubscriptionEntity::getMetadata
-            )
-            .contains(
-                subscription.getId(),
-                SubscriptionEntity.Status.ACCEPTED,
-                null,
-                INSTANT_NOW.atZone(ZoneId.systemDefault()),
-                null,
-                Map.of("key", "value", providerMetadataKey, providerMetadataValue)
-            );
+                .extracting(
+                        SubscriptionEntity::getId,
+                        SubscriptionEntity::getStatus,
+                        SubscriptionEntity::getReasonMessage,
+                        SubscriptionEntity::getStartingAt,
+                        SubscriptionEntity::getEndingAt,
+                        SubscriptionEntity::getMetadata)
+                .contains(
+                        subscription.getId(),
+                        SubscriptionEntity.Status.ACCEPTED,
+                        null,
+                        INSTANT_NOW.atZone(ZoneId.systemDefault()),
+                        null,
+                        Map.of("key", "value", providerMetadataKey, providerMetadataValue));
     }
 
     @Test
@@ -313,33 +314,29 @@ class AcceptSubscriptionUseCaseTest {
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         doReturn(Single.error(new IntegrationSubscriptionException("fail to subscribe")))
-            .when(integrationAgent)
-            .subscribe(any(), any(), any(), any(), any(), any());
+                .when(integrationAgent)
+                .subscribe(any(), any(), any(), any(), any(), any());
 
         // When
         accept(subscription.getId());
 
         // Then
         assertThat(subscriptionCrudService.storage())
-            .extracting(
-                SubscriptionEntity::getId,
-                SubscriptionEntity::getStatus,
-                SubscriptionEntity::getReasonMessage,
-                SubscriptionEntity::getClosedAt
-            )
-            .contains(
-                tuple(
-                    subscription.getId(),
-                    SubscriptionEntity.Status.REJECTED,
-                    "fail to subscribe",
-                    INSTANT_NOW.atZone(ZoneId.systemDefault())
-                )
-            );
+                .extracting(
+                        SubscriptionEntity::getId,
+                        SubscriptionEntity::getStatus,
+                        SubscriptionEntity::getReasonMessage,
+                        SubscriptionEntity::getClosedAt)
+                .contains(tuple(
+                        subscription.getId(),
+                        SubscriptionEntity.Status.REJECTED,
+                        "fail to subscribe",
+                        INSTANT_NOW.atZone(ZoneId.systemDefault())));
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { " ", "\t\n" })
+    @ValueSource(strings = {" ", "\t\n"})
     void should_reject_subscription_with_generic_reason_when_integration_fails_without_message(String agentMessage) {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi().setId(API_ID));
@@ -348,16 +345,18 @@ class AcceptSubscriptionUseCaseTest {
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         doReturn(Single.error(new IntegrationSubscriptionException(agentMessage)))
-            .when(integrationAgent)
-            .subscribe(any(), any(), any(), any(), any(), any());
+                .when(integrationAgent)
+                .subscribe(any(), any(), any(), any(), any(), any());
 
         // When
         accept(subscription.getId());
 
         // Then
         assertThat(subscriptionCrudService.storage())
-            .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus, SubscriptionEntity::getReasonMessage)
-            .contains(tuple(subscription.getId(), SubscriptionEntity.Status.REJECTED, REJECT_BY_TECHNICAL_ERROR_MESSAGE));
+                .extracting(
+                        SubscriptionEntity::getId, SubscriptionEntity::getStatus, SubscriptionEntity::getReasonMessage)
+                .contains(tuple(
+                        subscription.getId(), SubscriptionEntity.Status.REJECTED, REJECT_BY_TECHNICAL_ERROR_MESSAGE));
     }
 
     @Test
@@ -370,26 +369,24 @@ class AcceptSubscriptionUseCaseTest {
         var agentMessage = "x".repeat(AcceptSubscriptionDomainService.REJECT_REASON_MAX_LENGTH + 10);
 
         doReturn(Single.error(new IntegrationSubscriptionException(agentMessage)))
-            .when(integrationAgent)
-            .subscribe(any(), any(), any(), any(), any(), any());
+                .when(integrationAgent)
+                .subscribe(any(), any(), any(), any(), any(), any());
 
         // When
         accept(subscription.getId());
 
         // Then
         assertThat(subscriptionCrudService.storage())
-            .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus, SubscriptionEntity::getReasonMessage)
-            .contains(
-                tuple(
-                    subscription.getId(),
-                    SubscriptionEntity.Status.REJECTED,
-                    agentMessage.substring(0, AcceptSubscriptionDomainService.REJECT_REASON_MAX_LENGTH)
-                )
-            );
+                .extracting(
+                        SubscriptionEntity::getId, SubscriptionEntity::getStatus, SubscriptionEntity::getReasonMessage)
+                .contains(tuple(
+                        subscription.getId(),
+                        SubscriptionEntity.Status.REJECTED,
+                        agentMessage.substring(0, AcceptSubscriptionDomainService.REJECT_REASON_MAX_LENGTH)));
     }
 
     @ParameterizedTest
-    @CsvSource({ "V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY" })
+    @CsvSource({"V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY"})
     void should_create_audits(DefinitionVersion definitionVersion, ApiType apiType) {
         // Given
         var api = givenExistingApiOf(definitionVersion, apiType);
@@ -402,33 +399,30 @@ class AcceptSubscriptionUseCaseTest {
 
         // Then
         assertThat(auditCrudServiceInMemory.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-            .contains(
-                new AuditEntity(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.API,
-                    "api-id",
-                    USER_ID,
-                    Map.of("APPLICATION", application.getId()),
-                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                    ZonedDateTime.now(),
-                    ""
-                ),
-                new AuditEntity(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.APPLICATION,
-                    application.getId(),
-                    USER_ID,
-                    Map.of("API", "api-id"),
-                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                    ZonedDateTime.now(),
-                    ""
-                )
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                .contains(
+                        new AuditEntity(
+                                "generated-id",
+                                ORGANIZATION_ID,
+                                ENVIRONMENT_ID,
+                                AuditEntity.AuditReferenceType.API,
+                                "api-id",
+                                USER_ID,
+                                Map.of("APPLICATION", application.getId()),
+                                SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                ZonedDateTime.now(),
+                                ""),
+                        new AuditEntity(
+                                "generated-id",
+                                ORGANIZATION_ID,
+                                ENVIRONMENT_ID,
+                                AuditEntity.AuditReferenceType.APPLICATION,
+                                application.getId(),
+                                USER_ID,
+                                Map.of("API", "api-id"),
+                                SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                ZonedDateTime.now(),
+                                ""));
     }
 
     @Test
@@ -443,17 +437,16 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(apiKeyCrudService.storage()).containsOnly(
-            ApiKeyEntity.builder()
-                .id("generated-id")
-                .applicationId(subscription.getApplicationId())
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .key("generated-id")
-                .subscriptions(List.of(subscription.getId()))
-                .expireAt(ENDING_AT)
-                .build()
-        );
+        assertThat(apiKeyCrudService.storage())
+                .containsOnly(ApiKeyEntity.builder()
+                        .id("generated-id")
+                        .applicationId(subscription.getApplicationId())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .key("generated-id")
+                        .subscriptions(List.of(subscription.getId()))
+                        .expireAt(ENDING_AT)
+                        .build());
     }
 
     @Test
@@ -468,26 +461,22 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(apiKeyCrudService.storage()).containsOnly(
-            ApiKeyEntity.builder()
-                .id("generated-id")
-                .applicationId(subscription.getApplicationId())
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .key(
-                    String.join(
-                        "-",
-                        IntegrationSubscription.Type.API_KEY.name(),
-                        subscription.getId(),
-                        application.getId(),
-                        application.getName()
-                    )
-                )
-                .subscriptions(List.of(subscription.getId()))
-                .expireAt(null)
-                .federated(true)
-                .build()
-        );
+        assertThat(apiKeyCrudService.storage())
+                .containsOnly(ApiKeyEntity.builder()
+                        .id("generated-id")
+                        .applicationId(subscription.getApplicationId())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .key(String.join(
+                                "-",
+                                IntegrationSubscription.Type.API_KEY.name(),
+                                subscription.getId(),
+                                application.getId(),
+                                application.getName()))
+                        .subscriptions(List.of(subscription.getId()))
+                        .expireAt(null)
+                        .federated(true)
+                        .build());
     }
 
     @Test
@@ -506,8 +495,9 @@ class AcceptSubscriptionUseCaseTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY" })
-    void should_trigger_notifications_for_API_and_Application_owners(DefinitionVersion definitionVersion, ApiType apiType) {
+    @CsvSource({"V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY"})
+    void should_trigger_notifications_for_API_and_Application_owners(
+            DefinitionVersion definitionVersion, ApiType apiType) {
         // Given
         var application = givenExistingApplication();
         var api = givenExistingApiOf(definitionVersion, apiType);
@@ -518,35 +508,34 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-            new SubscriptionAcceptedApiHookContext("api-id", application.getId(), plan.getId(), subscription.getId(), null)
-        );
+        assertThat(triggerNotificationDomainService.getHookNotifications())
+                .containsExactly(new SubscriptionAcceptedApiHookContext(
+                        "api-id", application.getId(), plan.getId(), subscription.getId(), null));
 
-        assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
-            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                new SubscriptionAcceptedApplicationHookContext(
-                    application.getId(),
-                    SubscriptionReferenceType.API,
-                    "api-id",
-                    plan.getId(),
-                    subscription.getId(),
-                    USER_ID
-                )
-            )
-        );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                .containsExactly(new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                        new SubscriptionAcceptedApplicationHookContext(
+                                application.getId(),
+                                SubscriptionReferenceType.API,
+                                "api-id",
+                                plan.getId(),
+                                subscription.getId(),
+                                USER_ID)));
     }
 
     @ParameterizedTest
-    @CsvSource({ "V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY" })
-    void should_trigger_notifications_for_subscriber_when_it_has_email(DefinitionVersion definitionVersion, ApiType apiType) {
+    @CsvSource({"V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY"})
+    void should_trigger_notifications_for_subscriber_when_it_has_email(
+            DefinitionVersion definitionVersion, ApiType apiType) {
         // Given
         var api = givenExistingApiOf(definitionVersion, apiType);
         var plan = givenExistingPublishedPlanFor(api);
         var application = givenExistingApplication();
-        var subscriber = givenExistingUser(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build());
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var subscriber = givenExistingUser(BaseUserEntity.builder()
+                .id("subscriber")
+                .email("subscriber@mail.fake")
+                .build());
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .subscribedBy(subscriber.getId())
                 .apiId(api.getId())
                 .referenceId(api.getId())
@@ -554,26 +543,22 @@ class AcceptSubscriptionUseCaseTest {
                 .planId(plan.getId())
                 .applicationId(application.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
 
         // When
         accept(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationDomainService.getApplicationNotifications()).contains(
-            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                new Recipient("EMAIL", "subscriber@mail.fake"),
-                new SubscriptionAcceptedApplicationHookContext(
-                    application.getId(),
-                    SubscriptionReferenceType.API,
-                    "api-id",
-                    plan.getId(),
-                    subscription.getId(),
-                    USER_ID
-                )
-            )
-        );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                .contains(new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                        new Recipient("EMAIL", "subscriber@mail.fake"),
+                        new SubscriptionAcceptedApplicationHookContext(
+                                application.getId(),
+                                SubscriptionReferenceType.API,
+                                "api-id",
+                                plan.getId(),
+                                subscription.getId(),
+                                USER_ID)));
     }
 
     @Test
@@ -588,14 +573,11 @@ class AcceptSubscriptionUseCaseTest {
     @Test
     void should_throw_when_subscription_does_not_belong_to_API() {
         // Given
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .apiId("other-id")
                 .referenceId("other-id")
                 .referenceType(SubscriptionReferenceType.API)
-                .build()
-        );
+                .build());
 
         // When
         var throwable = catchThrowable(() -> accept(subscription.getId()));
@@ -610,9 +592,11 @@ class AcceptSubscriptionUseCaseTest {
         // Given
         var application = givenExistingApplication();
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).applicationId(application.getId()).status(status).build()
-        );
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
+                .planId(plan.getId())
+                .applicationId(application.getId())
+                .status(status)
+                .build());
 
         // When
         var throwable = catchThrowable(() -> accept(subscription.getId()));
@@ -626,14 +610,11 @@ class AcceptSubscriptionUseCaseTest {
         // Given
         var application = givenExistingApplication();
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.CLOSED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .planId(plan.getId())
                 .applicationId(application.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
 
         // When
         var throwable = catchThrowable(() -> accept(subscription.getId()));
@@ -662,16 +643,17 @@ class AcceptSubscriptionUseCaseTest {
     private Api anApi(DefinitionVersion definitionVersion, ApiType apiType) {
         return switch (definitionVersion) {
             case V2 -> ApiFixtures.aProxyApiV2().setId(API_ID);
-            case V4 -> switch (apiType) {
-                case A2A_PROXY -> ApiFixtures.anA2AProxyApiV4().setId(API_ID);
-                case AUTHZ -> throw new IllegalStateException("AUTHZ API not supported");
-                case EDGE -> throw new IllegalStateException("EDGE API not supported");
-                case LLM_PROXY -> ApiFixtures.aLLMProxyApiV4().setId(API_ID);
-                case MCP_PROXY -> ApiFixtures.aMCPProxyApiV4().setId(API_ID);
-                case PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
-                case MESSAGE -> ApiFixtures.aMessageApiV4().setId(API_ID);
-                case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
-            };
+            case V4 ->
+                switch (apiType) {
+                    case A2A_PROXY -> ApiFixtures.anA2AProxyApiV4().setId(API_ID);
+                    case AUTHZ -> throw new IllegalStateException("AUTHZ API not supported");
+                    case EDGE -> throw new IllegalStateException("EDGE API not supported");
+                    case LLM_PROXY -> ApiFixtures.aLLMProxyApiV4().setId(API_ID);
+                    case MCP_PROXY -> ApiFixtures.aMCPProxyApiV4().setId(API_ID);
+                    case PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
+                    case MESSAGE -> ApiFixtures.aMessageApiV4().setId(API_ID);
+                    case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
+                };
             case FEDERATED -> ApiFixtures.aFederatedApi().setId(API_ID);
             case FEDERATED_AGENT -> ApiFixtures.aFederatedAgent().setId(API_ID);
             default -> throw new IllegalStateException("Unsupported definition version: " + definitionVersion);
@@ -692,13 +674,15 @@ class AcceptSubscriptionUseCaseTest {
     private Plan aPublishedPlan(Api api) {
         return switch (api.getDefinitionVersion()) {
             case V2 -> PlanFixtures.aPlanV2().setPlanStatus(PlanStatus.PUBLISHED);
-            case V4 -> switch (api.getType()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY -> PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
-                case AUTHZ -> throw new IllegalStateException("AUTHZ API not supported");
-                case EDGE -> throw new IllegalStateException("EDGE API not supported");
-                case MESSAGE -> PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
-                case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
-            };
+            case V4 ->
+                switch (api.getType()) {
+                    case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY ->
+                        PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
+                    case AUTHZ -> throw new IllegalStateException("AUTHZ API not supported");
+                    case EDGE -> throw new IllegalStateException("EDGE API not supported");
+                    case MESSAGE -> PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
+                    case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
+                };
             case FEDERATED, FEDERATED_AGENT -> PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED);
             default -> throw new IllegalStateException("Unsupported definition version");
         };
@@ -709,17 +693,17 @@ class AcceptSubscriptionUseCaseTest {
         return user;
     }
 
-    private SubscriptionEntity givenExistingPendingSubscriptionFor(Api api, Plan plan, BaseApplicationEntity application) {
-        var subscription = SubscriptionFixtures.aSubscription()
-            .toBuilder()
-            .subscribedBy("subscriber")
-            .apiId(api.getId())
-            .referenceId(api.getId())
-            .referenceType(SubscriptionReferenceType.API)
-            .planId(plan.getId())
-            .applicationId(application.getId())
-            .status(SubscriptionEntity.Status.PENDING)
-            .build();
+    private SubscriptionEntity givenExistingPendingSubscriptionFor(
+            Api api, Plan plan, BaseApplicationEntity application) {
+        var subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                .subscribedBy("subscriber")
+                .apiId(api.getId())
+                .referenceId(api.getId())
+                .referenceType(SubscriptionReferenceType.API)
+                .planId(plan.getId())
+                .applicationId(application.getId())
+                .status(SubscriptionEntity.Status.PENDING)
+                .build();
         subscriptionCrudService.initWith(List.of(subscription));
         return subscription;
     }
@@ -738,18 +722,14 @@ class AcceptSubscriptionUseCaseTest {
         return accept(subscriptionId, STARTING_AT, ENDING_AT);
     }
 
-    private AcceptSubscriptionUseCase.Output accept(String subscriptionId, ZonedDateTime startingAt, ZonedDateTime endingAt) {
+    private AcceptSubscriptionUseCase.Output accept(
+            String subscriptionId, ZonedDateTime startingAt, ZonedDateTime endingAt) {
         return accept(subscriptionId, startingAt, endingAt, null);
     }
 
     private AcceptSubscriptionUseCase.Output accept(
-        String subscriptionId,
-        ZonedDateTime startingAt,
-        ZonedDateTime endingAt,
-        String customKey
-    ) {
-        return useCase.execute(
-            AcceptSubscriptionUseCase.Input.builder()
+            String subscriptionId, ZonedDateTime startingAt, ZonedDateTime endingAt, String customKey) {
+        return useCase.execute(AcceptSubscriptionUseCase.Input.builder()
                 .referenceId(API_ID)
                 .referenceType(SubscriptionReferenceType.API)
                 .subscriptionId(subscriptionId)
@@ -758,7 +738,6 @@ class AcceptSubscriptionUseCaseTest {
                 .reasonMessage(REASON)
                 .customKey(customKey)
                 .auditInfo(AUDIT_INFO)
-                .build()
-        );
+                .build());
     }
 }

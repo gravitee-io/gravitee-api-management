@@ -25,9 +25,9 @@ public class OrganizationIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("clusters")
-            .name("co1")
-            .key("organizationId", ascending())
-            .build();
+                .collection("clusters")
+                .name("co1")
+                .key("organizationId", ascending())
+                .build();
     }
 }

@@ -31,28 +31,25 @@ class PlanMigration {
         if (plan.getDefinitionVersion() == DefinitionVersion.V4) {
             return MigrationResult.value(plan);
         }
-        return MigrationResult.value(
-            plan
-                .toBuilder()
+        return MigrationResult.value(plan.toBuilder()
                 .definitionVersion(DefinitionVersion.V4)
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
-                .planDefinitionHttpV4(plan.getPlanDefinitionV2() != null ? mapPlanDefinition(plan.getPlanDefinitionV2()) : null)
+                .planDefinitionHttpV4(
+                        plan.getPlanDefinitionV2() != null ? mapPlanDefinition(plan.getPlanDefinitionV2()) : null)
                 .planDefinitionV2(null)
                 .apiType(ApiType.PROXY)
-                .build()
-        );
+                .build());
     }
 
     private Plan mapPlanDefinition(io.gravitee.definition.model.Plan planDefinitionV2) {
         return new Plan(
-            planDefinitionV2.getId(),
-            planDefinitionV2.getName(),
-            new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition()),
-            PlanMode.STANDARD,
-            planDefinitionV2.getSelectionRule(),
-            planDefinitionV2.getTags(),
-            PlanStatus.valueOf(planDefinitionV2.getStatus()),
-            null /* flows are managed in another place because is in a different collection */
-        );
+                planDefinitionV2.getId(),
+                planDefinitionV2.getName(),
+                new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition()),
+                PlanMode.STANDARD,
+                planDefinitionV2.getSelectionRule(),
+                planDefinitionV2.getTags(),
+                PlanStatus.valueOf(planDefinitionV2.getStatus()),
+                null /* flows are managed in another place because is in a different collection */);
     }
 }

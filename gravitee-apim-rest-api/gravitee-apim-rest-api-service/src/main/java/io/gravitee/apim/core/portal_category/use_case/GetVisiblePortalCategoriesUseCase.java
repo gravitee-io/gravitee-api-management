@@ -33,11 +33,9 @@ public class GetVisiblePortalCategoriesUseCase {
     private final PortalCategoryQueryService portalCategoryQueryService;
 
     public Output execute(Input input) {
-        List<PortalCategory> visible = portalCategoryQueryService
-            .findByEnvironmentId(input.environmentId())
-            .stream()
-            .filter(PortalCategory::isVisible)
-            .toList();
+        List<PortalCategory> visible = portalCategoryQueryService.findByEnvironmentId(input.environmentId()).stream()
+                .filter(PortalCategory::isVisible)
+                .toList();
         return new Output(visible);
     }
 

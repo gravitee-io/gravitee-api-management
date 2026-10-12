@@ -44,15 +44,7 @@ public class InvitationMongoRepositoryImpl implements InvitationMongoRepositoryC
 
     private static final String DEFAULT_SORT_FIELD = "email";
     private static final Set<String> SORTABLE_FIELDS = Set.of(
-        "id",
-        "referenceType",
-        "referenceId",
-        "email",
-        "apiRole",
-        "applicationRole",
-        "createdAt",
-        "updatedAt"
-    );
+            "id", "referenceType", "referenceId", "email", "apiRole", "applicationRole", "createdAt", "updatedAt");
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -67,7 +59,8 @@ public class InvitationMongoRepositoryImpl implements InvitationMongoRepositoryC
             }
 
             if (criteria.referenceType() != null) {
-                query.addCriteria(where("referenceType").is(criteria.referenceType().name()));
+                query.addCriteria(
+                        where("referenceType").is(criteria.referenceType().name()));
             }
 
             if (StringUtils.isNotBlank(criteria.email())) {
@@ -92,8 +85,8 @@ public class InvitationMongoRepositoryImpl implements InvitationMongoRepositoryC
 
     private Sort buildSort(Sortable sortable) {
         var field = sortable != null && StringUtils.isNotBlank(sortable.field())
-            ? FieldUtils.toCamelCase(sortable.field())
-            : DEFAULT_SORT_FIELD;
+                ? FieldUtils.toCamelCase(sortable.field())
+                : DEFAULT_SORT_FIELD;
 
         if (!SORTABLE_FIELDS.contains(field)) {
             field = DEFAULT_SORT_FIELD;

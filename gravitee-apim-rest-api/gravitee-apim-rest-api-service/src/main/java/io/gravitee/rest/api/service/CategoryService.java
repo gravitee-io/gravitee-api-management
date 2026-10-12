@@ -15,12 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewCategoryEntity;
 import io.gravitee.rest.api.model.UpdateCategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
@@ -32,14 +30,24 @@ import java.util.Set;
  */
 public interface CategoryService {
     List<CategoryEntity> findAll(final String environmentId);
+
     Set<CategoryEntity> findByIdIn(final String environmentId, final Set<String> ids);
+
     CategoryEntity findById(String id, final String environment);
+
     CategoryEntity findNotHiddenById(String id, final String environmentId);
+
     CategoryEntity create(ExecutionContext executionContext, NewCategoryEntity category);
+
     CategoryEntity update(ExecutionContext executionContext, String categoryId, UpdateCategoryEntity category);
+
     List<CategoryEntity> update(ExecutionContext executionContext, List<UpdateCategoryEntity> categories);
+
     void delete(ExecutionContext executionContext, String categoryId);
+
     InlinePictureEntity getPicture(final String environmentId, String categoryId);
+
     InlinePictureEntity getBackground(final String environmentId, String categoryId);
+
     List<CategoryEntity> findByPage(String pageId);
 }

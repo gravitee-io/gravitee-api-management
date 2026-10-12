@@ -47,7 +47,8 @@ public class PolicyFactoryManager {
      * @param defaultPolicyFactoryClass the class that will operate as the default policy factory
      * @param policyFactories
      */
-    public PolicyFactoryManager(Class<? extends PolicyFactory> defaultPolicyFactoryClass, Set<PolicyFactory> policyFactories) {
+    public PolicyFactoryManager(
+            Class<? extends PolicyFactory> defaultPolicyFactoryClass, Set<PolicyFactory> policyFactories) {
         this.defaultPolicyFactoryClass = defaultPolicyFactoryClass;
         this.policyFactories = policyFactories;
         defaultPolicyFactory = extractDefaultPolicyFactory(policyFactories);
@@ -60,15 +61,13 @@ public class PolicyFactoryManager {
      * {@param policyFactories}
      */
     public PolicyFactoryManager(
-        Class<? extends PolicyFactory> debugPolicyFactoryClass,
-        Class<? extends PolicyFactory> excludedPolicyFactoryClass,
-        Set<PolicyFactory> policyFactories
-    ) {
+            Class<? extends PolicyFactory> debugPolicyFactoryClass,
+            Class<? extends PolicyFactory> excludedPolicyFactoryClass,
+            Set<PolicyFactory> policyFactories) {
         this.defaultPolicyFactoryClass = debugPolicyFactoryClass;
-        this.policyFactories = policyFactories
-            .stream()
-            .filter(factory -> !factory.getClass().equals(excludedPolicyFactoryClass))
-            .collect(Collectors.toSet());
+        this.policyFactories = policyFactories.stream()
+                .filter(factory -> !factory.getClass().equals(excludedPolicyFactoryClass))
+                .collect(Collectors.toSet());
         defaultPolicyFactory = extractDefaultPolicyFactory(policyFactories);
     }
 
@@ -78,11 +77,10 @@ public class PolicyFactoryManager {
      * @return the {@link PolicyFactory}
      */
     public PolicyFactory get(PolicyManifest manifest) {
-        return policyFactories
-            .stream()
-            .filter(policyFactory -> policyFactory.accept(manifest))
-            .findFirst()
-            .orElse(defaultPolicyFactory);
+        return policyFactories.stream()
+                .filter(policyFactory -> policyFactory.accept(manifest))
+                .findFirst()
+                .orElse(defaultPolicyFactory);
     }
 
     public void cleanup(PolicyManifest policyManifest) {

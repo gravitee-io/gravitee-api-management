@@ -60,23 +60,16 @@ class PageService_TemplateTest {
         metadata.setName("Email Support");
         metadata.setFormat(MetadataFormat.MAIL);
         metadata.setValue("support@gio.com");
-        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID)).thenReturn(
-            List.of(metadata)
-        );
+        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID))
+                .thenReturn(List.of(metadata));
 
         PageEntity pageEntity = new PageEntity();
         pageEntity.setId(PAGE_ID);
         pageEntity.setContent("# Hello ${metadata.emailSupport}");
 
-        when(
-            notificationTemplateService.resolveInlineTemplateWithParam(
-                eq(ORGANIZATION_ID),
-                eq(pageEntity.getId()),
-                eq(pageEntity.getContent()),
-                anyMap(),
-                eq(false)
-            )
-        ).thenReturn("# Hello support@gio.com");
+        when(notificationTemplateService.resolveInlineTemplateWithParam(
+                        eq(ORGANIZATION_ID), eq(pageEntity.getId()), eq(pageEntity.getContent()), anyMap(), eq(false)))
+                .thenReturn("# Hello support@gio.com");
 
         pageService.transformWithTemplate(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), pageEntity, null);
 
@@ -90,23 +83,16 @@ class PageService_TemplateTest {
         metadata.setName("Email Support");
         metadata.setFormat(MetadataFormat.MAIL);
         metadata.setValue("support@gio.com");
-        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID)).thenReturn(
-            List.of(metadata)
-        );
+        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID))
+                .thenReturn(List.of(metadata));
 
         PageEntity pageEntity = new PageEntity();
         pageEntity.setId(PAGE_ID);
         pageEntity.setContent("# Hello ${metadata.['emailSupport']}");
 
-        when(
-            notificationTemplateService.resolveInlineTemplateWithParam(
-                eq(ORGANIZATION_ID),
-                eq(pageEntity.getId()),
-                eq(pageEntity.getContent()),
-                anyMap(),
-                eq(false)
-            )
-        ).thenThrow(new InvalidTemplateException("expecting something else, found ["));
+        when(notificationTemplateService.resolveInlineTemplateWithParam(
+                        eq(ORGANIZATION_ID), eq(pageEntity.getId()), eq(pageEntity.getContent()), anyMap(), eq(false)))
+                .thenThrow(new InvalidTemplateException("expecting something else, found ["));
 
         pageService.transformWithTemplate(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), pageEntity, null);
 
@@ -121,23 +107,16 @@ class PageService_TemplateTest {
         metadata.setName("Email Support");
         metadata.setFormat(MetadataFormat.MAIL);
         metadata.setValue("support@gio.com");
-        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID)).thenReturn(
-            List.of(metadata)
-        );
+        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENVIRONMENT_ID))
+                .thenReturn(List.of(metadata));
 
         PageEntity pageEntity = new PageEntity();
         pageEntity.setId(PAGE_ID);
         pageEntity.setContent("# Hello ${metadata.wrong}");
 
-        when(
-            notificationTemplateService.resolveInlineTemplateWithParam(
-                eq(ORGANIZATION_ID),
-                eq(pageEntity.getId()),
-                eq(pageEntity.getContent()),
-                anyMap(),
-                eq(false)
-            )
-        ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        when(notificationTemplateService.resolveInlineTemplateWithParam(
+                        eq(ORGANIZATION_ID), eq(pageEntity.getId()), eq(pageEntity.getContent()), anyMap(), eq(false)))
+                .thenThrow(new TemplateProcessingException(new TemplateException(null)));
 
         pageService.transformWithTemplate(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), pageEntity, null);
 

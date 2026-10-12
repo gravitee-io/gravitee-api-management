@@ -25,11 +25,11 @@ public class TypeEnvironmentsCreatedAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events")
-            .name("t1e1ua")
-            .key("type", ascending())
-            .key("environments", ascending())
-            .key("createdAt", ascending())
-            .build();
+                .collection("events")
+                .name("t1e1ua")
+                .key("type", ascending())
+                .key("environments", ascending())
+                .key("createdAt", ascending())
+                .build();
     }
 }

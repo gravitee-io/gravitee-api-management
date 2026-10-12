@@ -52,15 +52,15 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
     private Api api;
 
     private List<AuthenticationHandler> allAuthenticationHandlers = List.of(
-        new ApiKeyAuthenticationHandler(),
-        new JWTAuthenticationHandler(),
-        new KeylessAuthenticationHandler(),
-        new OAuth2AuthenticationHandler()
-    );
+            new ApiKeyAuthenticationHandler(),
+            new JWTAuthenticationHandler(),
+            new KeylessAuthenticationHandler(),
+            new OAuth2AuthenticationHandler());
 
     @Test
     public void filter_shouldKeepNoHandler_becauseNoPlan() {
-        List<AuthenticationHandler> authenticationHandlers = authenticationHandlerEnhancer.filter(allAuthenticationHandlers);
+        List<AuthenticationHandler> authenticationHandlers =
+                authenticationHandlerEnhancer.filter(allAuthenticationHandlers);
 
         assertNotNull(authenticationHandlers);
         assertTrue(authenticationHandlers.isEmpty());
@@ -70,7 +70,8 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
     public void filter_shouldKeepNoHandler_becauseNoneMatching() {
         mockApiPlans(List.of(API_KEY));
 
-        List<AuthenticationHandler> authenticationHandlers = authenticationHandlerEnhancer.filter(List.of(new JWTAuthenticationHandler()));
+        List<AuthenticationHandler> authenticationHandlers =
+                authenticationHandlerEnhancer.filter(List.of(new JWTAuthenticationHandler()));
 
         assertNotNull(authenticationHandlers);
         assertTrue(authenticationHandlers.isEmpty());
@@ -80,7 +81,8 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
     public void filter_shouldKeepKeylessHandler_becausePlanMatching() {
         mockApiPlans(List.of(KEY_LESS));
 
-        List<AuthenticationHandler> authenticationHandlers = authenticationHandlerEnhancer.filter(allAuthenticationHandlers);
+        List<AuthenticationHandler> authenticationHandlers =
+                authenticationHandlerEnhancer.filter(allAuthenticationHandlers);
 
         assertNotNull(authenticationHandlers);
         assertEquals(1, authenticationHandlers.size());
@@ -92,7 +94,8 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
         // api has 1 keyless plan, 2 jwt plans, and 2 oauth2 plans
         mockApiPlans(List.of(KEY_LESS, JWT, API_KEY, OAUTH2, JWT, OAUTH2));
 
-        List<AuthenticationHandler> authenticationHandlers = authenticationHandlerEnhancer.filter(allAuthenticationHandlers);
+        List<AuthenticationHandler> authenticationHandlers =
+                authenticationHandlerEnhancer.filter(allAuthenticationHandlers);
 
         assertNotNull(authenticationHandlers);
         assertEquals(6, authenticationHandlers.size());
@@ -105,14 +108,13 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
     }
 
     private void mockApiPlans(List<PlanSecurityType> securityTypes) {
-        List<Plan> plans = securityTypes
-            .stream()
-            .map(securityType -> {
-                Plan plan = new Plan();
-                plan.setSecurity(securityType.name());
-                return plan;
-            })
-            .collect(Collectors.toList());
+        List<Plan> plans = securityTypes.stream()
+                .map(securityType -> {
+                    Plan plan = new Plan();
+                    plan.setSecurity(securityType.name());
+                    return plan;
+                })
+                .collect(Collectors.toList());
         when(api.getPlans()).thenReturn(plans);
     }
 }

@@ -70,7 +70,10 @@ public class HTTPMeasuresQueryAdapter {
     }
 
     private JsonObject json(MeasuresQuery query) {
-        return new JsonObject().put("size", 0).put("query", queryAdapter.adaptForHTTP(query)).put("aggs", adaptMetrics(query.metrics()));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", queryAdapter.adaptForHTTP(query))
+                .put("aggs", adaptMetrics(query.metrics()));
     }
 
     static final String FILTER_AGG_SUFFIX = "__FILTER__";
@@ -81,7 +84,9 @@ public class HTTPMeasuresQueryAdapter {
             var measureAggs = buildMeasureAggs(metric);
             if (metric.filters() != null && !metric.filters().isEmpty()) {
                 var filterName = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + FILTER_AGG_SUFFIX;
-                var filterAgg = new JsonObject().put("filter", filterAdapter.adaptMetricFilters(metric.filters())).put("aggs", measureAggs);
+                var filterAgg = new JsonObject()
+                        .put("filter", filterAdapter.adaptMetricFilters(metric.filters()))
+                        .put("aggs", measureAggs);
                 aggs.put(filterName, filterAgg);
             } else {
                 aggs.mergeIn(measureAggs);
@@ -141,7 +146,8 @@ public class HTTPMeasuresQueryAdapter {
         };
     }
 
-    private Optional<Map<String, JsonObject>> aggregateByMeasure(String aggName, String field, Metric metric, Measure measure) {
+    private Optional<Map<String, JsonObject>> aggregateByMeasure(
+            String aggName, String field, Metric metric, Measure measure) {
         return switch (measure) {
             case AVG -> avg().map(avg -> avg.build(aggName, field));
             case COUNT -> count(metric).map(count -> count.build(aggName, field));
@@ -158,11 +164,10 @@ public class HTTPMeasuresQueryAdapter {
 
     private Optional<CountBuilder> count(Metric metric) {
         return switch (metric) {
-            case
-                LLM_PROMPT_TOKEN_SENT,
-                LLM_PROMPT_TOKEN_RECEIVED,
-                LLM_PROMPT_TOKEN_SENT_COST,
-                LLM_PROMPT_TOKEN_RECEIVED_COST -> Optional.of(countWithSumBuilder);
+            case LLM_PROMPT_TOKEN_SENT,
+                    LLM_PROMPT_TOKEN_RECEIVED,
+                    LLM_PROMPT_TOKEN_SENT_COST,
+                    LLM_PROMPT_TOKEN_RECEIVED_COST -> Optional.of(countWithSumBuilder);
             default -> Optional.of(simpleCountBuilder);
         };
     }

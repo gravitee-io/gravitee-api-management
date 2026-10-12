@@ -44,7 +44,8 @@ public class PortalNavigationManifestParserInMemory implements PortalNavigationM
     @Override
     public List<ManifestPage> parse(String manifestContent) {
         if (failOnParse) {
-            throw InvalidPortalNavigationItemSourceException.invalidManifest(new RuntimeException("unreadable manifest"));
+            throw InvalidPortalNavigationItemSourceException.invalidManifest(
+                    new RuntimeException("unreadable manifest"));
         }
         return List.copyOf(pages);
     }

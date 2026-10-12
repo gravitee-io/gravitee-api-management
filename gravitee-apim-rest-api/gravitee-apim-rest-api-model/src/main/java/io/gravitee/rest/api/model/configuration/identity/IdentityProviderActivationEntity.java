@@ -71,11 +71,9 @@ public class IdentityProviderActivationEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IdentityProviderActivationEntity that = (IdentityProviderActivationEntity) o;
-        return (
-            Objects.equals(identityProvider, that.identityProvider) &&
-            Objects.equals(referenceId, that.referenceId) &&
-            Objects.equals(referenceType, that.referenceType)
-        );
+        return (Objects.equals(identityProvider, that.identityProvider)
+                && Objects.equals(referenceId, that.referenceId)
+                && Objects.equals(referenceType, that.referenceType));
     }
 
     @Override

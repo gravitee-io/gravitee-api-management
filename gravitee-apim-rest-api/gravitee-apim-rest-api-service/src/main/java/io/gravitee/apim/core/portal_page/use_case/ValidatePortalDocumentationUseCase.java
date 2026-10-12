@@ -29,9 +29,9 @@ public class ValidatePortalDocumentationUseCase {
     private final ValidatePortalDocumentationDomainService validator;
     private final PortalDocumentationSyncDomainService syncDomainService;
 
-    public CreateOrUpdatePortalDocumentationUseCase.Output execute(CreateOrUpdatePortalDocumentationUseCase.Input input) {
-        var result = validator.validateAndSanitize(
-            new ValidatePortalDocumentationDomainService.Input(
+    public CreateOrUpdatePortalDocumentationUseCase.Output execute(
+            CreateOrUpdatePortalDocumentationUseCase.Input input) {
+        var result = validator.validateAndSanitize(new ValidatePortalDocumentationDomainService.Input(
                 input.auditInfo(),
                 input.portalPageContentId(),
                 input.portalId(),
@@ -40,9 +40,7 @@ public class ValidatePortalDocumentationUseCase {
                 input.content(),
                 input.location(),
                 input.order(),
-                input.area()
-            )
-        );
+                input.area()));
         List<Validator.Error> errors = result.errors().orElseGet(List::of);
 
         if (result.severe().isEmpty()) {

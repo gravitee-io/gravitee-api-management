@@ -21,7 +21,6 @@ import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.UserMetadataEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.List;
 import org.springframework.stereotype.Component;

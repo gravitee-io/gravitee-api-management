@@ -73,16 +73,21 @@ class ApiDocumentationNavigationResource_UnknownApiTest extends AbstractResource
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        apiCrudService.initWith(
-            List.of(Api.builder().id(API_OF_ANOTHER_ENVIRONMENT).name("Elsewhere").environmentId("another-environment").build())
-        );
+        apiCrudService.initWith(List.of(Api.builder()
+                .id(API_OF_ANOTHER_ENVIRONMENT)
+                .name("Elsewhere")
+                .environmentId("another-environment")
+                .build()));
     }
 
     @AfterEach
@@ -126,31 +131,31 @@ class ApiDocumentationNavigationResource_UnknownApiTest extends AbstractResource
 
     private static Stream<Named<Function<WebTarget, Response>>> operations() {
         return Stream.of(
-            Named.of("list", target -> target.request().get()),
-            Named.of("publish locations", target -> target.path("_publish-locations").request().get()),
-            Named.of("create", target ->
-                target.request().post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)))
-            ),
-            Named.of("import", target ->
-                target
-                    .path("_import")
-                    .request()
-                    .post(
-                        json(
-                            new ImportPortalNavigationRequest()
-                                .title("Imported Docs")
-                                .source(
-                                    new PortalNavigationItemSource()
-                                        .type("http-fetcher")
-                                        .configuration(Map.of("url", "https://example.com/repo"))
-                                )
-                        )
-                    )
-            ),
-            Named.of("publish", target ->
-                target.path("_publish").request().post(json(new PublishApiToPortal().sectionId(UUID.randomUUID())))
-            ),
-            Named.of("unpublish", target -> target.path("_unpublish").request().post(json("")))
-        );
+                Named.of("list", target -> target.request().get()),
+                Named.of(
+                        "publish locations",
+                        target -> target.path("_publish-locations").request().get()),
+                Named.of(
+                        "create",
+                        target -> target.request()
+                                .post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage()
+                                        .parentId(null)))),
+                Named.of(
+                        "import",
+                        target -> target.path("_import")
+                                .request()
+                                .post(json(new ImportPortalNavigationRequest()
+                                        .title("Imported Docs")
+                                        .source(new PortalNavigationItemSource()
+                                                .type("http-fetcher")
+                                                .configuration(Map.of("url", "https://example.com/repo")))))),
+                Named.of(
+                        "publish",
+                        target -> target.path("_publish")
+                                .request()
+                                .post(json(new PublishApiToPortal().sectionId(UUID.randomUUID())))),
+                Named.of(
+                        "unpublish",
+                        target -> target.path("_unpublish").request().post(json(""))));
     }
 }

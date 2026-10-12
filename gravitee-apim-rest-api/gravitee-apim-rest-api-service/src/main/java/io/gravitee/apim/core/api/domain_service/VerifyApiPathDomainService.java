@@ -45,7 +45,8 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     public record Input(String environmentId, String apiId, List<Path> paths) implements Validator.Input {}
 
-    private static final List<DefinitionVersion> PATH_BEARING_DEFINITIONS = List.of(DefinitionVersion.V2, DefinitionVersion.V4);
+    private static final List<DefinitionVersion> PATH_BEARING_DEFINITIONS =
+            List.of(DefinitionVersion.V2, DefinitionVersion.V4);
 
     /**
      * Slack subtracted from the snapshot watermark when issuing the supplementary "recently updated" Mongo query.
@@ -60,11 +61,10 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     private final ApiPathIndexReader apiPathIndex;
 
     public VerifyApiPathDomainService(
-        ApiQueryService apiSearchService,
-        InstallationAccessQueryService installationAccessQueryService,
-        ApiHostValidatorDomainService apiHostValidatorDomainService,
-        ApiPathIndexReader apiPathIndex
-    ) {
+            ApiQueryService apiSearchService,
+            InstallationAccessQueryService installationAccessQueryService,
+            ApiHostValidatorDomainService apiHostValidatorDomainService,
+            ApiPathIndexReader apiPathIndex) {
         this.apiSearchService = apiSearchService;
         this.installationAccessQueryService = installationAccessQueryService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
@@ -94,7 +94,8 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
         return Result.ofBoth(new Input(input.environmentId, input.apiId, sanitized), errors);
     }
 
-    private List<Error> invalidDomainErrors(String environmentId, List<Path.PathBuilder> sanitizedBuilder) throws InvalidPathsException {
+    private List<Error> invalidDomainErrors(String environmentId, List<Path.PathBuilder> sanitizedBuilder)
+            throws InvalidPathsException {
         var errors = new ArrayList<Error>();
 
         var restrictedDomains = installationAccessQueryService.getGatewayRestrictedDomains(environmentId);
@@ -106,10 +107,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
                 }
             }
             if (sanitizedBuilder.stream().noneMatch(builder -> builder.build().isOverrideAccess())) {
-                sanitizedBuilder
-                    .stream()
-                    .findFirst()
-                    .ifPresent(builder -> builder.overrideAccess(true));
+                sanitizedBuilder.stream().findFirst().ifPresent(builder -> builder.overrideAccess(true));
             }
         }
 
@@ -120,12 +118,12 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
         var hostWithoutPort = extractHost(path.getHost());
         var hostPort = extractPort(path.getHost());
 
-        var restrictedDomainsWithoutPort = restrictedDomains
-            .stream()
-            .map(restrictedDomainEntity -> extractHost(restrictedDomainEntity.getDomain()))
-            .toList();
+        var restrictedDomainsWithoutPort = restrictedDomains.stream()
+                .map(restrictedDomainEntity -> extractHost(restrictedDomainEntity.getDomain()))
+                .toList();
 
-        var isValidDomain = apiHostValidatorDomainService.isValidDomainOrSubDomain(hostWithoutPort, restrictedDomainsWithoutPort);
+        var isValidDomain =
+                apiHostValidatorDomainService.isValidDomainOrSubDomain(hostWithoutPort, restrictedDomainsWithoutPort);
 
         var isValidPort = isValidPort(hostPort, restrictedDomains);
 
@@ -136,7 +134,8 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     }
 
     private List<Error> unavailablePathErrors(Input input, List<Path.PathBuilder> sanitizedBuilder) {
-        var candidatePaths = sanitizedBuilder.stream().map(Path.PathBuilder::build).toList();
+        var candidatePaths =
+                sanitizedBuilder.stream().map(Path.PathBuilder::build).toList();
         var env = input.environmentId;
         var excludeApiId = input.apiId;
 
@@ -152,7 +151,10 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
         // Snapshot says conflict — but the snapshot can lag a remote update/delete by one cron interval. Re-read just
         // the rows we collided with in one batched query (the {_id IN (...)} hits the PK index) and rescan against
         // their current paths. Single round-trip even for multiple conflicting apiIds.
-        var distinctApiIds = snapshotConflicts.stream().map(ApiPathIndex.Conflict::apiId).distinct().toList();
+        var distinctApiIds = snapshotConflicts.stream()
+                .map(ApiPathIndex.Conflict::apiId)
+                .distinct()
+                .toList();
         var rechecked = new HashMap<String, List<Path>>();
         try (var stream = searchByIds(env, distinctApiIds)) {
             stream.forEach(api -> {
@@ -180,7 +182,8 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
      * when every snapshot conflict has been resolved by the recheck — in both cases we need to surface a remote
      * create that hasn't propagated via the broadcast cron yet.
      */
-    private List<Error> supplementaryScan(String env, java.time.Instant refreshedAt, String excludeApiId, List<Path> candidatePaths) {
+    private List<Error> supplementaryScan(
+            String env, java.time.Instant refreshedAt, String excludeApiId, List<Path> candidatePaths) {
         var since = refreshedAt.minus(SAFETY_MARGIN);
         var recentPaths = new HashMap<String, List<Path>>();
         try (var recent = searchPathBearing(env, since)) {
@@ -191,21 +194,30 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
                 }
             });
         }
-        return ApiPathIndex.scanPaths(recentPaths, excludeApiId, candidatePaths).stream().map(ApiPathIndex.Conflict::error).toList();
+        return ApiPathIndex.scanPaths(recentPaths, excludeApiId, candidatePaths).stream()
+                .map(ApiPathIndex.Conflict::error)
+                .toList();
     }
 
-    private java.util.stream.Stream<io.gravitee.apim.core.api.model.Api> searchPathBearing(String envId, java.time.Instant updatedAtFrom) {
+    private java.util.stream.Stream<io.gravitee.apim.core.api.model.Api> searchPathBearing(
+            String envId, java.time.Instant updatedAtFrom) {
         var criteria = ApiSearchCriteria.builder()
-            .environmentId(envId)
-            .definitionVersion(PATH_BEARING_DEFINITIONS)
-            .updatedAtFrom(updatedAtFrom)
-            .build();
-        return apiSearchService.search(criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build());
+                .environmentId(envId)
+                .definitionVersion(PATH_BEARING_DEFINITIONS)
+                .updatedAtFrom(updatedAtFrom)
+                .build();
+        return apiSearchService.search(
+                criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build());
     }
 
     private java.util.stream.Stream<io.gravitee.apim.core.api.model.Api> searchByIds(String envId, List<String> ids) {
-        var criteria = ApiSearchCriteria.builder().environmentId(envId).ids(ids).definitionVersion(PATH_BEARING_DEFINITIONS).build();
-        return apiSearchService.search(criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build());
+        var criteria = ApiSearchCriteria.builder()
+                .environmentId(envId)
+                .ids(ids)
+                .definitionVersion(PATH_BEARING_DEFINITIONS)
+                .build();
+        return apiSearchService.search(
+                criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build());
     }
 
     private List<Error> invalidPathErrors(List<Path.PathBuilder> sanitizedBuilder) {
@@ -226,22 +238,19 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     private List<Error> duplicatePathErrors(List<Path.PathBuilder> sanitizedBuilder) {
         var seen = new HashSet<>();
-        return sanitizedBuilder
-            .stream()
-            .map(Path.PathBuilder::build)
-            .filter(path -> !seen.add(path))
-            .map(duplicate -> Error.severe("Path [%s] is duplicated", duplicate.getPath()))
-            .toList();
+        return sanitizedBuilder.stream()
+                .map(Path.PathBuilder::build)
+                .filter(path -> !seen.add(path))
+                .map(duplicate -> Error.severe("Path [%s] is duplicated", duplicate.getPath()))
+                .toList();
     }
 
     private static boolean isValidPort(final String port, final List<RestrictedDomain> restrictedDomainEntities) {
-        return restrictedDomainEntities
-            .stream()
-            .anyMatch(restrictedDomainEntity -> {
-                String restrictedDomain = restrictedDomainEntity.getDomain();
-                String restrictedPort = extractPort(restrictedDomain);
-                return isValidPort(port, restrictedPort);
-            });
+        return restrictedDomainEntities.stream().anyMatch(restrictedDomainEntity -> {
+            String restrictedDomain = restrictedDomainEntity.getDomain();
+            String restrictedPort = extractPort(restrictedDomain);
+            return isValidPort(port, restrictedPort);
+        });
     }
 
     private static boolean isValidPort(String port, String restrictedPort) {

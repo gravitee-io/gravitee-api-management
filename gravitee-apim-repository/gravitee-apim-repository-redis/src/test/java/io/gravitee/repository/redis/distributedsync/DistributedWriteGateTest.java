@@ -39,17 +39,15 @@ class DistributedWriteGateTest {
         AtomicInteger peak = new AtomicInteger();
 
         List<Completable> writes = IntStream.range(0, 100)
-            .mapToObj(i ->
-                gate.runGated(
-                    // Count via doOnSubscribe/doOnTerminate (which run before the terminal is propagated) so the
-                    // gauge reflects true concurrency; doFinally would over-count as the freed permit is handed
-                    // to the next write before the finishing write's decrement runs.
-                    Completable.timer(20, TimeUnit.MILLISECONDS)
-                        .doOnSubscribe(disposable -> peak.accumulateAndGet(current.incrementAndGet(), Math::max))
-                        .doOnTerminate(current::decrementAndGet)
-                )
-            )
-            .toList();
+                .mapToObj(i -> gate.runGated(
+                        // Count via doOnSubscribe/doOnTerminate (which run before the terminal is propagated) so the
+                        // gauge reflects true concurrency; doFinally would over-count as the freed permit is handed
+                        // to the next write before the finishing write's decrement runs.
+                        Completable.timer(20, TimeUnit.MILLISECONDS)
+                                .doOnSubscribe(
+                                        disposable -> peak.accumulateAndGet(current.incrementAndGet(), Math::max))
+                                .doOnTerminate(current::decrementAndGet)))
+                .toList();
 
         Completable.merge(writes).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -68,18 +66,14 @@ class DistributedWriteGateTest {
         AtomicInteger current = new AtomicInteger();
 
         List<Completable> writes = IntStream.range(0, 200)
-            .mapToObj(i ->
-                gate.runGated(
-                    Completable.defer(() -> {
-                        if (current.incrementAndGet() > waitingQueueCeiling) {
-                            current.decrementAndGet();
-                            return Completable.error(new RuntimeException("Redis waiting queue is full"));
-                        }
-                        return Completable.timer(20, TimeUnit.MILLISECONDS).doOnTerminate(current::decrementAndGet);
-                    })
-                )
-            )
-            .toList();
+                .mapToObj(i -> gate.runGated(Completable.defer(() -> {
+                    if (current.incrementAndGet() > waitingQueueCeiling) {
+                        current.decrementAndGet();
+                        return Completable.error(new RuntimeException("Redis waiting queue is full"));
+                    }
+                    return Completable.timer(20, TimeUnit.MILLISECONDS).doOnTerminate(current::decrementAndGet);
+                })))
+                .toList();
 
         Completable.merge(writes).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
     }
@@ -156,6 +150,9 @@ class DistributedWriteGateTest {
         }
         assertThat(inFlight).isZero();
         // ...and the gate still grants afterwards.
-        gate.runGated(Completable.complete()).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        gate.runGated(Completable.complete())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
     }
 }

@@ -50,12 +50,16 @@ class TagQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_groups_matching_the_event_provided() {
-            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION))).thenAnswer(invocation ->
-                Set.of(
-                    aTag("1", "tag-1").referenceId(invocation.getArgument(0)).name("tag-1").build(),
-                    aTag("2", "tag-2").referenceId(invocation.getArgument(0)).name("tag-2").build()
-                )
-            );
+            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION)))
+                    .thenAnswer(invocation -> Set.of(
+                            aTag("1", "tag-1")
+                                    .referenceId(invocation.getArgument(0))
+                                    .name("tag-1")
+                                    .build(),
+                            aTag("2", "tag-2")
+                                    .referenceId(invocation.getArgument(0))
+                                    .name("tag-2")
+                                    .build()));
 
             var tags = service.findByName(ORGANIZATION_ID, "tag-2");
 
@@ -65,36 +69,36 @@ class TagQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_adapt_groups() {
-            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION))).thenAnswer(invocation ->
-                Set.of(aTag("1", "tag-1").referenceId(invocation.getArgument(0)).name("tag-1").build())
-            );
+            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION)))
+                    .thenAnswer(invocation -> Set.of(aTag("1", "tag-1")
+                            .referenceId(invocation.getArgument(0))
+                            .name("tag-1")
+                            .build()));
 
             var tags = service.findByName(ORGANIZATION_ID, "tag-1");
 
             Assertions.assertThat(tags)
-                .hasSize(1)
-                .containsExactly(
-                    Tag.builder()
-                        .id("1")
-                        .key("tag-1")
-                        .name("tag-1")
-                        .description("group-1-description")
-                        .restrictedGroups(List.of("group-1-restricted-group"))
-                        .referenceId(ORGANIZATION_ID)
-                        .referenceType(io.gravitee.apim.core.tag.model.Tag.TagReferenceType.ORGANIZATION)
-                        .build()
-                );
+                    .hasSize(1)
+                    .containsExactly(Tag.builder()
+                            .id("1")
+                            .key("tag-1")
+                            .name("tag-1")
+                            .description("group-1-description")
+                            .restrictedGroups(List.of("group-1-restricted-group"))
+                            .referenceId(ORGANIZATION_ID)
+                            .referenceType(io.gravitee.apim.core.tag.model.Tag.TagReferenceType.ORGANIZATION)
+                            .build());
         }
     }
 
     private io.gravitee.repository.management.model.Tag.TagBuilder aTag(String id, String key) {
         return io.gravitee.repository.management.model.Tag.builder()
-            .id(id)
-            .key(key)
-            .name("group-1")
-            .description("group-1-description")
-            .restrictedGroups(List.of("group-1-restricted-group"))
-            .referenceId(ORGANIZATION_ID)
-            .referenceType(TagReferenceType.ORGANIZATION);
+                .id(id)
+                .key(key)
+                .name("group-1")
+                .description("group-1-description")
+                .restrictedGroups(List.of("group-1-restricted-group"))
+                .referenceId(ORGANIZATION_ID)
+                .referenceType(TagReferenceType.ORGANIZATION);
     }
 }

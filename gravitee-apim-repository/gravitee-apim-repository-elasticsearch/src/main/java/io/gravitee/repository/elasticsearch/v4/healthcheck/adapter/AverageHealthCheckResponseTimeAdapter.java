@@ -23,7 +23,8 @@ import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTim
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.HashMap;
 
-public class AverageHealthCheckResponseTimeAdapter implements QueryResponseAdapter<ApiFieldPeriod, AverageHealthCheckResponseTime> {
+public class AverageHealthCheckResponseTimeAdapter
+        implements QueryResponseAdapter<ApiFieldPeriod, AverageHealthCheckResponseTime> {
 
     private static final String TIME_FIELD = "@timestamp";
     private static final String PERIOD = "period";
@@ -44,7 +45,8 @@ public class AverageHealthCheckResponseTimeAdapter implements QueryResponseAdapt
         for (var groupBucket : groupedBuckets) {
             var key = groupBucket.get("key").asText();
 
-            var responseTimeBucketIterator = groupBucket.get("ranges").get("buckets").iterator();
+            var responseTimeBucketIterator =
+                    groupBucket.get("ranges").get("buckets").iterator();
             if (responseTimeBucketIterator.hasNext()) {
                 var responseTimeBucket = responseTimeBucketIterator.next();
                 var responseTime = responseTimeBucket.get("results").get("value");
@@ -58,7 +60,8 @@ public class AverageHealthCheckResponseTimeAdapter implements QueryResponseAdapt
             return Maybe.empty();
         }
 
-        var globalResponseTime = group.values().stream().mapToDouble(Long::doubleValue).average();
+        var globalResponseTime =
+                group.values().stream().mapToDouble(Long::doubleValue).average();
         if (globalResponseTime.isPresent()) {
             var average = globalResponseTime.getAsDouble();
             return Maybe.just(new AverageHealthCheckResponseTime(Math.round(average), group));
@@ -75,27 +78,31 @@ public class AverageHealthCheckResponseTimeAdapter implements QueryResponseAdapt
 
     private ObjectNode aggregations(ApiFieldPeriod query) {
         var aggregations = json().set(
-            "ranges",
-            json()
-                .<ObjectNode>set("aggregations", json().set("results", json().set("avg", json().put("field", "response-time"))))
-                .<ObjectNode>set(
-                    "date_range",
-                    json()
-                        .put("field", TIME_FIELD)
-                        .put("keyed", false)
-                        .set(
-                            "ranges",
-                            array().add(
-                                json().put("from", query.from().toEpochMilli()).put("to", query.to().toEpochMilli()).put("key", PERIOD)
-                            )
-                        )
-                )
-        );
-        var terms = json()
-            .put("field", query.field())
-            .put("size", 100)
-            .set("order", array().add(json().put("_count", "desc")).add(json().put("_key", "asc")));
+                        "ranges",
+                        json().<ObjectNode>set(
+                                        "aggregations",
+                                        json().set("results", json().set("avg", json().put("field", "response-time"))))
+                                .<ObjectNode>set(
+                                        "date_range",
+                                        json().put("field", TIME_FIELD)
+                                                .put("keyed", false)
+                                                .set(
+                                                        "ranges",
+                                                        array().add(json().put(
+                                                                        "from",
+                                                                        query.from()
+                                                                                .toEpochMilli())
+                                                                .put(
+                                                                        "to",
+                                                                        query.to()
+                                                                                .toEpochMilli())
+                                                                .put("key", PERIOD)))));
+        var terms = json().put("field", query.field())
+                .put("size", 100)
+                .set("order", array().add(json().put("_count", "desc")).add(json().put("_key", "asc")));
 
-        return json().set("terms", json().<ObjectNode>set("aggregations", aggregations).set("terms", terms));
+        return json().set(
+                        "terms",
+                        json().<ObjectNode>set("aggregations", aggregations).set("terms", terms));
     }
 }

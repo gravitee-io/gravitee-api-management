@@ -25,10 +25,10 @@ public class EnvironmentIdUpdatedAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("ei1ua-1")
-            .key("environmentId", ascending())
-            .key("updatedAt", descending())
-            .build();
+                .collection("apis")
+                .name("ei1ua-1")
+                .key("environmentId", ascending())
+                .key("updatedAt", descending())
+                .build();
     }
 }

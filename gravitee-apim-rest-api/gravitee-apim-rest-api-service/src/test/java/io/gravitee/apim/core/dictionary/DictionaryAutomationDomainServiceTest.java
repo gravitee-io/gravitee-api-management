@@ -51,7 +51,8 @@ import org.mockito.ArgumentCaptor;
 class DictionaryAutomationDomainServiceTest {
 
     private final DictionaryService dictionaryService = mock(DictionaryService.class);
-    private final DictionaryAutomationDomainService domainService = new DictionaryAutomationDomainServiceLegacyWrapper(dictionaryService);
+    private final DictionaryAutomationDomainService domainService =
+            new DictionaryAutomationDomainServiceLegacyWrapper(dictionaryService);
     private final ExecutionContext executionContext = new ExecutionContext("org", "env");
 
     @Nested
@@ -60,12 +61,12 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_convert_dictionary_to_new_entity_with_key() {
             var dictionary = Dictionary.builder()
-                .hrid("my-hrid")
-                .name("My Dict")
-                .description("A description")
-                .type(DictionaryType.MANUAL)
-                .properties(List.of(new DictionaryProperty("k", "v", null, null)))
-                .build();
+                    .hrid("my-hrid")
+                    .name("My Dict")
+                    .description("A description")
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of(new DictionaryProperty("k", "v", null, null)))
+                    .build();
             var created = DictionaryEntity.builder().id("new-id").build();
             when(dictionaryService.create(any(), any())).thenReturn(created);
 
@@ -78,7 +79,8 @@ class DictionaryAutomationDomainServiceTest {
             assertThat(entity.getKey()).isEqualTo("my-hrid");
             assertThat(entity.getName()).isEqualTo("My Dict");
             assertThat(entity.getDescription()).isEqualTo("A description");
-            assertThat(entity.getType()).isEqualTo(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL);
+            assertThat(entity.getType())
+                    .isEqualTo(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL);
             assertThat(entity.getProperties()).containsExactlyEntriesOf(Map.of("k", "v"));
             assertThat(entity.getPropertyOptions()).isEmpty();
         }
@@ -89,20 +91,21 @@ class DictionaryAutomationDomainServiceTest {
 
         @Test
         void should_convert_dictionary_to_update_entity_without_key() {
-            var trigger = DictionaryTrigger.builder().rate(10L).unit(TimeUnit.MINUTES).build();
+            var trigger =
+                    DictionaryTrigger.builder().rate(10L).unit(TimeUnit.MINUTES).build();
             var provider = DictionaryProvider.builder()
-                .type("HTTP")
-                .configuration(new ObjectMapper().createObjectNode().put("url", "http://example.com"))
-                .build();
+                    .type("HTTP")
+                    .configuration(new ObjectMapper().createObjectNode().put("url", "http://example.com"))
+                    .build();
 
             var dictionary = Dictionary.builder()
-                .hrid("my-hrid")
-                .name("Updated Dict")
-                .description("Updated desc")
-                .type(DictionaryType.DYNAMIC)
-                .provider(provider)
-                .trigger(trigger)
-                .build();
+                    .hrid("my-hrid")
+                    .name("Updated Dict")
+                    .description("Updated desc")
+                    .type(DictionaryType.DYNAMIC)
+                    .provider(provider)
+                    .trigger(trigger)
+                    .build();
             var updated = DictionaryEntity.builder().id("existing-id").build();
             when(dictionaryService.update(any(), any(), any())).thenReturn(updated);
 
@@ -114,7 +117,8 @@ class DictionaryAutomationDomainServiceTest {
             var entity = captor.getValue();
             assertThat(entity.getName()).isEqualTo("Updated Dict");
             assertThat(entity.getDescription()).isEqualTo("Updated desc");
-            assertThat(entity.getType()).isEqualTo(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC);
+            assertThat(entity.getType())
+                    .isEqualTo(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC);
             assertThat(entity.getProvider().getType()).isEqualTo("HTTP");
             assertThat(entity.getTrigger().getRate()).isEqualTo(10L);
             assertThat(entity.getTrigger().getUnit()).isEqualTo(TimeUnit.MINUTES);
@@ -125,16 +129,16 @@ class DictionaryAutomationDomainServiceTest {
     class HandleDeployment_Manual {
 
         private final DictionaryEntity dictionary = DictionaryEntity.builder()
-            .id("dict-id")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .build();
+                .id("dict-id")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                .build();
 
         @Test
         void should_deploy_when_deploy_is_true() {
             var deployed = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                    .build();
             when(dictionaryService.deploy(executionContext, "dict-id")).thenReturn(deployed);
 
             var result = domainService.handleDeployment(executionContext, dictionary, true);
@@ -147,9 +151,9 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_undeploy_when_deploy_is_false() {
             var undeployed = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+                    .build();
             when(dictionaryService.undeploy(executionContext, "dict-id")).thenReturn(undeployed);
 
             var result = domainService.handleDeployment(executionContext, dictionary, false);
@@ -166,15 +170,15 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_start_when_deploy_is_true_and_not_started() {
             var dictionary = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STOPPED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STOPPED)
+                    .build();
             var started = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STARTED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STARTED)
+                    .build();
             when(dictionaryService.start(executionContext, "dict-id")).thenReturn(started);
 
             var result = domainService.handleDeployment(executionContext, dictionary, true);
@@ -186,10 +190,10 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_not_start_when_deploy_is_true_and_already_started() {
             var dictionary = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STARTED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STARTED)
+                    .build();
 
             var result = domainService.handleDeployment(executionContext, dictionary, true);
 
@@ -200,20 +204,20 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_stop_and_undeploy_when_deploy_is_false_and_started() {
             var dictionary = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STARTED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STARTED)
+                    .build();
             var stopped = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STOPPED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STOPPED)
+                    .build();
             var undeployed = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STOPPED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STOPPED)
+                    .build();
             when(dictionaryService.stop(executionContext, "dict-id")).thenReturn(stopped);
             when(dictionaryService.undeploy(executionContext, "dict-id")).thenReturn(undeployed);
 
@@ -227,10 +231,10 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_not_stop_when_deploy_is_false_and_not_started() {
             var dictionary = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STOPPED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STOPPED)
+                    .build();
 
             var result = domainService.handleDeployment(executionContext, dictionary, false);
 
@@ -241,14 +245,14 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_start_when_state_is_null_and_deploy_is_true() {
             var dictionary = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .build();
             var started = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STARTED)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STARTED)
+                    .build();
             when(dictionaryService.start(executionContext, "dict-id")).thenReturn(started);
 
             var result = domainService.handleDeployment(executionContext, dictionary, true);
@@ -260,9 +264,9 @@ class DictionaryAutomationDomainServiceTest {
         @Test
         void should_not_stop_when_state_is_null_and_deploy_is_false() {
             var dictionary = DictionaryEntity.builder()
-                .id("dict-id")
-                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
-                .build();
+                    .id("dict-id")
+                    .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                    .build();
 
             var result = domainService.handleDeployment(executionContext, dictionary, false);
 

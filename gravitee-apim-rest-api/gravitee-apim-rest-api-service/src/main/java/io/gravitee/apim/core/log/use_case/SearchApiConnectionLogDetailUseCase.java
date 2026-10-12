@@ -36,9 +36,9 @@ public class SearchApiConnectionLogDetailUseCase {
 
     public Output execute(ExecutionContext executionContext, Input input) {
         return connectionLogsCrudService
-            .searchApiConnectionLog(executionContext, input.apiId(), input.requestId())
-            .map(Output::new)
-            .orElse(new Output());
+                .searchApiConnectionLog(executionContext, input.apiId(), input.requestId())
+                .map(Output::new)
+                .orElse(new Output());
     }
 
     public record Input(String apiId, String requestId) {}

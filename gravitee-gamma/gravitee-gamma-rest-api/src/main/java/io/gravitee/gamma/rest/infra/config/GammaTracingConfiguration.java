@@ -55,9 +55,8 @@ import org.springframework.context.annotation.Lazy;
  */
 @Configuration
 @ComponentScan(
-    basePackages = "io.gravitee.gamma.rest.core.tracing",
-    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class)
-)
+        basePackages = "io.gravitee.gamma.rest.core.tracing",
+        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class))
 public class GammaTracingConfiguration {
 
     @Bean

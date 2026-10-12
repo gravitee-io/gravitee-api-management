@@ -54,8 +54,11 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     private SubscriptionMongoRepository internalSubscriptionRepository;
 
     @Override
-    public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
-        return internalSubscriptionRepository.search(criteria, sortable, pageable).map(mapper::map);
+    public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
+        return internalSubscriptionRepository
+                .search(criteria, sortable, pageable)
+                .map(mapper::map);
     }
 
     @Override
@@ -76,13 +79,15 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     @Override
-    public List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
-        throws TechnicalException {
-        if (
-            (criteria.getPlanSecurityTypes() != null && !criteria.getPlanSecurityTypes().isEmpty()) ||
-            (criteria.getExcludedApis() != null && !criteria.getExcludedApis().isEmpty())
-        ) {
-            throw new TechnicalException("searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
+    public List<Subscription> searchAfter(
+            SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+            throws TechnicalException {
+        if ((criteria.getPlanSecurityTypes() != null
+                        && !criteria.getPlanSecurityTypes().isEmpty())
+                || (criteria.getExcludedApis() != null
+                        && !criteria.getExcludedApis().isEmpty())) {
+            throw new TechnicalException(
+                    "searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
         }
         SubscriptionSearchSort sort;
         try {
@@ -100,7 +105,8 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Optional<Subscription> findById(String subscription) throws TechnicalException {
-        SubscriptionMongo subscriptionMongo = internalSubscriptionRepository.findById(subscription).orElse(null);
+        SubscriptionMongo subscriptionMongo =
+                internalSubscriptionRepository.findById(subscription).orElse(null);
         return Optional.ofNullable(map(subscriptionMongo));
     }
 
@@ -117,7 +123,8 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
             throw new IllegalStateException("Subscription to update must have an id");
         }
 
-        SubscriptionMongo subscriptionMongo = internalSubscriptionRepository.findById(subscription.getId()).orElse(null);
+        SubscriptionMongo subscriptionMongo =
+                internalSubscriptionRepository.findById(subscription.getId()).orElse(null);
 
         if (subscriptionMongo == null) {
             throw new IllegalStateException(String.format("No subscription found with id [%s]", subscription.getId()));
@@ -137,11 +144,9 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete subscriptions by environment [{}]", environmentId);
         try {
-            final var subscriptionMongos = internalSubscriptionRepository
-                .deleteByEnvironmentId(environmentId)
-                .stream()
-                .map(SubscriptionMongo::getId)
-                .toList();
+            final var subscriptionMongos = internalSubscriptionRepository.deleteByEnvironmentId(environmentId).stream()
+                    .map(SubscriptionMongo::getId)
+                    .toList();
             log.debug("Delete subscriptions by environment [{}] - Done", environmentId);
             return subscriptionMongos;
         } catch (Exception e) {
@@ -159,7 +164,9 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     public List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException {
         try {
             Iterable<SubscriptionMongo> subscriptions = internalSubscriptionRepository.findAllById(ids);
-            return StreamSupport.stream(subscriptions.spliterator(), false).map(this::map).collect(Collectors.toList());
+            return StreamSupport.stream(subscriptions.spliterator(), false)
+                    .map(this::map)
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             throw new TechnicalException("An error occurred trying to find subscriptions by id list", e);
         }
@@ -170,14 +177,14 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     @Override
-    public Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
-        throws TechnicalException {
+    public Set<Subscription> findByReferenceIdAndReferenceType(
+            String referenceId, SubscriptionReferenceType referenceType) throws TechnicalException {
         try {
             return internalSubscriptionRepository
-                .findByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+                    .findByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                    .stream()
+                    .map(this::map)
+                    .collect(Collectors.toSet());
         } catch (Exception e) {
             throw new TechnicalException("An error occurred trying to find subscriptions by reference", e);
         }
@@ -185,14 +192,12 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) throws TechnicalException {
+            String subscriptionId, String referenceId, SubscriptionReferenceType referenceType)
+            throws TechnicalException {
         try {
             return internalSubscriptionRepository
-                .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, referenceType.name())
-                .map(this::map);
+                    .findByIdAndReferenceIdAndReferenceType(subscriptionId, referenceId, referenceType.name())
+                    .map(this::map);
         } catch (Exception e) {
             throw new TechnicalException("An error occurred trying to find subscription by id and reference", e);
         }

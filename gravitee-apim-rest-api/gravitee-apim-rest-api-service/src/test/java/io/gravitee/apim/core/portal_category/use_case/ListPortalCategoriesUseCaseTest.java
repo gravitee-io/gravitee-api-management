@@ -48,17 +48,16 @@ class ListPortalCategoriesUseCaseTest {
 
     @Test
     void should_list_portal_categories_sorted_alphabetically_for_environment() {
-        portalCategoryQueryServiceInMemory.initWith(
-            List.of(
+        portalCategoryQueryServiceInMemory.initWith(List.of(
                 PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Weather", null, true),
                 PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Analytics", null, true),
-                PortalCategory.of(PortalCategoryId.random(), "other-env", "Banking", null, true)
-            )
-        );
+                PortalCategory.of(PortalCategoryId.random(), "other-env", "Banking", null, true)));
 
         var output = useCase.execute(new ListPortalCategoriesUseCase.Input(ENVIRONMENT_ID));
 
-        assertThat(output.portalCategories()).extracting(PortalCategory::getTitle).containsExactly("Analytics", "Weather");
+        assertThat(output.portalCategories())
+                .extracting(PortalCategory::getTitle)
+                .containsExactly("Analytics", "Weather");
     }
 
     @Test

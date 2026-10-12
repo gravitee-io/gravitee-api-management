@@ -60,7 +60,7 @@ import org.springframework.test.context.ContextConfiguration;
  * {@link ResourceContextConfiguration} — so behaviour like environment isolation and pagination is
  * exercised end-to-end rather than stubbed at the use-case boundary.
  */
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, DashboardsTestConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class, DashboardsTestConfiguration.class})
 class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
@@ -137,7 +137,8 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard("dash-apim", ENVIRONMENT, "apim"));
             dashboardRepository.givenDashboard(dashboard("dash-none", ENVIRONMENT, null));
 
-            Response response = rootTarget().queryParam("module", "aim").request().get();
+            Response response =
+                    rootTarget().queryParam("module", "aim").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -154,19 +155,21 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard("dash-portals", ENVIRONMENT, "portals"));
             dashboardRepository.givenDashboard(dashboard("dash-none", ENVIRONMENT, null));
 
-            Response response = rootTarget().queryParam("module", "aim", "apim").request().get();
+            Response response =
+                    rootTarget().queryParam("module", "aim", "apim").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("data"))
-                .extracting(dto -> dto.get("id").asText())
-                .containsExactly("dash-aim", "dash-apim");
+                    .extracting(dto -> dto.get("id").asText())
+                    .containsExactly("dash-aim", "dash-apim");
             assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(2L);
         }
 
         @Test
         void should_return_400_when_one_of_the_modules_is_invalid() {
-            Response response = rootTarget().queryParam("module", "aim", "AIM").request().get();
+            Response response =
+                    rootTarget().queryParam("module", "aim", "AIM").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -182,14 +185,15 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode data = response.readEntity(JsonNode.class).get("data");
             assertThat(data)
-                .extracting(dto -> dto.get("id").asText())
-                .containsExactly("dash-aim", "dash-apim", "dash-none");
+                    .extracting(dto -> dto.get("id").asText())
+                    .containsExactly("dash-aim", "dash-apim", "dash-none");
             assertThat(data.get(2).has("module")).as("no module, no field").isFalse();
         }
 
         @Test
         void should_return_400_on_an_invalid_module() {
-            Response response = rootTarget().queryParam("module", "AIM").request().get();
+            Response response =
+                    rootTarget().queryParam("module", "AIM").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -200,7 +204,11 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                 dashboardRepository.givenDashboard(dashboard("dash-" + i, ENVIRONMENT));
             }
 
-            Response response = rootTarget().queryParam("page", 2).queryParam("perPage", 2).request().get();
+            Response response = rootTarget()
+                    .queryParam("page", 2)
+                    .queryParam("perPage", 2)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -241,7 +249,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             Response response = rootTarget(DASHBOARD_ID).request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            assertThat(response.getEntityTag()).as("the tag a later If-Match must echo").isEqualTo(new EntityTag("3"));
+            assertThat(response.getEntityTag())
+                    .as("the tag a later If-Match must echo")
+                    .isEqualTo(new EntityTag("3"));
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("id").asText()).isEqualTo(DASHBOARD_ID);
             assertThat(body.get("title").asText()).isEqualTo("Performance overview");
@@ -253,17 +263,24 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_200_when_the_requested_module_matches() {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT, "aim"));
 
-            Response response = rootTarget(DASHBOARD_ID).queryParam("module", "aim").request().get();
+            Response response = rootTarget(DASHBOARD_ID)
+                    .queryParam("module", "aim")
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            assertThat(response.readEntity(JsonNode.class).get("module").asText()).isEqualTo("aim");
+            assertThat(response.readEntity(JsonNode.class).get("module").asText())
+                    .isEqualTo("aim");
         }
 
         @Test
         void should_return_404_when_the_requested_module_does_not_match() {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT, "apim"));
 
-            Response response = rootTarget(DASHBOARD_ID).queryParam("module", "aim").request().get();
+            Response response = rootTarget(DASHBOARD_ID)
+                    .queryParam("module", "aim")
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
@@ -299,32 +316,24 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_naming_a_filter_the_catalog_would_refuse_at_query_time() {
-            Response response = rootTarget()
-                .request()
-                .post(
-                    Entity.json(
-                        """
+            Response response = rootTarget().request().post(Entity.json("""
                         {
                           "id": "dash-new",
                           "title": "Performance overview",
                           "filters": [{ "name": "REQUEST_ID", "operator": "IN", "value": [], "editable": true }]
                         }
-                        """
-                    )
-                );
+                        """));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            assertThat(response.readEntity(JsonNode.class).get("message").asText()).contains("REQUEST_ID");
-            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).isEmpty();
+            assertThat(response.readEntity(JsonNode.class).get("message").asText())
+                    .contains("REQUEST_ID");
+            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT))
+                    .isEmpty();
         }
 
         @Test
         void should_return_201_with_location_and_the_created_dashboard() {
-            Response response = rootTarget()
-                .request()
-                .post(
-                    Entity.json(
-                        """
+            Response response = rootTarget().request().post(Entity.json("""
                         {
                           "id": "dash-new",
                           "title": "Performance overview",
@@ -336,12 +345,12 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                           "timeRange": { "type": "relative", "period": "24h" },
                           "widgets": [{ "id": "w1", "type": "metric" }]
                         }
-                        """
-                    )
-                );
+                        """));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
-            assertThat(response.getEntityTag()).as("a creator can edit without re-reading").isEqualTo(new EntityTag("1"));
+            assertThat(response.getEntityTag())
+                    .as("a creator can edit without re-reading")
+                    .isEqualTo(new EntityTag("1"));
             assertThat(response.getHeaderString("Location")).endsWith("/observability/dashboards/dash-new");
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("id").asText()).isEqualTo("dash-new");
@@ -357,7 +366,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             assertThat(secondFilter.get("editable").asBoolean()).isTrue();
             assertThat(body.get("widgets").get(0).get("type").asText()).isEqualTo("metric");
 
-            var persisted = dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT).orElseThrow();
+            var persisted = dashboardRepository
+                    .findByIdAndEnvironmentId("dash-new", ENVIRONMENT)
+                    .orElseThrow();
             assertThat(persisted.createdBy()).isEqualTo(USER_NAME);
 
             JsonNode listed = rootTarget().request().get().readEntity(JsonNode.class);
@@ -368,41 +379,46 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         @Test
         void should_store_the_module_sent_on_creation() {
             Response response = rootTarget()
-                .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Performance overview\" }"));
+                    .request()
+                    .post(Entity.json(
+                            "{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Performance overview\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
-            assertThat(response.readEntity(JsonNode.class).get("module").asText()).isEqualTo("aim");
-            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).hasValueSatisfying(persisted ->
-                assertThat(persisted.module()).isEqualTo("aim")
-            );
+            assertThat(response.readEntity(JsonNode.class).get("module").asText())
+                    .isEqualTo("aim");
+            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT))
+                    .hasValueSatisfying(
+                            persisted -> assertThat(persisted.module()).isEqualTo("aim"));
         }
 
         @Test
         void should_create_a_dashboard_without_a_module() {
-            Response response = rootTarget().request().post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Performance overview\" }"));
+            Response response = rootTarget()
+                    .request()
+                    .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Performance overview\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
-            assertThat(response.readEntity(JsonNode.class).has("module")).as("no module, no field").isFalse();
+            assertThat(response.readEntity(JsonNode.class).has("module"))
+                    .as("no module, no field")
+                    .isFalse();
         }
 
         @Test
         void should_return_400_on_an_invalid_module() {
             Response response = rootTarget()
-                .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"module\": \"Not A Module\", \"title\": \"Performance overview\" }"));
+                    .request()
+                    .post(
+                            Entity.json(
+                                    "{ \"id\": \"dash-new\", \"module\": \"Not A Module\", \"title\": \"Performance overview\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).isEmpty();
+            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT))
+                    .isEmpty();
         }
 
         @Test
         void should_ignore_server_owned_fields_sent_in_the_body() {
-            Response response = rootTarget()
-                .request()
-                .post(
-                    Entity.json(
-                        """
+            Response response = rootTarget().request().post(Entity.json("""
                         {
                           "id": "dash-new",
                           "title": "Performance overview",
@@ -412,14 +428,13 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                           "updatedAt": 1,
                           "environmentId": "other-env"
                         }
-                        """
-                    )
-                );
+                        """));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("version").asInt()).isEqualTo(1);
-            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).isPresent();
+            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT))
+                    .isPresent();
         }
 
         @Test
@@ -441,8 +456,10 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_on_duplicate_widget_ids() {
             Response response = rootTarget()
-                .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\", \"widgets\": [{ \"id\": \"w1\" }, { \"id\": \"w1\" }] }"));
+                    .request()
+                    .post(
+                            Entity.json(
+                                    "{ \"id\": \"dash-new\", \"title\": \"Perf\", \"widgets\": [{ \"id\": \"w1\" }, { \"id\": \"w1\" }] }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -450,8 +467,10 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_on_an_incoherent_time_range() {
             Response response = rootTarget()
-                .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\", \"timeRange\": { \"type\": \"relative\" } }"));
+                    .request()
+                    .post(
+                            Entity.json(
+                                    "{ \"id\": \"dash-new\", \"title\": \"Perf\", \"timeRange\": { \"type\": \"relative\" } }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -459,8 +478,8 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_on_a_null_filter_entry() {
             Response response = rootTarget()
-                .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\", \"filters\": [null] }"));
+                    .request()
+                    .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\", \"filters\": [null] }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -468,12 +487,10 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_400_on_an_unknown_filter_operator() {
             Response response = rootTarget()
-                .request()
-                .post(
-                    Entity.json(
-                        "{ \"id\": \"dash-new\", \"title\": \"Perf\", \"filters\": [{ \"name\": \"API_TYPE\", \"operator\": \"between\", \"value\": \"x\" }] }"
-                    )
-                );
+                    .request()
+                    .post(
+                            Entity.json(
+                                    "{ \"id\": \"dash-new\", \"title\": \"Perf\", \"filters\": [{ \"name\": \"API_TYPE\", \"operator\": \"between\", \"value\": \"x\" }] }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -482,7 +499,8 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_403_when_caller_cannot_create_dashboards() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
-            Response response = rootTarget().request().post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\" }"));
+            Response response =
+                    rootTarget().request().post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
@@ -508,32 +526,32 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"3\"")
-                .put(
-                    Entity.json(
-                        """
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.json("""
                         {
                           "title": "Renamed",
                           "description": "new desc",
                           "timeRange": { "type": "absolute", "from": 1000, "to": 2000 },
                           "widgets": [{ "id": "w1", "type": "chart" }]
                         }
-                        """
-                    )
-                );
+                        """));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("title").asText()).isEqualTo("Renamed");
             assertThat(body.get("version").asInt()).isEqualTo(4);
-            assertThat(body.get("createdAt").asLong()).isEqualTo(Instant.parse("2026-06-10T00:00:00Z").toEpochMilli());
-            assertThat(body.get("updatedAt").asLong()).isGreaterThan(Instant.parse("2026-06-11T00:00:00Z").toEpochMilli());
+            assertThat(body.get("createdAt").asLong())
+                    .isEqualTo(Instant.parse("2026-06-10T00:00:00Z").toEpochMilli());
+            assertThat(body.get("updatedAt").asLong())
+                    .isGreaterThan(Instant.parse("2026-06-11T00:00:00Z").toEpochMilli());
             assertThat(body.get("timeRange").get("type").asText()).isEqualTo("absolute");
             assertThat(body.get("widgets").get(0).get("type").asText()).isEqualTo("chart");
 
-            var persisted = dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow();
+            var persisted = dashboardRepository
+                    .findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)
+                    .orElseThrow();
             assertThat(persisted.createdBy()).isEqualTo("user-1");
             assertThat(persisted.version()).isEqualTo(4);
         }
@@ -544,15 +562,16 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT, "aim"));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\", \"module\": \"apim\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\", \"module\": \"apim\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            assertThat(response.readEntity(JsonNode.class).get("module").asText()).isEqualTo("aim");
-            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)).hasValueSatisfying(persisted ->
-                assertThat(persisted.module()).isEqualTo("aim")
-            );
+            assertThat(response.readEntity(JsonNode.class).get("module").asText())
+                    .isEqualTo("aim");
+            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT))
+                    .hasValueSatisfying(
+                            persisted -> assertThat(persisted.module()).isEqualTo("aim"));
         }
 
         /** A weak validator is what a proxy may hand back; it still identifies the revision unambiguously here. */
@@ -561,9 +580,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "W/\"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "W/\"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         }
@@ -573,9 +592,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"2\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"2\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
             assertThat(response.getEntityTag()).as("the tag to retry with").isEqualTo(new EntityTag("3"));
@@ -586,7 +605,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             assertThat(body.get("dashboard").get("title").asText()).isEqualTo("Performance overview");
             assertThat(body.get("dashboard").get("version").asInt()).isEqualTo(3);
 
-            var persisted = dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow();
+            var persisted = dashboardRepository
+                    .findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)
+                    .orElseThrow();
             assertThat(persisted.title()).isEqualTo("Performance overview");
             assertThat(persisted.version()).isEqualTo(3);
             assertThat(persisted.updatedAt()).isEqualTo(Instant.parse("2026-06-11T00:00:00Z"));
@@ -599,10 +620,13 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             Response response = rootTarget(DASHBOARD_ID).request().put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(428);
-            assertThat(response.readEntity(JsonNode.class).get("message").asText()).contains("If-Match is required");
-            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo(
-                "Performance overview"
-            );
+            assertThat(response.readEntity(JsonNode.class).get("message").asText())
+                    .contains("If-Match is required");
+            assertThat(dashboardRepository
+                            .findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)
+                            .orElseThrow()
+                            .title())
+                    .isEqualTo("Performance overview");
         }
 
         /** The deliberate overwrite: applied over whatever revision is current, without a stale-version refusal. */
@@ -611,15 +635,17 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "*")
-                .put(Entity.json("{ \"title\": \"Overwritten\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "*")
+                    .put(Entity.json("{ \"title\": \"Overwritten\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
-            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo(
-                "Overwritten"
-            );
+            assertThat(dashboardRepository
+                            .findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)
+                            .orElseThrow()
+                            .title())
+                    .isEqualTo("Overwritten");
         }
 
         /** The whole point of the wildcard: the answer to a 412 is one request, not a re-read that can race again. */
@@ -628,18 +654,22 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response refused = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"2\"")
-                .put(Entity.json("{ \"title\": \"Mine\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"2\"")
+                    .put(Entity.json("{ \"title\": \"Mine\" }"));
             assertThat(refused.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
 
             Response forced = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "*")
-                .put(Entity.json("{ \"title\": \"Mine\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "*")
+                    .put(Entity.json("{ \"title\": \"Mine\" }"));
 
             assertThat(forced.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo("Mine");
+            assertThat(dashboardRepository
+                            .findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)
+                            .orElseThrow()
+                            .title())
+                    .isEqualTo("Mine");
         }
 
         /** RFC 9110 allows a list; any one matching is enough. */
@@ -648,9 +678,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"2\", \"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"2\", \"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
@@ -661,9 +691,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"1\", \"2\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"1\", \"2\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
         }
@@ -673,9 +703,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"not-a-version\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"not-a-version\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -683,9 +713,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_404_when_dashboard_does_not_exist() {
             Response response = rootTarget("unknown")
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
@@ -695,9 +725,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, OTHER_ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
@@ -707,9 +737,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"3\"")
-                .put(Entity.json("{ \"title\": \" \" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.json("{ \"title\": \" \" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -720,10 +750,10 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"1\"")
-                .header(HttpHeaders.IF_MATCH, "\"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"1\"")
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
@@ -735,14 +765,16 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "*, \"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "*, \"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo(
-                "Performance overview"
-            );
+            assertThat(dashboardRepository
+                            .findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT)
+                            .orElseThrow()
+                            .title())
+                    .isEqualTo("Performance overview");
         }
 
         @Test
@@ -750,9 +782,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(428);
         }
@@ -766,12 +798,14 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(unversionedDashboard());
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"1\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"1\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
-            assertThat(response.getEntityTag()).as("nothing to match on, so nothing to hand back").isNull();
+            assertThat(response.getEntityTag())
+                    .as("nothing to match on, so nothing to hand back")
+                    .isNull();
             JsonNode body = response.readEntity(JsonNode.class);
             // Null fields are omitted, not serialized as null (GraviteeMapper sets NON_NULL).
             assertThat(body.has("currentVersion")).isFalse();
@@ -796,13 +830,14 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             dashboardRepository.givenDashboard(unversionedDashboard());
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "*")
-                .put(Entity.json("{ \"title\": \"Rescued\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "*")
+                    .put(Entity.json("{ \"title\": \"Rescued\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             assertThat(response.getEntityTag()).isEqualTo(new EntityTag("1"));
-            assertThat(response.readEntity(JsonNode.class).get("version").asInt()).isEqualTo(1);
+            assertThat(response.readEntity(JsonNode.class).get("version").asInt())
+                    .isEqualTo(1);
         }
 
         @Test
@@ -810,9 +845,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
             Response response = rootTarget(DASHBOARD_ID)
-                .request()
-                .header(HttpHeaders.IF_MATCH, "\"3\"")
-                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+                    .request()
+                    .header(HttpHeaders.IF_MATCH, "\"3\"")
+                    .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
@@ -846,7 +881,8 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             Response response = rootTarget(DASHBOARD_ID).request().delete();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
-            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, OTHER_ENVIRONMENT)).isPresent();
+            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, OTHER_ENVIRONMENT))
+                    .isPresent();
         }
 
         @Test
@@ -863,19 +899,18 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
     private static Dashboard unversionedDashboard() {
         Dashboard versioned = dashboard(DASHBOARD_ID, ENVIRONMENT);
         return new Dashboard(
-            versioned.id(),
-            versioned.environmentId(),
-            versioned.module(),
-            versioned.title(),
-            versioned.description(),
-            versioned.filters(),
-            versioned.timeRange(),
-            versioned.widgets(),
-            null,
-            versioned.createdBy(),
-            versioned.createdAt(),
-            versioned.updatedAt()
-        );
+                versioned.id(),
+                versioned.environmentId(),
+                versioned.module(),
+                versioned.title(),
+                versioned.description(),
+                versioned.filters(),
+                versioned.timeRange(),
+                versioned.widgets(),
+                null,
+                versioned.createdBy(),
+                versioned.createdAt(),
+                versioned.updatedAt());
     }
 
     private static Dashboard dashboard(String id, String environmentId) {
@@ -885,19 +920,19 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
     private static Dashboard dashboard(String id, String environmentId, String module) {
         try {
             return new Dashboard(
-                id,
-                environmentId,
-                module,
-                "Performance overview",
-                "desc",
-                List.of(new DashboardFilter(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MCP")), "API Type", false)),
-                new TimeRange(TimeRangeType.RELATIVE, "24h", null, null),
-                MAPPER.readTree("[{\"type\":\"metric\"}]"),
-                3,
-                "user-1",
-                Instant.parse("2026-06-10T00:00:00Z"),
-                Instant.parse("2026-06-11T00:00:00Z")
-            );
+                    id,
+                    environmentId,
+                    module,
+                    "Performance overview",
+                    "desc",
+                    List.of(new DashboardFilter(
+                            new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MCP")), "API Type", false)),
+                    new TimeRange(TimeRangeType.RELATIVE, "24h", null, null),
+                    MAPPER.readTree("[{\"type\":\"metric\"}]"),
+                    3,
+                    "user-1",
+                    Instant.parse("2026-06-10T00:00:00Z"),
+                    Instant.parse("2026-06-11T00:00:00Z"));
         } catch (Exception e) {
             throw new IllegalStateException("Invalid widgets fixture", e);
         }
@@ -912,9 +947,8 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
      */
     @Configuration
     @ComponentScan(
-        basePackages = "io.gravitee.gamma.rest.core.observability.dashboard",
-        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class)
-    )
+            basePackages = "io.gravitee.gamma.rest.core.observability.dashboard",
+            includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class))
     static class DashboardsTestConfiguration {
 
         @Bean

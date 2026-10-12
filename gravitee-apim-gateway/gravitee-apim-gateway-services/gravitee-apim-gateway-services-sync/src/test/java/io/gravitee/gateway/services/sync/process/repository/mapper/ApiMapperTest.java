@@ -114,46 +114,44 @@ class ApiMapperTest {
         repoApiV2.setDefinition(objectMapper.writeValueAsString(apiV2Def));
         String payload = objectMapper.writeValueAsString(repoApiV2);
         event.setPayload(payload);
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableApi -> {
-                assertThat(reactableApi.getId()).isEqualTo(apiV2.getId());
-                io.gravitee.definition.model.Api eventApi = (io.gravitee.definition.model.Api) reactableApi.getDefinition();
-                assertThat(eventApi.getExecutionMode()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE);
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableApi -> {
+                    assertThat(reactableApi.getId()).isEqualTo(apiV2.getId());
+                    io.gravitee.definition.model.Api eventApi =
+                            (io.gravitee.definition.model.Api) reactableApi.getDefinition();
+                    assertThat(eventApi.getExecutionMode()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE);
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
     void should_map_api_v2() throws JsonProcessingException {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV2));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableApi -> {
-                assertThat(reactableApi.getId()).isEqualTo(apiV2.getId());
-                assertThat(reactableApi.getDefinition()).isEqualTo(apiV2);
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableApi -> {
+                    assertThat(reactableApi.getId()).isEqualTo(apiV2.getId());
+                    assertThat(reactableApi.getDefinition()).isEqualTo(apiV2);
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
     void should_map_api_v4() throws JsonProcessingException {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableApi -> {
-                assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
-                assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableApi -> {
+                    assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
+                    assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -168,15 +166,14 @@ class ApiMapperTest {
 
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableApi -> {
-                assertThat(reactableApi.getId()).isEqualTo(nativeApi.getId());
-                assertThat(reactableApi.getDefinition()).isEqualTo(nativeApi);
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableApi -> {
+                    assertThat(reactableApi.getId()).isEqualTo(nativeApi.getId());
+                    assertThat(reactableApi.getDefinition()).isEqualTo(nativeApi);
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -191,15 +188,14 @@ class ApiMapperTest {
 
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableApi -> {
-                assertThat(reactableApi.getId()).isEqualTo(edgeApi.getId());
-                assertThat(reactableApi.getDefinition()).isEqualTo(edgeApi);
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableApi -> {
+                    assertThat(reactableApi.getId()).isEqualTo(edgeApi.getId());
+                    assertThat(reactableApi.getDefinition()).isEqualTo(edgeApi);
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -212,17 +208,16 @@ class ApiMapperTest {
         when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenReturn(Optional.of(environment));
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableApi -> {
-                assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
-                assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
-                assertThat(reactableApi.getOrganizationId()).isEqualTo(organization.getId());
-                assertThat(reactableApi.getEnvironmentId()).isEqualTo(environment.getId());
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableApi -> {
+                    assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
+                    assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
+                    assertThat(reactableApi.getOrganizationId()).isEqualTo(organization.getId());
+                    assertThat(reactableApi.getEnvironmentId()).isEqualTo(environment.getId());
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -232,21 +227,21 @@ class ApiMapperTest {
         when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenReturn(Optional.of(environment));
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableApi -> {
-                assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
-                assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
-                assertThat(reactableApi.getOrganizationId()).isNull();
-                assertThat(reactableApi.getEnvironmentId()).isEqualTo(environment.getId());
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactableApi -> {
+                    assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
+                    assertThat(reactableApi.getDefinition()).isEqualTo(apiV4);
+                    assertThat(reactableApi.getOrganizationId()).isNull();
+                    assertThat(reactableApi.getEnvironmentId()).isEqualTo(environment.getId());
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
-    void should_propagate_error_when_environment_enrichment_fails_transiently() throws JsonProcessingException, TechnicalException {
+    void should_propagate_error_when_environment_enrichment_fails_transiently()
+            throws JsonProcessingException, TechnicalException {
         Environment environment = new Environment();
         environment.setOrganizationId("orga");
         when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenReturn(Optional.of(environment));
@@ -257,13 +252,14 @@ class ApiMapperTest {
     }
 
     @Test
-    void should_skip_api_when_environment_enrichment_fails_permanently() throws JsonProcessingException, TechnicalException {
+    void should_skip_api_when_environment_enrichment_fails_permanently()
+            throws JsonProcessingException, TechnicalException {
         // The bridge server rejects a foreign environment with a 403 ("Unauthorized environments"): a
         // RuntimeException that is not a TechnicalException, i.e. a permanent failure. Retrying can never
         // succeed, so the offending API must be skipped rather than failing (and crash-looping) the whole sync.
-        when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenThrow(
-            new RuntimeException("Bridge server return error with code [403] and message: Unauthorized environments")
-        );
+        when(environmentRepository.findById(repoApiV4.getEnvironmentId()))
+                .thenThrow(new RuntimeException(
+                        "Bridge server return error with code [403] and message: Unauthorized environments"));
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
         cut.to(event).test().assertNoValues().assertComplete();
@@ -280,14 +276,13 @@ class ApiMapperTest {
     void should_map_event_to_id() {
         Event event = new Event();
         event.setProperties(Map.of(API_ID.getValue(), "id"));
-        cut
-            .toId(event)
-            .test()
-            .assertValue(id -> {
-                assertThat(id).isEqualTo("id");
-                return true;
-            })
-            .assertComplete();
+        cut.toId(event)
+                .test()
+                .assertValue(id -> {
+                    assertThat(id).isEqualTo("id");
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test

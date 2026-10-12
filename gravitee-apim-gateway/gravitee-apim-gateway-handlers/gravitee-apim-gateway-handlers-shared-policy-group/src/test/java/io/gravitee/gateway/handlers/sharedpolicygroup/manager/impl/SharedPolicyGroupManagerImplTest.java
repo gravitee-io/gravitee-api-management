@@ -69,7 +69,8 @@ class SharedPolicyGroupManagerImplTest {
 
     @Test
     void should_deploy_shared_policy_group() {
-        final ReactableSharedPolicyGroup sharedPolicyGroup = new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
+        final ReactableSharedPolicyGroup sharedPolicyGroup =
+                new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
         cut.register(sharedPolicyGroup);
         verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
@@ -78,13 +79,15 @@ class SharedPolicyGroupManagerImplTest {
 
     @Test
     void should_update_shared_policy_group() {
-        final ReactableSharedPolicyGroup sharedPolicyGroup = new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
+        final ReactableSharedPolicyGroup sharedPolicyGroup =
+                new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
         sharedPolicyGroup.setDeployedAt(new Date());
         cut.register(sharedPolicyGroup);
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
         assertThat(cut.sharedPolicyGroups()).hasSize(1);
 
-        final ReactableSharedPolicyGroup sharedPolicyGroup2 = new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
+        final ReactableSharedPolicyGroup sharedPolicyGroup2 =
+                new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
         Instant deployDateInst = sharedPolicyGroup.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         sharedPolicyGroup2.setDeployedAt(Date.from(deployDateInst));
 
@@ -96,13 +99,15 @@ class SharedPolicyGroupManagerImplTest {
 
     @Test
     void should_not_update_shared_policy_group() {
-        final ReactableSharedPolicyGroup sharedPolicyGroup = new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
+        final ReactableSharedPolicyGroup sharedPolicyGroup =
+                new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
         sharedPolicyGroup.setDeployedAt(new Date());
         cut.register(sharedPolicyGroup);
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
         assertThat(cut.sharedPolicyGroups()).hasSize(1);
 
-        final ReactableSharedPolicyGroup sharedPolicyGroup2 = new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
+        final ReactableSharedPolicyGroup sharedPolicyGroup2 =
+                new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
         Instant deployDateInst = sharedPolicyGroup.getDeployedAt().toInstant().minus(Duration.ofHours(1));
         sharedPolicyGroup2.setDeployedAt(Date.from(deployDateInst));
 
@@ -113,7 +118,8 @@ class SharedPolicyGroupManagerImplTest {
 
     @Test
     void should_undeploy_shared_policy_group() {
-        final ReactableSharedPolicyGroup sharedPolicyGroup = new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
+        final ReactableSharedPolicyGroup sharedPolicyGroup =
+                new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
         sharedPolicyGroup.setDeployedAt(new Date());
         cut.register(sharedPolicyGroup);
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
@@ -129,16 +135,14 @@ class SharedPolicyGroupManagerImplTest {
     void should_deploy_same_id_in_two_environments_without_revoking_the_first() {
         Date firstDeployedAt = new Date();
         ReactableSharedPolicyGroup environmentA = sharedPolicyGroup("env-a", firstDeployedAt, "128");
-        ReactableSharedPolicyGroup environmentB = sharedPolicyGroup(
-            "env-b",
-            Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))),
-            "5"
-        );
+        ReactableSharedPolicyGroup environmentB =
+                sharedPolicyGroup("env-b", Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))), "5");
 
         cut.register(environmentA);
         cut.register(environmentB);
 
-        verify(eventManager, times(2)).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
+        verify(eventManager, times(2))
+                .publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.DEPLOY, environmentA);
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.DEPLOY, environmentB);
         verify(eventManager, never()).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any());
@@ -150,11 +154,8 @@ class SharedPolicyGroupManagerImplTest {
     void should_deploy_older_copy_in_another_environment() {
         Date firstDeployedAt = new Date();
         ReactableSharedPolicyGroup environmentA = sharedPolicyGroup("env-a", firstDeployedAt, "128");
-        ReactableSharedPolicyGroup environmentB = sharedPolicyGroup(
-            "env-b",
-            Date.from(firstDeployedAt.toInstant().minus(Duration.ofHours(1))),
-            "5"
-        );
+        ReactableSharedPolicyGroup environmentB =
+                sharedPolicyGroup("env-b", Date.from(firstDeployedAt.toInstant().minus(Duration.ofHours(1))), "5");
 
         cut.register(environmentA);
         cut.register(environmentB);
@@ -168,16 +169,10 @@ class SharedPolicyGroupManagerImplTest {
     void should_update_only_the_copy_of_the_same_environment() {
         Date firstDeployedAt = new Date();
         ReactableSharedPolicyGroup environmentA = sharedPolicyGroup("env-a", firstDeployedAt, "1");
-        ReactableSharedPolicyGroup environmentB = sharedPolicyGroup(
-            "env-b",
-            Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))),
-            "5"
-        );
-        ReactableSharedPolicyGroup environmentAUpdated = sharedPolicyGroup(
-            "env-a",
-            Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(2))),
-            "2"
-        );
+        ReactableSharedPolicyGroup environmentB =
+                sharedPolicyGroup("env-b", Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))), "5");
+        ReactableSharedPolicyGroup environmentAUpdated =
+                sharedPolicyGroup("env-a", Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(2))), "2");
 
         cut.register(environmentA);
         cut.register(environmentB);
@@ -196,11 +191,8 @@ class SharedPolicyGroupManagerImplTest {
     void should_unregister_only_the_copy_of_the_given_environment() {
         Date firstDeployedAt = new Date();
         ReactableSharedPolicyGroup environmentA = sharedPolicyGroup("env-a", firstDeployedAt, "128");
-        ReactableSharedPolicyGroup environmentB = sharedPolicyGroup(
-            "env-b",
-            Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))),
-            "5"
-        );
+        ReactableSharedPolicyGroup environmentB =
+                sharedPolicyGroup("env-b", Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))), "5");
         cut.register(environmentA);
         cut.register(environmentB);
 
@@ -219,11 +211,8 @@ class SharedPolicyGroupManagerImplTest {
     void should_unregister_every_copy_of_the_cross_id() {
         Date firstDeployedAt = new Date();
         ReactableSharedPolicyGroup environmentA = sharedPolicyGroup("env-a", firstDeployedAt, "128");
-        ReactableSharedPolicyGroup environmentB = sharedPolicyGroup(
-            "env-b",
-            Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))),
-            "5"
-        );
+        ReactableSharedPolicyGroup environmentB =
+                sharedPolicyGroup("env-b", Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))), "5");
         cut.register(environmentA);
         cut.register(environmentB);
 
@@ -239,32 +228,24 @@ class SharedPolicyGroupManagerImplTest {
     void should_update_only_matching_environment_on_secret_value_changed() {
         Date firstDeployedAt = new Date();
         ReactableSharedPolicyGroup environmentB = sharedPolicyGroup("env-b", firstDeployedAt, "5");
-        ReactableSharedPolicyGroup environmentA = sharedPolicyGroup(
-            "env-a",
-            Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))),
-            "128"
-        );
+        ReactableSharedPolicyGroup environmentA =
+                sharedPolicyGroup("env-a", Date.from(firstDeployedAt.toInstant().plus(Duration.ofHours(1))), "128");
         cut.register(environmentB);
         cut.register(environmentA);
 
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<EventListener<SecretDiscoveryEventType, SecretDiscoveryEvent>> listenerCaptor = ArgumentCaptor.forClass(
-            EventListener.class
-        );
+        ArgumentCaptor<EventListener<SecretDiscoveryEventType, SecretDiscoveryEvent>> listenerCaptor =
+                ArgumentCaptor.forClass(EventListener.class);
         verify(eventManager).subscribeForEvents(listenerCaptor.capture(), eq(SecretDiscoveryEventType.VALUE_CHANGED));
 
         listenerCaptor
-            .getValue()
-            .onEvent(
-                new SimpleEvent<>(
-                    SecretDiscoveryEventType.VALUE_CHANGED,
-                    new SecretDiscoveryEvent(
-                        "env-b",
-                        new Definition("shared-policy-group", SHARED_POLICY_GROUP_ID),
-                        new DefinitionMetadata("5")
-                    )
-                )
-            );
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        SecretDiscoveryEventType.VALUE_CHANGED,
+                        new SecretDiscoveryEvent(
+                                "env-b",
+                                new Definition("shared-policy-group", SHARED_POLICY_GROUP_ID),
+                                new DefinitionMetadata("5"))));
 
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.UPDATE, environmentB);
         verify(eventManager, never()).publishEvent(SharedPolicyGroupEvent.UPDATE, environmentA);
@@ -272,11 +253,11 @@ class SharedPolicyGroupManagerImplTest {
 
     private static ReactableSharedPolicyGroup sharedPolicyGroup(String environmentId, Date deployedAt, String version) {
         return new SharedPolicyGroupBuilder()
-            .id(SHARED_POLICY_GROUP_ID)
-            .environmentId(environmentId)
-            .version(version)
-            .deployedAt(deployedAt)
-            .build();
+                .id(SHARED_POLICY_GROUP_ID)
+                .environmentId(environmentId)
+                .version(version)
+                .deployedAt(deployedAt)
+                .build();
     }
 
     static class SharedPolicyGroupBuilder {

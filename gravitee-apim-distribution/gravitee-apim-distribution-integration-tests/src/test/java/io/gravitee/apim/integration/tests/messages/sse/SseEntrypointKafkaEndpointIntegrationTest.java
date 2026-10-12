@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/messages/sse/sse-entrypoint-kafka-endpoint.json" })
+@DeployApi({"/apis/v4/messages/sse/sse-entrypoint-kafka-endpoint.json"})
 class SseEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointIntegrationTest {
 
     @Override
@@ -62,38 +62,35 @@ class SseEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointInt
         producer.close();
 
         final TestSubscriber<Buffer> obs = httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
-                return request.rxSend();
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
+                    return request.rxSend();
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test();
 
         // We expect 4 chunks, 1 retry message and 3 messages
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 4);
-        obs
-            .assertValueAt(0, chunk -> {
-                SseAssertions.assertRetry(chunk);
-                return true;
-            })
-            .assertValueAt(1, chunk -> {
-                SseAssertions.assertOnMessage(chunk, "message1");
-                return true;
-            })
-            .assertValueAt(2, chunk -> {
-                SseAssertions.assertOnMessage(chunk, "message2");
-                return true;
-            })
-            .assertValueAt(3, chunk -> {
-                SseAssertions.assertOnMessage(chunk, "message3");
-                return true;
-            })
-            .assertNoErrors();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 4);
+        obs.assertValueAt(0, chunk -> {
+                    SseAssertions.assertRetry(chunk);
+                    return true;
+                })
+                .assertValueAt(1, chunk -> {
+                    SseAssertions.assertOnMessage(chunk, "message1");
+                    return true;
+                })
+                .assertValueAt(2, chunk -> {
+                    SseAssertions.assertOnMessage(chunk, "message2");
+                    return true;
+                })
+                .assertValueAt(3, chunk -> {
+                    SseAssertions.assertOnMessage(chunk, "message3");
+                    return true;
+                })
+                .assertNoErrors();
     }
 }

@@ -23,5 +23,5 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
  * @author GraviteeSource Team
  */
 public class DefaultEndpointConnectorClassLoaderFactory
-    extends PluginClassLoaderFactoryImpl<EndpointConnectorPlugin<?, ?>>
-    implements EndpointConnectorClassLoaderFactory {}
+        extends PluginClassLoaderFactoryImpl<EndpointConnectorPlugin<?, ?>>
+        implements EndpointConnectorClassLoaderFactory {}

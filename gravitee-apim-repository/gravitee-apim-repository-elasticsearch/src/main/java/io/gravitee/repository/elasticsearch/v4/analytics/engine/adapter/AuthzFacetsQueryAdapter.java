@@ -34,13 +34,14 @@ public class AuthzFacetsQueryAdapter {
     public String adapt(FacetsQuery query) {
         rejectRanges(query.ranges());
         return new JsonObject()
-            .put("size", 0)
-            .put("query", measuresAdapter.adaptQuery(query))
-            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.filters()))
-            .toString();
+                .put("size", 0)
+                .put("query", measuresAdapter.adaptQuery(query))
+                .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.filters()))
+                .toString();
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit, List<Filter> filters) {
+    public JsonObject adaptFacets(
+            List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit, List<Filter> filters) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             aggs.mergeIn(adaptFacets(metric, facets, limit, filters));
@@ -57,13 +58,12 @@ public class AuthzFacetsQueryAdapter {
         }
         var facet = facets.getFirst();
         return AuthzScopedFacetAggregation.facet(
-            metric,
-            facet,
-            measuresAdapter.fieldResolver().fromFacet(facet),
-            limit,
-            measuresAdapter.buildMeasureAggs(metric),
-            measuresAdapter.scopeFilter(metric.metric(), filters)
-        );
+                metric,
+                facet,
+                measuresAdapter.fieldResolver().fromFacet(facet),
+                limit,
+                measuresAdapter.buildMeasureAggs(metric),
+                measuresAdapter.scopeFilter(metric.metric(), filters));
     }
 
     static void rejectRanges(List<NumberRange> ranges) {

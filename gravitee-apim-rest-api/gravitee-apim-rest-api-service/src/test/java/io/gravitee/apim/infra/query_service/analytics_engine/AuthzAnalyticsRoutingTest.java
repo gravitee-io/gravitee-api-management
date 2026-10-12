@@ -36,16 +36,18 @@ class AuthzAnalyticsRoutingTest {
     private final AnalyticsRepository repository = mock(AnalyticsRepository.class);
     private final AuthzAnalyticsQueryService decisions = new AuthzAnalyticsQueryService(repository);
     private final AuthzTrafficAnalyticsQueryService traffic = new AuthzTrafficAnalyticsQueryService(repository);
-    private final AnalyticsQueryContextProvider provider = new AnalyticsQueryContextProvider(List.of(decisions, traffic));
+    private final AnalyticsQueryContextProvider provider =
+            new AnalyticsQueryContextProvider(List.of(decisions, traffic));
 
     @Test
     void should_route_operations_and_searches_to_traffic_and_every_other_authz_metric_to_decisions() {
         assertThat(provider.resolve(MetricSpec.Name.AUTHZ_OPERATIONS)).isSameAs(traffic);
         assertThat(provider.resolve(MetricSpec.Name.AUTHZ_SEARCHES)).isSameAs(traffic);
         Arrays.stream(MetricSpec.Name.values())
-            .filter(name -> name.name().startsWith("AUTHZ_"))
-            .filter(name -> name != MetricSpec.Name.AUTHZ_OPERATIONS && name != MetricSpec.Name.AUTHZ_SEARCHES)
-            .forEach(name -> assertThat(provider.resolve(name)).as(name.name()).isSameAs(decisions));
+                .filter(name -> name.name().startsWith("AUTHZ_"))
+                .filter(name -> name != MetricSpec.Name.AUTHZ_OPERATIONS && name != MetricSpec.Name.AUTHZ_SEARCHES)
+                .forEach(name ->
+                        assertThat(provider.resolve(name)).as(name.name()).isSameAs(decisions));
     }
 
     @Test
@@ -59,22 +61,20 @@ class AuthzAnalyticsRoutingTest {
     @Test
     void should_split_a_kpi_request_mixing_decisions_and_searches_between_both_services() {
         var request = new MeasuresRequest(
-            new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
-            new ArrayList<>(),
-            new ArrayList<>(
-                List.of(
-                    new MetricMeasuresRequest(MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT)),
-                    new MetricMeasuresRequest(MetricSpec.Name.AUTHZ_SEARCHES, List.of(MetricSpec.Measure.COUNT))
-                )
-            )
-        );
+                new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
+                new ArrayList<>(),
+                new ArrayList<>(List.of(
+                        new MetricMeasuresRequest(MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT)),
+                        new MetricMeasuresRequest(MetricSpec.Name.AUTHZ_SEARCHES, List.of(MetricSpec.Measure.COUNT)))));
 
         var context = provider.resolve(request);
 
         assertThat(context).containsOnlyKeys(decisions, traffic);
         assertThat(context.get(decisions).metrics())
-            .extracting(MetricMeasuresRequest::name)
-            .containsExactly(MetricSpec.Name.AUTHZ_DECISIONS);
-        assertThat(context.get(traffic).metrics()).extracting(MetricMeasuresRequest::name).containsExactly(MetricSpec.Name.AUTHZ_SEARCHES);
+                .extracting(MetricMeasuresRequest::name)
+                .containsExactly(MetricSpec.Name.AUTHZ_DECISIONS);
+        assertThat(context.get(traffic).metrics())
+                .extracting(MetricMeasuresRequest::name)
+                .containsExactly(MetricSpec.Name.AUTHZ_SEARCHES);
     }
 }

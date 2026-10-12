@@ -45,27 +45,27 @@ public class PortalMenuLinkQueryServiceImpl implements PortalMenuLinkQueryServic
 
             return result.stream().map(portalMenuLinkAdapter::toEntity).toList();
         } catch (TechnicalException e) {
-            String errorMessage = String.format("An error occurred while searching portal menu links by environment ID %s", environmentId);
+            String errorMessage = String.format(
+                    "An error occurred while searching portal menu links by environment ID %s", environmentId);
             log.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
-    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(String environmentId, PortalMenuLinkVisibility visibility) {
+    public List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
+            String environmentId, PortalMenuLinkVisibility visibility) {
         try {
             var result = portalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder(
-                environmentId,
-                io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkVisibility.valueOf(visibility.name())
-            );
+                    environmentId,
+                    io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkVisibility.valueOf(
+                            visibility.name()));
 
             return result.stream().map(portalMenuLinkAdapter::toEntity).toList();
         } catch (TechnicalException e) {
             String errorMessage = String.format(
-                "An error occurred while searching portal menu links by environment ID %s and visibility %s",
-                environmentId,
-                visibility
-            );
+                    "An error occurred while searching portal menu links by environment ID %s and visibility %s",
+                    environmentId, visibility);
             log.error(errorMessage, e);
             throw new TechnicalDomainException(errorMessage, e);
         }

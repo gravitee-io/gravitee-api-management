@@ -47,16 +47,15 @@ class JdbcPortalRepositoryTest {
 
     @Test
     void findByActiveThemeIdAndEnvironmentId_wraps_exception_as_technical() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), any(Object.class), any(Object.class))).thenThrow(
-            new RuntimeException("boom")
-        );
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), any(Object.class), any(Object.class)))
+                .thenThrow(new RuntimeException("boom"));
 
         var ex = catchThrowable(() -> repository.findByActiveThemeIdAndEnvironmentId("theme1", "env1"));
 
         assertThat(ex)
-            .isInstanceOf(TechnicalException.class)
-            .hasMessageContaining("Failed to find portals by active theme id (theme1)")
-            .hasMessageContaining("environment id (env1)")
-            .hasCauseInstanceOf(RuntimeException.class);
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("Failed to find portals by active theme id (theme1)")
+                .hasMessageContaining("environment id (env1)")
+                .hasCauseInstanceOf(RuntimeException.class);
     }
 }

@@ -26,12 +26,12 @@ public class PortalPageContentRepositoryFixtures {
 
     public static PortalPageContent anOpenApiPageContent(String id, String content, String configuration) {
         return PortalPageContent.builder()
-            .id(id)
-            .organizationId(ORGANIZATION_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .type(PortalPageContent.Type.OPENAPI)
-            .content(content)
-            .configuration(configuration)
-            .build();
+                .id(id)
+                .organizationId(ORGANIZATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .type(PortalPageContent.Type.OPENAPI)
+                .content(content)
+                .configuration(configuration)
+                .build();
     }
 }

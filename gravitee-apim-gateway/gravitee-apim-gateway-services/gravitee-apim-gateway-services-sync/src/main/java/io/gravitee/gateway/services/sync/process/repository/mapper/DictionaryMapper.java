@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.DICTIONARY_ID;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
@@ -33,7 +31,8 @@ public class DictionaryMapper {
         return Maybe.fromCallable(() -> {
             try {
                 // Read dictionary definition from event
-                return objectMapper.readValue(dictionaryEvent.getPayload(), io.gravitee.gateway.dictionary.model.Dictionary.class);
+                return objectMapper.readValue(
+                        dictionaryEvent.getPayload(), io.gravitee.gateway.dictionary.model.Dictionary.class);
             } catch (Exception e) {
                 log.warn("Error while determining deployed dictionaries into events payload", e);
                 return null;

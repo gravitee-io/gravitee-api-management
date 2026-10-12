@@ -39,7 +39,8 @@ public class AuthenticationHandlerManager {
 
     private AuthenticationHandlerEnhancer authenticationHandlerEnhancer;
 
-    public AuthenticationHandlerManager(SecurityProviderLoader securityProviderLoader, ComponentProvider componentProvider) {
+    public AuthenticationHandlerManager(
+            SecurityProviderLoader securityProviderLoader, ComponentProvider componentProvider) {
         this.securityProviderLoader = securityProviderLoader;
         this.componentProvider = componentProvider;
     }
@@ -55,7 +56,10 @@ public class AuthenticationHandlerManager {
                 try {
                     ((ComponentResolver) authenticationHandler).resolve(componentProvider);
                 } catch (Exception e) {
-                    log.debug("An error occurs while loading security provider [{}]: {}", authenticationHandler.name(), e.getMessage());
+                    log.debug(
+                            "An error occurs while loading security provider [{}]: {}",
+                            authenticationHandler.name(),
+                            e.getMessage());
                 }
             }
         });

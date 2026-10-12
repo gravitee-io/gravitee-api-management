@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/grpc/streaming-greeter.json" })
+@DeployApi({"/apis/grpc/streaming-greeter.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcGatewayTest {
 
@@ -67,14 +67,16 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
             // end back three replies...
             request.handler(hello -> {
                 for (int i = 0; i < STREAM_MESSAGE_NUMBER; i++) {
-                    response.write(HelloReply.newBuilder().setMessage("Hello " + hello.getName() + " part " + i).build());
+                    response.write(HelloReply.newBuilder()
+                            .setMessage("Hello " + hello.getName() + " part " + i)
+                            .build());
                     try {
                         Thread.sleep(STREAM_SLEEP_MILLIS);
                     } catch (InterruptedException e) {
                         response.status(GrpcStatus.ABORTED);
                     }
                 }
-                //.. and end the stream
+                // .. and end the stream
                 response.end();
             });
         });
@@ -84,11 +86,9 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
 
         // create http server handled by gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer
-            .listen()
-            .andThen(handler -> {
-                // dynamic client, and call the Gateway
-                createGrpcClient()
+        httpServer.listen().andThen(handler -> {
+            // dynamic client, and call the Gateway
+            createGrpcClient()
                     .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
                     .compose(request -> {
                         // send one request
@@ -110,7 +110,7 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
                     })
                     .onComplete(response -> response.result().end())
                     .onFailure(testContext::failNow);
-            });
+        });
     }
 
     protected GrpcIoClient createGrpcClient() {

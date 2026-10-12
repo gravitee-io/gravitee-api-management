@@ -71,9 +71,8 @@ class HttpPolicyFactoryTest {
 
     private static Stream<Arguments> wrongPhase() {
         return Stream.of(
-            Arguments.of(ExecutionPhase.REQUEST, DummyPolicyResponse.class),
-            Arguments.of(ExecutionPhase.RESPONSE, DummyPolicyRequest.class)
-        );
+                Arguments.of(ExecutionPhase.REQUEST, DummyPolicyResponse.class),
+                Arguments.of(ExecutionPhase.RESPONSE, DummyPolicyRequest.class));
     }
 
     @BeforeEach
@@ -83,14 +82,15 @@ class HttpPolicyFactoryTest {
         ((DummyPolicyConfiguration) policyConfiguration).setValue(1);
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}");
         policyManifestBuilder = new PolicyManifestBuilder()
-            .setId("dummy-reactive")
-            .setClassLoader(new DefaultClassLoader(this.getClass().getClassLoader()));
+                .setId("dummy-reactive")
+                .setClassLoader(new DefaultClassLoader(this.getClass().getClassLoader()));
     }
 
     @ParameterizedTest
     @EnumSource(ExecutionPhase.class)
     void shouldCreateReactivePolicyWithoutConfig(final ExecutionPhase phase) {
-        PolicyManifest policyManifest = policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
+        PolicyManifest policyManifest =
+                policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
         HttpPolicy policy = cut.create(phase, policyManifest, null, policyMetadata);
         assertInstanceOf(DummyReactivePolicy.class, policy);
     }
@@ -99,9 +99,9 @@ class HttpPolicyFactoryTest {
     @EnumSource(ExecutionPhase.class)
     void shouldCreateReactivePolicyWithConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(DummyReactivePolicyWithConfig.class)
-            .setConfiguration(DummyPolicyConfiguration.class)
-            .build();
+                .setPolicy(DummyReactivePolicyWithConfig.class)
+                .setConfiguration(DummyPolicyConfiguration.class)
+                .build();
         HttpPolicy policy = cut.create(phase, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(DummyReactivePolicyWithConfig.class, policy);
         DummyReactivePolicyWithConfig dummyReactivePolicy = (DummyReactivePolicyWithConfig) policy;
@@ -111,7 +111,8 @@ class HttpPolicyFactoryTest {
     @ParameterizedTest
     @EnumSource(ExecutionPhase.class)
     void shouldCreateReactiveConditionPolicy(final ExecutionPhase phase) {
-        PolicyManifest policyManifest = policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
+        PolicyManifest policyManifest =
+                policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}", "condition");
         HttpPolicy policy = cut.create(phase, policyManifest, null, policyMetadata);
 
@@ -121,7 +122,8 @@ class HttpPolicyFactoryTest {
     @ParameterizedTest
     @EnumSource(ExecutionPhase.class)
     void shouldNotCreateConditionalPolicyWhenConditionIsEmpty(final ExecutionPhase phase) {
-        PolicyManifest policyManifest = policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
+        PolicyManifest policyManifest =
+                policyManifestBuilder.setPolicy(DummyReactivePolicy.class).build();
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}", "");
         HttpPolicy policy = cut.create(phase, policyManifest, null, policyMetadata);
         assertInstanceOf(DummyReactivePolicy.class, policy);
@@ -130,69 +132,84 @@ class HttpPolicyFactoryTest {
     @Test
     void shouldCreateEverytimeReactivePolicy() {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(DummyReactivePolicyWithConfig.class)
-            .setConfiguration(DummyPolicyConfiguration.class)
-            .build();
+                .setPolicy(DummyReactivePolicyWithConfig.class)
+                .setConfiguration(DummyPolicyConfiguration.class)
+                .build();
         HttpPolicy policy = cut.create(ExecutionPhase.REQUEST, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(DummyReactivePolicyWithConfig.class, policy);
 
         HttpPolicy policy2 = cut.create(ExecutionPhase.REQUEST, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(DummyReactivePolicyWithConfig.class, policy);
 
-        // V4 HttpPolicyFactory is a global factory, there is no more cache at this level and is replaced by a cache at HttpPolicyChainFactory level.
+        // V4 HttpPolicyFactory is a global factory, there is no more cache at this level and is replaced by a cache at
+        // HttpPolicyChainFactory level.
         assertNotSame(policy, policy2);
     }
 
     @ParameterizedTest
-    @EnumSource(value = ExecutionPhase.class, names = { "REQUEST", "RESPONSE" })
+    @EnumSource(
+            value = ExecutionPhase.class,
+            names = {"REQUEST", "RESPONSE"})
     void shouldCreatePolicyAdapterWithoutConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(DummyPolicy.class)
-            .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
-            .build();
+                .setPolicy(DummyPolicy.class)
+                .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
+                .build();
         HttpPolicy policy = cut.create(phase, policyManifest, null, policyMetadata);
         assertInstanceOf(PolicyAdapter.class, policy);
     }
 
     @ParameterizedTest
-    @EnumSource(value = ExecutionPhase.class, names = { "REQUEST", "RESPONSE" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(
+            value = ExecutionPhase.class,
+            names = {"REQUEST", "RESPONSE"},
+            mode = EnumSource.Mode.EXCLUDE)
     void shouldFailCreatePolicyAdapterWithoutConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(DummyPolicy.class)
-            .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
-            .build();
+                .setPolicy(DummyPolicy.class)
+                .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
+                .build();
         assertThrows(IllegalArgumentException.class, () -> cut.create(phase, policyManifest, null, policyMetadata));
     }
 
     @ParameterizedTest
-    @EnumSource(value = ExecutionPhase.class, names = { "MESSAGE_REQUEST", "MESSAGE_RESPONSE" })
+    @EnumSource(
+            value = ExecutionPhase.class,
+            names = {"MESSAGE_REQUEST", "MESSAGE_RESPONSE"})
     void shouldCreatePolicyAdapterWithConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(DummyPolicyWithConfig.class)
-            .setConfiguration(DummyPolicyConfiguration.class)
-            .setMethods(new PolicyMethodResolver().resolve(DummyPolicyWithConfig.class))
-            .build();
-        assertThrows(IllegalArgumentException.class, () -> cut.create(phase, policyManifest, policyConfiguration, policyMetadata));
+                .setPolicy(DummyPolicyWithConfig.class)
+                .setConfiguration(DummyPolicyConfiguration.class)
+                .setMethods(new PolicyMethodResolver().resolve(DummyPolicyWithConfig.class))
+                .build();
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> cut.create(phase, policyManifest, policyConfiguration, policyMetadata));
     }
 
     @ParameterizedTest
-    @EnumSource(value = ExecutionPhase.class, names = { "REQUEST", "RESPONSE" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(
+            value = ExecutionPhase.class,
+            names = {"REQUEST", "RESPONSE"},
+            mode = EnumSource.Mode.EXCLUDE)
     void shouldFailCreatePolicyAdapterWithConfig(final ExecutionPhase phase) {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(DummyPolicyWithConfig.class)
-            .setConfiguration(DummyPolicyConfiguration.class)
-            .setMethods(new PolicyMethodResolver().resolve(DummyPolicyWithConfig.class))
-            .build();
-        assertThrows(IllegalArgumentException.class, () -> cut.create(phase, policyManifest, policyConfiguration, policyMetadata));
+                .setPolicy(DummyPolicyWithConfig.class)
+                .setConfiguration(DummyPolicyConfiguration.class)
+                .setMethods(new PolicyMethodResolver().resolve(DummyPolicyWithConfig.class))
+                .build();
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> cut.create(phase, policyManifest, policyConfiguration, policyMetadata));
     }
 
     @Test
     void shouldCreateEverytimePolicyAdapter() {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(DummyPolicyWithConfig.class)
-            .setConfiguration(DummyPolicyConfiguration.class)
-            .setMethods(new PolicyMethodResolver().resolve(DummyPolicyWithConfig.class))
-            .build();
+                .setPolicy(DummyPolicyWithConfig.class)
+                .setConfiguration(DummyPolicyConfiguration.class)
+                .setMethods(new PolicyMethodResolver().resolve(DummyPolicyWithConfig.class))
+                .build();
         HttpPolicy policy = cut.create(ExecutionPhase.REQUEST, policyManifest, policyConfiguration, policyMetadata);
         assertInstanceOf(PolicyAdapter.class, policy);
 
@@ -204,17 +221,19 @@ class HttpPolicyFactoryTest {
 
     @ParameterizedTest
     @MethodSource("wrongPhase")
-    void shouldReturnNullWhileCreatingPolicyAdapterOnWrongPhase(ExecutionPhase executionPhase, final Class<?> policyClass) {
+    void shouldReturnNullWhileCreatingPolicyAdapterOnWrongPhase(
+            ExecutionPhase executionPhase, final Class<?> policyClass) {
         PolicyManifest policyManifest = policyManifestBuilder
-            .setPolicy(policyClass)
-            .setMethods(new PolicyMethodResolver().resolve(policyClass))
-            .build();
+                .setPolicy(policyClass)
+                .setMethods(new PolicyMethodResolver().resolve(policyClass))
+                .build();
         assertNull(cut.create(executionPhase, policyManifest, policyConfiguration, policyMetadata));
     }
 
     @Test
     void shouldCleanupManifest() {
-        final PolicyManifest policyManifest = new PolicyManifestBuilder().setPolicy(Policy.class).build();
+        final PolicyManifest policyManifest =
+                new PolicyManifestBuilder().setPolicy(Policy.class).build();
         cut.cleanup(policyManifest);
 
         verify(policyPluginFactory).cleanup(policyManifest);

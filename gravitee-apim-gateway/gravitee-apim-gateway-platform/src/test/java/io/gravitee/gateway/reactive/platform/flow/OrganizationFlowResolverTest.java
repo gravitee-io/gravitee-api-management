@@ -80,12 +80,8 @@ class OrganizationFlowResolverTest {
         when(organizationManager.getOrganization(ORGANIZATION_ID)).thenReturn(reactableOrganization);
         when(reactableOrganization.getFlows()).thenReturn(flows);
 
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            new BestMatchFlowSelector()
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, new BestMatchFlowSelector());
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2);
@@ -106,12 +102,8 @@ class OrganizationFlowResolverTest {
         when(organizationManager.getOrganization(ORGANIZATION_ID)).thenReturn(reactableOrganization);
         when(reactableOrganization.getFlows()).thenReturn(flows);
 
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            new BestMatchFlowSelector()
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, new BestMatchFlowSelector());
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow2);
@@ -122,12 +114,8 @@ class OrganizationFlowResolverTest {
         when(organizationManager.getOrganization(ORGANIZATION_ID)).thenReturn(reactableOrganization);
         when(reactableOrganization.getFlows()).thenReturn(null);
 
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            new BestMatchFlowSelector()
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, new BestMatchFlowSelector());
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -138,12 +126,8 @@ class OrganizationFlowResolverTest {
         when(organizationManager.getOrganization(ORGANIZATION_ID)).thenReturn(reactableOrganization);
         when(reactableOrganization.getFlows()).thenReturn(emptyList());
 
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            new BestMatchFlowSelector()
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, new BestMatchFlowSelector());
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -153,12 +137,8 @@ class OrganizationFlowResolverTest {
     public void shouldProvideEmptyFlowsWhenApiOrganizationDifferentFromManagerOrganization() {
         when(organizationManager.getOrganization(ORGANIZATION_ID)).thenReturn(null);
 
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            new BestMatchFlowSelector()
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, new BestMatchFlowSelector());
         final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
@@ -180,12 +160,8 @@ class OrganizationFlowResolverTest {
         when(reactableOrganization.getFlows()).thenReturn(flows);
         when(filter.filter(eq(ctx), any())).thenAnswer(i -> Maybe.just(i.getArgument(1)));
 
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            new BestMatchFlowSelector()
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, new BestMatchFlowSelector());
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2);
@@ -207,12 +183,8 @@ class OrganizationFlowResolverTest {
         when(reactableOrganization.getFlows()).thenReturn(flows);
         when(filter.filter(eq(ctx), any())).thenReturn(Maybe.empty());
 
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            new BestMatchFlowSelector()
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, new BestMatchFlowSelector());
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult();
@@ -240,12 +212,8 @@ class OrganizationFlowResolverTest {
 
         BestMatchFlowSelector bestMatchFlowSelector = mock(BestMatchFlowSelector.class);
         when(bestMatchFlowSelector.forPath(any(), any())).thenReturn(flow1);
-        final OrganizationFlowResolver cut = new OrganizationFlowResolver(
-            ORGANIZATION_ID,
-            organizationManager,
-            filter,
-            bestMatchFlowSelector
-        );
+        final OrganizationFlowResolver cut =
+                new OrganizationFlowResolver(ORGANIZATION_ID, organizationManager, filter, bestMatchFlowSelector);
         final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1);

@@ -48,25 +48,19 @@ public class ThemeServiceLegacyWrapperInMemory implements ThemeServiceLegacyWrap
 
     @Override
     public Theme getCurrentOrCreateDefaultPortalTheme(ExecutionContext executionContext) {
-        return storage
-            .stream()
-            .filter(
-                theme ->
-                    Objects.equals(ThemeType.PORTAL, theme.getType()) &&
-                    Objects.equals(true, theme.isEnabled()) &&
-                    Theme.ReferenceType.ENVIRONMENT.equals(theme.getReferenceType()) &&
-                    Objects.equals(executionContext.getEnvironmentId(), theme.getReferenceId())
-            )
-            .findFirst()
-            .orElseGet(() ->
-                Theme.builder()
-                    .id("portal-default-theme")
-                    .type(ThemeType.PORTAL)
-                    .referenceId(executionContext.getEnvironmentId())
-                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
-                    .enabled(true)
-                    .definitionPortal(new ThemeDefinition())
-                    .build()
-            );
+        return storage.stream()
+                .filter(theme -> Objects.equals(ThemeType.PORTAL, theme.getType())
+                        && Objects.equals(true, theme.isEnabled())
+                        && Theme.ReferenceType.ENVIRONMENT.equals(theme.getReferenceType())
+                        && Objects.equals(executionContext.getEnvironmentId(), theme.getReferenceId()))
+                .findFirst()
+                .orElseGet(() -> Theme.builder()
+                        .id("portal-default-theme")
+                        .type(ThemeType.PORTAL)
+                        .referenceId(executionContext.getEnvironmentId())
+                        .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                        .enabled(true)
+                        .definitionPortal(new ThemeDefinition())
+                        .build());
     }
 }

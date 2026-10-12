@@ -27,5 +27,10 @@ import java.util.Map;
 public interface HttpClientService {
     HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy);
 
-    Buffer request(HttpMethod method, final String uri, final Map<String, String> headers, String body, Boolean useSystemProxy);
+    Buffer request(
+            HttpMethod method,
+            final String uri,
+            final Map<String, String> headers,
+            String body,
+            Boolean useSystemProxy);
 }

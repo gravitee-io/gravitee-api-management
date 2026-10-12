@@ -20,7 +20,6 @@ import io.gravitee.gateway.services.sync.process.distributed.service.Distributed
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.node.license.DefaultLicenseManager;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -43,9 +42,10 @@ public class LicenseDeployer implements Deployer<LicenseDeployable> {
             } catch (Exception e) {
                 log.warn("Organization license cannot be registered for [{}].", deployable.id(), e);
                 throw new SyncException(
-                    String.format("An error occurred when trying to deploy license for organization %s.", deployable.id()),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to deploy license for organization %s.",
+                                deployable.id()),
+                        e);
             }
         });
     }

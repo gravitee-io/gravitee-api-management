@@ -36,9 +36,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcNotificationTemplateRepository
-    extends JdbcAbstractCrudRepository<NotificationTemplate, String>
-    implements NotificationTemplateRepository {
+public class JdbcNotificationTemplateRepository extends JdbcAbstractCrudRepository<NotificationTemplate, String>
+        implements NotificationTemplateRepository {
 
     JdbcNotificationTemplateRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "notification_templates");
@@ -47,20 +46,20 @@ public class JdbcNotificationTemplateRepository
     @Override
     protected JdbcObjectMapper<NotificationTemplate> buildOrm() {
         return JdbcObjectMapper.builder(NotificationTemplate.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("hook", Types.NVARCHAR, String.class)
-            .addColumn("scope", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, NotificationTemplateReferenceType.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, NotificationTemplateType.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("enabled", Types.BOOLEAN, boolean.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("hook", Types.NVARCHAR, String.class)
+                .addColumn("scope", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, NotificationTemplateReferenceType.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, NotificationTemplateType.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("enabled", Types.BOOLEAN, boolean.class)
+                .build();
     }
 
     @Override
@@ -70,19 +69,16 @@ public class JdbcNotificationTemplateRepository
 
     @Override
     public Set<NotificationTemplate> findByTypeAndReferenceIdAndReferenceType(
-        NotificationTemplateType type,
-        String referenceId,
-        NotificationTemplateReferenceType referenceType
-    ) throws TechnicalException {
+            NotificationTemplateType type, String referenceId, NotificationTemplateReferenceType referenceType)
+            throws TechnicalException {
         log.debug("JdbcNotificationTemplateRepository.findAllByType({}, {}, {})", type, referenceId, referenceType);
         try {
             List<NotificationTemplate> notificationTemplates = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where type = ? and reference_id = ? and reference_type = ?",
-                getOrm().getRowMapper(),
-                type.name(),
-                referenceId,
-                referenceType.name()
-            );
+                    getOrm().getSelectAllSql() + " where type = ? and reference_id = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
+                    type.name(),
+                    referenceId,
+                    referenceType.name());
             return new HashSet<>(notificationTemplates);
         } catch (final Exception ex) {
             log.error("Failed to find notificationTemplates by type and refs:", ex);
@@ -91,26 +87,30 @@ public class JdbcNotificationTemplateRepository
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
-        throws TechnicalException {
-        log.debug("JdbcNotificationTemplateRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
+    public List<String> deleteByReferenceIdAndReferenceType(
+            String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException {
+        log.debug(
+                "JdbcNotificationTemplateRepository.deleteByReferenceIdAndReferenceType({},{})",
+                referenceId,
+                referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType.name(),
-                referenceId
-            );
+                    "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType.name(),
+                    referenceId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
-                    referenceType.name(),
-                    referenceId
-                );
+                        "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                        referenceType.name(),
+                        referenceId);
             }
 
-            log.debug("JdbcNotificationTemplateRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcNotificationTemplateRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done",
+                    referenceId,
+                    referenceType);
             return rows;
         } catch (final Exception ex) {
             log.error("Failed to delete notification for refId: {}/{}", referenceId, referenceType, ex);
@@ -120,17 +120,17 @@ public class JdbcNotificationTemplateRepository
 
     @Override
     public Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(
-        String referenceId,
-        NotificationTemplateReferenceType referenceType
-    ) throws TechnicalException {
-        log.debug("JdbcNotificationTemplateRepository.findAllByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+            String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException {
+        log.debug(
+                "JdbcNotificationTemplateRepository.findAllByReferenceIdAndReferenceType({}, {})",
+                referenceId,
+                referenceType);
         try {
             List<NotificationTemplate> notificationTemplates = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?",
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name()
-            );
+                    getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name());
             return new HashSet<>(notificationTemplates);
         } catch (final Exception ex) {
             log.error("Failed to find notificationTemplates by refs:", ex);
@@ -140,21 +140,22 @@ public class JdbcNotificationTemplateRepository
 
     @Override
     public Set<NotificationTemplate> findByHookAndScopeAndReferenceIdAndReferenceType(
-        String hook,
-        String scope,
-        String referenceId,
-        NotificationTemplateReferenceType referenceType
-    ) throws TechnicalException {
-        log.debug("JdbcNotificationTemplateRepository.findByHookReferenceIdAndReferenceType({}, {}, {})", hook, referenceId, referenceType);
+            String hook, String scope, String referenceId, NotificationTemplateReferenceType referenceType)
+            throws TechnicalException {
+        log.debug(
+                "JdbcNotificationTemplateRepository.findByHookReferenceIdAndReferenceType({}, {}, {})",
+                hook,
+                referenceId,
+                referenceType);
         try {
             List<NotificationTemplate> notificationTemplates = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where hook = ? and scope = ? and reference_id = ? and reference_type = ?",
-                getOrm().getRowMapper(),
-                hook,
-                scope,
-                referenceId,
-                referenceType.name()
-            );
+                    getOrm().getSelectAllSql()
+                            + " where hook = ? and scope = ? and reference_id = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
+                    hook,
+                    scope,
+                    referenceId,
+                    referenceType.name());
             return new HashSet<>(notificationTemplates);
         } catch (final Exception ex) {
             log.error("Failed to find notificationTemplates by refs:", ex);

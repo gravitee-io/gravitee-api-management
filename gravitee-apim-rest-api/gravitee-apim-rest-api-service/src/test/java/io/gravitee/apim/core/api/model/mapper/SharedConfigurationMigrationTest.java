@@ -32,8 +32,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class SharedConfigurationMigrationTest {
 
@@ -252,8 +250,10 @@ class SharedConfigurationMigrationTest {
             assertThat(proxyNode).isNotNull();
             assertThat(proxyNode.get("host").asText()).isEqualTo("localhost");
             assertThat(migrationResult.issues()).hasSize(1);
-            assertThat(migrationResult.issues().iterator().next().state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
-            assertThat(migrationResult.issues().iterator().next().message()).isEqualTo(MigrationWarnings.PROXY_HOST_MISSING);
+            assertThat(migrationResult.issues().iterator().next().state())
+                    .isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+            assertThat(migrationResult.issues().iterator().next().message())
+                    .isEqualTo(MigrationWarnings.PROXY_HOST_MISSING);
         }
 
         @Test
@@ -277,8 +277,10 @@ class SharedConfigurationMigrationTest {
             assertThat(proxyNode).isNotNull();
             assertThat(proxyNode.get("host").asText()).isEqualTo("localhost");
             assertThat(migrationResult.issues()).hasSize(1);
-            assertThat(migrationResult.issues().iterator().next().state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
-            assertThat(migrationResult.issues().iterator().next().message()).isEqualTo(MigrationWarnings.PROXY_HOST_MISSING);
+            assertThat(migrationResult.issues().iterator().next().state())
+                    .isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+            assertThat(migrationResult.issues().iterator().next().message())
+                    .isEqualTo(MigrationWarnings.PROXY_HOST_MISSING);
         }
 
         @Test
@@ -303,10 +305,11 @@ class SharedConfigurationMigrationTest {
             assertThat(proxyNode.get("host").asText()).isEqualTo("proxy.example.com");
             assertThat(proxyNode.get("port").asInt()).isEqualTo(SharedConfigurationMigration.DEFAULT_PROXY_PORT);
             assertThat(migrationResult.issues()).hasSize(1);
-            assertThat(migrationResult.issues().iterator().next().state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
-            assertThat(migrationResult.issues().iterator().next().message()).isEqualTo(
-                MigrationWarnings.PROXY_PORT_DEFAULTED.formatted(SharedConfigurationMigration.DEFAULT_PROXY_PORT)
-            );
+            assertThat(migrationResult.issues().iterator().next().state())
+                    .isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+            assertThat(migrationResult.issues().iterator().next().message())
+                    .isEqualTo(MigrationWarnings.PROXY_PORT_DEFAULTED.formatted(
+                            SharedConfigurationMigration.DEFAULT_PROXY_PORT));
         }
     }
 }

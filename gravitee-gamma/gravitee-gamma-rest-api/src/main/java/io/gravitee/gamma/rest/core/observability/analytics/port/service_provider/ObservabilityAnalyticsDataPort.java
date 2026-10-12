@@ -44,39 +44,36 @@ public interface ObservabilityAnalyticsDataPort {
     JsonNode computeMeasures(MeasuresQuery query);
 
     record MeasuresQuery(
-        String organizationId,
-        String environmentId,
-        AnalyticsRequestPipeline.PreparedScope scope,
-        List<AnalyticsMetricQuery> metrics,
-        Map<String, List<String>> conditionsNotApplied
-    ) {}
+            String organizationId,
+            String environmentId,
+            AnalyticsRequestPipeline.PreparedScope scope,
+            List<AnalyticsMetricQuery> metrics,
+            Map<String, List<String>> conditionsNotApplied) {}
 
     JsonNode computeFacets(FacetsQuery query);
 
     record FacetsQuery(
-        String organizationId,
-        String environmentId,
-        AnalyticsRequestPipeline.PreparedScope scope,
-        List<String> facets,
-        Integer limit,
-        List<AnalyticsFacetMetricQuery> metrics,
-        List<AnalyticsNumberRange> ranges,
-        Map<String, List<String>> conditionsNotApplied
-    ) {}
+            String organizationId,
+            String environmentId,
+            AnalyticsRequestPipeline.PreparedScope scope,
+            List<String> facets,
+            Integer limit,
+            List<AnalyticsFacetMetricQuery> metrics,
+            List<AnalyticsNumberRange> ranges,
+            Map<String, List<String>> conditionsNotApplied) {}
 
     JsonNode computeTimeSeries(TimeSeriesQuery query);
 
     record TimeSeriesQuery(
-        String organizationId,
-        String environmentId,
-        AnalyticsRequestPipeline.PreparedScope scope,
-        Long interval,
-        List<String> facets,
-        Integer facetSize,
-        List<AnalyticsFacetMetricQuery> metrics,
-        List<AnalyticsNumberRange> ranges,
-        Map<String, List<String>> conditionsNotApplied
-    ) {}
+            String organizationId,
+            String environmentId,
+            AnalyticsRequestPipeline.PreparedScope scope,
+            Long interval,
+            List<String> facets,
+            Integer facetSize,
+            List<AnalyticsFacetMetricQuery> metrics,
+            List<AnalyticsNumberRange> ranges,
+            Map<String, List<String>> conditionsNotApplied) {}
 
     /**
      * Refuses a query the analytics engine would refuse, without reading any data: an unknown metric,
@@ -90,6 +87,8 @@ public interface ObservabilityAnalyticsDataPort {
     void validate(TimeSeriesQuery query);
 
     JsonNode emptyMeasuresResponse();
+
     JsonNode emptyFacetsResponse();
+
     JsonNode emptyTimeSeriesResponse();
 }

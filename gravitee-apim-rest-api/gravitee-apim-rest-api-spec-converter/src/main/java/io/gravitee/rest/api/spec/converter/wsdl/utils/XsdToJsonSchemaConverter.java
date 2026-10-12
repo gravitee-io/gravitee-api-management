@@ -43,23 +43,23 @@ public class XsdToJsonSchemaConverter {
 
     private static final Set<Integer> BOOLEAN_TYPES = Set.of(SchemaType.BTC_BOOLEAN);
 
-    private static final Set<Integer> NUMBER_TYPES = Set.of(SchemaType.BTC_FLOAT, SchemaType.BTC_DOUBLE, SchemaType.BTC_DECIMAL);
+    private static final Set<Integer> NUMBER_TYPES =
+            Set.of(SchemaType.BTC_FLOAT, SchemaType.BTC_DOUBLE, SchemaType.BTC_DECIMAL);
 
     private static final Set<Integer> INTEGER_TYPES = Set.of(
-        SchemaType.BTC_INTEGER,
-        SchemaType.BTC_LONG,
-        SchemaType.BTC_INT,
-        SchemaType.BTC_SHORT,
-        SchemaType.BTC_BYTE,
-        SchemaType.BTC_NON_NEGATIVE_INTEGER,
-        SchemaType.BTC_POSITIVE_INTEGER,
-        SchemaType.BTC_NON_POSITIVE_INTEGER,
-        SchemaType.BTC_NEGATIVE_INTEGER,
-        SchemaType.BTC_UNSIGNED_LONG,
-        SchemaType.BTC_UNSIGNED_INT,
-        SchemaType.BTC_UNSIGNED_SHORT,
-        SchemaType.BTC_UNSIGNED_BYTE
-    );
+            SchemaType.BTC_INTEGER,
+            SchemaType.BTC_LONG,
+            SchemaType.BTC_INT,
+            SchemaType.BTC_SHORT,
+            SchemaType.BTC_BYTE,
+            SchemaType.BTC_NON_NEGATIVE_INTEGER,
+            SchemaType.BTC_POSITIVE_INTEGER,
+            SchemaType.BTC_NON_POSITIVE_INTEGER,
+            SchemaType.BTC_NEGATIVE_INTEGER,
+            SchemaType.BTC_UNSIGNED_LONG,
+            SchemaType.BTC_UNSIGNED_INT,
+            SchemaType.BTC_UNSIGNED_SHORT,
+            SchemaType.BTC_UNSIGNED_BYTE);
 
     private static final Set<Integer> DATE_TYPES = Set.of(SchemaType.BTC_DATE);
 
@@ -77,7 +77,8 @@ public class XsdToJsonSchemaConverter {
         }
 
         SchemaType contentType = documentType;
-        if (documentType.getContentModel() != null && documentType.getContentModel().getParticleType() == SchemaParticle.ELEMENT) {
+        if (documentType.getContentModel() != null
+                && documentType.getContentModel().getParticleType() == SchemaParticle.ELEMENT) {
             contentType = ((SchemaLocalElement) documentType.getContentModel()).getType();
         }
 
@@ -96,14 +97,15 @@ public class XsdToJsonSchemaConverter {
 
         return switch (stype.getContentType()) {
             case SchemaType.SIMPLE_CONTENT -> mapSimpleType(stype);
-            case SchemaType.ELEMENT_CONTENT, SchemaType.MIXED_CONTENT -> stype.getContentModel() != null
-                ? convertParticle(stype.getContentModel())
-                : new Schema().type(TYPE_OBJECT);
+            case SchemaType.ELEMENT_CONTENT, SchemaType.MIXED_CONTENT ->
+                stype.getContentModel() != null
+                        ? convertParticle(stype.getContentModel())
+                        : new Schema().type(TYPE_OBJECT);
             default -> new Schema().type(TYPE_OBJECT);
         };
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static Schema<?> convertParticle(SchemaParticle sp) {
         return switch (sp.getParticleType()) {
             case SchemaParticle.SEQUENCE, SchemaParticle.ALL, SchemaParticle.CHOICE -> buildObjectSchema(sp);
@@ -112,7 +114,7 @@ public class XsdToJsonSchemaConverter {
         };
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static Schema<?> buildObjectSchema(SchemaParticle sp) {
         Schema schema = new Schema().type(TYPE_OBJECT);
         schema.setProperties(collectElementProperties(sp));
@@ -128,23 +130,20 @@ public class XsdToJsonSchemaConverter {
     @SuppressWarnings("rawtypes")
     private static Map<String, Schema> collectElementProperties(SchemaParticle sp) {
         return Arrays.stream(sp.getParticleChildren())
-            .filter(child -> child.getParticleType() == SchemaParticle.ELEMENT)
-            .collect(
-                Collectors.toMap(
-                    child -> ((SchemaLocalElement) child).getName().getLocalPart(),
-                    child -> convertType(((SchemaLocalElement) child).getType()),
-                    (a, b) -> a,
-                    LinkedHashMap::new
-                )
-            );
+                .filter(child -> child.getParticleType() == SchemaParticle.ELEMENT)
+                .collect(Collectors.toMap(
+                        child -> ((SchemaLocalElement) child).getName().getLocalPart(),
+                        child -> convertType(((SchemaLocalElement) child).getType()),
+                        (a, b) -> a,
+                        LinkedHashMap::new));
     }
 
     private static List<String> collectRequiredProperties(SchemaParticle sp) {
         return Arrays.stream(sp.getParticleChildren())
-            .filter(child -> child.getParticleType() == SchemaParticle.ELEMENT)
-            .filter(child -> child.getIntMinOccurs() >= 1)
-            .map(child -> ((SchemaLocalElement) child).getName().getLocalPart())
-            .collect(Collectors.toCollection(ArrayList::new));
+                .filter(child -> child.getParticleType() == SchemaParticle.ELEMENT)
+                .filter(child -> child.getIntMinOccurs() >= 1)
+                .map(child -> ((SchemaLocalElement) child).getName().getLocalPart())
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @SuppressWarnings("rawtypes")

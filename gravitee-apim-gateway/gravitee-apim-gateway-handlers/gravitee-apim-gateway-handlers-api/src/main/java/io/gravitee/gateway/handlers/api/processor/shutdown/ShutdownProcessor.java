@@ -40,7 +40,8 @@ public class ShutdownProcessor extends AbstractProcessor<ExecutionContext> {
         if (node.lifecycleState() != Lifecycle.State.STARTED) {
             // The node is certainly shutting down, explicitly ask for closing connection.
             if (context.request().version() == HttpVersion.HTTP_2) {
-                // Create a fake internal header to notify the underlying layer to gracefully close the connection (aka: goAway).
+                // Create a fake internal header to notify the underlying layer to gracefully close the connection (aka:
+                // goAway).
                 context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY);
             } else {
                 context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);

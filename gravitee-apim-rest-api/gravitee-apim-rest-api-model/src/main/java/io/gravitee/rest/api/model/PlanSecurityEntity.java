@@ -72,6 +72,7 @@ public class PlanSecurityEntity {
 
     @Override
     public String toString() {
-        return "PlanSecurityEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", policy='" + policy + '\'' + '}';
+        return "PlanSecurityEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", policy='" + policy + '\''
+                + '}';
     }
 }

@@ -42,9 +42,8 @@ public class AmConnectionServiceImpl implements AmConnectionService {
     private final DataEncryptor dataEncryptor;
 
     public AmConnectionServiceImpl(
-        @Lazy AmConnectionRepository amConnectionRepository,
-        @Qualifier("apiPropertiesEncryptor") DataEncryptor dataEncryptor
-    ) {
+            @Lazy AmConnectionRepository amConnectionRepository,
+            @Qualifier("apiPropertiesEncryptor") DataEncryptor dataEncryptor) {
         this.amConnectionRepository = amConnectionRepository;
         this.dataEncryptor = dataEncryptor;
     }
@@ -54,7 +53,8 @@ public class AmConnectionServiceImpl implements AmConnectionService {
         try {
             return amConnectionRepository.findByOrganizationId(organizationId).map(this::toEntity);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Failed to find am connection for organization " + organizationId, e);
+            throw new TechnicalManagementException(
+                    "Failed to find am connection for organization " + organizationId, e);
         }
     }
 
@@ -62,12 +62,13 @@ public class AmConnectionServiceImpl implements AmConnectionService {
     public boolean hasToken(String organizationId) {
         try {
             return amConnectionRepository
-                .findByOrganizationId(organizationId)
-                .map(AmConnection::getServiceAccountAccessTokenEncrypted)
-                .filter(StringUtils::hasText)
-                .isPresent();
+                    .findByOrganizationId(organizationId)
+                    .map(AmConnection::getServiceAccountAccessTokenEncrypted)
+                    .filter(StringUtils::hasText)
+                    .isPresent();
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Failed to read am connection for organization " + organizationId, e);
+            throw new TechnicalManagementException(
+                    "Failed to read am connection for organization " + organizationId, e);
         }
     }
 
@@ -86,13 +87,16 @@ public class AmConnectionServiceImpl implements AmConnectionService {
             model.setDefaultDomainId(entity.getDefaultDomainId());
             model.setDefaultDomainHrid(entity.getDefaultDomainHrid());
             model.setGatewayUrl(entity.getGatewayUrl());
-            model.setServiceAccountAccessTokenEncrypted(encryptOrPreserve(entity.getServiceAccountAccessToken(), existing.orElse(null)));
+            model.setServiceAccountAccessTokenEncrypted(
+                    encryptOrPreserve(entity.getServiceAccountAccessToken(), existing.orElse(null)));
             model.setUpdatedAt(new Date());
 
-            AmConnection saved = existing.isPresent() ? amConnectionRepository.update(model) : amConnectionRepository.create(model);
+            AmConnection saved =
+                    existing.isPresent() ? amConnectionRepository.update(model) : amConnectionRepository.create(model);
             return toEntity(saved);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Failed to save am connection for organization " + organizationId, e);
+            throw new TechnicalManagementException(
+                    "Failed to save am connection for organization " + organizationId, e);
         }
     }
 
@@ -101,7 +105,8 @@ public class AmConnectionServiceImpl implements AmConnectionService {
         try {
             amConnectionRepository.delete(organizationId);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Failed to delete am connection for organization " + organizationId, e);
+            throw new TechnicalManagementException(
+                    "Failed to delete am connection for organization " + organizationId, e);
         }
     }
 
@@ -116,15 +121,13 @@ public class AmConnectionServiceImpl implements AmConnectionService {
             return dataEncryptor.encrypt(plaintextToken);
         } catch (GeneralSecurityException e) {
             log.warn(
-                "Failed to encrypt the AM service account token — check the length of api.properties.encryption.secret on the rest-api: {}",
-                e.getMessage(),
-                e
-            );
-            throw new TechnicalManagementException(
-                "Failed to encrypt the AM service account token — check the property-encryption secret (api.properties.encryption.secret) on the rest-api, it must be 16, 24 or 32 bytes. Cause: " +
+                    "Failed to encrypt the AM service account token — check the length of api.properties.encryption.secret on the rest-api: {}",
                     e.getMessage(),
-                e
-            );
+                    e);
+            throw new TechnicalManagementException(
+                    "Failed to encrypt the AM service account token — check the property-encryption secret (api.properties.encryption.secret) on the rest-api, it must be 16, 24 or 32 bytes. Cause: "
+                            + e.getMessage(),
+                    e);
         }
     }
 
@@ -150,15 +153,13 @@ public class AmConnectionServiceImpl implements AmConnectionService {
             return dataEncryptor.decrypt(ciphertext);
         } catch (GeneralSecurityException | IllegalArgumentException e) {
             log.warn(
-                "Failed to decrypt the AM service account token — check the length of api.properties.encryption.secret on the rest-api: {}",
-                e.getMessage(),
-                e
-            );
-            throw new TechnicalManagementException(
-                "Failed to decrypt the AM service account token — check the property-encryption secret (api.properties.encryption.secret) on the rest-api, it must be 16, 24 or 32 bytes. Cause: " +
+                    "Failed to decrypt the AM service account token — check the length of api.properties.encryption.secret on the rest-api: {}",
                     e.getMessage(),
-                e
-            );
+                    e);
+            throw new TechnicalManagementException(
+                    "Failed to decrypt the AM service account token — check the property-encryption secret (api.properties.encryption.secret) on the rest-api, it must be 16, 24 or 32 bytes. Cause: "
+                            + e.getMessage(),
+                    e);
         }
     }
 

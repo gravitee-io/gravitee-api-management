@@ -46,29 +46,28 @@ public class PropertiesServiceImpl extends TransactionalService implements Prope
     }
 
     @Override
-    public List<PropertyEntity> encryptProperties(List<PropertyEntity> storedProperties, List<PropertyEntity> properties) {
+    public List<PropertyEntity> encryptProperties(
+            List<PropertyEntity> storedProperties, List<PropertyEntity> properties) {
         Map<String, PropertyEntity> storedByKey = indexByKey(storedProperties);
-        return properties
-            .stream()
-            .map(property -> encryptProperty(storedByKey, property))
-            .toList();
+        return properties.stream()
+                .map(property -> encryptProperty(storedByKey, property))
+                .toList();
     }
 
     private static Map<String, PropertyEntity> indexByKey(List<PropertyEntity> properties) {
         if (properties == null) {
             return Map.of();
         }
-        return properties
-            .stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(PropertyEntity::getKey, Function.identity(), (first, second) -> first));
+        return properties.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(PropertyEntity::getKey, Function.identity(), (first, second) -> first));
     }
 
     private PropertyEntity encryptProperty(Map<String, PropertyEntity> storedByKey, PropertyEntity property) {
         if (ENCRYPTED_VALUE_MASK.equals(property.getValue())) {
             PropertyEntity stored = Optional.ofNullable(storedByKey.get(property.getKey()))
-                .filter(PropertyEntity::isEncrypted)
-                .orElseThrow(() -> new MaskedApiPropertyValueException(property.getKey()));
+                    .filter(PropertyEntity::isEncrypted)
+                    .orElseThrow(() -> new MaskedApiPropertyValueException(property.getKey()));
             property.setValue(stored.getValue());
             property.setEncrypted(true);
             return property;

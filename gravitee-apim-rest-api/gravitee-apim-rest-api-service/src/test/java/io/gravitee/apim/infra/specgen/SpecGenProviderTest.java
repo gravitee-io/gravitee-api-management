@@ -41,7 +41,6 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -64,31 +63,28 @@ class SpecGenProviderTest {
 
     public static Stream<Arguments> params_must_return_state_unavailable_reply_due_to_not_enabled() {
         return Stream.of(
-            Arguments.of(GET_STATE, false, false),
-            Arguments.of(GET_STATE, true, false),
-            Arguments.of(GET_STATE, false, true),
-            Arguments.of(POST_JOB, false, false),
-            Arguments.of(POST_JOB, true, false),
-            Arguments.of(POST_JOB, false, true)
-        );
+                Arguments.of(GET_STATE, false, false),
+                Arguments.of(GET_STATE, true, false),
+                Arguments.of(GET_STATE, false, true),
+                Arguments.of(POST_JOB, false, false),
+                Arguments.of(POST_JOB, true, false),
+                Arguments.of(POST_JOB, false, true));
     }
 
     @ParameterizedTest
     @MethodSource("params_must_return_state_unavailable_reply_due_to_not_enabled")
     void must_return_state_unavailable_reply_due_to_not_enabled(
-        ApiSpecGenOperation operation,
-        boolean cloudEnabled,
-        boolean specGenEnabled
-    ) {
-        var specGenProvider = new SpecGenProviderImpl(cloudEnabled, specGenEnabled, cockpitConnector, installationService);
+            ApiSpecGenOperation operation, boolean cloudEnabled, boolean specGenEnabled) {
+        var specGenProvider =
+                new SpecGenProviderImpl(cloudEnabled, specGenEnabled, cockpitConnector, installationService);
 
         specGenProvider
-            .performRequest(generateRandom(), operation, generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> UNAVAILABLE.equals(reply.requestState()));
+                .performRequest(generateRandom(), operation, generateRandom())
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> UNAVAILABLE.equals(reply.requestState()));
     }
 
     public static Stream<ApiSpecGenOperation> params_that_must_return_state_request_reply_due_to_error() {
@@ -105,30 +101,28 @@ class SpecGenProviderTest {
         when(installationEntity.getAdditionalInformation()).thenReturn(additionalInformation);
         when(installationService.get()).thenReturn(installationEntity);
 
-        when(cockpitConnector.sendCommand(any())).thenReturn(
-            Single.error(new IllegalArgumentException("An unexpected error has occurred"))
-        );
+        when(cockpitConnector.sendCommand(any()))
+                .thenReturn(Single.error(new IllegalArgumentException("An unexpected error has occurred")));
 
         specGenProvider
-            .performRequest(generateRandom(), operation, generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> UNAVAILABLE.equals(reply.requestState()));
+                .performRequest(generateRandom(), operation, generateRandom())
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> UNAVAILABLE.equals(reply.requestState()));
     }
 
     public static Stream<Arguments> params_that_must_return_state_request_reply() {
         return Stream.of(
-            Arguments.of(AVAILABLE, GET_STATE),
-            Arguments.of(UNAVAILABLE, GET_STATE),
-            Arguments.of(STARTED, GET_STATE),
-            Arguments.of(GENERATING, GET_STATE),
-            Arguments.of(AVAILABLE, POST_JOB),
-            Arguments.of(UNAVAILABLE, POST_JOB),
-            Arguments.of(STARTED, POST_JOB),
-            Arguments.of(GENERATING, POST_JOB)
-        );
+                Arguments.of(AVAILABLE, GET_STATE),
+                Arguments.of(UNAVAILABLE, GET_STATE),
+                Arguments.of(STARTED, GET_STATE),
+                Arguments.of(GENERATING, GET_STATE),
+                Arguments.of(AVAILABLE, POST_JOB),
+                Arguments.of(UNAVAILABLE, POST_JOB),
+                Arguments.of(STARTED, POST_JOB),
+                Arguments.of(GENERATING, POST_JOB));
     }
 
     @ParameterizedTest
@@ -141,16 +135,16 @@ class SpecGenProviderTest {
         when(installationEntity.getAdditionalInformation()).thenReturn(additionalInformation);
         when(installationService.get()).thenReturn(installationEntity);
 
-        when(cockpitConnector.sendCommand(any())).thenReturn(
-            Single.just(new SpecGenRequestReply(UuidString.generateRandom(), SUCCEEDED, SpecGenRequestState.valueOf(state.name())))
-        );
+        when(cockpitConnector.sendCommand(any()))
+                .thenReturn(Single.just(new SpecGenRequestReply(
+                        UuidString.generateRandom(), SUCCEEDED, SpecGenRequestState.valueOf(state.name()))));
 
         specGenProvider
-            .performRequest(generateRandom(), operation, generateRandom())
-            .test()
-            .awaitDone(2, SECONDS)
-            .assertComplete()
-            .assertNoErrors()
-            .assertValue(reply -> state.equals(reply.requestState()));
+                .performRequest(generateRandom(), operation, generateRandom())
+                .test()
+                .awaitDone(2, SECONDS)
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(reply -> state.equals(reply.requestState()));
     }
 }

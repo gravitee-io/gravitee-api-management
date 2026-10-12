@@ -39,24 +39,22 @@ public abstract class DefaultPolicyManager extends LegacyPolicyManager {
     private final PolicyLoader policyLoader;
 
     public DefaultPolicyManager(
-        final boolean legacyMode,
-        final DefaultClassLoader classLoader,
-        final PolicyFactory policyFactory,
-        final PolicyConfigurationFactory policyConfigurationFactory,
-        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        final PolicyClassLoaderFactory policyClassLoaderFactory,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ComponentProvider componentProvider
-    ) {
+            final boolean legacyMode,
+            final DefaultClassLoader classLoader,
+            final PolicyFactory policyFactory,
+            final PolicyConfigurationFactory policyConfigurationFactory,
+            final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            final PolicyClassLoaderFactory policyClassLoaderFactory,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ComponentProvider componentProvider) {
         super(
-            classLoader,
-            policyFactory,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            resourceLifecycleManager,
-            componentProvider
-        );
+                classLoader,
+                policyFactory,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                resourceLifecycleManager,
+                componentProvider);
         this.legacyMode = legacyMode;
         policyLoader = new PolicyLoader(classLoader, policyPluginManager, policyClassLoaderFactory, componentProvider);
     }

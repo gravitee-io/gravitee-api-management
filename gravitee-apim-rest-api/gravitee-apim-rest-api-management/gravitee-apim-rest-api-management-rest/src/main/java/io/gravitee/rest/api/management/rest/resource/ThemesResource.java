@@ -54,7 +54,7 @@ public class ThemesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE)})
     public ThemeEntity createTheme(@Valid @NotNull final NewThemeEntity theme) {
         if (!ThemeType.PORTAL.equals(theme.getType())) {
             throw new ThemeTypeNotSupportedException(null, theme.getType());
@@ -65,7 +65,7 @@ public class ThemesResource extends AbstractResource {
     @Path("/current")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ)})
     public ThemeEntity getCurrentTheme() {
         return themeService.findOrCreateDefaultPortalTheme(GraviteeContext.getExecutionContext());
     }

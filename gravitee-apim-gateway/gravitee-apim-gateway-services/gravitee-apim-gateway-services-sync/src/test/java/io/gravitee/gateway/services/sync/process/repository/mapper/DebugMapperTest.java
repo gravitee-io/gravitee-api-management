@@ -68,22 +68,21 @@ class DebugMapperTest {
         event.setPayload("{}");
         event.setCreatedAt(new Date());
         event.setEnvironments(Set.of("env"));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactable -> {
-                assertThat(reactable).isInstanceOf(ReactableEvent.class);
-                ReactableEvent reactableEvent = (ReactableEvent) reactable;
-                assertThat(reactableEvent.getId()).isEqualTo(event.getId());
-                assertThat(reactableEvent.getDeployedAt()).isEqualTo(event.getCreatedAt());
-                assertThat(reactableEvent.getContent()).isEqualTo(event);
-                assertThat(reactableEvent.getEnvironmentId()).isNull();
-                assertThat(reactableEvent.getEnvironmentHrid()).isNull();
-                assertThat(reactableEvent.getOrganizationId()).isNull();
-                assertThat(reactableEvent.getOrganizationHrid()).isNull();
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactable -> {
+                    assertThat(reactable).isInstanceOf(ReactableEvent.class);
+                    ReactableEvent reactableEvent = (ReactableEvent) reactable;
+                    assertThat(reactableEvent.getId()).isEqualTo(event.getId());
+                    assertThat(reactableEvent.getDeployedAt()).isEqualTo(event.getCreatedAt());
+                    assertThat(reactableEvent.getContent()).isEqualTo(event);
+                    assertThat(reactableEvent.getEnvironmentId()).isNull();
+                    assertThat(reactableEvent.getEnvironmentHrid()).isNull();
+                    assertThat(reactableEvent.getOrganizationId()).isNull();
+                    assertThat(reactableEvent.getOrganizationHrid()).isNull();
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -101,21 +100,20 @@ class DebugMapperTest {
         event.setPayload("{}");
         event.setCreatedAt(new Date());
         event.setEnvironments(Set.of("env"));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactable -> {
-                assertThat(reactable).isInstanceOf(ReactableEvent.class);
-                ReactableEvent reactableEvent = (ReactableEvent) reactable;
-                assertThat(reactableEvent.getId()).isEqualTo(event.getId());
-                assertThat(reactableEvent.getId()).isEqualTo(event.getId());
-                assertThat(reactableEvent.getDeployedAt()).isEqualTo(event.getCreatedAt());
-                assertThat(reactableEvent.getContent()).isEqualTo(event);
-                assertThat(reactableEvent.getOrganizationId()).isEqualTo(organization.getId());
-                assertThat(reactableEvent.getEnvironmentId()).isEqualTo(environment.getId());
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactable -> {
+                    assertThat(reactable).isInstanceOf(ReactableEvent.class);
+                    ReactableEvent reactableEvent = (ReactableEvent) reactable;
+                    assertThat(reactableEvent.getId()).isEqualTo(event.getId());
+                    assertThat(reactableEvent.getId()).isEqualTo(event.getId());
+                    assertThat(reactableEvent.getDeployedAt()).isEqualTo(event.getCreatedAt());
+                    assertThat(reactableEvent.getContent()).isEqualTo(event);
+                    assertThat(reactableEvent.getOrganizationId()).isEqualTo(organization.getId());
+                    assertThat(reactableEvent.getEnvironmentId()).isEqualTo(environment.getId());
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -130,20 +128,19 @@ class DebugMapperTest {
         event.setPayload("{}");
         event.setCreatedAt(new Date());
         event.setEnvironments(Set.of("env"));
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactable -> {
-                assertThat(reactable).isInstanceOf(ReactableEvent.class);
-                ReactableEvent reactableEvent = (ReactableEvent) reactable;
-                assertThat(reactableEvent.getId()).isEqualTo(event.getId());
-                assertThat(reactableEvent.getId()).isEqualTo(event.getId());
-                assertThat(reactableEvent.getDeployedAt()).isEqualTo(event.getCreatedAt());
-                assertThat(reactableEvent.getContent()).isEqualTo(event);
-                assertThat(reactableEvent.getOrganizationId()).isNull();
-                assertThat(reactableEvent.getEnvironmentId()).isEqualTo(environment.getId());
-                return true;
-            })
-            .assertComplete();
+        cut.to(event)
+                .test()
+                .assertValue(reactable -> {
+                    assertThat(reactable).isInstanceOf(ReactableEvent.class);
+                    ReactableEvent reactableEvent = (ReactableEvent) reactable;
+                    assertThat(reactableEvent.getId()).isEqualTo(event.getId());
+                    assertThat(reactableEvent.getId()).isEqualTo(event.getId());
+                    assertThat(reactableEvent.getDeployedAt()).isEqualTo(event.getCreatedAt());
+                    assertThat(reactableEvent.getContent()).isEqualTo(event);
+                    assertThat(reactableEvent.getOrganizationId()).isNull();
+                    assertThat(reactableEvent.getEnvironmentId()).isEqualTo(environment.getId());
+                    return true;
+                })
+                .assertComplete();
     }
 }

@@ -93,10 +93,12 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get environment analytics")
     @ApiResponse(
-        responseCode = "200",
-        description = "Environment analytics",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Analytics.class))
-    )
+            responseCode = "200",
+            description = "Environment analytics",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = Analytics.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getPlatformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
@@ -149,16 +151,21 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         switch (analyticsParam.getField()) {
             case API_FIELD:
                 return buildCountStat(
-                    // FIXME: This should use a count method instead of a search one
-                    apiServiceV4.findAll(executionContext, getAuthenticatedUser(), isAdmin(), new PageableImpl(1, 1)).getTotalElements()
-                );
+                        // FIXME: This should use a count method instead of a search one
+                        apiServiceV4
+                                .findAll(executionContext, getAuthenticatedUser(), isAdmin(), new PageableImpl(1, 1))
+                                .getTotalElements());
             case APPLICATION_FIELD:
                 if (isAdmin()) {
                     ApplicationQuery applicationQuery = new ApplicationQuery();
                     applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
-                    return buildCountStat(applicationService.searchIds(executionContext, applicationQuery, null).size());
+                    return buildCountStat(applicationService
+                            .searchIds(executionContext, applicationQuery, null)
+                            .size());
                 } else {
-                    return buildCountStat(applicationService.findIdsByUser(executionContext, getAuthenticatedUser()).size());
+                    return buildCountStat(applicationService
+                            .findIdsByUser(executionContext, getAuthenticatedUser())
+                            .size());
                 }
             default:
                 Map<String, Set<String>> terms;
@@ -199,23 +206,21 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         query.setQuery(analyticsParam.getQuery());
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
-            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
-                .stream()
-                .map(
-                    (Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation ->
-                        new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-                            @Override
-                            public AggregationType type() {
-                                return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
-                            }
+            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations.stream()
+                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>)
+                            aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                                @Override
+                                public AggregationType type() {
+                                    return AggregationType.valueOf(
+                                            aggregation.getType().name().toUpperCase());
+                                }
 
-                            @Override
-                            public String field() {
-                                return aggregation.getField();
-                            }
-                        }
-                )
-                .collect(Collectors.toList());
+                                @Override
+                                public String field() {
+                                    return aggregation.getField();
+                                }
+                            })
+                    .collect(Collectors.toList());
 
             query.setAggregations(aggregationList);
         }
@@ -230,7 +235,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
      * @throws FieldFilterEmptyException: if user is not Admin and filter based on ids field is empty
      */
     private Map<String, Set<String>> buildTerms(ExecutionContext executionContext, AnalyticsParam analyticsParam)
-        throws FieldFilterEmptyException {
+            throws FieldFilterEmptyException {
         String fieldName;
         Set<String> ids;
         // add filter by Apis or Applications
@@ -248,18 +253,15 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         } else {
             if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
                 fieldName = APPLICATION_FIELD;
-                ids = applicationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser())
-                    .stream()
-                    .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
-                    .collect(Collectors.toSet());
+                ids = applicationService.findIdsByUser(executionContext, getAuthenticatedUser()).stream()
+                        .filter(appId ->
+                                permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
+                        .collect(Collectors.toSet());
             } else {
                 fieldName = API_FIELD;
-                ids = apiAuthorizationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-                    .stream()
-                    .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
-                    .collect(Collectors.toSet());
+                ids = apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), true).stream()
+                        .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
+                        .collect(Collectors.toSet());
             }
         }
         if (ids.isEmpty()) {
@@ -272,10 +274,12 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     private Analytics executeGroupBy(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
         switch (analyticsParam.getField()) {
             case STATE_FIELD: {
-                return getTopHitsAnalytics(executionContext, api -> api.getState().name());
+                return getTopHitsAnalytics(
+                        executionContext, api -> api.getState().name());
             }
             case LIFECYCLE_STATE_FIELD: {
-                return getTopHitsAnalytics(executionContext, api -> api.getLifecycleState().name());
+                return getTopHitsAnalytics(
+                        executionContext, api -> api.getLifecycleState().name());
             }
             default:
                 Map<String, Set<String>> terms;
@@ -302,7 +306,8 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
                 List<Range> ranges = analyticsParam.getRanges();
                 if (ranges != null) {
-                    Map<Double, Double> rangeMap = ranges.stream().collect(Collectors.toMap(Range::getFrom, Range::getTo));
+                    Map<Double, Double> rangeMap =
+                            ranges.stream().collect(Collectors.toMap(Range::getFrom, Range::getTo));
 
                     query.setGroups(rangeMap);
                 }
@@ -311,11 +316,13 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         }
     }
 
-    private TopHitsAnalytics getTopHitsAnalytics(final ExecutionContext executionContext, Function<ApiEntity, String> groupingByFunction) {
+    private TopHitsAnalytics getTopHitsAnalytics(
+            final ExecutionContext executionContext, Function<ApiEntity, String> groupingByFunction) {
         Set<ApiEntity> apis = isAdmin()
-            ? new HashSet<>(apiService.search(executionContext, new ApiQuery()))
-            : apiService.findByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), true);
-        Map<String, Long> collect = apis.stream().collect(Collectors.groupingBy(groupingByFunction, Collectors.counting()));
+                ? new HashSet<>(apiService.search(executionContext, new ApiQuery()))
+                : apiService.findByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), true);
+        Map<String, Long> collect =
+                apis.stream().collect(Collectors.groupingBy(groupingByFunction, Collectors.counting()));
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
         topHitsAnalytics.setValues(collect);
         return topHitsAnalytics;

@@ -113,9 +113,8 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void init() {
         System.setProperty("auth.external.enabled", "true");
         System.setProperty("auth.external.issuer", JWT_ISSUER);
-        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(
-            rootTarget(".well-known/jwks.json").getUri().toString()
-        );
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID))
+                .thenReturn(rootTarget(".well-known/jwks.json").getUri().toString());
 
         reset(userService);
     }
@@ -123,16 +122,19 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotAuthenticateWithExternalAuthenticationIsNotEnabled() {
         System.clearProperty("auth.external.enabled");
-        final Response response = rootTarget(PATH).queryParam("token", "test").request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", "test").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
     public void shouldNotAuthenticateWhenUserNotFound() throws JOSEException {
         String jwt = generateMacToken();
-        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true)).thenThrow(new UserNotFoundException(JWT_SUBJECT));
+        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true))
+                .thenThrow(new UserNotFoundException(JWT_SUBJECT));
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
 
         // -- VERIFY
         verify(userService, times(1)).findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true);
@@ -142,11 +144,13 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     @Test
     public void shouldAuthenticateWithValidMacToken() throws JOSEException {
         String jwt = generateMacToken();
-        //mock DB find user by name
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true)).thenReturn(userEntity);
+        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true))
+                .thenReturn(userEntity);
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
@@ -155,7 +159,8 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
         System.setProperty("auth.external.algorithm", Algorithm.HS256.alg);
         System.setProperty("auth.external.verificationKey", "ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm");
 
-        final Response response = rootTarget(PATH).queryParam("token", "jwt").request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", "jwt").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
@@ -163,7 +168,8 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void shouldNotAuthenticateWithMissingOrgId() throws JOSEException, IOException {
         JWTClaimsSet payload = getJwtClaimsSet(JWT_ISSUER, JWT_SUBJECT, null, ENVIRONMENT_ID);
         String jwt = generateRSAToken(payload);
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
@@ -171,7 +177,8 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void shouldNotAuthenticateWithMissingEnvId() throws JOSEException, IOException {
         JWTClaimsSet payload = getJwtClaimsSet(JWT_ISSUER, JWT_SUBJECT, ORGANIZATION_ID, null);
         String jwt = generateRSAToken(payload);
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
@@ -179,7 +186,8 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void shouldNotAuthenticateWithWrongIssuer() throws JOSEException, IOException {
         JWTClaimsSet payload = getJwtClaimsSet("test", JWT_SUBJECT, ORGANIZATION_ID, null);
         String jwt = generateRSAToken(payload);
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
@@ -188,36 +196,40 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
         JWTClaimsSet payload = getJwtClaimsSet(JWT_ISSUER, "test", ORGANIZATION_ID, null);
         String jwt = generateRSAToken(payload);
 
-        //mock DB find user by name
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true)).thenReturn(userEntity);
+        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true))
+                .thenReturn(userEntity);
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
     public void shouldNotAuthenticateWithExpiredToken() throws JOSEException, IOException {
         JWTClaimsSet payload = getJwtClaimsSet(
-            JWT_ISSUER,
-            JWT_SUBJECT,
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            Date.from(Instant.now().minus(2, ChronoUnit.MINUTES))
-        );
+                JWT_ISSUER,
+                JWT_SUBJECT,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                Date.from(Instant.now().minus(2, ChronoUnit.MINUTES)));
         String jwt = generateRSAToken(payload);
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void shouldAuthenticateWithValidECToken() throws JOSEException, IOException {
         String jwt = generateECToken();
-        //mock DB find user by name
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true)).thenReturn(userEntity);
+        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true))
+                .thenReturn(userEntity);
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
@@ -225,21 +237,26 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void shouldNotAuthenticateWithValidECTokenButBadlyFormattedKey() throws JOSEException, IOException {
         String jwt = generateECToken();
         System.setProperty(
-            "auth.external.verificationKey",
-            Base64.getEncoder().encodeToString(KEY_PAIRS.get(EC_KID).getPublic().getEncoded())
-        );
+                "auth.external.verificationKey",
+                Base64.getEncoder()
+                        .encodeToString(KEY_PAIRS.get(EC_KID).getPublic().getEncoded()));
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 
     @Test
     public void shouldNotAuthenticateWithValidECTokenWrongKeyId() throws JOSEException, IOException {
         KeyPair keyPair = KEY_PAIRS.get(EC_KID);
-        String jwt = generateToken(keyPair, new ECDSASigner((ECPrivateKey) keyPair.getPrivate()), RSA_KID, Algorithm.ES256.alg);
-        System.setProperty("auth.external.verificationKey", rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
+        String jwt = generateToken(
+                keyPair, new ECDSASigner((ECPrivateKey) keyPair.getPrivate()), RSA_KID, Algorithm.ES256.alg);
+        System.setProperty(
+                "auth.external.verificationKey",
+                rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
@@ -247,11 +264,12 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void shouldNotAuthenticateWithValidRSATokenButBadlyFormattedKey() throws JOSEException, IOException {
         String jwt = generateRSAToken();
         System.setProperty(
-            "auth.external.verificationKey",
-            Base64.getEncoder().encodeToString(KEY_PAIRS.get(RSA_KID).getPublic().getEncoded())
-        );
+                "auth.external.verificationKey",
+                Base64.getEncoder()
+                        .encodeToString(KEY_PAIRS.get(RSA_KID).getPublic().getEncoded()));
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 
@@ -259,44 +277,57 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void shouldNotAuthenticateWithValidRSATokenWrongKeyId() throws JOSEException, IOException {
         KeyPair keyPair = KEY_PAIRS.get(RSA_KID);
         String jwt = generateToken(keyPair, new RSASSASigner(keyPair.getPrivate()), EC_KID, Algorithm.RS256.alg);
-        System.setProperty("auth.external.verificationKey", rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
+        System.setProperty(
+                "auth.external.verificationKey",
+                rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void shouldAuthenticateWithValidRSAToken() throws JOSEException, IOException {
         String jwt = generateRSAToken();
-        //mock DB find user by name
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true)).thenReturn(userEntity);
+        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true))
+                .thenReturn(userEntity);
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     @Test
     public void shouldAuthenticateWithValidJWKSUrlAndRsaToken() throws JOSEException, IOException {
         String jwt = generateRSAToken();
-        System.setProperty("auth.external.verificationKey", rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
-        //mock DB find user by name
+        System.setProperty(
+                "auth.external.verificationKey",
+                rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true)).thenReturn(userEntity);
+        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true))
+                .thenReturn(userEntity);
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     @Test
     public void shouldAuthenticateWithValidJWKSUrlAndEcToken() throws JOSEException, IOException {
         String jwt = generateECToken();
-        System.setProperty("auth.external.verificationKey", rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
-        //mock DB find user by name
+        System.setProperty(
+                "auth.external.verificationKey",
+                rootTarget(".well-known/jwks.json").getUriBuilder().toTemplate());
+        // mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true)).thenReturn(userEntity);
+        when(userService.findBySource(ORGANIZATION_ID, JWT_ISSUER, JWT_SUBJECT, true))
+                .thenReturn(userEntity);
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
@@ -312,7 +343,8 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void shouldNotAuthenticateWithoutVerificationKey() {
         System.setProperty("auth.external.algorithm", Algorithm.HS256.alg);
         System.clearProperty("auth.external.verificationKey");
-        Response response = rootTarget(PATH).queryParam("token", "jwt").request().get();
+        Response response =
+                rootTarget(PATH).queryParam("token", "jwt").request().get();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 
@@ -325,7 +357,9 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
 
         System.setProperty("auth.external.verificationKey", key);
         System.setProperty("auth.external.algorithm", Algorithm.HS256.alg);
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).type(JOSEObjectType.JWT).build();
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
+                .type(JOSEObjectType.JWT)
+                .build();
 
         JWTClaimsSet payload = getJwtClaimsSet();
 
@@ -336,7 +370,8 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
 
     private static String generateECToken() throws JOSEException, IOException {
         KeyPair keyPair = KEY_PAIRS.get(EC_KID);
-        return generateToken(keyPair, new ECDSASigner((ECPrivateKey) keyPair.getPrivate()), EC_KID, Algorithm.ES256.alg);
+        return generateToken(
+                keyPair, new ECDSASigner((ECPrivateKey) keyPair.getPrivate()), EC_KID, Algorithm.ES256.alg);
     }
 
     private static String generateRSAToken() throws JOSEException, IOException {
@@ -350,12 +385,13 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private static String generateToken(KeyPair keyPair, JWSSigner signer, String keyId, String algorithm)
-        throws JOSEException, IOException {
+            throws JOSEException, IOException {
         return generateToken(keyPair, signer, keyId, algorithm, getJwtClaimsSet());
     }
 
-    private static String generateToken(KeyPair keyPair, JWSSigner signer, String keyId, String algorithm, JWTClaimsSet payload)
-        throws JOSEException, IOException {
+    private static String generateToken(
+            KeyPair keyPair, JWSSigner signer, String keyId, String algorithm, JWTClaimsSet payload)
+            throws JOSEException, IOException {
         StringWriter writer = new StringWriter();
         PemWriter pemWriter = new PemWriter(writer);
         pemWriter.writeObject(new PemObject("PUBLIC KEY", keyPair.getPublic().getEncoded()));
@@ -364,7 +400,10 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
 
         System.setProperty("auth.external.verificationKey", writer.toString());
         System.setProperty("auth.external.algorithm", algorithm);
-        JWSHeader header = new JWSHeader.Builder(Algorithm.valueOf(algorithm).getAlgorithm()).type(JOSEObjectType.JWT).keyID(keyId).build();
+        JWSHeader header = new JWSHeader.Builder(Algorithm.valueOf(algorithm).getAlgorithm())
+                .type(JOSEObjectType.JWT)
+                .keyID(keyId)
+                .build();
 
         SignedJWT signedJWT = new SignedJWT(header, payload);
         signedJWT.sign(signer);
@@ -381,14 +420,14 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
 
     private static JWTClaimsSet getJwtClaimsSet(String iss, String sub, String org, String env, Date exp) {
         return new JWTClaimsSet.Builder()
-            .issuer(iss)
-            .subject(sub)
-            .claim(ExternalAuthenticationResource.ORG_CLAIM, org)
-            .claim(ExternalAuthenticationResource.ENVIRONMENT_CLAIM, env)
-            .claim("token", "test-token")
-            .issueTime(new Date())
-            .expirationTime(exp)
-            .build();
+                .issuer(iss)
+                .subject(sub)
+                .claim(ExternalAuthenticationResource.ORG_CLAIM, org)
+                .claim(ExternalAuthenticationResource.ENVIRONMENT_CLAIM, env)
+                .claim("token", "test-token")
+                .issueTime(new Date())
+                .expirationTime(exp)
+                .build();
     }
 
     private UserEntity mockUserEntity() {
@@ -413,17 +452,17 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
         public Response jwks() {
             KeyPair ecKeyPair = KEY_PAIRS.get(EC_KID);
             final ECKey ecKey = new ECKey.Builder(Curve.P_256, (ECPublicKey) ecKeyPair.getPublic())
-                .privateKey(ecKeyPair.getPrivate())
-                .keyID(EC_KID)
-                .algorithm(JWSAlgorithm.ES256)
-                .build();
+                    .privateKey(ecKeyPair.getPrivate())
+                    .keyID(EC_KID)
+                    .algorithm(JWSAlgorithm.ES256)
+                    .build();
 
             KeyPair rsaKeyPair = KEY_PAIRS.get(RSA_KID);
             final RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) rsaKeyPair.getPublic())
-                .privateKey(rsaKeyPair.getPrivate())
-                .keyID(RSA_KID)
-                .algorithm(JWSAlgorithm.RS256)
-                .build();
+                    .privateKey(rsaKeyPair.getPrivate())
+                    .keyID(RSA_KID)
+                    .algorithm(JWSAlgorithm.RS256)
+                    .build();
 
             return Response.ok(new JWKSet(List.of(ecKey, rsaKey)).toString()).build();
         }

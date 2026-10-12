@@ -40,13 +40,16 @@ public class DefaultUserStatusInitializer extends OrganizationInitializer {
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         updateUserEntity.setStatus(UserStatus.ACTIVE.name());
         userService
-            .search(executionContext, new UserCriteria.Builder().noStatus().build(), new PageableImpl(1, Integer.MAX_VALUE))
-            .getContent()
-            .forEach(userEntity -> {
-                if (userEntity.getStatus() == null) {
-                    userService.update(executionContext, userEntity.getId(), updateUserEntity);
-                }
-            });
+                .search(
+                        executionContext,
+                        new UserCriteria.Builder().noStatus().build(),
+                        new PageableImpl(1, Integer.MAX_VALUE))
+                .getContent()
+                .forEach(userEntity -> {
+                    if (userEntity.getStatus() == null) {
+                        userService.update(executionContext, userEntity.getId(), updateUserEntity);
+                    }
+                });
     }
 
     @Override

@@ -28,7 +28,8 @@ public interface AuthenticationContext {
     String TOKEN_TYPE_NONE = "None";
 
     String ATTR_INTERNAL_TOKEN_IDENTIFIED = "auth.tokenIdentifiedInRequest";
-    String ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE = "auth.hasNextSecurityHandlerSupportingSameTokenType";
+    String ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE =
+            "auth.hasNextSecurityHandlerSupportingSameTokenType";
 
     Request request();
 

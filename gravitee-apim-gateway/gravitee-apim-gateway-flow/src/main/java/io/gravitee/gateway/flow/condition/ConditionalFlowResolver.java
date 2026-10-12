@@ -36,11 +36,10 @@ public abstract class ConditionalFlowResolver extends AbstractFlowResolver {
 
     @Override
     public List<Flow> resolve(ExecutionContext context) {
-        return resolve0(context)
-            .stream()
-            .filter(Flow::isEnabled)
-            .filter(flow -> evaluator.evaluate(context, flow))
-            .collect(Collectors.toList());
+        return resolve0(context).stream()
+                .filter(Flow::isEnabled)
+                .filter(flow -> evaluator.evaluate(context, flow))
+                .collect(Collectors.toList());
     }
 
     protected abstract List<Flow> resolve0(ExecutionContext context);

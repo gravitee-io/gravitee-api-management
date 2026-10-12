@@ -36,9 +36,7 @@ public class NoOpHealthCheckRepository implements HealthCheckRepository {
 
     @Override
     public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
-        QueryContext queryContext,
-        AverageHealthCheckResponseTimeOvertimeQuery query
-    ) {
+            QueryContext queryContext, AverageHealthCheckResponseTimeOvertimeQuery query) {
         return Maybe.empty();
     }
 

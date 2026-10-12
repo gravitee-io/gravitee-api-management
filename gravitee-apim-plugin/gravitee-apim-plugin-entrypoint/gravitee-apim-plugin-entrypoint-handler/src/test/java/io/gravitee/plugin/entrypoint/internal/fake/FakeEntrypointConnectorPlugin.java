@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.entrypoint.internal.fake;
 
-import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import java.net.URISyntaxException;
@@ -28,7 +27,7 @@ import java.nio.file.Paths;
  * @author GraviteeSource Team
  */
 public class FakeEntrypointConnectorPlugin
-    implements EntrypointConnectorPlugin<FakeEntrypointConnectorFactory, FakeEntrypointConnectorConfiguration> {
+        implements EntrypointConnectorPlugin<FakeEntrypointConnectorFactory, FakeEntrypointConnectorConfiguration> {
 
     private static final String WITH_SUBSCRIPTION_FILE = "with-subscription";
     private static final String WITHOUT_SUBSCRIPTION_FILE = "without-subscription";
@@ -74,7 +73,10 @@ public class FakeEntrypointConnectorPlugin
     @Override
     public Path path() {
         try {
-            return Paths.get(this.getClass().getClassLoader().getResource("files/" + resourceFolder).toURI());
+            return Paths.get(this.getClass()
+                    .getClassLoader()
+                    .getResource("files/" + resourceFolder)
+                    .toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

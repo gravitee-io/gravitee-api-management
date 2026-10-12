@@ -21,9 +21,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.GenericRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -36,25 +34,26 @@ import lombok.NoArgsConstructor;
 public class ExecutionFailureMessageHelper {
 
     public static ExecutionFailureMessage createFailureMessage(
-        final HttpBaseRequest request,
-        final ExecutionFailure executionFailure,
-        final ObjectMapper objectMapper
-    ) {
+            final HttpBaseRequest request, final ExecutionFailure executionFailure, final ObjectMapper objectMapper) {
         List<String> accepts = request.headers().getAll(HttpHeaderNames.ACCEPT);
 
         Buffer payload;
         String contentType;
 
-        if (accepts != null && accepts.stream().anyMatch(s -> s.contains(MediaType.APPLICATION_JSON) || s.contains(MediaType.WILDCARD))) {
+        if (accepts != null
+                && accepts.stream()
+                        .anyMatch(s -> s.contains(MediaType.APPLICATION_JSON) || s.contains(MediaType.WILDCARD))) {
             // Write error as json when accepted by the client.
             contentType = MediaType.APPLICATION_JSON;
 
-            if (executionFailure.contentType() != null && executionFailure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
+            if (executionFailure.contentType() != null
+                    && executionFailure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
                 // Message is already json string.
                 payload = Buffer.buffer(executionFailure.message());
             } else {
                 try {
-                    String contentAsJson = objectMapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
+                    String contentAsJson =
+                            objectMapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
                     payload = Buffer.buffer(contentAsJson);
                 } catch (JsonProcessingException jpe) {
                     // There is a problem with json. Just return the content in text/plain.
@@ -67,6 +66,9 @@ public class ExecutionFailureMessageHelper {
             contentType = MediaType.TEXT_PLAIN;
             payload = Buffer.buffer(executionFailure.message());
         }
-        return ExecutionFailureMessage.builder().payload(payload).contentType(contentType).build();
+        return ExecutionFailureMessage.builder()
+                .payload(payload)
+                .contentType(contentType)
+                .build();
     }
 }

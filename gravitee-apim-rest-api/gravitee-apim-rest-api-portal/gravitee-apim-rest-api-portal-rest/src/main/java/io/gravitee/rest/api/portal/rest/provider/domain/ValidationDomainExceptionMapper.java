@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.portal.rest.provider.domain;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
@@ -28,8 +26,8 @@ public class ValidationDomainExceptionMapper extends AbstractDomainExceptionMapp
     @Override
     public Response toResponse(ValidationDomainException ve) {
         return Response.status(Response.Status.BAD_REQUEST)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(ve, Response.Status.BAD_REQUEST.getStatusCode(), "validation", ve.getParameters()))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(ve, Response.Status.BAD_REQUEST.getStatusCode(), "validation", ve.getParameters()))
+                .build();
     }
 }

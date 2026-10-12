@@ -38,10 +38,7 @@ final class PathExpander {
     }
 
     static int depth(String path) {
-        return (int) path
-            .chars()
-            .filter(c -> c == '/')
-            .count();
+        return (int) path.chars().filter(c -> c == '/').count();
     }
 
     private static String childPath(String parent, String segment) {

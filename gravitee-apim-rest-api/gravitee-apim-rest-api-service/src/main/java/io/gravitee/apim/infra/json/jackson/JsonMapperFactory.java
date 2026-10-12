@@ -42,18 +42,18 @@ public class JsonMapperFactory {
 
     public static JsonMapper.Builder jsonBuilder() {
         return JsonMapper.builder()
-            .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
-            .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            // Deserialization features
-            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
-            .enable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
-            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            // Configure visibility to only process properties (fields) and ignore getters/setters
-            .visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-            .visibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
-            .visibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
-            .visibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.NONE)
-            .addModule(new JavaTimeModule())
-            .serializationInclusion(JsonInclude.Include.NON_NULL);
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                // Deserialization features
+                .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+                .enable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
+                .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                // Configure visibility to only process properties (fields) and ignore getters/setters
+                .visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                .visibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
+                .visibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
+                .visibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.NONE)
+                .addModule(new JavaTimeModule())
+                .serializationInclusion(JsonInclude.Include.NON_NULL);
     }
 }

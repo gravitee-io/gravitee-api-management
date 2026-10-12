@@ -56,11 +56,7 @@ class SubscriptionFormDefinitionDomainServiceTest {
         queryService.reset();
         apiCrudService.reset();
         service = new SubscriptionFormDefinitionDomainService(
-            new GraviteeMarkdownValidator(),
-            schemaGenerator,
-            queryService,
-            apiCrudService
-        );
+                new GraviteeMarkdownValidator(), schemaGenerator, queryService, apiCrudService);
     }
 
     @Nested
@@ -68,11 +64,13 @@ class SubscriptionFormDefinitionDomainServiceTest {
 
         @Test
         void should_derive_constraints_from_the_definition() {
-            when(schemaGenerator.generate(any())).thenReturn(SubscriptionFormSchemaFixtures.schema(anInput("company", true)));
+            when(schemaGenerator.generate(any()))
+                    .thenReturn(SubscriptionFormSchemaFixtures.schema(anInput("company", true)));
 
             var definition = service.compile("<gmd-input fieldKey=\"company\" required=\"true\"/>");
 
-            assertThat(definition.gmdContent()).isEqualTo(GraviteeMarkdown.of("<gmd-input fieldKey=\"company\" required=\"true\"/>"));
+            assertThat(definition.gmdContent())
+                    .isEqualTo(GraviteeMarkdown.of("<gmd-input fieldKey=\"company\" required=\"true\"/>"));
             assertThat(definition.constraints().byFieldKey()).containsOnlyKeys("company");
         }
 
@@ -84,13 +82,13 @@ class SubscriptionFormDefinitionDomainServiceTest {
         @Test
         void should_reject_a_definition_with_too_many_fields() {
             var fields = IntStream.rangeClosed(0, SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT)
-                .mapToObj(i -> anInput("field" + i, false))
-                .toArray(SubscriptionFormSchema.Field[]::new);
+                    .mapToObj(i -> anInput("field" + i, false))
+                    .toArray(SubscriptionFormSchema.Field[]::new);
             when(schemaGenerator.generate(any())).thenReturn(SubscriptionFormSchemaFixtures.schema(fields));
 
             assertThatThrownBy(() -> service.compile("<gmd-input fieldKey=\"too-many\"/>"))
-                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-                .hasMessageContaining("must not exceed");
+                    .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                    .hasMessageContaining("must not exceed");
         }
     }
 
@@ -101,9 +99,8 @@ class SubscriptionFormDefinitionDomainServiceTest {
         void should_accept_a_name_unused_in_the_environment() {
             queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionForm()));
 
-            assertThatCode(() ->
-                service.validateName(SubscriptionFormFixtures.ENVIRONMENT_ID, "Partners", null)
-            ).doesNotThrowAnyException();
+            assertThatCode(() -> service.validateName(SubscriptionFormFixtures.ENVIRONMENT_ID, "Partners", null))
+                    .doesNotThrowAnyException();
         }
 
         @Test
@@ -111,16 +108,17 @@ class SubscriptionFormDefinitionDomainServiceTest {
             var form = SubscriptionFormFixtures.aSubscriptionForm();
             queryService.initWith(List.of(form));
 
-            assertThatCode(() -> service.validateName(form.getEnvironmentId(), form.getName(), form.getId())).doesNotThrowAnyException();
+            assertThatCode(() -> service.validateName(form.getEnvironmentId(), form.getName(), form.getId()))
+                    .doesNotThrowAnyException();
         }
 
         @Test
         void should_reject_a_name_used_by_another_form_ignoring_case_and_spaces() {
             queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionForm()));
 
-            assertThatThrownBy(() ->
-                service.validateName(SubscriptionFormFixtures.ENVIRONMENT_ID, " default ", SubscriptionFormId.random())
-            ).isInstanceOf(SubscriptionFormNameAlreadyExistsException.class);
+            assertThatThrownBy(() -> service.validateName(
+                            SubscriptionFormFixtures.ENVIRONMENT_ID, " default ", SubscriptionFormId.random()))
+                    .isInstanceOf(SubscriptionFormNameAlreadyExistsException.class);
         }
 
         @Test
@@ -128,15 +126,14 @@ class SubscriptionFormDefinitionDomainServiceTest {
             var tooLong = "n".repeat(SubscriptionFormDefinitionDomainService.MAX_NAME_LENGTH + 1);
 
             assertThatThrownBy(() -> service.validateName(SubscriptionFormFixtures.ENVIRONMENT_ID, tooLong, null))
-                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-                .hasMessageContaining("255");
+                    .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                    .hasMessageContaining("255");
         }
 
         @Test
         void should_reject_a_blank_name() {
-            assertThatThrownBy(() -> service.validateName(SubscriptionFormFixtures.ENVIRONMENT_ID, " ", null)).isInstanceOf(
-                SubscriptionFormDefinitionValidationException.class
-            );
+            assertThatThrownBy(() -> service.validateName(SubscriptionFormFixtures.ENVIRONMENT_ID, " ", null))
+                    .isInstanceOf(SubscriptionFormDefinitionValidationException.class);
         }
     }
 
@@ -149,16 +146,20 @@ class SubscriptionFormDefinitionDomainServiceTest {
 
         @Test
         void should_accept_no_apis() {
-            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, null, null)).isEmpty();
-            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of(), null)).isEmpty();
-            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of(" ", ""), null)).isEmpty();
+            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, null, null))
+                    .isEmpty();
+            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of(), null))
+                    .isEmpty();
+            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of(" ", ""), null))
+                    .isEmpty();
         }
 
         @Test
         void should_return_the_distinct_apis_of_the_environment() {
             apiCrudService.initWith(List.of(anApi("api-1"), anApi("api-2")));
 
-            var result = service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1", " api-2 ", "api-1"), null);
+            var result = service.validateApiIds(
+                    SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1", " api-2 ", "api-1"), null);
 
             assertThat(result).containsExactly("api-1", "api-2");
         }
@@ -167,45 +168,53 @@ class SubscriptionFormDefinitionDomainServiceTest {
         void should_reject_an_api_that_does_not_exist() {
             apiCrudService.initWith(List.of(anApi("api-1")));
 
-            assertThatThrownBy(() -> service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1", "ghost"), null))
-                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-                .hasMessageContaining("ghost");
+            assertThatThrownBy(() -> service.validateApiIds(
+                            SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1", "ghost"), null))
+                    .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                    .hasMessageContaining("ghost");
         }
 
         @Test
         void should_reject_an_api_of_another_environment() {
-            apiCrudService.initWith(List.of(anApi("api-1").toBuilder().environmentId("other-env").build()));
+            apiCrudService.initWith(List.of(
+                    anApi("api-1").toBuilder().environmentId("other-env").build()));
 
-            assertThatThrownBy(() -> service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1"), null)).isInstanceOf(
-                SubscriptionFormDefinitionValidationException.class
-            );
+            assertThatThrownBy(() ->
+                            service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1"), null))
+                    .isInstanceOf(SubscriptionFormDefinitionValidationException.class);
         }
 
         @Test
         void should_reject_an_api_already_mapped_to_another_form() {
             apiCrudService.initWith(List.of(anApi("api-1")));
-            queryService.initWith(
-                List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().name("Partners").apiIds(List.of("api-1")).build())
-            );
+            queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                    .name("Partners")
+                    .apiIds(List.of("api-1"))
+                    .build()));
 
-            assertThatThrownBy(() ->
-                service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1"), SubscriptionFormId.random())
-            )
-                .isInstanceOf(SubscriptionFormApiAlreadyMappedException.class)
-                .hasMessageContaining("Partners");
+            assertThatThrownBy(() -> service.validateApiIds(
+                            SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1"), SubscriptionFormId.random()))
+                    .isInstanceOf(SubscriptionFormApiAlreadyMappedException.class)
+                    .hasMessageContaining("Partners");
         }
 
         @Test
         void should_accept_an_api_already_mapped_to_the_form_being_updated() {
             apiCrudService.initWith(List.of(anApi("api-1")));
-            var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-1")).build();
+            var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                    .apiIds(List.of("api-1"))
+                    .build();
             queryService.initWith(List.of(form));
 
-            assertThat(service.validateApiIds(form.getEnvironmentId(), List.of("api-1"), form.getId())).containsExactly("api-1");
+            assertThat(service.validateApiIds(form.getEnvironmentId(), List.of("api-1"), form.getId()))
+                    .containsExactly("api-1");
         }
 
         private static io.gravitee.apim.core.api.model.Api anApi(String id) {
-            return ApiFixtures.aProxyApiV4().toBuilder().id(id).environmentId(SubscriptionFormFixtures.ENVIRONMENT_ID).build();
+            return ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(id)
+                    .environmentId(SubscriptionFormFixtures.ENVIRONMENT_ID)
+                    .build();
         }
     }
 }

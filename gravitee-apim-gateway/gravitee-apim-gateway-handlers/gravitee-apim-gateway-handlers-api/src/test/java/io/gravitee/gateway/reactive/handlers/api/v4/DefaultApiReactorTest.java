@@ -198,7 +198,8 @@ class DefaultApiReactorTest {
     Completable spyInvokerChain = Completable.complete();
 
     @Spy
-    Completable spyInterruptionFailureException = Completable.error(new InterruptionFailureException(mock(ExecutionFailure.class)));
+    Completable spyInterruptionFailureException =
+            Completable.error(new InterruptionFailureException(mock(ExecutionFailure.class)));
 
     @Spy
     Completable spyInterruptionException = Completable.error(new InterruptionException());
@@ -361,9 +362,13 @@ class DefaultApiReactorTest {
         lenient().when(apiProcessorChainFactory.afterApiExecution(api)).thenReturn(afterApiExecutionProcessors);
         lenient().when(apiProcessorChainFactory.onError(api)).thenReturn(onErrorProcessors);
 
-        lenient().when(flowChainFactory.createOrganizationFlow(api, tracingContext)).thenReturn(platformFlowChain);
+        lenient()
+                .when(flowChainFactory.createOrganizationFlow(api, tracingContext))
+                .thenReturn(platformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
+        lenient()
+                .when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE))
+                .thenReturn(spyResponsePlatformFlowChain);
         lenient().when(securityChain.execute(any())).thenReturn(spySecurityChain);
         lenient().when(v4FlowChainFactory.createPlanFlow(api, tracingContext)).thenReturn(apiPlanFlowChain);
         lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlanFlowChain);
@@ -372,11 +377,19 @@ class DefaultApiReactorTest {
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
 
-        lenient().when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeHandleProcessors);
+        lenient()
+                .when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST))
+                .thenReturn(spyBeforeHandleProcessors);
         lenient().when(afterHandleProcessors.execute(ctx, RESPONSE)).thenReturn(spyAfterHandleProcessors);
-        lenient().when(beforeSecurityChainProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeSecurityChainProcessors);
-        lenient().when(beforeApiExecutionProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeApiExecutionProcessors);
-        lenient().when(afterApiExecutionProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyAfterApiExecutionProcessors);
+        lenient()
+                .when(beforeSecurityChainProcessors.execute(ctx, ExecutionPhase.REQUEST))
+                .thenReturn(spyBeforeSecurityChainProcessors);
+        lenient()
+                .when(beforeApiExecutionProcessors.execute(ctx, ExecutionPhase.REQUEST))
+                .thenReturn(spyBeforeApiExecutionProcessors);
+        lenient()
+                .when(afterApiExecutionProcessors.execute(ctx, ExecutionPhase.RESPONSE))
+                .thenReturn(spyAfterApiExecutionProcessors);
         lenient().when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
 
         lenient().when(beforeHandleProcessors.getId()).thenReturn("mockBeforeHandleProcessors");
@@ -386,22 +399,28 @@ class DefaultApiReactorTest {
         lenient().when(onErrorProcessors.getId()).thenReturn("mockOnErrorProcessors");
 
         lenient().when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))
+                .thenReturn(defaultInvoker);
         lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
         lenient().when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);
 
         lenient().when(response.end(any())).thenReturn(spyResponseEnd);
         lenient().when(entrypointConnectorResolver.resolve(ctx)).thenReturn(entrypointConnector);
         lenient()
-            .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
-            .thenReturn(entrypointConnector);
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
+                .thenReturn(entrypointConnector);
         lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.PROXY);
 
-        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
-        when(configuration.getProperty(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, Boolean.class, true)).thenReturn(true);
+        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L))
+                .thenReturn(10_000L);
+        when(configuration.getProperty(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, Boolean.class, true))
+                .thenReturn(true);
 
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
-        lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10000L);
+        lenient()
+                .when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay())
+                .thenReturn(10000L);
 
         when(apiServicePluginManager.getAllFactories()).thenReturn(List.of(apiServiceFactory));
         when(apiServiceFactory.createService(any())).thenReturn(apiService);
@@ -424,30 +443,29 @@ class DefaultApiReactorTest {
         DefaultApiReactor defaultApiReactor = null;
         try {
             defaultApiReactor = new DefaultApiReactor(
-                api,
-                new DefaultDeploymentContext(),
-                apiComponentProvider,
-                new ArrayList<>(),
-                policyManager,
-                entrypointConnectorPluginManager,
-                apiServicePluginManager,
-                endpointManager,
-                resourceLifecycleManager,
-                apiProcessorChainFactory,
-                flowChainFactory,
-                v4FlowChainFactory,
-                configuration,
-                node,
-                requestTimeoutConfiguration,
-                reporterService,
-                accessPointManager,
-                eventManager,
-                new HttpAcceptorFactory(false),
-                tracingContext,
-                logGuardService,
-                apiProductRegistry,
-                apiProductPlanPolicyManagerFactory
-            );
+                    api,
+                    new DefaultDeploymentContext(),
+                    apiComponentProvider,
+                    new ArrayList<>(),
+                    policyManager,
+                    entrypointConnectorPluginManager,
+                    apiServicePluginManager,
+                    endpointManager,
+                    resourceLifecycleManager,
+                    apiProcessorChainFactory,
+                    flowChainFactory,
+                    v4FlowChainFactory,
+                    configuration,
+                    node,
+                    requestTimeoutConfiguration,
+                    reporterService,
+                    accessPointManager,
+                    eventManager,
+                    new HttpAcceptorFactory(false),
+                    tracingContext,
+                    logGuardService,
+                    apiProductRegistry,
+                    apiProductPlanPolicyManagerFactory);
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);
             defaultApiReactor.doStart();
@@ -474,7 +492,8 @@ class DefaultApiReactorTest {
 
         InOrder inOrder = inOrder(ctx);
         inOrder.verify(ctx).setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, CONTEXT_PATH);
-        inOrder.verify(ctx).setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, entrypointConnectorResolver);
+        inOrder.verify(ctx)
+                .setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, entrypointConnectorResolver);
     }
 
     @Test
@@ -494,24 +513,20 @@ class DefaultApiReactorTest {
     @BeforeAll
     @SuppressWarnings("unchecked")
     static void extractRequestMethodLogEntry() {
-        Set<LogEntry<?>> logEntries = (Set<LogEntry<?>>) ReflectionTestUtils.getField(
-            DefaultApiReactor.class,
-            "DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES"
-        );
-        requestMethodLogEntry = logEntries
-            .stream()
-            .filter(entry -> "requestMethod".equals(entry.getKey()))
-            .findFirst()
-            .orElseThrow();
+        Set<LogEntry<?>> logEntries = (Set<LogEntry<?>>)
+                ReflectionTestUtils.getField(DefaultApiReactor.class, "DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES");
+        requestMethodLogEntry = logEntries.stream()
+                .filter(entry -> "requestMethod".equals(entry.getKey()))
+                .findFirst()
+                .orElseThrow();
     }
 
     static Stream<Arguments> requestMethodAttributeShapes() {
         return Stream.of(
-            arguments(HttpMethod.POST, "POST"),
-            arguments(io.vertx.core.http.HttpMethod.PUT, "PUT"),
-            arguments("GET", "GET"),
-            arguments(null, null)
-        );
+                arguments(HttpMethod.POST, "POST"),
+                arguments(io.vertx.core.http.HttpMethod.PUT, "PUT"),
+                arguments("GET", "GET"),
+                arguments(null, null));
     }
 
     @ParameterizedTest
@@ -664,12 +679,11 @@ class DefaultApiReactorTest {
         AtomicBoolean ranBeforeResponse = new AtomicBoolean(false);
         spyResponseEnd = spy(Completable.fromRunnable(() -> responseWritten.set(true)));
         when(response.end(any())).thenReturn(spyResponseEnd);
-        Function<HttpExecutionContext, Completable> action = c ->
-            Completable.fromRunnable(() -> {
-                if (!responseWritten.get()) {
-                    ranBeforeResponse.set(true);
-                }
-            });
+        Function<HttpExecutionContext, Completable> action = c -> Completable.fromRunnable(() -> {
+            if (!responseWritten.get()) {
+                ranBeforeResponse.set(true);
+            }
+        });
         when(ctx.drainOnTerminateActions()).thenReturn(Map.of(mock(BasePolicy.class), action));
 
         cut.handle(ctx).test().assertComplete();
@@ -683,7 +697,8 @@ class DefaultApiReactorTest {
     void shouldStillCompleteWhenAnActionOnTerminateFails() {
         BasePolicy policy = mock(BasePolicy.class);
         when(policy.id()).thenReturn("a-policy");
-        Function<HttpExecutionContext, Completable> failing = c -> Completable.error(new RuntimeException("cleanup failed"));
+        Function<HttpExecutionContext, Completable> failing =
+                c -> Completable.error(new RuntimeException("cleanup failed"));
         when(ctx.drainOnTerminateActions()).thenReturn(Map.of(policy, failing));
 
         cut.handle(ctx).test().assertComplete();
@@ -819,7 +834,8 @@ class DefaultApiReactorTest {
         spyInvokerChain = spy(Completable.complete().delay(20000, TimeUnit.MILLISECONDS));
         when(defaultInvoker.invoke((HttpExecutionContext) ctx)).thenReturn(spyInvokerChain);
 
-        final TestObserver<Void> obs = cut.handle(ctx).subscribeOn(testScheduler).test();
+        final TestObserver<Void> obs =
+                cut.handle(ctx).subscribeOn(testScheduler).test();
 
         obs.assertNotComplete();
 
@@ -872,7 +888,8 @@ class DefaultApiReactorTest {
         when(defaultInvoker.invoke((HttpExecutionContext) ctx)).thenReturn(spyInvokerChain);
         when(platformFlowChain.execute(ctx, RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
 
-        final TestObserver<Void> obs = cut.handle(ctx).subscribeOn(testScheduler).test();
+        final TestObserver<Void> obs =
+                cut.handle(ctx).subscribeOn(testScheduler).test();
         obs.assertNotComplete();
 
         testScheduler.advanceTimeBy(9000, TimeUnit.MILLISECONDS);
@@ -923,7 +940,8 @@ class DefaultApiReactorTest {
 
     @Test
     void shouldEndProperlyWhenTimeoutDuringEntrypointHandleResponse() {
-        // Note: due to clash with scheduler time vs System.currentTimeMillis when calculation remaining time for timeout,
+        // Note: due to clash with scheduler time vs System.currentTimeMillis when calculation remaining time for
+        // timeout,
         // this trick to force set a timeout on entrypoint handle response.
         when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L, 0L, 10000L);
         when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10000L);
@@ -931,7 +949,8 @@ class DefaultApiReactorTest {
 
         when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);
 
-        final TestObserver<Void> obs = cut.handle(ctx).subscribeOn(testScheduler).test();
+        final TestObserver<Void> obs =
+                cut.handle(ctx).subscribeOn(testScheduler).test();
         obs.assertNotComplete();
 
         testScheduler.advanceTimeBy(9000, TimeUnit.MILLISECONDS);
@@ -969,7 +988,8 @@ class DefaultApiReactorTest {
 
         // 504 isn't directly set on the response status as it is more a job for the error processor chain.
         // The only way to assert here is to check the context has been interrupted with a failure.
-        final ExecutionFailure executionFailure = failureArgumentCaptor.getAllValues().get(0);
+        final ExecutionFailure executionFailure =
+                failureArgumentCaptor.getAllValues().get(0);
         assertThat(executionFailure.statusCode()).isEqualTo(GATEWAY_TIMEOUT_504);
         assertThat(executionFailure.key()).isEqualTo(REQUEST_TIMEOUT_KEY);
 
@@ -980,22 +1000,24 @@ class DefaultApiReactorTest {
     void shouldHandleRequestWithLegacyInvoker() {
         lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
 
-        io.gravitee.gateway.core.invoker.EndpointInvoker endpointInvoker = mock(io.gravitee.gateway.core.invoker.EndpointInvoker.class);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(endpointInvoker);
+        io.gravitee.gateway.core.invoker.EndpointInvoker endpointInvoker =
+                mock(io.gravitee.gateway.core.invoker.EndpointInvoker.class);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))
+                .thenReturn(endpointInvoker);
 
         final ArgumentCaptor<Handler<ProxyConnection>> handlerArgumentCaptor = ArgumentCaptor.forClass(Handler.class);
         doAnswer(invocation -> {
-            ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-            final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                ConnectionHandlerAdapter.class,
-                "nextEmitter",
-                connectionHandlerAdapter
-            );
-            ((CompletableEmitter) nextEmitter.get()).onComplete();
-            return null;
-        })
-            .when(endpointInvoker)
-            .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
+                    ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+                    final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                            ConnectionHandlerAdapter.class, "nextEmitter", connectionHandlerAdapter);
+                    ((CompletableEmitter) nextEmitter.get()).onComplete();
+                    return null;
+                })
+                .when(endpointInvoker)
+                .invoke(
+                        any(io.gravitee.gateway.api.ExecutionContext.class),
+                        any(ReadWriteStream.class),
+                        any(Handler.class));
         cut.handle(ctx).test().assertComplete();
 
         // Verify flow chain has been executed in the right order
@@ -1053,20 +1075,18 @@ class DefaultApiReactorTest {
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         subscriptionListener.setEntrypoints(new ArrayList<>());
         when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
-        when(accessPointManager.getByEnvironmentId(ENVIRONMENT_ID)).thenReturn(
-            List.of(
-                ReactableAccessPoint.builder()
-                    .environmentId(ENVIRONMENT_ID)
-                    .host("host1")
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .build(),
-                ReactableAccessPoint.builder()
-                    .environmentId(ENVIRONMENT_ID)
-                    .host("host2")
-                    .target(ReactableAccessPoint.Target.GATEWAY)
-                    .build()
-            )
-        );
+        when(accessPointManager.getByEnvironmentId(ENVIRONMENT_ID))
+                .thenReturn(List.of(
+                        ReactableAccessPoint.builder()
+                                .environmentId(ENVIRONMENT_ID)
+                                .host("host1")
+                                .target(ReactableAccessPoint.Target.GATEWAY)
+                                .build(),
+                        ReactableAccessPoint.builder()
+                                .environmentId(ENVIRONMENT_ID)
+                                .host("host2")
+                                .target(ReactableAccessPoint.Target.GATEWAY)
+                                .build()));
 
         cut = buildApiReactor();
         List<Acceptor<?>> acceptors = cut.acceptors();
@@ -1077,13 +1097,14 @@ class DefaultApiReactorTest {
         assertThat(accessPointHttpAcceptor.path()).isEqualTo("path/");
         assertThat(accessPointHttpAcceptor.host()).isEqualTo("host1");
         assertThat(accessPointHttpAcceptor.innerHttpsAcceptors())
-            .extracting(HttpAcceptor::host, HttpAcceptor::path)
-            .containsOnly(Tuple.tuple("host1", "path/"), Tuple.tuple("host2", "path/"));
+                .extracting(HttpAcceptor::host, HttpAcceptor::path)
+                .containsOnly(Tuple.tuple("host1", "path/"), Tuple.tuple("host2", "path/"));
     }
 
     @Test
     void shouldSubscribeAndUnsubscribeWithSameLambdaListener() throws Exception {
-        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor = ArgumentCaptor.forClass(EventListener.class);
+        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor =
+                ArgumentCaptor.forClass(EventListener.class);
         verify(eventManager).subscribeForEvents(captor.capture(), eq(ApiProductEventType.class));
         EventListener<ApiProductEventType, ApiProductChangedEvent> subscribedListener = captor.getValue();
 
@@ -1096,14 +1117,17 @@ class DefaultApiReactorTest {
 
     @Test
     void shouldNotLoseNewListenerWhenOldReactorStops() throws Exception {
-        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor1 = ArgumentCaptor.forClass(EventListener.class);
+        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor1 =
+                ArgumentCaptor.forClass(EventListener.class);
         verify(eventManager).subscribeForEvents(captor1.capture(), eq(ApiProductEventType.class));
         EventListener<ApiProductEventType, ApiProductChangedEvent> oldListener = captor1.getValue();
 
         buildApiReactor();
-        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor2 = ArgumentCaptor.forClass(EventListener.class);
+        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor2 =
+                ArgumentCaptor.forClass(EventListener.class);
         verify(eventManager, times(2)).subscribeForEvents(captor2.capture(), eq(ApiProductEventType.class));
-        EventListener<ApiProductEventType, ApiProductChangedEvent> newListener = captor2.getAllValues().get(1);
+        EventListener<ApiProductEventType, ApiProductChangedEvent> newListener =
+                captor2.getAllValues().get(1);
 
         assertThat(newListener).isNotSameAs(oldListener);
 
@@ -1168,8 +1192,8 @@ class DefaultApiReactorTest {
         // this line nothing in the logs ties the resulting spike to the redeploy that caused it.
         assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
         assertThat(memoryAppender.getLoggedEvents().get(0).getFormattedMessage())
-            .contains("3 request(s) are still being handled")
-            .contains("api.pending_requests_timeout");
+                .contains("3 request(s) are still being handled")
+                .contains("api.pending_requests_timeout");
 
         logger.detachAppender(memoryAppender);
         RxJavaPlugins.reset();
@@ -1193,11 +1217,11 @@ class DefaultApiReactorTest {
         // live gateway the counter was already back to zero by then, and nothing was reported at all even though
         // requests were demonstrably being cut short.
         doAnswer(invocation -> {
-            pendingRequests.set(0);
-            return null;
-        })
-            .when(endpointManager)
-            .stop();
+                    pendingRequests.set(0);
+                    return null;
+                })
+                .when(endpointManager)
+                .stop();
 
         cut.doStop();
         testScheduler.advanceTimeBy(10_000L, TimeUnit.MILLISECONDS);
@@ -1205,7 +1229,8 @@ class DefaultApiReactorTest {
 
         verify(endpointManager).stop();
         assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
-        assertThat(memoryAppender.getLoggedEvents().get(0).getFormattedMessage()).contains("2 request(s) are still being handled");
+        assertThat(memoryAppender.getLoggedEvents().get(0).getFormattedMessage())
+                .contains("2 request(s) are still being handled");
 
         logger.detachAppender(memoryAppender);
         RxJavaPlugins.reset();
@@ -1305,7 +1330,8 @@ class DefaultApiReactorTest {
     void shouldExecuteErrorChainWhenOrganizationResponseFlowThrowsInterruptionFailureException() {
         // Simulate the organization response flow chain throwing an InterruptionFailureException
         // (e.g., Groovy policy at ORG level setting State.FAILURE)
-        ExecutionFailure executionFailure = new ExecutionFailure(500).key("INTERNAL_SYSTEM_ERROR").message("Custom error from org policy");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(500).key("INTERNAL_SYSTEM_ERROR").message("Custom error from org policy");
         spyResponsePlatformFlowChain = spy(Completable.error(new InterruptionFailureException(executionFailure)));
         when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
 
@@ -1369,7 +1395,8 @@ class DefaultApiReactorTest {
         // response time then stays the time to first byte, which is the historical behaviour.
         assertThat(metrics.getEndpointResponseTimeNs()).isEqualTo(metrics.getEndpointResponseTtfbNs());
         // Milliseconds are derived from the nanoseconds, rounded to the nearest, so both always agree.
-        assertThat(metrics.getEndpointResponseTtfbMs()).isEqualTo(Math.round(metrics.getEndpointResponseTtfbNs() / 1e6));
+        assertThat(metrics.getEndpointResponseTtfbMs())
+                .isEqualTo(Math.round(metrics.getEndpointResponseTtfbNs() / 1e6));
         assertThat(metrics.getEndpointResponseTimeMs()).isEqualTo(metrics.getEndpointResponseTtfbMs());
     }
 
@@ -1389,24 +1416,23 @@ class DefaultApiReactorTest {
 
     private InOrder getInOrder() {
         return inOrder(
-            spyRequestPlatformFlowChain,
-            spyBeforeSecurityChainProcessors,
-            spySecurityChain,
-            spyBeforeHandleProcessors,
-            spyAfterHandleProcessors,
-            spyBeforeApiExecutionProcessors,
-            spyEntrypointRequest,
-            spyRequestPlanFlowChain,
-            spyRequestApiFlowChain,
-            spyInvokerChain,
-            spyResponsePlanFlowChain,
-            spyResponseApiFlowChain,
-            spyResponsePlatformFlowChain,
-            spyAfterApiExecutionProcessors,
-            spyOnErrorProcessors,
-            spyEntrypointResponse,
-            spyResponseEnd
-        );
+                spyRequestPlatformFlowChain,
+                spyBeforeSecurityChainProcessors,
+                spySecurityChain,
+                spyBeforeHandleProcessors,
+                spyAfterHandleProcessors,
+                spyBeforeApiExecutionProcessors,
+                spyEntrypointRequest,
+                spyRequestPlanFlowChain,
+                spyRequestApiFlowChain,
+                spyInvokerChain,
+                spyResponsePlanFlowChain,
+                spyResponseApiFlowChain,
+                spyResponsePlatformFlowChain,
+                spyAfterApiExecutionProcessors,
+                spyOnErrorProcessors,
+                spyEntrypointResponse,
+                spyResponseEnd);
     }
 
     @Nested
@@ -1415,14 +1441,16 @@ class DefaultApiReactorTest {
         @Test
         void should_return_the_started_resource_of_the_given_name_and_type() {
             Resource resource = mock(Resource.class);
-            when(resourceLifecycleManager.getResource("oauth2-resource", Resource.class)).thenReturn(resource);
+            when(resourceLifecycleManager.getResource("oauth2-resource", Resource.class))
+                    .thenReturn(resource);
 
             assertThat(cut.resource("oauth2-resource", Resource.class)).contains(resource);
         }
 
         @Test
         void should_return_empty_when_the_api_declares_no_such_resource() {
-            when(resourceLifecycleManager.getResource("unknown", Resource.class)).thenReturn(null);
+            when(resourceLifecycleManager.getResource("unknown", Resource.class))
+                    .thenReturn(null);
 
             assertThat(cut.resource("unknown", Resource.class)).isEmpty();
         }

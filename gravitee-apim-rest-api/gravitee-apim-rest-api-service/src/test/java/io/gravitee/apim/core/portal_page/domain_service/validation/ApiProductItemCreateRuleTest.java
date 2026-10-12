@@ -49,15 +49,18 @@ class ApiProductItemCreateRuleTest {
     @BeforeEach
     void setUp() {
         apiProductQueryService = new ApiProductQueryServiceInMemory();
-        apiProductQueryService.initWith(
-            List.of(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENVIRONMENT_ID).apiIds(Set.of()).build())
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .apiIds(Set.of())
+                .build()));
         rule = new ApiProductItemCreateRule(apiProductQueryService);
     }
 
     @Test
     void should_accept_product_below_non_product_container() {
-        assertThatCode(() -> rule.validate(apiProductItem(), ENVIRONMENT_ID, CreateValidationContext.empty())).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(apiProductItem(), ENVIRONMENT_ID, CreateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -65,81 +68,86 @@ class ApiProductItemCreateRuleTest {
         var item = apiProductItem().toBuilder().parentId(null).build();
 
         assertThatThrownBy(() -> rule.validate(item, ENVIRONMENT_ID, CreateValidationContext.empty()))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessage("The parentId field is required and cannot be blank.");
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessage("The parentId field is required and cannot be blank.");
     }
 
     @Test
     void should_reject_product_outside_top_navbar() {
         var item = apiProductItem().toBuilder().area(PortalArea.HOMEPAGE).build();
 
-        assertThatThrownBy(() -> rule.validate(item, ENVIRONMENT_ID, CreateValidationContext.empty())).isInstanceOf(
-            InvalidPortalNavigationItemDataException.class
-        );
+        assertThatThrownBy(() -> rule.validate(item, ENVIRONMENT_ID, CreateValidationContext.empty()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class);
     }
 
     @Test
     void should_reject_product_from_another_environment() {
-        assertThatThrownBy(() -> rule.validate(apiProductItem(), "other-environment", CreateValidationContext.empty())).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> rule.validate(apiProductItem(), "other-environment", CreateValidationContext.empty()))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
     void should_reject_nested_product_in_pending_payload() {
-        var parent = apiProductItem().toBuilder().id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000103")).build();
+        var parent = apiProductItem().toBuilder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000103"))
+                .build();
         var nested = apiProductItem().toBuilder().parentId(parent.getId()).build();
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(parent.getId(), parent), Map.of(), List.of());
 
-        assertThatThrownBy(() -> rule.validate(nested, ENVIRONMENT_ID, ctx)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+        assertThatThrownBy(() -> rule.validate(nested, ENVIRONMENT_ID, ctx))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class);
     }
 
     @Test
     void should_reject_existing_product_reference() {
-        var existing = PortalNavigationItemFixtures.anApiProduct("00000000-0000-0000-0000-000000000104", "Product", null, API_PRODUCT_ID);
-        var ctx = new CreateValidationContext(List.of(existing), Map.of(existing.getId(), existing), Map.of(), Map.of(), List.of());
+        var existing = PortalNavigationItemFixtures.anApiProduct(
+                "00000000-0000-0000-0000-000000000104", "Product", null, API_PRODUCT_ID);
+        var ctx = new CreateValidationContext(
+                List.of(existing), Map.of(existing.getId(), existing), Map.of(), Map.of(), List.of());
 
-        assertThatThrownBy(() -> rule.validate(apiProductItem(), ENVIRONMENT_ID, ctx)).isInstanceOf(
-            ApiProductNavigationItemAlreadyExistsException.class
-        );
+        assertThatThrownBy(() -> rule.validate(apiProductItem(), ENVIRONMENT_ID, ctx))
+                .isInstanceOf(ApiProductNavigationItemAlreadyExistsException.class);
     }
 
     @Test
     void should_reject_existing_product_reference_before_validating_ancestors() {
-        var existing = PortalNavigationItemFixtures.anApiProduct("00000000-0000-0000-0000-000000000104", "Product", null, API_PRODUCT_ID);
-        var parent = apiProductItem().toBuilder().id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000105")).build();
+        var existing = PortalNavigationItemFixtures.anApiProduct(
+                "00000000-0000-0000-0000-000000000104", "Product", null, API_PRODUCT_ID);
+        var parent = apiProductItem().toBuilder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000105"))
+                .build();
         var ctx = new CreateValidationContext(
-            List.of(existing),
-            Map.of(existing.getId(), existing),
-            Map.of(parent.getId(), parent),
-            Map.of(),
-            List.of()
-        );
+                List.of(existing),
+                Map.of(existing.getId(), existing),
+                Map.of(parent.getId(), parent),
+                Map.of(),
+                List.of());
 
-        assertThatThrownBy(() ->
-            rule.validate(apiProductItem().toBuilder().parentId(parent.getId()).build(), ENVIRONMENT_ID, ctx)
-        ).isInstanceOf(ApiProductNavigationItemAlreadyExistsException.class);
+        assertThatThrownBy(() -> rule.validate(
+                        apiProductItem().toBuilder().parentId(parent.getId()).build(), ENVIRONMENT_ID, ctx))
+                .isInstanceOf(ApiProductNavigationItemAlreadyExistsException.class);
     }
 
     @Test
     void should_reject_duplicate_product_references_in_bulk_payload() {
         var first = apiProductItem();
-        var second = apiProductItem().toBuilder().id(PortalNavigationItemId.random()).build();
+        var second =
+                apiProductItem().toBuilder().id(PortalNavigationItemId.random()).build();
 
-        assertThatThrownBy(() ->
-            new DuplicateApiProductIdsInPayloadRule().validate(List.of(first, second), ENVIRONMENT_ID, CreateValidationContext.empty())
-        ).isInstanceOf(ApiProductNavigationItemAlreadyExistsException.class);
+        assertThatThrownBy(() -> new DuplicateApiProductIdsInPayloadRule()
+                        .validate(List.of(first, second), ENVIRONMENT_ID, CreateValidationContext.empty()))
+                .isInstanceOf(ApiProductNavigationItemAlreadyExistsException.class);
     }
 
     private static CreatePortalNavigationItem apiProductItem() {
         return CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .title("Product")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .parentId(PortalNavigationItemId.of(PARENT_ID))
-            .apiProductId(API_PRODUCT_ID)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .title("Product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .parentId(PortalNavigationItemId.of(PARENT_ID))
+                .apiProductId(API_PRODUCT_ID)
+                .build();
     }
 }

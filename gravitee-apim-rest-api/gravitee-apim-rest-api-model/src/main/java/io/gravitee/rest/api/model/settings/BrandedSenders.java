@@ -63,7 +63,11 @@ public final class BrandedSenders {
             // never-null contract.
             return parsed != null ? parsed : new ArrayList<>();
         } catch (JsonProcessingException e) {
-            log.error("Ignoring malformed '{}' configuration [{}]; returning an empty list", Key.EMAIL_BRANDED_SENDERS.key(), raw, e);
+            log.error(
+                    "Ignoring malformed '{}' configuration [{}]; returning an empty list",
+                    Key.EMAIL_BRANDED_SENDERS.key(),
+                    raw,
+                    e);
             return new ArrayList<>();
         }
     }
@@ -91,17 +95,17 @@ public final class BrandedSenders {
         if (domain == null) {
             return Optional.empty();
         }
-        return configs
-            .stream()
-            .filter(config -> matchesDomain(config, domain))
-            .findFirst();
+        return configs.stream().filter(config -> matchesDomain(config, domain)).findFirst();
     }
 
     private static boolean matchesDomain(BrandedSenderConfig config, String domain) {
         if (config == null || config.getDomains() == null) {
             return false;
         }
-        return config.getDomains().stream().filter(Objects::nonNull).map(BrandedSenders::normalizeDomain).anyMatch(domain::equals);
+        return config.getDomains().stream()
+                .filter(Objects::nonNull)
+                .map(BrandedSenders::normalizeDomain)
+                .anyMatch(domain::equals);
     }
 
     /**
@@ -116,14 +120,14 @@ public final class BrandedSenders {
         // matching stays aligned with what SenderAddressValidator accepts and what delivery can send. A
         // multi-address value must not brand every address for one tenant, so it falls through to the default.
         return EmailAddresses.singleAddress(recipientEmail)
-            .map(address -> {
-                final int at = address.lastIndexOf('@');
-                if (at < 0 || at == address.length() - 1) {
-                    return null;
-                }
-                return normalizeDomain(address.substring(at + 1));
-            })
-            .orElse(null);
+                .map(address -> {
+                    final int at = address.lastIndexOf('@');
+                    if (at < 0 || at == address.length() - 1) {
+                        return null;
+                    }
+                    return normalizeDomain(address.substring(at + 1));
+                })
+                .orElse(null);
     }
 
     /**
@@ -144,17 +148,15 @@ public final class BrandedSenders {
         try {
             final String json = MAPPER.writeValueAsString(value).replace(";", "\\u003b");
             if (json.length() > MAX_SERIALIZED_LENGTH) {
-                throw new IllegalArgumentException(
-                    "'" +
-                        Key.EMAIL_BRANDED_SENDERS.key() +
-                        "' configuration exceeds the maximum supported size of " +
-                        MAX_SERIALIZED_LENGTH +
-                        " characters"
-                );
+                throw new IllegalArgumentException("'" + Key.EMAIL_BRANDED_SENDERS.key()
+                        + "' configuration exceeds the maximum supported size of "
+                        + MAX_SERIALIZED_LENGTH
+                        + " characters");
             }
             return json;
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Unable to serialise '" + Key.EMAIL_BRANDED_SENDERS.key() + "' configuration", e);
+            throw new IllegalArgumentException(
+                    "Unable to serialise '" + Key.EMAIL_BRANDED_SENDERS.key() + "' configuration", e);
         }
     }
 
@@ -168,7 +170,8 @@ public final class BrandedSenders {
      */
     private static void validateEntry(BrandedSenderConfig config) {
         if (config == null) {
-            throw new IllegalArgumentException("'" + Key.EMAIL_BRANDED_SENDERS.key() + "' must not contain null entries");
+            throw new IllegalArgumentException(
+                    "'" + Key.EMAIL_BRANDED_SENDERS.key() + "' must not contain null entries");
         }
         rejectLineBreak("from", config.getFrom());
         rejectLineBreak("subject", config.getSubject());
@@ -179,7 +182,8 @@ public final class BrandedSenders {
 
     private static void rejectLineBreak(String field, String value) {
         if (value != null && (value.indexOf('\r') >= 0 || value.indexOf('\n') >= 0)) {
-            throw new IllegalArgumentException("'" + Key.EMAIL_BRANDED_SENDERS.key() + "' " + field + " must not contain line breaks");
+            throw new IllegalArgumentException(
+                    "'" + Key.EMAIL_BRANDED_SENDERS.key() + "' " + field + " must not contain line breaks");
         }
     }
 
@@ -193,7 +197,9 @@ public final class BrandedSenders {
         if (config.getDomains() == null) {
             return;
         }
-        config.setDomains(config.getDomains().stream().map(BrandedSenders::normalizeDomain).toList());
+        config.setDomains(config.getDomains().stream()
+                .map(BrandedSenders::normalizeDomain)
+                .toList());
     }
 
     private static String normalizeDomain(String domain) {

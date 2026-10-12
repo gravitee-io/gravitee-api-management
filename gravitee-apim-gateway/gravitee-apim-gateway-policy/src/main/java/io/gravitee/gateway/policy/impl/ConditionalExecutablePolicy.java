@@ -42,7 +42,8 @@ public class ConditionalExecutablePolicy implements Policy {
         this.evaluationFunction = context -> conditionEvaluator.evaluate(context, condition);
     }
 
-    protected ConditionalExecutablePolicy(ConditionalExecutablePolicy delegate, BiConsumer<String, Boolean> conditionResultConsumer) {
+    protected ConditionalExecutablePolicy(
+            ConditionalExecutablePolicy delegate, BiConsumer<String, Boolean> conditionResultConsumer) {
         this.policy = delegate.policy;
         this.condition = delegate.condition;
         this.evaluationFunction = context -> {

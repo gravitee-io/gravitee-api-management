@@ -72,19 +72,28 @@ public class DashboardResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateDashboard(@Valid @NotNull CreateUpdateDashboard updateDashboard) {
         var auditInfo = getAuditInfo();
 
         var dashboard = DashboardMapper.INSTANCE.map(updateDashboard);
 
-        var output = updateDashboardUseCase.execute(new UpdateDashboardUseCase.Input(dashboardId, dashboard, auditInfo));
+        var output =
+                updateDashboardUseCase.execute(new UpdateDashboardUseCase.Input(dashboardId, dashboard, auditInfo));
 
         return Response.ok(DashboardMapper.INSTANCE.map(output.dashboard())).build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deleteDashboard() {
         var auditInfo = getAuditInfo();
 

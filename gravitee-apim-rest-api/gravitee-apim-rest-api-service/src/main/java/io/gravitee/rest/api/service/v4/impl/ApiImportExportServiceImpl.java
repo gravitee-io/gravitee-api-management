@@ -70,15 +70,14 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     private final RoleService roleService;
 
     public ApiImportExportServiceImpl(
-        final ApiMetadataService apiMetadataService,
-        final ApiSearchService apiSearchService,
-        final MediaService mediaService,
-        final MembershipService membershipService,
-        final PageService pageService,
-        final PermissionService permissionService,
-        final PlanService planService,
-        final RoleService roleService
-    ) {
+            final ApiMetadataService apiMetadataService,
+            final ApiSearchService apiSearchService,
+            final MediaService mediaService,
+            final MembershipService membershipService,
+            final PageService pageService,
+            final PermissionService permissionService,
+            final PlanService planService,
+            final RoleService roleService) {
         this.apiMetadataService = apiMetadataService;
         this.apiSearchService = apiSearchService;
         this.mediaService = mediaService;
@@ -90,10 +89,12 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     }
 
     @Override
-    public ExportApiEntity exportApi(ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData) {
+    public ExportApiEntity exportApi(
+            ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData) {
         final var apiEntity = apiSearchService.findGenericById(executionContext, apiId, true, false, true);
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
-            throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
+            throw new ApiDefinitionVersionNotSupportedException(
+                    apiEntity.getDefinitionVersion().getLabel());
         }
         boolean isNativeApi = apiEntity instanceof NativeApiEntity;
 
@@ -127,14 +128,11 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     }
 
     private void exportApiPagesAndMedia(String apiId, ExportApiEntity exportApi) {
-        if (
-            permissionService.hasPermission(
+        if (permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.API_DOCUMENTATION,
                 apiId,
-                RolePermissionAction.READ
-            )
-        ) {
+                RolePermissionAction.READ)) {
             var pageList = pageService.findByApi(GraviteeContext.getCurrentEnvironment(), apiId);
             exportApi.setPages(pageList);
 
@@ -144,14 +142,8 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     }
 
     private Set<? extends GenericPlanEntity> exportApiPlans(String apiId, boolean isNativeApi) {
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_PLAN,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
+        if (permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(), RolePermission.API_PLAN, apiId, RolePermissionAction.READ)) {
             if (isNativeApi) {
                 return planService.findNativePlansByApi(GraviteeContext.getExecutionContext(), apiId);
             }
@@ -161,26 +153,21 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     }
 
     private Set<ApiMetadataEntity> exportApiMetadata(ExecutionContext executionContext, String apiId) {
-        if (permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, RolePermissionAction.READ)) {
+        if (permissionService.hasPermission(
+                executionContext, RolePermission.API_METADATA, apiId, RolePermissionAction.READ)) {
             return new HashSet<>(apiMetadataService.findAllByApi(executionContext, apiId));
         }
         return null;
     }
 
     private Set<MemberEntity> exportApiMembers(String apiId) {
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_MEMBER,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
+        if (permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(), RolePermission.API_MEMBER, apiId, RolePermissionAction.READ)) {
             return membershipService
-                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
-                .stream()
-                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
-                .collect(Collectors.toSet());
+                    .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
+                    .stream()
+                    .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
+                    .collect(Collectors.toSet());
         }
         return null;
     }
@@ -192,7 +179,8 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         }
 
         // get the current PO
-        RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
+        RoleEntity poRole =
+                roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
         assert (poRole != null);
         String poRoleName = poRole.getName();
 
@@ -204,62 +192,54 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                 log.warn("There is no role associated with this member. Default role will be applied");
                 member.setRoles(defaultApiRole);
             }
-            List<RoleEntity> rolesToImport = member
-                .getRoles()
-                .stream()
-                .filter(role -> !role.getName().equals(poRoleName))
-                .map(role -> {
-                    try {
-                        UUID id = UUID.fromString(role.getName());
-                        RoleEntity roleEntity = roleService.findById(id.toString());
-                        if (roleEntity != null) {
-                            return roleEntity;
-                        }
-                    } catch (IllegalArgumentException exception) {
-                        Optional<RoleEntity> roleEntity = roleService.findByScopeAndName(
-                            RoleScope.API,
-                            role.getName(),
-                            executionContext.getOrganizationId()
-                        );
+            List<RoleEntity> rolesToImport = member.getRoles().stream()
+                    .filter(role -> !role.getName().equals(poRoleName))
+                    .map(role -> {
+                        try {
+                            UUID id = UUID.fromString(role.getName());
+                            RoleEntity roleEntity = roleService.findById(id.toString());
+                            if (roleEntity != null) {
+                                return roleEntity;
+                            }
+                        } catch (IllegalArgumentException exception) {
+                            Optional<RoleEntity> roleEntity = roleService.findByScopeAndName(
+                                    RoleScope.API, role.getName(), executionContext.getOrganizationId());
 
-                        if (roleEntity.isPresent()) {
-                            return roleEntity.get();
+                            if (roleEntity.isPresent()) {
+                                return roleEntity.get();
+                            }
                         }
-                    }
 
-                    log.warn("Unable to find role '{}' to import", role.getName());
-                    return defaultApiRole.iterator().next();
-                })
-                .filter(Objects::nonNull)
-                .toList();
+                        log.warn("Unable to find role '{}' to import", role.getName());
+                        return defaultApiRole.iterator().next();
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
 
             rolesToImport.forEach(role -> {
                 try {
                     membershipService.deleteReferenceMember(
-                        executionContext,
-                        MembershipReferenceType.API,
-                        apiId,
-                        MembershipMemberType.USER,
-                        member.getId()
-                    );
+                            executionContext,
+                            MembershipReferenceType.API,
+                            apiId,
+                            MembershipMemberType.USER,
+                            member.getId());
                     membershipService.addRoleToMemberOnReference(
-                        executionContext,
-                        MembershipReferenceType.API,
-                        apiId,
-                        MembershipMemberType.USER,
-                        member.getId(),
-                        role.getId()
-                    );
+                            executionContext,
+                            MembershipReferenceType.API,
+                            apiId,
+                            MembershipMemberType.USER,
+                            member.getId(),
+                            role.getId());
                 } catch (Exception e) {
                     log.warn(
-                        "Unable to add role '{}[{}]' to member '{}[{}]' on API '[{}]' due to : {}",
-                        role.getName(),
-                        role.getId(),
-                        member.getDisplayName(),
-                        member.getId(),
-                        apiId,
-                        e.getMessage()
-                    );
+                            "Unable to add role '{}[{}]' to member '{}[{}]' on API '[{}]' due to : {}",
+                            role.getName(),
+                            role.getId(),
+                            member.getDisplayName(),
+                            member.getId(),
+                            apiId,
+                            e.getMessage());
                 }
             });
         }
@@ -267,24 +247,27 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     }
 
     @Override
-    public void createPageAndMedia(final ExecutionContext executionContext, String apiId, List<MediaEntity> mediaEntities) {
+    public void createPageAndMedia(
+            final ExecutionContext executionContext, String apiId, List<MediaEntity> mediaEntities) {
         mediaEntities.forEach(mediaEntity -> {
             try {
                 mediaService.saveApiMedia(executionContext, apiId, mediaEntity);
             } catch (Exception e) {
                 log.warn(
-                    "Unable to create api media {} for imported API {}' due to : {}",
-                    mediaEntity.getFileName(),
-                    apiId,
-                    e.getMessage()
-                );
+                        "Unable to create api media {} for imported API {}' due to : {}",
+                        mediaEntity.getFileName(),
+                        apiId,
+                        e.getMessage());
             }
         });
 
         List<PageEntity> search = pageService.search(
-            executionContext.getEnvironmentId(),
-            new PageQuery.Builder().api(apiId).name(SystemFolderType.ASIDE.folderName()).type(PageType.SYSTEM_FOLDER).build()
-        );
+                executionContext.getEnvironmentId(),
+                new PageQuery.Builder()
+                        .api(apiId)
+                        .name(SystemFolderType.ASIDE.folderName())
+                        .type(PageType.SYSTEM_FOLDER)
+                        .build());
 
         if (search.isEmpty()) {
             pageService.createAsideFolder(executionContext, apiId);

@@ -80,22 +80,20 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(ApiFieldPeriod.class);
-            when(healthCheckRepository.averageResponseTime(any(), any())).thenReturn(
-                Maybe.just(new AverageHealthCheckResponseTime(2L, Map.of("default", 2L)))
-            );
+            when(healthCheckRepository.averageResponseTime(any(), any()))
+                    .thenReturn(Maybe.just(new AverageHealthCheckResponseTime(2L, Map.of("default", 2L))));
 
-            var result = service
-                .averageResponseTime(
-                    new ApiHealthQueryService.ApiFieldPeriodQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO)
-                )
-                .blockingGet();
+            var result = service.averageResponseTime(new ApiHealthQueryService.ApiFieldPeriodQuery(
+                            ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO))
+                    .blockingGet();
 
             verify(healthCheckRepository).averageResponseTime(queryContextCaptor.capture(), queryCaptor.capture());
             SoftAssertions.assertSoftly(softly -> {
-                softly
-                    .assertThat(result)
-                    .isEqualTo(new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime(2L, Map.of("default", 2L)));
-                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly.assertThat(result)
+                        .isEqualTo(new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime(
+                                2L, Map.of("default", 2L)));
+                softly.assertThat(queryContextCaptor.getValue())
+                        .isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
                 softly.assertThat(queryCaptor.getValue()).isEqualTo(new ApiFieldPeriod(API_ID, "endpoint", FROM, TO));
             });
         }
@@ -107,18 +105,18 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(ApiFieldPeriod.class);
-            when(healthCheckRepository.availability(any(), any())).thenReturn(
-                Maybe.just(new AvailabilityResponse(.75f, Map.of("default", .75f)))
-            );
+            when(healthCheckRepository.availability(any(), any()))
+                    .thenReturn(Maybe.just(new AvailabilityResponse(.75f, Map.of("default", .75f))));
 
-            var result = service
-                .availability(new ApiHealthQueryService.ApiFieldPeriodQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO))
-                .blockingGet();
+            var result = service.availability(new ApiHealthQueryService.ApiFieldPeriodQuery(
+                            ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO))
+                    .blockingGet();
 
             verify(healthCheckRepository).availability(queryContextCaptor.capture(), queryCaptor.capture());
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result).isEqualTo(new AvailabilityHealthCheck(.75f, Map.of("default", .75f)));
-                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly.assertThat(queryContextCaptor.getValue())
+                        .isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
                 softly.assertThat(queryCaptor.getValue()).isEqualTo(new ApiFieldPeriod(API_ID, "endpoint", FROM, TO));
             });
         }
@@ -130,37 +128,26 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(AverageHealthCheckResponseTimeOvertimeQuery.class);
-            when(healthCheckRepository.averageResponseTimeOvertime(any(), any())).thenReturn(
-                Maybe.just(new AverageHealthCheckResponseTimeOvertime(Map.of("default", 2L)))
-            );
+            when(healthCheckRepository.averageResponseTimeOvertime(any(), any()))
+                    .thenReturn(Maybe.just(new AverageHealthCheckResponseTimeOvertime(Map.of("default", 2L))));
 
-            var result = service
-                .averageResponseTimeOvertime(
-                    new ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery(
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        API_ID,
-                        FROM,
-                        TO,
-                        INTERVAL
-                    )
-                )
-                .blockingGet();
+            var result = service.averageResponseTimeOvertime(
+                            new ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery(
+                                    ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, FROM, TO, INTERVAL))
+                    .blockingGet();
 
-            verify(healthCheckRepository).averageResponseTimeOvertime(queryContextCaptor.capture(), queryCaptor.capture());
+            verify(healthCheckRepository)
+                    .averageResponseTimeOvertime(queryContextCaptor.capture(), queryCaptor.capture());
             SoftAssertions.assertSoftly(softly -> {
-                softly
-                    .assertThat(result)
-                    .isEqualTo(
-                        new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime(
-                            new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime.TimeRange(FROM, TO, INTERVAL),
-                            List.of(2L)
-                        )
-                    );
-                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
-                softly
-                    .assertThat(queryCaptor.getValue())
-                    .isEqualTo(new AverageHealthCheckResponseTimeOvertimeQuery(API_ID, FROM, TO, INTERVAL));
+                softly.assertThat(result)
+                        .isEqualTo(new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime(
+                                new io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTimeOvertime
+                                        .TimeRange(FROM, TO, INTERVAL),
+                                List.of(2L)));
+                softly.assertThat(queryContextCaptor.getValue())
+                        .isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly.assertThat(queryCaptor.getValue())
+                        .isEqualTo(new AverageHealthCheckResponseTimeOvertimeQuery(API_ID, FROM, TO, INTERVAL));
             });
         }
     }
@@ -171,60 +158,42 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(HealthCheckLogQuery.class);
-            when(healthCheckRepository.searchLogs(any(), any())).thenReturn(
-                Maybe.just(
-                    new Page<>(
-                        List.of(
-                            new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
-                                "id",
-                                INSTANT,
-                                "api-id",
-                                "endpoint",
-                                "gateway",
-                                21L,
-                                false,
-                                List.of()
-                            )
-                        ),
-                        1,
-                        5,
-                        1
-                    )
-                )
-            );
+            when(healthCheckRepository.searchLogs(any(), any()))
+                    .thenReturn(Maybe.just(new Page<>(
+                            List.of(new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
+                                    "id", INSTANT, "api-id", "endpoint", "gateway", 21L, false, List.of())),
+                            1,
+                            5,
+                            1)));
 
-            var result = service
-                .searchLogs(
-                    new ApiHealthQueryService.SearchLogsQuery(
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        API_ID,
-                        FROM,
-                        TO,
-                        Optional.of(false),
-                        new PageableImpl(1, 5)
-                    )
-                )
-                .blockingGet();
-
-            verify(healthCheckRepository).searchLogs(queryContextCaptor.capture(), queryCaptor.capture());
-            SoftAssertions.assertSoftly(softly -> {
-                softly
-                    .assertThat(result)
-                    .extracting(Page::getContent, Page::getPageNumber, Page::getTotalElements)
-                    .contains(List.of(new HealthCheckLog("id", INSTANT, "api-id", "endpoint", "gateway", 21L, false, List.of())), 1, 1L);
-                softly.assertThat(queryContextCaptor.getValue()).isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
-                softly
-                    .assertThat(queryCaptor.getValue())
-                    .isEqualTo(
-                        new HealthCheckLogQuery(
+            var result = service.searchLogs(new ApiHealthQueryService.SearchLogsQuery(
+                            ORGANIZATION_ID,
+                            ENVIRONMENT_ID,
                             API_ID,
                             FROM,
                             TO,
                             Optional.of(false),
-                            new PageableBuilder().pageNumber(1).pageSize(5).build()
-                        )
-                    );
+                            new PageableImpl(1, 5)))
+                    .blockingGet();
+
+            verify(healthCheckRepository).searchLogs(queryContextCaptor.capture(), queryCaptor.capture());
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result)
+                        .extracting(Page::getContent, Page::getPageNumber, Page::getTotalElements)
+                        .contains(
+                                List.of(new HealthCheckLog(
+                                        "id", INSTANT, "api-id", "endpoint", "gateway", 21L, false, List.of())),
+                                1,
+                                1L);
+                softly.assertThat(queryContextCaptor.getValue())
+                        .isEqualTo(new QueryContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+                softly.assertThat(queryCaptor.getValue())
+                        .isEqualTo(new HealthCheckLogQuery(
+                                API_ID,
+                                FROM,
+                                TO,
+                                Optional.of(false),
+                                new PageableBuilder().pageNumber(1).pageSize(5).build()));
             });
         }
     }

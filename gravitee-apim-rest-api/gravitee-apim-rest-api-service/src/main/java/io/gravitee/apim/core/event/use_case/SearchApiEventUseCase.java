@@ -36,15 +36,16 @@ public class SearchApiEventUseCase {
 
     public Output execute(Input input) {
         return eventQueryService
-            .findByIdForEnvironmentAndApi(input.eventId, input.environmentId, input.apiId)
-            .map(event -> new Output(toEventWithInitiator(event)))
-            .orElse(new Output());
+                .findByIdForEnvironmentAndApi(input.eventId, input.environmentId, input.apiId)
+                .map(event -> new Output(toEventWithInitiator(event)))
+                .orElse(new Output());
     }
 
     private EventWithInitiator toEventWithInitiator(Event event) {
-        var initiator = Optional.ofNullable(event.getProperties().get(Event.EventProperties.USER)).map(userId ->
-            userCrudService.findBaseUserById(userId).orElse(BaseUserEntity.builder().id(userId).build())
-        );
+        var initiator = Optional.ofNullable(event.getProperties().get(Event.EventProperties.USER))
+                .map(userId -> userCrudService
+                        .findBaseUserById(userId)
+                        .orElse(BaseUserEntity.builder().id(userId).build()));
         return new EventWithInitiator(event, initiator.orElse(null));
     }
 

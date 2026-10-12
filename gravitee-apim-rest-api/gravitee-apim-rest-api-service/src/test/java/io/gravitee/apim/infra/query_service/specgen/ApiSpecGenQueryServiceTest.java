@@ -26,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.infra.query_service.specgen.ApiSpecGenQueryServiceImpl;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -64,42 +63,50 @@ public class ApiSpecGenQueryServiceTest {
 
     public static Stream<Arguments> params_that_must_return_optional_api() {
         return Stream.of(
-            Arguments.of(generateRandom(), "api-env", "ctx-env", NATIVE, V2, false, false),
-            Arguments.of(generateRandom(), "api-env", "ctx-env", MESSAGE, V2, false, false),
-            Arguments.of(generateRandom(), "api-env", "ctx-env", PROXY, V2, false, false),
-            Arguments.of(generateRandom(), "api-env", "api-env", NATIVE, V2, false, false),
-            Arguments.of(generateRandom(), "api-env", "api-env", MESSAGE, V2, false, false),
-            Arguments.of(generateRandom(), "api-env", "api-env", PROXY, V2, false, false),
-            Arguments.of(generateRandom(), "api-env", "ctx-env", NATIVE, V4, false, false),
-            Arguments.of(generateRandom(), "api-env", "ctx-env", MESSAGE, V4, false, false),
-            Arguments.of(generateRandom(), "api-env", "ctx-env", PROXY, V4, false, false),
-            Arguments.of(generateRandom(), "api-env", "api-env", NATIVE, V4, true, false),
-            Arguments.of(generateRandom(), "api-env", "api-env", MESSAGE, V4, true, false),
-            Arguments.of(generateRandom(), "api-env", "api-env", PROXY, V4, true, true),
-            Arguments.of(generateRandom(), "api-env", "api-env", PROXY, V4, true, true)
-        );
+                Arguments.of(generateRandom(), "api-env", "ctx-env", NATIVE, V2, false, false),
+                Arguments.of(generateRandom(), "api-env", "ctx-env", MESSAGE, V2, false, false),
+                Arguments.of(generateRandom(), "api-env", "ctx-env", PROXY, V2, false, false),
+                Arguments.of(generateRandom(), "api-env", "api-env", NATIVE, V2, false, false),
+                Arguments.of(generateRandom(), "api-env", "api-env", MESSAGE, V2, false, false),
+                Arguments.of(generateRandom(), "api-env", "api-env", PROXY, V2, false, false),
+                Arguments.of(generateRandom(), "api-env", "ctx-env", NATIVE, V4, false, false),
+                Arguments.of(generateRandom(), "api-env", "ctx-env", MESSAGE, V4, false, false),
+                Arguments.of(generateRandom(), "api-env", "ctx-env", PROXY, V4, false, false),
+                Arguments.of(generateRandom(), "api-env", "api-env", NATIVE, V4, true, false),
+                Arguments.of(generateRandom(), "api-env", "api-env", MESSAGE, V4, true, false),
+                Arguments.of(generateRandom(), "api-env", "api-env", PROXY, V4, true, true),
+                Arguments.of(generateRandom(), "api-env", "api-env", PROXY, V4, true, true));
     }
 
     @ParameterizedTest
     @MethodSource("params_that_must_return_optional_api")
     void must_return_optional_api(
-        String apiId,
-        String apiEnv,
-        String contextEnv,
-        ApiType apiType,
-        DefinitionVersion version,
-        boolean isPresent,
-        boolean expected
-    ) throws TechnicalException {
+            String apiId,
+            String apiEnv,
+            String contextEnv,
+            ApiType apiType,
+            DefinitionVersion version,
+            boolean isPresent,
+            boolean expected)
+            throws TechnicalException {
         when(repository.findById(apiId)).thenReturn(getOptionalToReturn(apiId, apiType, apiEnv, version, isPresent));
         GraviteeContext.setCurrentEnvironment(contextEnv);
 
-        assertThat(queryService.findByIdAndType(getExecutionContext(), apiId, PROXY).isPresent()).isEqualTo(expected);
+        assertThat(queryService
+                        .findByIdAndType(getExecutionContext(), apiId, PROXY)
+                        .isPresent())
+                .isEqualTo(expected);
     }
 
-    private Optional<Api> getOptionalToReturn(String id, ApiType apiType, String apiEnv, DefinitionVersion version, boolean present) {
+    private Optional<Api> getOptionalToReturn(
+            String id, ApiType apiType, String apiEnv, DefinitionVersion version, boolean present) {
         if (present) {
-            return Optional.of(Api.builder().id(id).type(apiType).environmentId(apiEnv).definitionVersion(version).build());
+            return Optional.of(Api.builder()
+                    .id(id)
+                    .type(apiType)
+                    .environmentId(apiEnv)
+                    .definitionVersion(version)
+                    .build());
         }
         return Optional.empty();
     }
@@ -108,7 +115,10 @@ public class ApiSpecGenQueryServiceTest {
     void must_not_return_optional_api_due_to_exception() throws TechnicalException {
         when(repository.findById(any())).thenThrow(new TechnicalException("An error has occurred"));
 
-        assertThat(queryService.findByIdAndType(getExecutionContext(), generateRandom(), PROXY).isEmpty()).isTrue();
+        assertThat(queryService
+                        .findByIdAndType(getExecutionContext(), generateRandom(), PROXY)
+                        .isEmpty())
+                .isTrue();
     }
 
     @AfterEach

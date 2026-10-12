@@ -92,11 +92,11 @@ class PageService_TransformSwaggerTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
         PageEntity page = PageEntity.builder()
-            .id(PAGE_ID)
-            .type(SWAGGER.name())
-            .content(OPENAPI_CONTENT)
-            .contentType(MediaType.APPLICATION_JSON)
-            .build();
+                .id(PAGE_ID)
+                .type(SWAGGER.name())
+                .content(OPENAPI_CONTENT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .build();
 
         when(swaggerService.parse(OPENAPI_CONTENT)).thenReturn(new OAIParser().parse(OPENAPI_CONTENT));
 
@@ -114,11 +114,11 @@ class PageService_TransformSwaggerTest {
         api.setId(API_ID);
         String openApiContent = OPENAPI_CONTENT.replace("${raw}", "${api.name}");
         PageEntity page = PageEntity.builder()
-            .id(PAGE_ID)
-            .type(SWAGGER.name())
-            .content(openApiContent)
-            .contentType(MediaType.APPLICATION_JSON)
-            .build();
+                .id(PAGE_ID)
+                .type(SWAGGER.name())
+                .content(openApiContent)
+                .contentType(MediaType.APPLICATION_JSON)
+                .build();
 
         when(swaggerService.parse(openApiContent)).thenReturn(new OAIParser().parse(openApiContent));
 
@@ -131,7 +131,11 @@ class PageService_TransformSwaggerTest {
     @Test
     void should_preserve_openapi_expression_when_transforming_environment_swagger_page() {
         ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
-        PageEntity page = PageEntity.builder().id(PAGE_ID).type(SWAGGER.name()).content(OPENAPI_CONTENT).build();
+        PageEntity page = PageEntity.builder()
+                .id(PAGE_ID)
+                .type(SWAGGER.name())
+                .content(OPENAPI_CONTENT)
+                .build();
 
         pageService.transformWithTemplate(executionContext, page, null);
 
@@ -148,12 +152,12 @@ class PageService_TransformSwaggerTest {
         parentPage.setId(PARENT_PAGE_ID);
         parentPage.setType(SWAGGER.name());
         PageEntity translation = PageEntity.builder()
-            .id(PAGE_ID)
-            .parentId(PARENT_PAGE_ID)
-            .type(TRANSLATION.name())
-            .content(OPENAPI_CONTENT)
-            .contentType(MediaType.APPLICATION_JSON)
-            .build();
+                .id(PAGE_ID)
+                .parentId(PARENT_PAGE_ID)
+                .type(TRANSLATION.name())
+                .content(OPENAPI_CONTENT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .build();
 
         when(pageRepository.findById(PARENT_PAGE_ID)).thenReturn(Optional.of(parentPage));
         when(swaggerService.parse(OPENAPI_CONTENT)).thenReturn(new OAIParser().parse(OPENAPI_CONTENT));
@@ -172,11 +176,11 @@ class PageService_TransformSwaggerTest {
         parentPage.setId(PARENT_PAGE_ID);
         parentPage.setType(SWAGGER.name());
         PageEntity translation = PageEntity.builder()
-            .id(PAGE_ID)
-            .parentId(PARENT_PAGE_ID)
-            .type(TRANSLATION.name())
-            .content("{\"openapi\":\"3.0.0\"}")
-            .build();
+                .id(PAGE_ID)
+                .parentId(PARENT_PAGE_ID)
+                .type(TRANSLATION.name())
+                .content("{\"openapi\":\"3.0.0\"}")
+                .build();
 
         when(pageRepository.findById(PARENT_PAGE_ID)).thenReturn(Optional.of(parentPage));
 
@@ -190,17 +194,15 @@ class PageService_TransformSwaggerTest {
         ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
-        PageEntity page = PageEntity.builder().id(PAGE_ID).type(MARKDOWN.name()).content("# ${api.name}").build();
+        PageEntity page = PageEntity.builder()
+                .id(PAGE_ID)
+                .type(MARKDOWN.name())
+                .content("# ${api.name}")
+                .build();
 
-        when(
-            notificationTemplateService.resolveInlineTemplateWithParam(
-                eq(ORGANIZATION_ID),
-                eq(PAGE_ID),
-                eq("# ${api.name}"),
-                anyMap(),
-                eq(false)
-            )
-        ).thenReturn("# Rundeck API");
+        when(notificationTemplateService.resolveInlineTemplateWithParam(
+                        eq(ORGANIZATION_ID), eq(PAGE_ID), eq("# ${api.name}"), anyMap(), eq(false)))
+                .thenReturn("# Rundeck API");
 
         pageService.transformSwagger(executionContext, page, api);
 

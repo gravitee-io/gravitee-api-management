@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.v4.impl;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -107,71 +106,62 @@ public class ApiSearchService_SearchIdsTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
     public void setUp() {
         ApiMapper apiMapper = new ApiMapper(
-            new ObjectMapper(),
-            planService,
-            flowService,
-            parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
-        );
+                new ObjectMapper(),
+                planService,
+                flowService,
+                parameterService,
+                workflowService,
+                new CategoryMapper(categoryService));
         ApiConverter apiConverter = new ApiConverter(
-            new GraviteeMapper(),
-            Mockito.mock(io.gravitee.rest.api.service.PlanService.class),
-            Mockito.mock(io.gravitee.rest.api.service.configuration.flow.FlowService.class),
-            new CategoryMapper(categoryService),
-            parameterService,
-            workflowService
-        );
+                new GraviteeMapper(),
+                Mockito.mock(io.gravitee.rest.api.service.PlanService.class),
+                Mockito.mock(io.gravitee.rest.api.service.configuration.flow.FlowService.class),
+                new CategoryMapper(categoryService),
+                parameterService,
+                workflowService);
         apiSearchService = new ApiSearchServiceImpl(
-            apiRepository,
-            apiMapper,
-            new GenericApiMapper(apiMapper, apiConverter),
-            primaryOwnerService,
-            categoryService,
-            searchEngineService,
-            apiAuthorizationService,
-            integrationRepository,
-            apiMetadataQueryService
-        );
+                apiRepository,
+                apiMapper,
+                new GenericApiMapper(apiMapper, apiConverter),
+                primaryOwnerService,
+                categoryService,
+                searchEngineService,
+                apiAuthorizationService,
+                integrationRepository,
+                apiMetadataQueryService);
     }
 
     @Test
     public void should_return_empty_page_if_no_results() {
-        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder = QueryBuilder.create(GenericApiEntity.class).setQuery("*").setSort(null);
+        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder =
+                QueryBuilder.create(GenericApiEntity.class).setQuery("*").setSort(null);
         var ids = List.of("id-1", "id-2");
 
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+                FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
-            new SearchResult(List.of())
-        );
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
+                .thenReturn(new SearchResult(List.of()));
 
         final var apis = apiSearchService.searchIds(
-            GraviteeContext.getExecutionContext(),
-            "*",
-            filters,
-            null,
-            EnumSet.noneOf(DefinitionVersion.class)
-        );
+                GraviteeContext.getExecutionContext(), "*", filters, null, EnumSet.noneOf(DefinitionVersion.class));
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(0);
@@ -179,25 +169,21 @@ public class ApiSearchService_SearchIdsTest {
 
     @Test
     public void should_return_api_ids() {
-        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder = QueryBuilder.create(GenericApiEntity.class).setQuery("*").setSort(null);
+        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder =
+                QueryBuilder.create(GenericApiEntity.class).setQuery("*").setSort(null);
         var ids = List.of("id-1", "id-2");
 
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+                FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
-            new SearchResult(List.of("api-id"))
-        );
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
+                .thenReturn(new SearchResult(List.of("api-id")));
 
         final var apis = apiSearchService.searchIds(
-            GraviteeContext.getExecutionContext(),
-            "*",
-            filters,
-            null,
-            EnumSet.noneOf(DefinitionVersion.class)
-        );
+                GraviteeContext.getExecutionContext(), "*", filters, null, EnumSet.noneOf(DefinitionVersion.class));
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(1);
@@ -208,51 +194,46 @@ public class ApiSearchService_SearchIdsTest {
     public void should_propagate_search_sort_strategy() {
         var searchSortStrategy = SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS;
         QueryBuilder<GenericApiEntity> apiEntityQueryBuilder = QueryBuilder.create(GenericApiEntity.class)
-            .setQuery("*")
-            .setSort(null)
-            .setSearchSortStrategy(searchSortStrategy);
+                .setQuery("*")
+                .setSort(null)
+                .setSearchSortStrategy(searchSortStrategy);
         var filters = new HashMap<String, Object>();
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+                FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
-            new SearchResult(List.of("api-id"))
-        );
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
+                .thenReturn(new SearchResult(List.of("api-id")));
 
         final var apis = apiSearchService.searchIds(
-            GraviteeContext.getExecutionContext(),
-            "*",
-            filters,
-            null,
-            EnumSet.noneOf(DefinitionVersion.class),
-            false,
-            searchSortStrategy
-        );
+                GraviteeContext.getExecutionContext(),
+                "*",
+                filters,
+                null,
+                EnumSet.noneOf(DefinitionVersion.class),
+                false,
+                searchSortStrategy);
 
         assertThat(apis).isEqualTo(List.of("api-id"));
     }
 
     @Test
     public void should_not_add_empty_query() {
-        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder = QueryBuilder.create(GenericApiEntity.class).setSort(null);
+        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder =
+                QueryBuilder.create(GenericApiEntity.class).setSort(null);
         var ids = List.of("id-1", "id-2");
 
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+                FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
-            new SearchResult(List.of("api-id"))
-        );
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
+                .thenReturn(new SearchResult(List.of("api-id")));
 
         final var apis = apiSearchService.searchIds(
-            GraviteeContext.getExecutionContext(),
-            "",
-            filters,
-            null,
-            EnumSet.noneOf(DefinitionVersion.class)
-        );
+                GraviteeContext.getExecutionContext(), "", filters, null, EnumSet.noneOf(DefinitionVersion.class));
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(1);
@@ -261,25 +242,21 @@ public class ApiSearchService_SearchIdsTest {
 
     @Test
     public void should_allow_null_query() {
-        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder = QueryBuilder.create(GenericApiEntity.class).setQuery(null).setSort(null);
+        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder =
+                QueryBuilder.create(GenericApiEntity.class).setQuery(null).setSort(null);
         var ids = List.of("id-1", "id-2");
 
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+                FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
-            new SearchResult(List.of("api-id"))
-        );
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
+                .thenReturn(new SearchResult(List.of("api-id")));
 
         final var apis = apiSearchService.searchIds(
-            GraviteeContext.getExecutionContext(),
-            null,
-            filters,
-            null,
-            EnumSet.noneOf(DefinitionVersion.class)
-        );
+                GraviteeContext.getExecutionContext(), null, filters, null, EnumSet.noneOf(DefinitionVersion.class));
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(1);

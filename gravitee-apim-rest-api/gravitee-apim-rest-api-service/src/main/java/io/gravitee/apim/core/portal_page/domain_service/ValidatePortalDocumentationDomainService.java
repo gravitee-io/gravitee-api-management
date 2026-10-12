@@ -36,21 +36,22 @@ import lombok.RequiredArgsConstructor;
  */
 @DomainService
 @RequiredArgsConstructor
-public class ValidatePortalDocumentationDomainService implements Validator<ValidatePortalDocumentationDomainService.Input> {
+public class ValidatePortalDocumentationDomainService
+        implements Validator<ValidatePortalDocumentationDomainService.Input> {
 
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(
-        AuditInfo auditInfo,
-        PortalPageContentId portalPageContentId,
-        PortalId portalId,
-        String name,
-        PortalPageContentType type,
-        String content,
-        String location,
-        Integer order,
-        PortalArea area
-    ) implements Validator.Input {}
+            AuditInfo auditInfo,
+            PortalPageContentId portalPageContentId,
+            PortalId portalId,
+            String name,
+            PortalPageContentType type,
+            String content,
+            String location,
+            Integer order,
+            PortalArea area)
+            implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {

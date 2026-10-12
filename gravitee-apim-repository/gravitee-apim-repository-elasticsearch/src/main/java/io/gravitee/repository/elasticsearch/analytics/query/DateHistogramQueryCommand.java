@@ -58,34 +58,35 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
         final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
 
         // query has no aggregation, continue
-        if (dateHistogramQuery.aggregations() == null || dateHistogramQuery.aggregations().isEmpty()) {
+        if (dateHistogramQuery.aggregations() == null
+                || dateHistogramQuery.aggregations().isEmpty()) {
             return query;
         }
 
         // override aggregations settings
-        List<io.gravitee.repository.analytics.query.Aggregation> overrideAggregations = dateHistogramQuery
-            .aggregations()
-            .stream()
-            .map(aggregation -> {
-                Integer aggregationSize = aggregationSizeMapping.getOrDefault(aggregation.field(), aggregation.size());
-                return new io.gravitee.repository.analytics.query.Aggregation() {
-                    @Override
-                    public AggregationType type() {
-                        return aggregation.type();
-                    }
+        List<io.gravitee.repository.analytics.query.Aggregation> overrideAggregations =
+                dateHistogramQuery.aggregations().stream()
+                        .map(aggregation -> {
+                            Integer aggregationSize =
+                                    aggregationSizeMapping.getOrDefault(aggregation.field(), aggregation.size());
+                            return new io.gravitee.repository.analytics.query.Aggregation() {
+                                @Override
+                                public AggregationType type() {
+                                    return aggregation.type();
+                                }
 
-                    @Override
-                    public String field() {
-                        return aggregation.field();
-                    }
+                                @Override
+                                public String field() {
+                                    return aggregation.field();
+                                }
 
-                    @Override
-                    public Integer size() {
-                        return aggregationSize;
-                    }
-                };
-            })
-            .collect(Collectors.toList());
+                                @Override
+                                public Integer size() {
+                                    return aggregationSize;
+                                }
+                            };
+                        })
+                        .collect(Collectors.toList());
 
         dateHistogramQuery.aggregations().clear();
         dateHistogramQuery.aggregations().addAll(overrideAggregations);
@@ -94,13 +95,15 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
     }
 
     @Override
-    public DateHistogramResponse executeQuery(QueryContext queryContext, Query<DateHistogramResponse> query) throws AnalyticsException {
+    public DateHistogramResponse executeQuery(QueryContext queryContext, Query<DateHistogramResponse> query)
+            throws AnalyticsException {
         final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
 
         final Long from = dateHistogramQuery.timeRange().range().from();
         final Long to = dateHistogramQuery.timeRange().range().to();
 
-        //"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
+        // "from" and "to" are rounded according to the internal. It allows to exec the same request during the
+        // "interval" and make use of ES cache
         final long interval = dateHistogramQuery.timeRange().interval().toMillis();
         final long roundedFrom = (from / interval) * interval;
         final long roundedTo = ((to / interval) * interval) + interval;
@@ -108,7 +111,8 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
         final String sQuery = this.createQuery(TEMPLATE, query, roundedFrom, roundedTo);
 
         try {
-            SearchResponse searchResponse = execute(queryContext, dateHistogramQuery, Type.REQUEST, sQuery).blockingGet();
+            SearchResponse searchResponse = execute(queryContext, dateHistogramQuery, Type.REQUEST, sQuery)
+                    .blockingGet();
             return this.toDateHistogramResponse(searchResponse, dateHistogramQuery);
         } catch (final Exception eex) {
             log.error("Impossible to perform DateHistogramQuery", eex);
@@ -116,7 +120,8 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
         }
     }
 
-    private DateHistogramResponse toDateHistogramResponse(final SearchResponse response, final DateHistogramQuery query) {
+    private DateHistogramResponse toDateHistogramResponse(
+            final SearchResponse response, final DateHistogramQuery query) {
         final DateHistogramResponse dateHistogramResponse = new DateHistogramResponse();
 
         if (response.getAggregations() == null) {
@@ -139,32 +144,27 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
         }
 
         if (!query.aggregations().isEmpty()) {
-            query
-                .aggregations()
-                .forEach(aggregation -> {
-                    String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
-                    if (aggregation.type() == AggregationType.FIELD) {
-                        key = "by_" + aggregation.field();
-                    }
+            query.aggregations().forEach(aggregation -> {
+                String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
+                if (aggregation.type() == AggregationType.FIELD) {
+                    key = "by_" + aggregation.field();
+                }
 
-                    dateHistogramResponse.values().add(fieldBuckets.get(key));
-                });
+                dateHistogramResponse.values().add(fieldBuckets.get(key));
+            });
         }
         return dateHistogramResponse;
     }
 
     private void handleSubAggregation(
-        final Map<String, Bucket> fieldBuckets,
-        final String fieldNameInDateBucket,
-        final JsonNode dateBucket,
-        final long keyAsDate
-    ) {
-        if (
-            !fieldNameInDateBucket.startsWith("by_") &&
-            !fieldNameInDateBucket.startsWith("avg_") &&
-            !fieldNameInDateBucket.startsWith("min_") &&
-            !fieldNameInDateBucket.startsWith("max_")
-        ) {
+            final Map<String, Bucket> fieldBuckets,
+            final String fieldNameInDateBucket,
+            final JsonNode dateBucket,
+            final long keyAsDate) {
+        if (!fieldNameInDateBucket.startsWith("by_")
+                && !fieldNameInDateBucket.startsWith("avg_")
+                && !fieldNameInDateBucket.startsWith("min_")
+                && !fieldNameInDateBucket.startsWith("max_")) {
             return;
         }
 
@@ -182,7 +182,8 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
 
         switch (kindAggregation) {
             case "by":
-                for (final JsonNode termBucket : dateBucket.get(fieldNameInDateBucket).get("buckets")) {
+                for (final JsonNode termBucket :
+                        dateBucket.get(fieldNameInDateBucket).get("buckets")) {
                     final String keyAsString = termBucket.get("key").asText();
                     data = bucketData.get(keyAsString);
                     if (data == null) {
@@ -196,7 +197,8 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
             case "max":
             case "avg":
                 final JsonNode numericBucket = dateBucket.get(fieldNameInDateBucket);
-                if (numericBucket.get("value") != null && numericBucket.get("value").isNumber()) {
+                if (numericBucket.get("value") != null
+                        && numericBucket.get("value").isNumber()) {
                     final double value = numericBucket.get("value").asDouble();
                     data = bucketData.get(fieldNameInDateBucket);
                     if (data == null) {

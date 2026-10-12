@@ -60,7 +60,8 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
     private void updateApiKeySubscriptions(ApiKey apiKey) throws TechnicalException {
         try {
             log.debug("Updating subscriptions for API Key [{}]", apiKey);
-            List<String> allSubscriptions = apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : new ArrayList<>();
+            List<String> allSubscriptions =
+                    apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : new ArrayList<>();
             if (apiKey.getSubscription() != null && !allSubscriptions.contains(apiKey.getSubscription())) {
                 allSubscriptions.add(apiKey.getSubscription());
             }

@@ -61,64 +61,66 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @GET
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.READ))
+    @Permissions(
+            @Permission(
+                    value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER,
+                    acls = RolePermissionAction.READ))
     @Operation(
-        summary = "Get the list of client registration providers",
-        description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service"
-    )
+            summary = "Get the list of client registration providers",
+            description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List client registration providers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ClientRegistrationProviderListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List client registration providers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema =
+                                                    @Schema(
+                                                            implementation =
+                                                                    ClientRegistrationProviderListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<ClientRegistrationProviderListItem> getClientRegistrationProviders() {
-        return clientRegistrationService
-            .findAll(GraviteeContext.getExecutionContext())
-            .stream()
-            .map(clientRegistrationProvider -> {
-                ClientRegistrationProviderListItem item = new ClientRegistrationProviderListItem();
-                item.setId(clientRegistrationProvider.getId());
-                item.setName(clientRegistrationProvider.getName());
-                item.setDescription(clientRegistrationProvider.getDescription());
-                item.setCreatedAt(clientRegistrationProvider.getCreatedAt());
-                item.setUpdatedAt(clientRegistrationProvider.getUpdatedAt());
-                return item;
-            })
-            .collect(Collectors.toList());
+        return clientRegistrationService.findAll(GraviteeContext.getExecutionContext()).stream()
+                .map(clientRegistrationProvider -> {
+                    ClientRegistrationProviderListItem item = new ClientRegistrationProviderListItem();
+                    item.setId(clientRegistrationProvider.getId());
+                    item.setName(clientRegistrationProvider.getName());
+                    item.setDescription(clientRegistrationProvider.getDescription());
+                    item.setCreatedAt(clientRegistrationProvider.getCreatedAt());
+                    item.setUpdatedAt(clientRegistrationProvider.getUpdatedAt());
+                    return item;
+                })
+                .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.CREATE) })
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.CREATE)
+    })
     @Operation(
-        summary = "Create a client registration provider",
-        description = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service"
-    )
+            summary = "Create a client registration provider",
+            description =
+                    "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Client registration provider provider successfully created",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            schema = @Schema(implementation = ClientRegistrationProviderEntity.class)
-        )
-    )
+            responseCode = "201",
+            description = "Client registration provider provider successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ClientRegistrationProviderEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @GraviteeLicenseFeature("apim-dcr-registration")
     public Response createClientRegistrationProvider(
-        @Parameter(
-            name = "identity-provider",
-            required = true
-        ) @Valid @NotNull NewClientRegistrationProviderEntity newClientRegistrationProviderEntity
-    ) {
-        if (newClientRegistrationProviderEntity.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
-            if (
-                newClientRegistrationProviderEntity.getClientId() == null || newClientRegistrationProviderEntity.getClientSecret() == null
-            ) {
+            @Parameter(name = "identity-provider", required = true) @Valid @NotNull
+                    NewClientRegistrationProviderEntity newClientRegistrationProviderEntity) {
+        if (newClientRegistrationProviderEntity.getInitialAccessTokenType()
+                == InitialAccessTokenType.CLIENT_CREDENTIALS) {
+            if (newClientRegistrationProviderEntity.getClientId() == null
+                    || newClientRegistrationProviderEntity.getClientSecret() == null) {
                 throw new IllegalArgumentException("Client credentials are missing");
             }
         } else {
@@ -128,14 +130,12 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
         }
 
         ClientRegistrationProviderEntity newClientRegistrationProvider = clientRegistrationService.create(
-            GraviteeContext.getExecutionContext(),
-            newClientRegistrationProviderEntity
-        );
+                GraviteeContext.getExecutionContext(), newClientRegistrationProviderEntity);
 
         if (newClientRegistrationProvider != null) {
             return Response.created(this.getLocationHeader(newClientRegistrationProvider.getId()))
-                .entity(newClientRegistrationProvider)
-                .build();
+                    .entity(newClientRegistrationProvider)
+                    .build();
         }
 
         return Response.serverError().build();

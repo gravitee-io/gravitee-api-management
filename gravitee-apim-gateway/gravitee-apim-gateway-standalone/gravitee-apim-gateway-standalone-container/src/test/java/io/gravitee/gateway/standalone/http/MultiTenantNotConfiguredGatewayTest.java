@@ -45,7 +45,8 @@ public class MultiTenantNotConfiguredGatewayTest extends AbstractWiremockGateway
     public void call_undeployed_api() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

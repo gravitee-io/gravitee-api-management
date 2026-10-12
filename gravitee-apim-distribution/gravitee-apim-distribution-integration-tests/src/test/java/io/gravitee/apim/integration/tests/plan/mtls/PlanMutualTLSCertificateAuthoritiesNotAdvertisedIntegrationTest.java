@@ -48,7 +48,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @GatewayTest
-class PlanMutualTLSCertificateAuthoritiesNotAdvertisedIntegrationTest extends AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest {
+class PlanMutualTLSCertificateAuthoritiesNotAdvertisedIntegrationTest
+        extends AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest {
 
     @Override
     protected Boolean sendClientCertificateAuthorities() {
@@ -58,8 +59,9 @@ class PlanMutualTLSCertificateAuthoritiesNotAdvertisedIntegrationTest extends Ab
 
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
     @ParameterizedTest
-    @ValueSource(strings = { "TLSv1.2", "TLSv1.3" })
-    void should_not_advertise_any_certificate_authority(String protocol, GatewayDynamicConfig.Config gatewayConfig) throws Exception {
+    @ValueSource(strings = {"TLSv1.2", "TLSv1.3"})
+    void should_not_advertise_any_certificate_authority(String protocol, GatewayDynamicConfig.Config gatewayConfig)
+            throws Exception {
         Subscription subscription = registerSubscription();
         try {
             List<String> advertised = advertisedCertificateAuthorities(gatewayConfig.httpPort(), protocol);
@@ -76,20 +78,19 @@ class PlanMutualTLSCertificateAuthoritiesNotAdvertisedIntegrationTest extends Ab
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         Subscription subscription = registerSubscription();
         try {
-            client
-                .rxRequest(GET, PlanHelper.getApiPath("v4-proxy-api"))
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(OK_200);
-                    return response.rxBody();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body.toString()).contains("endpoint response");
-                    return true;
-                });
+            client.rxRequest(GET, PlanHelper.getApiPath("v4-proxy-api"))
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(OK_200);
+                        return response.rxBody();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body.toString()).contains("endpoint response");
+                        return true;
+                    });
         } finally {
             subscriptionTrustStoreLoaderManager.unregisterSubscription(subscription);
         }

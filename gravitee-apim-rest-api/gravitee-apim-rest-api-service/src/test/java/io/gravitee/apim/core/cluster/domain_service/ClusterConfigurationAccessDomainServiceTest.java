@@ -34,17 +34,12 @@ class ClusterConfigurationAccessDomainServiceTest {
     private static final String CLUSTER_ID = "cluster-id";
 
     private static final Map<String, Object> FULL_CONFIGURATION = Map.of(
-        "bootstrapServers",
-        "broker:9093",
-        "security",
-        Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))
-    );
-    private static final Map<String, Object> REDACTED_CONFIGURATION = Map.of(
-        "bootstrapServers",
-        "broker:9093",
-        "security",
-        Map.of("protocol", "SASL_SSL")
-    );
+            "bootstrapServers",
+            "broker:9093",
+            "security",
+            Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")));
+    private static final Map<String, Object> REDACTED_CONFIGURATION =
+            Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"));
 
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private ClusterConfigurationAccessDomainService service;
@@ -102,12 +97,16 @@ class ClusterConfigurationAccessDomainServiceTest {
     }
 
     private void grant(RolePermissionAction action) {
-        when(permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.CLUSTER_CONFIGURATION, CLUSTER_ID, action)).thenReturn(
-            true
-        );
+        when(permissionDomainService.hasPermission(
+                        ORG_ID, USER_ID, RolePermission.CLUSTER_CONFIGURATION, CLUSTER_ID, action))
+                .thenReturn(true);
     }
 
     private static Cluster cluster() {
-        return Cluster.builder().id(CLUSTER_ID).organizationId(ORG_ID).configuration(FULL_CONFIGURATION).build();
+        return Cluster.builder()
+                .id(CLUSTER_ID)
+                .organizationId(ORG_ID)
+                .configuration(FULL_CONFIGURATION)
+                .build();
     }
 }

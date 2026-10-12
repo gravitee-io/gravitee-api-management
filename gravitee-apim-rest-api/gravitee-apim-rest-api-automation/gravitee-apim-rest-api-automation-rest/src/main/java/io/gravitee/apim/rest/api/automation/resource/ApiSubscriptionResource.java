@@ -19,12 +19,10 @@ import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
-import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
-import io.gravitee.apim.rest.api.automation.model.SubscriptionConsumerConfiguration;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -67,17 +65,24 @@ public class ApiSubscriptionResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_SUBSCRIPTION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getSubscriptionByHRID(
-        @PathParam("apiHrid") String apiHrid,
-        @PathParam("hrid") String hrid,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID
-    ) {
+            @PathParam("apiHrid") String apiHrid,
+            @PathParam("hrid") String hrid,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             String subscriptionId = hridContainsUUID
-                ? hrid
-                : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
+                    ? hrid
+                    : HRIDToUUID.subscription()
+                            .context(executionContext)
+                            .api(apiHrid)
+                            .subscription(hrid)
+                            .id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
             if (hridContainsUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
@@ -85,33 +90,30 @@ public class ApiSubscriptionResource extends AbstractResource {
             }
 
             SubscriptionState subscriptionState = new SubscriptionState(
-                subscriptionId,
-                executionContext.getEnvironmentId(),
-                executionContext.getOrganizationId(),
-                null,
-                apiHrid,
-                subscriptionEntity.getStartingAt().toOffsetDateTime()
-            );
+                    subscriptionId,
+                    executionContext.getEnvironmentId(),
+                    executionContext.getOrganizationId(),
+                    null,
+                    apiHrid,
+                    subscriptionEntity.getStartingAt().toOffsetDateTime());
             if (!hridContainsUUID) {
                 subscriptionState.setHrid(hrid);
             }
 
             BaseApplicationEntity application = applicationCrudService.findById(
-                subscriptionEntity.getApplicationId(),
-                executionContext.getEnvironmentId()
-            );
+                    subscriptionEntity.getApplicationId(), executionContext.getEnvironmentId());
             subscriptionState.setApplicationHrid(application.getHrid());
 
             Plan plan = planCrudService.getById(subscriptionEntity.getPlanId());
             subscriptionState.setPlanHrid(plan.getHrid());
 
             subscriptionState.setEndingAt(
-                subscriptionEntity.getEndingAt() != null ? subscriptionEntity.getEndingAt().toOffsetDateTime() : null
-            );
+                    subscriptionEntity.getEndingAt() != null
+                            ? subscriptionEntity.getEndingAt().toOffsetDateTime()
+                            : null);
             subscriptionState.setMetadata(subscriptionEntity.getMetadata());
-            subscriptionState.setConsumerConfiguration(
-                SubscriptionMapper.INSTANCE.toSubscriptionConsumerConfiguration(subscriptionEntity.getConfiguration())
-            );
+            subscriptionState.setConsumerConfiguration(SubscriptionMapper.INSTANCE.toSubscriptionConsumerConfiguration(
+                    subscriptionEntity.getConfiguration()));
             return Response.ok(subscriptionState).build();
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: get", hrid, apiHrid);
@@ -120,18 +122,21 @@ public class ApiSubscriptionResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)})
     public Response deleteSubscriptionByHrid(
-        @PathParam("apiHrid") String apiHrid,
-        @PathParam("hrid") String hrid,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID
-    ) {
+            @PathParam("apiHrid") String apiHrid,
+            @PathParam("hrid") String hrid,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+            @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             String subscriptionId = hridContainsUUID
-                ? hrid
-                : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
+                    ? hrid
+                    : HRIDToUUID.subscription()
+                            .context(executionContext)
+                            .api(apiHrid)
+                            .subscription(hrid)
+                            .id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
             if (hridContainsApiUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
@@ -140,9 +145,8 @@ public class ApiSubscriptionResource extends AbstractResource {
 
             var userDetails = getAuthenticatedUserDetails();
 
-            deleteSubscriptionSpecUseCase.execute(
-                new DeleteSubscriptionSpecUseCase.Input(buildAuditInfo(executionContext, userDetails), subscriptionId)
-            );
+            deleteSubscriptionSpecUseCase.execute(new DeleteSubscriptionSpecUseCase.Input(
+                    buildAuditInfo(executionContext, userDetails), subscriptionId));
         } catch (SubscriptionNotFoundException e) {
             log.debug("Subscription not found for hrid: {}, apiHrid {}, operation: delete", hrid, apiHrid);
             throw new HRIDNotFoundException(hrid);

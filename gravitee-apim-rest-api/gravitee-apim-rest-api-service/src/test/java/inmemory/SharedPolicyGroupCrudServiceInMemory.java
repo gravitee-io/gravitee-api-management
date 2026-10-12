@@ -18,8 +18,6 @@ package inmemory;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
-import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
-import io.gravitee.repository.exceptions.TechnicalException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +26,8 @@ import java.util.OptionalInt;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCrudService, InMemoryAlternative<SharedPolicyGroup> {
+public class SharedPolicyGroupCrudServiceInMemory
+        implements SharedPolicyGroupCrudService, InMemoryAlternative<SharedPolicyGroup> {
 
     final ArrayList<SharedPolicyGroup> storage = new ArrayList<>();
 
@@ -44,21 +43,17 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
 
     @Override
     public SharedPolicyGroup getByEnvironmentId(String environmentId, String sharedPolicyGroupId) {
-        return storage
-            .stream()
-            .filter(
-                sharedPolicyGroup ->
-                    sharedPolicyGroupId.equals(sharedPolicyGroup.getId()) && environmentId.equals(sharedPolicyGroup.getEnvironmentId())
-            )
-            .findFirst()
-            .orElseThrow(() -> new SharedPolicyGroupNotFoundException(sharedPolicyGroupId));
+        return storage.stream()
+                .filter(sharedPolicyGroup -> sharedPolicyGroupId.equals(sharedPolicyGroup.getId())
+                        && environmentId.equals(sharedPolicyGroup.getEnvironmentId()))
+                .findFirst()
+                .orElseThrow(() -> new SharedPolicyGroupNotFoundException(sharedPolicyGroupId));
     }
 
     @Override
     public SharedPolicyGroup update(SharedPolicyGroup sharedPolicyGroupEntity) {
-        OptionalInt index = this.findIndex(this.storage, sharedPolicyGroup ->
-            sharedPolicyGroup.getId().equals(sharedPolicyGroupEntity.getId())
-        );
+        OptionalInt index = this.findIndex(
+                this.storage, sharedPolicyGroup -> sharedPolicyGroup.getId().equals(sharedPolicyGroupEntity.getId()));
         if (index.isPresent()) {
             storage.set(index.getAsInt(), sharedPolicyGroupEntity);
             return sharedPolicyGroupEntity;
@@ -74,25 +69,18 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
 
     @Override
     public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
-        return storage
-            .stream()
-            .filter(
-                sharedPolicyGroup ->
-                    environmentId.equals(sharedPolicyGroup.getEnvironmentId()) && crossId.equals(sharedPolicyGroup.getCrossId())
-            )
-            .findFirst();
+        return storage.stream()
+                .filter(sharedPolicyGroup -> environmentId.equals(sharedPolicyGroup.getEnvironmentId())
+                        && crossId.equals(sharedPolicyGroup.getCrossId()))
+                .findFirst();
     }
 
     public Optional<SharedPolicyGroup> getLastDeployedByEnvironmentIdAndCrossId(String environmentId, String crossId) {
-        return storage
-            .stream()
-            .filter(
-                sharedPolicyGroup ->
-                    environmentId.equals(sharedPolicyGroup.getEnvironmentId()) &&
-                    crossId.equals(sharedPolicyGroup.getCrossId()) &&
-                    sharedPolicyGroup.isDeployed()
-            )
-            .findFirst();
+        return storage.stream()
+                .filter(sharedPolicyGroup -> environmentId.equals(sharedPolicyGroup.getEnvironmentId())
+                        && crossId.equals(sharedPolicyGroup.getCrossId())
+                        && sharedPolicyGroup.isDeployed())
+                .findFirst();
     }
 
     @Override

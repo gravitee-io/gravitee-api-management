@@ -87,9 +87,9 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
     @Override
     public String fetchContent(PortalNavigationItemSource source) {
         rejectForbiddenAddress(source);
-        var fetcher = loadFetcher(source).orElseThrow(() ->
-            InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType())
-        );
+        var fetcher = loadFetcher(source)
+                .orElseThrow(
+                        () -> InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType()));
         return readContent(fetcher, source);
     }
 
@@ -98,7 +98,10 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
         try {
             return loadFetcher(source).filter(FilesFetcher.class::isInstance).isPresent();
         } catch (Exception e) {
-            log.warn("Unable to determine file-listing support of portal page source [type={}]", source.getSourceType(), e);
+            log.warn(
+                    "Unable to determine file-listing support of portal page source [type={}]",
+                    source.getSourceType(),
+                    e);
             return false;
         }
     }
@@ -106,15 +109,17 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
     @Override
     public List<String> listFiles(PortalNavigationItemSource source) {
         rejectForbiddenAddress(source);
-        var fetcher = loadFetcher(source).orElseThrow(() ->
-            InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType())
-        );
+        var fetcher = loadFetcher(source)
+                .orElseThrow(
+                        () -> InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType()));
         if (!(fetcher instanceof FilesFetcher filesFetcher)) {
             throw InvalidPortalNavigationItemSourceException.sourceCannotListFiles(source.getSourceType());
         }
         try {
             var files = filesFetcher.files();
-            return files == null ? List.of() : Arrays.stream(files).filter(Objects::nonNull).toList();
+            return files == null
+                    ? List.of()
+                    : Arrays.stream(files).filter(Objects::nonNull).toList();
         } catch (FetcherException e) {
             throw new TechnicalDomainException("unable to list files from source type " + source.getSourceType(), e);
         }
@@ -123,9 +128,9 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
     @Override
     public String fetchFileContent(PortalNavigationItemSource source, String filepath) {
         rejectForbiddenAddress(source);
-        var fetcher = loadFetcher(source).orElseThrow(() ->
-            InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType())
-        );
+        var fetcher = loadFetcher(source)
+                .orElseThrow(
+                        () -> InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType()));
         if (!(fetcher.getConfiguration() instanceof FilepathAwareFetcherConfiguration filepathAwareConfiguration)) {
             throw InvalidPortalNavigationItemSourceException.sourceCannotListFiles(source.getSourceType());
         }
@@ -156,10 +161,9 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
             }
         } catch (Exception e) {
             log.warn(
-                "Unable to mask sensitive data of portal page source [type={}], blanking its configuration",
-                source.getSourceType(),
-                e
-            );
+                    "Unable to mask sensitive data of portal page source [type={}], blanking its configuration",
+                    source.getSourceType(),
+                    e);
             source.setSourceConfiguration(BLANKED_CONFIGURATION);
         }
     }
@@ -171,7 +175,9 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
      */
     @Override
     public void mergeSensitiveData(PortalNavigationItemSource oldSource, PortalNavigationItemSource newSource) {
-        if (oldSource == null || newSource == null || !Objects.equals(oldSource.getSourceType(), newSource.getSourceType())) {
+        if (oldSource == null
+                || newSource == null
+                || !Objects.equals(oldSource.getSourceType(), newSource.getSourceType())) {
             return;
         }
         try {
@@ -182,9 +188,7 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
             var updated = (ObjectNode) JSON_MAPPER.readTree(newSource.getSourceConfiguration());
             var original = (ObjectNode) JSON_MAPPER.readTree(oldSource.getSourceConfiguration());
             var sameAddress = FetcherConfigurationAddress.sameAddress(
-                oldSource.getSourceConfiguration(),
-                newSource.getSourceConfiguration()
-            );
+                    oldSource.getSourceConfiguration(), newSource.getSourceConfiguration());
             boolean merged = false;
             for (String key : sensitiveKeys) {
                 var value = updated.get(key);
@@ -219,11 +223,13 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
         if (plugin == null) {
             return null;
         }
-        var configurationClass = plugin.fetcher().getClassLoader().loadClass(plugin.configuration().getName());
+        var configurationClass = plugin.fetcher()
+                .getClassLoader()
+                .loadClass(plugin.configuration().getName());
         var sensitiveKeys = Arrays.stream(configurationClass.getDeclaredFields())
-            .filter(field -> field.isAnnotationPresent(Sensitive.class))
-            .map(Field::getName)
-            .collect(Collectors.toUnmodifiableSet());
+                .filter(field -> field.isAnnotationPresent(Sensitive.class))
+                .map(Field::getName)
+                .collect(Collectors.toUnmodifiableSet());
         sensitiveKeysBySourceType.put(sourceType, sensitiveKeys);
         return sensitiveKeys;
     }
@@ -231,9 +237,9 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
     @Override
     public void validateSourceConfiguration(PortalNavigationItemSource source) {
         rejectForbiddenAddress(source);
-        var plugin = loadPlugin(source).orElseThrow(() ->
-            InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType())
-        );
+        var plugin = loadPlugin(source)
+                .orElseThrow(
+                        () -> InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType()));
         rejectUnresolvedPlaceholders(source);
         try {
             buildFetcher(plugin, source);
@@ -265,7 +271,10 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
             return nextRun != null && !nextRun.isAfter(LocalDateTime.ofInstant(TimeProvider.instantNow(), zone));
         } catch (IllegalArgumentException e) {
             // Cron was validated on write; a stored one that no longer parses must not stop the whole run
-            log.warn("Skipping auto-fetch of portal page source [type={}]: unparseable cron expression", source.getSourceType(), e);
+            log.warn(
+                    "Skipping auto-fetch of portal page source [type={}]: unparseable cron expression",
+                    source.getSourceType(),
+                    e);
             return false;
         }
     }
@@ -287,7 +296,8 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
             throw InvalidPortalNavigationItemSourceException.invalidSourceConfiguration(source.getSourceType(), e);
         }
         for (var field : configuration.properties()) {
-            if (!ADDRESS_FIELD.matcher(field.getKey()).matches() || !field.getValue().isTextual()) {
+            if (!ADDRESS_FIELD.matcher(field.getKey()).matches()
+                    || !field.getValue().isTextual()) {
                 continue;
             }
             var address = field.getValue().textValue();
@@ -322,7 +332,10 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
         } catch (InvalidPortalNavigationItemSourceException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("Unable to check sensitive placeholders of portal page source [type={}]", source.getSourceType(), e);
+            log.warn(
+                    "Unable to check sensitive placeholders of portal page source [type={}]",
+                    source.getSourceType(),
+                    e);
         }
     }
 
@@ -349,10 +362,12 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
     private Fetcher buildFetcher(FetcherPlugin<?> plugin, PortalNavigationItemSource source) {
         try {
             var classLoader = plugin.fetcher().getClassLoader();
-            var configClass = (Class<? extends FetcherConfiguration>) classLoader.loadClass(plugin.configuration().getName());
+            var configClass = (Class<? extends FetcherConfiguration>)
+                    classLoader.loadClass(plugin.configuration().getName());
             var config = fetcherConfigurationFactory.create(configClass, source.getSourceConfiguration());
             if (config == null) {
-                throw new TechnicalDomainException("configuration cannot be read by fetcher type " + source.getSourceType());
+                throw new TechnicalDomainException(
+                        "configuration cannot be read by fetcher type " + source.getSourceType());
             }
             var fetcherClass = (Class<? extends Fetcher>) classLoader.loadClass(plugin.clazz());
             var fetcher = fetcherClass.getConstructor(configClass).newInstance(config);

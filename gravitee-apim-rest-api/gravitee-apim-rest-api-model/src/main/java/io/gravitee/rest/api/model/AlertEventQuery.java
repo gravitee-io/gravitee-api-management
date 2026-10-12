@@ -118,6 +118,7 @@ public class AlertEventQuery {
 
     @Override
     public String toString() {
-        return "AlertEventQuery{" + ", from=" + from + ", to=" + to + ", pageSize=" + pageSize + ", pageNumber=" + pageNumber + '}';
+        return "AlertEventQuery{" + ", from=" + from + ", to=" + to + ", pageSize=" + pageSize + ", pageNumber="
+                + pageNumber + '}';
     }
 }

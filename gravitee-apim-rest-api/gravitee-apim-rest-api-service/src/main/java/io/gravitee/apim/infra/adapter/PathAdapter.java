@@ -23,9 +23,12 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface PathAdapter {
     PathAdapter INSTANCE = Mappers.getMapper(PathAdapter.class);
+
     Path fromV4HttpListenerPath(io.gravitee.definition.model.v4.listener.http.Path path);
+
     List<Path> fromV4HttpListenerPathList(List<io.gravitee.definition.model.v4.listener.http.Path> path);
 
     io.gravitee.definition.model.v4.listener.http.Path toV4HttpListenerPath(Path path);
+
     List<io.gravitee.definition.model.v4.listener.http.Path> toV4HttpListenerPathList(List<Path> path);
 }

@@ -28,7 +28,8 @@ import org.junit.jupiter.api.Test;
 
 class GetEndpointPluginsUseCaseTest {
 
-    private final EndpointPluginQueryServiceInMemory endpointPluginQueryServiceInMemory = new EndpointPluginQueryServiceInMemory();
+    private final EndpointPluginQueryServiceInMemory endpointPluginQueryServiceInMemory =
+            new EndpointPluginQueryServiceInMemory();
     private LicenseManager licenseManager;
     private GetEndpointPluginsUseCase getEndpointPluginsUseCase;
 
@@ -36,9 +37,7 @@ class GetEndpointPluginsUseCaseTest {
     void setup() {
         licenseManager = mock(LicenseManager.class);
         getEndpointPluginsUseCase = new GetEndpointPluginsUseCase(
-            endpointPluginQueryServiceInMemory,
-            new PluginFilterByLicenseDomainService(licenseManager)
-        );
+                endpointPluginQueryServiceInMemory, new PluginFilterByLicenseDomainService(licenseManager));
         endpointPluginQueryServiceInMemory.reset();
     }
 
@@ -51,31 +50,23 @@ class GetEndpointPluginsUseCaseTest {
         when(license.isFeatureEnabled("apim-en-endpoint-kafka")).thenReturn(false);
         when(license.isFeatureEnabled("apim-en-endpoint-mock")).thenReturn(true);
 
-        var res = getEndpointPluginsUseCase.getEndpointPluginsByOrganization(new GetEndpointPluginsUseCase.Input("org-id"));
+        var res = getEndpointPluginsUseCase.getEndpointPluginsByOrganization(
+                new GetEndpointPluginsUseCase.Input("org-id"));
         assertThat(res.plugins()).hasSize(3);
-        assertThat(
-            res
-                .plugins()
-                .stream()
-                .filter(p -> p.getId().equals("mock"))
-                .findFirst()
-                .map(PlatformPlugin::isDeployed)
-        ).contains(false);
-        assertThat(
-            res
-                .plugins()
-                .stream()
-                .filter(p -> p.getId().equals("kafka"))
-                .findFirst()
-                .map(PlatformPlugin::isDeployed)
-        ).contains(false);
-        assertThat(
-            res
-                .plugins()
-                .stream()
-                .filter(p -> p.getId().equals("http-proxy"))
-                .findFirst()
-                .map(PlatformPlugin::isDeployed)
-        ).contains(true);
+        assertThat(res.plugins().stream()
+                        .filter(p -> p.getId().equals("mock"))
+                        .findFirst()
+                        .map(PlatformPlugin::isDeployed))
+                .contains(false);
+        assertThat(res.plugins().stream()
+                        .filter(p -> p.getId().equals("kafka"))
+                        .findFirst()
+                        .map(PlatformPlugin::isDeployed))
+                .contains(false);
+        assertThat(res.plugins().stream()
+                        .filter(p -> p.getId().equals("http-proxy"))
+                        .findFirst()
+                        .map(PlatformPlugin::isDeployed))
+                .contains(true);
     }
 }

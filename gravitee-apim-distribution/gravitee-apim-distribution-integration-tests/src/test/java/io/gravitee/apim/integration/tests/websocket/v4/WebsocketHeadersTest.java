@@ -32,8 +32,9 @@ import org.junit.jupiter.api.Test;
 public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
-    @DeployApi({ "/apis/v4/http/api.json" })
-    public void websocket_header_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
+    @DeployApi({"/apis/v4/http/api.json"})
+    public void websocket_header_request(VertxTestContext testContext, WebSocketClient webSocketClient)
+            throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
@@ -45,40 +46,37 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
 
         Promise<Void> clientReady = Promise.promise();
 
-        websocketServerHandler = serverWebSocket ->
-            Completable.fromRunnable(() -> {
-                serverConnected.flag();
+        websocketServerHandler = serverWebSocket -> Completable.fromRunnable(() -> {
+                    serverConnected.flag();
 
-                String customHeader = serverWebSocket.headers().get(customHeaderName);
-                testContext.verify(() -> assertThat(customHeader).isNotNull());
-                testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
+                    String customHeader = serverWebSocket.headers().get(customHeaderName);
+                    testContext.verify(() -> assertThat(customHeader).isNotNull());
+                    testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
 
-                clientReady
-                    .future()
-                    .onSuccess(__ ->
-                        serverWebSocket
-                            .writeTextMessage("PING")
-                            .doOnComplete(serverMessageSent::flag)
-                            .doOnError(testContext::failNow)
-                            .subscribe()
-                    );
-            })
+                    clientReady
+                            .future()
+                            .onSuccess(__ -> serverWebSocket
+                                    .writeTextMessage("PING")
+                                    .doOnComplete(serverMessageSent::flag)
+                                    .doOnError(testContext::failNow)
+                                    .subscribe());
+                })
                 .subscribeOn(Schedulers.io())
                 .subscribe();
 
         webSocketClient
-            .connect(options)
-            .doOnSuccess(webSocket -> {
-                webSocket.exceptionHandler(testContext::failNow);
-                webSocket.frameHandler(frame -> {
-                    testContext.verify(() -> assertThat(frame.isText()).isTrue());
-                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                    serverMessageChecked.flag();
-                });
-                clientReady.complete();
-            })
-            .doOnError(testContext::failNow)
-            .test()
-            .await();
+                .connect(options)
+                .doOnSuccess(webSocket -> {
+                    webSocket.exceptionHandler(testContext::failNow);
+                    webSocket.frameHandler(frame -> {
+                        testContext.verify(() -> assertThat(frame.isText()).isTrue());
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                        serverMessageChecked.flag();
+                    });
+                    clientReady.complete();
+                })
+                .doOnError(testContext::failNow)
+                .test()
+                .await();
     }
 }

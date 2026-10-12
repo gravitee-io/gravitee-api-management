@@ -47,11 +47,20 @@ class ParamExceptionMapperTest {
     private static Stream<Arguments> paramExceptions() {
         var cause = new RuntimeException("invalid");
         return Stream.of(
-            Arguments.of(new ParamException.QueryParamException(cause, "page", null), "Query parameter page does not have a valid format"),
-            Arguments.of(new ParamException.PathParamException(cause, "apiId", null), "Path parameter apiId does not have a valid format"),
-            Arguments.of(new ParamException.FormParamException(cause, "field", null), "Form value field does not have a valid format"),
-            Arguments.of(new ParamException.HeaderParamException(cause, "Accept", null), "Header Accept does not have a valid format"),
-            Arguments.of(new ParamException.MatrixParamException(cause, "matrix", null), "Parameter matrix does not have a valid format")
-        );
+                Arguments.of(
+                        new ParamException.QueryParamException(cause, "page", null),
+                        "Query parameter page does not have a valid format"),
+                Arguments.of(
+                        new ParamException.PathParamException(cause, "apiId", null),
+                        "Path parameter apiId does not have a valid format"),
+                Arguments.of(
+                        new ParamException.FormParamException(cause, "field", null),
+                        "Form value field does not have a valid format"),
+                Arguments.of(
+                        new ParamException.HeaderParamException(cause, "Accept", null),
+                        "Header Accept does not have a valid format"),
+                Arguments.of(
+                        new ParamException.MatrixParamException(cause, "matrix", null),
+                        "Parameter matrix does not have a valid format"));
     }
 }

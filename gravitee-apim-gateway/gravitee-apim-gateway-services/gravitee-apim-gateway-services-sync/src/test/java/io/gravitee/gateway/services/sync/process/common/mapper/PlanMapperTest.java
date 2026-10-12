@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.process.common.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.v4.plan.PlanMode;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Set;

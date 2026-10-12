@@ -78,94 +78,95 @@ public class ApiProductPlansResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.READ})
+    })
     public ApiProductPlansResponse getApiProductPlans(
-        @QueryParam("statuses") @DefaultValue("PUBLISHED") final Set<PlanStatus> statuses,
-        @QueryParam("securities") @Nonnull Set<PlanSecurityType> securities,
-        @QueryParam("mode") PlanMode planMode,
-        @QueryParam("subscribableBy") String subscribableBy,
-        @BeanParam @Valid PaginationParam paginationParam
-    ) {
+            @QueryParam("statuses") @DefaultValue("PUBLISHED") final Set<PlanStatus> statuses,
+            @QueryParam("securities") @Nonnull Set<PlanSecurityType> securities,
+            @QueryParam("mode") PlanMode planMode,
+            @QueryParam("subscribableBy") String subscribableBy,
+            @BeanParam @Valid PaginationParam paginationParam) {
         log.debug(
-            "Getting Plans for API Product {} (statuses={}, securities={}, mode={}, page={}, perPage={})",
-            apiProductId,
-            statuses,
-            securities,
-            planMode,
-            paginationParam.getPage(),
-            paginationParam.getPerPage()
-        );
+                "Getting Plans for API Product {} (statuses={}, securities={}, mode={}, page={}, perPage={})",
+                apiProductId,
+                statuses,
+                securities,
+                planMode,
+                paginationParam.getPage(),
+                paginationParam.getPerPage());
         if (planMode == null) {
             planMode = PlanMode.STANDARD;
         }
         var planQuery = PlanQuery.builder()
-            .referenceId(apiProductId)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .securityType(
-                securities
-                    .stream()
-                    .map(planSecurityType -> io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(planSecurityType.name()))
-                    .collect(Collectors.toList())
-            )
-            .status(
-                statuses
-                    .stream()
-                    .map(planStatus -> io.gravitee.definition.model.v4.plan.PlanStatus.valueOf(planStatus.name()))
-                    .collect(Collectors.toList())
-            )
-            .mode(planMode);
+                .referenceId(apiProductId)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .securityType(securities.stream()
+                        .map(planSecurityType ->
+                                io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(planSecurityType.name()))
+                        .collect(Collectors.toList()))
+                .status(statuses.stream()
+                        .map(planStatus -> io.gravitee.definition.model.v4.plan.PlanStatus.valueOf(planStatus.name()))
+                        .collect(Collectors.toList()))
+                .mode(planMode);
 
-        var output = getPlansUseCase.execute(
-            GetPlansUseCase.Input.of(
+        var output = getPlansUseCase.execute(GetPlansUseCase.Input.of(
                 apiProductId,
                 GenericPlanEntity.ReferenceType.API_PRODUCT,
                 getAuthenticatedUser(),
                 isAdmin(),
                 planQuery.build(),
-                subscribableBy
-            )
-        );
+                subscribableBy));
 
-        log.debug("Found {} Plans for API Product {} (before pagination)", output.plans().size(), apiProductId);
+        log.debug(
+                "Found {} Plans for API Product {} (before pagination)",
+                output.plans().size(),
+                apiProductId);
         List<Plan> paginationData = computePaginationData(output.plans(), paginationParam);
         log.debug("Returning {} Plans for API Product {} (after pagination)", paginationData.size(), apiProductId);
         return new ApiProductPlansResponse()
-            .data(planMapper.convert(paginationData))
-            .pagination(PaginationInfo.computePaginationInfo(output.plans().size(), paginationData.size(), paginationParam))
-            .links(computePaginationLinks(output.plans().size(), paginationParam));
+                .data(planMapper.convert(paginationData))
+                .pagination(PaginationInfo.computePaginationInfo(
+                        output.plans().size(), paginationData.size(), paginationParam))
+                .links(computePaginationLinks(output.plans().size(), paginationParam));
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createApiProductPlan(@Valid @NotNull CreateApiProductPlan createPlan) {
         log.debug("Creating Plan for API Product {}", apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
         if (PlanSecurityType.KEY_LESS.equals(createPlan.getSecurity().getType())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(planSecurityInvalid()).build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(planSecurityInvalid())
+                    .build();
         }
-        var output = createProductPlanUseCase.execute(
-            new CreateApiProductPlanUseCase.Input(
+        var output = createProductPlanUseCase.execute(new CreateApiProductPlanUseCase.Input(
                 apiProductId,
                 api -> planMapper.map(createPlan),
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(userDetails.getUsername())
-                            .userSource(userDetails.getSource())
-                            .userSourceId(userDetails.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build()));
 
         log.debug("Plan {} created for API Product {}", output.id(), apiProductId);
-        return Response.created(this.getLocationHeader(output.id())).entity(planMapper.map(output.plan())).build();
+        return Response.created(this.getLocationHeader(output.id()))
+                .entity(planMapper.map(output.plan()))
+                .build();
     }
 
     @Path("{planId}")
@@ -176,8 +177,8 @@ public class ApiProductPlansResource extends AbstractResource {
 
     private io.gravitee.rest.api.management.v2.rest.model.Error planSecurityInvalid() {
         return new Error()
-            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-            .message("Plan Security Type KeyLess is not allowed.")
-            .technicalCode("planSecurity.invalid");
+                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                .message("Plan Security Type KeyLess is not allowed.")
+                .technicalCode("planSecurity.invalid");
     }
 }

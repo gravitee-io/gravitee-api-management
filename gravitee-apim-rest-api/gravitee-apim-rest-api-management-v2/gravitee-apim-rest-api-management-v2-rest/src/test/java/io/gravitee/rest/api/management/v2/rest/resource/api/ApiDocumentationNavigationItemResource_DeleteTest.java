@@ -71,7 +71,10 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -94,14 +97,14 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
         Response response = rootTarget(page.getId().json()).request().delete();
 
         assertThat(response).hasStatus(NO_CONTENT_204);
-        verify(deletePortalNavigationItemUseCase).execute(
-            new DeletePortalNavigationItemUseCase.Input(ORGANIZATION, ENVIRONMENT, page.getId())
-        );
+        verify(deletePortalNavigationItemUseCase)
+                .execute(new DeletePortalNavigationItemUseCase.Input(ORGANIZATION, ENVIRONMENT, page.getId()));
     }
 
     @Test
     void should_return_404_for_an_unknown_item() {
-        Response response = rootTarget(PortalNavigationItemId.random().json()).request().delete();
+        Response response =
+                rootTarget(PortalNavigationItemId.random().json()).request().delete();
 
         assertThat(response).hasStatus(NOT_FOUND_404);
         verifyNoInteractions(deletePortalNavigationItemUseCase);
@@ -134,7 +137,8 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
     void should_reject_the_api_listing_row() {
         var section = PortalNavigationItemFixtures.aFolder("APIs");
         section.setEnvironmentId(ENVIRONMENT);
-        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
+        var listing = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
         listing.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemCrudService.initWith(List.of(section, listing));
 
@@ -148,14 +152,12 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
     void should_return_403_with_environment_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID);
         portalNavigationItemCrudService.initWith(List.of(page));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.DELETE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.DELETE)))
+                .thenReturn(false);
 
         Response response = rootTarget(page.getId().json()).request().delete();
 
@@ -168,14 +170,12 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
         var page = aPageOwnedBy(API_ID);
         portalNavigationItemCrudService.initWith(List.of(page));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.DELETE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.DELETE)))
+                .thenReturn(true);
 
         Response response = rootTarget(page.getId().json()).request().delete();
 
@@ -183,10 +183,9 @@ class ApiDocumentationNavigationItemResource_DeleteTest extends AbstractResource
     }
 
     private static PortalNavigationPage aPageOwnedBy(String apiId) {
-        var page = PortalNavigationItemFixtures.aPage("Overview", null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .build();
+        var page = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .build();
         page.setEnvironmentId(ENVIRONMENT);
         return page;
     }

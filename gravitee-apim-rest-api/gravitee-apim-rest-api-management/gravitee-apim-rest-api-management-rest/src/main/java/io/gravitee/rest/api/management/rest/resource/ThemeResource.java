@@ -58,7 +58,7 @@ public class ThemeResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ)})
     public ThemeEntity getTheme() {
         var theme = themeService.findById(GraviteeContext.getExecutionContext(), themeId);
         validateThemeType(theme);
@@ -68,7 +68,7 @@ public class ThemeResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)})
     public ThemeEntity updateTheme(@Valid @NotNull final UpdateThemeEntity theme) {
         validateThemeType(themeId);
         theme.setId(themeId);
@@ -78,7 +78,7 @@ public class ThemeResource extends AbstractResource {
     @Path("/reset")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)})
     public ThemeEntity resetTheme() {
         validateThemeType(themeId);
 
@@ -87,7 +87,7 @@ public class ThemeResource extends AbstractResource {
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE)})
     public void deleteTheme() {
         validateThemeType(themeId);
 
@@ -107,7 +107,8 @@ public class ThemeResource extends AbstractResource {
     public Response getLogoLight(@Context Request request) {
         validateThemeType(themeId);
 
-        return this.buildPictureResponse(themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), themeId), request);
+        return this.buildPictureResponse(
+                themeService.getOptionalLogo(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
@@ -115,7 +116,8 @@ public class ThemeResource extends AbstractResource {
     public Response getFavicon(@Context Request request) {
         validateThemeType(themeId);
 
-        return this.buildPictureResponse(themeService.getFavicon(GraviteeContext.getExecutionContext(), themeId), request);
+        return this.buildPictureResponse(
+                themeService.getFavicon(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     @GET
@@ -123,7 +125,8 @@ public class ThemeResource extends AbstractResource {
     public Response getThemeBackground(@Context Request request) {
         validateThemeType(themeId);
 
-        return this.buildPictureResponse(themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), themeId), request);
+        return this.buildPictureResponse(
+                themeService.getBackgroundImage(GraviteeContext.getExecutionContext(), themeId), request);
     }
 
     private Response buildPictureResponse(PictureEntity picture, @Context Request request) {
@@ -132,7 +135,8 @@ public class ThemeResource extends AbstractResource {
         }
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl()))
+                    .build();
         }
 
         CacheControl cc = new CacheControl();
@@ -154,7 +158,12 @@ public class ThemeResource extends AbstractResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response.ok().entity(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+        return Response.ok()
+                .entity(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     private ThemeEntity toThemeEntity(GenericThemeEntity genericThemeEntity) {

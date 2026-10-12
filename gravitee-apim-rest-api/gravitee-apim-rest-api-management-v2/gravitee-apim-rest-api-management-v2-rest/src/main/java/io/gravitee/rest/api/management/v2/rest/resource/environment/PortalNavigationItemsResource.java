@@ -85,13 +85,12 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public PortalNavigationItemsResponse getPortalNavigationItems(
-        @QueryParam("area") @DefaultValue("TOP_NAVBAR") String area,
-        @QueryParam("parentId") String parentId,
-        @QueryParam("loadChildren") @DefaultValue("true") boolean loadChildren,
-        @QueryParam("includes") Set<String> includes
-    ) {
+            @QueryParam("area") @DefaultValue("TOP_NAVBAR") String area,
+            @QueryParam("parentId") String parentId,
+            @QueryParam("loadChildren") @DefaultValue("true") boolean loadChildren,
+            @QueryParam("includes") Set<String> includes) {
         final PortalArea portalArea;
         try {
             portalArea = PortalArea.valueOf(area);
@@ -101,17 +100,14 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
         boolean includeApis = includes != null && includes.contains("apis");
 
-        var result = listPortalNavigationItemsUseCase.execute(
-            new ListPortalNavigationItemsUseCase.Input(
+        var result = listPortalNavigationItemsUseCase.execute(new ListPortalNavigationItemsUseCase.Input(
                 GraviteeContext.getCurrentEnvironment(),
                 GraviteeContext.getCurrentOrganization(),
                 portalArea,
                 Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
                 loadChildren,
                 PortalNavigationItemViewerContext.forConsole(),
-                includeApis
-            )
-        );
+                includeApis));
 
         var response = new PortalNavigationItemsResponse().items(mapper.map(result.items()));
 
@@ -124,73 +120,84 @@ public class PortalNavigationItemsResource extends AbstractResource {
     }
 
     @POST
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createPortalNavigationItem(@Valid @NotNull final BaseCreatePortalNavigationItem createPortalNavigationItem) {
+    public Response createPortalNavigationItem(
+            @Valid @NotNull final BaseCreatePortalNavigationItem createPortalNavigationItem) {
         final var executionContext = GraviteeContext.getExecutionContext();
 
-        final var output = createPortalNavigationItemUseCase.execute(
-            new CreatePortalNavigationItemUseCase.Input(
+        final var output = createPortalNavigationItemUseCase.execute(new CreatePortalNavigationItemUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                mapper.map(createPortalNavigationItem)
-            )
-        );
+                mapper.map(createPortalNavigationItem)));
 
-        return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+        return Response.created(this.getLocationHeader(output.item().getId().toString()))
+                .entity(mapper.map(output.item()))
+                .build();
     }
 
     @Path("_bulk")
     @POST
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPortalNavigationItemsInBulk(
-        @Valid @NotNull final BaseCreatePortalNavigationItems createPortalNavigationItemsRequest
-    ) {
+            @Valid @NotNull final BaseCreatePortalNavigationItems createPortalNavigationItemsRequest) {
         final var executionContext = GraviteeContext.getExecutionContext();
 
-        final var output = bulkCreatePortalNavigationItemUseCase.execute(
-            new BulkCreatePortalNavigationItemUseCase.Input(
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                mapper.mapCreatePortalNavigationItems(createPortalNavigationItemsRequest.getItems())
-            )
-        );
+        final var output =
+                bulkCreatePortalNavigationItemUseCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(
+                        executionContext.getOrganizationId(),
+                        executionContext.getEnvironmentId(),
+                        mapper.mapCreatePortalNavigationItems(createPortalNavigationItemsRequest.getItems())));
 
-        return Response.ok(new PortalNavigationItemsResponse().items(mapper.map(output.items()))).build();
+        return Response.ok(new PortalNavigationItemsResponse().items(mapper.map(output.items())))
+                .build();
     }
 
     @Path("_import")
     @POST
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importPortalNavigation(@Valid @NotNull final ImportPortalNavigationRequest importPortalNavigationRequest) {
+    public Response importPortalNavigation(
+            @Valid @NotNull final ImportPortalNavigationRequest importPortalNavigationRequest) {
         final var executionContext = GraviteeContext.getExecutionContext();
 
-        final var output = importPortalNavigationUseCase.execute(
-            mapper.map(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), importPortalNavigationRequest)
-        );
+        final var output = importPortalNavigationUseCase.execute(mapper.map(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                importPortalNavigationRequest));
 
         return Response.ok(mapper.map(output)).build();
     }
 
     @Path("_default-pages")
     @POST
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DOCUMENTATION,
+                acls = {RolePermissionAction.CREATE})
+    })
     @Consumes(MediaType.APPLICATION_JSON)
     public Response seedDefaultPages(@Valid @NotNull final SeedDefaultPagesRequest seedDefaultPagesRequest) {
         final var executionContext = GraviteeContext.getExecutionContext();
 
-        seedDefaultPagesForPortalNavigationItemsUseCase.execute(
-            mapper.mapSeedDefaultPagesInput(
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                seedDefaultPagesRequest
-            )
-        );
+        seedDefaultPagesForPortalNavigationItemsUseCase.execute(mapper.mapSeedDefaultPagesInput(
+                executionContext.getOrganizationId(), executionContext.getEnvironmentId(), seedDefaultPagesRequest));
 
         return Response.noContent().build();
     }

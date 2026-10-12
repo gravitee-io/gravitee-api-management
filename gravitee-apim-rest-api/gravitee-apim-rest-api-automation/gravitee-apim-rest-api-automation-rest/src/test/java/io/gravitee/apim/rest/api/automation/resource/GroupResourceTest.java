@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import inmemory.GroupQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.rest.api.automation.model.GroupState;
@@ -33,7 +32,6 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import jakarta.inject.Inject;
@@ -55,7 +53,10 @@ class GroupResourceTest extends AbstractResourceTest {
 
     static final String HRID = "my-group";
     static final String GUID = "raw-legacy-uuid";
-    static final AuditInfo auditInfo = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
+    static final AuditInfo auditInfo = AuditInfo.builder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
 
     @AfterEach
     void tearDown() {
@@ -69,27 +70,29 @@ class GroupResourceTest extends AbstractResourceTest {
     }
 
     private String groupIdFromHrid(String hrid) {
-        return HRIDToUUID.group().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(hrid).id();
+        return HRIDToUUID.group()
+                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                .hrid(hrid)
+                .id();
     }
 
     private void givenExistingGroup() {
-        groupQueryServiceInMemory.initWith(
-            List.of(
-                Group.builder()
-                    .id(groupIdFromHrid(HRID))
-                    .hrid(HRID)
-                    .name("My Group")
-                    .environmentId(ENVIRONMENT)
-                    .disableMembershipNotifications(false)
-                    .build()
-            )
-        );
+        groupQueryServiceInMemory.initWith(List.of(Group.builder()
+                .id(groupIdFromHrid(HRID))
+                .hrid(HRID)
+                .name("My Group")
+                .environmentId(ENVIRONMENT)
+                .disableMembershipNotifications(false)
+                .build()));
     }
 
     private void givenExistingGroupWithLegacyId() {
-        groupQueryServiceInMemory.initWith(
-            List.of(Group.builder().id(GUID).name("Legacy Group").environmentId(ENVIRONMENT).disableMembershipNotifications(false).build())
-        );
+        groupQueryServiceInMemory.initWith(List.of(Group.builder()
+                .id(GUID)
+                .name("Legacy Group")
+                .environmentId(ENVIRONMENT)
+                .disableMembershipNotifications(false)
+                .build()));
     }
 
     @Nested
@@ -119,22 +122,21 @@ class GroupResourceTest extends AbstractResourceTest {
             givenExistingGroup();
             givenNoMembers();
             var groupEntity = new io.gravitee.rest.api.model.GroupEntity();
-            groupEntity.setRoles(
-                java.util.Map.of(
+            groupEntity.setRoles(java.util.Map.of(
                     io.gravitee.rest.api.model.permissions.RoleScope.API,
                     "USER",
                     io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT,
-                    "OWNER"
-                )
-            );
-            when(groupService.findById(any(), org.mockito.ArgumentMatchers.eq(groupIdFromHrid(HRID)))).thenReturn(groupEntity);
+                    "OWNER"));
+            when(groupService.findById(any(), org.mockito.ArgumentMatchers.eq(groupIdFromHrid(HRID))))
+                    .thenReturn(groupEntity);
 
             try (var response = rootTarget().path(HRID).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(GroupState.class);
-                assertThat(state.getDefaultMemberRoles()).isEqualTo(
-                    new io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles().api("USER").apiProduct("OWNER")
-                );
+                assertThat(state.getDefaultMemberRoles())
+                        .isEqualTo(new io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles()
+                                .api("USER")
+                                .apiProduct("OWNER"));
             }
         }
 
@@ -145,9 +147,8 @@ class GroupResourceTest extends AbstractResourceTest {
 
             try (var response = rootTarget().path(HRID).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                assertThat(response.readEntity(GroupState.class).getDefaultMemberRoles()).isEqualTo(
-                    new io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles()
-                );
+                assertThat(response.readEntity(GroupState.class).getDefaultMemberRoles())
+                        .isEqualTo(new io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles());
             }
         }
 
@@ -156,7 +157,11 @@ class GroupResourceTest extends AbstractResourceTest {
             givenExistingGroupWithLegacyId();
             givenNoMembers();
 
-            try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().get()) {
+            try (var response = rootTarget()
+                    .path(GUID)
+                    .queryParam("hridContainsUUID", true)
+                    .request()
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(GroupState.class);
                 assertThat(state.getId()).isEqualTo(GUID);
@@ -201,21 +206,23 @@ class GroupResourceTest extends AbstractResourceTest {
         }
 
         private void givenNoMembers() {
-            when(membershipService.getMembersByReference(any(), eq(MembershipReferenceType.GROUP), any())).thenReturn(Set.of());
+            when(membershipService.getMembersByReference(any(), eq(MembershipReferenceType.GROUP), any()))
+                    .thenReturn(Set.of());
         }
 
         private void givenGroupMembers() {
             var groupId = groupIdFromHrid(HRID);
             var role = RoleEntity.builder().scope(RoleScope.API).name("USER").build();
             var member = MemberEntity.builder()
-                .id("user-1")
-                .type(MembershipMemberType.USER)
-                .referenceType(MembershipReferenceType.GROUP)
-                .referenceId(groupId)
-                .roles(List.of(role))
-                .build();
+                    .id("user-1")
+                    .type(MembershipMemberType.USER)
+                    .referenceType(MembershipReferenceType.GROUP)
+                    .referenceId(groupId)
+                    .roles(List.of(role))
+                    .build();
 
-            when(membershipService.getMembersByReference(any(), eq(MembershipReferenceType.GROUP), eq(groupId))).thenReturn(Set.of(member));
+            when(membershipService.getMembersByReference(any(), eq(MembershipReferenceType.GROUP), eq(groupId)))
+                    .thenReturn(Set.of(member));
 
             var user = new UserEntity();
             user.setId("user-1");
@@ -240,7 +247,11 @@ class GroupResourceTest extends AbstractResourceTest {
 
         @Test
         void should_delete_group_with_guid() {
-            try (var response = rootTarget().path(GUID).queryParam("hridContainsUUID", true).request().delete()) {
+            try (var response = rootTarget()
+                    .path(GUID)
+                    .queryParam("hridContainsUUID", true)
+                    .request()
+                    .delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
 
@@ -249,7 +260,9 @@ class GroupResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            doThrow(new GroupNotFoundException("unknown")).when(groupService).delete(any(), eq(groupIdFromHrid("unknown")));
+            doThrow(new GroupNotFoundException("unknown"))
+                    .when(groupService)
+                    .delete(any(), eq(groupIdFromHrid("unknown")));
 
             try (var response = rootTarget().path("unknown").request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);

@@ -44,8 +44,12 @@ import org.junit.jupiter.api.Test;
 class PortalThemeResourceTest extends AbstractResourceTest {
 
     private static final String THEME_HRID = "default-theme";
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
-    private static final String THEME_ID = HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id();
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
+    private static final String THEME_ID =
+            HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id();
 
     @Inject
     private GetPortalThemeUseCase getPortalThemeUseCase;
@@ -70,7 +74,10 @@ class PortalThemeResourceTest extends AbstractResourceTest {
         void should_return_the_theme() {
             when(getPortalThemeUseCase.execute(any())).thenReturn(new GetPortalThemeUseCase.Output(aTheme()));
 
-            try (var response = rootTarget(THEME_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(THEME_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(getPortalThemeUseCase).execute(any());
 
@@ -88,7 +95,10 @@ class PortalThemeResourceTest extends AbstractResourceTest {
         void should_return_404_when_theme_is_missing() {
             when(getPortalThemeUseCase.execute(any())).thenThrow(new ThemeNotFoundException(THEME_ID));
 
-            try (var response = rootTarget(THEME_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(THEME_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
@@ -107,7 +117,9 @@ class PortalThemeResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_theme_is_missing() {
-            doThrow(new ThemeNotFoundException(THEME_ID)).when(deletePortalThemeUseCase).execute(any());
+            doThrow(new ThemeNotFoundException(THEME_ID))
+                    .when(deletePortalThemeUseCase)
+                    .execute(any());
 
             try (var response = rootTarget(THEME_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -117,12 +129,12 @@ class PortalThemeResourceTest extends AbstractResourceTest {
 
     private static Theme aTheme() {
         return Theme.builder()
-            .id(THEME_ID)
-            .name("Default Theme")
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(ENVIRONMENT)
-            .enabled(true)
-            .build();
+                .id(THEME_ID)
+                .name("Default Theme")
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(ENVIRONMENT)
+                .enabled(true)
+                .build();
     }
 }

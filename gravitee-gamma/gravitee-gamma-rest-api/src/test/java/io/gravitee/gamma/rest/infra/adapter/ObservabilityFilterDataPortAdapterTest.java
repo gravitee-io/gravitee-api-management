@@ -42,10 +42,8 @@ class ObservabilityFilterDataPortAdapterTest {
 
     private final GetFilterValuesUseCase getFilterValuesUseCase = mock(GetFilterValuesUseCase.class);
     private final ResolveFilterLabelsUseCase resolveFilterLabelsUseCase = mock(ResolveFilterLabelsUseCase.class);
-    private final ObservabilityFilterDataPortAdapter adapter = new ObservabilityFilterDataPortAdapter(
-        getFilterValuesUseCase,
-        resolveFilterLabelsUseCase
-    );
+    private final ObservabilityFilterDataPortAdapter adapter =
+            new ObservabilityFilterDataPortAdapter(getFilterValuesUseCase, resolveFilterLabelsUseCase);
 
     /** Two {@code FilterValue} records, one per catalog: the platform one is spelled out here, once. */
     private static io.gravitee.apim.core.analytics_engine.model.FilterValue platformValue(String value, String label) {
@@ -54,15 +52,14 @@ class ObservabilityFilterDataPortAdapterTest {
 
     @Test
     void should_map_platform_values_to_core_values_and_keep_the_reported_total() {
-        when(getFilterValuesUseCase.execute(any())).thenReturn(
-            new GetFilterValuesUseCase.Output(
-                new FilterValuesPage(List.of(platformValue("mcp-studio", null), platformValue("Petstore", "api-1")), Map.of(), 7L)
-            )
-        );
+        when(getFilterValuesUseCase.execute(any()))
+                .thenReturn(new GetFilterValuesUseCase.Output(new FilterValuesPage(
+                        List.of(platformValue("mcp-studio", null), platformValue("Petstore", "api-1")), Map.of(), 7L)));
 
         var page = adapter.listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of());
 
-        assertThat(page.data()).containsExactly(new FilterValue("mcp-studio", null), new FilterValue("api-1", "Petstore"));
+        assertThat(page.data())
+                .containsExactly(new FilterValue("mcp-studio", null), new FilterValue("api-1", "Petstore"));
         assertThat(page.totalElements()).isEqualTo(7L);
     }
 
@@ -70,33 +67,30 @@ class ObservabilityFilterDataPortAdapterTest {
     void should_surface_a_platform_catalog_miss_as_a_drift_error_not_a_400() {
         // "Filter not found" from the platform means the observability catalog advertises a filter the
         // platform catalog does not declare: a catalog bug, never something the caller can fix.
-        when(getFilterValuesUseCase.execute(any())).thenThrow(
-            new ValidationDomainException("Filter not found", Map.of("filterName", "ENTRYPOINT"))
-        );
+        when(getFilterValuesUseCase.execute(any()))
+                .thenThrow(new ValidationDomainException("Filter not found", Map.of("filterName", "ENTRYPOINT")));
 
         assertThatThrownBy(() -> adapter.listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of()))
-            .isInstanceOf(FilterCatalogDriftException.class)
-            .hasMessageContaining("ENTRYPOINT");
+                .isInstanceOf(FilterCatalogDriftException.class)
+                .hasMessageContaining("ENTRYPOINT");
     }
 
     @Test
     void should_surface_a_missing_store_mapping_as_a_drift_error() {
         // The platform knows the filter but has no field to aggregate on: the same drift, seen one layer lower.
-        when(getFilterValuesUseCase.execute(any())).thenThrow(
-            new UnsupportedOperationException("No ES field mapping for filter: NATIVE_TOPIC")
-        );
+        when(getFilterValuesUseCase.execute(any()))
+                .thenThrow(new UnsupportedOperationException("No ES field mapping for filter: NATIVE_TOPIC"));
 
         assertThatThrownBy(() -> adapter.listKeywordValues("NATIVE_TOPIC", null, null, null, 1, 10, Set.of()))
-            .isInstanceOf(FilterCatalogDriftException.class)
-            .hasMessageContaining("NATIVE_TOPIC");
+                .isInstanceOf(FilterCatalogDriftException.class)
+                .hasMessageContaining("NATIVE_TOPIC");
     }
 
     @Test
     void should_scope_value_listing_to_authz_apis_rather_than_dropping_the_kind() {
         // Dropping an unmapped kind left the set empty, which the platform reads as "every API type".
-        when(getFilterValuesUseCase.execute(any())).thenReturn(
-            new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L))
-        );
+        when(getFilterValuesUseCase.execute(any()))
+                .thenReturn(new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L)));
 
         adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.AUTHZ));
 

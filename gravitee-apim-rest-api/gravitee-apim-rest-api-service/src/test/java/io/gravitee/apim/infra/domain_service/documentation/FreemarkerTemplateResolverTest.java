@@ -63,27 +63,30 @@ class FreemarkerTemplateResolverTest {
 
     @Test
     void should_resolve_valid_template() {
-        assertThat(resolver.resolveTemplate("This is a valid template", Map.of())).isEqualTo("This is a valid template");
+        assertThat(resolver.resolveTemplate("This is a valid template", Map.of()))
+                .isEqualTo("This is a valid template");
     }
 
     @Test
     void should_resolve_valid_template_with_params() {
-        assertThat(resolver.resolveTemplate("This is a valid template with ${bop} injection", Map.of("bop", "simple"))).isEqualTo(
-            "This is a valid template with simple injection"
-        );
+        assertThat(resolver.resolveTemplate("This is a valid template with ${bop} injection", Map.of("bop", "simple")))
+                .isEqualTo("This is a valid template with simple injection");
     }
 
     @Test
     void should_resolve_valid_template_with_complex_params() {
-        var coreApi = ApiFreemarkerTemplate.builder().id("id").name("api-name").version("1.0").updatedAt(new Date(0)).build();
+        var coreApi = ApiFreemarkerTemplate.builder()
+                .id("id")
+                .name("api-name")
+                .version("1.0")
+                .updatedAt(new Date(0))
+                .build();
         Locale current = Locale.getDefault();
         Locale.setDefault(new Locale("en", "US"));
-        assertThat(
-            resolver.resolveTemplate(
-                "Documentation for ${api.name} ${api.version} (${api.id}) ${api.updatedAt?datetime}",
-                Map.of("api", coreApi)
-            )
-        ).startsWith("Documentation for api-name 1.0 (id) Jan 1, 1970, ");
+        assertThat(resolver.resolveTemplate(
+                        "Documentation for ${api.name} ${api.version} (${api.id}) ${api.updatedAt?datetime}",
+                        Map.of("api", coreApi)))
+                .startsWith("Documentation for api-name 1.0 (id) Jan 1, 1970, ");
         Locale.setDefault(current);
     }
 
@@ -98,27 +101,35 @@ class FreemarkerTemplateResolverTest {
         var proxy = new Proxy();
         proxy.setVirtualHosts(virtualHosts);
 
-        var api = ApiFreemarkerTemplate.builder().id("id").definitionVersion(DefinitionVersion.V2).proxy(proxy).build();
+        var api = ApiFreemarkerTemplate.builder()
+                .id("id")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(proxy)
+                .build();
 
-        assertThat(resolver.resolveTemplate("Call me at ${api.proxy.contextPath}", Map.of("api", api))).isEqualTo("Call me at my-path");
+        assertThat(resolver.resolveTemplate("Call me at ${api.proxy.contextPath}", Map.of("api", api)))
+                .isEqualTo("Call me at my-path");
     }
 
     @Test
     void should_throw_exception_if_template_accesses_unknown_data() {
-        var throwable = catchThrowable(() ->
-            resolver.resolveTemplate("Documentation for ${api.name} ${api.version} (${api.id})", Map.of("api", Api.builder().build()))
-        );
+        var throwable = catchThrowable(() -> resolver.resolveTemplate(
+                "Documentation for ${api.name} ${api.version} (${api.id})",
+                Map.of("api", Api.builder().build())));
         assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
         assertThat(throwable.getCause().getMessage()).contains("api");
     }
 
     @Test
     void should_throw_exception_if_template_accesses_unknown_property() {
-        var api = ApiFreemarkerTemplate.builder().id("id").name("api-name").version("1.0").build();
+        var api = ApiFreemarkerTemplate.builder()
+                .id("id")
+                .name("api-name")
+                .version("1.0")
+                .build();
 
         var throwable = catchThrowable(() ->
-            resolver.resolveTemplate("Documentation for ${api.name} ${api.vvv} (${api.id})", Map.of("api", api))
-        );
+                resolver.resolveTemplate("Documentation for ${api.name} ${api.vvv} (${api.id})", Map.of("api", api)));
         assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
         assertThat(throwable.getCause().getMessage()).contains("api.vvv");
     }
@@ -127,43 +138,41 @@ class FreemarkerTemplateResolverTest {
     @MethodSource("provideParameters")
     void should_render_api_fields(final String fieldName, final String output) {
         var po = PrimaryOwnerApiTemplateData.from(
-            new PrimaryOwnerEntity("id", "po email", "po display name", PrimaryOwnerEntity.Type.USER)
-        );
+                new PrimaryOwnerEntity("id", "po email", "po display name", PrimaryOwnerEntity.Type.USER));
 
         var api = ApiFreemarkerTemplate.builder()
-            .id("api-id")
-            .name("api-name")
-            .description("api description")
-            .version("v1000")
-            .picture("a lovely picture")
-            .state(Api.LifecycleState.STARTED)
-            .visibility(Api.Visibility.PUBLIC)
-            .tags(Set.of("first tag"))
-            .metadata(Map.of("meta", "data"))
-            .primaryOwner(po)
-            .build();
+                .id("api-id")
+                .name("api-name")
+                .description("api description")
+                .version("v1000")
+                .picture("a lovely picture")
+                .state(Api.LifecycleState.STARTED)
+                .visibility(Api.Visibility.PUBLIC)
+                .tags(Set.of("first tag"))
+                .metadata(Map.of("meta", "data"))
+                .primaryOwner(po)
+                .build();
 
-        assertThat(resolver.resolveTemplate("This is my " + fieldName + ": ${api." + fieldName + "}", Map.of("api", api))).isEqualTo(
-            "This is my " + fieldName + ": " + output
-        );
+        assertThat(resolver.resolveTemplate(
+                        "This is my " + fieldName + ": ${api." + fieldName + "}", Map.of("api", api)))
+                .isEqualTo("This is my " + fieldName + ": " + output);
     }
 
     public static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("id", "api-id"),
-            Arguments.of("name", "api-name"),
-            Arguments.of("description", "api description"),
-            Arguments.of("version", "v1000"),
-            Arguments.of("metadata['meta']", "data"),
-            Arguments.of("picture", "a lovely picture"),
-            Arguments.of("state", "STARTED"),
-            Arguments.of("visibility", "PUBLIC"),
-            Arguments.of("tags?first", "first tag"),
-            Arguments.of("tags?sequence[0]", "first tag"),
-            Arguments.of("tags[0]", "first tag"),
-            Arguments.of("primaryOwner.displayName", "po display name"),
-            Arguments.of("primaryOwner.email", "po email")
-        );
+                Arguments.of("id", "api-id"),
+                Arguments.of("name", "api-name"),
+                Arguments.of("description", "api description"),
+                Arguments.of("version", "v1000"),
+                Arguments.of("metadata['meta']", "data"),
+                Arguments.of("picture", "a lovely picture"),
+                Arguments.of("state", "STARTED"),
+                Arguments.of("visibility", "PUBLIC"),
+                Arguments.of("tags?first", "first tag"),
+                Arguments.of("tags?sequence[0]", "first tag"),
+                Arguments.of("tags[0]", "first tag"),
+                Arguments.of("primaryOwner.displayName", "po display name"),
+                Arguments.of("primaryOwner.email", "po email"));
     }
 
     @Test
@@ -176,19 +185,17 @@ class FreemarkerTemplateResolverTest {
     @Test
     void should_not_access_protection_domain() {
         var api = ApiFreemarkerTemplate.builder().id("api-id").build();
-        var throwable = catchThrowable(() -> resolver.resolveTemplate("${api.class.protectionDomain}", Map.of("api", api)));
+        var throwable =
+                catchThrowable(() -> resolver.resolveTemplate("${api.class.protectionDomain}", Map.of("api", api)));
         assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
     }
 
     @Test
     void should_not_access_restricted_methods_combination() {
         var api = ApiFreemarkerTemplate.builder().id("api-id").build();
-        var throwable = catchThrowable(() ->
-            resolver.resolveTemplate(
+        var throwable = catchThrowable(() -> resolver.resolveTemplate(
                 "${api.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/etc/passwd').toURL().openStream()}",
-                Map.of("api", api)
-            )
-        );
+                Map.of("api", api)));
         assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
     }
 }

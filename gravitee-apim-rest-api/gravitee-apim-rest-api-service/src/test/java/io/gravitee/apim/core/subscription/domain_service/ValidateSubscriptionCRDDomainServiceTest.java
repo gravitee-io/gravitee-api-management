@@ -46,25 +46,28 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_keys_is_set_on_non_api_key_plan() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build())).build();
+        var spec = aSpec().apiKeys(
+                        List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build()))
+                .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("JWT"));
 
-        var result = cut.validateAndSanitize(
-            new ValidateSubscriptionCRDDomainService.Input(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec)
-        );
+        var result = cut.validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec));
 
         assertThat(result.severe()).isPresent();
-        assertThat(result.severe().orElseThrow().getFirst().getMessage()).contains("apiKeys is only allowed for API_KEY plans");
+        assertThat(result.severe().orElseThrow().getFirst().getMessage())
+                .contains("apiKeys is only allowed for API_KEY plans");
     }
 
     @Test
     void should_accept_api_keys_on_api_key_plan() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build())).build();
+        var spec = aSpec().apiKeys(
+                        List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build()))
+                .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
-        var result = cut.validateAndSanitize(
-            new ValidateSubscriptionCRDDomainService.Input(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec)
-        );
+        var result = cut.validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec));
 
         assertThat(result.severe()).isEmpty();
         assertThat(result.value()).isPresent();
@@ -73,14 +76,14 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_keys_has_duplicate_key() {
-        var spec = aSpec()
-            .apiKeys(List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build(), ApiKeyCRDSpec.builder().key(VALID_KEY).build()))
-            .build();
+        var spec = aSpec().apiKeys(List.of(
+                        ApiKeyCRDSpec.builder().key(VALID_KEY).build(),
+                        ApiKeyCRDSpec.builder().key(VALID_KEY).build()))
+                .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
-        var result = cut.validateAndSanitize(
-            new ValidateSubscriptionCRDDomainService.Input(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec)
-        );
+        var result = cut.validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec));
 
         assertThat(result.severe()).isPresent();
         assertThat(result.severe().orElseThrow().getFirst().getMessage()).contains("duplicate key");
@@ -88,12 +91,12 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_keys_has_blank_key() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key("").build())).build();
+        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key("").build()))
+                .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
-        var result = cut.validateAndSanitize(
-            new ValidateSubscriptionCRDDomainService.Input(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec)
-        );
+        var result = cut.validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec));
 
         assertThat(result.severe()).isPresent();
         assertThat(result.severe().orElseThrow().getFirst().getMessage()).contains("non-empty key");
@@ -101,12 +104,13 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_key_is_too_short() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key("short-key").build())).build();
+        var spec = aSpec().apiKeys(
+                        List.of(ApiKeyCRDSpec.builder().key("short-key").build()))
+                .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
-        var result = cut.validateAndSanitize(
-            new ValidateSubscriptionCRDDomainService.Input(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec)
-        );
+        var result = cut.validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec));
 
         assertThat(result.severe()).isPresent();
         assertThat(result.severe().orElseThrow().getFirst().getMessage()).contains("between 32 and 256");
@@ -114,12 +118,13 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_key_is_too_long() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key("k".repeat(257)).build())).build();
+        var spec = aSpec().apiKeys(
+                        List.of(ApiKeyCRDSpec.builder().key("k".repeat(257)).build()))
+                .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
-        var result = cut.validateAndSanitize(
-            new ValidateSubscriptionCRDDomainService.Input(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec)
-        );
+        var result = cut.validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id"), spec));
 
         assertThat(result.severe()).isPresent();
         assertThat(result.severe().orElseThrow().getFirst().getMessage()).contains("between 32 and 256");
@@ -127,19 +132,21 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     private static SubscriptionCRDSpec.SubscriptionCRDSpecBuilder aSpec() {
         return SubscriptionCRDSpec.builder()
-            .id("subscription-id")
-            .referenceId("api-id")
-            .referenceType(SubscriptionReferenceType.API)
-            .applicationId("application-id")
-            .planId(PLAN_ID);
+                .id("subscription-id")
+                .referenceId("api-id")
+                .referenceType(SubscriptionReferenceType.API)
+                .applicationId("application-id")
+                .planId(PLAN_ID);
     }
 
     private static Plan v2PlanWith(String security) {
         return Plan.builder()
-            .id(PLAN_ID)
-            .apiId("api-id")
-            .definitionVersion(DefinitionVersion.V2)
-            .planDefinitionV2(io.gravitee.definition.model.Plan.builder().security(security).build())
-            .build();
+                .id(PLAN_ID)
+                .apiId("api-id")
+                .definitionVersion(DefinitionVersion.V2)
+                .planDefinitionV2(io.gravitee.definition.model.Plan.builder()
+                        .security(security)
+                        .build())
+                .build();
     }
 }

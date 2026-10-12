@@ -23,13 +23,13 @@ import java.util.List;
 /**
  * Wire shape for a metric query on the facets and time-series endpoints.
  */
-public record FacetMetricQueryDto(String name, List<String> measures, List<SortSpecDto> sorts, List<FilterConditionDto> filters) {
+public record FacetMetricQueryDto(
+        String name, List<String> measures, List<SortSpecDto> sorts, List<FilterConditionDto> filters) {
     public AnalyticsFacetMetricQuery toCore() {
         return new AnalyticsFacetMetricQuery(
-            name,
-            measures != null ? measures : List.of(),
-            RequestEntries.map(sorts, "sorts", SortSpecDto::toCore),
-            RequestEntries.map(filters, "metrics[].filters", FilterConditionDto::toCore)
-        );
+                name,
+                measures != null ? measures : List.of(),
+                RequestEntries.map(sorts, "sorts", SortSpecDto::toCore),
+                RequestEntries.map(filters, "metrics[].filters", FilterConditionDto::toCore));
     }
 }

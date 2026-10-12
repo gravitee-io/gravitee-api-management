@@ -64,30 +64,27 @@ class GammaDashboardRepositoryAdapterTest {
     @Test
     void should_map_persisted_filter_shape_to_the_domain_filter_condition_shape() throws Exception {
         GammaDashboard persisted = GammaDashboard.builder()
-            .id("dash-1")
-            .environmentId("env-1")
-            .title("Performance overview")
-            .filters(
-                List.of(
-                    GammaDashboard.Filter.builder()
+                .id("dash-1")
+                .environmentId("env-1")
+                .title("Performance overview")
+                .filters(List.of(GammaDashboard.Filter.builder()
                         .field("API_TYPE")
                         .label("API Type")
                         .operator("eq")
                         .value(List.of("MCP"))
                         .editable(false)
-                        .build()
-                )
-            )
-            .widgets("[]")
-            .version(3)
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .build();
-        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1")).thenReturn(Optional.of(persisted));
+                        .build()))
+                .widgets("[]")
+                .version(3)
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1"))
+                .thenReturn(Optional.of(persisted));
 
         Dashboard dashboard = new GammaDashboardRepositoryAdapter(gammaDashboardRepository)
-            .findByIdAndEnvironmentId("dash-1", "env-1")
-            .orElseThrow();
+                .findByIdAndEnvironmentId("dash-1", "env-1")
+                .orElseThrow();
 
         var filter = dashboard.filters().get(0);
         assertThat(filter.condition().name()).isEqualTo("API_TYPE");
@@ -100,38 +97,44 @@ class GammaDashboardRepositoryAdapterTest {
     @Test
     void should_wrap_unsupported_or_missing_persisted_operator_as_a_technical_exception() throws Exception {
         GammaDashboard persisted = GammaDashboard.builder()
-            .id("dash-1")
-            .environmentId("env-1")
-            .title("Performance overview")
-            .filters(List.of(GammaDashboard.Filter.builder().field("API_TYPE").operator(null).value(List.of("MCP")).build()))
-            .widgets("[]")
-            .version(1)
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .build();
-        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1")).thenReturn(Optional.of(persisted));
+                .id("dash-1")
+                .environmentId("env-1")
+                .title("Performance overview")
+                .filters(List.of(GammaDashboard.Filter.builder()
+                        .field("API_TYPE")
+                        .operator(null)
+                        .value(List.of("MCP"))
+                        .build()))
+                .widgets("[]")
+                .version(1)
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1"))
+                .thenReturn(Optional.of(persisted));
 
-        assertThatThrownBy(() ->
-            new GammaDashboardRepositoryAdapter(gammaDashboardRepository).findByIdAndEnvironmentId("dash-1", "env-1")
-        ).isInstanceOf(TechnicalDomainException.class);
+        assertThatThrownBy(() -> new GammaDashboardRepositoryAdapter(gammaDashboardRepository)
+                        .findByIdAndEnvironmentId("dash-1", "env-1"))
+                .isInstanceOf(TechnicalDomainException.class);
     }
 
     @Test
     void should_parse_widgets_json_verbatim() throws Exception {
         GammaDashboard persisted = GammaDashboard.builder()
-            .id("dash-1")
-            .environmentId("env-1")
-            .title("Performance overview")
-            .widgets("[{\"type\":\"metric\"}]")
-            .version(1)
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .build();
-        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1")).thenReturn(Optional.of(persisted));
+                .id("dash-1")
+                .environmentId("env-1")
+                .title("Performance overview")
+                .widgets("[{\"type\":\"metric\"}]")
+                .version(1)
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1"))
+                .thenReturn(Optional.of(persisted));
 
         Dashboard dashboard = new GammaDashboardRepositoryAdapter(gammaDashboardRepository)
-            .findByIdAndEnvironmentId("dash-1", "env-1")
-            .orElseThrow();
+                .findByIdAndEnvironmentId("dash-1", "env-1")
+                .orElseThrow();
 
         assertThat(dashboard.widgets().isArray()).isTrue();
         assertThat(dashboard.widgets().get(0).get("type").asText()).isEqualTo("metric");
@@ -140,19 +143,20 @@ class GammaDashboardRepositoryAdapterTest {
     @Test
     void should_default_widgets_to_null_node_when_not_persisted() throws Exception {
         GammaDashboard persisted = GammaDashboard.builder()
-            .id("dash-1")
-            .environmentId("env-1")
-            .title("Performance overview")
-            .widgets(null)
-            .version(1)
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .build();
-        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1")).thenReturn(Optional.of(persisted));
+                .id("dash-1")
+                .environmentId("env-1")
+                .title("Performance overview")
+                .widgets(null)
+                .version(1)
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+        when(gammaDashboardRepository.findByIdAndEnvironmentId("dash-1", "env-1"))
+                .thenReturn(Optional.of(persisted));
 
         Dashboard dashboard = new GammaDashboardRepositoryAdapter(gammaDashboardRepository)
-            .findByIdAndEnvironmentId("dash-1", "env-1")
-            .orElseThrow();
+                .findByIdAndEnvironmentId("dash-1", "env-1")
+                .orElseThrow();
 
         assertThat(dashboard.widgets().isNull()).isTrue();
     }
@@ -161,19 +165,19 @@ class GammaDashboardRepositoryAdapterTest {
     void should_map_the_domain_shape_back_to_the_persisted_shape_on_create() throws Exception {
         Instant createdAt = Instant.parse("2026-08-07T10:00:00Z");
         Dashboard dashboard = new Dashboard(
-            "dash-1",
-            "env-1",
-            "aim",
-            "Performance overview",
-            "desc",
-            List.of(new DashboardFilter(new FilterCondition("API_TYPE", FilterOperator.NOT_IN, List.of("MCP")), "API Type", true)),
-            new TimeRange(TimeRangeType.RELATIVE, "24h", null, null),
-            new ObjectMapper().readTree("[{\"id\":\"w1\",\"type\":\"metric\"}]"),
-            1,
-            "user-1",
-            createdAt,
-            createdAt
-        );
+                "dash-1",
+                "env-1",
+                "aim",
+                "Performance overview",
+                "desc",
+                List.of(new DashboardFilter(
+                        new FilterCondition("API_TYPE", FilterOperator.NOT_IN, List.of("MCP")), "API Type", true)),
+                new TimeRange(TimeRangeType.RELATIVE, "24h", null, null),
+                new ObjectMapper().readTree("[{\"id\":\"w1\",\"type\":\"metric\"}]"),
+                1,
+                "user-1",
+                createdAt,
+                createdAt);
         when(gammaDashboardRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         new GammaDashboardRepositoryAdapter(gammaDashboardRepository).create(dashboard);
@@ -203,20 +207,20 @@ class GammaDashboardRepositoryAdapterTest {
     @Test
     void should_persist_absent_widgets_as_null_on_an_overwrite() throws Exception {
         Dashboard dashboard = new Dashboard(
-            "dash-1",
-            "env-1",
-            null,
-            "Performance overview",
-            null,
-            List.of(),
-            null,
-            NullNode.getInstance(),
-            2,
-            "user-1",
-            Instant.parse("2026-08-07T10:00:00Z"),
-            Instant.parse("2026-08-07T11:00:00Z")
-        );
-        when(gammaDashboardRepository.updateIfPresent(any())).thenAnswer(invocation -> Optional.of(invocation.getArgument(0)));
+                "dash-1",
+                "env-1",
+                null,
+                "Performance overview",
+                null,
+                List.of(),
+                null,
+                NullNode.getInstance(),
+                2,
+                "user-1",
+                Instant.parse("2026-08-07T10:00:00Z"),
+                Instant.parse("2026-08-07T11:00:00Z"));
+        when(gammaDashboardRepository.updateIfPresent(any()))
+                .thenAnswer(invocation -> Optional.of(invocation.getArgument(0)));
 
         new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfPresent(dashboard);
 
@@ -230,16 +234,19 @@ class GammaDashboardRepositoryAdapterTest {
     @Test
     void should_pass_the_expected_version_through_on_a_guarded_update() throws Exception {
         Dashboard dashboard = versionedDashboard(4);
-        when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt())).thenAnswer(invocation ->
-            Optional.of(invocation.getArgument(0))
-        );
+        when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt()))
+                .thenAnswer(invocation -> Optional.of(invocation.getArgument(0)));
 
-        var updated = new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfVersionMatches(dashboard, 3);
+        var updated =
+                new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfVersionMatches(dashboard, 3);
 
         var captor = ArgumentCaptor.forClass(GammaDashboard.class);
         verify(gammaDashboardRepository).updateIfVersionMatches(captor.capture(), eq(3));
-        assertThat(captor.getValue().getVersion()).as("the write carries the new version, the guard the old one").isEqualTo(4);
-        assertThat(updated).hasValueSatisfying(result -> assertThat(result.version()).isEqualTo(4));
+        assertThat(captor.getValue().getVersion())
+                .as("the write carries the new version, the guard the old one")
+                .isEqualTo(4);
+        assertThat(updated)
+                .hasValueSatisfying(result -> assertThat(result.version()).isEqualTo(4));
     }
 
     /** A refused write is an expected outcome, not a failure — it must not be dressed up as a technical exception. */
@@ -247,18 +254,19 @@ class GammaDashboardRepositoryAdapterTest {
     void should_return_empty_when_the_guarded_update_matched_nothing() throws Exception {
         when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt())).thenReturn(Optional.empty());
 
-        assertThat(
-            new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfVersionMatches(versionedDashboard(4), 3)
-        ).isEmpty();
+        assertThat(new GammaDashboardRepositoryAdapter(gammaDashboardRepository)
+                        .updateIfVersionMatches(versionedDashboard(4), 3))
+                .isEmpty();
     }
 
     @Test
     void should_wrap_a_guarded_update_failure_as_a_technical_exception() throws Exception {
-        when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt())).thenThrow(new TechnicalException("boom"));
+        when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt()))
+                .thenThrow(new TechnicalException("boom"));
 
-        assertThatThrownBy(() ->
-            new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfVersionMatches(versionedDashboard(4), 3)
-        ).isInstanceOf(TechnicalDomainException.class);
+        assertThatThrownBy(() -> new GammaDashboardRepositoryAdapter(gammaDashboardRepository)
+                        .updateIfVersionMatches(versionedDashboard(4), 3))
+                .isInstanceOf(TechnicalDomainException.class);
     }
 
     /** A concurrent delete is an ordinary outcome for an overwrite, not a failure to dress up as one. */
@@ -266,32 +274,31 @@ class GammaDashboardRepositoryAdapterTest {
     void should_return_empty_when_an_overwrite_finds_the_dashboard_gone() throws Exception {
         when(gammaDashboardRepository.updateIfPresent(any())).thenReturn(Optional.empty());
 
-        assertThat(new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfPresent(versionedDashboard(4))).isEmpty();
+        assertThat(new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfPresent(versionedDashboard(4)))
+                .isEmpty();
     }
 
     private static Dashboard versionedDashboard(int version) {
         return new Dashboard(
-            "dash-1",
-            "env-1",
-            null,
-            "Performance overview",
-            null,
-            List.of(),
-            null,
-            NullNode.getInstance(),
-            version,
-            "user-1",
-            Instant.parse("2026-08-07T10:00:00Z"),
-            Instant.parse("2026-08-07T11:00:00Z")
-        );
+                "dash-1",
+                "env-1",
+                null,
+                "Performance overview",
+                null,
+                List.of(),
+                null,
+                NullNode.getInstance(),
+                version,
+                "user-1",
+                Instant.parse("2026-08-07T10:00:00Z"),
+                Instant.parse("2026-08-07T11:00:00Z"));
     }
 
     @Test
     void should_wrap_a_delete_failure_as_a_technical_exception() throws Exception {
         doThrow(new TechnicalException("boom")).when(gammaDashboardRepository).delete("dash-1");
 
-        assertThatThrownBy(() -> new GammaDashboardRepositoryAdapter(gammaDashboardRepository).delete("dash-1")).isInstanceOf(
-            TechnicalDomainException.class
-        );
+        assertThatThrownBy(() -> new GammaDashboardRepositoryAdapter(gammaDashboardRepository).delete("dash-1"))
+                .isInstanceOf(TechnicalDomainException.class);
     }
 }

@@ -32,7 +32,8 @@ public class GetMyAiWorkspaceConsumptionUseCase {
     private final AiWorkspaceMembershipQuery memberships;
     private final ApiProductQueryService apiProductQueryService;
 
-    public GetMyAiWorkspaceConsumptionUseCase(AiWorkspaceMembershipQuery memberships, ApiProductQueryService apiProductQueryService) {
+    public GetMyAiWorkspaceConsumptionUseCase(
+            AiWorkspaceMembershipQuery memberships, ApiProductQueryService apiProductQueryService) {
         this.memberships = memberships;
         this.apiProductQueryService = apiProductQueryService;
     }
@@ -46,18 +47,18 @@ public class GetMyAiWorkspaceConsumptionUseCase {
         if (id == null || id.isBlank()) {
             throw new AiWorkspaceNotFoundException(id);
         }
-        AiWorkspaceMembership membership = memberships
-            .find(input.executionContext(), input.applicationIds(), Set.of(id))
-            .stream()
-            .filter(item -> id.equals(item.apiProductId()))
-            .findFirst()
-            .orElseThrow(() -> new AiWorkspaceNotFoundException(id));
-        ApiProduct product = apiProductQueryService
-            .findByEnvironmentIdAndIdIn(input.executionContext().getEnvironmentId(), Set.of(id))
-            .stream()
-            .filter(item -> item.getKind() == ApiProductKind.AI_WORKSPACE)
-            .findFirst()
-            .orElseThrow(() -> new AiWorkspaceNotFoundException(id));
+        AiWorkspaceMembership membership =
+                memberships.find(input.executionContext(), input.applicationIds(), Set.of(id)).stream()
+                        .filter(item -> id.equals(item.apiProductId()))
+                        .findFirst()
+                        .orElseThrow(() -> new AiWorkspaceNotFoundException(id));
+        ApiProduct product =
+                apiProductQueryService
+                        .findByEnvironmentIdAndIdIn(input.executionContext().getEnvironmentId(), Set.of(id))
+                        .stream()
+                        .filter(item -> item.getKind() == ApiProductKind.AI_WORKSPACE)
+                        .findFirst()
+                        .orElseThrow(() -> new AiWorkspaceNotFoundException(id));
         return new Output(membership.applicationId(), apiIds(product));
     }
 
@@ -65,10 +66,8 @@ public class GetMyAiWorkspaceConsumptionUseCase {
         if (product.getApiIds() == null) {
             return Set.of();
         }
-        return product
-            .getApiIds()
-            .stream()
-            .filter(apiId -> apiId != null && !apiId.isBlank())
-            .collect(Collectors.toSet());
+        return product.getApiIds().stream()
+                .filter(apiId -> apiId != null && !apiId.isBlank())
+                .collect(Collectors.toSet());
     }
 }

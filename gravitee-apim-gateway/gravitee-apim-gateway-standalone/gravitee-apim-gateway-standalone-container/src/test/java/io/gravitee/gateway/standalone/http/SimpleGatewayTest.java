@@ -38,12 +38,11 @@ public class SimpleGatewayTest extends AbstractWiremockGatewayTest {
     public void call_get_started_api_noBody() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(
-            Request.Get("http://localhost:8082/test/my_team")
-                .addHeader("test", "test01")
-                .addHeader("test", "test02")
-                .addHeader("single", "single")
-        ).returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")
+                        .addHeader("test", "test01")
+                        .addHeader("test", "test02")
+                        .addHeader("single", "single"))
+                .returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
@@ -56,8 +55,8 @@ public class SimpleGatewayTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(post("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(
-            Request.Post("http://localhost:8082/test/my_team").bodyString(request, ContentType.TEXT_PLAIN)
-        ).returnResponse();
+                        Request.Post("http://localhost:8082/test/my_team").bodyString(request, ContentType.TEXT_PLAIN))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -71,8 +70,8 @@ public class SimpleGatewayTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(post("/team/my_team").willReturn(ok().withStatusMessage("dummy-message")));
 
         final HttpResponse response = execute(
-            Request.Post("http://localhost:8082/test/my_team").bodyString(request, ContentType.TEXT_PLAIN)
-        ).returnResponse();
+                        Request.Post("http://localhost:8082/test/my_team").bodyString(request, ContentType.TEXT_PLAIN))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         assertEquals("dummy-message", response.getStatusLine().getReasonPhrase());

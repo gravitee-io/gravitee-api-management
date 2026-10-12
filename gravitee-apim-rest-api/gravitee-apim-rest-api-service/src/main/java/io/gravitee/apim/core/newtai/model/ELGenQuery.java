@@ -19,5 +19,6 @@ import java.util.Map;
 
 public interface ELGenQuery {
     String message();
+
     Map<String, String> properties();
 }

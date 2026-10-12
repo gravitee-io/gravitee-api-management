@@ -33,39 +33,44 @@ import java.util.Set;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record FilterSpecDto(
-    String name,
-    String label,
-    String type,
-    List<String> operators,
-    List<EnumValueDto> enumValues,
-    RangeDto range,
-    List<String> signals,
-    List<String> apiTypes
-) {
+        String name,
+        String label,
+        String type,
+        List<String> operators,
+        List<EnumValueDto> enumValues,
+        RangeDto range,
+        List<String> signals,
+        List<String> apiTypes) {
     public record EnumValueDto(String value, String label) {}
 
-    public record RangeDto(@JsonInclude(JsonInclude.Include.NON_NULL) Number min, @JsonInclude(JsonInclude.Include.NON_NULL) Number max) {}
+    public record RangeDto(
+            @JsonInclude(JsonInclude.Include.NON_NULL) Number min,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Number max) {}
 
     public static FilterSpecDto from(FilterSpec spec) {
         return new FilterSpecDto(
-            spec.name(),
-            spec.label(),
-            spec.type().name().toLowerCase(java.util.Locale.ROOT),
-            spec.operators().stream().map(Enum::name).toList(),
-            spec.enumValues() == null
-                ? null
-                : spec
-                    .enumValues()
-                    .stream()
-                    .map(v -> new EnumValueDto(v.value(), v.label()))
-                    .toList(),
-            spec.range() == null ? null : new RangeDto(spec.range().min(), spec.range().max()),
-            sortedNames(spec.signals()),
-            sortedNames(spec.apiTypes())
-        );
+                spec.name(),
+                spec.label(),
+                spec.type().name().toLowerCase(java.util.Locale.ROOT),
+                spec.operators().stream().map(Enum::name).toList(),
+                spec.enumValues() == null
+                        ? null
+                        : spec.enumValues().stream()
+                                .map(v -> new EnumValueDto(v.value(), v.label()))
+                                .toList(),
+                spec.range() == null
+                        ? null
+                        : new RangeDto(spec.range().min(), spec.range().max()),
+                sortedNames(spec.signals()),
+                sortedNames(spec.apiTypes()));
     }
 
     private static <E extends Enum<E>> List<String> sortedNames(Set<E> values) {
-        return values == null ? List.of() : values.stream().map(Enum::name).sorted(Comparator.naturalOrder()).toList();
+        return values == null
+                ? List.of()
+                : values.stream()
+                        .map(Enum::name)
+                        .sorted(Comparator.naturalOrder())
+                        .toList();
     }
 }

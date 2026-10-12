@@ -26,11 +26,8 @@ import java.util.Map;
 public class ClientCertificateLastRemovalException extends AbstractManagementException {
 
     public ClientCertificateLastRemovalException(String applicationId) {
-        super(
-            "Client certificate cannot be revoked for application '" +
-                applicationId +
-                "': active subscriptions exist, and this is the last certificate."
-        );
+        super("Client certificate cannot be revoked for application '" + applicationId
+                + "': active subscriptions exist, and this is the last certificate.");
     }
 
     @Override

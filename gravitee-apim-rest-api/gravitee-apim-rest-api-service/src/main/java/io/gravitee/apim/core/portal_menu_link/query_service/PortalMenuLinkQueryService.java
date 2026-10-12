@@ -21,5 +21,7 @@ import java.util.List;
 
 public interface PortalMenuLinkQueryService {
     List<PortalMenuLink> findByEnvironmentIdSortByOrder(String environmentId);
-    List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(String environmentId, PortalMenuLinkVisibility visibility);
+
+    List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
+            String environmentId, PortalMenuLinkVisibility visibility);
 }

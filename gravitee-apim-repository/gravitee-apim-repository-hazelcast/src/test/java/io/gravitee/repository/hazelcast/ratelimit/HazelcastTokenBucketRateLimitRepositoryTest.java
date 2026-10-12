@@ -63,9 +63,12 @@ class HazelcastTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRat
         // capacity 100 at 2 tokens per 1000ms => the bucket would refill fully in 50s, so the entry is
         // given a 50s TTL: long enough that it is never evicted before it would be full, after which
         // evicting and recreating it full is equivalent to keeping it.
-        repository.refillAndTryConsume("ttl", 1, 2, 1_000L, 100, System.currentTimeMillis(), () -> new TokenBucket("ttl")).blockingGet();
+        repository
+                .refillAndTryConsume("ttl", 1, 2, 1_000L, 100, System.currentTimeMillis(), () -> new TokenBucket("ttl"))
+                .blockingGet();
 
-        EntryView<String, TokenBucket> view = hazelcast.<String, TokenBucket>getMap(TOKEN_BUCKET_MAP).getEntryView("ttl");
+        EntryView<String, TokenBucket> view =
+                hazelcast.<String, TokenBucket>getMap(TOKEN_BUCKET_MAP).getEntryView("ttl");
         assertThat(view.getTtl()).isEqualTo(50_000L);
     }
 }

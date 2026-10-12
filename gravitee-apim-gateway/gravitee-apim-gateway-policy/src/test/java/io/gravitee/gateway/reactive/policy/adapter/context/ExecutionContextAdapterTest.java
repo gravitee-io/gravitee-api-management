@@ -39,7 +39,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class ExecutionContextAdapterTest {
 
-    @Mock(extraInterfaces = { io.gravitee.gateway.api.Invoker.class })
+    @Mock(extraInterfaces = {io.gravitee.gateway.api.Invoker.class})
     private Invoker invoker;
 
     @Test

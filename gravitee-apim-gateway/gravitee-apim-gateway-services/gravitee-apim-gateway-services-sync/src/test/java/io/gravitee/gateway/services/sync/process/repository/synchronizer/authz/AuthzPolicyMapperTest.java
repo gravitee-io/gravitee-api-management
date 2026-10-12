@@ -28,9 +28,7 @@ class AuthzPolicyMapperTest {
 
     @Test
     void toDeploy_global_policy_yields_deployable_without_entityId() {
-        Event event = event(
-            "evt-1",
-            """
+        Event event = event("evt-1", """
             {
               "id": "doc-uuid-1",
               "name": "Global default-deny",
@@ -39,8 +37,7 @@ class AuthzPolicyMapperTest {
               "policyText": "permit(principal, action, resource);",
               "environmentId": "env-1"
             }
-            """
-        );
+            """);
 
         AuthzPolicyReactorDeployable d = mapper.toDeploy(event).blockingGet();
 
@@ -55,9 +52,7 @@ class AuthzPolicyMapperTest {
 
     @Test
     void toDeploy_resource_policy_carries_entityId_for_registry_filter() {
-        Event event = event(
-            "evt-2",
-            """
+        Event event = event("evt-2", """
             {
               "id": "doc-uuid-2",
               "name": "Booking read",
@@ -65,8 +60,7 @@ class AuthzPolicyMapperTest {
               "entityId": "api.bookings",
               "policyText": "permit(principal, action == Action::\\"read\\", resource);"
             }
-            """
-        );
+            """);
 
         AuthzPolicyReactorDeployable d = mapper.toDeploy(event).blockingGet();
 
@@ -77,7 +71,9 @@ class AuthzPolicyMapperTest {
 
     @Test
     void toDeploy_resource_policy_without_entityId_returns_empty() {
-        Event event = event("evt-3", "{\"id\": \"doc-3\", \"name\": \"r\", \"kind\": \"RESOURCE\", \"policyText\": \"permit(...);\"}");
+        Event event = event(
+                "evt-3",
+                "{\"id\": \"doc-3\", \"name\": \"r\", \"kind\": \"RESOURCE\", \"policyText\": \"permit(...);\"}");
 
         assertThat(mapper.toDeploy(event).blockingGet()).isNull();
     }
@@ -98,14 +94,16 @@ class AuthzPolicyMapperTest {
 
     @Test
     void toDeploy_whitespace_only_policyText_returns_empty() {
-        Event event = event("evt-blank", "{\"id\": \"doc-blank\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"   \"}");
+        Event event = event(
+                "evt-blank", "{\"id\": \"doc-blank\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"   \"}");
 
         assertThat(mapper.toDeploy(event).blockingGet()).isNull();
     }
 
     @Test
     void toDeploy_unknown_kind_returns_empty() {
-        Event event = event("evt-6", "{\"id\": \"doc\", \"name\": \"n\", \"kind\": \"UNICORN\", \"policyText\": \"x\"}");
+        Event event =
+                event("evt-6", "{\"id\": \"doc\", \"name\": \"n\", \"kind\": \"UNICORN\", \"policyText\": \"x\"}");
 
         assertThat(mapper.toDeploy(event).blockingGet()).isNull();
     }
@@ -119,7 +117,9 @@ class AuthzPolicyMapperTest {
 
     @Test
     void toDeploy_blank_name_falls_back_to_docId_for_diagnostics_stability() {
-        Event event = event("evt-8", "{\"id\": \"doc-8\", \"name\": \"\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
+        Event event = event(
+                "evt-8",
+                "{\"id\": \"doc-8\", \"name\": \"\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
 
         AuthzPolicyReactorDeployable d = mapper.toDeploy(event).blockingGet();
 
@@ -149,9 +149,8 @@ class AuthzPolicyMapperTest {
     @Test
     void toDeploy_carries_event_updatedAt() {
         io.gravitee.repository.management.model.Event event = event(
-            "evt-upd-1",
-            "{\"id\": \"doc-upd-1\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "evt-upd-1",
+                "{\"id\": \"doc-upd-1\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
         event.setUpdatedAt(new java.util.Date(1234L));
 
         AuthzPolicyReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
@@ -162,9 +161,8 @@ class AuthzPolicyMapperTest {
     @Test
     void toDeploy_defaults_updatedAt_to_zero_when_event_has_none() {
         io.gravitee.repository.management.model.Event event = event(
-            "evt-upd-2",
-            "{\"id\": \"doc-upd-2\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "evt-upd-2",
+                "{\"id\": \"doc-upd-2\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
         event.setUpdatedAt(null);
 
         AuthzPolicyReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
@@ -175,9 +173,8 @@ class AuthzPolicyMapperTest {
     @Test
     void toDeploy_carries_the_policy_revision_from_the_wire_updatedAt() {
         io.gravitee.repository.management.model.Event event = event(
-            "evt-rev",
-            "{\"id\": \"doc-rev\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\", \"updatedAt\": \"2026-09-23T10:00:00Z\"}"
-        );
+                "evt-rev",
+                "{\"id\": \"doc-rev\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\", \"updatedAt\": \"2026-09-23T10:00:00Z\"}");
         event.setUpdatedAt(new java.util.Date(1234L));
 
         AuthzPolicyReactorDeployable deployable = mapper.toDeploy(event).blockingGet();

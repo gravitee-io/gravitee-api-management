@@ -25,9 +25,9 @@ public class ClustersEnvironmentIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("clusters")
-            .name("ce1")
-            .key("environmentId", ascending())
-            .build();
+                .collection("clusters")
+                .name("ce1")
+                .key("environmentId", ascending())
+                .build();
     }
 }

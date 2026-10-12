@@ -37,45 +37,45 @@ public class ApiSerializerTest extends AbstractTest {
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-bestMatchFlowMode-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-overridedhttpconfig-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-nopath-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-defaultpath-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-multiplepath-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-path-nohttpmethod-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withoutpolicy-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withoutproperties-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withemptyproperties-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withproperties-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-nossl-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-nooptions-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-default-failover-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-override-failover-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-failover-singlecase-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-hostHeader-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-cors-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-multitenants-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-logging-client-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-truststore-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-keystore-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-endpointgroup-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-response-templates-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-virtualhosts-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-http2-endpoint-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-ssl-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-without-type-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-defaultflow-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-kafka-endpoint-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-default-executionmode-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-executionmode-v3-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-executionmode-v4-emulation-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-propagateClientAcceptEncoding.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withservers.json")
-        );
+                Arguments.of("/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-bestMatchFlowMode-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-overridedhttpconfig-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-nopath-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-defaultpath-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-multiplepath-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-path-nohttpmethod-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withoutpolicy-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withoutproperties-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withemptyproperties-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withproperties-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-nossl-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-nooptions-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-default-failover-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-override-failover-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-failover-singlecase-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-hostHeader-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-cors-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-multitenants-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-logging-client-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-truststore-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-keystore-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-endpointgroup-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-response-templates-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-virtualhosts-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-http2-endpoint-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-ssl-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-grpc-endpoint-without-type-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-defaultflow-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-kafka-endpoint-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-default-executionmode-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-executionmode-v3-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-executionmode-v4-emulation-expected.json"),
+                Arguments.of(
+                        "/io/gravitee/definition/jackson/api-withclientoptions-propagateClientAcceptEncoding.json"),
+                Arguments.of("/io/gravitee/definition/jackson/api-withservers.json"));
     }
 
     @ParameterizedTest
@@ -85,11 +85,14 @@ public class ApiSerializerTest extends AbstractTest {
         final String rawDefinitionToSerialize = IOUtils.toString(read(json));
 
         // This test basically relies on gravitee deserialization and assume it is working properly.
-        // To ensure the test stays generic, comparison is made using JsonNode between original one (the expected one) and the one that have been passed through Gravitee ApiSerializer.
+        // To ensure the test stays generic, comparison is made using JsonNode between original one (the expected one)
+        // and the one that have been passed through Gravitee ApiSerializer.
         // If both are equals, we can consider that ApiSerializer works properly.
 
-        // originalJsonString -> graviteeDeserialize(originalJsonString) -> originalApi -> jsonNode(originalApi) -> originalJsonNode
-        // graviteeSerialize(originalApi) -> serializedJsonString -> graviteeDeserialize(serializedJsonString) -> apiFromSerializedJsonString -> jsonNode(apiFromSerializedJsonString) -> fromSerializedJsonNode
+        // originalJsonString -> graviteeDeserialize(originalJsonString) -> originalApi -> jsonNode(originalApi) ->
+        // originalJsonNode
+        // graviteeSerialize(originalApi) -> serializedJsonString -> graviteeDeserialize(serializedJsonString) ->
+        // apiFromSerializedJsonString -> jsonNode(apiFromSerializedJsonString) -> fromSerializedJsonNode
 
         // Use gravitee mapper and rely on the de-serializer to create a proper json object from the given json.
         final Api originalApi = graviteeMapper.readValue(rawDefinitionToSerialize, Api.class);

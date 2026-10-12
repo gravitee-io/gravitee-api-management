@@ -84,7 +84,8 @@ public class GatewayTestContainer extends GatewayContainer {
 
     @Override
     protected void startBootstrapComponents(AnnotationConfigApplicationContext ctx) {
-        // Execute operations before starting bootstrap components (e.g.: the boot application context has been created).
+        // Execute operations before starting bootstrap components (e.g.: the boot application context has been
+        // created).
         onBootApplicationContextCreated.accept(ctx);
         super.startBootstrapComponents(ctx);
     }

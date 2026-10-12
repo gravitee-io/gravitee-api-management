@@ -44,28 +44,24 @@ class UpdateClusterGroupsUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new UpdateClusterGroupsUseCase(clusterCrudService, auditDomainService);
-        clusterCrudService.initWith(
-            List.of(
-                Cluster.builder()
-                    .id("cluster-1")
-                    .environmentId("env-1")
-                    .organizationId("org-1")
-                    .name("Cluster 1")
-                    .description("desc")
-                    .groups(Set.of("G1"))
-                    .build()
-            )
-        );
+        clusterCrudService.initWith(List.of(Cluster.builder()
+                .id("cluster-1")
+                .environmentId("env-1")
+                .organizationId("org-1")
+                .name("Cluster 1")
+                .description("desc")
+                .groups(Set.of("G1"))
+                .build()));
     }
 
     @Test
     void should_update_cluster_groups_and_create_audit_log() {
         // Given
         var auditInfo = AuditInfo.builder()
-            .organizationId("org-1")
-            .environmentId("env-1")
-            .actor(AuditActor.builder().userId("system").build())
-            .build();
+                .organizationId("org-1")
+                .environmentId("env-1")
+                .actor(AuditActor.builder().userId("system").build())
+                .build();
         var input = new UpdateClusterGroupsUseCase.Input("cluster-1", Set.of("G2", "G3"), auditInfo);
 
         // When

@@ -19,4 +19,5 @@ import io.gravitee.repository.management.api.search.Pageable;
 import java.time.Instant;
 import java.util.Optional;
 
-public record HealthCheckLogQuery(String apiId, Instant from, Instant to, Optional<Boolean> success, Pageable pageable) {}
+public record HealthCheckLogQuery(
+        String apiId, Instant from, Instant to, Optional<Boolean> success, Pageable pageable) {}

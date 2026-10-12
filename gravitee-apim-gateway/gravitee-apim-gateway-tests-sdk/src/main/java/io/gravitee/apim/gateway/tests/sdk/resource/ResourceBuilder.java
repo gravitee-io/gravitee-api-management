@@ -37,10 +37,9 @@ public class ResourceBuilder {
     }
 
     public static ResourcePlugin<ResourceConfiguration> build(
-        String id,
-        Class<? extends Resource> resource,
-        Class<? extends ResourceConfiguration> resourceConfiguration
-    ) {
+            String id,
+            Class<? extends Resource> resource,
+            Class<? extends ResourceConfiguration> resourceConfiguration) {
         return new ResourcePlugin<>() {
             @Override
             public Class<? extends Resource> resource() {

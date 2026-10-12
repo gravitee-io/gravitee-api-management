@@ -77,14 +77,13 @@ class UserTokenPermissionUpgraderTest {
 
         var systemAdmin = getSystemAdminRole();
         var simpleUser = getUserRoleWithPermissionAndName(USER_ROLE, new char[] {});
-        var readUser = getUserRoleWithPermissionAndName(READ_USER_ROLE, new char[] { 'R' });
-        var createUser = getUserRoleWithPermissionAndName(CREATE_READ_USER_ROLE, new char[] { 'C', 'R' });
-        var updateUser = getUserRoleWithPermissionAndName(UPDATE_USER_ROLE, new char[] { 'U' });
-        var deleteUser = getUserRoleWithPermissionAndName(DELETE_USER_ROLE, new char[] { 'D' });
+        var readUser = getUserRoleWithPermissionAndName(READ_USER_ROLE, new char[] {'R'});
+        var createUser = getUserRoleWithPermissionAndName(CREATE_READ_USER_ROLE, new char[] {'C', 'R'});
+        var updateUser = getUserRoleWithPermissionAndName(UPDATE_USER_ROLE, new char[] {'U'});
+        var deleteUser = getUserRoleWithPermissionAndName(DELETE_USER_ROLE, new char[] {'D'});
 
-        when(roleService.findByScope(RoleScope.ORGANIZATION, DEFAULT_ORGANIZATION_ID)).thenReturn(
-            List.of(systemAdmin, simpleUser, readUser, createUser, updateUser, deleteUser)
-        );
+        when(roleService.findByScope(RoleScope.ORGANIZATION, DEFAULT_ORGANIZATION_ID))
+                .thenReturn(List.of(systemAdmin, simpleUser, readUser, createUser, updateUser, deleteUser));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -95,10 +94,10 @@ class UserTokenPermissionUpgraderTest {
         assertThat(updatedRoles.size()).isEqualTo(5);
 
         assertRolePermissions(updatedRoles.get(0), simpleUser, new char[] {});
-        assertRolePermissions(updatedRoles.get(1), readUser, new char[] { 'C', 'R', 'D' });
-        assertRolePermissions(updatedRoles.get(2), createUser, new char[] { 'C', 'R', 'D' });
-        assertRolePermissions(updatedRoles.get(3), updateUser, new char[] { 'U' });
-        assertRolePermissions(updatedRoles.get(4), deleteUser, new char[] { 'D' });
+        assertRolePermissions(updatedRoles.get(1), readUser, new char[] {'C', 'R', 'D'});
+        assertRolePermissions(updatedRoles.get(2), createUser, new char[] {'C', 'R', 'D'});
+        assertRolePermissions(updatedRoles.get(3), updateUser, new char[] {'U'});
+        assertRolePermissions(updatedRoles.get(4), deleteUser, new char[] {'D'});
     }
 
     private static RoleEntity getUserRoleWithPermissionAndName(String name, char[] permissions) {
@@ -118,16 +117,16 @@ class UserTokenPermissionUpgraderTest {
         systemAdmin.setId(SystemRole.ADMIN.name());
         systemAdmin.setName(SystemRole.ADMIN.name());
         systemAdmin.setScope(RoleScope.ORGANIZATION);
-        systemAdmin.setPermissions(Map.of(OrganizationPermission.USER.getName(), new char[] { 'C', 'R', 'U', 'D' }));
+        systemAdmin.setPermissions(Map.of(OrganizationPermission.USER.getName(), new char[] {'C', 'R', 'U', 'D'}));
         return systemAdmin;
     }
 
-    private static void assertRolePermissions(UpdateRoleEntity updatedRole, RoleEntity originalRole, char[] expectedPermissions) {
+    private static void assertRolePermissions(
+            UpdateRoleEntity updatedRole, RoleEntity originalRole, char[] expectedPermissions) {
         assertThat(updatedRole.getId()).isEqualTo(originalRole.getId());
         assertThat(updatedRole.getName()).isEqualTo(originalRole.getName());
         assertThat(updatedRole.getScope()).isEqualTo(originalRole.getScope());
-        assertThat(updatedRole.getPermissions().get(OrganizationPermission.USER_TOKEN.getName())).containsExactlyInAnyOrder(
-            expectedPermissions
-        );
+        assertThat(updatedRole.getPermissions().get(OrganizationPermission.USER_TOKEN.getName()))
+                .containsExactlyInAnyOrder(expectedPermissions);
     }
 }

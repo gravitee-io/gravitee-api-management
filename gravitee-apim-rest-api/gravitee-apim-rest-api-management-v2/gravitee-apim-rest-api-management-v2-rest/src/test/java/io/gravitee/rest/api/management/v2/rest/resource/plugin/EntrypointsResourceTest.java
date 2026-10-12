@@ -89,32 +89,32 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
 
         // Check data
         ConnectorPlugin pluginEntity1 = new ConnectorPlugin()
-            .id("id-1")
-            .name("name")
-            .version("1.0")
-            .icon("my-icon")
-            .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
-            .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
-            .deployed(true);
+                .id("id-1")
+                .name("name")
+                .version("1.0")
+                .icon("my-icon")
+                .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
+                .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
+                .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+                .deployed(true);
         ConnectorPlugin pluginEntity2 = new ConnectorPlugin()
-            .id("id-2")
-            .name("name")
-            .version("1.0")
-            .icon("my-icon")
-            .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
-            .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
-            .deployed(true);
+                .id("id-2")
+                .name("name")
+                .version("1.0")
+                .icon("my-icon")
+                .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
+                .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
+                .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+                .deployed(true);
         ConnectorPlugin pluginEntity3 = new ConnectorPlugin()
-            .id("id-3")
-            .name("name")
-            .version("1.0")
-            .icon("my-icon")
-            .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
-            .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
-            .deployed(false);
+                .id("id-3")
+                .name("name")
+                .version("1.0")
+                .icon("my-icon")
+                .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
+                .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
+                .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+                .deployed(false);
 
         assertEquals(Set.of(pluginEntity1, pluginEntity2, pluginEntity3), connectorPlugins);
     }
@@ -130,7 +130,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
         when(entrypointConnectorPluginService.getSchema(FAKE_ENTRYPOINT_ID)).thenReturn("schemaResponse");
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("schema").request().get();
+        final Response response =
+                rootTarget(FAKE_ENTRYPOINT_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("schemaResponse");
@@ -144,9 +145,11 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
+        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID))
+                .thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("schema").request().get();
+        final Response response =
+                rootTarget(FAKE_ENTRYPOINT_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         final Error error = response.readEntity(Error.class);
 
@@ -168,9 +171,11 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
-        when(entrypointConnectorPluginService.getDocumentation(FAKE_ENTRYPOINT_ID)).thenReturn("documentationResponse");
+        when(entrypointConnectorPluginService.getDocumentation(FAKE_ENTRYPOINT_ID))
+                .thenReturn("documentationResponse");
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("documentation").request().get();
+        final Response response =
+                rootTarget(FAKE_ENTRYPOINT_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("documentationResponse");
@@ -184,9 +189,11 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
+        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID))
+                .thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("documentation").request().get();
+        final Response response =
+                rootTarget(FAKE_ENTRYPOINT_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
 
         final Error error = response.readEntity(Error.class);
@@ -209,9 +216,13 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
-        when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID)).thenReturn("subscriptionSchemaResponse");
+        when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID))
+                .thenReturn("subscriptionSchemaResponse");
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("subscription-schema").request().get();
+        final Response response = rootTarget(FAKE_ENTRYPOINT_ID)
+                .path("subscription-schema")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("subscriptionSchemaResponse");
@@ -226,15 +237,15 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
-        when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID, SchemaDisplayFormat.GV_SCHEMA_FORM)).thenReturn(
-            "subscriptionSchemaResponse"
-        );
+        when(entrypointConnectorPluginService.getSubscriptionSchema(
+                        FAKE_ENTRYPOINT_ID, SchemaDisplayFormat.GV_SCHEMA_FORM))
+                .thenReturn("subscriptionSchemaResponse");
 
         final Response response = rootTarget(FAKE_ENTRYPOINT_ID)
-            .path("subscription-schema")
-            .queryParam("display", "gv-schema-form")
-            .request()
-            .get();
+                .path("subscription-schema")
+                .queryParam("display", "gv-schema-form")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("subscriptionSchemaResponse");
@@ -242,9 +253,13 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetEntrypointSubscriptionSchemaWhenPluginNotFound() {
-        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
+        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID))
+                .thenThrow(new PluginNotFoundException(FAKE_ENTRYPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("subscription-schema").request().get();
+        final Response response = rootTarget(FAKE_ENTRYPOINT_ID)
+                .path("subscription-schema")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         final Error error = response.readEntity(Error.class);
 
@@ -278,7 +293,9 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         assertEquals("1.0", entrypoint.getVersion());
         assertEquals("Fake Icon", entrypoint.getIcon());
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE, entrypoint.getSupportedApiType());
-        assertEquals(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE), entrypoint.getSupportedModes());
+        assertEquals(
+                Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE),
+                entrypoint.getSupportedModes());
     }
 
     private ConnectorPluginEntity getConnectorPluginEntity(String id) {
@@ -295,7 +312,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     }
 
     private io.gravitee.apim.core.plugin.model.ConnectorPlugin getConnectorPlugin(String id) {
-        io.gravitee.apim.core.plugin.model.ConnectorPlugin connectorPlugin = new io.gravitee.apim.core.plugin.model.ConnectorPlugin();
+        io.gravitee.apim.core.plugin.model.ConnectorPlugin connectorPlugin =
+                new io.gravitee.apim.core.plugin.model.ConnectorPlugin();
         connectorPlugin.setId(id);
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");

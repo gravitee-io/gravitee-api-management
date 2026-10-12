@@ -34,7 +34,6 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -61,12 +60,15 @@ class SharedPolicyGroupMapperTest {
 
     @BeforeEach
     void setUp() {
-        cut = new SharedPolicyGroupMapper(objectMapper, new EnvironmentService(environmentRepository, organizationRepository));
+        cut = new SharedPolicyGroupMapper(
+                objectMapper, new EnvironmentService(environmentRepository, organizationRepository));
     }
 
     @SneakyThrows
     @ParameterizedTest
-    @EnumSource(value = SharedPolicyGroup.Phase.class, names = { "REQUEST", "PUBLISH", "SUBSCRIBE" })
+    @EnumSource(
+            value = SharedPolicyGroup.Phase.class,
+            names = {"REQUEST", "PUBLISH", "SUBSCRIBE"})
     void should_map_shared_policy_group(SharedPolicyGroup.Phase phase) {
         Organization organization = new Organization();
         organization.setId("orga");
@@ -80,39 +82,34 @@ class SharedPolicyGroupMapperTest {
 
         Event event = new Event();
         final Date date = new Date();
-        event.setPayload(
-            objectMapper.writeValueAsString(
-                SharedPolicyGroup.builder()
-                    .phase(phase)
-                    .policies(List.of())
-                    .id("spg_id")
-                    .name("name")
-                    .environmentId("env")
-                    .deployedAt(date)
-                    .build()
-            )
-        );
-        cut
-            .to(event)
-            .test()
-            .assertValue(reactableSharedPolicyGroup -> {
-                assertThat(reactableSharedPolicyGroup.getId()).isEqualTo("spg_id");
-                assertThat(reactableSharedPolicyGroup.getName()).isEqualTo("name");
-                assertThat(reactableSharedPolicyGroup.getEnvironmentId()).isEqualTo("env");
-                assertThat(reactableSharedPolicyGroup.getEnvironmentHrid()).isEqualTo("env-hrid");
-                assertThat(reactableSharedPolicyGroup.getOrganizationId()).isEqualTo("orga");
-                assertThat(reactableSharedPolicyGroup.getOrganizationHrid()).isEqualTo("orga-hrid");
-                assertThat(reactableSharedPolicyGroup.getDeployedAt()).isEqualTo(date);
-                assertThat(reactableSharedPolicyGroup.enabled()).isTrue();
-                assertThat(reactableSharedPolicyGroup.getDefinition()).satisfies(definition -> {
-                    assertThat(definition.getId()).isEqualTo("spg_id");
-                    assertThat(definition.getName()).isEqualTo("name");
-                    assertThat(definition.getPolicies()).isEmpty();
-                    assertThat(definition.getPhase()).isEqualTo(phase);
-                });
+        event.setPayload(objectMapper.writeValueAsString(SharedPolicyGroup.builder()
+                .phase(phase)
+                .policies(List.of())
+                .id("spg_id")
+                .name("name")
+                .environmentId("env")
+                .deployedAt(date)
+                .build()));
+        cut.to(event)
+                .test()
+                .assertValue(reactableSharedPolicyGroup -> {
+                    assertThat(reactableSharedPolicyGroup.getId()).isEqualTo("spg_id");
+                    assertThat(reactableSharedPolicyGroup.getName()).isEqualTo("name");
+                    assertThat(reactableSharedPolicyGroup.getEnvironmentId()).isEqualTo("env");
+                    assertThat(reactableSharedPolicyGroup.getEnvironmentHrid()).isEqualTo("env-hrid");
+                    assertThat(reactableSharedPolicyGroup.getOrganizationId()).isEqualTo("orga");
+                    assertThat(reactableSharedPolicyGroup.getOrganizationHrid()).isEqualTo("orga-hrid");
+                    assertThat(reactableSharedPolicyGroup.getDeployedAt()).isEqualTo(date);
+                    assertThat(reactableSharedPolicyGroup.enabled()).isTrue();
+                    assertThat(reactableSharedPolicyGroup.getDefinition()).satisfies(definition -> {
+                        assertThat(definition.getId()).isEqualTo("spg_id");
+                        assertThat(definition.getName()).isEqualTo("name");
+                        assertThat(definition.getPolicies()).isEmpty();
+                        assertThat(definition.getPhase()).isEqualTo(phase);
+                    });
 
-                return true;
-            })
-            .assertComplete();
+                    return true;
+                })
+                .assertComplete();
     }
 }

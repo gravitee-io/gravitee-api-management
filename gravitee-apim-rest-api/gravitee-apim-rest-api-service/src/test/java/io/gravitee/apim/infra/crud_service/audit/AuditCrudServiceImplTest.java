@@ -21,24 +21,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
-import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
-import io.gravitee.apim.infra.crud_service.user.UserCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
-import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -72,8 +64,7 @@ public class AuditCrudServiceImplTest {
             // Given
 
             // When
-            service.create(
-                AuditEntity.builder()
+            service.create(AuditEntity.builder()
                     .id("audit-id")
                     .organizationId("organization-id")
                     .environmentId("environment-id")
@@ -84,25 +75,26 @@ public class AuditCrudServiceImplTest {
                     .event("event")
                     .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
                     .patch("[]")
-                    .build()
-            );
+                    .build());
 
             // Then
             var expectedAudit = Audit.builder()
-                .id("audit-id")
-                .organizationId("organization-id")
-                .environmentId("environment-id")
-                .createdAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                .user("system")
-                .properties(Map.of("key", "value"))
-                .referenceType(Audit.AuditReferenceType.API)
-                .referenceId("reference-id")
-                .event("event")
-                .patch("[]")
-                .build();
+                    .id("audit-id")
+                    .organizationId("organization-id")
+                    .environmentId("environment-id")
+                    .createdAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .user("system")
+                    .properties(Map.of("key", "value"))
+                    .referenceType(Audit.AuditReferenceType.API)
+                    .referenceId("reference-id")
+                    .event("event")
+                    .patch("[]")
+                    .build();
 
             verify(auditRepository).create(auditCaptor.capture());
-            Assertions.assertThat(auditCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedAudit);
+            Assertions.assertThat(auditCaptor.getValue())
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedAudit);
         }
 
         @Test
@@ -111,17 +103,15 @@ public class AuditCrudServiceImplTest {
             when(auditRepository.create(any())).thenThrow(new TechnicalException("technical exception"));
 
             // When
-            Throwable throwable = catchThrowable(() ->
-                service.create(
-                    AuditEntity.builder()
-                        .referenceType(AuditEntity.AuditReferenceType.API)
-                        .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
-                        .build()
-                )
-            );
+            Throwable throwable = catchThrowable(() -> service.create(AuditEntity.builder()
+                    .referenceType(AuditEntity.AuditReferenceType.API)
+                    .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                    .build()));
 
             // Then
-            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
+            assertThat(throwable)
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessageContaining("technical exception");
         }
     }
 }

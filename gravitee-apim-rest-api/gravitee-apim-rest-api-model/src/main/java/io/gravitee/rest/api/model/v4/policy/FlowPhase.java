@@ -26,21 +26,19 @@ public enum FlowPhase {
     PUBLISH(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_MESSAGE),
     SUBSCRIBE(ApiProtocolType.NATIVE_KAFKA, ApiProtocolType.HTTP_MESSAGE),
     REQUEST(
-        ApiProtocolType.NATIVE_KAFKA,
-        ApiProtocolType.HTTP_PROXY,
-        ApiProtocolType.HTTP_MESSAGE,
-        ApiProtocolType.MCP_PROXY,
-        ApiProtocolType.LLM_PROXY,
-        ApiProtocolType.A2A_PROXY
-    ),
+            ApiProtocolType.NATIVE_KAFKA,
+            ApiProtocolType.HTTP_PROXY,
+            ApiProtocolType.HTTP_MESSAGE,
+            ApiProtocolType.MCP_PROXY,
+            ApiProtocolType.LLM_PROXY,
+            ApiProtocolType.A2A_PROXY),
     RESPONSE(
-        ApiProtocolType.NATIVE_KAFKA,
-        ApiProtocolType.HTTP_PROXY,
-        ApiProtocolType.HTTP_MESSAGE,
-        ApiProtocolType.MCP_PROXY,
-        ApiProtocolType.LLM_PROXY,
-        ApiProtocolType.A2A_PROXY
-    );
+            ApiProtocolType.NATIVE_KAFKA,
+            ApiProtocolType.HTTP_PROXY,
+            ApiProtocolType.HTTP_MESSAGE,
+            ApiProtocolType.MCP_PROXY,
+            ApiProtocolType.LLM_PROXY,
+            ApiProtocolType.A2A_PROXY);
 
     private final List<ApiProtocolType> apiProtocolType;
 

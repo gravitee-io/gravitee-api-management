@@ -26,7 +26,8 @@ import org.springframework.context.ApplicationContextAware;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationAwareFake extends AbstractConfigurableResource<FakeConfiguration> implements ApplicationContextAware {
+public class ApplicationAwareFake extends AbstractConfigurableResource<FakeConfiguration>
+        implements ApplicationContextAware {
 
     @Getter
     private ApplicationContext context;

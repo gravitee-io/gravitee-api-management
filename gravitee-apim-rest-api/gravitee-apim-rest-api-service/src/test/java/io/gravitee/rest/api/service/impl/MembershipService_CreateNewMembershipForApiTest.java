@@ -36,7 +36,6 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -108,32 +107,31 @@ public class MembershipService_CreateNewMembershipForApiTest {
         reset(membershipRepository, apiSearchService, userService, auditService, roleService, identityService);
 
         membershipService = new MembershipServiceImpl(
-            identityService,
-            userService,
-            null,
-            null,
-            primaryOwnerService,
-            null,
-            membershipRepository,
-            roleService,
-            null,
-            null,
-            apiSearchService,
-            null,
-            apiRepository,
-            null,
-            null,
-            null,
-            auditService,
-            null,
-            null,
-            node,
-            objectMapper,
-            commandRepository,
-            null,
-            null,
-            null
-        );
+                identityService,
+                userService,
+                null,
+                null,
+                primaryOwnerService,
+                null,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                apiSearchService,
+                null,
+                apiRepository,
+                null,
+                null,
+                null,
+                auditService,
+                null,
+                null,
+                node,
+                objectMapper,
+                commandRepository,
+                null,
+                null,
+                null);
 
         mockRole();
         mockApi();
@@ -150,23 +148,20 @@ public class MembershipService_CreateNewMembershipForApiTest {
         newMembership.setReferenceId(API_ID);
         newMembership.setMemberId(existingUserId);
         newMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                existingUserId,
-                io.gravitee.repository.management.model.MembershipMemberType.USER,
-                io.gravitee.repository.management.model.MembershipReferenceType.API,
-                API_ID
-            )
-        ).thenReturn(Collections.emptySet(), Set.of(newMembership));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                        existingUserId,
+                        io.gravitee.repository.management.model.MembershipMemberType.USER,
+                        io.gravitee.repository.management.model.MembershipReferenceType.API,
+                        API_ID))
+                .thenReturn(Collections.emptySet(), Set.of(newMembership));
 
         MemberEntity createdMember = membershipService.createNewMembership(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.API,
-            API_ID,
-            existingUserId,
-            null,
-            "OWNER"
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                existingUserId,
+                null,
+                "OWNER");
 
         assertThat(createdMember).isNotNull();
     }
@@ -182,25 +177,21 @@ public class MembershipService_CreateNewMembershipForApiTest {
         existingMembership.setReferenceId(API_ID);
         existingMembership.setMemberId(existingUserId);
         existingMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                existingUserId,
-                io.gravitee.repository.management.model.MembershipMemberType.USER,
-                io.gravitee.repository.management.model.MembershipReferenceType.API,
-                API_ID
-            )
-        ).thenReturn(Set.of(existingMembership));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                        existingUserId,
+                        io.gravitee.repository.management.model.MembershipMemberType.USER,
+                        io.gravitee.repository.management.model.MembershipReferenceType.API,
+                        API_ID))
+                .thenReturn(Set.of(existingMembership));
 
-        assertThatThrownBy(() ->
-            membershipService.createNewMembership(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.API,
-                API_ID,
-                existingUserId,
-                null,
-                "OWNER"
-            )
-        ).isInstanceOf(MembershipAlreadyExistsException.class);
+        assertThatThrownBy(() -> membershipService.createNewMembership(
+                        GraviteeContext.getExecutionContext(),
+                        MembershipReferenceType.API,
+                        API_ID,
+                        existingUserId,
+                        null,
+                        "OWNER"))
+                .isInstanceOf(MembershipAlreadyExistsException.class);
     }
 
     @Test
@@ -214,23 +205,20 @@ public class MembershipService_CreateNewMembershipForApiTest {
         newMembership.setReferenceId(API_ID);
         newMembership.setMemberId("external-user-id");
         newMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(
-            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                "external-user-id",
-                io.gravitee.repository.management.model.MembershipMemberType.USER,
-                io.gravitee.repository.management.model.MembershipReferenceType.API,
-                API_ID
-            )
-        ).thenReturn(Set.of(newMembership));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                        "external-user-id",
+                        io.gravitee.repository.management.model.MembershipMemberType.USER,
+                        io.gravitee.repository.management.model.MembershipReferenceType.API,
+                        API_ID))
+                .thenReturn(Set.of(newMembership));
 
         MemberEntity createdMember = membershipService.createNewMembership(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.API,
-            API_ID,
-            null,
-            externalReference,
-            "OWNER"
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                null,
+                externalReference,
+                "OWNER");
 
         assertThat(createdMember).isNotNull();
     }
@@ -238,21 +226,22 @@ public class MembershipService_CreateNewMembershipForApiTest {
     private void mockExistingUser(String existingUserId) {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(existingUserId);
-        when(userService.findById(GraviteeContext.getExecutionContext(), existingUserId)).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), existingUserId))
+                .thenReturn(userEntity);
     }
 
     private void mockRole() {
         RoleEntity role = role("API_OWNER");
         lenient()
-            .when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(role));
+                .when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(role));
         when(roleService.findByIds(Set.of("API_OWNER"))).thenReturn(Map.of("API_OWNER", role));
     }
 
     private static RoleEntity role(String roleId) {
         Map<String, char[]> perms = new HashMap<>();
         for (Permission perm : OrganizationPermission.values()) {
-            perms.put(perm.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() });
+            perms.put(perm.getName(), new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
         }
         RoleEntity role = new RoleEntity();
         role.setScope(RoleScope.API);
@@ -280,7 +269,8 @@ public class MembershipService_CreateNewMembershipForApiTest {
         userEntity.setId("external-user-id");
         userEntity.setSource("source");
         userEntity.setSourceId(externalReference);
-        when(userService.findBySource(anyString(), anyString(), anyString(), eq(false))).thenReturn(userEntity);
+        when(userService.findBySource(anyString(), anyString(), anyString(), eq(false)))
+                .thenReturn(userEntity);
 
         mockExistingUser("external-user-id");
     }

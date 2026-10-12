@@ -28,7 +28,7 @@ class FailureOriginClassifierTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { " " })
+    @ValueSource(strings = {" "})
     void should_be_none_without_error_key_when_status_is_not_internal(String errorKey) {
         assertThat(FailureOriginClassifier.classify(errorKey, "CONNECTED")).isEqualTo(FailureOrigin.NONE);
     }
@@ -39,59 +39,65 @@ class FailureOriginClassifierTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "SASL_AUTHENTICATION_FAILED", "ILLEGAL_SASL_STATE", "UNSUPPORTED_SASL_MECHANISM", "SECURITY_DISABLED" })
+    @ValueSource(
+            strings = {
+                "SASL_AUTHENTICATION_FAILED",
+                "ILLEGAL_SASL_STATE",
+                "UNSUPPORTED_SASL_MECHANISM",
+                "SECURITY_DISABLED"
+            })
     void should_localize_authentication_failures_between_client_and_gateway(String errorKey) {
-        assertThat(FailureOriginClassifier.classify(errorKey, "CONNECTION_ERROR")).isEqualTo(FailureOrigin.CLIENT_TO_GATEWAY);
+        assertThat(FailureOriginClassifier.classify(errorKey, "CONNECTION_ERROR"))
+                .isEqualTo(FailureOrigin.CLIENT_TO_GATEWAY);
     }
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "BROKER_NOT_AVAILABLE",
-            "COORDINATOR_NOT_AVAILABLE",
-            "TOPIC_AUTHORIZATION_FAILED",
-            "GROUP_AUTHORIZATION_FAILED",
-            "REBALANCE_IN_PROGRESS",
-            "UNKNOWN_TOPIC_OR_PARTITION",
-            "ILLEGAL_GENERATION",
-            "MEMBER_ID_REQUIRED",
-            "INVALID_TXN_STATE",
-            "NOT_COORDINATOR",
-            "LEADER_NOT_AVAILABLE",
-            "OFFSET_OUT_OF_RANGE",
-        }
-    )
+            strings = {
+                "BROKER_NOT_AVAILABLE",
+                "COORDINATOR_NOT_AVAILABLE",
+                "TOPIC_AUTHORIZATION_FAILED",
+                "GROUP_AUTHORIZATION_FAILED",
+                "REBALANCE_IN_PROGRESS",
+                "UNKNOWN_TOPIC_OR_PARTITION",
+                "ILLEGAL_GENERATION",
+                "MEMBER_ID_REQUIRED",
+                "INVALID_TXN_STATE",
+                "NOT_COORDINATOR",
+                "LEADER_NOT_AVAILABLE",
+                "OFFSET_OUT_OF_RANGE",
+            })
     void should_localize_broker_domain_failures_between_gateway_and_broker(String errorKey) {
-        assertThat(FailureOriginClassifier.classify(errorKey, "SESSION_ERROR")).isEqualTo(FailureOrigin.GATEWAY_TO_BROKER);
+        assertThat(FailureOriginClassifier.classify(errorKey, "SESSION_ERROR"))
+                .isEqualTo(FailureOrigin.GATEWAY_TO_BROKER);
     }
 
     @Test
     void should_localize_unknown_server_error_as_gateway_internal() {
-        assertThat(FailureOriginClassifier.classify("UNKNOWN_SERVER_ERROR", "SESSION_ERROR")).isEqualTo(FailureOrigin.GATEWAY_INTERNAL);
+        assertThat(FailureOriginClassifier.classify("UNKNOWN_SERVER_ERROR", "SESSION_ERROR"))
+                .isEqualTo(FailureOrigin.GATEWAY_INTERNAL);
     }
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            // Unclassified keys: the connection phase localizes the client side; outside it the
-            // side is honestly undetermined rather than guessed.
-            "SOME_FUTURE_ERROR, CONNECTION_ERROR, CLIENT_TO_GATEWAY",
-            "SOME_FUTURE_ERROR, SESSION_ERROR, UNKNOWN",
-            "SOME_FUTURE_ERROR, INTERNAL_ERROR, GATEWAY_INTERNAL",
-            "SOME_FUTURE_ERROR, DISCONNECTED, UNKNOWN",
-            // Genuinely side-ambiguous Kafka keys are undetermined too.
-            "NETWORK_EXCEPTION, SESSION_ERROR, UNKNOWN",
-            "REQUEST_TIMED_OUT, SESSION_ERROR, UNKNOWN",
-        }
-    )
-    void should_fall_back_on_connection_status_for_unclassified_keys(String errorKey, String status, FailureOrigin expected) {
+    @CsvSource({
+        // Unclassified keys: the connection phase localizes the client side; outside it the
+        // side is honestly undetermined rather than guessed.
+        "SOME_FUTURE_ERROR, CONNECTION_ERROR, CLIENT_TO_GATEWAY",
+        "SOME_FUTURE_ERROR, SESSION_ERROR, UNKNOWN",
+        "SOME_FUTURE_ERROR, INTERNAL_ERROR, GATEWAY_INTERNAL",
+        "SOME_FUTURE_ERROR, DISCONNECTED, UNKNOWN",
+        // Genuinely side-ambiguous Kafka keys are undetermined too.
+        "NETWORK_EXCEPTION, SESSION_ERROR, UNKNOWN",
+        "REQUEST_TIMED_OUT, SESSION_ERROR, UNKNOWN",
+    })
+    void should_fall_back_on_connection_status_for_unclassified_keys(
+            String errorKey, String status, FailureOrigin expected) {
         assertThat(FailureOriginClassifier.classify(errorKey, status)).isEqualTo(expected);
     }
 
     @Test
     void should_classify_case_insensitively() {
-        assertThat(FailureOriginClassifier.classify("sasl_authentication_failed", "CONNECTION_ERROR")).isEqualTo(
-            FailureOrigin.CLIENT_TO_GATEWAY
-        );
+        assertThat(FailureOriginClassifier.classify("sasl_authentication_failed", "CONNECTION_ERROR"))
+                .isEqualTo(FailureOrigin.CLIENT_TO_GATEWAY);
     }
 }

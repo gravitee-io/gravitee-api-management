@@ -39,13 +39,12 @@ public final class ApplicationInvitation implements Invitation {
     private ZonedDateTime updatedAt;
 
     private ApplicationInvitation(
-        InvitationId id,
-        String applicationId,
-        String email,
-        String roleName,
-        ZonedDateTime createdAt,
-        ZonedDateTime updatedAt
-    ) {
+            InvitationId id,
+            String applicationId,
+            String email,
+            String roleName,
+            ZonedDateTime createdAt,
+            ZonedDateTime updatedAt) {
         this.id = id;
         this.applicationId = applicationId;
         this.email = email;
@@ -60,13 +59,12 @@ public final class ApplicationInvitation implements Invitation {
     }
 
     public static ApplicationInvitation of(
-        InvitationId id,
-        String applicationId,
-        String email,
-        String roleName,
-        ZonedDateTime createdAt,
-        ZonedDateTime updatedAt
-    ) {
+            InvitationId id,
+            String applicationId,
+            String email,
+            String roleName,
+            ZonedDateTime createdAt,
+            ZonedDateTime updatedAt) {
         return new ApplicationInvitation(id, applicationId, email, roleName, createdAt, updatedAt);
     }
 
@@ -123,24 +121,21 @@ public final class ApplicationInvitation implements Invitation {
 
     @Override
     public String toString() {
-        return (
-            "ApplicationInvitation{" +
-            "id=" +
-            id +
-            ", applicationId='" +
-            applicationId +
-            '\'' +
-            ", email='" +
-            email +
-            '\'' +
-            ", roleName='" +
-            roleName +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("ApplicationInvitation{" + "id="
+                + id
+                + ", applicationId='"
+                + applicationId
+                + '\''
+                + ", email='"
+                + email
+                + '\''
+                + ", roleName='"
+                + roleName
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

@@ -41,30 +41,32 @@ abstract class AbstractHttpTargetGrpcV4GatewayTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     protected void callBackend(HttpClient httpClient, String contentType) throws InterruptedException {
         httpClient
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(request -> {
-                if (contentType != null) {
-                    request.putHeader("Content-Type", contentType);
-                }
-                return request.rxSend("hello");
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body().toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertNoErrors();
+                .rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> {
+                    if (contentType != null) {
+                        request.putHeader("Content-Type", contentType);
+                    }
+                    return request.rxSend("hello");
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body().toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertNoErrors();
     }
 }

@@ -39,11 +39,10 @@ public class RevokeApplicationSubscriptionApiKeyUseCase {
     private final RevokeApiKeyDomainService revokeApiKeyDomainService;
 
     public RevokeApplicationSubscriptionApiKeyUseCase(
-        SubscriptionCrudService subscriptionCrudService,
-        ApplicationCrudService applicationCrudService,
-        ApiKeyQueryService apiKeyQueryService,
-        RevokeApiKeyDomainService revokeApiKeyDomainService
-    ) {
+            SubscriptionCrudService subscriptionCrudService,
+            ApplicationCrudService applicationCrudService,
+            ApiKeyQueryService apiKeyQueryService,
+            RevokeApiKeyDomainService revokeApiKeyDomainService) {
         this.subscriptionCrudService = subscriptionCrudService;
         this.applicationCrudService = applicationCrudService;
         this.apiKeyQueryService = apiKeyQueryService;
@@ -65,17 +64,13 @@ public class RevokeApplicationSubscriptionApiKeyUseCase {
         }
 
         var application = applicationCrudService.findById(
-            new ExecutionContext(input.auditInfo().organizationId(), input.auditInfo().environmentId()),
-            apiKey.get().getApplicationId()
-        );
+                new ExecutionContext(
+                        input.auditInfo().organizationId(), input.auditInfo().environmentId()),
+                apiKey.get().getApplicationId());
         if (application.hasApiKeySharedMode()) {
-            throw new InvalidApplicationApiKeyModeException(
-                String.format(
+            throw new InvalidApplicationApiKeyModeException(String.format(
                     "Invalid operation for API Key mode [%s] of application [%s]",
-                    application.getApiKeyMode(),
-                    application.getId()
-                )
-            );
+                    application.getApiKeyMode(), application.getId()));
         }
 
         return new Output(revokeApiKeyDomainService.revoke(apiKey.get(), input.auditInfo()));

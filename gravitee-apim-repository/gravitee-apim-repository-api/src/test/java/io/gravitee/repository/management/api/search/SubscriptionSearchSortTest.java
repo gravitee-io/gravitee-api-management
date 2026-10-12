@@ -30,36 +30,41 @@ class SubscriptionSearchSortTest {
 
     @Test
     void should_default_to_updatedAt_for_null_field() {
-        assertThat(SubscriptionSearchSort.fromSortable(new SortableBuilder().order(Order.ASC).build())).isEqualTo(
-            SubscriptionSearchSort.UPDATED_AT
-        );
+        assertThat(SubscriptionSearchSort.fromSortable(
+                        new SortableBuilder().order(Order.ASC).build()))
+                .isEqualTo(SubscriptionSearchSort.UPDATED_AT);
     }
 
     @Test
     void should_resolve_updatedAt_field() {
-        assertThat(SubscriptionSearchSort.fromSortable(new SortableBuilder().field("updatedAt").order(Order.ASC).build())).isEqualTo(
-            SubscriptionSearchSort.UPDATED_AT
-        );
+        assertThat(SubscriptionSearchSort.fromSortable(new SortableBuilder()
+                        .field("updatedAt")
+                        .order(Order.ASC)
+                        .build()))
+                .isEqualTo(SubscriptionSearchSort.UPDATED_AT);
     }
 
     @Test
     void should_resolve_plan_field_to_plan_id_keyset() {
-        assertThat(SubscriptionSearchSort.fromSortable(new SortableBuilder().field("plan").order(Order.ASC).build())).isEqualTo(
-            SubscriptionSearchSort.PLAN_ID
-        );
+        assertThat(SubscriptionSearchSort.fromSortable(
+                        new SortableBuilder().field("plan").order(Order.ASC).build()))
+                .isEqualTo(SubscriptionSearchSort.PLAN_ID);
     }
 
     @Test
     void should_resolve_id_field_to_id_only_keyset() {
-        assertThat(SubscriptionSearchSort.fromSortable(new SortableBuilder().field("id").order(Order.ASC).build())).isEqualTo(
-            SubscriptionSearchSort.ID
-        );
+        assertThat(SubscriptionSearchSort.fromSortable(
+                        new SortableBuilder().field("id").order(Order.ASC).build()))
+                .isEqualTo(SubscriptionSearchSort.ID);
     }
 
     @Test
     void should_reject_unsupported_field() {
-        assertThatThrownBy(() -> SubscriptionSearchSort.fromSortable(new SortableBuilder().field("createdAt").order(Order.ASC).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("createdAt");
+        assertThatThrownBy(() -> SubscriptionSearchSort.fromSortable(new SortableBuilder()
+                        .field("createdAt")
+                        .order(Order.ASC)
+                        .build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("createdAt");
     }
 }

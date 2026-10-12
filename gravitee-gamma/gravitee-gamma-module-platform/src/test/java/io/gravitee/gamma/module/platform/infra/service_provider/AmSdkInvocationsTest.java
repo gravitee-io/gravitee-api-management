@@ -33,21 +33,22 @@ class AmSdkInvocationsTest {
         ApiException ae = new ApiException(400, null, "{\"message\":\"Domain not found\",\"http_status\":400}");
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("Domain not found")
-            .extracting(Throwable::getMessage)
-            .satisfies(m -> assertThat(m).doesNotContain("{").doesNotContain("http_status"));
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("Domain not found")
+                .extracting(Throwable::getMessage)
+                .satisfies(m -> assertThat(m).doesNotContain("{").doesNotContain("http_status"));
     }
 
     @Test
     void falls_back_to_error_description_when_no_message() {
-        ApiException ae = new ApiException(400, null, "{\"error\":\"invalid_request\",\"error_description\":\"bad redirect uri\"}");
+        ApiException ae = new ApiException(
+                400, null, "{\"error\":\"invalid_request\",\"error_description\":\"bad redirect uri\"}");
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("bad redirect uri")
-            .extracting(Throwable::getMessage)
-            .satisfies(m -> assertThat(m).doesNotContain("{"));
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("bad redirect uri")
+                .extracting(Throwable::getMessage)
+                .satisfies(m -> assertThat(m).doesNotContain("{"));
     }
 
     @Test
@@ -55,10 +56,10 @@ class AmSdkInvocationsTest {
         ApiException ae = new ApiException(400, null, "{\"error\":\"invalid_request\"}");
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("invalid_request")
-            .extracting(Throwable::getMessage)
-            .satisfies(m -> assertThat(m).doesNotContain("{"));
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("invalid_request")
+                .extracting(Throwable::getMessage)
+                .satisfies(m -> assertThat(m).doesNotContain("{"));
     }
 
     @Test
@@ -66,8 +67,8 @@ class AmSdkInvocationsTest {
         ApiException ae = new ApiException(502, null, "Bad Gateway");
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("Bad Gateway");
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("Bad Gateway");
     }
 
     @Test
@@ -75,10 +76,10 @@ class AmSdkInvocationsTest {
         ApiException ae = new ApiException(400, "boom", null, "{\"foo\":\"bar\"}");
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("boom")
-            .extracting(Throwable::getMessage)
-            .satisfies(m -> assertThat(m).doesNotContain("{").doesNotContain("foo"));
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("boom")
+                .extracting(Throwable::getMessage)
+                .satisfies(m -> assertThat(m).doesNotContain("{").doesNotContain("foo"));
     }
 
     @Test
@@ -86,10 +87,10 @@ class AmSdkInvocationsTest {
         ApiException ae = new ApiException(502, "boom", null, "<html><body>502 Bad Gateway</body></html>");
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("boom")
-            .extracting(Throwable::getMessage)
-            .satisfies(m -> assertThat(m).doesNotContain("<"));
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("boom")
+                .extracting(Throwable::getMessage)
+                .satisfies(m -> assertThat(m).doesNotContain("<"));
     }
 
     @Test
@@ -97,10 +98,10 @@ class AmSdkInvocationsTest {
         ApiException ae = new ApiException(500, "boom", null, "x".repeat(2000));
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("boom")
-            .extracting(Throwable::getMessage)
-            .satisfies(m -> assertThat(m).doesNotContain("xxxx"));
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("boom")
+                .extracting(Throwable::getMessage)
+                .satisfies(m -> assertThat(m).doesNotContain("xxxx"));
     }
 
     @Test
@@ -108,7 +109,7 @@ class AmSdkInvocationsTest {
         ApiException ae = new ApiException(500, "boom", null, "");
 
         assertThatThrownBy(() -> AmSdkInvocations.await(Future.failedFuture(ae)))
-            .isInstanceOf(AmUpstreamException.class)
-            .hasMessageContaining("boom");
+                .isInstanceOf(AmUpstreamException.class)
+                .hasMessageContaining("boom");
     }
 }

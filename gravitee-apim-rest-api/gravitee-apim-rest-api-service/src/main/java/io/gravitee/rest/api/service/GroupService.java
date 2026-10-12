@@ -39,12 +39,19 @@ import java.util.Set;
  */
 public interface GroupService {
     GroupEntity create(ExecutionContext executionContext, NewGroupEntity group);
+
     void delete(ExecutionContext executionContext, String groupId);
+
     void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username);
+
     List<GroupEntity> findAll(ExecutionContext executionContext);
+
     Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, String query);
+
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
+
     GroupEntity findById(ExecutionContext executionContext, String groupId);
+
     Set<GroupEntity> findByIds(Set<String> groupIds);
 
     /**
@@ -57,17 +64,18 @@ public interface GroupService {
      * Without environment GROUP Read, a caller may only keep groups already on the resource or groups they belong to.
      */
     Set<String> retainGroupsTheCallerMayAssign(
-        ExecutionContext executionContext,
-        String userId,
-        Set<String> requested,
-        Set<String> alreadyOnResource
-    );
+            ExecutionContext executionContext, String userId, Set<String> requested, Set<String> alreadyOnResource);
+
     void associate(final ExecutionContext executionContext, String groupId, String associationType);
+
     Set<GroupEntity> findByEvent(final String environmentId, GroupEvent event);
+
     List<GroupEntity> findByName(final String environmentId, String name);
 
     Set<GroupEntity> findByUser(String username);
+
     Set<GroupEntity> findByUserAndEnvironment(String username, String environmentId);
+
     List<ApiEntity> getApis(final String environmentId, String groupId);
 
     /**
@@ -82,12 +90,20 @@ public interface GroupService {
      * environment.
      */
     void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope);
+
     List<ApplicationEntity> getApplications(String groupId);
+
     List<ApiProductEntity> getApiProducts(final String environmentId, String groupId);
+
     int getNumberOfMembers(ExecutionContext executionContext, String groupId);
+
     boolean isUserAuthorizedToAccessApiData(GenericApiEntity api, List<String> excludedGroups, String username);
+
     GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group);
+
     void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner);
+
     void updateApiProductPrimaryOwner(String groupId, String newApiProductPrimaryOwner);
+
     Set<Group> findAllByEnvironment(String environmentId);
 }

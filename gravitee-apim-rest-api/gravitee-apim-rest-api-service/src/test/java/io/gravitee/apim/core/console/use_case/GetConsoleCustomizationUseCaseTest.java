@@ -43,89 +43,113 @@ class GetConsoleCustomizationUseCaseTest {
     @Mock
     private License license;
 
-    private final ParametersDomainServiceInMemory parametersDomainServiceInMemory = new ParametersDomainServiceInMemory();
+    private final ParametersDomainServiceInMemory parametersDomainServiceInMemory =
+            new ParametersDomainServiceInMemory();
 
     private GetConsoleCustomizationUseCase useCase;
 
     @BeforeEach
     void setup() {
         when(licenseManager.getPlatformLicense()).thenReturn(license);
-        useCase = new GetConsoleCustomizationUseCase(new GraviteeLicenseDomainService(licenseManager), parametersDomainServiceInMemory);
+        useCase = new GetConsoleCustomizationUseCase(
+                new GraviteeLicenseDomainService(licenseManager), parametersDomainServiceInMemory);
     }
 
     @Test
     void should_return_console_customization() {
-        parametersDomainServiceInMemory.initWith(
-            List.of(
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build(),
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_FAVICON.key()).value("favicon").build(),
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_LOGO.key()).value("logo").build(),
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE.key()).value("menuActive").build(),
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND.key()).value("menuBackground").build(),
+        parametersDomainServiceInMemory.initWith(List.of(
                 Parameter.builder()
-                    .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME.key())
-                    .value("enterprise name")
-                    .build(),
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE.key()).value("cta title").build(),
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS.key()).value("false").build(),
+                        .key(Key.CONSOLE_CUSTOMIZATION_TITLE.key())
+                        .value("title")
+                        .build(),
                 Parameter.builder()
-                    .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL.key())
-                    .value("trial button label")
-                    .build(),
-                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL.key()).value("trial URL").build()
-            )
-        );
+                        .key(Key.CONSOLE_CUSTOMIZATION_FAVICON.key())
+                        .value("favicon")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_LOGO.key())
+                        .value("logo")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE.key())
+                        .value("menuActive")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND.key())
+                        .value("menuBackground")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME.key())
+                        .value("enterprise name")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE.key())
+                        .value("cta title")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS.key())
+                        .value("false")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL.key())
+                        .value("trial button label")
+                        .build(),
+                Parameter.builder()
+                        .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL.key())
+                        .value("trial URL")
+                        .build()));
 
-        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
+        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE))
+                .thenReturn(true);
         var res = useCase.execute();
 
         assertThat(res.consoleCustomization()).isNotNull();
         assertThat(res.consoleCustomization())
-            .extracting(ConsoleCustomization::title, ConsoleCustomization::favicon, ConsoleCustomization::logo)
-            .containsExactly("title", "favicon", "logo");
+                .extracting(ConsoleCustomization::title, ConsoleCustomization::favicon, ConsoleCustomization::logo)
+                .containsExactly("title", "favicon", "logo");
         assertThat(res.consoleCustomization().theme())
-            .extracting(ConsoleTheme::menuBackground, ConsoleTheme::menuActive)
-            .containsExactly("menuBackground", "menuActive");
+                .extracting(ConsoleTheme::menuBackground, ConsoleTheme::menuActive)
+                .containsExactly("menuBackground", "menuActive");
         assertThat(res.consoleCustomization().ctaConfiguration())
-            .extracting(
-                CtaConfiguration::title,
-                CtaConfiguration::customEnterpriseName,
-                CtaConfiguration::hideDays,
-                CtaConfiguration::trialButtonLabel,
-                CtaConfiguration::trialURL
-            )
-            .containsExactly("cta title", "enterprise name", false, "trial button label", "trial URL");
+                .extracting(
+                        CtaConfiguration::title,
+                        CtaConfiguration::customEnterpriseName,
+                        CtaConfiguration::hideDays,
+                        CtaConfiguration::trialButtonLabel,
+                        CtaConfiguration::trialURL)
+                .containsExactly("cta title", "enterprise name", false, "trial button label", "trial URL");
     }
 
     @Test
     void should_return_console_customization_default_values() {
         parametersDomainServiceInMemory.reset();
 
-        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
+        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE))
+                .thenReturn(true);
 
         var res = useCase.execute();
 
         assertThat(res.consoleCustomization()).isNotNull();
         assertThat(res.consoleCustomization())
-            .extracting(ConsoleCustomization::title, ConsoleCustomization::favicon, ConsoleCustomization::logo)
-            .containsExactly(null, null, null);
+                .extracting(ConsoleCustomization::title, ConsoleCustomization::favicon, ConsoleCustomization::logo)
+                .containsExactly(null, null, null);
         assertThat(res.consoleCustomization().theme())
-            .extracting(ConsoleTheme::menuBackground, ConsoleTheme::menuActive)
-            .containsExactly(null, null);
+                .extracting(ConsoleTheme::menuBackground, ConsoleTheme::menuActive)
+                .containsExactly(null, null);
         assertThat(res.consoleCustomization().ctaConfiguration())
-            .extracting(
-                CtaConfiguration::title,
-                CtaConfiguration::customEnterpriseName,
-                CtaConfiguration::hideDays,
-                CtaConfiguration::trialButtonLabel,
-                CtaConfiguration::trialURL
-            )
-            .containsExactly(null, null, true, null, null);
+                .extracting(
+                        CtaConfiguration::title,
+                        CtaConfiguration::customEnterpriseName,
+                        CtaConfiguration::hideDays,
+                        CtaConfiguration::trialButtonLabel,
+                        CtaConfiguration::trialURL)
+                .containsExactly(null, null, true, null, null);
     }
 
     @Test
     void should_return_null_if_license_doesnt_allow_customization() {
-        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(false);
+        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE))
+                .thenReturn(false);
         var res = useCase.execute();
 
         assertThat(res.consoleCustomization()).isNull();

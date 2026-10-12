@@ -52,7 +52,10 @@ class RemoveApiFromSubscriptionFormDomainServiceTest {
 
         service.removeApi(ENVIRONMENT_ID, API_ID);
 
-        assertThat(crudService.storage()).singleElement().extracting(SubscriptionForm::getApiIds).isEqualTo(List.of("api-0", "api-2"));
+        assertThat(crudService.storage())
+                .singleElement()
+                .extracting(SubscriptionForm::getApiIds)
+                .isEqualTo(List.of("api-0", "api-2"));
     }
 
     @Test
@@ -62,7 +65,10 @@ class RemoveApiFromSubscriptionFormDomainServiceTest {
 
         service.removeApi(ENVIRONMENT_ID, API_ID);
 
-        assertThat(crudService.storage()).singleElement().extracting(SubscriptionForm::getApiIds).isEqualTo(List.of("api-0"));
+        assertThat(crudService.storage())
+                .singleElement()
+                .extracting(SubscriptionForm::getApiIds)
+                .isEqualTo(List.of("api-0"));
     }
 
     @Test
@@ -72,7 +78,10 @@ class RemoveApiFromSubscriptionFormDomainServiceTest {
 
         service.removeApi(ENVIRONMENT_ID, API_ID);
 
-        assertThat(crudService.storage()).singleElement().extracting(SubscriptionForm::getApiIds).isEqualTo(List.of(API_ID));
+        assertThat(crudService.storage())
+                .singleElement()
+                .extracting(SubscriptionForm::getApiIds)
+                .isEqualTo(List.of(API_ID));
     }
 
     private void givenForms(SubscriptionForm... forms) {
@@ -82,9 +91,9 @@ class RemoveApiFromSubscriptionFormDomainServiceTest {
 
     private static SubscriptionForm aForm(String environmentId, List<String> apiIds) {
         return SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .id(SubscriptionFormId.random())
-            .environmentId(environmentId)
-            .apiIds(apiIds)
-            .build();
+                .id(SubscriptionFormId.random())
+                .environmentId(environmentId)
+                .apiIds(apiIds)
+                .build();
     }
 }

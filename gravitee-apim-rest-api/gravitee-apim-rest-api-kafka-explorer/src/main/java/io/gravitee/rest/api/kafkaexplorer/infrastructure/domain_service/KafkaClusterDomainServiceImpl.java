@@ -104,9 +104,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     private final Duration defaultGetTimeout;
 
     public KafkaClusterDomainServiceImpl(
-        @Value("${kafka.timeout.seconds:5}") long timeoutSeconds,
-        @Value("${kafka.timeout.delay.seconds:2}") long delaySeconds
-    ) {
+            @Value("${kafka.timeout.seconds:5}") long timeoutSeconds,
+            @Value("${kafka.timeout.delay.seconds:2}") long delaySeconds) {
         defaultTimeout = Duration.ofSeconds(Math.max(timeoutSeconds, 5));
         defaultGetTimeout = defaultTimeout.plusSeconds(Math.max(delaySeconds, 2));
     }
@@ -125,36 +124,33 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             List<Integer> brokerIds = nodes.stream().map(Node::id).toList();
             var logDirSizes = fetchLogDirSizes(adminClient, brokerIds);
 
-            List<BrokerDetail> brokerDetails = nodes
-                .stream()
-                .map(node -> toBrokerDetail(node, topicStats, logDirSizes))
-                .toList();
+            List<BrokerDetail> brokerDetails = nodes.stream()
+                    .map(node -> toBrokerDetail(node, topicStats, logDirSizes))
+                    .toList();
 
             return new KafkaClusterInfo(
-                clusterId,
-                toKafkaNode(controller),
-                brokerDetails,
-                topicStats.totalTopics(),
-                topicStats.totalPartitions()
-            );
+                    clusterId,
+                    toKafkaNode(controller),
+                    brokerDetails,
+                    topicStats.totalTopics(),
+                    topicStats.totalPartitions());
         });
     }
 
     @Override
     public TopicsPage listTopics(
-        KafkaClusterStandaloneConfiguration config,
-        String nameFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String nameFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder) {
         return withAdminClient(config, adminClient -> {
             // Step 1: List all topics (cheap call)
             Collection<TopicListing> listings = adminClient
-                .listTopics(new ListTopicsOptions().listInternal(true))
-                .listings()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .listTopics(new ListTopicsOptions().listInternal(true))
+                    .listings()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             Map<String, Boolean> internalFlags = new HashMap<>();
             for (TopicListing listing : listings) {
@@ -167,14 +163,14 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
             // Step 2: Filter by nameFilter (case-insensitive contains) and sort
             Comparator<String> nameComparator = "desc".equalsIgnoreCase(sortOrder)
-                ? Comparator.<String>naturalOrder().reversed()
-                : Comparator.naturalOrder();
-            List<String> filteredNames = internalFlags
-                .keySet()
-                .stream()
-                .filter(name -> nameFilter == null || nameFilter.isBlank() || name.toLowerCase().contains(nameFilter.toLowerCase()))
-                .sorted(nameComparator)
-                .toList();
+                    ? Comparator.<String>naturalOrder().reversed()
+                    : Comparator.naturalOrder();
+            List<String> filteredNames = internalFlags.keySet().stream()
+                    .filter(name -> nameFilter == null
+                            || nameFilter.isBlank()
+                            || name.toLowerCase().contains(nameFilter.toLowerCase()))
+                    .sorted(nameComparator)
+                    .toList();
 
             int totalCount = filteredNames.size();
 
@@ -189,9 +185,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
             // Step 4: Describe topics for the current page only (expensive calls)
             Map<String, TopicDescription> descriptions = adminClient
-                .describeTopics(pageNames)
-                .allTopicNames()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .describeTopics(pageNames)
+                    .allTopicNames()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             // Step 5: Fetch topic sizes via describeLogDirs
             Map<String, Long> topicSizes = fetchTopicSizes(adminClient, Set.copyOf(pageNames));
@@ -200,29 +196,27 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Map<String, Long> messageCounts = fetchMessageCounts(adminClient, descriptions);
 
             // Step 7: Map to KafkaTopic records
-            List<KafkaTopic> topics = pageNames
-                .stream()
-                .map(name -> {
-                    TopicDescription topic = descriptions.get(name);
-                    int partitionCount = topic.partitions().size();
-                    int replicationFactor = topic.partitions().isEmpty() ? 0 : topic.partitions().getFirst().replicas().size();
-                    int underReplicatedCount = (int) topic
-                        .partitions()
-                        .stream()
-                        .filter(p -> p.isr().size() < p.replicas().size())
-                        .count();
-                    boolean internal = internalFlags.getOrDefault(name, false);
-                    return new KafkaTopic(
-                        name,
-                        partitionCount,
-                        replicationFactor,
-                        underReplicatedCount,
-                        internal,
-                        topicSizes.get(name),
-                        messageCounts.get(name)
-                    );
-                })
-                .toList();
+            List<KafkaTopic> topics = pageNames.stream()
+                    .map(name -> {
+                        TopicDescription topic = descriptions.get(name);
+                        int partitionCount = topic.partitions().size();
+                        int replicationFactor = topic.partitions().isEmpty()
+                                ? 0
+                                : topic.partitions().getFirst().replicas().size();
+                        int underReplicatedCount = (int) topic.partitions().stream()
+                                .filter(p -> p.isr().size() < p.replicas().size())
+                                .count();
+                        boolean internal = internalFlags.getOrDefault(name, false);
+                        return new KafkaTopic(
+                                name,
+                                partitionCount,
+                                replicationFactor,
+                                underReplicatedCount,
+                                internal,
+                                topicSizes.get(name),
+                                messageCounts.get(name));
+                    })
+                    .toList();
 
             return new TopicsPage(topics, totalCount, page, perPage);
         });
@@ -233,42 +227,37 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return withAdminClient(config, adminClient -> {
             // Describe topic to get partition info
             TopicDescription description = adminClient
-                .describeTopics(List.of(topicName))
-                .allTopicNames()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
-                .get(topicName);
+                    .describeTopics(List.of(topicName))
+                    .allTopicNames()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
+                    .get(topicName);
 
             boolean internal = description.isInternal();
 
-            List<TopicPartitionDetail> partitions = description
-                .partitions()
-                .stream()
-                .map(p ->
-                    new TopicPartitionDetail(
-                        p.partition(),
-                        p.leader() != null ? toKafkaNode(p.leader()) : null,
-                        p.replicas().stream().map(this::toKafkaNode).toList(),
-                        p.isr().stream().map(this::toKafkaNode).toList(),
-                        getOfflineNodes(p).stream().map(this::toKafkaNode).toList()
-                    )
-                )
-                .toList();
+            List<TopicPartitionDetail> partitions = description.partitions().stream()
+                    .map(p -> new TopicPartitionDetail(
+                            p.partition(),
+                            p.leader() != null ? toKafkaNode(p.leader()) : null,
+                            p.replicas().stream().map(this::toKafkaNode).toList(),
+                            p.isr().stream().map(this::toKafkaNode).toList(),
+                            getOfflineNodes(p).stream().map(this::toKafkaNode).toList()))
+                    .toList();
 
             // Describe topic configs
             ConfigResource configResource = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
             var configResult = adminClient
-                .describeConfigs(Collections.singleton(configResource))
-                .all()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .describeConfigs(Collections.singleton(configResource))
+                    .all()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
-            List<TopicConfigEntry> configs = configResult
-                .get(configResource)
-                .entries()
-                .stream()
-                .map(entry ->
-                    new TopicConfigEntry(entry.name(), entry.value(), entry.source().name(), entry.isReadOnly(), entry.isSensitive())
-                )
-                .toList();
+            List<TopicConfigEntry> configs = configResult.get(configResource).entries().stream()
+                    .map(entry -> new TopicConfigEntry(
+                            entry.name(),
+                            entry.value(),
+                            entry.source().name(),
+                            entry.isReadOnly(),
+                            entry.isSensitive()))
+                    .toList();
 
             return new TopicDetail(topicName, internal, partitions, configs);
         });
@@ -282,11 +271,11 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Node controller = clusterResult.controller().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
             var nodes = clusterResult.nodes().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
-            Node targetNode = nodes
-                .stream()
-                .filter(n -> n.id() == brokerId)
-                .findFirst()
-                .orElseThrow(() -> new KafkaExplorerException("Broker " + brokerId + " not found", TechnicalCode.INVALID_PARAMETERS));
+            Node targetNode = nodes.stream()
+                    .filter(n -> n.id() == brokerId)
+                    .findFirst()
+                    .orElseThrow(() -> new KafkaExplorerException(
+                            "Broker " + brokerId + " not found", TechnicalCode.INVALID_PARAMETERS));
 
             boolean isController = controller != null && controller.id() == brokerId;
 
@@ -300,9 +289,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Long logDirSize = null;
             try {
                 var logDirsResult = adminClient
-                    .describeLogDirs(List.of(brokerId))
-                    .allDescriptions()
-                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                        .describeLogDirs(List.of(brokerId))
+                        .allDescriptions()
+                        .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
                 long totalSize = 0;
                 var brokerLogDirs = logDirsResult.get(brokerId);
@@ -322,7 +311,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                                 partitionCount++;
                             }
                         }
-                        logDirEntries.add(new BrokerLogDirEntry(path, error, topicNames.size(), partitionCount, dirSize));
+                        logDirEntries.add(
+                                new BrokerLogDirEntry(path, error, topicNames.size(), partitionCount, dirSize));
                         totalSize += dirSize;
                     }
                     logDirSize = totalSize;
@@ -334,63 +324,60 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             // Step 4: describeConfigs for BROKER resource
             ConfigResource configResource = new ConfigResource(ConfigResource.Type.BROKER, String.valueOf(brokerId));
             var configResult = adminClient
-                .describeConfigs(Collections.singleton(configResource))
-                .all()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .describeConfigs(Collections.singleton(configResource))
+                    .all()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
-            List<TopicConfigEntry> configs = configResult
-                .get(configResource)
-                .entries()
-                .stream()
-                .map(entry ->
-                    new TopicConfigEntry(entry.name(), entry.value(), entry.source().name(), entry.isReadOnly(), entry.isSensitive())
-                )
-                .toList();
+            List<TopicConfigEntry> configs = configResult.get(configResource).entries().stream()
+                    .map(entry -> new TopicConfigEntry(
+                            entry.name(),
+                            entry.value(),
+                            entry.source().name(),
+                            entry.isReadOnly(),
+                            entry.isSensitive()))
+                    .toList();
 
             return new BrokerInfo(
-                targetNode.id(),
-                targetNode.host(),
-                targetNode.port(),
-                targetNode.rack(),
-                isController,
-                leaderPartitions,
-                replicaPartitions,
-                logDirSize,
-                logDirEntries,
-                configs
-            );
+                    targetNode.id(),
+                    targetNode.host(),
+                    targetNode.port(),
+                    targetNode.rack(),
+                    isController,
+                    leaderPartitions,
+                    replicaPartitions,
+                    logDirSize,
+                    logDirEntries,
+                    configs);
         });
     }
 
     @Override
     public ConsumerGroupsPage listConsumerGroups(
-        KafkaClusterStandaloneConfiguration config,
-        String nameFilter,
-        String topicFilter,
-        int page,
-        int perPage,
-        String sortBy,
-        String sortOrder
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String nameFilter,
+            String topicFilter,
+            int page,
+            int perPage,
+            String sortBy,
+            String sortOrder) {
         return withAdminClient(config, adminClient -> {
             boolean hasTopicFilter = topicFilter != null && !topicFilter.isBlank();
 
             // Step 1: List all consumer groups
-            Collection<ConsumerGroupListing> listings = adminClient
-                .listConsumerGroups()
-                .all()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+            Collection<ConsumerGroupListing> listings =
+                    adminClient.listConsumerGroups().all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             // Step 2: Filter by name and sort
             Comparator<String> groupIdComparator = "desc".equalsIgnoreCase(sortOrder)
-                ? Comparator.<String>naturalOrder().reversed()
-                : Comparator.naturalOrder();
-            List<String> filteredGroupIds = listings
-                .stream()
-                .map(ConsumerGroupListing::groupId)
-                .filter(id -> nameFilter == null || nameFilter.isBlank() || id.toLowerCase().contains(nameFilter.toLowerCase()))
-                .sorted(groupIdComparator)
-                .toList();
+                    ? Comparator.<String>naturalOrder().reversed()
+                    : Comparator.naturalOrder();
+            List<String> filteredGroupIds = listings.stream()
+                    .map(ConsumerGroupListing::groupId)
+                    .filter(id -> nameFilter == null
+                            || nameFilter.isBlank()
+                            || id.toLowerCase().contains(nameFilter.toLowerCase()))
+                    .sorted(groupIdComparator)
+                    .toList();
 
             // Step 3: Filter by topic — fetch only the target topic's partition offsets, then filter in-memory
             Map<String, Map<TopicPartition, OffsetAndMetadata>> allOffsets;
@@ -399,27 +386,25 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 TopicDescription topicDesc;
                 try {
                     topicDesc = adminClient
-                        .describeTopics(List.of(topicFilter))
-                        .allTopicNames()
-                        .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
-                        .get(topicFilter);
+                            .describeTopics(List.of(topicFilter))
+                            .allTopicNames()
+                            .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
+                            .get(topicFilter);
                 } catch (ExecutionException e) {
                     if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
                         return new ConsumerGroupsPage(List.of(), 0, page, perPage);
                     }
                     throw e;
                 }
-                List<TopicPartition> topicPartitions = topicDesc
-                    .partitions()
-                    .stream()
-                    .map(p -> new TopicPartition(topicFilter, p.partition()))
-                    .toList();
+                List<TopicPartition> topicPartitions = topicDesc.partitions().stream()
+                        .map(p -> new TopicPartition(topicFilter, p.partition()))
+                        .toList();
 
                 allOffsets = fetchAllGroupOffsets(adminClient, filteredGroupIds, topicPartitions);
-                filteredGroupIds = filteredGroupIds
-                    .stream()
-                    .filter(groupId -> !allOffsets.getOrDefault(groupId, Map.of()).isEmpty())
-                    .toList();
+                filteredGroupIds = filteredGroupIds.stream()
+                        .filter(groupId ->
+                                !allOffsets.getOrDefault(groupId, Map.of()).isEmpty())
+                        .toList();
             } else {
                 allOffsets = null;
             }
@@ -436,29 +421,29 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             }
 
             // Step 5: Batch-fetch offsets for page groups (reuse pre-fetched data when topicFilter was set)
-            final Map<String, Map<TopicPartition, OffsetAndMetadata>> pageOffsets = hasTopicFilter
-                ? allOffsets
-                : fetchAllGroupOffsets(adminClient, pageGroupIds, null);
+            final Map<String, Map<TopicPartition, OffsetAndMetadata>> pageOffsets =
+                    hasTopicFilter ? allOffsets : fetchAllGroupOffsets(adminClient, pageGroupIds, null);
 
             // Step 6: Describe consumer groups for the current page
             Map<String, ConsumerGroupDescription> descriptions = adminClient
-                .describeConsumerGroups(pageGroupIds)
-                .all()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .describeConsumerGroups(pageGroupIds)
+                    .all()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             // Step 7: Compute lag from pre-fetched offsets
-            List<ConsumerGroup> groups = pageGroupIds
-                .stream()
-                .map(groupId -> {
-                    ConsumerGroupDescription desc = descriptions.get(groupId);
-                    String state = desc.state() != null ? desc.state().name() : "UNKNOWN";
-                    int membersCount = desc.members().size();
-                    var groupOffsets = pageOffsets.getOrDefault(groupId, Map.of());
-                    LagResult lagResult = computeLagResultFromOffsets(adminClient, groupOffsets, hasTopicFilter ? topicFilter : null);
-                    KafkaNode coordinator = toKafkaNode(desc.coordinator());
-                    return new ConsumerGroup(groupId, state, membersCount, lagResult.totalLag(), lagResult.numTopics(), coordinator);
-                })
-                .toList();
+            List<ConsumerGroup> groups = pageGroupIds.stream()
+                    .map(groupId -> {
+                        ConsumerGroupDescription desc = descriptions.get(groupId);
+                        String state = desc.state() != null ? desc.state().name() : "UNKNOWN";
+                        int membersCount = desc.members().size();
+                        var groupOffsets = pageOffsets.getOrDefault(groupId, Map.of());
+                        LagResult lagResult = computeLagResultFromOffsets(
+                                adminClient, groupOffsets, hasTopicFilter ? topicFilter : null);
+                        KafkaNode coordinator = toKafkaNode(desc.coordinator());
+                        return new ConsumerGroup(
+                                groupId, state, membersCount, lagResult.totalLag(), lagResult.numTopics(), coordinator);
+                    })
+                    .toList();
 
             return new ConsumerGroupsPage(groups, totalCount, page, perPage);
         });
@@ -469,33 +454,34 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return withAdminClient(config, adminClient -> {
             // Step 1: Describe the consumer group
             ConsumerGroupDescription description = adminClient
-                .describeConsumerGroups(List.of(groupId))
-                .all()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
-                .get(groupId);
+                    .describeConsumerGroups(List.of(groupId))
+                    .all()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
+                    .get(groupId);
 
             String state = description.state() != null ? description.state().name() : "UNKNOWN";
             KafkaNode coordinator = toKafkaNode(description.coordinator());
             String partitionAssignor = description.partitionAssignor();
 
             // Step 2: Map members with assignments grouped by topic
-            List<ConsumerGroupMember> members = description
-                .members()
-                .stream()
-                .map(member -> {
-                    Map<String, List<Integer>> assignmentsByTopic = new HashMap<>();
-                    for (TopicPartition tp : member.assignment().topicPartitions()) {
-                        assignmentsByTopic.computeIfAbsent(tp.topic(), k -> new ArrayList<>()).add(tp.partition());
-                    }
-                    List<MemberAssignment> assignments = assignmentsByTopic
-                        .entrySet()
-                        .stream()
-                        .sorted(Map.Entry.comparingByKey())
-                        .map(e -> new MemberAssignment(e.getKey(), e.getValue().stream().sorted().toList()))
-                        .toList();
-                    return new ConsumerGroupMember(member.consumerId(), member.clientId(), member.host(), assignments);
-                })
-                .toList();
+            List<ConsumerGroupMember> members = description.members().stream()
+                    .map(member -> {
+                        Map<String, List<Integer>> assignmentsByTopic = new HashMap<>();
+                        for (TopicPartition tp : member.assignment().topicPartitions()) {
+                            assignmentsByTopic
+                                    .computeIfAbsent(tp.topic(), k -> new ArrayList<>())
+                                    .add(tp.partition());
+                        }
+                        List<MemberAssignment> assignments = assignmentsByTopic.entrySet().stream()
+                                .sorted(Map.Entry.comparingByKey())
+                                .map(e -> new MemberAssignment(
+                                        e.getKey(),
+                                        e.getValue().stream().sorted().toList()))
+                                .toList();
+                        return new ConsumerGroupMember(
+                                member.consumerId(), member.clientId(), member.host(), assignments);
+                    })
+                    .toList();
 
             // Step 3: Compute offsets with lag
             List<ConsumerGroupOffset> offsets = computeOffsets(adminClient, groupId);
@@ -506,15 +492,14 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public BrowseMessagesResult browseMessages(
-        KafkaClusterStandaloneConfiguration config,
-        String topicName,
-        Integer partition,
-        String offsetMode,
-        Long offsetValue,
-        String keyFilter,
-        String valueFilter,
-        int limit
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String topicName,
+            Integer partition,
+            String offsetMode,
+            Long offsetValue,
+            String keyFilter,
+            String valueFilter,
+            int limit) {
         List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
 
         // Then, use Consumer to fetch messages
@@ -529,9 +514,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 case "TIMESTAMP":
                     if (offsetValue == null) {
                         throw new KafkaExplorerException(
-                            "offsetValue is required when offsetMode is TIMESTAMP",
-                            TechnicalCode.INVALID_PARAMETERS
-                        );
+                                "offsetValue is required when offsetMode is TIMESTAMP",
+                                TechnicalCode.INVALID_PARAMETERS);
                     }
                     Map<TopicPartition, Long> timestampMap = new HashMap<>();
                     for (TopicPartition tp : targetPartitions) {
@@ -550,9 +534,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 case "SPECIFIC":
                     if (offsetValue == null) {
                         throw new KafkaExplorerException(
-                            "offsetValue is required when offsetMode is SPECIFIC",
-                            TechnicalCode.INVALID_PARAMETERS
-                        );
+                                "offsetValue is required when offsetMode is SPECIFIC",
+                                TechnicalCode.INVALID_PARAMETERS);
                     }
                     for (TopicPartition tp : targetPartitions) {
                         consumer.seek(tp, offsetValue);
@@ -581,19 +564,18 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             // Apply key filter if provided
             if (keyFilter != null && !keyFilter.isBlank()) {
                 String lowerFilter = keyFilter.toLowerCase();
-                allMessages = allMessages
-                    .stream()
-                    .filter(m -> m.key() != null && m.key().toLowerCase().contains(lowerFilter))
-                    .toList();
+                allMessages = allMessages.stream()
+                        .filter(m -> m.key() != null && m.key().toLowerCase().contains(lowerFilter))
+                        .toList();
             }
 
             // Apply value filter if provided
             if (valueFilter != null && !valueFilter.isBlank()) {
                 String lowerFilter = valueFilter.toLowerCase();
-                allMessages = allMessages
-                    .stream()
-                    .filter(m -> m.value() != null && m.value().toLowerCase().contains(lowerFilter))
-                    .toList();
+                allMessages = allMessages.stream()
+                        .filter(m ->
+                                m.value() != null && m.value().toLowerCase().contains(lowerFilter))
+                        .toList();
             }
 
             // Limit results
@@ -607,15 +589,14 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public void tailMessages(
-        KafkaClusterStandaloneConfiguration config,
-        String topicName,
-        Integer partition,
-        String keyFilter,
-        String valueFilter,
-        int maxMessages,
-        int durationSeconds,
-        MessageConsumer consumer
-    ) {
+            KafkaClusterStandaloneConfiguration config,
+            String topicName,
+            Integer partition,
+            String keyFilter,
+            String valueFilter,
+            int maxMessages,
+            int durationSeconds,
+            MessageConsumer consumer) {
         List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
 
         withConsumer(config, 500, kafkaConsumer -> {
@@ -625,17 +606,21 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             long deadline = System.currentTimeMillis() + (durationSeconds * 1000L);
             int sent = 0;
             String lowerKeyFilter = (keyFilter != null && !keyFilter.isBlank()) ? keyFilter.toLowerCase() : null;
-            String lowerValueFilter = (valueFilter != null && !valueFilter.isBlank()) ? valueFilter.toLowerCase() : null;
+            String lowerValueFilter =
+                    (valueFilter != null && !valueFilter.isBlank()) ? valueFilter.toLowerCase() : null;
 
             while (System.currentTimeMillis() < deadline && sent < maxMessages) {
                 ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
                 for (ConsumerRecord<String, String> record : records) {
                     KafkaMessage msg = toKafkaMessage(record);
 
-                    if (lowerKeyFilter != null && (msg.key() == null || !msg.key().toLowerCase().contains(lowerKeyFilter))) {
+                    if (lowerKeyFilter != null
+                            && (msg.key() == null || !msg.key().toLowerCase().contains(lowerKeyFilter))) {
                         continue;
                     }
-                    if (lowerValueFilter != null && (msg.value() == null || !msg.value().toLowerCase().contains(lowerValueFilter))) {
+                    if (lowerValueFilter != null
+                            && (msg.value() == null
+                                    || !msg.value().toLowerCase().contains(lowerValueFilter))) {
                         continue;
                     }
 
@@ -650,18 +635,20 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         });
     }
 
-    private List<TopicPartition> resolvePartitions(KafkaClusterStandaloneConfiguration config, String topicName, Integer partition) {
+    private List<TopicPartition> resolvePartitions(
+            KafkaClusterStandaloneConfiguration config, String topicName, Integer partition) {
         return withAdminClient(config, adminClient -> {
             TopicDescription description;
             try {
                 description = adminClient
-                    .describeTopics(List.of(topicName))
-                    .allTopicNames()
-                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
-                    .get(topicName);
+                        .describeTopics(List.of(topicName))
+                        .allTopicNames()
+                        .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
+                        .get(topicName);
             } catch (ExecutionException e) {
                 if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
-                    throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND, e);
+                    throw new KafkaExplorerException(
+                            "Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND, e);
                 }
                 throw e;
             }
@@ -673,18 +660,15 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             if (partition != null) {
                 if (partition < 0 || partition >= description.partitions().size()) {
                     throw new KafkaExplorerException(
-                        "Partition " + partition + " does not exist for topic '" + topicName + "'",
-                        TechnicalCode.INVALID_PARAMETERS
-                    );
+                            "Partition " + partition + " does not exist for topic '" + topicName + "'",
+                            TechnicalCode.INVALID_PARAMETERS);
                 }
                 return List.of(new TopicPartition(topicName, partition));
             }
 
-            return description
-                .partitions()
-                .stream()
-                .map(p -> new TopicPartition(topicName, p.partition()))
-                .toList();
+            return description.partitions().stream()
+                    .map(p -> new TopicPartition(topicName, p.partition()))
+                    .toList();
         });
     }
 
@@ -694,7 +678,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             String headerValue = header.value() != null ? new String(header.value()) : null;
             headers.add(new KafkaHeader(header.key(), headerValue));
         }
-        return new KafkaMessage(record.partition(), record.offset(), record.timestamp(), record.key(), record.value(), headers);
+        return new KafkaMessage(
+                record.partition(), record.offset(), record.timestamp(), record.key(), record.value(), headers);
     }
 
     @FunctionalInterface
@@ -702,7 +687,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         T execute(KafkaConsumer<String, String> consumer) throws Exception;
     }
 
-    private <T> T withConsumer(KafkaClusterStandaloneConfiguration config, int maxPollRecords, ConsumerAction<T> action) {
+    private <T> T withConsumer(
+            KafkaClusterStandaloneConfiguration config, int maxPollRecords, ConsumerAction<T> action) {
         List<Path> tempFiles = new ArrayList<>();
         Properties properties = buildConsumerProperties(config, maxPollRecords, tempFiles);
         try (KafkaConsumer<String, String> consumer = createConsumer(properties)) {
@@ -713,7 +699,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
+            throw new KafkaExplorerException(
+                    "Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
         } catch (KafkaExplorerException e) {
             throw e;
         } catch (Exception e) {
@@ -727,7 +714,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return new KafkaConsumer<>(properties);
     }
 
-    private Properties buildConsumerProperties(KafkaClusterStandaloneConfiguration config, int maxPollRecords, List<Path> tempFiles) {
+    private Properties buildConsumerProperties(
+            KafkaClusterStandaloneConfiguration config, int maxPollRecords, List<Path> tempFiles) {
         Properties properties = buildProperties(config, tempFiles);
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -745,10 +733,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
      * reducing network payload and broker-side work.
      */
     private Map<String, Map<TopicPartition, OffsetAndMetadata>> fetchAllGroupOffsets(
-        AdminClient adminClient,
-        List<String> groupIds,
-        List<TopicPartition> topicPartitions
-    ) {
+            AdminClient adminClient, List<String> groupIds, List<TopicPartition> topicPartitions) {
         try {
             Map<String, ListConsumerGroupOffsetsSpec> specs = new HashMap<>();
             for (String groupId : groupIds) {
@@ -764,8 +749,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             for (String groupId : groupIds) {
                 try {
                     Map<TopicPartition, OffsetAndMetadata> offsets = batchResult
-                        .partitionsToOffsetAndMetadata(groupId)
-                        .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                            .partitionsToOffsetAndMetadata(groupId)
+                            .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
                     result.put(groupId, offsets);
                 } catch (Exception e) {
                     result.put(groupId, Map.of());
@@ -782,32 +767,33 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
      * If topicFilter is non-null, only partitions for that topic are considered.
      */
     private LagResult computeLagResultFromOffsets(
-        AdminClient adminClient,
-        Map<TopicPartition, OffsetAndMetadata> committedOffsets,
-        String topicFilter
-    ) {
+            AdminClient adminClient, Map<TopicPartition, OffsetAndMetadata> committedOffsets, String topicFilter) {
         try {
             Map<TopicPartition, OffsetAndMetadata> filtered = committedOffsets;
             if (topicFilter != null && !topicFilter.isBlank()) {
-                filtered = committedOffsets
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getKey().topic().equals(topicFilter))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                filtered = committedOffsets.entrySet().stream()
+                        .filter(e -> e.getKey().topic().equals(topicFilter))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             }
 
             if (filtered.isEmpty()) {
                 return new LagResult(0, 0);
             }
 
-            int numTopics = (int) filtered.keySet().stream().map(TopicPartition::topic).distinct().count();
+            int numTopics = (int) filtered.keySet().stream()
+                    .map(TopicPartition::topic)
+                    .distinct()
+                    .count();
 
             Map<TopicPartition, OffsetSpec> endOffsetRequests = new HashMap<>();
             for (TopicPartition tp : filtered.keySet()) {
                 endOffsetRequests.put(tp, OffsetSpec.latest());
             }
 
-            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+            var endOffsets = adminClient
+                    .listOffsets(endOffsetRequests)
+                    .all()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             long totalLag = 0;
             for (var entry : filtered.entrySet()) {
@@ -827,9 +813,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     private List<ConsumerGroupOffset> computeOffsets(AdminClient adminClient, String groupId) {
         try {
             Map<TopicPartition, OffsetAndMetadata> committedOffsets = adminClient
-                .listConsumerGroupOffsets(groupId)
-                .partitionsToOffsetAndMetadata()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .listConsumerGroupOffsets(groupId)
+                    .partitionsToOffsetAndMetadata()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             if (committedOffsets.isEmpty()) {
                 return List.of();
@@ -840,25 +826,24 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 endOffsetRequests.put(tp, OffsetSpec.latest());
             }
 
-            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+            var endOffsets = adminClient
+                    .listOffsets(endOffsetRequests)
+                    .all()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
-            return committedOffsets
-                .entrySet()
-                .stream()
-                .sorted(
-                    Comparator.comparing((Map.Entry<TopicPartition, OffsetAndMetadata> e) -> e.getKey().topic()).thenComparingInt(e ->
-                        e.getKey().partition()
-                    )
-                )
-                .map(entry -> {
-                    TopicPartition tp = entry.getKey();
-                    long committed = entry.getValue().offset();
-                    var endOffsetResult = endOffsets.get(tp);
-                    long endOffset = endOffsetResult != null ? endOffsetResult.offset() : 0;
-                    long lag = Math.max(0, endOffset - committed);
-                    return new ConsumerGroupOffset(tp.topic(), tp.partition(), committed, endOffset, lag);
-                })
-                .toList();
+            return committedOffsets.entrySet().stream()
+                    .sorted(Comparator.comparing((Map.Entry<TopicPartition, OffsetAndMetadata> e) ->
+                                    e.getKey().topic())
+                            .thenComparingInt(e -> e.getKey().partition()))
+                    .map(entry -> {
+                        TopicPartition tp = entry.getKey();
+                        long committed = entry.getValue().offset();
+                        var endOffsetResult = endOffsets.get(tp);
+                        long endOffset = endOffsetResult != null ? endOffsetResult.offset() : 0;
+                        long lag = Math.max(0, endOffset - committed);
+                        return new ConsumerGroupOffset(tp.topic(), tp.partition(), committed, endOffset, lag);
+                    })
+                    .toList();
         } catch (Exception e) {
             return List.of();
         }
@@ -866,27 +851,22 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     private List<Node> getOfflineNodes(TopicPartitionInfo partitionInfo) {
         Set<Integer> isrIds = partitionInfo.isr().stream().map(Node::id).collect(Collectors.toSet());
-        return partitionInfo
-            .replicas()
-            .stream()
-            .filter(r -> !isrIds.contains(r.id()))
-            .toList();
+        return partitionInfo.replicas().stream()
+                .filter(r -> !isrIds.contains(r.id()))
+                .toList();
     }
 
     private Map<String, Long> fetchTopicSizes(AdminClient adminClient, Set<String> topicNames) {
         try {
-            List<Integer> brokerIds = adminClient
-                .describeCluster()
-                .nodes()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
-                .stream()
-                .map(Node::id)
-                .toList();
+            List<Integer> brokerIds =
+                    adminClient.describeCluster().nodes().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS).stream()
+                            .map(Node::id)
+                            .toList();
 
             var logDirsResult = adminClient
-                .describeLogDirs(brokerIds)
-                .allDescriptions()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .describeLogDirs(brokerIds)
+                    .allDescriptions()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             Map<String, Long> sizes = new HashMap<>();
             for (var brokerEntry : logDirsResult.values()) {
@@ -919,12 +899,13 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 return Map.of();
             }
 
-            var offsets = adminClient.listOffsets(offsetRequests).all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+            var offsets =
+                    adminClient.listOffsets(offsetRequests).all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
-            return offsets
-                .entrySet()
-                .stream()
-                .collect(Collectors.groupingBy(e -> e.getKey().topic(), Collectors.summingLong(e -> e.getValue().offset())));
+            return offsets.entrySet().stream()
+                    .collect(Collectors.groupingBy(
+                            e -> e.getKey().topic(),
+                            Collectors.summingLong(e -> e.getValue().offset())));
         } catch (Exception e) {
             return Map.of();
         }
@@ -946,7 +927,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
+            throw new KafkaExplorerException(
+                    "Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
         } catch (Exception e) {
             throw new KafkaExplorerException("Failed to connect to Kafka cluster", TechnicalCode.CONNECTION_FAILED, e);
         } finally {
@@ -959,26 +941,26 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     }
 
     private record TopicStats(
-        int totalTopics,
-        int totalPartitions,
-        Map<Integer, Integer> leaderCounts,
-        Map<Integer, Integer> replicaCounts
-    ) {}
+            int totalTopics,
+            int totalPartitions,
+            Map<Integer, Integer> leaderCounts,
+            Map<Integer, Integer> replicaCounts) {}
 
-    private TopicStats fetchTopicStats(AdminClient adminClient) throws ExecutionException, InterruptedException, TimeoutException {
+    private TopicStats fetchTopicStats(AdminClient adminClient)
+            throws ExecutionException, InterruptedException, TimeoutException {
         Set<String> topicNames = adminClient
-            .listTopics(new ListTopicsOptions().listInternal(true))
-            .names()
-            .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                .listTopics(new ListTopicsOptions().listInternal(true))
+                .names()
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
         if (topicNames.isEmpty()) {
             return new TopicStats(0, 0, Map.of(), Map.of());
         }
 
         Map<String, TopicDescription> descriptions = adminClient
-            .describeTopics(topicNames)
-            .allTopicNames()
-            .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                .describeTopics(topicNames)
+                .allTopicNames()
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
         Map<Integer, Integer> leaderCounts = new HashMap<>();
         Map<Integer, Integer> replicaCounts = new HashMap<>();
@@ -1002,19 +984,16 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     private Map<Integer, Long> fetchLogDirSizes(AdminClient adminClient, List<Integer> brokerIds) {
         try {
             var logDirsResult = adminClient
-                .describeLogDirs(brokerIds)
-                .allDescriptions()
-                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+                    .describeLogDirs(brokerIds)
+                    .allDescriptions()
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             Map<Integer, Long> sizes = new HashMap<>();
             for (var entry : logDirsResult.entrySet()) {
-                long totalSize = entry
-                    .getValue()
-                    .values()
-                    .stream()
-                    .flatMap(logDir -> logDir.replicaInfos().values().stream())
-                    .mapToLong(ReplicaInfo::size)
-                    .sum();
+                long totalSize = entry.getValue().values().stream()
+                        .flatMap(logDir -> logDir.replicaInfos().values().stream())
+                        .mapToLong(ReplicaInfo::size)
+                        .sum();
                 sizes.put(entry.getKey(), totalSize);
             }
             return sizes;
@@ -1026,14 +1005,13 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     private BrokerDetail toBrokerDetail(Node node, TopicStats topicStats, Map<Integer, Long> logDirSizes) {
         return new BrokerDetail(
-            node.id(),
-            node.host(),
-            node.port(),
-            node.rack(),
-            topicStats.leaderCounts().getOrDefault(node.id(), 0),
-            topicStats.replicaCounts().getOrDefault(node.id(), 0),
-            logDirSizes.getOrDefault(node.id(), null)
-        );
+                node.id(),
+                node.host(),
+                node.port(),
+                node.rack(),
+                topicStats.leaderCounts().getOrDefault(node.id(), 0),
+                topicStats.replicaCounts().getOrDefault(node.id(), 0),
+                logDirSizes.getOrDefault(node.id(), null));
     }
 
     private Properties buildProperties(KafkaClusterStandaloneConfiguration config, List<Path> tempFiles) {
@@ -1050,16 +1028,16 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         }
         properties.put("security.protocol", protocol.name());
 
-        if (
-            isSaslProtocol(protocol) &&
-            config.security() != null &&
-            config.security().sasl() != null &&
-            config.security().sasl().mechanism() != null
-        ) {
+        if (isSaslProtocol(protocol)
+                && config.security() != null
+                && config.security().sasl() != null
+                && config.security().sasl().mechanism() != null) {
             configureSasl(properties, config.security().sasl().mechanism());
         }
 
-        if (isSslProtocol(protocol) && config.security() != null && config.security().ssl() != null) {
+        if (isSslProtocol(protocol)
+                && config.security() != null
+                && config.security().ssl() != null) {
             configureSsl(properties, config.security().ssl(), tempFiles);
         }
 
@@ -1094,14 +1072,24 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         switch (trustStore) {
             case JKSTrustStore jks -> {
                 properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "JKS");
-                setStoreLocation(properties, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, jks.getPath(), jks.getContent(), tempFiles);
+                setStoreLocation(
+                        properties,
+                        SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+                        jks.getPath(),
+                        jks.getContent(),
+                        tempFiles);
                 if (jks.getPassword() != null) {
                     properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, jks.getPassword());
                 }
             }
             case PKCS12TrustStore pkcs12 -> {
                 properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PKCS12");
-                setStoreLocation(properties, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, pkcs12.getPath(), pkcs12.getContent(), tempFiles);
+                setStoreLocation(
+                        properties,
+                        SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+                        pkcs12.getPath(),
+                        pkcs12.getContent(),
+                        tempFiles);
                 if (pkcs12.getPassword() != null) {
                     properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, pkcs12.getPassword());
                 }
@@ -1125,7 +1113,12 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         switch (keyStore) {
             case JKSKeyStore jks -> {
                 properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "JKS");
-                setStoreLocation(properties, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, jks.getPath(), jks.getContent(), tempFiles);
+                setStoreLocation(
+                        properties,
+                        SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
+                        jks.getPath(),
+                        jks.getContent(),
+                        tempFiles);
                 if (jks.getPassword() != null) {
                     properties.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, jks.getPassword());
                 }
@@ -1135,7 +1128,12 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             }
             case PKCS12KeyStore pkcs12 -> {
                 properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12");
-                setStoreLocation(properties, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, pkcs12.getPath(), pkcs12.getContent(), tempFiles);
+                setStoreLocation(
+                        properties,
+                        SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
+                        pkcs12.getPath(),
+                        pkcs12.getContent(),
+                        tempFiles);
                 if (pkcs12.getPassword() != null) {
                     properties.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, pkcs12.getPassword());
                 }
@@ -1148,7 +1146,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 if (pem.getCertContent() != null) {
                     properties.put(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, pem.getCertContent());
                 } else if (pem.getCertPath() != null) {
-                    properties.put(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, readFileContent(pem.getCertPath()));
+                    properties.put(
+                            SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, readFileContent(pem.getCertPath()));
                 }
                 if (pem.getKeyContent() != null) {
                     properties.put(SslConfigs.SSL_KEYSTORE_KEY_CONFIG, pem.getKeyContent());
@@ -1160,7 +1159,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         }
     }
 
-    private void setStoreLocation(Properties properties, String configKey, String path, String base64Content, List<Path> tempFiles) {
+    private void setStoreLocation(
+            Properties properties, String configKey, String path, String base64Content, List<Path> tempFiles) {
         if (path != null) {
             properties.put(configKey, path);
         } else if (base64Content != null) {
@@ -1170,7 +1170,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 tempFiles.add(tempFile);
                 properties.put(configKey, tempFile.toString());
             } catch (IOException e) {
-                throw new KafkaExplorerException("Failed to create temporary SSL store file", TechnicalCode.CONNECTION_FAILED, e);
+                throw new KafkaExplorerException(
+                        "Failed to create temporary SSL store file", TechnicalCode.CONNECTION_FAILED, e);
             }
         }
     }
@@ -1207,7 +1208,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         };
         String escapedUsername = escapeJaasValue(mechanism.username());
         String escapedPassword = escapeJaasValue(mechanism.password());
-        return String.format("%s required username=\"%s\" password=\"%s\";", loginModule, escapedUsername, escapedPassword);
+        return String.format(
+                "%s required username=\"%s\" password=\"%s\";", loginModule, escapedUsername, escapedPassword);
     }
 
     private static String escapeJaasValue(String value) {

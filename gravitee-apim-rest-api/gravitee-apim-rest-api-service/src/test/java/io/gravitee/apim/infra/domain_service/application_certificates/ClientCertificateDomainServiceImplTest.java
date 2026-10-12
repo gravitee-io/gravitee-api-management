@@ -54,7 +54,8 @@ class ClientCertificateDomainServiceImplTest {
     private static final String APPLICATION_ID = "app-id";
     private static final String ENVIRONMENT_ID = "env-id";
 
-    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
+    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService =
+            new ClientCertificateCrudServiceInMemory();
 
     @Mock
     private MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
@@ -63,7 +64,8 @@ class ClientCertificateDomainServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new ClientCertificateDomainServiceImpl(clientCertificateCrudService, mtlsSubscriptionSyncDomainService);
+        service =
+                new ClientCertificateDomainServiceImpl(clientCertificateCrudService, mtlsSubscriptionSyncDomainService);
     }
 
     @AfterEach
@@ -74,22 +76,21 @@ class ClientCertificateDomainServiceImplTest {
     @Test
     void should_create_certificate_and_sync_subscriptions() {
         var toCreate = new ClientCertificate(
-            null,
-            null,
-            null,
-            "Test Certificate",
-            new Date(),
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            null,
-            null,
-            "PEM_CONTENT",
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            ENVIRONMENT_ID,
-            null
-        );
+                null,
+                null,
+                null,
+                "Test Certificate",
+                new Date(),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                null,
+                null,
+                "PEM_CONTENT",
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint",
+                ENVIRONMENT_ID,
+                null);
 
         var result = service.create(APPLICATION_ID, toCreate);
 
@@ -107,7 +108,8 @@ class ClientCertificateDomainServiceImplTest {
         var existing = buildClientCertificate(certId, "Original Name", ClientCertificateStatus.ACTIVE);
         clientCertificateCrudService.initWith(List.of(existing));
 
-        var updateRequest = new ClientCertificate("Updated Name", new Date(), Date.from(Instant.now().plus(365, ChronoUnit.DAYS)));
+        var updateRequest = new ClientCertificate(
+                "Updated Name", new Date(), Date.from(Instant.now().plus(365, ChronoUnit.DAYS)));
 
         var result = service.update(certId, updateRequest);
 
@@ -137,10 +139,11 @@ class ClientCertificateDomainServiceImplTest {
         clientCertificateCrudService.initWith(List.of(existing));
 
         doThrow(new ClientCertificateLastRemovalException(APPLICATION_ID))
-            .when(mtlsSubscriptionSyncDomainService)
-            .validateCertificateRemoval(APPLICATION_ID, certId);
+                .when(mtlsSubscriptionSyncDomainService)
+                .validateCertificateRemoval(APPLICATION_ID, certId);
 
-        assertThatThrownBy(() -> service.delete(APPLICATION_ID, certId)).isInstanceOf(ClientCertificateLastRemovalException.class);
+        assertThatThrownBy(() -> service.delete(APPLICATION_ID, certId))
+                .isInstanceOf(ClientCertificateLastRemovalException.class);
 
         assertThat(clientCertificateCrudService.storage()).hasSize(1);
         verify(mtlsSubscriptionSyncDomainService, never()).updateActiveMTLSSubscriptions(anyString());
@@ -153,7 +156,8 @@ class ClientCertificateDomainServiceImplTest {
         var failingService = new ClientCertificateDomainServiceImpl(crudService, mtlsSubscriptionSyncDomainService);
 
         var toCreate = buildClientCertificate(null, "Test Certificate", null);
-        assertThatThrownBy(() -> failingService.create(APPLICATION_ID, toCreate)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> failingService.create(APPLICATION_ID, toCreate))
+                .isInstanceOf(RuntimeException.class);
 
         verify(mtlsSubscriptionSyncDomainService, never()).updateActiveMTLSSubscriptions(anyString());
     }
@@ -164,8 +168,10 @@ class ClientCertificateDomainServiceImplTest {
         when(crudService.update(anyString(), any())).thenThrow(new RuntimeException("DB error"));
         var failingService = new ClientCertificateDomainServiceImpl(crudService, mtlsSubscriptionSyncDomainService);
 
-        var updateRequest = new ClientCertificate("Updated Name", new Date(), Date.from(Instant.now().plus(365, ChronoUnit.DAYS)));
-        assertThatThrownBy(() -> failingService.update("cert-id", updateRequest)).isInstanceOf(RuntimeException.class);
+        var updateRequest = new ClientCertificate(
+                "Updated Name", new Date(), Date.from(Instant.now().plus(365, ChronoUnit.DAYS)));
+        assertThatThrownBy(() -> failingService.update("cert-id", updateRequest))
+                .isInstanceOf(RuntimeException.class);
 
         verify(mtlsSubscriptionSyncDomainService, never()).updateActiveMTLSSubscriptions(anyString());
     }
@@ -176,7 +182,8 @@ class ClientCertificateDomainServiceImplTest {
         doThrow(new RuntimeException("DB error")).when(crudService).delete(anyString());
         var failingService = new ClientCertificateDomainServiceImpl(crudService, mtlsSubscriptionSyncDomainService);
 
-        assertThatThrownBy(() -> failingService.delete(APPLICATION_ID, "cert-id")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> failingService.delete(APPLICATION_ID, "cert-id"))
+                .isInstanceOf(RuntimeException.class);
 
         verify(mtlsSubscriptionSyncDomainService).validateCertificateRemoval(APPLICATION_ID, "cert-id");
         verify(mtlsSubscriptionSyncDomainService, never()).updateActiveMTLSSubscriptions(anyString());
@@ -184,21 +191,20 @@ class ClientCertificateDomainServiceImplTest {
 
     private ClientCertificate buildClientCertificate(String id, String name, ClientCertificateStatus status) {
         return new ClientCertificate(
-            id,
-            "cross-id-" + id,
-            APPLICATION_ID,
-            name,
-            new Date(),
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint-" + id,
-            ENVIRONMENT_ID,
-            status
-        );
+                id,
+                "cross-id-" + id,
+                APPLICATION_ID,
+                name,
+                new Date(),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                new Date(),
+                new Date(),
+                "PEM_CONTENT",
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint-" + id,
+                ENVIRONMENT_ID,
+                status);
     }
 }

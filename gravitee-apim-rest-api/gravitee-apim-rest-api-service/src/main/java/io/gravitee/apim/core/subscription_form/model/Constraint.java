@@ -43,33 +43,30 @@ import java.util.stream.Stream;
  * @author Gravitee.io Team
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = Constraint.Required.class, name = "required"),
-        @JsonSubTypes.Type(value = Constraint.MustBeTrue.class, name = "mustBeTrue"),
-        @JsonSubTypes.Type(value = Constraint.NonEmptySelection.class, name = "nonEmptySelection"),
-        @JsonSubTypes.Type(value = Constraint.ReadOnly.class, name = "readOnly"),
-        @JsonSubTypes.Type(value = Constraint.MinLength.class, name = "minLength"),
-        @JsonSubTypes.Type(value = Constraint.MaxLength.class, name = "maxLength"),
-        @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
-        @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
-        @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
-        @JsonSubTypes.Type(value = Constraint.DynamicOneOf.class, name = "dynamicOneOf"),
-        @JsonSubTypes.Type(value = Constraint.DynamicEachOf.class, name = "dynamicEachOf"),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Constraint.Required.class, name = "required"),
+    @JsonSubTypes.Type(value = Constraint.MustBeTrue.class, name = "mustBeTrue"),
+    @JsonSubTypes.Type(value = Constraint.NonEmptySelection.class, name = "nonEmptySelection"),
+    @JsonSubTypes.Type(value = Constraint.ReadOnly.class, name = "readOnly"),
+    @JsonSubTypes.Type(value = Constraint.MinLength.class, name = "minLength"),
+    @JsonSubTypes.Type(value = Constraint.MaxLength.class, name = "maxLength"),
+    @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
+    @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
+    @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
+    @JsonSubTypes.Type(value = Constraint.DynamicOneOf.class, name = "dynamicOneOf"),
+    @JsonSubTypes.Type(value = Constraint.DynamicEachOf.class, name = "dynamicEachOf"),
+})
 public sealed interface Constraint
-    permits
-        Constraint.Required,
-        Constraint.MustBeTrue,
-        Constraint.NonEmptySelection,
-        Constraint.ReadOnly,
-        Constraint.MinLength,
-        Constraint.MaxLength,
-        Constraint.MatchesPattern,
-        Constraint.OneOf,
-        Constraint.EachOf,
-        Constraint.ResolvableOptions {
+        permits Constraint.Required,
+                Constraint.MustBeTrue,
+                Constraint.NonEmptySelection,
+                Constraint.ReadOnly,
+                Constraint.MinLength,
+                Constraint.MaxLength,
+                Constraint.MatchesPattern,
+                Constraint.OneOf,
+                Constraint.EachOf,
+                Constraint.ResolvableOptions {
     /**
      * Whether the submitted value satisfies this constraint. The value is already trimmed; an empty string means absent.
      */
@@ -210,7 +207,9 @@ public sealed interface Constraint
                 return "";
             }
             try {
-                return value.matches(pattern) ? "" : String.format("Field '%s' does not match the required pattern", fieldKey);
+                return value.matches(pattern)
+                        ? ""
+                        : String.format("Field '%s' does not match the required pattern", fieldKey);
             } catch (PatternSyntaxException e) {
                 return String.format("Field '%s' has an invalid pattern configuration", fieldKey);
             }
@@ -255,7 +254,8 @@ public sealed interface Constraint
     final class DynamicOneOf extends ResolvableOptions {
 
         @JsonCreator
-        public DynamicOneOf(@JsonProperty("expression") String expression, @JsonProperty("fallback") List<String> fallback) {
+        public DynamicOneOf(
+                @JsonProperty("expression") String expression, @JsonProperty("fallback") List<String> fallback) {
             super(expression, fallback, false, List.of());
         }
 
@@ -274,7 +274,8 @@ public sealed interface Constraint
     final class DynamicEachOf extends ResolvableOptions {
 
         @JsonCreator
-        public DynamicEachOf(@JsonProperty("expression") String expression, @JsonProperty("fallback") List<String> fallback) {
+        public DynamicEachOf(
+                @JsonProperty("expression") String expression, @JsonProperty("fallback") List<String> fallback) {
             super(expression, fallback, false, List.of());
         }
 
@@ -331,7 +332,8 @@ public sealed interface Constraint
                 throw new IllegalStateException("Dynamic constraint already resolved");
             }
             var resolvedOptions = resolver.apply(expression);
-            this.options = normalizeOptions(resolvedOptions == null || resolvedOptions.isEmpty() ? fallback : resolvedOptions);
+            this.options =
+                    normalizeOptions(resolvedOptions == null || resolvedOptions.isEmpty() ? fallback : resolvedOptions);
             this.resolved = true;
         }
 
@@ -344,12 +346,10 @@ public sealed interface Constraint
                 return false;
             }
             ResolvableOptions that = (ResolvableOptions) o;
-            return (
-                resolved == that.resolved &&
-                Objects.equals(expression, that.expression) &&
-                Objects.equals(fallback, that.fallback) &&
-                Objects.equals(options, that.options)
-            );
+            return (resolved == that.resolved
+                    && Objects.equals(expression, that.expression)
+                    && Objects.equals(fallback, that.fallback)
+                    && Objects.equals(options, that.options));
         }
 
         @Override
@@ -359,18 +359,15 @@ public sealed interface Constraint
 
         @Override
         public String toString() {
-            return (
-                getClass().getSimpleName() +
-                "[expression=" +
-                expression +
-                ", fallback=" +
-                fallback +
-                ", resolved=" +
-                resolved +
-                ", options=" +
-                options +
-                "]"
-            );
+            return (getClass().getSimpleName() + "[expression="
+                    + expression
+                    + ", fallback="
+                    + fallback
+                    + ", resolved="
+                    + resolved
+                    + ", options="
+                    + options
+                    + "]");
         }
 
         private static List<String> normalizeOptions(List<String> options) {
@@ -396,15 +393,13 @@ public sealed interface Constraint
         }
         Set<String> allowed = new HashSet<>(options);
         var lines = splitCsv(value)
-            .filter(item -> !allowed.contains(item))
-            .map(item -> String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, item))
-            .toList();
+                .filter(item -> !allowed.contains(item))
+                .map(item -> String.format("Field '%s': value '%s' is not among the allowed options", fieldKey, item))
+                .toList();
         return String.join("\n", lines);
     }
 
     private static Stream<String> splitCsv(String value) {
-        return Arrays.stream(value.split(","))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty());
+        return Arrays.stream(value.split(",")).map(String::trim).filter(s -> !s.isEmpty());
     }
 }

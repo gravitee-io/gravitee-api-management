@@ -51,7 +51,8 @@ class MediaValidationServiceImplTest {
     public void setUp() {
         loader = Mockito.mockStatic(Loader.class);
         tikaConstruction = Mockito.mockConstruction(Tika.class, (mock, context) -> {
-            when(mock.detect(Mockito.any(byte[].class), Mockito.nullable(String.class))).thenReturn("application/pdf");
+            when(mock.detect(Mockito.any(byte[].class), Mockito.nullable(String.class)))
+                    .thenReturn("application/pdf");
         });
         mediaValidationService = new MediaValidationServiceImpl();
     }
@@ -263,7 +264,8 @@ class MediaValidationServiceImplTest {
     @Test
     void should_not_throw_when_json_declared_as_json() {
         Tika mockedTika = tikaConstruction.constructed().getFirst();
-        when(mockedTika.detect(Mockito.any(byte[].class), Mockito.nullable(String.class))).thenReturn("application/json");
+        when(mockedTika.detect(Mockito.any(byte[].class), Mockito.nullable(String.class)))
+                .thenReturn("application/json");
 
         final byte[] data = "data".getBytes();
         final String mediaType = "application/json";

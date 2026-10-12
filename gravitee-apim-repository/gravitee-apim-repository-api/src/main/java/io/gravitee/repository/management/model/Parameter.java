@@ -49,11 +49,9 @@ public class Parameter {
         if (this == o) return true;
         if (!(o instanceof Parameter)) return false;
         Parameter parameter = (Parameter) o;
-        return (
-            Objects.equals(key, parameter.key) &&
-            Objects.equals(referenceId, parameter.referenceId) &&
-            referenceType == parameter.referenceType
-        );
+        return (Objects.equals(key, parameter.key)
+                && Objects.equals(referenceId, parameter.referenceId)
+                && referenceType == parameter.referenceType);
     }
 
     @Override
@@ -63,21 +61,18 @@ public class Parameter {
 
     @Override
     public String toString() {
-        return (
-            "Parameter{" +
-            "key='" +
-            key +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", value='" +
-            value +
-            '\'' +
-            '}'
-        );
+        return ("Parameter{" + "key='"
+                + key
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", value='"
+                + value
+                + '\''
+                + '}');
     }
 }

@@ -35,9 +35,8 @@ import org.slf4j.Logger;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class PolicyChain
-    extends BufferedReadWriteStream
-    implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<ExecutionContext, Buffer> {
+public abstract class PolicyChain extends BufferedReadWriteStream
+        implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<ExecutionContext, Buffer> {
 
     protected final Logger logger = NodeLoggerFactory.getLogger(this.getClass());
 
@@ -71,9 +70,8 @@ public abstract class PolicyChain
                 }
             } catch (Exception ex) {
                 if (errorHandler != null) {
-                    errorHandler.handle(
-                        new PolicyChainProcessorFailure(PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, ex.getMessage()))
-                    );
+                    errorHandler.handle(new PolicyChainProcessorFailure(
+                            PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, ex.getMessage())));
                 }
             }
         } else {

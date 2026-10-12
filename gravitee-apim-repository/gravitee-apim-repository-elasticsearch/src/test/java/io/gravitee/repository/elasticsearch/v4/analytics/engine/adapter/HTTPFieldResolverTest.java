@@ -22,7 +22,6 @@ import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import java.util.List;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -40,21 +39,20 @@ class HTTPFieldResolverTest {
 
     @ParameterizedTest
     @EnumSource(
-        value = Metric.class,
-        names = {
-            "HTTP_REQUESTS",
-            "HTTP_ERRORS",
-            "HTTP_REQUEST_CONTENT_LENGTH",
-            "HTTP_RESPONSE_CONTENT_LENGTH",
-            "HTTP_ENDPOINT_RESPONSE_TIME",
-            "HTTP_GATEWAY_RESPONSE_TIME",
-            "HTTP_GATEWAY_LATENCY",
-            "LLM_PROMPT_TOKEN_SENT",
-            "LLM_PROMPT_TOKEN_RECEIVED",
-            "LLM_PROMPT_TOKEN_SENT_COST",
-            "LLM_PROMPT_TOKEN_RECEIVED_COST",
-        }
-    )
+            value = Metric.class,
+            names = {
+                "HTTP_REQUESTS",
+                "HTTP_ERRORS",
+                "HTTP_REQUEST_CONTENT_LENGTH",
+                "HTTP_RESPONSE_CONTENT_LENGTH",
+                "HTTP_ENDPOINT_RESPONSE_TIME",
+                "HTTP_GATEWAY_RESPONSE_TIME",
+                "HTTP_GATEWAY_LATENCY",
+                "LLM_PROMPT_TOKEN_SENT",
+                "LLM_PROMPT_TOKEN_RECEIVED",
+                "LLM_PROMPT_TOKEN_SENT_COST",
+                "LLM_PROMPT_TOKEN_RECEIVED_COST",
+            })
     void should_resolve_from_http_metric(Metric metric) {
         assertThat(fieldResolver.fromMetric(metric)).isNotBlank();
     }
@@ -66,96 +64,91 @@ class HTTPFieldResolverTest {
 
     @Test
     void should_resolve_http_path_to_the_path_info_the_gateway_reports() {
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.HTTP_PATH, Filter.Operator.EQ, "/tools/call"))).isEqualTo(
-            "path-info.keyword"
-        );
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.HTTP_PATH, Filter.Operator.EQ, "/tools/call")))
+                .isEqualTo("path-info.keyword");
         assertThat(fieldResolver.fromFacet(Facet.HTTP_PATH)).isEqualTo("path-info.keyword");
     }
 
     @ParameterizedTest
     @EnumSource(
-        value = Filter.Name.class,
-        names = {
-            "API",
-            "APPLICATION",
-            "PLAN",
-            "GATEWAY",
-            "ZONE",
-            "TENANT",
-            "HTTP_METHOD",
-            "HTTP_STATUS",
-            "HTTP_STATUS_CODE_GROUP",
-            "HTTP_PATH",
-            "HTTP_PATH_MAPPING",
-            "GEO_IP_COUNTRY",
-            "CONSUMER_IP",
-            "MCP_PROXY_METHOD",
-            "MCP_PROXY_TOOL",
-            "MCP_PROXY_RESOURCE",
-            "MCP_PROXY_PROMPT",
-            "API_PRODUCT",
-        }
-    )
+            value = Filter.Name.class,
+            names = {
+                "API",
+                "APPLICATION",
+                "PLAN",
+                "GATEWAY",
+                "ZONE",
+                "TENANT",
+                "HTTP_METHOD",
+                "HTTP_STATUS",
+                "HTTP_STATUS_CODE_GROUP",
+                "HTTP_PATH",
+                "HTTP_PATH_MAPPING",
+                "GEO_IP_COUNTRY",
+                "CONSUMER_IP",
+                "MCP_PROXY_METHOD",
+                "MCP_PROXY_TOOL",
+                "MCP_PROXY_RESOURCE",
+                "MCP_PROXY_PROMPT",
+                "API_PRODUCT",
+            })
     void should_resolve_from_http_filter(Filter.Name name) {
-        assertThat(fieldResolver.fromFilter(new Filter(name, Filter.Operator.EQ, "value"))).isNotBlank();
+        assertThat(fieldResolver.fromFilter(new Filter(name, Filter.Operator.EQ, "value")))
+                .isNotBlank();
     }
 
     @Test
     void should_throw_unsupported_operation_exception_for_unknown_filter() {
-        assertThrows(UnsupportedOperationException.class, () ->
-            fieldResolver.fromFilter(new Filter(Filter.Name.MESSAGE_CONNECTOR_TYPE, Filter.Operator.EQ, "value"))
-        );
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> fieldResolver.fromFilter(
+                        new Filter(Filter.Name.MESSAGE_CONNECTOR_TYPE, Filter.Operator.EQ, "value")));
     }
 
     @ParameterizedTest
     @EnumSource(
-        value = Facet.class,
-        names = {
-            "API",
-            "APPLICATION",
-            "PLAN",
-            "GATEWAY",
-            "ZONE",
-            "TENANT",
-            "HTTP_METHOD",
-            "HTTP_STATUS",
-            "HTTP_STATUS_CODE_GROUP",
-            "HTTP_PATH",
-            "HTTP_PATH_MAPPING",
-            "GEO_IP_COUNTRY",
-            "CONSUMER_IP",
-            "MCP_PROXY_METHOD",
-            "MCP_PROXY_TOOL",
-            "MCP_PROXY_RESOURCE",
-            "MCP_PROXY_PROMPT",
-            "API_PRODUCT",
-        }
-    )
+            value = Facet.class,
+            names = {
+                "API",
+                "APPLICATION",
+                "PLAN",
+                "GATEWAY",
+                "ZONE",
+                "TENANT",
+                "HTTP_METHOD",
+                "HTTP_STATUS",
+                "HTTP_STATUS_CODE_GROUP",
+                "HTTP_PATH",
+                "HTTP_PATH_MAPPING",
+                "GEO_IP_COUNTRY",
+                "CONSUMER_IP",
+                "MCP_PROXY_METHOD",
+                "MCP_PROXY_TOOL",
+                "MCP_PROXY_RESOURCE",
+                "MCP_PROXY_PROMPT",
+                "API_PRODUCT",
+            })
     void should_resolve_from_http_facet(Facet name) {
         assertThat(fieldResolver.fromFacet(name)).isNotBlank();
     }
 
     @Test
     void should_resolve_mcp_proxy_filter_to_expected_es_fields() {
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_METHOD, Filter.Operator.EQ, "initialize"))).isEqualTo(
-            "additional-metrics.keyword_mcp-proxy_method"
-        );
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_TOOL, Filter.Operator.EQ, "tool"))).isEqualTo(
-            "additional-metrics.keyword_mcp-proxy_tools/call"
-        );
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_RESOURCE, Filter.Operator.EQ, "resource"))).isEqualTo(
-            "additional-metrics.keyword_mcp-proxy_resources/read"
-        );
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_PROMPT, Filter.Operator.EQ, "prompt"))).isEqualTo(
-            "additional-metrics.keyword_mcp-proxy_prompts/get"
-        );
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_METHOD, Filter.Operator.EQ, "initialize")))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_method");
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_TOOL, Filter.Operator.EQ, "tool")))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_tools/call");
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_RESOURCE, Filter.Operator.EQ, "resource")))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_resources/read");
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_PROMPT, Filter.Operator.EQ, "prompt")))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_prompts/get");
     }
 
     @Test
     void should_resolve_api_product_filter_to_api_product_id_es_field() {
-        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.API_PRODUCT, Filter.Operator.IN, List.of("product-id")))).isEqualTo(
-            "api-product-id"
-        );
+        assertThat(fieldResolver.fromFilter(
+                        new Filter(Filter.Name.API_PRODUCT, Filter.Operator.IN, List.of("product-id"))))
+                .isEqualTo("api-product-id");
     }
 
     @Test
@@ -165,10 +158,14 @@ class HTTPFieldResolverTest {
 
     @Test
     void should_resolve_mcp_proxy_facet_to_expected_es_fields() {
-        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_METHOD)).isEqualTo("additional-metrics.keyword_mcp-proxy_method");
-        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_TOOL)).isEqualTo("additional-metrics.keyword_mcp-proxy_tools/call");
-        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_RESOURCE)).isEqualTo("additional-metrics.keyword_mcp-proxy_resources/read");
-        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_PROMPT)).isEqualTo("additional-metrics.keyword_mcp-proxy_prompts/get");
+        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_METHOD))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_method");
+        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_TOOL))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_tools/call");
+        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_RESOURCE))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_resources/read");
+        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_PROMPT))
+                .isEqualTo("additional-metrics.keyword_mcp-proxy_prompts/get");
     }
 
     @Test

@@ -24,7 +24,6 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
-import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -68,25 +67,29 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
 
     @Test
     public void should_get_proper_ranges_only_for_all_apis() {
-        apiQueryService.initWith(
-            List.of(
+        apiQueryService.initWith(List.of(
                 ApiFixtures.aMessageApiV4().toBuilder().id("message-api-v4-id").build(),
                 ApiFixtures.aProxyApiV4().toBuilder().id("proxy-api-v4-id").build(),
-                ApiFixtures.aProxyApiV2().toBuilder().id("proxy-api-v2-id").build()
-            )
-        );
+                ApiFixtures.aProxyApiV2().toBuilder().id("proxy-api-v2-id").build()));
         var input = SearchEnvironmentResponseStatusRangesUseCase.Input.builder()
-            .executionContext(executionContext)
-            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
-            .build();
+                .executionContext(executionContext)
+                .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+                .build();
 
-        when(analyticsQueryService.searchResponseStatusRanges(any(), any())).thenReturn(
-            Optional.of(
-                ResponseStatusRanges.builder()
-                    .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-                    .build()
-            )
-        );
+        when(analyticsQueryService.searchResponseStatusRanges(any(), any()))
+                .thenReturn(Optional.of(ResponseStatusRanges.builder()
+                        .ranges(Map.of(
+                                "100.0-200.0",
+                                1L,
+                                "200.0-300.0",
+                                17L,
+                                "300.0-400.0",
+                                0L,
+                                "400.0-500.0",
+                                0L,
+                                "500.0-600.0",
+                                0L))
+                        .build()));
 
         var result = cut.execute(input).responseStatusRanges();
 
@@ -95,42 +98,58 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(argumentCaptor.getValue().getFrom()).isEqualTo(FROM);
             softly.assertThat(argumentCaptor.getValue().getTo()).isEqualTo(TO);
-            softly
-                .assertThat(argumentCaptor.getValue().getApiIds())
-                .containsExactlyInAnyOrder("proxy-api-v2-id", "message-api-v4-id", "proxy-api-v4-id");
-            softly
-                .assertThat(argumentCaptor.getValue().getDefinitionVersions())
-                .containsExactlyInAnyOrder(DefinitionVersion.V2, DefinitionVersion.V4);
-            softly
-                .assertThat(result)
-                .isPresent()
-                .isNotNull()
-                .get()
-                .extracting(ResponseStatusRanges::getRanges)
-                .isEqualTo(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L));
+            softly.assertThat(argumentCaptor.getValue().getApiIds())
+                    .containsExactlyInAnyOrder("proxy-api-v2-id", "message-api-v4-id", "proxy-api-v4-id");
+            softly.assertThat(argumentCaptor.getValue().getDefinitionVersions())
+                    .containsExactlyInAnyOrder(DefinitionVersion.V2, DefinitionVersion.V4);
+            softly.assertThat(result)
+                    .isPresent()
+                    .isNotNull()
+                    .get()
+                    .extracting(ResponseStatusRanges::getRanges)
+                    .isEqualTo(Map.of(
+                            "100.0-200.0",
+                            1L,
+                            "200.0-300.0",
+                            17L,
+                            "300.0-400.0",
+                            0L,
+                            "400.0-500.0",
+                            0L,
+                            "500.0-600.0",
+                            0L));
         });
     }
 
     @Test
     public void should_get_ranges_only_for_specified_env() {
-        apiQueryService.initWith(
-            List.of(
-                ApiFixtures.aProxyApiV4().toBuilder().id("proper-env-proxy-api-v4-id").build(),
-                ApiFixtures.aProxyApiV4().toBuilder().id("other-env-proxy-api-v4-id").environmentId("other-env").build()
-            )
-        );
+        apiQueryService.initWith(List.of(
+                ApiFixtures.aProxyApiV4().toBuilder()
+                        .id("proper-env-proxy-api-v4-id")
+                        .build(),
+                ApiFixtures.aProxyApiV4().toBuilder()
+                        .id("other-env-proxy-api-v4-id")
+                        .environmentId("other-env")
+                        .build()));
         var input = SearchEnvironmentResponseStatusRangesUseCase.Input.builder()
-            .executionContext(executionContext)
-            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
-            .build();
+                .executionContext(executionContext)
+                .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+                .build();
 
-        when(analyticsQueryService.searchResponseStatusRanges(any(), any())).thenReturn(
-            Optional.of(
-                ResponseStatusRanges.builder()
-                    .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-                    .build()
-            )
-        );
+        when(analyticsQueryService.searchResponseStatusRanges(any(), any()))
+                .thenReturn(Optional.of(ResponseStatusRanges.builder()
+                        .ranges(Map.of(
+                                "100.0-200.0",
+                                1L,
+                                "200.0-300.0",
+                                17L,
+                                "300.0-400.0",
+                                0L,
+                                "400.0-500.0",
+                                0L,
+                                "500.0-600.0",
+                                0L))
+                        .build()));
 
         var result = cut.execute(input).responseStatusRanges();
 
@@ -138,22 +157,30 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
 
         SoftAssertions.assertSoftly(softAssertions -> {
             softAssertions
-                .assertThat(argumentCaptor.getValue())
-                .isEqualTo(
-                    AnalyticsQueryParameters.builder()
-                        .from(FROM)
-                        .to(TO)
-                        .apiIds(List.of("proper-env-proxy-api-v4-id"))
-                        .definitionVersions(Set.of(DefinitionVersion.V4))
-                        .build()
-                );
+                    .assertThat(argumentCaptor.getValue())
+                    .isEqualTo(AnalyticsQueryParameters.builder()
+                            .from(FROM)
+                            .to(TO)
+                            .apiIds(List.of("proper-env-proxy-api-v4-id"))
+                            .definitionVersions(Set.of(DefinitionVersion.V4))
+                            .build());
             softAssertions
-                .assertThat(result)
-                .isPresent()
-                .isNotNull()
-                .get()
-                .extracting(ResponseStatusRanges::getRanges)
-                .isEqualTo(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L));
+                    .assertThat(result)
+                    .isPresent()
+                    .isNotNull()
+                    .get()
+                    .extracting(ResponseStatusRanges::getRanges)
+                    .isEqualTo(Map.of(
+                            "100.0-200.0",
+                            1L,
+                            "200.0-300.0",
+                            17L,
+                            "300.0-400.0",
+                            0L,
+                            "400.0-500.0",
+                            0L,
+                            "500.0-600.0",
+                            0L));
         });
     }
 }

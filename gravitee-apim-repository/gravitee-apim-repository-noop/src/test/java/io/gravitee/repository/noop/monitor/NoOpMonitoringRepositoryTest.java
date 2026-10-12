@@ -38,10 +38,8 @@ public class NoOpMonitoringRepositoryTest extends AbstractNoOpRepositoryTest {
     public void testQuery() throws AnalyticsException, IOException {
         Assertions.assertNotNull(monitoringRepository);
 
-        final MonitoringResponse monitoringResponse = monitoringRepository.query(
-            new QueryContext("org#1", "env#1"),
-            "1876c024-c6a2-409a-b6c0-24c6a2e09a5f"
-        );
+        final MonitoringResponse monitoringResponse =
+                monitoringRepository.query(new QueryContext("org#1", "env#1"), "1876c024-c6a2-409a-b6c0-24c6a2e09a5f");
 
         Assertions.assertNull(monitoringResponse);
     }

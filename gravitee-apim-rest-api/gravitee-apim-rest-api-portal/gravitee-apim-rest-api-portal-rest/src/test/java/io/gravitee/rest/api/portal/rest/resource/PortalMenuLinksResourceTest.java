@@ -56,18 +56,16 @@ public class PortalMenuLinksResourceTest extends AbstractResourceTest {
     @Test
     public void should_list_portal_menu_links_for_environment() {
         // Given
-        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .id("public")
-            .visibility(PortalMenuLinkVisibility.PUBLIC)
-            .environmentId(ENV_ID)
-            .build();
-        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .id("private")
-            .visibility(PortalMenuLinkVisibility.PRIVATE)
-            .environmentId(ENV_ID)
-            .build();
+        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                .id("public")
+                .visibility(PortalMenuLinkVisibility.PUBLIC)
+                .environmentId(ENV_ID)
+                .build();
+        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                .id("private")
+                .visibility(PortalMenuLinkVisibility.PRIVATE)
+                .environmentId(ENV_ID)
+                .build();
         List<PortalMenuLink> links = List.of(publicPortalMenuLink, privatePortalMenuLink);
         portalMenuLinkCrudServiceInMemory.initWith(links);
 
@@ -79,20 +77,22 @@ public class PortalMenuLinksResourceTest extends AbstractResourceTest {
         var result = (List<io.gravitee.rest.api.portal.rest.model.PortalMenuLink>) response.readEntity(List.class);
 
         assertThat(result)
-            .isNotNull()
-            .hasSize(2)
-            .element(0)
-            .hasFieldOrPropertyWithValue("id", publicPortalMenuLink.getId())
-            .hasFieldOrPropertyWithValue("target", publicPortalMenuLink.getTarget())
-            .hasFieldOrPropertyWithValue("name", publicPortalMenuLink.getName())
-            .hasFieldOrPropertyWithValue("type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
-            .hasFieldOrPropertyWithValue("order", publicPortalMenuLink.getOrder());
+                .isNotNull()
+                .hasSize(2)
+                .element(0)
+                .hasFieldOrPropertyWithValue("id", publicPortalMenuLink.getId())
+                .hasFieldOrPropertyWithValue("target", publicPortalMenuLink.getTarget())
+                .hasFieldOrPropertyWithValue("name", publicPortalMenuLink.getName())
+                .hasFieldOrPropertyWithValue(
+                        "type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
+                .hasFieldOrPropertyWithValue("order", publicPortalMenuLink.getOrder());
         assertThat(result)
-            .element(1)
-            .hasFieldOrPropertyWithValue("id", privatePortalMenuLink.getId())
-            .hasFieldOrPropertyWithValue("target", privatePortalMenuLink.getTarget())
-            .hasFieldOrPropertyWithValue("name", privatePortalMenuLink.getName())
-            .hasFieldOrPropertyWithValue("type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
-            .hasFieldOrPropertyWithValue("order", privatePortalMenuLink.getOrder());
+                .element(1)
+                .hasFieldOrPropertyWithValue("id", privatePortalMenuLink.getId())
+                .hasFieldOrPropertyWithValue("target", privatePortalMenuLink.getTarget())
+                .hasFieldOrPropertyWithValue("name", privatePortalMenuLink.getName())
+                .hasFieldOrPropertyWithValue(
+                        "type", io.gravitee.rest.api.portal.rest.model.PortalMenuLink.TypeEnum.EXTERNAL.toString())
+                .hasFieldOrPropertyWithValue("order", privatePortalMenuLink.getOrder());
     }
 }

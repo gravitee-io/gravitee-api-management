@@ -56,24 +56,25 @@ class CreateSubscriptionDomainServiceImplTest {
 
     @Test
     void should_delegate_to_subscription_service() {
-        AuditInfo auditInfo = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        AuditInfo auditInfo =
+                AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
         SubscriptionEntity created = new SubscriptionEntity();
         created.setId("sub-1");
-        when(subscriptionService.create(any(ExecutionContext.class), any(NewSubscriptionEntity.class), eq(null))).thenReturn(created);
+        when(subscriptionService.create(any(ExecutionContext.class), any(NewSubscriptionEntity.class), eq(null)))
+                .thenReturn(created);
 
         io.gravitee.rest.api.model.SubscriptionEntity result = cut.create(
-            auditInfo,
-            PLAN_ID,
-            APP_ID,
-            "request-msg",
-            null,
-            null,
-            Map.of("k", "v"),
-            ApiKeyMode.EXCLUSIVE,
-            null,
-            null,
-            null
-        );
+                auditInfo,
+                PLAN_ID,
+                APP_ID,
+                "request-msg",
+                null,
+                null,
+                Map.of("k", "v"),
+                ApiKeyMode.EXCLUSIVE,
+                null,
+                null,
+                null);
 
         assertThat(result).isSameAs(created);
         ArgumentCaptor<ExecutionContext> ctxCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
@@ -90,12 +91,13 @@ class CreateSubscriptionDomainServiceImplTest {
 
     @Test
     void should_map_configuration_to_entity() {
-        AuditInfo auditInfo = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+        AuditInfo auditInfo =
+                AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
         SubscriptionConfiguration config = SubscriptionConfiguration.builder()
-            .entrypointId("ep-id")
-            .channel("channel")
-            .entrypointConfiguration("{\"key\":\"value\"}")
-            .build();
+                .entrypointId("ep-id")
+                .channel("channel")
+                .entrypointConfiguration("{\"key\":\"value\"}")
+                .build();
         when(subscriptionService.create(any(), any(), any())).thenReturn(new SubscriptionEntity());
 
         cut.create(auditInfo, PLAN_ID, APP_ID, null, null, config, null, null, null, null, null);
@@ -105,6 +107,7 @@ class CreateSubscriptionDomainServiceImplTest {
         assertThat(entityCaptor.getValue().getConfiguration()).isNotNull();
         assertThat(entityCaptor.getValue().getConfiguration().getEntrypointId()).isEqualTo("ep-id");
         assertThat(entityCaptor.getValue().getConfiguration().getChannel()).isEqualTo("channel");
-        assertThat(entityCaptor.getValue().getConfiguration().getEntrypointConfiguration()).isEqualTo("{\"key\":\"value\"}");
+        assertThat(entityCaptor.getValue().getConfiguration().getEntrypointConfiguration())
+                .isEqualTo("{\"key\":\"value\"}");
     }
 }

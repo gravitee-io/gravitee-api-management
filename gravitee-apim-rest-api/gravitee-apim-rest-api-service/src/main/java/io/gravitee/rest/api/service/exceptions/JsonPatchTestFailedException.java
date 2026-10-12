@@ -49,6 +49,7 @@ public class JsonPatchTestFailedException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return String.format("The json patch does not validate the condition %s == %s", jsonPath.getJsonPath(), jsonPath.getValue());
+        return String.format(
+                "The json patch does not validate the condition %s == %s", jsonPath.getJsonPath(), jsonPath.getValue());
     }
 }

@@ -40,11 +40,13 @@ public abstract class KeyStoreSerializer<T extends KeyStore> extends StdScalarSe
     }
 
     @Override
-    public void serializeWithType(T value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer) throws IOException {
+    public void serializeWithType(T value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer)
+            throws IOException {
         serialize(value, g, provider);
     }
 
-    protected void doSerialize(T keyStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(T keyStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         jgen.writeStringField("type", keyStore.getType().name());
     }
 

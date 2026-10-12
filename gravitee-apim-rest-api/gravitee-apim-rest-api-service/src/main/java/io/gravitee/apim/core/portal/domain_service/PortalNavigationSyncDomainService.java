@@ -56,22 +56,20 @@ public class PortalNavigationSyncDomainService {
     private final PortalNavigationValidator validatorService;
 
     public void sync(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        PortalNavigationStructure previouslyPersisted,
-        PortalNavigationStructure desired
-    ) {
+            AuditInfo auditInfo,
+            PortalId portalId,
+            PortalNavigationStructure previouslyPersisted,
+            PortalNavigationStructure desired) {
         for (var area : allAreas(previouslyPersisted, desired)) {
             syncArea(auditInfo, portalId, area, previouslyPersisted.forArea(area), desired.forArea(area));
         }
     }
 
     public void validateForConflicts(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        PortalNavigationStructure previouslyPersisted,
-        PortalNavigationStructure desired
-    ) {
+            AuditInfo auditInfo,
+            PortalId portalId,
+            PortalNavigationStructure previouslyPersisted,
+            PortalNavigationStructure desired) {
         List<CreatePortalNavigationItem> creates = new ArrayList<>();
         List<PendingUpdate> updates = new ArrayList<>();
         for (var area : allAreas(previouslyPersisted, desired)) {
@@ -88,94 +86,83 @@ public class PortalNavigationSyncDomainService {
     }
 
     private void syncArea(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        PortalArea area,
-        List<NavigationPath> previousPaths,
-        List<NavigationPath> desiredPaths
-    ) {
+            AuditInfo auditInfo,
+            PortalId portalId,
+            PortalArea area,
+            List<NavigationPath> previousPaths,
+            List<NavigationPath> desiredPaths) {
         rejectUnsupportedArea(area);
         var ctx = buildSyncContext(auditInfo, portalId, area, previousPaths, desiredPaths);
         planExecutor.execute(
-            buildSyncPlan(ctx, desiredPaths),
-            auditInfo,
-            area,
-            null,
-            NavigationItemReference.defaultReference(),
-            portalIdFolderFactory(auditInfo, portalId),
-            ctx.ownership().asDeleteStrategy()
-        );
+                buildSyncPlan(ctx, desiredPaths),
+                auditInfo,
+                area,
+                null,
+                NavigationItemReference.defaultReference(),
+                portalIdFolderFactory(auditInfo, portalId),
+                ctx.ownership().asDeleteStrategy());
     }
 
     private static List<CreatePortalNavigationItem> foldersToCreate(
-        NavigationSyncPlan plan,
-        PortalArea area,
-        Function<String, PortalNavigationItemId> idFactory,
-        PortalId portalId
-    ) {
-        return plan
-            .actions()
-            .stream()
-            .filter(FolderActions.CreateFolder.class::isInstance)
-            .map(FolderActions.CreateFolder.class::cast)
-            .map(FolderActions.CreateFolder::desired)
-            .map(df -> toCreateItem(df, area, idFactory, portalId))
-            .toList();
+            NavigationSyncPlan plan,
+            PortalArea area,
+            Function<String, PortalNavigationItemId> idFactory,
+            PortalId portalId) {
+        return plan.actions().stream()
+                .filter(FolderActions.CreateFolder.class::isInstance)
+                .map(FolderActions.CreateFolder.class::cast)
+                .map(FolderActions.CreateFolder::desired)
+                .map(df -> toCreateItem(df, area, idFactory, portalId))
+                .toList();
     }
 
-    private static List<PendingUpdate> foldersToUpdate(NavigationSyncPlan plan, Function<String, PortalNavigationItemId> idFactory) {
-        return plan
-            .actions()
-            .stream()
-            .filter(FolderActions.UpdateFolder.class::isInstance)
-            .map(FolderActions.UpdateFolder.class::cast)
-            .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory), action.existing()))
-            .toList();
+    private static List<PendingUpdate> foldersToUpdate(
+            NavigationSyncPlan plan, Function<String, PortalNavigationItemId> idFactory) {
+        return plan.actions().stream()
+                .filter(FolderActions.UpdateFolder.class::isInstance)
+                .map(FolderActions.UpdateFolder.class::cast)
+                .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory), action.existing()))
+                .toList();
     }
 
     private static UpdatePortalNavigationItem toUpdateItem(
-        FolderActions.DesiredFolder df,
-        Function<String, PortalNavigationItemId> idFactory
-    ) {
+            FolderActions.DesiredFolder df, Function<String, PortalNavigationItemId> idFactory) {
         return UpdatePortalNavigationItem.builder()
-            .title(df.title())
-            .segment(df.segment().value())
-            .type(PortalNavigationItemType.FOLDER)
-            .order(df.order())
-            .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
-            .visibility(df.visibility())
-            .build();
+                .title(df.title())
+                .segment(df.segment().value())
+                .type(PortalNavigationItemType.FOLDER)
+                .order(df.order())
+                .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
+                .visibility(df.visibility())
+                .build();
     }
 
     private static CreatePortalNavigationItem toCreateItem(
-        FolderActions.DesiredFolder df,
-        PortalArea area,
-        Function<String, PortalNavigationItemId> idFactory,
-        PortalId portalId
-    ) {
+            FolderActions.DesiredFolder df,
+            PortalArea area,
+            Function<String, PortalNavigationItemId> idFactory,
+            PortalId portalId) {
         return CreatePortalNavigationItem.builder()
-            .id(idFactory.apply(df.path()))
-            .title(df.title())
-            .segment(df.segment().value())
-            .area(area)
-            .type(PortalNavigationItemType.FOLDER)
-            .order(df.order())
-            .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
-            .visibility(df.visibility())
-            .published(true)
-            .automationMetadata(
-                new AutomationMetadata(
-                    AutomationMetadata.ReferenceType.PORTAL,
-                    portalId.toString(),
-                    null,
-                    Optional.of(df.path()),
-                    Optional.empty()
-                )
-            )
-            .build();
+                .id(idFactory.apply(df.path()))
+                .title(df.title())
+                .segment(df.segment().value())
+                .area(area)
+                .type(PortalNavigationItemType.FOLDER)
+                .order(df.order())
+                .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
+                .visibility(df.visibility())
+                .published(true)
+                .automationMetadata(new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        portalId.toString(),
+                        null,
+                        Optional.of(df.path()),
+                        Optional.empty()))
+                .build();
     }
 
-    private static Function<String, PortalNavigationItemId> portalIdFolderFactory(AuditInfo auditInfo, PortalId portalId) {
+    private static Function<String, PortalNavigationItemId> portalIdFolderFactory(
+            AuditInfo auditInfo, PortalId portalId) {
         return path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path);
     }
 
@@ -185,7 +172,8 @@ public class PortalNavigationSyncDomainService {
         }
     }
 
-    private static Set<PortalArea> allAreas(PortalNavigationStructure previouslyPersisted, PortalNavigationStructure desired) {
+    private static Set<PortalArea> allAreas(
+            PortalNavigationStructure previouslyPersisted, PortalNavigationStructure desired) {
         Set<PortalArea> areas = new HashSet<>();
         areas.addAll(previouslyPersisted.areas().keySet());
         areas.addAll(desired.areas().keySet());
@@ -194,42 +182,33 @@ public class PortalNavigationSyncDomainService {
 
     private NavigationSyncPlan buildSyncPlan(SyncContext ctx, List<NavigationPath> desired) {
         return NavigationSyncPlanner.plan(
-            desired == null ? List.of() : desired,
-            ctx.currentFolders,
-            ctx.previouslyPersisted,
-            ctx.ownership
-        );
+                desired == null ? List.of() : desired, ctx.currentFolders, ctx.previouslyPersisted, ctx.ownership);
     }
 
     private SyncContext buildSyncContext(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        PortalArea area,
-        List<NavigationPath> previouslyPersisted,
-        List<NavigationPath> desired
-    ) {
-        var currentFolders = queryService.search(
-            PortalNavigationItemQueryCriteria.builder()
+            AuditInfo auditInfo,
+            PortalId portalId,
+            PortalArea area,
+            List<NavigationPath> previouslyPersisted,
+            List<NavigationPath> desired) {
+        var currentFolders = queryService.search(PortalNavigationItemQueryCriteria.builder()
                 .environmentId(auditInfo.environmentId())
                 .area(area)
                 .type(PortalNavigationItemType.FOLDER)
-                .build()
-        );
+                .build());
         var safePrevious = previouslyPersisted == null ? List.<NavigationPath>of() : previouslyPersisted;
         var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
         var ownership = new NavigationOwnership(
-            NavigationSyncPlanner.expandToFullPaths(safeDesired),
-            path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
-            automationManagedNavigationItemsQueryService.automationManagedPortalDocPages(auditInfo, portalId),
-            automationManagedNavigationItemsQueryService.activeListingApiRows(auditInfo, portalId),
-            automationManagedNavigationItemsQueryService.automationManagedPortalLinks(auditInfo, portalId)
-        );
+                NavigationSyncPlanner.expandToFullPaths(safeDesired),
+                path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
+                automationManagedNavigationItemsQueryService.automationManagedPortalDocPages(auditInfo, portalId),
+                automationManagedNavigationItemsQueryService.activeListingApiRows(auditInfo, portalId),
+                automationManagedNavigationItemsQueryService.automationManagedPortalLinks(auditInfo, portalId));
         return new SyncContext(currentFolders, safePrevious, ownership);
     }
 
     private record SyncContext(
-        List<PortalNavigationItem> currentFolders,
-        List<NavigationPath> previouslyPersisted,
-        NavigationOwnership ownership
-    ) {}
+            List<PortalNavigationItem> currentFolders,
+            List<NavigationPath> previouslyPersisted,
+            NavigationOwnership ownership) {}
 }

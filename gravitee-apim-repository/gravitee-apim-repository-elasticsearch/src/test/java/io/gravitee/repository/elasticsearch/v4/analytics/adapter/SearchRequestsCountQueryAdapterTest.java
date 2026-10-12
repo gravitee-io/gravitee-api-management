@@ -16,7 +16,6 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import java.time.Duration;
@@ -63,8 +62,7 @@ class SearchRequestsCountQueryAdapterTest {
     void should_build_query_with_api_filter() {
         var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id"), true);
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
                 "size": 0,
                 "track_total_hits": true,
@@ -88,8 +86,7 @@ class SearchRequestsCountQueryAdapterTest {
                     }
                 }
             }
-            """
-        );
+            """);
     }
 
     @Test
@@ -100,8 +97,7 @@ class SearchRequestsCountQueryAdapterTest {
 
         var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id", from, to), true);
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
                 "size": 0,
                 "track_total_hits": true,
@@ -133,16 +129,14 @@ class SearchRequestsCountQueryAdapterTest {
                     }
                 }
             }
-            """
-        );
+            """);
     }
 
     @Test
     void should_adapt_the_query_according_when_entrypoint_id_not_keyword() {
         var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id"), false);
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
                {
                    "size": 0,
                    "track_total_hits": true,
@@ -166,7 +160,6 @@ class SearchRequestsCountQueryAdapterTest {
                        }
                    }
                }
-            """
-        );
+            """);
     }
 }

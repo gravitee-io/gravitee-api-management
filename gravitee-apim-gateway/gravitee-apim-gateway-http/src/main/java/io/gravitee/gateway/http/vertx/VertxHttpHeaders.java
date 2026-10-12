@@ -22,7 +22,6 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -129,9 +128,7 @@ public class VertxHttpHeaders implements HttpHeaders, MultiValueMap<String, Stri
 
     @Override
     public boolean containsValue(Object value) {
-        return entrySet()
-            .stream()
-            .anyMatch(entry -> value.equals(entry.getValue()));
+        return entrySet().stream().anyMatch(entry -> value.equals(entry.getValue()));
     }
 
     /**
@@ -176,16 +173,9 @@ public class VertxHttpHeaders implements HttpHeaders, MultiValueMap<String, Stri
         final MultiMap multimap = HeadersMultiMap.httpHeaders();
 
         // Flatten the Map<String, List<String>> to be able to add each entry one by one to a new Multimap object
-        map
-            .entrySet()
-            .stream()
-            .flatMap(entry ->
-                entry
-                    .getValue()
-                    .stream()
-                    .map(v -> Map.entry(entry.getKey(), v))
-            )
-            .forEach(entry -> multimap.add(entry.getKey(), entry.getValue()));
+        map.entrySet().stream()
+                .flatMap(entry -> entry.getValue().stream().map(v -> Map.entry(entry.getKey(), v)))
+                .forEach(entry -> multimap.add(entry.getKey(), entry.getValue()));
 
         headers.setAll(multimap);
     }
@@ -197,26 +187,18 @@ public class VertxHttpHeaders implements HttpHeaders, MultiValueMap<String, Stri
 
     @Override
     public Collection<List<String>> values() {
-        return headers
-            .entries()
-            .stream()
-            .collect(Collectors.groupingBy(Entry::getKey))
-            .values()
-            .stream()
-            .map(entries -> entries.stream().map(Entry::getValue).collect(Collectors.toList()))
-            .collect(Collectors.toList());
+        return headers.entries().stream().collect(Collectors.groupingBy(Entry::getKey)).values().stream()
+                .map(entries -> entries.stream().map(Entry::getValue).collect(Collectors.toList()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public Set<Entry<String, List<String>>> entrySet() {
-        return headers
-            .entries()
-            .stream()
-            .collect(Collectors.groupingBy(Entry::getKey))
-            .entrySet()
-            .stream()
-            .map(entry -> Map.entry(entry.getKey(), entry.getValue().stream().map(Entry::getValue).collect(Collectors.toList())))
-            .collect(Collectors.toSet());
+        return headers.entries().stream().collect(Collectors.groupingBy(Entry::getKey)).entrySet().stream()
+                .map(entry -> Map.entry(
+                        entry.getKey(),
+                        entry.getValue().stream().map(Entry::getValue).collect(Collectors.toList())))
+                .collect(Collectors.toSet());
     }
 
     @Override

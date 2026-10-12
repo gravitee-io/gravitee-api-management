@@ -26,9 +26,5 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface AggregatedMessageLogCrudService {
     SearchLogsResponse<AggregatedMessageLog> searchApiAggregatedMessageLog(
-        ExecutionContext executionContext,
-        String apiId,
-        String requestId,
-        Pageable pageable
-    );
+            ExecutionContext executionContext, String apiId, String requestId, Pageable pageable);
 }

@@ -43,16 +43,15 @@ public class LogEntrypointRequest extends LogRequest {
             this.setSpanId(tracer.spanId());
         }
 
-        if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
+        if (isLogPayload()
+                && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
             final Buffer buffer = Buffer.buffer();
 
             if (loggingContext.isBodyLoggable()) {
-                request.chunks(
-                    request
-                        .chunks()
-                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doOnComplete(() -> this.setBody(buffer.toString()))
-                );
+                request.chunks(request.chunks()
+                        .doOnNext(
+                                chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                        .doOnComplete(() -> this.setBody(buffer.toString())));
             } else {
                 this.setBody("BODY NOT CAPTURED");
             }

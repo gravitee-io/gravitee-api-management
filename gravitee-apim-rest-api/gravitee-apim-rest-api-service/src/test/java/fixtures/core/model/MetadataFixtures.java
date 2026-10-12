@@ -17,57 +17,67 @@ package fixtures.core.model;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.metadata.model.Metadata;
-import io.gravitee.rest.api.model.MetadataFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.function.Supplier;
 
 public class MetadataFixtures {
 
-    private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
-    private static final ZonedDateTime UPDATED_AT = Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT =
+            Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime UPDATED_AT =
+            Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
 
-    private static final Supplier<Metadata.MetadataBuilder> BASE = () ->
-        Metadata.builder().key("my-key").format(Metadata.MetadataFormat.MAIL).value("my-value").createdAt(CREATED_AT).updatedAt(UPDATED_AT);
+    private static final Supplier<Metadata.MetadataBuilder> BASE = () -> Metadata.builder()
+            .key("my-key")
+            .format(Metadata.MetadataFormat.MAIL)
+            .value("my-value")
+            .createdAt(CREATED_AT)
+            .updatedAt(UPDATED_AT);
 
     public static Metadata anApiMetadata() {
-        return BASE.get().referenceType(Metadata.ReferenceType.API).referenceId("api-id").build();
+        return BASE.get()
+                .referenceType(Metadata.ReferenceType.API)
+                .referenceId("api-id")
+                .build();
     }
 
     public static Metadata anApiMetadata(String apiId) {
-        return BASE.get().referenceType(Metadata.ReferenceType.API).referenceId(apiId).build();
+        return BASE.get()
+                .referenceType(Metadata.ReferenceType.API)
+                .referenceId(apiId)
+                .build();
     }
 
     public static ApiMetadata anApiMetadata(
-        String apiId,
-        String key,
-        String value,
-        String defaultValue,
-        String name,
-        Metadata.MetadataFormat format
-    ) {
-        return ApiMetadata.builder().apiId(apiId).key(key).value(value).defaultValue(defaultValue).name(name).format(format).build();
+            String apiId, String key, String value, String defaultValue, String name, Metadata.MetadataFormat format) {
+        return ApiMetadata.builder()
+                .apiId(apiId)
+                .key(key)
+                .value(value)
+                .defaultValue(defaultValue)
+                .name(name)
+                .format(format)
+                .build();
     }
 
     public static Metadata aMetadata(
-        Metadata.ReferenceType referenceType,
-        String referenceId,
-        String key,
-        String name,
-        Object value,
-        Metadata.MetadataFormat format
-    ) {
+            Metadata.ReferenceType referenceType,
+            String referenceId,
+            String key,
+            String name,
+            Object value,
+            Metadata.MetadataFormat format) {
         return Metadata.builder()
-            .referenceId(referenceId)
-            .referenceType(referenceType)
-            .key(key)
-            .name(name)
-            .value(value != null ? value.toString() : null)
-            .format(format)
-            .createdAt(CREATED_AT)
-            .updatedAt(UPDATED_AT)
-            .build();
+                .referenceId(referenceId)
+                .referenceType(referenceType)
+                .key(key)
+                .name(name)
+                .value(value != null ? value.toString() : null)
+                .format(format)
+                .createdAt(CREATED_AT)
+                .updatedAt(UPDATED_AT)
+                .build();
     }
 }

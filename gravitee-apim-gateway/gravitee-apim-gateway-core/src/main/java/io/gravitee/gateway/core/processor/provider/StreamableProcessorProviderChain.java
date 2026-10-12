@@ -24,7 +24,8 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StreamableProcessorProviderChain<T, S> extends AbstractStreamableProcessorChain<T, S, StreamableProcessor<T, S>> {
+public class StreamableProcessorProviderChain<T, S>
+        extends AbstractStreamableProcessorChain<T, S, StreamableProcessor<T, S>> {
 
     private final Iterator<ProcessorProvider<T, StreamableProcessor<T, S>>> ite;
 

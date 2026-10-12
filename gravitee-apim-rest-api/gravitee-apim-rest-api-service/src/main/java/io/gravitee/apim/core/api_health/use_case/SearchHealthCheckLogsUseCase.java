@@ -44,26 +44,21 @@ public class SearchHealthCheckLogsUseCase {
         var pageable = input.pageable.orElse(new PageableImpl(1, 10));
 
         return validateApiRequirements(input)
-            .flatMapMaybe(api ->
-                apiHealthQueryService.searchLogs(
-                    new ApiHealthQueryService.SearchLogsQuery(
+                .flatMapMaybe(api -> apiHealthQueryService.searchLogs(new ApiHealthQueryService.SearchLogsQuery(
                         input.organizationId,
                         input.environmentId,
                         input.apiId,
                         input.from,
                         input.to,
                         input.success,
-                        pageable
-                    )
-                )
-            )
-            .map(Output::new);
+                        pageable)))
+                .map(Output::new);
     }
 
     private Single<Api> validateApiRequirements(Input input) {
         return Single.fromCallable(() -> apiCrudService.get(input.apiId()))
-            .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId()))
-            .flatMap(this::validateApiIsNotTcp);
+                .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId()))
+                .flatMap(this::validateApiIsNotTcp);
     }
 
     private Single<Api> validateApiIsNotTcp(Api api) {
@@ -71,18 +66,19 @@ public class SearchHealthCheckLogsUseCase {
     }
 
     private static Single<Api> validateApiMultiTenancyAccess(Api api, String environmentId) {
-        return !api.belongsToEnvironment(environmentId) ? Single.error(new ApiNotFoundException(api.getId())) : Single.just(api);
+        return !api.belongsToEnvironment(environmentId)
+                ? Single.error(new ApiNotFoundException(api.getId()))
+                : Single.just(api);
     }
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        Instant from,
-        Instant to,
-        Optional<Boolean> success,
-        Optional<Pageable> pageable
-    ) {}
+            String organizationId,
+            String environmentId,
+            String apiId,
+            Instant from,
+            Instant to,
+            Optional<Boolean> success,
+            Optional<Pageable> pageable) {}
 
     public record Output(Page<HealthCheckLog> logs) {}
 }

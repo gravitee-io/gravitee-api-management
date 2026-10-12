@@ -77,9 +77,8 @@ public class SearchRequestsCountByEventQueryAdapter {
 
     private static void addTermFilter(List<Object> filters, SearchTermId terms) {
         var shouldClauses = List.of(
-            Map.of("term", Map.of(terms.searchTerm().getField(), terms.id())),
-            Map.of("term", Map.of("api", terms.id()))
-        );
+                Map.of("term", Map.of(terms.searchTerm().getField(), terms.id())),
+                Map.of("term", Map.of("api", terms.id())));
         filters.add(Map.of("bool", Map.of("should", shouldClauses)));
     }
 
@@ -88,8 +87,8 @@ public class SearchRequestsCountByEventQueryAdapter {
             return Optional.empty();
         }
         return Optional.ofNullable(searchResponse.getSearchHits())
-            .map(SearchHits::getTotal)
-            .map(TotalHits::getValue)
-            .map(CountByAggregate::new);
+                .map(SearchHits::getTotal)
+                .map(TotalHits::getValue)
+                .map(CountByAggregate::new);
     }
 }

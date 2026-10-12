@@ -57,28 +57,22 @@ public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlt
 
     @Override
     public Page<Theme> searchByCriteria(ThemeSearchCriteria criteria, Pageable pageable) {
-        var themes = storage
-            .stream()
-            .filter(
-                theme ->
-                    (Objects.isNull(criteria.getType()) || criteria.getType().equals(theme.getType())) &&
-                    (Objects.isNull(criteria.getEnabled()) || criteria.getEnabled().equals(theme.isEnabled()))
-            )
-            .toList();
+        var themes = storage.stream()
+                .filter(theme -> (Objects.isNull(criteria.getType())
+                                || criteria.getType().equals(theme.getType()))
+                        && (Objects.isNull(criteria.getEnabled())
+                                || criteria.getEnabled().equals(theme.isEnabled())))
+                .toList();
 
         return new Page<>(themes, 1, themes.size(), themes.size());
     }
 
     @Override
     public Set<Theme> findByThemeTypeAndEnvironmentId(ThemeType themeType, String environmentId) {
-        return storage
-            .stream()
-            .filter(
-                theme ->
-                    Objects.equals(themeType, theme.getType()) &&
-                    Objects.equals(environmentId, theme.getReferenceId()) &&
-                    Objects.equals(Theme.ReferenceType.ENVIRONMENT, theme.getReferenceType())
-            )
-            .collect(Collectors.toSet());
+        return storage.stream()
+                .filter(theme -> Objects.equals(themeType, theme.getType())
+                        && Objects.equals(environmentId, theme.getReferenceId())
+                        && Objects.equals(Theme.ReferenceType.ENVIRONMENT, theme.getReferenceType()))
+                .collect(Collectors.toSet());
     }
 }

@@ -80,46 +80,43 @@ public class AuthResource extends AbstractResource {
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
             // Manage authorities, initialize it with dynamic permissions from the IDP
-            List<Map<String, String>> authorities = userDetails
-                .getAuthorities()
-                .stream()
-                .map(authority -> Maps.<String, String>builder().put("authority", authority.getAuthority()).build())
-                .collect(Collectors.toList());
+            List<Map<String, String>> authorities = userDetails.getAuthorities().stream()
+                    .map(authority -> Maps.<String, String>builder()
+                            .put("authority", authority.getAuthority())
+                            .build())
+                    .collect(Collectors.toList());
 
             // We must also load permissions from repository for configured environment role
             Set<RoleEntity> userRoles = membershipService.getRoles(
-                MembershipReferenceType.ENVIRONMENT,
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipMemberType.USER,
-                userDetails.getId()
-            );
+                    MembershipReferenceType.ENVIRONMENT,
+                    GraviteeContext.getCurrentEnvironment(),
+                    MembershipMemberType.USER,
+                    userDetails.getId());
             if (!userRoles.isEmpty()) {
-                userRoles.forEach(role ->
-                    authorities.add(
-                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
-                    )
-                );
+                userRoles.forEach(role -> authorities.add(Maps.<String, String>builder()
+                        .put("authority", role.getScope().toString() + ':' + role.getName())
+                        .build()));
             }
 
             Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
 
             Date issueAt = new Date();
-            Instant expireAt = issueAt
-                .toInstant()
-                .plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
+            Instant expireAt = issueAt.toInstant()
+                    .plus(Duration.ofSeconds(
+                            environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
 
             final String sign = JWT.create()
-                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
-                .withIssuedAt(issueAt)
-                .withExpiresAt(Date.from(expireAt))
-                .withSubject(userDetails.getUsername())
-                .withClaim(Claims.PERMISSIONS, authorities)
-                .withClaim(Claims.EMAIL, userDetails.getEmail())
-                .withClaim(Claims.FIRSTNAME, userDetails.getFirstname())
-                .withClaim(Claims.LASTNAME, userDetails.getLastname())
-                .withClaim(Claims.ORG, userDetails.getOrganizationId())
-                .withJWTId(UUID.randomUUID().toString())
-                .sign(algorithm);
+                    .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                    .withIssuedAt(issueAt)
+                    .withExpiresAt(Date.from(expireAt))
+                    .withSubject(userDetails.getUsername())
+                    .withClaim(Claims.PERMISSIONS, authorities)
+                    .withClaim(Claims.EMAIL, userDetails.getEmail())
+                    .withClaim(Claims.FIRSTNAME, userDetails.getFirstname())
+                    .withClaim(Claims.LASTNAME, userDetails.getLastname())
+                    .withClaim(Claims.ORG, userDetails.getOrganizationId())
+                    .withJWTId(UUID.randomUUID().toString())
+                    .sign(algorithm);
 
             final Token tokenEntity = new Token();
             tokenEntity.setTokenType(TokenTypeEnum.BEARER);

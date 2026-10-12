@@ -84,7 +84,12 @@ class LogBodyIndexingIntegrationTest {
 
         var hits = searchAll(index);
 
-        assertThat(hits.getFirst().getSource().path("entrypoint-response").path("body").asText()).contains(NEEDLE);
+        assertThat(hits.getFirst()
+                        .getSource()
+                        .path("entrypoint-response")
+                        .path("body")
+                        .asText())
+                .contains(NEEDLE);
     }
 
     /**
@@ -97,31 +102,33 @@ class LogBodyIndexingIntegrationTest {
         configuration.setIndexBody(indexBody);
 
         new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client)
-            .prepare()
-            .test()
-            .awaitDone(60, TimeUnit.SECONDS)
-            .assertComplete();
+                .prepare()
+                .test()
+                .awaitDone(60, TimeUnit.SECONDS)
+                .assertComplete();
 
         String index = indexName + "-v4-log-test";
         // gravitee_body_analyzer splits on whitespace only, so the needle has to sit in a payload as its own
         // whitespace-delimited word for the prefix query to reach it — exactly the constraint an operator
         // hits when searching payloads today, and unrelated to how the field is indexed.
         var document = JsonObject.of(
-            "@timestamp",
-            "2026-08-26T10:00:00.000Z",
-            "api-id",
-            "an-api",
-            "request-id",
-            "a-request",
-            "entrypoint-request",
-            JsonObject.of("body", "{\"note\":\"placed " + NEEDLE + " for review\"}"),
-            "entrypoint-response",
-            JsonObject.of("body", "{\"note\":\"accepted " + NEEDLE + " ok\"}")
-        );
-        var bulk = Buffer.buffer(JsonObject.of("index", JsonObject.of("_index", index)).encode() + "\n" + document.encode() + "\n");
+                "@timestamp",
+                "2026-08-26T10:00:00.000Z",
+                "api-id",
+                "an-api",
+                "request-id",
+                "a-request",
+                "entrypoint-request",
+                JsonObject.of("body", "{\"note\":\"placed " + NEEDLE + " for review\"}"),
+                "entrypoint-response",
+                JsonObject.of("body", "{\"note\":\"accepted " + NEEDLE + " ok\"}"));
+        var bulk = Buffer.buffer(
+                JsonObject.of("index", JsonObject.of("_index", index)).encode() + "\n" + document.encode() + "\n");
 
         var response = client.bulk(bulk, true).blockingGet();
-        assertThat(response.getErrors()).as("bulk indexing into %s reported errors: %s", index, response.getItems()).isFalse();
+        assertThat(response.getErrors())
+                .as("bulk indexing into %s reported errors: %s", index, response.getItems())
+                .isFalse();
 
         return index;
     }
@@ -133,21 +140,29 @@ class LogBodyIndexingIntegrationTest {
      */
     private long payloadSearchHits(String index, String bodyText) {
         var query = JsonObject.of(
-            "query",
-            JsonObject.of(
-                "bool",
-                JsonObject.of("must", JsonArray.of(JsonObject.of("query_string", JsonObject.of("query", "\\*.body:" + bodyText + "*"))))
-            )
-        );
+                "query",
+                JsonObject.of(
+                        "bool",
+                        JsonObject.of(
+                                "must",
+                                JsonArray.of(JsonObject.of(
+                                        "query_string", JsonObject.of("query", "\\*.body:" + bodyText + "*"))))));
 
-        return client.search(index, null, query.encode()).blockingGet().getSearchHits().getTotal().getValue();
+        return client.search(index, null, query.encode())
+                .blockingGet()
+                .getSearchHits()
+                .getTotal()
+                .getValue();
     }
 
     private List<SearchHit> searchAll(String index) {
-        return client
-            .search(index, null, JsonObject.of("query", JsonObject.of("match_all", JsonObject.of())).encode())
-            .blockingGet()
-            .getSearchHits()
-            .getHits();
+        return client.search(
+                        index,
+                        null,
+                        JsonObject.of("query", JsonObject.of("match_all", JsonObject.of()))
+                                .encode())
+                .blockingGet()
+                .getSearchHits()
+                .getHits();
     }
 }

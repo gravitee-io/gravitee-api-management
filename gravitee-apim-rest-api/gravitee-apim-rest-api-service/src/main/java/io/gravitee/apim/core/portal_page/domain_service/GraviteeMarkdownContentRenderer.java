@@ -47,12 +47,15 @@ public class GraviteeMarkdownContentRenderer implements ContentRenderer {
         var page = (PortalNavigationPage) item;
         var enclosingApiId = enclosingApiDomainService.findEnclosingApiId(content.getEnvironmentId(), page);
         Map<String, Object> model = enclosingApiId
-            .<Map<String, Object>>map(id ->
-                Map.of("api", apiTemplateModelProvider.getApiTemplateModel(content.getOrganizationId(), content.getEnvironmentId(), id))
-            )
-            .orElseGet(() -> Map.of("metadata", environmentTemplateModelProvider.getEnvironmentMetadata(content.getEnvironmentId())));
+                .<Map<String, Object>>map(id -> Map.of(
+                        "api",
+                        apiTemplateModelProvider.getApiTemplateModel(
+                                content.getOrganizationId(), content.getEnvironmentId(), id)))
+                .orElseGet(() -> Map.of(
+                        "metadata",
+                        environmentTemplateModelProvider.getEnvironmentMetadata(content.getEnvironmentId())));
         return portalNavigationTemplatingService.renderGraviteeMarkdown(
-            new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(markdownPage.getContent(), model)
-        );
+                new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
+                        markdownPage.getContent(), model));
     }
 }

@@ -46,15 +46,18 @@ public class CreatePortalNavigationItemUseCase {
 
         validatorService.validateAll(expansion.itemsToCreate(), environmentId);
 
-        var createdItems = new ArrayList<PortalNavigationItem>(expansion.itemsToCreate().size());
+        var createdItems =
+                new ArrayList<PortalNavigationItem>(expansion.itemsToCreate().size());
         for (var itemToCreate : expansion.itemsToCreate()) {
             createdItems.add(domainService.create(organizationId, environmentId, itemToCreate));
         }
 
         var defaultPageNavigationItemIds = Stream.concat(
-            createdItems.stream().filter(PortalNavigationApiProduct.class::isInstance).map(PortalNavigationItem::getId),
-            expansion.generatedApiNavigationItemIds().stream()
-        ).toList();
+                        createdItems.stream()
+                                .filter(PortalNavigationApiProduct.class::isInstance)
+                                .map(PortalNavigationItem::getId),
+                        expansion.generatedApiNavigationItemIds().stream())
+                .toList();
         defaultPageDomainService.seedDefaultPages(organizationId, environmentId, defaultPageNavigationItemIds);
 
         var createdItem = expansion.selectRequestedItems(createdItems).getFirst();

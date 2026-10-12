@@ -50,7 +50,10 @@ public class InvalidHostException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder().put("host", host).put("restrictions", String.join(",", restrictions)).build();
+        return Maps.<String, String>builder()
+                .put("host", host)
+                .put("restrictions", String.join(",", restrictions))
+                .build();
     }
 
     @Override

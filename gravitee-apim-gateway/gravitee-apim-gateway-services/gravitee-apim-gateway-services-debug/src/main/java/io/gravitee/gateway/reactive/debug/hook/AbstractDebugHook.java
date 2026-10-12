@@ -37,7 +37,8 @@ public abstract class AbstractDebugHook implements HttpHook {
         return errorOnWrongContext();
     }
 
-    protected abstract Completable pre(final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase);
+    protected abstract Completable pre(
+            final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase);
 
     @Override
     public Completable post(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
@@ -48,15 +49,15 @@ public abstract class AbstractDebugHook implements HttpHook {
         return errorOnWrongContext();
     }
 
-    protected abstract Completable post(final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase);
+    protected abstract Completable post(
+            final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase);
 
     @Override
     public Completable error(
-        final String id,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final Throwable throwable
-    ) {
+            final String id,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final Throwable throwable) {
         DebugExecutionContext debugCtx = getExecutionContext(ctx);
         if (debugCtx != null) {
             return error(id, debugCtx, executionPhase, throwable);
@@ -65,11 +66,10 @@ public abstract class AbstractDebugHook implements HttpHook {
     }
 
     protected abstract Completable error(
-        final String id,
-        final DebugExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final Throwable throwable
-    );
+            final String id,
+            final DebugExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final Throwable throwable);
 
     @Override
     public Completable interrupt(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
@@ -80,15 +80,15 @@ public abstract class AbstractDebugHook implements HttpHook {
         return errorOnWrongContext();
     }
 
-    protected abstract Completable interrupt(final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase);
+    protected abstract Completable interrupt(
+            final String id, final DebugExecutionContext ctx, final ExecutionPhase executionPhase);
 
     @Override
     public Completable interruptWith(
-        final String id,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final ExecutionFailure failure
-    ) {
+            final String id,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final ExecutionFailure failure) {
         return Completable.defer(() -> {
             DebugExecutionContext debugCtx = getExecutionContext(ctx);
             if (debugCtx != null) {
@@ -99,11 +99,10 @@ public abstract class AbstractDebugHook implements HttpHook {
     }
 
     protected abstract Completable interruptWith(
-        final String id,
-        final DebugExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final ExecutionFailure failure
-    );
+            final String id,
+            final DebugExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final ExecutionFailure failure);
 
     private DebugExecutionContext getExecutionContext(final HttpExecutionContext ctx) {
         if (ctx instanceof DebugExecutionContext) {

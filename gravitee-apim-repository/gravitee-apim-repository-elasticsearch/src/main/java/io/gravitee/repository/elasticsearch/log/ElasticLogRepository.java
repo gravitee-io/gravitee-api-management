@@ -83,56 +83,57 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
             if (isEmpty(logQueryString)) {
                 String safeQuery = this.createSafeElasticsearchJsonQuery(query);
                 final Single<SearchResponse> result = this.client.search(
-                    this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
-                    !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
-                    safeQuery
-                );
+                        this.indexNameGenerator.getIndexName(
+                                queryContext.placeholder(), Type.REQUEST, from, to, clusters),
+                        !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
+                        safeQuery);
 
                 return this.toTabularResponse(result.blockingGet());
             } else {
                 final TabularQuery logQuery = tabular()
-                    .timeRange(query.timeRange().range(), query.timeRange().interval())
-                    .page(1)
-                    .size(MAX_RESULT_WINDOW)
-                    .query(logQueryString)
-                    .build();
+                        .timeRange(query.timeRange().range(), query.timeRange().interval())
+                        .page(1)
+                        .size(MAX_RESULT_WINDOW)
+                        .query(logQueryString)
+                        .build();
                 final String sQuery = this.createElasticsearchJsonQuery(logQuery);
 
                 Single<SearchResponse> result = this.client.search(
-                    this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, from, to, clusters),
-                    !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(),
-                    sQuery
-                );
+                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, from, to, clusters),
+                        !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(),
+                        sQuery);
 
                 final SearchResponse searchResponseLog = result.blockingGet();
-                final String logIdsQuery = searchResponseLog
-                    .getSearchHits()
-                    .getHits()
-                    .stream()
-                    .map(searchHit -> "_id:" + searchHit.getId())
-                    .collect(joining(" OR "));
+                final String logIdsQuery = searchResponseLog.getSearchHits().getHits().stream()
+                        .map(searchHit -> "_id:" + searchHit.getId())
+                        .collect(joining(" OR "));
 
                 if (!logIdsQuery.isEmpty()) {
                     final String queryString = getQuery(query.query(), false);
-                    final String requestQuery = isEmpty(queryString) ? logIdsQuery : format("(%s) AND (%s)", queryString, logIdsQuery);
+                    final String requestQuery =
+                            isEmpty(queryString) ? logIdsQuery : format("(%s) AND (%s)", queryString, logIdsQuery);
                     final TabularQueryBuilder requestQueryBuilder = tabular()
-                        .timeRange(query.timeRange().range(), query.timeRange().interval())
-                        .page(query.page())
-                        .size(query.size())
-                        .sort(query.sort())
-                        .query(requestQuery);
+                            .timeRange(
+                                    query.timeRange().range(), query.timeRange().interval())
+                            .page(query.page())
+                            .size(query.size())
+                            .sort(query.sort())
+                            .query(requestQuery);
                     if (query.root() != null) {
-                        requestQueryBuilder.root(query.root().field(), query.root().id());
+                        requestQueryBuilder.root(
+                                query.root().field(), query.root().id());
                     }
                     result = this.client.search(
-                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
-                        this.createSafeElasticsearchJsonQuery(requestQueryBuilder.build())
-                    );
+                            this.indexNameGenerator.getIndexName(
+                                    queryContext.placeholder(), Type.REQUEST, from, to, clusters),
+                            !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
+                            this.createSafeElasticsearchJsonQuery(requestQueryBuilder.build()));
                 }
 
                 SearchResponse searchResponseRequest = result.blockingGet();
-                return this.toTabularResponse(searchResponseRequest, searchResponseRequest.getSearchHits().getTotal().getValue());
+                return this.toTabularResponse(
+                        searchResponseRequest,
+                        searchResponseRequest.getSearchHits().getTotal().getValue());
             }
         } catch (final Exception eex) {
             log.error("Impossible to perform log request", eex);
@@ -147,20 +148,20 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         final String filterSeparator = " AND ";
         final String[] filters = query.filter().split(filterSeparator);
         return stream(filters)
-            .map(f -> f.split(":", 2))
-            .filter(filter -> {
-                final String filterKey = filter[0];
-                return (log && filterKey.contains("body")) || (!log && !filterKey.contains("body"));
-            })
-            .map(filter -> {
-                final String filterKey = filter[0];
-                if ("body".equals(filterKey)) {
-                    return "\\\\*.body" + ":" + filter[1];
-                } else {
-                    return filterKey + ":" + filter[1];
-                }
-            })
-            .collect(joining(filterSeparator));
+                .map(f -> f.split(":", 2))
+                .filter(filter -> {
+                    final String filterKey = filter[0];
+                    return (log && filterKey.contains("body")) || (!log && !filterKey.contains("body"));
+                })
+                .map(filter -> {
+                    final String filterKey = filter[0];
+                    if ("body".equals(filterKey)) {
+                        return "\\\\*.body" + ":" + filter[1];
+                    } else {
+                        return filterKey + ":" + filter[1];
+                    }
+                })
+                .collect(joining(filterSeparator));
     }
 
     /**
@@ -179,7 +180,8 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     }
 
     @Override
-    public ExtendedLog findById(final QueryContext queryContext, final String requestId, final Long timestamp) throws AnalyticsException {
+    public ExtendedLog findById(final QueryContext queryContext, final String requestId, final Long timestamp)
+            throws AnalyticsException {
         final Map<String, Object> data = new HashMap<>(1);
         data.put("requestId", requestId);
 
@@ -188,17 +190,16 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
         try {
             Single<SearchResponse> result = this.client.search(
-                (timestamp == null)
-                    ? this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters)
-                    : this.indexNameGenerator.getIndexName(
-                        queryContext.placeholder(),
-                        Type.REQUEST,
-                        Instant.ofEpochMilli(timestamp),
-                        clusters
-                    ),
-                !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
-                sQuery
-            );
+                    (timestamp == null)
+                            ? this.indexNameGenerator.getWildcardIndexName(
+                                    queryContext.placeholder(), Type.REQUEST, clusters)
+                            : this.indexNameGenerator.getIndexName(
+                                    queryContext.placeholder(),
+                                    Type.REQUEST,
+                                    Instant.ofEpochMilli(timestamp),
+                                    clusters),
+                    !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
+                    sQuery);
 
             SearchResponse searchResponse = result.blockingGet();
             if (searchResponse.getSearchHits().getTotal().getValue() == 0) {
@@ -216,14 +217,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 searchHitIndex = searchHitIndex.replaceAll(Type.REQUEST.getType(), Type.LOG.getType());
             } else {
                 searchHitIndex = this.indexNameGenerator.getIndexName(
-                    queryContext.placeholder(),
-                    Type.LOG,
-                    Instant.ofEpochMilli(timestamp),
-                    clusters
-                );
+                        queryContext.placeholder(), Type.LOG, Instant.ofEpochMilli(timestamp), clusters);
             }
 
-            result = this.client.search(searchHitIndex, !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(), sQuery);
+            result = this.client.search(
+                    searchHitIndex, !info.getVersion().canUseTypeRequests() ? null : Type.LOG.getType(), sQuery);
             searchResponse = result.blockingGet();
 
             JsonNode log = null;

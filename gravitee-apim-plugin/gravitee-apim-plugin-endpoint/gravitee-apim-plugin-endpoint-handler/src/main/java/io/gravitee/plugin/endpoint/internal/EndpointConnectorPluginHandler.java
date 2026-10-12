@@ -46,9 +46,8 @@ public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<
 
     @Override
     protected EndpointConnectorPlugin<?, ?> create(final Plugin plugin, final Class<?> pluginClass) {
-        Class<? extends EndpointConnectorConfiguration> configurationClass = new EndpointConnectorConfigurationClassFinder().lookupFirst(
-            pluginClass
-        );
+        Class<? extends EndpointConnectorConfiguration> configurationClass =
+                new EndpointConnectorConfigurationClassFinder().lookupFirst(pluginClass);
 
         return new DefaultEndpointConnectorPlugin(plugin, pluginClass, configurationClass);
     }
@@ -58,7 +57,8 @@ public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<
         endpointPluginManager.register(endpointConnectorPlugin);
 
         // Once registered, the classloader should be released
-        final ClassLoader policyClassLoader = endpointConnectorPlugin.connectorFactory().getClassLoader();
+        final ClassLoader policyClassLoader =
+                endpointConnectorPlugin.connectorFactory().getClassLoader();
 
         if (policyClassLoader instanceof URLClassLoader) {
             URLClassLoader classLoader = (URLClassLoader) policyClassLoader;

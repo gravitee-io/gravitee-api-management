@@ -15,9 +15,7 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.connector.fakes;
 
-import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
-import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfiguration;
 import java.util.Deque;
 import java.util.LinkedList;
 import lombok.Getter;

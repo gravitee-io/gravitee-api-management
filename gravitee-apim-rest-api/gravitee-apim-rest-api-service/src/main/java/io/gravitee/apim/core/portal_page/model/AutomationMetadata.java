@@ -19,12 +19,11 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.Optional;
 
 public record AutomationMetadata(
-    ReferenceType referenceType,
-    String referenceId,
-    String name,
-    Optional<String> location,
-    Optional<Integer> order
-) {
+        ReferenceType referenceType,
+        String referenceId,
+        String name,
+        Optional<String> location,
+        Optional<Integer> order) {
     public NavigationItemReference reference() {
         return switch (referenceType) {
             case PORTAL -> new NavigationItemReference.PortalReference(PortalId.of(referenceId));

@@ -21,7 +21,6 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
-import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEndpointRequest;
@@ -46,7 +45,8 @@ public class LoggingHook implements InvokerHook {
         return Completable.fromRunnable(() -> {
             final HttpExecutionContextInternal ctxInternal = (HttpExecutionContextInternal) ctx;
             final Log log = ctx.metrics().getLog();
-            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final AnalyticsContext analyticsContext =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext != null) {
@@ -66,7 +66,8 @@ public class LoggingHook implements InvokerHook {
         return Completable.fromRunnable(() -> {
             final HttpExecutionContextInternal ctxInternal = (HttpExecutionContextInternal) ctx;
             final Log log = ctx.metrics().getLog();
-            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final AnalyticsContext analyticsContext =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext != null) {
@@ -88,11 +89,7 @@ public class LoggingHook implements InvokerHook {
 
     @Override
     public Completable interruptWith(
-        String id,
-        HttpExecutionContext ctx,
-        @Nullable ExecutionPhase executionPhase,
-        ExecutionFailure failure
-    ) {
+            String id, HttpExecutionContext ctx, @Nullable ExecutionPhase executionPhase, ExecutionFailure failure) {
         return post(id, ctx, executionPhase);
     }
 }

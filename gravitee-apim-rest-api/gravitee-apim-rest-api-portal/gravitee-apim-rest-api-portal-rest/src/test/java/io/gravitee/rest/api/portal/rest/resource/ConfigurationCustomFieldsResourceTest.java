@@ -47,16 +47,23 @@ public class ConfigurationCustomFieldsResourceTest extends AbstractResourceTest 
         customUserFieldEntity.setLabel("label 1");
         customUserFieldEntity.setRequired(true);
         customUserFieldEntity.setValues(Arrays.asList("a", "b"));
-        doReturn(List.of(customUserFieldEntity)).when(customUserFieldService).listAllFields(eq(GraviteeContext.getExecutionContext()));
+        doReturn(List.of(customUserFieldEntity))
+                .when(customUserFieldService)
+                .listAllFields(eq(GraviteeContext.getExecutionContext()));
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        final List<CustomUserFieldEntity> listOfCustomUserFields = response.readEntity(new GenericType<List<CustomUserFieldEntity>>() {});
+        final List<CustomUserFieldEntity> listOfCustomUserFields =
+                response.readEntity(new GenericType<List<CustomUserFieldEntity>>() {});
         assertEquals(1, listOfCustomUserFields.size());
-        assertEquals(customUserFieldEntity.getKey(), listOfCustomUserFields.get(0).getKey());
-        assertEquals(customUserFieldEntity.getLabel(), listOfCustomUserFields.get(0).getLabel());
-        assertEquals(customUserFieldEntity.isRequired(), listOfCustomUserFields.get(0).isRequired());
+        assertEquals(
+                customUserFieldEntity.getKey(), listOfCustomUserFields.get(0).getKey());
+        assertEquals(
+                customUserFieldEntity.getLabel(), listOfCustomUserFields.get(0).getLabel());
+        assertEquals(
+                customUserFieldEntity.isRequired(),
+                listOfCustomUserFields.get(0).isRequired());
         assertTrue(listOfCustomUserFields.get(0).getValues().containsAll(customUserFieldEntity.getValues()));
     }
 }

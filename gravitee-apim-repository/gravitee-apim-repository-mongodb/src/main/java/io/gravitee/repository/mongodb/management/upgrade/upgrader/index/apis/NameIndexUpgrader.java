@@ -28,9 +28,9 @@ public class NameIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("n1")
-            .key("name", ascending())
-            .build();
+                .collection("apis")
+                .name("n1")
+                .key("name", ascending())
+                .build();
     }
 }

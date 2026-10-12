@@ -48,8 +48,14 @@ public class HeartbeatEventPublisher implements Runnable {
                 if (event.getProperties() == null) {
                     event.setProperties(new HashMap<>());
                 }
-                event.getProperties().put(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
-                event.getProperties().put(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.toString(clusterManager.self().primary()));
+                event.getProperties()
+                        .put(
+                                EVENT_LAST_HEARTBEAT_PROPERTY,
+                                Long.toString(event.getUpdatedAt().getTime()));
+                event.getProperties()
+                        .put(
+                                EVENT_CLUSTER_PRIMARY_NODE_PROPERTY,
+                                Boolean.toString(clusterManager.self().primary()));
                 topic.publish(buildLiteEvent(event));
             }
         } catch (Exception ex) {
@@ -68,14 +74,11 @@ public class HeartbeatEventPublisher implements Runnable {
         eventLite.setType(heartbeatEvent.getType());
         eventLite.setUpdatedAt(heartbeatEvent.getUpdatedAt());
         eventLite.setEnvironments(heartbeatEvent.getEnvironments());
-        eventLite.setProperties(
-            Map.of(
+        eventLite.setProperties(Map.of(
                 EVENT_LAST_HEARTBEAT_PROPERTY,
                 heartbeatEvent.getProperties().get(EVENT_LAST_HEARTBEAT_PROPERTY),
                 EVENT_CLUSTER_PRIMARY_NODE_PROPERTY,
-                heartbeatEvent.getProperties().get(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY)
-            )
-        );
+                heartbeatEvent.getProperties().get(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY)));
         return eventLite;
     }
 }

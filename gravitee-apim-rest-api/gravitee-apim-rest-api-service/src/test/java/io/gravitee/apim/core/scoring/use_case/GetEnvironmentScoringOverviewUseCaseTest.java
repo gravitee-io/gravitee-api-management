@@ -33,7 +33,8 @@ import org.junit.jupiter.api.Test;
 
 class GetEnvironmentScoringOverviewUseCaseTest {
 
-    private static final ZonedDateTime UPDATED_AT = Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime UPDATED_AT =
+            Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
     private static final String REPORT_ID = "report-id";
     private static final String ENVIRONMENT_1 = "environment-1";
     private static final String ENVIRONMENT_2 = "environment-2";
@@ -43,47 +44,45 @@ class GetEnvironmentScoringOverviewUseCaseTest {
 
     private static final String PAGE_ID = "page-id";
     private static final ScoringReport.Asset ASSET = new ScoringReport.Asset(
-        PAGE_ID,
-        ScoringAssetType.SWAGGER,
-        List.of(
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.WARN,
-                new ScoringReport.Range(new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
-                "operation-operationId",
-                "Operation must have \"operationId\".",
-                "paths./echo.options"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.ERROR,
-                new ScoringReport.Range(new ScoringReport.Position(10, 4), new ScoringReport.Position(10, 10)),
-                "error-rule",
-                "Error rule message",
-                "paths./error"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.INFO,
-                new ScoringReport.Range(new ScoringReport.Position(11, 4), new ScoringReport.Position(11, 10)),
-                "info-rule",
-                "Info rule message",
-                "paths./info"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.HINT,
-                new ScoringReport.Range(new ScoringReport.Position(12, 4), new ScoringReport.Position(12, 10)),
-                "hint-rule",
-                "Hint rule message",
-                "paths./hint"
-            )
-        ),
-        List.of()
-    );
+            PAGE_ID,
+            ScoringAssetType.SWAGGER,
+            List.of(
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.WARN,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
+                            "operation-operationId",
+                            "Operation must have \"operationId\".",
+                            "paths./echo.options"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.ERROR,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(10, 4), new ScoringReport.Position(10, 10)),
+                            "error-rule",
+                            "Error rule message",
+                            "paths./error"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.INFO,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(11, 4), new ScoringReport.Position(11, 10)),
+                            "info-rule",
+                            "Info rule message",
+                            "paths./info"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.HINT,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(12, 4), new ScoringReport.Position(12, 10)),
+                            "hint-rule",
+                            "Hint rule message",
+                            "paths./hint")),
+            List.of());
 
     private static final ScoringReport.Asset VALIDATION_ERROR_ASSET = new ScoringReport.Asset(
-        PAGE_ID,
-        ScoringAssetType.SWAGGER,
-        List.of(),
-        List.of(new ScoringReport.ScoringError("ruleset-validation-error", List.of("path", "to", "invalid", "element")))
-    );
+            PAGE_ID,
+            ScoringAssetType.SWAGGER,
+            List.of(),
+            List.of(new ScoringReport.ScoringError(
+                    "ruleset-validation-error", List.of("path", "to", "invalid", "element"))));
 
     ScoringReportQueryServiceInMemory scoringReportQueryService = new ScoringReportQueryServiceInMemory();
 
@@ -103,44 +102,57 @@ class GetEnvironmentScoringOverviewUseCaseTest {
     void should_return_environment_summary() {
         // Given
         givenExistingScoringReports(
-            aReport().toBuilder().apiId(API_ID_1).environmentId(ENVIRONMENT_1).build(),
-            aReport().toBuilder().apiId(API_ID_2).environmentId(ENVIRONMENT_1).build(),
-            aReport().toBuilder().apiId(API_ID_3).environmentId(ENVIRONMENT_2).build()
-        );
+                aReport().toBuilder()
+                        .apiId(API_ID_1)
+                        .environmentId(ENVIRONMENT_1)
+                        .build(),
+                aReport().toBuilder()
+                        .apiId(API_ID_2)
+                        .environmentId(ENVIRONMENT_1)
+                        .build(),
+                aReport().toBuilder()
+                        .apiId(API_ID_3)
+                        .environmentId(ENVIRONMENT_2)
+                        .build());
 
         // When
         var report = useCase.execute(new GetEnvironmentScoringOverviewUseCase.Input(ENVIRONMENT_1));
 
         // Then
         Assertions.assertThat(report)
-            .extracting(GetEnvironmentScoringOverviewUseCase.Output::overview)
-            .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 0.84D, 2L, 2L, 2L, 2L));
+                .extracting(GetEnvironmentScoringOverviewUseCase.Output::overview)
+                .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 0.84D, 2L, 2L, 2L, 2L));
     }
 
     @Test
     void should_return_environment_summary_and_ignore_validation_error_asset() {
         // Given
         givenExistingScoringReports(
-            aReport().toBuilder().apiId(API_ID_1).environmentId(ENVIRONMENT_1).assets(List.of(ASSET, VALIDATION_ERROR_ASSET)).build(),
-            aReport().toBuilder().apiId(API_ID_2).environmentId(ENVIRONMENT_1).build()
-        );
+                aReport().toBuilder()
+                        .apiId(API_ID_1)
+                        .environmentId(ENVIRONMENT_1)
+                        .assets(List.of(ASSET, VALIDATION_ERROR_ASSET))
+                        .build(),
+                aReport().toBuilder()
+                        .apiId(API_ID_2)
+                        .environmentId(ENVIRONMENT_1)
+                        .build());
 
         // When
         var report = useCase.execute(new GetEnvironmentScoringOverviewUseCase.Input(ENVIRONMENT_1));
 
         // Then
         Assertions.assertThat(report)
-            .extracting(GetEnvironmentScoringOverviewUseCase.Output::overview)
-            .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 0.84D, 2L, 2L, 2L, 2L));
+                .extracting(GetEnvironmentScoringOverviewUseCase.Output::overview)
+                .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 0.84D, 2L, 2L, 2L, 2L));
     }
 
     private static ScoringReport aReport() {
-        return ScoringReportFixture.aScoringReport()
-            .toBuilder()
-            .id(REPORT_ID)
-            .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
-            .assets(List.of(ASSET))
-            .build();
+        return ScoringReportFixture.aScoringReport().toBuilder()
+                .id(REPORT_ID)
+                .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
+                .assets(List.of(ASSET))
+                .build();
     }
 
     private void givenExistingScoringReports(ScoringReport... reports) {

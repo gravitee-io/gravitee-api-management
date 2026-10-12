@@ -82,12 +82,16 @@ public class ExecutionContext {
 
     public ReferenceContext getReferenceContext() {
         return environmentId
-            .map(envId -> ReferenceContext.builder().referenceId(envId).referenceType(ReferenceContext.Type.ENVIRONMENT).build())
-            .orElseGet(() ->
-                organizationId
-                    .map(orgId -> ReferenceContext.builder().referenceId(orgId).referenceType(ReferenceContext.Type.ORGANIZATION).build())
-                    .orElse(null)
-            );
+                .map(envId -> ReferenceContext.builder()
+                        .referenceId(envId)
+                        .referenceType(ReferenceContext.Type.ENVIRONMENT)
+                        .build())
+                .orElseGet(() -> organizationId
+                        .map(orgId -> ReferenceContext.builder()
+                                .referenceId(orgId)
+                                .referenceType(ReferenceContext.Type.ORGANIZATION)
+                                .build())
+                        .orElse(null));
     }
 
     public QueryContext getQueryContext() {
@@ -109,6 +113,7 @@ public class ExecutionContext {
 
     @Override
     public String toString() {
-        return "ExecutionContext{" + "organizationId='" + organizationId + '\'' + ", environmentId=" + environmentId + '}';
+        return "ExecutionContext{" + "organizationId='" + organizationId + '\'' + ", environmentId=" + environmentId
+                + '}';
     }
 }

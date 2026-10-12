@@ -28,6 +28,9 @@ public class ManagementExceptionMapper extends AbstractExceptionMapper<AbstractM
 
     @Override
     public Response toResponse(AbstractManagementException mex) {
-        return Response.status(mex.getHttpStatusCode()).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(mex)).build();
+        return Response.status(mex.getHttpStatusCode())
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(mex))
+                .build();
     }
 }

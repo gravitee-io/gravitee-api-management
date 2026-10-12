@@ -25,4 +25,5 @@ import java.util.Map;
  *
  * @author GraviteeSource Team
  */
-public record PayloadLog(String spanId, Instant timestamp, String severity, String body, Map<String, String> attributes) {}
+public record PayloadLog(
+        String spanId, Instant timestamp, String severity, String body, Map<String, String> attributes) {}

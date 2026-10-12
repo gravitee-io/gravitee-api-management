@@ -44,10 +44,10 @@ public class ConsulOptionsBuilder {
     public static ConsulClientOptions from(ConsulServiceDiscoveryServiceConfiguration configuration) {
         URI consulUri = URI.create(configuration.getUrl());
         var options = new ConsulClientOptions()
-            .setHost(consulUri.getHost())
-            .setPort((consulUri.getPort() != -1) ? consulUri.getPort() : CONSUL_DEFAULT_PORT)
-            .setDc(configuration.getDc())
-            .setAclToken(configuration.getAcl());
+                .setHost(consulUri.getHost())
+                .setPort((consulUri.getPort() != -1) ? consulUri.getPort() : CONSUL_DEFAULT_PORT)
+                .setDc(configuration.getDc())
+                .setAclToken(configuration.getAcl());
 
         if (HTTPS_SCHEME.equalsIgnoreCase(consulUri.getScheme())) {
             // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
@@ -55,9 +55,8 @@ public class ConsulOptionsBuilder {
         }
 
         if (configuration.getSslOptions() != null) {
-            options
-                .setVerifyHost(configuration.getSslOptions().isHostnameVerifier())
-                .setTrustAll(configuration.getSslOptions().isTrustAll());
+            options.setVerifyHost(configuration.getSslOptions().isHostnameVerifier())
+                    .setTrustAll(configuration.getSslOptions().isTrustAll());
             configureKeyStore(configuration.getSslOptions(), options);
             configureTrustStore(configuration.getSslOptions(), options);
         }
@@ -102,7 +101,8 @@ public class ConsulOptionsBuilder {
         if (pemKeyStore.getCertPath() != null && !pemKeyStore.getCertPath().isEmpty()) {
             pemKeyCertOptions.setCertPath(pemKeyStore.getCertPath());
         } else {
-            if (pemKeyStore.getCertContent() == null || pemKeyStore.getCertContent().isEmpty()) {
+            if (pemKeyStore.getCertContent() == null
+                    || pemKeyStore.getCertContent().isEmpty()) {
                 throw new IllegalArgumentException("Missing PEM certificate value for " + CONSUL_SERVICE_DISCOVERY_ID);
             }
 
@@ -112,7 +112,8 @@ public class ConsulOptionsBuilder {
         if (pemKeyStore.getKeyPath() != null && !pemKeyStore.getKeyPath().isEmpty()) {
             pemKeyCertOptions.setKeyPath(pemKeyStore.getKeyPath());
         } else {
-            if (pemKeyStore.getKeyContent() == null || pemKeyStore.getKeyContent().isEmpty()) {
+            if (pemKeyStore.getKeyContent() == null
+                    || pemKeyStore.getKeyContent().isEmpty()) {
                 throw new IllegalArgumentException("Missing PEM key value for " + CONSUL_SERVICE_DISCOVERY_ID);
             }
 
@@ -128,7 +129,8 @@ public class ConsulOptionsBuilder {
         if (pkcs12KeyStore.getPath() != null && !pkcs12KeyStore.getPath().isEmpty()) {
             pfxOptions.setPath(pkcs12KeyStore.getPath());
         } else {
-            if (pkcs12KeyStore.getContent() == null || pkcs12KeyStore.getContent().isEmpty()) {
+            if (pkcs12KeyStore.getContent() == null
+                    || pkcs12KeyStore.getContent().isEmpty()) {
                 throw new IllegalArgumentException("Missing PKCS12 keystore value for " + CONSUL_SERVICE_DISCOVERY_ID);
             }
 
@@ -183,8 +185,10 @@ public class ConsulOptionsBuilder {
         if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
             pfxOptions.setPath(pkcs12TrustStore.getPath());
         } else {
-            if (pkcs12TrustStore.getContent() == null || pkcs12TrustStore.getContent().isEmpty()) {
-                throw new IllegalArgumentException("Missing PKCS12 truststore value for " + CONSUL_SERVICE_DISCOVERY_ID);
+            if (pkcs12TrustStore.getContent() == null
+                    || pkcs12TrustStore.getContent().isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Missing PKCS12 truststore value for " + CONSUL_SERVICE_DISCOVERY_ID);
             }
 
             pfxOptions.setValue(Buffer.buffer(Base64.getDecoder().decode(pkcs12TrustStore.getContent())));

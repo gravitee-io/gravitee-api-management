@@ -58,16 +58,10 @@ public class MongoRatingRepository implements RatingRepository {
 
     @Override
     public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(
-        final String referenceId,
-        final RatingReferenceType referenceType,
-        final String user
-    ) {
+            final String referenceId, final RatingReferenceType referenceType, final String user) {
         log.debug("Find rating by ref [{}] and user [{}]", referenceId, user);
         final RatingMongo rating = internalRatingRepository.findByReferenceIdAndReferenceTypeAndUser(
-            referenceId,
-            referenceType.name(),
-            user
-        );
+                referenceId, referenceType.name(), user);
         log.debug("Find rating by ref [{}] and user [{}] - DONE", referenceId, user);
         return ofNullable(map(rating));
     }
@@ -90,33 +84,30 @@ public class MongoRatingRepository implements RatingRepository {
 
     @Override
     public Page<Rating> findByReferenceIdAndReferenceTypePageable(
-        final String referenceId,
-        final RatingReferenceType referenceType,
-        final Pageable pageable
-    ) {
+            final String referenceId, final RatingReferenceType referenceType, final Pageable pageable) {
         log.debug("Find rating by ref [{}] with pagination", referenceId);
         final org.springframework.data.domain.Page<RatingMongo> ratingPageMongo =
-            internalRatingRepository.findByReferenceIdAndReferenceType(
-                referenceId,
-                referenceType.name(),
-                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.DESC, "createdAt")
-            );
-        final List<Rating> ratings = ratingPageMongo.getContent().stream().map(this::map).collect(toList());
+                internalRatingRepository.findByReferenceIdAndReferenceType(
+                        referenceId,
+                        referenceType.name(),
+                        PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.DESC, "createdAt"));
+        final List<Rating> ratings =
+                ratingPageMongo.getContent().stream().map(this::map).collect(toList());
         final Page<Rating> ratingPage = new Page<>(
-            ratings,
-            ratingPageMongo.getNumber(),
-            ratingPageMongo.getNumberOfElements(),
-            ratingPageMongo.getTotalElements()
-        );
+                ratings,
+                ratingPageMongo.getNumber(),
+                ratingPageMongo.getNumberOfElements(),
+                ratingPageMongo.getTotalElements());
         log.debug("Find rating by ref [{}] with pagination - DONE", referenceId);
         return ratingPage;
     }
 
     @Override
-    public List<Rating> findByReferenceIdAndReferenceType(final String referenceId, final RatingReferenceType referenceType)
-        throws TechnicalException {
+    public List<Rating> findByReferenceIdAndReferenceType(
+            final String referenceId, final RatingReferenceType referenceType) throws TechnicalException {
         log.debug("Find rating by ref [{}, {}]", referenceId, referenceType);
-        final List<RatingMongo> ratings = internalRatingRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
+        final List<RatingMongo> ratings =
+                internalRatingRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
         log.debug("Find rating by ID [{}, {}] - Done", referenceId, referenceType);
         return ratings.stream().map(this::map).collect(toList());
     }
@@ -126,7 +117,8 @@ public class MongoRatingRepository implements RatingRepository {
         if (rating == null || rating.getId() == null) {
             throw new IllegalStateException("Rating to update must specify an id");
         }
-        final RatingMongo ratingMongo = internalRatingRepository.findById(rating.getId()).orElse(null);
+        final RatingMongo ratingMongo =
+                internalRatingRepository.findById(rating.getId()).orElse(null);
         if (ratingMongo == null) {
             throw new IllegalStateException(String.format("No rating found with id [%s]", rating.getId()));
         }
@@ -192,14 +184,15 @@ public class MongoRatingRepository implements RatingRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete rating by ref type '{}' and ref id '{}'", referenceType, referenceId);
         try {
-            final var ratings = internalRatingRepository
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(RatingMongo::getId)
-                .toList();
+            final var ratings =
+                    internalRatingRepository
+                            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                            .stream()
+                            .map(RatingMongo::getId)
+                            .toList();
             log.debug("Delete rating by ref type '{}' and ref id '{}' done", referenceId, referenceType);
             return ratings;
         } catch (Exception ex) {

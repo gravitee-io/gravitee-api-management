@@ -28,7 +28,8 @@ public class GetSharedPolicyGroupUseCase {
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
 
     public Output execute(Input input) {
-        return new Output(this.sharedPolicyGroupCrudService.getByEnvironmentId(input.environmentId(), input.sharedPolicyGroupId()));
+        return new Output(this.sharedPolicyGroupCrudService.getByEnvironmentId(
+                input.environmentId(), input.sharedPolicyGroupId()));
     }
 
     @Builder

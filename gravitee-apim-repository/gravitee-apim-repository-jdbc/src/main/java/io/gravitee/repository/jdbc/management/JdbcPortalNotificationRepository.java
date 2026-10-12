@@ -34,9 +34,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcPortalNotificationRepository
-    extends JdbcAbstractCrudRepository<PortalNotification, String>
-    implements PortalNotificationRepository {
+public class JdbcPortalNotificationRepository extends JdbcAbstractCrudRepository<PortalNotification, String>
+        implements PortalNotificationRepository {
 
     JdbcPortalNotificationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_notifications");
@@ -45,12 +44,12 @@ public class JdbcPortalNotificationRepository
     @Override
     protected JdbcObjectMapper<PortalNotification> buildOrm() {
         return JdbcObjectMapper.builder(PortalNotification.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("message", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("message", Types.NVARCHAR, String.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -63,10 +62,7 @@ public class JdbcPortalNotificationRepository
         log.debug("JdbcPortalNotificationRepository.findByUser({})", user);
         try {
             List<PortalNotification> items = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where " + escapeReservedWord("user") + " = ?",
-                getRowMapper(),
-                user
-            );
+                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("user") + " = ?", getRowMapper(), user);
             return items;
         } catch (final Exception ex) {
             final String message = "Failed to find notifications by user";
@@ -86,7 +82,8 @@ public class JdbcPortalNotificationRepository
     public void deleteAll(String user) throws TechnicalException {
         log.debug("JdbcPortalNotificationRepository.deleteAll({})", user);
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where " + escapeReservedWord("user") + " = ?", user);
+            jdbcTemplate.update(
+                    "delete from " + this.tableName + " where " + escapeReservedWord("user") + " = ?", user);
         } catch (final Exception ex) {
             final String message = "Failed to delete notifications by user";
             log.error(message, ex);

@@ -39,12 +39,14 @@ public class WorkflowQueryServiceImpl implements WorkflowQueryService {
     @Override
     public List<Workflow> findAllByApiIdAndType(String apiId, Workflow.Type type) {
         try {
-            return WorkflowAdapter.INSTANCE.toEntities(workflowRepository.findByReferenceAndType("API", apiId, type.name()));
+            return WorkflowAdapter.INSTANCE.toEntities(
+                    workflowRepository.findByReferenceAndType("API", apiId, type.name()));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while finding [API] workflows with apiId [%s] and status [%s]", apiId, type.name()),
-                e
-            );
+                    String.format(
+                            "An error occurred while finding [API] workflows with apiId [%s] and status [%s]",
+                            apiId, type.name()),
+                    e);
         }
     }
 }

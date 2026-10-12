@@ -39,12 +39,10 @@ import org.springframework.stereotype.Component;
 public class SubscriptionFormGlobalDefaultMongoUpgrader extends MongoUpgrader {
 
     /** Runs once the catalog upgrader has named the legacy forms, and once definitions are back inline. */
-    public static final int SUBSCRIPTION_FORM_GLOBAL_DEFAULT_MONGO_UPGRADER_ORDER =
-        Math.max(
-            SubscriptionFormCatalogMongoUpgrader.SUBSCRIPTION_FORM_CATALOG_MONGO_UPGRADER_ORDER,
-            SubscriptionFormInlineContentMongoUpgrader.SUBSCRIPTION_FORM_INLINE_CONTENT_MONGO_UPGRADER_ORDER
-        ) +
-        1;
+    public static final int SUBSCRIPTION_FORM_GLOBAL_DEFAULT_MONGO_UPGRADER_ORDER = Math.max(
+                    SubscriptionFormCatalogMongoUpgrader.SUBSCRIPTION_FORM_CATALOG_MONGO_UPGRADER_ORDER,
+                    SubscriptionFormInlineContentMongoUpgrader.SUBSCRIPTION_FORM_INLINE_CONTENT_MONGO_UPGRADER_ORDER)
+            + 1;
 
     static final String GLOBAL_DEFAULT_FORM_NAME = "Global Default Form";
 
@@ -65,38 +63,37 @@ public class SubscriptionFormGlobalDefaultMongoUpgrader extends MongoUpgrader {
 
         // The name carries no index usable without the environment, and the databases these tests run against
         // forbid collection scans: walking the _id index visits every form without asking for one.
-        var enabledGlobalDefaultForms = forms
-            .find(Filters.and(Filters.eq(NORMALIZED_NAME, GLOBAL_DEFAULT_FORM_NAME.toLowerCase()), Filters.eq("enabled", true)))
-            .hint(ID_INDEX);
+        var enabledGlobalDefaultForms = forms.find(Filters.and(
+                        Filters.eq(NORMALIZED_NAME, GLOBAL_DEFAULT_FORM_NAME.toLowerCase()),
+                        Filters.eq("enabled", true)))
+                .hint(ID_INDEX);
         for (Document form : enabledGlobalDefaultForms) {
             var formId = form.get("_id");
             var environmentId = form.getString(ENVIRONMENT_ID);
             // Nothing serializes the upgraders across nodes: a form another node has already mapped is left alone.
-            var notMappedYet = Filters.and(Filters.eq("_id", formId), Filters.or(Filters.exists(API_IDS, false), Filters.size(API_IDS, 0)));
-            forms.updateOne(notMappedYet, Updates.set(API_IDS, apisNotMappedElsewhere(forms, apis, environmentId, formId)));
+            var notMappedYet = Filters.and(
+                    Filters.eq("_id", formId), Filters.or(Filters.exists(API_IDS, false), Filters.size(API_IDS, 0)));
+            forms.updateOne(
+                    notMappedYet, Updates.set(API_IDS, apisNotMappedElsewhere(forms, apis, environmentId, formId)));
         }
         return true;
     }
 
     private static List<String> apisNotMappedElsewhere(
-        MongoCollection<Document> forms,
-        MongoCollection<Document> apis,
-        String environmentId,
-        Object formId
-    ) {
+            MongoCollection<Document> forms, MongoCollection<Document> apis, String environmentId, Object formId) {
         var mappedElsewhere = new HashSet<String>();
-        forms
-            .find(Filters.and(Filters.eq(ENVIRONMENT_ID, environmentId), Filters.ne("_id", formId)))
-            .projection(Projections.include(API_IDS))
-            .forEach(other -> mappedElsewhere.addAll(other.getList(API_IDS, String.class, List.of())));
+        forms.find(Filters.and(Filters.eq(ENVIRONMENT_ID, environmentId), Filters.ne("_id", formId)))
+                .projection(Projections.include(API_IDS))
+                .forEach(other -> mappedElsewhere.addAll(other.getList(API_IDS, String.class, List.of())));
 
         return StreamSupport.stream(
-            apis.find(Filters.eq(ENVIRONMENT_ID, environmentId)).projection(Projections.include("_id")).spliterator(),
-            false
-        )
-            .map(api -> api.getString("_id"))
-            .filter(apiId -> !mappedElsewhere.contains(apiId))
-            .toList();
+                        apis.find(Filters.eq(ENVIRONMENT_ID, environmentId))
+                                .projection(Projections.include("_id"))
+                                .spliterator(),
+                        false)
+                .map(api -> api.getString("_id"))
+                .filter(apiId -> !mappedElsewhere.contains(apiId))
+                .toList();
     }
 
     @Override

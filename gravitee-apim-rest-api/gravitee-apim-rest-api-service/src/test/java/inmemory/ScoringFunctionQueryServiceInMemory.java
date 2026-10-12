@@ -21,7 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ScoringFunctionQueryServiceInMemory implements ScoringFunctionQueryService, InMemoryAlternative<ScoringFunction> {
+public class ScoringFunctionQueryServiceInMemory
+        implements ScoringFunctionQueryService, InMemoryAlternative<ScoringFunction> {
 
     private final List<ScoringFunction> storage;
 
@@ -35,10 +36,10 @@ public class ScoringFunctionQueryServiceInMemory implements ScoringFunctionQuery
 
     @Override
     public List<ScoringFunction> findByReference(String referenceId, ScoringFunction.ReferenceType referenceType) {
-        return storage
-            .stream()
-            .filter(report -> report.referenceId().equals(referenceId) && report.referenceType().equals(referenceType))
-            .toList();
+        return storage.stream()
+                .filter(report -> report.referenceId().equals(referenceId)
+                        && report.referenceType().equals(referenceType))
+                .toList();
     }
 
     @Override

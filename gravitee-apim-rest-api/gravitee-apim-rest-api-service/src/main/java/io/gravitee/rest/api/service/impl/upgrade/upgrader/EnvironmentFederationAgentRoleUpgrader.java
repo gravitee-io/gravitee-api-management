@@ -37,7 +37,8 @@ public class EnvironmentFederationAgentRoleUpgrader implements Upgrader {
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public EnvironmentFederationAgentRoleUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public EnvironmentFederationAgentRoleUpgrader(
+            RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -45,19 +46,20 @@ public class EnvironmentFederationAgentRoleUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .stream()
-                .filter(organization -> shouldCreateEnvironmentFederationAgentRole(organization.getId()))
-                .forEach(organization -> {
-                    roleService.create(new ExecutionContext(organization.getId()), ROLE_ENVIRONMENT_FEDERATION_AGENT);
-                });
+            organizationRepository.findAll().stream()
+                    .filter(organization -> shouldCreateEnvironmentFederationAgentRole(organization.getId()))
+                    .forEach(organization -> {
+                        roleService.create(
+                                new ExecutionContext(organization.getId()), ROLE_ENVIRONMENT_FEDERATION_AGENT);
+                    });
             return true;
         });
     }
 
     private boolean shouldCreateEnvironmentFederationAgentRole(String organizationId) {
-        return roleService.findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_FEDERATION_AGENT.getName(), organizationId).isEmpty();
+        return roleService
+                .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_FEDERATION_AGENT.getName(), organizationId)
+                .isEmpty();
     }
 
     @Override

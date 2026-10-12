@@ -72,23 +72,20 @@ class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminApiRes
     }
 
     private void givenNoDashboardNorApiPermission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DASHBOARD,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
+                .thenReturn(Set.of());
     }
 
     @Test
@@ -120,45 +117,33 @@ class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminApiRes
 
     @Test
     void should_return_measures_when_user_has_only_environment_api_read_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DASHBOARD,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DASHBOARD,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
-        when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any())).thenReturn(
-            new MeasuresResult(
-                List.of(
-                    new MetricMeasuresResult(
+        when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any()))
+                .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                         Metric.HTTP_REQUESTS,
-                        Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)
-                    )
-                )
-            )
-        );
-        when(analyticsRepository.searchMessageMeasures(eq(queryContext), any())).thenReturn(
-            new MeasuresResult(
-                List.of(
-                    new MetricMeasuresResult(Metric.MESSAGES, Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42))
-                )
-            )
-        );
-        when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
-            new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
-        );
-        when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
+                        Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)))));
+        when(analyticsRepository.searchMessageMeasures(eq(queryContext), any()))
+                .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
+                        Metric.MESSAGES,
+                        Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)))));
+        when(analyticsQueryContextLoader.load(any(), any()))
+                .thenReturn(new AnalyticsQueryContext(
+                        null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of()));
+        when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any()))
+                .thenAnswer(inv -> inv.getArgument(1));
 
         var response = rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
 

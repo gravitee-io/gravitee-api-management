@@ -39,7 +39,8 @@ public class GraviteeAuthenticationDetails extends WebAuthenticationDetails {
                 return false;
             } else if (this.getRemoteAddress() != null && rhs.getRemoteAddress() == null) {
                 return false;
-            } else if (this.getRemoteAddress() != null && !this.getRemoteAddress().equals(rhs.getRemoteAddress())) {
+            } else if (this.getRemoteAddress() != null
+                    && !this.getRemoteAddress().equals(rhs.getRemoteAddress())) {
                 return false;
             } else if (this.getSessionId() == null && rhs.getSessionId() != null) {
                 return false;

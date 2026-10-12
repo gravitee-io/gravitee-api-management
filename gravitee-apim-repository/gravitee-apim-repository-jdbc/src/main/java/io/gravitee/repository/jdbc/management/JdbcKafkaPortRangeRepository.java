@@ -29,7 +29,8 @@ import org.springframework.stereotype.Repository;
 
 @CustomLog
 @Repository
-public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<KafkaPortRange, String> implements KafkaPortRangeRepository {
+public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<KafkaPortRange, String>
+        implements KafkaPortRangeRepository {
 
     JdbcKafkaPortRangeRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "kafka_port_ranges");
@@ -43,55 +44,53 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
     @Override
     protected JdbcObjectMapper<KafkaPortRange> buildOrm() {
         return JdbcObjectMapper.builder(KafkaPortRange.class, this.tableName, "plan_id")
-            .addColumn("plan_id", Types.NVARCHAR, String.class)
-            .addColumn("api_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("bootstrap_port", Types.INTEGER, int.class)
-            .addColumn("range_start", Types.INTEGER, int.class)
-            .addColumn("range_end", Types.INTEGER, int.class)
-            .addColumn("created_at", Types.TIMESTAMP, Instant.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
-            .build();
+                .addColumn("plan_id", Types.NVARCHAR, String.class)
+                .addColumn("api_id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("bootstrap_port", Types.INTEGER, int.class)
+                .addColumn("range_start", Types.INTEGER, int.class)
+                .addColumn("range_end", Types.INTEGER, int.class)
+                .addColumn("created_at", Types.TIMESTAMP, Instant.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
+                .build();
     }
 
     @Override
-    public List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
-        throws TechnicalException {
+    public List<KafkaPortRange> findConflicting(
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+            throws TechnicalException {
         return runConflictQuery(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId, false);
     }
 
     @Override
     public List<KafkaPortRange> findConflictingForUpdate(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) throws TechnicalException {
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+            throws TechnicalException {
         return runConflictQuery(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId, true);
     }
 
     private List<KafkaPortRange> runConflictQuery(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId,
-        boolean forUpdate
-    ) throws TechnicalException {
+            String environmentId,
+            int bootstrapPort,
+            int rangeStart,
+            int rangeEnd,
+            String excludePlanId,
+            boolean forUpdate)
+            throws TechnicalException {
         try {
             // Four conflict conditions in a single indexed query (see KafkaPortRangeRepository javadoc).
             final StringBuilder sql = new StringBuilder(getOrm().getSelectAllSql())
-                .append(" where environment_id = ?")
-                .append(excludePlanId == null ? "" : " and plan_id <> ?")
-                .append(" and (")
-                .append("  (range_start <= ? and range_end >= ?)") // 1. broker-range overlap
-                .append("  or (? between range_start and range_end)") // 2. new bootstrap inside existing range
-                .append("  or (bootstrap_port between ? and ?)") // 3. existing bootstrap inside new range
-                .append("  or (bootstrap_port = ?)") // 4. bootstrap port collision
-                .append(")");
+                    .append(" where environment_id = ?")
+                    .append(excludePlanId == null ? "" : " and plan_id <> ?")
+                    .append(" and (")
+                    .append("  (range_start <= ? and range_end >= ?)") // 1. broker-range overlap
+                    .append("  or (? between range_start and range_end)") // 2. new bootstrap inside existing range
+                    .append("  or (bootstrap_port between ? and ?)") // 3. existing bootstrap inside new range
+                    .append("  or (bootstrap_port = ?)") // 4. bootstrap port collision
+                    .append(")");
 
-            // SQL Server falls back to the non-locking query — see KafkaPortRangeRepository#findConflictingForUpdate javadoc.
+            // SQL Server falls back to the non-locking query — see KafkaPortRangeRepository#findConflictingForUpdate
+            // javadoc.
             if (forUpdate && !AbstractJdbcRepositoryConfiguration.isSqlServer()) {
                 // Row-level lock held until transaction commit — prevents TOCTOU between concurrent
                 // plan saves: the second transaction blocks on the first's locks, then re-reads the

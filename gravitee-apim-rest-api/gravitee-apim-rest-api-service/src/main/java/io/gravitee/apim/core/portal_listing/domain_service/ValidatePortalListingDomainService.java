@@ -44,19 +44,18 @@ public class ValidatePortalListingDomainService implements Validator<ValidatePor
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
     private final ApiCrudService apiCrudService;
 
-    public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) implements
-        Validator.Input {}
+    public record Input(
+            AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis)
+            implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
         errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "portalHrid"));
         List<PortalListingApiEntry> apis = input.apis() == null ? List.of() : input.apis();
-        var apiIds = apis
-            .stream()
-            .map(entry -> entry.apiId(input.auditInfo()))
-            .toList();
-        Set<String> existingApiIds = apiCrudService.findByIds(apiIds).stream().map(Api::getId).collect(Collectors.toSet());
+        var apiIds = apis.stream().map(entry -> entry.apiId(input.auditInfo())).toList();
+        Set<String> existingApiIds =
+                apiCrudService.findByIds(apiIds).stream().map(Api::getId).collect(Collectors.toSet());
         for (int i = 0; i < apis.size(); i++) {
             var entry = apis.get(i);
             errors.addAll(NavigationPathValidator.validate(entry.location(), "apis[" + i + "].location"));

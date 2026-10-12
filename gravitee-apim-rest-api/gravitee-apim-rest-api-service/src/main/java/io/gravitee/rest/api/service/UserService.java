@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
@@ -56,17 +55,23 @@ public interface UserService {
 
     Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids, boolean withUserMetadata);
 
-    UserEntity create(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
+    UserEntity create(
+            ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
 
     UserEntity update(ExecutionContext executionContext, String userId, UpdateUserEntity updateUserEntity);
 
-    UserEntity update(ExecutionContext executionContext, String userId, UpdateUserEntity updateUserEntity, String newsletterEmail);
+    UserEntity update(
+            ExecutionContext executionContext,
+            String userId,
+            UpdateUserEntity updateUserEntity,
+            String newsletterEmail);
 
     Page<UserEntity> search(ExecutionContext executionContext, String query, Pageable pageable);
 
     Page<UserEntity> search(ExecutionContext executionContext, UserCriteria criteria, Pageable pageable);
 
-    UserEntity register(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
+    UserEntity register(
+            ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
 
     /**
      * Register a user, sending the activation link to a named product rather than a caller-supplied URL.
@@ -76,10 +81,7 @@ public interface UserService {
      *     name the destination could have it emailed to themselves.
      */
     UserEntity registerWithTarget(
-        ExecutionContext executionContext,
-        NewExternalUserEntity newExternalUserEntity,
-        String registrationTarget
-    );
+            ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, String registrationTarget);
 
     UserEntity finalizeRegistration(ExecutionContext executionContext, RegisterUserEntity registerUserEntity);
 
@@ -102,35 +104,28 @@ public interface UserService {
     UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl);
 
     Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
-        UserEntity userEntity,
-        String portalUri,
-        ACTION action
-    );
+            ExecutionContext executionContext, UserEntity userEntity, String portalUri, ACTION action);
 
     Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
-        UserEntity userEntity,
-        String portalUri,
-        ACTION action,
-        String confirmationPageUrl
-    );
+            ExecutionContext executionContext,
+            UserEntity userEntity,
+            String portalUri,
+            ACTION action,
+            String confirmationPageUrl);
 
     UserEntity create(ExecutionContext executionContext, NewPreRegisterUserEntity newPreRegisterUserEntity);
 
     UserEntity createOrUpdateUserFromSocialIdentityProvider(
-        ExecutionContext executionContext,
-        SocialIdentityProviderEntity socialProvider,
-        String userInfo,
-        String accessTokenPayload,
-        String idToken
-    );
+            ExecutionContext executionContext,
+            SocialIdentityProviderEntity socialProvider,
+            String userInfo,
+            String accessTokenPayload,
+            String idToken);
 
     void updateUserRoles(
-        ExecutionContext executionContext,
-        String userId,
-        MembershipReferenceType referenceType,
-        String referenceId,
-        List<String> roleIds
-    );
+            ExecutionContext executionContext,
+            String userId,
+            MembershipReferenceType referenceType,
+            String referenceId,
+            List<String> roleIds);
 }

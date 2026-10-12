@@ -51,7 +51,8 @@ class CreateGroupDomainServiceLegacyWrapperTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id");
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id");
 
     @Mock
     private GroupService groupService;
@@ -71,15 +72,14 @@ class CreateGroupDomainServiceLegacyWrapperTest {
 
     @Test
     void should_delegate_empty_group_creation_to_legacy_group_service_and_return_was_created_true() {
-        when(groupService.create(any(ExecutionContext.class), any(NewGroupEntity.class))).thenReturn(
-            GroupEntity.builder()
-                .id("created-group-id")
-                .name("Helios")
-                .environmentId(ENVIRONMENT_ID)
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build()
-        );
+        when(groupService.create(any(ExecutionContext.class), any(NewGroupEntity.class)))
+                .thenReturn(GroupEntity.builder()
+                        .id("created-group-id")
+                        .name("Helios")
+                        .environmentId(ENVIRONMENT_ID)
+                        .createdAt(new Date())
+                        .updatedAt(new Date())
+                        .build());
 
         CreateResult result = service.createEmpty("Helios", AUDIT_INFO);
 
@@ -98,12 +98,12 @@ class CreateGroupDomainServiceLegacyWrapperTest {
 
     @Test
     void should_reuse_existing_group_when_name_already_exists_and_return_was_created_false() {
-        when(groupService.create(eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)), any(NewGroupEntity.class))).thenThrow(
-            new GroupNameAlreadyExistsException("Helios")
-        );
-        groupQueryService.initWith(
-            List.of(GroupFixtures.aGroup("existing-group-id").toBuilder().name("Helios").environmentId(ENVIRONMENT_ID).build())
-        );
+        when(groupService.create(eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)), any(NewGroupEntity.class)))
+                .thenThrow(new GroupNameAlreadyExistsException("Helios"));
+        groupQueryService.initWith(List.of(GroupFixtures.aGroup("existing-group-id").toBuilder()
+                .name("Helios")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         CreateResult result = service.createEmpty("Helios", AUDIT_INFO);
 
@@ -115,8 +115,8 @@ class CreateGroupDomainServiceLegacyWrapperTest {
     @Test
     void should_throw_when_name_is_null() {
         assertThatThrownBy(() -> service.createEmpty(null, AUDIT_INFO))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Group name must not be null or blank");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Group name must not be null or blank");
 
         verify(groupService, never()).create(any(), any());
     }
@@ -124,8 +124,8 @@ class CreateGroupDomainServiceLegacyWrapperTest {
     @Test
     void should_throw_when_name_is_blank() {
         assertThatThrownBy(() -> service.createEmpty("   ", AUDIT_INFO))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Group name must not be null or blank");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Group name must not be null or blank");
 
         verify(groupService, never()).create(any(), any());
     }

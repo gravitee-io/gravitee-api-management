@@ -21,7 +21,9 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ScoringReportMongoRepository extends MongoRepository<ScoringReportMongo, String>, ScoringReportMongoRepositoryCustom {
+public interface ScoringReportMongoRepository
+        extends MongoRepository<ScoringReportMongo, String>, ScoringReportMongoRepositoryCustom {
     void deleteByApiId(String apiId);
+
     Optional<ScoringReportMongo> findLatestByApiId(String apiId);
 }

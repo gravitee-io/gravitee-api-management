@@ -66,82 +66,80 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
     private ValidatePortalNotificationDomainService portalNotificationValidator;
 
     @Override
-    public ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
+    public ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(
+            ExecutionContext executionContext, ApiCRDEntity api) {
         List<Validator.Error> errors = new ArrayList<>();
 
         UserDetails authenticatedUser = getAuthenticatedUser();
 
         AuditInfo auditInfo = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(authenticatedUser.getUsername())
-                    .userSource(authenticatedUser.getSource())
-                    .userSourceId(authenticatedUser.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(authenticatedUser.getUsername())
+                        .userSource(authenticatedUser.getSource())
+                        .userSourceId(authenticatedUser.getSourceId())
+                        .build())
+                .build();
 
         apiPathValidator
-            .validateAndSanitize(new VerifyApiPathDomainService.Input(executionContext.getEnvironmentId(), api.getId(), extractPaths(api)))
-            .peek(sanitized -> api.getProxy().setVirtualHosts(mapPaths(sanitized.paths())), errors::addAll);
+                .validateAndSanitize(new VerifyApiPathDomainService.Input(
+                        executionContext.getEnvironmentId(), api.getId(), extractPaths(api)))
+                .peek(sanitized -> api.getProxy().setVirtualHosts(mapPaths(sanitized.paths())), errors::addAll);
 
         validateCategoryIdsDomainService
-            .validateAndSanitize(new ValidateCategoryIdsDomainService.Input(executionContext.getEnvironmentId(), api.getCategories()))
-            .peek(sanitized -> api.setCategories(sanitized.idOrKeys()), errors::addAll);
+                .validateAndSanitize(new ValidateCategoryIdsDomainService.Input(
+                        executionContext.getEnvironmentId(), api.getCategories()))
+                .peek(sanitized -> api.setCategories(sanitized.idOrKeys()), errors::addAll);
 
         var members = ApiCRDEntityAdapter.INSTANCE.toMemberCRDs(api.getMembers());
         validateCRDMembersDomainService
-            .validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(
-                    auditInfo,
-                    MembershipReferenceType.API,
-                    members != null ? new LinkedHashSet<>(members) : null
-                )
-            )
-            .peek(sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())), errors::addAll);
+                .validateAndSanitize(new ValidateCRDMembersDomainService.Input(
+                        auditInfo, MembershipReferenceType.API, members != null ? new LinkedHashSet<>(members) : null))
+                .peek(
+                        sanitized -> api.setMembers(ApiCRDEntityAdapter.INSTANCE.toApiCRDMembers(sanitized.members())),
+                        errors::addAll);
 
         validateGroupsDomainService
-            .validateAndSanitize(
-                new ValidateGroupsDomainService.Input(
-                    executionContext.getEnvironmentId(),
-                    api.getGroups(),
-                    api.getGraviteeDefinitionVersion(),
-                    api.getDefinitionContext() != null ? api.getDefinitionContext().getOrigin() : null,
-                    Group.GroupEvent.API_CREATE,
-                    false
-                )
-            )
-            .peek(sanitized -> api.setGroups(sanitized.groups()), errors::addAll);
+                .validateAndSanitize(new ValidateGroupsDomainService.Input(
+                        executionContext.getEnvironmentId(),
+                        api.getGroups(),
+                        api.getGraviteeDefinitionVersion(),
+                        api.getDefinitionContext() != null
+                                ? api.getDefinitionContext().getOrigin()
+                                : null,
+                        Group.GroupEvent.API_CREATE,
+                        false))
+                .peek(sanitized -> api.setGroups(sanitized.groups()), errors::addAll);
 
         portalNotificationValidator
-            .validateAndSanitize(
-                new ValidatePortalNotificationDomainService.Input(
-                    api.getConsoleNotificationConfiguration(),
-                    api.getGraviteeDefinitionVersion(),
-                    api.getDefinitionContext() != null ? api.getDefinitionContext().getOrigin() : null,
-                    api.getGroups(),
-                    auditInfo
-                )
-            )
-            .peek(sanitized -> api.setConsoleNotificationConfiguration(sanitized.portalNotificationConfig()), errors::addAll);
+                .validateAndSanitize(new ValidatePortalNotificationDomainService.Input(
+                        api.getConsoleNotificationConfiguration(),
+                        api.getGraviteeDefinitionVersion(),
+                        api.getDefinitionContext() != null
+                                ? api.getDefinitionContext().getOrigin()
+                                : null,
+                        api.getGroups(),
+                        auditInfo))
+                .peek(
+                        sanitized -> api.setConsoleNotificationConfiguration(sanitized.portalNotificationConfig()),
+                        errors::addAll);
 
         pagesValidator
-            .validateAndSanitize(
-                new ValidatePagesDomainService.Input(
-                    auditInfo,
-                    api.getId(),
-                    null,
-                    ApiCRDEntityAdapter.INSTANCE.toCoreApiCRDPages(api.getPagesMap())
-                )
-            )
-            .peek(sanitized -> api.setPages(ApiCRDEntityAdapter.INSTANCE.toRestApiCRDPages(sanitized.pages())), errors::addAll);
+                .validateAndSanitize(new ValidatePagesDomainService.Input(
+                        auditInfo,
+                        api.getId(),
+                        null,
+                        ApiCRDEntityAdapter.INSTANCE.toCoreApiCRDPages(api.getPagesMap())))
+                .peek(
+                        sanitized -> api.setPages(ApiCRDEntityAdapter.INSTANCE.toRestApiCRDPages(sanitized.pages())),
+                        errors::addAll);
 
         return convertToValidationResult(api, errors);
     }
 
-    private static ApiValidationResult<ApiCRDEntity> convertToValidationResult(ApiCRDEntity api, List<Validator.Error> errors) {
+    private static ApiValidationResult<ApiCRDEntity> convertToValidationResult(
+            ApiCRDEntity api, List<Validator.Error> errors) {
         List<String> severe = new ArrayList<>();
         List<String> warning = new ArrayList<>();
         for (Validator.Error error : errors) {
@@ -156,18 +154,18 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
     }
 
     private static List<Path> extractPaths(ApiCRDEntity api) {
-        return api
-            .getProxy()
-            .getVirtualHosts()
-            .stream()
-            .map(vh -> Path.builder().host(vh.getHost()).path(vh.getPath()).overrideAccess(vh.isOverrideEntrypoint()).build())
-            .toList();
+        return api.getProxy().getVirtualHosts().stream()
+                .map(vh -> Path.builder()
+                        .host(vh.getHost())
+                        .path(vh.getPath())
+                        .overrideAccess(vh.isOverrideEntrypoint())
+                        .build())
+                .toList();
     }
 
     private static List<VirtualHost> mapPaths(List<Path> paths) {
-        return paths
-            .stream()
-            .map(path -> new VirtualHost(path.getHost(), path.getPath(), path.isOverrideAccess()))
-            .toList();
+        return paths.stream()
+                .map(path -> new VirtualHost(path.getHost(), path.getPath(), path.isOverrideAccess()))
+                .toList();
     }
 }

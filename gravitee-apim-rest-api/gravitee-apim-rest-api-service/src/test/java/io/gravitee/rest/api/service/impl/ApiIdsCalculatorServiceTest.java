@@ -69,17 +69,13 @@ class ApiIdsCalculatorServiceTest {
         ObjectNode apiDefinition = mapper.createObjectNode().put("id", "my-api-1");
 
         apiDefinition.set(
-            "plans",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "my-plan-id-1"))
-                .add(mapper.createObjectNode().put("id", "my-plan-id-2"))
-        );
+                "plans",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "my-plan-id-1"))
+                        .add(mapper.createObjectNode().put("id", "my-plan-id-2")));
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(
-            new ExecutionContext("default", "uat"),
-            new ImportApiJsonNode(apiDefinition)
-        );
+                new ExecutionContext("default", "uat"), new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38");
         assertThat(newApiDefinition.getPlans().get(0).getId()).isEqualTo("3ce45391-1777-3424-b4cb-2811b1281cea");
@@ -88,21 +84,18 @@ class ApiIdsCalculatorServiceTest {
 
     @Test
     public void recalculateApiDefinitionIds_WithNoCrossId_AndNoMatchingApi_should_recalculate_api_id_and_plans_id() {
-        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
+        ObjectNode apiDefinition =
+                mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
 
         apiDefinition.set(
-            "plans",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "plan-id-1").put("crossId", "plan-cross-id-1"))
-                .add(mapper.createObjectNode().put("id", "plan-id-2").put("crossId", "plan-cross-id-2"))
-        );
+                "plans",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "plan-id-1").put("crossId", "plan-cross-id-1"))
+                        .add(mapper.createObjectNode().put("id", "plan-id-2").put("crossId", "plan-cross-id-2")));
         when(apiService.findByEnvironmentIdAndCrossId("uat", "api-cross-id")).thenReturn(Optional.empty());
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(
-            new ExecutionContext("default", "uat"),
-            new ImportApiJsonNode(apiDefinition)
-        );
+                new ExecutionContext("default", "uat"), new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("6bcde800-d5ae-3215-8413-cae196f9edfc");
         assertThat(newApiDefinition.getPlans().get(0).getId()).isEqualTo("9e0bf9bc-137b-39d3-9e6a-3de94ac3788c");
@@ -111,15 +104,14 @@ class ApiIdsCalculatorServiceTest {
 
     @Test
     public void recalculateApiDefinitionIds_WithCrossId_should_not_recalculate_api_id_and_plans_ids() {
-        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
+        ObjectNode apiDefinition =
+                mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
 
         apiDefinition.set(
-            "plans",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "plan-id-1").put("crossId", "plan-cross-id-1"))
-                .add(mapper.createObjectNode().put("id", "plan-id-2").put("crossId", "plan-cross-id-2"))
-        );
+                "plans",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "plan-id-1").put("crossId", "plan-cross-id-1"))
+                        .add(mapper.createObjectNode().put("id", "plan-id-2").put("crossId", "plan-cross-id-2")));
 
         ApiEntity matchingApi = new ApiEntity();
         matchingApi.setCrossId("api-cross-id");
@@ -137,9 +129,11 @@ class ApiIdsCalculatorServiceTest {
 
         ExecutionContext executionContext = new ExecutionContext("default", "dev");
 
-        when(planService.findByApi(executionContext, "api-id-1")).thenReturn(Set.of(firstMatchingPlan, secondMatchingPlan));
+        when(planService.findByApi(executionContext, "api-id-1"))
+                .thenReturn(Set.of(firstMatchingPlan, secondMatchingPlan));
 
-        ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(executionContext, new ImportApiJsonNode(apiDefinition));
+        ImportApiJsonNode newApiDefinition =
+                cut.recalculateApiDefinitionIds(executionContext, new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("api-id-1");
         assertThat(newApiDefinition.getPlans().get(0).getId()).isEqualTo("plan-id-1");
@@ -147,23 +141,25 @@ class ApiIdsCalculatorServiceTest {
     }
 
     @Test
-    public void recalculateApiDefinitionIds_WithCrossId_should_not_recalculate_api_id_and_page_ids_preserving_hierarchy() {
-        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
+    public void
+            recalculateApiDefinitionIds_WithCrossId_should_not_recalculate_api_id_and_page_ids_preserving_hierarchy() {
+        ObjectNode apiDefinition =
+                mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
 
         apiDefinition.set(
-            "pages",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "root-folder-id").put("crossId", "root-folder-cross-id"))
-                .add(
-                    mapper
-                        .createObjectNode()
-                        .put("id", "nested-folder-id")
-                        .put("crossId", "nested-folder-cross-id")
-                        .put("parentId", "root-folder-id")
-                )
-                .add(mapper.createObjectNode().put("id", "page-id").put("crossId", "page-cross-id").put("parentId", "nested-folder-id"))
-        );
+                "pages",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode()
+                                .put("id", "root-folder-id")
+                                .put("crossId", "root-folder-cross-id"))
+                        .add(mapper.createObjectNode()
+                                .put("id", "nested-folder-id")
+                                .put("crossId", "nested-folder-cross-id")
+                                .put("parentId", "root-folder-id"))
+                        .add(mapper.createObjectNode()
+                                .put("id", "page-id")
+                                .put("crossId", "page-cross-id")
+                                .put("parentId", "nested-folder-id")));
 
         ApiEntity matchingApi = new ApiEntity();
         matchingApi.setCrossId("api-cross-id");
@@ -185,9 +181,7 @@ class ApiIdsCalculatorServiceTest {
         when(pageService.findByApi("dev", "api-id-1")).thenReturn(List.of(rootFolder, nestedFolder, page));
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(
-            new ExecutionContext("default", "dev"),
-            new ImportApiJsonNode(apiDefinition)
-        );
+                new ExecutionContext("default", "dev"), new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("api-id-1");
         assertThat(newApiDefinition.getPages().size()).isEqualTo(3);
@@ -200,22 +194,21 @@ class ApiIdsCalculatorServiceTest {
     }
 
     @Test
-    public void recalculateApiDefinitionIds_WithNoCrossId_should_recalculate_api_id_and_page_ids_preserving_hierarchy() {
+    public void
+            recalculateApiDefinitionIds_WithNoCrossId_should_recalculate_api_id_and_page_ids_preserving_hierarchy() {
         ObjectNode apiDefinition = mapper.createObjectNode().put("id", "my-api-1");
 
         apiDefinition.set(
-            "pages",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "root-folder-id"))
-                .add(mapper.createObjectNode().put("id", "nested-folder-id").put("parentId", "root-folder-id"))
-                .add(mapper.createObjectNode().put("id", "page-id").put("parentId", "nested-folder-id"))
-        );
+                "pages",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "root-folder-id"))
+                        .add(mapper.createObjectNode()
+                                .put("id", "nested-folder-id")
+                                .put("parentId", "root-folder-id"))
+                        .add(mapper.createObjectNode().put("id", "page-id").put("parentId", "nested-folder-id")));
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(
-            new ExecutionContext("default", "uat"),
-            new ImportApiJsonNode(apiDefinition)
-        );
+                new ExecutionContext("default", "uat"), new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("e0a6482a-b8a7-3db4-a1b7-d36a462a9e38");
         assertThat(newApiDefinition.getPages().size()).isEqualTo(3);
@@ -229,23 +222,22 @@ class ApiIdsCalculatorServiceTest {
 
     @Test
     public void recalculateApiDefinitionIds_WithCrossId_should_generate_empty_ids_preserving_existing_id() {
-        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
+        ObjectNode apiDefinition =
+                mapper.createObjectNode().put("id", "api-id-1").put("crossId", "api-cross-id");
 
         apiDefinition.set(
-            "plans",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "plan-id-1").put("crossId", "plan-cross-id"))
-                .add(mapper.createObjectNode().put("name", "I have an empty ID").put("id", ""))
-        );
+                "plans",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "plan-id-1").put("crossId", "plan-cross-id"))
+                        .add(mapper.createObjectNode()
+                                .put("name", "I have an empty ID")
+                                .put("id", "")));
 
         apiDefinition.set(
-            "pages",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "page-id-1").put("crossId", "page-cross-id"))
-                .add(mapper.createObjectNode().put("name", "I have no ID"))
-        );
+                "pages",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "page-id-1").put("crossId", "page-cross-id"))
+                        .add(mapper.createObjectNode().put("name", "I have no ID")));
 
         ApiEntity matchingApi = new ApiEntity();
         matchingApi.setId("api-id-1");
@@ -265,15 +257,18 @@ class ApiIdsCalculatorServiceTest {
 
         when(planService.findByApi(executionContext, "api-id-1")).thenReturn(Set.of(matchingPlan));
 
-        ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(executionContext, new ImportApiJsonNode(apiDefinition));
+        ImportApiJsonNode newApiDefinition =
+                cut.recalculateApiDefinitionIds(executionContext, new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("api-id-1");
         assertThat(newApiDefinition.getPlans().get(0).getId()).isEqualTo("plan-id-1");
         assertThat(newApiDefinition.getPlans().get(1).getId()).isNotEmpty();
-        assertThat(newApiDefinition.getPlans().get(1).getJsonNode().get("name").asText()).isEqualTo("I have an empty ID");
+        assertThat(newApiDefinition.getPlans().get(1).getJsonNode().get("name").asText())
+                .isEqualTo("I have an empty ID");
         assertThat(newApiDefinition.getPages().get(0).getId()).isEqualTo("page-id-1");
         assertThat(newApiDefinition.getPages().get(1).getId()).isNotEmpty();
-        assertThat(newApiDefinition.getPages().get(1).getJsonNode().get("name").asText()).isEqualTo("I have no ID");
+        assertThat(newApiDefinition.getPages().get(1).getJsonNode().get("name").asText())
+                .isEqualTo("I have no ID");
     }
 
     @Test
@@ -281,29 +276,27 @@ class ApiIdsCalculatorServiceTest {
         ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1");
 
         apiDefinition.set(
-            "plans",
-            mapper.createArrayNode().add(mapper.createObjectNode().put("id", "plan-id-1")).add(mapper.createObjectNode().put("id", ""))
-        );
+                "plans",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "plan-id-1"))
+                        .add(mapper.createObjectNode().put("id", "")));
 
         apiDefinition.set(
-            "pages",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "page-id-1"))
-                .add(mapper.createObjectNode().put("name", "no-id"))
-        );
+                "pages",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "page-id-1"))
+                        .add(mapper.createObjectNode().put("name", "no-id")));
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(
-            new ExecutionContext("default", "default"),
-            new ImportApiJsonNode(apiDefinition)
-        );
+                new ExecutionContext("default", "default"), new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("ed5fbfe2-9cab-3306-9e51-24721d5b6e82");
         assertThat(newApiDefinition.getPlans().get(0).getId()).isEqualTo("cfc4cdf3-7ba7-387f-ac18-d846ce8b141c");
         assertThat(newApiDefinition.getPlans().get(1).getId()).isNotEmpty();
         assertThat(newApiDefinition.getPages().get(0).getId()).isEqualTo("7cfb0e92-2f22-35a6-b565-e38d45ac0de5");
         assertThat(newApiDefinition.getPages().get(1).getId()).isNotEmpty();
-        assertThat(newApiDefinition.getPages().get(1).getJsonNode().get("name").asText()).isEqualTo("no-id");
+        assertThat(newApiDefinition.getPages().get(1).getJsonNode().get("name").asText())
+                .isEqualTo("no-id");
     }
 
     @Test
@@ -313,22 +306,19 @@ class ApiIdsCalculatorServiceTest {
         apiDefinition.set("definition_context", mapper.createObjectNode().put("origin", "kubernetes"));
 
         apiDefinition.set(
-            "plans",
-            mapper.createArrayNode().add(mapper.createObjectNode().put("id", "plan-id-1")).add(mapper.createObjectNode().put("id", ""))
-        );
+                "plans",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "plan-id-1"))
+                        .add(mapper.createObjectNode().put("id", "")));
 
         apiDefinition.set(
-            "pages",
-            mapper
-                .createArrayNode()
-                .add(mapper.createObjectNode().put("id", "page-id-1"))
-                .add(mapper.createObjectNode().put("name", "no-id"))
-        );
+                "pages",
+                mapper.createArrayNode()
+                        .add(mapper.createObjectNode().put("id", "page-id-1"))
+                        .add(mapper.createObjectNode().put("name", "no-id")));
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(
-            new ExecutionContext("default", "default"),
-            new ImportApiJsonNode(apiDefinition)
-        );
+                new ExecutionContext("default", "default"), new ImportApiJsonNode(apiDefinition));
 
         assertThat(newApiDefinition.getId()).isEqualTo("api-id-1");
         assertThat(newApiDefinition.getPlans().get(0).getId()).isEqualTo("plan-id-1");

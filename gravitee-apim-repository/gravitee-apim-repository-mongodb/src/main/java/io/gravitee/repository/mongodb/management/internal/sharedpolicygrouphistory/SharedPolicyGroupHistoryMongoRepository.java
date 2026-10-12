@@ -25,10 +25,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SharedPolicyGroupHistoryMongoRepository
-    extends MongoRepository<SharedPolicyGroupHistoryMongo, String>, SharedPolicyGroupHistoryMongoRepositoryCustom {
+        extends MongoRepository<SharedPolicyGroupHistoryMongo, String>, SharedPolicyGroupHistoryMongoRepositoryCustom {
     // Get SPG binding by environmentId and sharedPolicyGroupId sorted by deployedAt limit 1
-    @Aggregation(pipeline = { "{$match: { environmentId : ?0, 'id' : ?1 }}", "{$sort: {updatedAt: -1}}", "{$limit: 1}" })
-    Optional<SharedPolicyGroupHistoryMongo> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId);
+    @Aggregation(pipeline = {"{$match: { environmentId : ?0, 'id' : ?1 }}", "{$sort: {updatedAt: -1}}", "{$limit: 1}"})
+    Optional<SharedPolicyGroupHistoryMongo> getLatestBySharedPolicyGroupId(
+            String environmentId, String sharedPolicyGroupId);
 
     @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
     List<SharedPolicyGroupHistoryMongo> deleteByEnvironmentId(String environmentId);

@@ -65,33 +65,41 @@ public class ApiAlertsResource extends AbstractResource {
     private String api;
 
     @GET
-    @Operation(summary = "List alerts of an API", description = "User must have the API_ALERT[READ] permission to use this service")
+    @Operation(
+            summary = "List alerts of an API",
+            description = "User must have the API_ALERT[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of alerts",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = AlertTriggerEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of alerts",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = AlertTriggerEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_ALERT, acls = READ) })
-    public List<AlertTriggerEntity> getApiAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
-        return withEventCounts ? alertService.findByReferenceWithEventCounts(API, api) : alertService.findByReference(API, api);
+    @Permissions({@Permission(value = API_ALERT, acls = READ)})
+    public List<AlertTriggerEntity> getApiAlerts(
+            @QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
+        return withEventCounts
+                ? alertService.findByReferenceWithEventCounts(API, api)
+                : alertService.findByReference(API, api);
     }
 
     @GET
     @Path("status")
-    @Operation(summary = "Get alerting status", description = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
+    @Operation(
+            summary = "Get alerting status",
+            description = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Alerting status",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AlertStatusEntity.class))
-    )
+            responseCode = "200",
+            description = "Alerting status",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = AlertStatusEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = READ) })
+    @Permissions({@Permission(value = RolePermission.API_ALERT, acls = READ)})
     public AlertStatusEntity getApiAlertsStatus() {
         return alertService.getStatus(GraviteeContext.getExecutionContext());
     }
@@ -99,40 +107,44 @@ public class ApiAlertsResource extends AbstractResource {
     @GET
     @Path("analytics")
     @Operation(
-        summary = "List configured alerts of the API",
-        description = "User must have the API_ALERT[READ] permission to use this service"
-    )
+            summary = "List configured alerts of the API",
+            description = "User must have the API_ALERT[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of alerts",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = AlertTriggerEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of alerts",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = AlertTriggerEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_ALERT, acls = READ) })
+    @Permissions({@Permission(value = API_ALERT, acls = READ)})
     public AlertAnalyticsEntity getPlatformAlertsAnalytics(@BeanParam AlertAnalyticsParam param) {
         param.validate();
         return alertAnalyticsService.findByReference(
-            API,
-            api,
-            new AlertAnalyticsQuery.Builder().from(param.getFrom()).to(param.getTo()).build()
-        );
+                API,
+                api,
+                new AlertAnalyticsQuery.Builder()
+                        .from(param.getFrom())
+                        .to(param.getTo())
+                        .build());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create an alert for an API", description = "User must have the API_ALERT[CREATE] permission to use this service")
+    @Operation(
+            summary = "Create an alert for an API",
+            description = "User must have the API_ALERT[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Alert successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AlertTriggerEntity.class))
-    )
+            responseCode = "200",
+            description = "Alert successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = AlertTriggerEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.CREATE)})
     public AlertTriggerEntity createApiAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(API);
         alertEntity.setReferenceId(api);
@@ -143,15 +155,20 @@ public class ApiAlertsResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update an alert for an API", description = "User must have the API_ALERT[UPDATE] permission to use this service")
+    @Operation(
+            summary = "Update an alert for an API",
+            description = "User must have the API_ALERT[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Alert successfully updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AlertTriggerEntity.class))
-    )
+            responseCode = "200",
+            description = "Alert successfully updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = AlertTriggerEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.UPDATE) })
-    public AlertTriggerEntity updateApiAlert(@PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
+    @Permissions({@Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.UPDATE)})
+    public AlertTriggerEntity updateApiAlert(
+            @PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(API);
         alertEntity.setReferenceId(api);
@@ -161,14 +178,18 @@ public class ApiAlertsResource extends AbstractResource {
     @Path("{alert}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete an alert for an API", description = "User must have the API_ALERT[DELETE] permission to use this service")
+    @Operation(
+            summary = "Delete an alert for an API",
+            description = "User must have the API_ALERT[DELETE] permission to use this service")
     @ApiResponse(
-        responseCode = "204",
-        description = "Alert successfully deleted",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AlertTriggerEntity.class))
-    )
+            responseCode = "204",
+            description = "Alert successfully deleted",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = AlertTriggerEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.DELETE)})
     public void deleteApiAlert(@PathParam("alert") String alert) {
         alertService.delete(alert, api);
     }
@@ -176,28 +197,26 @@ public class ApiAlertsResource extends AbstractResource {
     @GET
     @Path("{alert}/events")
     @Operation(
-        summary = "Retrieve the list of events for an alert",
-        description = "User must have the MANAGEMENT_ALERT[READ] permission to use this service"
-    )
+            summary = "Retrieve the list of events for an alert",
+            description = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of events",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AlertEventPage.class))
-    )
+            responseCode = "200",
+            description = "List of events",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = AlertEventPage.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ALERT, acls = READ) })
+    @Permissions({@Permission(value = RolePermission.API_ALERT, acls = READ)})
     public AlertEventPage getApiAlertEvents(@PathParam("alert") String alert, @BeanParam AlertEventSearchParam param) {
-        return new AlertEventPage(
-            alertService.findEvents(
+        return new AlertEventPage(alertService.findEvents(
                 alert,
                 new AlertEventQuery.Builder()
-                    .from(param.getFrom())
-                    .to(param.getTo())
-                    .pageNumber(param.getPage())
-                    .pageSize(param.getSize())
-                    .build()
-            )
-        );
+                        .from(param.getFrom())
+                        .to(param.getTo())
+                        .pageNumber(param.getPage())
+                        .pageSize(param.getSize())
+                        .build()));
     }
 }

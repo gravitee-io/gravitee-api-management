@@ -24,8 +24,6 @@ import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.exceptions.InvalidTokenException;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.jwks.JWKSourceResolver;
-import io.reactivex.rxjava3.core.Maybe;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

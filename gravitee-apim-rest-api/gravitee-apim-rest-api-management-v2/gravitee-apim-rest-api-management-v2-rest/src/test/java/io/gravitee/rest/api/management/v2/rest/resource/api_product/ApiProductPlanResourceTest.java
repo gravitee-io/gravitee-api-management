@@ -28,9 +28,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
-import fixtures.PlanFixtures;
-import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
 import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
@@ -45,12 +42,10 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
@@ -108,21 +103,19 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_product_plan_by_id() {
             Plan plan = Plan.builder()
-                .id(PLAN_ID)
-                .name("My plan")
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId(API_PRODUCT_ID)
-                .definitionVersion(DefinitionVersion.V4)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
-                        .id(PLAN_ID)
-                        .name("My plan")
-                        .security(PlanSecurity.builder().type("API_KEY").build())
-                        .mode(PlanMode.STANDARD)
-                        .status(PlanStatus.PUBLISHED)
-                        .build()
-                )
-                .build();
+                    .id(PLAN_ID)
+                    .name("My plan")
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                            .id(PLAN_ID)
+                            .name("My plan")
+                            .security(PlanSecurity.builder().type("API_KEY").build())
+                            .mode(PlanMode.STANDARD)
+                            .status(PlanStatus.PUBLISHED)
+                            .build())
+                    .build();
 
             when(getPlansUseCase.execute(any())).thenReturn(GetPlansUseCase.Output.single(Optional.of(plan)));
 
@@ -132,7 +125,9 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
             var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.BasePlan.class);
 
-            assertAll(() -> assertThat(result.getId()).isEqualTo(PLAN_ID), () -> assertThat(result.getName()).isEqualTo(plan.getName()));
+            assertAll(
+                    () -> assertThat(result.getId()).isEqualTo(PLAN_ID),
+                    () -> assertThat(result.getName()).isEqualTo(plan.getName()));
         }
 
         @Test
@@ -150,7 +145,11 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_PLAN, API_PRODUCT_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_PLAN,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
         }
     }
 
@@ -160,22 +159,20 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
         @Test
         void should_update_api_product_plan() {
             Plan updatedPlan = Plan.builder()
-                .id(PLAN_ID)
-                .name("Updated Plan")
-                .description("Updated description")
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .definitionVersion(DefinitionVersion.V4)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
-                        .id(PLAN_ID)
-                        .name("Updated Plan")
-                        .security(PlanSecurity.builder().type("API_KEY").build())
-                        .mode(PlanMode.STANDARD)
-                        .status(PlanStatus.PUBLISHED)
-                        .build()
-                )
-                .build();
+                    .id(PLAN_ID)
+                    .name("Updated Plan")
+                    .description("Updated description")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                            .id(PLAN_ID)
+                            .name("Updated Plan")
+                            .security(PlanSecurity.builder().type("API_KEY").build())
+                            .mode(PlanMode.STANDARD)
+                            .status(PlanStatus.PUBLISHED)
+                            .build())
+                    .build();
 
             when(updatePlanUseCase.execute(any())).thenReturn(new UpdateApiProductPlanUseCase.Output(updatedPlan));
 
@@ -190,10 +187,9 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
             }
 
             assertAll(
-                () -> assertThat(updatedResponse.getId()).isEqualTo(PLAN_ID),
-                () -> assertThat(updatedResponse.getName()).isEqualTo("Updated Plan"),
-                () -> assertThat(updatedResponse.getDescription()).isEqualTo("Updated description")
-            );
+                    () -> assertThat(updatedResponse.getId()).isEqualTo(PLAN_ID),
+                    () -> assertThat(updatedResponse.getName()).isEqualTo("Updated Plan"),
+                    () -> assertThat(updatedResponse.getDescription()).isEqualTo("Updated description"));
 
             var captor = ArgumentCaptor.forClass(UpdateApiProductPlanUseCase.Input.class);
             verify(updatePlanUseCase).execute(captor.capture());
@@ -209,21 +205,19 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
         @Test
         void should_map_empty_tags_to_clear_plan_tags() {
             Plan updatedPlan = Plan.builder()
-                .id(PLAN_ID)
-                .name("Updated Plan")
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .definitionVersion(DefinitionVersion.V4)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
-                        .id(PLAN_ID)
-                        .name("Updated Plan")
-                        .security(PlanSecurity.builder().type("API_KEY").build())
-                        .mode(PlanMode.STANDARD)
-                        .status(PlanStatus.PUBLISHED)
-                        .build()
-                )
-                .build();
+                    .id(PLAN_ID)
+                    .name("Updated Plan")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                            .id(PLAN_ID)
+                            .name("Updated Plan")
+                            .security(PlanSecurity.builder().type("API_KEY").build())
+                            .mode(PlanMode.STANDARD)
+                            .status(PlanStatus.PUBLISHED)
+                            .build())
+                    .build();
 
             when(updatePlanUseCase.execute(any())).thenReturn(new UpdateApiProductPlanUseCase.Output(updatedPlan));
 
@@ -253,9 +247,11 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_PLAN, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().request().put(json(new UpdateGenericApiProductPlan()))
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_PLAN,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().request().put(json(new UpdateGenericApiProductPlan())));
         }
     }
 
@@ -280,9 +276,11 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_PLAN, API_PRODUCT_ID, RolePermissionAction.DELETE, () ->
-                rootTarget().request().delete()
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_PLAN,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.DELETE,
+                    () -> rootTarget().request().delete());
         }
     }
 
@@ -292,21 +290,19 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
         @Test
         void should_close_api_product_plan() {
             Plan plan = Plan.builder()
-                .id(PLAN_ID)
-                .name("My plan")
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId(API_PRODUCT_ID)
-                .definitionVersion(DefinitionVersion.V4)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
-                        .id(PLAN_ID)
-                        .name("My plan")
-                        .security(PlanSecurity.builder().type("API_KEY").build())
-                        .mode(PlanMode.STANDARD)
-                        .status(PlanStatus.CLOSED)
-                        .build()
-                )
-                .build();
+                    .id(PLAN_ID)
+                    .name("My plan")
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                            .id(PLAN_ID)
+                            .name("My plan")
+                            .security(PlanSecurity.builder().type("API_KEY").build())
+                            .mode(PlanMode.STANDARD)
+                            .status(PlanStatus.CLOSED)
+                            .build())
+                    .build();
 
             when(planOperationsUseCase.execute(any())).thenReturn(new PlanOperationsUseCase.Output(plan));
 
@@ -326,9 +322,11 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_PLAN, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("_close").request().post(null)
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_PLAN,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().path("_close").request().post(null));
         }
     }
 
@@ -338,21 +336,19 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
         @Test
         void should_publish_api_product_plan() {
             Plan plan = Plan.builder()
-                .id(PLAN_ID)
-                .name("My plan")
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId(API_PRODUCT_ID)
-                .definitionVersion(DefinitionVersion.V4)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
-                        .id(PLAN_ID)
-                        .name("My plan")
-                        .security(PlanSecurity.builder().type("API_KEY").build())
-                        .mode(PlanMode.STANDARD)
-                        .status(PlanStatus.PUBLISHED)
-                        .build()
-                )
-                .build();
+                    .id(PLAN_ID)
+                    .name("My plan")
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                            .id(PLAN_ID)
+                            .name("My plan")
+                            .security(PlanSecurity.builder().type("API_KEY").build())
+                            .mode(PlanMode.STANDARD)
+                            .status(PlanStatus.PUBLISHED)
+                            .build())
+                    .build();
 
             when(planOperationsUseCase.execute(any())).thenReturn(new PlanOperationsUseCase.Output(plan));
 
@@ -371,9 +367,11 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_PLAN, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("_publish").request().post(null)
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_PLAN,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().path("_publish").request().post(null));
         }
     }
 
@@ -383,21 +381,19 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
         @Test
         void should_deprecate_api_product_plan() {
             Plan plan = Plan.builder()
-                .id(PLAN_ID)
-                .name("My plan")
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .referenceId(API_PRODUCT_ID)
-                .definitionVersion(DefinitionVersion.V4)
-                .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan.builder()
-                        .id(PLAN_ID)
-                        .name("My plan")
-                        .security(PlanSecurity.builder().type("API_KEY").build())
-                        .mode(PlanMode.STANDARD)
-                        .status(PlanStatus.DEPRECATED)
-                        .build()
-                )
-                .build();
+                    .id(PLAN_ID)
+                    .name("My plan")
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .referenceId(API_PRODUCT_ID)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                            .id(PLAN_ID)
+                            .name("My plan")
+                            .security(PlanSecurity.builder().type("API_KEY").build())
+                            .mode(PlanMode.STANDARD)
+                            .status(PlanStatus.DEPRECATED)
+                            .build())
+                    .build();
 
             when(planOperationsUseCase.execute(any())).thenReturn(new PlanOperationsUseCase.Output(plan));
 
@@ -416,9 +412,11 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_PLAN, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("_deprecate").request().post(null)
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_PLAN,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().path("_deprecate").request().post(null));
         }
     }
 }

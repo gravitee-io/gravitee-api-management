@@ -49,11 +49,11 @@ import org.junit.jupiter.api.Test;
 class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
 
     private static final BaseUserEntity USER = BaseUserEntity.builder()
-        .id("user-id")
-        .firstname("John")
-        .lastname("Doe")
-        .email("john.doe@gravitee.io")
-        .build();
+            .id("user-id")
+            .firstname("John")
+            .lastname("Doe")
+            .email("john.doe@gravitee.io")
+            .build();
 
     @Inject
     EventQueryServiceInMemory eventQueryService;
@@ -88,70 +88,73 @@ class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
 
     @Test
     void should_return_event_by_specific_event_id() {
-        eventQueryService.initWith(
-            List.of(
-                EventFixtures.anApiEvent(API)
-                    .toBuilder()
-                    .id("1")
-                    .environments(Set.of(ENVIRONMENT))
-                    .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
-                    .build(),
-                EventFixtures.anApiEvent(API)
-                    .toBuilder()
-                    .id("2")
-                    .environments(Set.of(ENVIRONMENT))
-                    .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
-                    .build(),
-                EventFixtures.anApiEvent(API)
-                    .toBuilder()
-                    .id("3")
-                    .environments(Set.of(ENVIRONMENT))
-                    .createdAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
-                    .build()
-            )
-        );
+        eventQueryService.initWith(List.of(
+                EventFixtures.anApiEvent(API).toBuilder()
+                        .id("1")
+                        .environments(Set.of(ENVIRONMENT))
+                        .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
+                        .build(),
+                EventFixtures.anApiEvent(API).toBuilder()
+                        .id("2")
+                        .environments(Set.of(ENVIRONMENT))
+                        .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
+                        .build(),
+                EventFixtures.anApiEvent(API).toBuilder()
+                        .id("3")
+                        .environments(Set.of(ENVIRONMENT))
+                        .createdAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
+                        .build()));
 
         final Response response = target.request().get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(Event.class)
-            .isEqualTo(
-                new Event()
-                    .id("2")
-                    .environmentIds(List.of(ENVIRONMENT))
-                    .initiator(new BaseUser().id("user-id").displayName("John Doe"))
-                    .type(io.gravitee.rest.api.management.v2.rest.model.EventType.PUBLISH_API)
-                    .createdAt(OffsetDateTime.parse("2020-02-02T20:00:00.00Z"))
-                    .payload("event-payload")
-                    .properties(Map.of("API_ID", API, "USER", "user-id"))
-            );
+                .hasStatus(OK_200)
+                .asEntity(Event.class)
+                .isEqualTo(new Event()
+                        .id("2")
+                        .environmentIds(List.of(ENVIRONMENT))
+                        .initiator(new BaseUser().id("user-id").displayName("John Doe"))
+                        .type(io.gravitee.rest.api.management.v2.rest.model.EventType.PUBLISH_API)
+                        .createdAt(OffsetDateTime.parse("2020-02-02T20:00:00.00Z"))
+                        .payload("event-payload")
+                        .properties(Map.of("API_ID", API, "USER", "user-id")));
     }
 
     @Test
     void should_return_400_if_eventId_blank() {
         final Response response = rootTarget(" ").request().get();
-        assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+        assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
     }
 
     @Test
     void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_EVENT, API, RolePermissionAction.READ)
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_EVENT,
+                        API,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
 
         final Response response = target.request().get();
 
         assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
     void should_return_404_if_event_not_found() {
         final Response response = target.request().get();
-        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasHttpStatus(NOT_FOUND_404).hasMessage("Not API event with id: 2 found");
+        assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Not API event with id: 2 found");
     }
 }

@@ -62,15 +62,18 @@ public class ApiKeySubscriptionsUpgraderTest {
     }
 
     @Test
-    public void testUpgrade_shouldCreateListOfSubscriptionsFromSubscription() throws TechnicalException, UpgraderException {
+    public void testUpgrade_shouldCreateListOfSubscriptionsFromSubscription()
+            throws TechnicalException, UpgraderException {
         ApiKey key1 = apiKeyWithSubscription("subscription-1");
         ApiKey key2 = apiKeyWithSubscription("subscription-2");
         ApiKey key3 = apiKeyWithSubscription("subscription-3");
         ApiKey key4 = apiKeyWithSubscription(null);
         ApiKey key5 = apiKeyWithSubscription(null, null);
         ApiKey key6 = apiKeyWithSubscription(null, new ArrayList<>(List.of("subscription-2", "subscription-3")));
-        ApiKey key7 = apiKeyWithSubscription("subscription-4", new ArrayList<>(List.of("subscription-2", "subscription-3")));
-        ApiKey key8 = apiKeyWithSubscription("subscription-3", new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey key7 =
+                apiKeyWithSubscription("subscription-4", new ArrayList<>(List.of("subscription-2", "subscription-3")));
+        ApiKey key8 =
+                apiKeyWithSubscription("subscription-3", new ArrayList<>(List.of("subscription-2", "subscription-3")));
 
         Set<ApiKey> keys = Set.of(key1, key2, key3, key4, key5, key6, key7, key8);
 

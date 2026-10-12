@@ -29,9 +29,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DashboardMongoRepository extends MongoRepository<DashboardMongo, String> {
     List<DashboardMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
-    List<DashboardMongo> findByReferenceTypeAndReferenceIdAndTypeOrderByOrder(String referenceType, String referenceId, String type);
 
-    Optional<DashboardMongo> findByReferenceTypeAndReferenceIdAndId(String referenceType, String referenceId, String id);
+    List<DashboardMongo> findByReferenceTypeAndReferenceIdAndTypeOrderByOrder(
+            String referenceType, String referenceId, String type);
+
+    Optional<DashboardMongo> findByReferenceTypeAndReferenceIdAndId(
+            String referenceType, String referenceId, String id);
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1  }", fields = "{ _id : 1 }", delete = true)
     List<DashboardMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);

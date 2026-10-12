@@ -43,7 +43,8 @@ public interface ObservabilityFilterDataPort {
      *
      * @param apiTypes optional API-type constraint to narrow results (empty = unconstrained)
      */
-    FilterValuesPage listKeywordValues(String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes);
+    FilterValuesPage listKeywordValues(
+            String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes);
 
     /** Bulk id → label resolution, grouped per requested filter. */
     List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests);

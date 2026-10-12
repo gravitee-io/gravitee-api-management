@@ -69,14 +69,14 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         doAnswer(invocation -> {
-            var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
-            return RenderedPageContent.of(
-                in.rawMarkdown().value(),
-                io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-        })
-            .when(portalNavigationTemplatingService)
-            .renderGraviteeMarkdown(any());
+                    var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput)
+                            invocation.getArgument(0);
+                    return RenderedPageContent.of(
+                            in.rawMarkdown().value(),
+                            io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN);
+                })
+                .when(portalNavigationTemplatingService)
+                .renderGraviteeMarkdown(any());
     }
 
     @AfterEach
@@ -94,11 +94,10 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
             // Given
             var publishedAndPublicItemId = PortalNavigationFixtures.randomNavigationId();
             var publishedAndPublicItem = PortalNavigationFixtures.page(
-                publishedAndPublicItemId,
-                "Published Public Page",
-                PortalArea.TOP_NAVBAR,
-                PortalNavigationFixtures.randomPageId()
-            );
+                    publishedAndPublicItemId,
+                    "Published Public Page",
+                    PortalArea.TOP_NAVBAR,
+                    PortalNavigationFixtures.randomPageId());
             publishedAndPublicItem.setPublished(true);
             publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicItem.setEnvironmentId(ENV_ID);
@@ -106,7 +105,8 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
             portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicItem));
 
             // When
-            Response response = target(publishedAndPublicItemId.toString()).request().get();
+            Response response =
+                    target(publishedAndPublicItemId.toString()).request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
@@ -120,11 +120,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
             // Given
             var privateItemId = PortalNavigationFixtures.randomNavigationId();
             var privateItem = PortalNavigationFixtures.page(
-                privateItemId,
-                "Private Page",
-                PortalArea.TOP_NAVBAR,
-                PortalNavigationFixtures.randomPageId()
-            );
+                    privateItemId, "Private Page", PortalArea.TOP_NAVBAR, PortalNavigationFixtures.randomPageId());
             privateItem.setPublished(true);
             privateItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
             privateItem.setEnvironmentId(ENV_ID);
@@ -148,18 +144,10 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
             var publishedAndPublicItemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "Page content text"
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "Page content text");
 
             var publishedAndPublicPage = PortalNavigationFixtures.page(
-                publishedAndPublicItemId,
-                "Published Public Page",
-                PortalArea.TOP_NAVBAR,
-                contentId
-            );
+                    publishedAndPublicItemId, "Published Public Page", PortalArea.TOP_NAVBAR, contentId);
             publishedAndPublicPage.setPublished(true);
             publishedAndPublicPage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicPage.setEnvironmentId(ENV_ID);
@@ -168,7 +156,10 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(publishedAndPublicItemId.toString()).path("content").request().get();
+            Response response = target(publishedAndPublicItemId.toString())
+                    .path("content")
+                    .request()
+                    .get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(200);
@@ -183,13 +174,10 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
             var privateItemId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
             var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                contentId,
-                ORGANIZATION_ID,
-                ENV_ID,
-                "Private Page content text"
-            );
+                    contentId, ORGANIZATION_ID, ENV_ID, "Private Page content text");
 
-            var privatePage = PortalNavigationFixtures.page(privateItemId, "Private Page", PortalArea.TOP_NAVBAR, contentId);
+            var privatePage =
+                    PortalNavigationFixtures.page(privateItemId, "Private Page", PortalArea.TOP_NAVBAR, contentId);
             privatePage.setPublished(true);
             privatePage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
             privatePage.setEnvironmentId(ENV_ID);
@@ -198,7 +186,8 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
             portalPageContentQueryService.initWith(List.of(pageContent));
 
             // When
-            Response response = target(privateItemId.toString()).path("content").request().get();
+            Response response =
+                    target(privateItemId.toString()).path("content").request().get();
 
             // Then
             assertThat(response.getStatus()).isEqualTo(404);

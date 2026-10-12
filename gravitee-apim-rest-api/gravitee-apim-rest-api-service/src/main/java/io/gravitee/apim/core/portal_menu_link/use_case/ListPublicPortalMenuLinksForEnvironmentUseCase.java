@@ -30,12 +30,8 @@ public class ListPublicPortalMenuLinksForEnvironmentUseCase {
     private final PortalMenuLinkQueryService portalMenuLinkQueryService;
 
     public Output execute(Input input) {
-        return new Output(
-            this.portalMenuLinkQueryService.findByEnvironmentIdAndVisibilitySortByOrder(
-                input.environmentId(),
-                PortalMenuLinkVisibility.PUBLIC
-            )
-        );
+        return new Output(this.portalMenuLinkQueryService.findByEnvironmentIdAndVisibilitySortByOrder(
+                input.environmentId(), PortalMenuLinkVisibility.PUBLIC));
     }
 
     @Builder

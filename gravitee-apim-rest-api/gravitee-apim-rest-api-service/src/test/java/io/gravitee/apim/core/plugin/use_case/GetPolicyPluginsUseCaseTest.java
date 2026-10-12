@@ -29,7 +29,8 @@ import org.junit.jupiter.api.Test;
 
 class GetPolicyPluginsUseCaseTest {
 
-    private final PolicyPluginQueryServiceInMemory policyPluginQueryServiceInMemory = new PolicyPluginQueryServiceInMemory();
+    private final PolicyPluginQueryServiceInMemory policyPluginQueryServiceInMemory =
+            new PolicyPluginQueryServiceInMemory();
     private LicenseManager licenseManager;
 
     private GetPolicyPluginsUseCase getPolicyPluginsUseCase;
@@ -38,20 +39,30 @@ class GetPolicyPluginsUseCaseTest {
     void setup() {
         licenseManager = mock(LicenseManager.class);
         getPolicyPluginsUseCase = new GetPolicyPluginsUseCase(
-            policyPluginQueryServiceInMemory,
-            new PluginFilterByLicenseDomainService(licenseManager)
-        );
+                policyPluginQueryServiceInMemory, new PluginFilterByLicenseDomainService(licenseManager));
     }
 
     @Test
     void getPoliciesByOrganization() {
-        policyPluginQueryServiceInMemory.initWith(
-            List.of(
-                PolicyPlugin.builder().id("policy-1").name("Policy 1").feature("feature-policy-1").deployed(true).build(),
-                PolicyPlugin.builder().id("policy-2").name("Policy 2").feature("feature-policy-2").deployed(true).build(),
-                PolicyPlugin.builder().id("policy-3").name("Policy 3").feature("feature-policy-3").deployed(false).build()
-            )
-        );
+        policyPluginQueryServiceInMemory.initWith(List.of(
+                PolicyPlugin.builder()
+                        .id("policy-1")
+                        .name("Policy 1")
+                        .feature("feature-policy-1")
+                        .deployed(true)
+                        .build(),
+                PolicyPlugin.builder()
+                        .id("policy-2")
+                        .name("Policy 2")
+                        .feature("feature-policy-2")
+                        .deployed(true)
+                        .build(),
+                PolicyPlugin.builder()
+                        .id("policy-3")
+                        .name("Policy 3")
+                        .feature("feature-policy-3")
+                        .deployed(false)
+                        .build()));
         var license = mock(io.gravitee.node.api.license.License.class);
         when(licenseManager.getOrganizationLicenseOrPlatform("org-id")).thenReturn(license);
 
@@ -59,12 +70,27 @@ class GetPolicyPluginsUseCaseTest {
         when(license.isFeatureEnabled("feature-policy-2")).thenReturn(true);
         when(license.isFeatureEnabled("feature-policy-3")).thenReturn(true);
 
-        assertThat(
-            getPolicyPluginsUseCase.getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input("org-id")).plugins()
-        ).containsExactly(
-            PolicyPlugin.builder().id("policy-1").name("Policy 1").feature("feature-policy-1").deployed(false).build(),
-            PolicyPlugin.builder().id("policy-2").name("Policy 2").feature("feature-policy-2").deployed(true).build(),
-            PolicyPlugin.builder().id("policy-3").name("Policy 3").feature("feature-policy-3").deployed(false).build()
-        );
+        assertThat(getPolicyPluginsUseCase
+                        .getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input("org-id"))
+                        .plugins())
+                .containsExactly(
+                        PolicyPlugin.builder()
+                                .id("policy-1")
+                                .name("Policy 1")
+                                .feature("feature-policy-1")
+                                .deployed(false)
+                                .build(),
+                        PolicyPlugin.builder()
+                                .id("policy-2")
+                                .name("Policy 2")
+                                .feature("feature-policy-2")
+                                .deployed(true)
+                                .build(),
+                        PolicyPlugin.builder()
+                                .id("policy-3")
+                                .name("Policy 3")
+                                .feature("feature-policy-3")
+                                .deployed(false)
+                                .build());
     }
 }

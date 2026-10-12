@@ -56,8 +56,8 @@ class AbstractRequestTest {
         @Test
         void should_throw_when_overriding_method_with_null() {
             assertThatThrownBy(() -> cut.method(null))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Http method should not be null");
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Http method should not be null");
         }
 
         @Test
@@ -163,7 +163,8 @@ class AbstractRequestTest {
         }
 
         @Test
-        void global_context_path_ends_with_slash_and_global_path_doesnt_end_with_slash_and_global_path_contains_subpath() {
+        void
+                global_context_path_ends_with_slash_and_global_path_doesnt_end_with_slash_and_global_path_contains_subpath() {
             cut.contextPath = "/uuid-12345-contextPath/";
             cut.path = "/uuid-12345-contextPath/v1";
             String contextPath = "/contextPath/";

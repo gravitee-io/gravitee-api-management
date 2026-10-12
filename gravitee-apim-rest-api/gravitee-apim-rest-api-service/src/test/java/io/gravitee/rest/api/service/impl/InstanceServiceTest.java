@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.InstanceListItem;
@@ -118,8 +117,7 @@ public class InstanceServiceTest {
         Instant twoMinAgo = Instant.now().minus(2, ChronoUnit.MINUTES);
         evt.setId("evt-id");
         evt.setEnvironments(Set.of("env-id"));
-        evt.setProperties(
-            Map.of(
+        evt.setProperties(Map.of(
                 "id",
                 "instance-id",
                 "last_heartbeat_at",
@@ -127,9 +125,7 @@ public class InstanceServiceTest {
                 "started_at",
                 String.valueOf(twoMinAgo.toEpochMilli()),
                 "cluster_primary_node",
-                Boolean.TRUE.toString()
-            )
-        );
+                Boolean.TRUE.toString()));
         evt.setType(EventType.GATEWAY_STARTED);
         evt.setPayload("{\"hostname\":\"myhost\",\"clusterId\":\"cluster\" }");
 
@@ -187,27 +183,33 @@ public class InstanceServiceTest {
         evt.setType(EventType.GATEWAY_STARTED);
         evt.setEnvironments(Set.of(executionContext.getEnvironmentId()));
         evt.setUpdatedAt(new Date());
-        evt.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+        evt.setProperties(Map.of(
+                "id",
+                "instance-id1",
+                "last_heartbeat_at",
+                String.valueOf(evt.getUpdatedAt().getTime())));
 
         final EventEntity evt2 = new EventEntity();
         evt2.setType(EventType.GATEWAY_STARTED);
         evt2.setId("evt-id2");
         evt2.setEnvironments(Set.of(executionContext.getEnvironmentId()));
         evt2.setUpdatedAt(new Date());
-        evt2.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+        evt2.setProperties(Map.of(
+                "id",
+                "instance-id1",
+                "last_heartbeat_at",
+                String.valueOf(evt.getUpdatedAt().getTime())));
 
-        when(
-            eventService.search(
-                eq(executionContext),
-                argThat(argument -> {
-                    assertThat(argument.getFrom()).isGreaterThan(Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
+        when(eventService.search(eq(executionContext), argThat(argument -> {
+                    assertThat(argument.getFrom())
+                            .isGreaterThan(
+                                    Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
                     assertThat(argument.getOrganizationIds()).containsOnly(executionContext.getOrganizationId());
                     assertThat(argument.getEnvironmentIds()).containsOnly(executionContext.getEnvironmentId());
                     assertThat(argument.getTypes()).containsOnly(EventType.GATEWAY_STARTED);
                     return true;
-                })
-            )
-        ).thenReturn(List.of(evt, evt2));
+                })))
+                .thenReturn(List.of(evt, evt2));
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
         assertThat(result).hasSize(2);
     }
@@ -219,26 +221,32 @@ public class InstanceServiceTest {
         evt.setType(EventType.GATEWAY_STARTED);
         evt.setEnvironments(Set.of(executionContext.getEnvironmentId()));
         evt.setUpdatedAt(new Date());
-        evt.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+        evt.setProperties(Map.of(
+                "id",
+                "instance-id1",
+                "last_heartbeat_at",
+                String.valueOf(evt.getUpdatedAt().getTime())));
 
         final EventEntity evt2 = new EventEntity();
         evt2.setType(EventType.GATEWAY_STARTED);
         evt2.setId("evt-id2");
         evt2.setUpdatedAt(new Date());
-        evt2.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+        evt2.setProperties(Map.of(
+                "id",
+                "instance-id1",
+                "last_heartbeat_at",
+                String.valueOf(evt.getUpdatedAt().getTime())));
 
-        when(
-            eventService.search(
-                eq(executionContext),
-                argThat(argument -> {
-                    assertThat(argument.getFrom()).isGreaterThan(Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
+        when(eventService.search(eq(executionContext), argThat(argument -> {
+                    assertThat(argument.getFrom())
+                            .isGreaterThan(
+                                    Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
                     assertThat(argument.getOrganizationIds()).containsOnly(executionContext.getOrganizationId());
                     assertThat(argument.getEnvironmentIds()).containsOnly(executionContext.getEnvironmentId());
                     assertThat(argument.getTypes()).containsOnly(EventType.GATEWAY_STARTED);
                     return true;
-                })
-            )
-        ).thenReturn(List.of(evt, evt2));
+                })))
+                .thenReturn(List.of(evt, evt2));
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
         assertThat(result).hasSize(2);
     }
@@ -250,36 +258,42 @@ public class InstanceServiceTest {
         evt.setType(EventType.GATEWAY_STARTED);
         evt.setEnvironments(Set.of(executionContext.getEnvironmentId()));
         evt.setUpdatedAt(new Date());
-        evt.setProperties(Map.of("id", "instance-id1", "last_heartbeat_at", String.valueOf(evt.getUpdatedAt().getTime())));
+        evt.setProperties(Map.of(
+                "id",
+                "instance-id1",
+                "last_heartbeat_at",
+                String.valueOf(evt.getUpdatedAt().getTime())));
 
         final EventEntity evt2 = new EventEntity();
         evt2.setType(EventType.GATEWAY_STARTED);
         evt2.setId("evt-id2");
         evt2.setUpdatedAt(new Date());
-        evt2.setProperties(
-            Map.of("id", "instance-id2", "last_heartbeat_at", String.valueOf(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()))
-        );
+        evt2.setProperties(Map.of(
+                "id",
+                "instance-id2",
+                "last_heartbeat_at",
+                String.valueOf(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli())));
 
-        when(
-            eventService.search(
-                eq(executionContext),
-                argThat(argument -> {
-                    assertThat(argument.getFrom()).isGreaterThan(Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
+        when(eventService.search(eq(executionContext), argThat(argument -> {
+                    assertThat(argument.getFrom())
+                            .isGreaterThan(
+                                    Instant.now().minus(10, ChronoUnit.MINUTES).toEpochMilli());
                     assertThat(argument.getOrganizationIds()).containsOnly(executionContext.getOrganizationId());
                     assertThat(argument.getEnvironmentIds()).containsOnly(executionContext.getEnvironmentId());
                     assertThat(argument.getTypes()).containsOnly(EventType.GATEWAY_STARTED);
                     return true;
-                })
-            )
-        ).thenReturn(List.of(evt, evt2));
+                })))
+                .thenReturn(List.of(evt, evt2));
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
         assertThat(result).hasSize(1);
     }
 
     @Test
     public void expirePredicateShouldFilterOldUnknownState() {
-        InstanceServiceImpl.ExpiredPredicate predicateDays = new InstanceServiceImpl.ExpiredPredicate(Duration.ofDays(7));
-        InstanceServiceImpl.ExpiredPredicate predicateSeconds = new InstanceServiceImpl.ExpiredPredicate(Duration.ofSeconds(7 * 24 * 3600));
+        InstanceServiceImpl.ExpiredPredicate predicateDays =
+                new InstanceServiceImpl.ExpiredPredicate(Duration.ofDays(7));
+        InstanceServiceImpl.ExpiredPredicate predicateSeconds =
+                new InstanceServiceImpl.ExpiredPredicate(Duration.ofSeconds(7 * 24 * 3600));
 
         InstanceListItem itemStarted = new InstanceListItem();
         itemStarted.setId("ok-1");
@@ -288,15 +302,18 @@ public class InstanceServiceTest {
         InstanceListItem itemStopped = new InstanceListItem();
         itemStopped.setId("ok-2");
         itemStopped.setState(InstanceState.STOPPED);
-        itemStopped.setLastHeartbeatAt(new Date(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli()));
+        itemStopped.setLastHeartbeatAt(
+                new Date(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli()));
         InstanceListItem itemUnknownVisible = new InstanceListItem();
         itemUnknownVisible.setId("ok-3");
         itemUnknownVisible.setState(InstanceState.UNKNOWN);
-        itemUnknownVisible.setLastHeartbeatAt(new Date(Instant.now().minus(6, ChronoUnit.DAYS).toEpochMilli()));
+        itemUnknownVisible.setLastHeartbeatAt(
+                new Date(Instant.now().minus(6, ChronoUnit.DAYS).toEpochMilli()));
         InstanceListItem itemUnknownNotVisible = new InstanceListItem();
         itemUnknownNotVisible.setId("ko-4");
         itemUnknownNotVisible.setState(InstanceState.UNKNOWN);
-        itemUnknownNotVisible.setLastHeartbeatAt(new Date(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli()));
+        itemUnknownNotVisible.setLastHeartbeatAt(
+                new Date(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli()));
 
         execFiltering(predicateDays, Stream.of(itemStarted, itemUnknownNotVisible, itemStopped, itemUnknownVisible));
         execFiltering(predicateSeconds, Stream.of(itemStarted, itemUnknownNotVisible, itemStopped, itemUnknownVisible));
@@ -315,29 +332,38 @@ public class InstanceServiceTest {
         event.setId("evt-id");
         event.setEnvironments(Set.of("env-id"));
         event.setType(EventType.GATEWAY_STARTED);
-        event.setProperties(
-            Map.of("id", "evt-id", "last_heartbeat_at", String.valueOf(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli()))
-        );
+        event.setProperties(Map.of(
+                "id",
+                "evt-id",
+                "last_heartbeat_at",
+                String.valueOf(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli())));
 
-        when(
-            eventService.search(any(ExecutionContext.class), anyList(), any(), anyLong(), anyLong(), anyInt(), anyInt(), anyList())
-        ).thenReturn(new Page<>(List.of(event), 0, 1, 1));
+        when(eventService.search(
+                        any(ExecutionContext.class),
+                        anyList(),
+                        any(),
+                        anyLong(),
+                        anyLong(),
+                        anyInt(),
+                        anyInt(),
+                        anyList()))
+                .thenReturn(new Page<>(List.of(event), 0, 1, 1));
 
         cut.search(executionContext, query);
 
         ArgumentCaptor<Long> fromCaptor = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<Long> toCaptor = ArgumentCaptor.forClass(Long.class);
 
-        verify(eventService).search(
-            eq(executionContext),
-            argThat(collection -> collection.stream().allMatch(e -> e.equals(EventType.GATEWAY_STARTED))),
-            isNull(),
-            fromCaptor.capture(),
-            eq(0L),
-            eq(0),
-            eq(100),
-            any()
-        );
+        verify(eventService)
+                .search(
+                        eq(executionContext),
+                        argThat(collection -> collection.stream().allMatch(e -> e.equals(EventType.GATEWAY_STARTED))),
+                        isNull(),
+                        fromCaptor.capture(),
+                        eq(0L),
+                        eq(0),
+                        eq(100),
+                        any());
 
         // expect from to be today minus 7 days
         Instant now = Instant.now();
@@ -351,14 +377,14 @@ public class InstanceServiceTest {
         evt.setEnvironments(Set.of("env-id"));
         evt.setProperties(Map.of("id", "evt-id"));
         evt.setPayload(
-            "{\"hostname\":\"myhost\",\"clusterId\":\"cluster\", \"systemProperties\": {\"-Djavax.net.ssl.trustStorePassword=ThisIsASecret\":\"mypassword\"} }"
-        );
+                "{\"hostname\":\"myhost\",\"clusterId\":\"cluster\", \"systemProperties\": {\"-Djavax.net.ssl.trustStorePassword=ThisIsASecret\":\"mypassword\"} }");
 
         when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
-        assertThat(result.getSystemProperties()).containsOnly(entry("-Djavax.net.ssl.trustStorePassword=ThisIsASecret", "REDACTED"));
+        assertThat(result.getSystemProperties())
+                .containsOnly(entry("-Djavax.net.ssl.trustStorePassword=ThisIsASecret", "REDACTED"));
     }
 
     private void execFiltering(InstanceServiceImpl.ExpiredPredicate predicateDays, Stream<InstanceListItem> stream) {

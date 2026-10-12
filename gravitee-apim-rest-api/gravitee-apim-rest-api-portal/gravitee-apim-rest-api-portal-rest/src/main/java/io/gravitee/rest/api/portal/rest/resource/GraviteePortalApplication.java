@@ -58,7 +58,7 @@ public class GraviteePortalApplication extends ResourceConfig {
     public GraviteePortalApplication(AuthenticationProviderManager authenticationProviderManager) {
         this.authenticationProviderManager = authenticationProviderManager;
 
-        //Main resource
+        // Main resource
         register(PortalUIBootstrapResource.class);
         register(EnvironmentsResource.class);
         register(OpenApiResource.class);

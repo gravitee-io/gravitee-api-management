@@ -27,10 +27,11 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface EntrypointRepository extends CrudRepository<Entrypoint, String> {
-    Optional<Entrypoint> findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType)
-        throws TechnicalException;
+    Optional<Entrypoint> findByIdAndReference(
+            String entrypointId, String referenceId, EntrypointReferenceType referenceType) throws TechnicalException;
 
-    Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException;
+    Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType)
+            throws TechnicalException;
 
     /**
      * Delete entrypoints by reference
@@ -39,5 +40,6 @@ public interface EntrypointRepository extends CrudRepository<Entrypoint, String>
      * @return List of IDs for deleted entrypoints
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, EntrypointReferenceType referenceType)
+            throws TechnicalException;
 }

@@ -58,12 +58,18 @@ class CategoryDomainServiceTest {
         // Given
         String apiId = "apiId";
         List<String> categoryIds = List.of("cat1", "cat2");
-        when(apiCategoryOrderRepository.findAllByApiId(any())).thenReturn(
-            Set.of(
-                ApiCategoryOrder.builder().categoryId("oldcat1").apiId(apiId).order(0).build(),
-                ApiCategoryOrder.builder().categoryId("oldcat2").apiId(apiId).order(1).build()
-            )
-        );
+        when(apiCategoryOrderRepository.findAllByApiId(any()))
+                .thenReturn(Set.of(
+                        ApiCategoryOrder.builder()
+                                .categoryId("oldcat1")
+                                .apiId(apiId)
+                                .order(0)
+                                .build(),
+                        ApiCategoryOrder.builder()
+                                .categoryId("oldcat2")
+                                .apiId(apiId)
+                                .order(1)
+                                .build()));
 
         // When
         sut.updateOrderCategoriesOfApi(apiId, categoryIds);
@@ -72,20 +78,36 @@ class CategoryDomainServiceTest {
         verify(apiCategoryOrderRepository).delete(eq(apiId), categoriesIdsCaptor.capture());
         assertThat(categoriesIdsCaptor.getValue()).containsExactlyInAnyOrderElementsOf(List.of("oldcat1", "oldcat2"));
 
-        verify(apiCategoryOrderRepository).create(ApiCategoryOrder.builder().categoryId("cat1").apiId(apiId).order(0).build());
-        verify(apiCategoryOrderRepository).create(ApiCategoryOrder.builder().categoryId("cat2").apiId(apiId).order(1).build());
+        verify(apiCategoryOrderRepository)
+                .create(ApiCategoryOrder.builder()
+                        .categoryId("cat1")
+                        .apiId(apiId)
+                        .order(0)
+                        .build());
+        verify(apiCategoryOrderRepository)
+                .create(ApiCategoryOrder.builder()
+                        .categoryId("cat2")
+                        .apiId(apiId)
+                        .order(1)
+                        .build());
     }
 
     @Test
     void should_only_remove_if_give_null_categories_list() throws TechnicalException {
         // Given
         String apiId = "apiId";
-        when(apiCategoryOrderRepository.findAllByApiId(any())).thenReturn(
-            Set.of(
-                ApiCategoryOrder.builder().categoryId("oldcat1").apiId(apiId).order(0).build(),
-                ApiCategoryOrder.builder().categoryId("oldcat2").apiId(apiId).order(1).build()
-            )
-        );
+        when(apiCategoryOrderRepository.findAllByApiId(any()))
+                .thenReturn(Set.of(
+                        ApiCategoryOrder.builder()
+                                .categoryId("oldcat1")
+                                .apiId(apiId)
+                                .order(0)
+                                .build(),
+                        ApiCategoryOrder.builder()
+                                .categoryId("oldcat2")
+                                .apiId(apiId)
+                                .order(1)
+                                .build()));
 
         // When
         sut.updateOrderCategoriesOfApi(apiId, null);

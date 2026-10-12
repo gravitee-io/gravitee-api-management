@@ -29,7 +29,8 @@ public class GetClientCertificatesUseCase {
     private final ClientCertificateCrudService clientCertificateCrudService;
 
     public Output execute(Input input) {
-        Page<ClientCertificate> certificates = clientCertificateCrudService.findByApplicationId(input.applicationId(), input.pageable());
+        Page<ClientCertificate> certificates =
+                clientCertificateCrudService.findByApplicationId(input.applicationId(), input.pageable());
         return new Output(certificates);
     }
 

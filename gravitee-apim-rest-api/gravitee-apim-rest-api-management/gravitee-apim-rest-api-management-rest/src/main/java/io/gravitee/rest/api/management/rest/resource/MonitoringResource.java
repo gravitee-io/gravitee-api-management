@@ -60,13 +60,13 @@ public class MonitoringResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get monitoring metrics for a gateway instance")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)})
     public MonitoringData getInstanceMonitoring(@PathParam("gatewayId") String gatewayId) {
-        InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
-        if (
-            !isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment()) ||
-            !isInstanceAccessibleByOrga(instanceEntity.getEnvironments(), GraviteeContext.getCurrentOrganization())
-        ) {
+        InstanceEntity instanceEntity =
+                instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
+        if (!isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment())
+                || !isInstanceAccessibleByOrga(
+                        instanceEntity.getEnvironments(), GraviteeContext.getCurrentOrganization())) {
             throw new InstanceNotFoundException(instance);
         }
         return monitoringService.findMonitoring(GraviteeContext.getExecutionContext(), gatewayId);
@@ -76,10 +76,8 @@ public class MonitoringResource extends AbstractResource {
         if (environmentIds == null || environmentIds.isEmpty()) {
             return true;
         }
-        return environmentService
-            .findOrganizationIdsByEnvironments(environmentIds)
-            .stream()
-            .anyMatch(id -> id.equalsIgnoreCase(currentOrganization));
+        return environmentService.findOrganizationIdsByEnvironments(environmentIds).stream()
+                .anyMatch(id -> id.equalsIgnoreCase(currentOrganization));
     }
 
     private boolean isInstanceAccessibleByEnv(Set<String> environments, String currentEnvironment) {

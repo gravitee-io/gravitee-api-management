@@ -100,70 +100,56 @@ class PromotionQueryServiceImplTest {
             savedPromotion.setApiId(API_ID);
 
             var page = new Page<>(List.of(savedPromotion), pageable.getPageNumber(), 1, 1);
-            when(
-                promotionRepository.search(argThat(criteria -> criteria != null && API_ID.equals(criteria.getApiId())), isNull(), isNull())
-            ).thenReturn(page);
+            when(promotionRepository.search(
+                            argThat(criteria -> criteria != null && API_ID.equals(criteria.getApiId())),
+                            isNull(),
+                            isNull()))
+                    .thenReturn(page);
 
             var result = service.search(query);
 
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent()).contains(
-                Promotion.builder()
-                    .id("promotion-id")
-                    .apiDefinition("api-definition")
-                    .apiId(API_ID)
-                    .status(PromotionStatus.CREATED)
-                    .targetEnvCockpitId("target-env-cockpit-id")
-                    .targetEnvName("target-env-name")
-                    .sourceEnvCockpitId("source-env-cockpit-id")
-                    .sourceEnvName("source-env-name")
-                    .author(
-                        PromotionAuthor.builder()
-                            .displayName("John Smith")
-                            .userId("user-id")
-                            .source("source")
-                            .sourceId("source-id")
-                            .email("foo@example.com")
-                            .build()
-                    )
-                    .targetApiId("target-api-id")
-                    .build()
-            );
+            assertThat(result.getContent())
+                    .contains(Promotion.builder()
+                            .id("promotion-id")
+                            .apiDefinition("api-definition")
+                            .apiId(API_ID)
+                            .status(PromotionStatus.CREATED)
+                            .targetEnvCockpitId("target-env-cockpit-id")
+                            .targetEnvName("target-env-name")
+                            .sourceEnvCockpitId("source-env-cockpit-id")
+                            .sourceEnvName("source-env-name")
+                            .author(PromotionAuthor.builder()
+                                    .displayName("John Smith")
+                                    .userId("user-id")
+                                    .source("source")
+                                    .sourceId("source-id")
+                                    .email("foo@example.com")
+                                    .build())
+                            .targetApiId("target-api-id")
+                            .build());
         }
 
         @Test
         @SneakyThrows
         void should_find_promotion_by_target_statuses() {
             var query = new PromotionQueryService.PromotionQuery(
-                null,
-                Set.of(),
-                Set.of(PromotionStatus.ACCEPTED, PromotionStatus.REJECTED),
-                null
-            );
+                    null, Set.of(), Set.of(PromotionStatus.ACCEPTED, PromotionStatus.REJECTED), null);
 
             var savedPromotion = PromotionFixtures.aPromotion();
             savedPromotion.setApiId(API_ID);
 
             var page = new Page<>(List.of(savedPromotion), pageable.getPageNumber(), 1, 1);
-            when(
-                promotionRepository.search(
-                    argThat(
-                        criteria ->
-                            criteria != null &&
-                            criteria
-                                .getStatuses()
-                                .containsAll(
-                                    List.of(
-                                        io.gravitee.repository.management.model.PromotionStatus.ACCEPTED,
-                                        io.gravitee.repository.management.model.PromotionStatus.REJECTED
-                                    )
-                                )
-                    ),
-                    isNull(),
-                    isNull()
-                )
-            ).thenReturn(page);
+            when(promotionRepository.search(
+                            argThat(criteria -> criteria != null
+                                    && criteria.getStatuses()
+                                            .containsAll(List.of(
+                                                    io.gravitee.repository.management.model.PromotionStatus.ACCEPTED,
+                                                    io.gravitee.repository.management.model.PromotionStatus.REJECTED))),
+                            isNull(),
+                            isNull()))
+                    .thenReturn(page);
 
             var result = service.search(query);
 
@@ -180,13 +166,12 @@ class PromotionQueryServiceImplTest {
             savedPromotion.setApiId(API_ID);
 
             var page = new Page<>(List.of(savedPromotion), pageable.getPageNumber(), 1, 1);
-            when(
-                promotionRepository.search(
-                    argThat(criteria -> criteria != null && criteria.getTargetEnvCockpitIds().contains(COCKPIT_ID)),
-                    isNull(),
-                    isNull()
-                )
-            ).thenReturn(page);
+            when(promotionRepository.search(
+                            argThat(criteria -> criteria != null
+                                    && criteria.getTargetEnvCockpitIds().contains(COCKPIT_ID)),
+                            isNull(),
+                            isNull()))
+                    .thenReturn(page);
 
             var result = service.search(query);
 
@@ -203,15 +188,13 @@ class PromotionQueryServiceImplTest {
             savedPromotion.setApiId(API_ID);
 
             var page = new Page<>(List.of(savedPromotion), pageable.getPageNumber(), 1, 1);
-            when(
-                promotionRepository.search(
-                    argThat(
-                        criteria -> criteria != null && criteria.getApiId().equals(API_ID) && criteria.getTargetApiExists().equals(true)
-                    ),
-                    isNull(),
-                    isNull()
-                )
-            ).thenReturn(page);
+            when(promotionRepository.search(
+                            argThat(criteria -> criteria != null
+                                    && criteria.getApiId().equals(API_ID)
+                                    && criteria.getTargetApiExists().equals(true)),
+                            isNull(),
+                            isNull()))
+                    .thenReturn(page);
 
             var result = service.search(query);
 

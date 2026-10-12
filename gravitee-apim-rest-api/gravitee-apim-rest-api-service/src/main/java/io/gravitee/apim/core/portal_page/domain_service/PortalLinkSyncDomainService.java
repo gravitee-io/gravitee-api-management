@@ -56,41 +56,43 @@ public class PortalLinkSyncDomainService {
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
 
     public PortalNavigationLink materialize(
-        AuditInfo auditInfo,
-        String portalId,
-        String linkHrid,
-        String name,
-        String href,
-        String location,
-        Integer order,
-        PortalVisibility callerVisibility
-    ) {
+            AuditInfo auditInfo,
+            String portalId,
+            String linkHrid,
+            String name,
+            String href,
+            String location,
+            Integer order,
+            PortalVisibility callerVisibility) {
         return upsert(
-            auditInfo,
-            PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid),
-            resolveParent(auditInfo, location, portalId),
-            linkHrid,
-            name,
-            href,
-            location,
-            order,
-            callerVisibility,
-            new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, portalId, null, Optional.ofNullable(location), Optional.empty())
-        );
+                auditInfo,
+                PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid),
+                resolveParent(auditInfo, location, portalId),
+                linkHrid,
+                name,
+                href,
+                location,
+                order,
+                callerVisibility,
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        portalId,
+                        null,
+                        Optional.ofNullable(location),
+                        Optional.empty()));
     }
 
     private PortalNavigationLink upsert(
-        AuditInfo auditInfo,
-        PortalNavigationItemId linkId,
-        PortalNavigationItemContainer parent,
-        String linkHrid,
-        String name,
-        String href,
-        String location,
-        Integer order,
-        PortalVisibility callerVisibility,
-        AutomationMetadata automationMetadata
-    ) {
+            AuditInfo auditInfo,
+            PortalNavigationItemId linkId,
+            PortalNavigationItemContainer parent,
+            String linkHrid,
+            String name,
+            String href,
+            String location,
+            Integer order,
+            PortalVisibility callerVisibility,
+            AutomationMetadata automationMetadata) {
         var segment = Slug.from(linkHrid).value();
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId);
         var existingLink = existing instanceof PortalNavigationLink link ? link : null;
@@ -101,20 +103,21 @@ public class PortalLinkSyncDomainService {
         // is safe: if this link already legitimately owns (parent, segment), no foreign item could have
         // taken that same slot in the meantime without failing this same check itself.
         if (existingLink == null || !Objects.equals(existingLink.getParentId(), parentId)) {
-            rejectIfSegmentTakenByForeignItem(auditInfo, parent, segment, linkId, location, automationMetadata.reference());
+            rejectIfSegmentTakenByForeignItem(
+                    auditInfo, parent, segment, linkId, location, automationMetadata.reference());
         }
 
         var visibility = PortalVisibility.resolve(callerVisibility, parent == null ? null : parent.getVisibility());
 
         if (existingLink != null) {
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title(name)
-                .segment(segment)
-                .order(order != null ? order : 0)
-                .url(href)
-                .visibility(visibility)
-                .published(true)
-                .build();
+                    .title(name)
+                    .segment(segment)
+                    .order(order != null ? order : 0)
+                    .url(href)
+                    .visibility(visibility)
+                    .published(true)
+                    .build();
             existingLink.update(toUpdate, automationMetadata);
             if (parent == null) {
                 existingLink.markAsRoot();
@@ -125,33 +128,31 @@ public class PortalLinkSyncDomainService {
         }
 
         var create = CreatePortalNavigationItem.builder()
-            .id(linkId)
-            .title(name)
-            .segment(segment)
-            .area(AREA)
-            .type(PortalNavigationItemType.LINK)
-            .order(order != null ? order : 0)
-            .url(href)
-            .visibility(visibility)
-            .reference(automationMetadata.reference())
-            .automationMetadata(automationMetadata)
-            .published(true)
-            .build();
+                .id(linkId)
+                .title(name)
+                .segment(segment)
+                .area(AREA)
+                .type(PortalNavigationItemType.LINK)
+                .order(order != null ? order : 0)
+                .url(href)
+                .visibility(visibility)
+                .reference(automationMetadata.reference())
+                .automationMetadata(automationMetadata)
+                .published(true)
+                .build();
 
         return (PortalNavigationLink) navigationItemCrudService.create(
-            PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent)
-        );
+                PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent));
     }
 
     public void validateForConflicts(AuditInfo auditInfo, String portalId, String linkHrid, String location) {
         rejectIfSegmentTakenByForeignItem(
-            auditInfo,
-            resolveParent(auditInfo, location, portalId),
-            Slug.from(linkHrid).value(),
-            PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid),
-            location,
-            new NavigationItemReference.PortalReference(PortalId.of(portalId))
-        );
+                auditInfo,
+                resolveParent(auditInfo, location, portalId),
+                Slug.from(linkHrid).value(),
+                PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid),
+                location,
+                new NavigationItemReference.PortalReference(PortalId.of(portalId)));
     }
 
     @Nullable
@@ -166,38 +167,40 @@ public class PortalLinkSyncDomainService {
      * uses — so the parent is derived from the API rather than from a portal folder.
      */
     public PortalNavigationLink materializeForApi(
-        AuditInfo auditInfo,
-        String apiId,
-        String linkHrid,
-        String name,
-        String href,
-        String location,
-        Integer order,
-        PortalVisibility callerVisibility
-    ) {
+            AuditInfo auditInfo,
+            String apiId,
+            String linkHrid,
+            String name,
+            String href,
+            String location,
+            Integer order,
+            PortalVisibility callerVisibility) {
         return upsert(
-            auditInfo,
-            PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
-            resolveApiParent(auditInfo, location, apiId),
-            linkHrid,
-            name,
-            href,
-            location,
-            order,
-            callerVisibility,
-            new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.ofNullable(location), Optional.empty())
-        );
+                auditInfo,
+                PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
+                resolveApiParent(auditInfo, location, apiId),
+                linkHrid,
+                name,
+                href,
+                location,
+                order,
+                callerVisibility,
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.API,
+                        apiId,
+                        null,
+                        Optional.ofNullable(location),
+                        Optional.empty()));
     }
 
     public void validateForConflictsForApi(AuditInfo auditInfo, String apiId, String linkHrid, String location) {
         rejectIfSegmentTakenByForeignItem(
-            auditInfo,
-            resolveApiParent(auditInfo, location, apiId),
-            Slug.from(linkHrid).value(),
-            PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
-            location,
-            new NavigationItemReference.ApiReference(apiId)
-        );
+                auditInfo,
+                resolveApiParent(auditInfo, location, apiId),
+                Slug.from(linkHrid).value(),
+                PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
+                location,
+                new NavigationItemReference.ApiReference(apiId));
     }
 
     @Nullable
@@ -242,19 +245,20 @@ public class PortalLinkSyncDomainService {
     }
 
     private void rejectIfSegmentTakenByForeignItem(
-        AuditInfo auditInfo,
-        PortalNavigationItemContainer parent,
-        String segment,
-        PortalNavigationItemId expectedId,
-        String location,
-        NavigationItemReference reference
-    ) {
-        var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
+            AuditInfo auditInfo,
+            PortalNavigationItemContainer parent,
+            String segment,
+            PortalNavigationItemId expectedId,
+            String location,
+            NavigationItemReference reference) {
+        var parentId = Optional.ofNullable(parent)
+                .map(PortalNavigationItemContainer::getId)
+                .orElse(null);
         navigationItemsQueryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, reference)
-            .filter(sibling -> !sibling.getId().equals(expectedId))
-            .ifPresent(squatter -> {
-                throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LINK, location);
-            });
+                .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, reference)
+                .filter(sibling -> !sibling.getId().equals(expectedId))
+                .ifPresent(squatter -> {
+                    throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LINK, location);
+                });
     }
 }

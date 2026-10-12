@@ -49,46 +49,39 @@ public class GetPlansUseCase {
         log.debug("Getting plans for reference {} (planId={})", input.referenceId, input.planId);
         if (input.planId == null) {
             log.debug(
-                "Searching plans for reference {} (user={}, isAdmin={}, query={})",
-                input.referenceId,
-                input.authenticatedUser,
-                input.isAdmin,
-                input.query
-            );
+                    "Searching plans for reference {} (user={}, isAdmin={}, query={})",
+                    input.referenceId,
+                    input.authenticatedUser,
+                    input.isAdmin,
+                    input.query);
             Stream<Plan> plansStream = planSearchQueryService
-                .searchPlans(input.referenceId, input.referenceType, input.query, input.authenticatedUser, input.isAdmin)
-                .stream()
-                .sorted(comparingInt(Plan::getOrder));
+                    .searchPlans(
+                            input.referenceId, input.referenceType, input.query, input.authenticatedUser, input.isAdmin)
+                    .stream()
+                    .sorted(comparingInt(Plan::getOrder));
 
             if (GenericPlanEntity.ReferenceType.API_PRODUCT.equals(input.referenceType) && !input.isAdmin) {
                 ApiProduct apiProduct = apiProductCrudService.get(input.referenceId);
-                plansStream = plansStream.filter(plan ->
-                    planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(
-                        apiProduct,
-                        plan.getExcludedGroups(),
-                        input.authenticatedUser
-                    )
-                );
+                plansStream = plansStream.filter(
+                        plan -> planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(
+                                apiProduct, plan.getExcludedGroups(), input.authenticatedUser));
             }
 
-            //TODO ask if need API_GATEWAY_DEFINITION and API_PRODUCT_PLAN filtersensitiveData is needed like api plans
+            // TODO ask if need API_GATEWAY_DEFINITION and API_PRODUCT_PLAN filtersensitiveData is needed like api plans
 
             if (input.subscribableBy != null) {
                 var subscriptions = subscriptionQueryService.findActiveByApplicationIdAndReferenceIdAndReferenceType(
-                    input.subscribableBy,
-                    input.referenceId,
-                    SubscriptionReferenceType.valueOf(input.referenceType.name())
-                );
-                var subscribedPlans = subscriptions.stream().map(SubscriptionEntity::getPlanId).toList();
+                        input.subscribableBy,
+                        input.referenceId,
+                        SubscriptionReferenceType.valueOf(input.referenceType.name()));
+                var subscribedPlans = subscriptions.stream()
+                        .map(SubscriptionEntity::getPlanId)
+                        .toList();
 
-                plansStream = plansStream.filter(
-                    plan ->
-                        (plan.getPlanSecurity() == null ||
-                            !List.of(PlanSecurityType.KEY_LESS.getLabel(), PlanSecurityType.KEY_LESS.name()).contains(
-                                plan.getPlanSecurity().getType()
-                            )) &&
-                        (subscribedPlans.isEmpty() || !subscribedPlans.contains(plan.getId()))
-                );
+                plansStream = plansStream.filter(plan -> (plan.getPlanSecurity() == null
+                                || !List.of(PlanSecurityType.KEY_LESS.getLabel(), PlanSecurityType.KEY_LESS.name())
+                                        .contains(plan.getPlanSecurity().getType()))
+                        && (subscribedPlans.isEmpty() || !subscribedPlans.contains(plan.getId())));
             }
 
             List<Plan> plans = plansStream.toList();
@@ -97,32 +90,27 @@ public class GetPlansUseCase {
         } else {
             log.debug("Getting plan {} for reference {}", input.planId, input.referenceId);
             final Plan plan = planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-                input.planId,
-                input.referenceId,
-                input.referenceType
-            );
+                    input.planId, input.referenceId, input.referenceType);
 
             return Output.single(Optional.of(plan));
         }
     }
 
     public record Input(
-        String referenceId,
-        String authenticatedUser,
-        boolean isAdmin,
-        PlanQuery query,
-        String planId,
-        String subscribableBy,
-        GenericPlanEntity.ReferenceType referenceType
-    ) {
-        public static Input of(
             String referenceId,
-            GenericPlanEntity.ReferenceType referenceType,
             String authenticatedUser,
             boolean isAdmin,
             PlanQuery query,
-            String subscribableBy
-        ) {
+            String planId,
+            String subscribableBy,
+            GenericPlanEntity.ReferenceType referenceType) {
+        public static Input of(
+                String referenceId,
+                GenericPlanEntity.ReferenceType referenceType,
+                String authenticatedUser,
+                boolean isAdmin,
+                PlanQuery query,
+                String subscribableBy) {
             return new Input(referenceId, authenticatedUser, isAdmin, query, null, subscribableBy, referenceType);
         }
 

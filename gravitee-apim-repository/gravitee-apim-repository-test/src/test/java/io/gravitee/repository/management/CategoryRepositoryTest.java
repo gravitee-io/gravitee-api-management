@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.Category;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
@@ -70,7 +69,8 @@ public class CategoryRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByEnvironmentIdAndIdIn() throws Exception {
-        Set<Category> categories = categoryRepository.findByEnvironmentIdAndIdIn("DEFAULT", Set.of("123", "products", "i-do-not-exist"));
+        Set<Category> categories =
+                categoryRepository.findByEnvironmentIdAndIdIn("DEFAULT", Set.of("123", "products", "i-do-not-exist"));
         assertNotNull(categories);
         assertEquals(2, categories.size());
     }
@@ -103,11 +103,15 @@ public class CategoryRepositoryTest extends AbstractManagementRepositoryTest {
         final Category categorySaved = optional.get();
         Assertions.assertEquals(category.getId(), categorySaved.getId(), "Invalid saved category id.");
         Assertions.assertEquals(category.getKey(), categorySaved.getKey(), "Invalid saved category key.");
-        Assertions.assertEquals(category.getEnvironmentId(), categorySaved.getEnvironmentId(), "Invalid saved environment id.");
+        Assertions.assertEquals(
+                category.getEnvironmentId(), categorySaved.getEnvironmentId(), "Invalid saved environment id.");
         Assertions.assertEquals(category.getName(), categorySaved.getName(), "Invalid saved category name.");
-        Assertions.assertEquals(category.getDescription(), categorySaved.getDescription(), "Invalid category description.");
-        Assertions.assertTrue(compareDate(category.getCreatedAt(), categorySaved.getCreatedAt()), "Invalid category createdAt.");
-        Assertions.assertTrue(compareDate(category.getUpdatedAt(), categorySaved.getUpdatedAt()), "Invalid category updatedAt.");
+        Assertions.assertEquals(
+                category.getDescription(), categorySaved.getDescription(), "Invalid category description.");
+        Assertions.assertTrue(
+                compareDate(category.getCreatedAt(), categorySaved.getCreatedAt()), "Invalid category createdAt.");
+        Assertions.assertTrue(
+                compareDate(category.getUpdatedAt(), categorySaved.getUpdatedAt()), "Invalid category updatedAt.");
         Assertions.assertEquals(category.isHidden(), categorySaved.isHidden(), "Invalid category hidden.");
         Assertions.assertEquals(category.getOrder(), categorySaved.getOrder(), "Invalid category order.");
         Assertions.assertEquals("New picture", categorySaved.getPicture(), "Invalid category picture.");
@@ -143,14 +147,19 @@ public class CategoryRepositoryTest extends AbstractManagementRepositoryTest {
         Assertions.assertTrue(optionalUpdated.isPresent(), "Category to update not found");
 
         final Category categoryUpdated = optionalUpdated.get();
-        Assertions.assertEquals(category.getEnvironmentId(), categoryUpdated.getEnvironmentId(), "Invalid saved environment id.");
+        Assertions.assertEquals(
+                category.getEnvironmentId(), categoryUpdated.getEnvironmentId(), "Invalid saved environment id.");
         Assertions.assertEquals(category.getName(), categoryUpdated.getName(), "Invalid saved category name.");
-        Assertions.assertEquals(category.getDescription(), categoryUpdated.getDescription(), "Invalid category description.");
-        Assertions.assertTrue(compareDate(category.getCreatedAt(), categoryUpdated.getCreatedAt()), "Invalid category createdAt.");
-        Assertions.assertTrue(compareDate(category.getUpdatedAt(), categoryUpdated.getUpdatedAt()), "Invalid category updatedAt.");
+        Assertions.assertEquals(
+                category.getDescription(), categoryUpdated.getDescription(), "Invalid category description.");
+        Assertions.assertTrue(
+                compareDate(category.getCreatedAt(), categoryUpdated.getCreatedAt()), "Invalid category createdAt.");
+        Assertions.assertTrue(
+                compareDate(category.getUpdatedAt(), categoryUpdated.getUpdatedAt()), "Invalid category updatedAt.");
         Assertions.assertEquals(category.isHidden(), categoryUpdated.isHidden(), "Invalid category hidden.");
         Assertions.assertEquals(category.getOrder(), categoryUpdated.getOrder(), "Invalid category order.");
-        Assertions.assertEquals(category.getHighlightApi(), categoryUpdated.getHighlightApi(), "Invalid category highlight API.");
+        Assertions.assertEquals(
+                category.getHighlightApi(), categoryUpdated.getHighlightApi(), "Invalid category highlight API.");
         Assertions.assertEquals("New picture", categoryUpdated.getPicture(), "Invalid category picture.");
         Assertions.assertEquals("New background", categoryUpdated.getBackground(), "Invalid category background.");
         Assertions.assertEquals("documentationPageId", categoryUpdated.getPage(), "Invalid category page.");
@@ -185,10 +194,13 @@ public class CategoryRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_environment_id() throws Exception {
-        final var nbBeforeDelete = categoryRepository.findAllByEnvironment("ToBeDeleted").size();
+        final var nbBeforeDelete =
+                categoryRepository.findAllByEnvironment("ToBeDeleted").size();
 
-        final var deleted = categoryRepository.deleteByEnvironmentId("ToBeDeleted").size();
-        final var nbAfterDelete = categoryRepository.findAllByEnvironment("ToBeDeleted").size();
+        final var deleted =
+                categoryRepository.deleteByEnvironmentId("ToBeDeleted").size();
+        final var nbAfterDelete =
+                categoryRepository.findAllByEnvironment("ToBeDeleted").size();
 
         assertEquals(2, nbBeforeDelete);
         assertEquals(2, deleted);

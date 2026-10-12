@@ -35,8 +35,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
 import io.gravitee.rest.api.management.v2.rest.adapter.PatchApiV4Deserializer;
 import io.gravitee.rest.api.management.v2.rest.adapter.PatchPlanFlowsDeserializer;
-import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -56,14 +54,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(
-    {
-        ServiceConfiguration.class,
-        UsecaseSpringConfiguration.class,
-        KafkaExplorerSpringConfiguration.class,
-        AnalyticsEngineRoutingConfiguration.class,
-    }
-)
+@Import({
+    ServiceConfiguration.class,
+    UsecaseSpringConfiguration.class,
+    KafkaExplorerSpringConfiguration.class,
+    AnalyticsEngineRoutingConfiguration.class,
+})
 @EnableAsync
 public class RestManagementConfiguration {
 
@@ -89,14 +85,13 @@ public class RestManagementConfiguration {
 
     @Bean
     public BucketNamesPostProcessor bucketNamesPostProcessor(
-        @Lazy ApiRepository apiRepository,
-        ApplicationService applicationSearchService
-    ) {
+            @Lazy ApiRepository apiRepository, ApplicationService applicationSearchService) {
         return new BucketNamesPostProcessorImpl(apiRepository, applicationSearchService);
     }
 
     @Bean
-    public UnitEnrichmentPostProcessor unitEnrichmentPostProcessor(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
+    public UnitEnrichmentPostProcessor unitEnrichmentPostProcessor(
+            AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
         return new UnitEnrichmentPostProcessorImpl(analyticsDefinitionQueryService);
     }
 
@@ -107,28 +102,23 @@ public class RestManagementConfiguration {
 
     @Bean
     public UserContextLoader userContextLoader(
-        ApiAuthorizationService apiAuthorizationService,
-        @Lazy ApiRepository apiRepository,
-        PermissionService permissionService
-    ) {
+            ApiAuthorizationService apiAuthorizationService,
+            @Lazy ApiRepository apiRepository,
+            PermissionService permissionService) {
         return new UserContextLoaderImpl(apiAuthorizationService, apiRepository, permissionService);
     }
 
     @Bean
     public SubscriptionExpandHelper subscriptionExpandHelper(
-        PlanSearchService planSearchService,
-        ApplicationService applicationService,
-        UserService userService
-    ) {
+            PlanSearchService planSearchService, ApplicationService applicationService, UserService userService) {
         return new SubscriptionExpandHelper(planSearchService, applicationService, userService);
     }
 
     @Bean
     public ManagementContextLoader managementContextLoader(
-        ApiAuthorizationService apiAuthorizationService,
-        @Lazy ApiRepository apiRepository,
-        PermissionService permissionService
-    ) {
+            ApiAuthorizationService apiAuthorizationService,
+            @Lazy ApiRepository apiRepository,
+            PermissionService permissionService) {
         return new ManagementContextLoader(apiAuthorizationService, apiRepository, permissionService);
     }
 }

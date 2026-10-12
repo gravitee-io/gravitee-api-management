@@ -37,7 +37,8 @@ import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcGenericNotificationConfigRepositoryTest {
 
-    private JdbcGenericNotificationConfigRepository repository = new JdbcGenericNotificationConfigRepository("table_prefix_");
+    private JdbcGenericNotificationConfigRepository repository =
+            new JdbcGenericNotificationConfigRepository("table_prefix_");
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
@@ -53,22 +54,22 @@ public class JdbcGenericNotificationConfigRepositoryTest {
     @Test
     void findAll_shouldLoadHooks() throws Exception {
         GenericNotificationConfig config = GenericNotificationConfig.builder()
-            .id("config1")
-            .name("Config 1")
-            .notifier("email")
-            .referenceType(NotificationReferenceType.API)
-            .referenceId("api1")
-            .organizationId("org1")
-            .build();
+                .id("config1")
+                .name("Config 1")
+                .notifier("email")
+                .referenceType(NotificationReferenceType.API)
+                .referenceId("api1")
+                .organizationId("org1")
+                .build();
 
         when(jdbcTemplate.query(anyString(), any(RowMapper.class))).thenReturn(List.of(config));
 
         doAnswer(inv -> {
-            config.setHooks(List.of("HOOK_1"));
-            return null;
-        })
-            .when(jdbcTemplate)
-            .query(contains("generic_notification_config_hooks"), any(RowCallbackHandler.class));
+                    config.setHooks(List.of("HOOK_1"));
+                    return null;
+                })
+                .when(jdbcTemplate)
+                .query(contains("generic_notification_config_hooks"), any(RowCallbackHandler.class));
 
         Set<GenericNotificationConfig> result = repository.findAll();
 

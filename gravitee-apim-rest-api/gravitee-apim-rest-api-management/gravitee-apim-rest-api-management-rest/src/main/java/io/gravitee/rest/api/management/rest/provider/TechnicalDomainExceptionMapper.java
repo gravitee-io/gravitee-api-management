@@ -24,6 +24,9 @@ public class TechnicalDomainExceptionMapper extends AbstractExceptionMapper<Tech
     @Override
     public Response toResponse(TechnicalDomainException exception) {
         final Response.Status error = Response.Status.INTERNAL_SERVER_ERROR;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(exception, error.getStatusCode())).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(exception, error.getStatusCode()))
+                .build();
     }
 }

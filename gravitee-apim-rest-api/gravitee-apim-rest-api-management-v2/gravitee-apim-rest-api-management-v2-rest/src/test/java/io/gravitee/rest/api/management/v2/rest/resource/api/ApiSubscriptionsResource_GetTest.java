@@ -64,12 +64,11 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .referenceId("ANOTHER-API")
-            .referenceType("API")
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .referenceId("ANOTHER-API")
+                .referenceType("API")
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
@@ -83,14 +82,12 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -102,13 +99,12 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
 
     @Test
     public void should_return_subscription() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .api(API)
-            .plan(PLAN)
-            .application(APPLICATION)
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .api(API)
+                .plan(PLAN)
+                .application(APPLICATION)
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
@@ -121,40 +117,38 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
 
     @Test
     public void should_return_subscription_with_expands() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .api(API)
-            .plan(PLAN)
-            .application(APPLICATION)
-            .subscribedBy(SUBSCRIBED_BY)
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .api(API)
+                .plan(PLAN)
+                .application(APPLICATION)
+                .subscribedBy(SUBSCRIBED_BY)
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
         var planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).build();
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(PLAN))).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(PLAN)))
+                .thenReturn(Set.of(planEntity));
 
-        when(
-            applicationService.findByIds(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of(APPLICATION).containsAll(argument))
-            )
-        ).thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder().id(APPLICATION).build()));
+        when(applicationService.findByIds(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(argument -> List.of(APPLICATION).containsAll(argument))))
+                .thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder()
+                        .id(APPLICATION)
+                        .build()));
 
-        when(
-            userService.findByIds(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of(SUBSCRIBED_BY).containsAll(argument))
-            )
-        ).thenReturn(
-            Set.of(
-                UserFixtures.aUserEntity().toBuilder().id("first-user").build(),
-                UserFixtures.aUserEntity().toBuilder().id("second-user").build()
-            )
-        );
+        when(userService.findByIds(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(argument -> List.of(SUBSCRIBED_BY).containsAll(argument))))
+                .thenReturn(Set.of(
+                        UserFixtures.aUserEntity().toBuilder().id("first-user").build(),
+                        UserFixtures.aUserEntity().toBuilder().id("second-user").build()));
 
-        final Response response = rootTarget().queryParam("expands", "plan,application,subscribedBy").request().get();
+        final Response response = rootTarget()
+                .queryParam("expands", "plan,application,subscribedBy")
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -163,8 +157,11 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
         assertEquals(subscriptionEntity.getPlan(), subscription.getPlan().getId());
         assertNotNull(subscription.getPlan().getName());
         assertNotNull(subscription.getPlan().getDescription());
-        assertEquals(subscription.getPlan().getMode().name(), planEntity.getMode().name());
-        assertEquals(subscriptionEntity.getApplication(), subscription.getApplication().getId());
+        assertEquals(
+                subscription.getPlan().getMode().name(), planEntity.getMode().name());
+        assertEquals(
+                subscriptionEntity.getApplication(),
+                subscription.getApplication().getId());
         assertNotNull(subscription.getApplication().getName());
         assertNotNull(subscription.getApplication().getDescription());
 

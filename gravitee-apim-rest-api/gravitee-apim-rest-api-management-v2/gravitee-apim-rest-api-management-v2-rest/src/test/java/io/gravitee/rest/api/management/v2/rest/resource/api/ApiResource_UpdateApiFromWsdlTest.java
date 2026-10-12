@@ -53,14 +53,12 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
 
     @Test
     void should_return_403_when_no_definition_update_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
 
         Response response = rootTarget().request().put(Entity.json(new ImportWsdlDescriptor()));
 
@@ -71,22 +69,32 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
     void should_return_404_when_api_not_found() {
         when(wsdlToUpdateApiUseCase.execute(any())).thenThrow(new ApiNotFoundException(API));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+                .request()
+                .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }
 
     @Test
     void should_return_200_and_updated_api_on_success() {
-        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .build();
         var apiWithFlows = new ApiWithFlows(existingApi, List.of());
 
         when(wsdlToUpdateApiUseCase.execute(any())).thenReturn(new WsdlToUpdateApiUseCase.Output(apiWithFlows));
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("CalculatorService").apiVersion("1.0").build()
-        );
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+                        .id(API)
+                        .name("CalculatorService")
+                        .apiVersion("1.0")
+                        .build());
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+                .request()
+                .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var body = response.readEntity(ApiV4.class);
@@ -96,22 +104,33 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
 
     @Test
     void should_return_resources_in_response_on_success() {
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .configuration("{\"key\":\"value\"}")
+                .build();
         var baseApi = ApiFixtures.aProxyApiV4();
-        var existingApi = baseApi
-            .toBuilder()
-            .id(API)
-            .environmentId(ENVIRONMENT)
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-            .build();
+        var existingApi = baseApi.toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
         var apiWithFlows = new ApiWithFlows(existingApi, List.of());
 
         when(wsdlToUpdateApiUseCase.execute(any())).thenReturn(new WsdlToUpdateApiUseCase.Output(apiWithFlows));
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("CalculatorService").apiVersion("1.0").build()
-        );
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+                        .id(API)
+                        .name("CalculatorService")
+                        .apiVersion("1.0")
+                        .build());
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+                .request()
+                .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var body = response.readEntity(ApiV4.class);
@@ -121,11 +140,12 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
 
     @Test
     void should_return_400_when_wsdl_cannot_be_converted() {
-        when(wsdlToUpdateApiUseCase.execute(any())).thenThrow(
-            new InvalidApiDefinitionException("Unable to read the swagger specification")
-        );
+        when(wsdlToUpdateApiUseCase.execute(any()))
+                .thenThrow(new InvalidApiDefinitionException("Unable to read the swagger specification"));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+                .request()
+                .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }
@@ -134,26 +154,34 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
     void should_return_400_when_invalid_paths() {
         when(wsdlToUpdateApiUseCase.execute(any())).thenThrow(new InvalidPathsException("Path [/foo] already exists"));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+                .request()
+                .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }
 
     @Test
     void should_forward_with_policies_to_use_case() {
-        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .build();
         var apiWithFlows = new ApiWithFlows(existingApi, List.of());
 
         when(wsdlToUpdateApiUseCase.execute(any())).thenReturn(new WsdlToUpdateApiUseCase.Output(apiWithFlows));
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("CalculatorService").apiVersion("1.0").build()
-        );
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+                        .id(API)
+                        .name("CalculatorService")
+                        .apiVersion("1.0")
+                        .build());
 
         var descriptor = new ImportWsdlDescriptor()
-            .payload("<definitions/>")
-            .withDocumentation(false)
-            .withOASValidationPolicy(false)
-            .withPolicies(Set.of("rest-to-soap"));
+                .payload("<definitions/>")
+                .withDocumentation(false)
+                .withOASValidationPolicy(false)
+                .withPolicies(Set.of("rest-to-soap"));
 
         rootTarget().request().put(Entity.entity(descriptor, MediaType.APPLICATION_JSON));
 
@@ -163,6 +191,9 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
     }
 
     private ImportWsdlDescriptor buildDescriptor(String payload) {
-        return new ImportWsdlDescriptor().payload(payload).withDocumentation(false).withOASValidationPolicy(false);
+        return new ImportWsdlDescriptor()
+                .payload(payload)
+                .withDocumentation(false)
+                .withOASValidationPolicy(false);
     }
 }

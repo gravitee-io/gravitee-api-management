@@ -41,7 +41,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEvent, String> implements AlertEventRepository {
+public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEvent, String>
+        implements AlertEventRepository {
 
     JdbcAlertEventRepository(@Value("${management.jdbc.prefix:}") String prefix) {
         super(prefix, "alert_events");
@@ -50,12 +51,12 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
     @Override
     protected JdbcObjectMapper<AlertEvent> buildOrm() {
         return JdbcObjectMapper.builder(AlertEvent.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("alert", Types.NVARCHAR, String.class)
-            .addColumn("message", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("alert", Types.NVARCHAR, String.class)
+                .addColumn("message", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -98,21 +99,20 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
         log.debug("Args: {}", args);
 
         List<AlertEvent> events = jdbcTemplate.query(
-            (Connection cnctn) -> {
-                PreparedStatement stmt = cnctn.prepareStatement(sql);
-                int idx = 1;
-                for (final Object arg : args) {
-                    if (arg instanceof Date) {
-                        final Date date = (Date) arg;
-                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                    } else {
-                        stmt.setObject(idx++, arg);
+                (Connection cnctn) -> {
+                    PreparedStatement stmt = cnctn.prepareStatement(sql);
+                    int idx = 1;
+                    for (final Object arg : args) {
+                        if (arg instanceof Date) {
+                            final Date date = (Date) arg;
+                            stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                        } else {
+                            stmt.setObject(idx++, arg);
+                        }
                     }
-                }
-                return stmt;
-            },
-            getOrm().getRowMapper()
-        );
+                    return stmt;
+                },
+                getOrm().getRowMapper());
 
         log.debug("Alert events found: {}", events);
 
@@ -156,6 +156,7 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
     }
 
     private String criteriaToString(AlertEventCriteria criteria) {
-        return "{ " + "from: " + criteria.getFrom() + ", " + "alert: " + criteria.getAlert() + ", " + "to: " + criteria.getTo() + " }";
+        return "{ " + "from: " + criteria.getFrom() + ", " + "alert: " + criteria.getAlert() + ", " + "to: "
+                + criteria.getTo() + " }";
     }
 }

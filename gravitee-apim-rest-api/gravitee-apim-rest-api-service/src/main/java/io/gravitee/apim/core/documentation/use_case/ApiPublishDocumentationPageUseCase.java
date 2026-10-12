@@ -35,11 +35,10 @@ public class ApiPublishDocumentationPageUseCase {
     private final PageCrudService pageCrudService;
 
     public ApiPublishDocumentationPageUseCase(
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        ApiCrudService apiCrudService,
-        PageCrudService pageCrudService
-    ) {
+            ApiDocumentationDomainService apiDocumentationDomainService,
+            UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
+            ApiCrudService apiCrudService,
+            PageCrudService pageCrudService) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.apiCrudService = apiCrudService;

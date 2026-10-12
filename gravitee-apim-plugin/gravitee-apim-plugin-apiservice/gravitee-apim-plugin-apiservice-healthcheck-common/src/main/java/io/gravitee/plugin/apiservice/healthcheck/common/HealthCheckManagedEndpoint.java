@@ -72,15 +72,14 @@ public class HealthCheckManagedEndpoint implements ManagedEndpoint {
     private final AlertEventProducer alertEventProducer;
 
     public HealthCheckManagedEndpoint(
-        final Api api,
-        final Node node,
-        final ManagedEndpoint endpoint,
-        final EndpointManager endpointManager,
-        final ReporterService reporterService,
-        final AlertEventProducer alertEventProducer,
-        final int successThreshold,
-        final int failureThreshold
-    ) {
+            final Api api,
+            final Node node,
+            final ManagedEndpoint endpoint,
+            final EndpointManager endpointManager,
+            final ReporterService reporterService,
+            final AlertEventProducer alertEventProducer,
+            final int successThreshold,
+            final int failureThreshold) {
         this.api = api;
         this.node = node;
         this.endpoint = endpoint;
@@ -124,35 +123,36 @@ public class HealthCheckManagedEndpoint implements ManagedEndpoint {
     }
 
     private void report(
-        final EndpointStatus endpointStatus,
-        final ManagedEndpoint.Status oldStatus,
-        final ManagedEndpoint.Status newStatus
-    ) {
+            final EndpointStatus endpointStatus,
+            final ManagedEndpoint.Status oldStatus,
+            final ManagedEndpoint.Status newStatus) {
         endpointStatus.setTransition(oldStatus != newStatus);
         endpointStatus.setState(newStatus.code());
         endpointStatus.setAvailable(!newStatus.isDown());
-        endpointStatus.setResponseTime(endpointStatus.getSteps().stream().mapToLong(Step::getResponseTime).sum());
+        endpointStatus.setResponseTime(endpointStatus.getSteps().stream()
+                .mapToLong(Step::getResponseTime)
+                .sum());
 
         reporterService.report(endpointStatus);
 
         if (endpointStatus.isTransition() && alertEventProducer != null && !alertEventProducer.isEmpty()) {
             final Event event = Event.at(endpointStatus.getTimestamp())
-                .context(CONTEXT_NODE_ID, node.id())
-                .context(CONTEXT_NODE_HOSTNAME, node.hostname())
-                .context(CONTEXT_NODE_APPLICATION, node.application())
-                .type(EVENT_TYPE)
-                .property(PROP_API, api.getId())
-                .property(PROP_ENDPOINT_NAME, endpoint.getDefinition().getName())
-                .property(PROP_STATUS_OLD, oldStatus.name())
-                .property(PROP_STATUS_NEW, newStatus.name())
-                .property(PROP_SUCCESS, endpointStatus.isSuccess())
-                .property(PROP_TENANT, () -> node.metadata().get("tenant"))
-                .property(PROP_RESPONSE_TIME, endpointStatus.getResponseTime())
-                .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
-                .organization(api.getOrganizationId())
-                .environment(api.getEnvironmentId())
-                .installation((String) node.metadata().get(Node.META_INSTALLATION))
-                .build();
+                    .context(CONTEXT_NODE_ID, node.id())
+                    .context(CONTEXT_NODE_HOSTNAME, node.hostname())
+                    .context(CONTEXT_NODE_APPLICATION, node.application())
+                    .type(EVENT_TYPE)
+                    .property(PROP_API, api.getId())
+                    .property(PROP_ENDPOINT_NAME, endpoint.getDefinition().getName())
+                    .property(PROP_STATUS_OLD, oldStatus.name())
+                    .property(PROP_STATUS_NEW, newStatus.name())
+                    .property(PROP_SUCCESS, endpointStatus.isSuccess())
+                    .property(PROP_TENANT, () -> node.metadata().get("tenant"))
+                    .property(PROP_RESPONSE_TIME, endpointStatus.getResponseTime())
+                    .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
+                    .organization(api.getOrganizationId())
+                    .environment(api.getEnvironmentId())
+                    .installation((String) node.metadata().get(Node.META_INSTALLATION))
+                    .build();
 
             alertEventProducer.send(event);
         }

@@ -23,22 +23,21 @@ import java.util.Map;
 
 public interface PermissionDomainService {
     boolean hasExactPermissions(
-        String organizationId,
-        String userId,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    );
+            String organizationId,
+            String userId,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls);
 
     boolean hasPermission(
-        String organizationId,
-        String userId,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    );
+            String organizationId,
+            String userId,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls);
 
-    default boolean checkForExactPermissions(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction... acls) {
+    default boolean checkForExactPermissions(
+            Map<String, char[]> userPermissions, Permission permission, RolePermissionAction... acls) {
         if (userPermissions == null) {
             return false;
         }
@@ -49,11 +48,12 @@ public interface PermissionDomainService {
         }
 
         var sortedPermissionAcls = new String(permissionAcls)
-            .chars()
-            .sorted()
-            .mapToObj(i -> (char) i)
-            .toArray();
-        var aclsToCheck = Arrays.stream(acls).map(RolePermissionAction::getId).sorted().toArray();
+                .chars()
+                .sorted()
+                .mapToObj(i -> (char) i)
+                .toArray();
+        var aclsToCheck =
+                Arrays.stream(acls).map(RolePermissionAction::getId).sorted().toArray();
 
         return Arrays.equals(sortedPermissionAcls, aclsToCheck);
     }

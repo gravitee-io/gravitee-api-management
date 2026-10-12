@@ -24,7 +24,6 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
-import io.gravitee.gateway.reactive.handlers.api.processor.pathparameters.PathParametersProcessor;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,10 +61,14 @@ class PathParametersProcessorTest {
     void should_assign_path_params_to_request_and_complete() {
         final LinkedMultiValueMap<String, String> pathParameters = new LinkedMultiValueMap<>();
         when(request.pathParameters()).thenReturn(pathParameters);
-        when(pathParametersExtractor.extract(any(), any())).thenReturn(Map.of("key", "value", "anotherKey", "anotherValue"));
+        when(pathParametersExtractor.extract(any(), any()))
+                .thenReturn(Map.of("key", "value", "anotherKey", "anotherValue"));
 
         cut.execute(ctx).test().assertComplete();
 
-        assertThat(pathParameters).hasSize(2).containsEntry("key", List.of("value")).containsEntry("anotherKey", List.of("anotherValue"));
+        assertThat(pathParameters)
+                .hasSize(2)
+                .containsEntry("key", List.of("value"))
+                .containsEntry("anotherKey", List.of("anotherValue"));
     }
 }

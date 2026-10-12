@@ -41,16 +41,16 @@ public class JdbcAmConnectionRepository extends JdbcAbstractRepository<AmConnect
     @Override
     protected JdbcObjectMapper<AmConnection> buildOrm() {
         return JdbcObjectMapper.builder(AmConnection.class, this.tableName, "organization_id")
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("base_url", Types.NVARCHAR, String.class)
-            .addColumn("service_account_access_token_encrypted", Types.CLOB, String.class)
-            .addColumn("am_organization_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("default_domain_id", Types.NVARCHAR, String.class)
-            .addColumn("default_domain_hrid", Types.NVARCHAR, String.class)
-            .addColumn("gateway_url", Types.NVARCHAR, String.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("base_url", Types.NVARCHAR, String.class)
+                .addColumn("service_account_access_token_encrypted", Types.CLOB, String.class)
+                .addColumn("am_organization_id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("default_domain_id", Types.NVARCHAR, String.class)
+                .addColumn("default_domain_hrid", Types.NVARCHAR, String.class)
+                .addColumn("gateway_url", Types.NVARCHAR, String.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -58,10 +58,7 @@ public class JdbcAmConnectionRepository extends JdbcAbstractRepository<AmConnect
         log.debug("JdbcAmConnectionRepository.findByOrganizationId({})", organizationId);
         try {
             List<AmConnection> items = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where organization_id = ?",
-                getOrm().getRowMapper(),
-                organizationId
-            );
+                    getOrm().getSelectAllSql() + " where organization_id = ?", getOrm().getRowMapper(), organizationId);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find am connection by organizationId: {}", organizationId, ex);
@@ -74,9 +71,9 @@ public class JdbcAmConnectionRepository extends JdbcAbstractRepository<AmConnect
         log.debug("JdbcAmConnectionRepository.create({})", amConnection.getOrganizationId());
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(amConnection));
-            return findByOrganizationId(amConnection.getOrganizationId()).orElseThrow(() ->
-                new TechnicalException("Failed to retrieve inserted am connection " + amConnection.getOrganizationId())
-            );
+            return findByOrganizationId(amConnection.getOrganizationId())
+                    .orElseThrow(() -> new TechnicalException(
+                            "Failed to retrieve inserted am connection " + amConnection.getOrganizationId()));
         } catch (final Exception ex) {
             log.error("Failed to create am connection:", ex);
             throw new TechnicalException("Failed to create am connection", ex);
@@ -90,13 +87,14 @@ public class JdbcAmConnectionRepository extends JdbcAbstractRepository<AmConnect
             throw new IllegalStateException("Unable to update null am connection");
         }
         try {
-            int rows = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(amConnection, amConnection.getOrganizationId()));
+            int rows = jdbcTemplate.update(
+                    getOrm().buildUpdatePreparedStatementCreator(amConnection, amConnection.getOrganizationId()));
             if (rows == 0) {
                 throw new IllegalStateException("Unable to update am connection " + amConnection.getOrganizationId());
             }
-            return findByOrganizationId(amConnection.getOrganizationId()).orElseThrow(() ->
-                new TechnicalException("Failed to retrieve updated am connection " + amConnection.getOrganizationId())
-            );
+            return findByOrganizationId(amConnection.getOrganizationId())
+                    .orElseThrow(() -> new TechnicalException(
+                            "Failed to retrieve updated am connection " + amConnection.getOrganizationId()));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

@@ -64,11 +64,9 @@ public class DynamicPropertyService extends ScheduledService {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         DynamicPropertyService that = (DynamicPropertyService) o;
-        return (
-            provider == that.provider &&
-            Objects.equals(configuration, that.configuration) &&
-            Objects.equals(getSchedule(), that.getSchedule())
-        );
+        return (provider == that.provider
+                && Objects.equals(configuration, that.configuration)
+                && Objects.equals(getSchedule(), that.getSchedule()));
     }
 
     @Override

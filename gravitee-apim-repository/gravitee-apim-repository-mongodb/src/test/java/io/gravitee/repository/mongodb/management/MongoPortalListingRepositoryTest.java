@@ -59,7 +59,8 @@ class MongoPortalListingRepositoryTest {
 
     @Test
     void should_find_all_by_portal_and_environment_and_map() throws Exception {
-        when(internalPortalListingRepo.findAllByPortalIdAndEnvironmentId("portal1", "env1")).thenReturn(List.of(mongoA, mongoB));
+        when(internalPortalListingRepo.findAllByPortalIdAndEnvironmentId("portal1", "env1"))
+                .thenReturn(List.of(mongoA, mongoB));
         when(mapper.map(mongoA)).thenReturn(mappedA);
         when(mapper.map(mongoB)).thenReturn(mappedB);
 
@@ -70,7 +71,8 @@ class MongoPortalListingRepositoryTest {
 
     @Test
     void should_return_empty_list_when_no_listings_match() throws Exception {
-        when(internalPortalListingRepo.findAllByPortalIdAndEnvironmentId("portal1", "env1")).thenReturn(List.of());
+        when(internalPortalListingRepo.findAllByPortalIdAndEnvironmentId("portal1", "env1"))
+                .thenReturn(List.of());
 
         var result = repository.findAllByPortalIdAndEnvironmentId("portal1", "env1");
 

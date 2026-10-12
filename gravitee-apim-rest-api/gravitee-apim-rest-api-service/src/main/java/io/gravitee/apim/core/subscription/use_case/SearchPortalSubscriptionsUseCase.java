@@ -38,17 +38,18 @@ public class SearchPortalSubscriptionsUseCase {
     private final SubscriptionTargetSearchQueryService subscriptionTargetSearchQueryService;
 
     public Output execute(Input input) {
-        Set<SubscriptionReferenceType> referenceTypes = input.referenceTypes() == null || input.referenceTypes().isEmpty()
-            ? Set.of(SubscriptionReferenceType.API)
-            : Set.copyOf(input.referenceTypes());
+        Set<SubscriptionReferenceType> referenceTypes =
+                input.referenceTypes() == null || input.referenceTypes().isEmpty()
+                        ? Set.of(SubscriptionReferenceType.API)
+                        : Set.copyOf(input.referenceTypes());
         Set<String> apiIds = copyOrNull(input.apiIds());
         Set<String> apiProductIds = copyOrNull(input.apiProductIds());
 
-        Optional<String> query = Optional.ofNullable(input.query())
-            .map(String::trim)
-            .filter(value -> !value.isEmpty());
+        Optional<String> query =
+                Optional.ofNullable(input.query()).map(String::trim).filter(value -> !value.isEmpty());
         if (query.isPresent()) {
-            var matchingTargetIds = subscriptionTargetSearchQueryService.search(input.executionContext(), query.get(), referenceTypes);
+            var matchingTargetIds =
+                    subscriptionTargetSearchQueryService.search(input.executionContext(), query.get(), referenceTypes);
             apiIds = intersect(apiIds, matchingTargetIds.apiIds());
             apiProductIds = intersect(apiProductIds, matchingTargetIds.apiProductIds());
             if (apiIds.isEmpty() && apiProductIds.isEmpty()) {
@@ -58,15 +59,9 @@ public class SearchPortalSubscriptionsUseCase {
         }
 
         var criteria = new SubscriptionSearchQueryService.Criteria(
-            referenceTypes,
-            apiIds,
-            apiProductIds,
-            input.applicationIds(),
-            null,
-            input.statuses(),
-            null
-        );
-        Page<SubscriptionEntity> page = subscriptionSearchQueryService.search(input.executionContext(), criteria, input.pageable());
+                referenceTypes, apiIds, apiProductIds, input.applicationIds(), null, input.statuses(), null);
+        Page<SubscriptionEntity> page =
+                subscriptionSearchQueryService.search(input.executionContext(), criteria, input.pageable());
 
         return new Output(page.map(this::normalizeLegacyApiReference));
     }
@@ -88,26 +83,26 @@ public class SearchPortalSubscriptionsUseCase {
         if (subscription.getApi() == null || subscription.getApi().isBlank()) {
             return subscription;
         }
-        if (subscription.getReferenceType() != null && !SubscriptionReferenceType.API.name().equals(subscription.getReferenceType())) {
+        if (subscription.getReferenceType() != null
+                && !SubscriptionReferenceType.API.name().equals(subscription.getReferenceType())) {
             return subscription;
         }
-        return subscription
-            .toBuilder()
-            .referenceId(subscription.getReferenceId() == null ? subscription.getApi() : subscription.getReferenceId())
-            .referenceType(SubscriptionReferenceType.API.name())
-            .build();
+        return subscription.toBuilder()
+                .referenceId(
+                        subscription.getReferenceId() == null ? subscription.getApi() : subscription.getReferenceId())
+                .referenceType(SubscriptionReferenceType.API.name())
+                .build();
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        Set<String> applicationIds,
-        Set<SubscriptionStatus> statuses,
-        Set<SubscriptionReferenceType> referenceTypes,
-        Set<String> apiIds,
-        Set<String> apiProductIds,
-        String query,
-        Pageable pageable
-    ) {}
+            ExecutionContext executionContext,
+            Set<String> applicationIds,
+            Set<SubscriptionStatus> statuses,
+            Set<SubscriptionReferenceType> referenceTypes,
+            Set<String> apiIds,
+            Set<String> apiProductIds,
+            String query,
+            Pageable pageable) {}
 
     public record Output(Page<SubscriptionEntity> page) {}
 }

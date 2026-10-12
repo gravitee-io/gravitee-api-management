@@ -33,7 +33,6 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiModel;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.*;
@@ -112,25 +111,28 @@ public class GroupService_AssociateTest {
         api2.setId("api2");
         api2.setGroups(Set.of(GROUP_ID));
 
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                null,
-                ApiFieldFilter.allFields()
-            )
-        ).thenReturn(Stream.of(api1, api2));
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId(executionContext.getEnvironmentId())
+                                .build(),
+                        null,
+                        ApiFieldFilter.allFields()))
+                .thenReturn(Stream.of(api1, api2));
         GenericApiModel apiModel = ApiModel.builder().id("api1").build();
-        when(apiTemplateService.findByIdForTemplates(executionContext, api1.getId(), true)).thenReturn(apiModel);
+        when(apiTemplateService.findByIdForTemplates(executionContext, api1.getId(), true))
+                .thenReturn(apiModel);
 
         UserEntity fakeUserEntity = new UserEntity();
         fakeUserEntity.setFirstname("firstName");
         fakeUserEntity.setLastname("lastName");
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeUserEntity);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(fakeUserEntity);
 
         groupService.associate(executionContext, GROUP_ID, "api");
 
         verify(apiRepository, times(1)).update(api1);
-        verify(notifierService, times(1)).trigger(eq(executionContext), eq(ApiHook.API_UPDATED), eq(api1.getId()), any());
+        verify(notifierService, times(1))
+                .trigger(eq(executionContext), eq(ApiHook.API_UPDATED), eq(api1.getId()), any());
     }
 
     @Test
@@ -143,7 +145,8 @@ public class GroupService_AssociateTest {
         app2.setId("api2");
         app2.setGroups(Set.of(GROUP_ID));
 
-        when(applicationRepository.findAllByEnvironment(executionContext.getEnvironmentId())).thenReturn(Set.of(app1, app2));
+        when(applicationRepository.findAllByEnvironment(executionContext.getEnvironmentId()))
+                .thenReturn(Set.of(app1, app2));
 
         groupService.associate(executionContext, GROUP_ID, "application");
 
@@ -162,26 +165,24 @@ public class GroupService_AssociateTest {
         product2.setId("product-2");
         product2.setGroups(new java.util.HashSet<>(java.util.Set.of(GROUP_ID)));
 
-        when(apiProductsRepository.findByEnvironmentId(executionContext.getEnvironmentId())).thenReturn(Set.of(product1, product2));
+        when(apiProductsRepository.findByEnvironmentId(executionContext.getEnvironmentId()))
+                .thenReturn(Set.of(product1, product2));
 
         UserEntity fakeUser = new UserEntity();
         fakeUser.setFirstname("firstName");
         fakeUser.setLastname("lastName");
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeUser);
-        when(membershipService.getPrimaryOwnerUserId(any(), eq(MembershipReferenceType.API_PRODUCT), eq(product1.getId()))).thenReturn(
-            null
-        );
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(fakeUser);
+        when(membershipService.getPrimaryOwnerUserId(
+                        any(), eq(MembershipReferenceType.API_PRODUCT), eq(product1.getId())))
+                .thenReturn(null);
 
         groupService.associate(executionContext, GROUP_ID, "api_product");
 
         verify(apiProductsRepository, times(1)).update(product1);
         verify(apiProductsRepository, never()).update(product2);
-        verify(notifierService, times(1)).trigger(
-            eq(executionContext),
-            eq(ApiProductHook.API_PRODUCT_UPDATED),
-            eq(product1.getId()),
-            any()
-        );
+        verify(notifierService, times(1))
+                .trigger(eq(executionContext), eq(ApiProductHook.API_PRODUCT_UPDATED), eq(product1.getId()), any());
     }
 
     @Test
@@ -192,7 +193,8 @@ public class GroupService_AssociateTest {
         product.setId("product-1");
         product.setGroups(new java.util.HashSet<>(java.util.Set.of(GROUP_ID)));
 
-        when(apiProductsRepository.findByEnvironmentId(executionContext.getEnvironmentId())).thenReturn(Set.of(product));
+        when(apiProductsRepository.findByEnvironmentId(executionContext.getEnvironmentId()))
+                .thenReturn(Set.of(product));
 
         groupService.associate(executionContext, GROUP_ID, "api_product");
 

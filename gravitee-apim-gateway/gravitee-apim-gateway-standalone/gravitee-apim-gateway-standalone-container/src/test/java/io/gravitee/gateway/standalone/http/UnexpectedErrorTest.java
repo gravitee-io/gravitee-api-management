@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
-import io.gravitee.gateway.standalone.flow.policy.RemoveQueryParameterPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.UnexpectedErrorPolicy;
@@ -41,8 +40,11 @@ public class UnexpectedErrorTest extends AbstractWiremockGatewayTest {
     public void shouldCancelOnUnexpectedError() throws Exception {
         wireMockRule.stubFor(get("/unexpected_error").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/unexpected_error")).returnResponse();
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/unexpected_error"))
+                .returnResponse();
+        assertEquals(
+                HttpStatusCode.INTERNAL_SERVER_ERROR_500,
+                response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/unexpected_error")));
     }
 

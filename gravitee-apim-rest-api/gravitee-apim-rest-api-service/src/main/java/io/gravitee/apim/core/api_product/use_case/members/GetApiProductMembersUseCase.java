@@ -36,13 +36,14 @@ public class GetApiProductMembersUseCase {
     public record Output(List<Member> members) {}
 
     public Output execute(Input input) {
-        var members = memberQueryService
-            .getMembersByReference(MembershipReferenceType.API_PRODUCT, input.apiProductId)
-            .stream()
-            .filter(member -> member.getType() == MembershipMemberType.USER)
-            .map(GetApiProductMembersUseCase::withApiProductRolesOnly)
-            .sorted(Comparator.comparing(Member::getId, Comparator.nullsLast(String::compareTo)))
-            .toList();
+        var members =
+                memberQueryService
+                        .getMembersByReference(MembershipReferenceType.API_PRODUCT, input.apiProductId)
+                        .stream()
+                        .filter(member -> member.getType() == MembershipMemberType.USER)
+                        .map(GetApiProductMembersUseCase::withApiProductRolesOnly)
+                        .sorted(Comparator.comparing(Member::getId, Comparator.nullsLast(String::compareTo)))
+                        .toList();
         return new Output(members);
     }
 
@@ -53,12 +54,10 @@ public class GetApiProductMembersUseCase {
      */
     private static Member withApiProductRolesOnly(Member member) {
         var roles = member.getRoles() == null
-            ? List.<Member.Role>of()
-            : member
-                .getRoles()
-                .stream()
-                .filter(role -> role.getScope() == RoleScope.API_PRODUCT)
-                .toList();
+                ? List.<Member.Role>of()
+                : member.getRoles().stream()
+                        .filter(role -> role.getScope() == RoleScope.API_PRODUCT)
+                        .toList();
         return member.toBuilder().roles(roles).build();
     }
 }

@@ -82,49 +82,44 @@ class DashboardResourceTest extends AbstractResourceTest {
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(
-            (ContainerRequestFilter) requestContext ->
-                requestContext.setSecurityContext(
-                    new SecurityContext() {
-                        @Override
-                        public Principal getUserPrincipal() {
-                            var userDetails = new io.gravitee.rest.api.management.v2.rest.UserDetails(USER_NAME, "", List.of());
-                            userDetails.setOrganizationId(ORGANIZATION);
-                            var principal = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                new Object()
-                            );
-                            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(principal);
-                            return principal;
-                        }
-
-                        @Override
-                        public boolean isUserInRole(String string) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean isSecure() {
-                            return true;
-                        }
-
-                        @Override
-                        public String getAuthenticationScheme() {
-                            return "BASIC";
-                        }
+                (ContainerRequestFilter) requestContext -> requestContext.setSecurityContext(new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        var userDetails =
+                                new io.gravitee.rest.api.management.v2.rest.UserDetails(USER_NAME, "", List.of());
+                        userDetails.setOrganizationId(ORGANIZATION);
+                        var principal =
+                                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                                        userDetails, new Object());
+                        org.springframework.security.core.context.SecurityContextHolder.getContext()
+                                .setAuthentication(principal);
+                        return principal;
                     }
-                ),
-            5
-        );
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
+                }),
+                5);
         resourceConfig.register(GraviteeContextRequestFilter.class);
         var mockResponse = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(
-            new org.glassfish.hk2.utilities.binding.AbstractBinder() {
-                @Override
-                protected void configure() {
-                    bind(mockResponse).to(HttpServletResponse.class);
-                }
+        resourceConfig.register(new org.glassfish.hk2.utilities.binding.AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(mockResponse).to(HttpServletResponse.class);
             }
-        );
+        });
     }
 
     private WebTarget target;
@@ -134,7 +129,10 @@ class DashboardResourceTest extends AbstractResourceTest {
         super.setUp();
         GraviteeContext.cleanContext();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
@@ -142,7 +140,8 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         target = rootTarget().path(DASHBOARD_ID);
 
-        dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboard(DASHBOARD_ID, ENVIRONMENT, USER_NAME)));
+        dashboardCrudServiceInMemory.initWith(
+                List.of(DashboardFixtures.aDashboard(DASHBOARD_ID, ENVIRONMENT, USER_NAME)));
     }
 
     @AfterEach
@@ -161,98 +160,112 @@ class DashboardResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
-            var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
+            var result =
+                    response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
 
             assertAll(
-                () -> assertThat(result.getId()).isEqualTo(DASHBOARD_ID),
-                () -> assertThat(result.getName()).isEqualTo("My Dashboard"),
-                () -> assertThat(result.getCreatedBy()).isEqualTo(USER_NAME),
-                () -> assertThat(result.getLabels()).isEqualTo(Map.of("team", "apim")),
-                () -> assertThat(result.getWidgets()).hasSize(3)
-            );
+                    () -> assertThat(result.getId()).isEqualTo(DASHBOARD_ID),
+                    () -> assertThat(result.getName()).isEqualTo("My Dashboard"),
+                    () -> assertThat(result.getCreatedBy()).isEqualTo(USER_NAME),
+                    () -> assertThat(result.getLabels()).isEqualTo(Map.of("team", "apim")),
+                    () -> assertThat(result.getWidgets()).hasSize(3));
 
             var statsWidget = result.getWidgets().getFirst();
 
             assertAll(
-                () -> assertThat(statsWidget.getId()).isEqualTo("1"),
-                () -> assertThat(statsWidget.getTitle()).isEqualTo("Requests"),
-                () -> assertThat(statsWidget.getType()).isEqualTo(WidgetType.STATS),
-                () -> assertThat(statsWidget.getLayout().getCols()).isEqualTo(1),
-                () -> assertThat(statsWidget.getLayout().getRows()).isEqualTo(1),
-                () -> assertThat(statsWidget.getLayout().getX()).isEqualTo(0),
-                () -> assertThat(statsWidget.getLayout().getY()).isEqualTo(0),
-                () -> assertThat(statsWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.MEASURES),
-                () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom()).isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
-                () -> assertThat(statsWidget.getRequest().getTimeRange().getTo()).isEqualTo(OffsetDateTime.parse("2025-12-07T11:35:30Z")),
-                () -> assertThat(statsWidget.getRequest().getMetrics()).hasSize(1),
-                () -> assertThat(statsWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_REQUESTS)
-            );
+                    () -> assertThat(statsWidget.getId()).isEqualTo("1"),
+                    () -> assertThat(statsWidget.getTitle()).isEqualTo("Requests"),
+                    () -> assertThat(statsWidget.getType()).isEqualTo(WidgetType.STATS),
+                    () -> assertThat(statsWidget.getLayout().getCols()).isEqualTo(1),
+                    () -> assertThat(statsWidget.getLayout().getRows()).isEqualTo(1),
+                    () -> assertThat(statsWidget.getLayout().getX()).isEqualTo(0),
+                    () -> assertThat(statsWidget.getLayout().getY()).isEqualTo(0),
+                    () -> assertThat(statsWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.MEASURES),
+                    () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom())
+                            .isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
+                    () -> assertThat(statsWidget.getRequest().getTimeRange().getTo())
+                            .isEqualTo(OffsetDateTime.parse("2025-12-07T11:35:30Z")),
+                    () -> assertThat(statsWidget.getRequest().getMetrics()).hasSize(1),
+                    () -> assertThat(statsWidget
+                                    .getRequest()
+                                    .getMetrics()
+                                    .getFirst()
+                                    .getName())
+                            .isEqualTo(MetricName.HTTP_REQUESTS));
 
             var doughnutWidget = result.getWidgets().get(1);
 
             assertAll(
-                () -> assertThat(doughnutWidget.getId()).isEqualTo("2"),
-                () -> assertThat(doughnutWidget.getTitle()).isEqualTo("HTTP Statuses"),
-                () -> assertThat(doughnutWidget.getType()).isEqualTo(WidgetType.DOUGHNUT),
-                () -> assertThat(doughnutWidget.getLayout().getCols()).isEqualTo(1),
-                () -> assertThat(doughnutWidget.getLayout().getRows()).isEqualTo(2),
-                () -> assertThat(doughnutWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
-                () -> assertThat(doughnutWidget.getRequest().getBy()).containsExactly(FacetName.HTTP_STATUS_CODE_GROUP),
-                () -> assertThat(doughnutWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_REQUESTS)
-            );
+                    () -> assertThat(doughnutWidget.getId()).isEqualTo("2"),
+                    () -> assertThat(doughnutWidget.getTitle()).isEqualTo("HTTP Statuses"),
+                    () -> assertThat(doughnutWidget.getType()).isEqualTo(WidgetType.DOUGHNUT),
+                    () -> assertThat(doughnutWidget.getLayout().getCols()).isEqualTo(1),
+                    () -> assertThat(doughnutWidget.getLayout().getRows()).isEqualTo(2),
+                    () -> assertThat(doughnutWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
+                    () -> assertThat(doughnutWidget.getRequest().getBy())
+                            .containsExactly(FacetName.HTTP_STATUS_CODE_GROUP),
+                    () -> assertThat(doughnutWidget
+                                    .getRequest()
+                                    .getMetrics()
+                                    .getFirst()
+                                    .getName())
+                            .isEqualTo(MetricName.HTTP_REQUESTS));
 
             var lineWidget = result.getWidgets().get(2);
 
             assertAll(
-                () -> assertThat(lineWidget.getId()).isEqualTo("3"),
-                () -> assertThat(lineWidget.getTitle()).isEqualTo("Top APIs"),
-                () -> assertThat(lineWidget.getType()).isEqualTo(WidgetType.TIME_SERIES_LINE),
-                () -> assertThat(lineWidget.getLayout().getCols()).isEqualTo(3),
-                () -> assertThat(lineWidget.getLayout().getRows()).isEqualTo(2),
-                () -> assertThat(lineWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
-                () -> assertThat(lineWidget.getRequest().getBy()).containsExactly(FacetName.API),
-                () -> assertThat(lineWidget.getRequest().getLimit()).isEqualTo(5),
-                () -> assertThat(lineWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_REQUESTS)
-            );
+                    () -> assertThat(lineWidget.getId()).isEqualTo("3"),
+                    () -> assertThat(lineWidget.getTitle()).isEqualTo("Top APIs"),
+                    () -> assertThat(lineWidget.getType()).isEqualTo(WidgetType.TIME_SERIES_LINE),
+                    () -> assertThat(lineWidget.getLayout().getCols()).isEqualTo(3),
+                    () -> assertThat(lineWidget.getLayout().getRows()).isEqualTo(2),
+                    () -> assertThat(lineWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
+                    () -> assertThat(lineWidget.getRequest().getBy()).containsExactly(FacetName.API),
+                    () -> assertThat(lineWidget.getRequest().getLimit()).isEqualTo(5),
+                    () -> assertThat(lineWidget
+                                    .getRequest()
+                                    .getMetrics()
+                                    .getFirst()
+                                    .getName())
+                            .isEqualTo(MetricName.HTTP_REQUESTS));
         }
 
         @Test
         void should_get_dashboard_with_filters() {
             dashboardCrudServiceInMemory.reset();
-            dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboardWithFilters(DASHBOARD_ID, ENVIRONMENT, USER_NAME)));
+            dashboardCrudServiceInMemory.initWith(
+                    List.of(DashboardFixtures.aDashboardWithFilters(DASHBOARD_ID, ENVIRONMENT, USER_NAME)));
 
             var response = target.request().get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
-            var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
+            var result =
+                    response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
             var widget = result.getWidgets().getFirst();
             var requestFilters = widget.getRequest().getFilters();
             assertThat(requestFilters).hasSize(2);
 
             var stringFilter = (StringFilter) requestFilters.getFirst().getActualInstance();
             assertAll(
-                () -> assertThat(stringFilter.getName()).isEqualTo(FilterName.API),
-                () -> assertThat(stringFilter.getOperator()).isEqualTo(Operator.EQ),
-                () -> assertThat(stringFilter.getValue()).isEqualTo("my-api")
-            );
+                    () -> assertThat(stringFilter.getName()).isEqualTo(FilterName.API),
+                    () -> assertThat(stringFilter.getOperator()).isEqualTo(Operator.EQ),
+                    () -> assertThat(stringFilter.getValue()).isEqualTo("my-api"));
 
             var arrayFilter = (ArrayFilter) requestFilters.get(1).getActualInstance();
             assertAll(
-                () -> assertThat(arrayFilter.getName()).isEqualTo(FilterName.HTTP_STATUS_CODE_GROUP),
-                () -> assertThat(arrayFilter.getOperator()).isEqualTo(Operator.IN),
-                () -> assertThat(arrayFilter.getValue()).containsExactly("2xx", "4xx")
-            );
+                    () -> assertThat(arrayFilter.getName()).isEqualTo(FilterName.HTTP_STATUS_CODE_GROUP),
+                    () -> assertThat(arrayFilter.getOperator()).isEqualTo(Operator.IN),
+                    () -> assertThat(arrayFilter.getValue()).containsExactly("2xx", "4xx"));
 
             var metricFilters = widget.getRequest().getMetrics().getFirst().getFilters();
             assertThat(metricFilters).hasSize(1);
 
             var numberFilter = (NumberFilter) metricFilters.getFirst().getActualInstance();
             assertAll(
-                () -> assertThat(numberFilter.getName()).isEqualTo(FilterName.HTTP_STATUS),
-                () -> assertThat(numberFilter.getOperator()).isEqualTo(Operator.GTE),
-                () -> assertThat(numberFilter.getValue()).isEqualTo(200)
-            );
+                    () -> assertThat(numberFilter.getName()).isEqualTo(FilterName.HTTP_STATUS),
+                    () -> assertThat(numberFilter.getOperator()).isEqualTo(Operator.GTE),
+                    () -> assertThat(numberFilter.getValue()).isEqualTo(200));
         }
 
         @Test
@@ -264,23 +277,20 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_DASHBOARD,
-                    ENVIRONMENT,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_API,
-                    ENVIRONMENT,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
-            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_DASHBOARD,
+                            ENVIRONMENT,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_API,
+                            ENVIRONMENT,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
+            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
+                    .thenReturn(Set.of());
 
             var response = target.request().get();
 
@@ -297,33 +307,37 @@ class DashboardResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
-            var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
+            var result =
+                    response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
             assertAll(
-                () -> assertThat(result.getId()).isEqualTo(DASHBOARD_ID),
-                () -> assertThat(result.getName()).isEqualTo("Updated Dashboard"),
-                () -> assertThat(result.getLabels()).isEqualTo(Map.of("team", "platform")),
-                () -> assertThat(result.getWidgets()).hasSize(2)
-            );
+                    () -> assertThat(result.getId()).isEqualTo(DASHBOARD_ID),
+                    () -> assertThat(result.getName()).isEqualTo("Updated Dashboard"),
+                    () -> assertThat(result.getLabels()).isEqualTo(Map.of("team", "platform")),
+                    () -> assertThat(result.getWidgets()).hasSize(2));
 
             var statsWidget = result.getWidgets().getFirst();
             assertAll(
-                () -> assertThat(statsWidget.getId()).isEqualTo("10"),
-                () -> assertThat(statsWidget.getTitle()).isEqualTo("Error Rate"),
-                () -> assertThat(statsWidget.getType()).isEqualTo(WidgetType.STATS),
-                () -> assertThat(statsWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.MEASURES),
-                () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom()).isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
-                () -> assertThat(statsWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_ERROR_RATE)
-            );
+                    () -> assertThat(statsWidget.getId()).isEqualTo("10"),
+                    () -> assertThat(statsWidget.getTitle()).isEqualTo("Error Rate"),
+                    () -> assertThat(statsWidget.getType()).isEqualTo(WidgetType.STATS),
+                    () -> assertThat(statsWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.MEASURES),
+                    () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom())
+                            .isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
+                    () -> assertThat(statsWidget
+                                    .getRequest()
+                                    .getMetrics()
+                                    .getFirst()
+                                    .getName())
+                            .isEqualTo(MetricName.HTTP_ERROR_RATE));
 
             var pieWidget = result.getWidgets().get(1);
             assertAll(
-                () -> assertThat(pieWidget.getId()).isEqualTo("11"),
-                () -> assertThat(pieWidget.getTitle()).isEqualTo("Top Applications"),
-                () -> assertThat(pieWidget.getType()).isEqualTo(WidgetType.PIE),
-                () -> assertThat(pieWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
-                () -> assertThat(pieWidget.getRequest().getBy()).containsExactly(FacetName.APPLICATION),
-                () -> assertThat(pieWidget.getRequest().getLimit()).isEqualTo(10)
-            );
+                    () -> assertThat(pieWidget.getId()).isEqualTo("11"),
+                    () -> assertThat(pieWidget.getTitle()).isEqualTo("Top Applications"),
+                    () -> assertThat(pieWidget.getType()).isEqualTo(WidgetType.PIE),
+                    () -> assertThat(pieWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
+                    () -> assertThat(pieWidget.getRequest().getBy()).containsExactly(FacetName.APPLICATION),
+                    () -> assertThat(pieWidget.getRequest().getLimit()).isEqualTo(10));
 
             var stored = dashboardCrudServiceInMemory.findById(DASHBOARD_ID).orElseThrow();
             assertThat(stored.getName()).isEqualTo("Updated Dashboard");
@@ -332,9 +346,9 @@ class DashboardResourceTest extends AbstractResourceTest {
             assertThat(stored.getWidgets().getFirst().getType()).isEqualTo("stats");
             assertThat(stored.getWidgets().getFirst().getRequest().getType()).isEqualTo("measures");
             assertThat(stored.getWidgets().getFirst().getRequest().getMetrics())
-                .hasSize(1)
-                .first()
-                .satisfies(m -> assertThat(m.getName()).isEqualTo("HTTP_ERROR_RATE"));
+                    .hasSize(1)
+                    .first()
+                    .satisfies(m -> assertThat(m.getName()).isEqualTo("HTTP_ERROR_RATE"));
             assertThat(stored.getWidgets().get(1).getType()).isEqualTo("pie");
             assertThat(stored.getWidgets().get(1).getRequest().getBy()).containsExactly("APPLICATION");
             assertThat(stored.getWidgets().get(1).getRequest().getLimit()).isEqualTo(10);
@@ -346,34 +360,32 @@ class DashboardResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
-            var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
+            var result =
+                    response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
             var widget = result.getWidgets().getFirst();
             var requestFilters = widget.getRequest().getFilters();
             assertThat(requestFilters).hasSize(2);
 
             var stringFilter = (StringFilter) requestFilters.getFirst().getActualInstance();
             assertAll(
-                () -> assertThat(stringFilter.getName()).isEqualTo(FilterName.API),
-                () -> assertThat(stringFilter.getOperator()).isEqualTo(Operator.EQ),
-                () -> assertThat(stringFilter.getValue()).isEqualTo("my-api")
-            );
+                    () -> assertThat(stringFilter.getName()).isEqualTo(FilterName.API),
+                    () -> assertThat(stringFilter.getOperator()).isEqualTo(Operator.EQ),
+                    () -> assertThat(stringFilter.getValue()).isEqualTo("my-api"));
 
             var arrayFilter = (ArrayFilter) requestFilters.get(1).getActualInstance();
             assertAll(
-                () -> assertThat(arrayFilter.getName()).isEqualTo(FilterName.HTTP_STATUS_CODE_GROUP),
-                () -> assertThat(arrayFilter.getOperator()).isEqualTo(Operator.IN),
-                () -> assertThat(arrayFilter.getValue()).containsExactly("2xx", "4xx")
-            );
+                    () -> assertThat(arrayFilter.getName()).isEqualTo(FilterName.HTTP_STATUS_CODE_GROUP),
+                    () -> assertThat(arrayFilter.getOperator()).isEqualTo(Operator.IN),
+                    () -> assertThat(arrayFilter.getValue()).containsExactly("2xx", "4xx"));
 
             var metricFilters = widget.getRequest().getMetrics().getFirst().getFilters();
             assertThat(metricFilters).hasSize(1);
 
             var numberFilter = (NumberFilter) metricFilters.getFirst().getActualInstance();
             assertAll(
-                () -> assertThat(numberFilter.getName()).isEqualTo(FilterName.HTTP_STATUS),
-                () -> assertThat(numberFilter.getOperator()).isEqualTo(Operator.GTE),
-                () -> assertThat(numberFilter.getValue()).isEqualTo(200)
-            );
+                    () -> assertThat(numberFilter.getName()).isEqualTo(FilterName.HTTP_STATUS),
+                    () -> assertThat(numberFilter.getOperator()).isEqualTo(Operator.GTE),
+                    () -> assertThat(numberFilter.getValue()).isEqualTo(200));
 
             var stored = dashboardCrudServiceInMemory.findById(DASHBOARD_ID).orElseThrow();
             var storedRequest = stored.getWidgets().getFirst().getRequest();
@@ -387,14 +399,35 @@ class DashboardResourceTest extends AbstractResourceTest {
             assertThat(storedRequest.getFilters().get(1).getValue()).isEqualTo(List.of("2xx", "4xx"));
 
             assertThat(storedRequest.getMetrics().getFirst().getFilters()).hasSize(1);
-            assertThat(storedRequest.getMetrics().getFirst().getFilters().getFirst().getName()).isEqualTo("HTTP_STATUS");
-            assertThat(storedRequest.getMetrics().getFirst().getFilters().getFirst().getOperator()).isEqualTo("GTE");
-            assertThat(storedRequest.getMetrics().getFirst().getFilters().getFirst().getValue()).isEqualTo(200);
+            assertThat(storedRequest
+                            .getMetrics()
+                            .getFirst()
+                            .getFilters()
+                            .getFirst()
+                            .getName())
+                    .isEqualTo("HTTP_STATUS");
+            assertThat(storedRequest
+                            .getMetrics()
+                            .getFirst()
+                            .getFilters()
+                            .getFirst()
+                            .getOperator())
+                    .isEqualTo("GTE");
+            assertThat(storedRequest
+                            .getMetrics()
+                            .getFirst()
+                            .getFilters()
+                            .getFirst()
+                            .getValue())
+                    .isEqualTo(200);
         }
 
         @Test
         void should_return_404_when_dashboard_not_found() {
-            var response = rootTarget().path(NON_EXISTENT_ID).request().put(json(DashboardFixtures.anUpdateDashboardMinimal()));
+            var response = rootTarget()
+                    .path(NON_EXISTENT_ID)
+                    .request()
+                    .put(json(DashboardFixtures.anUpdateDashboardMinimal()));
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
 
@@ -428,9 +461,11 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_DASHBOARD, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
-                target.request().put(json(DashboardFixtures.anUpdateDashboardMinimal()))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_DASHBOARD,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE,
+                    () -> target.request().put(json(DashboardFixtures.anUpdateDashboardMinimal())));
         }
     }
 
@@ -455,9 +490,11 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_DASHBOARD, ENVIRONMENT, RolePermissionAction.DELETE, () ->
-                target.request().delete()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_DASHBOARD,
+                    ENVIRONMENT,
+                    RolePermissionAction.DELETE,
+                    () -> target.request().delete());
         }
     }
 }

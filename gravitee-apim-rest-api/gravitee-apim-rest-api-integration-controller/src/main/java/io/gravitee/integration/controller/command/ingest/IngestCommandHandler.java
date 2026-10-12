@@ -42,26 +42,19 @@ public class IngestCommandHandler implements CommandHandler<IngestCommand, Inges
     public Single<IngestReply> handle(IngestCommand command) {
         var payload = command.getPayload();
         return ingestFederatedApisUseCase
-            .execute(
-                new IngestFederatedApisUseCase.Input(
-                    integrationCommandContext.getOrganizationId(),
-                    payload.ingestJobId(),
-                    payload
-                        .apis()
-                        .stream()
-                        .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationCommandContext.getIntegrationId()))
-                        .toList(),
-                    payload.done()
-                )
-            )
-            .andThen(Single.just(new IngestReply(command.getId())))
-            .doOnError(throwable ->
-                log.error(
-                    "Unable to process ingest command payload for integration [{}]",
-                    integrationCommandContext.getIntegrationId(),
-                    throwable
-                )
-            )
-            .onErrorReturn(throwable -> new IngestReply(command.getId(), throwable.getMessage()));
+                .execute(new IngestFederatedApisUseCase.Input(
+                        integrationCommandContext.getOrganizationId(),
+                        payload.ingestJobId(),
+                        payload.apis().stream()
+                                .map(api -> IntegrationAdapter.INSTANCE.map(
+                                        api, integrationCommandContext.getIntegrationId()))
+                                .toList(),
+                        payload.done()))
+                .andThen(Single.just(new IngestReply(command.getId())))
+                .doOnError(throwable -> log.error(
+                        "Unable to process ingest command payload for integration [{}]",
+                        integrationCommandContext.getIntegrationId(),
+                        throwable))
+                .onErrorReturn(throwable -> new IngestReply(command.getId(), throwable.getMessage()));
     }
 }

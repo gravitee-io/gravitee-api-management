@@ -40,14 +40,16 @@ class SamplingTypeTest {
 
         @Test
         void should_validate_value() {
-            assertThat(SamplingType.COUNT.validate("11", new SamplingType.ValidationLimit.CountLimit(10))).isTrue();
+            assertThat(SamplingType.COUNT.validate("11", new SamplingType.ValidationLimit.CountLimit(10)))
+                    .isTrue();
         }
 
         @ParameterizedTest(name = "{index} => value={0}")
-        @ValueSource(strings = { "bad", "-1", "4" })
+        @ValueSource(strings = {"bad", "-1", "4"})
         @NullAndEmptySource
         void should_not_validate_value(final String value) {
-            assertThat(SamplingType.COUNT.validate(value, new SamplingType.ValidationLimit.CountLimit(10))).isFalse();
+            assertThat(SamplingType.COUNT.validate(value, new SamplingType.ValidationLimit.CountLimit(10)))
+                    .isFalse();
         }
     }
 
@@ -55,16 +57,18 @@ class SamplingTypeTest {
     class TemporalType {
 
         @ParameterizedTest
-        @ValueSource(strings = { "PT1S", "1s", "PT100S", "PT1H" })
+        @ValueSource(strings = {"PT1S", "1s", "PT100S", "PT1H"})
         void should_validate_value(final String value) {
-            assertThat(SamplingType.TEMPORAL.validate(value, new SamplingType.ValidationLimit.TemporalLimit("PT1S"))).isTrue();
+            assertThat(SamplingType.TEMPORAL.validate(value, new SamplingType.ValidationLimit.TemporalLimit("PT1S")))
+                    .isTrue();
         }
 
         @ParameterizedTest(name = "{index} => value={0}")
-        @ValueSource(strings = { "bad" })
+        @ValueSource(strings = {"bad"})
         @NullAndEmptySource
         void should_not_validate_value(final String value) {
-            assertThat(SamplingType.TEMPORAL.validate(value, new SamplingType.ValidationLimit.TemporalLimit("PT1S"))).isFalse();
+            assertThat(SamplingType.TEMPORAL.validate(value, new SamplingType.ValidationLimit.TemporalLimit("PT1S")))
+                    .isFalse();
         }
     }
 
@@ -73,13 +77,15 @@ class SamplingTypeTest {
 
         @Test
         void should_validate_value() {
-            assertThat(SamplingType.PROBABILITY.validate("0.2", new SamplingType.ValidationLimit.ProbabilityLimit(1))).isTrue();
+            assertThat(SamplingType.PROBABILITY.validate("0.2", new SamplingType.ValidationLimit.ProbabilityLimit(1)))
+                    .isTrue();
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "bad", "9" })
+        @ValueSource(strings = {"bad", "9"})
         void should_not_validate_value(final String value) {
-            assertThat(SamplingType.PROBABILITY.validate(value, new SamplingType.ValidationLimit.ProbabilityLimit(1))).isFalse();
+            assertThat(SamplingType.PROBABILITY.validate(value, new SamplingType.ValidationLimit.ProbabilityLimit(1)))
+                    .isFalse();
         }
     }
 
@@ -89,15 +95,19 @@ class SamplingTypeTest {
         String limit = "1/PT1S";
 
         @ParameterizedTest
-        @ValueSource(strings = { "1/PT1S", "1/PT2S" })
+        @ValueSource(strings = {"1/PT1S", "1/PT2S"})
         void should_validate_value(final String value) {
-            assertThat(SamplingType.WINDOWED_COUNT.validate(value, new SamplingType.ValidationLimit.WindowedCountLimit(limit))).isTrue();
+            assertThat(SamplingType.WINDOWED_COUNT.validate(
+                            value, new SamplingType.ValidationLimit.WindowedCountLimit(limit)))
+                    .isTrue();
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "2/PT1S", "100/PT1M" })
+        @ValueSource(strings = {"2/PT1S", "100/PT1M"})
         void should_not_validate_value(final String value) {
-            assertThat(SamplingType.WINDOWED_COUNT.validate(value, new SamplingType.ValidationLimit.WindowedCountLimit(limit))).isFalse();
+            assertThat(SamplingType.WINDOWED_COUNT.validate(
+                            value, new SamplingType.ValidationLimit.WindowedCountLimit(limit)))
+                    .isFalse();
         }
     }
 
@@ -105,7 +115,7 @@ class SamplingTypeTest {
     class WindowedCountRecord {
 
         @ParameterizedTest
-        @CsvSource({ "120/PT1M, 120, 60, 2.0", "1/PT1S, 1, 1, 1.0", "1/PT2S, 1, 2, 0.5", "1/PT10S, 1, 10, 0.1" })
+        @CsvSource({"120/PT1M, 120, 60, 2.0", "1/PT1S, 1, 1, 1.0", "1/PT2S, 1, 2, 0.5", "1/PT10S, 1, 10, 0.1"})
         void should_parse_encode_and_get_rate(String value, int count, int durationSec, double ratio) {
             assertThatCode(() -> Sampling.parseWindowedCount(value)).doesNotThrowAnyException();
             Sampling.WindowedCount windowedCount = Sampling.parseWindowedCount(value);

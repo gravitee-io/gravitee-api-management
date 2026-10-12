@@ -33,10 +33,10 @@ public abstract class AbstractUseCaseTest {
     protected final String ENV_ID = "env-id";
     protected final String USER_ID = "user-id";
     protected final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORG_ID)
-        .environmentId(ENV_ID)
-        .actor(AuditActor.builder().userId(USER_ID).build())
-        .build();
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .actor(AuditActor.builder().userId(USER_ID).build())
+            .build();
 
     protected final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     protected final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();

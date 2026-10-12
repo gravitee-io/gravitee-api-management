@@ -55,49 +55,40 @@ public class MemberQueryServiceInMemory implements MemberQueryService, InMemoryA
 
     @Override
     public Set<Member> getMembersByReference(MembershipReferenceType referenceType, String referenceId) {
-        return storage
-            .stream()
-            .filter(member -> member.getReferenceType().name().equals(referenceType.name()) && member.getReferenceId().equals(referenceId))
-            .collect(Collectors.toSet());
+        return storage.stream()
+                .filter(member -> member.getReferenceType().name().equals(referenceType.name())
+                        && member.getReferenceId().equals(referenceId))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Member getUserMember(MembershipReferenceType referenceType, String referenceId, String userId) {
-        return storage
-            .stream()
-            .filter(
-                member ->
-                    member.getReferenceType().name().equals(referenceType.name()) &&
-                    member.getReferenceId().equals(referenceId) &&
-                    member.getId().equals(userId)
-            )
-            .findFirst()
-            .orElse(null);
+        return storage.stream()
+                .filter(member -> member.getReferenceType().name().equals(referenceType.name())
+                        && member.getReferenceId().equals(referenceId)
+                        && member.getId().equals(userId))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
-    public Member updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
-        Optional<Member> memberOptional = storage
-            .stream()
-            .filter(m -> m.getId().equals(member.getMemberId()))
-            .findFirst();
+    public Member updateRoleToMemberOnReference(
+            MembershipReference reference, MembershipMember member, MembershipRole role) {
+        Optional<Member> memberOptional = storage.stream()
+                .filter(m -> m.getId().equals(member.getMemberId()))
+                .findFirst();
 
         if (memberOptional.isPresent()) {
             memberOptional
-                .get()
-                .setRoles(
-                    List.of(
-                        new Member.Role(
+                    .get()
+                    .setRoles(List.of(new Member.Role(
                             UUID.random().toString(),
                             role.getName(),
                             null,
                             RoleScope.valueOf(role.getScope().name()),
                             false,
                             false,
-                            null
-                        )
-                    )
-                );
+                            null)));
             return memberOptional.get();
         } else {
             return null;
@@ -105,26 +96,28 @@ public class MemberQueryServiceInMemory implements MemberQueryService, InMemoryA
     }
 
     @Override
-    public void addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
+    public void addRoleToMemberOnReference(
+            MembershipReference reference, MembershipMember member, MembershipRole role) {
         this.storage.stream()
-            .filter(m -> m.getId().equals(member.getMemberId()))
-            .findFirst()
-            .ifPresent(m ->
-                m
-                    .getRoles()
-                    .add(
-                        new Member.Role(UUID.random().toString(), null, null, RoleScope.valueOf(role.getScope().name()), false, false, null)
-                    )
-            );
+                .filter(m -> m.getId().equals(member.getMemberId()))
+                .findFirst()
+                .ifPresent(m -> m.getRoles()
+                        .add(new Member.Role(
+                                UUID.random().toString(),
+                                null,
+                                null,
+                                RoleScope.valueOf(role.getScope().name()),
+                                false,
+                                false,
+                                null)));
     }
 
     @Override
     public void deleteReferenceMember(
-        MembershipReferenceType referenceType,
-        String referenceId,
-        MembershipMemberType memberType,
-        String memberId
-    ) {
+            MembershipReferenceType referenceType,
+            String referenceId,
+            MembershipMemberType memberType,
+            String memberId) {
         this.storage.removeIf(m -> m.getId().equals(memberId));
     }
 }

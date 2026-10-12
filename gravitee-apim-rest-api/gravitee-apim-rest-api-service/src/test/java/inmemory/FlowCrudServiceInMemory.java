@@ -22,7 +22,6 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,20 +132,16 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
 
     @Override
     public List<AbstractFlow> storage() {
-        var v4Flows = Stream.concat(planFlowsHttpV4.values().stream(), apiFlowsHttpV4.values().stream()).reduce(
-            new ArrayList<>(),
-            (acc, flow) -> {
-                acc.addAll(flow);
-                return acc;
-            }
-        );
-        var nativeFlows = Stream.concat(planFlowsNativeV4.values().stream(), apiFlowsNativeV4.values().stream()).reduce(
-            new ArrayList<>(),
-            (acc, flow) -> {
-                acc.addAll(flow);
-                return acc;
-            }
-        );
+        var v4Flows = Stream.concat(planFlowsHttpV4.values().stream(), apiFlowsHttpV4.values().stream())
+                .reduce(new ArrayList<>(), (acc, flow) -> {
+                    acc.addAll(flow);
+                    return acc;
+                });
+        var nativeFlows = Stream.concat(planFlowsNativeV4.values().stream(), apiFlowsNativeV4.values().stream())
+                .reduce(new ArrayList<>(), (acc, flow) -> {
+                    acc.addAll(flow);
+                    return acc;
+                });
 
         var flows = new ArrayList<AbstractFlow>();
         flows.addAll(v4Flows);

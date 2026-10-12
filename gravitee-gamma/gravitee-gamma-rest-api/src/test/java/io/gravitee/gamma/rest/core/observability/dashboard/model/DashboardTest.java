@@ -32,49 +32,83 @@ class DashboardTest {
 
     @Test
     void should_reject_blank_id() {
-        assertThatThrownBy(() ->
-            new Dashboard("", "env-1", null, "title", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
-        ).isInstanceOf(InvalidDashboardException.class);
+        assertThatThrownBy(() -> new Dashboard(
+                        "",
+                        "env-1",
+                        null,
+                        "title",
+                        null,
+                        List.of(),
+                        null,
+                        NullNode.getInstance(),
+                        1,
+                        "u",
+                        Instant.now(),
+                        Instant.now()))
+                .isInstanceOf(InvalidDashboardException.class);
     }
 
     @Test
     void should_reject_blank_environment_id() {
-        assertThatThrownBy(() ->
-            new Dashboard("d-1", " ", null, "title", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
-        ).isInstanceOf(InvalidDashboardException.class);
+        assertThatThrownBy(() -> new Dashboard(
+                        "d-1",
+                        " ",
+                        null,
+                        "title",
+                        null,
+                        List.of(),
+                        null,
+                        NullNode.getInstance(),
+                        1,
+                        "u",
+                        Instant.now(),
+                        Instant.now()))
+                .isInstanceOf(InvalidDashboardException.class);
     }
 
     @Test
     void should_reject_blank_title() {
-        assertThatThrownBy(() ->
-            new Dashboard("d-1", "env-1", null, "", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
-        ).isInstanceOf(InvalidDashboardException.class);
+        assertThatThrownBy(() -> new Dashboard(
+                        "d-1",
+                        "env-1",
+                        null,
+                        "",
+                        null,
+                        List.of(),
+                        null,
+                        NullNode.getInstance(),
+                        1,
+                        "u",
+                        Instant.now(),
+                        Instant.now()))
+                .isInstanceOf(InvalidDashboardException.class);
     }
 
     @Test
     void should_default_null_filters_to_empty_list() {
         var dashboard = new Dashboard(
-            "d-1",
-            "env-1",
-            null,
-            "title",
-            null,
-            null,
-            null,
-            NullNode.getInstance(),
-            1,
-            "u",
-            Instant.now(),
-            Instant.now()
-        );
+                "d-1",
+                "env-1",
+                null,
+                "title",
+                null,
+                null,
+                null,
+                NullNode.getInstance(),
+                1,
+                "u",
+                Instant.now(),
+                Instant.now());
 
         assertThat(dashboard.filters()).isEmpty();
     }
 
     @Test
     void should_belong_to_a_selection_holding_its_module() {
-        assertThat(dashboardOfModule("aim").belongsToOneOf(Set.of("aim", "apim"))).isTrue();
-        assertThat(dashboardOfModule("portals").belongsToOneOf(Set.of("aim", "apim"))).isFalse();
+        assertThat(dashboardOfModule("aim").belongsToOneOf(Set.of("aim", "apim")))
+                .isTrue();
+        assertThat(dashboardOfModule("portals").belongsToOneOf(Set.of("aim", "apim")))
+                .isFalse();
     }
 
     /** {@code Set.of} rejects {@code contains(null)}: a module-less dashboard must answer without asking it. */
@@ -85,18 +119,17 @@ class DashboardTest {
 
     private static Dashboard dashboardOfModule(String module) {
         return new Dashboard(
-            "d-1",
-            "env-1",
-            module,
-            "title",
-            null,
-            List.of(),
-            null,
-            NullNode.getInstance(),
-            1,
-            "u",
-            Instant.now(),
-            Instant.now()
-        );
+                "d-1",
+                "env-1",
+                module,
+                "title",
+                null,
+                List.of(),
+                null,
+                NullNode.getInstance(),
+                1,
+                "u",
+                Instant.now(),
+                Instant.now());
     }
 }

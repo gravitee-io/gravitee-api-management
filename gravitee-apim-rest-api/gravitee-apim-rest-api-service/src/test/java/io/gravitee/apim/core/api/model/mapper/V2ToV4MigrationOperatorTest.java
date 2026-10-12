@@ -55,7 +55,6 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.definition.model.v4.service.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -90,10 +89,10 @@ class V2ToV4MigrationOperatorTest {
             // Given
             var originalApi = ApiFixtures.aProxyApiV2();
             originalApi
-                .getApiDefinition()
-                .getProxy()
-                .getGroups()
-                .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+                    .getApiDefinition()
+                    .getProxy()
+                    .getGroups()
+                    .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             // When
             var result = get(mapper.mapApi(originalApi));
@@ -116,19 +115,21 @@ class V2ToV4MigrationOperatorTest {
             assertThat(result.getGroups()).isEqualTo(originalApi.getGroups());
             assertThat(result.getCategories()).isEqualTo(originalApi.getCategories());
             assertThat(result.getLabels()).isEqualTo(originalApi.getLabels());
-            assertThat(result.isDisableMembershipNotifications()).isEqualTo(originalApi.isDisableMembershipNotifications());
+            assertThat(result.isDisableMembershipNotifications())
+                    .isEqualTo(originalApi.isDisableMembershipNotifications());
             assertThat(result.getApiLifecycleState()).isEqualTo(originalApi.getApiLifecycleState());
             assertThat(result.getBackground()).isEqualTo(originalApi.getBackground());
         }
 
         @Test
         void should_upgrade_definition_version_to_v4() {
-            var v2Api = ApiFixtures.aProxyApiV2().toBuilder().definitionVersion(DefinitionVersion.V2).build();
-            v2Api
-                .getApiDefinition()
-                .getProxy()
-                .getGroups()
-                .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+            var v2Api = ApiFixtures.aProxyApiV2().toBuilder()
+                    .definitionVersion(DefinitionVersion.V2)
+                    .build();
+            v2Api.getApiDefinition()
+                    .getProxy()
+                    .getGroups()
+                    .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             var result = get(mapper.mapApi(v2Api));
 
@@ -141,7 +142,7 @@ class V2ToV4MigrationOperatorTest {
     class ListenerMigratingTest {
 
         @ParameterizedTest
-        @ValueSource(strings = { "/api", "/v1/users", "/health/check", "/", "/api/", "/test/" })
+        @ValueSource(strings = {"/api", "/v1/users", "/health/check", "/", "/api/", "/test/"})
         void path_should_end_with_slash(String inputPath) {
             // Given
             var virtualHost = new VirtualHost();
@@ -156,7 +157,8 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             // When
             var result = get(mapper.mapApi(api));
@@ -184,11 +186,13 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             var result = get(mapper.mapApi(api));
 
-            var httpListener = (HttpListener) result.getApiDefinitionHttpV4().getListeners().getFirst();
+            var httpListener = (HttpListener)
+                    result.getApiDefinitionHttpV4().getListeners().getFirst();
             var path = httpListener.getPaths().getFirst();
 
             assertThat(path.getHost()).isEqualTo("api.example.com");
@@ -214,7 +218,8 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             var result = get(mapper.mapApi(api));
 
@@ -236,9 +241,8 @@ class V2ToV4MigrationOperatorTest {
         @ParameterizedTest
         @MethodSource("loadBalancerTypeProvider")
         void should_map_load_balancer_types_correctly(
-            LoadBalancerType v2Type,
-            io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType expectedV4Type
-        ) {
+                LoadBalancerType v2Type,
+                io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType expectedV4Type) {
             var endpoint = new Endpoint();
             endpoint.setName("test-endpoint");
             endpoint.setTarget("http://example.com");
@@ -261,11 +265,13 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             var result = get(mapper.mapApi(api));
 
-            var mappedEndpointGroup = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            var mappedEndpointGroup =
+                    result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
             if (expectedV4Type != null) {
                 assertThat(mappedEndpointGroup.getLoadBalancer().getType()).isEqualTo(expectedV4Type);
             } else {
@@ -275,12 +281,11 @@ class V2ToV4MigrationOperatorTest {
 
         private static Stream<Arguments> loadBalancerTypeProvider() {
             return Stream.of(
-                arguments(LoadBalancerType.RANDOM, RANDOM),
-                arguments(LoadBalancerType.ROUND_ROBIN, ROUND_ROBIN),
-                arguments(LoadBalancerType.WEIGHTED_RANDOM, WEIGHTED_RANDOM),
-                arguments(LoadBalancerType.WEIGHTED_ROUND_ROBIN, WEIGHTED_ROUND_ROBIN),
-                arguments(null, null)
-            );
+                    arguments(LoadBalancerType.RANDOM, RANDOM),
+                    arguments(LoadBalancerType.ROUND_ROBIN, ROUND_ROBIN),
+                    arguments(LoadBalancerType.WEIGHTED_RANDOM, WEIGHTED_RANDOM),
+                    arguments(LoadBalancerType.WEIGHTED_ROUND_ROBIN, WEIGHTED_ROUND_ROBIN),
+                    arguments(null, null));
         }
 
         @Test
@@ -292,7 +297,8 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setTags(Set.of("tag1", "tag2", "tag3"));
             apiDef.setProxy(new Proxy());
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             var result = get(mapper.mapApi(api));
             var v4Definition = result.getApiDefinitionHttpV4();
@@ -311,7 +317,7 @@ class V2ToV4MigrationOperatorTest {
     class EndpointMigratingTest {
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_preserve_endpoint_backup_as_secondary_property(boolean isBackup) {
             var endpoint = new Endpoint();
             endpoint.setName("test-endpoint");
@@ -334,11 +340,16 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             var result = get(mapper.mapApi(api));
 
-            var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
+            var mappedEndpoint = result.getApiDefinitionHttpV4()
+                    .getEndpointGroups()
+                    .getFirst()
+                    .getEndpoints()
+                    .getFirst();
             assertThat(mappedEndpoint.isSecondary()).isEqualTo(isBackup);
             assertThat(mappedEndpoint.getWeight()).isEqualTo(10);
             assertThat(mappedEndpoint.getTenants()).containsExactlyInAnyOrder("tenant1", "tenant2");
@@ -366,11 +377,16 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             var result = get(mapper.mapApi(api));
 
-            var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
+            var mappedEndpoint = result.getApiDefinitionHttpV4()
+                    .getEndpointGroups()
+                    .getFirst()
+                    .getEndpoints()
+                    .getFirst();
             assertSoftly(softly -> {
                 softly.assertThat(mappedEndpoint.getName()).isEqualTo("test-endpoint");
                 softly.assertThat(mappedEndpoint.getType()).isEqualTo("http-proxy");
@@ -447,7 +463,8 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             // Act
             var result = get(mapper.mapApi(api));
@@ -455,9 +472,10 @@ class V2ToV4MigrationOperatorTest {
             // Check Endpoint Group
             var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
             String configJson =
-                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
+                    "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
             assertSoftly(softly -> {
-                softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+                        .hasSize(1);
                 softly.assertThat(group.getName()).isEqualTo("default-group");
                 softly.assertThat(group.getType()).isEqualTo("http-proxy");
                 softly.assertThat(group.getSharedConfiguration()).isNotNull();
@@ -491,7 +509,7 @@ class V2ToV4MigrationOperatorTest {
             v2Endpoint2.setWeight(5);
             v2Endpoint2.setInherit(false);
             String configJsonForEndpoint =
-                "{\"http\":{\"idleTimeout\":2000,\"keepAliveTimeout\":6,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/d/e/f\",\"content\":\"def\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/d/e/f\",\"keyContent\":\"def\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test1\",\"value\":\"no\"}]}";
+                    "{\"http\":{\"idleTimeout\":2000,\"keepAliveTimeout\":6,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/d/e/f\",\"content\":\"def\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/d/e/f\",\"keyContent\":\"def\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test1\",\"value\":\"no\"}]}";
             v2Endpoint2.setConfiguration(configJsonForEndpoint);
             // Setup EndpointGroup
             EndpointGroup v2Group = new EndpointGroup();
@@ -547,51 +565,52 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             // Act
             var result = get(mapper.mapApi(api));
 
             // Check Endpoint Group
             String configJson =
-                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
+                    "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
             assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
-                .singleElement()
-                .satisfies(group -> {
-                    assertSoftly(softly -> {
-                        softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
-                        softly.assertThat(group.getName()).isEqualTo("default-group");
-                        softly.assertThat(group.getType()).isEqualTo("http-proxy");
-                        softly.assertThat(group.getSharedConfiguration()).isNotNull();
-                        softly.assertThat(group.getSharedConfiguration()).contains(configJson);
+                    .singleElement()
+                    .satisfies(group -> {
+                        assertSoftly(softly -> {
+                            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+                                    .hasSize(1);
+                            softly.assertThat(group.getName()).isEqualTo("default-group");
+                            softly.assertThat(group.getType()).isEqualTo("http-proxy");
+                            softly.assertThat(group.getSharedConfiguration()).isNotNull();
+                            softly.assertThat(group.getSharedConfiguration()).contains(configJson);
+                        });
+
+                        // Check Endpoint
+                        assertThat(group.getEndpoints())
+                                .filteredOn(e -> e.getName().equals("endpoint-1"))
+                                .singleElement()
+                                .satisfies(endpoint1 -> assertSoftly(softly -> {
+                                    softly.assertThat(endpoint1.getType()).isEqualTo("http-proxy");
+                                    softly.assertThat(endpoint1.getName()).isEqualTo("endpoint-1");
+                                    softly.assertThat(endpoint1.getWeight()).isEqualTo(5);
+                                    softly.assertThat(endpoint1.isInheritConfiguration())
+                                            .isTrue();
+                                }));
+
+                        assertThat(group.getEndpoints())
+                                .filteredOn(e -> e.getName().equals("endpoint-2"))
+                                .singleElement()
+                                .satisfies(endpoint2 -> assertSoftly(softly -> {
+                                    softly.assertThat(endpoint2.getType()).isEqualTo("http-proxy");
+                                    softly.assertThat(endpoint2.getName()).isEqualTo("endpoint-2");
+                                    softly.assertThat(endpoint2.getWeight()).isEqualTo(5);
+                                    softly.assertThat(endpoint2.isInheritConfiguration())
+                                            .isFalse();
+                                    softly.assertThat(endpoint2.getSharedConfigurationOverride())
+                                            .isEqualTo(configJsonForEndpoint);
+                                }));
                     });
-
-                    // Check Endpoint
-                    assertThat(group.getEndpoints())
-                        .filteredOn(e -> e.getName().equals("endpoint-1"))
-                        .singleElement()
-                        .satisfies(endpoint1 ->
-                            assertSoftly(softly -> {
-                                softly.assertThat(endpoint1.getType()).isEqualTo("http-proxy");
-                                softly.assertThat(endpoint1.getName()).isEqualTo("endpoint-1");
-                                softly.assertThat(endpoint1.getWeight()).isEqualTo(5);
-                                softly.assertThat(endpoint1.isInheritConfiguration()).isTrue();
-                            })
-                        );
-
-                    assertThat(group.getEndpoints())
-                        .filteredOn(e -> e.getName().equals("endpoint-2"))
-                        .singleElement()
-                        .satisfies(endpoint2 ->
-                            assertSoftly(softly -> {
-                                softly.assertThat(endpoint2.getType()).isEqualTo("http-proxy");
-                                softly.assertThat(endpoint2.getName()).isEqualTo("endpoint-2");
-                                softly.assertThat(endpoint2.getWeight()).isEqualTo(5);
-                                softly.assertThat(endpoint2.isInheritConfiguration()).isFalse();
-                                softly.assertThat(endpoint2.getSharedConfigurationOverride()).isEqualTo(configJsonForEndpoint);
-                            })
-                        );
-                });
         }
     }
 
@@ -649,10 +668,10 @@ class V2ToV4MigrationOperatorTest {
         response.setAssertions(java.util.List.of("#status == 200"));
         step.setResponse(response);
         HealthCheckService healthCheckService = HealthCheckService.builder()
-            .enabled(true) // comes from ScheduledService (superclass)
-            .schedule("*/30 * * * * *") // run every 30s, for example
-            .steps(List.of(step))
-            .build();
+                .enabled(true) // comes from ScheduledService (superclass)
+                .schedule("*/30 * * * * *") // run every 30s, for example
+                .steps(List.of(step))
+                .build();
         Services services = new Services();
         services.setHealthCheckService(healthCheckService);
         apiDef.setServices(services);
@@ -664,14 +683,16 @@ class V2ToV4MigrationOperatorTest {
         // Check Endpoint Group
         var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
         String configJson =
-            "{\"schedule\":\"*/30 * * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"POST\",\"target\":\"/hc\",\"assertion\":\"{#status == 200}\",\"overrideEndpointPath\":false}";
+                "{\"schedule\":\"*/30 * * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"POST\",\"target\":\"/hc\",\"assertion\":\"{#status == 200}\",\"overrideEndpointPath\":false}";
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+                    .hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
             softly.assertThat(group.getSharedConfiguration()).isNotNull();
             softly.assertThat(group.getServices().getHealthCheck()).isNotNull();
-            softly.assertThat(group.getServices().getHealthCheck().getConfiguration()).isEqualTo(configJson);
+            softly.assertThat(group.getServices().getHealthCheck().getConfiguration())
+                    .isEqualTo(configJson);
         });
 
         // Check Endpoint
@@ -694,8 +715,7 @@ class V2ToV4MigrationOperatorTest {
         v2Endpoint.setWeight(5);
         v2Endpoint.setInherit(false);
         v2Endpoint.setConfiguration(
-            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
-        );
+                "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}");
         // Setup EndpointGroup
         EndpointGroup v2Group = new EndpointGroup();
         v2Group.setName("default-group");
@@ -736,7 +756,8 @@ class V2ToV4MigrationOperatorTest {
         // Check Endpoint Group
         var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+                    .hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
         });
@@ -747,11 +768,9 @@ class V2ToV4MigrationOperatorTest {
             softly.assertThat(endpoint.getType()).isEqualTo("http-proxy");
             softly.assertThat(endpoint.getName()).isEqualTo("endpoint-1");
             softly.assertThat(endpoint.getWeight()).isEqualTo(5);
-            softly
-                .assertThat(endpoint.getServices().getHealthCheck().getConfiguration())
-                .isEqualTo(
-                    "{\"schedule\":\"0 */1 * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"GET\",\"target\":\"/hc3\",\"assertion\":\"{#response.status == 202}\",\"overrideEndpointPath\":false}"
-                );
+            softly.assertThat(endpoint.getServices().getHealthCheck().getConfiguration())
+                    .isEqualTo(
+                            "{\"schedule\":\"0 */1 * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"GET\",\"target\":\"/hc3\",\"assertion\":\"{#response.status == 202}\",\"overrideEndpointPath\":false}");
         });
     }
 
@@ -764,8 +783,7 @@ class V2ToV4MigrationOperatorTest {
         v2Endpoint.setTenants(List.of("tenant-a"));
         v2Endpoint.setWeight(5);
         v2Endpoint.setInherit(false);
-        v2Endpoint.setConfiguration(
-            """
+        v2Endpoint.setConfiguration("""
             {
               "name": "default",
               "target": "http://test",
@@ -781,8 +799,7 @@ class V2ToV4MigrationOperatorTest {
                 "inherit": false
               }
             }
-            """
-        );
+            """);
         // Setup EndpointGroup
         EndpointGroup v2Group = new EndpointGroup();
         v2Group.setName("default-group");
@@ -823,7 +840,8 @@ class V2ToV4MigrationOperatorTest {
         // Check Endpoint Group
         var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+                    .hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
         });
@@ -844,8 +862,7 @@ class V2ToV4MigrationOperatorTest {
         Endpoint v2Endpoint = new Endpoint();
         v2Endpoint.setName("endpoint-1");
         v2Endpoint.setInherit(false);
-        v2Endpoint.setConfiguration(
-            """
+        v2Endpoint.setConfiguration("""
             {
               "name": "default",
               "target": "http://test",
@@ -863,8 +880,7 @@ class V2ToV4MigrationOperatorTest {
                 "inherit": true
               }
             }
-            """
-        );
+            """);
         // Setup EndpointGroup
         EndpointGroup v2Group = new EndpointGroup();
         v2Group.setName("default-group");
@@ -895,7 +911,8 @@ class V2ToV4MigrationOperatorTest {
         // Check Endpoint Group
         var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+                    .hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
         });
@@ -929,10 +946,10 @@ class V2ToV4MigrationOperatorTest {
 
             // Health check service with schedule = null (should be filtered out)
             HealthCheckService healthCheckService = HealthCheckService.builder()
-                .enabled(true)
-                .schedule(null) // null schedule → must be filtered
-                .steps(List.of())
-                .build();
+                    .enabled(true)
+                    .schedule(null) // null schedule → must be filtered
+                    .steps(List.of())
+                    .build();
             Services services = new Services();
             services.setHealthCheckService(healthCheckService);
 
@@ -948,7 +965,8 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setProxy(proxy);
             apiDef.setServices(services);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             // Act
             var result = get(mapper.mapApi(api));
@@ -965,8 +983,7 @@ class V2ToV4MigrationOperatorTest {
             Endpoint v2Endpoint = new Endpoint();
             v2Endpoint.setName("endpoint-1");
             v2Endpoint.setInherit(false);
-            v2Endpoint.setConfiguration(
-                """
+            v2Endpoint.setConfiguration("""
                 {
                   "name": "default",
                   "target": "http://test",
@@ -977,8 +994,7 @@ class V2ToV4MigrationOperatorTest {
                     "inherit": false
                   }
                 }
-                """
-            );
+                """);
 
             EndpointGroup v2Group = new EndpointGroup();
             v2Group.setName("default-group");
@@ -998,7 +1014,8 @@ class V2ToV4MigrationOperatorTest {
             apiDef.setVersion("1.0");
             apiDef.setProxy(proxy);
 
-            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+            var api =
+                    ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             // Act
             var result = get(mapper.mapApi(api));
@@ -1023,14 +1040,19 @@ class V2ToV4MigrationOperatorTest {
             planDef.setStatus(v2Status);
             planDef.setSecurity("api-key");
 
-            var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").name("Test Plan").planDefinitionV2(planDef).build();
+            var plan = PlanFixtures.aPlanV2().toBuilder()
+                    .id("plan-id")
+                    .name("Test Plan")
+                    .planDefinitionV2(planDef)
+                    .build();
 
             var result = get(mapper.mapPlan(plan));
 
             assertSoftly(softly -> {
                 softly.assertThat(result.getPlanDefinitionHttpV4().getStatus()).isEqualTo(expectedV4Status);
                 softly.assertThat(result.getPlanDefinitionHttpV4().getMode()).isEqualTo(PlanMode.STANDARD);
-                softly.assertThat(result.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("api-key");
+                softly.assertThat(result.getPlanDefinitionHttpV4().getSecurity().getType())
+                        .isEqualTo("api-key");
                 softly.assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 softly.assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
             });
@@ -1038,15 +1060,14 @@ class V2ToV4MigrationOperatorTest {
 
         private static Stream<Arguments> planStatusProvider() {
             return Stream.of(
-                Arguments.of("STAGING", PlanStatus.STAGING),
-                Arguments.of("PUBLISHED", PlanStatus.PUBLISHED),
-                Arguments.of("CLOSED", PlanStatus.CLOSED),
-                Arguments.of("DEPRECATED", PlanStatus.DEPRECATED)
-            );
+                    Arguments.of("STAGING", PlanStatus.STAGING),
+                    Arguments.of("PUBLISHED", PlanStatus.PUBLISHED),
+                    Arguments.of("CLOSED", PlanStatus.CLOSED),
+                    Arguments.of("DEPRECATED", PlanStatus.DEPRECATED));
         }
 
         @ParameterizedTest
-        @CsvSource({ "api-key, api-key", "oauth2, oauth2", "keyless, keyless", "jwt, jwt" })
+        @CsvSource({"api-key, api-key", "oauth2, oauth2", "keyless, keyless", "jwt, jwt"})
         void should_preserve_plan_security_type(String v2SecurityType, String expectedV4SecurityType) {
             var planDef = new io.gravitee.definition.model.Plan();
             planDef.setId("plan-id");
@@ -1055,12 +1076,14 @@ class V2ToV4MigrationOperatorTest {
             planDef.setSecurity(v2SecurityType);
             planDef.setSecurityDefinition("{\"config\": \"value\"}");
 
-            var plan = PlanFixtures.aPlanV2().toBuilder().planDefinitionV2(planDef).build();
+            var plan =
+                    PlanFixtures.aPlanV2().toBuilder().planDefinitionV2(planDef).build();
 
             var result = get(mapper.mapPlan(plan));
 
             assertThat(result.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo(expectedV4SecurityType);
-            assertThat(result.getPlanDefinitionHttpV4().getSecurity().getConfiguration()).isEqualTo("{\"config\": \"value\"}");
+            assertThat(result.getPlanDefinitionHttpV4().getSecurity().getConfiguration())
+                    .isEqualTo("{\"config\": \"value\"}");
         }
 
         @Test
@@ -1074,21 +1097,20 @@ class V2ToV4MigrationOperatorTest {
             planDef.setTags(Set.of("tag1", "tag2"));
 
             var now = TimeProvider.now();
-            var plan = PlanFixtures.aPlanV2()
-                .toBuilder()
-                .id("plan-id")
-                .name("Test Plan")
-                .description("Plan Description")
-                .createdAt(now)
-                .updatedAt(now)
-                .publishedAt(now)
-                .closedAt(now)
-                .order(5)
-                .characteristics(List.of("char1", "char2"))
-                .excludedGroups(List.of("group1"))
-                .planDefinitionV2(planDef)
-                .validation(Plan.PlanValidationType.MANUAL)
-                .build();
+            var plan = PlanFixtures.aPlanV2().toBuilder()
+                    .id("plan-id")
+                    .name("Test Plan")
+                    .description("Plan Description")
+                    .createdAt(now)
+                    .updatedAt(now)
+                    .publishedAt(now)
+                    .closedAt(now)
+                    .order(5)
+                    .characteristics(List.of("char1", "char2"))
+                    .excludedGroups(List.of("group1"))
+                    .planDefinitionV2(planDef)
+                    .validation(Plan.PlanValidationType.MANUAL)
+                    .build();
 
             var result = get(mapper.mapPlan(plan));
 
@@ -1104,7 +1126,8 @@ class V2ToV4MigrationOperatorTest {
                 softly.assertThat(result.getCharacteristics()).containsExactly("char1", "char2");
                 softly.assertThat(result.getExcludedGroups()).containsExactly("group1");
                 softly.assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.MANUAL);
-                softly.assertThat(result.getPlanDefinitionHttpV4().getSelectionRule()).isEqualTo("rule");
+                softly.assertThat(result.getPlanDefinitionHttpV4().getSelectionRule())
+                        .isEqualTo("rule");
                 softly.assertThat(result.getPlanDefinitionHttpV4().getTags()).containsExactlyInAnyOrder("tag1", "tag2");
                 softly.assertThat(result.isCommentRequired()).isFalse();
             });
@@ -1112,8 +1135,10 @@ class V2ToV4MigrationOperatorTest {
 
         @ParameterizedTest
         @MethodSource("planValidationTypeProvider")
-        void should_map_plan_validation_type_correctly(Plan.PlanValidationType v2Validation, Plan.PlanValidationType expectedValidation) {
-            var plan = PlanFixtures.aPlanV2().toBuilder().validation(v2Validation).build();
+        void should_map_plan_validation_type_correctly(
+                Plan.PlanValidationType v2Validation, Plan.PlanValidationType expectedValidation) {
+            var plan =
+                    PlanFixtures.aPlanV2().toBuilder().validation(v2Validation).build();
 
             var result = get(mapper.mapPlan(plan));
 
@@ -1122,9 +1147,8 @@ class V2ToV4MigrationOperatorTest {
 
         private static Stream<Arguments> planValidationTypeProvider() {
             return Stream.of(
-                Arguments.of(Plan.PlanValidationType.AUTO, Plan.PlanValidationType.AUTO),
-                Arguments.of(Plan.PlanValidationType.MANUAL, Plan.PlanValidationType.MANUAL)
-            );
+                    Arguments.of(Plan.PlanValidationType.AUTO, Plan.PlanValidationType.AUTO),
+                    Arguments.of(Plan.PlanValidationType.MANUAL, Plan.PlanValidationType.MANUAL));
         }
 
         @Test
@@ -1138,8 +1162,10 @@ class V2ToV4MigrationOperatorTest {
 
             // Then
             assertThat(result.getNeedRedeployAt()).isNotNull();
-            assertThat(result.getNeedRedeployAt().toInstant()).isAfter(now.toInstant().minusSeconds(1));
-            assertThat(result.getNeedRedeployAt().toInstant()).isBefore(now.toInstant().plusSeconds(10));
+            assertThat(result.getNeedRedeployAt().toInstant())
+                    .isAfter(now.toInstant().minusSeconds(1));
+            assertThat(result.getNeedRedeployAt().toInstant())
+                    .isBefore(now.toInstant().plusSeconds(10));
         }
 
         @Test
@@ -1159,10 +1185,20 @@ class V2ToV4MigrationOperatorTest {
             assertThat(migratedPlanResult).isNotNull();
             assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getId()).isEqualTo("plan-id");
             assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getName()).isEqualTo("Test Plan");
-            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("API_KEY");
-            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getSecurity().getConfiguration()).isEqualTo("ApiKey definition");
-            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getSelectionRule()).isEqualTo("selection-rule");
-            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getTags()).containsExactlyInAnyOrder("tag1", "tag2");
+            assertThat(migratedPlanResult
+                            .getPlanDefinitionHttpV4()
+                            .getSecurity()
+                            .getType())
+                    .isEqualTo("API_KEY");
+            assertThat(migratedPlanResult
+                            .getPlanDefinitionHttpV4()
+                            .getSecurity()
+                            .getConfiguration())
+                    .isEqualTo("ApiKey definition");
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getSelectionRule())
+                    .isEqualTo("selection-rule");
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getTags())
+                    .containsExactlyInAnyOrder("tag1", "tag2");
         }
 
         @Test

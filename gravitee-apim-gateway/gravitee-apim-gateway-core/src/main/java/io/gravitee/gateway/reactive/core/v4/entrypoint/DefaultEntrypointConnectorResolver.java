@@ -56,38 +56,36 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
     private final List<BaseEntrypointConnector> entrypointConnectors;
 
     public DefaultEntrypointConnectorResolver(
-        final Api api,
-        final DeploymentContext deploymentContext,
-        final EntrypointConnectorPluginManager entrypointConnectorPluginManager
-    ) {
-        entrypointConnectors = api
-            .getListeners()
-            .stream()
-            .flatMap(listener -> listener.getEntrypoints().stream())
-            .map(entrypoint ->
-                this.<BaseEntrypointConnector<?>>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint)
-            )
-            .filter(Objects::nonNull)
-            .sorted(Comparator.<BaseEntrypointConnector<?>>comparingInt(BaseEntrypointConnector::matchCriteriaCount).reversed())
-            .collect(Collectors.toList());
+            final Api api,
+            final DeploymentContext deploymentContext,
+            final EntrypointConnectorPluginManager entrypointConnectorPluginManager) {
+        entrypointConnectors = api.getListeners().stream()
+                .flatMap(listener -> listener.getEntrypoints().stream())
+                .map(entrypoint -> this.<BaseEntrypointConnector<?>>createConnector(
+                        deploymentContext, entrypointConnectorPluginManager, entrypoint))
+                .filter(Objects::nonNull)
+                .sorted(Comparator.<BaseEntrypointConnector<?>>comparingInt(BaseEntrypointConnector::matchCriteriaCount)
+                        .reversed())
+                .collect(Collectors.toList());
     }
 
     private <T extends BaseEntrypointConnector<?>> T createConnector(
-        final DeploymentContext deploymentContext,
-        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        final Entrypoint entrypoint
-    ) {
-        EntrypointConnectorFactory<?> connectorFactory = entrypointConnectorPluginManager.getFactoryById(entrypoint.getType());
+            final DeploymentContext deploymentContext,
+            final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            final Entrypoint entrypoint) {
+        EntrypointConnectorFactory<?> connectorFactory =
+                entrypointConnectorPluginManager.getFactoryById(entrypoint.getType());
 
         if (connectorFactory != null) {
             if (connectorFactory.supportedApi() == ApiType.MESSAGE) {
                 HttpEntrypointAsyncConnectorFactory<HttpEntrypointAsyncConnector> entrypointAsyncConnectorFactory =
-                    (HttpEntrypointAsyncConnectorFactory<HttpEntrypointAsyncConnector>) connectorFactory;
+                        (HttpEntrypointAsyncConnectorFactory<HttpEntrypointAsyncConnector>) connectorFactory;
                 Qos qos = Qos.AUTO;
                 if (entrypoint.getQos() != null) {
                     qos = Qos.fromLabel(entrypoint.getQos().getLabel());
                 }
-                return (T) entrypointAsyncConnectorFactory.createConnector(deploymentContext, qos, entrypoint.getConfiguration());
+                return (T) entrypointAsyncConnectorFactory.createConnector(
+                        deploymentContext, qos, entrypoint.getConfiguration());
             }
             return (T) connectorFactory.createConnector(deploymentContext, entrypoint.getConfiguration());
         }
@@ -96,7 +94,8 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
 
     public <C extends BaseExecutionContext, T extends BaseEntrypointConnector<C>> T resolve(final C ctx) {
         for (BaseEntrypointConnector<C> connector : entrypointConnectors) {
-            if (connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE) && connector.matches(ctx)) {
+            if (connector.supportedListenerType() == ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)
+                    && connector.matches(ctx)) {
                 return (T) connector;
             }
         }

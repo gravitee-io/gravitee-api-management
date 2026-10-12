@@ -19,11 +19,8 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.node.api.license.MalformedLicenseException;
-import io.gravitee.node.license.DefaultLicenseManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.LicenseRepository;
@@ -40,7 +37,6 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicLong;
@@ -126,15 +122,16 @@ public class SyncManager {
 
     private void synchronizeApis(long nextLastRefreshAt) {
         final EventCriteria eventCriteria = EventCriteria.builder()
-            .types(Set.of(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
-            .build();
+                .types(Set.of(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API))
+                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+                .build();
 
-        Map<String, Event> apiEvents = eventLatestRepository
-            .search(eventCriteria, Event.EventProperties.API_ID, null, null)
-            .stream()
-            .collect(toMap(event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()), event -> event));
+        Map<String, Event> apiEvents =
+                eventLatestRepository.search(eventCriteria, Event.EventProperties.API_ID, null, null).stream()
+                        .collect(toMap(
+                                event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
+                                event -> event));
 
         // Then, compute events
         computeApiEvents(apiEvents);
@@ -142,38 +139,37 @@ public class SyncManager {
 
     private void synchronizeDictionaries(long nextLastRefreshAt) throws Exception {
         final EventCriteria eventCriteria = EventCriteria.builder()
-            .types(Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY))
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
-            .build();
+                .types(Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY))
+                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+                .build();
 
-        Map<String, Event> dictionaryEvents = eventLatestRepository
-            .search(eventCriteria, Event.EventProperties.DICTIONARY_ID, null, null)
-            .stream()
-            .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
+        Map<String, Event> dictionaryEvents =
+                eventLatestRepository.search(eventCriteria, Event.EventProperties.DICTIONARY_ID, null, null).stream()
+                        .collect(toMap(
+                                event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
+                                event -> event));
 
         computeDictionaryEvents(dictionaryEvents);
     }
 
     private void synchronizeLicenses(long nextLastRefreshAt) throws TechnicalException {
         final LicenseCriteria licenseCriteria = LicenseCriteria.builder()
-            .referenceType(License.ReferenceType.ORGANIZATION)
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
-            .build();
+                .referenceType(License.ReferenceType.ORGANIZATION)
+                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+                .build();
 
         // Then, compute events
         Page<License> licenses = licenseRepository.findByCriteria(licenseCriteria, null);
-        licenses
-            .getContent()
-            .forEach(license -> {
-                try {
-                    var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
-                    licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
-                } catch (Exception e) {
-                    log.warn("Organization license cannot be registered for [{}].", license.getReferenceId(), e);
-                }
-            });
+        licenses.getContent().forEach(license -> {
+            try {
+                var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
+                licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
+            } catch (Exception e) {
+                log.warn("Organization license cannot be registered for [{}].", license.getReferenceId(), e);
+            }
+        });
     }
 
     private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {
@@ -203,11 +199,7 @@ public class SyncManager {
 
             ForkJoinPool customThreadPool = new ForkJoinPool(parallelism, factory, null, false);
             customThreadPool.submit(() ->
-                apiEvents
-                    .entrySet()
-                    .parallelStream()
-                    .forEach(e -> processApiEvent(e.getKey(), e.getValue()))
-            );
+                    apiEvents.entrySet().parallelStream().forEach(e -> processApiEvent(e.getKey(), e.getValue())));
             customThreadPool.shutdown();
         } else {
             apiEvents.forEach(this::processApiEvent);

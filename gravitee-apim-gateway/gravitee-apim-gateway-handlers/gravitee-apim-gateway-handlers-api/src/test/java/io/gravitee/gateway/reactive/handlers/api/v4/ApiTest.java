@@ -36,7 +36,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 class ApiTest {
 
     @ParameterizedTest
-    @CsvSource({ "API_KEY,STANDARD", "api-key,STANDARD", "JWT,STANDARD", "OAUTH2,STANDARD", ",PUSH" })
+    @CsvSource({"API_KEY,STANDARD", "api-key,STANDARD", "JWT,STANDARD", "OAUTH2,STANDARD", ",PUSH"})
     void shouldReturnSubscribablePlans(String securityType, String mode) {
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
         final ArrayList<Plan> plans = new ArrayList<>();
@@ -68,7 +68,7 @@ class ApiTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "API_KEY,STANDARD", "api-key,STANDARD", "JWT,STANDARD", "OAUTH2,STANDARD", ",PUSH" })
+    @CsvSource({"API_KEY,STANDARD", "api-key,STANDARD", "JWT,STANDARD", "OAUTH2,STANDARD", ",PUSH"})
     void should_return_dependencies_from_flow_policies(String securityType, String mode) {
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
         definition.setPlans(List.of(aPlan("plan-" + securityType, securityType, mode)));
@@ -91,8 +91,7 @@ class ApiTest {
 
         assertThat(dependencies).hasSize(expectedPolicyCount);
 
-        final List<String> expectedPolicies = new ArrayList<>(
-            List.of(
+        final List<String> expectedPolicies = new ArrayList<>(List.of(
                 "plan-" + securityType + "-flow-request",
                 "plan-" + securityType + "-flow-response",
                 "plan-" + securityType + "-flow-publish",
@@ -100,9 +99,7 @@ class ApiTest {
                 "api-flow-request",
                 "api-flow-response",
                 "api-flow-publish",
-                "api-flow-subscribe"
-            )
-        );
+                "api-flow-subscribe"));
 
         if (!mode.equals("PUSH")) {
             expectedPolicies.add(securityType);

@@ -91,22 +91,20 @@ public class SharedPolicyGroupsResource_CreateCRDTest extends AbstractResourceTe
         crd.setApiType(ApiType.PROXY);
         crd.setPhase(FlowPhase.REQUEST);
 
-        when(importSharedPolicyGroupCRDCRDUseCase.execute(any())).thenReturn(
-            new ImportSharedPolicyGroupCRDCRDUseCase.Output(
-                new SharedPolicyGroupCRDStatus(crd.getCrossId(), "API_ID", "organizationId", "environmentId", null)
-            )
-        );
+        when(importSharedPolicyGroupCRDCRDUseCase.execute(any()))
+                .thenReturn(new ImportSharedPolicyGroupCRDCRDUseCase.Output(new SharedPolicyGroupCRDStatus(
+                        crd.getCrossId(), "API_ID", "organizationId", "environmentId", null)));
 
         final Response response = rootTarget().request().put(json(crd));
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var createdSharedPolicyGroup = response.readEntity(SharedPolicyGroupCRDStatus.class);
 
         assertThat(createdSharedPolicyGroup)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("crossId", crd.getCrossId())
-            .hasFieldOrPropertyWithValue("id", "API_ID")
-            .hasFieldOrPropertyWithValue("organizationId", "organizationId")
-            .hasFieldOrPropertyWithValue("environmentId", "environmentId");
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("crossId", crd.getCrossId())
+                .hasFieldOrPropertyWithValue("id", "API_ID")
+                .hasFieldOrPropertyWithValue("organizationId", "organizationId")
+                .hasFieldOrPropertyWithValue("environmentId", "environmentId");
 
         var captor = ArgumentCaptor.forClass(ImportSharedPolicyGroupCRDCRDUseCase.Input.class);
         verify(importSharedPolicyGroupCRDCRDUseCase).execute(captor.capture());
@@ -121,7 +119,8 @@ public class SharedPolicyGroupsResource_CreateCRDTest extends AbstractResourceTe
     void should_return_400_if_execute_fails_with_invalid_data_exception() {
         var sharedPolicyGroupCRD = aSharedPolicyGroupCRD();
 
-        when(importSharedPolicyGroupCRDCRDUseCase.execute(any())).thenThrow(new InvalidDataException("Name is required."));
+        when(importSharedPolicyGroupCRDCRDUseCase.execute(any()))
+                .thenThrow(new InvalidDataException("Name is required."));
 
         final Response response = rootTarget().request().put(json(sharedPolicyGroupCRD));
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
@@ -148,21 +147,19 @@ public class SharedPolicyGroupsResource_CreateCRDTest extends AbstractResourceTe
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
-                eq(ENV_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                        eq(ENV_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().put(json(aSharedPolicyGroupCRD()));
 
         MAPIAssertions.assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 }

@@ -69,20 +69,21 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         }
         ArrayNode node = MAPPER.createArrayNode();
         values.forEach(node::add);
-        filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(field, node)));
+        filters.add(
+                MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(field, node)));
     }
 
     private static void addEntityRefsIfAny(
-        ArrayNode filters,
-        AuthzEntityRefClauses entityRefs,
-        String typeField,
-        String idField,
-        Set<String> references
-    ) {
+            ArrayNode filters,
+            AuthzEntityRefClauses entityRefs,
+            String typeField,
+            String idField,
+            Set<String> references) {
         if (references == null || references.isEmpty()) {
             return;
         }
-        filters.addRawValue(new RawValue(entityRefs.matching(typeField, idField, references).encode()));
+        filters.addRawValue(
+                new RawValue(entityRefs.matching(typeField, idField, references).encode()));
     }
 
     /**
@@ -100,7 +101,8 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         ArrayNode exactNames = MAPPER.createArrayNode();
         names.forEach(exactNames::add);
         ArrayNode should = MAPPER.createArrayNode();
-        should.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(qualifiedField, exactNames)));
+        should.add(
+                MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(qualifiedField, exactNames)));
         names.forEach(name -> should.add(ruleIndexPrefixClause(qualifiedField, name)));
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set(SHOULD, should);
@@ -131,7 +133,8 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         ObjectNode wildcard = MAPPER.createObjectNode();
         wildcard.put(VALUE, "*" + escapeWildcard(needle) + "*");
         wildcard.put(CASE_INSENSITIVE, true);
-        filters.add(MAPPER.createObjectNode().set(WILDCARD, MAPPER.createObjectNode().set(field, wildcard)));
+        filters.add(MAPPER.createObjectNode()
+                .set(WILDCARD, MAPPER.createObjectNode().set(field, wildcard)));
     }
 
     /** Backslash first, or the escapes inserted below would be escaped in turn. */
@@ -140,7 +143,8 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
     }
 
     private static void addTerm(ArrayNode filters, String field, String value) {
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
+        filters.add(
+                MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
     }
 
     public static String adapt(QueryContext queryContext, AuthzDecisionLogQuery query) {
@@ -151,26 +155,26 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         addTerm(filters, AuthzDecisionLogFields.PHASE, AuthzDecisionLogFields.RESOLVED);
         ArrayNode apiIds = MAPPER.createArrayNode();
         query.getApiIds().forEach(apiIds::add);
-        filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.API_ID, apiIds)));
+        filters.add(MAPPER.createObjectNode()
+                .set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.API_ID, apiIds)));
 
-        // Keyword fields: exact term matching is the whole translation, once a subject or resource is split into type and id.
+        // Keyword fields: exact term matching is the whole translation, once a subject or resource is split into type
+        // and id.
         addTermsIfAny(filters, AuthzDecisionLogFields.DECISION, query.getDecisions());
         var entityRefs = new AuthzEntityRefClauses();
         addEntityRefsIfAny(
-            filters,
-            entityRefs,
-            AuthzDecisionLogFields.SUBJECT_TYPE,
-            AuthzDecisionLogFields.SUBJECT_ID,
-            query.getSubjectIds()
-        );
+                filters,
+                entityRefs,
+                AuthzDecisionLogFields.SUBJECT_TYPE,
+                AuthzDecisionLogFields.SUBJECT_ID,
+                query.getSubjectIds());
         addTermsIfAny(filters, AuthzDecisionLogFields.ACTION, query.getActions());
         addEntityRefsIfAny(
-            filters,
-            entityRefs,
-            AuthzDecisionLogFields.RESOURCE_TYPE,
-            AuthzDecisionLogFields.RESOURCE_ID,
-            query.getResourceIds()
-        );
+                filters,
+                entityRefs,
+                AuthzDecisionLogFields.RESOURCE_TYPE,
+                AuthzDecisionLogFields.RESOURCE_ID,
+                query.getResourceIds());
         addTermsIfAny(filters, AuthzDecisionLogFields.CALLER, query.getCallers());
         addTermsIfAny(filters, AuthzDecisionLogFields.STATUS, query.getStatuses());
         addTermsIfAny(filters, AuthzDecisionLogFields.INDETERMINATE_CAUSE, query.getIndeterminateCauses());
@@ -179,11 +183,10 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         addTermsIfAny(filters, AuthzDecisionLogFields.POLICY_GENERATION, query.getPolicyGenerations());
         addTermsIfAny(filters, AuthzDecisionLogFields.REQUEST_ID, query.getRequestIds());
         addMatchedPoliciesIfAny(
-            filters,
-            AuthzDecisionLogFields.MATCHED_RULES,
-            AuthzDecisionLogFields.MATCHED_RULE_NAME,
-            query.getMatchedPolicyNames()
-        );
+                filters,
+                AuthzDecisionLogFields.MATCHED_RULES,
+                AuthzDecisionLogFields.MATCHED_RULE_NAME,
+                query.getMatchedPolicyNames());
         addContainsIfAny(filters, AuthzDecisionLogFields.REASONS, query.getReasonContains());
 
         if (query.getFrom() != null || query.getTo() != null) {
@@ -194,27 +197,30 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
             if (query.getTo() != null) {
                 bounds.put(LTE, query.getTo());
             }
-            filters.add(MAPPER.createObjectNode().set(RANGE, MAPPER.createObjectNode().set(TIMESTAMP, bounds)));
+            filters.add(MAPPER.createObjectNode()
+                    .set(RANGE, MAPPER.createObjectNode().set(TIMESTAMP, bounds)));
         }
 
         ObjectNode root = MAPPER.createObjectNode();
-        root.set(QUERY, MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
+        root.set(
+                QUERY,
+                MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
         root.put(FROM, (query.getPage() - 1) * query.getSize());
         root.put(SIZE, query.getSize());
         root.put(TRACK_TOTAL_HITS, true);
         // event-id breaks ties: a batch stamps every decision with the same millisecond, and ordering
         // within a tie is not stable across shards, so paging without it repeats and skips rows.
         root.set(
-            SORT,
-            MAPPER.createArrayNode()
-                .add(MAPPER.createObjectNode().set(TIMESTAMP, MAPPER.createObjectNode().put(ORDER, DESC)))
-                .add(
-                    MAPPER.createObjectNode().set(
-                        AuthzDecisionLogFields.EVENT_ID,
-                        MAPPER.createObjectNode().put(ORDER, ASC).put(UNMAPPED_TYPE, KEYWORD)
-                    )
-                )
-        );
+                SORT,
+                MAPPER.createArrayNode()
+                        .add(MAPPER.createObjectNode()
+                                .set(TIMESTAMP, MAPPER.createObjectNode().put(ORDER, DESC)))
+                        .add(MAPPER.createObjectNode()
+                                .set(
+                                        AuthzDecisionLogFields.EVENT_ID,
+                                        MAPPER.createObjectNode()
+                                                .put(ORDER, ASC)
+                                                .put(UNMAPPED_TYPE, KEYWORD))));
 
         return root.toString();
     }

@@ -74,7 +74,8 @@ public class MongoCommandRepository implements CommandRepository {
             throw new IllegalStateException("Tag to update must have an id");
         }
 
-        final CommandMongo commandMongo = internalMessageRepo.findById(command.getId()).orElse(null);
+        final CommandMongo commandMongo =
+                internalMessageRepo.findById(command.getId()).orElse(null);
 
         if (commandMongo == null) {
             throw new IllegalStateException(String.format("No command found with id [%s]", command.getId()));
@@ -110,7 +111,9 @@ public class MongoCommandRepository implements CommandRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete by environmentId [{}]", environmentId);
         try {
-            final var rows = internalMessageRepo.deleteByEnvironmentId(environmentId).stream().map(CommandMongo::getId).toList();
+            final var rows = internalMessageRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(CommandMongo::getId)
+                    .toList();
             log.debug("Delete by environmentId [{}] - Done", environmentId);
             return rows;
         } catch (Exception ex) {
@@ -123,7 +126,9 @@ public class MongoCommandRepository implements CommandRepository {
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("Delete by organizationId [{}]", organizationId);
         try {
-            final var rows = internalMessageRepo.deleteByOrganizationId(organizationId).stream().map(CommandMongo::getId).toList();
+            final var rows = internalMessageRepo.deleteByOrganizationId(organizationId).stream()
+                    .map(CommandMongo::getId)
+                    .toList();
             log.debug("Delete by organizationId [{}] - Done", organizationId);
             return rows;
         } catch (Exception ex) {
@@ -136,7 +141,8 @@ public class MongoCommandRepository implements CommandRepository {
     public int deleteByExpiredAtBefore(Instant before) throws TechnicalException {
         log.debug("Delete by expiredAt before [{}]", before);
         try {
-            int deletedCount = internalMessageRepo.deleteByExpiredAtBefore(before).size();
+            int deletedCount =
+                    internalMessageRepo.deleteByExpiredAtBefore(before).size();
             log.debug("Delete by expiredAt before [{}] - Done. Deleted {} commands", before, deletedCount);
             return deletedCount;
         } catch (Exception ex) {
@@ -146,10 +152,8 @@ public class MongoCommandRepository implements CommandRepository {
 
     @Override
     public Set<Command> findAll() throws TechnicalException {
-        return internalMessageRepo
-            .findAll()
-            .stream()
-            .map(commandMongo -> mapper.map(commandMongo))
-            .collect(Collectors.toSet());
+        return internalMessageRepo.findAll().stream()
+                .map(commandMongo -> mapper.map(commandMongo))
+                .collect(Collectors.toSet());
     }
 }

@@ -52,16 +52,22 @@ public class PortalNotificationRepositoryTest extends AbstractManagementReposito
 
     @Test
     public void shouldDelete() throws Exception {
-        assertEquals(1, portalNotificationRepository.findByUser("notif-userId-toDelete").size());
+        assertEquals(
+                1,
+                portalNotificationRepository.findByUser("notif-userId-toDelete").size());
         portalNotificationRepository.delete("notif-toDelete");
-        assertTrue(portalNotificationRepository.findByUser("notif-userId-toDelete").isEmpty());
+        assertTrue(
+                portalNotificationRepository.findByUser("notif-userId-toDelete").isEmpty());
     }
 
     @Test
     public void shouldDeleteAllUser() throws Exception {
-        assertEquals(1, portalNotificationRepository.findByUser("notif-userId-toDelete").size());
+        assertEquals(
+                1,
+                portalNotificationRepository.findByUser("notif-userId-toDelete").size());
         portalNotificationRepository.deleteAll("notif-userId-toDelete");
-        assertTrue(portalNotificationRepository.findByUser("notif-userId-toDelete").isEmpty());
+        assertTrue(
+                portalNotificationRepository.findByUser("notif-userId-toDelete").isEmpty());
     }
 
     @Test

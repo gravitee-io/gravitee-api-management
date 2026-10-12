@@ -39,7 +39,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class UpdateClientCertificateUseCaseTest {
 
-    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
+    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService =
+            new ClientCertificateCrudServiceInMemory();
 
     @Mock
     private ClientCertificateDomainService clientCertificateDomainService;
@@ -49,7 +50,8 @@ class UpdateClientCertificateUseCaseTest {
     @BeforeEach
     void setUp() {
         clientCertificateCrudService.reset();
-        updateClientCertificateUseCase = new UpdateClientCertificateUseCase(clientCertificateCrudService, clientCertificateDomainService);
+        updateClientCertificateUseCase =
+                new UpdateClientCertificateUseCase(clientCertificateCrudService, clientCertificateDomainService);
     }
 
     @Test
@@ -57,45 +59,45 @@ class UpdateClientCertificateUseCaseTest {
         var certId = "cert-id";
         var appId = "app-id";
         var certificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            appId,
-            "Original Name",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+                certId,
+                "cross-id",
+                appId,
+                "Original Name",
+                new Date(),
+                new Date(),
+                new Date(),
+                new Date(),
+                "PEM_CONTENT",
+                new Date(),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint",
+                "env-id",
+                ClientCertificateStatus.ACTIVE);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         var updatedCertificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            appId,
-            "Updated Name",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+                certId,
+                "cross-id",
+                appId,
+                "Updated Name",
+                new Date(),
+                new Date(),
+                new Date(),
+                new Date(),
+                "PEM_CONTENT",
+                new Date(),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint",
+                "env-id",
+                ClientCertificateStatus.ACTIVE);
         var updateRequest = new ClientCertificate("Updated Name", new Date(), new Date());
-        when(clientCertificateDomainService.update(eq(certId), any(ClientCertificate.class))).thenReturn(updatedCertificate);
+        when(clientCertificateDomainService.update(eq(certId), any(ClientCertificate.class)))
+                .thenReturn(updatedCertificate);
 
-        var result = updateClientCertificateUseCase.execute(new UpdateClientCertificateUseCase.Input(certId, updateRequest));
+        var result =
+                updateClientCertificateUseCase.execute(new UpdateClientCertificateUseCase.Input(certId, updateRequest));
 
         assertThat(result.clientCertificate()).isNotNull();
         assertThat(result.clientCertificate().id()).isEqualTo(certId);
@@ -107,40 +109,40 @@ class UpdateClientCertificateUseCaseTest {
     @Test
     void should_throw_exception_when_certificate_not_found() {
         var updateRequest = new ClientCertificate("Updated Name", new Date(), new Date());
-        when(clientCertificateDomainService.update(eq("non-existent-id"), any(ClientCertificate.class))).thenThrow(
-            new ClientCertificateNotFoundException("non-existent-id")
-        );
+        when(clientCertificateDomainService.update(eq("non-existent-id"), any(ClientCertificate.class)))
+                .thenThrow(new ClientCertificateNotFoundException("non-existent-id"));
 
         var input = new UpdateClientCertificateUseCase.Input("non-existent-id", updateRequest);
 
-        assertThatThrownBy(() -> updateClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+        assertThatThrownBy(() -> updateClientCertificateUseCase.execute(input))
+                .isInstanceOf(ClientCertificateNotFoundException.class);
     }
 
     @Test
     void should_throw_exception_when_applicationId_does_not_match() {
         var certId = "cert-id";
         var certificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            "app-id",
-            "Original Name",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+                certId,
+                "cross-id",
+                "app-id",
+                "Original Name",
+                new Date(),
+                new Date(),
+                new Date(),
+                new Date(),
+                "PEM_CONTENT",
+                new Date(),
+                "CN=Test",
+                "CN=Issuer",
+                "fingerprint",
+                "env-id",
+                ClientCertificateStatus.ACTIVE);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         var updateRequest = new ClientCertificate("Updated Name", new Date(), new Date());
         var input = new UpdateClientCertificateUseCase.Input(Optional.of("other-app-id"), certId, updateRequest);
 
-        assertThatThrownBy(() -> updateClientCertificateUseCase.execute(input)).isInstanceOf(ClientCertificateNotFoundException.class);
+        assertThatThrownBy(() -> updateClientCertificateUseCase.execute(input))
+                .isInstanceOf(ClientCertificateNotFoundException.class);
     }
 }

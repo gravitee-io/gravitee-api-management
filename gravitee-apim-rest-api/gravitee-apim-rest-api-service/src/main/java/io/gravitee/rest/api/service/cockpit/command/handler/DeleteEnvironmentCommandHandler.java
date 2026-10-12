@@ -126,7 +126,8 @@ import org.springframework.stereotype.Component;
 
 @CustomLog
 @Component
-public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnvironmentCommand, DeleteEnvironmentReply> {
+public class DeleteEnvironmentCommandHandler
+        implements CommandHandler<DeleteEnvironmentCommand, DeleteEnvironmentReply> {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final AccessPointCrudService accessPointService;
@@ -199,75 +200,74 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final UserRepository userRepository;
 
     public DeleteEnvironmentCommandHandler(
-        @Lazy AccessPointRepository accessPointRepository,
-        @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository,
-        @Lazy ApiHeaderRepository apiHeaderRepository,
-        @Lazy ApiKeyRepository apiKeyRepository,
-        @Lazy AiWorkspaceComponentRepository aiWorkspaceComponentRepository,
-        @Lazy ApiProductsRepository apiProductsRepository,
-        @Lazy ApiQualityRuleRepository apiQualityRuleRepository,
-        @Lazy ApiRepository apiRepository,
-        @Lazy ApplicationRepository applicationRepository,
-        @Lazy AsyncJobRepository asyncJobRepository,
-        @Lazy AuditRepository auditRepository,
-        @Lazy CategoryRepository categoryRepository,
-        @Lazy ClientCertificateRepository clientCertificateRepository,
-        @Lazy ClientRegistrationProviderRepository clientRegistrationProviderRepository,
-        @Lazy CommandRepository commandRepository,
-        @Lazy CustomDashboardRepository customDashboardRepository,
-        @Lazy CustomUserFieldsRepository customUserFieldsRepository,
-        @Lazy DashboardRepository dashboardRepository,
-        @Lazy DictionaryRepository dictionaryRepository,
-        @Lazy FlowRepository flowRepository,
-        @Lazy GammaDashboardRepository gammaDashboardRepository,
-        @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
-        @Lazy GroupRepository groupRepository,
-        @Lazy IdentityProviderActivationRepository identityProviderActivationRepository,
-        @Lazy IntegrationRepository integrationRepository,
-        @Lazy InvitationRepository invitationRepository,
-        @Lazy KafkaPortRangeRepository kafkaPortRangeRepository,
-        @Lazy MediaRepository mediaRepository,
-        @Lazy MembershipRepository membershipRepository,
-        @Lazy MetadataRepository metadataRepository,
-        @Lazy PageRepository pageRepository,
-        @Lazy PageRevisionRepository pageRevisionRepository,
-        @Lazy ParameterRepository parameterRepository,
-        @Lazy PlanRepository planRepository,
-        @Lazy PortalCategoryRepository portalCategoryRepository,
-        @Lazy PortalMenuLinkRepository portalMenuLinkRepository,
-        @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
-        @Lazy PortalPageRepository portalPageRepository,
-        @Lazy PortalPageContextRepository portalPageContextRepository,
-        @Lazy PortalNavigationItemRepository portalNavigationItemRepository,
-        @Lazy PortalPageContentRepository portalPageContentRepository,
-        @Lazy PortalRepository portalRepository,
-        @Lazy PortalListingRepository portalListingRepository,
-        @Lazy PromotionRepository promotionRepository,
-        @Lazy QualityRuleRepository qualityRuleRepository,
-        @Lazy RatingAnswerRepository ratingAnswerRepository,
-        @Lazy RatingRepository ratingRepository,
-        @Lazy RoleRepository roleRepository,
-        @Lazy ScoringReportRepository scoringReportRepository,
-        @Lazy ScoringRulesetRepository scoringRulesetRepository,
-        @Lazy ScoringFunctionRepository scoringFunctionRepository,
-        @Lazy SharedPolicyGroupRepository sharedPolicyGroupRepository,
-        @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
-        @Lazy SubscriptionFormRepository subscriptionFormRepository,
-        @Lazy SubscriptionRepository subscriptionRepository,
-        @Lazy ThemeRepository themeRepository,
-        @Lazy TicketRepository ticketRepository,
-        @Lazy WorkflowRepository workflowRepository,
-        @Lazy ClusterRepository clusterRepository,
-        AccessPointCrudService accessPointService,
-        AlertService alertService,
-        ApiStateService apiStateService,
-        ApplicationAlertService applicationAlertService,
-        DictionaryService dictionaryService,
-        EnvironmentService environmentService,
-        IdentityProviderActivationService identityProviderActivationService,
-        SearchEngineService searchEngineService,
-        @Lazy UserRepository userRepository
-    ) {
+            @Lazy AccessPointRepository accessPointRepository,
+            @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository,
+            @Lazy ApiHeaderRepository apiHeaderRepository,
+            @Lazy ApiKeyRepository apiKeyRepository,
+            @Lazy AiWorkspaceComponentRepository aiWorkspaceComponentRepository,
+            @Lazy ApiProductsRepository apiProductsRepository,
+            @Lazy ApiQualityRuleRepository apiQualityRuleRepository,
+            @Lazy ApiRepository apiRepository,
+            @Lazy ApplicationRepository applicationRepository,
+            @Lazy AsyncJobRepository asyncJobRepository,
+            @Lazy AuditRepository auditRepository,
+            @Lazy CategoryRepository categoryRepository,
+            @Lazy ClientCertificateRepository clientCertificateRepository,
+            @Lazy ClientRegistrationProviderRepository clientRegistrationProviderRepository,
+            @Lazy CommandRepository commandRepository,
+            @Lazy CustomDashboardRepository customDashboardRepository,
+            @Lazy CustomUserFieldsRepository customUserFieldsRepository,
+            @Lazy DashboardRepository dashboardRepository,
+            @Lazy DictionaryRepository dictionaryRepository,
+            @Lazy FlowRepository flowRepository,
+            @Lazy GammaDashboardRepository gammaDashboardRepository,
+            @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
+            @Lazy GroupRepository groupRepository,
+            @Lazy IdentityProviderActivationRepository identityProviderActivationRepository,
+            @Lazy IntegrationRepository integrationRepository,
+            @Lazy InvitationRepository invitationRepository,
+            @Lazy KafkaPortRangeRepository kafkaPortRangeRepository,
+            @Lazy MediaRepository mediaRepository,
+            @Lazy MembershipRepository membershipRepository,
+            @Lazy MetadataRepository metadataRepository,
+            @Lazy PageRepository pageRepository,
+            @Lazy PageRevisionRepository pageRevisionRepository,
+            @Lazy ParameterRepository parameterRepository,
+            @Lazy PlanRepository planRepository,
+            @Lazy PortalCategoryRepository portalCategoryRepository,
+            @Lazy PortalMenuLinkRepository portalMenuLinkRepository,
+            @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
+            @Lazy PortalPageRepository portalPageRepository,
+            @Lazy PortalPageContextRepository portalPageContextRepository,
+            @Lazy PortalNavigationItemRepository portalNavigationItemRepository,
+            @Lazy PortalPageContentRepository portalPageContentRepository,
+            @Lazy PortalRepository portalRepository,
+            @Lazy PortalListingRepository portalListingRepository,
+            @Lazy PromotionRepository promotionRepository,
+            @Lazy QualityRuleRepository qualityRuleRepository,
+            @Lazy RatingAnswerRepository ratingAnswerRepository,
+            @Lazy RatingRepository ratingRepository,
+            @Lazy RoleRepository roleRepository,
+            @Lazy ScoringReportRepository scoringReportRepository,
+            @Lazy ScoringRulesetRepository scoringRulesetRepository,
+            @Lazy ScoringFunctionRepository scoringFunctionRepository,
+            @Lazy SharedPolicyGroupRepository sharedPolicyGroupRepository,
+            @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
+            @Lazy SubscriptionFormRepository subscriptionFormRepository,
+            @Lazy SubscriptionRepository subscriptionRepository,
+            @Lazy ThemeRepository themeRepository,
+            @Lazy TicketRepository ticketRepository,
+            @Lazy WorkflowRepository workflowRepository,
+            @Lazy ClusterRepository clusterRepository,
+            AccessPointCrudService accessPointService,
+            AlertService alertService,
+            ApiStateService apiStateService,
+            ApplicationAlertService applicationAlertService,
+            DictionaryService dictionaryService,
+            EnvironmentService environmentService,
+            IdentityProviderActivationService identityProviderActivationService,
+            SearchEngineService searchEngineService,
+            @Lazy UserRepository userRepository) {
         this.accessPointRepository = accessPointRepository;
         this.accessPointService = accessPointService;
         this.alertService = alertService;
@@ -373,30 +373,34 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private void disableEnvironment(ExecutionContext executionContext, String userId) {
         // Stop all Environment APIs
         apiRepository
-            .search(
-                new ApiCriteria.Builder().state(LifecycleState.STARTED).environmentId(executionContext.getEnvironmentId()).build(),
-                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-            .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), userId));
+                .search(
+                        new ApiCriteria.Builder()
+                                .state(LifecycleState.STARTED)
+                                .environmentId(executionContext.getEnvironmentId())
+                                .build(),
+                        new ApiFieldFilter.Builder()
+                                .excludeDefinition()
+                                .excludePicture()
+                                .build())
+                .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), userId));
 
         // Delete related access points
-        this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
+        this.accessPointService.deleteAccessPoints(
+                AccessPoint.ReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
 
-        this.dictionaryService.findAll(executionContext).forEach(dictionaryEntity ->
-            dictionaryService.stop(executionContext, dictionaryEntity.getId())
-        );
+        this.dictionaryService
+                .findAll(executionContext)
+                .forEach(dictionaryEntity -> dictionaryService.stop(executionContext, dictionaryEntity.getId()));
 
         // Deactivate all identity providers
         this.identityProviderActivationService.removeAllIdpsFromTarget(
-            executionContext,
-            new IdentityProviderActivationService.ActivationTarget(
-                executionContext.getEnvironmentId(),
-                IdentityProviderActivationReferenceType.ENVIRONMENT
-            )
-        );
+                executionContext,
+                new IdentityProviderActivationService.ActivationTarget(
+                        executionContext.getEnvironmentId(), IdentityProviderActivationReferenceType.ENVIRONMENT));
     }
 
-    private void deleteEnvironment(ExecutionContext executionContext, EnvironmentEntity environment) throws TechnicalException {
+    private void deleteEnvironment(ExecutionContext executionContext, EnvironmentEntity environment)
+            throws TechnicalException {
         deleteApis(executionContext);
         deleteApiProducts(executionContext.getEnvironmentId());
         deleteApplications(executionContext);
@@ -405,21 +409,23 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         apiKeyRepository.deleteByEnvironmentId(environment.getId());
         kafkaPortRangeRepository.deleteByEnvironmentId(environment.getId());
         planRepository
-            .deleteByEnvironmentId(executionContext.getEnvironmentId())
-            .forEach(planId -> {
-                try {
-                    flowRepository.deleteByReferenceIdAndReferenceType(planId, FlowReferenceType.PLAN);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+                .deleteByEnvironmentId(executionContext.getEnvironmentId())
+                .forEach(planId -> {
+                    try {
+                        flowRepository.deleteByReferenceIdAndReferenceType(planId, FlowReferenceType.PLAN);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException(e);
+                    }
+                });
         alertService
-            .findByReference(AlertReferenceType.ENVIRONMENT, environment.getId())
-            .forEach(alert -> alertService.delete(alert.getId(), environment.getId()));
+                .findByReference(AlertReferenceType.ENVIRONMENT, environment.getId())
+                .forEach(alert -> alertService.delete(alert.getId(), environment.getId()));
 
         apiHeaderRepository.deleteByEnvironmentId(environment.getId());
-        accessPointRepository.deleteByReferenceIdAndReferenceType(environment.getId(), AccessPointReferenceType.ENVIRONMENT);
-        parameterRepository.deleteByReferenceIdAndReferenceType(environment.getId(), ParameterReferenceType.ENVIRONMENT);
+        accessPointRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), AccessPointReferenceType.ENVIRONMENT);
+        parameterRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), ParameterReferenceType.ENVIRONMENT);
         portalMenuLinkRepository.deleteByEnvironmentId(environment.getId());
         portalCategoryRepository.deleteByEnvironmentId(environment.getId());
         portalPageRepository.deleteByEnvironmentId(environment.getId());
@@ -427,38 +433,42 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         portalNavigationItemRepository.deleteByEnvironmentId(environment.getId());
         portalListingRepository.deleteByEnvironmentId(environment.getId());
         portalRepository.deleteByEnvironmentId(environment.getId());
-        customUserFieldsRepository.deleteByReferenceIdAndReferenceType(environment.getId(), CustomUserFieldReferenceType.ENVIRONMENT);
-        groupRepository
-            .deleteByEnvironmentId(environment.getId())
-            .forEach(groupId -> {
-                try {
-                    membershipRepository.deleteByReferenceIdAndReferenceType(groupId, MembershipReferenceType.GROUP);
-                    invitationRepository.deleteByReferenceIdAndReferenceType(groupId, InvitationReferenceType.GROUP);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+        customUserFieldsRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), CustomUserFieldReferenceType.ENVIRONMENT);
+        groupRepository.deleteByEnvironmentId(environment.getId()).forEach(groupId -> {
+            try {
+                membershipRepository.deleteByReferenceIdAndReferenceType(groupId, MembershipReferenceType.GROUP);
+                invitationRepository.deleteByReferenceIdAndReferenceType(groupId, InvitationReferenceType.GROUP);
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(e);
+            }
+        });
 
-        membershipRepository.deleteByReferenceIdAndReferenceType(environment.getId(), MembershipReferenceType.ENVIRONMENT);
+        membershipRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), MembershipReferenceType.ENVIRONMENT);
         roleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), RoleReferenceType.ENVIRONMENT);
         categoryRepository.deleteByEnvironmentId(environment.getId());
-        dashboardRepository.deleteByReferenceIdAndReferenceType(environment.getId(), DashboardReferenceType.ENVIRONMENT);
+        dashboardRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), DashboardReferenceType.ENVIRONMENT);
         customDashboardRepository.deleteByEnvironmentId(environment.getId());
         gammaDashboardRepository.deleteByEnvironmentId(environment.getId());
         dictionaryRepository.deleteByEnvironmentId(environment.getId());
-        scoringRulesetRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
-        scoringFunctionRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
+        scoringRulesetRepository.deleteByReferenceId(
+                environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
+        scoringFunctionRepository.deleteByReferenceId(
+                environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
 
         // Always default for environment
-        portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);
-        genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);
+        portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), NotificationReferenceType.ENVIRONMENT);
+        genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), NotificationReferenceType.ENVIRONMENT);
         sharedPolicyGroupRepository.deleteByEnvironmentId(environment.getId());
         sharedPolicyGroupHistoryRepository.deleteByEnvironmentId(environment.getId());
         themeRepository.deleteByReferenceIdAndReferenceType(environment.getId(), ThemeReferenceType.ENVIRONMENT);
         identityProviderActivationRepository.deleteByReferenceIdAndReferenceType(
-            environment.getId(),
-            io.gravitee.repository.management.model.IdentityProviderActivationReferenceType.ENVIRONMENT
-        );
+                environment.getId(),
+                io.gravitee.repository.management.model.IdentityProviderActivationReferenceType.ENVIRONMENT);
         commandRepository.deleteByEnvironmentId(environment.getId());
         integrationRepository.deleteByEnvironmentId(environment.getId());
         asyncJobRepository.deleteByEnvironmentId(environment.getId());
@@ -467,27 +477,28 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         environmentService.delete(environment.getId());
         auditRepository.deleteByReferenceIdAndReferenceType(environment.getId(), Audit.AuditReferenceType.ENVIRONMENT);
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
-        qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
+        qualityRuleRepository.deleteByReferenceIdAndReferenceType(
+                environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
         clusterRepository.deleteByEnvironmentId(environment.getId());
         subscriptionFormRepository.deleteByEnvironmentId(environment.getId());
     }
 
     private void deletePortalNavigationItems(EnvironmentEntity environment) throws TechnicalException {
         portalNavigationItemRepository
-            .findAllByOrganizationIdAndEnvironmentId(environment.getOrganizationId(), environment.getId())
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE)
-            .forEach(item -> {
-                try {
-                    var pageContentId = extractPageContentId(item.getConfiguration());
-                    if (pageContentId == null) {
-                        return;
+                .findAllByOrganizationIdAndEnvironmentId(environment.getOrganizationId(), environment.getId())
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE)
+                .forEach(item -> {
+                    try {
+                        var pageContentId = extractPageContentId(item.getConfiguration());
+                        if (pageContentId == null) {
+                            return;
+                        }
+                        portalPageContentRepository.delete(pageContentId);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException(e);
                     }
-                    portalPageContentRepository.delete(pageContentId);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+                });
         portalPageContextRepository.deleteByEnvironmentId(environment.getId());
     }
 
@@ -507,72 +518,75 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     }
 
     private void deleteApis(ExecutionContext executionContext) throws TechnicalException {
-        apiRepository
-            .deleteByEnvironmentId(executionContext.getEnvironmentId())
-            .forEach(apiId -> {
-                alertService.findByReference(AlertReferenceType.API, apiId).forEach(alert -> alertService.delete(alert.getId(), apiId));
-                searchEngineService.delete(executionContext, ApiEntity.builder().id(apiId).build());
-                deletePages(executionContext, PageReferenceType.API, apiId);
+        apiRepository.deleteByEnvironmentId(executionContext.getEnvironmentId()).forEach(apiId -> {
+            alertService
+                    .findByReference(AlertReferenceType.API, apiId)
+                    .forEach(alert -> alertService.delete(alert.getId(), apiId));
+            searchEngineService.delete(
+                    executionContext, ApiEntity.builder().id(apiId).build());
+            deletePages(executionContext, PageReferenceType.API, apiId);
 
-                try {
-                    apiCategoryOrderRepository.deleteByApiId(apiId);
-                    apiQualityRuleRepository.deleteByApi(apiId);
-                    auditRepository.deleteByReferenceIdAndReferenceType(apiId, Audit.AuditReferenceType.API);
-                    flowRepository.deleteByReferenceIdAndReferenceType(apiId, FlowReferenceType.API);
-                    genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
-                    invitationRepository.deleteByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API);
-                    mediaRepository.deleteAllByApi(apiId);
-                    membershipRepository.deleteByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API);
-                    metadataRepository.deleteByReferenceIdAndReferenceType(apiId, MetadataReferenceType.API);
-                    portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(apiId, NotificationReferenceType.API);
-                    promotionRepository.deleteByApiId(apiId);
-                    scoringReportRepository.deleteByApi(apiId);
-                    ticketRepository.deleteByApiId(apiId);
-                    workflowRepository.deleteByReferenceIdAndReferenceType(apiId, Workflow.ReferenceType.API.name());
-                    deleteRatings(apiId, RatingReferenceType.API);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+            try {
+                apiCategoryOrderRepository.deleteByApiId(apiId);
+                apiQualityRuleRepository.deleteByApi(apiId);
+                auditRepository.deleteByReferenceIdAndReferenceType(apiId, Audit.AuditReferenceType.API);
+                flowRepository.deleteByReferenceIdAndReferenceType(apiId, FlowReferenceType.API);
+                genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+                        apiId, NotificationReferenceType.API);
+                invitationRepository.deleteByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API);
+                mediaRepository.deleteAllByApi(apiId);
+                membershipRepository.deleteByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API);
+                metadataRepository.deleteByReferenceIdAndReferenceType(apiId, MetadataReferenceType.API);
+                portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+                        apiId, NotificationReferenceType.API);
+                promotionRepository.deleteByApiId(apiId);
+                scoringReportRepository.deleteByApi(apiId);
+                ticketRepository.deleteByApiId(apiId);
+                workflowRepository.deleteByReferenceIdAndReferenceType(apiId, Workflow.ReferenceType.API.name());
+                deleteRatings(apiId, RatingReferenceType.API);
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(e);
+            }
+        });
     }
 
     private void deleteApiProducts(String environmentId) throws TechnicalException {
-        apiProductsRepository
-            .findByEnvironmentId(environmentId)
-            .forEach(apiProduct -> {
-                try {
-                    aiWorkspaceComponentRepository.deleteByApiProductId(apiProduct.getId());
-                    apiProductsRepository.delete(apiProduct.getId());
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+        apiProductsRepository.findByEnvironmentId(environmentId).forEach(apiProduct -> {
+            try {
+                aiWorkspaceComponentRepository.deleteByApiProductId(apiProduct.getId());
+                apiProductsRepository.delete(apiProduct.getId());
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(e);
+            }
+        });
     }
 
     private void deleteRatings(String referenceId, RatingReferenceType referenceType) throws TechnicalException {
         ratingRepository
-            .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
-            .forEach(ratingId -> {
-                try {
-                    ratingAnswerRepository.deleteByRating(ratingId);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+                .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
+                .forEach(ratingId -> {
+                    try {
+                        ratingAnswerRepository.deleteByRating(ratingId);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException(e);
+                    }
+                });
     }
 
     private void deletePages(ExecutionContext executionContext, PageReferenceType referenceType, String id) {
         try {
             pageRepository
-                .deleteByReferenceIdAndReferenceType(id, referenceType)
-                .forEach((pageId, mediaHash) -> {
-                    searchEngineService.delete(executionContext, PageEntity.builder().id(pageId).build());
-                    try {
-                        pageRevisionRepository.deleteByPageId(pageId);
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException(e);
-                    }
-                });
+                    .deleteByReferenceIdAndReferenceType(id, referenceType)
+                    .forEach((pageId, mediaHash) -> {
+                        searchEngineService.delete(
+                                executionContext,
+                                PageEntity.builder().id(pageId).build());
+                        try {
+                            pageRevisionRepository.deleteByPageId(pageId);
+                        } catch (TechnicalException e) {
+                            throw new TechnicalManagementException(e);
+                        }
+                    });
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -580,28 +594,29 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
 
     private void deleteApplications(ExecutionContext executionContext) throws TechnicalException {
         applicationRepository
-            .deleteByEnvironmentId(executionContext.getEnvironmentId())
-            .forEach(applicationId -> {
-                applicationAlertService.deleteAll(applicationId);
-                try {
-                    genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
-                        applicationId,
-                        NotificationReferenceType.APPLICATION
-                    );
-                    invitationRepository.deleteByReferenceIdAndReferenceType(applicationId, InvitationReferenceType.APPLICATION);
-                    membershipRepository.deleteByReferenceIdAndReferenceType(applicationId, MembershipReferenceType.APPLICATION);
-                    metadataRepository.deleteByReferenceIdAndReferenceType(applicationId, MetadataReferenceType.APPLICATION);
-                    portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
-                        applicationId,
-                        NotificationReferenceType.APPLICATION
-                    );
-                    workflowRepository.deleteByReferenceIdAndReferenceType(applicationId, Workflow.ReferenceType.APPLICATION.name());
-                    auditRepository.deleteByReferenceIdAndReferenceType(applicationId, Audit.AuditReferenceType.APPLICATION);
-                    ticketRepository.deleteByApplicationId(applicationId);
-                    clientCertificateRepository.deleteByApplicationId(applicationId);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+                .deleteByEnvironmentId(executionContext.getEnvironmentId())
+                .forEach(applicationId -> {
+                    applicationAlertService.deleteAll(applicationId);
+                    try {
+                        genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+                                applicationId, NotificationReferenceType.APPLICATION);
+                        invitationRepository.deleteByReferenceIdAndReferenceType(
+                                applicationId, InvitationReferenceType.APPLICATION);
+                        membershipRepository.deleteByReferenceIdAndReferenceType(
+                                applicationId, MembershipReferenceType.APPLICATION);
+                        metadataRepository.deleteByReferenceIdAndReferenceType(
+                                applicationId, MetadataReferenceType.APPLICATION);
+                        portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
+                                applicationId, NotificationReferenceType.APPLICATION);
+                        workflowRepository.deleteByReferenceIdAndReferenceType(
+                                applicationId, Workflow.ReferenceType.APPLICATION.name());
+                        auditRepository.deleteByReferenceIdAndReferenceType(
+                                applicationId, Audit.AuditReferenceType.APPLICATION);
+                        ticketRepository.deleteByApplicationId(applicationId);
+                        clientCertificateRepository.deleteByApplicationId(applicationId);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException(e);
+                    }
+                });
     }
 }

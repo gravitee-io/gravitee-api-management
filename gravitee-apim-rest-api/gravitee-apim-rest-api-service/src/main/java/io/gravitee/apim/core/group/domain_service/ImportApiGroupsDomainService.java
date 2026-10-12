@@ -54,10 +54,9 @@ public class ImportApiGroupsDomainService {
         }
 
         var environmentId = auditInfo.environmentId();
-        var validGroupNames = groupRefs
-            .stream()
-            .filter(name -> name != null && !name.isBlank())
-            .collect(Collectors.toSet());
+        var validGroupNames = groupRefs.stream()
+                .filter(name -> name != null && !name.isBlank())
+                .collect(Collectors.toSet());
 
         if (validGroupNames.isEmpty()) {
             return Set.of();
@@ -73,18 +72,18 @@ public class ImportApiGroupsDomainService {
             resolvedByName.put(missingGroupName, result.group());
             if (result.wasCreated()) {
                 log.warn(
-                    "Group [{}] did not exist in environment [{}] and was created empty during API import/promotion. " +
-                        "Members and group configuration were not copied.",
-                    missingGroupName,
-                    environmentId
-                );
+                        "Group [{}] did not exist in environment [{}] and was created empty during API import/promotion. "
+                                + "Members and group configuration were not copied.",
+                        missingGroupName,
+                        environmentId);
             }
         }
 
         return resolvedByName.values().stream().map(Group::getId).collect(Collectors.toSet());
     }
 
-    private void resolveExistingByName(Map<String, Group> resolvedByName, Set<String> missingNames, String environmentId) {
+    private void resolveExistingByName(
+            Map<String, Group> resolvedByName, Set<String> missingNames, String environmentId) {
         if (missingNames.isEmpty()) {
             return;
         }

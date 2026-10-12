@@ -64,13 +64,10 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
     }
 
     private List<Plan> filterPlan(final Api api) {
-        return api
-            .getDefinition()
-            .getPlans()
-            .stream()
-            .filter(plan -> filterPlanStatus(plan.getStatus()))
-            .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
-            .collect(Collectors.toList());
+        return api.getDefinition().getPlans().stream()
+                .filter(plan -> filterPlanStatus(plan.getStatus()))
+                .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
+                .collect(Collectors.toList());
     }
 
     private void decryptProperties(final Properties properties) {

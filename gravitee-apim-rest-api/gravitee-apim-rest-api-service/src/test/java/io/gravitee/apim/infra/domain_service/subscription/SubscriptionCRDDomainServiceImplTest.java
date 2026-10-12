@@ -112,18 +112,19 @@ class SubscriptionCRDDomainServiceImplTest {
     private static final String CUSTOM_API_KEY = "my-custom-api-key-with-32-chars!!";
 
     private static final SubscriptionCRDSpec SPEC = SubscriptionCRDSpec.builder()
-        .id(SUBSCRIPTION_ID)
-        .referenceId(API_ID)
-        .referenceType(SubscriptionReferenceType.API)
-        .applicationId(APPLICATION_ID)
-        .planId(PLAN_ID)
-        .build();
+            .id(SUBSCRIPTION_ID)
+            .referenceId(API_ID)
+            .referenceType(SubscriptionReferenceType.API)
+            .applicationId(APPLICATION_ID)
+            .planId(PLAN_ID)
+            .build();
 
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
-    private final TriggerNotificationDomainServiceInMemory notificationService = new TriggerNotificationDomainServiceInMemory();
+    private final TriggerNotificationDomainServiceInMemory notificationService =
+            new TriggerNotificationDomainServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
@@ -133,12 +134,9 @@ class SubscriptionCRDDomainServiceImplTest {
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
-    private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
-        groupQueryService,
-        membershipQueryService,
-        roleQueryService,
-        userCrudService
-    );
+    private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService =
+            new ApplicationPrimaryOwnerDomainService(
+                    groupQueryService, membershipQueryService, roleQueryService, userCrudService);
     private final MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
     private final IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
 
@@ -157,38 +155,39 @@ class SubscriptionCRDDomainServiceImplTest {
         subscriptionAdapter.setJsonSerializer(new JacksonJsonSerializer());
         subscriptionAdapter.setJsonDeserializer(new JacksonJsonDeserializer());
 
-        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID))).thenReturn(
-            subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC))
-        );
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID)))
+                .thenReturn(subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC)));
 
-        subscriptionCrudService.initWith(
-            List.of(subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.PENDING).subscribedBy(USER_ID).build())
-        );
+        subscriptionCrudService.initWith(List.of(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.PENDING)
+                .subscribedBy(USER_ID)
+                .build()));
 
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
         cut = new SubscriptionCRDDomainServiceImpl(
-            subscriptionService,
-            subscriptionAdapter,
-            acceptSubscriptionDomainService(),
-            closeSubscriptionDomainService(),
-            reconcileApiKeysDomainService(),
-            subscriptionCrudService
-        );
+                subscriptionService,
+                subscriptionAdapter,
+                acceptSubscriptionDomainService(),
+                closeSubscriptionDomainService(),
+                reconcileApiKeysDomainService(),
+                subscriptionCrudService);
 
-        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
-        applicationCrudService.initWith(
-            List.of(
-                ApplicationModelFixtures.anApplicationEntity()
-                    .toBuilder()
-                    .id(APPLICATION_ID)
-                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(
+                List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .primaryOwner(PrimaryOwnerEntity.builder()
+                        .id(USER_ID)
+                        .displayName("Jane")
+                        .build())
+                .build()));
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
     }
 
     @AfterEach
@@ -218,8 +217,10 @@ class SubscriptionCRDDomainServiceImplTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID)).isNotNull();
-            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
-            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getOrigin()).isEqualTo(OriginContext.Origin.KUBERNETES);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus())
+                    .isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getOrigin())
+                    .isEqualTo(OriginContext.Origin.KUBERNETES);
         });
     }
 
@@ -227,10 +228,12 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_not_double_accept_when_subscription_already_accepted_for_api_key_plan() {
         givenExistingApiKeyPlan();
 
-        // Simulate subscriptionService.create() internally auto-accepting the subscription (as it does for API_KEY plans)
-        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID))).thenReturn(
-            subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build())
-        );
+        // Simulate subscriptionService.create() internally auto-accepting the subscription (as it does for API_KEY
+        // plans)
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID)))
+                .thenReturn(subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .build()));
 
         var result = cut.createOrUpdate(AUDIT_INFO, SPEC);
 
@@ -249,20 +252,13 @@ class SubscriptionCRDDomainServiceImplTest {
         var metadata = Map.of("key1", "value1", "key2", "value2");
         var specWithMetadata = SPEC.toBuilder().metadata(metadata).build();
 
-        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID))).thenReturn(
-            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithMetadata))
-        );
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), isNull(), eq(SUBSCRIPTION_ID)))
+                .thenReturn(subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithMetadata)));
 
-        subscriptionCrudService.initWith(
-            List.of(
-                subscriptionAdapter
-                    .fromSpec(specWithMetadata)
-                    .toBuilder()
-                    .status(SubscriptionEntity.Status.PENDING)
-                    .subscribedBy(USER_ID)
-                    .build()
-            )
-        );
+        subscriptionCrudService.initWith(List.of(subscriptionAdapter.fromSpec(specWithMetadata).toBuilder()
+                .status(SubscriptionEntity.Status.PENDING)
+                .subscribedBy(USER_ID)
+                .build()));
 
         cut.createOrUpdate(AUDIT_INFO, specWithMetadata);
 
@@ -280,20 +276,13 @@ class SubscriptionCRDDomainServiceImplTest {
 
         var apiKeys = List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build());
         var specWithApiKeys = SPEC.toBuilder().apiKeys(apiKeys).build();
-        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID))).thenReturn(
-            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithApiKeys))
-        );
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID)))
+                .thenReturn(subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithApiKeys)));
 
-        subscriptionCrudService.initWith(
-            List.of(
-                subscriptionAdapter
-                    .fromSpec(specWithApiKeys)
-                    .toBuilder()
-                    .status(SubscriptionEntity.Status.PENDING)
-                    .subscribedBy(USER_ID)
-                    .build()
-            )
-        );
+        subscriptionCrudService.initWith(List.of(subscriptionAdapter.fromSpec(specWithApiKeys).toBuilder()
+                .status(SubscriptionEntity.Status.PENDING)
+                .subscribedBy(USER_ID)
+                .build()));
 
         cut.createOrUpdate(AUDIT_INFO, specWithApiKeys);
 
@@ -305,24 +294,16 @@ class SubscriptionCRDDomainServiceImplTest {
         givenExistingApiKeyPlan();
 
         var apiKeys = List.of(
-            ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build(),
-            ApiKeyCRDSpec.builder().key("second-api-key-with-32-chars!!!!").build()
-        );
+                ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build(),
+                ApiKeyCRDSpec.builder().key("second-api-key-with-32-chars!!!!").build());
         var specWithApiKeys = SPEC.toBuilder().apiKeys(apiKeys).build();
-        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID))).thenReturn(
-            subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithApiKeys))
-        );
+        when(subscriptionService.create(eq(EXECUTION_CONTEXT), any(), eq(CUSTOM_API_KEY), eq(SUBSCRIPTION_ID)))
+                .thenReturn(subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithApiKeys)));
 
-        subscriptionCrudService.initWith(
-            List.of(
-                subscriptionAdapter
-                    .fromSpec(specWithApiKeys)
-                    .toBuilder()
-                    .status(SubscriptionEntity.Status.PENDING)
-                    .subscribedBy(USER_ID)
-                    .build()
-            )
-        );
+        subscriptionCrudService.initWith(List.of(subscriptionAdapter.fromSpec(specWithApiKeys).toBuilder()
+                .status(SubscriptionEntity.Status.PENDING)
+                .subscribedBy(USER_ID)
+                .build()));
 
         cut.createOrUpdate(AUDIT_INFO, specWithApiKeys);
 
@@ -335,46 +316,40 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_reconcile_api_keys_on_update_revoking_removed_keys() {
         givenExistingApiKeyPlan();
 
-        var existingEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
-        );
+        var existingEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
 
-        apiKeyCrudService.initWith(
-            List.of(
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
-                    .id("old-key-id")
-                    .key("old-api-key-value-with-32-chars!!")
-                    .applicationId(APPLICATION_ID)
-                    .subscriptions(List.of(SUBSCRIPTION_ID))
-                    .environmentId(ENVIRONMENT_ID)
-                    .createdAt(ZonedDateTime.now())
-                    .updatedAt(ZonedDateTime.now())
-                    .revoked(false)
-                    .build()
-            )
-        );
+        apiKeyCrudService.initWith(List.of(io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
+                .id("old-key-id")
+                .key("old-api-key-value-with-32-chars!!")
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID))
+                .environmentId(ENVIRONMENT_ID)
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .revoked(false)
+                .build()));
 
         var specWithNewKeys = SPEC.toBuilder()
-            .apiKeys(List.of(ApiKeyCRDSpec.builder().key("new-api-key-value-with-32-chars!!").build()))
-            .build();
+                .apiKeys(List.of(ApiKeyCRDSpec.builder()
+                        .key("new-api-key-value-with-32-chars!!")
+                        .build()))
+                .build();
 
         cut.createOrUpdate(AUDIT_INFO, specWithNewKeys);
 
-        var oldKey = apiKeyCrudService
-            .storage()
-            .stream()
-            .filter(k -> k.getKey().equals("old-api-key-value-with-32-chars!!"))
-            .findFirst()
-            .orElseThrow();
+        var oldKey = apiKeyCrudService.storage().stream()
+                .filter(k -> k.getKey().equals("old-api-key-value-with-32-chars!!"))
+                .findFirst()
+                .orElseThrow();
         assertThat(oldKey.isRevoked()).isTrue();
 
-        var newKey = apiKeyCrudService
-            .storage()
-            .stream()
-            .filter(k -> k.getKey().equals("new-api-key-value-with-32-chars!!"))
-            .findFirst()
-            .orElseThrow();
+        var newKey = apiKeyCrudService.storage().stream()
+                .filter(k -> k.getKey().equals("new-api-key-value-with-32-chars!!"))
+                .findFirst()
+                .orElseThrow();
         assertThat(newKey.isRevoked()).isFalse();
     }
 
@@ -382,27 +357,25 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_reconcile_api_keys_on_update_keeping_matching_keys() {
         givenExistingApiKeyPlan();
 
-        var existingEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
-        );
+        var existingEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
 
-        apiKeyCrudService.initWith(
-            List.of(
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
-                    .id("key-id")
-                    .key(CUSTOM_API_KEY)
-                    .applicationId(APPLICATION_ID)
-                    .subscriptions(List.of(SUBSCRIPTION_ID))
-                    .environmentId(ENVIRONMENT_ID)
-                    .createdAt(ZonedDateTime.now())
-                    .updatedAt(ZonedDateTime.now())
-                    .revoked(false)
-                    .build()
-            )
-        );
+        apiKeyCrudService.initWith(List.of(io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
+                .id("key-id")
+                .key(CUSTOM_API_KEY)
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID))
+                .environmentId(ENVIRONMENT_ID)
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .revoked(false)
+                .build()));
 
-        var specWithSameKey = SPEC.toBuilder().apiKeys(List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build())).build();
+        var specWithSameKey = SPEC.toBuilder()
+                .apiKeys(List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build()))
+                .build();
 
         cut.createOrUpdate(AUDIT_INFO, specWithSameKey);
 
@@ -415,13 +388,16 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_update() {
         givenExistingJWTPlan();
 
-        cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().endingAt(ZonedDateTime.now()).build());
+        cut.createOrUpdate(
+                AUDIT_INFO, SPEC.toBuilder().endingAt(ZonedDateTime.now()).build());
 
-        verify(subscriptionService).update(EXECUTION_CONTEXT, subscriptionAdapter.fromCoreForUpdate(subscriptionAdapter.fromSpec(SPEC)));
+        verify(subscriptionService)
+                .update(EXECUTION_CONTEXT, subscriptionAdapter.fromCoreForUpdate(subscriptionAdapter.fromSpec(SPEC)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID)).isNotNull();
-            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus())
+                    .isEqualTo(SubscriptionEntity.Status.ACCEPTED);
         });
     }
 
@@ -429,15 +405,17 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_update_metadata() {
         givenExistingJWTPlan();
 
-        var existingEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
-        );
+        var existingEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
 
         var metadata = Map.of("key1", "value1");
-        var result = cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().metadata(metadata).build());
+        var result = cut.createOrUpdate(
+                AUDIT_INFO, SPEC.toBuilder().metadata(metadata).build());
 
-        verify(subscriptionService).update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
+        verify(subscriptionService)
+                .update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
         assertThat(result.getMetadata()).isEqualTo(metadata);
     }
 
@@ -445,9 +423,9 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_update_consumer_configuration() {
         givenExistingJWTPlan();
 
-        var existingEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
-        );
+        var existingEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
 
         var consumerConfiguration = new SubscriptionCRDSpec.ConsumerConfiguration();
@@ -455,43 +433,47 @@ class SubscriptionCRDDomainServiceImplTest {
         consumerConfiguration.setChannel("my-channel");
         consumerConfiguration.setEntrypointConfiguration(Map.of("callback", "http://webhook.site"));
 
-        var result = cut.createOrUpdate(AUDIT_INFO, SPEC.toBuilder().consumerConfiguration(consumerConfiguration).build());
+        var result = cut.createOrUpdate(
+                AUDIT_INFO,
+                SPEC.toBuilder().consumerConfiguration(consumerConfiguration).build());
 
-        verify(subscriptionService).update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
-        assertThat(result.getConfiguration()).isEqualTo(
-            SubscriptionConfiguration.builder()
-                .entrypointId("entrypoint-id")
-                .channel("my-channel")
-                .entrypointConfiguration("{\"callback\":\"http://webhook.site\"}")
-                .build()
-        );
+        verify(subscriptionService)
+                .update(eq(EXECUTION_CONTEXT), any(io.gravitee.rest.api.model.UpdateSubscriptionEntity.class));
+        assertThat(result.getConfiguration())
+                .isEqualTo(SubscriptionConfiguration.builder()
+                        .entrypointId("entrypoint-id")
+                        .channel("my-channel")
+                        .entrypointConfiguration("{\"callback\":\"http://webhook.site\"}")
+                        .build());
     }
 
     @Test
     void should_restore_as_accepted_a_closed_subscription() {
         givenExistingJWTPlan();
 
-        var closedEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
-        );
+        var closedEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.CLOSED)
+                .subscribedBy(USER_ID)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
 
         // When restore is called on the mock, also update the in-memory crud service to PENDING
         doAnswer(invocation -> {
-            subscriptionCrudService.update(
-                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
-            );
-            return closedEntity;
-        })
-            .when(subscriptionService)
-            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+                    subscriptionCrudService.update(subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder()
+                            .status(SubscriptionEntity.Status.PENDING)
+                            .build());
+                    return closedEntity;
+                })
+                .when(subscriptionService)
+                .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
 
         var result = cut.createOrUpdate(AUDIT_INFO, SPEC);
 
         verify(subscriptionService).restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
-            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus())
+                    .isEqualTo(SubscriptionEntity.Status.ACCEPTED);
         });
     }
 
@@ -502,35 +484,32 @@ class SubscriptionCRDDomainServiceImplTest {
         var apiKeys = List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build());
         var specWithApiKeys = SPEC.toBuilder().apiKeys(apiKeys).build();
 
-        var closedEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(specWithApiKeys).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
-        );
+        var closedEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(specWithApiKeys).toBuilder()
+                .status(SubscriptionEntity.Status.CLOSED)
+                .subscribedBy(USER_ID)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
 
-        apiKeyCrudService.initWith(
-            List.of(
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
-                    .id("revoked-key-id")
-                    .key(CUSTOM_API_KEY)
-                    .applicationId(APPLICATION_ID)
-                    .subscriptions(List.of(SUBSCRIPTION_ID))
-                    .environmentId(ENVIRONMENT_ID)
-                    .createdAt(ZonedDateTime.now())
-                    .updatedAt(ZonedDateTime.now())
-                    .revoked(true)
-                    .revokedAt(ZonedDateTime.now())
-                    .build()
-            )
-        );
+        apiKeyCrudService.initWith(List.of(io.gravitee.apim.core.api_key.model.ApiKeyEntity.builder()
+                .id("revoked-key-id")
+                .key(CUSTOM_API_KEY)
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID))
+                .environmentId(ENVIRONMENT_ID)
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .revoked(true)
+                .revokedAt(ZonedDateTime.now())
+                .build()));
 
         doAnswer(invocation -> {
-            subscriptionCrudService.update(
-                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
-            );
-            return closedEntity;
-        })
-            .when(subscriptionService)
-            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+                    subscriptionCrudService.update(subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder()
+                            .status(SubscriptionEntity.Status.PENDING)
+                            .build());
+                    return closedEntity;
+                })
+                .when(subscriptionService)
+                .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
 
         var result = cut.createOrUpdate(AUDIT_INFO, specWithApiKeys);
 
@@ -538,32 +517,33 @@ class SubscriptionCRDDomainServiceImplTest {
         assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
 
         assertThat(apiKeyCrudService.storage())
-            .as("Only the custom key should exist, no transient UUID key")
-            .hasSize(1)
-            .first()
-            .satisfies(key -> {
-                assertThat(key.getKey()).isEqualTo(CUSTOM_API_KEY);
-                assertThat(key.isRevoked()).isFalse();
-            });
+                .as("Only the custom key should exist, no transient UUID key")
+                .hasSize(1)
+                .first()
+                .satisfies(key -> {
+                    assertThat(key.getKey()).isEqualTo(CUSTOM_API_KEY);
+                    assertThat(key.isRevoked()).isFalse();
+                });
     }
 
     @Test
     void should_restore_closed_subscription_on_api_key_plan_without_custom_keys() {
         givenExistingApiKeyPlan();
 
-        var closedEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
-        );
+        var closedEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.CLOSED)
+                .subscribedBy(USER_ID)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
 
         doAnswer(invocation -> {
-            subscriptionCrudService.update(
-                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
-            );
-            return closedEntity;
-        })
-            .when(subscriptionService)
-            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+                    subscriptionCrudService.update(subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder()
+                            .status(SubscriptionEntity.Status.PENDING)
+                            .build());
+                    return closedEntity;
+                })
+                .when(subscriptionService)
+                .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
 
         var result = cut.createOrUpdate(AUDIT_INFO, SPEC);
 
@@ -571,28 +551,30 @@ class SubscriptionCRDDomainServiceImplTest {
         assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
 
         assertThat(apiKeyCrudService.storage())
-            .as("A UUID key should be generated when no custom keys are specified")
-            .hasSize(1)
-            .first()
-            .satisfies(key -> assertThat(key.isRevoked()).isFalse());
+                .as("A UUID key should be generated when no custom keys are specified")
+                .hasSize(1)
+                .first()
+                .satisfies(key -> assertThat(key.isRevoked()).isFalse());
     }
 
     @Test
     void should_fail_restoring_a_closed_subscription_while_modifying_application() {
         givenExistingJWTPlan();
 
-        var closedEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
-        );
+        var closedEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.CLOSED)
+                .subscribedBy(USER_ID)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
 
-        var withUpdatedApplication = SPEC.toBuilder().applicationId("other-application-id").build();
+        var withUpdatedApplication =
+                SPEC.toBuilder().applicationId("other-application-id").build();
         var copy = withUpdatedApplication.toBuilder().build();
 
         assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, withUpdatedApplication))
-            .isInstanceOf(SubscriptionApplicationImmutableException.class)
-            .hasMessageContaining(SUBSCRIPTION_ID)
-            .hasMessageContaining("application");
+                .isInstanceOf(SubscriptionApplicationImmutableException.class)
+                .hasMessageContaining(SUBSCRIPTION_ID)
+                .hasMessageContaining("application");
 
         // make exception is raised before any alterations, and the perstance layer is never called
         assertThat(withUpdatedApplication).usingRecursiveAssertion().isEqualTo(copy);
@@ -604,28 +586,29 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_fail_restoring_a_closed_subscription_while_modifying_plan() {
         givenExistingJWTPlan();
 
-        var closedEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.CLOSED).subscribedBy(USER_ID).build()
-        );
+        var closedEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.CLOSED)
+                .subscribedBy(USER_ID)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(closedEntity);
 
         // When restore is called on the mock, also update the in-memory crud service to PENDING
         doAnswer(invocation -> {
-            subscriptionCrudService.update(
-                subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder().status(SubscriptionEntity.Status.PENDING).build()
-            );
-            return closedEntity;
-        })
-            .when(subscriptionService)
-            .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
+                    subscriptionCrudService.update(subscriptionCrudService.get(SUBSCRIPTION_ID).toBuilder()
+                            .status(SubscriptionEntity.Status.PENDING)
+                            .build());
+                    return closedEntity;
+                })
+                .when(subscriptionService)
+                .restore(EXECUTION_CONTEXT, SUBSCRIPTION_ID);
 
         var withUpdatedPlan = SPEC.toBuilder().planId("other-plan-id").build();
         var copy = withUpdatedPlan.toBuilder().build();
 
         assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, withUpdatedPlan))
-            .isInstanceOf(SubscriptionPlanImmutableException.class)
-            .hasMessageContaining(SUBSCRIPTION_ID)
-            .hasMessageContaining("plan");
+                .isInstanceOf(SubscriptionPlanImmutableException.class)
+                .hasMessageContaining(SUBSCRIPTION_ID)
+                .hasMessageContaining("plan");
 
         // make exception is raised before any alterations, and the perstance layer is never called
         assertThat(withUpdatedPlan).usingRecursiveAssertion().isEqualTo(copy);
@@ -637,32 +620,33 @@ class SubscriptionCRDDomainServiceImplTest {
     void should_reject_update_when_plan_changed() {
         givenExistingJWTPlan();
 
-        var existingEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
-        );
+        var existingEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
 
         var specWithDifferentPlan = SPEC.toBuilder().planId("other-plan-id").build();
 
         assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, specWithDifferentPlan))
-            .isInstanceOf(SubscriptionPlanImmutableException.class)
-            .hasMessageContaining(SUBSCRIPTION_ID);
+                .isInstanceOf(SubscriptionPlanImmutableException.class)
+                .hasMessageContaining(SUBSCRIPTION_ID);
     }
 
     @Test
     void should_reject_update_when_application_changed() {
         givenExistingJWTPlan();
 
-        var existingEntity = subscriptionAdapter.map(
-            subscriptionAdapter.fromSpec(SPEC).toBuilder().status(SubscriptionEntity.Status.ACCEPTED).build()
-        );
+        var existingEntity = subscriptionAdapter.map(subscriptionAdapter.fromSpec(SPEC).toBuilder()
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build());
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(existingEntity);
 
-        var specWithDifferentApp = SPEC.toBuilder().applicationId("other-application-id").build();
+        var specWithDifferentApp =
+                SPEC.toBuilder().applicationId("other-application-id").build();
 
         assertThatThrownBy(() -> cut.createOrUpdate(AUDIT_INFO, specWithDifferentApp))
-            .isInstanceOf(SubscriptionApplicationImmutableException.class)
-            .hasMessageContaining(SUBSCRIPTION_ID);
+                .isInstanceOf(SubscriptionApplicationImmutableException.class)
+                .hasMessageContaining(SUBSCRIPTION_ID);
     }
 
     @Test
@@ -671,30 +655,31 @@ class SubscriptionCRDDomainServiceImplTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID)).isNotNull();
-            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
+            soft.assertThat(subscriptionCrudService.get(SUBSCRIPTION_ID).getStatus())
+                    .isEqualTo(SubscriptionEntity.Status.REJECTED);
         });
     }
 
     private void givenExistingJWTPlan() {
-        givenExistingPlan(
-            Plan.builder()
+        givenExistingPlan(Plan.builder()
                 .id(PLAN_ID)
                 .apiId(API_ID)
                 .definitionVersion(DefinitionVersion.V2)
-                .planDefinitionV2(io.gravitee.definition.model.Plan.builder().security("JWT").build())
-                .build()
-        );
+                .planDefinitionV2(io.gravitee.definition.model.Plan.builder()
+                        .security("JWT")
+                        .build())
+                .build());
     }
 
     private void givenExistingApiKeyPlan() {
-        givenExistingPlan(
-            Plan.builder()
+        givenExistingPlan(Plan.builder()
                 .id(PLAN_ID)
                 .apiId(API_ID)
                 .definitionVersion(DefinitionVersion.V2)
-                .planDefinitionV2(io.gravitee.definition.model.Plan.builder().security("API_KEY").build())
-                .build()
-        );
+                .planDefinitionV2(io.gravitee.definition.model.Plan.builder()
+                        .security("API_KEY")
+                        .build())
+                .build());
     }
 
     private void givenExistingPlan(Plan plan) {
@@ -703,52 +688,48 @@ class SubscriptionCRDDomainServiceImplTest {
 
     private CloseSubscriptionDomainService closeSubscriptionDomainService() {
         return new CloseSubscriptionDomainService(
-            subscriptionCrudService,
-            applicationCrudService,
-            auditDomainService(),
-            notificationService,
-            rejectSubscriptionDomainService(),
-            revokeApiKeyDomainService(),
-            apiCrudService,
-            integrationAgent
-        );
+                subscriptionCrudService,
+                applicationCrudService,
+                auditDomainService(),
+                notificationService,
+                rejectSubscriptionDomainService(),
+                revokeApiKeyDomainService(),
+                apiCrudService,
+                integrationAgent);
     }
 
     private RevokeApiKeyDomainService revokeApiKeyDomainService() {
         return new RevokeApiKeyDomainService(
-            apiKeyCrudService,
-            apiKeyQueryService,
-            subscriptionCrudService,
-            auditDomainService(),
-            notificationService
-        );
+                apiKeyCrudService,
+                apiKeyQueryService,
+                subscriptionCrudService,
+                auditDomainService(),
+                notificationService);
     }
 
     private RejectSubscriptionDomainService rejectSubscriptionDomainService() {
         return new RejectSubscriptionDomainService(
-            subscriptionCrudService,
-            auditDomainService(),
-            notificationService,
-            userCrudService,
-            applicationPrimaryOwnerDomainService
-        );
+                subscriptionCrudService,
+                auditDomainService(),
+                notificationService,
+                userCrudService,
+                applicationPrimaryOwnerDomainService);
     }
 
     private AcceptSubscriptionDomainService acceptSubscriptionDomainService() {
         return new AcceptSubscriptionDomainService(
-            subscriptionCrudService,
-            auditDomainService(),
-            apiCrudService,
-            applicationCrudService,
-            planCrudService,
-            generateApiKeyDomainService(),
-            integrationAgent,
-            notificationService,
-            userCrudService,
-            applicationPrimaryOwnerDomainService,
-            metadataCrudService,
-            integrationCrudService
-        );
+                subscriptionCrudService,
+                auditDomainService(),
+                apiCrudService,
+                applicationCrudService,
+                planCrudService,
+                generateApiKeyDomainService(),
+                integrationAgent,
+                notificationService,
+                userCrudService,
+                applicationPrimaryOwnerDomainService,
+                metadataCrudService,
+                integrationCrudService);
     }
 
     private AuditDomainService auditDomainService() {
@@ -757,20 +738,15 @@ class SubscriptionCRDDomainServiceImplTest {
 
     private GenerateApiKeyDomainService generateApiKeyDomainService() {
         return new GenerateApiKeyDomainService(
-            apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-            applicationCrudService,
-            auditDomainService(),
-            new ParametersQueryServiceInMemory()
-        );
+                apiKeyCrudService,
+                new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+                applicationCrudService,
+                auditDomainService(),
+                new ParametersQueryServiceInMemory());
     }
 
     private ReconcileApiKeysDomainService reconcileApiKeysDomainService() {
         return new ReconcileApiKeysDomainService(
-            apiKeyQueryService,
-            apiKeyCrudService,
-            generateApiKeyDomainService(),
-            revokeApiKeyDomainService()
-        );
+                apiKeyQueryService, apiKeyCrudService, generateApiKeyDomainService(), revokeApiKeyDomainService());
     }
 }

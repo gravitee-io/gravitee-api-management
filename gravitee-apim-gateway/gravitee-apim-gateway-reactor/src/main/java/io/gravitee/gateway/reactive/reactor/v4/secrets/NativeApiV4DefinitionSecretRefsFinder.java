@@ -44,48 +44,44 @@ public class NativeApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRe
     @Override
     public DefinitionDescriptor toDefinitionDescriptor(NativeApi definition, DefinitionMetadata metadata) {
         return new DefinitionDescriptor(
-            new Definition(NATIVE_API_V4_DEFINITION_KIND, definition.getId()),
-            Optional.ofNullable(metadata.revision())
-        );
+                new Definition(NATIVE_API_V4_DEFINITION_KIND, definition.getId()),
+                Optional.ofNullable(metadata.revision()));
     }
 
     @Override
     public void findSecretRefs(NativeApi definition, DefinitionSecretRefsListener listener) {
         // listeners
         safeStream(definition.getListeners())
-            .flatMap(l -> safeStream(l.getEntrypoints()))
-            .forEach(entrypoint -> processEntrypoint(listener, entrypoint));
+                .flatMap(l -> safeStream(l.getEntrypoints()))
+                .forEach(entrypoint -> processEntrypoint(listener, entrypoint));
 
         // resources
         safeStream(definition.getResources()).forEach(resource -> processResource(listener, resource));
 
         // flows api and plan
-        List<NativeFlow> flows = safeList(definition.getPlans())
-            .stream()
-            .flatMap(p -> safeStream(p.getFlows()))
-            .collect(Collectors.toCollection(ArrayList::new));
+        List<NativeFlow> flows = safeList(definition.getPlans()).stream()
+                .flatMap(p -> safeStream(p.getFlows()))
+                .collect(Collectors.toCollection(ArrayList::new));
         flows.addAll(safeList(definition.getFlows()));
         Stream.concat(
-            Stream.concat(
-                flows.stream().flatMap(flow -> safeStream(flow.getPublish())),
-                flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))
-            ),
-            Stream.concat(
-                flows.stream().flatMap(flow -> safeStream(flow.getEntrypointConnect())),
-                flows.stream().flatMap(flow -> safeStream(flow.getInteract()))
-            )
-        ).forEach(step -> processStep(listener, step));
+                        Stream.concat(
+                                flows.stream().flatMap(flow -> safeStream(flow.getPublish())),
+                                flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))),
+                        Stream.concat(
+                                flows.stream().flatMap(flow -> safeStream(flow.getEntrypointConnect())),
+                                flows.stream().flatMap(flow -> safeStream(flow.getInteract()))))
+                .forEach(step -> processStep(listener, step));
 
         safeStream(definition.getPlans()).forEach(plan -> processPlanConfiguration(listener, plan));
 
         // endpoint groups
         safeStream(definition.getEndpointGroups())
-            .flatMap(endpointGroup -> processEndpointGroup(listener, endpointGroup))
-            .forEach(endpoint -> processEndpoint(listener, endpoint));
+                .flatMap(endpointGroup -> processEndpointGroup(listener, endpointGroup))
+                .forEach(endpoint -> processEndpoint(listener, endpoint));
 
         // services
         Optional.ofNullable(definition.getServices())
-            .map(NativeApiServices::getDynamicProperty)
-            .ifPresent(dynamicProperty -> processService(listener, dynamicProperty));
+                .map(NativeApiServices::getDynamicProperty)
+                .ifPresent(dynamicProperty -> processService(listener, dynamicProperty));
     }
 }

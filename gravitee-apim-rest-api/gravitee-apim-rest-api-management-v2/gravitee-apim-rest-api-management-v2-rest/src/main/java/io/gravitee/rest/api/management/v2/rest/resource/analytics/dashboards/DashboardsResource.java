@@ -74,9 +74,10 @@ public class DashboardsResource extends AbstractResource {
         var paginationData = computePaginationData(allData, paginationParam);
 
         var response = new DashboardsResponse()
-            .data(DashboardMapper.INSTANCE.mapList(paginationData))
-            .pagination(PaginationInfo.computePaginationInfo(allData.size(), paginationData.size(), paginationParam))
-            .links(computePaginationLinks(allData.size(), paginationParam));
+                .data(DashboardMapper.INSTANCE.mapList(paginationData))
+                .pagination(
+                        PaginationInfo.computePaginationInfo(allData.size(), paginationData.size(), paginationParam))
+                .links(computePaginationLinks(allData.size(), paginationParam));
 
         return Response.ok(response).build();
     }
@@ -84,7 +85,11 @@ public class DashboardsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createDashboard(@Valid @NotNull CreateUpdateDashboard createDashboard) {
         var auditInfo = getAuditInfo();
 
@@ -93,8 +98,8 @@ public class DashboardsResource extends AbstractResource {
         var output = createDashboardUseCase.execute(new CreateDashboardUseCase.Input(dashboard, auditInfo));
 
         return Response.created(getLocationHeader(output.dashboard().getId()))
-            .entity(DashboardMapper.INSTANCE.map(output.dashboard()))
-            .build();
+                .entity(DashboardMapper.INSTANCE.map(output.dashboard()))
+                .build();
     }
 
     @Path("{dashboardId}")

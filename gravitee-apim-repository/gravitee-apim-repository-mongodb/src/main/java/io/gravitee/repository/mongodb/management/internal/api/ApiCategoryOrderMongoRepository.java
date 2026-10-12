@@ -17,9 +17,6 @@ package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.repository.mongodb.management.internal.model.ApiCategoryOrderMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiCategoryOrderPkMongo;
-import io.gravitee.repository.mongodb.management.internal.model.CategoryMongo;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -30,7 +27,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface ApiCategoryOrderMongoRepository extends MongoRepository<ApiCategoryOrderMongo, ApiCategoryOrderPkMongo> {
+public interface ApiCategoryOrderMongoRepository
+        extends MongoRepository<ApiCategoryOrderMongo, ApiCategoryOrderPkMongo> {
     @Query("{ '_id.apiId': ?0 }")
     Set<ApiCategoryOrderMongo> findAllByApiId(String apiId);
 

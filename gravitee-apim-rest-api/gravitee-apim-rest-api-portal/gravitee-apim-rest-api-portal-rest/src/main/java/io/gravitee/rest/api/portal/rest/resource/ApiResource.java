@@ -94,22 +94,21 @@ public class ApiResource extends AbstractResource {
     private GetApiForPortalUseCase getApiForPortalUseCase;
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @RequirePortalAuth
     public Response getApiByApiId(
-        @PathParam("apiId") String apiId,
-        @QueryParam("include") List<String> include,
-        @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view
-    ) {
+            @PathParam("apiId") String apiId,
+            @QueryParam("include") List<String> include,
+            @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view) {
         String username = getAuthenticatedUserOrNull();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, true);
+        GenericApiEntity genericApiEntity =
+                apiSearchService.findGenericById(executionContext, apiId, false, false, true);
 
         if (PortalApiViewParam.isDocumentationView(view)) {
             var output = getApiForPortalUseCase.execute(
-                new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, username)
-            );
+                    new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, username));
             if (!output.visible()) {
                 throw new ApiNotFoundException(apiId);
             }
@@ -121,41 +120,35 @@ public class ApiResource extends AbstractResource {
 
         if (include.contains(INCLUDE_PAGES)) {
             List<Page> pages = pageService
-                .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiId).published(true).build())
-                .stream()
-                .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, page))
-                .map(pageMapper::convert)
-                .collect(Collectors.toList());
+                    .search(
+                            GraviteeContext.getCurrentEnvironment(),
+                            new PageQuery.Builder().api(apiId).published(true).build())
+                    .stream()
+                    .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, page))
+                    .map(pageMapper::convert)
+                    .collect(Collectors.toList());
             api.setPages(pages);
         }
         if (include.contains(INCLUDE_PLANS)) {
-            List<Plan> plans = planSearchService
-                .findByApi(executionContext, genericApiEntity, true)
-                .stream()
-                .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
-                .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
-                .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
-                .map(p -> planMapper.convert(p, genericApiEntity))
-                .collect(Collectors.toList());
+            List<Plan> plans = planSearchService.findByApi(executionContext, genericApiEntity, true).stream()
+                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
+                    .filter(plan -> groupService.isUserAuthorizedToAccessApiData(
+                            genericApiEntity, plan.getExcludedGroups(), username))
+                    .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
+                    .map(p -> planMapper.convert(p, genericApiEntity))
+                    .collect(Collectors.toList());
             api.setPlans(plans);
         }
 
-        api.links(
-            apiMapper.computeApiLinks(
+        api.links(apiMapper.computeApiLinks(
                 PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()),
-                genericApiEntity.getUpdatedAt()
-            )
-        );
-        if (!parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
+                genericApiEntity.getUpdatedAt()));
+        if (!parameterService.findAsBoolean(
+                executionContext, Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
             api.setLabels(new ArrayList<>());
         }
-        if (
-            !parameterService.findAsBoolean(
-                executionContext,
-                Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ) {
+        if (!parameterService.findAsBoolean(
+                executionContext, Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
             api.setCategories(new ArrayList<>());
         }
         return Response.ok(api).build();
@@ -163,19 +156,16 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Path("picture")
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
     @RequirePortalAuth
     public Response getPictureByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
 
-        // Do not filter on visibility to display the picture on subscription screen even if the API is no more published
+        // Do not filter on visibility to display the picture on subscription screen even if the API is no more
+        // published
         Set<String> userApis = apiAuthorizationService.findIdsByUser(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUserOrNull(),
-            apiQuery,
-            false
-        );
+                GraviteeContext.getExecutionContext(), getAuthenticatedUserOrNull(), apiQuery, false);
         if (userApis.stream().anyMatch(id -> id.equals(apiId))) {
             InlinePictureEntity image = apiService.getPicture(GraviteeContext.getExecutionContext(), apiId);
             return createPictureResponse(request, image);
@@ -185,7 +175,7 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Path("background")
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
     public Response getBackgroundByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             InlinePictureEntity image = apiService.getBackground(GraviteeContext.getExecutionContext(), apiId);
@@ -203,81 +193,93 @@ public class ApiResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> apiLinks = new HashMap<>();
         pageService
-            .search(
-                GraviteeContext.getCurrentEnvironment(),
-                new PageQuery.Builder().api(apiId).type(PageType.SYSTEM_FOLDER).build(),
-                acceptedLocale
-            )
-            .stream()
-            .filter(PageEntity::isPublished)
-            .forEach(sysPage -> {
-                List<CategorizedLinks> catLinksList = new ArrayList<>();
-
-                // for pages under sysFolder
-                List<Link> links = getLinksFromFolder(sysPage, apiId, acceptedLocale);
-                if (!links.isEmpty()) {
-                    CategorizedLinks catLinks = new CategorizedLinks();
-                    catLinks.setCategory(sysPage.getName());
-                    catLinks.setLinks(links);
-                    catLinks.setRoot(true);
-                    catLinksList.add(catLinks);
-                }
-
-                // for pages into folders
-                pageService
-                    .search(
+                .search(
                         GraviteeContext.getCurrentEnvironment(),
-                        new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(),
-                        acceptedLocale
-                    )
-                    .stream()
-                    .filter(PageEntity::isPublished)
-                    .filter(p -> p.getType().equals("FOLDER"))
-                    .forEach(folder -> {
-                        List<Link> folderLinks = getLinksFromFolder(folder, apiId, acceptedLocale);
-                        if (folderLinks != null && !folderLinks.isEmpty()) {
-                            CategorizedLinks catLinks = new CategorizedLinks();
-                            catLinks.setCategory(folder.getName());
-                            catLinks.setLinks(folderLinks);
-                            catLinks.setRoot(false);
-                            catLinksList.add(catLinks);
-                        }
-                    });
-                if (!catLinksList.isEmpty()) {
-                    apiLinks.put(sysPage.getName().toLowerCase(), catLinksList);
-                }
-            });
+                        new PageQuery.Builder()
+                                .api(apiId)
+                                .type(PageType.SYSTEM_FOLDER)
+                                .build(),
+                        acceptedLocale)
+                .stream()
+                .filter(PageEntity::isPublished)
+                .forEach(sysPage -> {
+                    List<CategorizedLinks> catLinksList = new ArrayList<>();
+
+                    // for pages under sysFolder
+                    List<Link> links = getLinksFromFolder(sysPage, apiId, acceptedLocale);
+                    if (!links.isEmpty()) {
+                        CategorizedLinks catLinks = new CategorizedLinks();
+                        catLinks.setCategory(sysPage.getName());
+                        catLinks.setLinks(links);
+                        catLinks.setRoot(true);
+                        catLinksList.add(catLinks);
+                    }
+
+                    // for pages into folders
+                    pageService
+                            .search(
+                                    GraviteeContext.getCurrentEnvironment(),
+                                    new PageQuery.Builder()
+                                            .api(apiId)
+                                            .parent(sysPage.getId())
+                                            .build(),
+                                    acceptedLocale)
+                            .stream()
+                            .filter(PageEntity::isPublished)
+                            .filter(p -> p.getType().equals("FOLDER"))
+                            .forEach(folder -> {
+                                List<Link> folderLinks = getLinksFromFolder(folder, apiId, acceptedLocale);
+                                if (folderLinks != null && !folderLinks.isEmpty()) {
+                                    CategorizedLinks catLinks = new CategorizedLinks();
+                                    catLinks.setCategory(folder.getName());
+                                    catLinks.setLinks(folderLinks);
+                                    catLinks.setRoot(false);
+                                    catLinksList.add(catLinks);
+                                }
+                            });
+                    if (!catLinksList.isEmpty()) {
+                        apiLinks.put(sysPage.getName().toLowerCase(), catLinksList);
+                    }
+                });
 
         return Response.ok(new LinksResponse().slots(apiLinks)).build();
     }
 
     private List<Link> getLinksFromFolder(PageEntity folder, String apiId, String acceptedLocale) {
         return pageService
-            .search(
-                GraviteeContext.getCurrentEnvironment(),
-                new PageQuery.Builder().api(apiId).parent(folder.getId()).build(),
-                acceptedLocale
-            )
-            .stream()
-            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity))
-            .filter(p -> !PageType.FOLDER.name().equals(p.getType()) && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
-            .map(p -> {
-                if ("LINK".equals(p.getType())) {
-                    Link link = new Link()
-                        .name(p.getName())
-                        .resourceRef(p.getContent())
-                        .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)));
-                    String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
-                    if (isFolderConfig != null && !isFolderConfig.isEmpty()) {
-                        link.setFolder(Boolean.valueOf(isFolderConfig));
-                    }
+                .search(
+                        GraviteeContext.getCurrentEnvironment(),
+                        new PageQuery.Builder()
+                                .api(apiId)
+                                .parent(folder.getId())
+                                .build(),
+                        acceptedLocale)
+                .stream()
+                .filter(pageEntity ->
+                        accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity))
+                .filter(p -> !PageType.FOLDER.name().equals(p.getType())
+                        && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
+                .map(p -> {
+                    if ("LINK".equals(p.getType())) {
+                        Link link = new Link()
+                                .name(p.getName())
+                                .resourceRef(p.getContent())
+                                .resourceType(ResourceTypeEnum.fromValue(
+                                        p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)));
+                        String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
+                        if (isFolderConfig != null && !isFolderConfig.isEmpty()) {
+                            link.setFolder(Boolean.valueOf(isFolderConfig));
+                        }
 
-                    return link;
-                } else {
-                    return new Link().name(p.getName()).resourceRef(p.getId()).resourceType(ResourceTypeEnum.PAGE);
-                }
-            })
-            .collect(Collectors.toList());
+                        return link;
+                    } else {
+                        return new Link()
+                                .name(p.getName())
+                                .resourceRef(p.getId())
+                                .resourceType(ResourceTypeEnum.PAGE);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     @Path("metrics")

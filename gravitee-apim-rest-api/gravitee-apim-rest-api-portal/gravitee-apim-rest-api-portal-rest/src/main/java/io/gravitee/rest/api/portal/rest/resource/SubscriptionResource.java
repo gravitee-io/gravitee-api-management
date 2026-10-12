@@ -83,18 +83,13 @@ public class SubscriptionResource extends AbstractResource {
     private static final String INCLUDE_KEYS = "keys";
     private static final String INCLUDE_CONSUMER_CONFIGURATION = "consumerConfiguration";
     private static final String INCLUDE_API_PRODUCT = "apiProduct";
-    private static final Set<SubscriptionStatus> API_PRODUCT_CLOSABLE_STATUSES = Set.of(
-        SubscriptionStatus.PENDING,
-        SubscriptionStatus.ACCEPTED,
-        SubscriptionStatus.PAUSED
-    );
+    private static final Set<SubscriptionStatus> API_PRODUCT_CLOSABLE_STATUSES =
+            Set.of(SubscriptionStatus.PENDING, SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED);
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSubscriptionBySubscriptionId(
-        @PathParam("subscriptionId") String subscriptionId,
-        @QueryParam("include") List<String> include
-    ) {
+            @PathParam("subscriptionId") String subscriptionId, @QueryParam("include") List<String> include) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         boolean apiProductSubscription = isApiProductSubscription(subscriptionEntity);
@@ -106,47 +101,43 @@ public class SubscriptionResource extends AbstractResource {
         Subscription subscription = SubscriptionMapper.INSTANCE.map(subscriptionEntity);
         if (apiProductSubscription && include.contains(INCLUDE_API_PRODUCT)) {
             var output = getPortalApiProductSubscriptionDetailsUseCase.execute(
-                new GetPortalApiProductSubscriptionDetailsUseCase.Input(
-                    executionContext.getOrganizationId(),
-                    executionContext.getEnvironmentId(),
-                    subscriptionEntity.getReferenceId(),
-                    subscriptionEntity.getPlan(),
-                    PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
-                )
-            );
+                    new GetPortalApiProductSubscriptionDetailsUseCase.Input(
+                            executionContext.getOrganizationId(),
+                            executionContext.getEnvironmentId(),
+                            subscriptionEntity.getReferenceId(),
+                            subscriptionEntity.getPlan(),
+                            PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())));
             subscription.setApiProduct(ApiProductSubscriptionDetailsMapper.INSTANCE.map(output.apiProduct()));
         }
         if (include.contains(INCLUDE_KEYS)) {
-            List<Key> keys = apiKeyService
-                .findBySubscription(executionContext, subscriptionId)
-                .stream()
-                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
-                .map(keyMapper::convert)
-                .toList();
+            List<Key> keys = apiKeyService.findBySubscription(executionContext, subscriptionId).stream()
+                    .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                    .map(keyMapper::convert)
+                    .toList();
             subscription.setKeys(keys);
         }
 
         if (include.contains(INCLUDE_CONSUMER_CONFIGURATION)) {
-            subscription.setConsumerConfiguration(SubscriptionMapper.INSTANCE.map(subscriptionEntity.getConfiguration()));
+            subscription.setConsumerConfiguration(
+                    SubscriptionMapper.INSTANCE.map(subscriptionEntity.getConfiguration()));
         }
 
         return Response.ok(subscription).build();
     }
 
-    private boolean hasReadPermission(ExecutionContext executionContext, SubscriptionEntity subscription, boolean apiProductSubscription) {
+    private boolean hasReadPermission(
+            ExecutionContext executionContext, SubscriptionEntity subscription, boolean apiProductSubscription) {
         boolean hasApplicationPermission = hasPermission(
-            executionContext,
-            APPLICATION_SUBSCRIPTION,
-            subscription.getApplication(),
-            RolePermissionAction.READ
-        );
+                executionContext, APPLICATION_SUBSCRIPTION, subscription.getApplication(), RolePermissionAction.READ);
         if (apiProductSubscription) {
             return hasApplicationPermission;
         }
-        return (
-            hasApplicationPermission ||
-            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscription.getApi(), RolePermissionAction.READ)
-        );
+        return (hasApplicationPermission
+                || hasPermission(
+                        executionContext,
+                        RolePermission.API_SUBSCRIPTION,
+                        subscription.getApi(),
+                        RolePermissionAction.READ));
     }
 
     @POST
@@ -157,7 +148,11 @@ public class SubscriptionResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         boolean apiProductSubscription = isApiProductSubscription(subscriptionEntity);
         validateApiProductEnvironment(executionContext, subscriptionEntity, apiProductSubscription);
-        if (!hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.DELETE)) {
+        if (!hasPermission(
+                executionContext,
+                APPLICATION_SUBSCRIPTION,
+                subscriptionEntity.getApplication(),
+                RolePermissionAction.DELETE)) {
             throw new ForbiddenAccessException();
         }
         if (apiProductSubscription && !API_PRODUCT_CLOSABLE_STATUSES.contains(subscriptionEntity.getStatus())) {
@@ -171,19 +166,20 @@ public class SubscriptionResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateSubscription(
-        @PathParam("subscriptionId") String subscriptionId,
-        @Valid @NotNull UpdateSubscriptionInput updateSubscriptionInput
-    ) {
+            @PathParam("subscriptionId") String subscriptionId,
+            @Valid @NotNull UpdateSubscriptionInput updateSubscriptionInput) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
-        validateApiProductEnvironment(executionContext, subscriptionEntity, isApiProductSubscription(subscriptionEntity));
+        validateApiProductEnvironment(
+                executionContext, subscriptionEntity, isApiProductSubscription(subscriptionEntity));
 
         if (!hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), UPDATE)) {
             throw new ForbiddenAccessException();
         }
 
-        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity =
+                new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(subscriptionId);
         updateSubscriptionConfigurationEntity.setUpdateMetadata(false);
         updateSubscriptionConfigurationEntity.setSubscriptionFormMetadataValidationRequired(true);
@@ -194,12 +190,12 @@ public class SubscriptionResource extends AbstractResource {
             subscriptionConfigurationEntity.setChannel(subscriptionConfigurationInput.getChannel());
             subscriptionConfigurationEntity.setEntrypointId(subscriptionConfigurationInput.getEntrypointId());
             subscriptionConfigurationEntity.setEntrypointConfiguration(
-                graviteeMapper.valueToTree(subscriptionConfigurationInput.getEntrypointConfiguration())
-            );
+                    graviteeMapper.valueToTree(subscriptionConfigurationInput.getEntrypointConfiguration()));
             updateSubscriptionConfigurationEntity.setConfiguration(subscriptionConfigurationEntity);
         }
 
-        SubscriptionEntity updatedSubscription = subscriptionService.update(executionContext, updateSubscriptionConfigurationEntity);
+        SubscriptionEntity updatedSubscription =
+                subscriptionService.update(executionContext, updateSubscriptionConfigurationEntity);
         return Response.ok(updatedSubscription).build();
     }
 
@@ -207,11 +203,10 @@ public class SubscriptionResource extends AbstractResource {
     @Path("_changeConsumerStatus")
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateSubscriptionConsumerStatus(
-        @PathParam("subscriptionId") String subscriptionId,
-        @Parameter(required = true, schema = @Schema(allowableValues = { "STARTED", "STOPPED" })) @QueryParam(
-            "status"
-        ) SubscriptionConsumerStatus subscriptionConsumerStatus
-    ) {
+            @PathParam("subscriptionId") String subscriptionId,
+            @Parameter(required = true, schema = @Schema(allowableValues = {"STARTED", "STOPPED"}))
+                    @QueryParam("status")
+                    SubscriptionConsumerStatus subscriptionConsumerStatus) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
@@ -232,11 +227,13 @@ public class SubscriptionResource extends AbstractResource {
 
         return switch (subscriptionConsumerStatus) {
             case STARTED -> {
-                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscriptionId);
+                SubscriptionEntity updatedSubscriptionEntity =
+                        subscriptionService.resumeConsumer(executionContext, subscriptionId);
                 yield Response.ok(updatedSubscriptionEntity).build();
             }
             case STOPPED -> {
-                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscriptionId);
+                SubscriptionEntity updatedSubscriptionEntity =
+                        subscriptionService.pauseConsumer(executionContext, subscriptionId);
                 yield Response.ok(updatedSubscriptionEntity).build();
             }
             default -> Response.status(Response.Status.BAD_REQUEST).build();
@@ -250,7 +247,8 @@ public class SubscriptionResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
-        validateApiProductEnvironment(executionContext, subscriptionEntity, isApiProductSubscription(subscriptionEntity));
+        validateApiProductEnvironment(
+                executionContext, subscriptionEntity, isApiProductSubscription(subscriptionEntity));
 
         if (!hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), UPDATE)) {
             throw new ForbiddenAccessException();
@@ -260,7 +258,8 @@ public class SubscriptionResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeFailed(executionContext, subscriptionId);
+        SubscriptionEntity updatedSubscriptionEntity =
+                subscriptionService.resumeFailed(executionContext, subscriptionId);
         return Response.ok(updatedSubscriptionEntity).build();
     }
 
@@ -274,11 +273,9 @@ public class SubscriptionResource extends AbstractResource {
     }
 
     private static void validateApiProductEnvironment(
-        ExecutionContext executionContext,
-        SubscriptionEntity subscription,
-        boolean apiProductSubscription
-    ) {
-        if (apiProductSubscription && !Objects.equals(executionContext.getEnvironmentId(), subscription.getEnvironmentId())) {
+            ExecutionContext executionContext, SubscriptionEntity subscription, boolean apiProductSubscription) {
+        if (apiProductSubscription
+                && !Objects.equals(executionContext.getEnvironmentId(), subscription.getEnvironmentId())) {
             throw new SubscriptionNotFoundException(subscription.getId());
         }
     }

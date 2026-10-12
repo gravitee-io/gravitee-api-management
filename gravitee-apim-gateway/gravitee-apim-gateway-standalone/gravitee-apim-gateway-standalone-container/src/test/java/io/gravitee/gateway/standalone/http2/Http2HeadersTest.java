@@ -34,29 +34,27 @@ import org.junit.jupiter.api.Test;
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/teams.json")
 public class Http2HeadersTest extends AbstractWiremockGatewayTest {
 
-    io.vertx.core.http.HttpClient httpClient = Vertx.vertx().createHttpClient(
-        new HttpClientOptions().setSsl(true).setTrustAll(true).setUseAlpn(true).setProtocolVersion(HttpVersion.HTTP_2)
-    );
+    io.vertx.core.http.HttpClient httpClient = Vertx.vertx()
+            .createHttpClient(new HttpClientOptions()
+                    .setSsl(true)
+                    .setTrustAll(true)
+                    .setUseAlpn(true)
+                    .setProtocolVersion(HttpVersion.HTTP_2));
 
     @Test
     public void should_conserve_multi_values() {
         String cookie1 = "JSESSIONID=ABSCDEDASDSSDSSE.oai007; path=/; Secure; HttpOnly";
         String cookie2 = "JSESSIONID=BASCDEDASDSSDSSE.oai008; path=/another; Secure; HttpOnly";
 
-        wireMockRule.stubFor(
-            get(urlPathEqualTo("/team/my_team")).willReturn(
-                ok().withHeader(HttpHeaderNames.SET_COOKIE, cookie1).withHeader(HttpHeaderNames.SET_COOKIE, cookie2)
-            )
-        );
+        wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team"))
+                .willReturn(ok().withHeader(HttpHeaderNames.SET_COOKIE, cookie1)
+                        .withHeader(HttpHeaderNames.SET_COOKIE, cookie2)));
 
         httpClient
-            .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
-            .onComplete(event -> {
-                Assertions.assertTrue(event.succeeded());
-                event
-                    .result()
-                    .send()
-                    .onComplete(responseEvent -> {
+                .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
+                .onComplete(event -> {
+                    Assertions.assertTrue(event.succeeded());
+                    event.result().send().onComplete(responseEvent -> {
                         Assertions.assertTrue(responseEvent.succeeded());
 
                         HttpClientResponse response = responseEvent.result();
@@ -69,7 +67,7 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
                         assertEquals(cookie1, cookieHeaders.get(0));
                         assertEquals(cookie2, cookieHeaders.get(1));
                     });
-            });
+                });
     }
 
     @Test
@@ -77,13 +75,10 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok().withHeader("custom", "foobar")));
 
         httpClient
-            .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
-            .onComplete(event -> {
-                Assertions.assertTrue(event.succeeded());
-                event
-                    .result()
-                    .send()
-                    .onComplete(responseEvent -> {
+                .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
+                .onComplete(event -> {
+                    Assertions.assertTrue(event.succeeded());
+                    event.result().send().onComplete(responseEvent -> {
                         Assertions.assertTrue(responseEvent.succeeded());
 
                         HttpClientResponse response = responseEvent.result();
@@ -94,6 +89,6 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
                         List<String> customHeaders = response.headers().getAll("custom");
                         assertEquals(1, customHeaders.size());
                     });
-            });
+                });
     }
 }

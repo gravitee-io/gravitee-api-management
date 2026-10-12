@@ -44,40 +44,35 @@ import java.util.Optional;
 import lombok.Getter;
 
 public interface AnalyticsQueryService {
-    Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
+    Optional<RequestsCount> searchRequestsCount(
+            ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
-    );
+            ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
     Optional<AverageConnectionDuration> searchAverageConnectionDuration(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
-    );
+            ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
-    Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, AnalyticsQueryParameters queryParameters);
+    Optional<ResponseStatusRanges> searchResponseStatusRanges(
+            ExecutionContext executionContext, AnalyticsQueryParameters queryParameters);
 
     Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
-        ExecutionContext executionContext,
-        List<String> apiIds,
-        Instant startTime,
-        Instant endTime,
-        Duration interval,
-        Collection<DefinitionVersion> versions
-    );
+            ExecutionContext executionContext,
+            List<String> apiIds,
+            Instant startTime,
+            Instant endTime,
+            Duration interval,
+            Collection<DefinitionVersion> versions);
 
-    ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query);
+    ResponseStatusOvertime searchResponseStatusOvertime(
+            ExecutionContext executionContext, ResponseStatusOverTimeQuery query);
 
     Optional<TopHitsApps> searchTopHitsApps(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
-    RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
+    RequestResponseTime searchRequestResponseTime(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     @Getter
     enum SearchTerm {
@@ -98,7 +93,8 @@ public interface AnalyticsQueryService {
 
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
-    Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters);
+    Optional<HistogramAnalytics> searchHistogramAnalytics(
+            ExecutionContext executionContext, HistogramQuery histogramParameters);
 
     Optional<GroupByAnalytics> searchGroupByAnalytics(ExecutionContext executionContext, GroupByQuery groupByQuery);
 
@@ -113,24 +109,22 @@ public interface AnalyticsQueryService {
     record CountQuery(SearchTermId searchTermId, Instant from, Instant to, Optional<String> query) {}
 
     record HistogramQuery(
-        SearchTermId searchTermId,
-        Instant from,
-        Instant to,
-        Duration interval,
-        List<Aggregation> aggregations,
-        Optional<String> query,
-        List<Term> terms
-    ) {}
+            SearchTermId searchTermId,
+            Instant from,
+            Instant to,
+            Duration interval,
+            List<Aggregation> aggregations,
+            Optional<String> query,
+            List<Term> terms) {}
 
     record GroupByQuery(
-        SearchTermId searchTermId,
-        Instant from,
-        Instant to,
-        String field,
-        List<Group> groups,
-        Optional<Order> order,
-        Optional<String> query
-    ) {
+            SearchTermId searchTermId,
+            Instant from,
+            Instant to,
+            String field,
+            List<Group> groups,
+            Optional<Order> order,
+            Optional<String> query) {
         public record Group(long from, long to) {}
 
         public record Order(String field, boolean order, String type) {
@@ -156,19 +150,13 @@ public interface AnalyticsQueryService {
     record StatsQuery(SearchTermId searchTermId, String field, Instant from, Instant to, Optional<String> query) {}
 
     record ResponseStatusOverTimeQuery(
-        List<String> apiIds,
-        Instant from,
-        Instant to,
-        Duration interval,
-        Collection<DefinitionVersion> versions
-    ) {
+            List<String> apiIds, Instant from, Instant to, Duration interval, Collection<DefinitionVersion> versions) {
         public ResponseStatusOverTimeQuery(
-            List<String> apiIds,
-            Instant from,
-            Instant to,
-            Duration interval,
-            Collection<DefinitionVersion> versions
-        ) {
+                List<String> apiIds,
+                Instant from,
+                Instant to,
+                Duration interval,
+                Collection<DefinitionVersion> versions) {
             this.apiIds = apiIds;
             this.from = from;
             this.to = to;

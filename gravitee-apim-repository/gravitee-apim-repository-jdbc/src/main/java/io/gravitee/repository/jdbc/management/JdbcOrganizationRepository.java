@@ -35,7 +35,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organization, String> implements OrganizationRepository {
+public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organization, String>
+        implements OrganizationRepository {
 
     private final String ORGANIZATION_HRIDS;
 
@@ -47,12 +48,12 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
     @Override
     protected JdbcObjectMapper<Organization> buildOrm() {
         return JdbcObjectMapper.builder(Organization.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("cockpit_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("flow_mode", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("cockpit_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("flow_mode", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -105,19 +106,18 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         log.debug("JdbcOrganizationRepository.findByHrids({})", hrids);
 
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
-            .append(" org")
-            .append(" join ")
-            .append(ORGANIZATION_HRIDS)
-            .append(" oh on org.id = oh.organization_id");
+                .append(" org")
+                .append(" join ")
+                .append(ORGANIZATION_HRIDS)
+                .append(" oh on org.id = oh.organization_id");
 
         getOrm().buildInCondition(true, query, "oh.hrid", hrids);
 
         try {
             List<Organization> organizations = jdbcTemplate.query(
-                query.toString(),
-                (PreparedStatement ps) -> getOrm().setArguments(ps, hrids, 1),
-                getOrm().getRowMapper()
-            );
+                    query.toString(),
+                    (PreparedStatement ps) -> getOrm().setArguments(ps, hrids, 1),
+                    getOrm().getRowMapper());
             for (Organization org : organizations) {
                 this.addHrids(org);
             }
@@ -133,10 +133,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         log.debug("JdbcOrganizationRepository.findByCockpitId({})", cockpitId);
         try {
             List<Organization> organizations = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where cockpit_id = ?",
-                getOrm().getRowMapper(),
-                cockpitId
-            );
+                    getOrm().getSelectAllSql() + " where cockpit_id = ?", getOrm().getRowMapper(), cockpitId);
 
             final Optional<Organization> organization = organizations.stream().findFirst();
 
@@ -171,26 +168,27 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
     private void addHrids(Organization parent) {
         List<String> hrids = jdbcTemplate.queryForList(
-            "select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos",
-            String.class,
-            parent.getId()
-        );
+                "select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos",
+                String.class,
+                parent.getId());
         parent.setHrids(hrids);
     }
 
     private void storeHrids(Organization organization, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from " + ORGANIZATION_HRIDS + " where organization_id = ?", organization.getId());
+            jdbcTemplate.update(
+                    "delete from " + ORGANIZATION_HRIDS + " where organization_id = ?", organization.getId());
         }
         List<String> hrids = getOrm().filterStrings(organization.getHrids());
         if (!hrids.isEmpty()) {
             final List<Object[]> params = new ArrayList<>(hrids.size());
 
             for (int i = 0; i < hrids.size(); i++) {
-                params.add(new Object[] { organization.getId(), hrids.get(i), i });
+                params.add(new Object[] {organization.getId(), hrids.get(i), i});
             }
 
-            jdbcTemplate.batchUpdate("insert into " + ORGANIZATION_HRIDS + " (organization_id, hrid, pos) values ( ?, ?, ? )", params);
+            jdbcTemplate.batchUpdate(
+                    "insert into " + ORGANIZATION_HRIDS + " (organization_id, hrid, pos) values ( ?, ?, ? )", params);
         }
     }
 }

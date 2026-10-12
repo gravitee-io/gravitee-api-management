@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.model.ApiKeyMode;
 import java.util.Map;
 
 /**

@@ -72,8 +72,8 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
 
     @org.testcontainers.junit.jupiter.Container
     protected static final VaultContainer vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
-        .withVaultToken(VAULT_TOKEN)
-        .dependsOn(solaceContainer);
+            .withVaultToken(VAULT_TOKEN)
+            .dependsOn(solaceContainer);
 
     @AfterAll
     static void cleanup() {
@@ -82,7 +82,8 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -99,12 +100,14 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
         configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.host", vaultContainer.getHost());
-        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
+        configurationBuilder.setYamlProperty(
+                "api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", "false");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "token");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.config.token", token);
         try {
-            vaultContainer.execInContainer("vault", "kv", "put", "secret/solace", "url=" + solaceContainer.getOrigin(Service.SMF));
+            vaultContainer.execInContainer(
+                    "vault", "kv", "put", "secret/solace", "url=" + solaceContainer.getOrigin(Service.SMF));
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -112,11 +115,10 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
 
     @Override
     public void configureSecretProviders(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins) {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class));
     }
 
     @Override
@@ -126,127 +128,123 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint.json"})
     void should_receive_messages(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(response -> {
-                final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
-                return Completable.fromCompletionStage(publisher.startAsync())
-                    .andThen(
-                        Completable.fromRunnable(() -> {
-                            Topic topic1 = Topic.of(topic);
-                            OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
-                            messageBuilder.withProperty("key", "value");
-                            OutboundMessage outboundMessage = messageBuilder.build("message".getBytes());
-                            publisher.publish(outboundMessage, topic1);
-                        })
-                    )
-                    .andThen(response.body());
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                final JsonArray items = jsonResponse.getJsonArray("items");
-                assertThat(items).hasSize(1);
-                final JsonObject message = items.getJsonObject(0);
-                assertThat(message.getString("content")).isEqualTo("message");
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(response -> {
+                    final DirectMessagePublisher publisher = messagingService
+                            .createDirectMessagePublisherBuilder()
+                            .build();
+                    return Completable.fromCompletionStage(publisher.startAsync())
+                            .andThen(Completable.fromRunnable(() -> {
+                                Topic topic1 = Topic.of(topic);
+                                OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
+                                messageBuilder.withProperty("key", "value");
+                                OutboundMessage outboundMessage = messageBuilder.build("message".getBytes());
+                                publisher.publish(outboundMessage, topic1);
+                            }))
+                            .andThen(response.body());
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("message");
+                    return true;
+                });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-secret.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-secret.json"})
     void should_receive_messages_with_secret(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test-secret")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(response -> {
-                final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
-                return Completable.fromCompletionStage(publisher.startAsync())
-                    .andThen(
-                        Completable.fromRunnable(() -> {
-                            Topic topic1 = Topic.of(topic);
-                            OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
-                            messageBuilder.withProperty("key", "value");
-                            OutboundMessage outboundMessage = messageBuilder.build("message".getBytes());
-                            publisher.publish(outboundMessage, topic1);
-                        })
-                    )
-                    .andThen(response.body());
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                final JsonArray items = jsonResponse.getJsonArray("items");
-                assertThat(items).hasSize(1);
-                final JsonObject message = items.getJsonObject(0);
-                assertThat(message.getString("content")).isEqualTo("message");
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test-secret")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(response -> {
+                    final DirectMessagePublisher publisher = messagingService
+                            .createDirectMessagePublisherBuilder()
+                            .build();
+                    return Completable.fromCompletionStage(publisher.startAsync())
+                            .andThen(Completable.fromRunnable(() -> {
+                                Topic topic1 = Topic.of(topic);
+                                OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
+                                messageBuilder.withProperty("key", "value");
+                                OutboundMessage outboundMessage = messageBuilder.build("message".getBytes());
+                                publisher.publish(outboundMessage, topic1);
+                            }))
+                            .andThen(response.body());
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("message");
+                    return true;
+                });
     }
 
-    @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
+    @EnumSource(
+            value = Qos.class,
+            names = {"AT_MOST_ONCE", "AT_LEAST_ONCE"})
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-most-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-least-once.json",
+        "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-most-once.json",
+    })
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test-" + qos.getLabel())
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
-            .flatMap(HttpClientResponse::body)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                assertThat(jsonResponse.getString("message")).isEqualTo(
-                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
-                );
-                assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(400);
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test-" + qos.getLabel())
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
+                .flatMap(HttpClientResponse::body)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    assertThat(jsonResponse.getString("message"))
+                            .isEqualTo(
+                                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports");
+                    assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(400);
+                    return true;
+                });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-failure.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-failure.json"})
     void should_receive_error_messages_when_error_occurred(HttpClient client) {
         // First request should receive 2 first messages
-        client
-            .rxRequest(HttpMethod.GET, "/test-failure")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(500);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                assertThat(jsonResponse.getString("message")).isEqualTo("Endpoint connection failed");
-                assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(500);
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test-failure")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(500);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    assertThat(jsonResponse.getString("message")).isEqualTo("Endpoint connection failed");
+                    assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(500);
+                    return true;
+                });
     }
 }

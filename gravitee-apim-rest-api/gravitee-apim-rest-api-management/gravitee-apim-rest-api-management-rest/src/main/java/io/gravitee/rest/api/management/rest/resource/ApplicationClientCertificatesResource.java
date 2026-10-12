@@ -77,22 +77,21 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List client certificates for an application",
-        description = "User must have the APPLICATION_DEFINITION[READ] permission to use this service"
-    )
+            summary = "List client certificates for an application",
+            description = "User must have the APPLICATION_DEFINITION[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Paginated list of client certificates",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ClientCertificatePagedResult.class))
-    )
+            responseCode = "200",
+            description = "Paginated list of client certificates",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ClientCertificatePagedResult.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public PagedResult<ClientCertificate> getApplicationClientCertificates(@Valid @BeanParam Pageable pageable) {
-        Page<ClientCertificate> page = ClientCertificateMapper.INSTANCE.map(
-            getClientCertificatesUseCase
+        Page<ClientCertificate> page = ClientCertificateMapper.INSTANCE.map(getClientCertificatesUseCase
                 .execute(new GetClientCertificatesUseCase.Input(application, pageable.toPageable()))
-                .clientCertificates()
-        );
+                .clientCertificates());
         return new PagedResult<>(page, pageable.getSize());
     }
 
@@ -100,23 +99,26 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create a client certificate for an application",
-        description = "User must have the APPLICATION_DEFINITION[CREATE] permission to use this service"
-    )
+            summary = "Create a client certificate for an application",
+            description = "User must have the APPLICATION_DEFINITION[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Client certificate successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateClientCertificate.class))
-    )
+            responseCode = "201",
+            description = "Client certificate successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = CreateClientCertificate.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.CREATE) })
-    public Response createApplicationClientCertificate(@Valid @NotNull final CreateClientCertificate createClientCertificate) {
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.CREATE)})
+    public Response createApplicationClientCertificate(
+            @Valid @NotNull final CreateClientCertificate createClientCertificate) {
         var created = createClientCertificateUseCase
-            .execute(
-                new CreateClientCertificateUseCase.Input(application, ClientCertificateMapper.INSTANCE.toDomain(createClientCertificate))
-            )
-            .clientCertificate();
-        return Response.created(this.getLocationHeader(created.id())).entity(ClientCertificateMapper.INSTANCE.toDto(created)).build();
+                .execute(new CreateClientCertificateUseCase.Input(
+                        application, ClientCertificateMapper.INSTANCE.toDomain(createClientCertificate)))
+                .clientCertificate();
+        return Response.created(this.getLocationHeader(created.id()))
+                .entity(ClientCertificateMapper.INSTANCE.toDto(created))
+                .build();
     }
 
     @POST
@@ -124,22 +126,25 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Validate a PEM-encoded client certificate",
-        description = "Parses the certificate and returns its metadata without persisting it. User must have the APPLICATION_DEFINITION[READ] permission to use this service."
-    )
+            summary = "Validate a PEM-encoded client certificate",
+            description =
+                    "Parses the certificate and returns its metadata without persisting it. User must have the APPLICATION_DEFINITION[READ] permission to use this service.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Certificate is valid",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidateCertificateResponse.class))
-    )
+            responseCode = "200",
+            description = "Certificate is valid",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ValidateCertificateResponse.class)))
     @ApiResponse(responseCode = "400", description = "Certificate is invalid, empty, or is a CA certificate")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response validateCertificate(@Valid @NotNull final ValidateCertificateRequest request) {
-        var result = validateClientCertificateUseCase.execute(new ValidateClientCertificateUseCase.Input(request.certificate()));
+        var result = validateClientCertificateUseCase.execute(
+                new ValidateClientCertificateUseCase.Input(request.certificate()));
         var certificateInfo = result.certificateInfo();
-        return Response.ok(
-            new ValidateCertificateResponse(certificateInfo.certificateExpiration(), certificateInfo.subject(), certificateInfo.issuer())
-        ).build();
+        return Response.ok(new ValidateCertificateResponse(
+                        certificateInfo.certificateExpiration(), certificateInfo.subject(), certificateInfo.issuer()))
+                .build();
     }
 
     @Path("{certId}")

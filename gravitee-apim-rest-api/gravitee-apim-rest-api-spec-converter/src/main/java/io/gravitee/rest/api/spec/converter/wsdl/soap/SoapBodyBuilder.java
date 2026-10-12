@@ -36,7 +36,8 @@ public class SoapBodyBuilder extends AbstractSoapBuilder {
     public XmlCursor build() {
         BobyParts bodyParts = null;
         if (version.hasBodyElement(bindingOperation.getBindingInput().getExtensibilityElements())) {
-            bodyParts = version.extractBodyParts(bindingOperation.getBindingInput().getExtensibilityElements());
+            bodyParts =
+                    version.extractBodyParts(bindingOperation.getBindingInput().getExtensibilityElements());
         }
 
         Input input = bindingOperation.getOperation().getInput();
@@ -52,15 +53,18 @@ public class SoapBodyBuilder extends AbstractSoapBuilder {
                 // body contains XML description of part elements
                 xmlCursor.toFirstChild();
 
-                if (Objects.isNull(bodyParts.getPartNames()) || bodyParts.getPartNames().isEmpty()) {
+                if (Objects.isNull(bodyParts.getPartNames())
+                        || bodyParts.getPartNames().isEmpty()) {
                     // process all the parts
-                    for (Part part : (Collection<Part>) input.getMessage().getParts().values()) {
+                    for (Part part :
+                            (Collection<Part>) input.getMessage().getParts().values()) {
                         generateXml(part, xmlCursor, bodyParts.useEncoded());
                     }
                 } else {
                     // process only parts requested by the soap:body elt
                     for (Object partName : bodyParts.getPartNames()) {
-                        generateXml((Part) input.getMessage().getParts().get(partName), xmlCursor, bodyParts.useEncoded());
+                        generateXml(
+                                (Part) input.getMessage().getParts().get(partName), xmlCursor, bodyParts.useEncoded());
                     }
                 }
 
@@ -77,9 +81,11 @@ public class SoapBodyBuilder extends AbstractSoapBuilder {
                     xmlCursor.insertAttributeWithValue(version.getEncodingStyleQName(), SoapVersion.ENCODING_STYLE_URI);
                 }
 
-                if (Objects.isNull(bodyParts.getPartNames()) || bodyParts.getPartNames().isEmpty()) {
+                if (Objects.isNull(bodyParts.getPartNames())
+                        || bodyParts.getPartNames().isEmpty()) {
                     // process all the parts
-                    for (Part part : (Collection<Part>) input.getMessage().getParts().values()) {
+                    for (Part part :
+                            (Collection<Part>) input.getMessage().getParts().values()) {
                         generateRpcPart(xmlCursor, part, bodyParts.useEncoded());
                     }
                 } else {

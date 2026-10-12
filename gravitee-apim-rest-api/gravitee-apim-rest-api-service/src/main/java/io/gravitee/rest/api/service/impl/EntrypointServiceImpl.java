@@ -65,10 +65,9 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         try {
             log.debug("Find by id {}", entrypointId);
             final Optional<Entrypoint> optionalEntryPoint = entrypointRepository.findByIdAndReference(
-                entrypointId,
-                executionContext.getOrganizationId(),
-                repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION)
-            );
+                    entrypointId,
+                    executionContext.getOrganizationId(),
+                    repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION));
             if (!optionalEntryPoint.isPresent()) {
                 throw new EntrypointNotFoundException(entrypointId);
             }
@@ -83,33 +82,36 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         try {
             log.debug("Find all APIs");
             return entrypointRepository
-                .findByReference(executionContext.getOrganizationId(), repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION))
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toList());
+                    .findByReference(
+                            executionContext.getOrganizationId(),
+                            repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION))
+                    .stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find all entrypoints", ex);
         }
     }
 
     @Override
-    public EntrypointEntity create(final ExecutionContext executionContext, final NewEntryPointEntity entrypointEntity) {
+    public EntrypointEntity create(
+            final ExecutionContext executionContext, final NewEntryPointEntity entrypointEntity) {
         try {
             final Entrypoint entrypoint = convert(entrypointEntity, executionContext);
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(singletonMap(ENTRYPOINT, entrypoint.getId()))
-                    .event(ENTRYPOINT_CREATED)
-                    .createdAt(new Date())
-                    .oldValue(null)
-                    .newValue(entrypoint)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(singletonMap(ENTRYPOINT, entrypoint.getId()))
+                            .event(ENTRYPOINT_CREATED)
+                            .createdAt(new Date())
+                            .oldValue(null)
+                            .newValue(entrypoint)
+                            .build());
             return savedEntryPoint;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to create entrypoint " + entrypointEntity.getValue(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create entrypoint " + entrypointEntity.getValue(), ex);
         }
     }
 
@@ -117,10 +119,9 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     public EntrypointEntity update(ExecutionContext executionContext, final UpdateEntryPointEntity entrypointEntity) {
         try {
             final Optional<Entrypoint> entrypointOptional = entrypointRepository.findByIdAndReference(
-                entrypointEntity.getId(),
-                executionContext.getOrganizationId(),
-                repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION)
-            );
+                    entrypointEntity.getId(),
+                    executionContext.getOrganizationId(),
+                    repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION));
             if (entrypointOptional.isPresent()) {
                 final Entrypoint entrypoint = convert(entrypointEntity);
                 Entrypoint existingEntrypoint = entrypointOptional.get();
@@ -128,21 +129,21 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 entrypoint.setReferenceType(existingEntrypoint.getReferenceType());
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
                 auditService.createOrganizationAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(singletonMap(ENTRYPOINT, entrypoint.getId()))
-                        .event(ENTRYPOINT_UPDATED)
-                        .createdAt(new Date())
-                        .oldValue(entrypointOptional.get())
-                        .newValue(entrypoint)
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(singletonMap(ENTRYPOINT, entrypoint.getId()))
+                                .event(ENTRYPOINT_UPDATED)
+                                .createdAt(new Date())
+                                .oldValue(entrypointOptional.get())
+                                .newValue(entrypoint)
+                                .build());
                 return savedEntryPoint;
             } else {
                 throw new EntrypointNotFoundException(entrypointEntity.getId());
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to update entrypoint " + entrypointEntity.getValue(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update entrypoint " + entrypointEntity.getValue(), ex);
         }
     }
 
@@ -150,27 +151,26 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     public void delete(final ExecutionContext executionContext, final String entrypointId) {
         try {
             Optional<Entrypoint> entrypointOptional = entrypointRepository.findByIdAndReference(
-                entrypointId,
-                executionContext.getOrganizationId(),
-                repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION)
-            );
+                    entrypointId,
+                    executionContext.getOrganizationId(),
+                    repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION));
             if (entrypointOptional.isPresent()) {
                 entrypointRepository.delete(entrypointId);
                 auditService.createOrganizationAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(singletonMap(ENTRYPOINT, entrypointId))
-                        .event(ENTRYPOINT_DELETED)
-                        .createdAt(new Date())
-                        .oldValue(null)
-                        .newValue(entrypointOptional.get())
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(singletonMap(ENTRYPOINT, entrypointId))
+                                .event(ENTRYPOINT_DELETED)
+                                .createdAt(new Date())
+                                .oldValue(null)
+                                .newValue(entrypointOptional.get())
+                                .build());
             } else {
                 throw new EntrypointNotFoundException(entrypointId);
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete entrypoint " + entrypointId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete entrypoint " + entrypointId, ex);
         }
     }
 
@@ -181,8 +181,9 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
         entrypoint.setEnvironmentIds(
-            entrypointEntity.getEnvironmentIds() != null ? String.join(SEPARATOR, entrypointEntity.getEnvironmentIds()) : null
-        );
+                entrypointEntity.getEnvironmentIds() != null
+                        ? String.join(SEPARATOR, entrypointEntity.getEnvironmentIds())
+                        : null);
         entrypoint.setReferenceId(executionContext.getOrganizationId());
         entrypoint.setReferenceType(repoEntrypointReferenceType(EntrypointReferenceType.ORGANIZATION));
         return entrypoint;
@@ -195,8 +196,9 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
         entrypoint.setEnvironmentIds(
-            entrypointEntity.getEnvironmentIds() != null ? String.join(SEPARATOR, entrypointEntity.getEnvironmentIds()) : null
-        );
+                entrypointEntity.getEnvironmentIds() != null
+                        ? String.join(SEPARATOR, entrypointEntity.getEnvironmentIds())
+                        : null);
         return entrypoint;
     }
 
@@ -207,16 +209,15 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         entrypointEntity.setValue(entrypoint.getValue());
         entrypointEntity.setTags(entrypoint.getTags().split(SEPARATOR));
         entrypointEntity.setEnvironmentIds(
-            entrypoint.getEnvironmentIds() != null && !entrypoint.getEnvironmentIds().isEmpty()
-                ? entrypoint.getEnvironmentIds().split(SEPARATOR)
-                : null
-        );
+                entrypoint.getEnvironmentIds() != null
+                                && !entrypoint.getEnvironmentIds().isEmpty()
+                        ? entrypoint.getEnvironmentIds().split(SEPARATOR)
+                        : null);
         return entrypointEntity;
     }
 
     private io.gravitee.repository.management.model.EntrypointReferenceType repoEntrypointReferenceType(
-        EntrypointReferenceType referenceType
-    ) {
+            EntrypointReferenceType referenceType) {
         return io.gravitee.repository.management.model.EntrypointReferenceType.valueOf(referenceType.name());
     }
 }

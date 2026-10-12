@@ -30,7 +30,8 @@ import java.util.Set;
 public interface IdentityProviderService {
     IdentityProviderEntity create(ExecutionContext executionContext, NewIdentityProviderEntity identityProvider);
 
-    IdentityProviderEntity update(ExecutionContext executionContext, String id, UpdateIdentityProviderEntity identityProvider);
+    IdentityProviderEntity update(
+            ExecutionContext executionContext, String id, UpdateIdentityProviderEntity identityProvider);
 
     IdentityProviderEntity findById(String id);
 

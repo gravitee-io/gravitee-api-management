@@ -33,7 +33,8 @@ public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientO
     }
 
     @Override
-    public void serialize(HttpClientOptions httpClientOptions, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HttpClientOptions httpClientOptions, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeNumberField("connectTimeout", httpClientOptions.getConnectTimeout());
         jgen.writeNumberField("idleTimeout", httpClientOptions.getIdleTimeout());
@@ -44,7 +45,8 @@ public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientO
         jgen.writeNumberField("maxConcurrentConnections", httpClientOptions.getMaxConcurrentConnections());
         jgen.writeBooleanField("useCompression", httpClientOptions.isUseCompression());
         if (!httpClientOptions.isUseCompression()) {
-            jgen.writeBooleanField("propagateClientAcceptEncoding", httpClientOptions.isPropagateClientAcceptEncoding());
+            jgen.writeBooleanField(
+                    "propagateClientAcceptEncoding", httpClientOptions.isPropagateClientAcceptEncoding());
         }
         jgen.writeBooleanField("followRedirects", httpClientOptions.isFollowRedirects());
 

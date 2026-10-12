@@ -33,20 +33,25 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractConnectorsResource extends AbstractResource {
 
-    protected Collection<ConnectorExpandPluginEntity> expand(Set<ConnectorPluginEntity> connectorPluginEntities, List<String> expands) {
-        Stream<ConnectorExpandPluginEntity> stream = connectorPluginEntities.stream().map(this::convert);
+    protected Collection<ConnectorExpandPluginEntity> expand(
+            Set<ConnectorPluginEntity> connectorPluginEntities, List<String> expands) {
+        Stream<ConnectorExpandPluginEntity> stream =
+                connectorPluginEntities.stream().map(this::convert);
 
         if (expands != null && !expands.isEmpty()) {
             for (String expand : expands) {
                 if ("schema".equals(expand)) {
-                    stream = stream.peek(connectorListItem -> connectorListItem.setSchema(getSchema(connectorListItem.getId())));
+                    stream = stream.peek(
+                            connectorListItem -> connectorListItem.setSchema(getSchema(connectorListItem.getId())));
                 } else if ("icon".equals(expand)) {
-                    stream = stream.peek(connectorListItem -> connectorListItem.setIcon(getIcon(connectorListItem.getId())));
+                    stream = stream.peek(
+                            connectorListItem -> connectorListItem.setIcon(getIcon(connectorListItem.getId())));
                 }
             }
         }
 
-        return stream.sorted(Comparator.comparing(ConnectorExpandPluginEntity::getName)).collect(Collectors.toList());
+        return stream.sorted(Comparator.comparing(ConnectorExpandPluginEntity::getName))
+                .collect(Collectors.toList());
     }
 
     private ConnectorExpandPluginEntity convert(ConnectorPluginEntity endpointPluginEntity) {

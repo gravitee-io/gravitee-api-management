@@ -41,17 +41,16 @@ public final class PortalNavigationApi extends PortalNavigationItem implements P
     private List<PortalCategoryId> categoryIds = List.of();
 
     PortalNavigationApi(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull String apiId,
-        @Nonnull Boolean published,
-        @Nonnull PortalVisibility visibility,
-        List<PortalCategoryId> categoryIds
-    ) {
+            @Nonnull PortalNavigationItemId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String title,
+            @Nonnull PortalArea area,
+            @Nonnull Integer order,
+            @Nonnull String apiId,
+            @Nonnull Boolean published,
+            @Nonnull PortalVisibility visibility,
+            List<PortalCategoryId> categoryIds) {
         super(id, organizationId, environmentId, title, area, order, published, visibility);
         this.apiId = apiId;
         this.categoryIds = normalizeCategoryIds(categoryIds);

@@ -44,9 +44,8 @@ import org.springframework.stereotype.Repository;
 
 @CustomLog
 @Repository
-public class JdbcSharedPolicyGroupRepository
-    extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupRepository {
+public class JdbcSharedPolicyGroupRepository extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
+        implements SharedPolicyGroupRepository {
 
     JdbcSharedPolicyGroupRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "sharedpolicygroups");
@@ -55,24 +54,24 @@ public class JdbcSharedPolicyGroupRepository
     @Override
     protected JdbcObjectMapper<SharedPolicyGroup> buildOrm() {
         return JdbcObjectMapper.builder(SharedPolicyGroup.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("cross_id", Types.NVARCHAR, String.class)
-            .addColumn("hrid", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("prerequisite_message", Types.NVARCHAR, String.class)
-            .addColumn("version", Types.INTEGER, Integer.class)
-            .addColumn("api_type", Types.NVARCHAR, ApiType.class)
-            .addColumn("origin", Types.NVARCHAR, String.class)
-            .addColumn("phase", Types.NVARCHAR, SharedPolicyGroup.FlowPhase.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("lifecycle_state", Types.NVARCHAR, SharedPolicyGroupLifecycleState.class)
-            .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("cross_id", Types.NVARCHAR, String.class)
+                .addColumn("hrid", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("prerequisite_message", Types.NVARCHAR, String.class)
+                .addColumn("version", Types.INTEGER, Integer.class)
+                .addColumn("api_type", Types.NVARCHAR, ApiType.class)
+                .addColumn("origin", Types.NVARCHAR, String.class)
+                .addColumn("phase", Types.NVARCHAR, SharedPolicyGroup.FlowPhase.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("lifecycle_state", Types.NVARCHAR, SharedPolicyGroupLifecycleState.class)
+                .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -107,7 +106,7 @@ public class JdbcSharedPolicyGroupRepository
 
     @Override
     public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+            throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
@@ -131,32 +130,31 @@ public class JdbcSharedPolicyGroupRepository
             }
 
             var total = jdbcTemplate.queryForObject(
-                "select count(*) from " + this.tableName + " WHERE " + andWhere,
-                Long.class,
-                andWhereParams.toArray()
-            );
+                    "select count(*) from " + this.tableName + " WHERE " + andWhere,
+                    Long.class,
+                    andWhereParams.toArray());
 
             if (total == null || total == 0) {
                 return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
             }
 
-            sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
+            sortable = sortable == null
+                    ? new SortableBuilder().field("created_at").setAsc(true).build()
+                    : sortable;
             final var sortOrder = sortable.order() == Order.ASC ? "ASC" : "DESC";
             final var sortField = toSnakeCase(sortable.field());
 
             var result = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " WHERE " +
-                    andWhere +
-                    " ORDER BY " +
-                    sortField +
-                    " " +
-                    sortOrder +
-                    " " +
-                    createPagingClause(pageable.pageSize(), pageable.from()),
-                getOrm().getRowMapper(),
-                andWhereParams.toArray()
-            );
+                    getOrm().getSelectAllSql() + " WHERE "
+                            + andWhere
+                            + " ORDER BY "
+                            + sortField
+                            + " "
+                            + sortOrder
+                            + " "
+                            + createPagingClause(pageable.pageSize(), pageable.from()),
+                    getOrm().getRowMapper(),
+                    andWhereParams.toArray());
 
             return new Page<>(result, pageable.pageNumber(), result.size(), total);
         } catch (Exception ex) {
@@ -166,20 +164,21 @@ public class JdbcSharedPolicyGroupRepository
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId)
+            throws TechnicalException {
         log.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
 
         try {
             final var result = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND cross_id = ?",
-                getOrm().getRowMapper(),
-                environmentId,
-                crossId
-            );
+                    getOrm().getSelectAllSql() + " WHERE environment_id = ? AND cross_id = ?",
+                    getOrm().getRowMapper(),
+                    environmentId,
+                    crossId);
 
             final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
 
-            log.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
+            log.debug(
+                    "Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
             return Optional.ofNullable(sharedPolicyGroup);
         } catch (Exception ex) {
             log.error("Failed to find SharedPolicyGroup by environment ID and cross ID:", ex);
@@ -188,16 +187,16 @@ public class JdbcSharedPolicyGroupRepository
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid)
+            throws TechnicalException {
         log.debug("Find shared policy group by environment ID [{}] and  HRID [{}]", environmentId, hrid);
 
         try {
             final var result = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND hrid = ?",
-                getOrm().getRowMapper(),
-                environmentId,
-                hrid
-            );
+                    getOrm().getSelectAllSql() + " WHERE environment_id = ? AND hrid = ?",
+                    getOrm().getRowMapper(),
+                    environmentId,
+                    hrid);
 
             final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
 
@@ -214,10 +213,7 @@ public class JdbcSharedPolicyGroupRepository
 
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " WHERE environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " WHERE environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);

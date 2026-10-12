@@ -80,21 +80,22 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
     }
 
     @AfterEach
@@ -108,14 +109,12 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
         // Given
         final var folder = (CreatePortalNavigationFolder) PortalNavigationItemsFixtures.aCreatePortalNavigationFolder();
         final var request = new BaseCreatePortalNavigationItems().items(List.of(folder));
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
 
         // When
         Response response = target.request().post(json(request));
@@ -135,12 +134,12 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
         final var request = new BaseCreatePortalNavigationItems().items(List.of(page, folder, link, apiProduct));
 
         final var output = List.of(
-            PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT),
-            PortalNavigationItemsFixtures.aPortalNavigationFolder(ORGANIZATION, ENVIRONMENT),
-            PortalNavigationItemsFixtures.aPortalNavigationLink(ORGANIZATION, ENVIRONMENT),
-            PortalNavigationItemsFixtures.aPortalNavigationApiProduct(ORGANIZATION, ENVIRONMENT)
-        );
-        when(bulkCreatePortalNavigationItemUseCase.execute(any())).thenReturn(new BulkCreatePortalNavigationItemUseCase.Output(output));
+                PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT),
+                PortalNavigationItemsFixtures.aPortalNavigationFolder(ORGANIZATION, ENVIRONMENT),
+                PortalNavigationItemsFixtures.aPortalNavigationLink(ORGANIZATION, ENVIRONMENT),
+                PortalNavigationItemsFixtures.aPortalNavigationApiProduct(ORGANIZATION, ENVIRONMENT));
+        when(bulkCreatePortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new BulkCreatePortalNavigationItemUseCase.Output(output));
 
         // When
         Response response = target.request().post(json(request));
@@ -152,54 +151,47 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
         final var body = response.readEntity(PortalNavigationItemsResponse.class);
         assertThat(body).isNotNull();
         assertThat(body.getItems()).hasSize(4);
-        assertThat(
-            body
-                .getItems()
-                .stream()
-                .map(i -> ((BasePortalNavigationItem) i.getActualInstance()).getTitle())
-                .toList()
-        ).containsExactly(page.getTitle(), folder.getTitle(), link.getTitle(), apiProduct.getTitle());
+        assertThat(body.getItems().stream()
+                        .map(i -> ((BasePortalNavigationItem) i.getActualInstance()).getTitle())
+                        .toList())
+                .containsExactly(page.getTitle(), folder.getTitle(), link.getTitle(), apiProduct.getTitle());
     }
 
     @Test
     void should_return_canonical_api_documentation_from_the_bulk_use_case() {
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
         final var request = new BaseCreatePortalNavigationItems().items(List.of(page));
-        final var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference("api-id"))
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .published(false)
-            .build();
+        final var output =
+                PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null).toBuilder()
+                        .reference(new NavigationItemReference.ApiReference("api-id"))
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .published(false)
+                        .build();
         output.markAsRoot();
-        when(bulkCreatePortalNavigationItemUseCase.execute(any())).thenReturn(
-            new BulkCreatePortalNavigationItemUseCase.Output(List.of(output))
-        );
+        when(bulkCreatePortalNavigationItemUseCase.execute(any()))
+                .thenReturn(new BulkCreatePortalNavigationItemUseCase.Output(List.of(output)));
 
         Response response = target.request().post(json(request));
 
         assertThat(response).hasStatus(OK_200);
         var captor = ArgumentCaptor.forClass(BulkCreatePortalNavigationItemUseCase.Input.class);
         verify(bulkCreatePortalNavigationItemUseCase).execute(captor.capture());
-        assertThat(captor.getValue().items())
-            .singleElement()
-            .satisfies(item -> {
-                assertThat(item.getParentId().id()).isEqualTo(page.getParentId());
-                assertThat(item.getRenderedParentId()).isNull();
-                assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
-            });
+        assertThat(captor.getValue().items()).singleElement().satisfies(item -> {
+            assertThat(item.getParentId().id()).isEqualTo(page.getParentId());
+            assertThat(item.getRenderedParentId()).isNull();
+            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+        });
 
         final var body = response.readEntity(PortalNavigationItemsResponse.class);
-        assertThat(body.getItems())
-            .singleElement()
-            .satisfies(item -> {
-                var result = (PortalNavigationPage) item.getActualInstance();
-                assertThat(result.getId()).isEqualTo(output.getId().id());
-                assertThat(result.getParentId()).isNull();
-                assertThat(result.getRootId()).isEqualTo(output.getId().id());
-                assertThat(result.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
-            });
+        assertThat(body.getItems()).singleElement().satisfies(item -> {
+            var result = (PortalNavigationPage) item.getActualInstance();
+            assertThat(result.getId()).isEqualTo(output.getId().id());
+            assertThat(result.getParentId()).isNull();
+            assertThat(result.getRootId()).isEqualTo(output.getId().id());
+            assertThat(result.getPortalPageContentId())
+                    .isEqualTo(output.getPortalPageContentId().id());
+        });
     }
 
     @Test

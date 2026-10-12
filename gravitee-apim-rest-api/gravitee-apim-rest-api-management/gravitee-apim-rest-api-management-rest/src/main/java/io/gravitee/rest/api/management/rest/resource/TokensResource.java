@@ -19,7 +19,6 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.service.TokenService;
@@ -51,17 +50,18 @@ public class TokensResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List user's personal tokens")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's personal tokens",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TokenEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "User's personal tokens",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TokenEntity.class))))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<TokenEntity> getTokens() {
-        return tokenService.findByUser(getAuthenticatedUser()).stream().sorted(comparing(TokenEntity::getCreatedAt)).collect(toList());
+        return tokenService.findByUser(getAuthenticatedUser()).stream()
+                .sorted(comparing(TokenEntity::getCreatedAt))
+                .collect(toList());
     }
 
     @POST
@@ -69,10 +69,12 @@ public class TokensResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a personal token")
     @ApiResponse(
-        responseCode = "201",
-        description = "A new personal token",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TokenEntity.class))
-    )
+            responseCode = "201",
+            description = "A new personal token",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = TokenEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public TokenEntity createTokens(@Valid @NotNull final NewTokenEntity token) {
         return tokenService.create(GraviteeContext.getExecutionContext(), token, getAuthenticatedUser());

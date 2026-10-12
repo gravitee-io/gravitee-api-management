@@ -22,11 +22,10 @@ import java.time.ZonedDateTime;
  * Carries only the fields needed for window bucketing, idempotency and notification dispatch.
  */
 public record ExpiringSubscription(
-    String id,
-    String apiId,
-    String planId,
-    String applicationId,
-    String subscribedBy,
-    ZonedDateTime endingAt,
-    Integer daysToExpirationOnLastNotification
-) {}
+        String id,
+        String apiId,
+        String planId,
+        String applicationId,
+        String subscribedBy,
+        ZonedDateTime endingAt,
+        Integer daysToExpirationOnLastNotification) {}

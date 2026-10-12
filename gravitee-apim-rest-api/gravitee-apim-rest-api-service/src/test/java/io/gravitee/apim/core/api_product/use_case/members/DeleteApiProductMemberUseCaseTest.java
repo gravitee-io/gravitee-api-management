@@ -45,7 +45,9 @@ class DeleteApiProductMemberUseCaseTest {
         assertThat(memberQueryService.storage()).hasSize(4);
         deleteApiProductMemberUseCase.execute(new DeleteApiProductMemberUseCase.Input("ap-1", "member-1"));
         assertThat(memberQueryService.storage()).hasSize(3);
-        assertThat(memberQueryService.storage()).map(Member::getId).containsExactlyInAnyOrder("member-2", "member-3", "primary-owner");
+        assertThat(memberQueryService.storage())
+                .map(Member::getId)
+                .containsExactlyInAnyOrder("member-2", "member-3", "primary-owner");
     }
 
     @Test
@@ -56,44 +58,44 @@ class DeleteApiProductMemberUseCaseTest {
 
     @Test
     void should_throw_exception_when_deleting_primary_owner() {
-        assertThatThrownBy(() ->
-            deleteApiProductMemberUseCase.execute(new DeleteApiProductMemberUseCase.Input("ap-1", "primary-owner"))
-        ).isInstanceOf(PrimaryOwnerRemovalException.class);
+        assertThatThrownBy(() -> deleteApiProductMemberUseCase.execute(
+                        new DeleteApiProductMemberUseCase.Input("ap-1", "primary-owner")))
+                .isInstanceOf(PrimaryOwnerRemovalException.class);
         assertThat(memberQueryService.storage()).hasSize(4);
     }
 
     private void initMembers() {
-        memberQueryService.initWith(
-            List.of(
+        memberQueryService.initWith(List.of(
                 Member.builder()
-                    .id("member-1")
-                    .referenceType(MembershipReferenceType.API_PRODUCT)
-                    .referenceId("ap-1")
-                    .type(MembershipMemberType.USER)
-                    .roles(List.of())
-                    .build(),
+                        .id("member-1")
+                        .referenceType(MembershipReferenceType.API_PRODUCT)
+                        .referenceId("ap-1")
+                        .type(MembershipMemberType.USER)
+                        .roles(List.of())
+                        .build(),
                 Member.builder()
-                    .id("member-2")
-                    .referenceType(MembershipReferenceType.API_PRODUCT)
-                    .referenceId("ap-1")
-                    .type(MembershipMemberType.USER)
-                    .roles(List.of())
-                    .build(),
+                        .id("member-2")
+                        .referenceType(MembershipReferenceType.API_PRODUCT)
+                        .referenceId("ap-1")
+                        .type(MembershipMemberType.USER)
+                        .roles(List.of())
+                        .build(),
                 Member.builder()
-                    .id("member-3")
-                    .referenceType(MembershipReferenceType.API_PRODUCT)
-                    .referenceId("ap-1")
-                    .type(MembershipMemberType.USER)
-                    .roles(List.of())
-                    .build(),
+                        .id("member-3")
+                        .referenceType(MembershipReferenceType.API_PRODUCT)
+                        .referenceId("ap-1")
+                        .type(MembershipMemberType.USER)
+                        .roles(List.of())
+                        .build(),
                 Member.builder()
-                    .id("primary-owner")
-                    .referenceType(MembershipReferenceType.API_PRODUCT)
-                    .referenceId("ap-1")
-                    .type(MembershipMemberType.USER)
-                    .roles(List.of(Member.Role.builder().name(PRIMARY_OWNER.name()).scope(RoleScope.API_PRODUCT).build()))
-                    .build()
-            )
-        );
+                        .id("primary-owner")
+                        .referenceType(MembershipReferenceType.API_PRODUCT)
+                        .referenceId("ap-1")
+                        .type(MembershipMemberType.USER)
+                        .roles(List.of(Member.Role.builder()
+                                .name(PRIMARY_OWNER.name())
+                                .scope(RoleScope.API_PRODUCT)
+                                .build()))
+                        .build()));
     }
 }

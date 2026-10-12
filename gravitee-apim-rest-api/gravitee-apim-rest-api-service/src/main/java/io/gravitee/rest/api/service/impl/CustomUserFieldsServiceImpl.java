@@ -80,11 +80,8 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             log.debug("Create custom user field [key={}, refId={}]", newFieldEntity.getKey(), refId);
-            Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(
-                formatKeyValue(newFieldEntity.getKey()),
-                refId,
-                refType
-            );
+            Optional<CustomUserField> existingRecord =
+                    this.customUserFieldsRepository.findById(formatKeyValue(newFieldEntity.getKey()), refId, refType);
             if (existingRecord.isPresent()) {
                 throw new CustomUserFieldAlreadyExistException(newFieldEntity.getKey());
             } else {
@@ -106,16 +103,14 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
     }
 
     @Override
-    public CustomUserFieldEntity update(final ExecutionContext executionContext, CustomUserFieldEntity updateFieldEntity) {
+    public CustomUserFieldEntity update(
+            final ExecutionContext executionContext, CustomUserFieldEntity updateFieldEntity) {
         try {
             final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             log.debug("Update custom user field [key={}, refId={}]", updateFieldEntity.getKey(), refId);
             Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(
-                formatKeyValue(updateFieldEntity.getKey()),
-                refId,
-                refType
-            );
+                    formatKeyValue(updateFieldEntity.getKey()), refId, refType);
             if (existingRecord.isPresent()) {
                 CustomUserField fieldToUpdate = map(updateFieldEntity);
                 fieldToUpdate.setKey(existingRecord.get().getKey());
@@ -127,7 +122,8 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
 
                 final CustomUserField updatedField = customUserFieldsRepository.update(fieldToUpdate);
 
-                createAuditLog(executionContext, CUSTOM_USER_FIELD_UPDATED, updatedAt, existingRecord.get(), updatedField);
+                createAuditLog(
+                        executionContext, CUSTOM_USER_FIELD_UPDATED, updatedAt, existingRecord.get(), updatedField);
                 return map(updatedField);
             } else {
                 throw new CustomUserFieldNotFoundException(updateFieldEntity.getKey());
@@ -143,17 +139,17 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             log.debug("Delete custom user field [key={}, refId={}]", key, refId);
-            Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(formatKeyValue(key), refId, refType);
+            Optional<CustomUserField> existingRecord =
+                    this.customUserFieldsRepository.findById(formatKeyValue(key), refId, refType);
             if (existingRecord.isPresent()) {
                 customUserFieldsRepository.delete(formatKeyValue(key), refId, refType);
                 createAuditLog(executionContext, CUSTOM_USER_FIELD_DELETED, new Date(), existingRecord.get(), null);
                 // remove all instance of this field from UserMetadata
                 this.userMetadataService.deleteAllByCustomFieldId(
-                    executionContext,
-                    existingRecord.get().getKey(),
-                    existingRecord.get().getReferenceId(),
-                    existingRecord.get().getReferenceType()
-                );
+                        executionContext,
+                        existingRecord.get().getKey(),
+                        existingRecord.get().getReferenceId(),
+                        existingRecord.get().getReferenceType());
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to create CustomUserField", e);
@@ -166,7 +162,8 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             log.debug("List all custom user fields [refId={}/refType={}]", refId, refType);
-            List<CustomUserField> records = this.customUserFieldsRepository.findByReferenceIdAndReferenceType(refId, refType);
+            List<CustomUserField> records =
+                    this.customUserFieldsRepository.findByReferenceIdAndReferenceType(refId, refType);
             return records.stream().map(this::map).collect(Collectors.toList());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to list all CustomUserField", e);
@@ -174,36 +171,34 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
     }
 
     private void createAuditLog(
-        final ExecutionContext executionContext,
-        Audit.AuditEvent event,
-        Date createdAt,
-        CustomUserField oldValue,
-        CustomUserField newValue
-    ) {
+            final ExecutionContext executionContext,
+            Audit.AuditEvent event,
+            Date createdAt,
+            CustomUserField oldValue,
+            CustomUserField newValue) {
         String key = oldValue != null ? oldValue.getKey() : newValue.getKey();
-        CustomUserFieldReferenceType type = oldValue != null ? oldValue.getReferenceType() : newValue.getReferenceType();
+        CustomUserFieldReferenceType type =
+                oldValue != null ? oldValue.getReferenceType() : newValue.getReferenceType();
         if (type == ORGANIZATION) {
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER_FIELD, key))
-                    .event(event)
-                    .createdAt(createdAt)
-                    .oldValue(oldValue)
-                    .newValue(newValue)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER_FIELD, key))
+                            .event(event)
+                            .createdAt(createdAt)
+                            .oldValue(oldValue)
+                            .newValue(newValue)
+                            .build());
         } else if (type == ENVIRONMENT) {
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(USER_FIELD, key))
-                    .event(event)
-                    .createdAt(createdAt)
-                    .oldValue(oldValue)
-                    .newValue(newValue)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(USER_FIELD, key))
+                            .event(event)
+                            .createdAt(createdAt)
+                            .oldValue(oldValue)
+                            .newValue(newValue)
+                            .build());
         }
     }
 
@@ -234,7 +229,8 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
                     result.setValues(record.getValues());
                     break;
                 default:
-                    throw new TechnicalManagementException("Unable to read values of CustomUserField, format not supported");
+                    throw new TechnicalManagementException(
+                            "Unable to read values of CustomUserField, format not supported");
             }
         }
         return result;

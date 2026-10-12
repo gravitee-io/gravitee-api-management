@@ -30,9 +30,8 @@ public class SearchApiConnectionLogErrorKeysUseCase {
     }
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        return new Output(
-            connectionLogsCrudService.searchApiConnectionLogErrorKeys(executionContext, input.apiId(), input.from(), input.to())
-        );
+        return new Output(connectionLogsCrudService.searchApiConnectionLogErrorKeys(
+                executionContext, input.apiId(), input.from(), input.to()));
     }
 
     public record Input(String apiId, Long from, Long to) {}

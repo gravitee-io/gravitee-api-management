@@ -25,7 +25,8 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public abstract class AbstractPageConfigurationSwaggerTransformer<T extends SwaggerDescriptor> implements SwaggerTransformer<T> {
+public abstract class AbstractPageConfigurationSwaggerTransformer<T extends SwaggerDescriptor>
+        implements SwaggerTransformer<T> {
 
     protected final PageEntity page;
 

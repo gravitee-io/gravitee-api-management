@@ -34,6 +34,7 @@ public interface PropertiesMapper {
 
     // V4
     io.gravitee.rest.api.model.v4.api.properties.PropertyEntity mapToV4(Property property);
+
     List<io.gravitee.rest.api.model.v4.api.properties.PropertyEntity> mapToV4List(List<Property> property);
 
     @Mapping(target = "encryptable", ignore = true)
@@ -42,14 +43,17 @@ public interface PropertiesMapper {
     List<Property> map(List<io.gravitee.definition.model.v4.property.Property> property);
 
     io.gravitee.definition.model.v4.property.Property mapToV4Definition(Property property);
+
     List<io.gravitee.definition.model.v4.property.Property> mapToV4Definition(List<Property> property);
 
     // UpdateNativeApi
     EncryptableProperty mapToEncryptableProperty(Property property);
+
     List<EncryptableProperty> mapToEncryptableProperties(List<Property> properties);
 
     // V2
     io.gravitee.rest.api.model.PropertyEntity mapToV2(Property property);
+
     List<io.gravitee.rest.api.model.PropertyEntity> mapToV2List(List<Property> property);
 
     @Mapping(target = "encryptable", ignore = true)
@@ -57,7 +61,8 @@ public interface PropertiesMapper {
 
     @AfterMapping
     @SuppressWarnings("java:S1172") // source selects which mappings this hook applies to
-    default void maskEncryptedValue(io.gravitee.definition.model.v4.property.Property source, @MappingTarget Property target) {
+    default void maskEncryptedValue(
+            io.gravitee.definition.model.v4.property.Property source, @MappingTarget Property target) {
         maskEncryptedValue(target);
     }
 

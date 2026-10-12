@@ -70,12 +70,18 @@ public class NativeApi extends AbstractReactableApi<io.gravitee.definition.model
 
     @Override
     public Set<String> getSubscribablePlans() {
-        return definition.getPlans().stream().filter(AbstractPlan::isSubscribable).map(AbstractPlan::getId).collect(Collectors.toSet());
+        return definition.getPlans().stream()
+                .filter(AbstractPlan::isSubscribable)
+                .map(AbstractPlan::getId)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<String> getApiKeyPlans() {
-        return definition.getPlans().stream().filter(AbstractPlan::isApiKey).map(AbstractPlan::getId).collect(Collectors.toSet());
+        return definition.getPlans().stream()
+                .filter(AbstractPlan::isApiKey)
+                .map(AbstractPlan::getId)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -94,22 +100,20 @@ public class NativeApi extends AbstractReactableApi<io.gravitee.definition.model
 
         // Load policies from Plans
         if (definition.getPlans() != null) {
-            definition
-                .getPlans()
-                .forEach(plan -> {
-                    PlanSecurity security = plan.getSecurity();
-                    Policy secPolicy = new Policy();
-                    secPolicy.setName(security.getType());
+            definition.getPlans().forEach(plan -> {
+                PlanSecurity security = plan.getSecurity();
+                Policy secPolicy = new Policy();
+                secPolicy.setName(security.getType());
 
-                    if (secPolicy.getName() != null) {
-                        policies.add(secPolicy);
-                    }
+                if (secPolicy.getName() != null) {
+                    policies.add(secPolicy);
+                }
 
-                    if (plan.getFlows() != null) {
-                        List<NativeFlow> flows = plan.getFlows();
-                        addFlowsPolicies(policies, flows);
-                    }
-                });
+                if (plan.getFlows() != null) {
+                    List<NativeFlow> flows = plan.getFlows();
+                    addFlowsPolicies(policies, flows);
+                }
+            });
         }
 
         // Load policies from flows
@@ -122,30 +126,26 @@ public class NativeApi extends AbstractReactableApi<io.gravitee.definition.model
     }
 
     private void addFlowsPolicies(final Set<Policy> policies, final List<NativeFlow> flows) {
-        flows
-            .stream()
-            .filter(NativeFlow::isEnabled)
-            .forEach(flow -> {
-                policies.addAll(getPolicies(flow.getEntrypointConnect()));
-                policies.addAll(getPolicies(flow.getInteract()));
-                policies.addAll(getPolicies(flow.getSubscribe()));
-                policies.addAll(getPolicies(flow.getPublish()));
-            });
+        flows.stream().filter(NativeFlow::isEnabled).forEach(flow -> {
+            policies.addAll(getPolicies(flow.getEntrypointConnect()));
+            policies.addAll(getPolicies(flow.getInteract()));
+            policies.addAll(getPolicies(flow.getSubscribe()));
+            policies.addAll(getPolicies(flow.getPublish()));
+        });
     }
 
     private List<Policy> getPolicies(List<Step> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return List.of();
         }
-        return flowStep
-            .stream()
-            .filter(Step::isEnabled)
-            .map(step -> {
-                Policy policy = new Policy();
-                policy.setName(step.getPolicy());
-                policy.setConfiguration(step.getConfiguration());
-                return policy;
-            })
-            .collect(Collectors.toList());
+        return flowStep.stream()
+                .filter(Step::isEnabled)
+                .map(step -> {
+                    Policy policy = new Policy();
+                    policy.setName(step.getPolicy());
+                    policy.setConfiguration(step.getConfiguration());
+                    return policy;
+                })
+                .collect(Collectors.toList());
     }
 }

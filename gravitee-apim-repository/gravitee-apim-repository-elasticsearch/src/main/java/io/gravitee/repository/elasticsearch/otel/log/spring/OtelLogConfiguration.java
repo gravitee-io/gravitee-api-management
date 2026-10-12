@@ -59,9 +59,8 @@ public class OtelLogConfiguration {
 
     @Bean
     public OtelLogRepository otelLogRepository(
-        @Value("${otel-logs.elasticsearch.index:logs-apim.otel-{orgId}}") String indexTemplate,
-        Client otelLogClient
-    ) {
+            @Value("${otel-logs.elasticsearch.index:logs-apim.otel-{orgId}}") String indexTemplate,
+            Client otelLogClient) {
         return new ElasticsearchOtelLogRepository(indexTemplate, otelLogClient);
     }
 }

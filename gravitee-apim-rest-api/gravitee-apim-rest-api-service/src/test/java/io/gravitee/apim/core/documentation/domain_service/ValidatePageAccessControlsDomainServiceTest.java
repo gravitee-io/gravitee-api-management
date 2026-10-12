@@ -38,11 +38,13 @@ class ValidatePageAccessControlsDomainServiceTest {
     private static final String ORG_ID = "test-organization";
     private static final String ENV_ID = "test-environment";
 
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
 
-    private final ValidatePageAccessControlsDomainService cut = new ValidatePageAccessControlsDomainService(groupQueryService);
+    private final ValidatePageAccessControlsDomainService cut =
+            new ValidatePageAccessControlsDomainService(groupQueryService);
 
     @BeforeEach
     void setUp() {
@@ -58,49 +60,68 @@ class ValidatePageAccessControlsDomainServiceTest {
 
     @Test
     void should_replace_access_control_group_name_with_group_id() {
-        groupQueryService.initWith(List.of(Group.builder().id("group-id").name("group-name").environmentId(ENV_ID).build()));
+        groupQueryService.initWith(List.of(Group.builder()
+                .id("group-id")
+                .name("group-name")
+                .environmentId(ENV_ID)
+                .build()));
 
-        var given = Set.of(AccessControl.builder().referenceType("GROUP").referenceId("group-name").build());
+        var given = Set.of(AccessControl.builder()
+                .referenceType("GROUP")
+                .referenceId("group-name")
+                .build());
 
         var result = cut.validateAndSanitize(new ValidatePageAccessControlsDomainService.Input(AUDIT_INFO, given));
 
         assertThat(result.errors()).isEmpty();
         assertThat(result.value())
-            .isNotEmpty()
-            .hasValue(
-                new ValidatePageAccessControlsDomainService.Input(
-                    AUDIT_INFO,
-                    Set.of(AccessControl.builder().referenceId("group-id").referenceType("GROUP").build())
-                )
-            );
+                .isNotEmpty()
+                .hasValue(new ValidatePageAccessControlsDomainService.Input(
+                        AUDIT_INFO,
+                        Set.of(AccessControl.builder()
+                                .referenceId("group-id")
+                                .referenceType("GROUP")
+                                .build())));
     }
 
     @Test
     void should_keep_access_control_with_group_id() {
-        groupQueryService.initWith(List.of(Group.builder().id("group-id").name("group-name").environmentId(ENV_ID).build()));
+        groupQueryService.initWith(List.of(Group.builder()
+                .id("group-id")
+                .name("group-name")
+                .environmentId(ENV_ID)
+                .build()));
 
-        var given = Set.of(AccessControl.builder().referenceType("GROUP").referenceId("group-id").build());
+        var given = Set.of(AccessControl.builder()
+                .referenceType("GROUP")
+                .referenceId("group-id")
+                .build());
 
         var result = cut.validateAndSanitize(new ValidatePageAccessControlsDomainService.Input(AUDIT_INFO, given));
 
         assertThat(result.errors()).isEmpty();
         assertThat(result.value())
-            .isNotEmpty()
-            .hasValue(
-                new ValidatePageAccessControlsDomainService.Input(
-                    AUDIT_INFO,
-                    Set.of(AccessControl.builder().referenceId("group-id").referenceType("GROUP").build())
-                )
-            );
+                .isNotEmpty()
+                .hasValue(new ValidatePageAccessControlsDomainService.Input(
+                        AUDIT_INFO,
+                        Set.of(AccessControl.builder()
+                                .referenceId("group-id")
+                                .referenceType("GROUP")
+                                .build())));
     }
 
     @Test
     void should_remove_access_control_with_unknown_reference() {
-        var given = Set.of(AccessControl.builder().referenceType("GROUP").referenceId("group-id").build());
+        var given = Set.of(AccessControl.builder()
+                .referenceType("GROUP")
+                .referenceId("group-id")
+                .build());
 
         var result = cut.validateAndSanitize(new ValidatePageAccessControlsDomainService.Input(AUDIT_INFO, given));
 
         assertThat(result.errors()).isEmpty();
-        assertThat(result.value()).isNotEmpty().hasValue(new ValidatePageAccessControlsDomainService.Input(AUDIT_INFO, Set.of()));
+        assertThat(result.value())
+                .isNotEmpty()
+                .hasValue(new ValidatePageAccessControlsDomainService.Input(AUDIT_INFO, Set.of()));
     }
 }

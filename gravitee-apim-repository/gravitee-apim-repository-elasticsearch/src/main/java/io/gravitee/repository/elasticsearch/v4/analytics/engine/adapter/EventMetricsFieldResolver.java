@@ -102,7 +102,8 @@ public class EventMetricsFieldResolver implements FieldResolver {
             case NATIVE_OPERATION_GATEWAY_REQUEST_DURATION -> "upstream-durations-nanos";
             case NATIVE_OPERATION_BROKER_DURATION -> "endpoint-durations-nanos";
             case NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION -> "downstream-durations-nanos";
-            default -> throw new UnsupportedOperationException("EventMetricsFieldResolver does not support metric " + metric);
+            default ->
+                throw new UnsupportedOperationException("EventMetricsFieldResolver does not support metric " + metric);
         };
     }
 
@@ -113,32 +114,29 @@ public class EventMetricsFieldResolver implements FieldResolver {
      */
     public String docType(Metric metric) {
         return switch (metric) {
-            case
-                NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
-                NATIVE_MESSAGES_PRODUCED_UPSTREAM,
-                NATIVE_MESSAGES_CONSUMED_DOWNSTREAM,
-                NATIVE_MESSAGES_CONSUMED_UPSTREAM,
-                NATIVE_BYTES_PRODUCED_DOWNSTREAM,
-                NATIVE_BYTES_PRODUCED_UPSTREAM,
-                NATIVE_BYTES_CONSUMED_DOWNSTREAM,
-                NATIVE_BYTES_CONSUMED_UPSTREAM -> DOC_TYPE_TOPIC;
-            case
-                NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM,
-                NATIVE_ACTIVE_CONNECTIONS_UPSTREAM,
-                NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM -> DOC_TYPE_API;
-            case
-                NATIVE_AUTHENTICATIONS_SUCCESS_DOWNSTREAM,
-                NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM,
-                NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM -> DOC_TYPE_APPLICATION;
-            case
-                NATIVE_OPERATIONS_RECEIVED,
-                NATIVE_OPERATIONS_FORWARDED,
-                NATIVE_OPERATIONS_ANSWERED,
-                NATIVE_OPERATIONS_COMPLETED,
-                NATIVE_OPERATION_GATEWAY_REQUEST_DURATION,
-                NATIVE_OPERATION_BROKER_DURATION,
-                NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION -> DOC_TYPE_OPERATION;
-            default -> throw new UnsupportedOperationException("EventMetricsFieldResolver does not support metric " + metric);
+            case NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
+                    NATIVE_MESSAGES_PRODUCED_UPSTREAM,
+                    NATIVE_MESSAGES_CONSUMED_DOWNSTREAM,
+                    NATIVE_MESSAGES_CONSUMED_UPSTREAM,
+                    NATIVE_BYTES_PRODUCED_DOWNSTREAM,
+                    NATIVE_BYTES_PRODUCED_UPSTREAM,
+                    NATIVE_BYTES_CONSUMED_DOWNSTREAM,
+                    NATIVE_BYTES_CONSUMED_UPSTREAM -> DOC_TYPE_TOPIC;
+            case NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM,
+                    NATIVE_ACTIVE_CONNECTIONS_UPSTREAM,
+                    NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM -> DOC_TYPE_API;
+            case NATIVE_AUTHENTICATIONS_SUCCESS_DOWNSTREAM,
+                    NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM,
+                    NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM -> DOC_TYPE_APPLICATION;
+            case NATIVE_OPERATIONS_RECEIVED,
+                    NATIVE_OPERATIONS_FORWARDED,
+                    NATIVE_OPERATIONS_ANSWERED,
+                    NATIVE_OPERATIONS_COMPLETED,
+                    NATIVE_OPERATION_GATEWAY_REQUEST_DURATION,
+                    NATIVE_OPERATION_BROKER_DURATION,
+                    NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION -> DOC_TYPE_OPERATION;
+            default ->
+                throw new UnsupportedOperationException("EventMetricsFieldResolver does not support metric " + metric);
         };
     }
 
@@ -150,10 +148,9 @@ public class EventMetricsFieldResolver implements FieldResolver {
      */
     public boolean isAccumulatedDuration(Metric metric) {
         return switch (metric) {
-            case
-                NATIVE_OPERATION_GATEWAY_REQUEST_DURATION,
-                NATIVE_OPERATION_BROKER_DURATION,
-                NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION -> true;
+            case NATIVE_OPERATION_GATEWAY_REQUEST_DURATION,
+                    NATIVE_OPERATION_BROKER_DURATION,
+                    NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION -> true;
             default -> false;
         };
     }
@@ -190,13 +187,11 @@ public class EventMetricsFieldResolver implements FieldResolver {
             case "PLAN" -> PLAN_ID;
             case "NATIVE_TOPIC" -> TOPIC;
             case "NATIVE_OPERATION" -> OPERATION;
-            default -> throw new UnsupportedOperationException(
-                "EventMetricsFieldResolver does not support " +
-                    kind +
-                    " '" +
-                    dimension +
-                    "' — supported dimensions: API, APPLICATION, PLAN, NATIVE_TOPIC, NATIVE_OPERATION"
-            );
+            default ->
+                throw new UnsupportedOperationException("EventMetricsFieldResolver does not support " + kind
+                        + " '"
+                        + dimension
+                        + "' — supported dimensions: API, APPLICATION, PLAN, NATIVE_TOPIC, NATIVE_OPERATION");
         };
     }
 

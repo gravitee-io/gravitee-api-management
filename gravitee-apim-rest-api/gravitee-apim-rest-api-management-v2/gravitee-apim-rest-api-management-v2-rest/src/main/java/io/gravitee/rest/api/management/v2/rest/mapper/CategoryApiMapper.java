@@ -51,42 +51,37 @@ public interface CategoryApiMapper {
 
         switch (api.getDefinitionVersion()) {
             case V4 -> {
-                if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4 && Objects.nonNull(v4.getListeners())) {
-                    Stream<String> tcpListenerHostsStream = v4
-                        .getListeners()
-                        .stream()
-                        .filter(listener -> ListenerType.TCP.equals(listener.getType()))
-                        .map(TcpListener.class::cast)
-                        .flatMap(listener -> listener.getHosts().stream());
+                if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4
+                        && Objects.nonNull(v4.getListeners())) {
+                    Stream<String> tcpListenerHostsStream = v4.getListeners().stream()
+                            .filter(listener -> ListenerType.TCP.equals(listener.getType()))
+                            .map(TcpListener.class::cast)
+                            .flatMap(listener -> listener.getHosts().stream());
 
-                    Stream<String> httpListenerHostsStream = v4
-                        .getListeners()
-                        .stream()
-                        .filter(listener -> ListenerType.HTTP.equals(listener.getType()))
-                        .map(HttpListener.class::cast)
-                        .filter(listener -> Objects.nonNull(listener.getPaths()))
-                        .flatMap(listener -> listener.getPaths().stream())
-                        .map(pathV4 -> Optional.ofNullable(pathV4.getHost()).orElse("") + Optional.ofNullable(pathV4.getPath()).orElse(""));
+                    Stream<String> httpListenerHostsStream = v4.getListeners().stream()
+                            .filter(listener -> ListenerType.HTTP.equals(listener.getType()))
+                            .map(HttpListener.class::cast)
+                            .filter(listener -> Objects.nonNull(listener.getPaths()))
+                            .flatMap(listener -> listener.getPaths().stream())
+                            .map(pathV4 -> Optional.ofNullable(pathV4.getHost()).orElse("")
+                                    + Optional.ofNullable(pathV4.getPath()).orElse(""));
 
-                    return Stream.concat(tcpListenerHostsStream, httpListenerHostsStream).toList();
+                    return Stream.concat(tcpListenerHostsStream, httpListenerHostsStream)
+                            .toList();
                 }
             }
             case V2 -> {
-                if (
-                    api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api apiV2 &&
-                    Objects.nonNull(apiV2.getProxy()) &&
-                    Objects.nonNull(apiV2.getProxy().getVirtualHosts())
-                ) {
+                if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api apiV2
+                        && Objects.nonNull(apiV2.getProxy())
+                        && Objects.nonNull(apiV2.getProxy().getVirtualHosts())) {
                     var virtualHosts = apiV2.getProxy().getVirtualHosts();
                     if (Objects.nonNull(virtualHosts)) {
-                        return virtualHosts
-                            .stream()
-                            .map(
-                                virtualHost ->
-                                    Optional.ofNullable(virtualHost.getHost()).orElse("") +
-                                    Optional.ofNullable(virtualHost.getPath()).orElse("")
-                            )
-                            .toList();
+                        return virtualHosts.stream()
+                                .map(virtualHost -> Optional.ofNullable(virtualHost.getHost())
+                                                .orElse("")
+                                        + Optional.ofNullable(virtualHost.getPath())
+                                                .orElse(""))
+                                .toList();
                     }
                 }
             }

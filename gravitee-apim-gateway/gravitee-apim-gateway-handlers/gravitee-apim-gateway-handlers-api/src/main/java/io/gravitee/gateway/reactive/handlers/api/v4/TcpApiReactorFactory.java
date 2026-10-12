@@ -64,58 +64,46 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
     @Override
     public boolean canCreate(Api api) {
         // Check that the API contains at least one subscription listener.
-        return (
-            api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            api.getDefinition().getType() == ApiType.PROXY &&
-            api
-                .getDefinition()
-                .getListeners()
-                .stream()
-                .anyMatch(listener -> listener.getType() == ListenerType.TCP)
-        );
+        return (api.getDefinitionVersion() == DefinitionVersion.V4
+                && api.getDefinition().getType() == ApiType.PROXY
+                && api.getDefinition().getListeners().stream()
+                        .anyMatch(listener -> listener.getType() == ListenerType.TCP));
     }
 
     @Override
     public ReactorHandler create(Api api) {
         DefaultDeploymentContext deploymentContext = new DefaultDeploymentContext();
         final DefaultEndpointManager endpointManager = new DefaultEndpointManager(
-            api.getDefinition(),
-            endpointConnectorPluginManager,
-            deploymentContext,
-            gatewayConfiguration
-        );
+                api.getDefinition(), endpointConnectorPluginManager, deploymentContext, gatewayConfiguration);
 
         return new TcpApiReactor(
-            api,
-            node,
-            configuration,
-            deploymentContext,
-            entrypointConnectorPluginManager,
-            endpointManager,
-            requestTimeoutConfiguration,
-            createTracingContext(api)
-        );
+                api,
+                node,
+                configuration,
+                deploymentContext,
+                entrypointConnectorPluginManager,
+                endpointManager,
+                requestTimeoutConfiguration,
+                createTracingContext(api));
     }
 
     protected TracingContext createTracingContext(final Api api) {
         boolean tracingEnabled = isApiTracingEnabled(api);
         if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
-                node.id(),
-                node.application(),
-                "gravitee",
-                Version.RUNTIME_VERSION.MAJOR_VERSION,
-                instrumenterTracerFactories,
-                TracerResourceAttributes.of(
-                    MODULE,
-                    api.getId(),
-                    api.getName(),
-                    "API_V4_TCP",
-                    api.getOrganizationId(),
-                    api.getEnvironmentId()
-                ),
-                TracingRedactionMapper.toRedactionConfig(api)
-            );
+                    node.id(),
+                    node.application(),
+                    "gravitee",
+                    Version.RUNTIME_VERSION.MAJOR_VERSION,
+                    instrumenterTracerFactories,
+                    TracerResourceAttributes.of(
+                            MODULE,
+                            api.getId(),
+                            api.getName(),
+                            "API_V4_TCP",
+                            api.getOrganizationId(),
+                            api.getEnvironmentId()),
+                    TracingRedactionMapper.toRedactionConfig(api));
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));
         }
         return TracingContext.noop();
@@ -123,15 +111,13 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
 
     protected boolean isApiTracingEnabled(final Api api) {
         return AnalyticsUtils.isTracingEnabled(
-            openTelemetryConfiguration,
-            api.getDefinition() != null ? api.getDefinition().getAnalytics() : null
-        );
+                openTelemetryConfiguration,
+                api.getDefinition() != null ? api.getDefinition().getAnalytics() : null);
     }
 
     protected boolean isApiTracingVerboseEnabled(final Api api) {
         return AnalyticsUtils.isTracingVerbose(
-            openTelemetryConfiguration,
-            api.getDefinition() != null ? api.getDefinition().getAnalytics() : null
-        );
+                openTelemetryConfiguration,
+                api.getDefinition() != null ? api.getDefinition().getAnalytics() : null);
     }
 }

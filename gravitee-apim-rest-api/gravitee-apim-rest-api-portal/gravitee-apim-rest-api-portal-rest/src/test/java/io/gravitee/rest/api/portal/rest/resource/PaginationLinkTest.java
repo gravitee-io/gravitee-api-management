@@ -58,7 +58,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI("/linkwithParams?q=query&page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI("/linkwithParams?q=query&page=" + page + "&size=" + size))
+                .when(uriInfo)
+                .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = "/linkwithParams?q=query&page=3&size=15";
@@ -67,7 +69,8 @@ public class PaginationLinkTest {
         String expectedNext = "/linkwithParams?q=query&page=4&size=15";
         String expectedLast = "/linkwithParams?q=query&page=8&size=15";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -80,7 +83,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+                .when(uriInfo)
+                .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?page=3&size=15";
@@ -89,7 +94,8 @@ public class PaginationLinkTest {
         String expectedNext = path + "?page=4&size=15";
         String expectedLast = path + "?page=8&size=15";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -102,7 +108,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+                .when(uriInfo)
+                .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?page=1&size=15";
@@ -111,7 +119,8 @@ public class PaginationLinkTest {
         String expectedNext = path + "?page=2&size=15";
         String expectedLast = path + "?page=8&size=15";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -124,7 +133,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+                .when(uriInfo)
+                .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?page=8&size=15";
@@ -133,7 +144,8 @@ public class PaginationLinkTest {
         String expectedNext = null;
         String expectedLast = path + "?page=8&size=15";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -154,7 +166,8 @@ public class PaginationLinkTest {
         String expectedNext = path + "?page=4";
         String expectedLast = path + "?page=12";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -175,7 +188,8 @@ public class PaginationLinkTest {
         String expectedNext = path + "?size=15&page=2";
         String expectedLast = path + "?size=15&page=8";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -195,7 +209,8 @@ public class PaginationLinkTest {
         String expectedNext = path + "?page=2";
         String expectedLast = path + "?page=12";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -212,7 +227,8 @@ public class PaginationLinkTest {
         String expectedNext = null;
         String expectedLast = null;
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -221,7 +237,9 @@ public class PaginationLinkTest {
         Integer size = 15;
         Integer totalItems = 3;
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+                .when(uriInfo)
+                .getRequestUri();
 
         String expectedSelf = path + "?page=1&size=15";
         String expectedFirst = null;
@@ -229,7 +247,8 @@ public class PaginationLinkTest {
         String expectedNext = null;
         String expectedLast = null;
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -246,7 +265,8 @@ public class PaginationLinkTest {
         String expectedNext = null;
         String expectedLast = null;
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
+        testGenericPaginatedLinks(
+                page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -280,15 +300,14 @@ public class PaginationLinkTest {
     }
 
     private void testGenericPaginatedLinks(
-        Integer page,
-        Integer size,
-        Integer totalItems,
-        String expectedSelf,
-        String expectedFirst,
-        String expectedPrev,
-        String expectedNext,
-        String expectedLast
-    ) {
+            Integer page,
+            Integer size,
+            Integer totalItems,
+            String expectedSelf,
+            String expectedFirst,
+            String expectedPrev,
+            String expectedNext,
+            String expectedLast) {
         Links links = paginatedResourceForTest.computePaginatedLinks(page, size, totalItems);
         assertEquals(expectedSelf, links.getSelf());
         assertEquals(expectedFirst, links.getFirst());

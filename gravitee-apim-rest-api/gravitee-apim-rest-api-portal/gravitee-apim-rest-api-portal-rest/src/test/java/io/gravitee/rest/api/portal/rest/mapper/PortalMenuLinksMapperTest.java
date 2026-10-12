@@ -33,10 +33,9 @@ public class PortalMenuLinksMapperTest {
         PortalMenuLinkMapper portalMenuLinkMapper = new PortalMenuLinkMapper();
 
         var input = List.of(
-            PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id1").build(),
-            PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id2").build(),
-            PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id3").build()
-        );
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id1").build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id2").build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id3").build());
 
         var results = portalMenuLinkMapper.map(input);
 

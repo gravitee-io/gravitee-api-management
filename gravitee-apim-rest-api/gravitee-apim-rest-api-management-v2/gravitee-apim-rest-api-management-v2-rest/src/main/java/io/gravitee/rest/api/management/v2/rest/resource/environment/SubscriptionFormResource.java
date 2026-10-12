@@ -75,59 +75,72 @@ public class SubscriptionFormResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getSubscriptionForm() {
         var output = getSubscriptionFormUseCase.execute(
-            new GetSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
-        );
+                new GetSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId()));
         return Response.ok(mapper.toResponse(output)).build();
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateSubscriptionForm(@Valid @NotNull final UpdateSubscriptionForm request) {
-        var output = updateSubscriptionFormUseCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(
+        var output = updateSubscriptionFormUseCase.execute(new UpdateSubscriptionFormUseCase.Input(
                 GraviteeContext.getCurrentEnvironment(),
                 subscriptionFormId(),
                 request.getName(),
                 request.getGmdContent(),
-                request.getApiIds()
-            )
-        );
+                request.getApiIds()));
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deleteSubscriptionForm() {
         deleteSubscriptionFormUseCase.execute(
-            new DeleteSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
-        );
+                new DeleteSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId()));
         return Response.noContent().build();
     }
 
     @POST
     @Path("/_enable")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response enableSubscriptionForm() {
         var output = enableSubscriptionFormUseCase.execute(
-            new EnableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
-        );
+                new EnableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId()));
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }
 
     @POST
     @Path("/_disable")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response disableSubscriptionForm() {
-        var output = disableSubscriptionFormUseCase.execute(
-            new DisableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
-        );
+        var output = disableSubscriptionFormUseCase.execute(new DisableSubscriptionFormUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(), subscriptionFormId()));
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }
 
@@ -140,9 +153,7 @@ public class SubscriptionFormResource extends AbstractResource {
             return SubscriptionFormId.of(subscriptionFormId);
         } catch (IllegalArgumentException e) {
             throw new SubscriptionFormNotFoundException(
-                "Subscription form not found with id [ " + subscriptionFormId + " ]",
-                subscriptionFormId
-            );
+                    "Subscription form not found with id [ " + subscriptionFormId + " ]", subscriptionFormId);
         }
     }
 }

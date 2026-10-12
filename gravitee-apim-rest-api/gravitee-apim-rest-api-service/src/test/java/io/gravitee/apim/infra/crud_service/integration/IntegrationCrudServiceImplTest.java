@@ -58,14 +58,14 @@ class IntegrationCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_create_integration() {
-            //Given
+            // Given
             Integration integration = IntegrationFixture.anApiIntegration();
             when(integrationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            //When
+            // When
             Integration createdIntegration = service.create(integration);
 
-            //Then
+            // Then
             assertThat(createdIntegration).isEqualTo(integration);
         }
 
@@ -79,7 +79,9 @@ class IntegrationCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.create(integration));
 
             // Then
-            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessage("Error when creating Integration: test-name");
+            assertThat(throwable)
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when creating Integration: test-name");
         }
     }
 
@@ -89,39 +91,39 @@ class IntegrationCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_the_found_integration() {
-            //Given
-            when(integrationRepository.findByIntegrationId(any())).thenAnswer(invocation ->
-                Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder().id(invocation.getArgument(0)).build())
-            );
+            // Given
+            when(integrationRepository.findByIntegrationId(any()))
+                    .thenAnswer(
+                            invocation -> Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder()
+                                    .id(invocation.getArgument(0))
+                                    .build()));
 
-            //When
+            // When
             var result = service.findById("my-id");
 
-            //Then
-            assertThat(result).contains(
-                new Integration.ApiIntegration(
-                    "my-id",
-                    "An integration",
-                    "A description",
-                    "amazon",
-                    "environment-id",
-                    Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                    Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                    Set.of()
-                )
-            );
+            // Then
+            assertThat(result)
+                    .contains(new Integration.ApiIntegration(
+                            "my-id",
+                            "An integration",
+                            "A description",
+                            "amazon",
+                            "environment-id",
+                            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                            Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                            Set.of()));
         }
 
         @Test
         @SneakyThrows
         void should_return_empty_when_not_found() {
-            //Given
+            // Given
             when(integrationRepository.findByIntegrationId(any())).thenAnswer(invocation -> Optional.empty());
 
-            //When
+            // When
             var result = service.findById("my-id");
 
-            //Then
+            // Then
             assertThat(result).isEmpty();
         }
 
@@ -135,8 +137,8 @@ class IntegrationCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find the integration: my-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find the integration: my-id");
         }
     }
 
@@ -157,31 +159,29 @@ class IntegrationCrudServiceImplTest {
             var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Integration.class);
             verify(integrationRepository).update(captor.capture());
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.Integration.builder()
-                        .id("integration-id")
-                        .name("test-name")
-                        .description("integration-description")
-                        .provider("test-provider")
-                        .environmentId("my-env")
-                        .createdAt(new Date(create))
-                        .updatedAt(new Date(update))
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.Integration.builder()
+                            .id("integration-id")
+                            .name("test-name")
+                            .description("integration-description")
+                            .provider("test-provider")
+                            .environmentId("my-env")
+                            .createdAt(new Date(create))
+                            .updatedAt(new Date(update))
+                            .build());
         }
 
         @Test
         @SneakyThrows
         void should_return_the_updated_integration() {
-            //Given
+            // Given
             when(integrationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            //When
+            // When
             Integration toUpdate = IntegrationFixture.anApiIntegration();
             Integration updated = service.update(toUpdate);
 
-            //Then
+            // Then
             assertThat(updated).isEqualTo(toUpdate);
         }
 
@@ -196,8 +196,8 @@ class IntegrationCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred when updating integration: integration-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred when updating integration: integration-id");
         }
     }
 
@@ -214,8 +214,8 @@ class IntegrationCrudServiceImplTest {
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
             doThrow(new TechnicalException()).when(integrationRepository).delete("integration-id");
             assertThatThrownBy(() -> service.delete("integration-id"))
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when deleting Integration: integration-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when deleting Integration: integration-id");
             verify(integrationRepository).delete("integration-id");
         }
     }

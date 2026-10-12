@@ -30,7 +30,9 @@ import org.springframework.stereotype.Component;
 public class SubscriptionFormCatalogMongoUpgrader extends MongoUpgrader {
 
     public static final int SUBSCRIPTION_FORM_CATALOG_MONGO_UPGRADER_ORDER =
-        SubscriptionFormValidationConstraintsMongoUpgrader.SUBSCRIPTION_FORM_VALIDATION_CONSTRAINTS_MONGO_UPGRADER_ORDER + 1;
+            SubscriptionFormValidationConstraintsMongoUpgrader
+                            .SUBSCRIPTION_FORM_VALIDATION_CONSTRAINTS_MONGO_UPGRADER_ORDER
+                    + 1;
 
     @Override
     public String version() {
@@ -40,11 +42,10 @@ public class SubscriptionFormCatalogMongoUpgrader extends MongoUpgrader {
     @Override
     public boolean upgrade() {
         var collection = this.getCollection("subscription_forms");
-        var nameResult = collection.updateMany(Filters.exists("name", false), Updates.set("name", "Global Default Form"));
+        var nameResult =
+                collection.updateMany(Filters.exists("name", false), Updates.set("name", "Global Default Form"));
         var normalizedNameResult = collection.updateMany(
-            Filters.exists("normalizedName", false),
-            Updates.set("normalizedName", "global default form")
-        );
+                Filters.exists("normalizedName", false), Updates.set("normalizedName", "global default form"));
         return nameResult.wasAcknowledged() && normalizedNameResult.wasAcknowledged();
     }
 

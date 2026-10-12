@@ -33,17 +33,20 @@ public class HttpRequestDeserializerTest extends AbstractTest {
         Assertions.assertEquals("request-body", request.getBody());
         Assertions.assertEquals(4, request.getHeaders().size());
         Assertions.assertEquals(1, request.getHeaders().get("transfer-encoding").size());
-        Assertions.assertEquals("chunked", request.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals(
+                "chunked", request.getHeaders().get("transfer-encoding").get(0));
     }
 
     @Test
     public void definition_defaultHttpResponseMultiValueHeaders() throws Exception {
-        HttpRequest request = load("/io/gravitee/definition/jackson/httprequest-multivalueheaders.json", HttpRequest.class);
+        HttpRequest request =
+                load("/io/gravitee/definition/jackson/httprequest-multivalueheaders.json", HttpRequest.class);
 
         Assertions.assertEquals("request-body", request.getBody());
         Assertions.assertEquals(5, request.getHeaders().size());
         Assertions.assertEquals(1, request.getHeaders().get("transfer-encoding").size());
-        Assertions.assertEquals("chunked", request.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals(
+                "chunked", request.getHeaders().get("transfer-encoding").get(0));
         Assertions.assertEquals(3, request.getHeaders().get("accept-encoding").size());
         Assertions.assertTrue(request.getHeaders().get("accept-encoding").contains("deflate"));
         Assertions.assertTrue(request.getHeaders().get("accept-encoding").contains("gzip"));

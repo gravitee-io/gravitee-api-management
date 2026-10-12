@@ -72,9 +72,9 @@ public class TenantServiceTest {
 
         var executionContext = new ExecutionContext(REFERENCE_ID, null);
 
-        when(
-            tenantRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION)
-        ).thenReturn(Collections.emptySet());
+        when(tenantRepository.findByReference(
+                        REFERENCE_ID, io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION))
+                .thenReturn(Collections.emptySet());
 
         var savedTenant = new Tenant();
         savedTenant.setId("new-id");
@@ -98,7 +98,8 @@ public class TenantServiceTest {
         assertThat(tenantToCreate.getKey()).isEqualTo(newKey);
         assertThat(tenantToCreate.getName()).isEqualTo(newTenant.getName());
         assertThat(tenantToCreate.getReferenceId()).isEqualTo(REFERENCE_ID);
-        assertThat(tenantToCreate.getReferenceType()).isEqualTo(io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION);
+        assertThat(tenantToCreate.getReferenceType())
+                .isEqualTo(io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION);
 
         verify(auditService).createAuditLog(eq(executionContext), any());
     }
@@ -117,22 +118,24 @@ public class TenantServiceTest {
         existingTenant.setReferenceId(REFERENCE_ID);
         existingTenant.setReferenceType(io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION);
 
-        when(
-            tenantRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION)
-        ).thenReturn(Set.of(existingTenant));
+        when(tenantRepository.findByReference(
+                        REFERENCE_ID, io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(existingTenant));
 
-        assertThatThrownBy(() ->
-            tenantService.create(new ExecutionContext(REFERENCE_ID, null), List.of(newTenant), REFERENCE_ID, REFERENCE_TYPE)
-        ).isInstanceOf(DuplicateTenantKeyException.class);
+        assertThatThrownBy(() -> tenantService.create(
+                        new ExecutionContext(REFERENCE_ID, null), List.of(newTenant), REFERENCE_ID, REFERENCE_TYPE))
+                .isInstanceOf(DuplicateTenantKeyException.class);
 
         verify(tenantRepository, never()).create(any());
         verifyNoInteractions(auditService);
     }
 
     @ParameterizedTest
-    @CsvSource(delimiter = '|', value = { "${TenantName}|tenantname", "TenantName|tenantname", "My Tenant|my-tenant" })
-    public void should_throw_DuplicateTenantKeyException_when_key_normalizes_to_an_existing_key(String rawKey, String storedKey)
-        throws TechnicalException {
+    @CsvSource(
+            delimiter = '|',
+            value = {"${TenantName}|tenantname", "TenantName|tenantname", "My Tenant|my-tenant"})
+    public void should_throw_DuplicateTenantKeyException_when_key_normalizes_to_an_existing_key(
+            String rawKey, String storedKey) throws TechnicalException {
         var newTenant = new NewTenantEntity();
         newTenant.setKey(rawKey);
         newTenant.setName("New Tenant Name");
@@ -144,20 +147,21 @@ public class TenantServiceTest {
         existingTenant.setReferenceId(REFERENCE_ID);
         existingTenant.setReferenceType(io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION);
 
-        when(
-            tenantRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION)
-        ).thenReturn(Set.of(existingTenant));
+        when(tenantRepository.findByReference(
+                        REFERENCE_ID, io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(existingTenant));
 
-        assertThatThrownBy(() ->
-            tenantService.create(new ExecutionContext(REFERENCE_ID, null), List.of(newTenant), REFERENCE_ID, REFERENCE_TYPE)
-        ).isInstanceOf(DuplicateTenantKeyException.class);
+        assertThatThrownBy(() -> tenantService.create(
+                        new ExecutionContext(REFERENCE_ID, null), List.of(newTenant), REFERENCE_ID, REFERENCE_TYPE))
+                .isInstanceOf(DuplicateTenantKeyException.class);
 
         verify(tenantRepository, never()).create(any());
         verifyNoInteractions(auditService);
     }
 
     @Test
-    public void should_throw_DuplicateTenantKeyException_when_two_new_keys_normalize_to_the_same_key() throws TechnicalException {
+    public void should_throw_DuplicateTenantKeyException_when_two_new_keys_normalize_to_the_same_key()
+            throws TechnicalException {
         var firstTenant = new NewTenantEntity();
         firstTenant.setKey("TenantName");
         firstTenant.setName("First Tenant Name");
@@ -165,9 +169,12 @@ public class TenantServiceTest {
         secondTenant.setKey("tenantname");
         secondTenant.setName("Second Tenant Name");
 
-        assertThatThrownBy(() ->
-            tenantService.create(new ExecutionContext(REFERENCE_ID, null), List.of(firstTenant, secondTenant), REFERENCE_ID, REFERENCE_TYPE)
-        ).isInstanceOf(DuplicateTenantKeyException.class);
+        assertThatThrownBy(() -> tenantService.create(
+                        new ExecutionContext(REFERENCE_ID, null),
+                        List.of(firstTenant, secondTenant),
+                        REFERENCE_ID,
+                        REFERENCE_TYPE))
+                .isInstanceOf(DuplicateTenantKeyException.class);
 
         verify(tenantRepository, never()).create(any());
         verifyNoInteractions(auditService);

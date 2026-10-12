@@ -46,18 +46,16 @@ class RequestOptionsBuilder {
         final int port = resolvePort(request);
 
         RequestOptions options = new RequestOptions()
-            .setURI(relativeUrl(request))
-            .setPort(port)
-            .setHost(request.getHost())
-            .setMethod(HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
-            .putHeader(io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
-            .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
+                .setURI(relativeUrl(request))
+                .setPort(port)
+                .setHost(request.getHost())
+                .setMethod(
+                        HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()))
+                .putHeader(io.vertx.rxjava3.core.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
+                .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
         if (step.getRequest().getHeaders() != null) {
-            step
-                .getRequest()
-                .getHeaders()
-                .forEach(h -> options.putHeader(h.getName(), resolveHeaderValue(h)));
+            step.getRequest().getHeaders().forEach(h -> options.putHeader(h.getName(), resolveHeaderValue(h)));
             applyCustomHostIfPresent(options, port, request);
         }
 
@@ -86,7 +84,8 @@ class RequestOptionsBuilder {
     }
 
     private static void applyCustomHostIfPresent(RequestOptions options, int port, URL request) {
-        String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
+        String customHost =
+                options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
         if (customHost == null || customHost.isBlank()) {
             return;
         }

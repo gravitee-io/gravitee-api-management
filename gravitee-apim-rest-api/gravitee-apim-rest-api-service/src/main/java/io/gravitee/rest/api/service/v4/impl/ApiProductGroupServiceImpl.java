@@ -36,9 +36,8 @@ public class ApiProductGroupServiceImpl implements ApiProductGroupService {
     private final ApiProductNotificationService apiProductNotificationService;
 
     public ApiProductGroupServiceImpl(
-        @Lazy final ApiProductsRepository apiProductsRepository,
-        final ApiProductNotificationService apiProductNotificationService
-    ) {
+            @Lazy final ApiProductsRepository apiProductsRepository,
+            final ApiProductNotificationService apiProductNotificationService) {
         this.apiProductsRepository = apiProductsRepository;
         this.apiProductNotificationService = apiProductNotificationService;
     }
@@ -56,9 +55,7 @@ public class ApiProductGroupServiceImpl implements ApiProductGroupService {
             apiProductNotificationService.triggerUpdateNotification(executionContext, apiProduct);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to add group " + groupId + " to API Product " + apiProductId,
-                ex
-            );
+                    "An error occurs while trying to add group " + groupId + " to API Product " + apiProductId, ex);
         }
     }
 
@@ -74,17 +71,18 @@ public class ApiProductGroupServiceImpl implements ApiProductGroupService {
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to remove group " + groupId + " from API Product " + apiProductId,
-                ex
-            );
+                    "An error occurs while trying to remove group " + groupId + " from API Product " + apiProductId,
+                    ex);
         }
     }
 
-    private ApiProduct findApiProductInEnvironment(ExecutionContext executionContext, String apiProductId) throws TechnicalException {
+    private ApiProduct findApiProductInEnvironment(ExecutionContext executionContext, String apiProductId)
+            throws TechnicalException {
         Optional<ApiProduct> optProduct = apiProductsRepository.findById(apiProductId);
 
         if (executionContext.hasEnvironmentId()) {
-            optProduct = optProduct.filter(p -> executionContext.getEnvironmentId().equals(p.getEnvironmentId()));
+            optProduct =
+                    optProduct.filter(p -> executionContext.getEnvironmentId().equals(p.getEnvironmentId()));
         }
 
         return optProduct.orElseThrow(() -> new ApiProductNotFoundException("API Product not found: " + apiProductId));

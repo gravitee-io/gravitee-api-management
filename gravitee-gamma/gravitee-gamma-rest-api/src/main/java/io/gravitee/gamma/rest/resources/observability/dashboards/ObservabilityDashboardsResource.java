@@ -86,39 +86,44 @@ public class ObservabilityDashboardsResource {
     private ResourceContext resourceContext;
 
     @GET
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.READ})
+    })
     public PaginatedResponseDto<DashboardDto> list(
-        @QueryParam("module") List<String> modules,
-        @QueryParam("page") Integer page,
-        @QueryParam("perPage") Integer perPage
-    ) {
+            @QueryParam("module") List<String> modules,
+            @QueryParam("page") Integer page,
+            @QueryParam("perPage") Integer perPage) {
         var ctx = GraviteeContext.getExecutionContext();
-        var output = listDashboardUseCase.execute(
-            new ListObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), Set.copyOf(modules), page, perPage)
-        );
-        List<DashboardDto> data = output.dashboards().stream().map(DashboardDto::from).toList();
+        var output = listDashboardUseCase.execute(new ListObservabilityDashboardUseCase.Input(
+                ctx.getEnvironmentId(), Set.copyOf(modules), page, perPage));
+        List<DashboardDto> data =
+                output.dashboards().stream().map(DashboardDto::from).toList();
         return PaginatedResponseDto.of(data, output.totalCount(), output.page(), output.perPage());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response create(@Context UriInfo uriInfo, SaveDashboardRequestDto request) {
         if (request == null) {
             throw new InvalidDashboardException("Request body is required");
         }
         var ctx = GraviteeContext.getExecutionContext();
-        var output = createDashboardUseCase.execute(
-            new CreateObservabilityDashboardUseCase.Input(
-                ctx.getEnvironmentId(),
-                currentUserId(),
-                request.id(),
-                request.module(),
-                request.toContent()
-            )
-        );
+        var output = createDashboardUseCase.execute(new CreateObservabilityDashboardUseCase.Input(
+                ctx.getEnvironmentId(), currentUserId(), request.id(), request.module(), request.toContent()));
         var created = output.dashboard();
-        return DashboardEntityTag.withETag(Response.created(uriInfo.getAbsolutePathBuilder().path(created.id()).build()), created).build();
+        return DashboardEntityTag.withETag(
+                        Response.created(uriInfo.getAbsolutePathBuilder()
+                                .path(created.id())
+                                .build()),
+                        created)
+                .build();
     }
 
     /**

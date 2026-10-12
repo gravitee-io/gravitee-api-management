@@ -53,7 +53,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.StandardEnvironment;
 
 /**
@@ -64,7 +63,8 @@ import org.springframework.core.env.StandardEnvironment;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class NotFoundProcessorChainFactoryTest {
 
-    private TransactionPreProcessorFactory transactionPreProcessorFactory = new TransactionPreProcessorFactory(null, null);
+    private TransactionPreProcessorFactory transactionPreProcessorFactory =
+            new TransactionPreProcessorFactory(null, null);
 
     @Mock
     private ReporterService reporterService;
@@ -92,13 +92,12 @@ class NotFoundProcessorChainFactoryTest {
     @Test
     void should_have_notFoundProcessors() {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
-            transactionPreProcessorFactory,
-            new StandardEnvironment(),
-            reporterService,
-            false,
-            true,
-            gatewayConfiguration
-        );
+                transactionPreProcessorFactory,
+                new StandardEnvironment(),
+                reporterService,
+                false,
+                true,
+                gatewayConfiguration);
         List<Processor> processors = notFoundProcessorChainFactory.buildProcessorChain();
 
         assertEquals(5, processors.size());
@@ -112,18 +111,16 @@ class NotFoundProcessorChainFactoryTest {
     @Test
     void should_execute_not_found_processor_chain() {
         // Given
-        DefaultExecutionContext notFoundRequestContext = new DefaultExecutionContext(request, response).componentProvider(
-            componentProvider
-        );
+        DefaultExecutionContext notFoundRequestContext =
+                new DefaultExecutionContext(request, response).componentProvider(componentProvider);
 
         NotFoundProcessorChainFactory notFoundProcessorChainFactory = new NotFoundProcessorChainFactory(
-            transactionPreProcessorFactory,
-            new StandardEnvironment(),
-            reporterService,
-            true,
-            true,
-            gatewayConfiguration
-        );
+                transactionPreProcessorFactory,
+                new StandardEnvironment(),
+                reporterService,
+                true,
+                true,
+                gatewayConfiguration);
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
 
         when(response.end(notFoundRequestContext)).thenReturn(Completable.complete());
@@ -140,7 +137,10 @@ class NotFoundProcessorChainFactoryTest {
         when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
 
         // When
-        processorChain.execute(notFoundRequestContext, ExecutionPhase.RESPONSE).test().assertResult();
+        processorChain
+                .execute(notFoundRequestContext, ExecutionPhase.RESPONSE)
+                .test()
+                .assertResult();
 
         // Then
         verify(response).status(HttpStatusCode.NOT_FOUND_404);

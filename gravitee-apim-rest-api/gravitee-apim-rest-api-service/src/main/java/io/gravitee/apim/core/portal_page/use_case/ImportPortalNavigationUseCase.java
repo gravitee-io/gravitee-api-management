@@ -55,32 +55,37 @@ public class ImportPortalNavigationUseCase {
         // The caller never picks an area: under a parent it can only be the parent's, and the
         // area validators would otherwise reject a mismatch the caller has no way to understand.
         // An unknown parent falls back to the default so ParentRule reports it, instead of an NPE here.
-        var parent = input.parentId() == null ? null : queryService.findByIdAndEnvironmentId(input.environmentId(), input.parentId());
+        var parent = input.parentId() == null
+                ? null
+                : queryService.findByIdAndEnvironmentId(input.environmentId(), input.parentId());
         var area = parent == null ? PortalArea.TOP_NAVBAR : parent.getArea();
         var itemToCreate = CreatePortalNavigationItem.builder()
-            .title(input.title())
-            .type(PortalNavigationItemType.FOLDER)
-            .area(area)
-            .parentId(input.parentId())
-            .reference(input.reference() == null ? NavigationItemReference.defaultReference() : input.reference())
-            .visibility(input.visibility() == null ? PortalVisibility.PRIVATE : input.visibility())
-            .published(false)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .source(input.source())
-            .build();
+                .title(input.title())
+                .type(PortalNavigationItemType.FOLDER)
+                .area(area)
+                .parentId(input.parentId())
+                .reference(input.reference() == null ? NavigationItemReference.defaultReference() : input.reference())
+                .visibility(input.visibility() == null ? PortalVisibility.PRIVATE : input.visibility())
+                .published(false)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .source(input.source())
+                .build();
 
         validatorService.validateAll(List.of(itemToCreate), input.environmentId());
         if (!sourceDomainService.supportsFileListing(input.source())) {
-            throw InvalidPortalNavigationItemSourceException.sourceCannotListFiles(input.source().getSourceType());
+            throw InvalidPortalNavigationItemSourceException.sourceCannotListFiles(
+                    input.source().getSourceType());
         }
         // The marker is what later routes a fetch of this folder to a re-import
         input.source().setSubtreeImport(true);
 
-        var rootFolder = (PortalNavigationFolder) domainService.create(input.organizationId(), input.environmentId(), itemToCreate);
+        var rootFolder = (PortalNavigationFolder)
+                domainService.create(input.organizationId(), input.environmentId(), itemToCreate);
         var result = bulkImportDomainService.importSubtree(rootFolder);
 
         // The import stamps the fetch state on the root folder: return the persisted version
-        var importedRoot = (PortalNavigationFolder) queryService.findByIdAndEnvironmentId(input.environmentId(), rootFolder.getId());
+        var importedRoot = (PortalNavigationFolder)
+                queryService.findByIdAndEnvironmentId(input.environmentId(), rootFolder.getId());
         if (importedRoot.getSource() != null) {
             sourceDomainService.removeSensitiveData(importedRoot.getSource());
         }
@@ -92,14 +97,14 @@ public class ImportPortalNavigationUseCase {
      */
     @Builder(toBuilder = true)
     public record Input(
-        String organizationId,
-        String environmentId,
-        String title,
-        @Nullable PortalNavigationItemId parentId,
-        @Nullable PortalVisibility visibility,
-        PortalNavigationItemSource source,
-        @Nullable NavigationItemReference reference
-    ) {}
+            String organizationId,
+            String environmentId,
+            String title,
+            @Nullable PortalNavigationItemId parentId,
+            @Nullable PortalVisibility visibility,
+            PortalNavigationItemSource source,
+            @Nullable NavigationItemReference reference) {}
 
-    public record Output(PortalNavigationFolder rootFolder, PortalNavigationBulkImportDomainService.BulkImportResult result) {}
+    public record Output(
+            PortalNavigationFolder rootFolder, PortalNavigationBulkImportDomainService.BulkImportResult result) {}
 }

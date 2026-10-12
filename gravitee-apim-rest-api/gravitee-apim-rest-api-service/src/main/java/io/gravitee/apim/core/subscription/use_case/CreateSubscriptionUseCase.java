@@ -45,12 +45,11 @@ public class CreateSubscriptionUseCase {
 
     public Output execute(Input input) {
         log.debug(
-            "Creating subscription for {} {} with plan {} and application {}",
-            input.referenceType,
-            input.referenceId,
-            input.planId,
-            input.applicationId
-        );
+                "Creating subscription for {} {} with plan {} and application {}",
+                input.referenceType,
+                input.referenceId,
+                input.planId,
+                input.applicationId);
 
         verifyReferenceExists(input.referenceId, input.referenceType);
 
@@ -61,23 +60,27 @@ public class CreateSubscriptionUseCase {
             throw new PlanNotFoundException(input.planId);
         }
 
-        io.gravitee.rest.api.model.SubscriptionEntity createdSubscriptionEntity = createSubscriptionDomainService.create(
-            input.auditInfo,
-            input.planId,
-            input.applicationId,
-            input.requestMessage,
-            input.customApiKey,
-            input.configuration,
-            input.metadata,
-            input.apiKeyMode,
-            input.generalConditionsAccepted,
-            input.generalConditionsContentRevision,
-            input.subscriptionFormMetadataValidationRequired
-        );
+        io.gravitee.rest.api.model.SubscriptionEntity createdSubscriptionEntity =
+                createSubscriptionDomainService.create(
+                        input.auditInfo,
+                        input.planId,
+                        input.applicationId,
+                        input.requestMessage,
+                        input.customApiKey,
+                        input.configuration,
+                        input.metadata,
+                        input.apiKeyMode,
+                        input.generalConditionsAccepted,
+                        input.generalConditionsContentRevision,
+                        input.subscriptionFormMetadataValidationRequired);
 
         SubscriptionEntity createdSubscription = subscriptionCrudService.get(createdSubscriptionEntity.getId());
 
-        log.debug("Created subscription {} for {} {}", createdSubscription.getId(), input.referenceType, input.referenceId);
+        log.debug(
+                "Created subscription {} for {} {}",
+                createdSubscription.getId(),
+                input.referenceType,
+                input.referenceId);
         return new Output(createdSubscription);
     }
 
@@ -89,36 +92,34 @@ public class CreateSubscriptionUseCase {
         }
     }
 
-    private void validatePlanBelongsToReference(Plan plan, String referenceId, SubscriptionReferenceType referenceType) {
+    private void validatePlanBelongsToReference(
+            Plan plan, String referenceId, SubscriptionReferenceType referenceType) {
         GenericPlanEntity.ReferenceType expectedReferenceType = referenceType == SubscriptionReferenceType.API
-            ? GenericPlanEntity.ReferenceType.API
-            : GenericPlanEntity.ReferenceType.API_PRODUCT;
+                ? GenericPlanEntity.ReferenceType.API
+                : GenericPlanEntity.ReferenceType.API_PRODUCT;
 
-        if (
-            plan.getReferenceType() == null ||
-            !plan.getReferenceType().equals(expectedReferenceType) ||
-            !plan.getReferenceId().equals(referenceId)
-        ) {
+        if (plan.getReferenceType() == null
+                || !plan.getReferenceType().equals(expectedReferenceType)
+                || !plan.getReferenceId().equals(referenceId)) {
             throw new PlanNotFoundException(plan.getId());
         }
     }
 
     @Builder
     public record Input(
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        String planId,
-        String applicationId,
-        String requestMessage,
-        String customApiKey,
-        io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
-        java.util.Map<String, String> metadata,
-        io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
-        Boolean generalConditionsAccepted,
-        io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
-        AuditInfo auditInfo,
-        Boolean subscriptionFormMetadataValidationRequired
-    ) {}
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            String planId,
+            String applicationId,
+            String requestMessage,
+            String customApiKey,
+            io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
+            java.util.Map<String, String> metadata,
+            io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
+            Boolean generalConditionsAccepted,
+            io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
+            AuditInfo auditInfo,
+            Boolean subscriptionFormMetadataValidationRequired) {}
 
     public record Output(SubscriptionEntity subscription) {}
 }

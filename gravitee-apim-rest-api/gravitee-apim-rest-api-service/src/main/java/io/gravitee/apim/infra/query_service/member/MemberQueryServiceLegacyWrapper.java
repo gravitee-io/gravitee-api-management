@@ -26,10 +26,7 @@ import io.gravitee.apim.infra.adapter.MemberAdapter;
 import io.gravitee.apim.infra.adapter.MembershipMemberAdapter;
 import io.gravitee.apim.infra.adapter.MembershipReferenceAdapter;
 import io.gravitee.apim.infra.adapter.MembershipRoleAdapter;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,61 +48,57 @@ public class MemberQueryServiceLegacyWrapper implements MemberQueryService {
     @Override
     public Set<Member> getMembersByReference(MembershipReferenceType referenceType, String referenceId) {
         return membershipService
-            .getMembersByReference(
-                GraviteeContext.getExecutionContext(),
-                io.gravitee.rest.api.model.MembershipReferenceType.valueOf(referenceType.name()),
-                referenceId
-            )
-            .stream()
-            .map(MemberAdapter.INSTANCE::toMember)
-            .collect(Collectors.toSet());
+                .getMembersByReference(
+                        GraviteeContext.getExecutionContext(),
+                        io.gravitee.rest.api.model.MembershipReferenceType.valueOf(referenceType.name()),
+                        referenceId)
+                .stream()
+                .map(MemberAdapter.INSTANCE::toMember)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Member getUserMember(MembershipReferenceType referenceType, String referenceId, String userId) {
         var userMember = membershipService.getUserMember(
-            GraviteeContext.getExecutionContext(),
-            io.gravitee.rest.api.model.MembershipReferenceType.valueOf(referenceType.name()),
-            referenceId,
-            userId
-        );
+                GraviteeContext.getExecutionContext(),
+                io.gravitee.rest.api.model.MembershipReferenceType.valueOf(referenceType.name()),
+                referenceId,
+                userId);
         return MemberAdapter.INSTANCE.toMember(userMember);
     }
 
     @Override
-    public Member updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
+    public Member updateRoleToMemberOnReference(
+            MembershipReference reference, MembershipMember member, MembershipRole role) {
         var memberEntity = membershipService.updateRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceAdapter.INSTANCE.map(reference),
-            MembershipMemberAdapter.INSTANCE.map(member),
-            MembershipRoleAdapter.INSTANCE.map(role)
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceAdapter.INSTANCE.map(reference),
+                MembershipMemberAdapter.INSTANCE.map(member),
+                MembershipRoleAdapter.INSTANCE.map(role));
         return MemberAdapter.INSTANCE.toMember(memberEntity);
     }
 
     @Override
-    public void addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
+    public void addRoleToMemberOnReference(
+            MembershipReference reference, MembershipMember member, MembershipRole role) {
         membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceAdapter.INSTANCE.map(reference),
-            MembershipMemberAdapter.INSTANCE.map(member),
-            MembershipRoleAdapter.INSTANCE.map(role)
-        );
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceAdapter.INSTANCE.map(reference),
+                MembershipMemberAdapter.INSTANCE.map(member),
+                MembershipRoleAdapter.INSTANCE.map(role));
     }
 
     @Override
     public void deleteReferenceMember(
-        MembershipReferenceType referenceType,
-        String referenceId,
-        MembershipMemberType memberType,
-        String memberId
-    ) {
+            MembershipReferenceType referenceType,
+            String referenceId,
+            MembershipMemberType memberType,
+            String memberId) {
         membershipService.deleteReferenceMember(
-            GraviteeContext.getExecutionContext(),
-            io.gravitee.rest.api.model.MembershipReferenceType.valueOf(referenceType.name()),
-            referenceId,
-            io.gravitee.rest.api.model.MembershipMemberType.valueOf(memberType.name()),
-            memberId
-        );
+                GraviteeContext.getExecutionContext(),
+                io.gravitee.rest.api.model.MembershipReferenceType.valueOf(referenceType.name()),
+                referenceId,
+                io.gravitee.rest.api.model.MembershipMemberType.valueOf(memberType.name()),
+                memberId);
     }
 }

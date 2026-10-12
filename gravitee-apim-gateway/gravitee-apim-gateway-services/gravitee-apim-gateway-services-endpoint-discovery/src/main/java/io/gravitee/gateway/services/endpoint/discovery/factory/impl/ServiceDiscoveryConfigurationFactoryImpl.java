@@ -29,10 +29,12 @@ import lombok.CustomLog;
 @CustomLog
 public class ServiceDiscoveryConfigurationFactoryImpl implements ServiceDiscoveryConfigurationFactory {
 
-    private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper mapper =
+            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
-    public <T extends ServiceDiscoveryConfiguration> T create(Class<T> serviceDiscoveryConfigurationClass, String configuration) {
+    public <T extends ServiceDiscoveryConfiguration> T create(
+            Class<T> serviceDiscoveryConfigurationClass, String configuration) {
         if (configuration == null || configuration.isEmpty()) {
             log.debug("Unable to create a service discovery configuration from a null or empty configuration data");
             return null;
@@ -41,7 +43,10 @@ public class ServiceDiscoveryConfigurationFactoryImpl implements ServiceDiscover
         try {
             return mapper.readValue(configuration, serviceDiscoveryConfigurationClass);
         } catch (IOException ex) {
-            log.error("Unable to instance service discovery configuration for {}", serviceDiscoveryConfigurationClass.getName(), ex);
+            log.error(
+                    "Unable to instance service discovery configuration for {}",
+                    serviceDiscoveryConfigurationClass.getName(),
+                    ex);
         }
 
         return null;

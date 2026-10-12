@@ -47,7 +47,8 @@ public class TransformResponseContentGatewayTest extends AbstractWiremockGateway
 
         wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
+        org.apache.http.client.fluent.Request request =
+                org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(requestBody, ContentType.TEXT_PLAIN);
 
         HttpResponse response = execute(request).returnResponse();
@@ -67,10 +68,8 @@ public class TransformResponseContentGatewayTest extends AbstractWiremockGateway
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build(
-            "transform-response-content",
-            TransformResponseContentPolicy.class
-        );
+        PolicyPlugin transformRequestContentPolicy =
+                PolicyBuilder.build("transform-response-content", TransformResponseContentPolicy.class);
         policyPluginManager.register(transformRequestContentPolicy);
     }
 }

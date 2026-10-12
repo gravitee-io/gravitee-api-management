@@ -21,11 +21,12 @@ public class PrimaryOwnerModelFixtures {
 
     private PrimaryOwnerModelFixtures() {}
 
-    private static final PrimaryOwnerEntity.PrimaryOwnerEntityBuilder BASE_PRIMARY_OWNER_ENTITY = PrimaryOwnerEntity.builder()
-        .id("primary-owner-id")
-        .displayName("primary-owner-displayName")
-        .email("primary-owner-email")
-        .type("USER");
+    private static final PrimaryOwnerEntity.PrimaryOwnerEntityBuilder BASE_PRIMARY_OWNER_ENTITY =
+            PrimaryOwnerEntity.builder()
+                    .id("primary-owner-id")
+                    .displayName("primary-owner-displayName")
+                    .email("primary-owner-email")
+                    .type("USER");
 
     public static PrimaryOwnerEntity aPrimaryOwnerEntity() {
         return BASE_PRIMARY_OWNER_ENTITY.build();

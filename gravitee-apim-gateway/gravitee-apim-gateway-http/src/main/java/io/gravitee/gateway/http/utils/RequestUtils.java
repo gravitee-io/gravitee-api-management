@@ -57,11 +57,10 @@ public final class RequestUtils {
             String connectionHeader = nativeRequest.getHeader(CONNECTION);
             if (connectionHeader != null) {
                 String upgradeHeader = nativeRequest.getHeader(UPGRADE);
-                isUpgrade =
-                    Arrays.stream(connectionHeader.split(","))
-                        .map(String::trim)
-                        .anyMatch(HttpHeaderValues.UPGRADE::contentEqualsIgnoreCase) &&
-                    HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
+                isUpgrade = Arrays.stream(connectionHeader.split(","))
+                                .map(String::trim)
+                                .anyMatch(HttpHeaderValues.UPGRADE::contentEqualsIgnoreCase)
+                        && HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
             }
             return HttpMethod.GET.name().equals(nativeRequest.method().name()) && isUpgrade;
         }
@@ -100,11 +99,9 @@ public final class RequestUtils {
         if (contentLengthHeaderValue == null) {
             String contentTypeHeaderValue = httpHeaders.get(CONTENT_TYPE);
             MediaType contentTypeMedia = MediaType.parseMediaType(contentTypeHeaderValue);
-            return (
-                MediaType.MEDIA_APPLICATION_GRPC.equals(contentTypeMedia) ||
-                MediaType.MEDIA_APPLICATION_OCTET_STREAM.equals(contentTypeMedia) ||
-                MediaType.MEDIA_TEXT_EVENT_STREAM.equals(contentTypeMedia)
-            );
+            return (MediaType.MEDIA_APPLICATION_GRPC.equals(contentTypeMedia)
+                    || MediaType.MEDIA_APPLICATION_OCTET_STREAM.equals(contentTypeMedia)
+                    || MediaType.MEDIA_TEXT_EVENT_STREAM.equals(contentTypeMedia));
         }
         return false;
     }

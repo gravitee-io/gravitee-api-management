@@ -26,7 +26,8 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HRIDToUUIDTest {
 
-    private static final AuditInfo AUDIT = AuditInfo.builder().organizationId("org").environmentId("env").build();
+    private static final AuditInfo AUDIT =
+            AuditInfo.builder().organizationId("org").environmentId("env").build();
     private static final ExecutionContext EXEC_CTX = new ExecutionContext("org", "env");
 
     @Nested
@@ -34,27 +35,28 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_hrid() {
-            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").id()).isEqualTo(HRIDToUUID.api().context(AUDIT).hrid("foo").id());
+            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").id())
+                    .isEqualTo(HRIDToUUID.api().context(AUDIT).hrid("foo").id());
         }
 
         @Test
         void should_generate_same_cross_id_for_same_hrid() {
-            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").crossId()).isEqualTo(
-                HRIDToUUID.api().context(AUDIT).hrid("foo").crossId()
-            );
+            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").crossId())
+                    .isEqualTo(HRIDToUUID.api().context(AUDIT).hrid("foo").crossId());
         }
 
         @Test
         void should_generate_different_id_for_different_hrid() {
-            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").id()).isNotEqualTo(HRIDToUUID.api().context(AUDIT).hrid("bar").id());
+            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").id())
+                    .isNotEqualTo(HRIDToUUID.api().context(AUDIT).hrid("bar").id());
         }
 
         @Test
         void should_produce_same_result_from_audit_info_and_execution_context() {
-            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").id()).isEqualTo(HRIDToUUID.api().context(EXEC_CTX).hrid("foo").id());
-            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").crossId()).isEqualTo(
-                HRIDToUUID.api().context(EXEC_CTX).hrid("foo").crossId()
-            );
+            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").id())
+                    .isEqualTo(HRIDToUUID.api().context(EXEC_CTX).hrid("foo").id());
+            assertThat(HRIDToUUID.api().context(AUDIT).hrid("foo").crossId())
+                    .isEqualTo(HRIDToUUID.api().context(EXEC_CTX).hrid("foo").crossId());
         }
     }
 
@@ -63,14 +65,15 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_hrid() {
-            assertThat(HRIDToUUID.application().context(AUDIT).hrid("app").id()).isEqualTo(
-                HRIDToUUID.application().context(AUDIT).hrid("app").id()
-            );
+            assertThat(HRIDToUUID.application().context(AUDIT).hrid("app").id())
+                    .isEqualTo(
+                            HRIDToUUID.application().context(AUDIT).hrid("app").id());
         }
 
         @Test
         void should_produce_same_formula_as_api_for_same_hrid() {
-            assertThat(HRIDToUUID.application().context(AUDIT).hrid("x").id()).isEqualTo(HRIDToUUID.api().context(AUDIT).hrid("x").id());
+            assertThat(HRIDToUUID.application().context(AUDIT).hrid("x").id())
+                    .isEqualTo(HRIDToUUID.api().context(AUDIT).hrid("x").id());
         }
     }
 
@@ -79,12 +82,16 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_and_cross_id_for_same_hrid() {
-            assertThat(HRIDToUUID.sharedPolicyGroup().context(AUDIT).hrid("spg").id()).isEqualTo(
-                HRIDToUUID.sharedPolicyGroup().context(AUDIT).hrid("spg").id()
-            );
-            assertThat(HRIDToUUID.sharedPolicyGroup().context(AUDIT).hrid("spg").crossId()).isEqualTo(
-                HRIDToUUID.sharedPolicyGroup().context(AUDIT).hrid("spg").crossId()
-            );
+            assertThat(HRIDToUUID.sharedPolicyGroup().context(AUDIT).hrid("spg").id())
+                    .isEqualTo(HRIDToUUID.sharedPolicyGroup()
+                            .context(AUDIT)
+                            .hrid("spg")
+                            .id());
+            assertThat(HRIDToUUID.sharedPolicyGroup().context(AUDIT).hrid("spg").crossId())
+                    .isEqualTo(HRIDToUUID.sharedPolicyGroup()
+                            .context(AUDIT)
+                            .hrid("spg")
+                            .crossId());
         }
     }
 
@@ -93,16 +100,18 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_hrid() {
-            assertThat(HRIDToUUID.portalTheme().context(AUDIT).hrid("my-theme").id()).isEqualTo(
-                HRIDToUUID.portalTheme().context(AUDIT).hrid("my-theme").id()
-            );
+            assertThat(HRIDToUUID.portalTheme().context(AUDIT).hrid("my-theme").id())
+                    .isEqualTo(HRIDToUUID.portalTheme()
+                            .context(AUDIT)
+                            .hrid("my-theme")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_hrid() {
-            assertThat(HRIDToUUID.portalTheme().context(AUDIT).hrid("light").id()).isNotEqualTo(
-                HRIDToUUID.portalTheme().context(AUDIT).hrid("dark").id()
-            );
+            assertThat(HRIDToUUID.portalTheme().context(AUDIT).hrid("light").id())
+                    .isNotEqualTo(
+                            HRIDToUUID.portalTheme().context(AUDIT).hrid("dark").id());
         }
     }
 
@@ -111,23 +120,44 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.plan().context(AUDIT).api("my-api").plan("my-plan").id()).isEqualTo(
-                HRIDToUUID.plan().context(AUDIT).api("my-api").plan("my-plan").id()
-            );
+            assertThat(HRIDToUUID.plan()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .plan("my-plan")
+                            .id())
+                    .isEqualTo(HRIDToUUID.plan()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .plan("my-plan")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_plan_hrid() {
-            assertThat(HRIDToUUID.plan().context(AUDIT).api("my-api").plan("plan-a").id()).isNotEqualTo(
-                HRIDToUUID.plan().context(AUDIT).api("my-api").plan("plan-b").id()
-            );
+            assertThat(HRIDToUUID.plan()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .plan("plan-a")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.plan()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .plan("plan-b")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_api_hrid() {
-            assertThat(HRIDToUUID.plan().context(AUDIT).api("api-a").plan("plan").id()).isNotEqualTo(
-                HRIDToUUID.plan().context(AUDIT).api("api-b").plan("plan").id()
-            );
+            assertThat(HRIDToUUID.plan()
+                            .context(AUDIT)
+                            .api("api-a")
+                            .plan("plan")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.plan()
+                            .context(AUDIT)
+                            .api("api-b")
+                            .plan("plan")
+                            .id());
         }
     }
 
@@ -136,16 +166,30 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.page().context(AUDIT).api("my-api").page("my-page").id()).isEqualTo(
-                HRIDToUUID.page().context(AUDIT).api("my-api").page("my-page").id()
-            );
+            assertThat(HRIDToUUID.page()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .page("my-page")
+                            .id())
+                    .isEqualTo(HRIDToUUID.page()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .page("my-page")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_page_hrid() {
-            assertThat(HRIDToUUID.page().context(AUDIT).api("my-api").page("page-a").id()).isNotEqualTo(
-                HRIDToUUID.page().context(AUDIT).api("my-api").page("page-b").id()
-            );
+            assertThat(HRIDToUUID.page()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .page("page-a")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.page()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .page("page-b")
+                            .id());
         }
     }
 
@@ -154,23 +198,44 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.subscription().context(AUDIT).api("my-api").subscription("my-sub").id()).isEqualTo(
-                HRIDToUUID.subscription().context(AUDIT).api("my-api").subscription("my-sub").id()
-            );
+            assertThat(HRIDToUUID.subscription()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .subscription("my-sub")
+                            .id())
+                    .isEqualTo(HRIDToUUID.subscription()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .subscription("my-sub")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_subscription_hrid() {
-            assertThat(HRIDToUUID.subscription().context(AUDIT).api("my-api").subscription("sub-a").id()).isNotEqualTo(
-                HRIDToUUID.subscription().context(AUDIT).api("my-api").subscription("sub-b").id()
-            );
+            assertThat(HRIDToUUID.subscription()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .subscription("sub-a")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.subscription()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .subscription("sub-b")
+                            .id());
         }
 
         @Test
         void should_produce_same_result_from_audit_info_and_execution_context() {
-            assertThat(HRIDToUUID.subscription().context(AUDIT).api("api").subscription("sub").id()).isEqualTo(
-                HRIDToUUID.subscription().context(EXEC_CTX).api("api").subscription("sub").id()
-            );
+            assertThat(HRIDToUUID.subscription()
+                            .context(AUDIT)
+                            .api("api")
+                            .subscription("sub")
+                            .id())
+                    .isEqualTo(HRIDToUUID.subscription()
+                            .context(EXEC_CTX)
+                            .api("api")
+                            .subscription("sub")
+                            .id());
         }
     }
 
@@ -179,36 +244,69 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("my-listing").id()).isEqualTo(
-                HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("my-listing").id()
-            );
+            assertThat(HRIDToUUID.portalListing()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("my-listing")
+                            .id())
+                    .isEqualTo(HRIDToUUID.portalListing()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("my-listing")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_listing_hrid() {
-            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("listing-a").id()).isNotEqualTo(
-                HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("listing-b").id()
-            );
+            assertThat(HRIDToUUID.portalListing()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("listing-a")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.portalListing()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("listing-b")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_portal_hrid() {
-            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("portal-a").hrid("listing").id()).isNotEqualTo(
-                HRIDToUUID.portalListing().context(AUDIT).portal("portal-b").hrid("listing").id()
-            );
+            assertThat(HRIDToUUID.portalListing()
+                            .context(AUDIT)
+                            .portal("portal-a")
+                            .hrid("listing")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.portalListing()
+                            .context(AUDIT)
+                            .portal("portal-b")
+                            .hrid("listing")
+                            .id());
         }
 
         @Test
         void should_produce_same_result_from_audit_info_and_execution_context() {
-            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("portal").hrid("listing").id()).isEqualTo(
-                HRIDToUUID.portalListing().context(EXEC_CTX).portal("portal").hrid("listing").id()
-            );
+            assertThat(HRIDToUUID.portalListing()
+                            .context(AUDIT)
+                            .portal("portal")
+                            .hrid("listing")
+                            .id())
+                    .isEqualTo(HRIDToUUID.portalListing()
+                            .context(EXEC_CTX)
+                            .portal("portal")
+                            .hrid("listing")
+                            .id());
         }
 
         @Test
         void should_not_collide_with_portal_top_level_id() {
-            String portalId = HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
-            String listingId = HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("my-portal").id();
+            String portalId =
+                    HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
+            String listingId = HRIDToUUID.portalListing()
+                    .context(AUDIT)
+                    .portal("my-portal")
+                    .hrid("my-portal")
+                    .id();
             assertThat(portalId).isNotEqualTo(listingId);
         }
     }
@@ -218,36 +316,69 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("my-doc").id()).isEqualTo(
-                HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("my-doc").id()
-            );
+            assertThat(HRIDToUUID.portalDocumentation()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("my-doc")
+                            .id())
+                    .isEqualTo(HRIDToUUID.portalDocumentation()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("my-doc")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_doc_hrid() {
-            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("doc-a").id()).isNotEqualTo(
-                HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("doc-b").id()
-            );
+            assertThat(HRIDToUUID.portalDocumentation()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("doc-a")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.portalDocumentation()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("doc-b")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_portal_hrid() {
-            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal-a").hrid("doc").id()).isNotEqualTo(
-                HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal-b").hrid("doc").id()
-            );
+            assertThat(HRIDToUUID.portalDocumentation()
+                            .context(AUDIT)
+                            .portal("portal-a")
+                            .hrid("doc")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.portalDocumentation()
+                            .context(AUDIT)
+                            .portal("portal-b")
+                            .hrid("doc")
+                            .id());
         }
 
         @Test
         void should_produce_same_result_from_audit_info_and_execution_context() {
-            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal").hrid("doc").id()).isEqualTo(
-                HRIDToUUID.portalDocumentation().context(EXEC_CTX).portal("portal").hrid("doc").id()
-            );
+            assertThat(HRIDToUUID.portalDocumentation()
+                            .context(AUDIT)
+                            .portal("portal")
+                            .hrid("doc")
+                            .id())
+                    .isEqualTo(HRIDToUUID.portalDocumentation()
+                            .context(EXEC_CTX)
+                            .portal("portal")
+                            .hrid("doc")
+                            .id());
         }
 
         @Test
         void should_not_collide_with_portal_top_level_id() {
-            String portalId = HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
-            String docId = HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("my-portal").id();
+            String portalId =
+                    HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
+            String docId = HRIDToUUID.portalDocumentation()
+                    .context(AUDIT)
+                    .portal("my-portal")
+                    .hrid("my-portal")
+                    .id();
             assertThat(portalId).isNotEqualTo(docId);
         }
 
@@ -257,8 +388,16 @@ class HRIDToUUIDTest {
             // same UUID for the same HRID inputs. This is intentional: they live in separate tables
             // (documentations vs portal_listings), so the PK scope is different. If this test ever
             // fails it means the builders have been split — verify UUID uniqueness across tables.
-            String docId = HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal").hrid("x").id();
-            String listingId = HRIDToUUID.portalListing().context(AUDIT).portal("portal").hrid("x").id();
+            String docId = HRIDToUUID.portalDocumentation()
+                    .context(AUDIT)
+                    .portal("portal")
+                    .hrid("x")
+                    .id();
+            String listingId = HRIDToUUID.portalListing()
+                    .context(AUDIT)
+                    .portal("portal")
+                    .hrid("x")
+                    .id();
             assertThat(docId).isEqualTo(listingId);
         }
     }
@@ -268,36 +407,69 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.portalLink().context(AUDIT).portal("my-portal").hrid("my-link").id()).isEqualTo(
-                HRIDToUUID.portalLink().context(AUDIT).portal("my-portal").hrid("my-link").id()
-            );
+            assertThat(HRIDToUUID.portalLink()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("my-link")
+                            .id())
+                    .isEqualTo(HRIDToUUID.portalLink()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("my-link")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_link_hrid() {
-            assertThat(HRIDToUUID.portalLink().context(AUDIT).portal("my-portal").hrid("link-a").id()).isNotEqualTo(
-                HRIDToUUID.portalLink().context(AUDIT).portal("my-portal").hrid("link-b").id()
-            );
+            assertThat(HRIDToUUID.portalLink()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("link-a")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.portalLink()
+                            .context(AUDIT)
+                            .portal("my-portal")
+                            .hrid("link-b")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_portal_hrid() {
-            assertThat(HRIDToUUID.portalLink().context(AUDIT).portal("portal-a").hrid("link").id()).isNotEqualTo(
-                HRIDToUUID.portalLink().context(AUDIT).portal("portal-b").hrid("link").id()
-            );
+            assertThat(HRIDToUUID.portalLink()
+                            .context(AUDIT)
+                            .portal("portal-a")
+                            .hrid("link")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.portalLink()
+                            .context(AUDIT)
+                            .portal("portal-b")
+                            .hrid("link")
+                            .id());
         }
 
         @Test
         void should_produce_same_result_from_audit_info_and_execution_context() {
-            assertThat(HRIDToUUID.portalLink().context(AUDIT).portal("portal").hrid("link").id()).isEqualTo(
-                HRIDToUUID.portalLink().context(EXEC_CTX).portal("portal").hrid("link").id()
-            );
+            assertThat(HRIDToUUID.portalLink()
+                            .context(AUDIT)
+                            .portal("portal")
+                            .hrid("link")
+                            .id())
+                    .isEqualTo(HRIDToUUID.portalLink()
+                            .context(EXEC_CTX)
+                            .portal("portal")
+                            .hrid("link")
+                            .id());
         }
 
         @Test
         void should_not_collide_with_portal_top_level_id() {
-            String portalId = HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
-            String linkId = HRIDToUUID.portalLink().context(AUDIT).portal("my-portal").hrid("my-portal").id();
+            String portalId =
+                    HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
+            String linkId = HRIDToUUID.portalLink()
+                    .context(AUDIT)
+                    .portal("my-portal")
+                    .hrid("my-portal")
+                    .id();
             assertThat(portalId).isNotEqualTo(linkId);
         }
 
@@ -308,8 +480,16 @@ class HRIDToUUIDTest {
             // (portal_navigation_items rows of different types vs documentations vs portal_listings),
             // so the PK scope is different. If this test ever fails it means the builders have been split —
             // verify UUID uniqueness across tables.
-            String linkId = HRIDToUUID.portalLink().context(AUDIT).portal("portal").hrid("x").id();
-            String docId = HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal").hrid("x").id();
+            String linkId = HRIDToUUID.portalLink()
+                    .context(AUDIT)
+                    .portal("portal")
+                    .hrid("x")
+                    .id();
+            String docId = HRIDToUUID.portalDocumentation()
+                    .context(AUDIT)
+                    .portal("portal")
+                    .hrid("x")
+                    .id();
             assertThat(linkId).isEqualTo(docId);
         }
     }
@@ -319,30 +499,58 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("my-doc").id()).isEqualTo(
-                HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("my-doc").id()
-            );
+            assertThat(HRIDToUUID.apiDocumentation()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .hrid("my-doc")
+                            .id())
+                    .isEqualTo(HRIDToUUID.apiDocumentation()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .hrid("my-doc")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_doc_hrid() {
-            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("doc-a").id()).isNotEqualTo(
-                HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("doc-b").id()
-            );
+            assertThat(HRIDToUUID.apiDocumentation()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .hrid("doc-a")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.apiDocumentation()
+                            .context(AUDIT)
+                            .api("my-api")
+                            .hrid("doc-b")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_api_hrid() {
-            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("api-a").hrid("doc").id()).isNotEqualTo(
-                HRIDToUUID.apiDocumentation().context(AUDIT).api("api-b").hrid("doc").id()
-            );
+            assertThat(HRIDToUUID.apiDocumentation()
+                            .context(AUDIT)
+                            .api("api-a")
+                            .hrid("doc")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.apiDocumentation()
+                            .context(AUDIT)
+                            .api("api-b")
+                            .hrid("doc")
+                            .id());
         }
 
         @Test
         void should_produce_same_result_from_audit_info_and_execution_context() {
-            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("api").hrid("doc").id()).isEqualTo(
-                HRIDToUUID.apiDocumentation().context(EXEC_CTX).api("api").hrid("doc").id()
-            );
+            assertThat(HRIDToUUID.apiDocumentation()
+                            .context(AUDIT)
+                            .api("api")
+                            .hrid("doc")
+                            .id())
+                    .isEqualTo(HRIDToUUID.apiDocumentation()
+                            .context(EXEC_CTX)
+                            .api("api")
+                            .hrid("doc")
+                            .id());
         }
 
         @Test
@@ -350,7 +558,11 @@ class HRIDToUUIDTest {
             // The literal "api" discriminant in ApiSubResourceWithContext.api(...) prevents api-doc ids
             // from colliding with top-level api ids that share the same hrid grammar.
             String apiId = HRIDToUUID.api().context(AUDIT).hrid("my-api").id();
-            String docId = HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("my-api").id();
+            String docId = HRIDToUUID.apiDocumentation()
+                    .context(AUDIT)
+                    .api("my-api")
+                    .hrid("my-api")
+                    .id();
             assertThat(apiId).isNotEqualTo(docId);
         }
 
@@ -358,10 +570,20 @@ class HRIDToUUIDTest {
         void should_not_collide_with_other_api_sub_resources() {
             // The literal "api" discriminant also separates api-doc ids from plan/page/subscription ids
             // that share the (apiHrid, hrid) shape.
-            String planId = HRIDToUUID.plan().context(AUDIT).api("my-api").plan("x").id();
-            String pageId = HRIDToUUID.page().context(AUDIT).api("my-api").page("x").id();
-            String subId = HRIDToUUID.subscription().context(AUDIT).api("my-api").subscription("x").id();
-            String docId = HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("x").id();
+            String planId =
+                    HRIDToUUID.plan().context(AUDIT).api("my-api").plan("x").id();
+            String pageId =
+                    HRIDToUUID.page().context(AUDIT).api("my-api").page("x").id();
+            String subId = HRIDToUUID.subscription()
+                    .context(AUDIT)
+                    .api("my-api")
+                    .subscription("x")
+                    .id();
+            String docId = HRIDToUUID.apiDocumentation()
+                    .context(AUDIT)
+                    .api("my-api")
+                    .hrid("x")
+                    .id();
             assertThat(docId).isNotEqualTo(planId).isNotEqualTo(pageId).isNotEqualTo(subId);
         }
     }
@@ -371,53 +593,116 @@ class HRIDToUUIDTest {
 
         @Test
         void should_generate_same_id_for_same_inputs() {
-            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("github").id()).isEqualTo(
-                HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("github").id()
-            );
+            assertThat(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("github")
+                            .id())
+                    .isEqualTo(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("github")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_hrid() {
-            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("github").id()).isNotEqualTo(
-                HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("jira").id()
-            );
+            assertThat(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("github")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("jira")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_kind() {
-            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id()).isNotEqualTo(
-                HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/sources").hrid("x").id()
-            );
+            assertThat(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("x")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/sources")
+                            .hrid("x")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_module() {
-            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("policies").hrid("x").id()).isNotEqualTo(
-                HRIDToUUID.gamma().context(AUDIT).module("authz").kind("policies").hrid("x").id()
-            );
+            assertThat(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("policies")
+                            .hrid("x")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("authz")
+                            .kind("policies")
+                            .hrid("x")
+                            .id());
         }
 
         @Test
         void should_generate_different_id_for_different_environment() {
-            var otherEnv = AuditInfo.builder().organizationId("org").environmentId("other-env").build();
-            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id()).isNotEqualTo(
-                HRIDToUUID.gamma().context(otherEnv).module("aim").kind("catalog/mcp-servers").hrid("x").id()
-            );
+            var otherEnv = AuditInfo.builder()
+                    .organizationId("org")
+                    .environmentId("other-env")
+                    .build();
+            assertThat(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("x")
+                            .id())
+                    .isNotEqualTo(HRIDToUUID.gamma()
+                            .context(otherEnv)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("x")
+                            .id());
         }
 
         @Test
         void should_not_collide_with_top_level_id() {
-            // The literal "gamma" discriminant keeps module resources apart from APIM top-level ids sharing the hrid grammar.
+            // The literal "gamma" discriminant keeps module resources apart from APIM top-level ids sharing the hrid
+            // grammar.
             String apiId = HRIDToUUID.api().context(AUDIT).hrid("x").id();
-            String moduleResourceId = HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id();
+            String moduleResourceId = HRIDToUUID.gamma()
+                    .context(AUDIT)
+                    .module("aim")
+                    .kind("catalog/mcp-servers")
+                    .hrid("x")
+                    .id();
             assertThat(moduleResourceId).isNotEqualTo(apiId);
         }
 
         @Test
         void should_produce_same_result_from_audit_info_and_execution_context() {
-            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id()).isEqualTo(
-                HRIDToUUID.gamma().context(EXEC_CTX).module("aim").kind("catalog/mcp-servers").hrid("x").id()
-            );
+            assertThat(HRIDToUUID.gamma()
+                            .context(AUDIT)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("x")
+                            .id())
+                    .isEqualTo(HRIDToUUID.gamma()
+                            .context(EXEC_CTX)
+                            .module("aim")
+                            .kind("catalog/mcp-servers")
+                            .hrid("x")
+                            .id());
         }
     }
 
@@ -427,8 +712,16 @@ class HRIDToUUIDTest {
         @Test
         void sub_resource_id_should_differ_from_top_level_id() {
             String apiId = HRIDToUUID.api().context(AUDIT).hrid("my-api").id();
-            String planId = HRIDToUUID.plan().context(AUDIT).api("my-api").plan("my-plan").id();
-            String pageId = HRIDToUUID.page().context(AUDIT).api("my-api").page("my-plan").id();
+            String planId = HRIDToUUID.plan()
+                    .context(AUDIT)
+                    .api("my-api")
+                    .plan("my-plan")
+                    .id();
+            String pageId = HRIDToUUID.page()
+                    .context(AUDIT)
+                    .api("my-api")
+                    .page("my-plan")
+                    .id();
             assertThat(apiId).isNotEqualTo(planId).isNotEqualTo(pageId);
         }
 
@@ -439,9 +732,15 @@ class HRIDToUUIDTest {
             // that the formula is the same for all sub-resources
             // if this is not passing anymore, it raises questions:
             // Is this what we want? or is it a bug?
-            String planId = HRIDToUUID.plan().context(AUDIT).api("api").plan("x").id();
-            String pageId = HRIDToUUID.page().context(AUDIT).api("api").page("x").id();
-            String subId = HRIDToUUID.subscription().context(AUDIT).api("api").subscription("x").id();
+            String planId =
+                    HRIDToUUID.plan().context(AUDIT).api("api").plan("x").id();
+            String pageId =
+                    HRIDToUUID.page().context(AUDIT).api("api").page("x").id();
+            String subId = HRIDToUUID.subscription()
+                    .context(AUDIT)
+                    .api("api")
+                    .subscription("x")
+                    .id();
             assertThat(planId).isEqualTo(pageId).isEqualTo(subId);
         }
     }
@@ -451,9 +750,16 @@ class HRIDToUUIDTest {
 
         @Test
         void should_produce_same_result_from_audit_info_and_org_env_strings() {
-            assertThat(HRIDToUUID.navigation().context(AUDIT).api("api").folder("/guides").id()).isEqualTo(
-                HRIDToUUID.navigation().context("org", "env").api("api").folder("/guides").id()
-            );
+            assertThat(HRIDToUUID.navigation()
+                            .context(AUDIT)
+                            .api("api")
+                            .folder("/guides")
+                            .id())
+                    .isEqualTo(HRIDToUUID.navigation()
+                            .context("org", "env")
+                            .api("api")
+                            .folder("/guides")
+                            .id());
         }
     }
 }

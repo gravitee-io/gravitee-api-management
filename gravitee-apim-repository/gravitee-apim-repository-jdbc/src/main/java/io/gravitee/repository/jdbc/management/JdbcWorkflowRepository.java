@@ -45,15 +45,15 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
     @Override
     protected JdbcObjectMapper<Workflow> buildOrm() {
         return JdbcObjectMapper.builder(Workflow.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("state", Types.NVARCHAR, String.class)
-            .addColumn("comment", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("state", Types.NVARCHAR, String.class)
+                .addColumn("comment", Types.NVARCHAR, String.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -62,20 +62,18 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
     }
 
     @Override
-    public List<Workflow> findByReferenceAndType(final String referenceType, final String referenceId, final String type)
-        throws TechnicalException {
+    public List<Workflow> findByReferenceAndType(
+            final String referenceType, final String referenceId, final String type) throws TechnicalException {
         log.debug("JdbcWorkflowRepository.findByReferenceAndType({}, {}, {})", referenceType, referenceId, type);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " where reference_type = ? and reference_id = ? and " +
-                    escapeReservedWord("type") +
-                    " = ? order by created_at desc",
-                getOrm().getRowMapper(),
-                referenceType,
-                referenceId,
-                type
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ? and "
+                            + escapeReservedWord("type")
+                            + " = ? order by created_at desc",
+                    getOrm().getRowMapper(),
+                    referenceType,
+                    referenceId,
+                    type);
         } catch (final Exception ex) {
             final String message = "Failed to find workflows by reference";
             log.error(message, ex);
@@ -84,24 +82,23 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
     }
 
     @Override
-    public List<Workflow> findByReferencesAndType(final String referenceType, final Collection<String> referenceIds, final String type)
-        throws TechnicalException {
+    public List<Workflow> findByReferencesAndType(
+            final String referenceType, final Collection<String> referenceIds, final String type)
+            throws TechnicalException {
         log.debug("JdbcWorkflowRepository.findByReferencesAndType({}, {}, {})", referenceType, referenceIds, type);
         if (referenceIds == null || referenceIds.isEmpty()) {
             return List.of();
         }
         try {
             String inClause = getOrm().buildInClause(referenceIds);
-            String sql =
-                getOrm().getSelectAllSql() +
-                " where reference_type = ? and reference_id in (" +
-                inClause +
-                ") and " +
-                escapeReservedWord("type") +
-                " = ? order by created_at desc";
+            String sql = getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in ("
+                    + inClause
+                    + ") and "
+                    + escapeReservedWord("type")
+                    + " = ? order by created_at desc";
             Object[] params = Stream.of(Stream.of(referenceType), referenceIds.stream(), Stream.of(type))
-                .flatMap(s -> s)
-                .toArray();
+                    .flatMap(s -> s)
+                    .toArray();
             return jdbcTemplate.query(sql, getOrm().getRowMapper(), params);
         } catch (final Exception ex) {
             final String message = "Failed to find workflows by references";
@@ -111,25 +108,27 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType)
+            throws TechnicalException {
         log.debug("JdbcWorkflowRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType,
-                referenceId
-            );
+                    "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType,
+                    referenceId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
-                    referenceType,
-                    referenceId
-                );
+                        "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                        referenceType,
+                        referenceId);
             }
 
-            log.debug("JdbcWorkflowRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcWorkflowRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done",
+                    referenceId,
+                    referenceType);
             return rows;
         } catch (final Exception ex) {
             log.error("Failed to delete workflow for refId: {}/{}", referenceId, referenceType, ex);

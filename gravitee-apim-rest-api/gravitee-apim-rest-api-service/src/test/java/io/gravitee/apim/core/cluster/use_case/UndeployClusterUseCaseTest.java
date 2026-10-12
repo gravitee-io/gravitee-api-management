@@ -67,10 +67,10 @@ class UndeployClusterUseCaseTest {
     private final String ENV_ID = "env-id";
     private final String USER_ID = "user-id";
     private final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORG_ID)
-        .environmentId(ENV_ID)
-        .actor(AuditActor.builder().userId(USER_ID).build())
-        .build();
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .actor(AuditActor.builder().userId(USER_ID).build())
+            .build();
 
     private final ClusterCrudServiceInMemory clusterCrudService = new ClusterCrudServiceInMemory();
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
@@ -99,34 +99,30 @@ class UndeployClusterUseCaseTest {
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var undeployClusterDomainService = new UndeployClusterDomainService(
-            clusterCrudService,
-            eventCrudInMemory,
-            eventLatestCrudInMemory,
-            auditService
-        );
-        var virtualClusterBoundApisQueryService = new VirtualClusterBoundApisQueryService(apiQueryService, objectMapper);
+                clusterCrudService, eventCrudInMemory, eventLatestCrudInMemory, auditService);
+        var virtualClusterBoundApisQueryService =
+                new VirtualClusterBoundApisQueryService(apiQueryService, objectMapper);
         apiQueryService.reset();
         useCase = new UndeployClusterUseCase(
-            clusterCrudService,
-            undeployClusterDomainService,
-            virtualClusterBoundApisQueryService,
-            new ClusterConfigurationAccessDomainService(permissionDomainService)
-        );
+                clusterCrudService,
+                undeployClusterDomainService,
+                virtualClusterBoundApisQueryService,
+                new ClusterConfigurationAccessDomainService(permissionDomainService));
     }
 
     @Test
     void should_undeploy_cluster() {
         Cluster existing = Cluster.builder()
-            .id(CLUSTER_ID)
-            .crossId(CLUSTER_CROSS_ID)
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("My Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.DEPLOYED)
-            .version(1)
-            .configuration(Map.of("connections", List.of()))
-            .build();
+                .id(CLUSTER_ID)
+                .crossId(CLUSTER_CROSS_ID)
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("My Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .version(1)
+                .configuration(Map.of("connections", List.of()))
+                .build();
         clusterCrudService.initWith(List.of(existing));
 
         var output = useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
@@ -139,40 +135,41 @@ class UndeployClusterUseCaseTest {
     @Test
     void should_publish_undeploy_event() {
         Cluster existing = Cluster.builder()
-            .id(CLUSTER_ID)
-            .crossId(CLUSTER_CROSS_ID)
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("My Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.DEPLOYED)
-            .version(1)
-            .configuration(Map.of("connections", List.of()))
-            .build();
+                .id(CLUSTER_ID)
+                .crossId(CLUSTER_CROSS_ID)
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("My Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .version(1)
+                .configuration(Map.of("connections", List.of()))
+                .build();
         clusterCrudService.initWith(List.of(existing));
 
         useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
 
         assertThat(eventCrudInMemory.storage()).hasSize(1);
         assertThat(eventCrudInMemory.storage().get(0).getType()).isEqualTo(EventType.UNDEPLOY_CLUSTER);
-        assertThat(eventCrudInMemory.storage().get(0).getProperties()).containsAllEntriesOf(
-            Map.ofEntries(entry(Event.EventProperties.USER, USER_ID), entry(Event.EventProperties.CLUSTER_ID, CLUSTER_CROSS_ID))
-        );
+        assertThat(eventCrudInMemory.storage().get(0).getProperties())
+                .containsAllEntriesOf(Map.ofEntries(
+                        entry(Event.EventProperties.USER, USER_ID),
+                        entry(Event.EventProperties.CLUSTER_ID, CLUSTER_CROSS_ID)));
     }
 
     @Test
     void should_create_audit_log() {
         Cluster existing = Cluster.builder()
-            .id(CLUSTER_ID)
-            .crossId(CLUSTER_CROSS_ID)
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("My Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.DEPLOYED)
-            .version(1)
-            .configuration(Map.of("connections", List.of()))
-            .build();
+                .id(CLUSTER_ID)
+                .crossId(CLUSTER_CROSS_ID)
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("My Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .version(1)
+                .configuration(Map.of("connections", List.of()))
+                .build();
         clusterCrudService.initWith(List.of(existing));
 
         useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
@@ -184,21 +181,20 @@ class UndeployClusterUseCaseTest {
     @Test
     void should_undeploy_virtual_cluster_when_no_started_bound_api() {
         Cluster existing = Cluster.builder()
-            .id(CLUSTER_ID)
-            .crossId(CLUSTER_CROSS_ID)
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("My Virtual Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.DEPLOYED)
-            .version(1)
-            .configuration(Map.of("backends", List.of()))
-            .build();
+                .id(CLUSTER_ID)
+                .crossId(CLUSTER_CROSS_ID)
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("My Virtual Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .version(1)
+                .configuration(Map.of("backends", List.of()))
+                .build();
         clusterCrudService.initWith(List.of(existing));
         // A stopped API bound to the same virtual cluster must not block the undeploy.
-        apiQueryService.initWith(
-            List.of(ApiFixtures.aNativeApiBoundToVirtualCluster("stopped-api", ENV_ID, Api.LifecycleState.STOPPED, CLUSTER_CROSS_ID))
-        );
+        apiQueryService.initWith(List.of(ApiFixtures.aNativeApiBoundToVirtualCluster(
+                "stopped-api", ENV_ID, Api.LifecycleState.STOPPED, CLUSTER_CROSS_ID)));
 
         var output = useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
 
@@ -208,25 +204,24 @@ class UndeployClusterUseCaseTest {
     @Test
     void should_throw_when_undeploying_virtual_cluster_with_started_bound_apis() {
         Cluster existing = Cluster.builder()
-            .id(CLUSTER_ID)
-            .crossId(CLUSTER_CROSS_ID)
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("My Virtual Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.DEPLOYED)
-            .version(1)
-            .configuration(Map.of("backends", List.of()))
-            .build();
+                .id(CLUSTER_ID)
+                .crossId(CLUSTER_CROSS_ID)
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("My Virtual Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .version(1)
+                .configuration(Map.of("backends", List.of()))
+                .build();
         clusterCrudService.initWith(List.of(existing));
-        apiQueryService.initWith(
-            List.of(ApiFixtures.aNativeApiBoundToVirtualCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, CLUSTER_CROSS_ID))
-        );
+        apiQueryService.initWith(List.of(ApiFixtures.aNativeApiBoundToVirtualCluster(
+                "started-api", ENV_ID, Api.LifecycleState.STARTED, CLUSTER_CROSS_ID)));
 
         assertThatThrownBy(() -> useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("Cannot undeploy virtual cluster")
-            .hasMessageContaining("started-api");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("Cannot undeploy virtual cluster")
+                .hasMessageContaining("started-api");
 
         // The block must have no side effect: the cluster stays deployed and no undeploy event is emitted.
         assertThat(clusterCrudService.storage().get(0).getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
@@ -236,49 +231,46 @@ class UndeployClusterUseCaseTest {
     @Test
     void should_not_return_credentials_to_a_caller_who_cannot_edit_the_configuration() {
         Cluster existing = Cluster.builder()
-            .id(CLUSTER_ID)
-            .crossId(CLUSTER_CROSS_ID)
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.DEPLOYED)
-            .configuration(
-                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
-            )
-            .build();
+                .id(CLUSTER_ID)
+                .crossId(CLUSTER_CROSS_ID)
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .configuration(Map.of(
+                        "bootstrapServers",
+                        "broker:9093",
+                        "security",
+                        Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))))
+                .build();
         clusterCrudService.initWith(List.of(existing));
-        when(
-            permissionDomainService.hasPermission(
-                ORG_ID,
-                USER_ID,
-                RolePermission.CLUSTER_CONFIGURATION,
-                CLUSTER_ID,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionDomainService.hasPermission(
+                        ORG_ID, USER_ID, RolePermission.CLUSTER_CONFIGURATION, CLUSTER_ID, RolePermissionAction.READ))
+                .thenReturn(true);
 
         var output = useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
 
-        assertThat(output.cluster().getConfiguration()).isEqualTo(
-            Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
-        );
+        assertThat(output.cluster().getConfiguration())
+                .isEqualTo(Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL")));
     }
 
     @Test
     void should_not_return_configuration_to_a_caller_who_cannot_read_it() {
         Cluster existing = Cluster.builder()
-            .id(CLUSTER_ID)
-            .crossId(CLUSTER_CROSS_ID)
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(ClusterLifecycleState.DEPLOYED)
-            .configuration(
-                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
-            )
-            .build();
+                .id(CLUSTER_ID)
+                .crossId(CLUSTER_CROSS_ID)
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                .configuration(Map.of(
+                        "bootstrapServers",
+                        "broker:9093",
+                        "security",
+                        Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))))
+                .build();
         clusterCrudService.initWith(List.of(existing));
 
         var output = useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));

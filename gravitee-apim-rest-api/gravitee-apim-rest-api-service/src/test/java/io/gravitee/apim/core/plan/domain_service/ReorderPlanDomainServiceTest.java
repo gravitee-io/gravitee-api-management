@@ -58,127 +58,104 @@ class ReorderPlanDomainServiceTest {
     @ParameterizedTest
     @MethodSource("reorderAfterUpdateTestData")
     void should_reorder_all_plans_when_order_is_updated(
-        Map<String, Integer> existingOrder,
-        Map.Entry<String, Integer> toUpdate,
-        List<Tuple> expectedOrder
-    ) {
+            Map<String, Integer> existingOrder, Map.Entry<String, Integer> toUpdate, List<Tuple> expectedOrder) {
         // Given
-        var plans = givenExistingPlans(
-            existingOrder
-                .entrySet()
-                .stream()
-                .map(entry -> (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).order(entry.getValue()).build())
-                .toList()
-        );
+        var plans = givenExistingPlans(existingOrder.entrySet().stream()
+                .map(entry -> (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder()
+                        .id(entry.getKey())
+                        .order(entry.getValue())
+                        .build())
+                .toList());
 
         // When
 
-        service.reorderAfterUpdate(
-            plans
-                .stream()
+        service.reorderAfterUpdate(plans.stream()
                 .filter(p -> p.getId().equals(toUpdate.getKey()))
                 .findFirst()
                 .map(p -> p.toBuilder().order(toUpdate.getValue()).build())
-                .orElseThrow()
-        );
+                .orElseThrow());
         // Then
-        Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);
+        Assertions.assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getOrder)
+                .containsAll(expectedOrder);
     }
 
     @ParameterizedTest
     @MethodSource("reorderAfterUpdateTestData")
     void should_reorder_all_api_product_plans_when_order_is_updated(
-        Map<String, Integer> existingOrder,
-        Map.Entry<String, Integer> toUpdate,
-        List<Tuple> expectedOrder
-    ) {
+            Map<String, Integer> existingOrder, Map.Entry<String, Integer> toUpdate, List<Tuple> expectedOrder) {
         // Given
-        var plans = givenExistingPlans(
-            existingOrder
-                .entrySet()
-                .stream()
-                .map(entry ->
-                    (Plan) PlanFixtures.HttpV4.aKeyless()
-                        .toBuilder()
+        var plans = givenExistingPlans(existingOrder.entrySet().stream()
+                .map(entry -> (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder()
                         .id(entry.getKey())
                         .order(entry.getValue())
                         .referenceId(API_PRODUCT_ID)
                         .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                        .build()
-                )
-                .toList()
-        );
+                        .build())
+                .toList());
 
         // When
-        service.reorderAfterUpdate(
-            plans
-                .stream()
+        service.reorderAfterUpdate(plans.stream()
                 .filter(p -> p.getId().equals(toUpdate.getKey()))
                 .findFirst()
                 .map(p -> p.toBuilder().order(toUpdate.getValue()).build())
-                .orElseThrow()
-        );
+                .orElseThrow());
 
         // Then
-        Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);
+        Assertions.assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getOrder)
+                .containsAll(expectedOrder);
     }
 
     @ParameterizedTest
     @MethodSource("reorderAfterDeleteTestData")
-    void should_update_order_all_plan_when_plans_have_been_deleted(Map<String, Integer> existingOrder, List<Tuple> expectedOrder) {
+    void should_update_order_all_plan_when_plans_have_been_deleted(
+            Map<String, Integer> existingOrder, List<Tuple> expectedOrder) {
         // Given
-        givenExistingPlans(
-            existingOrder
-                .entrySet()
-                .stream()
-                .map(entry ->
-                    (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).apiId(API_ID).order(entry.getValue()).build()
-                )
-                .toList()
-        );
+        givenExistingPlans(existingOrder.entrySet().stream()
+                .map(entry -> (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder()
+                        .id(entry.getKey())
+                        .apiId(API_ID)
+                        .order(entry.getValue())
+                        .build())
+                .toList());
 
         // When
         service.refreshOrderAfterDelete(API_ID, GenericPlanEntity.ReferenceType.API);
 
         // Then
-        Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);
+        Assertions.assertThat(planCrudService.storage())
+                .extracting(Plan::getId, Plan::getOrder)
+                .containsAll(expectedOrder);
     }
 
     static Stream<Arguments> reorderAfterUpdateTestData() {
         return Stream.of(
-            Arguments.of(
-                Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
-                entry("plan3", 0),
-                List.of(tuple("plan3", 1), tuple("plan1", 2), tuple("plan2", 3))
-            ),
-            Arguments.of(
-                Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
-                entry("plan1", 5),
-                List.of(tuple("plan2", 1), tuple("plan3", 2), tuple("plan1", 3))
-            ),
-            Arguments.of(
-                Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
-                entry("plan1", 2),
-                List.of(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3))
-            )
-        );
+                Arguments.of(
+                        Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
+                        entry("plan3", 0),
+                        List.of(tuple("plan3", 1), tuple("plan1", 2), tuple("plan2", 3))),
+                Arguments.of(
+                        Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
+                        entry("plan1", 5),
+                        List.of(tuple("plan2", 1), tuple("plan3", 2), tuple("plan1", 3))),
+                Arguments.of(
+                        Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
+                        entry("plan1", 2),
+                        List.of(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3))));
     }
 
     static Stream<Arguments> reorderAfterDeleteTestData() {
         return Stream.of(
-            Arguments.of(
-                Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 5)),
-                List.of(tuple("plan1", 1), tuple("plan2", 2), tuple("plan3", 3))
-            ),
-            Arguments.of(
-                Map.ofEntries(entry("plan1", 2), entry("plan2", 3), entry("plan3", 4)),
-                List.of(tuple("plan1", 1), tuple("plan2", 2), tuple("plan3", 3))
-            ),
-            Arguments.of(
-                Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
-                List.of(tuple("plan1", 1), tuple("plan2", 2), tuple("plan3", 3))
-            )
-        );
+                Arguments.of(
+                        Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 5)),
+                        List.of(tuple("plan1", 1), tuple("plan2", 2), tuple("plan3", 3))),
+                Arguments.of(
+                        Map.ofEntries(entry("plan1", 2), entry("plan2", 3), entry("plan3", 4)),
+                        List.of(tuple("plan1", 1), tuple("plan2", 2), tuple("plan3", 3))),
+                Arguments.of(
+                        Map.ofEntries(entry("plan1", 1), entry("plan2", 2), entry("plan3", 3)),
+                        List.of(tuple("plan1", 1), tuple("plan2", 2), tuple("plan3", 3))));
     }
 
     List<Plan> givenExistingPlans(List<Plan> plans) {

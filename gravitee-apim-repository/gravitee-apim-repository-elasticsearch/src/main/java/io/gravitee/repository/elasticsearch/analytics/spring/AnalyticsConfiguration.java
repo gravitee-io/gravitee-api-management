@@ -16,7 +16,6 @@
 package io.gravitee.repository.elasticsearch.analytics.spring;
 
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
-import io.gravitee.repository.analytics.query.stats.StatsQuery;
 import io.gravitee.repository.elasticsearch.analytics.ElasticsearchAnalyticsRepository;
 import io.gravitee.repository.elasticsearch.analytics.query.CountQueryCommand;
 import io.gravitee.repository.elasticsearch.analytics.query.DateHistogramQueryCommand;

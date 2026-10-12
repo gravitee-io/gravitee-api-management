@@ -93,21 +93,18 @@ public class ApiQualityRuleEntity {
 
     @Override
     public String toString() {
-        return (
-            "ApiQualityRuleEntity{" +
-            "api='" +
-            api +
-            '\'' +
-            ", qualityRule='" +
-            qualityRule +
-            '\'' +
-            ", checked=" +
-            checked +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("ApiQualityRuleEntity{" + "api='"
+                + api
+                + '\''
+                + ", qualityRule='"
+                + qualityRule
+                + '\''
+                + ", checked="
+                + checked
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

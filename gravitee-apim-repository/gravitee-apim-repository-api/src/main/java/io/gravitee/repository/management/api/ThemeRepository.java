@@ -30,7 +30,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ThemeRepository extends CrudRepository<Theme, String> {
-    Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type) throws TechnicalException;
+    Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type)
+            throws TechnicalException;
+
     Page<Theme> search(ThemeCriteria criteria, Pageable pageable) throws TechnicalException;
 
     /**
@@ -40,5 +42,6 @@ public interface ThemeRepository extends CrudRepository<Theme, String> {
      * @return List of IDs for deleted themes
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType)
+            throws TechnicalException;
 }

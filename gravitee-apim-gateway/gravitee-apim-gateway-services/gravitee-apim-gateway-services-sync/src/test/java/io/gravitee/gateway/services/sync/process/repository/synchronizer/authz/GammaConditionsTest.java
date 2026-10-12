@@ -27,24 +27,29 @@ class GammaConditionsTest {
 
     @Test
     void gamma_enabled_condition_matches_when_property_is_true() {
-        assertThat(new GammaEnabledCondition().matches(ctxWithGamma("true"), null)).isTrue();
+        assertThat(new GammaEnabledCondition().matches(ctxWithGamma("true"), null))
+                .isTrue();
     }
 
     @Test
     void gamma_enabled_condition_does_not_match_when_property_is_absent_or_false() {
-        assertThat(new GammaEnabledCondition().matches(ctxWithGamma(null), null)).isFalse();
-        assertThat(new GammaEnabledCondition().matches(ctxWithGamma("false"), null)).isFalse();
+        assertThat(new GammaEnabledCondition().matches(ctxWithGamma(null), null))
+                .isFalse();
+        assertThat(new GammaEnabledCondition().matches(ctxWithGamma("false"), null))
+                .isFalse();
     }
 
     @Test
     void gamma_disabled_condition_is_the_inverse_so_exactly_one_AuthzEnginePort_bean_is_registered() {
         // The two conditions are paired — at any time exactly one of {EventBus, Noop} must bind,
         // otherwise the DeployerFactory wiring is ambiguous or absent.
-        for (String value : new String[] { null, "false", "true" }) {
+        for (String value : new String[] {null, "false", "true"}) {
             ConditionContext ctx = ctxWithGamma(value);
             boolean enabled = new GammaEnabledCondition().matches(ctx, null);
             boolean disabled = new GammaDisabledCondition().matches(ctx, null);
-            assertThat(enabled).as("gamma.enabled=%s — enabled and disabled conditions must be inverse", value).isNotEqualTo(disabled);
+            assertThat(enabled)
+                    .as("gamma.enabled=%s — enabled and disabled conditions must be inverse", value)
+                    .isNotEqualTo(disabled);
         }
     }
 

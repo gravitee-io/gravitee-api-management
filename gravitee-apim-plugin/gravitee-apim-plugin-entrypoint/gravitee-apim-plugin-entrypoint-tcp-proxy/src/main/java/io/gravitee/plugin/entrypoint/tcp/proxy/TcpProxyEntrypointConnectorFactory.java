@@ -55,9 +55,8 @@ public class TcpProxyEntrypointConnectorFactory implements EntrypointConnectorFa
     @Override
     public TcpProxyEntrypointConnector createConnector(DeploymentContext deploymentContext, String configuration) {
         try {
-            return new TcpProxyEntrypointConnector(
-                connectorFactoryHelper.readConfiguration(TcpProxyEntrypointConnectorConfiguration.class, configuration)
-            );
+            return new TcpProxyEntrypointConnector(connectorFactoryHelper.readConfiguration(
+                    TcpProxyEntrypointConnectorConfiguration.class, configuration));
         } catch (PluginConfigurationException e) {
             log.error("Can't create TCP entrypoint connector cause no valid configuration", e);
             return null;

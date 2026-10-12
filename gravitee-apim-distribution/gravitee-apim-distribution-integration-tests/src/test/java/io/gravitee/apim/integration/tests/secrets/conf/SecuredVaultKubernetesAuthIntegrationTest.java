@@ -64,23 +64,21 @@ class SecuredVaultKubernetesAuthIntegrationTest extends AbstractSecuredVaultSecr
             }
         };
         kubeContainer
-            .withCommand(
-                "server",
-                "--disable=traefik",
-                // we need vault to call the host, so adding this to list of SAN so it can happen
-                "--tls-san=" + kubeContainer.getHost() + ",host.docker.internal",
-                String.format("--service-node-port-range=%d-%d", 30000, 32767)
-            )
-            .start();
+                .withCommand(
+                        "server",
+                        "--disable=traefik",
+                        // we need vault to call the host, so adding this to list of SAN so it can happen
+                        "--tls-san=" + kubeContainer.getHost() + ",host.docker.internal",
+                        String.format("--service-node-port-range=%d-%d", 30000, 32767))
+                .start();
 
         // create vault service account with expected roles
         // and create gravitee service account
         KubernetesHelper.apply(kubeContainer, "src/test/resources/vault/kube-auth/resources.yaml");
 
         // write config so the secret provider can pick it up
-        Path kubeConfigFile = Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve(
-            "kube_config.yml"
-        );
+        Path kubeConfigFile = Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName())
+                .resolve("kube_config.yml");
         Files.writeString(kubeConfigFile, kubeContainer.getKubeconfig());
 
         // get the reviewer token from vault service account
@@ -102,19 +100,18 @@ class SecuredVaultKubernetesAuthIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
             String graviteeKubeAuthToken = KubernetesHelper.createToken(kubeContainer, "gravitee");
-            Path kubeAuthTokenPath = Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve(
-                "token"
-            );
+            Path kubeAuthTokenPath = Files.createTempDirectory(
+                            KubernetesSecretProviderIntegrationTest.class.getSimpleName())
+                    .resolve("token");
             Files.writeString(kubeAuthTokenPath, graviteeKubeAuthToken);
 
             return Map.of(
-                "secrets.vault.auth.method",
-                "kubernetes",
-                "secrets.vault.auth.config.role",
-                TESTROLE,
-                "secrets.vault.auth.config.tokenPath",
-                kubeAuthTokenPath.toString()
-            );
+                    "secrets.vault.auth.method",
+                    "kubernetes",
+                    "secrets.vault.auth.config.role",
+                    TESTROLE,
+                    "secrets.vault.auth.config.tokenPath",
+                    kubeAuthTokenPath.toString());
         }
 
         @Override
@@ -126,8 +123,8 @@ class SecuredVaultKubernetesAuthIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder
-                .setYamlProperty("foo", "secret://vault/secret/foo:password")
-                .setYamlProperty("bar", "secret://vault/secret/bar:password");
+                    .setYamlProperty("foo", "secret://vault/secret/foo:password")
+                    .setYamlProperty("bar", "secret://vault/secret/bar:password");
         }
 
         @Test

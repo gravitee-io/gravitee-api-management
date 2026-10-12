@@ -51,23 +51,25 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
     public Optional<ApiQualityRule> findById(String api, String qualityRuleId) throws TechnicalException {
         log.debug("Find quality rule by ID [{}]", qualityRuleId);
         final ApiQualityRuleMongo apiQualityRule = internalApiQualityRuleRepo
-            .findById(new ApiQualityRulePkMongo(api, qualityRuleId))
-            .orElse(null);
+                .findById(new ApiQualityRulePkMongo(api, qualityRuleId))
+                .orElse(null);
         log.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
         return Optional.ofNullable(mapper.map(apiQualityRule));
     }
 
     @Override
     public ApiQualityRule create(ApiQualityRule apiQualityRule) throws TechnicalException {
-        log.debug("Create quality rule for api [{}] and quality rule [{}]", apiQualityRule.getApi(), apiQualityRule.getQualityRule());
+        log.debug(
+                "Create quality rule for api [{}] and quality rule [{}]",
+                apiQualityRule.getApi(),
+                apiQualityRule.getQualityRule());
         ApiQualityRuleMongo apiQualityRuleMongo = mapper.map(apiQualityRule);
         ApiQualityRuleMongo createdApiQualityRuleMongo = internalApiQualityRuleRepo.insert(apiQualityRuleMongo);
         ApiQualityRule res = mapper.map(createdApiQualityRuleMongo);
         log.debug(
-            "Create quality rule for api [{}] and quality rule [{}] - Done",
-            apiQualityRule.getApi(),
-            apiQualityRule.getQualityRule()
-        );
+                "Create quality rule for api [{}] and quality rule [{}] - Done",
+                apiQualityRule.getApi(),
+                apiQualityRule.getQualityRule());
         return res;
     }
 
@@ -77,17 +79,15 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             throw new IllegalStateException("ApiQualityRule to update must have an api and a quality rule");
         }
 
-        final ApiQualityRulePkMongo id = new ApiQualityRulePkMongo(apiQualityRule.getApi(), apiQualityRule.getQualityRule());
-        final ApiQualityRuleMongo apiQualityRuleMongo = internalApiQualityRuleRepo.findById(id).orElse(null);
+        final ApiQualityRulePkMongo id =
+                new ApiQualityRulePkMongo(apiQualityRule.getApi(), apiQualityRule.getQualityRule());
+        final ApiQualityRuleMongo apiQualityRuleMongo =
+                internalApiQualityRuleRepo.findById(id).orElse(null);
 
         if (apiQualityRuleMongo == null) {
-            throw new IllegalStateException(
-                format(
+            throw new IllegalStateException(format(
                     "No api quality rule found with api [%s] and quality rule [%s]",
-                    apiQualityRule.getApi(),
-                    apiQualityRule.getQualityRule()
-                )
-            );
+                    apiQualityRule.getApi(), apiQualityRule.getQualityRule()));
         }
 
         try {
@@ -110,10 +110,8 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             internalApiQualityRuleRepo.deleteById(new ApiQualityRulePkMongo(api, qualityRule));
         } catch (Exception e) {
             final String error = format(
-                "An error occurred when deleting api quality rule with api [%s] and quality rule [%s]",
-                api,
-                qualityRule
-            );
+                    "An error occurred when deleting api quality rule with api [%s] and quality rule [%s]",
+                    api, qualityRule);
             log.error(error, e);
             throw new TechnicalException(error);
         }
@@ -122,19 +120,17 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
     @Override
     public List<ApiQualityRule> findByApi(String api) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdApi(api);
-        return apiQualityRules
-            .stream()
-            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
-            .collect(toList());
+        return apiQualityRules.stream()
+                .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
+                .collect(toList());
     }
 
     @Override
     public List<ApiQualityRule> findByQualityRule(String qualityRule) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdQualityRule(qualityRule);
-        return apiQualityRules
-            .stream()
-            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
-            .collect(toList());
+        return apiQualityRules.stream()
+                .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
+                .collect(toList());
     }
 
     @Override
@@ -142,7 +138,8 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
         try {
             internalApiQualityRuleRepo.deleteByIdQualityRule(qualityRule);
         } catch (Exception e) {
-            final String error = format("An error occurred when deleting api quality rule by quality rule [%s]", qualityRule);
+            final String error =
+                    format("An error occurred when deleting api quality rule by quality rule [%s]", qualityRule);
             log.error(error, e);
             throw new TechnicalException(error);
         }
@@ -161,10 +158,8 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
 
     @Override
     public Set<ApiQualityRule> findAll() throws TechnicalException {
-        return internalApiQualityRuleRepo
-            .findAll()
-            .stream()
-            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
-            .collect(Collectors.toSet());
+        return internalApiQualityRuleRepo.findAll().stream()
+                .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
+                .collect(Collectors.toSet());
     }
 }

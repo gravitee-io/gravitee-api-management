@@ -44,7 +44,8 @@ class ElasticsearchHttpClientFactoryTest {
     void should_default_to_localhost_endpoint_when_none_configured() {
         // Local dev / unit tests shouldn't need a property file just to spin up a client — the factory
         // falls back to the canonical localhost endpoint when no indexed endpoints[] block was set.
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.getEndpoints()).extracting(Endpoint::getUrl).containsExactly("http://localhost:9200");
     }
@@ -60,9 +61,12 @@ class ElasticsearchHttpClientFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + "security.password", "pass");
         environment.setProperty(PROPERTY_PREFIX + "http.timeout", "7500");
 
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
-        assertThat(cfg.getEndpoints()).extracting(Endpoint::getUrl).containsExactly("http://es-a:9200", "http://es-b:9200");
+        assertThat(cfg.getEndpoints())
+                .extracting(Endpoint::getUrl)
+                .containsExactly("http://es-a:9200", "http://es-b:9200");
         assertThat(cfg.getUsername()).isEqualTo("user");
         assertThat(cfg.getPassword()).isEqualTo("pass");
         assertThat(cfg.getRequestTimeout()).isEqualTo(7500L);
@@ -76,7 +80,8 @@ class ElasticsearchHttpClientFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + "ssl.keystore.path", "/path/to/keystore.jks");
         environment.setProperty(PROPERTY_PREFIX + "ssl.keystore.password", "jksPass");
 
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.getSslConfig()).isInstanceOf(HttpClientJksSslConfiguration.class);
     }
@@ -87,7 +92,8 @@ class ElasticsearchHttpClientFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + "ssl.keystore.path", "/path/to/keystore.pfx");
         environment.setProperty(PROPERTY_PREFIX + "ssl.keystore.password", "pfxPass");
 
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.getSslConfig()).isInstanceOf(HttpClientPfxSslConfiguration.class);
     }
@@ -101,7 +107,8 @@ class ElasticsearchHttpClientFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + "ssl.keystore.certs[1]", "/cert-b");
         environment.setProperty(PROPERTY_PREFIX + "ssl.keystore.keys[0]", "/key-a");
 
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.getSslConfig()).isInstanceOf(HttpClientPemSslConfiguration.class);
     }
@@ -110,7 +117,8 @@ class ElasticsearchHttpClientFactoryTest {
     void should_leave_ssl_unset_when_keystore_type_is_absent() {
         // No keystore configured = plaintext HTTP. The factory must NOT default to a JKS/PEM placeholder,
         // otherwise transport negotiation fails before any request even leaves the gateway.
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.getSslConfig()).isNull();
     }
@@ -121,7 +129,8 @@ class ElasticsearchHttpClientFactoryTest {
         // rather than crashing — operator can fix the property without bouncing the gateway.
         environment.setProperty(PROPERTY_PREFIX + "ssl.keystore.type", "UNKNOWN");
 
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.getSslConfig()).isNull();
     }
@@ -132,7 +141,8 @@ class ElasticsearchHttpClientFactoryTest {
         // ANY proxy property under http.proxy.*, the client should honour it.
         environment.setProperty(PROPERTY_PREFIX + "http.proxy.http.host", "proxy.test");
 
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.isProxyConfigured()).isTrue();
         assertThat(cfg.getProxyHttpHost()).isEqualTo("proxy.test");
@@ -142,7 +152,8 @@ class ElasticsearchHttpClientFactoryTest {
     void should_mark_proxy_unconfigured_when_no_proxy_property_was_set() {
         // No proxy properties → factory must not assume one. Otherwise traffic would route through the
         // default localhost:3128 even in operators' production deployments that don't proxy.
-        HttpClientConfiguration cfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration cfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(cfg.isProxyConfigured()).isFalse();
     }
@@ -154,11 +165,10 @@ class ElasticsearchHttpClientFactoryTest {
         environment.setProperty("analytics.elasticsearch.security.username", "analytics-user");
         environment.setProperty(PROPERTY_PREFIX + "security.username", "tracing-user");
 
-        HttpClientConfiguration analyticsCfg = new TestElasticsearchHttpClientFactory(
-            environment,
-            "analytics"
-        ).buildHttpClientConfiguration();
-        HttpClientConfiguration tracingCfg = new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
+        HttpClientConfiguration analyticsCfg =
+                new TestElasticsearchHttpClientFactory(environment, "analytics").buildHttpClientConfiguration();
+        HttpClientConfiguration tracingCfg =
+                new TestElasticsearchHttpClientFactory(environment, SCOPE_NAME).buildHttpClientConfiguration();
 
         assertThat(analyticsCfg.getUsername()).isEqualTo("analytics-user");
         assertThat(tracingCfg.getUsername()).isEqualTo("tracing-user");

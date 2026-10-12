@@ -63,15 +63,10 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
             throw new IllegalStateException("ApiCategoryOrder must not be null for update");
         }
 
-        this.findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId()).orElseThrow(() ->
-            new IllegalStateException(
-                String.format(
-                    "No ApiCategoryOrder found with apiId [%s] and categoryId [%s]",
-                    apiCategoryOrder.getApiId(),
-                    apiCategoryOrder.getCategoryId()
-                )
-            )
-        );
+        this.findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                        "No ApiCategoryOrder found with apiId [%s] and categoryId [%s]",
+                        apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())));
 
         var apiCategoryMongo = mapper.map(apiCategoryOrder);
         var updatedApiCategoryMongo = internalApiCategoryOrderRepo.save(apiCategoryMongo);
@@ -83,10 +78,12 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
     @Override
     public void delete(String apiId, Collection<String> categoriesIds) throws TechnicalException {
         try {
-            var toDelete = categoriesIds
-                .stream()
-                .map(categoryId -> ApiCategoryOrderPkMongo.builder().categoryId(categoryId).apiId(apiId).build())
-                .toList();
+            var toDelete = categoriesIds.stream()
+                    .map(categoryId -> ApiCategoryOrderPkMongo.builder()
+                            .categoryId(categoryId)
+                            .apiId(apiId)
+                            .build())
+                    .toList();
             internalApiCategoryOrderRepo.deleteAllById(toDelete);
         } catch (Exception e) {
             log.error("An error occurred when deleting ApiCategoryOrder [{}, {}]", apiId, categoriesIds, e);
@@ -99,8 +96,11 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
         log.debug("Finding ApiCategoryOrder by ID [{}, {}]", apiId, categoryId);
 
         return internalApiCategoryOrderRepo
-            .findById(ApiCategoryOrderPkMongo.builder().categoryId(categoryId).apiId(apiId).build())
-            .map(apiCategoryOrderMongo -> mapper.map(apiCategoryOrderMongo));
+                .findById(ApiCategoryOrderPkMongo.builder()
+                        .categoryId(categoryId)
+                        .apiId(apiId)
+                        .build())
+                .map(apiCategoryOrderMongo -> mapper.map(apiCategoryOrderMongo));
     }
 
     @Override
@@ -137,11 +137,9 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
         log.debug("Delete all by api id [{}]", apiId);
         try {
-            final var allByApiId = internalApiCategoryOrderRepo
-                .deleteByApiId(apiId)
-                .stream()
-                .map(apiCategoryOrderMongo -> apiCategoryOrderMongo.getId().getCategoryId())
-                .toList();
+            final var allByApiId = internalApiCategoryOrderRepo.deleteByApiId(apiId).stream()
+                    .map(apiCategoryOrderMongo -> apiCategoryOrderMongo.getId().getCategoryId())
+                    .toList();
             log.debug("Delete all by api id [{}] -- Done", apiId);
             return allByApiId;
         } catch (Exception ex) {

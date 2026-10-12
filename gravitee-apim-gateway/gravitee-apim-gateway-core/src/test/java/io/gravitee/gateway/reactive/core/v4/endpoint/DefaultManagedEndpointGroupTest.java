@@ -50,7 +50,8 @@ class DefaultManagedEndpointGroupTest {
         final EndpointGroup endpointGroup = buildEndpointGroup();
         final ManagedEndpointGroup cut = new DefaultManagedEndpointGroup(endpointGroup);
 
-        final ManagedEndpoint managedEndpoint = mockManagedEndpoint(endpointGroup.getEndpoints().get(0), cut);
+        final ManagedEndpoint managedEndpoint =
+                mockManagedEndpoint(endpointGroup.getEndpoints().get(0), cut);
         cut.addManagedEndpoint(managedEndpoint);
 
         assertThat(cut.next()).isSameAs(managedEndpoint);

@@ -17,14 +17,12 @@ package io.gravitee.repository.noop.management;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Collection;
@@ -36,10 +34,12 @@ import java.util.Set;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository<Subscription, String> implements SubscriptionRepository {
+public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository<Subscription, String>
+        implements SubscriptionRepository {
 
     @Override
-    public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         return new Page<>(List.of(), 0, 0, 0L);
     }
 
@@ -59,8 +59,9 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
     }
 
     @Override
-    public List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
-        throws TechnicalException {
+    public List<Subscription> searchAfter(
+            SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+            throws TechnicalException {
         return List.of();
     }
 
@@ -70,7 +71,8 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
     }
 
     @Override
-    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException {
+    public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order)
+            throws TechnicalException {
         return Set.of();
     }
 
@@ -80,17 +82,15 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
     }
 
     @Override
-    public Set<Subscription> findByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType)
-        throws TechnicalException {
+    public Set<Subscription> findByReferenceIdAndReferenceType(
+            String referenceId, SubscriptionReferenceType referenceType) throws TechnicalException {
         return Set.of();
     }
 
     @Override
     public Optional<Subscription> findByIdAndReferenceIdAndReferenceType(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) throws TechnicalException {
+            String subscriptionId, String referenceId, SubscriptionReferenceType referenceType)
+            throws TechnicalException {
         return Optional.empty();
     }
 }

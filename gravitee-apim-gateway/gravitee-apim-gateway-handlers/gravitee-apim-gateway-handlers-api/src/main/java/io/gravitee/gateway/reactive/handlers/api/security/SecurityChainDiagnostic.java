@@ -28,7 +28,8 @@ public class SecurityChainDiagnostic {
     private static final String MESSAGE_INVALID_TOKEN = "The provided authentication token is invalid";
     private static final String MESSAGE_NOT_AUTHORIZED = "The provided credentials are not authorized";
     private static final String MESSAGE_EXPIRED = "Access has expired for the provided credentials";
-    private static final String MESSAGE_NOT_YET_STARTED = "The subscription has not yet started for the provided credentials";
+    private static final String MESSAGE_NOT_YET_STARTED =
+            "The subscription has not yet started for the provided credentials";
     private static final String MESSAGE_NO_PLAN_MATCHED = "No plan matched the request";
     private static final String MESSAGE_NO_TOKEN = "The request did not include an authentication token";
     private static final String MESSAGE_UNAUTHORIZED = "Unauthorized";
@@ -143,7 +144,8 @@ public class SecurityChainDiagnostic {
 
     public Exception cause() {
         if (invalidTokenPlans != null) {
-            return new Exception("The provided authentication token is invalid for the following " + formatPlans(invalidTokenPlans));
+            return new Exception(
+                    "The provided authentication token is invalid for the following " + formatPlans(invalidTokenPlans));
         }
 
         if (noSubscriptionPlans != null) {
@@ -151,41 +153,39 @@ public class SecurityChainDiagnostic {
         }
 
         if (expiredSubscriptionPlans != null) {
-            return new Exception("The subscription has expired for the following " + formatPlans(expiredSubscriptionPlans));
+            return new Exception(
+                    "The subscription has expired for the following " + formatPlans(expiredSubscriptionPlans));
         }
 
         if (notYetStartedSubscriptionPlans != null) {
-            return new Exception("The subscription has not yet started for the following " + formatPlans(notYetStartedSubscriptionPlans));
+            return new Exception("The subscription has not yet started for the following "
+                    + formatPlans(notYetStartedSubscriptionPlans));
         }
 
         if (noMatchingRulePlans != null) {
-            return new Exception("None of the selection rules matched for the following " + formatPlans(noMatchingRulePlans));
+            return new Exception(
+                    "None of the selection rules matched for the following " + formatPlans(noMatchingRulePlans));
         }
 
         if (noTokenPlans != null) {
-            return new Exception("The request did not include an authentication token for the following " + formatPlans(noTokenPlans));
+            return new Exception("The request did not include an authentication token for the following "
+                    + formatPlans(noTokenPlans));
         }
 
         return new Exception("No valid plan was found for this request.");
     }
 
     private String formatNoSubscriptionMessage() {
-        return (
-            "No subscription was found for " +
-            noSubscriptionPlans
-                .stream()
-                .collect(
-                    Collectors.groupingBy(
-                        info -> SecurityToken.TokenType.valueOfOrNone(info.tokenType),
-                        LinkedHashMap::new,
-                        Collectors.toList()
-                    )
-                )
-                .entrySet()
-                .stream()
-                .map(entry -> buildNoSubscriptionMessage(entry.getKey(), entry.getValue()))
-                .collect(Collectors.joining(" or for "))
-        );
+        return ("No subscription was found for "
+                + noSubscriptionPlans.stream()
+                        .collect(Collectors.groupingBy(
+                                info -> SecurityToken.TokenType.valueOfOrNone(info.tokenType),
+                                LinkedHashMap::new,
+                                Collectors.toList()))
+                        .entrySet()
+                        .stream()
+                        .map(entry -> buildNoSubscriptionMessage(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.joining(" or for ")));
     }
 
     private String buildNoSubscriptionMessage(SecurityToken.TokenType tokenType, List<NoSubscriptionInfo> planDetails) {
@@ -197,7 +197,8 @@ public class SecurityChainDiagnostic {
         };
         // Token value is the same for all plans of the same type within a request
         String maskedToken = planDetails.getFirst().maskedToken();
-        List<String> planNames = planDetails.stream().map(NoSubscriptionInfo::planName).toList();
+        List<String> planNames =
+                planDetails.stream().map(NoSubscriptionInfo::planName).toList();
         return label + ": " + maskedToken + " (" + formatPlans(planNames) + ")";
     }
 

@@ -41,13 +41,12 @@ import lombok.RequiredArgsConstructor;
  */
 @CustomLog
 @RequiredArgsConstructor
-public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y extends Deployer<T>> implements DistributedSynchronizer {
+public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y extends Deployer<T>>
+        implements DistributedSynchronizer {
 
     protected static final Set<DistributedSyncAction> INIT_SYNC_ACTIONS = Set.of(DistributedSyncAction.DEPLOY);
-    protected static final Set<DistributedSyncAction> INCREMENTAL_SYNC_ACTIONS = Set.of(
-        DistributedSyncAction.DEPLOY,
-        DistributedSyncAction.UNDEPLOY
-    );
+    protected static final Set<DistributedSyncAction> INCREMENTAL_SYNC_ACTIONS =
+            Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY);
     private final DistributedEventFetcher distributedEventFetcher;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
@@ -57,42 +56,42 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
         boolean initialSync = from == null || from == -1;
         AtomicLong launchTime = new AtomicLong();
         return distributedEventFetcher
-            .fetchLatest(from, to, distributedEventType(), syncActions(initialSync))
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .flatMapMaybe(this::mapTo)
-            // per deployable
-            .compose(upstream -> {
-                Y deployer = createDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-                    .sequential(distributedEventFetcher.bulkItems());
-            })
-            .count()
-            .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                String logMsg = String.format(
-                    "%s %s(s) synchronized in %sms",
-                    count,
-                    distributedEventType().name().toLowerCase(),
-                    (System.currentTimeMillis() - launchTime.get())
-                );
-                if (initialSync) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
-                }
-            })
-            .ignoreElement();
+                .fetchLatest(from, to, distributedEventType(), syncActions(initialSync))
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .flatMapMaybe(this::mapTo)
+                // per deployable
+                .compose(upstream -> {
+                    Y deployer = createDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> {
+                                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                    return deploy(deployer, deployable)
+                                            .onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
+                                } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                    return undeploy(deployer, deployable)
+                                            .onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
+                                } else {
+                                    return Flowable.empty();
+                                }
+                            })
+                            .sequential(distributedEventFetcher.bulkItems());
+                })
+                .count()
+                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(count -> {
+                    String logMsg = String.format(
+                            "%s %s(s) synchronized in %sms",
+                            count,
+                            distributedEventType().name().toLowerCase(),
+                            (System.currentTimeMillis() - launchTime.get()));
+                    if (initialSync) {
+                        log.info(logMsg);
+                    } else {
+                        log.debug(logMsg);
+                    }
+                })
+                .ignoreElement();
     }
 
     protected Set<DistributedSyncAction> syncActions(final boolean initialSync) {
@@ -106,11 +105,17 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
     protected abstract Y createDeployer();
 
     private Flowable<T> deploy(final Y apiDeployer, final T deployable) {
-        return apiDeployer.deploy(deployable).andThen(apiDeployer.doAfterDeployment(deployable)).andThen(Flowable.just(deployable));
+        return apiDeployer
+                .deploy(deployable)
+                .andThen(apiDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable));
     }
 
     private Flowable<T> undeploy(final Y apiDeployer, final T deployable) {
-        return apiDeployer.undeploy(deployable).andThen(apiDeployer.doAfterUndeployment(deployable)).andThen(Flowable.just(deployable));
+        return apiDeployer
+                .undeploy(deployable)
+                .andThen(apiDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable));
     }
 
     /**

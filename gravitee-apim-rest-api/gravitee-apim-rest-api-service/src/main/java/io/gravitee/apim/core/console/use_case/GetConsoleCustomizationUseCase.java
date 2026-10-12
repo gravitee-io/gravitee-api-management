@@ -31,22 +31,19 @@ public class GetConsoleCustomizationUseCase {
     private final GraviteeLicenseDomainService licenseDomainService;
     private final ParametersDomainService parametersDomainService;
     private static final List<Key> CONSOLE_CUSTOMIZATION_KEYS = List.of(
-        Key.CONSOLE_CUSTOMIZATION_TITLE,
-        Key.CONSOLE_CUSTOMIZATION_FAVICON,
-        Key.CONSOLE_CUSTOMIZATION_LOGO,
-        Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE,
-        Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND,
-        Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME,
-        Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE,
-        Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS,
-        Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL,
-        Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL
-    );
+            Key.CONSOLE_CUSTOMIZATION_TITLE,
+            Key.CONSOLE_CUSTOMIZATION_FAVICON,
+            Key.CONSOLE_CUSTOMIZATION_LOGO,
+            Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE,
+            Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND,
+            Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME,
+            Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE,
+            Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS,
+            Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL,
+            Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL);
 
     public GetConsoleCustomizationUseCase(
-        GraviteeLicenseDomainService licenseDomainService,
-        ParametersDomainService parametersDomainService
-    ) {
+            GraviteeLicenseDomainService licenseDomainService, ParametersDomainService parametersDomainService) {
         this.licenseDomainService = licenseDomainService;
         this.parametersDomainService = parametersDomainService;
     }
@@ -56,28 +53,24 @@ public class GetConsoleCustomizationUseCase {
             Map<Key, String> parameters = parametersDomainService.getSystemParameters(CONSOLE_CUSTOMIZATION_KEYS);
             String hideDays = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS);
 
-            return new Output(
-                ConsoleCustomization.builder()
+            return new Output(ConsoleCustomization.builder()
                     .title(parameters.get(Key.CONSOLE_CUSTOMIZATION_TITLE))
                     .favicon(parameters.get(Key.CONSOLE_CUSTOMIZATION_FAVICON))
                     .logo(parameters.get(Key.CONSOLE_CUSTOMIZATION_LOGO))
-                    .theme(
-                        ConsoleTheme.builder()
+                    .theme(ConsoleTheme.builder()
                             .menuActive(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE))
                             .menuBackground(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND))
-                            .build()
-                    )
-                    .ctaConfiguration(
-                        CtaConfiguration.builder()
-                            .customEnterpriseName(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME))
+                            .build())
+                    .ctaConfiguration(CtaConfiguration.builder()
+                            .customEnterpriseName(parameters.get(
+                                    Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME))
                             .title(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE))
                             .hideDays(null == hideDays || Boolean.parseBoolean(hideDays))
-                            .trialButtonLabel(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL))
+                            .trialButtonLabel(
+                                    parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL))
                             .trialURL(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL))
-                            .build()
-                    )
-                    .build()
-            );
+                            .build())
+                    .build());
         }
         return new Output(null);
     }

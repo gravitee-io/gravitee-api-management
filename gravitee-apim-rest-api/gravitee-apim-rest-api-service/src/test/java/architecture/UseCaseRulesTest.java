@@ -33,14 +33,14 @@ public class UseCaseRulesTest extends AbstractApimArchitectureTest {
     @Test
     public void useCase_should_reside_in_a_usecase_package() {
         classes()
-            .that()
-            .haveNameMatching(".*UseCase")
-            .and()
-            .areNotAnnotations()
-            .should()
-            .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
-            .as("UseCases should reside in a package '" + anyPackageThatContains(USECASE_PACKAGE) + "'")
-            .check(apimClassesWithoutTests());
+                .that()
+                .haveNameMatching(".*UseCase")
+                .and()
+                .areNotAnnotations()
+                .should()
+                .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
+                .as("UseCases should reside in a package '" + anyPackageThatContains(USECASE_PACKAGE) + "'")
+                .check(apimClassesWithoutTests());
     }
 
     /**
@@ -49,22 +49,21 @@ public class UseCaseRulesTest extends AbstractApimArchitectureTest {
     @Test
     public void usecases_should_only_depend_on_service() {
         classes()
-            .that()
-            .resideInAnyPackage(anyPackageThatContains(CORE_PACKAGE + ".(*)." + USECASE_PACKAGE))
-            .and()
-            .areTopLevelClasses()
-            // ignore Spring configuration class
-            .and()
-            .areNotAnnotatedWith(Configuration.class)
-            .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage(
-                anyPackageThatContains(CRUD_SERVICE_PACKAGE),
-                anyPackageThatContains(QUERY_SERVICE_PACKAGE),
-                anyPackageThatContains(DOMAIN_SERVICE_PACKAGE),
-                anyPackageThatContains(SERVICE_PROVIDER_PACKAGE)
-            )
-            .check(apimClassesWithoutTests());
+                .that()
+                .resideInAnyPackage(anyPackageThatContains(CORE_PACKAGE + ".(*)." + USECASE_PACKAGE))
+                .and()
+                .areTopLevelClasses()
+                // ignore Spring configuration class
+                .and()
+                .areNotAnnotatedWith(Configuration.class)
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(
+                        anyPackageThatContains(CRUD_SERVICE_PACKAGE),
+                        anyPackageThatContains(QUERY_SERVICE_PACKAGE),
+                        anyPackageThatContains(DOMAIN_SERVICE_PACKAGE),
+                        anyPackageThatContains(SERVICE_PROVIDER_PACKAGE))
+                .check(apimClassesWithoutTests());
     }
 
     /**
@@ -72,12 +71,11 @@ public class UseCaseRulesTest extends AbstractApimArchitectureTest {
      */
     @Test
     public void usecases_should_be_independent() {
-        slices()
-            .matching(anyPackageThatContains(CORE_PACKAGE + ".(*)." + USECASE_PACKAGE))
-            .namingSlices("UseCase $1")
-            .as("UseCase")
-            .should()
-            .notDependOnEachOther()
-            .check(apimClasses());
+        slices().matching(anyPackageThatContains(CORE_PACKAGE + ".(*)." + USECASE_PACKAGE))
+                .namingSlices("UseCase $1")
+                .as("UseCase")
+                .should()
+                .notDependOnEachOther()
+                .check(apimClasses());
     }
 }

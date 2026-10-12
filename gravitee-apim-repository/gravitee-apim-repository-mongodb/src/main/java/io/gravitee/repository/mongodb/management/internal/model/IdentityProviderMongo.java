@@ -29,7 +29,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Setter
 @Getter
-@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@EqualsAndHashCode(
+        of = {"id"},
+        callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}identity_providers")
 public class IdentityProviderMongo extends DeprecatedAuditable {
 

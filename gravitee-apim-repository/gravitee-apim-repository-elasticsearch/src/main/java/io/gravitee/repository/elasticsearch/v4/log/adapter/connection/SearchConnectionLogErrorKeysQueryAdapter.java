@@ -26,13 +26,13 @@ public class SearchConnectionLogErrorKeysQueryAdapter {
 
     public static String adapt(SearchConnectionLogErrorKeysQuery query) {
         return JsonObject.of(
-            "size",
-            0,
-            "query",
-            buildQuery(query.apiId(), query.from(), query.to()),
-            "aggs",
-            buildAggregation(query.maxBuckets())
-        ).encode();
+                        "size",
+                        0,
+                        "query",
+                        buildQuery(query.apiId(), query.from(), query.to()),
+                        "aggs",
+                        buildAggregation(query.maxBuckets()))
+                .encode();
     }
 
     private static JsonObject buildQuery(String apiId, Long from, Long to) {
@@ -49,12 +49,9 @@ public class SearchConnectionLogErrorKeysQueryAdapter {
      * Follows the same {@code bool/should} pattern used throughout this adapter package.
      */
     private static JsonObject buildApiIdFilter(String apiId) {
-        return buildShould(
-            List.of(
+        return buildShould(List.of(
                 JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v2Request(), apiId)),
-                JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v4Metrics(), apiId))
-            )
-        );
+                JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.API_ID.v4Metrics(), apiId))));
     }
 
     private static JsonObject buildTimestampRangeFilter(Long from, Long to) {
@@ -67,9 +64,8 @@ public class SearchConnectionLogErrorKeysQueryAdapter {
 
     private static JsonObject buildAggregation(int maxBuckets) {
         return JsonObject.of(
-            "error_keys",
-            JsonObject.of("terms", JsonObject.of("field", RequestV2MetricsV4Fields.ERROR_KEY, "size", maxBuckets))
-        );
+                "error_keys",
+                JsonObject.of("terms", JsonObject.of("field", RequestV2MetricsV4Fields.ERROR_KEY, "size", maxBuckets)));
     }
 
     private static JsonObject buildShould(List<JsonObject> clauses) {

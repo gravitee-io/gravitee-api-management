@@ -41,9 +41,9 @@ public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
     public void call_validate_request_content() throws Exception {
         wireMockRule.stubFor(post("/echo/helloworld").willReturn(ok()));
 
-        HttpResponse response = execute(
-            Request.Post("http://localhost:8082/echo/helloworld").bodyString("Invalid body", ContentType.TEXT_PLAIN)
-        ).returnResponse();
+        HttpResponse response = execute(Request.Post("http://localhost:8082/echo/helloworld")
+                        .bodyString("Invalid body", ContentType.TEXT_PLAIN))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 
@@ -55,7 +55,8 @@ public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin errorRequestStreamPolicy = PolicyBuilder.build("content-request-error", ValidateRequestPolicy.class);
+        PolicyPlugin errorRequestStreamPolicy =
+                PolicyBuilder.build("content-request-error", ValidateRequestPolicy.class);
         policyPluginManager.register(errorRequestStreamPolicy);
     }
 }

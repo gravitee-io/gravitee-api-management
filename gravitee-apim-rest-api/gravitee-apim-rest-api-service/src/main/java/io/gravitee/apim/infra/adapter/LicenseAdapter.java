@@ -24,5 +24,6 @@ public interface LicenseAdapter {
     LicenseAdapter INSTANCE = Mappers.getMapper(LicenseAdapter.class);
 
     License toModel(io.gravitee.repository.management.model.License license);
+
     io.gravitee.repository.management.model.License toRepository(License license);
 }

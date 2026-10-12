@@ -28,7 +28,7 @@ public class Failover implements Serializable {
 
     public static int DEFAULT_MAX_ATTEMPTS = 1;
     public static long DEFAULT_RETRY_TIMEOUT = 10000L;
-    public static FailoverCase[] DEFAULT_FAILOVER_CASES = { FailoverCase.TIMEOUT };
+    public static FailoverCase[] DEFAULT_FAILOVER_CASES = {FailoverCase.TIMEOUT};
 
     @JsonProperty("maxAttempts")
     private int maxAttempts = DEFAULT_MAX_ATTEMPTS;

@@ -35,36 +35,28 @@ public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlterna
 
     @Override
     public Optional<BaseUserEntity> findBaseUserById(String userId) {
-        return storage
-            .stream()
-            .filter(user -> userId.equals(user.getId()))
-            .findFirst();
+        return storage.stream().filter(user -> userId.equals(user.getId())).findFirst();
     }
 
     @Override
     public Set<BaseUserEntity> findBaseUsersByIds(List<String> userIds) {
-        return storage
-            .stream()
-            .filter(user -> userIds.contains(user.getId()))
-            .collect(Collectors.toSet());
+        return storage.stream().filter(user -> userIds.contains(user.getId())).collect(Collectors.toSet());
     }
 
     @Override
     public List<BaseUserEntity> findBaseUsersByEmail(String organizationId, String email) {
-        return storage
-            .stream()
-            .filter(user -> organizationId.equals(user.getOrganizationId()))
-            .filter(user -> user.getEmail() != null && user.getEmail().equalsIgnoreCase(email))
-            .toList();
+        return storage.stream()
+                .filter(user -> organizationId.equals(user.getOrganizationId()))
+                .filter(user -> user.getEmail() != null && user.getEmail().equalsIgnoreCase(email))
+                .toList();
     }
 
     @Override
     public BaseUserEntity getBaseUser(String userId) {
-        return storage
-            .stream()
-            .filter(user -> userId.equals(user.getId()))
-            .findFirst()
-            .orElseThrow(() -> new UserNotFoundException(userId));
+        return storage.stream()
+                .filter(user -> userId.equals(user.getId()))
+                .findFirst()
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     @Override

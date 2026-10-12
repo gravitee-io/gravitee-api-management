@@ -24,7 +24,8 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface ApplicationInvitationsSearchCriteriaMapper {
-    ApplicationInvitationsSearchCriteriaMapper INSTANCE = Mappers.getMapper(ApplicationInvitationsSearchCriteriaMapper.class);
+    ApplicationInvitationsSearchCriteriaMapper INSTANCE =
+            Mappers.getMapper(ApplicationInvitationsSearchCriteriaMapper.class);
 
     @Mapping(target = "email", source = "filters.email")
     SearchApplicationInvitationsCriteria toSearchCriteria(ApplicationInvitationsSearchInput input);

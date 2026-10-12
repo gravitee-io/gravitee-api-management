@@ -74,7 +74,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
 
     @Test
     void fresh_bucket_is_full_so_first_request_is_allowed() {
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("k1", 1, 3, 1_000L, 300, 1_000L, seed("k1")).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("k1", 1, 3, 1_000L, 300, 1_000L, seed("k1"))
+                .blockingGet();
 
         assertThat(result.allowed()).isTrue();
         assertThat(result.remainingTokens()).isEqualTo(299);
@@ -87,7 +89,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
         repository.refillAndTryConsume("k2", 1, 1, 1_000L, 2, 1_000L, seed).blockingGet();
         repository.refillAndTryConsume("k2", 1, 1, 1_000L, 2, 1_000L, seed).blockingGet();
 
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("k2", 1, 1, 1_000L, 2, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("k2", 1, 1, 1_000L, 2, 1_000L, seed)
+                .blockingGet();
 
         assertThat(result.allowed()).isFalse();
         assertThat(result.remainingTokens()).isZero();
@@ -102,7 +106,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
         }
 
         // 1000ms later, 2 tokens have refilled: this request is allowed and leaves 1
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("k3", 1, 2, 1_000L, 10, 2_000L, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("k3", 1, 2, 1_000L, 10, 2_000L, seed)
+                .blockingGet();
 
         assertThat(result.allowed()).isTrue();
         assertThat(result.remainingTokens()).isEqualTo(1);
@@ -116,7 +122,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
 
         // after a huge idle period an uncapped bucket would massively overflow; it must cap at 5,
         // so consuming 1 leaves 4 (not thousands)
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("k4", 1, 1000, 1_000L, 5, 3_600_000L, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("k4", 1, 1000, 1_000L, 5, 3_600_000L, seed)
+                .blockingGet();
 
         assertThat(result.allowed()).isTrue();
         assertThat(result.remainingTokens()).isEqualTo(4);
@@ -130,8 +138,14 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
 
         // 1999ms is one millisecond short of a whole token — still rejected; the elapsed time is kept,
         // not discarded, so the very next millisecond tips it over.
-        boolean allowedAt1999 = repository.refillAndTryConsume("k8", 1, 1, 2_000L, 1, 1_999L, seed).blockingGet().allowed();
-        boolean allowedAt2000 = repository.refillAndTryConsume("k8", 1, 1, 2_000L, 1, 2_000L, seed).blockingGet().allowed();
+        boolean allowedAt1999 = repository
+                .refillAndTryConsume("k8", 1, 1, 2_000L, 1, 1_999L, seed)
+                .blockingGet()
+                .allowed();
+        boolean allowedAt2000 = repository
+                .refillAndTryConsume("k8", 1, 1, 2_000L, 1, 2_000L, seed)
+                .blockingGet()
+                .allowed();
 
         assertThat(allowedAt1999).isFalse();
         assertThat(allowedAt2000).isTrue();
@@ -146,7 +160,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
         }
 
         // one full period later exactly 5 tokens have refilled: consume 1 and 4 remain (never more)
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("k9", 1, 5, 1_000L, 10, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("k9", 1, 5, 1_000L, 10, 1_000L, seed)
+                .blockingGet();
 
         assertThat(result.allowed()).isTrue();
         assertThat(result.remainingTokens()).isEqualTo(4);
@@ -159,7 +175,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
         repository.refillAndTryConsume("k5", 1, 2, 1_000L, 1, 1_000L, seed).blockingGet();
 
         // a second request at the same instant is rejected; the next token is due 500ms later
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("k5", 1, 2, 1_000L, 1, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("k5", 1, 2, 1_000L, 1, 1_000L, seed)
+                .blockingGet();
 
         assertThat(result.allowed()).isFalse();
         assertThat(result.nextAvailableAtMillis()).isEqualTo(1_500L);
@@ -175,7 +193,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
         repository.refillAndTryConsume("k7", 1, 1, 1_000L, 10, base, seed).blockingGet();
         repository.refillAndTryConsume("k7", 1, 1, 1_000L, 10, base + 500, seed).blockingGet();
         repository.refillAndTryConsume("k7", 1, 1, 1_000L, 10, base, seed).blockingGet(); // out-of-order (earlier)
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("k7", 1, 1, 1_000L, 10, base + 500, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("k7", 1, 1, 1_000L, 10, base + 500, seed)
+                .blockingGet();
 
         // 4 tokens consumed; no whole token ever legitimately refilled within 500ms, so 6 remain.
         // A backend that moves the anchor backward inflates this to 7.
@@ -186,17 +206,23 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
     void multi_token_request_consumes_rejects_and_never_overdraws() {
         Supplier<TokenBucket> seed = seed("kmt");
         // capacity 10, refill disabled (0 tokens per period): consume 3 in one request -> 7 remain
-        TokenBucketConsumeResult three = repository.refillAndTryConsume("kmt", 3, 0, 1_000L, 10, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult three = repository
+                .refillAndTryConsume("kmt", 3, 0, 1_000L, 10, 1_000L, seed)
+                .blockingGet();
         assertThat(three.allowed()).isTrue();
         assertThat(three.remainingTokens()).isEqualTo(7);
 
         // a request larger than the remaining balance (8 > 7) is rejected and must NOT draw the balance down
-        TokenBucketConsumeResult tooMany = repository.refillAndTryConsume("kmt", 8, 0, 1_000L, 10, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult tooMany = repository
+                .refillAndTryConsume("kmt", 8, 0, 1_000L, 10, 1_000L, seed)
+                .blockingGet();
         assertThat(tooMany.allowed()).isFalse();
         assertThat(tooMany.remainingTokens()).isEqualTo(7);
 
         // a request for exactly the remaining balance (7) is allowed and empties the bucket
-        TokenBucketConsumeResult exact = repository.refillAndTryConsume("kmt", 7, 0, 1_000L, 10, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult exact = repository
+                .refillAndTryConsume("kmt", 7, 0, 1_000L, 10, 1_000L, seed)
+                .blockingGet();
         assertThat(exact.allowed()).isTrue();
         assertThat(exact.remainingTokens()).isZero();
     }
@@ -205,7 +231,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
     void next_available_is_now_when_tokens_remain() {
         Supplier<TokenBucket> seed = seed("kna");
         // capacity 5, 1 token per 1000ms; one consume leaves 4, so the next token is available immediately
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("kna", 1, 1, 1_000L, 5, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("kna", 1, 1, 1_000L, 5, 1_000L, seed)
+                .blockingGet();
 
         assertThat(result.allowed()).isTrue();
         assertThat(result.remainingTokens()).isEqualTo(4);
@@ -217,7 +245,9 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
         Supplier<TokenBucket> seed = seed("knr");
         // capacity 1, refill disabled (0 tokens per period); once empty, the next token never comes
         repository.refillAndTryConsume("knr", 1, 0, 1_000L, 1, 1_000L, seed).blockingGet();
-        TokenBucketConsumeResult result = repository.refillAndTryConsume("knr", 1, 0, 1_000L, 1, 1_000L, seed).blockingGet();
+        TokenBucketConsumeResult result = repository
+                .refillAndTryConsume("knr", 1, 0, 1_000L, 1, 1_000L, seed)
+                .blockingGet();
 
         assertThat(result.allowed()).isFalse();
         assertThat(result.nextAvailableAtMillis()).isEqualTo(Long.MAX_VALUE);
@@ -227,15 +257,18 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
     void rejects_invalid_arguments() {
         Supplier<TokenBucket> seed = seed("kerr");
         // every backend must reject the same contract violations identically (no divide-by-zero or over-draw)
-        assertThatThrownBy(() -> repository.refillAndTryConsume("kerr", 1, 1, 0, 10, 1_000L, seed).blockingGet()).isInstanceOf(
-            IllegalArgumentException.class
-        ); // refillPeriodMillis <= 0
-        assertThatThrownBy(() -> repository.refillAndTryConsume("kerr", -1, 1, 1_000L, 10, 1_000L, seed).blockingGet()).isInstanceOf(
-            IllegalArgumentException.class
-        ); // tokensRequested < 0
-        assertThatThrownBy(() -> repository.refillAndTryConsume("kerr", 1, 1, 1_000L, -1, 1_000L, seed).blockingGet()).isInstanceOf(
-            IllegalArgumentException.class
-        ); // capacity < 0
+        assertThatThrownBy(() -> repository
+                        .refillAndTryConsume("kerr", 1, 1, 0, 10, 1_000L, seed)
+                        .blockingGet())
+                .isInstanceOf(IllegalArgumentException.class); // refillPeriodMillis <= 0
+        assertThatThrownBy(() -> repository
+                        .refillAndTryConsume("kerr", -1, 1, 1_000L, 10, 1_000L, seed)
+                        .blockingGet())
+                .isInstanceOf(IllegalArgumentException.class); // tokensRequested < 0
+        assertThatThrownBy(() -> repository
+                        .refillAndTryConsume("kerr", 1, 1, 1_000L, -1, 1_000L, seed)
+                        .blockingGet())
+                .isInstanceOf(IllegalArgumentException.class); // capacity < 0
     }
 
     @Test
@@ -249,16 +282,17 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
         AtomicInteger allowed = new AtomicInteger();
         List<Future<?>> futures = new ArrayList<>();
         for (int i = 0; i < attempts; i++) {
-            futures.add(
-                pool.submit(() -> {
-                    start.await();
-                    // refillRate 0: refill disabled, so exactly `capacity` requests can ever succeed
-                    if (repository.refillAndTryConsume("k6", 1, 0, 1_000L, capacity, 1_000L, seed).blockingGet().allowed()) {
-                        allowed.incrementAndGet();
-                    }
-                    return null;
-                })
-            );
+            futures.add(pool.submit(() -> {
+                start.await();
+                // refillRate 0: refill disabled, so exactly `capacity` requests can ever succeed
+                if (repository
+                        .refillAndTryConsume("k6", 1, 0, 1_000L, capacity, 1_000L, seed)
+                        .blockingGet()
+                        .allowed()) {
+                    allowed.incrementAndGet();
+                }
+                return null;
+            }));
         }
         start.countDown();
         for (Future<?> f : futures) {

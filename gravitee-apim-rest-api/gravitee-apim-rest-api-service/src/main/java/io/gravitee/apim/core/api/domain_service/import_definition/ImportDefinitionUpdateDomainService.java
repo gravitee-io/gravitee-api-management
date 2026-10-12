@@ -67,19 +67,18 @@ public class ImportDefinitionUpdateDomainService {
     private final PropertyDomainService propertyDomainService;
 
     ImportDefinitionUpdateDomainService(
-        UpdateApiDomainService updateApiDomainService,
-        ApiImagesServiceProvider apiImagesServiceProvider,
-        ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
-        UpdateNativeApiDomainService updateNativeApiDomainService,
-        ValidateApiDomainService validateApiDomainService,
-        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
-        ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
-        ImportDefinitionPageDomainService importDefinitionPageDomainService,
-        ApiImportDomainService apiImportDomainService,
-        ImportApiGroupsDomainService importApiGroupsDomainService,
-        PropertyDomainService propertyDomainService
-    ) {
+            UpdateApiDomainService updateApiDomainService,
+            ApiImagesServiceProvider apiImagesServiceProvider,
+            ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
+            UpdateNativeApiDomainService updateNativeApiDomainService,
+            ValidateApiDomainService validateApiDomainService,
+            ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
+            ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
+            ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
+            ImportDefinitionPageDomainService importDefinitionPageDomainService,
+            ApiImportDomainService apiImportDomainService,
+            ImportApiGroupsDomainService importApiGroupsDomainService,
+            PropertyDomainService propertyDomainService) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
         this.apiIdsCalculatorDomainService = apiIdsCalculatorDomainService;
@@ -100,25 +99,18 @@ public class ImportDefinitionUpdateDomainService {
         // Ids are recalculated against the API we are updating (not against a crossId lookup) so that the update always
         // targets this API even when the imported definition crossId differs from the existing one.
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(
-            auditInfo.environmentId(),
-            importDefinition,
-            existingPromotedApi
-        );
+                auditInfo.environmentId(), importDefinition, existingPromotedApi);
         var apiExport = apiWithIds.getApiExport();
 
-        if (
-            (apiExport.getProperties() == null || apiExport.getProperties().isEmpty()) &&
-            existingPromotedApi.getApiDefinitionValue() instanceof AbstractApi existingDefinition &&
-            existingDefinition.getProperties() != null &&
-            !existingDefinition.getProperties().isEmpty()
-        ) {
+        if ((apiExport.getProperties() == null || apiExport.getProperties().isEmpty())
+                && existingPromotedApi.getApiDefinitionValue() instanceof AbstractApi existingDefinition
+                && existingDefinition.getProperties() != null
+                && !existingDefinition.getProperties().isEmpty()) {
             apiExport.setProperties(existingDefinition.getProperties());
         }
 
         propertyDomainService.validateClassification(
-            existingPromotedApi.getApiDefinitionValue(),
-            toEncryptableProperties(apiExport.getProperties())
-        );
+                existingPromotedApi.getApiDefinitionValue(), toEncryptableProperties(apiExport.getProperties()));
 
         // Defer group resolution for NATIVE APIs: groups are resolved/created only after validation passes.
         // For PROXY/MESSAGE, validation is coupled in ApiService.update, so groups are resolved before update
@@ -137,9 +129,10 @@ public class ImportDefinitionUpdateDomainService {
                     apiExport.setGroups(importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo));
                 }
                 yield updateApiDomainService.updateV4(
-                    ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
-                    auditInfo
-                );
+                        ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder()
+                                .id(apiId)
+                                .build(),
+                        auditInfo);
             }
             case NATIVE -> {
                 apiExport.setGroups(null);
@@ -152,20 +145,22 @@ public class ImportDefinitionUpdateDomainService {
         apiImagesServiceProvider.updateApiBackground(apiId, apiExport.getBackground(), auditInfo);
 
         new ImportDefinitionSubEntityProcessor(updatedApi.getId())
-            .addSubEntity("Members", () -> importMembersIfPresent(importDefinition.getMembers(), apiId))
-            .addSubEntity("Metadata", () ->
-                importDefinitionMetadataDomainService.upsertMetadata(apiId, importDefinition.getMetadata(), auditInfo)
-            )
-            .addSubEntity("Pages", () -> importDefinitionPageDomainService.upsertPages(apiId, apiWithIds.getPages(), auditInfo))
-            .addSubEntity("Plans", () ->
-                importDefinitionPlanDomainService.upsertPlanWithFlows(
-                    existingPromotedApi,
-                    Objects.requireNonNullElse(importDefinition.getPlans(), Set.of()),
-                    auditInfo
-                )
-            )
-            .addSubEntity("Media", () -> importMediaIfPresent(importDefinition.getApiMedia(), apiId, auditInfo))
-            .process();
+                .addSubEntity("Members", () -> importMembersIfPresent(importDefinition.getMembers(), apiId))
+                .addSubEntity(
+                        "Metadata",
+                        () -> importDefinitionMetadataDomainService.upsertMetadata(
+                                apiId, importDefinition.getMetadata(), auditInfo))
+                .addSubEntity(
+                        "Pages",
+                        () -> importDefinitionPageDomainService.upsertPages(apiId, apiWithIds.getPages(), auditInfo))
+                .addSubEntity(
+                        "Plans",
+                        () -> importDefinitionPlanDomainService.upsertPlanWithFlows(
+                                existingPromotedApi,
+                                Objects.requireNonNullElse(importDefinition.getPlans(), Set.of()),
+                                auditInfo))
+                .addSubEntity("Media", () -> importMediaIfPresent(importDefinition.getApiMedia(), apiId, auditInfo))
+                .process();
 
         return updatedApi;
     }
@@ -181,39 +176,40 @@ public class ImportDefinitionUpdateDomainService {
         if (apiMedia == null || apiMedia.isEmpty()) {
             return;
         }
-        apiImportDomainService.createMedias(apiMedia, apiId, new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()));
+        apiImportDomainService.createMedias(
+                apiMedia, apiId, new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()));
     }
 
     private Api updateNativeApi(String apiId, ApiExport apiExport, Set<String> groupNames, AuditInfo auditInfo) {
         var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(auditInfo.organizationId(), apiId);
         var updateOperator = toNativeApiUpdateOperator(apiExport);
         return updateNativeApiDomainService.update(
-            apiId,
-            updateOperator,
-            (existingApi, apiToUpdate) -> {
-                // When import specifies groups, clear existing groups before validation so that
-                // validated only contains what validation adds (e.g. primary-owner group), not old
-                // membership groups. When groups are absent/empty, keep existing groups as-is.
-                var apiForValidation = !isEmpty(groupNames) ? apiToUpdate.toBuilder().groups(null).build() : apiToUpdate;
-                var validated = validateApiDomainService.validateAndSanitizeForUpdate(
-                    existingApi,
-                    apiForValidation,
-                    primaryOwner,
-                    auditInfo.environmentId(),
-                    auditInfo.organizationId()
-                );
-                if (isEmpty(groupNames)) {
-                    return validated;
-                }
-                // Merge resolved import groups with groups validation added (e.g. primary-owner group)
-                var resolvedGroupIds = importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo);
-                var mergedGroups = mergeGroups(validated.getGroups(), resolvedGroupIds);
-                return validated.toBuilder().groups(mergedGroups).build();
-            },
-            auditInfo,
-            primaryOwner,
-            oneShotIndexation(auditInfo)
-        );
+                apiId,
+                updateOperator,
+                (existingApi, apiToUpdate) -> {
+                    // When import specifies groups, clear existing groups before validation so that
+                    // validated only contains what validation adds (e.g. primary-owner group), not old
+                    // membership groups. When groups are absent/empty, keep existing groups as-is.
+                    var apiForValidation = !isEmpty(groupNames)
+                            ? apiToUpdate.toBuilder().groups(null).build()
+                            : apiToUpdate;
+                    var validated = validateApiDomainService.validateAndSanitizeForUpdate(
+                            existingApi,
+                            apiForValidation,
+                            primaryOwner,
+                            auditInfo.environmentId(),
+                            auditInfo.organizationId());
+                    if (isEmpty(groupNames)) {
+                        return validated;
+                    }
+                    // Merge resolved import groups with groups validation added (e.g. primary-owner group)
+                    var resolvedGroupIds = importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo);
+                    var mergedGroups = mergeGroups(validated.getGroups(), resolvedGroupIds);
+                    return validated.toBuilder().groups(mergedGroups).build();
+                },
+                auditInfo,
+                primaryOwner,
+                oneShotIndexation(auditInfo));
     }
 
     /**
@@ -235,37 +231,40 @@ public class ImportDefinitionUpdateDomainService {
     }
 
     private UnaryOperator<Api> toNativeApiUpdateOperator(ApiExport apiExport) {
-        return currentApi ->
-            currentApi
-                .toBuilder()
+        return currentApi -> currentApi.toBuilder()
                 .name(apiExport.getName())
                 .description(apiExport.getDescription())
                 .version(apiExport.getApiVersion())
                 .visibility(
-                    apiExport.getVisibility() != null
-                        ? Api.Visibility.valueOf(apiExport.getVisibility().toString())
-                        : Api.Visibility.PRIVATE
-                )
+                        apiExport.getVisibility() != null
+                                ? Api.Visibility.valueOf(
+                                        apiExport.getVisibility().toString())
+                                : Api.Visibility.PRIVATE)
                 .labels(apiExport.getLabels())
                 .disableMembershipNotifications(apiExport.isDisableMembershipNotifications())
                 .allowMultiJwtOauth2Subscriptions(apiExport.isAllowMultiJwtOauth2Subscriptions())
                 .apiDefinitionValue(
-                    currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
-                        ? nativeApi
-                            .toBuilder()
-                            .name(apiExport.getName())
-                            .apiVersion(apiExport.getApiVersion())
-                            .tags(apiExport.getTags())
-                            .resources(apiExport.getResources())
-                            .listeners(apiExport.getListeners() != null ? (List<NativeListener>) apiExport.getListeners() : null)
-                            .endpointGroups(
-                                apiExport.getEndpointGroups() != null ? (List<NativeEndpointGroup>) apiExport.getEndpointGroups() : null
-                            )
-                            .flows(apiExport.getFlows() != null ? (List<NativeFlow>) apiExport.getFlows() : null)
-                            .properties(apiExport.getProperties())
-                            .build()
-                        : null
-                )
+                        currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
+                                ? nativeApi.toBuilder()
+                                        .name(apiExport.getName())
+                                        .apiVersion(apiExport.getApiVersion())
+                                        .tags(apiExport.getTags())
+                                        .resources(apiExport.getResources())
+                                        .listeners(
+                                                apiExport.getListeners() != null
+                                                        ? (List<NativeListener>) apiExport.getListeners()
+                                                        : null)
+                                        .endpointGroups(
+                                                apiExport.getEndpointGroups() != null
+                                                        ? (List<NativeEndpointGroup>) apiExport.getEndpointGroups()
+                                                        : null)
+                                        .flows(
+                                                apiExport.getFlows() != null
+                                                        ? (List<NativeFlow>) apiExport.getFlows()
+                                                        : null)
+                                        .properties(apiExport.getProperties())
+                                        .build()
+                                : null)
                 .build();
     }
 
@@ -273,6 +272,9 @@ public class ImportDefinitionUpdateDomainService {
         if (properties == null) {
             return null;
         }
-        return properties.stream().filter(Objects::nonNull).map(EncryptableProperty::fromProperty).toList();
+        return properties.stream()
+                .filter(Objects::nonNull)
+                .map(EncryptableProperty::fromProperty)
+                .toList();
     }
 }

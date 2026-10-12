@@ -37,9 +37,7 @@ class AuthzPolicyDeployerTest {
     void setUp() {
         port = new RecordingPort();
         deployer = new AuthzPolicyDeployer(
-            port,
-            new io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService()
-        );
+                port, new io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService());
     }
 
     @Test
@@ -79,13 +77,13 @@ class AuthzPolicyDeployerTest {
     @Test
     void deploy_resource_with_null_entityId_is_staged() {
         AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
-            .docId("doc-bad")
-            .name("rogue")
-            .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
-            .entityId(null)
-            .policyText("permit(...);")
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .docId("doc-bad")
+                .name("rogue")
+                .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
+                .entityId(null)
+                .policyText("permit(...);")
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         deployer.deploy(d).blockingAwait();
 
@@ -96,12 +94,12 @@ class AuthzPolicyDeployerTest {
     @Test
     void undeploy_does_not_filter_by_registry_or_kind() {
         AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
-            .docId("doc-4")
-            .name("x")
-            .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
-            .entityId("api.unregistered")
-            .syncAction(SyncAction.UNDEPLOY)
-            .build();
+                .docId("doc-4")
+                .name("x")
+                .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
+                .entityId("api.unregistered")
+                .syncAction(SyncAction.UNDEPLOY)
+                .build();
 
         deployer.undeploy(d).blockingAwait();
 
@@ -112,19 +110,19 @@ class AuthzPolicyDeployerTest {
     @Test
     void undeploy_contract_pinned_kind_and_entityId_are_ignored() {
         AuthzPolicyReactorDeployable globalUndeploy = AuthzPolicyReactorDeployable.builder()
-            .docId("doc-x")
-            .name("x")
-            .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
-            .entityId(null)
-            .syncAction(SyncAction.UNDEPLOY)
-            .build();
+                .docId("doc-x")
+                .name("x")
+                .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
+                .entityId(null)
+                .syncAction(SyncAction.UNDEPLOY)
+                .build();
         AuthzPolicyReactorDeployable resourceUndeployUnregistered = AuthzPolicyReactorDeployable.builder()
-            .docId("doc-y")
-            .name("y")
-            .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
-            .entityId("api.never-deployed-on-this-node")
-            .syncAction(SyncAction.UNDEPLOY)
-            .build();
+                .docId("doc-y")
+                .name("y")
+                .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
+                .entityId("api.never-deployed-on-this-node")
+                .syncAction(SyncAction.UNDEPLOY)
+                .build();
 
         deployer.undeploy(globalUndeploy).blockingAwait();
         deployer.undeploy(resourceUndeployUnregistered).blockingAwait();
@@ -136,14 +134,14 @@ class AuthzPolicyDeployerTest {
     @Test
     void deploy_records_scope_ids_on_the_op() {
         AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
-            .docId("doc-scoped")
-            .name("scoped")
-            .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
-            .entityId("api.a")
-            .policyText("permit(p,a,r);")
-            .targetPdpIds(Set.of("api-a"))
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .docId("doc-scoped")
+                .name("scoped")
+                .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
+                .entityId("api.a")
+                .policyText("permit(p,a,r);")
+                .targetPdpIds(Set.of("api-a"))
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         deployer.deploy(d).blockingAwait();
 
@@ -154,13 +152,13 @@ class AuthzPolicyDeployerTest {
     @Test
     void deploy_passes_the_policy_revision_to_the_pdp() {
         AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
-            .docId("doc-revised")
-            .name("revised")
-            .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
-            .policyText("permit(p,a,r);")
-            .revision("2026-09-23T10:00:00Z")
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .docId("doc-revised")
+                .name("revised")
+                .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
+                .policyText("permit(p,a,r);")
+                .revision("2026-09-23T10:00:00Z")
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         deployer.deploy(d).blockingAwait();
 
@@ -171,14 +169,14 @@ class AuthzPolicyDeployerTest {
     @Test
     void deploy_evicts_dropped_scopes_before_re_staging_targets() {
         AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
-            .docId("doc-rt")
-            .name("retargeted")
-            .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
-            .policyText("permit(p,a,r);")
-            .targetPdpIds(Set.of("scope-b"))
-            .removedTargetPdpIds(Set.of("scope-a"))
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .docId("doc-rt")
+                .name("retargeted")
+                .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
+                .policyText("permit(p,a,r);")
+                .targetPdpIds(Set.of("scope-b"))
+                .removedTargetPdpIds(Set.of("scope-a"))
+                .syncAction(SyncAction.DEPLOY)
+                .build();
 
         deployer.deploy(d).blockingAwait();
 
@@ -202,23 +200,23 @@ class AuthzPolicyDeployerTest {
 
     private static AuthzPolicyReactorDeployable global(String docId, String name, String text) {
         return AuthzPolicyReactorDeployable.builder()
-            .docId(docId)
-            .name(name)
-            .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
-            .policyText(text)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .docId(docId)
+                .name(name)
+                .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
+                .policyText(text)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     private static AuthzPolicyReactorDeployable resource(String docId, String name, String entityId, String text) {
         return AuthzPolicyReactorDeployable.builder()
-            .docId(docId)
-            .name(name)
-            .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
-            .entityId(entityId)
-            .policyText(text)
-            .syncAction(SyncAction.DEPLOY)
-            .build();
+                .docId(docId)
+                .name(name)
+                .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
+                .entityId(entityId)
+                .policyText(text)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     @Test
@@ -229,29 +227,32 @@ class AuthzPolicyDeployerTest {
         deployer.undeploy(d).blockingAwait();
 
         assertThat(port.policyOps).isNotEmpty();
-        assertThat(port.schemaOps).as("the schema route is separate; a policy must never stage a schema").isEmpty();
+        assertThat(port.schemaOps)
+                .as("the schema route is separate; a policy must never stage a schema")
+                .isEmpty();
 
         // The assertion above is only worth anything if the recorder actually records; prove it here,
         // otherwise gutting the recorder would leave the guard silently green.
-        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("orders"), 1L).blockingAwait();
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("orders"), 1L)
+                .blockingAwait();
         assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
     }
 
     private static class RecordingPort implements AuthzEnginePort {
 
-        record PolicyOp(String op, String docId, String name, String policyText, Set<String> targetPdpIds, String revision) {}
+        record PolicyOp(
+                String op, String docId, String name, String policyText, Set<String> targetPdpIds, String revision) {}
 
         final ConcurrentLinkedQueue<PolicyOp> policyOps = new ConcurrentLinkedQueue<>();
 
         @Override
         public Completable addOrUpdateEntity(
-            String environmentId,
-            String uid,
-            Map<String, Object> attributes,
-            List<String> parents,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String uid,
+                Map<String, Object> attributes,
+                List<String> parents,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             return Completable.complete();
         }
 
@@ -262,14 +263,13 @@ class AuthzPolicyDeployerTest {
 
         @Override
         public Completable addOrUpdatePolicy(
-            String environmentId,
-            String docId,
-            String name,
-            String policyText,
-            Set<String> targetPdpIds,
-            long updatedAt,
-            String revision
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String policyText,
+                Set<String> targetPdpIds,
+                long updatedAt,
+                String revision) {
             policyOps.add(new PolicyOp("addOrUpdatePolicy", docId, name, policyText, targetPdpIds, revision));
             return Completable.complete();
         }
@@ -284,13 +284,12 @@ class AuthzPolicyDeployerTest {
 
         @Override
         public Completable addOrUpdateSchema(
-            String environmentId,
-            String docId,
-            String name,
-            String schemaText,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String schemaText,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             schemaOps.add("addOrUpdateSchema:" + docId);
             return Completable.complete();
         }

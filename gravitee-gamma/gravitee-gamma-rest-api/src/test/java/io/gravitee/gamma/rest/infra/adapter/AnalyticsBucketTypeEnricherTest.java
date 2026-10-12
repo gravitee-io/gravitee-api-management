@@ -41,24 +41,23 @@ class AnalyticsBucketTypeEnricherTest {
     void should_add_group_and_leaf_types_to_multi_level_facets_response() {
         var leaf = new FacetBucketResponse("200", "200 OK", null, List.of(new Measure(MetricSpec.Measure.COUNT, 883)));
         var group = new FacetBucketResponse("200", "200", List.of(leaf), null);
-        var response = new FacetsResponse(
-            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(group), List.of()))
-        );
+        var response = new FacetsResponse(List.of(new MetricFacetsResponse(
+                MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(group), List.of())));
 
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
 
         assertThat(node.at("/metrics/0/buckets/0/type").asText()).isEqualTo("GROUP");
         assertThat(node.at("/metrics/0/buckets/0/buckets/0/type").asText()).isEqualTo("LEAF");
-        assertThat(node.at("/metrics/0/buckets/0/buckets/0/measures/0/value").asInt()).isEqualTo(883);
+        assertThat(node.at("/metrics/0/buckets/0/buckets/0/measures/0/value").asInt())
+                .isEqualTo(883);
     }
 
     @Test
     void should_add_leaf_type_to_flat_facets_response() {
         var leaf = new FacetBucketResponse("200", "200 OK", null, List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
-        var response = new FacetsResponse(
-            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(leaf), List.of()))
-        );
+        var response = new FacetsResponse(List.of(new MetricFacetsResponse(
+                MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(leaf), List.of())));
 
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
@@ -68,10 +67,10 @@ class AnalyticsBucketTypeEnricherTest {
 
     @Test
     void should_treat_empty_nested_buckets_as_leaf() {
-        var leaf = new FacetBucketResponse("200-299", "2xx Success", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 0)));
-        var response = new FacetsResponse(
-            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(leaf), List.of()))
-        );
+        var leaf = new FacetBucketResponse(
+                "200-299", "2xx Success", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 0)));
+        var response = new FacetsResponse(List.of(new MetricFacetsResponse(
+                MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(leaf), List.of())));
 
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
@@ -81,11 +80,12 @@ class AnalyticsBucketTypeEnricherTest {
 
     @Test
     void should_add_group_and_leaf_types_to_time_series_response() {
-        var facetLeaf = new FacetBucketResponse("APP-1", "App 1", null, List.of(new Measure(MetricSpec.Measure.COUNT, 5)));
-        var timeBucket = new TimeSeriesBucketResponse("2026-06-10T00:00:00Z", null, 1_749_513_600_000L, List.of(facetLeaf), null);
-        var response = new TimeSeriesResponse(
-            List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(timeBucket), List.of()))
-        );
+        var facetLeaf =
+                new FacetBucketResponse("APP-1", "App 1", null, List.of(new Measure(MetricSpec.Measure.COUNT, 5)));
+        var timeBucket = new TimeSeriesBucketResponse(
+                "2026-06-10T00:00:00Z", null, 1_749_513_600_000L, List.of(facetLeaf), null);
+        var response = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(timeBucket), List.of())));
 
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichTimeSeriesResponse(node);

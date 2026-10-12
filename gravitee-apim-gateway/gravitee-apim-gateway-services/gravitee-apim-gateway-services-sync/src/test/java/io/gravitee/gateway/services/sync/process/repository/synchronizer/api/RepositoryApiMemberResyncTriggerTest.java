@@ -74,8 +74,11 @@ class RepositoryApiMemberResyncTriggerTest {
     @BeforeEach
     void setUp() {
         syncDeployerExecutor = new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-        cut = new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager, initialSyncDone::get);
-        verify(eventManager).subscribeForEvents(listenerCaptor.capture(), eq(ApiProductEventType.DEPLOY), eq(ApiProductEventType.UPDATE));
+        cut = new RepositoryApiMemberResyncTrigger(
+                apiSynchronizer, apiManager, syncDeployerExecutor, eventManager, initialSyncDone::get);
+        verify(eventManager)
+                .subscribeForEvents(
+                        listenerCaptor.capture(), eq(ApiProductEventType.DEPLOY), eq(ApiProductEventType.UPDATE));
     }
 
     @AfterEach
@@ -86,13 +89,14 @@ class RepositoryApiMemberResyncTriggerTest {
 
     @Test
     void should_resync_then_re_evaluate_on_product_update_event() throws Exception {
-        when(apiSynchronizer.resyncMemberApis(Set.of("api-1", "api-2"), Set.of("env-1"))).thenReturn(Completable.complete());
+        when(apiSynchronizer.resyncMemberApis(Set.of("api-1", "api-2"), Set.of("env-1")))
+                .thenReturn(Completable.complete());
 
         listenerCaptor
-            .getValue()
-            .onEvent(
-                new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1", "api-2")))
-            );
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE,
+                        new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1", "api-2"))));
 
         awaitPipelineCompletion();
         verify(apiSynchronizer).resyncMemberApis(Set.of("api-1", "api-2"), Set.of("env-1"));
@@ -104,8 +108,9 @@ class RepositoryApiMemberResyncTriggerTest {
         when(apiSynchronizer.resyncMemberApis(Set.of("api-1"), Set.of("env-1"))).thenReturn(Completable.complete());
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.DEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.DEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
 
         awaitPipelineCompletion();
         verify(apiSynchronizer).resyncMemberApis(Set.of("api-1"), Set.of("env-1"));
@@ -117,8 +122,9 @@ class RepositoryApiMemberResyncTriggerTest {
         when(apiSynchronizer.resyncMemberApis(Set.of("api-1"), Set.of("env-1"))).thenReturn(Completable.complete());
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
 
         awaitPipelineCompletion();
         InOrder inOrder = Mockito.inOrder(apiSynchronizer, apiManager);
@@ -128,13 +134,13 @@ class RepositoryApiMemberResyncTriggerTest {
 
     @Test
     void should_not_re_evaluate_when_resync_fails() throws Exception {
-        when(apiSynchronizer.resyncMemberApis(Set.of("api-1"), Set.of("env-1"))).thenReturn(
-            Completable.error(new RuntimeException("sync failure"))
-        );
+        when(apiSynchronizer.resyncMemberApis(Set.of("api-1"), Set.of("env-1")))
+                .thenReturn(Completable.error(new RuntimeException("sync failure")));
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
 
         awaitPipelineCompletion();
         verify(apiManager, never()).reEvaluateAfterProductChange(any(), any());
@@ -147,8 +153,9 @@ class RepositoryApiMemberResyncTriggerTest {
         initialSyncDone.set(false);
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.DEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.DEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
 
         verify(apiSynchronizer, never()).resyncMemberApis(any(), any());
         verify(apiManager, never()).reEvaluateAfterProductChange(any(), any());
@@ -157,14 +164,17 @@ class RepositoryApiMemberResyncTriggerTest {
     @Test
     void should_not_resync_when_environment_or_api_ids_are_missing() {
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", null, Set.of("api-1"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", null, Set.of("api-1"))));
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", null)));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", null)));
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of())));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of())));
 
         verify(apiSynchronizer, never()).resyncMemberApis(any(), any());
         verify(apiManager, never()).reEvaluateAfterProductChange(any(), any());
@@ -176,19 +186,19 @@ class RepositoryApiMemberResyncTriggerTest {
         CountDownLatch releaseResync = new CountDownLatch(1);
         AtomicReference<String> resyncThreadName = new AtomicReference<>();
 
-        when(apiSynchronizer.resyncMemberApis(Set.of("api-1"), Set.of("env-1"))).thenReturn(
-            Completable.fromAction(() -> {
-                resyncThreadName.set(Thread.currentThread().getName());
-                resyncStarted.countDown();
-                releaseResync.await(5, TimeUnit.SECONDS);
-            })
-        );
+        when(apiSynchronizer.resyncMemberApis(Set.of("api-1"), Set.of("env-1")))
+                .thenReturn(Completable.fromAction(() -> {
+                    resyncThreadName.set(Thread.currentThread().getName());
+                    resyncStarted.countDown();
+                    releaseResync.await(5, TimeUnit.SECONDS);
+                }));
 
         String eventThreadName = Thread.currentThread().getName();
         long startNanos = System.nanoTime();
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
         long eventHandlerDurationNanos = System.nanoTime() - startNanos;
 
         assertThat(eventHandlerDurationNanos).isLessThan(TimeUnit.MILLISECONDS.toNanos(200));
@@ -205,8 +215,9 @@ class RepositoryApiMemberResyncTriggerTest {
         when(apiSynchronizer.resyncMemberApis(Set.of("api-1"), Set.of("env-1"))).thenReturn(Completable.complete());
 
         listenerCaptor
-            .getValue()
-            .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
+                .getValue()
+                .onEvent(new SimpleEvent<>(
+                        ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
 
         awaitPipelineCompletion();
         awaitDisposableCleanup();

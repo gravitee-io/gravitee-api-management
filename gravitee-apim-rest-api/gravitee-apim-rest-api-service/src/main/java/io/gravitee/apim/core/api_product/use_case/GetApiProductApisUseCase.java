@@ -41,15 +41,15 @@ public class GetApiProductApisUseCase {
 
     public Output execute(Input input) {
         ApiProduct apiProduct = apiProductQueryService
-            .findById(input.apiProductId())
-            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+                .findById(input.apiProductId())
+                .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
         if (!input.executionContext().getEnvironmentId().equals(apiProduct.getEnvironmentId())) {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
 
         List<String> apiIds = Optional.ofNullable(apiProduct.getApiIds())
-            .map(ids -> ids.stream().toList())
-            .orElse(List.of());
+                .map(ids -> ids.stream().toList())
+                .orElse(List.of());
 
         if (apiIds.isEmpty()) {
             return new Output(emptyPage(input.pageable()));
@@ -58,12 +58,13 @@ public class GetApiProductApisUseCase {
         List<String> searchIds = apiIds;
         if (!input.isAdmin()) {
             Set<String> manageableIds = apiAuthorizationDomainService.findIdsByUser(
-                input.executionContext(),
-                input.userId(),
-                io.gravitee.apim.core.api.model.ApiQueryCriteria.builder().ids(apiIds).build(),
-                null,
-                true
-            );
+                    input.executionContext(),
+                    input.userId(),
+                    io.gravitee.apim.core.api.model.ApiQueryCriteria.builder()
+                            .ids(apiIds)
+                            .build(),
+                    null,
+                    true);
             if (manageableIds == null || manageableIds.isEmpty()) {
                 return new Output(emptyPage(input.pageable()));
             }
@@ -73,17 +74,18 @@ public class GetApiProductApisUseCase {
             }
         }
 
-        String query = (input.query() == null || input.query().isBlank()) ? null : input.query().trim();
+        String query = (input.query() == null || input.query().isBlank())
+                ? null
+                : input.query().trim();
 
         Page<GenericApiEntity> apis = apiProductSearchQueryService.searchApis(
-            input.executionContext(),
-            input.userId(),
-            input.isAdmin(),
-            searchIds,
-            query,
-            input.sortable(),
-            input.pageable()
-        );
+                input.executionContext(),
+                input.userId(),
+                input.isAdmin(),
+                searchIds,
+                query,
+                input.sortable(),
+                input.pageable());
 
         return new Output(apis);
     }
@@ -93,14 +95,13 @@ public class GetApiProductApisUseCase {
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        String apiProductId,
-        String query,
-        Pageable pageable,
-        Sortable sortable,
-        String userId,
-        boolean isAdmin
-    ) {}
+            ExecutionContext executionContext,
+            String apiProductId,
+            String query,
+            Pageable pageable,
+            Sortable sortable,
+            String userId,
+            boolean isAdmin) {}
 
     public record Output(Page<GenericApiEntity> apisPage) {}
 }

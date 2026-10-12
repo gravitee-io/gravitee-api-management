@@ -29,7 +29,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RoleMongoRepository extends MongoRepository<RoleMongo, String> {
     @Query("{ 'scope' : ?0, 'name' : ?1, 'referenceId': ?2, 'referenceType': ?3 }")
-    Set<RoleMongo> findByScopeAndNameAndReferenceIdAndReferenceType(String scope, String name, String referenceId, String referenceType);
+    Set<RoleMongo> findByScopeAndNameAndReferenceIdAndReferenceType(
+            String scope, String name, String referenceId, String referenceType);
 
     @Query("{ 'scope' : ?0, 'referenceId': ?1, 'referenceType': ?2 }")
     Set<RoleMongo> findByScopeAndReferenceIdAndReferenceType(String scope, String referenceId, String referenceType);

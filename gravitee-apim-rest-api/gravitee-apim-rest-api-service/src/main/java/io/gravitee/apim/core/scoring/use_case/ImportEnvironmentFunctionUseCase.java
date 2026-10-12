@@ -30,16 +30,13 @@ public class ImportEnvironmentFunctionUseCase {
     private final ScoringFunctionCrudService scoringFunctionCrudService;
 
     public Output execute(Input input) {
-        var created = scoringFunctionCrudService.create(
-            new ScoringFunction(
+        var created = scoringFunctionCrudService.create(new ScoringFunction(
                 UuidString.generateRandom(),
                 input.newFunction.name(),
                 input.auditInfo.environmentId(),
                 ScoringFunction.ReferenceType.ENVIRONMENT,
                 input.newFunction.payload(),
-                TimeProvider.now()
-            )
-        );
+                TimeProvider.now()));
         return new Output(created.id());
     }
 

@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest(v2ExecutionMode = ExecutionMode.V4_EMULATION_ENGINE)
-@DeployApi({ "/apis/http/api-report.json" })
+@DeployApi({"/apis/http/api-report.json"})
 class DoOnReportV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     BehaviorSubject<Log> subject;
@@ -85,39 +85,44 @@ class DoOnReportV4EmulationIntegrationTest extends AbstractGatewayTest {
     @Test
     @DisplayName("Should prefix all headers and bodies")
     void shouldPrefixAllHeadersAndBodies(HttpClient httpClient, VertxTestContext context) throws InterruptedException {
-        wiremock.stubFor(post("/endpoint").willReturn(ok("response from backend").withHeader("X-ResponseHeader", "ResponseHeaderValue")));
+        wiremock.stubFor(post("/endpoint")
+                .willReturn(ok("response from backend").withHeader("X-ResponseHeader", "ResponseHeaderValue")));
 
-        subject
-            .doOnNext(log -> {
-                assertThat(log.getClientRequest().getBody()).isEqualTo("prefix-body request");
-                assertThat(log.getClientRequest().getHeaders().get("X-RequestHeader")).isEqualTo("prefix-RequestHeaderValue");
-                assertThat(log.getProxyRequest().getBody()).isEqualTo("prefix-body request");
-                assertThat(log.getProxyRequest().getHeaders().get("X-RequestHeader")).isEqualTo("prefix-RequestHeaderValue");
+        subject.doOnNext(log -> {
+                    assertThat(log.getClientRequest().getBody()).isEqualTo("prefix-body request");
+                    assertThat(log.getClientRequest().getHeaders().get("X-RequestHeader"))
+                            .isEqualTo("prefix-RequestHeaderValue");
+                    assertThat(log.getProxyRequest().getBody()).isEqualTo("prefix-body request");
+                    assertThat(log.getProxyRequest().getHeaders().get("X-RequestHeader"))
+                            .isEqualTo("prefix-RequestHeaderValue");
 
-                assertThat(log.getClientResponse().getBody()).isEqualTo("prefix-response from backend");
-                assertThat(log.getClientResponse().getHeaders().get("X-ResponseHeader")).isEqualTo("prefix-ResponseHeaderValue");
-                assertThat(log.getProxyResponse().getBody()).isEqualTo("prefix-response from backend");
-                assertThat(log.getProxyResponse().getHeaders().get("X-ResponseHeader")).isEqualTo("prefix-ResponseHeaderValue");
-            })
-            .doOnNext(m -> context.completeNow())
-            .doOnError(context::failNow)
-            .subscribe();
+                    assertThat(log.getClientResponse().getBody()).isEqualTo("prefix-response from backend");
+                    assertThat(log.getClientResponse().getHeaders().get("X-ResponseHeader"))
+                            .isEqualTo("prefix-ResponseHeaderValue");
+                    assertThat(log.getProxyResponse().getBody()).isEqualTo("prefix-response from backend");
+                    assertThat(log.getProxyResponse().getHeaders().get("X-ResponseHeader"))
+                            .isEqualTo("prefix-ResponseHeaderValue");
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
 
         httpClient
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(request -> request.putHeader("X-RequestHeader", "RequestHeaderValue").rxSend("body request"))
-            .flatMapPublisher(response -> {
-                assertThat(response.getHeader("X-ResponseHeader")).isEqualTo("ResponseHeaderValue");
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("response from backend");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> request.putHeader("X-RequestHeader", "RequestHeaderValue")
+                        .rxSend("body request"))
+                .flatMapPublisher(response -> {
+                    assertThat(response.getHeader("X-ResponseHeader")).isEqualTo("ResponseHeaderValue");
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("response from backend");
+                    return true;
+                })
+                .assertNoErrors();
     }
 }

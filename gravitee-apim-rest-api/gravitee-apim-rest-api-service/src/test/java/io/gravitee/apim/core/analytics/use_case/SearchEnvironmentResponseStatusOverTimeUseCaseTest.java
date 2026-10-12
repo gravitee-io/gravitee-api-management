@@ -17,21 +17,16 @@ package io.gravitee.apim.core.analytics.use_case;
 
 import static fixtures.core.model.ApiFixtures.MY_API;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
-import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseStatusOverTimeUseCase.Input;
-import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Clock;
@@ -87,9 +82,8 @@ class SearchEnvironmentResponseStatusOverTimeUseCaseTest {
 
         // When
         var output = useCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(ENV_ID, TimeProvider.instantNow().minus(Duration.ofDays(1)), TimeProvider.instantNow())
-        );
+                GraviteeContext.getExecutionContext(),
+                new Input(ENV_ID, TimeProvider.instantNow().minus(Duration.ofDays(1)), TimeProvider.instantNow()));
 
         // Then
         assertThat(output.responseStatusOvertime()).isSameAs(expectedData);

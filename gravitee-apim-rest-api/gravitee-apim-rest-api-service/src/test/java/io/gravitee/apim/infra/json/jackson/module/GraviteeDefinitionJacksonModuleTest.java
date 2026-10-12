@@ -44,24 +44,20 @@ class GraviteeDefinitionJacksonModuleTest {
         var scanner = new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AssignableTypeFilter(Enum.class));
 
-        Set<String> uncovered = scanner
-            .findCandidateComponents("io.gravitee.definition.model")
-            .stream()
-            .map(BeanDefinition::getBeanClassName)
-            .map(GraviteeDefinitionJacksonModuleTest::loadClass)
-            .filter(type -> type != null && type.isEnum())
-            .filter(GraviteeDefinitionJacksonModuleTest::hasMismatchedJsonValueLabel)
-            .filter(type -> !hasCustomSerializer(mapper, type))
-            .map(Class::getName)
-            .collect(Collectors.toSet());
+        Set<String> uncovered = scanner.findCandidateComponents("io.gravitee.definition.model").stream()
+                .map(BeanDefinition::getBeanClassName)
+                .map(GraviteeDefinitionJacksonModuleTest::loadClass)
+                .filter(type -> type != null && type.isEnum())
+                .filter(GraviteeDefinitionJacksonModuleTest::hasMismatchedJsonValueLabel)
+                .filter(type -> !hasCustomSerializer(mapper, type))
+                .map(Class::getName)
+                .collect(Collectors.toSet());
 
         assertThat(uncovered)
-            .as(
-                "Definition model enums with @JsonValue labels that differ from enum constant names " +
-                    "must have a serializer in GraviteeDefinitionJacksonModule to prevent promotion " +
-                    "deserialization failures. Add a serializer for each listed enum."
-            )
-            .isEmpty();
+                .as("Definition model enums with @JsonValue labels that differ from enum constant names "
+                        + "must have a serializer in GraviteeDefinitionJacksonModule to prevent promotion "
+                        + "deserialization failures. Add a serializer for each listed enum.")
+                .isEmpty();
     }
 
     private static Class<?> loadClass(String name) {
@@ -76,7 +72,8 @@ class GraviteeDefinitionJacksonModuleTest {
         try {
             var provider = mapper.getSerializerProviderInstance();
             var serializer = provider.findTypedValueSerializer(type, true, null);
-            return serializer != null && serializer.getClass().getEnclosingClass() == GraviteeDefinitionJacksonModule.class;
+            return serializer != null
+                    && serializer.getClass().getEnclosingClass() == GraviteeDefinitionJacksonModule.class;
         } catch (Exception e) {
             return false;
         }
@@ -99,7 +96,9 @@ class GraviteeDefinitionJacksonModuleTest {
             }
         }
         for (java.lang.reflect.Method method : enumType.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(JsonValue.class) && method.getReturnType() == String.class && method.getParameterCount() == 0) {
+            if (method.isAnnotationPresent(JsonValue.class)
+                    && method.getReturnType() == String.class
+                    && method.getParameterCount() == 0) {
                 for (Object constant : enumType.getEnumConstants()) {
                     try {
                         String label = (String) method.invoke(constant);

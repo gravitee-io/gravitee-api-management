@@ -39,7 +39,7 @@ public class MediaResource extends AbstractResource {
 
     @GET
     @Path("{mediaHash}")
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
     public Response getPortalMedia(@Context Request request, @PathParam("mediaHash") String mediaHash) {
         MediaEntity mediaEntity = mediaService.findByHash(GraviteeContext.getExecutionContext(), mediaHash, true);
 

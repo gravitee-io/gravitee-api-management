@@ -60,7 +60,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
  * comma) got the whole document rejected.
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { AdditionalKeywordMetricsMappingTest.TestConfig.class })
+@ContextConfiguration(classes = {AdditionalKeywordMetricsMappingTest.TestConfig.class})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AdditionalKeywordMetricsMappingTest {
 
@@ -92,16 +92,16 @@ class AdditionalKeywordMetricsMappingTest {
          */
         @Bean
         public ElasticsearchReporter reporter(
-            final Node node,
-            final Client client,
-            final ReporterConfiguration reporterConfiguration,
-            final FreeMarkerComponent freeMarkerComponent
-        ) {
+                final Node node,
+                final Client client,
+                final ReporterConfiguration reporterConfiguration,
+                final FreeMarkerComponent freeMarkerComponent) {
             // The shared test node is a bare mock; every document names the gateway that reported it.
             when(node.id()).thenReturn("test-gateway");
             when(node.hostname()).thenReturn("localhost");
             pipelineConfiguration = new PipelineConfiguration("user_agent", null, freeMarkerComponent);
-            return new ElasticsearchReporter(node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
+            return new ElasticsearchReporter(
+                    node, reporterConfiguration, pipelineConfiguration, freeMarkerComponent, client);
         }
     }
 
@@ -114,7 +114,9 @@ class AdditionalKeywordMetricsMappingTest {
             testScheduler.advanceTimeBy(1, TimeUnit.SECONDS);
             Thread.sleep(100);
         }
-        assertThat(pipelineConfiguration.getPipeline()).as("ingest pipeline created").isNotNull();
+        assertThat(pipelineConfiguration.getPipeline())
+                .as("ingest pipeline created")
+                .isNotNull();
     }
 
     @AfterEach
@@ -132,7 +134,9 @@ class AdditionalKeywordMetricsMappingTest {
         report(api, "2025-11-25", "2025-11-25", List.of("2025-11-25"));
         report(api, "2026-07-28", "2025-11-25,2026-07-28", List.of("2025-11-25", "2026-07-28", "not-a-date"));
 
-        assertThat(count(api)).as("the document whose versions are not a date is indexed too").isEqualTo(2);
+        assertThat(count(api))
+                .as("the document whose versions are not a date is indexed too")
+                .isEqualTo(2);
         String index = indexOf(api);
         assertThat(fieldType(index, VERSION_METRIC)).isEqualTo("keyword");
         assertThat(fieldType(index, VERSIONS_METRIC)).isEqualTo("keyword");
@@ -142,21 +146,19 @@ class AdditionalKeywordMetricsMappingTest {
         assertThat(count(api, VERSIONS_LIST_METRIC, "not-a-date")).isEqualTo(1);
     }
 
-    private void report(String api, String version, String supportedVersions, List<String> versionsList) throws InterruptedException {
+    private void report(String api, String version, String supportedVersions, List<String> versionsList)
+            throws InterruptedException {
         Metrics metrics = Metrics.builder()
-            .timestamp(Instant.now().toEpochMilli())
-            .requestId(UUID.randomUUID().toString())
-            .transactionId(UUID.randomUUID().toString())
-            .apiId(api)
-            .remoteAddress("127.0.0.1")
-            .additionalMetrics(
-                Set.of(
-                    new AdditionalMetric.KeywordMetric(VERSION_METRIC, version),
-                    new AdditionalMetric.KeywordMetric(VERSIONS_METRIC, supportedVersions),
-                    new AdditionalMetric.KeywordListMetric(VERSIONS_LIST_METRIC, versionsList)
-                )
-            )
-            .build();
+                .timestamp(Instant.now().toEpochMilli())
+                .requestId(UUID.randomUUID().toString())
+                .transactionId(UUID.randomUUID().toString())
+                .apiId(api)
+                .remoteAddress("127.0.0.1")
+                .additionalMetrics(Set.of(
+                        new AdditionalMetric.KeywordMetric(VERSION_METRIC, version),
+                        new AdditionalMetric.KeywordMetric(VERSIONS_METRIC, supportedVersions),
+                        new AdditionalMetric.KeywordListMetric(VERSIONS_LIST_METRIC, versionsList)))
+                .build();
         var reported = Completable.fromRunnable(() -> reporter.report(metrics)).test();
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
         reported.await();
@@ -165,13 +167,18 @@ class AdditionalKeywordMetricsMappingTest {
 
     /** The index holding the documents of {@code api}: the container is shared, other tests may have created more. */
     private String indexOf(String api) throws Exception {
-        JsonNode hits = post("/gravitee-v4-metrics*/_search", "{\"size\":1,\"query\":{\"term\":{\"api-id\":\"" + api + "\"}}}");
+        JsonNode hits =
+                post("/gravitee-v4-metrics*/_search", "{\"size\":1,\"query\":{\"term\":{\"api-id\":\"" + api + "\"}}}");
         return hits.path("hits").path("hits").get(0).path("_index").asText();
     }
 
     private String fieldType(String index, String metric) throws Exception {
         JsonNode mappings = get("/" + index + "/_mapping/field/additional-metrics." + metric);
-        JsonNode field = mappings.path(index).path("mappings").path("additional-metrics." + metric).path("mapping").path(metric);
+        JsonNode field = mappings.path(index)
+                .path("mappings")
+                .path("additional-metrics." + metric)
+                .path("mapping")
+                .path(metric);
         return field.path("type").asText();
     }
 
@@ -209,12 +216,10 @@ class AdditionalKeywordMetricsMappingTest {
     }
 
     private JsonNode post(String path, String body) throws Exception {
-        return send(
-            HttpRequest.newBuilder(uri(path))
+        return send(HttpRequest.newBuilder(uri(path))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build()
-        );
+                .build());
     }
 
     private URI uri(String path) {
@@ -222,6 +227,7 @@ class AdditionalKeywordMetricsMappingTest {
     }
 
     private JsonNode send(HttpRequest request) throws Exception {
-        return MAPPER.readTree(http.send(request, HttpResponse.BodyHandlers.ofString()).body());
+        return MAPPER.readTree(
+                http.send(request, HttpResponse.BodyHandlers.ofString()).body());
     }
 }

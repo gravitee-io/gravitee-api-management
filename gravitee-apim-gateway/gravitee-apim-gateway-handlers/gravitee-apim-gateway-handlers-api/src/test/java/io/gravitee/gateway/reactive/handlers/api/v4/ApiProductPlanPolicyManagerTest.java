@@ -74,22 +74,23 @@ class ApiProductPlanPolicyManagerTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(List.of());
+        lenient()
+                .when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of());
     }
 
     @Test
     void should_return_empty_dependencies_when_registry_is_null() {
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            API_ID,
-            ENV_ID,
-            null
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                API_ID,
+                ENV_ID,
+                null);
 
         Set<Policy> dependencies = invokeDependencies(manager);
 
@@ -101,16 +102,15 @@ class ApiProductPlanPolicyManagerTest {
         when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(List.of());
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            API_ID,
-            ENV_ID,
-            apiProductRegistry
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                API_ID,
+                ENV_ID,
+                apiProductRegistry);
 
         Set<Policy> dependencies = invokeDependencies(manager);
 
@@ -123,21 +123,19 @@ class ApiProductPlanPolicyManagerTest {
         plan1.setMode(PlanMode.STANDARD);
         plan1.setSecurity(new PlanSecurity("API_KEY", "{}"));
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1))
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1)));
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            API_ID,
-            ENV_ID,
-            apiProductRegistry
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                API_ID,
+                ENV_ID,
+                apiProductRegistry);
 
         Set<Policy> dependencies = invokeDependencies(manager);
 
@@ -155,24 +153,21 @@ class ApiProductPlanPolicyManagerTest {
         plan2.setMode(PlanMode.STANDARD);
         plan2.setSecurity(new PlanSecurity("API_KEY", "{\"different\":\"config\"}"));
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(
-                new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1),
-                new ApiProductRegistry.ApiProductPlanEntry("product-2", plan2)
-            )
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of(
+                        new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1),
+                        new ApiProductRegistry.ApiProductPlanEntry("product-2", plan2)));
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            API_ID,
-            ENV_ID,
-            apiProductRegistry
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                API_ID,
+                ENV_ID,
+                apiProductRegistry);
 
         Set<Policy> dependencies = invokeDependencies(manager);
 
@@ -196,21 +191,19 @@ class ApiProductPlanPolicyManagerTest {
         plan.setSecurity(new PlanSecurity("API_KEY", "{}"));
         plan.setFlows(List.of(flow));
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan))
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan)));
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            API_ID,
-            ENV_ID,
-            apiProductRegistry
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                API_ID,
+                ENV_ID,
+                apiProductRegistry);
 
         Set<Policy> dependencies = invokeDependencies(manager);
 
@@ -223,21 +216,19 @@ class ApiProductPlanPolicyManagerTest {
         plan.setMode(PlanMode.STANDARD);
         plan.setSecurity(new PlanSecurity("OAUTH2", "{}"));
 
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan))
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan)));
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            API_ID,
-            ENV_ID,
-            apiProductRegistry
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                API_ID,
+                ENV_ID,
+                apiProductRegistry);
 
         Set<Policy> dependencies = invokeDependencies(manager);
 

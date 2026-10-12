@@ -47,7 +47,8 @@ public class MessageLogFormatter extends SingleValueFormatter<MessageLog> {
         appendString(buffer, log.getCorrelationId());
         appendString(buffer, log.getParentCorrelationId());
         appendString(buffer, log.getOperation() != null ? log.getOperation().name() : null);
-        appendString(buffer, log.getConnectorType() != null ? log.getConnectorType().name() : null);
+        appendString(
+                buffer, log.getConnectorType() != null ? log.getConnectorType().name() : null);
         appendString(buffer, log.getConnectorId());
 
         try {

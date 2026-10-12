@@ -40,38 +40,39 @@ public class AccessPointFetcher {
     @Accessors(fluent = true)
     private final int bulkItems;
 
-    public Flowable<List<AccessPoint>> fetchLatest(Long from, Long to, Set<String> environments, AccessPointStatus status) {
+    public Flowable<List<AccessPoint>> fetchLatest(
+            Long from, Long to, Set<String> environments, AccessPointStatus status) {
         return Flowable.generate(
-            () ->
-                AccessPointPageable.builder()
-                    .index(0)
-                    .size(bulkItems)
-                    .criteria(
-                        AccessPointCriteria.builder()
-                            .referenceType(AccessPointReferenceType.ENVIRONMENT)
-                            .targets(List.of(AccessPointTarget.GATEWAY, AccessPointTarget.TCP_GATEWAY, AccessPointTarget.KAFKA_GATEWAY))
-                            .referenceIds(environments)
-                            .status(status)
-                            .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-                            .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
-                            .build()
-                    )
-                    .build(),
-            (page, emitter) -> {
-                try {
-                    List<AccessPoint> accessPoints = accessPointRepository.findByCriteria(page.criteria, page.index, page.size);
-                    if (accessPoints != null && !accessPoints.isEmpty()) {
-                        emitter.onNext(accessPoints);
-                        page.index++;
+                () -> AccessPointPageable.builder()
+                        .index(0)
+                        .size(bulkItems)
+                        .criteria(AccessPointCriteria.builder()
+                                .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                                .targets(List.of(
+                                        AccessPointTarget.GATEWAY,
+                                        AccessPointTarget.TCP_GATEWAY,
+                                        AccessPointTarget.KAFKA_GATEWAY))
+                                .referenceIds(environments)
+                                .status(status)
+                                .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+                                .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                                .build())
+                        .build(),
+                (page, emitter) -> {
+                    try {
+                        List<AccessPoint> accessPoints =
+                                accessPointRepository.findByCriteria(page.criteria, page.index, page.size);
+                        if (accessPoints != null && !accessPoints.isEmpty()) {
+                            emitter.onNext(accessPoints);
+                            page.index++;
+                        }
+                        if (accessPoints == null || accessPoints.size() < page.size) {
+                            emitter.onComplete();
+                        }
+                    } catch (Exception e) {
+                        emitter.onError(e);
                     }
-                    if (accessPoints == null || accessPoints.size() < page.size) {
-                        emitter.onComplete();
-                    }
-                } catch (Exception e) {
-                    emitter.onError(e);
-                }
-            }
-        );
+                });
     }
 
     @Builder

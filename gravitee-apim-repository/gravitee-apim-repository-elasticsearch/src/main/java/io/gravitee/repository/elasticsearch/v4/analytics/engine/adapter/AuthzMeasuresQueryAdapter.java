@@ -56,7 +56,10 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
     }
 
     private JsonObject json(MeasuresQuery query) {
-        return new JsonObject().put("size", 0).put("query", adaptQuery(query)).put("aggs", adaptMetrics(query.metrics(), query.filters()));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", adaptQuery(query))
+                .put("aggs", adaptMetrics(query.metrics(), query.filters()));
     }
 
     @Override
@@ -82,7 +85,9 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
             if (scope == null) {
                 aggs.mergeIn(measureAggs);
             } else {
-                aggs.put(scopeAggName(metric.metric()), new JsonObject().put("filter", scope).put("aggs", measureAggs));
+                aggs.put(
+                        scopeAggName(metric.metric()),
+                        new JsonObject().put("filter", scope).put("aggs", measureAggs));
             }
         }
         return aggs;
@@ -95,11 +100,17 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
             return term(scopeTerm.get());
         }
         if (metric == Metric.AUTHZ_EVAL_DURATION) {
-            var durationExists = new JsonObject().put("exists", new JsonObject().put("field", fieldResolver.fromMetric(metric)));
-            return new JsonObject().put(
-                "bool",
-                new JsonObject().put("filter", new JsonArray().add(term(fieldResolver.successfulEvaluation())).add(durationExists))
-            );
+            var durationExists =
+                    new JsonObject().put("exists", new JsonObject().put("field", fieldResolver.fromMetric(metric)));
+            return new JsonObject()
+                    .put(
+                            "bool",
+                            new JsonObject()
+                                    .put(
+                                            "filter",
+                                            new JsonArray()
+                                                    .add(term(fieldResolver.successfulEvaluation()))
+                                                    .add(durationExists)));
         }
         return null;
     }
@@ -111,9 +122,8 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
     @Override
     public JsonObject buildMeasureAggs(MetricMeasuresQuery metric) {
         if (metric.filters() != null && !metric.filters().isEmpty()) {
-            throw new UnsupportedOperationException(
-                "Authz decisions do not support per-metric filters yet, got " + metric.filters() + " on " + metric.metric()
-            );
+            throw new UnsupportedOperationException("Authz decisions do not support per-metric filters yet, got "
+                    + metric.filters() + " on " + metric.metric());
         }
         var aggs = new JsonObject();
         var field = fieldResolver.fromMetric(metric.metric());
@@ -142,9 +152,9 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
             case MIN -> "min";
             case MAX -> "max";
             case P50, P90, P95, P99 -> "percentiles";
-            case PERCENTAGE, SUM -> throw new UnsupportedOperationException(
-                "AuthzMeasuresQueryAdapter does not rescale measure " + measure
-            );
+            case PERCENTAGE, SUM ->
+                throw new UnsupportedOperationException(
+                        "AuthzMeasuresQueryAdapter does not rescale measure " + measure);
         };
     }
 
@@ -158,9 +168,9 @@ public class AuthzMeasuresQueryAdapter implements AuthzMeasuresAdapter {
             case P90 -> Optional.of(p90Builder.build(aggName, field));
             case P95 -> Optional.of(p95Builder.build(aggName, field));
             case P99 -> Optional.of(p99Builder.build(aggName, field));
-            case PERCENTAGE, SUM -> throw new UnsupportedOperationException(
-                "AuthzMeasuresQueryAdapter does not support measure " + measure
-            );
+            case PERCENTAGE, SUM ->
+                throw new UnsupportedOperationException(
+                        "AuthzMeasuresQueryAdapter does not support measure " + measure);
         };
     }
 }

@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.exceptions.UserRegistrationUnavailableException;
 import org.springframework.stereotype.Service;
 
@@ -37,18 +36,18 @@ public class UserRegistrationEnabledServiceImpl implements UserRegistrationEnabl
     public void checkEnabled(ExecutionContext executionContext) {
         var currentContext = executionContext.getReferenceContext();
         boolean userCreationEnabled = switch (currentContext.getReferenceType()) {
-            case ORGANIZATION -> parameterService.findAsBoolean(
-                executionContext,
-                Key.CONSOLE_USERCREATION_ENABLED,
-                currentContext.getReferenceId(),
-                ParameterReferenceType.ORGANIZATION
-            );
-            case ENVIRONMENT -> parameterService.findAsBoolean(
-                executionContext,
-                Key.PORTAL_USERCREATION_ENABLED,
-                currentContext.getReferenceId(),
-                ParameterReferenceType.ENVIRONMENT
-            );
+            case ORGANIZATION ->
+                parameterService.findAsBoolean(
+                        executionContext,
+                        Key.CONSOLE_USERCREATION_ENABLED,
+                        currentContext.getReferenceId(),
+                        ParameterReferenceType.ORGANIZATION);
+            case ENVIRONMENT ->
+                parameterService.findAsBoolean(
+                        executionContext,
+                        Key.PORTAL_USERCREATION_ENABLED,
+                        currentContext.getReferenceId(),
+                        ParameterReferenceType.ENVIRONMENT);
         };
         if (!userCreationEnabled) {
             throw new UserRegistrationUnavailableException();

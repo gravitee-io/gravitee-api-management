@@ -47,11 +47,10 @@ public class ImportGroupCRDUseCase {
     private final CRDMembersDomainService membersService;
 
     public ImportGroupCRDUseCase(
-        ValidateGroupCRDDomainService validationService,
-        GroupQueryService queryService,
-        GroupCrudService crudService,
-        CRDMembersDomainService membersService
-    ) {
+            ValidateGroupCRDDomainService validationService,
+            GroupQueryService queryService,
+            GroupCrudService crudService,
+            CRDMembersDomainService membersService) {
         this.validationService = validationService;
         this.queryService = queryService;
         this.crudService = crudService;
@@ -60,27 +59,26 @@ public class ImportGroupCRDUseCase {
 
     public Output execute(Input input) {
         var validationResult = validationService
-            .validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo, input.spec))
-            .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
+                .validateAndSanitize(new ValidateGroupCRDDomainService.Input(input.auditInfo, input.spec))
+                .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(
+                            ",",
+                            errors.stream().map(Validator.Error::getMessage).toList())));
+        });
 
         var warnings = validationResult.warning().orElseGet(List::of);
-        var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+        var sanitizedInput = validationResult
+                .value()
+                .orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
         var status = queryService
-            .findById(sanitizedInput.spec.getId())
-            .map(existing -> this.update(sanitizedInput, existing))
-            .orElseGet(() -> this.create(sanitizedInput));
+                .findById(sanitizedInput.spec.getId())
+                .map(existing -> this.update(sanitizedInput, existing))
+                .orElseGet(() -> this.create(sanitizedInput));
 
         status.setErrors(GroupCRDStatus.Errors.fromErrorList(warnings));
 
@@ -98,33 +96,33 @@ public class ImportGroupCRDUseCase {
      */
     private GroupCRDStatus update(Input input, Group existing) {
         var spec = input.spec;
-        crudService.update(
-            existing
-                .toBuilder()
+        crudService.update(existing.toBuilder()
                 .name(spec.getName())
                 .hrid(spec.getHrid() != null ? spec.getHrid() : existing.getHrid())
                 .origin(spec.getOrigin())
                 .disableMembershipNotifications(!spec.isNotifyMembers())
-                .build()
-        );
+                .build());
         return syncGroupMemberships(input);
     }
 
     private GroupCRDStatus syncGroupMemberships(Input input) {
         if (input.spec.getDefaultMemberRoles() != null) {
-            membersService.updateGroupDefaultRoles(input.auditInfo, input.spec.getId(), input.spec.getDefaultMemberRoles());
+            membersService.updateGroupDefaultRoles(
+                    input.auditInfo, input.spec.getId(), input.spec.getDefaultMemberRoles());
         } else {
             membersService.updateGroupDefaultRoles(
-                input.auditInfo,
-                input.spec.getId(),
-                input.spec.getApiRole(),
-                input.spec.getApplicationRole(),
-                input.spec.getApiProductRole()
-            );
+                    input.auditInfo,
+                    input.spec.getId(),
+                    input.spec.getApiRole(),
+                    input.spec.getApplicationRole(),
+                    input.spec.getApiProductRole());
         }
         if (!input.spec.isIgnoreMembers()) {
             membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
         }
-        return GroupCRDStatus.builder().id(input.spec.getId()).members(input.spec.getMembers().size()).build();
+        return GroupCRDStatus.builder()
+                .id(input.spec.getId())
+                .members(input.spec.getMembers().size())
+                .build();
     }
 }

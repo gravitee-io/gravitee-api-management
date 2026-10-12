@@ -24,7 +24,8 @@ import java.util.Optional;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpInstallationRepository extends AbstractNoOpManagementRepository<Installation, String> implements InstallationRepository {
+public class NoOpInstallationRepository extends AbstractNoOpManagementRepository<Installation, String>
+        implements InstallationRepository {
 
     @Override
     public Optional<Installation> find() throws TechnicalException {

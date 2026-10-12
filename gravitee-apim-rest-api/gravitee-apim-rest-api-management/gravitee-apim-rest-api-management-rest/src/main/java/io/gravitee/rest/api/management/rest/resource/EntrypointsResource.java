@@ -53,22 +53,21 @@ public class EntrypointsResource extends AbstractResource {
     @Path("{entrypoint}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get a platform entrypoints",
-        description = "User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service"
-    )
+            summary = "Get a platform entrypoints",
+            description = "User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "A platform entrypoint",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EntrypointEntity.class))
-    )
+            responseCode = "200",
+            description = "A platform entrypoint",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = EntrypointEntity.class)))
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
+    })
     public EntrypointEntity getEntrypoint(final @PathParam("entrypoint") String entrypointId) {
         return entrypointService.findById(GraviteeContext.getExecutionContext(), entrypointId);
     }
@@ -76,51 +75,44 @@ public class EntrypointsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List the platform entrypoints",
-        description = "User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service"
-    )
+            summary = "List the platform entrypoints",
+            description = "User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of platform entrypoints",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = EntrypointEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of platform entrypoints",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = EntrypointEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
+    })
     public List<EntrypointEntity> getEntrypoints() {
-        return entrypointService
-            .findAll(GraviteeContext.getExecutionContext())
-            .stream()
-            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getValue(), o2.getValue()))
-            .collect(toList());
+        return entrypointService.findAll(GraviteeContext.getExecutionContext()).stream()
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getValue(), o2.getValue()))
+                .collect(toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create a platform entrypoint",
-        description = "User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service"
-    )
+            summary = "Create a platform entrypoint",
+            description = "User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Entrypoint successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EntrypointEntity.class))
-    )
+            responseCode = "201",
+            description = "Entrypoint successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = EntrypointEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.CREATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.CREATE),
+    })
     public EntrypointEntity createEntrypoint(@Valid @NotNull final NewEntryPointEntity entrypoint) {
         return entrypointService.create(GraviteeContext.getExecutionContext(), entrypoint);
     }
@@ -129,21 +121,20 @@ public class EntrypointsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update a platform entrypoint",
-        description = "User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service"
-    )
+            summary = "Update a platform entrypoint",
+            description = "User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated entrypoint",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EntrypointEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated entrypoint",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = EntrypointEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
+    })
     public EntrypointEntity updateEntrypoint(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
         return entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint);
     }
@@ -152,17 +143,14 @@ public class EntrypointsResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Delete a platform entrypoint",
-        description = "User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service"
-    )
+            summary = "Delete a platform entrypoint",
+            description = "User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Entrrypoint successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.DELETE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.DELETE),
+    })
     public void deleteEntrypoint(@PathParam("entrypoint") String entrypoint) {
         entrypointService.delete(GraviteeContext.getExecutionContext(), entrypoint);
     }

@@ -40,21 +40,19 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
         assertThat(qualityRules).isNotNull().hasSize(6);
 
         assertThat(qualityRules)
-            .extracting(QualityRule::getId)
-            .containsExactlyInAnyOrder(
-                "quality-rule1",
-                "quality-rule2",
-                "quality-rule3",
-                "quality-rule-other-env",
-                "env-to-delete",
-                "env-to-delete-1"
-            );
+                .extracting(QualityRule::getId)
+                .containsExactlyInAnyOrder(
+                        "quality-rule1",
+                        "quality-rule2",
+                        "quality-rule3",
+                        "quality-rule-other-env",
+                        "env-to-delete",
+                        "env-to-delete-1");
 
-        final QualityRule qualityRuleProduct = qualityRules
-            .stream()
-            .filter(qualityRule -> "quality-rule3".equals(qualityRule.getId()))
-            .findAny()
-            .get();
+        final QualityRule qualityRuleProduct = qualityRules.stream()
+                .filter(qualityRule -> "quality-rule3".equals(qualityRule.getId()))
+                .findAny()
+                .get();
         assertThat(qualityRuleProduct.getName()).isEqualTo("Api-key plan");
         assertThat(qualityRuleProduct.getReferenceType()).isEqualTo(QualityRule.ReferenceType.ENVIRONMENT);
         assertThat(qualityRuleProduct.getReferenceId()).isEqualTo("b78f2219-890d-4344-8f22-19890d834442");
@@ -67,15 +65,15 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldCreate() throws Exception {
         final QualityRule qualityRule = QualityRule.builder()
-            .id("new-qualityRule")
-            .referenceType(QualityRule.ReferenceType.ENVIRONMENT)
-            .referenceId("4b78f2219-890d-4344-8f22-19890d83444")
-            .name("QualityRule name")
-            .description("QualityRule description")
-            .weight(10)
-            .createdAt(DATE)
-            .updatedAt(DATE)
-            .build();
+                .id("new-qualityRule")
+                .referenceType(QualityRule.ReferenceType.ENVIRONMENT)
+                .referenceId("4b78f2219-890d-4344-8f22-19890d83444")
+                .name("QualityRule name")
+                .description("QualityRule description")
+                .weight(10)
+                .createdAt(DATE)
+                .updatedAt(DATE)
+                .build();
 
         int nbQualityRulesBeforeCreation = qualityRuleRepository.findAll().size();
         qualityRuleRepository.create(qualityRule);
@@ -89,8 +87,10 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
             assertThat(savedQualityRule.getWeight()).isEqualTo(qualityRule.getWeight());
             assertThat(savedQualityRule.getReferenceType()).isEqualTo(qualityRule.getReferenceType());
             assertThat(savedQualityRule.getReferenceId()).isEqualTo(qualityRule.getReferenceId());
-            assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getCreatedAt())).isTrue();
-            assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getUpdatedAt())).isTrue();
+            assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getCreatedAt()))
+                    .isTrue();
+            assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getUpdatedAt()))
+                    .isTrue();
         });
     }
 
@@ -157,26 +157,26 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldFindByReference() throws TechnicalException {
         final List<QualityRule> qualityRules = qualityRuleRepository.findByReference(
-            QualityRule.ReferenceType.ENVIRONMENT,
-            "b78f2219-890d-4344-8f22-19890d834442"
-        );
+                QualityRule.ReferenceType.ENVIRONMENT, "b78f2219-890d-4344-8f22-19890d834442");
 
         assertThat(qualityRules)
-            .hasSize(3)
-            .extracting(QualityRule::getId)
-            .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3");
+                .hasSize(3)
+                .extracting(QualityRule::getId)
+                .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3");
     }
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        final var nbBeforeDelete = qualityRuleRepository.findByReference(QualityRule.ReferenceType.ENVIRONMENT, "ToBeDeleted").size();
+        final var nbBeforeDelete = qualityRuleRepository
+                .findByReference(QualityRule.ReferenceType.ENVIRONMENT, "ToBeDeleted")
+                .size();
 
         final List<String> deleted = qualityRuleRepository.deleteByReferenceIdAndReferenceType(
-            "ToBeDeleted",
-            QualityRule.ReferenceType.ENVIRONMENT
-        );
+                "ToBeDeleted", QualityRule.ReferenceType.ENVIRONMENT);
 
-        final var nbAfterDelete = qualityRuleRepository.findByReference(QualityRule.ReferenceType.ENVIRONMENT, "ToBeDeleted").size();
+        final var nbAfterDelete = qualityRuleRepository
+                .findByReference(QualityRule.ReferenceType.ENVIRONMENT, "ToBeDeleted")
+                .size();
 
         assertEquals(2, nbBeforeDelete);
         assertEquals(2, deleted.size());

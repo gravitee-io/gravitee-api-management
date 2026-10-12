@@ -48,37 +48,34 @@ import org.springframework.mock.env.MockEnvironment;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CredentialResolverConcurrencyTest {
 
-    private static final SecretFieldAccessControl SECRET_FIELD = new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
+    private static final SecretFieldAccessControl SECRET_FIELD =
+            new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
     private static final int THREADS = 8;
     private static final int RESOLUTIONS_PER_THREAD = 250;
 
     private final DataEncryptor dataEncryptor = new DataEncryptor(
-        new MockEnvironment(),
-        "api.properties.encryption.secret",
-        "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6"
-    );
+            new MockEnvironment(), "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
 
     @Test
     void every_resolution_returns_its_own_credential_under_concurrent_load() throws Exception {
         Map<String, String> secretsById = Map.of(
-            "credential-1",
-            "s3cr3t-one",
-            "credential-2",
-            "s3cr3t-two",
-            "credential-3",
-            "s3cr3t-three",
-            "credential-4",
-            "s3cr3t-four"
-        );
+                "credential-1",
+                "s3cr3t-one",
+                "credential-2",
+                "s3cr3t-two",
+                "credential-3",
+                "s3cr3t-three",
+                "credential-4",
+                "s3cr3t-four");
         List<String> ids = List.copyOf(secretsById.keySet());
-        var resolver = new CredentialResolver(new FixedCredentialManager(deploy(secretsById)), dataEncryptor, new ObjectMapper());
+        var resolver = new CredentialResolver(
+                new FixedCredentialManager(deploy(secretsById)), dataEncryptor, new ObjectMapper());
 
         var barrier = new CyclicBarrier(THREADS);
         ExecutorService pool = Executors.newFixedThreadPool(THREADS);
         try {
             List<Callable<List<String>>> tasks = IntStream.range(0, THREADS)
-                .mapToObj(thread ->
-                    (Callable<List<String>>) () -> {
+                    .mapToObj(thread -> (Callable<List<String>>) () -> {
                         List<String> mismatches = new ArrayList<>();
                         barrier.await();
                         for (int i = 0; i < RESOLUTIONS_PER_THREAD; i++) {
@@ -89,16 +86,17 @@ class CredentialResolverConcurrencyTest {
                             }
                         }
                         return mismatches;
-                    }
-                )
-                .toList();
+                    })
+                    .toList();
 
             List<String> mismatches = new ArrayList<>();
             for (Future<List<String>> result : pool.invokeAll(tasks)) {
                 mismatches.addAll(result.get());
             }
 
-            assertThat(mismatches).as("every resolution returns the secret of the credential it asked for").isEmpty();
+            assertThat(mismatches)
+                    .as("every resolution returns the secret of the credential it asked for")
+                    .isEmpty();
         } finally {
             pool.shutdownNow();
         }
@@ -108,7 +106,9 @@ class CredentialResolverConcurrencyTest {
         Map<String, DeployedCredential> deployed = new HashMap<>();
         for (Map.Entry<String, String> entry : secretsById.entrySet()) {
             String encrypted = dataEncryptor.encrypt("{\"clientSecret\": \"" + entry.getValue() + "\"}");
-            deployed.put(entry.getKey(), new DeployedCredential(entry.getKey(), "env-1", "org-1", Set.of("api-1"), encrypted, 1L));
+            deployed.put(
+                    entry.getKey(),
+                    new DeployedCredential(entry.getKey(), "env-1", "org-1", Set.of("api-1"), encrypted, 1L));
         }
         return Map.copyOf(deployed);
     }

@@ -27,11 +27,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 class GraviteeElSubscriptionFormExpressionResolverDomainServiceImplTest {
 
     private final GraviteeElSubscriptionFormExpressionResolverDomainServiceImpl cut =
-        new GraviteeElSubscriptionFormExpressionResolverDomainServiceImpl();
+            new GraviteeElSubscriptionFormExpressionResolverDomainServiceImpl();
 
     @ParameterizedTest
     @MethodSource("should_resolve_to_expected_options_cases")
-    void should_resolve_to_expected_options(String expression, Map<String, Object> templateParams, List<String> expected) {
+    void should_resolve_to_expected_options(
+            String expression, Map<String, Object> templateParams, List<String> expected) {
         var options = cut.resolveToOptions(expression, templateParams);
 
         assertThat(options).containsExactlyElementsOf(expected);
@@ -39,16 +40,22 @@ class GraviteeElSubscriptionFormExpressionResolverDomainServiceImplTest {
 
     private static Stream<Arguments> should_resolve_to_expected_options_cases() {
         return Stream.of(
-            Arguments.of("{#api.metadata['envs']}", metadataParams("envs", "Dev,Staging,Prod"), List.of("Dev", "Staging", "Prod")),
-            Arguments.of("{#api.metadata['env']}", metadataParams("env", "Production"), List.of("Production")),
-            Arguments.of("{#api.metadata['envs']}", metadataParams("envs", " Dev , Staging , Prod "), List.of("Dev", "Staging", "Prod")),
-            Arguments.of("{#api.metadata['envs']}", metadataParams("envs", ",Dev,,Staging,"), List.of("Dev", "Staging")),
-            Arguments.of("{#'   '}", Map.of(), List.of()),
-            Arguments.of("{#api.metadata['nonexistent']}", metadataParams("envs", "Dev"), List.of()),
-            Arguments.of("{#api.metadata['envs']}", Map.of(), List.of()),
-            Arguments.of("{#null}", Map.of(), List.of()),
-            Arguments.of("{#api.metadata['envs']", metadataParams("envs", "Dev"), List.of())
-        );
+                Arguments.of(
+                        "{#api.metadata['envs']}",
+                        metadataParams("envs", "Dev,Staging,Prod"),
+                        List.of("Dev", "Staging", "Prod")),
+                Arguments.of("{#api.metadata['env']}", metadataParams("env", "Production"), List.of("Production")),
+                Arguments.of(
+                        "{#api.metadata['envs']}",
+                        metadataParams("envs", " Dev , Staging , Prod "),
+                        List.of("Dev", "Staging", "Prod")),
+                Arguments.of(
+                        "{#api.metadata['envs']}", metadataParams("envs", ",Dev,,Staging,"), List.of("Dev", "Staging")),
+                Arguments.of("{#'   '}", Map.of(), List.of()),
+                Arguments.of("{#api.metadata['nonexistent']}", metadataParams("envs", "Dev"), List.of()),
+                Arguments.of("{#api.metadata['envs']}", Map.of(), List.of()),
+                Arguments.of("{#null}", Map.of(), List.of()),
+                Arguments.of("{#api.metadata['envs']", metadataParams("envs", "Dev"), List.of()));
     }
 
     private static Map<String, Object> metadataParams(String key, String value) {

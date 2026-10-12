@@ -34,12 +34,14 @@ import java.util.Optional;
 public class NoOpMetricsRepository implements MetricsRepository {
 
     @Override
-    public LogResponse<MessageMetrics> searchMessageMetrics(QueryContext queryContext, MessageMetricsQuery metricsQuery) {
+    public LogResponse<MessageMetrics> searchMessageMetrics(
+            QueryContext queryContext, MessageMetricsQuery metricsQuery) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
 
     @Override
-    public LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
+    public LogResponse<Metrics> searchMetrics(
+            QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
 
@@ -49,17 +51,20 @@ public class NoOpMetricsRepository implements MetricsRepository {
     }
 
     @Override
-    public Optional<NativeApiMetrics> findNativeApiMetrics(QueryContext queryContext, String apiId, String requestId, Long from, Long to) {
+    public Optional<NativeApiMetrics> findNativeApiMetrics(
+            QueryContext queryContext, String apiId, String requestId, Long from, Long to) {
         return Optional.empty();
     }
 
     @Override
-    public LogResponse<NativeApiMetrics> searchNativeApiMetrics(QueryContext queryContext, NativeApiMetricsQuery query) {
+    public LogResponse<NativeApiMetrics> searchNativeApiMetrics(
+            QueryContext queryContext, NativeApiMetricsQuery query) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
 
     @Override
-    public LogResponse<AuthzDecisionLog> searchAuthzDecisionLogs(QueryContext queryContext, AuthzDecisionLogQuery query) {
+    public LogResponse<AuthzDecisionLog> searchAuthzDecisionLogs(
+            QueryContext queryContext, AuthzDecisionLogQuery query) {
         return new LogResponse<>(0, List.of());
     }
 

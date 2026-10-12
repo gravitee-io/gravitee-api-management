@@ -41,11 +41,10 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(tags);
         assertEquals(3, tags.size());
-        final Tag tagProduct = tags
-            .stream()
-            .filter(tag -> "1d114170-466d-4952-9141-70466de95213".equals(tag.getId()))
-            .findAny()
-            .get();
+        final Tag tagProduct = tags.stream()
+                .filter(tag -> "1d114170-466d-4952-9141-70466de95213".equals(tag.getId()))
+                .findAny()
+                .get();
         assertEquals("Products", tagProduct.getName());
         assertEquals("Description for products tag", tagProduct.getDescription());
         assertEquals(asList("group1", "group2"), tagProduct.getRestrictedGroups());
@@ -62,9 +61,13 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
         tag.setReferenceId("DEFAULT");
         tag.setReferenceType(TagReferenceType.ORGANIZATION);
 
-        int nbTagsBeforeCreation = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
+        int nbTagsBeforeCreation = tagRepository
+                .findByReference("DEFAULT", TagReferenceType.ORGANIZATION)
+                .size();
         tagRepository.create(tag);
-        int nbTagsAfterCreation = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
+        int nbTagsAfterCreation = tagRepository
+                .findByReference("DEFAULT", TagReferenceType.ORGANIZATION)
+                .size();
 
         Assertions.assertEquals(nbTagsBeforeCreation + 1, nbTagsAfterCreation);
 
@@ -89,9 +92,13 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
         tag.setDescription("New description");
         tag.setRestrictedGroups(singletonList("group"));
 
-        int nbTagsBeforeUpdate = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
+        int nbTagsBeforeUpdate = tagRepository
+                .findByReference("DEFAULT", TagReferenceType.ORGANIZATION)
+                .size();
         tagRepository.update(tag);
-        int nbTagsAfterUpdate = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
+        int nbTagsAfterUpdate = tagRepository
+                .findByReference("DEFAULT", TagReferenceType.ORGANIZATION)
+                .size();
 
         Assertions.assertEquals(nbTagsBeforeUpdate, nbTagsAfterUpdate);
 
@@ -106,9 +113,13 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbTagsBeforeDeletion = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
+        int nbTagsBeforeDeletion = tagRepository
+                .findByReference("DEFAULT", TagReferenceType.ORGANIZATION)
+                .size();
         tagRepository.delete("70237305-6f68-450e-a373-056f68750e50");
-        int nbTagsAfterDeletion = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
+        int nbTagsAfterDeletion = tagRepository
+                .findByReference("DEFAULT", TagReferenceType.ORGANIZATION)
+                .size();
 
         Assertions.assertEquals(nbTagsBeforeDeletion - 1, nbTagsAfterDeletion);
     }
@@ -144,26 +155,26 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_find_by_keys_and_reference_id_and_reference_type() throws Exception {
         final Set<Tag> tags = tagRepository.findByKeysAndReference(
-            Set.of("international", "stores", "not-to-be-found"),
-            "DEFAULT",
-            TagReferenceType.ORGANIZATION
-        );
+                Set.of("international", "stores", "not-to-be-found"), "DEFAULT", TagReferenceType.ORGANIZATION);
 
         assertThat(tags)
-            .hasSize(2)
-            .anyMatch(
-                tag ->
-                    tag.getId().equals("70237305-6f68-450e-a373-056f68750e50") &&
-                    tag.getName().equals("International") &&
-                    tag.getKey().equals("international")
-            );
+                .hasSize(2)
+                .anyMatch(tag -> tag.getId().equals("70237305-6f68-450e-a373-056f68750e50")
+                        && tag.getName().equals("International")
+                        && tag.getKey().equals("international"));
     }
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        final var nbBeforeDeletion = tagRepository.findByReference("ToBeDeleted", TagReferenceType.ORGANIZATION).size();
-        final var deleted = tagRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", TagReferenceType.ORGANIZATION).size();
-        final var nbAfterDeletion = tagRepository.findByReference("ToBeDeleted", TagReferenceType.ORGANIZATION).size();
+        final var nbBeforeDeletion = tagRepository
+                .findByReference("ToBeDeleted", TagReferenceType.ORGANIZATION)
+                .size();
+        final var deleted = tagRepository
+                .deleteByReferenceIdAndReferenceType("ToBeDeleted", TagReferenceType.ORGANIZATION)
+                .size();
+        final var nbAfterDeletion = tagRepository
+                .findByReference("ToBeDeleted", TagReferenceType.ORGANIZATION)
+                .size();
 
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted);

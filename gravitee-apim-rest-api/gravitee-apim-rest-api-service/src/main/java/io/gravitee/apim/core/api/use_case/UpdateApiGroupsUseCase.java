@@ -74,15 +74,15 @@ public class UpdateApiGroupsUseCase {
 
         Set<String> requestedGroups = groupsTheCallerMayAssign(input, api.getGroups());
         var validationInput = new ValidateGroupsDomainService.Input(
-            input.auditInfo().environmentId(),
-            requestedGroups,
-            api.getDefinitionVersion().getLabel(),
-            api.getOriginContext().name()
-        );
+                input.auditInfo().environmentId(),
+                requestedGroups,
+                api.getDefinitionVersion().getLabel(),
+                api.getOriginContext().name());
         var validationResult = validateGroupsDomainService.validateAndSanitize(validationInput);
-        Set<String> sanitizedGroups = new HashSet<>(
-            validationResult.value().map(ValidateGroupsDomainService.Input::groups).orElse(input.groups())
-        );
+        Set<String> sanitizedGroups = new HashSet<>(validationResult
+                .value()
+                .map(ValidateGroupsDomainService.Input::groups)
+                .orElse(input.groups()));
         primaryOwnerGroupId(input, api.getId()).ifPresent(sanitizedGroups::add);
 
         Set<String> oldGroups = api.getGroups();
@@ -101,15 +101,12 @@ public class UpdateApiGroupsUseCase {
             return requested;
         }
         String userId = input.auditInfo().actor().userId();
-        if (
-            permissionDomainService.hasPermission(
+        if (permissionDomainService.hasPermission(
                 input.auditInfo().organizationId(),
                 userId,
                 RolePermission.ENVIRONMENT_GROUP,
                 input.auditInfo().environmentId(),
-                RolePermissionAction.READ
-            )
-        ) {
+                RolePermissionAction.READ)) {
             return requested;
         }
         Set<String> allowed = new HashSet<>();
@@ -118,17 +115,16 @@ public class UpdateApiGroupsUseCase {
         }
         if (userId != null && !userId.isBlank()) {
             Set<String> memberGroupIds = membershipQueryService
-                .findByMemberIdAndMemberTypeAndReferenceType(userId, Membership.Type.USER, Membership.ReferenceType.GROUP)
-                .stream()
-                .map(Membership::getReferenceId)
-                .collect(Collectors.toSet());
-            if (!memberGroupIds.isEmpty()) {
-                groupQueryService
-                    .findByIds(memberGroupIds)
+                    .findByMemberIdAndMemberTypeAndReferenceType(
+                            userId, Membership.Type.USER, Membership.ReferenceType.GROUP)
                     .stream()
-                    .filter(group -> input.auditInfo().environmentId().equals(group.getEnvironmentId()))
-                    .map(Group::getId)
-                    .forEach(allowed::add);
+                    .map(Membership::getReferenceId)
+                    .collect(Collectors.toSet());
+            if (!memberGroupIds.isEmpty()) {
+                groupQueryService.findByIds(memberGroupIds).stream()
+                        .filter(group -> input.auditInfo().environmentId().equals(group.getEnvironmentId()))
+                        .map(Group::getId)
+                        .forEach(allowed::add);
             }
         }
         return requested.stream().filter(allowed::contains).collect(Collectors.toSet());
@@ -136,7 +132,8 @@ public class UpdateApiGroupsUseCase {
 
     private Optional<String> primaryOwnerGroupId(Input input, String apiId) {
         try {
-            PrimaryOwnerEntity primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), apiId);
+            PrimaryOwnerEntity primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(
+                    input.auditInfo().organizationId(), apiId);
             if (primaryOwner != null && PrimaryOwnerEntity.Type.GROUP.equals(primaryOwner.type())) {
                 return Optional.of(primaryOwner.id());
             }
@@ -146,9 +143,9 @@ public class UpdateApiGroupsUseCase {
         return Optional.empty();
     }
 
-    private void createAuditLog(Set<String> groupsBeforeUpdate, Set<String> groupsAfterUpdate, String apiId, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+    private void createAuditLog(
+            Set<String> groupsBeforeUpdate, Set<String> groupsAfterUpdate, String apiId, AuditInfo auditInfo) {
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .apiId(apiId)
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
@@ -158,7 +155,6 @@ public class UpdateApiGroupsUseCase {
                 .newValue(groupsAfterUpdate)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.API, apiId))
-                .build()
-        );
+                .build());
     }
 }

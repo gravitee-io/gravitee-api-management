@@ -29,7 +29,8 @@ import java.io.IOException;
 public class HookSerializer extends JsonSerializer<Hook> {
 
     @Override
-    public void serialize(Hook value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+    public void serialize(Hook value, JsonGenerator gen, SerializerProvider serializers)
+            throws IOException, JsonProcessingException {
         gen.writeStartObject();
         gen.writeStringField("id", value.name());
         gen.writeStringField("label", value.getLabel());

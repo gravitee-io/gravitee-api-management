@@ -60,12 +60,10 @@ class HazelcastRateLimitRepositoryClusterTest {
     void startCluster() {
         m1 = newMember(PORT_M1);
         m2 = newMember(PORT_M2);
-        await()
-            .atMost(15, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                assertThat(m1.getCluster().getMembers()).hasSize(2);
-                assertThat(m2.getCluster().getMembers()).hasSize(2);
-            });
+        await().atMost(15, TimeUnit.SECONDS).untilAsserted(() -> {
+            assertThat(m1.getCluster().getMembers()).hasSize(2);
+            assertThat(m2.getCluster().getMembers()).hasSize(2);
+        });
         repo1 = new HazelcastRateLimitRepository(m1.getMap(RATE_LIMIT_MAP));
         repo2 = new HazelcastRateLimitRepository(m2.getMap(RATE_LIMIT_MAP));
     }
@@ -78,9 +76,12 @@ class HazelcastRateLimitRepositoryClusterTest {
 
     @Test
     void counter_is_shared_across_members_via_imap_partition_routing() {
-        RateLimit r1 = repo1.incrementAndGet("shared", 1, () -> initial("shared", 60_000)).blockingGet();
-        RateLimit r2 = repo2.incrementAndGet("shared", 1, () -> initial("shared", 60_000)).blockingGet();
-        RateLimit r3 = repo1.incrementAndGet("shared", 1, () -> initial("shared", 60_000)).blockingGet();
+        RateLimit r1 = repo1.incrementAndGet("shared", 1, () -> initial("shared", 60_000))
+                .blockingGet();
+        RateLimit r2 = repo2.incrementAndGet("shared", 1, () -> initial("shared", 60_000))
+                .blockingGet();
+        RateLimit r3 = repo1.incrementAndGet("shared", 1, () -> initial("shared", 60_000))
+                .blockingGet();
 
         assertThat(r1.getCounter()).isEqualTo(1);
         assertThat(r2.getCounter()).isEqualTo(2);
@@ -111,7 +112,8 @@ class HazelcastRateLimitRepositoryClusterTest {
                         start.await();
                         RateLimitRepository<RateLimit> repo = (threadIndex % 2 == 0) ? repo1 : repo2;
                         for (int i = 0; i < iterations; i++) {
-                            repo.incrementAndGet("multi-contended", 1, () -> initial("multi-contended", 60_000)).blockingGet();
+                            repo.incrementAndGet("multi-contended", 1, () -> initial("multi-contended", 60_000))
+                                    .blockingGet();
                         }
                     } catch (InterruptedException ignored) {
                         Thread.currentThread().interrupt();
@@ -124,8 +126,12 @@ class HazelcastRateLimitRepositoryClusterTest {
             start.countDown();
             assertThat(done.await(30, TimeUnit.SECONDS)).isTrue();
 
-            long viaM1 = m1.<String, RateLimit>getMap(RATE_LIMIT_MAP).get("multi-contended").getCounter();
-            long viaM2 = m2.<String, RateLimit>getMap(RATE_LIMIT_MAP).get("multi-contended").getCounter();
+            long viaM1 = m1.<String, RateLimit>getMap(RATE_LIMIT_MAP)
+                    .get("multi-contended")
+                    .getCounter();
+            long viaM2 = m2.<String, RateLimit>getMap(RATE_LIMIT_MAP)
+                    .get("multi-contended")
+                    .getCounter();
             assertThat(viaM1).isEqualTo(expected);
             assertThat(viaM2).isEqualTo(expected);
         } finally {

@@ -45,7 +45,8 @@ public class MongoInstallationRepository implements InstallationRepository {
     @Override
     public Optional<Installation> find() throws TechnicalException {
         log.debug("Find installation");
-        Installation installation = map(internalRepository.findAll().stream().findFirst().orElse(null));
+        Installation installation =
+                map(internalRepository.findAll().stream().findFirst().orElse(null));
         log.debug("Find installation - DONE");
         return Optional.ofNullable(installation);
     }
@@ -72,7 +73,8 @@ public class MongoInstallationRepository implements InstallationRepository {
             throw new IllegalStateException("Installation must not be null");
         }
 
-        final InstallationMongo installationMongo = internalRepository.findById(installation.getId()).orElse(null);
+        final InstallationMongo installationMongo =
+                internalRepository.findById(installation.getId()).orElse(null);
         if (installationMongo == null) {
             throw new IllegalStateException(String.format("No installation found with id [%s]", installation.getId()));
         }

@@ -66,7 +66,9 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         super.configurePolicies(policies);
-        policies.putIfAbsent("force-client-identifier", PolicyBuilder.build("force-client-identifier", ForceClientIdentifierPolicy.class));
+        policies.putIfAbsent(
+                "force-client-identifier",
+                PolicyBuilder.build("force-client-identifier", ForceClientIdentifierPolicy.class));
     }
 
     @BeforeEach
@@ -76,27 +78,25 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
 
     @ParameterizedTest
     @MethodSource("allQosParameters")
-    @DeployApi(
-        {
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+    })
     void should_receive_messages_single(Qos qos, MqttQos publishQos) throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Subscription subscription = webhookActions.createSubscription("mqtt5-endpoint-qos-" + qos.getLabel(), callbackPath, readyObs);
+        final Subscription subscription =
+                webhookActions.createSubscription("mqtt5-endpoint-qos-" + qos.getLabel(), callbackPath, readyObs);
 
         final TestObserver<Void> obs = Completable.mergeArray(
-            webhookActions.dispatchSubscription(subscription),
-            publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
-        )
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test();
+                        webhookActions.dispatchSubscription(subscription),
+                        publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test();
 
         obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
 
@@ -106,37 +106,29 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
 
     @ParameterizedTest
     @MethodSource("allQosParameters")
-    @DeployApi(
-        {
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
-        }
-    )
-    void should_receive_all_messages_with_additional_headers(Qos qos, MqttQos publishQos) throws JsonProcessingException {
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+    })
+    void should_receive_all_messages_with_additional_headers(Qos qos, MqttQos publishQos)
+            throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/with-header";
         final List<Completable> readyObs = new ArrayList<>();
 
-        final List<HttpHeader> headers = List.of(
-            new HttpHeader("Header1", "my-header-1-value"),
-            new HttpHeader("Header2", "my-header-2-value")
-        );
+        final List<HttpHeader> headers =
+                List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value"));
 
         final Subscription subscription = webhookActions.createSubscription(
-            "mqtt5-endpoint-qos-" + qos.getLabel(),
-            callbackPath,
-            headers,
-            readyObs
-        );
+                "mqtt5-endpoint-qos-" + qos.getLabel(), callbackPath, headers, readyObs);
 
         final TestObserver<Void> obs = Completable.mergeArray(
-            webhookActions.dispatchSubscription(subscription),
-            publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
-        )
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test();
+                        webhookActions.dispatchSubscription(subscription),
+                        publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test();
 
         obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
 
@@ -146,20 +138,15 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
 
     @ParameterizedTest
     @MethodSource("allQosParameters")
-    @DeployApi(
-        {
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
-            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+    })
     void should_receive_messages_parallel(
-        Qos qos,
-        MqttQos publishQos,
-        boolean unused,
-        @InjectApi Map<String, ReactableApi<?>> reactableApis
-    ) throws JsonProcessingException {
+            Qos qos, MqttQos publishQos, boolean unused, @InjectApi Map<String, ReactableApi<?>> reactableApis)
+            throws JsonProcessingException {
         final int messageCount = 40;
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
         final List<Completable> readyObs = new ArrayList<>();
@@ -167,11 +154,17 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
         // Simulate the same subscription running on 2 different instances.
         final String apiId = "mqtt5-endpoint-qos-" + qos.getLabel();
 
-        // Reconfigure the api to add a special policy that forces the client identifier since it is not possible to set it when using webhook.
+        // Reconfigure the api to add a special policy that forces the client identifier since it is not possible to set
+        // it when using webhook.
         final ReactableApi<?> api = reactableApis.get(apiId);
-        ((Api) api.getDefinition()).getFlows()
-            .get(0)
-            .setRequest(List.of(Step.builder().name("Force client identifier").policy("force-client-identifier").enabled(true).build()));
+        ((Api) api.getDefinition())
+                .getFlows()
+                .get(0)
+                .setRequest(List.of(Step.builder()
+                        .name("Force client identifier")
+                        .policy("force-client-identifier")
+                        .enabled(true)
+                        .build()));
 
         redeploy(api);
 
@@ -179,12 +172,11 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
         final Subscription subscriptionInstance2 = webhookActions.createSubscription(apiId, callbackPath, readyObs);
 
         final TestObserver<Void> obs = Completable.mergeArray(
-            webhookActions.dispatchSubscription(subscriptionInstance1),
-            webhookActions.dispatchSubscription(subscriptionInstance2),
-            publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
-        )
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test();
+                        webhookActions.dispatchSubscription(subscriptionInstance1),
+                        webhookActions.dispatchSubscription(subscriptionInstance2),
+                        publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test();
 
         obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
 

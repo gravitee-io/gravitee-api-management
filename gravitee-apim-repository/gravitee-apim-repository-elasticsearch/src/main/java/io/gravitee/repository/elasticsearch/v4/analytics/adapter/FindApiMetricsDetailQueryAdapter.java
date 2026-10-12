@@ -43,33 +43,23 @@ public class FindApiMetricsDetailQueryAdapter {
 
         var terms = new ArrayList<JsonObject>();
         if (query.apiId() != null) {
-            terms.add(
-                JsonObject.of(
+            terms.add(JsonObject.of(
                     "bool",
                     JsonObject.of(
-                        "should",
-                        JsonArray.of(
-                            JsonObject.of("term", JsonObject.of("api-id", query.apiId())),
-                            JsonObject.of("term", JsonObject.of("api", query.apiId()))
-                        )
-                    )
-                )
-            );
+                            "should",
+                            JsonArray.of(
+                                    JsonObject.of("term", JsonObject.of("api-id", query.apiId())),
+                                    JsonObject.of("term", JsonObject.of("api", query.apiId()))))));
         }
         if (query.requestId() != null) {
-            terms.add(
-                JsonObject.of(
+            terms.add(JsonObject.of(
                     "bool",
                     JsonObject.of(
-                        "should",
-                        JsonArray.of(
-                            JsonObject.of("term", JsonObject.of("request-id", query.requestId())),
-                            JsonObject.of("term", JsonObject.of("id", query.requestId())),
-                            JsonObject.of("ids", JsonObject.of("values", JsonArray.of(query.requestId())))
-                        )
-                    )
-                )
-            );
+                            "should",
+                            JsonArray.of(
+                                    JsonObject.of("term", JsonObject.of("request-id", query.requestId())),
+                                    JsonObject.of("term", JsonObject.of("id", query.requestId())),
+                                    JsonObject.of("ids", JsonObject.of("values", JsonArray.of(query.requestId())))))));
         }
 
         if (!terms.isEmpty()) {

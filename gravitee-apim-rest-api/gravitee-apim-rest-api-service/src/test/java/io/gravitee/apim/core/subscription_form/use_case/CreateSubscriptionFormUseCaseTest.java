@@ -54,11 +54,10 @@ class CreateSubscriptionFormUseCaseTest {
         queryService.reset();
         apiCrudService.reset();
         var definitionDomainService = new SubscriptionFormDefinitionDomainService(
-            new GraviteeMarkdownValidator(),
-            new SubscriptionFormSchemaGeneratorImpl(),
-            queryService,
-            apiCrudService
-        );
+                new GraviteeMarkdownValidator(),
+                new SubscriptionFormSchemaGeneratorImpl(),
+                queryService,
+                apiCrudService);
         useCase = new CreateSubscriptionFormUseCase(crudService, definitionDomainService);
     }
 
@@ -78,17 +77,26 @@ class CreateSubscriptionFormUseCaseTest {
 
     @Test
     void should_create_a_form_dedicated_to_apis() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT_ID).build()));
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id("api-1")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
-        var result = useCase.execute(new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "Partners", GMD, List.of("api-1", "api-1")));
+        var result = useCase.execute(
+                new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "Partners", GMD, List.of("api-1", "api-1")));
 
         assertThat(result.subscriptionForm().getApiIds()).containsExactly("api-1");
     }
 
     @Test
     void should_throw_when_an_api_is_already_mapped_to_another_form() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT_ID).build()));
-        queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-1")).build()));
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id("api-1")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
+        queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .apiIds(List.of("api-1"))
+                .build()));
 
         var input = new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "Partners", GMD, List.of("api-1"));
 
@@ -98,7 +106,9 @@ class CreateSubscriptionFormUseCaseTest {
 
     @Test
     void should_throw_when_a_form_with_the_same_name_exists_in_the_environment() {
-        queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().name("Partners").build()));
+        queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .name("Partners")
+                .build()));
 
         var input = new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "partners", GMD);
 
@@ -108,7 +118,9 @@ class CreateSubscriptionFormUseCaseTest {
 
     @Test
     void should_allow_the_same_name_in_another_environment() {
-        queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().name("Partners").build()));
+        queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .name("Partners")
+                .build()));
 
         var result = useCase.execute(new CreateSubscriptionFormUseCase.Input("other-env", "Partners", GMD));
 
@@ -120,9 +132,9 @@ class CreateSubscriptionFormUseCaseTest {
         var input = new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "   ", GMD);
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-            .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
-            .satisfies(errors -> assertThat(errors).containsExactly("Subscription form name must not be empty"));
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .extracting(e -> ((SubscriptionFormDefinitionValidationException) e).getErrors())
+                .satisfies(errors -> assertThat(errors).containsExactly("Subscription form name must not be empty"));
     }
 
     @Test
@@ -135,9 +147,11 @@ class CreateSubscriptionFormUseCaseTest {
 
     @Test
     void should_throw_definition_validation_exception_when_schema_generation_fails() {
-        var input = new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "Partners", "<gmd-input required=\"true\"/>");
+        var input =
+                new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "Partners", "<gmd-input required=\"true\"/>");
 
-        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormDefinitionValidationException.class);
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class);
         assertThat(crudService.storage()).isEmpty();
     }
 }

@@ -45,24 +45,21 @@ class AddClusterMemberUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_add_cluster_member() {
         AuditInfo audit = AuditInfo.builder().organizationId("org-1").build();
-        AddMember addMember = AddMember.builder().roleName("USER").userId("user-1").build();
+        AddMember addMember =
+                AddMember.builder().roleName("USER").userId("user-1").build();
         // When
         addClusterMemberUseCase.execute(new AddClusterMemberUseCase.Input(audit, addMember, "cluster-1"));
         // Then
         var membership = membershipDomainService.storage().stream().findFirst().orElseThrow();
-        assertAll(() ->
-            assertThat(membership)
+        assertAll(() -> assertThat(membership)
                 .usingRecursiveComparison()
-                .isEqualTo(
-                    MemberEntity.builder()
+                .isEqualTo(MemberEntity.builder()
                         .referenceType(MembershipReferenceType.CLUSTER)
                         .referenceId("cluster-1")
                         .roles(List.of(RoleEntity.builder().name("USER").build()))
                         .type(MembershipMemberType.USER)
                         .id("user-1")
-                        .build()
-                )
-        );
+                        .build()));
     }
 
     @Test
@@ -70,8 +67,9 @@ class AddClusterMemberUseCaseTest extends AbstractUseCaseTest {
         AuditInfo audit = AuditInfo.builder().build();
         AddMember addMember = AddMember.builder().roleName("PRIMARY_OWNER").build();
 
-        assertThrows(SinglePrimaryOwnerException.class, () ->
-            addClusterMemberUseCase.execute(new AddClusterMemberUseCase.Input(audit, addMember, "cluster-1"))
-        );
+        assertThrows(
+                SinglePrimaryOwnerException.class,
+                () -> addClusterMemberUseCase.execute(
+                        new AddClusterMemberUseCase.Input(audit, addMember, "cluster-1")));
     }
 }

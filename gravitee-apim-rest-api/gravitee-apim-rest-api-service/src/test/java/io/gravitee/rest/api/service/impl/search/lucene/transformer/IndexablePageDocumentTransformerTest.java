@@ -44,16 +44,14 @@ public class IndexablePageDocumentTransformerTest {
     }
 
     private static IndexablePage given() {
-        return new IndexablePage(
-            Page.builder()
+        return new IndexablePage(Page.builder()
                 .id(PAGE_ID)
                 .type(Page.Type.MARKDOWN)
                 .referenceId(API_ID)
                 .referenceType(Page.ReferenceType.API)
                 .name(PAGE_NAME)
                 .content(PAGE_CONTENT)
-                .build()
-        );
+                .build());
     }
 
     private static Document expected() {

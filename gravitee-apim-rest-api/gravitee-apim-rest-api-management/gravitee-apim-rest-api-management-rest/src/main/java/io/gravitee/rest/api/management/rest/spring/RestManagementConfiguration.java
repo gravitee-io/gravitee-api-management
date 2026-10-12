@@ -23,8 +23,6 @@ import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.el.ExpressionLanguageInitializer;
-import io.gravitee.plugin.core.spring.PluginConfiguration;
-import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +35,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class })
+@Import({ServiceConfiguration.class, UsecaseSpringConfiguration.class})
 @EnableAsync
 public class RestManagementConfiguration {
 

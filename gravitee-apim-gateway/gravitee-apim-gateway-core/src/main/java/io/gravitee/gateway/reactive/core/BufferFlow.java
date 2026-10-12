@@ -61,13 +61,11 @@ public class BufferFlow implements OnBuffersInterceptor {
     }
 
     public Single<Buffer> bodyOrEmpty() {
-        return body().switchIfEmpty(
-            Single.fromCallable(() -> {
-                final Buffer emptyBuffer = Buffer.buffer();
-                cachedBuffer = Maybe.empty();
-                return emptyBuffer;
-            })
-        );
+        return body().switchIfEmpty(Single.fromCallable(() -> {
+            final Buffer emptyBuffer = Buffer.buffer();
+            cachedBuffer = Maybe.empty();
+            return emptyBuffer;
+        }));
     }
 
     public Maybe<Buffer> bodyIgnoringInterceptors() {
@@ -89,7 +87,10 @@ public class BufferFlow implements OnBuffersInterceptor {
 
     public Completable onBody(MaybeTransformer<Buffer, Buffer> onBody) {
         if (Boolean.FALSE.equals(isStreaming.get())) {
-            this.chunks = bodyFromCache(this::reduceBody).compose(onBody).compose(bodyToCache()).toFlowable();
+            this.chunks = bodyFromCache(this::reduceBody)
+                    .compose(onBody)
+                    .compose(bodyToCache())
+                    .toFlowable();
             applyBuffersInterceptors();
             return this.chunks.ignoreElements();
         } else {
@@ -148,9 +149,7 @@ public class BufferFlow implements OnBuffersInterceptor {
     }
 
     private MaybeTransformer<Buffer, Buffer> bodyToCache() {
-        return upstream ->
-            upstream
-                .doOnComplete(() -> cachedBuffer = Maybe.empty())
+        return upstream -> upstream.doOnComplete(() -> cachedBuffer = Maybe.empty())
                 .doOnError(t -> {
                     if (t.getMessage() != null) {
                         cachedBuffer = Maybe.just(Buffer.buffer(t.getMessage()));
@@ -200,7 +199,8 @@ public class BufferFlow implements OnBuffersInterceptor {
     }
 
     private FlowableTransformer<Buffer, Buffer> chunksToCache() {
-        return upstream -> upstream.reduce(Buffer::appendBuffer).compose(bodyToCache()).toFlowable();
+        return upstream ->
+                upstream.reduce(Buffer::appendBuffer).compose(bodyToCache()).toFlowable();
     }
 
     private void notifyBodyChangeListeners(Buffer buffer) {

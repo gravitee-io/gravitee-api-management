@@ -27,13 +27,16 @@ public class MemberModelFixtures {
     private MemberModelFixtures() {}
 
     private static final MemberEntity.MemberEntityBuilder BASE = MemberEntity.builder()
-        .id("member-id")
-        .displayName("John Doe")
-        .roles(List.of(RoleEntity.builder().name("OWNER").scope(RoleScope.GROUP).build()))
-        .type(MembershipMemberType.USER)
-        .email("john@doe.com");
+            .id("member-id")
+            .displayName("John Doe")
+            .roles(List.of(
+                    RoleEntity.builder().name("OWNER").scope(RoleScope.GROUP).build()))
+            .type(MembershipMemberType.USER)
+            .email("john@doe.com");
 
     public static MemberEntity aGroupMember(String groupId) {
-        return BASE.referenceType(MembershipReferenceType.GROUP).referenceId(groupId).build();
+        return BASE.referenceType(MembershipReferenceType.GROUP)
+                .referenceId(groupId)
+                .build();
     }
 }

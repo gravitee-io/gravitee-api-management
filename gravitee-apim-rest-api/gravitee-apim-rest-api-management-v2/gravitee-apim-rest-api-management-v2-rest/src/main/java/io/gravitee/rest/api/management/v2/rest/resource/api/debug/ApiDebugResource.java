@@ -42,11 +42,15 @@ public class ApiDebugResource extends AbstractResource {
     @POST
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DEFINITION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response debugApi(DebugHttpRequest debugHttpRequest) {
         var output = debugApiUseCase.execute(
-            new DebugApiUseCase.Input(apiId, DebugApiMapper.INSTANCE.map(debugHttpRequest), getAuditInfo())
-        );
-        return Response.accepted(DebugApiMapper.INSTANCE.map(output.debugApiEvent())).build();
+                new DebugApiUseCase.Input(apiId, DebugApiMapper.INSTANCE.map(debugHttpRequest), getAuditInfo()));
+        return Response.accepted(DebugApiMapper.INSTANCE.map(output.debugApiEvent()))
+                .build();
     }
 }

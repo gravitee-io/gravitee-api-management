@@ -43,9 +43,9 @@ public class GetObservabilityDashboardUseCase {
     public Output execute(Input input) {
         DashboardModule.requireValidOrAbsent(input.module());
         Dashboard dashboard = dashboardRepository
-            .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
-            .filter(found -> input.module() == null || input.module().equals(found.module()))
-            .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
+                .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
+                .filter(found -> input.module() == null || input.module().equals(found.module()))
+                .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
         return new Output(dashboard);
     }
 }

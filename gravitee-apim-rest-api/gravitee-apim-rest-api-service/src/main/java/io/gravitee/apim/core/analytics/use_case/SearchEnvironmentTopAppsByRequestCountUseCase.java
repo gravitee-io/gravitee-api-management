@@ -53,44 +53,40 @@ public class SearchEnvironmentTopAppsByRequestCountUseCase {
         log.debug("Searching top Apps hits with all APIs for env: {}", envId);
 
         return analyticsQueryService
-            .searchTopHitsApps(input.executionContext(), input.parameters().withApiIds(apisIds))
-            .map(topHitsApps -> sortByCountAndUpdateTopHitsWithAppNames(envId, topHitsApps))
-            .map(Output::new)
-            .orElse(new Output(TopHitsApps.builder().data(List.of()).build()));
+                .searchTopHitsApps(input.executionContext(), input.parameters().withApiIds(apisIds))
+                .map(topHitsApps -> sortByCountAndUpdateTopHitsWithAppNames(envId, topHitsApps))
+                .map(Output::new)
+                .orElse(new Output(TopHitsApps.builder().data(List.of()).build()));
     }
 
     private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(Collectors.toMap(Api::getId, value -> value));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(envId)
+                                .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .collect(Collectors.toMap(Api::getId, value -> value));
     }
 
     private TopHitsApps sortByCountAndUpdateTopHitsWithAppNames(String envId, TopHitsApps topHitsApps) {
-        var applications = applicationQueryService
-            .findByEnvironment(envId)
-            .stream()
-            .collect(Collectors.toMap(BaseApplicationEntity::getId, Function.identity()));
+        var applications = applicationQueryService.findByEnvironment(envId).stream()
+                .collect(Collectors.toMap(BaseApplicationEntity::getId, Function.identity()));
 
-        var data = topHitsApps
-            .getData()
-            .stream()
-            .sorted(Comparator.comparingLong(TopHitsApps.TopHitApp::count).reversed())
-            .filter(topHitApp -> applications.containsKey(topHitApp.id()))
-            .map(topHitApp ->
-                TopHitsApps.TopHitApp.builder()
-                    .id(topHitApp.id())
-                    .name(applications.get(topHitApp.id()).getName())
-                    .count(topHitApp.count())
-                    .build()
-            )
-            .toList();
+        var data = topHitsApps.getData().stream()
+                .sorted(Comparator.comparingLong(TopHitsApps.TopHitApp::count).reversed())
+                .filter(topHitApp -> applications.containsKey(topHitApp.id()))
+                .map(topHitApp -> TopHitsApps.TopHitApp.builder()
+                        .id(topHitApp.id())
+                        .name(applications.get(topHitApp.id()).getName())
+                        .count(topHitApp.count())
+                        .build())
+                .toList();
         return TopHitsApps.builder().data(data).build();
     }
 

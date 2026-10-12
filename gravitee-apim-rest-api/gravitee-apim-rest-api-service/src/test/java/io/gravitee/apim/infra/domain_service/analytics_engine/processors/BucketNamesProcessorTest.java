@@ -67,31 +67,32 @@ class BucketNamesProcessorTest {
     static final String FIXED_TIME_KEY = "2024-01-01T00:00:00.000Z";
 
     final Map<String, String> apiNamesById = Map.of(API_ID1, API_NAME1, API_ID2, API_NAME2);
-    final Map<String, String> applicationNamesById = Map.of(APPLICATION_ID1, APPLICATION_NAME1, APPLICATION_ID2, APPLICATION_NAME2);
+    final Map<String, String> applicationNamesById =
+            Map.of(APPLICATION_ID1, APPLICATION_NAME1, APPLICATION_ID2, APPLICATION_NAME2);
 
     private final ApiRepository apiRepository = mock(ApiRepository.class);
     private final ApplicationService applicationService = mock(ApplicationService.class);
 
-    private final BucketNamesPostProcessor processor = new BucketNamesPostProcessorImpl(apiRepository, applicationService);
+    private final BucketNamesPostProcessor processor =
+            new BucketNamesPostProcessorImpl(apiRepository, applicationService);
 
     private AnalyticsQueryContext context;
 
     @BeforeEach
     void setUp() {
         context = new AnalyticsQueryContext(
-            AuditInfo.builder().build(),
-            new ExecutionContext("DEFAULT", "DEFAULT"),
-            Set.of(API_ID1, API_ID2),
-            apiNamesById,
-            Map.of(),
-            Map.of()
-        );
+                AuditInfo.builder().build(),
+                new ExecutionContext("DEFAULT", "DEFAULT"),
+                Set.of(API_ID1, API_ID2),
+                apiNamesById,
+                Map.of(),
+                Map.of());
 
-        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldFilter.class))).thenReturn(getApiList(API_ID1, API_ID2));
+        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldFilter.class)))
+                .thenReturn(getApiList(API_ID1, API_ID2));
 
-        when(applicationService.search(any(), any(), isNull(), isNull())).thenReturn(
-            getApplicationListContent(APPLICATION_ID1, APPLICATION_ID2)
-        );
+        when(applicationService.search(any(), any(), isNull(), isNull()))
+                .thenReturn(getApplicationListContent(APPLICATION_ID1, APPLICATION_ID2));
     }
 
     @Nested
@@ -128,9 +129,7 @@ class BucketNamesProcessorTest {
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
             var expectedResponse = facetsResponse(
-                getNamedApiBucketResponse(facetBucketResponse1),
-                getNamedApiBucketResponse(facetBucketResponse2)
-            );
+                    getNamedApiBucketResponse(facetBucketResponse1), getNamedApiBucketResponse(facetBucketResponse2));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -177,9 +176,8 @@ class BucketNamesProcessorTest {
             var mappedResponse = processor.mapBucketNames(context, List.of(APPLICATION), response);
 
             var expectedResponse = facetsResponse(
-                getNamedApplicationBucketResponse(facetBucketResponse1),
-                getNamedApplicationBucketResponse(facetBucketResponse2)
-            );
+                    getNamedApplicationBucketResponse(facetBucketResponse1),
+                    getNamedApplicationBucketResponse(facetBucketResponse2));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -208,8 +206,7 @@ class BucketNamesProcessorTest {
             var innerNamedBucket1 = getNamedApplicationBucketResponse(innerBucket1);
             var innerNamedBucket2 = getNamedApplicationBucketResponse(innerBucket2);
             var expectedResponse = facetsResponse(
-                getNamedApiBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
-            );
+                    getNamedApiBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2)));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -226,9 +223,8 @@ class BucketNamesProcessorTest {
 
             var innerNamedBucket1 = getNamedApiBucketResponse(innerBucket1);
             var innerNamedBucket2 = getNamedApiBucketResponse(innerBucket2);
-            var expectedResponse = facetsResponse(
-                getNamedApplicationBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
-            );
+            var expectedResponse = facetsResponse(getNamedApplicationBucketResponse(
+                    facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2)));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -245,9 +241,8 @@ class BucketNamesProcessorTest {
 
             var innerNamedBucket1 = new FacetBucketResponse("200", "200 OK", null, innerBucket1.measures());
             var innerNamedBucket2 = new FacetBucketResponse("204", "204 No Content", null, innerBucket2.measures());
-            var expectedResponse = facetsResponse(
-                getNamedApplicationBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
-            );
+            var expectedResponse = facetsResponse(getNamedApplicationBucketResponse(
+                    facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2)));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -329,43 +324,42 @@ class BucketNamesProcessorTest {
             var bucket2 = newUnnamedBucketResponse(API_ID2);
             var bucket3 = newUnnamedBucketResponse(API_ID2);
 
-            var response = new FacetsResponse(
-                List.of(
+            var response = new FacetsResponse(List.of(
                     new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(bucket1), List.of()),
-                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(bucket2, bucket3), List.of())
-                )
-            );
+                    new MetricFacetsResponse(
+                            MetricSpec.Name.HTTP_REQUESTS, null, List.of(bucket2, bucket3), List.of())));
 
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
-            var expectedResponse = new FacetsResponse(
-                List.of(
-                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(getNamedApiBucketResponse(bucket1)), List.of()),
+            var expectedResponse = new FacetsResponse(List.of(
                     new MetricFacetsResponse(
-                        MetricSpec.Name.HTTP_REQUESTS,
-                        null,
-                        List.of(getNamedApiBucketResponse(bucket2), getNamedApiBucketResponse(bucket3)),
-                        List.of()
-                    )
-                )
-            );
+                            MetricSpec.Name.HTTP_REQUESTS,
+                            null,
+                            List.of(getNamedApiBucketResponse(bucket1)),
+                            List.of()),
+                    new MetricFacetsResponse(
+                            MetricSpec.Name.HTTP_REQUESTS,
+                            null,
+                            List.of(getNamedApiBucketResponse(bucket2), getNamedApiBucketResponse(bucket3)),
+                            List.of())));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
         @Test
         void should_keep_the_filters_the_search_skipped() {
-            var response = facetsResponse(newUnnamedBucketResponse(API_ID1)).withIgnoredFilters(List.of(FilterSpec.Name.NATIVE_CLIENT_ID));
+            var response = facetsResponse(newUnnamedBucketResponse(API_ID1))
+                    .withIgnoredFilters(List.of(FilterSpec.Name.NATIVE_CLIENT_ID));
 
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
-            assertThat(mappedResponse.metrics().get(0).ignoredFilters()).isEqualTo(List.of(FilterSpec.Name.NATIVE_CLIENT_ID));
+            assertThat(mappedResponse.metrics().get(0).ignoredFilters())
+                    .isEqualTo(List.of(FilterSpec.Name.NATIVE_CLIENT_ID));
         }
 
         FacetsResponse facetsResponse(FacetBucketResponse... buckets) {
-            return new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, Arrays.asList(buckets), List.of()))
-            );
+            return new FacetsResponse(List.of(
+                    new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, Arrays.asList(buckets), List.of())));
         }
     }
 
@@ -380,7 +374,8 @@ class BucketNamesProcessorTest {
 
             var mappedResponse = processor.mapBucketNames(context, List.of(PLAN), response);
 
-            var expectedResponse = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApiBucketResponse(facetBucketResponse));
+            var expectedResponse =
+                    timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApiBucketResponse(facetBucketResponse));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -391,11 +386,7 @@ class BucketNamesProcessorTest {
             var response = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, facetBucketResponse);
 
             var expectedFacetsResponse = new FacetBucketResponse(
-                "200-299",
-                "2xx Success",
-                null,
-                List.of(new Measure(COUNT, FIXED_COUNT_VALUE))
-            );
+                    "200-299", "2xx Success", null, List.of(new Measure(COUNT, FIXED_COUNT_VALUE)));
 
             var expectedResponse = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, expectedFacetsResponse);
 
@@ -411,7 +402,8 @@ class BucketNamesProcessorTest {
 
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
-            var expectedResponse = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApiBucketResponse(facetBucketResponse));
+            var expectedResponse =
+                    timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApiBucketResponse(facetBucketResponse));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -419,16 +411,16 @@ class BucketNamesProcessorTest {
         void should_update_multiple_api_names() {
             var facetBucketResponse1 = newUnnamedBucketResponse(API_ID1);
             var facetBucketResponse2 = newUnnamedBucketResponse(API_ID2);
-            var response = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, facetBucketResponse1, facetBucketResponse2);
+            var response =
+                    timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, facetBucketResponse1, facetBucketResponse2);
 
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApiBucketResponse(facetBucketResponse1),
-                getNamedApiBucketResponse(facetBucketResponse2)
-            );
+                    FIXED_TIME_KEY,
+                    FIXED_TIMESTAMP,
+                    getNamedApiBucketResponse(facetBucketResponse1),
+                    getNamedApiBucketResponse(facetBucketResponse2));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -439,7 +431,8 @@ class BucketNamesProcessorTest {
 
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
-            var expectedResponse = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApiBucketResponse(facetBucketResponse));
+            var expectedResponse =
+                    timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApiBucketResponse(facetBucketResponse));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -451,10 +444,7 @@ class BucketNamesProcessorTest {
             var mappedResponse = processor.mapBucketNames(context, List.of(APPLICATION), response);
 
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApplicationBucketResponse(facetBucketResponse)
-            );
+                    FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApplicationBucketResponse(facetBucketResponse));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -466,10 +456,7 @@ class BucketNamesProcessorTest {
             var mappedResponse = processor.mapBucketNames(context, List.of(APPLICATION), response);
 
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApplicationBucketResponse(facetBucketResponse)
-            );
+                    FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApplicationBucketResponse(facetBucketResponse));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -477,16 +464,16 @@ class BucketNamesProcessorTest {
         void should_update_multiple_application_names() {
             var facetBucketResponse1 = newUnnamedBucketResponse(APPLICATION_ID1);
             var facetBucketResponse2 = newUnnamedBucketResponse(APPLICATION_ID1);
-            var response = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, facetBucketResponse1, facetBucketResponse2);
+            var response =
+                    timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, facetBucketResponse1, facetBucketResponse2);
 
             var mappedResponse = processor.mapBucketNames(context, List.of(APPLICATION), response);
 
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApplicationBucketResponse(facetBucketResponse1),
-                getNamedApplicationBucketResponse(facetBucketResponse2)
-            );
+                    FIXED_TIME_KEY,
+                    FIXED_TIMESTAMP,
+                    getNamedApplicationBucketResponse(facetBucketResponse1),
+                    getNamedApplicationBucketResponse(facetBucketResponse2));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -499,10 +486,7 @@ class BucketNamesProcessorTest {
             var mappedResponse = processor.mapBucketNames(context, List.of(APPLICATION), response);
 
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApplicationBucketResponse(facetBucketResponse)
-            );
+                    FIXED_TIME_KEY, FIXED_TIMESTAMP, getNamedApplicationBucketResponse(facetBucketResponse));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -519,10 +503,9 @@ class BucketNamesProcessorTest {
             var innerNamedBucket1 = getNamedApplicationBucketResponse(innerBucket1);
             var innerNamedBucket2 = getNamedApplicationBucketResponse(innerBucket2);
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApiBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
-            );
+                    FIXED_TIME_KEY,
+                    FIXED_TIMESTAMP,
+                    getNamedApiBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2)));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -540,10 +523,10 @@ class BucketNamesProcessorTest {
             var innerNamedBucket1 = getNamedApiBucketResponse(innerBucket1);
             var innerNamedBucket2 = getNamedApiBucketResponse(innerBucket2);
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApplicationBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
-            );
+                    FIXED_TIME_KEY,
+                    FIXED_TIMESTAMP,
+                    getNamedApplicationBucketResponse(
+                            facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2)));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -561,10 +544,10 @@ class BucketNamesProcessorTest {
             var innerNamedBucket1 = new FacetBucketResponse("200", "200 OK", null, innerBucket1.measures());
             var innerNamedBucket2 = new FacetBucketResponse("204", "204 No Content", null, innerBucket2.measures());
             var expectedResponse = timeSeriesResponse(
-                FIXED_TIME_KEY,
-                FIXED_TIMESTAMP,
-                getNamedApplicationBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
-            );
+                    FIXED_TIME_KEY,
+                    FIXED_TIMESTAMP,
+                    getNamedApplicationBucketResponse(
+                            facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2)));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -588,70 +571,44 @@ class BucketNamesProcessorTest {
             var bucket2 = newUnnamedBucketResponse(API_ID2);
             var bucket3 = newUnnamedBucketResponse(API_ID2);
 
-            TimeSeriesBucketResponse timeSeriesBucketResponse1 = new TimeSeriesBucketResponse(
-                FIXED_TIME_KEY,
-                null,
-                FIXED_TIMESTAMP,
-                List.of(bucket1),
-                null
-            );
+            TimeSeriesBucketResponse timeSeriesBucketResponse1 =
+                    new TimeSeriesBucketResponse(FIXED_TIME_KEY, null, FIXED_TIMESTAMP, List.of(bucket1), null);
             TimeSeriesBucketResponse timeSeriesBucketResponse2 = new TimeSeriesBucketResponse(
-                FIXED_TIME_KEY,
-                null,
-                FIXED_TIMESTAMP,
-                List.of(bucket2, bucket3),
-                null
-            );
-            var response = new TimeSeriesResponse(
-                List.of(
-                    new TimeSeriesMetricResponse(
-                        MetricSpec.Name.HTTP_REQUESTS,
-                        null,
-                        List.of(timeSeriesBucketResponse1, timeSeriesBucketResponse2),
-                        List.of()
-                    )
-                )
-            );
+                    FIXED_TIME_KEY, null, FIXED_TIMESTAMP, List.of(bucket2, bucket3), null);
+            var response = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                    MetricSpec.Name.HTTP_REQUESTS,
+                    null,
+                    List.of(timeSeriesBucketResponse1, timeSeriesBucketResponse2),
+                    List.of())));
 
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
             TimeSeriesBucketResponse namedBucketResponse1 = new TimeSeriesBucketResponse(
-                FIXED_TIME_KEY,
-                null,
-                FIXED_TIMESTAMP,
-                List.of(getNamedApiBucketResponse(bucket1)),
-                null
-            );
+                    FIXED_TIME_KEY, null, FIXED_TIMESTAMP, List.of(getNamedApiBucketResponse(bucket1)), null);
             TimeSeriesBucketResponse namedBucketResponse2 = new TimeSeriesBucketResponse(
-                FIXED_TIME_KEY,
-                null,
-                FIXED_TIMESTAMP,
-                List.of(getNamedApiBucketResponse(bucket2), getNamedApiBucketResponse(bucket3)),
-                null
-            );
-            var expectedResponse = new TimeSeriesResponse(
-                List.of(
-                    new TimeSeriesMetricResponse(
-                        MetricSpec.Name.HTTP_REQUESTS,
-                        null,
-                        List.of(namedBucketResponse1, namedBucketResponse2),
-                        List.of()
-                    )
-                )
-            );
+                    FIXED_TIME_KEY,
+                    null,
+                    FIXED_TIMESTAMP,
+                    List.of(getNamedApiBucketResponse(bucket2), getNamedApiBucketResponse(bucket3)),
+                    null);
+            var expectedResponse = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                    MetricSpec.Name.HTTP_REQUESTS,
+                    null,
+                    List.of(namedBucketResponse1, namedBucketResponse2),
+                    List.of())));
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
         @Test
         void should_keep_the_filters_the_search_skipped() {
-            var response = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, newUnnamedBucketResponse(API_ID1)).withIgnoredFilters(
-                List.of(FilterSpec.Name.NATIVE_CLIENT_ID)
-            );
+            var response = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, newUnnamedBucketResponse(API_ID1))
+                    .withIgnoredFilters(List.of(FilterSpec.Name.NATIVE_CLIENT_ID));
 
             var mappedResponse = processor.mapBucketNames(context, List.of(API), response);
 
-            assertThat(mappedResponse.metrics().get(0).ignoredFilters()).isEqualTo(List.of(FilterSpec.Name.NATIVE_CLIENT_ID));
+            assertThat(mappedResponse.metrics().get(0).ignoredFilters())
+                    .isEqualTo(List.of(FilterSpec.Name.NATIVE_CLIENT_ID));
         }
 
         TimeSeriesResponse timeSeriesResponse(String key, long timestamp, FacetBucketResponse... buckets) {
@@ -660,16 +617,10 @@ class BucketNamesProcessorTest {
             if (buckets.length == 0) {
                 measures = List.of(new Measure(COUNT, FIXED_COUNT_VALUE));
             }
-            TimeSeriesBucketResponse timeSeriesBucketResponse = new TimeSeriesBucketResponse(
-                key,
-                null,
-                timestamp,
-                Arrays.asList(buckets),
-                measures
-            );
-            return new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse), List.of()))
-            );
+            TimeSeriesBucketResponse timeSeriesBucketResponse =
+                    new TimeSeriesBucketResponse(key, null, timestamp, Arrays.asList(buckets), measures);
+            return new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse), List.of())));
         }
     }
 
@@ -679,9 +630,8 @@ class BucketNamesProcessorTest {
         @Test
         void should_use_pre_loaded_api_names_and_skip_db_for_facets() {
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
-            var response = new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse), List.of()))
-            );
+            var response = new FacetsResponse(List.of(new MetricFacetsResponse(
+                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse), List.of())));
 
             processor.mapBucketNames(context, List.of(API), response);
 
@@ -691,33 +641,26 @@ class BucketNamesProcessorTest {
         @Test
         void should_load_api_names_from_db_when_not_pre_loaded_for_facets() {
             var emptyApiNamesContext = new AnalyticsQueryContext(
-                AuditInfo.builder().build(),
-                new ExecutionContext("DEFAULT", "DEFAULT"),
-                Set.of(API_ID1, API_ID2),
-                Map.of(),
-                Map.of(),
-                Map.of()
-            );
+                    AuditInfo.builder().build(),
+                    new ExecutionContext("DEFAULT", "DEFAULT"),
+                    Set.of(API_ID1, API_ID2),
+                    Map.of(),
+                    Map.of(),
+                    Map.of());
 
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
-            var response = new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse), List.of()))
-            );
+            var response = new FacetsResponse(List.of(new MetricFacetsResponse(
+                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse), List.of())));
 
             var mappedResponse = processor.mapBucketNames(emptyApiNamesContext, List.of(API), response);
 
             verify(apiRepository).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
 
-            var expectedResponse = new FacetsResponse(
-                List.of(
-                    new MetricFacetsResponse(
-                        MetricSpec.Name.HTTP_REQUESTS,
-                        null,
-                        List.of(getNamedApiBucketResponse(facetBucketResponse)),
-                        List.of()
-                    )
-                )
-            );
+            var expectedResponse = new FacetsResponse(List.of(new MetricFacetsResponse(
+                    MetricSpec.Name.HTTP_REQUESTS,
+                    null,
+                    List.of(getNamedApiBucketResponse(facetBucketResponse)),
+                    List.of())));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -726,9 +669,8 @@ class BucketNamesProcessorTest {
             var contextWithApps = context.withApplicationNamesById(applicationNamesById);
 
             var facetBucketResponse = newUnnamedBucketResponse(APPLICATION_ID1);
-            var response = new FacetsResponse(
-                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse), List.of()))
-            );
+            var response = new FacetsResponse(List.of(new MetricFacetsResponse(
+                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(facetBucketResponse), List.of())));
 
             processor.mapBucketNames(contextWithApps, List.of(APPLICATION), response);
 
@@ -738,40 +680,31 @@ class BucketNamesProcessorTest {
         @Test
         void should_load_api_names_from_db_when_not_pre_loaded_for_time_series() {
             var emptyApiNamesContext = new AnalyticsQueryContext(
-                AuditInfo.builder().build(),
-                new ExecutionContext("DEFAULT", "DEFAULT"),
-                Set.of(API_ID1, API_ID2),
-                Map.of(),
-                Map.of(),
-                Map.of()
-            );
+                    AuditInfo.builder().build(),
+                    new ExecutionContext("DEFAULT", "DEFAULT"),
+                    Set.of(API_ID1, API_ID2),
+                    Map.of(),
+                    Map.of(),
+                    Map.of());
 
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
             TimeSeriesBucketResponse timeSeriesBucketResponse = new TimeSeriesBucketResponse(
-                FIXED_TIME_KEY,
-                null,
-                FIXED_TIMESTAMP,
-                List.of(facetBucketResponse),
-                null
-            );
-            var response = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse), List.of()))
-            );
+                    FIXED_TIME_KEY, null, FIXED_TIMESTAMP, List.of(facetBucketResponse), null);
+            var response = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse), List.of())));
 
             var mappedResponse = processor.mapBucketNames(emptyApiNamesContext, List.of(API), response);
 
             verify(apiRepository).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
 
             TimeSeriesBucketResponse expectedTimeBucket = new TimeSeriesBucketResponse(
-                FIXED_TIME_KEY,
-                null,
-                FIXED_TIMESTAMP,
-                List.of(getNamedApiBucketResponse(facetBucketResponse)),
-                null
-            );
-            var expectedResponse = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(expectedTimeBucket), List.of()))
-            );
+                    FIXED_TIME_KEY,
+                    null,
+                    FIXED_TIMESTAMP,
+                    List.of(getNamedApiBucketResponse(facetBucketResponse)),
+                    null);
+            var expectedResponse = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(expectedTimeBucket), List.of())));
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
 
@@ -779,15 +712,9 @@ class BucketNamesProcessorTest {
         void should_use_pre_loaded_api_names_and_skip_db_for_time_series() {
             var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
             TimeSeriesBucketResponse timeSeriesBucketResponse = new TimeSeriesBucketResponse(
-                FIXED_TIME_KEY,
-                null,
-                FIXED_TIMESTAMP,
-                List.of(facetBucketResponse),
-                null
-            );
-            var response = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse), List.of()))
-            );
+                    FIXED_TIME_KEY, null, FIXED_TIMESTAMP, List.of(facetBucketResponse), null);
+            var response = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(
+                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(timeSeriesBucketResponse), List.of())));
 
             processor.mapBucketNames(context, List.of(API), response);
 
@@ -824,7 +751,8 @@ class BucketNamesProcessorTest {
     }
 
     private Page<ApplicationListItem> getApplicationListContent(String... applicationIds) {
-        var items = Arrays.stream(applicationIds).map(this::getApplicationListItem).toList();
+        var items =
+                Arrays.stream(applicationIds).map(this::getApplicationListItem).toList();
         return new Page<>(items, 0, items.size(), items.size());
     }
 
@@ -840,7 +768,8 @@ class BucketNamesProcessorTest {
         return getNamedApiBucketResponse(bucketResponse, bucketResponse.buckets());
     }
 
-    private FacetBucketResponse getNamedApiBucketResponse(FacetBucketResponse bucketResponse, List<FacetBucketResponse> innerBuckets) {
+    private FacetBucketResponse getNamedApiBucketResponse(
+            FacetBucketResponse bucketResponse, List<FacetBucketResponse> innerBuckets) {
         var key = bucketResponse.key();
         var name = apiNamesById.getOrDefault(key, key);
         return new FacetBucketResponse(key, name, innerBuckets, bucketResponse.measures());
@@ -851,9 +780,7 @@ class BucketNamesProcessorTest {
     }
 
     private FacetBucketResponse getNamedApplicationBucketResponse(
-        FacetBucketResponse bucketResponse,
-        List<FacetBucketResponse> innerBuckets
-    ) {
+            FacetBucketResponse bucketResponse, List<FacetBucketResponse> innerBuckets) {
         var key = bucketResponse.key();
         var name = key.equals("1") ? "Unknown" : applicationNamesById.getOrDefault(key, key);
         return new FacetBucketResponse(key, name, innerBuckets, bucketResponse.measures());

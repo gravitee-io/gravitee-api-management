@@ -40,27 +40,23 @@ public class BaseUserEntity {
     private IdpSource source;
     /** The user reference in the external source */
     private String sourceId;
+
     private String status;
 
     public static BaseUserEntity createGraviteeUser(
-        String organizationId,
-        String email,
-        Optional<String> firstname,
-        Optional<String> lastname,
-        Date now
-    ) {
+            String organizationId, String email, Optional<String> firstname, Optional<String> lastname, Date now) {
         return BaseUserEntity.builder()
-            .id(UuidString.generateRandom())
-            .organizationId(organizationId)
-            .source(IdpSource.GRAVITEE)
-            .sourceId(email)
-            .email(email)
-            .firstname(firstname.orElse(null))
-            .lastname(lastname.orElse(null))
-            .status("ACTIVE")
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+                .id(UuidString.generateRandom())
+                .organizationId(organizationId)
+                .source(IdpSource.GRAVITEE)
+                .sourceId(email)
+                .email(email)
+                .firstname(firstname.orElse(null))
+                .lastname(lastname.orElse(null))
+                .status("ACTIVE")
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 
     public String displayName() {

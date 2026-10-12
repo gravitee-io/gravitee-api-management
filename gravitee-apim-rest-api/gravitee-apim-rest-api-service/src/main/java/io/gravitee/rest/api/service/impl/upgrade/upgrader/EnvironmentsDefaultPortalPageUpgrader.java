@@ -33,7 +33,8 @@ public class EnvironmentsDefaultPortalPageUpgrader implements Upgrader {
     private final EnvironmentRepository environmentRepository;
     private final PortalPageService portalPageService;
 
-    public EnvironmentsDefaultPortalPageUpgrader(@Lazy EnvironmentRepository environmentRepository, PortalPageService portalPageService) {
+    public EnvironmentsDefaultPortalPageUpgrader(
+            @Lazy EnvironmentRepository environmentRepository, PortalPageService portalPageService) {
         this.environmentRepository = environmentRepository;
         this.portalPageService = portalPageService;
     }

@@ -53,24 +53,25 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
         log.debug("Searching Request Response Time, found: {} v4 APIs for env: {}", v4Apis.size(), envId);
 
         var requestResponseTime = analyticsQueryService.searchRequestResponseTime(
-            input.executionContext(),
-            input.parameters().withApiIds(apisId).withDefinitionVersions(v4Apis.keySet())
-        );
+                input.executionContext(),
+                input.parameters().withApiIds(apisId).withDefinitionVersions(v4Apis.keySet()));
 
         return new Output(requestResponseTime);
     }
 
     private Map<DefinitionVersion, List<String>> getAllV4ApisIdsForEnv(String envId) {
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(envId)
+                                .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .collect(groupingBy(this::getDefinitionVersion, mapping(Api::getId, toList())));
     }
 
     private DefinitionVersion getDefinitionVersion(Api api) {

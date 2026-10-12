@@ -16,11 +16,8 @@
 package inmemory;
 
 import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
-import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.domain_service.documentation.PageSourceDomainServiceImpl;
-import java.util.Map;
-import org.springframework.scheduling.support.CronExpression;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -40,14 +37,12 @@ public class PageSourceDomainServiceInMemory implements PageSourceDomainService 
     @Override
     public void removeSensitiveData(Page page) {
         if (page.getSource() != null && page.getSource().getConfiguration() != null) {
-            page
-                .getSource()
-                .setConfiguration(
-                    page
-                        .getSource()
-                        .getConfiguration()
-                        .replace("I'm a sensitive data", "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"")
-                );
+            page.getSource()
+                    .setConfiguration(page.getSource()
+                            .getConfiguration()
+                            .replace(
+                                    "I'm a sensitive data",
+                                    "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\""));
         }
     }
 
@@ -56,7 +51,8 @@ public class PageSourceDomainServiceInMemory implements PageSourceDomainService 
         if (oldPage.getSource() == null || newPage.getSource() == null) {
             return;
         }
-        if (oldPage.getSource().getConfiguration() == null || newPage.getSource().getConfiguration() == null) {
+        if (oldPage.getSource().getConfiguration() == null
+                || newPage.getSource().getConfiguration() == null) {
             return;
         }
 

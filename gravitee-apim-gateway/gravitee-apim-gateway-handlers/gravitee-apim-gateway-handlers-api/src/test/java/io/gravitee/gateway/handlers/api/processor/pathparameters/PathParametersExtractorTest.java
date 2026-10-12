@@ -45,13 +45,14 @@ class PathParametersExtractorTest {
     @Test
     void can_not_extract_param_null_api() {
         assertThatThrownBy(() -> new PathParametersExtractor(null))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("Api is mandatory");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Api is mandatory");
     }
 
     @Test
     void can_not_extract_param_no_flow() {
-        assertThat(new PathParametersExtractor(new Api()).canExtractPathParams()).isFalse();
+        assertThat(new PathParametersExtractor(new Api()).canExtractPathParams())
+                .isFalse();
     }
 
     @Test
@@ -81,92 +82,139 @@ class PathParametersExtractorTest {
     @ParameterizedTest
     @MethodSource("provideParameters")
     void can_extract_flow_and_extract_param_on_request(
-        String api,
-        String method,
-        String path,
-        Map<String, String> expectedPathParam,
-        Set<String> excludedPathParam
-    ) throws IOException {
+            String api,
+            String method,
+            String path,
+            Map<String, String> expectedPathParam,
+            Set<String> excludedPathParam)
+            throws IOException {
         final PathParametersExtractor cut = new PathParametersExtractor(readApi(api));
         final Map<String, String> pathParams = cut.extract(method, path);
-        assertThat(pathParams).isEqualTo(expectedPathParam).doesNotContainKeys(excludedPathParam.toArray(new String[0]));
+        assertThat(pathParams)
+                .isEqualTo(expectedPathParam)
+                .doesNotContainKeys(excludedPathParam.toArray(new String[0]));
     }
 
     public static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("simple-api", "GET", "/products", Map.of(), Set.of()),
-            Arguments.of("simple-api", "TRACE", "/products", Map.of(), Set.of()),
-            Arguments.of("simple-api", "GET", "/products/my-product", Map.of("productId", "my-product"), Set.of()),
-            Arguments.of("simple-api", "GET", "/products-special-char/my-product", Map.of("product-id", "my-product"), Set.of()),
-            Arguments.of(
-                "simple-api",
-                "GET",
-                "/products/my-product/hello",
-                Map.of("productId", "my-product", "id", "my-product"),
-                Set.of()
-            ),
-            Arguments.of("simple-api", "DELETE", "/products/my-product/hello", Map.of("productId", "my-product"), Set.of("id")),
-            Arguments.of("simple-api", "PUT", "/products/my-product/hello", Map.of("id", "my-product"), Set.of("productId")),
-            Arguments.of("simple-api", "GET", "/products/my-product/hello/something", Map.of("productId", "my-product"), Set.of("id")),
-            Arguments.of(
-                "simple-api",
-                "GET",
-                "/products/my-product/items/my-item",
-                Map.of("productId", "my-product", "itemId", "my-item"),
-                Set.of()
-            ),
-            Arguments.of(
-                "simple-api",
-                "GET",
-                "/products-special-char/my-product/items/my-item",
-                Map.of("product-id", "my-product", "It€m_Id", "my-item"),
-                Set.of()
-            ),
-            Arguments.of("api-flows-equals-operator", "GET", "/products", Map.of(), Set.of()),
-            Arguments.of("api-flows-equals-operator", "TRACE", "/products", Map.of(), Set.of()),
-            Arguments.of("api-flows-equals-operator", "GET", "/products/my-product", Map.of("productId", "my-product"), Set.of()),
-            Arguments.of("api-flows-equals-operator", "GET", "/products/my-product/hello", Map.of("id", "my-product"), Set.of("productId")),
-            Arguments.of("api-flows-equals-operator", "DELETE", "/products/my-product/hello", Map.of(), Set.of("productId", "id")),
-            Arguments.of("api-flows-equals-operator", "DELETE", "/products/my-product", Map.of("productId", "my-product"), Set.of("id")),
-            Arguments.of("api-flows-equals-operator", "PUT", "/products/my-product/hello", Map.of("id", "my-product"), Set.of("productId")),
-            Arguments.of("api-flows-equals-operator", "GET", "/products/my-product/hello/something", Map.of(), Set.of("productId", "id")),
-            Arguments.of(
-                "api-flows-equals-operator",
-                "GET",
-                "/products/my-product/items/my-item",
-                Map.of("productId", "my-product", "itemId", "my-item"),
-                Set.of()
-            ),
-            // This test is a particular overlapping case:
-            // - GET starts with /products/:productId/item/:itemId
-            // - *   starts with /:productId
-            // As wildcard flows are evaluated first, 'productId' will have the value overridden from GET flow.
-            Arguments.of(
-                "api-overlap",
-                "GET",
-                "/products/my-product/items/my-item",
-                Map.of("productId", "my-product", "itemId", "my-item"),
-                Set.of()
-            ),
-            // This test is a particular overlapping case:
-            // - *   starts with /products/:productId/item/:itemId
-            // - GET starts with /:productId
-            // As wildcard flows are evaluated first, 'productId' will have the value overridden from * (wildcard) flow.
-            Arguments.of(
-                "api-overlap-reverse-wildcard",
-                "GET",
-                "/products/my-product/items/my-item",
-                Map.of("productId", "products", "itemId", "my-item"),
-                Set.of()
-            )
-        );
+                Arguments.of("simple-api", "GET", "/products", Map.of(), Set.of()),
+                Arguments.of("simple-api", "TRACE", "/products", Map.of(), Set.of()),
+                Arguments.of("simple-api", "GET", "/products/my-product", Map.of("productId", "my-product"), Set.of()),
+                Arguments.of(
+                        "simple-api",
+                        "GET",
+                        "/products-special-char/my-product",
+                        Map.of("product-id", "my-product"),
+                        Set.of()),
+                Arguments.of(
+                        "simple-api",
+                        "GET",
+                        "/products/my-product/hello",
+                        Map.of("productId", "my-product", "id", "my-product"),
+                        Set.of()),
+                Arguments.of(
+                        "simple-api",
+                        "DELETE",
+                        "/products/my-product/hello",
+                        Map.of("productId", "my-product"),
+                        Set.of("id")),
+                Arguments.of(
+                        "simple-api",
+                        "PUT",
+                        "/products/my-product/hello",
+                        Map.of("id", "my-product"),
+                        Set.of("productId")),
+                Arguments.of(
+                        "simple-api",
+                        "GET",
+                        "/products/my-product/hello/something",
+                        Map.of("productId", "my-product"),
+                        Set.of("id")),
+                Arguments.of(
+                        "simple-api",
+                        "GET",
+                        "/products/my-product/items/my-item",
+                        Map.of("productId", "my-product", "itemId", "my-item"),
+                        Set.of()),
+                Arguments.of(
+                        "simple-api",
+                        "GET",
+                        "/products-special-char/my-product/items/my-item",
+                        Map.of("product-id", "my-product", "It€m_Id", "my-item"),
+                        Set.of()),
+                Arguments.of("api-flows-equals-operator", "GET", "/products", Map.of(), Set.of()),
+                Arguments.of("api-flows-equals-operator", "TRACE", "/products", Map.of(), Set.of()),
+                Arguments.of(
+                        "api-flows-equals-operator",
+                        "GET",
+                        "/products/my-product",
+                        Map.of("productId", "my-product"),
+                        Set.of()),
+                Arguments.of(
+                        "api-flows-equals-operator",
+                        "GET",
+                        "/products/my-product/hello",
+                        Map.of("id", "my-product"),
+                        Set.of("productId")),
+                Arguments.of(
+                        "api-flows-equals-operator",
+                        "DELETE",
+                        "/products/my-product/hello",
+                        Map.of(),
+                        Set.of("productId", "id")),
+                Arguments.of(
+                        "api-flows-equals-operator",
+                        "DELETE",
+                        "/products/my-product",
+                        Map.of("productId", "my-product"),
+                        Set.of("id")),
+                Arguments.of(
+                        "api-flows-equals-operator",
+                        "PUT",
+                        "/products/my-product/hello",
+                        Map.of("id", "my-product"),
+                        Set.of("productId")),
+                Arguments.of(
+                        "api-flows-equals-operator",
+                        "GET",
+                        "/products/my-product/hello/something",
+                        Map.of(),
+                        Set.of("productId", "id")),
+                Arguments.of(
+                        "api-flows-equals-operator",
+                        "GET",
+                        "/products/my-product/items/my-item",
+                        Map.of("productId", "my-product", "itemId", "my-item"),
+                        Set.of()),
+                // This test is a particular overlapping case:
+                // - GET starts with /products/:productId/item/:itemId
+                // - *   starts with /:productId
+                // As wildcard flows are evaluated first, 'productId' will have the value overridden from GET flow.
+                Arguments.of(
+                        "api-overlap",
+                        "GET",
+                        "/products/my-product/items/my-item",
+                        Map.of("productId", "my-product", "itemId", "my-item"),
+                        Set.of()),
+                // This test is a particular overlapping case:
+                // - *   starts with /products/:productId/item/:itemId
+                // - GET starts with /:productId
+                // As wildcard flows are evaluated first, 'productId' will have the value overridden from * (wildcard)
+                // flow.
+                Arguments.of(
+                        "api-overlap-reverse-wildcard",
+                        "GET",
+                        "/products/my-product/items/my-item",
+                        Map.of("productId", "products", "itemId", "my-item"),
+                        Set.of()));
     }
 
     private static Api readApi(String name) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(
-            PathParametersExtractorTest.class.getClassLoader().getResourceAsStream("apis/pathparams/" + name + ".json"),
-            io.gravitee.definition.model.Api.class
-        );
+                PathParametersExtractorTest.class
+                        .getClassLoader()
+                        .getResourceAsStream("apis/pathparams/" + name + ".json"),
+                io.gravitee.definition.model.Api.class);
     }
 }

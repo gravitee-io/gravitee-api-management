@@ -30,9 +30,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @CustomLog
-public class JdbcPortalPageContentRepository
-    extends JdbcAbstractCrudRepository<PortalPageContent, String>
-    implements PortalPageContentRepository {
+public class JdbcPortalPageContentRepository extends JdbcAbstractCrudRepository<PortalPageContent, String>
+        implements PortalPageContentRepository {
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -43,34 +42,39 @@ public class JdbcPortalPageContentRepository
     @Override
     protected JdbcObjectMapper<PortalPageContent> buildOrm() {
         return JdbcObjectMapper.builder(PortalPageContent.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, PortalPageContent.Type.class)
-            .addColumn("configuration", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn(
-                "automation_metadata",
-                Types.NCLOB,
-                AutomationMetadata.class,
-                JdbcPortalPageContentRepository::serialize,
-                JdbcPortalPageContentRepository::deserialize
-            )
-            .addMirroredColumn("automation_reference_type", Types.NVARCHAR, item -> {
-                var meta = item.getAutomationMetadata();
-                return meta != null && meta.getReferenceType() != null ? meta.getReferenceType().name() : null;
-            })
-            .addMirroredColumn("automation_reference_id", Types.NVARCHAR, item ->
-                item.getAutomationMetadata() != null ? item.getAutomationMetadata().getReferenceId() : null
-            )
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, PortalPageContent.Type.class)
+                .addColumn("configuration", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn(
+                        "automation_metadata",
+                        Types.NCLOB,
+                        AutomationMetadata.class,
+                        JdbcPortalPageContentRepository::serialize,
+                        JdbcPortalPageContentRepository::deserialize)
+                .addMirroredColumn("automation_reference_type", Types.NVARCHAR, item -> {
+                    var meta = item.getAutomationMetadata();
+                    return meta != null && meta.getReferenceType() != null
+                            ? meta.getReferenceType().name()
+                            : null;
+                })
+                .addMirroredColumn(
+                        "automation_reference_id",
+                        Types.NVARCHAR,
+                        item -> item.getAutomationMetadata() != null
+                                ? item.getAutomationMetadata().getReferenceId()
+                                : null)
+                .build();
     }
 
     @Override
     public List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException {
         log.debug("JdbcPortalPageContentRepository.findAllByType({})", type);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " WHERE type = ?", getOrm().getRowMapper(), type.name());
+            return jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " WHERE type = ?", getOrm().getRowMapper(), type.name());
         } catch (Exception ex) {
             log.error("Failed to find portal page contents by type", ex);
             throw new TechnicalException("Failed to find portal page contents by type", ex);
@@ -84,19 +88,21 @@ public class JdbcPortalPageContentRepository
 
     @Override
     public List<PortalPageContent> findByAutomationReference(
-        String environmentId,
-        AutomationTargetReferenceType referenceType,
-        String referenceId
-    ) throws TechnicalException {
-        log.debug("JdbcPortalPageContentRepository.findByAutomationReference({}, {}, {})", environmentId, referenceType, referenceId);
+            String environmentId, AutomationTargetReferenceType referenceType, String referenceId)
+            throws TechnicalException {
+        log.debug(
+                "JdbcPortalPageContentRepository.findByAutomationReference({}, {}, {})",
+                environmentId,
+                referenceType,
+                referenceId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND automation_reference_type = ? AND automation_reference_id = ?",
-                getOrm().getRowMapper(),
-                environmentId,
-                referenceType.name(),
-                referenceId
-            );
+                    getOrm().getSelectAllSql()
+                            + " WHERE environment_id = ? AND automation_reference_type = ? AND automation_reference_id = ?",
+                    getOrm().getRowMapper(),
+                    environmentId,
+                    referenceType.name(),
+                    referenceId);
         } catch (Exception ex) {
             log.error("Failed to find portal page contents by automation reference", ex);
             throw new TechnicalException("Failed to find portal page contents by automation reference", ex);

@@ -36,10 +36,13 @@ public class EntrypointMapperTest {
         var entrypointEntity = entrypointMapper.mapToHttpV4(entrypoint);
         assertThat(entrypointEntity).isNotNull();
         assertThat(entrypointEntity.getType()).isEqualTo(entrypoint.getType());
-        assertThat(entrypointEntity.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(entrypoint.getConfiguration()));
+        assertThat(entrypointEntity.getConfiguration())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(entrypoint.getConfiguration()));
         assertThat(entrypointEntity.getDlq()).isNotNull();
-        assertThat(entrypointEntity.getDlq().getEndpoint()).isEqualTo(entrypoint.getDlq().getEndpoint());
-        assertThat(entrypointEntity.getQos()).isEqualTo(Qos.valueOf(entrypoint.getQos().name()));
+        assertThat(entrypointEntity.getDlq().getEndpoint())
+                .isEqualTo(entrypoint.getDlq().getEndpoint());
+        assertThat(entrypointEntity.getQos())
+                .isEqualTo(Qos.valueOf(entrypoint.getQos().name()));
     }
 
     @Test
@@ -49,14 +52,14 @@ public class EntrypointMapperTest {
         var entrypoint = entrypointMapper.mapFromHttpV4(entrypointEntity);
         assertThat(entrypoint).isNotNull();
         assertThat(entrypoint.getType()).isEqualTo(entrypointEntity.getType());
-        assertThat(entrypoint.getConfiguration()).isEqualTo(
-            new GraviteeMapper().readValue(entrypointEntity.getConfiguration(), LinkedHashMap.class)
-        );
+        assertThat(entrypoint.getConfiguration())
+                .isEqualTo(new GraviteeMapper().readValue(entrypointEntity.getConfiguration(), LinkedHashMap.class));
         assertThat(entrypoint.getDlq()).isNotNull();
-        assertThat(entrypoint.getDlq().getEndpoint()).isEqualTo(entrypointEntity.getDlq().getEndpoint());
-        assertThat(entrypoint.getQos()).isEqualTo(
-            io.gravitee.rest.api.management.v2.rest.model.Qos.valueOf(entrypointEntity.getQos().name())
-        );
+        assertThat(entrypoint.getDlq().getEndpoint())
+                .isEqualTo(entrypointEntity.getDlq().getEndpoint());
+        assertThat(entrypoint.getQos())
+                .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Qos.valueOf(
+                        entrypointEntity.getQos().name()));
     }
 
     @Test
@@ -66,7 +69,8 @@ public class EntrypointMapperTest {
         var entrypointEntity = entrypointMapper.mapToNativeV4(entrypoint);
         assertThat(entrypointEntity).isNotNull();
         assertThat(entrypointEntity.getType()).isEqualTo(entrypoint.getType());
-        assertThat(entrypointEntity.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(entrypoint.getConfiguration()));
+        assertThat(entrypointEntity.getConfiguration())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(entrypoint.getConfiguration()));
     }
 
     @Test
@@ -76,9 +80,8 @@ public class EntrypointMapperTest {
         var entrypoint = entrypointMapper.mapFromNativeV4(entrypointEntity);
         assertThat(entrypoint).isNotNull();
         assertThat(entrypoint.getType()).isEqualTo(entrypointEntity.getType());
-        assertThat(entrypoint.getConfiguration()).isEqualTo(
-            new GraviteeMapper().readValue(entrypointEntity.getConfiguration(), LinkedHashMap.class)
-        );
+        assertThat(entrypoint.getConfiguration())
+                .isEqualTo(new GraviteeMapper().readValue(entrypointEntity.getConfiguration(), LinkedHashMap.class));
         assertThat(entrypoint.getDlq()).isNull();
         assertThat(entrypoint.getQos()).isNull();
     }

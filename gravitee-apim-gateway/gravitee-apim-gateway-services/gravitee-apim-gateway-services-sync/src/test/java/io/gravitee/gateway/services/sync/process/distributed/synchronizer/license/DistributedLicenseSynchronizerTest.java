@@ -67,12 +67,11 @@ public class DistributedLicenseSynchronizerTest {
     @BeforeEach
     public void beforeEach() {
         cut = new DistributedLicenseSynchronizer(
-            eventsFetcher,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            deployerFactory,
-            new LicenseMapper()
-        );
+                eventsFetcher,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                deployerFactory,
+                new LicenseMapper());
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createLicenseDeployer()).thenReturn(licenseDeployer);
         lenient().when(licenseDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -86,7 +85,8 @@ public class DistributedLicenseSynchronizerTest {
 
         @Test
         void should_not_synchronize_licenses_when_no_events() throws InterruptedException {
-            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.LICENSE), any())).thenReturn(Flowable.empty());
+            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.LICENSE), any()))
+                    .thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(licenseDeployer);
         }
@@ -95,19 +95,24 @@ public class DistributedLicenseSynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(eq(-1L), any(), eq(DistributedEventType.LICENSE), eq(Set.of(DistributedSyncAction.DEPLOY)));
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            eq(-1L), any(), eq(DistributedEventType.LICENSE), eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                any(),
-                any(),
-                eq(DistributedEventType.LICENSE),
-                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-            );
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(DistributedEventType.LICENSE),
+                            eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY)));
         }
     }
 
@@ -117,19 +122,22 @@ public class DistributedLicenseSynchronizerTest {
         @Test
         void should_deploy_licenses_when_fetching_deployed_events() throws InterruptedException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("license")
-                .payload("license")
-                .type(DistributedEventType.LICENSE)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("license")
+                    .payload("license")
+                    .type(DistributedEventType.LICENSE)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
 
-            verify(licenseDeployer).deploy(
-                LicenseDeployable.builder().license("license").id("license").syncAction(SyncAction.DEPLOY).build()
-            );
+            verify(licenseDeployer)
+                    .deploy(LicenseDeployable.builder()
+                            .license("license")
+                            .id("license")
+                            .syncAction(SyncAction.DEPLOY)
+                            .build());
             verify(licenseDeployer).doAfterDeployment(any());
         }
     }

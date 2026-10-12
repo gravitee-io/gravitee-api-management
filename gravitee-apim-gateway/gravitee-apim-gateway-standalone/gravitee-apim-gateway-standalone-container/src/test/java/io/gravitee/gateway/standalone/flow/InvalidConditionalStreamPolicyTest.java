@@ -23,8 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
-import io.gravitee.gateway.standalone.flow.policy.Header1Policy;
-import io.gravitee.gateway.standalone.flow.policy.OnRequestPolicy;
 import io.gravitee.gateway.standalone.flow.policy.Stream2Policy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
@@ -48,8 +46,11 @@ public class InvalidConditionalStreamPolicyTest extends AbstractWiremockGatewayT
     public void shouldNotRunPoliciesIfConditionIsInvalid() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
+        final HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        assertEquals(
+                HttpStatusCode.INTERNAL_SERVER_ERROR_500,
+                response.getStatusLine().getStatusCode());
         String responseContent = StringUtils.copy(response.getEntity().getContent());
         wireMockRule.verify(1, anyRequestedFor(anyUrl()));
     }

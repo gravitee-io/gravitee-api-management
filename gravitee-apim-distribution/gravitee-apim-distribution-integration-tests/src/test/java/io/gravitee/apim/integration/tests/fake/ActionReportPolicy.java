@@ -52,9 +52,9 @@ public class ActionReportPolicy implements Policy {
 
     private void prefixHeader(io.gravitee.reporter.api.common.Request clientRequest) {
         clientRequest
-            .getHeaders()
-            .toSingleValueMap()
-            .forEach((key, value) -> clientRequest.getHeaders().set(key, "prefix-" + value));
+                .getHeaders()
+                .toSingleValueMap()
+                .forEach((key, value) -> clientRequest.getHeaders().set(key, "prefix-" + value));
     }
 
     private void prefixBody(io.gravitee.reporter.api.common.Request clientRequest) {
@@ -63,9 +63,9 @@ public class ActionReportPolicy implements Policy {
 
     private void prefixHeader(io.gravitee.reporter.api.common.Response clientResponse) {
         clientResponse
-            .getHeaders()
-            .toSingleValueMap()
-            .forEach((key, value) -> clientResponse.getHeaders().set(key, "prefix-" + value));
+                .getHeaders()
+                .toSingleValueMap()
+                .forEach((key, value) -> clientResponse.getHeaders().set(key, "prefix-" + value));
     }
 
     private void prefixBody(io.gravitee.reporter.api.common.Response clientResponse) {

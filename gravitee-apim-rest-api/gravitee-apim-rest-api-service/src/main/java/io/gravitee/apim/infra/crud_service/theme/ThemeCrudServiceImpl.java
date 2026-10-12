@@ -60,9 +60,9 @@ public class ThemeCrudServiceImpl implements ThemeCrudService {
     public Theme get(String id) {
         try {
             return themeRepository
-                .findById(id)
-                .map(ThemeAdapter.INSTANCE::map)
-                .orElseThrow(() -> new ThemeNotFoundException(id));
+                    .findById(id)
+                    .map(ThemeAdapter.INSTANCE::map)
+                    .orElseThrow(() -> new ThemeNotFoundException(id));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Error during get", e);
         }
@@ -72,10 +72,10 @@ public class ThemeCrudServiceImpl implements ThemeCrudService {
     public Optional<Theme> findByIdAndEnvironmentId(String id, String environmentId) {
         try {
             return themeRepository
-                .findById(id)
-                .map(ThemeAdapter.INSTANCE::map)
-                .filter(theme -> theme.getReferenceType() == Theme.ReferenceType.ENVIRONMENT)
-                .filter(theme -> Objects.equals(theme.getReferenceId(), environmentId));
+                    .findById(id)
+                    .map(ThemeAdapter.INSTANCE::map)
+                    .filter(theme -> theme.getReferenceType() == Theme.ReferenceType.ENVIRONMENT)
+                    .filter(theme -> Objects.equals(theme.getReferenceId(), environmentId));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Error during theme lookup", e);
         }

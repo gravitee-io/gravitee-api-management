@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 

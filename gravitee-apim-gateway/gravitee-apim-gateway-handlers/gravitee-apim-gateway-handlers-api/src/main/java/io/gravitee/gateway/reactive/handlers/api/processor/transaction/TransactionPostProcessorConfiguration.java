@@ -31,16 +31,19 @@ public class TransactionPostProcessorConfiguration {
     public final TransactionHeaderOverrideMode requestHeaderHeaderOverrideMode;
 
     public TransactionPostProcessorConfiguration(Configuration configuration) {
-        this.transactionHeader = configuration.getProperty("handlers.request.transaction.header", DEFAULT_TRANSACTION_ID_HEADER);
+        this.transactionHeader =
+                configuration.getProperty("handlers.request.transaction.header", DEFAULT_TRANSACTION_ID_HEADER);
         String transactionOverrideModeString = configuration.getProperty("handlers.request.transaction.overrideMode");
         this.transactionHeaderHeaderOverrideMode = transactionOverrideModeString != null
-            ? TransactionHeaderOverrideMode.valueOf(transactionOverrideModeString.trim().toUpperCase())
-            : TransactionHeaderOverrideMode.OVERRIDE;
+                ? TransactionHeaderOverrideMode.valueOf(
+                        transactionOverrideModeString.trim().toUpperCase())
+                : TransactionHeaderOverrideMode.OVERRIDE;
 
         this.requestHeader = configuration.getProperty("handlers.request.request.header", DEFAULT_REQUEST_ID_HEADER);
         String requestOverrideModeString = configuration.getProperty("handlers.request.request.overrideMode");
         this.requestHeaderHeaderOverrideMode = requestOverrideModeString != null
-            ? TransactionHeaderOverrideMode.valueOf(requestOverrideModeString.trim().toUpperCase())
-            : TransactionHeaderOverrideMode.OVERRIDE;
+                ? TransactionHeaderOverrideMode.valueOf(
+                        requestOverrideModeString.trim().toUpperCase())
+                : TransactionHeaderOverrideMode.OVERRIDE;
     }
 }

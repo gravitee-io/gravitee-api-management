@@ -59,26 +59,24 @@ class AmSdkDirectoryClientTest {
 
     @Test
     void should_list_environments_from_the_am_organization() {
-        when(defaults.listEnvironments(AM_ORG)).thenReturn(Future.succeededFuture(List.of(environment("env-1", "Env one"))));
+        when(defaults.listEnvironments(AM_ORG))
+                .thenReturn(Future.succeededFuture(List.of(environment("env-1", "Env one"))));
 
         var environments = client.listEnvironments(APIM_ORG);
 
         assertThat(environments)
-            .singleElement()
-            .satisfies(env -> assertThat(env.id()).isEqualTo("env-1"));
+                .singleElement()
+                .satisfies(env -> assertThat(env.id()).isEqualTo("env-1"));
     }
 
     @Test
     void should_list_domains_from_the_am_organization() {
-        when(domains.listDomains(AM_ORG, AM_ENV, null, null, "*gamma*")).thenReturn(
-            Future.succeededFuture(new DomainPage().data(List.of(domain())))
-        );
+        when(domains.listDomains(AM_ORG, AM_ENV, null, null, "*gamma*"))
+                .thenReturn(Future.succeededFuture(new DomainPage().data(List.of(domain()))));
 
         var found = client.listDomains(APIM_ORG, AM_ENV, "gamma");
 
-        assertThat(found)
-            .singleElement()
-            .satisfies(d -> assertThat(d.id()).isEqualTo("domain-1"));
+        assertThat(found).singleElement().satisfies(d -> assertThat(d.id()).isEqualTo("domain-1"));
     }
 
     @Test
@@ -92,18 +90,19 @@ class AmSdkDirectoryClientTest {
 
     @Test
     void should_list_domain_entrypoints_from_the_am_organization() {
-        when(domains.getDomainEntrypoints(AM_ORG, AM_ENV, "domain-1")).thenReturn(
-            Future.succeededFuture(List.of(new Entrypoint().id("ep-1").name("Default").url("https://gw").defaultEntrypoint(true)))
-        );
+        when(domains.getDomainEntrypoints(AM_ORG, AM_ENV, "domain-1"))
+                .thenReturn(Future.succeededFuture(List.of(new Entrypoint()
+                        .id("ep-1")
+                        .name("Default")
+                        .url("https://gw")
+                        .defaultEntrypoint(true))));
 
         var entrypoints = client.listDomainEntrypoints(APIM_ORG, AM_ENV, "domain-1");
 
-        assertThat(entrypoints)
-            .singleElement()
-            .satisfies(ep -> {
-                assertThat(ep.id()).isEqualTo("ep-1");
-                assertThat(ep.defaultEntrypoint()).isTrue();
-            });
+        assertThat(entrypoints).singleElement().satisfies(ep -> {
+            assertThat(ep.id()).isEqualTo("ep-1");
+            assertThat(ep.defaultEntrypoint()).isTrue();
+        });
     }
 
     private static Environment environment(String id, String name) {

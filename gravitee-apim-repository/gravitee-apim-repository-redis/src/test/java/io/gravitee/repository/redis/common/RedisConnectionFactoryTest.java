@@ -175,8 +175,8 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[1].port", "26379");
 
         assertThatIllegalStateException()
-            .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
-            .withMessageContaining("Incorrect Sentinel configuration");
+                .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
+                .withMessageContaining("Incorrect Sentinel configuration");
     }
 
     @Test
@@ -230,7 +230,8 @@ public class RedisConnectionFactoryTest {
         assertThat(options.getSsl().getKeyStore()).isInstanceOf(PKCS12KeyStore.class);
         assertThat(((PKCS12KeyStore) options.getSsl().getKeyStore()).getPath()).isEqualTo(keystorePath);
         assertThat(options.getSsl().getTrustStore()).isInstanceOf(PKCS12TrustStore.class);
-        assertThat(((PKCS12TrustStore) options.getSsl().getTrustStore()).getPath()).isEqualTo(truststorePath);
+        assertThat(((PKCS12TrustStore) options.getSsl().getTrustStore()).getPath())
+                .isEqualTo(truststorePath);
     }
 
     @Test
@@ -256,7 +257,7 @@ public class RedisConnectionFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "JKS", "PEM", "PKCS12" })
+    @ValueSource(strings = {"JKS", "PEM", "PKCS12"})
     void shouldThrowAnExceptionWhenSslEnabledAndMissingKeystoreCertPath(String keystoreType) {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
@@ -267,12 +268,12 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", "truststorePath");
 
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
-            .withMessageContaining("Missing " + keystoreType + " keystore value");
+                .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
+                .withMessageContaining("Missing " + keystoreType + " keystore value");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "JKS", "PEM", "PKCS12" })
+    @ValueSource(strings = {"JKS", "PEM", "PKCS12"})
     void shouldThrowAnExceptionWhenSslEnabledAndMissingTruststoreCertPath(String truststoreType) {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
@@ -283,8 +284,8 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", truststoreType);
 
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
-            .withMessageContaining("Missing " + truststoreType + " truststore value");
+                .isThrownBy(() -> redisConnectionFactory.buildRedisClientOptions())
+                .withMessageContaining("Missing " + truststoreType + " truststore value");
     }
 
     @Test

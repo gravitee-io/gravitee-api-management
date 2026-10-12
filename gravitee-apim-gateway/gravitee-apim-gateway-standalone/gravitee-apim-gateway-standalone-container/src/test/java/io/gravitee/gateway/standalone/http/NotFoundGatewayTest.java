@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import java.io.IOException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.junit.jupiter.api.Test;
@@ -34,14 +33,16 @@ public class NotFoundGatewayTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldReturnNotFound_noApi() throws Exception {
-        HttpResponse response = execute(Request.Get("http://localhost:8082/unknow")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/unknow")).returnResponse();
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void shouldReturnNotFound_apiNotStarted() throws Exception {
-        HttpResponse response = execute(Request.Get("http://localhost:8082/not_started_api")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/not_started_api")).returnResponse();
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatusLine().getStatusCode());
     }

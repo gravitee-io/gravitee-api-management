@@ -35,13 +35,12 @@ import org.springframework.stereotype.Component;
  */
 @Component("EntrypointPluginServiceImplV4")
 public class EntrypointConnectorPluginServiceImpl
-    extends AbstractConnectorPluginService<EntrypointConnectorPlugin<?, ?>>
-    implements EntrypointConnectorPluginService {
+        extends AbstractConnectorPluginService<EntrypointConnectorPlugin<?, ?>>
+        implements EntrypointConnectorPluginService {
 
     public EntrypointConnectorPluginServiceImpl(
-        JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>> pluginManager
-    ) {
+            JsonSchemaService jsonSchemaService,
+            ConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 
@@ -54,25 +53,31 @@ public class EntrypointConnectorPluginServiceImpl
     public String getSubscriptionSchema(final String connectorId, final SchemaDisplayFormat schemaDisplayFormat) {
         if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
             try {
-                log.debug("Find entrypoint subscription schema for format {} by ID: {}", schemaDisplayFormat, connectorId);
+                log.debug(
+                        "Find entrypoint subscription schema for format {} by ID: {}",
+                        schemaDisplayFormat,
+                        connectorId);
                 String schema = pluginManager.getSchema(connectorId, "subscriptions/display-gv-schema-form", true);
                 if (schema != null) {
                     return schema;
                 }
                 log.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
             } catch (IOException ioex) {
-                log.debug("Error while getting specific specific schema-form for this display format. Fall back on default schema-form.");
+                log.debug(
+                        "Error while getting specific specific schema-form for this display format. Fall back on default schema-form.");
             }
         }
         try {
             log.debug("Find entrypoint subscription schema by ID: {}", connectorId);
             return ((EntrypointConnectorPluginManager) pluginManager).getSubscriptionSchema(connectorId, true);
         } catch (IOException ioex) {
-            log.error("An error occurs while trying to get entrypoint subscription schema for plugin {}", connectorId, ioex);
+            log.error(
+                    "An error occurs while trying to get entrypoint subscription schema for plugin {}",
+                    connectorId,
+                    ioex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to get entrypoint subscription schema for plugin " + connectorId,
-                ioex
-            );
+                    "An error occurs while trying to get entrypoint subscription schema for plugin " + connectorId,
+                    ioex);
         }
     }
 
@@ -81,9 +86,8 @@ public class EntrypointConnectorPluginServiceImpl
         // Only to check if plugin exists
         findById(entrypointId);
         String normalizedConfiguration = LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
-            entrypointId,
-            ofNullable(configuration).orElse("{}")
-        );
-        return validatePluginConfigurationAgainstSchema(entrypointId, normalizedConfiguration, this::getSubscriptionSchema);
+                entrypointId, ofNullable(configuration).orElse("{}"));
+        return validatePluginConfigurationAgainstSchema(
+                entrypointId, normalizedConfiguration, this::getSubscriptionSchema);
     }
 }

@@ -85,14 +85,13 @@ public class SearchEnvironmentLogsUseCase {
     private final ApiProductQueryService apiProductQueryService;
 
     public SearchEnvironmentLogsUseCase(
-        ConnectionLogsCrudService connectionLogsCrudService,
-        UserContextLoader userContextLoader,
-        LogNamesPostProcessor logNamesPostProcessor,
-        PlanCrudService planCrudService,
-        ApplicationCrudService applicationCrudService,
-        InstanceQueryService instanceQueryService,
-        ApiProductQueryService apiProductQueryService
-    ) {
+            ConnectionLogsCrudService connectionLogsCrudService,
+            UserContextLoader userContextLoader,
+            LogNamesPostProcessor logNamesPostProcessor,
+            PlanCrudService planCrudService,
+            ApplicationCrudService applicationCrudService,
+            InstanceQueryService instanceQueryService,
+            ApiProductQueryService apiProductQueryService) {
         this.connectionLogsCrudService = connectionLogsCrudService;
         this.userContextLoader = userContextLoader;
         this.logNamesPostProcessor = logNamesPostProcessor;
@@ -119,11 +118,7 @@ public class SearchEnvironmentLogsUseCase {
         }
 
         var result = connectionLogsCrudService.searchApiConnectionLogs(
-            executionContext,
-            searchFilters,
-            pageable,
-            List.of(DefinitionVersion.V4)
-        );
+                executionContext, searchFilters, pageable, List.of(DefinitionVersion.V4));
 
         var response = mapResponse(result, pageable);
 
@@ -140,57 +135,53 @@ public class SearchEnvironmentLogsUseCase {
         return new PageableImpl(page, perPage);
     }
 
-    private UserContext loadNames(ExecutionContext executionContext, UserContext userContext, SearchLogsResponse response) {
-        var planIds = response
-            .data()
-            .stream()
-            .map(ApiLog::plan)
-            .filter(Objects::nonNull)
-            .map(BasePlan::id)
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
+    private UserContext loadNames(
+            ExecutionContext executionContext, UserContext userContext, SearchLogsResponse response) {
+        var planIds = response.data().stream()
+                .map(ApiLog::plan)
+                .filter(Objects::nonNull)
+                .map(BasePlan::id)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
         var planNameById = planIds.isEmpty()
-            ? Map.<String, String>of()
-            : planCrudService
-                .findByIds(planIds)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
+                ? Map.<String, String>of()
+                : planCrudService.findByIds(planIds).stream()
+                        .filter(p -> p.getName() != null)
+                        .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
 
-        var appIds = response
-            .data()
-            .stream()
-            .map(ApiLog::application)
-            .filter(Objects::nonNull)
-            .map(BaseApplication::id)
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
+        var appIds = response.data().stream()
+                .map(ApiLog::application)
+                .filter(Objects::nonNull)
+                .map(BaseApplication::id)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
         var applicationNameById = appIds.isEmpty()
-            ? Map.<String, String>of()
-            : applicationCrudService
-                .findByIds(appIds, executionContext.getEnvironmentId())
-                .stream()
-                .filter(a -> a.getName() != null)
-                .collect(Collectors.toMap(BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
+                ? Map.<String, String>of()
+                : applicationCrudService.findByIds(appIds, executionContext.getEnvironmentId()).stream()
+                        .filter(a -> a.getName() != null)
+                        .collect(Collectors.toMap(
+                                BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
 
-        var gatewayIds = response.data().stream().map(ApiLog::gateway).filter(Objects::nonNull).distinct().toList();
+        var gatewayIds = response.data().stream()
+                .map(ApiLog::gateway)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
         var gatewayHostnameById = gatewayIds.isEmpty()
-            ? Map.<String, String>of()
-            : instanceQueryService
-                .findByIds(executionContext, gatewayIds)
-                .stream()
-                .filter(i -> i.getHostname() != null)
-                .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
+                ? Map.<String, String>of()
+                : instanceQueryService.findByIds(executionContext, gatewayIds).stream()
+                        .filter(i -> i.getHostname() != null)
+                        .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
 
         return userContext
-            .withPlanNameById(planNameById)
-            .withApplicationNameById(applicationNameById)
-            .withGatewayHostnameById(gatewayHostnameById);
+                .withPlanNameById(planNameById)
+                .withApplicationNameById(applicationNameById)
+                .withGatewayHostnameById(gatewayHostnameById);
     }
 
     private SearchLogsFilters buildFilters(UserContext userContext, SearchLogsRequest request) {
@@ -215,28 +206,22 @@ public class SearchEnvironmentLogsUseCase {
             }
         }
 
-        Set<String> apiIds = userContext
-            .apis()
-            .orElseGet(Collections::emptyList)
-            .stream()
-            .filter(api -> isWantedHttpApi(api.getType()))
-            .filter(api -> requestedApiTypes.map(types -> types.contains(api.getType())).orElse(true))
-            .map(Api::getId)
-            .collect(Collectors.toSet());
+        Set<String> apiIds = userContext.apis().orElseGet(Collections::emptyList).stream()
+                .filter(api -> isWantedHttpApi(api.getType()))
+                .filter(api -> requestedApiTypes
+                        .map(types -> types.contains(api.getType()))
+                        .orElse(true))
+                .map(Api::getId)
+                .collect(Collectors.toSet());
         filterContext.limitByApiIds(apiIds);
 
         var builder = SearchLogsFilters.builder();
         builder.apiIds(filterContext.apiIds().orElseGet(Collections::emptySet));
         builder.applicationIds(filterContext.applicationIds().orElseGet(Collections::emptySet));
         builder.planIds(filterContext.planIds().orElseGet(Collections::emptySet));
-        builder.methods(
-            filterContext
-                .methods()
-                .orElseGet(Collections::emptySet)
-                .stream()
+        builder.methods(filterContext.methods().orElseGet(Collections::emptySet).stream()
                 .map(m -> io.gravitee.common.http.HttpMethod.valueOf(m.name()))
-                .collect(Collectors.toSet())
-        );
+                .collect(Collectors.toSet()));
         builder.statuses(filterContext.statuses().orElseGet(Collections::emptySet));
         builder.statusCodeGroups(filterContext.statusCodeGroups().orElseGet(Collections::emptySet));
         builder.statusRanges(buildStatusRanges(filterContext));
@@ -248,8 +233,10 @@ public class SearchEnvironmentLogsUseCase {
         builder.responseTimeRanges(buildResponseTimeRanges(filterContext));
         builder.errorKeys(filterContext.errorKeys().orElseGet(Collections::emptySet));
         builder.nativeClientIds(filterContext.nativeClientIds().orElseGet(Collections::emptySet));
-        builder.nativeClientSoftwareNames(filterContext.nativeClientSoftwareNames().orElseGet(Collections::emptySet));
-        builder.nativeClientSoftwareVersions(filterContext.nativeClientSoftwareVersions().orElseGet(Collections::emptySet));
+        builder.nativeClientSoftwareNames(
+                filterContext.nativeClientSoftwareNames().orElseGet(Collections::emptySet));
+        builder.nativeClientSoftwareVersions(
+                filterContext.nativeClientSoftwareVersions().orElseGet(Collections::emptySet));
         builder.apiProductIds(filterContext.apiProductIds().orElseGet(Collections::emptySet));
         builder.tenants(filterContext.tenants().orElseGet(Collections::emptySet));
         builder.bodyText(filterContext.bodyText().orElse(null));
@@ -266,7 +253,9 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private static boolean isTimeRangeInvalid(TimeRange timeRange) {
-        return (timeRange.from() != null && timeRange.to() != null && timeRange.from().isAfter(timeRange.to()));
+        return (timeRange.from() != null
+                && timeRange.to() != null
+                && timeRange.from().isAfter(timeRange.to()));
     }
 
     private void applyStringFilter(StringFilter filter, FilterContext filterContext) {
@@ -304,11 +293,15 @@ public class SearchEnvironmentLogsUseCase {
         // Say so instead of returning early: silently ignoring it is what made the catalog and the search
         // disagree (APIM-14817).
         if (SINGLE_VALUED_FILTERS.contains(filter.name())) {
-            throw new ValidationDomainException("Filter " + filter.name() + " does not support operator " + filter.operator() + ".");
+            throw new ValidationDomainException(
+                    "Filter " + filter.name() + " does not support operator " + filter.operator() + ".");
         }
 
         if (filter.operator() == Operator.IN) {
-            updateFilterIds(filter.name(), filterContext, filter.value().stream().map(String::valueOf).collect(Collectors.toSet()));
+            updateFilterIds(
+                    filter.name(),
+                    filterContext,
+                    filter.value().stream().map(String::valueOf).collect(Collectors.toSet()));
             return;
         }
 
@@ -327,9 +320,9 @@ public class SearchEnvironmentLogsUseCase {
                         filterContext.limitByResponseTimeFrom(value.longValue());
                         filterContext.limitByResponseTimeTo(value.longValue());
                     }
-                    default -> throw new ValidationDomainException(
-                        "Filter RESPONSE_TIME does not support operator " + filter.operator() + "."
-                    );
+                    default ->
+                        throw new ValidationDomainException(
+                                "Filter RESPONSE_TIME does not support operator " + filter.operator() + ".");
                 }
             }
             case HTTP_STATUS -> {
@@ -340,14 +333,14 @@ public class SearchEnvironmentLogsUseCase {
                     // EQ on a status arrives as a StringFilter/ArrayFilter and lands in `statuses`; a numeric EQ
                     // means the same thing, so route it there rather than building a degenerate range.
                     case EQ -> filterContext.limitByHttpStatuses(Set.of(value));
-                    default -> throw new ValidationDomainException(
-                        "Filter HTTP_STATUS does not support operator " + filter.operator() + "."
-                    );
+                    default ->
+                        throw new ValidationDomainException(
+                                "Filter HTTP_STATUS does not support operator " + filter.operator() + ".");
                 }
             }
-            default -> throw new ValidationDomainException(
-                "Filter " + filter.name() + " does not support numeric operator " + filter.operator() + "."
-            );
+            default ->
+                throw new ValidationDomainException(
+                        "Filter " + filter.name() + " does not support numeric operator " + filter.operator() + ".");
         }
     }
 
@@ -368,7 +361,8 @@ public class SearchEnvironmentLogsUseCase {
             return List.of();
         }
         if (from != null && to != null && from > to) {
-            throw new ValidationDomainException("Invalid RESPONSE_TIME range: 'from' (gte) must not be greater than 'to' (lte).");
+            throw new ValidationDomainException(
+                    "Invalid RESPONSE_TIME range: 'from' (gte) must not be greater than 'to' (lte).");
         }
         return List.of(new Range(from, to));
     }
@@ -380,7 +374,8 @@ public class SearchEnvironmentLogsUseCase {
             return List.of();
         }
         if (from != null && to != null && from > to) {
-            throw new ValidationDomainException("Invalid HTTP_STATUS range: 'from' (gte) must not be greater than 'to' (lte).");
+            throw new ValidationDomainException(
+                    "Invalid HTTP_STATUS range: 'from' (gte) must not be greater than 'to' (lte).");
         }
         return List.of(SearchLogsFilters.StatusRange.builder().gte(from).lte(to).build());
     }
@@ -390,8 +385,12 @@ public class SearchEnvironmentLogsUseCase {
             case API -> filterContext.limitByApiIds(ids);
             case APPLICATION -> filterContext.limitByApplicationIds(ids);
             case PLAN -> filterContext.limitByPlanIds(ids);
-            case HTTP_METHOD -> filterContext.limitByHttpMethods(ids.stream().map(this::httpMethod).collect(Collectors.toSet()));
-            case HTTP_STATUS -> filterContext.limitByHttpStatuses(ids.stream().map(Integer::valueOf).collect(Collectors.toSet()));
+            case HTTP_METHOD ->
+                filterContext.limitByHttpMethods(
+                        ids.stream().map(this::httpMethod).collect(Collectors.toSet()));
+            case HTTP_STATUS ->
+                filterContext.limitByHttpStatuses(
+                        ids.stream().map(Integer::valueOf).collect(Collectors.toSet()));
             case ENTRYPOINT -> filterContext.limitByEntrypointIds(ids);
             case MCP_METHOD -> filterContext.limitByMcpMethods(ids);
             case TRANSACTION_ID -> filterContext.limitByTransactionIds(ids);
@@ -442,16 +441,11 @@ public class SearchEnvironmentLogsUseCase {
      * clause it cannot resolve, which would turn a typo into a full, unfiltered result set.
      */
     private static Set<String> validateStatusCodeGroups(Set<String> groups) {
-        return groups
-            .stream()
-            .map(group ->
-                StatusCodeGroups.canonicalise(group).orElseThrow(() ->
-                    new ValidationDomainException(
-                        "Unknown HTTP status code group '" + group + "'. Expected one of " + StatusCodeGroups.NAMES
-                    )
-                )
-            )
-            .collect(Collectors.toSet());
+        return groups.stream()
+                .map(group -> StatusCodeGroups.canonicalise(group)
+                        .orElseThrow(() -> new ValidationDomainException("Unknown HTTP status code group '" + group
+                                + "'. Expected one of " + StatusCodeGroups.NAMES)))
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -460,14 +454,8 @@ public class SearchEnvironmentLogsUseCase {
      * logs signal does not serve are absent, so asking for one yields an empty scope rather than a 400 — the
      * request is valid, it just cannot match.
      */
-    private static final Map<String, ApiType> LOGS_API_TYPES = Map.of(
-        "HTTP_PROXY",
-        ApiType.PROXY,
-        "LLM",
-        ApiType.LLM_PROXY,
-        "MCP",
-        ApiType.MCP_PROXY
-    );
+    private static final Map<String, ApiType> LOGS_API_TYPES =
+            Map.of("HTTP_PROXY", ApiType.PROXY, "LLM", ApiType.LLM_PROXY, "MCP", ApiType.MCP_PROXY);
 
     /**
      * Catalog kinds the logs signal knows of but cannot serve. Asking for one is a valid request that matches
@@ -481,7 +469,8 @@ public class SearchEnvironmentLogsUseCase {
 
     /** The full {@code API_TYPE} vocabulary, sorted so the error message is stable. */
     static Set<String> knownApiTypes() {
-        return Stream.concat(LOGS_API_TYPES.keySet().stream(), UNSERVED_API_TYPES.stream()).collect(Collectors.toCollection(TreeSet::new));
+        return Stream.concat(LOGS_API_TYPES.keySet().stream(), UNSERVED_API_TYPES.stream())
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     private static FilterName filterName(Object instance) {
@@ -520,7 +509,8 @@ public class SearchEnvironmentLogsUseCase {
                 if (mapped != null) {
                     requested.add(mapped);
                 } else if (!UNSERVED_API_TYPES.contains(normalised)) {
-                    throw new ValidationDomainException("Unknown API type '" + value + "'. Expected one of " + knownApiTypes());
+                    throw new ValidationDomainException(
+                            "Unknown API type '" + value + "'. Expected one of " + knownApiTypes());
                 }
             }
         }
@@ -530,7 +520,10 @@ public class SearchEnvironmentLogsUseCase {
     private static List<String> apiTypeValues(Object instance) {
         return switch (instance) {
             case StringFilter s -> s.value() == null ? List.of() : List.of(s.value());
-            case ArrayFilter a -> a.value() == null ? List.of() : a.value().stream().map(String::valueOf).toList();
+            case ArrayFilter a ->
+                a.value() == null
+                        ? List.of()
+                        : a.value().stream().map(String::valueOf).toList();
             case null, default -> List.of();
         };
     }
@@ -553,71 +546,73 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private SearchLogsResponse mapResponse(
-        io.gravitee.rest.api.model.v4.log.SearchLogsResponse<BaseConnectionLog> source,
-        Pageable pageable
-    ) {
-        final List<ApiLog> apiLogs = source.logs() == null ? List.of() : source.logs().stream().map(this::mapApiLog).toList();
+            io.gravitee.rest.api.model.v4.log.SearchLogsResponse<BaseConnectionLog> source, Pageable pageable) {
+        final List<ApiLog> apiLogs = source.logs() == null
+                ? List.of()
+                : source.logs().stream().map(this::mapApiLog).toList();
         return new SearchLogsResponse(
-            apiLogs,
-            new Pagination(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getPageSize() == 0 ? 0 : (int) Math.ceil((double) source.total() / pageable.getPageSize()),
-                apiLogs.size(),
-                source.total()
-            )
-        );
+                apiLogs,
+                new Pagination(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        pageable.getPageSize() == 0
+                                ? 0
+                                : (int) Math.ceil((double) source.total() / pageable.getPageSize()),
+                        apiLogs.size(),
+                        source.total()));
     }
 
     private ApiLog mapApiLog(BaseConnectionLog item) {
         return ApiLog.builder()
-            .apiId(item.getApiId())
-            .timestamp(toOffsetDateTime(item.getTimestamp()))
-            .id(item.getRequestId())
-            .requestId(item.getRequestId())
-            .method(mapHttpMethod(item.getMethod()))
-            .clientIdentifier(item.getClientIdentifier())
-            .plan(mapPlan(item.getPlanId()))
-            .application(mapApplication(item.getApplicationId()))
-            .transactionId(item.getTransactionId())
-            .status(item.getStatus())
-            .requestEnded(item.isRequestEnded())
-            .gatewayResponseTime(safeToInteger(item.getGatewayResponseTime()))
-            .gateway(item.getGateway())
-            .uri(item.getUri())
-            .endpoint(item.getEndpoint())
-            .message(item.getMessage())
-            .errorKey(item.getErrorKey())
-            .errorComponentName(item.getErrorComponentName())
-            .errorComponentType(item.getErrorComponentType())
-            .warnings(mapWarnings(item.getWarnings()))
-            .additionalMetrics(item.getAdditionalMetrics() != null ? item.getAdditionalMetrics() : Map.of())
-            .mcpMethod(item.getMcpMethod())
-            .apiProductId(item.getApiProductId())
-            .build();
+                .apiId(item.getApiId())
+                .timestamp(toOffsetDateTime(item.getTimestamp()))
+                .id(item.getRequestId())
+                .requestId(item.getRequestId())
+                .method(mapHttpMethod(item.getMethod()))
+                .clientIdentifier(item.getClientIdentifier())
+                .plan(mapPlan(item.getPlanId()))
+                .application(mapApplication(item.getApplicationId()))
+                .transactionId(item.getTransactionId())
+                .status(item.getStatus())
+                .requestEnded(item.isRequestEnded())
+                .gatewayResponseTime(safeToInteger(item.getGatewayResponseTime()))
+                .gateway(item.getGateway())
+                .uri(item.getUri())
+                .endpoint(item.getEndpoint())
+                .message(item.getMessage())
+                .errorKey(item.getErrorKey())
+                .errorComponentName(item.getErrorComponentName())
+                .errorComponentType(item.getErrorComponentType())
+                .warnings(mapWarnings(item.getWarnings()))
+                .additionalMetrics(item.getAdditionalMetrics() != null ? item.getAdditionalMetrics() : Map.of())
+                .mcpMethod(item.getMcpMethod())
+                .apiProductId(item.getApiProductId())
+                .build();
     }
 
-    private SearchLogsResponse enrichWithApiProductNames(ExecutionContext executionContext, SearchLogsResponse response) {
-        var ids = response.data().stream().map(ApiLog::apiProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+    private SearchLogsResponse enrichWithApiProductNames(
+            ExecutionContext executionContext, SearchLogsResponse response) {
+        var ids = response.data().stream()
+                .map(ApiLog::apiProductId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         var nameById = ids.isEmpty()
-            ? Map.<String, String>of()
-            : apiProductQueryService
-                .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+                ? Map.<String, String>of()
+                : apiProductQueryService.findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids).stream()
+                        .filter(p -> p.getName() != null)
+                        .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
 
-        var enriched = response
-            .data()
-            .stream()
-            .map(log -> {
-                if (log.apiProductId() == null) {
-                    return log.toBuilder().apiProductName("Standalone API").build();
-                }
-                return log.toBuilder().apiProductName(nameById.get(log.apiProductId())).build();
-            })
-            .toList();
+        var enriched = response.data().stream()
+                .map(log -> {
+                    if (log.apiProductId() == null) {
+                        return log.toBuilder().apiProductName("Standalone API").build();
+                    }
+                    return log.toBuilder()
+                            .apiProductName(nameById.get(log.apiProductId()))
+                            .build();
+                })
+                .toList();
         return new SearchLogsResponse(enriched, response.pagination());
     }
 
@@ -659,11 +654,9 @@ public class SearchEnvironmentLogsUseCase {
         if (warnings == null) {
             return List.of();
         }
-        return warnings
-            .stream()
-            .map(warning ->
-                new ApiLogDiagnostic(warning.getComponentType(), warning.getComponentName(), warning.getKey(), warning.getMessage())
-            )
-            .collect(Collectors.toList());
+        return warnings.stream()
+                .map(warning -> new ApiLogDiagnostic(
+                        warning.getComponentType(), warning.getComponentName(), warning.getKey(), warning.getMessage()))
+                .collect(Collectors.toList());
     }
 }

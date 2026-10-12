@@ -17,7 +17,6 @@ package io.gravitee.repository.noop.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import java.util.Optional;
 import java.util.Set;
@@ -29,7 +28,8 @@ import java.util.Set;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpOrganizationRepository extends AbstractNoOpManagementRepository<Organization, String> implements OrganizationRepository {
+public class NoOpOrganizationRepository extends AbstractNoOpManagementRepository<Organization, String>
+        implements OrganizationRepository {
 
     @Override
     public Long count() throws TechnicalException {

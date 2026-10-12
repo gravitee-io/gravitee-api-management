@@ -35,17 +35,22 @@ public class CredentialMapper {
             try {
                 Credential wire = objectMapper.readValue(event.getPayload(), Credential.class);
                 if (isBlank(wire.getId()) || isBlank(wire.getEnvironmentId()) || isBlank(wire.getEncryptedSecret())) {
-                    log.warn("Skipping credential DEPLOY event [{}] — missing id, environmentId, or encryptedSecret", event.getId());
+                    log.warn(
+                            "Skipping credential DEPLOY event [{}] — missing id, environmentId, or encryptedSecret",
+                            event.getId());
                     return null;
                 }
                 return CredentialDeployable.builder()
-                    .credentialId(wire.getId())
-                    .environmentId(wire.getEnvironmentId())
-                    .allowedApiIds(wire.getAllowedApiIds() == null ? Set.of() : Set.copyOf(wire.getAllowedApiIds()))
-                    .encryptedSecret(wire.getEncryptedSecret())
-                    .updatedAt(event.getUpdatedAt() != null ? event.getUpdatedAt().getTime() : 0L)
-                    .syncAction(SyncAction.DEPLOY)
-                    .build();
+                        .credentialId(wire.getId())
+                        .environmentId(wire.getEnvironmentId())
+                        .allowedApiIds(wire.getAllowedApiIds() == null ? Set.of() : Set.copyOf(wire.getAllowedApiIds()))
+                        .encryptedSecret(wire.getEncryptedSecret())
+                        .updatedAt(
+                                event.getUpdatedAt() != null
+                                        ? event.getUpdatedAt().getTime()
+                                        : 0L)
+                        .syncAction(SyncAction.DEPLOY)
+                        .build();
             } catch (Exception e) {
                 log.error("Unable to extract credential from PUBLISH event [{}]", event.getId(), e);
                 return null;
@@ -62,10 +67,10 @@ public class CredentialMapper {
                     return null;
                 }
                 return CredentialDeployable.builder()
-                    .credentialId(wire.getId())
-                    .environmentId(wire.getEnvironmentId())
-                    .syncAction(SyncAction.UNDEPLOY)
-                    .build();
+                        .credentialId(wire.getId())
+                        .environmentId(wire.getEnvironmentId())
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .build();
             } catch (Exception e) {
                 log.error("Unable to extract credential from UNPUBLISH event [{}]", event.getId(), e);
                 return null;

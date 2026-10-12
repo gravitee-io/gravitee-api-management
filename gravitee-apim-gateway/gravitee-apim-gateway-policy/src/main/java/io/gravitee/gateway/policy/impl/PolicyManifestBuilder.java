@@ -109,10 +109,10 @@ public class PolicyManifestBuilder {
 
             @Override
             public boolean accept(StreamType stream) {
-                return (
-                    (stream == StreamType.ON_REQUEST && (method(OnRequest.class) != null || method(OnRequestContent.class) != null)) ||
-                    (stream == StreamType.ON_RESPONSE && (method(OnResponse.class) != null || method(OnResponseContent.class) != null))
-                );
+                return ((stream == StreamType.ON_REQUEST
+                                && (method(OnRequest.class) != null || method(OnRequestContent.class) != null))
+                        || (stream == StreamType.ON_RESPONSE
+                                && (method(OnResponse.class) != null || method(OnResponseContent.class) != null)));
             }
         };
     }

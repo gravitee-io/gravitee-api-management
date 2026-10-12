@@ -31,13 +31,12 @@ public class ValidateFederatedApiDomainService {
     private final CategoryDomainService categoryDomainService;
 
     public Api validateAndSanitizeForCreation(final Api newApi, PrimaryOwnerEntity primaryOwner) {
-        if (
-            newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED &&
-            newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED_AGENT
-        ) {
+        if (newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED
+                && newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED_AGENT) {
             throw new ValidationDomainException("Definition version is unsupported, should be FEDERATED");
         }
-        newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner, true));
+        newApi.setGroups(
+                groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner, true));
 
         // Reset lifecycle state as Federated API are not deployed on Gateway
         newApi.setLifecycleState(null);
@@ -45,21 +44,16 @@ public class ValidateFederatedApiDomainService {
         return newApi;
     }
 
-    public Api validateAndSanitizeForUpdate(final Api updateApi, final Api existingApi, PrimaryOwnerEntity primaryOwnerEntity) {
+    public Api validateAndSanitizeForUpdate(
+            final Api updateApi, final Api existingApi, PrimaryOwnerEntity primaryOwnerEntity) {
         var groupIds = groupValidationService.validateAndSanitize(
-            updateApi.getGroups(),
-            existingApi.getEnvironmentId(),
-            primaryOwnerEntity,
-            false
-        );
+                updateApi.getGroups(), existingApi.getEnvironmentId(), primaryOwnerEntity, false);
         updateApi.setGroups(groupIds);
 
         updateApi.setCategories(categoryDomainService.toCategoryId(updateApi, existingApi.getEnvironmentId()));
 
         var lifecycleState = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
-            existingApi.getApiLifecycleState(),
-            updateApi.getApiLifecycleState()
-        );
+                existingApi.getApiLifecycleState(), updateApi.getApiLifecycleState());
         updateApi.setApiLifecycleState(lifecycleState);
 
         return updateApi;

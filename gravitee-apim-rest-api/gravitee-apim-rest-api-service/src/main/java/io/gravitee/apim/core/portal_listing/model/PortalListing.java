@@ -39,12 +39,11 @@ public class PortalListing {
     private final List<PortalListingApiEntry> apis;
 
     private PortalListing(
-        PortalListingId id,
-        String environmentId,
-        String organizationId,
-        PortalId portalId,
-        List<PortalListingApiEntry> apis
-    ) {
+            PortalListingId id,
+            String environmentId,
+            String organizationId,
+            PortalId portalId,
+            List<PortalListingApiEntry> apis) {
         this.id = id;
         this.environmentId = environmentId;
         this.organizationId = organizationId;
@@ -53,12 +52,11 @@ public class PortalListing {
     }
 
     public static PortalListing of(
-        PortalListingId id,
-        String environmentId,
-        String organizationId,
-        PortalId portalId,
-        List<PortalListingApiEntry> apis
-    ) {
+            PortalListingId id,
+            String environmentId,
+            String organizationId,
+            PortalId portalId,
+            List<PortalListingApiEntry> apis) {
         return new PortalListing(id, environmentId, organizationId, portalId, apis);
     }
 

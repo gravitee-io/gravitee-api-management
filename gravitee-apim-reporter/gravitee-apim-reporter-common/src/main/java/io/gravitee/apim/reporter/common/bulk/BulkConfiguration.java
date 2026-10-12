@@ -23,14 +23,13 @@ import lombok.CustomLog;
  */
 @CustomLog
 public record BulkConfiguration(
-    Integer items,
-    Long flushInterval,
-    Integer maxConcurrentSend,
-    Integer maxRetries,
-    Integer retryInitialDelay,
-    Integer retryMaxDelay,
-    Long maxMemorySize
-) {
+        Integer items,
+        Long flushInterval,
+        Integer maxConcurrentSend,
+        Integer maxRetries,
+        Integer retryInitialDelay,
+        Integer retryMaxDelay,
+        Long maxMemorySize) {
     public static final int DEFAULT_ITEMS = 1000;
     public static final long DEFAULT_FLUSH_INTERVAL = 5L;
     public static final int DEFAULT_MAX_CONCURRENT_SEND = 100;
@@ -64,9 +63,8 @@ public record BulkConfiguration(
 
         if (maxMemorySize.equals(DEFAULT_MAX_MEMORY_SIZE)) {
             log.warn(
-                "You are using the default 'maxMemorySize' ({}MB). Consider increase this value in case of too frequent 'Dropping bulk of reports' events.",
-                (DEFAULT_MAX_MEMORY_SIZE / 1024 / 1024)
-            );
+                    "You are using the default 'maxMemorySize' ({}MB). Consider increase this value in case of too frequent 'Dropping bulk of reports' events.",
+                    (DEFAULT_MAX_MEMORY_SIZE / 1024 / 1024));
         }
     }
 }

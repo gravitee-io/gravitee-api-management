@@ -41,18 +41,18 @@ public abstract class AbstractNonAdminApiResourceTest extends ApiResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register((ContainerRequestFilter) requestContext -> requestContext.setSecurityContext(nonAdminSecurityContext()), 5);
+        resourceConfig.register(
+                (ContainerRequestFilter) requestContext -> requestContext.setSecurityContext(nonAdminSecurityContext()),
+                5);
         resourceConfig.register(GraviteeContextRequestFilter.class);
         var mockResponse = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(
-            new AbstractBinder() {
-                @Override
-                protected void configure() {
-                    bind(mockResponse).to(HttpServletResponse.class);
-                    bind(new GraviteeMapper()).to(ObjectMapper.class);
-                }
+        resourceConfig.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(mockResponse).to(HttpServletResponse.class);
+                bind(new GraviteeMapper()).to(ObjectMapper.class);
             }
-        );
+        });
     }
 
     private static SecurityContext nonAdminSecurityContext() {

@@ -41,13 +41,16 @@ public class GetApiDocumentationUseCase {
 
     public Output execute(Input input) {
         var pageContent = portalPageContentQueryService
-            .findById(input.portalPageContentId())
-            .filter(pc -> pc.getAutomationMetadata() != null)
-            .filter(pc -> pc.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API)
-            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().toString()));
+                .findById(input.portalPageContentId())
+                .filter(pc -> pc.getAutomationMetadata() != null)
+                .filter(pc -> pc.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API)
+                .orElseThrow(() -> new PageContentNotFoundException(
+                        input.portalPageContentId().toString()));
         var apiId = pageContent.getAutomationMetadata().referenceId();
-        var navigationItemId = PortalNavigationItemId.forApiDocumentation(input.auditInfo(), apiId, pageContent.getId());
-        var navItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), navigationItemId);
+        var navigationItemId =
+                PortalNavigationItemId.forApiDocumentation(input.auditInfo(), apiId, pageContent.getId());
+        var navItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), navigationItemId);
         var visibility = navItem instanceof PortalNavigationPage page ? page.getVisibility() : null;
         return new Output(pageContent, visibility);
     }

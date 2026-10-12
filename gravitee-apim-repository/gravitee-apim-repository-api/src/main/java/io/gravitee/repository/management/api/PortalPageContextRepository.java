@@ -32,8 +32,8 @@ public interface PortalPageContextRepository extends CrudRepository<PortalPageCo
      * @return a list of portal page contexts for the given context type and environment
      * @throws TechnicalException if an error occurs
      */
-    List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId)
-        throws TechnicalException;
+    List<PortalPageContext> findAllByContextTypeAndEnvironmentId(
+            PortalPageContextType contextType, String environmentId) throws TechnicalException;
 
     PortalPageContext findByPageId(String string);
 

@@ -42,7 +42,8 @@ public class NoOpHealthCheckRepositoryTest extends AbstractNoOpRepositoryTest {
     public void testQuery() throws AnalyticsException {
         Assertions.assertNotNull(healthCheckRepository);
 
-        DateHistogramResponse response = healthCheckRepository.query(queryContext, dateHistogram().query("any_query").build());
+        DateHistogramResponse response = healthCheckRepository.query(
+                queryContext, dateHistogram().query("any_query").build());
 
         Assertions.assertNull(response);
     }

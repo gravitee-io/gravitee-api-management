@@ -31,7 +31,6 @@ import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ClusterMapper;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.time.Instant;
@@ -70,12 +69,11 @@ class ClusterSynchronizerTest {
     @BeforeEach
     void setUp() {
         cut = new ClusterSynchronizer(
-            latestEventFetcher,
-            new ClusterMapper(objectMapper),
-            deployerFactory,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                latestEventFetcher,
+                new ClusterMapper(objectMapper),
+                deployerFactory,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(latestEventFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createClusterDeployer()).thenReturn(clusterDeployer);
@@ -90,30 +88,43 @@ class ClusterSynchronizerTest {
 
         @Test
         void should_not_synchronize_when_no_events() throws InterruptedException {
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.empty());
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verifyNoInteractions(clusterDeployer);
         }
 
         @Test
         void should_fetch_init_events() throws InterruptedException {
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env")).test().await().assertComplete();
-            verify(latestEventFetcher).fetchLatest(eq(-1L), any(), eq(CLUSTER_ID), eq(Set.of("env")), eq(Set.of(DEPLOY_CLUSTER)));
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.empty());
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env"))
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(latestEventFetcher)
+                    .fetchLatest(eq(-1L), any(), eq(CLUSTER_ID), eq(Set.of("env")), eq(Set.of(DEPLOY_CLUSTER)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("env")).test().await().assertComplete();
-            verify(latestEventFetcher).fetchLatest(
-                any(),
-                any(),
-                eq(CLUSTER_ID),
-                eq(Set.of("env")),
-                eq(Set.of(DEPLOY_CLUSTER, UNDEPLOY_CLUSTER))
-            );
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.empty());
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("env"))
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(latestEventFetcher)
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(CLUSTER_ID),
+                            eq(Set.of("env")),
+                            eq(Set.of(DEPLOY_CLUSTER, UNDEPLOY_CLUSTER)));
         }
     }
 
@@ -125,8 +136,7 @@ class ClusterSynchronizerTest {
             Event event = new Event();
             event.setId("event-id");
             event.setType(DEPLOY_CLUSTER);
-            event.setPayload(
-                """
+            event.setPayload("""
                 {
                     "id": "cluster-id",
                     "crossId": "my-cluster",
@@ -136,11 +146,14 @@ class ClusterSynchronizerTest {
                     "organizationId": "org-1",
                     "configuration": { "connections": [] }
                 }
-                """
-            );
+                """);
 
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verify(clusterDeployer).deploy(any());
             verify(clusterDeployer).doAfterDeployment(any());
@@ -153,8 +166,12 @@ class ClusterSynchronizerTest {
             event.setType(UNDEPLOY_CLUSTER);
             event.setProperties(Map.of(CLUSTER_ID.getValue(), "my-cluster"));
 
-            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any()))
+                    .thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                    .test()
+                    .await()
+                    .assertComplete();
 
             verify(clusterDeployer).undeploy(any());
         }

@@ -37,36 +37,34 @@ public class SharedConfigurationMigration {
     static final int DEFAULT_PROXY_PORT = 3128;
 
     static final Set<String> HTTP11_ALLOWED = Set.of(
-        "version",
-        "keepAlive",
-        "keepAliveTimeout",
-        "connectTimeout",
-        "pipelining",
-        "readTimeout",
-        "useCompression",
-        "propagateClientAcceptEncoding",
-        "propagateClientHost",
-        "idleTimeout",
-        "followRedirects",
-        "maxConcurrentConnections"
-    );
+            "version",
+            "keepAlive",
+            "keepAliveTimeout",
+            "connectTimeout",
+            "pipelining",
+            "readTimeout",
+            "useCompression",
+            "propagateClientAcceptEncoding",
+            "propagateClientHost",
+            "idleTimeout",
+            "followRedirects",
+            "maxConcurrentConnections");
 
     static final Set<String> HTTP2_ALLOWED = Set.of(
-        "version",
-        "clearTextUpgrade",
-        "keepAlive",
-        "keepAliveTimeout",
-        "connectTimeout",
-        "pipelining",
-        "readTimeout",
-        "useCompression",
-        "propagateClientAcceptEncoding",
-        "propagateClientHost",
-        "idleTimeout",
-        "followRedirects",
-        "maxConcurrentConnections",
-        "http2MultiplexingLimit"
-    );
+            "version",
+            "clearTextUpgrade",
+            "keepAlive",
+            "keepAliveTimeout",
+            "connectTimeout",
+            "pipelining",
+            "readTimeout",
+            "useCompression",
+            "propagateClientAcceptEncoding",
+            "propagateClientHost",
+            "idleTimeout",
+            "followRedirects",
+            "maxConcurrentConnections",
+            "http2MultiplexingLimit");
 
     private final ObjectMapper objectMapper;
 
@@ -97,23 +95,22 @@ public class SharedConfigurationMigration {
             String host = proxyNode.path("host").asText(null);
             if (host == null || host.isEmpty()) {
                 proxyNode.put("host", "localhost");
-                issues.add(new MigrationResult.Issue(MigrationWarnings.PROXY_HOST_MISSING, MigrationResult.State.CAN_BE_FORCED));
+                issues.add(new MigrationResult.Issue(
+                        MigrationWarnings.PROXY_HOST_MISSING, MigrationResult.State.CAN_BE_FORCED));
             }
             int port = proxyNode.path("port").asInt(0);
             if (port <= 0) {
                 proxyNode.put("port", DEFAULT_PROXY_PORT);
-                issues.add(
-                    new MigrationResult.Issue(
+                issues.add(new MigrationResult.Issue(
                         MigrationWarnings.PROXY_PORT_DEFAULTED.formatted(DEFAULT_PROXY_PORT),
-                        MigrationResult.State.CAN_BE_FORCED
-                    )
-                );
+                        MigrationResult.State.CAN_BE_FORCED));
             }
         }
         return issues;
     }
 
-    public MigrationResult<String> convert(io.gravitee.definition.model.EndpointGroup source) throws JsonProcessingException {
+    public MigrationResult<String> convert(io.gravitee.definition.model.EndpointGroup source)
+            throws JsonProcessingException {
         List<MigrationResult.Issue> issues = new ArrayList<>();
         ObjectNode httpClientOptions = mapHttpClientOptions(source.getHttpClientOptions());
         ObjectNode httpClientSslOptionsNode = mapHttpClientSslOptions(source.getHttpClientSslOptions());
@@ -142,7 +139,9 @@ public class SharedConfigurationMigration {
 
         var v4 = new HttpClientOptions();
 
-        var versionV4 = httpClientOptions.getVersion() == io.gravitee.definition.model.ProtocolVersion.HTTP_1_1 ? HTTP_1_1 : HTTP_2;
+        var versionV4 = httpClientOptions.getVersion() == io.gravitee.definition.model.ProtocolVersion.HTTP_1_1
+                ? HTTP_1_1
+                : HTTP_2;
 
         v4.setVersion(versionV4);
         v4.setKeepAlive(httpClientOptions.isKeepAlive());

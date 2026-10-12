@@ -38,19 +38,17 @@ public class ApiMetadataDecoderDomainService {
     private final ApiMetadataQueryService metadataQueryService;
     private final TemplateProcessor templateProcessor;
 
-    public ApiMetadataDecoderDomainService(ApiMetadataQueryService metadataQueryService, TemplateProcessor templateProcessor) {
+    public ApiMetadataDecoderDomainService(
+            ApiMetadataQueryService metadataQueryService, TemplateProcessor templateProcessor) {
         this.metadataQueryService = metadataQueryService;
         this.templateProcessor = templateProcessor;
     }
 
     public Map<String, String> decodeMetadata(String environmentId, String apiId, ApiMetadataDecodeContext context) {
-        var metadata = metadataQueryService
-            .findApiMetadata(environmentId, apiId)
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue().getValue() != null)
-            .map(entry -> Map.entry(entry.getKey(), entry.getValue().getValue()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        var metadata = metadataQueryService.findApiMetadata(environmentId, apiId).entrySet().stream()
+                .filter(entry -> entry.getValue().getValue() != null)
+                .map(entry -> Map.entry(entry.getKey(), entry.getValue().getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return decode(metadata, context);
     }
@@ -70,11 +68,13 @@ public class ApiMetadataDecoderDomainService {
         }
 
         try {
-            var decodedValue = templateProcessor.processInlineTemplate(metadata.toString(), Collections.singletonMap("api", context));
+            var decodedValue = templateProcessor.processInlineTemplate(
+                    metadata.toString(), Collections.singletonMap("api", context));
 
-            return Arrays.stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                .map(entry -> entry.split("=", 2))
-                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+            return Arrays.stream(
+                            decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                    .map(entry -> entry.split("=", 2))
+                    .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
         } catch (TemplateProcessorException e) {
             log.warn("Error while creating template '{}' from reader:\n{}", e.getTemplate(), e.getMessage());
             return metadata;

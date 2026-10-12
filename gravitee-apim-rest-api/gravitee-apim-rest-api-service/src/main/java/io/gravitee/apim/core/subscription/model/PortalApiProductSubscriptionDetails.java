@@ -18,13 +18,7 @@ package io.gravitee.apim.core.subscription.model;
 import java.util.List;
 
 public record PortalApiProductSubscriptionDetails(
-    String id,
-    String name,
-    String version,
-    Availability availability,
-    PlanSummary plan,
-    List<ApiSummary> apis
-) {
+        String id, String name, String version, Availability availability, PlanSummary plan, List<ApiSummary> apis) {
     public enum Availability {
         AVAILABLE,
         UNAVAILABLE,
@@ -39,14 +33,13 @@ public record PortalApiProductSubscriptionDetails(
     public record PlanSummary(String id, String name, String security, String mode) {}
 
     public record ApiSummary(
-        String id,
-        String name,
-        String version,
-        String type,
-        ApiAvailability availability,
-        List<String> entrypoints,
-        DocumentationTarget documentation
-    ) {}
+            String id,
+            String name,
+            String version,
+            String type,
+            ApiAvailability availability,
+            List<String> entrypoints,
+            DocumentationTarget documentation) {}
 
     public record DocumentationTarget(String rootId, String navigationItemId) {}
 }

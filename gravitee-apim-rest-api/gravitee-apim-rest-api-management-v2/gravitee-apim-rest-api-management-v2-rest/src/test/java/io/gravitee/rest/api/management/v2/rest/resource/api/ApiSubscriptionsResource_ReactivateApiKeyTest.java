@@ -48,9 +48,8 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
     @Override
     protected String contextPath() {
-        return (
-            "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/" + SUBSCRIPTION + "/api-keys/" + API_KEY_ID + "/_reactivate"
-        );
+        return ("/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/" + SUBSCRIPTION + "/api-keys/"
+                + API_KEY_ID + "/_reactivate");
     }
 
     @Test
@@ -67,12 +66,11 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .referenceId("ANOTHER-API")
-            .referenceType("API")
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .referenceId("ANOTHER-API")
+                .referenceType("API")
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
@@ -86,13 +84,18 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
     @Test
     public void should_return_404_if_api_key_not_found() {
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
-        );
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
-        );
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenThrow(new ApiKeyNotFoundException());
+        when(subscriptionService.findById(SUBSCRIPTION))
+                .thenReturn(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .referenceId(API)
+                        .referenceType("API")
+                        .build());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .build());
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID))
+                .thenThrow(new ApiKeyNotFoundException());
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -104,19 +107,25 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
     @Test
     public void should_return_404_if_api_key_associated_to_another_subscription() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build()))
-            .build();
+        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                .id(API_KEY_ID)
+                .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("ANOTHER-SUBSCRIPTION")
+                        .build()))
+                .build();
 
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
-        );
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
-        );
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKeyEntity);
+        when(subscriptionService.findById(SUBSCRIPTION))
+                .thenReturn(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .referenceId(API)
+                        .referenceType("API")
+                        .build());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .build());
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID))
+                .thenReturn(apiKeyEntity);
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -128,25 +137,30 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
     @Test
     public void should_return_400_if_application_is_in_shared_api_key_mode() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(
-                Set.of(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build(),
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()
-                )
-            )
-            .build();
+        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                .id(API_KEY_ID)
+                .subscriptions(Set.of(
+                        SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                .id("ANOTHER-SUBSCRIPTION")
+                                .build(),
+                        SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                .id(SUBSCRIPTION)
+                                .build()))
+                .build();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
-        );
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build()
-        );
+        when(subscriptionService.findById(SUBSCRIPTION))
+                .thenReturn(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .referenceId(API)
+                        .referenceType("API")
+                        .build());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .apiKeyMode(ApiKeyMode.SHARED)
+                        .build());
         when(apiKeyService.findById(executionContext, API_KEY_ID)).thenReturn(apiKeyEntity);
 
         final Response response = rootTarget().request().post(Entity.json(null));
@@ -154,19 +168,18 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
         var error = response.readEntity(Error.class);
         assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
-        assertEquals("Invalid operation for API Key mode [SHARED] of application [my-application].", error.getMessage());
+        assertEquals(
+                "Invalid operation for API Key mode [SHARED] of application [my-application].", error.getMessage());
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -178,20 +191,25 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
     @Test
     public void should_reactivate_api_key() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()))
-            .build();
+        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                .id(API_KEY_ID)
+                .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .build()))
+                .build();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
-        );
-        when(applicationService.findById(executionContext, APPLICATION)).thenReturn(
-            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
-        );
+        when(subscriptionService.findById(SUBSCRIPTION))
+                .thenReturn(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .referenceId(API)
+                        .referenceType("API")
+                        .build());
+        when(applicationService.findById(executionContext, APPLICATION))
+                .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION)
+                        .build());
         when(apiKeyService.findById(executionContext, API_KEY_ID)).thenReturn(apiKeyEntity);
         when(apiKeyService.reactivate(executionContext, apiKeyEntity)).thenReturn(apiKeyEntity);
 

@@ -65,8 +65,8 @@ public class TokenExtractor {
     @Deprecated
     public static String extract(io.gravitee.gateway.api.Request request) {
         return extractFromHeaders(request.headers())
-            .or(() -> extractFromParameters(request.parameters()))
-            .orElse(null);
+                .or(() -> extractFromParameters(request.parameters()))
+                .orElse(null);
     }
 
     private static Optional<String> extractFromHeaders(HttpHeaders headers) {
@@ -74,13 +74,15 @@ public class TokenExtractor {
             List<String> authorizationHeaders = headers.getAll(HttpHeaderNames.AUTHORIZATION);
 
             if (!ObjectUtils.isEmpty(authorizationHeaders)) {
-                Optional<String> authorizationBearerHeader = authorizationHeaders
-                    .stream()
-                    .filter(h -> StringUtils.startsWithIgnoreCase(h, BEARER))
-                    .findFirst();
+                Optional<String> authorizationBearerHeader = authorizationHeaders.stream()
+                        .filter(h -> StringUtils.startsWithIgnoreCase(h, BEARER))
+                        .findFirst();
 
                 if (authorizationBearerHeader.isPresent()) {
-                    return Optional.of(authorizationBearerHeader.get().substring(BEARER.length()).trim());
+                    return Optional.of(authorizationBearerHeader
+                            .get()
+                            .substring(BEARER.length())
+                            .trim());
                 }
             }
         }

@@ -35,12 +35,12 @@ class PortalCategoryAdapterTest {
         @Test
         void maps_all_fields() {
             var repository = io.gravitee.repository.management.model.PortalCategory.builder()
-                .id("00000000-0000-0000-0000-0000000000b1")
-                .environmentId("env")
-                .title("News")
-                .description("News category")
-                .visible(true)
-                .build();
+                    .id("00000000-0000-0000-0000-0000000000b1")
+                    .environmentId("env")
+                    .title("News")
+                    .description("News category")
+                    .visible(true)
+                    .build();
 
             var domain = adapter.toModel(repository);
 
@@ -63,12 +63,7 @@ class PortalCategoryAdapterTest {
         @Test
         void maps_all_fields() {
             var domain = PortalCategory.of(
-                PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1"),
-                "env",
-                "News",
-                "News category",
-                true
-            );
+                    PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1"), "env", "News", "News category", true);
 
             var repository = adapter.toRepository(domain);
 
@@ -87,7 +82,8 @@ class PortalCategoryAdapterTest {
 
     @Test
     void round_trip_through_repository_and_back() {
-        var domain = PortalCategory.of(PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1"), "env", "News", "News category", true);
+        var domain = PortalCategory.of(
+                PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1"), "env", "News", "News category", true);
 
         var roundTripped = adapter.toModel(adapter.toRepository(domain));
 

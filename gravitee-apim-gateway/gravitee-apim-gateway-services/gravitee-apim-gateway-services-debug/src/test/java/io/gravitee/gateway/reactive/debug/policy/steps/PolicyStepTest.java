@@ -75,21 +75,22 @@ class PolicyStepTest {
 
     static class DummyPolicyStep extends PolicyStep<Object> {
 
-        public DummyPolicyStep(final String policyId, final ExecutionPhase exedummyPolicyStepionPhase, final String flowPhase) {
+        public DummyPolicyStep(
+                final String policyId, final ExecutionPhase exedummyPolicyStepionPhase, final String flowPhase) {
             super(policyId, exedummyPolicyStepionPhase, flowPhase);
         }
 
         @Override
-        protected Single<PolicyStepState> saveInputState(final Object source, final Map<String, Serializable> inputAttributes) {
+        protected Single<PolicyStepState> saveInputState(
+                final Object source, final Map<String, Serializable> inputAttributes) {
             return Single.just(new PolicyStepState());
         }
 
         @Override
         protected Single<Map<String, Object>> computeDiff(
-            final Object source,
-            final PolicyStepState inputState,
-            final Map<String, Serializable> outputAttributes
-        ) {
+                final Object source,
+                final PolicyStepState inputState,
+                final Map<String, Serializable> outputAttributes) {
             return Single.just(Map.of());
         }
     }

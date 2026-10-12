@@ -65,16 +65,10 @@ public class ApiProcessorChainFactory {
 
     public ApiProcessorChainFactory(final Configuration configuration, Node node) {
         this.configuration = configuration;
-        this.overrideXForwardedPrefix = configuration.getProperty(
-            HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY,
-            Boolean.class,
-            false
-        );
+        this.overrideXForwardedPrefix =
+                configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false);
         this.clientIdentifierHeader = configuration.getProperty(
-            HANDLERS_REQUEST_CLIENT_HEADER,
-            String.class,
-            DEFAULT_CLIENT_IDENTIFIER_HEADER
-        );
+                HANDLERS_REQUEST_CLIENT_HEADER, String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
 
         this.node = node;
 
@@ -165,7 +159,8 @@ public class ApiProcessorChainFactory {
     public ProcessorChain onError(final Api api, final TracingContext tracingContext) {
         List<Processor> errorProcessorList = new ArrayList<>(getAfterApiExecutionProcessors(api));
 
-        if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
+        if (api.getDefinition().getResponseTemplates() != null
+                && !api.getDefinition().getResponseTemplates().isEmpty()) {
             errorProcessorList.add(ResponseTemplateBasedFailureProcessor.instance());
         } else {
             errorProcessorList.add(SimpleFailureProcessor.instance());

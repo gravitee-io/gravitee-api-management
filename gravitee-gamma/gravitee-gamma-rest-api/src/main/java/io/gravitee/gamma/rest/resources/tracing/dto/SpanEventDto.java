@@ -25,6 +25,7 @@ import java.util.Map;
  */
 public record SpanEventDto(String name, long timestampEpochMs, Map<String, String> attributes) {
     public static SpanEventDto from(SpanEvent event) {
-        return new SpanEventDto(event.name(), event.timestamp() != null ? event.timestamp().toEpochMilli() : 0L, event.attributes());
+        return new SpanEventDto(
+                event.name(), event.timestamp() != null ? event.timestamp().toEpochMilli() : 0L, event.attributes());
     }
 }

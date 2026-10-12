@@ -49,23 +49,28 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldGenerateCorrectTermsQueryJson() throws Exception {
             GroupByQuery query = new GroupByQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                FIELD,
-                Collections.emptyList(),
-                Optional.empty(),
-                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    FIELD,
+                    Collections.emptyList(),
+                    Optional.empty(),
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty());
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
+            assertEquals(
+                    FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
+            assertEquals(
+                    TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
             assertEquals(FIELD, node.at("/aggregations/by_status/terms/field").asText());
         }
 
@@ -73,39 +78,48 @@ class GroupByQueryAdapterTest {
         void shouldGenerateCorrectRangeQueryJson() throws Exception {
             List<GroupByQuery.Group> groups = List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200));
             GroupByQuery query = new GroupByQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                FIELD,
-                groups,
-                Optional.empty(),
-                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    FIELD,
+                    groups,
+                    Optional.empty(),
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty());
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
-            assertEquals(2, node.at("/aggregations/by_status_range/range/ranges").size());
-            assertEquals(0, node.at("/aggregations/by_status_range/range/ranges/0/from").asInt());
-            assertEquals(100, node.at("/aggregations/by_status_range/range/ranges/0/to").asInt());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
+            assertEquals(
+                    FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
+            assertEquals(
+                    TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
+            assertEquals(
+                    2, node.at("/aggregations/by_status_range/range/ranges").size());
+            assertEquals(
+                    0,
+                    node.at("/aggregations/by_status_range/range/ranges/0/from").asInt());
+            assertEquals(
+                    100,
+                    node.at("/aggregations/by_status_range/range/ranges/0/to").asInt());
         }
 
         @Test
         void shouldIncludeQueryStringIfPresent() throws Exception {
             String queryString = "status:200";
             GroupByQuery query = new GroupByQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                FIELD,
-                List.of(),
-                Optional.empty(),
-                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.of(queryString)
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    FIELD,
+                    List.of(),
+                    Optional.empty(),
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.of(queryString));
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -116,7 +130,9 @@ class GroupByQueryAdapterTest {
             for (JsonNode filterNode : node.at("/query/bool/filter")) {
                 if (filterNode.has("query_string")) {
                     hasQueryString = true;
-                    assertEquals(queryString, filterNode.get("query_string").get("query").asText());
+                    assertEquals(
+                            queryString,
+                            filterNode.get("query_string").get("query").asText());
                 }
             }
             assertTrue(hasQueryString, "Should contain query_string filter");
@@ -126,45 +142,46 @@ class GroupByQueryAdapterTest {
         void shouldGenerateTermsQueryWithAvgOrderAggregation() throws Exception {
             GroupByQuery.Order order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
             GroupByQuery query = new GroupByQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                FIELD,
-                List.of(),
-                Optional.of(order),
-                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    FIELD,
+                    List.of(),
+                    Optional.of(order),
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty());
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
 
-            assertEquals("desc", node.at("/aggregations/by_status/terms/order/gateway-response-time-ms").asText());
             assertEquals(
-                "gateway-response-time-ms",
-                node.at("/aggregations/by_status/aggregations/gateway-response-time-ms/avg/field").asText()
-            );
+                    "desc",
+                    node.at("/aggregations/by_status/terms/order/gateway-response-time-ms")
+                            .asText());
+            assertEquals(
+                    "gateway-response-time-ms",
+                    node.at("/aggregations/by_status/aggregations/gateway-response-time-ms/avg/field")
+                            .asText());
         }
 
         @Test
         void shouldGenerateTermsQueryWithCountOrder() throws Exception {
             GroupByQuery.Order order = new GroupByQuery.Order("status", true, "COUNT");
             GroupByQuery query = new GroupByQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                FIELD,
-                List.of(),
-                Optional.of(order),
-                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    FIELD,
+                    List.of(),
+                    Optional.of(order),
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty());
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
 
-            assertEquals("asc", node.at("/aggregations/by_status/terms/order/status").asText());
-            assertTrue(
-                node.at("/aggregations/by_status/aggregations").isMissingNode() || node.at("/aggregations/by_status/aggregations").isNull()
-            );
+            assertEquals(
+                    "asc", node.at("/aggregations/by_status/terms/order/status").asText());
+            assertTrue(node.at("/aggregations/by_status/aggregations").isMissingNode()
+                    || node.at("/aggregations/by_status/aggregations").isNull());
         }
     }
 
@@ -173,16 +190,13 @@ class GroupByQueryAdapterTest {
 
         @Test
         void shouldAdaptTermsResponseCorrectly() {
-            cut.adapt(
-                new GroupByQuery(
+            cut.adapt(new GroupByQuery(
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     List.of(),
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
-                )
-            );
+                    Optional.empty()));
 
             Aggregation agg = new Aggregation();
             agg.setBuckets(List.of(createBucket("200", 10), createBucket("404", 5)));
@@ -206,16 +220,13 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldAdaptRangeResponseCorrectly() {
             List<GroupByQuery.Group> groups = List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200));
-            cut.adapt(
-                new GroupByQuery(
+            cut.adapt(new GroupByQuery(
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     groups,
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
-                )
-            );
+                    Optional.empty()));
 
             Aggregation agg = new Aggregation();
             agg.setBuckets(List.of(createBucket("0.0-100.0", 7), createBucket("100.0-200.0", 3)));
@@ -238,16 +249,13 @@ class GroupByQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoAggregations() {
-            cut.adapt(
-                new GroupByQuery(
+            cut.adapt(new GroupByQuery(
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     List.of(),
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
-                )
-            );
+                    Optional.empty()));
             SearchResponse response = new SearchResponse();
             response.setAggregations(null);
             assertTrue(cut.adaptResponse(response).isEmpty());
@@ -255,16 +263,13 @@ class GroupByQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoMatchingAggregation() {
-            cut.adapt(
-                new GroupByQuery(
+            cut.adapt(new GroupByQuery(
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     List.of(),
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
-                )
-            );
+                    Optional.empty()));
             SearchResponse response = new SearchResponse();
             response.setAggregations(new HashMap<>());
             assertTrue(cut.adaptResponse(response).isEmpty());
@@ -274,13 +279,12 @@ class GroupByQueryAdapterTest {
         void shouldHandleResponseWithAggregatedFieldValue() {
             // Prepare query with order (aggregated field)
             GroupByQuery query = new GroupByQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                FIELD,
-                List.of(),
-                Optional.of(new GroupByQuery.Order("agg_value", true, "AVG")),
-                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    FIELD,
+                    List.of(),
+                    Optional.of(new GroupByQuery.Order("agg_value", true, "AVG")),
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty());
             cut.adapt(query);
             // Prepare bucket with aggregated field value
             ObjectMapper mapper = new ObjectMapper();

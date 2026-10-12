@@ -29,14 +29,20 @@ import lombok.*;
 public class DefinitionContextEntity {
 
     @NotNull
-    @Pattern(regexp = "(kubernetes|management)", flags = { Pattern.Flag.CASE_INSENSITIVE })
+    @Pattern(
+            regexp = "(kubernetes|management)",
+            flags = {Pattern.Flag.CASE_INSENSITIVE})
     private String origin;
 
     @NotNull
-    @Pattern(regexp = "(fully_managed|api_definition_only)", flags = { Pattern.Flag.CASE_INSENSITIVE })
+    @Pattern(
+            regexp = "(fully_managed|api_definition_only)",
+            flags = {Pattern.Flag.CASE_INSENSITIVE})
     private String mode;
 
     @NotNull
-    @Pattern(regexp = "(kubernetes|management)", flags = { Pattern.Flag.CASE_INSENSITIVE })
+    @Pattern(
+            regexp = "(kubernetes|management)",
+            flags = {Pattern.Flag.CASE_INSENSITIVE})
     private String syncFrom;
 }

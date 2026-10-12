@@ -60,15 +60,13 @@ class IndexUpgraderTest {
             @Override
             protected Index buildIndex() {
                 return Index.builder()
-                    .collection(COLLECTION)
-                    .name(INDEX_NAME)
-                    .key("name", ascending())
-                    .build();
+                        .collection(COLLECTION)
+                        .name(INDEX_NAME)
+                        .key("name", ascending())
+                        .build();
             }
         };
-        lenient()
-            .when(environment.getProperty("management.mongodb.prefix", ""))
-            .thenReturn("");
+        lenient().when(environment.getProperty("management.mongodb.prefix", "")).thenReturn("");
         upgrader.setEnvironment(environment);
         upgrader.setMongoTemplate(template);
         lenient().when(template.indexOps(COLLECTION)).thenReturn(indexOperations);
@@ -84,9 +82,7 @@ class IndexUpgraderTest {
     @Test
     void should_skip_when_an_index_with_the_same_key_pattern_already_exists() {
         // Amazon DocumentDB rejects a second index on the same key pattern, even with a different name or collation.
-        when(indexOperations.ensureIndex(any())).thenReturn(
-            Mono.error(indexOptionsConflict())
-        );
+        when(indexOperations.ensureIndex(any())).thenReturn(Mono.error(indexOptionsConflict()));
 
         assertThat(upgrader.upgrade()).isTrue();
     }
@@ -94,10 +90,7 @@ class IndexUpgraderTest {
     @Test
     void should_skip_when_the_conflict_is_wrapped_by_spring_data() {
         // Spring Data translates MongoCommandException into a DataAccessException keeping the original as cause.
-        var wrapped = new DataIntegrityViolationException(
-            "Command failed with error 85",
-            indexOptionsConflict()
-        );
+        var wrapped = new DataIntegrityViolationException("Command failed with error 85", indexOptionsConflict());
         when(indexOperations.ensureIndex(any())).thenReturn(Mono.error(wrapped));
 
         assertThat(upgrader.upgrade()).isTrue();
@@ -105,18 +98,14 @@ class IndexUpgraderTest {
 
     @Test
     void should_fail_on_any_other_mongo_error() {
-        when(indexOperations.ensureIndex(any())).thenReturn(
-            Mono.error(mongoError(86, "IndexKeySpecsConflict"))
-        );
+        when(indexOperations.ensureIndex(any())).thenReturn(Mono.error(mongoError(86, "IndexKeySpecsConflict")));
 
         assertThat(upgrader.upgrade()).isFalse();
     }
 
     @Test
     void should_fail_on_unexpected_error() {
-        when(indexOperations.ensureIndex(any())).thenReturn(
-            Mono.error(new IllegalStateException("boom"))
-        );
+        when(indexOperations.ensureIndex(any())).thenReturn(Mono.error(new IllegalStateException("boom")));
 
         assertThat(upgrader.upgrade()).isFalse();
     }
@@ -126,52 +115,39 @@ class IndexUpgraderTest {
 
         @Test
         void should_detect_error_code_85() {
-            assertThat(
-                IndexUpgrader.isIndexOptionsConflict(indexOptionsConflict())
-            ).isTrue();
+            assertThat(IndexUpgrader.isIndexOptionsConflict(indexOptionsConflict()))
+                    .isTrue();
         }
 
         @Test
         void should_detect_error_code_85_in_cause_chain() {
-            var wrapped = new RuntimeException(
-                "outer",
-                new DataIntegrityViolationException("inner", indexOptionsConflict())
-            );
+            var wrapped =
+                    new RuntimeException("outer", new DataIntegrityViolationException("inner", indexOptionsConflict()));
             assertThat(IndexUpgrader.isIndexOptionsConflict(wrapped)).isTrue();
         }
 
         @Test
         void should_ignore_other_error_codes() {
-            assertThat(
-                IndexUpgrader.isIndexOptionsConflict(
-                    mongoError(86, "IndexKeySpecsConflict")
-                )
-            ).isFalse();
+            assertThat(IndexUpgrader.isIndexOptionsConflict(mongoError(86, "IndexKeySpecsConflict")))
+                    .isFalse();
         }
 
         @Test
         void should_ignore_non_mongo_errors() {
-            assertThat(
-                IndexUpgrader.isIndexOptionsConflict(new IllegalStateException("boom"))
-            ).isFalse();
+            assertThat(IndexUpgrader.isIndexOptionsConflict(new IllegalStateException("boom")))
+                    .isFalse();
         }
     }
 
     private static MongoCommandException indexOptionsConflict() {
-        return mongoError(
-            IndexUpgrader.INDEX_OPTIONS_CONFLICT_ERROR_CODE,
-            "IndexOptionsConflict"
-        );
+        return mongoError(IndexUpgrader.INDEX_OPTIONS_CONFLICT_ERROR_CODE, "IndexOptionsConflict");
     }
 
     private static MongoCommandException mongoError(int code, String codeName) {
         var response = new BsonDocument("ok", new BsonInt32(0))
-            .append("code", new BsonInt32(code))
-            .append("codeName", new BsonString(codeName))
-            .append(
-                "errmsg",
-                new BsonString("Index already exists with different options")
-            );
+                .append("code", new BsonInt32(code))
+                .append("codeName", new BsonString(codeName))
+                .append("errmsg", new BsonString("Index already exists with different options"));
         return new MongoCommandException(response, new ServerAddress("localhost", 27017));
     }
 }

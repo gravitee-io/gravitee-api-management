@@ -171,13 +171,19 @@ public class Flow implements Serializable, ConditionSupplier {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Stream.of(computePlugins(this.post), computePlugins(this.pre)).flatMap(List::stream).collect(Collectors.toList());
+        return Stream.of(computePlugins(this.post), computePlugins(this.pre))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     @JsonIgnore
     private List<Plugin> computePlugins(List<Step> steps) {
         return Optional.ofNullable(steps)
-            .map(s -> s.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-            .orElse(List.of());
+                .map(s -> s.stream()
+                        .filter(Step::isEnabled)
+                        .map(Step::getPlugins)
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList()))
+                .orElse(List.of());
     }
 }

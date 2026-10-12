@@ -33,9 +33,11 @@ public interface ApiProductMapper {
 
     PortalApiProductApi map(ApiSummary api);
 
-    List<PortalCatalogApiProductSummary> map(List<io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary> apiProducts);
+    List<PortalCatalogApiProductSummary> map(
+            List<io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary> apiProducts);
 
-    PortalCatalogApiProductSummary map(io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary apiProduct);
+    PortalCatalogApiProductSummary map(
+            io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary apiProduct);
 
     PortalApiProductApi map(io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary.ApiSummary api);
 

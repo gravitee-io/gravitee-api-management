@@ -98,7 +98,8 @@ class UpdatePlanDomainServiceTest {
 
     private static final Api API_PROXY_V4 = aProxyApiV4().toBuilder().id(API_ID).build();
     private static final Api NATIVE_API = aNativeApi().toBuilder().id(API_ID).build();
-    private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
+    private static final Api API_MESSAGE_V4 =
+            aMessageApiV4().toBuilder().id(API_ID).build();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
@@ -129,38 +130,49 @@ class UpdatePlanDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
 
         service = new UpdatePlanDomainService(
-            planQueryService,
-            planCrudService,
-            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-            new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
-            flowCrudService,
-            auditDomainService,
-            planSynchronizationService,
-            new ReorderPlanDomainService(planQueryService, planCrudService),
-            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
-            kafkaPortRanges
-        );
+                planQueryService,
+                planCrudService,
+                new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
+                new FlowValidationDomainService(
+                        policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
+                flowCrudService,
+                auditDomainService,
+                planSynchronizationService,
+                new ReorderPlanDomainService(planQueryService, planCrudService),
+                new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+                kafkaPortRanges);
 
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"),
-                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(1)
-        );
-        when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
+        parametersQueryService.initWith(List.of(
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true"),
+                new Parameter(
+                        Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
+        when(planSynchronizationService.checkSynchronized(any(), any(), any(), any()))
+                .thenReturn(true);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService, kafkaPortRanges).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+                        auditCrudService,
+                        flowCrudService,
+                        pageCrudService,
+                        parametersQueryService,
+                        planCrudService,
+                        kafkaPortRanges)
+                .forEach(InMemoryAlternative::reset);
         reset(policyValidationDomainService, planSynchronizationService);
     }
 
@@ -171,12 +183,15 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_invalid_status_change_detected() {
             // Given
             var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().build();
-            parametersQueryService.initWith(
-                List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
-            );
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    "false")));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(
+                    () -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
@@ -186,12 +201,12 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_security_configuration_is_invalid() {
             // Given
             var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().build();
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
-                new InvalidDataException("invalid")
-            );
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                    .thenThrow(new InvalidDataException("invalid"));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(
+                    () -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
@@ -205,12 +220,15 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_invalid_status_change_detected_native_api() {
             // Given
             var plan = PlanFixtures.NativeV4.anApiKey().toBuilder().build();
-            parametersQueryService.initWith(
-                List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
-            );
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    "false")));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), NATIVE_API, AUDIT_INFO));
+            var throwable =
+                    Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), NATIVE_API, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
@@ -220,12 +238,12 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_security_configuration_is_invalid_native_api() {
             // Given
             var plan = PlanFixtures.NativeV4.anApiKey().toBuilder().build();
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
-                new InvalidDataException("invalid")
-            );
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                    .thenThrow(new InvalidDataException("invalid"));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), NATIVE_API, AUDIT_INFO));
+            var throwable =
+                    Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), NATIVE_API, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
@@ -236,24 +254,22 @@ class UpdatePlanDomainServiceTest {
             // Given — a native plan with port routing already exists, and so does the matching
             // kafka_port_ranges row created some time ago.
             var existingCreatedAt = Instant.parse("2024-01-15T08:00:00Z");
-            var portModePlan = PlanFixtures.NativeV4.aKeyless()
-                .toBuilder()
-                .id("plan-with-ports")
-                .apiId(API_ID)
-                .planDefinitionNativeV4(
-                    io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
-                        .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
-                        .mode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD)
-                        .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
-                        .bootstrapPort(9092)
-                        .brokerRangeStart(9100)
-                        .brokerRangeEnd(9102)
-                        .build()
-                )
-                .build();
+            var portModePlan = PlanFixtures.NativeV4.aKeyless().toBuilder()
+                    .id("plan-with-ports")
+                    .apiId(API_ID)
+                    .planDefinitionNativeV4(io.gravitee.definition.model.v4.nativeapi.NativePlan.builder()
+                            .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder()
+                                    .type("key-less")
+                                    .build())
+                            .mode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD)
+                            .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                            .bootstrapPort(9092)
+                            .brokerRangeStart(9100)
+                            .brokerRangeEnd(9102)
+                            .build())
+                    .build();
             givenExistingPlan(portModePlan);
-            kafkaPortRanges.create(
-                io.gravitee.apim.core.plan.model.KafkaPortRange.builder()
+            kafkaPortRanges.create(io.gravitee.apim.core.plan.model.KafkaPortRange.builder()
                     .planId(portModePlan.getId())
                     .apiId(API_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -262,26 +278,26 @@ class UpdatePlanDomainServiceTest {
                     .rangeEnd(9102)
                     .createdAt(existingCreatedAt.atZone(ZoneId.systemDefault()))
                     .updatedAt(existingCreatedAt.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                    .build());
 
             // When — the plan is updated with a new broker range (touching the port row again)
-            var updated = portModePlan
-                .toBuilder()
-                .planDefinitionNativeV4(
-                    portModePlan.getPlanDefinitionNativeV4().toBuilder().brokerRangeStart(9200).brokerRangeEnd(9205).build()
-                )
-                .build();
+            var updated = portModePlan.toBuilder()
+                    .planDefinitionNativeV4(portModePlan.getPlanDefinitionNativeV4().toBuilder()
+                            .brokerRangeStart(9200)
+                            .brokerRangeEnd(9205)
+                            .build())
+                    .build();
             service.update(updated, List.of(), Map.of(), NATIVE_API, AUDIT_INFO);
 
             // Then — the row was updated in place, but createdAt was preserved (regression: was being nulled).
             Assertions.assertThat(kafkaPortRanges.findByPlanId(portModePlan.getId()))
-                .isPresent()
-                .hasValueSatisfying(pr -> {
-                    Assertions.assertThat(pr.getRangeStart()).isEqualTo(9200);
-                    Assertions.assertThat(pr.getRangeEnd()).isEqualTo(9205);
-                    Assertions.assertThat(pr.getCreatedAt()).isEqualTo(existingCreatedAt.atZone(ZoneId.systemDefault()));
-                });
+                    .isPresent()
+                    .hasValueSatisfying(pr -> {
+                        Assertions.assertThat(pr.getRangeStart()).isEqualTo(9200);
+                        Assertions.assertThat(pr.getRangeEnd()).isEqualTo(9205);
+                        Assertions.assertThat(pr.getCreatedAt())
+                                .isEqualTo(existingCreatedAt.atZone(ZoneId.systemDefault()));
+                    });
         }
     }
 
@@ -295,52 +311,56 @@ class UpdatePlanDomainServiceTest {
 
             // When
             var result = service.update(
-                plan
-                    .toBuilder()
-                    .name("new name")
-                    .description("new description")
-                    .validation(Plan.PlanValidationType.AUTO)
-                    .characteristics(List.of("new characteristic"))
-                    .commentMessage("new comment message")
-                    .commentRequired(true)
-                    .build(),
-                List.of(),
-                Map.of(),
-                null,
-                AUDIT_INFO
-            );
+                    plan.toBuilder()
+                            .name("new name")
+                            .description("new description")
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .characteristics(List.of("new characteristic"))
+                            .commentMessage("new comment message")
+                            .commentRequired(true)
+                            .build(),
+                    List.of(),
+                    Map.of(),
+                    null,
+                    AUDIT_INFO);
 
             // Then
             CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
-                .isEqualTo(result)
-                .extracting(
-                    Plan::getName,
-                    Plan::getDescription,
-                    Plan::getValidation,
-                    Plan::getCharacteristics,
-                    Plan::getCommentMessage,
-                    Plan::isCommentRequired,
-                    Plan::getUpdatedAt
-                )
-                .contains(
-                    "new name",
-                    "new description",
-                    Plan.PlanValidationType.AUTO,
-                    List.of("new characteristic"),
-                    "new comment message",
-                    true,
-                    INSTANT_NOW.atZone(ZoneId.systemDefault())
-                );
+                    .isEqualTo(result)
+                    .extracting(
+                            Plan::getName,
+                            Plan::getDescription,
+                            Plan::getValidation,
+                            Plan::getCharacteristics,
+                            Plan::getCommentMessage,
+                            Plan::isCommentRequired,
+                            Plan::getUpdatedAt)
+                    .contains(
+                            "new name",
+                            "new description",
+                            Plan.PlanValidationType.AUTO,
+                            List.of("new characteristic"),
+                            "new comment message",
+                            true,
+                            INSTANT_NOW.atZone(ZoneId.systemDefault()));
         }
 
         @Test
         void should_reorder_all_plans_when_order_is_updated() {
             // Given
             var plans = givenExistingPlans(
-                PlanFixtures.aFederatedPlan().toBuilder().id("plan1").order(1).build(),
-                PlanFixtures.aFederatedPlan().toBuilder().id("plan2").order(2).build(),
-                PlanFixtures.aFederatedPlan().toBuilder().id("plan3").order(3).build()
-            );
+                    PlanFixtures.aFederatedPlan().toBuilder()
+                            .id("plan1")
+                            .order(1)
+                            .build(),
+                    PlanFixtures.aFederatedPlan().toBuilder()
+                            .id("plan2")
+                            .order(2)
+                            .build(),
+                    PlanFixtures.aFederatedPlan().toBuilder()
+                            .id("plan3")
+                            .order(3)
+                            .build());
 
             // When
             var toUpdate = plans.get(0).toBuilder().order(2).build();
@@ -349,25 +369,25 @@ class UpdatePlanDomainServiceTest {
 
             // Then
             Assertions.assertThat(planCrudService.storage())
-                .extracting(Plan::getId, Plan::getOrder)
-                .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
+                    .extracting(Plan::getId, Plan::getOrder)
+                    .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
 
         @Test
         void should_throw_when_general_conditions_page_is_not_published_while_updating_a_federated_plan() {
             // Given
             var plan = givenExistingPlan(PlanFixtures.aFederatedPlan());
-            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
+            pageCrudService.initWith(
+                    List.of(Page.builder().id("page-id").published(false).build()));
 
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.update(plan.toBuilder().generalConditions("page-id").build(), List.of(), null, null, AUDIT_INFO)
-            );
+            var throwable = Assertions.catchThrowable(() -> service.update(
+                    plan.toBuilder().generalConditions("page-id").build(), List.of(), null, null, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Plan references a non published page as general conditions");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Plan references a non published page as general conditions");
         }
 
         @Test
@@ -376,9 +396,8 @@ class UpdatePlanDomainServiceTest {
             var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.CLOSED));
 
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.update(plan.copy().setPlanStatus(PlanStatus.DEPRECATED), List.of(), null, null, AUDIT_INFO)
-            );
+            var throwable = Assertions.catchThrowable(() -> service.update(
+                    plan.copy().setPlanStatus(PlanStatus.DEPRECATED), List.of(), null, null, AUDIT_INFO));
 
             // Then
             Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
@@ -395,32 +414,30 @@ class UpdatePlanDomainServiceTest {
             givenExistingPlan(plan);
 
             // When
-            Plan toUpdate = plan
-                .toBuilder()
-                .definitionVersion(DefinitionVersion.V4)
-                .name("updated name")
-                .description("updated description")
-                .commentRequired(true)
-                .commentMessage("updated comment")
-                .planDefinitionHttpV4(
-                    plan
-                        .getPlanDefinitionHttpV4()
-                        .toBuilder()
-                        .status(PlanStatus.PUBLISHED)
-                        .tags(Set.of("tag1"))
-                        .selectionRule("updated rule")
-                        .build()
-                )
-                .excludedGroups(List.of("updated group"))
-                .characteristics(List.of("updated characteristic"))
-                .build();
+            Plan toUpdate = plan.toBuilder()
+                    .definitionVersion(DefinitionVersion.V4)
+                    .name("updated name")
+                    .description("updated description")
+                    .commentRequired(true)
+                    .commentMessage("updated comment")
+                    .planDefinitionHttpV4(plan.getPlanDefinitionHttpV4().toBuilder()
+                            .status(PlanStatus.PUBLISHED)
+                            .tags(Set.of("tag1"))
+                            .selectionRule("updated rule")
+                            .build())
+                    .excludedGroups(List.of("updated group"))
+                    .characteristics(List.of("updated characteristic"))
+                    .build();
             var result = service.update(toUpdate, flows, null, api, AUDIT_INFO);
 
             // Then
             Assertions.assertThat(planCrudService.storage()).hasSize(1).contains(result);
             assertThat(result)
-                .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
-                .isEqualTo(toUpdate.toBuilder().updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build());
+                    .usingRecursiveComparison(
+                            RecursiveComparisonConfiguration.builder().build())
+                    .isEqualTo(toUpdate.toBuilder()
+                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .build());
         }
 
         @ParameterizedTest
@@ -431,7 +448,8 @@ class UpdatePlanDomainServiceTest {
             api.getApiDefinitionHttpV4().setTags(Set.of("tag1", "tag2"));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.update(plan.setPlanTags(Set.of("tag3")), flows, null, api, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(
+                    () -> service.update(plan.setPlanTags(Set.of("tag3")), flows, null, api, AUDIT_INFO));
 
             // Then
             Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
@@ -442,39 +460,37 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
             givenExistingPlan(plan);
-            List<Flow> invalidFlows = List.of(
-                Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
-            );
+            List<Flow> invalidFlows = List.of(Flow.builder()
+                    .name("invalid")
+                    .selectors(List.of(new HttpSelector(), new ChannelSelector()))
+                    .build());
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.update(plan, invalidFlows, null, api, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("The flow [invalid] contains selectors that couldn't apply");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("The flow [invalid] contains selectors that couldn't apply");
         }
 
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
         void should_throw_when_general_conditions_page_is_not_published_while_updating_a_published_plan(
-            Api api,
-            Plan plan,
-            List<Flow> flows
-        ) {
+                Api api, Plan plan, List<Flow> flows) {
             // Given
             var publishedPlan = givenExistingPlan(plan.toBuilder().build().setPlanStatus(PlanStatus.PUBLISHED));
-            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
+            pageCrudService.initWith(
+                    List.of(Page.builder().id("page-id").published(false).build()));
 
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.update(publishedPlan.toBuilder().generalConditions("page-id").build(), flows, null, api, AUDIT_INFO)
-            );
+            var throwable = Assertions.catchThrowable(() -> service.update(
+                    publishedPlan.toBuilder().generalConditions("page-id").build(), flows, null, api, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Plan references a non published page as general conditions");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Plan references a non published page as general conditions");
         }
 
         @ParameterizedTest
@@ -482,13 +498,15 @@ class UpdatePlanDomainServiceTest {
         void should_set_needDeployAt_when_update_triggers_a_synchronization(Api api, Plan plan, List<Flow> flows) {
             // Given
             givenExistingPlan(plan);
-            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(false);
+            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any()))
+                    .thenReturn(false);
 
             // When
-            var toUpdate = plan
-                .toBuilder()
-                .planDefinitionHttpV4(plan.getPlanDefinitionHttpV4().toBuilder().selectionRule("updated rule").build())
-                .build();
+            var toUpdate = plan.toBuilder()
+                    .planDefinitionHttpV4(plan.getPlanDefinitionHttpV4().toBuilder()
+                            .selectionRule("updated rule")
+                            .build())
+                    .build();
             var result = service.update(toUpdate, flows, null, api, AUDIT_INFO);
 
             // Then
@@ -504,32 +522,31 @@ class UpdatePlanDomainServiceTest {
         void should_not_throw_for_a_valid_plan_and_flows(Api api, Plan plan, List<Flow> flows) {
             givenExistingPlan(plan);
 
-            Assertions.assertThatCode(() -> service.validate(plan, flows, api, AUDIT_INFO)).doesNotThrowAnyException();
+            Assertions.assertThatCode(() -> service.validate(plan, flows, api, AUDIT_INFO))
+                    .doesNotThrowAnyException();
         }
 
         @Test
         void should_throw_when_flows_are_invalid() {
-            var plan = PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .apiId(API_ID)
-                .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
-                        .toBuilder()
-                        .tags(Set.of(TAG))
-                        .status(PlanStatus.STAGING)
-                        .build()
-                )
-                .build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                    .apiId(API_ID)
+                    .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder()
+                            .tags(Set.of(TAG))
+                            .status(PlanStatus.STAGING)
+                            .build())
+                    .build();
             givenExistingPlan(plan);
-            List<Flow> invalidFlows = List.of(
-                Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
-            );
+            List<Flow> invalidFlows = List.of(Flow.builder()
+                    .name("invalid")
+                    .selectors(List.of(new HttpSelector(), new ChannelSelector()))
+                    .build());
 
-            var throwable = Assertions.catchThrowable(() -> service.validate(plan, invalidFlows, API_PROXY_V4, AUDIT_INFO));
+            var throwable =
+                    Assertions.catchThrowable(() -> service.validate(plan, invalidFlows, API_PROXY_V4, AUDIT_INFO));
 
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("The flow [invalid] contains selectors that couldn't apply");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("The flow [invalid] contains selectors that couldn't apply");
         }
     }
 
@@ -573,26 +590,27 @@ class UpdatePlanDomainServiceTest {
 
             // Then
             assertThat(auditCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-                .containsExactly(
-                    AuditEntity.builder()
-                        .id("generated-id")
-                        .organizationId(ORGANIZATION_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId(API_ID)
-                        .user(USER_ID)
-                        .properties(Map.of("PLAN", plan.getId()))
-                        .event(PlanAuditEvent.PLAN_UPDATED.name())
-                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                    .containsExactly(AuditEntity.builder()
+                            .id("generated-id")
+                            .organizationId(ORGANIZATION_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .referenceType(AuditEntity.AuditReferenceType.API)
+                            .referenceId(API_ID)
+                            .user(USER_ID)
+                            .properties(Map.of("PLAN", plan.getId()))
+                            .event(PlanAuditEvent.PLAN_UPDATED.name())
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .build());
         }
 
         @Test
         void should_preserve_existing_hrid_when_update_does_not_provide_one() {
             // Given
-            var plan = givenExistingPlan(PlanFixtures.HttpV4.aKeyless().toBuilder().apiId(API_ID).hrid("my-plan-hrid").build());
+            var plan = givenExistingPlan(PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .apiId(API_ID)
+                    .hrid("my-plan-hrid")
+                    .build());
 
             // When
             var toUpdate = plan.toBuilder().hrid(null).name("updated name").build();
@@ -605,10 +623,14 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_use_hrid_from_update_when_provided() {
             // Given
-            var plan = givenExistingPlan(PlanFixtures.HttpV4.aKeyless().toBuilder().apiId(API_ID).hrid("old-hrid").build());
+            var plan = givenExistingPlan(PlanFixtures.HttpV4.aKeyless().toBuilder()
+                    .apiId(API_ID)
+                    .hrid("old-hrid")
+                    .build());
 
             // When
-            var toUpdate = plan.toBuilder().hrid("new-hrid").name("updated name").build();
+            var toUpdate =
+                    plan.toBuilder().hrid("new-hrid").name("updated name").build();
             var result = service.update(toUpdate, List.of(), null, API_PROXY_V4, AUDIT_INFO);
 
             // Then
@@ -619,10 +641,18 @@ class UpdatePlanDomainServiceTest {
         void should_reorder_all_plans_when_order_is_updated() {
             // Given
             var plans = givenExistingPlans(
-                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan1").order(1).build(),
-                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan2").order(2).build(),
-                PlanFixtures.HttpV4.aKeyless().toBuilder().id("plan3").order(3).build()
-            );
+                    PlanFixtures.HttpV4.aKeyless().toBuilder()
+                            .id("plan1")
+                            .order(1)
+                            .build(),
+                    PlanFixtures.HttpV4.aKeyless().toBuilder()
+                            .id("plan2")
+                            .order(2)
+                            .build(),
+                    PlanFixtures.HttpV4.aKeyless().toBuilder()
+                            .id("plan3")
+                            .order(3)
+                            .build());
 
             // When
             var toUpdate = plans.get(0).toBuilder().order(2).build();
@@ -630,18 +660,26 @@ class UpdatePlanDomainServiceTest {
 
             // Then
             Assertions.assertThat(planCrudService.storage())
-                .extracting(Plan::getId, Plan::getOrder)
-                .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
+                    .extracting(Plan::getId, Plan::getOrder)
+                    .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
 
         @Test
         void should_reorder_all_native_plans_when_order_is_updated() {
             // Given
             var plans = givenExistingPlans(
-                PlanFixtures.NativeV4.aKeyless().toBuilder().id("plan1").order(1).build(),
-                PlanFixtures.NativeV4.aKeyless().toBuilder().id("plan2").order(2).build(),
-                PlanFixtures.NativeV4.aKeyless().toBuilder().id("plan3").order(3).build()
-            );
+                    PlanFixtures.NativeV4.aKeyless().toBuilder()
+                            .id("plan1")
+                            .order(1)
+                            .build(),
+                    PlanFixtures.NativeV4.aKeyless().toBuilder()
+                            .id("plan2")
+                            .order(2)
+                            .build(),
+                    PlanFixtures.NativeV4.aKeyless().toBuilder()
+                            .id("plan3")
+                            .order(3)
+                            .build());
 
             // When
             var toUpdate = plans.get(0).toBuilder().order(2).build();
@@ -649,44 +687,41 @@ class UpdatePlanDomainServiceTest {
 
             // Then
             Assertions.assertThat(planCrudService.storage())
-                .extracting(Plan::getId, Plan::getOrder)
-                .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
+                    .extracting(Plan::getId, Plan::getOrder)
+                    .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
     }
 
     static Stream<Arguments> v4testData() {
         return Stream.of(
-            Arguments.of(
-                API_PROXY_V4,
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .apiId(API_ID)
-                    .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
-                            .toBuilder()
-                            .tags(Set.of(TAG))
-                            .status(PlanStatus.STAGING)
-                            .build()
-                    )
-                    .build(),
-                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
-            ),
-            Arguments.of(
-                API_MESSAGE_V4,
-                PlanFixtures.HttpV4.aPushPlan()
-                    .toBuilder()
-                    .apiId(API_ID)
-                    .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
-                            .toBuilder()
-                            .tags(Set.of(TAG))
-                            .status(PlanStatus.STAGING)
-                            .build()
-                    )
-                    .build(),
-                List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
-            )
-        );
+                Arguments.of(
+                        API_PROXY_V4,
+                        PlanFixtures.HttpV4.anApiKey().toBuilder()
+                                .apiId(API_ID)
+                                .planDefinitionHttpV4(
+                                        fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder()
+                                                .tags(Set.of(TAG))
+                                                .status(PlanStatus.STAGING)
+                                                .build())
+                                .build(),
+                        List.of(Flow.builder()
+                                .name("flow")
+                                .selectors(List.of(new HttpSelector()))
+                                .build())),
+                Arguments.of(
+                        API_MESSAGE_V4,
+                        PlanFixtures.HttpV4.aPushPlan().toBuilder()
+                                .apiId(API_ID)
+                                .planDefinitionHttpV4(
+                                        fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder()
+                                                .tags(Set.of(TAG))
+                                                .status(PlanStatus.STAGING)
+                                                .build())
+                                .build(),
+                        List.of(Flow.builder()
+                                .name("flow")
+                                .selectors(List.of(new ChannelSelector()))
+                                .build())));
     }
 
     static Stream<Arguments> v4WithFederatedTestData() {
@@ -708,104 +743,95 @@ class UpdatePlanDomainServiceTest {
     class ApiProductPlan {
 
         private static final ApiProduct API_PRODUCT = ApiProduct.builder()
-            .id(API_PRODUCT_ID)
-            .name("My API Product")
-            .description("API Product Description")
-            .version("1.0.0")
-            .environmentId(ENVIRONMENT_ID)
-            .apiIds(Set.of("api-1", "api-2"))
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .build();
+                .id(API_PRODUCT_ID)
+                .name("My API Product")
+                .description("API Product Description")
+                .version("1.0.0")
+                .environmentId(ENVIRONMENT_ID)
+                .apiIds(Set.of("api-1", "api-2"))
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build();
 
         @Test
         void should_update_plan_attributes_for_api_product() {
             // Given
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .build()
-            );
+                    .build());
 
             // When
             var result = service.updatePlanForApiProduct(
-                plan
-                    .toBuilder()
-                    .name("updated name")
-                    .description("updated description")
-                    .commentRequired(true)
-                    .commentMessage("updated comment")
-                    .characteristics(List.of("updated characteristic"))
-                    .build(),
-                Map.of(),
-                API_PRODUCT,
-                AUDIT_INFO
-            );
+                    plan.toBuilder()
+                            .name("updated name")
+                            .description("updated description")
+                            .commentRequired(true)
+                            .commentMessage("updated comment")
+                            .characteristics(List.of("updated characteristic"))
+                            .build(),
+                    Map.of(),
+                    API_PRODUCT,
+                    AUDIT_INFO);
 
             // Then
             CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
-                .isEqualTo(result)
-                .extracting(
-                    Plan::getName,
-                    Plan::getDescription,
-                    Plan::getCharacteristics,
-                    Plan::getCommentMessage,
-                    Plan::isCommentRequired,
-                    Plan::getUpdatedAt
-                )
-                .contains(
-                    "updated name",
-                    "updated description",
-                    List.of("updated characteristic"),
-                    "updated comment",
-                    true,
-                    INSTANT_NOW.atZone(ZoneId.systemDefault())
-                );
+                    .isEqualTo(result)
+                    .extracting(
+                            Plan::getName,
+                            Plan::getDescription,
+                            Plan::getCharacteristics,
+                            Plan::getCommentMessage,
+                            Plan::isCommentRequired,
+                            Plan::getUpdatedAt)
+                    .contains(
+                            "updated name",
+                            "updated description",
+                            List.of("updated characteristic"),
+                            "updated comment",
+                            true,
+                            INSTANT_NOW.atZone(ZoneId.systemDefault()));
         }
 
         @Test
         void should_throw_when_invalid_status_change_detected() {
             // Given
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .build()
-                    .setPlanStatus(PlanStatus.CLOSED)
-            );
+                    .setPlanStatus(PlanStatus.CLOSED));
             HashMap statusMap = new HashMap();
             statusMap.put("plan-1", PlanStatus.CLOSED);
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.updatePlanForApiProduct(plan.copy().setPlanStatus(PlanStatus.DEPRECATED), statusMap, API_PRODUCT, AUDIT_INFO)
-            );
+            var throwable = Assertions.catchThrowable(() -> service.updatePlanForApiProduct(
+                    plan.copy().setPlanStatus(PlanStatus.DEPRECATED), statusMap, API_PRODUCT, AUDIT_INFO));
 
             // Then
-            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("Invalid status for plan");
+            Assertions.assertThat(throwable)
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("Invalid status for plan");
         }
 
         @Test
         void should_throw_when_security_type_is_not_allowed() {
             // Given
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .build()
-            );
-            parametersQueryService.initWith(
-                List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "false"))
-            );
+                    .build());
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    "false")));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.updatePlanForApiProduct(plan, Map.of(), API_PRODUCT, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(
+                    () -> service.updatePlanForApiProduct(plan, Map.of(), API_PRODUCT, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
@@ -814,60 +840,53 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_throw_when_general_conditions_page_is_not_published() {
             // Given
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED)
-            );
-            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
+                    .setPlanStatus(PlanStatus.PUBLISHED));
+            pageCrudService.initWith(
+                    List.of(Page.builder().id("page-id").published(false).build()));
 
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.updatePlanForApiProduct(plan.toBuilder().generalConditions("page-id").build(), Map.of(), API_PRODUCT, AUDIT_INFO)
-            );
+            var throwable = Assertions.catchThrowable(() -> service.updatePlanForApiProduct(
+                    plan.toBuilder().generalConditions("page-id").build(), Map.of(), API_PRODUCT, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Plan references a non published page as general conditions");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Plan references a non published page as general conditions");
         }
 
         @Test
         void should_reorder_all_plans_when_order_is_updated() {
             // Given
             var plans = givenExistingApiProductPlans(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .id("plan11")
-                    .order(1)
-                    .referenceId(API_PRODUCT_ID)
-                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    //  .apiId(API_PRODUCT_ID)
-                    .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED),
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .id("plan12")
-                    .order(2)
-                    .referenceId(API_PRODUCT_ID)
-                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    //  .apiId(API_PRODUCT_ID)
-                    .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED),
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .id("plan13")
-                    .order(3)
-                    .referenceId(API_PRODUCT_ID)
-                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    //  .apiId(API_PRODUCT_ID)
-                    .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED)
-            );
+                    PlanFixtures.HttpV4.anApiKey().toBuilder()
+                            .id("plan11")
+                            .order(1)
+                            .referenceId(API_PRODUCT_ID)
+                            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                            //  .apiId(API_PRODUCT_ID)
+                            .build()
+                            .setPlanStatus(PlanStatus.PUBLISHED),
+                    PlanFixtures.HttpV4.anApiKey().toBuilder()
+                            .id("plan12")
+                            .order(2)
+                            .referenceId(API_PRODUCT_ID)
+                            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                            //  .apiId(API_PRODUCT_ID)
+                            .build()
+                            .setPlanStatus(PlanStatus.PUBLISHED),
+                    PlanFixtures.HttpV4.anApiKey().toBuilder()
+                            .id("plan13")
+                            .order(3)
+                            .referenceId(API_PRODUCT_ID)
+                            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                            //  .apiId(API_PRODUCT_ID)
+                            .build()
+                            .setPlanStatus(PlanStatus.PUBLISHED));
             HashMap statusMap = new HashMap();
             // When
             var toUpdate = plans.get(0).toBuilder().order(2).build();
@@ -875,39 +894,36 @@ class UpdatePlanDomainServiceTest {
 
             // Then
             Assertions.assertThat(planCrudService.storage())
-                .extracting(Plan::getId, Plan::getOrder)
-                .contains(tuple("plan12", 1), tuple("plan11", 2), tuple("plan13", 3));
+                    .extracting(Plan::getId, Plan::getOrder)
+                    .contains(tuple("plan12", 1), tuple("plan11", 2), tuple("plan13", 3));
         }
 
         @Test
         void should_keep_existing_flows_when_the_update_carries_none() {
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .build()
-            );
-            var existingFlows = List.of(Flow.builder().name("Token budget").enabled(true).build());
+                    .build());
+            var existingFlows =
+                    List.of(Flow.builder().name("Token budget").enabled(true).build());
             flowCrudService.savePlanFlows("plan-1", existingFlows);
 
-            service.updatePlanForApiProduct(plan.toBuilder().name("updated name").build(), Map.of(), API_PRODUCT, AUDIT_INFO);
+            service.updatePlanForApiProduct(
+                    plan.toBuilder().name("updated name").build(), Map.of(), API_PRODUCT, AUDIT_INFO);
 
             assertThat(flowCrudService.storage()).containsExactlyElementsOf(existingFlows);
         }
 
         @Test
         void should_persist_flows_supplied_on_the_update() {
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .build()
-            );
-            var newFlows = List.of(Flow.builder().name("Token budget").enabled(true).build());
+                    .build());
+            var newFlows =
+                    List.of(Flow.builder().name("Token budget").enabled(true).build());
             var toUpdate = plan.toBuilder().build();
             toUpdate.getPlanDefinitionHttpV4().setFlows(newFlows);
 
@@ -918,15 +934,14 @@ class UpdatePlanDomainServiceTest {
 
         @Test
         void should_clear_flows_when_the_update_supplies_an_empty_list() {
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .build()
-            );
-            flowCrudService.savePlanFlows("plan-1", List.of(Flow.builder().name("Token budget").enabled(true).build()));
+                    .build());
+            flowCrudService.savePlanFlows(
+                    "plan-1",
+                    List.of(Flow.builder().name("Token budget").enabled(true).build()));
             var toUpdate = plan.toBuilder().build();
             toUpdate.getPlanDefinitionHttpV4().setFlows(List.of());
 
@@ -938,56 +953,47 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_create_an_audit_log() {
             // Given
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .build()
-            );
+                    .build());
 
             // When
-            service.updatePlanForApiProduct(plan.toBuilder().name("updated name").build(), Map.of(), API_PRODUCT, AUDIT_INFO);
+            service.updatePlanForApiProduct(
+                    plan.toBuilder().name("updated name").build(), Map.of(), API_PRODUCT, AUDIT_INFO);
 
             // Then
             assertThat(auditCrudService.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-                .anyMatch(
-                    audit ->
-                        audit.getReferenceType() == AuditEntity.AuditReferenceType.API_PRODUCT &&
-                        audit.getReferenceId().equals(API_PRODUCT_ID) &&
-                        audit.getEvent().equals(PlanAuditEvent.PLAN_UPDATED.name()) &&
-                        audit.getProperties().containsValue("plan-1")
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                    .anyMatch(audit -> audit.getReferenceType() == AuditEntity.AuditReferenceType.API_PRODUCT
+                            && audit.getReferenceId().equals(API_PRODUCT_ID)
+                            && audit.getEvent().equals(PlanAuditEvent.PLAN_UPDATED.name())
+                            && audit.getProperties().containsValue("plan-1"));
         }
 
         @Test
         void should_set_needRedeployAt_when_update_triggers_synchronization() {
             // Given
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED)
-            );
-            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(false);
+                    .setPlanStatus(PlanStatus.PUBLISHED));
+            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any()))
+                    .thenReturn(false);
 
             // When
             var result = service.updatePlanForApiProduct(
-                plan
-                    .toBuilder()
-                    .planDefinitionHttpV4(
-                        plan.getPlanDefinitionHttpV4().toBuilder().selectionRule("{ #request.headers['X-Api-Key'] != null }").build()
-                    )
-                    .build(),
-                Map.of(),
-                API_PRODUCT,
-                AUDIT_INFO
-            );
+                    plan.toBuilder()
+                            .planDefinitionHttpV4(plan.getPlanDefinitionHttpV4().toBuilder()
+                                    .selectionRule("{ #request.headers['X-Api-Key'] != null }")
+                                    .build())
+                            .build(),
+                    Map.of(),
+                    API_PRODUCT,
+                    AUDIT_INFO);
 
             // Then
             assertThat(result.getNeedRedeployAt()).isEqualTo(Date.from(INSTANT_NOW));
@@ -996,25 +1002,25 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_not_set_needRedeployAt_when_update_is_cosmetic() {
             // Given
-            var plan = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .needRedeployAt(Date.from(INSTANT_NOW.minusSeconds(3600)))
                     .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED)
-            );
-            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
+                    .setPlanStatus(PlanStatus.PUBLISHED));
+            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any()))
+                    .thenReturn(true);
 
             // When
             var result = service.updatePlanForApiProduct(
-                plan.toBuilder().name("New display name").description("New description").build(),
-                Map.of(),
-                API_PRODUCT,
-                AUDIT_INFO
-            );
+                    plan.toBuilder()
+                            .name("New display name")
+                            .description("New description")
+                            .build(),
+                    Map.of(),
+                    API_PRODUCT,
+                    AUDIT_INFO);
 
             // Then
             assertThat(result.getNeedRedeployAt()).isEqualTo(Date.from(INSTANT_NOW.minusSeconds(3600)));
@@ -1023,32 +1029,25 @@ class UpdatePlanDomainServiceTest {
         @Test
         void should_get_plan_status_map_when_null_is_passed() {
             // Given
-            var plan1 = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+            var plan1 = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-1")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED)
-            );
-            var plan2 = givenExistingApiProductPlan(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
+                    .setPlanStatus(PlanStatus.PUBLISHED));
+            var plan2 = givenExistingApiProductPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
                     .id("plan-2")
                     .referenceId(API_PRODUCT_ID)
                     .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
                     .build()
-                    .setPlanStatus(PlanStatus.STAGING)
-            );
+                    .setPlanStatus(PlanStatus.STAGING));
 
             // When
             var result = service.updatePlanForApiProduct(
-                plan1.toBuilder().name("updated name").build(),
-                null, // null existingPlanStatuses should trigger getPlanStatusMapForApiProduct
-                API_PRODUCT,
-                AUDIT_INFO
-            );
+                    plan1.toBuilder().name("updated name").build(),
+                    null, // null existingPlanStatuses should trigger getPlanStatusMapForApiProduct
+                    API_PRODUCT,
+                    AUDIT_INFO);
 
             // Then
             assertThat(result).isNotNull();

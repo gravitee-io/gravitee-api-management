@@ -57,8 +57,8 @@ class FlowAppenderTest {
     void should_do_nothing_when_no_flow() {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         OrganizationDeployable organizationDeployable = OrganizationDeployable.builder()
-            .reactableOrganization(new ReactableOrganization(new Organization()))
-            .build();
+                .reactableOrganization(new ReactableOrganization(new Organization()))
+                .build();
         OrganizationDeployable appends = cut.appends(organizationDeployable);
         assertThat(appends).isEqualTo(organizationDeployable);
     }
@@ -69,8 +69,8 @@ class FlowAppenderTest {
         Organization organization = new Organization();
         organization.setFlows(List.of(new Flow()));
         OrganizationDeployable organizationDeployable = OrganizationDeployable.builder()
-            .reactableOrganization(new ReactableOrganization(organization))
-            .build();
+                .reactableOrganization(new ReactableOrganization(organization))
+                .build();
         OrganizationDeployable appends = cut.appends(organizationDeployable);
         assertThat(appends).isEqualTo(organizationDeployable);
     }
@@ -95,8 +95,8 @@ class FlowAppenderTest {
 
         organization.setFlows(List.of(flow1, flow2));
         OrganizationDeployable organizationDeployable = OrganizationDeployable.builder()
-            .reactableOrganization(new ReactableOrganization(organization))
-            .build();
+                .reactableOrganization(new ReactableOrganization(organization))
+                .build();
         OrganizationDeployable appends = cut.appends(organizationDeployable);
         assertThat(appends.reactableOrganization().getFlows().size()).isEqualTo(1);
         assertThat(appends.reactableOrganization().getFlows().get(0)).isEqualTo(flow1);

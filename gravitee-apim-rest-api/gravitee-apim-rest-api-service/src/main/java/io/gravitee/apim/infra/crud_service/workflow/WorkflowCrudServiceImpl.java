@@ -44,22 +44,21 @@ public class WorkflowCrudServiceImpl implements WorkflowCrudService {
             return WorkflowAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurs while trying to create the %s workflow of [%sId=%s]",
-                    workflow.getType(),
-                    workflow.getReferenceType().name().toLowerCase(),
-                    workflow.getReferenceId()
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to create the %s workflow of [%sId=%s]",
+                            workflow.getType(),
+                            workflow.getReferenceType().name().toLowerCase(),
+                            workflow.getReferenceId()),
+                    e);
         }
     }
 
     public Collection<Workflow> findByApiId(String apiId) {
         try {
-            return stream(workflowRepository.findByReferenceAndType(WorkflowReferenceType.API.name(), apiId, WorkflowType.REVIEW.name()))
-                .map(WorkflowAdapter.INSTANCE::toEntity)
-                .toList();
+            return stream(workflowRepository.findByReferenceAndType(
+                            WorkflowReferenceType.API.name(), apiId, WorkflowType.REVIEW.name()))
+                    .map(WorkflowAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error to find workflows of [apiId=%s]".formatted(apiId), e);
         }

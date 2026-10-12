@@ -106,14 +106,18 @@ class A2aAgentFetcherImplTest {
             }
             """;
 
-        wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json")).willReturn(
-                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(agentCardJson)
-            )
-        );
+        wireMockServer.stubFor(get(urlEqualTo("/.well-known/agent.json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(agentCardJson)));
 
         // When
-        var result = a2aAgentFetcher.fetchAgentCard(wellKnownUrl).test().awaitDone(5, TimeUnit.SECONDS).values();
+        var result = a2aAgentFetcher
+                .fetchAgentCard(wellKnownUrl)
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .values();
 
         // Then
         assertThat(result).hasSize(1);
@@ -125,24 +129,23 @@ class A2aAgentFetcherImplTest {
         assertThat(agent.getUrl()).isEqualTo("https://example.com/.well-known/agent.json");
         assertThat(agent.getDocumentationUrl()).isEqualTo("https://example.com/docs");
 
-        assertThat(agent.getProvider()).isEqualTo(new FederatedAgent.Provider("test-org", "https://provider.example.com"));
+        assertThat(agent.getProvider())
+                .isEqualTo(new FederatedAgent.Provider("test-org", "https://provider.example.com"));
 
         assertThat(agent.getCapabilities())
-            .containsEntry("streaming", true)
-            .containsEntry("pushNotifications", false)
-            .containsEntry("stateTransitionHistory", true);
+                .containsEntry("streaming", true)
+                .containsEntry("pushNotifications", false)
+                .containsEntry("stateTransitionHistory", true);
 
-        assertThat(agent.getSkills()).containsOnly(
-            new FederatedAgent.Skill(
-                "skill-1",
-                "Test Skill",
-                "Skill Description",
-                List.of("test", "example"),
-                List.of("example command"),
-                List.of("text"),
-                List.of("text", "json")
-            )
-        );
+        assertThat(agent.getSkills())
+                .containsOnly(new FederatedAgent.Skill(
+                        "skill-1",
+                        "Test Skill",
+                        "Skill Description",
+                        List.of("test", "example"),
+                        List.of("example command"),
+                        List.of("text"),
+                        List.of("text", "json")));
 
         assertThat(agent.getDefaultInputModes()).containsExactly("text");
         assertThat(agent.getDefaultOutputModes()).containsExactly("text");
@@ -170,14 +173,18 @@ class A2aAgentFetcherImplTest {
             }
             """;
 
-        wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json")).willReturn(
-                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(minimalAgentCardJson)
-            )
-        );
+        wireMockServer.stubFor(get(urlEqualTo("/.well-known/agent.json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(minimalAgentCardJson)));
 
         // When
-        var result = a2aAgentFetcher.fetchAgentCard(wellKnownUrl).test().awaitDone(5, TimeUnit.SECONDS).values();
+        var result = a2aAgentFetcher
+                .fetchAgentCard(wellKnownUrl)
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .values();
 
         // Then
         assertThat(result).hasSize(1);
@@ -211,14 +218,18 @@ class A2aAgentFetcherImplTest {
             }
             """;
 
-        wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json")).willReturn(
-                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(agentCardJson)
-            )
-        );
+        wireMockServer.stubFor(get(urlEqualTo("/.well-known/agent.json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(agentCardJson)));
 
         // When
-        var result = a2aAgentFetcher.fetchAgentCard(wellKnownUrl).test().awaitDone(5, TimeUnit.SECONDS).values();
+        var result = a2aAgentFetcher
+                .fetchAgentCard(wellKnownUrl)
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .values();
 
         // Then
         assertThat(result).hasSize(1).map(FederatedAgent::getName).first().isEqualTo("HTTPS Agent");
@@ -227,7 +238,8 @@ class A2aAgentFetcherImplTest {
     @Test
     void should_fail_when_agent_card_not_found() {
         // Given
-        wireMockServer.stubFor(get(urlEqualTo("/.well-known/agent.json")).willReturn(aResponse().withStatus(404)));
+        wireMockServer.stubFor(get(urlEqualTo("/.well-known/agent.json"))
+                .willReturn(aResponse().withStatus(404)));
 
         // When
         var testObserver = a2aAgentFetcher.fetchAgentCard(wellKnownUrl).test().awaitDone(5, TimeUnit.SECONDS);
@@ -239,9 +251,8 @@ class A2aAgentFetcherImplTest {
     @Test
     void should_fail_when_server_returns_internal_error() {
         // Given
-        wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json")).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
-        );
+        wireMockServer.stubFor(get(urlEqualTo("/.well-known/agent.json"))
+                .willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
         // When
         var testObserver = a2aAgentFetcher.fetchAgentCard(wellKnownUrl).test().awaitDone(5, TimeUnit.SECONDS);
@@ -253,11 +264,11 @@ class A2aAgentFetcherImplTest {
     @Test
     void should_fail_when_response_is_not_valid_json() {
         // Given
-        wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json")).willReturn(
-                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("invalid json content")
-            )
-        );
+        wireMockServer.stubFor(get(urlEqualTo("/.well-known/agent.json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("invalid json content")));
 
         // When
         var testObserver = a2aAgentFetcher.fetchAgentCard(wellKnownUrl).test().awaitDone(5, TimeUnit.SECONDS);

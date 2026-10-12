@@ -42,7 +42,9 @@ public class SubscriptionFormInlineContentMongoUpgrader extends MongoUpgrader {
      * depends on none of them, and every other chain already sits one step below.
      */
     public static final int SUBSCRIPTION_FORM_INLINE_CONTENT_MONGO_UPGRADER_ORDER =
-        PortalNavigationItemDefaultVisibilityMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_VISIBILITY_MONGO_UPGRADER_ORDER + 1;
+            PortalNavigationItemDefaultVisibilityMongoUpgrader
+                            .PORTAL_NAVIGATION_ITEM_DEFAULT_VISIBILITY_MONGO_UPGRADER_ORDER
+                    + 1;
 
     static final String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
     static final String GMD_CONTENT = "gmdContent";
@@ -79,16 +81,22 @@ public class SubscriptionFormInlineContentMongoUpgrader extends MongoUpgrader {
             var definition = pageContent == null ? null : pageContent.getString(CONTENT);
             if (definition == null) {
                 if (forms.deleteOne(stillToRestore).getDeletedCount() > 0) {
-                    log.warn("Subscription form [{}] has no definition left in its page content [{}]: deleted it", formId, contentId);
+                    log.warn(
+                            "Subscription form [{}] has no definition left in its page content [{}]: deleted it",
+                            formId,
+                            contentId);
                 }
                 continue;
             }
 
-            forms.updateOne(stillToRestore, Updates.combine(Updates.set(GMD_CONTENT, definition), Updates.unset(PORTAL_PAGE_CONTENT_ID)));
+            forms.updateOne(
+                    stillToRestore,
+                    Updates.combine(Updates.set(GMD_CONTENT, definition), Updates.unset(PORTAL_PAGE_CONTENT_ID)));
         }
 
         // Each form owned its page content, so the ones just read have no other reader.
-        return readContentIds.isEmpty() || pageContents.deleteMany(Filters.in("_id", readContentIds)).wasAcknowledged();
+        return readContentIds.isEmpty()
+                || pageContents.deleteMany(Filters.in("_id", readContentIds)).wasAcknowledged();
     }
 
     @Override

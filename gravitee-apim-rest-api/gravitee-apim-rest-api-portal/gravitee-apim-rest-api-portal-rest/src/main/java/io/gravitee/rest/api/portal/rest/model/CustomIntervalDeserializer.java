@@ -52,7 +52,8 @@ public class CustomIntervalDeserializer extends StdDeserializer<CustomInterval> 
             }
         }
 
-        throw new JsonMappingException(ctxt.getParser(), String.format("Failed deserialization for Interval: %s", token));
+        throw new JsonMappingException(
+                ctxt.getParser(), String.format("Failed deserialization for Interval: %s", token));
     }
 
     @Override

@@ -36,7 +36,8 @@ public class PlanJwtV3IntegrationTest extends PlanJwtV4EmulationIntegrationTest 
      * - in V3 its searches with api/clientId/plan
      */
     @Override
-    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
+    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(
+            String api, String clientId, String plan) {
         return when(getBean(SubscriptionService.class).getByApiAndClientIdAndPlan(api, clientId, plan));
     }
 }

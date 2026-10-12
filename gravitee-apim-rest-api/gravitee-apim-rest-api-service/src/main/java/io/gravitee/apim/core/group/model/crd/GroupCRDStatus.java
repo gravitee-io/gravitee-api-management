@@ -38,11 +38,20 @@ public class GroupCRDStatus {
 
         public static Errors fromErrorList(List<Validator.Error> errors) {
             return errors == null
-                ? null
-                : new Errors(
-                    errors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).sorted().distinct().toList(),
-                    errors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).sorted().distinct().toList()
-                );
+                    ? null
+                    : new Errors(
+                            errors.stream()
+                                    .filter(Validator.Error::isSevere)
+                                    .map(Validator.Error::getMessage)
+                                    .sorted()
+                                    .distinct()
+                                    .toList(),
+                            errors.stream()
+                                    .filter(Validator.Error::isWarning)
+                                    .map(Validator.Error::getMessage)
+                                    .sorted()
+                                    .distinct()
+                                    .toList());
         }
     }
 

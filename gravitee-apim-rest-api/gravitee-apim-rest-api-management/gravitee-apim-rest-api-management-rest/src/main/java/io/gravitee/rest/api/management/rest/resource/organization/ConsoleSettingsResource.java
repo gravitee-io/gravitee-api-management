@@ -71,12 +71,14 @@ public class ConsoleSettingsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the console settings")
     @ApiResponse(
-        responseCode = "200",
-        description = "Console configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ConsoleSettingsEntity.class))
-    )
+            responseCode = "200",
+            description = "Console configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ConsoleSettingsEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ)})
     public ConsoleSettingsEntity getConsoleSettings() {
         return configService.getConsoleSettings(GraviteeContext.getExecutionContext());
     }
@@ -86,15 +88,20 @@ public class ConsoleSettingsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Save the console settings")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated console settings",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ConsoleSettingsEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated console settings",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ConsoleSettingsEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ORGANIZATION_SETTINGS,
+                acls = {CREATE, UPDATE, DELETE})
+    })
     public Response saveConsoleSettings(
-        @Parameter(name = "config", required = true) @NotNull @Valid ConsoleSettingsEntity consoleSettingsEntity
-    ) {
+            @Parameter(name = "config", required = true) @NotNull @Valid ConsoleSettingsEntity consoleSettingsEntity) {
         // reject settings update if maintenanceMode isn't disabled into the payload
         checkMaintenanceMode(consoleSettingsEntity);
 
@@ -107,18 +114,15 @@ public class ConsoleSettingsResource {
 
     private void checkMaintenanceMode(ConsoleSettingsEntity consoleSettingsEntity) {
         boolean maintenanceMode = parameterService.findAsBoolean(
-            GraviteeContext.getExecutionContext(),
-            Key.MAINTENANCE_MODE_ENABLED,
-            GraviteeContext.getCurrentOrganization(),
-            ParameterReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getExecutionContext(),
+                Key.MAINTENANCE_MODE_ENABLED,
+                GraviteeContext.getCurrentOrganization(),
+                ParameterReferenceType.ORGANIZATION);
 
-        if (
-            maintenanceMode &&
-            (consoleSettingsEntity.getMaintenance() == null ||
-                consoleSettingsEntity.getMaintenance().getEnabled() == null ||
-                consoleSettingsEntity.getMaintenance().getEnabled())
-        ) {
+        if (maintenanceMode
+                && (consoleSettingsEntity.getMaintenance() == null
+                        || consoleSettingsEntity.getMaintenance().getEnabled() == null
+                        || consoleSettingsEntity.getMaintenance().getEnabled())) {
             throw new MaintenanceModeException();
         }
     }

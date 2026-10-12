@@ -48,26 +48,37 @@ class ValidateGroupsDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        groupQueryService.initWith(
-            List.of(
-                Group.builder().environmentId(ENVIRONMENT).id("group-with-po-id").name("group-with-po").apiPrimaryOwner("some-po").build(),
-                Group.builder().environmentId(ENVIRONMENT).id("group-without-po-id").name("group-without-po").build(),
+        groupQueryService.initWith(List.of(
                 Group.builder()
-                    .environmentId(ENVIRONMENT)
-                    .id("default-group")
-                    .name("default-group")
-                    .eventRules(List.of(new GroupEventRule(API_CREATE), new GroupEventRule(APPLICATION_CREATE)))
-                    .build(),
-                Group.builder().environmentId(ENVIRONMENT).id("hrid-group-id").name("hrid-group").hrid("my-hrid-group").build(),
+                        .environmentId(ENVIRONMENT)
+                        .id("group-with-po-id")
+                        .name("group-with-po")
+                        .apiPrimaryOwner("some-po")
+                        .build(),
                 Group.builder()
-                    .environmentId(ENVIRONMENT)
-                    .id("hrid-group-with-po-id")
-                    .name("hrid-group-with-po")
-                    .hrid("my-hrid-group-with-po")
-                    .apiPrimaryOwner("some-po")
-                    .build()
-            )
-        );
+                        .environmentId(ENVIRONMENT)
+                        .id("group-without-po-id")
+                        .name("group-without-po")
+                        .build(),
+                Group.builder()
+                        .environmentId(ENVIRONMENT)
+                        .id("default-group")
+                        .name("default-group")
+                        .eventRules(List.of(new GroupEventRule(API_CREATE), new GroupEventRule(APPLICATION_CREATE)))
+                        .build(),
+                Group.builder()
+                        .environmentId(ENVIRONMENT)
+                        .id("hrid-group-id")
+                        .name("hrid-group")
+                        .hrid("my-hrid-group")
+                        .build(),
+                Group.builder()
+                        .environmentId(ENVIRONMENT)
+                        .id("hrid-group-with-po-id")
+                        .name("hrid-group-with-po")
+                        .hrid("my-hrid-group-with-po")
+                        .apiPrimaryOwner("some-po")
+                        .build()));
         validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
     }
 
@@ -76,13 +87,12 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("group-with-po-id", "group-without-po");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V2.getLabel(),
-            DefinitionContext.ORIGIN_KUBERNETES,
-            API_CREATE,
-            true
-        );
+                ENVIRONMENT,
+                givenGroups,
+                DefinitionVersion.V2.getLabel(),
+                DefinitionContext.ORIGIN_KUBERNETES,
+                API_CREATE,
+                true);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -90,15 +100,11 @@ class ValidateGroupsDomainServiceTest {
             soft.assertThat(result.value()).isNotEmpty();
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po", "default-group")));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(
-                    List.of(
-                        Validator.Error.warning(
-                            "Group [group-with-po-id] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
-                        )
-                    )
-                );
+            soft.assertThat(result.errors())
+                    .hasValue(
+                            List.of(
+                                    Validator.Error.warning(
+                                            "Group [group-with-po-id] will be discarded because it contains an API Primary Owner member, which is not supported by the API.")));
         });
     }
 
@@ -107,13 +113,12 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("group-without-po");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V2.getLabel(),
-            DefinitionContext.ORIGIN_KUBERNETES,
-            API_CREATE,
-            false
-        );
+                ENVIRONMENT,
+                givenGroups,
+                DefinitionVersion.V2.getLabel(),
+                DefinitionContext.ORIGIN_KUBERNETES,
+                API_CREATE,
+                false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -129,13 +134,12 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("group-without-po");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V2.getLabel(),
-            DefinitionContext.ORIGIN_MANAGEMENT,
-            API_CREATE,
-            false
-        );
+                ENVIRONMENT,
+                givenGroups,
+                DefinitionVersion.V2.getLabel(),
+                DefinitionContext.ORIGIN_MANAGEMENT,
+                API_CREATE,
+                false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -151,13 +155,7 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("group-without-po");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V2.getLabel(),
-            null,
-            API_CREATE,
-            false
-        );
+                ENVIRONMENT, givenGroups, DefinitionVersion.V2.getLabel(), null, API_CREATE, false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -173,13 +171,7 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("group-with-po", "group-without-po-id");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V4.getLabel(),
-            null,
-            API_CREATE,
-            true
-        );
+                ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), null, API_CREATE, true);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -187,15 +179,11 @@ class ValidateGroupsDomainServiceTest {
             soft.assertThat(result.value()).isNotEmpty();
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id", "default-group")));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(
-                    List.of(
-                        Validator.Error.warning(
-                            "Group [group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
-                        )
-                    )
-                );
+            soft.assertThat(result.errors())
+                    .hasValue(
+                            List.of(
+                                    Validator.Error.warning(
+                                            "Group [group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API.")));
         });
     }
 
@@ -204,13 +192,7 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("group-without-po-id");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V4.getLabel(),
-            null,
-            API_CREATE,
-            false
-        );
+                ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), null, API_CREATE, false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -223,7 +205,8 @@ class ValidateGroupsDomainServiceTest {
 
     @Test
     void should_return_original_input_when_groups_are_empty() {
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, Collections.emptySet(), DefinitionVersion.V4.getLabel(), null);
+        var input = new ValidateGroupsDomainService.Input(
+                ENVIRONMENT, Collections.emptySet(), DefinitionVersion.V4.getLabel(), null);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -248,13 +231,7 @@ class ValidateGroupsDomainServiceTest {
     @Test
     void should_return_only_default_groups_when_groups_are_empty_and_add_default_groups() {
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            Collections.emptySet(),
-            DefinitionVersion.V4.getLabel(),
-            null,
-            API_CREATE,
-            true
-        );
+                ENVIRONMENT, Collections.emptySet(), DefinitionVersion.V4.getLabel(), null, API_CREATE, true);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -269,22 +246,16 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("does-not-exist");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V4.getLabel(),
-            null,
-            API_CREATE,
-            false
-        );
+                ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), null, API_CREATE, false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of()));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(List.of(Validator.Error.warning("Group [does-not-exist] could not be found in environment [TEST]")));
+            soft.assertThat(result.errors())
+                    .hasValue(List.of(Validator.Error.warning(
+                            "Group [does-not-exist] could not be found in environment [TEST]")));
         });
     }
 
@@ -293,13 +264,7 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("my-hrid-group");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V4.getLabel(),
-            null,
-            API_CREATE,
-            false
-        );
+                ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), null, API_CREATE, false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -314,28 +279,18 @@ class ValidateGroupsDomainServiceTest {
         var givenGroups = Set.of("my-hrid-group-with-po");
 
         var input = new ValidateGroupsDomainService.Input(
-            ENVIRONMENT,
-            givenGroups,
-            DefinitionVersion.V4.getLabel(),
-            null,
-            API_CREATE,
-            false
-        );
+                ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), null, API_CREATE, false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of()));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(
-                    List.of(
-                        Validator.Error.warning(
-                            "Group [my-hrid-group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
-                        )
-                    )
-                );
+            soft.assertThat(result.errors())
+                    .hasValue(
+                            List.of(
+                                    Validator.Error.warning(
+                                            "Group [my-hrid-group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API.")));
         });
     }
 }

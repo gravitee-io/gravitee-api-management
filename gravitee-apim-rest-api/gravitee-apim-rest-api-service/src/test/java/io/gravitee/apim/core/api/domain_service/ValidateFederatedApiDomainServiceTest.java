@@ -47,7 +47,8 @@ class ValidateFederatedApiDomainServiceTest {
     void setUp() {
         var groupValidationService = new GroupValidationService(groupQueryService);
         service = new ValidateFederatedApiDomainService(groupValidationService, categoryDomainService);
-        groupQueryService.initWith(List.of(Group.builder().id("group-1").name("group-1").build()));
+        groupQueryService.initWith(
+                List.of(Group.builder().id("group-1").name("group-1").build()));
     }
 
     @AfterEach
@@ -66,7 +67,9 @@ class ValidateFederatedApiDomainServiceTest {
 
     @Test
     void should_reset_lifecycle_state_when_defined() {
-        var api = ApiFixtures.aFederatedApi().toBuilder().lifecycleState(Api.LifecycleState.STARTED).build();
+        var api = ApiFixtures.aFederatedApi().toBuilder()
+                .lifecycleState(Api.LifecycleState.STARTED)
+                .build();
 
         var result = service.validateAndSanitizeForCreation(api, null);
 
@@ -74,9 +77,14 @@ class ValidateFederatedApiDomainServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, mode = EnumSource.Mode.EXCLUDE, names = { "FEDERATED", "FEDERATED_AGENT" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            mode = EnumSource.Mode.EXCLUDE,
+            names = {"FEDERATED", "FEDERATED_AGENT"})
     void should_throw_when_definition_version_is_incorrect(DefinitionVersion definitionVersion) {
-        var api = ApiFixtures.aFederatedApi().toBuilder().definitionVersion(definitionVersion).build();
+        var api = ApiFixtures.aFederatedApi().toBuilder()
+                .definitionVersion(definitionVersion)
+                .build();
 
         var throwable = catchThrowable(() -> service.validateAndSanitizeForCreation(api, null));
 
@@ -85,24 +93,27 @@ class ValidateFederatedApiDomainServiceTest {
 
     @Test
     void should_validate_and_sanitize_api_for_update() {
-        var existingApi = ApiFixtures.aFederatedApi().toBuilder().categories(Set.of("oldcat")).build();
-        var updateApi = ApiFixtures.aFederatedApi()
-            .toBuilder()
-            .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
-            .categories(Set.of("cat"))
-            .build();
+        var existingApi = ApiFixtures.aFederatedApi().toBuilder()
+                .categories(Set.of("oldcat"))
+                .build();
+        var updateApi = ApiFixtures.aFederatedApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                .categories(Set.of("cat"))
+                .build();
         var primaryOwner = PrimaryOwnerEntity.builder()
-            .id("primary-owner-id")
-            .displayName("primary-owner-displayName")
-            .email("primary-owner-email")
-            .type(PrimaryOwnerEntity.Type.USER)
-            .build();
+                .id("primary-owner-id")
+                .displayName("primary-owner-displayName")
+                .email("primary-owner-email")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build();
         when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of("catId"));
 
         var result = service.validateAndSanitizeForUpdate(updateApi, existingApi, primaryOwner);
 
-        assertThat(result).isEqualTo(
-            ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).categories(Set.of("catId")).build()
-        );
+        assertThat(result)
+                .isEqualTo(ApiFixtures.aFederatedApi().toBuilder()
+                        .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                        .categories(Set.of("catId"))
+                        .build());
     }
 }

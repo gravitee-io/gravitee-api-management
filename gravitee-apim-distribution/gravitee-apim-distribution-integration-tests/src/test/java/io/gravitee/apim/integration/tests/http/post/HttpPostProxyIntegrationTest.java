@@ -47,25 +47,27 @@ abstract class HttpPostProxyIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     void makePostCall(HttpClient httpClient) {
         wiremock.stubFor(post("/endpoint").willReturn(ok("OK")));
 
         httpClient
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(httpClientRequest -> httpClientRequest.rxSend(Flowable.just(Buffer.buffer("foobar"))))
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(HttpClientResponse::rxBody)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(buffer -> buffer.toString().equals("OK"));
+                .rxRequest(HttpMethod.POST, "/test")
+                .flatMap(httpClientRequest -> httpClientRequest.rxSend(Flowable.just(Buffer.buffer("foobar"))))
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(HttpClientResponse::rxBody)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(buffer -> buffer.toString().equals("OK"));
 
         wiremock.verify(postRequestedFor(urlPathEqualTo("/endpoint")).withRequestBody(equalTo("foobar")));
     }

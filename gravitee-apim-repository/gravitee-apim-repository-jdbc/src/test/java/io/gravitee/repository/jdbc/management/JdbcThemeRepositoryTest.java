@@ -55,9 +55,9 @@ class JdbcThemeRepositoryTest {
         var ex = catchThrowable(() -> JdbcThemeRepository.serializeAutomationMetadata(throwing));
 
         assertThat(ex)
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Failed to serialize automation metadata")
-            .hasCauseInstanceOf(Exception.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to serialize automation metadata")
+                .hasCauseInstanceOf(Exception.class);
     }
 
     @Test
@@ -65,8 +65,8 @@ class JdbcThemeRepositoryTest {
         var ex = catchThrowable(() -> JdbcThemeRepository.deserializeAutomationMetadata("{not-valid-json"));
 
         assertThat(ex)
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Failed to deserialize automation metadata")
-            .hasCauseInstanceOf(Exception.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to deserialize automation metadata")
+                .hasCauseInstanceOf(Exception.class);
     }
 }

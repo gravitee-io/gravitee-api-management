@@ -119,13 +119,11 @@ public class BrandedSendersEnvironmentReader {
             if (domains.isEmpty()) {
                 log.warn("Branding entry '{}[{}]' has no 'domains'; it will never match a recipient", PREFIX, index);
             }
-            configurations.add(
-                BrandedSenderConfig.builder()
+            configurations.add(BrandedSenderConfig.builder()
                     .domains(domains.isEmpty() ? null : domains)
                     .from(environment.getProperty(entryPrefix + ".from"))
                     .subject(environment.getProperty(entryPrefix + ".subject"))
-                    .build()
-            );
+                    .build());
             index++;
         }
         return configurations;
@@ -138,12 +136,10 @@ public class BrandedSendersEnvironmentReader {
      */
     private boolean hasEntry(int index) {
         String entryPrefix = PREFIX + "[" + index + "]";
-        return (
-            environment.getProperty(entryPrefix + ".from") != null ||
-            environment.getProperty(entryPrefix + ".subject") != null ||
-            environment.getProperty(entryPrefix + ".domains") != null ||
-            environment.getProperty(entryPrefix + ".domains[0]") != null
-        );
+        return (environment.getProperty(entryPrefix + ".from") != null
+                || environment.getProperty(entryPrefix + ".subject") != null
+                || environment.getProperty(entryPrefix + ".domains") != null
+                || environment.getProperty(entryPrefix + ".domains[0]") != null);
     }
 
     private List<String> readList(String listKey) {

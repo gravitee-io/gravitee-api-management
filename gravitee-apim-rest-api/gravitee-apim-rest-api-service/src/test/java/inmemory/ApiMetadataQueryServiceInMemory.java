@@ -39,43 +39,37 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
 
     @Override
     public Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId) {
-        Map<String, ApiMetadata> apiMetadata = storage
-            .stream()
-            .filter(
-                metadata ->
-                    Objects.equals(metadata.getReferenceId(), environmentId) &&
-                    Metadata.ReferenceType.ENVIRONMENT.equals(metadata.getReferenceType())
-            )
-            .map(m ->
-                ApiMetadata.builder()
-                    .key(m.getKey())
-                    .name(m.getName())
-                    .defaultValue(m.getValue())
-                    .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
-                    .build()
-            )
-            .collect(toMap(ApiMetadata::getKey, Function.identity()));
+        Map<String, ApiMetadata> apiMetadata = storage.stream()
+                .filter(metadata -> Objects.equals(metadata.getReferenceId(), environmentId)
+                        && Metadata.ReferenceType.ENVIRONMENT.equals(metadata.getReferenceType()))
+                .map(m -> ApiMetadata.builder()
+                        .key(m.getKey())
+                        .name(m.getName())
+                        .defaultValue(m.getValue())
+                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                        .build())
+                .collect(toMap(ApiMetadata::getKey, Function.identity()));
 
-        storage
-            .stream()
-            .filter(
-                metadata ->
-                    Objects.equals(metadata.getReferenceId(), apiId) && Metadata.ReferenceType.API.equals(metadata.getReferenceType())
-            )
-            .forEach(m ->
-                apiMetadata.compute(m.getKey(), (key, existing) ->
-                    Optional.ofNullable(existing)
-                        .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
-                        .orElse(this.toApiMetadata(m))
-                )
-            );
+        storage.stream()
+                .filter(metadata -> Objects.equals(metadata.getReferenceId(), apiId)
+                        && Metadata.ReferenceType.API.equals(metadata.getReferenceType()))
+                .forEach(m -> apiMetadata.compute(
+                        m.getKey(),
+                        (key, existing) -> Optional.ofNullable(existing)
+                                .map(value -> value.toBuilder()
+                                        .apiId(apiId)
+                                        .name(m.getName())
+                                        .value(m.getValue())
+                                        .build())
+                                .orElse(this.toApiMetadata(m))));
 
         return apiMetadata;
     }
 
     @Override
     public Map<String, Map<String, ApiMetadata>> findApiMetadataForApis(String environmentId, List<String> apiIds) {
-        return apiIds.stream().collect(Collectors.toMap(Function.identity(), apiId -> findApiMetadata(environmentId, apiId)));
+        return apiIds.stream()
+                .collect(Collectors.toMap(Function.identity(), apiId -> findApiMetadata(environmentId, apiId)));
     }
 
     @Override
@@ -101,11 +95,11 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
 
     private ApiMetadata toApiMetadata(Metadata metadata) {
         return ApiMetadata.builder()
-            .apiId(metadata.getReferenceId())
-            .key(metadata.getKey())
-            .name(metadata.getName())
-            .value(metadata.getValue())
-            .format(metadata.getFormat())
-            .build();
+                .apiId(metadata.getReferenceId())
+                .key(metadata.getKey())
+                .name(metadata.getName())
+                .value(metadata.getValue())
+                .format(metadata.getFormat())
+                .build();
     }
 }

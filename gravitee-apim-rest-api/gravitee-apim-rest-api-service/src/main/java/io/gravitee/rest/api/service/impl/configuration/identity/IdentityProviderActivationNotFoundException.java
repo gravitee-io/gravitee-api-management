@@ -31,10 +31,7 @@ public class IdentityProviderActivationNotFoundException extends AbstractNotFoun
     private final IdentityProviderActivationReferenceType referenceType;
 
     public IdentityProviderActivationNotFoundException(
-        String identityProviderId,
-        String referenceId,
-        IdentityProviderActivationReferenceType referenceType
-    ) {
+            String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) {
         this.identityProviderId = identityProviderId;
         this.referenceId = referenceId;
         this.referenceType = referenceType;
@@ -42,7 +39,11 @@ public class IdentityProviderActivationNotFoundException extends AbstractNotFoun
 
     @Override
     public String getMessage() {
-        return String.format("Identity Provider [{}] is not Activated for {}:{}.", identityProviderId, referenceType.name(), referenceId);
+        return String.format(
+                "Identity Provider [{}] is not Activated for {}:{}.",
+                identityProviderId,
+                referenceType.name(),
+                referenceId);
     }
 
     @Override

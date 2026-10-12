@@ -24,8 +24,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
-import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -36,9 +34,7 @@ import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -86,7 +82,9 @@ class ApiProductNotificationSettingsResourceTest extends AbstractResourceTest {
     }
 
     private void givenApiProductMissing() {
-        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID))
+                .when(verifyApiProductExistsUseCase)
+                .execute(any());
     }
 
     @Nested
@@ -97,7 +95,8 @@ class ApiProductNotificationSettingsResourceTest extends AbstractResourceTest {
             var portalConfig = new PortalNotificationConfigEntity();
             portalConfig.setReferenceId(API_PRODUCT_ID);
             when(portalNotificationConfigService.findById(any(), any(), any())).thenReturn(portalConfig);
-            when(genericNotificationConfigService.findByReference(any(), any())).thenReturn(List.of(new GenericNotificationConfigEntity()));
+            when(genericNotificationConfigService.findByReference(any(), any()))
+                    .thenReturn(List.of(new GenericNotificationConfigEntity()));
 
             Response response = rootTarget().request().get();
 

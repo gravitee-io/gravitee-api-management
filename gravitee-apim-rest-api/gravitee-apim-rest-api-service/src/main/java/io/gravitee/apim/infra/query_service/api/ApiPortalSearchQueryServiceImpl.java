@@ -68,28 +68,27 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
         if (queryText.isEmpty()) {
             // No text query: delegate sorting and pagination to the repository
             return apiQueryService.search(
-                ApiSearchCriteria.builder()
-                    .ids(List.copyOf(allowedApiIds))
-                    .environmentId(query.environmentId())
-                    .notApiTypes(List.of(ApiType.EDGE))
-                    .build(),
-                toCoreSortable(sortable.orElse(DEFAULT_SORT)),
-                pageable.orElse(null),
-                null
-            );
+                    ApiSearchCriteria.builder()
+                            .ids(List.copyOf(allowedApiIds))
+                            .environmentId(query.environmentId())
+                            .notApiTypes(List.of(ApiType.EDGE))
+                            .build(),
+                    toCoreSortable(sortable.orElse(DEFAULT_SORT)),
+                    pageable.orElse(null),
+                    null);
         }
 
         var executionContext = new ExecutionContext(query.organizationId(), query.environmentId());
         Collection<String> luceneIds = apiSearchService.searchIds(
-            executionContext,
-            queryText.get().trim(),
-            Map.of(),
-            sortable.orElse(null),
-            EnumSet.noneOf(DefinitionVersion.class),
-            query.typoTolerance(),
-            SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS
-        );
-        List<String> intersected = luceneIds.stream().filter(allowedApiIds::contains).toList();
+                executionContext,
+                queryText.get().trim(),
+                Map.of(),
+                sortable.orElse(null),
+                EnumSet.noneOf(DefinitionVersion.class),
+                query.typoTolerance(),
+                SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS);
+        List<String> intersected =
+                luceneIds.stream().filter(allowedApiIds::contains).toList();
 
         int total = intersected.size();
 
@@ -117,17 +116,21 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
 
         // Fetch by IDs then reorder to preserve Lucene relevance order
         Map<String, Api> apiById = apiQueryService
-            .search(
-                ApiSearchCriteria.builder().ids(pageSubset).environmentId(query.environmentId()).notApiTypes(List.of(ApiType.EDGE)).build(),
-                null,
-                null,
-                null
-            )
-            .getContent()
-            .stream()
-            .collect(Collectors.toMap(Api::getId, Function.identity()));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .ids(pageSubset)
+                                .environmentId(query.environmentId())
+                                .notApiTypes(List.of(ApiType.EDGE))
+                                .build(),
+                        null,
+                        null,
+                        null)
+                .getContent()
+                .stream()
+                .collect(Collectors.toMap(Api::getId, Function.identity()));
 
-        List<Api> pageContent = pageSubset.stream().map(apiById::get).filter(Objects::nonNull).toList();
+        List<Api> pageContent =
+                pageSubset.stream().map(apiById::get).filter(Objects::nonNull).toList();
 
         return new Page<>(pageContent, resultPageNumber, pageContent.size(), total);
     }
@@ -137,12 +140,11 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
             return null;
         }
         return io.gravitee.apim.core.api.model.Sortable.builder()
-            .field(sortable.getField())
-            .order(
-                sortable.isAscOrder()
-                    ? io.gravitee.apim.core.api.model.Sortable.Order.ASC
-                    : io.gravitee.apim.core.api.model.Sortable.Order.DESC
-            )
-            .build();
+                .field(sortable.getField())
+                .order(
+                        sortable.isAscOrder()
+                                ? io.gravitee.apim.core.api.model.Sortable.Order.ASC
+                                : io.gravitee.apim.core.api.model.Sortable.Order.DESC)
+                .build();
     }
 }

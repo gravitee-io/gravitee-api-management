@@ -65,7 +65,9 @@ public class ApiMediaResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturn404IfMediaNotFoundOnDeleteByHashAndApi() {
-        doThrow(new ApiMediaNotFoundException(MEDIA_HASH, API_ID)).when(mediaService).deleteByHashAndApi(MEDIA_HASH, API_ID);
+        doThrow(new ApiMediaNotFoundException(MEDIA_HASH, API_ID))
+                .when(mediaService)
+                .deleteByHashAndApi(MEDIA_HASH, API_ID);
         assertEquals(NOT_FOUND_404, mediaRequest().delete().getStatus());
     }
 

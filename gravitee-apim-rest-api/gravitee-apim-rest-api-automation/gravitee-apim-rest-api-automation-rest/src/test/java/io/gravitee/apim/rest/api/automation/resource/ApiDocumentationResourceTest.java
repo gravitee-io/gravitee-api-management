@@ -59,7 +59,8 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID + "/documentations";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID
+                + "/documentations";
     }
 
     @Nested
@@ -67,9 +68,13 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_api_documentation() {
-            when(getApiDocumentationUseCase.execute(any())).thenReturn(new GetApiDocumentationUseCase.Output(aDocumentation(), null));
+            when(getApiDocumentationUseCase.execute(any()))
+                    .thenReturn(new GetApiDocumentationUseCase.Output(aDocumentation(), null));
 
-            try (var response = rootTarget(DOC_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(DOC_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(getApiDocumentationUseCase).execute(any(GetApiDocumentationUseCase.Input.class));
 
@@ -91,7 +96,10 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
         void should_return_404_when_documentation_is_missing() {
             when(getApiDocumentationUseCase.execute(any())).thenThrow(new PageContentNotFoundException(DOC_HRID));
 
-            try (var response = rootTarget(DOC_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(DOC_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
@@ -110,7 +118,9 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_documentation_is_missing() {
-            org.mockito.Mockito.doThrow(new PageContentNotFoundException(DOC_HRID)).when(deleteApiDocumentationUseCase).execute(any());
+            org.mockito.Mockito.doThrow(new PageContentNotFoundException(DOC_HRID))
+                    .when(deleteApiDocumentationUseCase)
+                    .execute(any());
 
             try (var response = rootTarget(DOC_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -120,18 +130,16 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
 
     private static GraviteeMarkdownPageContent aDocumentation() {
         var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            "00000000-0000-0000-0000-0000000000a1",
-            "Getting Started",
-            Optional.of("/getting-started"),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.API,
+                "00000000-0000-0000-0000-0000000000a1",
+                "Getting Started",
+                Optional.of("/getting-started"),
+                Optional.of(1));
         return new GraviteeMarkdownPageContent(
-            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
-            ORGANIZATION,
-            ENVIRONMENT,
-            GraviteeMarkdown.of("# Hello\n\nMarkdown"),
-            meta
-        );
+                PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
+                ORGANIZATION,
+                ENVIRONMENT,
+                GraviteeMarkdown.of("# Hello\n\nMarkdown"),
+                meta);
     }
 }

@@ -30,6 +30,9 @@ public class BadRequestExceptionMapper extends AbstractExceptionMapper<BadReques
     @Override
     public Response toResponse(BadRequestException e) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(e, error.getStatusCode()))
+                .build();
     }
 }

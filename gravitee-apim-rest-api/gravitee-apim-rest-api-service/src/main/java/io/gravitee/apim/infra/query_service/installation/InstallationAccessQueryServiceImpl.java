@@ -55,7 +55,8 @@ import org.springframework.stereotype.Service;
 @CustomLog
 public class InstallationAccessQueryServiceImpl implements InstallationAccessQueryService {
 
-    private static final String INSTALLATION_STANDALONE_PROPERTY = "installation." + InstallationType.Labels.STANDALONE + ".";
+    private static final String INSTALLATION_STANDALONE_PROPERTY =
+            "installation." + InstallationType.Labels.STANDALONE + ".";
     private static final String DEFAULT_ID = GraviteeContext.getDefaultOrganization();
     private final ConfigurableEnvironment environment;
     private final InstallationTypeDomainService installationTypeDomainService;
@@ -73,7 +74,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Value("${installation.api.gamma.url:${installation.api.url:#{null}}}")
     private String gammaApiUrl;
 
-    @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
+    @Value(
+            "${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
     private String managementProxyPath;
 
     @Value("${installation.api.proxyPath.portal:${http.api.portal.entrypoint:${http.api.entrypoint:/}portal}}")
@@ -87,13 +89,12 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private final Map<String, String> gammaUrls = new HashMap<>();
 
     public InstallationAccessQueryServiceImpl(
-        final ConfigurableEnvironment environment,
-        final InstallationTypeDomainService installationTypeDomainService,
-        final AccessPointQueryService accessPointQueryService,
-        final ParameterService parameterService,
-        @Lazy final OrganizationService organizationService,
-        @Lazy final EnvironmentService environmentService
-    ) {
+            final ConfigurableEnvironment environment,
+            final InstallationTypeDomainService installationTypeDomainService,
+            final AccessPointQueryService accessPointQueryService,
+            final ParameterService parameterService,
+            @Lazy final OrganizationService organizationService,
+            @Lazy final EnvironmentService environmentService) {
         this.environment = environment;
         this.installationTypeDomainService = installationTypeDomainService;
         this.accessPointQueryService = accessPointQueryService;
@@ -176,14 +177,17 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private Map<String, String> loadUrls(final String keyUI, final String keyId) {
         Map<String, String> urls = new HashMap<>();
         int idx = 0;
-        boolean hasMany = environment.containsProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
+        boolean hasMany =
+                environment.containsProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
         if (hasMany) {
             boolean hasNext = true;
             while (hasNext) {
-                String id = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
+                String id = environment.getProperty(
+                        INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
                 hasNext = (id != null);
                 if (hasNext) {
-                    String url = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "].url");
+                    String url = environment.getProperty(
+                            INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "].url");
                     validateUrl(keyUI, url);
                     urls.put(id, url);
                 }
@@ -201,20 +205,23 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     private void validateUrl(final String keyUI, final String urlAsString) {
         if (urlAsString == null) {
-            throw new InvalidInstallationUrlException("Installation '%s' url  cannot be null or empty.".formatted(keyUI));
+            throw new InvalidInstallationUrlException(
+                    "Installation '%s' url  cannot be null or empty.".formatted(keyUI));
         }
         URL url;
         try {
             url = URI.create(urlAsString).toURL();
         } catch (Exception e) {
-            throw new InvalidInstallationUrlException("Installation '%s' url '%s' must be a valid URL.".formatted(keyUI, urlAsString));
+            throw new InvalidInstallationUrlException(
+                    "Installation '%s' url '%s' must be a valid URL.".formatted(keyUI, urlAsString));
         }
         validateHost(keyUI, url.getHost());
     }
 
     private void validateHost(final String keyUI, final String hostAsString) {
         if (!isValidDomainName(hostAsString)) {
-            throw new InvalidInstallationUrlException("Installation '%s' url '%s' is malformed.".formatted(keyUI, hostAsString));
+            throw new InvalidInstallationUrlException(
+                    "Installation '%s' url '%s' is malformed.".formatted(keyUI, hostAsString));
         }
     }
 
@@ -246,7 +253,10 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
                 OrganizationEntity organization = organizationService.getDefaultOrInitialize();
                 return List.of(getConsoleUrlFromEnv(organization.getId()));
             } else {
-                return organizations.stream().map(OrganizationEntity::getId).map(this::getConsoleUrlFromEnv).toList();
+                return organizations.stream()
+                        .map(OrganizationEntity::getId)
+                        .map(this::getConsoleUrlFromEnv)
+                        .toList();
             }
         }
     }
@@ -277,11 +287,10 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         String consoleUrl = consoleUrls.get(organizationId);
         if (consoleUrl == null || consoleUrl.equals(DEFAULT_CONSOLE_URL)) {
             consoleUrl = parameterService.find(
-                GraviteeContext.getExecutionContext(),
-                Key.MANAGEMENT_URL,
-                organizationId,
-                ParameterReferenceType.ORGANIZATION
-            );
+                    GraviteeContext.getExecutionContext(),
+                    Key.MANAGEMENT_URL,
+                    organizationId,
+                    ParameterReferenceType.ORGANIZATION);
             if (consoleUrl == null) {
                 consoleUrl = Key.MANAGEMENT_URL.defaultValue();
             }
@@ -294,7 +303,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     @Override
     public String getConsoleAPIUrl(final String organizationId) {
-        return resolveApiUrl(organizationId, accessPointQueryService::getConsoleApiAccessPoint, consoleApiUrl, managementProxyPath);
+        return resolveApiUrl(
+                organizationId, accessPointQueryService::getConsoleApiAccessPoint, consoleApiUrl, managementProxyPath);
     }
 
     @Override
@@ -303,7 +313,10 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             List<AccessPoint> accessPoints = accessPointQueryService.getPortalAccessPoints();
             return accessPoints.stream().map(this::buildHttpUrl).toList();
         } else {
-            return environmentService.findAllOrInitialize().stream().map(EnvironmentEntity::getId).map(this::getPortalUrlFromEnv).toList();
+            return environmentService.findAllOrInitialize().stream()
+                    .map(EnvironmentEntity::getId)
+                    .map(this::getPortalUrlFromEnv)
+                    .toList();
         }
     }
 
@@ -333,11 +346,10 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         String portalUrl = portalUrls.get(environmentId);
         if (portalUrl == null || portalUrl.equals(DEFAULT_PORTAL_URL)) {
             portalUrl = parameterService.find(
-                GraviteeContext.getExecutionContext(),
-                Key.PORTAL_URL,
-                environmentId,
-                ParameterReferenceType.ENVIRONMENT
-            );
+                    GraviteeContext.getExecutionContext(),
+                    Key.PORTAL_URL,
+                    environmentId,
+                    ParameterReferenceType.ENVIRONMENT);
             if (portalUrl == null) {
                 portalUrl = Key.PORTAL_URL.defaultValue();
             }
@@ -350,17 +362,19 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     @Override
     public String getPortalAPIUrl(final String environmentId) {
-        return resolveApiUrl(environmentId, accessPointQueryService::getPortalApiAccessPoint, portalApiUrl, portalProxyPath);
+        return resolveApiUrl(
+                environmentId, accessPointQueryService::getPortalApiAccessPoint, portalApiUrl, portalProxyPath);
     }
 
     @Override
     public List<RestrictedDomain> getGatewayRestrictedDomains(final String environmentId) {
         if (installationTypeDomainService.isMultiTenant()) {
-            return accessPointQueryService
-                .getGatewayAccessPoints(environmentId)
-                .stream()
-                .map(accessPoint -> RestrictedDomain.builder().domain(accessPoint.getHost()).secured(accessPoint.isSecured()).build())
-                .toList();
+            return accessPointQueryService.getGatewayAccessPoints(environmentId).stream()
+                    .map(accessPoint -> RestrictedDomain.builder()
+                            .domain(accessPoint.getHost())
+                            .secured(accessPoint.isSecured())
+                            .build())
+                    .toList();
         } else {
             return List.of();
         }
@@ -382,7 +396,10 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
                 OrganizationEntity organization = organizationService.getDefaultOrInitialize();
                 return List.of(getGammaUrlFromEnv(organization.getId()));
             } else {
-                return organizations.stream().map(OrganizationEntity::getId).map(this::getGammaUrlFromEnv).toList();
+                return organizations.stream()
+                        .map(OrganizationEntity::getId)
+                        .map(this::getGammaUrlFromEnv)
+                        .toList();
             }
         }
     }
@@ -411,7 +428,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Override
     public Optional<String> findGammaUrl(final String organizationId) {
         if (installationTypeDomainService.isMultiTenant()) {
-            return Optional.ofNullable(buildHttpUrl(accessPointQueryService.getGammaConsoleAccessPoint(organizationId)));
+            return Optional.ofNullable(
+                    buildHttpUrl(accessPointQueryService.getGammaConsoleAccessPoint(organizationId)));
         }
         return Optional.ofNullable(gammaUrls.get(organizationId));
     }
@@ -427,12 +445,14 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     @Override
     public String getGammaAPIUrl(final String organizationId) {
-        return resolveApiUrl(organizationId, accessPointQueryService::getGammaApiAccessPoint, gammaApiUrl, gammaProxyPath);
+        return resolveApiUrl(
+                organizationId, accessPointQueryService::getGammaApiAccessPoint, gammaApiUrl, gammaProxyPath);
     }
 
     @Override
     public String getGammaManagementAPIUrl(final String organizationId) {
-        return resolveApiUrl(organizationId, accessPointQueryService::getGammaApiAccessPoint, gammaApiUrl, managementProxyPath);
+        return resolveApiUrl(
+                organizationId, accessPointQueryService::getGammaApiAccessPoint, gammaApiUrl, managementProxyPath);
     }
 
     /**
@@ -440,12 +460,13 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
      * Returns {@code null} when no base URL can be determined.
      */
     private String resolveApiUrl(
-        final String scopeId,
-        final Function<String, AccessPoint> accessPointLookup,
-        final String standaloneUrl,
-        final String proxyPath
-    ) {
-        String baseUrl = installationTypeDomainService.isMultiTenant() ? buildHttpUrl(accessPointLookup.apply(scopeId)) : standaloneUrl;
+            final String scopeId,
+            final Function<String, AccessPoint> accessPointLookup,
+            final String standaloneUrl,
+            final String proxyPath) {
+        String baseUrl = installationTypeDomainService.isMultiTenant()
+                ? buildHttpUrl(accessPointLookup.apply(scopeId))
+                : standaloneUrl;
         if (baseUrl == null) {
             return null;
         }

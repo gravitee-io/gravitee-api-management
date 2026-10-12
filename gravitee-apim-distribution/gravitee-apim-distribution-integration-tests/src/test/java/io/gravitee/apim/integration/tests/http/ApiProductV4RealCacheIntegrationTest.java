@@ -54,7 +54,11 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@DeployApi({ "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" })
+@DeployApi({
+    "/apis/v4/http/api-product/api-1.json",
+    "/apis/v4/http/api-product/api-2.json",
+    "/apis/v4/http/api-product/api-3.json"
+})
 class ApiProductV4RealCacheIntegrationTest extends ApiProductV4IntegrationTest.TestPreparer {
 
     private static final String ENV_ID = "DEFAULT";
@@ -213,53 +217,54 @@ class ApiProductV4RealCacheIntegrationTest extends ApiProductV4IntegrationTest.T
 
         final ApiKeyCacheService realApiKeys = new ApiKeyCacheService(apiProductRegistry);
         doAnswer(inv -> realApiKeys.getByApiAndKey(inv.getArgument(0), inv.getArgument(1)))
-            .when(apiKeyBean)
-            .getByApiAndKey(any(), any());
+                .when(apiKeyBean)
+                .getByApiAndKey(any(), any());
         doAnswer(inv -> realApiKeys.getByApiAndMd5Key(inv.getArgument(0), inv.getArgument(1)))
-            .when(apiKeyBean)
-            .getByApiAndMd5Key(any(), any());
+                .when(apiKeyBean)
+                .getByApiAndMd5Key(any(), any());
         doAnswer(inv -> {
-            realApiKeys.register(inv.getArgument(0));
-            return null;
-        })
-            .when(apiKeyBean)
-            .register(any());
+                    realApiKeys.register(inv.getArgument(0));
+                    return null;
+                })
+                .when(apiKeyBean)
+                .register(any());
         doAnswer(inv -> {
-            realApiKeys.unregister(inv.getArgument(0));
-            return null;
-        })
-            .when(apiKeyBean)
-            .unregister(any());
+                    realApiKeys.unregister(inv.getArgument(0));
+                    return null;
+                })
+                .when(apiKeyBean)
+                .unregister(any());
 
         // Built on the api-key bean, not on realApiKeys, so the api-key path still goes through
         // whatever the test has stubbed on it.
         final SubscriptionCacheService realSubscriptions = new SubscriptionCacheService(
-            apiKeyBean,
-            getBean(SubscriptionTrustStoreLoaderManager.class),
-            getBean(ApiManager.class),
-            apiProductRegistry
-        );
-        doAnswer(inv -> realSubscriptions.getByApiAndSecurityToken(inv.getArgument(0), inv.getArgument(1), inv.getArgument(2)))
-            .when(subscriptionBean)
-            .getByApiAndSecurityToken(any(), any(), any());
-        doAnswer(inv -> realSubscriptions.getByApiAndClientIdAndPlan(inv.getArgument(0), inv.getArgument(1), inv.getArgument(2)))
-            .when(subscriptionBean)
-            .getByApiAndClientIdAndPlan(any(), any(), any());
+                apiKeyBean,
+                getBean(SubscriptionTrustStoreLoaderManager.class),
+                getBean(ApiManager.class),
+                apiProductRegistry);
+        doAnswer(inv -> realSubscriptions.getByApiAndSecurityToken(
+                        inv.getArgument(0), inv.getArgument(1), inv.getArgument(2)))
+                .when(subscriptionBean)
+                .getByApiAndSecurityToken(any(), any(), any());
+        doAnswer(inv -> realSubscriptions.getByApiAndClientIdAndPlan(
+                        inv.getArgument(0), inv.getArgument(1), inv.getArgument(2)))
+                .when(subscriptionBean)
+                .getByApiAndClientIdAndPlan(any(), any(), any());
         doAnswer(inv -> realSubscriptions.getById(inv.getArgument(0)))
-            .when(subscriptionBean)
-            .getById(any());
+                .when(subscriptionBean)
+                .getById(any());
         doAnswer(inv -> {
-            realSubscriptions.register(inv.getArgument(0));
-            return null;
-        })
-            .when(subscriptionBean)
-            .register(any());
+                    realSubscriptions.register(inv.getArgument(0));
+                    return null;
+                })
+                .when(subscriptionBean)
+                .register(any());
         doAnswer(inv -> {
-            realSubscriptions.unregister(inv.getArgument(0));
-            return null;
-        })
-            .when(subscriptionBean)
-            .unregister(any());
+                    realSubscriptions.unregister(inv.getArgument(0));
+                    return null;
+                })
+                .when(subscriptionBean)
+                .unregister(any());
     }
 
     private void deployProductWithApiKeyPlan(Set<String> apiIds) {

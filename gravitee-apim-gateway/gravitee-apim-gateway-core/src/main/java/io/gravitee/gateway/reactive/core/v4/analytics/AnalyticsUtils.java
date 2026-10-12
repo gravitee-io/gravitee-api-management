@@ -35,12 +35,11 @@ import lombok.NoArgsConstructor;
 public class AnalyticsUtils {
 
     public static AnalyticsContext createAnalyticsContext(
-        @Nonnull final io.gravitee.definition.model.Api apiV2,
-        final String loggingMaxsize,
-        final String loggingExcludedResponseType,
-        final TracingContext tracingContext,
-        final LogGuardService logGuardService
-    ) {
+            @Nonnull final io.gravitee.definition.model.Api apiV2,
+            final String loggingMaxsize,
+            final String loggingExcludedResponseType,
+            final TracingContext tracingContext,
+            final LogGuardService logGuardService) {
         io.gravitee.definition.model.Logging loggingV2 = apiV2.getProxy().getLogging();
 
         // Create v4 logging configuration from v2 as bridge
@@ -98,7 +97,8 @@ public class AnalyticsUtils {
         return false;
     }
 
-    public static boolean isTracingEnabled(final OpenTelemetryConfiguration openTelemetryConfiguration, final Analytics analytics) {
+    public static boolean isTracingEnabled(
+            final OpenTelemetryConfiguration openTelemetryConfiguration, final Analytics analytics) {
         if (openTelemetryConfiguration.isTracesEnabled() && isEnabled(analytics)) {
             Tracing tracing = analytics.getTracing();
             return tracing != null && tracing.isEnabled();
@@ -106,10 +106,14 @@ public class AnalyticsUtils {
         return false;
     }
 
-    public static boolean isTracingVerbose(final OpenTelemetryConfiguration openTelemetryConfiguration, final Analytics analytics) {
+    public static boolean isTracingVerbose(
+            final OpenTelemetryConfiguration openTelemetryConfiguration, final Analytics analytics) {
         if (isTracingEnabled(openTelemetryConfiguration, analytics)) {
             Tracing tracing = analytics.getTracing();
-            return openTelemetryConfiguration.isVerboseEnabled() && tracing != null && tracing.isEnabled() && tracing.isVerbose();
+            return openTelemetryConfiguration.isVerboseEnabled()
+                    && tracing != null
+                    && tracing.isEnabled()
+                    && tracing.isVerbose();
         }
         return false;
     }

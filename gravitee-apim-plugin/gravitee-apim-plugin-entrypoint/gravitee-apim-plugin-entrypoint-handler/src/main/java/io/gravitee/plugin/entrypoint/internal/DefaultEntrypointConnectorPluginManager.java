@@ -36,8 +36,8 @@ import lombok.CustomLog;
 @CustomLog
 @SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorPluginManager
-    extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>>
-    implements EntrypointConnectorPluginManager {
+        extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>>
+        implements EntrypointConnectorPluginManager {
 
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
     private final PluginConfigurationHelper pluginConfigurationHelper;
@@ -45,9 +45,8 @@ public class DefaultEntrypointConnectorPluginManager
     private final Map<String, EntrypointConnectorFactory<?>> notDeployedPluginFactories = new HashMap<>();
 
     public DefaultEntrypointConnectorPluginManager(
-        final EntrypointConnectorClassLoaderFactory classLoaderFactory,
-        final PluginConfigurationHelper pluginConfigurationHelper
-    ) {
+            final EntrypointConnectorClassLoaderFactory classLoaderFactory,
+            final PluginConfigurationHelper pluginConfigurationHelper) {
         this.classLoaderFactory = classLoaderFactory;
         this.pluginConfigurationHelper = pluginConfigurationHelper;
     }
@@ -59,9 +58,8 @@ public class DefaultEntrypointConnectorPluginManager
         // Create entrypoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<EntrypointConnectorFactory<?>> connectorFactoryClass = (Class<
-                EntrypointConnectorFactory<?>
-            >) pluginClassLoader.loadClass(plugin.clazz());
+            final Class<EntrypointConnectorFactory<?>> connectorFactoryClass =
+                    (Class<EntrypointConnectorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
             EntrypointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
             if (plugin.deployed()) {
                 factories.put(plugin.id(), factory);
@@ -73,16 +71,17 @@ public class DefaultEntrypointConnectorPluginManager
         }
     }
 
-    private EntrypointConnectorFactory<?> createFactory(final Class<EntrypointConnectorFactory<?>> connectorFactoryClass)
-        throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    private EntrypointConnectorFactory<?> createFactory(
+            final Class<EntrypointConnectorFactory<?>> connectorFactoryClass)
+            throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         EntrypointConnectorFactory<?> factory;
         try {
-            Constructor<EntrypointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
-                PluginConfigurationHelper.class
-            );
+            Constructor<EntrypointConnectorFactory<?>> constructorWithConfigurationHelper =
+                    connectorFactoryClass.getDeclaredConstructor(PluginConfigurationHelper.class);
             factory = constructorWithConfigurationHelper.newInstance(pluginConfigurationHelper);
         } catch (NoSuchMethodException e) {
-            Constructor<EntrypointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
+            Constructor<EntrypointConnectorFactory<?>> emptyConstructor =
+                    connectorFactoryClass.getDeclaredConstructor();
             factory = emptyConstructor.newInstance();
         }
         return factory;

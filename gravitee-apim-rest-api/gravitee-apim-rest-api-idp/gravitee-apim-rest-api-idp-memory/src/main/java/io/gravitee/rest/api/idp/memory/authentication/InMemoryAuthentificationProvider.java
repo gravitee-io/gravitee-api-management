@@ -40,9 +40,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @CustomLog
 @Import(InMemoryAuthenticationProviderConfiguration.class)
-public class InMemoryAuthentificationProvider
-    extends AbstractUserDetailsAuthenticationProvider
-    implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
+public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthenticationProvider
+        implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -73,7 +72,8 @@ public class InMemoryAuthentificationProvider
                 userIdx++;
 
                 io.gravitee.rest.api.idp.api.authentication.UserDetails newUser =
-                    new io.gravitee.rest.api.idp.api.authentication.UserDetails(username, password, email, authorities);
+                        new io.gravitee.rest.api.idp.api.authentication.UserDetails(
+                                username, password, email, authorities);
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);
@@ -88,13 +88,13 @@ public class InMemoryAuthentificationProvider
     }
 
     @Override
-    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
-        throws AuthenticationException {
+    protected void additionalAuthenticationChecks(
+            UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
+            throws AuthenticationException {
         if (authentication.getCredentials() == null) {
             log.debug("Authentication failed: no credentials provided");
             throw new BadCredentialsException(
-                messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
-            );
+                    messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
 
         String presentedPassword = authentication.getCredentials().toString();
@@ -102,13 +102,13 @@ public class InMemoryAuthentificationProvider
         if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
             log.debug("Authentication failed: password does not match stored value");
             throw new BadCredentialsException(
-                messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
-            );
+                    messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
     }
 
     @Override
-    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication)
+            throws AuthenticationException {
         return userDetailsService.loadUserByUsername(username);
     }
 }

@@ -58,9 +58,7 @@ class UpdateObservabilityDashboardUseCaseTest {
 
     private final InMemoryDashboardRepository dashboardRepository = new InMemoryDashboardRepository();
     private final UpdateObservabilityDashboardUseCase useCase = new UpdateObservabilityDashboardUseCase(
-        dashboardRepository,
-        new ObservabilityFilterValidator(new SpiFilterRegistry())
-    );
+            dashboardRepository, new ObservabilityFilterValidator(new SpiFilterRegistry()));
 
     @BeforeAll
     static void freezeClock() {
@@ -81,16 +79,10 @@ class UpdateObservabilityDashboardUseCaseTest {
     void should_replace_content_preserve_creation_fields_bump_updated_at_and_increment_version() {
         dashboardRepository.givenDashboard(existingDashboard(3));
         var content = new DashboardContent(
-            "New title",
-            "new desc",
-            List.of(),
-            new TimeRange(TimeRangeType.RELATIVE, "7d", null, null),
-            null
-        );
+                "New title", "new desc", List.of(), new TimeRange(TimeRangeType.RELATIVE, "7d", null, null), null);
 
-        var output = useCase.execute(
-            new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(3), content)
-        );
+        var output = useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                ENV, DASHBOARD_ID, VersionPrecondition.version(3), content));
 
         assertThat(output.dashboard().title()).isEqualTo("New title");
         assertThat(output.dashboard().description()).isEqualTo("new desc");
@@ -99,7 +91,8 @@ class UpdateObservabilityDashboardUseCaseTest {
         assertThat(output.dashboard().createdBy()).isEqualTo("user-1");
         assertThat(output.dashboard().createdAt()).isEqualTo(CREATED_AT);
         assertThat(output.dashboard().updatedAt()).isEqualTo(NOW);
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).contains(output.dashboard());
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .contains(output.dashboard());
     }
 
     /** {@code module} is not part of the update contract: the stored value survives every write. */
@@ -108,14 +101,12 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existingDashboard(3));
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        var output = useCase.execute(
-            new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(3), content)
-        );
+        var output = useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                ENV, DASHBOARD_ID, VersionPrecondition.version(3), content));
 
         assertThat(output.dashboard().module()).isEqualTo("aim");
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).hasValueSatisfying(stored ->
-            assertThat(stored.module()).isEqualTo("aim")
-        );
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .hasValueSatisfying(stored -> assertThat(stored.module()).isEqualTo("aim"));
     }
 
     /**
@@ -128,9 +119,9 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existingDashboard(null));
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(1), content))
-        ).isInstanceOf(DashboardVersionConflictException.class);
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, DASHBOARD_ID, VersionPrecondition.version(1), content)))
+                .isInstanceOf(DashboardVersionConflictException.class);
     }
 
     @Test
@@ -138,9 +129,8 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existingDashboard(null));
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        var output = useCase.execute(
-            new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.anyVersion(), content)
-        );
+        var output = useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                ENV, DASHBOARD_ID, VersionPrecondition.anyVersion(), content));
 
         assertThat(output.dashboard().version()).isEqualTo(1);
         assertThat(output.dashboard().title()).isEqualTo("New title");
@@ -150,9 +140,9 @@ class UpdateObservabilityDashboardUseCaseTest {
     void should_throw_not_found_when_dashboard_does_not_exist() {
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, "unknown", VersionPrecondition.version(1), content))
-        ).isInstanceOf(DashboardNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, "unknown", VersionPrecondition.version(1), content)))
+                .isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
@@ -160,9 +150,9 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existingDashboard(1));
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(OTHER_ENV, DASHBOARD_ID, VersionPrecondition.version(1), content))
-        ).isInstanceOf(DashboardNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        OTHER_ENV, DASHBOARD_ID, VersionPrecondition.version(1), content)))
+                .isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
@@ -171,10 +161,11 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existing);
         var content = new DashboardContent(" ", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(3), content))
-        ).isInstanceOf(InvalidDashboardException.class);
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).contains(existing);
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, DASHBOARD_ID, VersionPrecondition.version(3), content)))
+                .isInstanceOf(InvalidDashboardException.class);
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .contains(existing);
     }
 
     @Test
@@ -183,10 +174,13 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existing);
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(2), content))
-        ).isInstanceOfSatisfying(DashboardVersionConflictException.class, e -> assertThat(e.getCurrent()).isEqualTo(existing));
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).contains(existing);
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, DASHBOARD_ID, VersionPrecondition.version(2), content)))
+                .isInstanceOfSatisfying(
+                        DashboardVersionConflictException.class,
+                        e -> assertThat(e.getCurrent()).isEqualTo(existing));
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .contains(existing);
     }
 
     /**
@@ -199,9 +193,9 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existingDashboard(3));
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(4), content))
-        ).isInstanceOf(DashboardVersionConflictException.class);
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, DASHBOARD_ID, VersionPrecondition.version(4), content)))
+                .isInstanceOf(DashboardVersionConflictException.class);
     }
 
     @Test
@@ -210,10 +204,12 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existing);
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, null, content)))
-            .isInstanceOf(InvalidDashboardException.class)
-            .hasMessageContaining("revision this edit is based on must be stated");
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).contains(existing);
+        assertThatThrownBy(() -> useCase.execute(
+                        new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, null, content)))
+                .isInstanceOf(InvalidDashboardException.class)
+                .hasMessageContaining("revision this edit is based on must be stated");
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .contains(existing);
     }
 
     /**
@@ -225,25 +221,26 @@ class UpdateObservabilityDashboardUseCaseTest {
     void should_reject_and_report_the_winner_when_a_concurrent_save_lands_between_the_read_and_the_write() {
         dashboardRepository.givenDashboard(existingDashboard(3));
         Dashboard winner = new Dashboard(
-            DASHBOARD_ID,
-            ENV,
-            null,
-            "Someone else's title",
-            "desc",
-            List.of(),
-            null,
-            NullNode.getInstance(),
-            4,
-            "user-1",
-            CREATED_AT,
-            NOW
-        );
+                DASHBOARD_ID,
+                ENV,
+                null,
+                "Someone else's title",
+                "desc",
+                List.of(),
+                null,
+                NullNode.getInstance(),
+                4,
+                "user-1",
+                CREATED_AT,
+                NOW);
         dashboardRepository.givenAConcurrentSaveBeforeTheNextVersionedWrite(winner);
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(3), content))
-        ).isInstanceOfSatisfying(DashboardVersionConflictException.class, e -> assertThat(e.getCurrent()).isEqualTo(winner));
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, DASHBOARD_ID, VersionPrecondition.version(3), content)))
+                .isInstanceOfSatisfying(
+                        DashboardVersionConflictException.class,
+                        e -> assertThat(e.getCurrent()).isEqualTo(winner));
     }
 
     @Test
@@ -251,12 +248,13 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existingDashboard(3));
         var content = new DashboardContent("Overwritten", null, List.of(), null, null);
 
-        var output = useCase.execute(
-            new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.anyVersion(), content)
-        );
+        var output = useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                ENV, DASHBOARD_ID, VersionPrecondition.anyVersion(), content));
 
         assertThat(output.dashboard().title()).isEqualTo("Overwritten");
-        assertThat(output.dashboard().version()).as("an overwrite still moves the counter on").isEqualTo(4);
+        assertThat(output.dashboard().version())
+                .as("an overwrite still moves the counter on")
+                .isEqualTo(4);
     }
 
     /**
@@ -269,10 +267,11 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenADeleteBeforeTheNextWrite(DASHBOARD_ID);
         var content = new DashboardContent("Overwritten", null, List.of(), null, null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.anyVersion(), content))
-        ).isInstanceOf(DashboardNotFoundException.class);
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).isEmpty();
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, DASHBOARD_ID, VersionPrecondition.anyVersion(), content)))
+                .isInstanceOf(DashboardNotFoundException.class);
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .isEmpty();
     }
 
     /** If-Match accepts a list of validators; any one matching is enough. */
@@ -281,28 +280,26 @@ class UpdateObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(existingDashboard(3));
         var content = new DashboardContent("New title", null, List.of(), null, null);
 
-        var output = useCase.execute(
-            new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.oneOf(Set.of(2, 3)), content)
-        );
+        var output = useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                ENV, DASHBOARD_ID, VersionPrecondition.oneOf(Set.of(2, 3)), content));
 
         assertThat(output.dashboard().version()).isEqualTo(4);
     }
 
     private static Dashboard existingDashboard(Integer version) {
         return new Dashboard(
-            DASHBOARD_ID,
-            ENV,
-            "aim",
-            "Performance overview",
-            "desc",
-            List.of(),
-            new TimeRange(TimeRangeType.RELATIVE, "24h", null, null),
-            NullNode.getInstance(),
-            version,
-            "user-1",
-            CREATED_AT,
-            CREATED_AT
-        );
+                DASHBOARD_ID,
+                ENV,
+                "aim",
+                "Performance overview",
+                "desc",
+                List.of(),
+                new TimeRange(TimeRangeType.RELATIVE, "24h", null, null),
+                NullNode.getInstance(),
+                version,
+                "user-1",
+                CREATED_AT,
+                CREATED_AT);
     }
 
     @Test
@@ -310,18 +307,18 @@ class UpdateObservabilityDashboardUseCaseTest {
         Dashboard existing = existingDashboard(3);
         dashboardRepository.givenDashboard(existing);
         var content = new DashboardContent(
-            "New title",
-            null,
-            List.of(new DashboardFilter(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("error")), "Payload", false)),
-            null,
-            null
-        );
+                "New title",
+                null,
+                List.of(new DashboardFilter(
+                        new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("error")), "Payload", false)),
+                null,
+                null);
 
-        assertThatThrownBy(() ->
-            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(3), content))
-        )
-            .isInstanceOf(UnsupportedObservabilityFilterException.class)
-            .hasMessageContaining("PAYLOAD");
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).contains(existing);
+        assertThatThrownBy(() -> useCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                        ENV, DASHBOARD_ID, VersionPrecondition.version(3), content)))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("PAYLOAD");
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .contains(existing);
     }
 }

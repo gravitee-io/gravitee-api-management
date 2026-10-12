@@ -36,11 +36,11 @@ public class SearchApiEventUseCaseTest {
     public static final String ENVIRONMENT_ID = "environment-id";
 
     private static final BaseUserEntity USER = BaseUserEntity.builder()
-        .id("user-id")
-        .firstname("John")
-        .lastname("Doe")
-        .email("john.doe@gravitee.io")
-        .build();
+            .id("user-id")
+            .firstname("John")
+            .lastname("Doe")
+            .email("john.doe@gravitee.io")
+            .build();
 
     EventQueryServiceInMemory eventQueryService = new EventQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -61,22 +61,21 @@ public class SearchApiEventUseCaseTest {
     void should_return_event_with_initiator_of_the_requested_api() {
         // Given
         userCrudService.initWith(List.of(USER));
-        var expected = EventFixtures.anApiEvent(API_ID).toBuilder().environments(Set.of(ENVIRONMENT_ID)).build();
-        eventQueryService.initWith(
-            List.of(
+        var expected = EventFixtures.anApiEvent(API_ID).toBuilder()
+                .environments(Set.of(ENVIRONMENT_ID))
+                .build();
+        eventQueryService.initWith(List.of(
                 expected,
                 Event.builder()
-                    .id("event2")
-                    .environments(Set.of(ENVIRONMENT_ID))
-                    .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
-                    .build(),
+                        .id("event2")
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                        .build(),
                 Event.builder()
-                    .id("event3")
-                    .environments(Set.of(ENVIRONMENT_ID))
-                    .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
-                    .build()
-            )
-        );
+                        .id("event3")
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                        .build()));
 
         var result = useCase.execute(new SearchApiEventUseCase.Input("event-id", ENVIRONMENT_ID, API_ID));
 

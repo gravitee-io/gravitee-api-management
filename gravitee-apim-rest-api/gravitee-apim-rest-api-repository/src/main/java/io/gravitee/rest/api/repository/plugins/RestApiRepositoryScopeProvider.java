@@ -25,7 +25,7 @@ public class RestApiRepositoryScopeProvider implements RepositoryScopeProvider {
 
     @Override
     public Scope[] getHandledScopes() {
-        return new Scope[] { Scope.MANAGEMENT, Scope.ANALYTICS };
+        return new Scope[] {Scope.MANAGEMENT, Scope.ANALYTICS};
     }
 
     /**
@@ -36,6 +36,6 @@ public class RestApiRepositoryScopeProvider implements RepositoryScopeProvider {
      */
     @Override
     public Scope[] getOptionalHandledScopes() {
-        return new Scope[] { Scope.OTEL_TRACES, Scope.OTEL_LOGS };
+        return new Scope[] {Scope.OTEL_TRACES, Scope.OTEL_LOGS};
     }
 }

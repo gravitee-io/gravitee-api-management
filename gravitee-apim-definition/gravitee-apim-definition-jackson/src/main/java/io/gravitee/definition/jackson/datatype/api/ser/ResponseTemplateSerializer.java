@@ -32,10 +32,12 @@ public class ResponseTemplateSerializer extends StdScalarSerializer<ResponseTemp
     }
 
     @Override
-    public void serialize(ResponseTemplate responseTemplate, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(ResponseTemplate responseTemplate, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
         jgen.writeNumberField("status", responseTemplate.getStatusCode());
-        if (responseTemplate.getHeaders() != null && !responseTemplate.getHeaders().isEmpty()) {
+        if (responseTemplate.getHeaders() != null
+                && !responseTemplate.getHeaders().isEmpty()) {
             jgen.writeObjectField("headers", responseTemplate.getHeaders());
         }
         jgen.writeStringField("body", responseTemplate.getBody());

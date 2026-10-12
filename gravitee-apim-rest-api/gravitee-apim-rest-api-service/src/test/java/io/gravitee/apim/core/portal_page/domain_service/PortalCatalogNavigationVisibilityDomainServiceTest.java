@@ -46,16 +46,17 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
 
     private static final String ENV_ID = "env-id";
     private static final String ORG_ID = "org-id";
-    private static final PortalNavigationItemViewerContext VIEWER_CONTEXT = PortalNavigationItemViewerContext.forPortal("user-id");
+    private static final PortalNavigationItemViewerContext VIEWER_CONTEXT =
+            PortalNavigationItemViewerContext.forPortal("user-id");
 
     private PortalCatalogNavigationVisibilityDomainService service;
 
     @BeforeEach
     void set_up() {
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
-            new PortalNavigationItemsQueryServiceInMemory(),
-            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), new MembershipQueryServiceInMemory())
-        );
+                new PortalNavigationItemsQueryServiceInMemory(),
+                new ApiProductAccessibleIdsDomainService(
+                        new ApiProductQueryServiceInMemory(), new MembershipQueryServiceInMemory()));
         service = new PortalCatalogNavigationVisibilityDomainService(apiProductVisibilityDomainService);
     }
 
@@ -115,7 +116,8 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
         var items = List.<PortalNavigationItem>of(api, apiProduct);
 
         var hidden = filter(List.of(api, apiProduct), items, Set.of(), Set.of());
-        var visible = filter(List.of(api, apiProduct), items, Set.of(api.getId()), Set.of(apiProduct.getApiProductId()));
+        var visible =
+                filter(List.of(api, apiProduct), items, Set.of(api.getId()), Set.of(apiProduct.getApiProductId()));
 
         assertThat(hidden).isEmpty();
         assertThat(visible).containsExactly(api, apiProduct);
@@ -151,18 +153,12 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
     }
 
     private <T extends PortalNavigationItem> List<T> filter(
-        List<T> candidates,
-        List<PortalNavigationItem> allItems,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
-    ) {
+            List<T> candidates,
+            List<PortalNavigationItem> allItems,
+            Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
+            Set<String> accessibleApiProductIds) {
         return service.filterVisibleItems(
-            candidates,
-            index(allItems),
-            VIEWER_CONTEXT,
-            accessibleApiNavigationItemIds,
-            accessibleApiProductIds
-        );
+                candidates, index(allItems), VIEWER_CONTEXT, accessibleApiNavigationItemIds, accessibleApiProductIds);
     }
 
     private Map<PortalNavigationItemId, PortalNavigationItem> index(List<PortalNavigationItem> items) {
@@ -175,52 +171,54 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
 
     private PortalNavigationFolder folder(PortalNavigationItemId id, PortalNavigationItemId parentId) {
         return PortalNavigationFolder.builder()
-            .id(id)
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(id.json())
-            .segment(id.json())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(parentId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(id.json())
+                .segment(id.json())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(parentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     private PortalNavigationApi api(String id, PortalNavigationItemId parentId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
-            .id(navigationItemId(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(id)
-            .segment(id)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(parentId)
-            .apiId(id)
-            .published(true)
-            .visibility(visibility)
-            .build();
+                .id(navigationItemId(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(id)
+                .segment(id)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(parentId)
+                .apiId(id)
+                .published(true)
+                .visibility(visibility)
+                .build();
     }
 
-    private PortalNavigationApiProduct apiProduct(String id, PortalNavigationItemId parentId, PortalVisibility visibility) {
+    private PortalNavigationApiProduct apiProduct(
+            String id, PortalNavigationItemId parentId, PortalVisibility visibility) {
         return PortalNavigationApiProduct.builder()
-            .id(navigationItemId(id))
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(id)
-            .segment(id)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .parentId(parentId)
-            .apiProductId(id)
-            .published(true)
-            .visibility(visibility)
-            .build();
+                .id(navigationItemId(id))
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(id)
+                .segment(id)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(parentId)
+                .apiProductId(id)
+                .published(true)
+                .visibility(visibility)
+                .build();
     }
 
     private PortalNavigationItemId navigationItemId(String value) {
-        return PortalNavigationItemId.of(UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8)).toString());
+        return PortalNavigationItemId.of(
+                UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8)).toString());
     }
 }

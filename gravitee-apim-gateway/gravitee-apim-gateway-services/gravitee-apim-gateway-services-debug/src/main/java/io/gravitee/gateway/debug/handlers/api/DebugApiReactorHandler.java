@@ -38,13 +38,12 @@ import io.gravitee.node.api.configuration.Configuration;
 public class DebugApiReactorHandler extends ApiReactorHandler {
 
     public DebugApiReactorHandler(
-        Configuration configuration,
-        Api api,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        HttpAcceptorFactory httpAcceptorFactory,
-        TracingContext tracingContext
-    ) {
+            Configuration configuration,
+            Api api,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            HttpAcceptorFactory httpAcceptorFactory,
+            TracingContext tracingContext) {
         super(configuration, api, accessPointManager, eventManager, httpAcceptorFactory, tracingContext);
     }
 
@@ -64,9 +63,9 @@ public class DebugApiReactorHandler extends ApiReactorHandler {
     @Override
     protected void contextualizeRequest(ExecutionContext context) {
         final String path = ((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path();
-        ((MutableExecutionContext) context).request(
-            new ContextualizedDebugHttpServerRequest(path, context.request(), ((DebugApiV2) reactable).getEventId())
-        );
+        ((MutableExecutionContext) context)
+                .request(new ContextualizedDebugHttpServerRequest(
+                        path, context.request(), ((DebugApiV2) reactable).getEventId()));
     }
 
     @Override

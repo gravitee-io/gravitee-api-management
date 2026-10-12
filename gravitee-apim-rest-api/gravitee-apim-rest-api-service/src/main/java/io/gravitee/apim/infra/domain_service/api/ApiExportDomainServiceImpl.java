@@ -117,11 +117,11 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         var medias = !excluded.contains(PAGES_MEDIA) ? exportApiMedia(apiId, auditInfo, executionContext) : null;
 
         var workflowState = stream(workflowCrudService.findByApiId(apiId))
-            .map(Workflow::getState)
-            .map(Enum::name)
-            .map(WorkflowState::valueOf)
-            .findFirst()
-            .orElse(null);
+                .map(Workflow::getState)
+                .map(Enum::name)
+                .map(WorkflowState::valueOf)
+                .findFirst()
+                .orElse(null);
 
         var groups = !excluded.contains(GROUPS) ? exportGroupNames(api1.getGroups()) : null;
         return switch (apiType(api1)) {
@@ -132,8 +132,10 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 };
                 var plans = mapPlan(apiId, mapPlanV2, excluded);
                 var flows = getApiV2Flows(apiId, excludeIds);
-                var api = DEFINITION_ADAPTER.mapV2(api1, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
-                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+                var api = DEFINITION_ADAPTER.mapV2(
+                        api1, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
+                yield GraviteeDefinition.from(
+                        api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
             case V4 -> {
                 Function<Plan, PlanDescriptor.V4> mapPlanV4 = plan -> {
@@ -144,15 +146,9 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 var flows = getApiV4Flows(apiId, excludeIds);
                 var apiWithCategoryKeys = apiWithCategoryKeys(api1);
                 var api = DEFINITION_ADAPTER.mapV4(
-                    apiWithCategoryKeys,
-                    apiPrimaryOwner,
-                    workflowState,
-                    groups,
-                    metadata,
-                    flows,
-                    excludeIds
-                );
-                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+                        apiWithCategoryKeys, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
+                yield GraviteeDefinition.from(
+                        api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
             case V4_NATIVE -> {
                 Function<Plan, PlanDescriptor.Native> mapPlanNative = plan -> {
@@ -163,24 +159,23 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 var flows = getNativeApiFlows(apiId, excludeIds);
                 var apiWithCategoryKeys = apiWithCategoryKeys(api1);
                 var api = DEFINITION_ADAPTER.mapNative(
-                    apiWithCategoryKeys,
-                    apiPrimaryOwner,
-                    workflowState,
-                    groups,
-                    metadata,
-                    flows,
-                    excludeIds
-                );
-                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+                        apiWithCategoryKeys, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
+                yield GraviteeDefinition.from(
+                        api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
             case FEDERATED -> {
                 Function<Plan, PlanDescriptor.Federated> mapPlanFederated = DEFINITION_ADAPTER::mapPlanFederated;
                 var plans = mapPlan(apiId, mapPlanFederated, excluded);
-                var integ = api1.getOriginContext() instanceof OriginContext.Integration ori && ori.integrationName() == null
-                    ? integrationCrudService.findApiIntegrationById(ori.integrationId()).orElse(null)
-                    : null;
-                var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
-                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+                var integ = api1.getOriginContext() instanceof OriginContext.Integration ori
+                                && ori.integrationName() == null
+                        ? integrationCrudService
+                                .findApiIntegrationById(ori.integrationId())
+                                .orElse(null)
+                        : null;
+                var api =
+                        DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
+                yield GraviteeDefinition.from(
+                        api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
             case FEDERATED_AGENT -> null; // TODO
         };
@@ -191,50 +186,50 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             return null;
         }
         List<Membership> members = stream(membershipCrudService.findByApiId(apiId))
-            .filter(memberEntity -> memberEntity.getMemberType() == Membership.Type.USER)
-            .toList();
+                .filter(memberEntity -> memberEntity.getMemberType() == Membership.Type.USER)
+                .toList();
         var userIds = members.stream().map(Membership::getMemberId).distinct().toList();
-        var userByIds = stream(userCrudService.findBaseUsersByIds(userIds)).collect(
-            Collectors.toMap(BaseUserEntity::getId, Function.identity())
-        );
-        var roles = stream(roleQueryService.findByIds(members.stream().map(Membership::getRoleId).collect(Collectors.toSet()))).collect(
-            Collectors.toMap(Role::getId, Function.identity())
-        );
+        var userByIds = stream(userCrudService.findBaseUsersByIds(userIds))
+                .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
+        var roles = stream(roleQueryService.findByIds(
+                        members.stream().map(Membership::getRoleId).collect(Collectors.toSet())))
+                .collect(Collectors.toMap(Role::getId, Function.identity()));
 
-        return members
-            .stream()
-            .map(m -> MemberAdapter.INSTANCE.toApiMember(m, userByIds.get(m.getMemberId()), roles.get(m.getRoleId())))
-            .collect(Collectors.toSet());
+        return members.stream()
+                .map(m ->
+                        MemberAdapter.INSTANCE.toApiMember(m, userByIds.get(m.getMemberId()), roles.get(m.getRoleId())))
+                .collect(Collectors.toSet());
     }
 
-    private Collection<NewApiMetadata> exportApiMetadata(String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
-        if (!permissionService.hasPermission(executionContext, auditInfo.actor().userId(), RolePermission.API_METADATA, apiId, READ)) {
+    private Collection<NewApiMetadata> exportApiMetadata(
+            String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
+        if (!permissionService.hasPermission(
+                executionContext, auditInfo.actor().userId(), RolePermission.API_METADATA, apiId, READ)) {
             return null;
         }
         return Stream.concat(
-            stream(metadataCrudService.findByEnvId(executionContext.getEnvironmentId())),
-            stream(metadataCrudService.findByApiId(apiId))
-        )
-            .map(DEFINITION_ADAPTER::mapMetadata)
-            .collect(
-                Collectors.toMap(NewApiMetadata::getKey, Function.identity(), (envMetadata, apiMetadata) -> {
+                        stream(metadataCrudService.findByEnvId(executionContext.getEnvironmentId())),
+                        stream(metadataCrudService.findByApiId(apiId)))
+                .map(DEFINITION_ADAPTER::mapMetadata)
+                .collect(Collectors.toMap(NewApiMetadata::getKey, Function.identity(), (envMetadata, apiMetadata) -> {
                     apiMetadata.setDefaultValue(envMetadata.getValue());
                     return apiMetadata;
-                })
-            )
-            .values();
+                }))
+                .values();
     }
 
     private List<PageExport> exportApiPages(String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
-        return permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
-            ? DEFINITION_ADAPTER.mapPage(pageQueryService.searchByApiId(apiId))
-            : null;
+        return permissionService.hasPermission(
+                        executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
+                ? DEFINITION_ADAPTER.mapPage(pageQueryService.searchByApiId(apiId))
+                : null;
     }
 
     private List<Media> exportApiMedia(String apiId, AuditInfo auditInfo, ExecutionContext executionContext) {
-        return permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
-            ? mediaService.findAllByApiId(apiId)
-            : null;
+        return permissionService.hasPermission(
+                        executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
+                ? mediaService.findAllByApiId(apiId)
+                : null;
     }
 
     private enum ValidatedType {
@@ -252,17 +247,22 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             case FederatedApi federatedApi -> ValidatedType.FEDERATED;
             case FederatedAgent federatedAgent -> ValidatedType.FEDERATED_AGENT;
             case io.gravitee.definition.model.Api api -> ValidatedType.V2;
-            case null, default -> throw new ApiDefinitionVersionNotSupportedException(
-                api1.getDefinitionVersion() != null ? api1.getDefinitionVersion().getLabel() : null
-            );
+            case null, default ->
+                throw new ApiDefinitionVersionNotSupportedException(
+                        api1.getDefinitionVersion() != null
+                                ? api1.getDefinitionVersion().getLabel()
+                                : null);
         };
     }
 
     @Nullable
     private <T> Collection<T> mapPlan(String apiId, Function<Plan, T> mapper, Collection<Excludable> excluded) {
         return excluded.contains(Excludable.PLANS)
-            ? null
-            : stream(planCrudService.findByApiId(apiId)).filter(not(Plan::isClosed)).map(mapper).toList();
+                ? null
+                : stream(planCrudService.findByApiId(apiId))
+                        .filter(not(Plan::isClosed))
+                        .map(mapper)
+                        .toList();
     }
 
     private PlanDescriptor.V4 planWithFlowV4(PlanDescriptor.V4 planV4, String planId, boolean excludeIds) {
@@ -281,7 +281,8 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         return planV2.withFlow(flows);
     }
 
-    private PlanDescriptor.Native planWithFlowNative(PlanDescriptor.Native planNative, String planId, boolean excludeIds) {
+    private PlanDescriptor.Native planWithFlowNative(
+            PlanDescriptor.Native planNative, String planId, boolean excludeIds) {
         var flows = flowCrudService.getNativePlanFlows(planId);
         if (excludeIds) {
             flows.forEach(f -> f.setId(null));
@@ -315,7 +316,8 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private Api apiWithCategoryKeys(Api api) {
         var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(api);
-        if (categoryKeys.isEmpty() && (api.getCategories() == null || api.getCategories().isEmpty())) {
+        if (categoryKeys.isEmpty()
+                && (api.getCategories() == null || api.getCategories().isEmpty())) {
             return api;
         }
         return api.toBuilder().categories(Set.copyOf(categoryKeys)).build();
@@ -332,10 +334,9 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         var found = groupQueryService.findByIds(groupIds);
         if (found.size() != groupIds.size()) {
             var foundIds = found.stream().map(Group::getId).collect(Collectors.toSet());
-            groupIds
-                .stream()
-                .filter(id -> !foundIds.contains(id))
-                .forEach(groupId -> log.warn("Group [{}] no longer exists, skipping from export", groupId));
+            groupIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .forEach(groupId -> log.warn("Group [{}] no longer exists, skipping from export", groupId));
         }
         // V2 parity: distinct group names only; two IDs with the same name collapse to one export entry.
         return found.stream().map(Group::getName).collect(Collectors.toSet());

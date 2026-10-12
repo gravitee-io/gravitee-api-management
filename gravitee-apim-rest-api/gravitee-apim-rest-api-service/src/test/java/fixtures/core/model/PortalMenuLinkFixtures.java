@@ -26,8 +26,7 @@ public class PortalMenuLinkFixtures {
 
     private PortalMenuLinkFixtures() {}
 
-    private static final Supplier<PortalMenuLink.PortalMenuLinkBuilder> BASE = () ->
-        PortalMenuLink.builder()
+    private static final Supplier<PortalMenuLink.PortalMenuLinkBuilder> BASE = () -> PortalMenuLink.builder()
             .id("portalMenuLinkId")
             .environmentId("environmentId")
             .type(PortalMenuLinkType.EXTERNAL)
@@ -40,23 +39,23 @@ public class PortalMenuLinkFixtures {
         return BASE.get().build();
     }
 
-    private static final Supplier<CreatePortalMenuLink.CreatePortalMenuLinkBuilder> CREATE_BASE = () ->
-        CreatePortalMenuLink.builder()
-            .type(PortalMenuLinkType.EXTERNAL)
-            .name("portalMenuLinkNameToCreate")
-            .target("portalMenuLinkTargetToCreate")
-            .visibility(PortalMenuLinkVisibility.PUBLIC);
+    private static final Supplier<CreatePortalMenuLink.CreatePortalMenuLinkBuilder> CREATE_BASE =
+            () -> CreatePortalMenuLink.builder()
+                    .type(PortalMenuLinkType.EXTERNAL)
+                    .name("portalMenuLinkNameToCreate")
+                    .target("portalMenuLinkTargetToCreate")
+                    .visibility(PortalMenuLinkVisibility.PUBLIC);
 
     public static CreatePortalMenuLink aCreatePortalMenuLink() {
         return CREATE_BASE.get().build();
     }
 
-    private static final Supplier<UpdatePortalMenuLink.UpdatePortalMenuLinkBuilder> UPDATE_BASE = () ->
-        UpdatePortalMenuLink.builder()
-            .name("portalMenuLinkNameToUpdate")
-            .target("portalMenuLinkTargetToUpdate")
-            .visibility(PortalMenuLinkVisibility.PUBLIC)
-            .order(100);
+    private static final Supplier<UpdatePortalMenuLink.UpdatePortalMenuLinkBuilder> UPDATE_BASE =
+            () -> UpdatePortalMenuLink.builder()
+                    .name("portalMenuLinkNameToUpdate")
+                    .target("portalMenuLinkTargetToUpdate")
+                    .visibility(PortalMenuLinkVisibility.PUBLIC)
+                    .order(100);
 
     public static UpdatePortalMenuLink anUpdatePortalMenuLink() {
         return UPDATE_BASE.get().build();

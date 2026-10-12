@@ -35,19 +35,22 @@ class LoadBalancerStrategyFactoryTest {
 
     @Test
     void shouldReturnRoundRobinStrategy() {
-        LoadBalancerStrategy balancerStrategy = LoadBalancerStrategyFactory.create(LoadBalancerType.ROUND_ROBIN, List.of());
+        LoadBalancerStrategy balancerStrategy =
+                LoadBalancerStrategyFactory.create(LoadBalancerType.ROUND_ROBIN, List.of());
         assertThat(balancerStrategy).isInstanceOf(RoundRobinLoadBalancer.class);
     }
 
     @Test
     void shouldReturnWeightedRandomStrategy() {
-        LoadBalancerStrategy balancerStrategy = LoadBalancerStrategyFactory.create(LoadBalancerType.WEIGHTED_RANDOM, List.of());
+        LoadBalancerStrategy balancerStrategy =
+                LoadBalancerStrategyFactory.create(LoadBalancerType.WEIGHTED_RANDOM, List.of());
         assertThat(balancerStrategy).isInstanceOf(WeightedRandomLoadBalancer.class);
     }
 
     @Test
     void shouldReturnWeightedRoundRobinStrategy() {
-        LoadBalancerStrategy balancerStrategy = LoadBalancerStrategyFactory.create(LoadBalancerType.WEIGHTED_ROUND_ROBIN, List.of());
+        LoadBalancerStrategy balancerStrategy =
+                LoadBalancerStrategyFactory.create(LoadBalancerType.WEIGHTED_ROUND_ROBIN, List.of());
         assertThat(balancerStrategy).isInstanceOf(WeightedRoundRobinLoadBalancer.class);
     }
 }

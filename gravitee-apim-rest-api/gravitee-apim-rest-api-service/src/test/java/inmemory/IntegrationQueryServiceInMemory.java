@@ -44,40 +44,33 @@ public class IntegrationQueryServiceInMemory implements IntegrationQueryService,
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage
-            .stream()
-            .filter(integration -> integration.environmentId().equals(environmentId))
-            .sorted(Comparator.comparing(Integration::updatedAt).reversed())
-            .toList();
+        var matches = storage.stream()
+                .filter(integration -> integration.environmentId().equals(environmentId))
+                .sorted(Comparator.comparing(Integration::updatedAt).reversed())
+                .toList();
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 
     @Override
     public Page<Integration> findByEnvironmentAndContext(
-        String environmentId,
-        String userId,
-        Collection<String> groups,
-        boolean isAdmin,
-        Pageable pageable
-    ) {
+            String environmentId, String userId, Collection<String> groups, boolean isAdmin, Pageable pageable) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage
-            .stream()
-            .filter(integration -> integration.environmentId().equals(environmentId))
-            .filter(integration -> isAdmin || stream(integration.groups()).anyMatch(groups::contains))
-            .sorted(Comparator.comparing(Integration::updatedAt).reversed())
-            .toList();
+        var matches = storage.stream()
+                .filter(integration -> integration.environmentId().equals(environmentId))
+                .filter(integration -> isAdmin || stream(integration.groups()).anyMatch(groups::contains))
+                .sorted(Comparator.comparing(Integration::updatedAt).reversed())
+                .toList();
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }

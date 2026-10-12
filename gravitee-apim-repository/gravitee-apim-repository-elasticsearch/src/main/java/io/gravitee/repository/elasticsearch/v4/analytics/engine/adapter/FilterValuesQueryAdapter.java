@@ -30,7 +30,8 @@ public class FilterValuesQueryAdapter {
 
         var boolFilter = new JsonArray();
         if (query.from() != null && query.to() != null) {
-            boolFilter.add(JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", query.from(), "lte", query.to()))));
+            boolFilter.add(JsonObject.of(
+                    "range", JsonObject.of("@timestamp", JsonObject.of("gte", query.from(), "lte", query.to()))));
         }
 
         if (query.searchPattern() != null && !query.searchPattern().isBlank()) {
@@ -43,7 +44,8 @@ public class FilterValuesQueryAdapter {
             if (query.apiIds().isEmpty()) {
                 boolFilter.add(JsonObject.of("match_none", JsonObject.of()));
             } else {
-                boolFilter.add(JsonObject.of("terms", JsonObject.of(API_ID_FIELD, new JsonArray(new ArrayList<>(query.apiIds())))));
+                boolFilter.add(JsonObject.of(
+                        "terms", JsonObject.of(API_ID_FIELD, new JsonArray(new ArrayList<>(query.apiIds())))));
             }
         }
 
@@ -60,14 +62,12 @@ public class FilterValuesQueryAdapter {
         }
 
         root.put(
-            "aggs",
-            JsonObject.of(
-                "filter_values",
-                JsonObject.of("composite", composite),
-                "total_count",
-                JsonObject.of("cardinality", JsonObject.of("field", query.esFieldName()))
-            )
-        );
+                "aggs",
+                JsonObject.of(
+                        "filter_values",
+                        JsonObject.of("composite", composite),
+                        "total_count",
+                        JsonObject.of("cardinality", JsonObject.of("field", query.esFieldName()))));
 
         return root.encode();
     }

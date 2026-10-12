@@ -57,83 +57,87 @@ public class RoleFixtures {
 
     public static Role anOrganizationAdminRole(String organizationId) {
         return systemRoleBuilder()
-            .id(organizationAdminRoleId(organizationId))
-            .name(SystemRole.ADMIN.name())
-            .referenceId(organizationId)
-            .referenceType(ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.ORGANIZATION)
-            .build();
+                .id(organizationAdminRoleId(organizationId))
+                .name(SystemRole.ADMIN.name())
+                .referenceId(organizationId)
+                .referenceType(ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.ORGANIZATION)
+                .build();
     }
 
     public static Role anEnvironmentAdminRole(String organizationId) {
         return systemRoleBuilder()
-            .id(environmentAdminRoleId(organizationId))
-            .name(SystemRole.ADMIN.name())
-            .referenceId(organizationId)
-            .referenceType(ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.ENVIRONMENT)
-            .build();
+                .id(environmentAdminRoleId(organizationId))
+                .name(SystemRole.ADMIN.name())
+                .referenceId(organizationId)
+                .referenceType(ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.ENVIRONMENT)
+                .build();
     }
 
     public static Role aGroupAdminRole(String organizationId) {
         return systemRoleBuilder()
-            .id(groupAdminRoleId(organizationId))
-            .name(SystemRole.ADMIN.name())
-            .referenceId(organizationId)
-            .referenceType(ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.GROUP)
-            .build();
+                .id(groupAdminRoleId(organizationId))
+                .name(SystemRole.ADMIN.name())
+                .referenceId(organizationId)
+                .referenceType(ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.GROUP)
+                .build();
     }
 
     public static Role anApiPrimaryOwnerRole(String organizationId) {
         return systemRoleBuilder()
-            .id(apiPrimaryOwnerRoleId(organizationId))
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .referenceId(organizationId)
-            .referenceType(ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.API)
-            .build();
+                .id(apiPrimaryOwnerRoleId(organizationId))
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .referenceId(organizationId)
+                .referenceType(ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.API)
+                .build();
     }
 
     public static Role anApplicationPrimaryOwnerRole(String organizationId) {
         return systemRoleBuilder()
-            .id(applicationPrimaryOwnerRoleId(organizationId))
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .referenceId(organizationId)
-            .referenceType(ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.APPLICATION)
-            .build();
+                .id(applicationPrimaryOwnerRoleId(organizationId))
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .referenceId(organizationId)
+                .referenceType(ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.APPLICATION)
+                .build();
     }
 
     public static Role anIntegrationPrimaryOwnerRole(String organizationId) {
         return systemRoleBuilder()
-            .id(integrationPrimaryOwnerRoleId(organizationId))
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .referenceId(organizationId)
-            .referenceType(ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.INTEGRATION)
-            .build();
+                .id(integrationPrimaryOwnerRoleId(organizationId))
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .referenceId(organizationId)
+                .referenceType(ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.INTEGRATION)
+                .build();
     }
 
     public static Role anApiProductPrimaryOwnerRole(String organizationId) {
         return systemRoleBuilder()
-            .id(apiProductPrimaryOwnerRoleId(organizationId))
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .referenceId(organizationId)
-            .referenceType(ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.API_PRODUCT)
-            .build();
+                .id(apiProductPrimaryOwnerRoleId(organizationId))
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .referenceId(organizationId)
+                .referenceType(ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.API_PRODUCT)
+                .build();
     }
 
     public static Role anApplicationRole(String roleId, String name) {
-        return Role.builder().id(roleId).name(name).scope(Role.Scope.APPLICATION).build();
+        return Role.builder()
+                .id(roleId)
+                .name(name)
+                .scope(Role.Scope.APPLICATION)
+                .build();
     }
 
     private static Role.RoleBuilder systemRoleBuilder() {
         return Role.builder()
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .defaultRole(false)
-            .system(true);
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .defaultRole(false)
+                .system(true);
     }
 }

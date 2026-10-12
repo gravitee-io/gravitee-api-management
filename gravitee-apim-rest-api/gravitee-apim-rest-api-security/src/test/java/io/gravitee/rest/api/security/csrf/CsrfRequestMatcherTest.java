@@ -35,7 +35,7 @@ class CsrfRequestMatcherTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "POST", "PUT", "DELETE", "PATCH" })
+    @ValueSource(strings = {"POST", "PUT", "DELETE", "PATCH"})
     void should_match_with_request(String method) {
         MockHttpServletRequest request = new MockHttpServletRequest(method, "/");
         request.addHeader("Origin", "http://localhost:8083");
@@ -46,7 +46,7 @@ class CsrfRequestMatcherTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "GET", "HEAD", "TRACE", "OPTIONS" })
+    @ValueSource(strings = {"GET", "HEAD", "TRACE", "OPTIONS"})
     void should_not_match_with_request(String method) {
         MockHttpServletRequest request = new MockHttpServletRequest(method, "/");
         request.addHeader("Origin", "http://localhost:8083");

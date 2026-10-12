@@ -28,10 +28,10 @@ public class TypeUpdatedAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("node_monitoring")
-            .name("ua1t1")
-            .key("updatedAt", ascending())
-            .key("type", ascending())
-            .build();
+                .collection("node_monitoring")
+                .name("ua1t1")
+                .key("updatedAt", ascending())
+                .key("type", ascending())
+                .build();
     }
 }

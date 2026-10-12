@@ -57,16 +57,16 @@ public class ClientRegistrationService_DeleteTest {
         existingPayload.setId("CRP_ID");
         existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
-        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId())))
+                .thenReturn(Optional.of(existingPayload));
 
         clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
 
-        verify(mockAuditService, times(1)).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED) && auditLogData.getNewValue() == null
-            )
-        );
+        verify(mockAuditService, times(1))
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED)
+                                && auditLogData.getNewValue() == null));
         verify(mockClientRegistrationProviderRepository, times(1)).delete(existingPayload.getId());
     }
 
@@ -77,25 +77,24 @@ public class ClientRegistrationService_DeleteTest {
             existingPayload.setId("CRP_ID");
             existingPayload.setEnvironmentId("Another_environment");
 
-            when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+            when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId())))
+                    .thenReturn(Optional.of(existingPayload));
 
             clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
 
-            verify(mockAuditService, times(1)).createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(
-                    auditLogData ->
-                        auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED) && auditLogData.getNewValue() == null
-                )
-            );
+            verify(mockAuditService, times(1))
+                    .createAuditLog(
+                            eq(GraviteeContext.getExecutionContext()),
+                            argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED)
+                                    && auditLogData.getNewValue() == null));
             verify(mockClientRegistrationProviderRepository, never()).delete(existingPayload.getId());
         });
     }
 
     @Test
     public void shouldThrowClientRegistrationProviderNotFoundException() {
-        assertThrows(ClientRegistrationProviderNotFoundException.class, () ->
-            clientRegistrationService.delete(GraviteeContext.getExecutionContext(), "providerId")
-        );
+        assertThrows(
+                ClientRegistrationProviderNotFoundException.class,
+                () -> clientRegistrationService.delete(GraviteeContext.getExecutionContext(), "providerId"));
     }
 }

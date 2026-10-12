@@ -51,18 +51,22 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
 
         final Response response = rootTarget().request().get();
         assertThat(response)
-            .hasStatus(HttpStatusCode.NOT_FOUND_404)
-            .asError()
-            .hasHttpStatus(NOT_FOUND_404)
-            .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+                .hasStatus(HttpStatusCode.NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
     public void should_return_empty_page_if_no_api_keys() {
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
-        );
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION)).thenReturn(List.of());
+        when(subscriptionService.findById(SUBSCRIPTION))
+                .thenReturn(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .referenceId(API)
+                        .referenceType("API")
+                        .build());
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
+                .thenReturn(List.of());
 
         final Response response = rootTarget().request().get();
 
@@ -75,27 +79,26 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
 
         // Check pagination
         Assertions.assertThat(subscriptionApiKeysResponse.getPagination())
-            .hasFieldOrPropertyWithValue("page", 1)
-            .hasFieldOrPropertyWithValue("perPage", 10)
-            .hasFieldOrPropertyWithValue("pageCount", 0)
-            .hasFieldOrPropertyWithValue("pageItemsCount", 0)
-            .hasFieldOrPropertyWithValue("totalCount", 0L);
+                .hasFieldOrPropertyWithValue("page", 1)
+                .hasFieldOrPropertyWithValue("perPage", 10)
+                .hasFieldOrPropertyWithValue("pageCount", 0)
+                .hasFieldOrPropertyWithValue("pageItemsCount", 0)
+                .hasFieldOrPropertyWithValue("totalCount", 0L);
 
         // Check links
         Links links = subscriptionApiKeysResponse.getLinks();
-        MAPIAssertions.assertThat(links).isEqualTo(new Links().self(rootTarget().getUri().toString()));
+        MAPIAssertions.assertThat(links)
+                .isEqualTo(new Links().self(rootTarget().getUri().toString()));
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
         MAPIAssertions.assertThat(response).hasStatus(FORBIDDEN_403);
@@ -103,15 +106,22 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
 
     @Test
     public void should_return_list_of_api_keys() {
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
-        );
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION)).thenReturn(
-            List.of(
-                SubscriptionFixtures.anApiKeyEntity().toBuilder().id("api-key-1").key("custom1").build(),
-                SubscriptionFixtures.anApiKeyEntity().toBuilder().id("api-key-2").key("custom2").build()
-            )
-        );
+        when(subscriptionService.findById(SUBSCRIPTION))
+                .thenReturn(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .referenceId(API)
+                        .referenceType("API")
+                        .build());
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
+                .thenReturn(List.of(
+                        SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                                .id("api-key-1")
+                                .key("custom1")
+                                .build(),
+                        SubscriptionFixtures.anApiKeyEntity().toBuilder()
+                                .id("api-key-2")
+                                .key("custom2")
+                                .build()));
 
         final Response response = rootTarget().request().get();
 

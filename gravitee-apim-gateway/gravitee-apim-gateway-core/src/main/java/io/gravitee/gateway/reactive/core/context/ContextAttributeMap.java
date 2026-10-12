@@ -18,10 +18,8 @@ package io.gravitee.gateway.reactive.core.context;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_PREFIX;
 
 import java.io.Serial;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Special {@link java.util.Map} implementation allowing to retrieve attributes prefixed with #ATTR_PREFIX without having to specify it explicitly.
@@ -75,11 +73,9 @@ public class ContextAttributeMap extends HashMap<String, Object> {
 
     @Override
     public boolean containsKey(Object key) {
-        return (
-            super.containsKey(key) ||
-            (enableGraviteePrefix && super.containsKey(ATTR_PREFIX + key)) ||
-            (fallbackContextAttributeMap != null && fallbackContextAttributeMap.containsKey(key))
-        );
+        return (super.containsKey(key)
+                || (enableGraviteePrefix && super.containsKey(ATTR_PREFIX + key))
+                || (fallbackContextAttributeMap != null && fallbackContextAttributeMap.containsKey(key)));
     }
 
     public Map<String, Object> getFallbackContextAttributeMap() {

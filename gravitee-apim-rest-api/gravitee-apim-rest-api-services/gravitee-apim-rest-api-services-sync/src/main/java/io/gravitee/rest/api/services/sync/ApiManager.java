@@ -45,7 +45,11 @@ public class ApiManager {
         if (api.getLifecycleState() == LifecycleState.STARTED) {
             eventManager.publishEvent(ApiEvent.DEPLOY, api);
         } else {
-            log.debug("API id[{}] name[{}] version[{}] is not enabled. Skip deployment.", api.getId(), api.getName(), api.getVersion());
+            log.debug(
+                    "API id[{}] name[{}] version[{}] is not enabled. Skip deployment.",
+                    api.getId(),
+                    api.getName(),
+                    api.getVersion());
         }
     }
 
@@ -57,7 +61,11 @@ public class ApiManager {
     public void undeploy(String apiId) {
         Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
-            log.info("Un-deploying API id[{}] name[{}] version[{}]", currentApi.getId(), currentApi.getName(), currentApi.getVersion());
+            log.info(
+                    "Un-deploying API id[{}] name[{}] version[{}]",
+                    currentApi.getId(),
+                    currentApi.getName(),
+                    currentApi.getVersion());
 
             eventManager.publishEvent(ApiEvent.UNDEPLOY, currentApi);
             log.info("API id[{}] has been un-deployed", apiId);

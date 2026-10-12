@@ -57,8 +57,8 @@ public interface DistributedEventRepository {
             AtomicLong page = new AtomicLong();
             AtomicBoolean lastPage = new AtomicBoolean();
             return Flowable.defer(() -> search(criteria, page.getAndIncrement(), batchSize))
-                .switchIfEmpty(Flowable.fromAction(() -> lastPage.set(true)))
-                .repeatUntil(lastPage::get);
+                    .switchIfEmpty(Flowable.fromAction(() -> lastPage.set(true)))
+                    .repeatUntil(lastPage::get);
         });
     }
 
@@ -81,10 +81,9 @@ public interface DistributedEventRepository {
      * @return {@link Completable}
      */
     Completable updateAll(
-        final String clusterId,
-        final DistributedEventType refType,
-        final String refId,
-        final DistributedSyncAction syncAction,
-        final Date updateAt
-    );
+            final String clusterId,
+            final DistributedEventType refType,
+            final String refId,
+            final DistributedSyncAction syncAction,
+            final Date updateAt);
 }

@@ -23,10 +23,9 @@ import java.util.List;
  * POST body for {@code /observability/analytics/facets}.
  */
 public record AnalyticsFacetsRequestDto(
-    TimeRangeDto timeRange,
-    List<FilterConditionDto> filters,
-    List<FacetMetricQueryDto> metrics,
-    List<String> by,
-    Integer limit,
-    List<NumberRangeDto> ranges
-) {}
+        TimeRangeDto timeRange,
+        List<FilterConditionDto> filters,
+        List<FacetMetricQueryDto> metrics,
+        List<String> by,
+        Integer limit,
+        List<NumberRangeDto> ranges) {}

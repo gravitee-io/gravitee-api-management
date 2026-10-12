@@ -45,7 +45,8 @@ public class TransformRequestContentUsingBuilderGatewayTest extends AbstractWire
     public void shouldTransformRequestContent() throws Exception {
         wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
+        org.apache.http.client.fluent.Request request =
+                org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
         HttpResponse response = execute(request).returnResponse();
@@ -65,10 +66,8 @@ public class TransformRequestContentUsingBuilderGatewayTest extends AbstractWire
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build(
-            "transform-request-content",
-            TransformRequestContentUsingBuilderPolicy.class
-        );
+        PolicyPlugin transformRequestContentPolicy =
+                PolicyBuilder.build("transform-request-content", TransformRequestContentUsingBuilderPolicy.class);
         policyPluginManager.register(transformRequestContentPolicy);
     }
 }

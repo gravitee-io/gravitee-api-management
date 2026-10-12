@@ -44,27 +44,21 @@ import org.springframework.util.StringUtils;
  */
 @CustomLog
 @Repository
-public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitation, String> implements InvitationRepository {
+public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitation, String>
+        implements InvitationRepository {
 
     private static final String DEFAULT_SORT_FIELD = "email";
     private static final Set<String> SORTABLE_COLUMNS = Set.of(
-        "id",
-        "reference_type",
-        "reference_id",
-        "email",
-        "api_role",
-        "application_role",
-        "created_at",
-        "updated_at"
-    );
-    private static final Set<String> CASE_INSENSITIVE_SORTABLE_COLUMNS = Set.of(
-        "id",
-        "reference_type",
-        "reference_id",
-        "email",
-        "api_role",
-        "application_role"
-    );
+            "id",
+            "reference_type",
+            "reference_id",
+            "email",
+            "api_role",
+            "application_role",
+            "created_at",
+            "updated_at");
+    private static final Set<String> CASE_INSENSITIVE_SORTABLE_COLUMNS =
+            Set.of("id", "reference_type", "reference_id", "email", "api_role", "application_role");
 
     JdbcInvitationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "invitations");
@@ -73,15 +67,15 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     @Override
     protected JdbcObjectMapper<Invitation> buildOrm() {
         return JdbcObjectMapper.builder(Invitation.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("email", Types.NVARCHAR, String.class)
-            .addColumn("api_role", Types.NVARCHAR, String.class)
-            .addColumn("application_role", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("email", Types.NVARCHAR, String.class)
+                .addColumn("api_role", Types.NVARCHAR, String.class)
+                .addColumn("application_role", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -101,16 +95,15 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     }
 
     @Override
-    public List<Invitation> findByReferenceIdAndReferenceType(final String referenceId, final InvitationReferenceType referenceType)
-        throws TechnicalException {
+    public List<Invitation> findByReferenceIdAndReferenceType(
+            final String referenceId, final InvitationReferenceType referenceType) throws TechnicalException {
         log.debug("JdbcInvitationRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
-                getOrm().getRowMapper(),
-                referenceType.name(),
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    referenceType.name(),
+                    referenceId);
         } catch (final Exception ex) {
             log.error("Failed to find invitation for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to find invitation by reference", ex);
@@ -118,7 +111,8 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     }
 
     @Override
-    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         log.debug("JdbcInvitationRepository.search({})", criteria);
 
         try {
@@ -126,7 +120,8 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
             addCriteriaClauses(query, criteria);
             applySortable(sortable, query);
 
-            var invitations = jdbcTemplate.query(query.toString(), ps -> fillPreparedStatement(criteria, ps), getOrm().getRowMapper());
+            var invitations = jdbcTemplate.query(
+                    query.toString(), ps -> fillPreparedStatement(criteria, ps), getOrm().getRowMapper());
             return getResultAsPage(pageable, invitations);
         } catch (final Exception ex) {
             log.error("Failed to search invitations", ex);
@@ -136,25 +131,26 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
         try {
             final var invitationIds = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
             if (!invitationIds.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
 
-            log.debug("JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcInvitationRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                    referenceId,
+                    referenceType);
             return invitationIds;
         } catch (final Exception ex) {
             log.error("Failed to delete invitation for refId: {}/{}", referenceId, referenceType, ex);
@@ -201,8 +197,8 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
 
     private void applySortable(Sortable sortable, StringBuilder query) {
         var field = sortable != null && StringUtils.hasText(sortable.field())
-            ? FieldUtils.toSnakeCase(sortable.field())
-            : DEFAULT_SORT_FIELD;
+                ? FieldUtils.toSnakeCase(sortable.field())
+                : DEFAULT_SORT_FIELD;
 
         if (!SORTABLE_COLUMNS.contains(field)) {
             field = DEFAULT_SORT_FIELD;

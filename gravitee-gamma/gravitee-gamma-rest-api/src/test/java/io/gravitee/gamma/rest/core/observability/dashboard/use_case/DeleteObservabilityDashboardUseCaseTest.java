@@ -37,7 +37,8 @@ class DeleteObservabilityDashboardUseCaseTest {
     private static final String DASHBOARD_ID = "dash-1";
 
     private final InMemoryDashboardRepository dashboardRepository = new InMemoryDashboardRepository();
-    private final DeleteObservabilityDashboardUseCase useCase = new DeleteObservabilityDashboardUseCase(dashboardRepository);
+    private final DeleteObservabilityDashboardUseCase useCase =
+            new DeleteObservabilityDashboardUseCase(dashboardRepository);
 
     @BeforeEach
     void reset() {
@@ -50,40 +51,39 @@ class DeleteObservabilityDashboardUseCaseTest {
 
         useCase.execute(new DeleteObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID));
 
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).isEmpty();
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV))
+                .isEmpty();
     }
 
     @Test
     void should_throw_not_found_when_dashboard_does_not_exist() {
-        assertThatThrownBy(() -> useCase.execute(new DeleteObservabilityDashboardUseCase.Input(ENV, "unknown"))).isInstanceOf(
-            DashboardNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new DeleteObservabilityDashboardUseCase.Input(ENV, "unknown")))
+                .isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
     void should_throw_not_found_and_keep_the_dashboard_when_it_belongs_to_another_environment() {
         dashboardRepository.givenDashboard(dashboard(OTHER_ENV));
 
-        assertThatThrownBy(() -> useCase.execute(new DeleteObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID))).isInstanceOf(
-            DashboardNotFoundException.class
-        );
-        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, OTHER_ENV)).isPresent();
+        assertThatThrownBy(() -> useCase.execute(new DeleteObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID)))
+                .isInstanceOf(DashboardNotFoundException.class);
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, OTHER_ENV))
+                .isPresent();
     }
 
     private static Dashboard dashboard(String environmentId) {
         return new Dashboard(
-            DASHBOARD_ID,
-            environmentId,
-            null,
-            "Performance overview",
-            null,
-            List.of(),
-            null,
-            NullNode.getInstance(),
-            1,
-            "user-1",
-            Instant.parse("2026-06-10T00:00:00Z"),
-            Instant.parse("2026-06-10T00:00:00Z")
-        );
+                DASHBOARD_ID,
+                environmentId,
+                null,
+                "Performance overview",
+                null,
+                List.of(),
+                null,
+                NullNode.getInstance(),
+                1,
+                "user-1",
+                Instant.parse("2026-06-10T00:00:00Z"),
+                Instant.parse("2026-06-10T00:00:00Z"));
     }
 }

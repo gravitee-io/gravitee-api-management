@@ -143,10 +143,12 @@ public class ApiReactorHandlerTest {
 
         // make any handled request fail
         DirectPolicyChain failingPolicyChain = new DirectPolicyChain(PolicyResult.failure("error"), executionContext);
-        when(requestProcessorChainFactory.create()).thenReturn(new DefaultStreamableProcessorChain<>(List.of(failingPolicyChain)));
+        when(requestProcessorChainFactory.create())
+                .thenReturn(new DefaultStreamableProcessorChain<>(List.of(failingPolicyChain)));
 
         NoOpPolicyChain noOpPolicyChain = new NoOpPolicyChain(executionContext);
-        when(errorProcessorChainFactory.create()).thenReturn(new DefaultStreamableProcessorChain<>(List.of(noOpPolicyChain)));
+        when(errorProcessorChainFactory.create())
+                .thenReturn(new DefaultStreamableProcessorChain<>(List.of(noOpPolicyChain)));
 
         ApiReactorHandler handler = createHandler(pendingRequestsTimeout);
 
@@ -166,13 +168,12 @@ public class ApiReactorHandlerTest {
 
     private ApiReactorHandler createHandler(long pendingRequestsTimeout) {
         ApiReactorHandler apiReactorHandler = new ApiReactorHandler(
-            configuration,
-            api,
-            accessPointManager,
-            eventManager,
-            new HttpAcceptorFactory(false),
-            TracingContext.noop()
-        );
+                configuration,
+                api,
+                accessPointManager,
+                eventManager,
+                new HttpAcceptorFactory(false),
+                TracingContext.noop());
         apiReactorHandler.setNode(node);
         apiReactorHandler.setPendingRequestsTimeout(pendingRequestsTimeout);
         apiReactorHandler.setGroupLifecycleManager(groupLifecycleManager);
@@ -185,8 +186,8 @@ public class ApiReactorHandlerTest {
 
     private static TestObserver<Boolean> stopAndObserve(ApiReactorHandler handler) {
         return Observable.fromCallable(() -> doStop(handler))
-            .subscribeOn(Schedulers.io())
-            .test();
+                .subscribeOn(Schedulers.io())
+                .test();
     }
 
     private static boolean doStop(ApiReactorHandler handler) {

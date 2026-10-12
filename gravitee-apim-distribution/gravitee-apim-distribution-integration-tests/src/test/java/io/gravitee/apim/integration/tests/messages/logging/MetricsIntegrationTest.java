@@ -94,58 +94,116 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
     void should_report_the_metrics_for_sse_request(HttpClient httpClient) {
         // 1. Start the SSE request
         var sseRequest = httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request
-                    .putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM)
-                    .putHeader("X-Gravitee-Transaction-Id", TRANSACTION_ID)
-                    .putHeader("X-Gravitee-Client-Identifier", CLIENT_ID);
-                return request.rxSend();
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM)
+                            .putHeader("X-Gravitee-Transaction-Id", TRANSACTION_ID)
+                            .putHeader("X-Gravitee-Client-Identifier", CLIENT_ID);
+                    return request.rxSend();
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test();
 
         // 2. Check that a partial metrics has been reported while the request is running
         var partialMetric = metricsSubject
-            .take(1)
-            .test()
-            .awaitDone(30, SECONDS)
-            .assertValue(metrics -> {
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(metrics.getApiId()).isEqualTo(SSE_API_ID);
-                    soft.assertThat(metrics.getPlanId()).isEqualTo("default_plan");
-                    soft.assertThat(metrics.getApplicationId()).isEqualTo("1");
-                    soft.assertThat(metrics.getClientIdentifier()).isEqualTo(CLIENT_ID);
-                    soft.assertThat(metrics.getTransactionId()).isEqualTo(TRANSACTION_ID);
-                    soft.assertThat(metrics.isRequestEnded()).isFalse();
-                    soft.assertThat(metrics.getStatus()).isEqualTo(200);
-                    // Nothing is measured yet: the endpoint response is still streaming, so its durations are no more
-                    // available than the gateway ones asserted right below. The time to first byte, which does carry a
-                    // "not measured" value, states it explicitly.
-                    soft.assertThat(metrics.getEndpointResponseTtfbMs()).isEqualTo(-1);
-                    soft.assertThat(metrics.getEndpointResponseTimeMs()).isEqualTo(0);
-                    soft.assertThat(metrics.getGatewayLatencyMs()).isEqualTo(0);
-                    soft.assertThat(metrics.getGatewayResponseTimeMs()).isEqualTo(0);
-                });
+                .take(1)
+                .test()
+                .awaitDone(30, SECONDS)
+                .assertValue(metrics -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(metrics.getApiId()).isEqualTo(SSE_API_ID);
+                        soft.assertThat(metrics.getPlanId()).isEqualTo("default_plan");
+                        soft.assertThat(metrics.getApplicationId()).isEqualTo("1");
+                        soft.assertThat(metrics.getClientIdentifier()).isEqualTo(CLIENT_ID);
+                        soft.assertThat(metrics.getTransactionId()).isEqualTo(TRANSACTION_ID);
+                        soft.assertThat(metrics.isRequestEnded()).isFalse();
+                        soft.assertThat(metrics.getStatus()).isEqualTo(200);
+                        // Nothing is measured yet: the endpoint response is still streaming, so its durations are no
+                        // more
+                        // available than the gateway ones asserted right below. The time to first byte, which does
+                        // carry a
+                        // "not measured" value, states it explicitly.
+                        soft.assertThat(metrics.getEndpointResponseTtfbMs()).isEqualTo(-1);
+                        soft.assertThat(metrics.getEndpointResponseTimeMs()).isEqualTo(0);
+                        soft.assertThat(metrics.getGatewayLatencyMs()).isEqualTo(0);
+                        soft.assertThat(metrics.getGatewayResponseTimeMs()).isEqualTo(0);
+                    });
 
-                return true;
-            })
-            .values()
-            .getFirst();
+                    return true;
+                })
+                .values()
+                .getFirst();
 
         // 3. Stop the SSE request
         sseRequest.cancel();
 
         // 4. Check that a full metrics has been reported once the connection is ended
-        metricsSubject
-            .skip(1)
-            .take(1)
-            .test()
-            .awaitDone(30, SECONDS)
-            .assertValue(fullMetrics -> {
+        metricsSubject.skip(1).take(1).test().awaitDone(30, SECONDS).assertValue(fullMetrics -> {
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(fullMetrics.getRequestId()).isEqualTo(partialMetric.getRequestId());
+                soft.assertThat(fullMetrics.isRequestEnded()).isTrue();
+                soft.assertThat(fullMetrics.getStatus()).isEqualTo(200);
+                soft.assertThat(fullMetrics.getGatewayResponseTimeMs()).isGreaterThan(0);
+                soft.assertThat(fullMetrics.getEndpointResponseTimeMs()).isGreaterThanOrEqualTo(0);
+                soft.assertThat(fullMetrics.getGatewayLatencyMs()).isGreaterThan(0);
+            });
+            return true;
+        });
+    }
+
+    @Test
+    @DeployApi("/apis/v4/messages/metrics/webhook-entrypoint-mock-endpoint.json")
+    void should_report_the_metrics_for_webhook_request() throws JsonProcessingException {
+        MessageStorage messageStorage = getBean(MessageStorage.class);
+        WebhookTestingActions webhookActions =
+                new WebhookTestingActions(wiremock, getBean(SubscriptionDispatcher.class));
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+        final Subscription subscription = webhookActions.createSubscription(WEBHOOK_API_ID, callbackPath);
+        try {
+            webhookActions
+                    .dispatchSubscription(subscription)
+                    .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                    .test()
+                    .awaitDone(10, SECONDS)
+                    .assertComplete();
+
+            webhookActions.verifyMessagesAtLeast(messageCount, callbackPath, "message");
+
+            // 2. Check that a partial metrics has been reported while the request is running
+            var partialMetric = metricsSubject
+                    .take(1)
+                    .test()
+                    .awaitDone(30, SECONDS)
+                    .assertValue(metrics -> {
+                        SoftAssertions.assertSoftly(soft -> {
+                            soft.assertThat(metrics.getApiId()).isEqualTo(WEBHOOK_API_ID);
+                            soft.assertThat(metrics.getPlanId()).isEqualTo(subscription.getPlan());
+                            soft.assertThat(metrics.getApplicationId()).isNotBlank();
+                            soft.assertThat(metrics.getClientIdentifier())
+                                    .isNotEmpty(); // Auto-generated by internal subscription process.
+                            soft.assertThat(metrics.getTransactionId())
+                                    .isNotEmpty(); // Auto-generated by internal subscription process.
+                            soft.assertThat(metrics.isRequestEnded()).isFalse();
+                            soft.assertThat(metrics.getStatus()).isEqualTo(0);
+                            soft.assertThat(metrics.getEndpointResponseTimeMs()).isGreaterThanOrEqualTo(0);
+                            soft.assertThat(metrics.getGatewayLatencyMs()).isGreaterThanOrEqualTo(0);
+                            soft.assertThat(metrics.getGatewayResponseTimeMs()).isGreaterThanOrEqualTo(0);
+                        });
+
+                        return true;
+                    })
+                    .values()
+                    .getFirst();
+
+            // 3. Stop the webhook
+            webhookActions.closeSubscription(subscription);
+
+            // 4. Check that a full metrics has been reported once the connection is ended
+            metricsSubject.skip(1).take(1).test().awaitDone(10, SECONDS).assertValue(fullMetrics -> {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(fullMetrics.getRequestId()).isEqualTo(partialMetric.getRequestId());
                     soft.assertThat(fullMetrics.isRequestEnded()).isTrue();
@@ -156,112 +214,57 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                 });
                 return true;
             });
-    }
-
-    @Test
-    @DeployApi("/apis/v4/messages/metrics/webhook-entrypoint-mock-endpoint.json")
-    void should_report_the_metrics_for_webhook_request() throws JsonProcessingException {
-        MessageStorage messageStorage = getBean(MessageStorage.class);
-        WebhookTestingActions webhookActions = new WebhookTestingActions(wiremock, getBean(SubscriptionDispatcher.class));
-        final int messageCount = 10;
-        final String callbackPath = WEBHOOK_URL_PATH + "/test";
-        final Subscription subscription = webhookActions.createSubscription(WEBHOOK_API_ID, callbackPath);
-        try {
-            webhookActions
-                .dispatchSubscription(subscription)
-                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-                .test()
-                .awaitDone(10, SECONDS)
-                .assertComplete();
-
-            webhookActions.verifyMessagesAtLeast(messageCount, callbackPath, "message");
-
-            // 2. Check that a partial metrics has been reported while the request is running
-            var partialMetric = metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, SECONDS)
-                .assertValue(metrics -> {
-                    SoftAssertions.assertSoftly(soft -> {
-                        soft.assertThat(metrics.getApiId()).isEqualTo(WEBHOOK_API_ID);
-                        soft.assertThat(metrics.getPlanId()).isEqualTo(subscription.getPlan());
-                        soft.assertThat(metrics.getApplicationId()).isNotBlank();
-                        soft.assertThat(metrics.getClientIdentifier()).isNotEmpty(); // Auto-generated by internal subscription process.
-                        soft.assertThat(metrics.getTransactionId()).isNotEmpty(); // Auto-generated by internal subscription process.
-                        soft.assertThat(metrics.isRequestEnded()).isFalse();
-                        soft.assertThat(metrics.getStatus()).isEqualTo(0);
-                        soft.assertThat(metrics.getEndpointResponseTimeMs()).isGreaterThanOrEqualTo(0);
-                        soft.assertThat(metrics.getGatewayLatencyMs()).isGreaterThanOrEqualTo(0);
-                        soft.assertThat(metrics.getGatewayResponseTimeMs()).isGreaterThanOrEqualTo(0);
-                    });
-
-                    return true;
-                })
-                .values()
-                .getFirst();
-
-            // 3. Stop the webhook
-            webhookActions.closeSubscription(subscription);
-
-            // 4. Check that a full metrics has been reported once the connection is ended
-            metricsSubject
-                .skip(1)
-                .take(1)
-                .test()
-                .awaitDone(10, SECONDS)
-                .assertValue(fullMetrics -> {
-                    SoftAssertions.assertSoftly(soft -> {
-                        soft.assertThat(fullMetrics.getRequestId()).isEqualTo(partialMetric.getRequestId());
-                        soft.assertThat(fullMetrics.isRequestEnded()).isTrue();
-                        soft.assertThat(fullMetrics.getStatus()).isEqualTo(200);
-                        soft.assertThat(fullMetrics.getGatewayResponseTimeMs()).isGreaterThan(0);
-                        soft.assertThat(fullMetrics.getEndpointResponseTimeMs()).isGreaterThanOrEqualTo(0);
-                        soft.assertThat(fullMetrics.getGatewayLatencyMs()).isGreaterThan(0);
-                    });
-                    return true;
-                });
 
             // Check the message metrics.
             messageMetricsSubject
-                .take(2)
-                .test()
-                .awaitDone(10, SECONDS)
-                .assertValueAt(0, messageMetrics -> {
-                    SoftAssertions.assertSoftly(soft -> {
-                        soft.assertThat(messageMetrics.getApiId()).isEqualTo(WEBHOOK_API_ID);
-                        soft.assertThat(messageMetrics.getConnectorType()).isEqualTo(MessageConnectorType.ENDPOINT);
-                        soft.assertThat(messageMetrics.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
-                        soft.assertThat(messageMetrics.getConnectorId()).isEqualTo("mock");
-                        soft.assertThat(messageMetrics.isError()).isFalse();
-                        soft.assertThat(messageMetrics.getClientIdentifier()).isNotEmpty(); // Auto-generated by internal subscription process.
-                        soft.assertThat(messageMetrics.getRequestId()).isEqualTo(partialMetric.getRequestId());
-                        soft.assertThat(messageMetrics.getCount()).isPositive();
-                        soft.assertThat(messageMetrics.getCountIncrement()).isPositive();
-                        soft.assertThat(messageMetrics.getErrorCount()).isEqualTo(-1);
-                        soft.assertThat(messageMetrics.getErrorCountIncrement()).isEqualTo(-1);
-                        soft.assertThat(messageMetrics.getGatewayLatencyMs()).isEqualTo(-1);
-                        soft.assertThat(messageMetrics.getAdditionalMetrics()).isEmpty();
+                    .take(2)
+                    .test()
+                    .awaitDone(10, SECONDS)
+                    .assertValueAt(0, messageMetrics -> {
+                        SoftAssertions.assertSoftly(soft -> {
+                            soft.assertThat(messageMetrics.getApiId()).isEqualTo(WEBHOOK_API_ID);
+                            soft.assertThat(messageMetrics.getConnectorType()).isEqualTo(MessageConnectorType.ENDPOINT);
+                            soft.assertThat(messageMetrics.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
+                            soft.assertThat(messageMetrics.getConnectorId()).isEqualTo("mock");
+                            soft.assertThat(messageMetrics.isError()).isFalse();
+                            soft.assertThat(messageMetrics.getClientIdentifier())
+                                    .isNotEmpty(); // Auto-generated by internal subscription process.
+                            soft.assertThat(messageMetrics.getRequestId()).isEqualTo(partialMetric.getRequestId());
+                            soft.assertThat(messageMetrics.getCount()).isPositive();
+                            soft.assertThat(messageMetrics.getCountIncrement()).isPositive();
+                            soft.assertThat(messageMetrics.getErrorCount()).isEqualTo(-1);
+                            soft.assertThat(messageMetrics.getErrorCountIncrement())
+                                    .isEqualTo(-1);
+                            soft.assertThat(messageMetrics.getGatewayLatencyMs())
+                                    .isEqualTo(-1);
+                            soft.assertThat(messageMetrics.getAdditionalMetrics())
+                                    .isEmpty();
+                        });
+                        return true;
+                    })
+                    .assertValueAt(1, messageMetrics -> {
+                        SoftAssertions.assertSoftly(soft -> {
+                            soft.assertThat(messageMetrics.getApiId()).isEqualTo(WEBHOOK_API_ID);
+                            soft.assertThat(messageMetrics.getConnectorType())
+                                    .isEqualTo(MessageConnectorType.ENTRYPOINT);
+                            soft.assertThat(messageMetrics.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
+                            soft.assertThat(messageMetrics.getConnectorId()).isEqualTo("webhook");
+                            soft.assertThat(messageMetrics.isError()).isFalse();
+                            soft.assertThat(messageMetrics.getClientIdentifier())
+                                    .isNotEmpty(); // Auto-generated by internal subscription process.
+                            soft.assertThat(messageMetrics.getRequestId()).isEqualTo(partialMetric.getRequestId());
+                            soft.assertThat(messageMetrics.getCount()).isPositive();
+                            soft.assertThat(messageMetrics.getCountIncrement()).isPositive();
+                            soft.assertThat(messageMetrics.getErrorCount()).isEqualTo(-1);
+                            soft.assertThat(messageMetrics.getErrorCountIncrement())
+                                    .isEqualTo(-1);
+                            soft.assertThat(messageMetrics.getGatewayLatencyMs())
+                                    .isGreaterThanOrEqualTo(0); // Time to process the message
+                            soft.assertThat(messageMetrics.getAdditionalMetrics())
+                                    .isNotEmpty();
+                        });
+                        return true;
                     });
-                    return true;
-                })
-                .assertValueAt(1, messageMetrics -> {
-                    SoftAssertions.assertSoftly(soft -> {
-                        soft.assertThat(messageMetrics.getApiId()).isEqualTo(WEBHOOK_API_ID);
-                        soft.assertThat(messageMetrics.getConnectorType()).isEqualTo(MessageConnectorType.ENTRYPOINT);
-                        soft.assertThat(messageMetrics.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
-                        soft.assertThat(messageMetrics.getConnectorId()).isEqualTo("webhook");
-                        soft.assertThat(messageMetrics.isError()).isFalse();
-                        soft.assertThat(messageMetrics.getClientIdentifier()).isNotEmpty(); // Auto-generated by internal subscription process.
-                        soft.assertThat(messageMetrics.getRequestId()).isEqualTo(partialMetric.getRequestId());
-                        soft.assertThat(messageMetrics.getCount()).isPositive();
-                        soft.assertThat(messageMetrics.getCountIncrement()).isPositive();
-                        soft.assertThat(messageMetrics.getErrorCount()).isEqualTo(-1);
-                        soft.assertThat(messageMetrics.getErrorCountIncrement()).isEqualTo(-1);
-                        soft.assertThat(messageMetrics.getGatewayLatencyMs()).isGreaterThanOrEqualTo(0); // Time to process the message
-                        soft.assertThat(messageMetrics.getAdditionalMetrics()).isNotEmpty();
-                    });
-                    return true;
-                });
         } finally {
             messageStorage.reset();
             webhookActions.closeSubscription(subscription);

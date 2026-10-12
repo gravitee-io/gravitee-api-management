@@ -64,83 +64,85 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
     @Override
     public LogResponse<MessageMetrics> searchMessageMetrics(QueryContext queryContext, MessageMetricsQuery query) {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(
+                queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
 
-        return this.client.search(index, null, SearchMessageMetricsQueryAdapter.adapt(query))
-            .map(response -> {
-                var result = response.getSearchHits();
-                if (result == null) {
-                    SearchHits searchHits = new SearchHits();
-                    searchHits.setTotal(new TotalHits(0));
-                    return searchHits;
-                }
-                return result;
-            })
-            .map(hits -> new LogResponse<>((int) hits.getTotal().getValue(), SearchMessageMetricsResponseAdapter.adapt(hits)))
-            .blockingGet();
+        return this.client
+                .search(index, null, SearchMessageMetricsQueryAdapter.adapt(query))
+                .map(response -> {
+                    var result = response.getSearchHits();
+                    if (result == null) {
+                        SearchHits searchHits = new SearchHits();
+                        searchHits.setTotal(new TotalHits(0));
+                        return searchHits;
+                    }
+                    return result;
+                })
+                .map(hits -> new LogResponse<>(
+                        (int) hits.getTotal().getValue(), SearchMessageMetricsResponseAdapter.adapt(hits)))
+                .blockingGet();
     }
 
     @Override
-    public LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
-        var indexes = getQueryIndexesFromDefinitionVersions(Type.REQUEST, Type.V4_METRICS, configuration, queryContext, definitionVersions);
+    public LogResponse<Metrics> searchMetrics(
+            QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
+        var indexes = getQueryIndexesFromDefinitionVersions(
+                Type.REQUEST, Type.V4_METRICS, configuration, queryContext, definitionVersions);
 
-        return this.client.search(indexes, null, SearchMetricsQueryAdapter.adapt(query))
-            .map(SearchMetricsResponseAdapter::adapt)
-            .blockingGet();
+        return this.client
+                .search(indexes, null, SearchMetricsQueryAdapter.adapt(query))
+                .map(SearchMetricsResponseAdapter::adapt)
+                .blockingGet();
     }
 
     @Override
     public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId, Long from, Long to) {
         var indexes = getQueryIndexesFromDefinitionVersions(
-            Type.REQUEST,
-            Type.V4_METRICS,
-            configuration,
-            queryContext,
-            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
-        );
+                Type.REQUEST,
+                Type.V4_METRICS,
+                configuration,
+                queryContext,
+                List.of(DefinitionVersion.V2, DefinitionVersion.V4));
         var query = SearchConnectionLogErrorKeysQuery.of(apiId, from, to);
         var searchRequest = SearchConnectionLogErrorKeysQueryAdapter.adapt(query);
         var searchResponse = this.client.search(indexes, null, searchRequest);
-        return searchResponse.map(SearchConnectionLogErrorKeysResponseAdapter::adapt).blockingGet();
+        return searchResponse
+                .map(SearchConnectionLogErrorKeysResponseAdapter::adapt)
+                .blockingGet();
     }
 
     @Override
-    public Optional<NativeApiMetrics> findNativeApiMetrics(QueryContext queryContext, String apiId, String requestId, Long from, Long to)
-        throws AnalyticsException {
+    public Optional<NativeApiMetrics> findNativeApiMetrics(
+            QueryContext queryContext, String apiId, String requestId, Long from, Long to) throws AnalyticsException {
         var indexes = getQueryIndexesFromDefinitionVersions(
-            Type.REQUEST,
-            Type.V4_METRICS,
-            configuration,
-            queryContext,
-            List.of(DefinitionVersion.V4)
-        );
+                Type.REQUEST, Type.V4_METRICS, configuration, queryContext, List.of(DefinitionVersion.V4));
         try {
-            return this.client.search(indexes, null, NativeApiMetricsFindQueryAdapter.adapt(apiId, requestId, from, to))
-                .map(NativeApiMetricsFindResponseAdapter::adapt)
-                .blockingGet();
+            return this.client
+                    .search(indexes, null, NativeApiMetricsFindQueryAdapter.adapt(apiId, requestId, from, to))
+                    .map(NativeApiMetricsFindResponseAdapter::adapt)
+                    .blockingGet();
         } catch (RuntimeException e) {
             log.error("Failed to find native metric [apiId={},requestId={}]", apiId, requestId, e);
-            throw new AnalyticsException("Failed to find native metric for api " + apiId + " and requestId " + requestId, e);
+            throw new AnalyticsException(
+                    "Failed to find native metric for api " + apiId + " and requestId " + requestId, e);
         }
     }
 
     @Override
     public LogResponse<NativeApiMetrics> searchNativeApiMetrics(QueryContext queryContext, NativeApiMetricsQuery query)
-        throws AnalyticsException {
+            throws AnalyticsException {
         query.validate();
         var indexes = getQueryIndexesFromDefinitionVersions(
-            Type.REQUEST,
-            Type.V4_METRICS,
-            configuration,
-            queryContext,
-            List.of(DefinitionVersion.V4)
-        );
+                Type.REQUEST, Type.V4_METRICS, configuration, queryContext, List.of(DefinitionVersion.V4));
         // Built before the try on purpose. The adapter refuses a page past the cluster's result window with an
         // IllegalArgumentException, and that is the caller's mistake, not a search failure: wrapping it as an
         // AnalyticsException turns a 400 into a 500 and buries the message that says which page was too deep.
         var searchQuery = NativeApiMetricsSearchQueryAdapter.adapt(query, configuration.getMaxResultWindow());
         try {
-            var response = this.client.search(indexes, null, searchQuery).map(NativeApiMetricsSearchResponseAdapter::adapt).blockingGet();
+            var response = this.client
+                    .search(indexes, null, searchQuery)
+                    .map(NativeApiMetricsSearchResponseAdapter::adapt)
+                    .blockingGet();
             // The count is truthful; how far it can be paged is not the same number. Handed up rather than
             // used to clamp the total, so the caller can say "10 000 of 50 000" instead of just "10 000".
             return new LogResponse<>(response.total(), response.data(), (long) configuration.getMaxResultWindow());
@@ -152,15 +154,16 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
 
     @Override
     public LogResponse<AuthzDecisionLog> searchAuthzDecisionLogs(QueryContext queryContext, AuthzDecisionLogQuery query)
-        throws AnalyticsException {
+            throws AnalyticsException {
         query.validate();
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, SearchAuthzDecisionLogsQueryAdapter.adapt(queryContext, query))
-                .map(SearchAuthzDecisionLogsResponseAdapter::adapt)
-                .blockingGet();
+            return this.client
+                    .search(index, null, SearchAuthzDecisionLogsQueryAdapter.adapt(queryContext, query))
+                    .map(SearchAuthzDecisionLogsResponseAdapter::adapt)
+                    .blockingGet();
         } catch (RuntimeException e) {
             throw new AnalyticsException("Failed to search authz decision logs for apis " + query.getApiIds(), e);
         }
@@ -168,14 +171,15 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
 
     @Override
     public Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId)
-        throws AnalyticsException {
+            throws AnalyticsException {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, FindAuthzDecisionLogQueryAdapter.adapt(queryContext, apiId, eventId))
-                .map(SearchAuthzDecisionLogsResponseAdapter::adaptFirst)
-                .blockingGet();
+            return this.client
+                    .search(index, null, FindAuthzDecisionLogQueryAdapter.adapt(queryContext, apiId, eventId))
+                    .map(SearchAuthzDecisionLogsResponseAdapter::adaptFirst)
+                    .blockingGet();
         } catch (RuntimeException e) {
             throw new AnalyticsException("Failed to find authz decision " + eventId + " for api " + apiId, e);
         }

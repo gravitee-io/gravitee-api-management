@@ -38,7 +38,8 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
     private Call lastCall;
 
     /** One {@link #listKeywordValues} invocation, as received. */
-    public record Call(String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes) {}
+    public record Call(
+            String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes) {}
 
     public InMemoryObservabilityFilterDataPort givenKeywordValues(String filterName, List<FilterValue> values) {
         valuesByFilter.put(filterName, List.copyOf(values));
@@ -62,21 +63,12 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
 
     @Override
     public FilterValuesPage listKeywordValues(
-        String filterName,
-        String query,
-        Long from,
-        Long to,
-        int page,
-        int perPage,
-        Set<ApiType> apiTypes
-    ) {
+            String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes) {
         lastCall = new Call(filterName, query, from, to, page, perPage, apiTypes);
         String needle = query == null || query.isBlank() ? null : query.toLowerCase();
-        List<FilterValue> matching = valuesByFilter
-            .getOrDefault(filterName, List.of())
-            .stream()
-            .filter(value -> needle == null || matches(value, needle))
-            .toList();
+        List<FilterValue> matching = valuesByFilter.getOrDefault(filterName, List.of()).stream()
+                .filter(value -> needle == null || matches(value, needle))
+                .toList();
         int fromIndex = (int) Math.min((long) (page - 1) * perPage, matching.size());
         int toIndex = Math.min(fromIndex + perPage, matching.size());
         return new FilterValuesPage(matching.subList(fromIndex, toIndex), matching.size());
@@ -84,22 +76,18 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
 
     @Override
     public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests) {
-        return requests
-            .stream()
-            .map(request -> {
-                Map<String, String> known = labelsByFilter.getOrDefault(request.filterName(), Map.of());
-                Map<String, String> resolved = new LinkedHashMap<>();
-                request
-                    .ids()
-                    .stream()
-                    .filter(known::containsKey)
-                    .forEach(id -> resolved.put(id, known.get(id)));
-                return new ResolvedLabels(request.filterName(), resolved);
-            })
-            .toList();
+        return requests.stream()
+                .map(request -> {
+                    Map<String, String> known = labelsByFilter.getOrDefault(request.filterName(), Map.of());
+                    Map<String, String> resolved = new LinkedHashMap<>();
+                    request.ids().stream().filter(known::containsKey).forEach(id -> resolved.put(id, known.get(id)));
+                    return new ResolvedLabels(request.filterName(), resolved);
+                })
+                .toList();
     }
 
     private static boolean matches(FilterValue value, String needle) {
-        return (value.value().toLowerCase().contains(needle) || (value.label() != null && value.label().toLowerCase().contains(needle)));
+        return (value.value().toLowerCase().contains(needle)
+                || (value.label() != null && value.label().toLowerCase().contains(needle)));
     }
 }

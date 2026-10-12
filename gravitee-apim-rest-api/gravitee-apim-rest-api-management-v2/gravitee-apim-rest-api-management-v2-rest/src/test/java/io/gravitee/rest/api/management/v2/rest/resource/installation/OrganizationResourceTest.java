@@ -108,14 +108,17 @@ public class OrganizationResourceTest extends AbstractResourceTest {
             assertThat(graviteeLicense.getTier()).isEqualTo("universe");
             assertThat(graviteeLicense.getPacks()).containsExactly("observability");
             assertThat(graviteeLicense.getFeatures()).containsExactly("apim-reporter-datadog");
-            assertThat(graviteeLicense.getExpiresAt().toInstant().toEpochMilli()).isEqualTo(now.toEpochMilli());
+            assertThat(graviteeLicense.getExpiresAt().toInstant().toEpochMilli())
+                    .isEqualTo(now.toEpochMilli());
             assertThat(graviteeLicense.getScope()).isEqualTo("PLATFORM");
             assertThat(graviteeLicense.getIsExpired()).isEqualTo(true);
         }
 
         @Test
         public void shouldReturn404IfOrganizationDoesNotExist() {
-            doThrow(new OrganizationNotFoundException(ORGANIZATION)).when(organizationService).findById(ORGANIZATION);
+            doThrow(new OrganizationNotFoundException(ORGANIZATION))
+                    .when(organizationService)
+                    .findById(ORGANIZATION);
 
             var response = rootTarget(ORGANIZATION).path("license").request().get();
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);

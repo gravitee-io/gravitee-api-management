@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
@@ -86,13 +85,11 @@ import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -139,26 +136,25 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final CategoryMapper categoryMapper;
 
     public ApiDuplicatorServiceImpl(
-        HttpClientService httpClientService,
-        ImportConfiguration importConfiguration,
-        MediaService mediaService,
-        ObjectMapper objectMapper,
-        ApiMetadataService apiMetadataService,
-        MembershipService membershipService,
-        MembershipDuplicateService membershipDuplicateService,
-        RoleService roleService,
-        PageService pageService,
-        PageDuplicateService pageDuplicateService,
-        PlanService planService,
-        GroupService groupService,
-        UserService userService,
-        @Lazy ApiService apiService,
-        ApiConverter apiConverter,
-        PlanConverter planConverter,
-        PermissionService permissionService,
-        ApiIdsCalculatorService apiIdsCalculatorService,
-        CategoryMapper categoryMapper
-    ) {
+            HttpClientService httpClientService,
+            ImportConfiguration importConfiguration,
+            MediaService mediaService,
+            ObjectMapper objectMapper,
+            ApiMetadataService apiMetadataService,
+            MembershipService membershipService,
+            MembershipDuplicateService membershipDuplicateService,
+            RoleService roleService,
+            PageService pageService,
+            PageDuplicateService pageDuplicateService,
+            PlanService planService,
+            GroupService groupService,
+            UserService userService,
+            @Lazy ApiService apiService,
+            ApiConverter apiConverter,
+            PlanConverter planConverter,
+            PermissionService permissionService,
+            ApiIdsCalculatorService apiIdsCalculatorService,
+            CategoryMapper categoryMapper) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
         this.mediaService = mediaService;
@@ -186,9 +182,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         try {
             // Read the whole input API definition, and recalculate its ID
             ImportApiJsonNode apiJsonNode = apiIdsCalculatorService.recalculateApiDefinitionIds(
-                executionContext,
-                new ImportApiJsonNode(objectMapper.readTree(apiDefinition))
-            );
+                    executionContext, new ImportApiJsonNode(objectMapper.readTree(apiDefinition)));
 
             // check API consistency before import
             checkApiJsonConsistency(apiJsonNode);
@@ -197,11 +191,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
 
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(
-                executionContext,
-                importedApi,
-                getAuthenticatedUsername(),
-                apiJsonNode.getJsonNode()
-            );
+                    executionContext, importedApi, getAuthenticatedUsername(), apiJsonNode.getJsonNode());
             createOrUpdateApiNestedEntities(executionContext, createdApiEntity, apiJsonNode);
 
             // No need to create ASIDE Folder when origin is Kubernetes
@@ -210,29 +200,28 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
             return createdApiEntity;
         } catch (IOException e) {
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to JSON deserialize the API definition.");
         }
     }
 
     @Override
-    public ApiEntity updateWithImportedDefinition(final ExecutionContext executionContext, String urlApiId, Object apiDefinitionOrURL) {
+    public ApiEntity updateWithImportedDefinition(
+            final ExecutionContext executionContext, String urlApiId, Object apiDefinitionOrURL) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
 
         try {
             // Read the whole input API definition, and recalculate its ID
             ImportApiJsonNode apiJsonNode = apiIdsCalculatorService.recalculateApiDefinitionIds(
-                executionContext,
-                new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
-                urlApiId
-            );
+                    executionContext, new ImportApiJsonNode(objectMapper.readTree(apiDefinition)), urlApiId);
 
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
 
             // ensure user has required permission to update target API
-            if (
-                !isAuthenticated() ||
-                !(isEnvironmentAdmin() || permissionService.hasPermission(executionContext, API_DEFINITION, apiJsonNode.getId(), UPDATE))
-            ) {
+            if (!isAuthenticated()
+                    || !(isEnvironmentAdmin()
+                            || permissionService.hasPermission(
+                                    executionContext, API_DEFINITION, apiJsonNode.getId(), UPDATE))) {
                 throw new ForbiddenAccessException();
             }
 
@@ -244,12 +233,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
         } catch (IOException e) {
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to JSON deserialize the API definition.");
         }
     }
 
     @Override
-    public ApiEntity duplicate(ExecutionContext executionContext, final ApiEntity apiEntity, final DuplicateApiEntity duplicateApiEntity) {
+    public ApiEntity duplicate(
+            ExecutionContext executionContext, final ApiEntity apiEntity, final DuplicateApiEntity duplicateApiEntity) {
         requireNonNull(apiEntity, "Missing ApiEntity");
         final String apiId = apiEntity.getId();
         log.debug("Duplicate API {}", apiId);
@@ -258,7 +249,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         final Proxy proxy = apiEntity.getProxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
         newApiEntity.setProxy(proxy);
-        newApiEntity.setVersion(duplicateApiEntity.getVersion() == null ? apiEntity.getVersion() : duplicateApiEntity.getVersion());
+        newApiEntity.setVersion(
+                duplicateApiEntity.getVersion() == null ? apiEntity.getVersion() : duplicateApiEntity.getVersion());
 
         if (duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_GROUPS)) {
             newApiEntity.setGroups(null);
@@ -268,58 +260,51 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         Map<String, String> plansIdsMap = new HashMap<>();
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
-            newApiEntity
-                .getPlans()
-                .forEach(plan -> {
-                    String newPlanId = UuidString.generateRandom();
-                    plansIdsMap.put(plan.getId(), newPlanId);
-                    plan.setId(newPlanId);
-                });
+            newApiEntity.getPlans().forEach(plan -> {
+                String newPlanId = UuidString.generateRandom();
+                plansIdsMap.put(plan.getId(), newPlanId);
+                plan.setId(newPlanId);
+            });
         }
 
-        final ApiEntity duplicatedApi = apiService.createWithApiDefinition(
-            executionContext,
-            newApiEntity,
-            getAuthenticatedUsername(),
-            null
-        );
+        final ApiEntity duplicatedApi =
+                apiService.createWithApiDefinition(executionContext, newApiEntity, getAuthenticatedUsername(), null);
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_MEMBERS)) {
-            membershipDuplicateService.duplicateMemberships(executionContext, apiId, duplicatedApi.getId(), getAuthenticatedUsername());
+            membershipDuplicateService.duplicateMemberships(
+                    executionContext, apiId, duplicatedApi.getId(), getAuthenticatedUsername());
         }
 
         final Map<String, String> pagesIdsMap = new HashMap<>();
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PAGES)) {
-            pagesIdsMap.putAll(
-                pageDuplicateService.duplicatePages(executionContext, apiId, duplicatedApi.getId(), getAuthenticatedUsername())
-            );
+            pagesIdsMap.putAll(pageDuplicateService.duplicatePages(
+                    executionContext, apiId, duplicatedApi.getId(), getAuthenticatedUsername()));
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
-            planService
-                .findByApi(executionContext, apiId)
-                .forEach(plan -> {
-                    plan.setId(plansIdsMap.get(plan.getId()));
-                    plan.setReferenceId(duplicatedApi.getId());
-                    if (plan.getGeneralConditions() != null) {
-                        plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
-                    }
-                    planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
-                });
+            planService.findByApi(executionContext, apiId).forEach(plan -> {
+                plan.setId(plansIdsMap.get(plan.getId()));
+                plan.setReferenceId(duplicatedApi.getId());
+                if (plan.getGeneralConditions() != null) {
+                    plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
+                }
+                planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
+            });
         }
 
         return duplicatedApi;
     }
 
-    private UpdateApiEntity convertToEntity(final ExecutionContext executionContext, String apiDefinition, ImportApiJsonNode apiJsonNode)
-        throws IOException {
+    private UpdateApiEntity convertToEntity(
+            final ExecutionContext executionContext, String apiDefinition, ImportApiJsonNode apiJsonNode)
+            throws IOException {
         final UpdateApiEntity importedApi = objectMapper
-            // because definition could contains other values than the api itself (pages, members)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .readValue(apiDefinition, UpdateApiEntity.class);
+                // because definition could contains other values than the api itself (pages, members)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .readValue(apiDefinition, UpdateApiEntity.class);
 
-        //create group if not exist & replace groupName by groupId
+        // create group if not exist & replace groupName by groupId
         if (importedApi.getGroups() != null) {
             Set<String> groupNames = new HashSet<>(importedApi.getGroups());
             importedApi.getGroups().clear();
@@ -344,7 +329,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         // Before 3.0.2, API 'categories' were called 'views'. This is for compatibility.
         final List<ImportJsonNode> viewsNodes = apiJsonNode.getViews();
         if (!viewsNodes.isEmpty()) {
-            Set<String> categories = viewsNodes.stream().map(ImportJsonNode::asText).collect(toSet());
+            Set<String> categories =
+                    viewsNodes.stream().map(ImportJsonNode::asText).collect(toSet());
             importedApi.setCategories(categories);
         }
 
@@ -354,7 +340,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         // merge existing plans data with plans definition data
-        // cause plans definition may contain less data than plans entities (for example when rollback an API from gateway event)
+        // cause plans definition may contain less data than plans entities (for example when rollback an API from
+        // gateway event)
         Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiJsonNode.getId());
         importedApi.setPlans(readPlansToImportFromDefinition(apiJsonNode, existingPlans));
 
@@ -379,20 +366,20 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return categoryMapper.toCategoryId(environmentId, categories);
     }
 
-    private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode)
-        throws JsonProcessingException {
+    private void createPageAndMedia(
+            final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode)
+            throws JsonProcessingException {
         for (ImportJsonNode media : apiJsonNode.getMedia()) {
             mediaService.createWithDefinition(executionContext, createdApiEntity.getId(), media.toString());
         }
 
         List<PageEntity> search = pageService.search(
-            executionContext.getEnvironmentId(),
-            new PageQuery.Builder()
-                .api(createdApiEntity.getId())
-                .name(SystemFolderType.ASIDE.folderName())
-                .type(PageType.SYSTEM_FOLDER)
-                .build()
-        );
+                executionContext.getEnvironmentId(),
+                new PageQuery.Builder()
+                        .api(createdApiEntity.getId())
+                        .name(SystemFolderType.ASIDE.folderName())
+                        .type(PageType.SYSTEM_FOLDER)
+                        .build());
 
         if (search.isEmpty()) {
             pageService.createAsideFolder(executionContext, createdApiEntity.getId());
@@ -403,10 +390,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         String definitionOrURL = stringifyApiDefinitionFromJackson(apiDefinitionOrURL);
         if (definitionOrURL.toUpperCase().startsWith("HTTP")) {
             UrlSanitizerUtils.checkAllowed(
-                definitionOrURL,
-                importConfiguration.getImportWhitelist(),
-                importConfiguration.isAllowImportFromPrivate()
-            );
+                    definitionOrURL,
+                    importConfiguration.getImportWhitelist(),
+                    importConfiguration.isAllowImportFromPrivate());
             Buffer buffer = httpClientService.request(HttpMethod.GET, definitionOrURL, null, null, null);
             return buffer.toString();
         }
@@ -414,82 +400,74 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void createOrUpdateApiNestedEntities(
-        final ExecutionContext executionContext,
-        ApiEntity apiEntity,
-        ImportApiJsonNode apiJsonNode
-    ) throws IOException {
+            final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
+            throws IOException {
         createOrUpdateMembers(executionContext, apiEntity, apiJsonNode);
         createOrUpdatePages(executionContext, apiEntity, apiJsonNode);
         createOrUpdatePlans(executionContext, apiEntity, apiJsonNode);
         createOrUpdateMetadata(executionContext, apiEntity, apiJsonNode);
     }
 
-    private void createOrUpdateMembers(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
-        throws JsonProcessingException {
+    private void createOrUpdateMembers(
+            final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
+            throws JsonProcessingException {
         if (apiJsonNode.hasMembers()) {
             // get current members of the api
             Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiEntity.getId());
             // get the current PO
-            RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
+            RoleEntity poRole =
+                    roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
             assert (poRole != null);
             String poRoleId = poRole.getId();
-            MemberToImport currentPo = membersAlreadyPresent
-                .stream()
-                .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
-                .findFirst()
-                .orElse(new MemberToImport());
+            MemberToImport currentPo = membersAlreadyPresent.stream()
+                    .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
+                    .findFirst()
+                    .orElse(new MemberToImport());
 
             List<String> roleUsedInTransfert = null;
             MemberToImport futurePo = null;
 
             // upsert members
-            Optional<RoleEntity> apiUserRoleOpt = roleService.findByScopeAndName(
-                RoleScope.API,
-                "USER",
-                executionContext.getOrganizationId()
-            );
+            Optional<RoleEntity> apiUserRoleOpt =
+                    roleService.findByScopeAndName(RoleScope.API, "USER", executionContext.getOrganizationId());
             for (final ImportJsonNode memberNode : apiJsonNode.getMembers()) {
                 MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
                 memberToImport.setRoles(getRoleIdsToImport(executionContext, memberToImport));
                 boolean presentWithSameRole = isPresentWithSameRole(membersAlreadyPresent, memberToImport);
 
-                List<String> roleIdsToImport = memberToImport
-                    .getRoles()
-                    .stream()
-                    .filter(roleId -> {
-                        var role = roleService.findByIdAndOrganizationId(roleId, executionContext.getOrganizationId());
-                        var isValidRole = role.isPresent() && RoleScope.API.equals(role.get().getScope());
-                        if (!isValidRole) {
-                            log.warn(
-                                "Role {} does not exist in organization {} or is not an API role",
-                                roleId,
-                                executionContext.getOrganizationId()
-                            );
-                        }
-                        return isValidRole;
-                    })
-                    .collect(Collectors.toList());
+                List<String> roleIdsToImport = memberToImport.getRoles().stream()
+                        .filter(roleId -> {
+                            var role =
+                                    roleService.findByIdAndOrganizationId(roleId, executionContext.getOrganizationId());
+                            var isValidRole = role.isPresent()
+                                    && RoleScope.API.equals(role.get().getScope());
+                            if (!isValidRole) {
+                                log.warn(
+                                        "Role {} does not exist in organization {} or is not an API role",
+                                        roleId,
+                                        executionContext.getOrganizationId());
+                            }
+                            return isValidRole;
+                        })
+                        .collect(Collectors.toList());
 
                 if (roleIdsToImport.isEmpty() && apiUserRoleOpt.isPresent()) {
                     roleIdsToImport.add(apiUserRoleOpt.get().getId());
                 }
 
                 addOrUpdateMembers(
-                    executionContext,
-                    apiEntity.getId(),
-                    poRoleId,
-                    currentPo,
-                    memberToImport,
-                    roleIdsToImport,
-                    presentWithSameRole
-                );
+                        executionContext,
+                        apiEntity.getId(),
+                        poRoleId,
+                        currentPo,
+                        memberToImport,
+                        roleIdsToImport,
+                        presentWithSameRole);
 
                 // get the future role of the current PO
-                if (
-                    memberToImport.getSourceId().equals(currentPo.getSourceId()) &&
-                    memberToImport.getSource().equals(currentPo.getSource()) &&
-                    !roleIdsToImport.contains(poRoleId)
-                ) {
+                if (memberToImport.getSourceId().equals(currentPo.getSourceId())
+                        && memberToImport.getSource().equals(currentPo.getSource())
+                        && !roleIdsToImport.contains(poRoleId)) {
                     roleUsedInTransfert = roleIdsToImport;
                 }
 
@@ -530,7 +508,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiEntity.getId());
             if (!membersAlreadyPresent.isEmpty()) {
                 // get the current PO
-                RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
+                RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(
+                        executionContext.getOrganizationId(), RoleScope.API);
                 assert (poRole != null);
                 String poRoleId = poRole.getId();
 
@@ -545,36 +524,28 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     protected Set<MemberToImport> getAPICurrentMembers(ExecutionContext executionContext, String apiId) {
-        return membershipService
-            .getMembersByReference(executionContext, MembershipReferenceType.API, apiId)
-            .stream()
-            .filter(member -> member.getType() == MembershipMemberType.USER)
-            .map(member -> {
-                UserEntity userEntity = userService.findById(executionContext, member.getId());
-                return new MemberToImport(
-                    userEntity.getSource(),
-                    userEntity.getSourceId(),
-                    member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()),
-                    null
-                );
-            })
-            .collect(toSet());
+        return membershipService.getMembersByReference(executionContext, MembershipReferenceType.API, apiId).stream()
+                .filter(member -> member.getType() == MembershipMemberType.USER)
+                .map(member -> {
+                    UserEntity userEntity = userService.findById(executionContext, member.getId());
+                    return new MemberToImport(
+                            userEntity.getSource(),
+                            userEntity.getSourceId(),
+                            member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()),
+                            null);
+                })
+                .collect(toSet());
     }
 
     protected boolean isPresentWithSameRole(Set<MemberToImport> membersAlreadyPresent, MemberToImport memberToImport) {
-        return (
-            memberToImport.getRoles() != null &&
-            !memberToImport.getRoles().isEmpty() &&
-            membersAlreadyPresent
-                .stream()
-                .anyMatch(m -> {
+        return (memberToImport.getRoles() != null
+                && !memberToImport.getRoles().isEmpty()
+                && membersAlreadyPresent.stream().anyMatch(m -> {
                     m.getRoles().sort(Comparator.naturalOrder());
-                    return (
-                        m.getRoles().equals(memberToImport.getRoles()) &&
-                        (m.getSourceId().equals(memberToImport.getSourceId()) && m.getSource().equals(memberToImport.getSource()))
-                    );
-                })
-        );
+                    return (m.getRoles().equals(memberToImport.getRoles())
+                            && (m.getSourceId().equals(memberToImport.getSourceId())
+                                    && m.getSource().equals(memberToImport.getSource())));
+                }));
     }
 
     protected List<String> getRoleIdsToImport(ExecutionContext executionContext, MemberToImport memberToImport) {
@@ -598,10 +569,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 roleIdsToImport.add(roleIdOrName);
             } catch (IllegalArgumentException e) {
                 Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
-                    RoleScope.API,
-                    roleIdOrName,
-                    executionContext.getOrganizationId()
-                );
+                        RoleScope.API, roleIdOrName, executionContext.getOrganizationId());
                 if (optRoleToAddEntity.isPresent()) {
                     roleIdsToImport.add(optRoleToAddEntity.get().getId());
                 } else {
@@ -618,176 +586,155 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     protected void addOrUpdateMembers(
-        ExecutionContext executionContext,
-        String apiId,
-        String poRoleId,
-        MemberToImport currentPo,
-        MemberToImport memberToImport,
-        List<String> rolesToImport,
-        boolean presentWithSameRole
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            String poRoleId,
+            MemberToImport currentPo,
+            MemberToImport memberToImport,
+            List<String> rolesToImport,
+            boolean presentWithSameRole) {
         // add/update members if :
         //  - not already present with the same role
         //  - not the new PO
         //  - not the current PO
-        if (
-            !presentWithSameRole &&
-            (memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && !memberToImport.getRoles().contains(poRoleId)) &&
-            !(memberToImport.getSourceId().equals(currentPo.getSourceId()) && memberToImport.getSource().equals(currentPo.getSource()))
-        ) {
+        if (!presentWithSameRole
+                && (memberToImport.getRoles() != null
+                        && !memberToImport.getRoles().isEmpty()
+                        && !memberToImport.getRoles().contains(poRoleId))
+                && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
+                        && memberToImport.getSource().equals(currentPo.getSource()))) {
             try {
                 UserEntity userEntity = userService.findBySource(
-                    executionContext.getOrganizationId(),
-                    memberToImport.getSource(),
-                    memberToImport.getSourceId(),
-                    false
-                );
+                        executionContext.getOrganizationId(),
+                        memberToImport.getSource(),
+                        memberToImport.getSourceId(),
+                        false);
 
                 rolesToImport.forEach(role -> {
                     try {
                         membershipService.addRoleToMemberOnReference(
-                            executionContext,
-                            MembershipReferenceType.API,
-                            apiId,
-                            MembershipMemberType.USER,
-                            userEntity.getId(),
-                            role
-                        );
+                                executionContext,
+                                MembershipReferenceType.API,
+                                apiId,
+                                MembershipMemberType.USER,
+                                userEntity.getId(),
+                                role);
                     } catch (UserNotFoundException unfe) {
                         log.debug(
-                            "UserNotFoundException while adding or updating member '{}' (source: '{}', sourceId: '{}') on API '{}': {}",
-                            memberToImport,
-                            memberToImport.getSource(),
-                            memberToImport.getSourceId(),
-                            apiId,
-                            unfe.getMessage(),
-                            unfe
-                        );
+                                "UserNotFoundException while adding or updating member '{}' (source: '{}', sourceId: '{}') on API '{}': {}",
+                                memberToImport,
+                                memberToImport.getSource(),
+                                memberToImport.getSourceId(),
+                                apiId,
+                                unfe.getMessage(),
+                                unfe);
                     } catch (Exception e) {
                         log.warn(
-                            "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
-                            role,
-                            userEntity.getId(),
-                            apiId,
-                            e.getMessage()
-                        );
+                                "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
+                                role,
+                                userEntity.getId(),
+                                apiId,
+                                e.getMessage());
                     }
                 });
             } catch (UserNotFoundException unfe) {
                 log.debug(
-                    "UserNotFoundException while adding or updating member '{}' (source: '{}', sourceId: '{}') on API '{}': {}",
-                    memberToImport,
-                    memberToImport.getSource(),
-                    memberToImport.getSourceId(),
-                    apiId,
-                    unfe.getMessage(),
-                    unfe
-                );
+                        "UserNotFoundException while adding or updating member '{}' (source: '{}', sourceId: '{}') on API '{}': {}",
+                        memberToImport,
+                        memberToImport.getSource(),
+                        memberToImport.getSourceId(),
+                        apiId,
+                        unfe.getMessage(),
+                        unfe);
             }
         }
     }
 
     private void removePreviousRoleIfExist(
-        ExecutionContext executionContext,
-        String apiId,
-        MemberToImport memberToImport,
-        List<String> roleIdsToImport
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            MemberToImport memberToImport,
+            List<String> roleIdsToImport) {
         UserEntity userEntity = userService.findBySource(
-            executionContext.getOrganizationId(),
-            memberToImport.getSource(),
-            memberToImport.getSourceId(),
-            false
-        );
+                executionContext.getOrganizationId(), memberToImport.getSource(), memberToImport.getSourceId(), false);
 
         List<String> existingRoles = new ArrayList<>(
-            membershipService
-                .getRoles(MembershipReferenceType.API, apiId, MembershipMemberType.USER, userEntity.getId())
-                .stream()
-                .map(RoleEntity::getId)
-                .toList()
-        );
+                membershipService
+                        .getRoles(MembershipReferenceType.API, apiId, MembershipMemberType.USER, userEntity.getId())
+                        .stream()
+                        .map(RoleEntity::getId)
+                        .toList());
 
         roleIdsToImport.forEach(existingRoles::remove);
 
-        existingRoles.forEach(roleId ->
-            membershipService.removeRole(MembershipReferenceType.API, apiId, MembershipMemberType.USER, userEntity.getId(), roleId)
-        );
+        existingRoles.forEach(roleId -> membershipService.removeRole(
+                MembershipReferenceType.API, apiId, MembershipMemberType.USER, userEntity.getId(), roleId));
     }
 
     protected void deleteMembers(ExecutionContext executionContext, String apiId, MemberToImport memberToImport) {
         try {
             UserEntity userEntity = userService.findBySource(
-                executionContext.getOrganizationId(),
-                memberToImport.getSource(),
-                memberToImport.getSourceId(),
-                false
-            );
+                    executionContext.getOrganizationId(),
+                    memberToImport.getSource(),
+                    memberToImport.getSourceId(),
+                    false);
 
             membershipService.deleteMemberForApi(executionContext, apiId, userEntity.getId());
         } catch (UserNotFoundException unfe) {
             log.debug(
-                "UserNotFoundException while deleting member '{}' (source: '{}', sourceId: '{}') from API '{}': {}",
-                memberToImport,
-                memberToImport.getSource(),
-                memberToImport.getSourceId(),
-                apiId,
-                unfe.getMessage(),
-                unfe
-            );
+                    "UserNotFoundException while deleting member '{}' (source: '{}', sourceId: '{}') from API '{}': {}",
+                    memberToImport,
+                    memberToImport.getSource(),
+                    memberToImport.getSourceId(),
+                    apiId,
+                    unfe.getMessage(),
+                    unfe);
         } catch (Exception e) {
             log.warn("Unable to delete membership from API '{}' due to : {}", apiId, e.getMessage(), e);
         }
     }
 
     private void transferOwnership(
-        ExecutionContext executionContext,
-        String apiId,
-        MemberToImport currentPo,
-        List<String> roleUsedInTransfert,
-        MemberToImport futurePo
-    ) {
-        if (
-            futurePo != null &&
-            !(futurePo.getSource().equals(currentPo.getSource()) && futurePo.getSourceId().equals(currentPo.getSourceId()))
-        ) {
+            ExecutionContext executionContext,
+            String apiId,
+            MemberToImport currentPo,
+            List<String> roleUsedInTransfert,
+            MemberToImport futurePo) {
+        if (futurePo != null
+                && !(futurePo.getSource().equals(currentPo.getSource())
+                        && futurePo.getSourceId().equals(currentPo.getSourceId()))) {
             try {
                 UserEntity userEntity = userService.findBySource(
-                    executionContext.getOrganizationId(),
-                    futurePo.getSource(),
-                    futurePo.getSourceId(),
-                    false
-                );
+                        executionContext.getOrganizationId(), futurePo.getSource(), futurePo.getSourceId(), false);
                 List<RoleEntity> roleEntity = null;
                 if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
-                    roleEntity = roleUsedInTransfert.stream().map(roleService::findById).toList();
+                    roleEntity = roleUsedInTransfert.stream()
+                            .map(roleService::findById)
+                            .toList();
                 }
                 membershipService.transferApiOwnership(
-                    executionContext,
-                    apiId,
-                    new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
-                    roleEntity
-                );
+                        executionContext,
+                        apiId,
+                        new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
+                        roleEntity);
             } catch (UserNotFoundException unfe) {
                 log.debug(
-                    "UserNotFoundException while transferring ownership to user (source: '{}', sourceId: '{}') on API '{}': {}",
-                    futurePo.getSource(),
-                    futurePo.getSourceId(),
-                    apiId,
-                    unfe.getMessage(),
-                    unfe
-                );
+                        "UserNotFoundException while transferring ownership to user (source: '{}', sourceId: '{}') on API '{}': {}",
+                        futurePo.getSource(),
+                        futurePo.getSourceId(),
+                        apiId,
+                        unfe.getMessage(),
+                        unfe);
             }
         }
     }
 
-    protected void createOrUpdateMetadata(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode) {
+    protected void createOrUpdateMetadata(
+            final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode) {
         try {
             for (ImportJsonNode metadataNode : apiJsonNode.getMetadata()) {
-                UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
-                    metadataNode.toString(),
-                    UpdateApiMetadataEntity.class
-                );
+                UpdateApiMetadataEntity updateApiMetadataEntity =
+                        objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
                 updateApiMetadataEntity.setApiId(apiEntity.getId());
                 apiMetadataService.update(executionContext, updateApiMetadataEntity);
             }
@@ -796,8 +743,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    protected void createOrUpdatePlans(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
-        throws IOException {
+    protected void createOrUpdatePlans(
+            final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
+            throws IOException {
         if (apiJsonNode.hasPlans()) {
             Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiEntity.getId());
             Set<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
@@ -818,7 +766,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private void replacePlanGroupNameById(final ExecutionContext executionContext, ApiEntity apiEntity, PlanEntity planEntity) {
+    private void replacePlanGroupNameById(
+            final ExecutionContext executionContext, ApiEntity apiEntity, PlanEntity planEntity) {
         if (apiEntity.getGroups() != null && planEntity.getExcludedGroups() != null) {
             Set<String> groupNames = new HashSet<>(planEntity.getExcludedGroups());
             planEntity.getExcludedGroups().clear();
@@ -830,27 +779,27 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     planEntity.getExcludedGroups().add(group.getId());
                 } else {
                     log.warn(
-                        "Group with name {} does not exist and can't be added to plan \"{}\" [{}]",
-                        name,
-                        planEntity.getName(),
-                        planEntity.getId()
-                    );
+                            "Group with name {} does not exist and can't be added to plan \"{}\" [{}]",
+                            name,
+                            planEntity.getName(),
+                            planEntity.getId());
                 }
             }
         }
     }
 
     private Map<String, PlanEntity> readApiPlansById(ExecutionContext executionContext, String apiId) {
-        return planService.findByApi(executionContext, apiId).stream().collect(toMap(PlanEntity::getId, Function.identity()));
+        return planService.findByApi(executionContext, apiId).stream()
+                .collect(toMap(PlanEntity::getId, Function.identity()));
     }
 
-    protected void createOrUpdatePages(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
-        throws JsonProcessingException {
+    protected void createOrUpdatePages(
+            final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
+            throws JsonProcessingException {
         if (apiJsonNode.hasPages() && !apiJsonNode.getPages().isEmpty()) {
             List<PageEntity> pagesList = objectMapper.readValue(
-                apiJsonNode.getPages().toString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
-            );
+                    apiJsonNode.getPages().toString(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class));
 
             replacePagesGroupNameById(executionContext, pagesList);
 
@@ -872,48 +821,38 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         pageService.createOrUpdatePages(executionContext, pages, apiId);
     }
 
-    private void importKubernetesRootPages(ExecutionContext executionContext, String apiId, List<PageEntity> rootPages) {
+    private void importKubernetesRootPages(
+            ExecutionContext executionContext, String apiId, List<PageEntity> rootPages) {
         for (var rootPage : rootPages) {
             overrideAccessControls(
-                executionContext,
-                apiId,
-                rootPage,
-                pageService.importFiles(
                     executionContext,
                     apiId,
-                    ImportPageEntity.builder()
-                        .type(PageType.ROOT)
-                        .visibility(rootPage.getVisibility())
-                        .published(rootPage.isPublished())
-                        .source(rootPage.getSource())
-                        .build()
-                )
-            );
+                    rootPage,
+                    pageService.importFiles(
+                            executionContext,
+                            apiId,
+                            ImportPageEntity.builder()
+                                    .type(PageType.ROOT)
+                                    .visibility(rootPage.getVisibility())
+                                    .published(rootPage.isPublished())
+                                    .source(rootPage.getSource())
+                                    .build()));
         }
     }
 
     private void overrideAccessControls(
-        ExecutionContext executionContext,
-        String apiId,
-        PageEntity rootPage,
-        List<PageEntity> importedPages
-    ) {
+            ExecutionContext executionContext, String apiId, PageEntity rootPage, List<PageEntity> importedPages) {
         pageService.createOrUpdatePages(
-            executionContext,
-            importedPages
-                .stream()
-                .map(page ->
-                    page
-                        .toBuilder()
-                        .visibility(rootPage.getVisibility())
-                        .accessControls(rootPage.getAccessControls())
-                        .excludedGroups(rootPage.getExcludedGroups())
-                        .excludedAccessControls(rootPage.isExcludedAccessControls())
-                        .build()
-                )
-                .toList(),
-            apiId
-        );
+                executionContext,
+                importedPages.stream()
+                        .map(page -> page.toBuilder()
+                                .visibility(rootPage.getVisibility())
+                                .accessControls(rootPage.getAccessControls())
+                                .excludedGroups(rootPage.getExcludedGroups())
+                                .excludedAccessControls(rootPage.isExcludedAccessControls())
+                                .build())
+                        .toList(),
+                apiId);
     }
 
     private void deleteRemovedPages(ExecutionContext executionContext, String apiId, List<PageEntity> givenPages) {
@@ -931,7 +870,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             });
         }
 
-        List<String> existingPageIds = existingPages.stream().map(PageEntity::getId).collect(toList());
+        List<String> existingPageIds =
+                existingPages.stream().map(PageEntity::getId).collect(toList());
         existingPageIds.removeIf(givenPageIds::contains);
 
         try {
@@ -948,30 +888,23 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         pagesList.forEach(pageEntity -> {
             if (pageEntity.getAccessControls() != null) {
-                pageEntity.setAccessControls(
-                    pageEntity
-                        .getAccessControls()
-                        .stream()
+                pageEntity.setAccessControls(pageEntity.getAccessControls().stream()
                         .filter(accessControlEntity ->
-                            accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name())
-                        )
+                                accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name()))
                         .peek(accessControlEntity -> {
-                            String groupId = pageGroupEntities.computeIfAbsent(accessControlEntity.getReferenceId(), key ->
-                                findGroupId(executionContext, key)
-                            );
+                            String groupId = pageGroupEntities.computeIfAbsent(
+                                    accessControlEntity.getReferenceId(), key -> findGroupId(executionContext, key));
                             accessControlEntity.setReferenceId(groupId);
                             if (groupId == null) {
                                 log.warn(
-                                    "Group with name {} does not exist and can't be added to access control list of page \"{}\" [{}]",
-                                    accessControlEntity.getReferenceId(),
-                                    pageEntity.getName(),
-                                    pageEntity.getId()
-                                );
+                                        "Group with name {} does not exist and can't be added to access control list of page \"{}\" [{}]",
+                                        accessControlEntity.getReferenceId(),
+                                        pageEntity.getName(),
+                                        pageEntity.getId());
                             }
                         })
                         .filter(accessControlEntity -> accessControlEntity.getReferenceId() != null)
-                        .collect(toSet())
-                );
+                        .collect(toSet()));
             }
         });
     }
@@ -979,15 +912,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private String findGroupId(ExecutionContext executionContext, String key) {
         try {
             return Optional.ofNullable(groupService.findById(executionContext, key))
-                .map(GroupEntity::getId)
-                .orElseThrow(() -> new GroupNotFoundException(key));
+                    .map(GroupEntity::getId)
+                    .orElseThrow(() -> new GroupNotFoundException(key));
         } catch (GroupNotFoundException e) {
-            return groupService
-                .findByName(executionContext.getEnvironmentId(), key)
-                .stream()
-                .findFirst()
-                .map(GroupEntity::getId)
-                .orElse(null);
+            return groupService.findByName(executionContext.getEnvironmentId(), key).stream()
+                    .findFirst()
+                    .map(GroupEntity::getId)
+                    .orElse(null);
         }
     }
 
@@ -1057,12 +988,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private Stream<PlanEntity> findRemovedPlans(Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
+    private Stream<PlanEntity> findRemovedPlans(
+            Collection<PlanEntity> existingPlans, Collection<PlanEntity> importedPlans) {
         return existingPlans.stream().filter(existingPlan -> !importedPlans.contains(existingPlan));
     }
 
-    private Set<PlanEntity> readPlansToImportFromDefinition(ImportApiJsonNode apiJsonNode, Map<String, PlanEntity> existingPlans)
-        throws IOException {
+    private Set<PlanEntity> readPlansToImportFromDefinition(
+            ImportApiJsonNode apiJsonNode, Map<String, PlanEntity> existingPlans) throws IOException {
         Set<PlanEntity> plansToImport = new HashSet<>();
         for (ImportJsonNodeWithIds planNode : apiJsonNode.getPlans()) {
             PlanEntity existingPlan = planNode.hasId() ? existingPlans.get(planNode.getId()) : null;
@@ -1080,16 +1012,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return plansToImport;
     }
 
-    private void checkApiJsonConsistency(final ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, String urlApiId) {
+    private void checkApiJsonConsistency(
+            final ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, String urlApiId) {
         if (urlApiId != null && !urlApiId.equals(apiJsonNode.getId())) {
-            throw new ApiImportException(
-                String.format(
+            throw new ApiImportException(String.format(
                     "Can't update API [%s] cause crossId [%s] already belongs to another API in environment [%s]",
-                    urlApiId,
-                    apiJsonNode.getCrossId(),
-                    executionContext.getEnvironmentId()
-                )
-            );
+                    urlApiId, apiJsonNode.getCrossId(), executionContext.getEnvironmentId()));
         }
         checkApiJsonConsistency(apiJsonNode);
     }
@@ -1101,7 +1029,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private void checkPlansConsistency(ImportApiJsonNode apiJsonNode) {
         if (apiJsonNode.hasPlans()) {
-            List<String> planIds = apiJsonNode.getPlans().stream().map(ImportJsonNodeWithIds::getId).collect(toList());
+            List<String> planIds = apiJsonNode.getPlans().stream()
+                    .map(ImportJsonNodeWithIds::getId)
+                    .collect(toList());
             if (planService.anyPlanMismatchWithApi(planIds, apiJsonNode.getId())) {
                 throw new ApiImportException("Some inconsistencies were found in the API plans definition");
             }
@@ -1111,12 +1041,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private void checkPagesConsistency(ImportApiJsonNode apiJsonNode) {
         if (apiJsonNode.hasPages()) {
             log.debug("Checking pages consistency for imported API definition");
-            long systemFoldersCount = apiJsonNode
-                .getPagesArray()
-                .findValuesAsText("type")
-                .stream()
-                .filter(type -> PageType.SYSTEM_FOLDER.name().equals(type))
-                .count();
+            long systemFoldersCount = apiJsonNode.getPagesArray().findValuesAsText("type").stream()
+                    .filter(type -> PageType.SYSTEM_FOLDER.name().equals(type))
+                    .count();
             log.debug("Found {} system folder(s) in API pages", systemFoldersCount);
             if (systemFoldersCount > 1) {
                 throw new ApiImportException("Only one system folder is allowed in the API pages definition");
@@ -1134,7 +1061,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             CronExpression.parse(cron); // Validate cron
                         } catch (IllegalArgumentException e) {
                             String pageName = pageNode.path("name").asText("Unnamed Page");
-                            throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());
+                            throw new ApiImportException(
+                                    "Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());
                         }
                     }
                 }
@@ -1143,6 +1071,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private static String stringifyApiDefinitionFromJackson(Object apiDefinitionOrUrl) {
-        return apiDefinitionOrUrl instanceof Map ? new JSONObject((Map) apiDefinitionOrUrl).toString() : apiDefinitionOrUrl.toString();
+        return apiDefinitionOrUrl instanceof Map
+                ? new JSONObject((Map) apiDefinitionOrUrl).toString()
+                : apiDefinitionOrUrl.toString();
     }
 }

@@ -51,17 +51,18 @@ public class RoleScopeResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List of roles", description = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
+    @Operation(
+            summary = "List of roles",
+            description = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Role successfully removed",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = RoleEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "Role successfully removed",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = RoleEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)})
     public List<RoleEntity> getRoles(@PathParam("scope") RoleScope scope) {
         return roleService.findByScope(scope, GraviteeContext.getCurrentOrganization());
     }
@@ -69,14 +70,18 @@ public class RoleScopeResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a role", description = "User must have the MANAGEMENT_ROLE[CREATE] permission to use this service")
+    @Operation(
+            summary = "Create a role",
+            description = "User must have the MANAGEMENT_ROLE[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Role successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RoleEntity.class))
-    )
+            responseCode = "200",
+            description = "Role successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = RoleEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE)})
     @GraviteeLicenseFeature("apim-custom-roles")
     public RoleEntity createRole(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {
         return roleService.create(GraviteeContext.getExecutionContext(), role);

@@ -111,7 +111,8 @@ class ConditionSelectorConditionFilterTest {
         conditionSelector.setCondition(EXPRESSION);
         when(flow.selectorByType(SelectorType.CONDITION)).thenReturn(Optional.of(conditionSelector));
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.error(new ExpressionEvaluationException(EXPRESSION)));
+        when(templateEngine.eval(EXPRESSION, Boolean.class))
+                .thenReturn(Maybe.error(new ExpressionEvaluationException(EXPRESSION)));
 
         cut.filter(ctx, flow).test().assertResult();
     }
@@ -122,7 +123,8 @@ class ConditionSelectorConditionFilterTest {
         conditionSelector.setCondition(EXPRESSION);
         when(flow.selectorByType(SelectorType.CONDITION)).thenReturn(Optional.of(conditionSelector));
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.error(new RuntimeException("Mock exception")));
+        when(templateEngine.eval(EXPRESSION, Boolean.class))
+                .thenReturn(Maybe.error(new RuntimeException("Mock exception")));
 
         cut.filter(ctx, flow).test().assertResult();
     }

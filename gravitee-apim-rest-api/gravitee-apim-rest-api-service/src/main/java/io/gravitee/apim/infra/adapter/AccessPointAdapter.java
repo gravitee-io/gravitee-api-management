@@ -24,10 +24,14 @@ public interface AccessPointAdapter {
     AccessPointAdapter INSTANCE = Mappers.getMapper(AccessPointAdapter.class);
 
     AccessPoint toEntity(io.gravitee.repository.management.model.AccessPoint accessPoint);
+
     io.gravitee.repository.management.model.AccessPoint fromEntity(AccessPoint accessPoint);
 
-    AccessPoint.ReferenceType toEntity(io.gravitee.repository.management.model.AccessPointReferenceType accessPointReferenceType);
-    io.gravitee.repository.management.model.AccessPointReferenceType fromEntity(AccessPoint.ReferenceType referenceType);
+    AccessPoint.ReferenceType toEntity(
+            io.gravitee.repository.management.model.AccessPointReferenceType accessPointReferenceType);
+
+    io.gravitee.repository.management.model.AccessPointReferenceType fromEntity(
+            AccessPoint.ReferenceType referenceType);
 
     AccessPoint.Target toEntity(io.gravitee.repository.management.model.AccessPointTarget accessPointTarget);
 

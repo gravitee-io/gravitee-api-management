@@ -17,20 +17,13 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.POJONode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.TotalHits;
-import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -50,13 +43,12 @@ class SearchRequestsCountResponseAdapterTest {
 
     private Aggregation buildAggregation(Map<String, Long> buckets) {
         Aggregation agg = new Aggregation();
-        agg.setBuckets(
-            buckets
-                .entrySet()
-                .stream()
-                .map(bucket -> (JsonNode) objectMapper.createObjectNode().put("key", bucket.getKey()).put("doc_count", bucket.getValue()))
-                .toList()
-        );
+        agg.setBuckets(buckets.entrySet().stream()
+                .map(bucket -> (JsonNode) objectMapper
+                        .createObjectNode()
+                        .put("key", bucket.getKey())
+                        .put("doc_count", bucket.getValue()))
+                .toList());
         return agg;
     }
 
@@ -87,9 +79,9 @@ class SearchRequestsCountResponseAdapterTest {
         searchResponse.setAggregations(Map.of("entrypoints", buildAggregation(Map.of("http-post", 7L))));
         searchResponse.setSearchHits(buildSearchHits(14L));
 
-        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate ->
-            assertThat(countAggregate.getTotal()).isEqualTo(14L)
-        );
+        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse))
+                .hasValueSatisfying(
+                        countAggregate -> assertThat(countAggregate.getTotal()).isEqualTo(14L));
     }
 
     @Test
@@ -109,11 +101,12 @@ class SearchRequestsCountResponseAdapterTest {
     @Test
     void should_fall_back_to_the_entrypoint_breakdown_when_hits_are_missing() {
         final SearchResponse searchResponse = new SearchResponse();
-        searchResponse.setAggregations(Map.of("entrypoints", buildAggregation(Map.of("http-get", 11L, "http-post", 200L))));
+        searchResponse.setAggregations(
+                Map.of("entrypoints", buildAggregation(Map.of("http-get", 11L, "http-post", 200L))));
 
-        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate ->
-            assertThat(countAggregate.getTotal()).isEqualTo(211L)
-        );
+        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse))
+                .hasValueSatisfying(
+                        countAggregate -> assertThat(countAggregate.getTotal()).isEqualTo(211L));
     }
 
     @ParameterizedTest
@@ -121,21 +114,25 @@ class SearchRequestsCountResponseAdapterTest {
     void should_build_search_requests_count_response(Map<String, Long> buckets) {
         final SearchResponse searchResponse = new SearchResponse();
         searchResponse.setAggregations(Map.of("entrypoints", buildAggregation(buckets)));
-        searchResponse.setSearchHits(buildSearchHits(buckets.values().stream().mapToLong(Long::longValue).sum()));
+        searchResponse.setSearchHits(buildSearchHits(
+                buckets.values().stream().mapToLong(Long::longValue).sum()));
 
         assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
             assertThat(countAggregate.getCountBy()).containsAllEntriesOf(buckets);
             assertThat(countAggregate.getTotal())
-                .as("the total can never be lower than any single entrypoint count")
-                .isGreaterThanOrEqualTo(buckets.values().stream().mapToLong(Long::longValue).max().orElse(0L));
+                    .as("the total can never be lower than any single entrypoint count")
+                    .isGreaterThanOrEqualTo(buckets.values().stream()
+                            .mapToLong(Long::longValue)
+                            .max()
+                            .orElse(0L));
         });
     }
 
     private static Stream<Arguments> provideSearchDataWithEntryPoints() {
         return Stream.of(
-            Arguments.of(Map.of("http-get", 1L)),
-            Arguments.of(Map.of()),
-            Arguments.of(Map.of("http-get", 11L, "http-post", 200L, "websocket", 5L, "the-unknown-endpoint", 10000L))
-        );
+                Arguments.of(Map.of("http-get", 1L)),
+                Arguments.of(Map.of()),
+                Arguments.of(
+                        Map.of("http-get", 11L, "http-post", 200L, "websocket", 5L, "the-unknown-endpoint", 10000L)));
     }
 }

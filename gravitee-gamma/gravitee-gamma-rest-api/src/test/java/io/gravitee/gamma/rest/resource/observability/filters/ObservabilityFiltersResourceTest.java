@@ -56,7 +56,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, FiltersTestConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class, FiltersTestConfiguration.class})
 class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
@@ -94,16 +94,16 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         @Test
         void should_return_data_envelope_with_lowercase_type_uppercase_operators_labelled_enum_values_and_both_axes() {
             FilterSpec spec = new FilterSpec(
-                "API_TYPE",
-                "API Type",
-                FilterType.ENUM,
-                List.of(FilterOperator.EQ, FilterOperator.IN),
-                List.of(new FilterSpec.EnumValue("NATIVE", "Kafka (native)")),
-                null,
-                Set.of(Signal.LOGS, Signal.ANALYTICS),
-                Set.of(ApiType.HTTP_PROXY, ApiType.LLM)
-            );
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec)));
+                    "API_TYPE",
+                    "API Type",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ, FilterOperator.IN),
+                    List.of(new FilterSpec.EnumValue("NATIVE", "Kafka (native)")),
+                    null,
+                    Set.of(Signal.LOGS, Signal.ANALYTICS),
+                    Set.of(ApiType.HTTP_PROXY, ApiType.LLM));
+            when(getFilterDefinitionsUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of(spec)));
 
             Response response = rootTarget("definition").request().get();
 
@@ -117,26 +117,30 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             JsonNode enumValue = first.get("enumValues").get(0);
             assertThat(enumValue.get("value").asText()).isEqualTo("NATIVE");
             assertThat(enumValue.get("label").asText()).isEqualTo("Kafka (native)");
-            assertThat(first.get("signals")).extracting(JsonNode::asText).containsExactlyInAnyOrder("LOGS", "ANALYTICS");
-            assertThat(first.get("apiTypes")).extracting(JsonNode::asText).containsExactlyInAnyOrder("HTTP_PROXY", "LLM");
+            assertThat(first.get("signals"))
+                    .extracting(JsonNode::asText)
+                    .containsExactlyInAnyOrder("LOGS", "ANALYTICS");
+            assertThat(first.get("apiTypes"))
+                    .extracting(JsonNode::asText)
+                    .containsExactlyInAnyOrder("HTTP_PROXY", "LLM");
             assertThat(first.has("range")).isFalse();
         }
 
         @Test
         void should_forward_multi_valued_signal_and_api_type_axes_to_the_use_case() {
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
+            when(getFilterDefinitionsUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
 
             Response response = rootTarget("definition")
-                .queryParam("signal", "LOGS")
-                .queryParam("signal", "analytics")
-                .queryParam("apiType", "LLM")
-                .request()
-                .get();
+                    .queryParam("signal", "LOGS")
+                    .queryParam("signal", "analytics")
+                    .queryParam("apiType", "LLM")
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            ArgumentCaptor<GetObservabilityFilterDefinitionsUseCase.Input> captor = ArgumentCaptor.forClass(
-                GetObservabilityFilterDefinitionsUseCase.Input.class
-            );
+            ArgumentCaptor<GetObservabilityFilterDefinitionsUseCase.Input> captor =
+                    ArgumentCaptor.forClass(GetObservabilityFilterDefinitionsUseCase.Input.class);
             Mockito.verify(getFilterDefinitionsUseCase).execute(captor.capture());
             assertThat(captor.getValue().signals()).containsExactlyInAnyOrder(Signal.LOGS, Signal.ANALYTICS);
             assertThat(captor.getValue().apiTypes()).containsExactly(ApiType.LLM);
@@ -144,14 +148,14 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_full_catalog_when_no_axis_is_provided() {
-            when(getFilterDefinitionsUseCase.execute(any())).thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
+            when(getFilterDefinitionsUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityFilterDefinitionsUseCase.Output(List.of()));
 
             Response response = rootTarget("definition").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            ArgumentCaptor<GetObservabilityFilterDefinitionsUseCase.Input> captor = ArgumentCaptor.forClass(
-                GetObservabilityFilterDefinitionsUseCase.Input.class
-            );
+            ArgumentCaptor<GetObservabilityFilterDefinitionsUseCase.Input> captor =
+                    ArgumentCaptor.forClass(GetObservabilityFilterDefinitionsUseCase.Input.class);
             Mockito.verify(getFilterDefinitionsUseCase).execute(captor.capture());
             assertThat(captor.getValue().signals()).isEmpty();
             assertThat(captor.getValue().apiTypes()).isEmpty();
@@ -159,7 +163,10 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_for_an_unknown_signal_value() {
-            Response response = rootTarget("definition").queryParam("signal", "NOPE").request().get();
+            Response response = rootTarget("definition")
+                    .queryParam("signal", "NOPE")
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             Mockito.verifyNoInteractions(getFilterDefinitionsUseCase);
@@ -182,10 +189,9 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         @Test
         void should_return_200_with_paginated_envelope_for_enum_filter() {
             FilterValuesPage page = new FilterValuesPage(
-                List.of(new FilterValue("NATIVE", "Kafka (native)"), new FilterValue("GET", "GET")),
-                2L
-            );
-            when(getFilterValuesUseCase.execute(any())).thenReturn(new GetObservabilityFilterValuesUseCase.Output(page, 1, 10));
+                    List.of(new FilterValue("NATIVE", "Kafka (native)"), new FilterValue("GET", "GET")), 2L);
+            when(getFilterValuesUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityFilterValuesUseCase.Output(page, 1, 10));
 
             Response response = rootTarget("API_TYPE/values").request().get();
 
@@ -203,12 +209,16 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_build_envelope_from_the_resolved_pagination_not_the_raw_query_params() {
-            // Caller asks for perPage=500 but the use case clamps it to 100; the envelope must reflect the clamped value.
-            when(getFilterValuesUseCase.execute(any())).thenReturn(
-                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 250L), 1, 100)
-            );
+            // Caller asks for perPage=500 but the use case clamps it to 100; the envelope must reflect the clamped
+            // value.
+            when(getFilterValuesUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityFilterValuesUseCase.Output(
+                            new FilterValuesPage(List.of(), 250L), 1, 100));
 
-            Response response = rootTarget("API_TYPE/values").queryParam("perPage", 500).request().get();
+            Response response = rootTarget("API_TYPE/values")
+                    .queryParam("perPage", 500)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -219,15 +229,19 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_forward_query_page_perPage_to_the_use_case() {
-            when(getFilterValuesUseCase.execute(any())).thenReturn(
-                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 2, 5)
-            );
+            when(getFilterValuesUseCase.execute(any()))
+                    .thenReturn(
+                            new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 2, 5));
 
-            rootTarget("API_TYPE/values").queryParam("query", "ka").queryParam("page", 2).queryParam("perPage", 5).request().get();
+            rootTarget("API_TYPE/values")
+                    .queryParam("query", "ka")
+                    .queryParam("page", 2)
+                    .queryParam("perPage", 5)
+                    .request()
+                    .get();
 
-            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(
-                GetObservabilityFilterValuesUseCase.Input.class
-            );
+            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor =
+                    ArgumentCaptor.forClass(GetObservabilityFilterValuesUseCase.Input.class);
             Mockito.verify(getFilterValuesUseCase).execute(captor.capture());
             assertThat(captor.getValue().filterName()).isEqualTo("API_TYPE");
             assertThat(captor.getValue().query()).isEqualTo("ka");
@@ -246,9 +260,9 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_for_unsupported_value_listing() {
-            when(getFilterValuesUseCase.execute(any())).thenThrow(
-                UnsupportedObservabilityFilterException.valueListingNotSupported("HTTP_STATUS", "NUMBER")
-            );
+            when(getFilterValuesUseCase.execute(any()))
+                    .thenThrow(
+                            UnsupportedObservabilityFilterException.valueListingNotSupported("HTTP_STATUS", "NUMBER"));
 
             Response response = rootTarget("HTTP_STATUS/values").request().get();
 
@@ -257,22 +271,28 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_forward_apiType_query_params_to_the_use_case() {
-            when(getFilterValuesUseCase.execute(any())).thenReturn(
-                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10)
-            );
+            when(getFilterValuesUseCase.execute(any()))
+                    .thenReturn(
+                            new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10));
 
-            rootTarget("API_TYPE/values").queryParam("apiType", "MCP").queryParam("apiType", "LLM").request().get();
+            rootTarget("API_TYPE/values")
+                    .queryParam("apiType", "MCP")
+                    .queryParam("apiType", "LLM")
+                    .request()
+                    .get();
 
-            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(
-                GetObservabilityFilterValuesUseCase.Input.class
-            );
+            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor =
+                    ArgumentCaptor.forClass(GetObservabilityFilterValuesUseCase.Input.class);
             Mockito.verify(getFilterValuesUseCase).execute(captor.capture());
             assertThat(captor.getValue().apiTypes()).containsExactlyInAnyOrder(ApiType.MCP, ApiType.LLM);
         }
 
         @Test
         void should_return_400_for_unknown_apiType_value() {
-            Response response = rootTarget("API_TYPE/values").queryParam("apiType", "NOPE").request().get();
+            Response response = rootTarget("API_TYPE/values")
+                    .queryParam("apiType", "NOPE")
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             Mockito.verifyNoInteractions(getFilterValuesUseCase);
@@ -294,51 +314,45 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_entries_with_labels_grouped_by_filter() {
-            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(
-                new ResolveObservabilityFilterLabelsUseCase.Output(
-                    List.of(new ResolveObservabilityFilterLabelsUseCase.ResolvedEntry("API", Map.of("api-1", "Petstore")))
-                )
-            );
+            when(resolveFilterLabelsUseCase.execute(any()))
+                    .thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(
+                            List.of(new ResolveObservabilityFilterLabelsUseCase.ResolvedEntry(
+                                    "API", Map.of("api-1", "Petstore")))));
 
             Response response = rootTarget("resolve")
-                .request()
-                .post(
-                    Entity.entity(
-                        Map.of("entries", List.of(Map.of("filterName", "API", "ids", List.of("api-1")))),
-                        MediaType.APPLICATION_JSON_TYPE
-                    )
-                );
+                    .request()
+                    .post(Entity.entity(
+                            Map.of("entries", List.of(Map.of("filterName", "API", "ids", List.of("api-1")))),
+                            MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("entries")).hasSize(1);
             assertThat(body.get("entries").get(0).get("filterName").asText()).isEqualTo("API");
-            assertThat(body.get("entries").get(0).get("labels").get("api-1").asText()).isEqualTo("Petstore");
+            assertThat(body.get("entries").get(0).get("labels").get("api-1").asText())
+                    .isEqualTo("Petstore");
         }
 
         @Test
         void should_forward_entries_to_the_use_case() {
-            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
+            when(resolveFilterLabelsUseCase.execute(any()))
+                    .thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
 
             rootTarget("resolve")
-                .request()
-                .post(
-                    Entity.entity(
-                        Map.of("entries", List.of(Map.of("filterName", "PLAN", "ids", List.of("plan-1", "plan-2")))),
-                        MediaType.APPLICATION_JSON_TYPE
-                    )
-                );
+                    .request()
+                    .post(Entity.entity(
+                            Map.of(
+                                    "entries",
+                                    List.of(Map.of("filterName", "PLAN", "ids", List.of("plan-1", "plan-2")))),
+                            MediaType.APPLICATION_JSON_TYPE));
 
-            ArgumentCaptor<ResolveObservabilityFilterLabelsUseCase.Input> captor = ArgumentCaptor.forClass(
-                ResolveObservabilityFilterLabelsUseCase.Input.class
-            );
+            ArgumentCaptor<ResolveObservabilityFilterLabelsUseCase.Input> captor =
+                    ArgumentCaptor.forClass(ResolveObservabilityFilterLabelsUseCase.Input.class);
             Mockito.verify(resolveFilterLabelsUseCase).execute(captor.capture());
-            assertThat(captor.getValue().entries())
-                .singleElement()
-                .satisfies(e -> {
-                    assertThat(e.filterName()).isEqualTo("PLAN");
-                    assertThat(e.ids()).containsExactly("plan-1", "plan-2");
-                });
+            assertThat(captor.getValue().entries()).singleElement().satisfies(e -> {
+                assertThat(e.filterName()).isEqualTo("PLAN");
+                assertThat(e.ids()).containsExactly("plan-1", "plan-2");
+            });
         }
 
         @Test
@@ -346,8 +360,8 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
             Response response = rootTarget("resolve")
-                .request()
-                .post(Entity.entity(Map.of("entries", List.of()), MediaType.APPLICATION_JSON_TYPE));
+                    .request()
+                    .post(Entity.entity(Map.of("entries", List.of()), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
             Mockito.verifyNoInteractions(resolveFilterLabelsUseCase);

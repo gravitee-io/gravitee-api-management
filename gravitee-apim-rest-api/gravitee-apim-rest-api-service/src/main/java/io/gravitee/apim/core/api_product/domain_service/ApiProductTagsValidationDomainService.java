@@ -18,5 +18,6 @@ package io.gravitee.apim.core.api_product.domain_service;
 import java.util.Set;
 
 public interface ApiProductTagsValidationDomainService {
-    void validateAndSanitize(String organizationId, String environmentId, Set<String> existingTags, Set<String> newTags);
+    void validateAndSanitize(
+            String organizationId, String environmentId, Set<String> existingTags, Set<String> newTags);
 }

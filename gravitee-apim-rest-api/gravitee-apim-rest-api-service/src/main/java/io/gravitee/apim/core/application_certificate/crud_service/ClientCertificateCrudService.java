@@ -87,7 +87,8 @@ public interface ClientCertificateCrudService {
      * @param statuses the statuses to filter by
      * @return a list of client certificates matching the criteria
      */
-    List<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses);
+    List<ClientCertificate> findByApplicationIdsAndStatuses(
+            Collection<String> applicationIds, ClientCertificateStatus... statuses);
 
     /**
      * Find all client certificates matching the given statuses, regardless of application.
@@ -134,5 +135,6 @@ public interface ClientCertificateCrudService {
      * @param excludeApplicationId application ID to exclude from the lookup, or null to check all applications
      * @return true if such a certificate exists
      */
-    boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId);
+    boolean existsByFingerprintAndActiveApplication(
+            String fingerprint, String environmentId, String excludeApplicationId);
 }

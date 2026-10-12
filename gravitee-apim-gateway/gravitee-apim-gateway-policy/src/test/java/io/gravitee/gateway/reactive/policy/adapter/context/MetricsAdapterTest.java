@@ -607,7 +607,8 @@ class MetricsAdapterTest {
         metricsAdapter.setLog(mock(Log.class));
 
         // Then
-        ArgumentCaptor<io.gravitee.reporter.api.v4.log.Log> captor = ArgumentCaptor.forClass(io.gravitee.reporter.api.v4.log.Log.class);
+        ArgumentCaptor<io.gravitee.reporter.api.v4.log.Log> captor =
+                ArgumentCaptor.forClass(io.gravitee.reporter.api.v4.log.Log.class);
         verify(metricsV4).setLog(captor.capture());
         assertThat(captor.getValue().getOrganizationId()).isEqualTo("orgId");
         assertThat(captor.getValue().getEnvironmentId()).isEqualTo("envId");

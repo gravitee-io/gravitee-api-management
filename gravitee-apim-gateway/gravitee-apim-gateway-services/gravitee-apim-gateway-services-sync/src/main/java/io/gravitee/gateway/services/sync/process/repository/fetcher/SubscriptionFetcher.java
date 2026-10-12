@@ -57,40 +57,42 @@ public class SubscriptionFetcher {
 
     public Flowable<List<Subscription>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         SubscriptionCriteria criteria = SubscriptionCriteria.builder()
-            .statuses(STATUSES)
-            .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-            .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
-            .environments(environments)
-            .build();
+                .statuses(STATUSES)
+                .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+                .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                .environments(environments)
+                .build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
         return Flowable.<List<Subscription>, SubscriptionPage>generate(
-            () -> new SubscriptionPage(null),
-            (page, emitter) -> {
-                try {
-                    List<Subscription> subscriptions = subscriptionRepository.searchAfter(criteria, sortable, page.cursor, bulkItems);
-                    if (subscriptions != null && !subscriptions.isEmpty()) {
-                        emitter.onNext(subscriptions);
-                        Subscription last = subscriptions.getLast();
-                        if (last.getUpdatedAt() == null) {
-                            // Criteria.from/to > 0 already filters rows lacking updatedAt at the
-                            // repository layer. Guard the cursor advance so a malformed row never
-                            // wedges the loop (NPE → onError → retry exhaustion → tick never
-                            // completes → next tick refetches the same poison row).
-                            log.warn("Subscription {} has null updatedAt; terminating page loop early", last.getId());
-                            emitter.onComplete();
-                            return;
+                () -> new SubscriptionPage(null), (page, emitter) -> {
+                    try {
+                        List<Subscription> subscriptions =
+                                subscriptionRepository.searchAfter(criteria, sortable, page.cursor, bulkItems);
+                        if (subscriptions != null && !subscriptions.isEmpty()) {
+                            emitter.onNext(subscriptions);
+                            Subscription last = subscriptions.getLast();
+                            if (last.getUpdatedAt() == null) {
+                                // Criteria.from/to > 0 already filters rows lacking updatedAt at the
+                                // repository layer. Guard the cursor advance so a malformed row never
+                                // wedges the loop (NPE → onError → retry exhaustion → tick never
+                                // completes → next tick refetches the same poison row).
+                                log.warn(
+                                        "Subscription {} has null updatedAt; terminating page loop early",
+                                        last.getId());
+                                emitter.onComplete();
+                                return;
+                            }
+                            page.cursor = SubscriptionCursor.byUpdatedAt(
+                                    last.getUpdatedAt().getTime(), last.getId());
                         }
-                        page.cursor = SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
+                        if (subscriptions == null || subscriptions.size() < bulkItems) {
+                            emitter.onComplete();
+                        }
+                    } catch (Exception e) {
+                        emitter.onError(e);
                     }
-                    if (subscriptions == null || subscriptions.size() < bulkItems) {
-                        emitter.onComplete();
-                    }
-                } catch (Exception e) {
-                    emitter.onError(e);
-                }
-            }
-        );
+                });
     }
 
     @AllArgsConstructor

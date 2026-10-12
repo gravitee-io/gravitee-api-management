@@ -43,7 +43,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 @ExtendWith(MockitoExtension.class)
 class VertxReactorConfigurationTest {
 
@@ -69,7 +69,9 @@ class VertxReactorConfigurationTest {
         final VertxServer vertxServer2 = mock(VertxServer.class);
         when(vertxServer2.id()).thenReturn("2");
 
-        when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer1).thenReturn(vertxServer2);
+        when(serverFactory.create(any(VertxServerOptions.class)))
+                .thenReturn(vertxServer1)
+                .thenReturn(vertxServer2);
 
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[1].type", "http");
@@ -191,7 +193,7 @@ class VertxReactorConfigurationTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "true,false", "false,false", "false,true" })
+    @CsvSource({"true,false", "false,false", "false,true"})
     void should_fail_creating_default_tcp_server(String secured, String sni) {
         // there is always a http server
         final VertxServer httpVertxServer = mock(VertxServer.class);
@@ -203,19 +205,19 @@ class VertxReactorConfigurationTest {
         environment.setProperty("tcp.ssl.sni", sni);
 
         assertThatCode(() -> cut.serverManager(serverFactory, environment))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("SNI");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("SNI");
     }
 
     @ParameterizedTest
-    @CsvSource({ "true,false", "false,false", "false,true" })
+    @CsvSource({"true,false", "false,false", "false,true"})
     void should_fail_creating_multi_tcp_server(String secured, String sni) {
         environment.setProperty("servers[0].type", "tcp");
         environment.setProperty("servers[0].secured", secured);
         environment.setProperty("servers[0].ssl.sni", sni);
 
         assertThatCode(() -> cut.serverManager(serverFactory, environment))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("SNI");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("SNI");
     }
 }

@@ -30,10 +30,10 @@ public class EndpointConnectorPluginConfiguration {
 
     @Bean
     public DefaultEndpointConnectorPluginManager endpointPluginManager(
-        final EndpointConnectorClassLoaderFactory endpointConnectorClassLoaderFactory,
-        final PluginConfigurationHelper pluginConfigurationHelper
-    ) {
-        return new DefaultEndpointConnectorPluginManager(endpointConnectorClassLoaderFactory, pluginConfigurationHelper);
+            final EndpointConnectorClassLoaderFactory endpointConnectorClassLoaderFactory,
+            final PluginConfigurationHelper pluginConfigurationHelper) {
+        return new DefaultEndpointConnectorPluginManager(
+                endpointConnectorClassLoaderFactory, pluginConfigurationHelper);
     }
 
     @Bean

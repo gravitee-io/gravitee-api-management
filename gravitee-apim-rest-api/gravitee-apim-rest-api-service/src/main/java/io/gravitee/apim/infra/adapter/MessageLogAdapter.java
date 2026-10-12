@@ -38,8 +38,7 @@ public interface MessageLogAdapter {
     AggregatedMessageLog toEntity(io.gravitee.repository.log.v4.model.message.AggregatedMessageLog messageLog);
 
     List<AggregatedMessageLog> mapToAggregatedMessageLogs(
-        List<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> messageLogs
-    );
+            List<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> messageLogs);
 
     @Named("mapOperation")
     default MessageOperation mapOperation(io.gravitee.repository.log.v4.model.message.AggregatedMessageLog messageLog) {

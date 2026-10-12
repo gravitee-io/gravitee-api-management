@@ -67,14 +67,13 @@ class AuthzPolicySynchronizerTest {
     @BeforeEach
     void setUp() {
         synchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                fetcher,
+                new AuthzPolicyMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(deployer);
@@ -94,7 +93,11 @@ class AuthzPolicySynchronizerTest {
     void no_events_still_calls_commit_to_retry_any_pending() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                .test()
+                .await()
+                .assertComplete();
 
         // commit() is always called; it short-circuits internally when nothing is armed, so a previous
         // cycle's failed-and-re-armed commit still gets retried even on a cycle with no new events.
@@ -104,18 +107,21 @@ class AuthzPolicySynchronizerTest {
     @Test
     void INIT_deploys_GLOBAL_and_RESOURCE_policies() throws InterruptedException {
         Event globalEvt = event(
-            "evt-g",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-g\", \"name\": \"Global\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "evt-g",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-g\", \"name\": \"Global\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
         Event resourceEvt = event(
-            "evt-r",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-r\", \"name\": \"R\", \"kind\": \"RESOURCE\", \"entityId\": \"api.x\", \"policyText\": \"permit(...);\"}"
-        );
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(globalEvt, resourceEvt)));
+                "evt-r",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-r\", \"name\": \"R\", \"kind\": \"RESOURCE\", \"entityId\": \"api.x\", \"policyText\": \"permit(...);\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(globalEvt, resourceEvt)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).deploy(any());
         verify(port).commit();
@@ -124,18 +130,21 @@ class AuthzPolicySynchronizerTest {
     @Test
     void INCREMENTAL_deploys_both_GLOBAL_and_RESOURCE() throws InterruptedException {
         Event globalEvt = event(
-            "evt-g",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-g\", \"name\": \"Global\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "evt-g",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-g\", \"name\": \"Global\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
         Event resourceEvt = event(
-            "evt-r",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-r\", \"name\": \"R\", \"kind\": \"RESOURCE\", \"entityId\": \"api.x\", \"policyText\": \"permit(...);\"}"
-        );
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(globalEvt, resourceEvt)));
+                "evt-r",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-r\", \"name\": \"R\", \"kind\": \"RESOURCE\", \"entityId\": \"api.x\", \"policyText\": \"permit(...);\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(globalEvt, resourceEvt)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).deploy(any());
         verify(port).commit();
@@ -144,14 +153,19 @@ class AuthzPolicySynchronizerTest {
     @Test
     void INCREMENTAL_handles_publish_and_unpublish_in_one_batch() throws InterruptedException {
         Event publish = event(
-            "evt-p",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-p\", \"name\": \"P\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-        );
-        Event unpublish = event("evt-u", EventType.UNPUBLISH_AUTHZ_POLICY, "{\"id\": \"doc-u\", \"environmentId\": \"env-1\"}");
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish, unpublish)));
+                "evt-p",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-p\", \"name\": \"P\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
+        Event unpublish =
+                event("evt-u", EventType.UNPUBLISH_AUTHZ_POLICY, "{\"id\": \"doc-u\", \"environmentId\": \"env-1\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(publish, unpublish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any());
         verify(deployer).undeploy(any());
@@ -161,13 +175,16 @@ class AuthzPolicySynchronizerTest {
     @Test
     void commit_fires_after_all_deploy_ops_complete() throws InterruptedException {
         Event publish = event(
-            "evt-p",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-p\", \"name\": \"P\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "evt-p",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-p\", \"name\": \"P\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         var inOrder = inOrder(deployer, port);
         inOrder.verify(deployer).deploy(any());
@@ -178,17 +195,19 @@ class AuthzPolicySynchronizerTest {
     void smoke_100_policies_in_one_cycle_yields_single_commit() throws InterruptedException {
         List<Event> events = new java.util.ArrayList<>(100);
         for (int i = 0; i < 100; i++) {
-            events.add(
-                event(
+            events.add(event(
                     "evt-" + i,
                     EventType.PUBLISH_AUTHZ_POLICY,
-                    "{\"id\": \"doc-" + i + "\", \"name\": \"P" + i + "\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-                )
-            );
+                    "{\"id\": \"doc-" + i + "\", \"name\": \"P" + i
+                            + "\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"));
         }
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(events));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(100)).deploy(any());
         verify(port, times(1)).commit();
@@ -198,13 +217,16 @@ class AuthzPolicySynchronizerTest {
     void unparseable_event_payload_is_dropped_without_breaking_the_batch() throws InterruptedException {
         Event bad = event("evt-bad", EventType.PUBLISH_AUTHZ_POLICY, "not-json");
         Event good = event(
-            "evt-good",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-good\", \"name\": \"G\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "evt-good",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-good\", \"name\": \"G\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(bad, good)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(1)).deploy(any());
         verify(port).commit();
@@ -213,18 +235,21 @@ class AuthzPolicySynchronizerTest {
     @Test
     void cold_sync_deploys_all_resource_policies() throws InterruptedException {
         Event autoDerived = event(
-            "evt-auto",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}"
-        );
+                "evt-auto",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}");
         Event custom = event(
-            "evt-custom",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-custom\", \"name\": \"C\", \"kind\": \"RESOURCE\", \"entityId\": \"team.acme.docs\", \"policyText\": \"permit(...);\"}"
-        );
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(autoDerived, custom)));
+                "evt-custom",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-custom\", \"name\": \"C\", \"kind\": \"RESOURCE\", \"entityId\": \"team.acme.docs\", \"policyText\": \"permit(...);\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(autoDerived, custom)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).deploy(any());
         verify(port).commit();
@@ -233,13 +258,16 @@ class AuthzPolicySynchronizerTest {
     @Test
     void incremental_deploys_auto_derived_resource_policy_regardless_of_hosting() throws InterruptedException {
         Event autoDerived = event(
-            "evt-auto",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}"
-        );
+                "evt-auto",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(autoDerived)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer).deploy(any());
         verify(port).commit();
@@ -248,15 +276,19 @@ class AuthzPolicySynchronizerTest {
     @Test
     void incremental_keeps_auto_derived_resource_policy_when_api_hosted() throws InterruptedException {
         Event autoDerived = event(
-            "evt-auto",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}"
-        );
+                "evt-auto",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(autoDerived)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().docId()).isEqualTo("doc-auto");
         verify(port).commit();
@@ -265,15 +297,19 @@ class AuthzPolicySynchronizerTest {
     @Test
     void incremental_keeps_custom_resource_policies() throws InterruptedException {
         Event custom = event(
-            "evt-custom",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-custom\", \"name\": \"C\", \"kind\": \"RESOURCE\", \"entityId\": \"team.acme.docs\", \"policyText\": \"permit(...);\"}"
-        );
+                "evt-custom",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-custom\", \"name\": \"C\", \"kind\": \"RESOURCE\", \"entityId\": \"team.acme.docs\", \"policyText\": \"permit(...);\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(custom)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().docId()).isEqualTo("doc-custom");
         verify(port).commit();
@@ -282,15 +318,19 @@ class AuthzPolicySynchronizerTest {
     @Test
     void incremental_carries_the_policy_revision_to_the_deployer() throws InterruptedException {
         Event publish = event(
-            "evt-rev",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-rev\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\", \"updatedAt\": \"2026-09-23T10:00:00Z\"}"
-        );
+                "evt-rev",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-rev\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\", \"updatedAt\": \"2026-09-23T10:00:00Z\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().revision()).isEqualTo("2026-09-23T10:00:00Z");
         verify(port).commit();
@@ -298,24 +338,23 @@ class AuthzPolicySynchronizerTest {
 
     @Test
     void retarget_evicts_dropped_scope_via_placement() throws InterruptedException {
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
 
         // Cycle 1: policy targets scope-a.
         Event toA = event(
-            "evt-1",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
-        );
+                "evt-1",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toA)));
         synchronizer.synchronize(1L, 2L, Set.of("env-1")).test().await().assertComplete();
 
         // Cycle 2: re-targeted to scope-b. Only the latest PUBLISH survives the fetcher — the fix must
         // still evict scope-a, derived from the applied placement (not from any per-event delta).
         Event toB = event(
-            "evt-2",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-b\"]}"
-        );
+                "evt-2",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-b\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toB)));
         synchronizer.synchronize(2L, 3L, Set.of("env-1")).test().await().assertComplete();
 
@@ -329,23 +368,22 @@ class AuthzPolicySynchronizerTest {
 
     @Test
     void delete_after_retarget_clears_placement() throws InterruptedException {
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
 
         Event toA = event(
-            "evt-1",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
-        );
+                "evt-1",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toA)));
         synchronizer.synchronize(1L, 2L, Set.of("env-1")).test().await().assertComplete();
 
         // Delete (UNPUBLISH) clears the placement; a later re-deploy to scope-a must NOT think scope-a
         // was already applied (no phantom eviction).
         Event del = event(
-            "evt-2",
-            EventType.UNPUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"doc-p\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
-        );
+                "evt-2",
+                EventType.UNPUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"doc-p\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(del)));
         synchronizer.synchronize(2L, 3L, Set.of("env-1")).test().await().assertComplete();
 

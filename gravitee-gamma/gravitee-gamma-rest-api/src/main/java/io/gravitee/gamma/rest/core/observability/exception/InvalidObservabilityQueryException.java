@@ -28,53 +28,50 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
 
     public static InvalidObservabilityQueryException missingTimeRangeBound(String bound) {
         return new InvalidObservabilityQueryException(
-            "Time range bound '" + bound + "' is required",
-            "observability.query.time_range_required"
-        );
+                "Time range bound '" + bound + "' is required", "observability.query.time_range_required");
     }
 
     public static InvalidObservabilityQueryException invalidTimeRange() {
         return new InvalidObservabilityQueryException(
-            "Invalid time range: 'from' must be before 'to'.",
-            "observability.query.invalid_time_range"
-        );
+                "Invalid time range: 'from' must be before 'to'.", "observability.query.invalid_time_range");
     }
 
     public static InvalidObservabilityQueryException invalidInterval(Long interval) {
         return new InvalidObservabilityQueryException(
-            "'interval' must be a positive number of milliseconds, was " + interval,
-            "observability.query.invalid_interval"
-        );
+                "'interval' must be a positive number of milliseconds, was " + interval,
+                "observability.query.invalid_interval");
     }
 
     public static InvalidObservabilityQueryException missingMetrics() {
-        return new InvalidObservabilityQueryException("At least one metric is required", "observability.query.metrics_required");
+        return new InvalidObservabilityQueryException(
+                "At least one metric is required", "observability.query.metrics_required");
     }
 
     public static InvalidObservabilityQueryException nullEntry(String field) {
-        return new InvalidObservabilityQueryException("'" + field + "' must not contain null entries", "observability.query.null_entry");
+        return new InvalidObservabilityQueryException(
+                "'" + field + "' must not contain null entries", "observability.query.null_entry");
     }
 
     public static InvalidObservabilityQueryException unknownMetric(String metric) {
-        return new InvalidObservabilityQueryException("Metric '" + metric + "' is not supported", "observability.query.unknown_metric");
+        return new InvalidObservabilityQueryException(
+                "Metric '" + metric + "' is not supported", "observability.query.unknown_metric");
     }
 
     public static InvalidObservabilityQueryException unknownMeasure(String metric, String measure) {
         return new InvalidObservabilityQueryException(
-            "Measure '" + measure + "' is not supported for metric '" + metric + "'",
-            "observability.query.unknown_measure"
-        );
+                "Measure '" + measure + "' is not supported for metric '" + metric + "'",
+                "observability.query.unknown_measure");
     }
 
     public static InvalidObservabilityQueryException unknownFacet(String facet) {
-        return new InvalidObservabilityQueryException("Facet '" + facet + "' is not supported", "observability.query.unknown_facet");
+        return new InvalidObservabilityQueryException(
+                "Facet '" + facet + "' is not supported", "observability.query.unknown_facet");
     }
 
     public static InvalidObservabilityQueryException unknownSortOrder(String order) {
         return new InvalidObservabilityQueryException(
-            "Sort order '" + order + "' is not supported, expected ASC or DESC",
-            "observability.query.unknown_sort_order"
-        );
+                "Sort order '" + order + "' is not supported, expected ASC or DESC",
+                "observability.query.unknown_sort_order");
     }
 
     private InvalidObservabilityQueryException(String message, String technicalCode) {

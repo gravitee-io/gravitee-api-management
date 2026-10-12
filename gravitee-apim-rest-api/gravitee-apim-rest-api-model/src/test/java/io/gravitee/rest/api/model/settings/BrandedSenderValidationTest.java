@@ -44,9 +44,9 @@ class BrandedSenderValidationTest {
 
     private static BrandedSenderConfig.BrandedSenderConfigBuilder validConfig() {
         return BrandedSenderConfig.builder()
-            .domains(List.of("graviteecustomer.com"))
-            .from("noreply@graviteecustomer.com")
-            .subject("[Gravitee Customer] %s");
+                .domains(List.of("graviteecustomer.com"))
+                .from("noreply@graviteecustomer.com")
+                .subject("[Gravitee Customer] %s");
     }
 
     // --- BrandedSenderConfig ---
@@ -58,11 +58,14 @@ class BrandedSenderValidationTest {
 
     @Test
     void should_accept_from_with_display_name() {
-        assertThat(validator.validate(validConfig().from("Gravitee Customer <noreply@graviteecustomer.com>").build())).isEmpty();
+        assertThat(validator.validate(validConfig()
+                        .from("Gravitee Customer <noreply@graviteecustomer.com>")
+                        .build()))
+                .isEmpty();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "not-an-email", "user@a..b.com", "user@.example.com" })
+    @ValueSource(strings = {"not-an-email", "user@a..b.com", "user@.example.com"})
     void should_reject_malformed_from(String from) {
         assertThat(validator.validate(validConfig().from(from).build())).isNotEmpty();
     }
@@ -78,30 +81,41 @@ class BrandedSenderValidationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "not a domain", "-example.com", "example-.com", "localhost", "example.a", "example.123" })
+    @ValueSource(strings = {"not a domain", "-example.com", "example-.com", "localhost", "example.a", "example.123"})
     void should_reject_invalid_domain(String domain) {
-        assertThat(validator.validate(validConfig().domains(List.of(domain)).build())).isNotEmpty();
+        assertThat(validator.validate(validConfig().domains(List.of(domain)).build()))
+                .isNotEmpty();
     }
 
     @Test
     void should_reject_blank_domain_entry() {
-        assertThat(validator.validate(validConfig().domains(Arrays.asList("graviteecustomer.com", "   ")).build())).isNotEmpty();
+        assertThat(validator.validate(validConfig()
+                        .domains(Arrays.asList("graviteecustomer.com", "   "))
+                        .build()))
+                .isNotEmpty();
     }
 
     @Test
     void should_reject_duplicate_domains_case_insensitively() {
-        var config = validConfig().domains(List.of("graviteecustomer.com", "GraviteeCustomer.com")).build();
+        var config = validConfig()
+                .domains(List.of("graviteecustomer.com", "GraviteeCustomer.com"))
+                .build();
         assertThat(validator.validate(config)).anyMatch(v -> v.getMessage().contains("duplicate"));
     }
 
     @Test
     void should_reject_null_domain_entry() {
-        assertThat(validator.validate(validConfig().domains(Arrays.asList("graviteecustomer.com", null)).build())).isNotEmpty();
+        assertThat(validator.validate(validConfig()
+                        .domains(Arrays.asList("graviteecustomer.com", null))
+                        .build()))
+                .isNotEmpty();
     }
 
     @Test
     void should_reject_display_name_with_invalid_inner_address() {
-        assertThat(validator.validate(validConfig().from("Gravitee <not-an-email>").build())).isNotEmpty();
+        assertThat(validator.validate(
+                        validConfig().from("Gravitee <not-an-email>").build()))
+                .isNotEmpty();
     }
 
     @Test
@@ -109,12 +123,16 @@ class BrandedSenderValidationTest {
         // A multi-address value whose trailing "Name <addr>" pair is itself a single valid address must still
         // be rejected: the greedy display-name strip used to accept it, but new InternetAddress(from) rejects
         // the whole string at send time — save must not accept a From that delivery cannot send.
-        assertThat(validator.validate(validConfig().from("alice@example.com, Team <noreply@graviteecustomer.com>").build())).isNotEmpty();
+        assertThat(validator.validate(validConfig()
+                        .from("alice@example.com, Team <noreply@graviteecustomer.com>")
+                        .build()))
+                .isNotEmpty();
     }
 
     @Test
     void should_reject_subject_exceeding_max_length() {
-        assertThat(validator.validate(validConfig().subject("x".repeat(256)).build())).isNotEmpty();
+        assertThat(validator.validate(validConfig().subject("x".repeat(256)).build()))
+                .isNotEmpty();
     }
 
     // --- Request validation of the settings entity must not reach the email block (see EmailFromValidationTest) ---
@@ -122,9 +140,11 @@ class BrandedSenderValidationTest {
     @Test
     void should_not_validate_branded_senders_when_validating_the_settings_entity() {
         var settings = new PortalSettingsEntity();
-        settings.getEmail().setBrandedSenders(List.of(validConfig().from("not-an-email").build()));
+        settings.getEmail()
+                .setBrandedSenders(List.of(validConfig().from("not-an-email").build()));
 
-        assertThat(validator.validate(settings)).noneMatch(v -> v.getPropertyPath().toString().startsWith("email."));
+        assertThat(validator.validate(settings))
+                .noneMatch(v -> v.getPropertyPath().toString().startsWith("email."));
     }
 
     @Test
@@ -132,13 +152,15 @@ class BrandedSenderValidationTest {
         var email = new Email();
         email.setBrandedSenders(List.of(validConfig().from("not-an-email").build()));
 
-        assertThat(validator.validate(email)).anyMatch(v -> v.getPropertyPath().toString().equals("brandedSenders[0].from"));
+        assertThat(validator.validate(email))
+                .anyMatch(v -> v.getPropertyPath().toString().equals("brandedSenders[0].from"));
     }
 
     @Test
     void should_accept_whitespace_domain_normalized_before_cascade() {
         var email = new Email();
-        email.setBrandedSenders(List.of(validConfig().domains(List.of("  GraviteeCustomer.COM  ")).build()));
+        email.setBrandedSenders(List.of(
+                validConfig().domains(List.of("  GraviteeCustomer.COM  ")).build()));
 
         // setBrandedSenders trims + lower-cases at the write boundary, so the @Pattern cascade sees a
         // clean value: surrounding whitespace is normalised, not rejected.

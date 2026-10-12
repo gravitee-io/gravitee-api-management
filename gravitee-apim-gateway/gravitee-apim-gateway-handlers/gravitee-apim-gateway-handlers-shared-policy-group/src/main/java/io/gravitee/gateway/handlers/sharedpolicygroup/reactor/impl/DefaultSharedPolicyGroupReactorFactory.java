@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.handlers.sharedpolicygroup.reactor.impl;
 
-import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
@@ -65,42 +64,36 @@ public class DefaultSharedPolicyGroupReactorFactory implements SharedPolicyGroup
     public SharedPolicyGroupReactor create(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager = policyManager(reactableSharedPolicyGroup);
         DefaultSharedPolicyGroupPolicyChainFactory policyChainFactory = policyChainFactory(
-            reactableSharedPolicyGroup,
-            sharedPolicyGroupPolicyManager,
-            openTelemetryConfiguration
-        );
-        return new DefaultSharedPolicyGroupReactor(reactableSharedPolicyGroup, policyChainFactory, sharedPolicyGroupPolicyManager);
+                reactableSharedPolicyGroup, sharedPolicyGroupPolicyManager, openTelemetryConfiguration);
+        return new DefaultSharedPolicyGroupReactor(
+                reactableSharedPolicyGroup, policyChainFactory, sharedPolicyGroupPolicyManager);
     }
 
     protected DefaultSharedPolicyGroupPolicyChainFactory policyChainFactory(
-        final ReactableSharedPolicyGroup reactableSharedPolicyGroup,
-        final SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager,
-        final OpenTelemetryConfiguration openTelemetryConfiguration
-    ) {
+            final ReactableSharedPolicyGroup reactableSharedPolicyGroup,
+            final SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager,
+            final OpenTelemetryConfiguration openTelemetryConfiguration) {
         return new DefaultSharedPolicyGroupPolicyChainFactory(
-            "shared-policy-group-" + reactableSharedPolicyGroup.getId() + "-" + reactableSharedPolicyGroup.getEnvironmentId(),
-            sharedPolicyGroupPolicyManager,
-            openTelemetryConfiguration.isTracesEnabled()
-        );
+                "shared-policy-group-" + reactableSharedPolicyGroup.getId() + "-"
+                        + reactableSharedPolicyGroup.getEnvironmentId(),
+                sharedPolicyGroupPolicyManager,
+                openTelemetryConfiguration.isTracesEnabled());
     }
 
     protected SharedPolicyGroupPolicyManager policyManager(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-        );
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager = (ConfigurablePluginManager<
-            PolicyPlugin<?>
-        >) applicationContext.getBean(beanNamesForType[0]);
+        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager =
+                (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
 
         return new SharedPolicyGroupPolicyManager(
-            defaultClassLoader,
-            policyFactoryManager,
-            new CachedPolicyConfigurationFactory(),
-            configurablePluginManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            reactableSharedPolicyGroup
-        );
+                defaultClassLoader,
+                policyFactoryManager,
+                new CachedPolicyConfigurationFactory(),
+                configurablePluginManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                reactableSharedPolicyGroup);
     }
 }

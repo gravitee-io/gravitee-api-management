@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

@@ -75,11 +75,11 @@ public class ApiMongoFieldAbsentDefVersionTest extends AbstractManagementReposit
     @BeforeEach
     public void insertFieldAbsentDoc() {
         Document doc = new Document()
-            .append("_id", FIELD_ABSENT_API_ID)
-            .append("environmentId", FIELD_ABSENT_ENV_ID)
-            .append("name", "field-absent v2 api")
-            .append("definition", "{}")
-            .append("visibility", "PRIVATE");
+                .append("_id", FIELD_ABSENT_API_ID)
+                .append("environmentId", FIELD_ABSENT_ENV_ID)
+                .append("name", "field-absent v2 api")
+                .append("definition", "{}")
+                .append("visibility", "PRIVATE");
         // No definitionVersion key at all — this is the legacy-V2 storage shape.
         mongoTemplate.getCollection(apisCollectionName()).insertOne(doc);
     }
@@ -92,14 +92,19 @@ public class ApiMongoFieldAbsentDefVersionTest extends AbstractManagementReposit
     @Test
     public void v2QueryMatchesDocsWithDefinitionVersionFieldAbsent() {
         long fieldAbsentCount = mongoTemplate
-            .getCollection(apisCollectionName())
-            .countDocuments(new Document("_id", FIELD_ABSENT_API_ID).append("definitionVersion", new Document("$exists", false)));
-        assertThat(fieldAbsentCount).as("seeded doc must have definitionVersion truly absent, not BSON-null").isEqualTo(1L);
+                .getCollection(apisCollectionName())
+                .countDocuments(new Document("_id", FIELD_ABSENT_API_ID)
+                        .append("definitionVersion", new Document("$exists", false)));
+        assertThat(fieldAbsentCount)
+                .as("seeded doc must have definitionVersion truly absent, not BSON-null")
+                .isEqualTo(1L);
 
         List<Api> apis = apiRepository.search(
-            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).environmentId(FIELD_ABSENT_ENV_ID).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder()
+                        .definitionVersion(List.of(DefinitionVersion.V2))
+                        .environmentId(FIELD_ABSENT_ENV_ID)
+                        .build(),
+                ApiFieldFilter.allFields());
         assertThat(apis).extracting(Api::getId).containsExactly(FIELD_ABSENT_API_ID);
     }
 }

@@ -57,17 +57,14 @@ public class UserContextLoaderImpl implements UserContextLoader {
      * two agree on what a user may observe.
      */
     private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
-        return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+        return permissionService.hasPermission(
+                executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
     }
 
     private boolean isAdmin() {
-        return SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getAuthorities()
-            .stream()
-            .anyMatch(
-                (Predicate<GrantedAuthority>) grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase(ORGANIZATION_ADMIN)
-            );
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch((Predicate<GrantedAuthority>)
+                        grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase(ORGANIZATION_ADMIN));
     }
 
     @Override
@@ -88,7 +85,8 @@ public class UserContextLoaderImpl implements UserContextLoader {
             apiCriteriaBuilder.ids(userApiIds);
         }
 
-        var apis = ApiMapper.INSTANCE.map(apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.defaultFields()));
+        var apis = ApiMapper.INSTANCE.map(
+                apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.defaultFields()));
         var apiIdsToNames = mapApiIdsToNames(apis);
 
         return context.withApis(apis).withApiNamesById(apiIdsToNames);
@@ -108,7 +106,10 @@ public class UserContextLoaderImpl implements UserContextLoader {
             }
         }
 
-        var criteria = new ApiCriteria.Builder().environmentId(environmentId).ids(Set.of(apiId)).build();
+        var criteria = new ApiCriteria.Builder()
+                .environmentId(environmentId)
+                .ids(Set.of(apiId))
+                .build();
         var apis = ApiMapper.INSTANCE.map(apiRepository.search(criteria, ApiFieldFilter.defaultFields()));
 
         return context.withApis(apis).withApiNamesById(mapApiIdsToNames(apis));

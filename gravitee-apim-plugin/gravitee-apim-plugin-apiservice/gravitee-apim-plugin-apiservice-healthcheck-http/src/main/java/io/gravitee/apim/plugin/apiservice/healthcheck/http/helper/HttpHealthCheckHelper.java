@@ -30,51 +30,51 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 public class HttpHealthCheckHelper {
 
     public static boolean canHandle(final Api api, final String tenant) {
-        return api
-            .getEndpointGroups()
-            .stream()
-            .anyMatch(endpointGroup -> {
-                // Http health check is enabled if enabled on at least one endpoint.
-                return (
-                    (!isNull(endpointGroup.getServices()) && isServiceEnabled(endpointGroup.getServices().getHealthCheck())) ||
-                    (!isNull(endpointGroup.getEndpoints()) &&
-                        endpointGroup
-                            .getEndpoints()
-                            .stream()
-                            .anyMatch(endpoint -> isEnabledAtEndpointLevel(endpoint, tenant)))
-                );
-            });
+        return api.getEndpointGroups().stream().anyMatch(endpointGroup -> {
+            // Http health check is enabled if enabled on at least one endpoint.
+            return ((!isNull(endpointGroup.getServices())
+                            && isServiceEnabled(endpointGroup.getServices().getHealthCheck()))
+                    || (!isNull(endpointGroup.getEndpoints())
+                            && endpointGroup.getEndpoints().stream()
+                                    .anyMatch(endpoint -> isEnabledAtEndpointLevel(endpoint, tenant))));
+        });
     }
 
     public static boolean isServiceEnabled(final ManagedEndpoint endpoint, final String tenant) {
         return (
-            // Health check enabled on the endpoint.
-            isEnabledAtEndpointLevel(endpoint.getDefinition(), tenant) ||
-            // Or health check enabled at group level and not explicitly disable at endpoint level.
-            ((isNull(endpoint.getDefinition().getServices()) ||
-                    endpoint.getDefinition().getServices().getHealthCheck() == null ||
-                    !endpoint.getDefinition().getServices().getHealthCheck().isEnabled()) &&
-                (!isNull(endpoint.getGroup().getDefinition().getServices()) &&
-                    isServiceEnabled(endpoint.getGroup().getDefinition().getServices().getHealthCheck())))
-        );
+        // Health check enabled on the endpoint.
+        isEnabledAtEndpointLevel(endpoint.getDefinition(), tenant)
+                ||
+                // Or health check enabled at group level and not explicitly disable at endpoint level.
+                ((isNull(endpoint.getDefinition().getServices())
+                                || endpoint.getDefinition().getServices().getHealthCheck() == null
+                                || !endpoint.getDefinition()
+                                        .getServices()
+                                        .getHealthCheck()
+                                        .isEnabled())
+                        && (!isNull(endpoint.getGroup().getDefinition().getServices())
+                                && isServiceEnabled(endpoint.getGroup()
+                                        .getDefinition()
+                                        .getServices()
+                                        .getHealthCheck()))));
     }
 
     private static boolean isEnabledAtEndpointLevel(final Endpoint endpoint, final String tenant) {
-        return (
-            !endpoint.isSecondary() &&
-            !isNull(endpoint.getServices()) &&
-            isServiceEnabled(endpoint.getServices().getHealthCheck()) &&
-            isTenantApplicable(endpoint, tenant)
-        );
+        return (!endpoint.isSecondary()
+                && !isNull(endpoint.getServices())
+                && isServiceEnabled(endpoint.getServices().getHealthCheck())
+                && isTenantApplicable(endpoint, tenant));
     }
 
     private static boolean isTenantApplicable(final Endpoint endpoint, final String tenant) {
-        return tenant == null || endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant);
+        return tenant == null
+                || endpoint.getTenants() == null
+                || endpoint.getTenants().isEmpty()
+                || endpoint.getTenants().contains(tenant);
     }
 
     private static boolean isServiceEnabled(final Service healthCheckService) {
-        return (
-            healthCheckService != null && (healthCheckService.isEnabled() && HTTP_HEALTH_CHECK_TYPE.equals(healthCheckService.getType()))
-        );
+        return (healthCheckService != null
+                && (healthCheckService.isEnabled() && HTTP_HEALTH_CHECK_TYPE.equals(healthCheckService.getType())));
     }
 }

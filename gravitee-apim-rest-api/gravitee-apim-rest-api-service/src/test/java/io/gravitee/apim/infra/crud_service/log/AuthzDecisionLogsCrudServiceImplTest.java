@@ -79,7 +79,9 @@ class AuthzDecisionLogsCrudServiceImplTest {
         verify(metricsRepository).searchAuthzDecisionLogs(contextCaptor.capture(), queryCaptor.capture());
 
         SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(contextCaptor.getValue().placeholder()).containsEntry("orgId", "org-1").containsEntry("envId", "env-1");
+            soft.assertThat(contextCaptor.getValue().placeholder())
+                    .containsEntry("orgId", "org-1")
+                    .containsEntry("envId", "env-1");
             soft.assertThat(queryCaptor.getValue().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
             soft.assertThat(queryCaptor.getValue().getFrom()).isEqualTo(1000L);
             soft.assertThat(queryCaptor.getValue().getTo()).isEqualTo(2000L);
@@ -90,53 +92,43 @@ class AuthzDecisionLogsCrudServiceImplTest {
 
     @Test
     void maps_the_carrier_record_onto_the_domain_projection() throws Exception {
-        when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(
-            new LogResponse<>(
-                9L,
-                List.of(
-                    io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.builder()
-                        .eventId("evt-1")
-                        .timestamp(1000L)
-                        .apiId("api-1")
-                        .organizationId("org-1")
-                        .environmentId("env-1")
-                        .gatewayId("gateway-1")
-                        .requestId("req-1")
-                        .status("success")
-                        .caller("pep")
-                        .targetPdpId("pdp-1")
-                        .policyGeneration("7")
-                        .decision("PERMIT")
-                        .outcome("ALLOW")
-                        .enforced("ALLOW")
-                        .indeterminateCause("NOT_APPLICABLE")
-                        .matchedRules(
-                            List.of(
-                                new io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.MatchedRule(
-                                    "pol-1",
-                                    "allow-readers",
-                                    "2026-09-23T10:00:00Z",
-                                    "PERMIT"
-                                )
-                            )
-                        )
-                        .reasons(List.of("Permitted by policy 'allow-readers'"))
-                        .subjectType("User")
-                        .subjectId("alice")
-                        .action("read")
-                        .resourceType("Document")
-                        .resourceId("doc-1")
-                        .batchId("batch-1")
-                        .batchIndex(1)
-                        .batchSize(2)
-                        .durationNanos(4200L)
-                        .errorType("TimeoutException")
-                        .build()
-                )
-            )
-        );
+        when(metricsRepository.searchAuthzDecisionLogs(any(), any()))
+                .thenReturn(new LogResponse<>(
+                        9L,
+                        List.of(io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.builder()
+                                .eventId("evt-1")
+                                .timestamp(1000L)
+                                .apiId("api-1")
+                                .organizationId("org-1")
+                                .environmentId("env-1")
+                                .gatewayId("gateway-1")
+                                .requestId("req-1")
+                                .status("success")
+                                .caller("pep")
+                                .targetPdpId("pdp-1")
+                                .policyGeneration("7")
+                                .decision("PERMIT")
+                                .outcome("ALLOW")
+                                .enforced("ALLOW")
+                                .indeterminateCause("NOT_APPLICABLE")
+                                .matchedRules(List.of(
+                                        new io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.MatchedRule(
+                                                "pol-1", "allow-readers", "2026-09-23T10:00:00Z", "PERMIT")))
+                                .reasons(List.of("Permitted by policy 'allow-readers'"))
+                                .subjectType("User")
+                                .subjectId("alice")
+                                .action("read")
+                                .resourceType("Document")
+                                .resourceId("doc-1")
+                                .batchId("batch-1")
+                                .batchIndex(1)
+                                .batchSize(2)
+                                .durationNanos(4200L)
+                                .errorType("TimeoutException")
+                                .build())));
 
-        var response = service.searchDecisionLogs(CONTEXT, filters(Set.of("api-1"), null, null), new PageableImpl(1, 20));
+        var response =
+                service.searchDecisionLogs(CONTEXT, filters(Set.of("api-1"), null, null), new PageableImpl(1, 20));
 
         assertThat(response.total()).isEqualTo(9L);
         var decision = response.logs().getFirst();
@@ -156,9 +148,9 @@ class AuthzDecisionLogsCrudServiceImplTest {
             soft.assertThat(decision.outcome()).isEqualTo("ALLOW");
             soft.assertThat(decision.enforced()).isEqualTo("ALLOW");
             soft.assertThat(decision.indeterminateCause()).isEqualTo("NOT_APPLICABLE");
-            soft
-                .assertThat(decision.matchedRules())
-                .containsExactly(new AuthzDecisionLog.MatchedRule("pol-1", "allow-readers", "2026-09-23T10:00:00Z", "PERMIT"));
+            soft.assertThat(decision.matchedRules())
+                    .containsExactly(new AuthzDecisionLog.MatchedRule(
+                            "pol-1", "allow-readers", "2026-09-23T10:00:00Z", "PERMIT"));
             soft.assertThat(decision.reasons()).containsExactly("Permitted by policy 'allow-readers'");
             soft.assertThat(decision.subjectType()).isEqualTo("User");
             soft.assertThat(decision.subjectId()).isEqualTo("alice");
@@ -175,11 +167,13 @@ class AuthzDecisionLogsCrudServiceImplTest {
 
     @Test
     void turns_a_repository_failure_into_a_technical_management_exception() throws Exception {
-        when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenThrow(new AnalyticsException("index unavailable"));
+        when(metricsRepository.searchAuthzDecisionLogs(any(), any()))
+                .thenThrow(new AnalyticsException("index unavailable"));
 
-        assertThatThrownBy(() -> service.searchDecisionLogs(CONTEXT, filters(Set.of("api-1"), null, null), new PageableImpl(1, 20)))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining("authz decision logs");
+        assertThatThrownBy(() -> service.searchDecisionLogs(
+                        CONTEXT, filters(Set.of("api-1"), null, null), new PageableImpl(1, 20)))
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining("authz decision logs");
     }
 
     @Test
@@ -187,10 +181,12 @@ class AuthzDecisionLogsCrudServiceImplTest {
         when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0, List.of()));
 
         service.searchDecisionLogs(
-            CONTEXT,
-            AuthzDecisionLogFilters.builder().apiIds(Set.of("api-1")).indeterminateCauses(Set.of("NOT_READY")).build(),
-            new PageableImpl(1, 20)
-        );
+                CONTEXT,
+                AuthzDecisionLogFilters.builder()
+                        .apiIds(Set.of("api-1"))
+                        .indeterminateCauses(Set.of("NOT_READY"))
+                        .build(),
+                new PageableImpl(1, 20));
 
         var captor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
         verify(metricsRepository).searchAuthzDecisionLogs(any(), captor.capture());
@@ -202,10 +198,12 @@ class AuthzDecisionLogsCrudServiceImplTest {
         when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0, List.of()));
 
         service.searchDecisionLogs(
-            CONTEXT,
-            AuthzDecisionLogFilters.builder().apiIds(Set.of("api-1")).errorTypes(Set.of("pdp_unavailable")).build(),
-            new PageableImpl(1, 20)
-        );
+                CONTEXT,
+                AuthzDecisionLogFilters.builder()
+                        .apiIds(Set.of("api-1"))
+                        .errorTypes(Set.of("pdp_unavailable"))
+                        .build(),
+                new PageableImpl(1, 20));
 
         var captor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
         verify(metricsRepository).searchAuthzDecisionLogs(any(), captor.capture());
@@ -217,10 +215,12 @@ class AuthzDecisionLogsCrudServiceImplTest {
         when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0, List.of()));
 
         service.searchDecisionLogs(
-            CONTEXT,
-            AuthzDecisionLogFilters.builder().apiIds(Set.of("api-1")).decisions(Set.of("FORBID")).build(),
-            new PageableImpl(1, 20)
-        );
+                CONTEXT,
+                AuthzDecisionLogFilters.builder()
+                        .apiIds(Set.of("api-1"))
+                        .decisions(Set.of("FORBID"))
+                        .build(),
+                new PageableImpl(1, 20));
 
         var captor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
         verify(metricsRepository).searchAuthzDecisionLogs(any(), captor.capture());
@@ -229,15 +229,12 @@ class AuthzDecisionLogsCrudServiceImplTest {
 
     @Test
     void finds_one_decision_by_event_id_within_the_api() throws Exception {
-        when(metricsRepository.findAuthzDecisionLog(any(), any(), any())).thenReturn(
-            Optional.of(
-                io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.builder()
-                    .eventId("evt-1")
-                    .apiId("api-1")
-                    .decision("PERMIT")
-                    .build()
-            )
-        );
+        when(metricsRepository.findAuthzDecisionLog(any(), any(), any()))
+                .thenReturn(Optional.of(io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.builder()
+                        .eventId("evt-1")
+                        .apiId("api-1")
+                        .decision("PERMIT")
+                        .build()));
 
         var decision = service.findDecisionLog(CONTEXT, "api-1", "evt-1");
 
@@ -247,7 +244,9 @@ class AuthzDecisionLogsCrudServiceImplTest {
 
         var contextCaptor = ArgumentCaptor.forClass(QueryContext.class);
         verify(metricsRepository).findAuthzDecisionLog(contextCaptor.capture(), eq("api-1"), eq("evt-1"));
-        assertThat(contextCaptor.getValue().placeholder()).containsEntry("orgId", "org-1").containsEntry("envId", "env-1");
+        assertThat(contextCaptor.getValue().placeholder())
+                .containsEntry("orgId", "org-1")
+                .containsEntry("envId", "env-1");
     }
 
     @Test
@@ -259,14 +258,19 @@ class AuthzDecisionLogsCrudServiceImplTest {
 
     @Test
     void turns_a_failed_decision_lookup_into_a_technical_management_exception() throws Exception {
-        when(metricsRepository.findAuthzDecisionLog(any(), any(), any())).thenThrow(new AnalyticsException("index unavailable"));
+        when(metricsRepository.findAuthzDecisionLog(any(), any(), any()))
+                .thenThrow(new AnalyticsException("index unavailable"));
 
         assertThatThrownBy(() -> service.findDecisionLog(CONTEXT, "api-1", "evt-1"))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining("evt-1");
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining("evt-1");
     }
 
     private static AuthzDecisionLogFilters filters(Set<String> apiIds, Long from, Long to) {
-        return AuthzDecisionLogFilters.builder().apiIds(apiIds).from(from).to(to).build();
+        return AuthzDecisionLogFilters.builder()
+                .apiIds(apiIds)
+                .from(from)
+                .to(to)
+                .build();
     }
 }

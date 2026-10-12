@@ -83,7 +83,8 @@ public class ConditionalExecutablePolicyTest {
 
         Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
+        final ConditionalExecutablePolicy policy =
+                new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         policy.execute(policyChain, executionContext);
         verify(policyChain, never()).doNext(any(), any());
     }
@@ -94,7 +95,8 @@ public class ConditionalExecutablePolicyTest {
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(false);
         Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
+        final ConditionalExecutablePolicy policy =
+                new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         policy.execute(policyChain, executionContext);
         verify(policyChain, times(1)).doNext(any(), any());
     }
@@ -106,19 +108,22 @@ public class ConditionalExecutablePolicyTest {
             when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
             Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
 
-            final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
+            final ConditionalExecutablePolicy policy =
+                    new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
             policy.execute(policyChain, executionContext);
         });
     }
 
     @Test
     public void shouldStreamConditionalPolicyConditionOk() throws PolicyException, NoSuchMethodException {
-        method = DummyStreamablePolicy.class.getMethod("onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
+        method = DummyStreamablePolicy.class.getMethod(
+                "onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(true);
         Policy delegatePolicy = new ExecutablePolicy("dummy", fakeStreamPolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
+        final ConditionalExecutablePolicy policy =
+                new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
 
         // needed to avoid NPE in TransformableResponseStream
@@ -132,26 +137,32 @@ public class ConditionalExecutablePolicyTest {
     }
 
     @Test
-    public void shouldNotStreamConditionalPolicyConditionEvaluatedToFalse() throws PolicyException, NoSuchMethodException {
-        method = DummyStreamablePolicy.class.getMethod("onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
+    public void shouldNotStreamConditionalPolicyConditionEvaluatedToFalse()
+            throws PolicyException, NoSuchMethodException {
+        method = DummyStreamablePolicy.class.getMethod(
+                "onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenReturn(false);
         Policy delegatePolicy = new ExecutablePolicy("dummy", fakeStreamPolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
+        final ConditionalExecutablePolicy policy =
+                new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
         verify(executionContext, never()).setAttribute("stream", "On Response Content Dummy Streamable Policy");
     }
 
     @Test
-    public void shouldNotStreamConditionalPolicyExpressionEvaluationException() throws PolicyException, NoSuchMethodException {
-        method = DummyStreamablePolicy.class.getMethod("onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
+    public void shouldNotStreamConditionalPolicyExpressionEvaluationException()
+            throws PolicyException, NoSuchMethodException {
+        method = DummyStreamablePolicy.class.getMethod(
+                "onResponseContent", Response.class, ExecutionContext.class, PolicyChain.class);
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
         Policy delegatePolicy = new ExecutablePolicy("dummy", fakeStreamPolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
+        final ConditionalExecutablePolicy policy =
+                new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
         final ReadWriteStream<Buffer> conditionedStream = policy.stream(policyChain, executionContext);
         conditionedStream.write(Buffer.buffer("Test")).end();
         verify(policyChain, times(1)).streamFailWith(any());

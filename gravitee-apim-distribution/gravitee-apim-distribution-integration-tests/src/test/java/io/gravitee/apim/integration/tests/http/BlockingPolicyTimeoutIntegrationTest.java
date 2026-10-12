@@ -68,7 +68,7 @@ class BlockingPolicyTimeoutIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/http/api.json", "/apis/http/api-blocking.json" })
+    @DeployApi({"/apis/http/api.json", "/apis/http/api-blocking.json"})
     class WithPolicyTimeout extends AbstractGatewayTest {
 
         @Override
@@ -93,21 +93,21 @@ class BlockingPolicyTimeoutIntegrationTest {
             long start = System.currentTimeMillis();
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test-blocking")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(TEST_AWAIT_SECONDS, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    // The Vert.x request timer fires (504) because the event loop is free.
-                    // Pre-fix: the blocking policy occupied the event loop — timer could never fire.
-                    assertThat(response.statusCode()).isGreaterThanOrEqualTo(500);
-                    assertThat(System.currentTimeMillis() - start)
-                        .as("response must arrive close to HTTP_REQUEST_TIMEOUT_MS, not 30 s")
-                        .isLessThan(HTTP_REQUEST_TIMEOUT_MS * 3);
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test-blocking")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(TEST_AWAIT_SECONDS, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        // The Vert.x request timer fires (504) because the event loop is free.
+                        // Pre-fix: the blocking policy occupied the event loop — timer could never fire.
+                        assertThat(response.statusCode()).isGreaterThanOrEqualTo(500);
+                        assertThat(System.currentTimeMillis() - start)
+                                .as("response must arrive close to HTTP_REQUEST_TIMEOUT_MS, not 30 s")
+                                .isLessThan(HTTP_REQUEST_TIMEOUT_MS * 3);
+                        return true;
+                    })
+                    .assertNoErrors();
         }
 
         @Test
@@ -117,28 +117,28 @@ class BlockingPolicyTimeoutIntegrationTest {
 
             // Fire the blocking request but do not wait for it — it runs in a worker thread (PEN-88 fix).
             httpClient
-                .rxRequest(HttpMethod.GET, "/test-blocking")
-                .flatMap(HttpClientRequest::rxSend)
-                .subscribe(r -> {}, err -> {});
+                    .rxRequest(HttpMethod.GET, "/test-blocking")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .subscribe(r -> {}, err -> {});
 
             long start = System.currentTimeMillis();
 
             // A normal request to a different API must still be served quickly.
             // Before the fix, the blocking policy ran on the event loop and would have starved it.
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .awaitDone(TEST_AWAIT_SECONDS, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(System.currentTimeMillis() - start)
-                        .as("healthy request must not be delayed by the blocking policy worker thread")
-                        .isLessThan(2_000L);
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .awaitDone(TEST_AWAIT_SECONDS, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(System.currentTimeMillis() - start)
+                                .as("healthy request must not be delayed by the blocking policy worker thread")
+                                .isLessThan(2_000L);
+                        return true;
+                    })
+                    .assertNoErrors();
         }
     }
 }

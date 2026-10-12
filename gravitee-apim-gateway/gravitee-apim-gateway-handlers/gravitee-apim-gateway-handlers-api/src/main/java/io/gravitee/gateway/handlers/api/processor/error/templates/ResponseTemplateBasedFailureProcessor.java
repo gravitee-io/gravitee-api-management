@@ -68,12 +68,12 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
     }
 
     private void handleAcceptHeader(
-        final ExecutionContext context,
-        final Map<String, ResponseTemplate> templates,
-        final ProcessorFailure failure
-    ) {
+            final ExecutionContext context,
+            final Map<String, ResponseTemplate> templates,
+            final ProcessorFailure failure) {
         // Extract the content-type from the request
-        final List<MediaType> acceptMediaTypes = MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
+        final List<MediaType> acceptMediaTypes =
+                MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
 
         // If no accept header, check if there is a template for type matching '*/*'
         if (acceptMediaTypes == null || acceptMediaTypes.isEmpty()) {
@@ -97,10 +97,9 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
     }
 
     private void handleWildcardTemplate(
-        final ExecutionContext context,
-        final Map<String, ResponseTemplate> templates,
-        final ProcessorFailure failure
-    ) {
+            final ExecutionContext context,
+            final Map<String, ResponseTemplate> templates,
+            final ProcessorFailure failure) {
         ResponseTemplate template = templates.get(WILDCARD_CONTENT_TYPE);
         if (template == null) {
             // No template associated to the error key, process the error message as usual
@@ -110,27 +109,38 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
         }
     }
 
-    private void handleTemplate(final ExecutionContext context, final ResponseTemplate template, final ProcessorFailure failure) {
+    private void handleTemplate(
+            final ExecutionContext context, final ResponseTemplate template, final ProcessorFailure failure) {
         context.response().status(template.getStatusCode());
-        context.response().reason(HttpResponseStatus.valueOf(template.getStatusCode()).reasonPhrase());
+        context.response()
+                .reason(HttpResponseStatus.valueOf(template.getStatusCode()).reasonPhrase());
         context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
         if (template.isPropagateErrorKeyToLogs()) {
             context.request().metrics().setErrorKey(failure.key());
         }
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
-            context.response().headers().set(HttpHeaderNames.CONTENT_TYPE, context.request().headers().getFirst(HttpHeaderNames.ACCEPT));
+            context.response()
+                    .headers()
+                    .set(
+                            HttpHeaderNames.CONTENT_TYPE,
+                            context.request().headers().getFirst(HttpHeaderNames.ACCEPT));
         }
 
         if (template.getHeaders() != null) {
-            template.getHeaders().forEach((name, value) -> context.response().headers().set(name, value));
+            template.getHeaders()
+                    .forEach((name, value) -> context.response().headers().set(name, value));
         }
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
             // Prepare templating context
-            context.getTemplateEngine().getTemplateContext().setVariable("error", new EvaluableProcessorFailure(failure));
+            context.getTemplateEngine()
+                    .getTemplateContext()
+                    .setVariable("error", new EvaluableProcessorFailure(failure));
 
-            context.getTemplateEngine().getTemplateContext().setVariable("request", new EvaluableRequest(context.request()));
+            context.getTemplateEngine()
+                    .getTemplateContext()
+                    .setVariable("request", new EvaluableRequest(context.request()));
 
             if (failure.parameters() != null && !failure.parameters().isEmpty()) {
                 context.getTemplateEngine().getTemplateContext().setVariable("parameters", failure.parameters());

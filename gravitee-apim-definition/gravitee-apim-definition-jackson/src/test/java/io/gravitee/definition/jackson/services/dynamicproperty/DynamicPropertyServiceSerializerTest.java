@@ -33,43 +33,52 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withDynamicProperty() throws Exception {
-        String oldDefinition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json";
+        String oldDefinition =
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json";
         String expectedDefinition =
-            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
         Api api = load(oldDefinition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
     }
 
     @Test
     public void definition_withDynamicProperty_v2() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v2.json";
+        String definition =
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v2.json";
         String expectedDefinition =
-            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
     }
 
     @Test
     public void definition_withDynamicProperty_v3() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v3.json";
+        String definition =
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v3.json";
         String expectedDefinition =
-            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
     }
 }

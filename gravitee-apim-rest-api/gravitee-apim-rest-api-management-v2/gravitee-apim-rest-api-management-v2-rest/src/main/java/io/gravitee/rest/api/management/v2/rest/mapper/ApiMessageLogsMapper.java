@@ -31,7 +31,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface ApiMessageLogsMapper {
     /** MapStruct mapper instance. */
     ApiMessageLogsMapper INSTANCE = Mappers.getMapper(ApiMessageLogsMapper.class);
@@ -95,9 +95,9 @@ public interface ApiMessageLogsMapper {
             return null;
         }
         return Arrays.stream(value.split(","))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .toList();
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 
     /**
@@ -151,13 +151,13 @@ public interface ApiMessageLogsMapper {
             return null;
         }
 
-        return new String[] { fieldName, valuesStr };
+        return new String[] {fieldName, valuesStr};
     }
 
     private List<String> parseValues(String valuesStr) {
         return Arrays.stream(valuesStr.split(","))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .toList();
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 }

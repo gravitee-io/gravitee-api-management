@@ -36,9 +36,8 @@ class PortalListingAdapterTest {
     @Test
     void should_round_trip_through_repository_and_back() {
         var apis = List.of(
-            new PortalListingApiEntry("pets-api", "/projects/alpha", 1),
-            new PortalListingApiEntry("shop-api", "/projects/beta", 2)
-        );
+                new PortalListingApiEntry("pets-api", "/projects/alpha", 1),
+                new PortalListingApiEntry("shop-api", "/projects/beta", 2));
         var listing = PortalListing.of(LISTING_ID, "environment-id", "organization-id", PORTAL_ID, apis);
 
         var repo = PortalListingAdapter.INSTANCE.toRepository(listing);
@@ -56,27 +55,27 @@ class PortalListingAdapterTest {
     @Test
     void should_serialize_apis_as_json_array() {
         var listing = PortalListing.of(
-            LISTING_ID,
-            "environment-id",
-            "organization-id",
-            PORTAL_ID,
-            List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1))
-        );
+                LISTING_ID,
+                "environment-id",
+                "organization-id",
+                PORTAL_ID,
+                List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1)));
 
         var repo = PortalListingAdapter.INSTANCE.toRepository(listing);
 
-        assertThat(repo.getApis()).isEqualTo("[{\"apiHrid\":\"pets-api\",\"location\":\"/projects/alpha\",\"order\":1}]");
+        assertThat(repo.getApis())
+                .isEqualTo("[{\"apiHrid\":\"pets-api\",\"location\":\"/projects/alpha\",\"order\":1}]");
     }
 
     @Test
     void should_return_empty_list_when_apis_field_is_null() {
         var repo = io.gravitee.repository.management.model.PortalListing.builder()
-            .id(LISTING_ID.toString())
-            .environmentId("environment-id")
-            .organizationId("organization-id")
-            .portalId(PORTAL_ID.toString())
-            .apis(null)
-            .build();
+                .id(LISTING_ID.toString())
+                .environmentId("environment-id")
+                .organizationId("organization-id")
+                .portalId(PORTAL_ID.toString())
+                .apis(null)
+                .build();
 
         var entity = PortalListingAdapter.INSTANCE.toEntity(repo);
 
@@ -86,12 +85,12 @@ class PortalListingAdapterTest {
     @Test
     void should_return_empty_list_when_apis_field_is_blank() {
         var repo = io.gravitee.repository.management.model.PortalListing.builder()
-            .id(LISTING_ID.toString())
-            .environmentId("environment-id")
-            .organizationId("organization-id")
-            .portalId(PORTAL_ID.toString())
-            .apis("")
-            .build();
+                .id(LISTING_ID.toString())
+                .environmentId("environment-id")
+                .organizationId("organization-id")
+                .portalId(PORTAL_ID.toString())
+                .apis("")
+                .build();
 
         var entity = PortalListingAdapter.INSTANCE.toEntity(repo);
 

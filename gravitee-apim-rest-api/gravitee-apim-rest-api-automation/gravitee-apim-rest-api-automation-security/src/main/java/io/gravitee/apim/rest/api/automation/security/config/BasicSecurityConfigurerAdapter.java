@@ -29,7 +29,6 @@ import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
-import io.gravitee.rest.api.security.config.SecureHeadersConfigurer;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
@@ -140,12 +139,11 @@ public class BasicSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         return new GraviteeUrlBasedCorsConfigurationSource(
-            environment,
-            parameterService,
-            installationAccessQueryService,
-            eventManager,
-            ParameterReferenceType.ORGANIZATION
-        );
+                environment,
+                parameterService,
+                installationAccessQueryService,
+                eventManager,
+                ParameterReferenceType.ORGANIZATION);
     }
 
     /*
@@ -160,7 +158,7 @@ public class BasicSecurityConfigurerAdapter {
             throw new IllegalStateException("JWT secret is mandatory");
         }
 
-        //Warning if the secret is still the default one
+        // Warning if the secret is still the default one
         if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
             log.warn("");
             log.warn("##############################################################");
@@ -183,14 +181,13 @@ public class BasicSecurityConfigurerAdapter {
         csrf(http, environment, cookieCsrfSignedTokenRepository());
 
         http.addFilterBefore(
-            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
-            BasicAuthenticationFilter.class
-        );
+                new TokenAuthenticationFilter(
+                        jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
+                BasicAuthenticationFilter.class);
         // http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
         http.addFilterBefore(
-            new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
-            CsrfFilter.class
-        );
+                new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
+                CsrfFilter.class);
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
         return http.build();
@@ -203,11 +200,10 @@ public class BasicSecurityConfigurerAdapter {
         log.info("Management API BasicSecurity Config");
         log.info("Loading authentication identity providers for Basic authentication");
 
-        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers = authenticationProviderManager
-            .getIdentityProviders()
-            .stream()
-            .filter(authenticationProvider -> !authenticationProvider.external())
-            .collect(Collectors.toList());
+        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers =
+                authenticationProviderManager.getIdentityProviders().stream()
+                        .filter(authenticationProvider -> !authenticationProvider.external())
+                        .collect(Collectors.toList());
 
         for (io.gravitee.rest.api.security.authentication.AuthenticationProvider provider : providers) {
             log.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
@@ -217,17 +213,16 @@ public class BasicSecurityConfigurerAdapter {
             for (IdentityProvider identityProvider : identityProviders) {
                 if (identityProvider.type().equalsIgnoreCase(provider.type())) {
                     AuthenticationProvider authenticationProviderPlugin = identityProviderManager.loadIdentityProvider(
-                        identityProvider.type(),
-                        provider.configuration()
-                    );
+                            identityProvider.type(), provider.configuration());
 
                     if (authenticationProviderPlugin != null) {
                         Object authenticationProvider = authenticationProviderPlugin.configure();
 
-                        if (authenticationProvider instanceof org.springframework.security.authentication.AuthenticationProvider) {
+                        if (authenticationProvider
+                                instanceof org.springframework.security.authentication.AuthenticationProvider) {
                             auth.authenticationProvider(
-                                (org.springframework.security.authentication.AuthenticationProvider) authenticationProvider
-                            );
+                                    (org.springframework.security.authentication.AuthenticationProvider)
+                                            authenticationProvider);
                         } else if (authenticationProvider instanceof SecurityConfigurer) {
                             auth.apply((SecurityConfigurer) authenticationProvider);
                         }
@@ -245,35 +240,36 @@ public class BasicSecurityConfigurerAdapter {
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
-        return security
-            .httpBasic()
-            .authenticationDetailsSource(authenticationDetailsSource())
-            .realmName("Gravitee.io Management API")
-            .and();
+        return security.httpBasic()
+                .authenticationDetailsSource(authenticationDetailsSource())
+                .realmName("Gravitee.io Management API")
+                .and();
     }
 
     private HttpSecurity session(HttpSecurity security) throws Exception {
-        return security.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
+        return security.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and();
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
         String uriOrgPrefix = "/organizations/**";
         String uriPrefix = uriOrgPrefix + "/environments/**";
 
-        return security
-            .authorizeHttpRequests()
-            .requestMatchers(HttpMethod.GET, "/")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, "/open-api.yaml")
-            .permitAll()
-            .requestMatchers(HttpMethod.OPTIONS, "**")
-            .permitAll()
-            .anyRequest()
-            .authenticated()
-            .and();
+        return security.authorizeHttpRequests()
+                .requestMatchers(HttpMethod.GET, "/")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/open-api.yaml")
+                .permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "**")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+                .and();
     }
 
-    private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
+    private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails>
+            authenticationDetailsSource() {
         return GraviteeAuthenticationDetails::new;
     }
 }

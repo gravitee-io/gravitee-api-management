@@ -39,14 +39,15 @@ public class ApiQualityMetricFunctionalDocumentation implements ApiQualityMetric
 
     @Override
     public boolean isValid(ExecutionContext executionContext, ApiEntity api) {
-        return (
-            pageService
-                .search(
-                    executionContext.getEnvironmentId(),
-                    new PageQuery.Builder().api(api.getId()).published(true).type(PageType.MARKDOWN).build()
-                )
-                .size() >
-            0L
-        );
+        return (pageService
+                        .search(
+                                executionContext.getEnvironmentId(),
+                                new PageQuery.Builder()
+                                        .api(api.getId())
+                                        .published(true)
+                                        .type(PageType.MARKDOWN)
+                                        .build())
+                        .size()
+                > 0L);
     }
 }

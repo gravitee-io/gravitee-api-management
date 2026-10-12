@@ -31,10 +31,10 @@ public class EntrypointConnectorPluginConfiguration {
 
     @Bean
     public DefaultEntrypointConnectorPluginManager entrypointPluginManager(
-        final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory,
-        final PluginConfigurationHelper pluginConfigurationHelper
-    ) {
-        return new DefaultEntrypointConnectorPluginManager(entrypointConnectorClassLoaderFactory, pluginConfigurationHelper);
+            final EntrypointConnectorClassLoaderFactory entrypointConnectorClassLoaderFactory,
+            final PluginConfigurationHelper pluginConfigurationHelper) {
+        return new DefaultEntrypointConnectorPluginManager(
+                entrypointConnectorClassLoaderFactory, pluginConfigurationHelper);
     }
 
     @Bean

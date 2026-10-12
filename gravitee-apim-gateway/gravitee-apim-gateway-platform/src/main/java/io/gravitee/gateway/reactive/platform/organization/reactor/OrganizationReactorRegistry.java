@@ -43,16 +43,17 @@ public class OrganizationReactorRegistry {
         try {
             OrganizationReactor organizationReactor = organizationReactorFactory.create(reactableOrganization);
             organizationReactor.start();
-            OrganizationReactor previousOrganizationReactor = registry.put(organizationReactor.id(), organizationReactor);
+            OrganizationReactor previousOrganizationReactor =
+                    registry.put(organizationReactor.id(), organizationReactor);
             if (previousOrganizationReactor != null) {
                 log.debug(
-                    "The ReactableOrganization was already deployed; stopping previous OrganizationReactor for organization: {}",
-                    reactableOrganization.getId()
-                );
+                        "The ReactableOrganization was already deployed; stopping previous OrganizationReactor for organization: {}",
+                        reactableOrganization.getId());
                 previousOrganizationReactor.stop();
             }
         } catch (Exception ex) {
-            log.error("Unable to create and start the new organization '{}' reactor", reactableOrganization.getId(), ex);
+            log.error(
+                    "Unable to create and start the new organization '{}' reactor", reactableOrganization.getId(), ex);
         }
     }
 

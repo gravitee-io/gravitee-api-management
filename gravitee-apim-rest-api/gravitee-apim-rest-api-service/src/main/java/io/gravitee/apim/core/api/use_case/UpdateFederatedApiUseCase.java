@@ -38,20 +38,13 @@ public class UpdateFederatedApiUseCase {
         var updateApi = input.apiToUpdate;
         var auditInfo = input.auditInfo;
 
-        PrimaryOwnerEntity primaryOwnerEntity = apiPrimaryOwnerDomainService.getApiPrimaryOwner(
-            auditInfo.organizationId(),
-            updateApi.getId()
-        );
+        PrimaryOwnerEntity primaryOwnerEntity =
+                apiPrimaryOwnerDomainService.getApiPrimaryOwner(auditInfo.organizationId(), updateApi.getId());
 
         var updating = update(input.apiToUpdate);
 
         var updated = apiUpdateFederatedApiDomainService.update(
-            input.apiToUpdate.getId(),
-            updating,
-            auditInfo,
-            primaryOwnerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                input.apiToUpdate.getId(), updating, auditInfo, primaryOwnerEntity, oneShotIndexation(auditInfo));
 
         return new Output(updated, primaryOwnerEntity);
     }
@@ -62,9 +55,7 @@ public class UpdateFederatedApiUseCase {
     public record Output(Api updatedApi, PrimaryOwnerEntity primaryOwnerEntity) {}
 
     static UnaryOperator<Api> update(Api newOne) {
-        return currentApi ->
-            currentApi
-                .toBuilder()
+        return currentApi -> currentApi.toBuilder()
                 .name(newOne.getName())
                 .description(newOne.getDescription())
                 .version(newOne.getVersion())

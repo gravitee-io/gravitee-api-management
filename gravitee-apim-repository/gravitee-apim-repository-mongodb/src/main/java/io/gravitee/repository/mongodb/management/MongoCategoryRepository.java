@@ -58,10 +58,9 @@ public class MongoCategoryRepository implements CategoryRepository {
         log.debug("Find by environment ID [{}] and ID in [{}]", environmentId, ids);
         try {
             Set<CategoryMongo> categories = internalCategoryRepo.findByEnvironmentIdAndIdIn(environmentId, ids);
-            return categories
-                .stream()
-                .map(categoryMongo -> mapper.map(categoryMongo))
-                .collect(Collectors.toSet());
+            return categories.stream()
+                    .map(categoryMongo -> mapper.map(categoryMongo))
+                    .collect(Collectors.toSet());
         } catch (Exception e) {
             throw new TechnicalException("An error occurred when getting categories by ids", e);
         }
@@ -71,7 +70,8 @@ public class MongoCategoryRepository implements CategoryRepository {
     public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
         log.debug("Find category by key [{}, {}]", key, environment);
 
-        final CategoryMongo category = internalCategoryRepo.findByKeyAndEnvironment(key, environment).orElse(null);
+        final CategoryMongo category =
+                internalCategoryRepo.findByKeyAndEnvironment(key, environment).orElse(null);
 
         log.debug("Find category by key [{}, {}] - Done", key, environment);
         return Optional.ofNullable(mapper.map(category));
@@ -82,10 +82,9 @@ public class MongoCategoryRepository implements CategoryRepository {
         log.debug("Find categories by page [{}]", page);
 
         final List<CategoryMongo> categories = internalCategoryRepo.findByPage(page);
-        return categories
-            .stream()
-            .map(categoryMongo -> mapper.map(categoryMongo))
-            .collect(Collectors.toSet());
+        return categories.stream()
+                .map(categoryMongo -> mapper.map(categoryMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -108,7 +107,8 @@ public class MongoCategoryRepository implements CategoryRepository {
             throw new IllegalStateException("Category to update must have a name");
         }
 
-        final CategoryMongo categoryMongo = internalCategoryRepo.findById(category.getId()).orElse(null);
+        final CategoryMongo categoryMongo =
+                internalCategoryRepo.findById(category.getId()).orElse(null);
 
         if (categoryMongo == null) {
             throw new IllegalStateException(String.format("No category found with name [%s]", category.getId()));
@@ -136,30 +136,26 @@ public class MongoCategoryRepository implements CategoryRepository {
     @Override
     public Set<Category> findAll() throws TechnicalException {
         final List<CategoryMongo> categories = internalCategoryRepo.findAll();
-        return categories
-            .stream()
-            .map(categoryMongo -> mapper.map(categoryMongo))
-            .collect(Collectors.toSet());
+        return categories.stream()
+                .map(categoryMongo -> mapper.map(categoryMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException {
         final List<CategoryMongo> categories = internalCategoryRepo.findByEnvironmentId(environmentId);
-        return categories
-            .stream()
-            .map(categoryMongo -> mapper.map(categoryMongo))
-            .collect(Collectors.toSet());
+        return categories.stream()
+                .map(categoryMongo -> mapper.map(categoryMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete category by environmentId [{}]", environmentId);
         try {
-            final List<String> categories = internalCategoryRepo
-                .deleteByEnvironmentId(environmentId)
-                .stream()
-                .map(CategoryMongo::getId)
-                .toList();
+            final List<String> categories = internalCategoryRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(CategoryMongo::getId)
+                    .toList();
 
             log.debug("Delete category by environmentId [{}] - Done", environmentId);
             return categories;

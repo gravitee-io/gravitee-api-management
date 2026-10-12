@@ -38,16 +38,18 @@ public class TrustStoreMigration {
     }
 
     private static io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore convertJks(JKSTrustStore v2Jks) {
-        return new io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore(v2Jks.getPath(), v2Jks.getContent(), v2Jks.getPassword(), null);
+        return new io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore(
+                v2Jks.getPath(), v2Jks.getContent(), v2Jks.getPassword(), null);
     }
 
     private static io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore convertPem(PEMTrustStore v2Pem) {
         return new io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore(v2Pem.getPath(), v2Pem.getContent());
     }
 
-    private static io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore convertPkcs12(PKCS12TrustStore v2Pkcs12) {
+    private static io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore convertPkcs12(
+            PKCS12TrustStore v2Pkcs12) {
         io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore pKCS12TrustStore =
-            new io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore();
+                new io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore();
         pKCS12TrustStore.setPath(v2Pkcs12.getPath());
         pKCS12TrustStore.setContent(v2Pkcs12.getContent());
         pKCS12TrustStore.setPassword(v2Pkcs12.getPassword());

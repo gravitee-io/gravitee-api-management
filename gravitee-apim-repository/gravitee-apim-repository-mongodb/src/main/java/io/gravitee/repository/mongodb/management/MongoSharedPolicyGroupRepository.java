@@ -51,7 +51,8 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
     public Optional<SharedPolicyGroup> findById(String s) throws TechnicalException {
         log.debug("Find shared policy group by ID [{}]", s);
 
-        final SharedPolicyGroupMongo sharedPolicyGroupMongo = internalSharedPolicyGroupMongoRepo.findById(s).orElse(null);
+        final SharedPolicyGroupMongo sharedPolicyGroupMongo =
+                internalSharedPolicyGroupMongoRepo.findById(s).orElse(null);
 
         log.debug("Find shared policy group by ID [{}] - Done", sharedPolicyGroupMongo);
 
@@ -78,7 +79,8 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
             throw new IllegalStateException("Shared policy group to update must have an id");
         }
 
-        SharedPolicyGroupMongo sharedPolicyGroupMongo = internalSharedPolicyGroupMongoRepo.findById(item.getId()).orElse(null);
+        SharedPolicyGroupMongo sharedPolicyGroupMongo =
+                internalSharedPolicyGroupMongoRepo.findById(item.getId()).orElse(null);
 
         if (sharedPolicyGroupMongo == null) {
             throw new IllegalStateException(String.format("No shared policy group found with id [%s]", item.getId()));
@@ -108,21 +110,22 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
 
     @Override
     public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+            throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
         log.debug("MongoSharedPolicyGroupRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
-            sortable = sortable == null ? new SortableBuilder().field("created_at").setAsc(true).build() : sortable;
+            sortable = sortable == null
+                    ? new SortableBuilder().field("created_at").setAsc(true).build()
+                    : sortable;
             final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
             final var sortField = FieldUtils.toCamelCase(sortable.field());
 
-            return this.internalSharedPolicyGroupMongoRepo.search(
-                criteria,
-                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
-            ).map(this::mapSharedPolicyGroup);
+            return this.internalSharedPolicyGroupMongoRepo
+                    .search(criteria, PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField))
+                    .map(this::mapSharedPolicyGroup);
         } catch (Exception e) {
             log.error("An error occurred when searching for shared policy groups", e);
             throw new TechnicalException("An error occurred when searching for shared policy groups", e);
@@ -130,20 +133,26 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException {
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId)
+            throws TechnicalException {
         log.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
 
-        var res = internalSharedPolicyGroupMongoRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapSharedPolicyGroup);
+        var res = internalSharedPolicyGroupMongoRepo
+                .findByEnvironmentIdAndCrossId(environmentId, crossId)
+                .map(this::mapSharedPolicyGroup);
 
         log.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
         return res;
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid)
+            throws TechnicalException {
         log.debug("Find shared policy group by environment ID [{}] and HRID [{}]", environmentId, hrid);
 
-        var res = internalSharedPolicyGroupMongoRepo.findByEnvironmentIdAndHRID(environmentId, hrid).map(this::mapSharedPolicyGroup);
+        var res = internalSharedPolicyGroupMongoRepo
+                .findByEnvironmentIdAndHRID(environmentId, hrid)
+                .map(this::mapSharedPolicyGroup);
 
         log.debug("Find shared policy group by environment ID [{}] and HRID [{}] - Done", environmentId, hrid);
         return res;
@@ -154,11 +163,9 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
         log.debug("Delete shared policy group by environmentId [{}]", environmentId);
 
         try {
-            final var res = internalSharedPolicyGroupMongoRepo
-                .deleteByEnvironmentId(environmentId)
-                .stream()
-                .map(SharedPolicyGroupMongo::getId)
-                .toList();
+            final var res = internalSharedPolicyGroupMongoRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(SharedPolicyGroupMongo::getId)
+                    .toList();
 
             log.debug("Delete shared policy group by environmentId [{}] - Done", environmentId);
             return res;

@@ -91,14 +91,13 @@ public class PrimaryOwnerServiceImplTest {
     @BeforeEach
     public void setUp() {
         this.primaryOwnerService = new PrimaryOwnerServiceImpl(
-            userService,
-            membershipService,
-            groupService,
-            parameterService,
-            roleService,
-            primaryOwnerDomainService,
-            null
-        );
+                userService,
+                membershipService,
+                groupService,
+                parameterService,
+                roleService,
+                primaryOwnerDomainService,
+                null);
     }
 
     @Test
@@ -131,14 +130,16 @@ public class PrimaryOwnerServiceImplTest {
         poMember3.setId(group.getId());
         poMember3.setReferenceId("api3");
         poMember3.setType(MembershipMemberType.GROUP);
-        when(
-            membershipService.getMembersByReferencesAndRole(EXECUTION_CONTEXT, MembershipReferenceType.API, apiIds, "API_PRIMARY_OWNER")
-        ).thenReturn(new LinkedHashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
+        when(membershipService.getMembersByReferencesAndRole(
+                        EXECUTION_CONTEXT, MembershipReferenceType.API, apiIds, "API_PRIMARY_OWNER"))
+                .thenReturn(new LinkedHashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
 
-        when(
-            userService.findByIds(eq(EXECUTION_CONTEXT), argThat(argument -> argument.containsAll(Set.of(admin.getId(), user.getId()))))
-        ).thenReturn(new LinkedHashSet<>(List.of(admin, user)));
-        when(groupService.findByIds(new LinkedHashSet<>(List.of(group.getId())))).thenReturn(new LinkedHashSet<>(List.of(group)));
+        when(userService.findByIds(
+                        eq(EXECUTION_CONTEXT),
+                        argThat(argument -> argument.containsAll(Set.of(admin.getId(), user.getId())))))
+                .thenReturn(new LinkedHashSet<>(List.of(admin, user)));
+        when(groupService.findByIds(new LinkedHashSet<>(List.of(group.getId()))))
+                .thenReturn(new LinkedHashSet<>(List.of(group)));
 
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(EXECUTION_CONTEXT, apiIds);
         assertNotNull(primaryOwners);
@@ -149,10 +150,11 @@ public class PrimaryOwnerServiceImplTest {
     public void shouldFailIfPrimaryOwnerIsAGroupWithNoPrimaryOwnerMember() {
         assertThrows(NonPoGroupException.class, () -> {
             PrimaryOwnerEntity currentPoGroup = primaryOwner("GROUP");
-            when(groupService.findById(EXECUTION_CONTEXT, currentPoGroup.getId())).thenReturn(group());
-            when(this.parameterService.find(EXECUTION_CONTEXT, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn(
-                ApiPrimaryOwnerMode.GROUP.name()
-            );
+            when(groupService.findById(EXECUTION_CONTEXT, currentPoGroup.getId()))
+                    .thenReturn(group());
+            when(this.parameterService.find(
+                            EXECUTION_CONTEXT, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(ApiPrimaryOwnerMode.GROUP.name());
             primaryOwnerService.getPrimaryOwner(EXECUTION_CONTEXT, "admin", currentPoGroup);
         });
     }

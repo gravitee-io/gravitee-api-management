@@ -33,7 +33,8 @@ public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
     @Override
     public ReactableApi<Api> toReactable(Api definition, String environmentId) {
-        final io.gravitee.gateway.reactive.handlers.api.v4.Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(definition);
+        final io.gravitee.gateway.reactive.handlers.api.v4.Api api =
+                new io.gravitee.gateway.reactive.handlers.api.v4.Api(definition);
         api.setEnvironmentId(environmentId);
         return api;
     }
@@ -65,11 +66,9 @@ public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
             api.setPlans(Collections.singletonList(plan));
         } else {
-            api
-                .getPlans()
-                .stream()
-                .filter(plan -> plan.getStatus() == null)
-                .forEach(plan -> plan.setStatus(PlanStatus.PUBLISHED));
+            api.getPlans().stream()
+                    .filter(plan -> plan.getStatus() == null)
+                    .forEach(plan -> plan.setStatus(PlanStatus.PUBLISHED));
         }
     }
 

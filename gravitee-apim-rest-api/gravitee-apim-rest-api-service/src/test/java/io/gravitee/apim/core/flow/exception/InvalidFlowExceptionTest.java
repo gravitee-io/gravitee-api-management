@@ -32,7 +32,8 @@ class InvalidFlowExceptionTest {
         var throwable = catchThrowable(() -> InvalidFlowException.missingPathOperator(null));
 
         assertThat(throwable).isNull();
-        assertThat(InvalidFlowException.missingPathOperator(null).getParameters()).doesNotContainKey("flowName");
+        assertThat(InvalidFlowException.missingPathOperator(null).getParameters())
+                .doesNotContainKey("flowName");
     }
 
     @Test
@@ -41,18 +42,20 @@ class InvalidFlowExceptionTest {
 
         assertThat(throwable).isNull();
         assertThat(InvalidFlowException.invalidEntrypoint(null, Set.of("sse")).getParameters())
-            .doesNotContainKey("flowName")
-            .containsEntry("invalidEntrypoints", "sse");
+                .doesNotContainKey("flowName")
+                .containsEntry("invalidEntrypoints", "sse");
     }
 
     @Test
     void invalidSelector_should_not_throw_when_flow_name_is_null() {
-        var throwable = catchThrowable(() -> InvalidFlowException.invalidSelector(null, ApiType.PROXY, Set.of("channel")));
+        var throwable =
+                catchThrowable(() -> InvalidFlowException.invalidSelector(null, ApiType.PROXY, Set.of("channel")));
 
         assertThat(throwable).isNull();
-        assertThat(InvalidFlowException.invalidSelector(null, ApiType.PROXY, Set.of("channel")).getParameters())
-            .doesNotContainKey("flowName")
-            .containsEntry("invalidSelectors", "channel");
+        assertThat(InvalidFlowException.invalidSelector(null, ApiType.PROXY, Set.of("channel"))
+                        .getParameters())
+                .doesNotContainKey("flowName")
+                .containsEntry("invalidSelectors", "channel");
     }
 
     @Test
@@ -61,7 +64,7 @@ class InvalidFlowExceptionTest {
 
         assertThat(throwable).isNull();
         assertThat(InvalidFlowException.duplicatedSelector(null, Set.of("http")).getParameters())
-            .doesNotContainKey("flowName")
-            .containsEntry("duplicatedSelectors", "http");
+                .doesNotContainKey("flowName")
+                .containsEntry("duplicatedSelectors", "http");
     }
 }

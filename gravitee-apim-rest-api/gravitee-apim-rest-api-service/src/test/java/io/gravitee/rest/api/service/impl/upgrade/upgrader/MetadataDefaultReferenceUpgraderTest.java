@@ -50,8 +50,10 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.WARN)
 public class MetadataDefaultReferenceUpgraderTest {
 
-    private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
-    private static final ZonedDateTime UPDATED_AT = Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT =
+            Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime UPDATED_AT =
+            Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault());
 
     @Mock
     private EnvironmentRepository environmentRepository;
@@ -68,35 +70,35 @@ public class MetadataDefaultReferenceUpgraderTest {
 
     @Test
     public void should_upgrade_only_default_metadata() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenReturn(
-            Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
-        );
+        when(environmentRepository.findAll())
+                .thenReturn(Set.of(
+                        Environment.builder().id("DEFAULT").build(),
+                        Environment.builder().id("env#1").build()));
 
         Set<Metadata> metadataList = Set.of(
-            aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
-            aMetadata("_", MetadataReferenceType.API, "key#2"),
-            aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
-            aMetadata("api#1", MetadataReferenceType.API),
-            aMetadata("app#1", MetadataReferenceType.APPLICATION),
-            aMetadata("user#1", MetadataReferenceType.USER)
-        );
+                aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
+                aMetadata("_", MetadataReferenceType.API, "key#2"),
+                aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
+                aMetadata("api#1", MetadataReferenceType.API),
+                aMetadata("app#1", MetadataReferenceType.APPLICATION),
+                aMetadata("user#1", MetadataReferenceType.USER));
         when(metadataRepository.findAll()).thenReturn(metadataList);
 
         assertTrue(upgrader.upgrade());
 
         verify(metadataRepository, times(4)).create(any());
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#1")))
-        );
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#2")))
-        );
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1")))
-        );
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#2")))
-        );
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#1"))));
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#2"))));
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1"))));
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#2"))));
         verify(metadataRepository, times(2)).delete(any(), any(), any());
         verify(metadataRepository).delete(eq("key#1"), eq("_"), eq(MetadataReferenceType.ENVIRONMENT));
         verify(metadataRepository).delete(eq("key#2"), eq("_"), eq(MetadataReferenceType.API));
@@ -104,39 +106,38 @@ public class MetadataDefaultReferenceUpgraderTest {
 
     @Test
     public void should_upgrade_if_key_exist() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenReturn(
-            Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
-        );
+        when(environmentRepository.findAll())
+                .thenReturn(Set.of(
+                        Environment.builder().id("DEFAULT").build(),
+                        Environment.builder().id("env#1").build()));
 
         Set<Metadata> metadataList = Set.of(
-            aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
-            aMetadata("_", MetadataReferenceType.API, "key#2"),
-            aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1"),
-            aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
-            aMetadata("api#1", MetadataReferenceType.API),
-            aMetadata("app#1", MetadataReferenceType.APPLICATION),
-            aMetadata("user#1", MetadataReferenceType.USER)
-        );
+                aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
+                aMetadata("_", MetadataReferenceType.API, "key#2"),
+                aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1"),
+                aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
+                aMetadata("api#1", MetadataReferenceType.API),
+                aMetadata("app#1", MetadataReferenceType.APPLICATION),
+                aMetadata("user#1", MetadataReferenceType.USER));
         when(metadataRepository.findAll()).thenReturn(metadataList);
-        when(metadataRepository.create(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1"))).thenThrow(
-            DuplicateKeyException.class
-        );
+        when(metadataRepository.create(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1")))
+                .thenThrow(DuplicateKeyException.class);
 
         assertTrue(upgrader.upgrade());
 
         verify(metadataRepository, times(4)).create(any());
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#1")))
-        );
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#2")))
-        );
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1")))
-        );
-        verify(metadataRepository).create(
-            argThat(metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#2")))
-        );
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#1"))));
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("DEFAULT", MetadataReferenceType.ENVIRONMENT, "key#2"))));
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#1"))));
+        verify(metadataRepository)
+                .create(argThat(
+                        metadata -> metadata.equals(aMetadata("env#1", MetadataReferenceType.ENVIRONMENT, "key#2"))));
         verify(metadataRepository, times(2)).delete(any(), any(), any());
         verify(metadataRepository).delete(eq("key#1"), eq("_"), eq(MetadataReferenceType.ENVIRONMENT));
         verify(metadataRepository).delete(eq("key#2"), eq("_"), eq(MetadataReferenceType.API));
@@ -144,9 +145,10 @@ public class MetadataDefaultReferenceUpgraderTest {
 
     @Test
     public void should_not_create_if_not_find_default_metadata() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenReturn(
-            Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
-        );
+        when(environmentRepository.findAll())
+                .thenReturn(Set.of(
+                        Environment.builder().id("DEFAULT").build(),
+                        Environment.builder().id("env#1").build()));
 
         when(metadataRepository.findAll()).thenReturn(Collections.emptySet());
 
@@ -171,18 +173,18 @@ public class MetadataDefaultReferenceUpgraderTest {
     @Test
     public void should_stop_if_cannot_create_env() throws TechnicalException {
         assertThrows(UpgraderException.class, () -> {
-            when(environmentRepository.findAll()).thenReturn(
-                Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
-            );
+            when(environmentRepository.findAll())
+                    .thenReturn(Set.of(
+                            Environment.builder().id("DEFAULT").build(),
+                            Environment.builder().id("env#1").build()));
 
             Set<Metadata> metadataList = Set.of(
-                aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
-                aMetadata("_", MetadataReferenceType.API, "key#2"),
-                aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
-                aMetadata("api#1", MetadataReferenceType.API),
-                aMetadata("app#1", MetadataReferenceType.APPLICATION),
-                aMetadata("user#1", MetadataReferenceType.USER)
-            );
+                    aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
+                    aMetadata("_", MetadataReferenceType.API, "key#2"),
+                    aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
+                    aMetadata("api#1", MetadataReferenceType.API),
+                    aMetadata("app#1", MetadataReferenceType.APPLICATION),
+                    aMetadata("user#1", MetadataReferenceType.USER));
             when(metadataRepository.findAll()).thenReturn(metadataList);
             when(metadataRepository.create(any())).thenThrow(new TechnicalException("Cannot create metadata"));
 
@@ -201,23 +203,22 @@ public class MetadataDefaultReferenceUpgraderTest {
     }
 
     private Metadata aMetadata(
-        String referenceId,
-        MetadataReferenceType referenceType,
-        String key,
-        String name,
-        String value,
-        MetadataFormat format
-    ) {
+            String referenceId,
+            MetadataReferenceType referenceType,
+            String key,
+            String name,
+            String value,
+            MetadataFormat format) {
         return Metadata.builder()
-            .referenceId(referenceId)
-            .referenceType(referenceType)
-            .key(key)
-            .name(name)
-            .value(value != null ? value.toString() : null)
-            .format(format)
-            .createdAt(Date.from(CREATED_AT.toInstant()))
-            .updatedAt(Date.from(UPDATED_AT.toInstant()))
-            .build();
+                .referenceId(referenceId)
+                .referenceType(referenceType)
+                .key(key)
+                .name(name)
+                .value(value != null ? value.toString() : null)
+                .format(format)
+                .createdAt(Date.from(CREATED_AT.toInstant()))
+                .updatedAt(Date.from(UPDATED_AT.toInstant()))
+                .build();
     }
 
     @Test

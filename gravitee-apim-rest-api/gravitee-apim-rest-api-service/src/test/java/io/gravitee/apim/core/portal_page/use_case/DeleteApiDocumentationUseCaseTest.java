@@ -44,28 +44,28 @@ import org.junit.jupiter.api.Test;
 class DeleteApiDocumentationUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1");
     private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     private final PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
     private DeleteApiDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
         useCase = new DeleteApiDocumentationUseCase(
-            crudService,
-            queryService,
-            new ApiDocumentationSyncDomainService(navCrudService, navQueryService, mock(PortalNavigationItemValidatorService.class))
-        );
+                crudService,
+                queryService,
+                new ApiDocumentationSyncDomainService(
+                        navCrudService, navQueryService, mock(PortalNavigationItemValidatorService.class)));
     }
 
     @AfterEach
@@ -88,7 +88,8 @@ class DeleteApiDocumentationUseCaseTest {
 
     @Test
     void should_throw_when_missing() {
-        var throwable = catchThrowable(() -> useCase.execute(new DeleteApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new DeleteApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
         assertThat(throwable).isInstanceOf(PageContentNotFoundException.class);
     }
@@ -96,15 +97,12 @@ class DeleteApiDocumentationUseCaseTest {
     @Test
     void should_throw_when_page_content_has_no_automation_metadata() {
         var pageContent = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello")
-        );
+                DOC_ID, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), GraviteeMarkdown.of("# Hello"));
         crudService.initWith(List.of(pageContent));
         queryService.initWith(List.of(pageContent));
 
-        var throwable = catchThrowable(() -> useCase.execute(new DeleteApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new DeleteApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
         assertThat(throwable).isInstanceOf(PageContentNotFoundException.class);
     }
@@ -112,23 +110,18 @@ class DeleteApiDocumentationUseCaseTest {
     @Test
     void should_throw_when_metadata_is_portal_reference_not_api() {
         var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.PORTAL,
-            "00000000-0000-0000-0000-0000000000a2",
-            "Getting Started",
-            Optional.of("/projects/alpha"),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.PORTAL,
+                "00000000-0000-0000-0000-0000000000a2",
+                "Getting Started",
+                Optional.of("/projects/alpha"),
+                Optional.of(1));
         var pageContent = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            meta
-        );
+                DOC_ID, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), GraviteeMarkdown.of("# Hello"), meta);
         crudService.initWith(List.of(pageContent));
         queryService.initWith(List.of(pageContent));
 
-        var throwable = catchThrowable(() -> useCase.execute(new DeleteApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new DeleteApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
         assertThat(throwable).isInstanceOf(PageContentNotFoundException.class);
         assertThat(crudService.storage()).hasSize(1);
@@ -136,18 +129,12 @@ class DeleteApiDocumentationUseCaseTest {
 
     private static GraviteeMarkdownPageContent anApiPageContent() {
         var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Getting Started",
-            Optional.of("/getting-started"),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.API,
+                API_ID,
+                "Getting Started",
+                Optional.of("/getting-started"),
+                Optional.of(1));
         return new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            meta
-        );
+                DOC_ID, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), GraviteeMarkdown.of("# Hello"), meta);
     }
 }

@@ -31,7 +31,8 @@ public class PEMTrustStoreSerializer extends TrustStoreSerializer<PEMTrustStore>
     }
 
     @Override
-    protected void doSerialize(PEMTrustStore trustStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(PEMTrustStore trustStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(trustStore, jgen, serializerProvider);
 
         writeStringField(jgen, "path", trustStore.getPath());

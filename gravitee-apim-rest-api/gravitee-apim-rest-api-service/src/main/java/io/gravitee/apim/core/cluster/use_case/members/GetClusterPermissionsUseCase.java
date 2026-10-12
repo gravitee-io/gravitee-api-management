@@ -44,7 +44,7 @@ public class GetClusterPermissionsUseCase {
         Map<String, char[]> permissions = new HashMap<>();
         if (input.isAuthenticated) {
             if (input.isAdmin) {
-                final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
+                final char[] rights = new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
                 for (ClusterPermission perm : ClusterPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
@@ -52,11 +52,7 @@ public class GetClusterPermissionsUseCase {
                 final String username = input.authenticatedUser;
                 final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
                 permissions = membershipDomainService.getUserMemberPermissions(
-                    executionContext,
-                    MembershipReferenceType.CLUSTER,
-                    input.clusterId,
-                    username
-                );
+                        executionContext, MembershipReferenceType.CLUSTER, input.clusterId, username);
             }
         }
         return new Output(permissions);

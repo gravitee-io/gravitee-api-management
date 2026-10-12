@@ -26,11 +26,13 @@ import java.util.Optional;
 
 public interface SharedPolicyGroupHistoryRepository extends CrudRepository<SharedPolicyGroup, String> {
     Page<SharedPolicyGroup> search(SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable)
-        throws TechnicalException;
+            throws TechnicalException;
 
-    Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException;
+    Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable)
+            throws TechnicalException;
 
-    Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId) throws TechnicalException;
+    Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
+            throws TechnicalException;
 
     /**
      * Delete shared policy group history by environment ID

@@ -55,16 +55,13 @@ public class PageResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPageByPageId(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @PathParam("pageId") String pageId,
-        @QueryParam("include") List<String> include
-    ) {
+            @HeaderParam("Accept-Language") String acceptLang,
+            @PathParam("pageId") String pageId,
+            @QueryParam("include") List<String> include) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
-        if (
-            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(pageId);
         }
 
@@ -80,12 +77,9 @@ public class PageResource extends AbstractResource {
                 page.setContent(pageEntity.getContent());
             }
 
-            page.setLinks(
-                pageMapper.computePageLinks(
+            page.setLinks(pageMapper.computePageLinks(
                     PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), pageId),
-                    PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())
-                )
-            );
+                    PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())));
             return Response.ok(page).build();
         } else {
             throw new UnauthorizedAccessException();
@@ -98,10 +92,8 @@ public class PageResource extends AbstractResource {
     @RequirePortalAuth
     public Response getPageContentByPageId(@PathParam("pageId") String pageId) {
         PageEntity pageEntity = pageService.findById(pageId, null);
-        if (
-            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(pageId);
         }
 

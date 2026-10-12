@@ -50,7 +50,9 @@ class ExpressionLanguageConditionFilterTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(ctx.withLogger(any())).thenReturn(LoggerFactory.getLogger(ExpressionLanguageConditionFilter.class));
+        lenient()
+                .when(ctx.withLogger(any()))
+                .thenReturn(LoggerFactory.getLogger(ExpressionLanguageConditionFilter.class));
     }
 
     @Test
@@ -97,7 +99,8 @@ class ExpressionLanguageConditionFilterTest {
     void shouldFilterWhenExpressionEvaluationException() {
         final ConditionSupplier conditionSupplier = () -> EXPRESSION;
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.error(new ExpressionEvaluationException(EXPRESSION)));
+        when(templateEngine.eval(EXPRESSION, Boolean.class))
+                .thenReturn(Maybe.error(new ExpressionEvaluationException(EXPRESSION)));
 
         cut.filter(ctx, conditionSupplier).test().assertResult();
     }
@@ -106,7 +109,8 @@ class ExpressionLanguageConditionFilterTest {
     void shouldThrowErrorWhenErrorOccured() {
         final ConditionSupplier conditionSupplier = () -> EXPRESSION;
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.error(new RuntimeException(MOCK_EXCEPTION)));
+        when(templateEngine.eval(EXPRESSION, Boolean.class))
+                .thenReturn(Maybe.error(new RuntimeException(MOCK_EXCEPTION)));
 
         cut.filter(ctx, conditionSupplier).test().assertFailure(RuntimeException.class);
     }

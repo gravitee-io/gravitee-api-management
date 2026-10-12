@@ -29,12 +29,16 @@ public interface MetadataMapper {
     MetadataMapper INSTANCE = Mappers.getMapper(MetadataMapper.class);
 
     Metadata map(ApiMetadataEntity metadataEntity);
+
     ApiMetadataEntity map(Metadata metadataEntity);
 
     Set<Metadata> map(Set<ApiMetadataEntity> metadataEntityList);
+
     Metadata mapFromCore(ApiMetadata apiMetadata);
+
     List<Metadata> mapFromCore(List<ApiMetadata> apiMetadata);
 
     NewApiMetadata toNewApiMetadata(Metadata metadata);
+
     Set<NewApiMetadata> toNewApiMetadata(Set<Metadata> metadata);
 }

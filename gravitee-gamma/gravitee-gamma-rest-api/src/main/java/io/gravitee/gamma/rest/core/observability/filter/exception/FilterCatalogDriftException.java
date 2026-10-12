@@ -28,8 +28,8 @@ public class FilterCatalogDriftException extends TechnicalDomainException {
 
     public FilterCatalogDriftException(String filterName, Throwable cause) {
         super(
-            "Filter '" + filterName + "' is advertised by the observability catalog but the platform analytics catalog cannot serve it",
-            cause
-        );
+                "Filter '" + filterName
+                        + "' is advertised by the observability catalog but the platform analytics catalog cannot serve it",
+                cause);
     }
 }

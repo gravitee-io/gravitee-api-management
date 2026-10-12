@@ -31,15 +31,14 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record Trace(
-    String traceId,
-    Instant startTime,
-    long durationNanos,
-    String rootService,
-    String rootOperation,
-    String status,
-    int spanCount,
-    List<TraceSpan> spans
-) {
+        String traceId,
+        Instant startTime,
+        long durationNanos,
+        String rootService,
+        String rootOperation,
+        String status,
+        int spanCount,
+        List<TraceSpan> spans) {
     public Trace {
         if (spans == null) {
             spans = new ArrayList<>();

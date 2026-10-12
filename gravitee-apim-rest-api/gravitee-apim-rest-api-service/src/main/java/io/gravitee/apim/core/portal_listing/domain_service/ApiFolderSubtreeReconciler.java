@@ -55,21 +55,24 @@ class ApiFolderSubtreeReconciler {
     private final NavigationSyncPlanExecutor planExecutor;
     private final AutomationManagedNavigationItemsQueryService automationManagedNavigationItemsQueryService;
 
-    void sync(AuditInfo auditInfo, String apiId, List<NavigationPath> previousPaths, List<PortalNavigationItem> currentFolders) {
+    void sync(
+            AuditInfo auditInfo,
+            String apiId,
+            List<NavigationPath> previousPaths,
+            List<PortalNavigationItem> currentFolders) {
         var desired = desiredPaths(apiId);
         var ownership = ownership(auditInfo, apiId, desired);
         var plan = NavigationSyncPlanner.plan(desired, currentFolders, previousPaths, ownership);
         Function<String, PortalNavigationItemId> idMapper = path -> apiFolderId(auditInfo, apiId, path);
         var deleteStrategy = ownership.asDeleteStrategy();
         planExecutor.execute(
-            plan,
-            auditInfo,
-            PortalArea.TOP_NAVBAR,
-            null,
-            new NavigationItemReference.ApiReference(apiId),
-            idMapper,
-            deleteStrategy
-        );
+                plan,
+                auditInfo,
+                PortalArea.TOP_NAVBAR,
+                null,
+                new NavigationItemReference.ApiReference(apiId),
+                idMapper,
+                deleteStrategy);
     }
 
     ValidationItems itemsForValidation(AuditInfo auditInfo, String apiId, List<PortalNavigationItem> currentFolders) {
@@ -77,107 +80,95 @@ class ApiFolderSubtreeReconciler {
     }
 
     ValidationItems itemsForValidation(
-        AuditInfo auditInfo,
-        String apiId,
-        List<NavigationPath> desired,
-        List<PortalNavigationItem> currentFolders
-    ) {
+            AuditInfo auditInfo,
+            String apiId,
+            List<NavigationPath> desired,
+            List<PortalNavigationItem> currentFolders) {
         var ownership = ownership(auditInfo, apiId, desired);
         var plan = NavigationSyncPlanner.plan(desired, currentFolders, List.of(), ownership);
         Function<String, PortalNavigationItemId> idFactory = path -> apiFolderId(auditInfo, apiId, path);
-        var creates = plan
-            .actions()
-            .stream()
-            .filter(FolderActions.CreateFolder.class::isInstance)
-            .map(FolderActions.CreateFolder.class::cast)
-            .map(FolderActions.CreateFolder::desired)
-            .map(df -> toCreateItem(df, idFactory, apiId))
-            .toList();
-        var updates = plan
-            .actions()
-            .stream()
-            .filter(FolderActions.UpdateFolder.class::isInstance)
-            .map(FolderActions.UpdateFolder.class::cast)
-            .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory), action.existing()))
-            .toList();
+        var creates = plan.actions().stream()
+                .filter(FolderActions.CreateFolder.class::isInstance)
+                .map(FolderActions.CreateFolder.class::cast)
+                .map(FolderActions.CreateFolder::desired)
+                .map(df -> toCreateItem(df, idFactory, apiId))
+                .toList();
+        var updates = plan.actions().stream()
+                .filter(FolderActions.UpdateFolder.class::isInstance)
+                .map(FolderActions.UpdateFolder.class::cast)
+                .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory), action.existing()))
+                .toList();
         return new ValidationItems(creates, updates);
     }
 
     record ValidationItems(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {}
 
     private static CreatePortalNavigationItem toCreateItem(
-        FolderActions.DesiredFolder df,
-        Function<String, PortalNavigationItemId> idFactory,
-        String apiId
-    ) {
+            FolderActions.DesiredFolder df, Function<String, PortalNavigationItemId> idFactory, String apiId) {
         return CreatePortalNavigationItem.builder()
-            .id(idFactory.apply(df.path()))
-            .title(df.title())
-            .segment(df.segment().value())
-            .area(PortalArea.TOP_NAVBAR)
-            .type(PortalNavigationItemType.FOLDER)
-            .order(df.order())
-            .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
-            .visibility(df.visibility())
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .published(true)
-            .automationMetadata(
-                new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.of(df.path()), Optional.empty())
-            )
-            .build();
+                .id(idFactory.apply(df.path()))
+                .title(df.title())
+                .segment(df.segment().value())
+                .area(PortalArea.TOP_NAVBAR)
+                .type(PortalNavigationItemType.FOLDER)
+                .order(df.order())
+                .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
+                .visibility(df.visibility())
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .published(true)
+                .automationMetadata(new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.API, apiId, null, Optional.of(df.path()), Optional.empty()))
+                .build();
     }
 
     private static UpdatePortalNavigationItem toUpdateItem(
-        FolderActions.DesiredFolder df,
-        Function<String, PortalNavigationItemId> idFactory
-    ) {
+            FolderActions.DesiredFolder df, Function<String, PortalNavigationItemId> idFactory) {
         return UpdatePortalNavigationItem.builder()
-            .title(df.title())
-            .segment(df.segment().value())
-            .type(PortalNavigationItemType.FOLDER)
-            .order(df.order())
-            .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
-            .visibility(df.visibility())
-            .build();
+                .title(df.title())
+                .segment(df.segment().value())
+                .type(PortalNavigationItemType.FOLDER)
+                .order(df.order())
+                .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
+                .visibility(df.visibility())
+                .build();
     }
 
     List<PortalNavigationItem> loadAllFoldersInEnv(String environmentId) {
-        return navigationItemsQueryService.search(
-            PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).type(PortalNavigationItemType.FOLDER).build()
-        );
+        return navigationItemsQueryService.search(PortalNavigationItemQueryCriteria.builder()
+                .environmentId(environmentId)
+                .type(PortalNavigationItemType.FOLDER)
+                .build());
     }
 
     List<PortalNavigationItem> collectFolderDescendantsFrom(List<PortalNavigationItem> envFolders, String apiId) {
         var reference = new NavigationItemReference.ApiReference(apiId);
         var collected = new ArrayList<PortalNavigationItem>();
-        envFolders
-            .stream()
-            .filter(folder -> reference.equals(folder.getReference()))
-            .filter(PortalNavigationItem::isRoot)
-            .forEach(root -> {
-                collected.add(root);
-                var walker = new FolderCollector();
-                PortalNavigationTreeWalker.walkFrom(envFolders, root.getId(), walker);
-                collected.addAll(walker.collected());
-            });
+        envFolders.stream()
+                .filter(folder -> reference.equals(folder.getReference()))
+                .filter(PortalNavigationItem::isRoot)
+                .forEach(root -> {
+                    collected.add(root);
+                    var walker = new FolderCollector();
+                    PortalNavigationTreeWalker.walkFrom(envFolders, root.getId(), walker);
+                    collected.addAll(walker.collected());
+                });
         return collected;
     }
 
     List<NavigationPath> desiredPaths(String apiId) {
         return apiCrudService
-            .findById(apiId)
-            .map(api -> api.getPortalNavigation() == null ? List.<NavigationPath>of() : api.getPortalNavigation())
-            .orElseGet(List::of);
+                .findById(apiId)
+                .map(api -> api.getPortalNavigation() == null ? List.<NavigationPath>of() : api.getPortalNavigation())
+                .orElseGet(List::of);
     }
 
     private NavigationOwnership ownership(AuditInfo auditInfo, String apiId, List<NavigationPath> paths) {
         return new NavigationOwnership(
-            NavigationSyncPlanner.expandToFullPaths(paths),
-            path -> apiFolderId(auditInfo, apiId, path),
-            automationManagedNavigationItemsQueryService.automationManagedApiDocPages(auditInfo, apiId),
-            Set.of(),
-            automationManagedNavigationItemsQueryService.automationManagedApiLinks(auditInfo, apiId)
-        );
+                NavigationSyncPlanner.expandToFullPaths(paths),
+                path -> apiFolderId(auditInfo, apiId, path),
+                automationManagedNavigationItemsQueryService.automationManagedApiDocPages(auditInfo, apiId),
+                Set.of(),
+                automationManagedNavigationItemsQueryService.automationManagedApiLinks(auditInfo, apiId));
     }
 
     private PortalNavigationItemId apiFolderId(AuditInfo auditInfo, String apiId, String path) {

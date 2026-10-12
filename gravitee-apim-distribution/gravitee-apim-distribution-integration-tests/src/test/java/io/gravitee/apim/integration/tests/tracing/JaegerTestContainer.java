@@ -33,11 +33,13 @@ public class JaegerTestContainer extends GenericContainer<JaegerTestContainer> {
     public JaegerTestContainer() {
         super(DockerImageName.parse(JAEGER_DOCKER_IMAGE));
         setWaitStrategy(Wait.forHttp("/").forPort(JAEGER_ADMIN_PORT).forStatusCode(200));
-        withExposedPorts(JAEGER_ADMIN_PORT, JAEGER_COLLECTOR_GRPC_PORT, JAEGER_COLLECTOR_HTTP_PORT, JAEGER_FRONTEND_PORT);
+        withExposedPorts(
+                JAEGER_ADMIN_PORT, JAEGER_COLLECTOR_GRPC_PORT, JAEGER_COLLECTOR_HTTP_PORT, JAEGER_FRONTEND_PORT);
     }
 
     public WebClient client(Vertx vertx) {
-        return WebClient.create(vertx, new WebClientOptions().setDefaultHost(getHost()).setDefaultPort(getJaegerFrontendPort()));
+        return WebClient.create(
+                vertx, new WebClientOptions().setDefaultHost(getHost()).setDefaultPort(getJaegerFrontendPort()));
     }
 
     public int getCollectorGrpcPort() {

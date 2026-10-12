@@ -56,17 +56,15 @@ public class PermissionsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCurrentUserPermissions(
-        @QueryParam("apiId") String apiId,
-        @QueryParam("applicationId") String applicationId,
-        @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view
-    ) {
+            @QueryParam("apiId") String apiId,
+            @QueryParam("applicationId") String applicationId,
+            @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view) {
         final String userId = getAuthenticatedUser();
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (apiId != null) {
             if (PortalApiViewParam.isDocumentationView(view)) {
-                var output = getApiForPortalUseCase.execute(
-                    new GetApiForPortalUseCase.Input(executionContext.getEnvironmentId(), apiId, getAuthenticatedUserOrNull())
-                );
+                var output = getApiForPortalUseCase.execute(new GetApiForPortalUseCase.Input(
+                        executionContext.getEnvironmentId(), apiId, getAuthenticatedUserOrNull()));
                 if (!output.visible()) {
                     throw new ApiNotFoundException(apiId);
                 }
@@ -74,16 +72,14 @@ public class PermissionsResource extends AbstractResource {
                 throw new ApiNotFoundException(apiId);
             }
             Map<String, char[]> permissions;
-            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+            GenericApiEntity genericApiEntity =
+                    apiSearchService.findGenericById(executionContext, apiId, false, false, false);
             permissions = membershipService.getUserMemberPermissions(executionContext, genericApiEntity, userId);
 
             return Response.ok(permissions).build();
         } else if (applicationId != null) {
             Set<ApplicationListItem> activeApps = applicationService.findByIdsAndStatus(
-                executionContext,
-                Collections.singleton(applicationId),
-                ApplicationStatus.ACTIVE
-            );
+                    executionContext, Collections.singleton(applicationId), ApplicationStatus.ACTIVE);
 
             if (activeApps.isEmpty()) {
                 throw new ApplicationNotFoundException(applicationId);

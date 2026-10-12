@@ -64,24 +64,17 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             log.info("Starting migration of application client certificates to ClientCertificate entity");
 
             ApplicationCriteria criteria = ApplicationCriteria.builder().build();
-            PageUtils.forEachPage(
-                pageable -> applicationRepository.search(criteria, pageable),
-                PAGE_SIZE,
-                page -> {
-                    for (Application application : page
-                        .getContent()
-                        .stream()
-                        .filter(
-                            app ->
-                                app.getMetadata() != null &&
-                                app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null &&
-                                !app.getMetadata().get(METADATA_CLIENT_CERTIFICATE).isBlank()
-                        )
+            PageUtils.forEachPage(pageable -> applicationRepository.search(criteria, pageable), PAGE_SIZE, page -> {
+                for (Application application : page.getContent().stream()
+                        .filter(app -> app.getMetadata() != null
+                                && app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null
+                                && !app.getMetadata()
+                                        .get(METADATA_CLIENT_CERTIFICATE)
+                                        .isBlank())
                         .toList()) {
-                        migrateApplicationCertificate(application);
-                    }
+                    migrateApplicationCertificate(application);
                 }
-            );
+            });
 
             log.info("Completed migration of application client certificates");
             return true;
@@ -100,37 +93,34 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             var certToCreate = new ClientCertificate(applicationName, decodeCert(base64Certificate), null, null);
             var certInfo = clientCertificateValidationDomainService.validate(certToCreate.certificate());
             var enriched = new ClientCertificate(
-                null,
-                null,
-                null,
-                certToCreate.name(),
-                certToCreate.startsAt(),
-                certToCreate.endsAt(),
-                null,
-                null,
-                certToCreate.certificate(),
-                certInfo.certificateExpiration(),
-                certInfo.subject(),
-                certInfo.issuer(),
-                certInfo.fingerprint(),
-                null,
-                null
-            );
+                    null,
+                    null,
+                    null,
+                    certToCreate.name(),
+                    certToCreate.startsAt(),
+                    certToCreate.endsAt(),
+                    null,
+                    null,
+                    certToCreate.certificate(),
+                    certInfo.certificateExpiration(),
+                    certInfo.subject(),
+                    certInfo.issuer(),
+                    certInfo.fingerprint(),
+                    null,
+                    null);
             clientCertificateCrudService.create(applicationId, enriched);
 
             log.debug("Created ClientCertificate for application {} ({})", applicationName, applicationId);
         } catch (AbstractClientCertificateException e) {
             log.warn(
-                "Failed to decode or parse certificate for application {} ({}), skipping certificate creation but removing metadata",
-                application.getName(),
-                application.getId(),
-                e
-            );
+                    "Failed to decode or parse certificate for application {} ({}), skipping certificate creation but removing metadata",
+                    application.getName(),
+                    application.getId(),
+                    e);
         } catch (Exception e) {
             throw new TechnicalException(
-                "Failed to migrate certificate for application %s (%s)".formatted(applicationName, applicationId),
-                e
-            );
+                    "Failed to migrate certificate for application %s (%s)".formatted(applicationName, applicationId),
+                    e);
         } finally {
             GraviteeContext.cleanContext();
         }
@@ -140,7 +130,10 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
         updatedMetadata.remove(METADATA_CLIENT_CERTIFICATE);
         application.setMetadata(updatedMetadata);
         applicationRepository.update(application);
-        log.debug("Removed client_certificate metadata from application {} ({})", application.getName(), application.getId());
+        log.debug(
+                "Removed client_certificate metadata from application {} ({})",
+                application.getName(),
+                application.getId());
     }
 
     private static String decodeCert(String base64Certificate) {

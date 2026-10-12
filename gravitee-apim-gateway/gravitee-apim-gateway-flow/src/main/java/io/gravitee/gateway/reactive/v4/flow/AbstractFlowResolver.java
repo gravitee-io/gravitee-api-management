@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.v4.flow;
 
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Flowable;

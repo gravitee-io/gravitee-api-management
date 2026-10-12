@@ -34,28 +34,26 @@ public class SearchSubscriptionsUseCase {
 
     public Output execute(Input input) {
         Page<SubscriptionEntity> page = subscriptionSearchQueryService.search(
-            input.executionContext,
-            input.referenceId,
-            input.referenceType,
-            input.applicationIds,
-            input.planIds,
-            input.statuses,
-            input.apiKey,
-            input.pageable
-        );
+                input.executionContext,
+                input.referenceId,
+                input.referenceType,
+                input.applicationIds,
+                input.planIds,
+                input.statuses,
+                input.apiKey,
+                input.pageable);
         return new Output(page);
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        Set<String> applicationIds,
-        Set<String> planIds,
-        Set<SubscriptionStatus> statuses,
-        String apiKey,
-        Pageable pageable
-    ) {}
+            ExecutionContext executionContext,
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            Set<String> applicationIds,
+            Set<String> planIds,
+            Set<SubscriptionStatus> statuses,
+            String apiKey,
+            Pageable pageable) {}
 
     public record Output(Page<SubscriptionEntity> page) {}
 }

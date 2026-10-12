@@ -15,18 +15,16 @@
  */
 package io.gravitee.plugin.apiservice;
 
-import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiServicePlugin<T extends ApiServiceFactory, C extends ApiServiceConfiguration> extends ConfigurablePlugin<C> {
+public interface ApiServicePlugin<T extends ApiServiceFactory, C extends ApiServiceConfiguration>
+        extends ConfigurablePlugin<C> {
     String PLUGIN_TYPE = "api-service";
 
     Class<T> connectorFactory();

@@ -35,11 +35,11 @@ public class ApiIdsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscription_forms")
-            .name("ai1_unique")
-            .key("apiIds", ascending())
-            .unique(true)
-            .partialFilterExpression(Filters.exists("apiIds.0"))
-            .build();
+                .collection("subscription_forms")
+                .name("ai1_unique")
+                .key("apiIds", ascending())
+                .unique(true)
+                .partialFilterExpression(Filters.exists("apiIds.0"))
+                .build();
     }
 }

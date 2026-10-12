@@ -44,17 +44,23 @@ public class RatingMongoRepositoryImpl implements RatingMongoRepositoryCustom {
 
     private AggregateIterable<Document> getSummariesByCriteria(RatingCriteria ratingCriteria) {
         List<Bson> aggregations = new ArrayList<>();
-        aggregations.add(match(eq("referenceType", ratingCriteria.getReferenceType().name())));
-        if (ratingCriteria.getReferenceIds() != null && !ratingCriteria.getReferenceIds().isEmpty()) {
+        aggregations.add(
+                match(eq("referenceType", ratingCriteria.getReferenceType().name())));
+        if (ratingCriteria.getReferenceIds() != null
+                && !ratingCriteria.getReferenceIds().isEmpty()) {
             aggregations.add(match(in("referenceId", ratingCriteria.getReferenceIds())));
         }
         aggregations.add(match(gt("rate", ratingCriteria.getGt())));
-        aggregations.add(group("$referenceId", avg(AVERAGE_RATE, "$rate"), sum(NUMBER_OF_RATINGS, 1), last(LAST_UPDATED_AT, "$updatedAt")));
+        aggregations.add(group(
+                "$referenceId",
+                avg(AVERAGE_RATE, "$rate"),
+                sum(NUMBER_OF_RATINGS, 1),
+                last(LAST_UPDATED_AT, "$updatedAt")));
         aggregations.add(sort(descending(AVERAGE_RATE, NUMBER_OF_RATINGS, LAST_UPDATED_AT)));
 
         AggregateIterable<Document> ratings = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(RatingMongo.class))
-            .aggregate(aggregations);
+                .getCollection(mongoTemplate.getCollectionName(RatingMongo.class))
+                .aggregate(aggregations);
         return ratings;
     }
 

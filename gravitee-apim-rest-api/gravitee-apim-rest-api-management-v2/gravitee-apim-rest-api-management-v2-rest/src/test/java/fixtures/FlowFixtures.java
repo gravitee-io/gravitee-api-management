@@ -40,21 +40,20 @@ public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final Supplier<ChannelSelector> BASE_CHANNEL_SELECTOR_V4 = () ->
-        (io.gravitee.rest.api.management.v2.rest.model.ChannelSelector) new io.gravitee.rest.api.management.v2.rest.model.ChannelSelector()
-            .entrypoints(Set.of("entrypoint1", "entrypoint2"))
-            .operations(
-                Set.of(
-                    io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE,
-                    io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.PUBLISH
-                )
-            )
-            .channelOperator(io.gravitee.rest.api.management.v2.rest.model.Operator.EQUALS)
-            .channel("channel")
-            .type(BaseSelector.TypeEnum.CHANNEL);
+    private static final Supplier<ChannelSelector> BASE_CHANNEL_SELECTOR_V4 =
+            () -> (io.gravitee.rest.api.management.v2.rest.model.ChannelSelector)
+                    new io.gravitee.rest.api.management.v2.rest.model.ChannelSelector()
+                            .entrypoints(Set.of("entrypoint1", "entrypoint2"))
+                            .operations(Set.of(
+                                    io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum
+                                            .SUBSCRIBE,
+                                    io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum
+                                            .PUBLISH))
+                            .channelOperator(io.gravitee.rest.api.management.v2.rest.model.Operator.EQUALS)
+                            .channel("channel")
+                            .type(BaseSelector.TypeEnum.CHANNEL);
 
-    private static final Supplier<StepV4> BASE_STEP_V4 = () ->
-        new StepV4()
+    private static final Supplier<StepV4> BASE_STEP_V4 = () -> new StepV4()
             .name("step")
             .description("description")
             .enabled(true)
@@ -63,8 +62,7 @@ public class FlowFixtures {
             .messageCondition("{#context.attribute['messageCondition'] == true}")
             .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final Supplier<FlowV4> BASE_FLOW_HTTP_V4 = () ->
-        new FlowV4()
+    private static final Supplier<FlowV4> BASE_FLOW_HTTP_V4 = () -> new FlowV4()
             .name("Flow")
             .enabled(true)
             .selectors(List.of(new Selector(BASE_CHANNEL_SELECTOR_V4.get())))
@@ -74,8 +72,7 @@ public class FlowFixtures {
             .subscribe(List.of(BASE_STEP_V4.get().name("step_subscribe")))
             .tags(Set.of("tag1", "tag2"));
 
-    private static final Supplier<FlowV4> BASE_FLOW_NATIVE_V4 = () ->
-        new FlowV4()
+    private static final Supplier<FlowV4> BASE_FLOW_NATIVE_V4 = () -> new FlowV4()
             .name("Flow")
             .enabled(true)
             .entrypointConnect(List.of(BASE_STEP_V4.get().name("step_entrypoint_connect")))
@@ -84,8 +81,7 @@ public class FlowFixtures {
             .subscribe(List.of(BASE_STEP_V4.get().name("step_subscribe")))
             .tags(Set.of("tag1", "tag2"));
 
-    private static final Supplier<StepV2> BASE_STEP_V2 = () ->
-        new StepV2()
+    private static final Supplier<StepV2> BASE_STEP_V2 = () -> new StepV2()
             .name("step")
             .description("description")
             .enabled(true)
@@ -93,8 +89,7 @@ public class FlowFixtures {
             .condition("{#context.attribute['condition'] == true}")
             .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final Supplier<FlowV2> BASE_FLOW_V2 = () ->
-        new FlowV2()
+    private static final Supplier<FlowV2> BASE_FLOW_V2 = () -> new FlowV2()
             .name("Flow")
             .enabled(true)
             .pathOperator(new PathOperator().operator(Operator.EQUALS).path("/path"))

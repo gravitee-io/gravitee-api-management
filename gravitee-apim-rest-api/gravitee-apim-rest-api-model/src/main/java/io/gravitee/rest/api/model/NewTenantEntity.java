@@ -64,7 +64,9 @@ public class NewTenantEntity {
         if (this == o) return true;
         if (!(o instanceof NewTenantEntity)) return false;
         NewTenantEntity that = (NewTenantEntity) o;
-        return Objects.equals(name, that.name) && Objects.equals(key, that.key) && Objects.equals(description, that.description);
+        return Objects.equals(name, that.name)
+                && Objects.equals(key, that.key)
+                && Objects.equals(description, that.description);
     }
 
     @Override
@@ -74,6 +76,7 @@ public class NewTenantEntity {
 
     @Override
     public String toString() {
-        return "NewTenantEntity{" + "name='" + name + '\'' + ", key='" + key + '\'' + ", description='" + description + '\'' + '}';
+        return "NewTenantEntity{" + "name='" + name + '\'' + ", key='" + key + '\'' + ", description='" + description
+                + '\'' + '}';
     }
 }

@@ -44,16 +44,13 @@ public class RecaptchaFilter extends GenericFilterBean {
 
     public static final String DEFAULT_RECAPTCHA_HEADER_NAME = "X-Recaptcha-Token";
     public static final Pattern MNG_CHANGE_PASSWORD = Pattern.compile("/users/([^/]+)/changePassword");
-    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(
-        Arrays.asList(
+    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(Arrays.asList(
             "/user/login",
             "/users/registration",
             "/users/registration/finalize",
             "/auth/login",
             "/users/_reset_password",
-            "/users/_change_password"
-        )
-    );
+            "/users/_change_password"));
 
     private ReCaptchaService reCaptchaService;
     private ObjectMapper objectMapper;
@@ -64,15 +61,16 @@ public class RecaptchaFilter extends GenericFilterBean {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if (
-            RESTRICTED_PATHS.stream().anyMatch(
-                path -> httpRequest.getPathInfo().contains(path) || MNG_CHANGE_PASSWORD.matcher(httpRequest.getPathInfo()).matches()
-            )
-        ) {
+        if (RESTRICTED_PATHS.stream()
+                .anyMatch(path -> httpRequest.getPathInfo().contains(path)
+                        || MNG_CHANGE_PASSWORD
+                                .matcher(httpRequest.getPathInfo())
+                                .matches())) {
             log.debug("Checking captcha");
 
             String reCaptchaToken = httpRequest.getHeader(DEFAULT_RECAPTCHA_HEADER_NAME);

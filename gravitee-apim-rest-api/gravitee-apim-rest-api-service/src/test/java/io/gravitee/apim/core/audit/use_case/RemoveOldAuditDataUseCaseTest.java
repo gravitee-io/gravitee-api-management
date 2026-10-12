@@ -34,11 +34,10 @@ class RemoveOldAuditDataUseCaseTest {
     private static final ZonedDateTime TOO_OLD = TimeProvider.now().minusHours(1);
     private static final ZonedDateTime NOT_TOO_OLD = TimeProvider.now();
     private static final String TARGETED_ENV = "DEFAULT";
-    private static final Condition<AuditEntity> TOO_OLD_DATA = new Condition<>(e -> TOO_OLD.equals(e.getCreatedAt()), "too old");
-    private static final Condition<AuditEntity> TARGETED_DATA = new Condition<>(
-        e -> TARGETED_ENV.equals(e.getEnvironmentId()),
-        "targeted env"
-    );
+    private static final Condition<AuditEntity> TOO_OLD_DATA =
+            new Condition<>(e -> TOO_OLD.equals(e.getCreatedAt()), "too old");
+    private static final Condition<AuditEntity> TARGETED_DATA =
+            new Condition<>(e -> TARGETED_ENV.equals(e.getEnvironmentId()), "targeted env");
 
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     RemoveOldAuditDataUseCase sut = new RemoveOldAuditDataUseCase(auditCrudService);
@@ -55,7 +54,10 @@ class RemoveOldAuditDataUseCaseTest {
 
         for (var env : List.of(TARGETED_ENV, "envNoTargeted")) {
             for (var creationDate : List.of(TOO_OLD, NOT_TOO_OLD)) {
-                auditCrudService.create(AuditEntity.builder().createdAt(creationDate).environmentId(env).build());
+                auditCrudService.create(AuditEntity.builder()
+                        .createdAt(creationDate)
+                        .environmentId(env)
+                        .build());
             }
         }
 

@@ -42,15 +42,16 @@ class GetApiPortalNavigationItemUseCaseTest {
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
 
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory queryService =
+            new PortalNavigationItemsQueryServiceInMemory();
     private final GetApiPortalNavigationItemUseCase useCase = new GetApiPortalNavigationItemUseCase(
-        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
-        new PortalNavigationItemSourceDomainServiceInMemory()
-    );
+            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
+            new PortalNavigationItemSourceDomainServiceInMemory());
 
     @Test
     void should_return_an_item_owned_by_the_api() {
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        var page =
+                aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
         queryService.initWith(List.of(page));
 
         assertThat(get(page.getId())).isEqualTo(page);
@@ -58,12 +59,11 @@ class GetApiPortalNavigationItemUseCaseTest {
 
     @Test
     void should_return_an_unpublished_private_item_of_an_api_that_is_not_listed() {
-        var draft = aPage("Draft", null)
-            .toBuilder()
-            .reference(ownedBy(API_ID))
-            .published(false)
-            .visibility(PortalVisibility.PRIVATE)
-            .build();
+        var draft = aPage("Draft", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(false)
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
         queryService.initWith(List.of(draft));
 
         assertThat(get(draft.getId())).isEqualTo(draft);
@@ -72,7 +72,9 @@ class GetApiPortalNavigationItemUseCaseTest {
     @Test
     void should_return_the_stored_parent() {
         var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
-        var page = aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+        var page = aPage("Setup", folder.getId()).toBuilder()
+                .reference(ownedBy(API_ID))
+                .build();
         queryService.initWith(List.of(folder, page));
 
         assertThat(get(page.getId()).getParentId()).isEqualTo(folder.getId());
@@ -81,20 +83,24 @@ class GetApiPortalNavigationItemUseCaseTest {
     @Test
     void should_mask_the_sensitive_data_of_a_source() {
         var source = PortalNavigationItemSource.builder()
-            .sourceType("github")
-            .sourceConfiguration(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
-            .build();
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).source(source).build();
+                .sourceType("github")
+                .sourceConfiguration(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
+                .build();
+        var page = aPage("Overview", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .source(source)
+                .build();
         queryService.initWith(List.of(page));
 
-        assertThat(get(page.getId()).getSource().getSourceConfiguration()).isEqualTo(
-            PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT
-        );
+        assertThat(get(page.getId()).getSource().getSourceConfiguration())
+                .isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
     }
 
     @Test
     void should_reject_an_item_owned_by_another_api() {
-        var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+        var foreign = aPage("Other overview", null).toBuilder()
+                .reference(ownedBy(OTHER_API_ID))
+                .build();
         queryService.initWith(List.of(foreign));
 
         assertThatThrownBy(() -> get(foreign.getId())).isInstanceOf(PortalNavigationItemNotFoundException.class);
@@ -109,7 +115,8 @@ class GetApiPortalNavigationItemUseCaseTest {
     }
 
     private PortalNavigationItem get(PortalNavigationItemId itemId) {
-        return useCase.execute(new GetApiPortalNavigationItemUseCase.Input(ENV_ID, API_ID, itemId)).item();
+        return useCase.execute(new GetApiPortalNavigationItemUseCase.Input(ENV_ID, API_ID, itemId))
+                .item();
     }
 
     private static NavigationItemReference ownedBy(String apiId) {

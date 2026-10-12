@@ -28,5 +28,6 @@ public interface MembershipDuplicateService {
      * @param userId The user id triggering the duplication.
      * @return The list of duplicated memberships.
      */
-    List<MemberEntity> duplicateMemberships(ExecutionContext executionContext, String sourceApiId, String duplicatedApiId, String userId);
+    List<MemberEntity> duplicateMemberships(
+            ExecutionContext executionContext, String sourceApiId, String duplicatedApiId, String userId);
 }

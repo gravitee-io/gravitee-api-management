@@ -63,12 +63,11 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
             }
 
             Buffer response = httpClientService.request(
-                HttpMethod.POST,
-                serviceUrl(),
-                Collections.singletonMap(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED),
-                "secret=" + secretKey() + "&response=" + token,
-                false
-            );
+                    HttpMethod.POST,
+                    serviceUrl(),
+                    Collections.singletonMap(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED),
+                    "secret=" + secretKey() + "&response=" + token,
+                    false);
             Map res = objectMapper.readValue(response.toString(), Map.class);
 
             Boolean success = (Boolean) res.getOrDefault("success", false);

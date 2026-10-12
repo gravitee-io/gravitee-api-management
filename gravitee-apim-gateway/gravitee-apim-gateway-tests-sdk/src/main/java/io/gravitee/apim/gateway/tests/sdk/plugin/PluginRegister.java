@@ -184,8 +184,9 @@ public interface PluginRegister {
      * @param secretProviderPlugins plugins to register
      */
     default void configureSecretProviders(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) throws Exception {
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins)
+            throws Exception {
         Objects.requireNonNull(secretProviderPlugins);
     }
 

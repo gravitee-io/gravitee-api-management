@@ -71,25 +71,31 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
     }
 
     @ParameterizedTest
     @MethodSource("qosParameters")
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_single(Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json"
+    })
+    void should_receive_messages_single(
+            Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
         final int messageCount = 10;
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), webSocketClient, readyObs);
+        final Single<WebSocket> ws =
+                createWSRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), webSocketClient, readyObs);
 
         final TestSubscriber<JsonObject> obs = Flowable.fromSingle(ws)
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
-            .flatMap(this::extractMessages)
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .flatMap(this::extractMessages)
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
@@ -100,59 +106,61 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json" })
+    @DeployApi({"/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json"})
     void should_close_with_try_again_later_code_when_connection_is_drained(WebSocketClient webSocketClient) {
         final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
         final int messageCountBeforeDrain = 10;
         final List<Completable> readyObs = new ArrayList<>();
 
-        final Single<WebSocket> ws = createWSRequest("/test-qos-auto", UUID.random().toString(), webSocketClient, readyObs);
+        final Single<WebSocket> ws =
+                createWSRequest("/test-qos-auto", UUID.random().toString(), webSocketClient, readyObs);
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicReference<Short> websocketStatus = new AtomicReference<>();
 
-        ws
-            .flatMapCompletable(webSocket ->
-                Completable.ambArray(
-                    publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-auto", MqttQos.AT_LEAST_ONCE),
-                    extractMessages(webSocket)
-                        .doOnNext(buffer -> {
-                            if (counter.incrementAndGet() > messageCountBeforeDrain) {
-                                connectionDrainManager.requestDrain();
-                            }
-                        })
-                        .ignoreElements()
-                        .doOnComplete(() -> websocketStatus.set(webSocket.closeStatusCode()))
-                )
-            )
-            .test()
-            // Expect the flow to finish because of the connection drain.
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+        ws.flatMapCompletable(webSocket -> Completable.ambArray(
+                        publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-auto", MqttQos.AT_LEAST_ONCE),
+                        extractMessages(webSocket)
+                                .doOnNext(buffer -> {
+                                    if (counter.incrementAndGet() > messageCountBeforeDrain) {
+                                        connectionDrainManager.requestDrain();
+                                    }
+                                })
+                                .ignoreElements()
+                                .doOnComplete(() -> websocketStatus.set(webSocket.closeStatusCode()))))
+                .test()
+                // Expect the flow to finish because of the connection drain.
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
 
         assertThat(websocketStatus.get()).isEqualTo((short) TRY_AGAIN_LATER.code());
     }
 
     @ParameterizedTest
     @MethodSource("qosParameters")
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_parallel(Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json"
+    })
+    void should_receive_messages_parallel(
+            Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
         final int messageCount = 20;
         final List<Completable> readyObs = new ArrayList<>();
         final String clientIdentifier = UUID.random().toString();
 
         // Note: use the same client identifier for both requests.
-        final Single<WebSocket> ws1 = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
-        final Single<WebSocket> ws2 = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
+        final Single<WebSocket> ws1 =
+                createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
+        final Single<WebSocket> ws2 =
+                createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = ws1
-            .mergeWith(ws2)
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
-            .groupBy(this::extractTransactionId)
-            .flatMap(groups -> groups.flatMap(this::extractMessages))
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+        final TestSubscriber<JsonObject> obs = ws1.mergeWith(ws2)
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .groupBy(this::extractTransactionId)
+                .flatMap(groups -> groups.flatMap(this::extractMessages))
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
@@ -164,74 +172,75 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
     @ParameterizedTest
     @MethodSource("qosParameters")
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json" })
-    void should_receive_messages_sequential(Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json"
+    })
+    void should_receive_messages_sequential(
+            Qos qos, MqttQos publishQos, boolean expectExactRange, WebSocketClient webSocketClient) {
         final int messageCount = 40;
         final List<Completable> readyObs = new ArrayList<>();
         final String clientIdentifier = UUID.random().toString();
 
-        final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
+        final Single<WebSocket> ws =
+                createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient, readyObs);
 
         final TestSubscriber<JsonObject> obs = Flowable.fromSingle(ws)
-            .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
-            .flatMap(webSocket ->
-                extractMessages(webSocket)
-                    .take(10)
-                    .concatWith(
-                        Single.defer(() ->
-                            createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient).delaySubscription(
-                                500,
-                                TimeUnit.MILLISECONDS
-                            )
-                        )
-                            .flatMapPublisher(this::extractMessages)
-                            .take(10)
-                    )
-                    .repeat(3)
-            )
-            .take(messageCount)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount);
+                .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
+                .flatMap(webSocket -> extractMessages(webSocket)
+                        .take(10)
+                        .concatWith(Single.defer(() -> createWSRequest(
+                                                "/test-qos-" + qos.getLabel(), clientIdentifier, webSocketClient)
+                                        .delaySubscription(500, TimeUnit.MILLISECONDS))
+                                .flatMapPublisher(this::extractMessages)
+                                .take(10))
+                        .repeat(3))
+                .take(messageCount)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount);
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessagesAreUniques(messageCount, obs);
-        // Note: we can't guarantee there is no loss with sse because messages could be acknowledged and sent to the wire while client has closed the request.
+        // Note: we can't guarantee there is no loss with sse because messages could be acknowledged and sent to the
+        // wire while client has closed the request.
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-publish.json" })
+    @DeployApi({"/apis/v4/messages/mqtt5/mqtt5-endpoint-publish.json"})
     void should_publish_messages(WebSocketClient webSocketClient) {
         final String topic = TEST_TOPIC + "-publish";
-        final TestSubscriber<Mqtt5Publish> testSubscriber = subscribeToMqtt5(topic).take(1).test();
+        final TestSubscriber<Mqtt5Publish> testSubscriber =
+                subscribeToMqtt5(topic).take(1).test();
 
         createWSRequest("/test-publish", UUID.random().toString(), webSocketClient)
-            .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message"))
-            .delaySubscription(100, TimeUnit.MILLISECONDS) // No way to know if mqtt5 subscription is ok, let's apply a small delay.
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertNoErrors();
+                .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message"))
+                .delaySubscription(
+                        100,
+                        TimeUnit.MILLISECONDS) // No way to know if mqtt5 subscription is ok, let's apply a small delay.
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertNoErrors();
 
-        testSubscriber
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(frame -> {
-                assertThat(Buffer.buffer(frame.getPayloadAsBytes())).hasToString("message");
-                return true;
-            });
+        testSubscriber.awaitDone(30, TimeUnit.SECONDS).assertValue(frame -> {
+            assertThat(Buffer.buffer(frame.getPayloadAsBytes())).hasToString("message");
+            return true;
+        });
     }
 
-    @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
+    @EnumSource(
+            value = Qos.class,
+            names = {"AT_MOST_ONCE", "AT_LEAST_ONCE"})
     @ParameterizedTest(name = "should reject websocket upgrade with {0} qos")
-    @DeployApi(
-        { "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json" }
-    )
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json"
+    })
     void should_reject_websocket_upgrade_with_unsupported_qos(Qos qos, WebSocketClient webSocketClient) {
         final TestObserver<WebSocket> obs = createWSRequest(
-            "/test-qos-" + qos.getLabel(),
-            UUID.random().toString(),
-            webSocketClient
-        ).test();
+                        "/test-qos-" + qos.getLabel(), UUID.random().toString(), webSocketClient)
+                .test();
 
         obs.awaitDone(30, TimeUnit.SECONDS).assertError(UpgradeRejectedException.class);
     }
@@ -242,37 +251,33 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
         WebSocketConnectOptions options = new WebSocketConnectOptions();
         options.setURI(path);
         options.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
-        options.putHeader("X-Gravitee-Transaction-Id", transactionId); // Force transaction id as it is not possible to retrieve it in the websocket response.
+        options.putHeader(
+                "X-Gravitee-Transaction-Id",
+                transactionId); // Force transaction id as it is not possible to retrieve it in the websocket response.
 
         return webSocketClient
-            .rxConnect(options)
-            .doOnSuccess(webSocket -> webSocket.headers().add("X-Gravitee-Transaction-Id", transactionId));
+                .rxConnect(options)
+                .doOnSuccess(webSocket -> webSocket.headers().add("X-Gravitee-Transaction-Id", transactionId));
     }
 
     @NonNull
     private Single<WebSocket> createWSRequest(
-        String path,
-        String clientIdentifier,
-        WebSocketClient webSocketClient,
-        List<Completable> readyObs
-    ) {
-        return createWSRequest(path, clientIdentifier, webSocketClient).doOnSuccess(webSocket ->
-            readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(webSocket)))
-        );
+            String path, String clientIdentifier, WebSocketClient webSocketClient, List<Completable> readyObs) {
+        return createWSRequest(path, clientIdentifier, webSocketClient)
+                .doOnSuccess(
+                        webSocket -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(webSocket))));
     }
 
     @NonNull
     private Flowable<JsonObject> extractMessages(WebSocket webSocket) {
         final String transactionId = extractTransactionId(webSocket);
         // Map to a json structure to ease the assertions.
-        return webSocket
-            .toFlowable()
-            .map(buffer -> {
-                final String content = buffer.toString();
-                return JsonObject.of("transactionId", transactionId)
+        return webSocket.toFlowable().map(buffer -> {
+            final String content = buffer.toString();
+            return JsonObject.of("transactionId", transactionId)
                     .put("counter", Integer.parseInt(content.replaceFirst(".*message-", "")))
                     .put("content", content);
-            });
+        });
     }
 
     private void verifyMessagesAreOrdered(int messageCount, TestSubscriber<JsonObject> obs) {
@@ -281,11 +286,11 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
         for (int i = 0; i < messageCount; i++) {
             obs.assertValueAt(i, jsonObject -> {
                 final Integer messageCounter = jsonObject.getInteger("counter");
-                final AtomicInteger requestCounter = counters.computeIfAbsent(jsonObject.getString("transactionId"), s ->
-                    new AtomicInteger(messageCounter)
-                );
+                final AtomicInteger requestCounter = counters.computeIfAbsent(
+                        jsonObject.getString("transactionId"), s -> new AtomicInteger(messageCounter));
 
-                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
+                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3
+                // then message-1).
                 assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
                 requestCounter.set(messageCounter);
                 assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);

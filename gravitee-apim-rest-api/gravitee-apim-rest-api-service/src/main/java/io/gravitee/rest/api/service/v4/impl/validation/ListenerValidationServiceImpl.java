@@ -47,11 +47,9 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -73,12 +71,11 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private final VerifyApiHostsDomainService verifyApiHostsDomainService;
 
     public ListenerValidationServiceImpl(
-        final VerifyApiPathDomainService verifyApiPathDomainService,
-        final EntrypointConnectorPluginService entrypointService,
-        EndpointConnectorPluginService endpointService,
-        final CorsValidationService corsValidationService,
-        final VerifyApiHostsDomainService verifyApiHostsDomainService
-    ) {
+            final VerifyApiPathDomainService verifyApiPathDomainService,
+            final EntrypointConnectorPluginService entrypointService,
+            EndpointConnectorPluginService endpointService,
+            final CorsValidationService corsValidationService,
+            final VerifyApiHostsDomainService verifyApiHostsDomainService) {
         this.verifyApiPathDomainService = verifyApiPathDomainService;
         this.entrypointService = entrypointService;
         this.endpointService = endpointService;
@@ -88,11 +85,10 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
 
     @Override
     public List<Listener> validateAndSanitizeHttpV4(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final List<Listener> listeners,
-        final List<EndpointGroup> endpointGroups
-    ) {
+            final ExecutionContext executionContext,
+            final String apiId,
+            final List<Listener> listeners,
+            final List<EndpointGroup> endpointGroups) {
         if (CollectionUtils.isInitializedAndEmpty(listeners)) {
             throw new ListenerMissingException();
         }
@@ -117,11 +113,10 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
 
     @Override
     public List<NativeListener> validateAndSanitizeNativeV4(
-        ExecutionContext executionContext,
-        String apiId,
-        List<NativeListener> listeners,
-        List<NativeEndpointGroup> endpointGroups
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            List<NativeListener> listeners,
+            List<NativeEndpointGroup> endpointGroups) {
         // NativeApi.getListeners() overrides the Lombok getter to return List.of() instead of null,
         // so the null guard here is defensive and unreachable for native APIs.
         if (CollectionUtils.isInitializedAndEmpty(listeners)) {
@@ -139,54 +134,47 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private void validateAndSanitizeKafkaListener(
-        ExecutionContext executionContext,
-        String apiId,
-        KafkaListener listener,
-        List<NativeEndpointGroup> endpointGroups
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            KafkaListener listener,
+            List<NativeEndpointGroup> endpointGroups) {
         verifyApiHostsDomainService.checkApiHosts(
-            executionContext.getEnvironmentId(),
-            apiId,
-            Collections.singletonList(listener.getHost()),
-            ListenerType.KAFKA
-        );
+                executionContext.getEnvironmentId(),
+                apiId,
+                Collections.singletonList(listener.getHost()),
+                ListenerType.KAFKA);
 
         validateEntrypoints(listener.getType(), listener.getEntrypoints(), endpointGroups);
     }
 
     private void checkDuplicatedListeners(final List<? extends AbstractListener> listeners) {
         Set<ListenerType> seenListeners = new HashSet<>();
-        Set<String> duplicatedListeners = listeners
-            .stream()
-            .filter(e -> !seenListeners.add(e.getType()))
-            .map(selector -> selector.getType().getLabel())
-            .collect(Collectors.toSet());
+        Set<String> duplicatedListeners = listeners.stream()
+                .filter(e -> !seenListeners.add(e.getType()))
+                .map(selector -> selector.getType().getLabel())
+                .collect(Collectors.toSet());
         if (!duplicatedListeners.isEmpty()) {
             throw new ListenersDuplicatedException(duplicatedListeners);
         }
     }
 
     private void validateAndSanitizeHttpListener(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final HttpListener httpListener,
-        final List<EndpointGroup> endpointGroups
-    ) {
-        var validationResult = verifyApiPathDomainService.validateAndSanitize(
-            new VerifyApiPathDomainService.Input(
+            final ExecutionContext executionContext,
+            final String apiId,
+            final HttpListener httpListener,
+            final List<EndpointGroup> endpointGroups) {
+        var validationResult = verifyApiPathDomainService.validateAndSanitize(new VerifyApiPathDomainService.Input(
                 executionContext.getEnvironmentId(),
                 apiId,
-                PathAdapter.INSTANCE.fromV4HttpListenerPathList(httpListener.getPaths())
-            )
-        );
+                PathAdapter.INSTANCE.fromV4HttpListenerPathList(httpListener.getPaths())));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new InvalidPathsException(errors.iterator().next().getMessage());
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new InvalidPathsException(errors.iterator().next().getMessage());
+        });
 
-        var sanitizedPaths = validationResult.map(VerifyApiPathDomainService.Input::paths).value().stream().flatMap(List::stream).toList();
+        var sanitizedPaths = validationResult.map(VerifyApiPathDomainService.Input::paths).value().stream()
+                .flatMap(List::stream)
+                .toList();
 
         httpListener.setPaths(PathAdapter.INSTANCE.toV4HttpListenerPathList(sanitizedPaths));
 
@@ -198,29 +186,26 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private void validateAndSanitizeTcpListener(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final TcpListener listener,
-        final List<EndpointGroup> endpointGroups
-    ) {
-        verifyApiHostsDomainService.checkApiHosts(executionContext.getEnvironmentId(), apiId, listener.getHosts(), ListenerType.TCP);
+            final ExecutionContext executionContext,
+            final String apiId,
+            final TcpListener listener,
+            final List<EndpointGroup> endpointGroups) {
+        verifyApiHostsDomainService.checkApiHosts(
+                executionContext.getEnvironmentId(), apiId, listener.getHosts(), ListenerType.TCP);
 
         validateEntrypoints(listener.getType(), listener.getEntrypoints(), endpointGroups);
     }
 
     private void validateAndSanitizeSubscriptionListener(
-        final SubscriptionListener subscriptionListener,
-        final List<EndpointGroup> endpointGroups
-    ) {
+            final SubscriptionListener subscriptionListener, final List<EndpointGroup> endpointGroups) {
         // Validate and clean entrypoints
         validateEntrypoints(subscriptionListener.getType(), subscriptionListener.getEntrypoints(), endpointGroups);
     }
 
     private void validateEntrypoints(
-        final ListenerType type,
-        final List<? extends AbstractEntrypoint> entrypoints,
-        final List<? extends AbstractEndpointGroup> endpointGroups
-    ) {
+            final ListenerType type,
+            final List<? extends AbstractEntrypoint> entrypoints,
+            final List<? extends AbstractEndpointGroup> endpointGroups) {
         if (entrypoints == null || entrypoints.isEmpty()) {
             throw new ListenerEntrypointMissingException(type);
         }
@@ -244,19 +229,18 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private void checkEntrypointQos(
-        final Entrypoint entrypoint,
-        final List<EndpointGroup> endpointGroups,
-        final ConnectorPluginEntity connectorPlugin
-    ) {
+            final Entrypoint entrypoint,
+            final List<EndpointGroup> endpointGroups,
+            final ConnectorPluginEntity connectorPlugin) {
         if (connectorPlugin.getSupportedApiType() == ApiType.MESSAGE) {
             if (entrypoint.getQos() == null) {
                 throw new ListenerEntrypointInvalidQosException(entrypoint.getType());
             }
-            if (
-                connectorPlugin.getSupportedApiType() == ApiType.MESSAGE &&
-                (connectorPlugin.getSupportedQos() == null || !connectorPlugin.getSupportedQos().contains(entrypoint.getQos()))
-            ) {
-                throw new ListenerEntrypointUnsupportedQosException(entrypoint.getType(), entrypoint.getQos().getLabel());
+            if (connectorPlugin.getSupportedApiType() == ApiType.MESSAGE
+                    && (connectorPlugin.getSupportedQos() == null
+                            || !connectorPlugin.getSupportedQos().contains(entrypoint.getQos()))) {
+                throw new ListenerEntrypointUnsupportedQosException(
+                        entrypoint.getType(), entrypoint.getQos().getLabel());
             }
 
             if (!checkEntrypointQosEndpoint(endpointGroups, entrypoint.getQos())) {
@@ -266,24 +250,19 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private boolean checkEntrypointQosEndpoint(List<EndpointGroup> endpointGroups, Qos qos) {
-        return endpointGroups
-            .stream()
-            .allMatch(endpointGroup -> {
-                final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
-                return (
-                    endpointConnectorPlugin != null &&
-                    endpointConnectorPlugin.getSupportedApiType() == ApiType.MESSAGE &&
-                    endpointConnectorPlugin.getSupportedQos() != null &&
-                    endpointConnectorPlugin.getSupportedQos().contains(qos)
-                );
-            });
+        return endpointGroups.stream().allMatch(endpointGroup -> {
+            final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
+            return (endpointConnectorPlugin != null
+                    && endpointConnectorPlugin.getSupportedApiType() == ApiType.MESSAGE
+                    && endpointConnectorPlugin.getSupportedQos() != null
+                    && endpointConnectorPlugin.getSupportedQos().contains(qos));
+        });
     }
 
     private void checkEntrypointDlq(
-        final Entrypoint entrypoint,
-        final List<EndpointGroup> endpointGroups,
-        final ConnectorPluginEntity connectorPlugin
-    ) {
+            final Entrypoint entrypoint,
+            final List<EndpointGroup> endpointGroups,
+            final ConnectorPluginEntity connectorPlugin) {
         final Dlq dlq = entrypoint.getDlq();
         if (dlq != null) {
             if (!connectorPlugin.getAvailableFeatures().contains(ConnectorFeature.DLQ)) {
@@ -297,20 +276,14 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private boolean checkEntrypointDlqEndpoint(List<EndpointGroup> endpointGroups, Dlq dlq) {
-        return endpointGroups
-            .stream()
-            .anyMatch(endpointGroup -> {
-                final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
-                return (
-                    endpointConnectorPlugin != null &&
-                    endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH) &&
-                    (endpointGroup.getName().equals(dlq.getEndpoint()) ||
-                        endpointGroup
-                            .getEndpoints()
-                            .stream()
-                            .anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint())))
-                );
-            });
+        return endpointGroups.stream().anyMatch(endpointGroup -> {
+            final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
+            return (endpointConnectorPlugin != null
+                    && endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH)
+                    && (endpointGroup.getName().equals(dlq.getEndpoint())
+                            || endpointGroup.getEndpoints().stream()
+                                    .anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint()))));
+        });
     }
 
     private void checkEntrypointConfiguration(final AbstractEntrypoint entrypoint) {
@@ -318,7 +291,8 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         if (entrypoint.getConfiguration() != null) {
             entrypointConfiguration = entrypoint.getConfiguration();
         }
-        entrypoint.setConfiguration(entrypointService.validateConnectorConfiguration(entrypoint.getType(), entrypointConfiguration));
+        entrypoint.setConfiguration(
+                entrypointService.validateConnectorConfiguration(entrypoint.getType(), entrypointConfiguration));
     }
 
     private void checkEntrypointListenerType(final ListenerType type, final ConnectorPluginEntity connectorPlugin) {
@@ -327,14 +301,14 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         }
     }
 
-    private void checkDuplicatedEntrypoints(final ListenerType type, final List<? extends AbstractEntrypoint> entrypoints) {
+    private void checkDuplicatedEntrypoints(
+            final ListenerType type, final List<? extends AbstractEntrypoint> entrypoints) {
         if (entrypoints != null) {
             var seenEntrypoints = new HashSet<>();
-            Set<String> duplicatedEntrypoints = entrypoints
-                .stream()
-                .filter(e -> !seenEntrypoints.add(e))
-                .map(AbstractEntrypoint::getType)
-                .collect(Collectors.toSet());
+            Set<String> duplicatedEntrypoints = entrypoints.stream()
+                    .filter(e -> !seenEntrypoints.add(e))
+                    .map(AbstractEntrypoint::getType)
+                    .collect(Collectors.toSet());
             if (!duplicatedEntrypoints.isEmpty()) {
                 throw new ListenerEntrypointDuplicatedException(type, duplicatedEntrypoints);
             }
@@ -348,7 +322,8 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                 try {
                     Pattern.compile(pathMapping);
                 } catch (java.util.regex.PatternSyntaxException pse) {
-                    String errorMsg = String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
+                    String errorMsg =
+                            String.format("An error occurs while trying to parse the path mapping '%s'", pathMapping);
                     log.error(errorMsg, pse);
                     throw new TechnicalManagementException(errorMsg, pse);
                 }

@@ -33,19 +33,17 @@ public class GrpcConnector extends HttpConnector {
     private static final String GRPC_TRAILERS_TE = "trailers";
 
     public GrpcConnector(
-        final HttpProxyEndpointConnectorConfiguration configuration,
-        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
-        final GrpcHttpClientFactory grpcHttpClientFactory
-    ) {
+            final HttpProxyEndpointConnectorConfiguration configuration,
+            final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
+            final GrpcHttpClientFactory grpcHttpClientFactory) {
         super(configuration, sharedConfiguration, grpcHttpClientFactory);
     }
 
     @Override
     protected RequestOptions buildRequestOptions(final HttpExecutionContext ctx) {
-        return super
-            .buildRequestOptions(ctx)
-            .setMethod(HttpMethod.POST)
-            .putHeader(HttpHeaderNames.CONTENT_TYPE, MediaType.APPLICATION_GRPC)
-            .putHeader(HttpHeaderNames.TE, GRPC_TRAILERS_TE);
+        return super.buildRequestOptions(ctx)
+                .setMethod(HttpMethod.POST)
+                .putHeader(HttpHeaderNames.CONTENT_TYPE, MediaType.APPLICATION_GRPC)
+                .putHeader(HttpHeaderNames.TE, GRPC_TRAILERS_TE);
     }
 }

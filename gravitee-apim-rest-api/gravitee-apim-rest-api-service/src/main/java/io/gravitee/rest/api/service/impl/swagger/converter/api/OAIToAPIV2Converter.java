@@ -64,7 +64,8 @@ import org.springframework.util.CollectionUtils;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>, OAIDescriptorVisitor<SwaggerApiEntity> {
+public class OAIToAPIV2Converter
+        implements SwaggerToApiConverter<OAIDescriptor>, OAIDescriptorVisitor<SwaggerApiEntity> {
 
     public static final String X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION = "x-graviteeio-definition";
 
@@ -80,12 +81,11 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
     private final PolicyPluginService policyPluginService;
 
     public OAIToAPIV2Converter(
-        ImportSwaggerDescriptorEntity swaggerDescriptor,
-        PolicyOperationVisitorManager policyOperationVisitorManager,
-        GroupService groupService,
-        TagService tagService,
-        PolicyPluginService policyPluginService
-    ) {
+            ImportSwaggerDescriptorEntity swaggerDescriptor,
+            PolicyOperationVisitorManager policyOperationVisitorManager,
+            GroupService groupService,
+            TagService tagService,
+            PolicyPluginService policyPluginService) {
         this.swaggerDescriptor = swaggerDescriptor;
         this.policyOperationVisitorManager = policyOperationVisitorManager;
         this.groupService = groupService;
@@ -97,16 +97,12 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
         if (visitors == null) {
             visitors = new ArrayList<>();
             if (swaggerDescriptor.isWithPolicyPaths()) {
-                visitors = policyOperationVisitorManager
-                    .getPolicyVisitors()
-                    .stream()
-                    .filter(
-                        operationVisitor ->
-                            swaggerDescriptor.getWithPolicies() != null &&
-                            swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId())
-                    )
-                    .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
-                    .collect(Collectors.toList());
+                visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
+                        .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
+                                && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
+                        .map(operationVisitor ->
+                                policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
+                        .collect(Collectors.toList());
             }
         }
         return visitors;
@@ -130,8 +126,9 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
 
         // Description
         apiEntity.setDescription(
-            oai.getInfo().getDescription() == null ? "Description of " + apiEntity.getName() : oai.getInfo().getDescription()
-        );
+                oai.getInfo().getDescription() == null
+                        ? "Description of " + apiEntity.getName()
+                        : oai.getInfo().getDescription());
 
         // Version
         apiEntity.setVersion(oai.getInfo().getVersion());
@@ -141,10 +138,10 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
         // Use X-Gravitee to add information in API
         XGraviteeIODefinition xGraviteeIODefinition = null;
         if (oai.getExtensions() != null && oai.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION) != null) {
-            xGraviteeIODefinition = new ObjectMapper().convertValue(
-                oai.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION),
-                XGraviteeIODefinition.class
-            );
+            xGraviteeIODefinition = new ObjectMapper()
+                    .convertValue(
+                            oai.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION),
+                            XGraviteeIODefinition.class);
         }
 
         // Proxy
@@ -160,14 +157,22 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
 
             if (evaluatedServerUrl.size() == 1) {
                 defaultEndpoint = evaluatedServerUrl.get(0);
-                defaultGroup.setEndpoints(singleton(Endpoint.builder().name("default").target(defaultEndpoint).inherit(true).build()));
+                defaultGroup.setEndpoints(singleton(Endpoint.builder()
+                        .name("default")
+                        .target(defaultEndpoint)
+                        .inherit(true)
+                        .build()));
             } else {
                 defaultEndpoint = evaluatedServerUrl.get(0);
                 defaultGroup.setEndpoints(new HashSet<>());
                 for (int i = 0; i < evaluatedServerUrl.size(); i++) {
                     defaultGroup
-                        .getEndpoints()
-                        .add(Endpoint.builder().name("server" + (i + 1)).target(evaluatedServerUrl.get(i)).inherit(true).build());
+                            .getEndpoints()
+                            .add(Endpoint.builder()
+                                    .name("server" + (i + 1))
+                                    .target(evaluatedServerUrl.get(i))
+                                    .inherit(true)
+                                    .build());
                 }
             }
             proxy.setGroups(singleton(defaultGroup));
@@ -177,19 +182,12 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
 
         // Proxy - Context Path / Virtual Host
         if (xGraviteeIODefinition != null && xGraviteeIODefinition.getVirtualHosts() != null) {
-            proxy.setVirtualHosts(
-                xGraviteeIODefinition
-                    .getVirtualHosts()
-                    .stream()
-                    .map(vHost ->
-                        new VirtualHost(
+            proxy.setVirtualHosts(xGraviteeIODefinition.getVirtualHosts().stream()
+                    .map(vHost -> new VirtualHost(
                             vHost.getHost(),
                             vHost.getPath(),
-                            (vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)
-                        )
-                    )
-                    .collect(Collectors.toList())
-            );
+                            (vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)))
+                    .collect(Collectors.toList()));
         } else {
             String contextPath = null;
             if (defaultEndpoint != null) {
@@ -205,78 +203,78 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
         // Add xGraviteeIODefinition config
         if (xGraviteeIODefinition != null) {
             // Categories
-            if (xGraviteeIODefinition.getCategories() != null && !xGraviteeIODefinition.getCategories().isEmpty()) {
+            if (xGraviteeIODefinition.getCategories() != null
+                    && !xGraviteeIODefinition.getCategories().isEmpty()) {
                 apiEntity.setCategories(new HashSet<>(xGraviteeIODefinition.getCategories()));
             }
 
             // Groups
-            if (xGraviteeIODefinition.getGroups() != null && !xGraviteeIODefinition.getGroups().isEmpty()) {
-                Set<String> groupIdsToImport = xGraviteeIODefinition
-                    .getGroups()
-                    .stream()
-                    .flatMap(group -> groupService.findByName(executionContext.getEnvironmentId(), group).stream())
-                    .map(GroupEntity::getId)
-                    .collect(Collectors.toCollection(HashSet::new));
+            if (xGraviteeIODefinition.getGroups() != null
+                    && !xGraviteeIODefinition.getGroups().isEmpty()) {
+                Set<String> groupIdsToImport = xGraviteeIODefinition.getGroups().stream()
+                        .flatMap(group -> groupService.findByName(executionContext.getEnvironmentId(), group).stream())
+                        .map(GroupEntity::getId)
+                        .collect(Collectors.toCollection(HashSet::new));
                 apiEntity.setGroups(groupIdsToImport);
             }
 
             // Labels
-            if (xGraviteeIODefinition.getLabels() != null && !xGraviteeIODefinition.getLabels().isEmpty()) {
+            if (xGraviteeIODefinition.getLabels() != null
+                    && !xGraviteeIODefinition.getLabels().isEmpty()) {
                 apiEntity.setLabels(xGraviteeIODefinition.getLabels());
             }
 
             // Metadata
-            if (xGraviteeIODefinition.getMetadata() != null && !xGraviteeIODefinition.getMetadata().isEmpty()) {
-                final List<ApiMetadataEntity> apiMetadataEntities = xGraviteeIODefinition
-                    .getMetadata()
-                    .stream()
-                    .map(metadata -> {
-                        ApiMetadataEntity apiMetadata = new ApiMetadataEntity();
-                        apiMetadata.setKey(IdGenerator.generate(metadata.getName()));
-                        apiMetadata.setName(metadata.getName());
-                        apiMetadata.setValue(metadata.getValue());
-                        apiMetadata.setFormat(
-                            metadata.getFormat() != null ? MetadataFormat.valueOf(metadata.getFormat().name()) : MetadataFormat.STRING
-                        );
-                        return apiMetadata;
-                    })
-                    .collect(Collectors.toList());
+            if (xGraviteeIODefinition.getMetadata() != null
+                    && !xGraviteeIODefinition.getMetadata().isEmpty()) {
+                final List<ApiMetadataEntity> apiMetadataEntities = xGraviteeIODefinition.getMetadata().stream()
+                        .map(metadata -> {
+                            ApiMetadataEntity apiMetadata = new ApiMetadataEntity();
+                            apiMetadata.setKey(IdGenerator.generate(metadata.getName()));
+                            apiMetadata.setName(metadata.getName());
+                            apiMetadata.setValue(metadata.getValue());
+                            apiMetadata.setFormat(
+                                    metadata.getFormat() != null
+                                            ? MetadataFormat.valueOf(
+                                                    metadata.getFormat().name())
+                                            : MetadataFormat.STRING);
+                            return apiMetadata;
+                        })
+                        .collect(Collectors.toList());
                 apiEntity.setMetadata(apiMetadataEntities);
             }
 
             // Picture
-            if (xGraviteeIODefinition.getPicture() != null && !StringUtils.isEmpty(xGraviteeIODefinition.getPicture())) {
+            if (xGraviteeIODefinition.getPicture() != null
+                    && !StringUtils.isEmpty(xGraviteeIODefinition.getPicture())) {
                 if (xGraviteeIODefinition.getPicture().matches(PICTURE_REGEX)) {
                     apiEntity.setPicture(xGraviteeIODefinition.getPicture());
                 }
             }
 
             // Properties
-            if (xGraviteeIODefinition.getProperties() != null && !xGraviteeIODefinition.getProperties().isEmpty()) {
+            if (xGraviteeIODefinition.getProperties() != null
+                    && !xGraviteeIODefinition.getProperties().isEmpty()) {
                 PropertiesEntity properties = new PropertiesEntity();
-                properties.setProperties(
-                    xGraviteeIODefinition
-                        .getProperties()
-                        .stream()
+                properties.setProperties(xGraviteeIODefinition.getProperties().stream()
                         .map(prop -> new PropertyEntity(prop.getKey(), prop.getValue()))
-                        .collect(Collectors.toList())
-                );
+                        .collect(Collectors.toList()));
 
                 apiEntity.setProperties(properties);
             }
 
             // Tags
-            if (xGraviteeIODefinition.getTags() != null && !xGraviteeIODefinition.getTags().isEmpty()) {
-                final Map<String, String> tagMap = tagService
-                    .findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION)
-                    .stream()
-                    .collect(toMap(TagEntity::getKey, TagEntity::getName));
-                final Set<String> tagKeyToAdd = xGraviteeIODefinition
-                    .getTags()
-                    .stream()
-                    .map(tag -> findTagKeyByName(tagMap, tag))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
+            if (xGraviteeIODefinition.getTags() != null
+                    && !xGraviteeIODefinition.getTags().isEmpty()) {
+                final Map<String, String> tagMap =
+                        tagService
+                                .findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION)
+                                .stream()
+                                .collect(toMap(TagEntity::getKey, TagEntity::getName));
+                final Set<String> tagKeyToAdd = xGraviteeIODefinition.getTags().stream()
+                        .map(tag -> findTagKeyByName(tagMap, tag))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
                 if (!tagKeyToAdd.isEmpty()) {
                     apiEntity.setTags(tagKeyToAdd);
                 }
@@ -284,7 +282,8 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
 
             // Visibility
             if (xGraviteeIODefinition.getVisibility() != null) {
-                apiEntity.setVisibility(Visibility.valueOf(xGraviteeIODefinition.getVisibility().name()));
+                apiEntity.setVisibility(
+                        Visibility.valueOf(xGraviteeIODefinition.getVisibility().name()));
             }
         }
         return apiEntity;
@@ -297,63 +296,60 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
         Set<String> pathMappings = new HashSet();
 
         if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
-            oai
-                .getPaths()
-                .forEach((key, pathItem) -> {
-                    String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
-                    if (swaggerDescriptor.isWithPathMapping()) {
-                        pathMappings.add(path);
-                    }
+            oai.getPaths().forEach((key, pathItem) -> {
+                String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
+                if (swaggerDescriptor.isWithPathMapping()) {
+                    pathMappings.add(path);
+                }
 
-                    if (swaggerDescriptor.isWithPolicyPaths()) {
-                        Map<PathItem.HttpMethod, io.swagger.v3.oas.models.Operation> operations = pathItem.readOperationsMap();
-                        operations.forEach((httpMethod, operation) -> {
-                            final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                if (swaggerDescriptor.isWithPolicyPaths()) {
+                    Map<PathItem.HttpMethod, io.swagger.v3.oas.models.Operation> operations =
+                            pathItem.readOperationsMap();
+                    operations.forEach((httpMethod, operation) -> {
+                        final Flow flow =
+                                createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                            getVisitors().forEach(
-                                (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
-                                    Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-                                    if (policy.isPresent()) {
-                                        final Step step = new Step();
-                                        String policyId = policy.get().getName();
-                                        step.setPolicy(policyId);
-                                        step.setEnabled(true);
-                                        try {
-                                            PolicyPluginEntity plugin = policyPluginService.findById(policyId);
-                                            step.setName(plugin != null ? plugin.getName() : policyId);
-                                        } catch (RuntimeException e) {
-                                            log.warn(
-                                                "An error occurred while trying to retrieve the policy plugin '{}' for API '{}'. Falling back to policy id.",
-                                                policyId,
-                                                apiEntity.getName(),
-                                                e
-                                            );
-                                            step.setName(policyId);
-                                        }
-                                        step.setDescription(
-                                            operation.getSummary() == null
+                        getVisitors().forEach((Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
+                            Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                            if (policy.isPresent()) {
+                                final Step step = new Step();
+                                String policyId = policy.get().getName();
+                                step.setPolicy(policyId);
+                                step.setEnabled(true);
+                                try {
+                                    PolicyPluginEntity plugin = policyPluginService.findById(policyId);
+                                    step.setName(plugin != null ? plugin.getName() : policyId);
+                                } catch (RuntimeException e) {
+                                    log.warn(
+                                            "An error occurred while trying to retrieve the policy plugin '{}' for API '{}'. Falling back to policy id.",
+                                            policyId,
+                                            apiEntity.getName(),
+                                            e);
+                                    step.setName(policyId);
+                                }
+                                step.setDescription(
+                                        operation.getSummary() == null
                                                 ? (operation.getOperationId() == null
                                                         ? operation.getDescription()
                                                         : operation.getOperationId())
-                                                : operation.getSummary()
-                                        );
+                                                : operation.getSummary());
 
-                                        String configuration = clearNullValues(policy.get().getConfiguration());
-                                        step.setConfiguration(configuration);
+                                String configuration =
+                                        clearNullValues(policy.get().getConfiguration());
+                                step.setConfiguration(configuration);
 
-                                        String scope = getScope(configuration);
-                                        if (scope != null && scope.toLowerCase().equals("response")) {
-                                            flow.getPost().add(step);
-                                        } else {
-                                            flow.getPre().add(step);
-                                        }
-                                    }
+                                String scope = getScope(configuration);
+                                if (scope != null && scope.toLowerCase().equals("response")) {
+                                    flow.getPost().add(step);
+                                } else {
+                                    flow.getPre().add(step);
                                 }
-                            );
-                            allFlows.add(flow);
+                            }
                         });
-                    }
-                });
+                        allFlows.add(flow);
+                    });
+                }
+            });
         }
 
         // Path Mappings
@@ -398,7 +394,8 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
             } else {
                 List<String> evaluatedUrls = Collections.singletonList(serverUrl);
                 for (Map.Entry<String, ServerVariable> serverVar : serverVariables.entrySet()) {
-                    evaluatedUrls = evaluateServerUrlsForOneVar(serverVar.getKey(), serverVar.getValue(), evaluatedUrls);
+                    evaluatedUrls =
+                            evaluateServerUrlsForOneVar(serverVar.getKey(), serverVar.getValue(), evaluatedUrls);
                 }
                 endpoints.addAll(evaluatedUrls);
             }
@@ -406,7 +403,8 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
         return endpoints;
     }
 
-    private List<String> evaluateServerUrlsForOneVar(String varName, ServerVariable serverVar, List<String> templateUrls) {
+    private List<String> evaluateServerUrlsForOneVar(
+            String varName, ServerVariable serverVar, List<String> templateUrls) {
         List<String> evaluatedUrls = new ArrayList<>();
         for (String templateUrl : templateUrls) {
             Matcher matcher = Pattern.compile("\\{" + varName + "\\}").matcher(templateUrl);

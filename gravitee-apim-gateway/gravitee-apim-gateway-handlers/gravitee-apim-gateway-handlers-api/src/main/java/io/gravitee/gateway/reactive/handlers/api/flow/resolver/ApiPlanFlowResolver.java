@@ -18,8 +18,6 @@ package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
@@ -51,15 +49,11 @@ class ApiPlanFlowResolver extends AbstractFlowResolver<HttpBaseExecutionContext>
 
         final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
 
-        return Flowable.fromIterable(
-            api
-                .getPlans()
-                .stream()
+        return Flowable.fromIterable(api.getPlans().stream()
                 .filter(plan -> Objects.equals(plan.getId(), planId))
                 .filter(plan -> Objects.nonNull(plan.getFlows()))
                 .flatMap(plan -> plan.getFlows().stream())
                 .filter(Flow::isEnabled)
-                .collect(Collectors.toList())
-        );
+                .collect(Collectors.toList()));
     }
 }

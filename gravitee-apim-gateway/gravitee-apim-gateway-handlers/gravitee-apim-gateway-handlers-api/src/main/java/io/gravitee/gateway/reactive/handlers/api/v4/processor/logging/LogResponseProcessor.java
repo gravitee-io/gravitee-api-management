@@ -50,7 +50,8 @@ public class LogResponseProcessor implements Processor {
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             final Log log = ctx.metrics().getLog();
-            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final AnalyticsContext analyticsContext =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext.entrypointResponse()) {
@@ -58,20 +59,19 @@ public class LogResponseProcessor implements Processor {
                 entrypointResponse.capture(ctx);
             }
 
-            if (log != null && loggingContext.endpointResponse() && ApiType.MESSAGE == ApiType.fromLabel(ctx.metrics().getApiType())) {
+            if (log != null
+                    && loggingContext.endpointResponse()
+                    && ApiType.MESSAGE == ApiType.fromLabel(ctx.metrics().getApiType())) {
                 final Response endpointResponse = log.getEndpointResponse();
                 if (endpointResponse != null && endpointResponse.getStatus() != 0) {
-                    final ExecutionFailure executionFailure = ctx.getInternalAttribute(
-                        InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE
-                    );
+                    final ExecutionFailure executionFailure =
+                            ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
                     if (executionFailure != null) {
                         endpointResponse.setStatus(executionFailure.statusCode());
-                        if (
-                            loggingContext.endpointResponsePayload() &&
-                            loggingContext.isBodyLoggable() &&
-                            executionFailure.message() != null &&
-                            endpointResponse.getBody() == null
-                        ) {
+                        if (loggingContext.endpointResponsePayload()
+                                && loggingContext.isBodyLoggable()
+                                && executionFailure.message() != null
+                                && endpointResponse.getBody() == null) {
                             endpointResponse.setBody(executionFailure.message());
                         }
                     }

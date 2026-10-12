@@ -59,9 +59,9 @@ public class DateUtils {
 
     public static Condition<Date> close(String expected) {
         return new Condition<>(
-            v -> v != null && compareDate(v.getTime(), Instant.parse(expected).toEpochMilli()),
-            "is close to %s",
-            expected
-        );
+                v -> v != null
+                        && compareDate(v.getTime(), Instant.parse(expected).toEpochMilli()),
+                "is close to %s",
+                expected);
     }
 }

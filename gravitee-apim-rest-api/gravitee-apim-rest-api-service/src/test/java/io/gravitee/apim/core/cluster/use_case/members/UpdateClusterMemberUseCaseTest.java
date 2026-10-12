@@ -19,10 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import inmemory.MemberQueryServiceInMemory;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.member.model.Member;
-import io.gravitee.apim.core.member.query_service.MemberQueryService;
-import io.gravitee.apim.core.membership.model.AddMember;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -54,22 +51,21 @@ class UpdateClusterMemberUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_role_is_primary_owner() {
-        assertThrows(SinglePrimaryOwnerException.class, () ->
-            updateClusterMemberUseCase.execute(new UpdateClusterMemberUseCase.Input("PRIMARY_OWNER", "member-1", "cluster-1"))
-        );
+        assertThrows(
+                SinglePrimaryOwnerException.class,
+                () -> updateClusterMemberUseCase.execute(
+                        new UpdateClusterMemberUseCase.Input("PRIMARY_OWNER", "member-1", "cluster-1")));
     }
 
     private void initMembers() {
         Member.Role role = Member.Role.builder().name("OWNER").build();
-        List<Member> members = List.of(
-            Member.builder()
+        List<Member> members = List.of(Member.builder()
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")
                 .type(MembershipMemberType.USER)
                 .id("member-1")
                 .roles(List.of(role))
-                .build()
-        );
+                .build());
         memberQueryService.initWith(members);
     }
 }

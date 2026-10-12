@@ -70,27 +70,38 @@ public class ApiProductPlanResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiProductPlan(@PathParam("planId") String planId) {
         log.debug("Getting Plan {} for API Product {}", planId, apiProductId);
-        var output = getPlansUseCase.execute(GetPlansUseCase.Input.of(apiProductId, planId, GenericPlanEntity.ReferenceType.API_PRODUCT));
-        return output
-            .plan()
-            .map(p -> {
-                log.debug("Plan {} found for API Product {}", planId, apiProductId);
-                return Response.ok(planMapper.mapGenericPlan(p)).build();
-            })
-            .orElseGet(() -> {
-                log.debug("Plan {} not found for API Product {}", planId, apiProductId);
-                return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
-            });
+        var output = getPlansUseCase.execute(
+                GetPlansUseCase.Input.of(apiProductId, planId, GenericPlanEntity.ReferenceType.API_PRODUCT));
+        return output.plan()
+                .map(p -> {
+                    log.debug("Plan {} found for API Product {}", planId, apiProductId);
+                    return Response.ok(planMapper.mapGenericPlan(p)).build();
+                })
+                .orElseGet(() -> {
+                    log.debug("Plan {} not found for API Product {}", planId, apiProductId);
+                    return Response.status(Response.Status.NOT_FOUND)
+                            .entity(planNotFoundError(planId))
+                            .build();
+                });
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiProductPlan(@PathParam("planId") String planId, @Valid @NotNull UpdateGenericApiProductPlan updatePlan) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.UPDATE})
+    })
+    public Response updateApiProductPlan(
+            @PathParam("planId") String planId, @Valid @NotNull UpdateGenericApiProductPlan updatePlan) {
         log.debug("Updating Plan {} for API Product {}", planId, apiProductId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
@@ -100,23 +111,18 @@ public class ApiProductPlanResource extends AbstractResource {
         updatePlanEntity.setReferenceId(apiProductId);
         updatePlanEntity.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
 
-        var output = updateApiProductPlanUseCase.execute(
-            new UpdateApiProductPlanUseCase.Input(
+        var output = updateApiProductPlanUseCase.execute(new UpdateApiProductPlanUseCase.Input(
                 updatePlanEntity,
                 apiProductId,
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(userDetails.getUsername())
-                            .userSource(userDetails.getSource())
-                            .userSourceId(userDetails.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build()));
 
         log.debug("Plan {} updated for API Product {}", planId, apiProductId);
         return Response.ok(planMapper.map(output.updated())).build();
@@ -124,30 +130,29 @@ public class ApiProductPlanResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deleteApiProductPlan(@PathParam("planId") String planId) {
         log.debug("Deleting Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        planOperationsUseCase.execute(
-            new PlanOperationsUseCase.Input(
+        planOperationsUseCase.execute(new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
                 GenericPlanEntity.ReferenceType.API_PRODUCT,
                 DELETE,
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(userDetails.getUsername())
-                            .userSource(userDetails.getSource())
-                            .userSourceId(userDetails.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build()));
         log.debug("Plan {} deleted for API Product {}", planId, apiProductId);
         return Response.noContent().build();
     }
@@ -155,30 +160,29 @@ public class ApiProductPlanResource extends AbstractResource {
     @POST
     @Path("/_close")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response closeApiProductPlan(@PathParam("planId") String planId) {
         log.debug("Closing Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var output = planOperationsUseCase.execute(
-            new PlanOperationsUseCase.Input(
+        var output = planOperationsUseCase.execute(new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
                 GenericPlanEntity.ReferenceType.API_PRODUCT,
                 CLOSE,
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(userDetails.getUsername())
-                            .userSource(userDetails.getSource())
-                            .userSourceId(userDetails.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build()));
         log.debug("Plan {} closed for API Product {}", planId, apiProductId);
         return Response.ok(planMapper.mapGenericPlan(output.plan())).build();
     }
@@ -186,30 +190,29 @@ public class ApiProductPlanResource extends AbstractResource {
     @POST
     @Path("/_publish")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response publishApiProductPlan(@PathParam("planId") String planId) {
         log.debug("Publishing Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var output = planOperationsUseCase.execute(
-            new PlanOperationsUseCase.Input(
+        var output = planOperationsUseCase.execute(new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
                 GenericPlanEntity.ReferenceType.API_PRODUCT,
                 PUBLISH,
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(userDetails.getUsername())
-                            .userSource(userDetails.getSource())
-                            .userSourceId(userDetails.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build()));
         log.debug("Plan {} published for API Product {}", planId, apiProductId);
         return Response.ok(planMapper.mapGenericPlan(output.plan())).build();
     }
@@ -217,30 +220,29 @@ public class ApiProductPlanResource extends AbstractResource {
     @POST
     @Path("/_deprecate")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_PLAN, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_PLAN,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response deprecateApiProductPlan(@PathParam("planId") String planId) {
         log.debug("Deprecating Plan {} for API Product {}", planId, apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
-        var output = planOperationsUseCase.execute(
-            new PlanOperationsUseCase.Input(
+        var output = planOperationsUseCase.execute(new PlanOperationsUseCase.Input(
                 planId,
                 apiProductId,
                 GenericPlanEntity.ReferenceType.API_PRODUCT,
                 DEPRECATE,
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(userDetails.getUsername())
-                            .userSource(userDetails.getSource())
-                            .userSourceId(userDetails.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build()));
         log.debug("Plan {} deprecated for API Product {}", planId, apiProductId);
         return Response.ok(planMapper.mapGenericPlan(output.plan())).build();
     }
@@ -248,9 +250,9 @@ public class ApiProductPlanResource extends AbstractResource {
     private io.gravitee.rest.api.management.v2.rest.model.Error planNotFoundError(String plan) {
         log.debug("Building plan not found error for Plan {} (API Product {})", plan, apiProductId);
         return new Error()
-            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
-            .message("Plan [" + plan + "] cannot be found.")
-            .putParametersItem("plan", plan)
-            .technicalCode("plan.notFound");
+                .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+                .message("Plan [" + plan + "] cannot be found.")
+                .putParametersItem("plan", plan)
+                .technicalCode("plan.notFound");
     }
 }

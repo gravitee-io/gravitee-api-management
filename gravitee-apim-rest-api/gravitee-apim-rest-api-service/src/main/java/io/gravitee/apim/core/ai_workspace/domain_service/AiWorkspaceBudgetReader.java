@@ -39,7 +39,8 @@ public final class AiWorkspaceBudgetReader {
 
     static final String COST_RATELIMIT = "cost-ratelimit";
     private static final BigDecimal MICRO_DOLLARS = BigDecimal.valueOf(1_000_000L);
-    private static final Map<Integer, String> PERIOD_BY_MINUTES = Map.of(60, "HOUR", 1_440, "DAY", 10_080, "WEEK", 43_200, "MONTH");
+    private static final Map<Integer, String> PERIOD_BY_MINUTES =
+            Map.of(60, "HOUR", 1_440, "DAY", 10_080, "WEEK", 43_200, "MONTH");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private AiWorkspaceBudgetReader() {}
@@ -82,7 +83,8 @@ public final class AiWorkspaceBudgetReader {
         if (!rate.path("limit").isNumber()) {
             return Optional.empty();
         }
-        BigDecimal amount = BigDecimal.valueOf(rate.path("limit").asLong()).divide(MICRO_DOLLARS, 2, RoundingMode.HALF_UP);
+        BigDecimal amount =
+                BigDecimal.valueOf(rate.path("limit").asLong()).divide(MICRO_DOLLARS, 2, RoundingMode.HALF_UP);
         String period = period(rate);
         return Optional.of(new AiWorkspaceBudget(amount, period));
     }
@@ -95,10 +97,9 @@ public final class AiWorkspaceBudgetReader {
         String period = PERIOD_BY_MINUTES.get(minutes);
         if (period == null && rate.path("periodTime").isNumber()) {
             log.debug(
-                "cost-ratelimit window periodTime {} {} is not HOUR, DAY, WEEK or MONTH",
-                rate.path("periodTime").asInt(),
-                rate.path("periodTimeUnit").asText("")
-            );
+                    "cost-ratelimit window periodTime {} {} is not HOUR, DAY, WEEK or MONTH",
+                    rate.path("periodTime").asInt(),
+                    rate.path("periodTimeUnit").asText(""));
         }
         return period;
     }
@@ -111,7 +112,8 @@ public final class AiWorkspaceBudgetReader {
             return null;
         }
         int periodTime = rate.path("periodTime").asInt();
-        if (!rate.hasNonNull("periodTimeUnit") || rate.path("periodTimeUnit").asText().isBlank()) {
+        if (!rate.hasNonNull("periodTimeUnit")
+                || rate.path("periodTimeUnit").asText().isBlank()) {
             return periodTime;
         }
         try {
@@ -125,7 +127,10 @@ public final class AiWorkspaceBudgetReader {
                 default -> null;
             };
         } catch (ArithmeticException overflow) {
-            log.debug("cost-ratelimit periodTime {} {} overflows", periodTime, rate.path("periodTimeUnit").asText());
+            log.debug(
+                    "cost-ratelimit periodTime {} {} overflows",
+                    periodTime,
+                    rate.path("periodTimeUnit").asText());
             return null;
         }
     }

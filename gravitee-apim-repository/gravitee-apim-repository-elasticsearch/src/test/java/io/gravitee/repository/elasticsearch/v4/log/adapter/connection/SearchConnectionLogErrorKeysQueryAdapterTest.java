@@ -39,8 +39,7 @@ class SearchConnectionLogErrorKeysQueryAdapterTest {
         String result = SearchConnectionLogErrorKeysQueryAdapter.adapt(query);
 
         // Then
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "size": 0,
               "query": {
@@ -74,8 +73,7 @@ class SearchConnectionLogErrorKeysQueryAdapterTest {
                 }
               }
             }
-            """
-        );
+            """);
     }
 
     @Test

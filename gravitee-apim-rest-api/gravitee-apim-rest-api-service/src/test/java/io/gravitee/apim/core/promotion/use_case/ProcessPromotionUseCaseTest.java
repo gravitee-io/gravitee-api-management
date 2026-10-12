@@ -84,37 +84,39 @@ class ProcessPromotionUseCaseTest {
     private static final String CROSS_ID = "cross-id";
     private static final String ORGANIZATION_ID = "DEFAULT";
     private static final String ENVIRONMENT_ID = "TARGET-ENV-ID";
-    private static final Api API_V2 = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-    private static final Promotion PROMOTION = PromotionFixtures.aPromotion()
-        .toBuilder()
-        .apiId(API_ID)
-        .status(PromotionStatus.TO_BE_VALIDATED)
-        .build();
+    private static final Api API_V2 =
+            ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+    private static final Promotion PROMOTION = PromotionFixtures.aPromotion().toBuilder()
+            .apiId(API_ID)
+            .status(PromotionStatus.TO_BE_VALIDATED)
+            .build();
     private static final Environment ENVIRONMENT = Environment.builder()
-        .id(ENVIRONMENT_ID)
-        .cockpitId(PROMOTION.getTargetEnvCockpitId())
-        .organizationId(ORGANIZATION_ID)
-        .build();
+            .id(ENVIRONMENT_ID)
+            .cockpitId(PROMOTION.getTargetEnvCockpitId())
+            .organizationId(ORGANIZATION_ID)
+            .build();
 
     private static final String USER_NAME = "user";
 
     private static final AuditInfo AUDIT = AuditInfo.builder()
-        .organizationId(ORGANIZATION_ID)
-        .environmentId(ENVIRONMENT_ID)
-        .actor(AuditActor.builder().userId(USER_NAME).build())
-        .build();
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .actor(AuditActor.builder().userId(USER_NAME).build())
+            .build();
 
-    private static final BaseUserEntity BASE_USER_ENTITY = BaseUserEntity.builder().id(USER_NAME).build();
+    private static final BaseUserEntity BASE_USER_ENTITY =
+            BaseUserEntity.builder().id(USER_NAME).build();
     private static final String UUID = "generated-id";
 
     private final PromotionCrudServiceInMemory promotionCrudService = new PromotionCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainService =
-        new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudServiceInMemory);
+            new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudServiceInMemory);
     private final ImportDefinitionUpdateDomainServiceTestInitializer importDefinitionUpdateDomainService =
-        new ImportDefinitionUpdateDomainServiceTestInitializer(apiCrudServiceInMemory);
+            new ImportDefinitionUpdateDomainServiceTestInitializer(apiCrudServiceInMemory);
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
-    private final PromotionQueryServiceInMemory promotionQueryService = new PromotionQueryServiceInMemory(promotionCrudService);
+    private final PromotionQueryServiceInMemory promotionQueryService =
+            new PromotionQueryServiceInMemory(promotionCrudService);
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudServiceInMemory);
     private PromotionContextDomainService promotionContextDomainService;
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
@@ -129,28 +131,27 @@ class ProcessPromotionUseCaseTest {
         auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
         useCase = new ProcessPromotionUseCase(
-            promotionCrudService,
-            cockpitPromotionServiceProvider,
-            importDefinitionCreateDomainService.initialize(),
-            importDefinitionUpdateDomainService.initialize(ENVIRONMENT_ID),
-            auditService
-        );
+                promotionCrudService,
+                cockpitPromotionServiceProvider,
+                importDefinitionCreateDomainService.initialize(),
+                importDefinitionUpdateDomainService.initialize(ENVIRONMENT_ID),
+                auditService);
 
         promotionContextDomainService = new PromotionContextDomainService(
-            promotionCrudService,
-            promotionQueryService,
-            apiQueryService,
-            apiCrudServiceInMemory,
-            environmentCrudService,
-            new JsonMapper()
-        );
+                promotionCrudService,
+                promotionQueryService,
+                apiQueryService,
+                apiCrudServiceInMemory,
+                environmentCrudService,
+                new JsonMapper());
 
         UuidString.overrideGenerator(() -> UUID);
     }
 
     @AfterEach
     public void cleanUp() {
-        Stream.of(promotionCrudService, apiCrudServiceInMemory, auditCrudService, userCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(promotionCrudService, apiCrudServiceInMemory, auditCrudService, userCrudService)
+                .forEach(InMemoryAlternative::reset);
         UuidString.reset();
     }
 
@@ -167,11 +168,12 @@ class ProcessPromotionUseCaseTest {
     void should_throw_exception_when_api_definition_is_not_supported() {
         promotionCrudService.initWith(List.of(PROMOTION));
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION, true, DefinitionVersion.FEDERATED))
-        );
+        Throwable throwable = catchThrowable(
+                () -> useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION, true, DefinitionVersion.FEDERATED)));
 
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Only V2 and V4 API definition are supported");
+        assertThat(throwable)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Only V2 and V4 API definition are supported");
     }
 
     @Test
@@ -179,20 +181,19 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
-            CockpitReplyStatus.SUCCEEDED
-        );
+        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        var result = useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 false,
                 null,
-                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(
+                                ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
 
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isNotNull();
@@ -204,17 +205,15 @@ class ProcessPromotionUseCaseTest {
     void should_throw_exception_when_v4_api_promotion_command_fails() {
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
-            CockpitReplyStatus.ERROR
-        );
+        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any()))
+                .thenReturn(CockpitReplyStatus.ERROR);
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION, DefinitionVersion.V4, false, null, null, AUDIT))
-        );
+        Throwable throwable = catchThrowable(() -> useCase.execute(
+                new ProcessPromotionUseCase.Input(PROMOTION, DefinitionVersion.V4, false, null, null, AUDIT)));
 
         assertThat(throwable)
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessage("An error occurs while sending promotion promotion-id request to cockpit");
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while sending promotion promotion-id request to cockpit");
     }
 
     @ParameterizedTest
@@ -222,22 +221,20 @@ class ProcessPromotionUseCaseTest {
     void should_throw_exception_when_v4_import_definition_cross_id_is_empty(String crossId) {
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(
-                new ProcessPromotionUseCase.Input(
-                    PROMOTION,
-                    DefinitionVersion.V4,
-                    true,
-                    null,
-                    ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(crossId).build()).build(),
-                    AUDIT
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> useCase.execute(new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                null,
+                ImportDefinition.builder()
+                        .apiExport(
+                                ApiExport.builder().id(API_ID).crossId(crossId).build())
+                        .build(),
+                AUDIT)));
 
         assertThat(throwable)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Promotion promotion-id failed. A crossId is required to promote an API");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Promotion promotion-id failed. A crossId is required to promote an API");
     }
 
     @Test
@@ -245,27 +242,34 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
-        var promotedApiInTargetEnv = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId(CROSS_ID)
-            .environmentId(ENVIRONMENT.getId())
-            .build();
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .crossId(CROSS_ID)
+                .build();
+        var promotedApiInTargetEnv = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId(CROSS_ID)
+                .environmentId(ENVIRONMENT.getId())
+                .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi, promotedApiInTargetEnv));
 
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        var result = useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 true,
-                ApiFixtures.aProxyApiV4().toBuilder().id("already-promoted-api").crossId(CROSS_ID).environmentId(ENVIRONMENT_ID).build(),
-                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ApiFixtures.aProxyApiV4().toBuilder()
+                        .id("already-promoted-api")
+                        .crossId(CROSS_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .build(),
+                ImportDefinition.builder()
+                        .apiExport(
+                                ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
         assertThat(result).isNotNull();
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
         assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
@@ -276,51 +280,52 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .crossId(CROSS_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi));
 
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        importDefinitionCreateDomainService.parametersQueryService.initWith(
-            List.of(
+        importDefinitionCreateDomainService.parametersQueryService.initWith(List.of(
                 new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                ),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
+                        Key.API_PRIMARY_OWNER_MODE.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        ApiPrimaryOwnerMode.USER.name()),
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
         importDefinitionCreateDomainService.userCrudService.initWith(List.of(BASE_USER_ENTITY));
-        when(
-            importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())
-        ).thenAnswer(invocation -> invocation.getArgument(0));
+        when(importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(
+                        any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
-        var result = useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 true,
                 null,
-                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
 
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isNotNull();
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
         assertThat(result.promotion().getTargetApiId()).isEqualTo(UUID);
         assertThat(apiCrudServiceInMemory.storage()).hasSize(2);
-        assertThat(apiCrudServiceInMemory.get(UUID))
-            .isNotNull()
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo(UUID);
-                assertThat(api.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.CREATED);
-                assertThat(api.getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
-            });
+        assertThat(apiCrudServiceInMemory.get(UUID)).isNotNull().satisfies(api -> {
+            assertThat(api.getId()).isEqualTo(UUID);
+            assertThat(api.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.CREATED);
+            assertThat(api.getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+        });
     }
 
     @Test
@@ -328,46 +333,46 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var alreadyInTarget = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId("different-cross-id")
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var alreadyInTarget = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId("different-cross-id")
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
 
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
-        importDefinitionCreateDomainService.parametersQueryService.initWith(
-            List.of(
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
+        importDefinitionCreateDomainService.parametersQueryService.initWith(List.of(
                 new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                ),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
+                        Key.API_PRIMARY_OWNER_MODE.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        ApiPrimaryOwnerMode.USER.name()),
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
         importDefinitionCreateDomainService.userCrudService.initWith(List.of(BASE_USER_ENTITY));
-        when(
-            importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())
-        ).thenAnswer(invocation -> invocation.getArgument(0));
+        when(importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(
+                        any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 true,
                 null,
-                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
 
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
         assertThat(result.promotion().getTargetApiId()).isEqualTo(UUID);
         assertThat(apiCrudServiceInMemory.storage()).hasSize(2);
-        assertThat(apiCrudServiceInMemory.get("already-promoted-api").getCrossId()).isEqualTo("different-cross-id");
+        assertThat(apiCrudServiceInMemory.get("already-promoted-api").getCrossId())
+                .isEqualTo("different-cross-id");
         assertThat(apiCrudServiceInMemory.get(UUID)).isNotNull();
     }
 
@@ -376,26 +381,26 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var alreadyInTarget = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId("different-cross-id")
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var alreadyInTarget = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId("different-cross-id")
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
 
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        var result = useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 true,
                 alreadyInTarget,
-                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(
+                                ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
 
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
         assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
@@ -411,37 +416,40 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var alreadyInTarget = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId("different-cross-id")
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var alreadyInTarget = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId("different-cross-id")
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
 
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        var result = useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 true,
                 alreadyInTarget,
-                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).name("promoted name").build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder()
+                                .crossId(CROSS_ID)
+                                .name("promoted name")
+                                .build())
+                        .build(),
+                AUDIT));
 
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
         assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
         assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
-        verify(importDefinitionUpdateDomainService.apiService).update(
-            any(),
-            eq("already-promoted-api"),
-            argThat(update -> CROSS_ID.equals(update.getCrossId()) && "promoted name".equals(update.getName())),
-            eq(false),
-            eq(USER_NAME)
-        );
+        verify(importDefinitionUpdateDomainService.apiService)
+                .update(
+                        any(),
+                        eq("already-promoted-api"),
+                        argThat(update ->
+                                CROSS_ID.equals(update.getCrossId()) && "promoted name".equals(update.getName())),
+                        eq(false),
+                        eq(USER_NAME));
     }
 
     @Test
@@ -450,33 +458,30 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(promotion));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var apiInAnotherEnv = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("api-in-another-env")
-            .crossId(CROSS_ID)
-            .environmentId("ANOTHER-ENV-ID")
-            .build();
+        var apiInAnotherEnv = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("api-in-another-env")
+                .crossId(CROSS_ID)
+                .environmentId("ANOTHER-ENV-ID")
+                .build();
         apiCrudServiceInMemory.initWith(List.of(apiInAnotherEnv));
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(
-                new ProcessPromotionUseCase.Input(
-                    promotion,
-                    DefinitionVersion.V4,
-                    true,
-                    apiInAnotherEnv,
-                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
-                    AUDIT
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> useCase.execute(new ProcessPromotionUseCase.Input(
+                promotion,
+                DefinitionVersion.V4,
+                true,
+                apiInAnotherEnv,
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT)));
 
         assertThat(throwable)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("api-in-another-env")
-            .hasMessageContaining(ENVIRONMENT_ID);
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("api-in-another-env")
+                .hasMessageContaining(ENVIRONMENT_ID);
         assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
-        verify(importDefinitionUpdateDomainService.apiService, never()).update(any(), any(), any(), anyBoolean(), any());
+        verify(importDefinitionUpdateDomainService.apiService, never())
+                .update(any(), any(), any(), anyBoolean(), any());
         verify(cockpitPromotionServiceProvider, never()).processPromotion(any(), any(), any());
         assertThat(promotionCrudService.storage().getFirst().getStatus()).isEqualTo(PromotionStatus.TO_BE_VALIDATED);
     }
@@ -487,27 +492,29 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(promotion));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var apiWithNoEnv = ApiFixtures.aProxyApiV4().toBuilder().id("api-with-no-env").crossId(CROSS_ID).environmentId(null).build();
+        var apiWithNoEnv = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("api-with-no-env")
+                .crossId(CROSS_ID)
+                .environmentId(null)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(apiWithNoEnv));
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(
-                new ProcessPromotionUseCase.Input(
-                    promotion,
-                    DefinitionVersion.V4,
-                    true,
-                    apiWithNoEnv,
-                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
-                    AUDIT
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> useCase.execute(new ProcessPromotionUseCase.Input(
+                promotion,
+                DefinitionVersion.V4,
+                true,
+                apiWithNoEnv,
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT)));
 
         assertThat(throwable)
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("api-with-no-env")
-            .hasMessageContaining(ENVIRONMENT_ID);
-        verify(importDefinitionUpdateDomainService.apiService, never()).update(any(), any(), any(), anyBoolean(), any());
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("api-with-no-env")
+                .hasMessageContaining(ENVIRONMENT_ID);
+        verify(importDefinitionUpdateDomainService.apiService, never())
+                .update(any(), any(), any(), anyBoolean(), any());
         verify(cockpitPromotionServiceProvider, never()).processPromotion(any(), any(), any());
         assertThat(promotionCrudService.storage().getFirst().getStatus()).isEqualTo(PromotionStatus.TO_BE_VALIDATED);
     }
@@ -518,29 +525,24 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(promotion));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var alreadyInTarget = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId(CROSS_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var alreadyInTarget = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId(CROSS_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
-        when(importDefinitionUpdateDomainService.apiService.update(any(), any(), any(), anyBoolean(), any())).thenThrow(
-            new IllegalStateException("update failed")
-        );
+        when(importDefinitionUpdateDomainService.apiService.update(any(), any(), any(), anyBoolean(), any()))
+                .thenThrow(new IllegalStateException("update failed"));
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(
-                new ProcessPromotionUseCase.Input(
-                    promotion,
-                    DefinitionVersion.V4,
-                    true,
-                    alreadyInTarget,
-                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
-                    AUDIT
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> useCase.execute(new ProcessPromotionUseCase.Input(
+                promotion,
+                DefinitionVersion.V4,
+                true,
+                alreadyInTarget,
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT)));
 
         assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("update failed");
         verify(cockpitPromotionServiceProvider, never()).processPromotion(any(), any(), any());
@@ -555,27 +557,24 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(stored));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var alreadyInTarget = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId(CROSS_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var alreadyInTarget = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId(CROSS_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.ERROR);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.ERROR);
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(
-                new ProcessPromotionUseCase.Input(
-                    input,
-                    DefinitionVersion.V4,
-                    true,
-                    alreadyInTarget,
-                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
-                    AUDIT
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> useCase.execute(new ProcessPromotionUseCase.Input(
+                input,
+                DefinitionVersion.V4,
+                true,
+                alreadyInTarget,
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT)));
 
         assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         // The stored promotion is untouched: no ACCEPTED status and no targetApiId without a successful Cockpit reply.
@@ -588,27 +587,30 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId(CROSS_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .crossId(CROSS_ID)
+                .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId(CROSS_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi, existingApi));
 
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 true,
                 existingApi,
-                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(
+                                ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
 
         assertThat(auditCrudService.storage()).anySatisfy(audit -> {
             assertThat(audit.getReferenceId()).isEqualTo(API_ID);
@@ -624,31 +626,27 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
-            CockpitReplyStatus.SUCCEEDED
-        );
+        when(cockpitPromotionServiceProvider.processPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
-        useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        useCase.execute(new ProcessPromotionUseCase.Input(
                 PROMOTION,
                 DefinitionVersion.V4,
                 false,
                 null,
-                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(
+                                ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
 
-        assertThat(auditCrudService.storage())
-            .hasSize(1)
-            .first()
-            .satisfies(audit -> {
-                assertThat(audit.getReferenceId()).isEqualTo(API_ID);
-                assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_PROCESSED.name());
-                assertThat(audit.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-                assertThat(audit.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                assertThat(audit.getUser()).isEqualTo(USER_NAME);
-            });
+        assertThat(auditCrudService.storage()).hasSize(1).first().satisfies(audit -> {
+            assertThat(audit.getReferenceId()).isEqualTo(API_ID);
+            assertThat(audit.getEvent()).isEqualTo(ApiAuditEvent.PROMOTION_PROCESSED.name());
+            assertThat(audit.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+            assertThat(audit.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+            assertThat(audit.getUser()).isEqualTo(USER_NAME);
+        });
     }
 
     @Test
@@ -656,45 +654,41 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
-        var promotedApiInTargetEnv = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId(CROSS_ID)
-            .environmentId(ENVIRONMENT.getId())
-            .build();
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .crossId(CROSS_ID)
+                .build();
+        var promotedApiInTargetEnv = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId(CROSS_ID)
+                .environmentId(ENVIRONMENT.getId())
+                .build();
         apiCrudServiceInMemory.initWith(List.of(v4proxyApi, promotedApiInTargetEnv));
 
-        Throwable throwable = catchThrowable(() ->
-            useCase.execute(
-                new ProcessPromotionUseCase.Input(
-                    PROMOTION,
-                    DefinitionVersion.V4,
-                    true,
-                    ApiFixtures.aProxyApiV4()
-                        .toBuilder()
+        Throwable throwable = catchThrowable(() -> useCase.execute(new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                ApiFixtures.aProxyApiV4().toBuilder()
                         .id("already-promoted-api")
                         .crossId(CROSS_ID)
                         .environmentId(ENVIRONMENT_ID)
                         .build(),
-                    ImportDefinition.builder()
-                        .apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
+                ImportDefinition.builder()
+                        .apiExport(
+                                ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
                         .plans(Set.of(new PlanWithFlows()))
                         .metadata(Set.of(new NewApiMetadata()))
                         .pages(List.of(new Page()))
                         .build(),
-                    AUDIT
-                )
-            )
-        );
+                AUDIT)));
 
         assertThat(throwable)
-            .isInstanceOf(ApiImportedWithErrorException.class)
-            .hasMessageContainingAll(
-                "API imported with error:",
-                "(Metadata) null",
-                "(Plans) Cannot invoke \"io.gravitee.definition.model.DefinitionVersion.ordinal()\""
-            );
+                .isInstanceOf(ApiImportedWithErrorException.class)
+                .hasMessageContainingAll(
+                        "API imported with error:",
+                        "(Metadata) null",
+                        "(Plans) Cannot invoke \"io.gravitee.definition.model.DefinitionVersion.ordinal()\"");
     }
 
     /**
@@ -704,46 +698,47 @@ class ProcessPromotionUseCaseTest {
      * being handed in, because the whole question is whether the target gets resolved at all on that path.
      */
     @Test
-    void should_update_the_already_promoted_api_in_place_when_upgrading_from_a_version_that_never_stored_target_api_id() {
-        var promotion = aPendingPromotion().toBuilder().apiDefinition(A_V4_DEFINITION_SERVING_HTTP_PROXY).build();
-        var legacyAccepted = promotion
-            .toBuilder()
-            .id("legacy-accepted-promotion")
-            .status(PromotionStatus.ACCEPTED)
-            .targetApiId(null)
-            .createdAt(Instant.parse("2026-01-01T00:00:00Z"))
-            .build();
+    void
+            should_update_the_already_promoted_api_in_place_when_upgrading_from_a_version_that_never_stored_target_api_id() {
+        var promotion = aPendingPromotion().toBuilder()
+                .apiDefinition(A_V4_DEFINITION_SERVING_HTTP_PROXY)
+                .build();
+        var legacyAccepted = promotion.toBuilder()
+                .id("legacy-accepted-promotion")
+                .status(PromotionStatus.ACCEPTED)
+                .targetApiId(null)
+                .createdAt(Instant.parse("2026-01-01T00:00:00Z"))
+                .build();
         promotionCrudService.initWith(List.of(promotion, legacyAccepted));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var alreadyPromotedApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id("already-promoted-api")
-            .crossId("diverged-cross-id")
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var alreadyPromotedApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id("already-promoted-api")
+                .crossId("diverged-cross-id")
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudServiceInMemory.initWith(List.of(alreadyPromotedApi));
 
-        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any()))
+                .thenReturn(CockpitReplyStatus.SUCCEEDED);
 
         var context = promotionContextDomainService.getPromotionContext(promotion.getId(), true);
 
         assertThat(context.existingPromotedApi())
-            .as("the API already serving the promoted context path must be resolved as the promotion target")
-            .isNotNull()
-            .extracting(Api::getId)
-            .isEqualTo("already-promoted-api");
+                .as("the API already serving the promoted context path must be resolved as the promotion target")
+                .isNotNull()
+                .extracting(Api::getId)
+                .isEqualTo("already-promoted-api");
 
-        var result = useCase.execute(
-            new ProcessPromotionUseCase.Input(
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(
                 context.promotion(),
                 context.expectedDefinitionVersion(),
                 true,
                 context.existingPromotedApi(),
-                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
-                AUDIT
-            )
-        );
+                ImportDefinition.builder()
+                        .apiExport(ApiExport.builder().crossId(CROSS_ID).build())
+                        .build(),
+                AUDIT));
 
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
         assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
@@ -755,19 +750,16 @@ class ProcessPromotionUseCaseTest {
     void should_create_the_api_rather_than_take_over_an_unrelated_api_serving_the_same_path() {
         // Same shape as above but with no accepted promotion of this API into the environment: the API owning the
         // path is a stranger and must not be overwritten.
-        var promotion = aPendingPromotion().toBuilder().apiDefinition(A_V4_DEFINITION_SERVING_HTTP_PROXY).build();
+        var promotion = aPendingPromotion().toBuilder()
+                .apiDefinition(A_V4_DEFINITION_SERVING_HTTP_PROXY)
+                .build();
         promotionCrudService.initWith(List.of(promotion));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
-        apiCrudServiceInMemory.initWith(
-            List.of(
-                ApiFixtures.aProxyApiV4()
-                    .toBuilder()
-                    .id("unrelated-api")
-                    .crossId("unrelated-cross-id")
-                    .environmentId(ENVIRONMENT_ID)
-                    .build()
-            )
-        );
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id("unrelated-api")
+                .crossId("unrelated-cross-id")
+                .environmentId(ENVIRONMENT_ID)
+                .build()));
 
         var context = promotionContextDomainService.getPromotionContext(promotion.getId(), true);
 
@@ -779,7 +771,10 @@ class ProcessPromotionUseCaseTest {
      * the "not accepted" state need their own instance with a known initial status.
      */
     private static Promotion aPendingPromotion() {
-        return PROMOTION.toBuilder().status(PromotionStatus.TO_BE_VALIDATED).targetApiId(null).build();
+        return PROMOTION.toBuilder()
+                .status(PromotionStatus.TO_BE_VALIDATED)
+                .targetApiId(null)
+                .build();
     }
 
     private static final String A_V4_DEFINITION_SERVING_HTTP_PROXY = """

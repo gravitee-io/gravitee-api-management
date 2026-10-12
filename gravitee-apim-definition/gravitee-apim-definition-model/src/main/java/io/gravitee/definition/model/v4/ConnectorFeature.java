@@ -34,16 +34,8 @@ public enum ConnectorFeature {
     DLQ("dlq"),
     CORS("cors");
 
-    private static final Map<String, ConnectorFeature> LABELS_MAP = Map.of(
-        LIMIT.label,
-        LIMIT,
-        RESUME.label,
-        RESUME,
-        DLQ.label,
-        DLQ,
-        CORS.label,
-        CORS
-    );
+    private static final Map<String, ConnectorFeature> LABELS_MAP =
+            Map.of(LIMIT.label, LIMIT, RESUME.label, RESUME, DLQ.label, DLQ, CORS.label, CORS);
 
     @JsonValue
     private final String label;

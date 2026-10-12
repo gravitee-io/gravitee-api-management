@@ -78,49 +78,41 @@ public class ApplicationInvitationsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE)})
     public Response createApplicationInvitations(
-        @PathParam("applicationId") String applicationId,
-        @Valid @NotNull(message = "Input must not be null.") InvitationCreateInput input
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @Valid @NotNull(message = "Input must not be null.") InvitationCreateInput input) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var output = createApplicationInvitationsUseCase.execute(
-            new CreateApplicationInvitationsUseCase.Input(
+        var output = createApplicationInvitationsUseCase.execute(new CreateApplicationInvitationsUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 applicationId,
-                ApplicationInvitationsCreateInputMapper.INSTANCE.toCreateApplicationInvitations(input)
-            )
-        );
+                ApplicationInvitationsCreateInputMapper.INSTANCE.toCreateApplicationInvitations(input)));
 
         return Response.status(Response.Status.CREATED)
-            .entity(new InvitationsResponse().data(INVITATION_MAPPER.toInvitation(output.invitations())))
-            .build();
+                .entity(new InvitationsResponse().data(INVITATION_MAPPER.toInvitation(output.invitations())))
+                .build();
     }
 
     @POST
     @Path("/_search")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)})
     public Response searchInvitationsByApplicationId(
-        @PathParam("applicationId") String applicationId,
-        @Valid @BeanParam PaginationParam paginationParam,
-        @Valid @NotNull(message = "Input must not be null.") ApplicationInvitationsSearchInput input
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @Valid @BeanParam PaginationParam paginationParam,
+            @Valid @NotNull(message = "Input must not be null.") ApplicationInvitationsSearchInput input) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var output = searchApplicationInvitationsUseCase.execute(
-            new SearchApplicationInvitationsUseCase.Input(
+        var output = searchApplicationInvitationsUseCase.execute(new SearchApplicationInvitationsUseCase.Input(
                 executionContext,
                 applicationId,
                 ApplicationInvitationsSearchCriteriaMapper.INSTANCE.toSearchCriteria(input),
-                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
-            )
-        );
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())));
         var invitations = INVITATION_MAPPER.toInvitation(output.invitations().getContent());
-        Map<String, Map<String, Object>> metadata = new HashMap<>(
-            Map.of("paginateMetaData", new HashMap<>(Map.of("totalElements", output.invitations().getTotalElements())))
-        );
+        Map<String, Map<String, Object>> metadata = new HashMap<>(Map.of(
+                "paginateMetaData",
+                new HashMap<>(Map.of("totalElements", output.invitations().getTotalElements()))));
 
         return createListResponse(executionContext, invitations, paginationParam, metadata);
     }
@@ -128,18 +120,11 @@ public class ApplicationInvitationsResource extends AbstractResource {
     @DELETE
     @Path("/{invitationId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE)})
     public Response deleteApplicationInvitation(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("invitationId") String invitationId
-    ) {
-        deleteApplicationInvitationUseCase.execute(
-            new DeleteApplicationInvitationUseCase.Input(
-                GraviteeContext.getCurrentEnvironment(),
-                applicationId,
-                InvitationId.of(invitationId)
-            )
-        );
+            @PathParam("applicationId") String applicationId, @PathParam("invitationId") String invitationId) {
+        deleteApplicationInvitationUseCase.execute(new DeleteApplicationInvitationUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(), applicationId, InvitationId.of(invitationId)));
 
         return Response.noContent().build();
     }
@@ -148,21 +133,17 @@ public class ApplicationInvitationsResource extends AbstractResource {
     @Path("/{invitationId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response updateApplicationInvitation(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("invitationId") String invitationId,
-        @Valid @NotNull(message = "Input must not be null.") InvitationUpdateInput input
-    ) {
-        var output = updateApplicationInvitationUseCase.execute(
-            new UpdateApplicationInvitationUseCase.Input(
+            @PathParam("applicationId") String applicationId,
+            @PathParam("invitationId") String invitationId,
+            @Valid @NotNull(message = "Input must not be null.") InvitationUpdateInput input) {
+        var output = updateApplicationInvitationUseCase.execute(new UpdateApplicationInvitationUseCase.Input(
                 GraviteeContext.getCurrentOrganization(),
                 GraviteeContext.getCurrentEnvironment(),
                 applicationId,
                 InvitationId.of(invitationId),
-                ApplicationInvitationUpdateInputMapper.INSTANCE.toUpdateApplicationInvitation(input)
-            )
-        );
+                ApplicationInvitationUpdateInputMapper.INSTANCE.toUpdateApplicationInvitation(input)));
 
         return Response.ok(INVITATION_MAPPER.toInvitation(output.invitation())).build();
     }
@@ -171,22 +152,18 @@ public class ApplicationInvitationsResource extends AbstractResource {
     @Path("/{invitationId}/_resend")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response resendApplicationInvitation(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("invitationId") String invitationId,
-        @Valid @NotNull(message = "Input must not be null.") InvitationResendInput input
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @PathParam("invitationId") String invitationId,
+            @Valid @NotNull(message = "Input must not be null.") InvitationResendInput input) {
         var executionContext = GraviteeContext.getExecutionContext();
-        resendApplicationInvitationUseCase.execute(
-            new ResendApplicationInvitationUseCase.Input(
+        resendApplicationInvitationUseCase.execute(new ResendApplicationInvitationUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 applicationId,
                 InvitationId.of(invitationId),
-                ApplicationInvitationResendInputMapper.INSTANCE.toConfirmationPageUrl(input)
-            )
-        );
+                ApplicationInvitationResendInputMapper.INSTANCE.toConfirmationPageUrl(input)));
 
         return Response.noContent().build();
     }

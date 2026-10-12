@@ -69,7 +69,8 @@ class TracingPolicyHookTest {
         String policyId = "test-policy";
         when(ctx.getTracer()).thenReturn(tracer);
         when(tracer.startSpanFrom(any(InternalRequest.class))).thenReturn(span);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(false);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(false);
 
         hook.pre(policyId, ctx, ExecutionPhase.REQUEST).test().assertResult();
         verify(tracer).startSpanFrom(any(InternalRequest.class));
@@ -84,8 +85,10 @@ class TracingPolicyHookTest {
         when(ctx.getTracer()).thenReturn(tracer);
         when(tracer.startSpanFrom(any(InternalRequest.class))).thenReturn(span);
         when(ctx.getInternalAttribute("tracing-span-test-policy")).thenReturn(span);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(true);
-        when(ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).thenReturn(null);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(true);
+        when(ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION))
+                .thenReturn(null);
         when(ctx.request()).thenReturn(request);
         when(request.headers()).thenReturn(httpHeaders);
         when(httpHeaders.toSingleValueMap()).thenReturn(singleValueMap);
@@ -103,9 +106,13 @@ class TracingPolicyHookTest {
         String condition = "{#request.headers['x-test'] != null}";
 
         when(ctx.getInternalAttribute("tracing-span-test-policy")).thenReturn(span);
-        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId)).thenReturn(condition);
-        when(ctx.getInternalAttribute("gravitee.policy.trigger.executed." + policyId)).thenReturn(true);
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(false);
+        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId))
+                .thenReturn(condition);
+        when(ctx.getInternalAttribute("gravitee.policy.trigger.executed." + policyId))
+                .thenReturn(true);
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(false);
         when(ctx.getTracer()).thenReturn(tracer);
 
         hook.post(policyId, ctx, ExecutionPhase.REQUEST).test().assertResult();
@@ -120,9 +127,13 @@ class TracingPolicyHookTest {
         String condition = "{1 == 2}";
 
         when(ctx.getInternalAttribute("tracing-span-test-policy")).thenReturn(span);
-        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId)).thenReturn(condition);
-        when(ctx.getInternalAttribute("gravitee.policy.trigger.executed." + policyId)).thenReturn(false);
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(false);
+        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId))
+                .thenReturn(condition);
+        when(ctx.getInternalAttribute("gravitee.policy.trigger.executed." + policyId))
+                .thenReturn(false);
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(false);
         when(ctx.getTracer()).thenReturn(tracer);
 
         hook.post(policyId, ctx, ExecutionPhase.REQUEST).test().assertResult();
@@ -136,8 +147,11 @@ class TracingPolicyHookTest {
         String policyId = "test-policy";
 
         when(ctx.getInternalAttribute("tracing-span-test-policy")).thenReturn(span);
-        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId)).thenReturn(null);
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(false);
+        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId))
+                .thenReturn(null);
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(false);
         when(ctx.getTracer()).thenReturn(tracer);
 
         hook.post(policyId, ctx, ExecutionPhase.REQUEST).test().assertResult();
@@ -152,8 +166,12 @@ class TracingPolicyHookTest {
         Map<String, String> headers = Map.of("header1", "value1", "header2", "value2");
 
         when(ctx.getInternalAttribute("tracing-span-test-policy")).thenReturn(span);
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(true);
-        lenient().when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId)).thenReturn(null);
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(true);
+        lenient()
+                .when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId))
+                .thenReturn(null);
         when(ctx.request()).thenReturn(request);
         when(request.headers()).thenReturn(httpHeaders);
         when(httpHeaders.toSingleValueMap()).thenReturn(headers);
@@ -171,8 +189,11 @@ class TracingPolicyHookTest {
         String policyId = "test-policy";
 
         when(ctx.getInternalAttribute("tracing-span-test-policy")).thenReturn(span);
-        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId)).thenReturn("");
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(false);
+        when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId))
+                .thenReturn("");
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(false);
         when(ctx.getTracer()).thenReturn(tracer);
         hook.post(policyId, ctx, ExecutionPhase.REQUEST).test().assertResult();
         verify(span, never()).withAttribute(eq("gravitee.policy.trigger.condition"), anyString());
@@ -186,14 +207,16 @@ class TracingPolicyHookTest {
 
         when(ctx.getTracer()).thenReturn(tracer);
         when(tracer.startSpanFrom(any(InternalRequest.class))).thenReturn(span);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(true);
-        when(ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).thenReturn(description);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(true);
+        when(ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION))
+                .thenReturn(description);
 
         hook.pre(policyId, ctx, ExecutionPhase.REQUEST).test().assertResult();
 
-        verify(tracer).startSpanFrom(
-            argThat(req -> req instanceof InternalRequest ir && description.equals(ir.attributes().get("gravitee.policy.description")))
-        );
+        verify(tracer)
+                .startSpanFrom(argThat(req -> req instanceof InternalRequest ir
+                        && description.equals(ir.attributes().get("gravitee.policy.description"))));
     }
 
     @Test
@@ -202,13 +225,14 @@ class TracingPolicyHookTest {
 
         when(ctx.getTracer()).thenReturn(tracer);
         when(tracer.startSpanFrom(any(InternalRequest.class))).thenReturn(span);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(false);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED))
+                .thenReturn(false);
 
         hook.pre(policyId, ctx, ExecutionPhase.REQUEST).test().assertResult();
 
-        verify(tracer).startSpanFrom(
-            argThat(req -> req instanceof InternalRequest ir && !ir.attributes().containsKey("gravitee.policy.description"))
-        );
+        verify(tracer)
+                .startSpanFrom(argThat(req -> req instanceof InternalRequest ir
+                        && !ir.attributes().containsKey("gravitee.policy.description")));
         verify(ctx, never()).getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION);
     }
 
@@ -273,13 +297,12 @@ class TracingPolicyHookTest {
     void shouldHandleDifferentTypeOfHeaders() {
         String longValue = "x".repeat(1000);
         Map<String, String> headers = Map.of(
-            "Content-Type",
-            "application/json",
-            "special-header",
-            "value with spaces & special @#$ chars",
-            "long-header",
-            longValue
-        );
+                "Content-Type",
+                "application/json",
+                "special-header",
+                "value with spaces & special @#$ chars",
+                "long-header",
+                longValue);
 
         Map<String, String> captured = hook.captureHeaders(headers);
 

@@ -61,23 +61,24 @@ public class EndpointMapperTest {
         assertThat(endpointGroupEntityV4.getName()).isEqualTo(endpointGroupV4.getName());
         assertThat(endpointGroupEntityV4.getType()).isEqualTo(endpointGroupV4.getType());
         assertThat(endpointGroupEntityV4.getLoadBalancer()).isNotNull();
-        assertThat(endpointGroupEntityV4.getLoadBalancer().getType().name()).isEqualTo(endpointGroupV4.getLoadBalancer().getType().name());
-        assertThat(endpointGroupEntityV4.getSharedConfiguration()).isEqualTo(
-            new GraviteeMapper().writeValueAsString(endpointGroupV4.getSharedConfiguration())
-        );
+        assertThat(endpointGroupEntityV4.getLoadBalancer().getType().name())
+                .isEqualTo(endpointGroupV4.getLoadBalancer().getType().name());
+        assertThat(endpointGroupEntityV4.getSharedConfiguration())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(endpointGroupV4.getSharedConfiguration()));
         assertV4EndpointsAreEquals(endpointGroupEntityV4.getEndpoints(), endpointGroupV4.getEndpoints());
         assertThat(endpointGroupEntityV4.getServices()).isNotNull(); // Tested in ServiceMapperTest
     }
 
     private static void assertV4EndpointsAreEquals(List<Endpoint> endpointEntityV4List, List<EndpointV4> endpointV4List)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         assertThat(endpointEntityV4List).isNotNull().hasSize(endpointV4List.size());
         var endpointEntityV4 = endpointEntityV4List.get(0);
         var endpointV4 = endpointV4List.get(0);
         assertV4EndpointsAreEquals(endpointEntityV4, endpointV4);
     }
 
-    private static void assertV4EndpointsAreEquals(Endpoint endpointEntityV4, EndpointV4 endpointV4) throws JsonProcessingException {
+    private static void assertV4EndpointsAreEquals(Endpoint endpointEntityV4, EndpointV4 endpointV4)
+            throws JsonProcessingException {
         assertThat(endpointEntityV4).isNotNull();
         assertThat(endpointEntityV4.getName()).isEqualTo(endpointV4.getName());
         assertThat(endpointEntityV4.getType()).isEqualTo(endpointV4.getType());
@@ -85,10 +86,10 @@ public class EndpointMapperTest {
         assertThat(endpointEntityV4.getTenants()).isEqualTo(endpointV4.getTenants());
         assertThat(endpointEntityV4.getWeight()).isEqualTo(endpointV4.getWeight());
         assertThat(endpointEntityV4.isInheritConfiguration()).isEqualTo(endpointV4.getInheritConfiguration());
-        assertThat(endpointEntityV4.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getConfiguration()));
-        assertThat(endpointEntityV4.getSharedConfigurationOverride()).isEqualTo(
-            new GraviteeMapper().writeValueAsString(endpointV4.getSharedConfigurationOverride())
-        );
+        assertThat(endpointEntityV4.getConfiguration())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getConfiguration()));
+        assertThat(endpointEntityV4.getSharedConfigurationOverride())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getSharedConfigurationOverride()));
         assertThat(endpointEntityV4.getServices()).isNotNull(); // Tested in ServiceMapperTest
     }
 
@@ -100,10 +101,11 @@ public class EndpointMapperTest {
         assertThat(endpointGroupV4.getName()).isEqualTo(endpointGroupEntityV4.getName());
         assertThat(endpointGroupV4.getType()).isEqualTo(endpointGroupEntityV4.getType());
         assertThat(endpointGroupV4.getLoadBalancer()).isNotNull();
-        assertThat(endpointGroupV4.getLoadBalancer().getType().name()).isEqualTo(endpointGroupEntityV4.getLoadBalancer().getType().name());
-        assertThat(endpointGroupV4.getSharedConfiguration()).isEqualTo(
-            new GraviteeMapper().readValue(endpointGroupEntityV4.getSharedConfiguration(), LinkedHashMap.class)
-        );
+        assertThat(endpointGroupV4.getLoadBalancer().getType().name())
+                .isEqualTo(endpointGroupEntityV4.getLoadBalancer().getType().name());
+        assertThat(endpointGroupV4.getSharedConfiguration())
+                .isEqualTo(new GraviteeMapper()
+                        .readValue(endpointGroupEntityV4.getSharedConfiguration(), LinkedHashMap.class));
         assertV4EndpointsAreEquals(endpointGroupEntityV4.getEndpoints(), endpointGroupV4.getEndpoints());
         assertThat(endpointGroupV4.getServices()).isNotNull(); // Tested in ServiceMapperTest
     }
@@ -135,10 +137,10 @@ public class EndpointMapperTest {
         assertThat(endpointGroupEntityV4.getName()).isEqualTo(endpointGroupV4.getName());
         assertThat(endpointGroupEntityV4.getType()).isEqualTo(endpointGroupV4.getType());
         assertThat(endpointGroupEntityV4.getLoadBalancer()).isNotNull();
-        assertThat(endpointGroupEntityV4.getLoadBalancer().getType().name()).isEqualTo(endpointGroupV4.getLoadBalancer().getType().name());
-        assertThat(endpointGroupEntityV4.getSharedConfiguration()).isEqualTo(
-            new GraviteeMapper().writeValueAsString(endpointGroupV4.getSharedConfiguration())
-        );
+        assertThat(endpointGroupEntityV4.getLoadBalancer().getType().name())
+                .isEqualTo(endpointGroupV4.getLoadBalancer().getType().name());
+        assertThat(endpointGroupEntityV4.getSharedConfiguration())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(endpointGroupV4.getSharedConfiguration()));
         assertThat(endpointGroupV4.getEndpoints()).isNotNull();
         assertV4NativeEndpointsAreEqual(endpointGroupEntityV4.getEndpoints(), endpointGroupV4.getEndpoints());
     }
@@ -151,23 +153,25 @@ public class EndpointMapperTest {
         assertThat(endpointGroupV4.getName()).isEqualTo(endpointGroupEntityV4.getName());
         assertThat(endpointGroupV4.getType()).isEqualTo(endpointGroupEntityV4.getType());
         assertThat(endpointGroupV4.getLoadBalancer()).isNotNull();
-        assertThat(endpointGroupV4.getLoadBalancer().getType().name()).isEqualTo(endpointGroupEntityV4.getLoadBalancer().getType().name());
-        assertThat(endpointGroupV4.getSharedConfiguration()).isEqualTo(
-            new GraviteeMapper().readValue(endpointGroupEntityV4.getSharedConfiguration(), LinkedHashMap.class)
-        );
+        assertThat(endpointGroupV4.getLoadBalancer().getType().name())
+                .isEqualTo(endpointGroupEntityV4.getLoadBalancer().getType().name());
+        assertThat(endpointGroupV4.getSharedConfiguration())
+                .isEqualTo(new GraviteeMapper()
+                        .readValue(endpointGroupEntityV4.getSharedConfiguration(), LinkedHashMap.class));
         assertV4NativeEndpointsAreEqual(endpointGroupEntityV4.getEndpoints(), endpointGroupV4.getEndpoints());
         assertThat(endpointGroupV4.getServices()).isNull();
     }
 
-    private static void assertV4NativeEndpointsAreEqual(List<NativeEndpoint> endpointEntityV4List, List<EndpointV4> endpointV4List)
-        throws JsonProcessingException {
+    private static void assertV4NativeEndpointsAreEqual(
+            List<NativeEndpoint> endpointEntityV4List, List<EndpointV4> endpointV4List) throws JsonProcessingException {
         assertThat(endpointEntityV4List).isNotNull().hasSize(endpointV4List.size());
         var endpointEntityV4 = endpointEntityV4List.get(0);
         var endpointV4 = endpointV4List.get(0);
         assertV4EndpointIsEqual(endpointEntityV4, endpointV4);
     }
 
-    private static void assertV4EndpointIsEqual(NativeEndpoint endpointEntityV4, EndpointV4 endpointV4) throws JsonProcessingException {
+    private static void assertV4EndpointIsEqual(NativeEndpoint endpointEntityV4, EndpointV4 endpointV4)
+            throws JsonProcessingException {
         assertThat(endpointEntityV4).isNotNull();
         assertThat(endpointEntityV4.getName()).isEqualTo(endpointV4.getName());
         assertThat(endpointEntityV4.getType()).isEqualTo(endpointV4.getType());
@@ -175,10 +179,10 @@ public class EndpointMapperTest {
         assertThat(endpointEntityV4.getTenants()).isEqualTo(endpointV4.getTenants());
         assertThat(endpointEntityV4.getWeight()).isEqualTo(endpointV4.getWeight());
         assertThat(endpointEntityV4.isInheritConfiguration()).isEqualTo(endpointV4.getInheritConfiguration());
-        assertThat(endpointEntityV4.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getConfiguration()));
-        assertThat(endpointEntityV4.getSharedConfigurationOverride()).isEqualTo(
-            new GraviteeMapper().writeValueAsString(endpointV4.getSharedConfigurationOverride())
-        );
+        assertThat(endpointEntityV4.getConfiguration())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getConfiguration()));
+        assertThat(endpointEntityV4.getSharedConfigurationOverride())
+                .isEqualTo(new GraviteeMapper().writeValueAsString(endpointV4.getSharedConfigurationOverride()));
     }
 
     ////////////////////
@@ -268,19 +272,22 @@ public class EndpointMapperTest {
         var httpEndpointV2 = endpointV2.getHttpEndpointV2();
         assertThat(httpEndpointV2Configuration.getHealthCheck()).isNotNull(); // Tested in ServiceMapperTest
         assertThat(httpEndpointV2Configuration.getHttpProxy()).isNotNull();
-        assertThat(httpEndpointV2Configuration.getHttpProxy().getHost()).isEqualTo(httpEndpointV2.getHttpProxy().getHost());
-        assertThat(httpEndpointV2Configuration.getHttpProxy().getPort()).isEqualTo(httpEndpointV2.getHttpProxy().getPort());
+        assertThat(httpEndpointV2Configuration.getHttpProxy().getHost())
+                .isEqualTo(httpEndpointV2.getHttpProxy().getHost());
+        assertThat(httpEndpointV2Configuration.getHttpProxy().getPort())
+                .isEqualTo(httpEndpointV2.getHttpProxy().getPort());
         assertThat(httpEndpointV2Configuration.getHttpClientOptions()).isNotNull();
-        assertThat(httpEndpointV2Configuration.getHttpClientOptions().getIdleTimeout()).isEqualTo(
-            httpEndpointV2.getHttpClientOptions().getIdleTimeout().longValue()
-        );
+        assertThat(httpEndpointV2Configuration.getHttpClientOptions().getIdleTimeout())
+                .isEqualTo(
+                        httpEndpointV2.getHttpClientOptions().getIdleTimeout().longValue());
         assertThat(httpEndpointV2Configuration.getHttpClientSslOptions()).isNotNull();
-        assertThat(httpEndpointV2Configuration.getHttpClientSslOptions().isTrustAll()).isEqualTo(
-            httpEndpointV2.getHttpClientSslOptions().getTrustAll()
-        );
+        assertThat(httpEndpointV2Configuration.getHttpClientSslOptions().isTrustAll())
+                .isEqualTo(httpEndpointV2.getHttpClientSslOptions().getTrustAll());
         assertThat(httpEndpointV2Configuration.getHeaders()).isNotNull();
-        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getName()).isEqualTo(httpEndpointV2.getHeaders().get(0).getName());
-        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getValue()).isEqualTo(httpEndpointV2.getHeaders().get(0).getValue());
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getName())
+                .isEqualTo(httpEndpointV2.getHeaders().get(0).getName());
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getValue())
+                .isEqualTo(httpEndpointV2.getHeaders().get(0).getValue());
     }
 
     @Test
@@ -306,8 +313,10 @@ public class EndpointMapperTest {
         // Check http configuration
         var httpEndpointV2 = endpointV2.getHttpEndpointV2();
         assertThat(httpEndpointV2Configuration.getHeaders()).isNotNull();
-        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getName()).isEqualTo(httpEndpointV2.getHeaders().get(0).getName());
-        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getValue()).isEqualTo(httpEndpointV2.getHeaders().get(0).getValue());
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getName())
+                .isEqualTo(httpEndpointV2.getHeaders().get(0).getName());
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getValue())
+                .isEqualTo(httpEndpointV2.getHeaders().get(0).getValue());
     }
 
     @Test
@@ -317,9 +326,11 @@ public class EndpointMapperTest {
         var endpointGroupEntityV2 = endpointMapper.mapEndpointGroup(endpointGroupV2);
         assertThat(endpointGroupEntityV2).isNotNull();
         assertThat(endpointGroupEntityV2.getName()).isEqualTo(endpointGroupV2.getName());
-        assertV2EndpointsAreEquals(new ArrayList<>(endpointGroupEntityV2.getEndpoints()), endpointGroupV2.getEndpoints());
+        assertV2EndpointsAreEquals(
+                new ArrayList<>(endpointGroupEntityV2.getEndpoints()), endpointGroupV2.getEndpoints());
         assertThat(endpointGroupEntityV2.getLoadBalancer()).isNotNull();
-        assertThat(endpointGroupEntityV2.getLoadBalancer().getType().name()).isEqualTo(endpointGroupV2.getLoadBalancer().getType().name());
+        assertThat(endpointGroupEntityV2.getLoadBalancer().getType().name())
+                .isEqualTo(endpointGroupV2.getLoadBalancer().getType().name());
         assertThat(endpointGroupEntityV2.getServices()).isNotNull(); // Tested in ServiceMapperTest
         assertThat(endpointGroupEntityV2.getHttpProxy()).isNull();
         assertThat(endpointGroupEntityV2.getHttpClientOptions()).isNull();
@@ -328,24 +339,25 @@ public class EndpointMapperTest {
     }
 
     private static void assertV2EndpointsAreEquals(
-        List<io.gravitee.definition.model.Endpoint> endpointEntityV2List,
-        List<EndpointV2> endpointV2List
-    ) throws JsonProcessingException {
+            List<io.gravitee.definition.model.Endpoint> endpointEntityV2List, List<EndpointV2> endpointV2List)
+            throws JsonProcessingException {
         assertThat(endpointEntityV2List).isNotNull().hasSize(endpointV2List.size());
         var endpointEntityV2 = endpointEntityV2List.iterator().next();
         var endpointV2 = endpointV2List.get(0);
         assertV2EndpointsAreEquals(endpointEntityV2, endpointV2);
     }
 
-    private static void assertV2EndpointsAreEquals(io.gravitee.definition.model.Endpoint endpointEntityV2, EndpointV2 endpointV2)
-        throws JsonProcessingException {
+    private static void assertV2EndpointsAreEquals(
+            io.gravitee.definition.model.Endpoint endpointEntityV2, EndpointV2 endpointV2)
+            throws JsonProcessingException {
         var httpEndpointV2 = endpointV2.getHttpEndpointV2();
         assertThat(endpointEntityV2).isNotNull();
         assertThat(endpointEntityV2.getName()).isEqualTo(httpEndpointV2.getName());
         assertThat(endpointEntityV2.getTarget()).isEqualTo(httpEndpointV2.getTarget());
         assertThat(endpointEntityV2.getWeight()).isEqualTo(httpEndpointV2.getWeight());
         assertThat(endpointEntityV2.isBackup()).isEqualTo(httpEndpointV2.getBackup());
-        assertThat(endpointEntityV2.getStatus().name()).isEqualTo(httpEndpointV2.getStatus().name());
+        assertThat(endpointEntityV2.getStatus().name())
+                .isEqualTo(httpEndpointV2.getStatus().name());
         assertThat(endpointEntityV2.getTenants()).isEqualTo(httpEndpointV2.getTenants());
         assertThat(endpointEntityV2.getType()).isEqualTo(httpEndpointV2.getType());
         assertThat(endpointEntityV2.getInherit()).isEqualTo(httpEndpointV2.getInherit());
@@ -393,9 +405,11 @@ public class EndpointMapperTest {
         var endpointGroupV2 = endpointMapper.mapEndpointGroup(endpointGroupEntityV2);
         assertThat(endpointGroupV2).isNotNull();
         assertThat(endpointGroupV2.getName()).isEqualTo(endpointGroupEntityV2.getName());
-        assertV2EndpointsAreEquals(new ArrayList<>(endpointGroupEntityV2.getEndpoints()), endpointGroupV2.getEndpoints());
+        assertV2EndpointsAreEquals(
+                new ArrayList<>(endpointGroupEntityV2.getEndpoints()), endpointGroupV2.getEndpoints());
         assertThat(endpointGroupV2.getLoadBalancer()).isNotNull();
-        assertThat(endpointGroupV2.getLoadBalancer().getType().name()).isEqualTo(endpointGroupEntityV2.getLoadBalancer().getType().name());
+        assertThat(endpointGroupV2.getLoadBalancer().getType().name())
+                .isEqualTo(endpointGroupEntityV2.getLoadBalancer().getType().name());
         // TODO: Below should be tested deeper
         assertThat(endpointGroupV2.getServices()).isNull();
         assertThat(endpointGroupV2.getHttpProxy()).isNull();

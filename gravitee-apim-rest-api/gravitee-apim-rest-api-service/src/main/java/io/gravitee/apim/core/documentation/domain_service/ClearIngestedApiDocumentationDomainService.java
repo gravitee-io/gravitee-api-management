@@ -41,32 +41,27 @@ public class ClearIngestedApiDocumentationDomainService {
     private final PageQueryService pageQueryService;
 
     public void clearIngestedPagesOf(String apiId, Collection<String> keepPages, AuditInfo auditInfo) {
-        pageQueryService
-            .searchByApiId(apiId)
-            .stream()
-            .filter(Page::isIngested)
-            .filter(p -> !keepPages.contains(p.getName()))
-            .forEach(page -> {
-                if (page.isPublished()) {
-                    indexer.delete(
-                        new Indexer.IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()),
-                        new IndexablePage(page)
-                    );
-                }
-                pageCrudService.delete(page.getId());
-                auditDomainService.createApiAuditLog(
-                    ApiAuditLogEntity.builder()
-                        .apiId(page.getReferenceId())
-                        .event(PageAuditEvent.PAGE_DELETED)
-                        .createdAt(page.getUpdatedAt().toInstant().atZone(ZoneId.of("UTC")))
-                        .organizationId(auditInfo.organizationId())
-                        .environmentId(auditInfo.environmentId())
-                        .actor(auditInfo.actor())
-                        .properties(Map.of(AuditProperties.PAGE, page.getId()))
-                        .oldValue(page)
-                        .newValue(null)
-                        .build()
-                );
-            });
+        pageQueryService.searchByApiId(apiId).stream()
+                .filter(Page::isIngested)
+                .filter(p -> !keepPages.contains(p.getName()))
+                .forEach(page -> {
+                    if (page.isPublished()) {
+                        indexer.delete(
+                                new Indexer.IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()),
+                                new IndexablePage(page));
+                    }
+                    pageCrudService.delete(page.getId());
+                    auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
+                            .apiId(page.getReferenceId())
+                            .event(PageAuditEvent.PAGE_DELETED)
+                            .createdAt(page.getUpdatedAt().toInstant().atZone(ZoneId.of("UTC")))
+                            .organizationId(auditInfo.organizationId())
+                            .environmentId(auditInfo.environmentId())
+                            .actor(auditInfo.actor())
+                            .properties(Map.of(AuditProperties.PAGE, page.getId()))
+                            .oldValue(page)
+                            .newValue(null)
+                            .build());
+                });
     }
 }

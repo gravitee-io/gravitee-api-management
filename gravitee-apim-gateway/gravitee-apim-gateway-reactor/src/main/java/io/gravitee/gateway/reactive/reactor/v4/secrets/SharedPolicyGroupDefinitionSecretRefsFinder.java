@@ -37,9 +37,8 @@ public class SharedPolicyGroupDefinitionSecretRefsFinder extends AbstractV4APISe
     @Override
     public DefinitionDescriptor toDefinitionDescriptor(SharedPolicyGroup definition, DefinitionMetadata metadata) {
         return new DefinitionDescriptor(
-            new Definition(SHARED_POLICY_GROUP_DEFINITION_KIND, definition.getId()),
-            Optional.ofNullable(metadata.revision())
-        );
+                new Definition(SHARED_POLICY_GROUP_DEFINITION_KIND, definition.getId()),
+                Optional.ofNullable(metadata.revision()));
     }
 
     @Override

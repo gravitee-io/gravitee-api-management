@@ -39,7 +39,8 @@ public class CredentialResolver {
     private final DataEncryptor dataEncryptor;
     private final ObjectMapper objectMapper;
 
-    public CredentialResolver(CredentialManager credentialManager, DataEncryptor dataEncryptor, ObjectMapper objectMapper) {
+    public CredentialResolver(
+            CredentialManager credentialManager, DataEncryptor dataEncryptor, ObjectMapper objectMapper) {
         this.credentialManager = credentialManager;
         this.dataEncryptor = dataEncryptor;
         this.objectMapper = objectMapper;
@@ -54,25 +55,32 @@ public class CredentialResolver {
      * @return the value of the field
      * @throws CredentialResolutionException when the resolution is refused, or the credential or field cannot be found or read
      */
-    public String resolve(String environmentId, String apiId, String credentialId, String field, SecretFieldAccessControl accessControl) {
+    public String resolve(
+            String environmentId,
+            String apiId,
+            String credentialId,
+            String field,
+            SecretFieldAccessControl accessControl) {
         if (accessControl == null || !accessControl.allowed()) {
-            throw new CredentialResolutionException("Credential [%s] can only be resolved in a secret field".formatted(credentialId));
+            throw new CredentialResolutionException(
+                    "Credential [%s] can only be resolved in a secret field".formatted(credentialId));
         }
 
         DeployedCredential credential = credentialManager
-            .get(environmentId, credentialId)
-            .orElseThrow(() ->
-                new CredentialResolutionException("Credential [%s] not found in environment [%s]".formatted(credentialId, environmentId))
-            );
+                .get(environmentId, credentialId)
+                .orElseThrow(() -> new CredentialResolutionException(
+                        "Credential [%s] not found in environment [%s]".formatted(credentialId, environmentId)));
 
         if (apiId == null || !credential.allowedApiIds().contains(apiId)) {
-            throw new CredentialResolutionException("Credential [%s] is not allowed for API [%s]".formatted(credentialId, apiId));
+            throw new CredentialResolutionException(
+                    "Credential [%s] is not allowed for API [%s]".formatted(credentialId, apiId));
         }
 
         if (decrypt(credential).get(field) instanceof String value) {
             return value;
         }
-        throw new CredentialResolutionException("Field [%s] not found in credential [%s]".formatted(field, credentialId));
+        throw new CredentialResolutionException(
+                "Field [%s] not found in credential [%s]".formatted(field, credentialId));
     }
 
     private Map<String, Object> decrypt(DeployedCredential credential) {

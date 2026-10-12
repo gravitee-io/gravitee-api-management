@@ -63,18 +63,19 @@ public class ApiHRIDUpgrader implements Upgrader {
 
     private void setHRIDs(ExecutionContext executionContext) {
         apiRepository
-            .search(
-                new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
-                null,
-                new ApiFieldFilter.Builder().excludePicture().build()
-            )
-            .forEach(api -> {
-                api.setHrid(api.getCrossId());
-                try {
-                    apiRepository.update(api);
-                } catch (TechnicalException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+                .search(
+                        new ApiCriteria.Builder()
+                                .environmentId(executionContext.getEnvironmentId())
+                                .build(),
+                        null,
+                        new ApiFieldFilter.Builder().excludePicture().build())
+                .forEach(api -> {
+                    api.setHrid(api.getCrossId());
+                    try {
+                        apiRepository.update(api);
+                    } catch (TechnicalException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 }

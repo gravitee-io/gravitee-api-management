@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GzipBulkCompressorTest {
 
@@ -58,19 +57,20 @@ class GzipBulkCompressorTest {
     @Test
     void should_compute_per_type() throws IOException {
         TransformedReport metricsType = new TransformedReport(Buffer.buffer("metrics"), Metrics.class);
-        TransformedReport messageMetricsType = new TransformedReport(Buffer.buffer("message_metrics"), MessageMetrics.class);
+        TransformedReport messageMetricsType =
+                new TransformedReport(Buffer.buffer("message_metrics"), MessageMetrics.class);
         final CompressedBulk expectedBody = cut.compress(List.of(metricsType, messageMetricsType));
         assertThat(expectedBody.countPerType()).hasSize(2);
         assertThat(expectedBody.countPerType()).extracting(metricsType.type()).isEqualTo(1);
-        assertThat(expectedBody.countPerType()).extracting(messageMetricsType.type()).isEqualTo(1);
+        assertThat(expectedBody.countPerType())
+                .extracting(messageMetricsType.type())
+                .isEqualTo(1);
     }
 
     private Buffer uncompress(final Buffer compressBuffer) throws IOException {
-        try (
-            ByteArrayInputStream bis = new ByteArrayInputStream(compressBuffer.getBytes());
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            GZIPInputStream gzipIS = new GZIPInputStream(bis)
-        ) {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(compressBuffer.getBytes());
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                GZIPInputStream gzipIS = new GZIPInputStream(bis)) {
             byte[] buffer = new byte[1024];
             int len;
             while ((len = gzipIS.read(buffer)) != -1) {

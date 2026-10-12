@@ -34,16 +34,16 @@ class MessageFlowTest {
     @Test
     void should_apply_onMessage_interceptor() {
         final MessageFlow<Message> cut = new MessageFlow<>();
-        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = onMessages ->
-            upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
+        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor =
+                onMessages -> upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true))
+                        .compose(onMessages);
 
         cut.messages(Flowable.just(DefaultMessage.builder().content("test").build()));
-        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor.<
-                Message
-            >builder()
-            .id("id")
-            .transformersFunction(interceptor)
-            .build();
+        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor =
+                OnMessagesInterceptor.MessagesInterceptor.<Message>builder()
+                        .id("id")
+                        .transformersFunction(interceptor)
+                        .build();
         cut.registerMessagesInterceptor(messagesInterceptor);
 
         cut.onMessages(upstream -> upstream.map(message -> message.content(Buffer.buffer("Transformed test"))));
@@ -51,7 +51,8 @@ class MessageFlowTest {
         final TestSubscriber<Message> obs = cut.messages().test();
 
         obs.assertComplete();
-        obs.assertValue(message -> message.<Boolean>attribute("intercepted") && message.content().toString().equals("Transformed test"));
+        obs.assertValue(message -> message.<Boolean>attribute("intercepted")
+                && message.content().toString().equals("Transformed test"));
     }
 
     @Test
@@ -70,16 +71,16 @@ class MessageFlowTest {
     @Test
     void should_unset_onMessages_interceptor() {
         final MessageFlow<Message> cut = new MessageFlow<>();
-        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = onMessages ->
-            upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
+        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor =
+                onMessages -> upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true))
+                        .compose(onMessages);
 
         cut.messages(Flowable.just(DefaultMessage.builder().content("test").build()));
-        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor.<
-                Message
-            >builder()
-            .id("id")
-            .transformersFunction(interceptor)
-            .build();
+        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor =
+                OnMessagesInterceptor.MessagesInterceptor.<Message>builder()
+                        .id("id")
+                        .transformersFunction(interceptor)
+                        .build();
         cut.registerMessagesInterceptor(messagesInterceptor);
         cut.unregisterMessagesInterceptor("id");
         cut.onMessages(upstream -> upstream.map(message -> message.content(Buffer.buffer("Transformed test"))));
@@ -87,22 +88,23 @@ class MessageFlowTest {
         final TestSubscriber<Message> obs = cut.messages().test();
 
         obs.assertComplete();
-        obs.assertValue(message -> message.attribute("intercepted") == null && message.content().toString().equals("Transformed test"));
+        obs.assertValue(message -> message.attribute("intercepted") == null
+                && message.content().toString().equals("Transformed test"));
     }
 
     @Test
     void should_not_apply_onMessage_interceptor_when_messages_is_initialized_later() {
         final MessageFlow<Message> cut = new MessageFlow<>();
-        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor = onMessages ->
-            upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
+        final Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>> interceptor =
+                onMessages -> upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true))
+                        .compose(onMessages);
 
         // Set message interceptor before message flow is initialized.
-        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor.<
-                Message
-            >builder()
-            .id("id")
-            .transformersFunction(interceptor)
-            .build();
+        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor =
+                OnMessagesInterceptor.MessagesInterceptor.<Message>builder()
+                        .id("id")
+                        .transformersFunction(interceptor)
+                        .build();
         cut.registerMessagesInterceptor(messagesInterceptor);
 
         cut.onMessages(upstream -> upstream.map(message -> message.content(Buffer.buffer("Transformed test"))));
@@ -112,6 +114,7 @@ class MessageFlowTest {
         final TestSubscriber<Message> obs = cut.messages().test();
 
         obs.assertComplete();
-        obs.assertValue(message -> message.<Boolean>attribute("intercepted") == null && message.content().toString().equals("test"));
+        obs.assertValue(message -> message.<Boolean>attribute("intercepted") == null
+                && message.content().toString().equals("test"));
     }
 }

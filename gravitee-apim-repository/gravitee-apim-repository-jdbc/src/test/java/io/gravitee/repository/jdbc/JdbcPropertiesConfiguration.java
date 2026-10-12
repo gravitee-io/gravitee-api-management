@@ -31,8 +31,10 @@ import org.springframework.core.io.Resource;
 public class JdbcPropertiesConfiguration {
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer graviteePropertyPlaceholderConfigurer(Properties graviteeProperties) {
-        final PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+    public static PropertySourcesPlaceholderConfigurer graviteePropertyPlaceholderConfigurer(
+            Properties graviteeProperties) {
+        final PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer =
+                new PropertySourcesPlaceholderConfigurer();
 
         propertySourcesPlaceholderConfigurer.setProperties(graviteeProperties());
         propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(true);

@@ -43,15 +43,13 @@ public class MutatingHttpProxyEndpointConnectorFactory extends HttpProxyEndpoint
 
     @Override
     public MutatingHttpProxyEndpointConnector createConnector(
-        DeploymentContext deploymentContext,
-        String configuration,
-        String sharedConfiguration
-    ) {
+            DeploymentContext deploymentContext, String configuration, String sharedConfiguration) {
         try {
             return new MutatingHttpProxyEndpointConnector(
-                pluginConfigurationHelper.readConfiguration(HttpProxyEndpointConnectorConfiguration.class, configuration),
-                pluginConfigurationHelper.readConfiguration(HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
-            );
+                    pluginConfigurationHelper.readConfiguration(
+                            HttpProxyEndpointConnectorConfiguration.class, configuration),
+                    pluginConfigurationHelper.readConfiguration(
+                            HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration));
         } catch (PluginConfigurationException e) {
             return null;
         }

@@ -52,9 +52,11 @@ class ApiQueryServiceImplTest {
         Api api = anApi();
         givenMatchingApis(Stream.of(api));
 
-        var res = service
-            .search(ApiSearchCriteria.builder().build(), Sortable.builder().build(), ApiFieldFilter.builder().build())
-            .toList();
+        var res = service.search(
+                        ApiSearchCriteria.builder().build(),
+                        Sortable.builder().build(),
+                        ApiFieldFilter.builder().build())
+                .toList();
         assertThat(res).hasSize(1).containsExactly(api);
     }
 
@@ -68,7 +70,7 @@ class ApiQueryServiceImplTest {
 
     @Test
     void should_list_apis_matching_integration_id() {
-        //Given
+        // Given
         var integrationId = "integration-id";
         var pageable = new PageableImpl(1, 5);
 
@@ -76,10 +78,10 @@ class ApiQueryServiceImplTest {
         var page = new Page<>(expectedApis, pageable.getPageNumber(), expectedApis.size(), expectedApis.size());
         when(apiRepository.search(any(), any(), any(), any())).thenReturn(page);
 
-        //When
+        // When
         Page<Api> responsePage = service.findByIntegrationId(integrationId, pageable);
 
-        //Then
+        // Then
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(responsePage).isNotNull();
             softly.assertThat(responsePage.getPageNumber()).isEqualTo(1);

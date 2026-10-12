@@ -35,21 +35,22 @@ class SyncActionMapperTest {
 
     private static Stream<Arguments> provideSyncActions() {
         return Stream.of(
-            Arguments.of(null, null),
-            Arguments.of(SyncAction.DEPLOY, DistributedSyncAction.DEPLOY),
-            Arguments.of(SyncAction.UNDEPLOY, DistributedSyncAction.UNDEPLOY)
-        );
+                Arguments.of(null, null),
+                Arguments.of(SyncAction.DEPLOY, DistributedSyncAction.DEPLOY),
+                Arguments.of(SyncAction.UNDEPLOY, DistributedSyncAction.UNDEPLOY));
     }
 
     @ParameterizedTest
     @MethodSource("provideSyncActions")
-    void should_return_syncAction_from_distributedSyncAction(SyncAction syncAction, DistributedSyncAction distributedSyncAction) {
+    void should_return_syncAction_from_distributedSyncAction(
+            SyncAction syncAction, DistributedSyncAction distributedSyncAction) {
         assertThat(SyncActionMapper.to(syncAction)).isEqualTo(distributedSyncAction);
     }
 
     @ParameterizedTest
     @MethodSource("provideSyncActions")
-    void should_return_distributedSyncAction_from_syncAction(SyncAction syncAction, DistributedSyncAction distributedSyncAction) {
+    void should_return_distributedSyncAction_from_syncAction(
+            SyncAction syncAction, DistributedSyncAction distributedSyncAction) {
         assertThat(SyncActionMapper.to(distributedSyncAction)).isEqualTo(syncAction);
     }
 }

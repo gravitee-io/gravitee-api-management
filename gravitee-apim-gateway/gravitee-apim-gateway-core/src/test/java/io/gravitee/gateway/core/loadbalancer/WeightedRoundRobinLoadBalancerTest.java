@@ -21,10 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.endpoint.Endpoint;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultManagedEndpoint;
-import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultManagedEndpointGroup;
-import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;

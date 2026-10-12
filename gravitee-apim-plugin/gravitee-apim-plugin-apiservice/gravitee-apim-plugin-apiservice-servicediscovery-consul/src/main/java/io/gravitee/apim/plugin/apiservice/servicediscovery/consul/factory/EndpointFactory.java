@@ -28,10 +28,8 @@ import java.util.stream.Collectors;
 
 public class EndpointFactory {
 
-    private static final Map<String, Class<? extends EndpointConfigurationFactory>> configurationFactoryClasses = Map.of(
-        HttpProxyEndpointConfigurationFactory.ENDPOINT_TYPE,
-        HttpProxyEndpointConfigurationFactory.class
-    );
+    private static final Map<String, Class<? extends EndpointConfigurationFactory>> configurationFactoryClasses =
+            Map.of(HttpProxyEndpointConfigurationFactory.ENDPOINT_TYPE, HttpProxyEndpointConfigurationFactory.class);
     private static final Map<String, EndpointConfigurationFactory> factories = new HashMap<>();
 
     private EndpointFactory() {}
@@ -44,17 +42,19 @@ public class EndpointFactory {
 
             endpoint.setName(endpointName(service));
             endpoint.setType(type);
-            endpoint.setConfiguration(
-                factories
+            endpoint.setConfiguration(factories
                     .computeIfAbsent(type, t -> {
                         try {
-                            return configurationFactoryClasses.get(t).getDeclaredConstructor().newInstance();
+                            return configurationFactoryClasses
+                                    .get(t)
+                                    .getDeclaredConstructor()
+                                    .newInstance();
                         } catch (Exception e) {
-                            throw new IllegalStateException("Unexpected error while instantiating Endpoint Configuration Factory class");
+                            throw new IllegalStateException(
+                                    "Unexpected error while instantiating Endpoint Configuration Factory class");
                         }
                     })
-                    .buildConfiguration(service)
-            );
+                    .buildConfiguration(service));
 
             if (group.getSharedConfiguration() != null) {
                 endpoint.setInheritConfiguration(true);
@@ -62,12 +62,12 @@ public class EndpointFactory {
 
             if (service.getMeta() != null) {
                 Optional.ofNullable(service.getMeta().get(EndpointConfigurationFactory.CONSUL_METADATA_WEIGHT))
-                    .map(Integer::parseInt)
-                    .ifPresent(endpoint::setWeight);
+                        .map(Integer::parseInt)
+                        .ifPresent(endpoint::setWeight);
 
                 Optional.ofNullable(service.getMeta().get(EndpointConfigurationFactory.CONSUL_METADATA_TENANT))
-                    .map(v -> Arrays.stream(v.split(",")).map(String::trim).collect(Collectors.toList()))
-                    .ifPresent(endpoint::setTenants);
+                        .map(v -> Arrays.stream(v.split(",")).map(String::trim).collect(Collectors.toList()))
+                        .ifPresent(endpoint::setTenants);
             }
 
             return endpoint;

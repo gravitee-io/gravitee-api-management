@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 public class OAIToImportDefinitionConverter {
@@ -38,83 +37,81 @@ public class OAIToImportDefinitionConverter {
     private static final String X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION = "x-graviteeio-definition";
     private static final String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
 
-    public ImportDefinition toImportDefinition(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
+    public ImportDefinition toImportDefinition(
+            OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
         return toImportDefinition(specification, visitors, false);
     }
 
     public ImportDefinition toImportDefinition(
-        OpenAPI specification,
-        Collection<? extends OAIOperationVisitor> visitors,
-        boolean skipFlows
-    ) {
+            OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors, boolean skipFlows) {
         var xGraviteeIODefinition = getXGraviteeIODefinition(specification);
         var serverUrls = OAIServersConverter.INSTANCE.convert(specification.getServers());
         var importDefinitionBuilder = ImportDefinition.builder();
         var apiBuilder = ApiExport.builder()
-            .name(specification.getInfo().getTitle())
-            .description(
-                StringUtils.isEmpty(specification.getInfo().getDescription())
-                    ? "Description of " + specification.getInfo().getTitle()
-                    : specification.getInfo().getDescription()
-            )
-            .definitionVersion(DefinitionVersion.V4)
-            .apiVersion(specification.getInfo().getVersion())
-            .type(ApiType.PROXY)
-            .flows(skipFlows ? new ArrayList<>() : OAIToFlowsConverter.INSTANCE.convert(specification, visitors))
-            .listeners(
-                OAIToListenersConverter.INSTANCE.convert(
-                    xGraviteeIODefinition,
-                    specification.getInfo().getTitle(),
-                    serverUrls.isEmpty() ? null : serverUrls.get(0)
-                )
-            )
-            .endpointGroups(OAIToEndpointGroupsConverter.INSTANCE.convert(specification.getServers(), serverUrls));
+                .name(specification.getInfo().getTitle())
+                .description(
+                        StringUtils.isEmpty(specification.getInfo().getDescription())
+                                ? "Description of " + specification.getInfo().getTitle()
+                                : specification.getInfo().getDescription())
+                .definitionVersion(DefinitionVersion.V4)
+                .apiVersion(specification.getInfo().getVersion())
+                .type(ApiType.PROXY)
+                .flows(skipFlows ? new ArrayList<>() : OAIToFlowsConverter.INSTANCE.convert(specification, visitors))
+                .listeners(OAIToListenersConverter.INSTANCE.convert(
+                        xGraviteeIODefinition,
+                        specification.getInfo().getTitle(),
+                        serverUrls.isEmpty() ? null : serverUrls.get(0)))
+                .endpointGroups(OAIToEndpointGroupsConverter.INSTANCE.convert(specification.getServers(), serverUrls));
 
         if (xGraviteeIODefinition != null) {
             apiBuilder
-                .categories(
-                    CollectionUtils.isEmpty(xGraviteeIODefinition.getCategories())
-                        ? Collections.emptySet()
-                        : new HashSet<>(xGraviteeIODefinition.getCategories())
-                )
-                .labels(
-                    CollectionUtils.isEmpty(xGraviteeIODefinition.getLabels()) ? Collections.emptyList() : xGraviteeIODefinition.getLabels()
-                )
-                .groups(
-                    CollectionUtils.isEmpty(xGraviteeIODefinition.getGroups())
-                        ? Collections.emptySet()
-                        : new HashSet<>(xGraviteeIODefinition.getGroups())
-                )
-                .picture(
-                    xGraviteeIODefinition.getPicture() != null &&
-                            !StringUtils.isEmpty(xGraviteeIODefinition.getPicture()) &&
-                            xGraviteeIODefinition.getPicture().matches(PICTURE_REGEX)
-                        ? xGraviteeIODefinition.getPicture()
-                        : null
-                )
-                .visibility(
-                    xGraviteeIODefinition.getVisibility() != null ? Visibility.valueOf(xGraviteeIODefinition.getVisibility().name()) : null
-                )
-                .properties(OAIToPropertiesConverter.INSTANCE.convert(xGraviteeIODefinition.getProperties()))
-                .tags(
-                    CollectionUtils.isEmpty(xGraviteeIODefinition.getTags())
-                        ? Collections.emptySet()
-                        : new HashSet<>(xGraviteeIODefinition.getTags())
-                );
+                    .categories(
+                            CollectionUtils.isEmpty(xGraviteeIODefinition.getCategories())
+                                    ? Collections.emptySet()
+                                    : new HashSet<>(xGraviteeIODefinition.getCategories()))
+                    .labels(
+                            CollectionUtils.isEmpty(xGraviteeIODefinition.getLabels())
+                                    ? Collections.emptyList()
+                                    : xGraviteeIODefinition.getLabels())
+                    .groups(
+                            CollectionUtils.isEmpty(xGraviteeIODefinition.getGroups())
+                                    ? Collections.emptySet()
+                                    : new HashSet<>(xGraviteeIODefinition.getGroups()))
+                    .picture(
+                            xGraviteeIODefinition.getPicture() != null
+                                            && !StringUtils.isEmpty(xGraviteeIODefinition.getPicture())
+                                            && xGraviteeIODefinition
+                                                    .getPicture()
+                                                    .matches(PICTURE_REGEX)
+                                    ? xGraviteeIODefinition.getPicture()
+                                    : null)
+                    .visibility(
+                            xGraviteeIODefinition.getVisibility() != null
+                                    ? Visibility.valueOf(xGraviteeIODefinition
+                                            .getVisibility()
+                                            .name())
+                                    : null)
+                    .properties(OAIToPropertiesConverter.INSTANCE.convert(xGraviteeIODefinition.getProperties()))
+                    .tags(
+                            CollectionUtils.isEmpty(xGraviteeIODefinition.getTags())
+                                    ? Collections.emptySet()
+                                    : new HashSet<>(xGraviteeIODefinition.getTags()));
 
-            importDefinitionBuilder.metadata(OAIToMetadataConverter.INSTANCE.convert(xGraviteeIODefinition.getMetadata()));
+            importDefinitionBuilder.metadata(
+                    OAIToMetadataConverter.INSTANCE.convert(xGraviteeIODefinition.getMetadata()));
         }
 
         return importDefinitionBuilder.apiExport(apiBuilder.build()).build();
     }
 
     private XGraviteeIODefinition getXGraviteeIODefinition(OpenAPI specification) {
-        if (specification.getExtensions() == null || specification.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION) == null) {
+        if (specification.getExtensions() == null
+                || specification.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION) == null) {
             return null;
         }
-        return new ObjectMapper().convertValue(
-            specification.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION),
-            XGraviteeIODefinition.class
-        );
+        return new ObjectMapper()
+                .convertValue(
+                        specification.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION),
+                        XGraviteeIODefinition.class);
     }
 }

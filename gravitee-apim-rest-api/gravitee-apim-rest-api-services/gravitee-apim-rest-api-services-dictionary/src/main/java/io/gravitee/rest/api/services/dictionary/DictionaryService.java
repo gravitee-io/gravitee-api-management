@@ -105,10 +105,8 @@ public class DictionaryService extends AbstractService implements EventListener<
 
             if (DICTIONARY_HTTP_PROVIDER.equals(providerConf.getType())) {
                 try {
-                    HttpProviderConfiguration configuration = objectMapper.treeToValue(
-                        providerConf.getConfiguration(),
-                        HttpProviderConfiguration.class
-                    );
+                    HttpProviderConfiguration configuration =
+                            objectMapper.treeToValue(providerConf.getConfiguration(), HttpProviderConfiguration.class);
                     DictionaryRefresher refresher = new DictionaryRefresher(dictionary);
 
                     HttpProvider provider = new HttpProvider(configuration);
@@ -118,11 +116,10 @@ public class DictionaryService extends AbstractService implements EventListener<
                     refresher.setProvider(provider);
                     refresher.setDictionaryService(dictionaryService);
                     log.info(
-                        "Add a scheduled task to poll dictionary provider for dictionary [{}] each {} {} ",
-                        dictionary.getId(),
-                        dictionary.getTrigger().getRate(),
-                        dictionary.getTrigger().getUnit()
-                    );
+                            "Add a scheduled task to poll dictionary provider for dictionary [{}] each {} {} ",
+                            dictionary.getId(),
+                            dictionary.getTrigger().getRate(),
+                            dictionary.getTrigger().getUnit());
 
                     // Force the first refresh, and then run it periodically
                     refresher.handle(null);
@@ -130,7 +127,10 @@ public class DictionaryService extends AbstractService implements EventListener<
                     long periodicTimer = vertx.setPeriodic(getDelayMillis(dictionary.getTrigger()), refresher);
                     timers.put(dictionary.getId(), periodicTimer);
                 } catch (JsonProcessingException jpe) {
-                    log.error("Dictionary provider configuration for dictionary [{}] is invalid", dictionary.getId(), jpe);
+                    log.error(
+                            "Dictionary provider configuration for dictionary [{}] is invalid",
+                            dictionary.getId(),
+                            jpe);
                 }
             }
         }

@@ -31,52 +31,46 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
 
     @Override
     public MeasuresResponse enrichUnits(MeasuresResponse response) {
-        var enriched = response
-            .metrics()
-            .stream()
-            .map(metric ->
-                new MetricMeasuresResponse(
-                    metric.name(),
-                    definitionQueryService.findMetric(metric.name()).map(MetricSpec::unit).orElse(null),
-                    metric.measures(),
-                    metric.ignoredFilters()
-                )
-            )
-            .toList();
+        var enriched = response.metrics().stream()
+                .map(metric -> new MetricMeasuresResponse(
+                        metric.name(),
+                        definitionQueryService
+                                .findMetric(metric.name())
+                                .map(MetricSpec::unit)
+                                .orElse(null),
+                        metric.measures(),
+                        metric.ignoredFilters()))
+                .toList();
         return new MeasuresResponse(enriched);
     }
 
     @Override
     public FacetsResponse enrichUnits(FacetsResponse response) {
-        var enriched = response
-            .metrics()
-            .stream()
-            .map(metric ->
-                new MetricFacetsResponse(
-                    metric.metric(),
-                    definitionQueryService.findMetric(metric.metric()).map(MetricSpec::unit).orElse(null),
-                    metric.buckets(),
-                    metric.ignoredFilters()
-                )
-            )
-            .toList();
+        var enriched = response.metrics().stream()
+                .map(metric -> new MetricFacetsResponse(
+                        metric.metric(),
+                        definitionQueryService
+                                .findMetric(metric.metric())
+                                .map(MetricSpec::unit)
+                                .orElse(null),
+                        metric.buckets(),
+                        metric.ignoredFilters()))
+                .toList();
         return new FacetsResponse(enriched);
     }
 
     @Override
     public TimeSeriesResponse enrichUnits(TimeSeriesResponse response) {
-        var enriched = response
-            .metrics()
-            .stream()
-            .map(metric ->
-                new TimeSeriesMetricResponse(
-                    metric.name(),
-                    definitionQueryService.findMetric(metric.name()).map(MetricSpec::unit).orElse(null),
-                    metric.buckets(),
-                    metric.ignoredFilters()
-                )
-            )
-            .toList();
+        var enriched = response.metrics().stream()
+                .map(metric -> new TimeSeriesMetricResponse(
+                        metric.name(),
+                        definitionQueryService
+                                .findMetric(metric.name())
+                                .map(MetricSpec::unit)
+                                .orElse(null),
+                        metric.buckets(),
+                        metric.ignoredFilters()))
+                .toList();
         return new TimeSeriesResponse(enriched);
     }
 }

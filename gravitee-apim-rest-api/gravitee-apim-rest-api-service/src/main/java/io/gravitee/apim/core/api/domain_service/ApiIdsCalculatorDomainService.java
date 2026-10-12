@@ -46,10 +46,7 @@ public class ApiIdsCalculatorDomainService {
     private final PlanQueryService planQueryService;
 
     public ApiIdsCalculatorDomainService(
-        ApiQueryService apiQueryService,
-        PageQueryService pageQueryService,
-        PlanQueryService planQueryService
-    ) {
+            ApiQueryService apiQueryService, PageQueryService pageQueryService, PlanQueryService planQueryService) {
         this.apiQueryService = apiQueryService;
         this.pageQueryService = pageQueryService;
         this.planQueryService = planQueryService;
@@ -67,19 +64,26 @@ public class ApiIdsCalculatorDomainService {
      * when the target API was resolved through another mean than crossId (e.g. promotion history): otherwise the
      * crossId lookup misses again, random ids are generated and the update is applied to a non-existing API.
      */
-    public ImportDefinition recalculateApiDefinitionIds(String environmentId, ImportDefinition toRecalculate, Api targetApi) {
+    public ImportDefinition recalculateApiDefinitionIds(
+            String environmentId, ImportDefinition toRecalculate, Api targetApi) {
         Objects.requireNonNull(toRecalculate.getApiExport(), "Api is mandatory");
-        if (toRecalculate.getApiExport().getId() == null || toRecalculate.getApiExport().getId().isEmpty()) {
+        if (toRecalculate.getApiExport().getId() == null
+                || toRecalculate.getApiExport().getId().isEmpty()) {
             Optional.ofNullable(targetApi)
-                .or(() -> findApiByEnvironmentAndCrossId(environmentId, toRecalculate.getApiExport().getCrossId()))
-                .ifPresentOrElse(
-                    api -> recalculateIdsFromCrossId(toRecalculate, api),
-                    () -> recalculateIdsFromDefinitionIds(environmentId, toRecalculate)
-                );
-        } else if (targetApi != null && targetApi.getId() != null && !targetApi.getId().equals(toRecalculate.getApiExport().getId())) {
+                    .or(() -> findApiByEnvironmentAndCrossId(
+                            environmentId, toRecalculate.getApiExport().getCrossId()))
+                    .ifPresentOrElse(
+                            api -> recalculateIdsFromCrossId(toRecalculate, api),
+                            () -> recalculateIdsFromDefinitionIds(environmentId, toRecalculate));
+        } else if (targetApi != null
+                && targetApi.getId() != null
+                && !targetApi.getId().equals(toRecalculate.getApiExport().getId())) {
             // The definition carries an id but we are updating another API: never let the definition id win.
             // Page and plan ids are left untouched, they are matched by crossId/id by the import layer.
-            log.debug("Import definition id [{}] replaced by target api id [{}]", toRecalculate.getApiExport().getId(), targetApi.getId());
+            log.debug(
+                    "Import definition id [{}] replaced by target api id [{}]",
+                    toRecalculate.getApiExport().getId(),
+                    targetApi.getId());
             toRecalculate.getApiExport().setId(targetApi.getId());
         }
         return generateEmptyIdsForPlansAndPages(toRecalculate);
@@ -88,11 +92,10 @@ public class ApiIdsCalculatorDomainService {
     private void recalculateIdsFromCrossId(ImportDefinition toRecalculate, Api api) {
         log.debug("Recalculating page and plans ids from cross id {} for api {}", api.getCrossId(), api.getId());
         toRecalculate.getApiExport().setId(api.getId());
-        Map<String, String> newPageIdsByOldPageIds = recalculatePageIdsFromCrossIds(
-            api,
-            Objects.requireNonNullElse(toRecalculate.getPages(), List.of())
-        );
-        recalculatePlanIdsFromCrossIds(api, Objects.requireNonNullElse(toRecalculate.getPlans(), Set.of()), newPageIdsByOldPageIds);
+        Map<String, String> newPageIdsByOldPageIds =
+                recalculatePageIdsFromCrossIds(api, Objects.requireNonNullElse(toRecalculate.getPages(), List.of()));
+        recalculatePlanIdsFromCrossIds(
+                api, Objects.requireNonNullElse(toRecalculate.getPlans(), Set.of()), newPageIdsByOldPageIds);
     }
 
     /**
@@ -101,108 +104,98 @@ public class ApiIdsCalculatorDomainService {
     private Map<String, String> recalculatePageIdsFromCrossIds(Api api, List<Page> pagesToRecalculate) {
         Map<String, String> idsMap = new HashMap<>();
 
-        Map<String, Page> pagesByCrossId = pageQueryService
-            .searchByApiId(api.getId())
-            .stream()
-            .filter(page -> page.getCrossId() != null)
-            .collect(toMap(Page::getCrossId, Function.identity()));
+        Map<String, Page> pagesByCrossId = pageQueryService.searchByApiId(api.getId()).stream()
+                .filter(page -> page.getCrossId() != null)
+                .collect(toMap(Page::getCrossId, Function.identity()));
 
-        pagesToRecalculate
-            .stream()
-            .filter(page -> page.getCrossId() != null && !page.getCrossId().isEmpty())
-            .forEach(page -> {
-                String pageId = page.getId() != null && !page.getId().isEmpty() ? page.getId() : null;
-                Page matchingPage = pagesByCrossId.get(page.getCrossId());
-                String newPageId = matchingPage != null ? matchingPage.getId() : UuidString.generateRandom();
-                page.setId(newPageId);
-                idsMap.put(pageId, newPageId);
-                updatePagesHierarchy(pagesToRecalculate, pageId, newPageId);
-            });
+        pagesToRecalculate.stream()
+                .filter(page -> page.getCrossId() != null && !page.getCrossId().isEmpty())
+                .forEach(page -> {
+                    String pageId = page.getId() != null && !page.getId().isEmpty() ? page.getId() : null;
+                    Page matchingPage = pagesByCrossId.get(page.getCrossId());
+                    String newPageId = matchingPage != null ? matchingPage.getId() : UuidString.generateRandom();
+                    page.setId(newPageId);
+                    idsMap.put(pageId, newPageId);
+                    updatePagesHierarchy(pagesToRecalculate, pageId, newPageId);
+                });
 
         return idsMap;
     }
 
     private void recalculatePlanIdsFromCrossIds(
-        Api api,
-        Set<PlanWithFlows> plansToRecalculate,
-        Map<String, String> newPageIdsByOldPageIds
-    ) {
-        Map<String, Plan> plansByCrossId = planQueryService
-            .findAllByApiId(api.getId())
-            .stream()
-            .filter(plan -> plan.getCrossId() != null)
-            .collect(toMap(Plan::getCrossId, Function.identity()));
+            Api api, Set<PlanWithFlows> plansToRecalculate, Map<String, String> newPageIdsByOldPageIds) {
+        Map<String, Plan> plansByCrossId = planQueryService.findAllByApiId(api.getId()).stream()
+                .filter(plan -> plan.getCrossId() != null)
+                .collect(toMap(Plan::getCrossId, Function.identity()));
 
-        plansToRecalculate
-            .stream()
-            .map(plan -> recalculateGeneralConditionsPageId(plan, newPageIdsByOldPageIds))
-            .filter(plan -> plan.getCrossId() != null && !plan.getCrossId().isEmpty())
-            .forEach(plan -> {
-                Plan matchingPlan = plansByCrossId.get(plan.getCrossId());
-                plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
-            });
+        plansToRecalculate.stream()
+                .map(plan -> recalculateGeneralConditionsPageId(plan, newPageIdsByOldPageIds))
+                .filter(plan -> plan.getCrossId() != null && !plan.getCrossId().isEmpty())
+                .forEach(plan -> {
+                    Plan matchingPlan = plansByCrossId.get(plan.getCrossId());
+                    plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
+                });
     }
 
     private void updatePagesHierarchy(List<Page> pages, String parentId, String newParentId) {
-        pages
-            .stream()
-            .filter(page -> isChildPageOf(page, parentId))
-            .forEach(child -> child.setParentId(newParentId));
+        pages.stream().filter(page -> isChildPageOf(page, parentId)).forEach(child -> child.setParentId(newParentId));
     }
 
     private boolean isChildPageOf(Page page, String parentPageId) {
-        return page.getParentId() != null && !page.getParentId().isEmpty() && page.getParentId().equals(parentPageId);
+        return page.getParentId() != null
+                && !page.getParentId().isEmpty()
+                && page.getParentId().equals(parentPageId);
     }
 
     private void recalculateIdsFromDefinitionIds(String environmentId, ImportDefinition toRecalculate) {
         if (canRecalculateIds(toRecalculate)) {
             log.debug("Recalculating page and plans ids from definition");
-            String newApiId = UuidString.generateForEnvironment(environmentId, toRecalculate.getApiExport().getId());
+            String newApiId = UuidString.generateForEnvironment(
+                    environmentId, toRecalculate.getApiExport().getId());
             toRecalculate.getApiExport().setId(newApiId);
-            Map<String, String> pagesIdsMap = recalculatePageIdsFromDefinitionIds(toRecalculate.getPages(), environmentId, newApiId);
+            Map<String, String> pagesIdsMap =
+                    recalculatePageIdsFromDefinitionIds(toRecalculate.getPages(), environmentId, newApiId);
             recalculatePlanIdsFromDefinitionIds(toRecalculate.getPlans(), environmentId, newApiId, pagesIdsMap);
         }
     }
 
-    private Map<String, String> recalculatePageIdsFromDefinitionIds(List<Page> pages, String environmentId, String apiId) {
+    private Map<String, String> recalculatePageIdsFromDefinitionIds(
+            List<Page> pages, String environmentId, String apiId) {
         Map<String, String> idsMap = new HashMap<>();
         if (pages != null) {
-            pages
-                .stream()
-                .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .forEach(page -> {
-                    String oldPageId = page.getId();
-                    String newPageId = UuidString.generateForEnvironment(environmentId, apiId, oldPageId);
-                    page.setId(newPageId);
-                    idsMap.put(oldPageId, newPageId);
-                    updatePagesHierarchy(pages, oldPageId, newPageId);
-                });
+            pages.stream()
+                    .filter(page -> page.getId() != null && !page.getId().isEmpty())
+                    .forEach(page -> {
+                        String oldPageId = page.getId();
+                        String newPageId = UuidString.generateForEnvironment(environmentId, apiId, oldPageId);
+                        page.setId(newPageId);
+                        idsMap.put(oldPageId, newPageId);
+                        updatePagesHierarchy(pages, oldPageId, newPageId);
+                    });
         }
         return idsMap;
     }
 
     private void recalculatePlanIdsFromDefinitionIds(
-        Set<PlanWithFlows> plans,
-        String environmentId,
-        String apiId,
-        Map<String, String> pagesIdsMap
-    ) {
+            Set<PlanWithFlows> plans, String environmentId, String apiId, Map<String, String> pagesIdsMap) {
         if (plans != null) {
-            plans
-                .stream()
-                .map(plan -> recalculateGeneralConditionsPageId(plan, pagesIdsMap))
-                .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .forEach(plan -> {
-                    plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
-                });
+            plans.stream()
+                    .map(plan -> recalculateGeneralConditionsPageId(plan, pagesIdsMap))
+                    .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
+                    .forEach(plan -> {
+                        plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
+                    });
         }
     }
 
     private Optional<Api> findApiByEnvironmentAndCrossId(String environmentId, String apiCrossId) {
-        return apiCrossId == null ? Optional.empty() : apiQueryService.findByEnvironmentIdAndCrossId(environmentId, apiCrossId);
+        return apiCrossId == null
+                ? Optional.empty()
+                : apiQueryService.findByEnvironmentIdAndCrossId(environmentId, apiCrossId);
     }
 
-    private static PlanWithFlows recalculateGeneralConditionsPageId(PlanWithFlows plan, Map<String, String> newPageIdsByOldPageIds) {
+    private static PlanWithFlows recalculateGeneralConditionsPageId(
+            PlanWithFlows plan, Map<String, String> newPageIdsByOldPageIds) {
         if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty()) {
             plan.setGeneralConditions(newPageIdsByOldPageIds.get(plan.getGeneralConditions()));
         }
@@ -216,19 +209,15 @@ public class ApiIdsCalculatorDomainService {
 
     private ImportDefinition generateEmptyIdsForPlansAndPages(ImportDefinition toRecalculate) {
         if (toRecalculate.getPages() != null) {
-            toRecalculate
-                .getPages()
-                .stream()
-                .filter(page -> page.getId() == null || page.getId().isEmpty())
-                .forEach(page -> page.setId(UuidString.generateRandom()));
+            toRecalculate.getPages().stream()
+                    .filter(page -> page.getId() == null || page.getId().isEmpty())
+                    .forEach(page -> page.setId(UuidString.generateRandom()));
         }
 
         if (toRecalculate.getPlans() != null) {
-            toRecalculate
-                .getPlans()
-                .stream()
-                .filter(plan -> plan.getId() == null || plan.getId().isEmpty())
-                .forEach(plan -> plan.setId(UuidString.generateRandom()));
+            toRecalculate.getPlans().stream()
+                    .filter(plan -> plan.getId() == null || plan.getId().isEmpty())
+                    .forEach(plan -> plan.setId(UuidString.generateRandom()));
         }
 
         return toRecalculate;

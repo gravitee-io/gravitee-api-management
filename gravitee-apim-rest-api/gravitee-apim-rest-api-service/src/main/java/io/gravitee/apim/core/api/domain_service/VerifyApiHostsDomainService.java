@@ -52,8 +52,7 @@ public class VerifyApiHostsDomainService {
      */
     @SuppressWarnings("squid:S5998") // A max host size validation is done before the regexp to avoid applying it
     private static final Pattern HOST_PATTERN = Pattern.compile(
-        "^([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9])(\\.([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9]))*$"
-    );
+            "^([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9])(\\.([a-z0-9]|[a-z0-9][a-z0-9\\-_]{0,61}[a-z0-9]))*$");
 
     // Kafka host must have a first segment that is less than 50 characters
     private static final Pattern FIRST_SEGMENT_LENGTH_INVALID_PATTERN = Pattern.compile("^[^.]{50,}");
@@ -80,7 +79,9 @@ public class VerifyApiHostsDomainService {
 
     private static void checkHostFirstSegment(List<String> hosts, ListenerType listenerType) {
         if (ListenerType.KAFKA.equals(listenerType)) {
-            if (hosts.stream().anyMatch(host -> FIRST_SEGMENT_LENGTH_INVALID_PATTERN.matcher(host).lookingAt())) {
+            if (hosts.stream()
+                    .anyMatch(host ->
+                            FIRST_SEGMENT_LENGTH_INVALID_PATTERN.matcher(host).lookingAt())) {
                 throw new InvalidHostException("The first segment must be less than 50 characters.");
             }
         }
@@ -112,10 +113,7 @@ public class VerifyApiHostsDomainService {
 
     private void checkNoDuplicate(List<String> hosts) throws DuplicatedHostException {
         var set = new HashSet<>();
-        var duplicates = hosts
-            .stream()
-            .filter(n -> !set.add(n))
-            .toList();
+        var duplicates = hosts.stream().filter(n -> !set.add(n)).toList();
 
         if (!duplicates.isEmpty()) {
             throw new DuplicatedHostException(String.join(", ", duplicates));
@@ -132,38 +130,32 @@ public class VerifyApiHostsDomainService {
 
     private Set<String> listHostsByEnvironmentId(String environmentId, String apiId) {
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder().environmentId(environmentId).build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).build()
-            )
-            .filter(
-                api ->
-                    !api.getId().equals(apiId) &&
-                    DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
-                    EnumSet.of(ApiType.PROXY, ApiType.NATIVE).contains(api.getType())
-            )
-            .flatMap(this::extractHostsFromListeners)
-            .map(String::toLowerCase)
-            .collect(Collectors.toSet());
+                .search(
+                        ApiSearchCriteria.builder().environmentId(environmentId).build(),
+                        null,
+                        ApiFieldFilter.builder().pictureExcluded(true).build())
+                .filter(api -> !api.getId().equals(apiId)
+                        && DefinitionVersion.V4.equals(api.getDefinitionVersion())
+                        && EnumSet.of(ApiType.PROXY, ApiType.NATIVE).contains(api.getType()))
+                .flatMap(this::extractHostsFromListeners)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
     }
 
     private Stream<String> extractHostsFromListeners(Api api) {
         return switch (api.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api v4Api -> v4Api
-                .getListeners()
-                .stream()
-                .filter(TcpListener.class::isInstance)
-                .map(TcpListener.class::cast)
-                .map(TcpListener::getHosts)
-                .filter(extractedHosts -> !extractedHosts.isEmpty())
-                .flatMap(List::stream);
-            case NativeApi nativeApi -> nativeApi
-                .getListeners()
-                .stream()
-                .filter(KafkaListener.class::isInstance)
-                .map(KafkaListener.class::cast)
-                .map(KafkaListener::getHost);
+            case io.gravitee.definition.model.v4.Api v4Api ->
+                v4Api.getListeners().stream()
+                        .filter(TcpListener.class::isInstance)
+                        .map(TcpListener.class::cast)
+                        .map(TcpListener::getHosts)
+                        .filter(extractedHosts -> !extractedHosts.isEmpty())
+                        .flatMap(List::stream);
+            case NativeApi nativeApi ->
+                nativeApi.getListeners().stream()
+                        .filter(KafkaListener.class::isInstance)
+                        .map(KafkaListener.class::cast)
+                        .map(KafkaListener::getHost);
             case null, default -> Stream.of();
         };
     }

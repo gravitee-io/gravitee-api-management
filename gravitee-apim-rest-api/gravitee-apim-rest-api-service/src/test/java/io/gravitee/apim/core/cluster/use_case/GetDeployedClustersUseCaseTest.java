@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.EventType;
 import java.time.ZonedDateTime;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,18 +75,14 @@ class GetDeployedClustersUseCaseTest {
         var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
         properties.put(Event.EventProperties.CLUSTER_ID, "my-kafka-cluster");
 
-        eventLatestQueryService.initWith(
-            List.of(
-                Event.builder()
-                    .id("event-1")
-                    .type(EventType.DEPLOY_CLUSTER)
-                    .payload(payload)
-                    .environments(Set.of(ENV_ID))
-                    .properties(properties)
-                    .createdAt(ZonedDateTime.now())
-                    .build()
-            )
-        );
+        eventLatestQueryService.initWith(List.of(Event.builder()
+                .id("event-1")
+                .type(EventType.DEPLOY_CLUSTER)
+                .payload(payload)
+                .environments(Set.of(ENV_ID))
+                .properties(properties)
+                .createdAt(ZonedDateTime.now())
+                .build()));
 
         var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
 
@@ -118,18 +113,14 @@ class GetDeployedClustersUseCaseTest {
         var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
         properties.put(Event.EventProperties.CLUSTER_ID, "other-cluster");
 
-        eventLatestQueryService.initWith(
-            List.of(
-                Event.builder()
-                    .id("event-1")
-                    .type(EventType.DEPLOY_CLUSTER)
-                    .payload(payload)
-                    .environments(Set.of("other-env"))
-                    .properties(properties)
-                    .createdAt(ZonedDateTime.now())
-                    .build()
-            )
-        );
+        eventLatestQueryService.initWith(List.of(Event.builder()
+                .id("event-1")
+                .type(EventType.DEPLOY_CLUSTER)
+                .payload(payload)
+                .environments(Set.of("other-env"))
+                .properties(properties)
+                .createdAt(ZonedDateTime.now())
+                .build()));
 
         var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, null));
         assertThat(output.deployedClusters()).isEmpty();
@@ -162,26 +153,23 @@ class GetDeployedClustersUseCaseTest {
         var props2 = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
         props2.put(Event.EventProperties.CLUSTER_ID, "virtual-cluster");
 
-        eventLatestQueryService.initWith(
-            List.of(
+        eventLatestQueryService.initWith(List.of(
                 Event.builder()
-                    .id("event-1")
-                    .type(EventType.DEPLOY_CLUSTER)
-                    .payload(kafkaClusterPayload)
-                    .environments(Set.of(ENV_ID))
-                    .properties(props1)
-                    .createdAt(ZonedDateTime.now())
-                    .build(),
+                        .id("event-1")
+                        .type(EventType.DEPLOY_CLUSTER)
+                        .payload(kafkaClusterPayload)
+                        .environments(Set.of(ENV_ID))
+                        .properties(props1)
+                        .createdAt(ZonedDateTime.now())
+                        .build(),
                 Event.builder()
-                    .id("event-2")
-                    .type(EventType.DEPLOY_CLUSTER)
-                    .payload(virtualClusterPayload)
-                    .environments(Set.of(ENV_ID))
-                    .properties(props2)
-                    .createdAt(ZonedDateTime.now())
-                    .build()
-            )
-        );
+                        .id("event-2")
+                        .type(EventType.DEPLOY_CLUSTER)
+                        .payload(virtualClusterPayload)
+                        .environments(Set.of(ENV_ID))
+                        .properties(props2)
+                        .createdAt(ZonedDateTime.now())
+                        .build()));
 
         var output = useCase.execute(new GetDeployedClustersUseCase.Input(ENV_ID, ClusterType.KAFKA_VIRTUAL_CLUSTER));
 

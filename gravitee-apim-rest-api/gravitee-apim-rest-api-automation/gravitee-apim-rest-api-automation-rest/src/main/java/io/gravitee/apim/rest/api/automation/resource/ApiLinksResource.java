@@ -64,39 +64,44 @@ public class ApiLinksResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @PathParam("apiHrid") String apiHrid,
-        @Valid @NotNull PortalLinkSpec spec,
-        @QueryParam("dryRun") boolean dryRun
-    ) {
+            @PathParam("apiHrid") String apiHrid,
+            @Valid @NotNull PortalLinkSpec spec,
+            @QueryParam("dryRun") boolean dryRun) {
         var auditInfo = getAuditInfo();
         var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
         var linkId = PortalNavigationItemId.forApiLink(auditInfo, apiId, spec.getHrid());
 
         var input = new CreateOrUpdateApiLinkUseCase.Input(
-            auditInfo,
-            apiId,
-            spec.getHrid(),
-            spec.getName(),
-            spec.getHref(),
-            spec.getLocation(),
-            spec.getOrder(),
-            PortalLinkMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
-        );
+                auditInfo,
+                apiId,
+                spec.getHrid(),
+                spec.getName(),
+                spec.getHref(),
+                spec.getLocation(),
+                spec.getOrder(),
+                PortalLinkMapper.INSTANCE.toDomainVisibility(spec.getVisibility()));
         var output = dryRun ? validateApiLinkUseCase.execute(input) : createOrUpdateApiLinkUseCase.execute(input);
 
         // A dry run never has a link() (ValidateApiLinkUseCase never persists), and a failed real apply
         // has none either, so both fall back to echoing the submitted spec; a successful apply reports
         // what was actually persisted, not what was submitted.
         var state = output.link() != null
-            ? PortalLinkMapper.INSTANCE.toApiLinkState(output.link(), spec.getHrid(), output.errors(), apiHrid)
-            : PortalLinkMapper.INSTANCE.toApiLinkState(spec, linkId.toString(), output.errors(), auditInfo, apiHrid);
+                ? PortalLinkMapper.INSTANCE.toApiLinkState(output.link(), spec.getHrid(), output.errors(), apiHrid)
+                : PortalLinkMapper.INSTANCE.toApiLinkState(
+                        spec, linkId.toString(), output.errors(), auditInfo, apiHrid);
 
         // A dry run is a preview: severe findings are its payload, so it always answers 200.
         // A real apply that produced severe errors persisted nothing — it must not report success.
         var applyFailed = !dryRun && output.errors().stream().anyMatch(Validator.Error::isSevere);
 
-        return Response.status(applyFailed ? Response.Status.BAD_REQUEST : Response.Status.OK).entity(state).build();
+        return Response.status(applyFailed ? Response.Status.BAD_REQUEST : Response.Status.OK)
+                .entity(state)
+                .build();
     }
 }

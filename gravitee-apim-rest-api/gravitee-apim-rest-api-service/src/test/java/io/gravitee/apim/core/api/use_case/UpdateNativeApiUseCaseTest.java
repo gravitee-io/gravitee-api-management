@@ -109,7 +109,8 @@ public class UpdateNativeApiUseCaseTest {
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService;
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+            new TriggerNotificationDomainServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -134,66 +135,52 @@ public class UpdateNativeApiUseCaseTest {
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("member-id")
-                    .memberId("my-member-id")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .roleId("api-po-id-organization-id")
-                    .build()
-            )
-        );
-        groupQueryService.initWith(
-            List.of(
-                Group.builder()
-                    .id("group-1")
-                    .environmentId("environment-id")
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .build()
-            )
-        );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id(MY_MEMBER_ID).email(MEMBER_EMAIL).build()));
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("member-id")
+                .memberId("my-member-id")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API_ID)
+                .roleId("api-po-id-organization-id")
+                .build()));
+        groupQueryService.initWith(List.of(Group.builder()
+                .id("group-1")
+                .environmentId("environment-id")
+                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                .build()));
+        userCrudService.initWith(List.of(
+                BaseUserEntity.builder().id(MY_MEMBER_ID).email(MEMBER_EMAIL).build()));
 
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
 
         updateNativeApiDomainService = new UpdateNativeApiDomainService(
-            apiCrudService,
-            planQueryService,
-            new DeprecatePlanDomainService(planCrudService, auditDomainService),
-            triggerNotificationDomainService,
-            flowCrudService,
-            categoryDomainService,
-            auditDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(
-                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                    new FreemarkerTemplateProcessor()
-                ),
-                apiPrimaryOwnerService,
-                new ApiCategoryQueryServiceInMemory(),
-                indexer
-            )
-        );
+                apiCrudService,
+                planQueryService,
+                new DeprecatePlanDomainService(planCrudService, auditDomainService),
+                triggerNotificationDomainService,
+                flowCrudService,
+                categoryDomainService,
+                auditDomainService,
+                new ApiIndexerDomainService(
+                        new ApiMetadataDecoderDomainService(
+                                new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                                new FreemarkerTemplateProcessor()),
+                        apiPrimaryOwnerService,
+                        new ApiCategoryQueryServiceInMemory(),
+                        indexer));
 
         propertyDomainService = new PropertyDomainService(dataEncryptor);
 
         cut = new UpdateNativeApiUseCase(
-            apiPrimaryOwnerService,
-            propertyDomainService,
-            validateApiDomainService,
-            updateNativeApiDomainService
-        );
+                apiPrimaryOwnerService, propertyDomainService, validateApiDomainService, updateNativeApiDomainService);
     }
 
     @BeforeAll
@@ -213,9 +200,8 @@ public class UpdateNativeApiUseCaseTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = anUpdateNativeApi();
 
-        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
-            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
-        );
+        assertThatExceptionOfType(ApiNotFoundException.class)
+                .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo)));
     }
 
     @ParameterizedTest
@@ -225,22 +211,20 @@ public class UpdateNativeApiUseCaseTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
 
         doThrow(new ValidationDomainException("error in validation"))
-            .when(validateApiDomainService)
-            .validateAndSanitizeForUpdate(eq(existingApi), any(), any(), eq(ENVIRONMENT_ID), eq(ORGANIZATION_ID));
+                .when(validateApiDomainService)
+                .validateAndSanitizeForUpdate(eq(existingApi), any(), any(), eq(ENVIRONMENT_ID), eq(ORGANIZATION_ID));
 
-        assertThatExceptionOfType(ValidationDomainException.class).isThrownBy(() ->
-            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
-        );
+        assertThatExceptionOfType(ValidationDomainException.class)
+                .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo)));
     }
 
     private static Stream<Arguments> apiValidationInError() {
         return Stream.of(
-            Arguments.of(ApiFixtures.aNativeApi().toBuilder().name("old").build(), anUpdateNativeApi()),
-            Arguments.of(ApiFixtures.aProxyApiV4(), anUpdateNativeApi()),
-            Arguments.of(ApiFixtures.aProxyApiV2(), anUpdateNativeApi()),
-            Arguments.of(ApiFixtures.aMessageApiV4(), anUpdateNativeApi()),
-            Arguments.of(ApiFixtures.aFederatedApi(), anUpdateNativeApi())
-        );
+                Arguments.of(ApiFixtures.aNativeApi().toBuilder().name("old").build(), anUpdateNativeApi()),
+                Arguments.of(ApiFixtures.aProxyApiV4(), anUpdateNativeApi()),
+                Arguments.of(ApiFixtures.aProxyApiV2(), anUpdateNativeApi()),
+                Arguments.of(ApiFixtures.aMessageApiV4(), anUpdateNativeApi()),
+                Arguments.of(ApiFixtures.aFederatedApi(), anUpdateNativeApi()));
     }
 
     @Test
@@ -249,125 +233,135 @@ public class UpdateNativeApiUseCaseTest {
         apiCrudService.initWith(List.of(existingApi));
 
         var updateNativeApi = UpdateNativeApi.builder()
-            .id(existingApi.getId())
-            .name("new")
-            .definitionVersion(existingApi.getDefinitionVersion())
-            .description("new")
-            .apiVersion("new")
-            .lifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
-            .visibility(Api.Visibility.PRIVATE)
-            .labels(List.of("new"))
-            .categories(Set.of("new"))
-            .groups(Set.of("new"))
-            .tags(Set.of("new"))
-            .resources(List.of(Resource.builder().name("new").build()))
-            .listeners(List.of(KafkaListener.builder().host("new").build()))
-            .endpointGroups(List.of(NativeEndpointGroup.builder().type("new").build()))
-            .flows(List.of(NativeFlow.builder().id("new").build()))
-            .services(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build())
-            .properties(
-                List.of(
-                    EncryptableProperty.builder()
+                .id(existingApi.getId())
+                .name("new")
+                .definitionVersion(existingApi.getDefinitionVersion())
+                .description("new")
+                .apiVersion("new")
+                .lifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                .visibility(Api.Visibility.PRIVATE)
+                .labels(List.of("new"))
+                .categories(Set.of("new"))
+                .groups(Set.of("new"))
+                .tags(Set.of("new"))
+                .resources(List.of(Resource.builder().name("new").build()))
+                .listeners(List.of(KafkaListener.builder().host("new").build()))
+                .endpointGroups(
+                        List.of(NativeEndpointGroup.builder().type("new").build()))
+                .flows(List.of(NativeFlow.builder().id("new").build()))
+                .services(NativeApiServices.builder()
+                        .dynamicProperty(Service.builder().type("new").build())
+                        .build())
+                .properties(List.of(EncryptableProperty.builder()
                         .key("encrypt-me")
                         .value("not encrypted")
                         .encryptable(true)
                         .encrypted(false)
                         .dynamic(false)
-                        .build()
-                )
-            )
-            .analytics(NativeAnalytics.builder().enabled(false).build())
-            .disableMembershipNotifications(true)
-            .allowMultiJwtOauth2Subscriptions(true)
-            .build();
+                        .build()))
+                .analytics(NativeAnalytics.builder().enabled(false).build())
+                .disableMembershipNotifications(true)
+                .allowMultiJwtOauth2Subscriptions(true)
+                .build();
 
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
 
-        var apiToUpdate = ApiFixtures.aNativeApi()
-            .toBuilder()
-            .name("new")
-            .description("new")
-            .version("new")
-            .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
-            .visibility(Api.Visibility.PRIVATE)
-            .labels(List.of("new"))
-            .categories(Set.of("new"))
-            .groups(Set.of("new"))
-            .disableMembershipNotifications(true)
-            .allowMultiJwtOauth2Subscriptions(true)
-            .apiDefinitionNativeV4(
-                existingApi
-                    .getApiDefinitionNativeV4()
-                    .toBuilder()
-                    .name("new")
-                    .apiVersion("new")
-                    .tags(Set.of("new"))
-                    .resources(List.of(Resource.builder().name("new").build()))
-                    .listeners(List.of(KafkaListener.builder().host("new").build()))
-                    .endpointGroups(List.of(NativeEndpointGroup.builder().type("new").build()))
-                    .flows(List.of(NativeFlow.builder().id("new").build()))
-                    .services(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build())
-                    .properties(List.of(Property.builder().key("encrypt-me").value("new").encrypted(true).dynamic(false).build()))
-                    .analytics(NativeAnalytics.builder().enabled(false).build())
-                    .build()
-            )
-            .build();
+        var apiToUpdate = ApiFixtures.aNativeApi().toBuilder()
+                .name("new")
+                .description("new")
+                .version("new")
+                .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                .visibility(Api.Visibility.PRIVATE)
+                .labels(List.of("new"))
+                .categories(Set.of("new"))
+                .groups(Set.of("new"))
+                .disableMembershipNotifications(true)
+                .allowMultiJwtOauth2Subscriptions(true)
+                .apiDefinitionNativeV4(existingApi.getApiDefinitionNativeV4().toBuilder()
+                        .name("new")
+                        .apiVersion("new")
+                        .tags(Set.of("new"))
+                        .resources(List.of(Resource.builder().name("new").build()))
+                        .listeners(List.of(KafkaListener.builder().host("new").build()))
+                        .endpointGroups(List.of(
+                                NativeEndpointGroup.builder().type("new").build()))
+                        .flows(List.of(NativeFlow.builder().id("new").build()))
+                        .services(NativeApiServices.builder()
+                                .dynamicProperty(Service.builder().type("new").build())
+                                .build())
+                        .properties(List.of(Property.builder()
+                                .key("encrypt-me")
+                                .value("new")
+                                .encrypted(true)
+                                .dynamic(false)
+                                .build()))
+                        .analytics(NativeAnalytics.builder().enabled(false).build())
+                        .build())
+                .build();
 
         when(dataEncryptor.encrypt(eq("not encrypted"))).thenReturn("new");
 
-        when(
-            validateApiDomainService.validateAndSanitizeForUpdate(
-                eq(existingApi),
-                eq(apiToUpdate),
-                any(),
-                eq(ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenReturn(apiToUpdate);
+        when(validateApiDomainService.validateAndSanitizeForUpdate(
+                        eq(existingApi), eq(apiToUpdate), any(), eq(ENVIRONMENT_ID), eq(ORGANIZATION_ID)))
+                .thenReturn(apiToUpdate);
 
-        when(categoryDomainService.toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID))).thenReturn(Set.of("new-key"));
+        when(categoryDomainService.toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID)))
+                .thenReturn(Set.of("new-key"));
 
         var output = cut.execute(new UpdateNativeApiUseCase.Input(updateNativeApi, auditInfo));
 
         assertThat(output.updatedApi())
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo(existingApi.getId());
-                assertThat(api.getUpdatedAt()).isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
-                assertThat(api.getName()).isEqualTo("new");
-                assertThat(api.getDescription()).isEqualTo("new");
-                assertThat(api.getVersion()).isEqualTo("new");
-                assertThat(api.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.UNPUBLISHED);
-                assertThat(api.getVisibility()).isEqualTo(Api.Visibility.PRIVATE);
-                assertThat(api.getLabels()).containsExactly("new");
-                assertThat(api.getCategories()).containsExactly("new-key");
-                assertThat(api.getGroups()).containsExactly("new");
-                assertThat(api.isDisableMembershipNotifications()).isEqualTo(true);
-                assertThat(api.isAllowMultiJwtOauth2Subscriptions()).isEqualTo(true);
-            })
-            .extracting(Api::getApiDefinitionNativeV4)
-            .satisfies(definition -> {
-                assertThat(definition.getName()).isEqualTo("new");
-                assertThat(definition.getApiVersion()).isEqualTo("new");
-                assertThat(definition.getTags()).containsExactly("new");
-                assertThat(definition.getResources()).containsExactly(Resource.builder().name("new").build());
-                assertThat(definition.getListeners()).containsExactly(KafkaListener.builder().host("new").build());
-                assertThat(definition.getEndpointGroups()).containsExactly(NativeEndpointGroup.builder().type("new").build());
-                assertThat(definition.getFlows()).containsExactly(NativeFlow.builder().id("new").build());
-                assertThat(definition.getAnalytics().isEnabled()).isEqualTo(false);
-                assertThat(definition.getServices()).isEqualTo(
-                    NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build()
-                );
-                assertThat(definition.getProperties())
-                    .isNotNull()
-                    .containsExactly(Property.builder().key("encrypt-me").value("new").encrypted(true).dynamic(false).build());
-            });
+                .satisfies(api -> {
+                    assertThat(api.getId()).isEqualTo(existingApi.getId());
+                    assertThat(api.getUpdatedAt())
+                            .isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
+                    assertThat(api.getName()).isEqualTo("new");
+                    assertThat(api.getDescription()).isEqualTo("new");
+                    assertThat(api.getVersion()).isEqualTo("new");
+                    assertThat(api.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.UNPUBLISHED);
+                    assertThat(api.getVisibility()).isEqualTo(Api.Visibility.PRIVATE);
+                    assertThat(api.getLabels()).containsExactly("new");
+                    assertThat(api.getCategories()).containsExactly("new-key");
+                    assertThat(api.getGroups()).containsExactly("new");
+                    assertThat(api.isDisableMembershipNotifications()).isEqualTo(true);
+                    assertThat(api.isAllowMultiJwtOauth2Subscriptions()).isEqualTo(true);
+                })
+                .extracting(Api::getApiDefinitionNativeV4)
+                .satisfies(definition -> {
+                    assertThat(definition.getName()).isEqualTo("new");
+                    assertThat(definition.getApiVersion()).isEqualTo("new");
+                    assertThat(definition.getTags()).containsExactly("new");
+                    assertThat(definition.getResources())
+                            .containsExactly(Resource.builder().name("new").build());
+                    assertThat(definition.getListeners())
+                            .containsExactly(KafkaListener.builder().host("new").build());
+                    assertThat(definition.getEndpointGroups())
+                            .containsExactly(
+                                    NativeEndpointGroup.builder().type("new").build());
+                    assertThat(definition.getFlows())
+                            .containsExactly(NativeFlow.builder().id("new").build());
+                    assertThat(definition.getAnalytics().isEnabled()).isEqualTo(false);
+                    assertThat(definition.getServices())
+                            .isEqualTo(NativeApiServices.builder()
+                                    .dynamicProperty(
+                                            Service.builder().type("new").build())
+                                    .build());
+                    assertThat(definition.getProperties())
+                            .isNotNull()
+                            .containsExactly(Property.builder()
+                                    .key("encrypt-me")
+                                    .value("new")
+                                    .encrypted(true)
+                                    .dynamic(false)
+                                    .build());
+                });
 
-        assertThat(flowCrudService.storage()).containsExactly(NativeFlow.builder().id("new").build());
+        assertThat(flowCrudService.storage())
+                .containsExactly(NativeFlow.builder().id("new").build());
         verify(categoryDomainService, times(1)).updateOrderCategoriesOfApi(eq(existingApi.getId()), eq(Set.of("new")));
         assertThat(auditCrudService.storage()).hasSize(1);
-        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-            new ApiUpdatedApiHookContext(existingApi.getId())
-        );
+        assertThat(triggerNotificationDomainService.getHookNotifications())
+                .containsExactly(new ApiUpdatedApiHookContext(existingApi.getId()));
         verify(categoryDomainService, times(1)).toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID));
         assertThat(indexer.storage()).hasSize(1);
     }
@@ -376,22 +370,33 @@ public class UpdateNativeApiUseCaseTest {
     void should_reject_making_an_encrypted_property_plain() {
         var existingApi = ApiFixtures.aNativeApi();
         existingApi
-            .getApiDefinitionNativeV4()
-            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+                .getApiDefinitionNativeV4()
+                .setProperties(List.of(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build()));
         apiCrudService.initWith(List.of(existingApi));
-        var apiToUpdate = anUpdateNativeApi()
-            .toBuilder()
-            .id(existingApi.getId())
-            .properties(List.of(EncryptableProperty.builder().key("secret").value("ciphertext").build()))
-            .build();
+        var apiToUpdate = anUpdateNativeApi().toBuilder()
+                .id(existingApi.getId())
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .build()))
+                .build();
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
 
-        assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class).isThrownBy(() ->
-            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
-        );
-        assertThat(apiCrudService.get(existingApi.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
-            Property.builder().key("secret").value("ciphertext").encrypted(true).build()
-        );
+        assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class)
+                .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo)));
+        assertThat(apiCrudService
+                        .get(existingApi.getId())
+                        .getApiDefinitionNativeV4()
+                        .getProperties())
+                .containsExactly(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build());
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
@@ -401,18 +406,17 @@ public class UpdateNativeApiUseCaseTest {
         apiCrudService.initWith(List.of(existingApi));
         when(dataEncryptor.encrypt("plain-secret")).thenReturn("ciphertext");
         givenValidationKeepsTheUpdatedApi();
-        var apiToUpdate = anUpdateNativeApi()
-            .toBuilder()
-            .id(existingApi.getId())
-            .properties(List.of(EncryptableProperty.builder().key("secret").value("plain-secret").encryptable(true).build()))
-            .build();
+        var apiToUpdate = anUpdateNativeApi().toBuilder()
+                .id(existingApi.getId())
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("secret")
+                        .value("plain-secret")
+                        .encryptable(true)
+                        .build()))
+                .build();
 
-        cut.execute(
-            new UpdateNativeApiUseCase.Input(
-                apiToUpdate,
-                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")
-            )
-        );
+        cut.execute(new UpdateNativeApiUseCase.Input(
+                apiToUpdate, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")));
 
         var audit = auditCrudService.storage().getFirst();
         assertThat(audit.getPatch()).doesNotContain("ciphertext").doesNotContain("plain-secret");
@@ -424,18 +428,16 @@ public class UpdateNativeApiUseCaseTest {
         var existingApi = ApiFixtures.aNativeApi();
         apiCrudService.initWith(List.of(existingApi));
         givenValidationKeepsTheUpdatedApi();
-        var apiToUpdate = anUpdateNativeApi()
-            .toBuilder()
-            .id(existingApi.getId())
-            .properties(List.of(EncryptableProperty.builder().key("plain").value("value").build()))
-            .build();
+        var apiToUpdate = anUpdateNativeApi().toBuilder()
+                .id(existingApi.getId())
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("plain")
+                        .value("value")
+                        .build()))
+                .build();
 
-        cut.execute(
-            new UpdateNativeApiUseCase.Input(
-                apiToUpdate,
-                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")
-            )
-        );
+        cut.execute(new UpdateNativeApiUseCase.Input(
+                apiToUpdate, AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")));
 
         assertThat(auditCrudService.storage().getFirst().getProperties()).doesNotContainKey("ENCRYPTED");
     }
@@ -446,20 +448,19 @@ public class UpdateNativeApiUseCaseTest {
         apiCrudService.initWith(List.of(existingApi));
         when(dataEncryptor.encrypt(any())).thenThrow(new GeneralSecurityException("broken encryption secret"));
         givenValidationKeepsTheUpdatedApi();
-        var apiToUpdate = anUpdateNativeApi()
-            .toBuilder()
-            .id(existingApi.getId())
-            .properties(List.of(EncryptableProperty.builder().key("secret").value("plain-secret").encryptable(true).build()))
-            .build();
+        var apiToUpdate = anUpdateNativeApi().toBuilder()
+                .id(existingApi.getId())
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("secret")
+                        .value("plain-secret")
+                        .encryptable(true)
+                        .build()))
+                .build();
 
-        assertThatExceptionOfType(TechnicalDomainException.class).isThrownBy(() ->
-            cut.execute(
-                new UpdateNativeApiUseCase.Input(
-                    apiToUpdate,
-                    AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")
-                )
-            )
-        );
+        assertThatExceptionOfType(TechnicalDomainException.class)
+                .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(
+                        apiToUpdate,
+                        AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist"))));
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
@@ -467,104 +468,109 @@ public class UpdateNativeApiUseCaseTest {
     void should_reject_a_changed_plaintext_flagged_encrypted() throws GeneralSecurityException {
         var existingApi = ApiFixtures.aNativeApi();
         existingApi
-            .getApiDefinitionNativeV4()
-            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+                .getApiDefinitionNativeV4()
+                .setProperties(List.of(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build()));
         apiCrudService.initWith(List.of(existingApi));
         when(dataEncryptor.decrypt("n3w-plaintext")).thenThrow(new GeneralSecurityException("bad padding"));
-        var apiToUpdate = anUpdateNativeApi()
-            .toBuilder()
-            .id(existingApi.getId())
-            .properties(List.of(EncryptableProperty.builder().key("secret").value("n3w-plaintext").encrypted(true).build()))
-            .build();
+        var apiToUpdate = anUpdateNativeApi().toBuilder()
+                .id(existingApi.getId())
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("secret")
+                        .value("n3w-plaintext")
+                        .encrypted(true)
+                        .build()))
+                .build();
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
 
-        assertThatExceptionOfType(ApiPropertyNotCiphertextException.class).isThrownBy(() ->
-            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
-        );
-        assertThat(apiCrudService.get(existingApi.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
-            Property.builder().key("secret").value("ciphertext").encrypted(true).build()
-        );
+        assertThatExceptionOfType(ApiPropertyNotCiphertextException.class)
+                .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo)));
+        assertThat(apiCrudService
+                        .get(existingApi.getId())
+                        .getApiDefinitionNativeV4()
+                        .getProperties())
+                .containsExactly(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build());
     }
 
     @Test
-    void should_reject_making_an_encrypted_property_plain_before_encrypting_the_other_properties() throws GeneralSecurityException {
+    void should_reject_making_an_encrypted_property_plain_before_encrypting_the_other_properties()
+            throws GeneralSecurityException {
         var existingApi = ApiFixtures.aNativeApi();
         existingApi
-            .getApiDefinitionNativeV4()
-            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+                .getApiDefinitionNativeV4()
+                .setProperties(List.of(Property.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build()));
         apiCrudService.initWith(List.of(existingApi));
         when(dataEncryptor.encrypt(any())).thenThrow(new GeneralSecurityException("broken encryption secret"));
-        var apiToUpdate = anUpdateNativeApi()
-            .toBuilder()
-            .id(existingApi.getId())
-            .properties(
-                List.of(
-                    EncryptableProperty.builder().key("secret").value("ciphertext").build(),
-                    EncryptableProperty.builder().key("other").value("value").encryptable(true).build()
-                )
-            )
-            .build();
+        var apiToUpdate = anUpdateNativeApi().toBuilder()
+                .id(existingApi.getId())
+                .properties(List.of(
+                        EncryptableProperty.builder()
+                                .key("secret")
+                                .value("ciphertext")
+                                .build(),
+                        EncryptableProperty.builder()
+                                .key("other")
+                                .value("value")
+                                .encryptable(true)
+                                .build()))
+                .build();
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
 
-        assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class).isThrownBy(() ->
-            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
-        );
+        assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class)
+                .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo)));
     }
 
     private void givenValidationKeepsTheUpdatedApi() {
-        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(1)
-        );
+        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     private static UpdateNativeApi anUpdateNativeApi() {
         return UpdateNativeApi.builder()
-            .id(API_ID)
-            .name("NAME")
-            .description("DESCRIPTION")
-            .type(ApiType.NATIVE)
-            .definitionVersion(DefinitionVersion.V4)
-            .tags(Set.of("tag1"))
-            .listeners(
-                List.of(
-                    KafkaListener.builder()
+                .id(API_ID)
+                .name("NAME")
+                .description("DESCRIPTION")
+                .type(ApiType.NATIVE)
+                .definitionVersion(DefinitionVersion.V4)
+                .tags(Set.of("tag1"))
+                .listeners(List.of(KafkaListener.builder()
                         .host("native.kafka")
                         .port(1000)
-                        .entrypoints(List.of(NativeEntrypoint.builder().type("native-type").configuration("{}").build()))
-                        .build()
-                )
-            )
-            .endpointGroups(
-                List.of(
-                    NativeEndpointGroup.builder()
+                        .entrypoints(List.of(NativeEntrypoint.builder()
+                                .type("native-type")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .endpointGroups(List.of(NativeEndpointGroup.builder()
                         .name("default-group")
                         .type("mock")
                         .sharedConfiguration("{}")
-                        .endpoints(
-                            List.of(
-                                NativeEndpoint.builder()
-                                    .name("default-endpoint")
-                                    .type("mock")
-                                    .inheritConfiguration(true)
-                                    .configuration("{}")
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            )
-            .flows(List.of())
-            .properties(
-                List.of(
-                    EncryptableProperty.builder()
+                        .endpoints(List.of(NativeEndpoint.builder()
+                                .name("default-endpoint")
+                                .type("mock")
+                                .inheritConfiguration(true)
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .flows(List.of())
+                .properties(List.of(EncryptableProperty.builder()
                         .key("encrypted")
                         .value("encrypted value")
                         .encryptable(true)
                         .encrypted(true)
                         .dynamic(false)
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
     }
 }

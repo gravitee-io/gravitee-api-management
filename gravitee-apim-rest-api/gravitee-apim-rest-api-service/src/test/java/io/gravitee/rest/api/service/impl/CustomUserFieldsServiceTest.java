@@ -94,7 +94,8 @@ public class CustomUserFieldsServiceTest {
             newFieldEntity.setValues(Arrays.asList("test"));
         }
 
-        when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.empty());
+        when(customUserFieldsRepository.findById(anyString(), anyString(), any()))
+                .thenReturn(Optional.empty());
         when(customUserFieldsRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
         ArgumentCaptor<CustomUserField> fieldCaptor = ArgumentCaptor.forClass(CustomUserField.class);
 
@@ -109,7 +110,10 @@ public class CustomUserFieldsServiceTest {
         if (newFieldEntity.getValues() != null) {
             assertNotNull(createdEntity.getValues(), "CustomUserField.values");
             assertEquals(1, createdEntity.getValues().size(), "CustomUserField.values.size");
-            assertEquals(newFieldEntity.getValues().get(0), createdEntity.getValues().get(0), "CustomUserField.values.get(0)");
+            assertEquals(
+                    newFieldEntity.getValues().get(0),
+                    createdEntity.getValues().get(0),
+                    "CustomUserField.values.get(0)");
         }
 
         final CustomUserField customFieldRecord = fieldCaptor.getValue();
@@ -123,7 +127,10 @@ public class CustomUserFieldsServiceTest {
         assertEquals(REF_TYPE, customFieldRecord.getReferenceType(), "CustomUserField.refType");
         assertEquals(MetadataFormat.STRING, customFieldRecord.getFormat(), "CustomUserField.format");
         if (newFieldEntity.getValues() != null) {
-            assertTrue(customFieldRecord.getValues() != null && customFieldRecord.getValues().contains("test"), "CustomUserField.values");
+            assertTrue(
+                    customFieldRecord.getValues() != null
+                            && customFieldRecord.getValues().contains("test"),
+                    "CustomUserField.values");
         }
     }
 
@@ -135,7 +142,8 @@ public class CustomUserFieldsServiceTest {
             newFieldEntity.setLabel("New Field Label");
             newFieldEntity.setRequired(true);
             newFieldEntity.setValues(Arrays.asList("test"));
-            when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.of(mock(CustomUserField.class)));
+            when(customUserFieldsRepository.findById(anyString(), anyString(), any()))
+                    .thenReturn(Optional.of(mock(CustomUserField.class)));
 
             service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
@@ -163,8 +171,7 @@ public class CustomUserFieldsServiceTest {
         assertThrows(CustomUserFieldException.class, () -> {
             final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
             newFieldEntity.setKey(
-                "abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794"
-            );
+                    "abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794");
             newFieldEntity.setLabel("New Field Label");
             newFieldEntity.setRequired(true);
             newFieldEntity.setValues(Arrays.asList("test"));
@@ -196,11 +203,13 @@ public class CustomUserFieldsServiceTest {
         toUpdateFieldEntity.setRequired(false);
         toUpdateFieldEntity.setValues(Arrays.asList("test2"));
 
-        when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.of(existingField));
+        when(customUserFieldsRepository.findById(anyString(), anyString(), any()))
+                .thenReturn(Optional.of(existingField));
         when(customUserFieldsRepository.update(any())).thenAnswer(i -> i.getArguments()[0]);
         ArgumentCaptor<CustomUserField> fieldCaptor = ArgumentCaptor.forClass(CustomUserField.class);
 
-        CustomUserFieldEntity updatedEntity = service.update(GraviteeContext.getExecutionContext(), toUpdateFieldEntity);
+        CustomUserFieldEntity updatedEntity =
+                service.update(GraviteeContext.getExecutionContext(), toUpdateFieldEntity);
 
         verify(customUserFieldsRepository).update(fieldCaptor.capture());
         verify(auditService).createOrganizationAuditLog(eq(GraviteeContext.getExecutionContext()), any());
@@ -210,7 +219,10 @@ public class CustomUserFieldsServiceTest {
         assertEquals(toUpdateFieldEntity.isRequired(), updatedEntity.isRequired(), "updatedCustomField.required");
         assertNotNull(updatedEntity.getValues(), "updatedCustomField.values");
         assertEquals(1, updatedEntity.getValues().size(), "updatedCustomField.values.size");
-        assertEquals(toUpdateFieldEntity.getValues().get(0), updatedEntity.getValues().get(0), "updatedCustomField.values.get(0)");
+        assertEquals(
+                toUpdateFieldEntity.getValues().get(0),
+                updatedEntity.getValues().get(0),
+                "updatedCustomField.values.get(0)");
 
         final CustomUserField customFieldRecord = fieldCaptor.getValue();
         assertNotNull(customFieldRecord);
@@ -249,13 +261,17 @@ public class CustomUserFieldsServiceTest {
         when(fieldMock.getKey()).thenReturn("validkey");
         when(fieldMock.getReferenceId()).thenReturn(ORG_ID);
         when(fieldMock.getReferenceType()).thenReturn(REF_TYPE);
-        when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.of(fieldMock));
+        when(customUserFieldsRepository.findById(anyString(), anyString(), any()))
+                .thenReturn(Optional.of(fieldMock));
 
-        service.delete(GraviteeContext.getExecutionContext(), "validKEY"); // no issue with upper case here, we want to test the sanitizer on the key
+        service.delete(
+                GraviteeContext.getExecutionContext(),
+                "validKEY"); // no issue with upper case here, we want to test the sanitizer on the key
 
         verify(customUserFieldsRepository).delete("validkey", ORG_ID, REF_TYPE);
         verify(auditService).createOrganizationAuditLog(eq(GraviteeContext.getExecutionContext()), any());
-        verify(ueUserMetadataService).deleteAllByCustomFieldId(GraviteeContext.getExecutionContext(), "validkey", ORG_ID, REF_TYPE);
+        verify(ueUserMetadataService)
+                .deleteAllByCustomFieldId(GraviteeContext.getExecutionContext(), "validkey", ORG_ID, REF_TYPE);
     }
 
     @Test
@@ -266,17 +282,15 @@ public class CustomUserFieldsServiceTest {
         final CustomUserField existingField2 = mock(CustomUserField.class);
         when(existingField2.getKey()).thenReturn("key2");
         when(existingField2.getFormat()).thenReturn(MetadataFormat.STRING);
-        when(customUserFieldsRepository.findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE)).thenReturn(
-            Arrays.asList(existingField1, existingField2)
-        );
+        when(customUserFieldsRepository.findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE))
+                .thenReturn(Arrays.asList(existingField1, existingField2));
 
         List<CustomUserFieldEntity> entities = service.listAllFields(GraviteeContext.getExecutionContext());
 
         verify(customUserFieldsRepository).findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE);
         assertNotNull(entities, "Fields");
-        Assertions.assertThat(entities.stream().map(CustomUserFieldEntity::getKey).collect(Collectors.toList())).containsExactlyInAnyOrder(
-            "key1",
-            "key2"
-        );
+        Assertions.assertThat(
+                        entities.stream().map(CustomUserFieldEntity::getKey).collect(Collectors.toList()))
+                .containsExactlyInAnyOrder("key1", "key2");
     }
 }

@@ -338,8 +338,7 @@ public class MetricsAdapter extends Metrics {
     @Override
     public void setLog(final Log log) {
         if (log != null) {
-            metrics.setLog(
-                io.gravitee.reporter.api.v4.log.Log.builder()
+            metrics.setLog(io.gravitee.reporter.api.v4.log.Log.builder()
                     .timestamp(log.getTimestamp())
                     .organizationId(metrics.getOrganizationId())
                     .environmentId(metrics.getEnvironmentId())
@@ -347,8 +346,7 @@ public class MetricsAdapter extends Metrics {
                     .entrypointResponse(log.getClientResponse())
                     .endpointRequest(log.getProxyRequest())
                     .endpointResponse(log.getProxyResponse())
-                    .build()
-            );
+                    .build());
         }
     }
 

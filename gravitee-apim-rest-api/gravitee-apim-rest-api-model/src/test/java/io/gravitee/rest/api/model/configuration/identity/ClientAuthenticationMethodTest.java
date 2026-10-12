@@ -33,34 +33,33 @@ import org.junit.jupiter.params.provider.ValueSource;
 class ClientAuthenticationMethodTest {
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            "client_secret_basic, CLIENT_SECRET_BASIC",
-            "client_secret_post, CLIENT_SECRET_POST",
-            "CLIENT_SECRET_BASIC, CLIENT_SECRET_BASIC",
-            "CLIENT_SECRET_POST, CLIENT_SECRET_POST",
-            "Client_Secret_Basic, CLIENT_SECRET_BASIC",
-        }
-    )
-    void should_resolve_the_oidc_name_and_the_enum_constant_in_any_case(String configured, ClientAuthenticationMethod expected) {
+    @CsvSource({
+        "client_secret_basic, CLIENT_SECRET_BASIC",
+        "client_secret_post, CLIENT_SECRET_POST",
+        "CLIENT_SECRET_BASIC, CLIENT_SECRET_BASIC",
+        "CLIENT_SECRET_POST, CLIENT_SECRET_POST",
+        "Client_Secret_Basic, CLIENT_SECRET_BASIC",
+    })
+    void should_resolve_the_oidc_name_and_the_enum_constant_in_any_case(
+            String configured, ClientAuthenticationMethod expected) {
         assertThat(ClientAuthenticationMethod.fromValue(configured)).isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "  client_secret_basic  ", "\tclient_secret_post\n" })
+    @ValueSource(strings = {"  client_secret_basic  ", "\tclient_secret_post\n"})
     void should_ignore_surrounding_whitespace(String configured) {
         assertThat(ClientAuthenticationMethod.fromValue(configured)).isNotNull();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { "   " })
+    @ValueSource(strings = {"   "})
     void should_resolve_an_absent_value_to_null(String configured) {
         assertThat(ClientAuthenticationMethod.fromValue(configured)).isNull();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "client_secret_jwt", "none", "private_key_jwt", "basic", "client-secret-basic", "nonsense" })
+    @ValueSource(strings = {"client_secret_jwt", "none", "private_key_jwt", "basic", "client-secret-basic", "nonsense"})
     void should_resolve_an_unsupported_or_unknown_value_to_null(String configured) {
         assertThat(ClientAuthenticationMethod.fromValue(configured)).isNull();
     }

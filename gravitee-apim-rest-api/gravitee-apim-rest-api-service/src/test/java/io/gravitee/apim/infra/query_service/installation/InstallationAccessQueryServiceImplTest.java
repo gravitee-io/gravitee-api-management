@@ -74,13 +74,12 @@ class InstallationAccessQueryServiceImplTest {
     void setUp() {
         environment = new MockEnvironment();
         cut = new InstallationAccessQueryServiceImpl(
-            environment,
-            installationTypeDomainService,
-            accessPointQueryService,
-            parameterService,
-            organizationService,
-            environmentService
-        );
+                environment,
+                installationTypeDomainService,
+                accessPointQueryService,
+                parameterService,
+                organizationService,
+                environmentService);
         setValue("consoleApiUrl", null);
         setValue("portalApiUrl", null);
         setValue("managementProxyPath", "/management");
@@ -92,9 +91,8 @@ class InstallationAccessQueryServiceImplTest {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
         setValue("consoleApiUrl", "wrong");
 
-        assertThatThrownBy(() -> cut.afterPropertiesSet()).isInstanceOf(
-            InstallationAccessQueryServiceImpl.InvalidInstallationUrlException.class
-        );
+        assertThatThrownBy(() -> cut.afterPropertiesSet())
+                .isInstanceOf(InstallationAccessQueryServiceImpl.InvalidInstallationUrlException.class);
     }
 
     @Test
@@ -121,12 +119,10 @@ class InstallationAccessQueryServiceImplTest {
         EnvironmentEntity anyEnv = new EnvironmentEntity();
         anyEnv.setId("any");
         when(environmentService.findAllOrInitialize()).thenReturn(Set.of(anyEnv));
-        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
-            "http://custom_console_url"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "http://custom_portal_url"
-        );
+        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn("http://custom_console_url");
+        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("http://custom_portal_url");
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleUrls()).containsOnly("http://custom_console_url");
 
@@ -134,7 +130,8 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
-    void should_retrieve_default_urls_for_DEFAULT_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+    void
+            should_retrieve_default_urls_for_DEFAULT_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
 
         cut.afterPropertiesSet();
@@ -147,14 +144,18 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
-    void should_retrieve_parameter_urls_for_DEFAULT_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+    void
+            should_retrieve_parameter_urls_for_DEFAULT_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        when(
-            parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq(DEFAULT_ORGANIZATION_ID), eq(ParameterReferenceType.ORGANIZATION))
-        ).thenReturn("http://custom_console_url");
-        when(
-            parameterService.find(any(), eq(Key.PORTAL_URL), eq(DEFAULT_ENVIRONMENT_ID), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn("http://custom_portal_url");
+        when(parameterService.find(
+                        any(),
+                        eq(Key.MANAGEMENT_URL),
+                        eq(DEFAULT_ORGANIZATION_ID),
+                        eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn("http://custom_console_url");
+        when(parameterService.find(
+                        any(), eq(Key.PORTAL_URL), eq(DEFAULT_ENVIRONMENT_ID), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("http://custom_portal_url");
         cut.afterPropertiesSet();
 
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
@@ -166,7 +167,8 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
-    void should_retrieve_default_urls_for_any_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+    void
+            should_retrieve_default_urls_for_any_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
 
         cut.afterPropertiesSet();
@@ -179,14 +181,13 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
-    void should_retrieve_parameter_urls_for_any_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
+    void
+            should_retrieve_parameter_urls_for_any_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
-            "http://custom_console_url"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "http://custom_portal_url"
-        );
+        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn("http://custom_console_url");
+        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("http://custom_portal_url");
         cut.afterPropertiesSet();
 
         assertThat(cut.getConsoleAPIUrl("any")).isNull();
@@ -230,7 +231,8 @@ class InstallationAccessQueryServiceImplTest {
 
         cut.afterPropertiesSet();
 
-        assertThat(cut.getGammaUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo(InstallationAccessQueryService.DEFAULT_GAMMA_URL);
+        assertThat(cut.getGammaUrl(DEFAULT_ORGANIZATION_ID))
+                .isEqualTo(InstallationAccessQueryService.DEFAULT_GAMMA_URL);
         assertThat(cut.findGammaUrl(DEFAULT_ORGANIZATION_ID)).isEmpty();
     }
 
@@ -238,11 +240,13 @@ class InstallationAccessQueryServiceImplTest {
     void should_find_the_gamma_url_an_organization_configured_even_when_it_is_the_default_one() {
         // getGammaUrl cannot tell these apart -- it hands the default to everyone -- which is why findGammaUrl exists.
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        environment.withProperty("installation.standalone.gamma-console.url", InstallationAccessQueryService.DEFAULT_GAMMA_URL);
+        environment.withProperty(
+                "installation.standalone.gamma-console.url", InstallationAccessQueryService.DEFAULT_GAMMA_URL);
 
         cut.afterPropertiesSet();
 
-        assertThat(cut.findGammaUrl(DEFAULT_ORGANIZATION_ID)).contains(InstallationAccessQueryService.DEFAULT_GAMMA_URL);
+        assertThat(cut.findGammaUrl(DEFAULT_ORGANIZATION_ID))
+                .contains(InstallationAccessQueryService.DEFAULT_GAMMA_URL);
     }
 
     @Test

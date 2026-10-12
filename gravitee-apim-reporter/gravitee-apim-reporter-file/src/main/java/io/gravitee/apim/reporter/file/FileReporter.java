@@ -68,37 +68,41 @@ public class FileReporter extends AbstractService<Reporter> implements Reporter 
                 Formatter<Reportable> formatter = formatterFactory.getFormatter(configuration.getOutputType(), type);
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(formatter);
                 writers.put(
-                    type.getClazz(),
-                    new VertxFileWriter<>(
-                        vertx,
-                        type,
-                        formatter,
-                        configuration.getFilename() + '.' + configuration.getOutputType().getExtension(),
-                        configuration
-                    )
-                );
+                        type.getClazz(),
+                        new VertxFileWriter<>(
+                                vertx,
+                                type,
+                                formatter,
+                                configuration.getFilename()
+                                        + '.'
+                                        + configuration.getOutputType().getExtension(),
+                                configuration));
             }
 
-            Future.join(writers.values().stream().map(VertxFileWriter::initialize).toList()).onComplete(event -> {
-                if (event.succeeded()) {
-                    log.info("File reporter successfully started");
-                } else {
-                    log.error("An error occurs while starting file reporter", event.cause());
-                }
-            });
+            Future.join(writers.values().stream()
+                            .map(VertxFileWriter::initialize)
+                            .toList())
+                    .onComplete(event -> {
+                        if (event.succeeded()) {
+                            log.info("File reporter successfully started");
+                        } else {
+                            log.error("An error occurs while starting file reporter", event.cause());
+                        }
+                    });
         }
     }
 
     @Override
     protected void doStop() {
         if (configuration.isEnabled()) {
-            Future.join(writers.values().stream().map(VertxFileWriter::stop).toList()).onComplete(event -> {
-                if (event.succeeded()) {
-                    log.info("File reporter successfully stopped");
-                } else {
-                    log.error("An error occurs while stopping file reporter", event.cause());
-                }
-            });
+            Future.join(writers.values().stream().map(VertxFileWriter::stop).toList())
+                    .onComplete(event -> {
+                        if (event.succeeded()) {
+                            log.info("File reporter successfully stopped");
+                        } else {
+                            log.error("An error occurs while stopping file reporter", event.cause());
+                        }
+                    });
         }
     }
 }

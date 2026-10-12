@@ -21,10 +21,15 @@ import java.util.Optional;
 
 public interface ApiCrudService {
     Api get(String id);
+
     Optional<Api> findById(String id);
+
     boolean existsById(String id);
+
     Api create(Api api);
+
     Api update(Api api);
+
     void delete(String id);
 
     List<Api> findByIds(List<String> apiIds);

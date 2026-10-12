@@ -20,5 +20,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface AuthzAppender {
-    Single<List<ApiReactorDeployable>> appends(boolean initialSync, List<ApiReactorDeployable> deployables, Set<String> environments);
+    Single<List<ApiReactorDeployable>> appends(
+            boolean initialSync, List<ApiReactorDeployable> deployables, Set<String> environments);
 }

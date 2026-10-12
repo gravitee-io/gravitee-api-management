@@ -54,12 +54,10 @@ class GetApiForPortalUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
-            membershipQueryService,
-            subscriptionQueryService,
-            apiQueryService
-        );
-        useCase = new GetApiForPortalUseCase(new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService));
+        var apiMembershipDomainService =
+                new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService, apiQueryService);
+        useCase = new GetApiForPortalUseCase(
+                new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService));
     }
 
     @Test
@@ -83,17 +81,13 @@ class GetApiForPortalUseCaseTest {
     @Test
     void should_return_visible_when_api_is_private_and_user_is_member() {
         navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-" + USER_ID + "-" + PRIVATE_API_ID)
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(PRIVATE_API_ID)
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("membership-" + USER_ID + "-" + PRIVATE_API_ID)
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(PRIVATE_API_ID)
+                .build()));
 
         var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, PRIVATE_API_ID, USER_ID));
 
@@ -104,20 +98,19 @@ class GetApiForPortalUseCaseTest {
     void should_return_visible_when_api_is_private_and_user_has_access_via_group() {
         var groupId = "group-1";
         navQueryService.initWith(List.of(publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-" + USER_ID + "-" + groupId)
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId(groupId)
-                    .build()
-            )
-        );
-        apiQueryService.initWith(
-            List.of(Api.builder().id(PRIVATE_API_ID).environmentId(ENV_ID).name(PRIVATE_API_ID).groups(Set.of(groupId)).build())
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("membership-" + USER_ID + "-" + groupId)
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId(groupId)
+                .build()));
+        apiQueryService.initWith(List.of(Api.builder()
+                .id(PRIVATE_API_ID)
+                .environmentId(ENV_ID)
+                .name(PRIVATE_API_ID)
+                .groups(Set.of(groupId))
+                .build()));
 
         var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, PRIVATE_API_ID, USER_ID));
 
@@ -135,16 +128,16 @@ class GetApiForPortalUseCaseTest {
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Nav for " + apiId)
-            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(visibility)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Nav for " + apiId)
+                .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(apiId)
+                .published(true)
+                .visibility(visibility)
+                .build();
     }
 }

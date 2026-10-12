@@ -67,36 +67,36 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     @Override
     protected JdbcObjectMapper<Plan> buildOrm() {
         return JdbcObjectMapper.builder(Plan.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("cross_id", Types.NVARCHAR, String.class)
-            .addColumn("hrid", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
-            .addColumn("mode", Types.NVARCHAR, Plan.PlanMode.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("security_definition", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, Plan.Status.class)
-            .addColumn("security", Types.NVARCHAR, Plan.PlanSecurityType.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("published_at", Types.TIMESTAMP, Date.class)
-            .addColumn("closed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
-            .addColumn("comment_required", Types.BOOLEAN, boolean.class)
-            .addColumn("comment_message", Types.NVARCHAR, String.class)
-            .addColumn("selection_rule", Types.NVARCHAR, String.class)
-            .addColumn("general_conditions", Types.NVARCHAR, String.class)
-            .addColumn("general_conditions_hrid", Types.NVARCHAR, String.class)
-            .addColumn("api_type", Types.NVARCHAR, ApiType.class)
-            .addColumn("definition_version", Types.NVARCHAR, DefinitionVersion.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, Plan.PlanReferenceType.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("cross_id", Types.NVARCHAR, String.class)
+                .addColumn("hrid", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
+                .addColumn("mode", Types.NVARCHAR, Plan.PlanMode.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("security_definition", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("status", Types.NVARCHAR, Plan.Status.class)
+                .addColumn("security", Types.NVARCHAR, Plan.PlanSecurityType.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("published_at", Types.TIMESTAMP, Date.class)
+                .addColumn("closed_at", Types.TIMESTAMP, Date.class)
+                .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
+                .addColumn("comment_required", Types.BOOLEAN, boolean.class)
+                .addColumn("comment_message", Types.NVARCHAR, String.class)
+                .addColumn("selection_rule", Types.NVARCHAR, String.class)
+                .addColumn("general_conditions", Types.NVARCHAR, String.class)
+                .addColumn("general_conditions_hrid", Types.NVARCHAR, String.class)
+                .addColumn("api_type", Types.NVARCHAR, ApiType.class)
+                .addColumn("definition_version", Types.NVARCHAR, DefinitionVersion.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, Plan.PlanReferenceType.class)
+                .build();
     }
 
     private void addTags(Plan parent) {
@@ -118,14 +118,12 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Optional<Plan> findById(String id) throws TechnicalException {
         log.debug("JdbcPlanRepository.findById({})", id);
         try {
-            return jdbcTemplate
-                .query(getOrm().getSelectByIdSql(), getOrm().getRowMapper(), id)
-                .stream()
-                .findFirst()
-                .map(plan -> {
-                    addDataToPlans(List.of(plan));
-                    return plan;
-                });
+            return jdbcTemplate.query(getOrm().getSelectByIdSql(), getOrm().getRowMapper(), id).stream()
+                    .findFirst()
+                    .map(plan -> {
+                        addDataToPlans(List.of(plan));
+                        return plan;
+                    });
         } catch (final Exception ex) {
             log.error("Failed to find plan by id:", ex);
             throw new TechnicalException("Failed to find plan by id", ex);
@@ -158,7 +156,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             storeCharacteristics(plan, true);
             storeExcludedGroups(plan, true);
             storeTags(plan, true);
-            return findById(plan.getId()).orElseThrow(() -> new IllegalStateException(format("No plan found with id [%s]", plan.getId())));
+            return findById(plan.getId())
+                    .orElseThrow(() -> new IllegalStateException(format("No plan found with id [%s]", plan.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -188,15 +187,15 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
     private List<String> getCharacteristics(String planId) {
         log.debug("JdbcPlanRepository.getCharacteristics({})", planId);
-        return jdbcTemplate.queryForList("select characteristic from " + PLAN_CHARACTERISTICS + " where plan_id = ?", String.class, planId);
+        return jdbcTemplate.queryForList(
+                "select characteristic from " + PLAN_CHARACTERISTICS + " where plan_id = ?", String.class, planId);
     }
 
     private List<String> getExcludedGroups(String pageId) {
         return jdbcTemplate.query(
-            "select excluded_group from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?",
-            (ResultSet rs, int rowNum) -> rs.getString(1),
-            pageId
-        );
+                "select excluded_group from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?",
+                (ResultSet rs, int rowNum) -> rs.getString(1),
+                pageId);
     }
 
     private void storeCharacteristics(Plan plan, boolean deleteFirst) throws TechnicalException {
@@ -208,9 +207,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             List<String> filteredCharacteristics = getOrm().filterStrings(plan.getCharacteristics());
             if (!filteredCharacteristics.isEmpty()) {
                 jdbcTemplate.batchUpdate(
-                    "insert into " + PLAN_CHARACTERISTICS + " ( plan_id, characteristic ) values ( ?, ? )",
-                    getOrm().getBatchStringSetter(plan.getId(), filteredCharacteristics)
-                );
+                        "insert into " + PLAN_CHARACTERISTICS + " ( plan_id, characteristic ) values ( ?, ? )",
+                        getOrm().getBatchStringSetter(plan.getId(), filteredCharacteristics));
             }
         } catch (final Exception ex) {
             log.error("Failed to store characteristics:", ex);
@@ -225,20 +223,19 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         if ((plan.getExcludedGroups() != null) && !plan.getExcludedGroups().isEmpty()) {
             List<String> excludedGroups = plan.getExcludedGroups();
             jdbcTemplate.batchUpdate(
-                "insert into " + PLAN_EXCLUDED_GROUPS + " ( plan_id, excluded_group ) values ( ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, plan.getId());
-                        ps.setString(2, excludedGroups.get(i));
-                    }
+                    "insert into " + PLAN_EXCLUDED_GROUPS + " ( plan_id, excluded_group ) values ( ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, plan.getId());
+                            ps.setString(2, excludedGroups.get(i));
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return excludedGroups.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return excludedGroups.size();
+                        }
+                    });
         }
     }
 
@@ -251,9 +248,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             List<String> filteredTags = getOrm().filterStrings(plan.getTags());
             if (!filteredTags.isEmpty()) {
                 jdbcTemplate.batchUpdate(
-                    "insert into " + PLAN_TAGS + " ( plan_id, tag ) values ( ?, ? )",
-                    getOrm().getBatchStringSetter(plan.getId(), filteredTags)
-                );
+                        "insert into " + PLAN_TAGS + " ( plan_id, tag ) values ( ?, ? )",
+                        getOrm().getBatchStringSetter(plan.getId(), filteredTags));
             }
         } catch (final Exception ex) {
             log.error("Failed to store tags:", ex);
@@ -270,7 +266,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         try {
             var query = getOrm().getSelectAllSql() + " where id in (" + getOrm().buildInClause(ids) + ")";
 
-            List<Plan> plans = jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, ids, 1), getOrm().getRowMapper());
+            List<Plan> plans =
+                    jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, ids, 1), getOrm().getRowMapper());
             addDataToPlans(plans);
             return new HashSet<>(plans);
         } catch (final Exception ex) {
@@ -287,7 +284,8 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         }
         try {
             var query = getOrm().getSelectAllSql() + " where cross_id in (" + getOrm().buildInClause(crossIds) + ")";
-            List<Plan> plans = jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, crossIds, 1), getOrm().getRowMapper());
+            List<Plan> plans =
+                    jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, crossIds, 1), getOrm().getRowMapper());
             addDataToPlans(plans);
             return new HashSet<>(plans);
         } catch (final Exception ex) {
@@ -300,17 +298,19 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         log.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
         try {
             List<String> planIds = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!planIds.isEmpty()) {
                 String inClause = getOrm().buildInClause(planIds);
                 jdbcTemplate.update("delete from " + tableName + " where id in (" + inClause + ")", planIds.toArray());
-                jdbcTemplate.update("delete from " + PLAN_TAGS + " where plan_id in (" + inClause + ")", planIds.toArray());
-                jdbcTemplate.update("delete from " + PLAN_CHARACTERISTICS + " where plan_id in (" + inClause + ")", planIds.toArray());
-                jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id in (" + inClause + ")", planIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + PLAN_TAGS + " where plan_id in (" + inClause + ")", planIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + PLAN_CHARACTERISTICS + " where plan_id in (" + inClause + ")",
+                        planIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id in (" + inClause + ")",
+                        planIds.toArray());
             }
 
             log.debug("JdbcPlanRepository.deleteByEnvironment({}) = {}", environmentId, planIds);
@@ -326,7 +326,9 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public boolean exists(String id) throws TechnicalException {
         log.debug("JdbcPlanRepository.exists({})", id);
         try {
-            return jdbcTemplate.queryForObject("select count(id) from " + tableName + " where id = ?", Integer.class, id) > 0;
+            return jdbcTemplate.queryForObject(
+                            "select count(id) from " + tableName + " where id = ?", Integer.class, id)
+                    > 0;
         } catch (final Exception ex) {
             log.error("Failed to check if plan exists", ex);
             throw new TechnicalException("Failed to check if plan exists", ex);
@@ -337,10 +339,11 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public void updateOrder(String planId, int order) throws TechnicalException {
         log.debug("JdbcPlanRepository.updateOrder({}, {})", planId, order);
         try {
-            jdbcTemplate.update("update " + tableName + " set " + escapeReservedWord("order") + " = ? where id = ?", ps -> {
-                ps.setInt(1, order);
-                ps.setString(2, planId);
-            });
+            jdbcTemplate.update(
+                    "update " + tableName + " set " + escapeReservedWord("order") + " = ? where id = ?", ps -> {
+                        ps.setInt(1, order);
+                        ps.setString(2, planId);
+                    });
         } catch (final Exception ex) {
             log.error("Failed to update plan order", ex);
             throw new TechnicalException("Failed to update plan order", ex);
@@ -356,21 +359,19 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
         try {
             jdbcTemplate.batchUpdate(
-                "UPDATE " + tableName + " SET cross_id = ? WHERE id = ?",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        Plan plan = plans.get(i);
-                        ps.setString(1, plan.getCrossId());
-                        ps.setString(2, plan.getId());
-                    }
+                    "UPDATE " + tableName + " SET cross_id = ? WHERE id = ?", new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            Plan plan = plans.get(i);
+                            ps.setString(1, plan.getCrossId());
+                            ps.setString(2, plan.getId());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return plans.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return plans.size();
+                        }
+                    });
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update plans cross IDs", ex);
         }
@@ -378,12 +379,13 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
     @Override
     public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcPlanRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, planReferenceType);
         try {
             var query = getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?";
 
-            List<Plan> plans = jdbcTemplate.query(query, getOrm().getRowMapper(), referenceId, planReferenceType.name());
+            List<Plan> plans =
+                    jdbcTemplate.query(query, getOrm().getRowMapper(), referenceId, planReferenceType.name());
             addDataToPlans(plans);
             return new HashSet<>(plans);
         } catch (final Exception ex) {
@@ -393,23 +395,20 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
     @Override
     public List<Plan> findByReferenceIdsAndReferenceTypeAndEnvironment(
-        List<String> referenceIds,
-        Plan.PlanReferenceType planReferenceType,
-        Set<String> environments
-    ) throws TechnicalException {
+            List<String> referenceIds, Plan.PlanReferenceType planReferenceType, Set<String> environments)
+            throws TechnicalException {
         log.debug(
-            "JdbcPlanRepository.findByReferenceIdsAndReferenceTypeAndEnvironments({}, {}, {})",
-            referenceIds,
-            planReferenceType,
-            environments
-        );
+                "JdbcPlanRepository.findByReferenceIdsAndReferenceTypeAndEnvironments({}, {}, {})",
+                referenceIds,
+                planReferenceType,
+                environments);
         if (isEmpty(referenceIds)) {
             return Collections.emptyList();
         }
         try {
             List<String> args = new ArrayList<>();
-            var query =
-                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in (" + getOrm().buildInClause(referenceIds) + ")";
+            var query = getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in ("
+                    + getOrm().buildInClause(referenceIds) + ")";
             args.add(planReferenceType.name());
             args.addAll(referenceIds);
             if (environments != null && !environments.isEmpty()) {
@@ -434,19 +433,23 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     }
 
     @Override
-    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, Plan.PlanReferenceType planReferenceType)
-        throws TechnicalException {
-        log.debug("JdbcPlanRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})", plan, referenceId, planReferenceType.name());
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(
+            String plan, String referenceId, Plan.PlanReferenceType planReferenceType) throws TechnicalException {
+        log.debug(
+                "JdbcPlanRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})",
+                plan,
+                referenceId,
+                planReferenceType.name());
         try {
             String query = getOrm().getSelectByIdSql() + " and reference_id = ? and reference_type = ?";
             return jdbcTemplate
-                .query(query, getOrm().getRowMapper(), plan, referenceId, planReferenceType.name())
-                .stream()
-                .findFirst()
-                .map(optPlan -> {
-                    addDataToPlans(List.of(optPlan));
-                    return optPlan;
-                });
+                    .query(query, getOrm().getRowMapper(), plan, referenceId, planReferenceType.name())
+                    .stream()
+                    .findFirst()
+                    .map(optPlan -> {
+                        addDataToPlans(List.of(optPlan));
+                        return optPlan;
+                    });
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find plan by id, referenceId and referenceType", ex);
         }
@@ -462,17 +465,14 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             }
             Map<String, Set<String>> tagsByPlanId = new HashMap<>();
             List<String> planIds = planList.stream().map(Plan::getId).collect(Collectors.toList());
-            String tagQuery = "select plan_id, tag from " + PLAN_TAGS + " where plan_id in (" + getOrm().buildInClause(planIds) + ")";
+            String tagQuery = "select plan_id, tag from " + PLAN_TAGS + " where plan_id in ("
+                    + getOrm().buildInClause(planIds) + ")";
 
-            jdbcTemplate.query(
-                tagQuery,
-                ps -> getOrm().setArguments(ps, planIds, 1),
-                rs -> {
-                    String planId = rs.getString("plan_id");
-                    String tag = rs.getString("tag");
-                    tagsByPlanId.computeIfAbsent(planId, k -> new HashSet<>()).add(tag);
-                }
-            );
+            jdbcTemplate.query(tagQuery, ps -> getOrm().setArguments(ps, planIds, 1), rs -> {
+                String planId = rs.getString("plan_id");
+                String tag = rs.getString("tag");
+                tagsByPlanId.computeIfAbsent(planId, k -> new HashSet<>()).add(tag);
+            });
             for (Plan plan : planList) {
                 Set<String> tags = tagsByPlanId.getOrDefault(plan.getId(), Collections.emptySet());
                 plan.setTags(tags);

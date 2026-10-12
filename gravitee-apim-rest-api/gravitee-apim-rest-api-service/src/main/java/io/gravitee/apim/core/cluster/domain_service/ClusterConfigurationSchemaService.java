@@ -29,13 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClusterConfigurationSchemaService {
 
     private static final Map<ClusterType, String> SCHEMA_PATHS = Map.of(
-        ClusterType.KAFKA_CLUSTER_STANDALONE,
-        "/cluster/kafka-cluster-standalone-configuration-schema-form.json",
-        ClusterType.KAFKA_CLUSTER,
-        "/cluster/kafka-cluster-configuration-schema-form.json",
-        ClusterType.KAFKA_VIRTUAL_CLUSTER,
-        "/cluster/kafka-virtual-cluster-configuration-schema-form.json"
-    );
+            ClusterType.KAFKA_CLUSTER_STANDALONE,
+            "/cluster/kafka-cluster-standalone-configuration-schema-form.json",
+            ClusterType.KAFKA_CLUSTER,
+            "/cluster/kafka-cluster-configuration-schema-form.json",
+            ClusterType.KAFKA_VIRTUAL_CLUSTER,
+            "/cluster/kafka-virtual-cluster-configuration-schema-form.json");
 
     private final Map<ClusterType, String> cachedSchemas = new ConcurrentHashMap<>();
 
@@ -59,7 +58,8 @@ public class ClusterConfigurationSchemaService {
         try (InputStream resourceAsStream = this.getClass().getResourceAsStream(path)) {
             return new String(resourceAsStream.readAllBytes(), UTF_8);
         } catch (IOException e) {
-            throw new TechnicalManagementException("An error occurs while trying to load cluster configuration schema", e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to load cluster configuration schema", e);
         }
     }
 }

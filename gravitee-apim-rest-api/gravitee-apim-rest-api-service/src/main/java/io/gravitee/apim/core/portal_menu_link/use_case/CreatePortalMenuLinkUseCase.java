@@ -19,7 +19,6 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_menu_link.crud_service.PortalMenuLinkCrudService;
 import io.gravitee.apim.core.portal_menu_link.model.CreatePortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
-import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
 import io.gravitee.apim.core.portal_menu_link.query_service.PortalMenuLinkQueryService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -34,16 +33,19 @@ public class CreatePortalMenuLinkUseCase {
     private final PortalMenuLinkQueryService portalMenuLinkQueryService;
 
     public Output execute(Input input) {
-        var newOrder = this.portalMenuLinkQueryService.findByEnvironmentIdSortByOrder(input.environmentId()).size() + 1;
+        var newOrder = this.portalMenuLinkQueryService
+                        .findByEnvironmentIdSortByOrder(input.environmentId())
+                        .size()
+                + 1;
         PortalMenuLink portalMenuLinkToCreate = PortalMenuLink.builder()
-            .id(UuidString.generateRandom())
-            .environmentId(input.environmentId())
-            .type(input.portalMenuLinkToCreate().getType())
-            .name(input.portalMenuLinkToCreate().getName())
-            .target(input.portalMenuLinkToCreate().getTarget())
-            .visibility(input.portalMenuLinkToCreate().getVisibility())
-            .order(newOrder)
-            .build();
+                .id(UuidString.generateRandom())
+                .environmentId(input.environmentId())
+                .type(input.portalMenuLinkToCreate().getType())
+                .name(input.portalMenuLinkToCreate().getName())
+                .target(input.portalMenuLinkToCreate().getTarget())
+                .visibility(input.portalMenuLinkToCreate().getVisibility())
+                .order(newOrder)
+                .build();
 
         validatePortalMenuLinkToCreate(portalMenuLinkToCreate);
 
@@ -56,7 +58,8 @@ public class CreatePortalMenuLinkUseCase {
     public record Output(PortalMenuLink portalMenuLink) {}
 
     private void validatePortalMenuLinkToCreate(PortalMenuLink portalMenuLinkToCreate) {
-        if (portalMenuLinkToCreate.getName() == null || portalMenuLinkToCreate.getName().isEmpty()) {
+        if (portalMenuLinkToCreate.getName() == null
+                || portalMenuLinkToCreate.getName().isEmpty()) {
             throw new InvalidDataException("Name is required.");
         }
     }

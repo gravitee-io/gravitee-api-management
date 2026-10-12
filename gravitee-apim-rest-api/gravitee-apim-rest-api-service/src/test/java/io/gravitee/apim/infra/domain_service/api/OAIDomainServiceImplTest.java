@@ -54,7 +54,8 @@ class OAIDomainServiceImplTest {
     private static final String ENVIRONMENT_ID = "environmentId";
 
     private OAIDomainServiceImpl oaiDomainService;
-    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
+    private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager =
+            new PolicyOperationVisitorManagerImpl();
     private ImportConfiguration importConfiguration;
 
     @BeforeEach
@@ -62,7 +63,8 @@ class OAIDomainServiceImplTest {
         importConfiguration = mock(ImportConfiguration.class);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
-        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, importConfiguration);
+        oaiDomainService =
+                new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, importConfiguration);
     }
 
     @Test
@@ -72,9 +74,9 @@ class OAIDomainServiceImplTest {
         importSwaggerDescriptor.setPayload("http://169.254.169.254/latest/meta-data/");
 
         // When / Then the URL is rejected before any fetch happens
-        assertThatThrownBy(() ->
-            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
-        ).isInstanceOf(UrlForbiddenException.class);
+        assertThatThrownBy(() -> oaiDomainService.convert(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+                .isInstanceOf(UrlForbiddenException.class);
     }
 
     @ParameterizedTest
@@ -86,9 +88,10 @@ class OAIDomainServiceImplTest {
         importSwaggerDescriptor.setPayload(payload);
 
         // When
-        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
-            .isExactlyInstanceOf(SwaggerDescriptorException.class)
-            .hasMessage("Payload cannot be null");
+        assertThatThrownBy(() -> oaiDomainService.convert(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+                .isExactlyInstanceOf(SwaggerDescriptorException.class)
+                .hasMessage("Payload cannot be null");
     }
 
     @Test
@@ -98,9 +101,9 @@ class OAIDomainServiceImplTest {
         importSwaggerDescriptor.setPayload("{ \"openapi\": \"3.0.0\" }");
 
         // When
-        assertThatThrownBy(() ->
-            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
-        ).isExactlyInstanceOf(SwaggerDescriptorException.class);
+        assertThatThrownBy(() -> oaiDomainService.convert(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+                .isExactlyInstanceOf(SwaggerDescriptorException.class);
     }
 
     @Test
@@ -111,10 +114,12 @@ class OAIDomainServiceImplTest {
         var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
         importSwaggerDescriptor.setPayload("http://127.0.0.1:1/openapi.json");
 
-        // When / Then a fetch failure surfaces as a clean 400 SwaggerDescriptorException, never a 500 leaking internals.
-        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
-            .isExactlyInstanceOf(SwaggerDescriptorException.class)
-            .hasMessageNotContainingAny("io.swagger", "java.net", "Connection", "ConnectException");
+        // When / Then a fetch failure surfaces as a clean 400 SwaggerDescriptorException, never a 500 leaking
+        // internals.
+        assertThatThrownBy(() -> oaiDomainService.convert(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+                .isExactlyInstanceOf(SwaggerDescriptorException.class)
+                .hasMessageNotContainingAny("io.swagger", "java.net", "Connection", "ConnectException");
     }
 
     @Test
@@ -124,9 +129,10 @@ class OAIDomainServiceImplTest {
         importSwaggerDescriptor.setPayload("{ \"hello\": \"world\" }");
 
         // When / Then it is rejected as a clean 400, never an NPE/500.
-        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
-            .isExactlyInstanceOf(SwaggerDescriptorException.class)
-            .hasMessageNotContainingAny("io.swagger", "NullPointerException", "java.net");
+        assertThatThrownBy(() -> oaiDomainService.convert(
+                        ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+                .isExactlyInstanceOf(SwaggerDescriptorException.class)
+                .hasMessageNotContainingAny("io.swagger", "NullPointerException", "java.net");
     }
 
     @Nested
@@ -153,25 +159,28 @@ class OAIDomainServiceImplTest {
         @BeforeEach
         void setUp() {
             policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
-            policyPluginCrudService.initWith(List.of(PolicyPlugin.builder().id("oas-validation").name("OAS Validation").build()));
+            policyPluginCrudService.initWith(List.of(PolicyPlugin.builder()
+                    .id("oas-validation")
+                    .name("OAS Validation")
+                    .build()));
             var endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
-            when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn("{}");
+            when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString()))
+                    .thenReturn("{}");
             service = new OAIDomainServiceImpl(
-                new PolicyOperationVisitorManagerImpl(),
-                new TagQueryServiceInMemory(),
-                endpointConnectorPluginService,
-                policyPluginCrudService,
-                mock(ImportConfiguration.class)
-            );
+                    new PolicyOperationVisitorManagerImpl(),
+                    new TagQueryServiceInMemory(),
+                    endpointConnectorPluginService,
+                    policyPluginCrudService,
+                    mock(ImportConfiguration.class));
         }
 
         @Test
         void should_place_oas_response_validation_last_when_wsdl_format_with_policies() {
             var descriptor = ImportSwaggerDescriptorEntity.builder()
-                .payload(VALID_OPENAPI)
-                .format(ImportSwaggerDescriptorEntity.Format.WSDL)
-                .withPolicies(List.of("rest-to-soap"))
-                .build();
+                    .payload(VALID_OPENAPI)
+                    .format(ImportSwaggerDescriptorEntity.Format.WSDL)
+                    .withPolicies(List.of("rest-to-soap"))
+                    .build();
 
             var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, false, true);
 
@@ -191,16 +200,17 @@ class OAIDomainServiceImplTest {
 
         @Test
         void should_not_defer_response_validation_for_non_wsdl_format() {
-            var descriptor = ImportSwaggerDescriptorEntity.builder().payload(VALID_OPENAPI).build();
+            var descriptor = ImportSwaggerDescriptorEntity.builder()
+                    .payload(VALID_OPENAPI)
+                    .build();
 
             var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, false, true);
 
             assertThat(result).isNotNull();
             var flows = (List<Flow>) result.getApiExport().getFlows();
-            var oasFlows = flows
-                .stream()
-                .filter(f -> "OpenAPI Specification Validation".equals(f.getName()))
-                .toList();
+            var oasFlows = flows.stream()
+                    .filter(f -> "OpenAPI Specification Validation".equals(f.getName()))
+                    .toList();
             assertThat(oasFlows).hasSize(1);
             assertThat(oasFlows.getFirst().getRequest()).hasSize(1);
             assertThat(oasFlows.getFirst().getResponse()).hasSize(1);
@@ -251,28 +261,34 @@ class OAIDomainServiceImplTest {
             when(importConfig.isAllowImportFromPrivate()).thenReturn(true);
 
             var policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
-            policyPluginCrudService.initWith(List.of(PolicyPlugin.builder().id("oas-validation").name("OAS Validation").build()));
+            policyPluginCrudService.initWith(List.of(PolicyPlugin.builder()
+                    .id("oas-validation")
+                    .name("OAS Validation")
+                    .build()));
             var endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
-            when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn("{}");
+            when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString()))
+                    .thenReturn("{}");
 
             service = new OAIDomainServiceImpl(
-                new PolicyOperationVisitorManagerImpl(),
-                new TagQueryServiceInMemory(),
-                endpointConnectorPluginService,
-                policyPluginCrudService,
-                importConfig
-            );
+                    new PolicyOperationVisitorManagerImpl(),
+                    new TagQueryServiceInMemory(),
+                    endpointConnectorPluginService,
+                    policyPluginCrudService,
+                    importConfig);
         }
 
         private String stubSpecUrl(WireMockRuntimeInfo wm) {
-            wm.getWireMock().register(get(urlEqualTo("/openapi.json")).willReturn(aResponse().withStatus(200).withBody(REMOTE_SPEC)));
+            wm.getWireMock()
+                    .register(get(urlEqualTo("/openapi.json"))
+                            .willReturn(aResponse().withStatus(200).withBody(REMOTE_SPEC)));
             return wm.getHttpBaseUrl() + "/openapi.json";
         }
 
         @Test
         void should_store_the_fetched_specification_as_documentation_rather_than_the_url(WireMockRuntimeInfo wm) {
             var url = stubSpecUrl(wm);
-            var descriptor = ImportSwaggerDescriptorEntity.builder().payload(url).build();
+            var descriptor =
+                    ImportSwaggerDescriptorEntity.builder().payload(url).build();
 
             var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, true, false);
 
@@ -280,13 +296,18 @@ class OAIDomainServiceImplTest {
             assertThat(result.getPages()).hasSize(1);
             var page = result.getPages().getFirst();
             assertThat(page.getType()).isEqualTo(Page.Type.SWAGGER);
-            assertThat(page.getContent()).isNotEqualTo(url).contains("\"openapi\"").contains("listPets");
+            assertThat(page.getContent())
+                    .isNotEqualTo(url)
+                    .contains("\"openapi\"")
+                    .contains("listPets");
         }
 
         @Test
-        void should_give_the_oas_validation_policy_the_fetched_specification_rather_than_the_url(WireMockRuntimeInfo wm) {
+        void should_give_the_oas_validation_policy_the_fetched_specification_rather_than_the_url(
+                WireMockRuntimeInfo wm) {
             var url = stubSpecUrl(wm);
-            var descriptor = ImportSwaggerDescriptorEntity.builder().payload(url).build();
+            var descriptor =
+                    ImportSwaggerDescriptorEntity.builder().payload(url).build();
 
             var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, false, true);
 
@@ -299,7 +320,8 @@ class OAIDomainServiceImplTest {
 
         @Test
         void should_keep_an_inline_payload_verbatim(WireMockRuntimeInfo wm) {
-            var descriptor = ImportSwaggerDescriptorEntity.builder().payload(REMOTE_SPEC).build();
+            var descriptor =
+                    ImportSwaggerDescriptorEntity.builder().payload(REMOTE_SPEC).build();
 
             var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, true, false);
 

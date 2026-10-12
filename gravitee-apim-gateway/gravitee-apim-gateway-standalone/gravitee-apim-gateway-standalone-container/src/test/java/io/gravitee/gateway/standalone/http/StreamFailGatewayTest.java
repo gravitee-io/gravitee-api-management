@@ -44,7 +44,7 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
     private static final String BODY_CONTENT = "Content to transform:";
 
     public static Iterable<Object> data() {
-        return Arrays.asList(new Object[][] { { "/two-flows" }, { "/one-flow-two-policies" } });
+        return Arrays.asList(new Object[][] {{"/two-flows"}, {"/one-flow-two-policies"}});
     }
 
     public String flowPath;
@@ -56,14 +56,15 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(post("/api" + flowPath).willReturn(ok()));
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post(
-            "http://localhost:8082/api" + flowPath
-        ).addHeader(HttpHeaders.ACCEPT, "application/json");
+                        "http://localhost:8082/api" + flowPath)
+                .addHeader(HttpHeaders.ACCEPT, "application/json");
 
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
         HttpResponse response = execute(request).returnResponse();
 
-        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
+        assertEquals(
+                HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
 
@@ -77,13 +78,15 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
         initStreamFailGatewayTest(flowPath);
         wireMockRule.stubFor(post("/api" + flowPath).willReturn(ok()));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api" + flowPath);
+        org.apache.http.client.fluent.Request request =
+                org.apache.http.client.fluent.Request.Post("http://localhost:8082/api" + flowPath);
 
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
         HttpResponse response = execute(request).returnResponse();
 
-        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
+        assertEquals(
+                HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
 

@@ -30,7 +30,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Getter
 @ToString(callSuper = true)
-@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@EqualsAndHashCode(
+        of = {"id"},
+        callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}rating")
 public class RatingMongo extends DeprecatedAuditable {
 

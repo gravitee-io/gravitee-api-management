@@ -35,14 +35,14 @@ import org.junit.jupiter.api.Test;
 public class UpdatePortalMenuLinkUseCaseTest {
 
     private final PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService = new PortalMenuLinkCrudServiceInMemory();
-    private final PortalMenuLinkQueryServiceInMemory portalMenuQueryCrudService = new PortalMenuLinkQueryServiceInMemory(
-        portalMenuLinkCrudService
-    );
+    private final PortalMenuLinkQueryServiceInMemory portalMenuQueryCrudService =
+            new PortalMenuLinkQueryServiceInMemory(portalMenuLinkCrudService);
     private UpdatePortalMenuLinkUseCase updatePortalMenuLinkUseCase;
 
     @BeforeEach
     void setUp() {
-        updatePortalMenuLinkUseCase = new UpdatePortalMenuLinkUseCase(portalMenuLinkCrudService, portalMenuQueryCrudService);
+        updatePortalMenuLinkUseCase =
+                new UpdatePortalMenuLinkUseCase(portalMenuLinkCrudService, portalMenuQueryCrudService);
     }
 
     @AfterEach
@@ -59,15 +59,12 @@ public class UpdatePortalMenuLinkUseCaseTest {
 
         // When
         var portalMenuLinkToUpdate = PortalMenuLinkFixtures.anUpdatePortalMenuLink();
-        updatePortalMenuLinkUseCase.execute(
-            new UpdatePortalMenuLinkUseCase.Input(toUpdate.getId(), toUpdate.getEnvironmentId(), portalMenuLinkToUpdate)
-        );
+        updatePortalMenuLinkUseCase.execute(new UpdatePortalMenuLinkUseCase.Input(
+                toUpdate.getId(), toUpdate.getEnvironmentId(), portalMenuLinkToUpdate));
 
         // Then
-        PortalMenuLink updatedPortalMenuLink = portalMenuLinkCrudService.getByIdAndEnvironmentId(
-            toUpdate.getId(),
-            toUpdate.getEnvironmentId()
-        );
+        PortalMenuLink updatedPortalMenuLink =
+                portalMenuLinkCrudService.getByIdAndEnvironmentId(toUpdate.getId(), toUpdate.getEnvironmentId());
         assertThat(updatedPortalMenuLink.getName()).isEqualTo(portalMenuLinkToUpdate.getName());
         assertThat(updatedPortalMenuLink.getTarget()).isEqualTo(portalMenuLinkToUpdate.getTarget());
         assertThat(updatedPortalMenuLink.getVisibility()).isEqualTo(portalMenuLinkToUpdate.getVisibility());
@@ -76,23 +73,44 @@ public class UpdatePortalMenuLinkUseCaseTest {
     @Test
     void should_reorder_when_update() {
         // Given
-        portalMenuLinkCrudService.initWith(
-            List.of(
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id1").environmentId("env1").order(1).build(),
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id2").environmentId("env1").order(2).build(),
-                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder().id("id3").environmentId("env1").order(3).build()
-            )
-        );
+        portalMenuLinkCrudService.initWith(List.of(
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id1")
+                        .environmentId("env1")
+                        .order(1)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id2")
+                        .environmentId("env1")
+                        .order(2)
+                        .build(),
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id("id3")
+                        .environmentId("env1")
+                        .order(3)
+                        .build()));
 
         // When
-        var portalMenuLinkToUpdate = PortalMenuLinkFixtures.anUpdatePortalMenuLink().toBuilder().order(3).build();
-        updatePortalMenuLinkUseCase.execute(new UpdatePortalMenuLinkUseCase.Input("id2", "env1", portalMenuLinkToUpdate));
+        var portalMenuLinkToUpdate = PortalMenuLinkFixtures.anUpdatePortalMenuLink().toBuilder()
+                .order(3)
+                .build();
+        updatePortalMenuLinkUseCase.execute(
+                new UpdatePortalMenuLinkUseCase.Input("id2", "env1", portalMenuLinkToUpdate));
 
         // Then
         assertThat(portalMenuLinkCrudService.storage()).hasSize(3);
-        assertThat(portalMenuLinkCrudService.getByIdAndEnvironmentId("id1", "env1").getOrder()).isEqualTo(1);
-        assertThat(portalMenuLinkCrudService.getByIdAndEnvironmentId("id2", "env1").getOrder()).isEqualTo(3);
-        assertThat(portalMenuLinkCrudService.getByIdAndEnvironmentId("id3", "env1").getOrder()).isEqualTo(2);
+        assertThat(portalMenuLinkCrudService
+                        .getByIdAndEnvironmentId("id1", "env1")
+                        .getOrder())
+                .isEqualTo(1);
+        assertThat(portalMenuLinkCrudService
+                        .getByIdAndEnvironmentId("id2", "env1")
+                        .getOrder())
+                .isEqualTo(3);
+        assertThat(portalMenuLinkCrudService
+                        .getByIdAndEnvironmentId("id3", "env1")
+                        .getOrder())
+                .isEqualTo(2);
     }
 
     @Test
@@ -102,20 +120,14 @@ public class UpdatePortalMenuLinkUseCaseTest {
         portalMenuLinkCrudService.initWith(List.of(toUpdate));
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            updatePortalMenuLinkUseCase.execute(
-                new UpdatePortalMenuLinkUseCase.Input(
-                    "unknown",
-                    toUpdate.getEnvironmentId(),
-                    PortalMenuLinkFixtures.anUpdatePortalMenuLink()
-                )
-            )
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> updatePortalMenuLinkUseCase.execute(new UpdatePortalMenuLinkUseCase.Input(
+                        "unknown", toUpdate.getEnvironmentId(), PortalMenuLinkFixtures.anUpdatePortalMenuLink())));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(PortalMenuLinkNotFoundException.class)
-            .hasMessage("PortalMenuLink [ unknown ] not found");
+                .isInstanceOf(PortalMenuLinkNotFoundException.class)
+                .hasMessage("PortalMenuLink [ unknown ] not found");
     }
 
     @Test
@@ -125,14 +137,16 @@ public class UpdatePortalMenuLinkUseCaseTest {
         portalMenuLinkCrudService.initWith(List.of(toUpdate));
 
         // When
-        var portalMenuLinkToUpdate = PortalMenuLinkFixtures.anUpdatePortalMenuLink().toBuilder().name(null).build();
-        var throwable = Assertions.catchThrowable(() ->
-            updatePortalMenuLinkUseCase.execute(
-                new UpdatePortalMenuLinkUseCase.Input(toUpdate.getId(), toUpdate.getEnvironmentId(), portalMenuLinkToUpdate)
-            )
-        );
+        var portalMenuLinkToUpdate = PortalMenuLinkFixtures.anUpdatePortalMenuLink().toBuilder()
+                .name(null)
+                .build();
+        var throwable = Assertions.catchThrowable(
+                () -> updatePortalMenuLinkUseCase.execute(new UpdatePortalMenuLinkUseCase.Input(
+                        toUpdate.getId(), toUpdate.getEnvironmentId(), portalMenuLinkToUpdate)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Name is required.");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Name is required.");
     }
 }

@@ -59,25 +59,23 @@ class ApiDocumentSearcherStableSortTest {
 
     private static List<List<String>> searchEquivalentIndexes(boolean stableSort) throws Exception {
         var apis = List.of(
-            api("api-relevant", "Zulu common", "unrelated"),
-            api("api-b", "Same", "common"),
-            api("api-a", "Same", "common"),
-            api("api-z", "Zed", "common")
-        );
+                api("api-relevant", "Zulu common", "unrelated"),
+                api("api-b", "Same", "common"),
+                api("api-a", "Same", "common"),
+                api("api-z", "Zed", "common"));
 
-        try (
-            var firstDirectory = new ByteBuffersDirectory();
-            var secondDirectory = new ByteBuffersDirectory();
-            var firstAnalyzer = new StandardAnalyzer();
-            var secondAnalyzer = new StandardAnalyzer();
-            var firstWriter = new IndexWriter(firstDirectory, new IndexWriterConfig(firstAnalyzer));
-            var secondWriter = new IndexWriter(secondDirectory, new IndexWriterConfig(secondAnalyzer))
-        ) {
+        try (var firstDirectory = new ByteBuffersDirectory();
+                var secondDirectory = new ByteBuffersDirectory();
+                var firstAnalyzer = new StandardAnalyzer();
+                var secondAnalyzer = new StandardAnalyzer();
+                var firstWriter = new IndexWriter(firstDirectory, new IndexWriterConfig(firstAnalyzer));
+                var secondWriter = new IndexWriter(secondDirectory, new IndexWriterConfig(secondAnalyzer))) {
             var transformer = new ApiDocumentTransformer(mock(ApiService.class));
             addDocuments(firstWriter, transformer, apis);
             addDocuments(secondWriter, transformer, apis.reversed());
 
-            var queryBuilder = QueryBuilder.create(ApiEntity.class).setQuery("common").setTypoTolerance(false);
+            var queryBuilder =
+                    QueryBuilder.create(ApiEntity.class).setQuery("common").setTypoTolerance(false);
             if (stableSort) {
                 queryBuilder.setSearchSortStrategy(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS);
             }
@@ -91,7 +89,8 @@ class ApiDocumentSearcherStableSortTest {
         }
     }
 
-    private static void addDocuments(IndexWriter writer, ApiDocumentTransformer transformer, List<ApiEntity> apis) throws Exception {
+    private static void addDocuments(IndexWriter writer, ApiDocumentTransformer transformer, List<ApiEntity> apis)
+            throws Exception {
         for (var api : apis) {
             writer.addDocument(transformer.transform(api));
         }

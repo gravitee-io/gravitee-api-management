@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.reset;
@@ -71,7 +70,8 @@ class ClustersResource_GetConfigurationSchemaTest extends AbstractResourceTest {
     @Test
     void should_return_configuration_schema_default_type() {
         String schema = "{\"type\":\"object\",\"properties\":{\"protocol\":{\"type\":\"string\"}}}";
-        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER_STANDALONE)).thenReturn(schema);
+        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER_STANDALONE))
+                .thenReturn(schema);
 
         final Response response = rootTarget().request().get();
 
@@ -82,9 +82,11 @@ class ClustersResource_GetConfigurationSchemaTest extends AbstractResourceTest {
     @Test
     void should_return_configuration_schema_for_kafka_cluster_type() {
         String schema = "{\"type\":\"object\",\"properties\":{\"connections\":{\"type\":\"array\"}}}";
-        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER)).thenReturn(schema);
+        when(clusterConfigurationSchemaService.getConfigurationSchema(ClusterType.KAFKA_CLUSTER))
+                .thenReturn(schema);
 
-        final Response response = rootTarget().queryParam("type", "KAFKA_CLUSTER").request().get();
+        final Response response =
+                rootTarget().queryParam("type", "KAFKA_CLUSTER").request().get();
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         assertThat(response.readEntity(String.class)).isEqualTo(schema);
@@ -92,6 +94,10 @@ class ClustersResource_GetConfigurationSchemaTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+        shouldReturn403(
+                RolePermission.ENVIRONMENT_CLUSTER,
+                ENV_ID,
+                RolePermissionAction.READ,
+                () -> rootTarget().request().get());
     }
 }

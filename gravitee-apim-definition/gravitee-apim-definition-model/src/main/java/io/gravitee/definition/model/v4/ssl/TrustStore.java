@@ -33,19 +33,24 @@ import lombok.Getter;
  */
 @Deprecated(since = "4.10.0", forRemoval = true)
 @JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type",
-    defaultImpl = NoneTrustStore.class
-)
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(names = { "JKS", "jks" }, value = JKSTrustStore.class),
-        @JsonSubTypes.Type(names = { "PEM", "pem" }, value = PEMTrustStore.class),
-        @JsonSubTypes.Type(names = { "PKCS12", "pkcs12" }, value = PKCS12TrustStore.class),
-        @JsonSubTypes.Type(names = { "NONE", "none" }, value = NoneTrustStore.class),
-    }
-)
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type",
+        defaultImpl = NoneTrustStore.class)
+@JsonSubTypes({
+    @JsonSubTypes.Type(
+            names = {"JKS", "jks"},
+            value = JKSTrustStore.class),
+    @JsonSubTypes.Type(
+            names = {"PEM", "pem"},
+            value = PEMTrustStore.class),
+    @JsonSubTypes.Type(
+            names = {"PKCS12", "pkcs12"},
+            value = PKCS12TrustStore.class),
+    @JsonSubTypes.Type(
+            names = {"NONE", "none"},
+            value = NoneTrustStore.class),
+})
 @Getter
 @EqualsAndHashCode
 public abstract class TrustStore implements Serializable {

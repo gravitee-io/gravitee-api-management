@@ -55,10 +55,8 @@ public class FakeLicense implements License {
 
     @Override
     public Map<String, String> getRawAttributes() {
-        return attributes
-            .entrySet()
-            .stream()
-            .map(e -> Map.entry(e.getKey(), e.getValue().toString()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return attributes.entrySet().stream()
+                .map(e -> Map.entry(e.getKey(), e.getValue().toString()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

@@ -28,7 +28,8 @@ public class GetEnvironmentRulesetsUseCase {
     private final ScoringRulesetQueryService scoringRulesetQueryService;
 
     public Output execute(Input input) {
-        var result = scoringRulesetQueryService.findByReference(input.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT);
+        var result = scoringRulesetQueryService.findByReference(
+                input.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT);
         return new Output(result);
     }
 

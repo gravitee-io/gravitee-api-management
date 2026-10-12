@@ -28,5 +28,6 @@ public interface SharedPolicyGroupPolicyChainFactory extends PolicyChainFactory 
         throw new IllegalArgumentException("Cannot build a policy chain from a Flow for Shared Policy Group");
     }
 
-    HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase);
+    HttpPolicyChain create(
+            final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase);
 }

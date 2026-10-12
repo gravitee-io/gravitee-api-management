@@ -48,13 +48,14 @@ public class GammaAuthzScimPermissionsUpgrader implements Upgrader {
 
     private static final String SCIM_CONNECTION_PERMISSION = EnvironmentPermission.AUTHZ_SCIM_CONNECTION.getName();
     private static final String SCIM_SYNC_PERMISSION = EnvironmentPermission.AUTHZ_SCIM_SYNC.getName();
-    private static final char[] FULL_ACLS = { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
+    private static final char[] FULL_ACLS = {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
 
     private final RoleService roleService;
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public GammaAuthzScimPermissionsUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public GammaAuthzScimPermissionsUpgrader(
+            RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -62,25 +63,28 @@ public class GammaAuthzScimPermissionsUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    roleService
-                        .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(), executionContext.getOrganizationId())
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                roleService
+                        .findByScopeAndName(
+                                ENVIRONMENT,
+                                ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(),
+                                executionContext.getOrganizationId())
                         .ifPresent(role -> addScimPermissionsIfMissing(executionContext, role));
-                });
+            });
             return true;
         });
     }
 
     private void addScimPermissionsIfMissing(ExecutionContext executionContext, RoleEntity role) {
         Map<String, char[]> actualPermissions = role.getPermissions();
-        if (grantsFullAcls(actualPermissions, SCIM_CONNECTION_PERMISSION) && grantsFullAcls(actualPermissions, SCIM_SYNC_PERMISSION)) {
+        if (grantsFullAcls(actualPermissions, SCIM_CONNECTION_PERMISSION)
+                && grantsFullAcls(actualPermissions, SCIM_SYNC_PERMISSION)) {
             return;
         }
 
-        Map<String, char[]> expectedPermissions = actualPermissions == null ? new HashMap<>() : new HashMap<>(actualPermissions);
+        Map<String, char[]> expectedPermissions =
+                actualPermissions == null ? new HashMap<>() : new HashMap<>(actualPermissions);
         expectedPermissions.put(SCIM_CONNECTION_PERMISSION, FULL_ACLS.clone());
         expectedPermissions.put(SCIM_SYNC_PERMISSION, FULL_ACLS.clone());
 

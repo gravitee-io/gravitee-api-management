@@ -30,7 +30,7 @@ import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ApiAnalyticsMapper.class })
+@Mapper(uses = {ApiAnalyticsMapper.class})
 public interface EnvironmentAnalyticsMapper {
     EnvironmentAnalyticsMapper INSTANCE = Mappers.getMapper(EnvironmentAnalyticsMapper.class);
 

@@ -38,7 +38,7 @@ class ObservabilityFilterValidatorDashboardTemplatesTest {
     private final ObservabilityFilterValidator validator = new ObservabilityFilterValidator(new SpiFilterRegistry());
 
     @ParameterizedTest
-    @ValueSource(strings = { "LLM", "MCP", "A2A" })
+    @ValueSource(strings = {"LLM", "MCP", "A2A"})
     void should_accept_the_api_type_scope_a_template_locks(String apiType) {
         var conditions = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of(apiType)));
 
@@ -47,22 +47,20 @@ class ObservabilityFilterValidatorDashboardTemplatesTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "API",
-            "APPLICATION",
-            "HTTP_METHOD",
-            "API_PRODUCT",
-            "LLM_PROXY_MODEL",
-            "LLM_PROXY_PROVIDER",
-            "MCP_PROXY_TOOL",
-            "MCP_PROXY_METHOD",
-        }
-    )
+            strings = {
+                "API",
+                "APPLICATION",
+                "HTTP_METHOD",
+                "API_PRODUCT",
+                "LLM_PROXY_MODEL",
+                "LLM_PROXY_PROVIDER",
+                "MCP_PROXY_TOOL",
+                "MCP_PROXY_METHOD",
+            })
     void should_accept_the_empty_slots_templates_offer(String field) {
         var conditions = List.of(
-            new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM")),
-            new FilterCondition(field, FilterOperator.IN, List.of())
-        );
+                new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM")),
+                new FilterCondition(field, FilterOperator.IN, List.of()));
 
         assertThatCode(() -> validator.validateDashboardFilters(conditions)).doesNotThrowAnyException();
     }

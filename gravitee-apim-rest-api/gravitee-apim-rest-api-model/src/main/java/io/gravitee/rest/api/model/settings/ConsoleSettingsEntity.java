@@ -76,7 +76,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         kafkaConsole = new KafkaConsole();
     }
 
-    //Classes
+    // Classes
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
     public static class ConsoleCors {

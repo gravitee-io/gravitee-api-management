@@ -87,7 +87,8 @@ public class ResourceServiceImplTest {
         when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn(VALIDATED_CONFIGURATION);
 
-        io.gravitee.definition.model.v4.resource.Resource resource = mock(io.gravitee.definition.model.v4.resource.Resource.class);
+        io.gravitee.definition.model.v4.resource.Resource resource =
+                mock(io.gravitee.definition.model.v4.resource.Resource.class);
         when(resource.getType()).thenReturn(PLUGIN_ID);
         when(resource.getConfiguration()).thenReturn(CONFIGURATION);
 

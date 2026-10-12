@@ -52,62 +52,56 @@ public abstract class AbstractV4APISecretRefFinder<D> implements DefinitionSecre
 
     protected void processEntrypoint(DefinitionSecretRefsListener listener, AbstractEntrypoint entrypoint) {
         listener.onCandidate(
-            entrypoint.getConfiguration(),
-            new SecretRefsLocation(PLUGIN_KIND, entrypoint.getType()),
-            entrypoint::setConfiguration
-        );
+                entrypoint.getConfiguration(),
+                new SecretRefsLocation(PLUGIN_KIND, entrypoint.getType()),
+                entrypoint::setConfiguration);
     }
 
     protected void processPlanConfiguration(DefinitionSecretRefsListener listener, AbstractPlan plan) {
-        Optional.ofNullable(plan.getSecurity()).ifPresent(security ->
-            listener.onCandidate(
-                security.getConfiguration(),
-                new SecretRefsLocation(PLUGIN_KIND, security.getType()),
-                security::setConfiguration
-            )
-        );
+        Optional.ofNullable(plan.getSecurity())
+                .ifPresent(security -> listener.onCandidate(
+                        security.getConfiguration(),
+                        new SecretRefsLocation(PLUGIN_KIND, security.getType()),
+                        security::setConfiguration));
     }
 
     protected void processStep(DefinitionSecretRefsListener listener, Step step) {
-        listener.onCandidate(step.getConfiguration(), new SecretRefsLocation(PLUGIN_KIND, step.getPolicy()), step::setConfiguration);
+        listener.onCandidate(
+                step.getConfiguration(), new SecretRefsLocation(PLUGIN_KIND, step.getPolicy()), step::setConfiguration);
     }
 
     protected <T extends AbstractEndpoint> Stream<T> processEndpointGroup(
-        DefinitionSecretRefsListener listener,
-        AbstractEndpointGroup<T> endpointGroup
-    ) {
-        Optional.ofNullable(endpointGroup.getSharedConfiguration()).ifPresent(payload ->
-            listener.onCandidate(
-                payload,
-                new SecretRefsLocation(PLUGIN_KIND, endpointGroup.getType()),
-                endpointGroup::setSharedConfiguration
-            )
-        );
+            DefinitionSecretRefsListener listener, AbstractEndpointGroup<T> endpointGroup) {
+        Optional.ofNullable(endpointGroup.getSharedConfiguration())
+                .ifPresent(payload -> listener.onCandidate(
+                        payload,
+                        new SecretRefsLocation(PLUGIN_KIND, endpointGroup.getType()),
+                        endpointGroup::setSharedConfiguration));
         return safeStream(endpointGroup.getEndpoints());
     }
 
     protected static void processResource(DefinitionSecretRefsListener listener, Resource resource) {
         listener.onCandidate(
-            resource.getConfiguration(),
-            new SecretRefsLocation(PLUGIN_KIND, resource.getType()),
-            resource::setConfiguration
-        );
+                resource.getConfiguration(),
+                new SecretRefsLocation(PLUGIN_KIND, resource.getType()),
+                resource::setConfiguration);
     }
 
     protected void processEndpoint(DefinitionSecretRefsListener listener, AbstractEndpoint endpoint) {
         listener.onCandidate(
-            endpoint.getConfiguration(),
-            new SecretRefsLocation(PLUGIN_KIND, endpoint.getType()),
-            endpoint::setConfiguration
-        );
+                endpoint.getConfiguration(),
+                new SecretRefsLocation(PLUGIN_KIND, endpoint.getType()),
+                endpoint::setConfiguration);
         listener.onCandidate(
-            endpoint.getSharedConfigurationOverride(),
-            new SecretRefsLocation(PLUGIN_KIND, endpoint.getType()),
-            endpoint::setSharedConfigurationOverride
-        );
+                endpoint.getSharedConfigurationOverride(),
+                new SecretRefsLocation(PLUGIN_KIND, endpoint.getType()),
+                endpoint::setSharedConfigurationOverride);
     }
 
     protected void processService(DefinitionSecretRefsListener listener, Service service) {
-        listener.onCandidate(service.getConfiguration(), new SecretRefsLocation(PLUGIN_KIND, service.getType()), service::setConfiguration);
+        listener.onCandidate(
+                service.getConfiguration(),
+                new SecretRefsLocation(PLUGIN_KIND, service.getType()),
+                service::setConfiguration);
     }
 }

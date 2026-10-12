@@ -29,9 +29,8 @@ public class CreateApplicationInvitationsUseCase {
     private final CreateApplicationInvitationsDomainService createApplicationInvitationsDomainService;
 
     public CreateApplicationInvitationsUseCase(
-        ApplicationCrudService applicationCrudService,
-        CreateApplicationInvitationsDomainService createApplicationInvitationsDomainService
-    ) {
+            ApplicationCrudService applicationCrudService,
+            CreateApplicationInvitationsDomainService createApplicationInvitationsDomainService) {
         this.applicationCrudService = applicationCrudService;
         this.createApplicationInvitationsDomainService = createApplicationInvitationsDomainService;
     }
@@ -40,25 +39,21 @@ public class CreateApplicationInvitationsUseCase {
         applicationCrudService.findById(input.applicationId(), input.environmentId());
         var createApplicationInvitations = input.createApplicationInvitations();
 
-        return new Output(
-            createApplicationInvitationsDomainService.create(
+        return new Output(createApplicationInvitationsDomainService.create(
                 input.organizationId(),
                 input.environmentId(),
                 input.applicationId(),
                 createApplicationInvitations.recipientEmails(),
                 createApplicationInvitations.roleName(),
                 createApplicationInvitations.notifyUsers(),
-                createApplicationInvitations.confirmationPageUrl()
-            )
-        );
+                createApplicationInvitations.confirmationPageUrl()));
     }
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        String applicationId,
-        CreateApplicationInvitations createApplicationInvitations
-    ) {}
+            String organizationId,
+            String environmentId,
+            String applicationId,
+            CreateApplicationInvitations createApplicationInvitations) {}
 
     public record Output(List<ApplicationInvitation> invitations) {}
 }

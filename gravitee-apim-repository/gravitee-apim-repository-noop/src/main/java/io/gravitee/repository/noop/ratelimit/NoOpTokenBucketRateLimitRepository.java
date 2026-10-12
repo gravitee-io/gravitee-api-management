@@ -32,14 +32,13 @@ public class NoOpTokenBucketRateLimitRepository implements TokenBucketRateLimitR
 
     @Override
     public Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
-    ) {
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<TokenBucket> supplier) {
         return null;
     }
 }

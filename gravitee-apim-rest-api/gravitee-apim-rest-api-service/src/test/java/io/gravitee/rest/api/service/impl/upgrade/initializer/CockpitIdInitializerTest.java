@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -67,11 +66,21 @@ public class CockpitIdInitializerTest {
 
         initializer.initialize();
 
-        verify(organizationService, times(1)).updateOrganization(anyString(), argThat(org -> org.getCockpitId().equals("org-1")));
+        verify(organizationService, times(1))
+                .updateOrganization(
+                        anyString(), argThat(org -> org.getCockpitId().equals("org-1")));
 
-        verify(environmentService, times(1)).createOrUpdate(eq("org-1"), anyString(), argThat(env -> env.getCockpitId().equals("env-1")));
+        verify(environmentService, times(1))
+                .createOrUpdate(
+                        eq("org-1"),
+                        anyString(),
+                        argThat(env -> env.getCockpitId().equals("env-1")));
 
-        verify(environmentService, times(1)).createOrUpdate(eq("org-1"), anyString(), argThat(env -> env.getCockpitId().equals("env-2")));
+        verify(environmentService, times(1))
+                .createOrUpdate(
+                        eq("org-1"),
+                        anyString(),
+                        argThat(env -> env.getCockpitId().equals("env-2")));
     }
 
     @Test

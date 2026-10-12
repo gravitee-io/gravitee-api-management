@@ -20,7 +20,6 @@ package io.gravitee.apim.core.application_certificate.domain_service;
  *
  * @author GraviteeSource Team
  */
-
 public interface MtlsSubscriptionSyncDomainService {
     /**
      * Updates the client certificates for all active mTLS subscriptions of the given application.

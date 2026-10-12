@@ -23,7 +23,11 @@ class DictionaryPropertyTest {
 
     @Test
     void should_redact_the_value_from_to_string() {
-        String result = DictionaryProperty.builder().value("super-secret").encrypted(true).build().toString();
+        String result = DictionaryProperty.builder()
+                .value("super-secret")
+                .encrypted(true)
+                .build()
+                .toString();
 
         assertThat(result).doesNotContain("super-secret").contains("encrypted=true");
     }

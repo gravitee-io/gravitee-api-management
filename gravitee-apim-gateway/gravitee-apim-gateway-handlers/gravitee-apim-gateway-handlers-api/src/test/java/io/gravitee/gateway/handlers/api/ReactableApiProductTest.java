@@ -46,17 +46,17 @@ class ReactableApiProductTest {
     void should_build_with_all_fields() {
         Date now = new Date();
         ReactableApiProduct apiProduct = ReactableApiProduct.builder()
-            .id("product-id")
-            .name("Product Name")
-            .description("Product Description")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1", "api-2"))
-            .environmentId("env-id")
-            .environmentHrid("env-hrid")
-            .organizationId("org-id")
-            .organizationHrid("org-hrid")
-            .deployedAt(now)
-            .build();
+                .id("product-id")
+                .name("Product Name")
+                .description("Product Description")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1", "api-2"))
+                .environmentId("env-id")
+                .environmentHrid("env-hrid")
+                .organizationId("org-id")
+                .organizationHrid("org-hrid")
+                .deployedAt(now)
+                .build();
 
         assertThat(apiProduct.getId()).isEqualTo("product-id");
         assertThat(apiProduct.getName()).isEqualTo("Product Name");
@@ -72,14 +72,19 @@ class ReactableApiProductTest {
 
     @Test
     void should_handle_empty_api_ids() {
-        ReactableApiProduct apiProduct = ReactableApiProduct.builder().id("product-id").apiIds(Set.of()).build();
+        ReactableApiProduct apiProduct =
+                ReactableApiProduct.builder().id("product-id").apiIds(Set.of()).build();
 
         assertThat(apiProduct.getApiIds()).isEmpty();
     }
 
     @Test
     void should_handle_null_optional_fields() {
-        ReactableApiProduct apiProduct = ReactableApiProduct.builder().id("product-id").name("Name").version("1.0").build();
+        ReactableApiProduct apiProduct = ReactableApiProduct.builder()
+                .id("product-id")
+                .name("Name")
+                .version("1.0")
+                .build();
 
         assertThat(apiProduct.getId()).isEqualTo("product-id");
         assertThat(apiProduct.getName()).isEqualTo("Name");

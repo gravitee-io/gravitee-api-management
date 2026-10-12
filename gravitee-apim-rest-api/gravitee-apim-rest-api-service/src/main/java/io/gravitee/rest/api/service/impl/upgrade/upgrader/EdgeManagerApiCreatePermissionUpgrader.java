@@ -55,7 +55,8 @@ public class EdgeManagerApiCreatePermissionUpgrader implements Upgrader {
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public EdgeManagerApiCreatePermissionUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public EdgeManagerApiCreatePermissionUpgrader(
+            RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -63,14 +64,15 @@ public class EdgeManagerApiCreatePermissionUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    roleService
-                        .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_EDGE_MANAGER.getName(), executionContext.getOrganizationId())
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                roleService
+                        .findByScopeAndName(
+                                ENVIRONMENT,
+                                ROLE_ENVIRONMENT_EDGE_MANAGER.getName(),
+                                executionContext.getOrganizationId())
                         .ifPresent(role -> addApiCreateAclIfMissing(executionContext, role));
-                });
+            });
             return true;
         });
     }
@@ -82,7 +84,8 @@ public class EdgeManagerApiCreatePermissionUpgrader implements Upgrader {
             return;
         }
 
-        Map<String, char[]> expectedPermissions = actualPermissions == null ? new HashMap<>() : new HashMap<>(actualPermissions);
+        Map<String, char[]> expectedPermissions =
+                actualPermissions == null ? new HashMap<>() : new HashMap<>(actualPermissions);
         expectedPermissions.put(API_PERMISSION, ArrayUtils.add(actualApiAcls, CREATE.getId()));
 
         UpdateRoleEntity expectedRole = UpdateRoleEntity.from(role);

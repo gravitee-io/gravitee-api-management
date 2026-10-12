@@ -46,24 +46,21 @@ public class AbstractQueryAdapterTest {
     }
 
     protected List<MetricMeasuresQuery> buildMetrics() {
-        var measures = Set.of(Measure.P90, Measure.P50, Measure.P95, Measure.P99, Measure.MIN, Measure.MAX, Measure.AVG);
+        var measures =
+                Set.of(Measure.P90, Measure.P50, Measure.P95, Measure.P99, Measure.MIN, Measure.MAX, Measure.AVG);
         return List.of(
-            new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, measures),
-            new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, measures),
-            new MetricMeasuresQuery(Metric.HTTP_ENDPOINT_RESPONSE_TIME, measures),
-            new MetricMeasuresQuery(Metric.HTTP_REQUEST_CONTENT_LENGTH, measures),
-            new MetricMeasuresQuery(Metric.HTTP_RESPONSE_CONTENT_LENGTH, measures)
-        );
+                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_LATENCY, measures),
+                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, measures),
+                new MetricMeasuresQuery(Metric.HTTP_ENDPOINT_RESPONSE_TIME, measures),
+                new MetricMeasuresQuery(Metric.HTTP_REQUEST_CONTENT_LENGTH, measures),
+                new MetricMeasuresQuery(Metric.HTTP_RESPONSE_CONTENT_LENGTH, measures));
     }
 
     protected List<MetricMeasuresQuery> buildSortedMetric() {
         var measures = Set.of(Measure.COUNT, Measure.AVG);
-        return List.of(
-            new MetricMeasuresQuery(
+        return List.of(new MetricMeasuresQuery(
                 Metric.HTTP_REQUESTS,
                 measures,
-                List.of(new MetricMeasuresQuery.Sort(Measure.COUNT, MetricMeasuresQuery.Sort.Order.DESC))
-            )
-        );
+                List.of(new MetricMeasuresQuery.Sort(Measure.COUNT, MetricMeasuresQuery.Sort.Order.DESC))));
     }
 }

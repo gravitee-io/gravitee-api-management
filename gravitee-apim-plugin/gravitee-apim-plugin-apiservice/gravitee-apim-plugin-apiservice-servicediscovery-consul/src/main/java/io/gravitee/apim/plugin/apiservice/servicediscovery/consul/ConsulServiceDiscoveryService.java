@@ -100,20 +100,25 @@ public class ConsulServiceDiscoveryService implements ApiService {
     private void startConsulWatcherFor(EndpointGroup group) {
         try {
             var config = pluginConfigurationHelper.readConfiguration(
-                ConsulServiceDiscoveryServiceConfiguration.class,
-                group.getServices().getDiscovery().getConfiguration()
-            );
+                    ConsulServiceDiscoveryServiceConfiguration.class,
+                    group.getServices().getDiscovery().getConfiguration());
             watchers.computeIfAbsent(group.getName(), groupName -> initWatcher(group, config));
         } catch (PluginConfigurationException e) {
-            log.warn("Unable to start Consul Service Discovery for group [{}] of api [{}]", api.getName(), group.getName(), e);
+            log.warn(
+                    "Unable to start Consul Service Discovery for group [{}] of api [{}]",
+                    api.getName(),
+                    group.getName(),
+                    e);
         }
     }
 
-    private Watch<ServiceEntryList> initWatcher(EndpointGroup group, ConsulServiceDiscoveryServiceConfiguration configuration) {
+    private Watch<ServiceEntryList> initWatcher(
+            EndpointGroup group, ConsulServiceDiscoveryServiceConfiguration configuration) {
         var options = ConsulOptionsBuilder.from(configuration);
 
         Watch<ServiceEntryList> service = Watch.service(configuration.getService(), vertx.getDelegate(), options);
-        service.setHandler(event -> new ConsulEventHandler(endpointManager, group, configuration, pendingRequestsTimeout).handle(event));
+        service.setHandler(event ->
+                new ConsulEventHandler(endpointManager, group, configuration, pendingRequestsTimeout).handle(event));
         return service.start();
     }
 }

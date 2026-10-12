@@ -18,7 +18,6 @@ package io.gravitee.apim.infra.search;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.search.Indexer;
-import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;

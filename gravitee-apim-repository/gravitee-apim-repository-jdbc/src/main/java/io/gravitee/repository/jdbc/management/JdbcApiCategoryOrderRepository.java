@@ -41,7 +41,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepository<ApiCategoryOrder> implements ApiCategoryOrderRepository {
+public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepository<ApiCategoryOrder>
+        implements ApiCategoryOrderRepository {
 
     JdbcApiCategoryOrderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "api_category_orders");
@@ -50,32 +51,33 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
     @Override
     protected JdbcObjectMapper<ApiCategoryOrder> buildOrm() {
         return JdbcObjectMapper.builder(ApiCategoryOrder.class, this.tableName)
-            .updateSql(
-                "update " +
-                    this.tableName +
-                    " set " +
-                    " api_id = ?" +
-                    " , category_id = ?" +
-                    " , " +
-                    escapeReservedWord("order") +
-                    " = ? " +
-                    WHERE_CLAUSE +
-                    " api_id = ? " +
-                    " and category_id = ? "
-            )
-            .addColumn("api_id", Types.NVARCHAR, String.class)
-            .addColumn("category_id", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .build();
+                .updateSql("update " + this.tableName
+                        + " set "
+                        + " api_id = ?"
+                        + " , category_id = ?"
+                        + " , "
+                        + escapeReservedWord("order")
+                        + " = ? "
+                        + WHERE_CLAUSE
+                        + " api_id = ? "
+                        + " and category_id = ? ")
+                .addColumn("api_id", Types.NVARCHAR, String.class)
+                .addColumn("category_id", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .build();
     }
 
     @Override
     public ApiCategoryOrder create(ApiCategoryOrder apiCategoryOrder) throws TechnicalException {
-        log.debug("JdbcApiCategoryOrderRepository.create({}, {})", apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId());
+        log.debug(
+                "JdbcApiCategoryOrderRepository.create({}, {})",
+                apiCategoryOrder.getApiId(),
+                apiCategoryOrder.getCategoryId());
 
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiCategoryOrder));
-            return findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId()).orElse(null);
+            return findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
+                    .orElse(null);
         } catch (Exception e) {
             log.error("Failed to create api category order", e);
             throw new TechnicalException("Failed to create api category order", e);
@@ -91,22 +93,13 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
         }
 
         try {
-            jdbcTemplate.update(
-                getOrm().buildUpdatePreparedStatementCreator(
-                    apiCategoryOrder,
-                    apiCategoryOrder.getApiId(),
-                    apiCategoryOrder.getCategoryId()
-                )
-            );
-            return findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId()).orElseThrow(() ->
-                new IllegalStateException(
-                    format(
-                        "No api category found with id [%s, %s]",
-                        apiCategoryOrder.getApiId(),
-                        apiCategoryOrder.getCategoryId()
-                    ).toString()
-                )
-            );
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(
+                            apiCategoryOrder, apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId()));
+            return findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
+                    .orElseThrow(() -> new IllegalStateException(format(
+                                    "No api category found with id [%s, %s]",
+                                    apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
+                            .toString()));
         } catch (IllegalStateException e) {
             log.error("Failed to update api category order", e);
             throw new IllegalStateException("Failed to update api category order", e);
@@ -122,16 +115,14 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
         try {
             if (!categoriesIds.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " +
-                        this.tableName +
-                        " where api_id = ? and category_id in ( " +
-                        getOrm().buildInClause(categoriesIds) +
-                        " ) ",
-                    (PreparedStatement ps) -> {
-                        ps.setString(1, apiId);
-                        getOrm().setArguments(ps, categoriesIds, 2);
-                    }
-                );
+                        "delete from " + this.tableName
+                                + " where api_id = ? and category_id in ( "
+                                + getOrm().buildInClause(categoriesIds)
+                                + " ) ",
+                        (PreparedStatement ps) -> {
+                            ps.setString(1, apiId);
+                            getOrm().setArguments(ps, categoriesIds, 2);
+                        });
             }
         } catch (Exception e) {
             log.error("Failed to delete api category order", e);
@@ -145,18 +136,17 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
 
         try {
             final List<ApiCategoryOrder> apiCategories = jdbcTemplate.query(
-                new StringBuilder()
-                    .append("select")
-                    .append(" api_id, category_id")
-                    .append(", ")
-                    .append(escapeReservedWord("order"))
-                    .append(" from ")
-                    .append(this.tableName)
-                    .append(" where category_id = ?")
-                    .toString(),
-                getOrm().getRowMapper(),
-                categoryId
-            );
+                    new StringBuilder()
+                            .append("select")
+                            .append(" api_id, category_id")
+                            .append(", ")
+                            .append(escapeReservedWord("order"))
+                            .append(" from ")
+                            .append(this.tableName)
+                            .append(" where category_id = ?")
+                            .toString(),
+                    getOrm().getRowMapper(),
+                    categoryId);
             return new HashSet<>(apiCategories);
         } catch (final Exception ex) {
             log.error("Failed to find ApiCategoryOrder by category id [{}]", categoryId, ex);
@@ -170,18 +160,17 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
 
         try {
             final List<ApiCategoryOrder> apiCategories = jdbcTemplate.query(
-                new StringBuilder()
-                    .append("select")
-                    .append(" api_id, category_id")
-                    .append(", ")
-                    .append(escapeReservedWord("order"))
-                    .append(" from ")
-                    .append(this.tableName)
-                    .append(" where api_id = ?")
-                    .toString(),
-                getOrm().getRowMapper(),
-                apiId
-            );
+                    new StringBuilder()
+                            .append("select")
+                            .append(" api_id, category_id")
+                            .append(", ")
+                            .append(escapeReservedWord("order"))
+                            .append(" from ")
+                            .append(this.tableName)
+                            .append(" where api_id = ?")
+                            .toString(),
+                    getOrm().getRowMapper(),
+                    apiId);
             return new HashSet<>(apiCategories);
         } catch (final Exception ex) {
             log.error("Failed to find ApiCategoryOrder by api id [{}]", apiId, ex);
@@ -194,10 +183,7 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
         log.debug("JdbcApiCategoryOrderRepository.deleteByApiId({})", apiId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select category_id from " + this.tableName + " where api_id = ?",
-                String.class,
-                apiId
-            );
+                    "select category_id from " + this.tableName + " where api_id = ?", String.class, apiId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + this.tableName + " where api_id = ?", apiId);
@@ -217,19 +203,18 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
 
         try {
             final List<ApiCategoryOrder> apiCategories = jdbcTemplate.query(
-                new StringBuilder()
-                    .append("select")
-                    .append(" api_id, category_id")
-                    .append(", ")
-                    .append(escapeReservedWord("order"))
-                    .append(" from ")
-                    .append(this.tableName)
-                    .append(" where api_id = ? and category_id = ?")
-                    .toString(),
-                getOrm().getRowMapper(),
-                apiId,
-                categoryId
-            );
+                    new StringBuilder()
+                            .append("select")
+                            .append(" api_id, category_id")
+                            .append(", ")
+                            .append(escapeReservedWord("order"))
+                            .append(" from ")
+                            .append(this.tableName)
+                            .append(" where api_id = ? and category_id = ?")
+                            .toString(),
+                    getOrm().getRowMapper(),
+                    apiId,
+                    categoryId);
             return apiCategories.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find ApiCategoryOrder by id", ex);

@@ -28,25 +28,28 @@ class TracerResourceAttributesTest {
 
     @Test
     void should_emit_all_six_attributes_when_every_field_is_populated() {
-        Map<String, String> attrs = TracerResourceAttributes.of("apim", "api-id", "api-name", "API_V4", "org-id", "env-id");
+        Map<String, String> attrs =
+                TracerResourceAttributes.of("apim", "api-id", "api-name", "API_V4", "org-id", "env-id");
 
         // containsExactly enforces insertion order — useful because the LinkedHashMap order is what
         // shows up in OTel exporters that render attributes deterministically (Loki labels, Grafana UI).
-        assertThat(attrs).containsExactly(
-            Map.entry("gravitee.module", "apim"),
-            Map.entry("gravitee.api.id", "api-id"),
-            Map.entry("gravitee.api.name", "api-name"),
-            Map.entry("gravitee.api.type", "API_V4"),
-            Map.entry("gravitee.org.id", "org-id"),
-            Map.entry("gravitee.env.id", "env-id")
-        );
+        assertThat(attrs)
+                .containsExactly(
+                        Map.entry("gravitee.module", "apim"),
+                        Map.entry("gravitee.api.id", "api-id"),
+                        Map.entry("gravitee.api.name", "api-name"),
+                        Map.entry("gravitee.api.type", "API_V4"),
+                        Map.entry("gravitee.org.id", "org-id"),
+                        Map.entry("gravitee.env.id", "env-id"));
     }
 
     @Test
     void should_record_module_verbatim_so_each_reactor_owns_its_own_namespace() {
         // ESM, AIM and any future reactor pass their own module string — verbatim, no normalisation.
-        assertThat(TracerResourceAttributes.of("esm", null, null, null, null, null)).containsEntry("gravitee.module", "esm");
-        assertThat(TracerResourceAttributes.of("aim", null, null, null, null, null)).containsEntry("gravitee.module", "aim");
+        assertThat(TracerResourceAttributes.of("esm", null, null, null, null, null))
+                .containsEntry("gravitee.module", "esm");
+        assertThat(TracerResourceAttributes.of("aim", null, null, null, null, null))
+                .containsEntry("gravitee.module", "aim");
     }
 
     @Test
@@ -101,8 +104,8 @@ class TracerResourceAttributesTest {
         // enforced at the boundary so the failure surfaces with context instead of leaking into the
         // OTel exporter pipeline as a confusing downstream NPE.
         assertThatNullPointerException()
-            .isThrownBy(() -> TracerResourceAttributes.of(null, "api-id", "api-name", "API_V4", "org-id", "env-id"))
-            .withMessageContaining("module");
+                .isThrownBy(() -> TracerResourceAttributes.of(null, "api-id", "api-name", "API_V4", "org-id", "env-id"))
+                .withMessageContaining("module");
     }
 
     @Test

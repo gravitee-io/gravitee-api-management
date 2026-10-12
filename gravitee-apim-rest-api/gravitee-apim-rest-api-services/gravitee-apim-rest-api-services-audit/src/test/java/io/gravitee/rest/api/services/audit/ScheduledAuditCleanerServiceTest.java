@@ -71,15 +71,14 @@ class ScheduledAuditCleanerServiceTest {
     @BeforeEach
     void setup() {
         sut = new ScheduledAuditCleanerService(
-            scheduler,
-            "",
-            true,
-            1,
-            removeOldAuditDataUseCase,
-            organizationService,
-            environmentService,
-            clusterManager
-        );
+                scheduler,
+                "",
+                true,
+                1,
+                removeOldAuditDataUseCase,
+                organizationService,
+                environmentService,
+                clusterManager);
     }
 
     @Test
@@ -102,25 +101,26 @@ class ScheduledAuditCleanerServiceTest {
 
         // then
         verify(removeOldAuditDataUseCase, times(2)).execute(inputArgumentCaptor.capture());
-        assertThat(inputArgumentCaptor.getAllValues()).map(RemoveOldAuditDataUseCase.Input::environmentId).containsOnly("env1", "env2");
         assertThat(inputArgumentCaptor.getAllValues())
-            .map(RemoveOldAuditDataUseCase.Input::maxAge)
-            .containsOnly(Duration.ofDays(1), Duration.ofDays(1));
+                .map(RemoveOldAuditDataUseCase.Input::environmentId)
+                .containsOnly("env1", "env2");
+        assertThat(inputArgumentCaptor.getAllValues())
+                .map(RemoveOldAuditDataUseCase.Input::maxAge)
+                .containsOnly(Duration.ofDays(1), Duration.ofDays(1));
     }
 
     @Test
     void should_schedule_even_when_not_primary_at_startup() throws Exception {
         // Given - simulate the cluster race: primary not yet elected at doStart() time
         var service = new ScheduledAuditCleanerService(
-            scheduler,
-            "@daily",
-            true,
-            1,
-            removeOldAuditDataUseCase,
-            organizationService,
-            environmentService,
-            clusterManager
-        );
+                scheduler,
+                "@daily",
+                true,
+                1,
+                removeOldAuditDataUseCase,
+                organizationService,
+                environmentService,
+                clusterManager);
 
         // When
         service.doStart();
@@ -143,13 +143,15 @@ class ScheduledAuditCleanerServiceTest {
         env2.setId("env2");
         when(environmentService.findByOrganization(any())).thenReturn(List.of(env1, env2));
         doThrow(new RuntimeException("boom"))
-            .when(removeOldAuditDataUseCase)
-            .execute(argThat(input -> "env1".equals(input.environmentId())));
+                .when(removeOldAuditDataUseCase)
+                .execute(argThat(input -> "env1".equals(input.environmentId())));
 
         sut.run();
 
         verify(removeOldAuditDataUseCase, times(2)).execute(inputArgumentCaptor.capture());
-        assertThat(inputArgumentCaptor.getAllValues()).map(RemoveOldAuditDataUseCase.Input::environmentId).containsExactly("env1", "env2");
+        assertThat(inputArgumentCaptor.getAllValues())
+                .map(RemoveOldAuditDataUseCase.Input::environmentId)
+                .containsExactly("env1", "env2");
     }
 
     @Test

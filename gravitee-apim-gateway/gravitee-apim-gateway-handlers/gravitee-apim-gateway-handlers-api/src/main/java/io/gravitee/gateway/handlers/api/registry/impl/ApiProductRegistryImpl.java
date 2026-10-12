@@ -82,7 +82,8 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
 
     @Override
     public void register(ReactableApiProduct apiProduct) {
-        log.debug("Registering API Product [{}] for environment [{}]", apiProduct.getId(), apiProduct.getEnvironmentId());
+        log.debug(
+                "Registering API Product [{}] for environment [{}]", apiProduct.getId(), apiProduct.getEnvironmentId());
 
         ApiProductRegistryKey key = new ApiProductRegistryKey(apiProduct.getId(), apiProduct.getEnvironmentId());
         ReactableApiProduct previous = registry.put(key, apiProduct);
@@ -181,7 +182,10 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
         } finally {
             indexLock.writeLock().unlock();
         }
-        log.debug("API Product registry index updated for product [{}]: {} API entries total", current.getId(), planEntriesByApi.size());
+        log.debug(
+                "API Product registry index updated for product [{}]: {} API entries total",
+                current.getId(),
+                planEntriesByApi.size());
     }
 
     private void removeIndexForProduct(ReactableApiProduct product) {
@@ -194,19 +198,18 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
             indexLock.writeLock().unlock();
         }
         log.debug(
-            "API Product registry index updated after removing product [{}]: {} API entries total",
-            product.getId(),
-            planEntriesByApi.size()
-        );
+                "API Product registry index updated after removing product [{}]: {} API entries total",
+                product.getId(),
+                planEntriesByApi.size());
     }
 
-    private void addProductToMutableIndex(Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> index, ReactableApiProduct product) {
+    private void addProductToMutableIndex(
+            Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> index, ReactableApiProduct product) {
         if (!ApiProductShardingFilter.matchesProductTags(gatewayConfiguration, product.getTags())) {
             log.debug(
-                "API Product [{}] skipped during indexing: product tags {} do not match gateway sharding tags",
-                product.getId(),
-                product.getTags()
-            );
+                    "API Product [{}] skipped during indexing: product tags {} do not match gateway sharding tags",
+                    product.getId(),
+                    product.getTags());
             return;
         }
         if (product.getEnvironmentId() == null || product.getApiIds() == null || product.getPlans() == null) {
@@ -220,34 +223,29 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
     }
 
     private void addPlanToIndexIfEligible(
-        Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> index,
-        ReactableApiProduct product,
-        String apiId,
-        Plan plan
-    ) {
+            Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> index,
+            ReactableApiProduct product,
+            String apiId,
+            Plan plan) {
         if (plan.getStatus() != PlanStatus.PUBLISHED && plan.getStatus() != PlanStatus.DEPRECATED) {
             return;
         }
         if (!ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, plan.getTags())) {
             log.debug(
-                "Plan [{}] of product [{}] skipped: plan tags {} do not match gateway tags",
-                plan.getId(),
-                product.getId(),
-                plan.getTags()
-            );
+                    "Plan [{}] of product [{}] skipped: plan tags {} do not match gateway tags",
+                    plan.getId(),
+                    product.getId(),
+                    plan.getTags());
             return;
         }
         ApiProductPlanEntry entry = new ApiProductPlanEntry(product.getId(), plan);
-        List<ApiProductPlanEntry> entries = index.computeIfAbsent(new ApiEnvironmentKey(product.getEnvironmentId(), apiId), k ->
-            new ArrayList<>()
-        );
+        List<ApiProductPlanEntry> entries =
+                index.computeIfAbsent(new ApiEnvironmentKey(product.getEnvironmentId(), apiId), k -> new ArrayList<>());
         entries.add(entry);
     }
 
     private static void removeProductFromMutableIndex(
-        Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> index,
-        ReactableApiProduct product
-    ) {
+            Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> index, ReactableApiProduct product) {
         if (product.getEnvironmentId() == null || product.getApiIds() == null) {
             return;
         }

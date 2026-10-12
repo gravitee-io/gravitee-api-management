@@ -54,7 +54,8 @@ public class SubscriptionFormElResolverInMemory implements SubscriptionFormElRes
     }
 
     @Override
-    public Map<String, List<String>> resolveSchemaOptions(SubscriptionFormSchema schema, String environmentId, String apiId) {
+    public Map<String, List<String>> resolveSchemaOptions(
+            SubscriptionFormSchema schema, String environmentId, String apiId) {
         if (schema == null || schema.isEmpty()) {
             return Map.of();
         }
@@ -63,7 +64,8 @@ public class SubscriptionFormElResolverInMemory implements SubscriptionFormElRes
         for (SubscriptionFormSchema.Field field : schema.fields()) {
             if (field instanceof DynamicOptionsAttribute dyn && dyn.dynamicOptions() != null) {
                 var dynamic = dyn.dynamicOptions();
-                result.put(field.fieldKey(), resolvedByExpression.getOrDefault(dynamic.expression(), dynamic.fallback()));
+                result.put(
+                        field.fieldKey(), resolvedByExpression.getOrDefault(dynamic.expression(), dynamic.fallback()));
             }
         }
         return result;
@@ -71,15 +73,13 @@ public class SubscriptionFormElResolverInMemory implements SubscriptionFormElRes
 
     @Override
     public SubscriptionFormFieldConstraints resolveConstraints(
-        SubscriptionFormFieldConstraints constraints,
-        String environmentId,
-        String apiId
-    ) {
+            SubscriptionFormFieldConstraints constraints, String environmentId, String apiId) {
         if (constraints == null || constraints.isEmpty()) {
             return constraints;
         }
 
-        for (Map.Entry<String, List<Constraint>> entry : constraints.byFieldKey().entrySet()) {
+        for (Map.Entry<String, List<Constraint>> entry :
+                constraints.byFieldKey().entrySet()) {
             resolveConstraintList(entry.getValue());
         }
         return constraints;

@@ -49,9 +49,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AnalyticsValidationServiceImpl extends TransactionalService implements AnalyticsValidationService {
 
-    private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile(
-        "(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)"
-    );
+    private static final Pattern LOGGING_MAX_DURATION_PATTERN =
+            Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String LOGGING_DELIMITER_BASE = "\\s+(\\|\\||\\&\\&)\\s+";
     private static final Duration REGEX_TIMEOUT = Duration.ofSeconds(2);
@@ -63,7 +62,8 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
     }
 
     @Override
-    public Analytics validateAndSanitize(final ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
+    public Analytics validateAndSanitize(
+            final ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
         if (analytics == null) {
             Analytics defaultAnalytics = new Analytics();
             if (type == ApiType.MESSAGE) {
@@ -81,24 +81,23 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
     private void setDefaultMessageSampling(ExecutionContext executionContext, final Analytics analytics) {
         Sampling countSampling = new Sampling();
         countSampling.setType(SamplingType.COUNT);
-        countSampling.setValue(
-            parameterService
+        countSampling.setValue(parameterService
                 .findAll(
-                    executionContext,
-                    Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
-                    Function.identity(),
-                    ParameterReferenceType.ORGANIZATION
-                )
+                        executionContext,
+                        Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
+                        Function.identity(),
+                        ParameterReferenceType.ORGANIZATION)
                 .stream()
                 .findFirst()
-                .orElse(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.defaultValue())
-        );
+                .orElse(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.defaultValue()));
         analytics.setMessageSampling(countSampling);
     }
 
-    private void validateAndSanitizeSampling(ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
+    private void validateAndSanitizeSampling(
+            ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
         if (ApiType.PROXY.equals(type) && analytics.getMessageSampling() != null) {
-            throw new AnalyticsIncompatibleApiTypeConfigurationException(Map.of("analytics.messageSampling", "invalid"));
+            throw new AnalyticsIncompatibleApiTypeConfigurationException(
+                    Map.of("analytics.messageSampling", "invalid"));
         }
         if (ApiType.MESSAGE.equals(type)) {
             if (analytics.getMessageSampling() == null) {
@@ -112,60 +111,54 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
         }
     }
 
-    private SamplingType.ValidationLimit getSamplingValidationLimits(ExecutionContext executionContext, Sampling messageSampling) {
+    private SamplingType.ValidationLimit getSamplingValidationLimits(
+            ExecutionContext executionContext, Sampling messageSampling) {
         return switch (messageSampling.getType()) {
-            case COUNT -> new SamplingType.ValidationLimit.CountLimit(
-                parameterService
-                    .findAll(
-                        executionContext,
-                        Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
-                        Integer::valueOf,
-                        ParameterReferenceType.ORGANIZATION
-                    )
-                    .stream()
-                    .findFirst()
-                    .orElse(Integer.valueOf(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.defaultValue()))
-            );
-            case PROBABILITY -> new SamplingType.ValidationLimit.ProbabilityLimit(
-                parameterService
-                    .findAll(
-                        executionContext,
-                        Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
-                        Double::valueOf,
-                        ParameterReferenceType.ORGANIZATION
-                    )
-                    .stream()
-                    .findFirst()
-                    .orElse(Double.valueOf(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.defaultValue()))
-            );
-            case TEMPORAL -> new SamplingType.ValidationLimit.TemporalLimit(
-                parameterService
-                    .findAll(
-                        executionContext,
-                        Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
-                        Function.identity(),
-                        ParameterReferenceType.ORGANIZATION
-                    )
-                    .stream()
-                    .findFirst()
-                    .orElse(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.defaultValue())
-            );
-            case WINDOWED_COUNT -> new SamplingType.ValidationLimit.WindowedCountLimit(
-                parameterService
-                    .findAll(
-                        executionContext,
-                        Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT,
-                        Function.identity(),
-                        ParameterReferenceType.ORGANIZATION
-                    )
-                    .stream()
-                    .findFirst()
-                    .orElse(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.defaultValue())
-            );
+            case COUNT ->
+                new SamplingType.ValidationLimit.CountLimit(parameterService
+                        .findAll(
+                                executionContext,
+                                Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
+                                Integer::valueOf,
+                                ParameterReferenceType.ORGANIZATION)
+                        .stream()
+                        .findFirst()
+                        .orElse(Integer.valueOf(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.defaultValue())));
+            case PROBABILITY ->
+                new SamplingType.ValidationLimit.ProbabilityLimit(parameterService
+                        .findAll(
+                                executionContext,
+                                Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
+                                Double::valueOf,
+                                ParameterReferenceType.ORGANIZATION)
+                        .stream()
+                        .findFirst()
+                        .orElse(Double.valueOf(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.defaultValue())));
+            case TEMPORAL ->
+                new SamplingType.ValidationLimit.TemporalLimit(parameterService
+                        .findAll(
+                                executionContext,
+                                Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
+                                Function.identity(),
+                                ParameterReferenceType.ORGANIZATION)
+                        .stream()
+                        .findFirst()
+                        .orElse(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.defaultValue()));
+            case WINDOWED_COUNT ->
+                new SamplingType.ValidationLimit.WindowedCountLimit(parameterService
+                        .findAll(
+                                executionContext,
+                                Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT,
+                                Function.identity(),
+                                ParameterReferenceType.ORGANIZATION)
+                        .stream()
+                        .findFirst()
+                        .orElse(Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT.defaultValue()));
         };
     }
 
-    private void validateAndSanitizeLogging(final ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
+    private void validateAndSanitizeLogging(
+            final ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
         Logging logging = analytics.getLogging();
         if (logging != null && logging.getMode().isEnabled()) {
             if (logging.getPhase() == null || logging.getContent() == null) {
@@ -173,14 +166,12 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
             }
 
             // Validate logging option according to api
-            if (
-                (type == ApiType.PROXY &&
-                    (logging.getContent().isMessageHeaders() ||
-                        logging.getContent().isMessagePayload() ||
-                        logging.getContent().isMessageMetadata() ||
-                        logging.getMessageCondition() != null)) ||
-                (type == ApiType.MESSAGE && logging.getContent().isPayload())
-            ) {
+            if ((type == ApiType.PROXY
+                            && (logging.getContent().isMessageHeaders()
+                                    || logging.getContent().isMessagePayload()
+                                    || logging.getContent().isMessageMetadata()
+                                    || logging.getMessageCondition() != null))
+                    || (type == ApiType.MESSAGE && logging.getContent().isPayload())) {
                 throw new LoggingInvalidConfigurationException();
             }
 
@@ -191,20 +182,23 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
 
     @Override
     public io.gravitee.definition.model.Logging validateAndSanitize(
-        final ExecutionContext executionContext,
-        final io.gravitee.definition.model.Logging logging
-    ) {
+            final ExecutionContext executionContext, final io.gravitee.definition.model.Logging logging) {
         if (logging != null && !LoggingMode.NONE.equals(logging.getMode())) {
             logging.setCondition(computeMaxDurationCondition(executionContext, logging.getCondition()));
         }
         return logging;
     }
 
-    private String computeMaxDurationCondition(final ExecutionContext executionContext, final String existingCondition) {
+    private String computeMaxDurationCondition(
+            final ExecutionContext executionContext, final String existingCondition) {
         Optional<Long> optionalMaxDuration = parameterService
-            .findAll(executionContext, Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf, ParameterReferenceType.ORGANIZATION)
-            .stream()
-            .findFirst();
+                .findAll(
+                        executionContext,
+                        Key.LOGGING_DEFAULT_MAX_DURATION,
+                        Long::valueOf,
+                        ParameterReferenceType.ORGANIZATION)
+                .stream()
+                .findFirst();
         if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {
             long maxEndDate = Instant.now().toEpochMilli() + optionalMaxDuration.get();
 
@@ -212,8 +206,10 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
             if (existingCondition == null || existingCondition.isEmpty()) {
                 return "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + "}";
             } else {
-                String conditionWithoutBraces = existingCondition.trim().replaceAll("\\{", "").replaceAll("\\}", "");
-                Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(new TimeBoundedCharSequence(conditionWithoutBraces, REGEX_TIMEOUT));
+                String conditionWithoutBraces =
+                        existingCondition.trim().replaceAll("\\{", "").replaceAll("\\}", "");
+                Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(
+                        new TimeBoundedCharSequence(conditionWithoutBraces, REGEX_TIMEOUT));
                 if (matcher.matches()) {
                     String currentDurationAsStr = matcher.group("timestamp");
                     String before = formatExpression(matcher, "before");
@@ -221,14 +217,16 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                     try {
                         final long currentDuration = Long.parseLong(currentDurationAsStr);
                         if (currentDuration > maxEndDate) {
-                            return "{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after + "}";
+                            return "{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after
+                                    + "}";
                         }
                     } catch (NumberFormatException nfe) {
                         log.error("Wrong format of the logging condition. Add the default one", nfe);
                         return "{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after + "}";
                     }
                 } else {
-                    return "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && (" + conditionWithoutBraces + ")}";
+                    return "{" + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && ("
+                            + conditionWithoutBraces + ")}";
                 }
             }
         }

@@ -44,11 +44,11 @@ public class MongoParameterRepository implements ParameterRepository {
 
     @Override
     public Optional<Parameter> findById(String parameterKey, String referenceId, ParameterReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Find parameter by key [{}]", parameterKey);
         final ParameterMongo parameter = internalParameterRepo
-            .findById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name()))
-            .orElse(null);
+                .findById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name()))
+                .orElse(null);
         log.debug("Find parameter by key [{}] - Done", parameterKey);
         return Optional.ofNullable(map(parameter));
     }
@@ -56,10 +56,9 @@ public class MongoParameterRepository implements ParameterRepository {
     @Override
     public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) {
         log.debug("Find parameters by keys [{}]", keys);
-        List<ParameterPkMongo> pkList = keys
-            .stream()
-            .map(k -> new ParameterPkMongo(k, referenceId, referenceType.name()))
-            .collect(Collectors.toList());
+        List<ParameterPkMongo> pkList = keys.stream()
+                .map(k -> new ParameterPkMongo(k, referenceId, referenceType.name()))
+                .collect(Collectors.toList());
         Iterable<ParameterMongo> all = internalParameterRepo.findAllById(pkList);
         log.debug("Find parameters by keys [{}] - Done", keys);
         return StreamSupport.stream(all.spliterator(), false).map(this::map).collect(Collectors.toList());
@@ -81,8 +80,11 @@ public class MongoParameterRepository implements ParameterRepository {
             throw new IllegalStateException("Parameter to update must have a key");
         }
         final ParameterMongo parameterMongo = internalParameterRepo
-            .findById(new ParameterPkMongo(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType().name()))
-            .orElse(null);
+                .findById(new ParameterPkMongo(
+                        parameter.getKey(),
+                        parameter.getReferenceId(),
+                        parameter.getReferenceType().name()))
+                .orElse(null);
         if (parameterMongo == null) {
             throw new IllegalStateException(String.format("No parameter found with name [%s]", parameter.getKey()));
         }
@@ -97,7 +99,8 @@ public class MongoParameterRepository implements ParameterRepository {
     }
 
     @Override
-    public void delete(String parameterKey, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+    public void delete(String parameterKey, String referenceId, ParameterReferenceType referenceType)
+            throws TechnicalException {
         try {
             internalParameterRepo.deleteById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name()));
         } catch (Exception e) {
@@ -117,14 +120,15 @@ public class MongoParameterRepository implements ParameterRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ParameterReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete parameter by refId: {}/{}", referenceId, referenceType);
         try {
-            final var parameterMongos = internalParameterRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(parameterMongo -> parameterMongo.getId().getKey())
-                .toList();
+            final var parameterMongos =
+                    internalParameterRepo
+                            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                            .stream()
+                            .map(parameterMongo -> parameterMongo.getId().getKey())
+                            .toList();
             log.debug("Delete parameter by refId {}/{} - Done", referenceId, referenceType);
 
             return parameterMongos;
@@ -140,7 +144,8 @@ public class MongoParameterRepository implements ParameterRepository {
         }
         final Parameter parameter = new Parameter();
         parameter.setKey(parameterMongo.getId().getKey());
-        parameter.setReferenceType(ParameterReferenceType.valueOf(parameterMongo.getId().getReferenceType()));
+        parameter.setReferenceType(
+                ParameterReferenceType.valueOf(parameterMongo.getId().getReferenceType()));
         parameter.setReferenceId(parameterMongo.getId().getReferenceId());
         parameter.setValue(parameterMongo.getValue());
         return parameter;
@@ -148,7 +153,10 @@ public class MongoParameterRepository implements ParameterRepository {
 
     private ParameterMongo map(final Parameter parameter) {
         ParameterMongo parameterMongo = new ParameterMongo();
-        parameterMongo.setId(new ParameterPkMongo(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType().name()));
+        parameterMongo.setId(new ParameterPkMongo(
+                parameter.getKey(),
+                parameter.getReferenceId(),
+                parameter.getReferenceType().name()));
         parameterMongo.setValue(parameter.getValue());
         return parameterMongo;
     }

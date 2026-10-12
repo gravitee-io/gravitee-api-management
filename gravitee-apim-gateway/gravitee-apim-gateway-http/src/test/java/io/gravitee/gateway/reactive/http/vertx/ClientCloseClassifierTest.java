@@ -56,21 +56,21 @@ class ClientCloseClassifierTest {
     @Test
     void should_classify_wrapped_connection_reset_via_cause_chain() {
         ClientCloseReason reason = ClientCloseClassifier.classify(
-            new RuntimeException("wrapper", new IOException("Connection reset by peer"))
-        );
+                new RuntimeException("wrapper", new IOException("Connection reset by peer")));
         assertThat(reason.key()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET);
     }
 
     @Test
     void should_classify_case_insensitively() {
         // Defensive against platform/JVM wording differences (e.g. a lowercased message).
-        assertThat(ClientCloseClassifier.classify(new IOException("connection reset by peer")).key()).isEqualTo(
-            ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET
-        );
-        assertThat(ClientCloseClassifier.classify(new IOException("BROKEN PIPE")).key()).isEqualTo(
-            ClientCloseClassifier.CLIENT_ABORTED_BROKEN_PIPE
-        );
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("syscall: Connection RESET by peer"))).isTrue();
+        assertThat(ClientCloseClassifier.classify(new IOException("connection reset by peer"))
+                        .key())
+                .isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET);
+        assertThat(ClientCloseClassifier.classify(new IOException("BROKEN PIPE"))
+                        .key())
+                .isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_BROKEN_PIPE);
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("syscall: Connection RESET by peer")))
+                .isTrue();
     }
 
     @Test
@@ -92,17 +92,21 @@ class ClientCloseClassifierTest {
         // Vert.x's HttpClosedException ("Connection was closed") is the common signal for a client closing an
         // in-flight request on this stack — it must be treated as a client close, not a generic gateway error.
         HttpClosedException closed = new HttpClosedException("Connection was closed");
-        assertThat(ClientCloseClassifier.classify(closed).key()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_CHANNEL_CLOSED);
+        assertThat(ClientCloseClassifier.classify(closed).key())
+                .isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_CHANNEL_CLOSED);
         assertThat(ClientCloseClassifier.isClientConnectionClose(closed)).isTrue();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("Connection was closed"))).isTrue();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("Connection was closed")))
+                .isTrue();
     }
 
     @Test
     void should_not_treat_a_genuine_gateway_error_as_a_client_close() {
         // C1 guard: arbitrary throwables on the response stream must NOT be classified as client aborts, otherwise
         // a real gateway fault gets masked as a 499.
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IllegalStateException("policy blew up"))).isFalse();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("No space left on device"))).isFalse();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IllegalStateException("policy blew up")))
+                .isFalse();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("No space left on device")))
+                .isFalse();
     }
 
     @Test
@@ -130,18 +134,24 @@ class ClientCloseClassifierTest {
     void should_recognise_client_close_from_native_transport_messages() {
         // Netty native transports (epoll/kqueue) wrap the kernel error: exact message matching misses these,
         // which made client aborts mid-response silently reported as clean 200s on Linux.
-        assertThat(
-            ClientCloseClassifier.isClientConnectionClose(new IOException("writevAddresses(..) failed: Connection reset by peer"))
-        ).isTrue();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("sendmsg(..) failed: Broken pipe"))).isTrue();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("Connection reset by peer"))).isTrue();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("Broken pipe"))).isTrue();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new ClosedChannelException())).isTrue();
-        assertThat(
-            ClientCloseClassifier.isClientConnectionClose(new RuntimeException("wrap", new IOException("Connection reset")))
-        ).isTrue();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("No space left on device"))).isFalse();
-        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException((String) null))).isFalse();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(
+                        new IOException("writevAddresses(..) failed: Connection reset by peer")))
+                .isTrue();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("sendmsg(..) failed: Broken pipe")))
+                .isTrue();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("Connection reset by peer")))
+                .isTrue();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("Broken pipe")))
+                .isTrue();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new ClosedChannelException()))
+                .isTrue();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(
+                        new RuntimeException("wrap", new IOException("Connection reset"))))
+                .isTrue();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException("No space left on device")))
+                .isFalse();
+        assertThat(ClientCloseClassifier.isClientConnectionClose(new IOException((String) null)))
+                .isFalse();
     }
 
     @Test
@@ -176,11 +186,10 @@ class ClientCloseClassifierTest {
         when(ctx.metrics()).thenReturn(metrics);
 
         ClientCloseClassifier.decorate(
-            ctx,
-            ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET,
-            ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET_MESSAGE,
-            new IOException("Connection reset by peer")
-        );
+                ctx,
+                ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET,
+                ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET_MESSAGE,
+                new IOException("Connection reset by peer"));
 
         assertThat(metrics.getErrorKey()).isNull();
         assertThat(metrics.getErrorMessage()).isNull();
@@ -195,11 +204,10 @@ class ClientCloseClassifierTest {
         when(ctx.metrics()).thenReturn(metrics);
 
         ClientCloseClassifier.decorate(
-            ctx,
-            ClientCloseClassifier.CLIENT_ABORTED_CHANNEL_CLOSED,
-            ClientCloseClassifier.CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE,
-            null
-        );
+                ctx,
+                ClientCloseClassifier.CLIENT_ABORTED_CHANNEL_CLOSED,
+                ClientCloseClassifier.CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE,
+                null);
 
         assertThat(metrics.getErrorKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_RESET");
         assertThat(metrics.getFailure()).isNull();

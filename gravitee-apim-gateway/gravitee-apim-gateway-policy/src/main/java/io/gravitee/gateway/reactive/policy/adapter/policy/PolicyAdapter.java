@@ -105,7 +105,8 @@ public class PolicyAdapter implements HttpPolicy {
         }
 
         // APIM-14749: restore must land BEFORE the terminal event reaches the downstream, so this is deliberately not a
-        // doFinally. Every v3 policy of the chain shares this ExecutionContextAdapter, and doFinally runs after the next
+        // doFinally. Every v3 policy of the chain shares this ExecutionContextAdapter, and doFinally runs after the
+        // next
         // policy has been subscribed - and, since the PEN-88 worker offload, is already running on another thread -
         // so a late restore would replay the previous policy's backup over the variables of the next one.
         // doOnTerminate runs before the terminal event is propagated; doOnDispose covers the cancelled request
@@ -173,11 +174,11 @@ public class PolicyAdapter implements HttpPolicy {
                     });
 
                     getBody(ctx, phase)
-                        .doOnSuccess(stream::write)
-                        .doFinally(stream::end)
-                        .doOnError(emitter::tryOnError)
-                        .onErrorResumeWith(s -> {})
-                        .subscribe();
+                            .doOnSuccess(stream::write)
+                            .doFinally(stream::end)
+                            .doOnError(emitter::tryOnError)
+                            .onErrorResumeWith(s -> {})
+                            .subscribe();
                 }
             } catch (Throwable t) {
                 emitter.tryOnError(new Exception("An error occurred while trying to execute policy " + policy.id(), t));

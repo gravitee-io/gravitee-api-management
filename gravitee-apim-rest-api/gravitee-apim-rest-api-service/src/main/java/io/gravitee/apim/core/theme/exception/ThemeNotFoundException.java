@@ -16,10 +16,6 @@
 package io.gravitee.apim.core.theme.exception;
 
 import io.gravitee.apim.core.exception.NotFoundDomainException;
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.theme.model.ThemeType;
-import java.util.Map;
-import java.util.Optional;
 
 public class ThemeNotFoundException extends NotFoundDomainException {
 

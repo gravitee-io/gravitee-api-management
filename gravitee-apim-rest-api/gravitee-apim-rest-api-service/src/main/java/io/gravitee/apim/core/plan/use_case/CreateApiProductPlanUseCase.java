@@ -48,7 +48,7 @@ public class CreateApiProductPlanUseCase {
         planExcludedGroupsDomainService.validateExcludedGroups(apiProduct.getEnvironmentId(), plan.getExcludedGroups());
 
         plan.setEnvironmentId(apiProduct.getEnvironmentId());
-        //setting this to not null because jdbc looks for a not null value in this column
+        // setting this to not null because jdbc looks for a not null value in this column
 
         plan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
         plan.setReferenceId(input.referenceId);

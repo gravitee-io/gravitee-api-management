@@ -25,9 +25,9 @@ public class ApiIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("kafka_port_ranges")
-            .name("ai1")
-            .key("apiId", ascending())
-            .build();
+                .collection("kafka_port_ranges")
+                .name("ai1")
+                .key("apiId", ascending())
+                .build();
     }
 }

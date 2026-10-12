@@ -25,7 +25,6 @@ import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
-import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -76,7 +75,8 @@ public class EntrypointPluginServiceImplTest {
         when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
         when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
         when(mockFactory.supportedApi()).thenReturn(ApiType.MESSAGE);
-        when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.reactive.api.ConnectorMode.REQUEST_RESPONSE));
+        when(mockFactory.supportedModes())
+                .thenReturn(Set.of(io.gravitee.gateway.reactive.api.ConnectorMode.REQUEST_RESPONSE));
         when(mockFactory.supportedListenerType()).thenReturn(ListenerType.HTTP);
     }
 
@@ -143,7 +143,8 @@ public class EntrypointPluginServiceImplTest {
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
         when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
 
-        Set<ConnectorPluginEntity> result = entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.MESSAGE);
+        Set<ConnectorPluginEntity> result =
+                entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.MESSAGE);
 
         assertNotNull(result);
         assertEquals(1, result.size());

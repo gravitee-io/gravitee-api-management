@@ -22,9 +22,8 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ CoreServiceSpringConfiguration.class })
+@Import({CoreServiceSpringConfiguration.class})
 @ComponentScan(
-    basePackages = { "io.gravitee.apim.core" },
-    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class)
-)
+        basePackages = {"io.gravitee.apim.core"},
+        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class))
 public class UsecaseSpringConfiguration {}

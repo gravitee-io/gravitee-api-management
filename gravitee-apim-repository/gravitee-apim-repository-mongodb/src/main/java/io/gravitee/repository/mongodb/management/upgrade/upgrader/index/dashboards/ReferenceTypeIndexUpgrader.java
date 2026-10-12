@@ -28,9 +28,9 @@ public class ReferenceTypeIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("dashboards")
-            .name("rt1")
-            .key("referenceType", ascending())
-            .build();
+                .collection("dashboards")
+                .name("rt1")
+                .key("referenceType", ascending())
+                .build();
     }
 }

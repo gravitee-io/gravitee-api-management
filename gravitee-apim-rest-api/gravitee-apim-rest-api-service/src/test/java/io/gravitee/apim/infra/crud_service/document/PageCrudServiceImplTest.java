@@ -74,8 +74,7 @@ public class PageCrudServiceImplTest {
         void should_create_a_page() throws TechnicalException {
             var date = new Date();
             String PAGE_ID = "page-id";
-            service.createDocumentationPage(
-                Page.builder()
+            service.createDocumentationPage(Page.builder()
                     .id(PAGE_ID)
                     .type(Page.Type.MARKDOWN)
                     .name(PAGE_NAME)
@@ -92,30 +91,31 @@ public class PageCrudServiceImplTest {
                     .published(true)
                     .parentId("parent-id")
                     .content("nice content")
-                    .build()
-            );
+                    .build());
 
             var expectedPage = io.gravitee.repository.management.model.Page.builder()
-                .id(PAGE_ID)
-                .type("MARKDOWN")
-                .name(PAGE_NAME)
-                .createdAt(date)
-                .updatedAt(date)
-                .content("nice content")
-                .homepage(true)
-                .referenceId("api-id")
-                .referenceType(PageReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility("PRIVATE")
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .content("nice content")
-                .build();
+                    .id(PAGE_ID)
+                    .type("MARKDOWN")
+                    .name(PAGE_NAME)
+                    .createdAt(date)
+                    .updatedAt(date)
+                    .content("nice content")
+                    .homepage(true)
+                    .referenceId("api-id")
+                    .referenceType(PageReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility("PRIVATE")
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .content("nice content")
+                    .build();
 
             verify(pageRepository).create(pageArgumentCaptor.capture());
-            Assertions.assertThat(pageArgumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedPage);
+            Assertions.assertThat(pageArgumentCaptor.getValue())
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedPage);
         }
     }
 
@@ -125,44 +125,44 @@ public class PageCrudServiceImplTest {
         @Test
         void should_get_a_page() throws TechnicalException {
             var exisitingPage = io.gravitee.repository.management.model.Page.builder()
-                .id(PAGE_ID)
-                .type("MARKDOWN")
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("nice content")
-                .homepage(true)
-                .referenceId("api-id")
-                .referenceType(PageReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility("PRIVATE")
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .content("nice content")
-                .build();
+                    .id(PAGE_ID)
+                    .type("MARKDOWN")
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("nice content")
+                    .homepage(true)
+                    .referenceId("api-id")
+                    .referenceType(PageReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility("PRIVATE")
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .content("nice content")
+                    .build();
 
             when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(exisitingPage));
 
             var expectedPage = Page.builder()
-                .id(PAGE_ID)
-                .type(Page.Type.MARKDOWN)
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("nice content")
-                .homepage(true)
-                .referenceId("api-id")
-                .referenceType(Page.ReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility(Page.Visibility.PRIVATE)
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .content("nice content")
-                .build();
+                    .id(PAGE_ID)
+                    .type(Page.Type.MARKDOWN)
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("nice content")
+                    .homepage(true)
+                    .referenceId("api-id")
+                    .referenceType(Page.ReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility(Page.Visibility.PRIVATE)
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .content("nice content")
+                    .build();
 
             var foundPage = service.get(PAGE_ID);
 
@@ -187,80 +187,75 @@ public class PageCrudServiceImplTest {
             pageSource.setType("config-type");
 
             var returnedPage = io.gravitee.repository.management.model.Page.builder()
-                .id(PAGE_ID)
-                .type("MARKDOWN")
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("nice content")
-                .homepage(false)
-                .referenceId("api-id")
-                .referenceType(PageReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility("PRIVATE")
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .content("nice content")
-                .excludedAccessControls(true)
-                .accessControls(Set.of(new AccessControl("ref", "api")))
-                .useAutoFetch(true)
-                .source(pageSource)
-                .metadata(Map.of("key", "value"))
-                .attachedMedia(List.of(new PageMedia("hash", "name", DATE)))
-                .configuration(Map.of("foo", "bar"))
-                .build();
+                    .id(PAGE_ID)
+                    .type("MARKDOWN")
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("nice content")
+                    .homepage(false)
+                    .referenceId("api-id")
+                    .referenceType(PageReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility("PRIVATE")
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .content("nice content")
+                    .excludedAccessControls(true)
+                    .accessControls(Set.of(new AccessControl("ref", "api")))
+                    .useAutoFetch(true)
+                    .source(pageSource)
+                    .metadata(Map.of("key", "value"))
+                    .attachedMedia(List.of(new PageMedia("hash", "name", DATE)))
+                    .configuration(Map.of("foo", "bar"))
+                    .build();
 
             when(pageRepository.update(returnedPage)).thenReturn(returnedPage);
 
             var pageToUpdate = Page.builder()
-                .id(PAGE_ID)
-                .type(Page.Type.MARKDOWN)
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("nice content")
-                .homepage(false)
-                .referenceId("api-id")
-                .referenceType(Page.ReferenceType.API)
-                .order(21)
-                .crossId("cross-id")
-                .visibility(Page.Visibility.PRIVATE)
-                .lastContributor("last-contributor")
-                .published(true)
-                .parentId("parent-id")
-                .content("nice content")
-                .excludedAccessControls(true)
-                .accessControls(
-                    Set.of(
-                        io.gravitee.apim.core.documentation.model.AccessControl.builder().referenceId("ref").referenceType("api").build()
-                    )
-                )
-                .useAutoFetch(true)
-                .source(
-                    io.gravitee.apim.core.documentation.model.PageSource.builder()
-                        .type(pageSource.getType())
-                        .configuration(pageSource.getConfiguration())
-                        .build()
-                )
-                .metadata(Map.of("key", "value"))
-                .attachedMedia(
-                    List.of(
-                        io.gravitee.apim.core.documentation.model.PageMedia.builder()
+                    .id(PAGE_ID)
+                    .type(Page.Type.MARKDOWN)
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("nice content")
+                    .homepage(false)
+                    .referenceId("api-id")
+                    .referenceType(Page.ReferenceType.API)
+                    .order(21)
+                    .crossId("cross-id")
+                    .visibility(Page.Visibility.PRIVATE)
+                    .lastContributor("last-contributor")
+                    .published(true)
+                    .parentId("parent-id")
+                    .content("nice content")
+                    .excludedAccessControls(true)
+                    .accessControls(Set.of(io.gravitee.apim.core.documentation.model.AccessControl.builder()
+                            .referenceId("ref")
+                            .referenceType("api")
+                            .build()))
+                    .useAutoFetch(true)
+                    .source(io.gravitee.apim.core.documentation.model.PageSource.builder()
+                            .type(pageSource.getType())
+                            .configuration(pageSource.getConfiguration())
+                            .build())
+                    .metadata(Map.of("key", "value"))
+                    .attachedMedia(List.of(io.gravitee.apim.core.documentation.model.PageMedia.builder()
                             .mediaHash("hash")
                             .mediaName("name")
                             .attachedAt(DATE)
-                            .build()
-                    )
-                )
-                .configuration(Map.of("foo", "bar"))
-                .build();
+                            .build()))
+                    .configuration(Map.of("foo", "bar"))
+                    .build();
 
             var updatedPage = service.updateDocumentationPage(pageToUpdate);
 
             verify(pageRepository).update(pageArgumentCaptor.capture());
-            Assertions.assertThat(pageArgumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(returnedPage);
+            Assertions.assertThat(pageArgumentCaptor.getValue())
+                    .usingRecursiveComparison()
+                    .isEqualTo(returnedPage);
 
             Assertions.assertThat(updatedPage).usingRecursiveComparison().isEqualTo(pageToUpdate);
         }
@@ -279,8 +274,8 @@ public class PageCrudServiceImplTest {
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
             doThrow(new TechnicalException("exception")).when(pageRepository).delete(PAGE_ID);
             assertThatThrownBy(() -> service.delete(PAGE_ID))
-                .isInstanceOf(ApiPageNotDeletedException.class)
-                .hasMessage("Page page-id not deleted");
+                    .isInstanceOf(ApiPageNotDeletedException.class)
+                    .hasMessage("Page page-id not deleted");
             verify(pageRepository).delete(PAGE_ID);
         }
     }
@@ -292,44 +287,48 @@ public class PageCrudServiceImplTest {
         void should_get_a_page_by_api_id() throws TechnicalException {
             var apiId = "api-id";
             var exisitingPage = io.gravitee.repository.management.model.Page.builder()
-                .id(PAGE_ID)
-                .type("MARKDOWN")
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("content")
-                .homepage(false)
-                .referenceId(apiId)
-                .referenceType(PageReferenceType.API)
-                .order(42)
-                .visibility("PRIVATE")
-                .lastContributor("John Doe")
-                .published(true)
-                .parentId("parent-id")
-                .build();
+                    .id(PAGE_ID)
+                    .type("MARKDOWN")
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("content")
+                    .homepage(false)
+                    .referenceId(apiId)
+                    .referenceType(PageReferenceType.API)
+                    .order(42)
+                    .visibility("PRIVATE")
+                    .lastContributor("John Doe")
+                    .published(true)
+                    .parentId("parent-id")
+                    .build();
 
             when(pageRepository.search(any())).thenReturn(List.of(exisitingPage));
 
             var expectedPage = Page.builder()
-                .id(PAGE_ID)
-                .type(Page.Type.MARKDOWN)
-                .name(PAGE_NAME)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .content("content")
-                .homepage(false)
-                .referenceId(apiId)
-                .referenceType(Page.ReferenceType.API)
-                .order(42)
-                .visibility(Page.Visibility.PRIVATE)
-                .lastContributor("John Doe")
-                .published(true)
-                .parentId("parent-id")
-                .build();
+                    .id(PAGE_ID)
+                    .type(Page.Type.MARKDOWN)
+                    .name(PAGE_NAME)
+                    .createdAt(DATE)
+                    .updatedAt(DATE)
+                    .content("content")
+                    .homepage(false)
+                    .referenceId(apiId)
+                    .referenceType(Page.ReferenceType.API)
+                    .order(42)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .lastContributor("John Doe")
+                    .published(true)
+                    .parentId("parent-id")
+                    .build();
 
             var foundPages = service.findByApiId(apiId);
 
-            Assertions.assertThat(foundPages).hasSize(1).first().usingRecursiveComparison().isEqualTo(expectedPage);
+            Assertions.assertThat(foundPages)
+                    .hasSize(1)
+                    .first()
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedPage);
         }
 
         @Test

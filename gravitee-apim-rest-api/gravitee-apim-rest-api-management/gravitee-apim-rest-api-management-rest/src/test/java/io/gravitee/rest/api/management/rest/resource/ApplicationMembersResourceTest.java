@@ -23,19 +23,15 @@ import static org.mockito.Mockito.verify;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.model.ApplicationMembership;
 import io.gravitee.rest.api.management.rest.model.TransferOwnership;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -59,28 +55,28 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         applicationMembership.setId(MEMBER_1);
         applicationMembership.setRole("my-application-membership-role");
 
-        final Response response = envTarget(APPLICATION).path("members").request().post(Entity.json(applicationMembership));
+        final Response response =
+                envTarget(APPLICATION).path("members").request().post(Entity.json(applicationMembership));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipReference.class
-        );
-        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipRole.class
-        );
-        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipMember.class
-        );
+        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
+        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
-        verify(membershipService).addRoleToMemberOnReference(
-            eq(GraviteeContext.getExecutionContext()),
-            memberShipRefCaptor.capture(),
-            memberShipUserCaptor.capture(),
-            memberShipRoleCaptor.capture()
-        );
+        verify(membershipService)
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()),
+                        memberShipRefCaptor.capture(),
+                        memberShipUserCaptor.capture(),
+                        memberShipRoleCaptor.capture());
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
-        assertEquals("my-application-membership-role", memberShipRoleCaptor.getValue().getName());
+        assertEquals(
+                "my-application-membership-role",
+                memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
     }
 
@@ -92,18 +88,18 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         transferOwnership.setPoRole("PRIMARY_OWNER");
 
         Response response = envTarget(APPLICATION)
-            .path("members")
-            .path("transfer_ownership")
-            .request()
-            .post(Entity.json(transferOwnership));
+                .path("members")
+                .path("transfer_ownership")
+                .request()
+                .post(Entity.json(transferOwnership));
 
         Map<String, Object> error = response.readEntity(new GenericType<>() {});
 
         assertAll(
-            () -> assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus()),
-            () -> assertEquals("The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner.", error.get("message")),
-            () -> assertEquals("role.transferNotAllowed", error.get("technicalCode")),
-            () -> assertEquals("PRIMARY_OWNER", ((Map<?, ?>) error.get("parameters")).get("role"))
-        );
+                () -> assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus()),
+                () -> assertEquals(
+                        "The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner.", error.get("message")),
+                () -> assertEquals("role.transferNotAllowed", error.get("technicalCode")),
+                () -> assertEquals("PRIMARY_OWNER", ((Map<?, ?>) error.get("parameters")).get("role")));
     }
 }

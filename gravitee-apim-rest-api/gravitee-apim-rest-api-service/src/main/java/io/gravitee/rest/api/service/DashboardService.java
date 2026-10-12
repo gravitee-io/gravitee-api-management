@@ -29,9 +29,14 @@ import java.util.List;
  */
 public interface DashboardService {
     List<DashboardEntity> findAll();
+
     List<DashboardEntity> findAllByReference(DashboardReferenceType referenceType, String referenceId);
-    List<DashboardEntity> findByReferenceAndType(DashboardReferenceType referenceType, String referenceId, DashboardType type);
+
+    List<DashboardEntity> findByReferenceAndType(
+            DashboardReferenceType referenceType, String referenceId, DashboardType type);
+
     DashboardEntity findByReferenceAndId(DashboardReferenceType referenceType, String referenceId, String dashboardId);
+
     DashboardEntity create(ExecutionContext executionContext, NewDashboardEntity dashboard);
 
     /**
@@ -41,10 +46,14 @@ public interface DashboardService {
     void initialize(ExecutionContext executionContext);
 
     DashboardEntity update(
-        ExecutionContext executionContext,
-        DashboardReferenceType referenceType,
-        String referenceId,
-        UpdateDashboardEntity dashboard
-    );
-    void delete(ExecutionContext executionContext, DashboardReferenceType referenceType, String referenceId, String dashboardId);
+            ExecutionContext executionContext,
+            DashboardReferenceType referenceType,
+            String referenceId,
+            UpdateDashboardEntity dashboard);
+
+    void delete(
+            ExecutionContext executionContext,
+            DashboardReferenceType referenceType,
+            String referenceId,
+            String dashboardId);
 }

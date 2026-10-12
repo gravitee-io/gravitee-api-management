@@ -42,7 +42,8 @@ public abstract class Http2WiremockGatewayTest extends AbstractWiremockGatewayTe
         final SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-        final CloseableHttpClient client = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        final CloseableHttpClient client =
+                HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
         this.executor = Executor.newInstance(client);
     }

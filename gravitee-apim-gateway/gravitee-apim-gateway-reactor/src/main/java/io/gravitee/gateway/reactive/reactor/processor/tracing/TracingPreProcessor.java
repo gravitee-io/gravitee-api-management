@@ -45,8 +45,11 @@ public class TracingPreProcessor implements Processor {
         return Completable.fromRunnable(() -> {
             if (ctx.request() != null) {
                 final Tracer tracer = ctx.getTracer();
-                tracer.deferRootSpanAttribute(AbstractTracingHook.SPAN_REQUEST_ID_ATTR, ctx.request().id());
-                tracer.deferRootSpanAttribute(AbstractTracingHook.SPAN_TRANSACTION_ID_ATTR, ctx.request().transactionId());
+                tracer.deferRootSpanAttribute(
+                        AbstractTracingHook.SPAN_REQUEST_ID_ATTR, ctx.request().id());
+                tracer.deferRootSpanAttribute(
+                        AbstractTracingHook.SPAN_TRANSACTION_ID_ATTR,
+                        ctx.request().transactionId());
             }
         });
     }

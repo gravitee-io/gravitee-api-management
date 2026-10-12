@@ -34,7 +34,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeader, String> implements ApiHeaderRepository {
+public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeader, String>
+        implements ApiHeaderRepository {
 
     JdbcApiHeaderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "api_headers");
@@ -43,14 +44,14 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
     @Override
     protected JdbcObjectMapper<ApiHeader> buildOrm() {
         return JdbcObjectMapper.builder(ApiHeader.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("value", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -63,10 +64,7 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
         log.debug("JdbcApiHeaderRepository.findAllByEnvironment({})", environmentId);
         try {
             List<ApiHeader> apiHeaders = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where environment_id = ?",
-                getOrm().getRowMapper(),
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " where environment_id = ?", getOrm().getRowMapper(), environmentId);
             return new HashSet<>(apiHeaders);
         } catch (final Exception ex) {
             log.error("Failed to find api headers by environment:", ex);
@@ -79,10 +77,7 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
         log.debug("JdbcApiHeaderRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + this.tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);

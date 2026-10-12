@@ -28,9 +28,9 @@ public class EnvironmentIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscriptions")
-            .name("e1")
-            .key("environmentId", ascending())
-            .build();
+                .collection("subscriptions")
+                .name("e1")
+                .key("environmentId", ascending())
+                .build();
     }
 }

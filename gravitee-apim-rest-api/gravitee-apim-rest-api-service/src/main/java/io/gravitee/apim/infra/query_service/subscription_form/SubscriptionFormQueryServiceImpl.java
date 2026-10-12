@@ -43,52 +43,48 @@ public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQuerySe
     }
 
     @Override
-    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String environmentId, SubscriptionFormId subscriptionFormId) {
+    public Optional<SubscriptionForm> findByIdAndEnvironmentId(
+            String environmentId, SubscriptionFormId subscriptionFormId) {
         try {
             return subscriptionFormRepository
-                .findByIdAndEnvironmentId(subscriptionFormId.toString(), environmentId)
-                .map(subscriptionFormAdapter::toEntity);
+                    .findByIdAndEnvironmentId(subscriptionFormId.toString(), environmentId)
+                    .map(subscriptionFormAdapter::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to find a SubscriptionForm with id: %s in environment: %s",
-                    subscriptionFormId,
-                    environmentId
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to find a SubscriptionForm with id: %s in environment: %s",
+                            subscriptionFormId, environmentId),
+                    e);
         }
     }
 
     @Override
     public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) {
         try {
-            return subscriptionFormRepository
-                .findAllByEnvironmentId(environmentId)
-                .stream()
-                .map(subscriptionFormAdapter::toEntity)
-                .toList();
+            return subscriptionFormRepository.findAllByEnvironmentId(environmentId).stream()
+                    .map(subscriptionFormAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to list the SubscriptionForms of environment: %s", environmentId),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to list the SubscriptionForms of environment: %s",
+                            environmentId),
+                    e);
         }
     }
 
     @Override
     public Optional<SubscriptionForm> findByApiId(String environmentId, String apiId) {
         try {
-            return subscriptionFormRepository.findByEnvironmentIdAndApiId(environmentId, apiId).map(subscriptionFormAdapter::toEntity);
+            return subscriptionFormRepository
+                    .findByEnvironmentIdAndApiId(environmentId, apiId)
+                    .map(subscriptionFormAdapter::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to find the SubscriptionForm of API %s in environment: %s",
-                    apiId,
-                    environmentId
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to find the SubscriptionForm of API %s in environment: %s",
+                            apiId, environmentId),
+                    e);
         }
     }
 }

@@ -73,40 +73,25 @@ class ConfigMapEventFetcherTest {
     @Test
     @SneakyThrows
     void should_clear_cache_on_resource_version_error() {
-        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "ALL" }, objectMapper);
+        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] {"ALL"}, objectMapper);
 
         when(kubernetesClient.get(any()))
-            .thenReturn(
-                Maybe.just(
-                    new ConfigMapList(
+                .thenReturn(Maybe.just(new ConfigMapList(
                         "v1",
                         List.of(createConfigMap("service1", "default")),
                         "configmaps",
-                        new ListMeta(null, null, "12345", null)
-                    )
-                )
-            )
-            .thenReturn(
-                Maybe.just(
-                    new ConfigMapList(
+                        new ListMeta(null, null, "12345", null))))
+                .thenReturn(Maybe.just(new ConfigMapList(
                         "v1",
                         List.of(createConfigMap("service1", "default")),
                         "configmaps",
-                        new ListMeta(null, null, "54321", null)
-                    )
-                )
-            )
-            .thenReturn(Maybe.error(new ResourceVersionNotFoundException("54321")))
-            .thenReturn(
-                Maybe.just(
-                    new ConfigMapList(
+                        new ListMeta(null, null, "54321", null))))
+                .thenReturn(Maybe.error(new ResourceVersionNotFoundException("54321")))
+                .thenReturn(Maybe.just(new ConfigMapList(
                         "v1",
                         List.of(createConfigMap("service2", "default")),
                         "configmaps",
-                        new ListMeta(null, null, "56789", null)
-                    )
-                )
-            );
+                        new ListMeta(null, null, "56789", null))));
 
         cut.fetchAll(API_DEFINITIONS_KIND).test().await().assertValueCount(1);
         cut.fetchAll(API_DEFINITIONS_KIND).test().await().assertValueCount(1);
@@ -122,33 +107,35 @@ class ConfigMapEventFetcherTest {
 
     @Test
     void should_watch_all_namespaces() {
-        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "ALL" }, objectMapper);
+        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] {"ALL"}, objectMapper);
 
-        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
+        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null)))
+                .thenReturn(mockFlowableEvents());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(3);
     }
 
     @Test
     void should_watch_all_namespaces_with_all_at_any_position() {
-        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "default", "ALL" }, objectMapper);
+        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] {"default", "ALL"}, objectMapper);
 
-        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
+        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null)))
+                .thenReturn(mockFlowableEvents());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(3);
     }
 
     @Test
     void should_watch_given_namespaces() {
-        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "default", "dev" }, objectMapper);
+        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] {"default", "dev"}, objectMapper);
 
         doReturn(Flowable.just(createEvent(createConfigMap("service1", "default"))))
-            .when(kubernetesClient)
-            .watch(argThat(query -> query.getNamespace().equals("default")));
+                .when(kubernetesClient)
+                .watch(argThat(query -> query.getNamespace().equals("default")));
 
         doReturn(Flowable.just(createEvent(createConfigMap("service2", "dev"))))
-            .when(kubernetesClient)
-            .watch(argThat(query -> query.getNamespace().equals("dev")));
+                .when(kubernetesClient)
+                .watch(argThat(query -> query.getNamespace().equals("dev")));
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(2);
     }
@@ -159,9 +146,8 @@ class ConfigMapEventFetcherTest {
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap("service1", "current");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
-            Flowable.just(createEvent(configMap))
-        );
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
+                .thenReturn(Flowable.just(createEvent(configMap)));
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
@@ -175,9 +161,8 @@ class ConfigMapEventFetcherTest {
         // If no definition version is present, consider v2 for backward-compatibility.
         configMap.getData().remove(DATA_API_DEFINITION_VERSION);
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
-            Flowable.just(createEvent(configMap))
-        );
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
+                .thenReturn(Flowable.just(createEvent(configMap)));
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
@@ -188,15 +173,14 @@ class ConfigMapEventFetcherTest {
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap(DefinitionVersion.V4, "apiV4", "current");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
-            Flowable.just(createEvent(configMap))
-        );
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
+                .thenReturn(Flowable.just(createEvent(configMap)));
 
-        cut
-            .fetchLatest(API_DEFINITIONS_KIND)
-            .test()
-            .assertComplete()
-            .assertValue(events -> events.stream().anyMatch(event -> readApi(event.getPayload()).getType() == ApiType.PROXY));
+        cut.fetchLatest(API_DEFINITIONS_KIND)
+                .test()
+                .assertComplete()
+                .assertValue(events -> events.stream()
+                        .anyMatch(event -> readApi(event.getPayload()).getType() == ApiType.PROXY));
     }
 
     @Test
@@ -207,9 +191,8 @@ class ConfigMapEventFetcherTest {
 
         configMap.getData().put(DATA_API_DEFINITION_VERSION, "unknown");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
-            Flowable.just(createEvent(configMap))
-        );
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
+                .thenReturn(Flowable.just(createEvent(configMap)));
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertNoValues();
     }
@@ -223,20 +206,17 @@ class ConfigMapEventFetcherTest {
             KubernetesConfig.getInstance().setCurrentNamespace("current");
             ConfigMap configMap = createConfigMap(DefinitionVersion.V4, "apiV4", "current");
 
-            when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
-                Flowable.just(createEvent(configMap))
-            );
+            when(kubernetesClient.watch(
+                            argThat(argument -> argument.getNamespace().equals("current"))))
+                    .thenReturn(Flowable.just(createEvent(configMap)));
 
-            cut
-                .fetchLatest(API_DEFINITIONS_KIND)
-                .test()
-                .assertComplete()
-                .assertValue(events -> {
-                    assertThat(events)
+            cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValue(events -> {
+                assertThat(events)
                         .extracting(io.gravitee.repository.management.model.Event::getProperties)
-                        .containsExactlyInAnyOrder(Map.of("api_id", "api-id-v4", "deployment_number", "resource-version"));
-                    return true;
-                });
+                        .containsExactlyInAnyOrder(
+                                Map.of("api_id", "api-id-v4", "deployment_number", "resource-version"));
+                return true;
+            });
         }
     }
 
@@ -258,7 +238,8 @@ class ConfigMapEventFetcherTest {
         objectMeta.setNamespace(namespace);
         objectMeta.setResourceVersion("resource-version");
         OwnerReference ownerReference = new OwnerReference();
-        ownerReference.setApiVersion(String.format("%s/%s", ConfigMapEventFetcher.RESOURCE_GROUP, ConfigMapEventFetcher.RESOURCE_VERSION));
+        ownerReference.setApiVersion(
+                String.format("%s/%s", ConfigMapEventFetcher.RESOURCE_GROUP, ConfigMapEventFetcher.RESOURCE_VERSION));
         objectMeta.setOwnerReferences(List.of(ownerReference));
 
         Map<String, String> data = new HashMap<>();

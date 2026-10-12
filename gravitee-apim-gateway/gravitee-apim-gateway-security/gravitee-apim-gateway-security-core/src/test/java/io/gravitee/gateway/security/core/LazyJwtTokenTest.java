@@ -74,7 +74,11 @@ public class LazyJwtTokenTest {
     public void getClaims_should_return_claims_from_jwtToken_claimSet() throws ParseException {
         LazyJwtToken token = new LazyJwtToken(MY_JWT_TOKEN);
 
-        when(jwt.getJWTClaimsSet()).thenReturn(new JWTClaimsSet.Builder().claim("claim1", "value1").claim("claim2", "value3").build());
+        when(jwt.getJWTClaimsSet())
+                .thenReturn(new JWTClaimsSet.Builder()
+                        .claim("claim1", "value1")
+                        .claim("claim2", "value3")
+                        .build());
 
         Map<String, Object> resultClaims = token.getClaims();
         assertEquals(Map.of("claim1", "value1", "claim2", "value3"), resultClaims);

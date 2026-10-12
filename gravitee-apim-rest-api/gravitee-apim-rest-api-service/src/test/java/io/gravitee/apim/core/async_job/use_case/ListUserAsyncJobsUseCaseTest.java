@@ -60,9 +60,15 @@ class ListUserAsyncJobsUseCaseTest {
     @Test
     void should_return_all_async_jobs_of_the_caller() {
         // Given
-        var job1 = AsyncJobFixture.anAsyncJob("job1").toBuilder().initiatorId(USER_ID).build();
-        var job2 = AsyncJobFixture.anAsyncJob("job2").toBuilder().initiatorId(USER_ID).build();
-        var job3 = AsyncJobFixture.anAsyncJob("job3").toBuilder().initiatorId("other").build();
+        var job1 = AsyncJobFixture.anAsyncJob("job1").toBuilder()
+                .initiatorId(USER_ID)
+                .build();
+        var job2 = AsyncJobFixture.anAsyncJob("job2").toBuilder()
+                .initiatorId(USER_ID)
+                .build();
+        var job3 = AsyncJobFixture.anAsyncJob("job3").toBuilder()
+                .initiatorId("other")
+                .build();
         givenAsyncJobs(job1, job2, job3);
 
         // When
@@ -75,14 +81,25 @@ class ListUserAsyncJobsUseCaseTest {
     @Test
     void should_filter_user_async_jobs_by_type() {
         // Given
-        var job1 = AsyncJobFixture.anAsyncJob("job1").toBuilder().initiatorId(USER_ID).build();
-        var job2 = AsyncJobFixture.anAsyncJob("job2").toBuilder().type(AsyncJob.Type.SCORING_REQUEST).initiatorId(USER_ID).build();
-        var job3 = AsyncJobFixture.anAsyncJob("job3").toBuilder().initiatorId(USER_ID).build();
-        var other = AsyncJobFixture.anAsyncJob("other").toBuilder().type(AsyncJob.Type.SCORING_REQUEST).initiatorId("other").build();
+        var job1 = AsyncJobFixture.anAsyncJob("job1").toBuilder()
+                .initiatorId(USER_ID)
+                .build();
+        var job2 = AsyncJobFixture.anAsyncJob("job2").toBuilder()
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .initiatorId(USER_ID)
+                .build();
+        var job3 = AsyncJobFixture.anAsyncJob("job3").toBuilder()
+                .initiatorId(USER_ID)
+                .build();
+        var other = AsyncJobFixture.anAsyncJob("other").toBuilder()
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .initiatorId("other")
+                .build();
         givenAsyncJobs(job1, job2, job3, other);
 
         // When
-        var result = useCase.execute(new ListUserAsyncJobsUseCase.Input(ENV_ID, USER_ID, AsyncJob.Type.SCORING_REQUEST));
+        var result =
+                useCase.execute(new ListUserAsyncJobsUseCase.Input(ENV_ID, USER_ID, AsyncJob.Type.SCORING_REQUEST));
 
         // Then
         assertThat(result).extracting(Output::jobs).extracting(Page::getContent).isEqualTo(List.of(job2));
@@ -91,10 +108,20 @@ class ListUserAsyncJobsUseCaseTest {
     @Test
     void should_filter_user_async_jobs_by_status() {
         // Given
-        var job1 = AsyncJobFixture.anAsyncJob("job1").toBuilder().initiatorId(USER_ID).build();
-        var job2 = AsyncJobFixture.anAsyncJob("job2").toBuilder().initiatorId(USER_ID).build();
-        var job3 = AsyncJobFixture.anAsyncJob("job3").toBuilder().status(AsyncJob.Status.SUCCESS).initiatorId(USER_ID).build();
-        var other = AsyncJobFixture.anAsyncJob("other").toBuilder().status(AsyncJob.Status.SUCCESS).initiatorId("other").build();
+        var job1 = AsyncJobFixture.anAsyncJob("job1").toBuilder()
+                .initiatorId(USER_ID)
+                .build();
+        var job2 = AsyncJobFixture.anAsyncJob("job2").toBuilder()
+                .initiatorId(USER_ID)
+                .build();
+        var job3 = AsyncJobFixture.anAsyncJob("job3").toBuilder()
+                .status(AsyncJob.Status.SUCCESS)
+                .initiatorId(USER_ID)
+                .build();
+        var other = AsyncJobFixture.anAsyncJob("other").toBuilder()
+                .status(AsyncJob.Status.SUCCESS)
+                .initiatorId("other")
+                .build();
         givenAsyncJobs(job1, job2, job3, other);
 
         // When
@@ -109,8 +136,10 @@ class ListUserAsyncJobsUseCaseTest {
         // Given
         var jobNumber = 20L;
         var jobs = LongStream.range(0, jobNumber)
-            .mapToObj(i -> AsyncJobFixture.anAsyncJob("job" + i).toBuilder().initiatorId(USER_ID).build())
-            .toList();
+                .mapToObj(i -> AsyncJobFixture.anAsyncJob("job" + i).toBuilder()
+                        .initiatorId(USER_ID)
+                        .build())
+                .toList();
         givenAsyncJobs(jobs);
 
         // When
@@ -118,9 +147,9 @@ class ListUserAsyncJobsUseCaseTest {
 
         // Then
         assertThat(result)
-            .extracting(Output::jobs)
-            .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-            .containsExactly(PAGE_NUMBER, 10L, jobNumber);
+                .extracting(Output::jobs)
+                .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+                .containsExactly(PAGE_NUMBER, 10L, jobNumber);
     }
 
     @Test

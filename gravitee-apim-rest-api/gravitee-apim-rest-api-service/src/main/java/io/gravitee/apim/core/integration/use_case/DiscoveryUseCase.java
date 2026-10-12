@@ -54,36 +54,37 @@ public class DiscoveryUseCase {
 
         var integrationId = input.integrationId;
 
-        Function<IntegrationApi, Output.State> computeState = apiStateComputing(input.auditInfo().environmentId(), integrationId);
+        Function<IntegrationApi, Output.State> computeState =
+                apiStateComputing(input.auditInfo().environmentId(), integrationId);
 
         return Maybe.fromOptional(integrationCrudService.findApiIntegrationById(integrationId))
-            .filter(integration -> integration.environmentId().equals(input.auditInfo.environmentId()))
-            .switchIfEmpty(Single.error(new IntegrationNotFoundException(integrationId)))
-            .flatMap(integration -> integrationAgent.discoverApis(integration.id()))
-            .map(discoveredApis -> {
-                var previewApis = discoveredApis
-                    .apis()
-                    .stream()
-                    .map(api -> new Output.PreviewApi(api, computeState.apply(api)))
-                    .toList();
-                return new Output(previewApis, discoveredApis.isPartialDiscovery());
-            })
-            .doOnError(throwable -> {
-                if (!(throwable instanceof IntegrationNotFoundException)) {
-                    log.error("Error during discovery on integration {}", integrationId, throwable);
-                }
-            });
+                .filter(integration -> integration.environmentId().equals(input.auditInfo.environmentId()))
+                .switchIfEmpty(Single.error(new IntegrationNotFoundException(integrationId)))
+                .flatMap(integration -> integrationAgent.discoverApis(integration.id()))
+                .map(discoveredApis -> {
+                    var previewApis = discoveredApis.apis().stream()
+                            .map(api -> new Output.PreviewApi(api, computeState.apply(api)))
+                            .toList();
+                    return new Output(previewApis, discoveredApis.isPartialDiscovery());
+                })
+                .doOnError(throwable -> {
+                    if (!(throwable instanceof IntegrationNotFoundException)) {
+                        log.error("Error during discovery on integration {}", integrationId, throwable);
+                    }
+                });
     }
 
     private Function<IntegrationApi, Output.State> apiStateComputing(String environmentId, String integrationId) {
         var alreadyIngestedApisIds = apiQueryService
-            .search(
-                ApiSearchCriteria.builder().integrationId(integrationId).build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .map(Api::getId)
-            .collect(Collectors.toSet());
+                .search(
+                        ApiSearchCriteria.builder().integrationId(integrationId).build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .map(Api::getId)
+                .collect(Collectors.toSet());
 
         return discoveredApi -> {
             var discoveredApiId = ApiModelFactory.generateFederatedApiId(environmentId, integrationId, discoveredApi);

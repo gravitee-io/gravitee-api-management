@@ -53,13 +53,17 @@ class SharedPolicyGroupHRIDUpgraderTest {
     void setUp() throws TechnicalException {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
 
-        when(
-            sharedPolicyGroupRepository.search(
-                argThat(criteria -> Environment.DEFAULT.getId().equals(criteria.getEnvironmentId())),
-                any(Pageable.class),
-                any()
-            )
-        ).thenReturn(new Page<>(List.of(SharedPolicyGroup.builder().crossId("spg-cross-id").build()), 0, 1, 1));
+        when(sharedPolicyGroupRepository.search(
+                        argThat(criteria -> Environment.DEFAULT.getId().equals(criteria.getEnvironmentId())),
+                        any(Pageable.class),
+                        any()))
+                .thenReturn(new Page<>(
+                        List.of(SharedPolicyGroup.builder()
+                                .crossId("spg-cross-id")
+                                .build()),
+                        0,
+                        1,
+                        1));
     }
 
     @Test

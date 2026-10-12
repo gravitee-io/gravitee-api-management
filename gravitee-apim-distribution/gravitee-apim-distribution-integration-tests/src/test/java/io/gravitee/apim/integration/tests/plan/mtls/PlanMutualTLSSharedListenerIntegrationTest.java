@@ -100,7 +100,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @GatewayTest
-@DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+@DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
 class PlanMutualTLSSharedListenerIntegrationTest extends AbstractGatewayTest {
 
     private static final String API_KEY_API = "v4-proxy-api";
@@ -114,20 +114,23 @@ class PlanMutualTLSSharedListenerIntegrationTest extends AbstractGatewayTest {
     public void configurePolicies(final Map<String, PolicyPlugin> policies) {
         policies.put("mtls", PolicyBuilder.build("mtls", MtlsPolicy.class, MtlsPolicyConfiguration.class));
         policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
+                "api-key",
+                PolicyBuilder.build(
+                        "api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class));
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
@@ -150,10 +153,9 @@ class PlanMutualTLSSharedListenerIntegrationTest extends AbstractGatewayTest {
     @SneakyThrows
     @Override
     protected void configureGateway(GatewayConfigurationBuilder config) {
-        config
-            .httpSecured(true)
-            .set("http.ssl.clientAuth", "request")
-            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
+        config.httpSecured(true)
+                .set("http.ssl.clientAuth", "request")
+                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
     }
 
     /**
@@ -162,26 +164,28 @@ class PlanMutualTLSSharedListenerIntegrationTest extends AbstractGatewayTest {
      */
     @Override
     protected void configureHttpClient(
-        HttpClientOptions options,
-        PoolOptions poolOptions,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
-        options.setSsl(true).setTrustAll(true).setDefaultPort(gatewayConfig.httpPort()).setDefaultHost("localhost");
-        options.setKeyCertOptions(
-            new PemKeyCertOptions()
+            HttpClientOptions options,
+            PoolOptions poolOptions,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {
+        options.setSsl(true)
+                .setTrustAll(true)
+                .setDefaultPort(gatewayConfig.httpPort())
+                .setDefaultHost("localhost");
+        options.setKeyCertOptions(new PemKeyCertOptions()
                 .addCertPath(getUrl("plans/mtls/client2.cer").getPath())
-                .addKeyPath(getUrl("plans/mtls/client2.key").getPath())
-        );
+                .addKeyPath(getUrl("plans/mtls/client2.key").getPath()));
     }
 
     @BeforeEach
     void setUp() {
         subscriptionTrustStoreLoaderManager = getBean(SubscriptionTrustStoreLoaderManager.class);
         // Cheat to use the real SubscriptionTrustStoreLoaderManager instance with SubscriptionService mock
-        final SubscriptionCacheService subscriptionService = (SubscriptionCacheService) getBean(SubscriptionService.class);
+        final SubscriptionCacheService subscriptionService =
+                (SubscriptionCacheService) getBean(SubscriptionService.class);
         when(subscriptionService.getByApiAndSecurityToken(any(), any(), any())).thenCallRealMethod();
-        ReflectionTestUtils.setField(subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
+        ReflectionTestUtils.setField(
+                subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
 
         // an mTLS subscription of another API is live on the listener, which is what fills its in-memory trust store
         mtlsSubscription = anMtlsSubscription();
@@ -200,31 +204,30 @@ class PlanMutualTLSSharedListenerIntegrationTest extends AbstractGatewayTest {
         when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
         // doReturn, not when(...): the real method is stubbed in with thenCallRealMethod and when(...) would call it
         doReturn(Optional.of(PlanHelper.createSubscription(API_KEY_API, PLAN_APIKEY_ID, false)))
-            .when(getBean(SubscriptionService.class))
-            .getByApiAndSecurityToken(
-                eq(API_KEY_API),
-                argThat(token -> API_KEY.name().equals(token.getTokenType()) && apiKey.getKey().equals(token.getTokenValue())),
-                eq(PLAN_APIKEY_ID)
-            );
+                .when(getBean(SubscriptionService.class))
+                .getByApiAndSecurityToken(
+                        eq(API_KEY_API),
+                        argThat(token -> API_KEY.name().equals(token.getTokenType())
+                                && apiKey.getKey().equals(token.getTokenValue())),
+                        eq(PLAN_APIKEY_ID));
         wiremock.stubFor(get("/endpoint").willReturn(ok(ENDPOINT_RESPONSE)));
 
-        client
-            .rxRequest(GET, getApiPath(API_KEY_API))
-            .flatMap(request -> {
-                request.putHeader("X-Gravitee-Api-Key", apiKey.getKey());
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(OK_200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains(ENDPOINT_RESPONSE);
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(API_KEY_API))
+                .flatMap(request -> {
+                    request.putHeader("X-Gravitee-Api-Key", apiKey.getKey());
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(OK_200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains(ENDPOINT_RESPONSE);
+                    return true;
+                });
 
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -232,20 +235,19 @@ class PlanMutualTLSSharedListenerIntegrationTest extends AbstractGatewayTest {
     @Test
     @Timeout(value = 30, timeUnit = TimeUnit.SECONDS)
     void should_answer_401_on_an_mtls_api_when_the_client_certificate_belongs_to_no_subscription(HttpClient client) {
-        client
-            .rxRequest(GET, getApiPath(MTLS_API))
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(UNAUTHORIZED_401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains(MtlsPolicy.FAILURE_MESSAGE);
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(MTLS_API))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(UNAUTHORIZED_401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains(MtlsPolicy.FAILURE_MESSAGE);
+                    return true;
+                });
     }
 
     private ApiKey anApiKey() {
@@ -265,7 +267,8 @@ class PlanMutualTLSSharedListenerIntegrationTest extends AbstractGatewayTest {
         subscription.setApplication(PlanHelper.APPLICATION_ID);
         subscription.setId(PlanHelper.SUBSCRIPTION_ID);
         subscription.setPlan(PlanHelper.PLAN_MTLS_ID);
-        final String clientCertificate = Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
+        final String clientCertificate =
+                Files.readString(Paths.get(getUrl("plans/mtls/client.cer").getPath()));
         subscription.setClientCertificate(Base64.getEncoder().encodeToString(clientCertificate.getBytes()));
         return subscription;
     }

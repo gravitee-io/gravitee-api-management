@@ -86,9 +86,9 @@ public class TagServiceTest {
 
         var executionContext = new ExecutionContext(REFERENCE_ID, null);
 
-        when(tagRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION)).thenReturn(
-            Collections.emptySet()
-        );
+        when(tagRepository.findByReference(
+                        REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION))
+                .thenReturn(Collections.emptySet());
 
         var savedTag = new Tag();
         savedTag.setId("new-id");
@@ -111,7 +111,8 @@ public class TagServiceTest {
         assertThat(tagToCreate.getKey()).isEqualTo(newKey);
         assertThat(tagToCreate.getName()).isEqualTo(newTag.getName());
         assertThat(tagToCreate.getReferenceId()).isEqualTo(REFERENCE_ID);
-        assertThat(tagToCreate.getReferenceType()).isEqualTo(io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION);
+        assertThat(tagToCreate.getReferenceType())
+                .isEqualTo(io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION);
 
         verify(auditService).createOrganizationAuditLog(eq(executionContext), any());
     }
@@ -129,22 +130,24 @@ public class TagServiceTest {
         existingTag.setReferenceId(REFERENCE_ID);
         existingTag.setReferenceType(io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION);
 
-        when(tagRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION)).thenReturn(
-            Set.of(existingTag)
-        );
+        when(tagRepository.findByReference(
+                        REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(existingTag));
 
-        assertThatThrownBy(() ->
-            tagService.create(new ExecutionContext(REFERENCE_ID, null), newTag, REFERENCE_ID, REFERENCE_TYPE)
-        ).isInstanceOf(DuplicateTagKeyException.class);
+        assertThatThrownBy(() -> tagService.create(
+                        new ExecutionContext(REFERENCE_ID, null), newTag, REFERENCE_ID, REFERENCE_TYPE))
+                .isInstanceOf(DuplicateTagKeyException.class);
 
         verify(tagRepository, never()).create(any());
         verifyNoInteractions(auditService);
     }
 
     @ParameterizedTest
-    @CsvSource(delimiter = '|', value = { "${TagName}|tagname", "TagName|tagname", "My Tag|my-tag" })
-    public void should_throw_DuplicateTagKeyException_when_key_normalizes_to_an_existing_key(String rawKey, String storedKey)
-        throws TechnicalException {
+    @CsvSource(
+            delimiter = '|',
+            value = {"${TagName}|tagname", "TagName|tagname", "My Tag|my-tag"})
+    public void should_throw_DuplicateTagKeyException_when_key_normalizes_to_an_existing_key(
+            String rawKey, String storedKey) throws TechnicalException {
         var newTag = new NewTagEntity();
         newTag.setKey(rawKey);
         newTag.setName("New Tag Name");
@@ -155,13 +158,14 @@ public class TagServiceTest {
         existingTag.setReferenceId(REFERENCE_ID);
         existingTag.setReferenceType(io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION);
 
-        when(tagRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION)).thenReturn(
-            Set.of(existingTag)
-        );
+        when(tagRepository.findByReference(
+                        REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(existingTag));
 
-        assertThatThrownBy(() -> tagService.create(new ExecutionContext(REFERENCE_ID, null), newTag, REFERENCE_ID, REFERENCE_TYPE))
-            .isInstanceOf(DuplicateTagKeyException.class)
-            .hasMessageContaining(storedKey);
+        assertThatThrownBy(() -> tagService.create(
+                        new ExecutionContext(REFERENCE_ID, null), newTag, REFERENCE_ID, REFERENCE_TYPE))
+                .isInstanceOf(DuplicateTagKeyException.class)
+                .hasMessageContaining(storedKey);
 
         verify(tagRepository, never()).create(any());
         verifyNoInteractions(auditService);
@@ -184,9 +188,9 @@ public class TagServiceTest {
         environment.setId(environmentId);
         environment.setOrganizationId(REFERENCE_ID);
 
-        when(
-            tagRepository.findByKeyAndReference(tagKey, REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION)
-        ).thenReturn(java.util.Optional.of(tag));
+        when(tagRepository.findByKeyAndReference(
+                        tagKey, REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION))
+                .thenReturn(java.util.Optional.of(tag));
         when(environmentService.findByOrganization(REFERENCE_ID)).thenReturn(List.of(environment));
 
         tagService.delete(executionContext, tagKey, REFERENCE_ID, REFERENCE_TYPE);

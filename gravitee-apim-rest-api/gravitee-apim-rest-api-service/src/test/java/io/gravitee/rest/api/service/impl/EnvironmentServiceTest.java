@@ -96,7 +96,8 @@ public class EnvironmentServiceTest {
 
         @Test
         void shouldFindByUserById() throws TechnicalException {
-            when(mockEnvironmentRepository.findById(any())).thenReturn(Optional.of(getEnvironment("envId", Arrays.asList("env1", "1env"))));
+            when(mockEnvironmentRepository.findById(any()))
+                    .thenReturn(Optional.of(getEnvironment("envId", Arrays.asList("env1", "1env"))));
 
             EnvironmentEntity environment = cut.findById("envId");
 
@@ -121,7 +122,8 @@ public class EnvironmentServiceTest {
             env1.setOrganizationId("org1");
             env1.setHrids(Arrays.asList("env1", "1env"));
 
-            when(mockEnvironmentRepository.findByOrganization(GraviteeContext.getCurrentOrganization())).thenReturn(Set.of(env1));
+            when(mockEnvironmentRepository.findByOrganization(GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(Set.of(env1));
 
             EnvironmentEntity environment = cut.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), "envId");
 
@@ -136,7 +138,8 @@ public class EnvironmentServiceTest {
             env1.setOrganizationId("org1");
             env1.setHrids(Arrays.asList("env1", "1env"));
 
-            when(mockEnvironmentRepository.findByOrganization(eq(GraviteeContext.getCurrentOrganization()))).thenReturn(Set.of(env1));
+            when(mockEnvironmentRepository.findByOrganization(eq(GraviteeContext.getCurrentOrganization())))
+                    .thenReturn(Set.of(env1));
 
             EnvironmentEntity environment = cut.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), "1env");
 
@@ -146,22 +149,20 @@ public class EnvironmentServiceTest {
 
         @Test
         void shouldNotFind() throws TechnicalException {
-            when(mockEnvironmentRepository.findByOrganization(eq(GraviteeContext.getCurrentOrganization()))).thenReturn(
-                Collections.emptySet()
-            );
+            when(mockEnvironmentRepository.findByOrganization(eq(GraviteeContext.getCurrentOrganization())))
+                    .thenReturn(Collections.emptySet());
 
-            assertThatThrownBy(() -> cut.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), "1env")).isInstanceOf(
-                EnvironmentNotFoundException.class
-            );
+            assertThatThrownBy(() -> cut.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), "1env"))
+                    .isInstanceOf(EnvironmentNotFoundException.class);
         }
 
         @Test
         void shouldThrowAnError() throws TechnicalException {
-            when(mockEnvironmentRepository.findByOrganization(GraviteeContext.getCurrentOrganization())).thenReturn(getEnvironments());
+            when(mockEnvironmentRepository.findByOrganization(GraviteeContext.getCurrentOrganization()))
+                    .thenReturn(getEnvironments());
 
-            assertThatThrownBy(() -> cut.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), "env1")).isInstanceOf(
-                IllegalStateException.class
-            );
+            assertThatThrownBy(() -> cut.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), "env1"))
+                    .isInstanceOf(IllegalStateException.class);
         }
     }
 
@@ -185,16 +186,12 @@ public class EnvironmentServiceTest {
             EnvironmentEntity environment = cut.createOrUpdate("DEFAULT", "env_id", env1);
 
             assertThat(environment).isNotNull();
-            verify(mockEnvironmentRepository, times(1)).create(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        arg.getHrids().equals(Arrays.asList("envhrid")) &&
-                        arg.getName().equals("env_name") &&
-                        arg.getDescription().equals("env_desc") &&
-                        arg.getOrganizationId().equals("DEFAULT")
-                )
-            );
+            verify(mockEnvironmentRepository, times(1))
+                    .create(argThat(arg -> arg != null
+                            && arg.getHrids().equals(Arrays.asList("envhrid"))
+                            && arg.getName().equals("env_name")
+                            && arg.getDescription().equals("env_desc")
+                            && arg.getOrganizationId().equals("DEFAULT")));
             verify(mockEnvironmentRepository, never()).update(any());
             ExecutionContext executionContext = new ExecutionContext("DEFAULT", "env_id");
             verify(mockAPIHeaderService, times(1)).initialize(executionContext);
@@ -220,16 +217,12 @@ public class EnvironmentServiceTest {
             EnvironmentEntity environment = cut.createOrUpdate("DEFAULT", "env_id", env1);
 
             assertThat(environment).isNotNull();
-            verify(mockEnvironmentRepository, times(1)).update(
-                argThat(
-                    arg ->
-                        arg != null &&
-                        arg.getHrids().equals(List.of("envhrid")) &&
-                        arg.getName().equals("env_name") &&
-                        arg.getDescription().equals("env_desc") &&
-                        arg.getOrganizationId().equals("DEFAULT")
-                )
-            );
+            verify(mockEnvironmentRepository, times(1))
+                    .update(argThat(arg -> arg != null
+                            && arg.getHrids().equals(List.of("envhrid"))
+                            && arg.getName().equals("env_name")
+                            && arg.getDescription().equals("env_desc")
+                            && arg.getOrganizationId().equals("DEFAULT")));
             verify(mockEnvironmentRepository, never()).create(any());
             ExecutionContext executionContext = new ExecutionContext("DEFAULT", "env_id");
             verify(mockAPIHeaderService, never()).initialize(executionContext);
@@ -241,9 +234,8 @@ public class EnvironmentServiceTest {
         void shouldHaveBadOrganizationExceptionWhenNoOrganizationInEntity() {
             when(mockOrganizationService.findById("UNKNOWN")).thenThrow(new OrganizationNotFoundException("UNKNOWN"));
 
-            assertThatThrownBy(() -> cut.createOrUpdate("UNKNOWN", "env_id", new UpdateEnvironmentEntity())).isInstanceOf(
-                OrganizationNotFoundException.class
-            );
+            assertThatThrownBy(() -> cut.createOrUpdate("UNKNOWN", "env_id", new UpdateEnvironmentEntity()))
+                    .isInstanceOf(OrganizationNotFoundException.class);
         }
     }
 
@@ -254,7 +246,8 @@ public class EnvironmentServiceTest {
         void shouldReturnDefaultEnvironment() throws TechnicalException {
             Environment existingDefault = new Environment();
             existingDefault.setId(GraviteeContext.getDefaultEnvironment());
-            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenReturn(Optional.of(existingDefault));
+            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment())))
+                    .thenReturn(Optional.of(existingDefault));
 
             EnvironmentEntity environment = cut.getDefaultOrInitialize();
 
@@ -263,7 +256,8 @@ public class EnvironmentServiceTest {
 
         @Test
         void shouldCreateDefaultEnvironment() throws TechnicalException {
-            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenReturn(Optional.empty());
+            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment())))
+                    .thenReturn(Optional.empty());
 
             EnvironmentEntity environment = cut.getDefaultOrInitialize();
 
@@ -276,7 +270,8 @@ public class EnvironmentServiceTest {
 
         @Test
         void shouldCatchExceptionIfThrow() throws TechnicalException {
-            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenThrow(new TechnicalException(""));
+            when(mockEnvironmentRepository.findById(eq(GraviteeContext.getDefaultEnvironment())))
+                    .thenThrow(new TechnicalException(""));
 
             assertThatThrownBy(() -> cut.getDefaultOrInitialize()).isInstanceOf(TechnicalManagementException.class);
         }

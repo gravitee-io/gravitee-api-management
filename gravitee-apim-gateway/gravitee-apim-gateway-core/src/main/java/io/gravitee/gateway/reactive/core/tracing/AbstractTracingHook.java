@@ -50,11 +50,10 @@ public abstract class AbstractTracingHook implements HttpHook {
 
     @Override
     public Completable error(
-        final String id,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final Throwable throwable
-    ) {
+            final String id,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final Throwable throwable) {
         return Completable.fromRunnable(() -> endSpanOnError(id, ctx, throwable));
     }
 
@@ -65,11 +64,10 @@ public abstract class AbstractTracingHook implements HttpHook {
 
     @Override
     public Completable interruptWith(
-        final String id,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final ExecutionFailure failure
-    ) {
+            final String id,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final ExecutionFailure failure) {
         return Completable.fromRunnable(() -> endSpanWithFailure(id, ctx, failure));
     }
 
@@ -81,16 +79,18 @@ public abstract class AbstractTracingHook implements HttpHook {
     protected void createSpan(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Tracer tracer = ctx.getTracer();
         if (tracer != null) {
-            Span span = tracer.startSpanFrom(
-                InternalRequest.builder().name(spanName(id, executionPhase)).attributes(spanAttributes(id, ctx, executionPhase)).build()
-            );
+            Span span = tracer.startSpanFrom(InternalRequest.builder()
+                    .name(spanName(id, executionPhase))
+                    .attributes(spanAttributes(id, ctx, executionPhase))
+                    .build());
             putSpan(id, ctx, span);
         }
     }
 
     protected abstract String spanName(final String id, final ExecutionPhase executionPhase);
 
-    protected Map<String, String> spanAttributes(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
+    protected Map<String, String> spanAttributes(
+            final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         Map<String, String> attributes = new HashMap<>();
         if (executionPhase != null) {
             attributes.put(SPAN_PHASE_ATTR, executionPhase.getLabel());
@@ -131,10 +131,9 @@ public abstract class AbstractTracingHook implements HttpHook {
         if (span != null) {
             Tracer tracer = ctx.getTracer();
             if (tracer != null) {
-                span
-                    .withAttribute("gravitee.execution-failure.key", failure.key())
-                    .withAttribute("gravitee.execution-failure.status-code", failure.statusCode())
-                    .withAttribute("gravitee.execution-failure.content-type", failure.contentType());
+                span.withAttribute("gravitee.execution-failure.key", failure.key())
+                        .withAttribute("gravitee.execution-failure.status-code", failure.statusCode())
+                        .withAttribute("gravitee.execution-failure.content-type", failure.contentType());
                 tracer.endOnError(span, failure.message());
             }
             removeSpan(ctx, id);

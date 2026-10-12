@@ -76,7 +76,8 @@ class MessageDirectPathReadinessTest {
         mockIndexNameGenerator = Mockito.mock(IndexNameGenerator.class);
         when(mockIndexNameGenerator.getWildcardIndexName(any(), any(), any())).thenReturn("gravitee-v4-any-*");
         // The gate asks the mapping about the indices the window reads, not the wildcard.
-        when(mockIndexNameGenerator.getIndexName(any(), any(), anyLong(), anyLong(), any())).thenReturn("gravitee-v4-any-2026.09.28");
+        when(mockIndexNameGenerator.getIndexName(any(), any(), anyLong(), anyLong(), any()))
+                .thenReturn("gravitee-v4-any-2026.09.28");
 
         cut = repositoryWithWatermarkTtl(Duration.ofMinutes(1));
 
@@ -134,10 +135,9 @@ class MessageDirectPathReadinessTest {
 
     private static MeasuresQuery planFilteredQueryFrom(Instant from) {
         return new MeasuresQuery(
-            new TimeRange(from, from.plus(1, ChronoUnit.HOURS)),
-            List.of(new Filter(Filter.Name.PLAN, Filter.Operator.IN, List.of("gold"))),
-            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)))
-        );
+                new TimeRange(from, from.plus(1, ChronoUnit.HOURS)),
+                List.of(new Filter(Filter.Name.PLAN, Filter.Operator.IN, List.of("gold"))),
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))));
     }
 
     /**
@@ -153,9 +153,11 @@ class MessageDirectPathReadinessTest {
      */
     @Test
     void should_still_answer_when_the_probe_fails() {
-        when(client.getFieldTypes(anyString(), anyString())).thenReturn(Single.error(new RuntimeException("elasticsearch is down")));
+        when(client.getFieldTypes(anyString(), anyString()))
+                .thenReturn(Single.error(new RuntimeException("elasticsearch is down")));
 
-        assertThatCode(() -> cut.searchMessageMeasures(QUERY_CONTEXT, planFilteredQuery())).doesNotThrowAnyException();
+        assertThatCode(() -> cut.searchMessageMeasures(QUERY_CONTEXT, planFilteredQuery()))
+                .doesNotThrowAnyException();
     }
 
     /**
@@ -164,7 +166,8 @@ class MessageDirectPathReadinessTest {
      */
     @Test
     void should_not_probe_again_within_the_interval_after_a_failure() {
-        when(client.getFieldTypes(anyString(), anyString())).thenReturn(Single.error(new RuntimeException("elasticsearch is down")));
+        when(client.getFieldTypes(anyString(), anyString()))
+                .thenReturn(Single.error(new RuntimeException("elasticsearch is down")));
 
         cut.searchMessageMeasures(QUERY_CONTEXT, planFilteredQuery());
         Mockito.clearInvocations(client);
@@ -181,10 +184,9 @@ class MessageDirectPathReadinessTest {
     void should_not_probe_at_all_for_a_dimension_the_documents_always_carried() {
         var window = new TimeRange(Instant.now().minus(1, ChronoUnit.HOURS), Instant.now());
         var query = new MeasuresQuery(
-            window,
-            List.of(new Filter(Filter.Name.MESSAGE_OPERATION_TYPE, Filter.Operator.IN, List.of("publish"))),
-            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)))
-        );
+                window,
+                List.of(new Filter(Filter.Name.MESSAGE_OPERATION_TYPE, Filter.Operator.IN, List.of("publish"))),
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))));
 
         cut.searchMessageMeasures(QUERY_CONTEXT, query);
 
@@ -226,7 +228,8 @@ class MessageDirectPathReadinessTest {
      */
     @Test
     void should_probe_again_once_the_cached_answer_has_expired() {
-        when(client.getFieldTypes(anyString(), anyString())).thenReturn(Single.error(new RuntimeException("elasticsearch is down")));
+        when(client.getFieldTypes(anyString(), anyString()))
+                .thenReturn(Single.error(new RuntimeException("elasticsearch is down")));
         var alwaysExpired = repositoryWithWatermarkTtl(Duration.ZERO);
 
         alwaysExpired.searchMessageMeasures(QUERY_CONTEXT, planFilteredQuery());
@@ -312,9 +315,11 @@ class MessageDirectPathReadinessTest {
         });
 
         var alwaysExpired = repositoryWithWatermarkTtl(Duration.ZERO);
-        alwaysExpired.searchMessageMeasures(QUERY_CONTEXT, planFilteredQueryFrom(watermark.minus(5, ChronoUnit.MINUTES)));
+        alwaysExpired.searchMessageMeasures(
+                QUERY_CONTEXT, planFilteredQueryFrom(watermark.minus(5, ChronoUnit.MINUTES)));
         Mockito.clearInvocations(client);
-        alwaysExpired.searchMessageMeasures(QUERY_CONTEXT, planFilteredQueryFrom(watermark.minus(5, ChronoUnit.MINUTES)));
+        alwaysExpired.searchMessageMeasures(
+                QUERY_CONTEXT, planFilteredQueryFrom(watermark.minus(5, ChronoUnit.MINUTES)));
 
         assertThat(lastQuery()).contains(JOIN_MARKER);
     }

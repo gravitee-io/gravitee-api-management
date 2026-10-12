@@ -70,7 +70,8 @@ public class ApiTagServiceImplTest {
 
     @BeforeEach
     public void before() {
-        apiTagService = new ApiTagServiceImpl(apiRepository, environmentService, objectMapper, apiNotificationService, auditService);
+        apiTagService = new ApiTagServiceImpl(
+                apiRepository, environmentService, objectMapper, apiNotificationService, auditService);
     }
 
     @Test
@@ -92,14 +93,16 @@ public class ApiTagServiceImplTest {
         when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class))
+                .thenReturn(apiDefinition);
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
         apiTagService.deleteTagFromAPIs(executionContext, "intranet");
 
         verify(apiNotificationService, times(1)).triggerUpdateNotification(any(), any(Api.class));
         verify(auditService, times(1)).createApiAuditLog(any(), any(), any());
-        verify(apiRepository, times(1)).update(argThat(apiUpdate -> !apiUpdate.getDefinition().contains("intranet")));
+        verify(apiRepository, times(1))
+                .update(argThat(apiUpdate -> !apiUpdate.getDefinition().contains("intranet")));
     }
 
     @Test
@@ -121,19 +124,25 @@ public class ApiTagServiceImplTest {
         when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class)).thenReturn(apiDefinition);
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class))
+                .thenReturn(apiDefinition);
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
         apiTagService.deleteTagFromAPIs(executionContext, "intranet");
 
-        verify(apiRepository, times(1)).update(argThat(apiUpdate -> !apiUpdate.getDefinition().contains("intranet")));
+        verify(apiRepository, times(1))
+                .update(argThat(apiUpdate -> !apiUpdate.getDefinition().contains("intranet")));
         verify(apiNotificationService, times(1)).triggerUpdateNotification(any(), any(Api.class));
-        verify(auditService, times(1)).createApiAuditLog(any(), argThat(auditLogData -> auditLogData.getProperties().isEmpty()), any());
+        verify(auditService, times(1))
+                .createApiAuditLog(
+                        any(),
+                        argThat(auditLogData -> auditLogData.getProperties().isEmpty()),
+                        any());
     }
 
     @Test
     public void should_mark_the_audit_when_removing_a_tag_from_a_v4_api_holding_an_encrypted_property()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         final ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
 
         final EnvironmentEntity environment = new EnvironmentEntity();
@@ -152,15 +161,16 @@ public class ApiTagServiceImplTest {
         when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class)).thenReturn(apiDefinition);
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class))
+                .thenReturn(apiDefinition);
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
         apiTagService.deleteTagFromAPIs(executionContext, "intranet");
 
-        verify(auditService, times(1)).createApiAuditLog(
-            any(),
-            argThat(auditLogData -> auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true"))),
-            eq("api-id")
-        );
+        verify(auditService, times(1))
+                .createApiAuditLog(
+                        any(),
+                        argThat(auditLogData -> auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true"))),
+                        eq("api-id"));
     }
 }

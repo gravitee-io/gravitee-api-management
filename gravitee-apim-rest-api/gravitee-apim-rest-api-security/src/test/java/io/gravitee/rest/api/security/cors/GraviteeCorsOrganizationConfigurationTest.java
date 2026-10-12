@@ -74,17 +74,17 @@ public class GraviteeCorsOrganizationConfigurationTest {
         GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION_ID));
 
         lenient()
-            .when(parameterService.find(eq(GraviteeContext.getExecutionContext()), any(), eq(ORGANIZATION_ID), eq(ORGANIZATION_TYPE)))
-            .thenReturn(null);
+                .when(parameterService.find(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(ORGANIZATION_ID), eq(ORGANIZATION_TYPE)))
+                .thenReturn(null);
         eventManager = new EventManagerImpl();
         cut = new GraviteeCorsConfiguration(
-            environment,
-            parameterService,
-            installationAccessQueryService,
-            eventManager,
-            ORGANIZATION_ID,
-            ORGANIZATION_TYPE
-        );
+                environment,
+                parameterService,
+                installationAccessQueryService,
+                eventManager,
+                ORGANIZATION_ID,
+                ORGANIZATION_TYPE);
     }
 
     @AfterEach
@@ -94,49 +94,49 @@ public class GraviteeCorsOrganizationConfigurationTest {
 
     @Test
     void should_initialize_fields_from_default_value() {
-        verify(parameterService, times(1)).find(
-            GraviteeContext.getExecutionContext(),
-            Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN,
-            ORGANIZATION_ID,
-            ORGANIZATION_TYPE
-        );
-        verify(parameterService, times(1)).find(
-            GraviteeContext.getExecutionContext(),
-            Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS,
-            ORGANIZATION_ID,
-            ORGANIZATION_TYPE
-        );
-        verify(parameterService, times(1)).find(
-            GraviteeContext.getExecutionContext(),
-            Key.CONSOLE_HTTP_CORS_ALLOW_METHODS,
-            ORGANIZATION_ID,
-            ORGANIZATION_TYPE
-        );
-        verify(parameterService, times(1)).find(
-            GraviteeContext.getExecutionContext(),
-            Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS,
-            ORGANIZATION_ID,
-            ORGANIZATION_TYPE
-        );
-        verify(parameterService, times(1)).find(
-            GraviteeContext.getExecutionContext(),
-            Key.CONSOLE_HTTP_CORS_MAX_AGE,
-            ORGANIZATION_ID,
-            ORGANIZATION_TYPE
-        );
+        verify(parameterService, times(1))
+                .find(
+                        GraviteeContext.getExecutionContext(),
+                        Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN,
+                        ORGANIZATION_ID,
+                        ORGANIZATION_TYPE);
+        verify(parameterService, times(1))
+                .find(
+                        GraviteeContext.getExecutionContext(),
+                        Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS,
+                        ORGANIZATION_ID,
+                        ORGANIZATION_TYPE);
+        verify(parameterService, times(1))
+                .find(
+                        GraviteeContext.getExecutionContext(),
+                        Key.CONSOLE_HTTP_CORS_ALLOW_METHODS,
+                        ORGANIZATION_ID,
+                        ORGANIZATION_TYPE);
+        verify(parameterService, times(1))
+                .find(
+                        GraviteeContext.getExecutionContext(),
+                        Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS,
+                        ORGANIZATION_ID,
+                        ORGANIZATION_TYPE);
+        verify(parameterService, times(1))
+                .find(
+                        GraviteeContext.getExecutionContext(),
+                        Key.CONSOLE_HTTP_CORS_MAX_AGE,
+                        ORGANIZATION_ID,
+                        ORGANIZATION_TYPE);
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
-        assertThat(cut.getAllowedHeaders()).containsOnly(
-            "Cache-Control",
-            "Pragma",
-            "Origin",
-            "Authorization",
-            "Content-Type",
-            "X-Requested-With",
-            "If-Match",
-            "X-Xsrf-Token",
-            "X-Recaptcha-Token"
-        );
+        assertThat(cut.getAllowedHeaders())
+                .containsOnly(
+                        "Cache-Control",
+                        "Pragma",
+                        "Origin",
+                        "Authorization",
+                        "Content-Type",
+                        "X-Requested-With",
+                        "If-Match",
+                        "X-Xsrf-Token",
+                        "X-Recaptcha-Token");
         assertThat(cut.getAllowedMethods()).containsOnly("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH");
         assertThat(cut.getExposedHeaders()).containsOnly("ETag", "X-Xsrf-Token");
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
@@ -144,9 +144,12 @@ public class GraviteeCorsOrganizationConfigurationTest {
 
     @Test
     void should_set_fields_on_event() {
-        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
-        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, buildParameter("header1;header2")));
-        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, buildParameter("method1;method2")));
+        eventManager.publishEvent(
+                new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
+        eventManager.publishEvent(
+                new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, buildParameter("header1;header2")));
+        eventManager.publishEvent(
+                new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, buildParameter("method1;method2")));
         eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, buildParameter("exposed1")));
         eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12")));
 
@@ -159,7 +162,8 @@ public class GraviteeCorsOrganizationConfigurationTest {
 
     @Test
     void should_not_set_fields_on_event_with_wrong_env_id() {
-        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ORG")));
+        eventManager.publishEvent(
+                new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ORG")));
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
     }
 
@@ -167,7 +171,8 @@ public class GraviteeCorsOrganizationConfigurationTest {
     void should_set_fields_on_event_with_installation() {
         when(installationAccessQueryService.getConsoleUrls(ORGANIZATION_ID)).thenReturn(List.of("custom-console-url"));
 
-        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
+        eventManager.publishEvent(
+                new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
         assertEquals(Arrays.asList("origin1", "origin2", "custom-console-url"), cut.getAllowedOriginPatterns());
     }
 
@@ -184,51 +189,42 @@ public class GraviteeCorsOrganizationConfigurationTest {
 
     @Test
     void should_set_allowed_origin_on_access_points_event() {
-        eventManager.publishEvent(
-            new SimpleEvent<>(
+        eventManager.publishEvent(new SimpleEvent<>(
                 AccessPointEvent.CREATED,
                 AccessPoint.builder()
-                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .host("origin1")
-                    .target(AccessPoint.Target.CONSOLE)
-                    .build()
-            )
-        );
+                        .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION_ID)
+                        .host("origin1")
+                        .target(AccessPoint.Target.CONSOLE)
+                        .build()));
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*", "http://origin1");
     }
 
     @Test
     void should_not_set_allowed_origin_on_access_points_event_with_target() {
-        eventManager.publishEvent(
-            new SimpleEvent<>(
+        eventManager.publishEvent(new SimpleEvent<>(
                 AccessPointEvent.CREATED,
                 AccessPoint.builder()
-                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .host("origin1")
-                    .target(AccessPoint.Target.GATEWAY)
-                    .build()
-            )
-        );
+                        .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION_ID)
+                        .host("origin1")
+                        .target(AccessPoint.Target.GATEWAY)
+                        .build()));
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
     }
 
     @Test
     void should_set_allowed_origin_on_gamma_console_access_points_event() {
-        eventManager.publishEvent(
-            new SimpleEvent<>(
+        eventManager.publishEvent(new SimpleEvent<>(
                 AccessPointEvent.CREATED,
                 AccessPoint.builder()
-                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION_ID)
-                    .host("gamma-origin")
-                    .target(AccessPoint.Target.GAMMA_CONSOLE)
-                    .build()
-            )
-        );
+                        .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION_ID)
+                        .host("gamma-origin")
+                        .target(AccessPoint.Target.GAMMA_CONSOLE)
+                        .build()));
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*", "http://gamma-origin");
     }
@@ -236,11 +232,11 @@ public class GraviteeCorsOrganizationConfigurationTest {
     @Test
     void should_remove_allowed_origin_on_gamma_console_access_points_deleted_event() {
         AccessPoint gammaAccessPoint = AccessPoint.builder()
-            .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
-            .referenceId(ORGANIZATION_ID)
-            .host("gamma-origin")
-            .target(AccessPoint.Target.GAMMA_CONSOLE)
-            .build();
+                .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                .referenceId(ORGANIZATION_ID)
+                .host("gamma-origin")
+                .target(AccessPoint.Target.GAMMA_CONSOLE)
+                .build();
 
         eventManager.publishEvent(new SimpleEvent<>(AccessPointEvent.CREATED, gammaAccessPoint));
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*", "http://gamma-origin");
@@ -251,17 +247,14 @@ public class GraviteeCorsOrganizationConfigurationTest {
 
     @Test
     void should_not_set_allowed_origin_on_gamma_console_access_points_event_with_wrong_org_id() {
-        eventManager.publishEvent(
-            new SimpleEvent<>(
+        eventManager.publishEvent(new SimpleEvent<>(
                 AccessPointEvent.CREATED,
                 AccessPoint.builder()
-                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
-                    .referenceId("ANOTHER_ORG")
-                    .host("gamma-origin")
-                    .target(AccessPoint.Target.GAMMA_CONSOLE)
-                    .build()
-            )
-        );
+                        .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                        .referenceId("ANOTHER_ORG")
+                        .host("gamma-origin")
+                        .target(AccessPoint.Target.GAMMA_CONSOLE)
+                        .build()));
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
     }
 
@@ -270,23 +263,23 @@ public class GraviteeCorsOrganizationConfigurationTest {
         when(installationAccessQueryService.getConsoleUrls(ORGANIZATION_ID)).thenReturn(List.of("custom-console-url"));
         when(installationAccessQueryService.getGammaUrls(ORGANIZATION_ID)).thenReturn(List.of("custom-gamma-url"));
 
-        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
-        assertEquals(Arrays.asList("origin1", "origin2", "custom-console-url", "custom-gamma-url"), cut.getAllowedOriginPatterns());
+        eventManager.publishEvent(
+                new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
+        assertEquals(
+                Arrays.asList("origin1", "origin2", "custom-console-url", "custom-gamma-url"),
+                cut.getAllowedOriginPatterns());
     }
 
     @Test
     void should_not_set_allowed_origin_on_access_point_event_with_wrong_env_id() {
-        eventManager.publishEvent(
-            new SimpleEvent<>(
+        eventManager.publishEvent(new SimpleEvent<>(
                 AccessPointEvent.CREATED,
                 AccessPoint.builder()
-                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
-                    .referenceId("ANOTHER_ORG")
-                    .host("origin1")
-                    .target(AccessPoint.Target.CONSOLE)
-                    .build()
-            )
-        );
+                        .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                        .referenceId("ANOTHER_ORG")
+                        .host("origin1")
+                        .target(AccessPoint.Target.CONSOLE)
+                        .build()));
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
     }
 }

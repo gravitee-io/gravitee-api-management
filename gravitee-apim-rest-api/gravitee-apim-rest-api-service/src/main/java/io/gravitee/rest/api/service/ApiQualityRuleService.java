@@ -27,6 +27,8 @@ import java.util.List;
  */
 public interface ApiQualityRuleService {
     List<ApiQualityRuleEntity> findByApi(String api);
+
     ApiQualityRuleEntity create(ExecutionContext executionContext, NewApiQualityRuleEntity newEntity);
+
     ApiQualityRuleEntity update(ExecutionContext executionContext, UpdateApiQualityRuleEntity updateEntity);
 }

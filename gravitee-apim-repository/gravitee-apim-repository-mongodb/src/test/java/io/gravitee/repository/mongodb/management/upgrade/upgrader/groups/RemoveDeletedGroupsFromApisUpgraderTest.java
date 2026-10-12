@@ -38,7 +38,8 @@ class RemoveDeletedGroupsFromApisUpgraderTest {
 
     @Test
     void documentdb_build_info_is_not_compatible() {
-        assertThat(upgrader.checkDatabaseCompatibility(new Document("version", "5.0.0"))).isFalse();
+        assertThat(upgrader.checkDatabaseCompatibility(new Document("version", "5.0.0")))
+                .isFalse();
     }
 
     @Test

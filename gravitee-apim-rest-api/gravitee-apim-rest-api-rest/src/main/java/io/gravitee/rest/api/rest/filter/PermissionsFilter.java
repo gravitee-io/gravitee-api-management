@@ -74,27 +74,34 @@ public class PermissionsFilter implements ContainerRequestFilter {
         });
     }
 
-    protected void filter(Permissions permissions, ContainerRequestContext requestContext, ExecutionContext executionContext) {
+    protected void filter(
+            Permissions permissions, ContainerRequestContext requestContext, ExecutionContext executionContext) {
         Stream.of(permissions.value())
-            .filter(permission -> hasPermission(permission, requestContext, executionContext))
-            .findAny()
-            .orElseThrow(ForbiddenAccessException::new);
+                .filter(permission -> hasPermission(permission, requestContext, executionContext))
+                .findAny()
+                .orElseThrow(ForbiddenAccessException::new);
     }
 
-    private boolean hasPermission(Permission permission, ContainerRequestContext requestContext, ExecutionContext executionContext) {
+    private boolean hasPermission(
+            Permission permission, ContainerRequestContext requestContext, ExecutionContext executionContext) {
         return switch (permission.value().getScope()) {
             case ORGANIZATION -> hasPermission(executionContext, permission, executionContext.getOrganizationId());
-            case ENVIRONMENT -> (executionContext.hasEnvironmentId() &&
-                hasPermission(executionContext, permission, executionContext.getEnvironmentId()));
+            case ENVIRONMENT ->
+                (executionContext.hasEnvironmentId()
+                        && hasPermission(executionContext, permission, executionContext.getEnvironmentId()));
             case APPLICATION -> hasPermission(executionContext, permission, getApplicationId(requestContext));
             case API -> hasPermission(executionContext, permission, getApiId(requestContext));
             case GROUP -> hasPermission(executionContext, permission, getGroupId(requestContext));
-            case INTEGRATION -> hasPermission(executionContext, permission, getId(requestContext, INTEGRATION_ID_PARAM));
+            case INTEGRATION ->
+                hasPermission(executionContext, permission, getId(requestContext, INTEGRATION_ID_PARAM));
             case CLUSTER -> hasPermission(executionContext, permission, getId(requestContext, CLUSTER_ID_PARAM));
-            case API_PRODUCT -> hasPermission(executionContext, permission, getId(requestContext, API_PRODUCT_ID_PARAM));
+            case API_PRODUCT ->
+                hasPermission(executionContext, permission, getId(requestContext, API_PRODUCT_ID_PARAM));
             case AI_CATALOG -> hasPermission(executionContext, permission, getId(requestContext, CATALOG_ID_PARAM));
-            case AI_WORKSPACE -> hasPermission(executionContext, permission, getId(requestContext, API_PRODUCT_ID_PARAM));
-            case EXPLORER -> hasPermission(executionContext, permission, getId(requestContext, EXPLORER_CONNECTION_ID_PARAM));
+            case AI_WORKSPACE ->
+                hasPermission(executionContext, permission, getId(requestContext, API_PRODUCT_ID_PARAM));
+            case EXPLORER ->
+                hasPermission(executionContext, permission, getId(requestContext, EXPLORER_CONNECTION_ID_PARAM));
             case PLATFORM -> false;
         };
     }
@@ -123,17 +130,17 @@ public class PermissionsFilter implements ContainerRequestFilter {
         MultivaluedMap<String, String> pathParams = requestContext.getUriInfo().getPathParameters();
         MultivaluedMap<String, String> queryParams = requestContext.getUriInfo().getQueryParameters();
         return Stream.of(pathParams, queryParams)
-            .filter(Objects::nonNull)
-            .flatMap(params -> Stream.of(keys).map(params::getFirst))
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
+                .filter(Objects::nonNull)
+                .flatMap(params -> Stream.of(keys).map(params::getFirst))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     private Optional<Permissions> findRequiredPermissions() {
-        return Optional.ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class)).or(() ->
-            Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class))
-        );
+        return Optional.ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class))
+                .or(() ->
+                        Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class)));
     }
 
     private void mustBeAuthenticated() {

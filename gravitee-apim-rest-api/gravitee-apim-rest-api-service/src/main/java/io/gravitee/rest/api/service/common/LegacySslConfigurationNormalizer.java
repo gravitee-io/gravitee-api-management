@@ -49,21 +49,16 @@ public class LegacySslConfigurationNormalizer {
      * its classic portal form still submits the empty string.
      */
     private static final Set<String> SHARED_SSL_SCHEMA_TYPES = Set.of(
-        "http-proxy",
-        "tcp-proxy",
-        "mcp-proxy",
-        "llm-proxy",
-        "a2a-proxy",
-        "http-dynamic-properties",
-        "webhook"
-    );
+            "http-proxy", "tcp-proxy", "mcp-proxy", "llm-proxy", "a2a-proxy", "http-dynamic-properties", "webhook");
 
     /**
      * Normalizes the given configuration when the plugin is known to embed the shared SSL options
      * schema, and returns it untouched otherwise.
      */
     public static String normalizeLegacySslNoneValues(String pluginType, String configuration) {
-        return SHARED_SSL_SCHEMA_TYPES.contains(pluginType) ? normalizeLegacySslNoneValues(configuration) : configuration;
+        return SHARED_SSL_SCHEMA_TYPES.contains(pluginType)
+                ? normalizeLegacySslNoneValues(configuration)
+                : configuration;
     }
 
     private static String normalizeLegacySslNoneValues(String sharedConfiguration) {

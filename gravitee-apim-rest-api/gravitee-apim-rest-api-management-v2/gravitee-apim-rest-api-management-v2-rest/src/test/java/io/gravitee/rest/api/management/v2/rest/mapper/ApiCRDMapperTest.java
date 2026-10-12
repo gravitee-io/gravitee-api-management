@@ -71,9 +71,13 @@ class ApiCRDMapperTest {
 
     @Test
     void should_not_mask_encrypted_property_values_when_exporting_to_crd() {
-        var restModel = ApiCRDMapper.INSTANCE.map(
-            aCoreCRD().properties(List.of(EncryptableProperty.builder().key("secret").value("ciphertext").encrypted(true).build())).build()
-        );
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD()
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("secret")
+                        .value("ciphertext")
+                        .encrypted(true)
+                        .build()))
+                .build());
 
         assertThat(restModel.getProperties()).hasSize(1);
         assertThat(restModel.getProperties().get(0).getValue()).isEqualTo("ciphertext");
@@ -82,28 +86,32 @@ class ApiCRDMapperTest {
 
     @Test
     void should_map_to_rest_model_unpublished() {
-        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("UNPUBLISHED").build());
+        var restModel = ApiCRDMapper.INSTANCE.map(
+                aCoreCRD().lifecycleState("UNPUBLISHED").build());
 
         assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
     }
 
     @Test
     void should_map_to_rest_model_deprecated() {
-        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("DEPRECATED").build());
+        var restModel = ApiCRDMapper.INSTANCE.map(
+                aCoreCRD().lifecycleState("DEPRECATED").build());
 
         assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.DEPRECATED);
     }
 
     @Test
     void should_map_to_rest_model_archived() {
-        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("ARCHIVED").build());
+        var restModel =
+                ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("ARCHIVED").build());
 
         assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.ARCHIVED);
     }
 
     @Test
     void should_map_null_lifecycle_state_to_null() {
-        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState(null).build());
+        var restModel =
+                ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState(null).build());
 
         assertThat(restModel.getLifecycleState()).isNull();
     }
@@ -117,7 +125,8 @@ class ApiCRDMapperTest {
 
     @Test
     void should_map_created_lifecycle_state_to_unpublished_for_kubernetes() {
-        var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(aCoreCRD().lifecycleState("CREATED").build());
+        var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(
+                aCoreCRD().lifecycleState("CREATED").build());
 
         assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
     }
@@ -126,7 +135,9 @@ class ApiCRDMapperTest {
     @NullSource
     @EnumSource(value = ApiLifecycleState.class, names = "CREATED", mode = EnumSource.Mode.EXCLUDE)
     void should_keep_lifecycle_state_for_kubernetes_when_not_created(ApiLifecycleState lifecycleState) {
-        var coreSpec = aCoreCRD().lifecycleState(lifecycleState == null ? null : lifecycleState.name()).build();
+        var coreSpec = aCoreCRD()
+                .lifecycleState(lifecycleState == null ? null : lifecycleState.name())
+                .build();
 
         var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(coreSpec);
 
@@ -135,7 +146,10 @@ class ApiCRDMapperTest {
 
     @Test
     void should_map_message_sampling_to_rest_sampling() {
-        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().type("MESSAGE").analytics(AnalyticsFixtures.anAnalytics()).build());
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD()
+                .type("MESSAGE")
+                .analytics(AnalyticsFixtures.anAnalytics())
+                .build());
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(restModel.getAnalytics()).isNotNull();
@@ -147,7 +161,8 @@ class ApiCRDMapperTest {
 
     @Test
     void should_map_to_rest_model_published() {
-        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("PUBLISHED").build());
+        var restModel =
+                ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("PUBLISHED").build());
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(restModel.getId()).isEqualTo("api-id");
@@ -165,63 +180,63 @@ class ApiCRDMapperTest {
 
     private static ApiCRDSpec.ApiCRDSpecBuilder aCoreCRD() {
         return ApiCRDSpec.builder()
-            .analytics(Analytics.builder().enabled(false).build())
-            .crossId("api-cross-id")
-            .description("api-description")
-            .endpointGroups(
-                List.of(
-                    EndpointGroup.builder()
+                .analytics(Analytics.builder().enabled(false).build())
+                .crossId("api-cross-id")
+                .description("api-description")
+                .endpointGroups(List.of(EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
-                        .endpoints(
-                            List.of(
-                                Endpoint.builder()
-                                    .name("default-endpoint")
-                                    .type("http-proxy")
-                                    .inheritConfiguration(true)
-                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            )
-            .flows(List.of())
-            .id("api-id")
-            .labels(Set.of("label-1"))
-            .lifecycleState("CREATED")
-            .listeners(
-                List.of(
-                    HttpListener.builder()
+                        .endpoints(List.of(Endpoint.builder()
+                                .name("default-endpoint")
+                                .type("http-proxy")
+                                .inheritConfiguration(true)
+                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                .build()))
+                        .build()))
+                .flows(List.of())
+                .id("api-id")
+                .labels(Set.of("label-1"))
+                .lifecycleState("CREATED")
+                .listeners(List.of(HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy").build()))
-                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                        .build()
-                )
-            )
-            .name("My Api")
-            .plans(
-                Map.of(
-                    "keyless-key",
-                    PlanCRD.builder()
-                        .id("keyless-id")
-                        .name("Keyless")
-                        .security(PlanSecurity.builder().type("KEY_LESS").build())
-                        .mode(PlanMode.STANDARD)
-                        .validation(Plan.PlanValidationType.AUTO)
-                        .status(PlanStatus.PUBLISHED)
-                        .type(Plan.PlanType.API)
-                        .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("plan-flow").build()))
-                        .build()
-                )
-            )
-            .properties(List.of(EncryptableProperty.builder().key("prop-key").value("prop-value").build()))
-            .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-            .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-            .state("STARTED")
-            .tags(Set.of("tag"))
-            .type("PROXY")
-            .version("1.0.0")
-            .visibility("PRIVATE");
+                        .entrypoints(List.of(Entrypoint.builder()
+                                .type("http-proxy")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .name("My Api")
+                .plans(Map.of(
+                        "keyless-key",
+                        PlanCRD.builder()
+                                .id("keyless-id")
+                                .name("Keyless")
+                                .security(
+                                        PlanSecurity.builder().type("KEY_LESS").build())
+                                .mode(PlanMode.STANDARD)
+                                .validation(Plan.PlanValidationType.AUTO)
+                                .status(PlanStatus.PUBLISHED)
+                                .type(Plan.PlanType.API)
+                                .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                        .name("plan-flow")
+                                        .build()))
+                                .build()))
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("prop-key")
+                        .value("prop-value")
+                        .build()))
+                .resources(List.of(Resource.builder()
+                        .name("resource-name")
+                        .type("resource-type")
+                        .enabled(true)
+                        .build()))
+                .responseTemplates(Map.of(
+                        "DEFAULT",
+                        Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+                .state("STARTED")
+                .tags(Set.of("tag"))
+                .type("PROXY")
+                .version("1.0.0")
+                .visibility("PRIVATE");
     }
 }

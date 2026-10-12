@@ -39,29 +39,23 @@ public class SubscriptionFixtures {
 
     private SubscriptionFixtures() {}
 
-    private static final Supplier<CreateSubscription> BASE_CREATE_SUBSCRIPTION = () ->
-        new CreateSubscription()
+    private static final Supplier<CreateSubscription> BASE_CREATE_SUBSCRIPTION = () -> new CreateSubscription()
             .planId("my-plan")
             .applicationId("my-application")
             .customApiKey("custom")
-            .consumerConfiguration(
-                new SubscriptionConsumerConfiguration()
+            .consumerConfiguration(new SubscriptionConsumerConfiguration()
                     .entrypointConfiguration("{\"nice\": \"config\"}")
                     .entrypointId("entrypoint-id")
-                    .channel("channel")
-            )
+                    .channel("channel"))
             .metadata(Map.of("meta1", "value1", "meta2", "value2"));
 
-    private static final Supplier<UpdateSubscription> BASE_UPDATE_SUBSCRIPTION = () ->
-        new UpdateSubscription()
+    private static final Supplier<UpdateSubscription> BASE_UPDATE_SUBSCRIPTION = () -> new UpdateSubscription()
             .startingAt(OffsetDateTime.now())
             .endingAt(OffsetDateTime.now())
-            .consumerConfiguration(
-                new SubscriptionConsumerConfiguration()
+            .consumerConfiguration(new SubscriptionConsumerConfiguration()
                     .entrypointConfiguration("{\"nice\": \"config\"}")
                     .entrypointId("entrypoint-id")
-                    .channel("channel")
-            )
+                    .channel("channel"))
             .metadata(Map.of("meta1", "value1", "meta2", "value2"));
 
     public static CreateSubscription aCreateSubscription() {
@@ -78,18 +72,18 @@ public class SubscriptionFixtures {
 
     public static AcceptSubscription anAcceptSubscription() {
         return new AcceptSubscription()
-            .customApiKey("custom")
-            .reason("reason")
-            .startingAt(OffsetDateTime.now())
-            .endingAt(OffsetDateTime.now());
+                .customApiKey("custom")
+                .reason("reason")
+                .startingAt(OffsetDateTime.now())
+                .endingAt(OffsetDateTime.now());
     }
 
     public static AcceptSubscription anAcceptSubscriptionWithRandomKey() {
         return new AcceptSubscription()
-            .customApiKey(UUID.randomUUID().toString()) // Generates a random UUID as the custom API key
-            .reason("reason")
-            .startingAt(OffsetDateTime.now())
-            .endingAt(OffsetDateTime.now());
+                .customApiKey(UUID.randomUUID().toString()) // Generates a random UUID as the custom API key
+                .reason("reason")
+                .startingAt(OffsetDateTime.now())
+                .endingAt(OffsetDateTime.now());
     }
 
     public static RejectSubscription aRejectSubscription() {

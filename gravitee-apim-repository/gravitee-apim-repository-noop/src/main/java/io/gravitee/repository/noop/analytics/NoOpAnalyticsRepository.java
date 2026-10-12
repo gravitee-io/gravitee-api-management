@@ -28,7 +28,8 @@ import io.gravitee.repository.common.query.QueryContext;
 public class NoOpAnalyticsRepository implements AnalyticsRepository {
 
     @Override
-    public <T extends Response> T query(final QueryContext queryContext, final Query<T> query) throws AnalyticsException {
+    public <T extends Response> T query(final QueryContext queryContext, final Query<T> query)
+            throws AnalyticsException {
         return null;
     }
 }

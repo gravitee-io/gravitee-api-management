@@ -51,34 +51,31 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
     @Override
     protected JdbcObjectMapper<Metadata> buildOrm() {
         return JdbcObjectMapper.builder(Metadata.class, this.tableName, "key")
-            .updateSql(
-                "update " +
-                    this.tableName +
-                    " set " +
-                    escapeReservedWord("key") +
-                    " = ?" +
-                    " , reference_type = ?" +
-                    " , reference_id = ?" +
-                    " , name = ?" +
-                    " , format = ?" +
-                    " , value = ?" +
-                    " , created_at = ? " +
-                    " , updated_at = ? " +
-                    " where " +
-                    escapeReservedWord("key") +
-                    " = ? " +
-                    "and reference_type = ? " +
-                    "and reference_id = ? "
-            )
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, MetadataReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("format", Types.NVARCHAR, MetadataFormat.class)
-            .addColumn("value", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .updateSql("update " + this.tableName
+                        + " set "
+                        + escapeReservedWord("key")
+                        + " = ?"
+                        + " , reference_type = ?"
+                        + " , reference_id = ?"
+                        + " , name = ?"
+                        + " , format = ?"
+                        + " , value = ?"
+                        + " , created_at = ? "
+                        + " , updated_at = ? "
+                        + " where "
+                        + escapeReservedWord("key")
+                        + " = ? "
+                        + "and reference_type = ? "
+                        + "and reference_id = ? ")
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, MetadataReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("format", Types.NVARCHAR, MetadataFormat.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -86,7 +83,8 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         log.debug("JdbcMetadataRepository.create({})", metadata);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(metadata));
-            return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType()).orElse(null);
+            return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType())
+                    .orElse(null);
         } catch (org.springframework.dao.DuplicateKeyException e) {
             log.error("An error occurred while creating metadata", e);
             throw new DuplicateKeyException("An error occurred while creating metadata", e);
@@ -103,24 +101,15 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(
-                getOrm().buildUpdatePreparedStatementCreator(
-                    metadata,
-                    metadata.getKey(),
-                    metadata.getReferenceType().name(),
-                    metadata.getReferenceId()
-                )
-            );
-            return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType()).orElseThrow(() ->
-                new IllegalStateException(
-                    format(
-                        "No metadata found with id [%s, %s, %s]",
-                        metadata.getKey(),
-                        metadata.getReferenceId(),
-                        metadata.getReferenceType()
-                    )
-                )
-            );
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(
+                            metadata,
+                            metadata.getKey(),
+                            metadata.getReferenceType().name(),
+                            metadata.getReferenceId()));
+            return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType())
+                    .orElseThrow(() -> new IllegalStateException(format(
+                            "No metadata found with id [%s, %s, %s]",
+                            metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -134,15 +123,13 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         log.debug("JdbcMetadataRepository.delete({}, {}, {})", key, referenceId, referenceType);
         try {
             jdbcTemplate.update(
-                "delete from " +
-                    this.tableName +
-                    " where " +
-                    escapeReservedWord("key") +
-                    " = ? and reference_type = ? and reference_id = ? ",
-                key,
-                referenceType.name(),
-                referenceId
-            );
+                    "delete from " + this.tableName
+                            + " where "
+                            + escapeReservedWord("key")
+                            + " = ? and reference_type = ? and reference_id = ? ",
+                    key,
+                    referenceType.name(),
+                    referenceId);
         } catch (final Exception ex) {
             log.error("Failed to delete metadata", ex);
             throw new TechnicalException("Failed to delete metadata", ex);
@@ -150,16 +137,17 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
     }
 
     @Override
-    public Optional<Metadata> findById(String key, String referenceId, MetadataReferenceType referenceType) throws TechnicalException {
+    public Optional<Metadata> findById(String key, String referenceId, MetadataReferenceType referenceType)
+            throws TechnicalException {
         log.debug("JdbcMetadataRepository.findById({}, {}, {})", key, referenceId, referenceType);
         try {
             final List<Metadata> items = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ?",
-                getOrm().getRowMapper(),
-                key,
-                referenceType.name(),
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("key")
+                            + " = ? and reference_type = ? and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    key,
+                    referenceType.name(),
+                    referenceId);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find metadata by id", ex);
@@ -168,15 +156,15 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
     }
 
     @Override
-    public List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType) throws TechnicalException {
+    public List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType)
+            throws TechnicalException {
         log.debug("JdbcMetadataRepository.findByKeyAndReferenceType({}, {})", key, referenceType);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and reference_type = ?",
-                getOrm().getRowMapper(),
-                key,
-                referenceType.name()
-            );
+                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
+                    key,
+                    referenceType.name());
         } catch (final Exception ex) {
             log.error("Failed to find metadata by key and reference type", ex);
             throw new TechnicalException("Failed to find metadata by key and reference type", ex);
@@ -188,10 +176,9 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         log.debug("JdbcMetadataRepository.findByReferenceType({})", referenceType);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ?",
-                getOrm().getRowMapper(),
-                referenceType.name()
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ?",
+                    getOrm().getRowMapper(),
+                    referenceType.name());
         } catch (final Exception ex) {
             log.error("Failed to find metadata by reference type", ex);
             throw new TechnicalException("Failed to find metadata by reference type", ex);
@@ -200,15 +187,14 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
 
     @Override
     public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcMetadataRepository.findById({}, {})", referenceId, referenceType);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
-                getOrm().getRowMapper(),
-                referenceType.name(),
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    referenceType.name(),
+                    referenceId);
         } catch (final Exception ex) {
             log.error("Failed to find metadata by reference type and reference id", ex);
             throw new TechnicalException("Failed to find metadata by reference type and reference id", ex);
@@ -216,8 +202,8 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
     }
 
     @Override
-    public List<Metadata> findByReferenceTypeAndReferenceIdIn(MetadataReferenceType referenceType, Collection<String> referenceIds)
-        throws TechnicalException {
+    public List<Metadata> findByReferenceTypeAndReferenceIdIn(
+            MetadataReferenceType referenceType, Collection<String> referenceIds) throws TechnicalException {
         log.debug("JdbcMetadataRepository.findByReferenceTypeAndReferenceIdIn({}, {})", referenceType, referenceIds);
         if (referenceIds == null || referenceIds.isEmpty()) {
             return Collections.emptyList();
@@ -225,13 +211,12 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         try {
             String inClause = getOrm().buildInClause(referenceIds);
             Object[] args = Stream.of(Stream.of(referenceType.name()), referenceIds.stream())
-                .flatMap(s -> s)
-                .toArray();
+                    .flatMap(s -> s)
+                    .toArray();
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in (" + inClause + ")",
-                getOrm().getRowMapper(),
-                args
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in (" + inClause + ")",
+                    getOrm().getRowMapper(),
+                    args);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find metadata by reference type and reference ids", ex);
         }
@@ -239,25 +224,27 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MetadataReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcMetadataRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select " + escapeReservedWord("key") + " from " + this.tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType.name(),
-                referenceId
-            );
+                    "select " + escapeReservedWord("key") + " from " + this.tableName
+                            + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType.name(),
+                    referenceId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + this.tableName + " where reference_type = ? and reference_id = ? ",
-                    referenceType.name(),
-                    referenceId
-                );
+                        "delete from " + this.tableName + " where reference_type = ? and reference_id = ? ",
+                        referenceType.name(),
+                        referenceId);
             }
 
-            log.debug("JdbcMetadataRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcMetadataRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                    referenceId,
+                    referenceType);
             return rows;
         } catch (final Exception ex) {
             log.error("Failed to delete metadata for refId: {}/{}", referenceId, referenceType, ex);

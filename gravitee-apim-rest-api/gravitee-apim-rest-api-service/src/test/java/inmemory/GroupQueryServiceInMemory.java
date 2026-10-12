@@ -38,61 +38,45 @@ public class GroupQueryServiceInMemory implements GroupQueryService, InMemoryAlt
 
     @Override
     public Optional<Group> findById(String id) {
-        return storage
-            .stream()
-            .filter(group -> id.equals(group.getId()))
-            .findFirst();
+        return storage.stream().filter(group -> id.equals(group.getId())).findFirst();
     }
 
     @Override
     public Set<Group> findByIds(Set<String> ids) {
-        return storage
-            .stream()
-            .filter(group -> ids.contains(group.getId()))
-            .collect(toSet());
+        return storage.stream().filter(group -> ids.contains(group.getId())).collect(toSet());
     }
 
     @Override
     public Set<Group> findByEvent(String environmentId, Group.GroupEvent event) {
-        return storage
-            .stream()
-            .filter(group -> environmentId.equals(group.getEnvironmentId()))
-            .filter(
-                group ->
-                    group.getEventRules() != null &&
-                    group
-                        .getEventRules()
-                        .stream()
-                        .anyMatch(rule -> rule.event() == event)
-            )
-            .collect(toSet());
+        return storage.stream()
+                .filter(group -> environmentId.equals(group.getEnvironmentId()))
+                .filter(group -> group.getEventRules() != null
+                        && group.getEventRules().stream().anyMatch(rule -> rule.event() == event))
+                .collect(toSet());
     }
 
     @Override
     public List<Group> findByNames(String environmentId, Set<String> names) {
-        return storage
-            .stream()
-            .filter(group -> environmentId.equals(group.getEnvironmentId()))
-            .filter(group -> names.contains(group.getName()))
-            .toList();
+        return storage.stream()
+                .filter(group -> environmentId.equals(group.getEnvironmentId()))
+                .filter(group -> names.contains(group.getName()))
+                .toList();
     }
 
     @Override
     public List<Group> findByHRIDs(String environmentId, Set<String> hrids) {
-        return storage
-            .stream()
-            .filter(group -> group.getHrid() != null)
-            .filter(group -> environmentId.equals(group.getEnvironmentId()))
-            .filter(group -> hrids.contains(group.getHrid()))
-            .toList();
+        return storage.stream()
+                .filter(group -> group.getHrid() != null)
+                .filter(group -> environmentId.equals(group.getEnvironmentId()))
+                .filter(group -> hrids.contains(group.getHrid()))
+                .toList();
     }
 
     @Override
     public Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable) {
-        List<Group> filteredGroups = storage
-            .stream()
-            .filter(group -> groupIds.contains(group.getId()))
-            .toList();
+        List<Group> filteredGroups = storage.stream()
+                .filter(group -> groupIds.contains(group.getId()))
+                .toList();
 
         int total = filteredGroups.size();
         int pageSize = pageable.getPageSize();

@@ -29,29 +29,23 @@ public class ApiFixtures {
     private ApiFixtures() {}
 
     public static Api anApiWithServiceDiscovery(Service discovery) {
-        return new Api(
-            anApiV4()
-                .toBuilder()
-                .endpointGroups(
-                    List.of(
-                        EndpointGroup.builder()
-                            .name("default-group")
-                            .services(EndpointGroupServices.builder().discovery(discovery).build())
-                            .build()
-                    )
-                )
-                .build()
-        );
+        return new Api(anApiV4().toBuilder()
+                .endpointGroups(List.of(EndpointGroup.builder()
+                        .name("default-group")
+                        .services(EndpointGroupServices.builder()
+                                .discovery(discovery)
+                                .build())
+                        .build()))
+                .build());
     }
 
     public static Api anApiWithDefaultGroup(String type) {
-        return new Api(
-            anApiV4()
-                .toBuilder()
-                .endpointGroups(
-                    List.of(EndpointGroup.builder().name("default-group").type(type).endpoints(Collections.emptyList()).build())
-                )
-                .build()
-        );
+        return new Api(anApiV4().toBuilder()
+                .endpointGroups(List.of(EndpointGroup.builder()
+                        .name("default-group")
+                        .type(type)
+                        .endpoints(Collections.emptyList())
+                        .build()))
+                .build());
     }
 }

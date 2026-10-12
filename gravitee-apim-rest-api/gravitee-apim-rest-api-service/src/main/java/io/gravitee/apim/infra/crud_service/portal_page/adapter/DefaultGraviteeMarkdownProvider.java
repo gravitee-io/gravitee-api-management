@@ -38,11 +38,10 @@ public class DefaultGraviteeMarkdownProvider implements DefaultPortalPageContent
     @Override
     public PortalPageContent<?> provide(String organizationId, String environmentId) {
         return new GraviteeMarkdownPageContent(
-            PortalPageContentId.random(),
-            organizationId,
-            environmentId,
-            new GraviteeMarkdown(getDefaultPortalPageContent())
-        );
+                PortalPageContentId.random(),
+                organizationId,
+                environmentId,
+                new GraviteeMarkdown(getDefaultPortalPageContent()));
     }
 
     private String getDefaultPortalPageContent() {

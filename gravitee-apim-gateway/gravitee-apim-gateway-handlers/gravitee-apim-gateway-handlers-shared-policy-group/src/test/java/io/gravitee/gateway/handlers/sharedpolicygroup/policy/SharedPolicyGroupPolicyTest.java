@@ -84,14 +84,15 @@ class SharedPolicyGroupPolicyTest {
         lenient().when(policyChain.execute(executionContext)).thenReturn(Completable.complete());
         when(executionContext.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)).thenReturn(ENVIRONMENT_ID);
         final io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration policyConfiguration =
-            new io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration();
+                new io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration();
         policyConfiguration.setSharedPolicyGroupId(SHARED_POLICY_GROUP_ID);
         cut = new SharedPolicyGroupPolicy("id", policyConfiguration);
     }
 
     @Test
     void should_execute_policy_chain_for_existing_shared_policy_group_on_request() {
-        when(sharedPolicyGroupRegistry.get(eq(SHARED_POLICY_GROUP_ID), any())).thenReturn(new FakeSharedPolicyGroupReactor(policyChain));
+        when(sharedPolicyGroupRegistry.get(eq(SHARED_POLICY_GROUP_ID), any()))
+                .thenReturn(new FakeSharedPolicyGroupReactor(policyChain));
         cut.onRequest(executionContext).test().assertComplete();
         verify(policyChain).execute(executionContext);
         assertThat(listAppender.list).isEmpty();
@@ -103,14 +104,16 @@ class SharedPolicyGroupPolicyTest {
         cut.onRequest(executionContext).test().assertComplete();
         verify(policyChain, never()).execute(executionContext);
         assertThat(listAppender.list)
-            .hasSize(1)
-            .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactly("No Shared Policy Group found for id sharedPolicyGroupId on environment environmentId");
+                .hasSize(1)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .containsExactly(
+                        "No Shared Policy Group found for id sharedPolicyGroupId on environment environmentId");
     }
 
     @Test
     void should_execute_policy_chain_for_existing_shared_policy_group_on_response() {
-        when(sharedPolicyGroupRegistry.get(eq(SHARED_POLICY_GROUP_ID), any())).thenReturn(new FakeSharedPolicyGroupReactor(policyChain));
+        when(sharedPolicyGroupRegistry.get(eq(SHARED_POLICY_GROUP_ID), any()))
+                .thenReturn(new FakeSharedPolicyGroupReactor(policyChain));
         cut.onResponse(executionContext).test().assertComplete();
         verify(policyChain).execute(executionContext);
         assertThat(listAppender.list).isEmpty();
@@ -122,9 +125,10 @@ class SharedPolicyGroupPolicyTest {
         cut.onResponse(executionContext).test().assertComplete();
         verify(policyChain, never()).execute(executionContext);
         assertThat(listAppender.list)
-            .hasSize(1)
-            .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactly("No Shared Policy Group found for id sharedPolicyGroupId on environment environmentId");
+                .hasSize(1)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .containsExactly(
+                        "No Shared Policy Group found for id sharedPolicyGroupId on environment environmentId");
     }
 
     static class FakeSharedPolicyGroupReactor implements SharedPolicyGroupReactor {

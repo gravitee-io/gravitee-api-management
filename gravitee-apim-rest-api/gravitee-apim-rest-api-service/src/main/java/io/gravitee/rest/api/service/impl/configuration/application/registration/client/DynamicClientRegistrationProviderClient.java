@@ -60,12 +60,11 @@ public abstract class DynamicClientRegistrationProviderClient {
     protected String registrationEndpoint;
 
     protected ClientRegistrationResponse register(
-        String initialAccessToken,
-        ClientRegistrationRequest request,
-        Map<String, String> claimInjections,
-        TrustStoreEntity trustStore,
-        KeyStoreEntity keyStore
-    ) {
+            String initialAccessToken,
+            ClientRegistrationRequest request,
+            Map<String, String> claimInjections,
+            TrustStoreEntity trustStore,
+            KeyStoreEntity keyStore) {
         HttpPost registerRequest = new HttpPost(registrationEndpoint);
 
         registerRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + initialAccessToken);
@@ -74,9 +73,9 @@ public abstract class DynamicClientRegistrationProviderClient {
         try {
             ObjectNode body = mapper.valueToTree(request);
             injectClaims(body, claimInjections);
-            registerRequest.setEntity(
-                new StringEntity(mapper.writeValueAsString(body), ContentType.create(MediaType.APPLICATION_JSON, Charset.defaultCharset()))
-            );
+            registerRequest.setEntity(new StringEntity(
+                    mapper.writeValueAsString(body),
+                    ContentType.create(MediaType.APPLICATION_JSON, Charset.defaultCharset())));
 
             httpClient = SecureHttpClientUtils.createHttpClient(trustStore, keyStore);
 
@@ -94,26 +93,24 @@ public abstract class DynamicClientRegistrationProviderClient {
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
                             throw new DynamicClientRegistrationException(
-                                "Unexpected response from OIDC Registration endpoint: error[" + error + "] description[" + description + "]"
-                            );
+                                    "Unexpected response from OIDC Registration endpoint: error[" + error
+                                            + "] description[" + description + "]");
                         } catch (JsonProcessingException ex) {
                             throw new DynamicClientRegistrationException(
-                                "Unexpected response from OIDC Registration endpoint: status[" +
-                                    status +
-                                    "] message[" +
-                                    responsePayload +
-                                    "]"
-                            );
+                                    "Unexpected response from OIDC Registration endpoint: status[" + status
+                                            + "] message["
+                                            + responsePayload
+                                            + "]");
                         }
                     } else {
                         throw new DynamicClientRegistrationException(
-                            "Unexpected response from OIDC Registration endpoint: status[" + status + "]"
-                        );
+                                "Unexpected response from OIDC Registration endpoint: status[" + status + "]");
                     }
                 }
             });
         } catch (Exception ex) {
-            throw new DynamicClientRegistrationException("Unexpected error while registering client: " + ex.getMessage(), ex);
+            throw new DynamicClientRegistrationException(
+                    "Unexpected error while registering client: " + ex.getMessage(), ex);
         }
     }
 
@@ -152,12 +149,11 @@ public abstract class DynamicClientRegistrationProviderClient {
     }
 
     public ClientRegistrationResponse update(
-        String registrationAccessToken,
-        String registrationClientUri,
-        ClientRegistrationRequest request,
-        Map<String, String> claimInjections,
-        String clientId
-    ) {
+            String registrationAccessToken,
+            String registrationClientUri,
+            ClientRegistrationRequest request,
+            Map<String, String> claimInjections,
+            String clientId) {
         HttpPut updateRequest = new HttpPut(registrationClientUri);
 
         updateRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + registrationAccessToken);
@@ -180,12 +176,9 @@ public abstract class DynamicClientRegistrationProviderClient {
                 reqNode.remove("scope");
             }
 
-            updateRequest.setEntity(
-                new StringEntity(
+            updateRequest.setEntity(new StringEntity(
                     mapper.writeValueAsString(reqNode),
-                    ContentType.create(MediaType.APPLICATION_JSON, Charset.defaultCharset())
-                )
-            );
+                    ContentType.create(MediaType.APPLICATION_JSON, Charset.defaultCharset())));
 
             return httpClient.execute(updateRequest, response -> {
                 int status = response.getStatusLine().getStatusCode();
@@ -201,35 +194,29 @@ public abstract class DynamicClientRegistrationProviderClient {
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
                             throw new DynamicClientRegistrationException(
-                                "Unexpected response from OIDC Registration endpoint: error[" + error + "] description[" + description + "]"
-                            );
+                                    "Unexpected response from OIDC Registration endpoint: error[" + error
+                                            + "] description[" + description + "]");
                         } catch (JsonProcessingException ex) {
                             throw new DynamicClientRegistrationException(
-                                "Unexpected response from OIDC Registration endpoint: status[" +
-                                    status +
-                                    "] message[" +
-                                    responsePayload +
-                                    "]"
-                            );
+                                    "Unexpected response from OIDC Registration endpoint: status[" + status
+                                            + "] message["
+                                            + responsePayload
+                                            + "]");
                         }
                     } else {
                         throw new DynamicClientRegistrationException(
-                            "Unexpected response from OIDC Registration endpoint: status[" + status + "]"
-                        );
+                                "Unexpected response from OIDC Registration endpoint: status[" + status + "]");
                     }
                 }
             });
         } catch (Exception ex) {
-            throw new DynamicClientRegistrationException("Unexpected error while registering client: " + ex.getMessage(), ex);
+            throw new DynamicClientRegistrationException(
+                    "Unexpected error while registering client: " + ex.getMessage(), ex);
         }
     }
 
     public ClientRegistrationResponse renewClientSecret(
-        String method,
-        String endpoint,
-        String registrationAccessToken,
-        String applicationType
-    ) {
+            String method, String endpoint, String registrationAccessToken, String applicationType) {
         HttpRequestBase renewRequest;
 
         if (method.equalsIgnoreCase(HttpMethod.POST.name())) {
@@ -260,39 +247,34 @@ public abstract class DynamicClientRegistrationProviderClient {
                             String error = node.path("error").asText();
                             String description = node.path("error_description").asText();
                             throw new DynamicClientRegistrationException(
-                                "Unexpected response from renew client secret endpoint: error[" +
-                                    error +
-                                    "] description[" +
-                                    description +
-                                    "]"
-                            );
+                                    "Unexpected response from renew client secret endpoint: error[" + error
+                                            + "] description["
+                                            + description
+                                            + "]");
                         } catch (JsonProcessingException ex) {
                             throw new DynamicClientRegistrationException(
-                                "Unexpected response from new client secret endpoint: status[" +
-                                    status +
-                                    "] message[" +
-                                    responsePayload +
-                                    "]"
-                            );
+                                    "Unexpected response from new client secret endpoint: status[" + status
+                                            + "] message["
+                                            + responsePayload
+                                            + "]");
                         }
                     } else {
                         throw new DynamicClientRegistrationException(
-                            "Unexpected response from renew client secret endpoint: status[" + status + "]"
-                        );
+                                "Unexpected response from renew client secret endpoint: status[" + status + "]");
                     }
                 }
             });
         } catch (Exception ex) {
-            throw new DynamicClientRegistrationException("Unexpected error while renewing client secret: " + ex.getMessage(), ex);
+            throw new DynamicClientRegistrationException(
+                    "Unexpected error while renewing client secret: " + ex.getMessage(), ex);
         }
     }
 
     public ClientRegistrationResponse register(
-        ClientRegistrationRequest request,
-        Map<String, String> claimInjections,
-        TrustStoreEntity trustStore,
-        KeyStoreEntity keyStore
-    ) {
+            ClientRegistrationRequest request,
+            Map<String, String> claimInjections,
+            TrustStoreEntity trustStore,
+            KeyStoreEntity keyStore) {
         // 1_ Generate an access_token
         String accessToken = getInitialAccessToken();
 
@@ -302,13 +284,13 @@ public abstract class DynamicClientRegistrationProviderClient {
 
     public abstract String getInitialAccessToken();
 
-    private ClientRegistrationResponse buildClientRegistrationResponse(HttpEntity entity, String applicationType) throws IOException {
+    private ClientRegistrationResponse buildClientRegistrationResponse(HttpEntity entity, String applicationType)
+            throws IOException {
         if (entity != null) {
-            ClientRegistrationResponse clientRegistrationResponse = mapper.readValue(
-                EntityUtils.toString(entity),
-                ClientRegistrationResponse.class
-            );
-            // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+            ClientRegistrationResponse clientRegistrationResponse =
+                    mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
+            // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects
+            // this parameter to never be empty
             if (clientRegistrationResponse.getApplicationType() == null) {
                 clientRegistrationResponse.setApplicationType(applicationType);
             }

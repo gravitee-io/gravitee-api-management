@@ -48,10 +48,10 @@ class AnalyticsDefinitionResourceTest extends ApiResourceTest {
         var response = rootTarget().path("apis").request().get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(ApiSpecsResponse.class)
-            .extracting(ApiSpecsResponse::getData)
-            .satisfies(apis -> assertThat(apis).isNotEmpty());
+                .hasStatus(200)
+                .asEntity(ApiSpecsResponse.class)
+                .extracting(ApiSpecsResponse::getData)
+                .satisfies(apis -> assertThat(apis).isNotEmpty());
     }
 
     @Test
@@ -59,157 +59,192 @@ class AnalyticsDefinitionResourceTest extends ApiResourceTest {
         var response = rootTarget().path("apis").request().get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(ApiSpecsResponse.class)
-            .extracting(ApiSpecsResponse::getData)
-            .satisfies(apis -> {
-                var httpProxy = apis
-                    .stream()
-                    .filter(a -> a.getName().equals(ApiName.HTTP_PROXY))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(httpProxy.getLabel()).isEqualTo("HTTP Proxy");
+                .hasStatus(200)
+                .asEntity(ApiSpecsResponse.class)
+                .extracting(ApiSpecsResponse::getData)
+                .satisfies(apis -> {
+                    var httpProxy = apis.stream()
+                            .filter(a -> a.getName().equals(ApiName.HTTP_PROXY))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(httpProxy.getLabel()).isEqualTo("HTTP Proxy");
 
-                var llm = apis
-                    .stream()
-                    .filter(a -> a.getName().equals(ApiName.LLM))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(llm.getLabel()).isEqualTo("LLM");
-            });
+                    var llm = apis.stream()
+                            .filter(a -> a.getName().equals(ApiName.LLM))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(llm.getLabel()).isEqualTo("LLM");
+                });
     }
 
     @Test
     void should_return_api_metrics() {
-        var response = rootTarget().path("apis").path("HTTP_PROXY").path("metrics").request().get();
+        var response = rootTarget()
+                .path("apis")
+                .path("HTTP_PROXY")
+                .path("metrics")
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(MetricSpecsResponse.class)
-            .extracting(MetricSpecsResponse::getData)
-            .satisfies(metrics -> assertThat(metrics).isNotEmpty());
+                .hasStatus(200)
+                .asEntity(MetricSpecsResponse.class)
+                .extracting(MetricSpecsResponse::getData)
+                .satisfies(metrics -> assertThat(metrics).isNotEmpty());
     }
 
     @Test
     void should_return_api_metrics_with_correct_structure() {
-        var response = rootTarget().path("apis").path("HTTP_PROXY").path("metrics").request().get();
+        var response = rootTarget()
+                .path("apis")
+                .path("HTTP_PROXY")
+                .path("metrics")
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(MetricSpecsResponse.class)
-            .extracting(MetricSpecsResponse::getData)
-            .satisfies(metrics -> {
-                var httpRequests = metrics
-                    .stream()
-                    .filter(m -> m.getName().equals(MetricName.HTTP_REQUESTS))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(httpRequests.getLabel()).isEqualTo("HTTP Requests");
-                assertThat(httpRequests.getApis()).contains(ApiName.HTTP_PROXY);
-                assertThat(httpRequests.getMeasures()).isNotEmpty();
-                assertThat(httpRequests.getFacets()).isNotEmpty();
-                assertThat(httpRequests.getFilters()).isNotEmpty();
-            });
+                .hasStatus(200)
+                .asEntity(MetricSpecsResponse.class)
+                .extracting(MetricSpecsResponse::getData)
+                .satisfies(metrics -> {
+                    var httpRequests = metrics.stream()
+                            .filter(m -> m.getName().equals(MetricName.HTTP_REQUESTS))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(httpRequests.getLabel()).isEqualTo("HTTP Requests");
+                    assertThat(httpRequests.getApis()).contains(ApiName.HTTP_PROXY);
+                    assertThat(httpRequests.getMeasures()).isNotEmpty();
+                    assertThat(httpRequests.getFacets()).isNotEmpty();
+                    assertThat(httpRequests.getFilters()).isNotEmpty();
+                });
     }
 
     @Test
     void should_return_metric_filters() {
-        var response = rootTarget().path("metrics").path("HTTP_REQUESTS").path("filters").request().get();
+        var response = rootTarget()
+                .path("metrics")
+                .path("HTTP_REQUESTS")
+                .path("filters")
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(FilterSpecsResponse.class)
-            .extracting(FilterSpecsResponse::getData)
-            .satisfies(filters -> assertThat(filters).isNotEmpty());
+                .hasStatus(200)
+                .asEntity(FilterSpecsResponse.class)
+                .extracting(FilterSpecsResponse::getData)
+                .satisfies(filters -> assertThat(filters).isNotEmpty());
     }
 
     @Test
     void should_return_metric_filters_with_correct_structure() {
-        var response = rootTarget().path("metrics").path("HTTP_REQUESTS").path("filters").request().get();
+        var response = rootTarget()
+                .path("metrics")
+                .path("HTTP_REQUESTS")
+                .path("filters")
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(FilterSpecsResponse.class)
-            .extracting(FilterSpecsResponse::getData)
-            .satisfies(filters -> {
-                var apiFilter = filters
-                    .stream()
-                    .filter(f -> f.getName().getValue().equals("API"))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(apiFilter.getLabel()).isEqualTo("API");
-                assertThat(apiFilter.getType()).isEqualTo(FilterSpec.TypeEnum.KEYWORD);
-                assertThat(apiFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IN);
+                .hasStatus(200)
+                .asEntity(FilterSpecsResponse.class)
+                .extracting(FilterSpecsResponse::getData)
+                .satisfies(filters -> {
+                    var apiFilter = filters.stream()
+                            .filter(f -> f.getName().getValue().equals("API"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(apiFilter.getLabel()).isEqualTo("API");
+                    assertThat(apiFilter.getType()).isEqualTo(FilterSpec.TypeEnum.KEYWORD);
+                    assertThat(apiFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IN);
 
-                var httpStatusFilter = filters
-                    .stream()
-                    .filter(f -> f.getName().getValue().equals("HTTP_STATUS"))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(httpStatusFilter.getLabel()).isEqualTo("Status Code");
-                assertThat(httpStatusFilter.getType()).isEqualTo(FilterSpec.TypeEnum.NUMBER);
-                assertThat(httpStatusFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.LTE, Operator.GTE);
-                assertThat(httpStatusFilter.getRange()).isNotNull();
-                assertThat(httpStatusFilter.getRange().getMin()).isEqualTo(100);
-                assertThat(httpStatusFilter.getRange().getMax()).isEqualTo(599);
-            });
+                    var httpStatusFilter = filters.stream()
+                            .filter(f -> f.getName().getValue().equals("HTTP_STATUS"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(httpStatusFilter.getLabel()).isEqualTo("Status Code");
+                    assertThat(httpStatusFilter.getType()).isEqualTo(FilterSpec.TypeEnum.NUMBER);
+                    assertThat(httpStatusFilter.getOperators())
+                            .containsExactlyInAnyOrder(Operator.EQ, Operator.LTE, Operator.GTE);
+                    assertThat(httpStatusFilter.getRange()).isNotNull();
+                    assertThat(httpStatusFilter.getRange().getMin()).isEqualTo(100);
+                    assertThat(httpStatusFilter.getRange().getMax()).isEqualTo(599);
+                });
     }
 
     @Test
     void should_return_metric_facets() {
-        var response = rootTarget().path("metrics").path("HTTP_REQUESTS").path("facets").request().get();
+        var response = rootTarget()
+                .path("metrics")
+                .path("HTTP_REQUESTS")
+                .path("facets")
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(FacetSpecsResponse.class)
-            .extracting(FacetSpecsResponse::getData)
-            .satisfies(facets -> assertThat(facets).isNotEmpty());
+                .hasStatus(200)
+                .asEntity(FacetSpecsResponse.class)
+                .extracting(FacetSpecsResponse::getData)
+                .satisfies(facets -> assertThat(facets).isNotEmpty());
     }
 
     @Test
     void should_return_metric_facets_with_correct_structure() {
-        var response = rootTarget().path("metrics").path("HTTP_REQUESTS").path("facets").request().get();
+        var response = rootTarget()
+                .path("metrics")
+                .path("HTTP_REQUESTS")
+                .path("facets")
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(200)
-            .asEntity(FacetSpecsResponse.class)
-            .extracting(FacetSpecsResponse::getData)
-            .satisfies(facets -> {
-                var apiFacet = facets
-                    .stream()
-                    .filter(f -> f.getName().getValue().equals("API"))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(apiFacet.getLabel()).isEqualTo("API");
-                assertThat(apiFacet.getType()).isEqualTo(FacetSpec.TypeEnum.KEYWORD);
+                .hasStatus(200)
+                .asEntity(FacetSpecsResponse.class)
+                .extracting(FacetSpecsResponse::getData)
+                .satisfies(facets -> {
+                    var apiFacet = facets.stream()
+                            .filter(f -> f.getName().getValue().equals("API"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(apiFacet.getLabel()).isEqualTo("API");
+                    assertThat(apiFacet.getType()).isEqualTo(FacetSpec.TypeEnum.KEYWORD);
 
-                var httpStatusFacet = facets
-                    .stream()
-                    .filter(f -> f.getName().getValue().equals("HTTP_STATUS"))
-                    .findFirst()
-                    .orElseThrow();
-                assertThat(httpStatusFacet.getLabel()).isEqualTo("Status Code");
-                assertThat(httpStatusFacet.getType()).isEqualTo(FacetSpec.TypeEnum.NUMBER);
-            });
+                    var httpStatusFacet = facets.stream()
+                            .filter(f -> f.getName().getValue().equals("HTTP_STATUS"))
+                            .findFirst()
+                            .orElseThrow();
+                    assertThat(httpStatusFacet.getLabel()).isEqualTo("Status Code");
+                    assertThat(httpStatusFacet.getType()).isEqualTo(FacetSpec.TypeEnum.NUMBER);
+                });
     }
 
     @Test
     void should_return_error_for_unknown_metric_facets() {
-        var response = rootTarget().path("metrics").path("FOO").path("facets").request().get();
+        var response = rootTarget()
+                .path("metrics")
+                .path("FOO")
+                .path("facets")
+                .request()
+                .get();
 
         assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Invalid metric name");
     }
 
     @Test
     void should_return_error_for_unknown_metric_filters() {
-        var response = rootTarget().path("metrics").path("BAR").path("filters").request().get();
+        var response = rootTarget()
+                .path("metrics")
+                .path("BAR")
+                .path("filters")
+                .request()
+                .get();
 
         assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Invalid metric name");
     }
 
     @Test
     void should_return_error_for_unknown_api_metrics() {
-        var response = rootTarget().path("apis").path("BAZ").path("metrics").request().get();
+        var response =
+                rootTarget().path("apis").path("BAZ").path("metrics").request().get();
 
         assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Invalid api name");
     }

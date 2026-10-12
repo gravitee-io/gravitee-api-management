@@ -95,10 +95,8 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
             rollbackUserCreation(context, user);
 
             String errorDetails = String.format(
-                "Error occurred creating cloud target token for organization [%s] and environment [%s].",
-                payload.organizationId(),
-                payload.environmentId()
-            );
+                    "Error occurred creating cloud target token for organization [%s] and environment [%s].",
+                    payload.organizationId(), payload.environmentId());
             return Single.just(new TargetTokenReply(command.getId(), errorDetails));
         }
     }
@@ -119,66 +117,58 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
         }
     }
 
-    private boolean assignOrganizationRole(ExecutionContext context, TargetTokenCommandPayload payload, UserEntity user) {
-        Set<TargetTokenCommandPayload.Scope> adminScopes = Set.of(
-            TargetTokenCommandPayload.Scope.GKO,
-            TargetTokenCommandPayload.Scope.AUTOMATION
-        );
-        String roleName = adminScopes.contains(payload.scope()) ? SystemRole.ADMIN.name() : DEFAULT_ROLE_ORGANIZATION_USER.getName();
-        if (roleService.findByScopeAndName(RoleScope.ORGANIZATION, roleName, payload.organizationId()).isEmpty()) {
+    private boolean assignOrganizationRole(
+            ExecutionContext context, TargetTokenCommandPayload payload, UserEntity user) {
+        Set<TargetTokenCommandPayload.Scope> adminScopes =
+                Set.of(TargetTokenCommandPayload.Scope.GKO, TargetTokenCommandPayload.Scope.AUTOMATION);
+        String roleName = adminScopes.contains(payload.scope())
+                ? SystemRole.ADMIN.name()
+                : DEFAULT_ROLE_ORGANIZATION_USER.getName();
+        if (roleService
+                .findByScopeAndName(RoleScope.ORGANIZATION, roleName, payload.organizationId())
+                .isEmpty()) {
             log.error("Couldn't find {} role for organization with id [{}]", roleName, payload.organizationId());
             return false;
         }
 
-        MembershipService.MembershipMember member = new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER);
+        MembershipService.MembershipMember member =
+                new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER);
 
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(
-            MembershipReferenceType.ORGANIZATION,
-            payload.organizationId()
-        );
+                MembershipReferenceType.ORGANIZATION, payload.organizationId());
         MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.ORGANIZATION, roleName);
         membershipService.updateRolesToMemberOnReference(
-            context,
-            reference,
-            member,
-            Collections.singletonList(role),
-            COCKPIT_SOURCE,
-            false
-        );
+                context, reference, member, Collections.singletonList(role), COCKPIT_SOURCE, false);
 
         return true;
     }
 
-    private boolean assignEnvironmentRole(ExecutionContext context, TargetTokenCommandPayload payload, UserEntity user) {
+    private boolean assignEnvironmentRole(
+            ExecutionContext context, TargetTokenCommandPayload payload, UserEntity user) {
         NewRoleEntity newRole = payload.scope() == TargetTokenCommandPayload.Scope.FEDERATION
-            ? ROLE_ENVIRONMENT_FEDERATION_AGENT
-            : ROLE_ENVIRONMENT_API_PUBLISHER;
+                ? ROLE_ENVIRONMENT_FEDERATION_AGENT
+                : ROLE_ENVIRONMENT_API_PUBLISHER;
 
-        if (roleService.findByScopeAndName(RoleScope.ENVIRONMENT, newRole.getName(), payload.organizationId()).isEmpty()) {
+        if (roleService
+                .findByScopeAndName(RoleScope.ENVIRONMENT, newRole.getName(), payload.organizationId())
+                .isEmpty()) {
             log.error(
-                "Couldn't find role {} with scope {} for organization with id [{}]",
-                newRole.getName(),
-                RoleScope.ENVIRONMENT,
-                payload.organizationId()
-            );
+                    "Couldn't find role {} with scope {} for organization with id [{}]",
+                    newRole.getName(),
+                    RoleScope.ENVIRONMENT,
+                    payload.organizationId());
             return false;
         }
 
-        MembershipService.MembershipMember member = new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER);
-        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(
-            MembershipReferenceType.ENVIRONMENT,
-            payload.environmentId()
-        );
-        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, newRole.getName());
+        MembershipService.MembershipMember member =
+                new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER);
+        MembershipService.MembershipReference reference =
+                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, payload.environmentId());
+        MembershipService.MembershipRole role =
+                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, newRole.getName());
 
         membershipService.updateRolesToMemberOnReference(
-            context,
-            reference,
-            member,
-            Collections.singletonList(role),
-            COCKPIT_SOURCE,
-            false
-        );
+                context, reference, member, Collections.singletonList(role), COCKPIT_SOURCE, false);
         return true;
     }
 

@@ -60,14 +60,20 @@ class PlanExcludedGroupsDomainServiceTest {
         membershipCrudService = new MembershipCrudServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
         roleQueryService = new RoleQueryServiceInMemory();
-        domainService = new PlanExcludedGroupsDomainService(groupQueryService, membershipQueryService, roleQueryService);
+        domainService =
+                new PlanExcludedGroupsDomainService(groupQueryService, membershipQueryService, roleQueryService);
 
-        roleQueryService.initWith(
-            List.of(
-                Role.builder().id(API_PRODUCT_ROLE_ID).scope(Role.Scope.API_PRODUCT).name("API_PRODUCT_USER").build(),
-                Role.builder().id(API_ROLE_ID).scope(Role.Scope.API).name("API_USER").build()
-            )
-        );
+        roleQueryService.initWith(List.of(
+                Role.builder()
+                        .id(API_PRODUCT_ROLE_ID)
+                        .scope(Role.Scope.API_PRODUCT)
+                        .name("API_PRODUCT_USER")
+                        .build(),
+                Role.builder()
+                        .id(API_ROLE_ID)
+                        .scope(Role.Scope.API)
+                        .name("API_USER")
+                        .build()));
     }
 
     @Nested
@@ -88,18 +94,16 @@ class PlanExcludedGroupsDomainServiceTest {
 
         @Test
         void should_throw_when_group_does_not_exist() {
-            assertThatThrownBy(() -> domainService.validateExcludedGroups(ENV_ID, List.of("missing-group"))).isInstanceOf(
-                GroupNotFoundException.class
-            );
+            assertThatThrownBy(() -> domainService.validateExcludedGroups(ENV_ID, List.of("missing-group")))
+                    .isInstanceOf(GroupNotFoundException.class);
         }
 
         @Test
         void should_throw_when_group_exists_in_another_environment() {
             groupQueryService.initWith(List.of(group(EXCLUDED_GROUP_ID, OTHER_ENV_ID)));
 
-            assertThatThrownBy(() -> domainService.validateExcludedGroups(ENV_ID, List.of(EXCLUDED_GROUP_ID))).isInstanceOf(
-                GroupNotFoundException.class
-            );
+            assertThatThrownBy(() -> domainService.validateExcludedGroups(ENV_ID, List.of(EXCLUDED_GROUP_ID)))
+                    .isInstanceOf(GroupNotFoundException.class);
         }
     }
 
@@ -108,83 +112,78 @@ class PlanExcludedGroupsDomainServiceTest {
 
         @Test
         void should_allow_anonymous_user_when_no_excluded_groups() {
-            assertThat(
-                domainService.isUserAuthorizedToAccessApiProductPlan(apiProduct(Set.of(ALLOWED_GROUP_ID)), List.of(), null)
-            ).isTrue();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(Set.of(ALLOWED_GROUP_ID)), List.of(), null))
+                    .isTrue();
         }
 
         @Test
         void should_deny_anonymous_user_when_excluded_groups_present() {
-            assertThat(
-                domainService.isUserAuthorizedToAccessApiProductPlan(apiProduct(Set.of(ALLOWED_GROUP_ID)), List.of(EXCLUDED_GROUP_ID), null)
-            ).isFalse();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(Set.of(ALLOWED_GROUP_ID)), List.of(EXCLUDED_GROUP_ID), null))
+                    .isFalse();
         }
 
         @Test
         void should_allow_any_user_when_no_excluded_groups() {
-            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(apiProduct(Set.of(ALLOWED_GROUP_ID)), null, USER_ID)).isTrue();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(Set.of(ALLOWED_GROUP_ID)), null, USER_ID))
+                    .isTrue();
         }
 
         @Test
         void should_allow_direct_api_product_member() {
             membershipCrudService.initWith(List.of(directApiProductMembership(API_PRODUCT_ID)));
 
-            assertThat(
-                domainService.isUserAuthorizedToAccessApiProductPlan(
-                    apiProduct(Set.of(ALLOWED_GROUP_ID)),
-                    List.of(EXCLUDED_GROUP_ID),
-                    USER_ID
-                )
-            ).isTrue();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(Set.of(ALLOWED_GROUP_ID)), List.of(EXCLUDED_GROUP_ID), USER_ID))
+                    .isTrue();
         }
 
         @Test
         void should_deny_user_in_excluded_group_only() {
             membershipCrudService.initWith(List.of(groupMembership(EXCLUDED_GROUP_ID, API_PRODUCT_ROLE_ID)));
 
-            assertThat(
-                domainService.isUserAuthorizedToAccessApiProductPlan(
-                    apiProduct(new HashSet<>(Set.of(EXCLUDED_GROUP_ID, ALLOWED_GROUP_ID))),
-                    List.of(EXCLUDED_GROUP_ID),
-                    USER_ID
-                )
-            ).isFalse();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(new HashSet<>(Set.of(EXCLUDED_GROUP_ID, ALLOWED_GROUP_ID))),
+                            List.of(EXCLUDED_GROUP_ID),
+                            USER_ID))
+                    .isFalse();
         }
 
         @Test
         void should_allow_user_in_non_excluded_group() {
             membershipCrudService.initWith(List.of(groupMembership(ALLOWED_GROUP_ID, API_PRODUCT_ROLE_ID)));
 
-            assertThat(
-                domainService.isUserAuthorizedToAccessApiProductPlan(
-                    apiProduct(new HashSet<>(Set.of(EXCLUDED_GROUP_ID, ALLOWED_GROUP_ID))),
-                    List.of(EXCLUDED_GROUP_ID),
-                    USER_ID
-                )
-            ).isTrue();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(new HashSet<>(Set.of(EXCLUDED_GROUP_ID, ALLOWED_GROUP_ID))),
+                            List.of(EXCLUDED_GROUP_ID),
+                            USER_ID))
+                    .isTrue();
         }
 
         @Test
         void should_deny_user_with_api_role_on_excluded_group_when_product_has_no_groups() {
             membershipCrudService.initWith(List.of(groupMembership(EXCLUDED_GROUP_ID, API_ROLE_ID)));
 
-            assertThat(
-                domainService.isUserAuthorizedToAccessApiProductPlan(apiProduct(null), List.of(EXCLUDED_GROUP_ID), USER_ID)
-            ).isTrue();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(null), List.of(EXCLUDED_GROUP_ID), USER_ID))
+                    .isTrue();
         }
 
         @Test
         void should_deny_user_with_api_product_role_on_excluded_group_when_product_has_no_groups() {
             membershipCrudService.initWith(List.of(groupMembership(EXCLUDED_GROUP_ID, API_PRODUCT_ROLE_ID)));
 
-            assertThat(
-                domainService.isUserAuthorizedToAccessApiProductPlan(apiProduct(null), List.of(EXCLUDED_GROUP_ID), USER_ID)
-            ).isFalse();
+            assertThat(domainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProduct(null), List.of(EXCLUDED_GROUP_ID), USER_ID))
+                    .isFalse();
         }
     }
 
     private static ApiProduct apiProduct(Set<String> groups) {
-        ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).build();
+        ApiProduct apiProduct =
+                ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).build();
         apiProduct.setGroups(groups);
         return apiProduct;
     }
@@ -195,23 +194,23 @@ class PlanExcludedGroupsDomainServiceTest {
 
     private static Membership directApiProductMembership(String apiProductId) {
         return Membership.builder()
-            .id("direct-membership")
-            .memberId(USER_ID)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.API_PRODUCT)
-            .referenceId(apiProductId)
-            .roleId(API_PRODUCT_ROLE_ID)
-            .build();
+                .id("direct-membership")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId(apiProductId)
+                .roleId(API_PRODUCT_ROLE_ID)
+                .build();
     }
 
     private static Membership groupMembership(String groupId, String roleId) {
         return Membership.builder()
-            .id("group-membership-" + groupId)
-            .memberId(USER_ID)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.GROUP)
-            .referenceId(groupId)
-            .roleId(roleId)
-            .build();
+                .id("group-membership-" + groupId)
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId(groupId)
+                .roleId(roleId)
+                .build();
     }
 }

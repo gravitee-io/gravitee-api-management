@@ -41,7 +41,8 @@ public class TcpProtocolVerticle extends AbstractVerticle {
     private final TcpSocketDispatcher socketDispatcher;
     private final Map<VertxTcpServer, NetServer> tcpServerMap = new ConcurrentHashMap<>();
 
-    public TcpProtocolVerticle(ServerManager serverManager, @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher socketDispatcher) {
+    public TcpProtocolVerticle(
+            ServerManager serverManager, @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher socketDispatcher) {
         this.serverManager = serverManager;
         this.socketDispatcher = socketDispatcher;
     }
@@ -56,22 +57,24 @@ public class TcpProtocolVerticle extends AbstractVerticle {
 
             // Listen and dispatch TCP requests.
             return tcpServer
-                .connectHandler(socket -> this.dispatchSocket(socket, gioServer.id()))
-                .rxListen()
-                .ignoreElement()
-                .doOnComplete(() ->
-                    log.info("TCP server [{}] ready to accept connections on port {}", gioServer.id(), tcpServer.actualPort())
-                )
-                .doOnError(throwable -> log.error("Unable to start TCP server [{}]", gioServer.id(), throwable.getCause()));
+                    .connectHandler(socket -> this.dispatchSocket(socket, gioServer.id()))
+                    .rxListen()
+                    .ignoreElement()
+                    .doOnComplete(() -> log.info(
+                            "TCP server [{}] ready to accept connections on port {}",
+                            gioServer.id(),
+                            tcpServer.actualPort()))
+                    .doOnError(throwable ->
+                            log.error("Unable to start TCP server [{}]", gioServer.id(), throwable.getCause()));
         });
     }
 
     public void dispatchSocket(NetSocket proxySocket, String id) {
         socketDispatcher
-            .dispatch(proxySocket, id)
-            .doOnComplete(() -> log.debug("TCP Socket properly dispatched"))
-            .onErrorResumeNext(t -> handleError(t, proxySocket))
-            .subscribe();
+                .dispatch(proxySocket, id)
+                .doOnComplete(() -> log.debug("TCP Socket properly dispatched"))
+                .onErrorResumeNext(t -> handleError(t, proxySocket))
+                .subscribe();
     }
 
     private CompletableSource handleError(Throwable err, NetSocket proxySocket) {
@@ -82,11 +85,13 @@ public class TcpProtocolVerticle extends AbstractVerticle {
     @Override
     public Completable rxStop() {
         return Flowable.fromIterable(tcpServerMap.entrySet())
-            .flatMapCompletable(entry -> {
-                final VertxTcpServer gioServer = entry.getKey();
-                final NetServer rxHttpServer = entry.getValue();
-                return rxHttpServer.rxClose().doOnComplete(() -> log.info("TCP server [{}] has been correctly stopped", gioServer.id()));
-            })
-            .doOnSubscribe(disposable -> log.info("Stopping TCP servers..."));
+                .flatMapCompletable(entry -> {
+                    final VertxTcpServer gioServer = entry.getKey();
+                    final NetServer rxHttpServer = entry.getValue();
+                    return rxHttpServer
+                            .rxClose()
+                            .doOnComplete(() -> log.info("TCP server [{}] has been correctly stopped", gioServer.id()));
+                })
+                .doOnSubscribe(disposable -> log.info("Stopping TCP servers..."));
     }
 }

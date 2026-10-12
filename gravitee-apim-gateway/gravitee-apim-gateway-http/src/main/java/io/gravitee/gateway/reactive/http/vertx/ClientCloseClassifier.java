@@ -48,7 +48,8 @@ public final class ClientCloseClassifier {
     public static final String CLIENT_ABORTED_BROKEN_PIPE = "CLIENT_ABORTED_BROKEN_PIPE";
     public static final String CLIENT_ABORTED_CHANNEL_CLOSED = "CLIENT_ABORTED_CHANNEL_CLOSED";
     public static final String CLIENT_ABORTED_TCP_RESET_MESSAGE = "The client reset the connection";
-    public static final String CLIENT_ABORTED_BROKEN_PIPE_MESSAGE = "The client closed the connection while the response was being written";
+    public static final String CLIENT_ABORTED_BROKEN_PIPE_MESSAGE =
+            "The client closed the connection while the response was being written";
     public static final String CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE = "The client closed the connection";
 
     private static final int CLIENT_CLOSED_REQUEST_499 = 499;
@@ -99,11 +100,9 @@ public final class ClientCloseClassifier {
             return false;
         }
         String lowerMessages = messages.toLowerCase(Locale.ENGLISH);
-        return (
-            lowerMessages.contains("connection reset") ||
-            lowerMessages.contains("broken pipe") ||
-            lowerMessages.contains("connection was closed")
-        );
+        return (lowerMessages.contains("connection reset")
+                || lowerMessages.contains("broken pipe")
+                || lowerMessages.contains("connection was closed"));
     }
 
     /** Classify the given close cause and decorate the in-flight request metrics with it. */
@@ -141,17 +140,14 @@ public final class ClientCloseClassifier {
             // A more specific classifier (e.g. the upstream connector) or another close handler already set it.
             return;
         }
-        ExecutionFailure failure = new ExecutionFailure(CLIENT_CLOSED_REQUEST_499).key(key).message(message);
+        ExecutionFailure failure =
+                new ExecutionFailure(CLIENT_CLOSED_REQUEST_499).key(key).message(message);
         if (cause != null) {
             failure.cause(cause);
         }
         ComponentScope.ComponentEntry component = ComponentScope.peek((BaseExecutionContext) ctx);
         Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-            component,
-            metrics.getErrorKey(),
-            metrics.getErrorMessage(),
-            failure
-        );
+                component, metrics.getErrorKey(), metrics.getErrorMessage(), failure);
         metrics.setFailure(diagnostic);
         // Legacy flat fields kept in sync so dashboards reading error-key/error-message still work.
         metrics.setErrorKey(diagnostic.getKey());

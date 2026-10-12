@@ -23,11 +23,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapterImpl;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
-import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
-import java.time.Instant;
-import java.util.Date;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +32,8 @@ import org.junit.jupiter.api.Test;
 
 public class SharedPolicyGroupHistoryCrudServiceImplTest {
 
-    private static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
+    private static final String ENV_ID =
+            SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
     SharedPolicyGroupHistoryRepository repository;
     SharedPolicyGroupAdapter mapper;

@@ -60,23 +60,29 @@ public class GroupService_GetApiProductsTest {
         product2.setName("API Product Two");
         product2.setVersion("2.0");
 
-        when(
-            apiProductsRepository.search(new ApiProductCriteria.Builder().environmentId(ENVIRONMENT_ID).groups(List.of(GROUP_ID)).build())
-        ).thenReturn(List.of(product1, product2));
+        when(apiProductsRepository.search(new ApiProductCriteria.Builder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .groups(List.of(GROUP_ID))
+                        .build()))
+                .thenReturn(List.of(product1, product2));
 
         List<ApiProductEntity> result = groupService.getApiProducts(ENVIRONMENT_ID, GROUP_ID);
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(ApiProductEntity::getId).containsExactlyInAnyOrder("product-1", "product-2");
-        assertThat(result).extracting(ApiProductEntity::getName).containsExactlyInAnyOrder("API Product One", "API Product Two");
+        assertThat(result)
+                .extracting(ApiProductEntity::getName)
+                .containsExactlyInAnyOrder("API Product One", "API Product Two");
         assertThat(result).extracting(ApiProductEntity::getVersion).containsExactlyInAnyOrder("1.0", "2.0");
     }
 
     @Test
     public void shouldReturnEmptyListWhenNoApiProductsBelongToGroup() throws TechnicalException {
-        when(
-            apiProductsRepository.search(new ApiProductCriteria.Builder().environmentId(ENVIRONMENT_ID).groups(List.of(GROUP_ID)).build())
-        ).thenReturn(List.of());
+        when(apiProductsRepository.search(new ApiProductCriteria.Builder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .groups(List.of(GROUP_ID))
+                        .build()))
+                .thenReturn(List.of());
 
         List<ApiProductEntity> result = groupService.getApiProducts(ENVIRONMENT_ID, GROUP_ID);
 
@@ -90,9 +96,11 @@ public class GroupService_GetApiProductsTest {
         product.setName("My Product");
         product.setVersion("3.0");
 
-        when(
-            apiProductsRepository.search(new ApiProductCriteria.Builder().environmentId(ENVIRONMENT_ID).groups(List.of(GROUP_ID)).build())
-        ).thenReturn(List.of(product));
+        when(apiProductsRepository.search(new ApiProductCriteria.Builder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .groups(List.of(GROUP_ID))
+                        .build()))
+                .thenReturn(List.of(product));
 
         List<ApiProductEntity> result = groupService.getApiProducts(ENVIRONMENT_ID, GROUP_ID);
 
@@ -105,12 +113,14 @@ public class GroupService_GetApiProductsTest {
 
     @Test
     public void shouldWrapRepositoryExceptionAsTechnicalManagementException() throws TechnicalException {
-        when(
-            apiProductsRepository.search(new ApiProductCriteria.Builder().environmentId(ENVIRONMENT_ID).groups(List.of(GROUP_ID)).build())
-        ).thenThrow(new TechnicalException("DB error"));
+        when(apiProductsRepository.search(new ApiProductCriteria.Builder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .groups(List.of(GROUP_ID))
+                        .build()))
+                .thenThrow(new TechnicalException("DB error"));
 
         assertThatThrownBy(() -> groupService.getApiProducts(ENVIRONMENT_ID, GROUP_ID))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining(GROUP_ID);
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining(GROUP_ID);
     }
 }

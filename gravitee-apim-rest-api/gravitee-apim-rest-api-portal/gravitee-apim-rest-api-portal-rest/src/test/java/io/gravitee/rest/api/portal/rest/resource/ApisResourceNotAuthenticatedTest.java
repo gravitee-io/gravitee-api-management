@@ -87,20 +87,18 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         doReturn(Arrays.asList("A", "C")).when(filteringService).filterApis(any(), any(), any(), any(), any());
         doReturn(List.of(publishedApi, anotherPublishedApi))
-            .when(apiSearchService)
-            .search(eq(GraviteeContext.getExecutionContext()), any());
+                .when(apiSearchService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
-        categoryQueryServiceInMemory.initWith(List.of(Category.builder().id("Category1").build()));
+        categoryQueryServiceInMemory.initWith(
+                List.of(Category.builder().id("Category1").build()));
 
-        apiCategoryOrderQueryServiceInMemory.initWith(
-            List.of(
+        apiCategoryOrderQueryServiceInMemory.initWith(List.of(
                 ApiCategoryOrder.builder().apiId("1").categoryId("myCat").build(),
                 ApiCategoryOrder.builder().apiId("A").categoryId("Category1").build(),
                 ApiCategoryOrder.builder().apiId("B").categoryId("Category1").build(),
                 ApiCategoryOrder.builder().apiId("C").categoryId("Category1").build(),
-                ApiCategoryOrder.builder().apiId("D").categoryId("Category1").build()
-            )
-        );
+                ApiCategoryOrder.builder().apiId("D").categoryId("Category1").build()));
 
         apiAuthorizationDomainService.initWith(List.of(createApi("A"), createApi("C")));
 
@@ -108,10 +106,18 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         doReturn(false).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
 
-        doReturn(new Api().name("A").id("A")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), publishedApi);
-        doReturn(new Api().name("B").id("B")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), unpublishedApi);
-        doReturn(new Api().name("C").id("C")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), anotherPublishedApi);
-        doReturn(new Api().name("D").id("D")).when(apiMapper).convert(GraviteeContext.getExecutionContext(), privateApi);
+        doReturn(new Api().name("A").id("A"))
+                .when(apiMapper)
+                .convert(GraviteeContext.getExecutionContext(), publishedApi);
+        doReturn(new Api().name("B").id("B"))
+                .when(apiMapper)
+                .convert(GraviteeContext.getExecutionContext(), unpublishedApi);
+        doReturn(new Api().name("C").id("C"))
+                .when(apiMapper)
+                .convert(GraviteeContext.getExecutionContext(), anotherPublishedApi);
+        doReturn(new Api().name("D").id("D"))
+                .when(apiMapper)
+                .convert(GraviteeContext.getExecutionContext(), privateApi);
     }
 
     @Test
@@ -129,7 +135,8 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnPublishedPublicApiWhenQueryByCategory() {
-        final Response response = target().queryParam("category", "Category1").request().get();
+        final Response response =
+                target().queryParam("category", "Category1").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -153,7 +160,8 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
     public void should_reject_api_search_when_portal_login_forced() {
         doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
 
-        final Response response = target("/_search").queryParam("q", "A").request().post(Entity.json(null));
+        final Response response =
+                target("/_search").queryParam("q", "A").request().post(Entity.json(null));
 
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
     }
@@ -170,15 +178,21 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Test
     public void should_keep_portal_configuration_public_when_portal_login_forced() {
         doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
-        doReturn(new PortalSettingsEntity()).when(configService).getPortalSettings(GraviteeContext.getExecutionContext());
-        doReturn(new ConsoleSettingsEntity()).when(configService).getConsoleSettings(GraviteeContext.getExecutionContext());
+        doReturn(new PortalSettingsEntity())
+                .when(configService)
+                .getPortalSettings(GraviteeContext.getExecutionContext());
+        doReturn(new ConsoleSettingsEntity())
+                .when(configService)
+                .getConsoleSettings(GraviteeContext.getExecutionContext());
 
-        final Response response = root().path("environments/DEFAULT/configuration").request().get();
+        final Response response =
+                root().path("environments/DEFAULT/configuration").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
-    private static ApiEntity createApiEntity(String id, String name, Visibility visibility, ApiLifecycleState apiLifecycleState) {
+    private static ApiEntity createApiEntity(
+            String id, String name, Visibility visibility, ApiLifecycleState apiLifecycleState) {
         ApiEntity anotherPublishedApi = new ApiEntity();
         anotherPublishedApi.setLifecycleState(apiLifecycleState);
         anotherPublishedApi.setVisibility(visibility);
@@ -189,11 +203,11 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     private static io.gravitee.apim.core.api.model.Api createApi(String A) {
         return io.gravitee.apim.core.api.model.Api.builder()
-            .id(A)
-            .name(A)
-            .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
-            .categories(Set.of("Category1"))
-            .visibility(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC)
-            .build();
+                .id(A)
+                .name(A)
+                .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
+                .categories(Set.of("Category1"))
+                .visibility(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC)
+                .build();
     }
 }

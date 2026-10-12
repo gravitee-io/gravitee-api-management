@@ -40,7 +40,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ResolveFilterLabelsUseCaseTest {
 
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId("org-id").environmentId("env-id").build();
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfo.builder().organizationId("org-id").environmentId("env-id").build();
 
     @Mock
     private FilterValueNameResolver filterValueNameResolver;
@@ -54,64 +55,57 @@ class ResolveFilterLabelsUseCaseTest {
 
     @Test
     void should_resolve_id_based_filter_labels() {
-        when(filterValueNameResolver.resolveNames("env-id", FilterSpec.Name.API, List.of("api-id"))).thenReturn(Map.of("api-id", "My API"));
+        when(filterValueNameResolver.resolveNames("env-id", FilterSpec.Name.API, List.of("api-id")))
+                .thenReturn(Map.of("api-id", "My API"));
 
-        var output = useCase.execute(
-            new ResolveFilterLabelsUseCase.Input(AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("API", List.of("api-id"))))
-        );
+        var output = useCase.execute(new ResolveFilterLabelsUseCase.Input(
+                AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("API", List.of("api-id")))));
 
-        assertThat(output.entries()).containsExactly(new ResolveFilterLabelsUseCase.ResolvedEntry("API", Map.of("api-id", "My API")));
+        assertThat(output.entries())
+                .containsExactly(new ResolveFilterLabelsUseCase.ResolvedEntry("API", Map.of("api-id", "My API")));
         verify(filterValueNameResolver).resolveNames("env-id", FilterSpec.Name.API, List.of("api-id"));
     }
 
     @Test
     void should_resolve_api_product_filter_labels() {
-        when(filterValueNameResolver.resolveNames("env-id", FilterSpec.Name.API_PRODUCT, List.of("prod-id"))).thenReturn(
-            Map.of("prod-id", "My Product")
-        );
+        when(filterValueNameResolver.resolveNames("env-id", FilterSpec.Name.API_PRODUCT, List.of("prod-id")))
+                .thenReturn(Map.of("prod-id", "My Product"));
 
-        var output = useCase.execute(
-            new ResolveFilterLabelsUseCase.Input(
-                AUDIT_INFO,
-                List.of(new ResolveFilterLabelsUseCase.Entry("API_PRODUCT", List.of("prod-id")))
-            )
-        );
+        var output = useCase.execute(new ResolveFilterLabelsUseCase.Input(
+                AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("API_PRODUCT", List.of("prod-id")))));
 
-        assertThat(output.entries()).containsExactly(
-            new ResolveFilterLabelsUseCase.ResolvedEntry("API_PRODUCT", Map.of("prod-id", "My Product"))
-        );
+        assertThat(output.entries())
+                .containsExactly(
+                        new ResolveFilterLabelsUseCase.ResolvedEntry("API_PRODUCT", Map.of("prod-id", "My Product")));
         verify(filterValueNameResolver).resolveNames("env-id", FilterSpec.Name.API_PRODUCT, List.of("prod-id"));
     }
 
     @Test
     void should_ignore_unsupported_filter_names() {
-        var output = useCase.execute(
-            new ResolveFilterLabelsUseCase.Input(AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("HTTP_STATUS", List.of("200"))))
-        );
+        var output = useCase.execute(new ResolveFilterLabelsUseCase.Input(
+                AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("HTTP_STATUS", List.of("200")))));
 
-        assertThat(output.entries()).containsExactly(new ResolveFilterLabelsUseCase.ResolvedEntry("HTTP_STATUS", Map.of()));
+        assertThat(output.entries())
+                .containsExactly(new ResolveFilterLabelsUseCase.ResolvedEntry("HTTP_STATUS", Map.of()));
         verifyNoInteractions(filterValueNameResolver);
     }
 
     @Test
     void should_reject_too_many_entries() {
         var entries = IntStream.range(0, 11)
-            .mapToObj(index -> new ResolveFilterLabelsUseCase.Entry("API", List.of("api-" + index)))
-            .toList();
+                .mapToObj(index -> new ResolveFilterLabelsUseCase.Entry("API", List.of("api-" + index)))
+                .toList();
 
-        assertThatThrownBy(() -> useCase.execute(new ResolveFilterLabelsUseCase.Input(AUDIT_INFO, entries))).isInstanceOf(
-            ValidationDomainException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new ResolveFilterLabelsUseCase.Input(AUDIT_INFO, entries)))
+                .isInstanceOf(ValidationDomainException.class);
     }
 
     @Test
     void should_reject_too_many_ids_per_entry() {
-        var ids = IntStream.range(0, 101)
-            .mapToObj(index -> "api-" + index)
-            .toList();
+        var ids = IntStream.range(0, 101).mapToObj(index -> "api-" + index).toList();
 
-        assertThatThrownBy(() ->
-            useCase.execute(new ResolveFilterLabelsUseCase.Input(AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("API", ids))))
-        ).isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> useCase.execute(new ResolveFilterLabelsUseCase.Input(
+                        AUDIT_INFO, List.of(new ResolveFilterLabelsUseCase.Entry("API", ids)))))
+                .isInstanceOf(ValidationDomainException.class);
     }
 }

@@ -46,88 +46,101 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     }
 
     @Override
-    public Optional<ConnectionLogDetail> searchConnectionLogDetail(QueryContext queryContext, ConnectionLogDetailQuery query) {
+    public Optional<ConnectionLogDetail> searchConnectionLogDetail(
+            QueryContext queryContext, ConnectionLogDetailQuery query) {
         var indexes = getQueryIndexesFromDefinitionVersions(
-            Type.LOG,
-            Type.V4_LOG,
-            configuration,
-            queryContext,
-            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
-        );
+                Type.LOG,
+                Type.V4_LOG,
+                configuration,
+                queryContext,
+                List.of(DefinitionVersion.V2, DefinitionVersion.V4));
 
-        return this.client.search(indexes, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
-            .map(SearchConnectionLogDetailResponseAdapter::adaptFirst)
-            .blockingGet();
+        return this.client
+                .search(indexes, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
+                .map(SearchConnectionLogDetailResponseAdapter::adaptFirst)
+                .blockingGet();
     }
 
     @Override
-    public LogResponse<ConnectionLogDetail> searchConnectionLogDetails(QueryContext queryContext, ConnectionLogDetailQuery query) {
+    public LogResponse<ConnectionLogDetail> searchConnectionLogDetails(
+            QueryContext queryContext, ConnectionLogDetailQuery query) {
         var indexes = getQueryIndexesFromDefinitionVersions(
-            Type.LOG,
-            Type.V4_LOG,
-            configuration,
-            queryContext,
-            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
-        );
+                Type.LOG,
+                Type.V4_LOG,
+                configuration,
+                queryContext,
+                List.of(DefinitionVersion.V2, DefinitionVersion.V4));
 
-        return this.client.search(indexes, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
-            .map(SearchConnectionLogDetailResponseAdapter::adapt)
-            .blockingGet();
+        return this.client
+                .search(indexes, null, SearchConnectionLogDetailQueryAdapter.adapt(query))
+                .map(SearchConnectionLogDetailResponseAdapter::adapt)
+                .blockingGet();
     }
 
     @Override
-    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(QueryContext queryContext, MessageLogQuery query) {
+    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(
+            QueryContext queryContext, MessageLogQuery query) {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_LOG, clusters);
+        var index =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_LOG, clusters);
 
-        var entrypointMessages = this.client.search(
-            index,
-            null,
-            SearchMessageLogQueryAdapter.adapt(
-                query.toBuilder().filter(query.getFilter().toBuilder().connectorType("entrypoint").build()).build()
-            )
-        ).map(response -> {
-            var result = response.getSearchHits();
-            if (result == null) {
-                SearchHits searchHits = new SearchHits();
-                searchHits.setTotal(new TotalHits(0));
-                return searchHits;
-            }
-            return result;
-        });
+        var entrypointMessages = this.client
+                .search(
+                        index,
+                        null,
+                        SearchMessageLogQueryAdapter.adapt(query.toBuilder()
+                                .filter(query.getFilter().toBuilder()
+                                        .connectorType("entrypoint")
+                                        .build())
+                                .build()))
+                .map(response -> {
+                    var result = response.getSearchHits();
+                    if (result == null) {
+                        SearchHits searchHits = new SearchHits();
+                        searchHits.setTotal(new TotalHits(0));
+                        return searchHits;
+                    }
+                    return result;
+                });
 
-        var endpointMessages = this.client.search(
-            index,
-            null,
-            SearchMessageLogQueryAdapter.adapt(
-                query.toBuilder().filter(query.getFilter().toBuilder().connectorType("endpoint").build()).build()
-            )
-        ).map(response -> {
-            var result = response.getSearchHits();
-            if (result == null) {
-                SearchHits searchHits = new SearchHits();
-                searchHits.setTotal(new TotalHits(0));
-                return searchHits;
-            }
-            return result;
-        });
+        var endpointMessages = this.client
+                .search(
+                        index,
+                        null,
+                        SearchMessageLogQueryAdapter.adapt(query.toBuilder()
+                                .filter(query.getFilter().toBuilder()
+                                        .connectorType("endpoint")
+                                        .build())
+                                .build()))
+                .map(response -> {
+                    var result = response.getSearchHits();
+                    if (result == null) {
+                        SearchHits searchHits = new SearchHits();
+                        searchHits.setTotal(new TotalHits(0));
+                        return searchHits;
+                    }
+                    return result;
+                });
 
         return Single.zip(entrypointMessages, endpointMessages, (entrypointResponse, endpointResponse) -> {
-            var totalEntrypointMessages = entrypointResponse.getTotal().getValue();
-            var totalEndpointMessages = endpointResponse.getTotal().getValue();
+                    var totalEntrypointMessages = entrypointResponse.getTotal().getValue();
+                    var totalEndpointMessages = endpointResponse.getTotal().getValue();
 
-            if (totalEndpointMessages == 0) {
-                return new LogResponse<>((int) totalEntrypointMessages, SearchMessageLogResponseAdapter.adapt(entrypointResponse));
-            }
+                    if (totalEndpointMessages == 0) {
+                        return new LogResponse<>(
+                                (int) totalEntrypointMessages,
+                                SearchMessageLogResponseAdapter.adapt(entrypointResponse));
+                    }
 
-            if (totalEntrypointMessages == 0) {
-                return new LogResponse<>((int) totalEndpointMessages, SearchMessageLogResponseAdapter.adapt(endpointResponse));
-            }
+                    if (totalEntrypointMessages == 0) {
+                        return new LogResponse<>(
+                                (int) totalEndpointMessages, SearchMessageLogResponseAdapter.adapt(endpointResponse));
+                    }
 
-            return new LogResponse<>(
-                (int) totalEntrypointMessages,
-                SearchMessageLogResponseAdapter.adapt(entrypointResponse, endpointResponse)
-            );
-        }).blockingGet();
+                    return new LogResponse<>(
+                            (int) totalEntrypointMessages,
+                            SearchMessageLogResponseAdapter.adapt(entrypointResponse, endpointResponse));
+                })
+                .blockingGet();
     }
 }

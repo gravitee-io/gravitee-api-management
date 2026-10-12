@@ -50,21 +50,17 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCallSaveMethod() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        ExecutionContext executionContext =
+                new ExecutionContext(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment());
         ConsoleSettingsEntity config = new ConsoleSettingsEntity();
         config.setMaintenance(new Maintenance());
 
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.MAINTENANCE_MODE_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        executionContext,
+                        Key.MAINTENANCE_MODE_ENABLED,
+                        GraviteeContext.getCurrentOrganization(),
+                        ParameterReferenceType.ORGANIZATION))
+                .thenReturn(false);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
@@ -74,23 +70,19 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCallSaveMethod_EnabledMaintenance() {
-        ExecutionContext executionContext = new ExecutionContext(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        ExecutionContext executionContext =
+                new ExecutionContext(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment());
         ConsoleSettingsEntity config = new ConsoleSettingsEntity();
         Maintenance maintenance = new Maintenance();
         maintenance.setEnabled(true);
         config.setMaintenance(maintenance);
 
-        when(
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.MAINTENANCE_MODE_ENABLED,
-                GraviteeContext.getCurrentOrganization(),
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(false);
+        when(parameterService.findAsBoolean(
+                        executionContext,
+                        Key.MAINTENANCE_MODE_ENABLED,
+                        GraviteeContext.getCurrentOrganization(),
+                        ParameterReferenceType.ORGANIZATION))
+                .thenReturn(false);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
@@ -105,37 +97,35 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         maintenance.setEnabled(true);
         config.setMaintenance(maintenance);
 
-        when(
-            parameterService.findAsBoolean(
-                any(),
-                eq(Key.MAINTENANCE_MODE_ENABLED),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(ParameterReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        any(),
+                        eq(Key.MAINTENANCE_MODE_ENABLED),
+                        eq(GraviteeContext.getCurrentOrganization()),
+                        eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn(true);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus(), response.readEntity(String.class));
-        verify(configService, never()).save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
+        verify(configService, never())
+                .save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
     }
 
     @Test
     public void shouldNotCallSaveMethod_MaintenanceEnabled() {
         ConsoleSettingsEntity config = new ConsoleSettingsEntity();
 
-        when(
-            parameterService.findAsBoolean(
-                any(),
-                eq(Key.MAINTENANCE_MODE_ENABLED),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(ParameterReferenceType.ORGANIZATION)
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        any(),
+                        eq(Key.MAINTENANCE_MODE_ENABLED),
+                        eq(GraviteeContext.getCurrentOrganization()),
+                        eq(ParameterReferenceType.ORGANIZATION)))
+                .thenReturn(true);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus(), response.readEntity(String.class));
-        verify(configService, never()).save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
+        verify(configService, never())
+                .save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
     }
 }

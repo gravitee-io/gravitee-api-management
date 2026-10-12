@@ -75,24 +75,26 @@ class FlowPhaseExecutionV4EmulationIntegrationTest extends FlowPhaseExecutionV3I
         void should_pass_through_correct_flow_condition_remove_header_on_request(HttpClient client) {
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
-            client
-                .rxRequest(HttpMethod.GET, "/test-double-evaluation")
-                .flatMap(request -> request.putHeader("X-Condition-Flow-Selection", "root-condition").rxSend())
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response)).contains(Map.entry(responseFlowHeader(0), headerValue("/")));
-                    return response.body();
-                })
-                .test()
-                .awaitDone(2, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                    return true;
-                });
+            client.rxRequest(HttpMethod.GET, "/test-double-evaluation")
+                    .flatMap(request -> request.putHeader("X-Condition-Flow-Selection", "root-condition")
+                            .rxSend())
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(extractHeaders(response))
+                                .contains(Map.entry(responseFlowHeader(0), headerValue("/")));
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(2, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
-            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(requestFlowHeader(0), equalTo(headerValue("/"))));
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint"))
+                    .withHeader(requestFlowHeader(0), equalTo(headerValue("/"))));
         }
     }
 }

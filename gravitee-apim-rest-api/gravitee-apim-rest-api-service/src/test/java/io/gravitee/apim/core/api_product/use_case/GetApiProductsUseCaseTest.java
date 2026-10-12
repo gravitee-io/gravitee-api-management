@@ -64,7 +64,8 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
     private final EventLatestQueryServiceInMemory eventLatestQueryService = new EventLatestQueryServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
-    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+    private final MembershipQueryServiceInMemory membershipQueryService =
+            new MembershipQueryServiceInMemory(membershipCrudService);
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     private final ObjectMapper objectMapper = GraviteeJacksonMapper.getInstance();
@@ -73,40 +74,32 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        userCrudService.initWith(
-            List.of(
-                io.gravitee.apim.core.user.model.BaseUserEntity.builder()
-                    .id(USER_ID)
-                    .email("user@example.com")
-                    .firstname("Test")
-                    .lastname("User")
-                    .build()
-            )
-        );
+        userCrudService.initWith(List.of(io.gravitee.apim.core.user.model.BaseUserEntity.builder()
+                .id(USER_ID)
+                .email("user@example.com")
+                .firstname("Test")
+                .lastname("User")
+                .build()));
 
         roleQueryService.resetSystemRoles(ORG_ID);
 
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiProductPrimaryOwnerDomainService = new ApiProductPrimaryOwnerDomainService(
-            auditService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
 
         var apiProductAccessibleIdsDomainService =
-            new io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService(
-                apiProductQueryService,
-                membershipQueryService
-            );
+                new io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService(
+                        apiProductQueryService, membershipQueryService);
         getApiProductsUseCase = new GetApiProductsUseCase(
-            apiProductQueryService,
-            apiProductPrimaryOwnerDomainService,
-            new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper),
-            apiProductAccessibleIdsDomainService
-        );
+                apiProductQueryService,
+                apiProductPrimaryOwnerDomainService,
+                new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper),
+                apiProductAccessibleIdsDomainService);
     }
 
     @AfterEach
@@ -120,62 +113,62 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_return_api_product_by_id() {
-        ApiProduct product = ApiProduct.builder().id("api-product-id").name("Product 1").environmentId(ENV_ID).build();
+        ApiProduct product = ApiProduct.builder()
+                .id("api-product-id")
+                .name("Product 1")
+                .environmentId(ENV_ID)
+                .build();
         apiProductQueryService.initWith(List.of(product));
 
-        membershipCrudService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-id")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("api-product-id")
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .source("system")
-                    .build()
-            )
-        );
+        membershipCrudService.initWith(List.of(Membership.builder()
+                .id("membership-id")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId("api-product-id")
+                .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                .source("system")
+                .build()));
 
         var input = GetApiProductsUseCase.Input.of(ENV_ID, "api-product-id", ORG_ID);
         var output = getApiProductsUseCase.execute(input);
         assertAll(
-            () -> assertThat(output.apiProduct().get().getId()).isEqualTo("api-product-id"),
-            () -> assertThat(output.apiProduct().get().getName()).isEqualTo("Product 1"),
-            () -> assertThat(output.apiProduct().get().getPrimaryOwner()).isNotNull(),
-            () -> assertThat(output.apiProduct().get().getPrimaryOwner().id()).isEqualTo(USER_ID),
-            () -> assertThat(output.apiProduct().get().getPrimaryOwner().displayName()).isEqualTo("Test User")
-        );
+                () -> assertThat(output.apiProduct().get().getId()).isEqualTo("api-product-id"),
+                () -> assertThat(output.apiProduct().get().getName()).isEqualTo("Product 1"),
+                () -> assertThat(output.apiProduct().get().getPrimaryOwner()).isNotNull(),
+                () -> assertThat(output.apiProduct().get().getPrimaryOwner().id())
+                        .isEqualTo(USER_ID),
+                () -> assertThat(output.apiProduct().get().getPrimaryOwner().displayName())
+                        .isEqualTo("Test User"));
     }
 
     @Test
     void should_return_api_products_by_environment_id() {
-        ApiProduct product1 = ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
-        ApiProduct product2 = ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
+        ApiProduct product1 =
+                ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
+        ApiProduct product2 =
+                ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
         apiProductQueryService.initWith(List.of(product1, product2));
 
-        membershipCrudService.initWith(
-            List.of(
+        membershipCrudService.initWith(List.of(
                 Membership.builder()
-                    .id("membership-1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id1")
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .source("system")
-                    .build(),
+                        .id("membership-1")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API_PRODUCT)
+                        .referenceId("id1")
+                        .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                        .source("system")
+                        .build(),
                 Membership.builder()
-                    .id("membership-2")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id2")
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .source("system")
-                    .build()
-            )
-        );
+                        .id("membership-2")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API_PRODUCT)
+                        .referenceId("id2")
+                        .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                        .source("system")
+                        .build()));
 
         var input = GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false);
         var output = getApiProductsUseCase.execute(input);
@@ -188,24 +181,23 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_return_only_owned_api_products_for_non_admin_user() {
-        ApiProduct product1 = ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
-        ApiProduct product2 = ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
-        ApiProduct product3 = ApiProduct.builder().id("id3").name("P3").environmentId(ENV_ID).build();
+        ApiProduct product1 =
+                ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
+        ApiProduct product2 =
+                ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
+        ApiProduct product3 =
+                ApiProduct.builder().id("id3").name("P3").environmentId(ENV_ID).build();
         apiProductQueryService.initWith(List.of(product1, product2, product3));
 
-        membershipCrudService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-1")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id1")
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .source("system")
-                    .build()
-            )
-        );
+        membershipCrudService.initWith(List.of(Membership.builder()
+                .id("membership-1")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId("id1")
+                .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                .source("system")
+                .build()));
 
         var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
         assertThat(output.apiProducts()).hasSize(1);
@@ -214,8 +206,10 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_return_all_api_products_for_admin_user() {
-        ApiProduct product1 = ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
-        ApiProduct product2 = ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
+        ApiProduct product1 =
+                ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
+        ApiProduct product2 =
+                ApiProduct.builder().id("id2").name("P2").environmentId(ENV_ID).build();
         apiProductQueryService.initWith(List.of(product1, product2));
 
         var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, true));
@@ -224,7 +218,8 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_return_empty_list_when_non_admin_user_has_no_api_product_memberships() {
-        ApiProduct product1 = ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
+        ApiProduct product1 =
+                ApiProduct.builder().id("id1").name("P1").environmentId(ENV_ID).build();
         apiProductQueryService.initWith(List.of(product1));
 
         var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
@@ -233,28 +228,28 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_include_api_products_inherited_via_group_membership_for_non_admin() {
-        ApiProduct product1 = ApiProduct.builder().id("id1").name("Direct").environmentId(ENV_ID).build();
+        ApiProduct product1 = ApiProduct.builder()
+                .id("id1")
+                .name("Direct")
+                .environmentId(ENV_ID)
+                .build();
         ApiProduct product2 = ApiProduct.builder()
-            .id("id2")
-            .name("Inherited")
-            .environmentId(ENV_ID)
-            .groups(java.util.Set.of("s-group"))
-            .build();
+                .id("id2")
+                .name("Inherited")
+                .environmentId(ENV_ID)
+                .groups(java.util.Set.of("s-group"))
+                .build();
         apiProductQueryService.initWith(List.of(product1, product2));
 
-        membershipCrudService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("group-membership-id")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId("s-group")
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .source("system")
-                    .build()
-            )
-        );
+        membershipCrudService.initWith(List.of(Membership.builder()
+                .id("group-membership-id")
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId("s-group")
+                .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                .source("system")
+                .build()));
 
         var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
         assertThat(output.apiProducts()).extracting(ApiProduct::getId).containsExactly("id2");
@@ -262,38 +257,43 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_union_direct_and_group_inherited_api_products_for_non_admin() {
-        ApiProduct product1 = ApiProduct.builder().id("id1").name("Direct").environmentId(ENV_ID).build();
+        ApiProduct product1 = ApiProduct.builder()
+                .id("id1")
+                .name("Direct")
+                .environmentId(ENV_ID)
+                .build();
         ApiProduct product2 = ApiProduct.builder()
-            .id("id2")
-            .name("Inherited")
-            .environmentId(ENV_ID)
-            .groups(java.util.Set.of("s-group"))
-            .build();
-        ApiProduct product3 = ApiProduct.builder().id("id3").name("Other").environmentId(ENV_ID).build();
+                .id("id2")
+                .name("Inherited")
+                .environmentId(ENV_ID)
+                .groups(java.util.Set.of("s-group"))
+                .build();
+        ApiProduct product3 = ApiProduct.builder()
+                .id("id3")
+                .name("Other")
+                .environmentId(ENV_ID)
+                .build();
         apiProductQueryService.initWith(List.of(product1, product2, product3));
 
-        membershipCrudService.initWith(
-            List.of(
+        membershipCrudService.initWith(List.of(
                 Membership.builder()
-                    .id("direct")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("id1")
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .source("system")
-                    .build(),
+                        .id("direct")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API_PRODUCT)
+                        .referenceId("id1")
+                        .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                        .source("system")
+                        .build(),
                 Membership.builder()
-                    .id("group")
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId("s-group")
-                    .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
-                    .source("system")
-                    .build()
-            )
-        );
+                        .id("group")
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.GROUP)
+                        .referenceId("s-group")
+                        .roleId(apiProductPrimaryOwnerRoleId(ORG_ID))
+                        .source("system")
+                        .build()));
 
         var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, false));
         assertThat(output.apiProducts()).extracting(ApiProduct::getId).containsExactlyInAnyOrder("id1", "id2");
@@ -303,8 +303,8 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
     void should_throw_exception_if_environment_id_missing() {
         var input = GetApiProductsUseCase.Input.of(null, null, ORG_ID);
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> getApiProductsUseCase.execute(input))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("environmentId must be provided");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("environmentId must be provided");
     }
 
     @Nested
@@ -314,21 +314,26 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_be_need_redeploy_when_never_deployed() {
-            apiProductQueryService.initWith(List.of(ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId(ENV_ID).build()));
+            apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .build()));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
-            assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+            assertThat(output.apiProduct().get().getDeploymentState())
+                    .isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
         }
 
         @Test
         void should_be_deployed_when_product_not_modified_after_last_deploy_and_no_plan_changes() throws Exception {
             ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
+                    .build();
             apiProductQueryService.initWith(List.of(product));
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY)));
@@ -341,93 +346,98 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
         @Test
         void should_be_need_redeploy_when_sharding_tags_changed() throws Exception {
             ApiProduct currentProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .tags(Set.of("tag1", "tag2"))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .tags(Set.of("tag1", "tag2"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct));
             ApiProduct deployedProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .tags(Set.of("tag1"))
-                .build();
-            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .tags(Set.of("tag1"))
+                    .build();
+            eventLatestQueryService.initWith(
+                    List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
-            assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+            assertThat(output.apiProduct().get().getDeploymentState())
+                    .isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
         }
 
         @Test
         void should_be_need_redeploy_when_list_of_apis_in_product_changed() throws Exception {
             ApiProduct currentProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1", "api-2"))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1", "api-2"))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct));
             ApiProduct deployedProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
-            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
+            eventLatestQueryService.initWith(
+                    List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
-            assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+            assertThat(output.apiProduct().get().getDeploymentState())
+                    .isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
         }
 
         @Test
         void should_be_need_redeploy_when_plan_published_after_last_deploy() throws Exception {
             ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
+                    .build();
             apiProductQueryService.initWith(List.of(product));
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, AFTER_DEPLOY)));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
-            assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+            assertThat(output.apiProduct().get().getDeploymentState())
+                    .isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
         }
 
         @Test
         void should_be_need_redeploy_when_plan_tags_modified_after_last_deploy() throws Exception {
             ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
+                    .build();
             apiProductQueryService.initWith(List.of(product));
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
-            planQueryService.initWith(
-                List.of(aPublishedApiProductPlanWithTags(API_PRODUCT_ID, AFTER_DEPLOY, Set.of("internal", "external")))
-            );
+            planQueryService.initWith(List.of(
+                    aPublishedApiProductPlanWithTags(API_PRODUCT_ID, AFTER_DEPLOY, Set.of("internal", "external"))));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
-            assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+            assertThat(output.apiProduct().get().getDeploymentState())
+                    .isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
         }
 
         @Test
         void should_be_deployed_when_only_staging_plan_modified_after_last_deploy() throws Exception {
             ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
+                    .build();
             apiProductQueryService.initWith(List.of(product));
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aStagingApiProductPlan(API_PRODUCT_ID, AFTER_DEPLOY)));
@@ -440,11 +450,11 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
         @Test
         void should_compute_deployment_state_when_listing_products_by_environment() throws Exception {
             ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
+                    .build();
             apiProductQueryService.initWith(List.of(product));
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY)));
@@ -452,18 +462,18 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, true));
 
             assertThat(output.apiProducts())
-                .extracting(ApiProduct::getDeploymentState)
-                .containsExactly(ApiProduct.DeploymentState.DEPLOYED);
+                    .extracting(ApiProduct::getDeploymentState)
+                    .containsExactly(ApiProduct.DeploymentState.DEPLOYED);
         }
 
         @Test
         void should_be_need_redeploy_for_listed_product_when_plan_published_after_last_deploy() throws Exception {
             ApiProduct product = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product")
-                .environmentId(ENV_ID)
-                .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product")
+                    .environmentId(ENV_ID)
+                    .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
+                    .build();
             apiProductQueryService.initWith(List.of(product));
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, AFTER_DEPLOY)));
@@ -471,31 +481,32 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, ORG_ID, USER_ID, true));
 
             assertThat(output.apiProducts())
-                .extracting(ApiProduct::getDeploymentState)
-                .containsExactly(ApiProduct.DeploymentState.NEED_REDEPLOY);
+                    .extracting(ApiProduct::getDeploymentState)
+                    .containsExactly(ApiProduct.DeploymentState.NEED_REDEPLOY);
         }
 
         @Test
         void should_be_deployed_when_only_name_description_version_changed() throws Exception {
             ApiProduct currentProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product v2")
-                .description("New description")
-                .version("2.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .name("Product v2")
+                    .description("New description")
+                    .version("2.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+                    .build();
             apiProductQueryService.initWith(List.of(currentProduct));
             ApiProduct deployedProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .name("Product v1")
-                .description("Old description")
-                .version("1.0")
-                .environmentId(ENV_ID)
-                .apiIds(Set.of("api-1"))
-                .build();
-            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
+                    .id(API_PRODUCT_ID)
+                    .name("Product v1")
+                    .description("Old description")
+                    .version("1.0")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build();
+            eventLatestQueryService.initWith(
+                    List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, BEFORE_DEPLOY)));
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
@@ -503,16 +514,16 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.DEPLOYED);
         }
 
-        private Event aDeployApiProductEvent(String apiProductId, Instant updatedAt, ApiProduct deployedPayload) throws Exception {
+        private Event aDeployApiProductEvent(String apiProductId, Instant updatedAt, ApiProduct deployedPayload)
+                throws Exception {
             Event.EventBuilder builder = Event.builder()
-                .id("event-" + apiProductId)
-                .type(EventType.DEPLOY_API_PRODUCT)
-                .properties(
-                    new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, apiProductId, Event.EventProperties.USER, "user-id"))
-                )
-                .environments(Set.of(ENV_ID))
-                .createdAt(updatedAt.atZone(ZoneId.systemDefault()))
-                .updatedAt(updatedAt.atZone(ZoneId.systemDefault()));
+                    .id("event-" + apiProductId)
+                    .type(EventType.DEPLOY_API_PRODUCT)
+                    .properties(new EnumMap<>(Map.of(
+                            Event.EventProperties.API_PRODUCT_ID, apiProductId, Event.EventProperties.USER, "user-id")))
+                    .environments(Set.of(ENV_ID))
+                    .createdAt(updatedAt.atZone(ZoneId.systemDefault()))
+                    .updatedAt(updatedAt.atZone(ZoneId.systemDefault()));
             if (deployedPayload != null) {
                 builder.payload(objectMapper.writeValueAsString(deployedPayload));
             }
@@ -525,34 +536,31 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
 
         private Plan aPublishedApiProductPlanWithTags(String apiProductId, Instant needRedeployAt, Set<String> tags) {
             return Plan.builder()
-                .id("plan-" + apiProductId)
-                .referenceId(apiProductId)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .definitionVersion(DefinitionVersion.V4)
-                .apiType(ApiType.PROXY)
-                .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
-                        .toBuilder()
-                        .status(PlanStatus.PUBLISHED)
-                        .tags(tags.isEmpty() ? null : tags)
-                        .build()
-                )
-                .needRedeployAt(Date.from(needRedeployAt))
-                .build();
+                    .id("plan-" + apiProductId)
+                    .referenceId(apiProductId)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .apiType(ApiType.PROXY)
+                    .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder()
+                            .status(PlanStatus.PUBLISHED)
+                            .tags(tags.isEmpty() ? null : tags)
+                            .build())
+                    .needRedeployAt(Date.from(needRedeployAt))
+                    .build();
         }
 
         private Plan aStagingApiProductPlan(String apiProductId, Instant needRedeployAt) {
             return Plan.builder()
-                .id("plan-staging-" + apiProductId)
-                .referenceId(apiProductId)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .definitionVersion(DefinitionVersion.V4)
-                .apiType(ApiType.PROXY)
-                .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder().status(PlanStatus.STAGING).build()
-                )
-                .needRedeployAt(Date.from(needRedeployAt))
-                .build();
+                    .id("plan-staging-" + apiProductId)
+                    .referenceId(apiProductId)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .apiType(ApiType.PROXY)
+                    .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder()
+                            .status(PlanStatus.STAGING)
+                            .build())
+                    .needRedeployAt(Date.from(needRedeployAt))
+                    .build();
         }
     }
 }

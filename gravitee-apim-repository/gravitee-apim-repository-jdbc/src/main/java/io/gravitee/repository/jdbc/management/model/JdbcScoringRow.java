@@ -55,7 +55,8 @@ public final class JdbcScoringRow {
 
     private ScoringReport.Summary summary;
 
-    public JdbcScoringRow(String reportId, String apiId, String environmentId, String pageId, String type, Date createdAt) {
+    public JdbcScoringRow(
+            String reportId, String apiId, String environmentId, String pageId, String type, Date createdAt) {
         this.reportId = reportId;
         this.apiId = apiId;
         this.environmentId = environmentId;

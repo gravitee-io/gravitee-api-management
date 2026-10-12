@@ -49,12 +49,15 @@ public class PlanKeylessApiKeyJwtV4IntegrationTest {
     }
 
     public static void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     public static void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
@@ -67,7 +70,7 @@ public class PlanKeylessApiKeyJwtV4IntegrationTest {
     }
 
     @Nested
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectKeylessTest extends PlanKeylessApiKeyJwtV4EmulationIntegrationTest.AbstractSelectKeylessTest {
 
         @Override
@@ -97,7 +100,7 @@ public class PlanKeylessApiKeyJwtV4IntegrationTest {
     }
 
     @Nested
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectApiKeyTest extends PlanKeylessApiKeyJwtV4EmulationIntegrationTest.AbstractSelectApiKeyTest {
 
         @Override
@@ -127,7 +130,7 @@ public class PlanKeylessApiKeyJwtV4IntegrationTest {
     }
 
     @Nested
-    @DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+    @DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
     public class SelectJwtTest extends PlanKeylessApiKeyJwtV4EmulationIntegrationTest.AbstractSelectJwtTest {
 
         @Override

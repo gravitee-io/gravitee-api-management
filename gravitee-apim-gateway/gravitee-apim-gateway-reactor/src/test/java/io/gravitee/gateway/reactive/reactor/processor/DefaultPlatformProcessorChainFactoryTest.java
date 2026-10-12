@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,18 +85,18 @@ class DefaultPlatformProcessorChainFactoryTest {
 
         @Test
         void should_have_preProcessors_with_TraceContextProcessor_when_traceContext_is_enabled() {
-            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-                transactionHandlerFactory,
-                true,
-                true,
-                reporterService,
-                eventProducer,
-                node,
-                "8080",
-                gatewayConfiguration,
-                connectionDrainManager,
-                true
-            );
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory =
+                    new DefaultPlatformProcessorChainFactory(
+                            transactionHandlerFactory,
+                            true,
+                            true,
+                            reporterService,
+                            eventProducer,
+                            node,
+                            "8080",
+                            gatewayConfiguration,
+                            connectionDrainManager,
+                            true);
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
             assertEquals(6, processors.size());
@@ -111,18 +110,18 @@ class DefaultPlatformProcessorChainFactoryTest {
 
         @Test
         void should_not_have_preProcessors_with_TraceContextProcessor_when_traceContext_is_not_enabled() {
-            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-                transactionHandlerFactory,
-                false,
-                true,
-                reporterService,
-                eventProducer,
-                node,
-                "8080",
-                gatewayConfiguration,
-                connectionDrainManager,
-                true
-            );
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory =
+                    new DefaultPlatformProcessorChainFactory(
+                            transactionHandlerFactory,
+                            false,
+                            true,
+                            reporterService,
+                            eventProducer,
+                            node,
+                            "8080",
+                            gatewayConfiguration,
+                            connectionDrainManager,
+                            true);
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
             assertEquals(5, processors.size());
@@ -135,18 +134,18 @@ class DefaultPlatformProcessorChainFactoryTest {
 
         @Test
         void should_not_have_TracingPreProcessor_when_otlp_is_disabled() {
-            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-                transactionHandlerFactory,
-                false,
-                true,
-                reporterService,
-                eventProducer,
-                node,
-                "8080",
-                gatewayConfiguration,
-                connectionDrainManager,
-                false
-            );
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory =
+                    new DefaultPlatformProcessorChainFactory(
+                            transactionHandlerFactory,
+                            false,
+                            true,
+                            reporterService,
+                            eventProducer,
+                            node,
+                            "8080",
+                            gatewayConfiguration,
+                            connectionDrainManager,
+                            false);
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
             assertEquals(4, processors.size());
@@ -162,18 +161,18 @@ class DefaultPlatformProcessorChainFactoryTest {
 
         @Test
         void should_not_have_postProcessors_with_AlertProcessors_when_EventProducer_is_empty() {
-            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-                transactionHandlerFactory,
-                false,
-                true,
-                reporterService,
-                eventProducer,
-                node,
-                "8080",
-                gatewayConfiguration,
-                connectionDrainManager,
-                false
-            );
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory =
+                    new DefaultPlatformProcessorChainFactory(
+                            transactionHandlerFactory,
+                            false,
+                            true,
+                            reporterService,
+                            eventProducer,
+                            node,
+                            "8080",
+                            gatewayConfiguration,
+                            connectionDrainManager,
+                            false);
             when(eventProducer.isEmpty()).thenReturn(true);
 
             List<Processor> processors = platformProcessorChainFactory.buildPostProcessorList();
@@ -185,18 +184,18 @@ class DefaultPlatformProcessorChainFactoryTest {
 
         @Test
         void should_have_postProcessors_with_AlertProcessors_when_EventProducer_is_not_empty() {
-            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
-                transactionHandlerFactory,
-                false,
-                true,
-                reporterService,
-                eventProducer,
-                node,
-                "8080",
-                gatewayConfiguration,
-                connectionDrainManager,
-                false
-            );
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory =
+                    new DefaultPlatformProcessorChainFactory(
+                            transactionHandlerFactory,
+                            false,
+                            true,
+                            reporterService,
+                            eventProducer,
+                            node,
+                            "8080",
+                            gatewayConfiguration,
+                            connectionDrainManager,
+                            false);
             when(eventProducer.isEmpty()).thenReturn(false);
 
             List<Processor> processors = platformProcessorChainFactory.buildPostProcessorList();

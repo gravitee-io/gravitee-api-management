@@ -20,5 +20,6 @@ import java.util.Collection;
 
 public interface WorkflowCrudService {
     Workflow create(Workflow workflow);
+
     Collection<Workflow> findByApiId(String apiId);
 }

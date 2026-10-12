@@ -65,14 +65,13 @@ public interface OnMessagesInterceptor<T extends Message> {
      * @param id the id of the interceptor; useful for unregistering
      * @param priority priority to the interceptor; -1 means no priority
      * @param transformersFunction the function taking the {@link FlowableTransformer} provided by the call to {@link MutableRequest#onMessages(FlowableTransformer)} or {@link MutableResponse#onMessages(FlowableTransformer)} and returns another {@link FlowableTransformer} as a replacement.
-
+     *
      */
     @Builder
     record MessagesInterceptor<T>(
-        String id,
-        Integer priority,
-        Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> transformersFunction
-    ) {
+            String id,
+            Integer priority,
+            Function<FlowableTransformer<T, T>, FlowableTransformer<T, T>> transformersFunction) {
         public MessagesInterceptor {
             if (priority == null || priority < 0) priority = Integer.MAX_VALUE;
         }

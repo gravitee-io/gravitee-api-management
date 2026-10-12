@@ -80,11 +80,10 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private final String templatesPath;
 
     public EmailServiceImpl(
-        GraviteeJavaMailManager mailManager,
-        NotificationTemplateService notificationTemplateService,
-        ParameterService parameterService,
-        @Value("${templates.path:${gravitee.home}/templates}") String templatesPath
-    ) {
+            GraviteeJavaMailManager mailManager,
+            NotificationTemplateService notificationTemplateService,
+            ParameterService parameterService,
+            @Value("${templates.path:${gravitee.home}/templates}") String templatesPath) {
         this.mailManager = mailManager;
         this.notificationTemplateService = notificationTemplateService;
         this.parameterService = parameterService;
@@ -95,46 +94,46 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     public void sendEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
         final ReferenceContext context = executionContext.getReferenceContext();
         this.sendEmailNotification(
-            executionContext,
-            emailNotification,
-            context.getReferenceId(),
-            ParameterReferenceType.valueOf(context.getReferenceType().name())
-        );
+                executionContext,
+                emailNotification,
+                context.getReferenceId(),
+                ParameterReferenceType.valueOf(context.getReferenceType().name()));
     }
 
     @Override
     @Async
-    public void sendAsyncEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
+    public void sendAsyncEmailNotification(
+            ExecutionContext executionContext, final EmailNotification emailNotification) {
         sendEmailNotification(
-            executionContext,
-            emailNotification,
-            executionContext.getReferenceContext().getReferenceId(),
-            ParameterReferenceType.valueOf(executionContext.getReferenceContext().getReferenceType().name())
-        );
+                executionContext,
+                emailNotification,
+                executionContext.getReferenceContext().getReferenceId(),
+                ParameterReferenceType.valueOf(executionContext
+                        .getReferenceContext()
+                        .getReferenceType()
+                        .name()));
     }
 
     private void sendEmailNotification(
-        ExecutionContext executionContext,
-        final EmailNotification emailNotification,
-        String referenceId,
-        ParameterReferenceType referenceType
-    ) {
+            ExecutionContext executionContext,
+            final EmailNotification emailNotification,
+            String referenceId,
+            ParameterReferenceType referenceType) {
         Map<Key, String> mailParameters = getMailSenderConfiguration(executionContext, referenceId, referenceType);
 
         if (Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED)) && emailNotification.hasRecipients()) {
             try {
-                JavaMailSender mailSender = mailManager.getOrCreateMailSender(executionContext, referenceId, referenceType);
+                JavaMailSender mailSender =
+                        mailManager.getOrCreateMailSender(executionContext, referenceId, referenceType);
 
                 String emailSubject = notificationTemplateService.resolveTemplateWithParam(
-                    executionContext.getOrganizationId(),
-                    emailNotification.getTemplate() + ".EMAIL.TITLE",
-                    emailNotification.getParams()
-                );
+                        executionContext.getOrganizationId(),
+                        emailNotification.getTemplate() + ".EMAIL.TITLE",
+                        emailNotification.getParams());
                 String content = notificationTemplateService.resolveTemplateWithParam(
-                    executionContext.getOrganizationId(),
-                    emailNotification.getTemplate() + ".EMAIL",
-                    emailNotification.getParams()
-                );
+                        executionContext.getOrganizationId(),
+                        emailNotification.getTemplate() + ".EMAIL",
+                        emailNotification.getParams());
                 content = content.replaceAll("&lt;br /&gt;", "<br />");
 
                 // Group every recipient (to + bcc + copyToSender) by the branded sender its domain resolves to,
@@ -156,16 +155,15 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         final Document document = Jsoup.parse(htmlText);
 
         final Elements imageElements = document.getElementsByTag("img");
-        final List<String> resources = imageElements
-            .stream()
-            .filter(imageElement -> imageElement.hasAttr("src"))
-            .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
-            .map(imageElement -> {
-                final String src = imageElement.attr("src");
-                imageElement.attr("src", "cid:" + src);
-                return src;
-            })
-            .toList();
+        final List<String> resources = imageElements.stream()
+                .filter(imageElement -> imageElement.hasAttr("src"))
+                .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
+                .map(imageElement -> {
+                    final String src = imageElement.attr("src");
+                    imageElement.attr("src", "cid:" + src);
+                    return src;
+                })
+                .toList();
 
         final String html = document.html();
         mailMessage.setText(html, true);
@@ -203,7 +201,8 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
      * @param encoded Base64 string
      * @return MIME type string
      */
-    @SuppressWarnings("java:S5852") // do not warn about catastrophic backtracking as the matcher is bounded by a timeout
+    @SuppressWarnings(
+            "java:S5852") // do not warn about catastrophic backtracking as the matcher is bounded by a timeout
     private static String extractMimeType(final String encoded) {
         final Pattern mime = Pattern.compile("^data:([a-zA-Z0-9]+/[a-zA-Z0-9]+).*,.*");
         final Matcher matcher = mime.matcher(new TimeBoundedCharSequence(encoded, REGEX_TIMEOUT));
@@ -212,13 +211,14 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     }
 
     private void sendGroupedMessage(
-        JavaMailSender mailSender,
-        EmailNotification emailNotification,
-        String emailSubject,
-        String content,
-        RecipientGroup group
-    ) throws Exception {
-        final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
+            JavaMailSender mailSender,
+            EmailNotification emailNotification,
+            String emailSubject,
+            String content,
+            RecipientGroup group)
+            throws Exception {
+        final MimeMessageHelper mailMessage =
+                new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
         final InternetAddress configuredFrom = new InternetAddress(group.from());
         if (isEmpty(configuredFrom.getPersonal())) {
@@ -245,7 +245,11 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
         final String html = addResourcesInMessage(mailMessage, content);
 
-        log.debug("Sending an email to {} recipient(s)\nSubject: {}\nMessage: {}", group.recipientCount(), emailSubject, html);
+        log.debug(
+                "Sending an email to {} recipient(s)\nSubject: {}\nMessage: {}",
+                group.recipientCount(),
+                emailSubject,
+                html);
 
         mailSender.send(mailMessage.getMimeMessage());
     }
@@ -262,7 +266,8 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
      * with the placeholder {@code EMAIL_FROM} address on the default-identity message (as before) so the
      * no-configuration case stays byte-identical to today.</p>
      */
-    private List<RecipientGroup> buildRecipientGroups(EmailNotification emailNotification, Map<Key, String> mailParameters) {
+    private List<RecipientGroup> buildRecipientGroups(
+            EmailNotification emailNotification, Map<Key, String> mailParameters) {
         final String defaultFrom = mailParameters.get(EMAIL_FROM);
         final String defaultSubject = mailParameters.get(EMAIL_SUBJECT);
 
@@ -281,11 +286,13 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
         // An explicit caller-provided From is a deliberate override: keep today's single, unbranded message.
         if (!isEmpty(emailNotification.getFrom())) {
-            return List.of(explicitFromGroup(emailNotification, defaultFrom, defaultSubject, sender, copyToSender, selfSend, bcc));
+            return List.of(explicitFromGroup(
+                    emailNotification, defaultFrom, defaultSubject, sender, copyToSender, selfSend, bcc));
         }
 
         // Branding path: parse the configuration once, then match each recipient against the parsed list.
-        final List<BrandedSenderConfig> configurations = BrandedSenders.parse(mailParameters.get(EMAIL_BRANDED_SENDERS));
+        final List<BrandedSenderConfig> configurations =
+                BrandedSenders.parse(mailParameters.get(EMAIL_BRANDED_SENDERS));
         final Map<GroupKey, RecipientGroup> groups = new LinkedHashMap<>();
         // On a self-send the "to" is the DEFAULT_MAIL_TO sentinel, not real addresses, so it is not matched;
         // the placeholder recipient is added to the default-identity group at the end.
@@ -314,14 +321,13 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
      * sender to the {@code bcc}.
      */
     private RecipientGroup explicitFromGroup(
-        EmailNotification emailNotification,
-        String defaultFrom,
-        String defaultSubject,
-        String sender,
-        boolean copyToSender,
-        boolean selfSend,
-        List<String> bcc
-    ) {
+            EmailNotification emailNotification,
+            String defaultFrom,
+            String defaultSubject,
+            String sender,
+            boolean copyToSender,
+            boolean selfSend,
+            List<String> bcc) {
         final List<String> to = new ArrayList<>();
         if (selfSend) {
             to.add(defaultFrom);
@@ -339,7 +345,8 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
      * attached to the default-identity group only when one already exists (or no branded group does), so that
      * when every recipient resolved to a brand we do not emit a spurious message addressed only to ourselves.
      */
-    private void addSelfSendPlaceholderRecipient(Map<GroupKey, RecipientGroup> groups, String defaultFrom, String defaultSubject) {
+    private void addSelfSendPlaceholderRecipient(
+            Map<GroupKey, RecipientGroup> groups, String defaultFrom, String defaultSubject) {
         if (groups.isEmpty()) {
             defaultGroup(groups, defaultFrom, defaultSubject);
         }
@@ -350,26 +357,23 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     }
 
     private void groupRecipient(
-        Map<GroupKey, RecipientGroup> groups,
-        List<BrandedSenderConfig> configurations,
-        String recipient,
-        boolean isTo,
-        String defaultFrom,
-        String defaultSubject
-    ) {
+            Map<GroupKey, RecipientGroup> groups,
+            List<BrandedSenderConfig> configurations,
+            String recipient,
+            boolean isTo,
+            String defaultFrom,
+            String defaultSubject) {
         final Optional<BrandedSenderConfig> branded = BrandedSenders.match(configurations, recipient);
         // Optional.map already drops a null from/subject, so the filtered value is non-null here.
-        final String from = branded
-            .map(BrandedSenderConfig::getFrom)
-            .filter(value -> !value.isBlank())
-            .orElse(defaultFrom);
-        final String subject = branded
-            .map(BrandedSenderConfig::getSubject)
-            .filter(value -> !value.isBlank())
-            .orElse(defaultSubject);
-        final RecipientGroup group = groups.computeIfAbsent(new GroupKey(from, subject), key ->
-            new RecipientGroup(from, subject, new ArrayList<>(), new ArrayList<>())
-        );
+        final String from = branded.map(BrandedSenderConfig::getFrom)
+                .filter(value -> !value.isBlank())
+                .orElse(defaultFrom);
+        final String subject = branded.map(BrandedSenderConfig::getSubject)
+                .filter(value -> !value.isBlank())
+                .orElse(defaultSubject);
+        final RecipientGroup group = groups.computeIfAbsent(
+                new GroupKey(from, subject),
+                key -> new RecipientGroup(from, subject, new ArrayList<>(), new ArrayList<>()));
         if (isTo) {
             group.to().add(recipient);
         } else {
@@ -377,10 +381,11 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         }
     }
 
-    private RecipientGroup defaultGroup(Map<GroupKey, RecipientGroup> groups, String defaultFrom, String defaultSubject) {
-        return groups.computeIfAbsent(new GroupKey(defaultFrom, defaultSubject), key ->
-            new RecipientGroup(defaultFrom, defaultSubject, new ArrayList<>(), new ArrayList<>())
-        );
+    private RecipientGroup defaultGroup(
+            Map<GroupKey, RecipientGroup> groups, String defaultFrom, String defaultSubject) {
+        return groups.computeIfAbsent(
+                new GroupKey(defaultFrom, defaultSubject),
+                key -> new RecipientGroup(defaultFrom, defaultSubject, new ArrayList<>(), new ArrayList<>()));
     }
 
     /**
@@ -405,19 +410,17 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     }
 
     private Map<Key, String> getMailSenderConfiguration(
-        ExecutionContext executionContext,
-        String referenceId,
-        ParameterReferenceType referenceType
-    ) {
+            ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
         return parameterService
-            .findAll(
-                Arrays.asList(EMAIL_ENABLED, EMAIL_SUBJECT, EMAIL_FROM, EMAIL_BRANDED_SENDERS),
-                referenceId,
-                referenceType,
-                executionContext
-            )
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(e -> Key.findByKey(e.getKey()), e -> e.getValue().isEmpty() ? "" : e.getValue().get(0)));
+                .findAll(
+                        Arrays.asList(EMAIL_ENABLED, EMAIL_SUBJECT, EMAIL_FROM, EMAIL_BRANDED_SENDERS),
+                        referenceId,
+                        referenceType,
+                        executionContext)
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        e -> Key.findByKey(e.getKey()),
+                        e -> e.getValue().isEmpty() ? "" : e.getValue().get(0)));
     }
 }

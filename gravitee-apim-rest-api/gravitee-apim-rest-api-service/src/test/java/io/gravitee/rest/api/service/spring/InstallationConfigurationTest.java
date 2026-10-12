@@ -28,21 +28,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = InstallationConfiguration.class)
 @TestPropertySource(
-    properties = {
-        "installation.additionalInformation[0].name=cp-id",
-        "installation.additionalInformation[0].value=efdab34c",
-        "installation.additionalInformation[1].name=provider",
-        "installation.additionalInformation[1].value=az",
-        "installation.additionalInformation[2].name=region",
-        "installation.additionalInformation[2].value=euwest",
-        "installation.additionalInformation[3].name=geo",
-        "installation.additionalInformation[3].value=europe",
-        "installation.additionalInformation[4].name=",
-        "installation.additionalInformation[4].value=null",
-        "installation.api.proxyPath.management=http://localhost:8083/management",
-        "installation.api.url=http://localhost:8084/api",
-    }
-)
+        properties = {
+            "installation.additionalInformation[0].name=cp-id",
+            "installation.additionalInformation[0].value=efdab34c",
+            "installation.additionalInformation[1].name=provider",
+            "installation.additionalInformation[1].value=az",
+            "installation.additionalInformation[2].name=region",
+            "installation.additionalInformation[2].value=euwest",
+            "installation.additionalInformation[3].name=geo",
+            "installation.additionalInformation[3].value=europe",
+            "installation.additionalInformation[4].name=",
+            "installation.additionalInformation[4].value=null",
+            "installation.api.proxyPath.management=http://localhost:8083/management",
+            "installation.api.url=http://localhost:8084/api",
+        })
 public class InstallationConfigurationTest {
 
     @Autowired
@@ -54,8 +53,10 @@ public class InstallationConfigurationTest {
         assertEquals("http://localhost:8084/api", installationConfiguration.getApiURL());
         assertEquals("http://localhost:8083/management", installationConfiguration.getManagementProxyPath());
         assertEquals(5, installationConfiguration.getAdditionalInformation().size());
-        assertEquals("euwest", installationConfiguration.getAdditionalInformation().get("REGION"));
-        assertEquals("europe", installationConfiguration.getAdditionalInformation().get("GEO"));
+        assertEquals(
+                "euwest", installationConfiguration.getAdditionalInformation().get("REGION"));
+        assertEquals(
+                "europe", installationConfiguration.getAdditionalInformation().get("GEO"));
         assertEquals("az", installationConfiguration.getAdditionalInformation().get("PROVIDER"));
     }
 }

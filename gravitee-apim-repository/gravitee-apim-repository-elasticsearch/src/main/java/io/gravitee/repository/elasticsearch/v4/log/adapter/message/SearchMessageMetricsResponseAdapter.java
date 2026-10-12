@@ -36,30 +36,33 @@ public class SearchMessageMetricsResponseAdapter {
             return Collections.emptyList();
         }
 
-        return hits.getHits().stream().map(SearchHit::getSource).map(SearchMessageMetricsResponseAdapter::map).toList();
+        return hits.getHits().stream()
+                .map(SearchHit::getSource)
+                .map(SearchMessageMetricsResponseAdapter::map)
+                .toList();
     }
 
     private static MessageMetrics map(JsonNode source) {
         return MessageMetrics.builder()
-            .timestamp(asTextOrNull(source.get(MessageMetricsFields.TIMESTAMP)))
-            .apiId(asTextOrNull(source.get(API_ID)))
-            .apiName(asTextOrNull(source.get(API_NAME)))
-            .requestId(asTextOrNull(source.get(REQUEST_ID)))
-            .clientIdentifier(asTextOrNull(source.get(CLIENT_IDENTIFIER)))
-            .correlationId(asTextOrNull(source.get(CORRELATION_ID)))
-            .operation(asTextOrNull(source.get(OPERATION)))
-            .connectorType(asTextOrNull(source.get(CONNECTOR_TYPE)))
-            .connectorId(asTextOrNull(source.get(CONNECTOR_ID)))
-            .gateway(asTextOrNull(source.get(GATEWAY)))
-            .gatewayLatencyMs(asLongOr(source.get(GATEWAY_LATENCY_MS), 0L))
-            .contentLength(asLongOr(source.get(CONTENT_LENGTH), 0L))
-            .error(asBooleanOrFalse(source.get(ERROR)))
-            .count(asLongOr(source.get(COUNT), 0L))
-            .countIncrement(asLongOr(source.get(COUNT_INCREMENT), 0L))
-            .errorCount(asLongOr(source.get(ERROR_COUNT), 0L))
-            .errorCountIncrement(asLongOr(source.get(ERROR_COUNT_INCREMENT), 0L))
-            .custom(asMapOrNull(source.get(CUSTOM)))
-            .additionalMetrics(asMapOrNull(source.get(ADDITIONAL_METRICS)))
-            .build();
+                .timestamp(asTextOrNull(source.get(MessageMetricsFields.TIMESTAMP)))
+                .apiId(asTextOrNull(source.get(API_ID)))
+                .apiName(asTextOrNull(source.get(API_NAME)))
+                .requestId(asTextOrNull(source.get(REQUEST_ID)))
+                .clientIdentifier(asTextOrNull(source.get(CLIENT_IDENTIFIER)))
+                .correlationId(asTextOrNull(source.get(CORRELATION_ID)))
+                .operation(asTextOrNull(source.get(OPERATION)))
+                .connectorType(asTextOrNull(source.get(CONNECTOR_TYPE)))
+                .connectorId(asTextOrNull(source.get(CONNECTOR_ID)))
+                .gateway(asTextOrNull(source.get(GATEWAY)))
+                .gatewayLatencyMs(asLongOr(source.get(GATEWAY_LATENCY_MS), 0L))
+                .contentLength(asLongOr(source.get(CONTENT_LENGTH), 0L))
+                .error(asBooleanOrFalse(source.get(ERROR)))
+                .count(asLongOr(source.get(COUNT), 0L))
+                .countIncrement(asLongOr(source.get(COUNT_INCREMENT), 0L))
+                .errorCount(asLongOr(source.get(ERROR_COUNT), 0L))
+                .errorCountIncrement(asLongOr(source.get(ERROR_COUNT_INCREMENT), 0L))
+                .custom(asMapOrNull(source.get(CUSTOM)))
+                .additionalMetrics(asMapOrNull(source.get(ADDITIONAL_METRICS)))
+                .build();
     }
 }

@@ -41,11 +41,10 @@ public class SimpleFlowProvider implements FlowProvider {
     private final FlowPolicyResolverFactory flowPolicyResolverFactory;
 
     public SimpleFlowProvider(
-        final StreamType streamType,
-        final FlowResolver flowResolver,
-        final PolicyChainFactory policyChainFactory,
-        final FlowPolicyResolverFactory flowPolicyResolverFactory
-    ) {
+            final StreamType streamType,
+            final FlowResolver flowResolver,
+            final PolicyChainFactory policyChainFactory,
+            final FlowPolicyResolverFactory flowPolicyResolverFactory) {
         this.streamType = streamType;
         this.flowResolver = flowResolver;
         this.policyChainFactory = policyChainFactory;
@@ -60,14 +59,11 @@ public class SimpleFlowProvider implements FlowProvider {
             final List<StreamableProcessor<ExecutionContext, Buffer>> chain = new ArrayList<>(flows.size());
 
             for (Flow flow : flows) {
-                chain.add(
-                    policyChainFactory.create(
+                chain.add(policyChainFactory.create(
                         flowPolicyResolverFactory.create(flow).resolve(streamType, context),
                         streamType,
                         context,
-                        policies -> OrderedPolicyChain.create(policies, context)
-                    )
-                );
+                        policies -> OrderedPolicyChain.create(policies, context)));
             }
 
             return new DefaultStreamableProcessorChain<>(chain);

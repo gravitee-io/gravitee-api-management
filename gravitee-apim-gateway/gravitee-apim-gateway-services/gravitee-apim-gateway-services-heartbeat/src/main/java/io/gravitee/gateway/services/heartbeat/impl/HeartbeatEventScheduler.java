@@ -49,12 +49,11 @@ public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventSched
     private ScheduledExecutorService executorService;
 
     public HeartbeatEventScheduler(
-        final ClusterManager clusterManager,
-        final EventRepository eventRepository,
-        final int delay,
-        final TimeUnit delayUnit,
-        final Event heartbeatEvent
-    ) {
+            final ClusterManager clusterManager,
+            final EventRepository eventRepository,
+            final int delay,
+            final TimeUnit delayUnit,
+            final Event heartbeatEvent) {
         this.clusterManager = clusterManager;
         this.delay = delay;
         this.unit = delayUnit;
@@ -73,7 +72,8 @@ public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventSched
 
         log.info("Monitoring scheduled with fixed delay {} {}", delay, unit);
         executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
-        executorService.scheduleWithFixedDelay(new HeartbeatEventPublisher(clusterManager, topic, heartbeatEvent), delay, delay, unit);
+        executorService.scheduleWithFixedDelay(
+                new HeartbeatEventPublisher(clusterManager, topic, heartbeatEvent), delay, delay, unit);
 
         log.info("Start gateway heartbeat done successfully");
     }
@@ -85,8 +85,16 @@ public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventSched
         if (heartbeatEvent.getProperties() == null) {
             heartbeatEvent.setProperties(new HashMap<>());
         }
-        heartbeatEvent.getProperties().put(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.toString(clusterManager.self().primary()));
-        heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(heartbeatEvent.getUpdatedAt().getTime()));
+        heartbeatEvent
+                .getProperties()
+                .put(
+                        EVENT_CLUSTER_PRIMARY_NODE_PROPERTY,
+                        Boolean.toString(clusterManager.self().primary()));
+        heartbeatEvent
+                .getProperties()
+                .put(
+                        EVENT_STOPPED_AT_PROPERTY,
+                        Long.toString(heartbeatEvent.getUpdatedAt().getTime()));
         log.debug("Sending a {} event", heartbeatEvent.getType());
         topic.publish(heartbeatEvent);
         return this;

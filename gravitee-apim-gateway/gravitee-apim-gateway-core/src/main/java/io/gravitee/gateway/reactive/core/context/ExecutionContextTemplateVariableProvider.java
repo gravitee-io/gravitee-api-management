@@ -23,7 +23,8 @@ public interface ExecutionContextTemplateVariableProvider extends TemplateVariab
     @Override
     default void provide(TemplateContext templateContext) {
         // rely on provide(ctx)
-        throw new IllegalStateException("Should provide a BaseExecutionContext to an ExecutionContextTemplateVariableProvider");
+        throw new IllegalStateException(
+                "Should provide a BaseExecutionContext to an ExecutionContextTemplateVariableProvider");
     }
 
     <T extends BaseExecutionContext> void provide(T ctx);

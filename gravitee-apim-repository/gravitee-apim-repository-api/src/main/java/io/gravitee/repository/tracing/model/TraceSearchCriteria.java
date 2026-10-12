@@ -37,12 +37,11 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public record TraceSearchCriteria(
-    Map<String, String> attributeFilters,
-    Integer limit,
-    Instant start,
-    Instant end,
-    Map<String, String> resourceAttributeFilters
-) {
+        Map<String, String> attributeFilters,
+        Integer limit,
+        Instant start,
+        Instant end,
+        Map<String, String> resourceAttributeFilters) {
     public TraceSearchCriteria {
         if (limit == null || limit <= 0) {
             limit = 20;

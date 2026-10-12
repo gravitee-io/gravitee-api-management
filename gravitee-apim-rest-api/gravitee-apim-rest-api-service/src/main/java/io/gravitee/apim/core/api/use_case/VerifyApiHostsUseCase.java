@@ -28,7 +28,8 @@ public class VerifyApiHostsUseCase {
     private final VerifyApiHostsDomainService verifyApiHostsDomainService;
 
     public Output execute(Input input) {
-        if (verifyApiHostsDomainService.checkApiHosts(input.environmentId(), input.apiId(), input.hosts(), input.listenerType())) {
+        if (verifyApiHostsDomainService.checkApiHosts(
+                input.environmentId(), input.apiId(), input.hosts(), input.listenerType())) {
             return new Output(input.hosts());
         }
         return null;

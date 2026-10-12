@@ -110,15 +110,15 @@ public class UserMapperTest {
         userRoleEntityOrganization.setId("org-id");
         userRoleEntityOrganization.setScope(RoleScope.ORGANIZATION);
         HashMap<String, char[]> organizationPermissions = new HashMap<>();
-        organizationPermissions.put("USER", new char[] { 'C', 'R', 'U', 'D' });
-        organizationPermissions.put("ENVIRONMENT", new char[] { 'C', 'R', 'U', 'D' });
+        organizationPermissions.put("USER", new char[] {'C', 'R', 'U', 'D'});
+        organizationPermissions.put("ENVIRONMENT", new char[] {'C', 'R', 'U', 'D'});
         userRoleEntityOrganization.setPermissions(organizationPermissions);
 
         UserRoleEntity userRoleEntityEnvironment = new UserRoleEntity();
         userRoleEntityEnvironment.setScope(RoleScope.ENVIRONMENT);
         userRoleEntityEnvironment.setId("env-id");
         HashMap<String, char[]> environmentPermissions = new HashMap<>();
-        environmentPermissions.put("APPLICATION", new char[] { 'C' });
+        environmentPermissions.put("APPLICATION", new char[] {'C'});
         userRoleEntityEnvironment.setPermissions(environmentPermissions);
 
         userEntity.setCreatedAt(nowDate);
@@ -194,15 +194,15 @@ public class UserMapperTest {
     public void testConvertSearchUser() {
         // init
         io.gravitee.apim.core.user.model.User searchUser = io.gravitee.apim.core.user.model.User.builder()
-            .id(USER_ID)
-            .reference(SEARCH_USER_REFERENCE)
-            .displayName(SEARCH_USER_DISPLAY_NAME)
-            .firstName(USER_FIRSTNAME)
-            .lastName(USER_LASTNAME)
-            .email(USER_EMAIL)
-            .editableProfile(true)
-            .permissions(Map.of("APPLICATION", List.of("C", "R"), "USER", List.of("R")))
-            .build();
+                .id(USER_ID)
+                .reference(SEARCH_USER_REFERENCE)
+                .displayName(SEARCH_USER_DISPLAY_NAME)
+                .firstName(USER_FIRSTNAME)
+                .lastName(USER_LASTNAME)
+                .email(USER_EMAIL)
+                .editableProfile(true)
+                .permissions(Map.of("APPLICATION", List.of("C", "R"), "USER", List.of("R")))
+                .build();
 
         // Test
         User responseUser = userMapper.convert(searchUser);

@@ -83,11 +83,9 @@ class PageUtilsTest {
         var exception = new TechnicalException("unexpected error");
 
         // When
-        var throwable = catchThrowable(() ->
-            PageUtils.toStream(p -> {
-                throw exception;
-            })
-        );
+        var throwable = catchThrowable(() -> PageUtils.toStream(p -> {
+            throw exception;
+        }));
 
         // Then
         assertThat(throwable).isInstanceOf(TechnicalException.class).hasMessage("unexpected error");
@@ -101,20 +99,19 @@ class PageUtilsTest {
         var exception = new TechnicalException("unexpected error");
 
         // When
-        var throwable = catchThrowable(() ->
-            PageUtils.toStream(p -> {
-                if (p.pageNumber() == 0) {
-                    return page1;
-                } else if (p.pageNumber() == 1) {
-                    throw exception;
-                }
-                return null;
-            }).toList()
-        );
+        var throwable = catchThrowable(() -> PageUtils.toStream(p -> {
+                    if (p.pageNumber() == 0) {
+                        return page1;
+                    } else if (p.pageNumber() == 1) {
+                        throw exception;
+                    }
+                    return null;
+                })
+                .toList());
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("io.gravitee.repository.exceptions.TechnicalException: unexpected error");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("io.gravitee.repository.exceptions.TechnicalException: unexpected error");
     }
 }

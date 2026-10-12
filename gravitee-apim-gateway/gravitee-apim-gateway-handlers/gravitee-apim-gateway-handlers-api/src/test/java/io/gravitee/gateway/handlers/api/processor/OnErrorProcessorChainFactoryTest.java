@@ -50,16 +50,15 @@ class OnErrorProcessorChainFactoryTest {
     @BeforeEach
     void setUp() {
         Configuration nodeConfiguration = mock(Configuration.class);
-        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString())).thenReturn(
-            DEFAULT_TRANSACTION_ID_HEADER
-        );
-        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString())).thenReturn(DEFAULT_REQUEST_ID_HEADER);
+        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString()))
+                .thenReturn(DEFAULT_TRANSACTION_ID_HEADER);
+        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString()))
+                .thenReturn(DEFAULT_REQUEST_ID_HEADER);
 
         factory = new OnErrorProcessorChainFactory(
-            buildApi(),
-            mock(PolicyChainFactory.class),
-            new TransactionResponseProcessorConfiguration(nodeConfiguration)
-        );
+                buildApi(),
+                mock(PolicyChainFactory.class),
+                new TransactionResponseProcessorConfiguration(nodeConfiguration));
     }
 
     @Test
@@ -160,23 +159,26 @@ class OnErrorProcessorChainFactoryTest {
 
         createAndHandleChain(mergeFactory, context);
 
-        assertEquals(List.of("backend-transaction-id", TRANSACTION_ID), responseHeaders.getAll(DEFAULT_TRANSACTION_ID_HEADER));
+        assertEquals(
+                List.of("backend-transaction-id", TRANSACTION_ID),
+                responseHeaders.getAll(DEFAULT_TRANSACTION_ID_HEADER));
         assertEquals(List.of("backend-request-id", REQUEST_ID), responseHeaders.getAll(DEFAULT_REQUEST_ID_HEADER));
     }
 
     private OnErrorProcessorChainFactory buildFactory(String overrideMode) {
         Configuration config = mock(Configuration.class);
-        when(config.getProperty(eq("handlers.request.transaction.header"), anyString())).thenReturn(DEFAULT_TRANSACTION_ID_HEADER);
-        when(config.getProperty(eq("handlers.request.request.header"), anyString())).thenReturn(DEFAULT_REQUEST_ID_HEADER);
+        when(config.getProperty(eq("handlers.request.transaction.header"), anyString()))
+                .thenReturn(DEFAULT_TRANSACTION_ID_HEADER);
+        when(config.getProperty(eq("handlers.request.request.header"), anyString()))
+                .thenReturn(DEFAULT_REQUEST_ID_HEADER);
         if (overrideMode != null) {
-            when(config.getProperty(eq("handlers.request.transaction.overrideMode"))).thenReturn(overrideMode);
-            when(config.getProperty(eq("handlers.request.request.overrideMode"))).thenReturn(overrideMode);
+            when(config.getProperty(eq("handlers.request.transaction.overrideMode")))
+                    .thenReturn(overrideMode);
+            when(config.getProperty(eq("handlers.request.request.overrideMode")))
+                    .thenReturn(overrideMode);
         }
         return new OnErrorProcessorChainFactory(
-            buildApi(),
-            mock(PolicyChainFactory.class),
-            new TransactionResponseProcessorConfiguration(config)
-        );
+                buildApi(), mock(PolicyChainFactory.class), new TransactionResponseProcessorConfiguration(config));
     }
 
     private ProcessorFailure mockFailure() {
@@ -193,13 +195,13 @@ class OnErrorProcessorChainFactoryTest {
 
     private void createAndHandleChain(OnErrorProcessorChainFactory chainFactory, ExecutionContext context) {
         chainFactory
-            .create()
-            .handler(__ -> {})
-            .errorHandler(failure -> {
-                throw new AssertionError(failure);
-            })
-            .exitHandler(__ -> {})
-            .handle(context);
+                .create()
+                .handler(__ -> {})
+                .errorHandler(failure -> {
+                    throw new AssertionError(failure);
+                })
+                .exitHandler(__ -> {})
+                .handle(context);
     }
 
     private Api buildApi() {

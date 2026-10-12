@@ -93,16 +93,15 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     private final SearchEngineService searchEngineService;
 
     public ApiAuthorizationServiceImpl(
-        @Lazy final ApiRepository apiRepository,
-        final CategoryService categoryService,
-        final MembershipService membershipService,
-        final RoleService roleService,
-        final ApplicationService applicationService,
-        final GroupService groupService,
-        final SubscriptionService subscriptionService,
-        final PrimaryOwnerService primaryOwnerService,
-        final SearchEngineService searchEngineService
-    ) {
+            @Lazy final ApiRepository apiRepository,
+            final CategoryService categoryService,
+            final MembershipService membershipService,
+            final RoleService roleService,
+            final ApplicationService applicationService,
+            final GroupService groupService,
+            final SubscriptionService subscriptionService,
+            final PrimaryOwnerService primaryOwnerService,
+            final SearchEngineService searchEngineService) {
         this.apiRepository = apiRepository;
         this.categoryService = categoryService;
         this.membershipService = membershipService;
@@ -116,29 +115,25 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
     @Override
     public boolean canManageApi(final RoleEntity role) {
-        return (
-            role != null &&
-            role.getScope() == RoleScope.API &&
-            role
-                .getPermissions()
-                .entrySet()
-                .stream()
-                .filter(entry -> isApiManagementPermission(entry.getKey()))
-                .anyMatch(entry -> {
-                    String stringPerm = new String(entry.getValue());
-                    return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
-                })
-        );
+        return (role != null
+                && role.getScope() == RoleScope.API
+                && role.getPermissions().entrySet().stream()
+                        .filter(entry -> isApiManagementPermission(entry.getKey()))
+                        .anyMatch(entry -> {
+                            String stringPerm = new String(entry.getValue());
+                            return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
+                        }));
     }
 
     private boolean isApiManagementPermission(String permissionAsString) {
         return Arrays.stream(ApiPermission.values())
-            .filter(permission -> permission != ApiPermission.RATING && permission != ApiPermission.RATING_ANSWER)
-            .anyMatch(permission -> permission.name().equals(permissionAsString));
+                .filter(permission -> permission != ApiPermission.RATING && permission != ApiPermission.RATING_ANSWER)
+                .anyMatch(permission -> permission.name().equals(permissionAsString));
     }
 
     @Override
-    public Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, ApiQuery apiQuery) {
+    public Set<String> findAccessibleApiIdsForUser(
+            final ExecutionContext executionContext, final String userId, ApiQuery apiQuery) {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
@@ -148,12 +143,11 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
     @Override
     public Set<String> findIdsByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Sortable sortable,
-        boolean manageOnly
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            ApiQuery apiQuery,
+            Sortable sortable,
+            boolean manageOnly) {
         Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, apiQuery);
 
         if (optionalTargetIds.isPresent()) {
@@ -171,7 +165,9 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         // Just one call to apiRepository to preserve sort
         // FIXME: Remove this hardcoded page size, it should be handled properly in the service
         Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
-        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), convert(sortable)).getContent();
+        List<String> apiIds = apiRepository
+                .searchIds(apiCriteriaList, convert(pageable), convert(sortable))
+                .getContent();
         return new LinkedHashSet<>(apiIds);
     }
 
@@ -185,7 +181,9 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         apiCriteriaList.add(builder.build());
 
         Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
-        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), null).getContent();
+        List<String> apiIds = apiRepository
+                .searchIds(apiCriteriaList, convert(pageable), null)
+                .getContent();
         return new LinkedHashSet<>(apiIds);
     }
 
@@ -197,7 +195,8 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
      * @return Optional<List < String>> an optional list of api ids and Optional.empty()
      * if ApiQuery doesn't contain fields stores in the api definition.
      */
-    private Optional<Collection<String>> searchInDefinition(final ExecutionContext executionContext, final ApiQuery apiQuery) {
+    private Optional<Collection<String>> searchInDefinition(
+            final ExecutionContext executionContext, final ApiQuery apiQuery) {
         if (apiQuery == null) {
             return Optional.empty();
         }
@@ -223,13 +222,15 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         if (!isBlank(query.getTag())) {
             searchEngineQuery.addExplicitFilter("tag", query.getTag());
         }
-        if (query.getDefinitionVersions() != null && !query.getDefinitionVersions().isEmpty()) {
+        if (query.getDefinitionVersions() != null
+                && !query.getDefinitionVersions().isEmpty()) {
             var allPossibleDefinitionVersions = DefinitionVersion.values();
             List<String> definitionVersionsToExclude = Arrays.stream(allPossibleDefinitionVersions)
-                .filter(definitionVersion -> !query.getDefinitionVersions().contains(definitionVersion))
-                .map(DefinitionVersion::getLabel)
-                .collect(toList());
-            searchEngineQuery.setExcludedFilters(Map.of(ApiDocumentTransformer.FIELD_DEFINITION_VERSION, definitionVersionsToExclude));
+                    .filter(definitionVersion -> !query.getDefinitionVersions().contains(definitionVersion))
+                    .map(DefinitionVersion::getLabel)
+                    .collect(toList());
+            searchEngineQuery.setExcludedFilters(
+                    Map.of(ApiDocumentTransformer.FIELD_DEFINITION_VERSION, definitionVersionsToExclude));
         }
         return searchEngineQuery;
     }
@@ -241,9 +242,9 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         }
 
         boolean isDirectMember = membershipService
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
-            .stream()
-            .anyMatch(membership -> membership.getReferenceId().equals(api.getId()));
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+                .stream()
+                .anyMatch(membership -> membership.getReferenceId().equals(api.getId()));
 
         if (isDirectMember) {
             return true;
@@ -253,16 +254,18 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
         if (apiGroups != null && !apiGroups.isEmpty()) {
             boolean isApiGroupMember = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
-                .stream()
-                .anyMatch(membership -> apiGroups.contains(membership.getReferenceId()));
+                    .getMembershipsByMemberAndReference(
+                            MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
+                    .stream()
+                    .anyMatch(membership -> apiGroups.contains(membership.getReferenceId()));
 
             if (isApiGroupMember) {
                 return true;
             }
         }
 
-        Set<String> applicationIds = applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
+        Set<String> applicationIds =
+                applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
 
         if (applicationIds.isEmpty()) {
             return false;
@@ -277,15 +280,13 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     public List<ApiCriteria> computeApiCriteriaForUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        boolean manageOnly
-    ) {
+            ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         if (!manageOnly) {
             // if manageOnly is false, return all visible apis for the user. Often used by portal-api resources.
-            apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).visibility(PUBLIC).build());
+            apiCriteriaList.add(queryToCriteria(executionContext, apiQuery)
+                    .visibility(PUBLIC)
+                    .build());
         }
 
         if (apiQuery == null) {
@@ -299,7 +300,9 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
             // add dedicated criteria for user apis
             if (!userApiIds.isEmpty()) {
-                apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(userApiIds).build());
+                apiCriteriaList.add(queryToCriteria(executionContext, apiQuery)
+                        .ids(userApiIds)
+                        .build());
             }
 
             // get user groups apis
@@ -307,35 +310,37 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
             // add dedicated criteria for groups apis
             if (!userGroupApiIds.isEmpty()) {
-                apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(userGroupApiIds).build());
+                apiCriteriaList.add(queryToCriteria(executionContext, apiQuery)
+                        .ids(userGroupApiIds)
+                        .build());
             }
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (!manageOnly) {
-                Set<String> applicationIds = applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
+                Set<String> applicationIds =
+                        applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
 
                 if (!applicationIds.isEmpty()) {
                     final SubscriptionQuery query = new SubscriptionQuery();
                     query.setApplications(applicationIds);
-                    query.setExcludedApis(
-                        apiCriteriaList
-                            .stream()
+                    query.setExcludedApis(apiCriteriaList.stream()
                             .map(ApiCriteria::getIds)
                             .filter(Objects::nonNull)
                             .flatMap(Collection::stream)
-                            .collect(toSet())
-                    );
+                            .collect(toSet()));
 
-                    final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, query);
+                    final Collection<SubscriptionEntity> subscriptions =
+                            subscriptionService.search(executionContext, query);
                     if (subscriptions != null) {
-                        List<String> subscriptionsApis = subscriptions
-                            .stream()
-                            .map(SubscriptionEntity::getApi)
-                            .distinct()
-                            .filter(Objects::nonNull)
-                            .toList();
+                        List<String> subscriptionsApis = subscriptions.stream()
+                                .map(SubscriptionEntity::getApi)
+                                .distinct()
+                                .filter(Objects::nonNull)
+                                .toList();
                         if (!subscriptionsApis.isEmpty()) {
-                            apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(subscriptionsApis).build());
+                            apiCriteriaList.add(queryToCriteria(executionContext, apiQuery)
+                                    .ids(subscriptionsApis)
+                                    .build());
                         }
                     }
                 }
@@ -346,18 +351,12 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
     private Set<String> getUserApplicationIds(ExecutionContext executionContext, String userId) {
         Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
-            MembershipMemberType.USER,
-            userId,
-            MembershipReferenceType.APPLICATION
-        );
+                MembershipMemberType.USER, userId, MembershipReferenceType.APPLICATION);
 
         Set<String> applicationIds = new HashSet<>(userApplicationIds);
 
         Set<String> userGroupIds = membershipService.getReferenceIdsByMemberAndReference(
-            MembershipMemberType.USER,
-            userId,
-            MembershipReferenceType.GROUP
-        );
+                MembershipMemberType.USER, userId, MembershipReferenceType.GROUP);
 
         ApplicationQuery appQuery = new ApplicationQuery();
         appQuery.setGroups(userGroupIds);
@@ -369,7 +368,8 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return applicationIds;
     }
 
-    public Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
+    public Set<String> findApiIdsByUserId(
+            ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
         if (Objects.isNull(userId)) {
             return new HashSet<>();
         }
@@ -393,37 +393,33 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
     private Set<String> findUserApiIdsFromMemberships(String userId, boolean manageOnly) {
         return membershipService
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
-            .stream()
-            .filter(membership -> membership.getRoleId() != null)
-            .filter(membership -> {
-                final RoleEntity role = roleService.findById(membership.getRoleId());
-                if (manageOnly) {
-                    return canManageApi(role);
-                }
-                return role.getScope().equals(RoleScope.API);
-            })
-            .map(MembershipEntity::getReferenceId)
-            .collect(toSet());
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+                .stream()
+                .filter(membership -> membership.getRoleId() != null)
+                .filter(membership -> {
+                    final RoleEntity role = roleService.findById(membership.getRoleId());
+                    if (manageOnly) {
+                        return canManageApi(role);
+                    }
+                    return role.getScope().equals(RoleScope.API);
+                })
+                .map(MembershipEntity::getReferenceId)
+                .collect(toSet());
     }
 
-    private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
+    private Set<String> findApiIdsByUserGroups(
+            ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
         Set<String> apis = new HashSet<>();
 
         // keep track of API roles mapped to their ID to avoid querying in a loop later
-        Map<String, RoleEntity> apiRoles = roleService
-            .findByScope(RoleScope.API, executionContext.getOrganizationId())
-            .stream()
-            .collect(toMap(RoleEntity::getId, Function.identity()));
+        Map<String, RoleEntity> apiRoles =
+                roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()).stream()
+                        .collect(toMap(RoleEntity::getId, Function.identity()));
 
-        List<String> nonPOGroupApiIds = findApiIdsByGroupWithUserHavingNonPOApiRole(
-            executionContext,
-            userId,
-            apiQuery,
-            apiRoles,
-            manageOnly
-        );
-        List<String> poGroupApiIds = findApiIdsByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, manageOnly);
+        List<String> nonPOGroupApiIds =
+                findApiIdsByGroupWithUserHavingNonPOApiRole(executionContext, userId, apiQuery, apiRoles, manageOnly);
+        List<String> poGroupApiIds =
+                findApiIdsByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, manageOnly);
 
         apis.addAll(nonPOGroupApiIds);
         apis.addAll(poGroupApiIds);
@@ -432,41 +428,40 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     private List<String> findApiIdsByGroupWithUserHavingNonPOApiRole(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Map<String, RoleEntity> apiRoles,
-        boolean manageOnly
-    ) {
-        Set<String> nonPoRoleIds = apiRoles
-            .values()
-            .stream()
-            .filter(role -> !role.isApiPrimaryOwner())
-            .map(RoleEntity::getId)
-            .collect(toSet());
+            ExecutionContext executionContext,
+            String userId,
+            ApiQuery apiQuery,
+            Map<String, RoleEntity> apiRoles,
+            boolean manageOnly) {
+        Set<String> nonPoRoleIds = apiRoles.values().stream()
+                .filter(role -> !role.isApiPrimaryOwner())
+                .map(RoleEntity::getId)
+                .collect(toSet());
 
         String[] groupIds = membershipService
-            .getMembershipsByMemberAndReferenceAndRoleIn(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP, nonPoRoleIds)
-            .stream()
-            .filter(membership -> {
-                final RoleEntity roleInGroup = apiRoles.get(membership.getRoleId());
-                if (manageOnly) {
-                    return canManageApi(roleInGroup);
-                }
-                return roleInGroup.getScope().equals(RoleScope.API);
-            })
-            .map(MembershipEntity::getReferenceId)
-            .filter(Objects::nonNull)
-            .toArray(String[]::new);
+                .getMembershipsByMemberAndReferenceAndRoleIn(
+                        MembershipMemberType.USER, userId, MembershipReferenceType.GROUP, nonPoRoleIds)
+                .stream()
+                .filter(membership -> {
+                    final RoleEntity roleInGroup = apiRoles.get(membership.getRoleId());
+                    if (manageOnly) {
+                        return canManageApi(roleInGroup);
+                    }
+                    return roleInGroup.getScope().equals(RoleScope.API);
+                })
+                .map(MembershipEntity::getReferenceId)
+                .filter(Objects::nonNull)
+                .toArray(String[]::new);
 
         if (groupIds.length > 0) {
             List<String> apiIds = apiRepository
-                .searchIds(
-                    List.of(queryToCriteria(executionContext, apiQuery).groups(groupIds).build()),
-                    new PageableBuilder().pageSize(Integer.MAX_VALUE).build(),
-                    null
-                )
-                .getContent();
+                    .searchIds(
+                            List.of(queryToCriteria(executionContext, apiQuery)
+                                    .groups(groupIds)
+                                    .build()),
+                            new PageableBuilder().pageSize(Integer.MAX_VALUE).build(),
+                            null)
+                    .getContent();
             return apiIds != null ? apiIds : List.of();
         }
 
@@ -485,89 +480,90 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
      * see https://github.com/gravitee-io/issues/issues/6360
      */
     private List<String> findApiIdsByGroupWithUserHavingPOApiRole(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Map<String, RoleEntity> apiRoles,
-        boolean manageOnly
-    ) {
-        String apiPrimaryOwnerRoleId = apiRoles
-            .values()
-            .stream()
-            .filter(RoleEntity::isApiPrimaryOwner)
-            .map(RoleEntity::getId)
-            .findFirst()
-            .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner System Role"));
+            ExecutionContext executionContext,
+            String userId,
+            ApiQuery apiQuery,
+            Map<String, RoleEntity> apiRoles,
+            boolean manageOnly) {
+        String apiPrimaryOwnerRoleId = apiRoles.values().stream()
+                .filter(RoleEntity::isApiPrimaryOwner)
+                .map(RoleEntity::getId)
+                .findFirst()
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner System Role"));
 
         String[] poGroupIds = membershipService
-            .getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.USER,
-                userId,
-                MembershipReferenceType.GROUP,
-                apiPrimaryOwnerRoleId
-            )
-            .stream()
-            .map(MembershipEntity::getReferenceId)
-            .filter(Objects::nonNull)
-            .toArray(String[]::new);
+                .getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.USER, userId, MembershipReferenceType.GROUP, apiPrimaryOwnerRoleId)
+                .stream()
+                .map(MembershipEntity::getReferenceId)
+                .filter(Objects::nonNull)
+                .toArray(String[]::new);
 
-        // keep track of roles mapped to their name to be able to evaluate the default API role permission for the groups
-        Map<String, RoleEntity> apiRolesByName = apiRoles.values().stream().collect(toMap(RoleEntity::getName, Function.identity()));
+        // keep track of roles mapped to their name to be able to evaluate the default API role permission for the
+        // groups
+        Map<String, RoleEntity> apiRolesByName =
+                apiRoles.values().stream().collect(toMap(RoleEntity::getName, Function.identity()));
 
         // keep track of all the groups where the user has the role Primary Owner on the API scope
         Set<GroupEntity> userGroups = groupService.findByIds(Set.of(poGroupIds));
 
         if (poGroupIds.length > 0) {
             return apiRepository
-                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), null, ApiFieldFilter.allFields())
-                .filter(api -> {
-                    PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(
-                        executionContext.getOrganizationId(),
-                        api.getId()
-                    );
-                    /*
-                     * If one of the groups where the user has the API Primary Owner Role
-                     * is the actual Primary Owner of the API, grant permission
-                     */
-                    if (Set.of(poGroupIds).contains(primaryOwner.getId())) {
-                        return true;
-                    }
-                    /*
-                     * Otherwise, check if the default API role for one of the groups
-                     * grants permission to the user
-                     */
-                    return userGroups
-                        .stream()
-                        .map(GroupEntity::getRoles)
-                        .filter(Objects::nonNull)
-                        .anyMatch(groupDefaultRoles -> {
-                            String defaultApiRoleName = groupDefaultRoles.get(RoleScope.API);
-                            final RoleEntity role = apiRolesByName.get(defaultApiRoleName);
-                            if (manageOnly) {
-                                return canManageApi(role);
-                            }
-                            return role != null && role.getScope().equals(RoleScope.API);
-                        });
-                })
-                .map(Api::getId)
-                .collect(toList());
+                    .search(
+                            queryToCriteria(executionContext, apiQuery)
+                                    .groups(poGroupIds)
+                                    .build(),
+                            null,
+                            ApiFieldFilter.allFields())
+                    .filter(api -> {
+                        PrimaryOwnerEntity primaryOwner =
+                                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+                        /*
+                         * If one of the groups where the user has the API Primary Owner Role
+                         * is the actual Primary Owner of the API, grant permission
+                         */
+                        if (Set.of(poGroupIds).contains(primaryOwner.getId())) {
+                            return true;
+                        }
+                        /*
+                         * Otherwise, check if the default API role for one of the groups
+                         * grants permission to the user
+                         */
+                        return userGroups.stream()
+                                .map(GroupEntity::getRoles)
+                                .filter(Objects::nonNull)
+                                .anyMatch(groupDefaultRoles -> {
+                                    String defaultApiRoleName = groupDefaultRoles.get(RoleScope.API);
+                                    final RoleEntity role = apiRolesByName.get(defaultApiRoleName);
+                                    if (manageOnly) {
+                                        return canManageApi(role);
+                                    }
+                                    return role != null && role.getScope().equals(RoleScope.API);
+                                });
+                    })
+                    .map(Api::getId)
+                    .collect(toList());
         }
         return List.of();
     }
 
     private ApiCriteria.Builder queryToCriteria(ExecutionContext executionContext, ApiQuery query) {
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        final ApiCriteria.Builder builder =
+                new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
         if (query == null) {
             return builder;
         }
         builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
 
-        if (query.getDefinitionVersions() != null && !query.getDefinitionVersions().isEmpty()) {
+        if (query.getDefinitionVersions() != null
+                && !query.getDefinitionVersions().isEmpty()) {
             builder.definitionVersion(query.getDefinitionVersions());
         }
 
         if (!isBlank(query.getCategory())) {
-            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
+            builder.category(categoryService
+                    .findById(query.getCategory(), executionContext.getEnvironmentId())
+                    .getId());
         }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups());
@@ -579,13 +575,9 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             builder.visibility(Visibility.valueOf(query.getVisibility().name()));
         }
         if (query.getLifecycleStates() != null) {
-            builder.lifecycleStates(
-                query
-                    .getLifecycleStates()
-                    .stream()
+            builder.lifecycleStates(query.getLifecycleStates().stream()
                     .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
-                    .collect(toList())
-            );
+                    .collect(toList()));
         }
         if (query.getIds() != null && !query.getIds().isEmpty()) {
             builder.ids(query.getIds());

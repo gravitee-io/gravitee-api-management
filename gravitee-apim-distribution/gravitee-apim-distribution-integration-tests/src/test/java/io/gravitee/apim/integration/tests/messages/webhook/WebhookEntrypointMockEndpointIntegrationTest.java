@@ -120,7 +120,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
@@ -128,42 +128,40 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
         webhookActions.verifyMessages(messageCount, callbackPath, "message");
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_with_headers() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/with-headers";
-        final List<HttpHeader> headers = List.of(
-            new HttpHeader("Header1", "my-header-1-value"),
-            new HttpHeader("Header2", "my-header-2-value")
-        );
+        final List<HttpHeader> headers =
+                List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value"));
 
-        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath, headers, new ArrayList<>());
+        final Subscription subscription =
+                webhookActions.createSubscription(API_ID, callbackPath, headers, new ArrayList<>());
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
         webhookActions.verifyMessagesWithHeaders(messageCount, callbackPath, "message", headers);
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_retry_on_5xx_and_interrupt_when_max_retries_is_reached(
-        @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api
-    ) throws JsonProcessingException {
+            @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api) throws JsonProcessingException {
         try {
             configureWebhookConcurrency(api, 1);
             configureMockEndpoint(api, 0, 1);
@@ -181,18 +179,16 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             wiremock.stubFor(post(callbackPath).willReturn(serverError()));
 
             webhookActions
-                .dispatchSubscription(subscription)
-                .mergeWith(Completable.fromRunnable(testScheduler::triggerActions))
-                .takeUntil(
-                    webhookActions.waitForRequestsOnCallback(messageCount, callbackPath, () -> {
+                    .dispatchSubscription(subscription)
+                    .mergeWith(Completable.fromRunnable(testScheduler::triggerActions))
+                    .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath, () -> {
                         // 1000 for the webhook
                         testScheduler.advanceTimeBy(3000, MILLISECONDS);
                         testScheduler.triggerActions();
-                    })
-                )
-                .test()
-                .awaitDone(10, SECONDS)
-                .assertError(InterruptionFailureException.class);
+                    }))
+                    .test()
+                    .awaitDone(10, SECONDS)
+                    .assertError(InterruptionFailureException.class);
 
             // Mock endpoint produces only 1 message. 1 attempt + 5 retries. We should expect no more than 6 calls
             webhookActions.verifyMessages(messageCount, callbackPath, "message");
@@ -202,11 +198,13 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
-    void should_retry_in_case_of_5xx_and_continue_normally(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api)
-        throws JsonProcessingException {
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
+    void should_retry_in_case_of_5xx_and_continue_normally(
+            @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api) throws JsonProcessingException {
         try {
-            // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+            // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting
+            // concurrency (see
+            // https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
             configureWebhookConcurrency(api, 1);
             configureMockEndpoint(api, 0, 1);
             deploy(api);
@@ -221,37 +219,36 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
             wiremock.resetAll();
             // Two 500 error then a 200 ok.
-            wiremock.stubFor(
-                post(callbackPath)
+            wiremock.stubFor(post(callbackPath)
                     .inScenario("Retry Scenario")
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(serverError())
-                    .willSetStateTo("Second attempt")
-            );
-            wiremock.stubFor(
-                post(callbackPath)
+                    .willSetStateTo("Second attempt"));
+            wiremock.stubFor(post(callbackPath)
                     .inScenario("Retry Scenario")
                     .whenScenarioStateIs("Second attempt")
                     .willReturn(serverError())
-                    .willSetStateTo("Third attempt")
-            );
-            wiremock.stubFor(post(callbackPath).inScenario("Retry Scenario").whenScenarioStateIs("Third attempt").willReturn(ok()));
+                    .willSetStateTo("Third attempt"));
+            wiremock.stubFor(post(callbackPath)
+                    .inScenario("Retry Scenario")
+                    .whenScenarioStateIs("Third attempt")
+                    .willReturn(ok()));
 
             webhookActions
-                .dispatchSubscription(subscription)
-                .mergeWith(Completable.merge(readyObs).andThen(Completable.fromRunnable(testScheduler::triggerActions)))
-                .takeUntil(
-                    webhookActions.waitForRequestsOnCallback(messageCount, callbackPath, () -> {
+                    .dispatchSubscription(subscription)
+                    .mergeWith(Completable.merge(readyObs)
+                            .andThen(Completable.fromRunnable(testScheduler::triggerActions)))
+                    .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath, () -> {
                         testScheduler.advanceTimeBy(3000, MILLISECONDS);
                         testScheduler.triggerActions();
-                    })
-                )
-                .test()
-                .awaitDone(10, SECONDS)
-                .assertNoErrors()
-                .assertComplete();
+                    }))
+                    .test()
+                    .awaitDone(10, SECONDS)
+                    .assertNoErrors()
+                    .assertComplete();
 
-            // Mock endpoint produces only 1 message. 1 attempt (500) + 1 retry (500) then a 200. We should expect no more than 3 calls
+            // Mock endpoint produces only 1 message. 1 attempt (500) + 1 retry (500) then a 200. We should expect no
+            // more than 3 calls
             webhookActions.verifyMessages(messageCount, callbackPath, "message");
         } finally {
             RxJavaPlugins.reset();
@@ -259,11 +256,13 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
-    void should_stop_on_4xx(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api) throws JsonProcessingException {
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
+    void should_stop_on_4xx(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api)
+            throws JsonProcessingException {
         final int messageCount = 3;
 
-        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency
+        // (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
         configureWebhookConcurrency(api, 1);
         configureMockEndpoint(api, 10, messageCount);
         deploy(api);
@@ -273,27 +272,33 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         wiremock.resetAll();
         // Two 200 ok then a 400 bad request.
-        wiremock.stubFor(
-            post(callbackPath)
+        wiremock.stubFor(post(callbackPath)
                 .inScenario("4xx Scenario")
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(ok())
-                .willSetStateTo("Second call")
-        );
-        wiremock.stubFor(
-            post(callbackPath).inScenario("4xx Scenario").whenScenarioStateIs("Second call").willReturn(ok()).willSetStateTo("Third call")
-        );
-        wiremock.stubFor(
-            post(callbackPath).inScenario("4xx Scenario").whenScenarioStateIs("Third call").willReturn(badRequest()).willSetStateTo("End")
-        );
+                .willSetStateTo("Second call"));
+        wiremock.stubFor(post(callbackPath)
+                .inScenario("4xx Scenario")
+                .whenScenarioStateIs("Second call")
+                .willReturn(ok())
+                .willSetStateTo("Third call"));
+        wiremock.stubFor(post(callbackPath)
+                .inScenario("4xx Scenario")
+                .whenScenarioStateIs("Third call")
+                .willReturn(badRequest())
+                .willSetStateTo("End"));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(MessageProcessingException.class);
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertError(MessageProcessingException.class);
 
         webhookActions.verifyMessages(messageCount, callbackPath, "message");
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_basic_auth() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
@@ -302,22 +307,18 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         webhookActions.applyBasicAuth(subscription, "foo", "bar");
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Basic Zm9vOmJhcg=="))
-        );
+                messageCount, callbackPath, "message", List.of(new HttpHeader("Authorization", "Basic Zm9vOmJhcg==")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_basic_auth_failure() throws JsonProcessingException {
         final String callbackPath = WEBHOOK_URL_PATH + "/auth-failure";
 
@@ -328,11 +329,15 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         wiremock.resetAll();
         wiremock.stubFor(post(callbackPath).withBasicAuth("foo", "bar").willReturn(unauthorized()));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(UnauthorizedException.class);
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertError(UnauthorizedException.class);
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_token_auth() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
@@ -341,22 +346,18 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         webhookActions.applyTokenAuth(subscription, "token");
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Bearer token"))
-        );
+                messageCount, callbackPath, "message", List.of(new HttpHeader("Authorization", "Bearer token")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_token_auth_failure() throws JsonProcessingException {
         final String callbackPath = WEBHOOK_URL_PATH + "/auth-failure";
 
@@ -365,13 +366,19 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         // Override the mock response to return an 401 error.
         wiremock.resetAll();
-        wiremock.stubFor(post(callbackPath).withHeader("Authorization", equalToIgnoreCase("Bearer token")).willReturn(unauthorized()));
+        wiremock.stubFor(post(callbackPath)
+                .withHeader("Authorization", equalToIgnoreCase("Bearer token"))
+                .willReturn(unauthorized()));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(UnauthorizedException.class);
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertError(UnauthorizedException.class);
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_oauth2_auth() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
@@ -380,26 +387,25 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         webhookActions.applyOauth2Auth(subscription, "my-client-id", "my-client-secret");
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
         // Make sure the oauth server has been called.
         wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/oauth2endpoint")));
 
         // And the messages received.
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Bearer token-from-oauth2-server"))
-        );
+                messageCount,
+                callbackPath,
+                "message",
+                List.of(new HttpHeader("Authorization", "Bearer token-from-oauth2-server")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_oauth2_auth_failure() throws JsonProcessingException {
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
@@ -409,14 +415,18 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         // Override the mock response to return a 401 error.
         wiremock.resetAll();
         wiremock.stubFor(
-            post("/oauth2endpoint").willReturn(
-                unauthorized()
-                    .withHeader("Content-Type", "application/json")
-                    .withBody("{\"error\":\"invalid_client\",\"error_description\":\"Client authentication failed\"}")
-            )
-        );
+                post("/oauth2endpoint")
+                        .willReturn(
+                                unauthorized()
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody(
+                                                "{\"error\":\"invalid_client\",\"error_description\":\"Client authentication failed\"}")));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(MessageProcessingException.class);
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertError(MessageProcessingException.class);
 
         // Make sure the oauth server has been called.
         wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/oauth2endpoint")));
@@ -426,15 +436,16 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_oauth2_auth_when_token_expired_and_is_renewed(
-        @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api
-    ) throws JsonProcessingException {
+            @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api) throws JsonProcessingException {
         final int messageCount = 3;
 
-        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency
+        // (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
         configureWebhookConcurrency(api, 1);
-        // Use a message interval longer than the token expiration (1 second) to ensure the token expires between messages.
+        // Use a message interval longer than the token expiration (1 second) to ensure the token expires between
+        // messages.
         configureMockEndpoint(api, 2000, messageCount);
         deploy(api);
 
@@ -449,311 +460,305 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(post(callbackPath).willReturn(ok()));
 
         // First token expires in 1 second.
-        wiremock.stubFor(
-            post("/oauth2endpoint")
+        wiremock.stubFor(post("/oauth2endpoint")
                 .inScenario("Oauth Scenario")
                 .whenScenarioStateIs(Scenario.STARTED)
-                .willReturn(
-                    ok(
-                        "{\"" +
-                            TOKEN_TYPE_KEY +
-                            "\":\"Bearer\",\"" +
-                            ACCESS_TOKEN_KEY +
-                            "\":\"token-from-oauth2-server-first\", \"" +
-                            EXPIRES_IN_KEY +
-                            "\": 1}"
-                    )
-                )
-                .willSetStateTo("Second call")
-        );
+                .willReturn(ok("{\"" + TOKEN_TYPE_KEY
+                        + "\":\"Bearer\",\""
+                        + ACCESS_TOKEN_KEY
+                        + "\":\"token-from-oauth2-server-first\", \""
+                        + EXPIRES_IN_KEY
+                        + "\": 1}"))
+                .willSetStateTo("Second call"));
 
         // Second token never expires.
-        wiremock.stubFor(
-            post("/oauth2endpoint")
+        wiremock.stubFor(post("/oauth2endpoint")
                 .inScenario("Oauth Scenario")
                 .whenScenarioStateIs("Second call")
-                .willReturn(ok("{\"" + TOKEN_TYPE_KEY + "\":\"Bearer\",\"" + ACCESS_TOKEN_KEY + "\":\"token-from-oauth2-server-second\"}"))
-        );
+                .willReturn(ok("{\"" + TOKEN_TYPE_KEY + "\":\"Bearer\",\"" + ACCESS_TOKEN_KEY
+                        + "\":\"token-from-oauth2-server-second\"}")));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(30, SECONDS).assertComplete();
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(30, SECONDS)
+                .assertComplete();
 
         // Make sure the oauth server has been called twice (first token expiring after 1s, second never expires).
         wiremock.verify(2, postRequestedFor(urlPathEqualTo("/oauth2endpoint")));
 
         // Make sure webhook has been call once with the first token which then expires.
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
-                "Authorization",
-                equalToIgnoreCase("Bearer token-from-oauth2-server-first")
-            )
-        );
+                1,
+                postRequestedFor(urlPathEqualTo(callbackPath))
+                        .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server-first")));
 
         // Then other calls with the new second token.
         wiremock.verify(
-            2,
-            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
-                "Authorization",
-                equalToIgnoreCase("Bearer token-from-oauth2-server-second")
-            )
-        );
+                2,
+                postRequestedFor(urlPathEqualTo(callbackPath))
+                        .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server-second")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_jwt_profile_oauth2_auth() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyJwtProfileOauth2Auth(
-            subscription,
-            "test-issuer",
-            "test-subject",
-            "this-is-a-very-long-secret-key-for-hmac-hs256-test"
-        );
+                subscription, "test-issuer", "test-subject", "this-is-a-very-long-secret-key-for-hmac-hs256-test");
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
-        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523
+        // §2.2).
         wiremock.verify(
-            moreThanOrExactly(1),
-            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
-                .withRequestBody(containing("grant_type=client_credentials"))
-                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
-                .withRequestBody(containing("client_assertion="))
-        );
+                moreThanOrExactly(1),
+                postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(
+                                containing(
+                                        "client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                        .withRequestBody(containing("client_assertion=")));
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
-        );
+                messageCount,
+                callbackPath,
+                "message",
+                List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_jwt_profile_oauth2_auth_with_pem_key_source() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyJwtProfileOauth2Auth(
-            subscription,
-            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
-                .issuer("test-issuer")
-                .subject("test-subject")
-                .audience(webhookActions.jwtTokenEndpoint())
-                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
-                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PEM)
-                .keyContent(Path.of("src/test/resources/certs/private-key.pem").toAbsolutePath().toString())
-                .build()
-        );
+                subscription,
+                WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                        .issuer("test-issuer")
+                        .subject("test-subject")
+                        .audience(webhookActions.jwtTokenEndpoint())
+                        .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                        .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PEM)
+                        .keyContent(Path.of("src/test/resources/certs/private-key.pem")
+                                .toAbsolutePath()
+                                .toString())
+                        .build());
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
-        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523
+        // §2.2).
         wiremock.verify(
-            moreThanOrExactly(1),
-            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
-                .withRequestBody(containing("grant_type=client_credentials"))
-                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
-                .withRequestBody(containing("client_assertion="))
-        );
+                moreThanOrExactly(1),
+                postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(
+                                containing(
+                                        "client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                        .withRequestBody(containing("client_assertion=")));
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
-        );
+                messageCount,
+                callbackPath,
+                "message",
+                List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_jwt_profile_oauth2_auth_with_jks_key_source() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyJwtProfileOauth2Auth(
-            subscription,
-            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
-                .issuer("test-issuer")
-                .subject("test-subject")
-                .audience(webhookActions.jwtTokenEndpoint())
-                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
-                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.JKS)
-                .keyContent(Path.of("src/test/resources/certs/keystore01.jks").toAbsolutePath().toString())
-                .keystoreOptions(
-                    WebhookSubscriptionAuthConfiguration.KeystoreOptions.builder()
-                        .alias("selfsigned")
-                        .storePassword("password")
-                        .keyPassword("password")
-                        .build()
-                )
-                .build()
-        );
+                subscription,
+                WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                        .issuer("test-issuer")
+                        .subject("test-subject")
+                        .audience(webhookActions.jwtTokenEndpoint())
+                        .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                        .keySource(WebhookSubscriptionAuthConfiguration.KeySource.JKS)
+                        .keyContent(Path.of("src/test/resources/certs/keystore01.jks")
+                                .toAbsolutePath()
+                                .toString())
+                        .keystoreOptions(WebhookSubscriptionAuthConfiguration.KeystoreOptions.builder()
+                                .alias("selfsigned")
+                                .storePassword("password")
+                                .keyPassword("password")
+                                .build())
+                        .build());
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
-        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523
+        // §2.2).
         wiremock.verify(
-            moreThanOrExactly(1),
-            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
-                .withRequestBody(containing("grant_type=client_credentials"))
-                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
-                .withRequestBody(containing("client_assertion="))
-        );
+                moreThanOrExactly(1),
+                postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(
+                                containing(
+                                        "client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                        .withRequestBody(containing("client_assertion=")));
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
-        );
+                messageCount,
+                callbackPath,
+                "message",
+                List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_jwt_profile_oauth2_auth_with_pkcs12_key_source() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyJwtProfileOauth2Auth(
-            subscription,
-            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
-                .issuer("test-issuer")
-                .subject("test-subject")
-                .audience(webhookActions.jwtTokenEndpoint())
-                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
-                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PKCS12)
-                .keyContent(Path.of("src/test/resources/certs/keystore.p12").toAbsolutePath().toString())
-                .keystoreOptions(
-                    WebhookSubscriptionAuthConfiguration.KeystoreOptions.builder().alias("selfsigned").storePassword("password").build()
-                )
-                .build()
-        );
+                subscription,
+                WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                        .issuer("test-issuer")
+                        .subject("test-subject")
+                        .audience(webhookActions.jwtTokenEndpoint())
+                        .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                        .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PKCS12)
+                        .keyContent(Path.of("src/test/resources/certs/keystore.p12")
+                                .toAbsolutePath()
+                                .toString())
+                        .keystoreOptions(WebhookSubscriptionAuthConfiguration.KeystoreOptions.builder()
+                                .alias("selfsigned")
+                                .storePassword("password")
+                                .build())
+                        .build());
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
-        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523
+        // §2.2).
         wiremock.verify(
-            moreThanOrExactly(1),
-            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
-                .withRequestBody(containing("grant_type=client_credentials"))
-                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
-                .withRequestBody(containing("client_assertion="))
-        );
+                moreThanOrExactly(1),
+                postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(
+                                containing(
+                                        "client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                        .withRequestBody(containing("client_assertion=")));
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
-        );
+                messageCount,
+                callbackPath,
+                "message",
+                List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_jwt_profile_oauth2_auth_with_custom_claims() throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyJwtProfileOauth2Auth(
-            subscription,
-            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
-                .issuer("test-issuer")
-                .subject("test-subject")
-                .audience(webhookActions.jwtTokenEndpoint())
-                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
-                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PEM)
-                .keyContent(Path.of("src/test/resources/certs/private-key.pem").toAbsolutePath().toString())
-                .customClaims(
-                    List.of(
-                        WebhookSubscriptionAuthConfiguration.CustomClaim.builder().name("custom-claim-1").value("value-1").build(),
-                        WebhookSubscriptionAuthConfiguration.CustomClaim.builder().name("custom-claim-2").value("value-2").build()
-                    )
-                )
-                .build()
-        );
+                subscription,
+                WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                        .issuer("test-issuer")
+                        .subject("test-subject")
+                        .audience(webhookActions.jwtTokenEndpoint())
+                        .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                        .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PEM)
+                        .keyContent(Path.of("src/test/resources/certs/private-key.pem")
+                                .toAbsolutePath()
+                                .toString())
+                        .customClaims(List.of(
+                                WebhookSubscriptionAuthConfiguration.CustomClaim.builder()
+                                        .name("custom-claim-1")
+                                        .value("value-1")
+                                        .build(),
+                                WebhookSubscriptionAuthConfiguration.CustomClaim.builder()
+                                        .name("custom-claim-2")
+                                        .value("value-2")
+                                        .build()))
+                        .build());
 
         webhookActions
-            .dispatchSubscription(subscription)
-            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+                .dispatchSubscription(subscription)
+                .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
-        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523 §2.2).
+        // Make sure the token endpoint has been called with the client credentials + JWT assertion flow (RFC 7523
+        // §2.2).
         wiremock.verify(
-            moreThanOrExactly(1),
-            postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
-                .withRequestBody(containing("grant_type=client_credentials"))
-                .withRequestBody(containing("client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
-                .withRequestBody(containing("client_assertion="))
-        );
+                moreThanOrExactly(1),
+                postRequestedFor(urlPathEqualTo("/jwt-token-endpoint"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(
+                                containing(
+                                        "client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer"))
+                        .withRequestBody(containing("client_assertion=")));
 
         // And the messages received with the access token from the JWT profile token endpoint.
         webhookActions.verifyMessagesWithHeaders(
-            messageCount,
-            callbackPath,
-            "message",
-            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
-        );
+                messageCount,
+                callbackPath,
+                "message",
+                List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_jwt_profile_oauth2_auth_failure() throws JsonProcessingException {
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyJwtProfileOauth2Auth(
-            subscription,
-            "test-issuer",
-            "test-subject",
-            "this-is-a-very-long-secret-key-for-hmac-hs256-test"
-        );
+                subscription, "test-issuer", "test-subject", "this-is-a-very-long-secret-key-for-hmac-hs256-test");
 
         // Override the mock response to return a 401 error.
         wiremock.resetAll();
-        wiremock.stubFor(
-            post("/jwt-token-endpoint").willReturn(
-                unauthorized()
-                    .withHeader("Content-Type", "application/json")
-                    .withBody("{\"error\":\"invalid_grant\",\"error_description\":\"JWT assertion is invalid\"}")
-            )
-        );
+        wiremock.stubFor(post("/jwt-token-endpoint")
+                .willReturn(unauthorized()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"error\":\"invalid_grant\",\"error_description\":\"JWT assertion is invalid\"}")));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(MessageProcessingException.class);
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertError(MessageProcessingException.class);
 
         // Make sure the token endpoint has been called.
         wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
@@ -763,15 +768,15 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_receive_messages_jwt_profile_oauth2_auth_when_token_expired_and_is_renewed(
-        @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api
-    ) throws JsonProcessingException {
+            @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api) throws JsonProcessingException {
         final int messageCount = 3;
 
         // Force concurrency to 1 because of wiremock scenario not supporting concurrency.
         configureWebhookConcurrency(api, 1);
-        // Use a message interval longer than the token expiration (1 second) to ensure the token expires between messages.
+        // Use a message interval longer than the token expiration (1 second) to ensure the token expires between
+        // messages.
         configureMockEndpoint(api, 2000, messageCount);
         deploy(api);
 
@@ -779,11 +784,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
         webhookActions.applyJwtProfileOauth2Auth(
-            subscription,
-            "test-issuer",
-            "test-subject",
-            "this-is-a-very-long-secret-key-for-hmac-hs256-test"
-        );
+                subscription, "test-issuer", "test-subject", "this-is-a-very-long-secret-key-for-hmac-hs256-test");
 
         // Override the mock response to override token endpoint response.
         wiremock.resetAll();
@@ -791,69 +792,60 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(post(callbackPath).willReturn(ok()));
 
         // First token expires in 1 second.
-        wiremock.stubFor(
-            post("/jwt-token-endpoint")
+        wiremock.stubFor(post("/jwt-token-endpoint")
                 .inScenario("JwtProfile Scenario")
                 .whenScenarioStateIs(Scenario.STARTED)
-                .willReturn(
-                    ok(
-                        "{\"" +
-                            TOKEN_TYPE_KEY +
-                            "\":\"Bearer\",\"" +
-                            ACCESS_TOKEN_KEY +
-                            "\":\"token-from-jwt-profile-server-first\", \"" +
-                            EXPIRES_IN_KEY +
-                            "\": 1}"
-                    )
-                )
-                .willSetStateTo("Second call")
-        );
+                .willReturn(ok("{\"" + TOKEN_TYPE_KEY
+                        + "\":\"Bearer\",\""
+                        + ACCESS_TOKEN_KEY
+                        + "\":\"token-from-jwt-profile-server-first\", \""
+                        + EXPIRES_IN_KEY
+                        + "\": 1}"))
+                .willSetStateTo("Second call"));
 
         // Second token never expires.
-        wiremock.stubFor(
-            post("/jwt-token-endpoint")
+        wiremock.stubFor(post("/jwt-token-endpoint")
                 .inScenario("JwtProfile Scenario")
                 .whenScenarioStateIs("Second call")
-                .willReturn(
-                    ok("{\"" + TOKEN_TYPE_KEY + "\":\"Bearer\",\"" + ACCESS_TOKEN_KEY + "\":\"token-from-jwt-profile-server-second\"}")
-                )
-        );
+                .willReturn(ok("{\"" + TOKEN_TYPE_KEY + "\":\"Bearer\",\"" + ACCESS_TOKEN_KEY
+                        + "\":\"token-from-jwt-profile-server-second\"}")));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(30, SECONDS).assertComplete();
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(30, SECONDS)
+                .assertComplete();
 
         // Make sure the token endpoint has been called twice (first token expiring after 1s, second never expires).
         wiremock.verify(2, postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
 
         // Make sure webhook has been called once with the first token which then expires.
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
-                "Authorization",
-                equalToIgnoreCase("Bearer token-from-jwt-profile-server-first")
-            )
-        );
+                1,
+                postRequestedFor(urlPathEqualTo(callbackPath))
+                        .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-jwt-profile-server-first")));
 
         // Then other calls with the new second token.
         wiremock.verify(
-            2,
-            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
-                "Authorization",
-                equalToIgnoreCase("Bearer token-from-jwt-profile-server-second")
-            )
-        );
+                2,
+                postRequestedFor(urlPathEqualTo(callbackPath))
+                        .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-jwt-profile-server-second")));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
-    void should_ignore_when_connection_is_drained(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api)
-        throws JsonProcessingException {
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
+    void should_ignore_when_connection_is_drained(
+            @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api) throws JsonProcessingException {
         try {
-            final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
+            final ConnectionDrainManager connectionDrainManager =
+                    applicationContext.getBean(ConnectionDrainManager.class);
 
             final TestScheduler testScheduler = new TestScheduler();
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
 
-            // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+            // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting
+            // concurrency (see
+            // https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
             configureWebhookConcurrency(api, 1);
             configureMockEndpoint(api, 10, Integer.MAX_VALUE);
             deploy(api);
@@ -867,16 +859,13 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             final AtomicBoolean first = new AtomicBoolean(true);
 
             webhookActions
-                .dispatchSubscription(subscription)
-                .mergeWith(
-                    Completable.fromRunnable(() -> {
+                    .dispatchSubscription(subscription)
+                    .mergeWith(Completable.fromRunnable(() -> {
                         // Triggers the first message.
                         testScheduler.advanceTimeBy(10, MILLISECONDS);
                         testScheduler.triggerActions();
-                    })
-                )
-                .takeUntil(
-                    webhookActions.waitForRequestsOnCallback(3, callbackPath, () -> {
+                    }))
+                    .takeUntil(webhookActions.waitForRequestsOnCallback(3, callbackPath, () -> {
                         // When a message is received by the webhook, request a drain (should have no effect)
                         connectionDrainManager.requestDrain();
 
@@ -885,13 +874,13 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                             testScheduler.advanceTimeBy(20, MILLISECONDS);
                             testScheduler.triggerActions();
                         }
-                    })
-                )
-                .test()
-                .awaitDone(10, SECONDS)
-                .assertComplete();
+                    }))
+                    .test()
+                    .awaitDone(10, SECONDS)
+                    .assertComplete();
 
-            // Should receive 3 messages, despite the connection drain which should be ignored by the webhook entrypoint.
+            // Should receive 3 messages, despite the connection drain which should be ignored by the webhook
+            // entrypoint.
             webhookActions.verifyMessages(3, callbackPath, "message");
         } finally {
             RxJavaPlugins.reset();
@@ -899,12 +888,13 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json"})
     void should_put_into_dlq_on_4xx(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         final int messageCount = 3;
 
-        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency
+        // (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
         configureWebhookConcurrency(api, 1);
         configureMockEndpoint(api, 10, messageCount);
         configureDlq(api, "mock");
@@ -915,25 +905,27 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
         wiremock.resetAll();
         // Two 400 ok then a 200 bad request.
-        wiremock.stubFor(
-            post(callbackPath)
+        wiremock.stubFor(post(callbackPath)
                 .inScenario("4xx Scenario")
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(badRequest())
-                .willSetStateTo("Second call")
-        );
-        wiremock.stubFor(
-            post(callbackPath)
+                .willSetStateTo("Second call"));
+        wiremock.stubFor(post(callbackPath)
                 .inScenario("4xx Scenario")
                 .whenScenarioStateIs("Second call")
                 .willReturn(badRequest())
-                .willSetStateTo("Third call")
-        );
-        wiremock.stubFor(
-            post(callbackPath).inScenario("4xx Scenario").whenScenarioStateIs("Third call").willReturn(ok()).willSetStateTo("End")
-        );
+                .willSetStateTo("Third call"));
+        wiremock.stubFor(post(callbackPath)
+                .inScenario("4xx Scenario")
+                .whenScenarioStateIs("Third call")
+                .willReturn(ok())
+                .willSetStateTo("End"));
 
-        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertComplete();
+        webhookActions
+                .dispatchSubscription(subscription)
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
 
         webhookActions.verifyMessages(messageCount, callbackPath, "message");
 
@@ -941,26 +933,33 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     private void configureWebhookConcurrency(ReactableApi<?> api, int concurrency) {
-        ((Api) api).getDefinition()
-            .getListeners()
-            .get(0)
-            .getEntrypoints()
-            .get(0)
-            .setConfiguration("{\"http\": { \"maxConcurrentConnections\": " + concurrency + " }}");
+        ((Api) api)
+                .getDefinition()
+                .getListeners()
+                .get(0)
+                .getEntrypoints()
+                .get(0)
+                .setConfiguration("{\"http\": { \"maxConcurrentConnections\": " + concurrency + " }}");
     }
 
     private void configureMockEndpoint(ReactableApi<?> api, int messageInterval, int messageCount) {
-        ((Api) api).getDefinition()
-            .getEndpointGroups()
-            .get(0)
-            .getEndpoints()
-            .get(0)
-            .setConfiguration(
-                "{\"messageInterval\": " + messageInterval + ",\"messageContent\": \"message\", \"messageCount\": " + messageCount + "}"
-            );
+        ((Api) api)
+                .getDefinition()
+                .getEndpointGroups()
+                .get(0)
+                .getEndpoints()
+                .get(0)
+                .setConfiguration("{\"messageInterval\": " + messageInterval
+                        + ",\"messageContent\": \"message\", \"messageCount\": " + messageCount + "}");
     }
 
     private void configureDlq(ReactableApi<?> api, String endpointId) {
-        ((Api) api).getDefinition().getListeners().get(0).getEntrypoints().get(0).setDlq(new Dlq(endpointId));
+        ((Api) api)
+                .getDefinition()
+                .getListeners()
+                .get(0)
+                .getEntrypoints()
+                .get(0)
+                .setDlq(new Dlq(endpointId));
     }
 }

@@ -57,12 +57,14 @@ public class ApiHeadersResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @Operation(summary = "List API headers")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of API headers",
-        content = @Content(mediaType = APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = ApiHeaderEntity.class)))
-    )
+            responseCode = "200",
+            description = "List of API headers",
+            content =
+                    @Content(
+                            mediaType = APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApiHeaderEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.READ)})
     public List<ApiHeaderEntity> getApiHeaders() {
         return apiHeaderService.findAll(GraviteeContext.getCurrentEnvironment());
     }
@@ -71,16 +73,14 @@ public class ApiHeadersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create an API header",
-        description = "User must have the PORTAL_API_HEADER[CREATE] permission to use this service"
-    )
+            summary = "Create an API header",
+            description = "User must have the PORTAL_API_HEADER[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "API header successfully created",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = ApiHeaderEntity.class))
-    )
+            responseCode = "200",
+            description = "API header successfully created",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = ApiHeaderEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.CREATE)})
     public ApiHeaderEntity createApiHeader(@Valid @NotNull final NewApiHeaderEntity newApiHeaderEntity) {
         return apiHeaderService.create(GraviteeContext.getExecutionContext(), newApiHeaderEntity);
     }

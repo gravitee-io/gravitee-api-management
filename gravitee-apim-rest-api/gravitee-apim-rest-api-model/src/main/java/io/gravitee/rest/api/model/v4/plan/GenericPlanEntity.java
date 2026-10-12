@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -48,7 +47,7 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
 
     String getGeneralConditions();
 
-    //Those following methods need to be prefix by `Plan` in order to avoid collision with v2 model
+    // Those following methods need to be prefix by `Plan` in order to avoid collision with v2 model
     @JsonIgnore
     @Deprecated
     PlanType getPlanType();
@@ -76,6 +75,7 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
     int getOrder();
 
     String getReferenceId();
+
     ReferenceType getReferenceType();
 
     @JsonIgnore

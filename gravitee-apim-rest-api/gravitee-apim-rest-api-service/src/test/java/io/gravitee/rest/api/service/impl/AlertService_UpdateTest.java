@@ -63,14 +63,16 @@ public class AlertService_UpdateTest extends AlertServiceTest {
 
             final UpdateAlertTriggerEntity updateAlertTriggerEntity = getUpdateAlertTriggerEntity();
 
-            when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId())).thenReturn(Optional.empty());
+            when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId()))
+                    .thenReturn(Optional.empty());
 
             alertService.update(executionContext, updateAlertTriggerEntity);
         });
     }
 
     @Test
-    public void update_should_throw_AlertNotFoundException_cause_alert_found_with_different_referenceId() throws TechnicalException {
+    public void update_should_throw_AlertNotFoundException_cause_alert_found_with_different_referenceId()
+            throws TechnicalException {
         assertThrows(AlertNotFoundException.class, () -> {
             mockAlertSetting(true);
 
@@ -78,36 +80,43 @@ public class AlertService_UpdateTest extends AlertServiceTest {
 
             AlertTrigger foundAlert = new AlertTrigger();
             foundAlert.setReferenceId("another-ref-id");
-            when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId())).thenReturn(Optional.of(foundAlert));
+            when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId()))
+                    .thenReturn(Optional.of(foundAlert));
 
             alertService.update(executionContext, updateAlertTriggerEntity);
         });
     }
 
     @Test
-    public void update_should_throw_TechnicalManagementException_cause_technicalException_thrown() throws TechnicalException {
+    public void update_should_throw_TechnicalManagementException_cause_technicalException_thrown()
+            throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             mockAlertSetting(true);
 
             final UpdateAlertTriggerEntity updateAlertTriggerEntity = getUpdateAlertTriggerEntity();
 
-            when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId())).thenThrow(TechnicalException.class);
+            when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId()))
+                    .thenThrow(TechnicalException.class);
 
             alertService.update(executionContext, updateAlertTriggerEntity);
         });
     }
 
     @Test
-    public void must_throw_TechnicalManagementException_when_update_new_alert_trigger_entity_with_email_notifier_definition()
-        throws TechnicalException, JsonProcessingException {
+    public void
+            must_throw_TechnicalManagementException_when_update_new_alert_trigger_entity_with_email_notifier_definition()
+                    throws TechnicalException, JsonProcessingException {
         assertThrows(TechnicalManagementException.class, () -> {
             final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
             final AlertTrigger alertTrigger = getAlertTriggerFromUpdate(alert);
 
-            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                    .thenReturn(true);
             when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
             when(alertTriggerRepository.findById(any())).thenReturn(Optional.of(alertTrigger));
-            when(alertTriggerRepository.update(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.update(any()))
+                    .thenThrow(new TechnicalException("An unexpected error has occurred"));
 
             alertService.update(executionContext, alert);
         });
@@ -123,20 +132,24 @@ public class AlertService_UpdateTest extends AlertServiceTest {
 
         AlertTrigger newAlertTrigger = getAlertTriggerFromUpdate(updateAlertTriggerEntity);
 
-        when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId())).thenReturn(Optional.of(currentAlertTrigger));
+        when(alertTriggerRepository.findById(updateAlertTriggerEntity.getId()))
+                .thenReturn(Optional.of(currentAlertTrigger));
         when(alertTriggerRepository.update(any(AlertTrigger.class))).thenReturn(newAlertTrigger);
 
         alertService.update(executionContext, updateAlertTriggerEntity);
 
-        verify(alertTriggerRepository, times(1)).update(argThat(alert -> alert.getId().equals(updateAlertTriggerEntity.getId())));
+        verify(alertTriggerRepository, times(1))
+                .update(argThat(alert -> alert.getId().equals(updateAlertTriggerEntity.getId())));
     }
 
     @Test
-    public void must_update_new_alert_trigger_entity_with_email_notifier_definition() throws TechnicalException, JsonProcessingException {
+    public void must_update_new_alert_trigger_entity_with_email_notifier_definition()
+            throws TechnicalException, JsonProcessingException {
         final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromUpdate(alert);
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.findById(any())).thenReturn(Optional.of(alertTrigger));
         when(alertTriggerRepository.update(any())).thenReturn(alertTrigger);
@@ -148,13 +161,15 @@ public class AlertService_UpdateTest extends AlertServiceTest {
 
     @Test
     public void must_throw_NodeAlertNotAllowedInCloudException_when_update_new_node_alert_on_cloud()
-        throws JsonProcessingException, TechnicalException {
+            throws JsonProcessingException, TechnicalException {
         assertThrows(NodeAlertNotAllowedInCloudException.class, () -> {
             final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
             alert.setSource("NODE_HEALTHCHECK");
 
             when(cloudHosted.getEnabled()).thenReturn(true);
-            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                    .thenReturn(true);
             when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
 
             alertService.update(executionContext, alert);
@@ -162,7 +177,9 @@ public class AlertService_UpdateTest extends AlertServiceTest {
     }
 
     private void mockAlertSetting(boolean enabled) {
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(enabled);
-        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class), mock(TriggerProvider.class)));
+        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+                .thenReturn(enabled);
+        when(alertTriggerProviderManager.findAll())
+                .thenReturn(List.of(mock(TriggerProvider.class), mock(TriggerProvider.class)));
     }
 }

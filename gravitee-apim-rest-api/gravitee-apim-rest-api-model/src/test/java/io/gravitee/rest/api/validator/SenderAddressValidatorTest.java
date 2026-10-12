@@ -56,7 +56,7 @@ class SenderAddressValidatorTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { "   " })
+    @ValueSource(strings = {"   "})
     void should_accept_null_or_blank_and_defer_to_notblank(String value) {
         // A required value is enforced by a separate @NotBlank — this constraint only checks shape.
         assertThat(cut.isValid(value, constraintValidatorContext)).isTrue();
@@ -64,31 +64,31 @@ class SenderAddressValidatorTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "noreply@localhost", // single-label host — old regex wrongly rejected
-            "noreply@mail.example.com", // dotted domain
-            "o'brien@acme.co", // apostrophe in local part — old regex wrongly rejected
-            "Acme Inc <noreply@acme.com>", // RFC 822 personal-name form
-            "\"Acme, Inc\" <noreply@acme.com>", // comma in a *quoted* display name is a single sendable address
-            "\"a@b\"@x.com", // quoted local part containing '@' is one valid address (send-path accepts it)
-        }
-    )
+            strings = {
+                "noreply@localhost", // single-label host — old regex wrongly rejected
+                "noreply@mail.example.com", // dotted domain
+                "o'brien@acme.co", // apostrophe in local part — old regex wrongly rejected
+                "Acme Inc <noreply@acme.com>", // RFC 822 personal-name form
+                "\"Acme, Inc\" <noreply@acme.com>", // comma in a *quoted* display name is a single sendable address
+                "\"a@b\"@x.com", // quoted local part containing '@' is one valid address (send-path accepts it)
+            })
     void should_accept_addresses_the_send_path_can_send(String value) {
         assertThat(cut.isValid(value, constraintValidatorContext)).isTrue();
     }
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "not-an-email", // no domain
-            "a..b@x.com", // consecutive dots — old regex wrongly accepted
-            ".a@x.com", // leading dot in local part — old regex wrongly accepted
-            "Acme, Inc <noreply@acme.com>", // unquoted comma in display name — send path parses it as a list and fails
-            "Acme; Inc <a@localhost>", // unquoted semicolon in display name — likewise unsendable
-            "jane@work <Jane>", // the single '@' sits outside the brackets, leaving no address to send
-            "noreply@example.com\r\nSubject: hacked", // single-'@' CR/LF header injection — only validate() rejects the newline
-        }
-    )
+            strings = {
+                "not-an-email", // no domain
+                "a..b@x.com", // consecutive dots — old regex wrongly accepted
+                ".a@x.com", // leading dot in local part — old regex wrongly accepted
+                "Acme, Inc <noreply@acme.com>", // unquoted comma in display name — send path parses it as a list and
+                // fails
+                "Acme; Inc <a@localhost>", // unquoted semicolon in display name — likewise unsendable
+                "jane@work <Jane>", // the single '@' sits outside the brackets, leaving no address to send
+                "noreply@example.com\r\nSubject: hacked", // single-'@' CR/LF header injection — only validate() rejects
+                // the newline
+            })
     void should_reject_an_unsendable_value_with_the_default_message(String value) {
         assertThat(cut.isValid(value, constraintValidatorContext)).isFalse();
         // A malformed single address keeps the annotation's default message; only the multi-address case
@@ -98,17 +98,15 @@ class SenderAddressValidatorTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "alice@example.com, bob@example.com", // a plain address list — both valid, but there are two
-            "Alice <alice@example.com>, Bob <bob@example.com>", // comma-joined personal-name list
-            "noreply@localhost\nBcc: attacker@evil.com", // header-injection attempt reads as multiple addresses
-        }
-    )
+            strings = {
+                "alice@example.com, bob@example.com", // a plain address list — both valid, but there are two
+                "Alice <alice@example.com>, Bob <bob@example.com>", // comma-joined personal-name list
+                "noreply@localhost\nBcc: attacker@evil.com", // header-injection attempt reads as multiple addresses
+            })
     void should_reject_a_multi_address_value_with_a_distinct_message(String value) {
         var messageCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(messageCaptor.capture())).thenReturn(
-            constraintViolationBuilder
-        );
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(messageCaptor.capture()))
+                .thenReturn(constraintViolationBuilder);
 
         assertThat(cut.isValid(value, constraintValidatorContext)).isFalse();
 
@@ -123,15 +121,19 @@ class SenderAddressValidatorTest {
     void should_surface_the_default_message_end_to_end_for_a_malformed_address() {
         var violations = beanValidator().validate(new Holder("not-an-email"));
         assertThat(violations)
-            .singleElement()
-            .extracting(ConstraintViolation::getMessage)
-            .isEqualTo("must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")");
+                .singleElement()
+                .extracting(ConstraintViolation::getMessage)
+                .isEqualTo(
+                        "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")");
     }
 
     @Test
     void should_surface_the_multi_address_message_end_to_end() {
         var violations = beanValidator().validate(new Holder("alice@example.com, bob@example.com"));
-        assertThat(violations).singleElement().extracting(ConstraintViolation::getMessage).isEqualTo("must be a single sender address");
+        assertThat(violations)
+                .singleElement()
+                .extracting(ConstraintViolation::getMessage)
+                .isEqualTo("must be a single sender address");
     }
 
     private static Validator beanValidator() {

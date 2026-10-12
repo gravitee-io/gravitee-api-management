@@ -26,6 +26,8 @@ import java.util.Set;
  */
 public interface OrganizationRepository extends CrudRepository<Organization, String> {
     Long count() throws TechnicalException;
+
     Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException;
+
     Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException;
 }

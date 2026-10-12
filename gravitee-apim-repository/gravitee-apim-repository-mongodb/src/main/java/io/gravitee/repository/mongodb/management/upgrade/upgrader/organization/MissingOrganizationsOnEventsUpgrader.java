@@ -39,33 +39,28 @@ import org.springframework.stereotype.Component;
 public class MissingOrganizationsOnEventsUpgrader extends MongoUpgrader {
 
     public static final int MISSING_ORGANIZATION_ON_EVENT_UPGRADER_ORDER =
-        AccessPointsStatusAndUpdatedUpgrader.ACCESSPOINTS_STATUS_AND_UPDATED_UPGRADER_ORDER + 1;
+            AccessPointsStatusAndUpdatedUpgrader.ACCESSPOINTS_STATUS_AND_UPDATED_UPGRADER_ORDER + 1;
 
     @Override
     public boolean upgrade() {
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
         final FindIterable<Document> environmentDocs = getCollection("environments")
-            .find()
-            .projection(Projections.fields(Projections.include("_id", "organizationId")));
+                .find()
+                .projection(Projections.fields(Projections.include("_id", "organizationId")));
 
-        final Map<String, List<String>> environmentsByOrganization = StreamSupport.stream(environmentDocs.spliterator(), false).collect(
-            groupingBy(document -> document.getString("organizationId"), mapping(e -> e.getString("organizationId"), toList()))
-        );
+        final Map<String, List<String>> environmentsByOrganization = StreamSupport.stream(
+                        environmentDocs.spliterator(), false)
+                .collect(groupingBy(
+                        document -> document.getString("organizationId"),
+                        mapping(e -> e.getString("organizationId"), toList())));
 
-        environmentsByOrganization.forEach((key, value) ->
-            bulkActions.add(
-                new UpdateManyModel<>(
-                    Filters.and(Filters.exists("organizations", false), Filters.in("environments", value)),
-                    new Document("$push", new Document("organizations", key))
-                )
-            )
-        );
+        environmentsByOrganization.forEach((key, value) -> bulkActions.add(new UpdateManyModel<>(
+                Filters.and(Filters.exists("organizations", false), Filters.in("environments", value)),
+                new Document("$push", new Document("organizations", key)))));
 
         if (!bulkActions.isEmpty()) {
-            return (
-                getCollection("events").bulkWrite(bulkActions).wasAcknowledged() &&
-                getCollection("events_latest").bulkWrite(bulkActions).wasAcknowledged()
-            );
+            return (getCollection("events").bulkWrite(bulkActions).wasAcknowledged()
+                    && getCollection("events_latest").bulkWrite(bulkActions).wasAcknowledged());
         }
         return true;
     }

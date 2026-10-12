@@ -59,10 +59,12 @@ public class PortalResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the portal configuration", description = "Every users can use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Portal configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalConfigEntity.class))
-    )
+            responseCode = "200",
+            description = "Portal configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalConfigEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public PortalConfigEntity getPortalConfig() {
         return configService.getPortalConfig(GraviteeContext.getExecutionContext());
@@ -73,14 +75,21 @@ public class PortalResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Save the portal configuration")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated portal configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalSettingsEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated portal configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalSettingsEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SETTINGS,
+                acls = {CREATE, UPDATE, DELETE})
+    })
     @Deprecated
-    public Response savePortalConfig(@Parameter(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
+    public Response savePortalConfig(
+            @Parameter(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
         return Response.ok().entity(portalSettingsEntity).build();
     }

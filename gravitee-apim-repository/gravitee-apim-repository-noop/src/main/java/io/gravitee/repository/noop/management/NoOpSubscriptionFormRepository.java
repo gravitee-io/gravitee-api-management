@@ -21,12 +21,12 @@ import io.gravitee.repository.management.model.SubscriptionForm;
 import java.util.List;
 import java.util.Optional;
 
-public class NoOpSubscriptionFormRepository
-    extends AbstractNoOpManagementRepository<SubscriptionForm, String>
-    implements SubscriptionFormRepository {
+public class NoOpSubscriptionFormRepository extends AbstractNoOpManagementRepository<SubscriptionForm, String>
+        implements SubscriptionFormRepository {
 
     @Override
-    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId) throws TechnicalException {
+    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId)
+            throws TechnicalException {
         return Optional.empty();
     }
 
@@ -36,7 +36,8 @@ public class NoOpSubscriptionFormRepository
     }
 
     @Override
-    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId) throws TechnicalException {
+    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId)
+            throws TechnicalException {
         return Optional.empty();
     }
 

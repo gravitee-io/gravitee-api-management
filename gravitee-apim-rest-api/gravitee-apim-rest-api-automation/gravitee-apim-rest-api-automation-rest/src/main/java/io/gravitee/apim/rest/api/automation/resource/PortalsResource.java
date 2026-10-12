@@ -64,31 +64,33 @@ public class PortalsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_PORTAL,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(@Valid @NotNull PortalSpec spec, @QueryParam("dryRun") boolean dryRun) {
-        if (spec.getStructure() != null && spec.getNavigation() != null && !spec.getNavigation().isEmpty()) {
+        if (spec.getStructure() != null
+                && spec.getNavigation() != null
+                && !spec.getNavigation().isEmpty()) {
             throw new ValidationDomainException("navigation and structure cannot be used at the same time");
         }
         var auditInfo = getAuditInfo();
         var portal = Portal.of(
-            PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(spec.getHrid()).id()),
-            auditInfo.environmentId(),
-            auditInfo.organizationId(),
-            spec.getName()
-        );
+                PortalId.of(HRIDToUUID.portal()
+                        .context(auditInfo)
+                        .hrid(spec.getHrid())
+                        .id()),
+                auditInfo.environmentId(),
+                auditInfo.organizationId(),
+                spec.getName());
         var structure = PortalMapper.INSTANCE.toCoreStructure(spec);
 
         var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, structure, spec.getActiveThemeHrid());
         var output = dryRun ? validatePortalUseCase.execute(input) : createOrUpdatePortalUseCase.execute(input);
 
-        return Response.ok(
-            PortalMapper.INSTANCE.toPortalState(
-                output.portal(),
-                spec.getHrid(),
-                output.structure(),
-                output.activeThemeHrid(),
-                output.errors()
-            )
-        ).build();
+        return Response.ok(PortalMapper.INSTANCE.toPortalState(
+                        output.portal(), spec.getHrid(), output.structure(), output.activeThemeHrid(), output.errors()))
+                .build();
     }
 }

@@ -30,7 +30,7 @@ public class TopicEventMetricsFormatter extends BaseEventMetricsFormatter<TopicE
         final Buffer buffer = super.format0(data);
         appendString(buffer, data.getTopic());
 
-        //Append topic event metrics
+        // Append topic event metrics
         appendLong(buffer, data.getDownstreamPublishMessagesCountIncrement());
         appendLong(buffer, data.getDownstreamPublishMessageBytesIncrement());
         appendLong(buffer, data.getUpstreamPublishMessagesCountIncrement());

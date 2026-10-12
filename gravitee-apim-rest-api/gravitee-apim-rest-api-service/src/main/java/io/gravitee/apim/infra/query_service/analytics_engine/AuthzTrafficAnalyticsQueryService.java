@@ -50,9 +50,8 @@ public class AuthzTrafficAnalyticsQueryService implements AnalyticsEngineQuerySe
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchAuthzTrafficMeasures(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ_TRAFFIC, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ_TRAFFIC, query));
     }
 
     @Override
@@ -60,9 +59,8 @@ public class AuthzTrafficAnalyticsQueryService implements AnalyticsEngineQuerySe
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchAuthzTrafficFacets(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ_TRAFFIC, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ_TRAFFIC, query));
     }
 
     @Override
@@ -70,8 +68,7 @@ public class AuthzTrafficAnalyticsQueryService implements AnalyticsEngineQuerySe
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchAuthzTrafficTimeSeries(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ_TRAFFIC, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ_TRAFFIC, query));
     }
 }

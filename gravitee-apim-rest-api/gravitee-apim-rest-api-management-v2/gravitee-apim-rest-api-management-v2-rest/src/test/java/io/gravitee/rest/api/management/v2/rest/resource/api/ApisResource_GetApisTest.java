@@ -80,7 +80,9 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
 
     @Test
     public void should_return_404_when_environment_does_not_exist() {
-        doThrow(new EnvironmentNotFoundException(ENVIRONMENT)).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+        doThrow(new EnvironmentNotFoundException(ENVIRONMENT))
+                .when(environmentService)
+                .findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
@@ -88,14 +90,12 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_when_user_not_permitted_to_read_api() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq(ENVIRONMENT),
-                any()
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq(ENVIRONMENT),
+                        any()))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -123,16 +123,14 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(
-            apiServiceV4.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                isNull(),
-                eq(new SortableImpl("name", true)),
-                eq(new PageableImpl(1, 10))
-            )
-        ).thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
+        when(apiServiceV4.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        isNull(),
+                        eq(new SortableImpl("name", true)),
+                        eq(new PageableImpl(1, 10))))
+                .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -201,16 +199,14 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         var apiList = new ArrayList<GenericApiEntity>();
         apiList.add(returnedApi);
 
-        when(
-            apiServiceV4.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                isNull(),
-                eq(new SortableImpl("name", true)),
-                eq(new PageableImpl(1, 10))
-            )
-        ).thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
+        when(apiServiceV4.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        isNull(),
+                        eq(new SortableImpl("name", true)),
+                        eq(new PageableImpl(1, 10))))
+                .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -273,22 +269,20 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         apiList.add(returnedApi1);
         apiList.add(returnedApi2);
 
-        when(
-            apiServiceV4.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                isNull(),
-                eq(new SortableImpl("name", true)),
-                eq(new PageableImpl(1, 2))
-            )
-        ).thenReturn(new Page<>(apiList, 1, 2, 42));
+        when(apiServiceV4.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        isNull(),
+                        eq(new SortableImpl("name", true)),
+                        eq(new PageableImpl(1, 2))))
+                .thenReturn(new Page<>(apiList, 1, 2, 42));
 
         final Response response = rootTarget()
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
-            .request()
-            .get();
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // Check Response content
@@ -338,26 +332,26 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         apiList.add(returnedApi1);
         apiList.add(returnedApi2);
 
-        when(
-            apiServiceV4.findAll(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("UnitTests"),
-                eq(true),
-                eq(Set.of("deploymentState", "primaryOwner")),
-                eq(new SortableImpl("name", true)),
-                eq(new PageableImpl(1, 2))
-            )
-        ).thenReturn(new Page<>(apiList, 1, 2, 42));
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
+        when(apiServiceV4.findAll(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq("UnitTests"),
+                        eq(true),
+                        eq(Set.of("deploymentState", "primaryOwner")),
+                        eq(new SortableImpl("name", true)),
+                        eq(new PageableImpl(1, 2))))
+                .thenReturn(new Page<>(apiList, 1, 2, 42));
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1)))
+                .thenReturn(true);
 
-        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2))).thenReturn(false);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2)))
+                .thenReturn(false);
 
         final Response response = rootTarget()
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
-            .queryParam("expands", "deploymentState,primaryOwner")
-            .request()
-            .get();
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
+                .queryParam("expands", "deploymentState,primaryOwner")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // Check Response content

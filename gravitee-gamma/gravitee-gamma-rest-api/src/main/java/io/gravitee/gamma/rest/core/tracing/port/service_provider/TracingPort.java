@@ -38,20 +38,20 @@ public interface TracingPort {
      * the tracing backend so traces from another env / module are excluded server-side.
      */
     Page<Trace> searchTraces(
-        String orgId,
-        String envId,
-        Map<String, String> resourceAttributeFilters,
-        Map<String, String> attributeFilters,
-        Instant start,
-        Instant end,
-        int page,
-        int perPage
-    );
+            String orgId,
+            String envId,
+            Map<String, String> resourceAttributeFilters,
+            Map<String, String> attributeFilters,
+            Instant start,
+            Instant end,
+            int page,
+            int perPage);
 
     /**
      * Returns the spans for a single trace, or {@link Optional#empty()} if the trace doesn't exist (or the
      * resource scope rejected it). Span events / payload logs are NOT fetched here — they live behind
      * {@link OtelLogPort#findLogs} and the use case stitches them on the spans.
      */
-    Optional<List<Span>> getTraceSpans(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters);
+    Optional<List<Span>> getTraceSpans(
+            String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters);
 }

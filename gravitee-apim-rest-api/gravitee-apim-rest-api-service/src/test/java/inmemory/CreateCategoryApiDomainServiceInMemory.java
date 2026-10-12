@@ -16,17 +16,14 @@
 package inmemory;
 
 import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
-import io.gravitee.apim.core.category.domain_service.UpdateCategoryApiDomainService;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
-import io.gravitee.repository.exceptions.TechnicalException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.OptionalInt;
 import java.util.Set;
 
-public class CreateCategoryApiDomainServiceInMemory implements CreateCategoryApiDomainService, InMemoryAlternative<ApiCategoryOrder> {
+public class CreateCategoryApiDomainServiceInMemory
+        implements CreateCategoryApiDomainService, InMemoryAlternative<ApiCategoryOrder> {
 
     private final List<ApiCategoryOrder> storage;
 
@@ -61,7 +58,10 @@ public class CreateCategoryApiDomainServiceInMemory implements CreateCategoryApi
         }
 
         categoryIds.forEach(categoryId -> {
-            ApiCategoryOrder apiCategoryOrderToSave = ApiCategoryOrder.builder().apiId(apiId).categoryId(categoryId).build();
+            ApiCategoryOrder apiCategoryOrderToSave = ApiCategoryOrder.builder()
+                    .apiId(apiId)
+                    .categoryId(categoryId)
+                    .build();
             storage.add(apiCategoryOrderToSave);
         });
     }

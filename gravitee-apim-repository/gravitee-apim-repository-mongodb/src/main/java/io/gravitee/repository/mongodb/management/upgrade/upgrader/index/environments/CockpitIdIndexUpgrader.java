@@ -28,9 +28,9 @@ public class CockpitIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("environments")
-            .name("ci1")
-            .key("cockpitId", ascending())
-            .build();
+                .collection("environments")
+                .name("ci1")
+                .key("cockpitId", ascending())
+                .build();
     }
 }

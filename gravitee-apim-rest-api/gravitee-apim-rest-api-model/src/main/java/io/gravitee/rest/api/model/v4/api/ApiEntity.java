@@ -72,10 +72,14 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
 
-    @Schema(description = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
+    @Schema(
+            description = "API's crossId. Identifies API across environments.",
+            example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
     private String crossId;
 
-    @Schema(description = "API's hrid. human-readable ID that identifies API across environments.", example = "echo-api")
+    @Schema(
+            description = "API's hrid. human-readable ID that identifies API across environments.",
+            example = "echo-api")
     private String hrid;
 
     @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")
@@ -100,9 +104,8 @@ public class ApiEntity implements GenericApiEntity {
     private Date updatedAt;
 
     @Schema(
-        description = "API's description. A short description of your API.",
-        example = "I can use a hundred characters to describe this API."
-    )
+            description = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
 
     @Schema(description = "The list of sharding tags associated with this API.", example = "public, private")
@@ -151,8 +154,8 @@ public class ApiEntity implements GenericApiEntity {
 
     @DeploymentRequired
     @Schema(
-        description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-key is missing, ..."
-    )
+            description =
+                    "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-key is missing, ...")
     @Builder.Default
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
 
@@ -177,9 +180,8 @@ public class ApiEntity implements GenericApiEntity {
     private String picture;
 
     @Schema(
-        description = "the API logo URL.",
-        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
-    )
+            description = "the API logo URL.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture")
     private String pictureUrl;
 
     @Schema(description = "the list of categories associated with this API", example = "Product, Customer, Misc")
@@ -203,9 +205,9 @@ public class ApiEntity implements GenericApiEntity {
     private boolean disableMembershipNotifications;
 
     @Schema(
-        description = "Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.",
-        example = "false"
-    )
+            description =
+                    "Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.",
+            example = "false")
     private Boolean allowedInApiProducts;
 
     @Builder.Default
@@ -215,9 +217,8 @@ public class ApiEntity implements GenericApiEntity {
     private String background;
 
     @Schema(
-        description = "the API background url.",
-        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
-    )
+            description = "the API background url.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background")
     private String backgroundUrl;
 
     @JsonIgnore

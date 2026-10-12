@@ -27,10 +27,9 @@ import org.springframework.core.env.Environment;
 public class VertxDebugHttpServerOptions extends VertxHttpServerOptions {
 
     public abstract static class VertxDebugHttpServerOptionsBuilder<
-        C extends VertxDebugHttpServerOptions,
-        B extends VertxDebugHttpServerOptions.VertxDebugHttpServerOptionsBuilder<C, B>
-    >
-        extends VertxHttpServerOptionsBuilder<C, B> {
+                    C extends VertxDebugHttpServerOptions,
+                    B extends VertxDebugHttpServerOptions.VertxDebugHttpServerOptionsBuilder<C, B>>
+            extends VertxHttpServerOptionsBuilder<C, B> {
 
         public B environment(Environment environment) {
             super.environment(environment);

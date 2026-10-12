@@ -43,12 +43,14 @@ public class PageUtils {
      * <p>Upgraders and other "must-complete" backend tasks should iterate pages through this helper rather than building
      * a {@code do { ... } while (handled < page.getTotalElements())} loop.
      */
-    public static <T> void forEachPage(ThrowingFunction<Pageable, Page<T>> pageSupplier, int pageSize, ThrowingConsumer<Page<T>> handler)
-        throws TechnicalException {
+    public static <T> void forEachPage(
+            ThrowingFunction<Pageable, Page<T>> pageSupplier, int pageSize, ThrowingConsumer<Page<T>> handler)
+            throws TechnicalException {
         int pageIdx = 0;
         boolean hasMore;
         do {
-            Page<T> page = pageSupplier.apply(new PageableBuilder().pageSize(pageSize).pageNumber(pageIdx).build());
+            Page<T> page = pageSupplier.apply(
+                    new PageableBuilder().pageSize(pageSize).pageNumber(pageIdx).build());
             if (page == null || page.getContent() == null || page.getContent().isEmpty()) {
                 return;
             }
@@ -59,29 +61,27 @@ public class PageUtils {
     }
 
     public static <T> Stream<T> toStream(ThrowingFunction<Pageable, Page<T>> pageSupplier) throws TechnicalException {
-        var pageable = new PageableBuilder().pageSize(BATCH_PAGE_SIZE).pageNumber(0).build();
+        var pageable =
+                new PageableBuilder().pageSize(BATCH_PAGE_SIZE).pageNumber(0).build();
         var fistPage = pageSupplier.apply(pageable);
 
         if (fistPage == null || fistPage.getContent() == null) {
             return Stream.empty();
         }
 
-        return Stream.iterate(
-            fistPage,
-            p -> !isEmpty(p),
-            p -> {
-                try {
-                    return hasNext(p) ? pageSupplier.apply(nextPageable(p, pageable)) : null;
-                } catch (TechnicalException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        ).flatMap(p -> {
-            if (p != null && p.getContent() != null) {
-                return p.getContent().stream();
-            }
-            return Stream.empty();
-        });
+        return Stream.iterate(fistPage, p -> !isEmpty(p), p -> {
+                    try {
+                        return hasNext(p) ? pageSupplier.apply(nextPageable(p, pageable)) : null;
+                    } catch (TechnicalException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .flatMap(p -> {
+                    if (p != null && p.getContent() != null) {
+                        return p.getContent().stream();
+                    }
+                    return Stream.empty();
+                });
     }
 
     private static boolean isEmpty(Page page) {
@@ -89,8 +89,10 @@ public class PageUtils {
     }
 
     private static boolean hasNext(Page page) {
-        // When the repository could not compute the total (count timed out), fall back to the page-fullness heuristic so we
-        // don't silently truncate iteration. The page is treated as last when it returned fewer elements than the page size.
+        // When the repository could not compute the total (count timed out), fall back to the page-fullness heuristic
+        // so we
+        // don't silently truncate iteration. The page is treated as last when it returned fewer elements than the page
+        // size.
         if (page.getTotalElements() < 0) {
             return page.getContent() != null && page.getPageElements() > 0;
         }
@@ -98,6 +100,9 @@ public class PageUtils {
     }
 
     private static Pageable nextPageable(Page currentPage, Pageable pageable) {
-        return new PageableBuilder().pageSize(pageable.pageSize()).pageNumber(currentPage.getPageNumber() + 1).build();
+        return new PageableBuilder()
+                .pageSize(pageable.pageSize())
+                .pageNumber(currentPage.getPageNumber() + 1)
+                .build();
     }
 }

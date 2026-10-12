@@ -44,17 +44,17 @@ class OpenApiContentTransformerImplTest {
     @Test
     void should_keep_content_unchanged_when_server_resolution_flags_are_disabled() {
         var transformed = transformer.transform(
-            OPENAPI,
-            configuration(false, false, "https://custom.example.com/base"),
-            Optional.of(apiContext(List.of("https://apis.gravitee.io/test"), "/test/"))
-        );
+                OPENAPI,
+                configuration(false, false, "https://custom.example.com/base"),
+                Optional.of(apiContext(List.of("https://apis.gravitee.io/test"), "/test/")));
 
         assertThat(transformed).isEqualTo(OPENAPI);
     }
 
     @Test
     void should_replace_existing_server_path_with_api_context_path() {
-        var transformed = transformer.transform(OPENAPI, configuration(false, true, ""), Optional.of(apiContext(List.of(), "/test/")));
+        var transformed = transformer.transform(
+                OPENAPI, configuration(false, true, ""), Optional.of(apiContext(List.of(), "/test/")));
 
         assertThat(serverUrls(transformed)).containsExactly("https://origin.example.com/test/");
     }
@@ -62,10 +62,10 @@ class OpenApiContentTransformerImplTest {
     @Test
     void should_use_api_entrypoints_without_paths_as_servers() {
         var transformed = transformer.transform(
-            OPENAPI,
-            configuration(true, false, ""),
-            Optional.of(apiContext(List.of("https://apis.gravitee.io/test", "https://backup.gravitee.io/test"), "/test/"))
-        );
+                OPENAPI,
+                configuration(true, false, ""),
+                Optional.of(apiContext(
+                        List.of("https://apis.gravitee.io/test", "https://backup.gravitee.io/test"), "/test/")));
 
         assertThat(serverUrls(transformed)).containsExactly("https://apis.gravitee.io", "https://backup.gravitee.io");
     }
@@ -73,10 +73,9 @@ class OpenApiContentTransformerImplTest {
     @Test
     void should_replace_api_entrypoint_paths_with_context_path_when_context_path_as_server_path_is_enabled() {
         var transformed = transformer.transform(
-            OPENAPI,
-            configuration(true, true, ""),
-            Optional.of(apiContext(List.of("https://apis.gravitee.io/gateway/echo"), "/test/"))
-        );
+                OPENAPI,
+                configuration(true, true, ""),
+                Optional.of(apiContext(List.of("https://apis.gravitee.io/gateway/echo"), "/test/")));
 
         assertThat(serverUrls(transformed)).containsExactly("https://apis.gravitee.io/test/");
     }
@@ -84,17 +83,18 @@ class OpenApiContentTransformerImplTest {
     @Test
     void should_keep_api_entrypoint_path_when_context_path_as_server_path_is_enabled_without_context_path() {
         var transformed = transformer.transform(
-            OPENAPI,
-            configuration(true, true, ""),
-            Optional.of(new OpenApiContentTransformer.ApiContext(List.of("https://apis.gravitee.io/gateway/echo"), Optional.empty()))
-        );
+                OPENAPI,
+                configuration(true, true, ""),
+                Optional.of(new OpenApiContentTransformer.ApiContext(
+                        List.of("https://apis.gravitee.io/gateway/echo"), Optional.empty())));
 
         assertThat(serverUrls(transformed)).containsExactly("https://apis.gravitee.io/gateway/echo");
     }
 
     @Test
     void should_apply_try_it_url_without_api_context() {
-        var transformed = transformer.transform(OPENAPI, configuration(false, true, "https://custom.example.com/base"), Optional.empty());
+        var transformed = transformer.transform(
+                OPENAPI, configuration(false, true, "https://custom.example.com/base"), Optional.empty());
 
         assertThat(serverUrls(transformed)).containsExactly("https://custom.example.com/base");
     }
@@ -102,31 +102,30 @@ class OpenApiContentTransformerImplTest {
     @Test
     void should_apply_try_it_url_before_replacing_server_path_with_api_context_path() {
         var transformed = transformer.transform(
-            OPENAPI,
-            configuration(false, true, "https://custom.example.com/tryit?q=test"),
-            Optional.of(apiContext(List.of(), "/test/"))
-        );
+                OPENAPI,
+                configuration(false, true, "https://custom.example.com/tryit?q=test"),
+                Optional.of(apiContext(List.of(), "/test/")));
 
         assertThat(serverUrls(transformed)).containsExactly("https://custom.example.com/test/?q=test");
     }
 
-    private static SwaggerUiConfiguration configuration(boolean entrypointsAsServers, boolean contextPathAsServerPath, String tryItUrl) {
+    private static SwaggerUiConfiguration configuration(
+            boolean entrypointsAsServers, boolean contextPathAsServerPath, String tryItUrl) {
         return new SwaggerUiConfiguration(
-            false,
-            "none",
-            false,
-            -1,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            tryItUrl,
-            false,
-            entrypointsAsServers,
-            contextPathAsServerPath
-        );
+                false,
+                "none",
+                false,
+                -1,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                tryItUrl,
+                false,
+                entrypointsAsServers,
+                contextPathAsServerPath);
     }
 
     private static OpenApiContentTransformer.ApiContext apiContext(List<String> entrypoints, String contextPath) {
@@ -135,11 +134,8 @@ class OpenApiContentTransformerImplTest {
 
     private static List<String> serverUrls(String content) {
         return new OAIParser()
-            .parse(content)
-            .getSpecification()
-            .getServers()
-            .stream()
-            .map(server -> server.getUrl())
-            .toList();
+                .parse(content).getSpecification().getServers().stream()
+                        .map(server -> server.getUrl())
+                        .toList();
     }
 }

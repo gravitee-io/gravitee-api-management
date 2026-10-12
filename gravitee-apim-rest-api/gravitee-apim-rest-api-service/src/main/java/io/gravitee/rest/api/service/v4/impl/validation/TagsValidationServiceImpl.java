@@ -54,7 +54,8 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
     }
 
     @Override
-    public Set<String> validateAndSanitize(final ExecutionContext executionContext, final Set<String> oldTags, final Set<String> newTags) {
+    public Set<String> validateAndSanitize(
+            final ExecutionContext executionContext, final Set<String> oldTags, final Set<String> newTags) {
         final Set<String> existingTags = oldTags == null ? new HashSet<>() : oldTags;
         final Set<String> tagsToUpdate = newTags == null ? new HashSet<>() : newTags;
 
@@ -63,29 +64,20 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
             tags = tagsToUpdate;
         } else {
             // Filter to keep only those newed or removed
-            tags = existingTags
-                .stream()
-                .filter(tag -> !tagsToUpdate.contains(tag))
-                .collect(toSet());
-            tags.addAll(
-                tagsToUpdate
-                    .stream()
+            tags = existingTags.stream()
+                    .filter(tag -> !tagsToUpdate.contains(tag))
+                    .collect(toSet());
+            tags.addAll(tagsToUpdate.stream()
                     .filter(tag -> !existingTags.contains(tag))
-                    .collect(toSet())
-            );
+                    .collect(toSet()));
         }
 
         if (!tags.isEmpty()) {
             final Set<String> userTags = tagService.findByUser(
-                getAuthenticatedUsername(),
-                executionContext.getOrganizationId(),
-                TagReferenceType.ORGANIZATION
-            );
+                    getAuthenticatedUsername(), executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
             if (!userTags.containsAll(tags)) {
-                final String[] notAllowedTags = tags
-                    .stream()
-                    .filter(tag -> !userTags.contains(tag))
-                    .toArray(String[]::new);
+                final String[] notAllowedTags =
+                        tags.stream().filter(tag -> !userTags.contains(tag)).toArray(String[]::new);
                 throw new TagNotAllowedException(notAllowedTags);
             }
         }
@@ -96,8 +88,12 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
     public void validatePlanTagsAgainstApiTags(Set<String> planTags, Api api) {
         try {
             var apiTags = api.getDefinitionVersion() == DefinitionVersion.V4
-                ? objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class).getTags()
-                : objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class).getTags();
+                    ? objectMapper
+                            .readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class)
+                            .getTags()
+                    : objectMapper
+                            .readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)
+                            .getTags();
             validatePlanTagsAgainstApiTags(planTags, apiTags);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("An error occurs while trying load api definition", e);
@@ -106,7 +102,8 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
 
     @Override
     public void validatePlanTagsAgainstApiTags(Set<String> planTags, Set<String> apiTags) {
-        if (!isEmpty(planTags) && (isEmpty(apiTags) || !apiTags.stream().anyMatch(apiTag -> planTags.contains(apiTag)))) {
+        if (!isEmpty(planTags)
+                && (isEmpty(apiTags) || !apiTags.stream().anyMatch(apiTag -> planTags.contains(apiTag)))) {
             log.debug("Plan rejected, tags {} mismatch the tags defined by the API ({})", planTags, apiTags);
             throw new TagNotAllowedException(planTags.toArray(new String[planTags.size()]));
         }

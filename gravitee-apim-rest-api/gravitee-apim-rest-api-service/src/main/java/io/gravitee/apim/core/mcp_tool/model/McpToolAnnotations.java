@@ -19,9 +19,4 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record McpToolAnnotations(
-    String title,
-    Boolean readOnlyHint,
-    Boolean destructiveHint,
-    Boolean idempotentHint,
-    Boolean openWorldHint
-) {}
+        String title, Boolean readOnlyHint, Boolean destructiveHint, Boolean idempotentHint, Boolean openWorldHint) {}

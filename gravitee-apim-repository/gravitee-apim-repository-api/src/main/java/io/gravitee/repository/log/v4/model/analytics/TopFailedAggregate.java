@@ -17,7 +17,6 @@ package io.gravitee.repository.log.v4.model.analytics;
 
 import java.util.Map;
 import lombok.Builder;
-import lombok.Data;
 
 @Builder
 public record TopFailedAggregate(Map<String, FailedApiInfo> failedApis) {

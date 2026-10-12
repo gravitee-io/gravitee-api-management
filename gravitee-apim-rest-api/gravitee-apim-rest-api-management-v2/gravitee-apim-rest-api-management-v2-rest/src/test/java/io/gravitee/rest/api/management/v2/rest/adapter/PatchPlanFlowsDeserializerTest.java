@@ -42,20 +42,19 @@ class PatchPlanFlowsDeserializerTest {
 
     private static Flow aFlowWithHttpSelector() {
         return Flow.builder()
-            .id(FLOW_ID)
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(HttpSelector.builder().path("/api").build()))
-            .build();
+                .id(FLOW_ID)
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                .build();
     }
 
     @Test
-    void fromPatchedFlowsNode_accepts_uppercase_HTTP_selector_and_returns_domain_flow_with_HttpSelector() throws IOException {
+    void fromPatchedFlowsNode_accepts_uppercase_HTTP_selector_and_returns_domain_flow_with_HttpSelector()
+            throws IOException {
         var node = mapper.readTree(
-            "[{\"id\":\"" +
-                FLOW_ID +
-                "\",\"name\":\"my-flow\",\"enabled\":true,\"selectors\":[{\"type\":\"HTTP\",\"path\":\"/api\",\"pathOperator\":\"STARTS_WITH\"}]}]"
-        );
+                "[{\"id\":\"" + FLOW_ID
+                        + "\",\"name\":\"my-flow\",\"enabled\":true,\"selectors\":[{\"type\":\"HTTP\",\"path\":\"/api\",\"pathOperator\":\"STARTS_WITH\"}]}]");
 
         var result = deserializer.fromPatchedFlowsNode(node);
 
@@ -66,46 +65,38 @@ class PatchPlanFlowsDeserializerTest {
 
     @Test
     void fromPatchedFlowsNode_rejects_lowercase_http_selector_discriminator_with_ValidationDomainException() {
-        var node = mapper.valueToTree(
-            List.of(
-                mapper
-                    .createObjectNode()
-                    .put("name", "my-flow")
-                    .put("enabled", true)
-                    .set(
+        var node = mapper.valueToTree(List.of(mapper.createObjectNode()
+                .put("name", "my-flow")
+                .put("enabled", true)
+                .set(
                         "selectors",
-                        mapper
-                            .createArrayNode()
-                            .add(mapper.createObjectNode().put("type", "http").put("path", "/api").put("pathOperator", "STARTS_WITH"))
-                    )
-            )
-        );
+                        mapper.createArrayNode()
+                                .add(mapper.createObjectNode()
+                                        .put("type", "http")
+                                        .put("path", "/api")
+                                        .put("pathOperator", "STARTS_WITH")))));
 
         assertThatThrownBy(() -> deserializer.fromPatchedFlowsNode(node))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasCauseInstanceOf(IOException.class);
+                .isInstanceOf(ValidationDomainException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
     @Test
     void fromPatchedFlowsNode_rejects_BOGUS_selector_discriminator_with_ValidationDomainException() {
-        var node = mapper.valueToTree(
-            List.of(
-                mapper
-                    .createObjectNode()
-                    .put("name", "my-flow")
-                    .put("enabled", true)
-                    .set(
+        var node = mapper.valueToTree(List.of(mapper.createObjectNode()
+                .put("name", "my-flow")
+                .put("enabled", true)
+                .set(
                         "selectors",
-                        mapper
-                            .createArrayNode()
-                            .add(mapper.createObjectNode().put("type", "BOGUS").put("path", "/api").put("pathOperator", "STARTS_WITH"))
-                    )
-            )
-        );
+                        mapper.createArrayNode()
+                                .add(mapper.createObjectNode()
+                                        .put("type", "BOGUS")
+                                        .put("path", "/api")
+                                        .put("pathOperator", "STARTS_WITH")))));
 
         assertThatThrownBy(() -> deserializer.fromPatchedFlowsNode(node))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasCauseInstanceOf(IOException.class);
+                .isInstanceOf(ValidationDomainException.class)
+                .hasCauseInstanceOf(IOException.class);
     }
 
     @Test
@@ -132,12 +123,12 @@ class PatchPlanFlowsDeserializerTest {
     @Test
     void round_trip_preserves_populated_tags() throws IOException {
         var flow = Flow.builder()
-            .id(FLOW_ID)
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(HttpSelector.builder().path("/api").build()))
-            .tags(Set.of("tag1", "tag2"))
-            .build();
+                .id(FLOW_ID)
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                .tags(Set.of("tag1", "tag2"))
+                .build();
 
         var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
 
@@ -148,11 +139,11 @@ class PatchPlanFlowsDeserializerTest {
     @Test
     void round_trip_normalizes_null_tags_to_empty() throws IOException {
         var flow = Flow.builder()
-            .id(FLOW_ID)
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(HttpSelector.builder().path("/api").build()))
-            .build();
+                .id(FLOW_ID)
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                .build();
 
         var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
 
@@ -165,11 +156,14 @@ class PatchPlanFlowsDeserializerTest {
     @Test
     void round_trip_preserves_populated_methods() throws IOException {
         var flow = Flow.builder()
-            .id(FLOW_ID)
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(HttpSelector.builder().path("/api").methods(Set.of(HttpMethod.GET, HttpMethod.POST)).build()))
-            .build();
+                .id(FLOW_ID)
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(HttpSelector.builder()
+                        .path("/api")
+                        .methods(Set.of(HttpMethod.GET, HttpMethod.POST))
+                        .build()))
+                .build();
 
         var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
 
@@ -181,11 +175,11 @@ class PatchPlanFlowsDeserializerTest {
     @Test
     void round_trip_normalizes_null_methods_to_empty() throws IOException {
         var flow = Flow.builder()
-            .id(FLOW_ID)
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(HttpSelector.builder().path("/api").build()))
-            .build();
+                .id(FLOW_ID)
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                .build();
 
         var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
 
@@ -196,16 +190,17 @@ class PatchPlanFlowsDeserializerTest {
 
     @Test
     void round_trip_preserves_request_and_response_steps() throws IOException {
-        var requestStep = Step.builder().name("req-step").policy("transform-headers").build();
+        var requestStep =
+                Step.builder().name("req-step").policy("transform-headers").build();
         var responseStep = Step.builder().name("resp-step").policy("cache").build();
         var flow = Flow.builder()
-            .id(FLOW_ID)
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(HttpSelector.builder().path("/api").build()))
-            .request(List.of(requestStep))
-            .response(List.of(responseStep))
-            .build();
+                .id(FLOW_ID)
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                .request(List.of(requestStep))
+                .response(List.of(responseStep))
+                .build();
 
         var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
 
@@ -221,11 +216,13 @@ class PatchPlanFlowsDeserializerTest {
     @Test
     void round_trip_preserves_condition_selector() throws IOException {
         var flow = Flow.builder()
-            .id(FLOW_ID)
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(ConditionSelector.builder().condition("{#request.content.length() > 10}").build()))
-            .build();
+                .id(FLOW_ID)
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(ConditionSelector.builder()
+                        .condition("{#request.content.length() > 10}")
+                        .build()))
+                .build();
 
         var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
 

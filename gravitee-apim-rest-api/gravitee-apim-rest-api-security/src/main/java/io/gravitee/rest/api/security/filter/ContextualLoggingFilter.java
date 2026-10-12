@@ -46,7 +46,8 @@ public class ContextualLoggingFilter extends GenericFilterBean {
     static final String APP_ID_KEY = "appId";
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
+            throws IOException, ServletException {
         MDC.clear();
         String organization = GraviteeContext.getCurrentOrganization();
 

@@ -93,7 +93,7 @@ public class RatingMapperTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        //init
+        // init
         RatingEntity ratingEntity = new RatingEntity();
 
         RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
@@ -125,7 +125,9 @@ public class RatingMapperTest {
         responseAuthor.setId(RATING_RESPONSE_AUTHOR);
 
         doReturn(authorEntity).when(userService).findById(GraviteeContext.getExecutionContext(), RATING_AUTHOR);
-        doReturn(responseAuthorEntity).when(userService).findById(GraviteeContext.getExecutionContext(), RATING_RESPONSE_AUTHOR);
+        doReturn(responseAuthorEntity)
+                .when(userService)
+                .findById(GraviteeContext.getExecutionContext(), RATING_RESPONSE_AUTHOR);
         doReturn(author).when(userMapper).convert(authorEntity);
         doReturn(responseAuthor).when(userMapper).convert(responseAuthorEntity);
 

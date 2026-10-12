@@ -24,8 +24,7 @@ public class ScoringRulesetFixture {
 
     private ScoringRulesetFixture() {}
 
-    public static final Supplier<ScoringRuleset.ScoringRulesetBuilder> BASE = () ->
-        ScoringRuleset.builder()
+    public static final Supplier<ScoringRuleset.ScoringRulesetBuilder> BASE = () -> ScoringRuleset.builder()
             .id("ruleset-id")
             .name("ruleset-name")
             .description("ruleset-description")

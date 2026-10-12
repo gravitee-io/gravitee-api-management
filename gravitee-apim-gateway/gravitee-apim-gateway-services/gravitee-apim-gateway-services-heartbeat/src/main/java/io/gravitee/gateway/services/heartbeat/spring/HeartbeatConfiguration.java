@@ -37,30 +37,28 @@ public class HeartbeatConfiguration {
 
     @Bean
     public HeartbeatStrategyConfiguration heartbeatDependencies(
-        ObjectMapper objectMapper,
-        Node node,
-        EnvironmentRepository environmentRepository,
-        OrganizationRepository organizationRepository,
-        ClusterManager clusterManager,
-        EventRepository eventRepository,
-        GatewayConfiguration gatewayConfiguration,
-        PluginRegistry pluginRegistry,
-        io.gravitee.node.api.configuration.Configuration configuration
-    ) {
+            ObjectMapper objectMapper,
+            Node node,
+            EnvironmentRepository environmentRepository,
+            OrganizationRepository organizationRepository,
+            ClusterManager clusterManager,
+            EventRepository eventRepository,
+            GatewayConfiguration gatewayConfiguration,
+            PluginRegistry pluginRegistry,
+            io.gravitee.node.api.configuration.Configuration configuration) {
         return new HeartbeatStrategyConfiguration(
-            configuration.getProperty("services.heartbeat.enabled", Boolean.class, true),
-            configuration.getProperty("services.heartbeat.delay", Integer.class, 5000),
-            configuration.getProperty("services.heartbeat.unit", TimeUnit.class, TimeUnit.MILLISECONDS),
-            configuration.getProperty("services.heartbeat.storeSystemProperties", Boolean.class, true),
-            configuration.getProperty("http.port", String.class, "8082"),
-            objectMapper,
-            node,
-            environmentRepository,
-            organizationRepository,
-            clusterManager,
-            eventRepository,
-            gatewayConfiguration,
-            pluginRegistry
-        );
+                configuration.getProperty("services.heartbeat.enabled", Boolean.class, true),
+                configuration.getProperty("services.heartbeat.delay", Integer.class, 5000),
+                configuration.getProperty("services.heartbeat.unit", TimeUnit.class, TimeUnit.MILLISECONDS),
+                configuration.getProperty("services.heartbeat.storeSystemProperties", Boolean.class, true),
+                configuration.getProperty("http.port", String.class, "8082"),
+                objectMapper,
+                node,
+                environmentRepository,
+                organizationRepository,
+                clusterManager,
+                eventRepository,
+                gatewayConfiguration,
+                pluginRegistry);
     }
 }

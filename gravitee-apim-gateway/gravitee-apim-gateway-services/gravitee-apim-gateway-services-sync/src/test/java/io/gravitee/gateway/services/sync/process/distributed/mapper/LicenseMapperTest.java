@@ -48,38 +48,36 @@ public class LicenseMapperTest {
         var content = "license-content";
 
         distributedEvent = DistributedEvent.builder()
-            .id(id)
-            .payload(content)
-            .updatedAt(new Date())
-            .type(DistributedEventType.LICENSE)
-            .syncAction(DistributedSyncAction.DEPLOY)
-            .build();
+                .id(id)
+                .payload(content)
+                .updatedAt(new Date())
+                .type(DistributedEventType.LICENSE)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .build();
 
-        licenseDeployable = LicenseDeployable.builder().id(id).license(content).syncAction(SyncAction.DEPLOY).build();
+        licenseDeployable = LicenseDeployable.builder()
+                .id(id)
+                .license(content)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
     }
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
-            .test()
-            .assertValue(deployable -> {
-                assertThat(deployable).isEqualTo(licenseDeployable);
-                return true;
-            });
+        cut.to(distributedEvent).test().assertValue(deployable -> {
+            assertThat(deployable).isEqualTo(licenseDeployable);
+            return true;
+        });
     }
 
     @Test
     void should_map_license_deployable() {
-        cut
-            .to(licenseDeployable)
-            .test()
-            .assertValue(distributedEvent -> {
-                assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
-                assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
-                assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
-                return true;
-            });
+        cut.to(licenseDeployable).test().assertValue(distributedEvent -> {
+            assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());
+            assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());
+            assertThat(distributedEvent.getPayload()).isEqualTo(this.distributedEvent.getPayload());
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
+            return true;
+        });
     }
 }

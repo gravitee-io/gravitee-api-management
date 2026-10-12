@@ -59,133 +59,129 @@ public abstract class AbstractApiSynchronizer {
     protected abstract int bulkEvents();
 
     protected Flowable<ApiReactorDeployable> processEvents(
-        final boolean initialSync,
-        final Flowable<List<Event>> eventsFlowable,
-        final Set<String> environments
-    ) {
+            final boolean initialSync, final Flowable<List<Event>> eventsFlowable, final Set<String> environments) {
         return eventsFlowable
-            // fetch per page
-            .flatMap(events ->
-                Flowable.just(events)
-                    .doOnNext(e -> log.debug("New api events fetch"))
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.PUBLISH_API || eventsByType.getKey() == EventType.START_API) {
-                            return prepareForDeployment(initialSync, eventsByType, environments);
-                        } else if (eventsByType.getKey() == EventType.UNPUBLISH_API || eventsByType.getKey() == EventType.STOP_API) {
-                            return prepareForUndeployment(eventsByType);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-            )
-            // per deployable
-            .compose(upstream -> {
-                SubscriptionDeployer subscriptionDeployer = deployerFactory.createSubscriptionDeployer();
-                ApiKeyDeployer apiKeyDeployer = deployerFactory.createApiKeyDeployer();
-                ApiDeployer apiDeployer = deployerFactory.createApiDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployApi(initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeployApi(initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
-                        } else {
-                            return Flowable.just(deployable);
-                        }
-                    })
-                    .sequential(bulkEvents());
-            });
+                // fetch per page
+                .flatMap(events -> Flowable.just(events)
+                        .doOnNext(e -> log.debug("New api events fetch"))
+                        .flatMapIterable(e -> e)
+                        .groupBy(Event::getType)
+                        .flatMap(eventsByType -> {
+                            if (eventsByType.getKey() == EventType.PUBLISH_API
+                                    || eventsByType.getKey() == EventType.START_API) {
+                                return prepareForDeployment(initialSync, eventsByType, environments);
+                            } else if (eventsByType.getKey() == EventType.UNPUBLISH_API
+                                    || eventsByType.getKey() == EventType.STOP_API) {
+                                return prepareForUndeployment(eventsByType);
+                            } else {
+                                return Flowable.empty();
+                            }
+                        }))
+                // per deployable
+                .compose(upstream -> {
+                    SubscriptionDeployer subscriptionDeployer = deployerFactory.createSubscriptionDeployer();
+                    ApiKeyDeployer apiKeyDeployer = deployerFactory.createApiKeyDeployer();
+                    ApiDeployer apiDeployer = deployerFactory.createApiDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> {
+                                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                    return deployApi(
+                                            initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                                } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                    return undeployApi(
+                                            initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                                } else {
+                                    return Flowable.just(deployable);
+                                }
+                            })
+                            .sequential(bulkEvents());
+                });
     }
 
     private Flowable<ApiReactorDeployable> prepareForDeployment(
-        final boolean initialSync,
-        final GroupedFlowable<EventType, Event> eventsByType,
-        final Set<String> environments
-    ) {
+            final boolean initialSync,
+            final GroupedFlowable<EventType, Event> eventsByType,
+            final Set<String> environments) {
         return eventsByType
-            .flatMapMaybe(apiMapper::to)
-            .groupBy(apiManager::requiredActionFor)
-            .flatMap(reactableByAction -> {
-                if (reactableByAction.getKey() == ActionOnApi.DEPLOY) {
-                    return reactableByAction
-                        .map(reactableApi ->
-                            ApiReactorDeployable.builder()
+                .flatMapMaybe(apiMapper::to)
+                .groupBy(apiManager::requiredActionFor)
+                .flatMap(reactableByAction -> {
+                    if (reactableByAction.getKey() == ActionOnApi.DEPLOY) {
+                        return reactableByAction
+                                .map(reactableApi -> ApiReactorDeployable.builder()
+                                        .apiId(reactableApi.getId())
+                                        .syncAction(SyncAction.DEPLOY)
+                                        .reactableApi(reactableApi)
+                                        .build())
+                                .buffer(bulkEvents())
+                                .flatMap(
+                                        deployables -> Flowable.fromCallable(() -> {
+                                                    List<ApiReactorDeployable> withPlans =
+                                                            planAppender.appends(deployables, environments);
+                                                    List<ApiReactorDeployable> withSubscriptions =
+                                                            subscriptionAppender.appends(
+                                                                    initialSync, withPlans, environments);
+                                                    return apiKeyAppender.appends(
+                                                            initialSync, withSubscriptions, environments);
+                                                })
+                                                .concatMapSingle(withApiKeys ->
+                                                        authzAppender.appends(initialSync, withApiKeys, environments))
+                                                .subscribeOn(Schedulers.from(syncFetcherExecutor)),
+                                        appenderParallelism)
+                                .flatMapIterable(d -> d);
+                    } else if (reactableByAction.getKey() == ActionOnApi.UNDEPLOY) {
+                        return reactableByAction.map(reactableApi -> ApiReactorDeployable.builder()
+                                .syncAction(SyncAction.UNDEPLOY)
                                 .apiId(reactableApi.getId())
-                                .syncAction(SyncAction.DEPLOY)
-                                .reactableApi(reactableApi)
-                                .build()
-                        )
-                        .buffer(bulkEvents())
-                        .flatMap(
-                            deployables ->
-                                Flowable.fromCallable(() -> {
-                                    List<ApiReactorDeployable> withPlans = planAppender.appends(deployables, environments);
-                                    List<ApiReactorDeployable> withSubscriptions = subscriptionAppender.appends(
-                                        initialSync,
-                                        withPlans,
-                                        environments
-                                    );
-                                    return apiKeyAppender.appends(initialSync, withSubscriptions, environments);
-                                })
-                                    .concatMapSingle(withApiKeys -> authzAppender.appends(initialSync, withApiKeys, environments))
-                                    .subscribeOn(Schedulers.from(syncFetcherExecutor)),
-                            appenderParallelism
-                        )
-                        .flatMapIterable(d -> d);
-                } else if (reactableByAction.getKey() == ActionOnApi.UNDEPLOY) {
-                    return reactableByAction.map(reactableApi ->
-                        ApiReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).apiId(reactableApi.getId()).build()
-                    );
-                } else {
-                    return Flowable.empty();
-                }
-            });
+                                .build());
+                    } else {
+                        return Flowable.empty();
+                    }
+                });
     }
 
     private Flowable<ApiReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(apiMapper::toId)
-            .map(apiId -> ApiReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).apiId(apiId).build());
+                .flatMapMaybe(apiMapper::toId)
+                .map(apiId -> ApiReactorDeployable.builder()
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .apiId(apiId)
+                        .build());
     }
 
     private Flowable<ApiReactorDeployable> deployApi(
-        final boolean initialSync,
-        final SubscriptionDeployer subscriptionDeployer,
-        final ApiKeyDeployer apiKeyDeployer,
-        final ApiDeployer apiDeployer,
-        final ApiReactorDeployable deployable
-    ) {
+            final boolean initialSync,
+            final SubscriptionDeployer subscriptionDeployer,
+            final ApiKeyDeployer apiKeyDeployer,
+            final ApiDeployer apiDeployer,
+            final ApiReactorDeployable deployable) {
         return subscriptionDeployer
-            .deploy(deployable)
-            .andThen(apiKeyDeployer.deploy(deployable))
-            .andThen(apiDeployer.deploy(deployable))
-            .andThen(subscriptionDeployer.doAfterDeployment(deployable))
-            .andThen(apiKeyDeployer.doAfterDeployment(deployable))
-            .andThen(apiDeployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
+                .deploy(deployable)
+                .andThen(apiKeyDeployer.deploy(deployable))
+                .andThen(apiDeployer.deploy(deployable))
+                .andThen(subscriptionDeployer.doAfterDeployment(deployable))
+                .andThen(apiKeyDeployer.doAfterDeployment(deployable))
+                .andThen(apiDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
     }
 
     private Flowable<ApiReactorDeployable> undeployApi(
-        final boolean initialSync,
-        final SubscriptionDeployer subscriptionDeployer,
-        final ApiKeyDeployer apiKeyDeployer,
-        final ApiDeployer apiDeployer,
-        final ApiReactorDeployable deployable
-    ) {
+            final boolean initialSync,
+            final SubscriptionDeployer subscriptionDeployer,
+            final ApiKeyDeployer apiKeyDeployer,
+            final ApiDeployer apiDeployer,
+            final ApiReactorDeployable deployable) {
         return apiDeployer
-            .undeploy(deployable)
-            .andThen(subscriptionDeployer.undeploy(deployable))
-            .andThen(apiKeyDeployer.undeploy(deployable))
-            .andThen(subscriptionDeployer.doAfterUndeployment(deployable))
-            .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
-            .andThen(apiDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
+                .undeploy(deployable)
+                .andThen(subscriptionDeployer.undeploy(deployable))
+                .andThen(apiKeyDeployer.undeploy(deployable))
+                .andThen(subscriptionDeployer.doAfterUndeployment(deployable))
+                .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
+                .andThen(apiDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
     }
 
     /**

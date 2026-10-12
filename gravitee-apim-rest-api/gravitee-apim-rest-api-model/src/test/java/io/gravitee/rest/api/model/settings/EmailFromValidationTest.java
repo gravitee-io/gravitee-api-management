@@ -54,36 +54,39 @@ class EmailFromValidationTest {
 
     @Test
     void should_accept_from_with_display_name() {
-        assertThat(validator.validate(emailWithFrom("Gravitee <noreply@gravitee.io>"))).isEmpty();
+        assertThat(validator.validate(emailWithFrom("Gravitee <noreply@gravitee.io>")))
+                .isEmpty();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "not-an-email", "foo@", "user@a..b.com", "user@.example.com" })
+    @ValueSource(strings = {"not-an-email", "foo@", "user@a..b.com", "user@.example.com"})
     void should_reject_malformed_from(String from) {
-        assertThat(validator.validate(emailWithFrom(from))).anyMatch(v -> v.getPropertyPath().toString().equals("from"));
+        assertThat(validator.validate(emailWithFrom(from)))
+                .anyMatch(v -> v.getPropertyPath().toString().equals("from"));
     }
 
     @Test
     void should_reject_multi_address_from() {
         // The send path resolves a single address, so a comma-separated list must not survive save — accepting
         // it is what let a From through that delivery then rejected.
-        assertThat(validator.validate(emailWithFrom("noreply@gravitee.io, other@gravitee.io"))).anyMatch(v ->
-            v.getPropertyPath().toString().equals("from")
-        );
+        assertThat(validator.validate(emailWithFrom("noreply@gravitee.io, other@gravitee.io")))
+                .anyMatch(v -> v.getPropertyPath().toString().equals("from"));
     }
 
     @Test
     void should_report_a_readable_message_for_a_malformed_from() {
-        assertThat(validator.validate(emailWithFrom("not-an-email"))).anyMatch(v ->
-            v.getMessage().equals("must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")")
-        );
+        assertThat(validator.validate(emailWithFrom("not-an-email")))
+                .anyMatch(
+                        v -> v.getMessage()
+                                .equals(
+                                        "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")"));
     }
 
     // --- an absent sender stays legal ---
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = { "", "   " })
+    @ValueSource(strings = {"", "   "})
     void should_normalize_an_absent_from_to_null(String from) {
         // The default sender is optional: leaving it unset falls back to the Key.EMAIL_FROM default, so this
         // must stay valid — it is what a @NotBlank here would break. Blank is collapsed to null rather than
@@ -109,6 +112,7 @@ class EmailFromValidationTest {
         var settings = new ConsoleSettingsEntity();
         settings.getEmail().setFrom("not-an-email");
 
-        assertThat(validator.validate(settings)).noneMatch(v -> v.getPropertyPath().toString().startsWith("email."));
+        assertThat(validator.validate(settings))
+                .noneMatch(v -> v.getPropertyPath().toString().startsWith("email."));
     }
 }

@@ -26,32 +26,32 @@ public class SubscriptionFixtures {
 
     private SubscriptionFixtures() {}
 
-    private static final Supplier<SubscriptionEntity.SubscriptionEntityBuilder> BASE = () ->
-        SubscriptionEntity.builder()
-            .id("subscription-id")
-            .apiId("api-id")
-            .referenceId("api-id")
-            .referenceType(SubscriptionReferenceType.API)
-            .planId("plan-id")
-            .applicationId("application-id")
-            .clientId("client-id")
-            .requestMessage("request-message")
-            .status(SubscriptionEntity.Status.ACCEPTED)
-            .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
-            .type(SubscriptionEntity.Type.STANDARD)
-            .processedBy("a-user")
-            .subscribedBy("another-user")
-            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .updatedAt(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .processedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .startingAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .endingAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .generalConditionsAccepted(true)
-            .generalConditionsContentRevision(12)
-            .generalConditionsContentPageId("page-id")
-            .daysToExpirationOnLastNotification(310)
-            .configuration(null)
-            .metadata(Map.of("metadata1", "value1"));
+    private static final Supplier<SubscriptionEntity.SubscriptionEntityBuilder> BASE =
+            () -> SubscriptionEntity.builder()
+                    .id("subscription-id")
+                    .apiId("api-id")
+                    .referenceId("api-id")
+                    .referenceType(SubscriptionReferenceType.API)
+                    .planId("plan-id")
+                    .applicationId("application-id")
+                    .clientId("client-id")
+                    .requestMessage("request-message")
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                    .type(SubscriptionEntity.Type.STANDARD)
+                    .processedBy("a-user")
+                    .subscribedBy("another-user")
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .processedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .startingAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .endingAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .generalConditionsAccepted(true)
+                    .generalConditionsContentRevision(12)
+                    .generalConditionsContentPageId("page-id")
+                    .daysToExpirationOnLastNotification(310)
+                    .configuration(null)
+                    .metadata(Map.of("metadata1", "value1"));
 
     public static SubscriptionEntity aSubscription() {
         return BASE.get().build();

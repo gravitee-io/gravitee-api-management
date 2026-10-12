@@ -46,9 +46,10 @@ class EventMetricsQueryAdapterTest {
 
     @Test
     void should_throw_when_no_aggregate_functions_specified() {
-        assertThrows(IllegalArgumentException.class, () ->
-            EventMetricsQueryAdapter.toESQuery(buildHistogramQuery(API_ID, Instant.now(), Instant.now(), List.of(), null))
-        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> EventMetricsQueryAdapter.toESQuery(
+                        buildHistogramQuery(API_ID, Instant.now(), Instant.now(), List.of(), null)));
     }
 
     @Test
@@ -64,7 +65,8 @@ class EventMetricsQueryAdapterTest {
     void should_build_value_query() throws Exception {
         Instant to = Instant.now();
         Instant from = to.minus(Duration.ofHours(14));
-        List<Aggregation> aggregations = List.of(new Aggregation("downstream-active-connections", AggregationType.VALUE));
+        List<Aggregation> aggregations =
+                List.of(new Aggregation("downstream-active-connections", AggregationType.VALUE));
         HistogramQuery query = buildHistogramQuery(API_ID, from, to, aggregations, null);
 
         String json = EventMetricsQueryAdapter.toESQuery(query);
@@ -102,7 +104,8 @@ class EventMetricsQueryAdapterTest {
         String apiId = API_ID;
         Instant from = Instant.ofEpochMilli(FROM);
         Instant to = Instant.ofEpochMilli(TO);
-        List<Aggregation> aggregations = List.of(new Aggregation("downstream-publish-messages-count-increment", AggregationType.DELTA));
+        List<Aggregation> aggregations =
+                List.of(new Aggregation("downstream-publish-messages-count-increment", AggregationType.DELTA));
         HistogramQuery query = buildHistogramQuery(apiId, from, to, aggregations, null);
 
         String json = EventMetricsQueryAdapter.toESQuery(query);
@@ -136,12 +139,7 @@ class EventMetricsQueryAdapterTest {
     void should_build_trend_query() throws JsonProcessingException {
         Aggregation agg1 = new Aggregation("downstream-publish-messages-count-increment", AggregationType.TREND);
         HistogramQuery query = buildHistogramQuery(
-            API_ID,
-            Instant.ofEpochMilli(FROM),
-            Instant.ofEpochMilli(TO),
-            List.of(agg1),
-            Duration.ofMillis(60_000)
-        );
+                API_ID, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), List.of(agg1), Duration.ofMillis(60_000));
 
         String json = EventMetricsQueryAdapter.toESQuery(query);
 
@@ -179,7 +177,9 @@ class EventMetricsQueryAdapterTest {
 
     private static boolean hasTermFilter(JsonNode filters, String field, String value) {
         for (JsonNode f : filters) {
-            if (f.has(TERM) && f.get(TERM).has(field) && value.equals(f.get(TERM).get(field).asText())) {
+            if (f.has(TERM)
+                    && f.get(TERM).has(field)
+                    && value.equals(f.get(TERM).get(field).asText())) {
                 return true;
             }
         }
@@ -197,18 +197,10 @@ class EventMetricsQueryAdapterTest {
     }
 
     private static HistogramQuery buildHistogramQuery(
-        String apiId,
-        Instant from,
-        Instant to,
-        List<Aggregation> aggregations,
-        Duration interval
-    ) {
+            String apiId, Instant from, Instant to, List<Aggregation> aggregations, Duration interval) {
         var searchTermId = new SearchTermId(SearchTermId.SearchTerm.API, apiId);
         var timeRange = new io.gravitee.repository.log.v4.model.analytics.TimeRange(
-            from,
-            to,
-            interval == null ? Optional.empty() : Optional.of(interval)
-        );
+                from, to, interval == null ? Optional.empty() : Optional.of(interval));
 
         return new HistogramQuery(searchTermId, timeRange, aggregations, Optional.empty(), null);
     }

@@ -58,10 +58,8 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
 
     @Override
     protected boolean hasPathParam(Flow flow) {
-        return flow
-            .selectorByType(SelectorType.HTTP)
-            .stream()
-            .anyMatch(selector -> PARAM_PATTERN.asPredicate().test(((HttpSelector) selector).getPath()));
+        return flow.selectorByType(SelectorType.HTTP).stream()
+                .anyMatch(selector -> PARAM_PATTERN.asPredicate().test(((HttpSelector) selector).getPath()));
     }
 
     @Override
@@ -71,34 +69,25 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
 
     @Override
     protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(Stream<Flow> flows) {
-        final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows
-            .flatMap(f ->
-                f
-                    .selectorByType(SelectorType.HTTP)
-                    .map(selector -> (HttpSelector) selector)
-                    .stream()
-            )
-            .flatMap(selector -> {
-                List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
-                if (selector.getMethods() == null || selector.getMethods().isEmpty()) {
-                    flowByMethod = List.of(
-                        Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(selector.getPath(), selector.getPathOperator()))
-                    );
-                } else {
-                    flowByMethod = selector
-                        .getMethods()
-                        .stream()
-                        .map(m ->
-                            Map.entry(
-                                PathParameterHttpMethod.valueOf(m.name()),
-                                new PathParameters(selector.getPath(), selector.getPathOperator())
-                            )
-                        )
-                        .collect(Collectors.toList());
-                }
-                return flowByMethod.stream();
-            })
-            .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toSet())));
+        final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows.flatMap(
+                        f -> f.selectorByType(SelectorType.HTTP).map(selector -> (HttpSelector) selector).stream())
+                .flatMap(selector -> {
+                    List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
+                    if (selector.getMethods() == null || selector.getMethods().isEmpty()) {
+                        flowByMethod = List.of(Map.entry(
+                                PathParameterHttpMethod.WILDCARD,
+                                new PathParameters(selector.getPath(), selector.getPathOperator())));
+                    } else {
+                        flowByMethod = selector.getMethods().stream()
+                                .map(m -> Map.entry(
+                                        PathParameterHttpMethod.valueOf(m.name()),
+                                        new PathParameters(selector.getPath(), selector.getPathOperator())))
+                                .collect(Collectors.toList());
+                    }
+                    return flowByMethod.stream();
+                })
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toSet())));
 
         // Use an empty map for method without path param.
         for (PathParameterHttpMethod method : PathParameterHttpMethod.values()) {

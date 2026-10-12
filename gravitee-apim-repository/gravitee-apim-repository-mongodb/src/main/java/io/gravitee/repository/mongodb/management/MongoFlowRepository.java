@@ -71,8 +71,9 @@ public class MongoFlowRepository implements FlowRepository {
         }
 
         internalRepository
-            .findById(flow.getId())
-            .orElseThrow(() -> new IllegalStateException(String.format("No flow found with id [%s]", flow.getId())));
+                .findById(flow.getId())
+                .orElseThrow(
+                        () -> new IllegalStateException(String.format("No flow found with id [%s]", flow.getId())));
 
         log.debug("Update flow [{}]", flow.getName());
         return map(internalRepository.save(map(flow)));
@@ -90,19 +91,20 @@ public class MongoFlowRepository implements FlowRepository {
         if (referenceIds == null || referenceIds.isEmpty()) {
             return List.of();
         }
-        final List<FlowMongo> flows = internalRepository.findAll(referenceType.name(), referenceIds.toArray(new String[0]));
+        final List<FlowMongo> flows =
+                internalRepository.findAll(referenceType.name(), referenceIds.toArray(new String[0]));
         return flows.stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType)
+            throws TechnicalException {
         log.debug("Delete flows by reference [{},{}]", referenceId, referenceType);
         try {
-            final var flows = internalRepository
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(FlowMongo::getId)
-                .toList();
+            final var flows =
+                    internalRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+                            .map(FlowMongo::getId)
+                            .toList();
             log.debug("Delete flows by reference [{},{}] - Done", referenceId, referenceType);
             return flows;
         } catch (Exception ex) {
@@ -125,13 +127,15 @@ public class MongoFlowRepository implements FlowRepository {
 
     @Override
     public List<Flow> createAll(List<Flow> flows) {
-        final List<FlowMongo> savedFlows = internalRepository.insert(flows.stream().map(this::map).collect(Collectors.toList()));
+        final List<FlowMongo> savedFlows =
+                internalRepository.insert(flows.stream().map(this::map).collect(Collectors.toList()));
         return savedFlows.stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
     public List<Flow> updateAll(List<Flow> flows) {
-        final List<FlowMongo> savedFlows = internalRepository.saveAll(flows.stream().map(this::map).collect(Collectors.toList()));
+        final List<FlowMongo> savedFlows =
+                internalRepository.saveAll(flows.stream().map(this::map).collect(Collectors.toList()));
         return savedFlows.stream().map(this::map).collect(Collectors.toList());
     }
 

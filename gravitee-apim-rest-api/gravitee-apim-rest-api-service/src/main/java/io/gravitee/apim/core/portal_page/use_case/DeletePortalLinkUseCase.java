@@ -34,7 +34,8 @@ public class DeletePortalLinkUseCase {
     public record Input(AuditInfo auditInfo, PortalNavigationItemId linkId) {}
 
     public void execute(Input input) {
-        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), input.linkId());
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), input.linkId());
         if (!(item instanceof PortalNavigationLink)) {
             throw new PortalLinkNotFoundException(input.linkId().toString());
         }

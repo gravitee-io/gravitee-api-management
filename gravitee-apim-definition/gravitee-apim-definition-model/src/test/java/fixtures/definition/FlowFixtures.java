@@ -34,125 +34,110 @@ public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_HTTP_V4 = () -> Flow.builder().name("my-flow");
-    private static final Supplier<NativeFlow.NativeFlowBuilder<?, ?>> BASE_NATIVE_V4 = () -> NativeFlow.builder().name("my-flow");
-    private static final Supplier<io.gravitee.definition.model.flow.Flow.FlowBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.flow.Flow.builder()
-            .id("flow-id")
-            .name("my-flow")
-            .pathOperator(PathOperator.builder().path("/").operator(Operator.STARTS_WITH).build())
-            .methods(Set.of(HttpMethod.GET))
-            .consumers(List.of(Consumer.builder().consumerType(ConsumerType.TAG).consumerId("consumer-id").build()))
-            .condition("my-condition")
-            .stage(FlowStage.API)
-            .pre(
-                List.of(
-                    io.gravitee.definition.model.flow.Step.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                )
-            )
-            .post(
-                List.of(
-                    io.gravitee.definition.model.flow.Step.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                )
-            );
+    private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_HTTP_V4 =
+            () -> Flow.builder().name("my-flow");
+    private static final Supplier<NativeFlow.NativeFlowBuilder<?, ?>> BASE_NATIVE_V4 =
+            () -> NativeFlow.builder().name("my-flow");
+    private static final Supplier<io.gravitee.definition.model.flow.Flow.FlowBuilder> BASE_V2 =
+            () -> io.gravitee.definition.model.flow.Flow.builder()
+                    .id("flow-id")
+                    .name("my-flow")
+                    .pathOperator(PathOperator.builder()
+                            .path("/")
+                            .operator(Operator.STARTS_WITH)
+                            .build())
+                    .methods(Set.of(HttpMethod.GET))
+                    .consumers(List.of(Consumer.builder()
+                            .consumerType(ConsumerType.TAG)
+                            .consumerId("consumer-id")
+                            .build()))
+                    .condition("my-condition")
+                    .stage(FlowStage.API)
+                    .pre(List.of(io.gravitee.definition.model.flow.Step.builder()
+                            .name("my-step-name-1")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build()))
+                    .post(List.of(io.gravitee.definition.model.flow.Step.builder()
+                            .name("my-step-name-2")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build()));
 
     public static Flow aSimpleFlowV4() {
         return Flow.builder().name("simple-flow").build();
     }
 
     public static Flow aProxyFlowV4() {
-        return BASE_HTTP_V4.get()
-            .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
-            .request(
-                List.of(
-                    Step.builder()
+        return BASE_HTTP_V4
+                .get()
+                .selectors(List.of(HttpSelector.builder()
+                        .path("/")
+                        .pathOperator(Operator.STARTS_WITH)
+                        .build()))
+                .request(List.of(Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .response(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .response(List.of(Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
     }
 
     public static Flow aMessageFlowV4() {
-        return BASE_HTTP_V4.get()
-            .selectors(List.of(ChannelSelector.builder().channel("/").channelOperator(Operator.STARTS_WITH).build()))
-            .subscribe(
-                List.of(
-                    Step.builder()
+        return BASE_HTTP_V4
+                .get()
+                .selectors(List.of(ChannelSelector.builder()
+                        .channel("/")
+                        .channelOperator(Operator.STARTS_WITH)
+                        .build()))
+                .subscribe(List.of(Step.builder()
                         .name("my-step-name-1")
                         .policy("my-policy")
                         .description("my-step-description")
                         .messageCondition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .publish(List.of(Step.builder()
                         .name("my-step-name-2")
                         .policy("my-policy")
                         .description("my-step-description")
                         .messageCondition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
     }
 
     public static NativeFlow aNativeFlowV4() {
-        return BASE_NATIVE_V4.get()
-            .interact(
-                List.of(
-                    Step.builder()
+        return BASE_NATIVE_V4
+                .get()
+                .interact(List.of(Step.builder()
                         .name("my-step-name-1")
                         .policy("my-policy")
                         .description("my-step-description")
                         .messageCondition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .entrypointConnect(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .entrypointConnect(List.of(Step.builder()
                         .name("my-step-name-2")
                         .policy("my-policy")
                         .description("my-step-description")
                         .messageCondition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
     }
 
     public static io.gravitee.definition.model.flow.Flow aFlowV2() {

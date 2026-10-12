@@ -48,19 +48,21 @@ public class CategoryApiCrudServiceImplTest {
 
         @Test
         void should_get_existing_api_category_order() {
-            var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(99).build();
+            var apiCategoryOrder = ApiCategoryOrder.builder()
+                    .apiId(API_ID)
+                    .categoryId(CAT_ID)
+                    .order(99)
+                    .build();
 
             when(apiCategoryOrderRepository.findById(eq(API_ID), eq(CAT_ID))).thenReturn(Optional.of(apiCategoryOrder));
 
             var result = service.get(API_ID, CAT_ID);
 
-            assertThat(result)
-                .isNotNull()
-                .satisfies(res -> {
-                    Assertions.assertEquals(API_ID, res.getApiId());
-                    Assertions.assertEquals(CAT_ID, res.getCategoryId());
-                    Assertions.assertEquals(99, res.getOrder());
-                });
+            assertThat(result).isNotNull().satisfies(res -> {
+                Assertions.assertEquals(API_ID, res.getApiId());
+                Assertions.assertEquals(CAT_ID, res.getCategoryId());
+                Assertions.assertEquals(99, res.getOrder());
+            });
         }
 
         @Test

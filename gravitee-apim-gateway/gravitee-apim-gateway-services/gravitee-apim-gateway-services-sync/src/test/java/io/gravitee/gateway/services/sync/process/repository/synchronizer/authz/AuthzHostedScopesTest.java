@@ -121,7 +121,8 @@ class AuthzHostedScopesTest {
 
     @Test
     void unmarking_a_scope_that_was_never_hosted_reports_no_remaining_scope() {
-        assertThat(new AuthzHostedScopes(Set.of()).unmarkHosted("env-1", "orders@us")).isFalse();
+        assertThat(new AuthzHostedScopes(Set.of()).unmarkHosted("env-1", "orders@us"))
+                .isFalse();
     }
 
     @Test

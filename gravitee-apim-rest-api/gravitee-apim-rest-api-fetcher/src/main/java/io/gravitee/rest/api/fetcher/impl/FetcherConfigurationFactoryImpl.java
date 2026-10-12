@@ -29,7 +29,8 @@ import lombok.CustomLog;
 @CustomLog
 public class FetcherConfigurationFactoryImpl implements FetcherConfigurationFactory {
 
-    private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper mapper =
+            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends FetcherConfiguration> T create(Class<T> fetcherConfigurationClass, String configuration) {

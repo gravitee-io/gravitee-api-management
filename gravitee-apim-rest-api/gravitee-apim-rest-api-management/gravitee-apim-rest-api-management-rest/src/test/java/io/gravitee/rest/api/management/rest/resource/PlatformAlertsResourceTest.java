@@ -59,14 +59,13 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
     @Test
     public void should_list_with_event_count() {
         List<AlertTriggerEntity> alerts = List.of(
-            new TestAlertTrigger("alert-1"),
-            new TestAlertTrigger("alert-2"),
-            new TestAlertTrigger("alert-3")
-        );
+                new TestAlertTrigger("alert-1"), new TestAlertTrigger("alert-2"), new TestAlertTrigger("alert-3"));
 
-        when(alertService.findByReferenceWithEventCounts(ENVIRONMENT, getCurrentEnvironment())).thenReturn(alerts);
+        when(alertService.findByReferenceWithEventCounts(ENVIRONMENT, getCurrentEnvironment()))
+                .thenReturn(alerts);
 
-        final Response response = envTarget().queryParam("event_counts", true).request().get();
+        final Response response =
+                envTarget().queryParam("event_counts", true).request().get();
 
         List<Map> resultEntities = (List<Map>) (response.readEntity(List.class));
 
@@ -80,14 +79,12 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
     @Test
     public void should_list_without_event_count() {
         List<AlertTriggerEntity> alerts = List.of(
-            new TestAlertTrigger("alert-1"),
-            new TestAlertTrigger("alert-2"),
-            new TestAlertTrigger("alert-3")
-        );
+                new TestAlertTrigger("alert-1"), new TestAlertTrigger("alert-2"), new TestAlertTrigger("alert-3"));
 
         when(alertService.findByReference(ENVIRONMENT, getCurrentEnvironment())).thenReturn(alerts);
 
-        final Response response = envTarget().queryParam("event_counts", false).request().get();
+        final Response response =
+                envTarget().queryParam("event_counts", false).request().get();
 
         List<Map> resultEntities = (List<Map>) (response.readEntity(List.class));
 
@@ -101,29 +98,31 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
     @Test
     public void should_get_platform_alert_analytics() {
         AlertAnalyticsEntity alerts = new AlertAnalyticsEntity(
-            Map.of(),
-            List.of(
-                new AlertAnalyticsEntity.AlertTriggerAnalytics(),
-                new AlertAnalyticsEntity.AlertTriggerAnalytics(),
-                new AlertAnalyticsEntity.AlertTriggerAnalytics()
-            )
-        );
+                Map.of(),
+                List.of(
+                        new AlertAnalyticsEntity.AlertTriggerAnalytics(),
+                        new AlertAnalyticsEntity.AlertTriggerAnalytics(),
+                        new AlertAnalyticsEntity.AlertTriggerAnalytics()));
 
         AlertAnalyticsParam param = new AlertAnalyticsParam();
         param.setFrom(0L);
         param.setTo(0L);
 
-        when(
-            alertAnalyticsService.findByReference(eq(ENVIRONMENT), eq(getCurrentEnvironment()), any(AlertAnalyticsQuery.class))
-        ).thenReturn(alerts);
+        when(alertAnalyticsService.findByReference(
+                        eq(ENVIRONMENT), eq(getCurrentEnvironment()), any(AlertAnalyticsQuery.class)))
+                .thenReturn(alerts);
 
-        final Response response = envTarget("analytics").queryParam("from", 12).queryParam("to", 157).request().get();
+        final Response response = envTarget("analytics")
+                .queryParam("from", 12)
+                .queryParam("to", 157)
+                .request()
+                .get();
 
-        verify(alertAnalyticsService, times(1)).findByReference(
-            eq(ENVIRONMENT),
-            eq(getCurrentEnvironment()),
-            argThat(query -> query.getFrom() == 12 && query.getTo() == 157)
-        );
+        verify(alertAnalyticsService, times(1))
+                .findByReference(
+                        eq(ENVIRONMENT),
+                        eq(getCurrentEnvironment()),
+                        argThat(query -> query.getFrom() == 12 && query.getTo() == 157));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
@@ -154,10 +153,10 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newAlertTriggerEntity));
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(alertService, times(1)).create(
-            eq(getExecutionContext()),
-            argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT)
-        );
+        verify(alertService, times(1))
+                .create(
+                        eq(getExecutionContext()),
+                        argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT));
     }
 
     @Test
@@ -170,10 +169,10 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
         final Response response = envTarget().path("my-alert").request().put(Entity.json(updateAlertTriggerEntity));
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(alertService, times(1)).update(
-            eq(getExecutionContext()),
-            argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT)
-        );
+        verify(alertService, times(1))
+                .update(
+                        eq(getExecutionContext()),
+                        argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT));
     }
 
     @Test

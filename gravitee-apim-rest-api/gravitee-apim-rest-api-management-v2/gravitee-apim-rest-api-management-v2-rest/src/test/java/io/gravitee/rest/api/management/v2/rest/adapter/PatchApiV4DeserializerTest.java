@@ -89,7 +89,8 @@ class PatchApiV4DeserializerTest {
 
     @Test
     void should_map_resources_when_present() throws IOException {
-        var node = mapper.readTree("{\"resources\":[{\"name\":\"my-cache\",\"type\":\"cache\",\"enabled\":true,\"configuration\":{}}]}");
+        var node = mapper.readTree(
+                "{\"resources\":[{\"name\":\"my-cache\",\"type\":\"cache\",\"enabled\":true,\"configuration\":{}}]}");
 
         var result = deserializer.fromPatchedNode(node);
 
@@ -101,7 +102,8 @@ class PatchApiV4DeserializerTest {
 
     @Test
     void should_map_flows_when_present() throws IOException {
-        var node = mapper.readTree("{\"flows\":[{\"name\":\"my-flow\",\"enabled\":true,\"request\":[],\"response\":[]}]}");
+        var node =
+                mapper.readTree("{\"flows\":[{\"name\":\"my-flow\",\"enabled\":true,\"request\":[],\"response\":[]}]}");
 
         var result = deserializer.fromPatchedNode(node);
 
@@ -113,8 +115,7 @@ class PatchApiV4DeserializerTest {
     @Test
     void should_accept_uppercase_HTTP_listener_type_in_patch() throws IOException {
         var node = mapper.readTree(
-            "{\"listeners\":[{\"type\":\"HTTP\",\"paths\":[{\"path\":\"/x\"}],\"entrypoints\":[{\"type\":\"http-proxy\",\"configuration\":\"{}\"}]}]}"
-        );
+                "{\"listeners\":[{\"type\":\"HTTP\",\"paths\":[{\"path\":\"/x\"}],\"entrypoints\":[{\"type\":\"http-proxy\",\"configuration\":\"{}\"}]}]}");
 
         var result = deserializer.fromPatchedNode(node);
 

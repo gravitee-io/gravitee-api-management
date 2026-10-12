@@ -36,62 +36,48 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage
-            .stream()
-            .filter(event ->
-                query
-                    .id()
-                    .map(id -> event.getId().equals(id))
-                    .orElse(true)
-            )
-            .filter(event ->
-                query
-                    .apiId()
-                    .map(apiId -> event.getProperties().getOrDefault(Event.EventProperties.API_ID, "").equals(apiId))
-                    .orElse(true)
-            )
-            .filter(event -> event.getEnvironments().contains(query.environmentId()))
-            .filter(event -> query.types().isEmpty() || query.types().contains(event.getType()))
-            .filter(event ->
-                query
-                    .from()
-                    .map(from -> event.getCreatedAt().toInstant().isAfter(new Date(from).toInstant()))
-                    .orElse(true)
-            )
-            .filter(event ->
-                query
-                    .to()
-                    .map(to -> event.getCreatedAt().toInstant().isBefore(new Date(to).toInstant()))
-                    .orElse(true)
-            )
-            .sorted(Comparator.comparing(Event::getCreatedAt).reversed())
-            .toList();
+        var matches = storage.stream()
+                .filter(event -> query.id().map(id -> event.getId().equals(id)).orElse(true))
+                .filter(event -> query.apiId()
+                        .map(apiId -> event.getProperties()
+                                .getOrDefault(Event.EventProperties.API_ID, "")
+                                .equals(apiId))
+                        .orElse(true))
+                .filter(event -> event.getEnvironments().contains(query.environmentId()))
+                .filter(event -> query.types().isEmpty() || query.types().contains(event.getType()))
+                .filter(event -> query.from()
+                        .map(from -> event.getCreatedAt().toInstant().isAfter(new Date(from).toInstant()))
+                        .orElse(true))
+                .filter(event -> query.to()
+                        .map(to -> event.getCreatedAt().toInstant().isBefore(new Date(to).toInstant()))
+                        .orElse(true))
+                .sorted(Comparator.comparing(Event::getCreatedAt).reversed())
+                .toList();
 
-        var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        var page = matches.size() <= pageSize
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
         return new SearchResponse(matches.size(), page);
     }
 
     @Override
     public Optional<Event> findByIdForEnvironmentAndApi(String eventId, String environmentId, String apiId) {
-        return storage()
-            .stream()
-            .filter(
-                event ->
-                    event.getId().equals(eventId) &&
-                    event.getEnvironments().contains(environmentId) &&
-                    apiId.equalsIgnoreCase(event.getProperties().get(Event.EventProperties.API_ID))
-            )
-            .findFirst();
+        return storage().stream()
+                .filter(event -> event.getId().equals(eventId)
+                        && event.getEnvironments().contains(environmentId)
+                        && apiId.equalsIgnoreCase(event.getProperties().get(Event.EventProperties.API_ID)))
+                .findFirst();
     }
 
     @Override
     public Optional<Api> findApiFromPublishApiEvent(String eventId) {
-        return storage()
-            .stream()
-            .filter(event -> event.getId().equals(eventId) && event.getType() == EventType.PUBLISH_API && event.getPayload() != null)
-            .findFirst()
-            .map(EventQueryServiceImpl::extractApiFromEvent);
+        return storage().stream()
+                .filter(event -> event.getId().equals(eventId)
+                        && event.getType() == EventType.PUBLISH_API
+                        && event.getPayload() != null)
+                .findFirst()
+                .map(EventQueryServiceImpl::extractApiFromEvent);
     }
 
     @Override

@@ -46,30 +46,40 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     static final String ACTOR_USER_ID = "ACTOR";
 
     static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .actor(AuditActor.builder().userSource(USER_SOURCE).userSourceId(ACTOR_USER_ID).userId(ACTOR_USER_ID).build())
-        .environmentId(ENV_ID)
-        .organizationId(ORG_ID)
-        .build();
+            .actor(AuditActor.builder()
+                    .userSource(USER_SOURCE)
+                    .userSourceId(ACTOR_USER_ID)
+                    .userId(ACTOR_USER_ID)
+                    .build())
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .build();
 
     final PolicyValidationDomainService policyGroupValidationService = mock(PolicyValidationDomainService.class);
 
-    final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory(List.of());
+    final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService =
+            new SharedPolicyGroupCrudServiceInMemory(List.of());
     final ValidateCreateSharedPolicyGroupDomainService validateCreateSharedPolicyGroupDomainService =
-        new ValidateCreateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyGroupValidationService);
+            new ValidateCreateSharedPolicyGroupDomainService(
+                    sharedPolicyGroupCrudService, policyGroupValidationService);
     final ValidateUpdateSharedPolicyGroupDomainService validateUpdateSharedPolicyGroupDomainService =
-        new ValidateUpdateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyGroupValidationService);
+            new ValidateUpdateSharedPolicyGroupDomainService(
+                    sharedPolicyGroupCrudService, policyGroupValidationService);
 
     final ValidateSharedPolicyGroupCRDDomainService cut = new ValidateSharedPolicyGroupCRDDomainService(
-        sharedPolicyGroupCrudService,
-        validateCreateSharedPolicyGroupDomainService,
-        validateUpdateSharedPolicyGroupDomainService
-    );
+            sharedPolicyGroupCrudService,
+            validateCreateSharedPolicyGroupDomainService,
+            validateUpdateSharedPolicyGroupDomainService);
 
     private static SharedPolicyGroupCRD aCRDWithSteps() {
-        return SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
-            .toBuilder()
-            .steps(List.of(Step.builder().policy("test-policy").name("Test step").enabled(true).configuration("{}").build()))
-            .build();
+        return SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                .steps(List.of(Step.builder()
+                        .policy("test-policy")
+                        .name("Test step")
+                        .enabled(true)
+                        .configuration("{}")
+                        .build()))
+                .build();
     }
 
     @Nested
@@ -77,44 +87,40 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
         @Test
         void should_preserve_pre_set_ids() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
-                .toBuilder()
-                .sharedPolicyGroupId("pre-set-id")
-                .crossId("pre-set-cross-id")
-                .build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .sharedPolicyGroupId("pre-set-id")
+                    .crossId("pre-set-cross-id")
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {
-                    assertThat(sanitized.crd()).isNotSameAs(aCRD);
-                    assertThat(sanitized.crd().getSharedPolicyGroupId()).isEqualTo("pre-set-id");
-                    assertThat(sanitized.crd().getCrossId()).isEqualTo("pre-set-cross-id");
-                    assertThat(sanitized.crd().getHrid()).isEqualTo(aCRD.getHrid());
-                },
-                errors -> assertThat(errors).isNotNull()
-            );
+                    sanitized -> {
+                        assertThat(sanitized.crd()).isNotSameAs(aCRD);
+                        assertThat(sanitized.crd().getSharedPolicyGroupId()).isEqualTo("pre-set-id");
+                        assertThat(sanitized.crd().getCrossId()).isEqualTo("pre-set-cross-id");
+                        assertThat(sanitized.crd().getHrid()).isEqualTo(aCRD.getHrid());
+                    },
+                    errors -> assertThat(errors).isNotNull());
         }
 
         @Test
         void should_keep_existing_ids() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
-                .toBuilder()
-                .crossId("existing-cross-id")
-                .sharedPolicyGroupId("existing-id")
-                .build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .crossId("existing-cross-id")
+                    .sharedPolicyGroupId("existing-id")
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {
-                    assertThat(sanitized.crd()).isNotSameAs(aCRD);
-                    assertThat(sanitized.crd().getSharedPolicyGroupId()).isEqualTo("existing-id");
-                    assertThat(sanitized.crd().getCrossId()).isEqualTo("existing-cross-id");
-                    assertThat(sanitized.crd().getHrid()).isEqualTo(aCRD.getHrid());
-                },
-                errors -> assertThat(errors).isNotNull()
-            );
+                    sanitized -> {
+                        assertThat(sanitized.crd()).isNotSameAs(aCRD);
+                        assertThat(sanitized.crd().getSharedPolicyGroupId()).isEqualTo("existing-id");
+                        assertThat(sanitized.crd().getCrossId()).isEqualTo("existing-cross-id");
+                        assertThat(sanitized.crd().getHrid()).isEqualTo(aCRD.getHrid());
+                    },
+                    errors -> assertThat(errors).isNotNull());
         }
 
         @Test
@@ -128,47 +134,58 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
         @Test
         void should_return_error_when_name_is_missing() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder().name(null).build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .name(null)
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {},
-                errors -> assertThat(errors).hasSize(1).extracting(Validator.Error::getMessage).contains("Name is required.")
-            );
+                    sanitized -> {},
+                    errors -> assertThat(errors)
+                            .hasSize(1)
+                            .extracting(Validator.Error::getMessage)
+                            .contains("Name is required."));
         }
 
         @Test
         void should_return_error_when_api_type_is_missing() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder().apiType(null).build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .apiType(null)
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {},
-                errors -> assertThat(errors).hasSize(1).extracting(Validator.Error::getMessage).contains("ApiType is required.")
-            );
+                    sanitized -> {},
+                    errors -> assertThat(errors)
+                            .hasSize(1)
+                            .extracting(Validator.Error::getMessage)
+                            .contains("ApiType is required."));
         }
 
         @Test
         void should_return_error_when_phase_is_missing() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder().phase(null).build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .phase(null)
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {},
-                errors -> assertThat(errors).hasSize(1).extracting(Validator.Error::getMessage).contains("Phase is required.")
-            );
+                    sanitized -> {},
+                    errors -> assertThat(errors)
+                            .hasSize(1)
+                            .extracting(Validator.Error::getMessage)
+                            .contains("Phase is required."));
         }
 
         @Test
         void should_return_error_when_phase_is_invalid_for_api_type() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
-                .toBuilder()
-                .apiType(ApiType.PROXY)
-                .phase(FlowPhase.SUBSCRIBE)
-                .build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .apiType(ApiType.PROXY)
+                    .phase(FlowPhase.SUBSCRIBE)
+                    .build();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
@@ -177,17 +194,18 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
         @Test
         void should_return_error_when_policy_validation_fails() {
-            when(policyGroupValidationService.validateAndSanitizeConfiguration(anyString(), anyString())).thenThrow(
-                new RuntimeException("Invalid policy configuration")
-            );
+            when(policyGroupValidationService.validateAndSanitizeConfiguration(anyString(), anyString()))
+                    .thenThrow(new RuntimeException("Invalid policy configuration"));
             SharedPolicyGroupCRD aCRD = aCRDWithSteps();
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {},
-                errors -> assertThat(errors).hasSize(1).extracting(Validator.Error::getMessage).contains("Invalid policy configuration")
-            );
+                    sanitized -> {},
+                    errors -> assertThat(errors)
+                            .hasSize(1)
+                            .extracting(Validator.Error::getMessage)
+                            .contains("Invalid policy configuration"));
         }
     }
 
@@ -196,7 +214,9 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
         @Test
         void should_return_no_errors() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder().crossId("spg-cross-id").build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .crossId("spg-cross-id")
+                    .build();
             sharedPolicyGroupCrudService.initWith(List.of(aCRD.toSharedPolicyGroup()));
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
@@ -206,25 +226,31 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
         @Test
         void should_return_error_when_name_is_missing() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
-                .toBuilder()
-                .crossId("spg-cross-id")
-                .name(null)
-                .build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .crossId("spg-cross-id")
+                    .name(null)
+                    .build();
             sharedPolicyGroupCrudService.initWith(List.of(aCRD.toSharedPolicyGroup()));
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {},
-                errors -> assertThat(errors).hasSize(1).extracting(Validator.Error::getMessage).contains("Name is required.")
-            );
+                    sanitized -> {},
+                    errors -> assertThat(errors)
+                            .hasSize(1)
+                            .extracting(Validator.Error::getMessage)
+                            .contains("Name is required."));
         }
 
         @Test
         void should_set_spg_id_from_existing() {
-            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder().crossId("spg-cross-id").build();
-            var existingSpg = aCRD.toSharedPolicyGroup().toBuilder().id("existing-spg-id").environmentId(ENV_ID).build();
+            SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .crossId("spg-cross-id")
+                    .build();
+            var existingSpg = aCRD.toSharedPolicyGroup().toBuilder()
+                    .id("existing-spg-id")
+                    .environmentId(ENV_ID)
+                    .build();
             sharedPolicyGroupCrudService.initWith(List.of(existingSpg));
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
@@ -235,18 +261,20 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
 
         @Test
         void should_return_error_when_policy_validation_fails() {
-            when(policyGroupValidationService.validateAndSanitizeConfiguration(anyString(), anyString())).thenThrow(
-                new RuntimeException("Invalid policy configuration")
-            );
-            SharedPolicyGroupCRD aCRD = aCRDWithSteps().toBuilder().crossId("spg-cross-id").build();
+            when(policyGroupValidationService.validateAndSanitizeConfiguration(anyString(), anyString()))
+                    .thenThrow(new RuntimeException("Invalid policy configuration"));
+            SharedPolicyGroupCRD aCRD =
+                    aCRDWithSteps().toBuilder().crossId("spg-cross-id").build();
             sharedPolicyGroupCrudService.initWith(List.of(aCRD.toSharedPolicyGroup()));
 
             var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
             result.peek(
-                sanitized -> {},
-                errors -> assertThat(errors).hasSize(1).extracting(Validator.Error::getMessage).contains("Invalid policy configuration")
-            );
+                    sanitized -> {},
+                    errors -> assertThat(errors)
+                            .hasSize(1)
+                            .extracting(Validator.Error::getMessage)
+                            .contains("Invalid policy configuration"));
         }
     }
 }

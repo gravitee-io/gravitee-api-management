@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -41,9 +40,7 @@ public class UpdatePortalNavigationItemUseCase {
 
     public Output execute(Input input) {
         PortalNavigationItem existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
-            input.environmentId(),
-            PortalNavigationItemId.of(input.navigationItemId)
-        );
+                input.environmentId(), PortalNavigationItemId.of(input.navigationItemId));
         if (existing == null) {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId);
         }
@@ -54,7 +51,9 @@ public class UpdatePortalNavigationItemUseCase {
         }
         // The import marker is server-owned: carried over from the stored source, never taken from a payload
         if (toUpdate.getSource() != null) {
-            toUpdate.getSource().setSubtreeImport(existing.getSource() != null && existing.getSource().isSubtreeImport());
+            toUpdate.getSource()
+                    .setSubtreeImport(
+                            existing.getSource() != null && existing.getSource().isSubtreeImport());
         }
         validatorService.validateToUpdate(toUpdate, existing);
         var updatedItem = domainService.update(toUpdate, existing, input.propagatePublishToChildren());
@@ -79,7 +78,8 @@ public class UpdatePortalNavigationItemUseCase {
      * Other requested parents retain their existing update semantics.
      * Parent IDs of portal-owned items are not normalized.
      */
-    private UpdatePortalNavigationItem normalizeParent(UpdatePortalNavigationItem requested, PortalNavigationItem existing) {
+    private UpdatePortalNavigationItem normalizeParent(
+            UpdatePortalNavigationItem requested, PortalNavigationItem existing) {
         var normalized = requested.toBuilder().renderedParentId(null).build();
         if (requested.getParentId() == null || !(existing.getReference() instanceof ApiReference apiReference)) {
             return normalized;
@@ -91,7 +91,8 @@ public class UpdatePortalNavigationItemUseCase {
         if (!isDocumentation) {
             return normalized;
         }
-        var parent = portalNavigationItemsQueryService.findByIdAndEnvironmentId(existing.getEnvironmentId(), requested.getParentId());
+        var parent = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                existing.getEnvironmentId(), requested.getParentId());
         if (parent instanceof PortalNavigationApi api && apiReference.apiId().equals(api.getApiId())) {
             // The listing projects API-owned roots beneath itself; it is not their persisted parent.
             normalized.setParentId(null);
@@ -102,12 +103,11 @@ public class UpdatePortalNavigationItemUseCase {
 
     @Builder
     public record Input(
-        String organizationId,
-        String environmentId,
-        String navigationItemId,
-        UpdatePortalNavigationItem updatePortalNavigationItem,
-        boolean propagatePublishToChildren
-    ) {}
+            String organizationId,
+            String environmentId,
+            String navigationItemId,
+            UpdatePortalNavigationItem updatePortalNavigationItem,
+            boolean propagatePublishToChildren) {}
 
     public record Output(PortalNavigationItem updatedItem) {}
 }

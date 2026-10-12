@@ -47,7 +47,10 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
 
     @Override
     public CustomUserField create(CustomUserField field) throws TechnicalException {
-        if (field == null || field.getKey() == null || field.getReferenceId() == null || field.getReferenceType() == null) {
+        if (field == null
+                || field.getKey() == null
+                || field.getReferenceId() == null
+                || field.getReferenceType() == null) {
             throw new IllegalStateException("CustomUserField to create must have an id");
         }
 
@@ -59,15 +62,15 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
 
     @Override
     public CustomUserField update(CustomUserField field) throws TechnicalException {
-        if (field == null || field.getKey() == null || field.getReferenceId() == null || field.getReferenceType() == null) {
+        if (field == null
+                || field.getKey() == null
+                || field.getReferenceId() == null
+                || field.getReferenceType() == null) {
             throw new IllegalStateException("CustomUserField to update must have an id");
         }
 
         final CustomUserFieldPkMongo id = new CustomUserFieldPkMongo(
-            field.getKey(),
-            field.getReferenceId(),
-            field.getReferenceType().name()
-        );
+                field.getKey(), field.getReferenceId(), field.getReferenceType().name());
         final Optional<CustomUserFieldMongo> previousField = internalMongoRepo.findById(id);
         if (previousField.isEmpty()) {
             throw new IllegalStateException(String.format("No CustomUserField found with id [%s]", id));
@@ -89,7 +92,7 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
 
     @Override
     public Optional<CustomUserField> findById(String key, String refId, CustomUserFieldReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         final CustomUserFieldPkMongo id = new CustomUserFieldPkMongo(key, refId, referenceType.name());
         log.debug("Find CustomUserField by ID [{}]", id);
 
@@ -100,29 +103,25 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
     }
 
     @Override
-    public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType referenceType)
-        throws TechnicalException {
+    public List<CustomUserField> findByReferenceIdAndReferenceType(
+            String refId, CustomUserFieldReferenceType referenceType) throws TechnicalException {
         log.debug("Find CustomUserField by Reference [{}/{}]", refId, referenceType);
 
         final List<CustomUserFieldMongo> fields = internalMongoRepo.findByReference(refId, referenceType.name());
 
         log.debug("Find CustomUserField by Reference [{}/{}] - Done", refId, referenceType);
-        return fields
-            .stream()
-            .map(f -> mapper.map(f))
-            .collect(Collectors.toList());
+        return fields.stream().map(f -> mapper.map(f)).collect(Collectors.toList());
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, CustomUserFieldReferenceType referenceType)
-        throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            String referenceId, CustomUserFieldReferenceType referenceType) throws TechnicalException {
         log.debug("Delete custom user fields by reference [{}/{}]", referenceType, referenceId);
         try {
-            final var fields = internalMongoRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(field -> field.getId().getKey())
-                .toList();
+            final var fields =
+                    internalMongoRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+                            .map(field -> field.getId().getKey())
+                            .toList();
             log.debug("Delete custom user fields by reference [{}/{}] - Done", referenceType, referenceId);
             return fields;
         } catch (Exception ex) {
@@ -133,10 +132,8 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
 
     @Override
     public Set<CustomUserField> findAll() throws TechnicalException {
-        return internalMongoRepo
-            .findAll()
-            .stream()
-            .map(customUserFieldMongo -> mapper.map(customUserFieldMongo))
-            .collect(Collectors.toSet());
+        return internalMongoRepo.findAll().stream()
+                .map(customUserFieldMongo -> mapper.map(customUserFieldMongo))
+                .collect(Collectors.toSet());
     }
 }

@@ -39,22 +39,18 @@ public interface EventAdapter {
 
     @Named("computeEventProperties")
     default EnumMap<Event.EventProperties, String> computeEventProperties(Map<String, String> properties) {
-        return properties
-            .entrySet()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    entry -> Event.EventProperties.fromLabel(entry.getKey()),
-                    Map.Entry::getValue,
-                    (left, right) -> {
-                        throw new IllegalArgumentException("Duplicate keys " + left + " and " + right);
-                    },
-                    () -> new EnumMap<>(Event.EventProperties.class)
-                )
-            );
+        return properties.entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> Event.EventProperties.fromLabel(entry.getKey()),
+                        Map.Entry::getValue,
+                        (left, right) -> {
+                            throw new IllegalArgumentException("Duplicate keys " + left + " and " + right);
+                        },
+                        () -> new EnumMap<>(Event.EventProperties.class)));
     }
 
     default Map<String, String> toStringEventPropertiesMap(Map<Event.EventProperties, String> source) {
-        return source.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().getLabel(), Map.Entry::getValue));
+        return source.entrySet().stream()
+                .collect(Collectors.toMap(entry -> entry.getKey().getLabel(), Map.Entry::getValue));
     }
 }

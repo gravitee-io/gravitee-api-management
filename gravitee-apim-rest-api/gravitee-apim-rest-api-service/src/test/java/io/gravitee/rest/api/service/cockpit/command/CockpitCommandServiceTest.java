@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.cockpit.api.CockpitConnector;
-import io.gravitee.cockpit.api.command.legacy.bridge.BridgePayload;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
@@ -52,12 +51,12 @@ public class CockpitCommandServiceTest {
     @Test
     public void shouldSendCommandToCockpitConnector() {
         BridgeCommandPayload payload = BridgeCommandPayload.builder()
-            .installationId(UUID.toString(UUID.random()))
-            .organizationId(UUID.toString(UUID.random()))
-            .operation("an_operation")
-            .target(new BridgeCommandPayload.BridgeTarget(null, null))
-            .content("a content")
-            .build();
+                .installationId(UUID.toString(UUID.random()))
+                .organizationId(UUID.toString(UUID.random()))
+                .operation("an_operation")
+                .target(new BridgeCommandPayload.BridgeTarget(null, null))
+                .content("a content")
+                .build();
         BridgeCommand command = new BridgeCommand(payload);
 
         BridgeReply reply = mock(BridgeReply.class);
@@ -71,12 +70,12 @@ public class CockpitCommandServiceTest {
     @Test
     public void shouldReturnAnErrorBridgeReplyWhenWebSocketIsThrowing() {
         BridgeCommandPayload payload = BridgeCommandPayload.builder()
-            .installationId(UUID.toString(UUID.random()))
-            .organizationId(UUID.toString(UUID.random()))
-            .operation("an_operation")
-            .target(new BridgeCommandPayload.BridgeTarget(null, null))
-            .content("a content")
-            .build();
+                .installationId(UUID.toString(UUID.random()))
+                .organizationId(UUID.toString(UUID.random()))
+                .operation("an_operation")
+                .target(new BridgeCommandPayload.BridgeTarget(null, null))
+                .content("a content")
+                .build();
 
         BridgeCommand command = new BridgeCommand(payload);
         when(cockpitConnector.sendCommand(command)).thenReturn(Single.error(new RuntimeException()));

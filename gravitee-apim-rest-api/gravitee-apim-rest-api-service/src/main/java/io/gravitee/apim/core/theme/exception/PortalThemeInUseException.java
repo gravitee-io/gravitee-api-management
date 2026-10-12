@@ -23,8 +23,7 @@ public class PortalThemeInUseException extends ValidationDomainException {
 
     public PortalThemeInUseException(String themeId, List<String> referencingPortalIds) {
         super(
-            "Theme cannot be deleted as it is still referenced by portal(s).",
-            Map.of("themeId", themeId, "portalIds", String.join(",", referencingPortalIds))
-        );
+                "Theme cannot be deleted as it is still referenced by portal(s).",
+                Map.of("themeId", themeId, "portalIds", String.join(",", referencingPortalIds)));
     }
 }

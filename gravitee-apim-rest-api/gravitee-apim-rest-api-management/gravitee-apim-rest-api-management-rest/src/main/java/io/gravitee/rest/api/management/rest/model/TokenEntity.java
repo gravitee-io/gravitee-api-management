@@ -89,21 +89,18 @@ public class TokenEntity {
 
     @Override
     public String toString() {
-        return (
-            "TokenEntity{" +
-            "type='" +
-            type +
-            '\'' +
-            ", token='" +
-            token +
-            '\'' +
-            ", access_token='" +
-            accessToken +
-            '\'' +
-            ", id_token='" +
-            idToken +
-            '\'' +
-            '}'
-        );
+        return ("TokenEntity{" + "type='"
+                + type
+                + '\''
+                + ", token='"
+                + token
+                + '\''
+                + ", access_token='"
+                + accessToken
+                + '\''
+                + ", id_token='"
+                + idToken
+                + '\''
+                + '}');
     }
 }

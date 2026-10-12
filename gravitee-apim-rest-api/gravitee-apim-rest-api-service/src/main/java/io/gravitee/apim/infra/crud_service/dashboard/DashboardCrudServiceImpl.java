@@ -58,9 +58,12 @@ public class DashboardCrudServiceImpl implements DashboardCrudService {
     @Override
     public List<Dashboard> findByEnvironmentId(String environmentId) {
         try {
-            return customDashboardRepository.findByEnvironmentId(environmentId).stream().map(DashboardAdapter.INSTANCE::toModel).toList();
+            return customDashboardRepository.findByEnvironmentId(environmentId).stream()
+                    .map(DashboardAdapter.INSTANCE::toModel)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to find dashboards for environment: " + environmentId, e);
+            throw new TechnicalDomainException(
+                    "An error occurred while trying to find dashboards for environment: " + environmentId, e);
         }
     }
 
@@ -71,7 +74,8 @@ public class DashboardCrudServiceImpl implements DashboardCrudService {
             var updated = customDashboardRepository.update(repositoryModel);
             return DashboardAdapter.INSTANCE.toModel(updated);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to update dashboard: " + dashboard.getId(), e);
+            throw new TechnicalDomainException(
+                    "An error occurred while trying to update dashboard: " + dashboard.getId(), e);
         }
     }
 

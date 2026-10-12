@@ -21,8 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
-import io.gravitee.repository.management.model.Rating;
-import io.gravitee.repository.management.model.RatingReferenceType;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -46,11 +44,9 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
 
     @Test
     public void shouldFindByType() throws Exception {
-        final Set<NotificationTemplate> notificationTemplates = notificationTemplateRepository.findByTypeAndReferenceIdAndReferenceType(
-            NotificationTemplateType.PORTAL,
-            "DEFAULT",
-            NotificationTemplateReferenceType.ORGANIZATION
-        );
+        final Set<NotificationTemplate> notificationTemplates =
+                notificationTemplateRepository.findByTypeAndReferenceIdAndReferenceType(
+                        NotificationTemplateType.PORTAL, "DEFAULT", NotificationTemplateReferenceType.ORGANIZATION);
 
         assertNotNull(notificationTemplates);
         assertEquals(3, notificationTemplates.size());
@@ -58,10 +54,9 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
 
     @Test
     public void shouldFindAllByReferenceIdAndReferenceType() throws Exception {
-        final Set<NotificationTemplate> notificationTemplates = notificationTemplateRepository.findAllByReferenceIdAndReferenceType(
-            "DEFAULT",
-            NotificationTemplateReferenceType.ORGANIZATION
-        );
+        final Set<NotificationTemplate> notificationTemplates =
+                notificationTemplateRepository.findAllByReferenceIdAndReferenceType(
+                        "DEFAULT", NotificationTemplateReferenceType.ORGANIZATION);
 
         assertNotNull(notificationTemplates);
         assertEquals(4, notificationTemplates.size());
@@ -70,12 +65,8 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
     @Test
     public void shouldFindByHookAndReferenceIdAndReferenceType() throws Exception {
         final Set<NotificationTemplate> notificationTemplates =
-            notificationTemplateRepository.findByHookAndScopeAndReferenceIdAndReferenceType(
-                "MY_HOOK_3",
-                "API",
-                "DEFAULT",
-                NotificationTemplateReferenceType.ORGANIZATION
-            );
+                notificationTemplateRepository.findByHookAndScopeAndReferenceIdAndReferenceType(
+                        "MY_HOOK_3", "API", "DEFAULT", NotificationTemplateReferenceType.ORGANIZATION);
 
         assertNotNull(notificationTemplates);
         assertEquals(2, notificationTemplates.size());
@@ -91,31 +82,29 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         notificationTemplate.setReferenceType(NotificationTemplateReferenceType.ORGANIZATION);
         notificationTemplate.setName("My notif 1");
         notificationTemplate.setDescription(
-            "Email sent to a user who has self-registered on portal or admin console. Contains a registration link."
-        );
+                "Email sent to a user who has self-registered on portal or admin console. Contains a registration link.");
         notificationTemplate.setTitle("User ${registrationAction} - ${user.displayName} ");
-        notificationTemplate.setContent(
-            "<html>\n" +
-                "\t<body style=\"text-align: center;\">\n" +
-                "\t\t<header>\n" +
-                "\t\t\t<#include \"header.html\" />\n" +
-                "\t\t</header>\n" +
-                "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
-                "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
-                "\t\t\t<p>You have been successfully registered.</p>\n" +
-                "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
-                "\t\t</div>\n" +
-                "\t</body>\n" +
-                "</html>\n"
-        );
+        notificationTemplate.setContent("<html>\n" + "\t<body style=\"text-align: center;\">\n"
+                + "\t\t<header>\n"
+                + "\t\t\t<#include \"header.html\" />\n"
+                + "\t\t</header>\n"
+                + "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n"
+                + "\t\t\t<h3>Hi ${user.displayName},</h3>\n"
+                + "\t\t\t<p>You have been successfully registered.</p>\n"
+                + "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n"
+                + "\t\t</div>\n"
+                + "\t</body>\n"
+                + "</html>\n");
         notificationTemplate.setCreatedAt(new Date(1000000000000L));
         notificationTemplate.setUpdatedAt(new Date(1439032010883L));
         notificationTemplate.setType(NotificationTemplateType.EMAIL);
         notificationTemplate.setEnabled(true);
 
-        int nbNotificationTemplatesBeforeCreation = notificationTemplateRepository.findAll().size();
+        int nbNotificationTemplatesBeforeCreation =
+                notificationTemplateRepository.findAll().size();
         notificationTemplateRepository.create(notificationTemplate);
-        int nbNotificationTemplatesAfterCreation = notificationTemplateRepository.findAll().size();
+        int nbNotificationTemplatesAfterCreation =
+                notificationTemplateRepository.findAll().size();
 
         Assertions.assertEquals(nbNotificationTemplatesBeforeCreation + 1, nbNotificationTemplatesAfterCreation);
 
@@ -123,52 +112,48 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         Assertions.assertTrue(optional.isPresent(), "NotificationTemplate saved not found");
 
         final NotificationTemplate notificationTemplateSaved = optional.get();
-        Assertions.assertEquals(notificationTemplate.getHook(), notificationTemplateSaved.getHook(), "Invalid saved hook.");
-        Assertions.assertEquals(notificationTemplate.getScope(), notificationTemplateSaved.getScope(), "Invalid saved scope.");
         Assertions.assertEquals(
-            notificationTemplate.getReferenceId(),
-            notificationTemplateSaved.getReferenceId(),
-            "Invalid saved reference id."
-        );
+                notificationTemplate.getHook(), notificationTemplateSaved.getHook(), "Invalid saved hook.");
         Assertions.assertEquals(
-            notificationTemplate.getReferenceType(),
-            notificationTemplateSaved.getReferenceType(),
-            "Invalid saved reference Type"
-        );
+                notificationTemplate.getScope(), notificationTemplateSaved.getScope(), "Invalid saved scope.");
         Assertions.assertEquals(
-            notificationTemplate.getName(),
-            notificationTemplateSaved.getName(),
-            "Invalid saved notificationTemplate name."
-        );
+                notificationTemplate.getReferenceId(),
+                notificationTemplateSaved.getReferenceId(),
+                "Invalid saved reference id.");
         Assertions.assertEquals(
-            notificationTemplate.getDescription(),
-            notificationTemplateSaved.getDescription(),
-            "Invalid notificationTemplate description."
-        );
+                notificationTemplate.getReferenceType(),
+                notificationTemplateSaved.getReferenceType(),
+                "Invalid saved reference Type");
         Assertions.assertEquals(
-            notificationTemplate.getTitle(),
-            notificationTemplateSaved.getTitle(),
-            "Invalid saved notificationTemplate title."
-        );
+                notificationTemplate.getName(),
+                notificationTemplateSaved.getName(),
+                "Invalid saved notificationTemplate name.");
         Assertions.assertEquals(
-            notificationTemplate.getContent(),
-            notificationTemplateSaved.getContent(),
-            "Invalid notificationTemplate content."
-        );
+                notificationTemplate.getDescription(),
+                notificationTemplateSaved.getDescription(),
+                "Invalid notificationTemplate description.");
+        Assertions.assertEquals(
+                notificationTemplate.getTitle(),
+                notificationTemplateSaved.getTitle(),
+                "Invalid saved notificationTemplate title.");
+        Assertions.assertEquals(
+                notificationTemplate.getContent(),
+                notificationTemplateSaved.getContent(),
+                "Invalid notificationTemplate content.");
         Assertions.assertTrue(
-            compareDate(notificationTemplate.getCreatedAt(), notificationTemplateSaved.getCreatedAt()),
-            "Invalid notificationTemplate createdAt."
-        );
+                compareDate(notificationTemplate.getCreatedAt(), notificationTemplateSaved.getCreatedAt()),
+                "Invalid notificationTemplate createdAt.");
         Assertions.assertTrue(
-            compareDate(notificationTemplate.getUpdatedAt(), notificationTemplateSaved.getUpdatedAt()),
-            "Invalid notificationTemplate updatedAt."
-        );
-        Assertions.assertEquals(notificationTemplate.getType(), notificationTemplateSaved.getType(), "Invalid notificationTemplate type.");
+                compareDate(notificationTemplate.getUpdatedAt(), notificationTemplateSaved.getUpdatedAt()),
+                "Invalid notificationTemplate updatedAt.");
         Assertions.assertEquals(
-            notificationTemplate.isEnabled(),
-            notificationTemplateSaved.isEnabled(),
-            "Invalid notificationTemplate enabled."
-        );
+                notificationTemplate.getType(),
+                notificationTemplateSaved.getType(),
+                "Invalid notificationTemplate type.");
+        Assertions.assertEquals(
+                notificationTemplate.isEnabled(),
+                notificationTemplateSaved.isEnabled(),
+                "Invalid notificationTemplate enabled.");
     }
 
     @Test
@@ -184,31 +169,29 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         notificationTemplate.setReferenceType(NotificationTemplateReferenceType.ORGANIZATION);
         notificationTemplate.setName("My notif 1");
         notificationTemplate.setDescription(
-            "Email sent to a user who has self-registered on portal or admin console. Contains a registration link."
-        );
+                "Email sent to a user who has self-registered on portal or admin console. Contains a registration link.");
         notificationTemplate.setTitle("User ${registrationAction} - ${user.displayName} ");
-        notificationTemplate.setContent(
-            "<html>\n" +
-                "\t<body style=\"text-align: center;\">\n" +
-                "\t\t<header>\n" +
-                "\t\t\t<#include \"header.html\" />\n" +
-                "\t\t</header>\n" +
-                "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
-                "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
-                "\t\t\t<p>You have been successfully registered.</p>\n" +
-                "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
-                "\t\t</div>\n" +
-                "\t</body>\n" +
-                "</html>\n"
-        );
+        notificationTemplate.setContent("<html>\n" + "\t<body style=\"text-align: center;\">\n"
+                + "\t\t<header>\n"
+                + "\t\t\t<#include \"header.html\" />\n"
+                + "\t\t</header>\n"
+                + "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n"
+                + "\t\t\t<h3>Hi ${user.displayName},</h3>\n"
+                + "\t\t\t<p>You have been successfully registered.</p>\n"
+                + "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n"
+                + "\t\t</div>\n"
+                + "\t</body>\n"
+                + "</html>\n");
         notificationTemplate.setCreatedAt(new Date(1000000000000L));
         notificationTemplate.setUpdatedAt(new Date(1486771200000L));
         notificationTemplate.setType(NotificationTemplateType.PORTAL);
         notificationTemplate.setEnabled(true);
 
-        int nbNotificationTemplatesBeforeUpdate = notificationTemplateRepository.findAll().size();
+        int nbNotificationTemplatesBeforeUpdate =
+                notificationTemplateRepository.findAll().size();
         notificationTemplateRepository.update(notificationTemplate);
-        int nbNotificationTemplatesAfterUpdate = notificationTemplateRepository.findAll().size();
+        int nbNotificationTemplatesAfterUpdate =
+                notificationTemplateRepository.findAll().size();
 
         Assertions.assertEquals(nbNotificationTemplatesBeforeUpdate, nbNotificationTemplatesAfterUpdate);
 
@@ -216,63 +199,57 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         Assertions.assertTrue(optionalUpdated.isPresent(), "NotificationTemplate to update not found");
 
         final NotificationTemplate notificationTemplateUpdated = optionalUpdated.get();
-        Assertions.assertEquals(notificationTemplate.getHook(), notificationTemplateUpdated.getHook(), "Invalid saved hook.");
-        Assertions.assertEquals(notificationTemplate.getScope(), notificationTemplateUpdated.getScope(), "Invalid saved scope.");
         Assertions.assertEquals(
-            notificationTemplate.getReferenceId(),
-            notificationTemplateUpdated.getReferenceId(),
-            "Invalid saved reference id."
-        );
+                notificationTemplate.getHook(), notificationTemplateUpdated.getHook(), "Invalid saved hook.");
         Assertions.assertEquals(
-            notificationTemplate.getReferenceType(),
-            notificationTemplateUpdated.getReferenceType(),
-            "Invalid saved reference type."
-        );
+                notificationTemplate.getScope(), notificationTemplateUpdated.getScope(), "Invalid saved scope.");
         Assertions.assertEquals(
-            notificationTemplate.getName(),
-            notificationTemplateUpdated.getName(),
-            "Invalid saved notificationTemplate name."
-        );
+                notificationTemplate.getReferenceId(),
+                notificationTemplateUpdated.getReferenceId(),
+                "Invalid saved reference id.");
         Assertions.assertEquals(
-            notificationTemplate.getDescription(),
-            notificationTemplateUpdated.getDescription(),
-            "Invalid notificationTemplate description."
-        );
+                notificationTemplate.getReferenceType(),
+                notificationTemplateUpdated.getReferenceType(),
+                "Invalid saved reference type.");
         Assertions.assertEquals(
-            notificationTemplate.getTitle(),
-            notificationTemplateUpdated.getTitle(),
-            "Invalid saved notificationTemplate title."
-        );
+                notificationTemplate.getName(),
+                notificationTemplateUpdated.getName(),
+                "Invalid saved notificationTemplate name.");
         Assertions.assertEquals(
-            notificationTemplate.getContent(),
-            notificationTemplateUpdated.getContent(),
-            "Invalid notificationTemplate content."
-        );
+                notificationTemplate.getDescription(),
+                notificationTemplateUpdated.getDescription(),
+                "Invalid notificationTemplate description.");
+        Assertions.assertEquals(
+                notificationTemplate.getTitle(),
+                notificationTemplateUpdated.getTitle(),
+                "Invalid saved notificationTemplate title.");
+        Assertions.assertEquals(
+                notificationTemplate.getContent(),
+                notificationTemplateUpdated.getContent(),
+                "Invalid notificationTemplate content.");
         Assertions.assertTrue(
-            compareDate(notificationTemplate.getCreatedAt(), notificationTemplateUpdated.getCreatedAt()),
-            "Invalid notificationTemplate createdAt."
-        );
+                compareDate(notificationTemplate.getCreatedAt(), notificationTemplateUpdated.getCreatedAt()),
+                "Invalid notificationTemplate createdAt.");
         Assertions.assertTrue(
-            compareDate(notificationTemplate.getUpdatedAt(), notificationTemplateUpdated.getUpdatedAt()),
-            "Invalid notificationTemplate updatedAt."
-        );
+                compareDate(notificationTemplate.getUpdatedAt(), notificationTemplateUpdated.getUpdatedAt()),
+                "Invalid notificationTemplate updatedAt.");
         Assertions.assertEquals(
-            notificationTemplate.getType(),
-            notificationTemplateUpdated.getType(),
-            "Invalid notificationTemplate type."
-        );
+                notificationTemplate.getType(),
+                notificationTemplateUpdated.getType(),
+                "Invalid notificationTemplate type.");
         Assertions.assertEquals(
-            notificationTemplate.isEnabled(),
-            notificationTemplateUpdated.isEnabled(),
-            "Invalid notificationTemplate enabled."
-        );
+                notificationTemplate.isEnabled(),
+                notificationTemplateUpdated.isEnabled(),
+                "Invalid notificationTemplate enabled.");
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbNotificationTemplatesBeforeDeletion = notificationTemplateRepository.findAll().size();
+        int nbNotificationTemplatesBeforeDeletion =
+                notificationTemplateRepository.findAll().size();
         notificationTemplateRepository.delete("notif-3-email");
-        int nbNotificationTemplatesAfterDeletion = notificationTemplateRepository.findAll().size();
+        int nbNotificationTemplatesAfterDeletion =
+                notificationTemplateRepository.findAll().size();
 
         Assertions.assertEquals(nbNotificationTemplatesBeforeDeletion - 1, nbNotificationTemplatesAfterDeletion);
     }
@@ -300,17 +277,15 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
         final var beforeDeletion = notificationTemplateRepository
-            .findAllByReferenceIdAndReferenceType("org-to-delete", NotificationTemplateReferenceType.ORGANIZATION)
-            .stream()
-            .map(NotificationTemplate::getId)
-            .toList();
+                .findAllByReferenceIdAndReferenceType("org-to-delete", NotificationTemplateReferenceType.ORGANIZATION)
+                .stream()
+                .map(NotificationTemplate::getId)
+                .toList();
         final var deleted = notificationTemplateRepository.deleteByReferenceIdAndReferenceType(
-            "org-to-delete",
-            NotificationTemplateReferenceType.ORGANIZATION
-        );
+                "org-to-delete", NotificationTemplateReferenceType.ORGANIZATION);
         final var nbAfterDeletion = notificationTemplateRepository
-            .findAllByReferenceIdAndReferenceType("org-to-delete", NotificationTemplateReferenceType.ORGANIZATION)
-            .size();
+                .findAllByReferenceIdAndReferenceType("org-to-delete", NotificationTemplateReferenceType.ORGANIZATION)
+                .size();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(beforeDeletion.containsAll(deleted));

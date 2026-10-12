@@ -54,6 +54,8 @@ public class OrganizationGroupsResourceTest extends AbstractResourceTest {
 
         final Response response = envTarget().request().post(Entity.json(newGroupEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path("my-group-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path("my-group-id").getUri().toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

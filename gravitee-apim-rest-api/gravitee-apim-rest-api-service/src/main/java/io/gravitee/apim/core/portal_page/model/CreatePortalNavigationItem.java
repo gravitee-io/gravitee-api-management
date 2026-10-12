@@ -44,6 +44,7 @@ public final class CreatePortalNavigationItem {
     private PortalNavigationItemId parentId;
     /** Server-resolved display parent, retained for validation when parentId is normalized to the API documentation root. */
     private PortalNavigationItemId renderedParentId;
+
     private PortalPageContentId portalPageContentId;
 
     @NotNull

@@ -77,7 +77,8 @@ class RedisClientTest {
 
     @Test
     void script_sha1_is_available_from_non_vertx_thread() throws Exception {
-        String sha = CompletableFuture.supplyAsync(() -> client.scriptSha1(SCRIPT_RATELIMIT_KEY)).get(10, TimeUnit.SECONDS);
+        String sha = CompletableFuture.supplyAsync(() -> client.scriptSha1(SCRIPT_RATELIMIT_KEY))
+                .get(10, TimeUnit.SECONDS);
 
         assertThat(sha).isNotBlank();
     }
@@ -99,7 +100,8 @@ class RedisClientTest {
 
     @Test
     void redis_api_is_available_from_non_vertx_thread() throws Exception {
-        RedisAPI api = client.redisApi().toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
+        RedisAPI api =
+                client.redisApi().toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
 
         assertThat(api).isNotNull();
     }
@@ -116,7 +118,11 @@ class RedisClientTest {
 
     @Test
     void is_connected_false_when_redis_unreachable() throws Exception {
-        RedisClientOptions options = RedisClientOptions.builder().host("127.0.0.1").port(1).connectTimeout(500).build();
+        RedisClientOptions options = RedisClientOptions.builder()
+                .host("127.0.0.1")
+                .port(1)
+                .connectTimeout(500)
+                .build();
         RedisClient unreachable = new RedisClient(vertx, new VertxRedisClientFactory(vertx), options, null);
 
         TimeUnit.MILLISECONDS.sleep(1_500);
@@ -160,7 +166,8 @@ class RedisClientTest {
         await_connected_on_context(client);
 
         long idBefore = client_id_on_context(client);
-        notify_connection_failure_on_context(client, new Exception("READONLY You can't write against a read only replica."));
+        notify_connection_failure_on_context(
+                client, new Exception("READONLY You can't write against a read only replica."));
         await_connected_passive_on_context(client);
 
         assertThat(client_id_on_context(client)).isNotEqualTo(idBefore);
@@ -200,7 +207,8 @@ class RedisClientTest {
         await_connected_on_context(client);
 
         long idBefore = client_id_on_context(client);
-        notify_connection_failure_on_context(client, new TimeoutException("The source did not signal an event for 10000 milliseconds"));
+        notify_connection_failure_on_context(
+                client, new TimeoutException("The source did not signal an event for 10000 milliseconds"));
 
         CountDownLatch latch = new CountDownLatch(1);
         vertx.runOnContext(v -> vertx.setTimer(500, id -> latch.countDown()));
@@ -213,7 +221,8 @@ class RedisClientTest {
     private RedisClient createClient(Map<String, String> scripts) {
         MockEnvironment environment = new MockEnvironment();
         environment.setProperty("ratelimit.redis.host", redis.getHost());
-        environment.setProperty("ratelimit.redis.port", redis.getFirstMappedPort().toString());
+        environment.setProperty(
+                "ratelimit.redis.port", redis.getFirstMappedPort().toString());
 
         return new RedisConnectionFactory(environment, vertx, "ratelimit", scripts).createRedisClient();
     }
@@ -263,20 +272,17 @@ class RedisClientTest {
 
     private void kill_client_connections_on_context(RedisClient redisClient) throws Exception {
         CompletableFuture<Void> killed = new CompletableFuture<>();
-        vertx.runOnContext(v ->
-            redisClient
+        vertx.runOnContext(v -> redisClient
                 .redisApi()
                 .compose(api -> api.client(List.of("KILL", "TYPE", "normal", "SKIPME", "yes")))
                 .onSuccess(response -> killed.complete(null))
-                .onFailure(killed::completeExceptionally)
-        );
+                .onFailure(killed::completeExceptionally));
         killed.get(10, TimeUnit.SECONDS);
     }
 
     private RateLimit increment_rate_limit_on_context(String key) throws Exception {
         CompletableFuture<RateLimit> result = new CompletableFuture<>();
-        vertx.runOnContext(v ->
-            repository
+        vertx.runOnContext(v -> repository
                 .incrementAndGet(key, 1, () -> {
                     RateLimit rate = new RateLimit(key);
                     rate.setLimit(100);
@@ -284,32 +290,27 @@ class RedisClientTest {
                     rate.setSubscription("sub");
                     return rate;
                 })
-                .subscribe(result::complete, result::completeExceptionally)
-        );
+                .subscribe(result::complete, result::completeExceptionally));
         return result.get(10, TimeUnit.SECONDS);
     }
 
     private long client_id_on_context(RedisClient redisClient) throws Exception {
         CompletableFuture<Long> clientId = new CompletableFuture<>();
-        vertx.runOnContext(v ->
-            redisClient
+        vertx.runOnContext(v -> redisClient
                 .redisApi()
                 .compose(api -> api.client(List.of("ID")))
                 .onSuccess(response -> clientId.complete(response.toLong()))
-                .onFailure(clientId::completeExceptionally)
-        );
+                .onFailure(clientId::completeExceptionally));
         return clientId.get(10, TimeUnit.SECONDS);
     }
 
     private String ping_on_context(RedisClient redisClient) throws Exception {
         CompletableFuture<String> ping = new CompletableFuture<>();
-        vertx.runOnContext(v ->
-            redisClient
+        vertx.runOnContext(v -> redisClient
                 .redisApi()
                 .compose(api -> api.ping(List.of()))
                 .onSuccess(response -> ping.complete(response.toString()))
-                .onFailure(ping::completeExceptionally)
-        );
+                .onFailure(ping::completeExceptionally));
         return ping.get(10, TimeUnit.SECONDS);
     }
 }

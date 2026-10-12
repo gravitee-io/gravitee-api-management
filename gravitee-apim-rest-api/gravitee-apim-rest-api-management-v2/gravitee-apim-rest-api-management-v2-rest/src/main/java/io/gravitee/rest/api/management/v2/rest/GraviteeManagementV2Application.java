@@ -74,7 +74,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
 
     @Inject
     public GraviteeManagementV2Application() {
-        //Main resource
+        // Main resource
         register(ManagementUIResource.class);
         register(GraviteeLicenseResource.class); // Deprecated
         register(OrganizationResource.class);

@@ -28,11 +28,11 @@ public class FilesApiHashIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("media.files")
-            .name("a1h1")
-            .key("metadata.api", ascending())
-            .key("metadata.hash", ascending())
-            .build();
+                .collection("media.files")
+                .name("a1h1")
+                .key("metadata.api", ascending())
+                .key("metadata.hash", ascending())
+                .build();
     }
 
     @Override

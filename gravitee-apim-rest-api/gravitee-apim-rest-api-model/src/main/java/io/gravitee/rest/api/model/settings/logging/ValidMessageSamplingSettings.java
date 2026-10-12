@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Constraint(validatedBy = MessageSamplingSettingsValidator.class)
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidMessageSamplingSettings {
     String message() default "Invalid message sampling settings";

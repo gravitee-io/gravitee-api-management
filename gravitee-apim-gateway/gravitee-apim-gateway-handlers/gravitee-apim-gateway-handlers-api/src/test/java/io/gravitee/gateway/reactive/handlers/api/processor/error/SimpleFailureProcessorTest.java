@@ -110,7 +110,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     void should_build_a_json_response_when_json_accept_header() throws JsonProcessingException {
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
 
@@ -126,7 +127,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     void should_build_a_json_response_when_json_accept_header_with_comma() throws JsonProcessingException {
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json, application/text"));
 
@@ -142,7 +144,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     void should_build_a_json_response_when_wildcard_accept_header() throws JsonProcessingException {
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.WILDCARD));
 
@@ -158,7 +161,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     void should_build_a_json_response_when_wildcard_accept_header_with_comma() throws JsonProcessingException {
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("*/*, application/text"));
 
@@ -176,8 +180,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     public void should_build_a_json_response_when_json_accept_header_and_json_content_type() {
         String contentAsJson = "{\"text\": \"error\"}";
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
-            .message(contentAsJson)
-            .contentType("application/json");
+                .message(contentAsJson)
+                .contentType("application/json");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
 
@@ -193,7 +197,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @Test
     void should_build_a_text_response_when_no_accept_header() {
         String contentAsText = "error";
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(contentAsText);
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(contentAsText);
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
@@ -208,10 +213,13 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @ParameterizedTest(name = "response status ''{0}''")
     @ValueSource(
-        ints = {
-            0, HttpStatusCode.CONTINUE_100, HttpStatusCode.NO_CONTENT_204, HttpStatusCode.NOT_MODIFIED_304, HttpStatusCode.BAD_GATEWAY_502,
-        }
-    )
+            ints = {
+                0,
+                HttpStatusCode.CONTINUE_100,
+                HttpStatusCode.NO_CONTENT_204,
+                HttpStatusCode.NOT_MODIFIED_304,
+                HttpStatusCode.BAD_GATEWAY_502,
+            })
     void should_add_connection_close_header_when_error_status_is_not_a_client_error_family(Integer responseStatus) {
         ExecutionFailure executionFailure = new ExecutionFailure(responseStatus);
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -219,19 +227,20 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
 
         Assertions.assertThat(mockResponse.headers().getAll(HttpHeaderNames.CONNECTION))
-            .hasSize(1)
-            .containsExactly(HttpHeadersValues.CONNECTION_CLOSE);
+                .hasSize(1)
+                .containsExactly(HttpHeadersValues.CONNECTION_CLOSE);
     }
 
     @ParameterizedTest(name = "response status ''{0}''")
-    @ValueSource(ints = { 400, 404, 499 })
+    @ValueSource(ints = {400, 404, 499})
     void should_not_add_connection_close_header_when_error_status_is_a_client_error_family(Integer responseStatus) {
         ExecutionFailure executionFailure = new ExecutionFailure(responseStatus);
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
 
-        Assertions.assertThat(mockResponse.headers().contains(HttpHeaderNames.CONNECTION)).isFalse();
+        Assertions.assertThat(mockResponse.headers().contains(HttpHeaderNames.CONNECTION))
+                .isFalse();
     }
 
     @Test
@@ -240,8 +249,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
         when(mockRequest.id()).thenReturn("request-id");
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
-            .message("message error")
-            .parameters(Map.of("exception", new RuntimeException("root exception")));
+                .message("message error")
+                .parameters(Map.of("exception", new RuntimeException("root exception")));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
@@ -258,8 +267,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @Test
     void should_set_error_message_on_metrics_when_failure_has_message() {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
-            .key("SOME_ERROR")
-            .message("Something went wrong");
+                .key("SOME_ERROR")
+                .message("Something went wrong");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
@@ -271,8 +280,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @Test
     void should_set_null_error_message_on_metrics_when_failure_has_blank_message() {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
-            .key("SOME_ERROR")
-            .message("   ");
+                .key("SOME_ERROR")
+                .message("   ");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
@@ -283,7 +292,8 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     @Test
     void should_set_null_error_message_on_metrics_when_failure_has_no_message() {
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).key("SOME_ERROR");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).key("SOME_ERROR");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();

@@ -28,13 +28,13 @@ public class PropertiesIdUpdatedAtIdEnvsTypeIndexUpgrader extends IndexUpgrader 
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events")
-            .name("pi1ua-1i-1e1t1")
-            .key("properties.id", ascending())
-            .key("updatedAt", descending())
-            .key("_id", descending())
-            .key("environments", ascending())
-            .key("type", ascending())
-            .build();
+                .collection("events")
+                .name("pi1ua-1i-1e1t1")
+                .key("properties.id", ascending())
+                .key("updatedAt", descending())
+                .key("_id", descending())
+                .key("environments", ascending())
+                .key("type", ascending())
+                .build();
     }
 }

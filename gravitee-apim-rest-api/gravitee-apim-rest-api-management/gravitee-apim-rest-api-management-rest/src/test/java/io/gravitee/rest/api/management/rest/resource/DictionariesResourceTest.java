@@ -55,8 +55,8 @@ public class DictionariesResourceTest extends AbstractResourceTest {
         newDictionaryEntity.setType(DictionaryType.MANUAL);
 
         doReturn(DictionaryEntity.builder().id("my-dictionary").build())
-            .when(dictionaryService)
-            .create(eq(GraviteeContext.getExecutionContext()), any());
+                .when(dictionaryService)
+                .create(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget().request().post(Entity.json(new NewDictionaryEntity()));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -72,11 +72,13 @@ public class DictionariesResourceTest extends AbstractResourceTest {
         newDictionaryEntity.setType(DictionaryType.MANUAL);
 
         doReturn(DictionaryEntity.builder().id("my-dictionary").build())
-            .when(dictionaryService)
-            .create(eq(GraviteeContext.getExecutionContext()), any());
+                .when(dictionaryService)
+                .create(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = envTarget().request().post(Entity.json(newDictionaryEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path("my-dictionary").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path("my-dictionary").getUri().toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

@@ -65,15 +65,11 @@ class ApiTemplateVariableProviderTest {
 
         @Test
         void should_provide_api_properties_in_EL() {
-            var apiDefinition = anApiV4()
-                .toBuilder()
-                .properties(
-                    List.of(
-                        Property.builder().key("prop1").value("value1").build(),
-                        Property.builder().key("prop2").value("value2").build()
-                    )
-                )
-                .build();
+            var apiDefinition = anApiV4().toBuilder()
+                    .properties(List.of(
+                            Property.builder().key("prop1").value("value1").build(),
+                            Property.builder().key("prop2").value("value2").build()))
+                    .build();
 
             TemplateEngine engine = buildTemplateEngine(apiDefinition);
             engine.eval("{#api.properties[prop1]}", String.class).test().assertValue("value1");
@@ -82,31 +78,37 @@ class ApiTemplateVariableProviderTest {
 
         @Test
         void should_return_no_value_when_evaluate_unknown_properties() {
-            var apiDefinition = anApiV4()
-                .toBuilder()
-                .properties(
-                    List.of(
-                        Property.builder().key("prop1").value("value1").build(),
-                        Property.builder().key("prop2").value("value2").build()
-                    )
-                )
-                .build();
+            var apiDefinition = anApiV4().toBuilder()
+                    .properties(List.of(
+                            Property.builder().key("prop1").value("value1").build(),
+                            Property.builder().key("prop2").value("value2").build()))
+                    .build();
 
-            buildTemplateEngine(apiDefinition).eval("{#api.properties[unknown]}", String.class).test().assertNoValues();
+            buildTemplateEngine(apiDefinition)
+                    .eval("{#api.properties[unknown]}", String.class)
+                    .test()
+                    .assertNoValues();
         }
 
         @Test
         void should_provide_properties_in_EL_for_compatibility() {
-            var apiDefinition = anApiV4().toBuilder().properties(List.of(Property.builder().key("prop1").value("value1").build())).build();
+            var apiDefinition = anApiV4().toBuilder()
+                    .properties(List.of(
+                            Property.builder().key("prop1").value("value1").build()))
+                    .build();
 
             TemplateEngine engine = buildTemplateEngine(apiDefinition);
             var s1 = engine.eval("{#api.properties[prop1]}", String.class).toSingle();
             var s2 = engine.eval("{#properties[prop1]}", String.class).toSingle();
-            Single.zip(s1, s2, (v1, v2) ->
-                assertThat(v1).as("api.properties and properties should be equivalent").isEqualTo(v2).isEqualTo("value1")
-            )
-                .test()
-                .assertComplete();
+            Single.zip(
+                            s1,
+                            s2,
+                            (v1, v2) -> assertThat(v1)
+                                    .as("api.properties and properties should be equivalent")
+                                    .isEqualTo(v2)
+                                    .isEqualTo("value1"))
+                    .test()
+                    .assertComplete();
         }
 
         @Test
@@ -114,16 +116,16 @@ class ApiTemplateVariableProviderTest {
             var noProperties = anApiV4();
 
             buildTemplateEngine(noProperties)
-                .eval("{#api.properties[prop1]}", String.class)
-                .test()
-                .assertError(e -> {
-                    assertThat(e)
-                        .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(IllegalArgumentException.class)
-                        .hasStackTraceContaining("EL1012E: Cannot index into a null value");
+                    .eval("{#api.properties[prop1]}", String.class)
+                    .test()
+                    .assertError(e -> {
+                        assertThat(e)
+                                .isInstanceOf(ExpressionEvaluationException.class)
+                                .hasCauseInstanceOf(IllegalArgumentException.class)
+                                .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
-                    return true;
-                });
+                        return true;
+                    });
         }
     }
 
@@ -148,7 +150,8 @@ class ApiTemplateVariableProviderTest {
 
         @Test
         void should_provide_api_version_in_EL() {
-            var apiDefinition = aNativeApiV4().toBuilder().apiVersion("api#version").build();
+            var apiDefinition =
+                    aNativeApiV4().toBuilder().apiVersion("api#version").build();
 
             TemplateEngine engine = buildTemplateEngine(apiDefinition);
             engine.eval("{#api.version}", String.class).test().assertValue("api#version");
@@ -156,15 +159,11 @@ class ApiTemplateVariableProviderTest {
 
         @Test
         void should_provide_api_properties_in_EL() {
-            var apiDefinition = aNativeApiV4()
-                .toBuilder()
-                .properties(
-                    List.of(
-                        Property.builder().key("prop1").value("value1").build(),
-                        Property.builder().key("prop2").value("value2").build()
-                    )
-                )
-                .build();
+            var apiDefinition = aNativeApiV4().toBuilder()
+                    .properties(List.of(
+                            Property.builder().key("prop1").value("value1").build(),
+                            Property.builder().key("prop2").value("value2").build()))
+                    .build();
 
             TemplateEngine engine = buildTemplateEngine(apiDefinition);
             engine.eval("{#api.properties[prop1]}", String.class).test().assertValue("value1");
@@ -173,34 +172,37 @@ class ApiTemplateVariableProviderTest {
 
         @Test
         void should_provide_properties_in_EL_for_compatibility() {
-            var apiDefinition = aNativeApiV4()
-                .toBuilder()
-                .properties(List.of(Property.builder().key("prop1").value("value1").build()))
-                .build();
+            var apiDefinition = aNativeApiV4().toBuilder()
+                    .properties(List.of(
+                            Property.builder().key("prop1").value("value1").build()))
+                    .build();
 
             TemplateEngine engine = buildTemplateEngine(apiDefinition);
             var s1 = engine.eval("{#api.properties[prop1]}", String.class).toSingle();
             var s2 = engine.eval("{#properties[prop1]}", String.class).toSingle();
-            Single.zip(s1, s2, (v1, v2) ->
-                assertThat(v1).as("api.properties and properties should be equivalent").isEqualTo(v2).isEqualTo("value1")
-            )
-                .test()
-                .assertComplete();
+            Single.zip(
+                            s1,
+                            s2,
+                            (v1, v2) -> assertThat(v1)
+                                    .as("api.properties and properties should be equivalent")
+                                    .isEqualTo(v2)
+                                    .isEqualTo("value1"))
+                    .test()
+                    .assertComplete();
         }
 
         @Test
         void should_return_no_value_when_evaluate_unknown_properties() {
-            var apiDefinition = aNativeApiV4()
-                .toBuilder()
-                .properties(
-                    List.of(
-                        Property.builder().key("prop1").value("value1").build(),
-                        Property.builder().key("prop2").value("value2").build()
-                    )
-                )
-                .build();
+            var apiDefinition = aNativeApiV4().toBuilder()
+                    .properties(List.of(
+                            Property.builder().key("prop1").value("value1").build(),
+                            Property.builder().key("prop2").value("value2").build()))
+                    .build();
 
-            buildTemplateEngine(apiDefinition).eval("{#api.properties[unknown]}", String.class).test().assertNoValues();
+            buildTemplateEngine(apiDefinition)
+                    .eval("{#api.properties[unknown]}", String.class)
+                    .test()
+                    .assertNoValues();
         }
 
         @Test
@@ -208,69 +210,67 @@ class ApiTemplateVariableProviderTest {
             var noProperties = aNativeApiV4();
 
             buildTemplateEngine(noProperties)
-                .eval("{#api.properties[prop1]}", String.class)
-                .test()
-                .assertError(e -> {
-                    assertThat(e)
-                        .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(IllegalArgumentException.class)
-                        .hasStackTraceContaining("EL1012E: Cannot index into a null value");
+                    .eval("{#api.properties[prop1]}", String.class)
+                    .test()
+                    .assertError(e -> {
+                        assertThat(e)
+                                .isInstanceOf(ExpressionEvaluationException.class)
+                                .hasCauseInstanceOf(IllegalArgumentException.class)
+                                .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
-                    return true;
-                });
+                        return true;
+                    });
         }
     }
 
     private static TemplateEngine buildTemplateEngine(AbstractApi apiDefinition) {
         var engine = TemplateEngine.templateEngine();
-        var apiContextProvider = new ApiTemplateVariableProvider(
-            new AbstractReactableApi<>() {
-                @Override
-                public String getApiVersion() {
-                    return apiDefinition.getApiVersion();
-                }
-
-                @Override
-                public DefinitionVersion getDefinitionVersion() {
-                    return apiDefinition.getDefinitionVersion();
-                }
-
-                @Override
-                public Set<String> getTags() {
-                    return apiDefinition.getTags();
-                }
-
-                @Override
-                public String getId() {
-                    return apiDefinition.getId();
-                }
-
-                @Override
-                public String getName() {
-                    return apiDefinition.getName();
-                }
-
-                @Override
-                public Set<String> getSubscribablePlans() {
-                    return Set.of();
-                }
-
-                @Override
-                public Set<String> getApiKeyPlans() {
-                    return Set.of();
-                }
-
-                @Override
-                public <D> Set<D> dependencies(Class<D> type) {
-                    return Set.of();
-                }
-
-                @Override
-                public AbstractApi getDefinition() {
-                    return apiDefinition;
-                }
+        var apiContextProvider = new ApiTemplateVariableProvider(new AbstractReactableApi<>() {
+            @Override
+            public String getApiVersion() {
+                return apiDefinition.getApiVersion();
             }
-        );
+
+            @Override
+            public DefinitionVersion getDefinitionVersion() {
+                return apiDefinition.getDefinitionVersion();
+            }
+
+            @Override
+            public Set<String> getTags() {
+                return apiDefinition.getTags();
+            }
+
+            @Override
+            public String getId() {
+                return apiDefinition.getId();
+            }
+
+            @Override
+            public String getName() {
+                return apiDefinition.getName();
+            }
+
+            @Override
+            public Set<String> getSubscribablePlans() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<String> getApiKeyPlans() {
+                return Set.of();
+            }
+
+            @Override
+            public <D> Set<D> dependencies(Class<D> type) {
+                return Set.of();
+            }
+
+            @Override
+            public AbstractApi getDefinition() {
+                return apiDefinition;
+            }
+        });
         apiContextProvider.provide(engine.getTemplateContext());
         return engine;
     }

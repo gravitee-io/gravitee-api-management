@@ -36,9 +36,8 @@ public class AnalyticsEngineRoutingConfiguration {
 
     @Bean
     public AnalyticsQueryContextLoaderResolver analyticsQueryContextLoaderResolver(
-        ObjectProvider<ManagementContextLoader> managementContextLoader,
-        ObjectProvider<PortalContextLoader> portalContextLoader
-    ) {
+            ObjectProvider<ManagementContextLoader> managementContextLoader,
+            ObjectProvider<PortalContextLoader> portalContextLoader) {
         Map<AnalyticsScope, AnalyticsQueryContextLoader> loadersByScope = new EnumMap<>(AnalyticsScope.class);
         managementContextLoader.ifAvailable(loader -> loadersByScope.put(AnalyticsScope.MANAGEMENT, loader));
         portalContextLoader.ifAvailable(loader -> loadersByScope.put(AnalyticsScope.PORTAL, loader));

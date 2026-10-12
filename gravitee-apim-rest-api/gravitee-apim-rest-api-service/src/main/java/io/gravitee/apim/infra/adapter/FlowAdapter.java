@@ -39,7 +39,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(imports = { UuidString.class, TimeProvider.class })
+@Mapper(imports = {UuidString.class, TimeProvider.class})
 public interface FlowAdapter {
     FlowAdapter INSTANCE = Mappers.getMapper(FlowAdapter.class);
     Logger log = NodeLoggerFactory.getLogger(FlowAdapter.class);
@@ -47,7 +47,11 @@ public interface FlowAdapter {
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
-    Flow toRepository(io.gravitee.definition.model.v4.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
+    Flow toRepository(
+            io.gravitee.definition.model.v4.flow.Flow source,
+            FlowReferenceType referenceType,
+            String referenceId,
+            int order);
 
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
@@ -56,7 +60,8 @@ public interface FlowAdapter {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
-    Flow toRepositoryUpdate(@MappingTarget Flow repository, io.gravitee.definition.model.v4.flow.Flow source, int order);
+    Flow toRepositoryUpdate(
+            @MappingTarget Flow repository, io.gravitee.definition.model.v4.flow.Flow source, int order);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
@@ -65,16 +70,22 @@ public interface FlowAdapter {
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
-    Flow toRepository(io.gravitee.definition.model.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
+    Flow toRepository(
+            io.gravitee.definition.model.flow.Flow source,
+            FlowReferenceType referenceType,
+            String referenceId,
+            int order);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     Flow toRepositoryUpdate(@MappingTarget Flow repository, io.gravitee.definition.model.flow.Flow source, int order);
 
     io.gravitee.definition.model.v4.flow.Flow toFlowV4(Flow source);
+
     List<io.gravitee.definition.model.v4.flow.Flow> toFlowV4(List<Flow> source);
 
     NativeFlow toNativeFlow(Flow source);
+
     List<NativeFlow> toNativeFlow(List<Flow> source);
 
     @Mapping(target = "pathOperator.path", source = "path")
@@ -126,9 +137,11 @@ public interface FlowAdapter {
 
     McpSelector toModel(FlowMcpSelector source);
 
-    default Flow toRepositoryFromAbstract(AbstractFlow flow, FlowReferenceType referenceType, String referenceId, int order) {
+    default Flow toRepositoryFromAbstract(
+            AbstractFlow flow, FlowReferenceType referenceType, String referenceId, int order) {
         if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
-            return this.toRepository((io.gravitee.definition.model.v4.flow.Flow) flow, referenceType, referenceId, order);
+            return this.toRepository(
+                    (io.gravitee.definition.model.v4.flow.Flow) flow, referenceType, referenceId, order);
         } else if (flow instanceof NativeFlow) {
             return this.toRepository((NativeFlow) flow, referenceType, referenceId, order);
         }

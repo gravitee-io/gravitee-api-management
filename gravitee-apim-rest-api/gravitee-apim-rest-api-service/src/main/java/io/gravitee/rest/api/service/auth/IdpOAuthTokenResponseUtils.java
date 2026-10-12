@@ -30,7 +30,8 @@ public final class IdpOAuthTokenResponseUtils {
     /**
      * @return empty when no {@code access_token} field should be written; otherwise the value to set (possibly {@code ""})
      */
-    public static Optional<String> accessTokenField(String idpAccessToken, String idpIdToken, boolean exposeAccessToken) {
+    public static Optional<String> accessTokenField(
+            String idpAccessToken, String idpIdToken, boolean exposeAccessToken) {
         // Match legacy connectUserInternal: IdP access_token is only written when an id_token was returned.
         if (idpIdToken == null) {
             return Optional.empty();

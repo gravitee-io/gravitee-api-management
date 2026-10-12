@@ -28,10 +28,8 @@ import org.junit.jupiter.api.Test;
 public class EventRepository_CleanEventsTest extends AbstractManagementRepositoryTest {
 
     // for the test the event from DEFAULT env don’t start with _ and others does
-    static final Condition<EventRepository.EventToClean> DEFAULT_ENV = new Condition<>(
-        e -> !e.id().startsWith("_"),
-        "event from \"NOT-DEFAULT\" environment"
-    );
+    static final Condition<EventRepository.EventToClean> DEFAULT_ENV =
+            new Condition<>(e -> !e.id().startsWith("_"), "event from \"NOT-DEFAULT\" environment");
 
     @Override
     protected String getTestCasesPath() {
@@ -45,11 +43,12 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
 
         // then
         assertThat(events)
-            .doNotHave(not(DEFAULT_ENV))
-            .filteredOn(DEFAULT_ENV)
-            .hasSize(15)
-            // to help the test, the dataset is created with order of creation date same as order of ids
-            .isSortedAccordingTo(Comparator.comparing(EventRepository.EventToClean::id).reversed());
+                .doNotHave(not(DEFAULT_ENV))
+                .filteredOn(DEFAULT_ENV)
+                .hasSize(15)
+                // to help the test, the dataset is created with order of creation date same as order of ids
+                .isSortedAccordingTo(
+                        Comparator.comparing(EventRepository.EventToClean::id).reversed());
     }
 
     @Test
@@ -71,16 +70,12 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         var events = eventRepository.findEventsToClean("DEFAULT").toList();
 
         // then
-        List<EventRepository.EventToClean> apiEvents = events
-            .stream()
-            .filter(
-                event ->
-                    event.group().type().startsWith("PUBLISH_API") ||
-                    event.group().type().startsWith("UNPUBLISH_API") ||
-                    event.group().type().startsWith("START_API") ||
-                    event.group().type().startsWith("STOP_API")
-            )
-            .collect(Collectors.toList());
+        List<EventRepository.EventToClean> apiEvents = events.stream()
+                .filter(event -> event.group().type().startsWith("PUBLISH_API")
+                        || event.group().type().startsWith("UNPUBLISH_API")
+                        || event.group().type().startsWith("START_API")
+                        || event.group().type().startsWith("STOP_API"))
+                .collect(Collectors.toList());
 
         assertThat(apiEvents).isNotEmpty();
         assertThat(apiEvents).allSatisfy(event -> {
@@ -96,18 +91,18 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         // then
         assertThat(events).hasSize(3); // Should have 3 events from NOT-DEFAULT environment
         assertThat(events)
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("START_API");
-                assertThat(event.group().referenceId()).isEqualTo("api-2");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("PUBLISH_DICTIONARY");
-                assertThat(event.group().referenceId()).isEqualTo("dict-3");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("GATEWAY_STARTED");
-                assertThat(event.group().referenceId()).isEqualTo("gateway-2");
-            });
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("START_API");
+                    assertThat(event.group().referenceId()).isEqualTo("api-2");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("PUBLISH_DICTIONARY");
+                    assertThat(event.group().referenceId()).isEqualTo("dict-3");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("GATEWAY_STARTED");
+                    assertThat(event.group().referenceId()).isEqualTo("gateway-2");
+                });
     }
 
     @Test
@@ -116,35 +111,31 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         var events = eventRepository.findEventsToClean("DEFAULT").toList();
 
         // then
-        List<EventRepository.EventToClean> dictionaryEvents = events
-            .stream()
-            .filter(
-                event ->
-                    event.group().type().startsWith("PUBLISH_DICTIONARY") ||
-                    event.group().type().startsWith("UNPUBLISH_DICTIONARY") ||
-                    event.group().type().startsWith("START_DICTIONARY") ||
-                    event.group().type().startsWith("STOP_DICTIONARY")
-            )
-            .collect(Collectors.toList());
+        List<EventRepository.EventToClean> dictionaryEvents = events.stream()
+                .filter(event -> event.group().type().startsWith("PUBLISH_DICTIONARY")
+                        || event.group().type().startsWith("UNPUBLISH_DICTIONARY")
+                        || event.group().type().startsWith("START_DICTIONARY")
+                        || event.group().type().startsWith("STOP_DICTIONARY"))
+                .collect(Collectors.toList());
 
         assertThat(dictionaryEvents).hasSize(4);
         assertThat(dictionaryEvents)
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("PUBLISH_DICTIONARY");
-                assertThat(event.group().referenceId()).isEqualTo("dict-1");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("UNPUBLISH_DICTIONARY");
-                assertThat(event.group().referenceId()).isEqualTo("dict-1");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("START_DICTIONARY");
-                assertThat(event.group().referenceId()).isEqualTo("dict-2");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("STOP_DICTIONARY");
-                assertThat(event.group().referenceId()).isEqualTo("dict-2");
-            });
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("PUBLISH_DICTIONARY");
+                    assertThat(event.group().referenceId()).isEqualTo("dict-1");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("UNPUBLISH_DICTIONARY");
+                    assertThat(event.group().referenceId()).isEqualTo("dict-1");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("START_DICTIONARY");
+                    assertThat(event.group().referenceId()).isEqualTo("dict-2");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("STOP_DICTIONARY");
+                    assertThat(event.group().referenceId()).isEqualTo("dict-2");
+                });
     }
 
     @Test
@@ -153,22 +144,22 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         var events = eventRepository.findEventsToClean("DEFAULT").toList();
 
         // then
-        List<EventRepository.EventToClean> gatewayEvents = events
-            .stream()
-            .filter(event -> event.group().type().startsWith("GATEWAY_STARTED") || event.group().type().startsWith("GATEWAY_STOPPED"))
-            .collect(Collectors.toList());
+        List<EventRepository.EventToClean> gatewayEvents = events.stream()
+                .filter(event -> event.group().type().startsWith("GATEWAY_STARTED")
+                        || event.group().type().startsWith("GATEWAY_STOPPED"))
+                .collect(Collectors.toList());
 
         assertThat(gatewayEvents).hasSize(2);
         assertThat(gatewayEvents)
-            .allSatisfy(event -> {
-                assertThat(event.group().referenceId()).isEqualTo("gateway-1");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("GATEWAY_STARTED");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("GATEWAY_STOPPED");
-            });
+                .allSatisfy(event -> {
+                    assertThat(event.group().referenceId()).isEqualTo("gateway-1");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("GATEWAY_STARTED");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("GATEWAY_STOPPED");
+                });
     }
 
     @Test
@@ -177,10 +168,9 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         var events = eventRepository.findEventsToClean("DEFAULT").toList();
 
         // then
-        List<EventRepository.EventToClean> orgEvents = events
-            .stream()
-            .filter(event -> event.group().type().startsWith("PUBLISH_ORGANIZATION"))
-            .collect(Collectors.toList());
+        List<EventRepository.EventToClean> orgEvents = events.stream()
+                .filter(event -> event.group().type().startsWith("PUBLISH_ORGANIZATION"))
+                .collect(Collectors.toList());
 
         assertThat(orgEvents).hasSize(1);
         assertThat(orgEvents).allSatisfy(event -> {
@@ -195,22 +185,21 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         var events = eventRepository.findEventsToClean("DEFAULT").toList();
 
         // then
-        List<EventRepository.EventToClean> debugEvents = events
-            .stream()
-            .filter(event -> event.group().type().equals("DEBUG_API"))
-            .collect(Collectors.toList());
+        List<EventRepository.EventToClean> debugEvents = events.stream()
+                .filter(event -> event.group().type().equals("DEBUG_API"))
+                .collect(Collectors.toList());
 
         assertThat(debugEvents).hasSize(2);
         assertThat(debugEvents)
-            .allSatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("DEBUG_API");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().referenceId()).isEqualTo("api-2");
-            })
-            .anySatisfy(event -> {
-                assertThat(event.group().referenceId()).isEqualTo("api-3");
-            });
+                .allSatisfy(event -> {
+                    assertThat(event.group().type()).isEqualTo("DEBUG_API");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().referenceId()).isEqualTo("api-2");
+                })
+                .anySatisfy(event -> {
+                    assertThat(event.group().referenceId()).isEqualTo("api-3");
+                });
     }
 
     @Test
@@ -219,10 +208,9 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         var events = eventRepository.findEventsToClean("DEFAULT").toList();
 
         // then
-        List<EventRepository.EventToClean> policyEvents = events
-            .stream()
-            .filter(event -> event.group().type().equals("DEPLOY_SHARED_POLICY_GROUP"))
-            .collect(Collectors.toList());
+        List<EventRepository.EventToClean> policyEvents = events.stream()
+                .filter(event -> event.group().type().equals("DEPLOY_SHARED_POLICY_GROUP"))
+                .collect(Collectors.toList());
 
         assertThat(policyEvents).hasSize(1);
         assertThat(policyEvents).allSatisfy(event -> {
@@ -238,23 +226,22 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
 
         // then
         assertThat(events)
-            .extracting(event -> event.group().type())
-            .containsExactlyInAnyOrder(
-                "PUBLISH_API",
-                "UNPUBLISH_API",
-                "PUBLISH_API",
-                "STOP_API",
-                "START_API",
-                "PUBLISH_DICTIONARY",
-                "UNPUBLISH_DICTIONARY",
-                "START_DICTIONARY",
-                "STOP_DICTIONARY",
-                "GATEWAY_STARTED",
-                "GATEWAY_STOPPED",
-                "PUBLISH_ORGANIZATION",
-                "DEBUG_API",
-                "DEBUG_API",
-                "DEPLOY_SHARED_POLICY_GROUP"
-            );
+                .extracting(event -> event.group().type())
+                .containsExactlyInAnyOrder(
+                        "PUBLISH_API",
+                        "UNPUBLISH_API",
+                        "PUBLISH_API",
+                        "STOP_API",
+                        "START_API",
+                        "PUBLISH_DICTIONARY",
+                        "UNPUBLISH_DICTIONARY",
+                        "START_DICTIONARY",
+                        "STOP_DICTIONARY",
+                        "GATEWAY_STARTED",
+                        "GATEWAY_STOPPED",
+                        "PUBLISH_ORGANIZATION",
+                        "DEBUG_API",
+                        "DEBUG_API",
+                        "DEPLOY_SHARED_POLICY_GROUP");
     }
 }

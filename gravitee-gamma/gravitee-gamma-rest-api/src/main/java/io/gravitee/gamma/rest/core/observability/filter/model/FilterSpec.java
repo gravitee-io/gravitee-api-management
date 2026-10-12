@@ -45,15 +45,14 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public record FilterSpec(
-    String name,
-    String label,
-    FilterType type,
-    List<FilterOperator> operators,
-    List<EnumValue> enumValues,
-    Range range,
-    Set<Signal> signals,
-    Set<ApiType> apiTypes
-) {
+        String name,
+        String label,
+        FilterType type,
+        List<FilterOperator> operators,
+        List<EnumValue> enumValues,
+        Range range,
+        Set<Signal> signals,
+        Set<ApiType> apiTypes) {
     /** Inclusive numeric bounds for {@link FilterType#NUMBER} filters. */
     public record Range(Number min, Number max) {}
 

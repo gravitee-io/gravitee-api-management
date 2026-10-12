@@ -48,20 +48,19 @@ public class ApiProductAccessibleIdsDomainService {
      */
     public Set<String> findAccessibleApiProductIds(String environmentId, String userId) {
         Set<String> directIds = membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(userId, Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(Collectors.toSet());
+                .findByMemberIdAndMemberTypeAndReferenceType(
+                        userId, Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
+                .stream()
+                .map(Membership::getReferenceId)
+                .collect(Collectors.toSet());
 
-        Set<String> userGroupIds = membershipQueryService
-            .findGroupsThatUserBelongsTo(userId)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(Collectors.toSet());
+        Set<String> userGroupIds = membershipQueryService.findGroupsThatUserBelongsTo(userId).stream()
+                .map(Membership::getReferenceId)
+                .collect(Collectors.toSet());
 
         Set<String> groupApiProductIds = userGroupIds.isEmpty()
-            ? Set.of()
-            : apiProductQueryService.findIdsByEnvironmentIdAndGroups(environmentId, userGroupIds);
+                ? Set.of()
+                : apiProductQueryService.findIdsByEnvironmentIdAndGroups(environmentId, userGroupIds);
 
         Set<String> allowedIds = new HashSet<>(directIds);
         allowedIds.addAll(groupApiProductIds);

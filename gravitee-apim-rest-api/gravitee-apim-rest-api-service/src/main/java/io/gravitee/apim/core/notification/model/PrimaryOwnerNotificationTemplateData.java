@@ -32,10 +32,10 @@ public class PrimaryOwnerNotificationTemplateData {
 
     public static PrimaryOwnerNotificationTemplateData from(PrimaryOwnerEntity primaryOwner) {
         return PrimaryOwnerNotificationTemplateData.builder()
-            .id(primaryOwner.id())
-            .displayName(primaryOwner.displayName())
-            .email(primaryOwner.email())
-            .type(primaryOwner.type().name())
-            .build();
+                .id(primaryOwner.id())
+                .displayName(primaryOwner.displayName())
+                .email(primaryOwner.email())
+                .type(primaryOwner.type().name())
+                .build();
     }
 }

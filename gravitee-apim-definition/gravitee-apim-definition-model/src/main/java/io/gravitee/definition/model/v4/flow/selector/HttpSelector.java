@@ -61,8 +61,9 @@ public class HttpSelector extends Selector {
         this.pathOperator = DEFAULT_OPERATOR;
     }
 
-    public abstract static class HttpSelectorBuilder<C extends HttpSelector, B extends HttpSelector.HttpSelectorBuilder<C, B>>
-        extends SelectorBuilder<C, B> {
+    public abstract static class HttpSelectorBuilder<
+                    C extends HttpSelector, B extends HttpSelector.HttpSelectorBuilder<C, B>>
+            extends SelectorBuilder<C, B> {
 
         HttpSelectorBuilder() {
             type(SelectorType.HTTP);

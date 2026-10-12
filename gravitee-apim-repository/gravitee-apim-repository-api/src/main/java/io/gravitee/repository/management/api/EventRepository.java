@@ -126,31 +126,48 @@ public interface EventRepository extends CrudRepository<Event, String> {
                 return null;
             }
 
-            String referenceId = switch (eventType) {
-                case PUBLISH_API, PUBLISH_API_RESULT, UNPUBLISH_API, UNPUBLISH_API_RESULT, START_API, STOP_API, DEBUG_API -> properties.get(
-                    Event.EventProperties.API_ID.getValue()
-                ); // API events are grouped by API ID
-                case PUBLISH_DICTIONARY, UNPUBLISH_DICTIONARY, START_DICTIONARY, STOP_DICTIONARY -> properties.get(
-                    // Dictionary events are grouped by dictionary ID
-                    Event.EventProperties.DICTIONARY_ID.getValue()
-                );
-                case PUBLISH_ORGANIZATION, PUBLISH_ORGANIZATION_LICENSE -> properties.get(
-                    // Organization events are grouped by organization ID
-                    Event.EventProperties.ORGANIZATION_ID.getValue()
-                );
-                case DEPLOY_SHARED_POLICY_GROUP, UNDEPLOY_SHARED_POLICY_GROUP -> properties.get(
-                    // Shared policy group events are grouped by shared policy group ID
-                    Event.EventProperties.SHARED_POLICY_GROUP_ID.getValue()
-                );
-                case GATEWAY_STARTED, GATEWAY_STOPPED -> properties.get(Event.EventProperties.ID.getValue()); // Gateway events are grouped by gateway ID (if available)
-                case PUBLISH_AUTHZ_POLICY, UNPUBLISH_AUTHZ_POLICY -> properties.get(Event.EventProperties.AUTHZ_POLICY_ID.getValue());
-                case PUBLISH_AUTHZ_ENTITY, UNPUBLISH_AUTHZ_ENTITY -> properties.get(Event.EventProperties.AUTHZ_ENTITY_ID.getValue());
-                case PUBLISH_AUTHZ_SCHEMA, UNPUBLISH_AUTHZ_SCHEMA -> properties.get(Event.EventProperties.AUTHZ_SCHEMA_ID.getValue());
-                case PUBLISH_CREDENTIAL, UNPUBLISH_CREDENTIAL -> properties.get(Event.EventProperties.CREDENTIAL_ID.getValue());
-                default -> properties.get(Event.EventProperties.ID.getValue()); // For unknown event types, try to use a generic ID property
-            };
+            String referenceId =
+                    switch (eventType) {
+                        case PUBLISH_API,
+                                PUBLISH_API_RESULT,
+                                UNPUBLISH_API,
+                                UNPUBLISH_API_RESULT,
+                                START_API,
+                                STOP_API,
+                                DEBUG_API ->
+                            properties.get(Event.EventProperties.API_ID.getValue()); // API events are grouped by API ID
+                        case PUBLISH_DICTIONARY, UNPUBLISH_DICTIONARY, START_DICTIONARY, STOP_DICTIONARY ->
+                            properties.get(
+                                    // Dictionary events are grouped by dictionary ID
+                                    Event.EventProperties.DICTIONARY_ID.getValue());
+                        case PUBLISH_ORGANIZATION, PUBLISH_ORGANIZATION_LICENSE ->
+                            properties.get(
+                                    // Organization events are grouped by organization ID
+                                    Event.EventProperties.ORGANIZATION_ID.getValue());
+                        case DEPLOY_SHARED_POLICY_GROUP, UNDEPLOY_SHARED_POLICY_GROUP ->
+                            properties.get(
+                                    // Shared policy group events are grouped by shared policy group ID
+                                    Event.EventProperties.SHARED_POLICY_GROUP_ID.getValue());
+                        case GATEWAY_STARTED, GATEWAY_STOPPED ->
+                            properties.get(
+                                    Event.EventProperties.ID
+                                            .getValue()); // Gateway events are grouped by gateway ID (if available)
+                        case PUBLISH_AUTHZ_POLICY, UNPUBLISH_AUTHZ_POLICY ->
+                            properties.get(Event.EventProperties.AUTHZ_POLICY_ID.getValue());
+                        case PUBLISH_AUTHZ_ENTITY, UNPUBLISH_AUTHZ_ENTITY ->
+                            properties.get(Event.EventProperties.AUTHZ_ENTITY_ID.getValue());
+                        case PUBLISH_AUTHZ_SCHEMA, UNPUBLISH_AUTHZ_SCHEMA ->
+                            properties.get(Event.EventProperties.AUTHZ_SCHEMA_ID.getValue());
+                        case PUBLISH_CREDENTIAL, UNPUBLISH_CREDENTIAL ->
+                            properties.get(Event.EventProperties.CREDENTIAL_ID.getValue());
+                        default ->
+                            properties.get(Event.EventProperties.ID
+                                    .getValue()); // For unknown event types, try to use a generic ID property
+                    };
 
-            return referenceId != null && !referenceId.isBlank() ? new EventToCleanGroup(eventType.name(), referenceId) : null;
+            return referenceId != null && !referenceId.isBlank()
+                    ? new EventToCleanGroup(eventType.name(), referenceId)
+                    : null;
         }
     }
 }

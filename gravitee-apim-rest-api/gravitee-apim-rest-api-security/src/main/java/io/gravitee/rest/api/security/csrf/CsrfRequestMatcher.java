@@ -34,26 +34,23 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class CsrfRequestMatcher implements RequestMatcher {
 
     private final Set<String> allowedMethods = new HashSet<>(Arrays.asList("GET", "HEAD", "TRACE", "OPTIONS"));
-    private final Set<Pattern> allowedPaths = new HashSet<>(
-        Arrays.asList(
+    private final Set<Pattern> allowedPaths = new HashSet<>(Arrays.asList(
             Pattern.compile("^/organizations/[^/]+/user/login$"),
             Pattern.compile("^/organizations/[^/]+/auth/.*$"),
-            Pattern.compile("^/environments/[^/]+/auth/.*$")
-        )
-    );
+            Pattern.compile("^/environments/[^/]+/auth/.*$")));
 
     @Override
     public boolean matches(HttpServletRequest request) {
-        return (
-            !allowedMethods.contains(request.getMethod()) &&
-            !(request.getPathInfo() != null &&
-                allowedPaths.stream().anyMatch(pattern -> pattern.matcher(request.getPathInfo()).matches())) &&
-            (request.getHeader(HttpHeaders.REFERER) != null ||
-                request.getHeader(HttpHeaders.ORIGIN) != null ||
-                (request.getCookies() != null &&
-                    Arrays.stream(request.getCookies()).anyMatch(cookie ->
-                        TokenAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName())
-                    )))
-        );
+        return (!allowedMethods.contains(request.getMethod())
+                && !(request.getPathInfo() != null
+                        && allowedPaths.stream()
+                                .anyMatch(pattern ->
+                                        pattern.matcher(request.getPathInfo()).matches()))
+                && (request.getHeader(HttpHeaders.REFERER) != null
+                        || request.getHeader(HttpHeaders.ORIGIN) != null
+                        || (request.getCookies() != null
+                                && Arrays.stream(request.getCookies())
+                                        .anyMatch(cookie ->
+                                                TokenAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName())))));
     }
 }

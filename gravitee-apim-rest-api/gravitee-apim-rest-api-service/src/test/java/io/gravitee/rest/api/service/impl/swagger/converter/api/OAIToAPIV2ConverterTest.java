@@ -75,26 +75,27 @@ class OAIToAPIV2ConverterTest {
         when(policyVisitor.getId()).thenReturn("json-validation");
 
         when(policyOperationVisitorManager.getPolicyVisitors()).thenReturn(List.of(policyVisitor));
-        when(policyOperationVisitorManager.getOAIOperationVisitor("json-validation")).thenReturn(visitor);
+        when(policyOperationVisitorManager.getOAIOperationVisitor("json-validation"))
+                .thenReturn(visitor);
 
         PolicyPluginEntity plugin = new PolicyPluginEntity();
         plugin.setName("JSON Validation");
         when(policyPluginService.findById("json-validation")).thenReturn(plugin);
 
         converter = new OAIToAPIV2Converter(
-            descriptor,
-            policyOperationVisitorManager,
-            mock(GroupService.class),
-            mock(TagService.class),
-            policyPluginService
-        );
+                descriptor,
+                policyOperationVisitorManager,
+                mock(GroupService.class),
+                mock(TagService.class),
+                policyPluginService);
 
         OpenAPI openAPI = new OpenAPI()
-            .info(new Info().title("Mock API").version("1.0"))
-            .paths(new Paths().addPathItem("/pets", new PathItem().get(new Operation().operationId("listPets"))))
-            .servers(List.of());
+                .info(new Info().title("Mock API").version("1.0"))
+                .paths(new Paths().addPathItem("/pets", new PathItem().get(new Operation().operationId("listPets"))))
+                .servers(List.of());
 
-        SwaggerApiEntity api = converter.convert(new ExecutionContext("DEFAULT", "DEFAULT"), new OAIDescriptor(openAPI));
+        SwaggerApiEntity api =
+                converter.convert(new ExecutionContext("DEFAULT", "DEFAULT"), new OAIDescriptor(openAPI));
 
         assertThat(api).isNotNull();
         assertThat(api.getFlows()).isNotNull();

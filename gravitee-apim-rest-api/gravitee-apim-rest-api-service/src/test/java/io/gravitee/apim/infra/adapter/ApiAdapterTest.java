@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -74,68 +73,61 @@ class ApiAdapterTest {
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(api.getApiDefinition()).isNull();
-                soft
-                    .assertThat(api.getApiDefinitionHttpV4())
-                    .isEqualTo(
-                        io.gravitee.definition.model.v4.Api.builder()
-                            .id("my-id")
-                            .name("api-name")
-                            .apiVersion("1.0.0")
-                            .definitionVersion(DefinitionVersion.V4)
-                            .flowExecution(new FlowExecution())
-                            .analytics(Analytics.builder().enabled(false).build())
-                            .failover(
-                                Failover.builder()
-                                    .enabled(true)
-                                    .maxRetries(7)
-                                    .slowCallDuration(500)
-                                    .openStateDuration(11000)
-                                    .maxFailures(3)
-                                    .perSubscription(false)
-                                    .build()
-                            )
-                            .type(ApiType.PROXY)
-                            .tags(Set.of("tag1"))
-                            .listeners(
-                                List.of(
-                                    HttpListener.builder()
-                                        .paths(List.of(Path.builder().path("/http_proxy").build()))
-                                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                                        .build()
-                                )
-                            )
-                            .endpointGroups(
-                                List.of(
-                                    EndpointGroup.builder()
+                soft.assertThat(api.getApiDefinitionHttpV4())
+                        .isEqualTo(io.gravitee.definition.model.v4.Api.builder()
+                                .id("my-id")
+                                .name("api-name")
+                                .apiVersion("1.0.0")
+                                .definitionVersion(DefinitionVersion.V4)
+                                .flowExecution(new FlowExecution())
+                                .analytics(Analytics.builder().enabled(false).build())
+                                .failover(Failover.builder()
+                                        .enabled(true)
+                                        .maxRetries(7)
+                                        .slowCallDuration(500)
+                                        .openStateDuration(11000)
+                                        .maxFailures(3)
+                                        .perSubscription(false)
+                                        .build())
+                                .type(ApiType.PROXY)
+                                .tags(Set.of("tag1"))
+                                .listeners(List.of(HttpListener.builder()
+                                        .paths(List.of(Path.builder()
+                                                .path("/http_proxy")
+                                                .build()))
+                                        .entrypoints(List.of(Entrypoint.builder()
+                                                .type("http-proxy")
+                                                .configuration("{}")
+                                                .build()))
+                                        .build()))
+                                .endpointGroups(List.of(EndpointGroup.builder()
                                         .name("default-group")
                                         .type("http-proxy")
                                         .sharedConfiguration("{}")
-                                        .endpoints(
-                                            List.of(
-                                                Endpoint.builder()
-                                                    .name("default-endpoint")
-                                                    .type("http-proxy")
-                                                    .inheritConfiguration(true)
-                                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                                    .build()
-                                            )
-                                        )
-                                        .build()
-                                )
-                            )
-                            .flows(List.of())
-                            .build()
-                    );
+                                        .endpoints(List.of(Endpoint.builder()
+                                                .name("default-endpoint")
+                                                .type("http-proxy")
+                                                .inheritConfiguration(true)
+                                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                                .build()))
+                                        .build()))
+                                .flows(List.of())
+                                .build());
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
-                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getDeployedAt())
+                        .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
-                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
-                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getPicture()).isEqualTo("my-picture");
                 soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
-                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getApiLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
                 soft.assertThat(api.getBackground()).isEqualTo("my-background");
             });
         }
@@ -160,14 +152,19 @@ class ApiAdapterTest {
                 soft.assertThat(api.getApiDefinitionHttpV4()).isNull();
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
-                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getDeployedAt())
+                        .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
-                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
-                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getPicture()).isEqualTo("my-picture");
                 soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
-                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getApiLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
                 soft.assertThat(api.getBackground()).isEqualTo("my-background");
             });
         }
@@ -189,20 +186,28 @@ class ApiAdapterTest {
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(api.getApiDefinitionHttpV4()).isNull();
-                soft
-                    .assertThat(api.getApiDefinition())
-                    // V2 Api definition is defining a equals/hashcode checking only the id
-                    .isEqualTo(io.gravitee.definition.model.Api.builder().id("my-id").name("api-name").version("1.0.0").build());
+                soft.assertThat(api.getApiDefinition())
+                        // V2 Api definition is defining a equals/hashcode checking only the id
+                        .isEqualTo(io.gravitee.definition.model.Api.builder()
+                                .id("my-id")
+                                .name("api-name")
+                                .version("1.0.0")
+                                .build());
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
-                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getDeployedAt())
+                        .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
-                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
-                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getPicture()).isEqualTo("my-picture");
                 soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
-                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getApiLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
                 soft.assertThat(api.getBackground()).isEqualTo("my-background");
             });
         }
@@ -227,21 +232,28 @@ class ApiAdapterTest {
                 soft.assertThat(api.getApiDefinition()).isNull();
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
-                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getDeployedAt())
+                        .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt())
+                        .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
-                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
-                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt())
+                        .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getPicture()).isEqualTo("my-picture");
                 soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
-                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getApiLifecycleState())
+                        .isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
                 soft.assertThat(api.getBackground()).isEqualTo("my-background");
             });
         }
 
         @Test
         void should_convert_from_edge_v4_repository_to_core_model() {
-            var repository = apiV4().type(ApiType.EDGE).definition("{ \"type\": \"edge\" }").build();
+            var repository = apiV4().type(ApiType.EDGE)
+                    .definition("{ \"type\": \"edge\" }")
+                    .build();
 
             var api = ApiAdapter.INSTANCE.toCoreModel(repository);
 
@@ -260,13 +272,14 @@ class ApiAdapterTest {
 
         @Test
         void should_convert_origin_context() {
-            var apiWithManagementContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("management").build());
+            var apiWithManagementContext =
+                    ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("management").build());
             assertThat(apiWithManagementContext).hasOriginContext(new OriginContext.Management());
 
-            var apiWithKubernetesContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("kubernetes").mode("fully_managed").build());
-            assertThat(apiWithKubernetesContext).hasOriginContext(
-                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED)
-            );
+            var apiWithKubernetesContext = ApiAdapter.INSTANCE.toCoreModel(
+                    apiV4().origin("kubernetes").mode("fully_managed").build());
+            assertThat(apiWithKubernetesContext)
+                    .hasOriginContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED));
         }
     }
 
@@ -275,7 +288,9 @@ class ApiAdapterTest {
 
         @Test
         void should_map_only_enabled_capabilities_when_converting_to_federated_agent_entity() {
-            var agent = anAgent().capabilities(Map.of(FederatedAgent.STREAMING, true, FederatedAgent.PUSH_NOTIFICATIONS, false)).build();
+            var agent = anAgent()
+                    .capabilities(Map.of(FederatedAgent.STREAMING, true, FederatedAgent.PUSH_NOTIFICATIONS, false))
+                    .build();
 
             var entity = toFederatedAgentEntity(agent);
 
@@ -309,20 +324,21 @@ class ApiAdapterTest {
 
         private FederatedAgent.FederatedAgentBuilder anAgent() {
             return FederatedAgent.builder()
-                .name("api-name")
-                .description("api-description")
-                .url("https://example.net/agent")
-                .version("1.0.0");
+                    .name("api-name")
+                    .description("api-description")
+                    .url("https://example.net/agent")
+                    .version("1.0.0");
         }
 
         private FederatedApiAgentEntity toFederatedAgentEntity(FederatedAgent agent) {
-            var repository = apiV4().origin("integration").definitionVersion(DefinitionVersion.FEDERATED_AGENT).build();
+            var repository = apiV4().origin("integration")
+                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                    .build();
             return ApiAdapter.INSTANCE.toFederatedAgentEntity(
-                repository,
-                agent,
-                PrimaryOwnerEntity.builder().id("primary-owner-id").build(),
-                new OriginContext.Integration("int-a")
-            );
+                    repository,
+                    agent,
+                    PrimaryOwnerEntity.builder().id("primary-owner-id").build(),
+                    new OriginContext.Integration("int-a"));
         }
     }
 
@@ -332,18 +348,15 @@ class ApiAdapterTest {
         @Test
         void should_convert_v4_api_to_repository() {
             var model = ApiFixtures.aProxyApiV4();
-            model
-                .getApiDefinitionHttpV4()
-                .setFailover(
-                    Failover.builder()
-                        .enabled(true)
-                        .maxRetries(7)
-                        .slowCallDuration(500)
-                        .openStateDuration(11000)
-                        .maxFailures(3)
-                        .perSubscription(false)
-                        .build()
-                );
+            model.getApiDefinitionHttpV4()
+                    .setFailover(Failover.builder()
+                            .enabled(true)
+                            .maxRetries(7)
+                            .slowCallDuration(500)
+                            .openStateDuration(11000)
+                            .maxFailures(3)
+                            .perSubscription(false)
+                            .build());
 
             var api = ApiAdapter.INSTANCE.toRepository(model);
 
@@ -354,9 +367,9 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
                 try {
-                    soft
-                        .assertThat(api.getDefinition())
-                        .isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(model.getApiDefinitionHttpV4()));
+                    soft.assertThat(api.getDefinition())
+                            .isEqualTo(GraviteeJacksonMapper.getInstance()
+                                    .writeValueAsString(model.getApiDefinitionHttpV4()));
                 } catch (JsonProcessingException e) {
                     soft.fail(e.getMessage());
                 }
@@ -391,11 +404,9 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCategories()).containsExactly("category-1");
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
-                soft
-                    .assertThat(api.getDefinition())
-                    .isEqualTo(
-                        "{\"id\":\"my-api\",\"name\":\"api-name\",\"version\":\"1.0.0\",\"gravitee\":\"2.0.0\",\"execution_mode\":\"v3\",\"flow_mode\":\"DEFAULT\",\"proxy\":{\"virtual_hosts\":[{\"path\":\"/path\"}],\"strip_context_path\":false,\"preserve_host\":false,\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{\"name\":\"default\",\"target\":\"https://api.gravitee.io/echo\",\"weight\":1,\"backup\":false,\"type\":\"http1\"}],\"load_balancing\":{\"type\":\"ROUND_ROBIN\"},\"http\":{\"connectTimeout\":5000,\"idleTimeout\":60000,\"keepAliveTimeout\":30000,\"keepAlive\":true,\"readTimeout\":10000,\"pipelining\":false,\"maxConcurrentConnections\":100,\"useCompression\":true,\"followRedirects\":false,\"maxHeaderSize\":8192,\"maxChunkSize\":8192}}]},\"properties\":[],\"tags\":[\"tag1\"]}"
-                    );
+                soft.assertThat(api.getDefinition())
+                        .isEqualTo(
+                                "{\"id\":\"my-api\",\"name\":\"api-name\",\"version\":\"1.0.0\",\"gravitee\":\"2.0.0\",\"execution_mode\":\"v3\",\"flow_mode\":\"DEFAULT\",\"proxy\":{\"virtual_hosts\":[{\"path\":\"/path\"}],\"strip_context_path\":false,\"preserve_host\":false,\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{\"name\":\"default\",\"target\":\"https://api.gravitee.io/echo\",\"weight\":1,\"backup\":false,\"type\":\"http1\"}],\"load_balancing\":{\"type\":\"ROUND_ROBIN\"},\"http\":{\"connectTimeout\":5000,\"idleTimeout\":60000,\"keepAliveTimeout\":30000,\"keepAlive\":true,\"readTimeout\":10000,\"pipelining\":false,\"maxConcurrentConnections\":100,\"useCompression\":true,\"followRedirects\":false,\"maxHeaderSize\":8192,\"maxChunkSize\":8192}}]},\"properties\":[],\"tags\":[\"tag1\"]}");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
@@ -417,20 +428,17 @@ class ApiAdapterTest {
 
         @Test
         void should_convert_origin_context() {
-            var apiWithManagementContext = ApiAdapter.INSTANCE.toRepository(
-                ApiFixtures.aProxyApiV4().toBuilder().originContext(new OriginContext.Management()).build()
-            );
+            var apiWithManagementContext = ApiAdapter.INSTANCE.toRepository(ApiFixtures.aProxyApiV4().toBuilder()
+                    .originContext(new OriginContext.Management())
+                    .build());
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiWithManagementContext.getOrigin()).isEqualTo("management");
                 soft.assertThat(apiWithManagementContext.getMode()).isNull();
             });
 
-            var apiWithKubernetesContext = ApiAdapter.INSTANCE.toRepository(
-                ApiFixtures.aProxyApiV4()
-                    .toBuilder()
+            var apiWithKubernetesContext = ApiAdapter.INSTANCE.toRepository(ApiFixtures.aProxyApiV4().toBuilder()
                     .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
-                    .build()
-            );
+                    .build());
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiWithKubernetesContext.getOrigin()).isEqualTo("kubernetes");
                 soft.assertThat(apiWithKubernetesContext.getMode()).isEqualTo("fully_managed");
@@ -441,32 +449,36 @@ class ApiAdapterTest {
         void should_convert_edge_api_to_repository() throws JsonProcessingException {
             var edgeDefinition = EdgeApi.builder().build();
             var model = io.gravitee.apim.core.api.model.Api.builder()
-                .id("my-api")
-                .definitionVersion(DefinitionVersion.V4)
-                .type(ApiType.EDGE)
-                .apiDefinitionValue(edgeDefinition)
-                .build();
+                    .id("my-api")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .type(ApiType.EDGE)
+                    .apiDefinitionValue(edgeDefinition)
+                    .build();
 
             var api = ApiAdapter.INSTANCE.toRepository(model);
 
             assertThat(api.getType()).isEqualTo(ApiType.EDGE);
-            assertThat(api.getDefinition()).isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(edgeDefinition));
+            assertThat(api.getDefinition())
+                    .isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(edgeDefinition));
         }
 
         @Test
         void should_convert_federated_agent_to_repository() throws JsonProcessingException {
             var fixture = ApiFixtures.aFederatedAgent();
-            var skill = new FederatedAgent.Skill("skill-id", "skill-name", "skill-description", List.of("tag"), null, null, null);
-            var agent = ((FederatedAgent) fixture.getApiDefinitionValue()).toBuilder()
-                .provider(new FederatedAgent.Provider("Acme Robotics", "https://example.net"))
-                .skills(List.of(skill))
-                .build();
+            var skill = new FederatedAgent.Skill(
+                    "skill-id", "skill-name", "skill-description", List.of("tag"), null, null, null);
+            var agent = ((FederatedAgent) fixture.getApiDefinitionValue())
+                    .toBuilder()
+                            .provider(new FederatedAgent.Provider("Acme Robotics", "https://example.net"))
+                            .skills(List.of(skill))
+                            .build();
             var model = fixture.toBuilder().apiDefinitionValue(agent).build();
 
             var api = ApiAdapter.INSTANCE.toRepository(model);
 
             assertThat(api.getDefinition()).isNotNull();
-            var persistedAgent = GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), FederatedAgent.class);
+            var persistedAgent =
+                    GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), FederatedAgent.class);
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(persistedAgent.getName()).isEqualTo("My agent");
                 soft.assertThat(persistedAgent.getUrl()).isEqualTo("https://example.net");
@@ -483,10 +495,9 @@ class ApiAdapterTest {
 
         @Test
         void should_convert_v4_api_to_UpdateApiEntity() {
-            var model = ApiFixtures.aProxyApiV4()
-                .toBuilder()
-                .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
-                .build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder()
+                    .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
+                    .build();
 
             var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, model.getApiDefinitionHttpV4());
 
@@ -497,22 +508,24 @@ class ApiAdapterTest {
                 soft.assertThat(updateApiEntity.getDescription()).isEqualTo("api-description");
                 soft.assertThat(updateApiEntity.getApiVersion()).isEqualTo("1.0.0");
                 soft.assertThat(updateApiEntity.getVisibility().name()).isEqualTo(Visibility.PUBLIC.name());
-                soft.assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(ApiLifecycleState.PUBLISHED.name());
+                soft.assertThat(updateApiEntity.getLifecycleState().name())
+                        .isEqualTo(ApiLifecycleState.PUBLISHED.name());
                 soft.assertThat(updateApiEntity.getPicture()).isEqualTo("api-picture");
                 soft.assertThat(updateApiEntity.getGroups()).containsExactly("group-1");
                 soft.assertThat(updateApiEntity.getCategories()).containsExactly("category-1");
                 soft.assertThat(updateApiEntity.getTags()).containsExactly("tag1");
                 soft.assertThat(updateApiEntity.getLabels()).containsExactly("label-1");
-                soft.assertThat(updateApiEntity.isDisableMembershipNotifications()).isTrue();
+                soft.assertThat(updateApiEntity.isDisableMembershipNotifications())
+                        .isTrue();
                 soft.assertThat(updateApiEntity.getBackground()).isEqualTo("api-background");
                 soft.assertThat(updateApiEntity.getEndpointGroups()).hasSize(1);
-                soft
-                    .assertThat(updateApiEntity.getEndpointGroups().getFirst())
-                    .isEqualTo(model.getApiDefinitionHttpV4().getEndpointGroups().getFirst());
+                soft.assertThat(updateApiEntity.getEndpointGroups().getFirst())
+                        .isEqualTo(model.getApiDefinitionHttpV4()
+                                .getEndpointGroups()
+                                .getFirst());
                 soft.assertThat(updateApiEntity.getListeners()).hasSize(1);
-                soft
-                    .assertThat(updateApiEntity.getListeners().getFirst())
-                    .isEqualTo(model.getApiDefinitionHttpV4().getListeners().getFirst());
+                soft.assertThat(updateApiEntity.getListeners().getFirst())
+                        .isEqualTo(model.getApiDefinitionHttpV4().getListeners().getFirst());
             });
         }
 
@@ -521,12 +534,14 @@ class ApiAdapterTest {
             // A definition that has no resources and no responseTemplates (as stored by an API
             // created without those fields — the sync check compares against such an event payload)
             var definition = io.gravitee.definition.model.v4.Api.builder()
-                .id("my-api")
-                .name("My Api")
-                .apiVersion("1.0.0")
-                .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V4)
-                .build();
-            var model = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionValue(definition).build();
+                    .id("my-api")
+                    .name("My Api")
+                    .apiVersion("1.0.0")
+                    .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V4)
+                    .build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder()
+                    .apiDefinitionValue(definition)
+                    .build();
 
             var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, definition);
 
@@ -539,12 +554,14 @@ class ApiAdapterTest {
         @Test
         void should_coalesce_null_listeners_to_empty_list_in_UpdateApiEntity() {
             var definition = io.gravitee.definition.model.v4.Api.builder()
-                .id("my-api")
-                .name("My Api")
-                .apiVersion("1.0.0")
-                .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V4)
-                .build();
-            var model = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionValue(definition).build();
+                    .id("my-api")
+                    .name("My Api")
+                    .apiVersion("1.0.0")
+                    .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V4)
+                    .build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder()
+                    .apiDefinitionValue(definition)
+                    .build();
 
             var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, definition);
 
@@ -558,11 +575,12 @@ class ApiAdapterTest {
         @Test
         void should_round_trip_portal_navigation_through_repository_and_back() {
             var paths = List.of(
-                new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
-                new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, 2),
-                new io.gravitee.apim.core.portal.model.NavigationPath("/guides/quickstart", null, null)
-            );
-            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(paths).build();
+                    new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
+                    new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, 2),
+                    new io.gravitee.apim.core.portal.model.NavigationPath("/guides/quickstart", null, null));
+            var model = ApiFixtures.aProxyApiV4().toBuilder()
+                    .portalNavigation(paths)
+                    .build();
 
             var repo = ApiAdapter.INSTANCE.toRepository(model);
             var back = ApiAdapter.INSTANCE.toCoreModel(repo);
@@ -573,21 +591,23 @@ class ApiAdapterTest {
         @Test
         void should_serialize_portal_navigation_omitting_absent_optionals() {
             var paths = List.of(
-                new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
-                new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, null)
-            );
-            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(paths).build();
+                    new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
+                    new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, null));
+            var model = ApiFixtures.aProxyApiV4().toBuilder()
+                    .portalNavigation(paths)
+                    .build();
 
             var repo = ApiAdapter.INSTANCE.toRepository(model);
 
-            assertThat(repo.getPortalNavigation()).isEqualTo(
-                "[{\"path\":\"/reference\",\"displayName\":\"Reference\",\"order\":1},{\"path\":\"/guides\"}]"
-            );
+            assertThat(repo.getPortalNavigation())
+                    .isEqualTo(
+                            "[{\"path\":\"/reference\",\"displayName\":\"Reference\",\"order\":1},{\"path\":\"/guides\"}]");
         }
 
         @Test
         void should_serialize_null_when_portal_navigation_is_null() {
-            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(null).build();
+            var model =
+                    ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(null).build();
 
             var repo = ApiAdapter.INSTANCE.toRepository(model);
 
@@ -596,7 +616,9 @@ class ApiAdapterTest {
 
         @Test
         void should_serialize_null_when_portal_navigation_is_empty() {
-            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(List.of()).build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder()
+                    .portalNavigation(List.of())
+                    .build();
 
             var repo = ApiAdapter.INSTANCE.toRepository(model);
 
@@ -623,16 +645,16 @@ class ApiAdapterTest {
 
         @Test
         void should_deserialize_json_array_to_navigation_paths() {
-            var repo = apiV4()
-                .portalNavigation("[{\"path\":\"/reference\",\"displayName\":\"Reference\",\"order\":1},{\"path\":\"/guides\"}]")
-                .build();
+            var repo = apiV4().portalNavigation(
+                            "[{\"path\":\"/reference\",\"displayName\":\"Reference\",\"order\":1},{\"path\":\"/guides\"}]")
+                    .build();
 
             var model = ApiAdapter.INSTANCE.toCoreModel(repo);
 
-            assertThat(model.getPortalNavigation()).containsExactly(
-                new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
-                new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, null)
-            );
+            assertThat(model.getPortalNavigation())
+                    .containsExactly(
+                            new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
+                            new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, null));
         }
 
         @Test
@@ -647,62 +669,58 @@ class ApiAdapterTest {
 
     private Api.ApiBuilder apiV4() {
         return Api.builder()
-            .id("my-id")
-            .environmentId("env-id")
-            .crossId("cross-id")
-            .name("api-name")
-            .description("api-description")
-            .version("1.0.0")
-            .origin("management")
-            .mode("fully_managed")
-            .definitionVersion(DefinitionVersion.V4)
-            .definition(
-                """
+                .id("my-id")
+                .environmentId("env-id")
+                .crossId("cross-id")
+                .name("api-name")
+                .description("api-description")
+                .version("1.0.0")
+                .origin("management")
+                .mode("fully_managed")
+                .definitionVersion(DefinitionVersion.V4)
+                .definition("""
                 {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "tags": ["tag1"], "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "qos": "auto", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "loadBalancer": { "type": "round-robin" }, "sharedConfiguration": {}, "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "secondary": false, "weight": 1, "inheritConfiguration": true, "configuration": { "target": "https://api.gravitee.io/echo" }, "services": {}}], "services": {}}], "analytics": { "enabled": false }, "failover": { "enabled": true, "maxRetries": 7, "slowCallDuration": 500, "openStateDuration": 11000, "maxFailures": 3, "perSubscription": false }, "flowExecution": { "mode": "default", "matchRequired": false }, "flows": []}
-                """
-            )
-            .type(ApiType.PROXY)
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .visibility(Visibility.PUBLIC)
-            .lifecycleState(LifecycleState.STARTED)
-            .picture("my-picture")
-            .groups(Set.of("group-1"))
-            .categories(Set.of("category-1"))
-            .labels(List.of("label-1"))
-            .disableMembershipNotifications(true)
-            .apiLifecycleState(ApiLifecycleState.PUBLISHED)
-            .background("my-background");
+                """)
+                .type(ApiType.PROXY)
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .visibility(Visibility.PUBLIC)
+                .lifecycleState(LifecycleState.STARTED)
+                .picture("my-picture")
+                .groups(Set.of("group-1"))
+                .categories(Set.of("category-1"))
+                .labels(List.of("label-1"))
+                .disableMembershipNotifications(true)
+                .apiLifecycleState(ApiLifecycleState.PUBLISHED)
+                .background("my-background");
     }
 
     private Api.ApiBuilder apiV2() {
         return Api.builder()
-            .id("my-id")
-            .environmentId("env-id")
-            .crossId("cross-id")
-            .name("api-name")
-            .description("api-description")
-            .version("1.0.0")
-            .origin("management")
-            .mode("fully_managed")
-            .definition(
-                """
+                .id("my-id")
+                .environmentId("env-id")
+                .crossId("cross-id")
+                .name("api-name")
+                .description("api-description")
+                .version("1.0.0")
+                .origin("management")
+                .mode("fully_managed")
+                .definition("""
                 {"id": "my-id", "name": "api-name", "version": "1.0.0", "gravitee": "2.0.0", "flow_mode": "DEFAULT", "proxy": {"virtual_hosts": [{ "path": "/proxy" }], "strip_context_path": false, "preserve_host": false, "logging": {"mode": "CLIENT_PROXY", "content": "HEADERS_PAYLOADS", "scope": "REQUEST_RESPONSE"}, "groups": [{"name": "default-group", "endpoints": [{"backup": false, "inherit": true, "name": "default", "weight": 1, "type": "http", "target": "https://api.gravitee.io/echo"}], "load_balancing": { "type": "ROUND_ROBIN" }, "http": {"connectTimeout": 5000, "idleTimeout": 60000, "keepAlive": true, "readTimeout": 10000, "pipelining": false, "maxConcurrentConnections": 100, "useCompression": true, "followRedirects": false}}]}}
-                """
-            )
-            .type(ApiType.PROXY)
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .visibility(Visibility.PUBLIC)
-            .lifecycleState(LifecycleState.STARTED)
-            .picture("my-picture")
-            .groups(Set.of("group-1"))
-            .categories(Set.of("category-1"))
-            .labels(List.of("label-1"))
-            .disableMembershipNotifications(true)
-            .apiLifecycleState(ApiLifecycleState.PUBLISHED)
-            .background("my-background");
+                """)
+                .type(ApiType.PROXY)
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .visibility(Visibility.PUBLIC)
+                .lifecycleState(LifecycleState.STARTED)
+                .picture("my-picture")
+                .groups(Set.of("group-1"))
+                .categories(Set.of("category-1"))
+                .labels(List.of("label-1"))
+                .disableMembershipNotifications(true)
+                .apiLifecycleState(ApiLifecycleState.PUBLISHED)
+                .background("my-background");
     }
 }

@@ -50,7 +50,12 @@ public class NativeApiLogSummaryUseCase {
             try {
                 responses.add(service.searchFacets(input.executionContext(), request));
             } catch (RuntimeException e) {
-                log.error("Failed to search native facets [apiId={},from={},to={}]", input.apiId(), input.from(), input.to(), e);
+                log.error(
+                        "Failed to search native facets [apiId={},from={},to={}]",
+                        input.apiId(),
+                        input.from(),
+                        input.to(),
+                        e);
                 throw e;
             }
         });
@@ -60,15 +65,13 @@ public class NativeApiLogSummaryUseCase {
 
     private static FacetsRequest buildFacetsRequest(Input input) {
         return new FacetsRequest(
-            new TimeRange(input.from(), input.to()),
-            List.of(new Filter(FilterSpec.Name.API, FilterOperator.EQ, input.apiId())),
-            List.of(
-                new FacetMetricMeasuresRequest(MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY, List.of(MetricSpec.Measure.COUNT), List.of())
-            ),
-            List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS),
-            null,
-            null
-        );
+                new TimeRange(input.from(), input.to()),
+                List.of(new Filter(FilterSpec.Name.API, FilterOperator.EQ, input.apiId())),
+                List.of(new FacetMetricMeasuresRequest(
+                        MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY, List.of(MetricSpec.Measure.COUNT), List.of())),
+                List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS),
+                null,
+                null);
     }
 
     private static Map<String, Long> extractCounts(FacetsResponse response) {
@@ -78,12 +81,11 @@ public class NativeApiLogSummaryUseCase {
                 continue;
             }
             for (var bucket : metric.buckets()) {
-                bucket
-                    .measures()
-                    .stream()
-                    .filter(measure -> measure.name() == MetricSpec.Measure.COUNT)
-                    .findFirst()
-                    .ifPresent(measure -> counts.merge(bucket.key(), measure.value().longValue(), Long::sum));
+                bucket.measures().stream()
+                        .filter(measure -> measure.name() == MetricSpec.Measure.COUNT)
+                        .findFirst()
+                        .ifPresent(measure ->
+                                counts.merge(bucket.key(), measure.value().longValue(), Long::sum));
             }
         }
         return counts;

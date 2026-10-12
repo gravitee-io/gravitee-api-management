@@ -27,8 +27,12 @@ import java.util.Optional;
  */
 public interface DashboardRepository extends CrudRepository<Dashboard, String> {
     List<Dashboard> findByReference(String referenceType, String referenceId) throws TechnicalException;
-    List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException;
-    Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id) throws TechnicalException;
+
+    List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type)
+            throws TechnicalException;
+
+    Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id)
+            throws TechnicalException;
 
     /**
      * Delete dashboards by reference
@@ -37,5 +41,6 @@ public interface DashboardRepository extends CrudRepository<Dashboard, String> {
      * @return List of IDs for deleted dashboards
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType)
+            throws TechnicalException;
 }

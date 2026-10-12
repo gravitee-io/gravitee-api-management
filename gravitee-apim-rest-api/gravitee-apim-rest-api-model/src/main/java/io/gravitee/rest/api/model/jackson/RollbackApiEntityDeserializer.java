@@ -51,7 +51,8 @@ public class RollbackApiEntityDeserializer extends StdDeserializer<RollbackApiEn
         final JsonNode node = mapper.readTree(jp);
 
         if (isV4(text(node.get("definitionVersion")))) {
-            throw JsonMappingException.from(ctxt, "Detected a v4 API definition. Please use the migration tool instead of rollback.");
+            throw JsonMappingException.from(
+                    ctxt, "Detected a v4 API definition. Please use the migration tool instead of rollback.");
         }
 
         final RollbackApiEntityRaw raw = mapper.treeToValue(node, RollbackApiEntityRaw.class);
@@ -128,7 +129,6 @@ public class RollbackApiEntityDeserializer extends StdDeserializer<RollbackApiEn
      * Purpose: avoid infinite recursion caused by @JsonDeserialize on the main class.
      * It has the same fields but no custom annotations, so Jackson can map JSON into it safely.
      */
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class RollbackApiEntityRaw {
 

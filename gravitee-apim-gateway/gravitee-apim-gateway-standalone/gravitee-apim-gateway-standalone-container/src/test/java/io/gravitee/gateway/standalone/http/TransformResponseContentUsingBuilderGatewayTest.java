@@ -47,7 +47,8 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractWir
 
         wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
+        org.apache.http.client.fluent.Request request =
+                org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(requestBody, ContentType.TEXT_PLAIN);
 
         HttpResponse response = execute(request).returnResponse();
@@ -67,10 +68,8 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractWir
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build(
-            "transform-response-content",
-            TransformResponseContentUsingBuilderPolicy.class
-        );
+        PolicyPlugin transformResponseContentPolicy =
+                PolicyBuilder.build("transform-response-content", TransformResponseContentUsingBuilderPolicy.class);
         policyPluginManager.register(transformResponseContentPolicy);
     }
 }

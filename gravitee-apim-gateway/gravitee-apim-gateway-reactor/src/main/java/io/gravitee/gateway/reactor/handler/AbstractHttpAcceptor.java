@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactor.handler;
 import io.gravitee.gateway.api.Request;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import lombok.EqualsAndHashCode;
@@ -72,15 +71,16 @@ public abstract class AbstractHttpAcceptor implements HttpAcceptor {
         this.path = DUPLICATE_SLASH_REMOVER.matcher(path).replaceAll(URI_PATH_SEPARATOR);
 
         if (host != null && !host.isEmpty()) {
-            priority =
-                HOST_MASK +
-                (int) this.path.chars()
+            priority = HOST_MASK
+                    + (int) this.path
+                            .chars()
+                            .filter(ch -> ch == URI_PATH_SEPARATOR_CHAR)
+                            .count();
+        } else {
+            priority = (int) this.path
+                    .chars()
                     .filter(ch -> ch == URI_PATH_SEPARATOR_CHAR)
                     .count();
-        } else {
-            priority = (int) this.path.chars()
-                .filter(ch -> ch == URI_PATH_SEPARATOR_CHAR)
-                .count();
         }
 
         this.serverIds = serverIds != null ? new HashSet<>(serverIds) : null;

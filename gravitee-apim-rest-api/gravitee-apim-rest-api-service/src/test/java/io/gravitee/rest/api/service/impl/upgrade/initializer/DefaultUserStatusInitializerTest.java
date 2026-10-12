@@ -59,20 +59,22 @@ public class DefaultUserStatusInitializerTest {
     @Test
     public void shouldUpdateUserStatus() throws TechnicalException {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
-        when(userService.search(any(ExecutionContext.class), any(UserCriteria.class), any())).thenReturn(userPage);
+        when(userService.search(any(ExecutionContext.class), any(UserCriteria.class), any()))
+                .thenReturn(userPage);
         when(userPage.getContent()).thenReturn(List.of(new UserEntity()));
         initializer.initialize();
-        verify(userService, times(1)).update(
-            any(ExecutionContext.class),
-            any(),
-            argThat(user -> user.getStatus().equals(UserStatus.ACTIVE.name()))
-        );
+        verify(userService, times(1))
+                .update(
+                        any(ExecutionContext.class),
+                        any(),
+                        argThat(user -> user.getStatus().equals(UserStatus.ACTIVE.name())));
     }
 
     @Test
     public void shouldNotUpdateUserStatus() throws TechnicalException {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
-        when(userService.search(any(ExecutionContext.class), any(UserCriteria.class), any())).thenReturn(userPage);
+        when(userService.search(any(ExecutionContext.class), any(UserCriteria.class), any()))
+                .thenReturn(userPage);
         when(userPage.getContent()).thenReturn(List.of(activeUser()));
         initializer.initialize();
         verify(userService, never()).update(any(ExecutionContext.class), any(), any());

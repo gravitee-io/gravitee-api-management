@@ -46,64 +46,60 @@ public class SecurityContextHelper {
     }
 
     private static void authenticateAs(UserEntity user, boolean isSystem) {
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return new Authentication() {
-                        @Override
-                        public Collection<? extends GrantedAuthority> getAuthorities() {
-                            return createAuthorityList(computeAuthorities(user));
-                        }
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return new Authentication() {
+                    @Override
+                    public Collection<? extends GrantedAuthority> getAuthorities() {
+                        return createAuthorityList(computeAuthorities(user));
+                    }
 
-                        @Override
-                        public Object getCredentials() {
-                            return null;
-                        }
+                    @Override
+                    public Object getCredentials() {
+                        return null;
+                    }
 
-                        @Override
-                        public Object getDetails() {
-                            return null;
-                        }
+                    @Override
+                    public Object getDetails() {
+                        return null;
+                    }
 
-                        @Override
-                        public Object getPrincipal() {
-                            return new UserDetails(user.getId(), "", user.getEmail(), getAuthorities(), isSystem);
-                        }
+                    @Override
+                    public Object getPrincipal() {
+                        return new UserDetails(user.getId(), "", user.getEmail(), getAuthorities(), isSystem);
+                    }
 
-                        @Override
-                        public boolean isAuthenticated() {
-                            return true;
-                        }
+                    @Override
+                    public boolean isAuthenticated() {
+                        return true;
+                    }
 
-                        @Override
-                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-                            /* noop */
-                        }
+                    @Override
+                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        /* noop */
+                    }
 
-                        @Override
-                        public String getName() {
-                            return ((UserDetails) getPrincipal()).getDisplayName();
-                        }
-                    };
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {
-                    /* noop */
-                }
+                    @Override
+                    public String getName() {
+                        return ((UserDetails) getPrincipal()).getDisplayName();
+                    }
+                };
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {
+                /* noop */
+            }
+        });
     }
 
     private static String[] computeAuthorities(UserEntity user) {
         if (user.getRoles() == null) {
             return new String[] {};
         }
-        return user
-            .getRoles()
-            .stream()
-            .map(role -> role.getScope().name() + ":" + role.getName())
-            .toArray(String[]::new);
+        return user.getRoles().stream()
+                .map(role -> role.getScope().name() + ":" + role.getName())
+                .toArray(String[]::new);
     }
 }

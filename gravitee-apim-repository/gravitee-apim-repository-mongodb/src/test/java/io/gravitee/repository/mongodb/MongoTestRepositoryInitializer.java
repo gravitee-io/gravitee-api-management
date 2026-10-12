@@ -20,8 +20,6 @@ import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.IndexMongoUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
-import java.util.concurrent.TimeUnit;
 import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,27 +47,27 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
         this.mongoClient = mongoClient;
         LOG.info("Running MongoDB upgraders");
 
-        applicationContext
-            .getBeansOfType(MongoUpgrader.class)
-            .values()
-            .forEach(upgrader -> {
-                try {
-                    upgrader.upgrade();
-                } catch (UpgraderException e) {
-                    LOG.error("Failed to upgrade MongoDB with upgrader: {}", upgrader.getClass().getName(), e);
-                }
-            });
+        applicationContext.getBeansOfType(MongoUpgrader.class).values().forEach(upgrader -> {
+            try {
+                upgrader.upgrade();
+            } catch (UpgraderException e) {
+                LOG.error(
+                        "Failed to upgrade MongoDB with upgrader: {}",
+                        upgrader.getClass().getName(),
+                        e);
+            }
+        });
 
-        applicationContext
-            .getBeansOfType(IndexMongoUpgrader.class)
-            .values()
-            .forEach(upgrader -> {
-                try {
-                    upgrader.upgrade();
-                } catch (UpgraderException e) {
-                    LOG.error("Failed to upgrade MongoDB with index upgrader: {}", upgrader.getClass().getName(), e);
-                }
-            });
+        applicationContext.getBeansOfType(IndexMongoUpgrader.class).values().forEach(upgrader -> {
+            try {
+                upgrader.upgrade();
+            } catch (UpgraderException e) {
+                LOG.error(
+                        "Failed to upgrade MongoDB with index upgrader: {}",
+                        upgrader.getClass().getName(),
+                        e);
+            }
+        });
     }
 
     @Override
@@ -79,13 +77,10 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
     public void tearDown() {
         LOG.debug("Deleting all documents...");
         final MongoTemplate mt = new MongoTemplate(mongoClient, "test");
-        mt
-            .getDb()
-            .listCollectionNames()
-            .forEach(collection -> {
-                if (!collection.contains("__dataKeys")) {
-                    mt.getDb().getCollection(collection).deleteMany(new BsonDocument());
-                }
-            });
+        mt.getDb().listCollectionNames().forEach(collection -> {
+            if (!collection.contains("__dataKeys")) {
+                mt.getDb().getCollection(collection).deleteMany(new BsonDocument());
+            }
+        });
     }
 }

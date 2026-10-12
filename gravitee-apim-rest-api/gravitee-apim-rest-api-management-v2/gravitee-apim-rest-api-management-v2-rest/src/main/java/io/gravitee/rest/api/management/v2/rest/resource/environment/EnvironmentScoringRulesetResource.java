@@ -58,8 +58,8 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRulesetById(@PathParam("rulesetId") String rulesetId) {
         var ruleset = getEnvironmentRulesetUseCase
-            .execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, getAuditInfo()))
-            .scoringRuleset();
+                .execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, getAuditInfo()))
+                .scoringRuleset();
 
         return Response.ok(ScoringRulesetMapper.INSTANCE.map(ruleset)).build();
     }
@@ -68,7 +68,9 @@ public class EnvironmentScoringRulesetResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateRuleset(@Valid UpdateScoringRuleset updateScoringRuleset) {
-        var rulesetToUpdate = ScoringRulesetMapper.INSTANCE.map(updateScoringRuleset).toBuilder().id(rulesetId).build();
+        var rulesetToUpdate = ScoringRulesetMapper.INSTANCE.map(updateScoringRuleset).toBuilder()
+                .id(rulesetId)
+                .build();
         var input = new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, getAuditInfo());
         var updatedRuleset = updateEnvironmentRulesetUseCase.execute(input).scoringRuleset();
         return Response.ok(ScoringRulesetMapper.INSTANCE.map(updatedRuleset)).build();

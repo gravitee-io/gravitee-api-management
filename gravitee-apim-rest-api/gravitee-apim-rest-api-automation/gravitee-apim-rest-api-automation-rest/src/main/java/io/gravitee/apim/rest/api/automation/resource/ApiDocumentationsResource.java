@@ -65,42 +65,42 @@ public class ApiDocumentationsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @PathParam("apiHrid") String apiHrid,
-        @Valid @NotNull DocumentationSpec spec,
-        @QueryParam("dryRun") boolean dryRun
-    ) {
+            @PathParam("apiHrid") String apiHrid,
+            @Valid @NotNull DocumentationSpec spec,
+            @QueryParam("dryRun") boolean dryRun) {
         if (spec.getArea() != null && spec.getArea() != DocumentationArea.TOP_NAVBAR) {
             throw new ValidationDomainException("API documentation must be under TOP_NAVBAR area");
         }
         var auditInfo = getAuditInfo();
         var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
-        var documentationId = PortalPageContentId.of(
-            HRIDToUUID.apiDocumentation().context(auditInfo).api(apiHrid).hrid(spec.getHrid()).id()
-        );
+        var documentationId = PortalPageContentId.of(HRIDToUUID.apiDocumentation()
+                .context(auditInfo)
+                .api(apiHrid)
+                .hrid(spec.getHrid())
+                .id());
 
         var input = new CreateOrUpdateApiDocumentationUseCase.Input(
-            auditInfo,
-            documentationId,
-            apiId,
-            spec.getName(),
-            ApiDocumentationMapper.INSTANCE.toDomainType(spec.getType()),
-            spec.getContent(),
-            spec.getLocation(),
-            spec.getOrder(),
-            ApiDocumentationMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
-        );
-        var output = dryRun ? validateApiDocumentationUseCase.execute(input) : createOrUpdateApiDocumentationUseCase.execute(input);
-
-        return Response.ok(
-            ApiDocumentationMapper.INSTANCE.toDocumentationState(
-                spec,
-                output.id() != null ? output.id().toString() : null,
-                output.errors(),
                 auditInfo,
-                apiHrid
-            )
-        ).build();
+                documentationId,
+                apiId,
+                spec.getName(),
+                ApiDocumentationMapper.INSTANCE.toDomainType(spec.getType()),
+                spec.getContent(),
+                spec.getLocation(),
+                spec.getOrder(),
+                ApiDocumentationMapper.INSTANCE.toDomainVisibility(spec.getVisibility()));
+        var output = dryRun
+                ? validateApiDocumentationUseCase.execute(input)
+                : createOrUpdateApiDocumentationUseCase.execute(input);
+
+        return Response.ok(ApiDocumentationMapper.INSTANCE.toDocumentationState(
+                        spec, output.id() != null ? output.id().toString() : null, output.errors(), auditInfo, apiHrid))
+                .build();
     }
 }

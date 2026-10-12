@@ -48,7 +48,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/grpc/streaming-greeter.json" })
+@DeployApi({"/apis/grpc/streaming-greeter.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends AbstractGrpcGatewayTest {
 
@@ -77,7 +77,9 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
             request.handler(hello -> {
                 // send back 3 messages on each request
                 for (int i = 0; i < REPLIES; i++) {
-                    response.write(HelloReply.newBuilder().setMessage("Reply %d to %s".formatted(i, hello.getName())).build());
+                    response.write(HelloReply.newBuilder()
+                            .setMessage("Reply %d to %s".formatted(i, hello.getName()))
+                            .build());
                     try {
                         // not ideal, but enough to handle backpressure
                         Thread.sleep(STREAM_SLEEP_MILLIS);
@@ -97,21 +99,21 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
 
         // Create http server handled by gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer
-            .listen()
-            .andThen(handler -> {
-                // capture progress data
-                List<String> replies = new ArrayList<>();
-                AtomicBoolean done = new AtomicBoolean();
+        httpServer.listen().andThen(handler -> {
+            // capture progress data
+            List<String> replies = new ArrayList<>();
+            AtomicBoolean done = new AtomicBoolean();
 
-                // call the remote service
-                getGrpcClient()
+            // call the remote service
+            getGrpcClient()
                     .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
                     .onSuccess(request -> {
                         AtomicInteger i = new AtomicInteger();
                         // request each 100ms, with a new message
                         long id = vertx.setPeriodic(100, ignore -> {
-                            request.write(HelloRequest.newBuilder().setName("Request " + i.getAndIncrement()).build());
+                            request.write(HelloRequest.newBuilder()
+                                    .setName("Request " + i.getAndIncrement())
+                                    .build());
                         });
                         timerId.set(id);
                     })
@@ -132,23 +134,18 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
                         done.set(true);
                     });
 
-                await()
-                    .atMost(30, TimeUnit.SECONDS)
-                    .untilAsserted(() -> {
-                        assertThat(replies)
-                            // we might have more, so checking at least what is planned
-                            .containsAnyElementsOf(
-                                List.of(
-                                    "Reply 0 to Request 0",
-                                    "Reply 1 to Request 0",
-                                    "Reply 0 to Request 1",
-                                    "Reply 1 to Request 1",
-                                    "Reply 0 to Request 2",
-                                    "Reply 1 to Request 2"
-                                )
-                            );
-                        assertThat(done).isTrue();
-                    });
+            await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertThat(replies)
+                        // we might have more, so checking at least what is planned
+                        .containsAnyElementsOf(List.of(
+                                "Reply 0 to Request 0",
+                                "Reply 1 to Request 0",
+                                "Reply 0 to Request 1",
+                                "Reply 1 to Request 1",
+                                "Reply 0 to Request 2",
+                                "Reply 1 to Request 2"));
+                assertThat(done).isTrue();
             });
+        });
     }
 }

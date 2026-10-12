@@ -32,48 +32,38 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
     @Override
     public List<Environment> listEnvironments(String orgId) {
         AmApis apis = clientFactory.forOrg(orgId);
-        return AmSdkInvocations.await(
-            apis
-                .defaults()
+        return AmSdkInvocations.await(apis.defaults()
                 .listEnvironments(apis.amOrganizationId())
                 .map(envs -> {
                     List<Environment> out = new ArrayList<>();
                     for (var e : envs) out.add(new Environment(e.getId(), e.getName()));
                     return out;
-                })
-        );
+                }));
     }
 
     @Override
     public List<GatewayEntrypoint> listDomainEntrypoints(String orgId, String envId, String domainId) {
         AmApis apis = clientFactory.forOrg(orgId);
-        return AmSdkInvocations.await(
-            apis
-                .domains()
+        return AmSdkInvocations.await(apis.domains()
                 .getDomainEntrypoints(apis.amOrganizationId(), envId, domainId)
                 .map(entrypoints -> {
                     List<GatewayEntrypoint> out = new ArrayList<>();
                     if (entrypoints != null) {
                         for (var e : entrypoints) {
-                            out.add(
-                                new GatewayEntrypoint(e.getId(), e.getName(), e.getUrl(), Boolean.TRUE.equals(e.getDefaultEntrypoint()))
-                            );
+                            out.add(new GatewayEntrypoint(
+                                    e.getId(), e.getName(), e.getUrl(), Boolean.TRUE.equals(e.getDefaultEntrypoint())));
                         }
                     }
                     return out;
-                })
-        );
+                }));
     }
 
     @Override
     public Domain getDomain(String orgId, String envId, String domainId) {
         AmApis apis = clientFactory.forOrg(orgId);
-        return AmSdkInvocations.await(
-            apis
-                .domains()
+        return AmSdkInvocations.await(apis.domains()
                 .findDomain(apis.amOrganizationId(), envId, domainId)
-                .map(d -> new Domain(d.getId(), d.getName(), d.getHrid()))
-        );
+                .map(d -> new Domain(d.getId(), d.getName(), d.getHrid())));
     }
 
     @Override
@@ -82,9 +72,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         // partial entry (e.g. "gamma") matches any hrid containing it (e.g. "my-gamma-domain").
         String search = (q == null || q.isBlank()) ? null : "*" + q.strip() + "*";
         AmApis apis = clientFactory.forOrg(orgId);
-        return AmSdkInvocations.await(
-            apis
-                .domains()
+        return AmSdkInvocations.await(apis.domains()
                 .listDomains(apis.amOrganizationId(), envId, null, null, search)
                 .map(page -> {
                     List<Domain> out = new ArrayList<>();
@@ -92,7 +80,6 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
                         for (var d : page.getData()) out.add(new Domain(d.getId(), d.getName(), d.getHrid()));
                     }
                     return out;
-                })
-        );
+                }));
     }
 }

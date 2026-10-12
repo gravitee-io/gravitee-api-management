@@ -51,12 +51,12 @@ public class CoolDownLogGuardStrategy implements LogGuardStrategy {
     public boolean execute() {
         // Check if pressure is too high and guard is not activated
         if (nodeHealthCheckService.isGcPressureTooHigh() && !guardState.get()) {
-            //Initialize cooldownStartTime
+            // Initialize cooldownStartTime
             cooldownStartTime = Instant.now();
             guardState.set(true);
             log.debug("Cooldown started for {}seconds", cooldownDuration.toSeconds());
         } else if (guardState.get()) {
-            //Check if cooldown period is finished
+            // Check if cooldown period is finished
             if (Instant.now().isAfter(cooldownStartTime.plus(cooldownDuration))) {
                 if (nodeHealthCheckService.isGcPressureTooHigh()) {
                     // Reset cooldown start time if memory pressure is still too high

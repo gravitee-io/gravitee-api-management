@@ -54,28 +54,34 @@ public class RoleUsersResourceTest extends AbstractResourceTest {
         RoleMembership roleMembership = new RoleMembership();
         roleMembership.setId(USER_NAME);
 
-        final Response response = envTarget(SCOPE).path("roles").path(ROLE).path("users").request().post(Entity.json(roleMembership));
+        final Response response = envTarget(SCOPE)
+                .path("roles")
+                .path(ROLE)
+                .path("users")
+                .request()
+                .post(Entity.json(roleMembership));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipReference.class
-        );
-        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipRole.class
-        );
-        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(
-            MembershipService.MembershipMember.class
-        );
+        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
+        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor =
+                ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
-        Mockito.verify(membershipService).addRoleToMemberOnReference(
-            eq(GraviteeContext.getExecutionContext()),
-            memberShipRefCaptor.capture(),
-            memberShipUserCaptor.capture(),
-            memberShipRoleCaptor.capture()
-        );
-        assertEquals(GraviteeContext.getCurrentOrganization(), memberShipRefCaptor.getValue().getId());
-        assertEquals(MembershipReferenceType.ORGANIZATION, memberShipRefCaptor.getValue().getType());
+        Mockito.verify(membershipService)
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()),
+                        memberShipRefCaptor.capture(),
+                        memberShipUserCaptor.capture(),
+                        memberShipRoleCaptor.capture());
+        assertEquals(
+                GraviteeContext.getCurrentOrganization(),
+                memberShipRefCaptor.getValue().getId());
+        assertEquals(
+                MembershipReferenceType.ORGANIZATION,
+                memberShipRefCaptor.getValue().getType());
         assertEquals(ROLE, memberShipRoleCaptor.getValue().getName());
         assertEquals(RoleScope.ORGANIZATION, memberShipRoleCaptor.getValue().getScope());
         assertEquals(USER_NAME, memberShipUserCaptor.getValue().getMemberId());

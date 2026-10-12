@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SharedPolicyGroupHistoryQueryServiceInMemory
-    implements SharedPolicyGroupHistoryQueryService, InMemoryAlternative<SharedPolicyGroup> {
+        implements SharedPolicyGroupHistoryQueryService, InMemoryAlternative<SharedPolicyGroup> {
 
     final ArrayList<SharedPolicyGroup> storage = new ArrayList<>();
 
@@ -39,17 +39,17 @@ public class SharedPolicyGroupHistoryQueryServiceInMemory
     }
 
     @Override
-    public Page<SharedPolicyGroup> search(String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable) {
+    public Page<SharedPolicyGroup> search(
+            String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable) {
         // Search, sort, and paginate the shared policy groups from storage
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
         var sortableField = sortable.getField();
         var isAscending = sortable.isAscOrder();
 
-        var stream = storage
-            .stream()
-            .filter(spg -> spg.getEnvironmentId().equals(environmentId))
-            .filter(spg -> sharedPolicyGroupId == null || spg.getId().equals(sharedPolicyGroupId));
+        var stream = storage.stream()
+                .filter(spg -> spg.getEnvironmentId().equals(environmentId))
+                .filter(spg -> sharedPolicyGroupId == null || spg.getId().equals(sharedPolicyGroupId));
 
         stream = switch (sortableField) {
             case "version" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getVersion));
@@ -64,19 +64,19 @@ public class SharedPolicyGroupHistoryQueryServiceInMemory
         }
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 
     @Override
-    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId) {
-        return storage
-            .stream()
-            .filter(spg -> spg.getEnvironmentId().equals(environmentId))
-            .filter(spg -> spg.getId().equals(sharedPolicyGroupId))
-            .max(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
+    public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(
+            String environmentId, String sharedPolicyGroupId) {
+        return storage.stream()
+                .filter(spg -> spg.getEnvironmentId().equals(environmentId))
+                .filter(spg -> spg.getId().equals(sharedPolicyGroupId))
+                .max(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
     }
 
     @Override

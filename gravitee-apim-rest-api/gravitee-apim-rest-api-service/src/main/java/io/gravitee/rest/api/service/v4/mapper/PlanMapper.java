@@ -31,13 +31,11 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
@@ -107,7 +105,8 @@ public class PlanMapper {
         entity.setGeneralConditionsHrid(plan.getGeneralConditionsHrid());
         entity.setApiId(plan.getReferenceId());
         entity.setReferenceId(plan.getReferenceId());
-        entity.setReferenceType(GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
+        entity.setReferenceType(
+                GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
         return entity;
     }
 
@@ -118,7 +117,8 @@ public class PlanMapper {
         plan.setCrossId(newPlanEntity.getCrossId());
         plan.setDefinitionVersion(DefinitionVersion.V4);
         plan.setReferenceId(newPlanEntity.getReferenceId());
-        plan.setReferenceType(Plan.PlanReferenceType.valueOf(newPlanEntity.getReferenceType().name()));
+        plan.setReferenceType(
+                Plan.PlanReferenceType.valueOf(newPlanEntity.getReferenceType().name()));
         plan.setName(newPlanEntity.getName());
         plan.setDescription(newPlanEntity.getDescription());
         plan.setCreatedAt(new Date());
@@ -126,7 +126,8 @@ public class PlanMapper {
         plan.setNeedRedeployAt(plan.getCreatedAt());
         plan.setMode(Plan.PlanMode.valueOf(newPlanEntity.getMode().name()));
         if (newPlanEntity.getMode() == PlanMode.STANDARD && newPlanEntity.getSecurity() != null) {
-            PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
+            PlanSecurityType planSecurityType =
+                    PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
             plan.setSecurity(Plan.PlanSecurityType.valueOf(planSecurityType.name()));
             plan.setSecurityDefinition(newPlanEntity.getSecurity().getConfiguration());
         }
@@ -149,7 +150,8 @@ public class PlanMapper {
             // There is no need for a validation when authentication is KEY_LESS, force to AUTO
             plan.setValidation(Plan.PlanValidationType.AUTO);
         } else {
-            plan.setValidation(Plan.PlanValidationType.valueOf(newPlanEntity.getValidation().name()));
+            plan.setValidation(Plan.PlanValidationType.valueOf(
+                    newPlanEntity.getValidation().name()));
         }
 
         plan.setCharacteristics(newPlanEntity.getCharacteristics());

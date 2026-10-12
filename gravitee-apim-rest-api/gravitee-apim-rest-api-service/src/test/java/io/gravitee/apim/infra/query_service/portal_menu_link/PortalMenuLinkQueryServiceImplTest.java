@@ -65,9 +65,11 @@ class PortalMenuLinkQueryServiceImplTest {
         void findByEnvironmentId_should_return_portal_menu_links() {
             // Given
             String environmentId = "environmentId";
-            when(repository.findByEnvironmentIdSortByOrder(environmentId)).thenReturn(
-                List.of(aRepositoryPortalMenuLink("id", 1), aRepositoryPortalMenuLink("id2", 2), aRepositoryPortalMenuLink("id3", 3))
-            );
+            when(repository.findByEnvironmentIdSortByOrder(environmentId))
+                    .thenReturn(List.of(
+                            aRepositoryPortalMenuLink("id", 1),
+                            aRepositoryPortalMenuLink("id2", 2),
+                            aRepositoryPortalMenuLink("id3", 3)));
 
             // When
             var result = service.findByEnvironmentIdSortByOrder(environmentId);
@@ -94,8 +96,8 @@ class PortalMenuLinkQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while searching portal menu links by environment ID environmentId");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while searching portal menu links by environment ID environmentId");
         }
     }
 
@@ -107,12 +109,13 @@ class PortalMenuLinkQueryServiceImplTest {
         void findByEnvironmentIdAndVisibility_should_return_empty_page() {
             // Given
             String environmentId = "environmentId";
-            when(
-                repository.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLink.PortalMenuLinkVisibility.PUBLIC)
-            ).thenReturn(List.of());
+            when(repository.findByEnvironmentIdAndVisibilitySortByOrder(
+                            environmentId, PortalMenuLink.PortalMenuLinkVisibility.PUBLIC))
+                    .thenReturn(List.of());
 
             // When
-            var result = service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PUBLIC);
+            var result =
+                    service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PUBLIC);
 
             // Then
             assertThat(result).isNotNull();
@@ -124,14 +127,16 @@ class PortalMenuLinkQueryServiceImplTest {
         void findByEnvironmentIdAndVisibility_should_return_portal_menu_links() {
             // Given
             String environmentId = "environmentId";
-            when(
-                repository.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLink.PortalMenuLinkVisibility.PUBLIC)
-            ).thenReturn(
-                List.of(aRepositoryPortalMenuLink("id", 1), aRepositoryPortalMenuLink("id2", 2), aRepositoryPortalMenuLink("id3", 3))
-            );
+            when(repository.findByEnvironmentIdAndVisibilitySortByOrder(
+                            environmentId, PortalMenuLink.PortalMenuLinkVisibility.PUBLIC))
+                    .thenReturn(List.of(
+                            aRepositoryPortalMenuLink("id", 1),
+                            aRepositoryPortalMenuLink("id2", 2),
+                            aRepositoryPortalMenuLink("id3", 3)));
 
             // When
-            var result = service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PUBLIC);
+            var result =
+                    service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PUBLIC);
 
             // Then
             assertThat(result).isNotNull();
@@ -151,31 +156,31 @@ class PortalMenuLinkQueryServiceImplTest {
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
             String environmentId = "environmentId";
-            when(
-                repository.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLink.PortalMenuLinkVisibility.PRIVATE)
-            ).thenThrow(TechnicalException.class);
+            when(repository.findByEnvironmentIdAndVisibilitySortByOrder(
+                            environmentId, PortalMenuLink.PortalMenuLinkVisibility.PRIVATE))
+                    .thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() ->
-                service.findByEnvironmentIdAndVisibilitySortByOrder(environmentId, PortalMenuLinkVisibility.PRIVATE)
-            );
+            Throwable throwable = catchThrowable(() -> service.findByEnvironmentIdAndVisibilitySortByOrder(
+                    environmentId, PortalMenuLinkVisibility.PRIVATE));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while searching portal menu links by environment ID environmentId and visibility PRIVATE");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage(
+                            "An error occurred while searching portal menu links by environment ID environmentId and visibility PRIVATE");
         }
     }
 
     private io.gravitee.repository.management.model.PortalMenuLink aRepositoryPortalMenuLink(String id, int order) {
         return io.gravitee.repository.management.model.PortalMenuLink.builder()
-            .id(id)
-            .environmentId("environmentId")
-            .name("name-" + order)
-            .target("target-" + order)
-            .type(PortalMenuLink.PortalMenuLinkType.EXTERNAL)
-            .visibility(PortalMenuLink.PortalMenuLinkVisibility.PUBLIC)
-            .order(order)
-            .build();
+                .id(id)
+                .environmentId("environmentId")
+                .name("name-" + order)
+                .target("target-" + order)
+                .type(PortalMenuLink.PortalMenuLinkType.EXTERNAL)
+                .visibility(PortalMenuLink.PortalMenuLinkVisibility.PUBLIC)
+                .order(order)
+                .build();
     }
 }

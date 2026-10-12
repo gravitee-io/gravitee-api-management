@@ -32,12 +32,12 @@ public class GetThemesUseCase {
     private final ThemeQueryService themeQueryService;
 
     public Output execute(Input input) {
-        return new Output(
-            themeQueryService.searchByCriteria(
-                ThemeSearchCriteria.builder().enabled(input.enabled()).type(input.type()).build(),
-                new PageableImpl(input.page(), input.size())
-            )
-        );
+        return new Output(themeQueryService.searchByCriteria(
+                ThemeSearchCriteria.builder()
+                        .enabled(input.enabled())
+                        .type(input.type())
+                        .build(),
+                new PageableImpl(input.page(), input.size())));
     }
 
     @Builder

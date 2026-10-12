@@ -25,10 +25,9 @@ import java.util.Map;
 public record PayloadLogDto(long timestampEpochMs, String severity, String body, Map<String, String> attributes) {
     public static PayloadLogDto from(PayloadLog log) {
         return new PayloadLogDto(
-            log.timestamp() != null ? log.timestamp().toEpochMilli() : 0L,
-            log.severity(),
-            log.body(),
-            log.attributes()
-        );
+                log.timestamp() != null ? log.timestamp().toEpochMilli() : 0L,
+                log.severity(),
+                log.body(),
+                log.attributes());
     }
 }

@@ -43,11 +43,9 @@ public class ElasticsearchMonitoringRepositoryTest extends AbstractElasticsearch
 
     @Test
     public void testQuery() throws IOException {
-        //Do the call
+        // Do the call
         final MonitoringResponse monitoringResponse = elasticMonitoringRepository.query(
-            new QueryContext("org#1", "env#1"),
-            "1876c024-c6a2-409a-b6c0-24c6a2e09a5f"
-        );
+                new QueryContext("org#1", "env#1"), "1876c024-c6a2-409a-b6c0-24c6a2e09a5f");
 
         final ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
@@ -57,7 +55,7 @@ public class ElasticsearchMonitoringRepositoryTest extends AbstractElasticsearch
         final MonitoringResponse expectedResponse = mapper.readValue(expectedJson, MonitoringResponse.class);
         expectedResponse.setTimestamp(monitoringResponse.getTimestamp());
 
-        //FIXME need to create an equals method in MonitoringResponse in order to be able to use Assert.assertEquals
+        // FIXME need to create an equals method in MonitoringResponse in order to be able to use Assert.assertEquals
         ReflectionAssert.assertReflectionEquals(expectedResponse, monitoringResponse);
     }
 }

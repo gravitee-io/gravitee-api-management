@@ -41,20 +41,17 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindAll() throws Exception {
         final io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(
-            new PageableBuilder().pageNumber(0).pageSize(100).build()
-        );
+                new PageableBuilder().pageNumber(0).pageSize(100).build());
 
         assertNotNull(pages);
         assertEquals(13, pages.getTotalElements());
         assertEquals(13, pages.getPageElements());
         assertEquals(13, pages.getContent().size());
 
-        Page findApiPage = pages
-            .getContent()
-            .stream()
-            .filter(p -> p.getId().equals("FindApiPage"))
-            .findFirst()
-            .get();
+        Page findApiPage = pages.getContent().stream()
+                .filter(p -> p.getId().equals("FindApiPage"))
+                .findFirst()
+                .get();
         assertFindPage(findApiPage);
     }
 
@@ -65,7 +62,8 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         Set<String> ids = new HashSet<>();
         int pageNumber = 0;
         do {
-            Pageable build = new PageableBuilder().pageNumber(pageNumber).pageSize(1).build();
+            Pageable build =
+                    new PageableBuilder().pageNumber(pageNumber).pageSize(1).build();
             io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(build);
             assertNotNull(pages);
             assertEquals(13, pages.getTotalElements());
@@ -110,14 +108,18 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("sourceConfiguration", page.getSource().getConfiguration(), "source configuration");
 
         assertEquals("true", page.getConfiguration().get("tryIt"), "configuration try it");
-        assertEquals("false", page.getConfiguration().get("disableSyntaxHighlight"), "configuration disable syntax highlight");
+        assertEquals(
+                "false",
+                page.getConfiguration().get("disableSyntaxHighlight"),
+                "configuration disable syntax highlight");
         assertEquals("http://company.com", page.getConfiguration().get("tryItURL"), "configuration try it URL");
         assertEquals("true", page.getConfiguration().get("showURL"), "configuration show URL");
         assertEquals("true", page.getConfiguration().get("displayOperationId"), "configuration display operation id");
         assertEquals("FULL", page.getConfiguration().get("docExpansion"), "configuration doc expansion");
         assertEquals("true", page.getConfiguration().get("enableFiltering"), "configuration enable filtering");
         assertEquals("true", page.getConfiguration().get("showExtensions"), "configuration show extensions");
-        assertEquals("true", page.getConfiguration().get("showCommonExtensions"), "configuration show common extensions");
+        assertEquals(
+                "true", page.getConfiguration().get("showCommonExtensions"), "configuration show common extensions");
         assertEquals("1234", page.getConfiguration().get("maxDisplayedTags"), "configuration maxDisplayedTags");
         assertEquals("http://provider.com/edit/page", page.getMetadata().get("edit_url"), "metadata edit_url");
         assertEquals("256", page.getMetadata().get("size"), "metadata size");
@@ -125,24 +127,22 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(page.isHomepage(), "homepage");
         assertEquals(true, page.isExcludedAccessControls(), "excluded access controls");
         assertEquals(
-            new HashSet<>(
-                asList(new AccessControl("grp1", "GROUP"), new AccessControl("grp2", "GROUP"), new AccessControl("role1", "ROLE"))
-            ),
-            page.getAccessControls(),
-            "access controls"
-        );
+                new HashSet<>(asList(
+                        new AccessControl("grp1", "GROUP"),
+                        new AccessControl("grp2", "GROUP"),
+                        new AccessControl("role1", "ROLE"))),
+                page.getAccessControls(),
+                "access controls");
 
         final List<PageMedia> attachedMedia = page.getAttachedMedia();
         assertNotNull(attachedMedia);
         assertEquals(2, attachedMedia.size(), "attachedMedia");
         assertEquals(
-            asList(
-                new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
-                new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L))
-            ),
-            attachedMedia,
-            "attachedMedia"
-        );
+                asList(
+                        new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
+                        new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L))),
+                attachedMedia,
+                "attachedMedia");
 
         assertTrue(compareDate(new Date(1486771200000L), page.getCreatedAt()), "created at");
         assertTrue(compareDate(new Date(1486771200000L), page.getUpdatedAt()), "updated at");
@@ -200,7 +200,10 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertNull(page.getSource(), "Invalid page source.");
         assertEquals(page.getConfiguration(), pageSaved.getConfiguration(), "Invalid configuration.");
         assertEquals(page.getMetadata(), pageSaved.getMetadata(), "Invalid metadata.");
-        assertEquals(page.getUseAutoFetch().booleanValue(), pageSaved.getUseAutoFetch().booleanValue(), "Invalid useAutoFetch.");
+        assertEquals(
+                page.getUseAutoFetch().booleanValue(),
+                pageSaved.getUseAutoFetch().booleanValue(),
+                "Invalid useAutoFetch.");
     }
 
     @Test
@@ -337,12 +340,12 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         page.setParentHrid("parent-123-hrid");
         page.setHomepage(true);
         page.setExcludedAccessControls(true);
-        page.setAccessControls(
-            new HashSet<>(
-                asList(new AccessControl("grp1", "GROUP"), new AccessControl("grp2", "GROUP"), new AccessControl("role1", "ROLE"))
-            )
-        );
-        page.setAttachedMedia(Collections.singletonList(new PageMedia("media_id", "media_name", new Date(1586771200000L))));
+        page.setAccessControls(new HashSet<>(asList(
+                new AccessControl("grp1", "GROUP"),
+                new AccessControl("grp2", "GROUP"),
+                new AccessControl("role1", "ROLE"))));
+        page.setAttachedMedia(
+                Collections.singletonList(new PageMedia("media_id", "media_name", new Date(1586771200000L))));
         page.setLastContributor("me");
         page.setPublished(true);
         page.setConfiguration(new HashMap<>());
@@ -388,14 +391,21 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(updatedPage.isPublished(), "Invalid published.");
 
         assertEquals("true", updatedPage.getConfiguration().get("tryIt"), "configuration try it");
-        assertEquals("false", updatedPage.getConfiguration().get("disableSyntaxHighlight"), "configuration disable syntax highlight");
+        assertEquals(
+                "false",
+                updatedPage.getConfiguration().get("disableSyntaxHighlight"),
+                "configuration disable syntax highlight");
         assertEquals("http://company.com", updatedPage.getConfiguration().get("tryItURL"), "configuration try it URL");
         assertEquals("true", updatedPage.getConfiguration().get("showURL"), "configuration show URL");
-        assertEquals("true", updatedPage.getConfiguration().get("displayOperationId"), "configuration display operation id");
+        assertEquals(
+                "true", updatedPage.getConfiguration().get("displayOperationId"), "configuration display operation id");
         assertEquals("FULL", updatedPage.getConfiguration().get("docExpansion"), "configuration doc expansion");
         assertEquals("true", updatedPage.getConfiguration().get("enableFiltering"), "configuration enable filtering");
         assertEquals("true", updatedPage.getConfiguration().get("showExtensions"), "configuration show extensions");
-        assertEquals("true", updatedPage.getConfiguration().get("showCommonExtensions"), "configuration show common extensions");
+        assertEquals(
+                "true",
+                updatedPage.getConfiguration().get("showCommonExtensions"),
+                "configuration show common extensions");
         assertEquals("1234", updatedPage.getConfiguration().get("maxDisplayedTags"), "configuration maxDisplayedTags");
         assertEquals("url", updatedPage.getMetadata().get("edit_url"), "metadata edit_url");
         assertEquals("10", updatedPage.getMetadata().get("size"), "metadata size");
@@ -472,22 +482,22 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindMaxApiPageOrderByApiId() throws TechnicalException {
-        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("my-api-2", PageReferenceType.API);
+        Integer maxApiPageOrderByApiId =
+                pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("my-api-2", PageReferenceType.API);
         assertEquals(Integer.valueOf(2), maxApiPageOrderByApiId);
     }
 
     @Test
     public void shouldFindDefaultMaxApiPageOrderByApiId() throws TechnicalException {
-        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(
-            "unknown api id",
-            PageReferenceType.API
-        );
+        Integer maxApiPageOrderByApiId =
+                pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("unknown api id", PageReferenceType.API);
         assertEquals(Integer.valueOf(0), maxApiPageOrderByApiId);
     }
 
     @Test
     public void shouldFindMaxPortalPageOrder() throws TechnicalException {
-        Integer maxPortalPageOrder = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("DEFAULT", PageReferenceType.ENVIRONMENT);
+        Integer maxPortalPageOrder =
+                pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("DEFAULT", PageReferenceType.ENVIRONMENT);
         assertEquals(Integer.valueOf(20), maxPortalPageOrder);
     }
 
@@ -502,24 +512,29 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
         assertEquals(
-            2,
-            pageRepository
-                .search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("api-deleted").build())
-                .size()
-        );
+                2,
+                pageRepository
+                        .search(new PageCriteria.Builder()
+                                .referenceType(PageReferenceType.API.name())
+                                .referenceId("api-deleted")
+                                .build())
+                        .size());
 
-        Map<String, List<String>> deleted = pageRepository.deleteByReferenceIdAndReferenceType("api-deleted", PageReferenceType.API);
+        Map<String, List<String>> deleted =
+                pageRepository.deleteByReferenceIdAndReferenceType("api-deleted", PageReferenceType.API);
 
         assertEquals(2, deleted.size());
         assertTrue(deleted.get("page-to-be-removed-1").isEmpty());
         assertEquals(2, deleted.get("page-to-be-removed-2").size());
         assertTrue(deleted.get("page-to-be-removed-2").containsAll(List.of("media_id_1", "media_id_2")));
         assertEquals(
-            0,
-            pageRepository
-                .search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("api-deleted").build())
-                .size()
-        );
+                0,
+                pageRepository
+                        .search(new PageCriteria.Builder()
+                                .referenceType(PageReferenceType.API.name())
+                                .referenceId("api-deleted")
+                                .build())
+                        .size());
     }
 
     @Test

@@ -89,27 +89,24 @@ public class InvitationRepositoryInMemory implements InvitationRepository {
     @Override
     public List<Invitation> findByEmail(String email) throws TechnicalException {
         maybeThrow();
-        return storage
-            .values()
-            .stream()
-            .filter(i -> email.equals(i.getEmail()))
-            .toList();
+        return storage.values().stream().filter(i -> email.equals(i.getEmail())).toList();
     }
 
     @Override
     public List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         throw new UnsupportedOperationException();
     }
 }

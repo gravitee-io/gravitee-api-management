@@ -80,15 +80,13 @@ public class Index {
                 }
                 if (collation != null) {
                     doc.append(
-                        "collation",
-                        Document.parse(collation.asDocument().toJson())
-                    );
+                            "collation", Document.parse(collation.asDocument().toJson()));
                 }
                 if (partialFilterExpression != null) {
                     doc.append(
-                        "partialFilterExpression",
-                        Document.parse(partialFilterExpression.toBsonDocument().toJson())
-                    );
+                            "partialFilterExpression",
+                            Document.parse(
+                                    partialFilterExpression.toBsonDocument().toJson()));
                 }
                 return doc;
             }

@@ -16,11 +16,9 @@
 package io.gravitee.definition.model.v4.nativeapi.kafka;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

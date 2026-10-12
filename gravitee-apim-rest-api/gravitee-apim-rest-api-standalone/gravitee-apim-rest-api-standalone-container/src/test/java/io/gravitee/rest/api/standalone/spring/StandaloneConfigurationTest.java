@@ -29,6 +29,8 @@ public class StandaloneConfigurationTest {
 
     @Test
     public void shouldReturnGatewayRepositoryScopeProvider() {
-        assertEquals(RestApiRepositoryScopeProvider.class, configuration.repositoryScopeProvider().getClass());
+        assertEquals(
+                RestApiRepositoryScopeProvider.class,
+                configuration.repositoryScopeProvider().getClass());
     }
 }

@@ -60,12 +60,11 @@ class SearchStatsUseCaseTest {
         analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
 
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            Instant.now().toEpochMilli(),
-            "field",
-            Optional.empty()
-        );
+                MY_API,
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                "field",
+                Optional.empty());
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         assertThat(output.analytics()).isEqualTo(analyticsQueryService.statsAnalytics);
@@ -78,12 +77,11 @@ class SearchStatsUseCaseTest {
         analyticsQueryService.statsAnalytics = null;
 
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            Instant.now().toEpochMilli(),
-            "field",
-            Optional.empty()
-        );
+                MY_API,
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                "field",
+                Optional.empty());
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         assertThat(output.analytics()).isNull();
@@ -94,12 +92,11 @@ class SearchStatsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().toEpochMilli(),
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            "field",
-            Optional.empty()
-        );
+                MY_API,
+                Instant.now().toEpochMilli(),
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                "field",
+                Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
     }
@@ -109,12 +106,11 @@ class SearchStatsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            Instant.now().toEpochMilli(),
-            "field",
-            Optional.empty()
-        );
+                MY_API,
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                "field",
+                Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
@@ -126,12 +122,11 @@ class SearchStatsUseCaseTest {
         analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
 
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            Instant.now().toEpochMilli(),
-            "field",
-            Optional.empty()
-        );
+                MY_API,
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                "field",
+                Optional.empty());
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         assertThat(output.analytics()).isNotNull();
@@ -142,27 +137,26 @@ class SearchStatsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            Instant.now().toEpochMilli(),
-            "field",
-            Optional.empty()
-        );
+                MY_API,
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                "field",
+                Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
     }
 
     @Test
     void should_throw_exception_for_wrong_environment() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build()));
+        apiCrudService.initWith(List.of(
+                ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            Instant.now().toEpochMilli(),
-            "field",
-            Optional.empty()
-        );
+                MY_API,
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                "field",
+                Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
@@ -174,12 +168,11 @@ class SearchStatsUseCaseTest {
         var queryString = "status:200 AND method:GET";
         analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
         var input = new SearchStatsUseCase.Input(
-            MY_API,
-            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            Instant.now().toEpochMilli(),
-            "field",
-            Optional.of(queryString)
-        );
+                MY_API,
+                Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                "field",
+                Optional.of(queryString));
         var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
         assertThat(result.analytics()).isNotNull();
     }

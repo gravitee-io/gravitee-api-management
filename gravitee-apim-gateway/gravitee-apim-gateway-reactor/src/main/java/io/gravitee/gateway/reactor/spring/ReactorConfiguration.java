@@ -48,7 +48,6 @@ import io.gravitee.gateway.reactive.reactor.v4.secrets.NativeApiV4DefinitionSecr
 import io.gravitee.gateway.reactive.reactor.v4.secrets.SharedPolicyGroupDefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
-import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -86,22 +85,22 @@ public class ReactorConfiguration {
 
     @Bean
     public Reactor v3Reactor(
-        final @Qualifier("v3AcceptorResolver") AcceptorResolver acceptorResolver,
-        final GatewayConfiguration gatewayConfiguration,
-        final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
-        final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
-        final @Qualifier(
-            "v3NotFoundProcessorChainFactory"
-        ) io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory notFoundProcessorChainFactory
-    ) {
+            final @Qualifier("v3AcceptorResolver") AcceptorResolver acceptorResolver,
+            final GatewayConfiguration gatewayConfiguration,
+            final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory
+                            requestProcessorChainFactory,
+            final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory
+                            responseProcessorChainFactory,
+            final @Qualifier("v3NotFoundProcessorChainFactory") io.gravitee.gateway.reactor.processor
+                                    .NotFoundProcessorChainFactory
+                            notFoundProcessorChainFactory) {
         // DefaultReactor bean must be kept while we are still supporting v3 execution mode.
         return new DefaultReactor(
-            acceptorResolver,
-            gatewayConfiguration,
-            requestProcessorChainFactory,
-            responseProcessorChainFactory,
-            notFoundProcessorChainFactory
-        );
+                acceptorResolver,
+                gatewayConfiguration,
+                requestProcessorChainFactory,
+                responseProcessorChainFactory,
+                notFoundProcessorChainFactory);
     }
 
     @Bean
@@ -121,82 +120,78 @@ public class ReactorConfiguration {
 
     @Bean
     public TransactionPreProcessorFactory transactionHandlerFactory(
-        @Value("${handlers.request.transaction.header:" + DEFAULT_TRANSACTION_ID_HEADER + "}") String transactionHeader,
-        @Value("${handlers.request.request.header:" + DEFAULT_REQUEST_ID_HEADER + "}") String requestHeader
-    ) {
+            @Value("${handlers.request.transaction.header:" + DEFAULT_TRANSACTION_ID_HEADER + "}")
+                    String transactionHeader,
+            @Value("${handlers.request.request.header:" + DEFAULT_REQUEST_ID_HEADER + "}") String requestHeader) {
         return new TransactionPreProcessorFactory(transactionHeader, requestHeader);
     }
 
     @Bean
     public DefaultPlatformProcessorChainFactory defaultPlatformProcessorChainFactory(
-        TransactionPreProcessorFactory transactionHandlerFactory,
-        @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
-        @Value("${handlers.request.x-forward.enabled:true}") boolean xForwardProcessor,
-        ReporterService reporterService,
-        AlertEventProducer eventProducer,
-        Node node,
-        @Value("${http.port:8082}") String httpPort,
-        OpenTelemetryConfiguration openTelemetryConfiguration,
-        GatewayConfiguration gatewayConfiguration,
-        ConnectionDrainManager connectionDrainManager
-    ) {
+            TransactionPreProcessorFactory transactionHandlerFactory,
+            @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
+            @Value("${handlers.request.x-forward.enabled:true}") boolean xForwardProcessor,
+            ReporterService reporterService,
+            AlertEventProducer eventProducer,
+            Node node,
+            @Value("${http.port:8082}") String httpPort,
+            OpenTelemetryConfiguration openTelemetryConfiguration,
+            GatewayConfiguration gatewayConfiguration,
+            ConnectionDrainManager connectionDrainManager) {
         return new DefaultPlatformProcessorChainFactory(
-            transactionHandlerFactory,
-            traceContext,
-            xForwardProcessor,
-            reporterService,
-            eventProducer,
-            node,
-            httpPort,
-            gatewayConfiguration,
-            connectionDrainManager,
-            openTelemetryConfiguration.isTracesEnabled()
-        );
+                transactionHandlerFactory,
+                traceContext,
+                xForwardProcessor,
+                reporterService,
+                eventProducer,
+                node,
+                httpPort,
+                gatewayConfiguration,
+                connectionDrainManager,
+                openTelemetryConfiguration.isTracesEnabled());
     }
 
     @Bean
     public HttpRequestDispatcher httpRequestDispatcher(
-        GatewayConfiguration gatewayConfiguration,
-        HttpAcceptorResolver httpAcceptorResolver,
-        IdGenerator idGenerator,
-        ComponentProvider globalComponentProvider,
-        RequestProcessorChainFactory v3RequestProcessorChainFactory,
-        ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
-        DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
-        NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        RequestClientAuthConfiguration requestClientAuthConfiguration,
-        RequestPathConfiguration requestPathConfiguration,
-        Vertx vertx,
-        TracingContext tracingContext,
-        @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
-    ) {
+            GatewayConfiguration gatewayConfiguration,
+            HttpAcceptorResolver httpAcceptorResolver,
+            IdGenerator idGenerator,
+            ComponentProvider globalComponentProvider,
+            RequestProcessorChainFactory v3RequestProcessorChainFactory,
+            ResponseProcessorChainFactory v3ResponseProcessorChainFactory,
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
+            NotFoundProcessorChainFactory notFoundProcessorChainFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            RequestClientAuthConfiguration requestClientAuthConfiguration,
+            RequestPathConfiguration requestPathConfiguration,
+            Vertx vertx,
+            TracingContext tracingContext,
+            @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled) {
         return new DefaultHttpRequestDispatcher(
-            gatewayConfiguration,
-            httpAcceptorResolver,
-            idGenerator,
-            globalComponentProvider,
-            v3RequestProcessorChainFactory,
-            v3ResponseProcessorChainFactory,
-            platformProcessorChainFactory,
-            notFoundProcessorChainFactory,
-            tracingContext,
-            requestTimeoutConfiguration,
-            requestClientAuthConfiguration,
-            requestPathConfiguration,
-            vertx,
-            warningsEnabled
-        );
+                gatewayConfiguration,
+                httpAcceptorResolver,
+                idGenerator,
+                globalComponentProvider,
+                v3RequestProcessorChainFactory,
+                v3ResponseProcessorChainFactory,
+                platformProcessorChainFactory,
+                notFoundProcessorChainFactory,
+                tracingContext,
+                requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
+                requestPathConfiguration,
+                vertx,
+                warningsEnabled);
     }
 
     @Bean
     public TcpSocketDispatcher tcpSocketDispatcher(
-        TcpAcceptorResolver tcpAcceptorResolver,
-        ComponentProvider globalComponentProvider,
-        IdGenerator idGenerator,
-        @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
-    ) {
-        return new DefaultTcpSocketDispatcher(tcpAcceptorResolver, globalComponentProvider, idGenerator, warningsEnabled);
+            TcpAcceptorResolver tcpAcceptorResolver,
+            ComponentProvider globalComponentProvider,
+            IdGenerator idGenerator,
+            @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled) {
+        return new DefaultTcpSocketDispatcher(
+                tcpAcceptorResolver, globalComponentProvider, idGenerator, warningsEnabled);
     }
 
     @Bean
@@ -210,7 +205,8 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public ReactorEventListener reactorEventListener(EventManager eventManager, ReactorHandlerRegistry reactorHandlerRegistry) {
+    public ReactorEventListener reactorEventListener(
+            EventManager eventManager, ReactorHandlerRegistry reactorHandlerRegistry) {
         return new ReactorEventListener(eventManager, reactorHandlerRegistry);
     }
 
@@ -251,26 +247,25 @@ public class ReactorConfiguration {
 
     @Bean
     public NotFoundProcessorChainFactory notFoundProcessorChainFactory(
-        TransactionPreProcessorFactory transactionHandlerFactory,
-        Environment environment,
-        ReporterService reporterService,
-        @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
-        @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
-        @Value("${handlers.rejected.analytics.enabled:true}") boolean rejectedAnalyticsEnabled,
-        GatewayConfiguration gatewayConfiguration
-    ) {
+            TransactionPreProcessorFactory transactionHandlerFactory,
+            Environment environment,
+            ReporterService reporterService,
+            @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
+            @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
+            @Value("${handlers.rejected.analytics.enabled:true}") boolean rejectedAnalyticsEnabled,
+            GatewayConfiguration gatewayConfiguration) {
         return new NotFoundProcessorChainFactory(
-            transactionHandlerFactory,
-            environment,
-            reporterService,
-            notFoundAnalyticsEnabled || notFoundLogEnabled,
-            rejectedAnalyticsEnabled,
-            gatewayConfiguration
-        );
+                transactionHandlerFactory,
+                environment,
+                reporterService,
+                notFoundAnalyticsEnabled || notFoundLogEnabled,
+                rejectedAnalyticsEnabled,
+                gatewayConfiguration);
     }
 
     @Bean
-    public NodeTemplateVariableProvider nodeTemplateVariableProvider(Node node, GatewayConfiguration gatewayConfiguration) {
+    public NodeTemplateVariableProvider nodeTemplateVariableProvider(
+            Node node, GatewayConfiguration gatewayConfiguration) {
         return new NodeTemplateVariableProvider(node, gatewayConfiguration);
     }
 

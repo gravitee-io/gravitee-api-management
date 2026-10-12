@@ -74,12 +74,10 @@ public class TenantEntity {
         if (this == o) return true;
         if (!(o instanceof TenantEntity)) return false;
         TenantEntity that = (TenantEntity) o;
-        return (
-            Objects.equals(id, that.id) &&
-            Objects.equals(key, that.key) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(description, that.description)
-        );
+        return (Objects.equals(id, that.id)
+                && Objects.equals(key, that.key)
+                && Objects.equals(name, that.name)
+                && Objects.equals(description, that.description));
     }
 
     @Override
@@ -89,21 +87,18 @@ public class TenantEntity {
 
     @Override
     public String toString() {
-        return (
-            "TenantEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            '}'
-        );
+        return ("TenantEntity{" + "id='"
+                + id
+                + '\''
+                + ", key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + '}');
     }
 }

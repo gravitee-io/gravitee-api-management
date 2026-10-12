@@ -45,19 +45,17 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
     }
 
     public ApiKeyQueryServiceInMemory(
-        ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory,
-        SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory
-    ) {
+            ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory,
+            SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory) {
         storage = apiKeyCrudServiceInMemory.storage;
         subscriptionCrudService = subscriptionCrudServiceInMemory;
     }
 
     @Override
     public Optional<ApiKeyEntity> findById(String apiKeyId) {
-        return storage
-            .stream()
-            .filter(apiKey -> apiKey.getId().equals(apiKeyId))
-            .findFirst();
+        return storage.stream()
+                .filter(apiKey -> apiKey.getId().equals(apiKeyId))
+                .findFirst();
     }
 
     @Override
@@ -70,38 +68,31 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
         if (subscriptionCrudService != null) {
             return findByKeyAndReferenceIdAndReferenceType(key, apiId, SubscriptionReferenceType.API.name());
         }
-        return storage
-            .stream()
-            .filter(apiKey -> apiKey.getKey().equals(key))
-            .findFirst();
+        return storage.stream().filter(apiKey -> apiKey.getKey().equals(key)).findFirst();
     }
 
     @Override
-    public Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) {
+    public Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(
+            String key, String referenceId, String referenceType) {
         if (subscriptionCrudService == null) {
-            return storage
-                .stream()
-                .filter(apiKey -> apiKey.getKey().equals(key))
-                .findFirst();
+            return storage.stream()
+                    .filter(apiKey -> apiKey.getKey().equals(key))
+                    .findFirst();
         }
-        return storage
-            .stream()
-            .filter(apiKey -> apiKey.getKey().equals(key))
-            .filter(apiKey ->
-                apiKey
-                    .getSubscriptions()
-                    .stream()
-                    .map(subId -> {
-                        try {
-                            return subscriptionCrudService.get(subId);
-                        } catch (SubscriptionNotFoundException e) {
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .anyMatch(sub -> referenceId.equals(sub.getReferenceId()) && referenceType.equals(sub.getReferenceType().name()))
-            )
-            .findFirst();
+        return storage.stream()
+                .filter(apiKey -> apiKey.getKey().equals(key))
+                .filter(apiKey -> apiKey.getSubscriptions().stream()
+                        .map(subId -> {
+                            try {
+                                return subscriptionCrudService.get(subId);
+                            } catch (SubscriptionNotFoundException e) {
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .anyMatch(sub -> referenceId.equals(sub.getReferenceId())
+                                && referenceType.equals(sub.getReferenceType().name())))
+                .findFirst();
     }
 
     @Override
@@ -114,7 +105,8 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
         if (subscriptionIds == null || subscriptionIds.isEmpty()) {
             return Stream.empty();
         }
-        return storage.stream().filter(apiKey -> apiKey.getSubscriptions().stream().anyMatch(subscriptionIds::contains));
+        return storage.stream()
+                .filter(apiKey -> apiKey.getSubscriptions().stream().anyMatch(subscriptionIds::contains));
     }
 
     @Override

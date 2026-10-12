@@ -86,23 +86,21 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     public Analytics query(final ExecutionContext executionContext, final DateHistogramQuery query) {
         try {
             final DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
-                .query(query.getQuery())
-                .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
-                .root(query.getRootField(), query.getRootIdentifier());
+                    .query(query.getQuery())
+                    .timeRange(
+                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                            IntervalBuilder.interval(query.getInterval()))
+                    .root(query.getRootField(), query.getRootIdentifier());
 
             if (query.getAggregations() != null) {
-                query
-                    .getAggregations()
-                    .stream()
-                    .forEach(aggregation ->
-                        queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
-                    );
+                query.getAggregations().stream()
+                        .forEach(aggregation -> queryBuilder.aggregation(
+                                AggregationType.valueOf(aggregation.type().name()), aggregation.field()));
             }
 
             DateHistogramResponse response = healthCheckRepository.query(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                queryBuilder.build()
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    queryBuilder.build());
             return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -119,14 +117,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
             analytics.setTimestamp(new Timestamp(from, to, interval));
 
-            List<io.gravitee.rest.api.model.analytics.Bucket> buckets = new ArrayList<>(histogramResponse.values().size());
+            List<io.gravitee.rest.api.model.analytics.Bucket> buckets =
+                    new ArrayList<>(histogramResponse.values().size());
             for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
-                io.gravitee.rest.api.model.analytics.Bucket analyticsBucket = convertBucket(
-                    histogramResponse.timestamps(),
-                    from,
-                    interval,
-                    bucket
-                );
+                io.gravitee.rest.api.model.analytics.Bucket analyticsBucket =
+                        convertBucket(histogramResponse.timestamps(), from, interval, bucket);
                 buckets.add(analyticsBucket);
             }
             analytics.setValues(buckets);
@@ -135,11 +130,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     private io.gravitee.rest.api.model.analytics.Bucket convertBucket(
-        List<Long> timestamps,
-        long from,
-        long interval,
-        io.gravitee.repository.analytics.query.response.histogram.Bucket bucket
-    ) {
+            List<Long> timestamps,
+            long from,
+            long interval,
+            io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
         io.gravitee.rest.api.model.analytics.Bucket analyticsBucket = new io.gravitee.rest.api.model.analytics.Bucket();
         analyticsBucket.setName(bucket.name());
         analyticsBucket.setField(bucket.field());
@@ -151,7 +145,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         }
 
         for (Map.Entry<String, List<Data>> dataBucket : bucket.data().entrySet()) {
-            io.gravitee.rest.api.model.analytics.Bucket analyticsDataBucket = new io.gravitee.rest.api.model.analytics.Bucket();
+            io.gravitee.rest.api.model.analytics.Bucket analyticsDataBucket =
+                    new io.gravitee.rest.api.model.analytics.Bucket();
             analyticsDataBucket.setName(dataBucket.getKey());
 
             final Number[] values = new Number[timestamps.size()];
@@ -178,11 +173,15 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
 
             AvailabilityResponse response = healthCheckRepository.query(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                QueryBuilders.availability().api(api).field(AvailabilityQuery.Field.valueOf(field)).build()
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    QueryBuilders.availability()
+                            .api(api)
+                            .field(AvailabilityQuery.Field.valueOf(field))
+                            .build());
 
-            return response != null ? convert(executionContext, apiEntity, response.getEndpointAvailabilities(), field) : null;
+            return response != null
+                    ? convert(executionContext, apiEntity, response.getEndpointAvailabilities(), field)
+                    : null;
         } catch (Exception ex) {
             log.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -197,11 +196,15 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
 
             AverageResponseTimeResponse response = healthCheckRepository.query(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                QueryBuilders.responseTime().api(api).field(AverageResponseTimeQuery.Field.valueOf(field)).build()
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    QueryBuilders.responseTime()
+                            .api(api)
+                            .field(AverageResponseTimeQuery.Field.valueOf(field))
+                            .build());
 
-            return response != null ? convert(executionContext, apiEntity, response.getEndpointResponseTimes(), field) : null;
+            return response != null
+                    ? convert(executionContext, apiEntity, response.getEndpointResponseTimes(), field)
+                    : null;
         } catch (Exception ex) {
             log.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -209,22 +212,22 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public SearchLogResponse findByApi(ExecutionContext executionContext, String api, LogQuery query, Boolean transition) {
+    public SearchLogResponse findByApi(
+            ExecutionContext executionContext, String api, LogQuery query, Boolean transition) {
         log.debug("Run health logs query for API '{}'", api);
 
         try {
             LogsResponse response = healthCheckRepository.query(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                QueryBuilders.logs()
-                    .api(api)
-                    .page(query.getPage())
-                    .size(query.getSize())
-                    .query(query.getQuery())
-                    .transition(transition)
-                    .from(query.getFrom())
-                    .to(query.getTo())
-                    .build()
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    QueryBuilders.logs()
+                            .api(api)
+                            .page(query.getPage())
+                            .size(query.getSize())
+                            .query(query.getQuery())
+                            .transition(transition)
+                            .from(query.getFrom())
+                            .to(query.getTo())
+                            .build());
 
             return response != null ? convert(executionContext, response) : null;
         } catch (Exception ex) {
@@ -237,9 +240,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     public Log findLog(ExecutionContext executionContext, String api, String id) {
         try {
             ExtendedLog log = healthCheckRepository.findById(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                id
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()), id);
             return (log != null && api.equalsIgnoreCase(log.getApi())) ? toLog(log) : null;
         } catch (AnalyticsException ae) {
             log.error("An unexpected error occurs while searching for health data.", ae);
@@ -251,20 +252,19 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         SearchLogResponse searchLogResponseResponse = new SearchLogResponse(response.getSize());
 
         // Transform repository logs
-        searchLogResponseResponse.setLogs(response.getLogs().stream().map(this::toLog).collect(Collectors.toList()));
+        searchLogResponseResponse.setLogs(
+                response.getLogs().stream().map(this::toLog).collect(Collectors.toList()));
 
         // Add metadata (only if they are results)
         if (response.getSize() > 0) {
             Map<String, Map<String, String>> metadata = new HashMap<>();
 
-            searchLogResponseResponse
-                .getLogs()
-                .forEach(logItem -> {
-                    String gateway = logItem.getGateway();
-                    if (gateway != null) {
-                        metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
-                    }
-                });
+            searchLogResponseResponse.getLogs().forEach(logItem -> {
+                String gateway = logItem.getGateway();
+                if (gateway != null) {
+                    metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
+                }
+            });
 
             searchLogResponseResponse.setMetadata(metadata);
         }
@@ -273,18 +273,18 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     private <T extends Number> ApiMetrics<T> convert(
-        final ExecutionContext executionContext,
-        GenericApiEntity api,
-        List<FieldBucket<T>> response,
-        String field
-    ) {
+            final ExecutionContext executionContext,
+            GenericApiEntity api,
+            List<FieldBucket<T>> response,
+            String field) {
         ApiMetrics<T> apiMetrics = new ApiMetrics<>();
 
         // Set endpoint availability (unknown endpoints are removed)
         Map<String, Map<String, T>> buckets = new HashMap<>();
 
         response.forEach(bucket -> {
-            Map<String, T> bucketMetrics = bucket.getValues().stream().collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
+            Map<String, T> bucketMetrics =
+                    bucket.getValues().stream().collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
 
             buckets.put(bucket.getName(), bucketMetrics);
         });
@@ -294,25 +294,20 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             Map<String, Double> values = new HashMap<>();
 
             apiMetrics
-                .getBuckets()
-                .values()
-                .forEach(stringTMap ->
-                    stringTMap.forEach((key, value) -> {
+                    .getBuckets()
+                    .values()
+                    .forEach(stringTMap -> stringTMap.forEach((key, value) -> {
                         if (value.intValue() >= 0) {
                             Double total = values.getOrDefault(key, 0d);
                             total += value.doubleValue();
                             values.put(key, total);
                         }
-                    })
-                );
+                    }));
 
             values.forEach((key, value) -> {
-                long availableBuckets = apiMetrics
-                    .getBuckets()
-                    .values()
-                    .stream()
-                    .filter(stringTMap -> stringTMap.get(key).intValue() >= 0)
-                    .count();
+                long availableBuckets = apiMetrics.getBuckets().values().stream()
+                        .filter(stringTMap -> stringTMap.get(key).intValue() >= 0)
+                        .count();
 
                 values.put(key, value / availableBuckets);
             });
@@ -323,16 +318,13 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // Prepare metadata
         Map<String, Map<String, String>> metadata = new HashMap<>();
 
-        apiMetrics
-            .getBuckets()
-            .keySet()
-            .forEach(name -> {
-                if (field.equalsIgnoreCase("endpoint")) {
-                    metadata.put(name, getEndpointMetadata(api, name));
-                } else if (field.equalsIgnoreCase("gateway")) {
-                    metadata.put(name, getGatewayMetadata(executionContext, name));
-                }
-            });
+        apiMetrics.getBuckets().keySet().forEach(name -> {
+            if (field.equalsIgnoreCase("endpoint")) {
+                metadata.put(name, getEndpointMetadata(api, name));
+            } else if (field.equalsIgnoreCase("gateway")) {
+                metadata.put(name, getGatewayMetadata(executionContext, name));
+            }
+        });
 
         apiMetrics.setMetadata(metadata);
 
@@ -408,23 +400,24 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     private Map<String, String> getEndpointMetadata(GenericApiEntity api, String endpointName) {
         return switch (api.getDefinitionVersion()) {
-            case DefinitionVersion.V4 -> ((io.gravitee.rest.api.model.v4.api.ApiEntity) api).getEndpointGroups()
-                .stream()
-                .filter(group -> group.getEndpoints() != null)
-                .flatMap(group -> group.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
-                .findFirst()
-                .map(endpoint -> Map.of("target", endpoint.getType()))
-                .orElse(Map.of("deleted", "true"));
-            case V2 -> ((ApiEntity) api).getProxy()
-                .getGroups()
-                .stream()
-                .filter(group -> group.getEndpoints() != null)
-                .flatMap(group -> group.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
-                .findFirst()
-                .map(endpoint -> Map.of("target", endpoint.getTarget()))
-                .orElse(Map.of("deleted", "true"));
+            case DefinitionVersion.V4 ->
+                ((io.gravitee.rest.api.model.v4.api.ApiEntity) api)
+                        .getEndpointGroups().stream()
+                                .filter(group -> group.getEndpoints() != null)
+                                .flatMap(group -> group.getEndpoints().stream())
+                                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+                                .findFirst()
+                                .map(endpoint -> Map.of("target", endpoint.getType()))
+                                .orElse(Map.of("deleted", "true"));
+            case V2 ->
+                ((ApiEntity) api)
+                        .getProxy().getGroups().stream()
+                                .filter(group -> group.getEndpoints() != null)
+                                .flatMap(group -> group.getEndpoints().stream())
+                                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+                                .findFirst()
+                                .map(endpoint -> Map.of("target", endpoint.getTarget()))
+                                .orElse(Map.of("deleted", "true"));
             case FEDERATED, FEDERATED_AGENT -> Map.of();
             case null, default -> Map.of();
         };

@@ -29,18 +29,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import lombok.CustomLog;
 
 @CustomLog
-public class DistributedCredentialSynchronizer extends AbstractDistributedSynchronizer<CredentialDeployable, CredentialDeployer> {
+public class DistributedCredentialSynchronizer
+        extends AbstractDistributedSynchronizer<CredentialDeployable, CredentialDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final CredentialMapper credentialMapper;
 
     public DistributedCredentialSynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final CredentialMapper credentialMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final CredentialMapper credentialMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.credentialMapper = credentialMapper;

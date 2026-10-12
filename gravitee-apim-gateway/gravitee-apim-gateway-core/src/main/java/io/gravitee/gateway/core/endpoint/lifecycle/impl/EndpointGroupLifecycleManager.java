@@ -48,9 +48,8 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class EndpointGroupLifecycleManager
-    extends AbstractLifecycleComponent<EndpointLifecycleManager>
-    implements EndpointLifecycleManager, ChangeListener<Endpoint> {
+public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<EndpointLifecycleManager>
+        implements EndpointLifecycleManager, ChangeListener<Endpoint> {
 
     private final Api api;
 
@@ -65,7 +64,8 @@ public class EndpointGroupLifecycleManager
     private final ObjectMapper mapper;
 
     private final Map<String, io.gravitee.gateway.api.endpoint.Endpoint> endpointsByName = new LinkedHashMap<>();
-    private final ObservableCollection<io.gravitee.gateway.api.endpoint.Endpoint> endpoints = new ObservableCollection<>(new ArrayList<>());
+    private final ObservableCollection<io.gravitee.gateway.api.endpoint.Endpoint> endpoints =
+            new ObservableCollection<>(new ArrayList<>());
 
     private final EndpointGroup group;
     private LoadBalancedEndpointGroup lbGroup;
@@ -73,14 +73,13 @@ public class EndpointGroupLifecycleManager
     private final TemplateEngine templateEngine = TemplateEngine.templateEngine();
 
     public EndpointGroupLifecycleManager(
-        Api api,
-        EndpointGroup group,
-        EndpointFactory endpointFactory,
-        ReferenceRegister referenceRegister,
-        ConnectorRegistry connectorRegistry,
-        Configuration configuration,
-        ObjectMapper mapper
-    ) {
+            Api api,
+            EndpointGroup group,
+            EndpointFactory endpointFactory,
+            ReferenceRegister referenceRegister,
+            ConnectorRegistry connectorRegistry,
+            Configuration configuration,
+            ObjectMapper mapper) {
         this.group = group;
         this.api = api;
         this.endpointFactory = endpointFactory;
@@ -130,7 +129,8 @@ public class EndpointGroupLifecycleManager
 
     @Override
     protected void doStop() throws Exception {
-        Iterator<io.gravitee.gateway.api.endpoint.Endpoint> ite = endpointsByName.values().iterator();
+        Iterator<io.gravitee.gateway.api.endpoint.Endpoint> ite =
+                endpointsByName.values().iterator();
         while (ite.hasNext()) {
             stop(ite.next());
             ite.remove();
@@ -147,12 +147,11 @@ public class EndpointGroupLifecycleManager
             model.setTarget(evaluateTarget(model.getTarget(), api.getProperties()));
 
             log.debug(
-                "Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
-                model.getName(),
-                model.getType(),
-                model.getTarget(),
-                !model.isBackup()
-            );
+                    "Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
+                    model.getName(),
+                    model.getType(),
+                    model.getTarget(),
+                    !model.isBackup());
 
             ConnectorContext context = new ConnectorContext();
             if (api.getProperties() != null) {
@@ -160,13 +159,16 @@ public class EndpointGroupLifecycleManager
             }
             try {
                 ConnectorFactory<? extends Connector<? extends Connection, ? extends ProxyRequest>> connectorFactory =
-                    connectorRegistry.getConnector(model.getType());
+                        connectorRegistry.getConnector(model.getType());
 
                 Connector<Connection, ProxyRequest> connector = connectorFactory.create(
-                    model.getTarget(),
-                    getEndpointConfiguration(model),
-                    ConnectorBuilder.create().context(context).mapper(mapper).configuration(configuration).build()
-                );
+                        model.getTarget(),
+                        getEndpointConfiguration(model),
+                        ConnectorBuilder.create()
+                                .context(context)
+                                .mapper(mapper)
+                                .configuration(configuration)
+                                .build());
 
                 io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model, connector);
                 if (endpoint != null) {
@@ -179,11 +181,9 @@ public class EndpointGroupLifecycleManager
                 }
             } catch (EndpointException ee) {
                 log.error(
-                    "An endpoint error occurs while configuring or starting endpoint " +
-                        model.getName() +
-                        ". Endpoint will not be available to forward requests.",
-                    ee
-                );
+                        "An endpoint error occurs while configuring or starting endpoint " + model.getName()
+                                + ". Endpoint will not be available to forward requests.",
+                        ee);
             }
         } catch (Exception ex) {
             log.error("Unexpected error while creating endpoint connector", ex);
@@ -272,11 +272,10 @@ public class EndpointGroupLifecycleManager
             }
         } catch (IOException ioe) {
             log.warn(
-                "Unable to parse endpoint configuration for endpoint [{}] in group [{}], falling back to raw configuration",
-                endpoint.getName(),
-                group.getName(),
-                ioe
-            );
+                    "Unable to parse endpoint configuration for endpoint [{}] in group [{}], falling back to raw configuration",
+                    endpoint.getName(),
+                    group.getName(),
+                    ioe);
         }
 
         return endpoint.getConfiguration();

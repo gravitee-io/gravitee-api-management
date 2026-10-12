@@ -47,37 +47,39 @@ public class PortalDocumentationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ) })
-    public Response getPortalDocumentationByHRID(@PathParam("hrid") String portalHrid, @PathParam("docHrid") String docHrid) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ)})
+    public Response getPortalDocumentationByHRID(
+            @PathParam("hrid") String portalHrid, @PathParam("docHrid") String docHrid) {
         var auditInfo = getAuditInfo();
-        var documentationId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(auditInfo).portal(portalHrid).hrid(docHrid).id()
-        );
+        var documentationId = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+                .context(auditInfo)
+                .portal(portalHrid)
+                .hrid(docHrid)
+                .id());
         try {
-            var output = getPortalDocumentationUseCase.execute(new GetPortalDocumentationUseCase.Input(auditInfo, documentationId));
-            return Response.ok(
-                PortalDocumentationMapper.INSTANCE.toDocumentationState(
-                    output.pageContent(),
-                    output.area(),
-                    output.visibility(),
-                    docHrid,
-                    portalHrid
-                )
-            ).build();
+            var output = getPortalDocumentationUseCase.execute(
+                    new GetPortalDocumentationUseCase.Input(auditInfo, documentationId));
+            return Response.ok(PortalDocumentationMapper.INSTANCE.toDocumentationState(
+                            output.pageContent(), output.area(), output.visibility(), docHrid, portalHrid))
+                    .build();
         } catch (PortalDocumentationNotFoundException e) {
             throw new HRIDNotFoundException(docHrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE) })
-    public Response deletePortalDocumentationByHrid(@PathParam("hrid") String portalHrid, @PathParam("docHrid") String docHrid) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE)})
+    public Response deletePortalDocumentationByHrid(
+            @PathParam("hrid") String portalHrid, @PathParam("docHrid") String docHrid) {
         var auditInfo = getAuditInfo();
-        var documentationId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(auditInfo).portal(portalHrid).hrid(docHrid).id()
-        );
+        var documentationId = PortalPageContentId.of(HRIDToUUID.portalDocumentation()
+                .context(auditInfo)
+                .portal(portalHrid)
+                .hrid(docHrid)
+                .id());
         try {
-            deletePortalDocumentationUseCase.execute(new DeletePortalDocumentationUseCase.Input(auditInfo, documentationId));
+            deletePortalDocumentationUseCase.execute(
+                    new DeletePortalDocumentationUseCase.Input(auditInfo, documentationId));
         } catch (PortalDocumentationNotFoundException e) {
             throw new HRIDNotFoundException(docHrid);
         }

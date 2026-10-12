@@ -174,9 +174,8 @@ class MetricsIntegrationTest {
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             super.configurePolicies(policies);
             policies.put(
-                KafkaInterruptingConnectPolicy.ID,
-                PolicyBuilder.build(KafkaInterruptingConnectPolicy.ID, KafkaInterruptingConnectPolicy.class)
-            );
+                    KafkaInterruptingConnectPolicy.ID,
+                    PolicyBuilder.build(KafkaInterruptingConnectPolicy.ID, KafkaInterruptingConnectPolicy.class));
         }
 
         @Test
@@ -207,7 +206,9 @@ class MetricsIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             super.configurePolicies(policies);
-            policies.put(KafkaFailingRequestPolicy.ID, PolicyBuilder.build(KafkaFailingRequestPolicy.ID, KafkaFailingRequestPolicy.class));
+            policies.put(
+                    KafkaFailingRequestPolicy.ID,
+                    PolicyBuilder.build(KafkaFailingRequestPolicy.ID, KafkaFailingRequestPolicy.class));
         }
 
         @Test
@@ -249,18 +250,17 @@ class MetricsIntegrationTest {
 
         @Override
         protected void configureGateway(GatewayConfigurationBuilder cfg) {
-            cfg
-                .set("kafka.enabled", true)
-                .set("kafka.secured", true)
-                .set("kafka.host", "0.0.0.0")
-                .set("kafka.port", GATEWAY_KAFKA_PORT)
-                .set("kafka.instances", 1)
-                .set("kafka.ssl.sni", true)
-                .set("kafka.ssl.keystore.type", "jks")
-                .set("kafka.ssl.keystore.path", ResourceUtils.toPath("certs/keystore01.jks"))
-                .set("kafka.ssl.keystore.password", "password")
-                .set("kafka.routingMode", "host")
-                .set("kafka.routingHostMode.defaultDomain", "localhost");
+            cfg.set("kafka.enabled", true)
+                    .set("kafka.secured", true)
+                    .set("kafka.host", "0.0.0.0")
+                    .set("kafka.port", GATEWAY_KAFKA_PORT)
+                    .set("kafka.instances", 1)
+                    .set("kafka.ssl.sni", true)
+                    .set("kafka.ssl.keystore.type", "jks")
+                    .set("kafka.ssl.keystore.path", ResourceUtils.toPath("certs/keystore01.jks"))
+                    .set("kafka.ssl.keystore.password", "password")
+                    .set("kafka.routingMode", "host")
+                    .set("kafka.routingHostMode.defaultDomain", "localhost");
         }
 
         @Override
@@ -270,12 +270,15 @@ class MetricsIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("native-kafka", EntrypointBuilder.build("native-kafka", NativeKafkaEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "native-kafka",
+                    EntrypointBuilder.build("native-kafka", NativeKafkaEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("native-kafka", EndpointBuilder.build("native-kafka", NativeKafkaEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "native-kafka", EndpointBuilder.build("native-kafka", NativeKafkaEndpointConnectorFactory.class));
         }
 
         @Override
@@ -287,16 +290,14 @@ class MetricsIntegrationTest {
         @Override
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (api.getDefinition() instanceof NativeApi nativeApi) {
-                // testcontainers returns "PLAINTEXT://host:port" — the native-kafka endpoint expects a bare host:port pair.
+                // testcontainers returns "PLAINTEXT://host:port" — the native-kafka endpoint expects a bare host:port
+                // pair.
                 var backendBootstrap = kafka.getBootstrapServers().replaceFirst("^[A-Z_]+://", "");
-                nativeApi
-                    .getEndpointGroups()
-                    .stream()
-                    .flatMap(eg -> eg.getEndpoints().stream())
-                    .filter(endpoint -> "native-kafka".equals(endpoint.getType()))
-                    .forEach(endpoint ->
-                        endpoint.setConfiguration(endpoint.getConfiguration().replace("bootstrap-server", backendBootstrap))
-                    );
+                nativeApi.getEndpointGroups().stream()
+                        .flatMap(eg -> eg.getEndpoints().stream())
+                        .filter(endpoint -> "native-kafka".equals(endpoint.getType()))
+                        .forEach(endpoint -> endpoint.setConfiguration(
+                                endpoint.getConfiguration().replace("bootstrap-server", backendBootstrap)));
             }
         }
 
@@ -304,50 +305,52 @@ class MetricsIntegrationTest {
             Vertx producerVertx = Vertx.vertx();
             KafkaProducer<String, byte[]> producer = createGatewayKafkaProducer(producerVertx);
             try {
-                producer
-                    .rxSend(KafkaProducerRecord.create(TEST_TOPIC, "k", "hello".getBytes()))
-                    .ignoreElement()
-                    .doOnError(e -> log.warn("kafka producer send failed", e))
-                    .onErrorComplete()
-                    .blockingAwait(10, SECONDS);
+                producer.rxSend(KafkaProducerRecord.create(TEST_TOPIC, "k", "hello".getBytes()))
+                        .ignoreElement()
+                        .doOnError(e -> log.warn("kafka producer send failed", e))
+                        .onErrorComplete()
+                        .blockingAwait(10, SECONDS);
             } finally {
-                producer
-                    .rxClose()
-                    .doOnError(e -> log.warn("kafka producer close failed", e))
-                    .onErrorComplete()
-                    .blockingAwait(5, SECONDS);
+                producer.rxClose()
+                        .doOnError(e -> log.warn("kafka producer close failed", e))
+                        .onErrorComplete()
+                        .blockingAwait(5, SECONDS);
                 producerVertx
-                    .rxClose()
-                    .doOnError(e -> log.warn("vertx close failed", e))
-                    .onErrorComplete()
-                    .blockingAwait(5, SECONDS);
+                        .rxClose()
+                        .doOnError(e -> log.warn("vertx close failed", e))
+                        .onErrorComplete()
+                        .blockingAwait(5, SECONDS);
             }
         }
 
         protected Metrics awaitFirstMetricFor(String apiId) {
             return metricsSubject
-                .filter(m -> apiId.equals(m.getApiId()))
-                .filter(m -> m.getAdditionalMetrics() != null && !m.getAdditionalMetrics().isEmpty())
-                .take(1)
-                .test()
-                .awaitDone(15, SECONDS)
-                .assertValueCount(1)
-                .values()
-                .getFirst();
+                    .filter(m -> apiId.equals(m.getApiId()))
+                    .filter(m -> m.getAdditionalMetrics() != null
+                            && !m.getAdditionalMetrics().isEmpty())
+                    .take(1)
+                    .test()
+                    .awaitDone(15, SECONDS)
+                    .assertValueCount(1)
+                    .values()
+                    .getFirst();
         }
 
         protected Metrics awaitNextMetricFor(String apiId) {
             return metricsSubject
-                .filter(m -> apiId.equals(m.getApiId()))
-                .filter(m -> m.getAdditionalMetrics() != null && !m.getAdditionalMetrics().isEmpty())
-                .skip(1)
-                .take(1)
-                .timeout(45, SECONDS)
-                .blockingFirst();
+                    .filter(m -> apiId.equals(m.getApiId()))
+                    .filter(m -> m.getAdditionalMetrics() != null
+                            && !m.getAdditionalMetrics().isEmpty())
+                    .skip(1)
+                    .take(1)
+                    .timeout(45, SECONDS)
+                    .blockingFirst();
         }
 
         protected static List<String> keysOf(Metrics metric) {
-            return metric.getAdditionalMetrics().stream().map(AdditionalMetric::name).toList();
+            return metric.getAdditionalMetrics().stream()
+                    .map(AdditionalMetric::name)
+                    .toList();
         }
 
         protected static String statusOf(Metrics metric) {

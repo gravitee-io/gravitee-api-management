@@ -19,7 +19,6 @@ import io.gravitee.apim.core.specgen.model.ApiSpecGen;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Optional;
 
@@ -27,13 +26,12 @@ import java.util.Optional;
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 public interface ApiSpecGenQueryService {
     Optional<ApiSpecGen> findByIdAndType(ExecutionContext context, String id, ApiType type);
 
     default Maybe<ApiSpecGen> rxFindByIdAndType(ExecutionContext context, String id, ApiType type) {
         return Maybe.defer(() -> Maybe.just(findByIdAndType(context, id, type)))
-            .flatMap(api -> api.map(Maybe::just).orElseGet(Maybe::empty))
-            .subscribeOn(Schedulers.io());
+                .flatMap(api -> api.map(Maybe::just).orElseGet(Maybe::empty))
+                .subscribeOn(Schedulers.io());
     }
 }

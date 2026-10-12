@@ -110,37 +110,38 @@ public class VertxHttpServerResponse extends AbstractResponse {
 
             if (lazyBufferFlow().hasChunks()) {
                 return nativeResponse
-                    .rxSend(
-                        chunks()
-                            .doOnSubscribe(subscriptionRef::set)
-                            .map(buffer -> BufferInternal.buffer(buffer.getNativeBuffer()))
-                            .cast(Buffer.class)
-                            .doOnNext(buffer ->
-                                ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
-                            )
-                    )
-                    .onErrorResumeNext(throwable -> {
-                        if (throwable instanceof IOException && ClientCloseClassifier.isClientConnectionClose(throwable)) {
-                            // The client closed the connection while the response was being streamed. The write
-                            // failure surfaces here BEFORE the connection-level handlers run, and completing below
-                            // makes the dispatch end normally — so the abort must be recorded on the metrics now with
-                            // its actual reason (TCP reset, broken pipe), or the request would be reported as a clean
-                            // success (APIM-12769).
-                            ClientCloseClassifier.decorate(ctx, throwable);
-                            ctx.withLogger(log).debug("Client has closed the connection: {}", throwable.getMessage());
-                        } else {
-                            ctx.withLogger(log).error("An error occurred while sending response chunks", throwable);
-                        }
-                        return Completable.complete();
-                    })
-                    .doOnComplete(() -> discardUnconsumedBody(ctx, unconsumedBody))
-                    .doOnDispose(() -> {
-                        if (!nativeResponse.ended()) {
-                            // If the response is disposed before being ended, we need to cancel the
-                            // subscription so cancellation is propagated to the endpoint connector.
-                            subscriptionRef.get().cancel();
-                        }
-                    });
+                        .rxSend(chunks().doOnSubscribe(subscriptionRef::set)
+                                .map(buffer -> BufferInternal.buffer(buffer.getNativeBuffer()))
+                                .cast(Buffer.class)
+                                .doOnNext(buffer -> ctx.metrics()
+                                        .setResponseContentLength(
+                                                ctx.metrics().getResponseContentLength() + buffer.length())))
+                        .onErrorResumeNext(throwable -> {
+                            if (throwable instanceof IOException
+                                    && ClientCloseClassifier.isClientConnectionClose(throwable)) {
+                                // The client closed the connection while the response was being streamed. The write
+                                // failure surfaces here BEFORE the connection-level handlers run, and completing below
+                                // makes the dispatch end normally — so the abort must be recorded on the metrics now
+                                // with
+                                // its actual reason (TCP reset, broken pipe), or the request would be reported as a
+                                // clean
+                                // success (APIM-12769).
+                                ClientCloseClassifier.decorate(ctx, throwable);
+                                ctx.withLogger(log)
+                                        .debug("Client has closed the connection: {}", throwable.getMessage());
+                            } else {
+                                ctx.withLogger(log).error("An error occurred while sending response chunks", throwable);
+                            }
+                            return Completable.complete();
+                        })
+                        .doOnComplete(() -> discardUnconsumedBody(ctx, unconsumedBody))
+                        .doOnDispose(() -> {
+                            if (!nativeResponse.ended()) {
+                                // If the response is disposed before being ended, we need to cancel the
+                                // subscription so cancellation is propagated to the endpoint connector.
+                                subscriptionRef.get().cancel();
+                            }
+                        });
             }
 
             return nativeResponse.rxEnd().doOnComplete(() -> discardUnconsumedBody(ctx, unconsumedBody));
@@ -159,10 +160,9 @@ public class VertxHttpServerResponse extends AbstractResponse {
     protected void prepareHeaders() {
         if (!nativeResponse.headWritten()) {
             if (HttpVersion.HTTP_2 == vertxHttpServerRequest.version()) {
-                if (
-                    headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION) &&
-                    headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
-                ) {
+                if (headers.contains(io.vertx.core.http.HttpHeaders.CONNECTION)
+                        && headers.getAll(io.vertx.core.http.HttpHeaders.CONNECTION)
+                                .contains(HttpHeadersValues.CONNECTION_GO_AWAY)) {
                     // 'Connection: goAway' is a special header indicating the native connection
                     // should be shutdown because of the node itself will shutdown.
                     vertxHttpServerRequest.nativeRequest.connection().shutdown();
@@ -170,10 +170,9 @@ public class VertxHttpServerResponse extends AbstractResponse {
 
                 // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
                 // connection-specific header fields must be removed from response headers
-                headers
-                    .remove(io.vertx.core.http.HttpHeaders.CONNECTION)
-                    .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
-                    .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
+                headers.remove(io.vertx.core.http.HttpHeaders.CONNECTION)
+                        .remove(io.vertx.core.http.HttpHeaders.KEEP_ALIVE)
+                        .remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
             }
 
             if (headers.contains(HttpHeaders.CONTENT_LENGTH)) {
@@ -184,7 +183,8 @@ public class VertxHttpServerResponse extends AbstractResponse {
 
     private void discardUnconsumedBody(final HttpBaseExecutionContext ctx, final UnconsumedBody unconsumedBody) {
         if (unconsumedBody != UnconsumedBody.NONE) {
-            ctx.withLogger(log).debug("Response sent before the request body was read, discarding it ({})", unconsumedBody);
+            ctx.withLogger(log)
+                    .debug("Response sent before the request body was read, discarding it ({})", unconsumedBody);
             vertxHttpServerRequest.discardUnconsumedBody(unconsumedBody == UnconsumedBody.DISCARD_THEN_CLOSE);
         }
     }

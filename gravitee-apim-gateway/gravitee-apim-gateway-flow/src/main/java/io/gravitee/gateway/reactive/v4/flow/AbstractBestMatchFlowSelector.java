@@ -132,7 +132,8 @@ public abstract class AbstractBestMatchFlowSelector<T> {
                     selectedFlow = flow;
                     selectedFlowScore = scores;
                 }
-                // Finally, if split score is fewer than selected, no need to continue, else we have a better matching, so we can select the flow
+                // Finally, if split score is fewer than selected, no need to continue, else we have a better matching,
+                // so we can select the flow
                 if (scores[i] < selectedFlowScore[i]) {
                     break;
                 } else if (scores[i] > selectedFlowScore[i]) {

@@ -35,11 +35,10 @@ public class DummyPolicyPlugin<T, C extends PolicyConfiguration, CT extends Poli
     private Class<CT> dummyPolicyContextClass;
 
     public DummyPolicyPlugin(
-        final String id,
-        final Class<T> policyClass,
-        final Class<C> policyConfigurationClass,
-        final Class<CT> dummyPolicyContextClass
-    ) {
+            final String id,
+            final Class<T> policyClass,
+            final Class<C> policyConfigurationClass,
+            final Class<CT> dummyPolicyContextClass) {
         this.id = id;
         this.policyClass = policyClass;
         this.policyConfigurationClass = policyConfigurationClass;

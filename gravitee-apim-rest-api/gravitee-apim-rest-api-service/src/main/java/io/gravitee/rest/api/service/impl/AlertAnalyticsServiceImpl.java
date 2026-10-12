@@ -53,74 +53,61 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
 
     private final AlertEventRepository alertEventRepository;
 
-    public AlertAnalyticsServiceImpl(@Lazy AlertTriggerRepository alertTriggerRepository, @Lazy AlertEventRepository alertEventRepository) {
+    public AlertAnalyticsServiceImpl(
+            @Lazy AlertTriggerRepository alertTriggerRepository, @Lazy AlertEventRepository alertEventRepository) {
         this.alertTriggerRepository = alertTriggerRepository;
         this.alertEventRepository = alertEventRepository;
     }
 
     @Override
-    public AlertAnalyticsEntity findByReference(AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery) {
+    public AlertAnalyticsEntity findByReference(
+            AlertReferenceType referenceType, String referenceId, AlertAnalyticsQuery analyticsQuery) {
         try {
-            Map<String, AlertTrigger> triggersById = alertTriggerRepository
-                .findByReferenceAndReferenceId(referenceType.name(), referenceId)
-                .stream()
-                .collect(toMap(AlertTrigger::getId, trigger -> trigger));
-            Map<AlertTrigger, HashSet<AlertEvent>> eventsByAlert = triggersById
-                .values()
-                .stream()
-                .map(trigger ->
-                    alertEventRepository.search(
-                        new AlertEventCriteria.Builder()
-                            .alert(trigger.getId())
-                            .from(analyticsQuery.getFrom())
-                            .to(analyticsQuery.getTo())
-                            .build(),
-                        null
-                    )
-                )
-                .filter(events -> events.getContent().size() > 0)
-                .collect(
-                    Collectors.toMap(
-                        event -> triggersById.get(event.getContent().get(0).getAlert()),
-                        event -> new HashSet<>(event.getContent())
-                    )
-                );
+            Map<String, AlertTrigger> triggersById =
+                    alertTriggerRepository.findByReferenceAndReferenceId(referenceType.name(), referenceId).stream()
+                            .collect(toMap(AlertTrigger::getId, trigger -> trigger));
+            Map<AlertTrigger, HashSet<AlertEvent>> eventsByAlert = triggersById.values().stream()
+                    .map(trigger -> alertEventRepository.search(
+                            new AlertEventCriteria.Builder()
+                                    .alert(trigger.getId())
+                                    .from(analyticsQuery.getFrom())
+                                    .to(analyticsQuery.getTo())
+                                    .build(),
+                            null))
+                    .filter(events -> events.getContent().size() > 0)
+                    .collect(Collectors.toMap(
+                            event -> triggersById.get(event.getContent().get(0).getAlert()),
+                            event -> new HashSet<>(event.getContent())));
 
             // by severity
-            Map<String, Integer> bySeverity = eventsByAlert
-                .entrySet()
-                .stream()
-                .collect(
-                    groupingBy(
-                        entry -> entry.getKey().getSeverity(),
-                        Collectors.mapping(Map.Entry::getValue, Collectors.summingInt(HashSet::size))
-                    )
-                );
+            Map<String, Integer> bySeverity = eventsByAlert.entrySet().stream()
+                    .collect(groupingBy(
+                            entry -> entry.getKey().getSeverity(),
+                            Collectors.mapping(Map.Entry::getValue, Collectors.summingInt(HashSet::size))));
 
             // alerts sorted by severity then by decreasing event count
-            List<AlertAnalyticsEntity.AlertTriggerAnalytics> alerts = eventsByAlert
-                .entrySet()
-                .stream()
-                .sorted(
-                    Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByKey((a1, a2) ->
-                        compareSeverity().compare(a1.getSeverity(), a2.getSeverity())
-                    ).thenComparing(Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByValue(comparing(Set::size)).reversed())
-                )
-                .map(e -> {
-                    AlertAnalyticsEntity.AlertTriggerAnalytics alertTriggerAnalytics = new AlertAnalyticsEntity.AlertTriggerAnalytics();
-                    alertTriggerAnalytics.setId(e.getKey().getId());
-                    alertTriggerAnalytics.setType(e.getKey().getType());
-                    alertTriggerAnalytics.setSeverity(e.getKey().getSeverity());
-                    alertTriggerAnalytics.setName(e.getKey().getName());
-                    alertTriggerAnalytics.setEventsCount(e.getValue().size());
-                    return alertTriggerAnalytics;
-                })
-                .collect(toList());
+            List<AlertAnalyticsEntity.AlertTriggerAnalytics> alerts = eventsByAlert.entrySet().stream()
+                    .sorted(Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByKey(
+                                    (a1, a2) -> compareSeverity().compare(a1.getSeverity(), a2.getSeverity()))
+                            .thenComparing(
+                                    Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByValue(comparing(Set::size))
+                                            .reversed()))
+                    .map(e -> {
+                        AlertAnalyticsEntity.AlertTriggerAnalytics alertTriggerAnalytics =
+                                new AlertAnalyticsEntity.AlertTriggerAnalytics();
+                        alertTriggerAnalytics.setId(e.getKey().getId());
+                        alertTriggerAnalytics.setType(e.getKey().getType());
+                        alertTriggerAnalytics.setSeverity(e.getKey().getSeverity());
+                        alertTriggerAnalytics.setName(e.getKey().getName());
+                        alertTriggerAnalytics.setEventsCount(e.getValue().size());
+                        return alertTriggerAnalytics;
+                    })
+                    .collect(toList());
 
             return new AlertAnalyticsEntity(bySeverity, alerts);
         } catch (TechnicalException ex) {
-            final String message =
-                "An error occurs while trying to list alerts analytics by reference " + referenceType + '/' + referenceId;
+            final String message = "An error occurs while trying to list alerts analytics by reference " + referenceType
+                    + '/' + referenceId;
             throw new TechnicalManagementException(message, ex);
         }
     }

@@ -63,13 +63,12 @@ public class ApiConverter {
     private final WorkflowService workflowService;
 
     public ApiConverter(
-        final ObjectMapper objectMapper,
-        @Lazy final PlanService planService,
-        @Lazy final FlowService flowService,
-        final CategoryMapper categoryMapper,
-        final ParameterService parameterService,
-        final WorkflowService workflowService
-    ) {
+            final ObjectMapper objectMapper,
+            @Lazy final PlanService planService,
+            @Lazy final FlowService flowService,
+            final CategoryMapper categoryMapper,
+            final ParameterService parameterService,
+            final WorkflowService workflowService) {
         this.objectMapper = objectMapper;
         this.planService = planService;
         this.flowService = flowService;
@@ -105,7 +104,8 @@ public class ApiConverter {
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
                 if (apiDefinition.getDefinitionVersion() != null) {
-                    apiEntity.setGraviteeDefinitionVersion(apiDefinition.getDefinitionVersion().getLabel());
+                    apiEntity.setGraviteeDefinitionVersion(
+                            apiDefinition.getDefinitionVersion().getLabel());
                 }
                 if (apiDefinition.getExecutionMode() != null) {
                     apiEntity.setExecutionMode(apiDefinition.getExecutionMode());
@@ -118,16 +118,16 @@ public class ApiConverter {
                 }
 
                 // Issue https://github.com/gravitee-io/issues/issues/3356
-                if (
-                    apiDefinition.getProxy() != null &&
-                    apiDefinition.getProxy().getVirtualHosts() != null &&
-                    !apiDefinition.getProxy().getVirtualHosts().isEmpty()
-                ) {
-                    apiEntity.setContextPath(apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
+                if (apiDefinition.getProxy() != null
+                        && apiDefinition.getProxy().getVirtualHosts() != null
+                        && !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
+                    apiEntity.setContextPath(
+                            apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
                 }
 
                 if (apiDefinition.getPathMappings() != null) {
-                    apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
+                    apiEntity.setPathMappings(
+                            new HashSet<>(apiDefinition.getPathMappings().keySet()));
                 }
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
             } catch (IOException ioe) {
@@ -147,12 +147,14 @@ public class ApiConverter {
             apiEntity.setState(Lifecycle.State.valueOf(state.name()));
         }
         if (api.getVisibility() != null) {
-            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
+            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(
+                    api.getVisibility().toString()));
         }
 
         final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
         if (lifecycleState != null) {
-            apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
+            apiEntity.setLifecycleState(
+                    io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
         if (primaryOwnerEntity != null) {
@@ -163,19 +165,17 @@ public class ApiConverter {
     }
 
     public ApiEntity toApiEntity(
-        ExecutionContext executionContext,
-        Api api,
-        PrimaryOwnerEntity primaryOwner,
-        boolean withApiFlows,
-        boolean withPlans,
-        boolean withApiCategories
-    ) {
+            ExecutionContext executionContext,
+            Api api,
+            PrimaryOwnerEntity primaryOwner,
+            boolean withApiFlows,
+            boolean withPlans,
+            boolean withApiCategories) {
         ApiEntity apiEntity = toApiEntity(api, primaryOwner, withApiCategories);
         if (apiEntity.getDefinitionContext() == null) {
             // Set context to management for backward compatibility.
-            apiEntity.setDefinitionContext(
-                new DefinitionContext(Api.ORIGIN_MANAGEMENT, Api.MODE_FULLY_MANAGED, Api.ORIGIN_MANAGEMENT.toUpperCase())
-            );
+            apiEntity.setDefinitionContext(new DefinitionContext(
+                    Api.ORIGIN_MANAGEMENT, Api.MODE_FULLY_MANAGED, Api.ORIGIN_MANAGEMENT.toUpperCase()));
         }
 
         if (withPlans) {
@@ -189,20 +189,16 @@ public class ApiConverter {
         }
 
         if (withApiCategories) {
-            apiEntity.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+            apiEntity.setCategories(
+                    categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
         }
 
-        if (
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.API_REVIEW_ENABLED,
-                api.getEnvironmentId(),
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ) {
+        if (parameterService.findAsBoolean(
+                executionContext, Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
-                apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));
+                apiEntity.setWorkflowState(
+                        WorkflowState.valueOf(workflows.get(0).getState()));
             }
         }
 

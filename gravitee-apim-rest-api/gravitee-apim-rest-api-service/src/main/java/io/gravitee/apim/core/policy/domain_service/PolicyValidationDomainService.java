@@ -23,5 +23,6 @@ import java.util.List;
 public interface PolicyValidationDomainService {
     String validateAndSanitizeConfiguration(String policyName, String configuration);
 
-    void validatePoliciesFlowPhase(List<String> policyIds, ApiType apiType, FlowPhase phase) throws UnexpectedPoliciesException;
+    void validatePoliciesFlowPhase(List<String> policyIds, ApiType apiType, FlowPhase phase)
+            throws UnexpectedPoliciesException;
 }

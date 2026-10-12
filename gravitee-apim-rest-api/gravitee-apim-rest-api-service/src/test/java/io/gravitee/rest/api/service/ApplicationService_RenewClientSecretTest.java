@@ -116,14 +116,12 @@ public class ApplicationService_RenewClientSecretTest {
             when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
             // client registration is disabled
-            when(
-                parameterService.findAsBoolean(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                    any(),
-                    eq(ParameterReferenceType.ENVIRONMENT)
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                            any(),
+                            eq(ParameterReferenceType.ENVIRONMENT)))
+                    .thenReturn(false);
 
             applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
         });
@@ -139,21 +137,20 @@ public class ApplicationService_RenewClientSecretTest {
             when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
             // client registration is enabled
-            when(
-                parameterService.findAsBoolean(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                    any(),
-                    eq(ParameterReferenceType.ENVIRONMENT)
-                )
-            ).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                            any(),
+                            eq(ParameterReferenceType.ENVIRONMENT)))
+                    .thenReturn(true);
 
             applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
         });
     }
 
     @Test
-    public void should_update_application_with_clientId_renewed_from_clientRegistrationService() throws TechnicalException {
+    public void should_update_application_with_clientId_renewed_from_clientRegistrationService()
+            throws TechnicalException {
         Application app = fakeApp();
         app.setStatus(ApplicationStatus.ACTIVE);
         app.setType(ApplicationType.BROWSER);
@@ -165,20 +162,20 @@ public class ApplicationService_RenewClientSecretTest {
         MembershipEntity po = new MembershipEntity();
         po.setReferenceType(MembershipReferenceType.APPLICATION);
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                        any(),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
         ClientRegistrationProviderEntity clientRegistrationProvider = new ClientRegistrationProviderEntity();
         clientRegistrationProvider.setRenewClientSecretSupport(true);
-        when(clientRegistrationService.findAll(GraviteeContext.getExecutionContext())).thenReturn(Set.of(clientRegistrationProvider));
+        when(clientRegistrationService.findAll(GraviteeContext.getExecutionContext()))
+                .thenReturn(Set.of(clientRegistrationProvider));
 
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
@@ -188,12 +185,13 @@ public class ApplicationService_RenewClientSecretTest {
         applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
 
         // check DCR service has been called
-        verify(clientRegistrationService).renewClientSecret(GraviteeContext.getExecutionContext(), "{\"my\":\"payload\"}");
+        verify(clientRegistrationService)
+                .renewClientSecret(GraviteeContext.getExecutionContext(), "{\"my\":\"payload\"}");
 
         // check application has been updated with new client ID
-        verify(applicationRepository).update(
-            argThat(application -> application.getMetadata().get("client_id").equals("client-id-from-clientRegistration"))
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        application.getMetadata().get("client_id").equals("client-id-from-clientRegistration")));
     }
 
     private Application fakeApp() {

@@ -39,8 +39,8 @@ public class DeleteObservabilityDashboardUseCase {
 
     public Output execute(Input input) {
         dashboardRepository
-            .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
-            .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
+                .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
+                .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
         dashboardRepository.delete(input.dashboardId());
         return new Output();
     }

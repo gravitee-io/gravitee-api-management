@@ -25,28 +25,28 @@ public class PromotionFixtures {
 
     public static PromotionAuthor aPromotionAuthor() {
         return PromotionAuthor.builder()
-            .displayName("John Smith")
-            .userId("user-id")
-            .source("source")
-            .sourceId("source-id")
-            .email("foo@example.com")
-            .build();
+                .displayName("John Smith")
+                .userId("user-id")
+                .source("source")
+                .sourceId("source-id")
+                .email("foo@example.com")
+                .build();
     }
 
     public static Promotion aPromotion() {
         var author = aPromotionAuthor();
 
         return Promotion.builder()
-            .id("promotion-id")
-            .apiDefinition("api-definition")
-            .apiId("api-id")
-            .status(PromotionStatus.CREATED)
-            .targetEnvCockpitId("target-env-cockpit-id")
-            .targetEnvName("target-env-name")
-            .sourceEnvCockpitId("source-env-cockpit-id")
-            .sourceEnvName("source-env-name")
-            .targetApiId("target-api-id")
-            .author(author)
-            .build();
+                .id("promotion-id")
+                .apiDefinition("api-definition")
+                .apiId("api-id")
+                .status(PromotionStatus.CREATED)
+                .targetEnvCockpitId("target-env-cockpit-id")
+                .targetEnvName("target-env-name")
+                .sourceEnvCockpitId("source-env-cockpit-id")
+                .sourceEnvName("source-env-name")
+                .targetApiId("target-api-id")
+                .author(author)
+                .build();
     }
 }

@@ -41,9 +41,8 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
         Assertions.assertNotNull(analyticsRepository);
 
         DateHistogramResponse response = analyticsRepository.query(
-            new QueryContext("org#1", "env#1"),
-            dateHistogram().timeRange(lastDays(30), hours(1)).build()
-        );
+                new QueryContext("org#1", "env#1"),
+                dateHistogram().timeRange(lastDays(30), hours(1)).build());
 
         Assertions.assertNull(response);
     }

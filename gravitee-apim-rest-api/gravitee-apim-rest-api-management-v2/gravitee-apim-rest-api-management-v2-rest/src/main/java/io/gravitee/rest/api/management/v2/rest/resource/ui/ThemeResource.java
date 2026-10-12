@@ -49,7 +49,11 @@ public class ThemeResource extends AbstractResource {
     }
 
     @PUT
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_THEME,
+                acls = {RolePermissionAction.UPDATE})
+    })
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateTheme(@PathParam("themeId") String themeId, @Valid @NotNull final UpdateTheme updateTheme) {
         var mapped = ThemeMapper.INSTANCE.map(updateTheme);
@@ -57,8 +61,11 @@ public class ThemeResource extends AbstractResource {
             throw new ThemeUpdateInvalidException(themeId, updateTheme);
         }
         var result = updateThemeUseCase
-            .execute(UpdateThemeUseCase.Input.builder().updateTheme(mapped).executionContext(GraviteeContext.getExecutionContext()).build())
-            .result();
+                .execute(UpdateThemeUseCase.Input.builder()
+                        .updateTheme(mapped)
+                        .executionContext(GraviteeContext.getExecutionContext())
+                        .build())
+                .result();
         return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
     }
 }

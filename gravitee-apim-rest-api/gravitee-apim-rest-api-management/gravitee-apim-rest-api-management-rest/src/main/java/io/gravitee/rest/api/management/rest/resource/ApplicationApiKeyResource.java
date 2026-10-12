@@ -52,36 +52,31 @@ public class ApplicationApiKeyResource extends AbstractApiKeyResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Revoke an API Key", description = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(responseCode = "204", description = "API Key successfully revoked"),
-            @ApiResponse(responseCode = "400", description = "API Key does not correspond to the application"),
-            @ApiResponse(responseCode = "500", description = "Internal server error"),
-        }
-    )
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
+    @Operation(
+            summary = "Revoke an API Key",
+            description = "User must have the MANAGE_API_KEYS permission to use this service")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "API Key successfully revoked"),
+        @ApiResponse(responseCode = "400", description = "API Key does not correspond to the application"),
+        @ApiResponse(responseCode = "500", description = "Internal server error"),
+    })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE)})
     public Response revokeApiKeyForApplication(@PathParam("apikey") String apikey) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final var user = getAuthenticatedUserDetails();
 
-        revokeApplicationApiKeyUsecase.execute(
-            new RevokeApplicationApiKeyUseCase.Input(
+        revokeApplicationApiKeyUsecase.execute(new RevokeApplicationApiKeyUseCase.Input(
                 apikey,
                 application,
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(user.getUsername())
-                            .userSource(user.getSource())
-                            .userSourceId(user.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(user.getUsername())
+                                .userSource(user.getSource())
+                                .userSourceId(user.getSourceId())
+                                .build())
+                        .build()));
 
         return Response.status(Response.Status.NO_CONTENT).build();
     }

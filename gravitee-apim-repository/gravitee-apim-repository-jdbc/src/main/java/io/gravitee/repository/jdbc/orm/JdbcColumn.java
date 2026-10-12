@@ -43,13 +43,12 @@ public class JdbcColumn {
     }
 
     JdbcColumn(
-        String name,
-        int jdbcType,
-        Class owningClass,
-        Class fieldType,
-        Function<?, String> serializer,
-        Function<String, ?> deserializer
-    ) {
+            String name,
+            int jdbcType,
+            Class owningClass,
+            Class fieldType,
+            Function<?, String> serializer,
+            Function<String, ?> deserializer) {
         this.name = getAccessorName(name);
         this.jdbcType = jdbcType;
         this.javaType = fieldType;
@@ -65,15 +64,16 @@ public class JdbcColumn {
             this.getter = owningClass.getMethod(getterName);
         } catch (NoSuchMethodException ex) {
             log.error("Method {} not found: ", getterName, ex);
-            throw new IllegalStateException("Method " + owningClass.getSimpleName() + "." + getterName + " not found", ex);
+            throw new IllegalStateException(
+                    "Method " + owningClass.getSimpleName() + "." + getterName + " not found", ex);
         }
         try {
             this.setter = owningClass.getMethod("set" + this.name, fieldType);
         } catch (NoSuchMethodException ex) {
             throw new IllegalStateException(
-                "Method " + owningClass.getSimpleName() + ".set" + this.name + "( " + fieldType.getSimpleName() + ") not found",
-                ex
-            );
+                    "Method " + owningClass.getSimpleName() + ".set" + this.name + "( " + fieldType.getSimpleName()
+                            + ") not found",
+                    ex);
         }
     }
 

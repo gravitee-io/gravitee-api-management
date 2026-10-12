@@ -24,7 +24,6 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -51,11 +50,13 @@ class MessageFieldResolverTest {
      * that would is the join — whose documents predate the fields.
      */
     @ParameterizedTest
-    @EnumSource(value = Facet.class, names = { "APPLICATION", "PLAN", "TENANT", "ZONE" })
+    @EnumSource(
+            value = Facet.class,
+            names = {"APPLICATION", "PLAN", "TENANT", "ZONE"})
     void should_refuse_a_dimension_the_message_index_does_not_carry(Facet facet) {
         assertThatThrownBy(() -> resolver.fromFacet(facet))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining(facet.name());
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining(facet.name());
     }
 
     /**
@@ -65,6 +66,7 @@ class MessageFieldResolverTest {
      */
     @Test
     void should_resolve_the_entrypoint_for_filtering() {
-        assertThat(resolver.fromFilter(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.EQ, "sse"))).isEqualTo("entrypoint-id");
+        assertThat(resolver.fromFilter(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.EQ, "sse")))
+                .isEqualTo("entrypoint-id");
     }
 }

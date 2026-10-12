@@ -68,10 +68,12 @@ class ApiProductGroupServiceImplTest {
 
         assertThat(apiProduct.getGroups()).contains("group-1");
         verify(apiProductsRepository).update(apiProduct);
-        verify(apiProductNotificationService).triggerUpdateNotification(
-            same(EXECUTION_CONTEXT),
-            argThat(product -> product != null && "api-product-1".equals(product.getId()) && product.getGroups().contains("group-1"))
-        );
+        verify(apiProductNotificationService)
+                .triggerUpdateNotification(
+                        same(EXECUTION_CONTEXT),
+                        argThat(product -> product != null
+                                && "api-product-1".equals(product.getId())
+                                && product.getGroups().contains("group-1")));
     }
 
     @Test
@@ -87,16 +89,13 @@ class ApiProductGroupServiceImplTest {
 
         assertThat(apiProduct.getGroups()).containsExactlyInAnyOrder("existing-group", "group-1");
         verify(apiProductsRepository).update(apiProduct);
-        verify(apiProductNotificationService).triggerUpdateNotification(
-            same(EXECUTION_CONTEXT),
-            argThat(
-                product ->
-                    product != null &&
-                    "api-product-1".equals(product.getId()) &&
-                    product.getGroups().contains("existing-group") &&
-                    product.getGroups().contains("group-1")
-            )
-        );
+        verify(apiProductNotificationService)
+                .triggerUpdateNotification(
+                        same(EXECUTION_CONTEXT),
+                        argThat(product -> product != null
+                                && "api-product-1".equals(product.getId())
+                                && product.getGroups().contains("existing-group")
+                                && product.getGroups().contains("group-1")));
     }
 
     @Test
@@ -127,10 +126,12 @@ class ApiProductGroupServiceImplTest {
 
         assertThat(apiProduct.getGroups()).containsExactly("group-2");
         verify(apiProductsRepository).update(apiProduct);
-        verify(apiProductNotificationService).triggerUpdateNotification(
-            same(EXECUTION_CONTEXT),
-            argThat(product -> product != null && "api-product-1".equals(product.getId()) && product.getGroups().contains("group-2"))
-        );
+        verify(apiProductNotificationService)
+                .triggerUpdateNotification(
+                        same(EXECUTION_CONTEXT),
+                        argThat(product -> product != null
+                                && "api-product-1".equals(product.getId())
+                                && product.getGroups().contains("group-2")));
     }
 
     @Test
@@ -153,16 +154,16 @@ class ApiProductGroupServiceImplTest {
     void should_throw_when_api_product_not_found_on_add() throws TechnicalException {
         when(apiProductsRepository.findById("missing")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.addGroup(EXECUTION_CONTEXT, "missing", "group-1")).isInstanceOf(ApiProductNotFoundException.class);
+        assertThatThrownBy(() -> service.addGroup(EXECUTION_CONTEXT, "missing", "group-1"))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
     void should_throw_when_api_product_not_found_on_remove() throws TechnicalException {
         when(apiProductsRepository.findById("missing")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.removeGroup(EXECUTION_CONTEXT, "missing", "group-1")).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> service.removeGroup(EXECUTION_CONTEXT, "missing", "group-1"))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
@@ -173,9 +174,8 @@ class ApiProductGroupServiceImplTest {
 
         when(apiProductsRepository.findById("api-product-1")).thenReturn(Optional.of(apiProduct));
 
-        assertThatThrownBy(() -> service.addGroup(EXECUTION_CONTEXT, "api-product-1", "group-1")).isInstanceOf(
-            ApiProductNotFoundException.class
-        );
+        assertThatThrownBy(() -> service.addGroup(EXECUTION_CONTEXT, "api-product-1", "group-1"))
+                .isInstanceOf(ApiProductNotFoundException.class);
 
         verify(apiProductsRepository, never()).update(same(apiProduct));
     }
@@ -185,8 +185,8 @@ class ApiProductGroupServiceImplTest {
         when(apiProductsRepository.findById("api-product-1")).thenThrow(new TechnicalException("db error"));
 
         assertThatThrownBy(() -> service.addGroup(EXECUTION_CONTEXT, "api-product-1", "group-1"))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasCauseInstanceOf(TechnicalException.class);
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasCauseInstanceOf(TechnicalException.class);
     }
 
     @Test
@@ -194,7 +194,7 @@ class ApiProductGroupServiceImplTest {
         when(apiProductsRepository.findById("api-product-1")).thenThrow(new TechnicalException("db error"));
 
         assertThatThrownBy(() -> service.removeGroup(EXECUTION_CONTEXT, "api-product-1", "group-1"))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasCauseInstanceOf(TechnicalException.class);
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasCauseInstanceOf(TechnicalException.class);
     }
 }

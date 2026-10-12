@@ -57,7 +57,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
     private final ApiLifecycleStateDomainService apiLifecycleStateDomainService;
 
     @Override
-    public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
+    public Api validateAndSanitizeForCreation(
+            Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
         if (api.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ValidationDomainException("Definition not supported, should be V4");
         }
@@ -75,45 +76,34 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
     @Override
     public Api validateAndSanitizeForUpdate(
-        Api existingApi,
-        Api apiToBeUpdated,
-        PrimaryOwnerEntity primaryOwner,
-        String environmentId,
-        String organizationId
-    ) {
+            Api existingApi,
+            Api apiToBeUpdated,
+            PrimaryOwnerEntity primaryOwner,
+            String environmentId,
+            String organizationId) {
         if (!Objects.equals(existingApi.getEnvironmentId(), environmentId)) {
             throw new ApiNotFoundException(existingApi.getId());
         }
         if (existingApi.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ValidationDomainException("Definition not supported, should be V4");
         }
-        if (existingApi.getType() == ApiType.NATIVE && apiToBeUpdated.getApiDefinitionValue() instanceof NativeApi nativeApi) {
+        if (existingApi.getType() == ApiType.NATIVE
+                && apiToBeUpdated.getApiDefinitionValue() instanceof NativeApi nativeApi) {
             return validateAndSanitizeNativeV4ForUpdate(
-                existingApi,
-                apiToBeUpdated,
-                nativeApi,
-                primaryOwner,
-                environmentId,
-                organizationId
-            );
+                    existingApi, apiToBeUpdated, nativeApi, primaryOwner, environmentId, organizationId);
         } else {
             throw new ValidationDomainException("Only Native V4 APIs are currently supported");
         }
     }
 
     private void validateAndSanitizeHttpV4ForCreation(
-        final Api api,
-        PrimaryOwnerEntity primaryOwner,
-        String environmentId,
-        String organizationId
-    ) {
+            final Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
         var newApiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api);
 
         apiValidationService.validateAndSanitizeNewApi(
-            new ExecutionContext(organizationId, environmentId),
-            newApiEntity,
-            PrimaryOwnerAdapter.INSTANCE.toRestEntity(primaryOwner)
-        );
+                new ExecutionContext(organizationId, environmentId),
+                newApiEntity,
+                PrimaryOwnerAdapter.INSTANCE.toRestEntity(primaryOwner));
 
         api.setName(newApiEntity.getName());
         api.setVersion(newApiEntity.getApiVersion());
@@ -128,26 +118,22 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         api.getApiDefinitionHttpV4().setFlowExecution(newApiEntity.getFlowExecution());
         api.getApiDefinitionHttpV4().setFailover(newApiEntity.getFailover());
 
-        api.getApiDefinitionHttpV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionHttpV4().getResources()));
+        api.getApiDefinitionHttpV4()
+                .setResources(apiValidationService.validateAndSanitize(
+                        api.getApiDefinitionHttpV4().getResources()));
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(
-            api.getType(),
-            newApiEntity.getFlows(),
-            ApiResourceNames.fromHttpV4(api)
-        );
+                api.getType(), newApiEntity.getFlows(), ApiResourceNames.fromHttpV4(api));
         api.getApiDefinitionHttpV4().setFlows(sanitizedFlows);
 
         apiValidationService.validateDynamicProperties(
-            api.getApiDefinitionHttpV4().getServices() != null ? api.getApiDefinitionHttpV4().getServices().getDynamicProperty() : null
-        );
+                api.getApiDefinitionHttpV4().getServices() != null
+                        ? api.getApiDefinitionHttpV4().getServices().getDynamicProperty()
+                        : null);
     }
 
     private void validateAndSanitizeNativeV4ForCreation(
-        final Api newApi,
-        PrimaryOwnerEntity primaryOwner,
-        String environmentId,
-        String organizationId
-    ) {
+            final Api newApi, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
         if (newApi.getType() == ApiType.NATIVE && newApi.getApiDefinitionValue() instanceof NativeApi nativeApi) {
             var executionContext = new ExecutionContext(organizationId, environmentId);
 
@@ -158,7 +144,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
             newApi.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApi.getTags()));
 
             // Validate groups
-            newApi.setGroups(groupValidationService.validateAndSanitize(newApi.getGroups(), newApi.getEnvironmentId(), primaryOwner, true));
+            newApi.setGroups(groupValidationService.validateAndSanitize(
+                    newApi.getGroups(), newApi.getEnvironmentId(), primaryOwner, true));
 
             // Validate and clean definition
             newApi.setApiDefinitionValue(validateAndSanitizeNativeV4Definition(nativeApi, executionContext));
@@ -168,37 +155,31 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
     }
 
     private Api validateAndSanitizeNativeV4ForUpdate(
-        final Api existingApi,
-        Api toBeUpdatedApi,
-        NativeApi nativeApiToBeUpdated,
-        PrimaryOwnerEntity primaryOwner,
-        String environmentId,
-        String organizationId
-    ) {
+            final Api existingApi,
+            Api toBeUpdatedApi,
+            NativeApi nativeApiToBeUpdated,
+            PrimaryOwnerEntity primaryOwner,
+            String environmentId,
+            String organizationId) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
 
         // Clean description
         toBeUpdatedApi.setDescription(HtmlSanitizer.sanitize(toBeUpdatedApi.getDescription()));
 
         // Validate tags
-        toBeUpdatedApi.setTags(tagsValidationService.validateAndSanitize(executionContext, null, toBeUpdatedApi.getTags()));
+        toBeUpdatedApi.setTags(
+                tagsValidationService.validateAndSanitize(executionContext, null, toBeUpdatedApi.getTags()));
 
         // Validate groups
-        toBeUpdatedApi.setGroups(
-            groupValidationService.validateAndSanitize(toBeUpdatedApi.getGroups(), toBeUpdatedApi.getEnvironmentId(), primaryOwner, false)
-        );
+        toBeUpdatedApi.setGroups(groupValidationService.validateAndSanitize(
+                toBeUpdatedApi.getGroups(), toBeUpdatedApi.getEnvironmentId(), primaryOwner, false));
 
         // Validate categories
         toBeUpdatedApi.setCategories(categoryDomainService.toCategoryId(toBeUpdatedApi, environmentId));
 
         // Lifecycle state
-        toBeUpdatedApi.setApiLifecycleState(
-            apiLifecycleStateDomainService.validateAndSanitizeForUpdate(
-                toBeUpdatedApi.getId(),
-                existingApi.getApiLifecycleState(),
-                toBeUpdatedApi.getApiLifecycleState()
-            )
-        );
+        toBeUpdatedApi.setApiLifecycleState(apiLifecycleStateDomainService.validateAndSanitizeForUpdate(
+                toBeUpdatedApi.getId(), existingApi.getApiLifecycleState(), toBeUpdatedApi.getApiLifecycleState()));
 
         // Validate and clean definition
         NativeApi newDefinition = validateAndSanitizeNativeV4Definition(nativeApiToBeUpdated, executionContext);
@@ -208,18 +189,17 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         return toBeUpdatedApi;
     }
 
-    private NativeApi validateAndSanitizeNativeV4Definition(NativeApi apiDefinition, ExecutionContext executionContext) {
-        apiDefinition.setListeners(
-            listenerValidationService.validateAndSanitizeNativeV4(
+    private NativeApi validateAndSanitizeNativeV4Definition(
+            NativeApi apiDefinition, ExecutionContext executionContext) {
+        apiDefinition.setListeners(listenerValidationService.validateAndSanitizeNativeV4(
                 executionContext,
                 apiDefinition.getId(),
                 apiDefinition.getListeners(),
-                apiDefinition.getEndpointGroups()
-            )
-        );
+                apiDefinition.getEndpointGroups()));
 
         // Validate and clean endpoints
-        apiDefinition.setEndpointGroups(endpointGroupsValidationService.validateAndSanitizeNativeV4(apiDefinition.getEndpointGroups()));
+        apiDefinition.setEndpointGroups(
+                endpointGroupsValidationService.validateAndSanitizeNativeV4(apiDefinition.getEndpointGroups()));
 
         // Validate and clean flows
         apiDefinition.setFlows(flowValidationDomainService.validateAndSanitizeNativeV4(apiDefinition.getFlows()));
@@ -229,8 +209,9 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         apiDefinition.setResources(apiValidationService.validateAndSanitize(apiDefinition.getResources()));
 
         apiValidationService.validateDynamicProperties(
-            apiDefinition.getServices() != null ? apiDefinition.getServices().getDynamicProperty() : null
-        );
+                apiDefinition.getServices() != null
+                        ? apiDefinition.getServices().getDynamicProperty()
+                        : null);
 
         return apiDefinition;
     }

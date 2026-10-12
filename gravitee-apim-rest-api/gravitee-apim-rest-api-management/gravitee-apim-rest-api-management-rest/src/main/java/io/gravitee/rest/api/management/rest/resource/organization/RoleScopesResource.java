@@ -57,47 +57,75 @@ public class RoleScopesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List availables role scopes")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of role scopes",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RoleScopesLinkedHashMap.class))
-    )
+            responseCode = "200",
+            description = "List of role scopes",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = RoleScopesLinkedHashMap.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public RoleScopesLinkedHashMap getRoleScopes() {
         final RoleScopesLinkedHashMap roles = new RoleScopesLinkedHashMap(4);
         roles.put(
-            RoleScope.ORGANIZATION.name(),
-            stream(OrganizationPermission.values()).map(OrganizationPermission::getName).sorted().collect(toList())
-        );
+                RoleScope.ORGANIZATION.name(),
+                stream(OrganizationPermission.values())
+                        .map(OrganizationPermission::getName)
+                        .sorted()
+                        .collect(toList()));
         roles.put(
-            RoleScope.ENVIRONMENT.name(),
-            stream(EnvironmentPermission.values()).map(EnvironmentPermission::getName).sorted().collect(toList())
-        );
-        roles.put(RoleScope.API.name(), stream(ApiPermission.values()).map(ApiPermission::getName).sorted().collect(toList()));
+                RoleScope.ENVIRONMENT.name(),
+                stream(EnvironmentPermission.values())
+                        .map(EnvironmentPermission::getName)
+                        .sorted()
+                        .collect(toList()));
         roles.put(
-            RoleScope.APPLICATION.name(),
-            stream(ApplicationPermission.values()).map(ApplicationPermission::getName).sorted().collect(toList())
-        );
+                RoleScope.API.name(),
+                stream(ApiPermission.values())
+                        .map(ApiPermission::getName)
+                        .sorted()
+                        .collect(toList()));
         roles.put(
-            RoleScope.INTEGRATION.name(),
-            stream(IntegrationPermission.values()).map(IntegrationPermission::getName).sorted().collect(toList())
-        );
-        roles.put(RoleScope.CLUSTER.name(), stream(ClusterPermission.values()).map(ClusterPermission::getName).sorted().collect(toList()));
+                RoleScope.APPLICATION.name(),
+                stream(ApplicationPermission.values())
+                        .map(ApplicationPermission::getName)
+                        .sorted()
+                        .collect(toList()));
         roles.put(
-            RoleScope.API_PRODUCT.name(),
-            stream(ApiProductPermission.values()).map(ApiProductPermission::getName).sorted().collect(toList())
-        );
+                RoleScope.INTEGRATION.name(),
+                stream(IntegrationPermission.values())
+                        .map(IntegrationPermission::getName)
+                        .sorted()
+                        .collect(toList()));
         roles.put(
-            RoleScope.AI_CATALOG.name(),
-            stream(AiCatalogPermission.values()).map(AiCatalogPermission::getName).sorted().collect(toList())
-        );
+                RoleScope.CLUSTER.name(),
+                stream(ClusterPermission.values())
+                        .map(ClusterPermission::getName)
+                        .sorted()
+                        .collect(toList()));
         roles.put(
-            RoleScope.EXPLORER.name(),
-            stream(ExplorerPermission.values()).map(ExplorerPermission::getName).sorted().collect(toList())
-        );
+                RoleScope.API_PRODUCT.name(),
+                stream(ApiProductPermission.values())
+                        .map(ApiProductPermission::getName)
+                        .sorted()
+                        .collect(toList()));
         roles.put(
-            RoleScope.AI_WORKSPACE.name(),
-            stream(AiWorkspacePermission.values()).map(AiWorkspacePermission::getName).sorted().collect(toList())
-        );
+                RoleScope.AI_CATALOG.name(),
+                stream(AiCatalogPermission.values())
+                        .map(AiCatalogPermission::getName)
+                        .sorted()
+                        .collect(toList()));
+        roles.put(
+                RoleScope.EXPLORER.name(),
+                stream(ExplorerPermission.values())
+                        .map(ExplorerPermission::getName)
+                        .sorted()
+                        .collect(toList()));
+        roles.put(
+                RoleScope.AI_WORKSPACE.name(),
+                stream(AiWorkspacePermission.values())
+                        .map(AiWorkspacePermission::getName)
+                        .sorted()
+                        .collect(toList()));
         return roles;
     }
 

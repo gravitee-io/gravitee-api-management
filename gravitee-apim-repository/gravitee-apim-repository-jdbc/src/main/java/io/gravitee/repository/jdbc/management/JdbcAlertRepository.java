@@ -45,7 +45,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger, String> implements AlertTriggerRepository {
+public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger, String>
+        implements AlertTriggerRepository {
 
     private final String ALERT_EVENT_RULES;
 
@@ -57,20 +58,20 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     @Override
     protected JdbcObjectMapper<AlertTrigger> buildOrm() {
         return JdbcObjectMapper.builder(AlertTrigger.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("enabled", Types.BIT, boolean.class)
-            .addColumn("severity", Types.NVARCHAR, String.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("template", Types.BIT, boolean.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("enabled", Types.BIT, boolean.class)
+                .addColumn("severity", Types.NVARCHAR, String.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("template", Types.BIT, boolean.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -79,24 +80,22 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     }
 
     @Override
-    public List<AlertTrigger> findByReferenceAndReferenceIds(final String referenceType, final List<String> referenceIds)
-        throws TechnicalException {
+    public List<AlertTrigger> findByReferenceAndReferenceIds(
+            final String referenceType, final List<String> referenceIds) throws TechnicalException {
         log.debug("JdbcAlertRepository.findByReferenceAndReferenceIds({}, {})", referenceType, referenceIds);
         if (isEmpty(referenceIds)) {
             return emptyList();
         }
         try {
             List<AlertTrigger> rows = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " where reference_type = ? and reference_id in ( " +
-                    getOrm().buildInClause(referenceIds) +
-                    " )",
-                (PreparedStatement ps) -> {
-                    ps.setString(1, referenceType);
-                    getOrm().setArguments(ps, referenceIds, 2);
-                },
-                getOrm().getRowMapper()
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in ( "
+                            + getOrm().buildInClause(referenceIds)
+                            + " )",
+                    (PreparedStatement ps) -> {
+                        ps.setString(1, referenceType);
+                        getOrm().setArguments(ps, referenceIds, 2);
+                    },
+                    getOrm().getRowMapper());
 
             return rows.stream().peek(this::addEvents).collect(Collectors.toList());
         } catch (final Exception ex) {
@@ -110,10 +109,11 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     public Optional<AlertTrigger> findById(String id) throws TechnicalException {
         log.debug("JdbcAlertRepository.findById({})", id);
         try {
-            Optional<AlertTrigger> alert = jdbcTemplate
-                .query(getOrm().getSelectAllSql() + " a where id = ?", getOrm().getRowMapper(), id)
-                .stream()
-                .findFirst();
+            Optional<AlertTrigger> alert =
+                    jdbcTemplate
+                            .query(getOrm().getSelectAllSql() + " a where id = ?", getOrm().getRowMapper(), id)
+                            .stream()
+                            .findFirst();
             if (alert.isPresent()) {
                 addEvents(alert.get());
             }
@@ -144,9 +144,8 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(alert, alert.getId()));
             storeEvents(alert, true);
-            return findById(alert.getId()).orElseThrow(() ->
-                new IllegalStateException(format("No alert found with id [%s]", alert.getId()))
-            );
+            return findById(alert.getId())
+                    .orElseThrow(() -> new IllegalStateException(format("No alert found with id [%s]", alert.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -168,18 +167,17 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
 
     private List<AlertEventRule> getEvents(String alertId) {
         List<AlertEventType> events = jdbcTemplate.query(
-            "select alert_event from " + ALERT_EVENT_RULES + " where alert_id = ?",
-            (ResultSet rs, int rowNum) -> {
-                String value = rs.getString(1);
-                try {
-                    return AlertEventType.valueOf(value);
-                } catch (IllegalArgumentException ex) {
-                    log.error("Failed to parse {} as alert_event:", value, ex);
-                    return null;
-                }
-            },
-            alertId
-        );
+                "select alert_event from " + ALERT_EVENT_RULES + " where alert_id = ?",
+                (ResultSet rs, int rowNum) -> {
+                    String value = rs.getString(1);
+                    try {
+                        return AlertEventType.valueOf(value);
+                    } catch (IllegalArgumentException ex) {
+                        log.error("Failed to parse {} as alert_event:", value, ex);
+                        return null;
+                    }
+                },
+                alertId);
 
         List<AlertEventRule> eventRules = new ArrayList<>(events.size());
         for (AlertEventType event : events) {
@@ -203,9 +201,8 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
         }
         if (!events.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + ALERT_EVENT_RULES + " ( alert_id, alert_event ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(alert.getId(), events)
-            );
+                    "insert into " + ALERT_EVENT_RULES + " ( alert_id, alert_event ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(alert.getId(), events));
         }
     }
 

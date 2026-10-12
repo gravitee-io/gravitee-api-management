@@ -46,26 +46,26 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
 
     @Test
     public void applyDefaults_should_call_apiRepository_to_find_apis_using_environment_as_criteria()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity(true);
         final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
         when(alertTriggerRepository.findById("my-alert")).thenReturn(Optional.of(alertTrigger));
 
-        when(
-            apiRepository.searchIds(
-                argThat(criteria -> criteria.get(0).getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())),
-                any(Pageable.class),
-                isNull()
-            )
-        ).thenReturn(new Page<>(null, 0, 1, 0));
+        when(apiRepository.searchIds(
+                        argThat(criteria ->
+                                criteria.get(0).getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment())),
+                        any(Pageable.class),
+                        isNull()))
+                .thenReturn(new Page<>(null, 0, 1, 0));
 
         alertService.applyDefaults(GraviteeContext.getExecutionContext(), "my-alert", AlertReferenceType.API);
     }
 
     @Test
-    public void must_throw_AlertNotFoundException_when_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
-        throws TechnicalException {
+    public void
+            must_throw_AlertNotFoundException_when_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
+                    throws TechnicalException {
         assertThrows(AlertNotFoundException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
@@ -76,8 +76,9 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
     }
 
     @Test
-    public void must_throw_AlertTemplateInvalidException_when_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
-        throws TechnicalException, JsonProcessingException {
+    public void
+            must_throw_AlertTemplateInvalidException_when_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
+                    throws TechnicalException, JsonProcessingException {
         assertThrows(AlertTemplateInvalidException.class, () -> {
             final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
             final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
@@ -90,7 +91,7 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
 
     @Test
     public void must_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
-        throws TechnicalException, JsonProcessingException {
+            throws TechnicalException, JsonProcessingException {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity(true);
         final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
@@ -100,9 +101,8 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
         when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 
-        when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull())).thenReturn(
-            new Page<>(List.of(UUID.randomUUID().toString()), 0, 1, 1)
-        );
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull()))
+                .thenReturn(new Page<>(List.of(UUID.randomUUID().toString()), 0, 1, 1));
 
         alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
     }

@@ -36,7 +36,8 @@ public class ApplicationInvitationFixtures {
         return anApplicationInvitation(id, APPLICATION_ID, email, role);
     }
 
-    public static ApplicationInvitation anApplicationInvitation(String id, String applicationId, String email, String role) {
+    public static ApplicationInvitation anApplicationInvitation(
+            String id, String applicationId, String email, String role) {
         return ApplicationInvitation.of(InvitationId.of(id), applicationId, email, role, date(), date());
     }
 

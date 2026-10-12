@@ -99,25 +99,22 @@ public class RatingAnswer {
 
     @Override
     public String toString() {
-        return (
-            "RatingAnswer{" +
-            "id='" +
-            id +
-            '\'' +
-            ", rating='" +
-            rating +
-            '\'' +
-            ", user='" +
-            user +
-            '\'' +
-            ", comment='" +
-            comment +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("RatingAnswer{" + "id='"
+                + id
+                + '\''
+                + ", rating='"
+                + rating
+                + '\''
+                + ", user='"
+                + user
+                + '\''
+                + ", comment='"
+                + comment
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

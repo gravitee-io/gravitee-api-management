@@ -49,7 +49,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @CustomLog
-public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.api.command.hello.HelloCommand, HelloCommand, HelloReply> {
+public class HelloCommandAdapter
+        implements CommandAdapter<io.gravitee.exchange.api.command.hello.HelloCommand, HelloCommand, HelloReply> {
 
     private static final String PATH_SUFFIX = "/";
 
@@ -73,10 +74,9 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
         StringBuilder authPathBuilder = new StringBuilder(configuration.getManagementProxyPath());
         if (configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX)) {
             authPathBuilder.append(authPath.substring(1));
-        } else if (
-            (configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) ||
-            (!configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX))
-        ) {
+        } else if ((configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX))
+                || (!configuration.getManagementProxyPath().endsWith(PATH_SUFFIX)
+                        && authPath.startsWith(PATH_SUFFIX))) {
             authPathBuilder.append(authPath);
         } else if (!configuration.getManagementProxyPath().endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) {
             authPathBuilder.append(PATH_SUFFIX).append(authPath);
@@ -90,46 +90,40 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
     }
 
     @Override
-    public Single<HelloCommand> adapt(final String targetId, final io.gravitee.exchange.api.command.hello.HelloCommand command) {
+    public Single<HelloCommand> adapt(
+            final String targetId, final io.gravitee.exchange.api.command.hello.HelloCommand command) {
         return Single.fromCallable(installationService::getOrInitialize).map(installation -> {
             InstallationType installationType = installationTypeDomainService.get();
 
             HelloCommandPayload.HelloCommandPayloadBuilder<?, ?> payloadBuilder = HelloCommandPayload.builder()
-                .node(
-                    io.gravitee.cockpit.api.command.model.Node.builder()
-                        .application(node.application())
-                        .installationId(installation.getId())
-                        .hostname(node.hostname())
-                        .version(Version.RUNTIME_VERSION.MAJOR_VERSION)
-                        .connectorVersion(connectorVersion())
-                        .build()
-                )
-                .installationType(installationType.getLabel())
-                .trial(cockpitTrial)
-                .defaultOrganizationId(GraviteeContext.getDefaultOrganization())
-                .defaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
+                    .node(io.gravitee.cockpit.api.command.model.Node.builder()
+                            .application(node.application())
+                            .installationId(installation.getId())
+                            .hostname(node.hostname())
+                            .version(Version.RUNTIME_VERSION.MAJOR_VERSION)
+                            .connectorVersion(connectorVersion())
+                            .build())
+                    .installationType(installationType.getLabel())
+                    .trial(cockpitTrial)
+                    .defaultOrganizationId(GraviteeContext.getDefaultOrganization())
+                    .defaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
             Map<String, String> additionalInformation = new HashMap<>(configuration.getAdditionalInformation());
             additionalInformation.putAll(installation.getAdditionalInformation());
             additionalInformation.put(AdditionalInfoConstants.AUTH_PATH, buildAuthPath);
             if (installationType == InstallationType.MULTI_TENANT) {
                 Map<AccessPoint.Type, List<AccessPoint>> accessPointTemplates = new EnumMap<>(AccessPoint.Type.class);
                 cockpitAccessService
-                    .getAccessPointsTemplate()
-                    .forEach((type, accessPoints) ->
-                        accessPointTemplates.put(
-                            AccessPoint.Type.valueOf(type.name()),
-                            accessPoints
-                                .stream()
-                                .map(accessPoint ->
-                                    AccessPoint.builder()
-                                        .host(accessPoint.getHost())
-                                        .secured(accessPoint.isSecured())
-                                        .target(AccessPoint.Target.valueOf(accessPoint.getTarget().name()))
-                                        .build()
-                                )
-                                .toList()
-                        )
-                    );
+                        .getAccessPointsTemplate()
+                        .forEach((type, accessPoints) -> accessPointTemplates.put(
+                                AccessPoint.Type.valueOf(type.name()),
+                                accessPoints.stream()
+                                        .map(accessPoint -> AccessPoint.builder()
+                                                .host(accessPoint.getHost())
+                                                .secured(accessPoint.isSecured())
+                                                .target(AccessPoint.Target.valueOf(
+                                                        accessPoint.getTarget().name()))
+                                                .build())
+                                        .toList()));
                 payloadBuilder.accessPointsTemplate(accessPointTemplates);
             } else {
                 additionalInformation.put(AdditionalInfoConstants.AUTH_BASE_URL, configuration.getApiURL());
@@ -141,7 +135,10 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
 
     private String connectorVersion() {
         try {
-            return this.pluginRegistry.get("cockpit", "cockpit-connectors-ws").manifest().version();
+            return this.pluginRegistry
+                    .get("cockpit", "cockpit-connectors-ws")
+                    .manifest()
+                    .version();
         } catch (Exception e) {
             return "unknown";
         }

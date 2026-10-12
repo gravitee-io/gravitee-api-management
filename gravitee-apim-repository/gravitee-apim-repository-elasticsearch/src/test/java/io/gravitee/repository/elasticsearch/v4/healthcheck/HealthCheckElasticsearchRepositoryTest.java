@@ -29,13 +29,9 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,8 +76,9 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // When
             var responseTime = repository
-                .averageResponseTime(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "endpoint", from, to))
-                .blockingGet();
+                    .averageResponseTime(
+                            new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "endpoint", from, to))
+                    .blockingGet();
 
             // Then
             assertThat(requireNonNull(responseTime).globalResponseTimeMs()).isEqualTo(7L);
@@ -96,8 +93,9 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // When
             var responseTime = repository
-                .averageResponseTime(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "gateway", from, to))
-                .blockingGet();
+                    .averageResponseTime(
+                            new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "gateway", from, to))
+                    .blockingGet();
 
             // Then
             assertThat(requireNonNull(responseTime).globalResponseTimeMs()).isEqualTo(6L);
@@ -117,11 +115,10 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // When
             var responseTime = repository
-                .averageResponseTimeOvertime(
-                    new QueryContext("org#1", "env#1"),
-                    new AverageHealthCheckResponseTimeOvertimeQuery(API_ID, from, to, interval)
-                )
-                .blockingGet();
+                    .averageResponseTimeOvertime(
+                            new QueryContext("org#1", "env#1"),
+                            new AverageHealthCheckResponseTimeOvertimeQuery(API_ID, from, to, interval))
+                    .blockingGet();
 
             // Then
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
@@ -130,24 +127,26 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
             int minuteNow = nowDateTime.getMinute();
             minuteNow = (minuteNow / 10) * 10;
 
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
+            DateTimeFormatter timeFormatter =
+                    DateTimeFormatter.ofPattern("HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
             String expectedTime = timeFormatter.format(nowDateTime.withMinute(minuteNow));
 
             assertThat(requireNonNull(responseTime).buckets().entrySet())
-                .hasSize((int) nbBuckets + 1)
-                .haveExactly(1, bucketOfTimeHaveValue(expectedTime, 7L));
+                    .hasSize((int) nbBuckets + 1)
+                    .haveExactly(1, bucketOfTimeHaveValue(expectedTime, 7L));
         }
 
         private static Condition<Map.Entry<String, Long>> bucketOfTimeHaveValue(String timeSuffix, long value) {
-            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entry for '%s' with value %d".formatted(timeSuffix, value));
+            return bucket(
+                    key -> key.endsWith(timeSuffix),
+                    d -> d == value,
+                    "entry for '%s' with value %d".formatted(timeSuffix, value));
         }
 
         private static Condition<Map.Entry<String, Long>> bucket(
-            Predicate<String> keyPredicate,
-            DoublePredicate value,
-            String description
-        ) {
-            return new Condition<>(entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
+                Predicate<String> keyPredicate, DoublePredicate value, String description) {
+            return new Condition<>(
+                    entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
         }
     }
 
@@ -162,82 +161,72 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // When
             var result = repository
-                .searchLogs(
-                    new QueryContext("org#1", "env#1"),
-                    new HealthCheckLogQuery(API_ID, from, to, Optional.of(false), new PageableBuilder().pageSize(2).pageNumber(1).build())
-                )
-                .blockingGet();
+                    .searchLogs(
+                            new QueryContext("org#1", "env#1"),
+                            new HealthCheckLogQuery(
+                                    API_ID,
+                                    from,
+                                    to,
+                                    Optional.of(false),
+                                    new PageableBuilder()
+                                            .pageSize(2)
+                                            .pageNumber(1)
+                                            .build()))
+                    .blockingGet();
 
             // Then
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getTotalElements()).isEqualTo(2);
                 softly.assertThat(result.getPageNumber()).isOne();
                 softly.assertThat(result.getPageElements()).isEqualTo(2);
-                softly
-                    .assertThat(result.getContent())
-                    .containsExactly(
-                        new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
-                            "AVsGgxUsooztmMPf1gOp",
-                            now.truncatedTo(ChronoUnit.SECONDS),
-                            "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
-                            "other",
-                            "gw2",
-                            5L,
-                            false,
-                            List.of(
-                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Step(
-                                    "default-step",
-                                    false,
-                                    "assertion failed",
-                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Request(
-                                        "https://api.gravitee.io/echo/",
-                                        "GET",
-                                        Map.of()
-                                    ),
-                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Response(
-                                        200,
-                                        "KO",
-                                        Map.of("Content-Type", "plain/text")
-                                    )
-                                )
-                            )
-                        ),
-                        new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
-                            "AVsGg7GYooztmMPf1gO2",
-                            now.truncatedTo(ChronoUnit.SECONDS),
-                            "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
-                            "default",
-                            "gw1",
-                            8L,
-                            false,
-                            List.of(
-                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Step(
-                                    "default-step",
-                                    false,
-                                    "assertion failed",
-                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Request(
-                                        "https://api.gravitee.io/echo/",
-                                        "GET",
-                                        Map.of()
-                                    ),
-                                    new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Response(200, null, Map.of())
-                                )
-                            )
-                        )
-                    );
+                softly.assertThat(result.getContent())
+                        .containsExactly(
+                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
+                                        "AVsGgxUsooztmMPf1gOp",
+                                        now.truncatedTo(ChronoUnit.SECONDS),
+                                        "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
+                                        "other",
+                                        "gw2",
+                                        5L,
+                                        false,
+                                        List.of(new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Step(
+                                                "default-step",
+                                                false,
+                                                "assertion failed",
+                                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Request(
+                                                        "https://api.gravitee.io/echo/", "GET", Map.of()),
+                                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Response(
+                                                        200, "KO", Map.of("Content-Type", "plain/text"))))),
+                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
+                                        "AVsGg7GYooztmMPf1gO2",
+                                        now.truncatedTo(ChronoUnit.SECONDS),
+                                        "bf19088c-f2c7-4fec-9908-8cf2c75fece4",
+                                        "default",
+                                        "gw1",
+                                        8L,
+                                        false,
+                                        List.of(new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Step(
+                                                "default-step",
+                                                false,
+                                                "assertion failed",
+                                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Request(
+                                                        "https://api.gravitee.io/echo/", "GET", Map.of()),
+                                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog.Response(
+                                                        200, null, Map.of())))));
             });
         }
 
         private static Condition<Map.Entry<String, Long>> bucketOfTimeHaveValue(String timeSuffix, long value) {
-            return bucket(key -> key.endsWith(timeSuffix), d -> d == value, "entre for '%s' with value %d".formatted(timeSuffix, value));
+            return bucket(
+                    key -> key.endsWith(timeSuffix),
+                    d -> d == value,
+                    "entre for '%s' with value %d".formatted(timeSuffix, value));
         }
 
         private static Condition<Map.Entry<String, Long>> bucket(
-            Predicate<String> keyPredicate,
-            DoublePredicate value,
-            String description
-        ) {
-            return new Condition<>(entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
+                Predicate<String> keyPredicate, DoublePredicate value, String description) {
+            return new Condition<>(
+                    entry -> value.test(entry.getValue()) && keyPredicate.test(entry.getKey()), description);
         }
     }
 
@@ -252,8 +241,8 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // When
             var result = repository
-                .availability(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "endpoint", from, to))
-                .blockingGet();
+                    .availability(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "endpoint", from, to))
+                    .blockingGet();
 
             // Then
             // we have a result
@@ -278,8 +267,8 @@ class HealthCheckElasticsearchRepositoryTest extends AbstractElasticsearchReposi
 
             // When
             var result = repository
-                .availability(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "gateway", from, to))
-                .blockingGet();
+                    .availability(new QueryContext("org#1", "env#1"), new ApiFieldPeriod(API_ID, "gateway", from, to))
+                    .blockingGet();
 
             // Then
             // we have a result

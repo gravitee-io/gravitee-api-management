@@ -23,9 +23,8 @@ public class EdgeApiDeploymentPreparer implements ApiDeploymentPreparer<EdgeApi>
 
     @Override
     public ReactableApi<EdgeApi> toReactable(EdgeApi definition, String environmentId) {
-        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi api = new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(
-            definition
-        );
+        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi api =
+                new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(definition);
         api.setEnvironmentId(environmentId);
         return api;
     }

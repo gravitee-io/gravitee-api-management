@@ -41,9 +41,10 @@ public class EnvironmentCrudServiceImpl implements EnvironmentCrudService {
         try {
             log.debug("Find environment by id: {}", environmentId);
 
-            return this.environmentRepository.findById(environmentId)
-                .map(EnvironmentAdapter.INSTANCE::toModel)
-                .orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
+            return this.environmentRepository
+                    .findById(environmentId)
+                    .map(EnvironmentAdapter.INSTANCE::toModel)
+                    .orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -54,9 +55,10 @@ public class EnvironmentCrudServiceImpl implements EnvironmentCrudService {
         try {
             log.debug("Find environment by cockpit id: {}", cockpitId);
 
-            return this.environmentRepository.findByCockpitId(cockpitId)
-                .map(EnvironmentAdapter.INSTANCE::toModel)
-                .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
+            return this.environmentRepository
+                    .findByCockpitId(cockpitId)
+                    .map(EnvironmentAdapter.INSTANCE::toModel)
+                    .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }

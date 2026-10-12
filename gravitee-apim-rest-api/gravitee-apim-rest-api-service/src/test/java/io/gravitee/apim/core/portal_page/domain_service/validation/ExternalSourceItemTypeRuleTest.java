@@ -43,39 +43,53 @@ class ExternalSourceItemTypeRuleTest {
     private final ExternalSourceItemTypeRule rule = new ExternalSourceItemTypeRule();
 
     private static PortalNavigationItemSource aSource() {
-        return PortalNavigationItemSource.builder().sourceType("github-fetcher").sourceConfiguration("{}").build();
+        return PortalNavigationItemSource.builder()
+                .sourceType("github-fetcher")
+                .sourceConfiguration("{}")
+                .build();
     }
 
     @Nested
     class Create {
 
         private CreatePortalNavigationItem anItem(PortalNavigationItemType type, PortalNavigationItemSource source) {
-            return CreatePortalNavigationItem.builder().type(type).title("Item").order(0).source(source).build();
+            return CreatePortalNavigationItem.builder()
+                    .type(type)
+                    .title("Item")
+                    .order(0)
+                    .source(source)
+                    .build();
         }
 
         @Test
         void should_not_apply_when_no_source() {
-            assertThat(rule.appliesTo(anItem(PortalNavigationItemType.LINK, null))).isFalse();
+            assertThat(rule.appliesTo(anItem(PortalNavigationItemType.LINK, null)))
+                    .isFalse();
         }
 
         @ParameterizedTest
-        @EnumSource(value = PortalNavigationItemType.class, names = { "PAGE", "FOLDER" })
+        @EnumSource(
+                value = PortalNavigationItemType.class,
+                names = {"PAGE", "FOLDER"})
         void should_accept_source_on(PortalNavigationItemType type) {
             var item = anItem(type, aSource());
 
             assertThat(rule.appliesTo(item)).isTrue();
-            assertThatCode(() -> rule.validate(item, ENV_ID, CreateValidationContext.empty())).doesNotThrowAnyException();
+            assertThatCode(() -> rule.validate(item, ENV_ID, CreateValidationContext.empty()))
+                    .doesNotThrowAnyException();
         }
 
         @ParameterizedTest
-        @EnumSource(value = PortalNavigationItemType.class, names = { "LINK", "API", "API_PRODUCT" })
+        @EnumSource(
+                value = PortalNavigationItemType.class,
+                names = {"LINK", "API", "API_PRODUCT"})
         void should_reject_source_on(PortalNavigationItemType type) {
             var item = anItem(type, aSource());
 
             assertThat(rule.appliesTo(item)).isTrue();
             assertThatThrownBy(() -> rule.validate(item, ENV_ID, CreateValidationContext.empty()))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining(type.name());
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(type.name());
         }
     }
 
@@ -83,26 +97,33 @@ class ExternalSourceItemTypeRuleTest {
     class Update {
 
         private UpdatePortalNavigationItem anUpdate(PortalNavigationItemType type, PortalNavigationItemSource source) {
-            return UpdatePortalNavigationItem.builder().type(type).title("Item").order(0).source(source).build();
+            return UpdatePortalNavigationItem.builder()
+                    .type(type)
+                    .title("Item")
+                    .order(0)
+                    .source(source)
+                    .build();
         }
 
         static Stream<PortalNavigationItem> allowedItems() {
-            return Stream.of(PortalNavigationItemFixtures.aPage("A page", null), PortalNavigationItemFixtures.aFolder("A folder"));
+            return Stream.of(
+                    PortalNavigationItemFixtures.aPage("A page", null),
+                    PortalNavigationItemFixtures.aFolder("A folder"));
         }
 
         static Stream<PortalNavigationItem> rejectedItems() {
             return Stream.of(
-                PortalNavigationItemFixtures.aLink(),
-                PortalNavigationItemFixtures.anApi(),
-                PortalNavigationItemFixtures.anApiProduct()
-            );
+                    PortalNavigationItemFixtures.aLink(),
+                    PortalNavigationItemFixtures.anApi(),
+                    PortalNavigationItemFixtures.anApiProduct());
         }
 
         @Test
         void should_not_apply_when_no_source() {
             var existing = PortalNavigationItemFixtures.aLink();
 
-            assertThat(rule.appliesTo(anUpdate(existing.getType(), null), existing)).isFalse();
+            assertThat(rule.appliesTo(anUpdate(existing.getType(), null), existing))
+                    .isFalse();
         }
 
         @ParameterizedTest
@@ -111,7 +132,8 @@ class ExternalSourceItemTypeRuleTest {
             var update = anUpdate(existing.getType(), aSource());
 
             assertThat(rule.appliesTo(update, existing)).isTrue();
-            assertThatCode(() -> rule.validate(update, existing, UpdateValidationContext.empty())).doesNotThrowAnyException();
+            assertThatCode(() -> rule.validate(update, existing, UpdateValidationContext.empty()))
+                    .doesNotThrowAnyException();
         }
 
         @ParameterizedTest
@@ -121,8 +143,8 @@ class ExternalSourceItemTypeRuleTest {
 
             assertThat(rule.appliesTo(update, existing)).isTrue();
             assertThatThrownBy(() -> rule.validate(update, existing, UpdateValidationContext.empty()))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining(existing.getType().name());
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(existing.getType().name());
         }
     }
 }

@@ -67,7 +67,8 @@ public class SubscriptionMapper {
      * API to product at lookup time, so one repository record yields exactly one runtime
      * subscription — whatever the size of the product.</p>
      */
-    private List<Subscription> toApiProductSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+    private List<Subscription> toApiProductSubscription(
+            io.gravitee.repository.management.model.Subscription subscriptionModel) {
         String productId = subscriptionModel.getReferenceId();
         if (productId == null) {
             log.warn("API Product subscription [{}] has null referenceId, skipping", subscriptionModel.getId());
@@ -88,7 +89,10 @@ public class SubscriptionMapper {
         Set<String> apiIds = product.getApiIds();
 
         if (apiIds == null || apiIds.isEmpty()) {
-            log.warn("API Product [{}] has no APIs, subscription [{}] not deployed", productId, subscriptionModel.getId());
+            log.warn(
+                    "API Product [{}] has no APIs, subscription [{}] not deployed",
+                    productId,
+                    subscriptionModel.getId());
             return List.of();
         }
 
@@ -114,16 +118,17 @@ public class SubscriptionMapper {
             subscription.setStatus(subscriptionModel.getStatus().name());
         }
         if (subscriptionModel.getConsumerStatus() != null) {
-            subscription.setConsumerStatus(Subscription.ConsumerStatus.valueOf(subscriptionModel.getConsumerStatus().name()));
+            subscription.setConsumerStatus(Subscription.ConsumerStatus.valueOf(
+                    subscriptionModel.getConsumerStatus().name()));
         }
         if (subscriptionModel.getType() != null) {
-            subscription.setType(Subscription.Type.valueOf(subscriptionModel.getType().name().toUpperCase()));
+            subscription.setType(
+                    Subscription.Type.valueOf(subscriptionModel.getType().name().toUpperCase()));
         }
         if (subscriptionModel.getConfiguration() != null) {
             try {
                 subscription.setConfiguration(
-                    objectMapper.readValue(subscriptionModel.getConfiguration(), SubscriptionConfiguration.class)
-                );
+                        objectMapper.readValue(subscriptionModel.getConfiguration(), SubscriptionConfiguration.class));
             } catch (Exception e) {
                 log.warn("Unable to parse subscription configuration for [{}]", subscriptionModel.getId(), e);
             }
@@ -133,7 +138,8 @@ public class SubscriptionMapper {
         // account for hundreds of MB. Consumers are read-only (template engine variable). The
         // non-empty case keeps HashMap on purpose: unlike Map.copyOf it tolerates null values.
         Map<String, String> sourceMetadata = subscriptionModel.getMetadata();
-        subscription.setMetadata(sourceMetadata == null || sourceMetadata.isEmpty() ? Map.of() : new HashMap<>(sourceMetadata));
+        subscription.setMetadata(
+                sourceMetadata == null || sourceMetadata.isEmpty() ? Map.of() : new HashMap<>(sourceMetadata));
         subscription.setEnvironmentId(intern(subscriptionModel.getEnvironmentId()));
         return subscription;
     }
@@ -146,7 +152,9 @@ public class SubscriptionMapper {
     /** Resolve API id: API ref uses referenceId or legacy api; API Product uses api. */
     private String resolveApiId(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API) {
-            return subscriptionModel.getReferenceId() != null ? subscriptionModel.getReferenceId() : subscriptionModel.getApi();
+            return subscriptionModel.getReferenceId() != null
+                    ? subscriptionModel.getReferenceId()
+                    : subscriptionModel.getApi();
         }
         return subscriptionModel.getApi();
     }

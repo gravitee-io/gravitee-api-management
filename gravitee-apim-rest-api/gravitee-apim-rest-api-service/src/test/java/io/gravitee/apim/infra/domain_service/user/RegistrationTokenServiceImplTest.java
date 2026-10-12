@@ -49,9 +49,9 @@ class RegistrationTokenServiceImplTest {
 
     private String buildToken(String action, String email, String subject) {
         var builder = JWT.create()
-            .withIssuer(DefaultValues.DEFAULT_JWT_ISSUER)
-            .withClaim(JWTHelper.Claims.ACTION, action)
-            .withClaim(JWTHelper.Claims.EMAIL, email);
+                .withIssuer(DefaultValues.DEFAULT_JWT_ISSUER)
+                .withClaim(JWTHelper.Claims.ACTION, action)
+                .withClaim(JWTHelper.Claims.EMAIL, email);
         if (subject != null) {
             builder = builder.withSubject(subject);
         }
@@ -96,10 +96,10 @@ class RegistrationTokenServiceImplTest {
         void should_use_custom_issuer_from_environment() {
             environment.setProperty("jwt.issuer", "custom-issuer");
             var token = JWT.create()
-                .withIssuer("custom-issuer")
-                .withClaim(JWTHelper.Claims.ACTION, JWTHelper.ACTION.USER_REGISTRATION.name())
-                .withClaim(JWTHelper.Claims.EMAIL, USER_EMAIL)
-                .sign(Algorithm.HMAC256(JWT_SECRET));
+                    .withIssuer("custom-issuer")
+                    .withClaim(JWTHelper.Claims.ACTION, JWTHelper.ACTION.USER_REGISTRATION.name())
+                    .withClaim(JWTHelper.Claims.EMAIL, USER_EMAIL)
+                    .sign(Algorithm.HMAC256(JWT_SECRET));
 
             var decoded = cut.decode(token);
 
@@ -112,17 +112,17 @@ class RegistrationTokenServiceImplTest {
             cut = new RegistrationTokenServiceImpl(environment);
 
             assertThatThrownBy(() -> cut.decode("any-token"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("JWT secret is mandatory");
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("JWT secret is mandatory");
         }
 
         @Test
         void should_throw_when_token_signature_is_invalid() {
             var tokenWithWrongSecret = JWT.create()
-                .withIssuer(DefaultValues.DEFAULT_JWT_ISSUER)
-                .withClaim(JWTHelper.Claims.ACTION, JWTHelper.ACTION.USER_REGISTRATION.name())
-                .withClaim(JWTHelper.Claims.EMAIL, USER_EMAIL)
-                .sign(Algorithm.HMAC256("wrong-secret-also-needs-to-be-long-enough-here"));
+                    .withIssuer(DefaultValues.DEFAULT_JWT_ISSUER)
+                    .withClaim(JWTHelper.Claims.ACTION, JWTHelper.ACTION.USER_REGISTRATION.name())
+                    .withClaim(JWTHelper.Claims.EMAIL, USER_EMAIL)
+                    .sign(Algorithm.HMAC256("wrong-secret-also-needs-to-be-long-enough-here"));
 
             assertThatThrownBy(() -> cut.decode(tokenWithWrongSecret)).isInstanceOf(JWTVerificationException.class);
         }
@@ -130,10 +130,10 @@ class RegistrationTokenServiceImplTest {
         @Test
         void should_throw_when_issuer_does_not_match() {
             var tokenWithWrongIssuer = JWT.create()
-                .withIssuer("wrong-issuer")
-                .withClaim(JWTHelper.Claims.ACTION, JWTHelper.ACTION.USER_REGISTRATION.name())
-                .withClaim(JWTHelper.Claims.EMAIL, USER_EMAIL)
-                .sign(Algorithm.HMAC256(JWT_SECRET));
+                    .withIssuer("wrong-issuer")
+                    .withClaim(JWTHelper.Claims.ACTION, JWTHelper.ACTION.USER_REGISTRATION.name())
+                    .withClaim(JWTHelper.Claims.EMAIL, USER_EMAIL)
+                    .sign(Algorithm.HMAC256(JWT_SECRET));
 
             assertThatThrownBy(() -> cut.decode(tokenWithWrongIssuer)).isInstanceOf(JWTVerificationException.class);
         }

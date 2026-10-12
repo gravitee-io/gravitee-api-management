@@ -74,34 +74,38 @@ class PathHandlingWithResourceFilteringIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "resource-filtering",
-                PolicyBuilder.build("resource-filtering", ResourceFilteringPolicy.class, ResourceFilteringPolicyConfiguration.class)
-            );
+                    "resource-filtering",
+                    PolicyBuilder.build(
+                            "resource-filtering",
+                            ResourceFilteringPolicy.class,
+                            ResourceFilteringPolicyConfiguration.class));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         protected void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus)
-            throws InterruptedException {
+                throws InterruptedException {
             httpClient
-                .rxRequest(HttpMethod.GET, rawPath)
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(response -> {
-                    assertThat(response.statusCode()).isEqualTo(expectedStatus);
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, rawPath)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response.statusCode()).isEqualTo(expectedStatus);
+                        return true;
+                    })
+                    .assertNoErrors();
         }
 
         protected void assertBackendWasNotCalled() {
@@ -159,7 +163,8 @@ class PathHandlingWithResourceFilteringIntegrationTest {
         }
 
         @Test
-        void should_close_the_hole_for_a_policy_whose_own_normalization_is_off(HttpClient httpClient) throws InterruptedException {
+        void should_close_the_hole_for_a_policy_whose_own_normalization_is_off(HttpClient httpClient)
+                throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             // The result worth having: the gateway resolved the path before the API was even

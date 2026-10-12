@@ -75,9 +75,9 @@ class ApiProductPlanFlowResolverTest {
         when(plan2.getId()).thenReturn(PLAN_2);
 
         when(api.getId()).thenReturn(API_ID);
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductPlanEntry(PRODUCT_ID, plan1), new ApiProductPlanEntry(PRODUCT_ID, plan2))
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of(
+                        new ApiProductPlanEntry(PRODUCT_ID, plan1), new ApiProductPlanEntry(PRODUCT_ID, plan2)));
         when(ctx.getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT)).thenReturn(PRODUCT_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_PLAN)).thenReturn(PLAN_1);
 
@@ -98,9 +98,8 @@ class ApiProductPlanFlowResolverTest {
         when(disabledFlow.isEnabled()).thenReturn(false);
 
         when(api.getId()).thenReturn(API_ID);
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductPlanEntry(PRODUCT_ID, plan))
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of(new ApiProductPlanEntry(PRODUCT_ID, plan)));
         when(ctx.getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT)).thenReturn(PRODUCT_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_PLAN)).thenReturn(PLAN_1);
 
@@ -154,9 +153,8 @@ class ApiProductPlanFlowResolverTest {
         plan.setFlows(new ArrayList<>());
 
         when(api.getId()).thenReturn(API_ID);
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
-            List.of(new ApiProductPlanEntry(PRODUCT_ID, plan))
-        );
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID))
+                .thenReturn(List.of(new ApiProductPlanEntry(PRODUCT_ID, plan)));
         when(ctx.getAttribute(SubscriptionProcessor.ATTR_API_PRODUCT)).thenReturn(PRODUCT_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_PLAN)).thenReturn(PLAN_1);
 

@@ -91,7 +91,10 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
     public void init() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -100,11 +103,15 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
         enableApiPrimaryOwnerMode(ENVIRONMENT, ApiPrimaryOwnerMode.USER);
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_NAME)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(anyString())).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(anyString()))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
         integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
     }
@@ -121,26 +128,25 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(membershipService.createNewMembershipForIntegration(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                MemberEntity.builder()
-                    .id(invocation.getArgument(2))
-                    .referenceId(invocation.getArgument(1))
-                    .displayName("John Doe")
-                    .roles(List.of(RoleEntity.builder().name(invocation.getArgument(4)).build()))
-                    .build()
-            );
+            when(membershipService.createNewMembershipForIntegration(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> MemberEntity.builder()
+                            .id(invocation.getArgument(2))
+                            .referenceId(invocation.getArgument(1))
+                            .displayName("John Doe")
+                            .roles(List.of(RoleEntity.builder()
+                                    .name(invocation.getArgument(4))
+                                    .build()))
+                            .build());
         }
 
         @Test
         public void should_return_403_when_user_not_permitted_to_create_members() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.INTEGRATION_MEMBER),
-                    eq(INTEGRATION_ID),
-                    eq(RolePermissionAction.CREATE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.INTEGRATION_MEMBER),
+                            eq(INTEGRATION_ID),
+                            eq(RolePermissionAction.CREATE)))
+                    .thenReturn(false);
 
             final Response response = target.request().post(Entity.json(new AddMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -151,16 +157,19 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             var newMembership = new AddMember().roleName("PRIMARY_OWNER");
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasMessage("An INTEGRATION must always have only one PRIMARY_OWNER !");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasMessage("An INTEGRATION must always have only one PRIMARY_OWNER !");
         }
 
         @Test
         public void should_return_400_when_user_id_and_external_reference_is_empty() {
             var newMembership = new AddMember().roleName("OWNER");
             final Response response = target.request().post(Entity.json(newMembership));
-            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessage("Request must specify either userId or externalReference");
+            assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasMessage("Request must specify either userId or externalReference");
         }
 
         @Test
@@ -168,9 +177,10 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             var newMembership = new AddMember().roleName("OWNER").userId("userId");
             final Response response = target.request().post(Entity.json(newMembership));
             assertThat(response)
-                .hasStatus(CREATED_201)
-                .asEntity(Member.class)
-                .isEqualTo(new Member().id("userId").displayName("John Doe").roles(List.of(new Role().name("OWNER"))));
+                    .hasStatus(CREATED_201)
+                    .asEntity(Member.class)
+                    .isEqualTo(
+                            new Member().id("userId").displayName("John Doe").roles(List.of(new Role().name("OWNER"))));
         }
     }
 
@@ -179,14 +189,12 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_when_user_not_permitted_to_list_members() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.INTEGRATION_MEMBER),
-                    eq(INTEGRATION_ID),
-                    any()
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.INTEGRATION_MEMBER),
+                            eq(INTEGRATION_ID),
+                            any()))
+                    .thenReturn(false);
 
             final Response response = target.request().get();
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -195,30 +203,33 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
         @Test
         public void should_list_one_integration_member() {
             var member = MemberEntity.builder()
-                .id("memberId")
-                .displayName("John Doe")
-                .roles(List.of(RoleEntity.builder().name("OWNER").build()))
-                .type(MembershipMemberType.USER)
-                .build();
+                    .id("memberId")
+                    .displayName("John Doe")
+                    .roles(List.of(RoleEntity.builder().name("OWNER").build()))
+                    .type(MembershipMemberType.USER)
+                    .build();
 
-            when(
-                membershipService.getMembersByReference(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(MembershipReferenceType.INTEGRATION),
-                    eq(INTEGRATION_ID)
-                )
-            ).thenReturn(Set.of(member));
+            when(membershipService.getMembersByReference(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(MembershipReferenceType.INTEGRATION),
+                            eq(INTEGRATION_ID)))
+                    .thenReturn(Set.of(member));
 
             final Response response = target.request().get();
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(MembersResponse.class)
-                .isEqualTo(
-                    new MembersResponse()
-                        .pagination(new Pagination().page(1).pageCount(1).perPage(10).totalCount(1L).pageItemsCount(1))
-                        .data(Stream.of(member).map(MemberMapper.INSTANCE::map).toList())
-                        .links(new Links().self(target.getUri().toString()))
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(MembersResponse.class)
+                    .isEqualTo(new MembersResponse()
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .pageCount(1)
+                                    .perPage(10)
+                                    .totalCount(1L)
+                                    .pageItemsCount(1))
+                            .data(Stream.of(member)
+                                    .map(MemberMapper.INSTANCE::map)
+                                    .toList())
+                            .links(new Links().self(target.getUri().toString())));
         }
 
         @Test
@@ -230,61 +241,67 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             var roleUser = RoleEntity.builder().name("USER").build();
 
             var member1 = MemberEntity.builder()
-                .id("member1")
-                .displayName("John Doe")
-                .roles(List.of(roleOwner))
-                .type(MembershipMemberType.USER)
-                .build();
+                    .id("member1")
+                    .displayName("John Doe")
+                    .roles(List.of(roleOwner))
+                    .type(MembershipMemberType.USER)
+                    .build();
 
             var member2 = MemberEntity.builder()
-                .id("member2")
-                .displayName("Jane Doe")
-                .roles(List.of(roleUser))
-                .type(MembershipMemberType.USER)
-                .build();
+                    .id("member2")
+                    .displayName("Jane Doe")
+                    .roles(List.of(roleUser))
+                    .type(MembershipMemberType.USER)
+                    .build();
 
             var member3 = MemberEntity.builder()
-                .id("member3")
-                .displayName("Richard Roe")
-                .roles(List.of(roleUser))
-                .type(MembershipMemberType.USER)
-                .build();
+                    .id("member3")
+                    .displayName("Richard Roe")
+                    .roles(List.of(roleUser))
+                    .type(MembershipMemberType.USER)
+                    .build();
 
             var member4 = MemberEntity.builder()
-                .id("member4")
-                .displayName("Baby Doe")
-                .roles(List.of(roleUser))
-                .type(MembershipMemberType.USER)
-                .build();
+                    .id("member4")
+                    .displayName("Baby Doe")
+                    .roles(List.of(roleUser))
+                    .type(MembershipMemberType.USER)
+                    .build();
 
-            when(
-                membershipService.getMembersByReference(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(MembershipReferenceType.INTEGRATION),
-                    eq(INTEGRATION_ID)
-                )
-            ).thenReturn(Set.of(member1, member2, member3, member4));
+            when(membershipService.getMembersByReference(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(MembershipReferenceType.INTEGRATION),
+                            eq(INTEGRATION_ID)))
+                    .thenReturn(Set.of(member1, member2, member3, member4));
 
-            var paginatedTarget = target
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2);
+            var paginatedTarget = target.queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2);
             final Response response = paginatedTarget.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(MembersResponse.class)
-                .isEqualTo(
-                    new MembersResponse()
-                        .pagination(new Pagination().page(1).pageCount(2).perPage(2).totalCount(4L).pageItemsCount(2))
-                        .data(Stream.of(member1, member2).map(MemberMapper.INSTANCE::map).toList())
-                        .links(
-                            new Links()
-                                .self(paginatedTarget.getUri().toString())
-                                .first(paginatedTarget.getUri().toString())
-                                .last(target.queryParam("page", 2).queryParam("perPage", 2).getUri().toString())
-                                .next(target.queryParam("page", 2).queryParam("perPage", 2).getUri().toString())
-                        )
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(MembersResponse.class)
+                    .isEqualTo(new MembersResponse()
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .pageCount(2)
+                                    .perPage(2)
+                                    .totalCount(4L)
+                                    .pageItemsCount(2))
+                            .data(Stream.of(member1, member2)
+                                    .map(MemberMapper.INSTANCE::map)
+                                    .toList())
+                            .links(new Links()
+                                    .self(paginatedTarget.getUri().toString())
+                                    .first(paginatedTarget.getUri().toString())
+                                    .last(target.queryParam("page", 2)
+                                            .queryParam("perPage", 2)
+                                            .getUri()
+                                            .toString())
+                                    .next(target.queryParam("page", 2)
+                                            .queryParam("perPage", 2)
+                                            .getUri()
+                                            .toString())));
         }
     }
 
@@ -300,14 +317,12 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_when_user_not_permitted_to_delete_members() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.INTEGRATION_MEMBER),
-                    eq(INTEGRATION_ID),
-                    eq(RolePermissionAction.DELETE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.INTEGRATION_MEMBER),
+                            eq(INTEGRATION_ID),
+                            eq(RolePermissionAction.DELETE)))
+                    .thenReturn(false);
 
             final Response response = target.request().delete();
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -318,11 +333,9 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             final Response response = target.request().delete();
             assertThat(response).hasStatus(NO_CONTENT_204);
 
-            verify(membershipService).deleteMemberForIntegration(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(INTEGRATION_ID),
-                eq(MEMBER_ID)
-            );
+            verify(membershipService)
+                    .deleteMemberForIntegration(
+                            eq(GraviteeContext.getExecutionContext()), eq(INTEGRATION_ID), eq(MEMBER_ID));
         }
     }
 
@@ -335,26 +348,25 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
         void setUp() {
             target = rootTarget(MEMBER_ID);
 
-            when(membershipService.updateMembershipForIntegration(any(), any(), any(), any())).thenAnswer(invocation ->
-                MemberEntity.builder()
-                    .id(invocation.getArgument(2))
-                    .referenceId(invocation.getArgument(1))
-                    .displayName("John Doe")
-                    .roles(List.of(RoleEntity.builder().name(invocation.getArgument(3)).build()))
-                    .build()
-            );
+            when(membershipService.updateMembershipForIntegration(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> MemberEntity.builder()
+                            .id(invocation.getArgument(2))
+                            .referenceId(invocation.getArgument(1))
+                            .displayName("John Doe")
+                            .roles(List.of(RoleEntity.builder()
+                                    .name(invocation.getArgument(3))
+                                    .build()))
+                            .build());
         }
 
         @Test
         public void should_return_403_when_user_not_permitted_to_edit_members() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.INTEGRATION_MEMBER),
-                    eq(INTEGRATION_ID),
-                    eq(RolePermissionAction.UPDATE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.INTEGRATION_MEMBER),
+                            eq(INTEGRATION_ID),
+                            eq(RolePermissionAction.UPDATE)))
+                    .thenReturn(false);
 
             final Response response = target.request().put(Entity.json(new UpdateMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -367,9 +379,9 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             final Response response = target.request().put(Entity.json(newMembership));
 
             assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasMessage("An INTEGRATION must always have only one PRIMARY_OWNER !");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasMessage("An INTEGRATION must always have only one PRIMARY_OWNER !");
         }
 
         @Test
@@ -379,9 +391,12 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             final Response response = target.request().put(Entity.json(newMembership));
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(Member.class)
-                .isEqualTo(new Member().id(MEMBER_ID).displayName("John Doe").roles(List.of(new Role().name("OWNER"))));
+                    .hasStatus(OK_200)
+                    .asEntity(Member.class)
+                    .isEqualTo(new Member()
+                            .id(MEMBER_ID)
+                            .displayName("John Doe")
+                            .roles(List.of(new Role().name("OWNER"))));
         }
     }
 }

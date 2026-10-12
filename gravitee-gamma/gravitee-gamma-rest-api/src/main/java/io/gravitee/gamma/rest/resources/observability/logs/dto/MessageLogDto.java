@@ -29,53 +29,49 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record MessageLogDto(
-    String requestId,
-    String apiId,
-    String timestamp,
-    String clientIdentifier,
-    String correlationId,
-    String parentCorrelationId,
-    String operation,
-    MessageDto entrypoint,
-    MessageDto endpoint
-) {
+        String requestId,
+        String apiId,
+        String timestamp,
+        String clientIdentifier,
+        String correlationId,
+        String parentCorrelationId,
+        String operation,
+        MessageDto entrypoint,
+        MessageDto endpoint) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record MessageDto(
-        String id,
-        String timestamp,
-        String connectorId,
-        String payload,
-        boolean isError,
-        Map<String, List<String>> headers,
-        Map<String, String> metadata
-    ) {
+            String id,
+            String timestamp,
+            String connectorId,
+            String payload,
+            boolean isError,
+            Map<String, List<String>> headers,
+            Map<String, String> metadata) {
         static MessageDto from(MessageLog.Message message) {
             if (message == null) {
                 return null;
             }
             return new MessageDto(
-                message.id(),
-                message.timestamp(),
-                message.connectorId(),
-                message.payload(),
-                message.error(),
-                message.headers(),
-                message.metadata()
-            );
+                    message.id(),
+                    message.timestamp(),
+                    message.connectorId(),
+                    message.payload(),
+                    message.error(),
+                    message.headers(),
+                    message.metadata());
         }
     }
 
     public static MessageLogDto from(MessageLog log) {
         return new MessageLogDto(
-            log.requestId(),
-            log.apiId(),
-            log.timestamp(),
-            log.clientIdentifier(),
-            log.correlationId(),
-            log.parentCorrelationId(),
-            log.operation(),
-            MessageDto.from(log.entrypoint()),
-            MessageDto.from(log.endpoint())
-        );
+                log.requestId(),
+                log.apiId(),
+                log.timestamp(),
+                log.clientIdentifier(),
+                log.correlationId(),
+                log.parentCorrelationId(),
+                log.operation(),
+                MessageDto.from(log.entrypoint()),
+                MessageDto.from(log.endpoint()));
     }
 }

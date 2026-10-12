@@ -55,9 +55,12 @@ public class ApiKeyCacheServiceTest {
     public void beforeEach() throws Exception {
         apiProductRegistry = mock(ApiProductRegistry.class);
         apiKeyService = new ApiKeyCacheService(apiProductRegistry);
-        cacheApiKeys = (Map<ApiKeyCacheService.CacheKey, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeys");
-        cacheMd5ApiKeys = (Map<ApiKeyCacheService.CacheKey, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheMd5ApiKeys");
-        cacheApiKeysByScope = (Map<String, Set<String>>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeysByScope");
+        cacheApiKeys =
+                (Map<ApiKeyCacheService.CacheKey, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeys");
+        cacheMd5ApiKeys = (Map<ApiKeyCacheService.CacheKey, ApiKey>)
+                ReflectionTestUtils.getField(apiKeyService, "cacheMd5ApiKeys");
+        cacheApiKeysByScope =
+                (Map<String, Set<String>>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeysByScope");
     }
 
     @Nested
@@ -226,7 +229,8 @@ public class ApiKeyCacheServiceTest {
             ApiKey apiKeyFound = keyFoundOpt.get();
             assertThat(apiKeyFound).isEqualTo(apiKey);
 
-            Optional<ApiKey> md5KeyFoundOpt = apiKeyService.getByApiAndMd5Key("my-api", DigestUtils.md5DigestAsHex("my-key".getBytes()));
+            Optional<ApiKey> md5KeyFoundOpt =
+                    apiKeyService.getByApiAndMd5Key("my-api", DigestUtils.md5DigestAsHex("my-key".getBytes()));
             assertThat(md5KeyFoundOpt).isPresent();
             ApiKey md5ApiKeyFound = md5KeyFoundOpt.get();
             assertThat(md5ApiKeyFound).isEqualTo(apiKey);
@@ -241,7 +245,8 @@ public class ApiKeyCacheServiceTest {
             Optional<ApiKey> keyFoundOpt = apiKeyService.getByApiAndKey("my-api", "my-key");
             assertThat(keyFoundOpt).isEmpty();
 
-            Optional<ApiKey> md5KeyFoundOpt = apiKeyService.getByApiAndMd5Key("my-api", DigestUtils.md5DigestAsHex("my-key".getBytes()));
+            Optional<ApiKey> md5KeyFoundOpt =
+                    apiKeyService.getByApiAndMd5Key("my-api", DigestUtils.md5DigestAsHex("my-key".getBytes()));
             assertThat(md5KeyFoundOpt).isEmpty();
         }
     }
@@ -261,15 +266,13 @@ public class ApiKeyCacheServiceTest {
             try (ExecutorService writers = Executors.newFixedThreadPool(writerCount)) {
                 for (int w = 0; w < writerCount; w++) {
                     int writerId = w;
-                    futures.add(
-                        writers.submit(() -> {
-                            barrier.await();
-                            for (int i = 0; i < keysPerWriter; i++) {
-                                apiKeyService.register(buildApiKey("my-api", "key-" + writerId + "-" + i, true));
-                            }
-                            return null;
-                        })
-                    );
+                    futures.add(writers.submit(() -> {
+                        barrier.await();
+                        for (int i = 0; i < keysPerWriter; i++) {
+                            apiKeyService.register(buildApiKey("my-api", "key-" + writerId + "-" + i, true));
+                        }
+                        return null;
+                    }));
                 }
                 for (Future<?> future : futures) {
                     future.get(10, TimeUnit.SECONDS);
@@ -295,7 +298,8 @@ public class ApiKeyCacheServiceTest {
             apiKeyService.register(apiKey);
 
             assertThat(apiKeyService.getByApiAndKey(MEMBER_API_ID, "my-key")).contains(apiKey);
-            assertThat(apiKeyService.getByApiAndMd5Key(MEMBER_API_ID, DigestUtils.md5DigestAsHex("my-key".getBytes()))).contains(apiKey);
+            assertThat(apiKeyService.getByApiAndMd5Key(MEMBER_API_ID, DigestUtils.md5DigestAsHex("my-key".getBytes())))
+                    .contains(apiKey);
             // Cached once, under the product
             assertThat(cacheApiKeysByScope.get(PRODUCT_ID)).isEqualTo(Set.of("my-key"));
             assertThat(cacheApiKeysByScope.get(MEMBER_API_ID)).isNull();

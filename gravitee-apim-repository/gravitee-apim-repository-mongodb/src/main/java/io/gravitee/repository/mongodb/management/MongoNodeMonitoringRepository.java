@@ -44,21 +44,23 @@ public class MongoNodeMonitoringRepository implements NodeMonitoringRepository {
     @Override
     public Maybe<Monitoring> findByNodeIdAndType(String nodeId, String type) {
         return Maybe.<Monitoring>create(emitter -> {
-            MonitoringMongo monitoring = internalNodeMonitoringRepository.findByNodeIdAndType(nodeId, type);
-            if (monitoring != null) {
-                emitter.onSuccess(map(monitoring));
-            } else {
-                emitter.onComplete();
-            }
-        }).subscribeOn(Schedulers.io());
+                    MonitoringMongo monitoring = internalNodeMonitoringRepository.findByNodeIdAndType(nodeId, type);
+                    if (monitoring != null) {
+                        emitter.onSuccess(map(monitoring));
+                    } else {
+                        emitter.onComplete();
+                    }
+                })
+                .subscribeOn(Schedulers.io());
     }
 
     @Override
     public Single<Monitoring> create(Monitoring monitoring) {
         return Single.<Monitoring>create(emitter -> {
-            MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.insert(map(monitoring));
-            emitter.onSuccess(map(monitoringMongo));
-        }).subscribeOn(Schedulers.io());
+                    MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.insert(map(monitoring));
+                    emitter.onSuccess(map(monitoringMongo));
+                })
+                .subscribeOn(Schedulers.io());
     }
 
     @Override
@@ -68,23 +70,28 @@ public class MongoNodeMonitoringRepository implements NodeMonitoringRepository {
         }
 
         return Single.<Monitoring>create(emitter -> {
-            MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.findById(monitoring.getId()).orElse(null);
+                    MonitoringMongo monitoringMongo = internalNodeMonitoringRepository
+                            .findById(monitoring.getId())
+                            .orElse(null);
 
-            if (monitoringMongo == null) {
-                emitter.onError(new IllegalStateException(String.format("No node monitoring found with id [%s]", monitoring.getId())));
-            }
+                    if (monitoringMongo == null) {
+                        emitter.onError(new IllegalStateException(
+                                String.format("No node monitoring found with id [%s]", monitoring.getId())));
+                    }
 
-            monitoringMongo = map(monitoring);
-            monitoringMongo = internalNodeMonitoringRepository.save(monitoringMongo);
-            emitter.onSuccess(map(monitoringMongo));
-        }).subscribeOn(Schedulers.io());
+                    monitoringMongo = map(monitoring);
+                    monitoringMongo = internalNodeMonitoringRepository.save(monitoringMongo);
+                    emitter.onSuccess(map(monitoringMongo));
+                })
+                .subscribeOn(Schedulers.io());
     }
 
     @Override
     public Flowable<Monitoring> findByTypeAndTimeFrame(String type, long from, long to) {
-        return Flowable.fromIterable(
-            internalNodeMonitoringRepository.findByTypeAndTimeFrame(type, from, to).stream().map(this::map).collect(Collectors.toList())
-        ).subscribeOn(Schedulers.io());
+        return Flowable.fromIterable(internalNodeMonitoringRepository.findByTypeAndTimeFrame(type, from, to).stream()
+                        .map(this::map)
+                        .collect(Collectors.toList()))
+                .subscribeOn(Schedulers.io());
     }
 
     private MonitoringMongo map(Monitoring item) {

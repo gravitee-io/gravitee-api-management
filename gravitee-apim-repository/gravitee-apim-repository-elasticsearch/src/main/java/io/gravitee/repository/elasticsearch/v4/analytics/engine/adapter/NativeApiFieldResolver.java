@@ -25,7 +25,7 @@ import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 public class NativeApiFieldResolver implements FieldResolver {
 
     private static final String CONNECTION_STATUS_FIELD =
-        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
 
     /**
      * Side of the proxying path the failure sits on, as written by the gateway
@@ -38,29 +38,31 @@ public class NativeApiFieldResolver implements FieldResolver {
      * native Kafka connections the error key is currently always the catch-all
      * {@code UNKNOWN_SERVER_ERROR}, which makes this field the only usable failure discriminator.
      */
-    private static final String FAILURE_SIDE_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.FAILURE_SIDE;
+    private static final String FAILURE_SIDE_FIELD =
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.FAILURE_SIDE;
 
     /**
      * Kafka {@code client.id}. The only attribution axis that survives a failed connection: a
      * connection that breaks before authenticating has no application and no plan, so grouping
      * errors by application yields nothing — this is what tells you <em>who</em> is failing.
      */
-    private static final String CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
+    private static final String CLIENT_ID_FIELD =
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
 
     /**
      * KIP-511 client library name. Where {@code client.id} is caller-chosen and near-unique per pod, this is a
      * handful of values across a fleet — the cardinality a breakdown actually wants.
      */
     private static final String CLIENT_SOFTWARE_NAME_FIELD =
-        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
 
     @Override
     public String fromMetric(Metric metric) {
         return switch (metric) {
             case NATIVE_CONNECTIONS_SUMMARY -> RequestV2MetricsV4Fields.TIMESTAMP;
-            default -> throw new UnsupportedOperationException(
-                "NativeApiFieldResolver supports only Metric.NATIVE_CONNECTIONS_SUMMARY but got " + metric
-            );
+            default ->
+                throw new UnsupportedOperationException(
+                        "NativeApiFieldResolver supports only Metric.NATIVE_CONNECTIONS_SUMMARY but got " + metric);
         };
     }
 
@@ -74,11 +76,10 @@ public class NativeApiFieldResolver implements FieldResolver {
             case NATIVE_FAILURE_SIDE -> FAILURE_SIDE_FIELD;
             case NATIVE_CLIENT_ID -> CLIENT_ID_FIELD;
             case NATIVE_CLIENT_SOFTWARE_NAME -> CLIENT_SOFTWARE_NAME_FIELD;
-            default -> throw new UnsupportedOperationException(
-                "NativeApiFieldResolver does not support filter '" +
-                    filter.name() +
-                    "' — supported names: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID, NATIVE_CLIENT_SOFTWARE_NAME"
-            );
+            default ->
+                throw new UnsupportedOperationException(
+                        "NativeApiFieldResolver does not support filter '" + filter.name()
+                                + "' — supported names: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID, NATIVE_CLIENT_SOFTWARE_NAME");
         };
     }
 
@@ -103,11 +104,10 @@ public class NativeApiFieldResolver implements FieldResolver {
             case NATIVE_FAILURE_SIDE -> FAILURE_SIDE_FIELD;
             case NATIVE_CLIENT_ID -> CLIENT_ID_FIELD;
             case NATIVE_CLIENT_SOFTWARE_NAME -> CLIENT_SOFTWARE_NAME_FIELD;
-            default -> throw new UnsupportedOperationException(
-                "NativeApiFieldResolver does not support facet '" +
-                    facet +
-                    "' — supported facets: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID, NATIVE_CLIENT_SOFTWARE_NAME"
-            );
+            default ->
+                throw new UnsupportedOperationException(
+                        "NativeApiFieldResolver does not support facet '" + facet
+                                + "' — supported facets: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID, NATIVE_CLIENT_SOFTWARE_NAME");
         };
     }
 }

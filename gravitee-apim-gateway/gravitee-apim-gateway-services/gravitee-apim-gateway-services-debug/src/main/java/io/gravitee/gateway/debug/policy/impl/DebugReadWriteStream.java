@@ -37,7 +37,8 @@ public class DebugReadWriteStream implements ReadWriteStream<Buffer> {
     private Buffer outputBuffer;
     private Buffer inputBuffer;
 
-    public DebugReadWriteStream(final DebugExecutionContext context, final ReadWriteStream<Buffer> delegate, DebugStep<?> debugStep) {
+    public DebugReadWriteStream(
+            final DebugExecutionContext context, final ReadWriteStream<Buffer> delegate, DebugStep<?> debugStep) {
         this.context = context;
         this.delegate = delegate;
         this.debugStep = debugStep;

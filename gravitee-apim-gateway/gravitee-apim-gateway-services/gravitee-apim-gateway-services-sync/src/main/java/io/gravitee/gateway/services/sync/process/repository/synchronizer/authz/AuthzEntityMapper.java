@@ -40,17 +40,20 @@ public class AuthzEntityMapper {
                 }
                 AuthzEntityReactorDeployable.Kind kind = toGatewayKind(wire.getKind());
                 return AuthzEntityReactorDeployable.builder()
-                    .entityId(wire.getEntityId())
-                    .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
-                    .kind(kind)
-                    .entityType(wire.getEntityType())
-                    .attributes(wire.getAttributes())
-                    .parents(wire.getParents())
-                    .environmentId(wire.getEnvironmentId())
-                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
-                    .updatedAt(event.getUpdatedAt() != null ? event.getUpdatedAt().getTime() : 0L)
-                    .syncAction(SyncAction.DEPLOY)
-                    .build();
+                        .entityId(wire.getEntityId())
+                        .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
+                        .kind(kind)
+                        .entityType(wire.getEntityType())
+                        .attributes(wire.getAttributes())
+                        .parents(wire.getParents())
+                        .environmentId(wire.getEnvironmentId())
+                        .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
+                        .updatedAt(
+                                event.getUpdatedAt() != null
+                                        ? event.getUpdatedAt().getTime()
+                                        : 0L)
+                        .syncAction(SyncAction.DEPLOY)
+                        .build();
             } catch (Exception e) {
                 log.error("Unable to extract authz entity from PUBLISH event [{}]", event.getId(), e);
                 return null;
@@ -69,17 +72,17 @@ public class AuthzEntityMapper {
                 // UNPUBLISH publishers historically omit kind. Default to RESOURCE so the
                 // engine still receives the removeEntity — without this, the orphan entity lingers.
                 AuthzEntityReactorDeployable.Kind kind = wire.getKind() != null
-                    ? toGatewayKind(wire.getKind())
-                    : AuthzEntityReactorDeployable.Kind.RESOURCE;
+                        ? toGatewayKind(wire.getKind())
+                        : AuthzEntityReactorDeployable.Kind.RESOURCE;
                 return AuthzEntityReactorDeployable.builder()
-                    .entityId(wire.getEntityId())
-                    .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
-                    .kind(kind)
-                    .entityType(wire.getEntityType())
-                    .environmentId(wire.getEnvironmentId())
-                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
-                    .syncAction(SyncAction.UNDEPLOY)
-                    .build();
+                        .entityId(wire.getEntityId())
+                        .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
+                        .kind(kind)
+                        .entityType(wire.getEntityType())
+                        .environmentId(wire.getEnvironmentId())
+                        .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .build();
             } catch (Exception e) {
                 log.error("Unable to extract authz entity from UNPUBLISH event [{}]", event.getId(), e);
                 return null;

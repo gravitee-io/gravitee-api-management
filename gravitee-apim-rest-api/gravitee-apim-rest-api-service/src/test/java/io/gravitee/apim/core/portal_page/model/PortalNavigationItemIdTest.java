@@ -26,9 +26,9 @@ import org.junit.jupiter.api.Test;
 class PortalNavigationItemIdTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .build();
     private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     @Test
@@ -61,11 +61,9 @@ class PortalNavigationItemIdTest {
     void forApiDocumentation_is_keyed_on_the_api_not_on_a_listing_row() {
         var contentId = PortalPageContentId.random();
 
-        assertThat(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId)).isEqualTo(
-            PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId)
-        );
-        assertThat(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId)).isNotEqualTo(
-            PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "other-api-id", contentId)
-        );
+        assertThat(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId))
+                .isEqualTo(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId));
+        assertThat(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId))
+                .isNotEqualTo(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "other-api-id", contentId));
     }
 }

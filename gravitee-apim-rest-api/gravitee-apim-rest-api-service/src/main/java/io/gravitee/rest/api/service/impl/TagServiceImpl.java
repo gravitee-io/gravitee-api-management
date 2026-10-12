@@ -84,11 +84,9 @@ public class TagServiceImpl extends AbstractService implements TagService {
     public List<TagEntity> findByReference(String referenceId, TagReferenceType referenceType) {
         try {
             log.debug("Find all tags");
-            return tagRepository
-                .findByReference(referenceId, repoTagReferenceType(referenceType))
-                .stream()
-                .map(this::convert)
-                .collect(toList());
+            return tagRepository.findByReference(referenceId, repoTagReferenceType(referenceType)).stream()
+                    .map(this::convert)
+                    .collect(toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find all tags", ex);
         }
@@ -98,7 +96,8 @@ public class TagServiceImpl extends AbstractService implements TagService {
     public TagEntity findByKeyAndReference(String key, String referenceId, TagReferenceType referenceType) {
         try {
             log.debug("Find tag by key: {}", key);
-            Optional<Tag> optTag = tagRepository.findByKeyAndReference(key, referenceId, repoTagReferenceType(referenceType));
+            Optional<Tag> optTag =
+                    tagRepository.findByKeyAndReference(key, referenceId, repoTagReferenceType(referenceType));
 
             if (optTag.isEmpty()) {
                 throw new TagNotFoundException(key);
@@ -111,12 +110,14 @@ public class TagServiceImpl extends AbstractService implements TagService {
     }
 
     @Override
-    public void checkTagsExist(Set<String> keys, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+    public void checkTagsExist(Set<String> keys, String referenceId, TagReferenceType referenceType)
+            throws TechnicalException {
         if (keys == null || keys.isEmpty()) {
             return;
         }
 
-        Set<Tag> foundTags = tagRepository.findByKeysAndReference(keys, referenceId, repoTagReferenceType(referenceType));
+        Set<Tag> foundTags =
+                tagRepository.findByKeysAndReference(keys, referenceId, repoTagReferenceType(referenceType));
 
         if (foundTags.size() == keys.size()) {
             return;
@@ -124,10 +125,8 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
         Set<String> foundKeys = foundTags.stream().map(Tag::getKey).collect(toSet());
 
-        Set<String> notFoundKeys = keys
-            .stream()
-            .filter(key -> !foundKeys.contains(key))
-            .collect(toSet());
+        Set<String> notFoundKeys =
+                keys.stream().filter(key -> !foundKeys.contains(key)).collect(toSet());
 
         if (!notFoundKeys.isEmpty()) {
             throw new TagNotFoundException(notFoundKeys.toArray(String[]::new));
@@ -136,17 +135,15 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
     @Override
     public TagEntity create(
-        final ExecutionContext executionContext,
-        NewTagEntity tagEntity,
-        String referenceId,
-        TagReferenceType referenceType
-    ) {
+            final ExecutionContext executionContext,
+            NewTagEntity tagEntity,
+            String referenceId,
+            TagReferenceType referenceType) {
         // Keys are persisted normalized, so uniqueness must be checked on the normalized form
         final var normalizedKey = IdGenerator.generate(tagEntity.getKey());
-        final var optionalTag = findByReference(referenceId, referenceType)
-            .stream()
-            .filter(tag -> tag.getKey().equals(normalizedKey))
-            .findAny();
+        final var optionalTag = findByReference(referenceId, referenceType).stream()
+                .filter(tag -> tag.getKey().equals(normalizedKey))
+                .findAny();
 
         if (optionalTag.isPresent()) {
             throw new DuplicateTagKeyException(optionalTag.get().getKey());
@@ -156,32 +153,32 @@ public class TagServiceImpl extends AbstractService implements TagService {
             var tagToSaved = convert(tagEntity, referenceId, referenceType);
             var tagSaved = tagRepository.create(tagToSaved);
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(TAG, tagSaved.getKey()))
-                    .event(TAG_CREATED)
-                    .createdAt(new Date())
-                    .oldValue(null)
-                    .newValue(tagSaved)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(TAG, tagSaved.getKey()))
+                            .event(TAG_CREATED)
+                            .createdAt(new Date())
+                            .oldValue(null)
+                            .newValue(tagSaved)
+                            .build());
 
             return convert(tagSaved);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create tag " + tagEntity.getName(), ex);
         }
     }
 
     @Override
     public TagEntity update(
-        final ExecutionContext executionContext,
-        String tagKey,
-        UpdateTagEntity updateTagEntity,
-        String referenceId,
-        TagReferenceType referenceType
-    ) {
+            final ExecutionContext executionContext,
+            String tagKey,
+            UpdateTagEntity updateTagEntity,
+            String referenceId,
+            TagReferenceType referenceType) {
         try {
-            var tagOptional = tagRepository.findByKeyAndReference(tagKey, referenceId, repoTagReferenceType(referenceType));
+            var tagOptional =
+                    tagRepository.findByKeyAndReference(tagKey, referenceId, repoTagReferenceType(referenceType));
 
             if (tagOptional.isEmpty()) {
                 throw new TagNotFoundException(tagKey);
@@ -189,26 +186,25 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
             var existingTag = tagOptional.get();
             var tagToSave = Tag.builder()
-                .id(existingTag.getId())
-                .key(existingTag.getKey())
-                .name(updateTagEntity.getName())
-                .description(updateTagEntity.getDescription())
-                .restrictedGroups(updateTagEntity.getRestrictedGroups())
-                .referenceId(existingTag.getReferenceId())
-                .referenceType(existingTag.getReferenceType())
-                .build();
+                    .id(existingTag.getId())
+                    .key(existingTag.getKey())
+                    .name(updateTagEntity.getName())
+                    .description(updateTagEntity.getDescription())
+                    .restrictedGroups(updateTagEntity.getRestrictedGroups())
+                    .referenceId(existingTag.getReferenceId())
+                    .referenceType(existingTag.getReferenceType())
+                    .build();
 
             var tagSaved = tagRepository.update(tagToSave);
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(TAG, tagSaved.getKey()))
-                    .event(TAG_UPDATED)
-                    .createdAt(new Date())
-                    .oldValue(existingTag)
-                    .newValue(tagSaved)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(TAG, tagSaved.getKey()))
+                            .event(TAG_UPDATED)
+                            .createdAt(new Date())
+                            .oldValue(existingTag)
+                            .newValue(tagSaved)
+                            .build());
 
             return convert(tagSaved);
         } catch (TechnicalException ex) {
@@ -217,9 +213,14 @@ public class TagServiceImpl extends AbstractService implements TagService {
     }
 
     @Override
-    public void delete(final ExecutionContext executionContext, final String key, String referenceId, TagReferenceType referenceType) {
+    public void delete(
+            final ExecutionContext executionContext,
+            final String key,
+            String referenceId,
+            TagReferenceType referenceType) {
         try {
-            Optional<Tag> tagOptional = tagRepository.findByKeyAndReference(key, referenceId, repoTagReferenceType(referenceType));
+            Optional<Tag> tagOptional =
+                    tagRepository.findByKeyAndReference(key, referenceId, repoTagReferenceType(referenceType));
 
             if (tagOptional.isPresent()) {
                 Tag tag = tagOptional.get();
@@ -228,19 +229,18 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 // Cascade first (idempotent), delete the org tag row last so a retry can complete cleanup.
                 apiTagService.deleteTagFromAPIs(executionContext, tagId);
                 environmentService
-                    .findByOrganization(executionContext.getOrganizationId())
-                    .forEach(env -> apiProductTagDomainService.deleteTagFromApiProducts(env.getId(), tagKey));
+                        .findByOrganization(executionContext.getOrganizationId())
+                        .forEach(env -> apiProductTagDomainService.deleteTagFromApiProducts(env.getId(), tagKey));
                 tagRepository.delete(tagId);
                 auditService.createOrganizationAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(TAG, tagKey))
-                        .event(TAG_DELETED)
-                        .createdAt(new Date())
-                        .oldValue(null)
-                        .newValue(tag)
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.singletonMap(TAG, tagKey))
+                                .event(TAG_DELETED)
+                                .createdAt(new Date())
+                                .oldValue(null)
+                                .newValue(tag)
+                                .build());
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete tag " + key, ex);
@@ -253,23 +253,21 @@ public class TagServiceImpl extends AbstractService implements TagService {
         if (isEnvironmentAdmin()) {
             return tags.stream().map(TagEntity::getKey).collect(toSet());
         } else {
-            final Set<String> restrictedTags = tags
-                .stream()
-                .filter(tag -> tag.getRestrictedGroups() != null && !tag.getRestrictedGroups().isEmpty())
-                .map(TagEntity::getKey)
-                .collect(toSet());
+            final Set<String> restrictedTags = tags.stream()
+                    .filter(tag -> tag.getRestrictedGroups() != null
+                            && !tag.getRestrictedGroups().isEmpty())
+                    .map(TagEntity::getKey)
+                    .collect(toSet());
 
-            final Set<String> groups = groupService.findByUser(user).stream().map(GroupEntity::getId).collect(toSet());
+            final Set<String> groups = groupService.findByUser(user).stream()
+                    .map(GroupEntity::getId)
+                    .collect(toSet());
 
-            return tags
-                .stream()
-                .filter(
-                    tag ->
-                        !restrictedTags.contains(tag.getKey()) ||
-                        (tag.getRestrictedGroups() != null && anyMatch(tag.getRestrictedGroups(), groups))
-                )
-                .map(TagEntity::getKey)
-                .collect(toSet());
+            return tags.stream()
+                    .filter(tag -> !restrictedTags.contains(tag.getKey())
+                            || (tag.getRestrictedGroups() != null && anyMatch(tag.getRestrictedGroups(), groups)))
+                    .map(TagEntity::getKey)
+                    .collect(toSet());
         }
     }
 
@@ -304,7 +302,8 @@ public class TagServiceImpl extends AbstractService implements TagService {
         return tagEntity;
     }
 
-    private io.gravitee.repository.management.model.TagReferenceType repoTagReferenceType(TagReferenceType referenceType) {
+    private io.gravitee.repository.management.model.TagReferenceType repoTagReferenceType(
+            TagReferenceType referenceType) {
         return io.gravitee.repository.management.model.TagReferenceType.valueOf(referenceType.name());
     }
 }

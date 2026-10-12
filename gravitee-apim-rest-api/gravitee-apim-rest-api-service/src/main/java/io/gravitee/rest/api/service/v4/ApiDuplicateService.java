@@ -20,5 +20,6 @@ import io.gravitee.rest.api.model.v4.api.DuplicateOptions;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApiDuplicateService {
-    ApiEntity duplicate(final ExecutionContext executionContext, ApiEntity sourceApi, DuplicateOptions duplicateOptions);
+    ApiEntity duplicate(
+            final ExecutionContext executionContext, ApiEntity sourceApi, DuplicateOptions duplicateOptions);
 }

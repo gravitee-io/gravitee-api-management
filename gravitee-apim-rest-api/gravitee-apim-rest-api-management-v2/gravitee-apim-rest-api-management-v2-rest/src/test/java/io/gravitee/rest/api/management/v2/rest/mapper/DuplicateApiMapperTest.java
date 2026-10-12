@@ -31,16 +31,13 @@ public class DuplicateApiMapperTest {
     @Test
     void should_map_to_DuplicateApiEntity() {
         var duplicateApi = new DuplicateApiOptions()
-            .contextPath("/context-path")
-            .version("1.0")
-            .filteredFields(
-                Set.of(
-                    DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
-                    DuplicateApiOptions.FilteredFieldsEnum.PAGES,
-                    DuplicateApiOptions.FilteredFieldsEnum.PLANS,
-                    DuplicateApiOptions.FilteredFieldsEnum.MEMBERS
-                )
-            );
+                .contextPath("/context-path")
+                .version("1.0")
+                .filteredFields(Set.of(
+                        DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
+                        DuplicateApiOptions.FilteredFieldsEnum.PAGES,
+                        DuplicateApiOptions.FilteredFieldsEnum.PLANS,
+                        DuplicateApiOptions.FilteredFieldsEnum.MEMBERS));
 
         DuplicateApiEntity result = mapper.mapToV2(duplicateApi);
 
@@ -52,56 +49,48 @@ public class DuplicateApiMapperTest {
     @Test
     void should_map_to_DuplicateOptions() {
         var duplicateApi = new DuplicateApiOptions()
-            .contextPath("/context-path")
-            .version("1.0")
-            .filteredFields(
-                Set.of(
-                    DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
-                    DuplicateApiOptions.FilteredFieldsEnum.PAGES,
-                    DuplicateApiOptions.FilteredFieldsEnum.PLANS,
-                    DuplicateApiOptions.FilteredFieldsEnum.MEMBERS
-                )
-            );
+                .contextPath("/context-path")
+                .version("1.0")
+                .filteredFields(Set.of(
+                        DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
+                        DuplicateApiOptions.FilteredFieldsEnum.PAGES,
+                        DuplicateApiOptions.FilteredFieldsEnum.PLANS,
+                        DuplicateApiOptions.FilteredFieldsEnum.MEMBERS));
 
         DuplicateOptions result = mapper.map(duplicateApi);
 
         assertThat(result.getContextPath()).isEqualTo("/context-path");
         assertThat(result.getVersion()).isEqualTo("1.0");
         assertThat(result.getFilteredFields())
-            .hasSize(4)
-            .contains(
-                DuplicateOptions.FilteredFieldsEnum.MEMBERS,
-                DuplicateOptions.FilteredFieldsEnum.PLANS,
-                DuplicateOptions.FilteredFieldsEnum.GROUPS,
-                DuplicateOptions.FilteredFieldsEnum.PAGES
-            );
+                .hasSize(4)
+                .contains(
+                        DuplicateOptions.FilteredFieldsEnum.MEMBERS,
+                        DuplicateOptions.FilteredFieldsEnum.PLANS,
+                        DuplicateOptions.FilteredFieldsEnum.GROUPS,
+                        DuplicateOptions.FilteredFieldsEnum.PAGES);
     }
 
     @Test
     void should_map_to_DuplicateOptions_with_host() {
         var duplicateApi = new DuplicateApiOptions()
-            .host("host.gravitee.io")
-            .version("1.0")
-            .filteredFields(
-                Set.of(
-                    DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
-                    DuplicateApiOptions.FilteredFieldsEnum.PAGES,
-                    DuplicateApiOptions.FilteredFieldsEnum.PLANS,
-                    DuplicateApiOptions.FilteredFieldsEnum.MEMBERS
-                )
-            );
+                .host("host.gravitee.io")
+                .version("1.0")
+                .filteredFields(Set.of(
+                        DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
+                        DuplicateApiOptions.FilteredFieldsEnum.PAGES,
+                        DuplicateApiOptions.FilteredFieldsEnum.PLANS,
+                        DuplicateApiOptions.FilteredFieldsEnum.MEMBERS));
 
         DuplicateOptions result = mapper.map(duplicateApi);
 
         assertThat(result.getHost()).isEqualTo("host.gravitee.io");
         assertThat(result.getVersion()).isEqualTo("1.0");
         assertThat(result.getFilteredFields())
-            .hasSize(4)
-            .contains(
-                DuplicateOptions.FilteredFieldsEnum.MEMBERS,
-                DuplicateOptions.FilteredFieldsEnum.PLANS,
-                DuplicateOptions.FilteredFieldsEnum.GROUPS,
-                DuplicateOptions.FilteredFieldsEnum.PAGES
-            );
+                .hasSize(4)
+                .contains(
+                        DuplicateOptions.FilteredFieldsEnum.MEMBERS,
+                        DuplicateOptions.FilteredFieldsEnum.PLANS,
+                        DuplicateOptions.FilteredFieldsEnum.GROUPS,
+                        DuplicateOptions.FilteredFieldsEnum.PAGES);
     }
 }

@@ -39,10 +39,7 @@ public class WsdlParserDomainServiceImpl implements WsdlParserDomainService {
     public String toOpenApiYaml(String content) {
         if (UrlSanitizerUtils.isUrl(content)) {
             UrlSanitizerUtils.checkAllowed(
-                content,
-                importConfiguration.getImportWhitelist(),
-                importConfiguration.isAllowImportFromPrivate()
-            );
+                    content, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
         }
         OpenAPI openAPI = new WsdlParser().parse(content);
         if (openAPI == null) {

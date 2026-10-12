@@ -28,9 +28,9 @@ public class StatusIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("promotions")
-            .name("s1")
-            .key("status", ascending())
-            .build();
+                .collection("promotions")
+                .name("s1")
+                .key("status", ascending())
+                .build();
     }
 }

@@ -92,12 +92,13 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
         return this.search(query, sort, pageable, FIELD_ID);
     }
 
-    protected SearchResult search(Query query, Sortable sort, Pageable pageable, String fieldReference) throws TechnicalException {
+    protected SearchResult search(Query query, Sortable sort, Pageable pageable, String fieldReference)
+            throws TechnicalException {
         return search(query, sort, pageable, fieldReference, null);
     }
 
     private SearchResult search(Query query, Sortable sort, Pageable pageable, String fieldReference, Sort defaultSort)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Searching for: {}", query.toString());
 
         try {
@@ -105,18 +106,18 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             TopDocs topDocs;
 
             if (pageable != null) {
-                //TODO: How to find the accurate numhits ?
+                // TODO: How to find the accurate numhits ?
                 var collectorManager = new TopScoreDocCollectorManager(1000, null, 1000);
                 searcher.search(query, collectorManager);
 
                 topDocs = collectorManager
-                    .newCollector()
-                    .topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
+                        .newCollector()
+                        .topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
             } else {
                 var luceneSort = sort == null ? defaultSort : convert(sort);
                 topDocs = luceneSort == null
-                    ? searcher.search(query, Integer.MAX_VALUE)
-                    : searcher.search(query, Integer.MAX_VALUE, luceneSort);
+                        ? searcher.search(query, Integer.MAX_VALUE)
+                        : searcher.search(query, Integer.MAX_VALUE, luceneSort);
             }
 
             final Set<String> results = new LinkedHashSet<>();
@@ -155,11 +156,9 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             return Optional.empty();
         }
 
-        var queries = filters
-            .entrySet()
-            .stream()
-            .flatMap(e -> prepareQuery(e.getKey(), e.getValue(), remapFields))
-            .toList();
+        var queries = filters.entrySet().stream()
+                .flatMap(e -> prepareQuery(e.getKey(), e.getValue(), remapFields))
+                .toList();
 
         return switch (queries.size()) {
             case 0 -> Optional.empty();
@@ -179,17 +178,15 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             increaseMaxClauseCountIfNecessary(valuesAsCollection.size());
 
             BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
-            valuesAsCollection.forEach(value ->
-                filterApisQuery.add(
+            valuesAsCollection.forEach(value -> filterApisQuery.add(
                     new TermQuery(new Term(remapFields.getOrDefault(field, field), (String) value)),
-                    BooleanClause.Occur.SHOULD
-                )
-            );
+                    BooleanClause.Occur.SHOULD));
             if (!valuesAsCollection.isEmpty()) {
                 return Stream.of(filterApisQuery.build());
             }
         } else if (values instanceof String value) {
-            return Stream.of(new TermQuery(new Term(remapFields.getOrDefault(field, field), QueryParserBase.escape(value))));
+            return Stream.of(
+                    new TermQuery(new Term(remapFields.getOrDefault(field, field), QueryParserBase.escape(value))));
         } else if (values instanceof Boolean bool) {
             return Stream.of(new TermQuery(new Term(remapFields.getOrDefault(field, field), Boolean.toString(bool))));
         }

@@ -69,7 +69,8 @@ public class DebugService extends AbstractService {
             Class componentClass = component;
 
             try {
-                LifecycleComponent lifecyclecomponent = (LifecycleComponent) this.applicationContext.getBean(componentClass);
+                LifecycleComponent lifecyclecomponent =
+                        (LifecycleComponent) this.applicationContext.getBean(componentClass);
                 if (lifecyclecomponent.lifecycleState() == Lifecycle.State.STARTED) {
                     log.info("Stopping component: {}", componentClass.getSimpleName());
                     lifecyclecomponent.stop();

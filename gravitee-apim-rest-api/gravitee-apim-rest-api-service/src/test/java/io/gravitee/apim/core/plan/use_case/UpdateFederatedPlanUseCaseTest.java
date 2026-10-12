@@ -95,36 +95,36 @@ class UpdateFederatedPlanUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
-        var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
+        var planValidatorService =
+                new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
         var reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
         var synchronizationService = new SynchronizationService(new ObjectMapper());
         var planSynchronizationService = new PlanSynchronizationLegacyWrapper(synchronizationService);
         var flowValidationDomainService = new FlowValidationDomainService(
-            policyValidationDomainService,
-            new EntrypointPluginQueryServiceInMemory()
-        );
+                policyValidationDomainService, new EntrypointPluginQueryServiceInMemory());
         var eventCrudService = mock(EventCrudService.class);
         var eventLatestCrudService = mock(EventLatestCrudService.class);
         var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
         var updatePlanDomainService = new UpdatePlanDomainService(
-            planQueryService,
-            planCrudService,
-            planValidatorService,
-            flowValidationDomainService,
-            flowCrudService,
-            auditDomainService,
-            planSynchronizationService,
-            reorderPlanDomainService,
-            new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
-            kafkaPortRanges
-        );
+                planQueryService,
+                planCrudService,
+                planValidatorService,
+                flowValidationDomainService,
+                flowCrudService,
+                auditDomainService,
+                planSynchronizationService,
+                reorderPlanDomainService,
+                new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges),
+                kafkaPortRanges);
         useCase = new UpdateFederatedPlanUseCase(updatePlanDomainService);
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(auditCrudService, pageCrudService, parametersQueryService, planCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(auditCrudService, pageCrudService, parametersQueryService, planCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -133,42 +133,36 @@ class UpdateFederatedPlanUseCaseTest {
         var plan = givenExistingPlan(PlanFixtures.aFederatedPlan());
 
         // When
-        var result = useCase.execute(
-            new UpdateFederatedPlanUseCase.Input(
-                plan
-                    .toBuilder()
-                    .name("new name")
-                    .description("new description")
-                    .validation(Plan.PlanValidationType.AUTO)
-                    .characteristics(List.of("new characteristic"))
-                    .commentMessage("new comment message")
-                    .commentRequired(true)
-                    .build(),
-                AUDIT_INFO
-            )
-        );
+        var result = useCase.execute(new UpdateFederatedPlanUseCase.Input(
+                plan.toBuilder()
+                        .name("new name")
+                        .description("new description")
+                        .validation(Plan.PlanValidationType.AUTO)
+                        .characteristics(List.of("new characteristic"))
+                        .commentMessage("new comment message")
+                        .commentRequired(true)
+                        .build(),
+                AUDIT_INFO));
 
         // Then
         CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
-            .isEqualTo(result.updated())
-            .extracting(
-                Plan::getName,
-                Plan::getDescription,
-                Plan::getValidation,
-                Plan::getCharacteristics,
-                Plan::getCommentMessage,
-                Plan::isCommentRequired,
-                Plan::getUpdatedAt
-            )
-            .contains(
-                "new name",
-                "new description",
-                Plan.PlanValidationType.AUTO,
-                List.of("new characteristic"),
-                "new comment message",
-                true,
-                INSTANT_NOW.atZone(ZoneId.systemDefault())
-            );
+                .isEqualTo(result.updated())
+                .extracting(
+                        Plan::getName,
+                        Plan::getDescription,
+                        Plan::getValidation,
+                        Plan::getCharacteristics,
+                        Plan::getCommentMessage,
+                        Plan::isCommentRequired,
+                        Plan::getUpdatedAt)
+                .contains(
+                        "new name",
+                        "new description",
+                        Plan.PlanValidationType.AUTO,
+                        List.of("new characteristic"),
+                        "new comment message",
+                        true,
+                        INSTANT_NOW.atZone(ZoneId.systemDefault()));
     }
 
     @Test
@@ -177,33 +171,35 @@ class UpdateFederatedPlanUseCaseTest {
         var plan = givenExistingPlan(PlanFixtures.aFederatedPlan());
 
         // When
-        useCase.execute(new UpdateFederatedPlanUseCase.Input(plan.toBuilder().name("new name").build(), AUDIT_INFO));
+        useCase.execute(new UpdateFederatedPlanUseCase.Input(
+                plan.toBuilder().name("new name").build(), AUDIT_INFO));
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(API_ID)
-                    .user(USER_ID)
-                    .properties(Map.of("PLAN", plan.getId()))
-                    .event(PlanAuditEvent.PLAN_UPDATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(API_ID)
+                        .user(USER_ID)
+                        .properties(Map.of("PLAN", plan.getId()))
+                        .event(PlanAuditEvent.PLAN_UPDATED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_throw_exception_when_update_plan_is_not_federated() {
         var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().build());
 
-        var throwable = Assertions.catchThrowable(() -> useCase.execute(new UpdateFederatedPlanUseCase.Input(plan, AUDIT_INFO)));
+        var throwable = Assertions.catchThrowable(
+                () -> useCase.execute(new UpdateFederatedPlanUseCase.Input(plan, AUDIT_INFO)));
 
-        Assertions.assertThat(throwable).isInstanceOf(IllegalArgumentException.class).hasMessage("Can't update a V4 plan");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Can't update a V4 plan");
     }
 
     private Plan givenExistingPlan(Plan plan) {

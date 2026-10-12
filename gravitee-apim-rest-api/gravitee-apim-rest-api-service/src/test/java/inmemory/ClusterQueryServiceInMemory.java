@@ -49,10 +49,10 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
 
     @Override
     public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
-        return storage
-            .stream()
-            .filter(cluster -> crossId.equals(cluster.getCrossId()) && environmentId.equals(cluster.getEnvironmentId()))
-            .findFirst();
+        return storage.stream()
+                .filter(cluster ->
+                        crossId.equals(cluster.getCrossId()) && environmentId.equals(cluster.getEnvironmentId()))
+                .findFirst();
     }
 
     @Override
@@ -60,7 +60,8 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var stream = storage.stream().filter(cluster -> cluster.getEnvironmentId().equals(criteria.getEnvironmentId()));
+        var stream =
+                storage.stream().filter(cluster -> cluster.getEnvironmentId().equals(criteria.getEnvironmentId()));
 
         if (CollectionUtils.isNotEmpty(criteria.getIds())) {
             stream = stream.filter(cluster -> criteria.getIds().contains(cluster.getId()));
@@ -71,17 +72,18 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
         }
 
         if (CollectionUtils.isNotEmpty(criteria.getLifecycleStates())) {
-            stream = stream.filter(
-                cluster -> cluster.getLifecycleState() != null && criteria.getLifecycleStates().contains(cluster.getLifecycleState().name())
-            );
+            stream = stream.filter(cluster -> cluster.getLifecycleState() != null
+                    && criteria.getLifecycleStates()
+                            .contains(cluster.getLifecycleState().name()));
         }
 
         if (criteria.getQuery() != null && !criteria.getQuery().isBlank()) {
-            stream = stream.filter(
-                cluster ->
-                    cluster.getName().toLowerCase().contains(criteria.getQuery().toLowerCase()) ||
-                    (cluster.getDescription() != null && cluster.getDescription().toLowerCase().contains(criteria.getQuery().toLowerCase()))
-            );
+            stream = stream.filter(cluster ->
+                    cluster.getName().toLowerCase().contains(criteria.getQuery().toLowerCase())
+                            || (cluster.getDescription() != null
+                                    && cluster.getDescription()
+                                            .toLowerCase()
+                                            .contains(criteria.getQuery().toLowerCase())));
         }
 
         stream = stream.sorted(sortClusters(sortable));
@@ -89,8 +91,8 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
         var matches = stream.collect(Collectors.toList());
 
         var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }

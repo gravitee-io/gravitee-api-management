@@ -60,15 +60,17 @@ class PortalCategoryResourceTest extends AbstractResourceTest {
         super.setUp();
         GraviteeContext.cleanContext();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        portalCategoryCrudServiceInMemory.initWith(
-            List.of(PortalCategory.of(PortalCategoryId.of(CATEGORY_ID), ENVIRONMENT, "Weather", "Weather APIs", true))
-        );
+        portalCategoryCrudServiceInMemory.initWith(List.of(
+                PortalCategory.of(PortalCategoryId.of(CATEGORY_ID), ENVIRONMENT, "Weather", "Weather APIs", true)));
     }
 
     @AfterEach
@@ -84,9 +86,9 @@ class PortalCategoryResourceTest extends AbstractResourceTest {
         @Test
         void should_update_portal_category() {
             var updatePortalCategory = new UpdatePortalCategory()
-                .title("Updated Weather")
-                .description("Updated description")
-                .visible(false);
+                    .title("Updated Weather")
+                    .description("Updated description")
+                    .visible(false);
 
             var response = rootTarget().request().put(json(updatePortalCategory));
 
@@ -96,7 +98,8 @@ class PortalCategoryResourceTest extends AbstractResourceTest {
             assertThat(updated.getDescription()).isEqualTo("Updated description");
             assertThat(updated.getVisible()).isFalse();
 
-            assertThat(portalCategoryCrudServiceInMemory.storage().getFirst().getTitle()).isEqualTo("Updated Weather");
+            assertThat(portalCategoryCrudServiceInMemory.storage().getFirst().getTitle())
+                    .isEqualTo("Updated Weather");
         }
 
         @Test
@@ -119,9 +122,11 @@ class PortalCategoryResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
-                rootTarget().request().put(json(new UpdatePortalCategory().title("Weather")))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().request().put(json(new UpdatePortalCategory().title("Weather"))));
         }
     }
 
@@ -147,9 +152,11 @@ class PortalCategoryResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.DELETE, () ->
-                rootTarget().request().delete()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.DELETE,
+                    () -> rootTarget().request().delete());
         }
     }
 }

@@ -45,7 +45,8 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return All public applications.
      * @throws TechnicalException
      */
-    Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) throws TechnicalException;
+    Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses)
+            throws TechnicalException;
 
     /**
      * find a list of Applications via their ids.
@@ -83,11 +84,13 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return applications
      * @throws TechnicalException
      */
-    default Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException {
+    default Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable)
+            throws TechnicalException {
         return search(applicationCriteria, pageable, null);
     }
 
-    Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) throws TechnicalException;
+    Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable)
+            throws TechnicalException;
 
     Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException;
 

@@ -55,13 +55,7 @@ public class LocalSyncConfiguration {
     public ThreadPoolExecutor syncLocalExecutor(@Value("${services.sync.local.threads:-1}") int syncLocal) {
         int poolSize = syncLocal != -1 ? syncLocal : POOL_SIZE;
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-            1,
-            poolSize,
-            15L,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            newThreadFactory("gio.sync-local-")
-        );
+                1, poolSize, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), newThreadFactory("gio.sync-local-"));
 
         threadPoolExecutor.allowCoreThreadTimeOut(true);
 
@@ -74,7 +68,8 @@ public class LocalSyncConfiguration {
     }
 
     @Bean
-    public SubscriptionMapper localSubscriptionMapper(ObjectMapper objectMapper, ApiProductRegistry apiProductRegistry) {
+    public SubscriptionMapper localSubscriptionMapper(
+            ObjectMapper objectMapper, ApiProductRegistry apiProductRegistry) {
         return new SubscriptionMapper(objectMapper, apiProductRegistry);
     }
 
@@ -85,35 +80,32 @@ public class LocalSyncConfiguration {
 
     @Bean
     public LocalApiSynchronizer localApiSynchronizer(
-        ApiKeyMapper apiKeyMapper,
-        ApiKeyService apiKeyService,
-        ApiManager apiManager,
-        ApiMapper apiMapper,
-        EnvironmentService environmentService,
-        ObjectMapper objectMapper,
-        SubscriptionMapper subscriptionMapper,
-        SubscriptionService subscriptionService,
-        @Qualifier("syncLocalExecutor") ThreadPoolExecutor syncLocalExecutor
-    ) {
+            ApiKeyMapper apiKeyMapper,
+            ApiKeyService apiKeyService,
+            ApiManager apiManager,
+            ApiMapper apiMapper,
+            EnvironmentService environmentService,
+            ObjectMapper objectMapper,
+            SubscriptionMapper subscriptionMapper,
+            SubscriptionService subscriptionService,
+            @Qualifier("syncLocalExecutor") ThreadPoolExecutor syncLocalExecutor) {
         return new LocalApiSynchronizer(
-            apiKeyMapper,
-            apiKeyService,
-            apiManager,
-            apiMapper,
-            environmentService,
-            objectMapper,
-            subscriptionMapper,
-            subscriptionService,
-            syncLocalExecutor
-        );
+                apiKeyMapper,
+                apiKeyService,
+                apiManager,
+                apiMapper,
+                environmentService,
+                objectMapper,
+                subscriptionMapper,
+                subscriptionService,
+                syncLocalExecutor);
     }
 
     @Bean
     public LocalSyncManager localSyncManager(
-        @Value("${services.sync.local.path:${gravitee.home}/apis}") final String localRegistryPath,
-        final List<LocalSynchronizer> localSynchronizers,
-        final DistributedSyncService distributedSyncService
-    ) {
+            @Value("${services.sync.local.path:${gravitee.home}/apis}") final String localRegistryPath,
+            final List<LocalSynchronizer> localSynchronizers,
+            final DistributedSyncService distributedSyncService) {
         return new LocalSyncManager(localRegistryPath, localSynchronizers, distributedSyncService);
     }
 }

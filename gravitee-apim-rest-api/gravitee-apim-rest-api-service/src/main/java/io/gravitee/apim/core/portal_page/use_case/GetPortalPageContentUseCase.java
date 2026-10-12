@@ -30,7 +30,8 @@ public class GetPortalPageContentUseCase {
 
     public Output execute(Input input) {
         var content = queryService.findById(input.portalPageContentId());
-        return new Output(content.orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().json())));
+        return new Output(content.orElseThrow(() ->
+                new PageContentNotFoundException(input.portalPageContentId().json())));
     }
 
     public record Output(PortalPageContent<?> content) {}

@@ -47,10 +47,9 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
         // test reports as SKIPPED on other engines rather than vacuously passing.
         String image = jdbcDatabaseContainer.getDockerImageName();
         assumeTrue(
-            image.contains(DatabaseConfigurationEnum.MYSQL.getDockerImageName()) ||
-                image.contains(DatabaseConfigurationEnum.MARIADB.getDockerImageName()),
-            "TableConstraintsTest only runs on MySQL / MariaDB"
-        );
+                image.contains(DatabaseConfigurationEnum.MYSQL.getDockerImageName())
+                        || image.contains(DatabaseConfigurationEnum.MARIADB.getDockerImageName()),
+                "TableConstraintsTest only runs on MySQL / MariaDB");
 
         String prefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
 
@@ -63,48 +62,43 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
         // core tables (apis, subscriptions, plans, users) closes that loophole, since each is
         // created in v1_14_0 / v1_15_0 within the first dozen changesets.
         Integer coreTableCount = jt.queryForObject(
-            "select count(*) from information_schema.tables " +
-                " where table_schema = (select database())" +
-                "   and table_type = 'BASE TABLE'" +
-                "   and table_name in (?, ?, ?, ?)",
-            Integer.class,
-            prefix + "apis",
-            prefix + "subscriptions",
-            prefix + "plans",
-            prefix + "users"
-        );
+                "select count(*) from information_schema.tables " + " where table_schema = (select database())"
+                        + "   and table_type = 'BASE TABLE'"
+                        + "   and table_name in (?, ?, ?, ?)",
+                Integer.class,
+                prefix + "apis",
+                prefix + "subscriptions",
+                prefix + "plans",
+                prefix + "users");
         assertEquals(
-            Integer.valueOf(4),
-            coreTableCount,
-            "Bootstrap is missing one or more core tables (apis, subscriptions, plans, users) — Liquibase setup likely failed"
-        );
+                Integer.valueOf(4),
+                coreTableCount,
+                "Bootstrap is missing one or more core tables (apis, subscriptions, plans, users) — Liquibase setup likely failed");
 
         // (select database()) reads the connection's current database so the test does not depend
         // on the testcontainer's schema name being literally 'test'.
         jt.query(
-            "select tab.table_schema as database_name,\n" +
-                "       tab.table_name\n" +
-                "from information_schema.tables tab\n" +
-                "         left join information_schema.table_constraints tco\n" +
-                "                   on tab.table_schema = tco.table_schema\n" +
-                "                       and tab.table_name = tco.table_name\n" +
-                "                       and tco.constraint_type = 'PRIMARY KEY'\n" +
-                "where tco.constraint_type is null\n" +
-                "  and tab.table_schema not in ('mysql', 'information_schema',\n" +
-                "                               'performance_schema', 'sys')\n" +
-                "  and tab.table_type = 'BASE TABLE'\n" +
-                "  and tab.table_schema = (select database())\n" +
-                "order by tab.table_schema,\n" +
-                "         tab.table_name;",
-            rs -> {
-                if (rs.wasNull()) {
-                    return;
-                }
-                do {
-                    tables.add(rs.getString("table_name").replace(prefix, ""));
-                } while (rs.next());
-            }
-        );
+                "select tab.table_schema as database_name,\n" + "       tab.table_name\n"
+                        + "from information_schema.tables tab\n"
+                        + "         left join information_schema.table_constraints tco\n"
+                        + "                   on tab.table_schema = tco.table_schema\n"
+                        + "                       and tab.table_name = tco.table_name\n"
+                        + "                       and tco.constraint_type = 'PRIMARY KEY'\n"
+                        + "where tco.constraint_type is null\n"
+                        + "  and tab.table_schema not in ('mysql', 'information_schema',\n"
+                        + "                               'performance_schema', 'sys')\n"
+                        + "  and tab.table_type = 'BASE TABLE'\n"
+                        + "  and tab.table_schema = (select database())\n"
+                        + "order by tab.table_schema,\n"
+                        + "         tab.table_name;",
+                rs -> {
+                    if (rs.wasNull()) {
+                        return;
+                    }
+                    do {
+                        tables.add(rs.getString("table_name").replace(prefix, ""));
+                    } while (rs.next());
+                });
 
         assertEquals(0, tables.size(), "Following tables are missing a primary key:\n" + String.join("\n", tables));
     }

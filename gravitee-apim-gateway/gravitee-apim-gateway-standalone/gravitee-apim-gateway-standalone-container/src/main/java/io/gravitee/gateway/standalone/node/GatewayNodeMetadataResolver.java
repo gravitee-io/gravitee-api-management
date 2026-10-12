@@ -76,17 +76,17 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
 
     private Set<String> resolveEnvironments() {
         final Optional<List<String>> optEnvironmentsList = configuration.environments();
-        return optEnvironmentsList
-            .stream()
-            .flatMap(Collection::stream)
-            .filter(id -> {
-                if (!validateEnvironmentId(id)) {
-                    log.warn("Environment id [%s] should be an valid UUID ; HRIDs are not supported anymore, ignore it.");
-                    return false;
-                }
-                return true;
-            })
-            .collect(Collectors.toSet());
+        return optEnvironmentsList.stream()
+                .flatMap(Collection::stream)
+                .filter(id -> {
+                    if (!validateEnvironmentId(id)) {
+                        log.warn(
+                                "Environment id [%s] should be an valid UUID ; HRIDs are not supported anymore, ignore it.");
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toSet());
     }
 
     private static boolean validateEnvironmentId(final String id) {
@@ -112,7 +112,8 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
                 if (!organizationsList.isEmpty()) {
                     Set<String> organizationHrids = new HashSet<>(organizationsList);
                     final Set<Organization> organizations = organizationRepository.findByHrids(organizationHrids);
-                    final Set<String> organizationIds = organizations.stream().map(Organization::getId).collect(Collectors.toSet());
+                    final Set<String> organizationIds =
+                            organizations.stream().map(Organization::getId).collect(Collectors.toSet());
 
                     checkOrganizations(organizationHrids, organizations);
 
@@ -133,7 +134,8 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
             Set<String> environmentHrids = optEnvironmentsList.map(HashSet::new).orElse(new HashSet<>());
 
             if (!organizationIds.isEmpty() || !environmentHrids.isEmpty()) {
-                final Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizationIds, environmentHrids);
+                final Set<Environment> environments =
+                        environmentRepository.findByOrganizationsAndHrids(organizationIds, environmentHrids);
                 final Set<String> environmentIds = new HashSet<>();
 
                 for (Environment env : environments) {
@@ -155,21 +157,19 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
     private void checkOrganizations(Set<String> organizationsHrids, Set<Organization> organizations) {
         if (organizationsHrids.size() != organizations.size()) {
             final Set<String> hrids = new HashSet<>(organizationsHrids);
-            final Set<String> returnedHrids = organizations
-                .stream()
-                .flatMap(org -> org.getHrids().stream())
-                .collect(Collectors.toSet());
+            final Set<String> returnedHrids = organizations.stream()
+                    .flatMap(org -> org.getHrids().stream())
+                    .collect(Collectors.toSet());
             hrids.removeAll(returnedHrids);
             log.warn("No organization found for hrids {}", hrids);
         }
     }
 
     private void checkEnvironments(Set<String> environmentHrids, Set<Environment> environments) {
-        final Set<String> returnedHrids = environments
-            .stream()
-            .flatMap(env -> env.getHrids().stream())
-            .filter(environmentHrids::contains)
-            .collect(Collectors.toSet());
+        final Set<String> returnedHrids = environments.stream()
+                .flatMap(env -> env.getHrids().stream())
+                .filter(environmentHrids::contains)
+                .collect(Collectors.toSet());
 
         if (environmentHrids.size() != returnedHrids.size()) {
             final Set<String> hrids = new HashSet<>(environmentHrids);

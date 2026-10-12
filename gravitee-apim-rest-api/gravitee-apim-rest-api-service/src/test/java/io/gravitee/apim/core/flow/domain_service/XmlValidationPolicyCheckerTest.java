@@ -39,14 +39,22 @@ class XmlValidationPolicyCheckerTest {
 
         @Test
         void should_return_null_for_non_xml_validation_policy() {
-            var step = Step.builder().policy("json-validation").configuration(VALID_REGISTRY_CONFIG).build();
-            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step)).isNull();
+            var step = Step.builder()
+                    .policy("json-validation")
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
+            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step))
+                    .isNull();
         }
 
         @Test
         void should_return_null_for_null_policy_id() {
-            var step = Step.builder().policy(null).configuration(VALID_REGISTRY_CONFIG).build();
-            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step)).isNull();
+            var step = Step.builder()
+                    .policy(null)
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
+            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step))
+                    .isNull();
         }
     }
 
@@ -55,26 +63,20 @@ class XmlValidationPolicyCheckerTest {
 
         @Test
         void should_return_null_for_inline_schema_source() {
-            var step = Step.builder()
-                .policy("xml-validation")
-                .configuration(
-                    """
-                    {"schemaSource":"inline","xsdSchema":"<xs:schema/>"}"""
-                )
-                .build();
-            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step)).isNull();
+            var step =
+                    Step.builder().policy("xml-validation").configuration("""
+                    {"schemaSource":"inline","xsdSchema":"<xs:schema/>"}""").build();
+            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step))
+                    .isNull();
         }
 
         @Test
         void should_return_null_when_schema_source_is_absent() {
-            var step = Step.builder()
-                .policy("xml-validation")
-                .configuration(
-                    """
-                    {"xsdSchema":"<xs:schema/>"}"""
-                )
-                .build();
-            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step)).isNull();
+            var step =
+                    Step.builder().policy("xml-validation").configuration("""
+                    {"xsdSchema":"<xs:schema/>"}""").build();
+            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step))
+                    .isNull();
         }
     }
 
@@ -83,16 +85,27 @@ class XmlValidationPolicyCheckerTest {
 
         @Test
         void should_accept_proxy_api_type() {
-            var step = Step.builder().policy("xml-validation").configuration(VALID_REGISTRY_CONFIG).build();
-            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step)).isNull();
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
+            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step))
+                    .isNull();
         }
 
         @ParameterizedTest
-        @EnumSource(value = ApiType.class, mode = EnumSource.Mode.EXCLUDE, names = { "PROXY" })
+        @EnumSource(
+                value = ApiType.class,
+                mode = EnumSource.Mode.EXCLUDE,
+                names = {"PROXY"})
         void should_reject_non_proxy_api_types(ApiType apiType) {
-            var step = Step.builder().policy("xml-validation").configuration(VALID_REGISTRY_CONFIG).build();
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(apiType, step);
-            assertThat(error).isEqualTo("XML Validation with schemaSource=registry is only supported on HTTP proxy APIs");
+            assertThat(error)
+                    .isEqualTo("XML Validation with schemaSource=registry is only supported on HTTP proxy APIs");
         }
     }
 
@@ -100,36 +113,36 @@ class XmlValidationPolicyCheckerTest {
     class RequiredFields {
 
         static Stream<String> missingFieldConfigs() {
-            return Stream.of(
-                """
-                {"schemaSource":"registry","groupId":"g","artifactId":"a","version":"1"}""",
-                """
-                {"schemaSource":"registry","registryResource":"sr","artifactId":"a","version":"1"}""",
-                """
-                {"schemaSource":"registry","registryResource":"sr","groupId":"g","version":"1"}""",
-                """
-                {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a"}"""
-            );
+            return Stream.of("""
+                {"schemaSource":"registry","groupId":"g","artifactId":"a","version":"1"}""", """
+                {"schemaSource":"registry","registryResource":"sr","artifactId":"a","version":"1"}""", """
+                {"schemaSource":"registry","registryResource":"sr","groupId":"g","version":"1"}""", """
+                {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a"}""");
         }
 
         @ParameterizedTest
         @MethodSource("missingFieldConfigs")
         void should_reject_when_required_field_is_missing(String config) {
-            var step = Step.builder().policy("xml-validation").configuration(config).build();
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(config)
+                    .build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step);
-            assertThat(error).isEqualTo("XML Validation registry source requires registryResource, groupId, artifactId, and version");
+            assertThat(error)
+                    .isEqualTo(
+                            "XML Validation registry source requires registryResource, groupId, artifactId, and version");
         }
 
         @ParameterizedTest
         @NullAndEmptySource
-        @ValueSource(strings = { "   " })
+        @ValueSource(strings = {"   "})
         void should_reject_when_groupId_is_blank(String groupId) {
-            String config = String.format(
-                """
-                {"schemaSource":"registry","registryResource":"sr","groupId":%s,"artifactId":"a","version":"1"}""",
-                groupId == null ? "null" : "\"" + groupId + "\""
-            );
-            var step = Step.builder().policy("xml-validation").configuration(config).build();
+            String config = String.format("""
+                {"schemaSource":"registry","registryResource":"sr","groupId":%s,"artifactId":"a","version":"1"}""", groupId == null ? "null" : "\"" + groupId + "\"");
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(config)
+                    .build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step);
             assertThat(error).contains("requires registryResource, groupId, artifactId, and version");
         }
@@ -140,39 +153,30 @@ class XmlValidationPolicyCheckerTest {
 
         @Test
         void should_reject_registry_with_inline_xsd_schema() {
-            var step = Step.builder()
-                .policy("xml-validation")
-                .configuration(
-                    """
-                    {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1","xsdSchema":"<xs:schema/>"}"""
-                )
-                .build();
+            var step =
+                    Step.builder().policy("xml-validation").configuration("""
+                    {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1","xsdSchema":"<xs:schema/>"}""").build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step);
-            assertThat(error).isEqualTo("XML Validation schemaSource=registry cannot be combined with inline xsdSchema");
+            assertThat(error)
+                    .isEqualTo("XML Validation schemaSource=registry cannot be combined with inline xsdSchema");
         }
 
         @Test
         void should_accept_registry_with_empty_xsd_schema() {
-            var step = Step.builder()
-                .policy("xml-validation")
-                .configuration(
-                    """
-                    {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1","xsdSchema":""}"""
-                )
-                .build();
-            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step)).isNull();
+            var step =
+                    Step.builder().policy("xml-validation").configuration("""
+                    {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1","xsdSchema":""}""").build();
+            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step))
+                    .isNull();
         }
 
         @Test
         void should_accept_registry_with_null_xsd_schema() {
-            var step = Step.builder()
-                .policy("xml-validation")
-                .configuration(
-                    """
-                    {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1","xsdSchema":null}"""
-                )
-                .build();
-            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step)).isNull();
+            var step =
+                    Step.builder().policy("xml-validation").configuration("""
+                    {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1","xsdSchema":null}""").build();
+            assertThat(XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step))
+                    .isNull();
         }
     }
 
@@ -181,14 +185,18 @@ class XmlValidationPolicyCheckerTest {
 
         @Test
         void should_return_error_for_malformed_json() {
-            var step = Step.builder().policy("xml-validation").configuration("not valid json").build();
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration("not valid json")
+                    .build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step);
             assertThat(error).startsWith("Invalid XML Validation policy configuration:");
         }
 
         @Test
         void should_return_error_for_null_configuration() {
-            var step = Step.builder().policy("xml-validation").configuration(null).build();
+            var step =
+                    Step.builder().policy("xml-validation").configuration(null).build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step);
             assertThat(error).startsWith("Invalid XML Validation policy configuration:");
         }
@@ -199,46 +207,52 @@ class XmlValidationPolicyCheckerTest {
 
         @Test
         void should_reject_unknown_resource_name() {
-            var step = Step.builder().policy("xml-validation").configuration(VALID_REGISTRY_CONFIG).build();
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(
-                ApiType.PROXY,
-                step,
-                Set.of("other-resource", "another-resource")
-            );
+                    ApiType.PROXY, step, Set.of("other-resource", "another-resource"));
             assertThat(error).isEqualTo("XML Validation references unknown resource 'sr'");
         }
 
         @Test
         void should_accept_known_resource_name() {
-            var step = Step.builder().policy("xml-validation").configuration(VALID_REGISTRY_CONFIG).build();
-            String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step, Set.of("sr", "other"));
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
+            String error = XmlValidationPolicyChecker.validateRegistryConfiguration(
+                    ApiType.PROXY, step, Set.of("sr", "other"));
             assertThat(error).isNull();
         }
 
         @Test
         void should_skip_resource_check_when_names_are_null() {
-            var step = Step.builder().policy("xml-validation").configuration(VALID_REGISTRY_CONFIG).build();
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step, null);
             assertThat(error).isNull();
         }
 
         @Test
         void should_reject_unknown_resource_when_names_are_empty() {
-            var step = Step.builder().policy("xml-validation").configuration(VALID_REGISTRY_CONFIG).build();
+            var step = Step.builder()
+                    .policy("xml-validation")
+                    .configuration(VALID_REGISTRY_CONFIG)
+                    .build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step, Set.of());
             assertThat(error).isEqualTo("XML Validation references unknown resource 'sr'");
         }
 
         @Test
         void should_require_exact_registry_schema_source_casing() {
-            var step = Step.builder()
-                .policy("xml-validation")
-                .configuration(
-                    """
+            var step =
+                    Step.builder().policy("xml-validation").configuration("""
                     {"schemaSource":"Registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1"}
-                    """
-                )
-                .build();
+                    """).build();
             String error = XmlValidationPolicyChecker.validateRegistryConfiguration(ApiType.PROXY, step);
             assertThat(error).isNull();
         }
@@ -249,24 +263,23 @@ class XmlValidationPolicyCheckerTest {
 
         @Test
         void should_reject_registry_source_on_v2_definition() {
-            String error = XmlValidationPolicyChecker.rejectRegistryOnUnsupportedDefinition("xml-validation", VALID_REGISTRY_CONFIG);
+            String error = XmlValidationPolicyChecker.rejectRegistryOnUnsupportedDefinition(
+                    "xml-validation", VALID_REGISTRY_CONFIG);
             assertThat(error).contains("not supported on V2 APIs");
         }
 
         @Test
         void should_allow_inline_on_v2_definition() {
-            String error = XmlValidationPolicyChecker.rejectRegistryOnUnsupportedDefinition(
-                "xml-validation",
-                """
+            String error = XmlValidationPolicyChecker.rejectRegistryOnUnsupportedDefinition("xml-validation", """
                 {"schemaSource":"inline","xsdSchema":"<xs:schema/>"}
-                """
-            );
+                """);
             assertThat(error).isNull();
         }
 
         @Test
         void should_ignore_non_xml_validation_policies() {
-            String error = XmlValidationPolicyChecker.rejectRegistryOnUnsupportedDefinition("json-validation", VALID_REGISTRY_CONFIG);
+            String error = XmlValidationPolicyChecker.rejectRegistryOnUnsupportedDefinition(
+                    "json-validation", VALID_REGISTRY_CONFIG);
             assertThat(error).isNull();
         }
     }

@@ -36,7 +36,8 @@ public class ImportDefinitionPageDomainServiceTestInitializer {
     public final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     public final PageCrudServiceInMemory pageCrudServiceInMemory = new PageCrudServiceInMemory();
     public final PageQueryServiceInMemory pageQueryServiceInMemory = new PageQueryServiceInMemory();
-    public final PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory = new PageRevisionCrudServiceInMemory();
+    public final PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory =
+            new PageRevisionCrudServiceInMemory();
     public final PlanQueryServiceInMemory planQueryServiceInMemory = new PlanQueryServiceInMemory();
     public final UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
 
@@ -46,37 +47,30 @@ public class ImportDefinitionPageDomainServiceTestInitializer {
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
 
     ImportDefinitionPageDomainServiceTestInitializer() {
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
-        apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryServiceInMemory, planQueryServiceInMemory);
+        var auditDomainService = new AuditDomainService(
+                auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
+        apiDocumentationDomainService =
+                new ApiDocumentationDomainService(pageQueryServiceInMemory, planQueryServiceInMemory);
         createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
-            pageCrudServiceInMemory,
-            pageRevisionCrudServiceInMemory,
-            auditDomainService,
-            new IndexerInMemory()
-        );
+                pageCrudServiceInMemory, pageRevisionCrudServiceInMemory, auditDomainService, new IndexerInMemory());
         updateApiDocumentationDomainService = new UpdateApiDocumentationDomainService(
-            pageCrudServiceInMemory,
-            pageRevisionCrudServiceInMemory,
-            auditDomainService,
-            new IndexerInMemory()
-        );
+                pageCrudServiceInMemory, pageRevisionCrudServiceInMemory, auditDomainService, new IndexerInMemory());
     }
 
     ImportDefinitionPageDomainService initialize() {
         return new ImportDefinitionPageDomainService(
-            apiDocumentationDomainService,
-            createApiDocumentationDomainService,
-            updateApiDocumentationDomainService
-        );
+                apiDocumentationDomainService,
+                createApiDocumentationDomainService,
+                updateApiDocumentationDomainService);
     }
 
     void tearDown() {
         Stream.of(
-            auditCrudServiceInMemory,
-            pageCrudServiceInMemory,
-            pageQueryServiceInMemory,
-            planQueryServiceInMemory,
-            userCrudServiceInMemory
-        ).forEach(InMemoryAlternative::reset);
+                        auditCrudServiceInMemory,
+                        pageCrudServiceInMemory,
+                        pageQueryServiceInMemory,
+                        planQueryServiceInMemory,
+                        userCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
     }
 }

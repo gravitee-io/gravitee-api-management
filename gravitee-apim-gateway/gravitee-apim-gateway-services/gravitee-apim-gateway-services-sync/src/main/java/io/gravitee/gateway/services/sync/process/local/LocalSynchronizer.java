@@ -25,5 +25,6 @@ import java.nio.file.WatchService;
  */
 public interface LocalSynchronizer {
     Completable synchronize(final File localRegistryDir);
+
     Completable watch(final Path localRegistryPath, final WatchService watcher);
 }

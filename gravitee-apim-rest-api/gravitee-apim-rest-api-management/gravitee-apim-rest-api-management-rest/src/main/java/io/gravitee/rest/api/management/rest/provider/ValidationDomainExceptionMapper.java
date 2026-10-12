@@ -25,15 +25,12 @@ public class ValidationDomainExceptionMapper extends AbstractExceptionMapper<Val
     public Response toResponse(ValidationDomainException exception) {
         final Response.Status error = Response.Status.BAD_REQUEST;
         return Response.status(error)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(
-                convert(
-                    exception,
-                    error.getStatusCode(),
-                    exception.getTechnicalCode(),
-                    exception.getParameters().isEmpty() ? null : exception.getParameters()
-                )
-            )
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(
+                        exception,
+                        error.getStatusCode(),
+                        exception.getTechnicalCode(),
+                        exception.getParameters().isEmpty() ? null : exception.getParameters()))
+                .build();
     }
 }

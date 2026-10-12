@@ -48,40 +48,40 @@ import org.junit.jupiter.api.Test;
 class CreateOrUpdatePortalLinkUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String PORTAL_HRID = "default-portal";
-    private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
+    private static final PortalId PORTAL_ID = PortalId.of(
+            HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
     private static final String LINK_HRID = "external-docs";
 
-    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        navCrudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService =
+            new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(navCrudService.storage());
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
-    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
-    private final PortalNavigationItemValidatorService navigationItemValidatorService = new PortalNavigationItemValidatorService(
-        navQueryService,
-        new PortalPageContentQueryServiceInMemory(),
-        new ApiProductQueryServiceInMemory(),
-        new PortalNavigationItemSourceDomainServiceInMemory(),
-        new ApiCrudServiceInMemory()
-    );
+    private final PortalAutomationScopeDomainService scopeEnforcer =
+            new PortalAutomationScopeDomainService(portalCrudService, () -> false);
+    private final PortalNavigationItemValidatorService navigationItemValidatorService =
+            new PortalNavigationItemValidatorService(
+                    navQueryService,
+                    new PortalPageContentQueryServiceInMemory(),
+                    new ApiProductQueryServiceInMemory(),
+                    new PortalNavigationItemSourceDomainServiceInMemory(),
+                    new ApiCrudServiceInMemory());
     private CreateOrUpdatePortalLinkUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        portalCrudService.initWith(
-            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
-        );
+        portalCrudService.initWith(List.of(
+                Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal")));
         useCase = new CreateOrUpdatePortalLinkUseCase(
-            navQueryService,
-            navigationItemValidatorService,
-            new PortalLinkSyncDomainService(navCrudService, navQueryService),
-            scopeEnforcer
-        );
+                navQueryService,
+                navigationItemValidatorService,
+                new PortalLinkSyncDomainService(navCrudService, navQueryService),
+                scopeEnforcer);
     }
 
     @AfterEach
@@ -130,9 +130,7 @@ class CreateOrUpdatePortalLinkUseCaseTest {
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("url"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("url"));
         assertThat(navCrudService.storage()).isEmpty();
     }
 
@@ -142,9 +140,7 @@ class CreateOrUpdatePortalLinkUseCaseTest {
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("title"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("title"));
         assertThat(navCrudService.storage()).isEmpty();
     }
 
@@ -154,34 +150,30 @@ class CreateOrUpdatePortalLinkUseCaseTest {
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("location"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("location"));
         assertThat(navCrudService.storage()).isEmpty();
     }
 
     @Test
     void should_report_segment_conflict_as_severe_error_and_materialize_nothing() {
         var squatter = PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title(LINK_HRID)
-            .segment(LINK_HRID)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title(LINK_HRID)
+                .segment(LINK_HRID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         navCrudService.initWith(List.of(squatter));
 
         var output = useCase.execute(input("External Docs", "https://docs.example.com", null, 3));
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("path segment"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("path segment"));
         // the foreign item is untouched and no link row was written
         assertThat(navCrudService.storage()).containsExactly(squatter);
     }
@@ -191,26 +183,24 @@ class CreateOrUpdatePortalLinkUseCaseTest {
         useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 1));
 
         var squatter = PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.of("33333333-3333-3333-3333-333333333333"))
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title(LINK_HRID)
-            .segment(LINK_HRID)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/projects/beta"))
-            .build();
+                .id(PortalNavigationItemId.of("33333333-3333-3333-3333-333333333333"))
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title(LINK_HRID)
+                .segment(LINK_HRID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/projects/beta"))
+                .build();
         navCrudService.create(squatter);
 
         var output = useCase.execute(input("External Docs", "https://docs.example.com", "/projects/beta", 2));
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("path segment"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("path segment"));
         // the link is still at its original location, and the squatter it collided with is untouched
         assertThat(navCrudService.storage()).hasSize(2);
     }
@@ -224,33 +214,29 @@ class CreateOrUpdatePortalLinkUseCaseTest {
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
         assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .contains("the portal to attach the link to does not exist in this environment");
+                .extracting(Validator.Error::getMessage)
+                .contains("the portal to attach the link to does not exist in this environment");
         assertThat(navCrudService.storage()).isEmpty();
     }
 
     @Test
     void should_report_severe_error_when_public_link_is_placed_under_persisted_private_folder() {
         // Spec (open-api.yaml PortalVisibility): "A PUBLIC child under a PRIVATE parent is rejected."
-        var parentFolderId = PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/private-guides");
-        navCrudService.initWith(
-            List.of(
-                PortalNavigationFolder.builder()
-                    .id(parentFolderId)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("private-guides")
-                    .segment("private-guides")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .build()
-            )
-        );
+        var parentFolderId =
+                PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/private-guides");
+        navCrudService.initWith(List.of(PortalNavigationFolder.builder()
+                .id(parentFolderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("private-guides")
+                .segment("private-guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()));
 
-        var output = useCase.execute(
-            new CreateOrUpdatePortalLinkUseCase.Input(
+        var output = useCase.execute(new CreateOrUpdatePortalLinkUseCase.Input(
                 AUDIT_INFO,
                 PORTAL_ID,
                 LINK_HRID,
@@ -258,20 +244,18 @@ class CreateOrUpdatePortalLinkUseCaseTest {
                 "https://docs.example.com",
                 "/private-guides",
                 0,
-                PortalVisibility.PUBLIC
-            )
-        );
+                PortalVisibility.PUBLIC));
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("PUBLIC"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("PUBLIC"));
         // Persisted folder is untouched and no link row was written.
         assertThat(navCrudService.storage()).hasSize(1);
     }
 
-    private static CreateOrUpdatePortalLinkUseCase.Input input(String name, String href, String location, Integer order) {
-        return new CreateOrUpdatePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID, name, href, location, order, null);
+    private static CreateOrUpdatePortalLinkUseCase.Input input(
+            String name, String href, String location, Integer order) {
+        return new CreateOrUpdatePortalLinkUseCase.Input(
+                AUDIT_INFO, PORTAL_ID, LINK_HRID, name, href, location, order, null);
     }
 }

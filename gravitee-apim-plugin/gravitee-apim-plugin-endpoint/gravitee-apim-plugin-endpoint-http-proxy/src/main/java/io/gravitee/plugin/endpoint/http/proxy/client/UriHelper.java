@@ -38,18 +38,23 @@ public class UriHelper {
     public static final char URI_QUERY_DELIMITER_CHAR = '?';
     public static final CharSequence URI_QUERY_DELIMITER_CHAR_SEQUENCE = "?";
 
-    public static RequestOptions configureAbsoluteUri(RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
+    public static RequestOptions configureAbsoluteUri(
+            RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
         final URL target = VertxHttpClientFactory.buildUrl(buildFinalUri(uri, parameters));
         final boolean secureProtocol = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
 
         return requestOptions
-            .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery())
-            .setPort(VertxHttpClientFactory.getPort(target, secureProtocol))
-            .setSsl(secureProtocol)
-            .setHost(target.getHost());
+                .setURI(
+                        target.getQuery() == null
+                                ? target.getPath()
+                                : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery())
+                .setPort(VertxHttpClientFactory.getPort(target, secureProtocol))
+                .setSsl(secureProtocol)
+                .setHost(target.getHost());
     }
 
-    public static RequestOptions configureRelativeUri(RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
+    public static RequestOptions configureRelativeUri(
+            RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
         return requestOptions.setURI(buildFinalUri(uri, parameters));
     }
 

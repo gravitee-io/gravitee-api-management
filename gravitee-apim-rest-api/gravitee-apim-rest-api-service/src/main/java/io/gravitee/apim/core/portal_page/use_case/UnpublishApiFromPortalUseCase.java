@@ -39,11 +39,10 @@ public class UnpublishApiFromPortalUseCase {
 
     public void execute(Input input) {
         // A hidden listing means the API is not published, so only the visible ones count
-        var visibleListings = apiOwnedNavigationDomainService
-            .findStandaloneListings(input.environmentId(), input.apiId())
-            .stream()
-            .filter(listing -> Boolean.TRUE.equals(listing.getPublished()))
-            .toList();
+        var visibleListings =
+                apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId()).stream()
+                        .filter(listing -> Boolean.TRUE.equals(listing.getPublished()))
+                        .toList();
         if (visibleListings.isEmpty()) {
             throw InvalidPortalNavigationItemDataException.apiIsNotPublished(input.apiId());
         }
@@ -56,15 +55,15 @@ public class UnpublishApiFromPortalUseCase {
 
     private void hide(PortalNavigationApi listing) {
         var listingToUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API)
-            .title(listing.getTitle())
-            .parentId(listing.getParentId())
-            .order(listing.getOrder())
-            .segment(listing.getSegment())
-            .categoryIds(listing.getCategoryIds())
-            .visibility(listing.getVisibility())
-            .published(false)
-            .build();
+                .type(PortalNavigationItemType.API)
+                .title(listing.getTitle())
+                .parentId(listing.getParentId())
+                .order(listing.getOrder())
+                .segment(listing.getSegment())
+                .categoryIds(listing.getCategoryIds())
+                .visibility(listing.getVisibility())
+                .published(false)
+                .build();
         validatorService.validateToUpdate(listingToUpdate, listing);
         // Hiding an item hides what is stored under it, which stays in place
         domainService.update(listingToUpdate, listing);

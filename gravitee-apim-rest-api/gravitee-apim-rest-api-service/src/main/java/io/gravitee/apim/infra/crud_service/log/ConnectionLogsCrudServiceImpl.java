@@ -57,45 +57,44 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
     @Override
     public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
-        ExecutionContext executionContext,
-        SearchLogsFilters logsFilters,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions
-    ) {
-        return searchApiConnectionLogs(executionContext, logsFilters.apiIds(), logsFilters, pageable, definitionVersions);
+            ExecutionContext executionContext,
+            SearchLogsFilters logsFilters,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions) {
+        return searchApiConnectionLogs(
+                executionContext, logsFilters.apiIds(), logsFilters, pageable, definitionVersions);
     }
 
     @Override
     public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
-        ExecutionContext executionContext,
-        String apiId,
-        SearchLogsFilters logsFilters,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            SearchLogsFilters logsFilters,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions) {
         return searchApiConnectionLogs(executionContext, Set.of(apiId), logsFilters, pageable, definitionVersions);
     }
 
     @Override
     public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
-        ExecutionContext executionContext,
-        Set<String> apiIds,
-        SearchLogsFilters logsFilters,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions
-    ) {
-        var connectionLogsFilterBuilder = mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(apiIds);
-        var detailFilterBuilder = mapToConnectionLogDetailQueryFilterBuilder(logsFilters).apiIds(apiIds);
+            ExecutionContext executionContext,
+            Set<String> apiIds,
+            SearchLogsFilters logsFilters,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions) {
+        var connectionLogsFilterBuilder =
+                mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(apiIds);
+        var detailFilterBuilder =
+                mapToConnectionLogDetailQueryFilterBuilder(logsFilters).apiIds(apiIds);
 
         try {
             return searchConnectionLogsWithOptionalBodyText(
-                executionContext,
-                logsFilters,
-                pageable,
-                definitionVersions,
-                connectionLogsFilterBuilder,
-                detailFilterBuilder
-            );
+                    executionContext,
+                    logsFilters,
+                    pageable,
+                    definitionVersions,
+                    connectionLogsFilterBuilder,
+                    detailFilterBuilder);
         } catch (AnalyticsException e) {
             String joinedApiIds = String.join(",", apiIds);
             log.error("An error occurs while trying to search connection logs of api [apiIds={}]", joinedApiIds, e);
@@ -105,66 +104,74 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
     @Override
     public SearchLogsResponse<BaseConnectionLog> searchApplicationConnectionLogs(
-        ExecutionContext executionContext,
-        String applicationId,
-        SearchLogsFilters logsFilters,
-        Pageable pageable
-    ) {
-        var connectionLogsFilterBuilder = mapToConnectionLogQueryFilterBuilder(logsFilters).applicationIds(Set.of(applicationId));
+            ExecutionContext executionContext, String applicationId, SearchLogsFilters logsFilters, Pageable pageable) {
+        var connectionLogsFilterBuilder =
+                mapToConnectionLogQueryFilterBuilder(logsFilters).applicationIds(Set.of(applicationId));
         var detailFilterBuilder = mapToConnectionLogDetailQueryFilterBuilder(logsFilters);
 
         try {
             return searchConnectionLogsWithOptionalBodyText(
-                executionContext,
-                logsFilters,
-                pageable,
-                List.of(DefinitionVersion.V2, DefinitionVersion.V4),
-                connectionLogsFilterBuilder,
-                detailFilterBuilder
-            );
+                    executionContext,
+                    logsFilters,
+                    pageable,
+                    List.of(DefinitionVersion.V2, DefinitionVersion.V4),
+                    connectionLogsFilterBuilder,
+                    detailFilterBuilder);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search application connection logs [applicationId={}]", applicationId, e);
-            throw new TechnicalManagementException("Error while searching application connection logs " + applicationId, e);
+            log.error(
+                    "An error occurs while trying to search application connection logs [applicationId={}]",
+                    applicationId,
+                    e);
+            throw new TechnicalManagementException(
+                    "Error while searching application connection logs " + applicationId, e);
         }
     }
 
     @Override
-    public Optional<ConnectionLogDetail> searchApiConnectionLog(ExecutionContext executionContext, String apiId, String requestId) {
+    public Optional<ConnectionLogDetail> searchApiConnectionLog(
+            ExecutionContext executionContext, String apiId, String requestId) {
         try {
             var response = logRepository.searchConnectionLogDetail(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                ConnectionLogDetailQuery.builder()
-                    .filter(ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of(apiId)).requestIds(Set.of(requestId)).build())
-                    .build()
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    ConnectionLogDetailQuery.builder()
+                            .filter(ConnectionLogDetailQuery.Filter.builder()
+                                    .apiIds(Set.of(apiId))
+                                    .requestIds(Set.of(requestId))
+                                    .build())
+                            .build());
             return response.map(this::mapToConnectionLogDetail);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search connection log of api [apiId={}, requestId={}]", apiId, requestId, e);
-            throw new TechnicalManagementException("Error while searching connection log of api " + apiId + " requestId " + requestId, e);
+            log.error(
+                    "An error occurs while trying to search connection log of api [apiId={}, requestId={}]",
+                    apiId,
+                    requestId,
+                    e);
+            throw new TechnicalManagementException(
+                    "Error while searching connection log of api " + apiId + " requestId " + requestId, e);
         }
     }
 
     private SearchLogsResponse<BaseConnectionLog> searchConnectionLogsWithOptionalBodyText(
-        ExecutionContext executionContext,
-        SearchLogsFilters logsFilters,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions,
-        MetricsQuery.Filter.FilterBuilder metricsFilterBuilder,
-        ConnectionLogDetailQuery.Filter.FilterBuilder detailFilterBuilder
-    ) throws AnalyticsException {
-        var hasBodyTextFilter = logsFilters.bodyText() != null && !logsFilters.bodyText().isBlank();
+            ExecutionContext executionContext,
+            SearchLogsFilters logsFilters,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions,
+            MetricsQuery.Filter.FilterBuilder metricsFilterBuilder,
+            ConnectionLogDetailQuery.Filter.FilterBuilder detailFilterBuilder)
+            throws AnalyticsException {
+        var hasBodyTextFilter =
+                logsFilters.bodyText() != null && !logsFilters.bodyText().isBlank();
         long bodySearchTotal = 0L;
 
         if (hasBodyTextFilter) {
             var bodySearchResponse = searchConnectionLogDetails(
-                executionContext,
-                ConnectionLogDetailQuery.builder()
-                    .projectionFields(List.of("_id", "request-id"))
-                    .filter(detailFilterBuilder.build())
-                    .page(pageable.getPageNumber())
-                    .size(pageable.getPageSize())
-                    .build()
-            );
+                    executionContext,
+                    ConnectionLogDetailQuery.builder()
+                            .projectionFields(List.of("_id", "request-id"))
+                            .filter(detailFilterBuilder.build())
+                            .page(pageable.getPageNumber())
+                            .size(pageable.getPageSize())
+                            .build());
 
             if (bodySearchResponse.total() == 0L) {
                 return new SearchLogsResponse<>(0, new ArrayList<>());
@@ -172,16 +179,15 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
             bodySearchTotal = bodySearchResponse.total();
 
-            var matchedRequestIds = bodySearchResponse
-                .data()
-                .stream()
-                .map(io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail::getRequestId)
-                .collect(Collectors.toSet());
+            var matchedRequestIds = bodySearchResponse.data().stream()
+                    .map(io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail::getRequestId)
+                    .collect(Collectors.toSet());
             metricsFilterBuilder.requestIds(matchedRequestIds);
         }
 
         var metricsPageable = hasBodyTextFilter ? new PageableImpl(1, pageable.getPageSize()) : pageable;
-        var response = getConnectionLogsResponse(executionContext, metricsFilterBuilder.build(), metricsPageable, definitionVersions);
+        var response = getConnectionLogsResponse(
+                executionContext, metricsFilterBuilder.build(), metricsPageable, definitionVersions);
 
         if (hasBodyTextFilter && response.total() == pageable.getPageSize()) {
             return mapToConnectionResponse(new LogResponse<>(bodySearchTotal, response.data()));
@@ -198,42 +204,43 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     }
 
     private ConnectionLogDetail mapToConnectionLogDetail(
-        io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail
-    ) {
+            io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail) {
         return ConnectionLogAdapter.INSTANCE.toEntity(connectionLogDetail);
     }
 
-    private static MetricsQuery.Filter.FilterBuilder mapToConnectionLogQueryFilterBuilder(SearchLogsFilters searchLogsFilters) {
+    private static MetricsQuery.Filter.FilterBuilder mapToConnectionLogQueryFilterBuilder(
+            SearchLogsFilters searchLogsFilters) {
         return MetricsQuery.Filter.builder()
-            .from(searchLogsFilters.from())
-            .to(searchLogsFilters.to())
-            .applicationIds(searchLogsFilters.applicationIds())
-            .apiIds(searchLogsFilters.apiIds())
-            .apiProductIds(searchLogsFilters.apiProductIds())
-            .planIds(searchLogsFilters.planIds())
-            .methods(searchLogsFilters.methods())
-            .mcpMethods(searchLogsFilters.mcpMethods())
-            .statuses(searchLogsFilters.statuses())
-            .statusRanges(ConnectionLogAdapter.INSTANCE.convertStatusRanges(searchLogsFilters.statusRanges()))
-            .statusCodeGroups(searchLogsFilters.statusCodeGroups())
-            .entrypointIds(searchLogsFilters.entrypointIds())
-            .entrypointScope(ConnectionLogAdapter.INSTANCE.convertEntrypointScope(searchLogsFilters.entrypointScope()))
-            .requestIds(searchLogsFilters.requestIds())
-            .transactionIds(searchLogsFilters.transactionIds())
-            .uri(searchLogsFilters.uri())
-            .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
-            .errorKeys(searchLogsFilters.errorKeys())
-            .llmProxyModels(searchLogsFilters.llmProxyModels())
-            .llmProxyProviders(searchLogsFilters.llmProxyProviders())
-            .mcpProxyTools(searchLogsFilters.mcpProxyTools())
-            .mcpProxyResources(searchLogsFilters.mcpProxyResources())
-            .mcpProxyPrompts(searchLogsFilters.mcpProxyPrompts())
-            .nativeConnectionStatuses(searchLogsFilters.nativeConnectionStatuses())
-            .nativeClientIds(searchLogsFilters.nativeClientIds())
-            .nativeClientSoftwareNames(searchLogsFilters.nativeClientSoftwareNames())
-            .nativeClientSoftwareVersions(searchLogsFilters.nativeClientSoftwareVersions())
-            .failureOrigins(searchLogsFilters.failureOrigins())
-            .tenants(searchLogsFilters.tenants());
+                .from(searchLogsFilters.from())
+                .to(searchLogsFilters.to())
+                .applicationIds(searchLogsFilters.applicationIds())
+                .apiIds(searchLogsFilters.apiIds())
+                .apiProductIds(searchLogsFilters.apiProductIds())
+                .planIds(searchLogsFilters.planIds())
+                .methods(searchLogsFilters.methods())
+                .mcpMethods(searchLogsFilters.mcpMethods())
+                .statuses(searchLogsFilters.statuses())
+                .statusRanges(ConnectionLogAdapter.INSTANCE.convertStatusRanges(searchLogsFilters.statusRanges()))
+                .statusCodeGroups(searchLogsFilters.statusCodeGroups())
+                .entrypointIds(searchLogsFilters.entrypointIds())
+                .entrypointScope(
+                        ConnectionLogAdapter.INSTANCE.convertEntrypointScope(searchLogsFilters.entrypointScope()))
+                .requestIds(searchLogsFilters.requestIds())
+                .transactionIds(searchLogsFilters.transactionIds())
+                .uri(searchLogsFilters.uri())
+                .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
+                .errorKeys(searchLogsFilters.errorKeys())
+                .llmProxyModels(searchLogsFilters.llmProxyModels())
+                .llmProxyProviders(searchLogsFilters.llmProxyProviders())
+                .mcpProxyTools(searchLogsFilters.mcpProxyTools())
+                .mcpProxyResources(searchLogsFilters.mcpProxyResources())
+                .mcpProxyPrompts(searchLogsFilters.mcpProxyPrompts())
+                .nativeConnectionStatuses(searchLogsFilters.nativeConnectionStatuses())
+                .nativeClientIds(searchLogsFilters.nativeClientIds())
+                .nativeClientSoftwareNames(searchLogsFilters.nativeClientSoftwareNames())
+                .nativeClientSoftwareVersions(searchLogsFilters.nativeClientSoftwareVersions())
+                .failureOrigins(searchLogsFilters.failureOrigins())
+                .tenants(searchLogsFilters.tenants());
     }
 
     /**
@@ -243,41 +250,42 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
      * only exist in v4-metrics and are applied in the second phase of a two-phase search.
      */
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(
-        SearchLogsFilters searchLogsFilters
-    ) {
+            SearchLogsFilters searchLogsFilters) {
         return ConnectionLogDetailQuery.Filter.builder()
-            .from(searchLogsFilters.from())
-            .to(searchLogsFilters.to())
-            .apiIds(searchLogsFilters.apiIds())
-            .requestIds(searchLogsFilters.requestIds())
-            .bodyText(searchLogsFilters.bodyText());
+                .from(searchLogsFilters.from())
+                .to(searchLogsFilters.to())
+                .apiIds(searchLogsFilters.apiIds())
+                .requestIds(searchLogsFilters.requestIds())
+                .bodyText(searchLogsFilters.bodyText());
     }
 
     private LogResponse<Metrics> getConnectionLogsResponse(
-        ExecutionContext executionContext,
-        MetricsQuery.Filter connectionLogQueryFilter,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions
-    ) throws AnalyticsException {
+            ExecutionContext executionContext,
+            MetricsQuery.Filter connectionLogQueryFilter,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions)
+            throws AnalyticsException {
         return metricsRepository.searchMetrics(
-            new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-            MetricsQuery.builder().filter(connectionLogQueryFilter).page(pageable.getPageNumber()).size(pageable.getPageSize()).build(),
-            definitionVersions
-        );
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                MetricsQuery.builder()
+                        .filter(connectionLogQueryFilter)
+                        .page(pageable.getPageNumber())
+                        .size(pageable.getPageSize())
+                        .build(),
+                definitionVersions);
     }
 
     private LogResponse<io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail> searchConnectionLogDetails(
-        ExecutionContext executionContext,
-        ConnectionLogDetailQuery connectionLogDetailQuery
-    ) throws AnalyticsException {
+            ExecutionContext executionContext, ConnectionLogDetailQuery connectionLogDetailQuery)
+            throws AnalyticsException {
         return logRepository.searchConnectionLogDetails(
-            new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-            connectionLogDetailQuery
-        );
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                connectionLogDetailQuery);
     }
 
     @Override
-    public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
+    public List<String> searchApiConnectionLogErrorKeys(
+            ExecutionContext executionContext, String apiId, Long from, Long to) {
         return searchConnectionLogErrorKeys(executionContext, apiId, from, to);
     }
 
@@ -286,14 +294,14 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         return searchConnectionLogErrorKeys(executionContext, null, from, to);
     }
 
-    private List<String> searchConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
+    private List<String> searchConnectionLogErrorKeys(
+            ExecutionContext executionContext, String apiId, Long from, Long to) {
         try {
             return metricsRepository.searchConnectionLogErrorKeys(
-                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                apiId,
-                from,
-                to
-            );
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    apiId,
+                    from,
+                    to);
         } catch (AnalyticsException e) {
             var context = apiId != null ? "api " + apiId : "environment " + executionContext.getEnvironmentId();
             log.error("An error occurs while trying to search error keys for {}", context, e);

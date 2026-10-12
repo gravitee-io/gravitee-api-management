@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/conditional-policy-flow.json", "/apis/conditional-policy-flow.json" })
+@DeployApi({"/apis/conditional-policy-flow.json", "/apis/conditional-policy-flow.json"})
 @EnableForGatewayTestingExtensionTesting
 public class RegisterTwiceSameApiClassLevelTestCase extends AbstractGatewayTest {
 

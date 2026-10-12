@@ -26,7 +26,10 @@ import java.util.stream.IntStream;
 public record Slug(String value) {
     public static Slug from(String title) {
         if (title == null) return new Slug("");
-        String slug = title.toLowerCase().replaceAll("[^a-z0-9]++", "-").replaceFirst("^-++", "").replaceFirst("-++$", "");
+        String slug = title.toLowerCase()
+                .replaceAll("[^a-z0-9]++", "-")
+                .replaceFirst("^-++", "")
+                .replaceFirst("-++$", "");
         return new Slug(slug);
     }
 
@@ -38,10 +41,10 @@ public record Slug(String value) {
         final Slug base = from(title);
         if (!occupied.contains(base)) return base;
         return IntStream.iterate(2, n -> n + 1)
-            .mapToObj(n -> new Slug(base.value + "-" + n))
-            .filter(candidate -> !occupied.contains(candidate))
-            .findFirst()
-            .orElseThrow();
+                .mapToObj(n -> new Slug(base.value + "-" + n))
+                .filter(candidate -> !occupied.contains(candidate))
+                .findFirst()
+                .orElseThrow();
     }
 
     @Override

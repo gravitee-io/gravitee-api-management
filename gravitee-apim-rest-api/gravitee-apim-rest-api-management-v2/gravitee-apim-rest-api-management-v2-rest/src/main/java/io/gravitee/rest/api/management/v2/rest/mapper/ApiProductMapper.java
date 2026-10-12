@@ -20,7 +20,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiProductInfo;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface ApiProductMapper {
     ApiProductMapper INSTANCE = Mappers.getMapper(ApiProductMapper.class);
 

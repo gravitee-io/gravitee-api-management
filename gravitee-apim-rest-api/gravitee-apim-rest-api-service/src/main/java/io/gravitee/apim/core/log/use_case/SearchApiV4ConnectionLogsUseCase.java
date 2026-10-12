@@ -53,12 +53,11 @@ public class SearchApiV4ConnectionLogsUseCase {
     private final ApiProductQueryService apiProductQueryService;
 
     public SearchApiV4ConnectionLogsUseCase(
-        ConnectionLogsCrudService connectionLogsCrudService,
-        PlanCrudService planCrudService,
-        ApplicationCrudService applicationCrudService,
-        ApiCrudService apiCrudService,
-        ApiProductQueryService apiProductQueryService
-    ) {
+            ConnectionLogsCrudService connectionLogsCrudService,
+            PlanCrudService planCrudService,
+            ApplicationCrudService applicationCrudService,
+            ApiCrudService apiCrudService,
+            ApiProductQueryService apiProductQueryService) {
         this.connectionLogsCrudService = connectionLogsCrudService;
         this.planCrudService = planCrudService;
         this.applicationCrudService = applicationCrudService;
@@ -71,12 +70,11 @@ public class SearchApiV4ConnectionLogsUseCase {
 
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
         var response = connectionLogsCrudService.searchApiConnectionLogs(
-            executionContext,
-            input.apiId(),
-            input.logsFilters(),
-            pageable,
-            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
-        );
+                executionContext,
+                input.apiId(),
+                input.logsFilters(),
+                pageable,
+                List.of(DefinitionVersion.V2, DefinitionVersion.V4));
 
         return mapToResponse(executionContext, response);
     }
@@ -85,58 +83,62 @@ public class SearchApiV4ConnectionLogsUseCase {
         var total = logs.total();
         var logList = logs.logs();
         var apiProductNames = prefetchApiProductNames(executionContext, logList);
-        var data = logList
-            .stream()
-            .map(log -> mapToModel(executionContext, log, apiProductNames))
-            .toList();
+        var data = logList.stream()
+                .map(log -> mapToModel(executionContext, log, apiProductNames))
+                .toList();
 
         return new Output(total, data);
     }
 
-    private Map<String, String> prefetchApiProductNames(ExecutionContext executionContext, List<BaseConnectionLog> logs) {
-        var ids = logs.stream().map(BaseConnectionLog::getApiProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+    private Map<String, String> prefetchApiProductNames(
+            ExecutionContext executionContext, List<BaseConnectionLog> logs) {
+        var ids = logs.stream()
+                .map(BaseConnectionLog::getApiProductId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         if (ids.isEmpty()) {
             return Map.of();
         }
 
-        return apiProductQueryService
-            .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
-            .stream()
-            .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+        return apiProductQueryService.findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids).stream()
+                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
     }
 
     private ConnectionLogModel mapToModel(
-        ExecutionContext executionContext,
-        BaseConnectionLog connectionLog,
-        Map<String, String> apiProductNames
-    ) {
+            ExecutionContext executionContext, BaseConnectionLog connectionLog, Map<String, String> apiProductNames) {
         return ConnectionLogModel.builder()
-            .apiId(connectionLog.getApiId())
-            .requestId(connectionLog.getRequestId())
-            .timestamp(connectionLog.getTimestamp())
-            .application(getApplicationEntity(executionContext, connectionLog.getApplicationId()))
-            .clientIdentifier(connectionLog.getClientIdentifier() != null ? connectionLog.getClientIdentifier() : UNKNOWN)
-            .method(connectionLog.getMethod())
-            .plan(getPlanInfo(connectionLog.getPlanId()))
-            .requestEnded(connectionLog.isRequestEnded())
-            .transactionId(connectionLog.getTransactionId())
-            .status(connectionLog.getStatus())
-            .gatewayResponseTime(connectionLog.getGatewayResponseTime())
-            .uri(connectionLog.getUri())
-            .endpoint(connectionLog.getEndpoint())
-            .errorComponentType(connectionLog.getErrorComponentType())
-            .errorComponentName(connectionLog.getErrorComponentName())
-            .errorKey(connectionLog.getErrorKey())
-            .message(connectionLog.getMessage())
-            .warnings(connectionLog.getWarnings() != null ? connectionLog.getWarnings() : List.of())
-            .additionalMetrics(connectionLog.getAdditionalMetrics() != null ? connectionLog.getAdditionalMetrics() : Map.of())
-            .apiProductId(connectionLog.getApiProductId())
-            .apiProductName(connectionLog.getApiProductId() != null ? apiProductNames.get(connectionLog.getApiProductId()) : null)
-            .build();
+                .apiId(connectionLog.getApiId())
+                .requestId(connectionLog.getRequestId())
+                .timestamp(connectionLog.getTimestamp())
+                .application(getApplicationEntity(executionContext, connectionLog.getApplicationId()))
+                .clientIdentifier(
+                        connectionLog.getClientIdentifier() != null ? connectionLog.getClientIdentifier() : UNKNOWN)
+                .method(connectionLog.getMethod())
+                .plan(getPlanInfo(connectionLog.getPlanId()))
+                .requestEnded(connectionLog.isRequestEnded())
+                .transactionId(connectionLog.getTransactionId())
+                .status(connectionLog.getStatus())
+                .gatewayResponseTime(connectionLog.getGatewayResponseTime())
+                .uri(connectionLog.getUri())
+                .endpoint(connectionLog.getEndpoint())
+                .errorComponentType(connectionLog.getErrorComponentType())
+                .errorComponentName(connectionLog.getErrorComponentName())
+                .errorKey(connectionLog.getErrorKey())
+                .message(connectionLog.getMessage())
+                .warnings(connectionLog.getWarnings() != null ? connectionLog.getWarnings() : List.of())
+                .additionalMetrics(
+                        connectionLog.getAdditionalMetrics() != null ? connectionLog.getAdditionalMetrics() : Map.of())
+                .apiProductId(connectionLog.getApiProductId())
+                .apiProductName(
+                        connectionLog.getApiProductId() != null
+                                ? apiProductNames.get(connectionLog.getApiProductId())
+                                : null)
+                .build();
     }
 
     private GenericPlanEntity getPlanInfo(String planId) {
-        final BasePlanEntity unknownPlan = BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
+        final BasePlanEntity unknownPlan =
+                BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
 
         try {
             return planId != null ? planCrudService.getById(planId) : unknownPlan;
@@ -147,13 +149,19 @@ public class SearchApiV4ConnectionLogsUseCase {
 
     private BaseApplicationEntity getApplicationEntity(ExecutionContext executionContext, String applicationId) {
         if (applicationId == null) {
-            return BaseApplicationEntity.builder().id(UNKNOWN.toLowerCase()).name(UNKNOWN).build();
+            return BaseApplicationEntity.builder()
+                    .id(UNKNOWN.toLowerCase())
+                    .name(UNKNOWN)
+                    .build();
         }
 
         try {
             return applicationCrudService.findById(applicationId, executionContext.getEnvironmentId());
         } catch (ApplicationNotFoundException | TechnicalManagementException e) {
-            return BaseApplicationEntity.builder().id(applicationId).name(UNKNOWN).build();
+            return BaseApplicationEntity.builder()
+                    .id(applicationId)
+                    .name(UNKNOWN)
+                    .build();
         }
     }
 

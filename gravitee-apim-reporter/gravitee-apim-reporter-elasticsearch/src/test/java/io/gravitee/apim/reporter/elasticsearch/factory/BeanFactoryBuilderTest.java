@@ -63,8 +63,10 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES7IndexPreparer.class);
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(ES7IndexPreparer.class);
         }
 
         @Test
@@ -75,8 +77,10 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES7IndexPreparer.class);
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(ES7IndexPreparer.class);
         }
     }
 
@@ -91,8 +95,10 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES8IndexPreparer.class);
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(ES8IndexPreparer.class);
         }
 
         @Test
@@ -104,8 +110,10 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES8IndexPreparer.class);
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(ES8IndexPreparer.class);
         }
     }
 
@@ -120,8 +128,10 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES9IndexPreparer.class);
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(ES9IndexPreparer.class);
         }
 
         @Test
@@ -133,8 +143,10 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES9IndexPreparer.class);
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(ES9IndexPreparer.class);
         }
     }
 
@@ -143,7 +155,7 @@ class BeanFactoryBuilderTest {
 
         @DisplayName("should instantiate beans for OpenSearch daily mode")
         @ParameterizedTest(name = "with version {0}")
-        @ValueSource(strings = { "1.0", "2.6" })
+        @ValueSource(strings = {"1.0", "2.6"})
         void should_instantiate_beans_for_opensearch_daily_mode(String version) {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("daily");
@@ -151,15 +163,15 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(
-                OpenSearchIndexPreparer.class
-            );
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(OpenSearchIndexPreparer.class);
         }
 
         @DisplayName("should instantiate beans for OpenSearch ilm mode")
         @ParameterizedTest(name = "with version {0}")
-        @ValueSource(strings = { "1.0.0", "2.6" })
+        @ValueSource(strings = {"1.0.0", "2.6"})
         void should_instantiate_beans_for_opensearch_ilm_mode(String version) {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("ilm");
@@ -168,10 +180,10 @@ class BeanFactoryBuilderTest {
             BeanFactory beanFactory = BeanFactoryBuilder.buildFactory(client);
 
             assertThat(beanFactory).isNotNull();
-            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(
-                OpenSearchIndexPreparer.class
-            );
+            assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration))
+                    .isInstanceOf(PerTypeIndexNameGenerator.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                    .isInstanceOf(OpenSearchIndexPreparer.class);
         }
     }
 
@@ -182,7 +194,8 @@ class BeanFactoryBuilderTest {
         void should_fail_immediately_on_401_unauthorized() {
             when(client.getInfo()).thenReturn(Single.error(new ElasticsearchException("Unauthorized", 401)));
 
-            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(ElasticsearchException.class);
+            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client))
+                    .isInstanceOf(ElasticsearchException.class);
 
             verify(client, times(1)).getInfo();
         }
@@ -191,14 +204,16 @@ class BeanFactoryBuilderTest {
         void should_fail_immediately_on_403_forbidden() {
             when(client.getInfo()).thenReturn(Single.error(new ElasticsearchException("Forbidden", 403)));
 
-            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(ElasticsearchException.class);
+            assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client))
+                    .isInstanceOf(ElasticsearchException.class);
 
             verify(client, times(1)).getInfo();
         }
 
         @Test
         void should_fail_immediately_on_wrapped_401() {
-            when(client.getInfo()).thenReturn(Single.error(new RuntimeException(new ElasticsearchException("Unauthorized", 401))));
+            when(client.getInfo())
+                    .thenReturn(Single.error(new RuntimeException(new ElasticsearchException("Unauthorized", 401))));
 
             assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(RuntimeException.class);
 
@@ -207,7 +222,8 @@ class BeanFactoryBuilderTest {
 
         @Test
         void should_fail_immediately_on_wrapped_403() {
-            when(client.getInfo()).thenReturn(Single.error(new RuntimeException(new ElasticsearchException("Forbidden", 403))));
+            when(client.getInfo())
+                    .thenReturn(Single.error(new RuntimeException(new ElasticsearchException("Forbidden", 403))));
 
             assertThatThrownBy(() -> BeanFactoryBuilder.buildFactory(client)).isInstanceOf(RuntimeException.class);
 
@@ -216,33 +232,43 @@ class BeanFactoryBuilderTest {
 
         @Test
         void should_detect_401_as_unauthorized() {
-            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("error", 401))).isTrue();
-            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("error", 403))).isFalse();
+            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("error", 401)))
+                    .isTrue();
+            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("error", 403)))
+                    .isFalse();
         }
 
         @Test
         void should_detect_403_as_forbidden() {
-            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("error", 403))).isTrue();
-            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("error", 401))).isFalse();
+            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("error", 403)))
+                    .isTrue();
+            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("error", 401)))
+                    .isFalse();
         }
 
         @ParameterizedTest
-        @ValueSource(ints = { 400, 404, 500, 502, 503 })
+        @ValueSource(ints = {400, 404, 500, 502, 503})
         void should_not_detect_other_status_codes(int statusCode) {
-            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("error", statusCode))).isFalse();
-            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("error", statusCode))).isFalse();
+            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("error", statusCode)))
+                    .isFalse();
+            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("error", statusCode)))
+                    .isFalse();
         }
 
         @Test
         void should_not_detect_error_without_status_code() {
-            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("Connection refused"))).isFalse();
-            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("Connection refused"))).isFalse();
+            assertThat(BeanFactoryBuilder.isUnauthorized(new ElasticsearchException("Connection refused")))
+                    .isFalse();
+            assertThat(BeanFactoryBuilder.isForbidden(new ElasticsearchException("Connection refused")))
+                    .isFalse();
         }
 
         @Test
         void should_not_detect_non_elasticsearch_exceptions() {
-            assertThat(BeanFactoryBuilder.isUnauthorized(new RuntimeException("error"))).isFalse();
-            assertThat(BeanFactoryBuilder.isForbidden(new RuntimeException("error"))).isFalse();
+            assertThat(BeanFactoryBuilder.isUnauthorized(new RuntimeException("error")))
+                    .isFalse();
+            assertThat(BeanFactoryBuilder.isForbidden(new RuntimeException("error")))
+                    .isFalse();
         }
 
         @Test

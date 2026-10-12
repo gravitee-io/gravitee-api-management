@@ -36,13 +36,15 @@ public class DynamicPropertyDeserializer extends ScheduledServiceDeserializer<Dy
     }
 
     @Override
-    protected void deserialize(DynamicPropertyService service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
-        throws IOException {
+    protected void deserialize(
+            DynamicPropertyService service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
+            throws IOException {
         super.deserialize(service, jsonParser, node, ctxt);
 
         final JsonNode providerNode = node.get("provider");
         if (providerNode != null) {
-            service.setProvider(DynamicPropertyProvider.valueOf(providerNode.asText().toUpperCase()));
+            service.setProvider(
+                    DynamicPropertyProvider.valueOf(providerNode.asText().toUpperCase()));
         } else {
             throw JsonMappingException.from(ctxt, "[dynamic-property] Provider is required");
         }
@@ -50,8 +52,8 @@ public class DynamicPropertyDeserializer extends ScheduledServiceDeserializer<Dy
         final JsonNode configurationNode = node.get("configuration");
         if (service.getProvider() == DynamicPropertyProvider.HTTP) {
             HttpDynamicPropertyProviderConfiguration configuration = configurationNode
-                .traverse(jsonParser.getCodec())
-                .readValueAs(HttpDynamicPropertyProviderConfiguration.class);
+                    .traverse(jsonParser.getCodec())
+                    .readValueAs(HttpDynamicPropertyProviderConfiguration.class);
             service.setConfiguration(configuration);
         }
     }

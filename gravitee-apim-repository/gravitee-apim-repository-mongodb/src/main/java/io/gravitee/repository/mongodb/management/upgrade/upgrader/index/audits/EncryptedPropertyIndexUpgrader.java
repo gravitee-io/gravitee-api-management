@@ -28,8 +28,7 @@ import org.springframework.stereotype.Component;
 @Component("AuditsEncryptedPropertyIndexUpgrader")
 public class EncryptedPropertyIndexUpgrader extends IndexUpgrader {
 
-    private static final String ENCRYPTED_PROPERTY_FIELD =
-        "properties." + ENCRYPTED.name();
+    private static final String ENCRYPTED_PROPERTY_FIELD = "properties." + ENCRYPTED.name();
 
     /**
      * Partial rather than plain: a plain index would store every audit lacking the property under {@code null}, so
@@ -38,10 +37,10 @@ public class EncryptedPropertyIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("audits")
-            .name("pe1")
-            .key(ENCRYPTED_PROPERTY_FIELD, ascending())
-            .partialFilterExpression(Filters.exists(ENCRYPTED_PROPERTY_FIELD))
-            .build();
+                .collection("audits")
+                .name("pe1")
+                .key(ENCRYPTED_PROPERTY_FIELD, ascending())
+                .partialFilterExpression(Filters.exists(ENCRYPTED_PROPERTY_FIELD))
+                .build();
     }
 }

@@ -21,10 +21,8 @@ import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.validation.Validator;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,7 +36,8 @@ import lombok.CustomLog;
 @CustomLog
 @DomainService
 @AllArgsConstructor
-public class ValidatePageAccessControlsDomainService implements Validator<ValidatePageAccessControlsDomainService.Input> {
+public class ValidatePageAccessControlsDomainService
+        implements Validator<ValidatePageAccessControlsDomainService.Input> {
 
     public record Input(AuditInfo auditInfo, Set<AccessControl> accessControls) implements Validator.Input {
         Input sanitized(Set<AccessControl> accessControls) {
@@ -59,7 +58,8 @@ public class ValidatePageAccessControlsDomainService implements Validator<Valida
     }
 
     private Set<AccessControl> sanitizeGroupIds(String environmentId, Set<AccessControl> accessControls) {
-        var acl = new HashSet<>(accessControls.stream().filter(AccessControl::isGroup).toList());
+        var acl = new HashSet<>(
+                accessControls.stream().filter(AccessControl::isGroup).toList());
         var groupIdToReference = mapGroupIdToReference(environmentId, acl);
 
         var it = acl.iterator();
@@ -77,13 +77,14 @@ public class ValidatePageAccessControlsDomainService implements Validator<Valida
     }
 
     private Map<String, String> mapGroupIdToReference(String environmentId, Set<AccessControl> accessControls) {
-        var references = accessControls.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet());
+        var references =
+                accessControls.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet());
 
-        var byIds = this.groupQueryService.findByIds(references).stream().collect(Collectors.toMap(Group::getId, Group::getId));
+        var byIds = this.groupQueryService.findByIds(references).stream()
+                .collect(Collectors.toMap(Group::getId, Group::getId));
 
-        var byNames = this.groupQueryService.findByNames(environmentId, references)
-            .stream()
-            .collect(Collectors.toMap(Group::getName, Group::getId));
+        var byNames = this.groupQueryService.findByNames(environmentId, references).stream()
+                .collect(Collectors.toMap(Group::getName, Group::getId));
 
         var mapping = new HashMap<>(byIds);
         mapping.putAll(byNames);

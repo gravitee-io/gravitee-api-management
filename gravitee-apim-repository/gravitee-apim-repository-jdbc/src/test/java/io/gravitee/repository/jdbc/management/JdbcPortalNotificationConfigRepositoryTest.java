@@ -22,7 +22,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import io.gravitee.repository.management.api.search.PortalNotificationCriteria;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -40,7 +39,8 @@ import org.springframework.jdbc.core.RowMapper;
 
 public class JdbcPortalNotificationConfigRepositoryTest {
 
-    private JdbcPortalNotificationConfigRepository repository = new JdbcPortalNotificationConfigRepository("table_prefix_");
+    private JdbcPortalNotificationConfigRepository repository =
+            new JdbcPortalNotificationConfigRepository("table_prefix_");
     private JdbcTemplate jdbcTemplate;
     private char savedEscapePrefix;
     private char savedEscapeSufix;
@@ -81,56 +81,58 @@ public class JdbcPortalNotificationConfigRepositoryTest {
 
     @Test
     public void generateQuery_withHookAndOrgId() {
-        PortalNotificationCriteria criteria = PortalNotificationCriteria.builder().hook("hook1").organizationId("org1").build();
+        PortalNotificationCriteria criteria = PortalNotificationCriteria.builder()
+                .hook("hook1")
+                .organizationId("org1")
+                .build();
         String query = repository.generateQuery(criteria);
         String expectedQuery =
-            "select pnc.`user`, pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from " +
-            "table_prefix_portal_notification_configs pnc left join table_prefix_portal_notification_config_hooks pnch on " +
-            "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc.`user` = pnch.`user` " +
-            "where 1=1 and pnch.hook = ? and pnc.organization_id = ?";
+                "select pnc.`user`, pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from "
+                        + "table_prefix_portal_notification_configs pnc left join table_prefix_portal_notification_config_hooks pnch on "
+                        + "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc.`user` = pnch.`user` "
+                        + "where 1=1 and pnch.hook = ? and pnc.organization_id = ?";
         assertThat(query).isEqualTo(expectedQuery);
     }
 
     @Test
     public void generateQuery_withHookAndReferenceTypeAndReferenceId() {
         PortalNotificationCriteria criteria = PortalNotificationCriteria.builder()
-            .hook("hook1")
-            .referenceType(NotificationReferenceType.API)
-            .referenceId("refId1")
-            .build();
+                .hook("hook1")
+                .referenceType(NotificationReferenceType.API)
+                .referenceId("refId1")
+                .build();
         String query = repository.generateQuery(criteria);
         String expectedQuery =
-            "select pnc.`user`, pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from " +
-            "table_prefix_portal_notification_configs pnc left join table_prefix_portal_notification_config_hooks pnch on " +
-            "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc.`user` = pnch.`user` " +
-            "where 1=1 and pnc.reference_type = ? and pnc.reference_id = ? and pnch.hook = ?";
+                "select pnc.`user`, pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from "
+                        + "table_prefix_portal_notification_configs pnc left join table_prefix_portal_notification_config_hooks pnch on "
+                        + "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc.`user` = pnch.`user` "
+                        + "where 1=1 and pnc.reference_type = ? and pnc.reference_id = ? and pnch.hook = ?";
         assertThat(query).isEqualTo(expectedQuery);
     }
 
     @Test
     void findAll_shouldLoadHooksAndGroups() throws Exception {
         PortalNotificationConfig config = PortalNotificationConfig.builder()
-            .user("user1")
-            .referenceType(NotificationReferenceType.API)
-            .referenceId("api1")
-            .build();
+                .user("user1")
+                .referenceType(NotificationReferenceType.API)
+                .referenceId("api1")
+                .build();
 
-        when(jdbcTemplate.query(contains("FROM table_prefix_portal_notification_configs"), any(RowMapper.class))).thenReturn(
-            List.of(config)
-        );
+        when(jdbcTemplate.query(contains("FROM table_prefix_portal_notification_configs"), any(RowMapper.class)))
+                .thenReturn(List.of(config));
         doAnswer(inv -> {
-            config.setHooks(List.of("H1"));
-            return null;
-        })
-            .when(jdbcTemplate)
-            .query(contains("portal_notification_config_hooks"), any(RowCallbackHandler.class));
+                    config.setHooks(List.of("H1"));
+                    return null;
+                })
+                .when(jdbcTemplate)
+                .query(contains("portal_notification_config_hooks"), any(RowCallbackHandler.class));
 
         doAnswer(inv -> {
-            config.setGroups(Set.of("G1"));
-            return null;
-        })
-            .when(jdbcTemplate)
-            .query(contains("portal_notification_config_groups"), any(RowCallbackHandler.class));
+                    config.setGroups(Set.of("G1"));
+                    return null;
+                })
+                .when(jdbcTemplate)
+                .query(contains("portal_notification_config_groups"), any(RowCallbackHandler.class));
 
         Set<PortalNotificationConfig> result = repository.findAll();
         PortalNotificationConfig cfg = result.iterator().next();

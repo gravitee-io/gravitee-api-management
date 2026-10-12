@@ -39,46 +39,51 @@ public class DictionaryResourceTest extends AbstractResourceTest {
     @Test
     public void shouldStartDictionary() {
         DictionaryEntity dictionary = DictionaryEntity.builder()
-            .id(DICTIONARY_ID)
-            .updatedAt(new Date())
-            .type(DictionaryType.DYNAMIC)
-            .state(Lifecycle.State.STOPPED)
-            .build();
+                .id(DICTIONARY_ID)
+                .updatedAt(new Date())
+                .type(DictionaryType.DYNAMIC)
+                .state(Lifecycle.State.STOPPED)
+                .build();
         doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         doReturn(dictionary).when(dictionaryService).start(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        final Response response = envTarget().queryParam("action", LifecycleAction.START).request().post(null);
+        final Response response = envTarget()
+                .queryParam("action", LifecycleAction.START)
+                .request()
+                .post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     @Test
     public void shouldStopDictionary() {
         DictionaryEntity dictionary = DictionaryEntity.builder()
-            .id(DICTIONARY_ID)
-            .updatedAt(new Date())
-            .type(DictionaryType.DYNAMIC)
-            .state(Lifecycle.State.STARTED)
-            .build();
+                .id(DICTIONARY_ID)
+                .updatedAt(new Date())
+                .type(DictionaryType.DYNAMIC)
+                .state(Lifecycle.State.STARTED)
+                .build();
         doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         doReturn(dictionary).when(dictionaryService).stop(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        final Response response = envTarget().queryParam("action", LifecycleAction.STOP).request().post(null);
+        final Response response =
+                envTarget().queryParam("action", LifecycleAction.STOP).request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     @Test
     public void shouldReturnBadRequestWithInvalidLifecycleAction() {
         DictionaryEntity dictionary = DictionaryEntity.builder()
-            .id(DICTIONARY_ID)
-            .updatedAt(new Date())
-            .type(DictionaryType.DYNAMIC)
-            .state(Lifecycle.State.STARTED)
-            .build();
+                .id(DICTIONARY_ID)
+                .updatedAt(new Date())
+                .type(DictionaryType.DYNAMIC)
+                .state(Lifecycle.State.STARTED)
+                .build();
         doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        final Response response = envTarget().queryParam("action", "Bad action").request().post(null);
+        final Response response =
+                envTarget().queryParam("action", "Bad action").request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 }

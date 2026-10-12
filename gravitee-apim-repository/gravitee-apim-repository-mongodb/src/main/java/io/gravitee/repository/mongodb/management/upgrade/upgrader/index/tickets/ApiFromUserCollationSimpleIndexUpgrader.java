@@ -28,10 +28,10 @@ public class ApiFromUserCollationSimpleIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("tickets")
-            .name("a1fu1")
-            .key("api", ascending())
-            .key("fromUser", ascending())
-            .build();
+                .collection("tickets")
+                .name("a1fu1")
+                .key("api", ascending())
+                .key("fromUser", ascending())
+                .build();
     }
 }

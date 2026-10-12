@@ -126,23 +126,20 @@ public class UpdateAlertTriggerEntity extends Trigger {
 
     @Override
     public String toString() {
-        return (
-            "UpdateAlertEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            '}'
-        );
+        return ("UpdateAlertEntity{" + "id='"
+                + id
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + '}');
     }
 }

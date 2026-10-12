@@ -103,7 +103,8 @@ public class ApplicationService_FindByUserTest {
     private RoleEntity primaryOwnerRole;
 
     @Mock
-    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService
+            clientCertificateCrudService;
 
     @AfterEach
     public void tearDown() {
@@ -118,15 +119,15 @@ public class ApplicationService_FindByUserTest {
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        ).thenReturn(Collections.singleton(APPLICATION_ID));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+                .thenReturn(Collections.singleton(APPLICATION_ID));
 
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Set.of(APPLICATION_ID))
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
+                .restrictedToIds(Set.of(APPLICATION_ID))
+                .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .status(ApplicationStatus.ACTIVE)
+                .build();
         when(applicationRepository.search(criteria, null, null)).thenReturn(new Page<>(List.of(application), 1, 1, 1));
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
@@ -137,7 +138,8 @@ public class ApplicationService_FindByUserTest {
         po.setReferenceId(APPLICATION_ID);
         po.setReferenceType(MembershipReferenceType.APPLICATION);
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
@@ -169,13 +171,13 @@ public class ApplicationService_FindByUserTest {
         when(groupApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(groupApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        ).thenReturn(Collections.singleton(APPLICATION_ID));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+                .thenReturn(Collections.singleton(APPLICATION_ID));
 
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP)
-        ).thenReturn(Collections.singleton(groupAppMembership));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP))
+                .thenReturn(Collections.singleton(groupAppMembership));
 
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.APPLICATION);
@@ -183,11 +185,12 @@ public class ApplicationService_FindByUserTest {
         when(roleService.findById(any())).thenReturn(role);
 
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Set.of(APPLICATION_ID))
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
-        when(applicationRepository.search(criteria, null, null)).thenReturn(new Page<>(List.of(application, groupApplication), 1, 2, 2));
+                .restrictedToIds(Set.of(APPLICATION_ID))
+                .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .status(ApplicationStatus.ACTIVE)
+                .build();
+        when(applicationRepository.search(criteria, null, null))
+                .thenReturn(new Page<>(List.of(application, groupApplication), 1, 2, 2));
 
         MembershipEntity poApp = new MembershipEntity();
         poApp.setId("poApp-id");
@@ -206,7 +209,8 @@ public class ApplicationService_FindByUserTest {
         Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(poApp);
         memberships.add(poGroupApp);
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(memberships);
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(memberships);
 
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
@@ -222,18 +226,20 @@ public class ApplicationService_FindByUserTest {
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        ).thenReturn(Collections.singleton(APPLICATION_ID));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+                .thenReturn(Collections.singleton(APPLICATION_ID));
 
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Set.of(APPLICATION_ID))
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
-        when(applicationRepository.search(criteria, null, new SortableBuilder().field("name").setAsc(true).build())).thenReturn(
-            new Page<>(List.of(application), 1, 2, 2)
-        );
+                .restrictedToIds(Set.of(APPLICATION_ID))
+                .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .status(ApplicationStatus.ACTIVE)
+                .build();
+        when(applicationRepository.search(
+                        criteria,
+                        null,
+                        new SortableBuilder().field("name").setAsc(true).build()))
+                .thenReturn(new Page<>(List.of(application), 1, 2, 2));
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
@@ -243,13 +249,11 @@ public class ApplicationService_FindByUserTest {
         po.setReferenceId(APPLICATION_ID);
         po.setReferenceType(MembershipReferenceType.APPLICATION);
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         Set<ApplicationListItem> apps = applicationService.findByUser(
-            GraviteeContext.getExecutionContext(),
-            USERNAME,
-            new SortableImpl("name", true)
-        );
+                GraviteeContext.getExecutionContext(), USERNAME, new SortableImpl("name", true));
 
         Assertions.assertNotNull(apps);
         Assertions.assertFalse(apps.isEmpty(), "should find app");
@@ -260,15 +264,15 @@ public class ApplicationService_FindByUserTest {
     public void shouldFindIdsByUser() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
 
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        ).thenReturn(Collections.singleton(APPLICATION_ID));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+                .thenReturn(Collections.singleton(APPLICATION_ID));
 
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Set.of(APPLICATION_ID))
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
+                .restrictedToIds(Set.of(APPLICATION_ID))
+                .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .status(ApplicationStatus.ACTIVE)
+                .build();
         when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(APPLICATION_ID));
 
         MembershipEntity po = new MembershipEntity();
@@ -289,15 +293,15 @@ public class ApplicationService_FindByUserTest {
     public void shouldFindIdsByUserAndPermission() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
 
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        ).thenReturn(Collections.singleton(APPLICATION_ID));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+                .thenReturn(Collections.singleton(APPLICATION_ID));
 
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Set.of(APPLICATION_ID))
-            .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
-            .status(ApplicationStatus.ACTIVE)
-            .build();
+                .restrictedToIds(Set.of(APPLICATION_ID))
+                .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
+                .status(ApplicationStatus.ACTIVE)
+                .build();
         when(applicationRepository.searchIds(criteria, null)).thenReturn(Set.of(APPLICATION_ID));
 
         MembershipEntity po = new MembershipEntity();
@@ -308,12 +312,11 @@ public class ApplicationService_FindByUserTest {
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
 
         Set<String> apps = applicationService.findIdsByUserAndPermission(
-            GraviteeContext.getExecutionContext(),
-            USERNAME,
-            null,
-            RolePermission.APPLICATION_SUBSCRIPTION,
-            RolePermissionAction.READ
-        );
+                GraviteeContext.getExecutionContext(),
+                USERNAME,
+                null,
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                RolePermissionAction.READ);
 
         Assertions.assertNotNull(apps);
         Assertions.assertFalse(apps.isEmpty(), "should find app");

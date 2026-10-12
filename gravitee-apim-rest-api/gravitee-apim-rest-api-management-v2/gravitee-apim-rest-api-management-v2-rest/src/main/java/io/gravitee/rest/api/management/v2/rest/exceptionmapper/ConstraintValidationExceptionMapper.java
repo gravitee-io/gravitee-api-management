@@ -34,25 +34,31 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     @Override
     public Response toResponse(ConstraintViolationException cve) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(validationError(cve)).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(validationError(cve))
+                .build();
     }
 
     private Object validationError(ConstraintViolationException cve) {
-        return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message("Validation error").details(buildDetails(cve));
+        return new Error()
+                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                .message("Validation error")
+                .details(buildDetails(cve));
     }
 
     private List<ErrorDetailsInner> buildDetails(ConstraintViolationException exception) {
-        return exception
-            .getConstraintViolations()
-            .stream()
-            .map(constraintViolation -> {
-                String errorLocation = constraintViolation.getPropertyPath().toString();
-                return new ErrorDetailsInner()
-                    .message(constraintViolation.getMessage())
-                    // getPropertyPath returns a location in the form of "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the method name and parameter, so we remove them.
-                    .location(errorLocation.substring(StringUtils.ordinalIndexOf(errorLocation, ".", 2) + 1))
-                    .invalidValue(JsonNullable.of(constraintViolation.getInvalidValue()));
-            })
-            .collect(Collectors.toList());
+        return exception.getConstraintViolations().stream()
+                .map(constraintViolation -> {
+                    String errorLocation = constraintViolation.getPropertyPath().toString();
+                    return new ErrorDetailsInner()
+                            .message(constraintViolation.getMessage())
+                            // getPropertyPath returns a location in the form of
+                            // "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the
+                            // method name and parameter, so we remove them.
+                            .location(errorLocation.substring(StringUtils.ordinalIndexOf(errorLocation, ".", 2) + 1))
+                            .invalidValue(JsonNullable.of(constraintViolation.getInvalidValue()));
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -66,15 +66,15 @@ public class InstanceServiceImpl implements InstanceService {
 
     private final long unknownExpireAfterInSec;
 
-    private static final List<EventType> instancesAllState = List.of(EventType.GATEWAY_STARTED, EventType.GATEWAY_STOPPED);
+    private static final List<EventType> instancesAllState =
+            List.of(EventType.GATEWAY_STARTED, EventType.GATEWAY_STOPPED);
 
     private static final List<EventType> instancesRunningOnly = List.of(EventType.GATEWAY_STARTED);
 
     public InstanceServiceImpl(
-        EventService eventService,
-        ObjectMapper objectMapper,
-        @Value("${gateway.unknown-expire-after:604800}") long unknownExpireAfterInSec
-    ) {
+            EventService eventService,
+            ObjectMapper objectMapper,
+            @Value("${gateway.unknown-expire-after:604800}") long unknownExpireAfterInSec) {
         this.eventService = eventService;
         this.objectMapper = objectMapper;
         this.unknownExpireAfterInSec = unknownExpireAfterInSec;
@@ -91,48 +91,51 @@ public class InstanceServiceImpl implements InstanceService {
         }
 
         ExpiredPredicate filter = new ExpiredPredicate(Duration.ofSeconds(unknownExpireAfterInSec));
-        long from = query.getFrom() > 0 ? query.getFrom() : Instant.now().minus(unknownExpireAfterInSec, ChronoUnit.SECONDS).toEpochMilli();
+        long from = query.getFrom() > 0
+                ? query.getFrom()
+                : Instant.now()
+                        .minus(unknownExpireAfterInSec, ChronoUnit.SECONDS)
+                        .toEpochMilli();
 
         Page<EventEntity> eventEntitiesPage = eventService.search(
-            executionContext,
-            types,
-            query.getProperties(),
-            from,
-            query.getTo(),
-            query.getPage(),
-            query.getSize(),
-            Collections.singletonList(executionContext.getEnvironmentId())
-        );
+                executionContext,
+                types,
+                query.getProperties(),
+                from,
+                query.getTo(),
+                query.getPage(),
+                query.getSize(),
+                Collections.singletonList(executionContext.getEnvironmentId()));
 
-        List<InstanceListItem> result = eventEntitiesPage
-            .getContent()
-            .stream()
-            .map(eventEntity -> {
-                InstanceEntity instanceEntity = convert(eventEntity);
+        List<InstanceListItem> result = eventEntitiesPage.getContent().stream()
+                .map(eventEntity -> {
+                    InstanceEntity instanceEntity = convert(eventEntity);
 
-                InstanceListItem item = new InstanceListItem();
-                item.setId(instanceEntity.getId());
-                item.setEvent(instanceEntity.getEvent());
-                item.setHostname(instanceEntity.getHostname());
-                item.setIp(instanceEntity.getIp());
-                item.setPort(instanceEntity.getPort());
-                item.setLastHeartbeatAt(instanceEntity.getLastHeartbeatAt());
-                item.setStartedAt(instanceEntity.getStartedAt());
-                item.setStoppedAt(instanceEntity.getStoppedAt());
-                item.setVersion(instanceEntity.getVersion());
-                item.setTags(instanceEntity.getTags());
-                item.setTenant(instanceEntity.getTenant());
-                item.setOperatingSystemName(
-                    instanceEntity.getSystemProperties() != null ? instanceEntity.getSystemProperties().get("os.name") : ""
-                );
-                item.setState(instanceEntity.getState());
+                    InstanceListItem item = new InstanceListItem();
+                    item.setId(instanceEntity.getId());
+                    item.setEvent(instanceEntity.getEvent());
+                    item.setHostname(instanceEntity.getHostname());
+                    item.setIp(instanceEntity.getIp());
+                    item.setPort(instanceEntity.getPort());
+                    item.setLastHeartbeatAt(instanceEntity.getLastHeartbeatAt());
+                    item.setStartedAt(instanceEntity.getStartedAt());
+                    item.setStoppedAt(instanceEntity.getStoppedAt());
+                    item.setVersion(instanceEntity.getVersion());
+                    item.setTags(instanceEntity.getTags());
+                    item.setTenant(instanceEntity.getTenant());
+                    item.setOperatingSystemName(
+                            instanceEntity.getSystemProperties() != null
+                                    ? instanceEntity.getSystemProperties().get("os.name")
+                                    : "");
+                    item.setState(instanceEntity.getState());
 
-                return item;
-            })
-            .filter(filter)
-            .collect(Collectors.toList());
+                    return item;
+                })
+                .filter(filter)
+                .collect(Collectors.toList());
 
-        return new Page<>(result, eventEntitiesPage.getPageNumber(), result.size(), eventEntitiesPage.getTotalElements());
+        return new Page<>(
+                result, eventEntitiesPage.getPageNumber(), result.size(), eventEntitiesPage.getTotalElements());
     }
 
     @Override
@@ -182,11 +185,10 @@ public class InstanceServiceImpl implements InstanceService {
 
         Collection<EventEntity> events = eventService.search(executionContext, query);
 
-        return events
-            .stream()
-            .map(this::convert)
-            .filter(instanceEntity -> instanceEntity.getState() == InstanceState.STARTED)
-            .toList();
+        return events.stream()
+                .map(this::convert)
+                .filter(instanceEntity -> instanceEntity.getState() == InstanceState.STARTED)
+                .toList();
     }
 
     private InstanceEntity convert(EventEntity event) {
@@ -213,21 +215,17 @@ public class InstanceServiceImpl implements InstanceService {
                 instance.setVersion(info.getVersion());
                 instance.setTags(info.getTags());
                 instance.setSystemProperties(
-                    info.getSystemProperties() == null
-                        ? Collections.emptyMap()
-                        : info
-                            .getSystemProperties()
-                            .entrySet()
-                            .stream()
-                            .map(e -> {
-                                if (e.getKey().toLowerCase().contains("password")) {
-                                    return Map.entry(e.getKey(), REDACTED);
-                                } else {
-                                    return e;
-                                }
-                            })
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                );
+                        info.getSystemProperties() == null
+                                ? Collections.emptyMap()
+                                : info.getSystemProperties().entrySet().stream()
+                                        .map(e -> {
+                                            if (e.getKey().toLowerCase().contains("password")) {
+                                                return Map.entry(e.getKey(), REDACTED);
+                                            } else {
+                                                return e;
+                                            }
+                                        })
+                                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
                 instance.setPlugins(info.getPlugins());
                 instance.setClusterId(info.getClusterId());
             } catch (IOException ioe) {
@@ -240,10 +238,9 @@ public class InstanceServiceImpl implements InstanceService {
 
         if (event.getType() == EventType.GATEWAY_STARTED) {
             // If last heartbeat timestamp is < now - 5m, set as unknown state
-            if (
-                instance.getLastHeartbeatAt() == null ||
-                Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime()).isBefore(nowMinusXMinutes)
-            ) {
+            if (instance.getLastHeartbeatAt() == null
+                    || Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime())
+                            .isBefore(nowMinusXMinutes)) {
                 instance.setState(InstanceState.UNKNOWN);
             } else {
                 instance.setState(InstanceState.STARTED);

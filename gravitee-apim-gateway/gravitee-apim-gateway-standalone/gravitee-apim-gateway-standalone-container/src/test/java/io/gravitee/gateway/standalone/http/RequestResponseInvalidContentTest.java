@@ -41,7 +41,8 @@ public class RequestResponseInvalidContentTest extends AbstractWiremockGatewayTe
     public void call_validate_request_content() throws Exception {
         wireMockRule.stubFor(post("/echo/helloworld").willReturn(ok()));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
+        org.apache.http.client.fluent.Request request =
+                org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
         request.bodyString("Invalid body", ContentType.TEXT_PLAIN);
 
         HttpResponse response = execute(request).returnResponse();
@@ -56,10 +57,12 @@ public class RequestResponseInvalidContentTest extends AbstractWiremockGatewayTe
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin errorRequestStreamPolicy = PolicyBuilder.build("content-request-error", ValidateRequestPolicy.class);
+        PolicyPlugin errorRequestStreamPolicy =
+                PolicyBuilder.build("content-request-error", ValidateRequestPolicy.class);
         policyPluginManager.register(errorRequestStreamPolicy);
 
-        PolicyPlugin errorResponseStreamPolicy = PolicyBuilder.build("content-response-error", ValidateResponsePolicy.class);
+        PolicyPlugin errorResponseStreamPolicy =
+                PolicyBuilder.build("content-response-error", ValidateResponsePolicy.class);
         policyPluginManager.register(errorResponseStreamPolicy);
     }
 }

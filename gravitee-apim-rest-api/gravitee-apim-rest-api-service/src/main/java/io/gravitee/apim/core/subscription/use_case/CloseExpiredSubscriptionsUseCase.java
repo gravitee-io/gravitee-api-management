@@ -17,9 +17,7 @@ package io.gravitee.apim.core.subscription.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
-import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
@@ -43,12 +41,11 @@ public class CloseExpiredSubscriptionsUseCase {
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     public CloseExpiredSubscriptionsUseCase(
-        SubscriptionQueryService subscriptionQueryService,
-        EnvironmentCrudService environmentCrudService,
-        ApiCrudService apiCrudService,
-        ApiProductCrudService apiProductCrudService,
-        CloseSubscriptionDomainService closeSubscriptionDomainService
-    ) {
+            SubscriptionQueryService subscriptionQueryService,
+            EnvironmentCrudService environmentCrudService,
+            ApiCrudService apiCrudService,
+            ApiProductCrudService apiProductCrudService,
+            CloseSubscriptionDomainService closeSubscriptionDomainService) {
         this.subscriptionQueryService = subscriptionQueryService;
         this.environmentCrudService = environmentCrudService;
         this.apiCrudService = apiCrudService;
@@ -60,20 +57,19 @@ public class CloseExpiredSubscriptionsUseCase {
         var expiredSubscriptions = subscriptionQueryService.findExpiredSubscriptions();
         var environmentIdByApiOrProductId = buildEnvironmentIdMap(expiredSubscriptions);
 
-        var closedSubscriptions = expiredSubscriptions
-            .stream()
-            .map(subscription -> {
-                var environmentId = resolveEnvironmentId(subscription, environmentIdByApiOrProductId);
-                var environment = environmentCrudService.get(environmentId);
-                var auditInfo = AuditInfo.builder()
-                    .organizationId(environment.getOrganizationId())
-                    .environmentId(environment.getId())
-                    .actor(input.auditActor)
-                    .build();
+        var closedSubscriptions = expiredSubscriptions.stream()
+                .map(subscription -> {
+                    var environmentId = resolveEnvironmentId(subscription, environmentIdByApiOrProductId);
+                    var environment = environmentCrudService.get(environmentId);
+                    var auditInfo = AuditInfo.builder()
+                            .organizationId(environment.getOrganizationId())
+                            .environmentId(environment.getId())
+                            .actor(input.auditActor)
+                            .build();
 
-                return closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
-            })
-            .toList();
+                    return closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
+                })
+                .toList();
 
         return new Output(closedSubscriptions);
     }
@@ -97,31 +93,33 @@ public class CloseExpiredSubscriptionsUseCase {
         var environmentIdByApiOrProductId = new HashMap<String, String>();
         if (!apiIds.isEmpty()) {
             apiCrudService
-                .findByIds(List.copyOf(apiIds))
-                .forEach(api -> environmentIdByApiOrProductId.put(api.getId(), api.getEnvironmentId()));
+                    .findByIds(List.copyOf(apiIds))
+                    .forEach(api -> environmentIdByApiOrProductId.put(api.getId(), api.getEnvironmentId()));
         }
         if (!apiProductIds.isEmpty()) {
             apiProductCrudService
-                .findByIds(apiProductIds)
-                .forEach(apiProduct -> environmentIdByApiOrProductId.put(apiProduct.getId(), apiProduct.getEnvironmentId()));
+                    .findByIds(apiProductIds)
+                    .forEach(apiProduct ->
+                            environmentIdByApiOrProductId.put(apiProduct.getId(), apiProduct.getEnvironmentId()));
         }
         return environmentIdByApiOrProductId;
     }
 
     private String getEffectiveReferenceId(SubscriptionEntity subscription) {
         return subscription.getReferenceType() != null && subscription.getReferenceId() != null
-            ? subscription.getReferenceId()
-            : subscription.getApiId();
+                ? subscription.getReferenceId()
+                : subscription.getApiId();
     }
 
-    private String resolveEnvironmentId(SubscriptionEntity subscription, Map<String, String> environmentIdByApiOrProductId) {
+    private String resolveEnvironmentId(
+            SubscriptionEntity subscription, Map<String, String> environmentIdByApiOrProductId) {
         // Always derive environment from API/Product
         var apiOrProductId = getEffectiveReferenceId(subscription);
         var environmentId = apiOrProductId != null ? environmentIdByApiOrProductId.get(apiOrProductId) : null;
         if (environmentId == null) {
             throw new IllegalStateException(
-                "Subscription %s has no resolvable referenceId/apiId to determine environment".formatted(subscription.getId())
-            );
+                    "Subscription %s has no resolvable referenceId/apiId to determine environment"
+                            .formatted(subscription.getId()));
         }
         return environmentId;
     }

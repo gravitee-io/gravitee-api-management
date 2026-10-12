@@ -30,17 +30,17 @@ public class GetPolicyPluginsUseCase {
     private final PolicyPluginQueryService policyPluginQueryService;
     private final PluginFilterByLicenseDomainService licenseChecker;
 
-    public GetPolicyPluginsUseCase(PolicyPluginQueryService policyPluginQueryService, PluginFilterByLicenseDomainService licenseChecker) {
+    public GetPolicyPluginsUseCase(
+            PolicyPluginQueryService policyPluginQueryService, PluginFilterByLicenseDomainService licenseChecker) {
         this.policyPluginQueryService = policyPluginQueryService;
         this.licenseChecker = licenseChecker;
     }
 
     public Output getPoliciesByOrganization(Input input) {
-        return new Output(
-            this.licenseChecker.setPluginDeployedStatusDependingOnLicense(policyPluginQueryService.findAll(), input.organizationId)
+        return new Output(this.licenseChecker
+                .setPluginDeployedStatusDependingOnLicense(policyPluginQueryService.findAll(), input.organizationId)
                 .stream()
-                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(PolicyPlugin::getName))))
-        );
+                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(PolicyPlugin::getName)))));
     }
 
     public record Input(String organizationId) {}

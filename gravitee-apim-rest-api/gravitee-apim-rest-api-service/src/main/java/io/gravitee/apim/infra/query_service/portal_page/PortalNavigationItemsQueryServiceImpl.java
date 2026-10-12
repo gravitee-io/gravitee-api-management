@@ -39,7 +39,8 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
     private final PortalNavigationItemRepository portalNavigationItemRepository;
     private final PortalNavigationItemAdapter portalNavigationItemAdapter = PortalNavigationItemAdapter.INSTANCE;
 
-    public PortalNavigationItemsQueryServiceImpl(@Lazy final PortalNavigationItemRepository portalNavigationItemRepository) {
+    public PortalNavigationItemsQueryServiceImpl(
+            @Lazy final PortalNavigationItemRepository portalNavigationItemRepository) {
         this.portalNavigationItemRepository = portalNavigationItemRepository;
     }
 
@@ -53,50 +54,41 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
             return null;
         } catch (TechnicalException e) {
             String errorMessage = String.format(
-                "An error occurred while finding portal navigation item by id %s and environmentId %s",
-                id,
-                environmentId
-            );
+                    "An error occurred while finding portal navigation item by id %s and environmentId %s",
+                    id, environmentId);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
-    public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
+    public List<PortalNavigationItem> findByParentIdAndEnvironmentId(
+            String environmentId, PortalNavigationItemId parentId) {
         try {
-            var cleanedParentId = Optional.ofNullable(parentId).map(PortalNavigationItemId::json).orElse(null);
-            var results = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(cleanedParentId, environmentId);
+            var cleanedParentId = Optional.ofNullable(parentId)
+                    .map(PortalNavigationItemId::json)
+                    .orElse(null);
+            var results =
+                    portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(cleanedParentId, environmentId);
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
-                "An error occurred while finding portal navigation items by parentId %s and environmentId %s",
-                parentId,
-                environmentId
-            );
+                    "An error occurred while finding portal navigation items by parentId %s and environmentId %s",
+                    parentId, environmentId);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
     public List<PortalNavigationItem> findByAutomationReference(
-        String environmentId,
-        AutomationMetadata.ReferenceType referenceType,
-        String referenceId
-    ) {
+            String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId) {
         try {
             var results = portalNavigationItemRepository.findByAutomationReference(
-                environmentId,
-                AutomationTargetReferenceType.valueOf(referenceType.name()),
-                referenceId
-            );
+                    environmentId, AutomationTargetReferenceType.valueOf(referenceType.name()), referenceId);
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
-                "An error occurred while finding portal navigation items by automation reference %s/%s in env %s",
-                referenceType,
-                referenceId,
-                environmentId
-            );
+                    "An error occurred while finding portal navigation items by automation reference %s/%s in env %s",
+                    referenceType, referenceId, environmentId);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -109,52 +101,40 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
-                "An error occurred while searching portal navigation items by criteria %s",
-                criteria.toString()
-            );
+                    "An error occurred while searching portal navigation items by criteria %s", criteria.toString());
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
-    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea) {
+    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(
+            String environmentId, PortalArea portalArea) {
         try {
             var results = portalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(
-                portalNavigationItemAdapter.mapArea(portalArea),
-                environmentId
-            );
+                    portalNavigationItemAdapter.mapArea(portalArea), environmentId);
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
-                "An error occurred while finding top level portal navigation items by environmentId %s and area %s",
-                environmentId,
-                portalArea
-            );
+                    "An error occurred while finding top level portal navigation items by environmentId %s and area %s",
+                    environmentId, portalArea);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
     public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-        String environmentId,
-        PortalArea area,
-        NavigationItemReference reference
-    ) {
+            String environmentId, PortalArea area, NavigationItemReference reference) {
         try {
             var results = portalNavigationItemRepository.findAllTopLevelByAreaAndEnvironmentAndReference(
-                portalNavigationItemAdapter.mapArea(area),
-                environmentId,
-                portalNavigationItemAdapter.referenceTypeToRepository(reference),
-                portalNavigationItemAdapter.referenceIdToRepository(reference)
-            );
+                    portalNavigationItemAdapter.mapArea(area),
+                    environmentId,
+                    portalNavigationItemAdapter.referenceTypeToRepository(reference),
+                    portalNavigationItemAdapter.referenceIdToRepository(reference));
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
-                "An error occurred while finding top level portal navigation items by environmentId %s, area %s and reference %s",
-                environmentId,
-                area,
-                reference
-            );
+                    "An error occurred while finding top level portal navigation items by environmentId %s, area %s and reference %s",
+                    environmentId, area, reference);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -166,9 +146,7 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while finding portal navigation items by rootId %s", rootId),
-                e
-            );
+                    String.format("An error occurred while finding portal navigation items by rootId %s", rootId), e);
         }
     }
 }

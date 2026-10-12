@@ -37,11 +37,8 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
     private static final String RESOURCE_TYPE = "additional-metrics.keyword_authz_resource-type";
     private static final String RESOURCE_ID = "additional-metrics.keyword_authz_resource-id";
 
-    private static final Set<Filter.Name> SEARCH_ONLY_FILTERS = Set.of(
-        Filter.Name.AUTHZ_SUBJECT_ID,
-        Filter.Name.AUTHZ_ACTION,
-        Filter.Name.AUTHZ_RESOURCE_ID
-    );
+    private static final Set<Filter.Name> SEARCH_ONLY_FILTERS =
+            Set.of(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Name.AUTHZ_ACTION, Filter.Name.AUTHZ_RESOURCE_ID);
 
     public record ScopeTerm(String field, String value) {}
 
@@ -49,7 +46,8 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
     public String fromMetric(Metric metric) {
         return switch (metric) {
             case AUTHZ_OPERATIONS, AUTHZ_SEARCHES -> OPERATION_FIELD;
-            default -> throw new UnsupportedOperationException("AuthzTrafficFieldResolver does not support metric " + metric);
+            default ->
+                throw new UnsupportedOperationException("AuthzTrafficFieldResolver does not support metric " + metric);
         };
     }
 
@@ -61,7 +59,8 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
     }
 
     public boolean countsNothing(Metric metric, List<Filter> filters) {
-        return metric == Metric.AUTHZ_OPERATIONS && filters.stream().anyMatch(filter -> SEARCH_ONLY_FILTERS.contains(filter.name()));
+        return metric == Metric.AUTHZ_OPERATIONS
+                && filters.stream().anyMatch(filter -> SEARCH_ONLY_FILTERS.contains(filter.name()));
     }
 
     @Override
@@ -74,7 +73,9 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
             case Filter.Name.AUTHZ_SUBJECT_ID -> SUBJECT_ID;
             case Filter.Name.AUTHZ_ACTION -> ACTION;
             case Filter.Name.AUTHZ_RESOURCE_ID -> RESOURCE_ID;
-            default -> throw new UnsupportedOperationException("AuthzTrafficFieldResolver does not support filter '" + filter.name() + "'");
+            default ->
+                throw new UnsupportedOperationException(
+                        "AuthzTrafficFieldResolver does not support filter '" + filter.name() + "'");
         };
     }
 
@@ -97,7 +98,9 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
             case AUTHZ_SUBJECT_ID -> SUBJECT_ID;
             case AUTHZ_ACTION -> ACTION;
             case AUTHZ_RESOURCE_ID -> RESOURCE_ID;
-            default -> throw new UnsupportedOperationException("AuthzTrafficFieldResolver does not support facet '" + facet + "'");
+            default ->
+                throw new UnsupportedOperationException(
+                        "AuthzTrafficFieldResolver does not support facet '" + facet + "'");
         };
     }
 }

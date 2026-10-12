@@ -115,14 +115,14 @@ public class ApiMapperTest {
         apiEntity.setName(API_NAME);
         apiEntity.setLabels(new ArrayList<>(Arrays.asList(API_LABEL)));
         doThrow(CategoryNotFoundException.class)
-            .when(categoryService)
-            .findNotHiddenById(API_CATEGORY_HIDDEN, GraviteeContext.getCurrentEnvironment());
+                .when(categoryService)
+                .findNotHiddenById(API_CATEGORY_HIDDEN, GraviteeContext.getCurrentEnvironment());
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
 
-        when(apiEntrypointService.getApiEntrypoints(any(), eq(apiEntity))).thenReturn(
-            Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo"))
-        );
+        when(apiEntrypointService.getApiEntrypoints(any(), eq(apiEntity)))
+                .thenReturn(Arrays.asList(
+                        new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
         when(apiEntrypointService.getApiEntrypointsListenerType(eq(apiEntity))).thenReturn("HTTP");
 
         Map<String, Object> metadata = new HashMap<>();
@@ -141,11 +141,16 @@ public class ApiMapperTest {
         ratingSummaryEntity.setAverageRate(Double.valueOf(4.2));
         ratingSummaryEntity.setNumberOfRatings(10);
         doReturn(true).when(ratingService).isEnabled(GraviteeContext.getExecutionContext());
-        doReturn(ratingSummaryEntity).when(ratingService).findSummaryByApi(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(ratingSummaryEntity)
+                .when(ratingService)
+                .findSummaryByApi(GraviteeContext.getExecutionContext(), API_ID);
 
         doReturn(true)
-            .when(parameterService)
-            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+                .when(parameterService)
+                .findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PORTAL_APIS_CATEGORY_ENABLED,
+                        ParameterReferenceType.ENVIRONMENT);
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
@@ -207,8 +212,11 @@ public class ApiMapperTest {
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
         doReturn(false)
-            .when(parameterService)
-            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+                .when(parameterService)
+                .findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PORTAL_APIS_CATEGORY_ENABLED,
+                        ParameterReferenceType.ENVIRONMENT);
 
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 

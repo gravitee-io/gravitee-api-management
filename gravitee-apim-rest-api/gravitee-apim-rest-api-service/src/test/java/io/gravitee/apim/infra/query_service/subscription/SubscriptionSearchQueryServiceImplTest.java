@@ -54,27 +54,25 @@ class SubscriptionSearchQueryServiceImplTest {
     @Test
     void should_search_multiple_target_types_with_stable_sorting() {
         var criteria = new SubscriptionSearchQueryService.Criteria(
-            Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT),
-            Set.of("api-id"),
-            Set.of("api-product-id"),
-            Set.of("application-id"),
-            Set.of("plan-id"),
-            Set.of(SubscriptionStatus.ACCEPTED),
-            null
-        );
-        when(subscriptionService.search(eq(EXECUTION_CONTEXT), org.mockito.ArgumentMatchers.any(SubscriptionQuery.class))).thenReturn(
-            List.of()
-        );
+                Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT),
+                Set.of("api-id"),
+                Set.of("api-product-id"),
+                Set.of("application-id"),
+                Set.of("plan-id"),
+                Set.of(SubscriptionStatus.ACCEPTED),
+                null);
+        when(subscriptionService.search(
+                        eq(EXECUTION_CONTEXT), org.mockito.ArgumentMatchers.any(SubscriptionQuery.class)))
+                .thenReturn(List.of());
 
         queryService.search(EXECUTION_CONTEXT, criteria, null);
 
         var queryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
         verify(subscriptionService).search(eq(EXECUTION_CONTEXT), queryCaptor.capture());
         assertThat(queryCaptor.getValue()).satisfies(query -> {
-            assertThat(query.getReferenceTypes()).containsExactlyInAnyOrder(
-                GenericPlanEntity.ReferenceType.API,
-                GenericPlanEntity.ReferenceType.API_PRODUCT
-            );
+            assertThat(query.getReferenceTypes())
+                    .containsExactlyInAnyOrder(
+                            GenericPlanEntity.ReferenceType.API, GenericPlanEntity.ReferenceType.API_PRODUCT);
             assertThat(query.getApis()).containsExactly("api-id");
             assertThat(query.getApiProducts()).containsExactly("api-product-id");
             assertThat(query.getSortable().getField()).isEqualTo("id");
@@ -85,17 +83,10 @@ class SubscriptionSearchQueryServiceImplTest {
     @Test
     void should_preserve_existing_sorting_for_a_single_target_type() {
         var criteria = new SubscriptionSearchQueryService.Criteria(
-            Set.of(SubscriptionReferenceType.API),
-            null,
-            null,
-            Set.of("application-id"),
-            null,
-            null,
-            null
-        );
-        when(subscriptionService.search(eq(EXECUTION_CONTEXT), org.mockito.ArgumentMatchers.any(SubscriptionQuery.class))).thenReturn(
-            List.of()
-        );
+                Set.of(SubscriptionReferenceType.API), null, null, Set.of("application-id"), null, null, null);
+        when(subscriptionService.search(
+                        eq(EXECUTION_CONTEXT), org.mockito.ArgumentMatchers.any(SubscriptionQuery.class)))
+                .thenReturn(List.of());
 
         queryService.search(EXECUTION_CONTEXT, criteria, null);
 

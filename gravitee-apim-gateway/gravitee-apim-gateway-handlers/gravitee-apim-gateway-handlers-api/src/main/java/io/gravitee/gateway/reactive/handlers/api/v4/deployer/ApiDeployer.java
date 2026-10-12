@@ -46,19 +46,18 @@ public class ApiDeployer extends AbstractApiDeployer<Api> {
     @Override
     public List<String> getPlans(final Api api) {
         return api.getDefinition().getPlans() != null
-            ? api.getDefinition().getPlans().stream().map(Plan::getName).collect(Collectors.toList())
-            : List.of();
+                ? api.getDefinition().getPlans().stream().map(Plan::getName).collect(Collectors.toList())
+                : List.of();
     }
 
     private List<Plan> filterPlans(final List<Plan> plans) {
         if (plans == null) {
             return List.of();
         }
-        return plans
-            .stream()
-            .filter(plan -> plan.getStatus() != null)
-            .filter(plan -> filterPlanStatus(plan.getStatus().getLabel()))
-            .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
-            .collect(Collectors.toList());
+        return plans.stream()
+                .filter(plan -> plan.getStatus() != null)
+                .filter(plan -> filterPlanStatus(plan.getStatus().getLabel()))
+                .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
+                .collect(Collectors.toList());
     }
 }

@@ -19,7 +19,6 @@ import com.mongodb.client.model.Filters;
 import io.gravitee.repository.mongodb.encryption.EncryptionEnabledCondition;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
-import org.bson.BsonDocument;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -37,11 +36,11 @@ public class DataKeysIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         Index dataKeysIndex = Index.builder()
-            .collection(keyVaultCollectionName)
-            .name("k1")
-            .key("keyAltNames", ascending())
-            .unique(true)
-            .build();
+                .collection(keyVaultCollectionName)
+                .name("k1")
+                .key("keyAltNames", ascending())
+                .unique(true)
+                .build();
         dataKeysIndex.options().partialFilterExpression(Filters.exists("keyAltNames"));
 
         return dataKeysIndex;

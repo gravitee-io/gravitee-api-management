@@ -40,11 +40,10 @@ public class DeletePlanDomainService {
     private final KafkaPortRangeCrudService kafkaPortRangeCrudService;
 
     public DeletePlanDomainService(
-        PlanCrudService planCrudService,
-        SubscriptionQueryService subscriptionQueryService,
-        AuditDomainService auditService,
-        KafkaPortRangeCrudService kafkaPortRangeCrudService
-    ) {
+            PlanCrudService planCrudService,
+            SubscriptionQueryService subscriptionQueryService,
+            AuditDomainService auditService,
+            KafkaPortRangeCrudService kafkaPortRangeCrudService) {
         this.planCrudService = planCrudService;
         this.subscriptionQueryService = subscriptionQueryService;
         this.auditService = auditService;
@@ -52,7 +51,9 @@ public class DeletePlanDomainService {
     }
 
     public void delete(Plan plan, AuditInfo auditInfo) {
-        if (!subscriptionQueryService.findActiveSubscriptionsByPlan(plan.getId()).isEmpty()) {
+        if (!subscriptionQueryService
+                .findActiveSubscriptionsByPlan(plan.getId())
+                .isEmpty()) {
             throw new ValidationDomainException("Impossible to delete a plan with active subscriptions");
         }
         planCrudService.delete(plan.getId());
@@ -70,8 +71,7 @@ public class DeletePlanDomainService {
     }
 
     private void createApiAuditLog(Plan planToDelete, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(planToDelete.getReferenceId())
@@ -80,13 +80,11 @@ public class DeletePlanDomainService {
                 .oldValue(planToDelete)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.PLAN, planToDelete.getId()))
-                .build()
-        );
+                .build());
     }
 
     private void createApiProductAuditLog(Plan planToDelete, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiProductId(planToDelete.getReferenceId())
@@ -95,7 +93,6 @@ public class DeletePlanDomainService {
                 .oldValue(planToDelete)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.PLAN, planToDelete.getId()))
-                .build()
-        );
+                .build());
     }
 }

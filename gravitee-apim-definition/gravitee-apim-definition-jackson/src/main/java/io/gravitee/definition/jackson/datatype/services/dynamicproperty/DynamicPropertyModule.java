@@ -34,23 +34,19 @@ public class DynamicPropertyModule extends GraviteeModule {
         super(DynamicPropertyService.SERVICE_KEY);
         // first deserializers
         addDeserializer(
-            DynamicPropertyService.class,
-            new io.gravitee.definition.jackson.datatype.services.dynamicproperty.deser.DynamicPropertyDeserializer(
-                DynamicPropertyService.class
-            )
-        );
+                DynamicPropertyService.class,
+                new io.gravitee.definition.jackson.datatype.services.dynamicproperty.deser.DynamicPropertyDeserializer(
+                        DynamicPropertyService.class));
         addDeserializer(
-            HttpDynamicPropertyProviderConfiguration.class,
-            new io.gravitee.definition.jackson.datatype.services.dynamicproperty.deser.http.HttpDynamicPropertyProviderConfigurationDeserializer(
-                HttpDynamicPropertyProviderConfiguration.class
-            )
-        );
+                HttpDynamicPropertyProviderConfiguration.class,
+                new io.gravitee.definition.jackson.datatype.services.dynamicproperty.deser.http
+                        .HttpDynamicPropertyProviderConfigurationDeserializer(
+                        HttpDynamicPropertyProviderConfiguration.class));
 
         // then serializers:
         addSerializer(DynamicPropertyService.class, new DynamicPropertySerializer(DynamicPropertyService.class));
         addSerializer(
-            HttpDynamicPropertyProviderConfiguration.class,
-            new HttpDynamicPropertyProviderConfigurationSerializer(HttpDynamicPropertyProviderConfiguration.class)
-        );
+                HttpDynamicPropertyProviderConfiguration.class,
+                new HttpDynamicPropertyProviderConfigurationSerializer(HttpDynamicPropertyProviderConfiguration.class));
     }
 }

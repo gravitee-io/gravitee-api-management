@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
@@ -47,12 +46,13 @@ public class LogEndpointRequest extends LogRequest {
 
         final Buffer buffer = Buffer.buffer();
 
-        if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
+        if (isLogPayload()
+                && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
             request.registerBuffersInterceptor(chunks -> {
                 if (loggingContext.isBodyLoggable()) {
-                    chunks = chunks
-                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doFinally(() -> this.setBody(buffer.toString()));
+                    chunks = chunks.doOnNext(chunk ->
+                                    BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                            .doFinally(() -> this.setBody(buffer.toString()));
                 } else {
                     this.setBody("BODY NOT CAPTURED");
                 }

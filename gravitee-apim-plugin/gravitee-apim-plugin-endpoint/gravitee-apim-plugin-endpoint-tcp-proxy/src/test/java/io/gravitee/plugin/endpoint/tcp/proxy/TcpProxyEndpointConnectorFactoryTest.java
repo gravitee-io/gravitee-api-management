@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@ExtendWith({ MockitoExtension.class })
+@ExtendWith({MockitoExtension.class})
 class TcpProxyEndpointConnectorFactoryTest {
 
     TcpProxyEndpointConnectorFactory cut;
@@ -50,25 +50,21 @@ class TcpProxyEndpointConnectorFactoryTest {
 
     @Test
     void should_create_most_simple_connector() {
-        TcpProxyEndpointConnector connector = cut.createConnector(
-            deploymentContext,
-            """
+        TcpProxyEndpointConnector connector = cut.createConnector(deploymentContext, """
             {
                 "target": {
                     "host": "www.acme.com",
                     "port": 8080
                 }
             }
-            """,
-            """
+            """, """
             {
                 "tcp": {
                     "connectTimeout": 200,
                     "reconnectAttempts": 10,
                     "reconnectInterval": 500
                 }
-            }"""
-        );
+            }""");
         assertThat(cut.supportedModes()).containsExactly(ConnectorMode.SOCKET);
         assertThat(cut.supportedApi()).isEqualTo(ApiType.PROXY);
 
@@ -83,24 +79,23 @@ class TcpProxyEndpointConnectorFactoryTest {
         assertThat(connector.getConfiguration().getTcpTarget().getPort()).isEqualTo(8080);
         assertThat(connector.getSharedConfiguration()).isNotNull();
         assertThat(connector.getSharedConfiguration().getTcpClientOptions()).isNotNull();
-        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getReconnectAttempts()).isEqualTo(10);
-        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getConnectTimeout()).isEqualTo(200);
-        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getReconnectInterval()).isEqualTo(500);
+        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getReconnectAttempts())
+                .isEqualTo(10);
+        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getConnectTimeout())
+                .isEqualTo(200);
+        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getReconnectInterval())
+                .isEqualTo(500);
     }
 
     @Test
     void should_not_create_connector() {
-        TcpProxyEndpointConnector connector = cut.createConnector(
-            deploymentContext,
-            """
+        TcpProxyEndpointConnector connector = cut.createConnector(deploymentContext, """
             {
                 "target": {
                     "url": "https://www.acme.com:4443"
                 }
             }
-            """,
-            null
-        );
+            """, null);
         assertThat(connector).isNull();
     }
 }

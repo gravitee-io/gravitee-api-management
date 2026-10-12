@@ -43,13 +43,12 @@ public class AuthzAnalyticsQueryService implements AnalyticsEngineQueryService {
     @Override
     public Set<Name> metrics() {
         return Set.of(
-            Name.AUTHZ_DECISIONS,
-            Name.AUTHZ_PERMITS,
-            Name.AUTHZ_FORBIDS,
-            Name.AUTHZ_NOT_APPLICABLE,
-            Name.AUTHZ_FAILURES,
-            Name.AUTHZ_EVAL_DURATION
-        );
+                Name.AUTHZ_DECISIONS,
+                Name.AUTHZ_PERMITS,
+                Name.AUTHZ_FORBIDS,
+                Name.AUTHZ_NOT_APPLICABLE,
+                Name.AUTHZ_FAILURES,
+                Name.AUTHZ_EVAL_DURATION);
     }
 
     @Override
@@ -57,9 +56,8 @@ public class AuthzAnalyticsQueryService implements AnalyticsEngineQueryService {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchAuthzMeasures(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ, query));
     }
 
     @Override
@@ -67,9 +65,8 @@ public class AuthzAnalyticsQueryService implements AnalyticsEngineQueryService {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchAuthzFacets(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ, query));
     }
 
     @Override
@@ -77,8 +74,7 @@ public class AuthzAnalyticsQueryService implements AnalyticsEngineQueryService {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchAuthzTimeSeries(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.AUTHZ, query));
     }
 }

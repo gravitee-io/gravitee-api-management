@@ -121,24 +121,26 @@ public class OrganizationService_CreateTest {
         when(environmentService.findByOrganization(createdOrganization.getId())).thenReturn(List.of(env1, env2));
 
         when(mockOrganizationRepository.create(any())).thenReturn(createdOrganization);
-        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(new ArrayList<>());
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id"))
+                .thenReturn(new ArrayList<>());
         OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
         assertNotNull(organization, "result is null");
-        verify(mockOrganizationRepository, times(1)).create(
-            argThat(arg -> arg != null && arg.getName().equals("org_name") && arg.getDescription().equals("org_desc"))
-        );
+        verify(mockOrganizationRepository, times(1))
+                .create(argThat(arg -> arg != null
+                        && arg.getName().equals("org_name")
+                        && arg.getDescription().equals("org_desc")));
         verify(mockOrganizationRepository, never()).update(any());
         verify(mockRoleService, times(1)).initialize(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockRoleService, times(1)).createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockFlowService, never()).save(any(), any(), any());
-        verify(eventService, times(1)).createOrganizationEvent(
-            eq(new ExecutionContext("org_id")),
-            eq(Set.of("env_1", "env_2")),
-            eq("org_id"),
-            eq(EventType.PUBLISH_ORGANIZATION),
-            any()
-        );
+        verify(eventService, times(1))
+                .createOrganizationEvent(
+                        eq(new ExecutionContext("org_id")),
+                        eq(Set.of("env_1", "env_2")),
+                        eq("org_id"),
+                        eq(EventType.PUBLISH_ORGANIZATION),
+                        any());
     }
 
     @Test
@@ -154,7 +156,8 @@ public class OrganizationService_CreateTest {
         Organization createdOrganization = new Organization();
         createdOrganization.setId("org_id");
         when(mockOrganizationRepository.update(any())).thenReturn(createdOrganization);
-        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(org1.getFlows());
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id"))
+                .thenReturn(org1.getFlows());
 
         EnvironmentEntity env1 = new EnvironmentEntity();
         env1.setId("env_1");
@@ -167,20 +170,21 @@ public class OrganizationService_CreateTest {
         OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
         assertNotNull(organization, "result is null");
-        verify(mockOrganizationRepository, times(1)).update(
-            argThat(arg -> arg != null && arg.getName().equals("org_name") && arg.getDescription().equals("org_desc"))
-        );
+        verify(mockOrganizationRepository, times(1))
+                .update(argThat(arg -> arg != null
+                        && arg.getName().equals("org_name")
+                        && arg.getDescription().equals("org_desc")));
         verify(mockOrganizationRepository, never()).create(any());
         verify(mockRoleService, never()).initialize(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockRoleService, never()).createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockFlowService, never()).save(any(), any(), any());
-        verify(eventService, times(1)).createOrganizationEvent(
-            eq(new ExecutionContext("org_id")),
-            eq(Set.of("env_1", "env_2")),
-            eq("org_id"),
-            eq(EventType.PUBLISH_ORGANIZATION),
-            any()
-        );
+        verify(eventService, times(1))
+                .createOrganizationEvent(
+                        eq(new ExecutionContext("org_id")),
+                        eq(Set.of("env_1", "env_2")),
+                        eq("org_id"),
+                        eq(EventType.PUBLISH_ORGANIZATION),
+                        any());
     }
 
     @Test
@@ -197,7 +201,8 @@ public class OrganizationService_CreateTest {
         when(mockOrganizationRepository.update(any())).thenReturn(updatedOrganization);
 
         Flow existingFlow = mock(Flow.class);
-        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(List.of(existingFlow));
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id"))
+                .thenReturn(List.of(existingFlow));
 
         EnvironmentEntity env1 = new EnvironmentEntity();
         env1.setId("env_1");

@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.manager.endpoint;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -62,24 +61,20 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
         response.setChunked(true);
 
         try {
-            Collection<ListApiEntity> apis = apiManager
-                .apis()
-                .stream()
-                .map(api -> {
-                    ListApiEntity entity = new ListApiEntity();
-                    entity.setId(api.getId());
-                    entity.setName(api.getName());
-                    entity.setVersion(api.getApiVersion());
-                    return entity;
-                })
-                .collect(Collectors.toList());
+            Collection<ListApiEntity> apis = apiManager.apis().stream()
+                    .map(api -> {
+                        ListApiEntity entity = new ListApiEntity();
+                        entity.setId(api.getId());
+                        entity.setName(api.getName());
+                        entity.setVersion(api.getApiVersion());
+                        return entity;
+                    })
+                    .collect(Collectors.toList());
 
-            response.write(
-                DatabindCodec.mapper()
+            response.write(DatabindCodec.mapper()
                     .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                     .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(apis)
-            );
+                    .writeValueAsString(apis));
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             log.error("Unable to transform data object to JSON", jpe);

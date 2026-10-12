@@ -94,21 +94,27 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldThrowNotFoundExceptionBecause() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(KEY_LESS));
-        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, LOG_API_ID)).thenThrow(new ApiNotFoundException(LOG_API_ID));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(KEY_LESS));
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, LOG_API_ID))
+                .thenThrow(new ApiNotFoundException(LOG_API_ID));
         assertThrows(LogNotFoundException.class, () -> logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP));
     }
 
     @Test
     void findApiLogShouldThrowException() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenThrow(new AnalyticsException());
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenThrow(new AnalyticsException());
 
-        assertThrows(TechnicalManagementException.class, () -> logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP));
+        assertThrows(
+                TechnicalManagementException.class,
+                () -> logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP));
     }
 
     @Test
     void findApiLogShouldReturnNull() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(null);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(null);
 
         ApiRequest result = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
         assertThat(result).isNull();
@@ -117,7 +123,8 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldFindWithKeyLessPlan() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(KEY_LESS));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(KEY_LESS));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(KEY_LESS));
 
@@ -132,10 +139,12 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldFindWithApiKeyPlan() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(API_KEY));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(API_KEY));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
-        when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID)).thenReturn(newApiKey());
+        when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID))
+                .thenReturn(newApiKey());
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -149,12 +158,12 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldFindWithJwtPlan() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
-        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID)).thenReturn(
-            Set.of(newSubscription())
-        );
+        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
+                .thenReturn(Set.of(newSubscription()));
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -168,7 +177,8 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldHaveEmptySubscriptionWithNoSecurity() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(null));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(null));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(null));
 
@@ -184,7 +194,8 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldHaveEmptySubscriptionWithNoSecurityInV4Plan() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(null));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(null));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlanV4(null));
 
@@ -200,10 +211,12 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldNotFailOnApiKeyNotFoundException() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(API_KEY));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(API_KEY));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
-        when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID)).thenThrow(new ApiKeyNotFoundException());
+        when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID))
+                .thenThrow(new ApiKeyNotFoundException());
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -217,9 +230,11 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldNotFailOnPlanNotFoundException() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenThrow(new PlanNotFoundException(LOG_PLAN_ID));
+        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID))
+                .thenThrow(new PlanNotFoundException(LOG_PLAN_ID));
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -232,12 +247,12 @@ class LogsServiceTest {
 
     @Test
     void findApiLogShouldNotFailOnDuplicatedSubscription() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP)))
+                .thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
-        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID)).thenReturn(
-            Set.of(newSubscription(), new SubscriptionEntity())
-        );
+        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
+                .thenReturn(Set.of(newSubscription(), new SubscriptionEntity()));
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -255,7 +270,8 @@ class LogsServiceTest {
 
         LogQuery query = new LogQuery();
 
-        assertThrows(TechnicalManagementException.class, () -> logService.findByApi(EXECUTION_CONTEXT, LOG_API_ID, query));
+        assertThrows(
+                TechnicalManagementException.class, () -> logService.findByApi(EXECUTION_CONTEXT, LOG_API_ID, query));
     }
 
     @Test
@@ -288,14 +304,17 @@ class LogsServiceTest {
         when(logRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
         LogQuery query = new LogQuery();
 
-        assertThrows(TechnicalManagementException.class, () -> logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, query));
+        assertThrows(
+                TechnicalManagementException.class,
+                () -> logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, query));
     }
 
     @Test
     void findLogByApplicationShouldReturnEmptyResult() throws Exception {
         when(logRepository.query(any(QueryContext.class), any())).thenReturn(null);
 
-        SearchLogResponse<ApplicationRequestItem> result = logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
+        SearchLogResponse<ApplicationRequestItem> result =
+                logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isNull();
@@ -309,7 +328,8 @@ class LogsServiceTest {
 
         when(logRepository.query(any(QueryContext.class), any())).thenReturn(tabularResponse);
 
-        SearchLogResponse<ApplicationRequestItem> result = logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
+        SearchLogResponse<ApplicationRequestItem> result =
+                logService.findByApplication(EXECUTION_CONTEXT, LOG_API_ID, new LogQuery());
 
         assertThat(result).isNotNull();
         assertThat(result.getLogs()).isEmpty();
@@ -356,35 +376,34 @@ class LogsServiceTest {
         log.setClientRequest(newRequest());
         log.setClientResponse(newResponse());
         log.setApplication("Another_application");
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenReturn(log);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong()))
+                .thenReturn(log);
 
         long timestamp = Instant.now().toEpochMilli();
 
-        assertThrows(LogNotFoundException.class, () ->
-            logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
-        );
+        assertThrows(
+                LogNotFoundException.class,
+                () -> logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp));
     }
 
     @Test
     void findApplicationLogShouldThrowException() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenThrow(new AnalyticsException("test_error"));
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong()))
+                .thenThrow(new AnalyticsException("test_error"));
         long timestamp = Instant.now().toEpochMilli();
 
-        assertThrows(TechnicalManagementException.class, () ->
-            logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
-        );
+        assertThrows(
+                TechnicalManagementException.class,
+                () -> logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp));
     }
 
     @Test
     void findApplicationLogShouldReturnNull() throws Exception {
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenReturn(null);
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong()))
+                .thenReturn(null);
 
         ApplicationRequest result = logService.findApplicationLog(
-            EXECUTION_CONTEXT,
-            LOG_APPLICATION_ID,
-            LOG_ID,
-            Instant.now().toEpochMilli()
-        );
+                EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, Instant.now().toEpochMilli());
 
         assertThat(result).isNull();
         verify(logRepository, times(1)).findById(any(QueryContext.class), eq(LOG_ID), anyLong());
@@ -395,16 +414,14 @@ class LogsServiceTest {
         ExtendedLog log = newLog(JWT);
         log.setClientRequest(newRequest());
         log.setClientResponse(newResponse());
-        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenReturn(log);
-        when(apiSearchService.findGenericById(any(), anyString(), eq(false), eq(false), eq(false))).thenReturn(newApiEntity());
+        when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong()))
+                .thenReturn(log);
+        when(apiSearchService.findGenericById(any(), anyString(), eq(false), eq(false), eq(false)))
+                .thenReturn(newApiEntity());
         when(planSearchService.findById(any(), anyString())).thenReturn(newPlan(KEY_LESS));
 
         ApplicationRequest result = logService.findApplicationLog(
-            EXECUTION_CONTEXT,
-            LOG_APPLICATION_ID,
-            LOG_ID,
-            Instant.now().toEpochMilli()
-        );
+                EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, Instant.now().toEpochMilli());
 
         assertThat(result).isNotNull();
         verify(logRepository, times(1)).findById(any(QueryContext.class), eq(LOG_ID), anyLong());
@@ -422,27 +439,9 @@ class LogsServiceTest {
     void exportAsCsvShouldReturnProperlyFormattedStringWithApiRequestItems() {
         SearchLogResponse<LogItem> searchLogResponse = new SearchLogResponse<>(0);
         ApiRequestItem item1 = createApiRequestItem(
-            1689838996000L,
-            "id1",
-            "transactionId1",
-            "/path1",
-            200,
-            100L,
-            "app1",
-            HttpMethod.GET,
-            "plan1"
-        );
+                1689838996000L, "id1", "transactionId1", "/path1", 200, 100L, "app1", HttpMethod.GET, "plan1");
         ApiRequestItem item2 = createApiRequestItem(
-            1689838999000L,
-            "id2",
-            "transactionId2",
-            "/path2",
-            201,
-            523L,
-            "app2",
-            HttpMethod.POST,
-            "plan2"
-        );
+                1689838999000L, "id2", "transactionId2", "/path2", 201, 523L, "app2", HttpMethod.POST, "plan2");
         Map<String, Map<String, String>> metadata = new HashMap<>();
         metadata.put("plan1", Map.of("name", "PLAN 1"));
         metadata.put("app1", Map.of("name", "APP 1"));
@@ -452,13 +451,12 @@ class LogsServiceTest {
         searchLogResponse.setLogs(List.of(item1, item2));
         searchLogResponse.setMetadata(metadata);
         String exportAsCsv = logService.exportAsCsv(EXECUTION_CONTEXT, searchLogResponse);
-        assertThat(exportAsCsv).isEqualTo(
-            "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
-                dateFormat.format(1689838996000L) +
-                ";id1;transactionId1;GET;/path1;200;100;PLAN 1;APP 1\n" +
-                dateFormat.format(1689838999000L) +
-                ";id2;transactionId2;POST;/path2;201;523;PLAN 2;APP 2\n"
-        );
+        assertThat(exportAsCsv)
+                .isEqualTo("Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n"
+                        + dateFormat.format(1689838996000L)
+                        + ";id1;transactionId1;GET;/path1;200;100;PLAN 1;APP 1\n"
+                        + dateFormat.format(1689838999000L)
+                        + ";id2;transactionId2;POST;/path2;201;523;PLAN 2;APP 2\n");
     }
 
     @Test
@@ -466,16 +464,15 @@ class LogsServiceTest {
         SearchLogResponse<LogItem> searchLogResponse = new SearchLogResponse<>(0);
 
         ApiRequestItem item1 = createApiRequestItem(
-            LOG_TIMESTAMP,
-            "id1",
-            "transactionId1",
-            "/path1;=cmd|'/Ccalc'!A0",
-            200,
-            100L,
-            "app1",
-            HttpMethod.GET,
-            "plan1"
-        );
+                LOG_TIMESTAMP,
+                "id1",
+                "transactionId1",
+                "/path1;=cmd|'/Ccalc'!A0",
+                200,
+                100L,
+                "app1",
+                HttpMethod.GET,
+                "plan1");
         Map<String, Map<String, String>> metadata = new HashMap<>();
         metadata.put("plan1", Map.of("name", "=1+2\";=1+2"));
         metadata.put("app1", Map.of("name", "=1+3"));
@@ -483,24 +480,22 @@ class LogsServiceTest {
         searchLogResponse.setLogs(List.of(item1));
         searchLogResponse.setMetadata(metadata);
         String exportAsCsv = logService.exportAsCsv(EXECUTION_CONTEXT, searchLogResponse);
-        assertThat(exportAsCsv).isEqualTo(
-            "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
-                dateFormat.format(LOG_TIMESTAMP) +
-                ";id1;transactionId1;GET;\"/path1;=cmd|'/Ccalc'!A0\";200;100;\"'=1+2\"\";=1+2\";\"'=1+3\"\n"
-        );
+        assertThat(exportAsCsv)
+                .isEqualTo("Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n"
+                        + dateFormat.format(LOG_TIMESTAMP)
+                        + ";id1;transactionId1;GET;\"/path1;=cmd|'/Ccalc'!A0\";200;100;\"'=1+2\"\";=1+2\";\"'=1+3\"\n");
     }
 
     private static ApiRequestItem createApiRequestItem(
-        long timestamp,
-        String id,
-        String transactionId,
-        String path,
-        int status,
-        long responseTime,
-        String application,
-        HttpMethod httpMethod,
-        String plan
-    ) {
+            long timestamp,
+            String id,
+            String transactionId,
+            String path,
+            int status,
+            long responseTime,
+            String application,
+            HttpMethod httpMethod,
+            String plan) {
         ApiRequestItem item = new ApiRequestItem();
         item.setTimestamp(timestamp);
         item.setId(id);

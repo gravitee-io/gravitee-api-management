@@ -79,7 +79,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     private final PropertyDomainService propertyDomainService;
 
     @Override
-    public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
+    public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(
+            ValidateApiCRDDomainService.Input input) {
         rejectMakingEncryptedPropertiesPlain(input);
 
         var errors = new ArrayList<Error>();
@@ -94,86 +95,83 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         }
 
         categoryIdsValidator
-            .validateAndSanitize(
-                new ValidateCategoryIdsDomainService.Input(input.auditInfo().environmentId(), input.spec().getCategories())
-            )
-            .peek(sanitized -> sanitizedBuilder.categories(sanitized.idOrKeys()), errors::addAll);
+                .validateAndSanitize(new ValidateCategoryIdsDomainService.Input(
+                        input.auditInfo().environmentId(), input.spec().getCategories()))
+                .peek(sanitized -> sanitizedBuilder.categories(sanitized.idOrKeys()), errors::addAll);
 
         membersValidator
-            .validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(input.auditInfo(), MembershipReferenceType.API, input.spec().getMembers())
-            )
-            .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
+                .validateAndSanitize(new ValidateCRDMembersDomainService.Input(
+                        input.auditInfo(),
+                        MembershipReferenceType.API,
+                        input.spec().getMembers()))
+                .peek(sanitized -> sanitizedBuilder.members(sanitized.members()), errors::addAll);
 
         groupsValidator
-            .validateAndSanitize(
-                new ValidateGroupsDomainService.Input(
-                    input.auditInfo.environmentId(),
-                    // ignoreGroups: validate nothing that will not be applied; default groups are still injected on create
-                    input.spec().isIgnoreGroups() ? null : input.spec().getGroups(),
-                    input.spec().getDefinitionVersion(),
-                    input.spec().getDefinitionContext() != null ? input.spec().getDefinitionContext().getOrigin() : null,
-                    Group.GroupEvent.API_CREATE,
-                    true
-                )
-            )
-            .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
+                .validateAndSanitize(new ValidateGroupsDomainService.Input(
+                        input.auditInfo.environmentId(),
+                        // ignoreGroups: validate nothing that will not be applied; default groups are still injected on
+                        // create
+                        input.spec().isIgnoreGroups() ? null : input.spec().getGroups(),
+                        input.spec().getDefinitionVersion(),
+                        input.spec().getDefinitionContext() != null
+                                ? input.spec().getDefinitionContext().getOrigin()
+                                : null,
+                        Group.GroupEvent.API_CREATE,
+                        true))
+                .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
 
         portalNotificationValidator
-            .validateAndSanitize(
-                new ValidatePortalNotificationDomainService.Input(
-                    input.spec().getConsoleNotificationConfiguration(),
-                    input.spec().getDefinitionVersion(),
-                    input.spec().getDefinitionContext() != null ? input.spec().getDefinitionContext().getOrigin() : null,
-                    sanitizedBuilder.build().getGroups(),
-                    input.auditInfo()
-                )
-            )
-            .peek(sanitized -> sanitizedBuilder.consoleNotificationConfiguration(sanitized.portalNotificationConfig()), errors::addAll);
+                .validateAndSanitize(new ValidatePortalNotificationDomainService.Input(
+                        input.spec().getConsoleNotificationConfiguration(),
+                        input.spec().getDefinitionVersion(),
+                        input.spec().getDefinitionContext() != null
+                                ? input.spec().getDefinitionContext().getOrigin()
+                                : null,
+                        sanitizedBuilder.build().getGroups(),
+                        input.auditInfo()))
+                .peek(
+                        sanitized ->
+                                sanitizedBuilder.consoleNotificationConfiguration(sanitized.portalNotificationConfig()),
+                        errors::addAll);
 
         resourceValidator
-            .validateAndSanitize(new ValidateResourceDomainService.Input(input.auditInfo.environmentId(), input.spec().getResources()))
-            .peek(sanitized -> sanitizedBuilder.resources(sanitized.resources()), errors::addAll);
+                .validateAndSanitize(new ValidateResourceDomainService.Input(
+                        input.auditInfo.environmentId(), input.spec().getResources()))
+                .peek(sanitized -> sanitizedBuilder.resources(sanitized.resources()), errors::addAll);
 
         pagesValidator
-            .validateAndSanitize(
-                new ValidatePagesDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getHrid(), input.spec.getPages())
-            )
-            .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
+                .validateAndSanitize(new ValidatePagesDomainService.Input(
+                        input.auditInfo, input.spec.getId(), input.spec.getHrid(), input.spec.getPages()))
+                .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
 
         planValidator
-            .validateAndSanitize(
-                new ValidatePlanDomainService.Input(
-                    input.auditInfo,
-                    input.spec,
-                    input.spec.getPlans(),
-                    Optional.ofNullable(input.spec().getPages())
-                        .orElse(Map.of())
-                        .entrySet()
-                        .stream()
-                        .map(entry -> PageModelFactory.fromCRDSpec(entry.getKey(), entry.getValue()))
-                        .toList()
-                )
-            )
-            .peek(sanitized -> sanitizedBuilder.plans(sanitized.plans()), errors::addAll);
+                .validateAndSanitize(new ValidatePlanDomainService.Input(
+                        input.auditInfo,
+                        input.spec,
+                        input.spec.getPlans(),
+                        Optional.ofNullable(input.spec().getPages()).orElse(Map.of()).entrySet().stream()
+                                .map(entry -> PageModelFactory.fromCRDSpec(entry.getKey(), entry.getValue()))
+                                .toList()))
+                .peek(sanitized -> sanitizedBuilder.plans(sanitized.plans()), errors::addAll);
 
-        return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
+        return Validator.Result.ofBoth(
+                new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }
 
     private void rejectMakingEncryptedPropertiesPlain(Input input) {
         apiQueryService
-            .findByEnvironmentIdAndCrossId(input.auditInfo().environmentId(), input.spec().getCrossId())
-            .ifPresent(existingApi ->
-                propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), input.spec().getProperties())
-            );
+                .findByEnvironmentIdAndCrossId(
+                        input.auditInfo().environmentId(), input.spec().getCrossId())
+                .ifPresent(existingApi -> propertyDomainService.validateClassification(
+                        existingApi.getApiDefinitionValue(), input.spec().getProperties()));
     }
 
-    private void validateAndSanitizeHttpV4ForCreation(Input input, ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder, ArrayList<Error> errors) {
+    private void validateAndSanitizeHttpV4ForCreation(
+            Input input, ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder, ArrayList<Error> errors) {
         apiPathValidator
-            .validateAndSanitize(
-                new VerifyApiPathDomainService.Input(input.auditInfo.environmentId(), input.spec.getId(), input.spec.getPaths())
-            )
-            .peek(sanitized -> sanitizedBuilder.paths(sanitized.paths()), errors::addAll);
+                .validateAndSanitize(new VerifyApiPathDomainService.Input(
+                        input.auditInfo.environmentId(), input.spec.getId(), input.spec.getPaths()))
+                .peek(sanitized -> sanitizedBuilder.paths(sanitized.paths()), errors::addAll);
 
         checkApiFlowsPathOperator(input.spec.getFlows());
     }
@@ -182,58 +180,46 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         if (flows == null) {
             return;
         }
-        flows
-            .stream()
-            .filter(Flow.class::isInstance)
-            .map(Flow.class::cast)
-            .filter(flow -> flow.getSelectors() != null)
-            .forEach(flow -> {
-                boolean hasNullPathOperator = flow
-                    .getSelectors()
-                    .stream()
-                    .anyMatch(FlowValidationDomainService.HTTP_SELECTOR_WITH_NULL_PATH_OPERATOR);
-                if (hasNullPathOperator) {
-                    throw InvalidFlowException.missingPathOperator(flow.getName());
-                }
-                flow
-                    .getSelectors()
-                    .stream()
-                    .filter(FlowValidationDomainService.HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
-                    .findFirst()
-                    .ifPresent(selector -> {
-                        if (selector instanceof HttpSelector httpSelector) {
-                            throw InvalidFlowException.invalidWildcardPath(flow.getName(), httpSelector.getPath());
-                        }
-                    });
-            });
+        flows.stream()
+                .filter(Flow.class::isInstance)
+                .map(Flow.class::cast)
+                .filter(flow -> flow.getSelectors() != null)
+                .forEach(flow -> {
+                    boolean hasNullPathOperator = flow.getSelectors().stream()
+                            .anyMatch(FlowValidationDomainService.HTTP_SELECTOR_WITH_NULL_PATH_OPERATOR);
+                    if (hasNullPathOperator) {
+                        throw InvalidFlowException.missingPathOperator(flow.getName());
+                    }
+                    flow.getSelectors().stream()
+                            .filter(FlowValidationDomainService.HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
+                            .findFirst()
+                            .ifPresent(selector -> {
+                                if (selector instanceof HttpSelector httpSelector) {
+                                    throw InvalidFlowException.invalidWildcardPath(
+                                            flow.getName(), httpSelector.getPath());
+                                }
+                            });
+                });
     }
 
     private void validateAndSanitizeNativeV4ForCreation(
-        Input input,
-        ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder,
-        ArrayList<Error> errors
-    ) {
+            Input input, ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder, ArrayList<Error> errors) {
         var listeners = new ArrayList<KafkaListener>();
 
-        input.spec
-            .getListeners()
-            .forEach(listener -> {
-                try {
-                    KafkaListener kafkaListener = (KafkaListener) listener;
-                    if (
-                        apiHostValidator.checkApiHosts(
-                            input.auditInfo.environmentId(),
-                            input.spec.getId(),
-                            List.of(kafkaListener.getHost()),
-                            ListenerType.KAFKA
-                        )
-                    ) {
-                        listeners.add((KafkaListener) listener);
-                    }
-                } catch (Exception e) {
-                    errors.add(Error.severe(e.getMessage()));
+        input.spec.getListeners().forEach(listener -> {
+            try {
+                KafkaListener kafkaListener = (KafkaListener) listener;
+                if (apiHostValidator.checkApiHosts(
+                        input.auditInfo.environmentId(),
+                        input.spec.getId(),
+                        List.of(kafkaListener.getHost()),
+                        ListenerType.KAFKA)) {
+                    listeners.add((KafkaListener) listener);
                 }
-            });
+            } catch (Exception e) {
+                errors.add(Error.severe(e.getMessage()));
+            }
+        });
 
         sanitizedBuilder.listeners(listeners);
     }

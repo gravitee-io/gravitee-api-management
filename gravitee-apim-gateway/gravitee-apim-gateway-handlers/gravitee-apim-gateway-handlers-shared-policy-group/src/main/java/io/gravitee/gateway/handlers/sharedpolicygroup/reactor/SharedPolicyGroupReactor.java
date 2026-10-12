@@ -21,6 +21,8 @@ import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 
 public interface SharedPolicyGroupReactor extends LifecycleComponent<SharedPolicyGroupReactor> {
     String id();
+
     ReactableSharedPolicyGroup reactableSharedPolicyGroup();
+
     HttpPolicyChain policyChain();
 }

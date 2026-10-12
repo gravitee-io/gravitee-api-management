@@ -28,7 +28,8 @@ import org.junit.jupiter.api.Test;
 
 class GetEntrypointPluginsUseCaseTest {
 
-    private final EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory = new EntrypointPluginQueryServiceInMemory();
+    private final EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory =
+            new EntrypointPluginQueryServiceInMemory();
     private LicenseManager licenseManager;
     private GetEntrypointPluginsUseCase getEntrypointPluginsUseCase;
 
@@ -36,9 +37,7 @@ class GetEntrypointPluginsUseCaseTest {
     void setup() {
         licenseManager = mock(LicenseManager.class);
         getEntrypointPluginsUseCase = new GetEntrypointPluginsUseCase(
-            entrypointPluginQueryServiceInMemory,
-            new PluginFilterByLicenseDomainService(licenseManager)
-        );
+                entrypointPluginQueryServiceInMemory, new PluginFilterByLicenseDomainService(licenseManager));
 
         entrypointPluginQueryServiceInMemory.reset();
     }
@@ -52,31 +51,23 @@ class GetEntrypointPluginsUseCaseTest {
         when(license.isFeatureEnabled("apim-en-connector-mock")).thenReturn(true);
         when(license.isFeatureEnabled("apim-en-connector-sse")).thenReturn(false);
 
-        var res = getEntrypointPluginsUseCase.getEntrypointPluginsByOrganization(new GetEntrypointPluginsUseCase.Input("org-id"));
+        var res = getEntrypointPluginsUseCase.getEntrypointPluginsByOrganization(
+                new GetEntrypointPluginsUseCase.Input("org-id"));
         assertThat(res.plugins()).hasSize(3);
-        assertThat(
-            res
-                .plugins()
-                .stream()
-                .filter(p -> p.getId().equals("sse"))
-                .findFirst()
-                .map(PlatformPlugin::isDeployed)
-        ).contains(false);
-        assertThat(
-            res
-                .plugins()
-                .stream()
-                .filter(p -> p.getId().equals("mock"))
-                .findFirst()
-                .map(PlatformPlugin::isDeployed)
-        ).contains(false);
-        assertThat(
-            res
-                .plugins()
-                .stream()
-                .filter(p -> p.getId().equals("http-proxy"))
-                .findFirst()
-                .map(PlatformPlugin::isDeployed)
-        ).contains(true);
+        assertThat(res.plugins().stream()
+                        .filter(p -> p.getId().equals("sse"))
+                        .findFirst()
+                        .map(PlatformPlugin::isDeployed))
+                .contains(false);
+        assertThat(res.plugins().stream()
+                        .filter(p -> p.getId().equals("mock"))
+                        .findFirst()
+                        .map(PlatformPlugin::isDeployed))
+                .contains(false);
+        assertThat(res.plugins().stream()
+                        .filter(p -> p.getId().equals("http-proxy"))
+                        .findFirst()
+                        .map(PlatformPlugin::isDeployed))
+                .contains(true);
     }
 }

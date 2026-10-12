@@ -78,7 +78,8 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
             assertThat(result.getOrder()).isEqualTo(1);
             assertThat(result.getParentId()).isNull();
-            assertThat(result.getPortalPageContentId()).isEqualTo(page.getPortalPageContentId().id());
+            assertThat(result.getPortalPageContentId())
+                    .isEqualTo(page.getPortalPageContentId().id());
             assertThat(result.getRootId()).isEqualTo(page.getRootId().id());
         }
 
@@ -157,11 +158,14 @@ class PortalNavigationItemsMapperTest {
         void should_map_portal_navigation_api_product() {
             var category1 = PortalCategoryId.random();
             var category2 = PortalCategoryId.random();
-            var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder().categoryIds(List.of(category1, category2)).build();
+            var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder()
+                    .categoryIds(List.of(category1, category2))
+                    .build();
 
             var result = mapper.map(apiProduct);
 
-            assertThat(result).isInstanceOf(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct.class);
+            assertThat(result)
+                    .isInstanceOf(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct.class);
             assertThat(result.getId()).isEqualTo(UUID.fromString(PortalNavigationItemFixtures.API_PRODUCT_ID));
             assertThat(result.getType()).isEqualTo(PortalNavigationItemType.API_PRODUCT);
             assertThat(result.getApiProductId()).isEqualTo(UUID.fromString(apiProduct.getApiProductId()));
@@ -177,32 +181,29 @@ class PortalNavigationItemsMapperTest {
 
             assertThat(result).hasSize(13);
             // Check that all items are mapped correctly
-            assertThat(
-                result
-                    .stream()
-                    .map(i -> (BasePortalNavigationItem) i.getActualInstance())
-                    .map(BasePortalNavigationItem::getId)
-            ).containsExactlyInAnyOrder(
-                PortalNavigationItemFixtures.SAMPLE_NAVIGATION_ITEMS_IDS.stream().map(UUID::fromString).toArray(UUID[]::new)
-            );
+            assertThat(result.stream()
+                            .map(i -> (BasePortalNavigationItem) i.getActualInstance())
+                            .map(BasePortalNavigationItem::getId))
+                    .containsExactlyInAnyOrder(PortalNavigationItemFixtures.SAMPLE_NAVIGATION_ITEMS_IDS.stream()
+                            .map(UUID::fromString)
+                            .toArray(UUID[]::new));
         }
 
         @Test
         void should_map_portal_navigation_page_source() {
-            var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE_ID, "My Page", null)
-                .toBuilder()
-                .source(
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
-                        .sourceType("github-fetcher")
-                        .sourceConfiguration("{\"repository\":\"docs\"}")
-                        .useAutoFetch(true)
-                        .fetchCron("0 */10 * * * *")
-                        .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
-                        .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
-                        .lastFetchError("boom")
-                        .build()
-                )
-                .build();
+            var page =
+                    PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE_ID, "My Page", null)
+                            .toBuilder()
+                            .source(io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
+                                    .sourceType("github-fetcher")
+                                    .sourceConfiguration("{\"repository\":\"docs\"}")
+                                    .useAutoFetch(true)
+                                    .fetchCron("0 */10 * * * *")
+                                    .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                                    .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
+                                    .lastFetchError("boom")
+                                    .build())
+                            .build();
 
             var result = mapper.map(page);
 
@@ -234,12 +235,11 @@ class PortalNavigationItemsMapperTest {
         void should_map_create_parent_without_setting_server_resolved_parent() {
             var parentId = UUID.fromString(PortalNavigationItemFixtures.API_ID);
             List<BaseCreatePortalNavigationItem> requests = List.of(
-                PortalNavigationItemsFixtures.aCreatePortalNavigationPage(),
-                PortalNavigationItemsFixtures.aCreatePortalNavigationFolder(),
-                PortalNavigationItemsFixtures.aCreatePortalNavigationLink(),
-                PortalNavigationItemsFixtures.aCreatePortalNavigationApi(),
-                PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct()
-            );
+                    PortalNavigationItemsFixtures.aCreatePortalNavigationPage(),
+                    PortalNavigationItemsFixtures.aCreatePortalNavigationFolder(),
+                    PortalNavigationItemsFixtures.aCreatePortalNavigationLink(),
+                    PortalNavigationItemsFixtures.aCreatePortalNavigationApi(),
+                    PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct());
 
             for (var request : requests) {
                 request.setParentId(parentId);
@@ -255,12 +255,11 @@ class PortalNavigationItemsMapperTest {
         void should_map_requested_parent_without_setting_server_resolved_parent() {
             var parentId = UUID.fromString(PortalNavigationItemFixtures.API_ID);
             List<BaseUpdatePortalNavigationItem> requests = List.of(
-                new UpdatePortalNavigationPage().type(PortalNavigationItemType.PAGE),
-                new UpdatePortalNavigationFolder().type(PortalNavigationItemType.FOLDER),
-                new UpdatePortalNavigationLink().type(PortalNavigationItemType.LINK),
-                new UpdatePortalNavigationApi().type(PortalNavigationItemType.API),
-                new UpdatePortalNavigationApiProduct().type(PortalNavigationItemType.API_PRODUCT)
-            );
+                    new UpdatePortalNavigationPage().type(PortalNavigationItemType.PAGE),
+                    new UpdatePortalNavigationFolder().type(PortalNavigationItemType.FOLDER),
+                    new UpdatePortalNavigationLink().type(PortalNavigationItemType.LINK),
+                    new UpdatePortalNavigationApi().type(PortalNavigationItemType.API),
+                    new UpdatePortalNavigationApiProduct().type(PortalNavigationItemType.API_PRODUCT));
 
             for (var request : requests) {
                 request.setParentId(parentId);
@@ -279,7 +278,8 @@ class PortalNavigationItemsMapperTest {
             var result = mapper.map(page);
 
             assertThat(result).isInstanceOf(CreatePortalNavigationItem.class);
-            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.PAGE);
+            assertThat(result.getType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.PAGE);
             assertThat(result.getId()).isNotNull();
             assertThat(result.getTitle()).isEqualTo(page.getTitle());
             assertThat(result.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
@@ -305,7 +305,8 @@ class PortalNavigationItemsMapperTest {
             var result = mapper.map(page);
 
             assertThat(result).isInstanceOf(CreatePortalNavigationItem.class);
-            assertThat(result.getContentType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalPageContentType.OPENAPI);
+            assertThat(result.getContentType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalPageContentType.OPENAPI);
         }
 
         @Test
@@ -315,7 +316,8 @@ class PortalNavigationItemsMapperTest {
             var result = mapper.map(folder);
 
             assertThat(result).isInstanceOf(CreatePortalNavigationItem.class);
-            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.FOLDER);
+            assertThat(result.getType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.FOLDER);
             assertThat(result.getId()).isNotNull();
             assertThat(result.getTitle()).isEqualTo(folder.getTitle());
             assertThat(result.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
@@ -330,7 +332,8 @@ class PortalNavigationItemsMapperTest {
             var result = mapper.map(link);
 
             assertThat(result).isInstanceOf(CreatePortalNavigationItem.class);
-            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.LINK);
+            assertThat(result.getType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.LINK);
             assertThat(result.getId()).isNotNull();
             assertThat(result.getTitle()).isEqualTo(link.getTitle());
             assertThat(result.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
@@ -348,8 +351,10 @@ class PortalNavigationItemsMapperTest {
 
             var result = mapper.map(api);
 
-            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API);
-            assertThat(result.getCategoryIds()).containsExactly(new PortalCategoryId(category1), new PortalCategoryId(category2));
+            assertThat(result.getType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API);
+            assertThat(result.getCategoryIds())
+                    .containsExactly(new PortalCategoryId(category1), new PortalCategoryId(category2));
         }
 
         @Test
@@ -360,7 +365,8 @@ class PortalNavigationItemsMapperTest {
 
             var result = mapper.map(api);
 
-            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API);
+            assertThat(result.getType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API);
             assertThat(result.getCategoryIds()).containsExactly(new PortalCategoryId(category1));
         }
 
@@ -368,23 +374,29 @@ class PortalNavigationItemsMapperTest {
         void should_map_create_portal_navigation_api_product() {
             var category1 = UUID.randomUUID();
             var category2 = UUID.randomUUID();
-            final var apiProduct = PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct(List.of(category1, category2));
+            final var apiProduct =
+                    PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct(List.of(category1, category2));
 
             var result = mapper.map(apiProduct);
 
-            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT);
-            assertThat(result.getApiProductId()).isEqualTo(apiProduct.getApiProductId().toString());
-            assertThat(result.getCategoryIds()).containsExactly(new PortalCategoryId(category1), new PortalCategoryId(category2));
+            assertThat(result.getType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT);
+            assertThat(result.getApiProductId())
+                    .isEqualTo(apiProduct.getApiProductId().toString());
+            assertThat(result.getCategoryIds())
+                    .containsExactly(new PortalCategoryId(category1), new PortalCategoryId(category2));
         }
 
         @Test
         void should_map_update_portal_navigation_api_product_without_product_relinking_field() {
             var categoryId = UUID.randomUUID();
-            final var apiProduct = PortalNavigationItemsFixtures.anUpdatePortalNavigationApiProduct(List.of(categoryId));
+            final var apiProduct =
+                    PortalNavigationItemsFixtures.anUpdatePortalNavigationApiProduct(List.of(categoryId));
 
             var result = mapper.map(apiProduct);
 
-            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT);
+            assertThat(result.getType())
+                    .isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT);
             assertThat(result.getTitle()).isEqualTo("Updated API Product");
             assertThat(result.getPublished()).isFalse();
             assertThat(result.getCategoryIds()).containsExactly(new PortalCategoryId(categoryId));
@@ -397,7 +409,8 @@ class PortalNavigationItemsMapperTest {
             final var link = PortalNavigationItemsFixtures.aCreatePortalNavigationLink();
             final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
             var apiProductCategoryId = UUID.randomUUID();
-            final var apiProduct = PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct(List.of(apiProductCategoryId));
+            final var apiProduct =
+                    PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct(List.of(apiProductCategoryId));
 
             final var requestItems = java.util.List.of(page, folder, link, api, apiProduct);
 
@@ -405,27 +418,24 @@ class PortalNavigationItemsMapperTest {
 
             assertThat(result).hasSize(5);
             assertThat(result)
-                .extracting(io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem::getType)
-                .containsExactly(
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.PAGE,
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.FOLDER,
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.LINK,
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API,
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT
-                );
+                    .extracting(io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem::getType)
+                    .containsExactly(
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.PAGE,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.FOLDER,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.LINK,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT);
             assertThat(result.get(4).getCategoryIds()).containsExactly(new PortalCategoryId(apiProductCategoryId));
         }
 
         @Test
         void should_map_source_from_create_portal_navigation_page() {
             final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
-            page.setSource(
-                new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
+            page.setSource(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
                     .type("github-fetcher")
                     .configuration(new java.util.LinkedHashMap<>(Map.of("repository", "docs")))
                     .useAutoFetch(true)
-                    .fetchCron("0 */10 * * * *")
-            );
+                    .fetchCron("0 */10 * * * *"));
 
             var result = mapper.map(page);
 
@@ -433,12 +443,10 @@ class PortalNavigationItemsMapperTest {
             assertThat(source).isNotNull();
             assertThat(source.getSourceType()).isEqualTo("github-fetcher");
             // pin the exact stored format: sameOrigin comparisons rely on it, a format change must fail here
-            assertThat(source.getSourceConfiguration()).isEqualTo(
-                """
+            assertThat(source.getSourceConfiguration()).isEqualTo("""
                 {
                   "repository" : "docs"
-                }"""
-            );
+                }""");
             assertThat(source.isUseAutoFetch()).isTrue();
             assertThat(source.getFetchCron()).isEqualTo("0 */10 * * * *");
             assertThat(source.getLastFetchedAt()).isNull();
@@ -450,16 +458,13 @@ class PortalNavigationItemsMapperTest {
             final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
             // the readOnly fields are only reachable through the @JsonCreator constructor, which is
             // exactly how Jackson would materialize them from a crafted request body
-            page.setSource(
-                new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
-                    OffsetDateTime.parse("2026-07-17T10:00:00Z"),
-                    OffsetDateTime.parse("2026-07-17T11:00:00Z"),
-                    "injected error",
-                    true
-                )
+            page.setSource(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
+                            OffsetDateTime.parse("2026-07-17T10:00:00Z"),
+                            OffsetDateTime.parse("2026-07-17T11:00:00Z"),
+                            "injected error",
+                            true)
                     .type("github-fetcher")
-                    .configuration(new java.util.LinkedHashMap<>(Map.of("repository", "docs")))
-            );
+                    .configuration(new java.util.LinkedHashMap<>(Map.of("repository", "docs"))));
 
             var result = mapper.map(page);
 
@@ -476,16 +481,14 @@ class PortalNavigationItemsMapperTest {
         @Test
         void should_map_source_from_update_portal_navigation_page() {
             final var update = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage()
-                .source(
-                    new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
-                        .type("http-fetcher")
-                        .configuration(new java.util.LinkedHashMap<>(Map.of("url", "https://example.com/doc.md")))
-                )
-                .type(PortalNavigationItemType.PAGE)
-                .title("My Page")
-                .order(1)
-                .published(true)
-                .visibility(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+                    .source(new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
+                            .type("http-fetcher")
+                            .configuration(new java.util.LinkedHashMap<>(Map.of("url", "https://example.com/doc.md"))))
+                    .type(PortalNavigationItemType.PAGE)
+                    .title("My Page")
+                    .order(1)
+                    .published(true)
+                    .visibility(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
 
             var result = mapper.map(update);
 
@@ -493,12 +496,10 @@ class PortalNavigationItemsMapperTest {
             assertThat(source).isNotNull();
             assertThat(source.getSourceType()).isEqualTo("http-fetcher");
             // pin the exact stored format: sameOrigin comparisons rely on it, a format change must fail here
-            assertThat(source.getSourceConfiguration()).isEqualTo(
-                """
+            assertThat(source.getSourceConfiguration()).isEqualTo("""
                 {
                   "url" : "https://example.com/doc.md"
-                }"""
-            );
+                }""");
             assertThat(source.isUseAutoFetch()).isFalse();
         }
     }

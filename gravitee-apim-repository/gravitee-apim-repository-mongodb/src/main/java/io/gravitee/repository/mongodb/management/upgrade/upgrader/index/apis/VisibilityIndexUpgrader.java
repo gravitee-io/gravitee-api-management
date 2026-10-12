@@ -28,9 +28,9 @@ public class VisibilityIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("v1")
-            .key("visibility", ascending())
-            .build();
+                .collection("apis")
+                .name("v1")
+                .key("visibility", ascending())
+                .build();
     }
 }

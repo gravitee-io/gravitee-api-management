@@ -50,18 +50,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApiOwnedNavigationDomainService {
 
-    private static final Set<PortalNavigationItemType> DOCUMENTATION_TYPES = Set.of(
-        PortalNavigationItemType.PAGE,
-        PortalNavigationItemType.FOLDER,
-        PortalNavigationItemType.LINK
-    );
+    private static final Set<PortalNavigationItemType> DOCUMENTATION_TYPES =
+            Set.of(PortalNavigationItemType.PAGE, PortalNavigationItemType.FOLDER, PortalNavigationItemType.LINK);
 
     private final PortalNavigationItemsQueryService queryService;
     private final PortalNavigationItemCrudService crudService;
 
     public List<PortalNavigationItem> findOwnedItems(String environmentId, String apiId) {
         var owner = new NavigationItemReference.ApiReference(apiId);
-        var roots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.TOP_NAVBAR, owner);
+        var roots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                environmentId, PortalArea.TOP_NAVBAR, owner);
 
         var ownedItems = new ArrayList<PortalNavigationItem>();
         var visitedIds = new HashSet<PortalNavigationItemId>();
@@ -74,11 +72,9 @@ public class ApiOwnedNavigationDomainService {
             ownedItems.add(item);
             // Nothing stops an item of the portal, or of another API, from being stored under a folder this API
             // owns: such a child, and whatever sits below it, is not this API's documentation
-            queryService
-                .findByParentIdAndEnvironmentId(environmentId, item.getId())
-                .stream()
-                .filter(child -> owner.equals(child.getReference()))
-                .forEach(toVisit::push);
+            queryService.findByParentIdAndEnvironmentId(environmentId, item.getId()).stream()
+                    .filter(child -> owner.equals(child.getReference()))
+                    .forEach(toVisit::push);
         }
         return ownedItems;
     }
@@ -89,17 +85,15 @@ public class ApiOwnedNavigationDomainService {
      */
     public List<PortalNavigationApi> findStandaloneListings(String environmentId, String apiId) {
         var criteria = PortalNavigationItemQueryCriteria.builder()
-            .environmentId(environmentId)
-            .type(PortalNavigationItemType.API)
-            .apiIds(Set.of(apiId))
-            .build();
+                .environmentId(environmentId)
+                .type(PortalNavigationItemType.API)
+                .apiIds(Set.of(apiId))
+                .build();
         Map<PortalNavigationItemId, Boolean> productContextById = new HashMap<>();
-        return queryService
-            .search(criteria)
-            .stream()
-            .map(PortalNavigationApi.class::cast)
-            .filter(listing -> !isInApiProductContext(environmentId, listing, productContextById))
-            .toList();
+        return queryService.search(criteria).stream()
+                .map(PortalNavigationApi.class::cast)
+                .filter(listing -> !isInApiProductContext(environmentId, listing, productContextById))
+                .toList();
     }
 
     /**
@@ -107,26 +101,23 @@ public class ApiOwnedNavigationDomainService {
      * navigation. An unpublished section cannot hold a published listing.
      */
     public List<PortalNavigationFolder> findPublishLocations(String environmentId) {
-        return queryService
-            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR)
-            .stream()
-            .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
-            .filter(PortalNavigationFolder.class::isInstance)
-            .map(PortalNavigationFolder.class::cast)
-            .filter(section -> Boolean.TRUE.equals(section.getPublished()))
-            .sorted(Comparator.comparing(PortalNavigationFolder::getOrder))
-            .toList();
+        return queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR).stream()
+                .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+                .filter(PortalNavigationFolder.class::isInstance)
+                .map(PortalNavigationFolder.class::cast)
+                .filter(section -> Boolean.TRUE.equals(section.getPublished()))
+                .sorted(Comparator.comparing(PortalNavigationFolder::getOrder))
+                .toList();
     }
 
     public PortalNavigationFolder requirePublishLocation(String environmentId, PortalNavigationItemId sectionId) {
         if (queryService.findByIdAndEnvironmentId(environmentId, sectionId) == null) {
             throw new ParentNotFoundException(sectionId.json());
         }
-        return findPublishLocations(environmentId)
-            .stream()
-            .filter(section -> section.getId().equals(sectionId))
-            .findFirst()
-            .orElseThrow(() -> InvalidPortalNavigationItemDataException.notAPublishLocation(sectionId.json()));
+        return findPublishLocations(environmentId).stream()
+                .filter(section -> section.getId().equals(sectionId))
+                .findFirst()
+                .orElseThrow(() -> InvalidPortalNavigationItemDataException.notAPublishLocation(sectionId.json()));
     }
 
     /**
@@ -134,13 +125,12 @@ public class ApiOwnedNavigationDomainService {
      * portal: every item follows, whatever its own flag was.
      */
     public void setPublished(String environmentId, String apiId, boolean published) {
-        findOwnedItems(environmentId, apiId)
-            .stream()
-            .filter(item -> !Boolean.valueOf(published).equals(item.getPublished()))
-            .forEach(item -> {
-                item.setPublished(published);
-                crudService.update(item);
-            });
+        findOwnedItems(environmentId, apiId).stream()
+                .filter(item -> !Boolean.valueOf(published).equals(item.getPublished()))
+                .forEach(item -> {
+                    item.setPublished(published);
+                    crudService.update(item);
+                });
     }
 
     /**
@@ -178,12 +168,11 @@ public class ApiOwnedNavigationDomainService {
         if (item.getParentId() != null) {
             requireOwnedItem(environmentId, apiId, item.getParentId());
         }
-        return item
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(apiId))
-            .area(PortalArea.TOP_NAVBAR)
-            .published(false)
-            .build();
+        return item.toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .area(PortalArea.TOP_NAVBAR)
+                .published(false)
+                .build();
     }
 
     public boolean isInApiProductContext(String environmentId, PortalNavigationItem item) {
@@ -195,10 +184,7 @@ public class ApiOwnedNavigationDomainService {
      * shared ancestors can be reused without retaining stale context after navigation changes.
      */
     public boolean isInApiProductContext(
-        String environmentId,
-        PortalNavigationItem item,
-        Map<PortalNavigationItemId, Boolean> productContextById
-    ) {
+            String environmentId, PortalNavigationItem item, Map<PortalNavigationItemId, Boolean> productContextById) {
         Set<PortalNavigationItemId> visited = new HashSet<>();
         var current = item;
         var currentId = item.getId();

@@ -38,40 +38,39 @@ public class ThemeDomainService {
         var currentTime = ZonedDateTime.now();
 
         var themeToBeCreated = Theme.builder()
-            .name(newTheme.getName())
-            .referenceId(newTheme.getReferenceId())
-            .referenceType(newTheme.getReferenceType())
-            .definitionPortal(newTheme.getDefinitionPortal())
-            .definitionPortalNext(newTheme.getDefinitionPortalNext())
-            .type(newTheme.getType())
-            .enabled(newTheme.isEnabled())
-            .logo(newTheme.getLogo())
-            .optionalLogo(newTheme.getOptionalLogo())
-            .favicon(newTheme.getFavicon())
-            .backgroundImage(newTheme.getBackgroundImage())
-            .automationMetadata(newTheme.getAutomationMetadata())
-            .id(id)
-            .createdAt(currentTime)
-            .updatedAt(currentTime)
-            .build();
+                .name(newTheme.getName())
+                .referenceId(newTheme.getReferenceId())
+                .referenceType(newTheme.getReferenceType())
+                .definitionPortal(newTheme.getDefinitionPortal())
+                .definitionPortalNext(newTheme.getDefinitionPortalNext())
+                .type(newTheme.getType())
+                .enabled(newTheme.isEnabled())
+                .logo(newTheme.getLogo())
+                .optionalLogo(newTheme.getOptionalLogo())
+                .favicon(newTheme.getFavicon())
+                .backgroundImage(newTheme.getBackgroundImage())
+                .automationMetadata(newTheme.getAutomationMetadata())
+                .id(id)
+                .createdAt(currentTime)
+                .updatedAt(currentTime)
+                .build();
 
         return this.themeCrudService.create(themeToBeCreated);
     }
 
     public Theme update(UpdateTheme updateTheme, Theme existingTheme) {
-        var existingThemeWithUpdates = existingTheme
-            .toBuilder()
-            .name(updateTheme.getName())
-            .definitionPortal(updateTheme.getDefinitionPortal())
-            .definitionPortalNext(updateTheme.getDefinitionPortalNext())
-            .enabled(updateTheme.isEnabled())
-            .logo(updateTheme.getLogo())
-            .optionalLogo(updateTheme.getOptionalLogo())
-            .favicon(updateTheme.getFavicon())
-            .backgroundImage(updateTheme.getBackgroundImage())
-            .automationMetadata(updateTheme.getAutomationMetadata())
-            .updatedAt(ZonedDateTime.now())
-            .build();
+        var existingThemeWithUpdates = existingTheme.toBuilder()
+                .name(updateTheme.getName())
+                .definitionPortal(updateTheme.getDefinitionPortal())
+                .definitionPortalNext(updateTheme.getDefinitionPortalNext())
+                .enabled(updateTheme.isEnabled())
+                .logo(updateTheme.getLogo())
+                .optionalLogo(updateTheme.getOptionalLogo())
+                .favicon(updateTheme.getFavicon())
+                .backgroundImage(updateTheme.getBackgroundImage())
+                .automationMetadata(updateTheme.getAutomationMetadata())
+                .updatedAt(ZonedDateTime.now())
+                .build();
 
         return this.themeCrudService.update(existingThemeWithUpdates);
     }

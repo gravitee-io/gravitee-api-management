@@ -66,13 +66,15 @@ public class ApiProductNotificationSettingsResource extends AbstractResource {
     @GET
     @Operation(summary = "Get API Product notification settings")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_PRODUCT_NOTIFICATION, acls = READ) })
+    @Permissions({@Permission(value = API_PRODUCT_NOTIFICATION, acls = READ)})
     public List<Object> getApiProductNotificationSettings() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         List<Object> settings = new ArrayList<>();
-        settings.add(portalNotificationConfigService.findById(getAuthenticatedUser(), NotificationReferenceType.API_PRODUCT, apiProductId));
+        settings.add(portalNotificationConfigService.findById(
+                getAuthenticatedUser(), NotificationReferenceType.API_PRODUCT, apiProductId));
         if (hasPermission(executionContext, API_PRODUCT_NOTIFICATION, apiProductId, CREATE, READ, UPDATE, DELETE)) {
-            settings.addAll(genericNotificationConfigService.findByReference(NotificationReferenceType.API_PRODUCT, apiProductId));
+            settings.addAll(genericNotificationConfigService.findByReference(
+                    NotificationReferenceType.API_PRODUCT, apiProductId));
         }
         return settings;
     }
@@ -81,24 +83,19 @@ public class ApiProductNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Create API Product notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_PRODUCT_NOTIFICATION, acls = CREATE) })
+    @Permissions({@Permission(value = API_PRODUCT_NOTIFICATION, acls = CREATE)})
     public Object createApiProductNotificationSettings(GenericNotificationConfigEntity config) {
-        if (
-            !apiProductId.equals(config.getReferenceId()) || !NotificationReferenceType.API_PRODUCT.name().equals(config.getReferenceType())
-        ) {
+        if (!apiProductId.equals(config.getReferenceId())
+                || !NotificationReferenceType.API_PRODUCT.name().equals(config.getReferenceType())) {
             throw new ForbiddenAccessException();
         }
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            config.getConfigType().equals(NotificationConfigType.GENERIC) &&
-            hasPermission(executionContext, API_PRODUCT_NOTIFICATION, apiProductId, CREATE)
-        ) {
+        if (config.getConfigType().equals(NotificationConfigType.GENERIC)
+                && hasPermission(executionContext, API_PRODUCT_NOTIFICATION, apiProductId, CREATE)) {
             return genericNotificationConfigService.create(config);
         }
-        if (
-            config.getConfigType().equals(NotificationConfigType.PORTAL) &&
-            hasPermission(executionContext, API_PRODUCT_NOTIFICATION, apiProductId, READ)
-        ) {
+        if (config.getConfigType().equals(NotificationConfigType.PORTAL)
+                && hasPermission(executionContext, API_PRODUCT_NOTIFICATION, apiProductId, READ)) {
             PortalNotificationConfigEntity notificationEntity = convert(config);
             return portalNotificationConfigService.save(notificationEntity);
         }
@@ -110,17 +107,13 @@ public class ApiProductNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Update generic API Product notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_PRODUCT_NOTIFICATION, acls = UPDATE) })
+    @Permissions({@Permission(value = API_PRODUCT_NOTIFICATION, acls = UPDATE)})
     public GenericNotificationConfigEntity updateApiProductGenericNotificationSettings(
-        @PathParam("notificationId") String notificationId,
-        GenericNotificationConfigEntity config
-    ) {
-        if (
-            !apiProductId.equals(config.getReferenceId()) ||
-            !NotificationReferenceType.API_PRODUCT.name().equals(config.getReferenceType()) ||
-            !config.getConfigType().equals(NotificationConfigType.GENERIC) ||
-            !notificationId.equals(config.getId())
-        ) {
+            @PathParam("notificationId") String notificationId, GenericNotificationConfigEntity config) {
+        if (!apiProductId.equals(config.getReferenceId())
+                || !NotificationReferenceType.API_PRODUCT.name().equals(config.getReferenceType())
+                || !config.getConfigType().equals(NotificationConfigType.GENERIC)
+                || !notificationId.equals(config.getId())) {
             throw new ForbiddenAccessException();
         }
         return genericNotificationConfigService.update(config);
@@ -130,13 +123,12 @@ public class ApiProductNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Update portal API Product notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = API_PRODUCT_NOTIFICATION, acls = UPDATE) })
-    public PortalNotificationConfigEntity updateApiProductPortalNotificationSettings(PortalNotificationConfigEntity config) {
-        if (
-            !apiProductId.equals(config.getReferenceId()) ||
-            !NotificationReferenceType.API_PRODUCT.name().equals(config.getReferenceType()) ||
-            !config.getConfigType().equals(NotificationConfigType.PORTAL)
-        ) {
+    @Permissions({@Permission(value = API_PRODUCT_NOTIFICATION, acls = UPDATE)})
+    public PortalNotificationConfigEntity updateApiProductPortalNotificationSettings(
+            PortalNotificationConfigEntity config) {
+        if (!apiProductId.equals(config.getReferenceId())
+                || !NotificationReferenceType.API_PRODUCT.name().equals(config.getReferenceType())
+                || !config.getConfigType().equals(NotificationConfigType.PORTAL)) {
             throw new ForbiddenAccessException();
         }
         return portalNotificationConfigService.save(config);
@@ -145,7 +137,7 @@ public class ApiProductNotificationSettingsResource extends AbstractResource {
     @DELETE
     @Path("{notificationId}")
     @Operation(summary = "Delete API Product notification settings")
-    @Permissions({ @Permission(value = API_PRODUCT_NOTIFICATION, acls = DELETE) })
+    @Permissions({@Permission(value = API_PRODUCT_NOTIFICATION, acls = DELETE)})
     public Response deleteApiProductNotificationSettings(@PathParam("notificationId") String notificationId) {
         genericNotificationConfigService.delete(notificationId);
         return Response.noContent().build();

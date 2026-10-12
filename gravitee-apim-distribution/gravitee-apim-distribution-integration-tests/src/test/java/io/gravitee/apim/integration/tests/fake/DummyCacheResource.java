@@ -51,12 +51,17 @@ public class DummyCacheResource extends CacheResource {
     public static void checkNumberOfCacheEntries(int expectedSize) {
         try {
             Thread.sleep(2000);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         Assertions.assertEquals(expectedSize, ((Map) getDummyCacheInstance().getNativeCache()).size());
     }
 
     public static CachedResponse getFirstEntry() {
-        CacheElement cacheElement = (CacheElement) ((Map) getDummyCacheInstance().getNativeCache()).values().iterator().next();
+        CacheElement cacheElement =
+                (CacheElement) ((Map) getDummyCacheInstance().getNativeCache())
+                        .values()
+                        .iterator()
+                        .next();
         byte[] frame = (byte[]) cacheElement.value();
         return CacheFrame.decode(frame);
     }

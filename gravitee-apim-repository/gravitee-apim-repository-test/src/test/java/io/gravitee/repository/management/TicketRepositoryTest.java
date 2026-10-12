@@ -39,8 +39,14 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchWithNullCriteria() throws TechnicalException {
         List<Ticket> tickets = ticketRepository
-            .search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        null,
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertNotNull(tickets);
         assertEquals(8, tickets.size(), "Invalid tickets numbers in search");
@@ -53,8 +59,14 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchAllWithEmptyCriteria() throws Exception {
         List<Ticket> tickets = ticketRepository
-            .search(new TicketCriteria.Builder().build(), null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
-            .getContent();
+                .search(
+                        new TicketCriteria.Builder().build(),
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertNotNull(tickets);
         assertEquals(8, tickets.size(), "Invalid tickets numbers in search");
@@ -67,12 +79,14 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchAllWithCriteriaFromUserEmpty() throws Exception {
         List<Ticket> tickets = ticketRepository
-            .search(
-                new TicketCriteria.Builder().fromUser("").build(),
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getContent();
+                .search(
+                        new TicketCriteria.Builder().fromUser("").build(),
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertNotNull(tickets);
         assertEquals(8, tickets.size(), "Invalid tickets numbers in search");
@@ -85,12 +99,14 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldSearchAllWithCriteriaFromUser0SortedBySubjectDescendingOnThreeElements() throws Exception {
         List<Ticket> tickets = ticketRepository
-            .search(
-                new TicketCriteria.Builder().fromUser("user0").api("api0").build(),
-                new SortableBuilder().field("subject").order(Order.DESC).build(),
-                new PageableBuilder().pageNumber(0).pageSize(3).build()
-            )
-            .getContent();
+                .search(
+                        new TicketCriteria.Builder()
+                                .fromUser("user0")
+                                .api("api0")
+                                .build(),
+                        new SortableBuilder().field("subject").order(Order.DESC).build(),
+                        new PageableBuilder().pageNumber(0).pageSize(3).build())
+                .getContent();
 
         assertNotNull(tickets);
         assertEquals(3, tickets.size(), "Invalid tickets numbers in search");
@@ -115,12 +131,14 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(ticketCreated, "Ticket created is null");
 
         List<Ticket> tickets = ticketRepository
-            .search(
-                new TicketCriteria.Builder().fromUser("creationUser").build(),
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-            )
-            .getContent();
+                .search(
+                        new TicketCriteria.Builder().fromUser("creationUser").build(),
+                        null,
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build())
+                .getContent();
 
         assertTrue(tickets.size() == 1, "Unable to find saved ticket");
         Ticket ticketFound = tickets.get(0);
@@ -136,41 +154,31 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_api_id() throws Exception {
-        var nbBeforeDeletion = ticketRepository
-            .findAll()
-            .stream()
-            .filter(t -> "api-to-delete".equals(t.getApi()))
-            .count();
+        var nbBeforeDeletion = ticketRepository.findAll().stream()
+                .filter(t -> "api-to-delete".equals(t.getApi()))
+                .count();
         var nbDeleted = ticketRepository.deleteByApiId("api-to-delete").size();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(nbDeleted).isEqualTo(2);
-        assertThat(
-            ticketRepository
-                .findAll()
-                .stream()
-                .filter(t -> "api-to-delete".equals(t.getApi()))
-                .count()
-        ).isEqualTo(0);
+        assertThat(ticketRepository.findAll().stream()
+                        .filter(t -> "api-to-delete".equals(t.getApi()))
+                        .count())
+                .isEqualTo(0);
     }
 
     @Test
     public void should_delete_by_application_id() throws Exception {
-        var nbBeforeDeletion = ticketRepository
-            .findAll()
-            .stream()
-            .filter(t -> "app-to-delete".equals(t.getApplication()))
-            .count();
+        var nbBeforeDeletion = ticketRepository.findAll().stream()
+                .filter(t -> "app-to-delete".equals(t.getApplication()))
+                .count();
         var nbDeleted = ticketRepository.deleteByApplicationId("app-to-delete").size();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(nbDeleted).isEqualTo(2);
-        assertThat(
-            ticketRepository
-                .findAll()
-                .stream()
-                .filter(t -> "app-to-delete".equals(t.getApplication()))
-                .count()
-        ).isEqualTo(0);
+        assertThat(ticketRepository.findAll().stream()
+                        .filter(t -> "app-to-delete".equals(t.getApplication()))
+                        .count())
+                .isEqualTo(0);
     }
 }

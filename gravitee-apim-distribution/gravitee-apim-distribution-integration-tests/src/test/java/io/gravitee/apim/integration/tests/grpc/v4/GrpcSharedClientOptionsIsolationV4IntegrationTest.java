@@ -33,12 +33,13 @@ import org.junit.jupiter.api.Test;
  * for the lifetime of the node - so a single caller could change the protocol used to reach the backend for everybody.
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api.json" })
+@DeployApi({"/apis/v4/http/api.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GrpcSharedClientOptionsIsolationV4IntegrationTest extends AbstractHttpTargetGrpcV4GatewayTest {
 
     @Test
-    void a_grpc_request_does_not_move_the_following_requests_to_http_2(HttpClient httpClient) throws InterruptedException {
+    void a_grpc_request_does_not_move_the_following_requests_to_http_2(HttpClient httpClient)
+            throws InterruptedException {
         wiremock.stubFor(post("/endpoint").willReturn(ok("response from backend")));
 
         callBackend(httpClient, GRPC_CONTENT_TYPE);

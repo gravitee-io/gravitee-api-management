@@ -42,28 +42,26 @@ public class ObservabilityFilterLabelsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        if (request == null || request.getEntries() == null || request.getEntries().isEmpty()) {
+        if (request == null
+                || request.getEntries() == null
+                || request.getEntries().isEmpty()) {
             return new ResolveFilterLabelsResponse().entries(List.of());
         }
 
-        var useCaseEntries = request
-            .getEntries()
-            .stream()
-            .map(e ->
-                new ResolveFilterLabelsUseCase.Entry(
-                    e.getFilterName() != null ? e.getFilterName().getValue() : null,
-                    e.getIds() != null ? e.getIds() : List.of()
-                )
-            )
-            .toList();
+        var useCaseEntries = request.getEntries().stream()
+                .map(e -> new ResolveFilterLabelsUseCase.Entry(
+                        e.getFilterName() != null ? e.getFilterName().getValue() : null,
+                        e.getIds() != null ? e.getIds() : List.of()))
+                .toList();
 
-        var output = resolveFilterLabelsUseCase.execute(new ResolveFilterLabelsUseCase.Input(getAuditInfo(), useCaseEntries));
+        var output = resolveFilterLabelsUseCase.execute(
+                new ResolveFilterLabelsUseCase.Input(getAuditInfo(), useCaseEntries));
 
-        var responseEntries = output
-            .entries()
-            .stream()
-            .map(e -> new ResolveFilterLabelsResponseEntry().filterName(FilterName.fromValue(e.filterName())).labels(e.labels()))
-            .toList();
+        var responseEntries = output.entries().stream()
+                .map(e -> new ResolveFilterLabelsResponseEntry()
+                        .filterName(FilterName.fromValue(e.filterName()))
+                        .labels(e.labels()))
+                .toList();
 
         return new ResolveFilterLabelsResponse().entries(responseEntries);
     }

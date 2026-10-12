@@ -34,32 +34,36 @@ import io.gravitee.policy.api.annotations.OnResponseContent;
 public class DummyStreamablePolicy {
 
     @OnRequestContent
-    public ReadWriteStream<Buffer> onRequestContent(Request request, ExecutionContext executionContext, PolicyChain policyChain) {
+    public ReadWriteStream<Buffer> onRequestContent(
+            Request request, ExecutionContext executionContext, PolicyChain policyChain) {
         return TransformableRequestStreamBuilder.on(request)
-            .chain(policyChain)
-            .transform(buffer -> {
-                try {
-                    executionContext.setAttribute("stream", "On Request Content Dummy Streamable Policy");
-                    return Buffer.buffer("On Request Content Dummy Streamable Policy");
-                } catch (Exception ioe) {
-                    throw new TransformationException("Unable to transform Dummy Streamable Policy Request: " + ioe.getMessage(), ioe);
-                }
-            })
-            .build();
+                .chain(policyChain)
+                .transform(buffer -> {
+                    try {
+                        executionContext.setAttribute("stream", "On Request Content Dummy Streamable Policy");
+                        return Buffer.buffer("On Request Content Dummy Streamable Policy");
+                    } catch (Exception ioe) {
+                        throw new TransformationException(
+                                "Unable to transform Dummy Streamable Policy Request: " + ioe.getMessage(), ioe);
+                    }
+                })
+                .build();
     }
 
     @OnResponseContent
-    public ReadWriteStream<Buffer> onResponseContent(Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    public ReadWriteStream<Buffer> onResponseContent(
+            Response response, ExecutionContext executionContext, PolicyChain policyChain) {
         return TransformableResponseStreamBuilder.on(response)
-            .chain(policyChain)
-            .transform(buffer -> {
-                try {
-                    executionContext.setAttribute("stream", "On Response Content Dummy Streamable Policy");
-                    return Buffer.buffer("On Response Content Dummy Streamable Policy");
-                } catch (Exception ioe) {
-                    throw new TransformationException("Unable to transform Dummy Streamable Policy Response: " + ioe.getMessage(), ioe);
-                }
-            })
-            .build();
+                .chain(policyChain)
+                .transform(buffer -> {
+                    try {
+                        executionContext.setAttribute("stream", "On Response Content Dummy Streamable Policy");
+                        return Buffer.buffer("On Response Content Dummy Streamable Policy");
+                    } catch (Exception ioe) {
+                        throw new TransformationException(
+                                "Unable to transform Dummy Streamable Policy Response: " + ioe.getMessage(), ioe);
+                    }
+                })
+                .build();
     }
 }

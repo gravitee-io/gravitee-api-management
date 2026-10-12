@@ -35,9 +35,8 @@ import org.springframework.core.NestedExceptionUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractReactorHandler<T extends Reactable>
-    extends AbstractLifecycleComponent<ReactorHandler>
-    implements ReactorHandler {
+public abstract class AbstractReactorHandler<T extends Reactable> extends AbstractLifecycleComponent<ReactorHandler>
+        implements ReactorHandler {
 
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
     protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
@@ -75,7 +74,9 @@ public abstract class AbstractReactorHandler<T extends Reactable>
         } catch (Exception ex) {
             log.error("An unexpected error occurs while processing request", ex);
 
-            context.request().metrics().setMessage(NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
+            context.request()
+                    .metrics()
+                    .setMessage(NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
 
             // Send an INTERNAL_SERVER_ERROR (500)
             context.response().status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
@@ -86,9 +87,9 @@ public abstract class AbstractReactorHandler<T extends Reactable>
     }
 
     protected void contextualizeRequest(ExecutionContext context) {
-        ((MutableExecutionContext) context).request(
-            new ContextualizedHttpServerRequest(((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
-        );
+        ((MutableExecutionContext) context)
+                .request(new ContextualizedHttpServerRequest(
+                        ((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request()));
     }
 
     protected void dumpVirtualHosts() {

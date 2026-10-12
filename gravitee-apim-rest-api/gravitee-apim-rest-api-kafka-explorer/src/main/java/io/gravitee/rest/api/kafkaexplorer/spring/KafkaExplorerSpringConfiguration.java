@@ -23,10 +23,9 @@ import org.springframework.context.annotation.FilterType;
 
 @Configuration
 @ComponentScan(
-    basePackages = { "io.gravitee.rest.api.kafkaexplorer" },
-    includeFilters = {
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
-    }
-)
+        basePackages = {"io.gravitee.rest.api.kafkaexplorer"},
+        includeFilters = {
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
+        })
 public class KafkaExplorerSpringConfiguration {}

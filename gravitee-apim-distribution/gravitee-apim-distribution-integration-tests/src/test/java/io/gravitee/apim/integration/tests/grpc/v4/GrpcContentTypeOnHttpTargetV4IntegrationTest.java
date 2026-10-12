@@ -38,13 +38,13 @@ import org.junit.jupiter.api.Test;
  * point: the change should be visible rather than silent.
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api.json" })
+@DeployApi({"/apis/v4/http/api.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GrpcContentTypeOnHttpTargetV4IntegrationTest extends AbstractHttpTargetGrpcV4GatewayTest {
 
     @Test
     void the_content_type_sent_by_the_caller_decides_the_protocol_used_to_reach_the_backend(HttpClient httpClient)
-        throws InterruptedException {
+            throws InterruptedException {
         wiremock.stubFor(post("/endpoint").willReturn(ok("response from backend")));
 
         callBackend(httpClient, null);

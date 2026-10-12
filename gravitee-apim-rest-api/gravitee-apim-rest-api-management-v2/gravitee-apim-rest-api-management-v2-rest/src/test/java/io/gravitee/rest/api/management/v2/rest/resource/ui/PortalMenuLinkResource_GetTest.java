@@ -75,11 +75,10 @@ public class PortalMenuLinkResource_GetTest extends AbstractResourceTest {
     @Test
     void should_get_portal_menu_link() {
         // Given
-        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .id(PORTAL_MENU_LINK_ID)
-            .environmentId(ENV_ID)
-            .build();
+        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                .id(PORTAL_MENU_LINK_ID)
+                .environmentId(ENV_ID)
+                .build();
         portalMenuLinkCrudServiceInMemory.initWith(List.of(portalMenuLink));
 
         // When
@@ -90,22 +89,22 @@ public class PortalMenuLinkResource_GetTest extends AbstractResourceTest {
         var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink.class);
 
         assertThat(result)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", portalMenuLink.getId())
-            .hasFieldOrPropertyWithValue("target", portalMenuLink.getTarget())
-            .hasFieldOrPropertyWithValue("name", portalMenuLink.getName())
-            .hasFieldOrPropertyWithValue("type", io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink.TypeEnum.EXTERNAL)
-            .hasFieldOrPropertyWithValue("order", portalMenuLink.getOrder());
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", portalMenuLink.getId())
+                .hasFieldOrPropertyWithValue("target", portalMenuLink.getTarget())
+                .hasFieldOrPropertyWithValue("name", portalMenuLink.getName())
+                .hasFieldOrPropertyWithValue(
+                        "type", io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink.TypeEnum.EXTERNAL)
+                .hasFieldOrPropertyWithValue("order", portalMenuLink.getOrder());
     }
 
     @Test
     void should_not_get_portal_menu_link_when_not_found() {
         // Given
-        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .id("Another-portal-link-id")
-            .environmentId(ENV_ID)
-            .build();
+        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                .id("Another-portal-link-id")
+                .environmentId(ENV_ID)
+                .build();
         portalMenuLinkCrudServiceInMemory.initWith(List.of(portalMenuLink));
 
         // When
@@ -113,32 +112,30 @@ public class PortalMenuLinkResource_GetTest extends AbstractResourceTest {
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(NOT_FOUND_404)
-            .asError()
-            .hasHttpStatus(NOT_FOUND_404)
-            .hasMessage("PortalMenuLink [ " + PORTAL_MENU_LINK_ID + " ] not found");
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("PortalMenuLink [ " + PORTAL_MENU_LINK_ID + " ] not found");
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
         // Given
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_SETTINGS),
-                eq(ENV_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_SETTINGS),
+                        eq(ENV_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         // When
         final Response response = rootTarget().request().get();
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 }

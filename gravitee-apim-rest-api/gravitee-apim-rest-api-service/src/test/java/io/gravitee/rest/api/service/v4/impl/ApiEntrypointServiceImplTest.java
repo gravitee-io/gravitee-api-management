@@ -75,25 +75,29 @@ class ApiEntrypointServiceImplTest {
 
     @BeforeEach
     public void before() {
-        apiEntrypointService = new ApiEntrypointServiceImpl(parameterService, entrypointService, accessPointQueryService);
+        apiEntrypointService =
+                new ApiEntrypointServiceImpl(parameterService, entrypointService, accessPointQueryService);
     }
 
     @Test
     void shouldReturnDefaultEntrypointWithoutApiV4Tags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "https://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
@@ -102,25 +106,28 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnDefaultEntrypointWithoutApiV4MatchingTags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "https://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
@@ -129,23 +136,27 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnEntrypointWithApiV4Tags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
@@ -154,18 +165,23 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void should_not_duplicate_api_v4_entrypoints_when_multiple_mappings_match_and_virtual_host_overrides_access() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("multi-entrypoint-tag"));
         HttpListener httpListener = HttpListener.builder()
-            .paths(List.of(Path.builder().host("some_host").path("/test").overrideAccess(true).build()))
-            .build();
+                .paths(List.of(Path.builder()
+                        .host("some_host")
+                        .path("/test")
+                        .overrideAccess(true)
+                        .build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointOne = new EntrypointEntity();
@@ -178,7 +194,8 @@ class ApiEntrypointServiceImplTest {
         entrypointTwo.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("some_host");
@@ -186,19 +203,25 @@ class ApiEntrypointServiceImplTest {
     }
 
     @Test
-    void should_return_distinct_api_v4_entrypoints_when_multiple_mappings_match_and_virtual_host_does_not_override_access() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+    void
+            should_return_distinct_api_v4_entrypoints_when_multiple_mappings_match_and_virtual_host_does_not_override_access() {
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("multi-entrypoint-tag"));
         HttpListener httpListener = HttpListener.builder()
-            .paths(List.of(Path.builder().host("some_host").path("/test").overrideAccess(false).build()))
-            .build();
+                .paths(List.of(Path.builder()
+                        .host("some_host")
+                        .path("/test")
+                        .overrideAccess(false)
+                        .build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointOne = new EntrypointEntity();
@@ -211,7 +234,8 @@ class ApiEntrypointServiceImplTest {
         entrypointTwo.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(2);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://entrypoint-one.com/test");
@@ -240,7 +264,8 @@ class ApiEntrypointServiceImplTest {
         entrypointTwo.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("some_host");
@@ -251,19 +276,21 @@ class ApiEntrypointServiceImplTest {
     void shouldReturnDefaultTcpPortAndEntrypointWithoutApiV4Tags() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        TcpListener tcpListener =
+                TcpListener.builder().hosts(List.of("some_tcp_host")).build();
         apiEntity.setListeners(List.of(tcpListener));
 
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "https://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("https://default-entrypoint");
@@ -272,16 +299,18 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void should_not_duplicate_api_v4_tcp_entrypoints_when_multiple_mappings_match_same_listener() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("multi-entrypoint-tag"));
-        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        TcpListener tcpListener =
+                TcpListener.builder().hosts(List.of("some_tcp_host")).build();
         apiEntity.setListeners(List.of(tcpListener));
 
         EntrypointEntity entrypointOne = new EntrypointEntity();
@@ -294,7 +323,8 @@ class ApiEntrypointServiceImplTest {
         entrypointTwo.setTarget(EntrypointEntity.Target.TCP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointOne, entrypointTwo));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("some_tcp_host:4082");
@@ -302,16 +332,18 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnDefaultTcpPortAndMatchingEntrypointWithApiV4Tags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        TcpListener tcpListener =
+                TcpListener.builder().hosts(List.of("some_tcp_host")).build();
         apiEntity.setListeners(List.of(tcpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
@@ -319,7 +351,8 @@ class ApiEntrypointServiceImplTest {
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.TCP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("https://tag-entrypoint");
@@ -328,14 +361,14 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnDefaultEntrypointWithoutApiV2Tags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "https://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         Proxy proxy = new Proxy();
@@ -344,7 +377,8 @@ class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
@@ -353,14 +387,14 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnDefaultEntrypointWithoutApiV2MatchingTags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "https://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         apiEntity.setTags(Set.of("tag"));
@@ -374,7 +408,8 @@ class ApiEntrypointServiceImplTest {
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
@@ -397,7 +432,8 @@ class ApiEntrypointServiceImplTest {
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
@@ -405,7 +441,9 @@ class ApiEntrypointServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            names = {"V2"})
     void shouldReturnHttpEntrypointListenerForV1AndV2Api(DefinitionVersion version) {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(version);
@@ -419,7 +457,9 @@ class ApiEntrypointServiceImplTest {
     void shouldReturnHttpEntrypointListenerForV4HttpApi() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
         String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
@@ -431,7 +471,8 @@ class ApiEntrypointServiceImplTest {
     void shouldReturnTcpEntrypointListenerForV4TcpApi() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        TcpListener tcpListener =
+                TcpListener.builder().hosts(List.of("some_tcp_host")).build();
         apiEntity.setListeners(List.of(tcpListener));
 
         String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
@@ -443,7 +484,8 @@ class ApiEntrypointServiceImplTest {
     void shouldReturnSubscriptionEntrypointListenerForV4MessagingApi() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        SubscriptionListener subscriptionListener = SubscriptionListener.builder().build();
+        SubscriptionListener subscriptionListener =
+                SubscriptionListener.builder().build();
         apiEntity.setListeners(List.of(subscriptionListener));
 
         String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
@@ -456,21 +498,30 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setTags(Set.of("tag"));
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
-        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
-            List.of(
-                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-            )
-        );
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+                .thenReturn(List.of(
+                        AccessPoint.builder()
+                                .host("ap1Host")
+                                .secured(true)
+                                .overriding(true)
+                                .build(),
+                        AccessPoint.builder()
+                                .host("ap2Host")
+                                .secured(false)
+                                .overriding(true)
+                                .build()));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(2);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://ap1Host/path");
@@ -482,21 +533,30 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
-        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
-            List.of(
-                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-            )
-        );
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+                .thenReturn(List.of(
+                        AccessPoint.builder()
+                                .host("ap1Host")
+                                .secured(true)
+                                .overriding(true)
+                                .build(),
+                        AccessPoint.builder()
+                                .host("ap2Host")
+                                .secured(false)
+                                .overriding(true)
+                                .build()));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
@@ -512,19 +572,26 @@ class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
-            List.of(
-                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-            )
-        );
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+                .thenReturn(List.of(
+                        AccessPoint.builder()
+                                .host("ap1Host")
+                                .secured(true)
+                                .overriding(true)
+                                .build(),
+                        AccessPoint.builder()
+                                .host("ap2Host")
+                                .secured(false)
+                                .overriding(true)
+                                .build()));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(2);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://ap1Host/path");
@@ -541,19 +608,26 @@ class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
-            List.of(
-                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-            )
-        );
+        when(accessPointQueryService.getGatewayAccessPoints(any()))
+                .thenReturn(List.of(
+                        AccessPoint.builder()
+                                .host("ap1Host")
+                                .secured(true)
+                                .overriding(true)
+                                .build(),
+                        AccessPoint.builder()
+                                .host("ap2Host")
+                                .secured(false)
+                                .overriding(true)
+                                .build()));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
@@ -561,10 +635,10 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnEntrypointForV4NativeApiWithoutTags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -574,7 +648,8 @@ class ApiEntrypointServiceImplTest {
         kafkaListener.setPort(9092);
         apiEntity.setListeners(List.of(kafkaListener));
 
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -585,11 +660,12 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnEntrypointForV4NativeApiWithMatchingTags() {
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("6666");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("6666");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -601,7 +677,7 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setListeners(List.of(kafkaListener));
 
         var entrypointEntity = new EntrypointEntity();
-        entrypointEntity.setTags(new String[] { "tag" });
+        entrypointEntity.setTags(new String[] {"tag"});
         entrypointEntity.setValue("kafka-entrypoint:9042");
         entrypointEntity.setTarget(EntrypointEntity.Target.KAFKA);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
@@ -625,19 +701,19 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setListeners(List.of(kafkaListener));
 
         var entrypointEntity = new EntrypointEntity();
-        entrypointEntity.setTags(new String[] { "unmatched-tag" });
+        entrypointEntity.setTags(new String[] {"unmatched-tag"});
         entrypointEntity.setValue("kafka-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.KAFKA);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -648,14 +724,14 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnMultipleEntrypointsForV4NativeApiWithMultipleKafkaListeners() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         // Arrange
         var apiEntity = new NativeApiEntity();
@@ -682,12 +758,14 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnEntrypointForV4NativeApiWithEmptyKafkaDomain() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -706,11 +784,12 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldAssignTagsToEntrypointForV4NativeApi() {
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("6666");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("6666");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -722,7 +801,7 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setListeners(List.of(kafkaListener));
 
         var entrypointEntity = new EntrypointEntity();
-        entrypointEntity.setTags(new String[] { "tag1", "tag2" });
+        entrypointEntity.setTags(new String[] {"tag1", "tag2"});
         entrypointEntity.setValue("kafka-entrypoint:9042");
         entrypointEntity.setTarget(EntrypointEntity.Target.KAFKA);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
@@ -738,14 +817,14 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldNotIncludeTagsWhenTagEntrypointsIsNull() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -766,11 +845,12 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldReturnAccessPointEntrypointsForNativeV4Api() {
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("6666");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("6666");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -780,13 +860,20 @@ class ApiEntrypointServiceImplTest {
         kafkaListener.setPort(9092);
         apiEntity.setListeners(List.of(kafkaListener));
 
-        when(accessPointQueryService.getKafkaGatewayAccessPoints(any())).thenReturn(
-            List.of(
-                AccessPoint.builder().host("domain1:1234").target(AccessPoint.Target.KAFKA_GATEWAY).build(),
-                AccessPoint.builder().host("domain2").target(AccessPoint.Target.KAFKA_GATEWAY).build(),
-                AccessPoint.builder().host("{apiHost}-trial.domain3:1234").target(AccessPoint.Target.KAFKA_GATEWAY).build()
-            )
-        );
+        when(accessPointQueryService.getKafkaGatewayAccessPoints(any()))
+                .thenReturn(List.of(
+                        AccessPoint.builder()
+                                .host("domain1:1234")
+                                .target(AccessPoint.Target.KAFKA_GATEWAY)
+                                .build(),
+                        AccessPoint.builder()
+                                .host("domain2")
+                                .target(AccessPoint.Target.KAFKA_GATEWAY)
+                                .build(),
+                        AccessPoint.builder()
+                                .host("{apiHost}-trial.domain3:1234")
+                                .target(AccessPoint.Target.KAFKA_GATEWAY)
+                                .build()));
 
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -798,80 +885,95 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void should_skip_entrypoint_for_v4_api_with_unsupported_listeners_only() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        SubscriptionListener unsupportedListener = SubscriptionListener.builder().build();
+        SubscriptionListener unsupportedListener =
+                SubscriptionListener.builder().build();
         apiEntity.setListeners(List.of(unsupportedListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
-        entrypointEntity.setTags(new String[] { "tag" });
+        entrypointEntity.setTags(new String[] {"tag"});
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
         assertThat(apiEntrypoints).isEmpty();
     }
 
     @Test
     void should_include_entrypoints_when_api_has_at_least_one_supported_listener() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
         HttpListener httpListener = HttpListener.builder()
-            .paths(List.of(Path.builder().host("my-host").path("/v1").overrideAccess(false).build()))
-            .build();
-        SubscriptionListener subscriptionListener = SubscriptionListener.builder().build();
+                .paths(List.of(Path.builder()
+                        .host("my-host")
+                        .path("/v1")
+                        .overrideAccess(false)
+                        .build()))
+                .build();
+        SubscriptionListener subscriptionListener =
+                SubscriptionListener.builder().build();
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("public"));
         apiEntity.setListeners(List.of(httpListener, subscriptionListener));
 
         EntrypointEntity httpEntrypoint = new EntrypointEntity();
-        httpEntrypoint.setTags(new String[] { "public" });
+        httpEntrypoint.setTags(new String[] {"public"});
         httpEntrypoint.setValue("https://gateway.example.com");
         httpEntrypoint.setTarget(EntrypointEntity.Target.HTTP);
 
         when(entrypointService.findAll(any())).thenReturn(List.of(httpEntrypoint));
 
-        List<ApiEntrypointEntity> entrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> entrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(entrypoints)
-            .as("Expected entrypoints to be generated from supported HttpListener")
-            .isNotEmpty()
-            .anySatisfy(e -> assertThat(e.getTarget()).contains("https://gateway.example.com/v1"));
+                .as("Expected entrypoints to be generated from supported HttpListener")
+                .isNotEmpty()
+                .anySatisfy(e -> assertThat(e.getTarget()).contains("https://gateway.example.com/v1"));
     }
 
     @Test
     void shouldIncludeEntrypointWhenEnvironmentIdsMatchesCurrentEnvironment() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
-        entrypointEntity.setEnvironmentIds(new String[] { GraviteeContext.getExecutionContext().getEnvironmentId() });
+        entrypointEntity.setEnvironmentIds(
+                new String[] {GraviteeContext.getExecutionContext().getEnvironmentId()});
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
@@ -879,29 +981,32 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldExcludeEntrypointWhenEnvironmentIdsDoesNotMatchCurrentEnvironment() {
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "https://default-entrypoint"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
         entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
-        entrypointEntity.setEnvironmentIds(new String[] { "other-env" });
+        entrypointEntity.setEnvironmentIds(new String[] {"other-env"});
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://default-entrypoint/path");
@@ -909,16 +1014,19 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldIncludeEntrypointWhenEnvironmentIdsIsNull() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
@@ -928,7 +1036,8 @@ class ApiEntrypointServiceImplTest {
         entrypointEntity.setEnvironmentIds(null);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
@@ -936,16 +1045,19 @@ class ApiEntrypointServiceImplTest {
 
     @Test
     void shouldIncludeEntrypointWhenEnvironmentIdsIsEmpty() {
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            "kafka.domain"
-        );
-        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn("9092");
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().host("host").path("path").build()))
+                .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
@@ -955,7 +1067,8 @@ class ApiEntrypointServiceImplTest {
         entrypointEntity.setEnvironmentIds(new String[] {});
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
-        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        List<ApiEntrypointEntity> apiEntrypoints =
+                apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
@@ -968,13 +1081,8 @@ class ApiEntrypointServiceImplTest {
         void should_remove_trailing_slash() {
             String host = "https://localhost";
             String path = "/path1/";
-            ApiEntrypointEntity apiEntrypoint = ((ApiEntrypointServiceImpl) apiEntrypointService).createHttpApiEntrypointEntity(
-                null,
-                host,
-                path,
-                null,
-                null
-            );
+            ApiEntrypointEntity apiEntrypoint = ((ApiEntrypointServiceImpl) apiEntrypointService)
+                    .createHttpApiEntrypointEntity(null, host, path, null, null);
             assertThat(apiEntrypoint.getTarget()).isEqualTo("https://localhost/path1");
         }
     }

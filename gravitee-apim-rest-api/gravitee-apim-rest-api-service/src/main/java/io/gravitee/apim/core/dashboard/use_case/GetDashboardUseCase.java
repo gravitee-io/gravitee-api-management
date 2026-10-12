@@ -37,8 +37,8 @@ public class GetDashboardUseCase {
 
     public Output execute(Input input) {
         var dashboard = dashboardDomainService
-            .findById(input.dashboardId())
-            .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
+                .findById(input.dashboardId())
+                .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
 
         return new Output(dashboard);
     }

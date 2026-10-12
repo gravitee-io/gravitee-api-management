@@ -30,8 +30,7 @@ public class CheckTypoToleranceDomainService {
 
     public boolean isEnabled(String environmentId, String organizationId) {
         return parametersQueryService.findAsBoolean(
-            Key.PORTAL_NEXT_SEARCH_FUZZY,
-            new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
-        );
+                Key.PORTAL_NEXT_SEARCH_FUZZY,
+                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT));
     }
 }

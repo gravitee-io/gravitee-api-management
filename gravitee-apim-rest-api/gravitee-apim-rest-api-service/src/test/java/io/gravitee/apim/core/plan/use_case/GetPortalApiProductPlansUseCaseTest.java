@@ -38,7 +38,8 @@ class GetPortalApiProductPlansUseCaseTest {
 
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String API_PRODUCT_ID = "api-product-id";
-    private static final PortalNavigationItemViewerContext VIEWER_CONTEXT = PortalNavigationItemViewerContext.forPortal("user-id");
+    private static final PortalNavigationItemViewerContext VIEWER_CONTEXT =
+            PortalNavigationItemViewerContext.forPortal("user-id");
 
     @Mock
     private PortalApiProductPlanDomainService portalApiProductPlanDomainService;
@@ -52,12 +53,13 @@ class GetPortalApiProductPlansUseCaseTest {
 
     @Test
     void should_return_published_api_product_plans_for_current_user() {
-        var first = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-1").order(1).build();
-        var second = PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-2").order(2).build();
+        var first =
+                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-1").order(1).build();
+        var second =
+                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan-2").order(2).build();
         var input = input();
-        when(portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT)).thenReturn(
-            List.of(first, second)
-        );
+        when(portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT))
+                .thenReturn(List.of(first, second));
 
         var output = useCase.execute(input);
 
@@ -67,9 +69,8 @@ class GetPortalApiProductPlansUseCaseTest {
     @Test
     void should_not_load_plans_when_api_product_is_inaccessible() {
         var input = input();
-        when(portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT)).thenThrow(
-            new ApiProductNotFoundException(API_PRODUCT_ID)
-        );
+        when(portalApiProductPlanDomainService.findAccessiblePlans(ENVIRONMENT_ID, API_PRODUCT_ID, VIEWER_CONTEXT))
+                .thenThrow(new ApiProductNotFoundException(API_PRODUCT_ID));
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(ApiProductNotFoundException.class);
     }

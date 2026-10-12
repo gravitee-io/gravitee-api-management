@@ -25,7 +25,6 @@ import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.Test;

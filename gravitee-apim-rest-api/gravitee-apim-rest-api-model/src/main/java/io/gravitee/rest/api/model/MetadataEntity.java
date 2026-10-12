@@ -82,8 +82,7 @@ public class MetadataEntity {
 
     @Override
     public String toString() {
-        return (
-            "MetadataEntity{" + "key='" + key + '\'' + ", name='" + name + '\'' + ", format=" + format + ", value='" + value + '\'' + '}'
-        );
+        return ("MetadataEntity{" + "key='" + key + '\'' + ", name='" + name + '\'' + ", format=" + format + ", value='"
+                + value + '\'' + '}');
     }
 }

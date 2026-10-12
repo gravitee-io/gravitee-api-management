@@ -42,12 +42,11 @@ public class GammaAutomationPorts {
      *     must not be resolved silently
      */
     public Optional<GammaAutomationPort> module(String module) {
-        var candidates = ports
-            .stream()
-            .filter(port -> module.equals(port.module()))
-            .toList();
+        var candidates =
+                ports.stream().filter(port -> module.equals(port.module())).toList();
         if (candidates.size() > 1) {
-            throw new IllegalStateException("Several Gamma modules register an automation port for module [" + module + "]");
+            throw new IllegalStateException(
+                    "Several Gamma modules register an automation port for module [" + module + "]");
         }
         return candidates.stream().findFirst();
     }

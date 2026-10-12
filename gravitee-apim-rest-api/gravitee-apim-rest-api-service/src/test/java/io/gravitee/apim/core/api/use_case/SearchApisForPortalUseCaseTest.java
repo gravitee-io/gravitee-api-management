@@ -62,30 +62,25 @@ class SearchApisForPortalUseCaseTest {
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         apiSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
         var apiQueryService = new ApiQueryServiceInMemory();
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
-            membershipQueryService,
-            subscriptionQueryService,
-            apiQueryService
-        );
-        var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
+        var apiMembershipDomainService =
+                new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService, apiQueryService);
+        var visibilityDomainService =
+                new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
         useCase = new SearchApisForPortalUseCase(
-            visibilityDomainService,
-            apiSearchQueryService,
-            new CheckTypoToleranceDomainService(new ParametersQueryServiceInMemory())
-        );
+                visibilityDomainService,
+                apiSearchQueryService,
+                new CheckTypoToleranceDomainService(new ParametersQueryServiceInMemory()));
     }
 
     @Test
     void delegates_visibility_resolution_and_searches_allowed_apis() {
-        navQueryService.initWith(
-            List.of(
+        navQueryService.initWith(List.of(
                 publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC),
-                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)
-            )
-        );
+                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
         apiSearchQueryService.initWith(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
 
-        var result = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null));
+        var result = useCase.execute(
+                new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null));
 
         assertThat(result.apis().getContent()).extracting(Api::getId).containsExactly(PUBLIC_API_ID);
         assertThat(result.apis().getTotalElements()).isEqualTo(1);
@@ -93,34 +88,33 @@ class SearchApisForPortalUseCaseTest {
 
     @Test
     void passes_correct_allowed_ids_for_member_user() {
-        navQueryService.initWith(
-            List.of(
+        navQueryService.initWith(List.of(
                 publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC),
-                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)
-            )
-        );
+                publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
         membershipQueryService.initWith(List.of(apiMembership(USER_ID, PRIVATE_API_ID)));
         apiSearchQueryService.initWith(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
 
-        var result = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, USER_ID, null, new PageableImpl(1, 10), null));
+        var result = useCase.execute(
+                new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, USER_ID, null, new PageableImpl(1, 10), null));
 
-        assertThat(result.apis().getContent()).extracting(Api::getId).containsExactlyInAnyOrder(PUBLIC_API_ID, PRIVATE_API_ID);
+        assertThat(result.apis().getContent())
+                .extracting(Api::getId)
+                .containsExactlyInAnyOrder(PUBLIC_API_ID, PRIVATE_API_ID);
         assertThat(result.apis().getTotalElements()).isEqualTo(2);
     }
 
     @Test
     void returns_page_of_apis_from_search_service() {
-        navQueryService.initWith(
-            List.of(
+        navQueryService.initWith(List.of(
                 publishedApiNavItem("api-a", PortalVisibility.PUBLIC),
                 publishedApiNavItem("api-b", PortalVisibility.PUBLIC),
-                publishedApiNavItem("api-c", PortalVisibility.PUBLIC)
-            )
-        );
+                publishedApiNavItem("api-c", PortalVisibility.PUBLIC)));
         apiSearchQueryService.initWith(List.of(anApi("api-a"), anApi("api-b"), anApi("api-c")));
 
-        var page1 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 2), null));
-        var page2 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(2, 2), null));
+        var page1 = useCase.execute(
+                new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 2), null));
+        var page2 = useCase.execute(
+                new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(2, 2), null));
 
         assertThat(page1.apis().getContent()).hasSize(2);
         assertThat(page1.apis().getTotalElements()).isEqualTo(3);
@@ -132,17 +126,17 @@ class SearchApisForPortalUseCaseTest {
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Nav for " + apiId)
-            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(visibility)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Nav for " + apiId)
+                .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(apiId)
+                .published(true)
+                .visibility(visibility)
+                .build();
     }
 
     private Api anApi(String id) {
@@ -151,11 +145,11 @@ class SearchApisForPortalUseCaseTest {
 
     private Membership apiMembership(String userId, String apiId) {
         return Membership.builder()
-            .id("membership-" + userId + "-" + apiId)
-            .memberId(userId)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.API)
-            .referenceId(apiId)
-            .build();
+                .id("membership-" + userId + "-" + apiId)
+                .memberId(userId)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(apiId)
+                .build();
     }
 }

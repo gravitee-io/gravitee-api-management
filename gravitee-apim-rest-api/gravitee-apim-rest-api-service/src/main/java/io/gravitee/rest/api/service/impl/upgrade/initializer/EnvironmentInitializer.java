@@ -41,13 +41,11 @@ public abstract class EnvironmentInitializer implements Initializer {
     @Override
     public final boolean initialize() {
         try {
-            environmentRepository
-                .findAll()
-                .forEach(environment -> {
-                    ExecutionContext executionContext = new ExecutionContext(environment);
-                    log.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
-                    initializeEnvironment(executionContext);
-                });
+            environmentRepository.findAll().forEach(environment -> {
+                ExecutionContext executionContext = new ExecutionContext(environment);
+                log.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
+                initializeEnvironment(executionContext);
+            });
         } catch (TechnicalException e) {
             log.error("{} execution failed", this.getClass().getSimpleName(), e);
             return false;

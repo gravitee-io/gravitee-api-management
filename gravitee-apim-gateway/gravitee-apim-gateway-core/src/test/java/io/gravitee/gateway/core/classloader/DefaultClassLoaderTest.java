@@ -131,10 +131,7 @@ class DefaultClassLoaderTest {
     @Test
     void shouldInvokeFakePolicyWhenResourceApiClassIsLoadedFromPolicyClassLoader() throws Exception {
         final ClassLoader policyClassLoader = newChildClassLoader(
-            cut,
-            "/plugins/gravitee-policy-fake.jar",
-            "/plugins/gravitee-resource-fake-api.jar"
-        );
+                cut, "/plugins/gravitee-policy-fake.jar", "/plugins/gravitee-resource-fake-api.jar");
         final ClassLoader resourceClassLoader = newChildClassLoader(cut, "/plugins/gravitee-resource-fake.jar");
         cut.addClassLoader("policy-fake", policyClassLoader);
         cut.addClassLoader("resource-fake", resourceClassLoader);
@@ -156,10 +153,7 @@ class DefaultClassLoaderTest {
     void shouldInvokeFakePolicyWhenResourceApiClassIsLoadedFromResourceClassLoader() throws Exception {
         final ClassLoader policyClassLoader = newChildClassLoader(cut, "/plugins/gravitee-policy-fake.jar");
         final ClassLoader resourceClassLoader = newChildClassLoader(
-            cut,
-            "/plugins/gravitee-resource-fake.jar",
-            "/plugins/gravitee-resource-fake-api.jar"
-        );
+                cut, "/plugins/gravitee-resource-fake.jar", "/plugins/gravitee-resource-fake-api.jar");
         cut.addClassLoader("policy-fake", policyClassLoader);
         cut.addClassLoader("resource-fake", resourceClassLoader);
 
@@ -175,15 +169,9 @@ class DefaultClassLoaderTest {
     @Test
     void shouldInvokeFakePolicyWhenResourceApiClassIsPresentInMultipleClassLoaders() throws Exception {
         final ClassLoader policyClassLoader = newChildClassLoader(
-            cut,
-            "/plugins/gravitee-policy-fake.jar",
-            "/plugins/gravitee-resource-fake-api.jar"
-        );
+                cut, "/plugins/gravitee-policy-fake.jar", "/plugins/gravitee-resource-fake-api.jar");
         final ClassLoader resourceClassLoader = newChildClassLoader(
-            cut,
-            "/plugins/gravitee-resource-fake.jar",
-            "/plugins/gravitee-resource-fake-api.jar"
-        );
+                cut, "/plugins/gravitee-resource-fake.jar", "/plugins/gravitee-resource-fake-api.jar");
         cut.addClassLoader("policy-fake", policyClassLoader);
         cut.addClassLoader("resource-fake", resourceClassLoader);
 

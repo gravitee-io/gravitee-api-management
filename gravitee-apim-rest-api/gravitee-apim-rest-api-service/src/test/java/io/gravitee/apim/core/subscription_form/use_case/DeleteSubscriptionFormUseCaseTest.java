@@ -47,11 +47,15 @@ class DeleteSubscriptionFormUseCaseTest {
     @Test
     void should_delete_the_form_and_keep_the_others() {
         var globalForm = SubscriptionFormFixtures.aSubscriptionForm();
-        var partnerForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().id(SubscriptionFormId.random()).name("Partners").build();
+        var partnerForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .id(SubscriptionFormId.random())
+                .name("Partners")
+                .build();
         crudService.initWith(List.of(globalForm, partnerForm));
         queryService.initWith(List.of(globalForm, partnerForm));
 
-        useCase.execute(new DeleteSubscriptionFormUseCase.Input(SubscriptionFormFixtures.ENVIRONMENT_ID, partnerForm.getId()));
+        useCase.execute(
+                new DeleteSubscriptionFormUseCase.Input(SubscriptionFormFixtures.ENVIRONMENT_ID, partnerForm.getId()));
 
         assertThat(crudService.storage()).extracting(SubscriptionForm::getId).containsExactly(globalForm.getId());
     }

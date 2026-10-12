@@ -190,7 +190,8 @@ class ApiDocumentTransformerTest {
         api.setDefinitionVersion(DefinitionVersion.V4);
         api.setType(ApiType.PROXY);
         api.setVisibility(Visibility.PUBLIC);
-        List<Listener> listeners = List.of(HttpListener.builder().paths(List.of()).build());
+        List<Listener> listeners =
+                List.of(HttpListener.builder().paths(List.of()).build());
         api.setListeners(listeners);
 
         Document doc = cut.transform(api);
@@ -256,7 +257,8 @@ class ApiDocumentTransformerTest {
         api.setId("api-uuid");
         api.setDefinitionVersion(DefinitionVersion.FEDERATED);
         api.setType(ApiType.PROXY);
-        List<Listener> listeners = List.of(HttpListener.builder().paths(List.of()).build());
+        List<Listener> listeners =
+                List.of(HttpListener.builder().paths(List.of()).build());
         api.setListeners(listeners);
         api.setVisibility(Visibility.PUBLIC);
         Document doc = cut.transform(api);
@@ -269,7 +271,12 @@ class ApiDocumentTransformerTest {
 
     @Test
     void transform_api_entity_v2_verify_api_type() {
-        var api = ApiEntity.builder().id("api-1").name("API 1").graviteeDefinitionVersion("2.0.0").visibility(Visibility.PUBLIC).build();
+        var api = ApiEntity.builder()
+                .id("api-1")
+                .name("API 1")
+                .graviteeDefinitionVersion("2.0.0")
+                .visibility(Visibility.PUBLIC)
+                .build();
 
         Document doc = cut.transform(api);
         assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V2");
@@ -283,7 +290,8 @@ class ApiDocumentTransformerTest {
         api.setType(ApiType.PROXY);
         api.setVisibility(Visibility.PUBLIC);
 
-        io.gravitee.definition.model.v4.listener.http.Path path = new io.gravitee.definition.model.v4.listener.http.Path();
+        io.gravitee.definition.model.v4.listener.http.Path path =
+                new io.gravitee.definition.model.v4.listener.http.Path();
         path.setPath("/TestPath");
         path.setHost("api.TestHost.com");
 
@@ -305,7 +313,8 @@ class ApiDocumentTransformerTest {
             api.setDefinitionVersion(DefinitionVersion.V4);
             api.setType(ApiType.PROXY);
             api.setName("name");
-            api.setEndpointGroups(List.of(new EndpointGroup(new EndpointGroupServices(null, new Service(true, true, "type", "conf")))));
+            api.setEndpointGroups(List.of(
+                    new EndpointGroup(new EndpointGroupServices(null, new Service(true, true, "type", "conf")))));
 
             Document doc = cut.transform(api);
             assertThat(doc.get("has_health_check")).isEqualTo("true");
@@ -321,7 +330,8 @@ class ApiDocumentTransformerTest {
             api.setType(ApiType.PROXY);
             api.setName("name");
             var endpointGroup = new EndpointGroup(new EndpointGroupServices(null, null));
-            endpointGroup.setEndpoints(List.of(new Endpoint(new EndpointServices(new Service(true, true, "type", "conf")))));
+            endpointGroup.setEndpoints(
+                    List.of(new Endpoint(new EndpointServices(new Service(true, true, "type", "conf")))));
             api.setEndpointGroups(List.of(endpointGroup));
 
             Document doc = cut.transform(api);
@@ -382,8 +392,10 @@ class ApiDocumentTransformerTest {
         assertThat(toTransform.getLabels()).hasSameSizeAs(transformed.getFields("labels"));
         assertThat(toTransform.getCategories()).hasSameSizeAs(transformed.getFields("categories"));
         assertThat(toTransform.getTags()).hasSameSizeAs(transformed.getFields("tags"));
-        assertThat(toTransform.getCreatedAt().getTime()).isEqualTo(((LongPoint) transformed.getField("createdAt")).numericValue());
-        assertThat(toTransform.getUpdatedAt().getTime()).isEqualTo(((LongPoint) transformed.getField("updatedAt")).numericValue());
+        assertThat(toTransform.getCreatedAt().getTime())
+                .isEqualTo(((LongPoint) transformed.getField("createdAt")).numericValue());
+        assertThat(toTransform.getUpdatedAt().getTime())
+                .isEqualTo(((LongPoint) transformed.getField("updatedAt")).numericValue());
         assertThat(toTransform.getMetadata().values()).hasSameSizeAs(transformed.getFields("metadata"));
         assertThat(toTransform.getDefinitionContext().getOrigin()).isEqualTo(transformed.get("origin"));
         assertThat("true").isEqualTo(transformed.get("has_health_check"));
@@ -392,7 +404,8 @@ class ApiDocumentTransformerTest {
     @Test
     public void shouldSortListCorrectlyWithCollatorAndBytesRef() throws Exception {
         List<String> names = List.of("nano", "Zorro", "äther", "vem", "foo/bar", "Épée", "épona", "öko", "bns-One");
-        List<String> expectedSorted = List.of("äther", "bns-One", "Épée", "épona", "foo/bar", "nano", "öko", "vem", "Zorro");
+        List<String> expectedSorted =
+                List.of("äther", "bns-One", "Épée", "épona", "foo/bar", "nano", "öko", "vem", "Zorro");
         Method toSortedValueMethod = ApiDocumentTransformer.class.getDeclaredMethod("toSortedValue", String.class);
         toSortedValueMethod.setAccessible(true);
 

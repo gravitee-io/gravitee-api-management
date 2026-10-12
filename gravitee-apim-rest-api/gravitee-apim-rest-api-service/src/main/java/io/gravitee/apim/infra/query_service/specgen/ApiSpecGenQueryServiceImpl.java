@@ -23,7 +23,6 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -33,7 +32,6 @@ import org.springframework.stereotype.Service;
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Service
 @CustomLog
 public class ApiSpecGenQueryServiceImpl implements ApiSpecGenQueryService {
@@ -52,20 +50,17 @@ public class ApiSpecGenQueryServiceImpl implements ApiSpecGenQueryService {
     private Optional<ApiSpecGen> findById(ExecutionContext context, String id) {
         try {
             return apiRepository
-                .findById(id)
-                .filter(api -> V4.equals(api.getDefinitionVersion()))
-                .filter(api -> api.getEnvironmentId().equals(context.getEnvironmentId()))
-                .map(api ->
-                    new ApiSpecGen(
-                        api.getId(),
-                        api.getName(),
-                        api.getDescription(),
-                        api.getVersion(),
-                        api.getType(),
-                        api.getEnvironmentId(),
-                        api.getDefinition()
-                    )
-                );
+                    .findById(id)
+                    .filter(api -> V4.equals(api.getDefinitionVersion()))
+                    .filter(api -> api.getEnvironmentId().equals(context.getEnvironmentId()))
+                    .map(api -> new ApiSpecGen(
+                            api.getId(),
+                            api.getName(),
+                            api.getDescription(),
+                            api.getVersion(),
+                            api.getType(),
+                            api.getEnvironmentId(),
+                            api.getDefinition()));
         } catch (TechnicalException e) {
             log.error("An unexpected error has occurred", e);
             return Optional.empty();

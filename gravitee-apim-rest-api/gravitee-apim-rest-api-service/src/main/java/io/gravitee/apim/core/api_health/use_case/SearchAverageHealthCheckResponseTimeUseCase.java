@@ -38,25 +38,21 @@ public class SearchAverageHealthCheckResponseTimeUseCase {
 
     public Maybe<Output> execute(SearchAverageHealthCheckResponseTimeUseCase.Input input) {
         return validateApiRequirements(input)
-            .flatMapMaybe(api ->
-                apiHealthQueryService.averageResponseTime(
-                    new ApiHealthQueryService.ApiFieldPeriodQuery(
-                        input.organizationId,
-                        input.environmentId,
-                        input.apiId,
-                        input.group,
-                        input.from,
-                        input.to
-                    )
-                )
-            )
-            .map(Output::new);
+                .flatMapMaybe(
+                        api -> apiHealthQueryService.averageResponseTime(new ApiHealthQueryService.ApiFieldPeriodQuery(
+                                input.organizationId,
+                                input.environmentId,
+                                input.apiId,
+                                input.group,
+                                input.from,
+                                input.to)))
+                .map(Output::new);
     }
 
     private Single<Api> validateApiRequirements(Input input) {
         return Single.fromCallable(() -> apiCrudService.get(input.apiId()))
-            .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId()))
-            .flatMap(this::validateApiIsNotTcp);
+                .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId()))
+                .flatMap(this::validateApiIsNotTcp);
     }
 
     private Single<Api> validateApiIsNotTcp(Api api) {
@@ -64,10 +60,13 @@ public class SearchAverageHealthCheckResponseTimeUseCase {
     }
 
     private static Single<Api> validateApiMultiTenancyAccess(Api api, String environmentId) {
-        return !api.belongsToEnvironment(environmentId) ? Single.error(new ApiNotFoundException(api.getId())) : Single.just(api);
+        return !api.belongsToEnvironment(environmentId)
+                ? Single.error(new ApiNotFoundException(api.getId()))
+                : Single.just(api);
     }
 
-    public record Input(String organizationId, String environmentId, String apiId, String group, Instant from, Instant to) {}
+    public record Input(
+            String organizationId, String environmentId, String apiId, String group, Instant from, Instant to) {}
 
     public record Output(AverageHealthCheckResponseTime averageHealthCheckResponseTime) {}
 }

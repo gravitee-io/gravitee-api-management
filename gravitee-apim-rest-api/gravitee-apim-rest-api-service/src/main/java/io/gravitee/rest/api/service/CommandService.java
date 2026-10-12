@@ -32,7 +32,9 @@ public interface CommandService {
     List<CommandEntity> search(CommandQuery query);
 
     List<CommandEntity> search(ExecutionContext executionContext, CommandQuery query);
+
     void ack(String messageId);
+
     void delete(String commandId);
 
     int deleteByExpiredAtBefore(Instant before);

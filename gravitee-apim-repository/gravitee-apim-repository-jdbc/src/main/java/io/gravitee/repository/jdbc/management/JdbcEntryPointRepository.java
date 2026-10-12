@@ -35,7 +35,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypoint, String> implements EntrypointRepository {
+public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypoint, String>
+        implements EntrypointRepository {
 
     JdbcEntryPointRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "entrypoints");
@@ -44,14 +45,14 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
     @Override
     protected JdbcObjectMapper<Entrypoint> buildOrm() {
         return JdbcObjectMapper.builder(Entrypoint.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("target", Types.NVARCHAR, String.class)
-            .addColumn("value", Types.NVARCHAR, String.class)
-            .addColumn("tags", Types.NVARCHAR, String.class)
-            .addColumn("environment_ids", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, EntrypointReferenceType.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("target", Types.NVARCHAR, String.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .addColumn("tags", Types.NVARCHAR, String.class)
+                .addColumn("environment_ids", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, EntrypointReferenceType.class)
+                .build();
     }
 
     @Override
@@ -60,62 +61,58 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
     }
 
     @Override
-    public Optional<Entrypoint> findByIdAndReference(final String id, String referenceId, EntrypointReferenceType referenceType)
-        throws TechnicalException {
+    public Optional<Entrypoint> findByIdAndReference(
+            final String id, String referenceId, EntrypointReferenceType referenceType) throws TechnicalException {
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? ",
-                    getOrm().getRowMapper(),
-                    id,
-                    referenceId,
-                    referenceType.name()
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? ",
+                            getOrm().getRowMapper(),
+                            id,
+                            referenceId,
+                            referenceType.name())
+                    .stream()
+                    .findFirst();
         } catch (final Exception ex) {
-            log.error("Failed to find {} entrypoint by id, referenceId and referenceType:", getOrm().getTableName(), ex);
+            log.error(
+                    "Failed to find {} entrypoint by id, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException(
-                "Failed to find " + getOrm().getTableName() + " entrypoint by id, referenceId and referenceType",
-                ex
-            );
+                    "Failed to find " + getOrm().getTableName() + " entrypoint by id, referenceId and referenceType",
+                    ex);
         }
     }
 
     @Override
-    public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException {
+    public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType)
+            throws TechnicalException {
         try {
-            return new HashSet<>(
-                jdbcTemplate.query(
+            return new HashSet<>(jdbcTemplate.query(
                     getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? ",
                     getOrm().getRowMapper(),
                     referenceId,
-                    referenceType.name()
-                )
-            );
+                    referenceType.name()));
         } catch (final Exception ex) {
             log.error("Failed to find {} entrypoints referenceId and referenceType:", getOrm().getTableName(), ex);
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " entrypoints by referenceId and referenceType", ex);
+            throw new TechnicalException(
+                    "Failed to find " + getOrm().getTableName() + " entrypoints by referenceId and referenceType", ex);
         }
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final EntrypointReferenceType referenceType)
-        throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            final String referenceId, final EntrypointReferenceType referenceType) throws TechnicalException {
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
             return rows;
         } catch (final Exception ex) {

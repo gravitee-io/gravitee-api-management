@@ -26,12 +26,11 @@ import java.util.Map;
  * Context built for update validation when the existing item is API (holds navigation items and itemsById for ancestor checks).
  */
 public record UpdateValidationContext(
-    List<PortalNavigationItem> navigationItems,
-    Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-    Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
-    Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId,
-    List<PendingSegmentClaim> pendingSegmentClaims
-) {
+        List<PortalNavigationItem> navigationItems,
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
+        Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId,
+        List<PendingSegmentClaim> pendingSegmentClaims) {
     public static UpdateValidationContext empty() {
         return new UpdateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of());
     }

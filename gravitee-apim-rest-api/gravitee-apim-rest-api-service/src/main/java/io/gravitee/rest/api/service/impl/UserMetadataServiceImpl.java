@@ -63,7 +63,8 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     private UserMetadataEntity convert(ReferenceMetadataEntity record, String userId) {
         UserMetadataEntity metadata = new UserMetadataEntity();
-        metadata.setFormat(io.gravitee.rest.api.model.MetadataFormat.valueOf(record.getFormat().name()));
+        metadata.setFormat(io.gravitee.rest.api.model.MetadataFormat.valueOf(
+                record.getFormat().name()));
         metadata.setKey(record.getKey());
         metadata.setName(record.getName());
         metadata.setValue(record.getValue());
@@ -85,20 +86,13 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
     public List<UserMetadataEntity> findAllByUserId(String userId) {
         return GraviteeContext.getCurrentUsersMetadata().computeIfAbsent(userId, k -> {
             final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, Optional.empty());
-            return allMetadata
-                .stream()
-                .map(m -> convert(m, userId))
-                .collect(toList());
+            return allMetadata.stream().map(m -> convert(m, userId)).collect(toList());
         });
     }
 
     @Override
     public void deleteAllByCustomFieldId(
-        ExecutionContext executionContext,
-        String key,
-        String refId,
-        CustomUserFieldReferenceType refType
-    ) {
+            ExecutionContext executionContext, String key, String refId, CustomUserFieldReferenceType refType) {
         try {
             // CustomField is linked to an Org
             // we have to retrieve users based on org and then
@@ -111,39 +105,44 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
                 orgId = refId;
             }
 
-            final UserCriteria criteria = new UserCriteria.Builder().organizationId(orgId).build();
+            final UserCriteria criteria =
+                    new UserCriteria.Builder().organizationId(orgId).build();
             int pageNumber = 0;
             Page<User> pageOfUser = null;
             do {
-                pageOfUser = this.userRepository.search(criteria, new PageableBuilder().pageNumber(pageNumber).pageSize(100).build());
+                pageOfUser = this.userRepository.search(
+                        criteria,
+                        new PageableBuilder()
+                                .pageNumber(pageNumber)
+                                .pageSize(100)
+                                .build());
                 for (User user : pageOfUser.getContent()) {
                     try {
                         this.delete(executionContext, CustomFieldSanitizer.formatKeyValue(key), USER, user.getId());
                     } catch (MetadataNotFoundException e) {
                         log.debug(
-                            "Metadata key={}, refType={}, refId={} not found," +
-                                " ignore error because we want to delete it and user may not have this metadata",
-                            key,
-                            USER,
-                            user.getId()
-                        );
+                                "Metadata key={}, refType={}, refId={} not found,"
+                                        + " ignore error because we want to delete it and user may not have this metadata",
+                                key,
+                                USER,
+                                user.getId());
                     }
                 }
                 pageNumber++;
             } while (pageOfUser.getPageElements() > 0);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to all metadata with key " + key, ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to all metadata with key " + key, ex);
         }
     }
 
     @Override
     protected void checkReferenceMetadataFormat(
-        ExecutionContext executionContext,
-        MetadataFormat format,
-        String value,
-        MetadataReferenceType referenceType,
-        String referenceId
-    ) {
+            ExecutionContext executionContext,
+            MetadataFormat format,
+            String value,
+            MetadataReferenceType referenceType,
+            String referenceId) {
         // do nothing for User, currently on String is used without templating
     }
 }

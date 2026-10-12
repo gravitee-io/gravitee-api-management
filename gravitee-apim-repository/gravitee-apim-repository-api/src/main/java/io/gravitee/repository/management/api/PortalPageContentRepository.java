@@ -23,6 +23,7 @@ import java.util.List;
 public interface PortalPageContentRepository extends CrudRepository<PortalPageContent, String> {
     List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException;
 
-    List<PortalPageContent> findByAutomationReference(String environmentId, AutomationTargetReferenceType referenceType, String referenceId)
-        throws TechnicalException;
+    List<PortalPageContent> findByAutomationReference(
+            String environmentId, AutomationTargetReferenceType referenceType, String referenceId)
+            throws TechnicalException;
 }

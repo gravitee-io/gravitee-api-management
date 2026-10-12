@@ -46,26 +46,21 @@ public class UpdateNativeApiUseCase {
         var updateApi = input.apiToUpdate;
         var auditInfo = input.auditInfo;
 
-        PrimaryOwnerEntity primaryOwnerEntity = apiPrimaryOwnerDomainService.getApiPrimaryOwner(
-            auditInfo.organizationId(),
-            updateApi.getId()
-        );
+        PrimaryOwnerEntity primaryOwnerEntity =
+                apiPrimaryOwnerDomainService.getApiPrimaryOwner(auditInfo.organizationId(), updateApi.getId());
 
         var updated = updateNativeApiDomainService.update(
-            input.apiToUpdate.getId(),
-            rejectPlainDowngradeThenUpdate(updateApi),
-            (existingApi, apiToUpdate) ->
-                validateApiDomainService.validateAndSanitizeForUpdate(
-                    existingApi,
-                    apiToUpdate,
-                    primaryOwnerEntity,
-                    auditInfo.environmentId(),
-                    auditInfo.organizationId()
-                ),
-            auditInfo,
-            primaryOwnerEntity,
-            oneShotIndexation(auditInfo)
-        );
+                input.apiToUpdate.getId(),
+                rejectPlainDowngradeThenUpdate(updateApi),
+                (existingApi, apiToUpdate) -> validateApiDomainService.validateAndSanitizeForUpdate(
+                        existingApi,
+                        apiToUpdate,
+                        primaryOwnerEntity,
+                        auditInfo.environmentId(),
+                        auditInfo.organizationId()),
+                auditInfo,
+                primaryOwnerEntity,
+                oneShotIndexation(auditInfo));
 
         return new Output(updated, primaryOwnerEntity);
     }
@@ -77,18 +72,19 @@ public class UpdateNativeApiUseCase {
 
     private UnaryOperator<Api> rejectPlainDowngradeThenUpdate(UpdateNativeApi updateApi) {
         return existingApi -> {
-            propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), updateApi.getProperties());
+            propertyDomainService.validateClassification(
+                    existingApi.getApiDefinitionValue(), updateApi.getProperties());
             var existingDefinition = existingApi.getApiDefinitionValue();
-            var existingProperties = existingDefinition instanceof NativeApi nativeApi ? nativeApi.getProperties() : null;
-            var encryptedProperties = propertyDomainService.encryptProperties(existingProperties, updateApi.getProperties());
+            var existingProperties =
+                    existingDefinition instanceof NativeApi nativeApi ? nativeApi.getProperties() : null;
+            var encryptedProperties =
+                    propertyDomainService.encryptProperties(existingProperties, updateApi.getProperties());
             return update(updateApi, encryptedProperties).apply(existingApi);
         };
     }
 
     static UnaryOperator<Api> update(UpdateNativeApi updateNativeApi, List<Property> properties) {
-        return currentApi ->
-            currentApi
-                .toBuilder()
+        return currentApi -> currentApi.toBuilder()
                 .name(updateNativeApi.getName())
                 .description(updateNativeApi.getDescription())
                 .version(updateNativeApi.getApiVersion())
@@ -100,22 +96,20 @@ public class UpdateNativeApiUseCase {
                 .disableMembershipNotifications(updateNativeApi.isDisableMembershipNotifications())
                 .allowMultiJwtOauth2Subscriptions(updateNativeApi.isAllowMultiJwtOauth2Subscriptions())
                 .apiDefinitionValue(
-                    currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
-                        ? nativeApi
-                            .toBuilder()
-                            .name(updateNativeApi.getName())
-                            .apiVersion(updateNativeApi.getApiVersion())
-                            .tags(updateNativeApi.getTags())
-                            .resources(updateNativeApi.getResources())
-                            .listeners(updateNativeApi.getListeners())
-                            .endpointGroups(updateNativeApi.getEndpointGroups())
-                            .flows(updateNativeApi.getFlows())
-                            .services(updateNativeApi.getServices())
-                            .properties(properties)
-                            .analytics(updateNativeApi.getAnalytics())
-                            .build()
-                        : null
-                )
+                        currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
+                                ? nativeApi.toBuilder()
+                                        .name(updateNativeApi.getName())
+                                        .apiVersion(updateNativeApi.getApiVersion())
+                                        .tags(updateNativeApi.getTags())
+                                        .resources(updateNativeApi.getResources())
+                                        .listeners(updateNativeApi.getListeners())
+                                        .endpointGroups(updateNativeApi.getEndpointGroups())
+                                        .flows(updateNativeApi.getFlows())
+                                        .services(updateNativeApi.getServices())
+                                        .properties(properties)
+                                        .analytics(updateNativeApi.getAnalytics())
+                                        .build()
+                                : null)
                 .build();
     }
 }

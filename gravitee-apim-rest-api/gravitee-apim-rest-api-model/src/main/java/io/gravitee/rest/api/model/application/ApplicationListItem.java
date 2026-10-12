@@ -44,15 +44,16 @@ public class ApplicationListItem {
     private String name;
 
     @Schema(
-        description = "Application's description. A short description of your App.",
-        example = "I can use a hundred characters to describe this App."
-    )
+            description = "Application's description. A short description of your App.",
+            example = "I can use a hundred characters to describe this App.")
     private String description;
 
     @Schema(description = "Domain used by the application, if relevant", example = "https://my-app.com")
     private String domain;
 
-    @Schema(description = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @Schema(
+            description = "Application groups. Used to add teams to your application.",
+            example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @Schema(description = "if the app is ACTIVE or ARCHIVED.", example = "ACTIVE")

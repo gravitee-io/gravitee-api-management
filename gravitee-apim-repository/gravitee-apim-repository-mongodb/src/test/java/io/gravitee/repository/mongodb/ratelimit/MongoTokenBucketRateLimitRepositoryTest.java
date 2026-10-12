@@ -74,9 +74,12 @@ class MongoTokenBucketRateLimitRepositoryTest extends AbstractTokenBucketRateLim
         long before = System.currentTimeMillis();
         // capacity 100 at 2 tokens per 1000ms => the bucket would refill fully in 50s, so the entry is
         // given an expire_at ~50s out: long enough that it is never evicted before it would be full.
-        repository.refillAndTryConsume("ttl", 1, 2, 1_000L, 100, before, () -> new TokenBucket("ttl")).blockingGet();
+        repository
+                .refillAndTryConsume("ttl", 1, 2, 1_000L, 100, before, () -> new TokenBucket("ttl"))
+                .blockingGet();
 
-        Document stored = template.findById("ttl", Document.class, "tokenbucket").block();
+        Document stored =
+                template.findById("ttl", Document.class, "tokenbucket").block();
         assertThat(stored).isNotNull();
         assertThat(stored.getDate("expire_at")).isBetween(new Date(before + 49_000L), new Date(before + 60_000L));
     }

@@ -30,8 +30,7 @@ public class PlanWithFlowsFixtures {
 
     private PlanWithFlowsFixtures() {}
 
-    private static final Supplier<PlanWithFlows.PlanWithFlowsBuilder> BASE = () ->
-        PlanWithFlows.builder()
+    private static final Supplier<PlanWithFlows.PlanWithFlowsBuilder> BASE = () -> PlanWithFlows.builder()
             .id("id")
             .crossId("my-plan-crossId")
             .name("My plan")
@@ -40,24 +39,17 @@ public class PlanWithFlowsFixtures {
             .type(Plan.PlanType.API)
             .definitionVersion(DefinitionVersion.V4)
             .apiType(ApiType.PROXY)
-            .planDefinitionHttpV4(
-                PlanFixtures.HttpV4Definition.anApiKeyV4()
-                    .toBuilder()
-                    .security(
-                        PlanSecurity.builder()
+            .planDefinitionHttpV4(PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder()
+                    .security(PlanSecurity.builder()
                             .type("API_KEY")
-                            .configuration(
-                                """
+                            .configuration("""
                                 {"nice": "config"}
-                                """
-                            )
-                            .build()
-                    )
+                                """)
+                            .build())
                     .selectionRule("{#request.attribute['selectionRule'] != null}")
                     .tags(Set.of("tag1", "tag2"))
                     .status(PlanStatus.CLOSED)
-                    .build()
-            )
+                    .build())
             .apiId("api-id")
             .order(1)
             .characteristics(List.of("characteristic1", "characteristic2"))
@@ -67,8 +59,7 @@ public class PlanWithFlowsFixtures {
             .generalConditions("General conditions")
             .flows(List.of(fixtures.definition.FlowFixtures.aSimpleFlowV4()));
 
-    private static final Supplier<PlanWithFlows.PlanWithFlowsBuilder> BASE_NATIVE = () ->
-        PlanWithFlows.builder()
+    private static final Supplier<PlanWithFlows.PlanWithFlowsBuilder> BASE_NATIVE = () -> PlanWithFlows.builder()
             .id("id")
             .crossId("my-plan-crossId")
             .name("My plan")
@@ -77,24 +68,17 @@ public class PlanWithFlowsFixtures {
             .type(Plan.PlanType.API)
             .definitionVersion(DefinitionVersion.V4)
             .apiType(ApiType.NATIVE)
-            .planDefinitionNativeV4(
-                PlanFixtures.NativeV4Definition.anApiKeyV4()
-                    .toBuilder()
-                    .security(
-                        PlanSecurity.builder()
+            .planDefinitionNativeV4(PlanFixtures.NativeV4Definition.anApiKeyV4().toBuilder()
+                    .security(PlanSecurity.builder()
                             .type("API_KEY")
-                            .configuration(
-                                """
+                            .configuration("""
                                 {"nice": "config"}
-                                """
-                            )
-                            .build()
-                    )
+                                """)
+                            .build())
                     .selectionRule("{#request.attribute['selectionRule'] != null}")
                     .tags(Set.of("tag1", "tag2"))
                     .status(PlanStatus.CLOSED)
-                    .build()
-            )
+                    .build())
             .apiId("api-id")
             .order(1)
             .characteristics(List.of("characteristic1", "characteristic2"))

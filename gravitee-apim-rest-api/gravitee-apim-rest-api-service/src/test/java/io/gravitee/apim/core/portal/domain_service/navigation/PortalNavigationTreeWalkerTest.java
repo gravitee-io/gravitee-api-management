@@ -33,19 +33,22 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalNavigationTreeWalkerTest {
 
-    private static final PortalNavigationItemId ROOT = PortalNavigationItemId.of("11111111-1111-1111-1111-111111111111");
-    private static final PortalNavigationItemId CHILD_A = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-    private static final PortalNavigationItemId CHILD_B = PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
-    private static final PortalNavigationItemId GRANDCHILD = PortalNavigationItemId.of("cccccccc-cccc-cccc-cccc-cccccccccccc");
+    private static final PortalNavigationItemId ROOT =
+            PortalNavigationItemId.of("11111111-1111-1111-1111-111111111111");
+    private static final PortalNavigationItemId CHILD_A =
+            PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static final PortalNavigationItemId CHILD_B =
+            PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+    private static final PortalNavigationItemId GRANDCHILD =
+            PortalNavigationItemId.of("cccccccc-cccc-cccc-cccc-cccccccccccc");
 
     @Test
     void walk_from_visits_descendants_in_pre_order_without_visiting_root() {
         var items = List.<PortalNavigationItem>of(
-            folder(ROOT, null, "root", 0),
-            folder(CHILD_A, ROOT, "a", 0),
-            folder(GRANDCHILD, CHILD_A, "g", 0),
-            folder(CHILD_B, ROOT, "b", 1)
-        );
+                folder(ROOT, null, "root", 0),
+                folder(CHILD_A, ROOT, "a", 0),
+                folder(GRANDCHILD, CHILD_A, "g", 0),
+                folder(CHILD_B, ROOT, "b", 1));
         var visited = new ArrayList<String>();
         var visitor = new PortalNavigationVisitor() {
             @Override
@@ -70,7 +73,8 @@ class PortalNavigationTreeWalkerTest {
             }
         };
 
-        PortalNavigationTreeWalker.walkFrom(items, PortalNavigationItemId.of("00000000-0000-0000-0000-000000000000"), visitor);
+        PortalNavigationTreeWalker.walkFrom(
+                items, PortalNavigationItemId.of("00000000-0000-0000-0000-000000000000"), visitor);
 
         assertThat(visited).isEmpty();
     }
@@ -97,39 +101,36 @@ class PortalNavigationTreeWalkerTest {
         assertThat(visited).containsExactly("product", "/product/child");
     }
 
-    private static PortalNavigationFolder folder(PortalNavigationItemId id, PortalNavigationItemId parentId, String segment, int order) {
+    private static PortalNavigationFolder folder(
+            PortalNavigationItemId id, PortalNavigationItemId parentId, String segment, int order) {
         return PortalNavigationFolder.builder()
-            .id(id)
-            .organizationId("organization-id")
-            .environmentId("environment-id")
-            .title(segment)
-            .segment(segment)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(order)
-            .parentId(parentId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .title(segment)
+                .segment(segment)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(order)
+                .parentId(parentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     private static PortalNavigationApiProduct apiProduct(
-        PortalNavigationItemId id,
-        PortalNavigationItemId parentId,
-        String segment,
-        int order
-    ) {
+            PortalNavigationItemId id, PortalNavigationItemId parentId, String segment, int order) {
         return PortalNavigationApiProduct.builder()
-            .id(id)
-            .organizationId("organization-id")
-            .environmentId("environment-id")
-            .title(segment)
-            .segment(segment)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(order)
-            .parentId(parentId)
-            .apiProductId("00000000-0000-0000-0000-000000000020")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("organization-id")
+                .environmentId("environment-id")
+                .title(segment)
+                .segment(segment)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(order)
+                .parentId(parentId)
+                .apiProductId("00000000-0000-0000-0000-000000000020")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 }

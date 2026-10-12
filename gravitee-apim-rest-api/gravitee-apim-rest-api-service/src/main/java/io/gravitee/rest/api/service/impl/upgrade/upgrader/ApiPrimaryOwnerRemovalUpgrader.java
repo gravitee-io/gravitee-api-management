@@ -65,14 +65,13 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
     private String defaultPrimaryOwnerId;
 
     public ApiPrimaryOwnerRemovalUpgrader(
-        @Lazy RoleRepository roleRepository,
-        @Lazy ApiRepository apiRepository,
-        @Lazy MembershipRepository membershipRepository,
-        @Lazy OrganizationRepository organizationRepository,
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy UserRepository userRepository,
-        @Lazy GroupRepository groupRepository
-    ) {
+            @Lazy RoleRepository roleRepository,
+            @Lazy ApiRepository apiRepository,
+            @Lazy MembershipRepository membershipRepository,
+            @Lazy OrganizationRepository organizationRepository,
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy UserRepository userRepository,
+            @Lazy GroupRepository groupRepository) {
         this.roleRepository = roleRepository;
         this.apiRepository = apiRepository;
         this.membershipRepository = membershipRepository;
@@ -102,19 +101,31 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
 
         int page = 0;
         int size = 100;
-        Pageable pageable = new PageableBuilder().pageNumber(page).pageSize(size).build();
-        Sortable sortable = new SortableBuilder().field("updated_at").order(Order.DESC).build();
+        Pageable pageable =
+                new PageableBuilder().pageNumber(page).pageSize(size).build();
+        Sortable sortable =
+                new SortableBuilder().field("updated_at").order(Order.DESC).build();
 
         List<String> apiIds = apiRepository
-            .searchIds(List.of(new ApiCriteria.Builder().environments(environmentIds).build()), pageable, sortable)
-            .getContent();
+                .searchIds(
+                        List.of(new ApiCriteria.Builder()
+                                .environments(environmentIds)
+                                .build()),
+                        pageable,
+                        sortable)
+                .getContent();
 
         while (!apiIds.isEmpty()) {
             corruptedApiIds.addAll(findCorruptedApiIds(apiPrimaryOwnerRoleId, apiIds));
             pageable = new PageableBuilder().pageNumber(page++).pageSize(size).build();
             apiIds = apiRepository
-                .searchIds(List.of(new ApiCriteria.Builder().environments(environmentIds).build()), pageable, sortable)
-                .getContent();
+                    .searchIds(
+                            List.of(new ApiCriteria.Builder()
+                                    .environments(environmentIds)
+                                    .build()),
+                            pageable,
+                            sortable)
+                    .getContent();
         }
 
         if (!corruptedApiIds.isEmpty()) {
@@ -165,26 +176,27 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
 
     private String findApiPrimaryOwnerRoleId(String organizationId) throws TechnicalException {
         return roleRepository
-            .findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name(),
-                organizationId,
-                RoleReferenceType.ORGANIZATION
-            )
-            .map(Role::getId)
-            .orElseThrow(() -> new TechnicalException("Unable to find API Primary Owner role for organization " + organizationId));
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), organizationId, RoleReferenceType.ORGANIZATION)
+                .map(Role::getId)
+                .orElseThrow(() -> new TechnicalException(
+                        "Unable to find API Primary Owner role for organization " + organizationId));
     }
 
     private List<String> findEnvironmentIds(String organizationId) throws TechnicalException {
-        return environmentRepository.findByOrganization(organizationId).stream().map(Environment::getId).collect(toList());
+        return environmentRepository.findByOrganization(organizationId).stream()
+                .map(Environment::getId)
+                .collect(toList());
     }
 
-    private List<String> findCorruptedApiIds(String apiPrimaryOwnerRoleId, List<String> apiIds) throws TechnicalException {
-        List<String> apiIdWithPrimaryOwner = membershipRepository
-            .findByReferencesAndRoleId(MembershipReferenceType.API, apiIds, apiPrimaryOwnerRoleId)
-            .stream()
-            .map(Membership::getReferenceId)
-            .collect(toList());
+    private List<String> findCorruptedApiIds(String apiPrimaryOwnerRoleId, List<String> apiIds)
+            throws TechnicalException {
+        List<String> apiIdWithPrimaryOwner =
+                membershipRepository
+                        .findByReferencesAndRoleId(MembershipReferenceType.API, apiIds, apiPrimaryOwnerRoleId)
+                        .stream()
+                        .map(Membership::getReferenceId)
+                        .collect(toList());
         List<String> corruptedApiIds = new ArrayList<>(apiIds);
         corruptedApiIds.removeAll(apiIdWithPrimaryOwner);
         return corruptedApiIds;
@@ -198,9 +210,10 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
         }
 
         return groupRepository
-            .findById(defaultPrimaryOwnerId)
-            .map(group -> membership(group.getId(), MembershipMemberType.GROUP, poRoleId))
-            .orElseThrow(() -> new TechnicalException("Unable to find a user or group with id " + defaultPrimaryOwnerId));
+                .findById(defaultPrimaryOwnerId)
+                .map(group -> membership(group.getId(), MembershipMemberType.GROUP, poRoleId))
+                .orElseThrow(() ->
+                        new TechnicalException("Unable to find a user or group with id " + defaultPrimaryOwnerId));
     }
 
     private static Membership membership(String memberId, MembershipMemberType memberType, String roleId) {

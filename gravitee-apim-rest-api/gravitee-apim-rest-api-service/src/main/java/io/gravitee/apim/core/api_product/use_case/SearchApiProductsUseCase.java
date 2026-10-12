@@ -50,64 +50,38 @@ public class SearchApiProductsUseCase {
     }
 
     private Optional<Set<String>> findAccessibleApiProductIds(Input input) {
-        Set<String> allowedIds = apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(input.environmentId(), input.userId());
+        Set<String> allowedIds =
+                apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(input.environmentId(), input.userId());
         if (allowedIds.isEmpty()) {
             return Optional.empty();
         }
         if (input.ids() != null && !input.ids().isEmpty()) {
-            Set<String> filtered = input.ids().stream().filter(allowedIds::contains).collect(Collectors.toSet());
+            Set<String> filtered =
+                    input.ids().stream().filter(allowedIds::contains).collect(Collectors.toSet());
             return filtered.isEmpty() ? Optional.empty() : Optional.of(filtered);
         }
         return Optional.of(allowedIds);
     }
 
     private Output emptyPage(Input input) {
-        return new Output(new Page<>(List.of(), input.pageable() != null ? input.pageable().getPageNumber() : 1, 0, 0));
+        return new Output(new Page<>(
+                List.of(), input.pageable() != null ? input.pageable().getPageNumber() : 1, 0, 0));
     }
 
     private Output search(Input input, Set<String> ids) {
         Page<ApiProduct> page = apiProductSearchQueryService.search(
-            input.environmentId(),
-            input.organizationId(),
-            input.query(),
-            ids,
-            input.pageable(),
-            input.sortable(),
-            input.kindFilter()
-        );
+                input.environmentId(),
+                input.organizationId(),
+                input.query(),
+                ids,
+                input.pageable(),
+                input.sortable(),
+                input.kindFilter());
         apiProductDeploymentStateDomainService.computeDeploymentState(page.getContent());
         return new Output(page);
     }
 
     public record Input(
-        String environmentId,
-        String organizationId,
-        String query,
-        Set<String> ids,
-        Pageable pageable,
-        Sortable sortable,
-        String userId,
-        boolean isAdmin,
-        ApiProductKindFilter kindFilter
-    ) {
-        public Input {
-            kindFilter = kindFilter == null ? ApiProductKindFilter.any() : kindFilter;
-        }
-
-        public static Input of(
-            String environmentId,
-            String organizationId,
-            String query,
-            Set<String> ids,
-            Pageable pageable,
-            Sortable sortable,
-            String userId,
-            boolean isAdmin
-        ) {
-            return of(environmentId, organizationId, query, ids, pageable, sortable, userId, isAdmin, ApiProductKindFilter.any());
-        }
-
-        public static Input of(
             String environmentId,
             String organizationId,
             String query,
@@ -116,19 +90,52 @@ public class SearchApiProductsUseCase {
             Sortable sortable,
             String userId,
             boolean isAdmin,
-            ApiProductKindFilter kindFilter
-        ) {
+            ApiProductKindFilter kindFilter) {
+        public Input {
+            kindFilter = kindFilter == null ? ApiProductKindFilter.any() : kindFilter;
+        }
+
+        public static Input of(
+                String environmentId,
+                String organizationId,
+                String query,
+                Set<String> ids,
+                Pageable pageable,
+                Sortable sortable,
+                String userId,
+                boolean isAdmin) {
+            return of(
+                    environmentId,
+                    organizationId,
+                    query,
+                    ids,
+                    pageable,
+                    sortable,
+                    userId,
+                    isAdmin,
+                    ApiProductKindFilter.any());
+        }
+
+        public static Input of(
+                String environmentId,
+                String organizationId,
+                String query,
+                Set<String> ids,
+                Pageable pageable,
+                Sortable sortable,
+                String userId,
+                boolean isAdmin,
+                ApiProductKindFilter kindFilter) {
             return new Input(
-                environmentId,
-                organizationId,
-                query != null ? query.trim() : null,
-                ids,
-                pageable,
-                sortable,
-                userId,
-                isAdmin,
-                kindFilter
-            );
+                    environmentId,
+                    organizationId,
+                    query != null ? query.trim() : null,
+                    ids,
+                    pageable,
+                    sortable,
+                    userId,
+                    isAdmin,
+                    kindFilter);
         }
     }
 

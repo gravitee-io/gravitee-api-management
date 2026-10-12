@@ -27,27 +27,25 @@ public class IntegrationFixture {
     private IntegrationFixture() {}
 
     public static final Integration.ApiIntegration BASE = new Integration.ApiIntegration(
-        "integration-id",
-        "test-name",
-        "integration-description",
-        "test-provider",
-        "my-env",
-        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-        Set.of()
-    );
+            "integration-id",
+            "test-name",
+            "integration-description",
+            "test-provider",
+            "my-env",
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+            Set.of());
 
     public static final Integration.A2aIntegration BASE_A2A = new Integration.A2aIntegration(
-        "a2a-integration-id",
-        "A2A Integration",
-        "A2A integration description",
-        "A2A",
-        "my-env",
-        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-        Set.of(),
-        List.of(new Integration.A2aIntegration.WellKnownUrl("https://example.com/.well-known/agent.json"))
-    );
+            "a2a-integration-id",
+            "A2A Integration",
+            "A2A integration description",
+            "A2A",
+            "my-env",
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+            Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+            Set.of(),
+            List.of(new Integration.A2aIntegration.WellKnownUrl("https://example.com/.well-known/agent.json")));
 
     public static Integration.ApiIntegration anApiIntegration() {
         return BASE;
@@ -59,28 +57,26 @@ public class IntegrationFixture {
 
     public static Integration.ApiIntegration withGroups(Integration.ApiIntegration integration, Set<String> groups) {
         return new Integration.ApiIntegration(
-            integration.id(),
-            integration.name(),
-            integration.description(),
-            integration.provider(),
-            integration.environmentId(),
-            integration.createdAt(),
-            integration.updatedAt(),
-            groups
-        );
+                integration.id(),
+                integration.name(),
+                integration.description(),
+                integration.provider(),
+                integration.environmentId(),
+                integration.createdAt(),
+                integration.updatedAt(),
+                groups);
     }
 
     public static Integration.ApiIntegration withUpdatedAt(Integration.ApiIntegration integration, String date) {
         return new Integration.ApiIntegration(
-            integration.id(),
-            integration.name(),
-            integration.description(),
-            integration.provider(),
-            integration.environmentId(),
-            Instant.parse(date).atZone(ZoneId.systemDefault()),
-            integration.updatedAt(),
-            integration.groups()
-        );
+                integration.id(),
+                integration.name(),
+                integration.description(),
+                integration.provider(),
+                integration.environmentId(),
+                Instant.parse(date).atZone(ZoneId.systemDefault()),
+                integration.updatedAt(),
+                integration.groups());
     }
 
     public static Integration.A2aIntegration anA2aIntegration() {
@@ -92,32 +88,29 @@ public class IntegrationFixture {
     }
 
     public static Integration.A2aIntegration anA2aIntegrationWithWellKnownUrls(
-        Collection<Integration.A2aIntegration.WellKnownUrl> wellKnownUrls
-    ) {
+            Collection<Integration.A2aIntegration.WellKnownUrl> wellKnownUrls) {
         return new Integration.A2aIntegration(
-            BASE_A2A.id(),
-            BASE_A2A.name(),
-            BASE_A2A.description(),
-            BASE_A2A.provider(),
-            BASE_A2A.environmentId(),
-            BASE_A2A.createdAt(),
-            BASE_A2A.updatedAt(),
-            BASE_A2A.groups(),
-            wellKnownUrls
-        );
+                BASE_A2A.id(),
+                BASE_A2A.name(),
+                BASE_A2A.description(),
+                BASE_A2A.provider(),
+                BASE_A2A.environmentId(),
+                BASE_A2A.createdAt(),
+                BASE_A2A.updatedAt(),
+                BASE_A2A.groups(),
+                wellKnownUrls);
     }
 
     public static Integration.A2aIntegration anA2aIntegrationWithId(String id) {
         return new Integration.A2aIntegration(
-            id,
-            BASE_A2A.name(),
-            BASE_A2A.description(),
-            BASE_A2A.provider(),
-            BASE_A2A.environmentId(),
-            BASE_A2A.createdAt(),
-            BASE_A2A.updatedAt(),
-            BASE_A2A.groups(),
-            BASE_A2A.wellKnownUrls()
-        );
+                id,
+                BASE_A2A.name(),
+                BASE_A2A.description(),
+                BASE_A2A.provider(),
+                BASE_A2A.environmentId(),
+                BASE_A2A.createdAt(),
+                BASE_A2A.updatedAt(),
+                BASE_A2A.groups(),
+                BASE_A2A.wellKnownUrls());
     }
 }

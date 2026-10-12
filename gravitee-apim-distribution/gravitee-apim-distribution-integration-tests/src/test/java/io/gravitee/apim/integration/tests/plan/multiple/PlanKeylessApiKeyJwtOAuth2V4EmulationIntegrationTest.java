@@ -55,7 +55,8 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
 
     public static void configurePolicies(final Map<String, PolicyPlugin> policies) {
         policies.put("key-less", PolicyBuilder.build("key-less", KeylessPolicy.class));
-        policies.put("api-key", PolicyBuilder.build("api-key", ApiKeyPolicy.class, null, ApiKeyPolicyInitializer.class));
+        policies.put(
+                "api-key", PolicyBuilder.build("api-key", ApiKeyPolicy.class, null, ApiKeyPolicyInitializer.class));
         policies.put("jwt", PolicyBuilder.build("jwt", JWTPolicy.class, JWTPolicyConfiguration.class));
         policies.put("oauth2", PolicyBuilder.build("oauth2", Oauth2Policy.class, OAuth2PolicyConfiguration.class));
     }
@@ -84,12 +85,11 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
         @Disabled("Disabled as all security type are defined on the api")
         @Override
         protected void should_access_api_and_ignore_security(
-            final String apiId,
-            boolean requireWiremock,
-            final String headerName,
-            final String headerValue,
-            HttpClient client
-        ) {
+                final String apiId,
+                boolean requireWiremock,
+                final String headerName,
+                final String headerValue,
+                HttpClient client) {
             // This is disabled as all security type are defined on the api
         }
     }
@@ -117,9 +117,10 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
-            return super
-                .provideWrongSecurityHeaders()
-                .filter(arguments -> arguments.get()[1] != null && arguments.get()[2] != null && arguments.get()[2] != "");
+            return super.provideWrongSecurityHeaders()
+                    .filter(arguments -> arguments.get()[1] != null
+                            && arguments.get()[2] != null
+                            && arguments.get()[2] != "");
         }
     }
 
@@ -149,12 +150,11 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
             return provideApis().flatMap(arguments -> {
                 String apiId = (String) arguments.get()[0];
                 return Stream.of(
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                );
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                        Arguments.of(apiId, "Authorization", "Bearer"),
+                        Arguments.of(apiId, "Authorization", "Bearer "),
+                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"));
             });
         }
     }
@@ -185,11 +185,10 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
             return provideApis().flatMap(arguments -> {
                 String apiId = (String) arguments.get()[0];
                 return Stream.of(
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                );
+                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                        Arguments.of(apiId, "Authorization", "Bearer"),
+                        Arguments.of(apiId, "Authorization", "Bearer "),
+                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"));
             });
         }
     }

@@ -56,7 +56,8 @@ class PortalListingResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID + "/listings";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID
+                + "/listings";
     }
 
     @Nested
@@ -67,7 +68,10 @@ class PortalListingResourceTest extends AbstractResourceTest {
             var stored = aListing();
             when(getPortalListingUseCase.execute(any())).thenReturn(new GetPortalListingUseCase.Output(stored));
 
-            try (var response = rootTarget(LISTING_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(LISTING_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(getPortalListingUseCase).execute(any(GetPortalListingUseCase.Input.class));
 
@@ -84,7 +88,10 @@ class PortalListingResourceTest extends AbstractResourceTest {
         void should_return_404_when_listing_is_missing() {
             when(getPortalListingUseCase.execute(any())).thenThrow(new PortalListingNotFoundException(LISTING_HRID));
 
-            try (var response = rootTarget(LISTING_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(LISTING_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
@@ -103,7 +110,9 @@ class PortalListingResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_listing_is_missing() {
-            org.mockito.Mockito.doThrow(new PortalListingNotFoundException(LISTING_HRID)).when(deletePortalListingUseCase).execute(any());
+            org.mockito.Mockito.doThrow(new PortalListingNotFoundException(LISTING_HRID))
+                    .when(deletePortalListingUseCase)
+                    .execute(any());
 
             try (var response = rootTarget(LISTING_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -113,11 +122,10 @@ class PortalListingResourceTest extends AbstractResourceTest {
 
     private static PortalListing aListing() {
         return PortalListing.of(
-            PortalListingId.of("00000000-0000-0000-0000-0000000000b1"),
-            ENVIRONMENT,
-            ORGANIZATION,
-            PortalId.of("00000000-0000-0000-0000-0000000000a1"),
-            List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1))
-        );
+                PortalListingId.of("00000000-0000-0000-0000-0000000000b1"),
+                ENVIRONMENT,
+                ORGANIZATION,
+                PortalId.of("00000000-0000-0000-0000-0000000000a1"),
+                List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1)));
     }
 }

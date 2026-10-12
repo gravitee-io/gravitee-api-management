@@ -60,17 +60,15 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author GraviteeSource Team
  */
 @Configuration
-@ComponentScan(basePackages = { "io.gravitee.rest.api.service" })
+@ComponentScan(basePackages = {"io.gravitee.rest.api.service"})
 @EnableTransactionManagement
-@Import(
-    {
-        FetcherConfigurationConfiguration.class,
-        SearchEngineConfiguration.class,
-        UpgraderConfiguration.class,
-        InitializerConfiguration.class,
-        InfraServiceSpringConfiguration.class,
-    }
-)
+@Import({
+    FetcherConfigurationConfiguration.class,
+    SearchEngineConfiguration.class,
+    UpgraderConfiguration.class,
+    InitializerConfiguration.class,
+    InfraServiceSpringConfiguration.class,
+})
 public class ServiceConfiguration {
 
     @Autowired
@@ -91,8 +89,7 @@ public class ServiceConfiguration {
         ObjectMapper objectMapper = new GraviteeMapper(false);
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         // register API serializer
         SimpleModule module = new SimpleModule();
@@ -105,9 +102,7 @@ public class ServiceConfiguration {
 
     @Bean
     public PluginConfigurationHelper pluginConfigurationHelper(
-        final io.gravitee.node.api.configuration.Configuration configuration,
-        final ObjectMapper objectMapper
-    ) {
+            final io.gravitee.node.api.configuration.Configuration configuration, final ObjectMapper objectMapper) {
         return new PluginConfigurationHelper(configuration, objectMapper);
     }
 

@@ -31,16 +31,15 @@ public class UpdateEnvironmentRulesetUseCase {
 
     public Output execute(Input input) {
         var found = scoringRulesetCrudService
-            .findById(input.scoringRuleset.id())
-            .filter(ruleset -> ruleset.referenceId().equals(input.auditInfo.environmentId()))
-            .orElseThrow(() -> new RulesetNotFoundException(input.scoringRuleset.id()));
+                .findById(input.scoringRuleset.id())
+                .filter(ruleset -> ruleset.referenceId().equals(input.auditInfo.environmentId()))
+                .orElseThrow(() -> new RulesetNotFoundException(input.scoringRuleset.id()));
 
-        var rulesetToUpdate = found
-            .toBuilder()
-            .name(input.scoringRuleset.name())
-            .description(input.scoringRuleset.description())
-            .updatedAt(TimeProvider.now())
-            .build();
+        var rulesetToUpdate = found.toBuilder()
+                .name(input.scoringRuleset.name())
+                .description(input.scoringRuleset.description())
+                .updatedAt(TimeProvider.now())
+                .build();
 
         return new Output(scoringRulesetCrudService.update(rulesetToUpdate));
     }

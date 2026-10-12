@@ -96,7 +96,8 @@ public class UserMetadataServiceTest {
         userMetadata.setFormat(STRING);
         userMetadata.setName(userMetadata.getKey());
         userMetadata.setValue(METADATA_VALUE);
-        when(metadataRepository.findByReferenceTypeAndReferenceId(USER, USER_ID)).thenReturn(singletonList(userMetadata));
+        when(metadataRepository.findByReferenceTypeAndReferenceId(USER, USER_ID))
+                .thenReturn(singletonList(userMetadata));
 
         toUserMetadata = new Metadata();
         toUserMetadata.setKey("key-metadata-toupdate");
@@ -105,7 +106,8 @@ public class UserMetadataServiceTest {
         toUserMetadata.setFormat(STRING);
         toUserMetadata.setName(toUserMetadata.getKey());
         toUserMetadata.setValue(METADATA_VALUE);
-        when(metadataRepository.findById("key-metadata-toupdate", USER_ID, USER)).thenReturn(of(toUserMetadata));
+        when(metadataRepository.findById("key-metadata-toupdate", USER_ID, USER))
+                .thenReturn(of(toUserMetadata));
     }
 
     @Test
@@ -117,10 +119,8 @@ public class UserMetadataServiceTest {
         newUserMetadataEntity.setName(metadataName);
         newUserMetadataEntity.setValue(METADATA_VALUE);
 
-        final UserMetadataEntity createdUserMetadata = userMetadataService.create(
-            GraviteeContext.getExecutionContext(),
-            newUserMetadataEntity
-        );
+        final UserMetadataEntity createdUserMetadata =
+                userMetadataService.create(GraviteeContext.getExecutionContext(), newUserMetadataEntity);
 
         assertEquals("new-metadata", createdUserMetadata.getKey());
         assertEquals(MetadataFormat.STRING, createdUserMetadata.getFormat());
@@ -137,19 +137,16 @@ public class UserMetadataServiceTest {
 
         verify(metadataRepository).create(newUserMetadata);
         final Map<Audit.AuditProperties, String> properties = Maps.<Audit.AuditProperties, String>builder()
-            .put(Audit.AuditProperties.USER, USER_ID)
-            .put(METADATA, newUserMetadata.getKey())
-            .build();
-        verify(auditService).createOrganizationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getProperties().equals(properties) &&
-                    auditLogData.getEvent().equals(METADATA_CREATED) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(newUserMetadata)
-            )
-        );
+                .put(Audit.AuditProperties.USER, USER_ID)
+                .put(METADATA, newUserMetadata.getKey())
+                .build();
+        verify(auditService)
+                .createOrganizationAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getProperties().equals(properties)
+                                && auditLogData.getEvent().equals(METADATA_CREATED)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(newUserMetadata)));
     }
 
     @Test
@@ -162,10 +159,8 @@ public class UserMetadataServiceTest {
         updateUserMetadataEntity.setValue(METADATA_VALUE + "updated");
         when(metadataRepository.update(any())).thenAnswer(a -> a.getArgument(0));
 
-        final UserMetadataEntity updatedUserMetadata = userMetadataService.update(
-            GraviteeContext.getExecutionContext(),
-            updateUserMetadataEntity
-        );
+        final UserMetadataEntity updatedUserMetadata =
+                userMetadataService.update(GraviteeContext.getExecutionContext(), updateUserMetadataEntity);
 
         assertEquals(toUserMetadata.getKey(), updatedUserMetadata.getKey());
         assertEquals(MetadataFormat.STRING, updatedUserMetadata.getFormat());
@@ -183,13 +178,14 @@ public class UserMetadataServiceTest {
         verify(metadataRepository).update(updatableMetadata);
 
         final Map<Audit.AuditProperties, String> properties = Maps.<Audit.AuditProperties, String>builder()
-            .put(Audit.AuditProperties.USER, USER_ID)
-            .put(METADATA, toUserMetadata.getKey())
-            .build();
-        verify(auditService).createOrganizationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getProperties().equals(properties) && auditLogData.getEvent().equals(METADATA_UPDATED))
-        );
+                .put(Audit.AuditProperties.USER, USER_ID)
+                .put(METADATA, toUserMetadata.getKey())
+                .build();
+        verify(auditService)
+                .createOrganizationAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getProperties().equals(properties)
+                                && auditLogData.getEvent().equals(METADATA_UPDATED)));
     }
 
     @Test
@@ -234,7 +230,8 @@ public class UserMetadataServiceTest {
         when(metadataRepository.findById(FIELD_KEY, USER_ID_WITH_META, USER)).thenReturn(of(md));
         when(metadataRepository.findById(FIELD_KEY, USER_ID_WITHOUT_META, USER)).thenReturn(empty());
 
-        userMetadataService.deleteAllByCustomFieldId(GraviteeContext.getExecutionContext(), FIELD_KEY, REF_ID, REF_TYPE);
+        userMetadataService.deleteAllByCustomFieldId(
+                GraviteeContext.getExecutionContext(), FIELD_KEY, REF_ID, REF_TYPE);
 
         verify(metadataRepository).delete(FIELD_KEY, USER_ID_WITH_META, USER);
         verify(metadataRepository, never()).delete(FIELD_KEY, USER_ID_WITHOUT_META, USER);

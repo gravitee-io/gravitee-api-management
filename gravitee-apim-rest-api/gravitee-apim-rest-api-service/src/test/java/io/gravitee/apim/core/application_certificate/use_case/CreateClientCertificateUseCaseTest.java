@@ -51,9 +51,7 @@ class CreateClientCertificateUseCaseTest {
     @BeforeEach
     void setUp() {
         createClientCertificateUseCase = new CreateClientCertificateUseCase(
-            clientCertificateDomainService,
-            clientCertificateValidationDomainService
-        );
+                clientCertificateDomainService, clientCertificateValidationDomainService);
     }
 
     @Test
@@ -62,33 +60,35 @@ class CreateClientCertificateUseCaseTest {
         var expiration = Date.from(Instant.now().plus(365, ChronoUnit.DAYS));
         var certInfo = new CertificateInfo(expiration, "CN=unit-tests", "CN=unit-tests-issuer", "sha256-fingerprint");
 
-        when(clientCertificateValidationDomainService.validateForCreation(any(ClientCertificate.class), any())).thenReturn(certInfo);
+        when(clientCertificateValidationDomainService.validateForCreation(any(ClientCertificate.class), any()))
+                .thenReturn(certInfo);
 
         var createdCertificate = new ClientCertificate(
-            "generated-id",
-            "cross-id",
-            appId,
-            "Test Certificate",
-            new Date(),
-            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
-            new Date(),
-            new Date(),
-            "pem-content",
-            expiration,
-            "CN=unit-tests",
-            "CN=unit-tests-issuer",
-            "sha256-fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
-        when(clientCertificateDomainService.create(eq(appId), any(ClientCertificate.class))).thenReturn(createdCertificate);
-
-        var result = createClientCertificateUseCase.execute(
-            new CreateClientCertificateUseCase.Input(
+                "generated-id",
+                "cross-id",
                 appId,
-                new ClientCertificate("Test Certificate", "pem-content", new Date(), Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-            )
-        );
+                "Test Certificate",
+                new Date(),
+                Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
+                new Date(),
+                new Date(),
+                "pem-content",
+                expiration,
+                "CN=unit-tests",
+                "CN=unit-tests-issuer",
+                "sha256-fingerprint",
+                "env-id",
+                ClientCertificateStatus.ACTIVE);
+        when(clientCertificateDomainService.create(eq(appId), any(ClientCertificate.class)))
+                .thenReturn(createdCertificate);
+
+        var result = createClientCertificateUseCase.execute(new CreateClientCertificateUseCase.Input(
+                appId,
+                new ClientCertificate(
+                        "Test Certificate",
+                        "pem-content",
+                        new Date(),
+                        Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))));
 
         assertThat(result.clientCertificate()).isNotNull();
         assertThat(result.clientCertificate().id()).isEqualTo("generated-id");
@@ -103,14 +103,11 @@ class CreateClientCertificateUseCaseTest {
 
     @Test
     void should_throw_when_certificate_is_invalid() {
-        when(clientCertificateValidationDomainService.validateForCreation(any(ClientCertificate.class), any())).thenThrow(
-            new ClientCertificateEmptyException()
-        );
+        when(clientCertificateValidationDomainService.validateForCreation(any(ClientCertificate.class), any()))
+                .thenThrow(new ClientCertificateEmptyException());
 
-        assertThatThrownBy(() ->
-            createClientCertificateUseCase.execute(
-                new CreateClientCertificateUseCase.Input("app-id", new ClientCertificate("Bad Cert", "not-a-pem", null, null))
-            )
-        ).isInstanceOf(ClientCertificateEmptyException.class);
+        assertThatThrownBy(() -> createClientCertificateUseCase.execute(new CreateClientCertificateUseCase.Input(
+                        "app-id", new ClientCertificate("Bad Cert", "not-a-pem", null, null))))
+                .isInstanceOf(ClientCertificateEmptyException.class);
     }
 }

@@ -68,19 +68,22 @@ import org.junit.jupiter.api.Test;
 class CloseExpiredSubscriptionsUseCaseTest {
 
     private static final String USER_ID = "user-id";
-    private static final AuditActor AUDIT_ACTOR = AuditActor.builder().userId(USER_ID).build();
+    private static final AuditActor AUDIT_ACTOR =
+            AuditActor.builder().userId(USER_ID).build();
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiProductCrudServiceInMemory apiProductCrudService = new ApiProductCrudServiceInMemory();
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
-    private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
+    private final SubscriptionQueryServiceInMemory subscriptionQueryService =
+            new SubscriptionQueryServiceInMemory(subscriptionCrudService);
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
-    private final MembershipQueryService membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+    private final MembershipQueryService membershipQueryService =
+            new MembershipQueryServiceInMemory(membershipCrudService);
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
 
     private CloseExpiredSubscriptionsUseCase usecase;
@@ -91,87 +94,82 @@ class CloseExpiredSubscriptionsUseCaseTest {
 
         var triggerNotificationService = new TriggerNotificationDomainServiceInMemory();
         var userCrudService = new UserCrudServiceInMemory();
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
 
         var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
-            groupQueryService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                groupQueryService, membershipQueryService, roleQueryService, userCrudService);
 
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
-            subscriptionCrudService,
-            auditDomainService,
-            triggerNotificationService,
-            userCrudService,
-            applicationPrimaryOwnerDomainService
-        );
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationService,
+                userCrudService,
+                applicationPrimaryOwnerDomainService);
 
         var apiKeyCrudService = new ApiKeyCrudServiceInMemory();
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
-            apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-            subscriptionCrudService,
-            auditDomainService,
-            triggerNotificationService
-        );
+                apiKeyCrudService,
+                new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationService);
 
         usecase = new CloseExpiredSubscriptionsUseCase(
-            subscriptionQueryService,
-            environmentCrudService,
-            apiCrudService,
-            apiProductCrudService,
-            new CloseSubscriptionDomainService(
-                subscriptionCrudService,
-                applicationCrudService,
-                auditDomainService,
-                triggerNotificationService,
-                rejectSubscriptionDomainService,
-                revokeApiKeyDomainService,
+                subscriptionQueryService,
+                environmentCrudService,
                 apiCrudService,
-                new IntegrationAgentInMemory()
-            )
-        );
+                apiProductCrudService,
+                new CloseSubscriptionDomainService(
+                        subscriptionCrudService,
+                        applicationCrudService,
+                        auditDomainService,
+                        triggerNotificationService,
+                        rejectSubscriptionDomainService,
+                        revokeApiKeyDomainService,
+                        apiCrudService,
+                        new IntegrationAgentInMemory()));
 
-        givenExistingEnvironments(
-            List.of(
+        givenExistingEnvironments(List.of(
                 Environment.builder().id("env1").organizationId("org1").build(),
-                Environment.builder().id("env2").organizationId("org2").build()
-            )
-        );
-        givenExistingApis(
-            List.of(Api.builder().id("api1").environmentId("env1").build(), Api.builder().id("api2").environmentId("env2").build())
-        );
-        givenExistingPlans(
-            List.of(
-                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan1").apiId("api1").referenceId("api1").build(),
-                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan2").apiId("api2").referenceId("api2").build(),
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .id("plan-product1")
-                    .referenceId("product1")
-                    .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API_PRODUCT)
-                    .build()
-            )
-        );
-        givenExistingApplication(
-            List.of(BaseApplicationEntity.builder().id("app1").build(), BaseApplicationEntity.builder().id("app2").build())
-        );
-        givenExistingApiProducts(List.of(ApiProduct.builder().id("product1").environmentId("env1").build()));
+                Environment.builder().id("env2").organizationId("org2").build()));
+        givenExistingApis(List.of(
+                Api.builder().id("api1").environmentId("env1").build(),
+                Api.builder().id("api2").environmentId("env2").build()));
+        givenExistingPlans(List.of(
+                PlanFixtures.HttpV4.anApiKey().toBuilder()
+                        .id("plan1")
+                        .apiId("api1")
+                        .referenceId("api1")
+                        .build(),
+                PlanFixtures.HttpV4.anApiKey().toBuilder()
+                        .id("plan2")
+                        .apiId("api2")
+                        .referenceId("api2")
+                        .build(),
+                PlanFixtures.HttpV4.anApiKey().toBuilder()
+                        .id("plan-product1")
+                        .referenceId("product1")
+                        .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API_PRODUCT)
+                        .build()));
+        givenExistingApplication(List.of(
+                BaseApplicationEntity.builder().id("app1").build(),
+                BaseApplicationEntity.builder().id("app2").build()));
+        givenExistingApiProducts(List.of(
+                ApiProduct.builder().id("product1").environmentId("env1").build()));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiCrudService,
-            apiProductCrudService,
-            environmentCrudService,
-            subscriptionCrudService,
-            auditCrudServiceInMemory,
-            applicationCrudService,
-            planCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudService,
+                        apiProductCrudService,
+                        environmentCrudService,
+                        subscriptionCrudService,
+                        auditCrudServiceInMemory,
+                        applicationCrudService,
+                        planCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @AfterAll
@@ -183,180 +181,153 @@ class CloseExpiredSubscriptionsUseCaseTest {
     void should_close_expired_subscriptions() {
         // Given
         var now = Instant.now();
-        givenExistingSubscriptions(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s1")
-                    .apiId("api1")
-                    .referenceId("api1")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId("plan1")
-                    .applicationId("app1")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build(),
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s2")
-                    .apiId("api2")
-                    .referenceId("api2")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId("plan2")
-                    .applicationId("app2")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+        givenExistingSubscriptions(List.of(
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id("s1")
+                        .apiId("api1")
+                        .referenceId("api1")
+                        .referenceType(SubscriptionReferenceType.API)
+                        .planId("plan1")
+                        .applicationId("app1")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                        .build(),
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id("s2")
+                        .apiId("api2")
+                        .referenceId("api2")
+                        .referenceType(SubscriptionReferenceType.API)
+                        .planId("plan2")
+                        .applicationId("app2")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                        .build()));
 
         // When
         var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         // Then
         assertThat(result.closedSubscriptions())
-            .hasSize(2)
-            .extracting(SubscriptionEntity::getStatus)
-            .containsExactly(SubscriptionEntity.Status.CLOSED, SubscriptionEntity.Status.CLOSED);
+                .hasSize(2)
+                .extracting(SubscriptionEntity::getStatus)
+                .containsExactly(SubscriptionEntity.Status.CLOSED, SubscriptionEntity.Status.CLOSED);
     }
 
     @Test
     void should_create_audit_using_right_context() {
         // Given
         var now = Instant.now();
-        givenExistingSubscriptions(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s1")
-                    .apiId("api1")
-                    .referenceId("api1")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId("plan1")
-                    .applicationId("app1")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build(),
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s2")
-                    .apiId("api2")
-                    .referenceId("api2")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId("plan2")
-                    .applicationId("app2")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+        givenExistingSubscriptions(List.of(
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id("s1")
+                        .apiId("api1")
+                        .referenceId("api1")
+                        .referenceType(SubscriptionReferenceType.API)
+                        .planId("plan1")
+                        .applicationId("app1")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                        .build(),
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id("s2")
+                        .apiId("api2")
+                        .referenceId("api2")
+                        .referenceType(SubscriptionReferenceType.API)
+                        .planId("plan2")
+                        .applicationId("app2")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                        .build()));
 
         // When
         usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         // Then
         assertThat(auditCrudServiceInMemory.storage())
-            .hasSize(4)
-            .extracting(
-                AuditEntity::getOrganizationId,
-                AuditEntity::getEnvironmentId,
-                AuditEntity::getReferenceType,
-                AuditEntity::getReferenceId,
-                AuditEntity::getEvent,
-                AuditEntity::getUser
-            )
-            .contains(
-                tuple("org1", "env1", AuditReferenceType.API, "api1", "SUBSCRIPTION_CLOSED", USER_ID),
-                tuple("org1", "env1", AuditReferenceType.APPLICATION, "app1", "SUBSCRIPTION_CLOSED", USER_ID),
-                tuple("org2", "env2", AuditReferenceType.API, "api2", "SUBSCRIPTION_CLOSED", USER_ID),
-                tuple("org2", "env2", AuditReferenceType.APPLICATION, "app2", "SUBSCRIPTION_CLOSED", USER_ID)
-            );
+                .hasSize(4)
+                .extracting(
+                        AuditEntity::getOrganizationId,
+                        AuditEntity::getEnvironmentId,
+                        AuditEntity::getReferenceType,
+                        AuditEntity::getReferenceId,
+                        AuditEntity::getEvent,
+                        AuditEntity::getUser)
+                .contains(
+                        tuple("org1", "env1", AuditReferenceType.API, "api1", "SUBSCRIPTION_CLOSED", USER_ID),
+                        tuple("org1", "env1", AuditReferenceType.APPLICATION, "app1", "SUBSCRIPTION_CLOSED", USER_ID),
+                        tuple("org2", "env2", AuditReferenceType.API, "api2", "SUBSCRIPTION_CLOSED", USER_ID),
+                        tuple("org2", "env2", AuditReferenceType.APPLICATION, "app2", "SUBSCRIPTION_CLOSED", USER_ID));
     }
 
     @Test
     void should_close_expired_api_product_subscription() {
         var now = Instant.now();
-        givenExistingSubscriptions(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s1")
-                    .referenceId("product1")
-                    .referenceType(SubscriptionReferenceType.API_PRODUCT)
-                    .planId("plan-product1")
-                    .applicationId("app1")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+        givenExistingSubscriptions(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                .id("s1")
+                .referenceId("product1")
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .planId("plan-product1")
+                .applicationId("app1")
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                .build()));
 
         var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.closedSubscriptions())
-            .hasSize(1)
-            .extracting(SubscriptionEntity::getStatus)
-            .containsExactly(SubscriptionEntity.Status.CLOSED);
+                .hasSize(1)
+                .extracting(SubscriptionEntity::getStatus)
+                .containsExactly(SubscriptionEntity.Status.CLOSED);
     }
 
     @Test
     void should_close_legacy_subscription_with_apiId_only() {
         // Legacy subscriptions may have apiId set but referenceId/referenceType null
         var now = Instant.now();
-        givenExistingSubscriptions(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s-legacy")
-                    .apiId("api1")
-                    .referenceId(null)
-                    .referenceType(null)
-                    .planId("plan1")
-                    .applicationId("app1")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+        givenExistingSubscriptions(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                .id("s-legacy")
+                .apiId("api1")
+                .referenceId(null)
+                .referenceType(null)
+                .planId("plan1")
+                .applicationId("app1")
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                .build()));
 
         var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.closedSubscriptions())
-            .hasSize(1)
-            .extracting(SubscriptionEntity::getStatus)
-            .containsExactly(SubscriptionEntity.Status.CLOSED);
+                .hasSize(1)
+                .extracting(SubscriptionEntity::getStatus)
+                .containsExactly(SubscriptionEntity.Status.CLOSED);
     }
 
     @Test
     void should_do_nothing_when_no_subscription_to_close() {
         // Given
         var now = Instant.now();
-        givenExistingSubscriptions(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s1")
-                    .apiId("api1")
-                    .referenceId("api1")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId("plan1")
-                    .applicationId("app1")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.plusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build(),
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id("s2")
-                    .apiId("api2")
-                    .referenceId("api2")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId("plan2")
-                    .applicationId("app2")
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .endingAt(now.plusSeconds(30).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+        givenExistingSubscriptions(List.of(
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id("s1")
+                        .apiId("api1")
+                        .referenceId("api1")
+                        .referenceType(SubscriptionReferenceType.API)
+                        .planId("plan1")
+                        .applicationId("app1")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .endingAt(now.plusSeconds(30).atZone(ZoneId.systemDefault()))
+                        .build(),
+                SubscriptionFixtures.aSubscription().toBuilder()
+                        .id("s2")
+                        .apiId("api2")
+                        .referenceId("api2")
+                        .referenceType(SubscriptionReferenceType.API)
+                        .planId("plan2")
+                        .applicationId("app2")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .endingAt(now.plusSeconds(30).atZone(ZoneId.systemDefault()))
+                        .build()));
 
         // When
         var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));

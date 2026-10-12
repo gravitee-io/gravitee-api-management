@@ -71,12 +71,12 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void should_create() throws Exception {
         var portalCategory = PortalCategory.builder()
-            .id("new-pc")
-            .environmentId("DEFAULT")
-            .title("New Category")
-            .description("A new category")
-            .visible(true)
-            .build();
+                .id("new-pc")
+                .environmentId("DEFAULT")
+                .title("New Category")
+                .description("A new category")
+                .visible(true)
+                .build();
 
         portalCategoryRepository.create(portalCategory);
 
@@ -92,17 +92,19 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void should_create_with_null_description() throws Exception {
         var portalCategory = PortalCategory.builder()
-            .id("new-pc-null-desc")
-            .environmentId("DEFAULT")
-            .title("No Description")
-            .description(null)
-            .visible(true)
-            .build();
+                .id("new-pc-null-desc")
+                .environmentId("DEFAULT")
+                .title("No Description")
+                .description(null)
+                .visible(true)
+                .build();
 
         portalCategoryRepository.create(portalCategory);
 
         var saved = portalCategoryRepository.findById("new-pc-null-desc");
-        assertThat(saved).hasValueSatisfying(result -> assertThat(result.getDescription()).isNull());
+        assertThat(saved)
+                .hasValueSatisfying(
+                        result -> assertThat(result.getDescription()).isNull());
     }
 
     @Test
@@ -127,7 +129,8 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void should_delete() throws Exception {
-        var nbBefore = portalCategoryRepository.findAllByEnvironmentId("DEFAULT").size();
+        var nbBefore =
+                portalCategoryRepository.findAllByEnvironmentId("DEFAULT").size();
 
         portalCategoryRepository.delete("pc-1");
 

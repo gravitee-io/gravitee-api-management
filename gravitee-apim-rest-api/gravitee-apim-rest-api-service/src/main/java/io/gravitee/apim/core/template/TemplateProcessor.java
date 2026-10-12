@@ -31,7 +31,8 @@ public interface TemplateProcessor {
      * Render an inline template. The {@code name} is surfaced in error messages and engine diagnostics
      * (typically the id of the entity owning the template, e.g. a portal page id).
      */
-    default String processInlineTemplate(String name, String template, Map<String, Object> params) throws TemplateProcessorException {
+    default String processInlineTemplate(String name, String template, Map<String, Object> params)
+            throws TemplateProcessorException {
         return processInlineTemplate(template, params);
     }
 }

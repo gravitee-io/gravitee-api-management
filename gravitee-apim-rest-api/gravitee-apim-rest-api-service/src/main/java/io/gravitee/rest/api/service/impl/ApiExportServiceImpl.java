@@ -71,15 +71,14 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     private final CustomResourceDefinitionMapper customResourceDefinitionMapper;
 
     public ApiExportServiceImpl(
-        ObjectMapper objectMapper,
-        PageService pageService,
-        PlanService planService,
-        ApiService apiService,
-        RoleService roleService,
-        ApiConverter apiConverter,
-        PlanConverter planConverter,
-        CustomResourceDefinitionMapper customResourceDefinitionMapper
-    ) {
+            ObjectMapper objectMapper,
+            PageService pageService,
+            PlanService planService,
+            ApiService apiService,
+            RoleService roleService,
+            ApiConverter apiConverter,
+            PlanConverter planConverter,
+            CustomResourceDefinitionMapper customResourceDefinitionMapper) {
         this.objectMapper = objectMapper;
         this.pageService = pageService;
         this.planService = planService;
@@ -92,11 +91,10 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
 
     @Override
     public String exportAsJson(
-        final ExecutionContext executionContext,
-        final String apiId,
-        String exportVersion,
-        String... filteredFields
-    ) {
+            final ExecutionContext executionContext,
+            final String apiId,
+            String exportVersion,
+            String... filteredFields) {
         ApiEntity apiEntity = getApi(executionContext, apiId, exportVersion, filteredFields);
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
@@ -107,7 +105,8 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     }
 
     @Override
-    public String exportAsCustomResourceDefinition(ExecutionContext executionContext, String apiId, ApiExportQuery exportQuery) {
+    public String exportAsCustomResourceDefinition(
+            ExecutionContext executionContext, String apiId, ApiExportQuery exportQuery) {
         try {
             ApiEntity apiEntity = getApi(executionContext, apiId, "2.0.0", exportQuery.getExcludedFields());
 
@@ -127,14 +126,18 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
                 prepareApiPagesForExport(apiDefinitionResource.getPages());
             }
 
-            apiDefinitionResource.setState(apiEntity.getState() == null ? Lifecycle.State.STOPPED.name() : apiEntity.getState().name());
+            apiDefinitionResource.setState(
+                    apiEntity.getState() == null
+                            ? Lifecycle.State.STOPPED.name()
+                            : apiEntity.getState().name());
 
             if (exportQuery.isRemoveIds()) {
                 apiDefinitionResource.removeIds();
             }
 
             if (exportQuery.hasContextRef()) {
-                apiDefinitionResource.setContextRef(exportQuery.getContextRefName(), exportQuery.getContextRefNamespace());
+                apiDefinitionResource.setContextRef(
+                        exportQuery.getContextRefName(), exportQuery.getContextRefNamespace());
             }
 
             if (exportQuery.hasContextPath()) {
@@ -146,10 +149,11 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
                 apiDefinitionResource.setVersion(exportQuery.getVersion());
             }
 
-            ((ObjectNode) jsonNode).set(
-                "notifyMembers",
-                BooleanNode.valueOf(!jsonNode.get("disable_membership_notifications").asBoolean())
-            );
+            ((ObjectNode) jsonNode)
+                    .set(
+                            "notifyMembers",
+                            BooleanNode.valueOf(!jsonNode.get("disable_membership_notifications")
+                                    .asBoolean()));
 
             ((ObjectNode) jsonNode).remove("disable_membership_notifications");
 
@@ -159,7 +163,8 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         }
     }
 
-    private ApiEntity getApi(ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields) {
+    private ApiEntity getApi(
+            ExecutionContext executionContext, String apiId, String exportVersion, String... filteredFields) {
         ApiEntity apiEntity = apiService.findById(executionContext, apiId);
         generateAndSaveCrossId(executionContext, apiEntity);
         // set metadata for serialize process
@@ -171,10 +176,8 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     }
 
     private void mapCRDMembers(ExecutionContext executionContext, ArrayNode members) {
-        var roleIdToName = roleService
-            .findByScope(RoleScope.API, executionContext.getOrganizationId())
-            .stream()
-            .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getName));
+        var roleIdToName = roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()).stream()
+                .collect(Collectors.toMap(RoleEntity::getId, RoleEntity::getName));
 
         var it = members.iterator();
         while (it.hasNext()) {
@@ -208,22 +211,20 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     }
 
     private void clearAutoFetchedContent(
-        PageEntity page,
-        Iterator<Map.Entry<String, JsonNode>> iterator,
-        Map.Entry<String, JsonNode> pageJsonNode
-    ) {
+            PageEntity page, Iterator<Map.Entry<String, JsonNode>> iterator, Map.Entry<String, JsonNode> pageJsonNode) {
         String pageType = page.getSource().getType();
-        boolean isMarkdownOrSwagger = PageType.SWAGGER.name().equals(page.getType()) || PageType.MARKDOWN.name().equals(page.getType());
-        boolean isAutoFetch =
-            "github-fetcher".equals(pageType) ||
-            "gitlab-fetcher".equals(pageType) ||
-            "git-fetcher".equals(pageType) ||
-            "http-fetcher".equals(pageType) ||
-            "bitbucket-fetcher".equals(pageType);
+        boolean isMarkdownOrSwagger = PageType.SWAGGER.name().equals(page.getType())
+                || PageType.MARKDOWN.name().equals(page.getType());
+        boolean isAutoFetch = "github-fetcher".equals(pageType)
+                || "gitlab-fetcher".equals(pageType)
+                || "git-fetcher".equals(pageType)
+                || "http-fetcher".equals(pageType)
+                || "bitbucket-fetcher".equals(pageType);
 
         if (isMarkdownOrSwagger && isAutoFetch) {
             // Remove auto-fetched pages that was generated from ROOT github source
-            if (page.getMetadata() != null && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
+            if (page.getMetadata() != null
+                    && "auto_fetched".equals(page.getMetadata().get("graviteeio/fetcher_type"))) {
                 iterator.remove();
             } else {
                 ((ObjectNode) pageJsonNode.getValue()).remove("content");
@@ -240,10 +241,12 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             api.setCrossId(UuidString.generateRandom());
             apiService.update(executionContext, api.getId(), apiConverter.toUpdateApiEntity(api));
         }
-        planService.findByApi(executionContext, api.getId()).forEach(plan -> generateAndSaveCrossId(executionContext, plan));
+        planService
+                .findByApi(executionContext, api.getId())
+                .forEach(plan -> generateAndSaveCrossId(executionContext, plan));
         pageService
-            .findByApi(executionContext.getEnvironmentId(), api.getId())
-            .forEach(page -> generateAndSaveCrossId(executionContext, page));
+                .findByApi(executionContext.getEnvironmentId(), api.getId())
+                .forEach(page -> generateAndSaveCrossId(executionContext, page));
     }
 
     private void generateAndSaveCrossId(ExecutionContext executionContext, PlanEntity plan) {

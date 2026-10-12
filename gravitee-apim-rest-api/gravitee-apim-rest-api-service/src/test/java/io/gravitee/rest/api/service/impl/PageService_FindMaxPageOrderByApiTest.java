@@ -24,7 +24,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,14 +51,16 @@ public class PageService_FindMaxPageOrderByApiTest {
 
     @Test
     public void shouldFindMaxPageOrderByApiName() throws TechnicalException {
-        when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API)).thenReturn(10);
+        when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API))
+                .thenReturn(10);
 
         assertEquals(10, pageService.findMaxApiPageOrderByApi(API_ID));
     }
 
     @Test
     public void shouldFindMaxPageOrderByApiNameWhenNull() throws TechnicalException {
-        when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API)).thenReturn(null);
+        when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API))
+                .thenReturn(null);
 
         assertEquals(0, pageService.findMaxApiPageOrderByApi(API_ID));
     }
@@ -68,8 +69,8 @@ public class PageService_FindMaxPageOrderByApiTest {
     public void shouldNotFindMaxPageOrderByApiNameBecauseTechnicalException() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             doThrow(TechnicalException.class)
-                .when(pageRepository)
-                .findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API);
+                    .when(pageRepository)
+                    .findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API);
 
             pageService.findMaxApiPageOrderByApi(API_ID);
         });

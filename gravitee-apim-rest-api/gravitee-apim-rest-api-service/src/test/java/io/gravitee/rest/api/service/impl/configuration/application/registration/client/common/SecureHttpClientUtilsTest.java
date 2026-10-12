@@ -18,39 +18,16 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
-import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
-import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity.Type;
 import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
-import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.Base64;
-import java.util.Base64;
-import java.util.Enumeration;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLContext;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.PrivateKeyStrategy;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -197,7 +174,8 @@ class SecureHttpClientUtilsTest {
             }
         };
 
-        jksKeyStore.setKeyEntry("myalias", keyPair.getPrivate(), VALID_PASSWORD.toCharArray(), new Certificate[] { dummyCert });
+        jksKeyStore.setKeyEntry(
+                "myalias", keyPair.getPrivate(), VALID_PASSWORD.toCharArray(), new Certificate[] {dummyCert});
 
         keyStore.setAlias("myalias");
         assertEquals("myalias", SecureHttpClientUtils.resolveAlias(jksKeyStore, keyStore));
@@ -237,12 +215,16 @@ class SecureHttpClientUtilsTest {
             }
         };
 
-        jksKeyStore.setKeyEntry("first", firstKeyPair.getPrivate(), VALID_PASSWORD.toCharArray(), new Certificate[] { cert });
-        jksKeyStore.setKeyEntry("second", secondKeyPair.getPrivate(), VALID_PASSWORD.toCharArray(), new Certificate[] { cert });
+        jksKeyStore.setKeyEntry(
+                "first", firstKeyPair.getPrivate(), VALID_PASSWORD.toCharArray(), new Certificate[] {cert});
+        jksKeyStore.setKeyEntry(
+                "second", secondKeyPair.getPrivate(), VALID_PASSWORD.toCharArray(), new Certificate[] {cert});
 
         keyStore.setAlias(null);
         String result = SecureHttpClientUtils.resolveAlias(jksKeyStore, keyStore);
-        assertTrue("first".equals(result) || "second".equals(result), "Expected either 'first' or 'second' but got: " + result);
+        assertTrue(
+                "first".equals(result) || "second".equals(result),
+                "Expected either 'first' or 'second' but got: " + result);
     }
 
     @Test

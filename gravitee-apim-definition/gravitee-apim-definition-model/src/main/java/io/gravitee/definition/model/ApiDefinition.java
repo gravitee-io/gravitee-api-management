@@ -22,9 +22,11 @@ import java.util.function.Function;
 
 public interface ApiDefinition {
     void setId(String id);
+
     DefinitionVersion getDefinitionVersion();
 
     Set<String> getTags();
+
     void setTags(Set<String> tags);
 
     default boolean updateDynamicProperties(Function<List<Property>, UpdateDynamicPropertiesResult> updateOperator) {
@@ -33,6 +35,7 @@ public interface ApiDefinition {
 
     static interface UpdateDynamicPropertiesResult {
         List<Property> orderedProperties();
+
         boolean needToUpdate();
     }
 }

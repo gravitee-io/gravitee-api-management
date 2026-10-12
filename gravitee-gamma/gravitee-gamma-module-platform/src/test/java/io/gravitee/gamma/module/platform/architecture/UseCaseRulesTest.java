@@ -30,7 +30,9 @@ import io.gravitee.apim.core.UseCase;
  * calling another use case, which collapses the "one action per class" contract. Share logic through
  * a {@code DomainService} instead.
  */
-@AnalyzeClasses(packages = UseCaseRulesTest.BASE_PACKAGE, importOptions = { ImportOption.DoNotIncludeTests.class })
+@AnalyzeClasses(
+        packages = UseCaseRulesTest.BASE_PACKAGE,
+        importOptions = {ImportOption.DoNotIncludeTests.class})
 class UseCaseRulesTest {
 
     static final String BASE_PACKAGE = "io.gravitee.gamma.module.platform";
@@ -38,27 +40,27 @@ class UseCaseRulesTest {
 
     @ArchTest
     static final ArchRule use_cases_should_reside_in_use_case_packages = classes()
-        .that()
-        .haveSimpleNameEndingWith("UseCase")
-        .and()
-        .resideInAPackage(BASE_PACKAGE + "..")
-        .should()
-        .resideInAPackage(CORE_PACKAGE + "use_case..");
+            .that()
+            .haveSimpleNameEndingWith("UseCase")
+            .and()
+            .resideInAPackage(BASE_PACKAGE + "..")
+            .should()
+            .resideInAPackage(CORE_PACKAGE + "use_case..");
 
     @ArchTest
     static final ArchRule use_cases_should_be_annotated_with_use_case = classes()
-        .that()
-        .resideInAPackage(CORE_PACKAGE + "use_case..")
-        .and()
-        .haveSimpleNameEndingWith("UseCase")
-        .should()
-        .beAnnotatedWith(UseCase.class);
+            .that()
+            .resideInAPackage(CORE_PACKAGE + "use_case..")
+            .and()
+            .haveSimpleNameEndingWith("UseCase")
+            .should()
+            .beAnnotatedWith(UseCase.class);
 
     @ArchTest
     static final ArchRule use_cases_should_not_depend_on_other_use_cases = noClasses()
-        .that()
-        .areAnnotatedWith(UseCase.class)
-        .should()
-        .dependOnClassesThat()
-        .areAnnotatedWith(UseCase.class);
+            .that()
+            .areAnnotatedWith(UseCase.class)
+            .should()
+            .dependOnClassesThat()
+            .areAnnotatedWith(UseCase.class);
 }

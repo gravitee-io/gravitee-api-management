@@ -30,9 +30,8 @@ class CredentialMapperTest {
     @Test
     void should_map_a_publish_event_to_a_deployable() {
         Event event = event(
-            "evt-1",
-            "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\", \"allowedApiIds\": [\"api-1\", \"api-2\"]}"
-        );
+                "evt-1",
+                "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\", \"allowedApiIds\": [\"api-1\", \"api-2\"]}");
         event.setUpdatedAt(new Date(1234L));
 
         CredentialDeployable d = mapper.toDeploy(event).blockingGet();
@@ -48,14 +47,18 @@ class CredentialMapperTest {
 
     @Test
     void should_allow_no_api_when_the_event_lists_none() {
-        Event event = event("evt-10", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
+        Event event = event(
+                "evt-10",
+                "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
 
         assertThat(mapper.toDeploy(event).blockingGet().allowedApiIds()).isEmpty();
     }
 
     @Test
     void should_default_updatedAt_to_zero_when_the_event_has_none() {
-        Event event = event("evt-2", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
+        Event event = event(
+                "evt-2",
+                "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
 
         assertThat(mapper.toDeploy(event).blockingGet().updatedAt()).isZero();
     }
@@ -76,7 +79,8 @@ class CredentialMapperTest {
 
     @Test
     void should_skip_a_publish_event_without_a_secret() {
-        Event event = event("evt-5", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \" \"}");
+        Event event =
+                event("evt-5", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \" \"}");
 
         assertThat(mapper.toDeploy(event).blockingGet()).isNull();
     }
@@ -110,9 +114,13 @@ class CredentialMapperTest {
 
     @Test
     void should_keep_the_encrypted_secret_out_of_toString() {
-        Event event = event("evt-9", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
+        Event event = event(
+                "evt-9",
+                "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
 
-        assertThat(mapper.toDeploy(event).blockingGet().toString()).contains("credential-1").doesNotContain("ciphertext");
+        assertThat(mapper.toDeploy(event).blockingGet().toString())
+                .contains("credential-1")
+                .doesNotContain("ciphertext");
     }
 
     private static Event event(String id, String payload) {

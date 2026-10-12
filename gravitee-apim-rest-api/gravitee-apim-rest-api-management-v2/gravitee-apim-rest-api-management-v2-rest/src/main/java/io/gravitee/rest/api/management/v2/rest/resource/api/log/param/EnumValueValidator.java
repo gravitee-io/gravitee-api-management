@@ -43,7 +43,8 @@ public class EnumValueValidator implements ConstraintValidator<EnumValue, String
         Enum<?>[] enumConstants = enumType.getEnumConstants();
 
         for (Enum<?> enumConstant : enumConstants) {
-            valid = (preserveCase && enumConstant.name().equals(value)) || (!preserveCase && enumConstant.name().equalsIgnoreCase(value));
+            valid = (preserveCase && enumConstant.name().equals(value))
+                    || (!preserveCase && enumConstant.name().equalsIgnoreCase(value));
             if (valid) {
                 return valid;
             }
@@ -53,14 +54,16 @@ public class EnumValueValidator implements ConstraintValidator<EnumValue, String
         if (constraintValidatorContext != null) {
             constraintValidatorContext.disableDefaultConstraintViolation();
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate(
-                    "Invalid value '%s'. Allowed values [%s] (%s)".formatted(
-                        value,
-                        String.join(", ", java.util.Arrays.stream(enumConstants).map(Enum::name).toArray(String[]::new)),
-                        preserveCase ? "case sensitive" : "case insensitive"
-                    )
-                )
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate("Invalid value '%s'. Allowed values [%s] (%s)"
+                            .formatted(
+                                    value,
+                                    String.join(
+                                            ", ",
+                                            java.util.Arrays.stream(enumConstants)
+                                                    .map(Enum::name)
+                                                    .toArray(String[]::new)),
+                                    preserveCase ? "case sensitive" : "case insensitive"))
+                    .addConstraintViolation();
         }
 
         return false;

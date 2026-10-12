@@ -108,7 +108,7 @@ class HttpEndpointInvokerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "custom", "c_u/s$t*o-m" })
+    @ValueSource(strings = {"custom", "c_u/s$t*o-m"})
     void shouldConnectToNamedEndpointConnectorWithCustomEndpointAttribute(String endpointName) {
         final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
@@ -147,7 +147,8 @@ class HttpEndpointInvokerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/bar:analyze", "/document:translate", "/openai/deployments/gpt-4o/chat/completions:stream" })
+    @ValueSource(
+            strings = {"/bar:analyze", "/document:translate", "/openai/deployments/gpt-4o/chat/completions:stream"})
     void should_treat_relative_path_with_colon_as_literal_request_endpoint(String endpointTarget) {
         final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
@@ -205,8 +206,12 @@ class HttpEndpointInvokerTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = { "http://api.gravitee.io/echo", "https://api.gravitee.io/echo", "ws://stream.gravitee.io", "wss://stream.gravitee.io" }
-    )
+            strings = {
+                "http://api.gravitee.io/echo",
+                "https://api.gravitee.io/echo",
+                "ws://stream.gravitee.io",
+                "wss://stream.gravitee.io"
+            })
     void shouldTreatKnownSchemesAsAbsoluteUrls(String url) {
         final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
@@ -249,19 +254,19 @@ class HttpEndpointInvokerTest {
         final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(null);
-        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
-            Completable.error(new InterruptionFailureException(i.getArgument(0)))
-        );
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+                .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertError(e -> {
             assertThat(e)
-                .isInstanceOf(InterruptionFailureException.class)
-                .asInstanceOf(new InstanceOfAssertFactory<>(InterruptionFailureException.class, Assertions::assertThat))
-                .extracting(InterruptionFailureException::getExecutionFailure)
-                .extracting(ExecutionFailure::key)
-                .isEqualTo(NO_ENDPOINT_FOUND_KEY);
+                    .isInstanceOf(InterruptionFailureException.class)
+                    .asInstanceOf(
+                            new InstanceOfAssertFactory<>(InterruptionFailureException.class, Assertions::assertThat))
+                    .extracting(InterruptionFailureException::getExecutionFailure)
+                    .extracting(ExecutionFailure::key)
+                    .isEqualTo(NO_ENDPOINT_FOUND_KEY);
 
             return true;
         });
@@ -291,36 +296,32 @@ class HttpEndpointInvokerTest {
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
-        when(endpointConnector.connect(any())).thenReturn(Completable.error(new AssertionFailedError("Should not be called")));
+        when(endpointConnector.connect(any()))
+                .thenReturn(Completable.error(new AssertionFailedError("Should not be called")));
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(null);
 
         // Here, return a random object from attribute and verify we end in error
         when(ctx.getAttribute(eq(ATTR_REQUEST_METHOD))).thenReturn(List.of("PUT"));
 
-        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
-            Completable.error(new InterruptionFailureException(i.getArgument(0)))
-        );
+        when(ctx.interruptWith(any(ExecutionFailure.class)))
+                .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
 
-        cut
-            .invoke(ctx)
-            .test()
-            .assertError(e -> {
-                assertTrue(e instanceof InterruptionFailureException);
-                final InterruptionFailureException failureException = (InterruptionFailureException) e;
-                assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                assertThat(failureException.getExecutionFailure().message())
+        cut.invoke(ctx).test().assertError(e -> {
+            assertTrue(e instanceof InterruptionFailureException);
+            final InterruptionFailureException failureException = (InterruptionFailureException) e;
+            assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(failureException.getExecutionFailure().message())
                     .isNotNull()
                     .isEqualTo("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid");
-                assertThat(failureException.getExecutionFailure().key()).isEqualTo(HttpEndpointInvoker.INVALID_HTTP_METHOD);
-                return true;
-            });
+            assertThat(failureException.getExecutionFailure().key()).isEqualTo(HttpEndpointInvoker.INVALID_HTTP_METHOD);
+            return true;
+        });
     }
 
     private static Stream<Arguments> provideOverrideMethodAttributes() {
         return Stream.of(
-            Arguments.of(HttpMethod.PUT, "Gravitee Common - HttpMethod"),
-            Arguments.of(io.vertx.core.http.HttpMethod.PUT, "Vertx Core Http - HttpMethod"),
-            Arguments.of("PUT", "Simple string")
-        );
+                Arguments.of(HttpMethod.PUT, "Gravitee Common - HttpMethod"),
+                Arguments.of(io.vertx.core.http.HttpMethod.PUT, "Vertx Core Http - HttpMethod"),
+                Arguments.of("PUT", "Simple string"));
     }
 }

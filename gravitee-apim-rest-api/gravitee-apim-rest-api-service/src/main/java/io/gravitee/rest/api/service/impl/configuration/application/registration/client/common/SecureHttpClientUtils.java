@@ -35,7 +35,8 @@ import org.apache.http.ssl.SSLContexts;
 
 public final class SecureHttpClientUtils {
 
-    public static CloseableHttpClient createHttpClient(TrustStoreEntity trustStore, KeyStoreEntity keyStore) throws Exception {
+    public static CloseableHttpClient createHttpClient(TrustStoreEntity trustStore, KeyStoreEntity keyStore)
+            throws Exception {
         HttpClientBuilder builder = HttpClients.custom();
         SSLContextBuilder sslBuilder = SSLContexts.custom();
 
@@ -56,11 +57,10 @@ public final class SecureHttpClientUtils {
         if (hasTrustStore || hasKeyStore) {
             SSLContext sslContext = sslBuilder.build();
             SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
-                sslContext,
-                new String[] { "TLSv1.2", "TLSv1.3" },
-                null,
-                SSLConnectionSocketFactory.getDefaultHostnameVerifier()
-            );
+                    sslContext,
+                    new String[] {"TLSv1.2", "TLSv1.3"},
+                    null,
+                    SSLConnectionSocketFactory.getDefaultHostnameVerifier());
             builder.setSSLSocketFactory(sslSocketFactory);
         }
 
@@ -69,15 +69,15 @@ public final class SecureHttpClientUtils {
 
     public static KeyStore loadKeyStore(TrustStoreEntity trustStore) throws Exception {
         String type = trustStore.getType() != null ? trustStore.getType().name() : KeyStore.getDefaultType();
-        char[] password = trustStore.getPassword() != null ? trustStore.getPassword().toCharArray() : null;
+        char[] password =
+                trustStore.getPassword() != null ? trustStore.getPassword().toCharArray() : null;
 
         KeyStore loadedKeyStore = KeyStore.getInstance(type);
 
-        try (
-            InputStream inputStream = (trustStore.getPath() != null && !trustStore.getPath().isEmpty())
-                ? new FileInputStream(new File(trustStore.getPath()))
-                : new ByteArrayInputStream(Base64.getDecoder().decode(trustStore.getContent()))
-        ) {
+        try (InputStream inputStream =
+                (trustStore.getPath() != null && !trustStore.getPath().isEmpty())
+                        ? new FileInputStream(new File(trustStore.getPath()))
+                        : new ByteArrayInputStream(Base64.getDecoder().decode(trustStore.getContent()))) {
             loadedKeyStore.load(inputStream, password);
         }
 
@@ -89,11 +89,10 @@ public final class SecureHttpClientUtils {
         char[] storePassword = keyStore.getPassword().toCharArray();
         KeyStore loadedKeyStore = KeyStore.getInstance(type);
 
-        try (
-            InputStream inputStream = (keyStore.getPath() != null && !keyStore.getPath().isEmpty())
-                ? new FileInputStream(new File(keyStore.getPath()))
-                : new ByteArrayInputStream(Base64.getDecoder().decode(keyStore.getContent()))
-        ) {
+        try (InputStream inputStream =
+                (keyStore.getPath() != null && !keyStore.getPath().isEmpty())
+                        ? new FileInputStream(new File(keyStore.getPath()))
+                        : new ByteArrayInputStream(Base64.getDecoder().decode(keyStore.getContent()))) {
             loadedKeyStore.load(inputStream, storePassword);
         }
 

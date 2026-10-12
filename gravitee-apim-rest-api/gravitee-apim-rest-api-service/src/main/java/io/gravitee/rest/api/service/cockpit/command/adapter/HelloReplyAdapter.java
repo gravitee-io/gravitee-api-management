@@ -51,12 +51,16 @@ public class HelloReplyAdapter implements ReplyAdapter<HelloReply, io.gravitee.e
     }
 
     @Override
-    public Single<io.gravitee.exchange.api.command.hello.HelloReply> adapt(final String targetId, final HelloReply reply) {
+    public Single<io.gravitee.exchange.api.command.hello.HelloReply> adapt(
+            final String targetId, final HelloReply reply) {
         return Single.just(reply.getPayload()).map(replyPayload -> {
             if (reply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                final Map<String, String> additionalInformation = installationService.getOrInitialize().getAdditionalInformation();
-                additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_ID, replyPayload.getInstallationId());
-                additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, replyPayload.getInstallationStatus());
+                final Map<String, String> additionalInformation =
+                        installationService.getOrInitialize().getAdditionalInformation();
+                additionalInformation.put(
+                        InstallationService.COCKPIT_INSTALLATION_ID, replyPayload.getInstallationId());
+                additionalInformation.put(
+                        InstallationService.COCKPIT_INSTALLATION_STATUS, replyPayload.getInstallationStatus());
                 installationService.setAdditionalInformation(additionalInformation);
 
                 if (replyPayload.getDefaultEnvironmentCockpitId() != null) {
@@ -78,7 +82,8 @@ public class HelloReplyAdapter implements ReplyAdapter<HelloReply, io.gravitee.e
         UpdateEnvironmentEntity updateEnvironment = new UpdateEnvironmentEntity(defaultEnvironment);
         updateEnvironment.setCockpitId(defaultEnvironmentCockpitId);
 
-        environmentService.createOrUpdate(defaultEnvironment.getOrganizationId(), defaultEnvironment.getId(), updateEnvironment);
+        environmentService.createOrUpdate(
+                defaultEnvironment.getOrganizationId(), defaultEnvironment.getId(), updateEnvironment);
     }
 
     private void updateDefaultOrganizationCockpitId(String defaultOrganizationCockpitId) {

@@ -48,7 +48,9 @@ class AbstractApiReactorElapsedTest {
         // Reading this one instead would report roughly zero, and hand the request its full budget a second time.
         lenient().when(request.timestamp()).thenReturn(System.currentTimeMillis());
 
-        assertThat(AbstractApiReactor.elapsedMillis(ctx)).isGreaterThanOrEqualTo(180).isLessThan(1_000);
+        assertThat(AbstractApiReactor.elapsedMillis(ctx))
+                .isGreaterThanOrEqualTo(180)
+                .isLessThan(1_000);
     }
 
     @Test
@@ -58,6 +60,8 @@ class AbstractApiReactorElapsedTest {
         when(request.timestampNs()).thenReturn(-1L);
         when(request.timestamp()).thenReturn(System.currentTimeMillis() - 180);
 
-        assertThat(AbstractApiReactor.elapsedMillis(ctx)).isGreaterThanOrEqualTo(180).isLessThan(1_000);
+        assertThat(AbstractApiReactor.elapsedMillis(ctx))
+                .isGreaterThanOrEqualTo(180)
+                .isLessThan(1_000);
     }
 }

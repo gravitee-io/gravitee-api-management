@@ -39,14 +39,15 @@ public class PasswordPolicyResource extends AbstractResource {
 
     @GET
     @Operation(
-        summary = "Get the password policy",
-        description = "Returns the configured password policy for user registration and reset flows"
-    )
+            summary = "Get the password policy",
+            description = "Returns the configured password policy for user registration and reset flows")
     @ApiResponse(
-        responseCode = "200",
-        description = "Password policy",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PasswordPolicyEntity.class))
-    )
+            responseCode = "200",
+            description = "Password policy",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PasswordPolicyEntity.class)))
     public PasswordPolicyEntity getPasswordPolicy() {
         return passwordPolicyService.getPasswordPolicy();
     }

@@ -104,10 +104,7 @@ public class MongoTokenRepository implements TokenRepository {
     @Override
     public Set<Token> findAll() throws TechnicalException {
         final List<TokenMongo> tokens = internalTokenRepo.findAll();
-        return tokens
-            .stream()
-            .map(tokenMongo -> mapper.map(tokenMongo))
-            .collect(Collectors.toSet());
+        return tokens.stream().map(tokenMongo -> mapper.map(tokenMongo)).collect(Collectors.toSet());
     }
 
     @Override
@@ -115,21 +112,18 @@ public class MongoTokenRepository implements TokenRepository {
         log.debug("Find token by ref type '{}' and ref id '{}'", referenceType, referenceId);
         final List<TokenMongo> token = internalTokenRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
         log.debug("Find token by ref type '{}' and ref id '{}' done", referenceType, referenceId);
-        return token
-            .stream()
-            .map(t -> mapper.map(t))
-            .collect(Collectors.toList());
+        return token.stream().map(t -> mapper.map(t)).collect(Collectors.toList());
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType)
+            throws TechnicalException {
         log.debug("Delete token by ref type '{}' and ref id '{}'", referenceType, referenceId);
         try {
-            final var tokens = internalTokenRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType)
-                .stream()
-                .map(TokenMongo::getId)
-                .toList();
+            final var tokens =
+                    internalTokenRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType).stream()
+                            .map(TokenMongo::getId)
+                            .toList();
             log.debug("Delete token by ref type '{}' and ref id '{}' done", referenceId, referenceType);
             return tokens;
         } catch (Exception ex) {

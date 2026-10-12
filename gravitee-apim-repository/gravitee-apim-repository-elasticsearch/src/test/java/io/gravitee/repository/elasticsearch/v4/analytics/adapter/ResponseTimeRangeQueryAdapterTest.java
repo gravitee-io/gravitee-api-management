@@ -60,37 +60,46 @@ class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/bool/must/0/terms/api-id").elements())
-            .toIterable()
-            .extracting(JsonNode::asText)
-            .contains("MyAPI");
+        assertThat(jsonQuery
+                        .at("/query/bool/filter/0/bool/should/0/bool/must/0/terms/api-id")
+                        .elements())
+                .toIterable()
+                .extracting(JsonNode::asText)
+                .contains("MyAPI");
         assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/1/terms/api").elements())
-            .toIterable()
-            .extracting(JsonNode::asText)
-            .contains("MyAPI");
+                .toIterable()
+                .extracting(JsonNode::asText)
+                .contains("MyAPI");
         // The bucket grid is shifted onto the window, so the filter starts exactly at `from`: nothing that
         // happened before it can be counted.
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong())).isEqualTo(
-            start.truncatedTo(ChronoUnit.MILLIS)
-        );
+        assertThat(Instant.ofEpochMilli(jsonQuery
+                        .at("/query/bool/filter/1/range/@timestamp/gte")
+                        .asLong()))
+                .isEqualTo(start.truncatedTo(ChronoUnit.MILLIS));
         // The upper bound is exclusive and reaches the end of the last bucket, so that bucket is complete and
         // a document exactly on the bound cannot open one beyond the window.
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lt").asLong())).isEqualTo(
-            HistogramGrid.endOfLastBucket(start.truncatedTo(ChronoUnit.MILLIS), end.truncatedTo(ChronoUnit.MILLIS), interval)
-        );
-        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/offset").asText()).isEqualTo(
-            HistogramGrid.offsetMillis(start, interval) + "ms"
-        );
+        assertThat(Instant.ofEpochMilli(
+                        jsonQuery.at("/query/bool/filter/1/range/@timestamp/lt").asLong()))
+                .isEqualTo(HistogramGrid.endOfLastBucket(
+                        start.truncatedTo(ChronoUnit.MILLIS), end.truncatedTo(ChronoUnit.MILLIS), interval));
+        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/offset").asText())
+                .isEqualTo(HistogramGrid.offsetMillis(start, interval) + "ms");
         // aggs
-        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText()).isEqualTo("@timestamp");
-        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/fixed_interval").asText()).isEqualTo("1800000ms");
+        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText())
+                .isEqualTo("@timestamp");
+        assertThat(jsonQuery
+                        .at("/aggregations/by_date/date_histogram/fixed_interval")
+                        .asText())
+                .isEqualTo("1800000ms");
         // timestamp is in ms so we need to truncate
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/min").asLong())).isEqualTo(
-            start.truncatedTo(ChronoUnit.MILLIS)
-        );
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/max").asLong())).isEqualTo(
-            end.truncatedTo(ChronoUnit.MILLIS)
-        );
+        assertThat(Instant.ofEpochMilli(jsonQuery
+                        .at("/aggregations/by_date/date_histogram/extended_bounds/min")
+                        .asLong()))
+                .isEqualTo(start.truncatedTo(ChronoUnit.MILLIS));
+        assertThat(Instant.ofEpochMilli(jsonQuery
+                        .at("/aggregations/by_date/date_histogram/extended_bounds/max")
+                        .asLong()))
+                .isEqualTo(end.truncatedTo(ChronoUnit.MILLIS));
     }
 
     @SneakyThrows
@@ -112,37 +121,44 @@ class ResponseTimeRangeQueryAdapterTest {
         // Then
         JsonNode jsonQuery = MAPPER.readTree(result);
         // query part
-        assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/0/bool/must/0/terms/api-id").elements())
-            .toIterable()
-            .extracting(JsonNode::asText)
-            .contains("MyAPI");
+        assertThat(jsonQuery
+                        .at("/query/bool/filter/0/bool/should/0/bool/must/0/terms/api-id")
+                        .elements())
+                .toIterable()
+                .extracting(JsonNode::asText)
+                .contains("MyAPI");
         assertThat(jsonQuery.at("/query/bool/filter/0/bool/should/1/terms/api").elements())
-            .toIterable()
-            .extracting(JsonNode::asText)
-            .contains("MyAPI");
+                .toIterable()
+                .extracting(JsonNode::asText)
+                .contains("MyAPI");
         // The bucket grid is shifted onto the window, so the filter starts exactly at `from`: nothing that
         // happened before it can be counted.
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong())).isEqualTo(
-            start.truncatedTo(ChronoUnit.MILLIS)
-        );
+        assertThat(Instant.ofEpochMilli(jsonQuery
+                        .at("/query/bool/filter/1/range/@timestamp/gte")
+                        .asLong()))
+                .isEqualTo(start.truncatedTo(ChronoUnit.MILLIS));
         // The upper bound is exclusive and reaches the end of the last bucket, so that bucket is complete and
         // a document exactly on the bound cannot open one beyond the window.
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lt").asLong())).isEqualTo(
-            HistogramGrid.endOfLastBucket(start.truncatedTo(ChronoUnit.MILLIS), end.truncatedTo(ChronoUnit.MILLIS), interval)
-        );
-        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/offset").asText()).isEqualTo(
-            HistogramGrid.offsetMillis(start, interval) + "ms"
-        );
+        assertThat(Instant.ofEpochMilli(
+                        jsonQuery.at("/query/bool/filter/1/range/@timestamp/lt").asLong()))
+                .isEqualTo(HistogramGrid.endOfLastBucket(
+                        start.truncatedTo(ChronoUnit.MILLIS), end.truncatedTo(ChronoUnit.MILLIS), interval));
+        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/offset").asText())
+                .isEqualTo(HistogramGrid.offsetMillis(start, interval) + "ms");
         // aggs
-        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText()).isEqualTo("@timestamp");
-        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/interval").asText()).isEqualTo("1800000ms");
+        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText())
+                .isEqualTo("@timestamp");
+        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/interval").asText())
+                .isEqualTo("1800000ms");
         // timestamp is in ms so we need to truncate
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/min").asLong())).isEqualTo(
-            start.truncatedTo(ChronoUnit.MILLIS)
-        );
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/max").asLong())).isEqualTo(
-            end.truncatedTo(ChronoUnit.MILLIS)
-        );
+        assertThat(Instant.ofEpochMilli(jsonQuery
+                        .at("/aggregations/by_date/date_histogram/extended_bounds/min")
+                        .asLong()))
+                .isEqualTo(start.truncatedTo(ChronoUnit.MILLIS));
+        assertThat(Instant.ofEpochMilli(jsonQuery
+                        .at("/aggregations/by_date/date_histogram/extended_bounds/max")
+                        .asLong()))
+                .isEqualTo(end.truncatedTo(ChronoUnit.MILLIS));
     }
 
     @SneakyThrows
@@ -163,7 +179,9 @@ class ResponseTimeRangeQueryAdapterTest {
 
         // Then
         assertThat(result.getAverageBy()).hasSize(25);
-        assertThat(result.getAverageBy().entrySet().stream()).map(Map.Entry::getKey).isSorted();
+        assertThat(result.getAverageBy().entrySet().stream())
+                .map(Map.Entry::getKey)
+                .isSorted();
         assertThat(result.getAverageBy().get("2024-10-17T09:00:00.000Z")).isEqualTo(262.961164, within(0.001));
     }
 

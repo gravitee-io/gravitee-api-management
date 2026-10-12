@@ -25,13 +25,15 @@ import java.util.List;
 import java.util.Map;
 
 public class PrimaryOwnerDomainServiceInMemory
-    implements
-        ApiPrimaryOwnerDomainService, ApplicationPrimaryOwnerDomainService, InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>> {
+        implements ApiPrimaryOwnerDomainService,
+                ApplicationPrimaryOwnerDomainService,
+                InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>> {
 
     Map<String, PrimaryOwnerEntity> storage = new HashMap<>();
 
     @Override
-    public PrimaryOwnerEntity getApiPrimaryOwner(String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException {
+    public PrimaryOwnerEntity getApiPrimaryOwner(String organizationId, String apiId)
+            throws ApiPrimaryOwnerNotFoundException {
         PrimaryOwnerEntity primaryOwnerEntity = storage.get(apiId);
         if (primaryOwnerEntity == null) {
             throw new ApiPrimaryOwnerNotFoundException(apiId);
@@ -41,7 +43,7 @@ public class PrimaryOwnerDomainServiceInMemory
 
     @Override
     public PrimaryOwnerEntity getApplicationPrimaryOwner(String organizationId, String applicationId)
-        throws ApplicationPrimaryOwnerNotFoundException {
+            throws ApplicationPrimaryOwnerNotFoundException {
         PrimaryOwnerEntity primaryOwnerEntity = storage.get(applicationId);
         if (primaryOwnerEntity == null) {
             throw new ApplicationPrimaryOwnerNotFoundException(applicationId);

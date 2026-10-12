@@ -79,90 +79,99 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public PortalNavigationItem getApiPortalNavigationItem(@PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
-        var output = getApiPortalNavigationItemUseCase.execute(
-            new GetApiPortalNavigationItemUseCase.Input(
-                GraviteeContext.getCurrentEnvironment(),
-                apiId,
-                PortalNavigationItemId.of(navigationItemId)
-            )
-        );
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.READ})
+    })
+    public PortalNavigationItem getApiPortalNavigationItem(
+            @PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
+        var output = getApiPortalNavigationItemUseCase.execute(new GetApiPortalNavigationItemUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(), apiId, PortalNavigationItemId.of(navigationItemId)));
         return mapper.map(output.item());
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public PortalNavigationItem updateApiPortalNavigationItem(
-        @PathParam("apiId") String apiId,
-        @PathParam("navId") String navigationItemId,
-        @QueryParam("propagatePublishToChildren") @DefaultValue("false") boolean propagatePublishToChildren,
-        @Valid @NotNull final BaseUpdatePortalNavigationItem updatePortalNavigationItem
-    ) {
+            @PathParam("apiId") String apiId,
+            @PathParam("navId") String navigationItemId,
+            @QueryParam("propagatePublishToChildren") @DefaultValue("false") boolean propagatePublishToChildren,
+            @Valid @NotNull final BaseUpdatePortalNavigationItem updatePortalNavigationItem) {
         var environmentId = GraviteeContext.getCurrentEnvironment();
         var toUpdate = mapper.map(updatePortalNavigationItem);
-        apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+        apiOwnedNavigationDomainService.requireOwnedItem(
+                environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
         if (toUpdate.getParentId() != null) {
             apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, toUpdate.getParentId());
         }
 
-        var output = updatePortalNavigationItemUseCase.execute(
-            new UpdatePortalNavigationItemUseCase.Input(
+        var output = updatePortalNavigationItemUseCase.execute(new UpdatePortalNavigationItemUseCase.Input(
                 GraviteeContext.getCurrentOrganization(),
                 environmentId,
                 navigationItemId,
                 toUpdate,
-                propagatePublishToChildren
-            )
-        );
+                propagatePublishToChildren));
         return mapper.map(output.updatedItem());
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.DELETE }) })
-    public Response deleteApiPortalNavigationItem(@PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.DELETE})
+    })
+    public Response deleteApiPortalNavigationItem(
+            @PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
         var environmentId = GraviteeContext.getCurrentEnvironment();
         var itemId = PortalNavigationItemId.of(navigationItemId);
         apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, itemId);
 
-        deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(GraviteeContext.getCurrentOrganization(), environmentId, itemId)
-        );
+        deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                GraviteeContext.getCurrentOrganization(), environmentId, itemId));
         return Response.noContent().build();
     }
 
     @Path("_fetch")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public FetchPortalNavigationItemResponse fetchApiPortalNavigationItem(
-        @PathParam("apiId") String apiId,
-        @PathParam("navId") String navigationItemId
-    ) {
+            @PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
         var environmentId = GraviteeContext.getCurrentEnvironment();
-        apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+        apiOwnedNavigationDomainService.requireOwnedItem(
+                environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
 
-        var output = fetchPortalNavigationItemUseCase.execute(new FetchPortalNavigationItemUseCase.Input(environmentId, navigationItemId));
+        var output = fetchPortalNavigationItemUseCase.execute(
+                new FetchPortalNavigationItemUseCase.Input(environmentId, navigationItemId));
         return mapper.map(output);
     }
 
     @Path("content")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.READ})
+    })
     public PortalPageContent getApiPortalNavigationPageContent(
-        @PathParam("apiId") String apiId,
-        @PathParam("navId") String navigationItemId
-    ) {
+            @PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
         var page = apiOwnedNavigationDomainService.requireOwnedPage(
-            GraviteeContext.getCurrentEnvironment(),
-            apiId,
-            PortalNavigationItemId.of(navigationItemId)
-        );
+                GraviteeContext.getCurrentEnvironment(), apiId, PortalNavigationItemId.of(navigationItemId));
 
-        var output = getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(page.getPortalPageContentId()));
+        var output = getPortalPageContentUseCase.execute(
+                new GetPortalPageContentUseCase.Input(page.getPortalPageContentId()));
         return PortalPageContentMapper.INSTANCE.map(output.content());
     }
 
@@ -170,23 +179,24 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public PortalPageContent updateApiPortalNavigationPageContent(
-        @PathParam("apiId") String apiId,
-        @PathParam("navId") String navigationItemId,
-        @Valid @NotNull final UpdatePortalPageContent updatePortalPageContent
-    ) {
+            @PathParam("apiId") String apiId,
+            @PathParam("navId") String navigationItemId,
+            @Valid @NotNull final UpdatePortalPageContent updatePortalPageContent) {
         var environmentId = GraviteeContext.getCurrentEnvironment();
-        var page = apiOwnedNavigationDomainService.requireOwnedPage(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+        var page = apiOwnedNavigationDomainService.requireOwnedPage(
+                environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
 
-        var output = updatePortalPageContentUseCase.execute(
-            new UpdatePortalPageContentUseCase.Input(
+        var output = updatePortalPageContentUseCase.execute(new UpdatePortalPageContentUseCase.Input(
                 GraviteeContext.getCurrentOrganization(),
                 environmentId,
                 page.getPortalPageContentId().json(),
-                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
-            )
-        );
+                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)));
         return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
     }
 }

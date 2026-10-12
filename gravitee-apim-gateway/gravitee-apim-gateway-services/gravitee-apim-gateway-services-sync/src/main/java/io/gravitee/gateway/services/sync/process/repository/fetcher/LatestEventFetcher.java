@@ -45,61 +45,52 @@ public class LatestEventFetcher {
     private final int bulkItems;
 
     public Flowable<List<Event>> fetchLatest(
-        Long from,
-        Long to,
-        Event.EventProperties group,
-        Set<String> environments,
-        Set<EventType> eventTypes
-    ) {
+            Long from, Long to, Event.EventProperties group, Set<String> environments, Set<EventType> eventTypes) {
         return fetchLatest(from, to, group, null, null, environments, eventTypes);
     }
 
     public Flowable<List<Event>> fetchLatest(
-        Long from,
-        Long to,
-        Event.EventProperties group,
-        Event.EventProperties propertyKey,
-        String propertyValue,
-        Set<String> environments,
-        Set<EventType> eventTypes
-    ) {
+            Long from,
+            Long to,
+            Event.EventProperties group,
+            Event.EventProperties propertyKey,
+            String propertyValue,
+            Set<String> environments,
+            Set<EventType> eventTypes) {
         return Flowable.<List<Event>, EventPageable>generate(
-            () ->
-                EventPageable.builder()
-                    .index(0)
-                    .size(bulkItems)
-                    .criteria(buildCriteria(from, to, propertyKey, propertyValue, environments, eventTypes))
-                    .build(),
-            (page, emitter) -> {
-                try {
-                    List<Event> events = eventLatestRepository.search(page.criteria, group, page.index, page.size);
-                    if (events != null && !events.isEmpty()) {
-                        emitter.onNext(events);
-                        page.index++;
+                () -> EventPageable.builder()
+                        .index(0)
+                        .size(bulkItems)
+                        .criteria(buildCriteria(from, to, propertyKey, propertyValue, environments, eventTypes))
+                        .build(),
+                (page, emitter) -> {
+                    try {
+                        List<Event> events = eventLatestRepository.search(page.criteria, group, page.index, page.size);
+                        if (events != null && !events.isEmpty()) {
+                            emitter.onNext(events);
+                            page.index++;
+                        }
+                        if (events == null || events.size() < page.size) {
+                            emitter.onComplete();
+                        }
+                    } catch (Exception e) {
+                        emitter.onError(e);
                     }
-                    if (events == null || events.size() < page.size) {
-                        emitter.onComplete();
-                    }
-                } catch (Exception e) {
-                    emitter.onError(e);
-                }
-            }
-        );
+                });
     }
 
     private EventCriteria buildCriteria(
-        Long from,
-        Long to,
-        Event.EventProperties propertyKey,
-        String propertyValue,
-        Set<String> environments,
-        Set<EventType> eventTypes
-    ) {
+            Long from,
+            Long to,
+            Event.EventProperties propertyKey,
+            String propertyValue,
+            Set<String> environments,
+            Set<EventType> eventTypes) {
         EventCriteria.EventCriteriaBuilder builder = EventCriteria.builder()
-            .types(eventTypes)
-            .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-            .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
-            .environments(environments);
+                .types(eventTypes)
+                .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+                .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                .environments(environments);
         if (propertyKey != null && propertyValue != null) {
             builder.property(propertyKey.getValue(), propertyValue);
         }
@@ -114,39 +105,38 @@ public class LatestEventFetcher {
      * of the resync. A repository failure ends the stream after a warning rather than failing the
      * caller, so one unreadable page cannot abort a resync.</p>
      */
-    public Flowable<List<Event>> fetchLatestForApiIds(Set<String> apiIds, Set<String> environments, Set<EventType> eventTypes) {
+    public Flowable<List<Event>> fetchLatestForApiIds(
+            Set<String> apiIds, Set<String> environments, Set<EventType> eventTypes) {
         if (apiIds == null || apiIds.isEmpty()) {
             return Flowable.empty();
         }
         return Flowable.<List<Event>, EventPageable>generate(
-            () ->
-                EventPageable.builder()
-                    .index(0)
-                    .size(bulkItems)
-                    .criteria(
-                        EventCriteria.builder()
-                            .types(eventTypes)
-                            .environments(environments)
-                            .property(Event.EventProperties.API_ID.getValue(), apiIds)
-                            .build()
-                    )
-                    .build(),
-            (page, emitter) -> {
-                try {
-                    List<Event> events = eventLatestRepository.search(page.criteria, Event.EventProperties.API_ID, page.index, page.size);
-                    if (events != null && !events.isEmpty()) {
-                        emitter.onNext(events);
-                        page.index++;
-                    }
-                    if (events == null || events.size() < page.size) {
+                () -> EventPageable.builder()
+                        .index(0)
+                        .size(bulkItems)
+                        .criteria(EventCriteria.builder()
+                                .types(eventTypes)
+                                .environments(environments)
+                                .property(Event.EventProperties.API_ID.getValue(), apiIds)
+                                .build())
+                        .build(),
+                (page, emitter) -> {
+                    try {
+                        List<Event> events = eventLatestRepository.search(
+                                page.criteria, Event.EventProperties.API_ID, page.index, page.size);
+                        if (events != null && !events.isEmpty()) {
+                            emitter.onNext(events);
+                            page.index++;
+                        }
+                        if (events == null || events.size() < page.size) {
+                            emitter.onComplete();
+                        }
+                    } catch (Exception e) {
+                        log.warn(
+                                "Failed to batch-fetch latest events for {} API(s): {}", apiIds.size(), e.getMessage());
                         emitter.onComplete();
                     }
-                } catch (Exception e) {
-                    log.warn("Failed to batch-fetch latest events for {} API(s): {}", apiIds.size(), e.getMessage());
-                    emitter.onComplete();
-                }
-            }
-        );
+                });
     }
 
     @Builder

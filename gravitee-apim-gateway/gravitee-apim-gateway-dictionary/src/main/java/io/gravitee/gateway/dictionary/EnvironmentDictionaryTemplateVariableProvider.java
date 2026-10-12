@@ -21,7 +21,7 @@ import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
 import java.util.Map;
 
-@TemplateVariable(scopes = { TemplateVariableScope.API, TemplateVariableScope.HEALTH_CHECK })
+@TemplateVariable(scopes = {TemplateVariableScope.API, TemplateVariableScope.HEALTH_CHECK})
 public class EnvironmentDictionaryTemplateVariableProvider implements TemplateVariableProvider {
 
     private final String environmentId;

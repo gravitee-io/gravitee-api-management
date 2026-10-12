@@ -35,11 +35,10 @@ public class SecurityPolicyFactory {
 
     @SuppressWarnings("unchecked")
     public static <T extends BaseSecurityPolicy> T forPlan(
-        final String apiId,
-        final AbstractPlan plan,
-        final PolicyManager policyManager,
-        final ExecutionPhase executionPhase
-    ) {
+            final String apiId,
+            final AbstractPlan plan,
+            final PolicyManager policyManager,
+            final ExecutionPhase executionPhase) {
         if (plan.useStandardMode()) {
             PlanSecurity planSecurity = plan.getSecurity();
             if (planSecurity == null || planSecurity.getType() == null) {
@@ -47,7 +46,8 @@ public class SecurityPolicyFactory {
             }
 
             String policyName = planSecurity.getType().toLowerCase().replaceAll("_", "-");
-            final BasePolicy policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
+            final BasePolicy policy = policyManager.create(
+                    executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
 
             if (policy instanceof BaseSecurityPolicy) {
                 return (T) policy;

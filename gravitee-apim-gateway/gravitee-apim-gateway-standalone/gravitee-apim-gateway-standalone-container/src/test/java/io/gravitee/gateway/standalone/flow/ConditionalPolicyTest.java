@@ -26,8 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.flow.policy.Header1Policy;
-import io.gravitee.gateway.standalone.flow.policy.Header2Policy;
-import io.gravitee.gateway.standalone.flow.policy.MyPolicy;
 import io.gravitee.gateway.standalone.flow.policy.OnRequestPolicy;
 import io.gravitee.gateway.standalone.flow.policy.Stream1Policy;
 import io.gravitee.gateway.standalone.flow.policy.Stream2Policy;
@@ -54,17 +52,15 @@ public class ConditionalPolicyTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(
-            Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-ok")
-        ).returnResponse();
+                        Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-ok"))
+                .returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         assertFalse(response.containsHeader("X-Gravitee-Policy"));
         String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals("OnResponseContent2Policy", responseContent);
-        wireMockRule.verify(
-            getRequestedFor(urlPathEqualTo("/team/my_team"))
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
                 .withHeader("X-Gravitee-Policy", equalTo("request-header1"))
-                .withHeader("on-request-policy", equalTo("invoked"))
-        );
+                .withHeader("on-request-policy", equalTo("invoked")));
     }
 
     @Test
@@ -72,17 +68,15 @@ public class ConditionalPolicyTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(
-            Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-no")
-        ).returnResponse();
+                        Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-no"))
+                .returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         assertFalse(response.containsHeader("X-Gravitee-Policy"));
         String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals("", responseContent);
-        wireMockRule.verify(
-            getRequestedFor(urlPathEqualTo("/team/my_team"))
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
                 .withoutHeader("X-Gravitee-Policy")
-                .withHeader("on-request-policy", equalTo("invoked"))
-        );
+                .withHeader("on-request-policy", equalTo("invoked")));
     }
 
     @Override

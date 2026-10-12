@@ -39,30 +39,27 @@ import org.springframework.context.annotation.FilterType;
  */
 @Configuration
 @ComponentScan(
-    basePackages = "io.gravitee.gamma.rest.core.observability.analytics",
-    includeFilters = {
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
-    }
-)
+        basePackages = "io.gravitee.gamma.rest.core.observability.analytics",
+        includeFilters = {
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
+        })
 public class GammaAnalyticsConfiguration {
 
     @Bean
     public ObservabilityAnalyticsDataPort observabilityAnalyticsDataPort(
-        ComputeMeasuresUseCase computeMeasuresUseCase,
-        ComputeFacetsUseCase computeFacetsUseCase,
-        ComputeTimeSeriesUseCase computeTimeSeriesUseCase,
-        AnalyticsQueryValidator analyticsQueryValidator,
-        UserContextLoader userContextLoader,
-        ObjectMapper objectMapper
-    ) {
+            ComputeMeasuresUseCase computeMeasuresUseCase,
+            ComputeFacetsUseCase computeFacetsUseCase,
+            ComputeTimeSeriesUseCase computeTimeSeriesUseCase,
+            AnalyticsQueryValidator analyticsQueryValidator,
+            UserContextLoader userContextLoader,
+            ObjectMapper objectMapper) {
         return new ObservabilityAnalyticsDataPortAdapter(
-            computeMeasuresUseCase,
-            computeFacetsUseCase,
-            computeTimeSeriesUseCase,
-            analyticsQueryValidator,
-            userContextLoader,
-            objectMapper
-        );
+                computeMeasuresUseCase,
+                computeFacetsUseCase,
+                computeTimeSeriesUseCase,
+                analyticsQueryValidator,
+                userContextLoader,
+                objectMapper);
     }
 }

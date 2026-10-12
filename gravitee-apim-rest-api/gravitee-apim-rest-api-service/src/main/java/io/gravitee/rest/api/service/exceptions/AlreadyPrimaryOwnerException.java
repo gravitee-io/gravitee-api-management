@@ -39,9 +39,8 @@ public class AlreadyPrimaryOwnerException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return (
-            "The user " + userId + " is already a primary owner and cannot have a weaker role. Please use the transfer ownership feature."
-        );
+        return ("The user " + userId
+                + " is already a primary owner and cannot have a weaker role. Please use the transfer ownership feature.");
     }
 
     @Override

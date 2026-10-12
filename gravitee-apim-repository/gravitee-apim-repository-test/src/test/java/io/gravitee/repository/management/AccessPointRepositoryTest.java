@@ -39,16 +39,16 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_create_and_find_access_point() throws Exception {
         AccessPoint accessPoint = AccessPoint.builder()
-            .id("id")
-            .host("host")
-            .target(AccessPointTarget.GATEWAY)
-            .secured(true)
-            .referenceId("referenceId")
-            .referenceType(AccessPointReferenceType.ENVIRONMENT)
-            .overriding(true)
-            .status(AccessPointStatus.CREATED)
-            .updatedAt(new Date(1486771200000L))
-            .build();
+                .id("id")
+                .host("host")
+                .target(AccessPointTarget.GATEWAY)
+                .secured(true)
+                .referenceId("referenceId")
+                .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                .overriding(true)
+                .status(AccessPointStatus.CREATED)
+                .updatedAt(new Date(1486771200000L))
+                .build();
 
         accessPointRepository.create(accessPoint);
 
@@ -70,10 +70,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_return_access_point_from_reference_id_and_type() throws Exception {
         List<AccessPoint> accessPoints = accessPointRepository.findByReferenceAndTarget(
-            AccessPointReferenceType.ENVIRONMENT,
-            "69a7a51a-98b7-4943-a7a5-1a98b79943e6",
-            AccessPointTarget.PORTAL
-        );
+                AccessPointReferenceType.ENVIRONMENT, "69a7a51a-98b7-4943-a7a5-1a98b79943e6", AccessPointTarget.PORTAL);
 
         assertFalse(accessPoints.isEmpty());
         assertEquals(1, accessPoints.size());
@@ -105,7 +102,8 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_return_access_point_from_host() throws Exception {
-        Optional<AccessPoint> accessPointOptional = accessPointRepository.findByHost("dev.en.company.apim-portal.gravitee.io:4100");
+        Optional<AccessPoint> accessPointOptional =
+                accessPointRepository.findByHost("dev.en.company.apim-portal.gravitee.io:4100");
 
         assertTrue(accessPointOptional.isPresent());
         AccessPoint accessPoint = accessPointOptional.get();
@@ -121,13 +119,13 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_return_access_point_from_criteria() throws Exception {
         AccessPointCriteria accessPointCriteria = AccessPointCriteria.builder()
-            .from(1486771200000L - 1)
-            .to(1486771200000L + 1)
-            .targets(List.of(AccessPointTarget.GATEWAY))
-            .status(AccessPointStatus.CREATED)
-            .referenceType(AccessPointReferenceType.ENVIRONMENT)
-            .referenceIds(Set.of("b78f2219-890d-4344-8f22-19890d834442"))
-            .build();
+                .from(1486771200000L - 1)
+                .to(1486771200000L + 1)
+                .targets(List.of(AccessPointTarget.GATEWAY))
+                .status(AccessPointStatus.CREATED)
+                .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                .referenceIds(Set.of("b78f2219-890d-4344-8f22-19890d834442"))
+                .build();
 
         List<AccessPoint> accessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
 
@@ -145,13 +143,13 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_return_access_point_from_criteria_with_target() throws Exception {
         AccessPointCriteria accessPointCriteria = AccessPointCriteria.builder()
-            .from(1486771200000L - 1)
-            .to(1486771200000L + 1)
-            .target(AccessPointTarget.GATEWAY)
-            .status(AccessPointStatus.CREATED)
-            .referenceType(AccessPointReferenceType.ENVIRONMENT)
-            .referenceIds(Set.of("b78f2219-890d-4344-8f22-19890d834442"))
-            .build();
+                .from(1486771200000L - 1)
+                .to(1486771200000L + 1)
+                .target(AccessPointTarget.GATEWAY)
+                .status(AccessPointStatus.CREATED)
+                .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                .referenceIds(Set.of("b78f2219-890d-4344-8f22-19890d834442"))
+                .build();
 
         List<AccessPoint> accessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
 
@@ -169,11 +167,11 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_return_access_point_from_criteria_paginated() throws Exception {
         var accessPointCriteria = AccessPointCriteria.builder()
-            .from(1486771200000L - 1)
-            .to(1486771200000L + 1)
-            .target(AccessPointTarget.GATEWAY)
-            .status(AccessPointStatus.CREATED)
-            .build();
+                .from(1486771200000L - 1)
+                .to(1486771200000L + 1)
+                .target(AccessPointTarget.GATEWAY)
+                .status(AccessPointStatus.CREATED)
+                .build();
 
         var accessPoints = accessPointRepository.findByCriteria(accessPointCriteria, 0L, 2L);
 
@@ -182,20 +180,14 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_delete_from_reference() throws Exception {
-        List<AccessPoint> beforeDeletion = accessPointRepository
-            .findAll()
-            .stream()
-            .filter(accessPoint -> accessPoint.getReferenceId().equals("env_id_to_be_deleted"))
-            .toList();
+        List<AccessPoint> beforeDeletion = accessPointRepository.findAll().stream()
+                .filter(accessPoint -> accessPoint.getReferenceId().equals("env_id_to_be_deleted"))
+                .toList();
         List<String> deleted = accessPointRepository.deleteByReferenceIdAndReferenceType(
-            "env_id_to_be_deleted",
-            AccessPointReferenceType.ENVIRONMENT
-        );
-        List<AccessPoint> afterDeletion = accessPointRepository
-            .findAll()
-            .stream()
-            .filter(accessPoint -> accessPoint.getReferenceId().equals("env_id_to_be_deleted"))
-            .toList();
+                "env_id_to_be_deleted", AccessPointReferenceType.ENVIRONMENT);
+        List<AccessPoint> afterDeletion = accessPointRepository.findAll().stream()
+                .filter(accessPoint -> accessPoint.getReferenceId().equals("env_id_to_be_deleted"))
+                .toList();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(beforeDeletion.stream().map(AccessPoint::getId).toList().containsAll(deleted));
@@ -205,16 +197,16 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void should_delete_from_id() throws Exception {
         AccessPoint accessPoint = AccessPoint.builder()
-            .id("id3")
-            .host("host3")
-            .target(AccessPointTarget.GATEWAY)
-            .secured(true)
-            .referenceId("referenceId3")
-            .referenceType(AccessPointReferenceType.ENVIRONMENT)
-            .overriding(true)
-            .status(AccessPointStatus.CREATED)
-            .updatedAt(new Date(1486771200000L))
-            .build();
+                .id("id3")
+                .host("host3")
+                .target(AccessPointTarget.GATEWAY)
+                .secured(true)
+                .referenceId("referenceId3")
+                .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                .overriding(true)
+                .status(AccessPointStatus.CREATED)
+                .updatedAt(new Date(1486771200000L))
+                .build();
 
         accessPointRepository.create(accessPoint);
 

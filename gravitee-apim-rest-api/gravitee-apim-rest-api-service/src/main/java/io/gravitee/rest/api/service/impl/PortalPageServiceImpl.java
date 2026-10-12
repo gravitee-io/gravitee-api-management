@@ -40,9 +40,8 @@ public class PortalPageServiceImpl implements PortalPageService {
     private final PortalPageContextRepository portalPageContextRepository;
 
     public PortalPageServiceImpl(
-        @Lazy PortalPageRepository portalPageRepository,
-        @Lazy PortalPageContextRepository portalPageContextRepository
-    ) {
+            @Lazy PortalPageRepository portalPageRepository,
+            @Lazy PortalPageContextRepository portalPageContextRepository) {
         this.portalPageRepository = portalPageRepository;
         this.portalPageContextRepository = portalPageContextRepository;
     }
@@ -50,27 +49,24 @@ public class PortalPageServiceImpl implements PortalPageService {
     @Override
     public void createDefaultPortalHomePage(String environmentId) throws TechnicalException {
         var now = new Date();
-        var homePages = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId);
+        var homePages = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(
+                PortalPageContextType.HOMEPAGE, environmentId);
         if (homePages.isEmpty()) {
-            var createPortalPage = portalPageRepository.create(
-                PortalPage.builder()
+            var createPortalPage = portalPageRepository.create(PortalPage.builder()
                     .id(UuidString.generateRandom())
                     .environmentId(environmentId)
                     .name(DEFAULT_PORTAL_PAGE_NAME)
                     .content(getDefaultPortalPageContent())
                     .createdAt(now)
                     .updatedAt(now)
-                    .build()
-            );
-            portalPageContextRepository.create(
-                PortalPageContext.builder()
+                    .build());
+            portalPageContextRepository.create(PortalPageContext.builder()
                     .id(UuidString.generateRandom())
                     .pageId(createPortalPage.getId())
                     .contextType(PortalPageContextType.HOMEPAGE)
                     .environmentId(environmentId)
                     .published(true)
-                    .build()
-            );
+                    .build());
         }
     }
 

@@ -49,17 +49,18 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
     }
 
-    @EnumSource(value = Qos.class, names = { "NONE", "AUTO" })
+    @EnumSource(
+            value = Qos.class,
+            names = {"NONE", "AUTO"})
     @ParameterizedTest(name = "should receive all messages with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber-none.json",
-            "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber-none.json",
+        "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber.json",
+    })
     void should_receive_all_messages_with_qos(Qos qos, WebSocketClient webSocketClient, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through entrypoint.
@@ -69,125 +70,120 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
         blockingPublishToKafka(producer, "message3");
         producer.close();
 
-        final var obs = webSocketClient.rxConnect("/test-" + qos.getLabel()).flatMapPublisher(WebSocket::toFlowable).test();
+        final var obs = webSocketClient
+                .rxConnect("/test-" + qos.getLabel())
+                .flatMapPublisher(WebSocket::toFlowable)
+                .test();
 
         // We expect 3 binary frame, for 3 messages
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, frame -> {
-                assertThat(frame).hasToString("message1");
-                return true;
-            })
-            .assertValueAt(1, frame -> {
-                assertThat(frame).hasToString("message2");
-                return true;
-            })
-            .assertValueAt(2, frame -> {
-                assertThat(frame).hasToString("message3");
-                return true;
-            })
-            .assertNoErrors();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 3);
+        obs.assertValueAt(0, frame -> {
+                    assertThat(frame).hasToString("message1");
+                    return true;
+                })
+                .assertValueAt(1, frame -> {
+                    assertThat(frame).hasToString("message2");
+                    return true;
+                })
+                .assertValueAt(2, frame -> {
+                    assertThat(frame).hasToString("message3");
+                    return true;
+                })
+                .assertNoErrors();
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-publisher.json" })
+    @DeployApi({"/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-publisher.json"})
     void should_publish_messages(WebSocketClient webSocketClient, Vertx vertx) {
         webSocketClient
-            .rxConnect("/test")
-            .flatMapCompletable(websocket ->
-                // Write text frame
-                websocket
-                    .writeTextMessage("message1")
-                    // Write binary frame
-                    .andThen(websocket.writeBinaryMessage(Buffer.buffer("message2")))
-                    // Write final text frame
-                    .andThen(websocket.writeFinalTextFrame("message3"))
-            )
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxConnect("/test")
+                .flatMapCompletable(websocket ->
+                        // Write text frame
+                        websocket
+                                .writeTextMessage("message1")
+                                // Write binary frame
+                                .andThen(websocket.writeBinaryMessage(Buffer.buffer("message2")))
+                                // Write final text frame
+                                .andThen(websocket.writeFinalTextFrame("message3")))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Configure a KafkaConsumer to read messages published on topic test-topic.
         KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
         subscribeToKafka(kafkaConsumer)
-            // We expect 3 message for this test
-            .take(3)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(0, message -> {
-                assertThat(new String(message.value())).hasToString("message1");
-                return true;
-            })
-            .assertValueAt(1, message -> {
-                assertThat(new String(message.value())).hasToString("message2");
-                return true;
-            })
-            .assertValueAt(2, message -> {
-                assertThat(new String(message.value())).hasToString("message3");
-                return true;
-            })
-            .assertComplete();
+                // We expect 3 message for this test
+                .take(3)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(0, message -> {
+                    assertThat(new String(message.value())).hasToString("message1");
+                    return true;
+                })
+                .assertValueAt(1, message -> {
+                    assertThat(new String(message.value())).hasToString("message2");
+                    return true;
+                })
+                .assertValueAt(2, message -> {
+                    assertThat(new String(message.value())).hasToString("message3");
+                    return true;
+                })
+                .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-publisher-subscriber.json" })
+    @DeployApi({"/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-publisher-subscriber.json"})
     void should_received_published_messages(WebSocketClient webSocketClient, Vertx vertx) {
         var obs = webSocketClient
-            .rxConnect("/test")
-            .flatMapPublisher(websocket ->
-                // Write text frame
-                websocket
-                    .writeTextMessage("message1")
-                    // Write binary frame
-                    .andThen(websocket.writeBinaryMessage(Buffer.buffer("message2")))
-                    // Write final text frame
-                    .andThen(websocket.writeTextMessage("message3"))
-                    .<Buffer>toFlowable()
-                    .mergeWith(websocket.toFlowable())
-            )
-            .test();
-        await()
-            .atMost(30, TimeUnit.SECONDS)
-            .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, frame -> {
-                assertThat(frame).hasToString("message1");
-                return true;
-            })
-            .assertValueAt(1, frame -> {
-                assertThat(frame).hasToString("message2");
-                return true;
-            })
-            .assertValueAt(2, frame -> {
-                assertThat(frame).hasToString("message3");
-                return true;
-            })
-            .assertNoErrors();
+                .rxConnect("/test")
+                .flatMapPublisher(websocket ->
+                        // Write text frame
+                        websocket
+                                .writeTextMessage("message1")
+                                // Write binary frame
+                                .andThen(websocket.writeBinaryMessage(Buffer.buffer("message2")))
+                                // Write final text frame
+                                .andThen(websocket.writeTextMessage("message3"))
+                                .<Buffer>toFlowable()
+                                .mergeWith(websocket.toFlowable()))
+                .test();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> obs.values().size() >= 3);
+        obs.assertValueAt(0, frame -> {
+                    assertThat(frame).hasToString("message1");
+                    return true;
+                })
+                .assertValueAt(1, frame -> {
+                    assertThat(frame).hasToString("message2");
+                    return true;
+                })
+                .assertValueAt(2, frame -> {
+                    assertThat(frame).hasToString("message3");
+                    return true;
+                })
+                .assertNoErrors();
 
         // Configure a KafkaConsumer to read messages published on topic test-topic.
         KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
         subscribeToKafka(kafkaConsumer)
-            // We expect 3 message for this test
-            .take(3)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(0, message -> {
-                assertThat(new String(message.value())).hasToString("message1");
-                return true;
-            })
-            .assertValueAt(1, message -> {
-                assertThat(new String(message.value())).hasToString("message2");
-                return true;
-            })
-            .assertValueAt(2, message -> {
-                assertThat(new String(message.value())).hasToString("message3");
-                return true;
-            })
-            .assertComplete();
+                // We expect 3 message for this test
+                .take(3)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(0, message -> {
+                    assertThat(new String(message.value())).hasToString("message1");
+                    return true;
+                })
+                .assertValueAt(1, message -> {
+                    assertThat(new String(message.value())).hasToString("message2");
+                    return true;
+                })
+                .assertValueAt(2, message -> {
+                    assertThat(new String(message.value())).hasToString("message3");
+                    return true;
+                })
+                .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
     }

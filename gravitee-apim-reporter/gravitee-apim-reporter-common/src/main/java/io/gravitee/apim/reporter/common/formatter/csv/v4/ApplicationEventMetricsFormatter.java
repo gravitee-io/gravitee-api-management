@@ -29,7 +29,7 @@ public class ApplicationEventMetricsFormatter extends BaseEventMetricsFormatter<
     protected Buffer format0(ApplicationEventMetrics data) {
         final Buffer buffer = super.format0(data);
 
-        //Append application event metrics
+        // Append application event metrics
         appendLong(buffer, data.getDownstreamAuthenticatedConnections());
         appendLong(buffer, data.getUpstreamAuthenticatedConnections());
         appendLong(buffer, data.getUpstreamAuthenticationFailuresCountIncrement());

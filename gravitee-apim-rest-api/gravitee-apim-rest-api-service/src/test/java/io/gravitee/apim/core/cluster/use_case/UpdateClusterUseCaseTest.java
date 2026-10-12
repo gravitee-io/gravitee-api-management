@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,10 +44,6 @@ import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.json.JsonSchemaCheckerImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.cluster.ClusterType;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
-import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
-import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -76,47 +71,40 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var jsonSchemaChecker = new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
         var clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
         var validateClusterService = new ValidateClusterService(
-            jsonSchemaChecker,
-            clusterConfigurationSchemaService,
-            objectMapper,
-            clusterQueryService
-        );
+                jsonSchemaChecker, clusterConfigurationSchemaService, objectMapper, clusterQueryService);
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         updateClusterUseCase = new UpdateClusterUseCase(
-            clusterCrudService,
-            validateClusterService,
-            auditService,
-            permissionDomainService,
-            objectMapper,
-            new ClusterConfigurationAccessDomainService(permissionDomainService)
-        );
+                clusterCrudService,
+                validateClusterService,
+                auditService,
+                permissionDomainService,
+                objectMapper,
+                new ClusterConfigurationAccessDomainService(permissionDomainService));
         clusterQueryService.reset();
         apiQueryService.reset();
 
         existingCluster = Cluster.builder()
-            .id(GENERATED_UUID)
-            .crossId("cluster-1")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("Cluster 1")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 1")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
-            .build();
+                .id(GENERATED_UUID)
+                .crossId("cluster-1")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("Cluster 1")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 1")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(
+                        Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
+                .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
 
         lenient()
-            .when(
-                permissionDomainService.hasPermission(
-                    ORG_ID,
-                    USER_ID,
-                    RolePermission.CLUSTER_CONFIGURATION,
-                    GENERATED_UUID,
-                    RolePermissionAction.UPDATE
-                )
-            )
-            .thenReturn(true);
+                .when(permissionDomainService.hasPermission(
+                        ORG_ID,
+                        USER_ID,
+                        RolePermission.CLUSTER_CONFIGURATION,
+                        GENERATED_UUID,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
     }
 
     @Test
@@ -126,7 +114,8 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var toUpdate = UpdateCluster.builder().name(name).build();
 
         // When
-        var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+        var updatedCluster =
+                updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then
         var expected = existingCluster;
@@ -143,7 +132,8 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var toUpdate = UpdateCluster.builder().description(description).build();
 
         // When
-        var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+        var updatedCluster =
+                updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then
         var expected = existingCluster;
@@ -160,7 +150,8 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var toUpdate = UpdateCluster.builder().configuration(configuration).build();
 
         // When
-        var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+        var updatedCluster =
+                updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then
         var expected = existingCluster;
@@ -179,20 +170,18 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id(GENERATED_UUID)
-                    .organizationId(ORG_ID)
-                    .environmentId(ENV_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
-                    .referenceId(ENV_ID)
-                    .user(USER_ID)
-                    .properties(Map.of(AuditProperties.CLUSTER.name(), GENERATED_UUID))
-                    .event(ClusterAuditEvent.CLUSTER_UPDATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id(GENERATED_UUID)
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
+                        .referenceId(ENV_ID)
+                        .user(USER_ID)
+                        .properties(Map.of(AuditProperties.CLUSTER.name(), GENERATED_UUID))
+                        .event(ClusterAuditEvent.CLUSTER_UPDATED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
@@ -201,7 +190,8 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var toUpdate = UpdateCluster.builder().name("New Name").build();
 
         // When
-        var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+        var updatedCluster =
+                updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then - crossId remains unchanged
         assertThat(updatedCluster.cluster().getCrossId()).isEqualTo("cluster-1");
@@ -210,50 +200,45 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_not_update_configuration_without_CLUSTER_CONFIGURATION_UPDATE_permission() {
         // Given
-        when(
-            permissionDomainService.hasPermission(
-                ORG_ID,
-                USER_ID,
-                RolePermission.CLUSTER_CONFIGURATION,
-                GENERATED_UUID,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionDomainService.hasPermission(
+                        ORG_ID,
+                        USER_ID,
+                        RolePermission.CLUSTER_CONFIGURATION,
+                        GENERATED_UUID,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
         var toUpdate = UpdateCluster.builder()
-            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SSL")))
-            .build();
+                .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SSL")))
+                .build();
 
         // When
         updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then
-        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
-            Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"))
-        );
+        assertThat(clusterCrudService
+                        .findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID)
+                        .getConfiguration())
+                .isEqualTo(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")));
     }
 
     @Test
     void should_not_return_credentials_to_a_caller_who_cannot_edit_the_configuration() {
         // Given
         givenStoredClusterWithCredentials();
-        when(
-            permissionDomainService.hasPermission(
-                ORG_ID,
-                USER_ID,
-                RolePermission.CLUSTER_CONFIGURATION,
-                GENERATED_UUID,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
-        when(
-            permissionDomainService.hasPermission(
-                ORG_ID,
-                USER_ID,
-                RolePermission.CLUSTER_CONFIGURATION,
-                GENERATED_UUID,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionDomainService.hasPermission(
+                        ORG_ID,
+                        USER_ID,
+                        RolePermission.CLUSTER_CONFIGURATION,
+                        GENERATED_UUID,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
+        when(permissionDomainService.hasPermission(
+                        ORG_ID,
+                        USER_ID,
+                        RolePermission.CLUSTER_CONFIGURATION,
+                        GENERATED_UUID,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
         var toUpdate = UpdateCluster.builder().description("new description").build();
 
         // When
@@ -261,24 +246,21 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
         // Then
         assertThat(output.cluster().getDescription()).isEqualTo("new description");
-        assertThat(output.cluster().getConfiguration()).isEqualTo(
-            Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SASL_SSL"))
-        );
+        assertThat(output.cluster().getConfiguration())
+                .isEqualTo(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SASL_SSL")));
     }
 
     @Test
     void should_not_return_configuration_to_a_caller_who_cannot_read_it() {
         // Given
         givenStoredClusterWithCredentials();
-        when(
-            permissionDomainService.hasPermission(
-                ORG_ID,
-                USER_ID,
-                RolePermission.CLUSTER_CONFIGURATION,
-                GENERATED_UUID,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionDomainService.hasPermission(
+                        ORG_ID,
+                        USER_ID,
+                        RolePermission.CLUSTER_CONFIGURATION,
+                        GENERATED_UUID,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
         var toUpdate = UpdateCluster.builder().description("new description").build();
 
         // When
@@ -286,9 +268,10 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
         // Then
         assertThat(output.cluster().getConfiguration()).isNull();
-        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
-            credentialsConfiguration()
-        );
+        assertThat(clusterCrudService
+                        .findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID)
+                        .getConfiguration())
+                .isEqualTo(credentialsConfiguration());
     }
 
     @Test
@@ -306,11 +289,14 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
     private static Map<String, Object> credentialsConfiguration() {
         return Map.of(
-            "bootstrapServers",
-            "localhost:9092",
-            "security",
-            Map.of("protocol", "SASL_SSL", "sasl", Map.of("mechanism", Map.of("type", "PLAIN", "username", "u", "password", "p")))
-        );
+                "bootstrapServers",
+                "localhost:9092",
+                "security",
+                Map.of(
+                        "protocol",
+                        "SASL_SSL",
+                        "sasl",
+                        Map.of("mechanism", Map.of("type", "PLAIN", "username", "u", "password", "p"))));
     }
 
     private void givenStoredClusterWithCredentials() {
@@ -322,7 +308,9 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     void should_flip_deployed_virtual_cluster_to_pending_when_removing_all_backends() {
         seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
 
-        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+        var toUpdate = UpdateCluster.builder()
+                .configuration(Map.of("backends", List.of()))
+                .build();
 
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
@@ -335,11 +323,12 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_accept_removing_all_backends_even_with_started_bound_apis() {
         seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
-        apiQueryService.initWith(
-            List.of(ApiFixtures.aNativeApiBoundToVirtualCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, "mesh"))
-        );
+        apiQueryService.initWith(List.of(ApiFixtures.aNativeApiBoundToVirtualCluster(
+                "started-api", ENV_ID, Api.LifecycleState.STARTED, "mesh")));
 
-        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+        var toUpdate = UpdateCluster.builder()
+                .configuration(Map.of("backends", List.of()))
+                .build();
 
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
@@ -350,7 +339,9 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     void should_keep_pending_virtual_cluster_pending_when_removing_all_backends() {
         seedVirtualCluster(ClusterLifecycleState.PENDING, backends("kafka-1", "conn-1"));
 
-        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+        var toUpdate = UpdateCluster.builder()
+                .configuration(Map.of("backends", List.of()))
+                .build();
 
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
@@ -361,7 +352,9 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     void should_keep_pending_flow_when_backends_are_kept() {
         seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
 
-        var toUpdate = UpdateCluster.builder().configuration(backends("kafka-2", "conn-2")).build();
+        var toUpdate = UpdateCluster.builder()
+                .configuration(backends("kafka-2", "conn-2"))
+                .build();
 
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
@@ -372,7 +365,9 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     void should_not_undeploy_already_undeployed_virtual_cluster_when_emptying_backends() {
         seedVirtualCluster(ClusterLifecycleState.UNDEPLOYED, backends("kafka-1", "conn-1"));
 
-        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+        var toUpdate = UpdateCluster.builder()
+                .configuration(Map.of("backends", List.of()))
+                .build();
 
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
@@ -383,20 +378,21 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
     private void seedVirtualCluster(ClusterLifecycleState lifecycleState, Object configuration) {
         Cluster virtualCluster = Cluster.builder()
-            .id(GENERATED_UUID)
-            .crossId("mesh")
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("My Virtual Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .lifecycleState(lifecycleState)
-            .version(1)
-            .configuration(configuration)
-            .build();
+                .id(GENERATED_UUID)
+                .crossId("mesh")
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("My Virtual Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .lifecycleState(lifecycleState)
+                .version(1)
+                .configuration(configuration)
+                .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(virtualCluster));
     }
 
     private static Map<String, Object> backends(String clusterCrossId, String connectionCrossId) {
-        return Map.of("backends", List.of(Map.of("clusterCrossId", clusterCrossId, "connectionCrossId", connectionCrossId)));
+        return Map.of(
+                "backends", List.of(Map.of("clusterCrossId", clusterCrossId, "connectionCrossId", connectionCrossId)));
     }
 }

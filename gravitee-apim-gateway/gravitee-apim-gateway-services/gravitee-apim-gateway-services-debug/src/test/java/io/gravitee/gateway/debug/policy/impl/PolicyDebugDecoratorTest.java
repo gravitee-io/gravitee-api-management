@@ -92,9 +92,8 @@ public class PolicyDebugDecoratorTest {
 
     @BeforeEach
     public void setUp() {
-        policyFactory = spy(
-            new PolicyDebugDecoratorFactory(new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator()))
-        );
+        policyFactory = spy(new PolicyDebugDecoratorFactory(
+                new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator())));
 
         when(context.request()).thenReturn(request);
         when(context.response()).thenReturn(response);
@@ -110,9 +109,8 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(
-            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata())
-        );
+        io.gravitee.gateway.policy.Policy debugPolicy =
+                Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata()));
 
         final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
@@ -143,9 +141,8 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = spy(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy debugPolicy = Mockito.spy(
-            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata())
-        );
+        io.gravitee.gateway.policy.Policy debugPolicy =
+                Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata()));
 
         final ArgumentCaptor<DebugStep<?>> debugStepCaptor = ArgumentCaptor.forClass(DebugStep.class);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
@@ -177,12 +174,10 @@ public class PolicyDebugDecoratorTest {
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata())
-        );
-        final PolicyDebugDecorator debugPolicy = spy(
-            new PolicyDebugDecorator(StreamType.ON_REQUEST, policy, new PolicyMetadata("dummy", "{}"))
-        );
+        io.gravitee.gateway.policy.Policy policy =
+                Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata()));
+        final PolicyDebugDecorator debugPolicy =
+                spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy, new PolicyMetadata("dummy", "{}")));
 
         debugPolicy.stream(policyChain, context);
 
@@ -210,19 +205,18 @@ public class PolicyDebugDecoratorTest {
         when(policyPluginFactory.create(NoTransformationPolicy.class, null)).thenReturn(noTransformationPolicy);
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata())
-        );
-        final PolicyDebugDecorator debugPolicy = spy(
-            new PolicyDebugDecorator(StreamType.ON_REQUEST, policy, new PolicyMetadata("dummy", "{}"))
-        );
+        io.gravitee.gateway.policy.Policy policy =
+                Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, fakePolicyMetadata()));
+        final PolicyDebugDecorator debugPolicy =
+                spy(new PolicyDebugDecorator(StreamType.ON_REQUEST, policy, new PolicyMetadata("dummy", "{}")));
 
         debugPolicy.stream(policyChain, context);
 
         Assertions.assertFalse(debugPolicy.isRunnable());
         Assertions.assertTrue(debugPolicy.isStreamable());
         verify(noTransformationPolicy, never()).onRequest(policyChain, request, response);
-        verify(noTransformationPolicy, atLeastOnce()).onRequestContent(chainCaptor.capture(), eq(request), eq(response));
+        verify(noTransformationPolicy, atLeastOnce())
+                .onRequestContent(chainCaptor.capture(), eq(request), eq(response));
         verify(noTransformationPolicy, never()).onResponse(policyChain, request, response);
         verify(noTransformationPolicy, never()).onResponseContent(policyChain, request, response);
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
@@ -241,12 +235,10 @@ public class PolicyDebugDecoratorTest {
         DummyPolicy dummyPolicy = mock(DummyPolicy.class);
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata())
-        );
-        final PolicyDebugDecorator debugPolicy = spy(
-            new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy, new PolicyMetadata("dummy", "{}"))
-        );
+        io.gravitee.gateway.policy.Policy policy =
+                Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata()));
+        final PolicyDebugDecorator debugPolicy =
+                spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy, new PolicyMetadata("dummy", "{}")));
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
         debugPolicy.stream(policyChain, context);
@@ -274,12 +266,10 @@ public class PolicyDebugDecoratorTest {
         NoTransformationPolicy noTransformationPolicy = mock(NoTransformationPolicy.class);
         when(policyPluginFactory.create(NoTransformationPolicy.class, null)).thenReturn(noTransformationPolicy);
 
-        io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata())
-        );
-        final PolicyDebugDecorator debugPolicy = spy(
-            new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy, new PolicyMetadata("dummy", "{}"))
-        );
+        io.gravitee.gateway.policy.Policy policy =
+                Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, fakePolicyMetadata()));
+        final PolicyDebugDecorator debugPolicy =
+                spy(new PolicyDebugDecorator(StreamType.ON_RESPONSE, policy, new PolicyMetadata("dummy", "{}")));
         final ArgumentCaptor<PolicyChain> chainCaptor = ArgumentCaptor.forClass(PolicyChain.class);
 
         debugPolicy.stream(policyChain, context);
@@ -289,7 +279,8 @@ public class PolicyDebugDecoratorTest {
         verify(noTransformationPolicy, never()).onRequest(policyChain, request, response);
         verify(noTransformationPolicy, never()).onRequestContent(policyChain, request, response);
         verify(noTransformationPolicy, never()).onResponse(policyChain, request, response);
-        verify(noTransformationPolicy, atLeastOnce()).onResponseContent(chainCaptor.capture(), eq(request), eq(response));
+        verify(noTransformationPolicy, atLeastOnce())
+                .onResponseContent(chainCaptor.capture(), eq(request), eq(response));
         verify(debugPolicy, atLeastOnce()).stream(policyChain, context);
 
         verify(context, atLeastOnce()).saveNoTransformationDebugStep(any());
@@ -297,7 +288,8 @@ public class PolicyDebugDecoratorTest {
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
-        Set<Method> methods = ReflectionUtils.getMethods(clazz, withModifier(Modifier.PUBLIC), withAnnotation(annotationClass));
+        Set<Method> methods =
+                ReflectionUtils.getMethods(clazz, withModifier(Modifier.PUBLIC), withAnnotation(annotationClass));
 
         if (methods.isEmpty()) {
             return null;

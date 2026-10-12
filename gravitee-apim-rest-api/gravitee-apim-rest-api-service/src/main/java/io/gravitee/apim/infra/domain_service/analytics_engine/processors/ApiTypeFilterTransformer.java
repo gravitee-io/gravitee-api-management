@@ -42,39 +42,36 @@ import java.util.stream.Collectors;
 public class ApiTypeFilterTransformer implements QueryFilterTransformer {
 
     private static final Map<String, ApiType> API_TYPE_MAPPING = Map.of(
-        "HTTP_PROXY",
-        ApiType.PROXY,
-        "LLM",
-        ApiType.LLM_PROXY,
-        "MESSAGE",
-        ApiType.MESSAGE,
-        "MCP",
-        ApiType.MCP_PROXY,
-        "A2A",
-        ApiType.A2A_PROXY,
-        // Native Kafka is spelled "KAFKA" by the APIM console and "NATIVE" by Gamma / the
-        // observability lib (whose ApiType vocabulary emits the canonical enum name). Accept both so
-        // both callers can scope analytics to native APIs.
-        "KAFKA",
-        ApiType.NATIVE,
-        "NATIVE",
-        ApiType.NATIVE,
-        "EDGE",
-        ApiType.EDGE,
-        "AUTHZ",
-        ApiType.AUTHZ
-    );
+            "HTTP_PROXY",
+            ApiType.PROXY,
+            "LLM",
+            ApiType.LLM_PROXY,
+            "MESSAGE",
+            ApiType.MESSAGE,
+            "MCP",
+            ApiType.MCP_PROXY,
+            "A2A",
+            ApiType.A2A_PROXY,
+            // Native Kafka is spelled "KAFKA" by the APIM console and "NATIVE" by Gamma / the
+            // observability lib (whose ApiType vocabulary emits the canonical enum name). Accept both so
+            // both callers can scope analytics to native APIs.
+            "KAFKA",
+            ApiType.NATIVE,
+            "NATIVE",
+            ApiType.NATIVE,
+            "EDGE",
+            ApiType.EDGE,
+            "AUTHZ",
+            ApiType.AUTHZ);
 
     @Override
     public List<Filter> transform(AnalyticsQueryContext context, List<Filter> filters) {
-        var transformed = filters
-            .stream()
-            .filter(f -> f.name() != FilterSpec.Name.API_TYPE)
-            .collect(Collectors.toCollection(ArrayList::new));
+        var transformed = filters.stream()
+                .filter(f -> f.name() != FilterSpec.Name.API_TYPE)
+                .collect(Collectors.toCollection(ArrayList::new));
 
-        var apiIds = findApiTypeFilter(filters)
-            .map(f -> resolveApiIds(context, f))
-            .orElseGet(context::authorizedApiIds);
+        var apiIds =
+                findApiTypeFilter(filters).map(f -> resolveApiIds(context, f)).orElseGet(context::authorizedApiIds);
 
         transformed.add(new Filter(FilterSpec.Name.API, FilterOperator.IN, apiIds));
 
@@ -82,23 +79,22 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
     }
 
     private static Optional<Filter> findApiTypeFilter(List<Filter> filters) {
-        return filters
-            .stream()
-            .filter(f -> f.name() == FilterSpec.Name.API_TYPE)
-            .findFirst();
+        return filters.stream()
+                .filter(f -> f.name() == FilterSpec.Name.API_TYPE)
+                .findFirst();
     }
 
     private static Collection<String> resolveApiIds(AnalyticsQueryContext context, Filter apiTypeFilter) {
-        return toApiTypes(apiTypeFilter)
-            .stream()
-            .flatMap(type -> context.apiIdsByType().getOrDefault(type, Set.of()).stream())
-            .collect(Collectors.toSet());
+        return toApiTypes(apiTypeFilter).stream()
+                .flatMap(type -> context.apiIdsByType().getOrDefault(type, Set.of()).stream())
+                .collect(Collectors.toSet());
     }
 
     @SuppressWarnings("unchecked")
     private static List<ApiType> toApiTypes(Filter apiTypeFilter) {
         if (apiTypeFilter.operator() == FilterOperator.IN) {
-            return ((Collection<String>) apiTypeFilter.value()).stream().map(ApiTypeFilterTransformer::mapApiType).toList();
+            return ((Collection<String>) apiTypeFilter.value())
+                    .stream().map(ApiTypeFilterTransformer::mapApiType).toList();
         }
         return List.of(mapApiType((String) apiTypeFilter.value()));
     }

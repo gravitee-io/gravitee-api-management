@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class PortalCategoryQueryServiceInMemory implements PortalCategoryQueryService, InMemoryAlternative<PortalCategory> {
+public class PortalCategoryQueryServiceInMemory
+        implements PortalCategoryQueryService, InMemoryAlternative<PortalCategory> {
 
     final ArrayList<PortalCategory> storage = new ArrayList<>();
 
@@ -30,11 +31,10 @@ public class PortalCategoryQueryServiceInMemory implements PortalCategoryQuerySe
     public List<PortalCategory> findByEnvironmentId(String environmentId) {
         // Mirrors the ORDER BY title done at the repository layer (JDBC/Mongo), which this
         // in-memory fake has no real query engine to perform.
-        return storage
-            .stream()
-            .filter(pc -> environmentId.equals(pc.getEnvironmentId()))
-            .sorted(Comparator.comparing(PortalCategory::getTitle))
-            .toList();
+        return storage.stream()
+                .filter(pc -> environmentId.equals(pc.getEnvironmentId()))
+                .sorted(Comparator.comparing(PortalCategory::getTitle))
+                .toList();
     }
 
     @Override

@@ -72,16 +72,14 @@ class ApiMessageLogsMapperTest {
 
         static Stream<Arguments> singleFieldTestCases() {
             return Stream.of(
-                Arguments.of(new String[] { "field1;value1" }, List.of("value1")),
-                Arguments.of(new String[] { "field1;value1,value2,value3" }, List.of("value1", "value2", "value3"))
-            );
+                    Arguments.of(new String[] {"field1;value1"}, List.of("value1")),
+                    Arguments.of(new String[] {"field1;value1,value2,value3"}, List.of("value1", "value2", "value3")));
         }
 
         @Test
         void should_parse_multiple_fields() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "field2;value2", "field3;value3" }
-            );
+            Map<String, List<String>> result =
+                    mapper.mapAdditionalParams(new String[] {"field1;value1", "field2;value2", "field3;value3"});
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1");
             assertThat(result.get("field2")).containsExactly("value2");
@@ -90,23 +88,24 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_trim_whitespace_from_field_names_and_values() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] { "  field1  ;  value1  ,  value2  " });
+            Map<String, List<String>> result =
+                    mapper.mapAdditionalParams(new String[] {"  field1  ;  value1  ,  value2  "});
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1", "value2");
         }
 
         @Test
         void should_filter_out_empty_values() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] { "field1;value1,,value2, ,value3" });
+            Map<String, List<String>> result =
+                    mapper.mapAdditionalParams(new String[] {"field1;value1,,value2, ,value3"});
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1", "value2", "value3");
         }
 
         @Test
         void should_skip_invalid_format_entries() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "invalid-format", "field2;value2" }
-            );
+            Map<String, List<String>> result =
+                    mapper.mapAdditionalParams(new String[] {"field1;value1", "invalid-format", "field2;value2"});
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1");
             assertThat(result.get("field2")).containsExactly("value2");
@@ -115,7 +114,7 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_skip_entries_with_empty_field_name() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] { " ;value1", "field2;value2" });
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {" ;value1", "field2;value2"});
             assertThat(result).isNotNull();
             assertThat(result.containsKey("")).isFalse();
             assertThat(result.get("field2")).containsExactly("value2");
@@ -123,7 +122,7 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_skip_entries_with_empty_values() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] { "field1;", "field2;value2" });
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {"field1;", "field2;value2"});
             assertThat(result).isNotNull();
             assertThat(result.containsKey("field1")).isFalse();
             assertThat(result.get("field2")).containsExactly("value2");
@@ -131,9 +130,9 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_handle_multiple_values_for_multiple_fields() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "int_webhook_resp-status;200,500", "string_webhook_url;https://example.com,https://test.com" }
-            );
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {
+                "int_webhook_resp-status;200,500", "string_webhook_url;https://example.com,https://test.com"
+            });
             assertThat(result).isNotNull();
             assertThat(result.get("int_webhook_resp-status")).containsExactly("200", "500");
             assertThat(result.get("string_webhook_url")).containsExactly("https://example.com", "https://test.com");
@@ -141,18 +140,16 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_merge_values_when_same_field_appears_multiple_times() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "field1;value2", "field1;value3,value4" }
-            );
+            Map<String, List<String>> result =
+                    mapper.mapAdditionalParams(new String[] {"field1;value1", "field1;value2", "field1;value3,value4"});
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1", "value2", "value3", "value4");
         }
 
         @Test
         void should_merge_values_for_same_field_with_different_fields() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "field2;value2", "field1;value3" }
-            );
+            Map<String, List<String>> result =
+                    mapper.mapAdditionalParams(new String[] {"field1;value1", "field2;value2", "field1;value3"});
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1", "value3");
             assertThat(result.get("field2")).containsExactly("value2");
@@ -160,7 +157,8 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_skip_null_entries() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] { "field1;value1", null, "field2;value2" });
+            Map<String, List<String>> result =
+                    mapper.mapAdditionalParams(new String[] {"field1;value1", null, "field2;value2"});
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1");
             assertThat(result.get("field2")).containsExactly("value2");
@@ -173,7 +171,7 @@ class ApiMessageLogsMapperTest {
 
         @ParameterizedTest
         @NullSource
-        @ValueSource(strings = { "", "   " })
+        @ValueSource(strings = {"", "   "})
         void should_return_null_when_value_is_null_empty_or_whitespace(String value) {
             List<String> result = mapper.parseCommaSeparatedString(value);
             assertThat(result).isNull();
@@ -188,13 +186,13 @@ class ApiMessageLogsMapperTest {
 
         static Stream<Arguments> parseCommaSeparatedStringTestCases() {
             return Stream.of(
-                Arguments.of("value1", List.of("value1")),
-                Arguments.of("value1,value2,value3", List.of("value1", "value2", "value3")),
-                Arguments.of(" value1 , value2 , value3 ", List.of("value1", "value2", "value3")),
-                Arguments.of("value1,,value2, ,value3", List.of("value1", "value2", "value3")),
-                Arguments.of("value1,value,with,commas,value2", List.of("value1", "value", "with", "commas", "value2")),
-                Arguments.of("  value1  ", List.of("value1"))
-            );
+                    Arguments.of("value1", List.of("value1")),
+                    Arguments.of("value1,value2,value3", List.of("value1", "value2", "value3")),
+                    Arguments.of(" value1 , value2 , value3 ", List.of("value1", "value2", "value3")),
+                    Arguments.of("value1,,value2, ,value3", List.of("value1", "value2", "value3")),
+                    Arguments.of(
+                            "value1,value,with,commas,value2", List.of("value1", "value", "with", "commas", "value2")),
+                    Arguments.of("  value1  ", List.of("value1")));
         }
     }
 
@@ -216,7 +214,8 @@ class ApiMessageLogsMapperTest {
             param.setConnectorType("entrypoint");
             param.setConnectorId("webhook");
             param.setRequestId("request-123");
-            param.setAdditional(new String[] { "int_webhook_resp-status;200,500", "string_webhook_url;https://example.com" });
+            param.setAdditional(
+                    new String[] {"int_webhook_resp-status;200,500", "string_webhook_url;https://example.com"});
 
             SearchMessageLogsFilters filters = mapper.map(param);
 
@@ -266,21 +265,33 @@ class ApiMessageLogsMapperTest {
 
         static Stream<Arguments> additionalFieldsTestCases() {
             return Stream.of(
-                Arguments.of(new String[] { "int_webhook_resp-status;200" }, Map.of("int_webhook_resp-status", List.of("200"))),
-                Arguments.of(new String[] { "int_webhook_resp-status;200,500" }, Map.of("int_webhook_resp-status", List.of("200", "500"))),
-                Arguments.of(
-                    new String[] { "field1;value1", "field2;value2", "field3;value3" },
-                    Map.of("field1", List.of("value1"), "field2", List.of("value2"), "field3", List.of("value3"))
-                ),
-                Arguments.of(new String[] { "  field1  ;  value1  ,  value2  " }, Map.of("field1", List.of("value1", "value2"))),
-                Arguments.of(new String[] { "field1;value1,,value2, ,value3" }, Map.of("field1", List.of("value1", "value2", "value3")))
-            );
+                    Arguments.of(
+                            new String[] {"int_webhook_resp-status;200"},
+                            Map.of("int_webhook_resp-status", List.of("200"))),
+                    Arguments.of(
+                            new String[] {"int_webhook_resp-status;200,500"},
+                            Map.of("int_webhook_resp-status", List.of("200", "500"))),
+                    Arguments.of(
+                            new String[] {"field1;value1", "field2;value2", "field3;value3"},
+                            Map.of(
+                                    "field1",
+                                    List.of("value1"),
+                                    "field2",
+                                    List.of("value2"),
+                                    "field3",
+                                    List.of("value3"))),
+                    Arguments.of(
+                            new String[] {"  field1  ;  value1  ,  value2  "},
+                            Map.of("field1", List.of("value1", "value2"))),
+                    Arguments.of(
+                            new String[] {"field1;value1,,value2, ,value3"},
+                            Map.of("field1", List.of("value1", "value2", "value3"))));
         }
 
         @Test
         void should_skip_invalid_format_entries() {
             SearchMessageLogsParam param = createParam();
-            param.setAdditional(new String[] { "field1;value1", "invalid-format", "field2;value2" });
+            param.setAdditional(new String[] {"field1;value1", "invalid-format", "field2;value2"});
 
             SearchMessageLogsFilters filters = mapper.map(param);
 
@@ -291,7 +302,9 @@ class ApiMessageLogsMapperTest {
         }
 
         @ParameterizedTest
-        @CsvSource(delimiterString = ";", value = { "true;true", "false;false", ";" })
+        @CsvSource(
+                delimiterString = ";",
+                value = {"true;true", "false;false", ";"})
         void should_map_requiresAdditional(Boolean input, Boolean expected) {
             SearchMessageLogsParam param = createParam();
             param.setRequiresAdditional(input);
@@ -309,13 +322,13 @@ class ApiMessageLogsMapperTest {
         @Test
         void should_map_message_log_with_all_fields() {
             MessageLog messageLog = MessageLog.builder()
-                .apiId("api-123")
-                .requestId("request-123")
-                .timestamp("2024-01-01T00:00:00Z")
-                .operation("subscribe")
-                .connectorType("entrypoint")
-                .connectorId("webhook")
-                .build();
+                    .apiId("api-123")
+                    .requestId("request-123")
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .operation("subscribe")
+                    .connectorType("entrypoint")
+                    .connectorId("webhook")
+                    .build();
 
             var result = mapper.map(messageLog);
 
@@ -329,32 +342,50 @@ class ApiMessageLogsMapperTest {
         }
 
         @ParameterizedTest
-        @CsvSource(delimiterString = ";", nullValues = "null", value = { "publish;PUBLISH", "subscribe;SUBSCRIBE", "null;null" })
+        @CsvSource(
+                delimiterString = ";",
+                nullValues = "null",
+                value = {"publish;PUBLISH", "subscribe;SUBSCRIBE", "null;null"})
         void should_map_operation(String input, MessageOperation expected) {
-            MessageLog messageLog = MessageLog.builder().timestamp("2024-01-01T00:00:00Z").operation(input).build();
+            MessageLog messageLog = MessageLog.builder()
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .operation(input)
+                    .build();
             var result = mapper.map(messageLog);
             assertThat(result.getOperation()).isEqualTo(expected);
         }
 
         @ParameterizedTest
-        @CsvSource(delimiterString = ";", nullValues = "null", value = { "endpoint;ENDPOINT", "entrypoint;ENTRYPOINT", "null;null" })
+        @CsvSource(
+                delimiterString = ";",
+                nullValues = "null",
+                value = {"endpoint;ENDPOINT", "entrypoint;ENTRYPOINT", "null;null"})
         void should_map_connector_type(String input, ConnectorType expected) {
-            MessageLog messageLog = MessageLog.builder().timestamp("2024-01-01T00:00:00Z").connectorType(input).build();
+            MessageLog messageLog = MessageLog.builder()
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .connectorType(input)
+                    .build();
             var result = mapper.map(messageLog);
             assertThat(result.getConnectorType()).isEqualTo(expected);
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "invalid", "unknown" })
+        @ValueSource(strings = {"invalid", "unknown"})
         void should_throw_exception_for_invalid_operation(String invalidOperation) {
-            MessageLog messageLog = MessageLog.builder().timestamp("2024-01-01T00:00:00Z").operation(invalidOperation).build();
+            MessageLog messageLog = MessageLog.builder()
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .operation(invalidOperation)
+                    .build();
             assertThatThrownBy(() -> mapper.map(messageLog)).isInstanceOf(IllegalArgumentException.class);
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "invalid", "unknown" })
+        @ValueSource(strings = {"invalid", "unknown"})
         void should_throw_exception_for_invalid_connector_type(String invalidConnectorType) {
-            MessageLog messageLog = MessageLog.builder().timestamp("2024-01-01T00:00:00Z").connectorType(invalidConnectorType).build();
+            MessageLog messageLog = MessageLog.builder()
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .connectorType(invalidConnectorType)
+                    .build();
             assertThatThrownBy(() -> mapper.map(messageLog)).isInstanceOf(IllegalArgumentException.class);
         }
     }
@@ -373,10 +404,10 @@ class ApiMessageLogsMapperTest {
         @Test
         void should_map_list_with_single_item() {
             MessageLog messageLog = MessageLog.builder()
-                .apiId("api-123")
-                .requestId("request-123")
-                .timestamp("2024-01-01T00:00:00Z")
-                .build();
+                    .apiId("api-123")
+                    .requestId("request-123")
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .build();
             var result = mapper.map(Collections.singletonList(messageLog));
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getApiId()).isEqualTo("api-123");
@@ -385,9 +416,21 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_map_list_with_multiple_items() {
-            MessageLog log1 = MessageLog.builder().apiId("api-1").requestId("request-1").timestamp("2024-01-01T00:00:00Z").build();
-            MessageLog log2 = MessageLog.builder().apiId("api-2").requestId("request-2").timestamp("2024-01-01T00:00:00Z").build();
-            MessageLog log3 = MessageLog.builder().apiId("api-3").requestId("request-3").timestamp("2024-01-01T00:00:00Z").build();
+            MessageLog log1 = MessageLog.builder()
+                    .apiId("api-1")
+                    .requestId("request-1")
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .build();
+            MessageLog log2 = MessageLog.builder()
+                    .apiId("api-2")
+                    .requestId("request-2")
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .build();
+            MessageLog log3 = MessageLog.builder()
+                    .apiId("api-3")
+                    .requestId("request-3")
+                    .timestamp("2024-01-01T00:00:00Z")
+                    .build();
 
             var result = mapper.map(Arrays.asList(log1, log2, log3));
 

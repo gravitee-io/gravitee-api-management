@@ -69,12 +69,11 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     private AuthoritiesProvider authoritiesProvider;
 
     public TokenAuthenticationFilter(
-        final String jwtSecret,
-        final CookieGenerator cookieGenerator,
-        final UserService userService,
-        final TokenService tokenService,
-        final AuthoritiesProvider authoritiesProvider
-    ) {
+            final String jwtSecret,
+            final CookieGenerator cookieGenerator,
+            final UserService userService,
+            final TokenService tokenService,
+            final AuthoritiesProvider authoritiesProvider) {
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
         jwtVerifier = JWT.require(algorithm).build();
         this.cookieGenerator = cookieGenerator;
@@ -86,7 +85,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     @Override
     @SuppressWarnings(value = "unchecked")
     public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-        throws IOException, ServletException {
+            throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
@@ -94,10 +93,11 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
 
         if (isEmpty(stringToken) && req.getCookies() != null) {
             final Optional<Cookie> optionalStringToken = Arrays.stream(req.getCookies())
-                .filter(cookie -> AUTH_COOKIE_NAME.equals(cookie.getName()))
-                .findAny();
+                    .filter(cookie -> AUTH_COOKIE_NAME.equals(cookie.getName()))
+                    .findAny();
             if (optionalStringToken.isPresent()) {
-                stringToken = decode(optionalStringToken.get().getValue(), defaultCharset().name());
+                stringToken = decode(
+                        optionalStringToken.get().getValue(), defaultCharset().name());
             }
         }
 
@@ -106,28 +106,31 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
         } else {
             try {
                 if (stringToken.toLowerCase().contains(TOKEN_AUTH_SCHEMA)) {
-                    final String tokenValue = stringToken.substring(TOKEN_AUTH_SCHEMA.length()).trim();
+                    final String tokenValue =
+                            stringToken.substring(TOKEN_AUTH_SCHEMA.length()).trim();
                     if (tokenValue.contains(".")) {
                         final DecodedJWT jwt = jwtVerifier.verify(tokenValue);
 
                         final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(
-                            jwt.getClaim(Claims.SUBJECT).asString()
-                        );
+                                jwt.getClaim(Claims.SUBJECT).asString());
 
-                        final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "", authorities);
+                        final UserDetails userDetails =
+                                new UserDetails(getStringValue(jwt.getSubject()), "", authorities);
                         userDetails.setEmail(jwt.getClaim(Claims.EMAIL).asString());
                         userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
                         userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
                         userDetails.setOrganizationId(jwt.getClaim(Claims.ORG).asString());
 
-                        SecurityContextHolder.getContext().setAuthentication(
-                            new UsernamePasswordAuthenticationToken(userDetails, null, authorities)
-                        );
+                        SecurityContextHolder.getContext()
+                                .setAuthentication(
+                                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     } else if (tokenService != null && userService != null) {
                         final Token token = tokenService.findByToken(tokenValue);
-                        final UserEntity user = userService.findById(GraviteeContext.getExecutionContext(), token.getReferenceId());
+                        final UserEntity user =
+                                userService.findById(GraviteeContext.getExecutionContext(), token.getReferenceId());
 
-                        final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
+                        final Set<GrantedAuthority> authorities =
+                                this.authoritiesProvider.retrieveAuthorities(user.getId());
 
                         final UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
                         userDetails.setFirstname(user.getFirstname());
@@ -137,9 +140,9 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setSourceId(token.getName());
                         userDetails.setOrganizationId(user.getOrganizationId());
 
-                        SecurityContextHolder.getContext().setAuthentication(
-                            new UsernamePasswordAuthenticationToken(userDetails, null, authorities)
-                        );
+                        SecurityContextHolder.getContext()
+                                .setAuthentication(
+                                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     }
                 } else {
                     log.debug("Authorization schema not found");

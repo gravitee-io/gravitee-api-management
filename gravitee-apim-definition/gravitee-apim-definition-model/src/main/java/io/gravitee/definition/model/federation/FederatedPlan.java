@@ -16,7 +16,6 @@
 package io.gravitee.definition.model.federation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -52,12 +51,10 @@ public class FederatedPlan implements Serializable {
 
     @JsonIgnore
     public final boolean isSubscribable() {
-        return (
-            (this.getSecurity() != null &&
-                this.getSecurity().getType() != null &&
-                !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType())) ||
-            usePushMode()
-        );
+        return ((this.getSecurity() != null
+                        && this.getSecurity().getType() != null
+                        && !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType()))
+                || usePushMode());
     }
 
     @JsonIgnore
@@ -72,22 +69,24 @@ public class FederatedPlan implements Serializable {
 
     @JsonIgnore
     public final boolean isApiKey() {
-        return (
-            this.getSecurity() != null &&
-            ("API_KEY".equalsIgnoreCase(this.getSecurity().getType()) || "api-key".equalsIgnoreCase(this.getSecurity().getType()))
-        );
+        return (this.getSecurity() != null
+                && ("API_KEY".equalsIgnoreCase(this.getSecurity().getType())
+                        || "api-key".equalsIgnoreCase(this.getSecurity().getType())));
     }
 
     @JsonIgnore
     public final boolean isOAuth() {
-        return (this.getSecurity() != null && "oauth2".equalsIgnoreCase(this.getSecurity().getType()));
+        return (this.getSecurity() != null
+                && "oauth2".equalsIgnoreCase(this.getSecurity().getType()));
     }
 
     public FederatedPlan update(FederatedPlan plan) {
         return toBuilder()
-            .mode(plan.getMode())
-            .status(plan.getStatus())
-            .security(security.toBuilder().configuration(plan.getSecurity().getConfiguration()).build())
-            .build();
+                .mode(plan.getMode())
+                .status(plan.getStatus())
+                .security(security.toBuilder()
+                        .configuration(plan.getSecurity().getConfiguration())
+                        .build())
+                .build();
     }
 }

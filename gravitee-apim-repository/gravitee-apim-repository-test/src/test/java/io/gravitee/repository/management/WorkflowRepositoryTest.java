@@ -39,10 +39,9 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(workflows);
         assertEquals(6, workflows.size());
-        final Optional<Workflow> optionalWorkflow = workflows
-            .stream()
-            .filter(workflow -> "old-workflow".equals(workflow.getId()))
-            .findAny();
+        final Optional<Workflow> optionalWorkflow = workflows.stream()
+                .filter(workflow -> "old-workflow".equals(workflow.getId()))
+                .findAny();
         assertTrue(optionalWorkflow.isPresent());
         assertEquals("API", optionalWorkflow.get().getReferenceType());
         assertEquals("api-id", optionalWorkflow.get().getReferenceId());
@@ -50,7 +49,8 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("DRAFT", optionalWorkflow.get().getState());
         assertEquals("User", optionalWorkflow.get().getUser());
         assertEquals("Comment", optionalWorkflow.get().getComment());
-        assertTrue(compareDate(1518357357000L, optionalWorkflow.get().getCreatedAt().getTime()));
+        assertTrue(compareDate(
+                1518357357000L, optionalWorkflow.get().getCreatedAt().getTime()));
     }
 
     @Test
@@ -131,9 +131,15 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        final var nbBeforeDeletion = workflowRepository.findByReferenceAndType("APPLICATION", "ToBeDeleted", "REVIEW").size();
-        final var deleted = workflowRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", "APPLICATION").size();
-        final var nbAfterDeletion = workflowRepository.findByReferenceAndType("APPLICATION", "ToBeDeleted", "REVIEW").size();
+        final var nbBeforeDeletion = workflowRepository
+                .findByReferenceAndType("APPLICATION", "ToBeDeleted", "REVIEW")
+                .size();
+        final var deleted = workflowRepository
+                .deleteByReferenceIdAndReferenceType("ToBeDeleted", "APPLICATION")
+                .size();
+        final var nbAfterDeletion = workflowRepository
+                .findByReferenceAndType("APPLICATION", "ToBeDeleted", "REVIEW")
+                .size();
 
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted);
@@ -142,7 +148,8 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferencesAndType() throws Exception {
-        final List<Workflow> workflows = workflowRepository.findByReferencesAndType("API", Set.of("api-id", "application-id"), "REVIEW");
+        final List<Workflow> workflows =
+                workflowRepository.findByReferencesAndType("API", Set.of("api-id", "application-id"), "REVIEW");
         assertNotNull(workflows);
         // Only "api-id" has referenceType "API" and type "REVIEW" (3 workflows)
         // "application-id" has referenceType "APPLICATION", so it should not match

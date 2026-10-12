@@ -28,7 +28,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class CreateIntegrationValidationTest {
 
-    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+    private static final Validator VALIDATOR =
+            Validation.buildDefaultValidatorFactory().getValidator();
     private static final String NAME_FIELD = "name";
     private static final String DESCRIPTION_FIELD = "description";
     private static final int NAME_MAX_LENGTH = 50;
@@ -44,28 +45,30 @@ class CreateIntegrationValidationTest {
     @MethodSource("rejectedCreateIntegrations")
     void should_reject_invalid_field_with_its_name(CreateIntegration createIntegration, String invalidField) {
         assertThat(VALIDATOR.validate(createIntegration))
-            .extracting(violation -> violation.getPropertyPath().toString())
-            .containsExactly(invalidField);
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .containsExactly(invalidField);
     }
 
     static Stream<Arguments> acceptedCreateIntegrations() {
         return Stream.of(
-            Arguments.of(Named.of("name at max length", anIntegration("n".repeat(NAME_MAX_LENGTH), null))),
-            Arguments.of(Named.of("name at min length", anIntegration("n", null))),
-            Arguments.of(Named.of("description at max length", anIntegration("n", "d".repeat(DESCRIPTION_MAX_LENGTH))))
-        );
+                Arguments.of(Named.of("name at max length", anIntegration("n".repeat(NAME_MAX_LENGTH), null))),
+                Arguments.of(Named.of("name at min length", anIntegration("n", null))),
+                Arguments.of(
+                        Named.of("description at max length", anIntegration("n", "d".repeat(DESCRIPTION_MAX_LENGTH)))));
     }
 
     static Stream<Arguments> rejectedCreateIntegrations() {
         return Stream.of(
-            Arguments.of(Named.of("missing name", anIntegration(null, null)), NAME_FIELD),
-            Arguments.of(Named.of("name below min length", anIntegration("", null)), NAME_FIELD),
-            Arguments.of(Named.of("name over max length", anIntegration("n".repeat(NAME_MAX_LENGTH + 1), null)), NAME_FIELD),
-            Arguments.of(
-                Named.of("description over max length", anIntegration("n", "d".repeat(DESCRIPTION_MAX_LENGTH + 1))),
-                DESCRIPTION_FIELD
-            )
-        );
+                Arguments.of(Named.of("missing name", anIntegration(null, null)), NAME_FIELD),
+                Arguments.of(Named.of("name below min length", anIntegration("", null)), NAME_FIELD),
+                Arguments.of(
+                        Named.of("name over max length", anIntegration("n".repeat(NAME_MAX_LENGTH + 1), null)),
+                        NAME_FIELD),
+                Arguments.of(
+                        Named.of(
+                                "description over max length",
+                                anIntegration("n", "d".repeat(DESCRIPTION_MAX_LENGTH + 1))),
+                        DESCRIPTION_FIELD));
     }
 
     private static CreateIntegration anIntegration(String name, String description) {

@@ -54,16 +54,16 @@ public class KubernetesSyncConfiguration {
      * Kubernetes Synchronization
      */
     @Bean("syncKubernetesExecutor")
-    public ThreadPoolExecutor syncKubernetesExecutor(@Value("${services.sync.kubernetes.threads:-1}") int syncKubernetes) {
+    public ThreadPoolExecutor syncKubernetesExecutor(
+            @Value("${services.sync.kubernetes.threads:-1}") int syncKubernetes) {
         int poolSize = syncKubernetes != -1 ? syncKubernetes : POOL_SIZE;
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-            1,
-            poolSize,
-            15L,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            newThreadFactory("gio.sync-kubernetes-")
-        );
+                1,
+                poolSize,
+                15L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                newThreadFactory("gio.sync-kubernetes-"));
 
         threadPoolExecutor.allowCoreThreadTimeOut(true);
 
@@ -72,50 +72,46 @@ public class KubernetesSyncConfiguration {
 
     @Bean
     public ConfigMapEventFetcher configMapEventFetcher(
-        KubernetesClient kubernetesClient,
-        @Value("${services.sync.kubernetes.namespaces:#{null}}") String[] namespaces,
-        ObjectMapper objectMapper
-    ) {
+            KubernetesClient kubernetesClient,
+            @Value("${services.sync.kubernetes.namespaces:#{null}}") String[] namespaces,
+            ObjectMapper objectMapper) {
         return new ConfigMapEventFetcher(kubernetesClient, namespaces, objectMapper);
     }
 
     @Bean
     public KubernetesApiSynchronizer kubernetesApiSynchronizer(
-        ConfigMapEventFetcher configMapEventFetcher,
-        ApiManager apiManager,
-        ApiMapper apiMapper,
-        PlanAppender planAppender,
-        SubscriptionAppender subscriptionAppender,
-        ApiKeyAppender apiKeyAppender,
-        io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender authzAppender,
-        DeployerFactory deployerFactory,
-        @Qualifier("syncKubernetesExecutor") ThreadPoolExecutor syncKubernetesExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        @Value(
-            "${services.sync.appender.parallelism:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APPENDER_PARALLELISM + "}"
-        ) int appenderParallelism
-    ) {
+            ConfigMapEventFetcher configMapEventFetcher,
+            ApiManager apiManager,
+            ApiMapper apiMapper,
+            PlanAppender planAppender,
+            SubscriptionAppender subscriptionAppender,
+            ApiKeyAppender apiKeyAppender,
+            io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender authzAppender,
+            DeployerFactory deployerFactory,
+            @Qualifier("syncKubernetesExecutor") ThreadPoolExecutor syncKubernetesExecutor,
+            @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+            @Value("${services.sync.appender.parallelism:"
+                            + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APPENDER_PARALLELISM + "}")
+                    int appenderParallelism) {
         return new KubernetesApiSynchronizer(
-            configMapEventFetcher,
-            apiManager,
-            apiMapper,
-            planAppender,
-            subscriptionAppender,
-            apiKeyAppender,
-            authzAppender,
-            deployerFactory,
-            syncKubernetesExecutor,
-            syncDeployerExecutor,
-            appenderParallelism
-        );
+                configMapEventFetcher,
+                apiManager,
+                apiMapper,
+                planAppender,
+                subscriptionAppender,
+                apiKeyAppender,
+                authzAppender,
+                deployerFactory,
+                syncKubernetesExecutor,
+                syncDeployerExecutor,
+                appenderParallelism);
     }
 
     @Bean
     public KubernetesSyncManager kubernetesSyncManager(
-        final Node node,
-        final List<KubernetesSynchronizer> kubernetesSynchronizers,
-        final DistributedSyncService distributedSyncService
-    ) {
+            final Node node,
+            final List<KubernetesSynchronizer> kubernetesSynchronizers,
+            final DistributedSyncService distributedSyncService) {
         return new KubernetesSyncManager(node, kubernetesSynchronizers, distributedSyncService);
     }
 }

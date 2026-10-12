@@ -44,32 +44,32 @@ public class UpdateSubscriptionFormUseCase {
 
     public Output execute(Input input) {
         var existingForm = subscriptionFormQueryService
-            .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
-            .orElseThrow(() ->
-                new SubscriptionFormNotFoundException(
-                    "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
-                    input.subscriptionFormId().toString()
-                )
-            );
+                .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
+                .orElseThrow(() -> new SubscriptionFormNotFoundException(
+                        "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
+                        input.subscriptionFormId().toString()));
         definitionDomainService.validateName(input.environmentId(), input.name(), input.subscriptionFormId());
-        var apiIds = definitionDomainService.validateApiIds(input.environmentId(), input.apiIds(), input.subscriptionFormId());
+        var apiIds = definitionDomainService.validateApiIds(
+                input.environmentId(), input.apiIds(), input.subscriptionFormId());
         var definition = definitionDomainService.compile(input.gmdContent());
 
         existingForm.rename(input.name().trim());
         existingForm.update(definition.gmdContent(), definition.constraints());
         existingForm.assignApis(apiIds);
         var savedForm = subscriptionFormCrudService.update(existingForm);
-        log.info("Updated subscription form [{}] for environment [{}]", input.subscriptionFormId(), input.environmentId());
+        log.info(
+                "Updated subscription form [{}] for environment [{}]",
+                input.subscriptionFormId(),
+                input.environmentId());
         return new Output(savedForm);
     }
 
     public record Input(
-        String environmentId,
-        SubscriptionFormId subscriptionFormId,
-        String name,
-        String gmdContent,
-        @Nullable List<String> apiIds
-    ) {
+            String environmentId,
+            SubscriptionFormId subscriptionFormId,
+            String name,
+            String gmdContent,
+            @Nullable List<String> apiIds) {
         public Input(String environmentId, SubscriptionFormId subscriptionFormId, String name, String gmdContent) {
             this(environmentId, subscriptionFormId, name, gmdContent, null);
         }

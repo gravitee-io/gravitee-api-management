@@ -102,14 +102,12 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public void validate() {
         if (distributedSyncRepoType == null || distributedSyncRepoType.isEmpty()) {
             throw new SyncException(
-                "Distributed sync configuration invalid. No repository configured, check 'distributed-sync.type' value."
-            );
+                    "Distributed sync configuration invalid. No repository configured, check 'distributed-sync.type' value.");
         }
         String clusterId = clusterManager.clusterId();
         if (clusterId == null || clusterId.isBlank()) {
             throw new SyncException(
-                "Distributed sync requires a non-blank cluster id from the cluster manager (configure Hazelcast cluster-name)."
-            );
+                    "Distributed sync requires a non-blank cluster id from the cluster manager (configure Hazelcast cluster-name).");
         }
     }
 
@@ -126,8 +124,9 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Completable ready() {
         return distributedSyncStateRepository
-            .ready()
-            .onErrorResumeNext(throwable -> Completable.error(new DistributedSyncException("Distributed Sync repository is not ready.")));
+                .ready()
+                .onErrorResumeNext(throwable ->
+                        Completable.error(new DistributedSyncException("Distributed Sync repository is not ready.")));
     }
 
     @Override
@@ -146,21 +145,17 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
             if (isPrimaryNode()) {
                 if (distributionFailed.getAndSet(false)) {
                     return Completable.error(
-                        new DistributedSyncException(
-                            "Some distributed events could not be written to the distributed sync repository. " +
-                                "The sync state is not stored so the time window is replayed on the next sync cycle."
-                        )
-                    );
+                            new DistributedSyncException(
+                                    "Some distributed events could not be written to the distributed sync repository. "
+                                            + "The sync state is not stored so the time window is replayed on the next sync cycle."));
                 }
-                return distributedSyncStateRepository.createOrUpdate(
-                    DistributedSyncState.builder()
+                return distributedSyncStateRepository.createOrUpdate(DistributedSyncState.builder()
                         .clusterId(clusterManager.clusterId())
                         .nodeId(node.id())
                         .nodeVersion(Version.RUNTIME_VERSION.toString())
                         .from(fromTime)
                         .to(toTime)
-                        .build()
-                );
+                        .build());
             }
             return Completable.complete();
         });
@@ -172,23 +167,19 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing API reactor event for {}", deployable.id());
                 return trackFailure(
-                    distribute(apiMapper.to(deployable)).andThen(
-                        Completable.defer(() -> {
+                        distribute(apiMapper.to(deployable)).andThen(Completable.defer(() -> {
                             if (deployable.syncAction() == SyncAction.UNDEPLOY) {
                                 return distributedEventRepository.updateAll(
-                                    clusterManager.clusterId(),
-                                    DistributedEventType.API,
-                                    deployable.apiId(),
-                                    DistributedSyncAction.UNDEPLOY,
-                                    new Date()
-                                );
+                                        clusterManager.clusterId(),
+                                        DistributedEventType.API,
+                                        deployable.apiId(),
+                                        DistributedSyncAction.UNDEPLOY,
+                                        new Date());
                             }
                             return Completable.complete();
-                        })
-                    ),
-                    "API reactor",
-                    deployable.id()
-                );
+                        })),
+                        "API reactor",
+                        deployable.id());
             }
             log.debug("Not a primary node, skipping API reactor event distribution");
             return Completable.complete();
@@ -277,7 +268,8 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing shared policy group event for {}", deployable.id());
-                return trackFailure(distribute(sharedPolicyGroupMapper.to(deployable)), "shared policy group", deployable.id());
+                return trackFailure(
+                        distribute(sharedPolicyGroupMapper.to(deployable)), "shared policy group", deployable.id());
             }
             log.debug("Not a primary node, skipping shared policy group event distribution");
             return Completable.complete();
@@ -325,7 +317,8 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing authz entity event for {}", deployable.entityId());
-                return trackFailure(distribute(authzEntityMapper.to(deployable)), "authz entity", deployable.entityId());
+                return trackFailure(
+                        distribute(authzEntityMapper.to(deployable)), "authz entity", deployable.entityId());
             }
             log.debug("Not a primary node, skipping authz entity event distribution");
             return Completable.complete();
@@ -362,12 +355,10 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private Completable trackFailure(final Completable distribution, final String eventType, final String id) {
         return distribution.onErrorResumeNext(throwable -> {
             distributionFailed.set(true);
-            return Completable.error(
-                new DistributedSyncException(
-                    "Unable to distribute %s event for [%s], the sync time window will be replayed".formatted(eventType, id),
-                    throwable
-                )
-            );
+            return Completable.error(new DistributedSyncException(
+                    "Unable to distribute %s event for [%s], the sync time window will be replayed"
+                            .formatted(eventType, id),
+                    throwable));
         });
     }
 }

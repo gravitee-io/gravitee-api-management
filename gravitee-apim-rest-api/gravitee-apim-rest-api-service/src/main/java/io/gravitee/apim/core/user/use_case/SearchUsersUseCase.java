@@ -45,55 +45,58 @@ public class SearchUsersUseCase {
     private final ApplicationCrudService applicationCrudService;
 
     public Output execute(Input input) {
-        input
-            .applicationMembership()
-            .ifPresent(applicationId -> applicationCrudService.findById(applicationId, input.executionContext().getEnvironmentId()));
+        input.applicationMembership()
+                .ifPresent(applicationId -> applicationCrudService.findById(
+                        applicationId, input.executionContext().getEnvironmentId()));
 
         var searchedUsers = userQueryService.search(input.searchQuery());
         var sortedUsers = sortUsers(searchedUsers);
 
         return new Output(
-            sortedUsers,
-            sortedUsers.size(),
-            input
-                .applicationMembership()
-                .map(applicationId ->
-                    sortedUsers.isEmpty() ? Map.<String, Boolean>of() : buildApplicationMembership(applicationId, sortedUsers)
-                )
-                .orElse(null)
-        );
+                sortedUsers,
+                sortedUsers.size(),
+                input.applicationMembership()
+                        .map(applicationId -> sortedUsers.isEmpty()
+                                ? Map.<String, Boolean>of()
+                                : buildApplicationMembership(applicationId, sortedUsers))
+                        .orElse(null));
     }
 
     private List<User> sortUsers(List<User> users) {
-        return users.stream().sorted(Comparator.comparing(User::lastName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))).toList();
+        return users.stream()
+                .sorted(Comparator.comparing(User::lastName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .toList();
     }
 
     private Map<String, Boolean> buildApplicationMembership(String applicationId, List<User> users) {
-        var userIds = users.stream().map(User::id).filter(Objects::nonNull).filter(not(String::isBlank)).toList();
+        var userIds = users.stream()
+                .map(User::id)
+                .filter(Objects::nonNull)
+                .filter(not(String::isBlank))
+                .toList();
 
         if (userIds.isEmpty()) {
             return Map.of();
         }
 
         Set<String> alreadyAddedUserIds = membershipQueryService
-            .findByMemberIdsAndMemberTypeAndReferenceType(userIds, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
-            .stream()
-            .filter(membership -> applicationId.equals(membership.getReferenceId()))
-            .map(Membership::getMemberId)
-            .collect(Collectors.toSet());
+                .findByMemberIdsAndMemberTypeAndReferenceType(
+                        userIds, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
+                .stream()
+                .filter(membership -> applicationId.equals(membership.getReferenceId()))
+                .map(Membership::getMemberId)
+                .collect(Collectors.toSet());
 
         return userIds.stream().collect(Collectors.toMap(userId -> userId, alreadyAddedUserIds::contains));
     }
 
     public record Input(
-        @NotNull ExecutionContext executionContext,
-        @NotNull UserSearchQuery searchQuery,
-        @NotNull Optional<String> applicationMembership
-    ) {
+            @NotNull ExecutionContext executionContext,
+            @NotNull UserSearchQuery searchQuery,
+            @NotNull Optional<String> applicationMembership) {
         public Input {
-            applicationMembership = requireNonNull(applicationMembership, "applicationMembership must not be null").filter(
-                not(String::isBlank)
-            );
+            applicationMembership = requireNonNull(applicationMembership, "applicationMembership must not be null")
+                    .filter(not(String::isBlank));
         }
     }
 

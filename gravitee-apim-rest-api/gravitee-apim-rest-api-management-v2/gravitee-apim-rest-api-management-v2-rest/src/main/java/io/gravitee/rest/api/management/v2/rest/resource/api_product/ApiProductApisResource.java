@@ -56,24 +56,26 @@ public class ApiProductApisResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiProductApis(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @BeanParam ApiSortByParam apiSortByParam,
-        @QueryParam("query") String query
-    ) {
+            @BeanParam @Valid PaginationParam paginationParam,
+            @BeanParam ApiSortByParam apiSortByParam,
+            @QueryParam("query") String query) {
         apiSortByParam.validate();
 
         var executionContext = GraviteeContext.getExecutionContext();
         var input = new GetApiProductApisUseCase.Input(
-            executionContext,
-            apiProductId,
-            query,
-            paginationParam.toPageable(),
-            apiSortByParam.toSortable(),
-            getAuthenticatedUser(),
-            isAdmin()
-        );
+                executionContext,
+                apiProductId,
+                query,
+                paginationParam.toPageable(),
+                apiSortByParam.toSortable(),
+                getAuthenticatedUser(),
+                isAdmin());
 
         var output = getApiProductApisUseCase.execute(input);
         return Response.ok(toApisResponse(output.apisPage(), paginationParam)).build();
@@ -82,20 +84,18 @@ public class ApiProductApisResource extends AbstractResource {
     private ApisResponse toApisResponse(Page<GenericApiEntity> apisPage, PaginationParam paginationParam) {
         long totalCount = apisPage.getTotalElements();
         int pageItemsCount = Math.toIntExact(apisPage.getPageElements());
-        List<Api> data = apisPage
-            .getContent()
-            .stream()
-            .map(api -> ApiMapper.INSTANCE.map(api, uriInfo, (Boolean) null))
-            .filter(Objects::nonNull)
-            .toList();
+        List<Api> data = apisPage.getContent().stream()
+                .map(api -> ApiMapper.INSTANCE.map(api, uriInfo, (Boolean) null))
+                .filter(Objects::nonNull)
+                .toList();
         Pagination pagination = totalCount == 0
-            ? new Pagination()
-                .page(paginationParam.getPage())
-                .perPage(paginationParam.getPerPage())
-                .pageItemsCount(0)
-                .pageCount(0)
-                .totalCount(0L)
-            : PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam);
+                ? new Pagination()
+                        .page(paginationParam.getPage())
+                        .perPage(paginationParam.getPerPage())
+                        .pageItemsCount(0)
+                        .pageCount(0)
+                        .totalCount(0L)
+                : PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam);
         Links links = computePaginationLinks(totalCount, paginationParam);
         return new ApisResponse().data(data).pagination(pagination).links(links != null ? links : new Links().self(""));
     }

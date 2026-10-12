@@ -47,13 +47,12 @@ public class UpdateSubscriptionUseCase {
         validateSubscription(subscription, input.referenceId, input.referenceType);
 
         updateSubscriptionDomainService.update(
-            input.auditInfo,
-            input.subscriptionId,
-            input.configuration,
-            input.metadata,
-            input.startingAt,
-            input.endingAt
-        );
+                input.auditInfo,
+                input.subscriptionId,
+                input.configuration,
+                input.metadata,
+                input.startingAt,
+                input.endingAt);
 
         SubscriptionEntity updatedSubscription = subscriptionCrudService.get(input.subscriptionId);
 
@@ -69,23 +68,24 @@ public class UpdateSubscriptionUseCase {
         }
     }
 
-    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
-        if (!referenceType.equals(subscription.getReferenceType()) || !referenceId.equals(subscription.getReferenceId())) {
+    private void validateSubscription(
+            SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (!referenceType.equals(subscription.getReferenceType())
+                || !referenceId.equals(subscription.getReferenceId())) {
             throw new SubscriptionNotFoundException(subscription.getId());
         }
     }
 
     @Builder
     public record Input(
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        String subscriptionId,
-        io.gravitee.rest.api.model.SubscriptionConfigurationEntity configuration,
-        java.util.Map<String, String> metadata,
-        java.time.ZonedDateTime startingAt,
-        java.time.ZonedDateTime endingAt,
-        AuditInfo auditInfo
-    ) {}
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            String subscriptionId,
+            io.gravitee.rest.api.model.SubscriptionConfigurationEntity configuration,
+            java.util.Map<String, String> metadata,
+            java.time.ZonedDateTime startingAt,
+            java.time.ZonedDateTime endingAt,
+            AuditInfo auditInfo) {}
 
     public record Output(SubscriptionEntity subscription) {}
 }

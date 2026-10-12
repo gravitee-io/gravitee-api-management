@@ -71,16 +71,14 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var latencyP90 = aggs
-            .at("/HTTP_GATEWAY_LATENCY#API/aggs/HTTP_GATEWAY_LATENCY#APPLICATION/aggs/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0")
-            .asDouble();
+        var latencyP90 = aggs.at(
+                        "/HTTP_GATEWAY_LATENCY#API/aggs/HTTP_GATEWAY_LATENCY#APPLICATION/aggs/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0")
+                .asDouble();
         assertThat(latencyP90).isEqualTo(90.0);
 
-        var gatewayP90 = aggs
-            .at(
-                "/HTTP_GATEWAY_RESPONSE_TIME#API/aggs/HTTP_GATEWAY_RESPONSE_TIME#APPLICATION/aggs/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0"
-            )
-            .asDouble();
+        var gatewayP90 = aggs.at(
+                        "/HTTP_GATEWAY_RESPONSE_TIME#API/aggs/HTTP_GATEWAY_RESPONSE_TIME#APPLICATION/aggs/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0")
+                .asDouble();
         assertThat(gatewayP90).isEqualTo(90.0);
     }
 
@@ -139,12 +137,11 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var facets = List.of(Facet.HTTP_STATUS);
         var ranges = List.of(
-            new NumberRange(100, 199),
-            new NumberRange(200, 299),
-            new NumberRange(300, 399),
-            new NumberRange(400, 499),
-            new NumberRange(500, 599)
-        );
+                new NumberRange(100, 199),
+                new NumberRange(200, 299),
+                new NumberRange(300, 399),
+                new NumberRange(400, 499),
+                new NumberRange(500, 599));
 
         var query = new FacetsQuery(timeRange, filters, metrics, facets, ranges);
         var queryString = adapter.adapt(query);
@@ -223,7 +220,8 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var field = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS_CODE_GROUP/range/field").asText();
+        var field = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS_CODE_GROUP/range/field")
+                .asText();
         assertThat(field).isEqualTo("status");
 
         var esRanges = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS_CODE_GROUP/range/ranges");
@@ -262,7 +260,8 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var nestedTerms = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/terms/field");
         assertThat(nestedTerms.asText()).isEqualTo("status");
 
-        var nestedSize = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/terms/size").asInt();
+        var nestedSize =
+                groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/terms/size").asInt();
         assertThat(nestedSize).isEqualTo(limit);
 
         var nestedMeasures = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/aggs/HTTP_REQUESTS#COUNT");

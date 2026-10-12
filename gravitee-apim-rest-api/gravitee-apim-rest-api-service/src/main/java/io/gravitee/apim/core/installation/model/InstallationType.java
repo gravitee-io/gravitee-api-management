@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.installation.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -29,7 +28,8 @@ public enum InstallationType {
     STANDALONE(Labels.STANDALONE),
     MULTI_TENANT(Labels.MULTI_TENANT);
 
-    private static final Map<String, InstallationType> LABELS_MAP = Map.of(STANDALONE.label, STANDALONE, MULTI_TENANT.label, MULTI_TENANT);
+    private static final Map<String, InstallationType> LABELS_MAP =
+            Map.of(STANDALONE.label, STANDALONE, MULTI_TENANT.label, MULTI_TENANT);
 
     @JsonValue
     private final String label;

@@ -31,7 +31,8 @@ public interface AiWorkspaceComponentMongoRepository extends MongoRepository<AiW
     List<AiWorkspaceComponentMongo> findByApiProductId(String apiProductId);
 
     @Query(value = "{ 'apiProductId': ?0, 'componentType': ?1 }", sort = "{ '_id': 1 }")
-    List<AiWorkspaceComponentMongo> findByApiProductIdAndComponentType(String apiProductId, AiWorkspaceComponentType componentType);
+    List<AiWorkspaceComponentMongo> findByApiProductIdAndComponentType(
+            String apiProductId, AiWorkspaceComponentType componentType);
 
     @Query(value = "{ 'refId': ?0 }", sort = "{ '_id': 1 }")
     List<AiWorkspaceComponentMongo> findByRefId(String refId);

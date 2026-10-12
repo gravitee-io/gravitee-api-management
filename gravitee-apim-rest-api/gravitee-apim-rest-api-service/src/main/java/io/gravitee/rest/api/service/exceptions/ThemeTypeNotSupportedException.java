@@ -21,8 +21,6 @@ import static java.util.Collections.singletonMap;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.theme.ThemeType;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

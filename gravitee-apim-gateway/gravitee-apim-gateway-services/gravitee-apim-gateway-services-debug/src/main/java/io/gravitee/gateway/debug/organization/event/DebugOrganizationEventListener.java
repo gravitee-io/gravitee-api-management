@@ -28,18 +28,17 @@ import java.util.Objects;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugOrganizationEventListener
-    extends AbstractService<DebugOrganizationEventListener>
-    implements EventListener<OrganizationEvent, ReactableOrganization> {
+public class DebugOrganizationEventListener extends AbstractService<DebugOrganizationEventListener>
+        implements EventListener<OrganizationEvent, ReactableOrganization> {
 
     private final OrganizationReactorRegistry v3OrganizationReactorRegistry;
-    private final io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry organizationReactorRegistry;
+    private final io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry
+            organizationReactorRegistry;
 
     public DebugOrganizationEventListener(
-        final EventManager eventManager,
-        final OrganizationReactorRegistry debugV3OrganizationReactorRegistry,
-        final OrganizationReactorRegistry debugOrganizationReactorRegistry
-    ) {
+            final EventManager eventManager,
+            final OrganizationReactorRegistry debugV3OrganizationReactorRegistry,
+            final OrganizationReactorRegistry debugOrganizationReactorRegistry) {
         this.v3OrganizationReactorRegistry = debugV3OrganizationReactorRegistry;
         this.organizationReactorRegistry = debugOrganizationReactorRegistry;
 

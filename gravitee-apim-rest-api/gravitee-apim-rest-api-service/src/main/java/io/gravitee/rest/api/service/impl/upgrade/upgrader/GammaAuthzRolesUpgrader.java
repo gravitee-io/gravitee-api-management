@@ -49,13 +49,11 @@ public class GammaAuthzRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeGammaAuthzRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                initializeGammaAuthzRoles(executionContext);
+                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+            });
             return true;
         });
     }
@@ -69,8 +67,9 @@ public class GammaAuthzRolesUpgrader implements Upgrader {
 
     private boolean shouldCreateGammaAuthzAdminRole(final ExecutionContext executionContext) {
         return roleService
-            .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(), executionContext.getOrganizationId())
-            .isEmpty();
+                .findByScopeAndName(
+                        ENVIRONMENT, ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(), executionContext.getOrganizationId())
+                .isEmpty();
     }
 
     @Override

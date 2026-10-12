@@ -51,19 +51,18 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         GenericNotificationConfig notificationCreated = genericNotificationConfigRepository.create(cfg);
 
         assertAll(
-            () -> assertEquals(cfg.getId(), notificationCreated.getId()),
-            () -> assertEquals(cfg.getName(), notificationCreated.getName()),
-            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
-            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
-            () -> assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId()),
-            () -> assertEquals(cfg.getNotifier(), notificationCreated.getNotifier()),
-            () -> assertEquals(cfg.getConfig(), notificationCreated.getConfig()),
-            () -> assertEquals(cfg.getHooks(), notificationCreated.getHooks()),
-            () -> assertEquals(cfg.getOrganizationId(), notificationCreated.getOrganizationId()),
-            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt())),
-            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt())),
-            () -> assertTrue(cfg.isUseSystemProxy())
-        );
+                () -> assertEquals(cfg.getId(), notificationCreated.getId()),
+                () -> assertEquals(cfg.getName(), notificationCreated.getName()),
+                () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+                () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+                () -> assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId()),
+                () -> assertEquals(cfg.getNotifier(), notificationCreated.getNotifier()),
+                () -> assertEquals(cfg.getConfig(), notificationCreated.getConfig()),
+                () -> assertEquals(cfg.getHooks(), notificationCreated.getHooks()),
+                () -> assertEquals(cfg.getOrganizationId(), notificationCreated.getOrganizationId()),
+                () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt())),
+                () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt())),
+                () -> assertTrue(cfg.isUseSystemProxy()));
     }
 
     @Test
@@ -105,9 +104,11 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
 
     @Test
     public void shouldDelete() throws Exception {
-        assertTrue(genericNotificationConfigRepository.findById("notif-to-delete").isPresent());
+        assertTrue(
+                genericNotificationConfigRepository.findById("notif-to-delete").isPresent());
         genericNotificationConfigRepository.delete("notif-to-delete");
-        assertFalse(genericNotificationConfigRepository.findById("notif-to-delete").isPresent());
+        assertFalse(
+                genericNotificationConfigRepository.findById("notif-to-delete").isPresent());
     }
 
     @Test
@@ -128,16 +129,15 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         GenericNotificationConfig notificationUpdated = genericNotificationConfigRepository.update(cfg);
 
         assertAll(
-            () -> assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType()),
-            () -> assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId()),
-            () -> assertEquals(cfg.getNotifier(), notificationUpdated.getNotifier()),
-            () -> assertEquals(cfg.getConfig(), notificationUpdated.getConfig()),
-            () -> assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks())),
-            () -> assertEquals(cfg.getOrganizationId(), notificationUpdated.getOrganizationId()),
-            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt())),
-            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt())),
-            () -> assertTrue(cfg.isUseSystemProxy())
-        );
+                () -> assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType()),
+                () -> assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId()),
+                () -> assertEquals(cfg.getNotifier(), notificationUpdated.getNotifier()),
+                () -> assertEquals(cfg.getConfig(), notificationUpdated.getConfig()),
+                () -> assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks())),
+                () -> assertEquals(cfg.getOrganizationId(), notificationUpdated.getOrganizationId()),
+                () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt())),
+                () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt())),
+                () -> assertTrue(cfg.isUseSystemProxy()));
     }
 
     @Test
@@ -154,7 +154,8 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         cfg.setUpdatedAt(new Date(1439022010883L));
         cfg.setCreatedAt(new Date(1439022010883L));
 
-        Optional<GenericNotificationConfig> optNotificationFound = genericNotificationConfigRepository.findById("notif-to-find");
+        Optional<GenericNotificationConfig> optNotificationFound =
+                genericNotificationConfigRepository.findById("notif-to-find");
 
         assertTrue(optNotificationFound.isPresent());
         GenericNotificationConfig notificationFound = optNotificationFound.get();
@@ -170,7 +171,8 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
 
     @Test
     public void shouldNotFoundById() throws Exception {
-        Optional<GenericNotificationConfig> optNotificationFound = genericNotificationConfigRepository.findById("notifierId-unknown");
+        Optional<GenericNotificationConfig> optNotificationFound =
+                genericNotificationConfigRepository.findById("notifierId-unknown");
         assertFalse(optNotificationFound.isPresent());
     }
 
@@ -181,11 +183,10 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         assertFalse(configs.isEmpty());
         assertEquals(9, configs.size());
 
-        var notifToFind = configs
-            .stream()
-            .filter(c -> "notif-to-find".equals(c.getId()))
-            .findFirst()
-            .orElseThrow();
+        var notifToFind = configs.stream()
+                .filter(c -> "notif-to-find".equals(c.getId()))
+                .findFirst()
+                .orElseThrow();
 
         assertNotNull(notifToFind.getHooks());
         assertEquals(2, notifToFind.getHooks().size());
@@ -196,51 +197,52 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
     @Test
     public void shouldFindByHookAndReference() throws Exception {
         List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByReferenceAndHook(
-            "B",
-            NotificationReferenceType.APPLICATION,
-            "search"
-        );
+                "B", NotificationReferenceType.APPLICATION, "search");
 
         assertEquals(2, configs.size(), "size");
-        List<String> userIds = configs.stream().map(GenericNotificationConfig::getNotifier).toList();
+        List<String> userIds =
+                configs.stream().map(GenericNotificationConfig::getNotifier).toList();
         assertTrue(userIds.contains("notifierA"), "notifierA");
         assertTrue(userIds.contains("notifierB"), "notifierB");
     }
 
     @Test
     public void shouldFindByHookAndOrganizationId() throws Exception {
-        List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByHookAndOrganizationId("B", "org1");
-        List<String> userIds = configs.stream().map(GenericNotificationConfig::getId).toList();
+        List<GenericNotificationConfig> configs =
+                genericNotificationConfigRepository.findByHookAndOrganizationId("B", "org1");
+        List<String> userIds =
+                configs.stream().map(GenericNotificationConfig::getId).toList();
         assertEquals(3, configs.size(), "size");
         assertTrue(userIds.containsAll(List.of("notif-to-delete", "notif-to-update", "notif-to-find-b")));
     }
 
     @Test
     public void shouldNotFindByHookAndOrganizationId() throws Exception {
-        List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByHookAndOrganizationId("A", "org4");
+        List<GenericNotificationConfig> configs =
+                genericNotificationConfigRepository.findByHookAndOrganizationId("A", "org4");
         assertTrue(configs.isEmpty());
     }
 
     @Test
     public void shouldDeleteByEmail() throws Exception {
         genericNotificationConfigRepository.deleteByConfig("test@gravitee.io");
-        assertFalse(genericNotificationConfigRepository.findById("config-to-delete").isPresent());
+        assertFalse(
+                genericNotificationConfigRepository.findById("config-to-delete").isPresent());
     }
 
     @Test
     public void should_delete_by_reference_type_and_reference_id() throws Exception {
-        final var beforeDeletion = genericNotificationConfigRepository
-            .findByReference(NotificationReferenceType.ENVIRONMENT, "env_id_to_be_deleted")
-            .stream()
-            .map(GenericNotificationConfig::getId)
-            .toList();
+        final var beforeDeletion =
+                genericNotificationConfigRepository
+                        .findByReference(NotificationReferenceType.ENVIRONMENT, "env_id_to_be_deleted")
+                        .stream()
+                        .map(GenericNotificationConfig::getId)
+                        .toList();
         final var deleted = genericNotificationConfigRepository.deleteByReferenceIdAndReferenceType(
-            "env_id_to_be_deleted",
-            NotificationReferenceType.ENVIRONMENT
-        );
+                "env_id_to_be_deleted", NotificationReferenceType.ENVIRONMENT);
         int nbAfterDeletion = genericNotificationConfigRepository
-            .findByReference(NotificationReferenceType.ENVIRONMENT, "env_id_to_be_deleted")
-            .size();
+                .findByReference(NotificationReferenceType.ENVIRONMENT, "env_id_to_be_deleted")
+                .size();
 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(beforeDeletion.containsAll(deleted));

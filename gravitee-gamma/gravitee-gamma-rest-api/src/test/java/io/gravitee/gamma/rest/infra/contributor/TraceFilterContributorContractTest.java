@@ -50,13 +50,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 class TraceFilterContributorContractTest {
 
     private static List<TraceFilterContributor> registeredContributors() {
-        return ServiceLoader.load(TraceFilterContributor.class).stream().map(ServiceLoader.Provider::get).toList();
+        return ServiceLoader.load(TraceFilterContributor.class).stream()
+                .map(ServiceLoader.Provider::get)
+                .toList();
     }
 
     static Stream<TraceFilterSpec> allAdvertisedFilters() {
-        return registeredContributors()
-            .stream()
-            .flatMap(contributor -> contributor.getFilters().stream());
+        return registeredContributors().stream().flatMap(contributor -> contributor.getFilters().stream());
     }
 
     /**
@@ -67,17 +67,16 @@ class TraceFilterContributorContractTest {
      * {@code KafkaTracingHelper} (gravitee-reactor-native-kafka) writes on the span.
      */
     private static final Map<String, String> EXPECTED_ATTRIBUTE_BY_FILTER = Map.of(
-        "HTTP_METHOD",
-        "http.method",
-        "HTTP_STATUS_CODE",
-        "http.status_code",
-        "HTTP_ROUTE",
-        "http.route",
-        "KAFKA_API_KEY",
-        "kafka.api.key",
-        "KAFKA_CLIENT_ID",
-        "messaging.client.id"
-    );
+            "HTTP_METHOD",
+            "http.method",
+            "HTTP_STATUS_CODE",
+            "http.status_code",
+            "HTTP_ROUTE",
+            "http.route",
+            "KAFKA_API_KEY",
+            "kafka.api.key",
+            "KAFKA_CLIENT_ID",
+            "messaging.client.id");
 
     @ParameterizedTest
     @MethodSource("allAdvertisedFilters")
@@ -86,11 +85,10 @@ class TraceFilterContributorContractTest {
         FilterCondition condition = new FilterCondition(spec.name(), FilterOperator.EQ, List.of(value));
 
         assertThat(EXPECTED_ATTRIBUTE_BY_FILTER)
-            .as("every advertised filter needs an expected attribute here, so a new one cannot ship unpinned")
-            .containsKey(spec.name());
-        assertThat(SearchTraceFilterTranslator.toAttributeFilters(List.of(condition))).containsExactly(
-            entry(EXPECTED_ATTRIBUTE_BY_FILTER.get(spec.name()), value)
-        );
+                .as("every advertised filter needs an expected attribute here, so a new one cannot ship unpinned")
+                .containsKey(spec.name());
+        assertThat(SearchTraceFilterTranslator.toAttributeFilters(List.of(condition)))
+                .containsExactly(entry(EXPECTED_ATTRIBUTE_BY_FILTER.get(spec.name()), value));
     }
 
     @ParameterizedTest
@@ -125,11 +123,12 @@ class TraceFilterContributorContractTest {
         // known wart as an expectation: the three HTTP filters are cross-module, so an ESM operator
         // is offered chips that no Kafka span can match. Changing that is a gamma-host decision
         // (contributor opt-out, or the console hiding them); until then it is pinned, not hidden.
-        var registry = new SpiTraceFilterRegistry(List.of(new CommonTraceFilterContributor(), new EsmTraceFilterContributor()));
+        var registry = new SpiTraceFilterRegistry(
+                List.of(new CommonTraceFilterContributor(), new EsmTraceFilterContributor()));
 
         assertThat(registry.getFiltersForModule("esm"))
-            .extracting(TraceFilterSpec::name)
-            .containsExactly("HTTP_METHOD", "HTTP_STATUS_CODE", "HTTP_ROUTE", "KAFKA_API_KEY", "KAFKA_CLIENT_ID");
+                .extracting(TraceFilterSpec::name)
+                .containsExactly("HTTP_METHOD", "HTTP_STATUS_CODE", "HTTP_ROUTE", "KAFKA_API_KEY", "KAFKA_CLIENT_ID");
     }
 
     @Test
@@ -137,9 +136,9 @@ class TraceFilterContributorContractTest {
         // The ESM console sends `module=esm`; the registry matches on an exact id, so a typo here
         // silently falls back to the cross-module palette.
         assertThat(registeredContributors())
-            .filteredOn(contributor -> "esm".equals(contributor.moduleId()))
-            .singleElement()
-            .isInstanceOf(EsmTraceFilterContributor.class);
+                .filteredOn(contributor -> "esm".equals(contributor.moduleId()))
+                .singleElement()
+                .isInstanceOf(EsmTraceFilterContributor.class);
     }
 
     /** A value the spec would accept — enums are picky, the rest take anything. */

@@ -65,27 +65,20 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public EventAnalytics eventAnalytics;
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+    public Optional<RequestsCount> searchRequestsCount(
+            ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(requestsCount);
     }
 
     @Override
     public Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
-    ) {
+            ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(averageMessagesPerRequest);
     }
 
     @Override
     public Optional<AverageConnectionDuration> searchAverageConnectionDuration(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
-    ) {
+            ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(averageConnectionDuration);
     }
 
@@ -102,59 +95,60 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     @Override
     public Optional<ResponseStatusRanges> searchResponseStatusRanges(
-        ExecutionContext executionContext,
-        AnalyticsQueryParameters queryParameters
-    ) {
+            ExecutionContext executionContext, AnalyticsQueryParameters queryParameters) {
         return Optional.ofNullable(responseStatusRanges);
     }
 
     @Override
-    public Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+    public Optional<TopHitsApis> searchTopHitsApis(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topHitsApis);
     }
 
     @Override
     public Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
-        ExecutionContext executionContext,
-        List<String> apiIds,
-        Instant startTime,
-        Instant endTime,
-        Duration interval,
-        Collection<DefinitionVersion> versions
-    ) {
+            ExecutionContext executionContext,
+            List<String> apiIds,
+            Instant startTime,
+            Instant endTime,
+            Duration interval,
+            Collection<DefinitionVersion> versions) {
         return averageAggregate != null ? Maybe.just(averageAggregate) : Maybe.empty();
     }
 
     @Override
-    public ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query) {
+    public ResponseStatusOvertime searchResponseStatusOvertime(
+            ExecutionContext executionContext, ResponseStatusOverTimeQuery query) {
         return responseStatusOvertime;
     }
 
     @Override
-    public Optional<TopHitsApps> searchTopHitsApps(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+    public Optional<TopHitsApps> searchTopHitsApps(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topHitsApps);
     }
 
     @Override
-    public RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+    public RequestResponseTime searchRequestResponseTime(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return requestResponseTime;
     }
 
     @Override
-    public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
+    public Optional<TopFailedApis> searchTopFailedApis(
+            ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topFailedApis);
     }
 
     @Override
-    public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
+    public Optional<HistogramAnalytics> searchHistogramAnalytics(
+            ExecutionContext executionContext, HistogramQuery histogramParameters) {
         return Optional.ofNullable(histogramAnalytics);
     }
 
     @Override
     public Optional<io.gravitee.apim.core.analytics.model.GroupByAnalytics> searchGroupByAnalytics(
-        ExecutionContext executionContext,
-        AnalyticsQueryService.GroupByQuery groupByQuery
-    ) {
+            ExecutionContext executionContext, AnalyticsQueryService.GroupByQuery groupByQuery) {
         return Optional.ofNullable(groupByAnalytics);
     }
 
@@ -169,7 +163,8 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId) {
+    public Optional<ApiMetricsDetail> findApiMetricsDetail(
+            ExecutionContext executionContext, String apiId, String requestId) {
         return Optional.ofNullable(apiMetricsDetail);
     }
 

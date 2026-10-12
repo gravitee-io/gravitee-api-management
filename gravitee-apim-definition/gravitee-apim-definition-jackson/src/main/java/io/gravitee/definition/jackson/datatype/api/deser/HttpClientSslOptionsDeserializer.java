@@ -70,7 +70,8 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
         JsonNode trustStoreNode = node.get("trustStore");
         if (trustStoreNode != null) {
             try {
-                TrustStoreType type = TrustStoreType.valueOf(trustStoreNode.path("type").asText().toUpperCase());
+                TrustStoreType type = TrustStoreType.valueOf(
+                        trustStoreNode.path("type").asText().toUpperCase());
 
                 TrustStore trustStore = null;
                 switch (type) {
@@ -86,13 +87,15 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
                 }
 
                 httpClientSslOptions.setTrustStore(trustStore);
-            } catch (IllegalArgumentException iae) {}
+            } catch (IllegalArgumentException iae) {
+            }
         }
 
         JsonNode keyStoreNode = node.get("keyStore");
         if (keyStoreNode != null) {
             try {
-                KeyStoreType type = KeyStoreType.valueOf(keyStoreNode.path("type").asText().toUpperCase());
+                KeyStoreType type =
+                        KeyStoreType.valueOf(keyStoreNode.path("type").asText().toUpperCase());
 
                 KeyStore keyStore = null;
                 switch (type) {
@@ -108,7 +111,8 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
                 }
 
                 httpClientSslOptions.setKeyStore(keyStore);
-            } catch (IllegalArgumentException iae) {}
+            } catch (IllegalArgumentException iae) {
+            }
         }
 
         return httpClientSslOptions;

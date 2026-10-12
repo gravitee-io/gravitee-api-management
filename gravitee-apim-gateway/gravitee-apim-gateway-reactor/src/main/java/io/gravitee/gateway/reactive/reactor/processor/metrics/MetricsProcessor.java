@@ -62,32 +62,29 @@ public class MetricsProcessor implements Processor {
             HttpRequestInternal request = ctx.request();
             if (request != null) {
                 metricsBuilder
-                    .timestamp(request.timestamp())
-                    // Monotonic counterpart of the timestamp, taken when the request arrived: durations are derived
-                    // from it, the wall clock being reserved for indexing.
-                    .requestStartNs(request.timestampNs())
-                    .requestId(request.id())
-                    .transactionId(request.transactionId())
-                    .clientIdentifier(request.clientIdentifier())
-                    .httpMethod(request.method())
-                    .localAddress(request.localAddress())
-                    .remoteAddress(request.remoteAddress())
-                    .host(request.host())
-                    .uri(request.uri())
-                    .pathInfo(request.pathInfo());
+                        .timestamp(request.timestamp())
+                        // Monotonic counterpart of the timestamp, taken when the request arrived: durations are derived
+                        // from it, the wall clock being reserved for indexing.
+                        .requestStartNs(request.timestampNs())
+                        .requestId(request.id())
+                        .transactionId(request.transactionId())
+                        .clientIdentifier(request.clientIdentifier())
+                        .httpMethod(request.method())
+                        .localAddress(request.localAddress())
+                        .remoteAddress(request.remoteAddress())
+                        .host(request.host())
+                        .uri(request.uri())
+                        .pathInfo(request.pathInfo());
                 if (request.headers() != null) {
                     metricsBuilder.userAgent(request.headers().get(HttpHeaderNames.USER_AGENT));
                 }
 
                 Flowable<Buffer> chunks = request.chunks();
                 if (chunks != null) {
-                    request.chunks(
-                        request
-                            .chunks()
-                            .doOnNext(buffer ->
-                                ctx.metrics().setRequestContentLength(ctx.metrics().getRequestContentLength() + buffer.length())
-                            )
-                    );
+                    request.chunks(request.chunks()
+                            .doOnNext(buffer -> ctx.metrics()
+                                    .setRequestContentLength(
+                                            ctx.metrics().getRequestContentLength() + buffer.length())));
                 }
             } else {
                 metricsBuilder.timestamp(System.currentTimeMillis());

@@ -44,9 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 // A form and its API mappings are written together: any failure, including the checked DuplicateKeyException
 // reported for a collision, rolls the whole write back (the inherited transaction only rolls back on unchecked ones).
 @Transactional(value = "graviteeTransactionManager", rollbackFor = Exception.class)
-public class JdbcSubscriptionFormRepository
-    extends JdbcAbstractCrudRepository<SubscriptionForm, String>
-    implements SubscriptionFormRepository {
+public class JdbcSubscriptionFormRepository extends JdbcAbstractCrudRepository<SubscriptionForm, String>
+        implements SubscriptionFormRepository {
 
     private final String SUBSCRIPTION_FORM_APIS;
 
@@ -58,16 +57,16 @@ public class JdbcSubscriptionFormRepository
     @Override
     protected JdbcObjectMapper<SubscriptionForm> buildOrm() {
         return JdbcObjectMapper.builder(SubscriptionForm.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            // Unique per environment in the table: two forms of an environment cannot share a name, whatever
-            // its case or padding, enforced by the database.
-            .addMirroredColumn("normalized_name", Types.NVARCHAR, SubscriptionForm::getNormalizedName)
-            .addColumn("gmd_content", Types.LONGNVARCHAR, String.class)
-            .addColumn("enabled", Types.BIT, boolean.class)
-            .addColumn("validation_constraints", Types.CLOB, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                // Unique per environment in the table: two forms of an environment cannot share a name, whatever
+                // its case or padding, enforced by the database.
+                .addMirroredColumn("normalized_name", Types.NVARCHAR, SubscriptionForm::getNormalizedName)
+                .addColumn("gmd_content", Types.LONGNVARCHAR, String.class)
+                .addColumn("enabled", Types.BIT, boolean.class)
+                .addColumn("validation_constraints", Types.CLOB, String.class)
+                .build();
     }
 
     @Override
@@ -133,11 +132,12 @@ public class JdbcSubscriptionFormRepository
         return ex;
     }
 
-    private static DuplicateKeyException duplicateKey(org.springframework.dao.DuplicateKeyException cause, SubscriptionForm item) {
+    private static DuplicateKeyException duplicateKey(
+            org.springframework.dao.DuplicateKeyException cause, SubscriptionForm item) {
         return new DuplicateKeyException(
-            "Subscription form [" + item.getId() + "] collides with another form of environment [" + item.getEnvironmentId() + "]",
-            cause
-        );
+                "Subscription form [" + item.getId() + "] collides with another form of environment ["
+                        + item.getEnvironmentId() + "]",
+                cause);
     }
 
     @Override
@@ -152,16 +152,15 @@ public class JdbcSubscriptionFormRepository
     }
 
     @Override
-    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId) throws TechnicalException {
+    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId)
+            throws TechnicalException {
         log.debug("JdbcSubscriptionFormRepository.findByIdAndEnvironmentId({}, {})", id, environmentId);
         try {
             List<SubscriptionForm> list = queryAndEnrichWithApiIds(
-                getOrm().getSelectAllSql() + " where id = ? and environment_id = ?",
-                id,
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " where id = ? and environment_id = ?", id, environmentId);
             if (list.size() > 1) {
-                throw new TechnicalException("Multiple subscription forms found for id and environment id: " + id + ", " + environmentId);
+                throw new TechnicalException(
+                        "Multiple subscription forms found for id and environment id: " + id + ", " + environmentId);
             }
             return list.isEmpty() ? Optional.empty() : Optional.of(list.getFirst());
         } catch (final Exception ex) {
@@ -174,7 +173,8 @@ public class JdbcSubscriptionFormRepository
     public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcSubscriptionFormRepository.findAllByEnvironmentId({})", environmentId);
         try {
-            return queryAndEnrichWithApiIds(getOrm().getSelectAllSql() + " where environment_id = ? order by name", environmentId);
+            return queryAndEnrichWithApiIds(
+                    getOrm().getSelectAllSql() + " where environment_id = ? order by name", environmentId);
         } catch (final Exception ex) {
             log.error("Failed to find subscription forms by environment id: {}", environmentId, ex);
             throw new TechnicalException("Failed to find subscription forms by environment id", ex);
@@ -182,32 +182,29 @@ public class JdbcSubscriptionFormRepository
     }
 
     @Override
-    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId) throws TechnicalException {
+    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId)
+            throws TechnicalException {
         log.debug("JdbcSubscriptionFormRepository.findByEnvironmentIdAndApiId({}, {})", environmentId, apiId);
         try {
             List<SubscriptionForm> list = queryAndEnrichWithApiIds(
-                getOrm().getSelectAllSql() +
-                    " where environment_id = ? and id in (select form_id from " +
-                    SUBSCRIPTION_FORM_APIS +
-                    " where api_id = ?) order by id",
-                environmentId,
-                apiId
-            );
+                    getOrm().getSelectAllSql() + " where environment_id = ? and id in (select form_id from "
+                            + SUBSCRIPTION_FORM_APIS
+                            + " where api_id = ?) order by id",
+                    environmentId,
+                    apiId);
             if (list.size() > 1) {
                 log.warn(
-                    "API [{}] is mapped to {} subscription forms {}, using [{}]",
-                    apiId,
-                    list.size(),
-                    list.stream().map(SubscriptionForm::getId).toList(),
-                    list.getFirst().getId()
-                );
+                        "API [{}] is mapped to {} subscription forms {}, using [{}]",
+                        apiId,
+                        list.size(),
+                        list.stream().map(SubscriptionForm::getId).toList(),
+                        list.getFirst().getId());
             }
             return list.isEmpty() ? Optional.empty() : Optional.of(list.getFirst());
         } catch (final Exception ex) {
             throw new TechnicalException(
-                "Failed to find subscription form of API [" + apiId + "] in environment [" + environmentId + "]",
-                ex
-            );
+                    "Failed to find subscription form of API [" + apiId + "] in environment [" + environmentId + "]",
+                    ex);
         }
     }
 
@@ -216,13 +213,11 @@ public class JdbcSubscriptionFormRepository
         log.debug("JdbcSubscriptionFormRepository.deleteByEnvironmentId({})", environmentId);
         try {
             jdbcTemplate.update(
-                "delete from " +
-                    SUBSCRIPTION_FORM_APIS +
-                    " where form_id in (select id from " +
-                    this.tableName +
-                    " where environment_id = ?)",
-                environmentId
-            );
+                    "delete from " + SUBSCRIPTION_FORM_APIS
+                            + " where form_id in (select id from "
+                            + this.tableName
+                            + " where environment_id = ?)",
+                    environmentId);
             jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (final Exception ex) {
             log.error("Failed to delete subscription forms by environment id: {}", environmentId, ex);
@@ -237,9 +232,8 @@ public class JdbcSubscriptionFormRepository
         List<String> apiIds = getOrm().filterStrings(form.getApiIds());
         if (!apiIds.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + SUBSCRIPTION_FORM_APIS + " ( form_id, api_id ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(form.getId(), apiIds)
-            );
+                    "insert into " + SUBSCRIPTION_FORM_APIS + " ( form_id, api_id ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(form.getId(), apiIds));
         }
     }
 
@@ -253,13 +247,10 @@ public class JdbcSubscriptionFormRepository
         if (form == null) {
             return;
         }
-        form.setApiIds(
-            jdbcTemplate.query(
+        form.setApiIds(jdbcTemplate.query(
                 "select api_id from " + SUBSCRIPTION_FORM_APIS + " where form_id = ? order by api_id",
                 (ResultSet rs, int rowNum) -> rs.getString("api_id"),
-                form.getId()
-            )
-        );
+                form.getId()));
     }
 
     private void enrichWithApiIds(List<SubscriptionForm> forms) {
@@ -269,16 +260,16 @@ public class JdbcSubscriptionFormRepository
         List<String> ids = forms.stream().map(SubscriptionForm::getId).toList();
         Map<String, List<String>> apiIdsByFormId = new HashMap<>();
         jdbcTemplate.query(
-            "select form_id, api_id from " +
-                SUBSCRIPTION_FORM_APIS +
-                " where form_id in (" +
-                getOrm().buildInClause(ids) +
-                ") order by api_id",
-            rs -> {
-                apiIdsByFormId.computeIfAbsent(rs.getString("form_id"), k -> new ArrayList<>()).add(rs.getString("api_id"));
-            },
-            ids.toArray()
-        );
+                "select form_id, api_id from " + SUBSCRIPTION_FORM_APIS
+                        + " where form_id in ("
+                        + getOrm().buildInClause(ids)
+                        + ") order by api_id",
+                rs -> {
+                    apiIdsByFormId
+                            .computeIfAbsent(rs.getString("form_id"), k -> new ArrayList<>())
+                            .add(rs.getString("api_id"));
+                },
+                ids.toArray());
         forms.forEach(form -> form.setApiIds(apiIdsByFormId.getOrDefault(form.getId(), List.of())));
     }
 }

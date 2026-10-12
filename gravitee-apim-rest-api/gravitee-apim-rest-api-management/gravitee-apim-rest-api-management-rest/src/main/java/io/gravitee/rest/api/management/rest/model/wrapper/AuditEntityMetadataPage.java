@@ -22,11 +22,10 @@ public class AuditEntityMetadataPage extends MetadataPage<AuditEntity> {
 
     public AuditEntityMetadataPage(MetadataPage<AuditEntity> metadata) {
         super(
-            metadata.getContent(),
-            metadata.getPageNumber(),
-            metadata.getPageNumber(),
-            metadata.getTotalElements(),
-            metadata.getMetadata()
-        );
+                metadata.getContent(),
+                metadata.getPageNumber(),
+                metadata.getPageNumber(),
+                metadata.getTotalElements(),
+                metadata.getMetadata());
     }
 }

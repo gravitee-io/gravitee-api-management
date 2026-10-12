@@ -89,13 +89,12 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     private final HttpAcceptorFactory httpAcceptorFactory;
 
     public ApiReactorHandler(
-        Configuration configuration,
-        final Api api,
-        final AccessPointManager accessPointManager,
-        final EventManager eventManager,
-        final HttpAcceptorFactory httpAcceptorFactory,
-        final TracingContext tracingContext
-    ) {
+            Configuration configuration,
+            final Api api,
+            final AccessPointManager accessPointManager,
+            final EventManager eventManager,
+            final HttpAcceptorFactory httpAcceptorFactory,
+            final TracingContext tracingContext) {
         super(api, tracingContext);
         this.configuration = configuration;
         this.accessPointManager = accessPointManager;
@@ -116,14 +115,14 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
         context.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, request.contextPath());
         context.setAttribute(ExecutionContext.ATTR_API, reactable.getId());
-        context.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, reactable.getDeployedAt().getTime());
+        context.setAttribute(
+                ExecutionContext.ATTR_API_DEPLOYED_AT, reactable.getDeployedAt().getTime());
         context.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
         context.setAttribute(ExecutionContext.ATTR_ORGANIZATION, reactable.getOrganizationId());
         context.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, reactable.getEnvironmentId());
         context.setAttribute(
-            ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION,
-            this.configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true)
-        );
+                ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION,
+                this.configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true));
 
         // Prepare request metrics
         request.metrics().setApi(reactable.getId());
@@ -143,23 +142,21 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     private void handleClientRequest(final ExecutionContext context, Handler<ExecutionContext> endHandler) {
         final StreamableProcessor<ExecutionContext, Buffer> chain = requestProcessorChain.create();
 
-        chain
-            .handler(__ -> handleProxyInvocation(context, endHandler, chain))
-            .streamErrorHandler(failure -> handleError(context, endHandler, failure))
-            .errorHandler(failure -> handleError(context, endHandler, failure))
-            .exitHandler(__ -> {
-                pendingRequests.decrementAndGet();
-                context.request().resume();
-                endHandler.handle(context);
-            })
-            .handle(context);
+        chain.handler(__ -> handleProxyInvocation(context, endHandler, chain))
+                .streamErrorHandler(failure -> handleError(context, endHandler, failure))
+                .errorHandler(failure -> handleError(context, endHandler, failure))
+                .exitHandler(__ -> {
+                    pendingRequests.decrementAndGet();
+                    context.request().resume();
+                    endHandler.handle(context);
+                })
+                .handle(context);
     }
 
     private void handleProxyInvocation(
-        final ExecutionContext context,
-        Handler<ExecutionContext> endHandler,
-        final StreamableProcessor<ExecutionContext, Buffer> chain
-    ) {
+            final ExecutionContext context,
+            Handler<ExecutionContext> endHandler,
+            final StreamableProcessor<ExecutionContext, Buffer> chain) {
         // Call an invoker to get a proxy connection (connection to an underlying backend, default to HTTP)
         Invoker upstreamInvoker = getInvoker(context);
 
@@ -172,10 +169,10 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
             // Override the stream error handler to be able to cancel connection to backend
             chain.streamErrorHandler(failure -> {
-                context
-                    .request()
-                    .metrics()
-                    .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+                context.request()
+                        .metrics()
+                        .setApiResponseTimeMs(System.currentTimeMillis()
+                                - context.request().metrics().getApiResponseTimeMs());
                 connection.cancel();
                 handleError(context, endHandler, failure);
             });
@@ -185,7 +182,8 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         context.request().bodyHandler(chain::write);
 
         if (context.request().ended()) {
-            // since Vert.x 3.6.0 it can happen that requests without body (e.g. a GET) are ended even while in paused-State
+            // since Vert.x 3.6.0 it can happen that requests without body (e.g. a GET) are ended even while in
+            // paused-State
             // Setting the endHandler would then lead to an Exception
             // see also https://github.com/eclipse-vertx/vert.x/issues/2763
             // so we now check if the request already is ended before installing an endHandler
@@ -200,18 +198,19 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     }
 
     private void handleProxyResponse(
-        final ExecutionContext context,
-        Handler<ExecutionContext> endHandler,
-        final ProxyResponse proxyResponse
-    ) {
+            final ExecutionContext context, Handler<ExecutionContext> endHandler, final ProxyResponse proxyResponse) {
         // If the response is not yet ended (by a request timeout for example)
         if (!context.response().ended()) {
             if (proxyResponse == null || !proxyResponse.connected()) {
-                context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
-                context
-                    .request()
-                    .metrics()
-                    .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+                context.response()
+                        .status(
+                                (proxyResponse == null)
+                                        ? HttpStatusCode.SERVICE_UNAVAILABLE_503
+                                        : proxyResponse.status());
+                context.request()
+                        .metrics()
+                        .setApiResponseTimeMs(System.currentTimeMillis()
+                                - context.request().metrics().getApiResponseTimeMs());
                 if (proxyResponse instanceof ProcessorFailure) {
                     handleError(context, endHandler, (ProcessorFailure) proxyResponse);
                 } else {
@@ -227,10 +226,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     }
 
     private void handleClientResponse(
-        final ExecutionContext context,
-        Handler<ExecutionContext> endHandler,
-        final ProxyResponse proxyResponse
-    ) {
+            final ExecutionContext context, Handler<ExecutionContext> endHandler, final ProxyResponse proxyResponse) {
         // Set the status
         context.response().status(proxyResponse.status());
         context.response().reason(proxyResponse.reason());
@@ -243,59 +239,60 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         // For HTTP/2, plug custom frame handler from upstream response to server response
         proxyResponse.customFrameHandler(frame -> context.response().writeCustomFrame(frame));
 
-        chain
-            .errorHandler(failure -> {
-                proxyResponse.cancel();
-                handleError(context, endHandler, failure);
-            })
-            .streamErrorHandler(failure -> {
-                proxyResponse.cancel();
-                handleError(context, endHandler, failure);
-            })
-            .exitHandler(__ -> {
-                endHandler.handle(context);
-                pendingRequests.decrementAndGet();
-            })
-            .handler(stream -> {
-                chain.bodyHandler(chunk -> context.response().write(chunk)).endHandler(__ -> endHandler.handle(context));
+        chain.errorHandler(failure -> {
+                    proxyResponse.cancel();
+                    handleError(context, endHandler, failure);
+                })
+                .streamErrorHandler(failure -> {
+                    proxyResponse.cancel();
+                    handleError(context, endHandler, failure);
+                })
+                .exitHandler(__ -> {
+                    endHandler.handle(context);
+                    pendingRequests.decrementAndGet();
+                })
+                .handler(stream -> {
+                    chain.bodyHandler(chunk -> context.response().write(chunk))
+                            .endHandler(__ -> endHandler.handle(context));
 
-                proxyResponse
-                    .bodyHandler(buffer -> {
-                        chain.write(buffer);
+                    proxyResponse
+                            .bodyHandler(buffer -> {
+                                chain.write(buffer);
 
-                        if (context.response().writeQueueFull()) {
-                            proxyResponse.pause();
-                            context.response().drainHandler(aVoid -> proxyResponse.resume());
-                        }
-                    })
-                    .endHandler(__ -> {
-                        // Write trailers
-                        final HttpHeaders trailers = proxyResponse.trailers();
-                        if (trailers != null && !trailers.isEmpty()) {
-                            trailers.forEach((entry -> context.response().trailers().add(entry.getKey(), entry.getValue())));
-                        }
+                                if (context.response().writeQueueFull()) {
+                                    proxyResponse.pause();
+                                    context.response().drainHandler(aVoid -> proxyResponse.resume());
+                                }
+                            })
+                            .endHandler(__ -> {
+                                // Write trailers
+                                final HttpHeaders trailers = proxyResponse.trailers();
+                                if (trailers != null && !trailers.isEmpty()) {
+                                    trailers.forEach((entry ->
+                                            context.response().trailers().add(entry.getKey(), entry.getValue())));
+                                }
 
-                        context
-                            .request()
-                            .metrics()
-                            .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+                                context.request()
+                                        .metrics()
+                                        .setApiResponseTimeMs(System.currentTimeMillis()
+                                                - context.request().metrics().getApiResponseTimeMs());
 
-                        chain.end();
-                        pendingRequests.decrementAndGet();
-                    });
+                                chain.end();
+                                pendingRequests.decrementAndGet();
+                            });
 
-                // Resume response read
-                proxyResponse.resume();
-            })
-            .handle(context);
+                    // Resume response read
+                    proxyResponse.resume();
+                })
+                .handle(context);
     }
 
     private void handleError(ExecutionContext context, Handler<ExecutionContext> endHandler, ProcessorFailure failure) {
         if (context.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
-            context
-                .request()
-                .metrics()
-                .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+            context.request()
+                    .metrics()
+                    .setApiResponseTimeMs(System.currentTimeMillis()
+                            - context.request().metrics().getApiResponseTimeMs());
         }
         context.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
@@ -307,16 +304,16 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         }
 
         errorProcessorChain
-            .create()
-            .handler(__ -> {
-                endHandler.handle(context);
-                pendingRequests.decrementAndGet();
-            })
-            .errorHandler(__ -> {
-                endHandler.handle(context);
-                pendingRequests.decrementAndGet();
-            })
-            .handle(context);
+                .create()
+                .handler(__ -> {
+                    endHandler.handle(context);
+                    pendingRequests.decrementAndGet();
+                })
+                .errorHandler(__ -> {
+                    endHandler.handle(context);
+                    pendingRequests.decrementAndGet();
+                })
+                .handle(context);
     }
 
     @Override
@@ -367,7 +364,8 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     @Override
     public String toString() {
-        return "Handler API id[" + reactable.getId() + "] name[" + reactable.getName() + "] version[" + reactable.getApiVersion() + ']';
+        return "Handler API id[" + reactable.getId() + "] name[" + reactable.getName() + "] version["
+                + reactable.getApiVersion() + ']';
     }
 
     @Override
@@ -451,32 +449,26 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     @Override
     public List<Acceptor<?>> acceptors() {
         if (acceptors == null) {
-            acceptors = reactable
-                .getDefinition()
-                .getProxy()
-                .getVirtualHosts()
-                .stream()
-                .map(virtualHost -> {
-                    if (virtualHost.getHost() != null) {
-                        return httpAcceptorFactory.create(
-                            virtualHost.getHost(),
-                            virtualHost.getPath(),
-                            this,
-                            reactable.getDefinition().getProxy().getServers()
-                        );
-                    } else {
-                        return new AccessPointHttpAcceptor(
-                            eventManager,
-                            httpAcceptorFactory,
-                            reactable.getEnvironmentId(),
-                            accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
-                            virtualHost.getPath(),
-                            this,
-                            reactable.getDefinition().getProxy().getServers()
-                        );
-                    }
-                })
-                .collect(Collectors.toList());
+            acceptors = reactable.getDefinition().getProxy().getVirtualHosts().stream()
+                    .map(virtualHost -> {
+                        if (virtualHost.getHost() != null) {
+                            return httpAcceptorFactory.create(
+                                    virtualHost.getHost(),
+                                    virtualHost.getPath(),
+                                    this,
+                                    reactable.getDefinition().getProxy().getServers());
+                        } else {
+                            return new AccessPointHttpAcceptor(
+                                    eventManager,
+                                    httpAcceptorFactory,
+                                    reactable.getEnvironmentId(),
+                                    accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
+                                    virtualHost.getPath(),
+                                    this,
+                                    reactable.getDefinition().getProxy().getServers());
+                        }
+                    })
+                    .collect(Collectors.toList());
         }
 
         return acceptors;

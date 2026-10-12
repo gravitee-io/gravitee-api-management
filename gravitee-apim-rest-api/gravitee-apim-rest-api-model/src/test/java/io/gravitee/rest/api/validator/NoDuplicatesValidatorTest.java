@@ -44,37 +44,43 @@ class NoDuplicatesValidatorTest {
 
     @Test
     void should_accept_distinct_values() {
-        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", "b", "c")))).isEmpty();
+        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", "b", "c"))))
+                .isEmpty();
     }
 
     @Test
     void should_ignore_a_single_null_element() {
-        assertThat(validator.validate(new CaseSensitiveHolder(Arrays.asList("a", null)))).isEmpty();
+        assertThat(validator.validate(new CaseSensitiveHolder(Arrays.asList("a", null))))
+                .isEmpty();
     }
 
     // --- ignoreCase = false (the default branch) ---
 
     @Test
     void should_reject_exact_duplicates_when_case_sensitive() {
-        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", "a")))).isNotEmpty();
+        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", "a"))))
+                .isNotEmpty();
     }
 
     @Test
     void should_treat_case_differing_values_as_distinct_when_case_sensitive() {
-        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", "A")))).isEmpty();
+        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", "A"))))
+                .isEmpty();
     }
 
     @Test
     void should_reject_whitespace_differing_duplicates_when_case_sensitive() {
         // both branches trim before comparing, so "a" and " a " collide even when case-sensitive
-        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", " a ")))).isNotEmpty();
+        assertThat(validator.validate(new CaseSensitiveHolder(List.of("a", " a "))))
+                .isNotEmpty();
     }
 
     // --- ignoreCase = true ---
 
     @Test
     void should_reject_case_differing_duplicates_when_ignoring_case() {
-        assertThat(validator.validate(new CaseInsensitiveHolder(List.of("a", " A ")))).isNotEmpty();
+        assertThat(validator.validate(new CaseInsensitiveHolder(List.of("a", " A "))))
+                .isNotEmpty();
     }
 
     static class CaseSensitiveHolder {

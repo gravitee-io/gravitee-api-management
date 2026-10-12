@@ -52,13 +52,13 @@ class HomepageUniquenessRuleTest {
     void applies_only_to_homepage_area() {
         var homepageItem = homepageCreateItem(null);
         var navbarItem = CreatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.FOLDER)
-            .title("Navbar")
-            .segment("navbar")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .build();
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Navbar")
+                .segment("navbar")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
 
         assertThatCode(() -> rule.appliesTo(homepageItem)).doesNotThrowAnyException();
         assertThatCode(() -> rule.appliesTo(navbarItem)).doesNotThrowAnyException();
@@ -68,49 +68,63 @@ class HomepageUniquenessRuleTest {
 
     @Test
     void two_console_owned_homepages_conflict() {
-        navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null));
+        navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null));
 
-        assertThatThrownBy(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
-            HomepageAlreadyExistsException.class
-        );
+        assertThatThrownBy(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty()))
+                .isInstanceOf(HomepageAlreadyExistsException.class);
     }
 
     @Test
     void two_portal_attached_homepages_for_same_portal_conflict() {
         navigationItemsQueryService
-            .storage()
-            .add(PortalNavigationItem.from(homepageCreateItem("11111111-1111-1111-1111-1111111111a1"), ORG_ID, ENV_ID, null));
+                .storage()
+                .add(PortalNavigationItem.from(
+                        homepageCreateItem("11111111-1111-1111-1111-1111111111a1"), ORG_ID, ENV_ID, null));
 
-        assertThatThrownBy(() ->
-            rule.validate(homepageCreateItem("11111111-1111-1111-1111-1111111111a1"), ENV_ID, CreateValidationContext.empty())
-        ).isInstanceOf(HomepageAlreadyExistsException.class);
+        assertThatThrownBy(() -> rule.validate(
+                        homepageCreateItem("11111111-1111-1111-1111-1111111111a1"),
+                        ENV_ID,
+                        CreateValidationContext.empty()))
+                .isInstanceOf(HomepageAlreadyExistsException.class);
     }
 
     @Test
     void portal_attached_homepages_for_different_portals_do_not_conflict() {
         navigationItemsQueryService
-            .storage()
-            .add(PortalNavigationItem.from(homepageCreateItem("11111111-1111-1111-1111-1111111111a1"), ORG_ID, ENV_ID, null));
+                .storage()
+                .add(PortalNavigationItem.from(
+                        homepageCreateItem("11111111-1111-1111-1111-1111111111a1"), ORG_ID, ENV_ID, null));
 
-        assertThatCode(() ->
-            rule.validate(homepageCreateItem("11111111-1111-1111-1111-1111111111b1"), ENV_ID, CreateValidationContext.empty())
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(
+                        homepageCreateItem("11111111-1111-1111-1111-1111111111b1"),
+                        ENV_ID,
+                        CreateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void console_owned_and_portal_attached_homepages_do_not_conflict() {
-        navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null));
+        navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null));
 
-        assertThatCode(() ->
-            rule.validate(homepageCreateItem("11111111-1111-1111-1111-1111111111a1"), ENV_ID, CreateValidationContext.empty())
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(
+                        homepageCreateItem("11111111-1111-1111-1111-1111111111a1"),
+                        ENV_ID,
+                        CreateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void existing_homepage_in_different_env_does_not_conflict() {
-        navigationItemsQueryService.storage().add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, "env-other", null));
+        navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, "env-other", null));
 
-        assertThatCode(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty())).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(homepageCreateItem(null), ENV_ID, CreateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -119,17 +133,18 @@ class HomepageUniquenessRuleTest {
         navigationItemsQueryService.storage().add(staleHomepage);
         var ctx = CreateValidationContext.replacing(Set.of(staleHomepage.getId()));
 
-        assertThatCode(() -> rule.validate(homepageCreateItem(null), ENV_ID, ctx)).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(homepageCreateItem(null), ENV_ID, ctx))
+                .doesNotThrowAnyException();
     }
 
     private static CreatePortalNavigationItem homepageCreateItem(String referenceId) {
         var builder = CreatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.FOLDER)
-            .title("Home")
-            .segment("home")
-            .area(PortalArea.HOMEPAGE)
-            .order(0)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Home")
+                .segment("home")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
         if (referenceId != null) {
             builder.reference(new NavigationItemReference.PortalReference(PortalId.of(referenceId)));
         }

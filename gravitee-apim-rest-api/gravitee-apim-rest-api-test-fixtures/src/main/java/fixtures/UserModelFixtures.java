@@ -21,11 +21,8 @@ public class UserModelFixtures {
 
     private UserModelFixtures() {}
 
-    private static final UserEntity.UserEntityBuilder USER_ENTITY = UserEntity.builder()
-        .id("id")
-        .firstname("John")
-        .lastname("Doe")
-        .email("john@doe.com");
+    private static final UserEntity.UserEntityBuilder USER_ENTITY =
+            UserEntity.builder().id("id").firstname("John").lastname("Doe").email("john@doe.com");
 
     public static UserEntity aUserEntity() {
         return USER_ENTITY.build();

@@ -30,8 +30,7 @@ public enum MembershipReferenceType {
     APPLICATION(EnumSet.of(RoleScope.APPLICATION)),
     API(EnumSet.of(RoleScope.API)),
     API_PRODUCT(EnumSet.of(RoleScope.API_PRODUCT, RoleScope.AI_WORKSPACE)),
-    GROUP(
-        EnumSet.of(
+    GROUP(EnumSet.of(
             RoleScope.GROUP,
             RoleScope.API,
             RoleScope.API_PRODUCT,
@@ -40,9 +39,7 @@ public enum MembershipReferenceType {
             RoleScope.CLUSTER,
             RoleScope.AI_CATALOG,
             RoleScope.EXPLORER,
-            RoleScope.AI_WORKSPACE
-        )
-    ),
+            RoleScope.AI_WORKSPACE)),
     ENVIRONMENT(EnumSet.allOf(RoleScope.class)),
     ORGANIZATION(EnumSet.allOf(RoleScope.class)),
     PLATFORM(EnumSet.allOf(RoleScope.class)),
@@ -59,11 +56,10 @@ public enum MembershipReferenceType {
 
     public RoleScope findScope() {
         return roleScopes.size() == 1
-            ? roleScopes.iterator().next()
-            : roleScopes
-                .stream()
-                .filter(scope -> scope.name().equals(name()))
-                .findFirst()
-                .orElse(roleScopes.iterator().next());
+                ? roleScopes.iterator().next()
+                : roleScopes.stream()
+                        .filter(scope -> scope.name().equals(name()))
+                        .findFirst()
+                        .orElse(roleScopes.iterator().next());
     }
 }

@@ -56,12 +56,11 @@ public class ApiAuditResource extends AbstractResource {
 
     @GET
     @Operation(
-        summary = "Retrieve audit logs for the API",
-        description = "User must have the API_AUDIT[READ] permission to use this service"
-    )
+            summary = "Retrieve audit logs for the API",
+            description = "User must have the API_AUDIT[READ] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)})
     @GraviteeLicenseFeature("apim-audit-trail")
     public MetadataPage<AuditEntity> getApiAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
@@ -83,16 +82,14 @@ public class ApiAuditResource extends AbstractResource {
     @Path("/events")
     @GET
     @Operation(
-        summary = "List available audit event type for API",
-        description = "User must have the API_AUDIT[READ] permission to use this service"
-    )
+            summary = "List available audit event type for API",
+            description = "User must have the API_AUDIT[READ] permission to use this service")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)})
     public Response getApiAuditEvents() {
         if (events.isEmpty()) {
-            Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model").getSubTypesOf(
-                Audit.ApiAuditEvent.class
-            );
+            Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf =
+                    new Reflections("io.gravitee.repository.management.model").getSubTypesOf(Audit.ApiAuditEvent.class);
             for (Class<? extends Audit.ApiAuditEvent> clazz : subTypesOf) {
                 if (clazz.isEnum()) {
                     events.addAll(Arrays.asList(clazz.getEnumConstants()));

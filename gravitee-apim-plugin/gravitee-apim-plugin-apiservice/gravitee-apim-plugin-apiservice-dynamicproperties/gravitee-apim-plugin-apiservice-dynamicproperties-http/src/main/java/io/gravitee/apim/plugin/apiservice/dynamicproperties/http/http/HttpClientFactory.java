@@ -19,7 +19,6 @@ import io.gravitee.apim.plugin.apiservice.dynamicproperties.http.HttpDynamicProp
 import io.gravitee.apim.rest.api.common.apiservices.ManagementDeploymentContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
-import io.gravitee.node.vertx.client.http.VertxHttpClientOptions;
 import io.gravitee.plugin.configurations.http.HttpClientOptions;
 import io.gravitee.plugin.mappers.HttpClientOptionsMapper;
 import io.gravitee.plugin.mappers.HttpProxyOptionsMapper;
@@ -36,7 +35,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class HttpClientFactory {
 
-    // Dummy {@link URLStreamHandler} implementation to avoid unknown protocol issue with default implementation (which knows how to handle only http and https protocol).
+    // Dummy {@link URLStreamHandler} implementation to avoid unknown protocol issue with default implementation (which
+    // knows how to handle only http and https protocol).
     public static final URLStreamHandler URL_HANDLER = new URLStreamHandler() {
         @Override
         protected URLConnection openConnection(URL u) {
@@ -48,18 +48,16 @@ public class HttpClientFactory {
     public static final int SECURE_PORT = 443;
 
     public static HttpClient createClient(
-        ManagementDeploymentContext deploymentContext,
-        HttpDynamicPropertiesServiceConfiguration configuration
-    ) {
+            ManagementDeploymentContext deploymentContext, HttpDynamicPropertiesServiceConfiguration configuration) {
         return VertxHttpClientFactory.builder()
-            .vertx(deploymentContext.getComponent(Vertx.class))
-            .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
-            .defaultTarget(configuration.getUrl())
-            .httpOptions(HttpClientOptionsMapper.INSTANCE.map(prepareHttpClientOptions(configuration)))
-            .sslOptions(SslOptionsMapper.INSTANCE.map(configuration.getSslOptions()))
-            .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(configuration.getHttpProxyOptions()))
-            .build()
-            .createHttpClient();
+                .vertx(deploymentContext.getComponent(Vertx.class))
+                .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
+                .defaultTarget(configuration.getUrl())
+                .httpOptions(HttpClientOptionsMapper.INSTANCE.map(prepareHttpClientOptions(configuration)))
+                .sslOptions(SslOptionsMapper.INSTANCE.map(configuration.getSslOptions()))
+                .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(configuration.getHttpProxyOptions()))
+                .build()
+                .createHttpClient();
     }
 
     private static HttpClientOptions prepareHttpClientOptions(HttpDynamicPropertiesServiceConfiguration configuration) {

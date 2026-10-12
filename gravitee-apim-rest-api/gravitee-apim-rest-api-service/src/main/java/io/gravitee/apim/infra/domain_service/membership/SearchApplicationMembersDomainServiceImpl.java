@@ -38,9 +38,8 @@ public class SearchApplicationMembersDomainServiceImpl implements SearchApplicat
             return membershipQueryService.findByReference(Membership.ReferenceType.APPLICATION, applicationId);
         } catch (TechnicalDomainException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurs while trying to search members for application %s", applicationId),
-                e
-            );
+                    String.format("An error occurs while trying to search members for application %s", applicationId),
+                    e);
         }
     }
 }

@@ -32,12 +32,11 @@ public class ApiSpecGenQueryServiceInMemory implements ApiSpecGenQueryService, I
 
     @Override
     public Optional<ApiSpecGen> findByIdAndType(ExecutionContext context, String id, ApiType type) {
-        return storage
-            .stream()
-            .filter(api -> id.equals(api.id()))
-            .filter(api -> context.getEnvironmentId().equals(api.environmentId()))
-            .filter(api -> type.equals(api.type()))
-            .findFirst();
+        return storage.stream()
+                .filter(api -> id.equals(api.id()))
+                .filter(api -> context.getEnvironmentId().equals(api.environmentId()))
+                .filter(api -> type.equals(api.type()))
+                .findFirst();
     }
 
     @Override

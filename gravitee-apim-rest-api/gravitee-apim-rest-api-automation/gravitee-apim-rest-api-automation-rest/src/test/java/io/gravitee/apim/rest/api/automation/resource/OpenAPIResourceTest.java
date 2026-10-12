@@ -119,14 +119,18 @@ class OpenAPIResourceTest extends AbstractResourceTest {
             var spec = expectSpec();
 
             assertThat(spec.get("paths").has(APIM_PATH)).isTrue();
-            assertThat(spec.get("paths").get(MODULE_PATH).get("put").get("operationId").asText()).isEqualTo(
-                "createOrUpdateAimCatalogMcpServer"
-            );
-            assertThat(spec.get("components").get("schemas").has("AimCatalogMcpServerSpec")).isTrue();
+            assertThat(spec.get("paths")
+                            .get(MODULE_PATH)
+                            .get("put")
+                            .get("operationId")
+                            .asText())
+                    .isEqualTo("createOrUpdateAimCatalogMcpServer");
+            assertThat(spec.get("components").get("schemas").has("AimCatalogMcpServerSpec"))
+                    .isTrue();
             assertThat(spec.get("components").get("schemas").has("BaseStatus")).isTrue();
             assertThat(spec.get("tags"))
-                .extracting(tag -> tag.get("name").asText())
-                .contains("APIs", "AI Catalog");
+                    .extracting(tag -> tag.get("name").asText())
+                    .contains("APIs", "AI Catalog");
             assertThat(spec.get("info").get("title").asText()).isEqualTo("Gravitee.io - Automation API");
         }
 

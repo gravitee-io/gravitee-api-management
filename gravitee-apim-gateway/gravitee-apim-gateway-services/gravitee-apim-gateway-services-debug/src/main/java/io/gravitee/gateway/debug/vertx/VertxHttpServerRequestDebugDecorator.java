@@ -34,10 +34,12 @@ public class VertxHttpServerRequestDebugDecorator extends VertxHttpServerRequest
      */
     public VertxHttpServerRequestDebugDecorator(VertxHttpServerRequest delegate, IdGenerator idGenerator) {
         super(
-            delegate.getNativeServerRequest(),
-            idGenerator,
-            VertxHttpServerRequestOptions.builder().path(delegate.path()).timestamp(delegate.timestamp()).build()
-        );
+                delegate.getNativeServerRequest(),
+                idGenerator,
+                VertxHttpServerRequestOptions.builder()
+                        .path(delegate.path())
+                        .timestamp(delegate.timestamp())
+                        .build());
         this.delegate = delegate;
     }
 

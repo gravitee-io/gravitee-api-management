@@ -46,10 +46,9 @@ public class NewtAIProviderImpl implements NewtAIProvider {
     private final InstallationService installationService;
 
     public NewtAIProviderImpl(
-        @Lazy CockpitConnector cockpitConnector,
-        ApimProductInfoImpl apimMetadata,
-        InstallationService installationService
-    ) {
+            @Lazy CockpitConnector cockpitConnector,
+            ApimProductInfoImpl apimMetadata,
+            InstallationService installationService) {
         this.cockpitConnector = cockpitConnector;
         this.apimMetadata = apimMetadata;
         this.installationService = installationService;
@@ -57,42 +56,44 @@ public class NewtAIProviderImpl implements NewtAIProvider {
 
     @Override
     public Single<ELGenReply> generateEL(ELGenQuery query) {
-        var installationId = installationService.get().getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID);
+        var installationId =
+                installationService.get().getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID);
         if (StringUtils.isEmpty(installationId)) {
             return Single.error(new InstallationNotFoundException("Cockpit installation not found"));
         }
-        var command = new ELCommand(new ELCommandPayload(query.message(), apimMetadata.getVersion(), query.properties(), installationId));
+        var command = new ELCommand(
+                new ELCommandPayload(query.message(), apimMetadata.getVersion(), query.properties(), installationId));
 
         return cockpitConnector
-            .sendCommand(command)
-            .onErrorResumeNext(error -> Single.error(new NewtAIReplyException(command.getId(), getErrorMessage(error), error)))
-            .map(reply -> {
-                if (reply.getCommandStatus() == CommandStatus.ERROR) {
-                    throw new NewtAIReplyException(command.getId(), reply.getErrorDetails());
-                } else if (reply.getPayload() instanceof ELReplyPayload payload) {
-                    return new Output(mapPayload(payload));
-                }
-                throw new NewtAIReplyException(command.getId(), "Unexpected reply payload:" + reply.getPayload());
-            });
+                .sendCommand(command)
+                .onErrorResumeNext(
+                        error -> Single.error(new NewtAIReplyException(command.getId(), getErrorMessage(error), error)))
+                .map(reply -> {
+                    if (reply.getCommandStatus() == CommandStatus.ERROR) {
+                        throw new NewtAIReplyException(command.getId(), reply.getErrorDetails());
+                    } else if (reply.getPayload() instanceof ELReplyPayload payload) {
+                        return new Output(mapPayload(payload));
+                    }
+                    throw new NewtAIReplyException(command.getId(), "Unexpected reply payload:" + reply.getPayload());
+                });
     }
 
     @Override
     public Completable submitFeedback(ELGenFeedback feedback) {
-        var command = new ELGenFeedbackCommand(
-            new ELGenFeedbackCommandPayload(
+        var command = new ELGenFeedbackCommand(new ELGenFeedbackCommandPayload(
                 new ELReplyPayload.RequestId(feedback.chatId(), feedback.userMessageId(), feedback.agentMessageId()),
-                feedback.answerHelpful()
-            )
-        );
+                feedback.answerHelpful()));
         return cockpitConnector
-            .sendCommand(command)
-            .onErrorResumeNext(error -> Single.error(new NewtAiSubmitFeedbackException(command.getId(), getErrorMessage(error), error)))
-            .flatMapCompletable(reply -> {
-                if (reply.getCommandStatus() == CommandStatus.ERROR) {
-                    return Completable.error(new NewtAiSubmitFeedbackException(command.getId(), reply.getErrorDetails()));
-                }
-                return Completable.complete();
-            });
+                .sendCommand(command)
+                .onErrorResumeNext(error ->
+                        Single.error(new NewtAiSubmitFeedbackException(command.getId(), getErrorMessage(error), error)))
+                .flatMapCompletable(reply -> {
+                    if (reply.getCommandStatus() == CommandStatus.ERROR) {
+                        return Completable.error(
+                                new NewtAiSubmitFeedbackException(command.getId(), reply.getErrorDetails()));
+                    }
+                    return Completable.complete();
+                });
     }
 
     private ELReplyPayload mapPayload(ELReplyPayload payload) {
@@ -109,7 +110,8 @@ public class NewtAIProviderImpl implements NewtAIProvider {
             this(payload.message(), new FeedbackId(payload.feedbackId()));
         }
 
-        private record FeedbackId(String chatId, String userMessageId, String agentMessageId) implements ELGenReply.FeedbackId {
+        private record FeedbackId(String chatId, String userMessageId, String agentMessageId)
+                implements ELGenReply.FeedbackId {
             private FeedbackId(ELReplyPayload.RequestId requestId) {
                 this(requestId.chatId(), requestId.userMessageId(), requestId.agentMessageId());
             }

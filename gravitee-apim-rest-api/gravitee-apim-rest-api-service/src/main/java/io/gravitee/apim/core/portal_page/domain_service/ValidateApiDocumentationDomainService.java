@@ -34,15 +34,15 @@ import java.util.ArrayList;
 public class ValidateApiDocumentationDomainService implements Validator<ValidateApiDocumentationDomainService.Input> {
 
     public record Input(
-        AuditInfo auditInfo,
-        PortalPageContentId portalPageContentId,
-        String apiId,
-        String name,
-        PortalPageContentType type,
-        String content,
-        String location,
-        Integer order
-    ) implements Validator.Input {}
+            AuditInfo auditInfo,
+            PortalPageContentId portalPageContentId,
+            String apiId,
+            String name,
+            PortalPageContentType type,
+            String content,
+            String location,
+            Integer order)
+            implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {

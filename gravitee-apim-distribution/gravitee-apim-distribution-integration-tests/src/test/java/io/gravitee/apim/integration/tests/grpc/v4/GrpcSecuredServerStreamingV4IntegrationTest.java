@@ -23,7 +23,6 @@ import io.vertx.grpcio.client.GrpcIoClient;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 public class GrpcSecuredServerStreamingV4IntegrationTest extends GrpcServerStreamingV4IntegrationTest {
 
     @Override
@@ -33,6 +32,7 @@ public class GrpcSecuredServerStreamingV4IntegrationTest extends GrpcServerStrea
     }
 
     public GrpcIoClient createGrpcClient() {
-        return getGrpcClient(() -> GrpcIoClient.client(vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true)));
+        return getGrpcClient(() -> GrpcIoClient.client(
+                vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true)));
     }
 }

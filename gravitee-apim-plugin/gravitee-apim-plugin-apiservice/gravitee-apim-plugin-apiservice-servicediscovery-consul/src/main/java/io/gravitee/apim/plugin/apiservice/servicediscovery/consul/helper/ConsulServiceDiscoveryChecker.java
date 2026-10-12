@@ -32,10 +32,7 @@ public class ConsulServiceDiscoveryChecker {
      * @return true if the service needs to be initialized
      */
     public static boolean canHandle(final Api api) {
-        return api
-            .getEndpointGroups()
-            .stream()
-            .anyMatch(endpointGroup -> isConsulEnabled(endpointGroup.getServices()));
+        return api.getEndpointGroups().stream().anyMatch(endpointGroup -> isConsulEnabled(endpointGroup.getServices()));
     }
 
     public static boolean isConsulEnabled(EndpointGroupServices services) {
@@ -43,6 +40,8 @@ public class ConsulServiceDiscoveryChecker {
     }
 
     public static boolean isServiceEnabled(final Service discoveryService) {
-        return discoveryService != null && discoveryService.isEnabled() && CONSUL_SERVICE_DISCOVERY_ID.equals(discoveryService.getType());
+        return discoveryService != null
+                && discoveryService.isEnabled()
+                && CONSUL_SERVICE_DISCOVERY_ID.equals(discoveryService.getType());
     }
 }

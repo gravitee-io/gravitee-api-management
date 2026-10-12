@@ -39,20 +39,9 @@ public final class SecureMemberAccessPolicy implements MemberAccessPolicy {
     private static final class SecureClassPolicy implements ClassMemberAccessPolicy {
 
         private static final Set<String> FORBIDDEN_METHODS = Set.of(
-            "getClass",
-            "getClassLoader",
-            "getContextClassLoader",
-            "getProtectionDomain",
-            "forName",
-            "newInstance"
-        );
-        private static final Set<Class<?>> FORBIDDEN_TYPES = Set.of(
-            Class.class,
-            ClassLoader.class,
-            ProtectionDomain.class,
-            Thread.class,
-            Member.class
-        );
+                "getClass", "getClassLoader", "getContextClassLoader", "getProtectionDomain", "forName", "newInstance");
+        private static final Set<Class<?>> FORBIDDEN_TYPES =
+                Set.of(Class.class, ClassLoader.class, ProtectionDomain.class, Thread.class, Member.class);
 
         @Override
         public boolean isMethodExposed(Method method) {

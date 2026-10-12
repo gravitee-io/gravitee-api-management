@@ -33,7 +33,10 @@ public final class ApiResourceNames {
         if (resources == null) {
             return Set.of();
         }
-        return resources.stream().map(Resource::getName).filter(Objects::nonNull).collect(Collectors.toSet());
+        return resources.stream()
+                .map(Resource::getName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     public static Set<String> fromHttpV4(Api api) {

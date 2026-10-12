@@ -47,10 +47,7 @@ public final class FlowableBackPressureMemoryAware extends Flowable<CompressedBu
     final Consumer<? super CompressedBulk> onDropped;
 
     public FlowableBackPressureMemoryAware(
-        Flowable<CompressedBulk> source,
-        long maxMemorySize,
-        Consumer<? super CompressedBulk> onDropped
-    ) {
+            Flowable<CompressedBulk> source, long maxMemorySize, Consumer<? super CompressedBulk> onDropped) {
         this.source = source;
         this.maxMemorySize = maxMemorySize;
         this.onDropped = onDropped;
@@ -61,7 +58,8 @@ public final class FlowableBackPressureMemoryAware extends Flowable<CompressedBu
         source.subscribe(new BackpressureBufferMemoryAwareSubscriber(s, maxMemorySize, onDropped));
     }
 
-    static class BackpressureBufferMemoryAwareSubscriber extends AtomicInteger implements FlowableSubscriber<CompressedBulk>, Subscription {
+    static class BackpressureBufferMemoryAwareSubscriber extends AtomicInteger
+            implements FlowableSubscriber<CompressedBulk>, Subscription {
 
         @Serial
         private static final long serialVersionUID = -7651817331081893000L;
@@ -79,10 +77,9 @@ public final class FlowableBackPressureMemoryAware extends Flowable<CompressedBu
         final AtomicLong totalMemoryUsed = new AtomicLong(0);
 
         BackpressureBufferMemoryAwareSubscriber(
-            Subscriber<? super CompressedBulk> actual,
-            long maxMemorySize,
-            Consumer<? super CompressedBulk> onDropped
-        ) {
+                Subscriber<? super CompressedBulk> actual,
+                long maxMemorySize,
+                Consumer<? super CompressedBulk> onDropped) {
             this.downstream = actual;
             this.maxMemorySize = maxMemorySize;
             this.requested = new AtomicLong();
@@ -128,7 +125,8 @@ public final class FlowableBackPressureMemoryAware extends Flowable<CompressedBu
                             }
                             toDropList.add(dropCandidate);
                         }
-                    } while (dropCandidate != null && totalFreeSpace < c.compressed().length());
+                    } while (dropCandidate != null
+                            && totalFreeSpace < c.compressed().length());
 
                     deque.offer(c);
                     increaseMemoryUsed(c);
@@ -157,7 +155,8 @@ public final class FlowableBackPressureMemoryAware extends Flowable<CompressedBu
         }
 
         private void increaseMemoryUsed(CompressedBulk c) {
-            totalMemoryUsed.updateAndGet(currentValue -> currentValue + c.compressed().length());
+            totalMemoryUsed.updateAndGet(
+                    currentValue -> currentValue + c.compressed().length());
         }
 
         @Override

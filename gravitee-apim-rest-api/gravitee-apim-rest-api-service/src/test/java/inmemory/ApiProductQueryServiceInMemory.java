@@ -30,16 +30,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory<ApiProduct> implements ApiProductQueryService {
+public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory<ApiProduct>
+        implements ApiProductQueryService {
 
     @Override
     public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) {
-        return storage
-            .stream()
-            .filter(
-                apiProduct -> Objects.equals(environmentId, apiProduct.getEnvironmentId()) && Objects.equals(name, apiProduct.getName())
-            )
-            .findFirst();
+        return storage.stream()
+                .filter(apiProduct -> Objects.equals(environmentId, apiProduct.getEnvironmentId())
+                        && Objects.equals(name, apiProduct.getName()))
+                .findFirst();
     }
 
     @Override
@@ -63,17 +62,17 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
 
     @Override
     public Optional<ApiProduct> findById(String apiProductId) {
-        return storage
-            .stream()
-            .filter(apiProduct -> apiProduct.getId().equals(apiProductId))
-            .findFirst();
+        return storage.stream()
+                .filter(apiProduct -> apiProduct.getId().equals(apiProductId))
+                .findFirst();
     }
 
     @Override
     public ApiProduct findById(ExecutionContext executionContext, String apiProductId) {
         Optional<ApiProduct> apiProduct = findById(apiProductId);
         if (executionContext.hasEnvironmentId()) {
-            apiProduct = apiProduct.filter(ap -> executionContext.getEnvironmentId().equals(ap.getEnvironmentId()));
+            apiProduct =
+                    apiProduct.filter(ap -> executionContext.getEnvironmentId().equals(ap.getEnvironmentId()));
         }
         return apiProduct.orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
     }
@@ -91,12 +90,11 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
 
     @Override
     public Page<ApiProduct> searchByIds(Set<String> ids, String environmentId, Pageable pageable) {
-        var matches = storage
-            .stream()
-            .filter(p -> ids.contains(p.getId()))
-            .filter(p -> environmentId == null || Objects.equals(environmentId, p.getEnvironmentId()))
-            .sorted(Comparator.comparing(ApiProduct::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
-            .toList();
+        var matches = storage.stream()
+                .filter(p -> ids.contains(p.getId()))
+                .filter(p -> environmentId == null || Objects.equals(environmentId, p.getEnvironmentId()))
+                .sorted(Comparator.comparing(ApiProduct::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .toList();
 
         int pageNumber = pageable.getPageNumber();
         int pageSize = pageable.getPageSize();
@@ -113,11 +111,9 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
         }
         Set<String> result = new HashSet<>();
         for (ApiProduct apiProduct : storage) {
-            if (
-                Objects.equals(environmentId, apiProduct.getEnvironmentId()) &&
-                apiProduct.getGroups() != null &&
-                apiProduct.getGroups().stream().anyMatch(groupIds::contains)
-            ) {
+            if (Objects.equals(environmentId, apiProduct.getEnvironmentId())
+                    && apiProduct.getGroups() != null
+                    && apiProduct.getGroups().stream().anyMatch(groupIds::contains)) {
                 result.add(apiProduct.getId());
             }
         }

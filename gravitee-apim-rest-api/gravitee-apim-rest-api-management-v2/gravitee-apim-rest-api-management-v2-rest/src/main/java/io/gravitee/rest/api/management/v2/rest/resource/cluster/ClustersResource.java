@@ -19,7 +19,6 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
-import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetDeployedClustersUseCase;
@@ -50,7 +49,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import lombok.CustomLog;
@@ -79,100 +77,117 @@ public class ClustersResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_CLUSTER,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createCluster(@Valid @NotNull final CreateCluster createCluster) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
-        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(ClusterMapper.INSTANCE.map(createCluster), audit));
+        var output = createClusterUseCase.execute(
+                new CreateClusterUseCase.Input(ClusterMapper.INSTANCE.map(createCluster), audit));
 
         return Response.created(this.getLocationHeader(output.cluster().getId()))
-            .entity(ClusterMapper.INSTANCE.map(output.cluster()))
-            .build();
+                .entity(ClusterMapper.INSTANCE.map(output.cluster()))
+                .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_CLUSTER,
+                acls = {RolePermissionAction.READ})
+    })
     public ClustersResponse searchClusters(
-        @QueryParam("q") String q,
-        @QueryParam("type") ClusterType type,
-        @QueryParam("lifecycleState") List<ClusterLifecycleState> lifecycleStates,
-        @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("sortBy") String sortBy
-    ) {
+            @QueryParam("q") String q,
+            @QueryParam("type") ClusterType type,
+            @QueryParam("lifecycleState") List<ClusterLifecycleState> lifecycleStates,
+            @BeanParam @Valid PaginationParam paginationParam,
+            @QueryParam("sortBy") String sortBy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        SearchClusterUseCase.Output result = searchClusterUseCase.execute(
-            SearchClusterUseCase.Input.builder()
+        SearchClusterUseCase.Output result = searchClusterUseCase.execute(SearchClusterUseCase.Input.builder()
                 .environmentId(executionContext.getEnvironmentId())
                 .type(type)
-                .lifecycleStates(lifecycleStates == null ? null : lifecycleStates.stream().map(Enum::name).toList())
+                .lifecycleStates(
+                        lifecycleStates == null
+                                ? null
+                                : lifecycleStates.stream().map(Enum::name).toList())
                 .query(q)
                 .pageable(paginationParam.toPageable())
                 .sortBy(sortBy)
                 .isAdmin(isAdmin())
                 .userId(getAuthenticatedUser())
-                .build()
-        );
+                .build());
 
         return new ClustersResponse()
-            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent()))
-            .pagination(
-                PaginationInfo.computePaginationInfo(
-                    result.pageResult().getTotalElements(),
-                    result.pageResult().getContent().size(),
-                    paginationParam
-                )
-            )
-            .links(computePaginationLinks(result.pageResult().getTotalElements(), paginationParam));
+                .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent()))
+                .pagination(PaginationInfo.computePaginationInfo(
+                        result.pageResult().getTotalElements(),
+                        result.pageResult().getContent().size(),
+                        paginationParam))
+                .links(computePaginationLinks(result.pageResult().getTotalElements(), paginationParam));
     }
 
     @GET
     @Path("_stats")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_CLUSTER,
+                acls = {RolePermissionAction.READ})
+    })
     public ClusterLifecycleStateStats getClusterLifecycleStateStats(@QueryParam("type") ClusterType type) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var result = countClustersByLifecycleStateUseCase.execute(
-            new CountClustersByLifecycleStateUseCase.Input(executionContext.getEnvironmentId(), type, isAdmin(), getAuthenticatedUser())
-        );
+        var result = countClustersByLifecycleStateUseCase.execute(new CountClustersByLifecycleStateUseCase.Input(
+                executionContext.getEnvironmentId(), type, isAdmin(), getAuthenticatedUser()));
         return new ClusterLifecycleStateStats()
-            .total(result.total())
-            .deployed(result.deployed())
-            .pending(result.pending())
-            .undeployed(result.undeployed());
+                .total(result.total())
+                .deployed(result.deployed())
+                .pending(result.pending())
+                .undeployed(result.undeployed());
     }
 
     @GET
     @Path("deployed")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_CLUSTER,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getDeployedClusters(@QueryParam("type") ClusterType type) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var output = getDeployedClustersUseCase.execute(new GetDeployedClustersUseCase.Input(executionContext.getEnvironmentId(), type));
+        var output = getDeployedClustersUseCase.execute(
+                new GetDeployedClustersUseCase.Input(executionContext.getEnvironmentId(), type));
         return Response.ok(output.deployedClusters()).build();
     }
 
     @GET
     @Path("schema/configuration")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_CLUSTER,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getConfigurationSchema(@QueryParam("type") ClusterType type) {
         ClusterType clusterType = type != null ? type : ClusterType.KAFKA_CLUSTER_STANDALONE;
-        return Response.ok(clusterConfigurationSchemaService.getConfigurationSchema(clusterType)).build();
+        return Response.ok(clusterConfigurationSchemaService.getConfigurationSchema(clusterType))
+                .build();
     }
 
     @Path("{clusterId}")

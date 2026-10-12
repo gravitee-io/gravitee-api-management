@@ -37,31 +37,29 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
     private final ObjectMapper objectMapper;
 
     public DebugPlatformProcessorChainFactory(
-        final TransactionPreProcessorFactory transactionHandlerFactory,
-        final boolean traceContext,
-        final boolean xForwardProcessor,
-        final ReporterService reporterService,
-        final AlertEventProducer eventProducer,
-        final Node node,
-        final String port,
-        final boolean tracing,
-        final GatewayConfiguration gatewayConfiguration,
-        final EventRepository eventRepository,
-        final ObjectMapper objectMapper,
-        final ConnectionDrainManager connectionDrainManager
-    ) {
+            final TransactionPreProcessorFactory transactionHandlerFactory,
+            final boolean traceContext,
+            final boolean xForwardProcessor,
+            final ReporterService reporterService,
+            final AlertEventProducer eventProducer,
+            final Node node,
+            final String port,
+            final boolean tracing,
+            final GatewayConfiguration gatewayConfiguration,
+            final EventRepository eventRepository,
+            final ObjectMapper objectMapper,
+            final ConnectionDrainManager connectionDrainManager) {
         super(
-            transactionHandlerFactory,
-            traceContext,
-            xForwardProcessor,
-            reporterService,
-            eventProducer,
-            node,
-            port,
-            gatewayConfiguration,
-            connectionDrainManager,
-            tracing
-        );
+                transactionHandlerFactory,
+                traceContext,
+                xForwardProcessor,
+                reporterService,
+                eventProducer,
+                node,
+                port,
+                gatewayConfiguration,
+                connectionDrainManager,
+                tracing);
         this.eventRepository = eventRepository;
         this.objectMapper = objectMapper;
     }

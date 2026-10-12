@@ -15,9 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
-import static io.gravitee.apim.core.utils.CollectionUtils.stream;
-
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.TimeProvider;
@@ -46,14 +43,13 @@ import org.springframework.stereotype.Component;
  */
 @CustomLog
 @Component
-public class ScheduledCommandsRefresherServiceImpl
-    extends AbstractService<ScheduledCommandsRefresherServiceImpl>
-    implements ScheduledCommandService<ScheduledCommandsRefresherServiceImpl>, Runnable {
+public class ScheduledCommandsRefresherServiceImpl extends AbstractService<ScheduledCommandsRefresherServiceImpl>
+        implements ScheduledCommandService<ScheduledCommandsRefresherServiceImpl>, Runnable {
 
     // We exclude the DATA_TO_INDEX tag because it is processed by another service
     public static final List<CommandTags> SUPPORTED_COMMAND_TAGS = Arrays.stream(CommandTags.values())
-        .filter(commandTags -> commandTags != CommandTags.DATA_TO_INDEX)
-        .toList();
+            .filter(commandTags -> commandTags != CommandTags.DATA_TO_INDEX)
+            .toList();
 
     private final CommandService commandService;
 
@@ -65,13 +61,12 @@ public class ScheduledCommandsRefresherServiceImpl
     private final ClusterManager clusterManager;
 
     public ScheduledCommandsRefresherServiceImpl(
-        CommandService commandService,
-        Node node,
-        @Qualifier("commandTaskScheduler") TaskScheduler scheduler,
-        @Value("${services.commands.cron:0/5 * * * * *}") String cronTrigger,
-        EventManager eventManager,
-        @Lazy ClusterManager clusterManager
-    ) {
+            CommandService commandService,
+            Node node,
+            @Qualifier("commandTaskScheduler") TaskScheduler scheduler,
+            @Value("${services.commands.cron:0/5 * * * * *}") String cronTrigger,
+            EventManager eventManager,
+            @Lazy ClusterManager clusterManager) {
         this.commandService = commandService;
         this.node = node;
         this.scheduler = scheduler;
@@ -110,11 +105,9 @@ public class ScheduledCommandsRefresherServiceImpl
         commandQuery.setNotAckBy(node.id());
         commandQuery.setTags(SUPPORTED_COMMAND_TAGS);
 
-        return commandService
-            .search(commandQuery)
-            .stream()
-            .filter(command -> !command.isExpired())
-            .toList();
+        return commandService.search(commandQuery).stream()
+                .filter(command -> !command.isExpired())
+                .toList();
     }
 
     private void searchExpiredCommandsAndClean() {
@@ -133,7 +126,9 @@ public class ScheduledCommandsRefresherServiceImpl
      */
     private void processCastMode(List<CommandEntity> commands) {
         commands.forEach(command -> {
-            if (command.getTags() != null && command.getTags().size() == 1 && command.getTags().get(0).isUnicast()) {
+            if (command.getTags() != null
+                    && command.getTags().size() == 1
+                    && command.getTags().get(0).isUnicast()) {
                 commandService.delete(command.getId());
             } else {
                 commandService.ack(command.getId());

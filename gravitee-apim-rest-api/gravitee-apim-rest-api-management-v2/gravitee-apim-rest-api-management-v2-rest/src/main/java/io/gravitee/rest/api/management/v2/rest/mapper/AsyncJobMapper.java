@@ -23,14 +23,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface AsyncJobMapper {
     Logger log = NodeLoggerFactory.getLogger(AsyncJobMapper.class);
     AsyncJobMapper INSTANCE = Mappers.getMapper(AsyncJobMapper.class);
 
     AsyncJob map(io.gravitee.apim.core.async_job.model.AsyncJob source);
+
     List<AsyncJob> map(List<io.gravitee.apim.core.async_job.model.AsyncJob> source);
 
     io.gravitee.apim.core.async_job.model.AsyncJob.Type map(AsyncJob.TypeEnum source);
+
     io.gravitee.apim.core.async_job.model.AsyncJob.Status map(AsyncJobStatus source);
 }

@@ -33,18 +33,17 @@ class SharedPolicyGroupTest {
     @ParameterizedTest
     @MethodSource("providePhases")
     void should_map_flow_phase_to_definition_phase(
-        FlowPhase flowPhase,
-        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase expectedPhase
-    ) {
+            FlowPhase flowPhase,
+            io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase expectedPhase) {
         var sharedPolicyGroup = SharedPolicyGroup.builder()
-            .crossId("cross-id")
-            .environmentId("environment-id")
-            .name("name")
-            .phase(flowPhase)
-            .steps(List.of())
-            .version(1)
-            .deployedAt(ZonedDateTime.now())
-            .build();
+                .crossId("cross-id")
+                .environmentId("environment-id")
+                .name("name")
+                .phase(flowPhase)
+                .steps(List.of())
+                .version(1)
+                .deployedAt(ZonedDateTime.now())
+                .build();
 
         var definition = sharedPolicyGroup.toDefinition();
 
@@ -53,10 +52,17 @@ class SharedPolicyGroupTest {
 
     private static Stream<Arguments> providePhases() {
         return Stream.of(
-            Arguments.of(FlowPhase.REQUEST, io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST),
-            Arguments.of(FlowPhase.RESPONSE, io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.RESPONSE),
-            Arguments.of(FlowPhase.PUBLISH, io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_REQUEST),
-            Arguments.of(FlowPhase.SUBSCRIBE, io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_RESPONSE)
-        );
+                Arguments.of(
+                        FlowPhase.REQUEST,
+                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST),
+                Arguments.of(
+                        FlowPhase.RESPONSE,
+                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.RESPONSE),
+                Arguments.of(
+                        FlowPhase.PUBLISH,
+                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_REQUEST),
+                Arguments.of(
+                        FlowPhase.SUBSCRIBE,
+                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_RESPONSE));
     }
 }

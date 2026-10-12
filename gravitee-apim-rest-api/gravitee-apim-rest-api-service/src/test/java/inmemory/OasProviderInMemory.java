@@ -29,13 +29,12 @@ public class OasProviderInMemory implements OasProvider, InMemoryAlternative<Str
 
     @Override
     public String decorateSpecification(ApiSpecGen apiSpecGen, String spec) {
-        return storage
-            .stream()
-            .filter(str -> str.contains("description: " + apiSpecGen.description()))
-            .filter(str -> str.contains("title: " + apiSpecGen.name()))
-            .filter(str -> str.contains("version: " + apiSpecGen.version()))
-            .findFirst()
-            .orElse(null);
+        return storage.stream()
+                .filter(str -> str.contains("description: " + apiSpecGen.description()))
+                .filter(str -> str.contains("title: " + apiSpecGen.name()))
+                .filter(str -> str.contains("version: " + apiSpecGen.version()))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

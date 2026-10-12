@@ -76,7 +76,8 @@ public class CreateApiDomainService {
      * @param sanitizer    A sanitizer function to apply on the API before creating it. This will be used to apply additional validation and sanitization.
      * @return The created API.
      */
-    public ApiWithFlows create(Api api, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo, UnaryOperator<Api> sanitizer) {
+    public ApiWithFlows create(
+            Api api, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo, UnaryOperator<Api> sanitizer) {
         return create(api, primaryOwner, auditInfo, sanitizer, oneShotIndexation(auditInfo));
     }
 
@@ -97,12 +98,11 @@ public class CreateApiDomainService {
      * @return The created API.
      */
     public ApiWithFlows create(
-        Api api,
-        PrimaryOwnerEntity primaryOwner,
-        AuditInfo auditInfo,
-        UnaryOperator<Api> sanitizer,
-        ApiIndexerDomainService.Context indexContext
-    ) {
+            Api api,
+            PrimaryOwnerEntity primaryOwner,
+            AuditInfo auditInfo,
+            UnaryOperator<Api> sanitizer,
+            ApiIndexerDomainService.Context indexContext) {
         var sanitized = sanitizer.apply(api);
 
         var created = apiCrudService.create(sanitized);
@@ -121,7 +121,8 @@ public class CreateApiDomainService {
         createCategoryApiDomainService.addApiToCategories(api.getId(), api.getCategories());
 
         if (isApiReviewEnabled(created, auditInfo.organizationId(), auditInfo.environmentId())) {
-            workflowCrudService.create(newApiReviewWorkflow(api.getId(), auditInfo.actor().userId()));
+            workflowCrudService.create(
+                    newApiReviewWorkflow(api.getId(), auditInfo.actor().userId()));
         }
 
         apiIndexerDomainService.index(indexContext, created, primaryOwner);
@@ -129,8 +130,7 @@ public class CreateApiDomainService {
     }
 
     private void createAuditLog(Api created, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(created.getId())
@@ -138,14 +138,15 @@ public class CreateApiDomainService {
                 .actor(auditInfo.actor())
                 .newValue(created)
                 .createdAt(created.getCreatedAt())
-                .properties(EncryptedPropertyAuditMarker.mark(Collections.emptyMap(), null, created.getApiDefinitionValue()))
-                .build()
-        );
+                .properties(EncryptedPropertyAuditMarker.mark(
+                        Collections.emptyMap(), null, created.getApiDefinitionValue()))
+                .build());
     }
 
     private void createDefaultMailNotification(Api api) {
         switch (api.getDefinitionVersion()) {
-            case V4 -> notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(api.getId()));
+            case V4 ->
+                notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(api.getId()));
             case V2, FEDERATED, FEDERATED_AGENT -> {
                 // nothing to do
             }
@@ -165,17 +166,18 @@ public class CreateApiDomainService {
     private List<? extends AbstractFlow> saveApiFlows(Api api) {
         return switch (api.getApiDefinitionValue()) {
             case NativeApi nativeApi -> flowCrudService.saveNativeApiFlows(api.getId(), nativeApi.getFlows());
-            case io.gravitee.definition.model.v4.Api v4Api -> flowCrudService.saveApiFlows(v4Api.getId(), v4Api.getFlows());
+            case io.gravitee.definition.model.v4.Api v4Api ->
+                flowCrudService.saveApiFlows(v4Api.getId(), v4Api.getFlows());
             default -> null;
         };
     }
 
     private boolean isApiReviewEnabled(Api api, String organizationId, String environmentId) {
         return switch (api.getDefinitionVersion()) {
-            case V2, V4 -> parametersQueryService.findAsBoolean(
-                Key.API_REVIEW_ENABLED,
-                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
-            );
+            case V2, V4 ->
+                parametersQueryService.findAsBoolean(
+                        Key.API_REVIEW_ENABLED,
+                        new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT));
             case FEDERATED, FEDERATED_AGENT -> false;
             default -> false;
         };

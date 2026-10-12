@@ -41,7 +41,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
@@ -60,12 +59,8 @@ public class PlanMapper {
     private static final String POLICY_CONFIGURATION_PERIOD_TIME_UNIT = "periodTimeUnit";
     private static final String RATE_LIMIT_POLICY_ID = "rate-limit";
     private static final String QUOTA_POLICY_ID = "quota";
-    private static final Map<String, String> POLICY_CONFIGURATION_ATTRIBUTES = Map.of(
-        QUOTA_POLICY_ID,
-        "quota",
-        RATE_LIMIT_POLICY_ID,
-        "rate"
-    );
+    private static final Map<String, String> POLICY_CONFIGURATION_ATTRIBUTES =
+            Map.of(QUOTA_POLICY_ID, "quota", RATE_LIMIT_POLICY_ID, "rate");
 
     public Plan convert(GenericPlanEntity plan, GenericApiEntity api) {
         final Plan planItem = new Plan();
@@ -78,7 +73,8 @@ public class PlanMapper {
         planItem.setName(plan.getName());
         planItem.setOrder(plan.getOrder());
         if (plan.getPlanSecurity() != null && plan.getPlanSecurity().getType() != null) {
-            PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
+            PlanSecurityType planSecurityType =
+                    PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
             planItem.setSecurity(SecurityEnum.fromValue(planSecurityType.name()));
         }
         planItem.setValidation(ValidationEnum.fromValue(plan.getPlanValidation().name()));
@@ -104,18 +100,19 @@ public class PlanMapper {
      * @param plan -- GenericPlanEntity
      * @return A TimePeriodConfiguration with the longest duration between calls. Null if no valid configuration exists.
      */
-    private TimePeriodConfiguration getMostRestrictivePolicyConfiguration(String policyId, GenericPlanEntity plan, GenericApiEntity api) {
+    private TimePeriodConfiguration getMostRestrictivePolicyConfiguration(
+            String policyId, GenericPlanEntity plan, GenericApiEntity api) {
         List<String> policyConfigurations = this.getEnabledConfigurationsByPolicyId(policyId, plan);
         String policyAttribute = POLICY_CONFIGURATION_ATTRIBUTES.get(policyId);
 
-        return policyConfigurations
-            .stream()
-            .map(this::safeReadJson)
-            .map(node -> node.has(policyAttribute) ? node.get(policyAttribute) : JsonNodeFactory.instance.objectNode())
-            .map(node -> this.extractValidConfiguration(node, api))
-            .filter(Objects::nonNull)
-            .max(Comparator.comparing(this::calculateDuration))
-            .orElse(null);
+        return policyConfigurations.stream()
+                .map(this::safeReadJson)
+                .map(node ->
+                        node.has(policyAttribute) ? node.get(policyAttribute) : JsonNodeFactory.instance.objectNode())
+                .map(node -> this.extractValidConfiguration(node, api))
+                .filter(Objects::nonNull)
+                .max(Comparator.comparing(this::calculateDuration))
+                .orElse(null);
     }
 
     private JsonNode safeReadJson(String configuration) {
@@ -141,35 +138,35 @@ public class PlanMapper {
         var config = new TimePeriodConfiguration();
         config.setLimit(limitToUse);
 
-        if (configuration.has(POLICY_CONFIGURATION_PERIOD_TIME) && configuration.has(POLICY_CONFIGURATION_PERIOD_TIME_UNIT)) {
-            config.setPeriodTime(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME).intValue());
-            config.setPeriodTimeUnit(PeriodTimeUnit.valueOf(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME_UNIT).asText()));
+        if (configuration.has(POLICY_CONFIGURATION_PERIOD_TIME)
+                && configuration.has(POLICY_CONFIGURATION_PERIOD_TIME_UNIT)) {
+            config.setPeriodTime(
+                    configuration.get(POLICY_CONFIGURATION_PERIOD_TIME).intValue());
+            config.setPeriodTimeUnit(PeriodTimeUnit.valueOf(
+                    configuration.get(POLICY_CONFIGURATION_PERIOD_TIME_UNIT).asText()));
         }
         return config;
     }
 
     private Duration calculateDuration(TimePeriodConfiguration configuration) {
-        if (
-            Objects.isNull(configuration) ||
-            Objects.isNull(configuration.getLimit()) ||
-            Objects.isNull(configuration.getPeriodTime()) ||
-            Objects.isNull(configuration.getPeriodTimeUnit()) ||
-            configuration.getLimit().intValue() == 0
-        ) {
+        if (Objects.isNull(configuration)
+                || Objects.isNull(configuration.getLimit())
+                || Objects.isNull(configuration.getPeriodTime())
+                || Objects.isNull(configuration.getPeriodTimeUnit())
+                || configuration.getLimit().intValue() == 0) {
             return Duration.ZERO;
         }
         return ChronoUnit.valueOf(configuration.getPeriodTimeUnit().getValue())
-            .getDuration()
-            .multipliedBy(configuration.getPeriodTime().intValue())
-            .dividedBy(configuration.getLimit().intValue());
+                .getDuration()
+                .multipliedBy(configuration.getPeriodTime().intValue())
+                .dividedBy(configuration.getLimit().intValue());
     }
 
     private long getLimitToUse(JsonNode configuration, GenericApiEntity api) {
         // Dynamic limit exists and limit is either missing or equal to 0
-        if (
-            configuration.has(POLICY_CONFIGURATION_DYNAMIC_LIMIT) &&
-            (!configuration.has(POLICY_CONFIGURATION_LIMIT) || configuration.get(POLICY_CONFIGURATION_LIMIT).intValue() == 0)
-        ) {
+        if (configuration.has(POLICY_CONFIGURATION_DYNAMIC_LIMIT)
+                && (!configuration.has(POLICY_CONFIGURATION_LIMIT)
+                        || configuration.get(POLICY_CONFIGURATION_LIMIT).intValue() == 0)) {
             return parseLimit(configuration.get(POLICY_CONFIGURATION_DYNAMIC_LIMIT), api);
         }
         return parseLimit(configuration.get(POLICY_CONFIGURATION_LIMIT), api);
@@ -194,7 +191,10 @@ public class PlanMapper {
         templateEngine.getTemplateContext().setVariable("api", apiParams);
         templateEngine.getTemplateContext().setVariable("properties", apiParams.getProperties());
 
-        return templateEngine.eval(limitNode.asText(), String.class).onErrorReturnItem(limitNode.asText()).blockingGet();
+        return templateEngine
+                .eval(limitNode.asText(), String.class)
+                .onErrorReturnItem(limitNode.asText())
+                .blockingGet();
     }
 
     /**
@@ -208,28 +208,24 @@ public class PlanMapper {
         switch (plan.getDefinitionVersion()) {
             case V2 -> {
                 var planV2 = (PlanEntity) plan;
-                return planV2
-                    .getFlows()
-                    .stream()
-                    .filter(Flow::isEnabled)
-                    .flatMap(flow -> flow.getPre().stream())
-                    .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
-                    .map(io.gravitee.definition.model.flow.Step::getConfiguration)
-                    .toList();
+                return planV2.getFlows().stream()
+                        .filter(Flow::isEnabled)
+                        .flatMap(flow -> flow.getPre().stream())
+                        .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
+                        .map(io.gravitee.definition.model.flow.Step::getConfiguration)
+                        .toList();
             }
             case V4 -> {
                 if (plan instanceof NativePlanEntity) {
                     return List.of();
                 }
                 var planV4 = (io.gravitee.rest.api.model.v4.plan.PlanEntity) plan;
-                return planV4
-                    .getFlows()
-                    .stream()
-                    .filter(io.gravitee.definition.model.v4.flow.Flow::isEnabled)
-                    .flatMap(flow -> flow.getRequest().stream())
-                    .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
-                    .map(Step::getConfiguration)
-                    .toList();
+                return planV4.getFlows().stream()
+                        .filter(io.gravitee.definition.model.v4.flow.Flow::isEnabled)
+                        .flatMap(flow -> flow.getRequest().stream())
+                        .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
+                        .map(Step::getConfiguration)
+                        .toList();
             }
             default -> {
                 return List.of();

@@ -39,7 +39,8 @@ public class PropertiesEntity {
 
     public PropertiesEntity(Properties properties) {
         if (properties != null && properties.getProperties() != null) {
-            this.properties = properties.getProperties().stream().map(PropertyEntity::new).collect(toList());
+            this.properties =
+                    properties.getProperties().stream().map(PropertyEntity::new).collect(toList());
         }
     }
 
@@ -54,11 +55,7 @@ public class PropertiesEntity {
     public Properties toDefinition() {
         Properties definitionProperties = new Properties();
         definitionProperties.setProperties(
-            properties
-                .stream()
-                .map(property -> (Property) property)
-                .collect(toList())
-        );
+                properties.stream().map(property -> (Property) property).collect(toList()));
         return definitionProperties;
     }
 }

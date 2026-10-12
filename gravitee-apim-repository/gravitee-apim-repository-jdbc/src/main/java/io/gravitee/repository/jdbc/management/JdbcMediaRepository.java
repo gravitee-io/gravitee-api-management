@@ -47,18 +47,18 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     @Override
     protected JdbcObjectMapper<Media> buildOrm() {
         return JdbcObjectMapper.builder(Media.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("sub_type", Types.NVARCHAR, String.class)
-            .addColumn("file_name", Types.NVARCHAR, String.class)
-            .addColumn("size", Types.INTEGER, Long.class)
-            .addColumn("data", Types.BLOB, byte[].class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("hash", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
-            .addColumn("organization", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("sub_type", Types.NVARCHAR, String.class)
+                .addColumn("file_name", Types.NVARCHAR, String.class)
+                .addColumn("size", Types.INTEGER, Long.class)
+                .addColumn("data", Types.BLOB, byte[].class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("hash", Types.NVARCHAR, String.class)
+                .addColumn("environment", Types.NVARCHAR, String.class)
+                .addColumn("organization", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -76,7 +76,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     private List<Media> doFindAllByApi(String api) throws TechnicalException {
         try {
             String sql = getOrm().getSelectAllSql() + " where api = ?";
-            Object[] param = new Object[] { api };
+            Object[] param = new Object[] {api};
             List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), param);
             return new ArrayList<>(mediaList);
         } catch (Exception e) {
@@ -119,7 +119,8 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
         log.debug("JdbcMediaRepository.deleteByHashAndEnvironment({}, {})", hash, environment);
 
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where hash = ? and environment = ?", hash, environment);
+            jdbcTemplate.update(
+                    "delete from " + this.tableName + " where hash = ? and environment = ?", hash, environment);
         } catch (Exception e) {
             throw new TechnicalException(e);
         }
@@ -138,7 +139,8 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent) throws TechnicalException {
+    public Optional<Media> findByHash(String hash, MediaCriteria mediaCriteria, boolean withContent)
+            throws TechnicalException {
         log.debug("JdbcMediaRepository.findByHash({},{},{}, {})", hash, mediaCriteria, withContent);
 
         try {
@@ -183,10 +185,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
         } else {
             try {
                 final var rows = jdbcTemplate.queryForList(
-                    "select id from " + this.tableName + " where " + field + " = ?",
-                    String.class,
-                    value
-                );
+                        "select id from " + this.tableName + " where " + field + " = ?", String.class, value);
 
                 if (!rows.isEmpty()) {
                     jdbcTemplate.update("delete from " + this.tableName + " where " + field + " = ?", value);

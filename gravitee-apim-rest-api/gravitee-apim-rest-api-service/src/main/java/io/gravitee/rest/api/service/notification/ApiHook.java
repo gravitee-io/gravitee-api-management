@@ -29,7 +29,8 @@ public enum ApiHook implements Hook {
     SUBSCRIPTION_PAUSED("Subscription Paused", "Triggered when a Subscription is paused.", "SUBSCRIPTION"),
     SUBSCRIPTION_RESUMED("Subscription Resumed", "Triggered when a Subscription is resumed.", "SUBSCRIPTION"),
     SUBSCRIPTION_REJECTED("Subscription Rejected", "Triggered when a Subscription is rejected.", "SUBSCRIPTION"),
-    SUBSCRIPTION_TRANSFERRED("Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
+    SUBSCRIPTION_TRANSFERRED(
+            "Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
     SUBSCRIPTION_FAILED("Subscription Failed", "Triggered when a Subscription fails.", "SUBSCRIPTION"),
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
     API_STARTED("API Started", "Triggered when an API is started", "LIFECYCLE"),
@@ -43,7 +44,11 @@ public enum ApiHook implements Hook {
     REVIEW_OK("Accept API review", "Triggered when an API's review has been accepted", "REVIEW"),
     REQUEST_FOR_CHANGES("Reject API review", "Triggered when an API's review has been rejected", "REVIEW"),
     API_DEPRECATED("API Deprecated", "Triggered when an API is deprecated", "LIFECYCLE"),
-    NEW_SPEC_GENERATED("New specification generated", "Triggered when an API has a new generated specification", "DOCUMENTATION", true);
+    NEW_SPEC_GENERATED(
+            "New specification generated",
+            "Triggered when an API has a new generated specification",
+            "DOCUMENTATION",
+            true);
 
     private String label;
     private String description;

@@ -33,24 +33,22 @@ public interface PortalLinkMapper {
     PortalLinkMapper INSTANCE = Mappers.getMapper(PortalLinkMapper.class);
 
     default PortalLinkState toPortalLinkState(
-        PortalLinkSpec spec,
-        String id,
-        List<Validator.Error> errors,
-        AuditInfo audit,
-        String portalHrid
-    ) {
+            PortalLinkSpec spec, String id, List<Validator.Error> errors, AuditInfo audit, String portalHrid) {
         return fromSpec(spec, id, errors, audit, portalHrid, null);
     }
 
-    default PortalLinkState toApiLinkState(PortalLinkSpec spec, String id, List<Validator.Error> errors, AuditInfo audit, String apiHrid) {
+    default PortalLinkState toApiLinkState(
+            PortalLinkSpec spec, String id, List<Validator.Error> errors, AuditInfo audit, String apiHrid) {
         return fromSpec(spec, id, errors, audit, null, apiHrid);
     }
 
-    default PortalLinkState toPortalLinkState(PortalNavigationLink link, String hrid, List<Validator.Error> errors, String portalHrid) {
+    default PortalLinkState toPortalLinkState(
+            PortalNavigationLink link, String hrid, List<Validator.Error> errors, String portalHrid) {
         return fromLink(link, hrid, errors, portalHrid, null);
     }
 
-    default PortalLinkState toApiLinkState(PortalNavigationLink link, String hrid, List<Validator.Error> errors, String apiHrid) {
+    default PortalLinkState toApiLinkState(
+            PortalNavigationLink link, String hrid, List<Validator.Error> errors, String apiHrid) {
         return fromLink(link, hrid, errors, null, apiHrid);
     }
 
@@ -61,14 +59,14 @@ public interface PortalLinkMapper {
      * from reaching one attachment and not the other.
      */
     private PortalLinkState fromSpec(
-        PortalLinkSpec spec,
-        String id,
-        List<Validator.Error> errors,
-        AuditInfo audit,
-        String portalHrid,
-        String apiHrid
-    ) {
-        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid, apiHrid);
+            PortalLinkSpec spec,
+            String id,
+            List<Validator.Error> errors,
+            AuditInfo audit,
+            String portalHrid,
+            String apiHrid) {
+        var state = new PortalLinkState(
+                id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid, apiHrid);
         state.setHrid(spec.getHrid());
         state.setName(spec.getName());
         state.setHref(spec.getHref());
@@ -84,24 +82,21 @@ public interface PortalLinkMapper {
      * not carry it.
      */
     private PortalLinkState fromLink(
-        PortalNavigationLink link,
-        String hrid,
-        List<Validator.Error> errors,
-        String portalHrid,
-        String apiHrid
-    ) {
+            PortalNavigationLink link, String hrid, List<Validator.Error> errors, String portalHrid, String apiHrid) {
         var state = new PortalLinkState(
-            link.getId() != null ? link.getId().toString() : null,
-            link.getEnvironmentId(),
-            link.getOrganizationId(),
-            toErrors(errors),
-            portalHrid,
-            apiHrid
-        );
+                link.getId() != null ? link.getId().toString() : null,
+                link.getEnvironmentId(),
+                link.getOrganizationId(),
+                toErrors(errors),
+                portalHrid,
+                apiHrid);
         state.setHrid(hrid);
         state.setName(link.getTitle());
         state.setHref(link.getUrl());
-        state.setLocation(link.getAutomationMetadata() != null ? link.getAutomationMetadata().location().orElse(null) : null);
+        state.setLocation(
+                link.getAutomationMetadata() != null
+                        ? link.getAutomationMetadata().location().orElse(null)
+                        : null);
         state.setOrder(link.getOrder());
         state.setVisibility(toWireVisibility(link.getVisibility()));
         return state;
@@ -112,20 +107,26 @@ public interface PortalLinkMapper {
             return null;
         }
         var wire = new Errors();
-        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
-        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        wire.setSevere(validationErrors.stream()
+                .filter(Validator.Error::isSevere)
+                .map(Validator.Error::getMessage)
+                .toList());
+        wire.setWarning(validationErrors.stream()
+                .filter(Validator.Error::isWarning)
+                .map(Validator.Error::getMessage)
+                .toList());
         return wire;
     }
 
     default io.gravitee.apim.core.portal.model.PortalVisibility toDomainVisibility(
-        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
-    ) {
+            io.gravitee.apim.rest.api.automation.model.PortalVisibility wire) {
         return wire == null ? null : io.gravitee.apim.core.portal.model.PortalVisibility.valueOf(wire.getValue());
     }
 
     default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
-        io.gravitee.apim.core.portal.model.PortalVisibility domain
-    ) {
-        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
+            io.gravitee.apim.core.portal.model.PortalVisibility domain) {
+        return domain == null
+                ? null
+                : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 }

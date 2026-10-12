@@ -42,9 +42,10 @@ public class PortalMenuLinkCrudServiceImpl implements PortalMenuLinkCrudService 
             return portalMenuLinkAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to create a PortalMenuLink with id: %s", portalMenuLink.getId()),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to create a PortalMenuLink with id: %s",
+                            portalMenuLink.getId()),
+                    e);
         }
     }
 
@@ -55,9 +56,10 @@ public class PortalMenuLinkCrudServiceImpl implements PortalMenuLinkCrudService 
             return portalMenuLinkAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to update a PortalMenuLink with id: %s", portalMenuLink.getId()),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to update a PortalMenuLink with id: %s",
+                            portalMenuLink.getId()),
+                    e);
         }
     }
 
@@ -65,18 +67,15 @@ public class PortalMenuLinkCrudServiceImpl implements PortalMenuLinkCrudService 
     public PortalMenuLink getByIdAndEnvironmentId(String portalMenuLinkId, String environmentId) {
         try {
             return portalMenuLinkRepository
-                .findByIdAndEnvironmentId(portalMenuLinkId, environmentId)
-                .map(portalMenuLinkAdapter::toEntity)
-                .orElseThrow(() -> new PortalMenuLinkNotFoundException(portalMenuLinkId));
+                    .findByIdAndEnvironmentId(portalMenuLinkId, environmentId)
+                    .map(portalMenuLinkAdapter::toEntity)
+                    .orElseThrow(() -> new PortalMenuLinkNotFoundException(portalMenuLinkId));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to find a PortalMenuLink with id (%s) in environment (%s)",
-                    portalMenuLinkId,
-                    environmentId
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to find a PortalMenuLink with id (%s) in environment (%s)",
+                            portalMenuLinkId, environmentId),
+                    e);
         }
     }
 
@@ -86,9 +85,10 @@ public class PortalMenuLinkCrudServiceImpl implements PortalMenuLinkCrudService 
             portalMenuLinkRepository.delete(portalMenuLinkId);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to delete the PortalMenuLink with id: %s", portalMenuLinkId),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to delete the PortalMenuLink with id: %s",
+                            portalMenuLinkId),
+                    e);
         }
     }
 }

@@ -31,22 +31,20 @@ class NavigationItemReferenceTest {
 
     @Test
     void default_reference_is_a_portal_reference_wrapping_portal_id_zero() {
-        assertThat(NavigationItemReference.defaultReference()).isEqualTo(new NavigationItemReference.PortalReference(PortalId.ZERO));
+        assertThat(NavigationItemReference.defaultReference())
+                .isEqualTo(new NavigationItemReference.PortalReference(PortalId.ZERO));
     }
 
     @Test
     void default_reference_returns_the_same_instance_as_portal_reference_default() {
-        assertThat(NavigationItemReference.defaultReference()).isSameAs(NavigationItemReference.PortalReference.DEFAULT);
+        assertThat(NavigationItemReference.defaultReference())
+                .isSameAs(NavigationItemReference.PortalReference.DEFAULT);
     }
 
     @ParameterizedTest(name = "{2}")
     @MethodSource("rootNamespacePairs")
     void shares_root_namespace_with_pins_the_root_namespace(
-        NavigationItemReference one,
-        NavigationItemReference other,
-        String scenario,
-        boolean shared
-    ) {
+            NavigationItemReference one, NavigationItemReference other, String scenario, boolean shared) {
         assertThat(one.sharesRootNamespaceWith(other)).isEqualTo(shared);
         assertThat(other.sharesRootNamespaceWith(one)).isEqualTo(shared);
     }
@@ -56,14 +54,18 @@ class NavigationItemReferenceTest {
         var sameApi = new NavigationItemReference.ApiReference("api-1");
         var otherApi = new NavigationItemReference.ApiReference("api-2");
         var consolePortal = NavigationItemReference.defaultReference();
-        var attachedPortal = new NavigationItemReference.PortalReference(PortalId.of("44444444-4444-4444-4444-4444444444a4"));
+        var attachedPortal =
+                new NavigationItemReference.PortalReference(PortalId.of("44444444-4444-4444-4444-4444444444a4"));
 
         return Stream.of(
-            Arguments.of(api, sameApi, "two references to the same API share a namespace", true),
-            Arguments.of(api, otherApi, "references to different APIs do not", false),
-            Arguments.of(api, consolePortal, "an API subtree never shares with the portal's own roots", false),
-            Arguments.of(consolePortal, consolePortal, "the default portal reference shares with itself", true),
-            Arguments.of(consolePortal, attachedPortal, "a console root and a portal-attached root share a namespace", true)
-        );
+                Arguments.of(api, sameApi, "two references to the same API share a namespace", true),
+                Arguments.of(api, otherApi, "references to different APIs do not", false),
+                Arguments.of(api, consolePortal, "an API subtree never shares with the portal's own roots", false),
+                Arguments.of(consolePortal, consolePortal, "the default portal reference shares with itself", true),
+                Arguments.of(
+                        consolePortal,
+                        attachedPortal,
+                        "a console root and a portal-attached root share a namespace",
+                        true));
     }
 }

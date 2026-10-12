@@ -58,43 +58,41 @@ public class GroupsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Find groups",
-        description = "Find all groups, or a specific type of groups." +
-            "Only administrators could see all groups." +
-            "Only users with MANAGE_API permissions could see API groups."
-    )
+            summary = "Find groups",
+            description = "Find all groups, or a specific type of groups." + "Only administrators could see all groups."
+                    + "Only users with MANAGE_API permissions could see API groups.")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of groups",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = GroupEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of groups",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = GroupEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)})
     public Response getGroups() {
-        return Response.ok(groupService.findAll(GraviteeContext.getExecutionContext())).build();
+        return Response.ok(groupService.findAll(GraviteeContext.getExecutionContext()))
+                .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Find paginated groups",
-        description = "Find paginated groups based on a size and a page query params. Results can be filtered based on a searchTerm query param." +
-            "Only administrators could see all groups." +
-            "Only users with MANAGE_API permissions could see API groups."
-    )
+            summary = "Find paginated groups",
+            description =
+                    "Find paginated groups based on a size and a page query params. Results can be filtered based on a searchTerm query param."
+                            + "Only administrators could see all groups."
+                            + "Only users with MANAGE_API permissions could see API groups.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Page containing the list of groups",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Page.class))
-    )
+            responseCode = "200",
+            description = "Page containing the list of groups",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Page.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)})
     @Path("/_paged")
     public Response getGroupsPaged(@Valid @BeanParam Pageable pageable, @QueryParam("query") String query) {
-        Page<GroupEntity> page = groupService.search(GraviteeContext.getExecutionContext(), pageable.toPageable(), query);
+        Page<GroupEntity> page =
+                groupService.search(GraviteeContext.getExecutionContext(), pageable.toPageable(), query);
         PagedResult<GroupEntity> pagedResult = new PagedResult<>(page, pageable.getSize());
         return Response.ok(pagedResult).build();
     }
@@ -104,16 +102,21 @@ public class GroupsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create group", description = "Create a new group.")
     @ApiResponse(
-        responseCode = "201",
-        description = "Group successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class))
-    )
+            responseCode = "201",
+            description = "Group successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = GroupEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal Server Error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE) })
-    public Response createGroup(@Parameter(name = "group", required = true) @Valid @NotNull final NewGroupEntity newGroupEntity) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE)})
+    public Response createGroup(
+            @Parameter(name = "group", required = true) @Valid @NotNull final NewGroupEntity newGroupEntity) {
         GroupEntity groupEntity = groupService.create(GraviteeContext.getExecutionContext(), newGroupEntity);
         if (groupEntity != null) {
-            return Response.created(this.getLocationHeader(groupEntity.getId())).entity(groupEntity).build();
+            return Response.created(this.getLocationHeader(groupEntity.getId()))
+                    .entity(groupEntity)
+                    .build();
         }
 
         return Response.serverError().build();

@@ -25,9 +25,9 @@ public class ApiProductIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("ai_workspace_components")
-            .name("p1")
-            .key("apiProductId", ascending())
-            .build();
+                .collection("ai_workspace_components")
+                .name("p1")
+                .key("apiProductId", ascending())
+                .build();
     }
 }

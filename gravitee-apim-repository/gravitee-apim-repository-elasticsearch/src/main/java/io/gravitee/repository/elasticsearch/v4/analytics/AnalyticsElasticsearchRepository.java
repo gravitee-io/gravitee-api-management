@@ -59,7 +59,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private static final String KEYWORD = "keyword";
 
     private static final SearchResponseStatusOverTimeAdapter searchResponseStatusOverTimeAdapter =
-        new SearchResponseStatusOverTimeAdapter();
+            new SearchResponseStatusOverTimeAdapter();
 
     private final HTTPMeasuresQueryAdapter httpMeasuresQueryAdapter = new HTTPMeasuresQueryAdapter();
     private final HTTPFacetsQueryAdapter httpFacetsQueryAdapter = new HTTPFacetsQueryAdapter();
@@ -73,17 +73,22 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final MessageMeasuresQueryAdapter messageMeasuresQueryAdapter = new MessageMeasuresQueryAdapter();
     private final MessageFacetsQueryAdapter messageFacetsQueryAdapter = new MessageFacetsQueryAdapter();
     private final MessageTimeSeriesQueryAdapter messageTimeSeriesQueryAdapter = new MessageTimeSeriesQueryAdapter();
-    private final EventMetricsMeasuresQueryAdapter eventMetricsMeasuresQueryAdapter = new EventMetricsMeasuresQueryAdapter();
+    private final EventMetricsMeasuresQueryAdapter eventMetricsMeasuresQueryAdapter =
+            new EventMetricsMeasuresQueryAdapter();
     private final EventMetricsFacetsQueryAdapter eventMetricsFacetsQueryAdapter = new EventMetricsFacetsQueryAdapter();
-    private final EventMetricsTimeSeriesQueryAdapter eventMetricsTimeSeriesQueryAdapter = new EventMetricsTimeSeriesQueryAdapter();
+    private final EventMetricsTimeSeriesQueryAdapter eventMetricsTimeSeriesQueryAdapter =
+            new EventMetricsTimeSeriesQueryAdapter();
     private final AuthzMeasuresQueryAdapter authzMeasuresQueryAdapter = new AuthzMeasuresQueryAdapter();
-    private final AuthzFacetsQueryAdapter authzFacetsQueryAdapter = new AuthzFacetsQueryAdapter(authzMeasuresQueryAdapter);
-    private final AuthzTimeSeriesQueryAdapter authzTimeSeriesQueryAdapter = new AuthzTimeSeriesQueryAdapter(authzMeasuresQueryAdapter);
-    private final AuthzTrafficMeasuresQueryAdapter authzTrafficMeasuresQueryAdapter = new AuthzTrafficMeasuresQueryAdapter();
-    private final AuthzFacetsQueryAdapter authzTrafficFacetsQueryAdapter = new AuthzFacetsQueryAdapter(authzTrafficMeasuresQueryAdapter);
-    private final AuthzTimeSeriesQueryAdapter authzTrafficTimeSeriesQueryAdapter = new AuthzTimeSeriesQueryAdapter(
-        authzTrafficMeasuresQueryAdapter
-    );
+    private final AuthzFacetsQueryAdapter authzFacetsQueryAdapter =
+            new AuthzFacetsQueryAdapter(authzMeasuresQueryAdapter);
+    private final AuthzTimeSeriesQueryAdapter authzTimeSeriesQueryAdapter =
+            new AuthzTimeSeriesQueryAdapter(authzMeasuresQueryAdapter);
+    private final AuthzTrafficMeasuresQueryAdapter authzTrafficMeasuresQueryAdapter =
+            new AuthzTrafficMeasuresQueryAdapter();
+    private final AuthzFacetsQueryAdapter authzTrafficFacetsQueryAdapter =
+            new AuthzFacetsQueryAdapter(authzTrafficMeasuresQueryAdapter);
+    private final AuthzTimeSeriesQueryAdapter authzTrafficTimeSeriesQueryAdapter =
+            new AuthzTimeSeriesQueryAdapter(authzTrafficMeasuresQueryAdapter);
     private final FilterValuesQueryAdapter filterValuesQueryAdapter = new FilterValuesQueryAdapter();
     private final FilterValuesResponseAdapter filterValuesResponseAdapter = new FilterValuesResponseAdapter();
 
@@ -94,7 +99,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private static final String WATERMARK_AGG_NAME = "newest_unenriched";
 
     /** The stamped dimensions, as Elasticsearch field names. Each must be a keyword to be filterable. */
-    private static final List<String> CONNECTION_DIMENSION_FIELDS = List.of("plan-id", "application-id", "entrypoint-id");
+    private static final List<String> CONNECTION_DIMENSION_FIELDS =
+            List.of("plan-id", "application-id", "entrypoint-id");
 
     /**
      * How long the direct-path readiness of an index is reused, and the safety margin applied to its
@@ -150,129 +156,149 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query) {
-        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
 
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
-            .map(types -> types.stream().allMatch(KEYWORD::equals))
-            .flatMap(isEntrypointIdKeyword ->
-                this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword))
-            )
-            .map(SearchRequestsCountResponseAdapter::adapt)
-            .blockingGet();
+        return this.client
+                .getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+                .map(types -> types.stream().allMatch(KEYWORD::equals))
+                .flatMap(isEntrypointIdKeyword -> this.client.search(
+                        index, null, SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword)))
+                .map(SearchRequestsCountResponseAdapter::adapt)
+                .blockingGet();
     }
 
     @Override
-    public Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
-        return this.client.search(index, null, SearchAverageMessagesPerRequestQueryAdapter.adapt(query))
-            .map(SearchAverageMessagesPerRequestResponseAdapter::adapt)
-            .blockingGet();
+    public Optional<AverageAggregate> searchAverageMessagesPerRequest(
+            QueryContext queryContext, AverageMessagesPerRequestQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(
+                queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        return this.client
+                .search(index, null, SearchAverageMessagesPerRequestQueryAdapter.adapt(query))
+                .map(SearchAverageMessagesPerRequestResponseAdapter::adapt)
+                .blockingGet();
     }
 
     @Override
-    public Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query) {
+    public Optional<AverageAggregate> searchAverageConnectionDuration(
+            QueryContext queryContext, AverageConnectionDurationQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
-            .map(types -> types.stream().allMatch(KEYWORD::equals))
-            .flatMap(isEntrypointIdKeyword ->
-                this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query, isEntrypointIdKeyword))
-            )
-            .map(SearchAverageConnectionDurationResponseAdapter::adapt)
-            .blockingGet();
+        return this.client
+                .getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+                .map(types -> types.stream().allMatch(KEYWORD::equals))
+                .flatMap(isEntrypointIdKeyword -> this.client.search(
+                        index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query, isEntrypointIdKeyword)))
+                .map(SearchAverageConnectionDurationResponseAdapter::adapt)
+                .blockingGet();
     }
 
     @Override
     public @NonNull Optional<ResponseStatusRangesAggregate> searchResponseStatusRanges(
-        QueryContext queryContext,
-        ResponseStatusQueryCriteria query
-    ) {
+            QueryContext queryContext, ResponseStatusQueryCriteria query) {
         String indices = getIndices(queryContext, query.definitionVersions());
 
         var adapter = new SearchResponseStatusRangesAdapter();
 
-        return client
-            .getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
-            .map(types -> types.stream().allMatch(KEYWORD::equals))
-            .flatMap(isEntrypointIdKeyword -> client.search(indices, null, adapter.adaptQuery(query, isEntrypointIdKeyword)))
-            .map(adapter::adaptResponse)
-            .blockingGet();
+        return client.getFieldTypes(indices, ENTRYPOINT_ID_FIELD)
+                .map(types -> types.stream().allMatch(KEYWORD::equals))
+                .flatMap(isEntrypointIdKeyword ->
+                        client.search(indices, null, adapter.adaptQuery(query, isEntrypointIdKeyword)))
+                .map(adapter::adaptResponse)
+                .blockingGet();
     }
 
     @Override
-    public @NonNull Maybe<AverageAggregate> searchResponseTimeOverTime(QueryContext queryContext, ResponseTimeRangeQuery query) {
+    public @NonNull Maybe<AverageAggregate> searchResponseTimeOverTime(
+            QueryContext queryContext, ResponseTimeRangeQuery query) {
         var adapter = new ResponseTimeRangeQueryAdapter();
         String indices = getIndices(queryContext, query.versions());
         return client.search(indices, null, adapter.queryAdapt(info, query)).flatMapMaybe(adapter::responseAdapt);
     }
 
     @Override
-    public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(QueryContext queryContext, ResponseStatusOverTimeQuery query) {
+    public ResponseStatusOverTimeAggregate searchResponseStatusOvertime(
+            QueryContext queryContext, ResponseStatusOverTimeQuery query) {
         String indices = getIndices(queryContext, query.versions());
         var esQuery = searchResponseStatusOverTimeAdapter.adaptQuery(query, info);
 
         log.debug("Search response status over time: {}", esQuery);
-        return client.search(indices, null, esQuery).map(searchResponseStatusOverTimeAdapter::adaptResponse).blockingGet();
+        return client.search(indices, null, esQuery)
+                .map(searchResponseStatusOverTimeAdapter::adaptResponse)
+                .blockingGet();
     }
 
     @Override
     public Optional<TopHitsAggregate> searchTopHitsApi(QueryContext queryContext, TopHitsQueryCriteria criteria) {
-        var indexV2Request = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
-        var indexV4Metrics = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2Request =
+                indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics =
+                indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var apiIdFields = List.of("api-id");
         var esQuery = AggregateValueCountByFieldAdapter.adaptQueryForFields(apiIdFields, criteria);
 
         log.debug("Search response top hit query: {}", esQuery);
-        return client.search(indexes, null, esQuery).map(AggregateValueCountByFieldAdapter::adaptResponse).blockingGet();
+        return client.search(indexes, null, esQuery)
+                .map(AggregateValueCountByFieldAdapter::adaptResponse)
+                .blockingGet();
     }
 
     @Override
     public RequestResponseTimeAggregate searchRequestResponseTimes(
-        QueryContext queryContext,
-        RequestResponseTimeQueryCriteria queryCriteria
-    ) {
+            QueryContext queryContext, RequestResponseTimeQueryCriteria queryCriteria) {
         String indices = getIndices(queryContext, queryCriteria.definitionVersions());
         var adapter = new SearchRequestResponseTimeAdapter();
         var esQuery = adapter.adaptQuery(queryCriteria);
 
         log.debug("Search request response time query: {}", esQuery);
-        return client
-            .search(indices, null, esQuery)
-            .map(response -> adapter.adaptResponse(response, queryCriteria))
-            .blockingGet();
+        return client.search(indices, null, esQuery)
+                .map(response -> adapter.adaptResponse(response, queryCriteria))
+                .blockingGet();
     }
 
     @Override
     public Optional<TopHitsAggregate> searchTopApps(QueryContext queryContext, TopHitsQueryCriteria criteria) {
-        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
-        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2Request =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var applicationIdFields = List.of("application-id");
         var esQuery = AggregateValueCountByFieldAdapter.adaptQueryForFields(applicationIdFields, criteria);
 
         log.debug("Search response top apps query: {}", esQuery);
-        return this.client.search(indexes, null, esQuery).map(AggregateValueCountByFieldAdapter::adaptResponse).blockingGet();
+        return this.client
+                .search(indexes, null, esQuery)
+                .map(AggregateValueCountByFieldAdapter::adaptResponse)
+                .blockingGet();
     }
 
     @Override
-    public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
-        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
-        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+    public Optional<TopFailedAggregate> searchTopFailedApis(
+            QueryContext queryContext, TopFailedQueryCriteria criteria) {
+        var indexV2Request =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
         var esQuery = SearchTopFailedApisAdapter.adaptQuery(criteria);
 
         log.debug("Search top failed apis query: {}", esQuery);
-        return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
+        return this.client
+                .search(indexes, null, esQuery)
+                .map(SearchTopFailedApisAdapter::adaptResponse)
+                .blockingGet();
     }
 
     @Override
     public List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query) {
-        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
         var adapter = new SearchHistogramQueryAdapter();
@@ -284,7 +310,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
-        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
         var adapter = new GroupByQueryAdapter();
@@ -296,7 +323,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
-        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
         var adapter = new StatsQueryAdapter();
@@ -307,38 +335,45 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery query) {
-        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+    public Optional<CountByAggregate> searchRequestsCountByEvent(
+            QueryContext queryContext, RequestsCountByEventQuery query) {
+        var indexV4 =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
         var esQuery = SearchRequestsCountByEventQueryAdapter.adapt(query);
         log.debug("Search Request total counts query: {}", esQuery);
 
-        return client.search(index, null, esQuery).map(SearchRequestsCountByEventQueryAdapter::adaptResponse).blockingGet();
+        return client.search(index, null, esQuery)
+                .map(SearchRequestsCountByEventQueryAdapter::adaptResponse)
+                .blockingGet();
     }
 
     @Override
     public Optional<ApiMetricsDetail> findApiMetricsDetail(QueryContext queryContext, ApiMetricsDetailQuery query) {
-        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2Request =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4Metrics, indexV2Request);
 
-        return this.client.search(index, null, FindApiMetricsDetailQueryAdapter.adapt(query))
-            .map(FindApiMetricsDetailResponseAdapter::adaptFirst)
-            .blockingGet();
+        return this.client
+                .search(index, null, FindApiMetricsDetailQueryAdapter.adapt(query))
+                .map(FindApiMetricsDetailResponseAdapter::adaptFirst)
+                .blockingGet();
     }
 
     @Override
     public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, HistogramQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var index =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
         var esQuery = EventMetricsQueryAdapter.toESQuery(query);
 
         log.debug("Search native stats query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> EventMetricsResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> EventMetricsResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -348,10 +383,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("HTTP measures query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> measuresResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> measuresResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -361,10 +395,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("HTTP facets query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> facetsResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -374,10 +407,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Edge facets query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> facetsResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -387,10 +419,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Native facets query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> facetsResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -400,10 +431,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("HTTP time series query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -413,49 +443,48 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Native time series query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
     public MeasuresResult searchEventMetricsMeasures(QueryContext queryContext, MeasuresQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var index =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
         var esQuery = eventMetricsMeasuresQueryAdapter.adapt(query);
 
         log.debug("Event metrics measures query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> measuresResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> measuresResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
     public FacetsResult searchEventMetricsFacets(QueryContext queryContext, FacetsQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var index =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
         var esQuery = eventMetricsFacetsQueryAdapter.adapt(query);
 
         log.debug("Event metrics facets query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> facetsResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
     public TimeSeriesResult searchEventMetricsTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var index =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
         var esQuery = eventMetricsTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("Event metrics time series query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -465,10 +494,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Authz measures query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> measuresResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> measuresResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -478,10 +506,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Authz facets query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response ->
+                        facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
+                .blockingGet();
     }
 
     @Override
@@ -491,10 +519,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Authz time series query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response ->
+                        timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
+                .blockingGet();
     }
 
     @Override
@@ -504,10 +532,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Authz traffic measures query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> measuresResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response -> measuresResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
@@ -517,10 +544,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Authz traffic facets query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response ->
+                        facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
+                .blockingGet();
     }
 
     @Override
@@ -530,27 +557,28 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Authz traffic time series query: {}", esQuery);
 
-        return client
-            .search(index, null, esQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
-            .blockingGet();
+        return client.search(index, null, esQuery)
+                .map(response ->
+                        timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
+                .blockingGet();
     }
 
     @Override
     public MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query) {
-        var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var httpIndex =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
-        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(
+                queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
 
         // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
         // skipping it changes in the counted set.
         if (canReadMessagesDirectly(queryContext, query, messageIndex, List.of())) {
             var unjoined = messageMeasuresQueryAdapter.adapt(query);
             log.debug("Message - unjoined Measures query: {}", unjoined);
-            return client
-                .search(messageIndex, null, unjoined)
-                .map(response -> measuresResponseAdapter.adapt(response, query))
-                .blockingGet();
+            return client.search(messageIndex, null, unjoined)
+                    .map(response -> measuresResponseAdapter.adapt(response, query))
+                    .blockingGet();
         }
 
         var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
@@ -563,27 +591,27 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Message - Measures query: {}", messageQuery);
 
-        return client
-            .search(messageIndex, null, messageQuery)
-            .map(response -> measuresResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(messageIndex, null, messageQuery)
+                .map(response -> measuresResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
     public FacetsResult searchMessageFacets(QueryContext queryContext, FacetsQuery query) {
-        var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var httpIndex =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
-        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(
+                queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
 
         // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
         // skipping it changes in the counted set.
         if (canReadMessagesDirectly(queryContext, query, messageIndex, query.facets())) {
             var unjoined = messageFacetsQueryAdapter.adapt(query);
             log.debug("Message - unjoined Facets query: {}", unjoined);
-            return client
-                .search(messageIndex, null, unjoined)
-                .map(response -> facetsResponseAdapter.adapt(response, query))
-                .blockingGet();
+            return client.search(messageIndex, null, unjoined)
+                    .map(response -> facetsResponseAdapter.adapt(response, query))
+                    .blockingGet();
         }
 
         var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
@@ -596,27 +624,27 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Message - Facets query: {}", messageQuery);
 
-        return client
-            .search(messageIndex, null, messageQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(messageIndex, null, messageQuery)
+                .map(response -> facetsResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     @Override
     public TimeSeriesResult searchMessageTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
-        var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var httpIndex =
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
-        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(
+                queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
 
         // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
         // skipping it changes in the counted set.
         if (canReadMessagesDirectly(queryContext, query, messageIndex, query.facets())) {
             var unjoined = messageTimeSeriesQueryAdapter.adapt(query);
             log.debug("Message - unjoined Time series query: {}", unjoined);
-            return client
-                .search(messageIndex, null, unjoined)
-                .map(response -> timeSeriesResponseAdapter.adapt(response, query))
-                .blockingGet();
+            return client.search(messageIndex, null, unjoined)
+                    .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+                    .blockingGet();
         }
 
         var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
@@ -629,10 +657,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Message - Time series query: {}", messageQuery);
 
-        return client
-            .search(messageIndex, null, messageQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
-            .blockingGet();
+        return client.search(messageIndex, null, messageQuery)
+                .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+                .blockingGet();
     }
 
     /**
@@ -648,7 +675,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
      * <p>Anything unknown answers false and keeps the join, which works on every document whatever
      * wrote it. That is the safe direction: the join is slower, never wrong.
      */
-    private boolean canReadMessagesDirectly(QueryContext queryContext, Query query, String messageIndex, Collection<Facet> facets) {
+    private boolean canReadMessagesDirectly(
+            QueryContext queryContext, Query query, String messageIndex, Collection<Facet> facets) {
         if (!messageFilterAdapter.isFullyAppliedOnMessages(query)) {
             return false;
         }
@@ -678,12 +706,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
      */
     private String windowIndex(QueryContext queryContext, Query query) {
         var names = this.indexNameGenerator.getIndexName(
-            queryContext.placeholder(),
-            Type.V4_MESSAGE_METRICS,
-            query.timeRange().from().toEpochMilli(),
-            query.timeRange().to().toEpochMilli(),
-            clusters
-        );
+                queryContext.placeholder(),
+                Type.V4_MESSAGE_METRICS,
+                query.timeRange().from().toEpochMilli(),
+                query.timeRange().to().toEpochMilli(),
+                clusters);
 
         // Widened into patterns because the generator names one index per period, exactly, and the
         // mapping endpoint behind getFieldTypes has no ignore_unavailable: a period with no traffic has
@@ -691,18 +718,15 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         // The pattern also covers the per-leg indices of the period, which carry a suffix the generator
         // does not produce and which are message indices like any other.
         return Arrays.stream(names.split(","))
-            .map(String::trim)
-            .filter(name -> !name.isEmpty())
-            .map(name -> name.endsWith("*") ? name : name + "*")
-            .collect(Collectors.joining(","));
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .map(name -> name.endsWith("*") ? name : name + "*")
+                .collect(Collectors.joining(","));
     }
 
     /** Whether this query filters or breaks down on a dimension the message documents carry only once stamped. */
     private static boolean readsConnectionDimension(Query query, Collection<Facet> facets) {
-        var filtered = query
-            .filters()
-            .stream()
-            .anyMatch(filter -> FilterAdapter.isConnectionDimension(filter.name()));
+        var filtered = query.filters().stream().anyMatch(filter -> FilterAdapter.isConnectionDimension(filter.name()));
         if (filtered) {
             return true;
         }
@@ -754,16 +778,16 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         if (probe.readiness() == mine) {
             try {
-                mine.complete(
-                    new DirectPathReadiness(
+                mine.complete(new DirectPathReadiness(
                         newestUnenrichedMessage(messageIndex, previousWatermark.get()),
-                        dimensionsAreKeyword(windowIndex)
-                    )
-                );
+                        dimensionsAreKeyword(windowIndex)));
             } catch (RuntimeException e) {
                 // Answered as unusable rather than left absent: a failing probe that is not remembered
                 // is re-run by every request, each paying the client timeout before falling back anyway.
-                log.warn("Cannot establish whether {} can be read without the connection join; keeping the join", windowIndex, e);
+                log.warn(
+                        "Cannot establish whether {} can be read without the connection join; keeping the join",
+                        windowIndex,
+                        e);
             } finally {
                 // No-op once completed above. Without it, a caller that threw something other than a
                 // RuntimeException would leave everyone waiting on this future forever.
@@ -789,7 +813,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
                 return false;
             }
             if (!types.stream().allMatch(KEYWORD::equals)) {
-                log.debug("Message - {} is {} rather than a keyword on {}; keeping the join", field, types, windowIndex);
+                log.debug(
+                        "Message - {} is {} rather than a keyword on {}; keeping the join", field, types, windowIndex);
                 return false;
             }
         }
@@ -810,19 +835,25 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
      * stamping, so the join is the right answer for them anyway.
      */
     private Instant newestUnenrichedMessage(String messageIndex, Instant since) {
-        var unstamped = new JsonObject().put("must_not", JsonObject.of("exists", JsonObject.of("field", ENRICHMENT_MARKER_FIELD)));
+        var unstamped = new JsonObject()
+                .put("must_not", JsonObject.of("exists", JsonObject.of("field", ENRICHMENT_MARKER_FIELD)));
         if (since != null) {
-            unstamped.put("filter", JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", since.toEpochMilli()))));
+            unstamped.put(
+                    "filter",
+                    JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", since.toEpochMilli()))));
         }
 
         var watermarkQuery = new JsonObject()
-            .put("size", 0)
-            .put("query", JsonObject.of("bool", unstamped))
-            .put("aggs", JsonObject.of(WATERMARK_AGG_NAME, JsonObject.of("max", JsonObject.of("field", "@timestamp"))));
+                .put("size", 0)
+                .put("query", JsonObject.of("bool", unstamped))
+                .put(
+                        "aggs",
+                        JsonObject.of(WATERMARK_AGG_NAME, JsonObject.of("max", JsonObject.of("field", "@timestamp"))));
 
         log.debug("Message - enrichment watermark query: {}", watermarkQuery);
 
-        var response = client.search(messageIndex, null, watermarkQuery.toString()).blockingGet();
+        var response =
+                client.search(messageIndex, null, watermarkQuery.toString()).blockingGet();
 
         return newest(response) == null ? since : newest(response);
     }
@@ -832,7 +863,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             return null;
         }
         var aggregation = response.getAggregations().get(WATERMARK_AGG_NAME);
-        return aggregation == null || aggregation.getValue() == null ? null : Instant.ofEpochMilli(aggregation.getValue().longValue());
+        return aggregation == null || aggregation.getValue() == null
+                ? null
+                : Instant.ofEpochMilli(aggregation.getValue().longValue());
     }
 
     private Set<String> searchMessageConnectionRequestIDs(Query query, String httpIndex) {
@@ -840,19 +873,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     private Set<String> searchMessageConnectionRequestIDs(
-        Query query,
-        String httpIndex,
-        JsonObject afterKey,
-        Set<String> accumulatedRequestIDs,
-        int iteration
-    ) {
+            Query query, String httpIndex, JsonObject afterKey, Set<String> accumulatedRequestIDs, int iteration) {
         var maxIterations = 1000;
 
         if (iteration >= maxIterations) {
             log.warn(
-                "The limit of {} requests has been reached for message connection request IDs. This will lead to partial result.",
-                maxIterations
-            );
+                    "The limit of {} requests has been reached for message connection request IDs. This will lead to partial result.",
+                    maxIterations);
             return accumulatedRequestIDs;
         }
 
@@ -866,7 +893,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         if (messageFacetJoin.isEmpty()) {
             log.debug("No request IDs found in iteration {}", iteration);
-            log.debug("Collected {} total message request IDs in {} iterations", accumulatedRequestIDs.size(), iteration);
+            log.debug(
+                    "Collected {} total message request IDs in {} iterations", accumulatedRequestIDs.size(), iteration);
             return accumulatedRequestIDs;
         }
 
@@ -876,7 +904,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var nextAfterKey = messageFacetJoin.getAfterKey();
 
         if (nextAfterKey == null || nextAfterKey.isEmpty()) {
-            log.debug("Collected {} total message request IDs in {} iterations", accumulatedRequestIDs.size(), iteration + 1);
+            log.debug(
+                    "Collected {} total message request IDs in {} iterations",
+                    accumulatedRequestIDs.size(),
+                    iteration + 1);
             return accumulatedRequestIDs;
         }
 
@@ -895,15 +926,16 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Filter values query: {}", esQuery);
 
-        return client.search(index, null, esQuery).map(filterValuesResponseAdapter::adapt).blockingGet();
+        return client.search(index, null, esQuery)
+                .map(filterValuesResponseAdapter::adapt)
+                .blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {
         var indexByVersion = Map.of(DefinitionVersion.V4, Type.V4_METRICS, DefinitionVersion.V2, Type.REQUEST);
-        return definitionVersions
-            .stream()
-            .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
-            .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
-            .collect(Collectors.joining(","));
+        return definitionVersions.stream()
+                .flatMap(v -> Stream.ofNullable(indexByVersion.get(v)))
+                .map(v -> indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), v, clusters))
+                .collect(Collectors.joining(","));
     }
 }

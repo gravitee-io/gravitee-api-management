@@ -106,7 +106,7 @@ public class PolicyDebugDecorator implements Policy {
 
     private Policy computeConditionalPolicy(DebugStep<?> debugStep) {
         return this.policy instanceof ConditionalExecutablePolicy
-            ? new DebugConditionalExecutablePolicy((ConditionalExecutablePolicy) this.policy, debugStep)
-            : this.policy;
+                ? new DebugConditionalExecutablePolicy((ConditionalExecutablePolicy) this.policy, debugStep)
+                : this.policy;
     }
 }

@@ -66,21 +66,22 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
      */
     @Override
     protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(final Stream<Flow> flows) {
-        final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows
-            .flatMap(f -> {
-                List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
-                if (f.getMethods().isEmpty()) {
-                    flowByMethod = List.of(Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(f.getPath(), f.getOperator())));
-                } else {
-                    flowByMethod = f
-                        .getMethods()
-                        .stream()
-                        .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameters(f.getPath(), f.getOperator())))
-                        .collect(Collectors.toList());
-                }
-                return flowByMethod.stream();
-            })
-            .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toSet())));
+        final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows.flatMap(f -> {
+                    List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
+                    if (f.getMethods().isEmpty()) {
+                        flowByMethod = List.of(Map.entry(
+                                PathParameterHttpMethod.WILDCARD, new PathParameters(f.getPath(), f.getOperator())));
+                    } else {
+                        flowByMethod = f.getMethods().stream()
+                                .map(m -> Map.entry(
+                                        PathParameterHttpMethod.valueOf(m.name()),
+                                        new PathParameters(f.getPath(), f.getOperator())))
+                                .collect(Collectors.toList());
+                    }
+                    return flowByMethod.stream();
+                })
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toSet())));
 
         // Use an empty map for method without path param.
         for (PathParameterHttpMethod method : PathParameterHttpMethod.values()) {

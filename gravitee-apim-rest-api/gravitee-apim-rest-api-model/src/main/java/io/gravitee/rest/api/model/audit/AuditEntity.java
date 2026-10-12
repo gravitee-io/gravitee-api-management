@@ -112,33 +112,30 @@ public class AuditEntity {
     }
 
     public String toString() {
-        return (
-            "AuditEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", event='" +
-            event +
-            '\'' +
-            ", properties='" +
-            properties +
-            '\'' +
-            ", user='" +
-            user +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            ", patch='" +
-            patch +
-            '\'' +
-            '}'
-        );
+        return ("AuditEntity{" + "id='"
+                + id
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", event='"
+                + event
+                + '\''
+                + ", properties='"
+                + properties
+                + '\''
+                + ", user='"
+                + user
+                + '\''
+                + ", createdAt='"
+                + createdAt
+                + '\''
+                + ", patch='"
+                + patch
+                + '\''
+                + '}');
     }
 }

@@ -22,7 +22,6 @@ import io.gravitee.apim.core.specgen.model.ApiSpecGen;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvider;
 import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.service.PortalNotificationService;
-import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.List;
 import lombok.CustomLog;
@@ -47,10 +46,9 @@ public class SpecGenNotificationProviderImpl implements SpecGenNotificationProvi
         var apiModel = new ApiModel();
         apiModel.setName(apiSpecGen.name());
         portalNotificationService.create(
-            getExecutionContext(),
-            NEW_SPEC_GENERATED,
-            List.of(userId),
-            new NotificationParamsBuilder().api(apiModel).build()
-        );
+                getExecutionContext(),
+                NEW_SPEC_GENERATED,
+                List.of(userId),
+                new NotificationParamsBuilder().api(apiModel).build());
     }
 }

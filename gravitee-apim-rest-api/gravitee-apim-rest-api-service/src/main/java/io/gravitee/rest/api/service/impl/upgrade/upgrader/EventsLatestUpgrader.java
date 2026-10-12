@@ -65,13 +65,12 @@ public class EventsLatestUpgrader implements Upgrader {
 
     @Autowired
     public EventsLatestUpgrader(
-        @Lazy ApiRepository apiRepository,
-        @Lazy DictionaryRepository dictionaryRepository,
-        @Lazy OrganizationRepository organizationRepository,
-        @Lazy EventRepository eventRepository,
-        @Lazy EventLatestRepository eventLatestRepository,
-        @Lazy ObjectMapper objectMapper
-    ) {
+            @Lazy ApiRepository apiRepository,
+            @Lazy DictionaryRepository dictionaryRepository,
+            @Lazy OrganizationRepository organizationRepository,
+            @Lazy EventRepository eventRepository,
+            @Lazy EventLatestRepository eventLatestRepository,
+            @Lazy ObjectMapper objectMapper) {
         this.apiRepository = apiRepository;
         this.dictionaryRepository = dictionaryRepository;
         this.organizationRepository = organizationRepository;
@@ -101,10 +100,9 @@ public class EventsLatestUpgrader implements Upgrader {
         eventsForModelCounter = 0;
         List<ApiCriteria> emptyCriteria = List.of();
         PageUtils.forEachPage(
-            pageable -> apiRepository.searchIds(emptyCriteria, pageable, null),
-            BULK_SIZE,
-            page -> migrateEvents(Event.EventProperties.API_ID.getValue(), page.getContent())
-        );
+                pageable -> apiRepository.searchIds(emptyCriteria, pageable, null),
+                BULK_SIZE,
+                page -> migrateEvents(Event.EventProperties.API_ID.getValue(), page.getContent()));
         log.info("{} events regarding {} APIs have been migrated", eventsForModelCounter, modelCounter);
     }
 
@@ -145,10 +143,9 @@ public class EventsLatestUpgrader implements Upgrader {
 
     private void migrateDictionaryEvents(Dictionary dictionary) throws TechnicalException {
         Page<Event> eventPage = searchEvents(
-            Event.EventProperties.DICTIONARY_ID.getValue(),
-            dictionary.getId(),
-            Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
-        );
+                Event.EventProperties.DICTIONARY_ID.getValue(),
+                dictionary.getId(),
+                Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY));
         if (eventPage.getPageElements() > 0) {
             Event event = eventPage.getContent().get(0);
             processEvent(event, dictionary.getId());
@@ -156,10 +153,9 @@ public class EventsLatestUpgrader implements Upgrader {
 
         if (DictionaryType.DYNAMIC.equals(dictionary.getType())) {
             eventPage = searchEvents(
-                Event.EventProperties.DICTIONARY_ID.getValue(),
-                dictionary.getId(),
-                Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
-            );
+                    Event.EventProperties.DICTIONARY_ID.getValue(),
+                    dictionary.getId(),
+                    Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY));
             if (eventPage.getPageElements() > 0) {
                 Event event = eventPage.getContent().get(0);
                 processEvent(event, dictionary.getId() + EventService.EVENT_LATEST_DYNAMIC_SUFFIX);
@@ -178,7 +174,9 @@ public class EventsLatestUpgrader implements Upgrader {
             criteria.types(types);
         }
 
-        return this.eventRepository.search(criteria.build(), new PageableBuilder().pageNumber(0).pageSize(1).build());
+        return this.eventRepository.search(
+                criteria.build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build());
     }
 
     private void processEvent(Event event, String id) throws TechnicalException {

@@ -57,9 +57,10 @@ public class DebugApiV2 extends Api implements ReactableDebugApi<io.gravitee.def
         // path(), create a new virtual host with this new path to accept an overridden request targeting this path.
         if (definition.getProxy() != null && definition.getProxy().getVirtualHosts() != null) {
             definition
-                .getProxy()
-                .getVirtualHosts()
-                .forEach(virtualHost -> virtualHost.setPath(PathTransformer.computePathWithEventId(this.eventId, virtualHost.getPath())));
+                    .getProxy()
+                    .getVirtualHosts()
+                    .forEach(virtualHost -> virtualHost.setPath(
+                            PathTransformer.computePathWithEventId(this.eventId, virtualHost.getPath())));
         }
     }
 

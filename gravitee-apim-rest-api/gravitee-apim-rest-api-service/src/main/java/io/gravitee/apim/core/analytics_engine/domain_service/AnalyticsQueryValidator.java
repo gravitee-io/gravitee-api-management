@@ -88,7 +88,8 @@ public class AnalyticsQueryValidator {
             if (metric.sorts() != null && !metric.sorts().isEmpty()) {
                 for (var sort : metric.sorts()) {
                     if (!metric.measures().contains(sort.measure())) {
-                        throw InvalidQueryException.forInvalidSort(sort.measure().name());
+                        throw InvalidQueryException.forInvalidSort(
+                                sort.measure().name());
                     }
                 }
             }
@@ -97,10 +98,13 @@ public class AnalyticsQueryValidator {
 
     private void validateFacets(List<FacetSpec.Name> facets, List<FacetMetricMeasuresRequest> metrics) {
         for (var metric : metrics) {
-            var metricSpec = definition.findMetric(metric.name()).orElseThrow(() -> forUnknownMetric(metric.name().name()));
+            var metricSpec = definition
+                    .findMetric(metric.name())
+                    .orElseThrow(() -> forUnknownMetric(metric.name().name()));
             for (var facet : facets) {
                 if (!metricSpec.facets().contains(facet)) {
-                    throw InvalidQueryException.forIncompatibleFacet(facet.name(), metric.name().name());
+                    throw InvalidQueryException.forIncompatibleFacet(
+                            facet.name(), metric.name().name());
                 }
             }
         }
@@ -121,13 +125,15 @@ public class AnalyticsQueryValidator {
             throw InvalidQueryException.forEmptyFacets();
         }
         if (request.facets().size() > MAX_FACETS_QUERY_FACETS_SIZE) {
-            throw InvalidQueryException.forMaximumFacetsExceeded(MAX_FACETS_QUERY_FACETS_SIZE, request.facets().size());
+            throw InvalidQueryException.forMaximumFacetsExceeded(
+                    MAX_FACETS_QUERY_FACETS_SIZE, request.facets().size());
         }
     }
 
     private void validateFacetsSize(TimeSeriesRequest request) {
         if (request.facets().size() > MAX_TIME_SERIES_QUERY_FACETS_SIZE) {
-            throw InvalidQueryException.forMaximumFacetsExceeded(MAX_TIME_SERIES_QUERY_FACETS_SIZE, request.facets().size());
+            throw InvalidQueryException.forMaximumFacetsExceeded(
+                    MAX_TIME_SERIES_QUERY_FACETS_SIZE, request.facets().size());
         }
     }
 
@@ -140,7 +146,8 @@ public class AnalyticsQueryValidator {
                 throw new InvalidQueryException("Filter name cannot be null");
             }
             if (!supportsAnalytics(filter.name())) {
-                throw InvalidQueryException.forUnsupportedAnalyticsFilter(filter.name().name());
+                throw InvalidQueryException.forUnsupportedAnalyticsFilter(
+                        filter.name().name());
             }
             if (filter.value() == null) {
                 throw InvalidQueryException.forNullFilterValue(filter.name().name());
@@ -159,9 +166,9 @@ public class AnalyticsQueryValidator {
      */
     private boolean supportsAnalytics(FilterSpec.Name name) {
         return definition
-            .findFilter(name)
-            .map(spec -> spec.appliesTo(Signal.ANALYTICS))
-            .orElse(true);
+                .findFilter(name)
+                .map(spec -> spec.appliesTo(Signal.ANALYTICS))
+                .orElse(true);
     }
 
     private void validateTimeRange(TimeRange timeRange) {
@@ -183,12 +190,9 @@ public class AnalyticsQueryValidator {
         for (var query : queries) {
             validateFilters(query.filters());
         }
-        validateMetricsAndMeasures(
-            queries
-                .stream()
+        validateMetricsAndMeasures(queries.stream()
                 .map(query -> new MetricMeasuresRequest(query.name(), query.measures()))
-                .toList()
-        );
+                .toList());
     }
 
     private void validateMetricsAndMeasures(List<MetricMeasuresRequest> queries) {

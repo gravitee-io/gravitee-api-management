@@ -56,7 +56,8 @@ public class MongoDashboardRepository implements DashboardRepository {
     public Optional<Dashboard> findById(String dashboardId) throws TechnicalException {
         log.debug("Find dashboard by ID [{}]", dashboardId);
 
-        final DashboardMongo dashboard = internalDashboardRepo.findById(dashboardId).orElse(null);
+        final DashboardMongo dashboard =
+                internalDashboardRepo.findById(dashboardId).orElse(null);
 
         log.debug("Find dashboard by ID [{}] - Done", dashboardId);
         return Optional.ofNullable(mapper.map(dashboard));
@@ -82,13 +83,14 @@ public class MongoDashboardRepository implements DashboardRepository {
             throw new IllegalStateException("Dashboard to update must have a name");
         }
 
-        final DashboardMongo dashboardMongo = internalDashboardRepo.findById(dashboard.getId()).orElse(null);
+        final DashboardMongo dashboardMongo =
+                internalDashboardRepo.findById(dashboard.getId()).orElse(null);
 
         if (dashboardMongo == null) {
             throw new IllegalStateException(String.format("No dashboard found with name [%s]", dashboard.getId()));
         }
         try {
-            //Update
+            // Update
             dashboardMongo.setReferenceType(dashboard.getReferenceType());
             dashboardMongo.setReferenceId(dashboard.getReferenceId());
             dashboardMongo.setName(dashboard.getName());
@@ -121,33 +123,32 @@ public class MongoDashboardRepository implements DashboardRepository {
 
     @Override
     public List<Dashboard> findByReference(String referenceType, String referenceId) throws TechnicalException {
-        final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
-        return dashboards
-            .stream()
-            .map(dashboardMongo -> mapper.map(dashboardMongo))
-            .toList();
+        final List<DashboardMongo> dashboards =
+                internalDashboardRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
+        return dashboards.stream()
+                .map(dashboardMongo -> mapper.map(dashboardMongo))
+                .toList();
     }
 
     @Override
-    public List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException {
-        final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByOrder(
-            referenceType,
-            referenceId,
-            type
-        );
-        return dashboards
-            .stream()
-            .map(dashboardMongo -> mapper.map(dashboardMongo))
-            .toList();
+    public List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type)
+            throws TechnicalException {
+        final List<DashboardMongo> dashboards =
+                internalDashboardRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByOrder(
+                        referenceType, referenceId, type);
+        return dashboards.stream()
+                .map(dashboardMongo -> mapper.map(dashboardMongo))
+                .toList();
     }
 
     @Override
-    public Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id) throws TechnicalException {
+    public Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id)
+            throws TechnicalException {
         log.debug("Find dashboard by ID [{}-{}-{}]", referenceType, referenceId, id);
 
         final DashboardMongo dashboard = internalDashboardRepo
-            .findByReferenceTypeAndReferenceIdAndId(referenceType, referenceId, id)
-            .orElse(null);
+                .findByReferenceTypeAndReferenceIdAndId(referenceType, referenceId, id)
+                .orElse(null);
 
         log.debug("Find dashboard by ID [{}-{}-{}] - Done", referenceType, referenceId, id);
         return Optional.ofNullable(mapper.map(dashboard));
@@ -155,15 +156,16 @@ public class MongoDashboardRepository implements DashboardRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete dashboard by ref [{}/{}]", referenceId, referenceType);
 
         try {
-            final var dashboardIds = internalDashboardRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(DashboardMongo::getId)
-                .toList();
+            final var dashboardIds =
+                    internalDashboardRepo
+                            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                            .stream()
+                            .map(DashboardMongo::getId)
+                            .toList();
 
             log.debug("Delete dashboard by ref [{}/{}] - Done", referenceId, referenceType);
             return dashboardIds;

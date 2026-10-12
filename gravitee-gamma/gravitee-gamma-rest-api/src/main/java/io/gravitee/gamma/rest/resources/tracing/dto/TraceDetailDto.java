@@ -23,29 +23,25 @@ import java.util.List;
  * for the ms-since-epoch timestamp rationale and the lowercase {@code status} vocabulary.
  */
 public record TraceDetailDto(
-    String traceId,
-    long startTimeEpochMs,
-    long durationNanos,
-    String rootServiceName,
-    String rootOperationName,
-    String status,
-    int spanCount,
-    List<SpanDto> spans
-) {
+        String traceId,
+        long startTimeEpochMs,
+        long durationNanos,
+        String rootServiceName,
+        String rootOperationName,
+        String status,
+        int spanCount,
+        List<SpanDto> spans) {
     public static TraceDetailDto from(TraceDetail detail) {
         return new TraceDetailDto(
-            detail.traceId(),
-            detail.startTime() != null ? detail.startTime().toEpochMilli() : 0L,
-            detail.durationNanos(),
-            detail.rootServiceName(),
-            detail.rootOperationName(),
-            detail.status().name().toLowerCase(),
-            detail.spanCount(),
-            detail
-                .spans()
-                .stream()
-                .map(s -> SpanDto.from(detail.traceId(), s))
-                .toList()
-        );
+                detail.traceId(),
+                detail.startTime() != null ? detail.startTime().toEpochMilli() : 0L,
+                detail.durationNanos(),
+                detail.rootServiceName(),
+                detail.rootOperationName(),
+                detail.status().name().toLowerCase(),
+                detail.spanCount(),
+                detail.spans().stream()
+                        .map(s -> SpanDto.from(detail.traceId(), s))
+                        .toList());
     }
 }

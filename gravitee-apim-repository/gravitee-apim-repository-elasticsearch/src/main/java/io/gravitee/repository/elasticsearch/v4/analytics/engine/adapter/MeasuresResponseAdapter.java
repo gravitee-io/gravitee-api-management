@@ -35,8 +35,8 @@ public class MeasuresResponseAdapter extends AbstractResponseAdapter {
 
     public MeasuresResult adapt(SearchResponse esResponse, MeasuresQuery query) {
         return lookupForAggregations(esResponse)
-            .map(aggregations -> toMeasuresResult(aggregations, query))
-            .orElseGet(() -> empty(query));
+                .map(aggregations -> toMeasuresResult(aggregations, query))
+                .orElseGet(() -> empty(query));
     }
 
     private MeasuresResult toMeasuresResult(Map<String, Aggregation> aggregations, MeasuresQuery query) {

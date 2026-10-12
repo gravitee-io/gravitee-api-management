@@ -39,7 +39,8 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
     static String PLANS_DATA_UPGRADER_STATUS = "PLANS_DATA_UPGRADER_V2_STATUS";
     static String APPLICATION_API_KEY_MODE_UPGRADER_STATUS = "API_KEY_MODE_UPGRADER_STATUS";
     static String API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS = "API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS";
-    static String CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS = "CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS";
+    static String CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS =
+            "CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS";
     static String ORPHAN_CATEGORY_UPGRADER_STATUS = "ORPHAN_CATEGORY_UPGRADER_STATUS";
     static String API_LOGGING_CONDITION_UPGRADER = "API_LOGGING_CONDITION_UPGRADER";
     static String DEFAULT_ROLES_UPGRADER_STATUS = "DEFAULT_ROLES_UPGRADER_STATUS";
@@ -63,14 +64,14 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
         INSTALLATION_KEY_STATUS.put(ORPHAN_CATEGORY_UPGRADER_STATUS, OrphanCategoryUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(DEFAULT_ROLES_UPGRADER_STATUS, DefaultRolesUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(COMMAND_ORGANIZATION_UPGRADER, CommandOrganizationUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(APPLICATION_API_KEY_MODE_UPGRADER_STATUS, ApplicationApiKeyModeUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(
+                APPLICATION_API_KEY_MODE_UPGRADER_STATUS, ApplicationApiKeyModeUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(ALERTS_ENVIRONMENT_UPGRADER, AlertsEnvironmentUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(PLANS_DATA_UPGRADER_STATUS, PlansDataFixUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS, ApiKeySubscriptionsUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(
-            CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS,
-            ClientIdInApiKeySubscriptionsUpgrader.class.getName()
-        );
+                CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS,
+                ClientIdInApiKeySubscriptionsUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(PLANS_FLOWS_UPGRADER_STATUS, PlansFlowsDefinitionUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(API_LOGGING_CONDITION_UPGRADER, ApiLoggingConditionUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(EVENTS_LATEST_UPGRADER_STATUS, EventsLatestUpgrader.class.getName());
@@ -84,22 +85,19 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() {
-        installationService
-            .get()
-            .getAdditionalInformation()
-            .forEach((k, v) -> {
-                if ("SUCCESS".equals(v)) {
-                    String id = INSTALLATION_KEY_STATUS.get(k);
-                    if (id == null) {
-                        log.error("Can't find upgrader class with installation status key {}", k);
-                        return;
-                    }
-                    UpgradeRecord upgradeRecord = upgraderRepository.findById(id).blockingGet();
-                    if (upgradeRecord == null) {
-                        upgraderRepository.create(new UpgradeRecord(id, new Date())).blockingGet();
-                    }
+        installationService.get().getAdditionalInformation().forEach((k, v) -> {
+            if ("SUCCESS".equals(v)) {
+                String id = INSTALLATION_KEY_STATUS.get(k);
+                if (id == null) {
+                    log.error("Can't find upgrader class with installation status key {}", k);
+                    return;
                 }
-            });
+                UpgradeRecord upgradeRecord = upgraderRepository.findById(id).blockingGet();
+                if (upgradeRecord == null) {
+                    upgraderRepository.create(new UpgradeRecord(id, new Date())).blockingGet();
+                }
+            }
+        });
         return true;
     }
 

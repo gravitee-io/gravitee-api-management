@@ -35,20 +35,24 @@ import org.testcontainers.utility.MountableFile;
  */
 public class KubernetesHelper {
 
-    public static void createNamespace(ContainerState k8sContainer, String name) throws IOException, InterruptedException {
+    public static void createNamespace(ContainerState k8sContainer, String name)
+            throws IOException, InterruptedException {
         Container.ExecResult execResult = k8sContainer.execInContainer("kubectl", "create", "namespace", name);
         assertThat(execResult.getExitCode()).isZero();
         assertThat(execResult.getStdout()).contains("namespace/%s created".formatted(name));
     }
 
-    public static void createSecret(ContainerState k8sContainer, String namespace, String name, Map<String, String> data)
-        throws IOException, InterruptedException {
+    public static void createSecret(
+            ContainerState k8sContainer, String namespace, String name, Map<String, String> data)
+            throws IOException, InterruptedException {
         createSecret(k8sContainer, namespace, name, data, false);
     }
 
-    public static void createSecret(ContainerState k8sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
-        throws IOException, InterruptedException {
-        List<String> args = new ArrayList<>(List.of("kubectl", "create", "secret", isTLS ? "tls" : "generic", name, "-n", namespace));
+    public static void createSecret(
+            ContainerState k8sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
+            throws IOException, InterruptedException {
+        List<String> args = new ArrayList<>(
+                List.of("kubectl", "create", "secret", isTLS ? "tls" : "generic", name, "-n", namespace));
         if (isTLS) {
             String certPath = "/kindcontainer/%s-tls.crt".formatted(UUID.randomUUID());
             String keyPath = "/kindcontainer/%s-tls.key".formatted(UUID.randomUUID());
@@ -57,11 +61,9 @@ public class KubernetesHelper {
             args.add("--cert=%s".formatted(certPath));
             args.add("--key=%s".formatted(keyPath));
         } else {
-            data
-                .entrySet()
-                .stream()
-                .map(entry -> "--from-literal=%s=%s".formatted(entry.getKey(), entry.getValue()))
-                .forEach(args::add);
+            data.entrySet().stream()
+                    .map(entry -> "--from-literal=%s=%s".formatted(entry.getKey(), entry.getValue()))
+                    .forEach(args::add);
         }
         Container.ExecResult execResult = k8sContainer.execInContainer(args.toArray(new String[0]));
         assertThat(execResult.getStderr()).isEmpty();
@@ -69,9 +71,10 @@ public class KubernetesHelper {
         assertThat(execResult.getExitCode()).isZero();
     }
 
-    public static void updateSecret(ContainerState k8sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
-        throws IOException, InterruptedException {
-        String[] args = { "kubectl", "delete", "secret", name, "-n", namespace };
+    public static void updateSecret(
+            ContainerState k8sContainer, String namespace, String name, Map<String, String> data, boolean isTLS)
+            throws IOException, InterruptedException {
+        String[] args = {"kubectl", "delete", "secret", name, "-n", namespace};
         Container.ExecResult execResult = k8sContainer.execInContainer(args);
         assertThat(execResult.getExitCode()).isZero();
         assertThat(execResult.getStdout()).contains("secret \"%s\" deleted".formatted(name));
@@ -79,7 +82,7 @@ public class KubernetesHelper {
     }
 
     public static String createToken(ContainerState k8sContainer, String sa) throws IOException, InterruptedException {
-        String[] args = { "kubectl", "create", "token", sa };
+        String[] args = {"kubectl", "create", "token", sa};
         Container.ExecResult execResult = k8sContainer.execInContainer(args);
         assertThat(execResult.getExitCode()).isZero();
         return execResult.getStdout();
@@ -89,14 +92,15 @@ public class KubernetesHelper {
         String destination = UUID.randomUUID().toString();
         String containerPath = "/kindcontainer/" + destination + ".yaml";
         k8sContainer.copyFileToContainer(MountableFile.forHostPath(file), containerPath);
-        String[] args = { "kubectl", "apply", "-f", containerPath };
+        String[] args = {"kubectl", "apply", "-f", containerPath};
         Container.ExecResult execResult = k8sContainer.execInContainer(args);
         System.out.println(execResult.getStdout());
         assertThat(execResult.getExitCode()).isZero();
     }
 
-    public static String getServiceAccountToken(ContainerState k8sContainer, String secret) throws IOException, InterruptedException {
-        String[] args = { "kubectl", "get", "secret", secret, "-o", "go-template='{{ .data.token }}'" };
+    public static String getServiceAccountToken(ContainerState k8sContainer, String secret)
+            throws IOException, InterruptedException {
+        String[] args = {"kubectl", "get", "secret", secret, "-o", "go-template='{{ .data.token }}'"};
         Container.ExecResult execResult = k8sContainer.execInContainer(args);
         assertThat(execResult.getExitCode()).isZero();
         String stdout = execResult.getStdout();

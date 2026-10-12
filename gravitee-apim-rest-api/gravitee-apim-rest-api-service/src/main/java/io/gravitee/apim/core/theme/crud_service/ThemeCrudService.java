@@ -20,8 +20,12 @@ import java.util.Optional;
 
 public interface ThemeCrudService {
     Theme create(Theme theme);
+
     Theme update(Theme theme);
+
     Theme get(String id);
+
     Optional<Theme> findByIdAndEnvironmentId(String id, String environmentId);
+
     void delete(String id);
 }

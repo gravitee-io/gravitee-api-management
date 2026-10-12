@@ -58,9 +58,8 @@ public class RollbackApiEntity {
 
     @NotNull
     @Schema(
-        description = "API's description. A short description of your API.",
-        example = "I can use a hundred characters to describe this API."
-    )
+            description = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
 
     @NotNull
@@ -76,7 +75,9 @@ public class RollbackApiEntity {
     @Schema(description = "a list of plans with flows (the policies configuration)")
     private List<Plan> plans = new ArrayList<>();
 
-    @Schema(description = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+    @Schema(
+            description =
+                    "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
     @Schema(description = "The list of API resources used by policies like cache resources or oauth2")
@@ -121,20 +122,21 @@ public class RollbackApiEntity {
 
     @JsonProperty(value = "path_mappings")
     @Schema(
-        description = "A list of paths used to aggregate data in analytics",
-        example = "/products/:productId, /products/:productId/media"
-    )
+            description = "A list of paths used to aggregate data in analytics",
+            example = "/products/:productId, /products/:productId/media")
     private Set<String> pathMappings;
 
-    @Schema(description = "API's execution mode. Define if the execution mode should use v3 or v4-emulation-engine.", example = "v3")
+    @Schema(
+            description = "API's execution mode. Define if the execution mode should use v3 or v4-emulation-engine.",
+            example = "v3")
     @DeploymentRequired
     @JsonProperty(value = "execution_mode")
     private ExecutionMode executionMode;
 
     @JsonProperty(value = "response_templates")
     @Schema(
-        description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
-    )
+            description =
+                    "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     private List<ApiMetadataEntity> metadata;

@@ -25,9 +25,9 @@ public class PortalNavigationItemUseAutoFetchIndexUpgrader extends IndexUpgrader
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_navigation_items")
-            .key("useAutoFetch", ascending())
-            .name("uaf1")
-            .build();
+                .collection("portal_navigation_items")
+                .key("useAutoFetch", ascending())
+                .name("uaf1")
+                .build();
     }
 }

@@ -32,12 +32,10 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -62,12 +60,11 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
     protected void doStart() throws Exception {
         if (heartbeatStrategyConfiguration.enabled()) {
             heartbeatStrategyScheduler = new HeartbeatEventScheduler(
-                heartbeatStrategyConfiguration.clusterManager(),
-                heartbeatStrategyConfiguration.eventRepository(),
-                heartbeatStrategyConfiguration.delay(),
-                heartbeatStrategyConfiguration.unit(),
-                prepareEvent()
-            );
+                    heartbeatStrategyConfiguration.clusterManager(),
+                    heartbeatStrategyConfiguration.eventRepository(),
+                    heartbeatStrategyConfiguration.delay(),
+                    heartbeatStrategyConfiguration.unit(),
+                    prepareEvent());
             heartbeatStrategyScheduler.start();
         }
     }
@@ -101,17 +98,19 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
         final Map<String, String> properties = new HashMap<>();
         properties.put(EVENT_ID_PROPERTY, heartbeatStrategyConfiguration.node().id());
         properties.put(
-            EVENT_CLUSTER_PRIMARY_NODE_PROPERTY,
-            Boolean.toString(heartbeatStrategyConfiguration.clusterManager().self().primary())
-        );
+                EVENT_CLUSTER_PRIMARY_NODE_PROPERTY,
+                Boolean.toString(
+                        heartbeatStrategyConfiguration.clusterManager().self().primary()));
 
         final String now = Long.toString(event.getCreatedAt().getTime());
         properties.put(EVENT_STARTED_AT_PROPERTY, now);
         properties.put(EVENT_LAST_HEARTBEAT_PROPERTY, now);
         event.setProperties(properties);
 
-        event.setEnvironments((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS));
-        event.setOrganizations((Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ORGANIZATIONS));
+        event.setEnvironments(
+                (Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ENVIRONMENTS));
+        event.setOrganizations(
+                (Set<String>) heartbeatStrategyConfiguration.node().metadata().get(Node.META_ORGANIZATIONS));
 
         InstanceEventPayload instance = createInstanceInfo();
 
@@ -130,14 +129,16 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
         instanceInfo.setId(heartbeatStrategyConfiguration.node().id());
         instanceInfo.setVersion(Version.RUNTIME_VERSION.toString());
 
-        Optional<List<String>> shardingTags = heartbeatStrategyConfiguration.gatewayConfiguration().shardingTags();
+        Optional<List<String>> shardingTags =
+                heartbeatStrategyConfiguration.gatewayConfiguration().shardingTags();
         instanceInfo.setTags(shardingTags.orElse(null));
 
         instanceInfo.setPlugins(plugins());
         instanceInfo.setSystemProperties(getSystemProperties());
         instanceInfo.setPort(heartbeatStrategyConfiguration.port());
 
-        Optional<String> tenant = heartbeatStrategyConfiguration.gatewayConfiguration().tenant();
+        Optional<String> tenant =
+                heartbeatStrategyConfiguration.gatewayConfiguration().tenant();
         instanceInfo.setTenant(tenant.orElse(null));
 
         try {
@@ -147,35 +148,32 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
             log.warn("Could not get hostname / IP", uhe);
         }
 
-        instanceInfo.setClusterId(heartbeatStrategyConfiguration.clusterManager().clusterId());
+        instanceInfo.setClusterId(
+                heartbeatStrategyConfiguration.clusterManager().clusterId());
         return instanceInfo;
     }
 
     private Set<Plugin> plugins() {
-        return heartbeatStrategyConfiguration
-            .pluginRegistry()
-            .plugins()
-            .stream()
-            .map(regPlugin -> {
-                Plugin plugin = new Plugin();
-                plugin.setId(regPlugin.id());
-                plugin.setName(regPlugin.manifest().name());
-                plugin.setDescription(regPlugin.manifest().description());
-                plugin.setVersion(regPlugin.manifest().version());
-                plugin.setType(regPlugin.type().toLowerCase());
-                plugin.setPlugin(regPlugin.clazz());
-                return plugin;
-            })
-            .collect(Collectors.toSet());
+        return heartbeatStrategyConfiguration.pluginRegistry().plugins().stream()
+                .map(regPlugin -> {
+                    Plugin plugin = new Plugin();
+                    plugin.setId(regPlugin.id());
+                    plugin.setName(regPlugin.manifest().name());
+                    plugin.setDescription(regPlugin.manifest().description());
+                    plugin.setVersion(regPlugin.manifest().version());
+                    plugin.setType(regPlugin.type().toLowerCase());
+                    plugin.setPlugin(regPlugin.clazz());
+                    return plugin;
+                })
+                .collect(Collectors.toSet());
     }
 
     private Map<String, String> getSystemProperties() {
         if (heartbeatStrategyConfiguration.storeSystemProperties()) {
-            return System.getProperties()
-                .entrySet()
-                .stream()
-                .filter(entry -> !entry.getKey().toString().toUpperCase().startsWith("GRAVITEE"))
-                .collect(Collectors.toMap(o -> o.getKey().toString(), o -> o.getValue().toString()));
+            return System.getProperties().entrySet().stream()
+                    .filter(entry -> !entry.getKey().toString().toUpperCase().startsWith("GRAVITEE"))
+                    .collect(Collectors.toMap(
+                            o -> o.getKey().toString(), o -> o.getValue().toString()));
         }
 
         return Collections.emptyMap();

@@ -46,33 +46,31 @@ class FilterCatalogParityTest {
 
     @Test
     void every_gamma_analytics_filter_should_be_a_platform_filter_that_applies_to_analytics() {
-        List<String> offenders = gamma
-            .getFilters(Set.of(Signal.ANALYTICS), null)
-            .stream()
-            .map(spec -> spec.name())
-            .filter(name -> !RECORD_TYPE.equals(name))
-            .filter(name ->
-                platformFilter(name)
-                    .map(spec -> !appliesToAnalytics(spec))
-                    .orElse(true)
-            )
-            .toList();
+        List<String> offenders = gamma.getFilters(Set.of(Signal.ANALYTICS), null).stream()
+                .map(spec -> spec.name())
+                .filter(name -> !RECORD_TYPE.equals(name))
+                .filter(name -> platformFilter(name)
+                        .map(spec -> !appliesToAnalytics(spec))
+                        .orElse(true))
+                .toList();
 
-        assertThat(offenders).as("Gamma analytics filters the platform catalog does not declare for analytics").isEmpty();
+        assertThat(offenders)
+                .as("Gamma analytics filters the platform catalog does not declare for analytics")
+                .isEmpty();
     }
 
     @Test
     void gamma_only_filter_names_should_never_apply_to_analytics() {
-        List<String> gammaOnlyAnalytics = gamma
-            .getFilters(null, null)
-            .stream()
-            .filter(spec -> !RECORD_TYPE.equals(spec.name()))
-            .filter(spec -> platformFilter(spec.name()).isEmpty())
-            .filter(spec -> spec.signals().contains(Signal.ANALYTICS))
-            .map(spec -> spec.name())
-            .toList();
+        List<String> gammaOnlyAnalytics = gamma.getFilters(null, null).stream()
+                .filter(spec -> !RECORD_TYPE.equals(spec.name()))
+                .filter(spec -> platformFilter(spec.name()).isEmpty())
+                .filter(spec -> spec.signals().contains(Signal.ANALYTICS))
+                .map(spec -> spec.name())
+                .toList();
 
-        assertThat(gammaOnlyAnalytics).as("filters the platform catalog does not know yet advertised by Gamma for analytics").isEmpty();
+        assertThat(gammaOnlyAnalytics)
+                .as("filters the platform catalog does not know yet advertised by Gamma for analytics")
+                .isEmpty();
     }
 
     /** Two catalogs, two {@code Signal} enums: the platform one is spelled out here, once. */

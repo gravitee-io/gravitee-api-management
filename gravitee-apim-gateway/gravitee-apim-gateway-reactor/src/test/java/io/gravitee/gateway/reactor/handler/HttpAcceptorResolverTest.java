@@ -107,7 +107,8 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers =
+                new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
         when(request.path()).thenReturn("/teams");
@@ -121,7 +122,8 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers =
+                new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
@@ -136,7 +138,8 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers =
+                new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
@@ -151,7 +154,8 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers =
+                new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
@@ -208,7 +212,8 @@ public class HttpAcceptorResolverTest {
             reset(request);
             when(request.host()).thenReturn(null);
             when(request.path()).thenReturn(pathAcceptor.path);
-            assertEquals(httpAcceptorHandlers.get(pathAcceptor.acceptorIndex), handlerResolver.resolve(context, SERVER_ID));
+            assertEquals(
+                    httpAcceptorHandlers.get(pathAcceptor.acceptorIndex), handlerResolver.resolve(context, SERVER_ID));
         }
     }
 
@@ -253,7 +258,10 @@ public class HttpAcceptorResolverTest {
             when(request.path()).thenReturn(requestData.path);
             String message = "host=" + requestData.host + " path=" + requestData.path;
             if (requestData.acceptorIndex != null) {
-                assertEquals(httpAcceptorHandlers.get(requestData.acceptorIndex), handlerResolver.resolve(context, SERVER_ID), message);
+                assertEquals(
+                        httpAcceptorHandlers.get(requestData.acceptorIndex),
+                        handlerResolver.resolve(context, SERVER_ID),
+                        message);
             } else {
                 assertNull(handlerResolver.resolve(context, SERVER_ID), message);
             }
@@ -320,10 +328,7 @@ public class HttpAcceptorResolverTest {
 
             // All this paths must match because they are exposed in path mode (no host).
             final List<String> pathsShouldMatch = Arrays.asList(
-                expected.path(),
-                expected.path() + "/",
-                expected.path() + "/a/long/sub/path/i/want/it/to/match"
-            );
+                    expected.path(), expected.path() + "/", expected.path() + "/a/long/sub/path/i/want/it/to/match");
 
             pathsShouldMatch.forEach(path -> {
                 logger.info("Test case: to resolve for host [{}] and path [{}].", expected.host(), path);
@@ -352,12 +357,7 @@ public class HttpAcceptorResolverTest {
 
             // All this paths must match because they all starts with "/a/b/c".
             final List<String> pathsShouldMatch = Arrays.asList(
-                "/a/b/c",
-                "/a/b/c/",
-                "/a/b/c/sub",
-                "/a/b/c/sub/",
-                "/a/b/c/sub/a/long/sub/path/i/want/it/to/match"
-            );
+                    "/a/b/c", "/a/b/c/", "/a/b/c/sub", "/a/b/c/sub/", "/a/b/c/sub/a/long/sub/path/i/want/it/to/match");
 
             pathsShouldMatch.forEach(path -> {
                 logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);
@@ -372,7 +372,8 @@ public class HttpAcceptorResolverTest {
         for (final HttpAcceptor expected : withHostAndNotPathABC) {
             // Test some path that should be resolved to null.
             // "unknown" -> path not declared at all
-            // All other paths are either on all host ('*') either for an host which is also exposing the paths we are testing (ex: "api1.gravitee.io" exposes multiples paths).
+            // All other paths are either on all host ('*') either for an host which is also exposing the paths we are
+            // testing (ex: "api1.gravitee.io" exposes multiples paths).
             final List<String> pathsShouldNotMatch = Collections.singletonList("/unknown");
 
             pathsShouldNotMatch.forEach(path -> {
@@ -385,10 +386,7 @@ public class HttpAcceptorResolverTest {
 
             // All this paths must match because
             final List<String> pathsShouldMatch = Arrays.asList(
-                expected.path(),
-                expected.path() + "/",
-                expected.path() + "/a/long/sub/path/i/want/it/to/match"
-            );
+                    expected.path(), expected.path() + "/", expected.path() + "/a/long/sub/path/i/want/it/to/match");
 
             pathsShouldMatch.forEach(path -> {
                 logger.info("Test case: resolve for host [{}] and path [{}].", expected.host(), path);

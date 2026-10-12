@@ -51,7 +51,8 @@ public class TestHelper {
     static final String RESPONSE_FROM_BACKEND = "response from backend";
     static final String WIREMOCK_ENDPOINT_URI = "/endpoint";
     static final String GATEWAY_HTTP_API_URI = "/test";
-    static final String GATEWAY_TCP_API_URI = WIREMOCK_ENDPOINT_URI; // using backend URI as we don't have that notion gateway side
+    static final String GATEWAY_TCP_API_URI =
+            WIREMOCK_ENDPOINT_URI; // using backend URI as we don't have that notion gateway side
     static final String BRIGHT_SIDE_FQDN = "bright.side.force";
     static final String DARK_SIDE_FQDN = "dark.side.force";
     static final char[] PASSWORD = "secret".toCharArray();
@@ -59,26 +60,24 @@ public class TestHelper {
 
     static void assertApiCall(HttpClient newHttpClient, int port, String host, String uri) {
         newHttpClient
-            .rxRequest(
-                new RequestOptions()
-                    .setMethod(HttpMethod.GET)
-                    .setServer(SocketAddress.inetSocketAddress(port, "127.0.0.1")) // set the IP...
-                    .setHost(host) // ...separately from the SNI host
-                    .setURI(uri)
-            )
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                // just asserting we get a response (hence no SSL errors)
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .flatMapCompletable(body -> {
-                assertThat(body).hasToString(RESPONSE_FROM_BACKEND);
-                return Completable.complete();
-            })
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(new RequestOptions()
+                        .setMethod(HttpMethod.GET)
+                        .setServer(SocketAddress.inetSocketAddress(port, "127.0.0.1")) // set the IP...
+                        .setHost(host) // ...separately from the SNI host
+                        .setURI(uri))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // just asserting we get a response (hence no SSL errors)
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .flatMapCompletable(body -> {
+                    assertThat(body).hasToString(RESPONSE_FROM_BACKEND);
+                    return Completable.complete();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
     }
 
     static void assertHandshakeError(Vertx vertx, String cert, String host, int port) {
@@ -88,17 +87,17 @@ public class TestHelper {
     static void assertHandshakeError(Vertx vertx, String cert, String host, int port, Object clientKeyStorePath) {
         var httpClient = createTrustedHttpClient(vertx, cert, clientKeyStorePath);
         httpClient
-            .rxRequest(
-                new RequestOptions()
-                    .setMethod(HttpMethod.GET)
-                    .setServer(SocketAddress.inetSocketAddress(port, "127.0.0.1")) // set the IP...
-                    .setHost(host) // ...separately from the SNI host
-                    .setURI("/foo") // set a 404 on purpose to really check SSLHandshake errors
-            )
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertError(SSLHandshakeException.class);
+                .rxRequest(
+                        new RequestOptions()
+                                .setMethod(HttpMethod.GET)
+                                .setServer(SocketAddress.inetSocketAddress(port, "127.0.0.1")) // set the IP...
+                                .setHost(host) // ...separately from the SNI host
+                                .setURI("/foo") // set a 404 on purpose to really check SSLHandshake errors
+                        )
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertError(SSLHandshakeException.class);
     }
 
     static HttpClient createTrustedHttpClient(Vertx vertx, String cert) {
@@ -106,22 +105,24 @@ public class TestHelper {
     }
 
     static HttpClient createTrustedHttpClient(Vertx vertx, String cert, Object clientKeyStore) {
-        var options = new HttpClientOptions().setSsl(true).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(cert)));
+        var options = new HttpClientOptions()
+                .setSsl(true)
+                .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(cert)));
         if (clientKeyStore instanceof Path clientKeyStorePath) {
-            options.setKeyCertOptions(
-                new PfxOptions().setPath(clientKeyStorePath.toAbsolutePath().toString()).setPassword(new String(PASSWORD))
-            );
+            options.setKeyCertOptions(new PfxOptions()
+                    .setPath(clientKeyStorePath.toAbsolutePath().toString())
+                    .setPassword(new String(PASSWORD)));
         } else if (clientKeyStore instanceof PemGenResult.KeyPairLocation clientKeyPairLocation) {
-            options.setKeyCertOptions(
-                new PemKeyCertOptions()
-                    .addCertPath(clientKeyPairLocation.certPath().toAbsolutePath().toString())
-                    .addKeyPath(clientKeyPairLocation.keyPath().toAbsolutePath().toString())
-            );
+            options.setKeyCertOptions(new PemKeyCertOptions()
+                    .addCertPath(
+                            clientKeyPairLocation.certPath().toAbsolutePath().toString())
+                    .addKeyPath(clientKeyPairLocation.keyPath().toAbsolutePath().toString()));
         }
         return vertx.createHttpClient(options);
     }
 
-    static KeyStoreGenResult createNewPKCS12KeyStore(@Nonnull String commonName, String... commonNames) throws Exception {
+    static KeyStoreGenResult createNewPKCS12KeyStore(@Nonnull String commonName, String... commonNames)
+            throws Exception {
         final Path path = Files.createTempFile("keystore_", ".p12");
         Map<String, TLSUtils.X509Cert> certs = new HashMap<>();
         Map<String, String> aliases = new HashMap<>();
@@ -166,7 +167,9 @@ public class TestHelper {
             Path certCopyPath = certsDir.resolve(certFileName(i));
             keyPair.certificate().writeToDisk(certCopyPath);
 
-            certificates.put(commonName, new PemGenResult.CertGen(certCopyPath, keyPair.certificate().toPem()));
+            certificates.put(
+                    commonName,
+                    new PemGenResult.CertGen(certCopyPath, keyPair.certificate().toPem()));
 
             Path keyPath = keyPairsDir.resolve(keyFileName(i));
             keyPair.privateKey().writeToDisk(keyPath);
@@ -188,7 +191,8 @@ public class TestHelper {
         return "private_key_%d.pem".formatted(i);
     }
 
-    record KeyStoreGenResult(KeyStore keyStore, Path location, Map<String, TLSUtils.X509Cert> certs, Map<String, String> aliases) {
+    record KeyStoreGenResult(
+            KeyStore keyStore, Path location, Map<String, TLSUtils.X509Cert> certs, Map<String, String> aliases) {
         Path toTrustStore() throws Exception {
             Path tempFile = Files.createTempFile("truststore", ".p12");
             KeyStore trustStore = TLSUtils.toTrustStore(keyStore, PASSWORD);
@@ -200,12 +204,12 @@ public class TestHelper {
     }
 
     record PemGenResult(
-        Path keyPairDirectory,
-        Map<String, KeyPairLocation> locations,
-        Path certDirectory,
-        Map<String, CertGen> certificates
-    ) {
+            Path keyPairDirectory,
+            Map<String, KeyPairLocation> locations,
+            Path certDirectory,
+            Map<String, CertGen> certificates) {
         record KeyPairLocation(Path certPath, Path keyPath) {}
+
         record CertGen(Path certPath, String cert) {}
     }
 }

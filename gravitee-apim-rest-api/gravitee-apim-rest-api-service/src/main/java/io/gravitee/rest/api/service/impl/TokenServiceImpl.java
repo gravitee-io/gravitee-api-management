@@ -68,7 +68,9 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     public List<TokenEntity> findByUser(final String userId) {
         try {
             log.debug("Find all tokens for user '{}'", userId);
-            return tokenRepository.findByReference(TokenReferenceType.USER.name(), userId).stream().map(this::convert).collect(toList());
+            return tokenRepository.findByReference(TokenReferenceType.USER.name(), userId).stream()
+                    .map(this::convert)
+                    .collect(toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all tokens";
             throw new TechnicalManagementException(error, ex);
@@ -80,7 +82,8 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
         try {
             // check if name already exists
             final List<TokenEntity> tokens = findByUser(user);
-            final boolean nameAlreadyExists = tokens.stream().anyMatch(token -> newToken.getName().equalsIgnoreCase(token.getName()));
+            final boolean nameAlreadyExists =
+                    tokens.stream().anyMatch(token -> newToken.getName().equalsIgnoreCase(token.getName()));
             if (nameAlreadyExists) {
                 throw new TokenNameAlreadyExistsException(newToken.getName());
             }
@@ -88,15 +91,14 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             final String decodedToken = UUID.toString(UUID.random());
             final Token token = convert(newToken, TokenReferenceType.USER, user, passwordEncoder.encode(decodedToken));
             auditService.createOrganizationAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(TOKEN, token.getId()))
-                    .event(TOKEN_CREATED)
-                    .createdAt(token.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(token)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(TOKEN, token.getId()))
+                            .event(TOKEN_CREATED)
+                            .createdAt(token.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(token)
+                            .build());
             return convert(tokenRepository.create(token), decodedToken);
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to create a token " + newToken;
@@ -117,15 +119,14 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             if (tokenOptional.isPresent()) {
                 tokenRepository.delete(tokenId);
                 auditService.createOrganizationAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(TOKEN, tokenId))
-                        .event(TOKEN_DELETED)
-                        .createdAt(new Date())
-                        .oldValue(null)
-                        .newValue(tokenOptional.get())
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.singletonMap(TOKEN, tokenId))
+                                .event(TOKEN_DELETED)
+                                .createdAt(new Date())
+                                .oldValue(null)
+                                .newValue(tokenOptional.get())
+                                .build());
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to delete token " + tokenId;
@@ -138,21 +139,19 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
         try {
             log.debug("Find token entity by token value");
 
-            Token matchingToken = tokenRepository
-                .findAll()
-                .stream()
-                .sorted(comparing(Token::getLastUseAt, nullsLast(reverseOrder())))
-                .filter(t -> {
-                    try {
-                        return passwordEncoder.matches(token, t.getToken());
-                    } catch (Exception e) {
-                        log.error("Failed to match token with password encoder (token id: {})", t.getId());
-                        log.debug("Failed to match token with password encoder (token id: {})", t.getId(), e);
-                        return false;
-                    }
-                })
-                .findFirst()
-                .orElseThrow(() -> new TokenNotFoundException(token));
+            Token matchingToken = tokenRepository.findAll().stream()
+                    .sorted(comparing(Token::getLastUseAt, nullsLast(reverseOrder())))
+                    .filter(t -> {
+                        try {
+                            return passwordEncoder.matches(token, t.getToken());
+                        } catch (Exception e) {
+                            log.error("Failed to match token with password encoder (token id: {})", t.getId());
+                            log.debug("Failed to match token with password encoder (token id: {})", t.getId(), e);
+                            return false;
+                        }
+                    })
+                    .findFirst()
+                    .orElseThrow(() -> new TokenNotFoundException(token));
 
             matchingToken.setLastUseAt(new Date());
             return tokenRepository.update(matchingToken);
@@ -166,10 +165,9 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     public boolean tokenExistsForUser(String tokenId, String userId) {
         try {
             Optional<Token> byId = tokenRepository.findById(tokenId);
-            return byId
-                .map(Token::getReferenceId)
-                .filter(ref -> ref.equals(userId))
-                .isPresent();
+            return byId.map(Token::getReferenceId)
+                    .filter(ref -> ref.equals(userId))
+                    .isPresent();
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to check if token exists";
             throw new TechnicalManagementException(error, ex);
@@ -177,11 +175,10 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     }
 
     private Token convert(
-        final NewTokenEntity tokenEntity,
-        final TokenReferenceType referenceType,
-        final String referenceId,
-        final String encodedToken
-    ) {
+            final NewTokenEntity tokenEntity,
+            final TokenReferenceType referenceType,
+            final String referenceId,
+            final String encodedToken) {
         final Token token = new Token();
         token.setId(UUID.toString(UUID.random()));
         token.setToken(encodedToken);

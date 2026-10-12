@@ -31,38 +31,34 @@ public interface ConnectionLogsCrudService {
      * Search logs using the filters provided in logsFilters
      */
     SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
-        ExecutionContext executionContext,
-        SearchLogsFilters logsFilters,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions
-    );
+            ExecutionContext executionContext,
+            SearchLogsFilters logsFilters,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions);
     /**
      * Search logs using the filters provided in logsFilters but overrider the API Ids with the value in @apiId
      */
     SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
-        ExecutionContext executionContext,
-        String apiId,
-        SearchLogsFilters logsFilters,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            SearchLogsFilters logsFilters,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions);
     /**
      * Search logs using the filters provided in logsFilters but overrider the API Ids with the values in @apiIds
      */
     SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(
-        ExecutionContext executionContext,
-        Set<String> apiIds,
-        SearchLogsFilters logsFilters,
-        Pageable pageable,
-        List<DefinitionVersion> definitionVersions
-    );
+            ExecutionContext executionContext,
+            Set<String> apiIds,
+            SearchLogsFilters logsFilters,
+            Pageable pageable,
+            List<DefinitionVersion> definitionVersions);
+
     SearchLogsResponse<BaseConnectionLog> searchApplicationConnectionLogs(
-        ExecutionContext executionContext,
-        String applicationId,
-        SearchLogsFilters logsFilters,
-        Pageable pageable
-    );
-    Optional<ConnectionLogDetail> searchApiConnectionLog(ExecutionContext executionContext, String apiId, String requestId);
+            ExecutionContext executionContext, String applicationId, SearchLogsFilters logsFilters, Pageable pageable);
+
+    Optional<ConnectionLogDetail> searchApiConnectionLog(
+            ExecutionContext executionContext, String apiId, String requestId);
 
     /**
      * Returns distinct error keys found in connection logs for the given API

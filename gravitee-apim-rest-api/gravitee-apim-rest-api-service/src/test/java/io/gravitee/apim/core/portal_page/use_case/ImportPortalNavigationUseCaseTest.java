@@ -75,7 +75,8 @@ class ImportPortalNavigationUseCaseTest {
     @BeforeEach
     void setUp() {
         var storage = new ArrayList<PortalNavigationItem>();
-        apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId(ENV_ID).build()));
+        apiCrudService.initWith(List.of(
+                Api.builder().id("api-id").name("My API").environmentId(ENV_ID).build()));
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
@@ -84,37 +85,29 @@ class ImportPortalNavigationUseCaseTest {
 
         var pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
         var domainService = new PortalNavigationItemDomainService(
-            crudService,
-            queryService,
-            pageContentCrudService,
-            pageContentQueryService,
-            new ApiCrudServiceInMemory(),
-            sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
-        );
+                crudService,
+                queryService,
+                pageContentCrudService,
+                pageContentQueryService,
+                new ApiCrudServiceInMemory(),
+                sourceDomainService,
+                new ApiOwnedNavigationDomainService(queryService, crudService));
         var validatorService = new PortalNavigationItemValidatorService(
-            queryService,
-            pageContentQueryService,
-            new ApiProductQueryServiceInMemory(),
-            sourceDomainService,
-            apiCrudService
-        );
+                queryService,
+                pageContentQueryService,
+                new ApiProductQueryServiceInMemory(),
+                sourceDomainService,
+                apiCrudService);
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
-            sourceDomainService,
-            manifestParser,
-            domainService,
-            queryService,
-            crudService,
-            pageContentCrudService,
-            pageContentQueryService
-        );
+                sourceDomainService,
+                manifestParser,
+                domainService,
+                queryService,
+                crudService,
+                pageContentCrudService,
+                pageContentQueryService);
         useCase = new ImportPortalNavigationUseCase(
-            validatorService,
-            domainService,
-            sourceDomainService,
-            bulkImportDomainService,
-            queryService
-        );
+                validatorService, domainService, sourceDomainService, bulkImportDomainService, queryService);
     }
 
     private ImportPortalNavigationUseCase.Output execute(String title) {
@@ -122,20 +115,21 @@ class ImportPortalNavigationUseCaseTest {
     }
 
     private ImportPortalNavigationUseCase.Output execute(String title, PortalNavigationItemId parentId) {
-        return useCase.execute(
-            ImportPortalNavigationUseCase.Input.builder()
+        return useCase.execute(ImportPortalNavigationUseCase.Input.builder()
                 .organizationId(ORG_ID)
                 .environmentId(ENV_ID)
                 .title(title)
                 .parentId(parentId)
                 .visibility(PortalVisibility.PRIVATE)
                 .source(aSource())
-                .build()
-        );
+                .build());
     }
 
     private PortalNavigationItemSource aSource() {
-        return PortalNavigationItemSource.builder().sourceType("github-fetcher").sourceConfiguration("{\"repository\":\"docs\"}").build();
+        return PortalNavigationItemSource.builder()
+                .sourceType("github-fetcher")
+                .sourceConfiguration("{\"repository\":\"docs\"}")
+                .build();
     }
 
     @Nested
@@ -163,17 +157,20 @@ class ImportPortalNavigationUseCaseTest {
             var docsFolder = childFolder(root.getId(), "docs");
             var advancedFolder = childFolder(docsFolder.getId(), "advanced");
             var specsFolder = childFolder(root.getId(), "specs");
-            assertThat(childPage(docsFolder.getId(), "getting-started").getSource()).isNull();
-            assertThat(contentOf(childPage(docsFolder.getId(), "getting-started"))).isInstanceOf(GraviteeMarkdownPageContent.class);
-            assertThat(contentOf(childPage(advancedFolder.getId(), "tuning"))).isInstanceOf(GraviteeMarkdownPageContent.class);
+            assertThat(childPage(docsFolder.getId(), "getting-started").getSource())
+                    .isNull();
+            assertThat(contentOf(childPage(docsFolder.getId(), "getting-started")))
+                    .isInstanceOf(GraviteeMarkdownPageContent.class);
+            assertThat(contentOf(childPage(advancedFolder.getId(), "tuning")))
+                    .isInstanceOf(GraviteeMarkdownPageContent.class);
             assertThat(contentOf(childPage(specsFolder.getId(), "petstore"))).isInstanceOf(OpenApiPageContent.class);
 
             assertThat(output.result().files())
-                .extracting(
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
-                )
-                .containsExactlyInAnyOrder(tuple("getting-started", true), tuple("tuning", true), tuple("petstore", true));
+                    .extracting(
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success)
+                    .containsExactlyInAnyOrder(
+                            tuple("getting-started", true), tuple("tuning", true), tuple("petstore", true));
         }
 
         @Test
@@ -186,15 +183,14 @@ class ImportPortalNavigationUseCaseTest {
             var output = execute("Imported Docs");
 
             assertThat(output.result().files())
-                .extracting(
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
-                )
-                .containsExactlyInAnyOrder(tuple("api", true), tuple("api", false));
+                    .extracting(
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success)
+                    .containsExactlyInAnyOrder(tuple("api", true), tuple("api", false));
             assertThat(output.result().files())
-                .filteredOn(file -> !file.success())
-                .singleElement()
-                .satisfies(file -> assertThat(file.error()).contains("Duplicate title"));
+                    .filteredOn(file -> !file.success())
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.error()).contains("Duplicate title"));
         }
 
         @Test
@@ -203,16 +199,16 @@ class ImportPortalNavigationUseCaseTest {
             // OpenAPI pages, and reporting them as failures on every run would be just as wrong
             sourceDomainService.givenRemoteFile("/docs/intro.md", "# Intro");
             sourceDomainService.givenRemoteFile("/package.json", "{\"name\": \"docs\", \"version\": \"1.0.0\"}");
-            sourceDomainService.givenRemoteFile("/.github/workflows/ci.yml", "name: build\non:\n  push:\n    branches: [master]");
+            sourceDomainService.givenRemoteFile(
+                    "/.github/workflows/ci.yml", "name: build\non:\n  push:\n    branches: [master]");
 
             var output = execute("Imported Docs");
 
             assertThat(output.result().files())
-                .extracting(
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
-                )
-                .containsExactly(tuple("intro", true));
+                    .extracting(
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success)
+                    .containsExactly(tuple("intro", true));
             assertThat(findChild(output.rootFolder().getId(), "package")).isNull();
             // Nor the folders that only existed to hold them
             assertThat(findChild(output.rootFolder().getId(), ".github")).isNull();
@@ -234,8 +230,8 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(source.getLastFetchError()).contains("no importable files");
             assertThat(source.getLastFetchedAt()).isNull();
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
         }
 
         @Test
@@ -257,11 +253,10 @@ class ImportPortalNavigationUseCaseTest {
             var output = execute("Imported Docs");
 
             assertThat(output.result().files())
-                .extracting(
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
-                )
-                .containsExactlyInAnyOrder(tuple("ok", true), tuple("broken", false));
+                    .extracting(
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success)
+                    .containsExactlyInAnyOrder(tuple("ok", true), tuple("broken", false));
             assertThat(output.rootFolder().getSource().getLastFetchError()).contains("1 of 2");
         }
 
@@ -275,8 +270,8 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(output.rootFolder().getSource().getLastFetchError()).contains("Unable to list files");
             assertThat(output.rootFolder().getSource().getLastFetchError()).doesNotContain("cannot reach repository");
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
         }
 
         @Test
@@ -291,8 +286,8 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(source.getLastFetchError()).contains("listed no files");
             assertThat(source.getLastFetchedAt()).isNull();
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
         }
 
         @Test
@@ -307,8 +302,8 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(source.getLastFetchError()).contains("no importable files");
             assertThat(source.getLastFetchedAt()).isNull();
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
         }
     }
 
@@ -320,12 +315,9 @@ class ImportPortalNavigationUseCaseTest {
             sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
             sourceDomainService.givenRemoteFile("/content/intro.md", "# Intro");
             sourceDomainService.givenRemoteFile("/content/api.yaml", "openapi: 3.0.3");
-            manifestParser.willParse(
-                List.of(
+            manifestParser.willParse(List.of(
                     new PortalNavigationManifestParser.ManifestPage("/content/intro.md", "Introduction", "/guides"),
-                    new PortalNavigationManifestParser.ManifestPage("/content/api.yaml", null, null)
-                )
-            );
+                    new PortalNavigationManifestParser.ManifestPage("/content/api.yaml", null, null)));
 
             var output = execute("Imported Docs");
 
@@ -342,7 +334,8 @@ class ImportPortalNavigationUseCaseTest {
             // A fetcher rooted in a subdirectory lists its files with the prefix, manifest included
             sourceDomainService.givenRemoteFile("/docs/.gravitee.json", "{manifest}");
             sourceDomainService.givenRemoteFile("/docs/intro.md", "# Intro");
-            manifestParser.willParse(List.of(new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")));
+            manifestParser.willParse(List.of(
+                    new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")));
 
             var output = execute("Imported Docs");
 
@@ -358,7 +351,8 @@ class ImportPortalNavigationUseCaseTest {
             sourceDomainService.failFileFetch("/docs/.gravitee.json");
             sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
             sourceDomainService.givenRemoteFile("/docs/intro.md", "# Intro");
-            manifestParser.willParse(List.of(new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")));
+            manifestParser.willParse(List.of(
+                    new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")));
 
             var output = execute("Imported Docs");
 
@@ -370,9 +364,8 @@ class ImportPortalNavigationUseCaseTest {
         void should_not_treat_a_file_merely_suffixed_like_the_manifest_as_the_manifest() {
             sourceDomainService.givenRemoteFile("/docs/my.gravitee.json", "{\"not\":\"a manifest\"}");
             sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
-            manifestParser.willParse(
-                List.of(new PortalNavigationManifestParser.ManifestPage("/docs/guide.md", "From Manifest", "/from-manifest"))
-            );
+            manifestParser.willParse(List.of(new PortalNavigationManifestParser.ManifestPage(
+                    "/docs/guide.md", "From Manifest", "/from-manifest")));
 
             var output = execute("Imported Docs");
 
@@ -387,21 +380,17 @@ class ImportPortalNavigationUseCaseTest {
             sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
             sourceDomainService.givenRemoteFile("/docs/legacy.adoc", "= Legacy");
             sourceDomainService.givenRemoteFile("/docs/intro.md", "# Intro");
-            manifestParser.willParse(
-                List.of(
+            manifestParser.willParse(List.of(
                     new PortalNavigationManifestParser.ManifestPage("/docs/legacy.adoc", "Legacy", "/guides"),
-                    new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")
-                )
-            );
+                    new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")));
 
             var output = execute("Imported Docs");
 
             assertThat(output.result().files())
-                .extracting(
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
-                )
-                .containsExactlyInAnyOrder(tuple("Legacy", false), tuple("Introduction", true));
+                    .extracting(
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success)
+                    .containsExactlyInAnyOrder(tuple("Legacy", false), tuple("Introduction", true));
 
             // A partial import is still a fetch: the imported pages are current, the error lists the rest
             var source = output.rootFolder().getSource();
@@ -415,25 +404,21 @@ class ImportPortalNavigationUseCaseTest {
             sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
             sourceDomainService.givenRemoteFile("/config.json", "{\"name\": \"docs\"}");
             sourceDomainService.givenRemoteFile("/docs/intro.md", "# Intro");
-            manifestParser.willParse(
-                List.of(
+            manifestParser.willParse(List.of(
                     new PortalNavigationManifestParser.ManifestPage("/config.json", "Config", "/guides"),
-                    new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")
-                )
-            );
+                    new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")));
 
             var output = execute("Imported Docs");
 
             assertThat(output.result().files())
-                .extracting(
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
-                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
-                )
-                .containsExactlyInAnyOrder(tuple("Config", false), tuple("Introduction", true));
+                    .extracting(
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success)
+                    .containsExactlyInAnyOrder(tuple("Config", false), tuple("Introduction", true));
             assertThat(output.result().files())
-                .filteredOn(file -> !file.success())
-                .singleElement()
-                .satisfies(file -> assertThat(file.error()).contains("Cannot determine the type of /config.json"));
+                    .filteredOn(file -> !file.success())
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.error()).contains("Cannot determine the type of /config.json"));
         }
 
         @Test
@@ -445,11 +430,13 @@ class ImportPortalNavigationUseCaseTest {
             var output = execute("Imported Docs");
 
             var source = output.rootFolder().getSource();
-            assertThat(source.getLastFetchError()).contains(".gravitee.json manifest").contains("no importable pages");
+            assertThat(source.getLastFetchError())
+                    .contains(".gravitee.json manifest")
+                    .contains("no importable pages");
             assertThat(source.getLastFetchedAt()).isNull();
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
         }
 
         @Test
@@ -466,8 +453,8 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(source.getLastFetchedAt()).isNull();
             assertThat(source.getLastFetchAttemptAt()).isNotNull();
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
         }
 
         @Test
@@ -482,8 +469,8 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(source.getLastFetchError()).contains(".gravitee.json manifest");
             assertThat(source.getLastFetchedAt()).isNull();
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
         }
     }
 
@@ -495,13 +482,13 @@ class ImportPortalNavigationUseCaseTest {
             var output = importAtDestinationDepth(ValidationDepth.MAX_TREE_DEPTH - 1);
 
             assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isTrue());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isTrue());
             // The invariant the bound exists for: the read-only walk must still reach the sourced root
             var importedPage = deepestPageOf(output.rootFolder());
-            assertThat(new SourcedAncestorFinder(queryService).findSourcedAncestor(ENV_ID, importedPage)).hasValueSatisfying(ancestor ->
-                assertThat(ancestor.getId()).isEqualTo(output.rootFolder().getId())
-            );
+            assertThat(new SourcedAncestorFinder(queryService).findSourcedAncestor(ENV_ID, importedPage))
+                    .hasValueSatisfying(ancestor -> assertThat(ancestor.getId())
+                            .isEqualTo(output.rootFolder().getId()));
         }
 
         @Test
@@ -510,12 +497,10 @@ class ImportPortalNavigationUseCaseTest {
             // stop being source-managed, so the entry fails instead of being created
             var output = importAtDestinationDepth(ValidationDepth.MAX_TREE_DEPTH);
 
-            assertThat(output.result().files())
-                .singleElement()
-                .satisfies(file -> {
-                    assertThat(file.success()).isFalse();
-                    assertThat(file.error()).contains("nests more than");
-                });
+            assertThat(output.result().files()).singleElement().satisfies(file -> {
+                assertThat(file.success()).isFalse();
+                assertThat(file.error()).contains("nests more than");
+            });
             assertThat(findChild(output.rootFolder().getId(), "level-1")).isNull();
         }
 
@@ -526,16 +511,17 @@ class ImportPortalNavigationUseCaseTest {
             }
             sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
             sourceDomainService.givenRemoteFile("/docs/deep.md", "# Deep");
-            manifestParser.willParse(
-                List.of(new PortalNavigationManifestParser.ManifestPage("/docs/deep.md", "Deep", destination.toString()))
-            );
+            manifestParser.willParse(List.of(
+                    new PortalNavigationManifestParser.ManifestPage("/docs/deep.md", "Deep", destination.toString())));
             return execute("Imported Docs");
         }
 
         private PortalNavigationPage deepestPageOf(PortalNavigationFolder rootFolder) {
             PortalNavigationItem current = rootFolder;
             while (current instanceof PortalNavigationFolder folder) {
-                current = queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId()).getFirst();
+                current = queryService
+                        .findByParentIdAndEnvironmentId(ENV_ID, folder.getId())
+                        .getFirst();
             }
             return (PortalNavigationPage) current;
         }
@@ -548,8 +534,8 @@ class ImportPortalNavigationUseCaseTest {
         void should_reject_a_source_that_cannot_list_files() {
             // No remote file registered: the in-memory source is not files-capable
             assertThatThrownBy(() -> execute("Imported Docs"))
-                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
-                .hasMessageContaining("cannot list files");
+                    .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                    .hasMessageContaining("cannot list files");
             assertThat(queryService.storage()).isEmpty();
         }
 
@@ -560,19 +546,20 @@ class ImportPortalNavigationUseCaseTest {
             // area-mismatch error about a choice the caller never made
             sourceDomainService.givenRemoteFile("/docs/ok.md", "# Ok");
             var parent = PortalNavigationFolder.builder()
-                .id(PortalNavigationItemId.random())
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .title("Homepage Folder")
-                .segment("homepage-folder")
-                .area(PortalArea.HOMEPAGE)
-                .order(0)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("Homepage Folder")
+                    .segment("homepage-folder")
+                    .area(PortalArea.HOMEPAGE)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
             crudService.create(parent);
 
-            assertThatThrownBy(() -> execute("Imported Docs", parent.getId())).isInstanceOf(HomepageAlreadyExistsException.class);
+            assertThatThrownBy(() -> execute("Imported Docs", parent.getId()))
+                    .isInstanceOf(HomepageAlreadyExistsException.class);
             // Nothing created besides the pre-existing parent
             assertThat(queryService.storage()).hasSize(1);
         }
@@ -583,7 +570,8 @@ class ImportPortalNavigationUseCaseTest {
             // still surface as the validation error, not as an NPE
             sourceDomainService.givenRemoteFile("/docs/ok.md", "# Ok");
 
-            assertThatThrownBy(() -> execute("Imported Docs", PortalNavigationItemId.random())).isInstanceOf(ParentNotFoundException.class);
+            assertThatThrownBy(() -> execute("Imported Docs", PortalNavigationItemId.random()))
+                    .isInstanceOf(ParentNotFoundException.class);
             assertThat(queryService.storage()).isEmpty();
         }
 
@@ -591,22 +579,21 @@ class ImportPortalNavigationUseCaseTest {
         void should_reject_an_import_below_a_sourced_folder() {
             sourceDomainService.givenRemoteFile("/docs/ok.md", "# Ok");
             var sourcedFolder = PortalNavigationFolder.builder()
-                .id(PortalNavigationItemId.random())
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .title("Managed Folder")
-                .segment("managed-folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .source(aSource())
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("Managed Folder")
+                    .segment("managed-folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .source(aSource())
+                    .build();
             crudService.create(sourcedFolder);
 
-            assertThatThrownBy(() -> execute("Imported Docs", sourcedFolder.getId())).isInstanceOf(
-                InvalidPortalNavigationItemDataException.class
-            );
+            assertThatThrownBy(() -> execute("Imported Docs", sourcedFolder.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class);
         }
     }
 
@@ -616,8 +603,7 @@ class ImportPortalNavigationUseCaseTest {
         private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
 
         private ImportPortalNavigationUseCase.Output importForApi(PortalNavigationItemId parentId) {
-            return useCase.execute(
-                ImportPortalNavigationUseCase.Input.builder()
+            return useCase.execute(ImportPortalNavigationUseCase.Input.builder()
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)
                     .title("Imported Docs")
@@ -625,8 +611,7 @@ class ImportPortalNavigationUseCaseTest {
                     .visibility(PortalVisibility.PRIVATE)
                     .source(aSource())
                     .reference(API_REFERENCE)
-                    .build()
-            );
+                    .build());
         }
 
         @Test
@@ -640,31 +625,32 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(root.getParentId()).isNull();
             // root, docs, advanced, getting-started, tuning
             assertThat(crudService.storage())
-                .hasSize(5)
-                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+                    .hasSize(5)
+                    .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
         }
 
         @Test
         void should_import_under_a_folder_the_api_owns() {
             var apiFolder = PortalNavigationFolder.builder()
-                .id(PortalNavigationItemId.random())
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .title("Guides")
-                .segment("guides")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .published(false)
-                .visibility(PortalVisibility.PRIVATE)
-                .reference(API_REFERENCE)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("Guides")
+                    .segment("guides")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(false)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .reference(API_REFERENCE)
+                    .build();
             crudService.create(apiFolder);
             sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
 
             var root = importForApi(apiFolder.getId()).rootFolder();
 
             assertThat(root.getParentId()).isEqualTo(apiFolder.getId());
-            assertThat(crudService.storage()).allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+            assertThat(crudService.storage())
+                    .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
         }
 
         @Test
@@ -674,8 +660,8 @@ class ImportPortalNavigationUseCaseTest {
             importForApi(null);
 
             assertThat(crudService.storage())
-                .isNotEmpty()
-                .allSatisfy(item -> assertThat(item.getPublished()).isFalse());
+                    .isNotEmpty()
+                    .allSatisfy(item -> assertThat(item.getPublished()).isFalse());
         }
 
         @Test
@@ -685,8 +671,9 @@ class ImportPortalNavigationUseCaseTest {
             execute("Imported Docs");
 
             assertThat(crudService.storage())
-                .isNotEmpty()
-                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
+                    .isNotEmpty()
+                    .allSatisfy(item ->
+                            assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
         }
     }
 
@@ -697,18 +684,15 @@ class ImportPortalNavigationUseCaseTest {
         void should_keep_pages_added_by_a_re_import_owned_by_the_api() {
             var apiReference = new NavigationItemReference.ApiReference("api-id");
             sourceDomainService.givenRemoteFile("/docs/kept.md", "# Kept");
-            var root = useCase
-                .execute(
-                    ImportPortalNavigationUseCase.Input.builder()
-                        .organizationId(ORG_ID)
-                        .environmentId(ENV_ID)
-                        .title("Imported Docs")
-                        .visibility(PortalVisibility.PRIVATE)
-                        .source(aSource())
-                        .reference(apiReference)
-                        .build()
-                )
-                .rootFolder();
+            var root = useCase.execute(ImportPortalNavigationUseCase.Input.builder()
+                            .organizationId(ORG_ID)
+                            .environmentId(ENV_ID)
+                            .title("Imported Docs")
+                            .visibility(PortalVisibility.PRIVATE)
+                            .source(aSource())
+                            .reference(apiReference)
+                            .build())
+                    .rootFolder();
             sourceDomainService.givenRemoteFile("/docs/added.md", "# Added");
 
             reimportSubtree(root.getId());
@@ -736,7 +720,10 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(refreshedDocsFolder.getId()).isEqualTo(docsFolder.getId());
             var keptPage = childPage(refreshedDocsFolder.getId(), "kept");
             assertThat(keptPage.getId()).isEqualTo(keptPageId);
-            assertThat(((GraviteeMarkdownPageContent) contentOf(keptPage)).getContent().value()).isEqualTo("# Kept v2");
+            assertThat(((GraviteeMarkdownPageContent) contentOf(keptPage))
+                            .getContent()
+                            .value())
+                    .isEqualTo("# Kept v2");
             assertThat(childPage(refreshedDocsFolder.getId(), "added")).isNotNull();
             assertThat(findChild(refreshedDocsFolder.getId(), "removed")).isNull();
         }
@@ -745,21 +732,23 @@ class ImportPortalNavigationUseCaseTest {
         void should_keep_the_last_good_page_when_a_renamed_entry_fails_to_fetch() {
             sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
             sourceDomainService.givenRemoteFile("/docs/a.md", "# A");
-            manifestParser.willParse(List.of(new PortalNavigationManifestParser.ManifestPage("/docs/a.md", "Old", "/guides")));
+            manifestParser.willParse(
+                    List.of(new PortalNavigationManifestParser.ManifestPage("/docs/a.md", "Old", "/guides")));
             var root = execute("Imported Docs").rootFolder();
             var guidesFolder = childFolder(root.getId(), "guides");
             var lastGoodPageId = childPage(guidesFolder.getId(), "Old").getId();
 
             // The manifest renames the page and fetching the file transiently fails on that same run:
             // nothing is touched under either title, and pruning would delete the last good page
-            manifestParser.willParse(List.of(new PortalNavigationManifestParser.ManifestPage("/docs/a.md", "New", "/guides")));
+            manifestParser.willParse(
+                    List.of(new PortalNavigationManifestParser.ManifestPage("/docs/a.md", "New", "/guides")));
             sourceDomainService.failFileFetch("/docs/a.md");
 
             var result = reimportSubtree(root.getId());
 
             assertThat(result.files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
             assertThat(childPage(guidesFolder.getId(), "Old").getId()).isEqualTo(lastGoodPageId);
         }
 
@@ -776,9 +765,7 @@ class ImportPortalNavigationUseCaseTest {
 
             var result = reimportSubtree(root.getId());
 
-            assertThat(result.files())
-                .filteredOn(file -> !file.success())
-                .hasSize(1);
+            assertThat(result.files()).filteredOn(file -> !file.success()).hasSize(1);
             assertThat(childPage(docsFolder.getId(), "removed")).isNotNull();
 
             // The next clean run reconciles the subtree and prunes what the remote no longer holds
@@ -800,8 +787,8 @@ class ImportPortalNavigationUseCaseTest {
             var result = reimportSubtree(root.getId());
 
             assertThat(result.files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
             assertThat(childPage(docsFolder.getId(), "kept")).isNotNull();
             var refreshedRoot = (PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, root.getId());
             assertThat(refreshedRoot.getSource().getLastFetchError()).contains("listed no files");
@@ -820,8 +807,8 @@ class ImportPortalNavigationUseCaseTest {
             var result = reimportSubtree(root.getId());
 
             assertThat(result.files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
             assertThat(childPage(docsFolder.getId(), "kept")).isNotNull();
             var refreshedRoot = (PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, root.getId());
             assertThat(refreshedRoot.getSource().getLastFetchError()).contains("no importable files");
@@ -840,32 +827,32 @@ class ImportPortalNavigationUseCaseTest {
             var result = reimportSubtree(root.getId());
 
             assertThat(result.files())
-                .singleElement()
-                .satisfies(file -> assertThat(file.success()).isFalse());
+                    .singleElement()
+                    .satisfies(file -> assertThat(file.success()).isFalse());
             assertThat(childPage(docsFolder.getId(), "kept")).isNotNull();
             var refreshedRoot = (PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, root.getId());
             assertThat(refreshedRoot.getSource().getLastFetchError()).contains("no importable files");
         }
 
-        private PortalNavigationBulkImportDomainService.BulkImportResult reimportSubtree(PortalNavigationItemId rootId) {
+        private PortalNavigationBulkImportDomainService.BulkImportResult reimportSubtree(
+                PortalNavigationItemId rootId) {
             var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
-                sourceDomainService,
-                manifestParser,
-                new PortalNavigationItemDomainService(
-                    crudService,
-                    queryService,
-                    pageContentCrudService,
-                    PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-                    new ApiCrudServiceInMemory(),
                     sourceDomainService,
-                    new ApiOwnedNavigationDomainService(queryService, crudService)
-                ),
-                queryService,
-                crudService,
-                pageContentCrudService,
-                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
-            );
-            return bulkImportDomainService.importSubtree((PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, rootId));
+                    manifestParser,
+                    new PortalNavigationItemDomainService(
+                            crudService,
+                            queryService,
+                            pageContentCrudService,
+                            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                            new ApiCrudServiceInMemory(),
+                            sourceDomainService,
+                            new ApiOwnedNavigationDomainService(queryService, crudService)),
+                    queryService,
+                    crudService,
+                    pageContentCrudService,
+                    PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()));
+            return bulkImportDomainService.importSubtree(
+                    (PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, rootId));
         }
     }
 
@@ -882,20 +869,16 @@ class ImportPortalNavigationUseCaseTest {
     }
 
     private PortalNavigationItem findChild(PortalNavigationItemId parentId, String title) {
-        return queryService
-            .findByParentIdAndEnvironmentId(ENV_ID, parentId)
-            .stream()
-            .filter(item -> title.equals(item.getTitle()))
-            .findFirst()
-            .orElse(null);
+        return queryService.findByParentIdAndEnvironmentId(ENV_ID, parentId).stream()
+                .filter(item -> title.equals(item.getTitle()))
+                .findFirst()
+                .orElse(null);
     }
 
     private Object contentOf(PortalNavigationPage page) {
-        return pageContentCrudService
-            .storage()
-            .stream()
-            .filter(content -> content.getId().equals(page.getPortalPageContentId()))
-            .findFirst()
-            .orElseThrow();
+        return pageContentCrudService.storage().stream()
+                .filter(content -> content.getId().equals(page.getPortalPageContentId()))
+                .findFirst()
+                .orElseThrow();
     }
 }

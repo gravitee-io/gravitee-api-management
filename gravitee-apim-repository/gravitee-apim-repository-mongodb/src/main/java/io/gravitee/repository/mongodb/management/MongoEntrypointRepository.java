@@ -48,19 +48,21 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     public Optional<Entrypoint> findById(String entrypointId) throws TechnicalException {
         log.debug("Find entry point by ID [{}]", entrypointId);
 
-        final EntrypointMongo entrypoint = internalEntryPointRepo.findById(entrypointId).orElse(null);
+        final EntrypointMongo entrypoint =
+                internalEntryPointRepo.findById(entrypointId).orElse(null);
 
         log.debug("Find entry point by ID [{}] - Done", entrypointId);
         return Optional.ofNullable(mapper.map(entrypoint));
     }
 
     @Override
-    public Optional<Entrypoint> findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType) {
+    public Optional<Entrypoint> findByIdAndReference(
+            String entrypointId, String referenceId, EntrypointReferenceType referenceType) {
         log.debug("Find entry point by ID and reference [{}, {}, {}]", entrypointId, referenceId, referenceType);
 
         final EntrypointMongo entrypoint = internalEntryPointRepo
-            .findByIdAndReferenceIdAndReferenceType(entrypointId, referenceId, referenceType)
-            .orElse(null);
+                .findByIdAndReferenceIdAndReferenceType(entrypointId, referenceId, referenceType)
+                .orElse(null);
 
         log.debug("Find entry point by ID and reference [{}, {}, {}] - Done", entrypointId, referenceId, referenceType);
         return Optional.ofNullable(mapper.map(entrypoint));
@@ -86,14 +88,15 @@ public class MongoEntrypointRepository implements EntrypointRepository {
             throw new IllegalStateException("Entry point to update must have a value");
         }
 
-        final EntrypointMongo entrypointMongo = internalEntryPointRepo.findById(entrypoint.getId()).orElse(null);
+        final EntrypointMongo entrypointMongo =
+                internalEntryPointRepo.findById(entrypoint.getId()).orElse(null);
 
         if (entrypointMongo == null) {
             throw new IllegalStateException(String.format("No entry point found with name [%s]", entrypoint.getId()));
         }
 
         try {
-            //Update
+            // Update
             entrypointMongo.setTarget(entrypoint.getTarget());
             entrypointMongo.setValue(entrypoint.getValue());
             entrypointMongo.setReferenceId(entrypoint.getReferenceId());
@@ -121,41 +124,37 @@ public class MongoEntrypointRepository implements EntrypointRepository {
 
     @Override
     public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) {
-        final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return entrypoints
-            .stream()
-            .map(entrypointMongo -> {
-                final Entrypoint entrypoint = new Entrypoint();
-                entrypoint.setId(entrypointMongo.getId());
-                entrypoint.setTarget(entrypointMongo.getTarget());
-                entrypoint.setReferenceId(entrypointMongo.getReferenceId());
-                entrypoint.setReferenceType(entrypointMongo.getReferenceType());
-                entrypoint.setValue(entrypointMongo.getValue());
-                entrypoint.setTags(entrypointMongo.getTags());
-                entrypoint.setEnvironmentIds(entrypointMongo.getEnvironmentIds());
-                return entrypoint;
-            })
-            .collect(Collectors.toSet());
+        final List<EntrypointMongo> entrypoints =
+                internalEntryPointRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
+        return entrypoints.stream()
+                .map(entrypointMongo -> {
+                    final Entrypoint entrypoint = new Entrypoint();
+                    entrypoint.setId(entrypointMongo.getId());
+                    entrypoint.setTarget(entrypointMongo.getTarget());
+                    entrypoint.setReferenceId(entrypointMongo.getReferenceId());
+                    entrypoint.setReferenceType(entrypointMongo.getReferenceType());
+                    entrypoint.setValue(entrypointMongo.getValue());
+                    entrypoint.setTags(entrypointMongo.getTags());
+                    entrypoint.setEnvironmentIds(entrypointMongo.getEnvironmentIds());
+                    return entrypoint;
+                })
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Entrypoint> findAll() throws TechnicalException {
-        return internalEntryPointRepo
-            .findAll()
-            .stream()
-            .map(entrypointMongo -> mapper.map(entrypointMongo))
-            .collect(Collectors.toSet());
+        return internalEntryPointRepo.findAll().stream()
+                .map(entrypointMongo -> mapper.map(entrypointMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final EntrypointReferenceType referenceType)
-        throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            final String referenceId, final EntrypointReferenceType referenceType) throws TechnicalException {
         log.debug("Delete entrypoint by reference [{}, {}]", referenceType, referenceId);
         try {
-            List<EntrypointMongo> entrypointMongos = internalEntryPointRepo.deleteByReferenceIdAndReferenceType(
-                referenceId,
-                referenceType.name()
-            );
+            List<EntrypointMongo> entrypointMongos =
+                    internalEntryPointRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name());
             log.debug("Delete entrypoint by reference [{}, {}] - Done", referenceType, referenceId);
             return entrypointMongos.stream().map(EntrypointMongo::getId).toList();
         } catch (Exception e) {

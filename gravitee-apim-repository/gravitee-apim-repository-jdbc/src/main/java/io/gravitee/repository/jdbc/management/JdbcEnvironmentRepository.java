@@ -37,7 +37,8 @@ import org.springframework.util.CollectionUtils;
  */
 @Repository
 @CustomLog
-public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Environment, String> implements EnvironmentRepository {
+public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Environment, String>
+        implements EnvironmentRepository {
 
     private final String ENVIRONMENT_HRIDS;
 
@@ -49,12 +50,12 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     @Override
     protected JdbcObjectMapper<Environment> buildOrm() {
         return JdbcObjectMapper.builder(Environment.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("cockpit_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("cockpit_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -103,10 +104,9 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
     private void addHrids(Environment environment) {
         List<String> hrids = jdbcTemplate.queryForList(
-            "select hrid from " + ENVIRONMENT_HRIDS + " where environment_id = ? order by pos",
-            String.class,
-            environment.getId()
-        );
+                "select hrid from " + ENVIRONMENT_HRIDS + " where environment_id = ? order by pos",
+                String.class,
+                environment.getId());
         environment.setHrids(hrids);
     }
 
@@ -119,10 +119,11 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             final List<Object[]> params = new ArrayList<>(hrids.size());
 
             for (int i = 0; i < hrids.size(); i++) {
-                params.add(new Object[] { environment.getId(), hrids.get(i), i });
+                params.add(new Object[] {environment.getId(), hrids.get(i), i});
             }
 
-            jdbcTemplate.batchUpdate("insert into " + ENVIRONMENT_HRIDS + " (environment_id, hrid, pos) values ( ?, ?, ? )", params);
+            jdbcTemplate.batchUpdate(
+                    "insert into " + ENVIRONMENT_HRIDS + " (environment_id, hrid, pos) values ( ?, ?, ? )", params);
         }
     }
 
@@ -131,10 +132,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         log.debug("JdbcEnvironmentRepository.findByOrganization({})", organizationId);
         try {
             List<Environment> environments = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where organization_id = ?",
-                getOrm().getRowMapper(),
-                organizationId
-            );
+                    getOrm().getSelectAllSql() + " where organization_id = ?", getOrm().getRowMapper(), organizationId);
             for (Environment env : environments) {
                 this.addHrids(env);
             }
@@ -146,7 +144,8 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     }
 
     @Override
-    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids) throws TechnicalException {
+    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids)
+            throws TechnicalException {
         log.debug("findByOrganizationsAndHrids.findByHrids({}, {})", organizations, hrids);
 
         if (CollectionUtils.isEmpty(organizations) && CollectionUtils.isEmpty(hrids)) {
@@ -154,23 +153,22 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         }
 
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
-            .append(" env")
-            .append(" join ")
-            .append(ENVIRONMENT_HRIDS)
-            .append(" eh on env.id = eh.environment_id");
+                .append(" env")
+                .append(" join ")
+                .append(ENVIRONMENT_HRIDS)
+                .append(" eh on env.id = eh.environment_id");
 
         final boolean first = getOrm().buildInCondition(true, query, "env.organization_id", organizations);
         getOrm().buildInCondition(first, query, "eh.hrid", hrids);
 
         try {
             List<Environment> environments = jdbcTemplate.query(
-                query.toString(),
-                (PreparedStatement ps) -> {
-                    int idx = getOrm().setArguments(ps, organizations, 1);
-                    getOrm().setArguments(ps, hrids, idx);
-                },
-                getOrm().getRowMapper()
-            );
+                    query.toString(),
+                    (PreparedStatement ps) -> {
+                        int idx = getOrm().setArguments(ps, organizations, 1);
+                        getOrm().setArguments(ps, hrids, idx);
+                    },
+                    getOrm().getRowMapper());
             for (Environment env : environments) {
                 this.addHrids(env);
             }
@@ -187,10 +185,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
         try {
             List<Environment> environments = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where cockpit_id = ?",
-                getOrm().getRowMapper(),
-                cockpitId
-            );
+                    getOrm().getSelectAllSql() + " where cockpit_id = ?", getOrm().getRowMapper(), cockpitId);
 
             final Optional<Environment> environment = environments.stream().findFirst();
 
@@ -214,16 +209,18 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         }
 
         try {
-            final StringBuilder query = new StringBuilder("select env.organization_id from ").append(this.tableName).append(" env ");
+            final StringBuilder query = new StringBuilder("select env.organization_id from ")
+                    .append(this.tableName)
+                    .append(" env ");
             getOrm().buildInCondition(true, query, "env.id", ids);
             List<String> organizationIds = jdbcTemplate.query(
-                query.toString(),
-                (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1),
-                (rs, rowNum) -> rs.getString(1)
-            );
+                    query.toString(),
+                    (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1),
+                    (rs, rowNum) -> rs.getString(1));
             return new HashSet<>(organizationIds);
         } catch (final Exception ex) {
-            throw new TechnicalException(String.format("Failed to find organization ids from given environments ids [%s]", ids), ex);
+            throw new TechnicalException(
+                    String.format("Failed to find organization ids from given environments ids [%s]", ids), ex);
         }
     }
 }

@@ -15,12 +15,10 @@
  */
 package io.gravitee.gateway.policy;
 
-import io.gravitee.common.spring.factory.SpringFactoriesLoader;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,12 +39,10 @@ public class PolicyChainProviderLoader {
     }
 
     public List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> get(
-        PolicyChainOrder policyChainOrder,
-        StreamType streamType
-    ) {
-        return getProviders()
-            .stream()
-            .filter(provider -> provider.getChainOrder().equals(policyChainOrder) && provider.getStreamType().equals(streamType))
-            .collect(Collectors.toList());
+            PolicyChainOrder policyChainOrder, StreamType streamType) {
+        return getProviders().stream()
+                .filter(provider -> provider.getChainOrder().equals(policyChainOrder)
+                        && provider.getStreamType().equals(streamType))
+                .collect(Collectors.toList());
     }
 }

@@ -131,31 +131,28 @@ public class NewExternalUserEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewExternalUserEntity{" +
-            "firstname='" +
-            firstname +
-            '\'' +
-            ", lastname='" +
-            lastname +
-            '\'' +
-            ", email='" +
-            email +
-            '\'' +
-            ", source='" +
-            source +
-            '\'' +
-            ", picture='" +
-            picture +
-            '\'' +
-            ", sourceId='" +
-            sourceId +
-            '\'' +
-            ", newsletter=" +
-            newsletter +
-            ", customFields=" +
-            customFields +
-            '}'
-        );
+        return ("NewExternalUserEntity{" + "firstname='"
+                + firstname
+                + '\''
+                + ", lastname='"
+                + lastname
+                + '\''
+                + ", email='"
+                + email
+                + '\''
+                + ", source='"
+                + source
+                + '\''
+                + ", picture='"
+                + picture
+                + '\''
+                + ", sourceId='"
+                + sourceId
+                + '\''
+                + ", newsletter="
+                + newsletter
+                + ", customFields="
+                + customFields
+                + '}');
     }
 }

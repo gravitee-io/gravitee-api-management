@@ -58,21 +58,19 @@ public class ApiPageResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPageByApiIdAndPageId(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @PathParam("apiId") String apiId,
-        @PathParam("pageId") String pageId,
-        @QueryParam("include") List<String> include
-    ) {
+            @HeaderParam("Accept-Language") String acceptLang,
+            @PathParam("apiId") String apiId,
+            @PathParam("pageId") String pageId,
+            @QueryParam("include") List<String> include) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+        GenericApiEntity genericApiEntity =
+                apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
         if (accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
-            if (
-                !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
-                !pageEntity.getReferenceId().equalsIgnoreCase(apiId)
-            ) {
+            if (!pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name())
+                    || !pageEntity.getReferenceId().equalsIgnoreCase(apiId)) {
                 throw new PageNotFoundException(pageId);
             }
 
@@ -85,12 +83,9 @@ public class ApiPageResource extends AbstractResource {
                 if (include.contains(INCLUDE_CONTENT)) {
                     page.setContent(pageEntity.getContent());
                 }
-                page.setLinks(
-                    pageMapper.computePageLinks(
+                page.setLinks(pageMapper.computePageLinks(
                         PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, pageId),
-                        PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())
-                    )
-                );
+                        PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())));
                 return Response.ok(page).build();
             } else {
                 throw new UnauthorizedAccessException();
@@ -103,26 +98,21 @@ public class ApiPageResource extends AbstractResource {
     @Path("content")
     @Produces(TEXT_PLAIN_UTF_8)
     @RequirePortalAuth
-    public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
+    public Response getPageContentByApiIdAndPageId(
+            @PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            false,
-            false,
-            false
-        );
+        GenericApiEntity genericApiEntity =
+                apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId, false, false, false);
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), genericApiEntity)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
-            if (
-                !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
-                !pageEntity.getReferenceId().equalsIgnoreCase(apiId)
-            ) {
+            if (!pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name())
+                    || !pageEntity.getReferenceId().equalsIgnoreCase(apiId)) {
                 throw new PageNotFoundException(pageId);
             }
 
-            if (accessControlService.canAccessApiPageFromPortal(GraviteeContext.getExecutionContext(), genericApiEntity, pageEntity)) {
+            if (accessControlService.canAccessApiPageFromPortal(
+                    GraviteeContext.getExecutionContext(), genericApiEntity, pageEntity)) {
                 pageService.transformSwagger(GraviteeContext.getExecutionContext(), pageEntity, genericApiEntity);
                 return Response.ok(pageEntity.getContent()).build();
             } else {

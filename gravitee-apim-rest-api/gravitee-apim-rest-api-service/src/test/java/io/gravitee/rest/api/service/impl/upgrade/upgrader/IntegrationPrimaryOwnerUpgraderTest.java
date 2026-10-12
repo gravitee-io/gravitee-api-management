@@ -105,29 +105,20 @@ public class IntegrationPrimaryOwnerUpgraderTest {
 
     @Test
     public void upgrade_should_set_integration_primary_owner_based_on_associated_api_ownership()
-        throws TechnicalException, UpgraderException {
+            throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
-        when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
+        when(integrationRepository.findAllByEnvironment(any(), any()))
+                .thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
         when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
-        when(
-            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name(),
-                ORG_ID,
-                RoleReferenceType.ORGANIZATION
-            )
-        ).thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
-        when(
-            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.INTEGRATION,
-                SystemRole.PRIMARY_OWNER.name(),
-                ORG_ID,
-                RoleReferenceType.ORGANIZATION
-            )
-        ).thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
-        when(
-            membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID)
-        ).thenReturn(Set.of(membership()));
+        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORG_ID, RoleReferenceType.ORGANIZATION))
+                .thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
+        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.INTEGRATION, SystemRole.PRIMARY_OWNER.name(), ORG_ID, RoleReferenceType.ORGANIZATION))
+                .thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
+        when(membershipRepository.findByReferencesAndRoleId(
+                        MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID))
+                .thenReturn(Set.of(membership()));
 
         boolean success = upgrader.upgrade();
 
@@ -144,9 +135,11 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_delete_all_integrations_with_no_associated_apis() throws TechnicalException, UpgraderException {
+    public void upgrade_should_delete_all_integrations_with_no_associated_apis()
+            throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
-        when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
+        when(integrationRepository.findAllByEnvironment(any(), any()))
+                .thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
         when(apiRepository.search(any(), any())).thenReturn(List.of());
 
         boolean success = upgrader.upgrade();
@@ -156,40 +149,31 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_handle_list_of_integrations_with_multiple_pages() throws TechnicalException, UpgraderException {
+    public void upgrade_should_handle_list_of_integrations_with_multiple_pages()
+            throws TechnicalException, UpgraderException {
         List<Integration> integrations = new ArrayList<>();
         for (int i = 0; i < 102; i++) {
             integrations.add(new Integration().toBuilder().id(INTEGRATION_ID).build());
         }
-        Pageable pageablePage0 = new PageableBuilder().pageNumber(0).pageSize(PAGE_SIZE).build();
-        Pageable pageablePage1 = new PageableBuilder().pageNumber(1).pageSize(PAGE_SIZE).build();
+        Pageable pageablePage0 =
+                new PageableBuilder().pageNumber(0).pageSize(PAGE_SIZE).build();
+        Pageable pageablePage1 =
+                new PageableBuilder().pageNumber(1).pageSize(PAGE_SIZE).build();
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
-        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage0)).thenReturn(
-            new Page<>(integrations.subList(0, 100), 0, 100, 102)
-        );
-        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage1)).thenReturn(
-            new Page<>(integrations.subList(100, 102), 0, 2, 102)
-        );
+        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage0))
+                .thenReturn(new Page<>(integrations.subList(0, 100), 0, 100, 102));
+        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage1))
+                .thenReturn(new Page<>(integrations.subList(100, 102), 0, 2, 102));
         when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
-        when(
-            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name(),
-                ORG_ID,
-                RoleReferenceType.ORGANIZATION
-            )
-        ).thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
-        when(
-            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.INTEGRATION,
-                SystemRole.PRIMARY_OWNER.name(),
-                ORG_ID,
-                RoleReferenceType.ORGANIZATION
-            )
-        ).thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
-        when(
-            membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID)
-        ).thenReturn(Set.of(membership()));
+        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORG_ID, RoleReferenceType.ORGANIZATION))
+                .thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
+        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                        RoleScope.INTEGRATION, SystemRole.PRIMARY_OWNER.name(), ORG_ID, RoleReferenceType.ORGANIZATION))
+                .thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
+        when(membershipRepository.findByReferencesAndRoleId(
+                        MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID))
+                .thenReturn(Set.of(membership()));
 
         boolean success = upgrader.upgrade();
         assertThat(success).isTrue();
@@ -201,24 +185,18 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     public void upgrade_should_fail_if_no_primary_owner_role_exist_for_integration() throws TechnicalException {
         assertThrows(UpgraderException.class, () -> {
             when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
-            when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
+            when(integrationRepository.findAllByEnvironment(any(), any()))
+                    .thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
             when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
-            when(
-                roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.API,
-                    SystemRole.PRIMARY_OWNER.name(),
-                    ORG_ID,
-                    RoleReferenceType.ORGANIZATION
-                )
-            ).thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
-            when(
-                roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.INTEGRATION,
-                    SystemRole.PRIMARY_OWNER.name(),
-                    ORG_ID,
-                    RoleReferenceType.ORGANIZATION
-                )
-            ).thenReturn(Optional.empty());
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORG_ID, RoleReferenceType.ORGANIZATION))
+                    .thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.INTEGRATION,
+                            SystemRole.PRIMARY_OWNER.name(),
+                            ORG_ID,
+                            RoleReferenceType.ORGANIZATION))
+                    .thenReturn(Optional.empty());
 
             upgrader.upgrade();
             verify(membershipRepository, never()).create(any());
@@ -229,16 +207,12 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     public void upgrade_should_fail_if_no_primary_owner_found_for_api() throws TechnicalException {
         assertThrows(UpgraderException.class, () -> {
             when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
-            when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
+            when(integrationRepository.findAllByEnvironment(any(), any()))
+                    .thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
             when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
-            when(
-                roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                    RoleScope.API,
-                    SystemRole.PRIMARY_OWNER.name(),
-                    ORG_ID,
-                    RoleReferenceType.ORGANIZATION
-                )
-            ).thenReturn(Optional.empty());
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORG_ID, RoleReferenceType.ORGANIZATION))
+                    .thenReturn(Optional.empty());
 
             upgrader.upgrade();
             verify(membershipRepository, never()).create(any());
@@ -258,7 +232,10 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     }
 
     private static Membership membership() {
-        return Membership.builder().memberId(MEMBER_ID).memberType(MembershipMemberType.USER).build();
+        return Membership.builder()
+                .memberId(MEMBER_ID)
+                .memberType(MembershipMemberType.USER)
+                .build();
     }
 
     private static Environment environment() {

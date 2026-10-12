@@ -41,18 +41,18 @@ public class CreateSharedPolicyGroupUseCase {
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
-        var sharedPolicyGroupToCreate = SharedPolicyGroup.from(input.sharedPolicyGroupToCreate())
-            .toBuilder()
-            .id(Optional.ofNullable(input.sharedPolicyGroupToCreate.getId()).orElse(UuidString.generateRandom()))
-            .environmentId(input.auditInfo().environmentId())
-            .organizationId(input.auditInfo().organizationId())
-            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .version(0)
-            .createdAt(TimeProvider.now())
-            .updatedAt(TimeProvider.now())
-            .build();
+        var sharedPolicyGroupToCreate = SharedPolicyGroup.from(input.sharedPolicyGroupToCreate()).toBuilder()
+                .id(Optional.ofNullable(input.sharedPolicyGroupToCreate.getId()).orElse(UuidString.generateRandom()))
+                .environmentId(input.auditInfo().environmentId())
+                .organizationId(input.auditInfo().organizationId())
+                .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .version(0)
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .build();
 
-        validateCreateSharedPolicyGroup.validate(sharedPolicyGroupToCreate, input.auditInfo().environmentId());
+        validateCreateSharedPolicyGroup.validate(
+                sharedPolicyGroupToCreate, input.auditInfo().environmentId());
 
         var createdSharedPolicyGroup = this.sharedPolicyGroupCrudService.create(sharedPolicyGroupToCreate);
 
@@ -67,8 +67,7 @@ public class CreateSharedPolicyGroupUseCase {
     public record Output(SharedPolicyGroup sharedPolicyGroup) {}
 
     private void createAuditLog(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_CREATED)
@@ -76,7 +75,6 @@ public class CreateSharedPolicyGroupUseCase {
                 .newValue(sharedPolicyGroup)
                 .createdAt(sharedPolicyGroup.getCreatedAt())
                 .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP, sharedPolicyGroup.getId()))
-                .build()
-        );
+                .build());
     }
 }

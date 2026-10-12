@@ -63,7 +63,8 @@ public class OrganizationService_GetDefaultOrInitializeTest {
     public void shouldReturnDefaultOrganization() throws TechnicalException {
         Organization existingDefault = new Organization();
         existingDefault.setId(GraviteeContext.getDefaultOrganization());
-        when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultOrganization()))).thenReturn(Optional.of(existingDefault));
+        when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultOrganization())))
+                .thenReturn(Optional.of(existingDefault));
 
         OrganizationEntity organization = organizationService.getDefaultOrInitialize();
 
@@ -72,7 +73,8 @@ public class OrganizationService_GetDefaultOrInitializeTest {
 
     @Test
     public void shouldCreateDefaultOrganization() throws TechnicalException {
-        when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultOrganization()))).thenReturn(Optional.empty());
+        when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultOrganization())))
+                .thenReturn(Optional.empty());
 
         OrganizationEntity organization = organizationService.getDefaultOrInitialize();
 
@@ -85,7 +87,8 @@ public class OrganizationService_GetDefaultOrInitializeTest {
     @Test
     public void shouldCatchExceptionIfThrow() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
-            when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenThrow(new TechnicalException(""));
+            when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultEnvironment())))
+                    .thenThrow(new TechnicalException(""));
 
             organizationService.getDefaultOrInitialize();
         });

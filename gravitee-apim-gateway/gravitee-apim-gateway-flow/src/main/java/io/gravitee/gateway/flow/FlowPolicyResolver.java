@@ -47,9 +47,9 @@ public class FlowPolicyResolver implements PolicyResolver {
         this.flow = flow;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
-            .maxSize(CACHE_MAX_SIZE)
-            .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
-            .build();
+                .maxSize(CACHE_MAX_SIZE)
+                .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
+                .build();
         cache = new InMemoryCache<>("flowPolicyResolverCache", cacheConfiguration);
     }
 
@@ -65,13 +65,17 @@ public class FlowPolicyResolver implements PolicyResolver {
         // TODO: Used by some policies (ie. rate-limit / quota)
         context.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, flow.getPath());
 
-        return steps.stream().filter(Step::isEnabled).map(this::createOrGetCachePolicyMetadata).collect(Collectors.toList());
+        return steps.stream()
+                .filter(Step::isEnabled)
+                .map(this::createOrGetCachePolicyMetadata)
+                .collect(Collectors.toList());
     }
 
     private PolicyMetadata createOrGetCachePolicyMetadata(Step step) {
         PolicyMetadata cachedPolicyMetadata = cache.get(step);
         if (cachedPolicyMetadata == null) {
-            final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
+            final PolicyMetadata policyMetadata =
+                    new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
             policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, flow.getStage());
             cache.put(step, policyMetadata);
             cachedPolicyMetadata = policyMetadata;

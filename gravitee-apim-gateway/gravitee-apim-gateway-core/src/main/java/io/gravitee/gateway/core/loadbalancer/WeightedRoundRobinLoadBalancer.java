@@ -52,7 +52,9 @@ public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
             }
 
             if (getRuntimeRatios().get(counter).getRuntime() > 0) {
-                getRuntimeRatios().get(counter).setRuntime((getRuntimeRatios().get(counter).getRuntime()) - 1);
+                getRuntimeRatios()
+                        .get(counter)
+                        .setRuntime((getRuntimeRatios().get(counter).getRuntime()) - 1);
                 found = true;
             } else {
                 counter++;

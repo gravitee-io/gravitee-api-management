@@ -29,7 +29,8 @@ import lombok.NoArgsConstructor;
 public class NativeAnalytics {
 
     /** Gates event-metrics reporting. Independent of reporterMetricsEnabled. */
-    // TODO: rename to `eventMetricsEnabled` for symmetry with `reporterMetricsEnabled`. Breaking change — persisted in v4 API definitions.
+    // TODO: rename to `eventMetricsEnabled` for symmetry with `reporterMetricsEnabled`. Breaking change — persisted in
+    // v4 API definitions.
     @Builder.Default
     protected boolean enabled = true;
 
@@ -70,6 +71,8 @@ public class NativeAnalytics {
      * produced it.
      */
     public Set<NativeConnectionEvent> effectiveConnectionEvents() {
-        return connectionEvents == null || connectionEvents.isEmpty() ? NativeConnectionEvent.LEGACY_DEFAULTS : connectionEvents;
+        return connectionEvents == null || connectionEvents.isEmpty()
+                ? NativeConnectionEvent.LEGACY_DEFAULTS
+                : connectionEvents;
     }
 }

@@ -38,5 +38,6 @@ public interface EventLatestQueryService {
      */
     List<Event> findLatestByEntityIds(Set<String> entityIds, EventType eventType, Event.EventProperties propertyKey);
 
-    List<Event> findAllByTypeAndEnvironments(Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy);
+    List<Event> findAllByTypeAndEnvironments(
+            Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy);
 }

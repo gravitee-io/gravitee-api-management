@@ -46,9 +46,9 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_with_insufficient_rights() {
-        when(
-            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+                .thenReturn(false);
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -56,11 +56,12 @@ public class ApiResource_StopTest extends ApiResourceTest {
     @Test
     public void should_not_stop_api_with_incorrect_if_match() {
         var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
-        when(
-            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
-        ).thenReturn(apiEntity);
+        when(apiSearchServiceV4.findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false)))
+                .thenReturn(apiEntity);
 
-        final Response response = rootTarget().request().header(HttpHeaders.IF_MATCH, "\"000\"").post(Entity.json(""));
+        final Response response =
+                rootTarget().request().header(HttpHeaders.IF_MATCH, "\"000\"").post(Entity.json(""));
         assertEquals(HttpStatusCode.PRECONDITION_FAILED_412, response.getStatus());
 
         var body = response.readEntity(String.class);
@@ -71,9 +72,9 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_if_not_found() {
-        when(
-            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
-        ).thenThrow(new ApiNotFoundException(API));
+        when(apiSearchServiceV4.findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false)))
+                .thenThrow(new ApiNotFoundException(API));
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
@@ -86,11 +87,14 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_if_archived() {
-        var archivedEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).lifecycleState(ApiLifecycleState.ARCHIVED).build();
+        var archivedEntity = ApiFixtures.aModelHttpApiV4().toBuilder()
+                .id(API)
+                .lifecycleState(ApiLifecycleState.ARCHIVED)
+                .build();
 
-        when(
-            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
-        ).thenReturn(archivedEntity);
+        when(apiSearchServiceV4.findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false)))
+                .thenReturn(archivedEntity);
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -104,11 +108,14 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_if_already_stopped() {
-        var stoppedEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
+        var stoppedEntity = ApiFixtures.aModelHttpApiV4().toBuilder()
+                .id(API)
+                .state(Lifecycle.State.STOPPED)
+                .build();
 
-        when(
-            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
-        ).thenReturn(stoppedEntity);
+        when(apiSearchServiceV4.findGenericById(
+                        eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false)))
+                .thenReturn(stoppedEntity);
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -123,15 +130,21 @@ public class ApiResource_StopTest extends ApiResourceTest {
     @Test
     public void should_stop_api() {
         var updatedEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
-        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(updatedEntity);
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false))
+                .thenReturn(updatedEntity);
 
-        when(apiStateServiceV4.stop(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME))).thenReturn(updatedEntity);
+        when(apiStateServiceV4.stop(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME)))
+                .thenReturn(updatedEntity);
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
-        assertEquals("\"" + updatedEntity.getUpdatedAt().getTime() + "\"", response.getHeaders().get("Etag").get(0));
-        assertEquals(updatedEntity.getUpdatedAt().getTime() / 1000, response.getLastModified().getTime() / 1000);
+        assertEquals(
+                "\"" + updatedEntity.getUpdatedAt().getTime() + "\"",
+                response.getHeaders().get("Etag").get(0));
+        assertEquals(
+                updatedEntity.getUpdatedAt().getTime() / 1000,
+                response.getLastModified().getTime() / 1000);
 
         verify(apiStateServiceV4, times(1)).stop(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME));
     }

@@ -96,7 +96,8 @@ public class GammaModulePluginHandler extends AbstractPluginHandler {
     @Override
     protected void handle(Plugin plugin, Class<?> pluginClass) {
         try {
-            GammaModule gammaModule = (GammaModule) pluginClass.getDeclaredConstructor().newInstance();
+            GammaModule gammaModule =
+                    (GammaModule) pluginClass.getDeclaredConstructor().newInstance();
             Class<?> restResource = gammaModule.restResource();
 
             // Init Spring context so that any dependencies can be injected.
@@ -132,7 +133,10 @@ public class GammaModulePluginHandler extends AbstractPluginHandler {
                         Object bean = pluginCtx.getBean(name);
                         String namespacedName = plugin.id() + "." + name;
                         parentCtx.getBeanFactory().registerSingleton(namespacedName, bean);
-                        logger.debug("Registered bean '{}' from plugin '{}' into parent context", namespacedName, plugin.id());
+                        logger.debug(
+                                "Registered bean '{}' from plugin '{}' into parent context",
+                                namespacedName,
+                                plugin.id());
                     }
                 }
             }

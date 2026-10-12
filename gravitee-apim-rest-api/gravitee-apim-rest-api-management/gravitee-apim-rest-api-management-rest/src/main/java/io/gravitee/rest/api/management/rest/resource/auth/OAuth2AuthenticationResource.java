@@ -85,9 +85,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private static final String PROVIDER_ERROR = "identity_provider_error";
     private static final String PROVIDER_UNAVAILABLE_ERROR = "identity_provider_unavailable";
     private static final String CLIENT_AUTHENTICATION_HINT =
-        "The identity provider rejected the client credentials. Check that the tokenEndpointAuthMethod configured on " +
-        "the identity provider matches the method the provider expects (client_secret_basic or client_secret_post); " +
-        "the token and introspection endpoints must both accept it.";
+            "The identity provider rejected the client credentials. Check that the tokenEndpointAuthMethod configured on "
+                    + "the identity provider matches the method the provider expects (client_secret_basic or client_secret_post); "
+                    + "the token and introspection endpoints must both accept it.";
 
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
@@ -106,7 +106,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         final ClientBuilder builder = JerseyClientBuilder.newBuilder(environment);
         if (trustAllEnabled) {
             SSLContext sc = SSLContext.getInstance("TLSv1.2");
-            sc.init(null, new TrustManager[] { new BlindTrustManager() }, null);
+            sc.init(null, new TrustManager[] {new BlindTrustManager()}, null);
             builder.sslContext(sc);
         }
 
@@ -118,20 +118,18 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response tokenExchange(
-        @PathParam(value = "identity") final String identity,
-        @QueryParam(value = "token") final String tokenQueryParam,
-        @Valid final ExchangePayloadEntity exchangePayload,
-        @Context final HttpServletResponse servletResponse
-    ) throws IOException {
+            @PathParam(value = "identity") final String identity,
+            @QueryParam(value = "token") final String tokenQueryParam,
+            @Valid final ExchangePayloadEntity exchangePayload,
+            @Context final HttpServletResponse servletResponse)
+            throws IOException {
         String token = tokenQueryParam == null ? exchangePayload.getToken() : tokenQueryParam;
 
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(
-            identity,
-            new IdentityProviderActivationService.ActivationTarget(
-                GraviteeContext.getCurrentOrganization(),
-                IdentityProviderActivationReferenceType.ORGANIZATION
-            )
-        );
+                identity,
+                new IdentityProviderActivationService.ActivationTarget(
+                        GraviteeContext.getCurrentOrganization(),
+                        IdentityProviderActivationReferenceType.ORGANIZATION));
 
         if (identityProvider != null) {
             if (identityProvider.getTokenIntrospectionEndpoint() != null) {
@@ -139,10 +137,14 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 final MultivaluedStringMap introspectData = new MultivaluedStringMap();
                 introspectData.add(TOKEN, token);
                 Invocation.Builder introspectRequest = client
-                    //TODO: what is the correct introspection URL here ?
-                    .target(identityProvider.getTokenIntrospectionEndpoint())
-                    .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
-                authenticateClient(identityProvider, ClientAuthenticationMethod.CLIENT_SECRET_BASIC, introspectData, introspectRequest);
+                        // TODO: what is the correct introspection URL here ?
+                        .target(identityProvider.getTokenIntrospectionEndpoint())
+                        .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
+                authenticateClient(
+                        identityProvider,
+                        ClientAuthenticationMethod.CLIENT_SECRET_BASIC,
+                        introspectData,
+                        introspectRequest);
                 Response response = introspectRequest.post(Entity.form(introspectData));
                 introspectData.clear();
 
@@ -153,25 +155,28 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     if (active) {
                         return authenticateUser(identityProvider, servletResponse, token, null, null);
                     } else {
-                        log.info("Identity provider {} reported the exchanged token as inactive", identityProvider.getId());
-                        return Response.status(Response.Status.UNAUTHORIZED).entity(introspectPayload).build();
+                        log.info(
+                                "Identity provider {} reported the exchanged token as inactive",
+                                identityProvider.getId());
+                        return Response.status(Response.Status.UNAUTHORIZED)
+                                .entity(introspectPayload)
+                                .build();
                     }
                 }
 
                 String errorBody = getResponseEntityAsString(response);
                 log.warn(
-                    "Token introspection for identity provider {} at {} failed with status {}: {}\n{}",
-                    identityProvider.getId(),
-                    identityProvider.getTokenIntrospectionEndpoint(),
-                    response.getStatus(),
-                    response.getStatusInfo(),
-                    errorBody
-                );
+                        "Token introspection for identity provider {} at {} failed with status {}: {}\n{}",
+                        identityProvider.getId(),
+                        identityProvider.getTokenIntrospectionEndpoint(),
+                        response.getStatus(),
+                        response.getStatusInfo(),
+                        errorBody);
                 return clientAuthenticationFailure(response.getStatus(), errorBody);
             } else {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Token exchange is not supported for this identity provider")
-                    .build();
+                        .entity("Token exchange is not supported for this identity provider")
+                        .build();
             }
         }
 
@@ -182,17 +187,15 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response exchangeAuthorizationCode(
-        @PathParam(value = "identity") String identity,
-        @Valid @NotNull final PayloadInput payloadInput,
-        @Context final HttpServletResponse servletResponse
-    ) throws IOException {
+            @PathParam(value = "identity") String identity,
+            @Valid @NotNull final PayloadInput payloadInput,
+            @Context final HttpServletResponse servletResponse)
+            throws IOException {
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(
-            identity,
-            new IdentityProviderActivationService.ActivationTarget(
-                GraviteeContext.getCurrentOrganization(),
-                IdentityProviderActivationReferenceType.ORGANIZATION
-            )
-        );
+                identity,
+                new IdentityProviderActivationService.ActivationTarget(
+                        GraviteeContext.getCurrentOrganization(),
+                        IdentityProviderActivationReferenceType.ORGANIZATION));
 
         if (identityProvider != null) {
             // Step 1. Exchange authorization code for access token.
@@ -203,10 +206,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             accessData.add(CODE_VERIFIER_KEY, payloadInput.getCode_verifier());
             accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
 
-            Invocation.Builder tokenRequest = client
-                .target(identityProvider.getTokenEndpoint())
-                .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
-            authenticateClient(identityProvider, ClientAuthenticationMethod.CLIENT_SECRET_POST, accessData, tokenRequest);
+            Invocation.Builder tokenRequest = client.target(identityProvider.getTokenEndpoint())
+                    .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
+            authenticateClient(
+                    identityProvider, ClientAuthenticationMethod.CLIENT_SECRET_POST, accessData, tokenRequest);
 
             Response response = tokenRequest.post(Entity.form(accessData));
             accessData.clear();
@@ -215,18 +218,18 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 final Map<String, Object> responseEntity = getResponseEntity(response);
                 final String accessToken = (String) responseEntity.get(ACCESS_TOKEN_PROPERTY);
                 final String idToken = (String) responseEntity.get(ID_TOKEN_PROPERTY);
-                return authenticateUser(identityProvider, servletResponse, accessToken, idToken, payloadInput.getState());
+                return authenticateUser(
+                        identityProvider, servletResponse, accessToken, idToken, payloadInput.getState());
             }
 
             String errorBody = getResponseEntityAsString(response);
             log.warn(
-                "Authorization-code exchange for identity provider {} at {} failed with status {}: {}\n{}",
-                identityProvider.getId(),
-                identityProvider.getTokenEndpoint(),
-                response.getStatus(),
-                response.getStatusInfo(),
-                errorBody
-            );
+                    "Authorization-code exchange for identity provider {} at {} failed with status {}: {}\n{}",
+                    identityProvider.getId(),
+                    identityProvider.getTokenEndpoint(),
+                    response.getStatus(),
+                    response.getStatusInfo(),
+                    errorBody);
             return clientAuthenticationFailure(response.getStatus(), errorBody);
         }
 
@@ -239,20 +242,21 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      * makes the token and introspection calls agree, which they previously did not.
      */
     private void authenticateClient(
-        SocialIdentityProviderEntity identityProvider,
-        ClientAuthenticationMethod endpointDefault,
-        MultivaluedStringMap form,
-        Invocation.Builder request
-    ) {
+            SocialIdentityProviderEntity identityProvider,
+            ClientAuthenticationMethod endpointDefault,
+            MultivaluedStringMap form,
+            Invocation.Builder request) {
         ClientAuthenticationMethod method = identityProvider.getTokenEndpointAuthMethod() != null
-            ? identityProvider.getTokenEndpointAuthMethod()
-            : endpointDefault;
+                ? identityProvider.getTokenEndpointAuthMethod()
+                : endpointDefault;
 
         // The null label makes this an enhanced switch (JLS 14.11.2), so the compiler requires it to be exhaustive:
         // adding a token_endpoint_auth_method constant such as none or private_key_jwt fails the build here instead of
         // silently doing nothing, or worse falling through to putting the secret in the body, on a credential path.
         switch (method) {
-            case null -> throw new IllegalArgumentException("No client authentication method resolved for " + identityProvider.getId());
+            case null ->
+                throw new IllegalArgumentException(
+                        "No client authentication method resolved for " + identityProvider.getId());
             case CLIENT_SECRET_BASIC -> request.header(HttpHeaders.AUTHORIZATION, basicAuthorization(identityProvider));
             case CLIENT_SECRET_POST -> {
                 // The authorization-code flow already carries the client_id supplied by the caller. add() registers the
@@ -268,7 +272,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private static String basicAuthorization(SocialIdentityProviderEntity identityProvider) {
         String credentials = identityProvider.getClientId() + ':' + identityProvider.getClientSecret();
         // Explicit charset: the platform default silently changes the bytes, and therefore the credential, per host
-        return String.format("Basic %s", Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8)));
+        return String.format(
+                "Basic %s", Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8)));
     }
 
     /**
@@ -303,53 +308,51 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      * @return Response
      */
     private Response authenticateUser(
-        final SocialIdentityProviderEntity socialProvider,
-        final HttpServletResponse servletResponse,
-        final String accessToken,
-        final String idToken,
-        final String state
-    ) throws IOException {
+            final SocialIdentityProviderEntity socialProvider,
+            final HttpServletResponse servletResponse,
+            final String accessToken,
+            final String idToken,
+            final String state)
+            throws IOException {
         // Step 2. Retrieve profile information about the authenticated end-user.
-        Response response = client
-            .target(socialProvider.getUserInfoEndpoint())
-            .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-            .header(HttpHeaders.AUTHORIZATION, String.format(socialProvider.getAuthorizationHeader(), accessToken))
-            .get();
+        Response response = client.target(socialProvider.getUserInfoEndpoint())
+                .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                .header(HttpHeaders.AUTHORIZATION, String.format(socialProvider.getAuthorizationHeader(), accessToken))
+                .get();
 
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return processUser(socialProvider, servletResponse, userInfo, state, accessToken, idToken);
         } else {
-            log.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
+            log.error(
+                    "User info failed with status {}: {}\n{}",
+                    response.getStatus(),
+                    response.getStatusInfo(),
+                    userInfo);
         }
 
         return Response.status(response.getStatusInfo()).build();
     }
 
     private Response processUser(
-        final SocialIdentityProviderEntity socialProvider,
-        final HttpServletResponse servletResponse,
-        final String userInfo,
-        final String state,
-        final String accessToken,
-        final String idToken
-    ) {
+            final SocialIdentityProviderEntity socialProvider,
+            final HttpServletResponse servletResponse,
+            final String userInfo,
+            final String state,
+            final String accessToken,
+            final String idToken) {
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(
-            GraviteeContext.getExecutionContext(),
-            socialProvider,
-            userInfo,
-            accessToken,
-            idToken
-        );
+                GraviteeContext.getExecutionContext(), socialProvider, userInfo, accessToken, idToken);
 
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
-        //set user to Authentication Context
+        // set user to Authentication Context
         UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
         userDetails.setEmail(user.getEmail());
         userDetails.setOrganizationId(user.getOrganizationId());
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
         return connectUser(user.getId(), state, servletResponse, accessToken, idToken);
     }

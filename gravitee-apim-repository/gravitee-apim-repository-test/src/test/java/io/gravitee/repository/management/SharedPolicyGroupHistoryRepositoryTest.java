@@ -16,7 +16,6 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -48,8 +47,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
             var sharedPolicyGroupBuilder = getDefaultSharedPolicyGroupBuilder("sharedPolicyGroupId_1");
             sharedPolicyGroupBuilder.name("Name changed " + i + " times");
             sharedPolicyGroupBuilder.lifecycleState(
-                i % 2 == 0 ? SharedPolicyGroupLifecycleState.UNDEPLOYED : SharedPolicyGroupLifecycleState.DEPLOYED
-            );
+                    i % 2 == 0 ? SharedPolicyGroupLifecycleState.UNDEPLOYED : SharedPolicyGroupLifecycleState.DEPLOYED);
             sharedPolicyGroupBuilder.createdAt(date);
             sharedPolicyGroupBuilder.updatedAt(date);
             sharedPolicyGroupBuilder.deployedAt(date);
@@ -57,36 +55,34 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         }
         // Create another shared policy group history with different name
         final SharedPolicyGroup sharedPolicyGroup2 = getDefaultSharedPolicyGroupBuilder("sharedPolicyGroupId_2")
-            .name("Yet another SPG 2")
-            .build();
+                .name("Yet another SPG 2")
+                .build();
         sharedPolicyGroupHistoryRepository.create(sharedPolicyGroup2);
         final SharedPolicyGroup sharedPolicyGroup3 = getDefaultSharedPolicyGroupBuilder("sharedPolicyGroupId_3")
-            .name("Yet another SPG 3")
-            .build();
+                .name("Yet another SPG 3")
+                .build();
         sharedPolicyGroupHistoryRepository.create(sharedPolicyGroup3);
-        sharedPolicyGroupHistoryRepository.create(
-            getDefaultSharedPolicyGroupBuilder("id_to_be_deleted_1")
+        sharedPolicyGroupHistoryRepository.create(getDefaultSharedPolicyGroupBuilder("id_to_be_deleted_1")
                 .updatedAt(new Date(new Date(172323739410L).getTime()))
                 .environmentId(ENV_ID_TO_BE_DELETED)
-                .build()
-        );
-        sharedPolicyGroupHistoryRepository.create(
-            getDefaultSharedPolicyGroupBuilder("id_to_be_deleted_1")
+                .build());
+        sharedPolicyGroupHistoryRepository.create(getDefaultSharedPolicyGroupBuilder("id_to_be_deleted_1")
                 .updatedAt(new Date(new Date(172324839410L).getTime()))
                 .environmentId(ENV_ID_TO_BE_DELETED)
-                .build()
-        );
+                .build());
     }
 
     @Test
     public void should_create() throws Exception {
         final SharedPolicyGroup sharedPolicyGroupV1 = getDefaultSharedPolicyGroupBuilder("id_create_test")
-            .name("Name v1")
-            .updatedAt(new Date(172321739410L))
-            .build();
+                .name("Name v1")
+                .updatedAt(new Date(172321739410L))
+                .build();
         sharedPolicyGroupHistoryRepository.create(sharedPolicyGroupV1);
 
-        final SharedPolicyGroup sharedPolicyGroupV2 = getDefaultSharedPolicyGroupBuilder("id_create_test").name("Name v2").build();
+        final SharedPolicyGroup sharedPolicyGroupV2 = getDefaultSharedPolicyGroupBuilder("id_create_test")
+                .name("Name v2")
+                .build();
         final SharedPolicyGroup create = sharedPolicyGroupHistoryRepository.create(sharedPolicyGroupV2);
 
         assertThat(create.getName()).isEqualTo(sharedPolicyGroupV2.getName());
@@ -107,9 +103,12 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_search_with_no_criteria() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria.builder().environmentId("environmentId").build();
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
+                .environmentId("environmentId")
+                .build();
 
-        final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+        final var page = sharedPolicyGroupHistoryRepository.search(
+                criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         assertThat(page.getTotalElements()).isEqualTo(12);
@@ -118,11 +117,12 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_search_with_SharedPolicyGroupId_criteria() throws TechnicalException {
         final var criteria = SharedPolicyGroupHistoryCriteria.builder()
-            .environmentId("environmentId")
-            .sharedPolicyGroupId("sharedPolicyGroupId_1")
-            .build();
+                .environmentId("environmentId")
+                .sharedPolicyGroupId("sharedPolicyGroupId_1")
+                .build();
 
-        final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+        final var page = sharedPolicyGroupHistoryRepository.search(
+                criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         assertThat(page.getTotalElements()).isEqualTo(10);
@@ -131,11 +131,12 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_search_page_2() throws TechnicalException {
         final var criteria = SharedPolicyGroupHistoryCriteria.builder()
-            .environmentId("environmentId")
-            .sharedPolicyGroupId("sharedPolicyGroupId_1")
-            .build();
+                .environmentId("environmentId")
+                .sharedPolicyGroupId("sharedPolicyGroupId_1")
+                .build();
 
-        final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(2).pageSize(2).build(), null);
+        final var page = sharedPolicyGroupHistoryRepository.search(
+                criteria, new PageableBuilder().pageNumber(2).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         var aa = page.getContent().get(0).getName();
@@ -150,11 +151,12 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_search_with_no_result() throws TechnicalException {
         final var criteria = SharedPolicyGroupHistoryCriteria.builder()
-            .environmentId("environmentId")
-            .sharedPolicyGroupId("unknown")
-            .build();
+                .environmentId("environmentId")
+                .sharedPolicyGroupId("unknown")
+                .build();
 
-        final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+        final var page = sharedPolicyGroupHistoryRepository.search(
+                criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isEqualTo(0);
@@ -163,11 +165,12 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_search_with_no_result_with_unknown_environment() throws TechnicalException {
         final var criteria = SharedPolicyGroupHistoryCriteria.builder()
-            .environmentId("unknown")
-            .sharedPolicyGroupId("sharedPolicyGroupId_1")
-            .build();
+                .environmentId("unknown")
+                .sharedPolicyGroupId("sharedPolicyGroupId_1")
+                .build();
 
-        final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+        final var page = sharedPolicyGroupHistoryRepository.search(
+                criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isEqualTo(0);
@@ -176,11 +179,12 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_search_with_sortable() throws TechnicalException {
         final var criteria = SharedPolicyGroupHistoryCriteria.builder()
-            .environmentId("environmentId")
-            .sharedPolicyGroupId("sharedPolicyGroupId_1")
-            .build();
+                .environmentId("environmentId")
+                .sharedPolicyGroupId("sharedPolicyGroupId_1")
+                .build();
 
-        final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+        final var page = sharedPolicyGroupHistoryRepository.search(
+                criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         assertThat((page.getContent().get(0)).getName()).isEqualTo("Name changed 0 times");
@@ -188,10 +192,9 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         assertThat(page.getTotalElements()).isEqualTo(10);
 
         final var page2 = sharedPolicyGroupHistoryRepository.search(
-            criteria,
-            new PageableBuilder().pageNumber(0).pageSize(2).build(),
-            new SortableBuilder().field("name").setAsc(false).build()
-        );
+                criteria,
+                new PageableBuilder().pageNumber(0).pageSize(2).build(),
+                new SortableBuilder().field("name").setAsc(false).build());
         assertThat(page2).isNotNull();
         assertThat(page2.getContent()).hasSize(2);
         assertThat((page2.getContent().get(0)).getName()).isEqualTo("Name changed 9 times");
@@ -202,11 +205,12 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_search_with_lifecycle_state_criteria() throws TechnicalException {
         final var criteria = SharedPolicyGroupHistoryCriteria.builder()
-            .environmentId("environmentId")
-            .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .build();
+                .environmentId("environmentId")
+                .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .build();
 
-        final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
+        final var page = sharedPolicyGroupHistoryRepository.search(
+                criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
         assertThat(page.getTotalElements()).isEqualTo(7);
@@ -215,9 +219,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_searchLatestBySharedPolicyGroupId() throws TechnicalException {
         final var page1 = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
-            "environmentId",
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
+                "environmentId", new PageableBuilder().pageNumber(0).pageSize(2).build());
         assertThat(page1).isNotNull();
         assertThat(page1.getContent()).hasSize(2);
         assertThat(page1.getTotalElements()).isEqualTo(3);
@@ -226,9 +228,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         assertThat(page1.getContent().get(1).getName()).isEqualTo("Yet another SPG 2");
 
         final var page2 = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
-            "environmentId",
-            new PageableBuilder().pageNumber(1).pageSize(2).build()
-        );
+                "environmentId", new PageableBuilder().pageNumber(1).pageSize(2).build());
         assertThat(page2).isNotNull();
         assertThat(page2.getContent()).hasSize(1);
         assertThat(page2.getContent().get(0).getName()).isEqualTo("Yet another SPG 3");
@@ -237,20 +237,17 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_searchLatestBySharedPolicyGroupId_with_no_result() throws TechnicalException {
         final var page = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
-            "unknown",
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
+                "unknown", new PageableBuilder().pageNumber(0).pageSize(2).build());
         assertThat(page).isNotNull();
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isEqualTo(0);
     }
 
     @Test
-    public void should_searchLatestBySharedPolicyGroupId_with_no_result_with_unknown_environment() throws TechnicalException {
+    public void should_searchLatestBySharedPolicyGroupId_with_no_result_with_unknown_environment()
+            throws TechnicalException {
         final var page = sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(
-            "unknown",
-            new PageableBuilder().pageNumber(0).pageSize(2).build()
-        );
+                "unknown", new PageableBuilder().pageNumber(0).pageSize(2).build());
         assertThat(page).isNotNull();
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isEqualTo(0);
@@ -259,44 +256,45 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     @Test
     public void should_getLatestBySharedPolicyGroupId() throws TechnicalException {
         final var sharedPolicyGroup = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId(
-            "environmentId",
-            "sharedPolicyGroupId_1"
-        );
+                "environmentId", "sharedPolicyGroupId_1");
         assertThat(sharedPolicyGroup).isPresent();
         assertThat(sharedPolicyGroup.get().getName()).isEqualTo("Name changed 9 times");
     }
 
     @Test
     public void should_getLatestBySharedPolicyGroupId_with_no_result() throws TechnicalException {
-        final var sharedPolicyGroup = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId("environmentId", "unknown");
+        final var sharedPolicyGroup =
+                sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId("environmentId", "unknown");
         assertThat(sharedPolicyGroup).isEmpty();
     }
 
     @Test
     public void should_delete() throws TechnicalException {
         final var sharedPolicyGroup = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId(
-            "environmentId",
-            "sharedPolicyGroupId_1"
-        );
+                "environmentId", "sharedPolicyGroupId_1");
         assertThat(sharedPolicyGroup).isPresent();
 
         sharedPolicyGroupHistoryRepository.delete(sharedPolicyGroup.get().getId());
 
         final var sharedPolicyGroupAfterDelete = sharedPolicyGroupHistoryRepository.getLatestBySharedPolicyGroupId(
-            "environmentId",
-            "sharedPolicyGroupId_1"
-        );
+                "environmentId", "sharedPolicyGroupId_1");
         assertThat(sharedPolicyGroupAfterDelete).isEmpty();
     }
 
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria.builder().environmentId(ENV_ID_TO_BE_DELETED).build();
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
+                .environmentId(ENV_ID_TO_BE_DELETED)
+                .build();
         final var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
-        final var nbBeforeDeletion = sharedPolicyGroupHistoryRepository.search(criteria, pageable, null).getTotalElements();
+        final var nbBeforeDeletion = sharedPolicyGroupHistoryRepository
+                .search(criteria, pageable, null)
+                .getTotalElements();
         final var deleted = sharedPolicyGroupHistoryRepository.deleteByEnvironmentId(ENV_ID_TO_BE_DELETED);
-        final var nbAfterDeletion = sharedPolicyGroupHistoryRepository.search(criteria, pageable, null).getTotalElements();
+        final var nbAfterDeletion = sharedPolicyGroupHistoryRepository
+                .search(criteria, pageable, null)
+                .getTotalElements();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(deleted.size()).isEqualTo(2);
@@ -305,19 +303,19 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     private static SharedPolicyGroup.SharedPolicyGroupBuilder getDefaultSharedPolicyGroupBuilder(String id) {
         return SharedPolicyGroup.builder()
-            .id(id)
-            .name("name")
-            .version(1)
-            .description("description")
-            .crossId("crossId_" + id)
-            .apiType(ApiType.PROXY)
-            .phase(SharedPolicyGroup.FlowPhase.REQUEST)
-            .definition("definition")
-            .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
-            .environmentId("environmentId")
-            .organizationId("organizationId")
-            .deployedAt(new Date())
-            .createdAt(new Date())
-            .updatedAt(new Date());
+                .id(id)
+                .name("name")
+                .version(1)
+                .description("description")
+                .crossId("crossId_" + id)
+                .apiType(ApiType.PROXY)
+                .phase(SharedPolicyGroup.FlowPhase.REQUEST)
+                .definition("definition")
+                .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
+                .environmentId("environmentId")
+                .organizationId("organizationId")
+                .deployedAt(new Date())
+                .createdAt(new Date())
+                .updatedAt(new Date());
     }
 }

@@ -33,7 +33,8 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 @DomainService
-public class ValidateUpdateSharedPolicyGroupDomainService implements Validator<ValidateUpdateSharedPolicyGroupDomainService.Input> {
+public class ValidateUpdateSharedPolicyGroupDomainService
+        implements Validator<ValidateUpdateSharedPolicyGroupDomainService.Input> {
 
     private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
     private final PolicyValidationDomainService policyValidationDomainService;
@@ -63,29 +64,25 @@ public class ValidateUpdateSharedPolicyGroupDomainService implements Validator<V
             throw new InvalidDataException("Name is required.");
         }
 
-        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroup.getCrossId())
-            .filter(spg -> !spg.getId().equals(sharedPolicyGroup.getId()))
-            .ifPresent(spg -> {
-                throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroup.getCrossId(), environmentId);
-            });
+        this.sharedPolicyGroupCrudService
+                .findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroup.getCrossId())
+                .filter(spg -> !spg.getId().equals(sharedPolicyGroup.getId()))
+                .ifPresent(spg -> {
+                    throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroup.getCrossId(), environmentId);
+                });
 
         // Validate and sanitize policies configuration
         if (sharedPolicyGroup.getSteps() != null) {
-            sharedPolicyGroup
-                .getSteps()
-                .stream()
-                .filter(Step::isEnabled)
-                .forEach(step ->
-                    step.setConfiguration(
-                        policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
-                    )
-                );
+            sharedPolicyGroup.getSteps().stream()
+                    .filter(Step::isEnabled)
+                    .forEach(step ->
+                            step.setConfiguration(policyValidationDomainService.validateAndSanitizeConfiguration(
+                                    step.getPolicy(), step.getConfiguration())));
 
             policyValidationDomainService.validatePoliciesFlowPhase(
-                sharedPolicyGroup.getSteps().stream().map(Step::getPolicy).toList(),
-                sharedPolicyGroup.getApiType(),
-                sharedPolicyGroup.getPhase()
-            );
+                    sharedPolicyGroup.getSteps().stream().map(Step::getPolicy).toList(),
+                    sharedPolicyGroup.getApiType(),
+                    sharedPolicyGroup.getPhase());
         }
     }
 }

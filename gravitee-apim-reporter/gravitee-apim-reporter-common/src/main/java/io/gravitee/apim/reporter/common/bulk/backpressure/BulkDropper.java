@@ -33,16 +33,15 @@ public class BulkDropper {
     }
 
     public void drop(CompressedBulk bulk, Reason reason) {
-        bulk
-            .countPerType()
-            .forEach((bulkType, count) -> countPerType.compute(bulkType, (counterType, total) -> total == null ? count : total + count));
+        bulk.countPerType()
+                .forEach((bulkType, count) ->
+                        countPerType.compute(bulkType, (counterType, total) -> total == null ? count : total + count));
 
         if (reason == Reason.OVERFLOW) {
             log.warn(
-                "Overflow detected. Dropping bulk of reports to avoid too much memory pressure [{}]. Total: [{}].",
-                bulk,
-                countPerType
-            );
+                    "Overflow detected. Dropping bulk of reports to avoid too much memory pressure [{}]. Total: [{}].",
+                    bulk,
+                    countPerType);
         } else {
             log.warn("Bulk error detected. Dropping bulk of reports [{}]. Total: [{}].", bulk, countPerType);
         }

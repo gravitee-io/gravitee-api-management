@@ -35,7 +35,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 /**
  * Spring configuration for the test.
@@ -86,17 +85,15 @@ public class TestConfiguration {
         final LocalDate utc = LocalDate.now(ZoneOffset.UTC);
         if (!local.equals(utc)) {
             throw new IllegalStateException(
-                "These tests need the JVM on UTC: the sample data is dated in UTC while production reads the day " +
-                    "from the default zone, and right now they disagree — local date %s, UTC date %s. Add -Duser.timezone=UTC to the run configuration.".formatted(
-                        local,
-                        utc
-                    )
-            );
+                    "These tests need the JVM on UTC: the sample data is dated in UTC while production reads the day "
+                            + "from the default zone, and right now they disagree — local date %s, UTC date %s. Add -Duser.timezone=UTC to the run configuration."
+                                    .formatted(local, utc));
         }
     }
 
     @Bean
-    public DatabaseHydrator databaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent, TimeProvider timeProvider) {
+    public DatabaseHydrator databaseHydrator(
+            Client client, FreeMarkerComponent freeMarkerComponent, TimeProvider timeProvider) {
         AnatlyticsDatabase anatlyticsDatabase = new AnatlyticsDatabase();
         if (isElasticsearch) {
             anatlyticsDatabase.setDatabaseType(AnatlyticsDatabase.DatabaseType.ELASTICSEARCH);
@@ -119,11 +116,11 @@ public class TestConfiguration {
     }
 
     @Bean
-    public RepositoryConfiguration repositoryConfiguration(GenericContainer<?> container, ConfigurableEnvironment environment) {
+    public RepositoryConfiguration repositoryConfiguration(
+            GenericContainer<?> container, ConfigurableEnvironment environment) {
         RepositoryConfiguration configuration = new RepositoryConfiguration();
-        configuration.setEndpoints(
-            Collections.singletonList(new Endpoint("http://" + container.getHost() + ":" + container.getMappedPort(9200)))
-        );
+        configuration.setEndpoints(Collections.singletonList(
+                new Endpoint("http://" + container.getHost() + ":" + container.getMappedPort(9200))));
         configuration.setUsername(isElasticsearch ? "elastic" : "admin");
         configuration.setPassword(isElasticsearch ? ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD : "admin");
         if (isElasticsearch && elasticsearchVersion.startsWith("5")) {
@@ -149,7 +146,8 @@ public class TestConfiguration {
             elasticsearchContainer.withEnv("xpack.security.enabled", "false");
         }
         String regex = ".*(\"message\":\\s?\"started[\\s?|\"].*|] started\n$)";
-        elasticsearchContainer.setWaitStrategy(Wait.forLogMessage(regex, 1).withStartupTimeout(Duration.ofSeconds(120)));
+        elasticsearchContainer.setWaitStrategy(
+                Wait.forLogMessage(regex, 1).withStartupTimeout(Duration.ofSeconds(120)));
 
         return elasticsearchContainer;
     }

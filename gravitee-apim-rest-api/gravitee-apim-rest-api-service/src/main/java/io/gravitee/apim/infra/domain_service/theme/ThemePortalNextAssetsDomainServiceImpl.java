@@ -31,7 +31,8 @@ public class ThemePortalNextAssetsDomainServiceImpl implements ThemePortalNextAs
 
     private final String themeNextPath;
 
-    public ThemePortalNextAssetsDomainServiceImpl(@Value("${portal.themes.path:${gravitee.home}/themes}/next") String themeNextPath) {
+    public ThemePortalNextAssetsDomainServiceImpl(
+            @Value("${portal.themes.path:${gravitee.home}/themes}/next") String themeNextPath) {
         this.themeNextPath = themeNextPath;
     }
 
@@ -54,7 +55,8 @@ public class ThemePortalNextAssetsDomainServiceImpl implements ThemePortalNextAs
         try {
             byte[] image = Files.readAllBytes(imageFile.toPath());
             MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
-            return "data:" + fileTypeMap.getContentType(filename) + ";base64," + Base64.getEncoder().encodeToString(image);
+            return "data:" + fileTypeMap.getContentType(filename) + ";base64,"
+                    + Base64.getEncoder().encodeToString(image);
         } catch (IOException ex) {
             final String error = "Error while trying to load image from: " + filepath;
             log.error(error, ex);

@@ -60,24 +60,25 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
     @Override
     protected JdbcObjectMapper<Cluster> buildOrm() {
         return JdbcObjectMapper.builder(Cluster.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("cross_id", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Instant.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("lifecycle_state", Types.NVARCHAR, String.class)
-            .addColumn("deployed_at", Types.TIMESTAMP, Instant.class)
-            .addColumn("version", Types.INTEGER, Integer.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("cross_id", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Instant.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("lifecycle_state", Types.NVARCHAR, String.class)
+                .addColumn("deployed_at", Types.TIMESTAMP, Instant.class)
+                .addColumn("version", Types.INTEGER, Integer.class)
+                .build();
     }
 
     private List<String> getGroups(String clusterId) {
-        return jdbcTemplate.queryForList("select group_id from " + CLUSTER_GROUPS + " where cluster_id = ?", String.class, clusterId);
+        return jdbcTemplate.queryForList(
+                "select group_id from " + CLUSTER_GROUPS + " where cluster_id = ?", String.class, clusterId);
     }
 
     private void addGroups(Cluster cluster) {
@@ -112,9 +113,8 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(cluster, cluster.getId()));
             storeGroups(cluster, true);
-            return findById(cluster.getId()).orElseThrow(() ->
-                new IllegalStateException("No cluster found with id [" + cluster.getId() + "]")
-            );
+            return findById(cluster.getId())
+                    .orElseThrow(() -> new IllegalStateException("No cluster found with id [" + cluster.getId() + "]"));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -127,11 +127,10 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
     public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
         log.debug("JdbcClusterRepository.findByCrossIdAndEnvironmentId({}, {})", crossId, environmentId);
         var result = jdbcTemplate.query(
-            getOrm().getSelectAllSql() + " WHERE cross_id = ? AND environment_id = ?",
-            getOrm().getRowMapper(),
-            crossId,
-            environmentId
-        );
+                getOrm().getSelectAllSql() + " WHERE cross_id = ? AND environment_id = ?",
+                getOrm().getRowMapper(),
+                crossId,
+                environmentId);
         if (result.isEmpty()) {
             return Optional.empty();
         }
@@ -175,32 +174,28 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         }
 
         Long total = jdbcTemplate.queryForObject(
-            "select count(*) from " + this.tableName + " WHERE " + andWhere,
-            Long.class,
-            andWhereParams.toArray()
-        );
+                "select count(*) from " + this.tableName + " WHERE " + andWhere, Long.class, andWhereParams.toArray());
 
         if (total == null || total == 0) {
             return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
         }
 
-        Sortable sortable = sortableOpt.orElse(new SortableBuilder().field("name").setAsc(true).build());
+        Sortable sortable = sortableOpt.orElse(
+                new SortableBuilder().field("name").setAsc(true).build());
         final String sortOrder = sortable.order().name();
         final String sortField = toSnakeCase(sortable.field());
 
         var result = jdbcTemplate.query(
-            getOrm().getSelectAllSql() +
-                " WHERE " +
-                andWhere +
-                " ORDER BY " +
-                sortField +
-                " " +
-                sortOrder +
-                " " +
-                createPagingClause(pageable.pageSize(), pageable.from()),
-            getOrm().getRowMapper(),
-            andWhereParams.toArray()
-        );
+                getOrm().getSelectAllSql() + " WHERE "
+                        + andWhere
+                        + " ORDER BY "
+                        + sortField
+                        + " "
+                        + sortOrder
+                        + " "
+                        + createPagingClause(pageable.pageSize(), pageable.from()),
+                getOrm().getRowMapper(),
+                andWhereParams.toArray());
 
         // populate groups for each cluster
         for (Cluster c : result) {
@@ -232,9 +227,8 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         List<String> filtered = getOrm().filterStrings(groups);
         if (!filtered.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + CLUSTER_GROUPS + " ( cluster_id, group_id ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(clusterId, filtered)
-            );
+                    "insert into " + CLUSTER_GROUPS + " ( cluster_id, group_id ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(clusterId, filtered));
         }
     }
 
@@ -243,10 +237,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         log.debug("JdbcClusterRepository.deleteByEnvironmentId({})", environmentId);
         try {
             List<String> clusterIds = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + this.tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!clusterIds.isEmpty()) {
                 deleteClusterGroups(clusterIds);
@@ -265,10 +256,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         log.debug("JdbcClusterRepository.deleteByOrganizationId({})", organizationId);
         try {
             List<String> clusterIds = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where organization_id = ?",
-                String.class,
-                organizationId
-            );
+                    "select id from " + this.tableName + " where organization_id = ?", String.class, organizationId);
 
             if (!clusterIds.isEmpty()) {
                 deleteClusterGroups(clusterIds);
@@ -284,7 +272,8 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
 
     private void deleteClusterGroups(List<String> clusterIds) {
         String inClause = getOrm().buildInClause(clusterIds);
-        jdbcTemplate.update("delete from " + CLUSTER_GROUPS + " where cluster_id in (" + inClause + ")", clusterIds.toArray());
+        jdbcTemplate.update(
+                "delete from " + CLUSTER_GROUPS + " where cluster_id in (" + inClause + ")", clusterIds.toArray());
     }
 
     private void storeGroups(Cluster cluster, boolean deleteFirst) {
@@ -294,9 +283,8 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         List<String> filteredGroups = getOrm().filterStrings(cluster.getGroups());
         if (!filteredGroups.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + CLUSTER_GROUPS + " ( cluster_id, group_id ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(cluster.getId(), filteredGroups)
-            );
+                    "insert into " + CLUSTER_GROUPS + " ( cluster_id, group_id ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(cluster.getId(), filteredGroups));
         }
     }
 }

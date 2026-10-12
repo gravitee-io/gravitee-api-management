@@ -23,7 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class PortalCategoryCrudServiceInMemory implements PortalCategoryCrudService, InMemoryAlternative<PortalCategory> {
+public class PortalCategoryCrudServiceInMemory
+        implements PortalCategoryCrudService, InMemoryAlternative<PortalCategory> {
 
     final ArrayList<PortalCategory> storage = new ArrayList<>();
 
@@ -50,10 +51,7 @@ public class PortalCategoryCrudServiceInMemory implements PortalCategoryCrudServ
 
     @Override
     public Optional<PortalCategory> get(PortalCategoryId id) {
-        return storage
-            .stream()
-            .filter(pc -> id.equals(pc.getId()))
-            .findFirst();
+        return storage.stream().filter(pc -> id.equals(pc.getId())).findFirst();
     }
 
     @Override

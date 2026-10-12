@@ -61,7 +61,8 @@ public class PermissiveLicenseManager extends AbstractService<LicenseManager> im
     }
 
     @Override
-    public void validatePluginFeatures(String organizationId, Collection<Plugin> plugins) throws ForbiddenFeatureException {
+    public void validatePluginFeatures(String organizationId, Collection<Plugin> plugins)
+            throws ForbiddenFeatureException {
         // Always consider the plugin features are valid.
     }
 

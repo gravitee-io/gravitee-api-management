@@ -47,8 +47,8 @@ class HazelcastRepositoryProviderTest {
     @Test
     void rejects_unsupported_scopes() {
         assertThatThrownBy(() -> provider.configuration(Scope.MANAGEMENT))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("MANAGEMENT")
-            .hasMessageContaining("RATE_LIMIT");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("MANAGEMENT")
+                .hasMessageContaining("RATE_LIMIT");
     }
 }

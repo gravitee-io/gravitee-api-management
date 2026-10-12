@@ -35,7 +35,7 @@ import java.util.Optional;
 public class CheckSubscriptionPolicy implements Policy {
 
     static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
-        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
+            ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
 
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
@@ -66,23 +66,21 @@ public class CheckSubscriptionPolicy implements Policy {
             return;
         }
 
-        Optional<io.gravitee.gateway.api.service.Subscription> optionalSubscription = subscriptionService.getByApiAndClientIdAndPlan(
-            api,
-            clientId,
-            plan
-        );
+        Optional<io.gravitee.gateway.api.service.Subscription> optionalSubscription =
+                subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan);
 
         if (optionalSubscription.isPresent()) {
-            final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(
-                executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)
-            );
+            final boolean selectionRuleBasedPlan =
+                    Boolean.TRUE.equals(executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED));
 
             final io.gravitee.gateway.api.service.Subscription subscription = optionalSubscription
-                // FIXME: Remove `!selectionRuleBasedPlan` wild behavior when plan selection based on rules will be fixed
-                .filter(sub -> !selectionRuleBasedPlan || sub.getPlan().equals(plan))
-                .orElse(null);
+                    // FIXME: Remove `!selectionRuleBasedPlan` wild behavior when plan selection based on rules will be
+                    // fixed
+                    .filter(sub -> !selectionRuleBasedPlan || sub.getPlan().equals(plan))
+                    .orElse(null);
 
-            if (subscription != null && subscription.isTimeValid(executionContext.request().timestamp())) {
+            if (subscription != null
+                    && subscription.isTimeValid(executionContext.request().timestamp())) {
                 executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                 executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                 executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
@@ -92,9 +90,8 @@ public class CheckSubscriptionPolicy implements Policy {
             }
         }
 
-        policyChain.failWith(
-            PolicyResult.failure(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, HttpStatusCode.UNAUTHORIZED_401, OAUTH2_UNAUTHORIZED_MESSAGE)
-        );
+        policyChain.failWith(PolicyResult.failure(
+                GATEWAY_OAUTH2_ACCESS_DENIED_KEY, HttpStatusCode.UNAUTHORIZED_401, OAUTH2_UNAUTHORIZED_MESSAGE));
     }
 
     /**

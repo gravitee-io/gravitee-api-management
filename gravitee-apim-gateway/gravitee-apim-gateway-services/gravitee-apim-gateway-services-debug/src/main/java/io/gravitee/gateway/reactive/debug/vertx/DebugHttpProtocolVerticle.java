@@ -47,9 +47,8 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
     private final CompositeDisposable requestDisposables = new CompositeDisposable();
 
     public DebugHttpProtocolVerticle(
-        @Qualifier("debugServer") VertxHttpServer debugServer,
-        @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher
-    ) {
+            @Qualifier("debugServer") VertxHttpServer debugServer,
+            @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher) {
         this.debugServer = debugServer;
         this.requestDispatcher = requestDispatcher;
     }
@@ -64,23 +63,25 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
         // channelHandlerContext().channel() instead
         rxHttpServer.connectionHandler(connection -> {
             HttpServerConnection delegate = (HttpServerConnection) connection.getDelegate();
-            delegate
-                .channelHandlerContext()
-                .channel()
-                .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
-                .set(System.currentTimeMillis());
+            delegate.channelHandlerContext()
+                    .channel()
+                    .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
+                    .set(System.currentTimeMillis());
         });
 
-        rxHttpServer.requestHandler(request -> requestDisposables.add(dispatchRequest(request).subscribe()));
+        rxHttpServer.requestHandler(
+                request -> requestDisposables.add(dispatchRequest(request).subscribe()));
 
         return rxHttpServer
-            .rxListen()
-            .ignoreElement()
-            .doOnComplete(() ->
-                log.info("Debug HTTP server [{}] ready to accept requests on port {}", debugServer.id(), rxHttpServer.actualPort())
-            )
-            .doOnError(throwable -> log.error("Unable to start debug HTTP server [{}]", debugServer.id(), throwable.getCause()))
-            .doOnSubscribe(disposable -> log.info("Starting debug HTTP server..."));
+                .rxListen()
+                .ignoreElement()
+                .doOnComplete(() -> log.info(
+                        "Debug HTTP server [{}] ready to accept requests on port {}",
+                        debugServer.id(),
+                        rxHttpServer.actualPort()))
+                .doOnError(throwable ->
+                        log.error("Unable to start debug HTTP server [{}]", debugServer.id(), throwable.getCause()))
+                .doOnSubscribe(disposable -> log.info("Starting debug HTTP server..."));
     }
 
     /**
@@ -98,10 +99,10 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
      */
     private Completable dispatchRequest(HttpServerRequest request) {
         return requestDispatcher
-            .dispatch(request, debugServer.id())
-            .doOnComplete(() -> log.debug("Request properly dispatched"))
-            .onErrorResumeNext(t -> handleError(t, request.response()))
-            .doOnSubscribe(dispatchDisposable -> configureCloseHandler(request, dispatchDisposable));
+                .dispatch(request, debugServer.id())
+                .doOnComplete(() -> log.debug("Request properly dispatched"))
+                .onErrorResumeNext(t -> handleError(t, request.response()))
+                .doOnSubscribe(dispatchDisposable -> configureCloseHandler(request, dispatchDisposable));
     }
 
     /**
@@ -134,10 +135,9 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
                 }
 
                 // Try to end the response and complete normally in case of error.
-                return response
-                    .rxEnd()
-                    .doOnError(throwable -> log.warn("Failed to properly end response after error", throwable))
-                    .onErrorComplete();
+                return response.rxEnd()
+                        .doOnError(throwable -> log.warn("Failed to properly end response after error", throwable))
+                        .onErrorComplete();
             }
 
             return Completable.complete();
@@ -148,27 +148,21 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
     }
 
     private void configureCloseHandler(HttpServerRequest request, Disposable dispatchDisposable) {
-        request
-            .connection()
-            // Must be added to ensure closed connection disposes underlying subscription
-            .closeHandler(event -> dispatchDisposable.dispose());
+        request.connection()
+                // Must be added to ensure closed connection disposes underlying subscription
+                .closeHandler(event -> dispatchDisposable.dispose());
     }
 
     @Override
     public Completable rxStop() {
         return Completable.fromRunnable(requestDisposables::dispose)
-            .andThen(
-                debugServer
-                    .instances()
-                    .stream()
-                    .map(rxHttpServer ->
-                        rxHttpServer
-                            .rxClose()
-                            .doOnComplete(() -> log.info("Debug HTTP Server [{}] has been correctly stopped", debugServer.id()))
-                    )
-                    .findFirst()
-                    .orElse(Completable.complete())
-            )
-            .doOnSubscribe(disposable -> log.info("Stopping debug HTTP server..."));
+                .andThen(debugServer.instances().stream()
+                        .map(rxHttpServer -> rxHttpServer
+                                .rxClose()
+                                .doOnComplete(() -> log.info(
+                                        "Debug HTTP Server [{}] has been correctly stopped", debugServer.id())))
+                        .findFirst()
+                        .orElse(Completable.complete()))
+                .doOnSubscribe(disposable -> log.info("Stopping debug HTTP server..."));
     }
 }

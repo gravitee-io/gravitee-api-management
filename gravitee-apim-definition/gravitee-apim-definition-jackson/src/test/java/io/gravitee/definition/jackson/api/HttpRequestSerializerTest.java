@@ -38,14 +38,14 @@ public class HttpRequestSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         Assertions.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
+                objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+                objectMapper().readTree(generatedJsonDefinition.getBytes()));
     }
 
     @Test
     public void definition_defaultHttpRequestMultiValueHeaders() throws Exception {
-        HttpRequest request = load("/io/gravitee/definition/jackson/httprequest-multivalueheaders.json", HttpRequest.class);
+        HttpRequest request =
+                load("/io/gravitee/definition/jackson/httprequest-multivalueheaders.json", HttpRequest.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/httprequest-multivalueheaders-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(request);
@@ -55,8 +55,7 @@ public class HttpRequestSerializerTest extends AbstractTest {
         Assertions.assertTrue(generatedJsonDefinition.contains("[ \"deflate\", \"gzip\", \"compress\" ]"));
 
         Assertions.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
+                objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+                objectMapper().readTree(generatedJsonDefinition.getBytes()));
     }
 }

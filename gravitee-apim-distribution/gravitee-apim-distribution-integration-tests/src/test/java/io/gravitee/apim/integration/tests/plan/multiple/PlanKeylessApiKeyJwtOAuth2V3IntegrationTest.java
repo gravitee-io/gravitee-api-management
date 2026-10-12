@@ -32,11 +32,13 @@ public class PlanKeylessApiKeyJwtOAuth2V3IntegrationTest {
 
     @GatewayTest(v2ExecutionMode = V3)
     @Nested
-    public class SelectApiKeyTest extends PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest.AbstractSelectApiKeyTest {}
+    public class SelectApiKeyTest
+            extends PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest.AbstractSelectApiKeyTest {}
 
     @Nested
     @GatewayTest(v2ExecutionMode = V3)
-    public class SelectKeylessTest extends PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest.AbstractSelectKeylessTest {}
+    public class SelectKeylessTest
+            extends PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest.AbstractSelectKeylessTest {}
 
     @Nested
     @GatewayTest(v2ExecutionMode = V3)
@@ -48,7 +50,8 @@ public class PlanKeylessApiKeyJwtOAuth2V3IntegrationTest {
          * - in V3 its searches with api/clientId/plan
          */
         @Override
-        protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
+        protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(
+                String api, String clientId, String plan) {
             return when(getBean(SubscriptionService.class).getByApiAndClientIdAndPlan(api, clientId, plan));
         }
     }

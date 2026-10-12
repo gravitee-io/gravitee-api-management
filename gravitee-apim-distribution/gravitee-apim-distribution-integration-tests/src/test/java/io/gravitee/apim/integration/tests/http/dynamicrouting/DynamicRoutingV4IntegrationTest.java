@@ -54,45 +54,48 @@ class DynamicRoutingV4IntegrationTest extends AbstractGatewayTest {
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "dynamic-routing",
-            PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class)
-        );
+                "dynamic-routing",
+                PolicyBuilder.build(
+                        "dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class));
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Test
     @DisplayName("Should route correctly when endpoints reference and group capture produce double slash")
     @DeployApi("/apis/v4/http/dynamic-routing/api-endpoint-reference-with-group-capture.json")
-    void should_route_when_endpoint_reference_and_group_capture_produce_double_slash(HttpClient httpClient) throws InterruptedException {
+    void should_route_when_endpoint_reference_and_group_capture_produce_double_slash(HttpClient httpClient)
+            throws InterruptedException {
         // Pattern /plan(.*) on path /plan/hello captures group[0]=/hello
         // URL {#endpoints['default']}/{#group[0]} evaluates to default://hello
         // The path sent to backend is //hello (double slash from the / in template + / in capture)
         wiremock.stubFor(get("//hello").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/plan/hello")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("response from backend");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test/plan/hello")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("response from backend");
+                    return true;
+                })
+                .assertNoErrors();
 
         wiremock.verify(getRequestedFor(urlPathEqualTo("//hello")));
     }

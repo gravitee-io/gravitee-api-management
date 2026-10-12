@@ -42,7 +42,8 @@ public class AsyncJobCrudServiceImpl implements AsyncJobCrudService {
             var created = asyncJobRepository.create(AsyncJobAdapter.INSTANCE.toRepository(job));
             return AsyncJobAdapter.INSTANCE.toEntity(created);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Error when creating AsyncJob for integration: " + job.getSourceId(), e);
+            throw new TechnicalManagementException(
+                    "Error when creating AsyncJob for integration: " + job.getSourceId(), e);
         }
     }
 
@@ -50,9 +51,9 @@ public class AsyncJobCrudServiceImpl implements AsyncJobCrudService {
     public Optional<AsyncJob> findById(String id) {
         try {
             return asyncJobRepository
-                .findById(id)
-                .map(AsyncJobAdapter.INSTANCE::toEntity)
-                .map(job -> job.isLate() ? update(job.timeout()) : job);
+                    .findById(id)
+                    .map(AsyncJobAdapter.INSTANCE::toEntity)
+                    .map(job -> job.isLate() ? update(job.timeout()) : job);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find the AsyncJob: " + id, e);
         }

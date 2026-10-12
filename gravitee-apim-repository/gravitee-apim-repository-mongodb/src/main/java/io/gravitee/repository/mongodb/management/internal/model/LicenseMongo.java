@@ -18,7 +18,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import static org.springframework.data.mongodb.core.EncryptionAlgorithms.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic;
 
 import java.util.Date;
-import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

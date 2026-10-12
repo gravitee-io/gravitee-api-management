@@ -75,12 +75,10 @@ public class ReactableOrganization implements Reactable, Serializable {
 
         // Load policies from flows
         if (definition.getFlows() != null) {
-            definition
-                .getFlows()
-                .forEach(flow -> {
-                    policies.addAll(getPolicies(flow.getPre()));
-                    policies.addAll(getPolicies(flow.getPost()));
-                });
+            definition.getFlows().forEach(flow -> {
+                policies.addAll(getPolicies(flow.getPre()));
+                policies.addAll(getPolicies(flow.getPost()));
+            });
         }
 
         return policies;
@@ -91,15 +89,14 @@ public class ReactableOrganization implements Reactable, Serializable {
             return Collections.emptyList();
         }
 
-        return flowStep
-            .stream()
-            .map(step -> {
-                Policy policy = new Policy();
-                policy.setName(step.getPolicy());
-                policy.setConfiguration(step.getConfiguration());
-                return policy;
-            })
-            .toList();
+        return flowStep.stream()
+                .map(step -> {
+                    Policy policy = new Policy();
+                    policy.setName(step.getPolicy());
+                    policy.setConfiguration(step.getConfiguration());
+                    return policy;
+                })
+                .toList();
     }
 
     @JsonIgnore

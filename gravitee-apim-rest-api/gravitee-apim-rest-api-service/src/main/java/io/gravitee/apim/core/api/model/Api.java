@@ -270,28 +270,25 @@ public class Api {
     public Api rollbackTo(io.gravitee.definition.model.v4.Api source) {
         if (apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api currentDefinition) {
             return toBuilder()
-                .name(source.getName())
-                .version(source.getApiVersion())
-                .apiDefinitionValue(
-                    currentDefinition
-                        .toBuilder()
-                        .tags(source.getTags())
-                        .listeners(source.getListeners())
-                        .endpointGroups(source.getEndpointGroups())
-                        .analytics(source.getAnalytics())
-                        .properties(source.getProperties())
-                        .resources(source.getResources())
-                        .failover(source.getFailover())
-                        .flowExecution(source.getFlowExecution())
-                        .flows(source.getFlows())
-                        .responseTemplates(source.getResponseTemplates())
-                        .services(source.getServices())
-                        // Ignore plans from definition for API rollback
-                        .plans(null)
-                        .build()
-                )
-                .build()
-                .setTags(source.getTags());
+                    .name(source.getName())
+                    .version(source.getApiVersion())
+                    .apiDefinitionValue(currentDefinition.toBuilder()
+                            .tags(source.getTags())
+                            .listeners(source.getListeners())
+                            .endpointGroups(source.getEndpointGroups())
+                            .analytics(source.getAnalytics())
+                            .properties(source.getProperties())
+                            .resources(source.getResources())
+                            .failover(source.getFailover())
+                            .flowExecution(source.getFlowExecution())
+                            .flows(source.getFlows())
+                            .responseTemplates(source.getResponseTemplates())
+                            .services(source.getServices())
+                            // Ignore plans from definition for API rollback
+                            .plans(null)
+                            .build())
+                    .build()
+                    .setTags(source.getTags());
         } else {
             return this;
         }
@@ -304,25 +301,22 @@ public class Api {
     public Api rollbackTo(NativeApi source) {
         if (apiDefinitionValue instanceof NativeApi currentDefinition) {
             return toBuilder()
-                .name(source.getName())
-                .version(source.getApiVersion())
-                .apiDefinitionValue(
-                    currentDefinition
-                        .toBuilder()
-                        .tags(source.getTags())
-                        .listeners(source.getListeners())
-                        .endpointGroups(source.getEndpointGroups())
-                        .analytics(source.getAnalytics())
-                        .properties(source.getProperties())
-                        .resources(source.getResources())
-                        .flows(source.getFlows())
-                        .services(source.getServices())
-                        // Ignore plans from definition for API rollback
-                        .plans(null)
-                        .build()
-                )
-                .build()
-                .setTags(source.getTags());
+                    .name(source.getName())
+                    .version(source.getApiVersion())
+                    .apiDefinitionValue(currentDefinition.toBuilder()
+                            .tags(source.getTags())
+                            .listeners(source.getListeners())
+                            .endpointGroups(source.getEndpointGroups())
+                            .analytics(source.getAnalytics())
+                            .properties(source.getProperties())
+                            .resources(source.getResources())
+                            .flows(source.getFlows())
+                            .services(source.getServices())
+                            // Ignore plans from definition for API rollback
+                            .plans(null)
+                            .build())
+                    .build()
+                    .setTags(source.getTags());
         } else {
             return this;
         }

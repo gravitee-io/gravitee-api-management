@@ -22,9 +22,8 @@ public class ApiPropertyEncryptedToPlainException extends ValidationDomainExcept
 
     public ApiPropertyEncryptedToPlainException(String propertyKey) {
         super(
-            "Property [" + propertyKey + "] is encrypted and cannot be made plain again. Renew its value instead.",
-            Map.of("property", propertyKey),
-            "api.property.encryptedToPlain"
-        );
+                "Property [" + propertyKey + "] is encrypted and cannot be made plain again. Renew its value instead.",
+                Map.of("property", propertyKey),
+                "api.property.encryptedToPlain");
     }
 }

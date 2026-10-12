@@ -25,11 +25,11 @@ public class EnvironmentIdDefinitionVersionNameIndexUpgrader extends IndexUpgrad
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("apis")
-            .name("ei1dv1n1")
-            .key("environmentId", ascending())
-            .key("definitionVersion", ascending())
-            .key("name", ascending())
-            .build();
+                .collection("apis")
+                .name("ei1dv1n1")
+                .key("environmentId", ascending())
+                .key("definitionVersion", ascending())
+                .key("name", ascending())
+                .build();
     }
 }

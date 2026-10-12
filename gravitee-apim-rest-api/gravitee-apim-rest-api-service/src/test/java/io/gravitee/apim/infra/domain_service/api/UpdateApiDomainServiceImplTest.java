@@ -75,11 +75,11 @@ class UpdateApiDomainServiceImplTest {
 
     private void stubValidate(Consumer<UpdateApiEntity> mutator) {
         doAnswer(inv -> {
-            mutator.accept(inv.getArgument(2));
-            return null;
-        })
-            .when(delegate)
-            .validate(any(), any(), any(), any());
+                    mutator.accept(inv.getArgument(2));
+                    return null;
+                })
+                .when(delegate)
+                .validate(any(), any(), any(), any());
     }
 
     @Test
@@ -94,7 +94,9 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_return_sanitized_groups_from_mutated_update_api_entity() {
-        var api = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(Set.of("requested-group"))).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .groups(new HashSet<>(Set.of("requested-group")))
+                .build();
         stubValidate(entity -> entity.setGroups(Set.of("filtered-group")));
 
         var result = cut.validateV4(api, auditInfo);
@@ -104,7 +106,9 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_return_sanitized_lifecycle_state() {
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiLifecycleState(Api.ApiLifecycleState.CREATED).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+                .build();
         stubValidate(entity -> entity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
 
         var result = cut.validateV4(api, auditInfo);
@@ -160,7 +164,9 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_preserve_original_groups_when_validator_returns_null() {
-        var api = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(Set.of("group-1"))).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .groups(new HashSet<>(Set.of("group-1")))
+                .build();
         var originalGroups = api.getGroups();
         stubValidate(entity -> entity.setGroups(null));
 
@@ -171,7 +177,9 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_preserve_lifecycle_state_when_validator_does_not_set_one() {
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
         stubValidate(entity -> entity.setLifecycleState(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -238,8 +246,12 @@ class UpdateApiDomainServiceImplTest {
     @Test
     void should_preserve_original_flows_when_validator_returns_null() {
         var originalFlows = List.of(new Flow());
-        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().flows(originalFlows).build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .flows(originalFlows)
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(originalDefinition)
+                .build();
         stubValidate(entity -> entity.setFlows(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -250,8 +262,12 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_return_null_flows_when_erased_definition_has_null_flows() {
-        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().flows(null).build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
+        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .flows(null)
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(erasedDefinition)
+                .build();
         stubValidate(entity -> entity.setFlows(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -263,7 +279,12 @@ class UpdateApiDomainServiceImplTest {
     @Test
     void should_return_sanitized_resources_from_mutated_update_api_entity() {
         var api = ApiFixtures.aProxyApiV4();
-        var sanitizedResources = List.of(Resource.builder().name("r1").type("cache").configuration("{\"ttl\":300}").enabled(true).build());
+        var sanitizedResources = List.of(Resource.builder()
+                .name("r1")
+                .type("cache")
+                .configuration("{\"ttl\":300}")
+                .enabled(true)
+                .build());
         stubValidate(entity -> entity.setResources(sanitizedResources));
 
         var result = cut.validateV4(api, auditInfo);
@@ -273,13 +294,18 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_preserve_original_resources_when_validator_returns_null() {
-        var existingResource = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
-        var originalDefinition = ApiFixtures.aProxyApiV4()
-            .getApiDefinitionHttpV4()
-            .toBuilder()
-            .resources(List.of(existingResource))
-            .build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        var existingResource = Resource.builder()
+                .name("r1")
+                .type("cache")
+                .configuration("{}")
+                .enabled(true)
+                .build();
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .resources(List.of(existingResource))
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(originalDefinition)
+                .build();
         stubValidate(entity -> entity.setResources(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -290,14 +316,16 @@ class UpdateApiDomainServiceImplTest {
     @Test
     void should_return_sanitized_endpoint_groups_from_mutated_update_api_entity() {
         var api = ApiFixtures.aProxyApiV4();
-        var sanitizedGroups = List.of(
-            EndpointGroup.builder()
+        var sanitizedGroups = List.of(EndpointGroup.builder()
                 .name("sanitized-group")
                 .type("http-proxy")
                 .sharedConfiguration("{}")
-                .endpoints(List.of(Endpoint.builder().name("ep").type("http-proxy").weight(1).build()))
-                .build()
-        );
+                .endpoints(List.of(Endpoint.builder()
+                        .name("ep")
+                        .type("http-proxy")
+                        .weight(1)
+                        .build()))
+                .build());
         stubValidate(entity -> entity.setEndpointGroups(sanitizedGroups));
 
         var result = cut.validateV4(api, auditInfo);
@@ -308,16 +336,22 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_preserve_original_endpoint_groups_when_validator_returns_null() {
-        var originalGroups = List.of(
-            EndpointGroup.builder()
+        var originalGroups = List.of(EndpointGroup.builder()
                 .name("original-group")
                 .type("http-proxy")
                 .sharedConfiguration("{}")
-                .endpoints(List.of(Endpoint.builder().name("ep").type("http-proxy").weight(1).build()))
-                .build()
-        );
-        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().endpointGroups(originalGroups).build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+                .endpoints(List.of(Endpoint.builder()
+                        .name("ep")
+                        .type("http-proxy")
+                        .weight(1)
+                        .build()))
+                .build());
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .endpointGroups(originalGroups)
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(originalDefinition)
+                .build();
         stubValidate(entity -> entity.setEndpointGroups(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -328,8 +362,12 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_return_null_endpoint_groups_when_erased_definition_has_null_endpoint_groups() {
-        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().endpointGroups(null).build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
+        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .endpointGroups(null)
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(erasedDefinition)
+                .build();
         stubValidate(entity -> entity.setEndpointGroups(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -340,8 +378,12 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_preserve_original_allowed_in_api_products_when_validator_returns_null() {
-        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(true).build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .allowedInApiProducts(true)
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(originalDefinition)
+                .build();
         stubValidate(entity -> entity.setAllowedInApiProducts(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -358,12 +400,12 @@ class UpdateApiDomainServiceImplTest {
         var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getProperties())
-            .hasSize(1)
-            .first()
-            .satisfies(p -> {
-                assertThat(p.getKey()).isEqualTo("k1");
-                assertThat(p.getValue()).isEqualTo("v1");
-            });
+                .hasSize(1)
+                .first()
+                .satisfies(p -> {
+                    assertThat(p.getKey()).isEqualTo("k1");
+                    assertThat(p.getValue()).isEqualTo("v1");
+                });
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
@@ -372,12 +414,12 @@ class UpdateApiDomainServiceImplTest {
         var existingProperty = new Property();
         existingProperty.setKey("k1");
         existingProperty.setValue("v1");
-        var originalDefinition = ApiFixtures.aProxyApiV4()
-            .getApiDefinitionHttpV4()
-            .toBuilder()
-            .properties(List.of(existingProperty))
-            .build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .properties(List.of(existingProperty))
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(originalDefinition)
+                .build();
         var originalProperties = api.getApiDefinitionHttpV4().getProperties();
         stubValidate(entity -> entity.setProperties(null));
 
@@ -389,8 +431,12 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_return_null_properties_when_erased_definition_has_null_properties() {
-        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().properties(null).build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
+        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .properties(null)
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(erasedDefinition)
+                .build();
         stubValidate(entity -> entity.setProperties(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -407,12 +453,12 @@ class UpdateApiDomainServiceImplTest {
         var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getProperties())
-            .hasSize(1)
-            .first()
-            .satisfies(p -> {
-                assertThat(p.isEncrypted()).isTrue();
-                assertThat(p.isDynamic()).isTrue();
-            });
+                .hasSize(1)
+                .first()
+                .satisfies(p -> {
+                    assertThat(p.isEncrypted()).isTrue();
+                    assertThat(p.isDynamic()).isTrue();
+                });
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
@@ -423,22 +469,28 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getProperties()).hasSize(1).first().isNotInstanceOf(PropertyEntity.class);
+        assertThat(result.getApiDefinitionHttpV4().getProperties())
+                .hasSize(1)
+                .first()
+                .isNotInstanceOf(PropertyEntity.class);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
     void should_preserve_original_listeners_when_validator_returns_null() {
         var existingListener = HttpListener.builder()
-            .paths(List.of(Path.builder().path("/original").build()))
-            .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-            .build();
-        var originalDefinition = ApiFixtures.aProxyApiV4()
-            .getApiDefinitionHttpV4()
-            .toBuilder()
-            .listeners(List.of(existingListener))
-            .build();
-        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+                .paths(List.of(Path.builder().path("/original").build()))
+                .entrypoints(List.of(Entrypoint.builder()
+                        .type("http-proxy")
+                        .configuration("{}")
+                        .build()))
+                .build();
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder()
+                .listeners(List.of(existingListener))
+                .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(originalDefinition)
+                .build();
         stubValidate(entity -> entity.setListeners(null));
 
         var result = cut.validateV4(api, auditInfo);
@@ -449,12 +501,13 @@ class UpdateApiDomainServiceImplTest {
     @Test
     void should_return_sanitized_listeners_from_mutated_update_api_entity() {
         var api = ApiFixtures.aProxyApiV4();
-        List<Listener> sanitizedListeners = List.of(
-            HttpListener.builder()
+        List<Listener> sanitizedListeners = List.of(HttpListener.builder()
                 .paths(List.of(Path.builder().path("/sanitized").build()))
-                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                .build()
-        );
+                .entrypoints(List.of(Entrypoint.builder()
+                        .type("http-proxy")
+                        .configuration("{}")
+                        .build()))
+                .build());
         stubValidate(entity -> entity.setListeners(sanitizedListeners));
 
         var result = cut.validateV4(api, auditInfo);

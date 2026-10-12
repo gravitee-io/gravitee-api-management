@@ -40,62 +40,59 @@ public class SearchMetricsResponseAdapter {
         }
 
         return new LogResponse<>(
-            (int) hits.getTotal().getValue(),
-            hits
-                .getHits()
-                .stream()
-                .map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()))
-                .toList()
-        );
+                (int) hits.getTotal().getValue(),
+                hits.getHits().stream()
+                        .map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()))
+                        .toList());
     }
 
     private static Metrics buildFromSource(String index, String id, JsonNode json) {
         var metrics = Metrics.builder()
-            .timestamp(asTextOrNull(json.get(RequestV2MetricsV4Fields.TIMESTAMP)))
-            .status(asIntOr(json.get(RequestV2MetricsV4Fields.STATUS), 0))
-            .gateway(asTextOrNull(json.get(RequestV2MetricsV4Fields.GATEWAY)))
-            .uri(asTextOrNull(json.get(RequestV2MetricsV4Fields.URI)))
-            .requestContentLength(asIntOr(json.get(RequestV2MetricsV4Fields.REQUEST_CONTENT_LENGTH), 0))
-            .responseContentLength(asIntOr(json.get(RequestV2MetricsV4Fields.RESPONSE_CONTENT_LENGTH), 0))
-            .errorKey(asTextOrNull(json.get(ERROR_KEY)))
-            .errorComponentName(asTextOrNull(json.get(ERROR_COMPONENT_NAME)))
-            .errorComponentType(asTextOrNull(json.get(ERROR_COMPONENT_TYPE)))
-            .additionalMetrics(asMapOrNull(json.get(ADDITIONAL_METRICS)));
+                .timestamp(asTextOrNull(json.get(RequestV2MetricsV4Fields.TIMESTAMP)))
+                .status(asIntOr(json.get(RequestV2MetricsV4Fields.STATUS), 0))
+                .gateway(asTextOrNull(json.get(RequestV2MetricsV4Fields.GATEWAY)))
+                .uri(asTextOrNull(json.get(RequestV2MetricsV4Fields.URI)))
+                .requestContentLength(asIntOr(json.get(RequestV2MetricsV4Fields.REQUEST_CONTENT_LENGTH), 0))
+                .responseContentLength(asIntOr(json.get(RequestV2MetricsV4Fields.RESPONSE_CONTENT_LENGTH), 0))
+                .errorKey(asTextOrNull(json.get(ERROR_KEY)))
+                .errorComponentName(asTextOrNull(json.get(ERROR_COMPONENT_NAME)))
+                .errorComponentType(asTextOrNull(json.get(ERROR_COMPONENT_TYPE)))
+                .additionalMetrics(asMapOrNull(json.get(ADDITIONAL_METRICS)));
 
         if (index.contains(Type.REQUEST.getType())) {
-            return metrics
-                .requestId(id)
-                .applicationId(asTextOrNull(json.get(RequestV2MetricsV4Fields.APPLICATION_ID.v2Request())))
-                .apiId(asTextOrNull(json.get(RequestV2MetricsV4Fields.API_ID.v2Request())))
-                .planId(asTextOrNull(json.get(RequestV2MetricsV4Fields.PLAN_ID.v2Request())))
-                .clientIdentifier(asTextOrNull(json.get(RequestV2MetricsV4Fields.CLIENT_IDENTIFIER.v2Request())))
-                .transactionId(asTextOrNull(json.get(RequestV2MetricsV4Fields.TRANSACTION_ID.v2Request())))
-                .method(HttpMethod.get(asIntOr(json.get(RequestV2MetricsV4Fields.HTTP_METHOD.v2Request()), 0)))
-                .requestEnded(true)
-                .entrypointId(null)
-                .gatewayResponseTime(asIntOr(json.get(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v2Request()), 0))
-                .message(asTextOrNull(json.get(RequestV2MetricsV4Fields.MESSAGE.v2Request())))
-                .warnings(buildWarnings(json.get("warnings")))
-                .build();
+            return metrics.requestId(id)
+                    .applicationId(asTextOrNull(json.get(RequestV2MetricsV4Fields.APPLICATION_ID.v2Request())))
+                    .apiId(asTextOrNull(json.get(RequestV2MetricsV4Fields.API_ID.v2Request())))
+                    .planId(asTextOrNull(json.get(RequestV2MetricsV4Fields.PLAN_ID.v2Request())))
+                    .clientIdentifier(asTextOrNull(json.get(RequestV2MetricsV4Fields.CLIENT_IDENTIFIER.v2Request())))
+                    .transactionId(asTextOrNull(json.get(RequestV2MetricsV4Fields.TRANSACTION_ID.v2Request())))
+                    .method(HttpMethod.get(asIntOr(json.get(RequestV2MetricsV4Fields.HTTP_METHOD.v2Request()), 0)))
+                    .requestEnded(true)
+                    .entrypointId(null)
+                    .gatewayResponseTime(
+                            asIntOr(json.get(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v2Request()), 0))
+                    .message(asTextOrNull(json.get(RequestV2MetricsV4Fields.MESSAGE.v2Request())))
+                    .warnings(buildWarnings(json.get("warnings")))
+                    .build();
         }
-        return metrics
-            .requestId(json.get(RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics()).asText())
-            .applicationId(asTextOrNull(json.get(RequestV2MetricsV4Fields.APPLICATION_ID.v4Metrics())))
-            .apiId(asTextOrNull(json.get(RequestV2MetricsV4Fields.API_ID.v4Metrics())))
-            .planId(asTextOrNull(json.get(RequestV2MetricsV4Fields.PLAN_ID.v4Metrics())))
-            .clientIdentifier(asTextOrNull(json.get(RequestV2MetricsV4Fields.CLIENT_IDENTIFIER.v4Metrics())))
-            .transactionId(asTextOrNull(json.get(RequestV2MetricsV4Fields.TRANSACTION_ID.v4Metrics())))
-            .method(HttpMethod.get(asIntOr(json.get(RequestV2MetricsV4Fields.HTTP_METHOD.v4Metrics()), 0)))
-            .requestEnded(asBooleanOrFalse(json.get(RequestV2MetricsV4Fields.REQUEST_ENDED.v4Metrics())))
-            .entrypointId(asTextOrNull(json.get(RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics())))
-            .gatewayResponseTime(asIntOr(json.get(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v4Metrics()), 0))
-            .endpoint(asTextOrNull(json.get(RequestV2MetricsV4Fields.ENDPOINT.v4Metrics())))
-            .message(asTextOrNull(json.get(RequestV2MetricsV4Fields.MESSAGE.v4Metrics())))
-            .warnings(buildWarnings(json.get(WARNINGS)))
-            .apiProductId(asTextOrNull(json.get(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())))
-            .host(asTextOrNull(json.get(HOST)))
-            .subscriptionId(asTextOrNull(json.get(SUBSCRIPTION_ID)))
-            .build();
+        return metrics.requestId(json.get(RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics())
+                        .asText())
+                .applicationId(asTextOrNull(json.get(RequestV2MetricsV4Fields.APPLICATION_ID.v4Metrics())))
+                .apiId(asTextOrNull(json.get(RequestV2MetricsV4Fields.API_ID.v4Metrics())))
+                .planId(asTextOrNull(json.get(RequestV2MetricsV4Fields.PLAN_ID.v4Metrics())))
+                .clientIdentifier(asTextOrNull(json.get(RequestV2MetricsV4Fields.CLIENT_IDENTIFIER.v4Metrics())))
+                .transactionId(asTextOrNull(json.get(RequestV2MetricsV4Fields.TRANSACTION_ID.v4Metrics())))
+                .method(HttpMethod.get(asIntOr(json.get(RequestV2MetricsV4Fields.HTTP_METHOD.v4Metrics()), 0)))
+                .requestEnded(asBooleanOrFalse(json.get(RequestV2MetricsV4Fields.REQUEST_ENDED.v4Metrics())))
+                .entrypointId(asTextOrNull(json.get(RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics())))
+                .gatewayResponseTime(asIntOr(json.get(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v4Metrics()), 0))
+                .endpoint(asTextOrNull(json.get(RequestV2MetricsV4Fields.ENDPOINT.v4Metrics())))
+                .message(asTextOrNull(json.get(RequestV2MetricsV4Fields.MESSAGE.v4Metrics())))
+                .warnings(buildWarnings(json.get(WARNINGS)))
+                .apiProductId(asTextOrNull(json.get(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())))
+                .host(asTextOrNull(json.get(HOST)))
+                .subscriptionId(asTextOrNull(json.get(SUBSCRIPTION_ID)))
+                .build();
     }
 
     private static List<ConnectionDiagnostic> buildWarnings(JsonNode json) {
@@ -103,9 +100,9 @@ public class SearchMetricsResponseAdapter {
             return null;
         }
         return StreamSupport.stream(json.spliterator(), false)
-            .map(SearchMetricsResponseAdapter::buildDiagnostic)
-            .filter(Objects::nonNull)
-            .toList();
+                .map(SearchMetricsResponseAdapter::buildDiagnostic)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private static ConnectionDiagnostic buildDiagnostic(JsonNode json) {
@@ -113,10 +110,10 @@ public class SearchMetricsResponseAdapter {
             return null;
         }
         return ConnectionDiagnostic.builder()
-            .componentType(asTextOrNull(json.get("component-type")))
-            .componentName(asTextOrNull(json.get("component-name")))
-            .key(asTextOrNull(json.get("key")))
-            .message(asTextOrNull(json.get("message")))
-            .build();
+                .componentType(asTextOrNull(json.get("component-type")))
+                .componentName(asTextOrNull(json.get("component-name")))
+                .key(asTextOrNull(json.get("key")))
+                .message(asTextOrNull(json.get("message")))
+                .build();
     }
 }

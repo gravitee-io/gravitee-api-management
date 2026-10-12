@@ -59,7 +59,7 @@ public class RequestPathHandlingCorpusBenchmark {
     private static final int TRAVERSAL_PERCENTAGE = 5;
     private static final long SEED = 20260814L;
 
-    @Param({ "RAW", "REJECT", "NORMALIZE" })
+    @Param({"RAW", "REJECT", "NORMALIZE"})
     public String mode;
 
     private RequestPathHandling handling;
@@ -68,7 +68,9 @@ public class RequestPathHandlingCorpusBenchmark {
 
     // Run directly from the IDE.
     public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder().include(RequestPathHandlingCorpusBenchmark.class.getSimpleName()).build();
+        Options opt = new OptionsBuilder()
+                .include(RequestPathHandlingCorpusBenchmark.class.getSimpleName())
+                .build();
         new Runner(opt).run();
     }
 
@@ -92,8 +94,8 @@ public class RequestPathHandlingCorpusBenchmark {
 
             if (random.nextInt(100) < TRAVERSAL_PERCENTAGE) {
                 paths[i] = random.nextBoolean()
-                    ? "/v1/customers/" + customer + "/../../../admin/orders/" + order
-                    : "/v1/customers/" + customer + "/%2e%2e/%2e%2e/admin/orders/" + order;
+                        ? "/v1/customers/" + customer + "/../../../admin/orders/" + order
+                        : "/v1/customers/" + customer + "/%2e%2e/%2e%2e/admin/orders/" + order;
             } else {
                 paths[i] = "/v1/customers/" + customer + "/orders/" + order + "/details";
             }

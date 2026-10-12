@@ -21,7 +21,6 @@ import io.gravitee.gamma.rest.core.observability.dashboard.model.VersionPrecondi
 import io.gravitee.gamma.rest.core.observability.dashboard.use_case.DeleteObservabilityDashboardUseCase;
 import io.gravitee.gamma.rest.core.observability.dashboard.use_case.GetObservabilityDashboardUseCase;
 import io.gravitee.gamma.rest.core.observability.dashboard.use_case.UpdateObservabilityDashboardUseCase;
-import io.gravitee.gamma.rest.resources.observability.dashboards.dto.DashboardDto;
 import io.gravitee.gamma.rest.resources.observability.dashboards.dto.SaveDashboardRequestDto;
 import io.gravitee.rest.api.management.rest.model.ErrorEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -100,33 +99,49 @@ public class ObservabilityDashboardResource {
     private DeleteObservabilityDashboardUseCase deleteDashboardUseCase;
 
     @GET
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.READ})
+    })
     public Response get(@PathParam("dashboardId") String dashboardId, @QueryParam("module") String module) {
         var ctx = GraviteeContext.getExecutionContext();
-        var output = getDashboardUseCase.execute(new GetObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), dashboardId, module));
+        var output = getDashboardUseCase.execute(
+                new GetObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), dashboardId, module));
         return DashboardEntityTag.withETag(Response.ok(), output.dashboard()).build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.UPDATE }) })
-    public Response update(@PathParam("dashboardId") String dashboardId, @Context HttpHeaders headers, SaveDashboardRequestDto request) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.UPDATE})
+    })
+    public Response update(
+            @PathParam("dashboardId") String dashboardId,
+            @Context HttpHeaders headers,
+            SaveDashboardRequestDto request) {
         if (request == null) {
             throw new InvalidDashboardException("Request body is required");
         }
         VersionPrecondition precondition = requiredVersionPrecondition(headers.getRequestHeader(HttpHeaders.IF_MATCH));
         var ctx = GraviteeContext.getExecutionContext();
-        var output = updateDashboardUseCase.execute(
-            new UpdateObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), dashboardId, precondition, request.toContent())
-        );
+        var output = updateDashboardUseCase.execute(new UpdateObservabilityDashboardUseCase.Input(
+                ctx.getEnvironmentId(), dashboardId, precondition, request.toContent()));
         return DashboardEntityTag.withETag(Response.ok(), output.dashboard()).build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DASHBOARD,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response delete(@PathParam("dashboardId") String dashboardId) {
         var ctx = GraviteeContext.getExecutionContext();
-        deleteDashboardUseCase.execute(new DeleteObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), dashboardId));
+        deleteDashboardUseCase.execute(
+                new DeleteObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), dashboardId));
         return Response.noContent().build();
     }
 
@@ -143,27 +158,21 @@ public class ObservabilityDashboardResource {
      */
     private static VersionPrecondition requiredVersionPrecondition(List<String> ifMatch) {
         List<String> validators = ifMatch == null
-            ? List.of()
-            : ifMatch
-                .stream()
-                .filter(Objects::nonNull)
-                .flatMap(value -> Arrays.stream(value.split(",")))
-                .map(String::trim)
-                .filter(validator -> !validator.isEmpty())
-                .toList();
+                ? List.of()
+                : ifMatch.stream()
+                        .filter(Objects::nonNull)
+                        .flatMap(value -> Arrays.stream(value.split(",")))
+                        .map(String::trim)
+                        .filter(validator -> !validator.isEmpty())
+                        .toList();
 
         if (validators.isEmpty()) {
-            throw new WebApplicationException(
-                Response.status(PRECONDITION_REQUIRED_428)
+            throw new WebApplicationException(Response.status(PRECONDITION_REQUIRED_428)
                     .type(MediaType.APPLICATION_JSON)
-                    .entity(
-                        new ErrorEntity(
+                    .entity(new ErrorEntity(
                             "If-Match is required on a dashboard update: send back the ETag you received, or `*` to overwrite whatever revision is current",
-                            PRECONDITION_REQUIRED_428
-                        )
-                    )
-                    .build()
-            );
+                            PRECONDITION_REQUIRED_428))
+                    .build());
         }
         if (validators.contains(WILDCARD_VALIDATOR)) {
             if (validators.size() > 1) {
@@ -173,7 +182,9 @@ public class ObservabilityDashboardResource {
             }
             return VersionPrecondition.anyVersion();
         }
-        return VersionPrecondition.oneOf(validators.stream().map(ObservabilityDashboardResource::parseVersion).collect(Collectors.toSet()));
+        return VersionPrecondition.oneOf(validators.stream()
+                .map(ObservabilityDashboardResource::parseVersion)
+                .collect(Collectors.toSet()));
     }
 
     private static int parseVersion(String validator) {
@@ -184,7 +195,8 @@ public class ObservabilityDashboardResource {
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            throw new InvalidDashboardException("If-Match '%s' is not a dashboard ETag issued by this API".formatted(validator));
+            throw new InvalidDashboardException(
+                    "If-Match '%s' is not a dashboard ETag issued by this API".formatted(validator));
         }
     }
 }

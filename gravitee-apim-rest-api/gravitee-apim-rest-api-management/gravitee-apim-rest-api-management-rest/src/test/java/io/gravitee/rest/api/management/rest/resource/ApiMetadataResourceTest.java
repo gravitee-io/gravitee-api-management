@@ -66,14 +66,20 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
 
         ApiMetadataEntity createdMetadata = new ApiMetadataEntity();
         createdMetadata.setKey("my-metadata-id");
-        when(apiMetadataService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdMetadata);
+        when(apiMetadataService.create(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(createdMetadata);
 
-        final Response response = envTarget().path(API).path("metadata").request().post(Entity.json(newMetadata));
+        final Response response =
+                envTarget().path(API).path("metadata").request().post(Entity.json(newMetadata));
         assertEquals(CREATED_201, response.getStatus());
         assertEquals(
-            envTarget().path(API).path("metadata").path("my-metadata-id").getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
+                envTarget()
+                        .path(API)
+                        .path("metadata")
+                        .path("my-metadata-id")
+                        .getUri()
+                        .toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
@@ -81,7 +87,8 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
     public void shouldDeleteMetadata() {
         String metadata = "my-metadata";
 
-        Response response = envTarget().path(API).path("metadata").path(metadata).request().delete();
+        Response response =
+                envTarget().path(API).path("metadata").path(metadata).request().delete();
         assertEquals(NO_CONTENT_204, response.getStatus());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }

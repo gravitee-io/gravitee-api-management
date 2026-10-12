@@ -25,7 +25,8 @@ class UpsertResultTest {
 
     @Test
     void should_report_severe_when_any_issue_is_severe() {
-        var result = new UpsertResult<>("view", List.of(AutomationIssue.warning("minor"), AutomationIssue.severe("blocking")));
+        var result = new UpsertResult<>(
+                "view", List.of(AutomationIssue.warning("minor"), AutomationIssue.severe("blocking")));
 
         assertThat(result.hasSevere()).isTrue();
     }

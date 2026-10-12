@@ -71,23 +71,22 @@ class MembershipDomainServiceLegacyWrapperTest {
 
         @Test
         void should_delegate_to_legacy_service() {
-            when(
-                membershipService.getUserMemberPermissions(
-                    EXECUTION_CONTEXT,
-                    io.gravitee.rest.api.model.MembershipReferenceType.API,
-                    "api-id",
-                    USER_ID
-                )
-            ).thenReturn(null);
+            when(membershipService.getUserMemberPermissions(
+                            EXECUTION_CONTEXT,
+                            io.gravitee.rest.api.model.MembershipReferenceType.API,
+                            "api-id",
+                            USER_ID))
+                    .thenReturn(null);
 
-            cut.getUserMemberPermissions(EXECUTION_CONTEXT, io.gravitee.rest.api.model.MembershipReferenceType.API, "api-id", USER_ID);
+            cut.getUserMemberPermissions(
+                    EXECUTION_CONTEXT, io.gravitee.rest.api.model.MembershipReferenceType.API, "api-id", USER_ID);
 
-            verify(membershipService).getUserMemberPermissions(
-                EXECUTION_CONTEXT,
-                io.gravitee.rest.api.model.MembershipReferenceType.API,
-                "api-id",
-                USER_ID
-            );
+            verify(membershipService)
+                    .getUserMemberPermissions(
+                            EXECUTION_CONTEXT,
+                            io.gravitee.rest.api.model.MembershipReferenceType.API,
+                            "api-id",
+                            USER_ID);
         }
     }
 
@@ -97,18 +96,17 @@ class MembershipDomainServiceLegacyWrapperTest {
         @Test
         void should_delegate_to_legacy_service_with_mapped_reference_type() {
             var memberEntity = new MemberEntity();
-            when(
-                membershipService.createNewMembership(
-                    EXECUTION_CONTEXT,
-                    io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
-                    "app-id",
-                    USER_ID,
-                    null,
-                    "USER"
-                )
-            ).thenReturn(memberEntity);
+            when(membershipService.createNewMembership(
+                            EXECUTION_CONTEXT,
+                            io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
+                            "app-id",
+                            USER_ID,
+                            null,
+                            "USER"))
+                    .thenReturn(memberEntity);
 
-            var result = cut.createNewMembership(EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, "app-id", USER_ID, null, "USER");
+            var result = cut.createNewMembership(
+                    EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, "app-id", USER_ID, null, "USER");
 
             assertThat(result).isSameAs(memberEntity);
         }
@@ -124,24 +122,27 @@ class MembershipDomainServiceLegacyWrapperTest {
 
             cut.addGroupMemberships(EXECUTION_CONTEXT, GROUP_ID, USER_ID, "API_USER", "APP_USER");
 
-            verify(membershipService).addRoleToMemberOnReference(
-                EXECUTION_CONTEXT,
-                new MembershipService.MembershipReference(io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
-                new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "API_USER")
-            );
-            verify(membershipService).addRoleToMemberOnReference(
-                EXECUTION_CONTEXT,
-                new MembershipService.MembershipReference(io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
-                new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_USER")
-            );
-            verify(membershipService).addRoleToMemberOnReference(
-                EXECUTION_CONTEXT,
-                new MembershipService.MembershipReference(io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
-                new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.GROUP, "MEMBER")
-            );
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            EXECUTION_CONTEXT,
+                            new MembershipService.MembershipReference(
+                                    io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
+                            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.API, "API_USER"));
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            EXECUTION_CONTEXT,
+                            new MembershipService.MembershipReference(
+                                    io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
+                            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_USER"));
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            EXECUTION_CONTEXT,
+                            new MembershipService.MembershipReference(
+                                    io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
+                            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.GROUP, "MEMBER"));
         }
 
         @Test
@@ -150,18 +151,20 @@ class MembershipDomainServiceLegacyWrapperTest {
 
             cut.addGroupMemberships(EXECUTION_CONTEXT, GROUP_ID, USER_ID, "API_USER", "APP_USER");
 
-            verify(membershipService).addRoleToMemberOnReference(
-                EXECUTION_CONTEXT,
-                new MembershipService.MembershipReference(io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
-                new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "API_USER")
-            );
-            verify(membershipService).addRoleToMemberOnReference(
-                EXECUTION_CONTEXT,
-                new MembershipService.MembershipReference(io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
-                new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_USER")
-            );
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            EXECUTION_CONTEXT,
+                            new MembershipService.MembershipReference(
+                                    io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
+                            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.API, "API_USER"));
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            EXECUTION_CONTEXT,
+                            new MembershipService.MembershipReference(
+                                    io.gravitee.rest.api.model.MembershipReferenceType.GROUP, GROUP_ID),
+                            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_USER"));
             verifyNoMoreInteractions(membershipService);
         }
     }
@@ -182,36 +185,45 @@ class MembershipDomainServiceLegacyWrapperTest {
 
         @Test
         void should_transfer_ownership() {
-            var transfer = TransferOwnership.builder().newPrimaryOwnerId(USER_ID).currentPrimaryOwnerNewRole("USER").build();
+            var transfer = TransferOwnership.builder()
+                    .newPrimaryOwnerId(USER_ID)
+                    .currentPrimaryOwnerNewRole("USER")
+                    .build();
             var newRole = RoleEntity.builder().name("USER").build();
-            when(roleService.findByScopeAndName(RoleScope.API, "USER", "org-id")).thenReturn(Optional.of(newRole));
+            when(roleService.findByScopeAndName(RoleScope.API, "USER", "org-id"))
+                    .thenReturn(Optional.of(newRole));
 
             cut.transferOwnership(transfer, RoleScope.API, "api-id");
 
-            verify(membershipService).transferOwnership(
-                EXECUTION_CONTEXT,
-                io.gravitee.rest.api.model.MembershipReferenceType.API,
-                RoleScope.API,
-                "api-id",
-                new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
-                List.of(newRole)
-            );
+            verify(membershipService)
+                    .transferOwnership(
+                            EXECUTION_CONTEXT,
+                            io.gravitee.rest.api.model.MembershipReferenceType.API,
+                            RoleScope.API,
+                            "api-id",
+                            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+                            List.of(newRole));
         }
 
         @Test
         void should_throw_when_new_role_is_primary_owner() {
-            var transfer = TransferOwnership.builder().newPrimaryOwnerId(USER_ID).currentPrimaryOwnerNewRole("PRIMARY_OWNER").build();
+            var transfer = TransferOwnership.builder()
+                    .newPrimaryOwnerId(USER_ID)
+                    .currentPrimaryOwnerNewRole("PRIMARY_OWNER")
+                    .build();
 
-            assertThatThrownBy(() -> cut.transferOwnership(transfer, RoleScope.API, "api-id")).isInstanceOf(
-                TransferOwnershipNotAllowedException.class
-            );
+            assertThatThrownBy(() -> cut.transferOwnership(transfer, RoleScope.API, "api-id"))
+                    .isInstanceOf(TransferOwnershipNotAllowedException.class);
         }
 
         @Test
         void should_throw_when_neither_owner_id_nor_user_ref_is_provided() {
-            var transfer = TransferOwnership.builder().currentPrimaryOwnerNewRole("USER").build();
+            var transfer = TransferOwnership.builder()
+                    .currentPrimaryOwnerNewRole("USER")
+                    .build();
 
-            assertThatThrownBy(() -> cut.transferOwnership(transfer, RoleScope.API, "api-id")).isInstanceOf(InvalidDataException.class);
+            assertThatThrownBy(() -> cut.transferOwnership(transfer, RoleScope.API, "api-id"))
+                    .isInstanceOf(InvalidDataException.class);
         }
     }
 }

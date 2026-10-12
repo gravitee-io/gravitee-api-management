@@ -24,5 +24,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ApiValidationService {
-    ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api);
+    ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(
+            ExecutionContext executionContext, ApiCRDEntity api);
 }

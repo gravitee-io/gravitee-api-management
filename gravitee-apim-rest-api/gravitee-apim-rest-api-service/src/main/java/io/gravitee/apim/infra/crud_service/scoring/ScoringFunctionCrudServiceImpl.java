@@ -73,9 +73,7 @@ public class ScoringFunctionCrudServiceImpl extends AbstractService implements S
             scoringFunctionRepository.deleteByReferenceId(referenceId, referenceType.name());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "Error when deleting Scoring Function for [%s:%s]".formatted(referenceType, referenceId),
-                e
-            );
+                    "Error when deleting Scoring Function for [%s:%s]".formatted(referenceType, referenceId), e);
         }
     }
 
@@ -85,19 +83,15 @@ public class ScoringFunctionCrudServiceImpl extends AbstractService implements S
             removeFunctionsWithSameNameAndType(name, referenceId, referenceType);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "Error when deleting Scoring Function for [%s:%s]".formatted(referenceType, referenceId),
-                e
-            );
+                    "Error when deleting Scoring Function for [%s:%s]".formatted(referenceType, referenceId), e);
         }
     }
 
-    private void removeFunctionsWithSameNameAndType(String name, String reference, ScoringFunction.ReferenceType refType)
-        throws TechnicalException {
-        scoringFunctionRepository
-            .findAllByReferenceId(reference, refType.name())
-            .stream()
-            .filter(fct -> fct.getName().equals(name))
-            .map(io.gravitee.repository.management.model.ScoringFunction::getId)
-            .forEach(this::delete);
+    private void removeFunctionsWithSameNameAndType(
+            String name, String reference, ScoringFunction.ReferenceType refType) throws TechnicalException {
+        scoringFunctionRepository.findAllByReferenceId(reference, refType.name()).stream()
+                .filter(fct -> fct.getName().equals(name))
+                .map(io.gravitee.repository.management.model.ScoringFunction::getId)
+                .forEach(this::delete);
     }
 }

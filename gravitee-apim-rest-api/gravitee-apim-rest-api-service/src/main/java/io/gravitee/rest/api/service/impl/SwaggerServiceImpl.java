@@ -73,18 +73,19 @@ public class SwaggerServiceImpl implements SwaggerService {
     private PolicyPluginService policyPluginService;
 
     @Override
-    public SwaggerApiEntity createAPI(ExecutionContext executionContext, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    public SwaggerApiEntity createAPI(
+            ExecutionContext executionContext, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return this.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V2);
     }
 
     @Override
     public SwaggerApiEntity createAPI(
-        ExecutionContext executionContext,
-        ImportSwaggerDescriptorEntity swaggerDescriptor,
-        DefinitionVersion definitionVersion
-    ) {
+            ExecutionContext executionContext,
+            ImportSwaggerDescriptorEntity swaggerDescriptor,
+            DefinitionVersion definitionVersion) {
         ParseOptions options = new ParseOptions();
-        // In the context of an import, we need to fully resolve $ref which are required for OAIDescriptorVisitors (ie. policies).
+        // In the context of an import, we need to fully resolve $ref which are required for OAIDescriptorVisitors (ie.
+        // policies).
         options.setResolveFully(true);
 
         boolean wsdlImport = Format.WSDL.equals(swaggerDescriptor.getFormat());
@@ -96,12 +97,12 @@ public class SwaggerServiceImpl implements SwaggerService {
 
         if (descriptor != null) {
             return new OAIToAPIV2Converter(
-                swaggerDescriptor,
-                policyOperationVisitorManager,
-                groupService,
-                tagService,
-                policyPluginService
-            ).convert(executionContext, (OAIDescriptor) descriptor);
+                            swaggerDescriptor,
+                            policyOperationVisitorManager,
+                            groupService,
+                            tagService,
+                            policyPluginService)
+                    .convert(executionContext, (OAIDescriptor) descriptor);
         }
 
         throw new SwaggerDescriptorException();
@@ -134,7 +135,8 @@ public class SwaggerServiceImpl implements SwaggerService {
     }
 
     @Override
-    public <Y, T extends SwaggerDescriptor<Y>> void transform(T descriptor, Collection<SwaggerTransformer<T>> transformers) {
+    public <Y, T extends SwaggerDescriptor<Y>> void transform(
+            T descriptor, Collection<SwaggerTransformer<T>> transformers) {
         if (transformers != null) {
             transformers.forEach(transformer -> transformer.transform(descriptor));
         }
@@ -154,10 +156,7 @@ public class SwaggerServiceImpl implements SwaggerService {
 
         if (isUrl(content)) {
             UrlSanitizerUtils.checkAllowed(
-                content,
-                importConfiguration.getImportWhitelist(),
-                importConfiguration.isAllowImportFromPrivate()
-            );
+                    content, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
         }
 
         if (wsdl) {

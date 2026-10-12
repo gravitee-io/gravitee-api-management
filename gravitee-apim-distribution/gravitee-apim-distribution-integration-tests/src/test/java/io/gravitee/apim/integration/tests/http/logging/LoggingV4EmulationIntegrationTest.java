@@ -53,7 +53,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/http/api.json" })
+@DeployApi({"/apis/http/api.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
 
@@ -92,86 +92,84 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
         AtomicReference<String> requestHostAndPortRef = new AtomicReference<>();
         JsonObject requestBody = new JsonObject().put("field", "of the pelennor");
 
-        subject
-            .doOnNext(log -> {
-                final String transactionAndRequestId = wiremock
-                    .getAllServeEvents()
-                    .getFirst()
-                    .getRequest()
-                    .getHeaders()
-                    .getHeader("X-Gravitee-Transaction-Id")
-                    .firstValue();
+        subject.doOnNext(log -> {
+                    final String transactionAndRequestId = wiremock.getAllServeEvents()
+                            .getFirst()
+                            .getRequest()
+                            .getHeaders()
+                            .getHeader("X-Gravitee-Transaction-Id")
+                            .firstValue();
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getClientRequest().getBody()).isEqualTo(requestBody.toString());
-                    soft.assertThat(log.getClientRequest().getUri()).isEqualTo("/test");
-                    soft
-                        .assertThat(log.getClientRequest().getHeaders().toSingleValueMap())
-                        .contains(
-                            entry("host", requestHostAndPortRef.get()),
-                            entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
-                            entry("X-Gravitee-Request-Id", transactionAndRequestId),
-                            entry("content-length", String.valueOf(requestBody.toString().length()))
-                        );
-                });
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getClientRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getClientRequest().getUri()).isEqualTo("/test");
+                        soft.assertThat(log.getClientRequest().getHeaders().toSingleValueMap())
+                                .contains(
+                                        entry("host", requestHostAndPortRef.get()),
+                                        entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                        entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                        entry(
+                                                "content-length",
+                                                String.valueOf(
+                                                        requestBody.toString().length())));
+                    });
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getProxyRequest().getBody()).isEqualTo(requestBody.toString());
-                    soft.assertThat(log.getProxyRequest().getUri()).isEqualTo("http://localhost:" + wiremock.port() + "/endpoint");
-                    soft
-                        .assertThat(log.getProxyRequest().getHeaders().toSingleValueMap())
-                        .contains(
-                            entry("Host", "localhost:" + wiremock.port()),
-                            entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
-                            entry("X-Gravitee-Request-Id", transactionAndRequestId),
-                            entry("content-length", String.valueOf(requestBody.toString().length()))
-                        );
-                });
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getProxyRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getProxyRequest().getUri())
+                                .isEqualTo("http://localhost:" + wiremock.port() + "/endpoint");
+                        soft.assertThat(log.getProxyRequest().getHeaders().toSingleValueMap())
+                                .contains(
+                                        entry("Host", "localhost:" + wiremock.port()),
+                                        entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                        entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                        entry(
+                                                "content-length",
+                                                String.valueOf(
+                                                        requestBody.toString().length())));
+                    });
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getProxyResponse().getBody()).isEqualTo(mockResponseBody.toString());
-                    soft.assertThat(log.getProxyResponse().getStatus()).isEqualTo(200);
-                    soft
-                        .assertThat(log.getProxyResponse().getHeaders().toSingleValueMap())
-                        .doesNotContainKeys("X-Gravitee-Transaction-Id", "X-Gravitee-Request-Id")
-                        .contains(entry("Content-Type", "application/json"));
-                });
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getProxyResponse().getBody()).isEqualTo(mockResponseBody.toString());
+                        soft.assertThat(log.getProxyResponse().getStatus()).isEqualTo(200);
+                        soft.assertThat(log.getProxyResponse().getHeaders().toSingleValueMap())
+                                .doesNotContainKeys("X-Gravitee-Transaction-Id", "X-Gravitee-Request-Id")
+                                .contains(entry("Content-Type", "application/json"));
+                    });
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getClientResponse().getBody()).isEqualTo(mockResponseBody.toString());
-                    soft.assertThat(log.getClientResponse().getStatus()).isEqualTo(200);
-                    soft
-                        .assertThat(log.getClientResponse().getHeaders().toSingleValueMap())
-                        .contains(
-                            entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
-                            entry("X-Gravitee-Request-Id", transactionAndRequestId),
-                            entry("Content-Type", "application/json")
-                        );
-                });
-            })
-            .doOnNext(m -> context.completeNow())
-            .doOnError(context::failNow)
-            .subscribe();
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getClientResponse().getBody()).isEqualTo(mockResponseBody.toString());
+                        soft.assertThat(log.getClientResponse().getStatus()).isEqualTo(200);
+                        soft.assertThat(log.getClientResponse().getHeaders().toSingleValueMap())
+                                .contains(
+                                        entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                        entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                        entry("Content-Type", "application/json"));
+                    });
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
-                request.authority(hostAndPort);
-                requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString(mockResponseBody.toString());
-                return true;
-            });
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
+                    request.authority(hostAndPort);
+                    requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString(mockResponseBody.toString());
+                    return true;
+                });
 
         wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -183,80 +181,78 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
         AtomicReference<String> requestHostAndPortRef = new AtomicReference<>();
         JsonObject requestBody = new JsonObject().put("field", "of the pelennor");
 
-        subject
-            .doOnNext(log -> {
-                final String transactionAndRequestId = wiremock
-                    .getAllServeEvents()
-                    .getFirst()
-                    .getRequest()
-                    .getHeaders()
-                    .getHeader("X-Gravitee-Transaction-Id")
-                    .firstValue();
+        subject.doOnNext(log -> {
+                    final String transactionAndRequestId = wiremock.getAllServeEvents()
+                            .getFirst()
+                            .getRequest()
+                            .getHeaders()
+                            .getHeader("X-Gravitee-Transaction-Id")
+                            .firstValue();
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getClientRequest().getBody()).isEqualTo(requestBody.toString());
-                    soft.assertThat(log.getClientRequest().getUri()).isEqualTo("/test");
-                    soft
-                        .assertThat(log.getClientRequest().getHeaders().toSingleValueMap())
-                        .contains(
-                            entry("host", requestHostAndPortRef.get()),
-                            entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
-                            entry("X-Gravitee-Request-Id", transactionAndRequestId),
-                            entry("content-length", String.valueOf(requestBody.toString().length()))
-                        );
-                });
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getClientRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getClientRequest().getUri()).isEqualTo("/test");
+                        soft.assertThat(log.getClientRequest().getHeaders().toSingleValueMap())
+                                .contains(
+                                        entry("host", requestHostAndPortRef.get()),
+                                        entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                        entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                        entry(
+                                                "content-length",
+                                                String.valueOf(
+                                                        requestBody.toString().length())));
+                    });
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getProxyRequest().getBody()).isEqualTo(requestBody.toString());
-                    soft.assertThat(log.getProxyRequest().getUri()).isEqualTo("http://localhost:" + wiremock.port() + "/endpoint");
-                    soft
-                        .assertThat(log.getProxyRequest().getHeaders().toSingleValueMap())
-                        .contains(
-                            entry("Host", "localhost:" + wiremock.port()),
-                            entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
-                            entry("X-Gravitee-Request-Id", transactionAndRequestId),
-                            entry("content-length", String.valueOf(requestBody.toString().length()))
-                        );
-                });
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getProxyRequest().getBody()).isEqualTo(requestBody.toString());
+                        soft.assertThat(log.getProxyRequest().getUri())
+                                .isEqualTo("http://localhost:" + wiremock.port() + "/endpoint");
+                        soft.assertThat(log.getProxyRequest().getHeaders().toSingleValueMap())
+                                .contains(
+                                        entry("Host", "localhost:" + wiremock.port()),
+                                        entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                        entry("X-Gravitee-Request-Id", transactionAndRequestId),
+                                        entry(
+                                                "content-length",
+                                                String.valueOf(
+                                                        requestBody.toString().length())));
+                    });
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getProxyResponse().getBody()).isBlank();
-                    soft.assertThat(log.getProxyResponse().getStatus()).isEqualTo(400);
-                    soft
-                        .assertThat(log.getProxyResponse().getHeaders().toSingleValueMap())
-                        .doesNotContainKeys("X-Gravitee-Transaction-Id", "X-Gravitee-Request-Id");
-                });
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getProxyResponse().getBody()).isBlank();
+                        soft.assertThat(log.getProxyResponse().getStatus()).isEqualTo(400);
+                        soft.assertThat(log.getProxyResponse().getHeaders().toSingleValueMap())
+                                .doesNotContainKeys("X-Gravitee-Transaction-Id", "X-Gravitee-Request-Id");
+                    });
 
-                SoftAssertions.assertSoftly(soft -> {
-                    soft.assertThat(log.getClientResponse().getBody()).isBlank();
-                    soft.assertThat(log.getClientResponse().getStatus()).isEqualTo(400);
-                    soft
-                        .assertThat(log.getClientResponse().getHeaders().toSingleValueMap())
-                        .contains(
-                            entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
-                            entry("X-Gravitee-Request-Id", transactionAndRequestId)
-                        );
-                });
-            })
-            .doOnNext(m -> context.completeNow())
-            .doOnError(context::failNow)
-            .subscribe();
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(log.getClientResponse().getBody()).isBlank();
+                        soft.assertThat(log.getClientResponse().getStatus()).isEqualTo(400);
+                        soft.assertThat(log.getClientResponse().getHeaders().toSingleValueMap())
+                                .contains(
+                                        entry("X-Gravitee-Transaction-Id", transactionAndRequestId),
+                                        entry("X-Gravitee-Request-Id", transactionAndRequestId));
+                    });
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
-                request.authority(hostAndPort);
-                requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    var hostAndPort = HostAndPort.create("127.0.0.1", 8080);
+                    request.authority(hostAndPort);
+                    requestHostAndPortRef.set(hostAndPort.host() + ":" + hostAndPort.port());
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete();
 
         wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
     }

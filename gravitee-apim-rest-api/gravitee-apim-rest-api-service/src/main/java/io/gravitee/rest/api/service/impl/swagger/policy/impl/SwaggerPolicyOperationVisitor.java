@@ -25,9 +25,8 @@ import java.util.Optional;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SwaggerPolicyOperationVisitor
-    extends AbstractPolicyOperationVisitor<Swagger, Operation>
-    implements SwaggerOperationVisitor<Optional<Policy>> {
+public class SwaggerPolicyOperationVisitor extends AbstractPolicyOperationVisitor<Swagger, Operation>
+        implements SwaggerOperationVisitor<Optional<Policy>> {
 
     public SwaggerPolicyOperationVisitor(io.gravitee.policy.api.swagger.v2.SwaggerOperationVisitor policyVisitor) {
         super(policyVisitor);

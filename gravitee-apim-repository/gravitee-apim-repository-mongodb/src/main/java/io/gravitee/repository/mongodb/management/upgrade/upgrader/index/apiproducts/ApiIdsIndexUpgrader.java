@@ -25,9 +25,9 @@ public class ApiIdsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("api_products")
-            .name("a1")
-            .key("apiIds", ascending())
-            .build();
+                .collection("api_products")
+                .name("a1")
+                .key("apiIds", ascending())
+                .build();
     }
 }

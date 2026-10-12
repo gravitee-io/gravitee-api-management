@@ -64,63 +64,91 @@ public class LoggingContext implements ConditionSupplier {
     }
 
     public boolean entrypointRequest() {
-        return otelLogsEnabled || (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isRequest());
+        return otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEntrypoint()
+                        && logging.getPhase().isRequest());
     }
 
     public boolean entrypointResponse() {
-        return otelLogsEnabled || (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isResponse());
+        return otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEntrypoint()
+                        && logging.getPhase().isResponse());
     }
 
     public boolean endpointRequest() {
-        return otelLogsEnabled || (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isRequest());
+        return otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEndpoint()
+                        && logging.getPhase().isRequest());
     }
 
     public boolean endpointResponse() {
-        return otelLogsEnabled || (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isResponse());
+        return otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEndpoint()
+                        && logging.getPhase().isResponse());
     }
 
     public boolean entrypointRequestHeaders() {
-        return logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isHeaders();
+        return logging != null
+                && logging.getMode().isEntrypoint()
+                && logging.getPhase().isRequest()
+                && logging.getContent().isHeaders();
     }
 
     public boolean entrypointRequestPayload() {
-        return (
-            otelLogsEnabled ||
-            (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isPayload())
-        );
+        return (otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEntrypoint()
+                        && logging.getPhase().isRequest()
+                        && logging.getContent().isPayload()));
     }
 
     public boolean endpointRequestHeaders() {
-        return logging != null && logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isHeaders();
+        return logging != null
+                && logging.getMode().isEndpoint()
+                && logging.getPhase().isRequest()
+                && logging.getContent().isHeaders();
     }
 
     public boolean endpointRequestPayload() {
-        return (
-            otelLogsEnabled ||
-            (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isPayload())
-        );
+        return (otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEndpoint()
+                        && logging.getPhase().isRequest()
+                        && logging.getContent().isPayload()));
     }
 
     public boolean entrypointResponseHeaders() {
-        return logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isHeaders();
+        return logging != null
+                && logging.getMode().isEntrypoint()
+                && logging.getPhase().isResponse()
+                && logging.getContent().isHeaders();
     }
 
     public boolean entrypointResponsePayload() {
-        return (
-            otelLogsEnabled ||
-            (logging != null && logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isPayload())
-        );
+        return (otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEntrypoint()
+                        && logging.getPhase().isResponse()
+                        && logging.getContent().isPayload()));
     }
 
     public boolean endpointResponseHeaders() {
-        return logging != null && logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isHeaders();
+        return logging != null
+                && logging.getMode().isEndpoint()
+                && logging.getPhase().isResponse()
+                && logging.getContent().isHeaders();
     }
 
     public boolean endpointResponsePayload() {
-        return (
-            otelLogsEnabled ||
-            (logging != null && logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isPayload())
-        );
+        return (otelLogsEnabled
+                || (logging != null
+                        && logging.getMode().isEndpoint()
+                        && logging.getPhase().isResponse()
+                        && logging.getContent().isPayload()));
     }
 
     public String getExcludedResponseTypes() {

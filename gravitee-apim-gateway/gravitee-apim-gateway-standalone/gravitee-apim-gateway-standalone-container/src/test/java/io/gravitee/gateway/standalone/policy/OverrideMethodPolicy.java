@@ -29,7 +29,8 @@ import io.gravitee.policy.api.annotations.OnRequest;
 public class OverrideMethodPolicy {
 
     @OnRequest
-    public void onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    public void onRequest(
+            Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
         executionContext.setAttribute(ExecutionContext.ATTR_REQUEST_METHOD, HttpMethod.POST);
         policyChain.doNext(request, response);
     }

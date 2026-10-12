@@ -47,30 +47,30 @@ import org.junit.jupiter.api.Test;
 public class DeletePortalNavigationItemUseCaseTest {
 
     private final PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService =
-        new PortalNavigationItemsCrudServiceInMemory();
+            new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService =
-        new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
-    private final PortalPageContentCrudServiceInMemory portalPageContentCrudService = new PortalPageContentCrudServiceInMemory();
+            new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
+    private final PortalPageContentCrudServiceInMemory portalPageContentCrudService =
+            new PortalPageContentCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
 
     @BeforeEach
     void setUp() {
         var domainService = new PortalNavigationItemDomainService(
-            portalNavigationItemsCrudService,
-            portalNavigationItemsQueryService,
-            portalPageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
-            apiCrudService,
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemsCrudService)
-        );
+                portalNavigationItemsCrudService,
+                portalNavigationItemsQueryService,
+                portalPageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
+                apiCrudService,
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiOwnedNavigationDomainService(
+                        portalNavigationItemsQueryService, portalNavigationItemsCrudService));
 
         deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(
-            domainService,
-            portalNavigationItemsQueryService,
-            new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService)
-        );
+                domainService,
+                portalNavigationItemsQueryService,
+                new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService));
     }
 
     @AfterEach
@@ -88,13 +88,8 @@ public class DeletePortalNavigationItemUseCaseTest {
         portalNavigationItemsQueryService.initWith(List.of(toDelete));
 
         // When
-        deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                toDelete.getId()
-            )
-        );
+        deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toDelete.getId()));
 
         // Then
         assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
@@ -103,27 +98,32 @@ public class DeletePortalNavigationItemUseCaseTest {
     @Test
     void should_delete_an_api_owned_folder_with_its_contents_and_nothing_else_the_api_owns() {
         var apiReference = new NavigationItemReference.ApiReference("api-id");
-        var folder = PortalNavigationItemFixtures.aFolder("Auth").toBuilder().reference(apiReference).order(0).build();
+        var folder = PortalNavigationItemFixtures.aFolder("Auth").toBuilder()
+                .reference(apiReference)
+                .order(0)
+                .build();
         folder.markAsRoot();
-        var nestedPage = PortalNavigationItemFixtures.aPage("Setup", folder.getId()).toBuilder().reference(apiReference).build();
+        var nestedPage = PortalNavigationItemFixtures.aPage("Setup", folder.getId()).toBuilder()
+                .reference(apiReference)
+                .build();
         nestedPage.updateParent(folder);
-        var otherPage = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder().reference(apiReference).order(1).build();
+        var otherPage = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder()
+                .reference(apiReference)
+                .order(1)
+                .build();
         otherPage.markAsRoot();
-        var portalSection = PortalNavigationItemFixtures.aFolder("APIs").toBuilder().order(0).build();
+        var portalSection = PortalNavigationItemFixtures.aFolder("APIs").toBuilder()
+                .order(0)
+                .build();
         portalSection.markAsRoot();
         portalNavigationItemsCrudService.initWith(List.of(folder, nestedPage, otherPage, portalSection));
 
-        deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                folder.getId()
-            )
-        );
+        deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, folder.getId()));
 
         assertThat(portalNavigationItemsCrudService.storage())
-            .extracting(PortalNavigationItem::getId)
-            .containsExactlyInAnyOrder(otherPage.getId(), portalSection.getId());
+                .extracting(PortalNavigationItem::getId)
+                .containsExactlyInAnyOrder(otherPage.getId(), portalSection.getId());
         // Only the API's own siblings close the gap: the portal section keeps its position
         assertThat(otherPage.getOrder()).isZero();
         assertThat(portalSection.getOrder()).isZero();
@@ -132,40 +132,41 @@ public class DeletePortalNavigationItemUseCaseTest {
     @Test
     void should_reorder_when_delete() {
         // Given
-        PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder().order(1).build();
+        PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder()
+                .order(1)
+                .build();
         page1.markAsRoot();
-        PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder().order(2).build();
+        PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder()
+                .order(2)
+                .build();
         page2.markAsRoot();
-        PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder().order(3).build();
+        PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder()
+                .order(3)
+                .build();
         page3.markAsRoot();
-        PortalNavigationPage page4 = PortalNavigationItemFixtures.aPage("p4", null).toBuilder().order(4).build();
+        PortalNavigationPage page4 = PortalNavigationItemFixtures.aPage("p4", null).toBuilder()
+                .order(4)
+                .build();
         page4.markAsRoot();
-        PortalNavigationPage page5 = PortalNavigationItemFixtures.aPage("p5", null).toBuilder().order(5).build();
+        PortalNavigationPage page5 = PortalNavigationItemFixtures.aPage("p5", null).toBuilder()
+                .order(5)
+                .build();
         page5.markAsRoot();
         portalNavigationItemsCrudService.initWith(List.of(page1, page2, page3, page4, page5));
         portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
         // When
         // perform delete
-        deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                page2.getId()
-            )
-        );
+        deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, page2.getId()));
 
         // Then
         assertThat(portalNavigationItemsCrudService.storage()).hasSize(4);
         var expected = Map.of(page1.getId(), 1, page3.getId(), 2, page4.getId(), 3, page5.getId(), 4);
-        assertThat(
-            portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder))
-        )
-            .containsOnlyKeys(expected.keySet())
-            .containsAllEntriesOf(expected);
+        assertThat(portalNavigationItemsCrudService.storage().stream()
+                        .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder)))
+                .containsOnlyKeys(expected.keySet())
+                .containsAllEntriesOf(expected);
     }
 
     @Test
@@ -176,49 +177,39 @@ public class DeletePortalNavigationItemUseCaseTest {
         portalNavigationItemsQueryService.initWith(List.of(toKeep));
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            deletePortalNavigationItemUseCase.execute(
-                new DeletePortalNavigationItemUseCase.Input(
-                    PortalNavigationItemFixtures.ORG_ID,
-                    PortalNavigationItemFixtures.ENV_ID,
-                    PortalNavigationItemId.of(PortalNavigationItemFixtures.PAGE12_ID)
-                )
-            )
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                        PortalNavigationItemFixtures.ORG_ID,
+                        PortalNavigationItemFixtures.ENV_ID,
+                        PortalNavigationItemId.of(PortalNavigationItemFixtures.PAGE12_ID))));
 
         // Then
         Assertions.assertThat(throwable)
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found")
-            .extracting(ex -> ((PortalNavigationItemNotFoundException) ex).getId())
-            .isEqualTo(PortalNavigationItemFixtures.PAGE12_ID);
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found")
+                .extracting(ex -> ((PortalNavigationItemNotFoundException) ex).getId())
+                .isEqualTo(PortalNavigationItemFixtures.PAGE12_ID);
     }
 
     @Test
     void should_delete_page_with_content() {
         // Given
         var pageContent = portalPageContentCrudService.createDefault(
-            PortalNavigationItemFixtures.ORG_ID,
-            PortalNavigationItemFixtures.ENV_ID,
-            PortalPageContentType.GRAVITEE_MARKDOWN
-        );
-        var toDelete = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
-            .toBuilder()
-            .portalPageContentId(pageContent.getId())
-            .build();
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN);
+        var toDelete =
+                PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null).toBuilder()
+                        .portalPageContentId(pageContent.getId())
+                        .build();
         toDelete.markAsRoot();
         portalNavigationItemsCrudService.initWith(List.of(toDelete));
         portalNavigationItemsQueryService.initWith(List.of(toDelete));
         portalPageContentCrudService.initWith(List.of(pageContent));
 
         // When
-        deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                toDelete.getId()
-            )
-        );
+        deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toDelete.getId()));
 
         // Then
         assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
@@ -234,38 +225,28 @@ public class DeletePortalNavigationItemUseCaseTest {
         portalNavigationItemsCrudService.initWith(List.of(folder, child));
         portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
-        deletePortalNavigationItemUseCase.execute(
-            new DeletePortalNavigationItemUseCase.Input(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                folder.getId()
-            )
-        );
+        deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, folder.getId()));
 
         assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
     }
 
     @Test
     void should_reject_delete_of_sourced_item() {
-        var sourcedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
-            .toBuilder()
-            .source(aSource())
-            .build();
+        var sourcedPage =
+                PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null).toBuilder()
+                        .source(aSource())
+                        .build();
         sourcedPage.markAsRoot();
         portalNavigationItemsCrudService.initWith(List.of(sourcedPage));
         portalNavigationItemsQueryService.initWith(List.of(sourcedPage));
 
         var error = org.junit.jupiter.api.Assertions.assertThrows(
-            io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
-            () ->
-                deletePortalNavigationItemUseCase.execute(
-                    new DeletePortalNavigationItemUseCase.Input(
+                io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
+                () -> deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
                         PortalNavigationItemFixtures.ORG_ID,
                         PortalNavigationItemFixtures.ENV_ID,
-                        sourcedPage.getId()
-                    )
-                )
-        );
+                        sourcedPage.getId())));
 
         assertThat(error).hasMessageContaining("cannot be deleted");
         assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
@@ -273,26 +254,21 @@ public class DeletePortalNavigationItemUseCaseTest {
 
     @Test
     void should_reject_delete_of_child_of_sourced_folder() {
-        var sourcedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.FOLDER_ID, "Sourced Folder")
-            .toBuilder()
-            .source(aSource())
-            .build();
+        var sourcedFolder =
+                PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.FOLDER_ID, "Sourced Folder")
+                        .toBuilder()
+                        .source(aSource())
+                        .build();
         sourcedFolder.markAsRoot();
-        var child = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "Child Page", sourcedFolder.getId());
+        var child = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemFixtures.PAGE11_ID, "Child Page", sourcedFolder.getId());
         portalNavigationItemsCrudService.initWith(List.of(sourcedFolder, child));
         portalNavigationItemsQueryService.initWith(List.of(sourcedFolder, child));
 
         var error = org.junit.jupiter.api.Assertions.assertThrows(
-            io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
-            () ->
-                deletePortalNavigationItemUseCase.execute(
-                    new DeletePortalNavigationItemUseCase.Input(
-                        PortalNavigationItemFixtures.ORG_ID,
-                        PortalNavigationItemFixtures.ENV_ID,
-                        child.getId()
-                    )
-                )
-        );
+                io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
+                () -> deletePortalNavigationItemUseCase.execute(new DeletePortalNavigationItemUseCase.Input(
+                        PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, child.getId())));
 
         assertThat(error).hasMessageContaining("read-only");
         assertThat(portalNavigationItemsCrudService.storage()).hasSize(2);
@@ -300,8 +276,8 @@ public class DeletePortalNavigationItemUseCaseTest {
 
     private static io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource aSource() {
         return io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
-            .build();
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                .build();
     }
 }

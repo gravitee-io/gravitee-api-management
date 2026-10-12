@@ -30,7 +30,8 @@ import java.util.Set;
 public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, String> implements PlanRepository {
 
     @Override
-    public List<Plan> findByApisAndEnvironments(final List<String> apiIds, final Set<String> environments) throws TechnicalException {
+    public List<Plan> findByApisAndEnvironments(final List<String> apiIds, final Set<String> environments)
+            throws TechnicalException {
         return List.of();
     }
 
@@ -66,22 +67,20 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
 
     @Override
     public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         return Set.of();
     }
 
     @Override
     public List<Plan> findByReferenceIdsAndReferenceTypeAndEnvironment(
-        List<String> referenceIds,
-        Plan.PlanReferenceType planReferenceType,
-        Set<String> environments
-    ) throws TechnicalException {
+            List<String> referenceIds, Plan.PlanReferenceType planReferenceType, Set<String> environments)
+            throws TechnicalException {
         return List.of();
     }
 
     @Override
-    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, Plan.PlanReferenceType planReferenceType)
-        throws TechnicalException {
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(
+            String plan, String referenceId, Plan.PlanReferenceType planReferenceType) throws TechnicalException {
         return Optional.empty();
     }
 

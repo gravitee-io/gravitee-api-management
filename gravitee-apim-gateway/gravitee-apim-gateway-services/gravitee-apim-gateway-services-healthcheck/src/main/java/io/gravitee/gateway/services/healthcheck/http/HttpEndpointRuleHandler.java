@@ -49,8 +49,9 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     private static final String WSS_SCHEME = "wss";
     private static final String GRPCS_SCHEME = "grpcs";
 
-    public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment)
-        throws Exception {
+    public HttpEndpointRuleHandler(
+            Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment)
+            throws Exception {
         super(vertx, rule, templateEngine, environment);
     }
 
@@ -80,7 +81,8 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
-    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URL requestUrl) throws Exception {
+    protected HttpClientOptions createHttpClientOptions(final HttpEndpoint endpoint, final URL requestUrl)
+            throws Exception {
         // Prepare HTTP client
         HttpClientOptions httpClientOptions = new HttpClientOptions();
 
@@ -90,18 +92,19 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
             }
 
             httpClientOptions
-                .setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
-                .setTcpKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
-                .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
-                .setKeepAliveTimeout((int) (endpoint.getHttpClientOptions().getKeepAliveTimeout() / 1000))
-                .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
-                .setMaxHeaderSize(endpoint.getHttpClientOptions().getMaxHeaderSize())
-                .setMaxChunkSize(endpoint.getHttpClientOptions().getMaxChunkSize())
-                .setDecompressionSupported(endpoint.getHttpClientOptions().isUseCompression());
+                    .setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
+                    .setTcpKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
+                    .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
+                    .setKeepAliveTimeout((int) (endpoint.getHttpClientOptions().getKeepAliveTimeout() / 1000))
+                    .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
+                    .setMaxHeaderSize(endpoint.getHttpClientOptions().getMaxHeaderSize())
+                    .setMaxChunkSize(endpoint.getHttpClientOptions().getMaxChunkSize())
+                    .setDecompressionSupported(endpoint.getHttpClientOptions().isUseCompression());
 
             if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {
                 httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2);
-                httpClientOptions.setHttp2ClearTextUpgrade(endpoint.getHttpClientOptions().isClearTextUpgrade());
+                httpClientOptions.setHttp2ClearTextUpgrade(
+                        endpoint.getHttpClientOptions().isClearTextUpgrade());
             }
         }
 
@@ -113,22 +116,20 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                 proxyOptions = this.systemProxyOptions;
             } else {
                 proxyOptions = new ProxyOptions()
-                    .setHost(proxy.getHost())
-                    .setPort(proxy.getPort())
-                    .setUsername(proxy.getUsername())
-                    .setPassword(proxy.getPassword())
-                    .setType(ProxyType.valueOf(proxy.getType().name()));
+                        .setHost(proxy.getHost())
+                        .setPort(proxy.getPort())
+                        .setUsername(proxy.getUsername())
+                        .setPassword(proxy.getPassword())
+                        .setType(ProxyType.valueOf(proxy.getType().name()));
             }
             httpClientOptions.setProxyOptions(proxyOptions);
         }
 
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
 
-        if (
-            HTTPS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol()) ||
-            WSS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol()) ||
-            GRPCS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol())
-        ) {
+        if (HTTPS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol())
+                || WSS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol())
+                || GRPCS_SCHEME.equalsIgnoreCase(requestUrl.getProtocol())) {
             // Configure SSL
             httpClientOptions.setSsl(true).setUseAlpn(true);
 
@@ -141,12 +142,16 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                         case PEM:
                             PEMTrustStore pemTrustStore = (PEMTrustStore) sslOptions.getTrustStore();
                             PemTrustOptions pemTrustOptions = new PemTrustOptions();
-                            if (pemTrustStore.getPath() != null && !pemTrustStore.getPath().isEmpty()) {
+                            if (pemTrustStore.getPath() != null
+                                    && !pemTrustStore.getPath().isEmpty()) {
                                 pemTrustOptions.addCertPath(pemTrustStore.getPath());
-                            } else if (pemTrustStore.getContent() != null && !pemTrustStore.getContent().isEmpty()) {
-                                pemTrustOptions.addCertValue(io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
+                            } else if (pemTrustStore.getContent() != null
+                                    && !pemTrustStore.getContent().isEmpty()) {
+                                pemTrustOptions.addCertValue(
+                                        io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
                             } else {
-                                throw new EndpointException("Missing PEM certificate value for endpoint " + endpoint.getName());
+                                throw new EndpointException(
+                                        "Missing PEM certificate value for endpoint " + endpoint.getName());
                             }
                             httpClientOptions.setTrustOptions(pemTrustOptions);
                             break;
@@ -154,9 +159,11 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             PKCS12TrustStore pkcs12TrustStore = (PKCS12TrustStore) sslOptions.getTrustStore();
                             PfxOptions pfxOptions = new PfxOptions();
                             pfxOptions.setPassword(pkcs12TrustStore.getPassword());
-                            if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
+                            if (pkcs12TrustStore.getPath() != null
+                                    && !pkcs12TrustStore.getPath().isEmpty()) {
                                 pfxOptions.setPath(pkcs12TrustStore.getPath());
-                            } else if (pkcs12TrustStore.getContent() != null && !pkcs12TrustStore.getContent().isEmpty()) {
+                            } else if (pkcs12TrustStore.getContent() != null
+                                    && !pkcs12TrustStore.getContent().isEmpty()) {
                                 pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12TrustStore.getContent()));
                             } else {
                                 throw new EndpointException("Missing PKCS12 value for endpoint " + endpoint.getName());
@@ -167,9 +174,11 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             JKSTrustStore jksTrustStore = (JKSTrustStore) sslOptions.getTrustStore();
                             JksOptions jksOptions = new JksOptions();
                             jksOptions.setPassword(jksTrustStore.getPassword());
-                            if (jksTrustStore.getPath() != null && !jksTrustStore.getPath().isEmpty()) {
+                            if (jksTrustStore.getPath() != null
+                                    && !jksTrustStore.getPath().isEmpty()) {
                                 jksOptions.setPath(jksTrustStore.getPath());
-                            } else if (jksTrustStore.getContent() != null && !jksTrustStore.getContent().isEmpty()) {
+                            } else if (jksTrustStore.getContent() != null
+                                    && !jksTrustStore.getContent().isEmpty()) {
                                 jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksTrustStore.getContent()));
                             } else {
                                 throw new EndpointException("Missing JKS value for endpoint " + endpoint.getName());
@@ -185,15 +194,21 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                         case PEM:
                             PEMKeyStore pemKeyStore = (PEMKeyStore) sslOptions.getKeyStore();
                             PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
-                            if (pemKeyStore.getCertPath() != null && !pemKeyStore.getCertPath().isEmpty()) {
+                            if (pemKeyStore.getCertPath() != null
+                                    && !pemKeyStore.getCertPath().isEmpty()) {
                                 pemKeyCertOptions.setCertPath(pemKeyStore.getCertPath());
-                            } else if (pemKeyStore.getCertContent() != null && !pemKeyStore.getCertContent().isEmpty()) {
-                                pemKeyCertOptions.setCertValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getCertContent()));
+                            } else if (pemKeyStore.getCertContent() != null
+                                    && !pemKeyStore.getCertContent().isEmpty()) {
+                                pemKeyCertOptions.setCertValue(
+                                        io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getCertContent()));
                             }
-                            if (pemKeyStore.getKeyPath() != null && !pemKeyStore.getKeyPath().isEmpty()) {
+                            if (pemKeyStore.getKeyPath() != null
+                                    && !pemKeyStore.getKeyPath().isEmpty()) {
                                 pemKeyCertOptions.setKeyPath(pemKeyStore.getKeyPath());
-                            } else if (pemKeyStore.getKeyContent() != null && !pemKeyStore.getKeyContent().isEmpty()) {
-                                pemKeyCertOptions.setKeyValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getKeyContent()));
+                            } else if (pemKeyStore.getKeyContent() != null
+                                    && !pemKeyStore.getKeyContent().isEmpty()) {
+                                pemKeyCertOptions.setKeyValue(
+                                        io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getKeyContent()));
                             }
                             httpClientOptions.setKeyCertOptions(pemKeyCertOptions);
                             break;
@@ -201,9 +216,11 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             PKCS12KeyStore pkcs12KeyStore = (PKCS12KeyStore) sslOptions.getKeyStore();
                             PfxOptions pfxOptions = new PfxOptions();
                             pfxOptions.setPassword(pkcs12KeyStore.getPassword());
-                            if (pkcs12KeyStore.getPath() != null && !pkcs12KeyStore.getPath().isEmpty()) {
+                            if (pkcs12KeyStore.getPath() != null
+                                    && !pkcs12KeyStore.getPath().isEmpty()) {
                                 pfxOptions.setPath(pkcs12KeyStore.getPath());
-                            } else if (pkcs12KeyStore.getContent() != null && !pkcs12KeyStore.getContent().isEmpty()) {
+                            } else if (pkcs12KeyStore.getContent() != null
+                                    && !pkcs12KeyStore.getContent().isEmpty()) {
                                 pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12KeyStore.getContent()));
                             }
                             httpClientOptions.setKeyCertOptions(pfxOptions);
@@ -212,9 +229,11 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                             JKSKeyStore jksKeyStore = (JKSKeyStore) sslOptions.getKeyStore();
                             JksOptions jksOptions = new JksOptions();
                             jksOptions.setPassword(jksKeyStore.getPassword());
-                            if (jksKeyStore.getPath() != null && !jksKeyStore.getPath().isEmpty()) {
+                            if (jksKeyStore.getPath() != null
+                                    && !jksKeyStore.getPath().isEmpty()) {
                                 jksOptions.setPath(jksKeyStore.getPath());
-                            } else if (jksKeyStore.getContent() != null && !jksKeyStore.getContent().isEmpty()) {
+                            } else if (jksKeyStore.getContent() != null
+                                    && !jksKeyStore.getContent().isEmpty()) {
                                 jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksKeyStore.getContent()));
                             }
                             httpClientOptions.setKeyCertOptions(jksOptions);

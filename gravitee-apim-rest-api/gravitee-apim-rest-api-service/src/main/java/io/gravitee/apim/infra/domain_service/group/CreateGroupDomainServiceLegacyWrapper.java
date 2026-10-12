@@ -66,19 +66,19 @@ public class CreateGroupDomainServiceLegacyWrapper implements CreateGroupDomainS
     private static Group toCore(GroupEntity entity, String fallbackEnvironmentId) {
         var environmentId = entity.getEnvironmentId() != null ? entity.getEnvironmentId() : fallbackEnvironmentId;
         return Group.builder()
-            .id(entity.getId())
-            .name(entity.getName())
-            .environmentId(environmentId)
-            .createdAt(toZonedDateTime(entity.getCreatedAt()))
-            .updatedAt(toZonedDateTime(entity.getUpdatedAt()))
-            .maxInvitation(entity.getMaxInvitation())
-            .lockApiRole(entity.isLockApiRole())
-            .lockApplicationRole(entity.isLockApplicationRole())
-            .systemInvitation(entity.isSystemInvitation())
-            .emailInvitation(entity.isEmailInvitation())
-            .disableMembershipNotifications(entity.isDisableMembershipNotifications())
-            .apiPrimaryOwner(entity.getApiPrimaryOwner())
-            .build();
+                .id(entity.getId())
+                .name(entity.getName())
+                .environmentId(environmentId)
+                .createdAt(toZonedDateTime(entity.getCreatedAt()))
+                .updatedAt(toZonedDateTime(entity.getUpdatedAt()))
+                .maxInvitation(entity.getMaxInvitation())
+                .lockApiRole(entity.isLockApiRole())
+                .lockApplicationRole(entity.isLockApplicationRole())
+                .systemInvitation(entity.isSystemInvitation())
+                .emailInvitation(entity.isEmailInvitation())
+                .disableMembershipNotifications(entity.isDisableMembershipNotifications())
+                .apiPrimaryOwner(entity.getApiPrimaryOwner())
+                .build();
     }
 
     private static ZonedDateTime toZonedDateTime(Date date) {

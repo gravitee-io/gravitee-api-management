@@ -22,11 +22,10 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public record NavigationPath(
-    @Nonnull String path,
-    @Nullable String displayName,
-    @Nullable Integer order,
-    @Nullable PortalVisibility visibility
-) {
+        @Nonnull String path,
+        @Nullable String displayName,
+        @Nullable Integer order,
+        @Nullable PortalVisibility visibility) {
     public NavigationPath {
         path = normalizePath(path);
     }
@@ -47,8 +46,8 @@ public record NavigationPath(
         String s = stripTrailingSlash(p);
         if (s.isEmpty()) return s;
         return Arrays.stream(s.split("/", -1))
-            .map(part -> part.isEmpty() ? part : slugify(part).value())
-            .collect(Collectors.joining("/"));
+                .map(part -> part.isEmpty() ? part : slugify(part).value())
+                .collect(Collectors.joining("/"));
     }
 
     private static String stripTrailingSlash(String p) {

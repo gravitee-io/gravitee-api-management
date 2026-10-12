@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
-import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -47,7 +46,6 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -73,30 +71,29 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/{page}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get a page",
-        description = "Retrieves a portal page by its identifier. Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
-    )
+            summary = "Get a page",
+            description =
+                    "Retrieves a portal page by its identifier. Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Page",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "200",
+            description = "Page",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public PageEntity getPortalPage(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @PathParam("page") String page,
-        @QueryParam("portal") boolean portal,
-        @QueryParam("translated") boolean translated
-    ) {
+            @HeaderParam("Accept-Language") String acceptLang,
+            @PathParam("page") String page,
+            @QueryParam("portal") boolean portal,
+            @QueryParam("translated") boolean translated) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        if (
-            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !pageEntity.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
-        ) {
+        if (!pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !pageEntity.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())) {
             throw new PageNotFoundException(page);
         }
         if (portal) {
@@ -109,24 +106,20 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/{page}/content")
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(
-        summary = "Get the page's content",
-        description = "Retrieves the raw content of a portal page by its identifier. " +
-            "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
-    )
+            summary = "Get the page's content",
+            description = "Retrieves the raw content of a portal page by its identifier. "
+                    + "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission.")
     @ApiResponse(
-        responseCode = "200",
-        description = "Page's content",
-        content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Page's content",
+            content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public Response getPortalPageContent(@PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !pageEntity.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
-        ) {
+        if (!pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !pageEntity.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())) {
             throw new PageNotFoundException(page);
         }
         pageService.transformSwagger(executionContext, pageEntity);
@@ -136,61 +129,59 @@ public class PortalPagesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List documentation pages",
-        description = "Returns documentation pages for the current environment. " +
-            "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
-    )
+            summary = "List documentation pages",
+            description = "Returns documentation pages for the current environment. "
+                    + "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission.")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of pages",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = PageEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of pages",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = PageEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public List<PageEntity> getPortalPages(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @QueryParam("homepage") Boolean homepage,
-        @QueryParam("published") Boolean published,
-        @QueryParam("type") PageType type,
-        @QueryParam("parent") String parent,
-        @QueryParam("name") String name,
-        @QueryParam("root") Boolean rootParent,
-        @QueryParam("translated") boolean translated
-    ) {
+            @HeaderParam("Accept-Language") String acceptLang,
+            @QueryParam("homepage") Boolean homepage,
+            @QueryParam("published") Boolean published,
+            @QueryParam("type") PageType type,
+            @QueryParam("parent") String parent,
+            @QueryParam("name") String name,
+            @QueryParam("root") Boolean rootParent,
+            @QueryParam("translated") boolean translated) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         return pageService.search(
-            executionContext.getEnvironmentId(),
-            new PageQuery.Builder()
-                .homepage(homepage)
-                .published(published)
-                .type(type)
-                .parent(parent)
-                .name(name)
-                .rootParent(rootParent)
-                .build(),
-            translated ? acceptedLocale : null
-        );
+                executionContext.getEnvironmentId(),
+                new PageQuery.Builder()
+                        .homepage(homepage)
+                        .published(published)
+                        .type(type)
+                        .parent(parent)
+                        .name(name)
+                        .rootParent(rootParent)
+                        .build(),
+                translated ? acceptedLocale : null);
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create a page",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service"
-    )
+            summary = "Create a page",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Page successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Page successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
-    public Response createPortalPage(@Parameter(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)})
+    public Response createPortalPage(
+            @Parameter(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         if (newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
         }
@@ -200,7 +191,9 @@ public class PortalPagesResource extends AbstractResource {
         newPageEntity.setLastContributor(getAuthenticatedUser());
         PageEntity newPage = pageService.createPage(executionContext, newPageEntity);
         if (newPage != null) {
-            return Response.created(this.getLocationHeader(newPage.getId())).entity(newPage).build();
+            return Response.created(this.getLocationHeader(newPage.getId()))
+                    .entity(newPage)
+                    .build();
         }
 
         return Response.serverError().build();
@@ -211,25 +204,23 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update a page",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service"
-    )
+            summary = "Update a page",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Page successfully updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Page successfully updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public PageEntity updatePortalPage(
-        @PathParam("page") String page,
-        @Parameter(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity
-    ) {
+            @PathParam("page") String page,
+            @Parameter(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
-        if (
-            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(page);
         }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
@@ -244,25 +235,20 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(
-        summary = "Update a page content",
-        description = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service"
-    )
+            summary = "Update a page content",
+            description = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Page content successfully updated",
-        content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Page content successfully updated",
+            content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public String updatePageContent(
-        @PathParam("page") String page,
-        @Parameter(name = "content", required = true) @Valid @NotNull String content
-    ) {
+            @PathParam("page") String page,
+            @Parameter(name = "content", required = true) @Valid @NotNull String content) {
         PageEntity pageEntity = pageService.findById(page);
-        if (
-            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(page);
         }
 
@@ -278,25 +264,23 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update a page",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service"
-    )
+            summary = "Update a page",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Page successfully updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Page successfully updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public PageEntity partialUpdatePortalPage(
-        @PathParam("page") String page,
-        @Parameter(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity
-    ) {
+            @PathParam("page") String page,
+            @Parameter(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
-        if (
-            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(page);
         }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
@@ -310,22 +294,21 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/{page}/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Refresh page by calling the associated fetcher",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service"
-    )
+            summary = "Refresh page by calling the associated fetcher",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Page successfully refreshed",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Page successfully refreshed",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public PageEntity fetchPortalPage(@PathParam("page") String page) {
         PageEntity existingPage = pageService.findById(page);
-        if (
-            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(page);
         }
         String contributor = getAuthenticatedUser();
@@ -337,16 +320,17 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Refresh all pages by calling their associated fetcher",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service"
-    )
+            summary = "Refresh all pages by calling their associated fetcher",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Pages successfully refreshed",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Pages successfully refreshed",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public Response fetchAllPortalPages() {
         String contributor = getAuthenticatedUser();
         pageService.fetchAll(GraviteeContext.getExecutionContext(), new PageQuery.Builder().build(), contributor);
@@ -356,18 +340,15 @@ public class PortalPagesResource extends AbstractResource {
     @DELETE
     @Path("/{page}")
     @Operation(
-        summary = "Delete a page",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[DELETE] permission to use this service"
-    )
+            summary = "Delete a page",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Page successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE)})
     public void deletePortalPage(@PathParam("page") String page) {
         PageEntity existingPage = pageService.findById(page);
-        if (
-            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(page);
         }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
@@ -381,19 +362,19 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Import pages",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service"
-    )
+            summary = "Import pages",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Page successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Page successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)})
     public List<PageEntity> importPortalPageFromFiles(
-        @Parameter(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity
-    ) {
+            @Parameter(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(GraviteeContext.getExecutionContext(), importPageEntity);
     }
@@ -403,19 +384,19 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Import pages",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service"
-    )
+            summary = "Import pages",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Page successfully updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
-    )
+            responseCode = "201",
+            description = "Page successfully updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PageEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)})
     public List<PageEntity> updateImportedPortalPageFromFiles(
-        @Parameter(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity
-    ) {
+            @Parameter(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(GraviteeContext.getExecutionContext(), importPageEntity);
     }

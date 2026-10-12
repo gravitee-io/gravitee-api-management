@@ -28,9 +28,9 @@ public class PageIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("page_revisions")
-            .name("pi1")
-            .key("_id.pageId", ascending())
-            .build();
+                .collection("page_revisions")
+                .name("pi1")
+                .key("_id.pageId", ascending())
+                .build();
     }
 }

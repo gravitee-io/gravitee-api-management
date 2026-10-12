@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ApplicationQueryServiceInMemory implements ApplicationQueryService, InMemoryAlternative<BaseApplicationEntity> {
+public class ApplicationQueryServiceInMemory
+        implements ApplicationQueryService, InMemoryAlternative<BaseApplicationEntity> {
 
     private final List<BaseApplicationEntity> storage;
 
@@ -64,15 +65,16 @@ public class ApplicationQueryServiceInMemory implements ApplicationQueryService,
         int pageSize = pageable.getPageSize();
         int startIndex = (pageNumber - 1) * pageSize;
         int endIndex = Math.min(startIndex + pageSize, allMatches.size());
-        var pageContent = (startIndex >= allMatches.size()) ? List.<BaseApplicationEntity>of() : allMatches.subList(startIndex, endIndex);
+        var pageContent = (startIndex >= allMatches.size())
+                ? List.<BaseApplicationEntity>of()
+                : allMatches.subList(startIndex, endIndex);
         return new Page<>(pageContent, pageNumber, pageSize, allMatches.size());
     }
 
     @Override
     public Set<BaseApplicationEntity> findByEnvironment(String environmentId) {
-        return storage
-            .stream()
-            .filter(application -> application.getEnvironmentId().equals(environmentId))
-            .collect(Collectors.toSet());
+        return storage.stream()
+                .filter(application -> application.getEnvironmentId().equals(environmentId))
+                .collect(Collectors.toSet());
     }
 }

@@ -29,7 +29,6 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -89,14 +88,13 @@ class DisableEnvironmentCommandHandlerTest {
     @BeforeEach
     void setUp() {
         cut = new DisableEnvironmentCommandHandler(
-            environmentService,
-            apiStateService,
-            apiRepository,
-            accessPointService,
-            idpActivationService,
-            dictionaryService,
-            userRepository
-        );
+                environmentService,
+                apiStateService,
+                apiRepository,
+                accessPointService,
+                idpActivationService,
+                dictionaryService,
+                userRepository);
     }
 
     @Test
@@ -106,50 +104,55 @@ class DisableEnvironmentCommandHandlerTest {
 
     @Test
     void handleSuccessfulCommand() throws Exception {
-        var apimEnvironment = EnvironmentEntity.builder().id(ENV_APIM_ID).organizationId(ORG_ID).build();
+        var apimEnvironment = EnvironmentEntity.builder()
+                .id(ENV_APIM_ID)
+                .organizationId(ORG_ID)
+                .build();
         var context = new ExecutionContext(apimEnvironment);
         var dictionary = DictionaryEntity.builder().id(DICTIONARY_ID).build();
         when(environmentService.findByCockpitId(ENV_COCKPIT_ID)).thenReturn(apimEnvironment);
-        when(
-            apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId(ENV_APIM_ID).state(LifecycleState.STARTED).build()),
-                any(ApiFieldFilter.class)
-            )
-        ).thenReturn(List.of(Api.builder().id(API_ID).build()));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .environmentId(ENV_APIM_ID)
+                                .state(LifecycleState.STARTED)
+                                .build()),
+                        any(ApiFieldFilter.class)))
+                .thenReturn(List.of(Api.builder().id(API_ID).build()));
         when(dictionaryService.findAll(context)).thenReturn(Set.of(dictionary));
-        when(userRepository.findBySource(COCKPIT_SOURCE, COCKPIT_USER_ID, ORG_ID)).thenReturn(
-            Optional.ofNullable(User.builder().id(RESOLVED_APIM_USER_ID).build())
-        );
+        when(userRepository.findBySource(COCKPIT_SOURCE, COCKPIT_USER_ID, ORG_ID))
+                .thenReturn(Optional.ofNullable(
+                        User.builder().id(RESOLVED_APIM_USER_ID).build()));
 
-        cut
-            .handle(aDisableEnvCommand())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut.handle(aDisableEnvCommand())
+                .test()
+                .awaitDone(1, TimeUnit.SECONDS)
+                .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(apiStateService).stopWithoutNotification(eq(context), eq(API_ID), eq(RESOLVED_APIM_USER_ID));
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, ENV_APIM_ID);
         verify(dictionaryService).stop(context, DICTIONARY_ID);
-        verify(idpActivationService).removeAllIdpsFromTarget(
-            eq(context),
-            eq(new IdentityProviderActivationService.ActivationTarget(ENV_APIM_ID, IdentityProviderActivationReferenceType.ENVIRONMENT))
-        );
+        verify(idpActivationService)
+                .removeAllIdpsFromTarget(
+                        eq(context),
+                        eq(new IdentityProviderActivationService.ActivationTarget(
+                                ENV_APIM_ID, IdentityProviderActivationReferenceType.ENVIRONMENT)));
     }
 
     @Test
     void handleThrowsException() {
-        when(environmentService.findByCockpitId(ENV_COCKPIT_ID)).thenThrow(new EnvironmentNotFoundException(ENV_COCKPIT_ID));
+        when(environmentService.findByCockpitId(ENV_COCKPIT_ID))
+                .thenThrow(new EnvironmentNotFoundException(ENV_COCKPIT_ID));
 
-        cut
-            .handle(aDisableEnvCommand())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));
+        cut.handle(aDisableEnvCommand())
+                .test()
+                .awaitDone(1, TimeUnit.SECONDS)
+                .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     private DisableEnvironmentCommand aDisableEnvCommand() {
-        return new DisableEnvironmentCommand(
-            DisableEnvironmentCommandPayload.builder().cockpitId(ENV_COCKPIT_ID).userId(COCKPIT_USER_ID).build()
-        );
+        return new DisableEnvironmentCommand(DisableEnvironmentCommandPayload.builder()
+                .cockpitId(ENV_COCKPIT_ID)
+                .userId(COCKPIT_USER_ID)
+                .build());
     }
 }

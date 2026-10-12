@@ -37,9 +37,9 @@ class RedisClientRoleCheckTest {
         RedisAPI api = mock(RedisAPI.class);
 
         RedisAPI result = RedisClient.applySentinelRoleCheck(api, false, t -> {})
-            .toCompletionStage()
-            .toCompletableFuture()
-            .join();
+                .toCompletionStage()
+                .toCompletableFuture()
+                .join();
 
         assertThat(result).isSameAs(api);
         verify(api, never()).role();
@@ -52,9 +52,9 @@ class RedisClientRoleCheckTest {
         when(api.role()).thenReturn(Future.succeededFuture(master));
 
         RedisAPI result = RedisClient.applySentinelRoleCheck(api, true, t -> {})
-            .toCompletionStage()
-            .toCompletableFuture()
-            .join();
+                .toCompletionStage()
+                .toCompletableFuture()
+                .join();
 
         assertThat(result).isSameAs(api);
     }
@@ -79,7 +79,10 @@ class RedisClientRoleCheckTest {
         when(api.role()).thenReturn(Future.failedFuture(noperm));
         AtomicReference<Throwable> skipped = new AtomicReference<>();
 
-        RedisAPI result = RedisClient.applySentinelRoleCheck(api, true, skipped::set).toCompletionStage().toCompletableFuture().join();
+        RedisAPI result = RedisClient.applySentinelRoleCheck(api, true, skipped::set)
+                .toCompletionStage()
+                .toCompletableFuture()
+                .join();
 
         assertThat(result).isSameAs(api);
         assertThat(skipped.get()).isSameAs(noperm);
@@ -92,7 +95,10 @@ class RedisClientRoleCheckTest {
         when(api.role()).thenReturn(Future.failedFuture(unknown));
         AtomicReference<Throwable> skipped = new AtomicReference<>();
 
-        RedisAPI result = RedisClient.applySentinelRoleCheck(api, true, skipped::set).toCompletionStage().toCompletableFuture().join();
+        RedisAPI result = RedisClient.applySentinelRoleCheck(api, true, skipped::set)
+                .toCompletionStage()
+                .toCompletableFuture()
+                .join();
 
         assertThat(result).isSameAs(api);
         assertThat(skipped.get()).isSameAs(unknown);
@@ -113,12 +119,11 @@ class RedisClientRoleCheckTest {
 
     @Test
     void should_treat_role_mismatch_as_expected_connect_failure() {
-        assertThat(
-            RedisClient.isExpectedConnectFailure(
-                new IllegalStateException("Redis node is not writable (ROLE=slave); will retry with backoff")
-            )
-        ).isTrue();
-        assertThat(RedisClient.isExpectedConnectFailure(new RuntimeException("Connection is closed"))).isFalse();
+        assertThat(RedisClient.isExpectedConnectFailure(
+                        new IllegalStateException("Redis node is not writable (ROLE=slave); will retry with backoff")))
+                .isTrue();
+        assertThat(RedisClient.isExpectedConnectFailure(new RuntimeException("Connection is closed")))
+                .isFalse();
     }
 
     @Test

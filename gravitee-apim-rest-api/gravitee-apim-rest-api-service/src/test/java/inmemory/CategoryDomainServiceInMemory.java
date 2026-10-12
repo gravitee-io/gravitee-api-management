@@ -49,14 +49,12 @@ public class CategoryDomainServiceInMemory implements CategoryDomainService {
         if (api.getCategories() == null || api.getCategories().isEmpty()) {
             return api.getCategories();
         }
-        return api
-            .getCategories()
-            .stream()
-            .map(idOrKey -> categoryQueryService.findByIdOrKey(idOrKey, environmentId))
-            .filter(java.util.Optional::isPresent)
-            .map(opt -> opt.get().getKey())
-            .filter(key -> key != null)
-            .collect(Collectors.toCollection(HashSet::new));
+        return api.getCategories().stream()
+                .map(idOrKey -> categoryQueryService.findByIdOrKey(idOrKey, environmentId))
+                .filter(java.util.Optional::isPresent)
+                .map(opt -> opt.get().getKey())
+                .filter(key -> key != null)
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
@@ -64,12 +62,11 @@ public class CategoryDomainServiceInMemory implements CategoryDomainService {
         if (CollectionUtils.isEmpty(categoryIdsOrKeys)) {
             return categoryIdsOrKeys;
         }
-        return categoryIdsOrKeys
-            .stream()
-            .map(idOrKey -> categoryQueryService.findByIdOrKey(idOrKey, environmentId))
-            .filter(java.util.Optional::isPresent)
-            .map(opt -> opt.get().getId())
-            .collect(Collectors.toCollection(HashSet::new));
+        return categoryIdsOrKeys.stream()
+                .map(idOrKey -> categoryQueryService.findByIdOrKey(idOrKey, environmentId))
+                .filter(java.util.Optional::isPresent)
+                .map(opt -> opt.get().getId())
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override

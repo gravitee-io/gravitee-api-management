@@ -63,19 +63,23 @@ public class FlowConverter {
         pathOperator.setPath(model.getPath());
         pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
         flow.setPathOperator(pathOperator);
-        flow.setPre(model.getPre().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
-        flow.setPost(model.getPost().stream().map(this::toDefinitionStep).filter(Objects::nonNull).collect(Collectors.toList()));
-        flow.setConsumers(model.getConsumers().stream().map(this::toDefinitionConsumer).collect(Collectors.toList()));
+        flow.setPre(model.getPre().stream()
+                .map(this::toDefinitionStep)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+        flow.setPost(model.getPost().stream()
+                .map(this::toDefinitionStep)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+        flow.setConsumers(
+                model.getConsumers().stream().map(this::toDefinitionConsumer).collect(Collectors.toList()));
         return flow;
     }
 
     public io.gravitee.repository.management.model.flow.Flow toRepository(
-        Flow flowDefinition,
-        FlowReferenceType referenceType,
-        String referenceId,
-        int order
-    ) {
-        io.gravitee.repository.management.model.flow.Flow flow = new io.gravitee.repository.management.model.flow.Flow();
+            Flow flowDefinition, FlowReferenceType referenceType, String referenceId, int order) {
+        io.gravitee.repository.management.model.flow.Flow flow =
+                new io.gravitee.repository.management.model.flow.Flow();
         flow.setId(UuidString.generateRandom());
         flow.setCreatedAt(new Date());
         flow.setUpdatedAt(flow.getCreatedAt());
@@ -91,10 +95,11 @@ public class FlowConverter {
         flow.setEnabled(flowDefinition.isEnabled());
         flow.setCondition(flowDefinition.getCondition());
         flow.setConsumers(
-            flowDefinition.getConsumers() != null
-                ? flowDefinition.getConsumers().stream().map(this::toRepositoryConsumer).collect(Collectors.toList())
-                : Collections.emptyList()
-        );
+                flowDefinition.getConsumers() != null
+                        ? flowDefinition.getConsumers().stream()
+                                .map(this::toRepositoryConsumer)
+                                .collect(Collectors.toList())
+                        : Collections.emptyList());
         return flow;
     }
 
@@ -104,21 +109,23 @@ public class FlowConverter {
         }
 
         return IntStream.range(0, steps.size())
-            .mapToObj(index -> this.toRepositoryStep(steps.get(index), index))
-            .collect(Collectors.toList());
+                .mapToObj(index -> this.toRepositoryStep(steps.get(index), index))
+                .collect(Collectors.toList());
     }
 
     private FlowConsumer toRepositoryConsumer(Consumer consumer) {
         FlowConsumer flowConsumer = new FlowConsumer();
         flowConsumer.setConsumerId(consumer.getConsumerId());
-        flowConsumer.setConsumerType(FlowConsumerType.valueOf(consumer.getConsumerType().name()));
+        flowConsumer.setConsumerType(
+                FlowConsumerType.valueOf(consumer.getConsumerType().name()));
         return flowConsumer;
     }
 
     private Consumer toDefinitionConsumer(FlowConsumer flowConsumer) {
         Consumer consumer = new Consumer();
         consumer.setConsumerId(flowConsumer.getConsumerId());
-        consumer.setConsumerType(ConsumerType.valueOf(flowConsumer.getConsumerType().name()));
+        consumer.setConsumerType(
+                ConsumerType.valueOf(flowConsumer.getConsumerType().name()));
         return consumer;
     }
 
@@ -144,16 +151,9 @@ public class FlowConverter {
     }
 
     public io.gravitee.repository.management.model.flow.Flow toRepositoryUpdate(
-        io.gravitee.repository.management.model.flow.Flow dbFlow,
-        Flow flowDefinition,
-        int order
-    ) {
-        io.gravitee.repository.management.model.flow.Flow flow = toRepository(
-            flowDefinition,
-            dbFlow.getReferenceType(),
-            dbFlow.getReferenceId(),
-            order
-        );
+            io.gravitee.repository.management.model.flow.Flow dbFlow, Flow flowDefinition, int order) {
+        io.gravitee.repository.management.model.flow.Flow flow =
+                toRepository(flowDefinition, dbFlow.getReferenceType(), dbFlow.getReferenceId(), order);
         flow.setId(dbFlow.getId());
         flow.setCreatedAt(dbFlow.getCreatedAt());
         flow.setUpdatedAt(new Date());

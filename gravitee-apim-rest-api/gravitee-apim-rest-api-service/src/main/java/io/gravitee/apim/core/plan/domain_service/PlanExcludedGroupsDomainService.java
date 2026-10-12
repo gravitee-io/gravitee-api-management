@@ -49,12 +49,10 @@ public class PlanExcludedGroupsDomainService {
             return;
         }
 
-        Set<String> validGroupIds = groupQueryService
-            .findByIds(new HashSet<>(excludedGroups))
-            .stream()
-            .filter(group -> environmentId.equals(group.getEnvironmentId()))
-            .map(Group::getId)
-            .collect(Collectors.toSet());
+        Set<String> validGroupIds = groupQueryService.findByIds(new HashSet<>(excludedGroups)).stream()
+                .filter(group -> environmentId.equals(group.getEnvironmentId()))
+                .map(Group::getId)
+                .collect(Collectors.toSet());
 
         excludedGroups.forEach(excludedGroupId -> {
             if (!validGroupIds.contains(excludedGroupId)) {
@@ -63,7 +61,8 @@ public class PlanExcludedGroupsDomainService {
         });
     }
 
-    public boolean isUserAuthorizedToAccessApiProductPlan(ApiProduct apiProduct, List<String> excludedGroups, String username) {
+    public boolean isUserAuthorizedToAccessApiProductPlan(
+            ApiProduct apiProduct, List<String> excludedGroups, String username) {
         if (username == null) {
             return excludedGroups == null || excludedGroups.isEmpty();
         }
@@ -89,30 +88,31 @@ public class PlanExcludedGroupsDomainService {
 
     private boolean isDirectApiProductMember(String apiProductId, String username) {
         return membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(username, Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
-            .stream()
-            .anyMatch(membership -> apiProductId.equals(membership.getReferenceId()));
+                .findByMemberIdAndMemberTypeAndReferenceType(
+                        username, Membership.Type.USER, Membership.ReferenceType.API_PRODUCT)
+                .stream()
+                .anyMatch(membership -> apiProductId.equals(membership.getReferenceId()));
     }
 
     private Set<String> findUserGroupsWithApiProductRole(String username) {
         Collection<Membership> groupMemberships = membershipQueryService.findGroupsThatUserBelongsTo(username);
-        Set<String> roleIds = groupMemberships.stream().map(Membership::getRoleId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<String> roleIds = groupMemberships.stream()
+                .map(Membership::getRoleId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         if (roleIds.isEmpty()) {
             return Set.of();
         }
 
-        Set<String> apiProductRoleIds = roleQueryService
-            .findByIds(roleIds)
-            .stream()
-            .filter(role -> Role.Scope.API_PRODUCT.equals(role.getScope()))
-            .map(Role::getId)
-            .collect(Collectors.toSet());
+        Set<String> apiProductRoleIds = roleQueryService.findByIds(roleIds).stream()
+                .filter(role -> Role.Scope.API_PRODUCT.equals(role.getScope()))
+                .map(Role::getId)
+                .collect(Collectors.toSet());
 
-        return groupMemberships
-            .stream()
-            .filter(membership -> apiProductRoleIds.contains(membership.getRoleId()))
-            .map(Membership::getReferenceId)
-            .collect(Collectors.toSet());
+        return groupMemberships.stream()
+                .filter(membership -> apiProductRoleIds.contains(membership.getRoleId()))
+                .map(Membership::getReferenceId)
+                .collect(Collectors.toSet());
     }
 }

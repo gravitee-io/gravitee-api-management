@@ -44,9 +44,7 @@ public class PortalCrudServiceImpl implements PortalCrudService {
             return portalAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to create a Portal with id: %s", portal.getId()),
-                e
-            );
+                    String.format("An error occurred while trying to create a Portal with id: %s", portal.getId()), e);
         }
     }
 
@@ -57,53 +55,50 @@ public class PortalCrudServiceImpl implements PortalCrudService {
             return portalAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to update a Portal with id: %s", portal.getId()),
-                e
-            );
+                    String.format("An error occurred while trying to update a Portal with id: %s", portal.getId()), e);
         }
     }
 
     @Override
     public Optional<Portal> findByIdAndEnvironmentId(PortalId portalId, String environmentId) {
         try {
-            return portalRepository.findByIdAndEnvironmentId(portalId.toString(), environmentId).map(portalAdapter::toEntity);
+            return portalRepository
+                    .findByIdAndEnvironmentId(portalId.toString(), environmentId)
+                    .map(portalAdapter::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to find a Portal with id (%s) in environment (%s)", portalId, environmentId),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to find a Portal with id (%s) in environment (%s)",
+                            portalId, environmentId),
+                    e);
         }
     }
 
     @Override
     public List<Portal> findByEnvironmentId(String environmentId) {
         try {
-            return portalRepository.findByEnvironmentId(environmentId).stream().map(portalAdapter::toEntity).toList();
+            return portalRepository.findByEnvironmentId(environmentId).stream()
+                    .map(portalAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to find Portals in environment (%s)", environmentId),
-                e
-            );
+                    String.format("An error occurred while trying to find Portals in environment (%s)", environmentId),
+                    e);
         }
     }
 
     @Override
     public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) {
         try {
-            return portalRepository
-                .findByActiveThemeIdAndEnvironmentId(activeThemeId, environmentId)
-                .stream()
-                .map(portalAdapter::toEntity)
-                .toList();
+            return portalRepository.findByActiveThemeIdAndEnvironmentId(activeThemeId, environmentId).stream()
+                    .map(portalAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to find Portals by active theme id (%s) and environment (%s)",
-                    activeThemeId,
-                    environmentId
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to find Portals by active theme id (%s) and environment (%s)",
+                            activeThemeId, environmentId),
+                    e);
         }
     }
 
@@ -113,9 +108,7 @@ public class PortalCrudServiceImpl implements PortalCrudService {
             portalRepository.delete(portalId.toString());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to delete the Portal with id: %s", portalId),
-                e
-            );
+                    String.format("An error occurred while trying to delete the Portal with id: %s", portalId), e);
         }
     }
 }

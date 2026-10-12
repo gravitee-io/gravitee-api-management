@@ -39,17 +39,16 @@ public final class PortalNavigationApiProduct extends PortalNavigationItem imple
     private List<PortalCategoryId> categoryIds = List.of();
 
     PortalNavigationApiProduct(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull String apiProductId,
-        @Nonnull Boolean published,
-        @Nonnull PortalVisibility visibility,
-        List<PortalCategoryId> categoryIds
-    ) {
+            @Nonnull PortalNavigationItemId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String title,
+            @Nonnull PortalArea area,
+            @Nonnull Integer order,
+            @Nonnull String apiProductId,
+            @Nonnull Boolean published,
+            @Nonnull PortalVisibility visibility,
+            List<PortalCategoryId> categoryIds) {
         super(id, organizationId, environmentId, title, area, order, published, visibility);
         this.apiProductId = apiProductId;
         this.categoryIds = normalizeCategoryIds(categoryIds);

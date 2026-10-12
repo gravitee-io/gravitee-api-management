@@ -52,27 +52,25 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final String URI_PATH_SEPARATOR = "/";
-    public static final Set<DefinitionVersion> APIS_WITHOUT_ENTRYPOINT = EnumSet.of(
-        DefinitionVersion.FEDERATED,
-        DefinitionVersion.FEDERATED_AGENT
-    );
+    public static final Set<DefinitionVersion> APIS_WITHOUT_ENTRYPOINT =
+            EnumSet.of(DefinitionVersion.FEDERATED, DefinitionVersion.FEDERATED_AGENT);
 
     private final ParameterService parameterService;
     private final EntrypointService entrypointService;
     private final AccessPointQueryService accessPointQueryService;
 
     public ApiEntrypointServiceImpl(
-        final ParameterService parameterService,
-        final EntrypointService entrypointService,
-        final AccessPointQueryService accessPointQueryService
-    ) {
+            final ParameterService parameterService,
+            final EntrypointService entrypointService,
+            final AccessPointQueryService accessPointQueryService) {
         this.parameterService = parameterService;
         this.entrypointService = entrypointService;
         this.accessPointQueryService = accessPointQueryService;
     }
 
     @Override
-    public List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
+    public List<ApiEntrypointEntity> getApiEntrypoints(
+            final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (APIS_WITHOUT_ENTRYPOINT.contains(genericApiEntity.getDefinitionVersion())) {
@@ -80,32 +78,29 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
 
         String defaultTcpPort = parameterService.find(
-            executionContext,
-            Key.PORTAL_TCP_PORT,
-            executionContext.getEnvironmentId(),
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext,
+                Key.PORTAL_TCP_PORT,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT);
         String defaultKafkaDomain = parameterService.find(
-            executionContext,
-            Key.PORTAL_KAFKA_DOMAIN,
-            executionContext.getEnvironmentId(),
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext,
+                Key.PORTAL_KAFKA_DOMAIN,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT);
         String defaultKafkaPort = parameterService.find(
-            executionContext,
-            Key.PORTAL_KAFKA_PORT,
-            executionContext.getEnvironmentId(),
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext,
+                Key.PORTAL_KAFKA_PORT,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT);
 
         if (genericApiEntity.getTags() != null && !genericApiEntity.getTags().isEmpty()) {
             List<EntrypointEntity> organizationEntrypoints = entrypointService.findAll(executionContext);
 
             organizationEntrypoints.forEach(entrypoint -> {
                 // Check if organizationEntrypoints is matching all tags of the API
-                boolean isEntrypointMatching = Arrays.stream(entrypoint.getTags()).allMatch(tag ->
-                    genericApiEntity.getTags().stream().toList().contains(tag)
-                );
+                boolean isEntrypointMatching = Arrays.stream(entrypoint.getTags())
+                        .allMatch(tag ->
+                                genericApiEntity.getTags().stream().toList().contains(tag));
                 if (!isEntrypointMatching) {
                     return;
                 }
@@ -126,44 +121,37 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
                 final String entrypointValue = entrypoint.getValue();
 
-                apiEntrypoints.addAll(
-                    getEntrypoints(
+                apiEntrypoints.addAll(getEntrypoints(
                         genericApiEntity,
                         entrypointValue,
                         defaultTcpPort,
                         entrypointValue.lastIndexOf(":") > 0
-                            ? entrypointValue.substring(0, entrypointValue.lastIndexOf(":"))
-                            : defaultKafkaDomain,
+                                ? entrypointValue.substring(0, entrypointValue.lastIndexOf(":"))
+                                : defaultKafkaDomain,
                         entrypointValue.lastIndexOf(":") > 0
-                            ? entrypointValue.substring(entrypointValue.lastIndexOf(":") + 1)
-                            : defaultKafkaPort,
+                                ? entrypointValue.substring(entrypointValue.lastIndexOf(":") + 1)
+                                : defaultKafkaPort,
                         genericApiEntity.getTags(),
-                        executionContext.getEnvironmentId()
-                    )
-                );
+                        executionContext.getEnvironmentId()));
             });
         }
 
         // If empty, get the default entrypoint
         if (apiEntrypoints.isEmpty()) {
             String defaultEntrypoint = parameterService.find(
-                executionContext,
-                Key.PORTAL_ENTRYPOINT,
-                executionContext.getEnvironmentId(),
-                ParameterReferenceType.ENVIRONMENT
-            );
+                    executionContext,
+                    Key.PORTAL_ENTRYPOINT,
+                    executionContext.getEnvironmentId(),
+                    ParameterReferenceType.ENVIRONMENT);
 
-            apiEntrypoints.addAll(
-                getEntrypoints(
+            apiEntrypoints.addAll(getEntrypoints(
                     genericApiEntity,
                     defaultEntrypoint,
                     defaultTcpPort,
                     defaultKafkaDomain,
                     defaultKafkaPort,
                     null,
-                    executionContext.getEnvironmentId()
-                )
-            );
+                    executionContext.getEnvironmentId()));
         }
 
         return deduplicateByTarget(apiEntrypoints);
@@ -194,86 +182,68 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     }
 
     private List<ApiEntrypointEntity> getEntrypoints(
-        final GenericApiEntity genericApiEntity,
-        final String entrypointValue,
-        final String tcpPort,
-        final String kafkaDomain,
-        final String kafkaPort,
-        final Set<String> tagEntrypoints,
-        final String environmentId
-    ) {
+            final GenericApiEntity genericApiEntity,
+            final String entrypointValue,
+            final String tcpPort,
+            final String kafkaDomain,
+            final String kafkaPort,
+            final Set<String> tagEntrypoints,
+            final String environmentId) {
         if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity api = (ApiEntity) genericApiEntity;
-            return api
-                .getProxy()
-                .getVirtualHosts()
-                .stream()
-                .flatMap(virtualHost ->
-                    getHttpApiEntrypointEntity(
-                        entrypointValue,
-                        virtualHost.getHost(),
-                        virtualHost.getPath(),
-                        virtualHost.isOverrideEntrypoint(),
-                        tagEntrypoints,
-                        environmentId
-                    ).stream()
-                )
-                .toList();
-        } else if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.V4 && genericApiEntity instanceof NativeApiEntity api) {
-            return api
-                .getListeners()
-                .stream()
-                .filter(listener -> listener instanceof KafkaListener)
-                .flatMap(listener -> {
-                    var kafkaListener = (KafkaListener) listener;
-                    return getKafkaNativeApiEntrypointEntity(
-                        kafkaListener.getHost(),
-                        kafkaDomain,
-                        kafkaPort,
-                        tagEntrypoints,
-                        environmentId
-                    ).stream();
-                })
-                .toList();
+            return api.getProxy().getVirtualHosts().stream()
+                    .flatMap(virtualHost -> getHttpApiEntrypointEntity(
+                            entrypointValue,
+                            virtualHost.getHost(),
+                            virtualHost.getPath(),
+                            virtualHost.isOverrideEntrypoint(),
+                            tagEntrypoints,
+                            environmentId)
+                            .stream())
+                    .toList();
+        } else if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.V4
+                && genericApiEntity instanceof NativeApiEntity api) {
+            return api.getListeners().stream()
+                    .filter(listener -> listener instanceof KafkaListener)
+                    .flatMap(listener -> {
+                        var kafkaListener = (KafkaListener) listener;
+                        return getKafkaNativeApiEntrypointEntity(
+                                kafkaListener.getHost(), kafkaDomain, kafkaPort, tagEntrypoints, environmentId)
+                                .stream();
+                    })
+                    .toList();
         } else {
-            io.gravitee.rest.api.model.v4.api.ApiEntity api = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
-            return api
-                .getListeners()
-                .stream()
-                .flatMap(listener -> {
-                    if (listener instanceof HttpListener httpListener) {
-                        return httpListener
-                            .getPaths()
-                            .stream()
-                            .flatMap(path ->
-                                getHttpApiEntrypointEntity(
-                                    entrypointValue,
-                                    path.getHost(),
-                                    path.getPath(),
-                                    path.isOverrideAccess(),
-                                    tagEntrypoints,
-                                    environmentId
-                                ).stream()
-                            );
-                    } else if (listener instanceof TcpListener tcpListener) {
-                        return tcpListener
-                            .getHosts()
-                            .stream()
-                            .map(tcpHost -> getTcpApiEntrypointEntity(tcpHost, tcpPort, entrypointValue, tagEntrypoints));
-                    } else return Stream.empty();
-                })
-                .toList();
+            io.gravitee.rest.api.model.v4.api.ApiEntity api =
+                    (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+            return api.getListeners().stream()
+                    .flatMap(listener -> {
+                        if (listener instanceof HttpListener httpListener) {
+                            return httpListener.getPaths().stream()
+                                    .flatMap(path -> getHttpApiEntrypointEntity(
+                                            entrypointValue,
+                                            path.getHost(),
+                                            path.getPath(),
+                                            path.isOverrideAccess(),
+                                            tagEntrypoints,
+                                            environmentId)
+                                            .stream());
+                        } else if (listener instanceof TcpListener tcpListener) {
+                            return tcpListener.getHosts().stream()
+                                    .map(tcpHost -> getTcpApiEntrypointEntity(
+                                            tcpHost, tcpPort, entrypointValue, tagEntrypoints));
+                        } else return Stream.empty();
+                    })
+                    .toList();
         }
     }
 
     private List<ApiEntrypointEntity> getHttpApiEntrypointEntity(
-        final String entrypointHost,
-        final String host,
-        final String path,
-        final boolean isOverride,
-        final Set<String> tags,
-        final String environmentId
-    ) {
+            final String entrypointHost,
+            final String host,
+            final String path,
+            final boolean isOverride,
+            final Set<String> tags,
+            final String environmentId) {
         final String defaultScheme = getScheme(entrypointHost);
 
         List<ApiEntrypointEntity> entrypoints = new ArrayList<>();
@@ -297,17 +267,14 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     }
 
     ApiEntrypointEntity createHttpApiEntrypointEntity(
-        String defaultScheme,
-        String host,
-        String path,
-        Set<String> tags,
-        String originalHost
-    ) {
+            String defaultScheme, String host, String path, Set<String> tags, String originalHost) {
         if (!host.toLowerCase().startsWith("http")) {
             host = defaultScheme + "://" + host;
         }
 
-        String url = DUPLICATE_SLASH_REMOVER.matcher(host + URI_PATH_SEPARATOR + path).replaceAll(URI_PATH_SEPARATOR);
+        String url = DUPLICATE_SLASH_REMOVER
+                .matcher(host + URI_PATH_SEPARATOR + path)
+                .replaceAll(URI_PATH_SEPARATOR);
         if (url.endsWith(URI_PATH_SEPARATOR)) {
             url = url.substring(0, url.length() - URI_PATH_SEPARATOR.length());
         }
@@ -316,22 +283,17 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     }
 
     private ApiEntrypointEntity getTcpApiEntrypointEntity(
-        final String tcpHost,
-        final String tcpPort,
-        final String host,
-        final Set<String> tags
-    ) {
+            final String tcpHost, final String tcpPort, final String host, final Set<String> tags) {
         String target = String.join(":", tcpHost, tcpPort);
         return new ApiEntrypointEntity(tags, target, host);
     }
 
     private List<ApiEntrypointEntity> getKafkaNativeApiEntrypointEntity(
-        final String host,
-        final String domain,
-        final String port,
-        final Set<String> tags,
-        final String environmentId
-    ) {
+            final String host,
+            final String domain,
+            final String port,
+            final Set<String> tags,
+            final String environmentId) {
         List<ApiEntrypointEntity> entrypoints = new ArrayList<>();
         List<AccessPoint> accessPoints = this.accessPointQueryService.getKafkaGatewayAccessPoints(environmentId);
 
@@ -341,11 +303,11 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             for (AccessPoint accessPoint : accessPoints) {
                 String accessPointDomain = accessPoint.getHost();
                 String targetDomain = accessPointDomain.contains(":")
-                    ? accessPointDomain.substring(0, accessPointDomain.indexOf(":"))
-                    : accessPointDomain;
+                        ? accessPointDomain.substring(0, accessPointDomain.indexOf(":"))
+                        : accessPointDomain;
                 String targetPort = accessPointDomain.contains(":")
-                    ? accessPointDomain.substring(accessPointDomain.indexOf(":") + 1)
-                    : port;
+                        ? accessPointDomain.substring(accessPointDomain.indexOf(":") + 1)
+                        : port;
 
                 entrypoints.add(createKafkaNativeApiEntrypointEntity(host, targetDomain, targetPort, tags));
             }
@@ -354,11 +316,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     }
 
     private ApiEntrypointEntity createKafkaNativeApiEntrypointEntity(
-        final String host,
-        final String domain,
-        final String port,
-        final Set<String> tags
-    ) {
+            final String host, final String domain, final String port, final Set<String> tags) {
         String kafkaDomain;
         if (domain == null || domain.isBlank()) {
             kafkaDomain = host;
@@ -389,20 +347,17 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
 
         if (genericApiEntity instanceof NativeApiEntity api) {
-            return api
-                .getListeners()
-                .stream()
+            return api.getListeners().stream()
+                    .findFirst()
+                    .map(listener -> listener.getType().toString())
+                    .orElseThrow(() -> new EntrypointNotFoundException(api.getId()));
+        }
+        io.gravitee.rest.api.model.v4.api.ApiEntity api =
+                (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+        return api.getListeners().stream()
                 .findFirst()
                 .map(listener -> listener.getType().toString())
                 .orElseThrow(() -> new EntrypointNotFoundException(api.getId()));
-        }
-        io.gravitee.rest.api.model.v4.api.ApiEntity api = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
-        return api
-            .getListeners()
-            .stream()
-            .findFirst()
-            .map(listener -> listener.getType().toString())
-            .orElseThrow(() -> new EntrypointNotFoundException(api.getId()));
     }
 
     private EntrypointEntity.Target getApiTarget(final GenericApiEntity genericApiEntity) {
@@ -412,31 +367,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
         // V4 Native API
         if (genericApiEntity instanceof NativeApiEntity nativeApiEntity) {
-            if (
-                nativeApiEntity
-                    .getListeners()
-                    .stream()
-                    .anyMatch(listener -> listener instanceof KafkaListener)
-            ) {
+            if (nativeApiEntity.getListeners().stream().anyMatch(listener -> listener instanceof KafkaListener)) {
                 return EntrypointEntity.Target.KAFKA;
             }
         }
         // V4 API
         if (genericApiEntity instanceof io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity) {
-            if (
-                apiEntity
-                    .getListeners()
-                    .stream()
-                    .anyMatch(listener -> listener instanceof TcpListener)
-            ) {
+            if (apiEntity.getListeners().stream().anyMatch(listener -> listener instanceof TcpListener)) {
                 return EntrypointEntity.Target.TCP;
             }
-            if (
-                apiEntity
-                    .getListeners()
-                    .stream()
-                    .anyMatch(listener -> listener instanceof HttpListener)
-            ) {
+            if (apiEntity.getListeners().stream().anyMatch(listener -> listener instanceof HttpListener)) {
                 return EntrypointEntity.Target.HTTP;
             }
         }
@@ -451,10 +391,8 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             return true;
         }
         if (api instanceof io.gravitee.rest.api.model.v4.api.ApiEntity v4Api) {
-            boolean hasCompatibleListener = v4Api
-                .getListeners()
-                .stream()
-                .anyMatch(listener -> listener instanceof TcpListener || listener instanceof HttpListener);
+            boolean hasCompatibleListener = v4Api.getListeners().stream()
+                    .anyMatch(listener -> listener instanceof TcpListener || listener instanceof HttpListener);
             if (!hasCompatibleListener) {
                 log.debug("API [{}] has no TCP or HTTP listeners — entrypoint checks will be skipped", api.getId());
             }

@@ -64,22 +64,32 @@ public class PortalListingsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_PORTAL,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @PathParam("hrid") String portalHrid,
-        @Valid @NotNull PortalListingSpec spec,
-        @QueryParam("dryRun") boolean dryRun
-    ) {
+            @PathParam("hrid") String portalHrid,
+            @Valid @NotNull PortalListingSpec spec,
+            @QueryParam("dryRun") boolean dryRun) {
         var auditInfo = getAuditInfo();
         var apis = PortalListingMapper.INSTANCE.toDomainApis(spec.getApis());
-        var portalId = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
-        var listingId = PortalListingId.of(HRIDToUUID.portalListing().context(auditInfo).portal(portalHrid).hrid(spec.getHrid()).id());
+        var portalId = PortalId.of(
+                HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
+        var listingId = PortalListingId.of(HRIDToUUID.portalListing()
+                .context(auditInfo)
+                .portal(portalHrid)
+                .hrid(spec.getHrid())
+                .id());
 
         var input = new CreateOrUpdatePortalListingUseCase.Input(auditInfo, listingId, portalId, apis);
-        var output = dryRun ? validatePortalListingUseCase.execute(input) : createOrUpdatePortalListingUseCase.execute(input);
+        var output = dryRun
+                ? validatePortalListingUseCase.execute(input)
+                : createOrUpdatePortalListingUseCase.execute(input);
 
-        return Response.ok(
-            PortalListingMapper.INSTANCE.toPortalListingState(spec, output.id(), output.errors(), auditInfo, portalHrid)
-        ).build();
+        return Response.ok(PortalListingMapper.INSTANCE.toPortalListingState(
+                        spec, output.id(), output.errors(), auditInfo, portalHrid))
+                .build();
     }
 }

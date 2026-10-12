@@ -32,31 +32,38 @@ public class TestAmConnectionUseCase {
     private final AmConnectionRepository amConnectionRepository;
     private final AmConnectionTester amConnectionTester;
 
-    public record Input(String orgId, String inboundBaseUrl, String inboundAccessToken, String inboundAmOrganizationId) {}
+    public record Input(
+            String orgId, String inboundBaseUrl, String inboundAccessToken, String inboundAmOrganizationId) {}
 
     public record Output(AmConnectionTestResult result) {}
 
     public Output execute(Input input) {
         Optional<AmConnection> stored = amConnectionRepository.findByOrg(input.orgId());
-        String baseUrl = (input.inboundBaseUrl() != null && !input.inboundBaseUrl().isBlank())
-            ? input.inboundBaseUrl().replaceAll("/+$", "")
-            : stored.map(AmConnection::baseUrl).orElse("");
+        String baseUrl =
+                (input.inboundBaseUrl() != null && !input.inboundBaseUrl().isBlank())
+                        ? input.inboundBaseUrl().replaceAll("/+$", "")
+                        : stored.map(AmConnection::baseUrl).orElse("");
         String accessToken = input.inboundAccessToken() != null
-            ? (input.inboundAccessToken().isEmpty() ? null : input.inboundAccessToken())
-            : stored.map(AmConnection::serviceAccountAccessToken).orElse(null);
+                ? (input.inboundAccessToken().isEmpty() ? null : input.inboundAccessToken())
+                : stored.map(AmConnection::serviceAccountAccessToken).orElse(null);
 
-        String amOrganizationId = (input.inboundAmOrganizationId() != null && !input.inboundAmOrganizationId().isBlank())
-            ? input.inboundAmOrganizationId().trim()
-            : stored.map(AmConnection::amOrganizationId).orElse(null);
+        String amOrganizationId = (input.inboundAmOrganizationId() != null
+                        && !input.inboundAmOrganizationId().isBlank())
+                ? input.inboundAmOrganizationId().trim()
+                : stored.map(AmConnection::amOrganizationId).orElse(null);
         String environmentId = stored.map(AmConnection::environmentId).orElse(null);
         String defaultDomainId = stored.map(AmConnection::defaultDomainId).orElse(null);
         String defaultDomainHrid = stored.map(AmConnection::defaultDomainHrid).orElse(null);
         String gatewayUrl = stored.map(AmConnection::gatewayUrl).orElse(null);
-        return new Output(
-            amConnectionTester.test(
+        return new Output(amConnectionTester.test(
                 input.orgId(),
-                new AmConnection(baseUrl, accessToken, amOrganizationId, environmentId, defaultDomainId, defaultDomainHrid, gatewayUrl)
-            )
-        );
+                new AmConnection(
+                        baseUrl,
+                        accessToken,
+                        amOrganizationId,
+                        environmentId,
+                        defaultDomainId,
+                        defaultDomainHrid,
+                        gatewayUrl)));
     }
 }

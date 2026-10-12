@@ -84,15 +84,14 @@ import org.springframework.util.StringUtils;
 @ExtendWith(VertxExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public abstract class AbstractGatewayTest
-    implements
-        PluginRegister,
-        ApiConfigurer,
-        ApiDeployer,
-        OrganizationConfigurer,
-        DictionaryDeployer,
-        ApplicationContextAware,
-        SharedPolicyGroupDeployer,
-        ApiProductDeployer {
+        implements PluginRegister,
+                ApiConfigurer,
+                ApiDeployer,
+                OrganizationConfigurer,
+                DictionaryDeployer,
+                ApplicationContextAware,
+                SharedPolicyGroupDeployer,
+                ApiProductDeployer {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     protected static final PlaceholderSymbols DEFAULT_PLACEHOLDER_SYMBOLS = new PlaceholderSymbols("${", "}");
@@ -108,6 +107,7 @@ public abstract class AbstractGatewayTest
      * The wiremock used by the deployed apis as a backend.
      */
     protected WireMockServer wiremock;
+
     private final Map<String, Runnable> tearDownHandlers = new HashMap<>();
 
     protected ApplicationContext applicationContext;
@@ -116,6 +116,7 @@ public abstract class AbstractGatewayTest
      * Map of deployed apis for the current test method thanks to {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi}
      */
     protected Map<String, ReactableApi<?>> deployedApis;
+
     private Map<String, ReactableApi<?>> deployedForTestClass;
 
     private Consumer<ReactableApi<?>> apiDeployer;
@@ -174,20 +175,18 @@ public abstract class AbstractGatewayTest
      * It differs from WebClient which only response with Single, which was not good for SSE api.
      */
     protected void configureHttpClient(
-        HttpClientOptions options,
-        PoolOptions poolOptions,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {}
+            HttpClientOptions options,
+            PoolOptions poolOptions,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {}
 
     /**
      * Override this method if you want to pass some specific configuration to the WebSocketClient.
      */
     protected void configureWebSocketClient(
-        io.vertx.core.http.WebSocketClientOptions options,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {}
+            io.vertx.core.http.WebSocketClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {}
 
     /**
      * Proxy for {@link TestObserver#await(long, TimeUnit)} with a default of 30 seconds.
@@ -274,7 +273,8 @@ public abstract class AbstractGatewayTest
     }
 
     private void prepareWireMock() {
-        final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
+        final WireMockConfiguration wireMockConfiguration =
+                wireMockConfig().dynamicPort().dynamicHttpsPort();
         configureWireMock(wireMockConfiguration);
         // If a port has already been configured in a previous test, reuse the same for the class
         if (wiremockPort > 0) {
@@ -450,7 +450,8 @@ public abstract class AbstractGatewayTest
      */
     protected void updateEndpoints(Api api, Consumer<Endpoint> endpointConsumer) {
         if (api.getProxy() != null && api.getProxy().getGroups() != null) {
-            for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
+            for (Endpoint endpoint :
+                    api.getProxy().getGroups().iterator().next().getEndpoints()) {
                 endpointConsumer.accept(endpoint);
             }
         }
@@ -488,15 +489,12 @@ public abstract class AbstractGatewayTest
      * @param endpointConsumer is the consumer used to transform the endpoints
      */
     protected void updateEndpoints(
-        io.gravitee.definition.model.v4.Api api,
-        Consumer<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointConsumer
-    ) {
+            io.gravitee.definition.model.v4.Api api,
+            Consumer<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointConsumer) {
         if (api.getEndpointGroups() != null) {
-            api
-                .getEndpointGroups()
-                .stream()
-                .flatMap(endpointGroup -> endpointGroup.getEndpoints().stream())
-                .forEach(endpointConsumer);
+            api.getEndpointGroups().stream()
+                    .flatMap(endpointGroup -> endpointGroup.getEndpoints().stream())
+                    .forEach(endpointConsumer);
         }
     }
 
@@ -515,7 +513,8 @@ public abstract class AbstractGatewayTest
      * @param organizationId the id of the organization to update
      * @param organizationConsumer a consumer modifying the current deployed organization.
      */
-    protected final void updateOrganization(String organizationId, Consumer<ReactableOrganization> organizationConsumer) {
+    protected final void updateOrganization(
+            String organizationId, Consumer<ReactableOrganization> organizationConsumer) {
         // Get deployed organization and create a new one from it
         final OrganizationManager organizationManager = applicationContext.getBean(OrganizationManager.class);
 
@@ -523,11 +522,11 @@ public abstract class AbstractGatewayTest
 
         if (reactableOrganization == null) {
             throw new PreconditionViolationException(
-                String.format("No organization '%s' deployed , you cannot use this method", organizationId)
-            );
+                    String.format("No organization '%s' deployed , you cannot use this method", organizationId));
         }
 
-        ReactableOrganization updatingReactableOrganization = new ReactableOrganization(reactableOrganization.getDefinition());
+        ReactableOrganization updatingReactableOrganization =
+                new ReactableOrganization(reactableOrganization.getDefinition());
 
         // Apply developer transformation on this organization
         organizationConsumer.accept(updatingReactableOrganization);

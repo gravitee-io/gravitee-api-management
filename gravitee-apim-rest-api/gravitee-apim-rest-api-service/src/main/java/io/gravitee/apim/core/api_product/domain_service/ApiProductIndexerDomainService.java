@@ -32,7 +32,8 @@ public class ApiProductIndexerDomainService {
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
     private final Indexer indexer;
 
-    public ApiProductIndexerDomainService(ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService, Indexer indexer) {
+    public ApiProductIndexerDomainService(
+            ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService, Indexer indexer) {
         this.apiProductPrimaryOwnerDomainService = apiProductPrimaryOwnerDomainService;
         this.indexer = indexer;
     }
@@ -48,7 +49,8 @@ public class ApiProductIndexerDomainService {
 
     public IndexableApiProduct toIndexableApiProduct(Indexer.IndexationContext context, ApiProduct apiProduct) {
         try {
-            var primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(context.organizationId(), apiProduct.getId());
+            var primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(
+                    context.organizationId(), apiProduct.getId());
             return toIndexableApiProduct(apiProduct, primaryOwner);
         } catch (ApiProductPrimaryOwnerNotFoundException e) {
             log.warn("Failed to retrieve API Product primary owner, will index without primary owner", e);

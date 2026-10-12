@@ -47,23 +47,22 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-    uses = {
-        AnalyticsMapper.class,
-        DateMapper.class,
-        ConfigurationSerializationMapper.class,
-        EndpointMapper.class,
-        EntrypointMapper.class,
-        FlowMapper.class,
-        ListenerMapper.class,
-        PlanMapper.class,
-        PropertiesMapper.class,
-        ResourceMapper.class,
-        ResponseTemplateMapper.class,
-        ServiceMapper.class,
-        CorsMapper.class,
-        RequestValidationMapper.class,
-    }
-)
+        uses = {
+            AnalyticsMapper.class,
+            DateMapper.class,
+            ConfigurationSerializationMapper.class,
+            EndpointMapper.class,
+            EntrypointMapper.class,
+            FlowMapper.class,
+            ListenerMapper.class,
+            PlanMapper.class,
+            PropertiesMapper.class,
+            ResourceMapper.class,
+            ResponseTemplateMapper.class,
+            ServiceMapper.class,
+            CorsMapper.class,
+            RequestValidationMapper.class,
+        })
 public interface ApiCRDMapper {
     ApiCRDMapper INSTANCE = Mappers.getMapper(ApiCRDMapper.class);
 
@@ -108,7 +107,8 @@ public interface ApiCRDMapper {
 
     @Named("mapSecurityType")
     default PlanSecurityType mapSecurityType(String securityType) {
-        return PlanSecurityType.valueOf(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType).name());
+        return PlanSecurityType.valueOf(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType)
+                .name());
     }
 
     @Named("mapLifecycleState")
@@ -127,7 +127,8 @@ public interface ApiCRDMapper {
         return PlanType.valueOf(planType.name());
     }
 
-    default List<Listener> mapAbstractListeners(List<? extends AbstractListener<? extends AbstractEntrypoint>> listeners) {
+    default List<Listener> mapAbstractListeners(
+            List<? extends AbstractListener<? extends AbstractEntrypoint>> listeners) {
         if (CollectionUtils.isEmpty(listeners)) {
             return List.of();
         }
@@ -135,7 +136,8 @@ public interface ApiCRDMapper {
         if (listeners.getFirst() instanceof NativeListener) {
             return ListenerMapper.INSTANCE.mapFromNativeListenerV4List((List<NativeListener>) listeners);
         } else if (listeners.getFirst() instanceof io.gravitee.definition.model.v4.listener.Listener) {
-            return ListenerMapper.INSTANCE.mapFromListenerEntityV4List((List<io.gravitee.definition.model.v4.listener.Listener>) listeners);
+            return ListenerMapper.INSTANCE.mapFromListenerEntityV4List(
+                    (List<io.gravitee.definition.model.v4.listener.Listener>) listeners);
         }
 
         return List.of();
@@ -149,9 +151,11 @@ public interface ApiCRDMapper {
         };
     }
 
-    default EndpointGroupV4 mapAbstractEndpointGroups(AbstractEndpointGroup<? extends AbstractEndpoint> abstractEndpointGroup) {
+    default EndpointGroupV4 mapAbstractEndpointGroups(
+            AbstractEndpointGroup<? extends AbstractEndpoint> abstractEndpointGroup) {
         return switch (abstractEndpointGroup) {
-            case NativeEndpointGroup nativeEndpointGroup -> EndpointMapper.INSTANCE.mapEndpointGroupNativeV4(nativeEndpointGroup);
+            case NativeEndpointGroup nativeEndpointGroup ->
+                EndpointMapper.INSTANCE.mapEndpointGroupNativeV4(nativeEndpointGroup);
             case EndpointGroup endpointGroup -> EndpointMapper.INSTANCE.mapEndpointGroupHttpV4(endpointGroup);
             case null, default -> null;
         };

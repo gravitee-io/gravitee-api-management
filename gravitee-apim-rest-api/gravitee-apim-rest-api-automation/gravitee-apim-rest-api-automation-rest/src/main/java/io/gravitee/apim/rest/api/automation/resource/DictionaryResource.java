@@ -54,23 +54,27 @@ public class DictionaryResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DICTIONARY,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getDictionaryByHRID(@PathParam("hrid") String hrid) {
         var executionContext = GraviteeContext.getExecutionContext();
         String id = HRIDToUUID.dictionary().context(getAuditInfo()).hrid(hrid).id();
 
-        DictionaryEntity entity = dictionaryService.findById(executionContext, id).orElseThrow(() -> new HRIDNotFoundException(hrid));
+        DictionaryEntity entity =
+                dictionaryService.findById(executionContext, id).orElseThrow(() -> new HRIDNotFoundException(hrid));
 
         DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, executionContext);
 
         boolean canWrite = hasPermission(
-            executionContext,
-            RolePermission.ENVIRONMENT_DICTIONARY,
-            executionContext.getEnvironmentId(),
-            CREATE,
-            UPDATE,
-            DELETE
-        );
+                executionContext,
+                RolePermission.ENVIRONMENT_DICTIONARY,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE);
         if (!canWrite) {
             state.setDynamic(null);
         }
@@ -79,11 +83,12 @@ public class DictionaryResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.DELETE)})
     public Response deleteDictionaryByHrid(@PathParam("hrid") String hrid) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            String id = HRIDToUUID.dictionary().context(getAuditInfo()).hrid(hrid).id();
+            String id =
+                    HRIDToUUID.dictionary().context(getAuditInfo()).hrid(hrid).id();
             deleteDictionaryUseCase.execute(new DeleteDictionaryUseCase.Input(executionContext, id));
         } catch (DictionaryNotFoundException e) {
             throw new HRIDNotFoundException(hrid);

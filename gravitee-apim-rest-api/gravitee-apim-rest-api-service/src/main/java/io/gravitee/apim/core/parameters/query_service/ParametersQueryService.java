@@ -20,5 +20,6 @@ import io.gravitee.rest.api.model.parameters.Key;
 
 public interface ParametersQueryService {
     boolean findAsBoolean(Key key, ParameterContext context);
+
     String findAsString(Key key, ParameterContext context);
 }

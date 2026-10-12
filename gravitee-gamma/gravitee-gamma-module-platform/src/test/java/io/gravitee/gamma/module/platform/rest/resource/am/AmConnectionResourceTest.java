@@ -54,12 +54,14 @@ class AmConnectionResourceTest {
     private AmConnectionResource resource;
 
     private AmConnectionRequest request(String amOrganizationId) {
-        return new AmConnectionRequest("https://am.example", "token", amOrganizationId, "env", "dom", "dom-hrid", "https://gw");
+        return new AmConnectionRequest(
+                "https://am.example", "token", amOrganizationId, "env", "dom", "dom-hrid", "https://gw");
     }
 
     @Test
     void test_endpoint_forwards_am_organization_id_from_body() {
-        when(testAmConnectionUseCase.execute(any())).thenReturn(new TestAmConnectionUseCase.Output(AmConnectionTestResult.success()));
+        when(testAmConnectionUseCase.execute(any()))
+                .thenReturn(new TestAmConnectionUseCase.Output(AmConnectionTestResult.success()));
 
         resource.test("APIM-ORG", request("am-org"));
 
@@ -72,7 +74,8 @@ class AmConnectionResourceTest {
 
     @Test
     void test_endpoint_tolerates_a_null_body() {
-        when(testAmConnectionUseCase.execute(any())).thenReturn(new TestAmConnectionUseCase.Output(AmConnectionTestResult.success()));
+        when(testAmConnectionUseCase.execute(any()))
+                .thenReturn(new TestAmConnectionUseCase.Output(AmConnectionTestResult.success()));
 
         resource.test("APIM-ORG", null);
 
@@ -85,9 +88,9 @@ class AmConnectionResourceTest {
 
     @Test
     void save_endpoint_forwards_am_organization_id_from_body() {
-        when(saveAmConnectionUseCase.execute(any())).thenReturn(
-            new SaveAmConnectionUseCase.Output("https://am.example", true, "am-org", "env", "dom", "dom-hrid", "https://gw")
-        );
+        when(saveAmConnectionUseCase.execute(any()))
+                .thenReturn(new SaveAmConnectionUseCase.Output(
+                        "https://am.example", true, "am-org", "env", "dom", "dom-hrid", "https://gw"));
 
         resource.save("APIM-ORG", request("am-org"));
 

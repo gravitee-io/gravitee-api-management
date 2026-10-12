@@ -41,11 +41,9 @@ public class DeprecatePlanDomainService {
     public void deprecate(String planId, AuditInfo auditInfo, boolean allowStaging) {
         var originalPlan = planCrudService.getById(planId);
 
-        if (
-            PlanStatus.DEPRECATED == originalPlan.getPlanStatus() ||
-            PlanStatus.CLOSED == originalPlan.getPlanStatus() ||
-            (PlanStatus.STAGING == originalPlan.getPlanStatus() && !allowStaging)
-        ) {
+        if (PlanStatus.DEPRECATED == originalPlan.getPlanStatus()
+                || PlanStatus.CLOSED == originalPlan.getPlanStatus()
+                || (PlanStatus.STAGING == originalPlan.getPlanStatus() && !allowStaging)) {
             throw new InvalidPlanStatusForDeprecationException(originalPlan.getId(), originalPlan.getPlanStatus());
         }
 
@@ -67,8 +65,7 @@ public class DeprecatePlanDomainService {
     }
 
     private void createApiAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(originalPlan.getReferenceId())
@@ -78,13 +75,11 @@ public class DeprecatePlanDomainService {
                 .newValue(planUpdated)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.PLAN, originalPlan.getId()))
-                .build()
-        );
+                .build());
     }
 
     private void createApiProductAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiProductId(originalPlan.getReferenceId())
@@ -94,7 +89,6 @@ public class DeprecatePlanDomainService {
                 .newValue(planUpdated)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.PLAN, originalPlan.getId()))
-                .build()
-        );
+                .build());
     }
 }

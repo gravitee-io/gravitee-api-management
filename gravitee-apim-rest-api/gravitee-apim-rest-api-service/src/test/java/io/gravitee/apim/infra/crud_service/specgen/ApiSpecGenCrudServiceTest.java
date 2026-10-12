@@ -54,7 +54,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @ExtendWith(MockitoExtension.class)
 class ApiSpecGenCrudServiceTest {
 
@@ -85,22 +84,21 @@ class ApiSpecGenCrudServiceTest {
         var analytics = getCompleteAnalytics();
 
         var api = Api.builder()
-            .id(generateRandom())
-            .name("Api name")
-            .definitionVersion(V4)
-            .apiVersion("1.0.0")
-            .analytics(analytics)
-            .build();
+                .id(generateRandom())
+                .name("Api name")
+                .definitionVersion(V4)
+                .apiVersion("1.0.0")
+                .analytics(analytics)
+                .build();
 
         final ApiSpecGen apiSpecGen = new ApiSpecGen(
-            api.getId(),
-            api.getName(),
-            api.getName(),
-            api.getApiVersion(),
-            ApiType.PROXY,
-            getExecutionContext().getEnvironmentId(),
-            objectMapper.writeValueAsString(api)
-        );
+                api.getId(),
+                api.getName(),
+                api.getName(),
+                api.getApiVersion(),
+                ApiType.PROXY,
+                getExecutionContext().getEnvironmentId(),
+                objectMapper.writeValueAsString(api));
 
         crudService.enableAnalyticsLogging(apiSpecGen, generateRandom());
 
@@ -111,17 +109,21 @@ class ApiSpecGenCrudServiceTest {
 
     @Test
     void must_deploy_due_to_already_activated_logging() throws TechnicalException {
-        var api = Api.builder().id(generateRandom()).name("Api name").definitionVersion(V4).apiVersion("1.0.0").build();
+        var api = Api.builder()
+                .id(generateRandom())
+                .name("Api name")
+                .definitionVersion(V4)
+                .apiVersion("1.0.0")
+                .build();
 
         final ApiSpecGen apiSpecGen = new ApiSpecGen(
-            api.getId(),
-            api.getName(),
-            api.getName(),
-            api.getApiVersion(),
-            ApiType.PROXY,
-            getExecutionContext().getEnvironmentId(),
-            "{}"
-        );
+                api.getId(),
+                api.getName(),
+                api.getName(),
+                api.getApiVersion(),
+                ApiType.PROXY,
+                getExecutionContext().getEnvironmentId(),
+                "{}");
 
         final String userId = generateRandom();
         var apiModel = new io.gravitee.repository.management.model.Api();
@@ -130,21 +132,19 @@ class ApiSpecGenCrudServiceTest {
 
         when(apiRepository.findById(api.getId())).thenReturn(Optional.of(apiModel));
         when(apiRepository.update(apiModel)).thenReturn(apiModel);
-        when(apiService.deploy(eq(getExecutionContext()), eq(apiSpecGen.id()), eq(userId), eq(PUBLISH_API), any())).thenReturn(
-            new ApiEntity()
-        );
+        when(apiService.deploy(eq(getExecutionContext()), eq(apiSpecGen.id()), eq(userId), eq(PUBLISH_API), any()))
+                .thenReturn(new ApiEntity());
 
         crudService.enableAnalyticsLogging(apiSpecGen, userId);
 
         verify(apiRepository, times(1)).findById(api.getId());
         verify(apiRepository, times(1)).update(any());
 
-        await()
-            .atMost(2, TimeUnit.SECONDS)
-            .until(() -> {
-                verify(apiService, times(1)).deploy(eq(getExecutionContext()), eq(apiSpecGen.id()), eq(userId), eq(PUBLISH_API), any());
-                return true;
-            });
+        await().atMost(2, TimeUnit.SECONDS).until(() -> {
+            verify(apiService, times(1))
+                    .deploy(eq(getExecutionContext()), eq(apiSpecGen.id()), eq(userId), eq(PUBLISH_API), any());
+            return true;
+        });
     }
 
     private static Analytics getCompleteAnalytics() {

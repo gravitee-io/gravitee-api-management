@@ -54,7 +54,8 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
     @Test
     void should_return_200_with_consumer_groups() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID);
 
@@ -72,7 +73,8 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
     @Test
     void should_filter_consumer_groups_by_name() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).nameFilter(CONSUMER_GROUP_ID);
 
@@ -86,7 +88,8 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
     @Test
     void should_filter_consumer_groups_by_topic() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).topicFilter("__consumer_offsets");
 
@@ -100,7 +103,8 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
     @Test
     void should_return_empty_when_topic_filter_matches_no_group() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).topicFilter("non-existent-topic-xyz");
 
@@ -122,7 +126,8 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
     @Test
     void should_return_400_when_page_is_less_than_1() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID);
 
@@ -135,7 +140,8 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
 
     @Test
     void should_return_502_when_broker_unreachable() {
-        givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID);
 

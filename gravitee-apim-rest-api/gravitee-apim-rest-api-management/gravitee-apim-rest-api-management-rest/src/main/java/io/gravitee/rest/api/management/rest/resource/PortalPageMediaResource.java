@@ -66,30 +66,29 @@ public class PortalPageMediaResource extends AbstractResource {
 
     @POST
     @Operation(
-        summary = "Attach a media to a portal page ",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service"
-    )
+            summary = "Attach a media to a portal page ",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Media successfully added",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MediaEntity.class))
-    )
+            responseCode = "201",
+            description = "Media successfully added",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = MediaEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Response attachPortalPageMedia(
-        @Context final HttpServletRequest request,
-        @FormDataParam("file") InputStream uploadedInputStream,
-        @FormDataParam("file") FormDataContentDisposition fileDetail,
-        @FormDataParam("file") final FormDataBodyPart body,
-        @FormDataParam("fileName") String fileName
-    ) throws IOException {
+            @Context final HttpServletRequest request,
+            @FormDataParam("file") InputStream uploadedInputStream,
+            @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("file") final FormDataBodyPart body,
+            @FormDataParam("fileName") String fileName)
+            throws IOException {
         final PageEntity currentPage = pageService.findById(page);
-        if (
-            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !currentPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !currentPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(page);
         }
 
@@ -97,12 +96,10 @@ public class PortalPageMediaResource extends AbstractResource {
 
         if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
             throw new UploadUnauthorized(
-                "Max size is " +
-                    this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext()) +
-                    "bytes. Actual size is " +
-                    request.getContentLength() +
-                    "bytes."
-            );
+                    "Max size is " + this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())
+                            + "bytes. Actual size is "
+                            + request.getContentLength()
+                            + "bytes.");
         }
         final String originalFileName = fileDetail.getFileName();
         MediaEntity mediaEntity = new MediaEntity();
@@ -114,20 +111,16 @@ public class PortalPageMediaResource extends AbstractResource {
 
         mediaId = mediaService.savePortalMedia(GraviteeContext.getExecutionContext(), mediaEntity);
         pageService
-            .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
-            .ifPresent(pageEntity ->
-                pageEntity
-                    .getAttachedMedia()
-                    .stream()
-                    .filter(media -> media.getMediaHash().equals(mediaId))
-                    .findFirst()
-                    .ifPresent(createdMedia -> {
-                        mediaEntity.setCreateAt(createdMedia.getAttachedAt());
-                        mediaEntity.setHash(createdMedia.getMediaHash());
-                    })
-            );
+                .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
+                .ifPresent(pageEntity -> pageEntity.getAttachedMedia().stream()
+                        .filter(media -> media.getMediaHash().equals(mediaId))
+                        .findFirst()
+                        .ifPresent(createdMedia -> {
+                            mediaEntity.setCreateAt(createdMedia.getAttachedAt());
+                            mediaEntity.setHash(createdMedia.getMediaHash());
+                        }));
 
-        //remove data before sending entity
+        // remove data before sending entity
         mediaEntity.setData(null);
         URI location = URI.create(uriInfo.getPath());
         return Response.created(location).entity(mediaEntity).build();
@@ -136,23 +129,18 @@ public class PortalPageMediaResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Retrieve all media for a Portal page",
-        description = "User must have the ENVIRONMENT_DOCUMENTATION[READ] permission to use this service"
-    )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+            summary = "Retrieve all media for a Portal page",
+            description = "User must have the ENVIRONMENT_DOCUMENTATION[READ] permission to use this service")
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public Response getPortalPageMedia() {
         final PageEntity currentPage = pageService.findById(page);
-        if (
-            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
-            !currentPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
-        ) {
+        if (!currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name())
+                || !currentPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())) {
             throw new PageNotFoundException(page);
         }
 
         List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(
-            GraviteeContext.getExecutionContext(),
-            currentPage.getAttachedMedia()
-        );
+                GraviteeContext.getExecutionContext(), currentPage.getAttachedMedia());
 
         if (pageMedia != null && !pageMedia.isEmpty()) {
             return Response.ok(pageMedia).build();

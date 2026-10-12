@@ -66,12 +66,10 @@ public abstract class AbstractPlan implements Serializable {
 
     @JsonIgnore
     public final boolean isSubscribable() {
-        return (
-            (this.getSecurity() != null &&
-                this.getSecurity().getType() != null &&
-                !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType())) ||
-            usePushMode()
-        );
+        return ((this.getSecurity() != null
+                        && this.getSecurity().getType() != null
+                        && !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType()))
+                || usePushMode());
     }
 
     @JsonIgnore
@@ -86,10 +84,9 @@ public abstract class AbstractPlan implements Serializable {
 
     @JsonIgnore
     public final boolean isApiKey() {
-        return (
-            this.getSecurity() != null &&
-            ("API_KEY".equalsIgnoreCase(this.getSecurity().getType()) || "api-key".equalsIgnoreCase(this.getSecurity().getType()))
-        );
+        return (this.getSecurity() != null
+                && ("API_KEY".equalsIgnoreCase(this.getSecurity().getType())
+                        || "api-key".equalsIgnoreCase(this.getSecurity().getType())));
     }
 
     public abstract List<Plugin> getPlugins();

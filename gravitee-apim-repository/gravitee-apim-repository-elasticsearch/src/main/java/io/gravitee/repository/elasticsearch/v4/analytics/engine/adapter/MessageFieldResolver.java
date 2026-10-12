@@ -69,9 +69,10 @@ public class MessageFieldResolver implements FieldResolver {
             case MESSAGE_CONNECTOR_TYPE -> "connector-type";
             case MESSAGE_OPERATION_TYPE -> "operation";
             case API, GATEWAY -> httpFieldResolver.fromFacet(facet);
-            default -> throw new UnsupportedOperationException(
-                "Message documents carry no %s dimension; it lives on the connection document".formatted(facet)
-            );
+            default ->
+                throw new UnsupportedOperationException(
+                        "Message documents carry no %s dimension; it lives on the connection document"
+                                .formatted(facet));
         };
     }
 

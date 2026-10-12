@@ -40,10 +40,9 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
     protected final boolean conditionDefined;
 
     public HttpConditionalPolicy(
-        HttpPolicy policy,
-        String condition,
-        ConditionFilter<BaseExecutionContext, HttpConditionalPolicy> conditionFilter
-    ) {
+            HttpPolicy policy,
+            String condition,
+            ConditionFilter<BaseExecutionContext, HttpConditionalPolicy> conditionFilter) {
         this.policy = policy;
         this.condition = condition;
         this.conditionFilter = conditionFilter;
@@ -63,10 +62,10 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         String policyId = policy.id();
         storeTriggerCondition(ctx, policyId);
         return conditionFilter
-            .filter(ctx, this)
-            .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
-            .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
-            .flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
+                .filter(ctx, this)
+                .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
+                .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
+                .flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
     }
 
     @Override
@@ -77,10 +76,10 @@ public class HttpConditionalPolicy implements HttpPolicy, ConditionSupplier {
         String policyId = policy.id();
         storeTriggerCondition(ctx, policyId);
         return conditionFilter
-            .filter(ctx, this)
-            .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
-            .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
-            .flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
+                .filter(ctx, this)
+                .doOnSuccess(ignored -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, true))
+                .doOnComplete(() -> ctx.setInternalAttribute(ATTR_POLICY_TRIGGER_EXECUTED_PREFIX + policyId, false))
+                .flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
     }
 
     @Override

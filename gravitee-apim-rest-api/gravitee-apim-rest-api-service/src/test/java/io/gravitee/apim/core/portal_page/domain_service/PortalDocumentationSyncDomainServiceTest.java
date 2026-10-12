@@ -58,17 +58,16 @@ import org.junit.jupiter.api.Test;
 class PortalDocumentationSyncDomainServiceTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final PortalId PORTAL_ID = PortalId.of("11111111-1111-1111-1111-111111111111");
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("22222222-2222-2222-2222-222222222222");
 
     private final PortalNavigationItemsCrudServiceInMemory navItemCrud = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navItemQuery = new PortalNavigationItemsQueryServiceInMemory(
-        navItemCrud.storage()
-    );
+    private final PortalNavigationItemsQueryServiceInMemory navItemQuery =
+            new PortalNavigationItemsQueryServiceInMemory(navItemCrud.storage());
     private final PortalPageContentCrudServiceInMemory pageContentCrud = new PortalPageContentCrudServiceInMemory();
 
     private PortalDocumentationSyncDomainService syncService;
@@ -80,11 +79,10 @@ class PortalDocumentationSyncDomainServiceTest {
         pageContentCrud.reset();
         validatorService = mock(PortalNavigationItemValidatorService.class);
         syncService = new PortalDocumentationSyncDomainService(
-            navItemCrud,
-            navItemQuery,
-            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
-            validatorService
-        );
+                navItemCrud,
+                navItemQuery,
+                new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+                validatorService);
     }
 
     @Test
@@ -178,116 +176,100 @@ class PortalDocumentationSyncDomainServiceTest {
     @Test
     void materialize_inherits_private_visibility_from_persisted_parent_folder() {
         var parentFolderId = expectedFolderId("/private-guides");
-        navItemCrud.initWith(
-            List.of(
-                PortalNavigationFolder.builder()
-                    .id(parentFolderId)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("private-guides")
-                    .segment("private-guides")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .build()
-            )
-        );
+        navItemCrud.initWith(List.of(PortalNavigationFolder.builder()
+                .id(parentFolderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("private-guides")
+                .segment("private-guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()));
 
         syncService.rematerialize(AUDIT_INFO, markdownDoc("Setup", "/private-guides", 0));
 
-        var page = (PortalNavigationPage) navItemCrud
-            .storage()
-            .stream()
-            .filter(PortalNavigationPage.class::isInstance)
-            .findFirst()
-            .orElseThrow();
+        var page = (PortalNavigationPage) navItemCrud.storage().stream()
+                .filter(PortalNavigationPage.class::isInstance)
+                .findFirst()
+                .orElseThrow();
         assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
     }
 
     @Test
     void materialize_preserves_stored_page_visibility_when_caller_visibility_is_absent() {
         var parentFolderId = expectedFolderId("/projects/alpha");
-        navItemCrud.initWith(
-            List.of(
+        navItemCrud.initWith(List.of(
                 PortalNavigationFolder.builder()
-                    .id(parentFolderId)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("alpha")
-                    .segment("alpha")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .build(),
+                        .id(parentFolderId)
+                        .organizationId(AUDIT_INFO.organizationId())
+                        .environmentId(AUDIT_INFO.environmentId())
+                        .title("alpha")
+                        .segment("alpha")
+                        .area(PortalArea.TOP_NAVBAR)
+                        .order(0)
+                        .published(true)
+                        .visibility(PortalVisibility.PUBLIC)
+                        .build(),
                 PortalNavigationPage.builder()
-                    .id(expectedNavItemId())
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("Setup")
-                    .segment("setup")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .parentId(parentFolderId)
-                    .portalPageContentId(DOC_ID)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .build()
-            )
-        );
+                        .id(expectedNavItemId())
+                        .organizationId(AUDIT_INFO.organizationId())
+                        .environmentId(AUDIT_INFO.environmentId())
+                        .title("Setup")
+                        .segment("setup")
+                        .area(PortalArea.TOP_NAVBAR)
+                        .order(0)
+                        .parentId(parentFolderId)
+                        .portalPageContentId(DOC_ID)
+                        .published(true)
+                        .visibility(PortalVisibility.PRIVATE)
+                        .build()));
 
         syncService.rematerialize(AUDIT_INFO, markdownDoc("Setup", "/projects/alpha", 0));
 
-        var page = (PortalNavigationPage) navItemCrud
-            .storage()
-            .stream()
-            .filter(PortalNavigationPage.class::isInstance)
-            .findFirst()
-            .orElseThrow();
+        var page = (PortalNavigationPage) navItemCrud.storage().stream()
+                .filter(PortalNavigationPage.class::isInstance)
+                .findFirst()
+                .orElseThrow();
         assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
     }
 
     @Test
     void doc_apply_resolves_from_parent_when_caller_omits_visibility_on_an_existing_page() {
         var parentFolderId = expectedFolderId("/projects/alpha");
-        navItemCrud.initWith(
-            List.of(
+        navItemCrud.initWith(List.of(
                 PortalNavigationFolder.builder()
-                    .id(parentFolderId)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("alpha")
-                    .segment("alpha")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .build(),
+                        .id(parentFolderId)
+                        .organizationId(AUDIT_INFO.organizationId())
+                        .environmentId(AUDIT_INFO.environmentId())
+                        .title("alpha")
+                        .segment("alpha")
+                        .area(PortalArea.TOP_NAVBAR)
+                        .order(0)
+                        .published(true)
+                        .visibility(PortalVisibility.PUBLIC)
+                        .build(),
                 PortalNavigationPage.builder()
-                    .id(expectedNavItemId())
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("Setup")
-                    .segment("setup")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .parentId(parentFolderId)
-                    .portalPageContentId(DOC_ID)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .build()
-            )
-        );
+                        .id(expectedNavItemId())
+                        .organizationId(AUDIT_INFO.organizationId())
+                        .environmentId(AUDIT_INFO.environmentId())
+                        .title("Setup")
+                        .segment("setup")
+                        .area(PortalArea.TOP_NAVBAR)
+                        .order(0)
+                        .parentId(parentFolderId)
+                        .portalPageContentId(DOC_ID)
+                        .published(true)
+                        .visibility(PortalVisibility.PRIVATE)
+                        .build()));
 
         syncService.materialize(AUDIT_INFO, markdownDoc("Setup", "/projects/alpha", 0), PortalArea.TOP_NAVBAR, null);
 
-        var page = (PortalNavigationPage) navItemCrud
-            .storage()
-            .stream()
-            .filter(PortalNavigationPage.class::isInstance)
-            .findFirst()
-            .orElseThrow();
+        var page = (PortalNavigationPage) navItemCrud.storage().stream()
+                .filter(PortalNavigationPage.class::isInstance)
+                .findFirst()
+                .orElseThrow();
         assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
     }
 
@@ -332,26 +314,24 @@ class PortalDocumentationSyncDomainServiceTest {
     @Test
     void materialize_rejects_moving_an_existing_page_to_a_conflicting_homepage_without_losing_it() {
         var syncWithRealValidator = new PortalDocumentationSyncDomainService(
-            navItemCrud,
-            navItemQuery,
-            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
-            new PortalNavigationItemValidatorService(
+                navItemCrud,
                 navItemQuery,
-                new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
-                new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory(),
-                new ApiCrudServiceInMemory()
-            )
-        );
+                new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+                new PortalNavigationItemValidatorService(
+                        navItemQuery,
+                        new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
+                        new ApiProductQueryServiceInMemory(),
+                        new PortalNavigationItemSourceDomainServiceInMemory(),
+                        new ApiCrudServiceInMemory()));
         var existingHomepage = automationOwnedHomepagePage();
         navItemCrud.create(existingHomepage);
         pageContentCrud.create(staleContent(existingHomepage));
         syncWithRealValidator.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
         var storageBefore = List.copyOf(navItemCrud.storage());
 
-        assertThatThrownBy(() ->
-            syncWithRealValidator.materialize(AUDIT_INFO, markdownDoc("Getting Started", null, 0), PortalArea.HOMEPAGE, null)
-        ).isInstanceOf(HomepageAlreadyExistsException.class);
+        assertThatThrownBy(() -> syncWithRealValidator.materialize(
+                        AUDIT_INFO, markdownDoc("Getting Started", null, 0), PortalArea.HOMEPAGE, null))
+                .isInstanceOf(HomepageAlreadyExistsException.class);
 
         assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
@@ -363,7 +343,8 @@ class PortalDocumentationSyncDomainServiceTest {
         assertThat(navItemCrud.storage()).hasSize(1);
         var page = (PortalNavigationPage) navItemCrud.storage().get(0);
         assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE);
-        assertThat(page.getReference()).isEqualTo(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())));
+        assertThat(page.getReference())
+                .isEqualTo(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())));
     }
 
     @Test
@@ -376,9 +357,8 @@ class PortalDocumentationSyncDomainServiceTest {
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(navItemCrud.storage().get(0).getId()).isEqualTo(expectedNavItemId());
-        assertThat(pageContentCrud.storage()).noneMatch(c ->
-            c.getId().equals(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0de"))
-        );
+        assertThat(pageContentCrud.storage())
+                .noneMatch(c -> c.getId().equals(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0de")));
     }
 
     @Test
@@ -390,32 +370,29 @@ class PortalDocumentationSyncDomainServiceTest {
         syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null);
 
         assertThat(navItemCrud.storage()).hasSize(1);
-        assertThat(navItemCrud.storage().get(0).getReference()).isEqualTo(
-            new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString()))
-        );
+        assertThat(navItemCrud.storage().get(0).getReference())
+                .isEqualTo(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())));
     }
 
     @Test
     void materialize_rejects_second_automation_owned_homepage_for_same_portal() {
         var syncWithRealValidator = new PortalDocumentationSyncDomainService(
-            navItemCrud,
-            navItemQuery,
-            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
-            new PortalNavigationItemValidatorService(
+                navItemCrud,
                 navItemQuery,
-                new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
-                new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory(),
-                new ApiCrudServiceInMemory()
-            )
-        );
+                new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+                new PortalNavigationItemValidatorService(
+                        navItemQuery,
+                        new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
+                        new ApiProductQueryServiceInMemory(),
+                        new PortalNavigationItemSourceDomainServiceInMemory(),
+                        new ApiCrudServiceInMemory()));
         var existing = automationOwnedHomepagePage();
         navItemCrud.create(existing);
         pageContentCrud.create(staleContent(existing));
 
-        assertThatThrownBy(() ->
-            syncWithRealValidator.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null)
-        ).isInstanceOf(HomepageAlreadyExistsException.class);
+        assertThatThrownBy(() -> syncWithRealValidator.materialize(
+                        AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null))
+                .isInstanceOf(HomepageAlreadyExistsException.class);
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(navItemCrud.storage().get(0).getId()).isEqualTo(existing.getId());
@@ -424,25 +401,23 @@ class PortalDocumentationSyncDomainServiceTest {
     @Test
     void validate_placement_writes_nothing_when_a_new_page_conflicts_with_an_existing_homepage() {
         var syncWithRealValidator = new PortalDocumentationSyncDomainService(
-            navItemCrud,
-            navItemQuery,
-            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
-            new PortalNavigationItemValidatorService(
+                navItemCrud,
                 navItemQuery,
-                new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
-                new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory(),
-                new ApiCrudServiceInMemory()
-            )
-        );
+                new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+                new PortalNavigationItemValidatorService(
+                        navItemQuery,
+                        new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
+                        new ApiProductQueryServiceInMemory(),
+                        new PortalNavigationItemSourceDomainServiceInMemory(),
+                        new ApiCrudServiceInMemory()));
         var existingHomepage = automationOwnedHomepagePage();
         navItemCrud.create(existingHomepage);
         pageContentCrud.create(staleContent(existingHomepage));
         var storageBefore = List.copyOf(navItemCrud.storage());
 
-        assertThatThrownBy(() ->
-            syncWithRealValidator.validatePlacement(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null)
-        ).isInstanceOf(HomepageAlreadyExistsException.class);
+        assertThatThrownBy(() -> syncWithRealValidator.validatePlacement(
+                        AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null))
+                .isInstanceOf(HomepageAlreadyExistsException.class);
 
         assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
@@ -451,18 +426,18 @@ class PortalDocumentationSyncDomainServiceTest {
     void materialize_does_not_touch_homepage_of_a_different_portal() {
         var otherPortalId = "00000000-0000-0000-0000-0000000000ff";
         var otherHomepage = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .reference(new NavigationItemReference.PortalReference(PortalId.of(otherPortalId)))
-            .title("Other")
-            .segment("other")
-            .area(PortalArea.HOMEPAGE)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .reference(new NavigationItemReference.PortalReference(PortalId.of(otherPortalId)))
+                .title("Other")
+                .segment("other")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
+                .build();
         navItemCrud.create(otherHomepage);
 
         syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null);
@@ -472,109 +447,107 @@ class PortalDocumentationSyncDomainServiceTest {
 
     private static PortalPageContent<?> homepageDoc(String name, String location) {
         return new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            new AutomationMetadata(
-                AutomationMetadata.ReferenceType.PORTAL,
-                PORTAL_ID.toString(),
-                name,
-                Optional.ofNullable(location),
-                Optional.of(0)
-            )
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        PORTAL_ID.toString(),
+                        name,
+                        Optional.ofNullable(location),
+                        Optional.of(0)));
     }
 
     private static PortalNavigationPage staleHomepagePage(String contentId) {
         return PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d1"))
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .reference(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())))
-            .title("Stale")
-            .segment("stale")
-            .area(PortalArea.HOMEPAGE)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0de"))
-            .published(true)
-            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d1"))
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .reference(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())))
+                .title("Stale")
+                .segment("stale")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0de"))
+                .published(true)
+                .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
+                .build();
     }
 
     private static PortalNavigationPage automationOwnedHomepagePage() {
         return PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d3"))
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .reference(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())))
-            .title("Existing")
-            .segment("existing")
-            .area(PortalArea.HOMEPAGE)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0da"))
-            .published(true)
-            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
-            .automationMetadata(
-                new AutomationMetadata(
-                    AutomationMetadata.ReferenceType.PORTAL,
-                    PORTAL_ID.toString(),
-                    null,
-                    Optional.empty(),
-                    Optional.empty()
-                )
-            )
-            .build();
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d3"))
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .reference(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())))
+                .title("Existing")
+                .segment("existing")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0da"))
+                .published(true)
+                .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
+                .automationMetadata(new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        PORTAL_ID.toString(),
+                        null,
+                        Optional.empty(),
+                        Optional.empty()))
+                .build();
     }
 
     private static PortalNavigationPage unattachedHomepagePage(String contentId) {
         return PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d2"))
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .reference(NavigationItemReference.defaultReference())
-            .title("Seeded")
-            .segment("seeded")
-            .area(PortalArea.HOMEPAGE)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0df"))
-            .published(true)
-            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d2"))
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .reference(NavigationItemReference.defaultReference())
+                .title("Seeded")
+                .segment("seeded")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0df"))
+                .published(true)
+                .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
+                .build();
     }
 
     private static GraviteeMarkdownPageContent staleContent(PortalNavigationPage page) {
         return new GraviteeMarkdownPageContent(
-            page.getPortalPageContentId(),
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("stale")
-        );
+                page.getPortalPageContentId(),
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("stale"));
     }
 
     private static PortalPageContent<?> markdownDoc(String name, String location, Integer order) {
         return new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            new AutomationMetadata(
-                AutomationMetadata.ReferenceType.PORTAL,
-                PORTAL_ID.toString(),
-                name,
-                Optional.ofNullable(location),
-                Optional.ofNullable(order)
-            )
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        PORTAL_ID.toString(),
+                        name,
+                        Optional.ofNullable(location),
+                        Optional.ofNullable(order)));
     }
 
     private static PortalNavigationItemId expectedNavItemId() {
-        return PortalNavigationItemId.of(
-            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).documentation(DOC_ID.toString()).id()
-        );
+        return PortalNavigationItemId.of(HRIDToUUID.navigation()
+                .context(AUDIT_INFO)
+                .portal(PORTAL_ID.toString())
+                .documentation(DOC_ID.toString())
+                .id());
     }
 
     private static PortalNavigationItemId expectedFolderId(String path) {
-        return PortalNavigationItemId.of(HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).folder(path).id());
+        return PortalNavigationItemId.of(HRIDToUUID.navigation()
+                .context(AUDIT_INFO)
+                .portal(PORTAL_ID.toString())
+                .folder(path)
+                .id());
     }
 }

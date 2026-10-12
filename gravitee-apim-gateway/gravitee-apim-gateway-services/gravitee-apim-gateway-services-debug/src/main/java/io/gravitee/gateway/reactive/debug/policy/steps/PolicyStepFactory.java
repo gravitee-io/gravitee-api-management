@@ -25,7 +25,8 @@ public class PolicyStepFactory {
 
     private PolicyStepFactory() {}
 
-    public static PolicyStep<?> createPolicyStep(final String policyId, final ExecutionPhase executionPhase, final String flowPhase) {
+    public static PolicyStep<?> createPolicyStep(
+            final String policyId, final ExecutionPhase executionPhase, final String flowPhase) {
         if (ExecutionPhase.REQUEST.equals(executionPhase)) {
             return new PolicyRequestStep(policyId, executionPhase, flowPhase);
         } else if (ExecutionPhase.RESPONSE.equals(executionPhase)) {

@@ -36,7 +36,6 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,7 +69,8 @@ public class ApiDocumentationSyncDomainService {
     /** Re-syncs an already-materialized item without a caller-supplied visibility — keeps its stored value, unlike {@link #materialize}. */
     public void rematerialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
         var automationMetadata = pageContent.getAutomationMetadata();
-        var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, automationMetadata.referenceId(), pageContent.getId());
+        var pageId = PortalNavigationItemId.forApiDocumentation(
+                auditInfo, automationMetadata.referenceId(), pageContent.getId());
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
         var storedVisibility = existing != null ? existing.getVisibility() : null;
         materialize(auditInfo, pageContent, storedVisibility);
@@ -78,19 +78,28 @@ public class ApiDocumentationSyncDomainService {
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalVisibility callerVisibility) {
         var resolved = resolvePlacement(auditInfo, pageContent, callerVisibility);
-        apply(resolved.plan(), auditInfo, resolved.pageId(), resolved.parent(), resolved.automationMetadata(), resolved.existing());
+        apply(
+                resolved.plan(),
+                auditInfo,
+                resolved.pageId(),
+                resolved.parent(),
+                resolved.automationMetadata(),
+                resolved.existing());
     }
 
-    public void validatePlacement(AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalVisibility callerVisibility) {
+    public void validatePlacement(
+            AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalVisibility callerVisibility) {
         resolvePlacement(auditInfo, pageContent, callerVisibility);
     }
 
-    private ResolvedPlacement resolvePlacement(AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalVisibility callerVisibility) {
+    private ResolvedPlacement resolvePlacement(
+            AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalVisibility callerVisibility) {
         var automationMetadata = pageContent.getAutomationMetadata();
         var apiId = automationMetadata.referenceId();
         var contentId = pageContent.getId();
         var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, contentId);
-        var parent = resolveParent(auditInfo, apiId, automationMetadata.location().orElse(null));
+        var parent =
+                resolveParent(auditInfo, apiId, automationMetadata.location().orElse(null));
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
         var plan = plan(auditInfo, pageId, contentId, parent, automationMetadata, callerVisibility, existing);
         validate(plan, auditInfo.environmentId(), pageId, contentId, existing);
@@ -112,25 +121,23 @@ public class ApiDocumentationSyncDomainService {
      */
     public void cleanupForApi(AuditInfo auditInfo, String apiId) {
         var reference = new NavigationItemReference.ApiReference(apiId);
-        var envFolders = navigationItemsQueryService.search(
-            PortalNavigationItemQueryCriteria.builder()
+        var envFolders = navigationItemsQueryService.search(PortalNavigationItemQueryCriteria.builder()
                 .environmentId(auditInfo.environmentId())
                 .type(PortalNavigationItemType.FOLDER)
-                .build()
-        );
-        envFolders
-            .stream()
-            .filter(folder -> reference.equals(folder.getReference()))
-            .filter(PortalNavigationItem::isRoot)
-            .forEach(root -> {
-                cascadeDeleteDescendants(auditInfo.environmentId(), root.getId(), 0);
-                navigationItemCrudService.delete(root.getId());
-            });
+                .build());
+        envFolders.stream()
+                .filter(folder -> reference.equals(folder.getReference()))
+                .filter(PortalNavigationItem::isRoot)
+                .forEach(root -> {
+                    cascadeDeleteDescendants(auditInfo.environmentId(), root.getId(), 0);
+                    navigationItemCrudService.delete(root.getId());
+                });
         navigationItemsQueryService
-            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.PAGE || item.getType() == PortalNavigationItemType.LINK)
-            .forEach(item -> navigationItemCrudService.delete(item.getId()));
+                .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItemType.PAGE
+                        || item.getType() == PortalNavigationItemType.LINK)
+                .forEach(item -> navigationItemCrudService.delete(item.getId()));
     }
 
     /**
@@ -145,9 +152,9 @@ public class ApiDocumentationSyncDomainService {
     }
 
     private void cascadeDeleteDescendants(String environmentId, PortalNavigationItemId parentId, int depth) {
-        if (depth > MAX_CASCADE_DEPTH) throw new IllegalStateException(
-            "Maximum portal navigation nesting level of %d exceeded".formatted(MAX_CASCADE_DEPTH)
-        );
+        if (depth > MAX_CASCADE_DEPTH)
+            throw new IllegalStateException(
+                    "Maximum portal navigation nesting level of %d exceeded".formatted(MAX_CASCADE_DEPTH));
         for (var child : navigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, parentId)) {
             cascadeDeleteDescendants(environmentId, child.getId(), depth + 1);
             navigationItemCrudService.delete(child.getId());
@@ -173,66 +180,65 @@ public class ApiDocumentationSyncDomainService {
     private record CreateNew(CreatePortalNavigationItem create) implements NavPagePlan {}
 
     private record ResolvedPlacement(
-        NavPagePlan plan,
-        PortalNavigationItemId pageId,
-        PortalNavigationItemContainer parent,
-        AutomationMetadata automationMetadata,
-        PortalNavigationItem existing
-    ) {}
+            NavPagePlan plan,
+            PortalNavigationItemId pageId,
+            PortalNavigationItemContainer parent,
+            AutomationMetadata automationMetadata,
+            PortalNavigationItem existing) {}
 
     private NavPagePlan plan(
-        AuditInfo auditInfo,
-        PortalNavigationItemId pageId,
-        PortalPageContentId contentId,
-        PortalNavigationItemContainer parent,
-        AutomationMetadata automationMetadata,
-        PortalVisibility callerVisibility,
-        PortalNavigationItem existing
-    ) {
+            AuditInfo auditInfo,
+            PortalNavigationItemId pageId,
+            PortalPageContentId contentId,
+            PortalNavigationItemContainer parent,
+            AutomationMetadata automationMetadata,
+            PortalVisibility callerVisibility,
+            PortalNavigationItem existing) {
         final var envId = auditInfo.environmentId();
         var parentId = parent == null ? null : parent.getId();
-        var fallbackVisibility = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility).orElse(null);
+        var fallbackVisibility = Optional.ofNullable(parent)
+                .map(PortalNavigationItemContainer::getVisibility)
+                .orElse(null);
         var visibility = PortalVisibility.resolve(callerVisibility, fallbackVisibility);
 
         if (existing instanceof PortalNavigationPage page && page.getArea() == API_DOCUMENTATION_AREA) {
             var segment = Slug.from(automationMetadata.name(), siblingSlugs(envId, parentId, pageId));
             var update = UpdatePortalNavigationItem.builder()
-                .title(automationMetadata.name())
-                .segment(segment.value())
-                .type(TYPE)
-                .order(automationMetadata.order().orElse(DEFAULT_ORDER))
-                .parentId(parentId)
-                .visibility(visibility)
-                .published(DEFAULT_PUBLISHED)
-                .build();
+                    .title(automationMetadata.name())
+                    .segment(segment.value())
+                    .type(TYPE)
+                    .order(automationMetadata.order().orElse(DEFAULT_ORDER))
+                    .parentId(parentId)
+                    .visibility(visibility)
+                    .published(DEFAULT_PUBLISHED)
+                    .build();
             return new UpdateInPlace(page, update);
         }
 
         var segment = Slug.from(automationMetadata.name(), siblingSlugs(envId, parentId, null));
         var create = CreatePortalNavigationItem.builder()
-            .id(pageId)
-            .title(automationMetadata.name())
-            .segment(segment.value())
-            .area(API_DOCUMENTATION_AREA)
-            .type(TYPE)
-            .order(automationMetadata.order().orElse(DEFAULT_ORDER))
-            .portalPageContentId(contentId)
-            .parentId(parentId)
-            .reference(automationMetadata.reference())
-            .visibility(visibility)
-            .published(DEFAULT_PUBLISHED)
-            .automationMetadata(automationMetadata.trimmedForNavItem())
-            .build();
+                .id(pageId)
+                .title(automationMetadata.name())
+                .segment(segment.value())
+                .area(API_DOCUMENTATION_AREA)
+                .type(TYPE)
+                .order(automationMetadata.order().orElse(DEFAULT_ORDER))
+                .portalPageContentId(contentId)
+                .parentId(parentId)
+                .reference(automationMetadata.reference())
+                .visibility(visibility)
+                .published(DEFAULT_PUBLISHED)
+                .automationMetadata(automationMetadata.trimmedForNavItem())
+                .build();
         return new CreateNew(create);
     }
 
     private void validate(
-        NavPagePlan plan,
-        String environmentId,
-        PortalNavigationItemId pageId,
-        PortalPageContentId contentId,
-        PortalNavigationItem existing
-    ) {
+            NavPagePlan plan,
+            String environmentId,
+            PortalNavigationItemId pageId,
+            PortalPageContentId contentId,
+            PortalNavigationItem existing) {
         switch (plan) {
             case UpdateInPlace(var page, var update) -> validatorService.validateToUpdate(update, page);
             case CreateNew(var create) -> {
@@ -246,13 +252,12 @@ public class ApiDocumentationSyncDomainService {
     }
 
     private void apply(
-        NavPagePlan plan,
-        AuditInfo auditInfo,
-        PortalNavigationItemId pageId,
-        PortalNavigationItemContainer parent,
-        AutomationMetadata automationMetadata,
-        PortalNavigationItem existing
-    ) {
+            NavPagePlan plan,
+            AuditInfo auditInfo,
+            PortalNavigationItemId pageId,
+            PortalNavigationItemContainer parent,
+            AutomationMetadata automationMetadata,
+            PortalNavigationItem existing) {
         switch (plan) {
             case UpdateInPlace(var page, var update) -> {
                 page.update(update, automationMetadata.trimmedForNavItem());
@@ -263,23 +268,21 @@ public class ApiDocumentationSyncDomainService {
                 if (existing != null) {
                     navigationItemCrudService.delete(pageId);
                 }
-                navigationItemCrudService.create(
-                    PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent)
-                );
+                navigationItemCrudService.create(PortalNavigationItem.from(
+                        create, auditInfo.organizationId(), auditInfo.environmentId(), parent));
             }
         }
     }
 
-    private Set<Slug> siblingSlugs(String environmentId, PortalNavigationItemId parentId, PortalNavigationItemId excludeId) {
+    private Set<Slug> siblingSlugs(
+            String environmentId, PortalNavigationItemId parentId, PortalNavigationItemId excludeId) {
         if (parentId == null) {
             return Set.of();
         }
-        return navigationItemsQueryService
-            .findByParentIdAndEnvironmentId(environmentId, parentId)
-            .stream()
-            .filter(item -> !item.getId().equals(excludeId))
-            .map(PortalNavigationItem::getSegment)
-            .map(Slug::new)
-            .collect(Collectors.toSet());
+        return navigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, parentId).stream()
+                .filter(item -> !item.getId().equals(excludeId))
+                .map(PortalNavigationItem::getSegment)
+                .map(Slug::new)
+                .collect(Collectors.toSet());
     }
 }

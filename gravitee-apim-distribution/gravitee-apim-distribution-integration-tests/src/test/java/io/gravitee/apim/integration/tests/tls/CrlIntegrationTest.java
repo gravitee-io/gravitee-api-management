@@ -95,7 +95,9 @@ public class CrlIntegrationTest extends AbstractGatewayTest {
         this.httpClientKeyStorePath = Files.createTempFile("client_keystore", ".p12");
         KeyStore clientKeyStore = KeyStore.getInstance("PKCS12");
         clientKeyStore.load(null, PASSWORD);
-        X509Certificate[] chain = new X509Certificate[] { clientX509Pair.certificate().data(), caKeyPair.certificate().data() };
+        X509Certificate[] chain = new X509Certificate[] {
+            clientX509Pair.certificate().data(), caKeyPair.certificate().data()
+        };
         clientKeyStore.setKeyEntry("client", clientX509Pair.privateKey().data(), PASSWORD, chain);
         try (var out = new FileOutputStream(httpClientKeyStorePath.toFile())) {
             clientKeyStore.store(out, PASSWORD);
@@ -111,37 +113,39 @@ public class CrlIntegrationTest extends AbstractGatewayTest {
         X509CRL emptyCrl = TLSUtils.generateCRL(caKeyPair);
         TLSUtils.writeCrlToPemFile(emptyCrl, crlPath);
 
-        config
-            .httpSecured(true)
-            .set("http.ssl.sni", true)
-            .set("http.ssl.clientAuth", "required")
-            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
-            .set("http.ssl.keystore.path", httpKeyStoreLocation.toString())
-            .set("http.ssl.keystore.password", new String(PASSWORD))
-            .set("http.ssl.truststore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
-            .set("http.ssl.truststore.path", httpServerTrustStorePath.toString())
-            .set("http.ssl.truststore.password", new String(PASSWORD))
-            .set("http.ssl.crl.path", crlPath.toString())
-            .enableTcpGateway()
-            .set("tcp.ssl.clientAuth", "required")
-            .set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
-            .set("tcp.ssl.keystore.path", httpKeyStoreLocation.toString())
-            .set("tcp.ssl.keystore.password", new String(PASSWORD))
-            .set("tcp.ssl.truststore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
-            .set("tcp.ssl.truststore.path", httpServerTrustStorePath.toString())
-            .set("tcp.ssl.truststore.password", new String(PASSWORD))
-            .set("tcp.ssl.crl.path", crlPath.toString());
+        config.httpSecured(true)
+                .set("http.ssl.sni", true)
+                .set("http.ssl.clientAuth", "required")
+                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
+                .set("http.ssl.keystore.path", httpKeyStoreLocation.toString())
+                .set("http.ssl.keystore.password", new String(PASSWORD))
+                .set("http.ssl.truststore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
+                .set("http.ssl.truststore.path", httpServerTrustStorePath.toString())
+                .set("http.ssl.truststore.password", new String(PASSWORD))
+                .set("http.ssl.crl.path", crlPath.toString())
+                .enableTcpGateway()
+                .set("tcp.ssl.clientAuth", "required")
+                .set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
+                .set("tcp.ssl.keystore.path", httpKeyStoreLocation.toString())
+                .set("tcp.ssl.keystore.password", new String(PASSWORD))
+                .set("tcp.ssl.truststore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
+                .set("tcp.ssl.truststore.path", httpServerTrustStorePath.toString())
+                .set("tcp.ssl.truststore.password", new String(PASSWORD))
+                .set("tcp.ssl.crl.path", crlPath.toString());
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
     }
 
@@ -150,52 +154,49 @@ public class CrlIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/http/api.json" })
+    @DeployApi({"/apis/v4/http/api.json"})
     void should_accept_request_with_empty_crl_using_http(GatewayDynamicConfig.HttpConfig httpConfig) throws Exception {
         TLSUtils.writeCrlToPemFile(TLSUtils.generateCRL(caKeyPair), crlPath);
 
-        await()
-            .atMost(5, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyStorePath);
-                assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
-            });
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyStorePath);
+            assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+        });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/http/api.json" })
-    void should_reject_request_with_revoked_certificate_using_http(GatewayDynamicConfig.HttpConfig httpConfig) throws Exception {
-        TLSUtils.writeCrlToPemFile(TLSUtils.generateCRL(caKeyPair, clientX509Pair.certificate().data()), crlPath);
+    @DeployApi({"/apis/v4/http/api.json"})
+    void should_reject_request_with_revoked_certificate_using_http(GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
+        TLSUtils.writeCrlToPemFile(
+                TLSUtils.generateCRL(caKeyPair, clientX509Pair.certificate().data()), crlPath);
 
-        await()
-            .atMost(5, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, httpConfig.httpPort(), httpClientKeyStorePath);
-            });
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            assertHandshakeError(
+                    vertx(), httpCert, GATEWAY_HTTP_API_URI, httpConfig.httpPort(), httpClientKeyStorePath);
+        });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
+    @DeployApi({"/apis/v4/tcp/api-multi-domain.json"})
     void should_accept_request_with_empty_crl_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) throws Exception {
         TLSUtils.writeCrlToPemFile(TLSUtils.generateCRL(caKeyPair), crlPath);
 
-        await()
-            .atMost(5, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyStorePath);
-                assertApiCall(httpClient, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
-            });
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyStorePath);
+            assertApiCall(httpClient, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+        });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
-    void should_reject_request_with_revoked_certificate_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) throws Exception {
-        TLSUtils.writeCrlToPemFile(TLSUtils.generateCRL(caKeyPair, clientX509Pair.certificate().data()), crlPath);
+    @DeployApi({"/apis/v4/tcp/api-multi-domain.json"})
+    void should_reject_request_with_revoked_certificate_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig)
+            throws Exception {
+        TLSUtils.writeCrlToPemFile(
+                TLSUtils.generateCRL(caKeyPair, clientX509Pair.certificate().data()), crlPath);
 
-        await()
-            .atMost(5, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                assertHandshakeError(vertx(), httpCert, GATEWAY_TCP_API_URI, tcpConfig.tcpPort(), httpClientKeyStorePath);
-            });
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            assertHandshakeError(vertx(), httpCert, GATEWAY_TCP_API_URI, tcpConfig.tcpPort(), httpClientKeyStorePath);
+        });
     }
 }

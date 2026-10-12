@@ -22,28 +22,33 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record FacetsQuery(
-    TimeRange timeRange,
-    List<Filter> filters,
-    List<MetricMeasuresQuery> metrics,
-    List<Facet> facets,
-    Integer limit,
-    List<NumberRange> ranges
-) implements Query {
-    public FacetsQuery(TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics, List<Facet> facets) {
-        this(timeRange, filters, metrics, facets, null, List.of());
-    }
-
-    public FacetsQuery(
         TimeRange timeRange,
         List<Filter> filters,
         List<MetricMeasuresQuery> metrics,
         List<Facet> facets,
-        List<NumberRange> ranges
-    ) {
+        Integer limit,
+        List<NumberRange> ranges)
+        implements Query {
+    public FacetsQuery(
+            TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics, List<Facet> facets) {
+        this(timeRange, filters, metrics, facets, null, List.of());
+    }
+
+    public FacetsQuery(
+            TimeRange timeRange,
+            List<Filter> filters,
+            List<MetricMeasuresQuery> metrics,
+            List<Facet> facets,
+            List<NumberRange> ranges) {
         this(timeRange, filters, metrics, facets, null, ranges);
     }
 
-    public FacetsQuery(TimeRange timeRange, List<Filter> filters, List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit) {
+    public FacetsQuery(
+            TimeRange timeRange,
+            List<Filter> filters,
+            List<MetricMeasuresQuery> metrics,
+            List<Facet> facets,
+            Integer limit) {
         this(timeRange, filters, metrics, facets, limit, List.of());
     }
 }

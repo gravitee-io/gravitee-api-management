@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientOptions;
@@ -41,15 +40,11 @@ import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
-import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,7 +64,10 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     private TemplateEngine templateEngine;
 
     @RegisterExtension
-    static WireMockExtension wm = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).proxyMode(true).build();
+    static WireMockExtension wm = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .proxyMode(true)
+            .build();
 
     @BeforeEach
     void setup() {
@@ -77,9 +75,8 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         environment = mock(Environment.class);
         templateEngine = mock(TemplateEngine.class);
         when(environment.getProperty("http.ssl.openssl", Boolean.class, false)).thenReturn(useOpenSsl());
-        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(invocationOnMock ->
-            invocationOnMock.getArgument(0, String.class)
-        );
+        when(templateEngine.getValue(anyString(), eq(String.class)))
+                .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0, String.class));
     }
 
     protected abstract Boolean useOpenSsl();
@@ -106,13 +103,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertFalse(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertFalse(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> {
             rescheduleCheckpoint.flag();
         });
@@ -144,13 +139,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertTrue(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertTrue(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> {
             rescheduleCheckpoint.flag();
         });
@@ -169,9 +162,8 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
         // Prepare
         EndpointRule rule = createEndpointRule("{#properties['backend’]}");
-        when(templateEngine.getValue(eq(wm.baseUrl() + "{#properties['backend’]}"), eq(String.class))).thenReturn(
-            wm.baseUrl() + "/withProperties"
-        );
+        when(templateEngine.getValue(eq(wm.baseUrl() + "{#properties['backend’]}"), eq(String.class)))
+                .thenReturn(wm.baseUrl() + "/withProperties");
 
         HealthCheckStep step = new HealthCheckStep();
         HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
@@ -185,13 +177,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertTrue(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/withProperties/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertTrue(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/withProperties/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> {
             rescheduleCheckpoint.flag();
         });
@@ -223,19 +213,17 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertFalse(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertFalse(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
 
-                // When health-check is false, we store both request and response
-                Step result = status.getSteps().get(0);
-                assertEquals(HttpMethod.GET, result.getRequest().getMethod());
-                assertNotNull(result.getResponse().getBody());
+            // When health-check is false, we store both request and response
+            Step result = status.getSteps().get(0);
+            assertEquals(HttpMethod.GET, result.getRequest().getMethod());
+            assertNotNull(result.getResponse().getBody());
 
-                statusCheckpoint.flag();
-            }
-        );
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> {
             rescheduleCheckpoint.flag();
         });
@@ -271,14 +259,12 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                wm.verify(0, getRequestedFor(urlEqualTo("/additional-but-unused-path-for-hc")));
-                assertTrue(status.isSuccess());
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            wm.verify(0, getRequestedFor(urlEqualTo("/additional-but-unused-path-for-hc")));
+            assertTrue(status.isSuccess());
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> rescheduleCheckpoint.flag());
 
         // Run
@@ -308,13 +294,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertTrue(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertTrue(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> rescheduleCheckpoint.flag());
 
         // Run
@@ -346,16 +330,15 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         Date nextExecutionDate = new CronTrigger(rule.schedule()).nextExecutionTime(new SimpleTriggerContext());
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertTrue(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertTrue(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> {
-            Date nextExecutionDateAfterDelayedRequest = new CronTrigger(rule.schedule()).nextExecutionTime(new SimpleTriggerContext());
-            //at least 3 cron schedules should be ignored
+            Date nextExecutionDateAfterDelayedRequest =
+                    new CronTrigger(rule.schedule()).nextExecutionTime(new SimpleTriggerContext());
+            // at least 3 cron schedules should be ignored
             assertTrue((nextExecutionDateAfterDelayedRequest.getTime() - nextExecutionDate.getTime()) / 1000 > 2);
             rescheduleCheckpoint.flag();
         });
@@ -419,13 +402,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertFalse(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertFalse(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> rescheduleCheckpoint.flag());
 
         // Run
@@ -455,13 +436,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertFalse(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertFalse(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> rescheduleCheckpoint.flag());
 
         // Run
@@ -491,13 +470,11 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
 
         // Verify
-        runner.setStatusHandler(
-            (Handler<EndpointStatus>) status -> {
-                assertFalse(status.isSuccess());
-                wm.verify(getRequestedFor(urlEqualTo("/")));
-                statusCheckpoint.flag();
-            }
-        );
+        runner.setStatusHandler((Handler<EndpointStatus>) status -> {
+            assertFalse(status.isSuccess());
+            wm.verify(getRequestedFor(urlEqualTo("/")));
+            statusCheckpoint.flag();
+        });
         runner.setRescheduleHandler(v -> rescheduleCheckpoint.flag());
 
         // Run

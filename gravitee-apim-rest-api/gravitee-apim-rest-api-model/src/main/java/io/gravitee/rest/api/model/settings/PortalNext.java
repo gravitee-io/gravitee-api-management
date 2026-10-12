@@ -26,7 +26,6 @@ import lombok.NoArgsConstructor;
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PortalNext {

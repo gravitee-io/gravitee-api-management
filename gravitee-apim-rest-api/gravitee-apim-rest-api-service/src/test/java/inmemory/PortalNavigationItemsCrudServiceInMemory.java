@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 public class PortalNavigationItemsCrudServiceInMemory
-    implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemCrudService {
+        implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemCrudService {
 
     private List<PortalNavigationItem> storage;
 
@@ -55,18 +55,13 @@ public class PortalNavigationItemsCrudServiceInMemory
 
     @Override
     public Optional<PortalNavigationItem> updateSourceFetchState(
-        PortalNavigationItemId id,
-        PortalNavigationItemSource fetchedSource,
-        PortalNavigationItemSource.FetchState fetchState
-    ) {
-        var stored = storage
-            .stream()
-            .filter(item -> item.getId().equals(id))
-            .findFirst();
-        stored
-            .map(PortalNavigationItem::getSource)
-            .filter(source -> source.sameOriginAs(fetchedSource))
-            .ifPresent(fetchState::applyTo);
+            PortalNavigationItemId id,
+            PortalNavigationItemSource fetchedSource,
+            PortalNavigationItemSource.FetchState fetchState) {
+        var stored = storage.stream().filter(item -> item.getId().equals(id)).findFirst();
+        stored.map(PortalNavigationItem::getSource)
+                .filter(source -> source.sameOriginAs(fetchedSource))
+                .ifPresent(fetchState::applyTo);
         return stored;
     }
 

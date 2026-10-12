@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.theme.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.theme.model.ThemeType;
 
 public class ThemeTypeInvalidException extends ValidationDomainException {
 

@@ -27,5 +27,6 @@ public class TopFailedApis {
     List<TopFailedApi> data;
 
     @Builder
-    public record TopFailedApi(String id, String name, DefinitionVersion definitionVersion, long failedCalls, double failedCallsRatio) {}
+    public record TopFailedApi(
+            String id, String name, DefinitionVersion definitionVersion, long failedCalls, double failedCallsRatio) {}
 }

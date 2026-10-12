@@ -92,7 +92,8 @@ public class PlanMapperTest {
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
         assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
-        assertEquals(PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
+        assertEquals(
+                PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
         assertSame(flows, planEntity.getFlows());
     }
 
@@ -105,7 +106,8 @@ public class PlanMapperTest {
         assertEquals(planDefinition.getName(), planEntity.getName());
         assertEquals(planDefinition.getMode().name(), planEntity.getMode().name());
         assertEquals(planDefinition.getStatus().name(), planEntity.getStatus().name());
-        assertEquals(planDefinition.getSecurity().getType(), planEntity.getSecurity().getType());
+        assertEquals(
+                planDefinition.getSecurity().getType(), planEntity.getSecurity().getType());
         assertEquals(planDefinition.getSelectionRule(), planEntity.getSelectionRule());
         assertSame(planDefinition.getTags(), planEntity.getTags());
     }
@@ -138,7 +140,8 @@ public class PlanMapperTest {
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
         assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
-        assertEquals(PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
+        assertEquals(
+                PlanSecurityType.KEY_LESS.getLabel(), planEntity.getSecurity().getType());
         assertEquals(plan.getApiType(), planEntity.getApiType());
         assertSame(flows, planEntity.getFlows());
     }

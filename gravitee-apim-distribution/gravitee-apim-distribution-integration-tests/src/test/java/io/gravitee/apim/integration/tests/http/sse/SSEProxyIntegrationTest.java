@@ -65,13 +65,15 @@ abstract class SSEProxyIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
@@ -79,45 +81,49 @@ abstract class SSEProxyIntegrationTest extends AbstractGatewayTest {
         final CompositeMeterRegistry registry = (CompositeMeterRegistry) Metrics.getDefaultRegistry();
 
         // Initially, there is no active client connection (gateway to backend).
-        assertThat(Optional.ofNullable(registry.find("http.client.active.connections").gauge()).map(Gauge::value).orElse(0.0)).isEqualTo(
-            0.0
-        );
+        assertThat(Optional.ofNullable(
+                                registry.find("http.client.active.connections").gauge())
+                        .map(Gauge::value)
+                        .orElse(0.0))
+                .isEqualTo(0.0);
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .doOnSuccess(httpClientRequest -> httpClientRequest.headers().add("Accept", "text/event-stream"))
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response
-                    .toFlowable()
-                    .doOnNext(buffer -> {
-                        // Check the number of active client connections is 1 (gateway to sse mock backend) while consuming the SSE stream.
-                        assertThat(registry.get("http.client.active.connections").gauge().value()).isEqualTo(1.0);
-                    })
-                    // Keep the connection open for 1 second, then close it.
-                    .takeUntil(
-                        response
-                            .request()
-                            .connection()
-                            .rxClose()
-                            .toFlowable()
-                            .delaySubscription(1, TimeUnit.SECONDS)
-                            .doOnComplete(() -> log.info("Connection closed"))
-                    );
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .doOnSuccess(httpClientRequest -> httpClientRequest.headers().add("Accept", "text/event-stream"))
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable()
+                            .doOnNext(buffer -> {
+                                // Check the number of active client connections is 1 (gateway to sse mock backend)
+                                // while consuming the SSE stream.
+                                assertThat(registry.get("http.client.active.connections")
+                                                .gauge()
+                                                .value())
+                                        .isEqualTo(1.0);
+                            })
+                            // Keep the connection open for 1 second, then close it.
+                            .takeUntil(response.request()
+                                    .connection()
+                                    .rxClose()
+                                    .toFlowable()
+                                    .delaySubscription(1, TimeUnit.SECONDS)
+                                    .doOnComplete(() -> log.info("Connection closed")));
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Verify the gateway has properly closed the connection to the backend after client connection close.
-        await()
-            .atMost(Duration.ofSeconds(5))
-            .pollInterval(Duration.ofMillis(200))
-            .untilAsserted(() -> {
-                // Check the number of active cleint connections is 0 after client connection close (gateway to sse mock backend)
-                double value = registry.get("http.client.active.connections").gauge().value();
-                assertThat(value).isEqualTo(0.0);
-            });
+        await().atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(200))
+                .untilAsserted(() -> {
+                    // Check the number of active cleint connections is 0 after client connection close (gateway to sse
+                    // mock backend)
+                    double value = registry.get("http.client.active.connections")
+                            .gauge()
+                            .value();
+                    assertThat(value).isEqualTo(0.0);
+                });
     }
 }

@@ -30,7 +30,8 @@ import io.gravitee.resource.api.ResourceManager;
 public class ResourcePolicy {
 
     @OnRequest
-    public void onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    public void onRequest(
+            Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
         ResourceManager resourceManager = executionContext.getComponent(ResourceManager.class);
         DummyResource resource = resourceManager.getResource("my-resource", DummyResource.class);
 

@@ -75,6 +75,7 @@ public class AnalyticsQueryContextProvider {
     }
 
     public AnalyticsEngineQueryService resolve(MetricSpec.Name metric) {
-        return Optional.ofNullable(services.get(metric)).orElseThrow(() -> new UnsupportedMetricException(metric.name()));
+        return Optional.ofNullable(services.get(metric))
+                .orElseThrow(() -> new UnsupportedMetricException(metric.name()));
     }
 }

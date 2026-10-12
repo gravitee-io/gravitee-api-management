@@ -20,9 +20,7 @@ import static fixtures.core.model.ApiFixtures.aTcpApiV4;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.exception.DuplicatedHostException;
 import io.gravitee.apim.core.api.exception.HostAlreadyExistsException;
@@ -44,23 +42,24 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 class VerifyApiHostsUseCaseTest {
 
     private static final String ENVIRONMENT_ID = "envId";
-    private static final Api TCP_API = aTcpApiV4().toBuilder().id("tcp-api").environmentId(ENVIRONMENT_ID).build();
-    private static final Api TCP_API_UPPERCASE_HOST = aTcpApiV4()
-        .toBuilder()
-        .id("tcp-api-uppercase-host")
-        .environmentId(ENVIRONMENT_ID)
-        .apiDefinitionHttpV4(
-            aTcpApiV4()
-                .getApiDefinitionHttpV4()
-                .toBuilder()
-                .listeners(List.of(TcpListener.builder().hosts(List.of("Tcp-API")).build()))
-                .build()
-        )
-        .build();
-    private static final Api KAFKA_NATIVE_API = aNativeApi().toBuilder().id("kafka-api").environmentId(ENVIRONMENT_ID).build();
+    private static final Api TCP_API =
+            aTcpApiV4().toBuilder().id("tcp-api").environmentId(ENVIRONMENT_ID).build();
+    private static final Api TCP_API_UPPERCASE_HOST = aTcpApiV4().toBuilder()
+            .id("tcp-api-uppercase-host")
+            .environmentId(ENVIRONMENT_ID)
+            .apiDefinitionHttpV4(aTcpApiV4().getApiDefinitionHttpV4().toBuilder()
+                    .listeners(List.of(
+                            TcpListener.builder().hosts(List.of("Tcp-API")).build()))
+                    .build())
+            .build();
+    private static final Api KAFKA_NATIVE_API = aNativeApi().toBuilder()
+            .id("kafka-api")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
 
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
-    private final VerifyApiHostsDomainService verifyApiHostsDomainService = new VerifyApiHostsDomainService(apiQueryService);
+    private final VerifyApiHostsDomainService verifyApiHostsDomainService =
+            new VerifyApiHostsDomainService(apiQueryService);
 
     private VerifyApiHostsUseCase verifyApiHostsUseCase;
 
@@ -79,11 +78,7 @@ class VerifyApiHostsUseCaseTest {
     void should_return_valid_hosts() {
         // given
         VerifyApiHostsUseCase.Input input = new VerifyApiHostsUseCase.Input(
-            ENVIRONMENT_ID,
-            TCP_API.getId(),
-            ListenerType.TCP,
-            List.of("foo-2.example.com", "bar-2.example.com")
-        );
+                ENVIRONMENT_ID, TCP_API.getId(), ListenerType.TCP, List.of("foo-2.example.com", "bar-2.example.com"));
 
         // when
         var result = verifyApiHostsUseCase.execute(input);
@@ -97,11 +92,7 @@ class VerifyApiHostsUseCaseTest {
     void should_return_valid_hosts_for_undefined_api_id() {
         // given
         VerifyApiHostsUseCase.Input input = new VerifyApiHostsUseCase.Input(
-            ENVIRONMENT_ID,
-            null,
-            ListenerType.TCP,
-            List.of("foo-2.example.com", "bar-2.example.com")
-        );
+                ENVIRONMENT_ID, null, ListenerType.TCP, List.of("foo-2.example.com", "bar-2.example.com"));
 
         // when
         var result = verifyApiHostsUseCase.execute(input);
@@ -115,7 +106,8 @@ class VerifyApiHostsUseCaseTest {
     @NullAndEmptySource
     void should_throw_invalid_host_exception(List<String> hosts) {
         // given
-        VerifyApiHostsUseCase.Input input = new VerifyApiHostsUseCase.Input(ENVIRONMENT_ID, TCP_API.getId(), ListenerType.TCP, hosts);
+        VerifyApiHostsUseCase.Input input =
+                new VerifyApiHostsUseCase.Input(ENVIRONMENT_ID, TCP_API.getId(), ListenerType.TCP, hosts);
 
         // when
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
@@ -127,12 +119,8 @@ class VerifyApiHostsUseCaseTest {
     @Test
     void should_throw_invalid_host_exception_with_blank_host() {
         // given
-        VerifyApiHostsUseCase.Input input = new VerifyApiHostsUseCase.Input(
-            ENVIRONMENT_ID,
-            TCP_API.getId(),
-            ListenerType.TCP,
-            List.of(" ")
-        );
+        VerifyApiHostsUseCase.Input input =
+                new VerifyApiHostsUseCase.Input(ENVIRONMENT_ID, TCP_API.getId(), ListenerType.TCP, List.of(" "));
 
         // when
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
@@ -145,11 +133,7 @@ class VerifyApiHostsUseCaseTest {
     void should_throw_host_already_exists_exception() {
         // given
         VerifyApiHostsUseCase.Input input = new VerifyApiHostsUseCase.Input(
-            ENVIRONMENT_ID,
-            TCP_API.getId(),
-            ListenerType.TCP,
-            List.of("foo.example.com", "native.kafka")
-        );
+                ENVIRONMENT_ID, TCP_API.getId(), ListenerType.TCP, List.of("foo.example.com", "native.kafka"));
 
         // when
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
@@ -161,12 +145,8 @@ class VerifyApiHostsUseCaseTest {
     @Test
     void should_throw_host_already_exists_exception_with_different_capitalization() {
         // given
-        VerifyApiHostsUseCase.Input input = new VerifyApiHostsUseCase.Input(
-            ENVIRONMENT_ID,
-            TCP_API.getId(),
-            ListenerType.TCP,
-            List.of("tcp-api")
-        );
+        VerifyApiHostsUseCase.Input input =
+                new VerifyApiHostsUseCase.Input(ENVIRONMENT_ID, TCP_API.getId(), ListenerType.TCP, List.of("tcp-api"));
 
         // when
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
@@ -179,11 +159,7 @@ class VerifyApiHostsUseCaseTest {
     void should_throw_duplicated_host_exception() {
         // given
         VerifyApiHostsUseCase.Input input = new VerifyApiHostsUseCase.Input(
-            ENVIRONMENT_ID,
-            TCP_API.getId(),
-            ListenerType.TCP,
-            List.of("foo-2.example.com", "foo-2.example.com")
-        );
+                ENVIRONMENT_ID, TCP_API.getId(), ListenerType.TCP, List.of("foo-2.example.com", "foo-2.example.com"));
 
         // when
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));

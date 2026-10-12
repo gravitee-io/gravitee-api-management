@@ -134,7 +134,8 @@ class LogEntrypointRequestTest {
         when(request.headers()).thenReturn(headers);
         when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
         when(loggingContext.entrypointRequestPayload()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any())).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any()))
+                .thenReturn(false);
 
         final var logRequest = new LogEntrypointRequest(loggingContext, request);
         logRequest.capture(ctx);

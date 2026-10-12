@@ -43,17 +43,16 @@ public class LogEntrypointResponse extends LogResponse {
             this.setSpanId(tracer.spanId());
         }
 
-        if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
+        if (isLogPayload()
+                && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
             final Buffer buffer = Buffer.buffer();
             if (loggingContext.isBodyLoggable()) {
-                response.chunks(
-                    response
-                        .chunks()
-                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                response.chunks(response.chunks()
+                        .doOnNext(
+                                chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
                         .doOnComplete(() -> {
                             if (buffer.length() > 0) this.setBody(buffer.toString());
-                        })
-                );
+                        }));
             } else {
                 this.setBody("BODY NOT CAPTURED");
             }
@@ -63,15 +62,14 @@ public class LogEntrypointResponse extends LogResponse {
             this.setHeaders(response.headers());
         }
 
-        final ExecutionFailure executionFailure = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+        final ExecutionFailure executionFailure =
+                ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
         this.setStatus(executionFailure != null ? executionFailure.statusCode() : response.status());
-        if (
-            isLogPayload() &&
-            loggingContext.isBodyLoggable() &&
-            executionFailure != null &&
-            executionFailure.message() != null &&
-            this.getBody() == null
-        ) {
+        if (isLogPayload()
+                && loggingContext.isBodyLoggable()
+                && executionFailure != null
+                && executionFailure.message() != null
+                && this.getBody() == null) {
             this.setBody(executionFailure.message());
         }
     }

@@ -49,10 +49,10 @@ class DefaultAccessPointManagerTest {
     @Test
     void should_register_new_access_point() {
         ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
-            .id("id")
-            .host("host")
-            .environmentId("environmentId")
-            .build();
+                .id("id")
+                .host("host")
+                .environmentId("environmentId")
+                .build();
         cut.register(reactableAccessPoint);
 
         assertThat(cut.getByEnvironmentId("environmentId")).containsOnly(reactableAccessPoint);
@@ -62,10 +62,10 @@ class DefaultAccessPointManagerTest {
     @Test
     void should_not_register_duplicated_access_point() {
         ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
-            .id("id")
-            .host("host")
-            .environmentId("environmentId")
-            .build();
+                .id("id")
+                .host("host")
+                .environmentId("environmentId")
+                .build();
         cut.register(reactableAccessPoint);
         cut.register(reactableAccessPoint);
 
@@ -76,10 +76,10 @@ class DefaultAccessPointManagerTest {
     @Test
     void should_unregister_new_access_point() {
         ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
-            .id("id")
-            .host("host")
-            .environmentId("environmentId")
-            .build();
+                .id("id")
+                .host("host")
+                .environmentId("environmentId")
+                .build();
         cut.register(reactableAccessPoint);
         assertThat(cut.getByEnvironmentId("environmentId")).containsOnly(reactableAccessPoint);
         verify(eventManager).publishEvent(DEPLOY, reactableAccessPoint);
@@ -91,10 +91,10 @@ class DefaultAccessPointManagerTest {
     @Test
     void should_not_unregister_unexisting_access_point() {
         ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
-            .id("id")
-            .host("host")
-            .environmentId("environmentId")
-            .build();
+                .id("id")
+                .host("host")
+                .environmentId("environmentId")
+                .build();
         cut.unregister(reactableAccessPoint);
 
         assertThat(cut.getByEnvironmentId("environmentId")).isEmpty();

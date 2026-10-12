@@ -48,17 +48,17 @@ public class MessagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Send a message to users depending on their profile",
-        description = "User must have the MANAGEMENT_MESSAGE[CREATE] permission to use this service"
-    )
+            summary = "Send a message to users depending on their profile",
+            description = "User must have the MANAGEMENT_MESSAGE[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Message successfully sent",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Integer.class))
-    )
+            responseCode = "200",
+            description = "Message successfully sent",
+            content =
+                    @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Integer.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_MESSAGE, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_MESSAGE, acls = RolePermissionAction.CREATE)})
     public Response createMessage(final MessageEntity message) {
-        return Response.ok(messageService.create(GraviteeContext.getExecutionContext(), message)).build();
+        return Response.ok(messageService.create(GraviteeContext.getExecutionContext(), message))
+                .build();
     }
 }

@@ -16,7 +16,6 @@
 package io.gravitee.gamma.rest.core.observability.logs.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,7 +28,6 @@ import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQ
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
-import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
@@ -40,17 +38,14 @@ import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
-import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -87,92 +82,80 @@ class SearchObservabilityLogsUseCaseTest {
         accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
         useCase = new SearchObservabilityLogsUseCase(
-            logsDataPort,
-            filterValidator,
-            accessibleApiScope,
-            new EntrypointScopeProviderAdapter()
-        );
+                logsDataPort, filterValidator, accessibleApiScope, new EntrypointScopeProviderAdapter());
 
-        when(filterRegistry.getFilters(any(), any())).thenReturn(
-            List.of(
-                new FilterSpec(
-                    "API",
-                    "API",
-                    FilterType.KEYWORD,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    null,
-                    null,
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
-                ),
-                new FilterSpec(
-                    "HTTP_STATUS",
-                    "Status Code",
-                    FilterType.NUMBER,
-                    List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
-                    null,
-                    new FilterSpec.Range(100, 599),
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    Set.of(io.gravitee.gamma.rest.core.observability.filter.model.ApiType.HTTP_PROXY)
-                ),
-                new FilterSpec(
-                    "API_TYPE",
-                    "API Type",
-                    FilterType.ENUM,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    null,
-                    null,
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
-                ),
-                new FilterSpec(
-                    "APPLICATION",
-                    "Application",
-                    FilterType.KEYWORD,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    null,
-                    null,
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
-                ),
-                new FilterSpec(
-                    "GATEWAY",
-                    "Gateway",
-                    FilterType.KEYWORD,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    null,
-                    null,
-                    Set.of(Signal.ANALYTICS),
-                    io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
-                ),
-                new FilterSpec(
-                    "AUTHZ_DECISION",
-                    "Decision",
-                    FilterType.ENUM,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    List.of(
-                        new FilterSpec.EnumValue("PERMIT", "Permit"),
-                        new FilterSpec.EnumValue("FORBID", "Forbid"),
-                        new FilterSpec.EnumValue("NOT_APPLICABLE", "Not applicable")
-                    ),
-                    null,
-                    Set.of(Signal.LOGS),
-                    Set.of(io.gravitee.gamma.rest.core.observability.filter.model.ApiType.AUTHZ_DECISION)
-                ),
-                new FilterSpec(
-                    "RECORD_TYPE",
-                    "Record Type",
-                    FilterType.ENUM,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    List.of(new FilterSpec.EnumValue("REQUEST", "Request"), new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision")),
-                    null,
-                    Set.of(Signal.LOGS),
-                    io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
-                ),
-                StaticFilters.AUTHZ_OPERATION.toSpec(),
-                StaticFilters.AUTHZ_INDETERMINATE_CAUSE.toSpec()
-            )
-        );
+        when(filterRegistry.getFilters(any(), any()))
+                .thenReturn(List.of(
+                        new FilterSpec(
+                                "API",
+                                "API",
+                                FilterType.KEYWORD,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                null,
+                                null,
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL),
+                        new FilterSpec(
+                                "HTTP_STATUS",
+                                "Status Code",
+                                FilterType.NUMBER,
+                                List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
+                                null,
+                                new FilterSpec.Range(100, 599),
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                Set.of(io.gravitee.gamma.rest.core.observability.filter.model.ApiType.HTTP_PROXY)),
+                        new FilterSpec(
+                                "API_TYPE",
+                                "API Type",
+                                FilterType.ENUM,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                null,
+                                null,
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL),
+                        new FilterSpec(
+                                "APPLICATION",
+                                "Application",
+                                FilterType.KEYWORD,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                null,
+                                null,
+                                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                                io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL),
+                        new FilterSpec(
+                                "GATEWAY",
+                                "Gateway",
+                                FilterType.KEYWORD,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                null,
+                                null,
+                                Set.of(Signal.ANALYTICS),
+                                io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL),
+                        new FilterSpec(
+                                "AUTHZ_DECISION",
+                                "Decision",
+                                FilterType.ENUM,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                List.of(
+                                        new FilterSpec.EnumValue("PERMIT", "Permit"),
+                                        new FilterSpec.EnumValue("FORBID", "Forbid"),
+                                        new FilterSpec.EnumValue("NOT_APPLICABLE", "Not applicable")),
+                                null,
+                                Set.of(Signal.LOGS),
+                                Set.of(io.gravitee.gamma.rest.core.observability.filter.model.ApiType.AUTHZ_DECISION)),
+                        new FilterSpec(
+                                "RECORD_TYPE",
+                                "Record Type",
+                                FilterType.ENUM,
+                                List.of(FilterOperator.EQ, FilterOperator.IN),
+                                List.of(
+                                        new FilterSpec.EnumValue("REQUEST", "Request"),
+                                        new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision")),
+                                null,
+                                Set.of(Signal.LOGS),
+                                io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL),
+                        StaticFilters.AUTHZ_OPERATION.toSpec(),
+                        StaticFilters.AUTHZ_INDETERMINATE_CAUSE.toSpec()));
     }
 
     @Nested
@@ -180,199 +163,163 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_name_the_missing_record_type_when_a_decision_filter_reaches_the_request_search() {
-            assertThatThrownBy(() ->
-                useCase.execute(
-                    new SearchObservabilityLogsUseCase.Input(
-                        ORG_ID,
-                        ENV_ID,
-                        List.of(new FilterCondition("AUTHZ_DECISION", FilterOperator.EQ, List.of("FORBID"))),
-                        FROM,
-                        TO,
-                        1,
-                        20
-                    )
-                )
-            )
-                .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("AUTHZ_DECISION")
-                .hasMessageContaining("RECORD_TYPE")
-                .extracting("technicalCode")
-                .isEqualTo("observability.filter.requires_decision_record_type");
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(
+                            ORG_ID,
+                            ENV_ID,
+                            List.of(new FilterCondition("AUTHZ_DECISION", FilterOperator.EQ, List.of("FORBID"))),
+                            FROM,
+                            TO,
+                            1,
+                            20)))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                    .hasMessageContaining("AUTHZ_DECISION")
+                    .hasMessageContaining("RECORD_TYPE")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.filter.requires_decision_record_type");
 
             verifyNoInteractions(logsDataPort);
         }
 
         @Test
         void should_refuse_a_condition_the_decision_search_cannot_apply() {
-            assertThatThrownBy(() ->
-                useCase.execute(
-                    new SearchObservabilityLogsUseCase.Input(
-                        ORG_ID,
-                        ENV_ID,
-                        List.of(
-                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                            new FilterCondition("APPLICATION", FilterOperator.EQ, List.of("app-1"))
-                        ),
-                        FROM,
-                        TO,
-                        1,
-                        20
-                    )
-                )
-            )
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("APPLICATION")
-                .hasMessageContaining("AUTHZ_DECISION")
-                .extracting("technicalCode")
-                .isEqualTo("observability.filter.not_applicable_to_decisions");
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(
+                            ORG_ID,
+                            ENV_ID,
+                            List.of(
+                                    new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                                    new FilterCondition("APPLICATION", FilterOperator.EQ, List.of("app-1"))),
+                            FROM,
+                            TO,
+                            1,
+                            20)))
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("APPLICATION")
+                    .hasMessageContaining("AUTHZ_DECISION")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.filter.not_applicable_to_decisions");
 
             verifyNoInteractions(logsDataPort);
         }
 
         @Test
         void should_refuse_a_multi_valued_record_type_rather_than_truncating_it() {
-            assertThatThrownBy(() ->
-                useCase.execute(
-                    new SearchObservabilityLogsUseCase.Input(
-                        ORG_ID,
-                        ENV_ID,
-                        List.of(new FilterCondition("RECORD_TYPE", FilterOperator.IN, List.of("REQUEST", "AUTHZ_DECISION"))),
-                        FROM,
-                        TO,
-                        1,
-                        20
-                    )
-                )
-            )
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("single value")
-                .extracting("technicalCode")
-                .isEqualTo("observability.filter.multiple_record_types");
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(
+                            ORG_ID,
+                            ENV_ID,
+                            List.of(new FilterCondition(
+                                    "RECORD_TYPE", FilterOperator.IN, List.of("REQUEST", "AUTHZ_DECISION"))),
+                            FROM,
+                            TO,
+                            1,
+                            20)))
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("single value")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.filter.multiple_record_types");
 
             verifyNoInteractions(logsDataPort);
         }
 
         @Test
         void should_refuse_a_decision_filter_carrying_no_value_rather_than_returning_everything() {
-            assertThatThrownBy(() ->
-                useCase.execute(
-                    new SearchObservabilityLogsUseCase.Input(
-                        ORG_ID,
-                        ENV_ID,
-                        List.of(
-                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                            new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of())
-                        ),
-                        FROM,
-                        TO,
-                        1,
-                        20
-                    )
-                )
-            ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(
+                            ORG_ID,
+                            ENV_ID,
+                            List.of(
+                                    new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                                    new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of())),
+                            FROM,
+                            TO,
+                            1,
+                            20)))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class);
 
             verifyNoInteractions(logsDataPort);
         }
 
         @Test
         void should_carry_the_decision_filter_through_to_the_data_port() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
 
-            useCase.execute(
-                new SearchObservabilityLogsUseCase.Input(
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(
                     ORG_ID,
                     ENV_ID,
                     List.of(
-                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                        new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID"))
-                    ),
+                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                            new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID"))),
                     FROM,
                     TO,
                     1,
-                    20
-                )
-            );
+                    20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(any(), any(), captor.capture());
-            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("AUTHZ_DECISION");
+            assertThat(captor.getValue().conditions())
+                    .extracting(FilterCondition::name)
+                    .containsExactly("AUTHZ_DECISION");
         }
 
         @Test
         void should_refuse_the_operation_filter_now_that_a_decision_carries_no_operation() {
-            assertThatThrownBy(() ->
-                useCase.execute(
-                    new SearchObservabilityLogsUseCase.Input(
-                        ORG_ID,
-                        ENV_ID,
-                        List.of(
-                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                            new FilterCondition("AUTHZ_OPERATION", FilterOperator.EQ, List.of("evaluation"))
-                        ),
-                        FROM,
-                        TO,
-                        1,
-                        20
-                    )
-                )
-            )
-                .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("AUTHZ_OPERATION");
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(
+                            ORG_ID,
+                            ENV_ID,
+                            List.of(
+                                    new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                                    new FilterCondition("AUTHZ_OPERATION", FilterOperator.EQ, List.of("evaluation"))),
+                            FROM,
+                            TO,
+                            1,
+                            20)))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                    .hasMessageContaining("AUTHZ_OPERATION");
 
             verifyNoInteractions(logsDataPort);
         }
 
         @Test
         void should_carry_the_indeterminate_cause_filter_through_to_the_data_port() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
 
-            useCase.execute(
-                new SearchObservabilityLogsUseCase.Input(
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(
                     ORG_ID,
                     ENV_ID,
                     List.of(
-                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                        new FilterCondition("AUTHZ_INDETERMINATE_CAUSE", FilterOperator.IN, List.of("NOT_READY", "TIMEOUT"))
-                    ),
+                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                            new FilterCondition(
+                                    "AUTHZ_INDETERMINATE_CAUSE", FilterOperator.IN, List.of("NOT_READY", "TIMEOUT"))),
                     FROM,
                     TO,
                     1,
-                    20
-                )
-            );
+                    20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(any(), any(), captor.capture());
-            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("AUTHZ_INDETERMINATE_CAUSE");
+            assertThat(captor.getValue().conditions())
+                    .extracting(FilterCondition::name)
+                    .containsExactly("AUTHZ_INDETERMINATE_CAUSE");
         }
 
         @Test
         void should_accept_api_scope_conditions_alongside_the_record_type() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
 
-            useCase.execute(
-                new SearchObservabilityLogsUseCase.Input(
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(
                     ORG_ID,
                     ENV_ID,
                     List.of(
-                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                        new FilterCondition("API", FilterOperator.EQ, List.of("api-1"))
-                    ),
+                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                            new FilterCondition("API", FilterOperator.EQ, List.of("api-1"))),
                     FROM,
                     TO,
                     1,
-                    20
-                )
-            );
+                    20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(any(), any(), captor.capture());
@@ -388,7 +335,8 @@ class SearchObservabilityLogsUseCaseTest {
         void should_return_empty_page_when_no_accessible_apis() {
             when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
+            var output = useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
             assertThat(output.page()).isEqualTo(1);
@@ -398,32 +346,29 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_filter_accessible_apis_by_supported_api_types() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(
-                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-                    new AccessibleApi("api-message", "Message API", ApiType.MESSAGE),
-                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
-                    new AccessibleApi("api-native", "Native API", ApiType.NATIVE),
-                    new AccessibleApi("api-edge", "Edge API", ApiType.EDGE)
-                )
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-message", "Message API", ApiType.MESSAGE),
+                            new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
+                            new AccessibleApi("api-native", "Native API", ApiType.NATIVE),
+                            new AccessibleApi("api-edge", "Edge API", ApiType.EDGE)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
-            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-proxy", "api-llm", "api-native", "api-message");
+            assertThat(captor.getValue().apiIds())
+                    .containsExactlyInAnyOrder("api-proxy", "api-llm", "api-native", "api-message");
         }
 
         @Test
         void should_narrow_scope_to_native_api_type() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(
-                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-                    new AccessibleApi("api-native", "Native API", ApiType.NATIVE)
-                )
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-native", "Native API", ApiType.NATIVE)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("NATIVE")));
@@ -436,9 +381,10 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_intersect_user_api_filter_with_accessible_apis() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY), new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API", FilterOperator.EQ, List.of("api-1")));
@@ -451,25 +397,23 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_return_empty_page_when_user_api_filter_excludes_all_accessible_apis() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
 
             var filters = List.of(new FilterCondition("API", FilterOperator.EQ, List.of("api-unknown")));
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
+            var output =
+                    useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
         }
 
         @Test
         void should_narrow_scope_to_requested_api_type() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(
-                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
-                    new AccessibleApi("api-mcp", "MCP API", ApiType.MCP)
-                )
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
+                            new AccessibleApi("api-mcp", "MCP API", ApiType.MCP)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM")));
@@ -482,13 +426,11 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_narrow_scope_to_multiple_api_types() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(
-                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
-                    new AccessibleApi("api-mcp", "MCP API", ApiType.MCP)
-                )
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
+                            new AccessibleApi("api-mcp", "MCP API", ApiType.MCP)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM", "MCP")));
@@ -501,27 +443,24 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_return_empty_page_when_api_type_is_unsupported_for_logs() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(
-                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-                    new AccessibleApi("api-edge", "Edge API", ApiType.EDGE)
-                )
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                            new AccessibleApi("api-edge", "Edge API", ApiType.EDGE)));
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("EDGE")));
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
+            var output =
+                    useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
         }
 
         @Test
         void should_serve_message_apis() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(
-                    new AccessibleApi("api-message", "Message API", ApiType.MESSAGE),
-                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY)
-                )
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(
+                            new AccessibleApi("api-message", "Message API", ApiType.MESSAGE),
+                            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MESSAGE")));
@@ -534,7 +473,8 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_not_pass_api_type_condition_to_data_port() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-llm", "LLM API", ApiType.LLM)));
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-llm", "LLM API", ApiType.LLM)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM")));
@@ -553,9 +493,9 @@ class SearchObservabilityLogsUseCaseTest {
         void should_reject_unknown_filter_name() {
             var filters = List.of(new FilterCondition("UNKNOWN_FILTER", FilterOperator.EQ, List.of("val")));
 
-            assertThatThrownBy(() ->
-                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20))
-            ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+            assertThatThrownBy(() -> useCase.execute(
+                            new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20)))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class);
             verifyNoInteractions(logsDataPort);
         }
 
@@ -563,9 +503,9 @@ class SearchObservabilityLogsUseCaseTest {
         void should_reject_filter_whose_signals_exclude_logs() {
             var filters = List.of(new FilterCondition("GATEWAY", FilterOperator.EQ, List.of("gw-1")));
 
-            assertThatThrownBy(() ->
-                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20))
-            ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+            assertThatThrownBy(() -> useCase.execute(
+                            new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20)))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class);
             verifyNoInteractions(logsDataPort);
         }
 
@@ -573,21 +513,21 @@ class SearchObservabilityLogsUseCaseTest {
         void should_reject_operator_not_advertised_by_the_catalog() {
             var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.CONTAINS, List.of("200")));
 
-            assertThatThrownBy(() ->
-                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20))
-            ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+            assertThatThrownBy(() -> useCase.execute(
+                            new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20)))
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class);
             verifyNoInteractions(logsDataPort);
         }
 
         @Test
         void should_accept_valid_logs_filter() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200")));
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
+            var output =
+                    useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             assertThat(output.data()).isNotNull();
         }
@@ -601,31 +541,34 @@ class SearchObservabilityLogsUseCaseTest {
             var from = Instant.parse("2026-06-11T12:00:00Z");
             var to = Instant.parse("2026-06-10T12:00:00Z");
 
-            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), from, to, 1, 20)))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.invalid_time_range");
+            assertThatThrownBy(() -> useCase.execute(
+                            new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), from, to, 1, 20)))
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.invalid_time_range");
 
             verifyNoInteractions(logsDataPort);
         }
 
         @ParameterizedTest
-        @CsvSource(value = { "null, 2026-06-11T00:00:00Z, from", "2026-06-10T00:00:00Z, null, to" }, nullValues = "null")
+        @CsvSource(
+                value = {"null, 2026-06-11T00:00:00Z, from", "2026-06-10T00:00:00Z, null, to"},
+                nullValues = "null")
         void should_reject_a_missing_bound(Instant from, Instant to, String missingBound) {
-            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), from, to, 1, 20)))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("'" + missingBound + "'")
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.time_range_required");
+            assertThatThrownBy(() -> useCase.execute(
+                            new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), from, to, 1, 20)))
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .hasMessageContaining("'" + missingBound + "'")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.time_range_required");
 
             verifyNoInteractions(logsDataPort);
         }
 
         @Test
         void should_pass_time_range_to_port() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var from = Instant.parse("2026-06-10T00:00:00Z");
@@ -644,9 +587,8 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_exclude_only_the_entrypoints_outside_the_logs_scope_when_none_is_requested() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
@@ -657,17 +599,19 @@ class SearchObservabilityLogsUseCaseTest {
             // native connections, an unknown entrypoint and a request refused before one was resolved.
             // Only the families that scope themselves and what the signals do not cover are excluded.
             assertThat(query.entrypointScope().ids())
-                .containsExactly("edge", "authzen", "tcp-proxy")
-                .doesNotContain("sse", "webhook", "websocket", "native-kafka", "http-proxy", "mcp-studio");
+                    .containsExactly("edge", "authzen", "tcp-proxy")
+                    .doesNotContain("sse", "webhook", "websocket", "native-kafka", "http-proxy", "mcp-studio");
             assertThat(query.conditions()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
         }
 
         @Test
         void should_honour_an_explicit_entrypoint_condition_exactly_and_fold_it_into_the_scope() {
             when(filterRegistry.getFilters(any(), any())).thenReturn(List.of(StaticFilters.ENTRYPOINT.toSpec()));
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.MCP)));
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.MCP)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
-            var conditions = List.of(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("mcp-studio", "(none)")));
+            var conditions =
+                    List.of(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("mcp-studio", "(none)")));
 
             useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, conditions, FROM, TO, 1, 20));
 
@@ -678,7 +622,8 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_carry_no_entrypoint_scope_on_a_decision_search_since_decisions_have_no_entrypoint() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.AUTHZ)));
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.AUTHZ)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
 
@@ -699,12 +644,12 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_use_default_page_and_perPage_when_zero_or_negative() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 0, -1));
+            var output = useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 0, -1));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -716,12 +661,12 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_use_default_page_and_perPage_when_null() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, null, null));
+            var output = useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, null, null));
 
             assertThat(output.page()).isEqualTo(1);
             assertThat(output.perPage()).isEqualTo(20);
@@ -729,12 +674,12 @@ class SearchObservabilityLogsUseCaseTest {
 
         @Test
         void should_clamp_perPage_to_max() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                    .thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 500));
+            var output = useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 500));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());

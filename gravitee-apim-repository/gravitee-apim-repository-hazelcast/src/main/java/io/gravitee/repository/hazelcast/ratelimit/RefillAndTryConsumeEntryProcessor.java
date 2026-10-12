@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * same inputs and reach the same state as the primary.
  */
 public final class RefillAndTryConsumeEntryProcessor
-    implements EntryProcessor<String, TokenBucket, TokenBucketConsumeResult>, Serializable {
+        implements EntryProcessor<String, TokenBucket, TokenBucketConsumeResult>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -45,13 +45,12 @@ public final class RefillAndTryConsumeEntryProcessor
     private final TokenBucket seed;
 
     public RefillAndTryConsumeEntryProcessor(
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        TokenBucket seed
-    ) {
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            TokenBucket seed) {
         this.tokensRequested = tokensRequested;
         this.refillRate = refillRate;
         this.refillPeriodMillis = refillPeriodMillis;
@@ -69,13 +68,7 @@ public final class RefillAndTryConsumeEntryProcessor
         }
 
         TokenBucketConsumeResult result = TokenBucketCalculator.refillAndTryConsume(
-            current,
-            tokensRequested,
-            refillRate,
-            refillPeriodMillis,
-            capacity,
-            nowMillis
-        );
+                current, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis);
 
         // Evict once the bucket would have refilled to full anyway: a long-idle entry is then recreated
         // full on next access, equivalent to keeping it. Shared TTL with the other backends; a zero rate

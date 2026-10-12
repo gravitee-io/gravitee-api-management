@@ -26,7 +26,6 @@ import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
-import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import java.util.Set;
@@ -67,20 +66,18 @@ class EntrypointPluginQueryServiceLegacyWrapperTest {
             var result = service.findBySupportedApi(ApiType.PROXY);
 
             assertThat(result)
-                .hasSize(1)
-                .containsExactly(
-                    ConnectorPlugin.builder()
-                        .id("id1")
-                        .name("Plugin 1")
-                        .version("1.0.0")
-                        .description("description1")
-                        .supportedApiType(ApiType.PROXY)
-                        .supportedListenerType(ListenerType.HTTP)
-                        .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
-                        .supportedQos(Set.of(Qos.AUTO))
-                        .availableFeatures(Set.of(ConnectorFeature.LIMIT))
-                        .build()
-                );
+                    .hasSize(1)
+                    .containsExactly(ConnectorPlugin.builder()
+                            .id("id1")
+                            .name("Plugin 1")
+                            .version("1.0.0")
+                            .description("description1")
+                            .supportedApiType(ApiType.PROXY)
+                            .supportedListenerType(ListenerType.HTTP)
+                            .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
+                            .supportedQos(Set.of(Qos.AUTO))
+                            .availableFeatures(Set.of(ConnectorFeature.LIMIT))
+                            .build());
         }
     }
 
@@ -121,35 +118,34 @@ class EntrypointPluginQueryServiceLegacyWrapperTest {
             var result = service.findAll();
 
             assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(
-                    ConnectorPlugin.builder()
-                        .id("id1")
-                        .name("Plugin 1")
-                        .version("1.0.0")
-                        .description("description1")
-                        .feature("apim-feature-plugin1")
-                        .deployed(true)
-                        .supportedApiType(ApiType.MESSAGE)
-                        .supportedListenerType(ListenerType.HTTP)
-                        .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
-                        .supportedQos(Set.of(Qos.AUTO))
-                        .availableFeatures(Set.of(ConnectorFeature.LIMIT))
-                        .build(),
-                    ConnectorPlugin.builder()
-                        .id("id2")
-                        .name("Plugin 2")
-                        .version("2.0.0")
-                        .description("description2")
-                        .feature("apim-feature-plugin2")
-                        .deployed(true)
-                        .supportedApiType(ApiType.MESSAGE)
-                        .supportedListenerType(ListenerType.HTTP)
-                        .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
-                        .supportedQos(Set.of(Qos.AUTO))
-                        .availableFeatures(Set.of(ConnectorFeature.LIMIT))
-                        .build()
-                );
+                    .hasSize(2)
+                    .containsExactlyInAnyOrder(
+                            ConnectorPlugin.builder()
+                                    .id("id1")
+                                    .name("Plugin 1")
+                                    .version("1.0.0")
+                                    .description("description1")
+                                    .feature("apim-feature-plugin1")
+                                    .deployed(true)
+                                    .supportedApiType(ApiType.MESSAGE)
+                                    .supportedListenerType(ListenerType.HTTP)
+                                    .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
+                                    .supportedQos(Set.of(Qos.AUTO))
+                                    .availableFeatures(Set.of(ConnectorFeature.LIMIT))
+                                    .build(),
+                            ConnectorPlugin.builder()
+                                    .id("id2")
+                                    .name("Plugin 2")
+                                    .version("2.0.0")
+                                    .description("description2")
+                                    .feature("apim-feature-plugin2")
+                                    .deployed(true)
+                                    .supportedApiType(ApiType.MESSAGE)
+                                    .supportedListenerType(ListenerType.HTTP)
+                                    .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
+                                    .supportedQos(Set.of(Qos.AUTO))
+                                    .availableFeatures(Set.of(ConnectorFeature.LIMIT))
+                                    .build());
         }
     }
 }

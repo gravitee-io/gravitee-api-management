@@ -32,13 +32,15 @@ public class DefaultManagementDeploymentContext implements ManagementDeploymentC
     private final Map<Class<?>, Object> components = new ConcurrentHashMap<>();
     private final ApplicationContext applicationContext;
 
-    public DefaultManagementDeploymentContext(@Nonnull Api apiDefinitionV4, @Nonnull ApplicationContext applicationContext) {
+    public DefaultManagementDeploymentContext(
+            @Nonnull Api apiDefinitionV4, @Nonnull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         components.put(Api.class, apiDefinitionV4);
         components.put(AbstractApi.class, apiDefinitionV4);
     }
 
-    public DefaultManagementDeploymentContext(@Nonnull NativeApi apiDefinitionV4, @Nonnull ApplicationContext applicationContext) {
+    public DefaultManagementDeploymentContext(
+            @Nonnull NativeApi apiDefinitionV4, @Nonnull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         components.put(NativeApi.class, apiDefinitionV4);
         components.put(AbstractApi.class, apiDefinitionV4);

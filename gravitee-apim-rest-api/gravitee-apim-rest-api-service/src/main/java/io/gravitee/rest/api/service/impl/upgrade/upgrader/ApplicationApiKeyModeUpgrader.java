@@ -74,32 +74,28 @@ public class ApplicationApiKeyModeUpgrader implements Upgrader {
         List<String> apiKeyPlansIds = findAllApiKeyPlansId();
         Map<String, Long> apiKeySubscriptionsCountByApplication = countApiKeySubscriptionsByApplication(apiKeyPlansIds);
 
-        applicationRepository
-            .findAll()
-            .forEach(application -> {
-                if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
-                    Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
-                    updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
-                }
-            });
+        applicationRepository.findAll().forEach(application -> {
+            if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
+                Long apiKeysSubscriptionCount =
+                        apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
+                updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
+            }
+        });
         return true;
     }
 
     private List<String> findAllApiKeyPlansId() throws TechnicalException {
-        return planRepository
-            .findAll()
-            .stream()
-            .filter(p -> p.getSecurity() == API_KEY)
-            .map(Plan::getId)
-            .collect(toList());
+        return planRepository.findAll().stream()
+                .filter(p -> p.getSecurity() == API_KEY)
+                .map(Plan::getId)
+                .collect(toList());
     }
 
-    private Map<String, Long> countApiKeySubscriptionsByApplication(List<String> apiKeyPlansIds) throws TechnicalException {
-        return subscriptionRepository
-            .findAll()
-            .stream()
-            .filter(s -> apiKeyPlansIds.contains(s.getPlan()))
-            .collect(groupingBy(Subscription::getApplication, counting()));
+    private Map<String, Long> countApiKeySubscriptionsByApplication(List<String> apiKeyPlansIds)
+            throws TechnicalException {
+        return subscriptionRepository.findAll().stream()
+                .filter(s -> apiKeyPlansIds.contains(s.getPlan()))
+                .collect(groupingBy(Subscription::getApplication, counting()));
     }
 
     private void updateApplicationApiKeyMode(Application application, ApiKeyMode apiKeyMode) {

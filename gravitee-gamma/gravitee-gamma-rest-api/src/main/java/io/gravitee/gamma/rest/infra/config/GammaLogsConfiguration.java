@@ -42,38 +42,35 @@ import org.springframework.context.annotation.FilterType;
  */
 @Configuration
 @ComponentScan(
-    basePackages = "io.gravitee.gamma.rest.core.observability.logs",
-    includeFilters = {
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
-    }
-)
+        basePackages = "io.gravitee.gamma.rest.core.observability.logs",
+        includeFilters = {
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
+        })
 public class GammaLogsConfiguration {
 
     @Bean
     public ObservabilityLogsDataPort observabilityLogsDataPort(
-        AggregatedMessageLogCrudService aggregatedMessageLogCrudService,
-        ConnectionLogsCrudService connectionLogsCrudService,
-        AuthzDecisionLogsCrudService authzDecisionLogsCrudService,
-        AnalyticsQueryService analyticsQueryService,
-        UserContextLoader userContextLoader,
-        PlanCrudService planCrudService,
-        ApplicationCrudService applicationCrudService,
-        InstanceQueryService instanceQueryService,
-        ApiProductQueryService apiProductQueryService,
-        ApiCrudService apiCrudService
-    ) {
+            AggregatedMessageLogCrudService aggregatedMessageLogCrudService,
+            ConnectionLogsCrudService connectionLogsCrudService,
+            AuthzDecisionLogsCrudService authzDecisionLogsCrudService,
+            AnalyticsQueryService analyticsQueryService,
+            UserContextLoader userContextLoader,
+            PlanCrudService planCrudService,
+            ApplicationCrudService applicationCrudService,
+            InstanceQueryService instanceQueryService,
+            ApiProductQueryService apiProductQueryService,
+            ApiCrudService apiCrudService) {
         return new ObservabilityLogsDataPortAdapter(
-            aggregatedMessageLogCrudService,
-            connectionLogsCrudService,
-            authzDecisionLogsCrudService,
-            analyticsQueryService,
-            userContextLoader,
-            planCrudService,
-            applicationCrudService,
-            instanceQueryService,
-            apiProductQueryService,
-            apiCrudService
-        );
+                aggregatedMessageLogCrudService,
+                connectionLogsCrudService,
+                authzDecisionLogsCrudService,
+                analyticsQueryService,
+                userContextLoader,
+                planCrudService,
+                applicationCrudService,
+                instanceQueryService,
+                apiProductQueryService,
+                apiCrudService);
     }
 }

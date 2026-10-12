@@ -24,5 +24,6 @@ import java.util.Set;
 
 public interface ThemeQueryService {
     Page<Theme> searchByCriteria(ThemeSearchCriteria criteria, Pageable pageable);
+
     Set<Theme> findByThemeTypeAndEnvironmentId(ThemeType themeType, String environmentId);
 }

@@ -49,12 +49,15 @@ public class PortalAnalyticsDashboardResource extends AbstractResource {
     @RequirePortalAuth
     public Response getDashboard(@PathParam("dashboardId") String dashboardId) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var dashboard = getDashboardUseCase.execute(new GetDashboardUseCase.Input(dashboardId)).dashboard();
+        var dashboard = getDashboardUseCase
+                .execute(new GetDashboardUseCase.Input(dashboardId))
+                .dashboard();
 
         if (!Objects.equals(dashboard.getEnvironmentId(), executionContext.getEnvironmentId())) {
             throw new DashboardNotFoundException(dashboardId);
         }
 
-        return Response.ok(PortalAnalyticsDashboardMapper.INSTANCE.toDto(dashboard)).build();
+        return Response.ok(PortalAnalyticsDashboardMapper.INSTANCE.toDto(dashboard))
+                .build();
     }
 }

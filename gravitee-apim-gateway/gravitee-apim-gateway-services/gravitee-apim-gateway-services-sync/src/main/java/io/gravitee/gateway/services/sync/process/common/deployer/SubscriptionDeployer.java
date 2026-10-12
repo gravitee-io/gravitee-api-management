@@ -64,34 +64,36 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
     public Completable deploy(final SubscriptionDeployable deployable) {
         return Completable.fromRunnable(() -> {
             if (deployable.subscriptions() != null) {
-                deployable
-                    .subscriptions()
-                    .stream()
-                    .filter(subscription -> deployable.subscribablePlans().contains(subscription.getPlan()))
-                    .forEach(subscription ->
-                        SyncIsolation.isolate(
-                            () -> "deploy subscription [%s]".formatted(subscription.getId()),
-                            () -> {
-                                subscriptionService.register(subscription);
-                                // Queued only once registration succeeded: a subscription that is dispatched while
-                                // absent from the cache, with no trust store loader behind it, is worse than one
-                                // that is simply not dispatched.
-                                if (Subscription.Type.PUSH == subscription.getType()) {
-                                    // Keyed by scope, not by API: a product subscription carries no API
-                                    // of its own, and doAfterDeployment drains the same key.
-                                    dispatchableSubscription.compute(SubscriptionScope.of(subscription), (scope, subscriptions) -> {
-                                        if (subscriptions == null) {
-                                            subscriptions = new ArrayList<>();
-                                        }
-                                        subscriptions.add(subscription);
-                                        return subscriptions;
-                                    });
-                                }
-                                log.debug("Subscription [{}] deployed for api [{}] ", subscription.getId(), subscription.getApi());
-                            },
-                            t -> log.warn("An error occurred when trying to deploy subscription [{}].", subscription.getId(), t)
-                        )
-                    );
+                deployable.subscriptions().stream()
+                        .filter(subscription -> deployable.subscribablePlans().contains(subscription.getPlan()))
+                        .forEach(subscription -> SyncIsolation.isolate(
+                                () -> "deploy subscription [%s]".formatted(subscription.getId()),
+                                () -> {
+                                    subscriptionService.register(subscription);
+                                    // Queued only once registration succeeded: a subscription that is dispatched while
+                                    // absent from the cache, with no trust store loader behind it, is worse than one
+                                    // that is simply not dispatched.
+                                    if (Subscription.Type.PUSH == subscription.getType()) {
+                                        // Keyed by scope, not by API: a product subscription carries no API
+                                        // of its own, and doAfterDeployment drains the same key.
+                                        dispatchableSubscription.compute(
+                                                SubscriptionScope.of(subscription), (scope, subscriptions) -> {
+                                                    if (subscriptions == null) {
+                                                        subscriptions = new ArrayList<>();
+                                                    }
+                                                    subscriptions.add(subscription);
+                                                    return subscriptions;
+                                                });
+                                    }
+                                    log.debug(
+                                            "Subscription [{}] deployed for api [{}] ",
+                                            subscription.getId(),
+                                            subscription.getApi());
+                                },
+                                t -> log.warn(
+                                        "An error occurred when trying to deploy subscription [{}].",
+                                        subscription.getId(),
+                                        t)));
             }
         });
     }
@@ -136,26 +138,33 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
 
     private Completable undeployForApi(final ApiReactorDeployable apiReactorDeployable) {
         SyncIsolation.isolate(
-            () -> "undeploy subscriptions of api [%s]".formatted(apiReactorDeployable.apiId()),
-            () -> {
-                subscriptionService.unregisterByApiId(apiReactorDeployable.apiId());
-                log.debug("Subscriptions undeployed for api [{}] ", apiReactorDeployable.apiId());
-            },
-            t -> log.warn("An error occurred when trying to undeploy subscriptions from api [{}].", apiReactorDeployable.apiId(), t)
-        );
+                () -> "undeploy subscriptions of api [%s]".formatted(apiReactorDeployable.apiId()),
+                () -> {
+                    subscriptionService.unregisterByApiId(apiReactorDeployable.apiId());
+                    log.debug("Subscriptions undeployed for api [{}] ", apiReactorDeployable.apiId());
+                },
+                t -> log.warn(
+                        "An error occurred when trying to undeploy subscriptions from api [{}].",
+                        apiReactorDeployable.apiId(),
+                        t));
         return Completable.complete();
     }
 
     private Completable undeploySingleSubscription(final SingleSubscriptionDeployable subscriptionDeployable) {
         final Subscription subscription = subscriptionDeployable.subscription();
         final boolean unregistered = SyncIsolation.isolate(
-            () -> "undeploy subscription [%s]".formatted(subscriptionDeployable.id()),
-            () -> {
-                subscriptionService.unregister(subscription);
-                log.debug("Subscription [{}] undeployed for api [{}] ", subscriptionDeployable.id(), subscriptionDeployable.apiId());
-            },
-            t -> log.warn("An error occurred when trying to undeploy subscriptions [{}].", subscriptionDeployable.id(), t)
-        );
+                () -> "undeploy subscription [%s]".formatted(subscriptionDeployable.id()),
+                () -> {
+                    subscriptionService.unregister(subscription);
+                    log.debug(
+                            "Subscription [{}] undeployed for api [{}] ",
+                            subscriptionDeployable.id(),
+                            subscriptionDeployable.apiId());
+                },
+                t -> log.warn(
+                        "An error occurred when trying to undeploy subscriptions [{}].",
+                        subscriptionDeployable.id(),
+                        t));
         if (unregistered && Subscription.Type.PUSH == subscription.getType()) {
             return dispatchSubscription(subscription);
         }
@@ -164,32 +173,34 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
 
     private Completable dispatchSubscription(final Subscription subscription) {
         return subscriptionDispatcher
-            .dispatch(subscription)
-            .doOnComplete(() -> log.debug("Subscription [{}] has been dispatched", subscription.getId()))
-            .onErrorResumeNext(t -> {
-                log.error("Subscription [{}] failed", subscription.getId(), t);
-                return sendFailureCommand(subscription, t).onErrorComplete();
-            });
+                .dispatch(subscription)
+                .doOnComplete(() -> log.debug("Subscription [{}] has been dispatched", subscription.getId()))
+                .onErrorResumeNext(t -> {
+                    log.error("Subscription [{}] failed", subscription.getId(), t);
+                    return sendFailureCommand(subscription, t).onErrorComplete();
+                });
     }
 
     private Completable sendFailureCommand(Subscription subscription, Throwable throwable) {
         return Completable.fromRunnable(() -> {
-            final Command command = new Command();
-            command.setFrom(node.id());
-            command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
-            command.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE.name()));
-            command.setEnvironmentId(subscription.getEnvironmentId());
+                    final Command command = new Command();
+                    command.setFrom(node.id());
+                    command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+                    command.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE.name()));
+                    command.setEnvironmentId(subscription.getEnvironmentId());
 
-            convertSubscriptionCommand(subscription, command, throwable);
+                    convertSubscriptionCommand(subscription, command, throwable);
 
-            saveCommand(subscription, command);
-        }).subscribeOn(Schedulers.io());
+                    saveCommand(subscription, command);
+                })
+                .subscribeOn(Schedulers.io());
     }
 
     private void convertSubscriptionCommand(Subscription subscription, Command command, Throwable throwable) {
         var failureCause = extractFailureCause(throwable);
         try {
-            command.setContent(objectMapper.writeValueAsString(new SubscriptionFailureCommand(subscription.getId(), failureCause)));
+            command.setContent(objectMapper.writeValueAsString(
+                    new SubscriptionFailureCommand(subscription.getId(), failureCause)));
         } catch (JsonProcessingException e) {
             log.error("Failed to convert subscription command [{}] to string", subscription.getId(), e);
             JsonObject json = new JsonObject();
@@ -201,12 +212,13 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
     private String extractFailureCause(Throwable throwable) {
         if (throwable instanceof InterruptionFailureException interruptionFailureException) {
             var executionFailure = interruptionFailureException.getExecutionFailure();
-            var causeMessage = executionFailure.parameters().get("exception") instanceof Throwable th ? th.getMessage() : null;
+            var causeMessage =
+                    executionFailure.parameters().get("exception") instanceof Throwable th ? th.getMessage() : null;
             var message = executionFailure.message();
 
             return executionFailure.parameters().get("detailedMessage") instanceof String detailedMessage
-                ? message + '\n' + detailedMessage
-                : message + '\n' + causeMessage;
+                    ? message + '\n' + detailedMessage
+                    : message + '\n' + causeMessage;
         }
 
         return throwable.getMessage();

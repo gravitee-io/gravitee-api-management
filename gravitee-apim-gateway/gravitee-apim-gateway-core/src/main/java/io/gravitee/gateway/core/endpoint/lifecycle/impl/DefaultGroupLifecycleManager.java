@@ -38,7 +38,8 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<GroupLifecycleManager> implements GroupLifecycleManager {
+public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<GroupLifecycleManager>
+        implements GroupLifecycleManager {
 
     private final Api api;
 
@@ -59,14 +60,13 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
     private EndpointGroupLifecycleManager defaultGroup;
 
     public DefaultGroupLifecycleManager(
-        final Api api,
-        final ReferenceRegister referenceRegister,
-        final EndpointFactory endpointFactory,
-        final ConnectorRegistry connectorRegistry,
-        final Configuration configuration,
-        final ObjectMapper mapper,
-        final Optional<String> tenant
-    ) {
+            final Api api,
+            final ReferenceRegister referenceRegister,
+            final EndpointFactory endpointFactory,
+            final ConnectorRegistry connectorRegistry,
+            final Configuration configuration,
+            final ObjectMapper mapper,
+            final Optional<String> tenant) {
         this.api = api;
         this.referenceRegister = referenceRegister;
         this.endpointFactory = endpointFactory;
@@ -89,44 +89,40 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
 
     @Override
     public Collection<LoadBalancedEndpointGroup> groups() {
-        return groups.values().stream().map(EndpointGroupLifecycleManager::getLBGroup).collect(Collectors.toSet());
+        return groups.values().stream()
+                .map(EndpointGroupLifecycleManager::getLBGroup)
+                .collect(Collectors.toSet());
     }
 
     @Override
     protected void doStart() throws Exception {
         if (api.getProxy().getGroups() != null) {
             // Start all the groups
-            api
-                .getProxy()
-                .getGroups()
-                .stream()
-                .map(
-                    new Function<EndpointGroup, EndpointGroupLifecycleManager>() {
+            api.getProxy().getGroups().stream()
+                    .map(new Function<EndpointGroup, EndpointGroupLifecycleManager>() {
                         @Override
                         public EndpointGroupLifecycleManager apply(EndpointGroup group) {
                             EndpointGroupLifecycleManager groupLifecycleManager;
 
                             if (tenant.isPresent()) {
                                 groupLifecycleManager = new MultiTenantAwareEndpointLifecycleManager(
-                                    api,
-                                    group,
-                                    endpointFactory,
-                                    referenceRegister,
-                                    connectorRegistry,
-                                    configuration,
-                                    mapper,
-                                    tenant.get()
-                                );
+                                        api,
+                                        group,
+                                        endpointFactory,
+                                        referenceRegister,
+                                        connectorRegistry,
+                                        configuration,
+                                        mapper,
+                                        tenant.get());
                             } else {
                                 groupLifecycleManager = new EndpointGroupLifecycleManager(
-                                    api,
-                                    group,
-                                    endpointFactory,
-                                    referenceRegister,
-                                    connectorRegistry,
-                                    configuration,
-                                    mapper
-                                );
+                                        api,
+                                        group,
+                                        endpointFactory,
+                                        referenceRegister,
+                                        connectorRegistry,
+                                        configuration,
+                                        mapper);
                             }
 
                             groups.put(group.getName(), groupLifecycleManager);
@@ -138,10 +134,8 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
 
                             return groupLifecycleManager;
                         }
-                    }
-                )
-                .forEach(
-                    new Consumer<EndpointGroupLifecycleManager>() {
+                    })
+                    .forEach(new Consumer<EndpointGroupLifecycleManager>() {
                         @Override
                         public void accept(EndpointGroupLifecycleManager groupLifecycleManager) {
                             try {
@@ -149,13 +143,14 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
                                 referenceRegister.add(new GroupReference(groupLifecycleManager.getLBGroup()));
                             } catch (Exception ex) {
                                 log.error(
-                                    "An error occurs while starting a group of endpoints: " + groupLifecycleManager.getGroup().getName(),
-                                    ex
-                                );
+                                        "An error occurs while starting a group of endpoints: "
+                                                + groupLifecycleManager
+                                                        .getGroup()
+                                                        .getName(),
+                                        ex);
                             }
                         }
-                    }
-                );
+                    });
         }
     }
 
@@ -166,7 +161,7 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
             EndpointGroupLifecycleManager group = ite.next();
             group.stop();
             ite.remove();
-            //skip if no LbGroup (in case of an empty endpoint group)
+            // skip if no LbGroup (in case of an empty endpoint group)
             if (group.getGroup() != null) {
                 referenceRegister.remove(group.getGroup().getName());
             }

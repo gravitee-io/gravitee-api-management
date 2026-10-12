@@ -31,7 +31,6 @@ public class ClientRegistrationResponse {
      * Metadata in same order than the openid specification
      * https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
      ********************************************************************************/
-
     @JsonProperty("redirect_uris")
     private List<String> redirectUris;
 
@@ -125,24 +124,23 @@ public class ClientRegistrationResponse {
      * https://tools.ietf.org/html/rfc7591#section-3.1.1
      ********************************************************************************/
 
-    //https://tools.ietf.org/html/rfc7591#section-4.1.2 : scope is string space delimited
+    // https://tools.ietf.org/html/rfc7591#section-4.1.2 : scope is string space delimited
     @JsonProperty("scope")
     private String scope;
 
     @JsonProperty("software_id")
-    private String softwareId; //Should be UUID
+    private String softwareId; // Should be UUID
 
     @JsonProperty("software_version")
     private String softwareVersion;
 
     @JsonProperty("software_statement")
-    private String softwareStatement; //Should be JWT
+    private String softwareStatement; // Should be JWT
 
     /*******************************************************************************
      * Additional metadata for the response
      * https://openid.net/specs/openid-connect-registration-1_0.html#RegistrationResponse
      ********************************************************************************/
-
     @JsonProperty("client_id")
     private String clientId;
 
@@ -164,7 +162,6 @@ public class ClientRegistrationResponse {
     /*******************************************************************************
      * Gravitee.io additional metadata
      ********************************************************************************/
-
     @JsonProperty("domain")
     private String domain;
 

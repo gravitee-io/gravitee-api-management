@@ -30,11 +30,10 @@ import java.time.Instant;
  * @author GraviteeSource Team
  */
 public record Trace(
-    String traceId,
-    Instant startTime,
-    long durationNanos,
-    String rootServiceName,
-    String rootOperationName,
-    SpanStatus status,
-    int spanCount
-) {}
+        String traceId,
+        Instant startTime,
+        long durationNanos,
+        String rootServiceName,
+        String rootOperationName,
+        SpanStatus status,
+        int spanCount) {}

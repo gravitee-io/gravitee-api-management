@@ -70,11 +70,13 @@ public record SubscriptionCertificate(Subscription subscription, Certificate cer
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         SubscriptionCertificate that = (SubscriptionCertificate) obj;
-        return Objects.equals(subscription.getId(), that.subscription.getId()) && Objects.equals(fingerprint, that.fingerprint);
+        return Objects.equals(subscription.getId(), that.subscription.getId())
+                && Objects.equals(fingerprint, that.fingerprint);
     }
 
     @Override
     public @NonNull String toString() {
-        return "SubscriptionCertificate{" + "subscription=" + subscription.getId() + ", fingerprint='" + fingerprint + '\'' + '}';
+        return "SubscriptionCertificate{" + "subscription=" + subscription.getId() + ", fingerprint='" + fingerprint
+                + '\'' + '}';
     }
 }

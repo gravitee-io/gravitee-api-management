@@ -83,22 +83,30 @@ public interface PortalAnalyticsDashboardMapper {
         var name = AnalyticsFilterName.fromValue(filter.getName());
         var wrapper = new AnalyticsFilter();
         switch (filter.getOperator()) {
-            case "EQ" -> wrapper.setActualInstance(
-                new AnalyticsStringFilter().name(name).operator(AnalyticsFilterOperator.EQ).value(Objects.toString(filter.getValue(), null))
-            );
+            case "EQ" ->
+                wrapper.setActualInstance(new AnalyticsStringFilter()
+                        .name(name)
+                        .operator(AnalyticsFilterOperator.EQ)
+                        .value(Objects.toString(filter.getValue(), null)));
             case "IN" -> {
                 if (!(filter.getValue() instanceof List<?> raw) || raw.stream().anyMatch(v -> !(v instanceof String))) {
                     throw new IllegalArgumentException("IN filter value must be a list of strings");
                 }
                 @SuppressWarnings("unchecked")
                 var values = (List<String>) filter.getValue();
-                wrapper.setActualInstance(new AnalyticsArrayFilter().name(name).operator(AnalyticsFilterOperator.IN).value(values));
+                wrapper.setActualInstance(new AnalyticsArrayFilter()
+                        .name(name)
+                        .operator(AnalyticsFilterOperator.IN)
+                        .value(values));
             }
             case "LTE", "GTE" -> {
-                Number num = filter.getValue() instanceof Number n ? n : Double.parseDouble(String.valueOf(filter.getValue()));
-                wrapper.setActualInstance(
-                    new AnalyticsNumberFilter().name(name).operator(AnalyticsFilterOperator.fromValue(filter.getOperator())).value(num)
-                );
+                Number num = filter.getValue() instanceof Number n
+                        ? n
+                        : Double.parseDouble(String.valueOf(filter.getValue()));
+                wrapper.setActualInstance(new AnalyticsNumberFilter()
+                        .name(name)
+                        .operator(AnalyticsFilterOperator.fromValue(filter.getOperator()))
+                        .value(num));
             }
             default -> throw new IllegalArgumentException("Unsupported filter operator: " + filter.getOperator());
         }

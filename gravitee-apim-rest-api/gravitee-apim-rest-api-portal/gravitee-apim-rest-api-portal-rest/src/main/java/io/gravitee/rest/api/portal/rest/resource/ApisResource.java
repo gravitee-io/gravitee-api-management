@@ -102,19 +102,19 @@ public class ApisResource extends AbstractResource<Api, String> {
     @RequirePortalAuth
     public Response listCategories(@BeanParam ApisParam apisParam) {
         Set<CategoryEntity> categories = filteringService.listCategories(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUserOrNull(),
-            convert(apisParam.getFilter()),
-            convert(apisParam.getExcludedFilter())
-        );
+                GraviteeContext.getExecutionContext(),
+                getAuthenticatedUserOrNull(),
+                convert(apisParam.getFilter()),
+                convert(apisParam.getExcludedFilter()));
 
-        var countByCategory = apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
+        var countByCategory =
+                apiCategoryService.countApisPublishedGroupedByCategoriesForUser(getAuthenticatedUserOrNull());
 
-        List<Category> categoryList = categories
-            .stream()
-            .peek(categoryEntity -> categoryEntity.setTotalApis(countByCategory.applyAsLong(categoryEntity.getId())))
-            .map(categoryEntity -> categoryMapper.convert(categoryEntity, uriInfo.getBaseUriBuilder()))
-            .collect(Collectors.toList());
+        List<Category> categoryList = categories.stream()
+                .peek(categoryEntity ->
+                        categoryEntity.setTotalApis(countByCategory.applyAsLong(categoryEntity.getId())))
+                .map(categoryEntity -> categoryMapper.convert(categoryEntity, uriInfo.getBaseUriBuilder()))
+                .collect(Collectors.toList());
 
         return Response.ok(new DataResponse().data(categoryList)).build();
     }
@@ -124,21 +124,20 @@ public class ApisResource extends AbstractResource<Api, String> {
     @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<String> filteredApis = new ArrayList<>(
-            findApisForCurrentUser(executionContext, apisParam, createQueryFromParam(apisParam))
-        );
+        Collection<String> filteredApis =
+                new ArrayList<>(findApisForCurrentUser(executionContext, apisParam, createQueryFromParam(apisParam)));
 
         if (!filteredApis.isEmpty() && apisParam.getPromoted() != null) {
-            //By default, the promoted API is the first of the list;
+            // By default, the promoted API is the first of the list;
             String promotedApiId = filteredApis.iterator().next();
 
             if (apisParam.isCategoryMode()) {
-                // If apis are searched in a category, looks for the category highlighted API (HL API) and if this HL API is in the searchResult.
+                // If apis are searched in a category, looks for the category highlighted API (HL API) and if this HL
+                // API is in the searchResult.
                 // If it is, then the HL API becomes the promoted API
-                String highlightedApiId = this.categoryService.findById(
-                    apisParam.getCategory(),
-                    GraviteeContext.getCurrentEnvironment()
-                ).getHighlightApi();
+                String highlightedApiId = this.categoryService
+                        .findById(apisParam.getCategory(), GraviteeContext.getCurrentEnvironment())
+                        .getHighlightApi();
                 if (highlightedApiId != null && filteredApis.contains(highlightedApiId)) {
                     promotedApiId = highlightedApiId;
                 }
@@ -165,29 +164,27 @@ public class ApisResource extends AbstractResource<Api, String> {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response searchApis(
-        @QueryParam("q") String query,
-        @QueryParam("category") String category,
-        @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view,
-        @BeanParam PaginationParam paginationParam
-    ) {
+            @QueryParam("q") String query,
+            @QueryParam("category") String category,
+            @QueryParam(PortalApiViewParam.QUERY_PARAM_NAME) String view,
+            @BeanParam PaginationParam paginationParam) {
         try {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
             if (PortalApiViewParam.isDocumentationView(view)) {
-                var output = searchApisForPortalUseCase.execute(
-                    new SearchApisForPortalUseCase.Input(
+                var output = searchApisForPortalUseCase.execute(new SearchApisForPortalUseCase.Input(
                         executionContext.getEnvironmentId(),
                         executionContext.getOrganizationId(),
                         getAuthenticatedUserOrNull(),
                         query,
                         new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
-                        null
-                    )
-                );
-                List<String> apiIds = output.apis().getContent().stream().map(io.gravitee.apim.core.api.model.Api::getId).toList();
-                Map<String, Map<String, Object>> metadata = new HashMap<>(
-                    Map.of("paginateMetaData", new HashMap<>(Map.of("totalElements", output.apis().getTotalElements())))
-                );
+                        null));
+                List<String> apiIds = output.apis().getContent().stream()
+                        .map(io.gravitee.apim.core.api.model.Api::getId)
+                        .toList();
+                Map<String, Map<String, Object>> metadata = new HashMap<>(Map.of(
+                        "paginateMetaData",
+                        new HashMap<>(Map.of("totalElements", output.apis().getTotalElements()))));
                 return createListResponse(executionContext, apiIds, paginationParam, metadata);
             }
 
@@ -195,11 +192,14 @@ public class ApisResource extends AbstractResource<Api, String> {
             if (category == null || category.isEmpty()) {
                 apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query);
             } else {
-                apisList = filteringService.searchApisWithCategory(executionContext, getAuthenticatedUserOrNull(), query, category);
+                apisList = filteringService.searchApisWithCategory(
+                        executionContext, getAuthenticatedUserOrNull(), query, category);
             }
             return createListResponse(executionContext, new ArrayList<>(apisList), paginationParam);
         } catch (TechnicalException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(e)
+                    .build();
         }
     }
 
@@ -214,28 +214,24 @@ public class ApisResource extends AbstractResource<Api, String> {
             return Collections.emptyList();
         }
         final boolean apiShowTagsInApiHeaders = parameterService.findAsBoolean(
-            executionContext,
-            Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext, Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT);
 
         ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(pageContent);
         Collection<GenericApiEntity> apiEntities = apiSearchService.search(executionContext, apiQuery);
         Comparator<String> orderingComparator = Comparator.comparingInt(pageContent::indexOf);
-        return apiEntities
-            .stream()
-            .map(apiEntity -> {
-                Api api = apiMapper.convert(executionContext, apiEntity);
-                return addApiLinks(api);
-            })
-            .peek(api -> {
-                if (!apiShowTagsInApiHeaders) {
-                    api.setLabels(List.of());
-                }
-            })
-            .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
-            .collect(Collectors.toList());
+        return apiEntities.stream()
+                .map(apiEntity -> {
+                    Api api = apiMapper.convert(executionContext, apiEntity);
+                    return addApiLinks(api);
+                })
+                .peek(api -> {
+                    if (!apiShowTagsInApiHeaders) {
+                        api.setLabels(List.of());
+                    }
+                })
+                .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
+                .collect(Collectors.toList());
     }
 
     private ApiQuery createQueryFromParam(ApisParam apisParam) {
@@ -264,28 +260,30 @@ public class ApisResource extends AbstractResource<Api, String> {
             long epochMilli = updatedAt.toInstant().toEpochMilli();
             updateDate = new Date(epochMilli);
         }
-        return api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate));
+        return api.links(apiMapper.computeApiLinks(
+                PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate));
     }
 
     private FilteringService.FilterType convert(FilterApiQuery filter) {
         return filter != null ? FilteringService.FilterType.valueOf(filter.name()) : null;
     }
 
-    private Collection<String> findApisForCurrentUser(final ExecutionContext executionContext, ApisParam apisParam, ApiQuery apiQuery) {
+    private Collection<String> findApisForCurrentUser(
+            final ExecutionContext executionContext, ApisParam apisParam, ApiQuery apiQuery) {
         if (!apisParam.isCategoryMode()) {
             return filteringService.filterApis(
-                executionContext,
-                getAuthenticatedUserOrNull(),
-                convert(apisParam.getFilter()),
-                convert(apisParam.getExcludedFilter()),
-                apiQuery
-            );
+                    executionContext,
+                    getAuthenticatedUserOrNull(),
+                    convert(apisParam.getFilter()),
+                    convert(apisParam.getExcludedFilter()),
+                    apiQuery);
         }
         return getCategoryApisUseCase
-            .execute(new GetCategoryApisUseCase.Input(executionContext, apisParam.getCategory(), getAuthenticatedUserOrNull(), false, true))
-            .results()
-            .stream()
-            .map(result -> result.api().getId())
-            .toList();
+                .execute(new GetCategoryApisUseCase.Input(
+                        executionContext, apisParam.getCategory(), getAuthenticatedUserOrNull(), false, true))
+                .results()
+                .stream()
+                .map(result -> result.api().getId())
+                .toList();
     }
 }

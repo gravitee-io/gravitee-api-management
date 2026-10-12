@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.core.condition.http;
 
 import io.gravitee.definition.model.MessageConditionSupplier;
-import io.gravitee.gateway.reactive.api.context.base.BaseMessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.condition.MessageConditionFilter;
@@ -27,7 +26,7 @@ import io.reactivex.rxjava3.core.Maybe;
  * @author GraviteeSource Team
  */
 public interface HttpMessageConditionFilter<T extends MessageConditionSupplier>
-    extends MessageConditionFilter<HttpBaseExecutionContext, T> {
+        extends MessageConditionFilter<HttpBaseExecutionContext, T> {
     /**
      * Filters the given element by applying a message condition on it.
      *

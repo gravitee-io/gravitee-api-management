@@ -63,7 +63,7 @@ public class ExpressionLanguageBasedConditionFilterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "foo bar", "false" })
+    @ValueSource(strings = {"foo bar", "false"})
     public void shouldEvalFalse(String input) {
         ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator(input);
         Request request = mock(Request.class);

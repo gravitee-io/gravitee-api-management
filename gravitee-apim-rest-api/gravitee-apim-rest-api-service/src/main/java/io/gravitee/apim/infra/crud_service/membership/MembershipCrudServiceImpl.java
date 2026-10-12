@@ -43,7 +43,8 @@ public class MembershipCrudServiceImpl implements MembershipCrudService {
             var result = membershipRepository.create(MembershipAdapter.INSTANCE.toRepository(membership));
             return MembershipAdapter.INSTANCE.toEntity(result);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to create the membership: " + membership.getId(), e);
+            throw new TechnicalDomainException(
+                    "An error occurs while trying to create the membership: " + membership.getId(), e);
         }
     }
 
@@ -60,8 +61,8 @@ public class MembershipCrudServiceImpl implements MembershipCrudService {
     public Collection<Membership> findByApiId(String apiId) {
         try {
             return stream(membershipRepository.findByReferenceIdAndReferenceType(apiId, MembershipReferenceType.API))
-                .map(MembershipAdapter.INSTANCE::toEntity)
-                .toList();
+                    .map(MembershipAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to create the membership: " + apiId, e);
         }

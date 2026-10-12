@@ -40,48 +40,41 @@ public class NodeMetadataSynchronizer implements RepositorySynchronizer {
         if (from == -1) {
             AtomicLong launchTime = new AtomicLong();
             return Single.just(NodeMetadataDeployable.builder())
-                .flatMapMaybe(nodeMetadataDeployableBuilder ->
-                    organizationIdsFetcher
-                        .fetch(environments)
-                        .map(nodeMetadataDeployableBuilder::organizationIds)
-                        .switchIfEmpty(Maybe.just(nodeMetadataDeployableBuilder))
-                )
-                .flatMap(nodeMetadataDeployableBuilder ->
-                    installationIdFetcher
-                        .fetch()
-                        .map(nodeMetadataDeployableBuilder::installationId)
-                        .switchIfEmpty(Maybe.just(nodeMetadataDeployableBuilder))
-                )
-                .map(NodeMetadataDeployable.NodeMetadataDeployableBuilder::build)
-                .subscribeOn(Schedulers.from(syncFetcherExecutor))
-                .compose(upstream -> {
-                    NodeMetadataDeployer nodeMetadataDeployer = deployerFactory.createNodeMetadataDeployer();
-                    return upstream
-                        .subscribeOn(Schedulers.from(syncDeployerExecutor))
-                        .flatMap(deployable -> deploy(nodeMetadataDeployer, deployable));
-                })
-                .ignoreElement()
-                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-                .doOnComplete(() -> {
-                    log.info("Node metadata synchronized in {}ms", (System.currentTimeMillis() - launchTime.get()));
-                });
+                    .flatMapMaybe(nodeMetadataDeployableBuilder -> organizationIdsFetcher
+                            .fetch(environments)
+                            .map(nodeMetadataDeployableBuilder::organizationIds)
+                            .switchIfEmpty(Maybe.just(nodeMetadataDeployableBuilder)))
+                    .flatMap(nodeMetadataDeployableBuilder -> installationIdFetcher
+                            .fetch()
+                            .map(nodeMetadataDeployableBuilder::installationId)
+                            .switchIfEmpty(Maybe.just(nodeMetadataDeployableBuilder)))
+                    .map(NodeMetadataDeployable.NodeMetadataDeployableBuilder::build)
+                    .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                    .compose(upstream -> {
+                        NodeMetadataDeployer nodeMetadataDeployer = deployerFactory.createNodeMetadataDeployer();
+                        return upstream.subscribeOn(Schedulers.from(syncDeployerExecutor))
+                                .flatMap(deployable -> deploy(nodeMetadataDeployer, deployable));
+                    })
+                    .ignoreElement()
+                    .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                    .doOnComplete(() -> {
+                        log.info("Node metadata synchronized in {}ms", (System.currentTimeMillis() - launchTime.get()));
+                    });
         } else {
             return Completable.complete();
         }
     }
 
     private static Maybe<NodeMetadataDeployable> deploy(
-        final NodeMetadataDeployer nodeMetadataDeployer,
-        final NodeMetadataDeployable deployable
-    ) {
+            final NodeMetadataDeployer nodeMetadataDeployer, final NodeMetadataDeployable deployable) {
         return nodeMetadataDeployer
-            .deploy(deployable)
-            .andThen(nodeMetadataDeployer.doAfterDeployment(deployable))
-            .andThen(Maybe.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error("An error occurred during node metadata deployment", throwable);
-                return Maybe.empty();
-            });
+                .deploy(deployable)
+                .andThen(nodeMetadataDeployer.doAfterDeployment(deployable))
+                .andThen(Maybe.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error("An error occurred during node metadata deployment", throwable);
+                    return Maybe.empty();
+                });
     }
 
     @Override

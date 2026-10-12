@@ -34,10 +34,14 @@ class SearchConnectionLogUseCaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
     private static final String REQUEST_ID = "c5608475-dd77-4603-a084-75dd77560310";
-    private static final Long FIRST_FEBRUARY_2020 = Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli();
-    private static final Long SECOND_FEBRUARY_2020 = Instant.parse("2020-02-02T23:59:59.00Z").toEpochMilli();
-    private static final Long FOURTH_FEBRUARY_2020 = Instant.parse("2020-02-04T00:01:00.00Z").toEpochMilli();
-    private static final Long FIFTH_FEBRUARY_2020 = Instant.parse("2020-02-05T00:01:00.00Z").toEpochMilli();
+    private static final Long FIRST_FEBRUARY_2020 =
+            Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli();
+    private static final Long SECOND_FEBRUARY_2020 =
+            Instant.parse("2020-02-02T23:59:59.00Z").toEpochMilli();
+    private static final Long FOURTH_FEBRUARY_2020 =
+            Instant.parse("2020-02-04T00:01:00.00Z").toEpochMilli();
+    private static final Long FIFTH_FEBRUARY_2020 =
+            Instant.parse("2020-02-05T00:01:00.00Z").toEpochMilli();
 
     ConnectionLogsCrudServiceInMemory logStorageService = new ConnectionLogsCrudServiceInMemory();
 
@@ -58,13 +62,13 @@ class SearchConnectionLogUseCaseTest {
 
     @Test
     void should_return_connection_log_for_a_request_on_api() {
-        final ConnectionLogDetail connectionLogDetail = connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().build();
+        final ConnectionLogDetail connectionLogDetail =
+                connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().build();
         logStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
 
         var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiConnectionLogDetailUseCase.Input(API_ID, REQUEST_ID)
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiConnectionLogDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isEqualTo(new SearchApiConnectionLogDetailUseCase.Output(Optional.of(connectionLogDetail)));
     }
@@ -72,13 +76,12 @@ class SearchConnectionLogUseCaseTest {
     @Test
     void should_return_empty_connection_log_for_non_existing_request() {
         logStorageService.initWithConnectionLogDetails(
-            List.of(connectionLogDetailFixtures.aConnectionLogDetail("other-req").toBuilder().build())
-        );
+                List.of(connectionLogDetailFixtures.aConnectionLogDetail("other-req").toBuilder()
+                        .build()));
 
         var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiConnectionLogDetailUseCase.Input(API_ID, REQUEST_ID)
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiConnectionLogDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isEqualTo(new SearchApiConnectionLogDetailUseCase.Output(Optional.empty()));
     }
@@ -86,13 +89,13 @@ class SearchConnectionLogUseCaseTest {
     @Test
     void should_return_empty_connection_log_for_non_existing_api() {
         logStorageService.initWithConnectionLogDetails(
-            List.of(connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().apiId("other-api").build())
-        );
+                List.of(connectionLogDetailFixtures.aConnectionLogDetail().toBuilder()
+                        .apiId("other-api")
+                        .build()));
 
         var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiConnectionLogDetailUseCase.Input(API_ID, REQUEST_ID)
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiConnectionLogDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isEqualTo(new SearchApiConnectionLogDetailUseCase.Output(Optional.empty()));
     }

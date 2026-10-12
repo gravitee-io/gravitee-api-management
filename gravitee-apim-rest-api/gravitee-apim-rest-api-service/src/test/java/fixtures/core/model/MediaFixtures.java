@@ -23,8 +23,7 @@ public class MediaFixtures {
 
     private MediaFixtures() {}
 
-    private static final Supplier<Media.MediaBuilder> BASE = () ->
-        Media.builder()
+    private static final Supplier<Media.MediaBuilder> BASE = () -> Media.builder()
             .hash("DB0A773F02AF003348F1B09734717266")
             .fileName("my-media.jpeg")
             .data("dummy-data".getBytes(StandardCharsets.UTF_8))

@@ -48,61 +48,63 @@ public final class PortalNavigationFixtures {
 
     public static PortalNavigationFolder folder(PortalNavigationItemId id, String title, PortalArea area) {
         return PortalNavigationFolder.builder()
-            .id(id)
-            .organizationId("org")
-            .environmentId("env")
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(area)
-            .order(1)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("org")
+                .environmentId("env")
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(area)
+                .order(1)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     public static PortalNavigationLink link(PortalNavigationItemId id, String title, PortalArea area, String url) {
         return PortalNavigationLink.builder()
-            .id(id)
-            .organizationId("org")
-            .environmentId("env")
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(area)
-            .order(1)
-            .url(url)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("org")
+                .environmentId("env")
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(area)
+                .order(1)
+                .url(url)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
-    public static PortalNavigationPage page(PortalNavigationItemId id, String title, PortalArea area, PortalPageContentId pageId) {
+    public static PortalNavigationPage page(
+            PortalNavigationItemId id, String title, PortalArea area, PortalPageContentId pageId) {
         return PortalNavigationPage.builder()
-            .id(id)
-            .organizationId("org")
-            .environmentId("env")
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(area)
-            .order(1)
-            .portalPageContentId(pageId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("org")
+                .environmentId("env")
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(area)
+                .order(1)
+                .portalPageContentId(pageId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
-    public static PortalNavigationApiProduct apiProduct(PortalNavigationItemId id, String title, PortalArea area, UUID apiProductId) {
+    public static PortalNavigationApiProduct apiProduct(
+            PortalNavigationItemId id, String title, PortalArea area, UUID apiProductId) {
         return PortalNavigationApiProduct.builder()
-            .id(id)
-            .organizationId("org")
-            .environmentId("env")
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(area)
-            .order(1)
-            .apiProductId(apiProductId.toString())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId("org")
+                .environmentId("env")
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(area)
+                .order(1)
+                .apiProductId(apiProductId.toString())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     public static List<PortalNavigationItem> sampleList(PortalArea area) {

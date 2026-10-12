@@ -27,7 +27,6 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
-import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -100,41 +99,39 @@ public class RejectSubscriptionDomainServiceTest {
         auditCrudServiceInMemory = new AuditCrudServiceInMemory();
         planCrudService = new PlanCrudServiceInMemory();
         userCrudService = new UserCrudServiceInMemory();
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
         var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
-            groupQueryService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                groupQueryService, membershipQueryService, roleQueryService, userCrudService);
         cut = new RejectSubscriptionDomainService(
-            subscriptionCrudService,
-            auditDomainService,
-            triggerNotificationDomainService,
-            userCrudService,
-            applicationPrimaryOwnerDomainService
-        );
-        planCrudService.initWith(
-            List.of(
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationDomainService,
+                userCrudService,
+                applicationPrimaryOwnerDomainService);
+        planCrudService.initWith(List.of(
                 PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_CLOSED).build().setPlanStatus(PlanStatus.CLOSED),
-                PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_PUBLISHED).build().setPlanStatus(PlanStatus.PUBLISHED)
-            )
-        );
+                PlanFixtures.aPlanHttpV4().toBuilder()
+                        .id(PLAN_PUBLISHED)
+                        .build()
+                        .setPlanStatus(PlanStatus.PUBLISHED)));
 
-        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
-        applicationCrudService.initWith(
-            List.of(
-                ApplicationModelFixtures.anApplicationEntity()
-                    .toBuilder()
-                    .id(APPLICATION_ID)
-                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(
+                List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .primaryOwner(PrimaryOwnerEntity.builder()
+                        .id(USER_ID)
+                        .displayName("Jane")
+                        .build())
+                .build()));
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
     }
 
     @AfterEach
@@ -154,23 +151,25 @@ public class RejectSubscriptionDomainServiceTest {
         @Test
         void should_throw_when_null_subscription() {
             assertThatThrownBy(() -> reject(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Subscription should not be null");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Subscription should not be null");
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_reject_subscription(boolean shouldTriggerEmailNotification) {
             // Given
-            SubscriptionEntity subscription = SubscriptionFixtures.aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(PLAN_PUBLISHED)
-                .status(SubscriptionEntity.Status.PENDING)
-                .build();
+            SubscriptionEntity subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                    .subscribedBy("subscriber")
+                    .planId(PLAN_PUBLISHED)
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .build();
             givenExistingSubscription(subscription);
             if (shouldTriggerEmailNotification) {
-                userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
+                userCrudService.initWith(List.of(BaseUserEntity.builder()
+                        .id("subscriber")
+                        .email("subscriber@mail.fake")
+                        .build()));
             }
 
             // When
@@ -182,77 +181,65 @@ public class RejectSubscriptionDomainServiceTest {
                 softly.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
             });
 
-            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-                new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
-            );
+            assertThat(triggerNotificationDomainService.getHookNotifications())
+                    .containsExactly(new SubscriptionRejectedApiHookContext(
+                            "api-id", "application-id", "plan-published", "subscription-id", USER_ID));
 
             if (shouldTriggerEmailNotification) {
-                assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
-                    new ApplicationNotification(
-                        new SubscriptionRejectedApplicationHookContext(
-                            "application-id",
-                            SubscriptionReferenceType.API,
-                            "api-id",
-                            "plan-published",
-                            "subscription-id",
-                            USER_ID
-                        )
-                    ),
-                    new ApplicationNotification(
-                        new Recipient("EMAIL", "subscriber@mail.fake"),
-                        new SubscriptionRejectedApplicationHookContext(
-                            "application-id",
-                            SubscriptionReferenceType.API,
-                            "api-id",
-                            "plan-published",
-                            "subscription-id",
-                            USER_ID
-                        )
-                    )
-                );
+                assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                        .containsExactly(
+                                new ApplicationNotification(new SubscriptionRejectedApplicationHookContext(
+                                        "application-id",
+                                        SubscriptionReferenceType.API,
+                                        "api-id",
+                                        "plan-published",
+                                        "subscription-id",
+                                        USER_ID)),
+                                new ApplicationNotification(
+                                        new Recipient("EMAIL", "subscriber@mail.fake"),
+                                        new SubscriptionRejectedApplicationHookContext(
+                                                "application-id",
+                                                SubscriptionReferenceType.API,
+                                                "api-id",
+                                                "plan-published",
+                                                "subscription-id",
+                                                USER_ID)));
             } else {
-                assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
-                    new ApplicationNotification(
-                        new SubscriptionRejectedApplicationHookContext(
-                            "application-id",
-                            SubscriptionReferenceType.API,
-                            "api-id",
-                            "plan-published",
-                            "subscription-id",
-                            USER_ID
-                        )
-                    )
-                );
+                assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                        .containsExactly(new ApplicationNotification(new SubscriptionRejectedApplicationHookContext(
+                                "application-id",
+                                SubscriptionReferenceType.API,
+                                "api-id",
+                                "plan-published",
+                                "subscription-id",
+                                USER_ID)));
             }
 
             assertThat(auditCrudServiceInMemory.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-                .containsExactly(
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.API,
-                        "api-id",
-                        USER_ID,
-                        Map.of("APPLICATION", "application-id"),
-                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                        ZonedDateTime.now(),
-                        ""
-                    ),
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.APPLICATION,
-                        "application-id",
-                        USER_ID,
-                        Map.of("API", "api-id"),
-                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                        ZonedDateTime.now(),
-                        ""
-                    )
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                    .containsExactly(
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.API,
+                                    "api-id",
+                                    USER_ID,
+                                    Map.of("APPLICATION", "application-id"),
+                                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                    ZonedDateTime.now(),
+                                    ""),
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.APPLICATION,
+                                    "application-id",
+                                    USER_ID,
+                                    Map.of("API", "api-id"),
+                                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                    ZonedDateTime.now(),
+                                    ""));
         }
     }
 
@@ -263,24 +250,24 @@ public class RejectSubscriptionDomainServiceTest {
         @SneakyThrows
         void should_throw_when_subscription_not_found() {
             assertThatThrownBy(() -> rejectById(SubscriptionFixtures.aSubscription()))
-                .isInstanceOf(SubscriptionNotFoundException.class)
-                .hasMessage("Subscription [subscription-id] cannot be found.");
+                    .isInstanceOf(SubscriptionNotFoundException.class)
+                    .hasMessage("Subscription [subscription-id] cannot be found.");
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_reject_subscription(boolean shouldTriggerEmailNotification) {
             // Given
-            var subscription = givenExistingSubscription(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
+            var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                     .subscribedBy("subscriber")
                     .planId(PLAN_PUBLISHED)
                     .status(SubscriptionEntity.Status.PENDING)
-                    .build()
-            );
+                    .build());
             if (shouldTriggerEmailNotification) {
-                userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
+                userCrudService.initWith(List.of(BaseUserEntity.builder()
+                        .id("subscriber")
+                        .email("subscriber@mail.fake")
+                        .build()));
             }
 
             // When
@@ -292,77 +279,65 @@ public class RejectSubscriptionDomainServiceTest {
                 softly.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
             });
 
-            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-                new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
-            );
+            assertThat(triggerNotificationDomainService.getHookNotifications())
+                    .containsExactly(new SubscriptionRejectedApiHookContext(
+                            "api-id", "application-id", "plan-published", "subscription-id", USER_ID));
 
             if (shouldTriggerEmailNotification) {
-                assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
-                    new ApplicationNotification(
-                        new SubscriptionRejectedApplicationHookContext(
-                            "application-id",
-                            SubscriptionReferenceType.API,
-                            "api-id",
-                            "plan-published",
-                            "subscription-id",
-                            USER_ID
-                        )
-                    ),
-                    new ApplicationNotification(
-                        new Recipient("EMAIL", "subscriber@mail.fake"),
-                        new SubscriptionRejectedApplicationHookContext(
-                            "application-id",
-                            SubscriptionReferenceType.API,
-                            "api-id",
-                            "plan-published",
-                            "subscription-id",
-                            USER_ID
-                        )
-                    )
-                );
+                assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                        .containsExactly(
+                                new ApplicationNotification(new SubscriptionRejectedApplicationHookContext(
+                                        "application-id",
+                                        SubscriptionReferenceType.API,
+                                        "api-id",
+                                        "plan-published",
+                                        "subscription-id",
+                                        USER_ID)),
+                                new ApplicationNotification(
+                                        new Recipient("EMAIL", "subscriber@mail.fake"),
+                                        new SubscriptionRejectedApplicationHookContext(
+                                                "application-id",
+                                                SubscriptionReferenceType.API,
+                                                "api-id",
+                                                "plan-published",
+                                                "subscription-id",
+                                                USER_ID)));
             } else {
-                assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
-                    new ApplicationNotification(
-                        new SubscriptionRejectedApplicationHookContext(
-                            "application-id",
-                            SubscriptionReferenceType.API,
-                            "api-id",
-                            "plan-published",
-                            "subscription-id",
-                            USER_ID
-                        )
-                    )
-                );
+                assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                        .containsExactly(new ApplicationNotification(new SubscriptionRejectedApplicationHookContext(
+                                "application-id",
+                                SubscriptionReferenceType.API,
+                                "api-id",
+                                "plan-published",
+                                "subscription-id",
+                                USER_ID)));
             }
 
             assertThat(auditCrudServiceInMemory.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-                .containsExactly(
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.API,
-                        "api-id",
-                        USER_ID,
-                        Map.of("APPLICATION", "application-id"),
-                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                        ZonedDateTime.now(),
-                        ""
-                    ),
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.APPLICATION,
-                        "application-id",
-                        USER_ID,
-                        Map.of("API", "api-id"),
-                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                        ZonedDateTime.now(),
-                        ""
-                    )
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                    .containsExactly(
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.API,
+                                    "api-id",
+                                    USER_ID,
+                                    Map.of("APPLICATION", "application-id"),
+                                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                    ZonedDateTime.now(),
+                                    ""),
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.APPLICATION,
+                                    "application-id",
+                                    USER_ID,
+                                    Map.of("API", "api-id"),
+                                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                    ZonedDateTime.now(),
+                                    ""));
         }
     }
 
@@ -373,64 +348,56 @@ public class RejectSubscriptionDomainServiceTest {
 
         @Test
         void should_route_reject_notifications_and_audits_to_api_product_scope() {
-            SubscriptionEntity subscription = SubscriptionFixtures.aSubscription()
-                .toBuilder()
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(SubscriptionReferenceType.API_PRODUCT)
-                .subscribedBy("subscriber")
-                .planId(PLAN_PUBLISHED)
-                .status(SubscriptionEntity.Status.PENDING)
-                .build();
+            SubscriptionEntity subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                    .subscribedBy("subscriber")
+                    .planId(PLAN_PUBLISHED)
+                    .status(SubscriptionEntity.Status.PENDING)
+                    .build();
             givenExistingSubscription(subscription);
 
             SubscriptionEntity result = reject(subscription);
 
             assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
 
-            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-                new SubscriptionRejectedApiProductHookContext(API_PRODUCT_ID, APPLICATION_ID, PLAN_PUBLISHED, "subscription-id", USER_ID)
-            );
-            assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
-                new ApplicationNotification(
-                    new SubscriptionRejectedApplicationHookContext(
-                        APPLICATION_ID,
-                        SubscriptionReferenceType.API_PRODUCT,
-                        API_PRODUCT_ID,
-                        PLAN_PUBLISHED,
-                        "subscription-id",
-                        USER_ID
-                    )
-                )
-            );
+            assertThat(triggerNotificationDomainService.getHookNotifications())
+                    .containsExactly(new SubscriptionRejectedApiProductHookContext(
+                            API_PRODUCT_ID, APPLICATION_ID, PLAN_PUBLISHED, "subscription-id", USER_ID));
+            assertThat(triggerNotificationDomainService.getApplicationNotifications())
+                    .containsExactly(new ApplicationNotification(new SubscriptionRejectedApplicationHookContext(
+                            APPLICATION_ID,
+                            SubscriptionReferenceType.API_PRODUCT,
+                            API_PRODUCT_ID,
+                            PLAN_PUBLISHED,
+                            "subscription-id",
+                            USER_ID)));
 
             assertThat(auditCrudServiceInMemory.storage())
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-                .containsExactly(
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.API_PRODUCT,
-                        API_PRODUCT_ID,
-                        USER_ID,
-                        Map.of("APPLICATION", "application-id"),
-                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                        ZonedDateTime.now(),
-                        ""
-                    ),
-                    new AuditEntity(
-                        "audit-id",
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        AuditEntity.AuditReferenceType.APPLICATION,
-                        APPLICATION_ID,
-                        USER_ID,
-                        Map.of("API_PRODUCT", API_PRODUCT_ID),
-                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                        ZonedDateTime.now(),
-                        ""
-                    )
-                );
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                    .containsExactly(
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.API_PRODUCT,
+                                    API_PRODUCT_ID,
+                                    USER_ID,
+                                    Map.of("APPLICATION", "application-id"),
+                                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                    ZonedDateTime.now(),
+                                    ""),
+                            new AuditEntity(
+                                    "audit-id",
+                                    ORGANIZATION_ID,
+                                    ENVIRONMENT_ID,
+                                    AuditEntity.AuditReferenceType.APPLICATION,
+                                    APPLICATION_ID,
+                                    USER_ID,
+                                    Map.of("API_PRODUCT", API_PRODUCT_ID),
+                                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                    ZonedDateTime.now(),
+                                    ""));
         }
     }
 

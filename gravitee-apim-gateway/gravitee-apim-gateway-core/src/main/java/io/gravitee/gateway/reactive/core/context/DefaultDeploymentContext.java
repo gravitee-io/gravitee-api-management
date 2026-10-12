@@ -39,7 +39,8 @@ public class DefaultDeploymentContext implements DeploymentContext {
         return this;
     }
 
-    public DefaultDeploymentContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders) {
+    public DefaultDeploymentContext templateVariableProviders(
+            final Collection<TemplateVariableProvider> templateVariableProviders) {
         this.templateVariableProviders = templateVariableProviders;
         return this;
     }
@@ -63,7 +64,8 @@ public class DefaultDeploymentContext implements DeploymentContext {
         final TemplateContext templateContext = templateEngine.getTemplateContext();
 
         if (templateVariableProviders != null) {
-            templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(templateContext));
+            templateVariableProviders.forEach(
+                    templateVariableProvider -> templateVariableProvider.provide(templateContext));
         }
     }
 }

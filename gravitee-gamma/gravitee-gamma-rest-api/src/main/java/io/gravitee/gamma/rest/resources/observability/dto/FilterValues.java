@@ -39,10 +39,7 @@ public final class FilterValues {
             return List.of();
         }
         if (value instanceof List<?> list) {
-            return list
-                .stream()
-                .map(element -> asScalar(filterName, element))
-                .toList();
+            return list.stream().map(element -> asScalar(filterName, element)).toList();
         }
         return List.of(asScalar(filterName, value));
     }

@@ -16,18 +16,11 @@
 package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.PolicyScope;
-import io.gravitee.definition.model.debug.DebugMetrics;
-import io.gravitee.definition.model.debug.DebugStep;
 import io.gravitee.definition.model.debug.DebugStepError;
-import io.gravitee.definition.model.debug.DebugStepStatus;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author GraviteeSource Team

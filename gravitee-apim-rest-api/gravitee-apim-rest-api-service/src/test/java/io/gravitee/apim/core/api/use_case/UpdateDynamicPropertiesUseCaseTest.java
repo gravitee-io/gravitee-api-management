@@ -93,10 +93,7 @@ class UpdateDynamicPropertiesUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String API_ID = "api-id";
     private static final DataEncryptor DATA_ENCRYPTOR = new DataEncryptor(
-        new MockEnvironment(),
-        "api.properties.encryption.secret",
-        "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6"
-    );
+            new MockEnvironment(), "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
 
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final EnvironmentCrudServiceInMemory environmentCrudServiceInMemory = new EnvironmentCrudServiceInMemory();
@@ -105,7 +102,8 @@ class UpdateDynamicPropertiesUseCaseTest {
     private final ApiEventQueryServiceInMemory apiEventQueryServiceInMemory = new ApiEventQueryServiceInMemory();
     CategoryMapper categoryMapper = mock(CategoryMapper.class);
     ApiCategoryOrderRepository apiCategoryOrderRepository = mock(ApiCategoryOrderRepository.class);
-    CategoryDomainService categoryDomainService = new CategoryDomainServiceImpl(categoryMapper, apiCategoryOrderRepository);
+    CategoryDomainService categoryDomainService =
+            new CategoryDomainServiceImpl(categoryMapper, apiCategoryOrderRepository);
 
     private ApiStateDomainService apiStateDomainService;
     private AuditDomainService auditDomainService;
@@ -127,40 +125,45 @@ class UpdateDynamicPropertiesUseCaseTest {
     @BeforeEach
     void setUp() {
         apiStateDomainService = mock(ApiStateDomainService.class);
-        auditDomainService = spy(new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()));
-        environmentCrudServiceInMemory.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).build()));
+        auditDomainService = spy(new AuditDomainService(
+                auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()));
+        environmentCrudServiceInMemory.initWith(List.of(Environment.builder()
+                .id(ENVIRONMENT_ID)
+                .organizationId(ORGANIZATION_ID)
+                .build()));
         cut = useCaseWith(DATA_ENCRYPTOR);
     }
 
     private UpdateDynamicPropertiesUseCase useCaseWith(DataEncryptor dataEncryptor) {
         return new UpdateDynamicPropertiesUseCase(
-            apiCrudServiceInMemory,
-            apiStateDomainService,
-            environmentCrudServiceInMemory,
-            auditDomainService,
-            apiEventQueryServiceInMemory,
-            categoryDomainService,
-            new PropertyDomainService(dataEncryptor)
-        );
+                apiCrudServiceInMemory,
+                apiStateDomainService,
+                environmentCrudServiceInMemory,
+                auditDomainService,
+                apiEventQueryServiceInMemory,
+                categoryDomainService,
+                new PropertyDomainService(dataEncryptor));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiCrudServiceInMemory,
-            environmentCrudServiceInMemory,
-            auditCrudServiceInMemory,
-            userCrudServiceInMemory,
-            apiEventQueryServiceInMemory
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudServiceInMemory,
+                        environmentCrudServiceInMemory,
+                        auditCrudServiceInMemory,
+                        userCrudServiceInMemory,
+                        apiEventQueryServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_not_update_api_if_same_properties() {
-        List<Property> initialPropertiesList = List.of(Property.builder().key("key").value("value").dynamic(true).build());
+        List<Property> initialPropertiesList = List.of(
+                Property.builder().key("key").value("value").dynamic(true).build());
         var api = givenApi(buildApiWithProperties(initialPropertiesList));
 
-        cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, initialPropertiesList, false));
+        cut.execute(new UpdateDynamicPropertiesUseCase.Input(
+                api.getId(), HTTP_DYNAMIC_PROPERTIES, initialPropertiesList, false));
 
         assertThat(auditCrudServiceInMemory.storage()).isEmpty();
     }
@@ -168,46 +171,64 @@ class UpdateDynamicPropertiesUseCaseTest {
     @Test
     void should_persist_the_removal_of_a_property_missing_from_the_source_even_if_nothing_else_changed() {
         var kept = Property.builder().key("kept").value("value").dynamic(true).build();
-        var removed = Property.builder().key("removed").value("value").dynamic(true).build();
+        var removed =
+                Property.builder().key("removed").value("value").dynamic(true).build();
         var api = givenApi(buildApiWithProperties(List.of(kept, removed)));
 
-        cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(kept), false));
+        cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(kept), false));
 
         assertAuditHasBeenCreated();
-        assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(kept);
+        assertThat(apiCrudServiceInMemory
+                        .get(api.getId())
+                        .getApiDefinitionHttpV4()
+                        .getProperties())
+                .containsExactly(kept);
     }
 
     @Test
     void should_persist_the_removal_of_the_last_dynamic_property_and_keep_user_defined_ones() {
-        var userDefined = Property.builder().key("user-prop").value("value").dynamic(false).build();
-        var removed = Property.builder().key("removed").value("value").dynamic(true).build();
+        var userDefined = Property.builder()
+                .key("user-prop")
+                .value("value")
+                .dynamic(false)
+                .build();
+        var removed =
+                Property.builder().key("removed").value("value").dynamic(true).build();
         var api = givenApi(buildApiWithProperties(List.of(userDefined, removed)));
 
         cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
 
         assertAuditHasBeenCreated();
-        assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(userDefined);
+        assertThat(apiCrudServiceInMemory
+                        .get(api.getId())
+                        .getApiDefinitionHttpV4()
+                        .getProperties())
+                .containsExactly(userDefined);
     }
 
     @Test
     void should_determine_sync_state_before_updating_api_properties() {
-        List<Property> initialPropertiesList = List.of(Property.builder().key("key").value("value").dynamic(true).build());
+        List<Property> initialPropertiesList = List.of(
+                Property.builder().key("key").value("value").dynamic(true).build());
         var api = givenApi(buildApiWithProperties(initialPropertiesList));
 
         var receivedProperties = new ArrayList<>();
         when(apiStateDomainService.isSynchronized(any(), any())).thenAnswer(invocationOnMock -> {
-            receivedProperties.addAll(((Api) invocationOnMock.getArgument(0)).getApiDefinitionHttpV4().getProperties().stream().toList());
+            receivedProperties.addAll(((Api) invocationOnMock.getArgument(0))
+                    .getApiDefinitionHttpV4().getProperties().stream().toList());
             return true;
         });
 
-        cut.execute(
-            new UpdateDynamicPropertiesUseCase.Input(
+        cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                 api.getId(),
                 HTTP_DYNAMIC_PROPERTIES,
-                List.of(Property.builder().key("key").value("value2").dynamic(true).build()),
-                false
-            )
-        );
+                List.of(Property.builder()
+                        .key("key")
+                        .value("value2")
+                        .dynamic(true)
+                        .build()),
+                false));
 
         assertThat(receivedProperties).isEqualTo(initialPropertiesList);
     }
@@ -222,81 +243,127 @@ class UpdateDynamicPropertiesUseCaseTest {
 
         @Test
         void should_update_api_with_new_properties() {
-            var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("key").value("value").dynamic(true).build()),
-                    false
-                )
-            );
+                    List.of(Property.builder()
+                            .key("key")
+                            .value("value")
+                            .dynamic(true)
+                            .build()),
+                    false));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactlyInAnyOrder(
-                Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                Property.builder().key("key").value("value").dynamic(true).build()
-            );
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactlyInAnyOrder(
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("value")
+                                    .dynamic(false)
+                                    .build(),
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build());
             assertAuditHasBeenCreated();
             assertThat(auditPatch()).contains("/apiDefinitionValue/properties").contains("\"value\":\"key\"");
         }
 
         @Test
         void should_persist_and_audit_a_sync_that_only_removes_a_dynamic_property() {
-            var api = givenApi(
-                buildApiWithProperties(
-                    List.of(
-                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                        Property.builder().key("gone").value("value").dynamic(true).build()
-                    )
-                )
-            );
+            var api = givenApi(buildApiWithProperties(List.of(
+                    Property.builder()
+                            .key("user-prop")
+                            .value("value")
+                            .dynamic(false)
+                            .build(),
+                    Property.builder().key("gone").value("value").dynamic(true).build())));
 
-            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
+            cut.execute(
+                    new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
-                Property.builder().key("user-prop").value("value").dynamic(false).build()
-            );
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactly(Property.builder()
+                            .key("user-prop")
+                            .value("value")
+                            .dynamic(false)
+                            .build());
             assertAuditHasBeenCreated();
             assertThat(auditPatch()).contains("{\"op\":\"remove\",\"path\":\"/apiDefinitionValue/properties/");
         }
 
         @Test
         void should_ignore_dynamic_properties_having_same_key_than_static_properties_added_by_user() {
-            var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
                     List.of(
-                        Property.builder().key("key").value("value").dynamic(true).build(),
-                        // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
-                    ),
-                    false
-                )
-            );
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build(),
+                            // trying to set the same property as the user
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("other-value")
+                                    .dynamic(true)
+                                    .build()),
+                    false));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactlyInAnyOrder(
-                Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                Property.builder().key("key").value("value").dynamic(true).build()
-            );
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactlyInAnyOrder(
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("value")
+                                    .dynamic(false)
+                                    .build(),
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build());
             assertAuditHasBeenCreated();
         }
 
         @Test
         void should_not_deploy() {
-            var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("key").value("value").dynamic(true).build()),
-                    false
-                )
-            );
+                    List.of(Property.builder()
+                            .key("key")
+                            .value("value")
+                            .dynamic(true)
+                            .build()),
+                    false));
 
             verify(apiStateDomainService, never()).redeployWithSyncedDynamicProperties(any(), any(), any());
         }
@@ -315,133 +382,183 @@ class UpdateDynamicPropertiesUseCaseTest {
 
         @Test
         void should_update_api_with_new_properties() {
-            var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
                     List.of(
-                        Property.builder().key("key").value("value").dynamic(true).build(),
-                        // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
-                    ),
-                    false
-                )
-            );
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build(),
+                            // trying to set the same property as the user
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("other-value")
+                                    .dynamic(true)
+                                    .build()),
+                    false));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactlyInAnyOrder(
-                Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                Property.builder().key("key").value("value").dynamic(true).build()
-            );
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactlyInAnyOrder(
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("value")
+                                    .dynamic(false)
+                                    .build(),
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build());
             assertAuditHasBeenCreated();
         }
 
         @Test
         void should_redeploy_api() {
-            var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
                     List.of(
-                        Property.builder().key("key").value("value").dynamic(true).build(),
-                        // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
-                    ),
-                    false
-                )
-            );
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build(),
+                            // trying to set the same property as the user
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("other-value")
+                                    .dynamic(true)
+                                    .build()),
+                    false));
 
-            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(
-                apiCaptor.capture(),
-                any(String.class),
-                auditInfoCaptor.capture()
-            );
+            verify(apiStateDomainService)
+                    .redeployWithSyncedDynamicProperties(
+                            apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
             verify(apiStateDomainService, never()).deploy(any(), any(), any());
             assertSoftly(softly -> {
-                softly
-                    .assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties())
-                    .containsExactlyInAnyOrder(
-                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                        Property.builder().key("key").value("value").dynamic(true).build()
-                    );
-                softly
-                    .assertThat(auditInfoCaptor.getValue())
-                    .isEqualTo(
-                        AuditInfo.builder()
-                            .organizationId(ORGANIZATION_ID)
-                            .environmentId(ENVIRONMENT_ID)
-                            .actor(AuditActor.builder().userId(USER).build())
-                            .build()
-                    );
+                softly.assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties())
+                        .containsExactlyInAnyOrder(
+                                Property.builder()
+                                        .key("user-prop")
+                                        .value("value")
+                                        .dynamic(false)
+                                        .build(),
+                                Property.builder()
+                                        .key("key")
+                                        .value("value")
+                                        .dynamic(true)
+                                        .build());
+                softly.assertThat(auditInfoCaptor.getValue())
+                        .isEqualTo(AuditInfo.builder()
+                                .organizationId(ORGANIZATION_ID)
+                                .environmentId(ENVIRONMENT_ID)
+                                .actor(AuditActor.builder().userId(USER).build())
+                                .build());
             });
         }
 
         @Test
         void should_redeploy_api_when_a_dynamic_property_is_removed() {
-            var userDefined = Property.builder().key("user-prop").value("value").dynamic(false).build();
-            var removed = Property.builder().key("removed").value("value").dynamic(true).build();
+            var userDefined = Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build();
+            var removed = Property.builder()
+                    .key("removed")
+                    .value("value")
+                    .dynamic(true)
+                    .build();
             var api = givenApi(buildApiWithProperties(List.of(userDefined, removed)));
 
-            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
+            cut.execute(
+                    new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
 
-            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(
-                apiCaptor.capture(),
-                any(String.class),
-                auditInfoCaptor.capture()
-            );
-            assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties()).containsExactly(userDefined);
+            verify(apiStateDomainService)
+                    .redeployWithSyncedDynamicProperties(
+                            apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
+            assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties())
+                    .containsExactly(userDefined);
         }
 
         @Test
         void should_redeploy_using_the_last_deployed_api_definition() {
             // Case were a user disable and save the API, but without deploying it
-            var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
             api.getApiDefinitionHttpV4().getServices().getDynamicProperty().setEnabled(false);
 
             // Last event of the deployed api is with the service enabled
             final Api lastDeployedApi = api.toBuilder().build();
-            lastDeployedApi.getApiDefinitionHttpV4().getServices().getDynamicProperty().setEnabled(true);
+            lastDeployedApi
+                    .getApiDefinitionHttpV4()
+                    .getServices()
+                    .getDynamicProperty()
+                    .setEnabled(true);
             apiEventQueryServiceInMemory.initWith(List.of(lastDeployedApi));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
                     List.of(
-                        Property.builder().key("key").value("value").dynamic(true).build(),
-                        // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
-                    ),
-                    false
-                )
-            );
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build(),
+                            // trying to set the same property as the user
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("other-value")
+                                    .dynamic(true)
+                                    .build()),
+                    false));
 
-            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(
-                apiCaptor.capture(),
-                any(String.class),
-                auditInfoCaptor.capture()
-            );
+            verify(apiStateDomainService)
+                    .redeployWithSyncedDynamicProperties(
+                            apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
             assertSoftly(softly -> {
                 var definition = api.getApiDefinitionHttpV4();
-                softly.assertThat(definition.getServices().getDynamicProperty().isEnabled()).isTrue();
-                softly
-                    .assertThat(definition.getProperties())
-                    .containsExactlyInAnyOrder(
-                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                        Property.builder().key("key").value("value").dynamic(true).build()
-                    );
-                softly
-                    .assertThat(auditInfoCaptor.getValue())
-                    .isEqualTo(
-                        AuditInfo.builder()
-                            .organizationId(ORGANIZATION_ID)
-                            .environmentId(ENVIRONMENT_ID)
-                            .actor(AuditActor.builder().userId(USER).build())
-                            .build()
-                    );
+                softly.assertThat(definition.getServices().getDynamicProperty().isEnabled())
+                        .isTrue();
+                softly.assertThat(definition.getProperties())
+                        .containsExactlyInAnyOrder(
+                                Property.builder()
+                                        .key("user-prop")
+                                        .value("value")
+                                        .dynamic(false)
+                                        .build(),
+                                Property.builder()
+                                        .key("key")
+                                        .value("value")
+                                        .dynamic(true)
+                                        .build());
+                softly.assertThat(auditInfoCaptor.getValue())
+                        .isEqualTo(AuditInfo.builder()
+                                .organizationId(ORGANIZATION_ID)
+                                .environmentId(ENVIRONMENT_ID)
+                                .actor(AuditActor.builder().userId(USER).build())
+                                .build());
             });
         }
     }
@@ -454,23 +571,37 @@ class UpdateDynamicPropertiesUseCaseTest {
         @Test
         void should_update_native_api_with_new_properties() {
             when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(false);
-            var api = givenApi(
-                buildNativeApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build()))
-            );
+            var api = givenApi(buildNativeApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("key").value("value").dynamic(true).build()),
-                    false
-                )
-            );
+                    List.of(Property.builder()
+                            .key("key")
+                            .value("value")
+                            .dynamic(true)
+                            .build()),
+                    false));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties()).containsExactlyInAnyOrder(
-                Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                Property.builder().key("key").value("value").dynamic(true).build()
-            );
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionNativeV4()
+                            .getProperties())
+                    .containsExactlyInAnyOrder(
+                            Property.builder()
+                                    .key("user-prop")
+                                    .value("value")
+                                    .dynamic(false)
+                                    .build(),
+                            Property.builder()
+                                    .key("key")
+                                    .value("value")
+                                    .dynamic(true)
+                                    .build());
             assertAuditHasBeenCreated();
             assertThat(auditPatch()).contains("/apiDefinitionValue/properties").contains("\"value\":\"key\"");
         }
@@ -478,20 +609,26 @@ class UpdateDynamicPropertiesUseCaseTest {
         @Test
         void should_persist_and_audit_a_native_sync_that_only_removes_a_dynamic_property() {
             when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(false);
-            var api = givenApi(
-                buildNativeApiWithProperties(
-                    List.of(
-                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                        Property.builder().key("gone").value("value").dynamic(true).build()
-                    )
-                )
-            );
+            var api = givenApi(buildNativeApiWithProperties(List.of(
+                    Property.builder()
+                            .key("user-prop")
+                            .value("value")
+                            .dynamic(false)
+                            .build(),
+                    Property.builder().key("gone").value("value").dynamic(true).build())));
 
-            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
+            cut.execute(
+                    new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
-                Property.builder().key("user-prop").value("value").dynamic(false).build()
-            );
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionNativeV4()
+                            .getProperties())
+                    .containsExactly(Property.builder()
+                            .key("user-prop")
+                            .value("value")
+                            .dynamic(false)
+                            .build());
             assertAuditHasBeenCreated();
             assertThat(auditPatch()).contains("{\"op\":\"remove\",\"path\":\"/apiDefinitionValue/properties/");
         }
@@ -500,42 +637,54 @@ class UpdateDynamicPropertiesUseCaseTest {
         void should_redeploy_native_api_using_the_last_deployed_api_definition() {
             when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(true);
             // Case were a user disable and save the API, but without deploying it
-            var api = givenApi(
-                buildNativeApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build()))
-            );
+            var api = givenApi(buildNativeApiWithProperties(List.of(Property.builder()
+                    .key("user-prop")
+                    .value("value")
+                    .dynamic(false)
+                    .build())));
             api.getApiDefinitionNativeV4().getServices().getDynamicProperty().setEnabled(false);
 
             // Last event of the deployed api carries its own, still enabled, service instance. It has to be a distinct
             // instance: toBuilder() copies the definition by reference, so mutating it would mutate the saved api too.
-            final Service deployedService = Service.builder().type(HTTP_DYNAMIC_PROPERTIES).enabled(true).build();
-            final Api lastDeployedApi = api
-                .toBuilder()
-                .apiDefinitionNativeV4(
-                    ApiDefinitionFixtures.aNativeApiV4().toBuilder().services(new NativeApiServices(deployedService)).build()
-                )
-                .build();
+            final Service deployedService = Service.builder()
+                    .type(HTTP_DYNAMIC_PROPERTIES)
+                    .enabled(true)
+                    .build();
+            final Api lastDeployedApi = api.toBuilder()
+                    .apiDefinitionNativeV4(ApiDefinitionFixtures.aNativeApiV4().toBuilder()
+                            .services(new NativeApiServices(deployedService))
+                            .build())
+                    .build();
             apiEventQueryServiceInMemory.initWith(List.of(lastDeployedApi));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("key").value("value").dynamic(true).build()),
-                    false
-                )
-            );
+                    List.of(Property.builder()
+                            .key("key")
+                            .value("value")
+                            .dynamic(true)
+                            .build()),
+                    false));
 
-            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), any());
+            verify(apiStateDomainService)
+                    .redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), any());
             assertSoftly(softly -> {
                 var definition = apiCaptor.getValue().getApiDefinitionNativeV4();
                 // the deployed service instance itself must be carried over, not just an enabled flag
                 softly.assertThat(definition.getServices().getDynamicProperty()).isSameAs(deployedService);
-                softly
-                    .assertThat(definition.getProperties())
-                    .containsExactlyInAnyOrder(
-                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
-                        Property.builder().key("key").value("value").dynamic(true).build()
-                    );
+                softly.assertThat(definition.getProperties())
+                        .containsExactlyInAnyOrder(
+                                Property.builder()
+                                        .key("user-prop")
+                                        .value("value")
+                                        .dynamic(false)
+                                        .build(),
+                                Property.builder()
+                                        .key("key")
+                                        .value("value")
+                                        .dynamic(true)
+                                        .build());
             });
         }
     }
@@ -547,31 +696,37 @@ class UpdateDynamicPropertiesUseCaseTest {
     }
 
     private static Api buildApiWithProperties(List<Property> properties) {
-        return ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).apiDefinitionHttpV4(anApiDefinitionWithProperties(properties)).build();
+        return ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .apiDefinitionHttpV4(anApiDefinitionWithProperties(properties))
+                .build();
     }
 
     private static Api buildNativeApiWithProperties(List<Property> properties) {
-        return ApiFixtures.aNativeApi()
-            .toBuilder()
-            .id(API_ID)
-            .apiDefinitionNativeV4(aNativeApiDefinitionWithProperties(properties))
-            .build();
+        return ApiFixtures.aNativeApi().toBuilder()
+                .id(API_ID)
+                .apiDefinitionNativeV4(aNativeApiDefinitionWithProperties(properties))
+                .build();
     }
 
     private static NativeApi aNativeApiDefinitionWithProperties(List<Property> properties) {
-        return ApiDefinitionFixtures.aNativeApiV4()
-            .toBuilder()
-            .services(new NativeApiServices(Service.builder().type(HTTP_DYNAMIC_PROPERTIES).enabled(true).build()))
-            .properties(properties)
-            .build();
+        return ApiDefinitionFixtures.aNativeApiV4().toBuilder()
+                .services(new NativeApiServices(Service.builder()
+                        .type(HTTP_DYNAMIC_PROPERTIES)
+                        .enabled(true)
+                        .build()))
+                .properties(properties)
+                .build();
     }
 
     private static io.gravitee.definition.model.v4.Api anApiDefinitionWithProperties(List<Property> properties) {
-        return ApiDefinitionFixtures.anApiV4()
-            .toBuilder()
-            .services(new ApiServices(Service.builder().type(HTTP_DYNAMIC_PROPERTIES).enabled(true).build()))
-            .properties(properties)
-            .build();
+        return ApiDefinitionFixtures.anApiV4().toBuilder()
+                .services(new ApiServices(Service.builder()
+                        .type(HTTP_DYNAMIC_PROPERTIES)
+                        .enabled(true)
+                        .build()))
+                .properties(properties)
+                .build();
     }
 
     private static List<String> logsOfPropertyDomainServiceDuring(Runnable action) {
@@ -594,21 +749,18 @@ class UpdateDynamicPropertiesUseCaseTest {
 
     private void assertAuditHasBeenCreated() {
         assertThat(auditCrudServiceInMemory.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                new AuditEntity(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.API,
-                    API_ID,
-                    USER,
-                    Map.of("API", API_ID),
-                    ApiAuditEvent.API_UPDATED.name(),
-                    INSTANT_NOW.atZone(ZoneId.systemDefault()),
-                    ""
-                )
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(new AuditEntity(
+                        "generated-id",
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        AuditEntity.AuditReferenceType.API,
+                        API_ID,
+                        USER,
+                        Map.of("API", API_ID),
+                        ApiAuditEvent.API_UPDATED.name(),
+                        INSTANT_NOW.atZone(ZoneId.systemDefault()),
+                        ""));
     }
 
     @Nested
@@ -626,11 +778,14 @@ class UpdateDynamicPropertiesUseCaseTest {
             var stored = encryptedDynamic("secret", "s3cret");
             var api = givenApi(buildApiWithProperties(List.of(stored)));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "s3cret")), false)
-            );
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "s3cret")), false));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(stored);
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactly(stored);
             assertThat(auditCrudServiceInMemory.storage()).isEmpty();
             verify(apiStateDomainService, never()).redeployWithSyncedDynamicProperties(any(), any(), any());
         }
@@ -639,66 +794,81 @@ class UpdateDynamicPropertiesUseCaseTest {
         void should_store_a_changed_value_encrypted_and_redeploy_ciphertext_only() throws GeneralSecurityException {
             var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"))));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false)
-            );
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties()
+                    .getFirst();
             assertThat(persisted.isEncrypted()).isTrue();
             assertThat(persisted.isDynamic()).isTrue();
             assertThat(DATA_ENCRYPTOR.decrypt(persisted.getValue())).isEqualTo("n3w");
 
-            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), any());
-            assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties()).containsExactly(persisted);
+            verify(apiStateDomainService)
+                    .redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), any());
+            assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties())
+                    .containsExactly(persisted);
             var auditCaptor = ArgumentCaptor.forClass(ApiAuditLogEntity.class);
             verify(auditDomainService).createApiAuditLog(auditCaptor.capture());
-            assertThat(((Api) auditCaptor.getValue().newValue()).getApiDefinitionHttpV4().getProperties()).containsExactly(persisted);
+            assertThat(((Api) auditCaptor.getValue().newValue())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactly(persisted);
         }
 
         @Test
-        void should_purge_an_encrypted_property_missing_from_the_source_and_bring_it_back_plain() throws GeneralSecurityException {
-            var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"), fetched("other", "v1"))));
+        void should_purge_an_encrypted_property_missing_from_the_source_and_bring_it_back_plain()
+                throws GeneralSecurityException {
+            var api = givenApi(
+                    buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"), fetched("other", "v1"))));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("other", "v2")), false)
-            );
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
-                fetched("other", "v2")
-            );
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("other", "v2")), false));
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactly(fetched("other", "v2"));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
                     List.of(fetched("other", "v2"), fetched("secret", "s3cret")),
-                    false
-                )
-            );
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
-                fetched("other", "v2"),
-                fetched("secret", "s3cret")
-            );
+                    false));
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactly(fetched("other", "v2"), fetched("secret", "s3cret"));
         }
 
         @Test
         void should_re_encrypt_a_stored_property_whose_value_cannot_be_decrypted() throws GeneralSecurityException {
-            var corrupted = Property.builder().key("secret").value("not-a-ciphertext!").encrypted(true).dynamic(true).build();
+            var corrupted = Property.builder()
+                    .key("secret")
+                    .value("not-a-ciphertext!")
+                    .encrypted(true)
+                    .dynamic(true)
+                    .build();
             var api = givenApi(buildApiWithProperties(List.of(corrupted, fetched("other", "v1"))));
             var input = new UpdateDynamicPropertiesUseCase.Input(
-                api.getId(),
-                HTTP_DYNAMIC_PROPERTIES,
-                List.of(fetched("secret", "n3w"), fetched("other", "v2")),
-                false
-            );
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(fetched("secret", "n3w"), fetched("other", "v2")),
+                    false);
 
             cut.execute(input);
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties();
-            var secret = persisted
-                .stream()
-                .filter(property -> property.getKey().equals("secret"))
-                .findFirst()
-                .orElseThrow();
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties();
+            var secret = persisted.stream()
+                    .filter(property -> property.getKey().equals("secret"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(secret.isEncrypted()).isTrue();
             assertThat(secret.isDynamic()).isTrue();
             assertThat(DATA_ENCRYPTOR.decrypt(secret.getValue())).isEqualTo("n3w");
@@ -715,89 +885,99 @@ class UpdateDynamicPropertiesUseCaseTest {
             var stored = encryptedDynamic("secret", "s3cret");
             var api = givenApi(buildApiWithProperties(List.of(stored)));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false)
-            );
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties()
+                    .getFirst();
             var audit = auditCrudServiceInMemory.storage().getFirst();
             assertThat(audit.getPatch())
-                .doesNotContain(persisted.getValue())
-                .doesNotContain(stored.getValue())
-                .doesNotContain("n3w")
-                .doesNotContain("s3cret");
+                    .doesNotContain(persisted.getValue())
+                    .doesNotContain(stored.getValue())
+                    .doesNotContain("n3w")
+                    .doesNotContain("s3cret");
             assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test
-        void should_not_audit_the_value_of_a_changed_encrypted_property_on_a_native_api() throws GeneralSecurityException {
+        void should_not_audit_the_value_of_a_changed_encrypted_property_on_a_native_api()
+                throws GeneralSecurityException {
             var stored = encryptedDynamic("secret", "s3cret");
             var api = givenApi(buildNativeApiWithProperties(List.of(stored)));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false)
-            );
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties().getFirst();
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionNativeV4()
+                    .getProperties()
+                    .getFirst();
             var audit = auditCrudServiceInMemory.storage().getFirst();
             assertThat(audit.getPatch())
-                .doesNotContain(persisted.getValue())
-                .doesNotContain(stored.getValue())
-                .doesNotContain("n3w")
-                .doesNotContain("s3cret");
+                    .doesNotContain(persisted.getValue())
+                    .doesNotContain(stored.getValue())
+                    .doesNotContain("n3w")
+                    .doesNotContain("s3cret");
             assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test
         void should_not_log_the_fetched_value_when_the_stored_value_cannot_be_decrypted() {
-            var corrupted = Property.builder().key("secret").value("not-a-ciphertext!").encrypted(true).dynamic(true).build();
+            var corrupted = Property.builder()
+                    .key("secret")
+                    .value("not-a-ciphertext!")
+                    .encrypted(true)
+                    .dynamic(true)
+                    .build();
             var api = givenApi(buildApiWithProperties(List.of(corrupted, fetched("other", "v1"))));
 
-            var logs = logsOfPropertyDomainServiceDuring(() ->
-                cut.execute(
-                    new UpdateDynamicPropertiesUseCase.Input(
-                        api.getId(),
-                        HTTP_DYNAMIC_PROPERTIES,
-                        List.of(fetched("secret", "super-secret-value"), fetched("other", "v2")),
-                        false
-                    )
-                )
-            );
+            var logs = logsOfPropertyDomainServiceDuring(() -> cut.execute(new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(fetched("secret", "super-secret-value"), fetched("other", "v2")),
+                    false)));
 
-            assertThat(logs)
-                .isNotEmpty()
-                .noneMatch(message -> message.contains("super-secret-value"));
+            assertThat(logs).isNotEmpty().noneMatch(message -> message.contains("super-secret-value"));
             assertThat(auditPatch()).doesNotContain("super-secret-value");
         }
 
         @Test
         void should_keep_the_stored_value_without_logging_nor_auditing_the_fetched_value_when_it_cannot_be_encrypted()
-            throws GeneralSecurityException {
+                throws GeneralSecurityException {
             var failingEncryptor = spy(DATA_ENCRYPTOR);
-            doThrow(new GeneralSecurityException("broken encryption secret")).when(failingEncryptor).encrypt(any());
+            doThrow(new GeneralSecurityException("broken encryption secret"))
+                    .when(failingEncryptor)
+                    .encrypt(any());
             var stored = encryptedDynamic("secret", "s3cret");
             var api = givenApi(buildApiWithProperties(List.of(stored)));
 
-            var logs = logsOfPropertyDomainServiceDuring(() ->
-                useCaseWith(failingEncryptor).execute(
-                    new UpdateDynamicPropertiesUseCase.Input(
-                        api.getId(),
-                        HTTP_DYNAMIC_PROPERTIES,
-                        List.of(fetched("secret", "super-secret-value")),
-                        false
-                    )
-                )
-            );
+            var logs = logsOfPropertyDomainServiceDuring(() -> useCaseWith(failingEncryptor)
+                    .execute(new UpdateDynamicPropertiesUseCase.Input(
+                            api.getId(),
+                            HTTP_DYNAMIC_PROPERTIES,
+                            List.of(fetched("secret", "super-secret-value")),
+                            false)));
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(stored);
-            assertThat(logs)
-                .isNotEmpty()
-                .noneMatch(message -> message.contains("super-secret-value"));
+            assertThat(apiCrudServiceInMemory
+                            .get(api.getId())
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactly(stored);
+            assertThat(logs).isNotEmpty().noneMatch(message -> message.contains("super-secret-value"));
             assertThat(auditCrudServiceInMemory.storage()).isEmpty();
         }
 
         private static Property encryptedDynamic(String key, String plaintext) throws GeneralSecurityException {
-            return Property.builder().key(key).value(DATA_ENCRYPTOR.encrypt(plaintext)).encrypted(true).dynamic(true).build();
+            return Property.builder()
+                    .key(key)
+                    .value(DATA_ENCRYPTOR.encrypt(plaintext))
+                    .encrypted(true)
+                    .dynamic(true)
+                    .build();
         }
 
         private static Property fetched(String key, String value) {
@@ -817,34 +997,48 @@ class UpdateDynamicPropertiesUseCaseTest {
         void should_encrypt_a_newly_fetched_property_when_toggle_is_on() throws GeneralSecurityException {
             var api = givenApi(buildApiWithProperties(List.of()));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()),
-                    true
-                )
-            );
+                    List.of(Property.builder()
+                            .key("secret")
+                            .value("s3cret")
+                            .dynamic(true)
+                            .build()),
+                    true));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties()
+                    .getFirst();
             assertThat(persisted.isEncrypted()).isTrue();
             assertThat(DATA_ENCRYPTOR.decrypt(persisted.getValue())).isEqualTo("s3cret");
         }
 
         @Test
         void should_encrypt_an_already_stored_unencrypted_property_on_its_next_fetch() throws GeneralSecurityException {
-            var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build())));
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("secret")
+                    .value("s3cret")
+                    .dynamic(true)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()),
-                    true
-                )
-            );
+                    List.of(Property.builder()
+                            .key("secret")
+                            .value("s3cret")
+                            .dynamic(true)
+                            .build()),
+                    true));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties()
+                    .getFirst();
             assertThat(persisted.isEncrypted()).isTrue();
             assertThat(DATA_ENCRYPTOR.decrypt(persisted.getValue())).isEqualTo("s3cret");
         }
@@ -853,92 +1047,122 @@ class UpdateDynamicPropertiesUseCaseTest {
         void should_not_audit_the_value_of_a_property_encrypted_on_fetch() {
             var api = givenApi(buildApiWithProperties(List.of()));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()),
-                    true
-                )
-            );
+                    List.of(Property.builder()
+                            .key("secret")
+                            .value("s3cret")
+                            .dynamic(true)
+                            .build()),
+                    true));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
-            assertThat(auditPatch()).doesNotContain(persisted.getValue()).doesNotContain("s3cret").contains("\"key\":\"secret\"");
-            assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties()).containsEntry("ENCRYPTED", "true");
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties()
+                    .getFirst();
+            assertThat(auditPatch())
+                    .doesNotContain(persisted.getValue())
+                    .doesNotContain("s3cret")
+                    .contains("\"key\":\"secret\"");
+            assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties())
+                    .containsEntry("ENCRYPTED", "true");
         }
 
         @Test
         void should_not_audit_the_value_of_a_property_encrypted_on_fetch_on_a_native_api() {
             var api = givenApi(buildNativeApiWithProperties(List.of()));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()),
-                    true
-                )
-            );
+                    List.of(Property.builder()
+                            .key("secret")
+                            .value("s3cret")
+                            .dynamic(true)
+                            .build()),
+                    true));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties().getFirst();
-            assertThat(auditPatch()).doesNotContain(persisted.getValue()).doesNotContain("s3cret").contains("\"key\":\"secret\"");
-            assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties()).containsEntry("ENCRYPTED", "true");
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionNativeV4()
+                    .getProperties()
+                    .getFirst();
+            assertThat(auditPatch())
+                    .doesNotContain(persisted.getValue())
+                    .doesNotContain("s3cret")
+                    .contains("\"key\":\"secret\"");
+            assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties())
+                    .containsEntry("ENCRYPTED", "true");
         }
 
         @Test
         void should_not_encrypt_a_fetched_property_when_toggle_is_off() {
             var api = givenApi(buildApiWithProperties(List.of()));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
-                    List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()),
-                    false
-                )
-            );
+                    List.of(Property.builder()
+                            .key("secret")
+                            .value("s3cret")
+                            .dynamic(true)
+                            .build()),
+                    false));
 
-            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            var persisted = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties()
+                    .getFirst();
             assertThat(persisted.isEncrypted()).isFalse();
             assertThat(persisted.getValue()).isEqualTo("s3cret");
         }
 
         @Test
-        void should_reencrypt_a_changed_property_and_encrypt_a_new_one_in_the_same_batch() throws GeneralSecurityException {
-            var api = givenApi(
-                buildApiWithProperties(
-                    List.of(Property.builder().key("existing").value(DATA_ENCRYPTOR.encrypt("old")).encrypted(true).dynamic(true).build())
-                )
-            );
+        void should_reencrypt_a_changed_property_and_encrypt_a_new_one_in_the_same_batch()
+                throws GeneralSecurityException {
+            var api = givenApi(buildApiWithProperties(List.of(Property.builder()
+                    .key("existing")
+                    .value(DATA_ENCRYPTOR.encrypt("old"))
+                    .encrypted(true)
+                    .dynamic(true)
+                    .build())));
 
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(
                     api.getId(),
                     HTTP_DYNAMIC_PROPERTIES,
                     List.of(
-                        Property.builder().key("existing").value("new-value").dynamic(true).build(),
-                        Property.builder().key("brand-new").value("s3cret").dynamic(true).build()
-                    ),
-                    true
-                )
-            );
+                            Property.builder()
+                                    .key("existing")
+                                    .value("new-value")
+                                    .dynamic(true)
+                                    .build(),
+                            Property.builder()
+                                    .key("brand-new")
+                                    .value("s3cret")
+                                    .dynamic(true)
+                                    .build()),
+                    true));
 
-            var properties = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties();
+            var properties = apiCrudServiceInMemory
+                    .get(api.getId())
+                    .getApiDefinitionHttpV4()
+                    .getProperties();
             assertThat(properties).hasSize(2);
             properties.forEach(p -> assertThat(p.isEncrypted()).isTrue());
 
-            var existing = properties
-                .stream()
-                .filter(p -> p.getKey().equals("existing"))
-                .findFirst()
-                .orElseThrow();
+            var existing = properties.stream()
+                    .filter(p -> p.getKey().equals("existing"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(DATA_ENCRYPTOR.decrypt(existing.getValue())).isEqualTo("new-value");
 
-            var brandNew = properties
-                .stream()
-                .filter(p -> p.getKey().equals("brand-new"))
-                .findFirst()
-                .orElseThrow();
+            var brandNew = properties.stream()
+                    .filter(p -> p.getKey().equals("brand-new"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(DATA_ENCRYPTOR.decrypt(brandNew.getValue())).isEqualTo("s3cret");
         }
     }

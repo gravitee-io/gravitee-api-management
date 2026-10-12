@@ -49,33 +49,33 @@ public class SearchEnvironmentResponseStatusOverTimeUseCase {
     public Output execute(ExecutionContext executionContext, Input input) {
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(input.from(), input.to());
         var apiIdsByDefinitionVersion = apisIdsForEnv(input.environmentId);
-        var apiIds = apiIdsByDefinitionVersion.values().stream().flatMap(Collection::stream).toList();
+        var apiIds = apiIdsByDefinitionVersion.values().stream()
+                .flatMap(Collection::stream)
+                .toList();
 
         var result = analyticsQueryService.searchResponseStatusOvertime(
-            executionContext,
-            new AnalyticsQueryService.ResponseStatusOverTimeQuery(
-                apiIds,
-                input.from(),
-                input.to(),
-                interval,
-                apiIdsByDefinitionVersion.keySet()
-            )
-        );
+                executionContext,
+                new AnalyticsQueryService.ResponseStatusOverTimeQuery(
+                        apiIds, input.from(), input.to(), interval, apiIdsByDefinitionVersion.keySet()));
 
         return new Output(result);
     }
 
     private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder()
-                    .environmentId(envId)
-                    .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(groupingBy(SearchEnvironmentResponseStatusOverTimeUseCase::getDefinitionVersion, mapping(Api::getId, toList())));
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(envId)
+                                .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .collect(groupingBy(
+                        SearchEnvironmentResponseStatusOverTimeUseCase::getDefinitionVersion,
+                        mapping(Api::getId, toList())));
     }
 
     private static DefinitionVersion getDefinitionVersion(Api api) {

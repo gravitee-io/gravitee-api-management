@@ -36,7 +36,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboard, String> implements DashboardRepository {
+public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboard, String>
+        implements DashboardRepository {
 
     JdbcDashboardRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "dashboards");
@@ -45,18 +46,18 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
     @Override
     protected JdbcObjectMapper<Dashboard> buildOrm() {
         return JdbcObjectMapper.builder(Dashboard.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("query_filter", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("enabled", Types.BOOLEAN, boolean.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("query_filter", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("enabled", Types.BOOLEAN, boolean.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -69,11 +70,10 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
         log.debug("JdbcDashboardRepository.findByReference({},{})", referenceType, referenceId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ? ",
-                getOrm().getRowMapper(),
-                referenceType,
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ? ",
+                    getOrm().getRowMapper(),
+                    referenceType,
+                    referenceId);
         } catch (final Exception ex) {
             final String error = "Failed to find dashboards by reference";
             log.error(error, ex);
@@ -82,20 +82,19 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
     }
 
     @Override
-    public List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException {
+    public List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type)
+            throws TechnicalException {
         log.debug("JdbcDashboardRepository.findByReferenceAndType({},{},{})", referenceType, referenceId, type);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " where reference_type = ? and reference_id = ? and " +
-                    escapeReservedWord("type") +
-                    "= ? order by " +
-                    escapeReservedWord("order"),
-                getOrm().getRowMapper(),
-                referenceType,
-                referenceId,
-                type
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ? and "
+                            + escapeReservedWord("type")
+                            + "= ? order by "
+                            + escapeReservedWord("order"),
+                    getOrm().getRowMapper(),
+                    referenceType,
+                    referenceId,
+                    type);
         } catch (final Exception ex) {
             final String error = "Failed to find dashboards by type";
             log.error(error, ex);
@@ -104,19 +103,19 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
     }
 
     @Override
-    public Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id) throws TechnicalException {
+    public Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id)
+            throws TechnicalException {
         log.debug("JdbcDashboardRepository.findByReferenceAndId({},{},{})", referenceType, referenceId, id);
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectByIdSql() + " and reference_type = ? and reference_id = ?",
-                    getOrm().getRowMapper(),
-                    id,
-                    referenceType,
-                    referenceId
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectByIdSql() + " and reference_type = ? and reference_id = ?",
+                            getOrm().getRowMapper(),
+                            id,
+                            referenceType,
+                            referenceId)
+                    .stream()
+                    .findFirst();
         } catch (final Exception ex) {
             final String error = "Failed to find dashboards by id";
             log.error(error, ex);
@@ -126,25 +125,26 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, DashboardReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcDashboardRepository.deleteByReferenceIdAndReferenceType({},{})", referenceId, referenceType);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType.name(),
-                referenceId
-            );
+                    "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType.name(),
+                    referenceId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
-                    referenceType.name(),
-                    referenceId
-                );
+                        "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                        referenceType.name(),
+                        referenceId);
             }
 
-            log.debug("JdbcDashboardRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done", referenceId, referenceType);
+            log.debug(
+                    "JdbcDashboardRepository.deleteByReferenceIdAndReferenceType({}, {}) - Done",
+                    referenceId,
+                    referenceType);
             return rows;
         } catch (final Exception ex) {
             log.error("Failed to delete dashboards for refId: {}/{}", referenceId, referenceType, ex);

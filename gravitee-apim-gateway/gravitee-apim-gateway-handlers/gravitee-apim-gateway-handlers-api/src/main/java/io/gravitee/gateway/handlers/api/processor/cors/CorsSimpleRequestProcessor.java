@@ -51,20 +51,22 @@ public class CorsSimpleRequestProcessor extends CorsRequestProcessor {
             // or the string "*" as value.
             if (cors.isAccessControlAllowCredentials()) {
                 response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
-                response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.headers().getFirst(HttpHeaders.ORIGIN));
+                response.headers()
+                        .set(
+                                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                                request.headers().getFirst(HttpHeaders.ORIGIN));
             } else {
                 response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOW_ORIGIN_PUBLIC_WILDCARD);
             }
 
             // 4. If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
             // with as values the header field names given in the list of exposed headers.
-            if (cors.getAccessControlExposeHeaders() != null && !cors.getAccessControlExposeHeaders().isEmpty()) {
-                response
-                    .headers()
-                    .set(
-                        HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
-                        String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlExposeHeaders())
-                    );
+            if (cors.getAccessControlExposeHeaders() != null
+                    && !cors.getAccessControlExposeHeaders().isEmpty()) {
+                response.headers()
+                        .set(
+                                HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
+                                String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlExposeHeaders()));
             }
         } else {
             // Insure that no CORS headers are defined by upstream

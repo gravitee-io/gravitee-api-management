@@ -32,11 +32,11 @@ public class ReactorPluginConfiguration {
 
     @Bean
     public DefaultReactorPluginManager reactorPluginManager(
-        final ApplicationContext applicationContext,
-        final PluginContextFactory pluginContextFactory,
-        final ReactorFactoryManager factoryManager,
-        final ServiceManager serviceManager
-    ) {
-        return new DefaultReactorPluginManager(applicationContext, pluginContextFactory, factoryManager, serviceManager);
+            final ApplicationContext applicationContext,
+            final PluginContextFactory pluginContextFactory,
+            final ReactorFactoryManager factoryManager,
+            final ServiceManager serviceManager) {
+        return new DefaultReactorPluginManager(
+                applicationContext, pluginContextFactory, factoryManager, serviceManager);
     }
 }

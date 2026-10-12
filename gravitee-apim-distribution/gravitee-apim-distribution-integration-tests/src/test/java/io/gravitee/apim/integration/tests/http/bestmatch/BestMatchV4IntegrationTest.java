@@ -44,12 +44,14 @@ public class BestMatchV4IntegrationTest extends AbstractBestMatchIntegrationTest
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
     }
 
@@ -60,35 +62,33 @@ public class BestMatchV4IntegrationTest extends AbstractBestMatchIntegrationTest
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition
-                    .getFlows()
-                    .stream()
-                    .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-                    .forEach(selector -> {
-                        HttpSelector httpSelector = (HttpSelector) selector;
-                        httpSelector.setPathOperator(Operator.EQUALS);
-                    });
-                definition
-                    .getPlans()
-                    .stream()
-                    .flatMap(plan -> plan.getFlows().stream())
-                    .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-                    .forEach(selector -> {
-                        HttpSelector httpSelector = (HttpSelector) selector;
-                        httpSelector.setPathOperator(Operator.EQUALS);
-                    });
+                definition.getFlows().stream()
+                        .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+                        .forEach(selector -> {
+                            HttpSelector httpSelector = (HttpSelector) selector;
+                            httpSelector.setPathOperator(Operator.EQUALS);
+                        });
+                definition.getPlans().stream()
+                        .flatMap(plan -> plan.getFlows().stream())
+                        .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+                        .forEach(selector -> {
+                            HttpSelector httpSelector = (HttpSelector) selector;
+                            httpSelector.setPathOperator(Operator.EQUALS);
+                        });
             }
         }
     }

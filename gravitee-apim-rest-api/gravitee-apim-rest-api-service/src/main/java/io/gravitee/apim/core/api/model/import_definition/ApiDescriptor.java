@@ -55,66 +55,88 @@ import lombok.Builder;
 
 public sealed interface ApiDescriptor {
     String id();
+
     String crossId();
+
     String name();
+
     String apiVersion();
+
     DefinitionVersion definitionVersion();
+
     ApiType type();
+
     String description();
+
     Instant deployedAt();
+
     Instant createdAt();
+
     Instant updatedAt();
+
     boolean disableMembershipNotifications();
+
     Map<String, Object> metadata();
+
     Set<String> groups();
+
     Visibility visibility();
+
     List<String> labels();
+
     ApiLifecycleState lifecycleState();
+
     Set<String> tags();
+
     PrimaryOwnerEntity primaryOwner();
+
     Set<String> categories();
+
     OriginContext originContext();
+
     WorkflowState workflowState();
+
     String picture();
+
     String background();
 
     @Builder
     record ApiDescriptorV4(
-        String id,
-        String crossId,
-        String name,
-        String apiVersion,
-        ApiType type,
-        String description,
-        Instant deployedAt,
-        Instant createdAt,
-        Instant updatedAt,
-        boolean disableMembershipNotifications,
-        Map<String, Object> metadata,
-        Set<String> groups,
-        Lifecycle.State state,
-        Visibility visibility,
-        List<String> labels,
-        ApiLifecycleState lifecycleState,
-        Set<String> tags,
-        PrimaryOwnerEntity primaryOwner,
-        Set<String> categories,
-        OriginContext originContext,
-        WorkflowState workflowState,
-        String picture,
-        String background,
-        List<Listener> listeners,
-        List<EndpointGroup> endpointGroups,
-        Analytics analytics,
-        FlowExecution flowExecution,
-        List<Flow> flows,
-        Map<String, Map<String, ResponseTemplate>> responseTemplates,
-        List<Property> properties,
-        List<Resource> resources,
-        ApiServices services,
-        Failover failover,
-        Boolean allowedInApiProducts
-    ) implements ApiDescriptor {
+            String id,
+            String crossId,
+            String name,
+            String apiVersion,
+            ApiType type,
+            String description,
+            Instant deployedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            boolean disableMembershipNotifications,
+            Map<String, Object> metadata,
+            Set<String> groups,
+            Lifecycle.State state,
+            Visibility visibility,
+            List<String> labels,
+            ApiLifecycleState lifecycleState,
+            Set<String> tags,
+            PrimaryOwnerEntity primaryOwner,
+            Set<String> categories,
+            OriginContext originContext,
+            WorkflowState workflowState,
+            String picture,
+            String background,
+            List<Listener> listeners,
+            List<EndpointGroup> endpointGroups,
+            Analytics analytics,
+            FlowExecution flowExecution,
+            List<Flow> flows,
+            Map<String, Map<String, ResponseTemplate>> responseTemplates,
+            List<Property> properties,
+            List<Resource> resources,
+            ApiServices services,
+            Failover failover,
+            Boolean allowedInApiProducts)
+            implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {
@@ -124,36 +146,36 @@ public sealed interface ApiDescriptor {
 
     @Builder
     record Native(
-        String id,
-        String crossId,
-        String name,
-        String apiVersion,
-        String description,
-        Instant deployedAt,
-        Instant createdAt,
-        Instant updatedAt,
-        boolean disableMembershipNotifications,
-        Map<String, Object> metadata,
-        Set<String> groups,
-        Lifecycle.State state,
-        Visibility visibility,
-        List<String> labels,
-        ApiLifecycleState lifecycleState,
-        Set<String> tags,
-        PrimaryOwnerEntity primaryOwner,
-        Set<String> categories,
-        OriginContext originContext,
-        WorkflowState workflowState,
-        String picture,
-        String background,
-        List<NativeListener> listeners,
-        List<NativeEndpointGroup> endpointGroups,
-        NativeAnalytics analytics,
-        List<NativeFlow> flows,
-        List<Property> properties,
-        List<Resource> resources,
-        NativeApiServices services
-    ) implements ApiDescriptor {
+            String id,
+            String crossId,
+            String name,
+            String apiVersion,
+            String description,
+            Instant deployedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            boolean disableMembershipNotifications,
+            Map<String, Object> metadata,
+            Set<String> groups,
+            Lifecycle.State state,
+            Visibility visibility,
+            List<String> labels,
+            ApiLifecycleState lifecycleState,
+            Set<String> tags,
+            PrimaryOwnerEntity primaryOwner,
+            Set<String> categories,
+            OriginContext originContext,
+            WorkflowState workflowState,
+            String picture,
+            String background,
+            List<NativeListener> listeners,
+            List<NativeEndpointGroup> endpointGroups,
+            NativeAnalytics analytics,
+            List<NativeFlow> flows,
+            List<Property> properties,
+            List<Resource> resources,
+            NativeApiServices services)
+            implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {
@@ -169,31 +191,31 @@ public sealed interface ApiDescriptor {
 
     @Builder
     record Federated(
-        String id,
-        String crossId,
-        String name,
-        String apiVersion,
-        ApiType type,
-        Lifecycle.State state,
-        String description,
-        Instant deployedAt,
-        Instant createdAt,
-        Instant updatedAt,
-        boolean disableMembershipNotifications,
-        Map<String, Object> metadata,
-        Set<String> groups,
-        Visibility visibility,
-        List<String> labels,
-        ApiLifecycleState lifecycleState,
-        Set<String> tags,
-        PrimaryOwnerEntity primaryOwner,
-        Set<String> categories,
-        OriginContext.Integration originContext,
-        WorkflowState workflowState,
-        String picture,
-        String background,
-        String providerId
-    ) implements ApiDescriptor {
+            String id,
+            String crossId,
+            String name,
+            String apiVersion,
+            ApiType type,
+            Lifecycle.State state,
+            String description,
+            Instant deployedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            boolean disableMembershipNotifications,
+            Map<String, Object> metadata,
+            Set<String> groups,
+            Visibility visibility,
+            List<String> labels,
+            ApiLifecycleState lifecycleState,
+            Set<String> tags,
+            PrimaryOwnerEntity primaryOwner,
+            Set<String> categories,
+            OriginContext.Integration originContext,
+            WorkflowState workflowState,
+            String picture,
+            String background,
+            String providerId)
+            implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {
@@ -203,41 +225,41 @@ public sealed interface ApiDescriptor {
 
     @Builder
     record ApiDescriptorV2(
-        String id,
-        String crossId,
-        String name,
-        String apiVersion,
-        String description,
-        Instant deployedAt,
-        Instant createdAt,
-        Instant updatedAt,
-        FlowMode flowMode,
-        DefinitionContext definitionContext,
-        Proxy proxy,
-        Services services,
-        List<io.gravitee.definition.model.plugins.resources.Resource> resources,
-        List<io.gravitee.definition.model.flow.Flow> flows,
-        Properties properties,
-        Set<String> tags,
-        Map<String, Pattern> pathMappings,
-        Map<String, Map<String, ResponseTemplate>> responseTemplates,
-        Map<String, Plan> plans,
-        ExecutionMode executionMode,
+            String id,
+            String crossId,
+            String name,
+            String apiVersion,
+            String description,
+            Instant deployedAt,
+            Instant createdAt,
+            Instant updatedAt,
+            FlowMode flowMode,
+            DefinitionContext definitionContext,
+            Proxy proxy,
+            Services services,
+            List<io.gravitee.definition.model.plugins.resources.Resource> resources,
+            List<io.gravitee.definition.model.flow.Flow> flows,
+            Properties properties,
+            Set<String> tags,
+            Map<String, Pattern> pathMappings,
+            Map<String, Map<String, ResponseTemplate>> responseTemplates,
+            Map<String, Plan> plans,
+            ExecutionMode executionMode,
 
-        Lifecycle.State state,
-        boolean disableMembershipNotifications,
-        Map<String, Object> metadata,
-        Set<String> groups,
-        Visibility visibility,
-        List<String> labels,
-        ApiLifecycleState lifecycleState,
-        PrimaryOwnerEntity primaryOwner,
-        Set<String> categories,
-        OriginContext originContext,
-        WorkflowState workflowState,
-        String picture,
-        String background
-    ) implements ApiDescriptor {
+            Lifecycle.State state,
+            boolean disableMembershipNotifications,
+            Map<String, Object> metadata,
+            Set<String> groups,
+            Visibility visibility,
+            List<String> labels,
+            ApiLifecycleState lifecycleState,
+            PrimaryOwnerEntity primaryOwner,
+            Set<String> categories,
+            OriginContext originContext,
+            WorkflowState workflowState,
+            String picture,
+            String background)
+            implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {

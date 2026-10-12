@@ -79,14 +79,13 @@ class ApimAmConnectionRepositoryTest {
     @Test
     void save_builds_entity_from_model_and_returns_mapped_result() {
         AmConnection connection = new AmConnection(
-            "https://am.example.com",
-            "plain-token",
-            "am-org-1",
-            "env-1",
-            "dom-1",
-            "dom-hrid-1",
-            "https://gw.example.com"
-        );
+                "https://am.example.com",
+                "plain-token",
+                "am-org-1",
+                "env-1",
+                "dom-1",
+                "dom-hrid-1",
+                "https://gw.example.com");
         AmConnectionEntity returned = new AmConnectionEntity();
         returned.setBaseUrl("https://am.example.com");
         returned.setServiceAccountAccessToken("plain-token");
@@ -125,14 +124,16 @@ class ApimAmConnectionRepositoryTest {
     @Test
     void toString_redacts_the_token() {
         AmConnection connection = new AmConnection(
-            "https://am.example.com",
-            "plain-token",
-            "am-org-1",
-            "env-1",
-            "dom-1",
-            "dom-hrid-1",
-            "https://gw.example.com"
-        );
-        assertThat(connection.toString()).doesNotContain("plain-token").contains("***").contains("https://am.example.com");
+                "https://am.example.com",
+                "plain-token",
+                "am-org-1",
+                "env-1",
+                "dom-1",
+                "dom-hrid-1",
+                "https://gw.example.com");
+        assertThat(connection.toString())
+                .doesNotContain("plain-token")
+                .contains("***")
+                .contains("https://am.example.com");
     }
 }

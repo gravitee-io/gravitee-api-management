@@ -26,6 +26,8 @@ public class WSDLToOpenAPIConverterExceptionTest {
 
     @Test
     public void convertWsdlWithException() {
-        assertThrows(WsdlDescriptorException.class, () -> converter.toOpenAPI(this.getClass().getResourceAsStream("/root_pwd.wsdl")));
+        assertThrows(
+                WsdlDescriptorException.class,
+                () -> converter.toOpenAPI(this.getClass().getResourceAsStream("/root_pwd.wsdl")));
     }
 }

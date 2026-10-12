@@ -25,11 +25,10 @@ import java.util.Set;
  */
 public interface GroupValidationService {
     Set<String> validateAndSanitize(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final Set<String> groups,
-        final Set<String> existingGroups,
-        final PrimaryOwnerEntity primaryOwnerEntity,
-        final boolean addDefaultGroups
-    );
+            final ExecutionContext executionContext,
+            final String apiId,
+            final Set<String> groups,
+            final Set<String> existingGroups,
+            final PrimaryOwnerEntity primaryOwnerEntity,
+            final boolean addDefaultGroups);
 }

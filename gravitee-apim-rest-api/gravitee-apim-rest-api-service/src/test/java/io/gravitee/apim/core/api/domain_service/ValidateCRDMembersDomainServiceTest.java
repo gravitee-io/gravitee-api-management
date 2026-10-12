@@ -47,10 +47,14 @@ class ValidateCRDMembersDomainServiceTest {
     static final String ROLE_ID = UUID.randomUUID().toString();
 
     static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .actor(AuditActor.builder().userSource(USER_SOURCE).userSourceId(ACTOR_USER_ID).userId(ACTOR_USER_ID).build())
-        .environmentId(ENV_ID)
-        .organizationId(ORG_ID)
-        .build();
+            .actor(AuditActor.builder()
+                    .userSource(USER_SOURCE)
+                    .userSourceId(ACTOR_USER_ID)
+                    .userId(ACTOR_USER_ID)
+                    .build())
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .build();
 
     UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -59,147 +63,195 @@ class ValidateCRDMembersDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        userDomainService.initWith(
-            List.of(
-                BaseUserEntity.builder().organizationId(ORG_ID).id(USER_ID).source(IdpSource.of(USER_SOURCE)).sourceId(USER_ID).build(),
+        userDomainService.initWith(List.of(
                 BaseUserEntity.builder()
-                    .organizationId(ORG_ID)
-                    .id(ACTOR_USER_ID)
-                    .source(IdpSource.of(USER_SOURCE))
-                    .sourceId(ACTOR_USER_ID)
-                    .build()
-            )
-        );
-        roleQueryService.initWith(
-            List.of(
+                        .organizationId(ORG_ID)
+                        .id(USER_ID)
+                        .source(IdpSource.of(USER_SOURCE))
+                        .sourceId(USER_ID)
+                        .build(),
+                BaseUserEntity.builder()
+                        .organizationId(ORG_ID)
+                        .id(ACTOR_USER_ID)
+                        .source(IdpSource.of(USER_SOURCE))
+                        .sourceId(ACTOR_USER_ID)
+                        .build()));
+        roleQueryService.initWith(List.of(
                 Role.builder()
-                    .name("USER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORG_ID)
-                    .id(ROLE_ID)
-                    .scope(Role.Scope.APPLICATION)
-                    .build(),
+                        .name("USER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORG_ID)
+                        .id(ROLE_ID)
+                        .scope(Role.Scope.APPLICATION)
+                        .build(),
                 Role.builder()
-                    .name("USER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORG_ID)
-                    .id(ROLE_ID)
-                    .scope(Role.Scope.API)
-                    .build(),
+                        .name("USER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORG_ID)
+                        .id(ROLE_ID)
+                        .scope(Role.Scope.API)
+                        .build(),
                 Role.builder()
-                    .name("PRIMARY_OWNER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORG_ID)
-                    .id("user_role_id")
-                    .scope(Role.Scope.APPLICATION)
-                    .build(),
+                        .name("PRIMARY_OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORG_ID)
+                        .id("user_role_id")
+                        .scope(Role.Scope.APPLICATION)
+                        .build(),
                 Role.builder()
-                    .name("PRIMARY_OWNER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORG_ID)
-                    .id("user_role_id")
-                    .scope(Role.Scope.API)
-                    .build()
-            )
-        );
+                        .name("PRIMARY_OWNER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORG_ID)
+                        .id("user_role_id")
+                        .scope(Role.Scope.API)
+                        .build()));
     }
 
     @Test
     void should_return_no_warning_with_existing_member() {
-        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("USER").build()));
-        var expectedMembers = Set.of(MemberCRD.builder().id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder()
+                .source(USER_SOURCE)
+                .sourceId(USER_ID)
+                .role("USER")
+                .build()));
+        var expectedMembers = Set.of(MemberCRD.builder()
+                .id(USER_ID)
+                .source(USER_SOURCE)
+                .sourceId(USER_ID)
+                .role("USER")
+                .build());
         var result = cut.validateAndSanitize(
-            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members)
-        );
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members));
 
         result.peek(
-            sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
-            errors -> assertThat(errors).isEmpty()
-        );
+                sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
+                errors -> assertThat(errors).isEmpty());
     }
 
     @Test
     void should_return_warning_with_unknown_member() {
         var members = new LinkedHashSet<MemberCRD>();
-        members.add(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
-        members.add(MemberCRD.builder().source(USER_SOURCE).sourceId("unknown-id").role("USER").build());
-        var expectedMembers = Set.of(MemberCRD.builder().id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).role("USER").build());
+        members.add(MemberCRD.builder()
+                .source(USER_SOURCE)
+                .sourceId(USER_ID)
+                .role("USER")
+                .build());
+        members.add(MemberCRD.builder()
+                .source(USER_SOURCE)
+                .sourceId("unknown-id")
+                .role("USER")
+                .build());
+        var expectedMembers = Set.of(MemberCRD.builder()
+                .id(USER_ID)
+                .source(USER_SOURCE)
+                .sourceId(USER_ID)
+                .role("USER")
+                .build());
         var result = cut.validateAndSanitize(
-            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members)
-        );
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, members));
 
         result.peek(
-            sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
-            errors ->
-                assertThat(errors).isEqualTo(
-                    List.of(Validator.Error.warning("member [unknown-id] of source [MEMORY] could not be found in organization [TEST]"))
-                )
-        );
+                sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
+                errors -> assertThat(errors)
+                        .isEqualTo(List.of(Validator.Error.warning(
+                                "member [unknown-id] of source [MEMORY] could not be found in organization [TEST]"))));
     }
 
     @ParameterizedTest
-    @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
+    @EnumSource(
+            value = MembershipReferenceType.class,
+            names = {"APPLICATION", "API"})
     void should_return_warning_with_unknown_member_role(MembershipReferenceType referenceType) {
-        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("UNKNOWN").build()));
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder()
+                .source(USER_SOURCE)
+                .sourceId(USER_ID)
+                .role("UNKNOWN")
+                .build()));
         var expectedMembers = Set.copyOf(members);
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
+        var result =
+                cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
-            sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
-            errors -> assertThat(errors).isEqualTo(List.of(Validator.Error.warning("member role [UNKNOWN] doesn't exist")))
-        );
+                sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
+                errors -> assertThat(errors)
+                        .isEqualTo(List.of(Validator.Error.warning("member role [UNKNOWN] doesn't exist"))));
     }
 
     @ParameterizedTest
-    @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
+    @EnumSource(
+            value = MembershipReferenceType.class,
+            names = {"APPLICATION", "API"})
     void should_not_return_warning_with_known_member_role(MembershipReferenceType referenceType) {
-        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role(ROLE_ID).build()));
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder()
+                .source(USER_SOURCE)
+                .sourceId(USER_ID)
+                .role(ROLE_ID)
+                .build()));
         var expectedMembers = Set.copyOf(members);
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
+        var result =
+                cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
-            sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
-            errors -> assertThat(errors).isEmpty()
-        );
+                sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
+                errors -> assertThat(errors).isEmpty());
     }
 
     @ParameterizedTest
-    @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
+    @EnumSource(
+            value = MembershipReferenceType.class,
+            names = {"APPLICATION", "API"})
     void should_return_error_with_primary_owner_role(MembershipReferenceType referenceType) {
-        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(USER_ID).role("PRIMARY_OWNER").build()));
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder()
+                .source(USER_SOURCE)
+                .sourceId(USER_ID)
+                .role("PRIMARY_OWNER")
+                .build()));
         var expectedMembers = Set.of();
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
+        var result =
+                cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
-            sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
-            errors ->
-                assertThat(errors).isEqualTo(List.of(Validator.Error.severe("setting a member with the primary owner role is not allowed")))
-        );
+                sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
+                errors -> assertThat(errors)
+                        .isEqualTo(List.of(Validator.Error.severe(
+                                "setting a member with the primary owner role is not allowed"))));
     }
 
     @ParameterizedTest
-    @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
+    @EnumSource(
+            value = MembershipReferenceType.class,
+            names = {"APPLICATION", "API"})
     void should_return_error_changing_primary_owner_role(MembershipReferenceType referenceType) {
-        userDomainService.initWith(
-            List.of(BaseUserEntity.builder().organizationId(ORG_ID).id(USER_ID).source(IdpSource.of(USER_SOURCE)).sourceId(USER_ID).build())
-        );
-        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(ACTOR_USER_ID).role("USER").build()));
+        userDomainService.initWith(List.of(BaseUserEntity.builder()
+                .organizationId(ORG_ID)
+                .id(USER_ID)
+                .source(IdpSource.of(USER_SOURCE))
+                .sourceId(USER_ID)
+                .build()));
+        var members = new LinkedHashSet<>(Set.of(MemberCRD.builder()
+                .source(USER_SOURCE)
+                .sourceId(ACTOR_USER_ID)
+                .role("USER")
+                .build()));
         var expectedMembers = Set.of();
-        var result = cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
+        var result =
+                cut.validateAndSanitize(new ValidateCRDMembersDomainService.Input(AUDIT_INFO, referenceType, members));
 
         result.peek(
-            sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
-            errors -> assertThat(errors).isEqualTo(List.of(Validator.Error.severe("can not change the role of primary owner [ACTOR]")))
-        );
+                sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
+                errors -> assertThat(errors)
+                        .isEqualTo(
+                                List.of(Validator.Error.severe("can not change the role of primary owner [ACTOR]"))));
     }
 
     @Test
     void should_return_no_warning_with_null_members() {
         var expectedMembers = Set.of();
         var result = cut.validateAndSanitize(
-            new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, null)
-        );
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, null));
 
-        result.peek(sanitized -> assertThat(sanitized.members()).isEqualTo(expectedMembers), errors -> assertThat(errors).isEmpty());
+        result.peek(
+                sanitized -> assertThat(sanitized.members()).isEqualTo(expectedMembers),
+                errors -> assertThat(errors).isEmpty());
     }
 }

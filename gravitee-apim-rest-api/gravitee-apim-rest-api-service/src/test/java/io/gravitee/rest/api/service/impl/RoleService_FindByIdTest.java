@@ -27,7 +27,6 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.RoleServiceImpl;
 import java.util.Arrays;
 import java.util.Optional;
 import org.apache.commons.lang3.ArrayUtils;
@@ -82,12 +81,11 @@ public class RoleService_FindByIdTest {
     @Test
     public void shouldFindById_CRUD() throws TechnicalException {
         test_int_to_CRUD(
-            3015,
-            RolePermissionAction.CREATE,
-            RolePermissionAction.READ,
-            RolePermissionAction.UPDATE,
-            RolePermissionAction.DELETE
-        );
+                3015,
+                RolePermissionAction.CREATE,
+                RolePermissionAction.READ,
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.DELETE);
     }
 
     private void test_int_to_CRUD(int perm, RolePermissionAction... action) throws TechnicalException {
@@ -95,7 +93,7 @@ public class RoleService_FindByIdTest {
         when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleMock.getId()).thenReturn("id");
         when(roleMock.getName()).thenReturn("name");
-        when(roleMock.getPermissions()).thenReturn(new int[] { perm });
+        when(roleMock.getPermissions()).thenReturn(new int[] {perm});
         when(mockRoleRepository.findById("id")).thenReturn(Optional.of(roleMock));
 
         RoleEntity entity = roleService.findById("id");
@@ -109,7 +107,9 @@ public class RoleService_FindByIdTest {
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());
         assertEquals(action.length, perms.length, "not enough permissions");
         for (RolePermissionAction rolePermissionAction : action) {
-            assertTrue(Arrays.asList(ArrayUtils.toObject(perms)).contains(rolePermissionAction.getId()), "not the good permission");
+            assertTrue(
+                    Arrays.asList(ArrayUtils.toObject(perms)).contains(rolePermissionAction.getId()),
+                    "not the good permission");
         }
     }
 }

@@ -52,9 +52,10 @@ import org.springframework.stereotype.Component;
 public class IdentityProviderInitializer implements Initializer {
 
     private static final String DESCRIPTION =
-        "Configuration provided by the system. Every modifications will be overridden at the next startup.";
+            "Configuration provided by the system. Every modifications will be overridden at the next startup.";
     private final List<String> notStorableIDPs = Arrays.asList("gravitee", "ldap", "memory");
-    private final List<String> idpTypeNames = Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
+    private final List<String> idpTypeNames =
+            Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
 
     private final ConfigurableEnvironment environment;
 
@@ -70,13 +71,12 @@ public class IdentityProviderInitializer implements Initializer {
 
     @Autowired
     public IdentityProviderInitializer(
-        ConfigurableEnvironment environment,
-        GroupService groupService,
-        OrganizationService organizationService,
-        EnvironmentService environmentService,
-        IdentityProviderService identityProviderService,
-        IdentityProviderActivationService identityProviderActivationService
-    ) {
+            ConfigurableEnvironment environment,
+            GroupService groupService,
+            OrganizationService organizationService,
+            EnvironmentService environmentService,
+            IdentityProviderService identityProviderService,
+            IdentityProviderActivationService identityProviderActivationService) {
         this.environment = environment;
         this.groupService = groupService;
         this.organizationService = organizationService;
@@ -108,7 +108,8 @@ public class IdentityProviderInitializer implements Initializer {
                     try {
                         identityProviderService.findById(formattedId);
                     } catch (IdentityProviderNotFoundException e) {
-                        formattedId = createIdp(executionContext, formattedId, IdentityProviderType.valueOf(type.toUpperCase()), idx);
+                        formattedId = createIdp(
+                                executionContext, formattedId, IdentityProviderType.valueOf(type.toUpperCase()), idx);
                     }
                     // always update
                     updateIdp(executionContext, formattedId, idx);
@@ -124,15 +125,18 @@ public class IdentityProviderInitializer implements Initializer {
         return true;
     }
 
-    private String createIdp(ExecutionContext executionContext, String id, IdentityProviderType type, int providerIndex) {
+    private String createIdp(
+            ExecutionContext executionContext, String id, IdentityProviderType type, int providerIndex) {
         NewIdentityProviderEntity idp = new NewIdentityProviderEntity();
         idp.setName(id);
         idp.setType(type);
         idp.setDescription(DESCRIPTION);
         idp.setEnabled(true);
         idp.setConfiguration(getConfiguration(providerIndex));
-        idp.setEmailRequired(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
-        idp.setSyncMappings(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
+        idp.setEmailRequired(
+                Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
+        idp.setSyncMappings(
+                Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
 
         Map<String, String> userProfileMapping = getUserProfileMapping(providerIndex);
         if (!userProfileMapping.isEmpty()) {
@@ -143,7 +147,7 @@ public class IdentityProviderInitializer implements Initializer {
     }
 
     private void updateIdpActivations(ExecutionContext executionContext, String id, int providerIndex) {
-        //remove all previous activations
+        // remove all previous activations
         identityProviderActivationService.deactivateIdpOnAllTargets(executionContext, id);
 
         ActivationTarget[] targets = getActivationsTarget(providerIndex);
@@ -160,7 +164,8 @@ public class IdentityProviderInitializer implements Initializer {
             if (orgEnv.length == 1) {
                 try {
                     this.organizationService.findById(orgEnv[0]);
-                    activationTargets.add(new ActivationTarget(orgEnv[0], IdentityProviderActivationReferenceType.ORGANIZATION));
+                    activationTargets.add(
+                            new ActivationTarget(orgEnv[0], IdentityProviderActivationReferenceType.ORGANIZATION));
                 } catch (OrganizationNotFoundException onfe) {
                     log.warn("Organization {} does not exist", orgEnv[0]);
                 }
@@ -169,7 +174,8 @@ public class IdentityProviderInitializer implements Initializer {
                     this.organizationService.findById(orgEnv[0]);
                     EnvironmentEntity env = this.environmentService.findById(orgEnv[1]);
                     if (env.getOrganizationId().equals(orgEnv[0])) {
-                        activationTargets.add(new ActivationTarget(orgEnv[1], IdentityProviderActivationReferenceType.ENVIRONMENT));
+                        activationTargets.add(
+                                new ActivationTarget(orgEnv[1], IdentityProviderActivationReferenceType.ENVIRONMENT));
                     } else {
                         log.warn("Environment {} does not exist in organization {}", orgEnv[1], orgEnv[0]);
                     }
@@ -188,9 +194,11 @@ public class IdentityProviderInitializer implements Initializer {
         idp.setName(id);
         idp.setDescription(DESCRIPTION);
         idp.setConfiguration(getConfiguration(providerIndex));
-        idp.setEmailRequired(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
+        idp.setEmailRequired(
+                Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
         idp.setEnabled(true);
-        idp.setSyncMappings(Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
+        idp.setSyncMappings(
+                Boolean.parseBoolean((String) idp.getConfiguration().getOrDefault("syncMappings", "false")));
 
         Map<String, String> userProfileMapping = getUserProfileMapping(providerIndex);
         if (!userProfileMapping.isEmpty()) {
@@ -270,16 +278,19 @@ public class IdentityProviderInitializer implements Initializer {
         List<GroupMappingEntity> mapping = new ArrayList<>();
 
         while (found) {
-            String condition = environment.getProperty("security.providers[" + providerIndex + "].groupMapping[" + idx + "].condition");
+            String condition = environment.getProperty(
+                    "security.providers[" + providerIndex + "].groupMapping[" + idx + "].condition");
             found = (condition != null);
             if (found) {
                 GroupMappingEntity groupMappingEntity = new GroupMappingEntity();
                 groupMappingEntity.setCondition(condition);
-                List<String> groupNames = getListOfString("security.providers[" + providerIndex + "].groupMapping[" + idx + "].groups");
+                List<String> groupNames =
+                        getListOfString("security.providers[" + providerIndex + "].groupMapping[" + idx + "].groups");
                 if (!groupNames.isEmpty()) {
                     List<String> groups = new ArrayList<>();
                     groupNames.forEach(groupName -> {
-                        List<GroupEntity> groupsFound = groupService.findByName(executionContext.getEnvironmentId(), groupName);
+                        List<GroupEntity> groupsFound =
+                                groupService.findByName(executionContext.getEnvironmentId(), groupName);
 
                         if (groupsFound != null && groupsFound.size() == 1) {
                             groups.add(groupsFound.get(0).getId());
@@ -302,10 +313,12 @@ public class IdentityProviderInitializer implements Initializer {
         List<RoleMappingEntity> mapping = new ArrayList<>();
 
         while (found) {
-            String condition = environment.getProperty("security.providers[" + providerIndex + "].roleMapping[" + idx + "].condition");
+            String condition = environment.getProperty(
+                    "security.providers[" + providerIndex + "].roleMapping[" + idx + "].condition");
             found = (condition != null);
             if (found) {
-                List<String> roles = getListOfString("security.providers[" + providerIndex + "].roleMapping[" + idx + "].roles");
+                List<String> roles =
+                        getListOfString("security.providers[" + providerIndex + "].roleMapping[" + idx + "].roles");
                 RoleMappingEntity roleMappingEntity = identityProviderService.getRoleMappings(condition, roles);
                 mapping.add(roleMappingEntity);
             }

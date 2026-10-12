@@ -38,27 +38,20 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
         if (planId == null) {
             throw new TechnicalManagementException("planId should not be null");
         }
-        return storage
-            .stream()
-            .filter(plan -> planId.equals(plan.getId()))
-            .findFirst()
-            .orElseThrow(() -> new PlanNotFoundException(planId));
+        return storage.stream()
+                .filter(plan -> planId.equals(plan.getId()))
+                .findFirst()
+                .orElseThrow(() -> new PlanNotFoundException(planId));
     }
 
     @Override
     public Optional<Plan> findById(String planId) {
-        return storage
-            .stream()
-            .filter(plan -> planId.equals(plan.getId()))
-            .findFirst();
+        return storage.stream().filter(plan -> planId.equals(plan.getId())).findFirst();
     }
 
     @Override
     public List<Plan> findByIds(List<String> planIds) {
-        return storage
-            .stream()
-            .filter(plan -> planIds.contains(plan.getId()))
-            .collect(Collectors.toList());
+        return storage.stream().filter(plan -> planIds.contains(plan.getId())).collect(Collectors.toList());
     }
 
     @Override
@@ -68,40 +61,37 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
         }
 
         for (Plan updatedPlan : plans) {
-            storage
-                .stream()
-                .filter(existing -> existing.getId().equals(updatedPlan.getId()))
-                .findFirst()
-                .ifPresent(existing -> existing.setCrossId(updatedPlan.getCrossId()));
+            storage.stream()
+                    .filter(existing -> existing.getId().equals(updatedPlan.getId()))
+                    .findFirst()
+                    .ifPresent(existing -> existing.setCrossId(updatedPlan.getCrossId()));
         }
     }
 
     @Override
-    public Optional<Plan> findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType) {
+    public Optional<Plan> findByPlanIdAndReferenceIdAndReferenceType(
+            String planId, String referenceId, String referenceType) {
         var refType = GenericPlanEntity.ReferenceType.valueOf(referenceType);
-        return storage
-            .stream()
-            .filter(
-                plan -> planId.equals(plan.getId()) && referenceId.equals(plan.getReferenceId()) && refType.equals(plan.getReferenceType())
-            )
-            .findFirst();
+        return storage.stream()
+                .filter(plan -> planId.equals(plan.getId())
+                        && referenceId.equals(plan.getReferenceId())
+                        && refType.equals(plan.getReferenceType()))
+                .findFirst();
     }
 
     @Override
     public Collection<Plan> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
         var refType = GenericPlanEntity.ReferenceType.valueOf(referenceType);
-        return storage
-            .stream()
-            .filter(plan -> referenceId.equals(plan.getReferenceId()) && refType.equals(plan.getReferenceType()))
-            .toList();
+        return storage.stream()
+                .filter(plan -> referenceId.equals(plan.getReferenceId()) && refType.equals(plan.getReferenceType()))
+                .toList();
     }
 
     @Override
     public Set<Plan> findByCrossIds(Collection<String> crossIds) {
-        return storage
-            .stream()
-            .filter(plan -> plan.getCrossId() != null && crossIds.contains(plan.getCrossId()))
-            .collect(Collectors.toSet());
+        return storage.stream()
+                .filter(plan -> plan.getCrossId() != null && crossIds.contains(plan.getCrossId()))
+                .collect(Collectors.toSet());
     }
 
     @Override

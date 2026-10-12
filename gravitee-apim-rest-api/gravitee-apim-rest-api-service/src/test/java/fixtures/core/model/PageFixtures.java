@@ -20,8 +20,12 @@ import java.util.function.Supplier;
 
 public class PageFixtures {
 
-    private static final Supplier<Page.PageBuilder> BASE = () ->
-        Page.builder().id("page-id").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("").name("parent");
+    private static final Supplier<Page.PageBuilder> BASE = () -> Page.builder()
+            .id("page-id")
+            .referenceType(Page.ReferenceType.API)
+            .referenceId("api-id")
+            .parentId("")
+            .name("parent");
 
     public static Page aPage() {
         return BASE.get().build();

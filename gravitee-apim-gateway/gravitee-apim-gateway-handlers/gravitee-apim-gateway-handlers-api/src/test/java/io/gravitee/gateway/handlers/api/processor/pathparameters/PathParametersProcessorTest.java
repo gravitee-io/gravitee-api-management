@@ -65,11 +65,15 @@ class PathParametersProcessorTest {
         });
         final LinkedMultiValueMap<String, String> pathParameters = new LinkedMultiValueMap<>();
         when(request.pathParameters()).thenReturn(pathParameters);
-        when(pathParametersExtractor.extract(any(), any())).thenReturn(Map.of("key", "value", "anotherKey", "anotherValue"));
+        when(pathParametersExtractor.extract(any(), any()))
+                .thenReturn(Map.of("key", "value", "anotherKey", "anotherValue"));
 
         cut.handle(ctx);
 
-        assertThat(pathParameters).hasSize(2).containsEntry("key", List.of("value")).containsEntry("anotherKey", List.of("anotherValue"));
+        assertThat(pathParameters)
+                .hasSize(2)
+                .containsEntry("key", List.of("value"))
+                .containsEntry("anotherKey", List.of("anotherValue"));
         assertThat(nextCalled.get()).isTrue();
     }
 }

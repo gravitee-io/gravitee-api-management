@@ -61,7 +61,7 @@ public class AverageResponseTimeCommand extends AbstractElasticsearchQueryComman
 
     @Override
     public AverageResponseTimeResponse executeQuery(QueryContext queryContext, Query<AverageResponseTimeResponse> query)
-        throws AnalyticsException {
+            throws AnalyticsException {
         final AverageResponseTimeQuery averageResponseTimeQuery = (AverageResponseTimeQuery) query;
 
         final String sQuery = this.createQuery(TEMPLATE, averageResponseTimeQuery);
@@ -70,15 +70,15 @@ public class AverageResponseTimeCommand extends AbstractElasticsearchQueryComman
         try {
             final long now = System.currentTimeMillis();
             final long from = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
-                .minus(1, ChronoUnit.MONTHS)
-                .toInstant()
-                .toEpochMilli();
+                    .minus(1, ChronoUnit.MONTHS)
+                    .toInstant()
+                    .toEpochMilli();
 
             final Single<SearchResponse> result = this.client.search(
-                this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, now, clusters),
-                !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
-                sQuery
-            );
+                    this.indexNameGenerator.getIndexName(
+                            queryContext.placeholder(), Type.HEALTH_CHECK, from, now, clusters),
+                    !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
+                    sQuery);
             return this.toAverageResponseTimeResponse(result.blockingGet());
         } catch (Exception eex) {
             log.error("Impossible to perform AverageResponseTimeQuery", eex);

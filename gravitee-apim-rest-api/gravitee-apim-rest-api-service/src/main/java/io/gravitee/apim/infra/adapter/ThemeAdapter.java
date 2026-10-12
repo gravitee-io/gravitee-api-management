@@ -54,6 +54,7 @@ public interface ThemeAdapter {
     Theme map(ThemeEntity themeEntity);
 
     List<Theme> map(List<io.gravitee.repository.management.model.Theme> themes);
+
     Set<Theme> map(Set<io.gravitee.repository.management.model.Theme> themes);
 
     default ThemeDefinition deserializeDefinitionPortal(io.gravitee.repository.management.model.Theme theme) {
@@ -69,14 +70,13 @@ public interface ThemeAdapter {
     }
 
     default io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition deserializeDefinitionPortalNext(
-        io.gravitee.repository.management.model.Theme theme
-    ) {
+            io.gravitee.repository.management.model.Theme theme) {
         if (Objects.nonNull(theme.getDefinition()) && ThemeType.PORTAL_NEXT.equals(theme.getType())) {
             try {
-                return GraviteeJacksonMapper.getInstance().readValue(
-                    theme.getDefinition(),
-                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.class
-                );
+                return GraviteeJacksonMapper.getInstance()
+                        .readValue(
+                                theme.getDefinition(),
+                                io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.class);
             } catch (IOException ioe) {
                 log.error("Unexpected error while deserializing PORTAL_NEXT theme definition", ioe);
             }
@@ -92,23 +92,27 @@ public interface ThemeAdapter {
 
     default io.gravitee.repository.management.model.ThemeAutomationMetadata toRepoAutomationMetadata(Theme theme) {
         var meta = theme.getAutomationMetadata();
-        return meta == null ? null : io.gravitee.repository.management.model.ThemeAutomationMetadata.builder().hrid(meta.hrid()).build();
+        return meta == null
+                ? null
+                : io.gravitee.repository.management.model.ThemeAutomationMetadata.builder()
+                        .hrid(meta.hrid())
+                        .build();
     }
 
     default String serializeDefinition(Theme theme) {
         Object definition = io.gravitee.apim.core.theme.model.ThemeType.PORTAL.equals(theme.getType())
-            ? theme.getDefinitionPortal()
-            : theme.getDefinitionPortalNext();
+                ? theme.getDefinitionPortal()
+                : theme.getDefinitionPortalNext();
 
         return Optional.ofNullable(definition)
-            .map(def -> {
-                try {
-                    return GraviteeJacksonMapper.getInstance().writeValueAsString(def);
-                } catch (JsonProcessingException e) {
-                    log.error("Unable to serialize definition: {}", definition);
-                    return "";
-                }
-            })
-            .orElse("");
+                .map(def -> {
+                    try {
+                        return GraviteeJacksonMapper.getInstance().writeValueAsString(def);
+                    } catch (JsonProcessingException e) {
+                        log.error("Unable to serialize definition: {}", definition);
+                        return "";
+                    }
+                })
+                .orElse("");
     }
 }

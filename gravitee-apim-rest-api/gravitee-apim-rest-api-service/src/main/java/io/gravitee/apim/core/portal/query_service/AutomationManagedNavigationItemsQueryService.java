@@ -41,47 +41,48 @@ public class AutomationManagedNavigationItemsQueryService {
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     public Set<PortalNavigationItemId> activeListingApiRows(AuditInfo auditInfo, PortalId portalId) {
-        return portalListingCrudService
-            .findAllByPortalIdAndEnvironmentId(portalId, auditInfo.environmentId())
-            .stream()
-            .flatMap(listing -> listing.getApis().stream())
-            .map(entry -> PortalNavigationItemId.forListingApi(auditInfo, portalId.toString(), entry.apiId(auditInfo)))
-            .collect(Collectors.toSet());
+        return portalListingCrudService.findAllByPortalIdAndEnvironmentId(portalId, auditInfo.environmentId()).stream()
+                .flatMap(listing -> listing.getApis().stream())
+                .map(entry ->
+                        PortalNavigationItemId.forListingApi(auditInfo, portalId.toString(), entry.apiId(auditInfo)))
+                .collect(Collectors.toSet());
     }
 
     public Set<PortalNavigationItemId> automationManagedPortalDocPages(AuditInfo auditInfo, PortalId portalId) {
         return portalNavigationItemsQueryService
-            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.PAGE)
-            .map(PortalNavigationItem::getId)
-            .collect(Collectors.toSet());
+                .findByAutomationReference(
+                        auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItemType.PAGE)
+                .map(PortalNavigationItem::getId)
+                .collect(Collectors.toSet());
     }
 
     public Set<PortalNavigationItemId> automationManagedApiDocPages(AuditInfo auditInfo, String apiId) {
         return portalNavigationItemsQueryService
-            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.PAGE)
-            .map(PortalNavigationItem::getId)
-            .collect(Collectors.toSet());
+                .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItemType.PAGE)
+                .map(PortalNavigationItem::getId)
+                .collect(Collectors.toSet());
     }
 
     public Set<PortalNavigationItemId> automationManagedPortalLinks(AuditInfo auditInfo, PortalId portalId) {
         return portalNavigationItemsQueryService
-            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.LINK)
-            .map(PortalNavigationItem::getId)
-            .collect(Collectors.toSet());
+                .findByAutomationReference(
+                        auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItemType.LINK)
+                .map(PortalNavigationItem::getId)
+                .collect(Collectors.toSet());
     }
 
     public Set<PortalNavigationItemId> automationManagedApiLinks(AuditInfo auditInfo, String apiId) {
         return portalNavigationItemsQueryService
-            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.LINK)
-            .map(PortalNavigationItem::getId)
-            .collect(Collectors.toSet());
+                .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItemType.LINK)
+                .map(PortalNavigationItem::getId)
+                .collect(Collectors.toSet());
     }
 }

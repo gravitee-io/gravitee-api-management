@@ -47,47 +47,43 @@ public class DeployApiProductDomainService {
 
     public void deploy(AuditInfo auditInfo, ApiProduct apiProduct) {
         var productPlans = planQueryService.findAllByReferenceIdAndReferenceType(
-            apiProduct.getId(),
-            GenericPlanEntity.ReferenceType.API_PRODUCT
-        );
-        var flowsByPlanId = flowCrudService.getPlanV4Flows(productPlans.stream().map(Plan::getId).collect(Collectors.toSet()));
+                apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT);
+        var flowsByPlanId = flowCrudService.getPlanV4Flows(
+                productPlans.stream().map(Plan::getId).collect(Collectors.toSet()));
 
-        var plans = productPlans
-            .stream()
-            .map(plan -> {
-                var definition = plan.getPlanDefinitionHttpV4();
-                if (definition == null) {
-                    return null;
-                }
-                definition.setFlows(flowsByPlanId.getOrDefault(plan.getId(), List.of()));
-                return definition;
-            })
-            .filter(Objects::nonNull)
-            .toList();
+        var plans = productPlans.stream()
+                .map(plan -> {
+                    var definition = plan.getPlanDefinitionHttpV4();
+                    if (definition == null) {
+                        return null;
+                    }
+                    definition.setFlows(flowsByPlanId.getOrDefault(plan.getId(), List.of()));
+                    return definition;
+                })
+                .filter(Objects::nonNull)
+                .toList();
 
         var payload = ApiProductDeploymentPayload.builder()
-            .id(apiProduct.getId())
-            .name(apiProduct.getName())
-            .description(apiProduct.getDescription())
-            .version(apiProduct.getVersion())
-            .apiIds(apiProduct.getApiIds())
-            .environmentId(apiProduct.getEnvironmentId())
-            .tags(apiProduct.getTags())
-            .plans(plans)
-            .analytics(apiProduct.getAnalytics())
-            .build();
+                .id(apiProduct.getId())
+                .name(apiProduct.getName())
+                .description(apiProduct.getDescription())
+                .version(apiProduct.getVersion())
+                .apiIds(apiProduct.getApiIds())
+                .environmentId(apiProduct.getEnvironmentId())
+                .tags(apiProduct.getTags())
+                .plans(plans)
+                .analytics(apiProduct.getAnalytics())
+                .build();
 
         final Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.DEPLOY_API_PRODUCT,
-            payload,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
-            )
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                Set.of(auditInfo.environmentId()),
+                EventType.DEPLOY_API_PRODUCT,
+                payload,
+                Map.ofEntries(
+                        entry(Event.EventProperties.USER, auditInfo.actor().userId()),
+                        entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())));
 
         eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }

@@ -68,10 +68,8 @@ class BestMatchFlowResolverConditionTest {
      * filters not being bound to the same context type.
      */
     @SuppressWarnings("rawtypes")
-    private static final ConditionFilter API_FLOW_FILTER = new CompositeConditionFilter(
-        new HttpSelectorConditionFilter(),
-        new ConditionSelectorConditionFilter()
-    );
+    private static final ConditionFilter API_FLOW_FILTER =
+            new CompositeConditionFilter(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter());
 
     @Mock
     private HttpPlainExecutionContext ctx;
@@ -129,7 +127,8 @@ class BestMatchFlowResolverConditionTest {
     }
 
     private TestSubscriber<Flow> resolve(final Flow... flows) {
-        final BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver(List.of(flows)), new BestMatchFlowSelector());
+        final BestMatchFlowResolver cut =
+                new BestMatchFlowResolver(flowResolver(List.of(flows)), new BestMatchFlowSelector());
         return cut.resolve(ctx).test();
     }
 

@@ -24,21 +24,15 @@ import java.util.Objects;
  */
 public record MeasuresResponse(List<MetricMeasuresResponse> metrics) {
     public static MeasuresResponse merge(List<MeasuresResponse> responses) {
-        return new MeasuresResponse(
-            responses
-                .stream()
+        return new MeasuresResponse(responses.stream()
                 .filter(Objects::nonNull)
                 .flatMap(metricResponse -> metricResponse.metrics().stream())
-                .toList()
-        );
+                .toList());
     }
 
     public MeasuresResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
-        return new MeasuresResponse(
-            metrics
-                .stream()
+        return new MeasuresResponse(metrics.stream()
                 .map(metric -> metric.withIgnoredFilters(ignoredFilters))
-                .toList()
-        );
+                .toList());
     }
 }

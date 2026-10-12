@@ -55,24 +55,22 @@ public class CustomIntervalTest {
 
     static Stream<Arguments> validIntervals() {
         return Stream.of(
-            arguments(-1, -1L),
-            arguments(0, 0L),
-            arguments(10, 10L),
-            arguments(123456789L, 123456789L),
-            arguments("1", 1L),
-            arguments("10s", 10000L),
-            arguments("1m", 60000L),
-            arguments("1h", 3600000L),
-            arguments("1d", 86400000L)
-        );
+                arguments(-1, -1L),
+                arguments(0, 0L),
+                arguments(10, 10L),
+                arguments(123456789L, 123456789L),
+                arguments("1", 1L),
+                arguments("10s", 10000L),
+                arguments("1m", 60000L),
+                arguments("1h", 3600000L),
+                arguments("1d", 86400000L));
     }
 
     static Stream<Arguments> invalidIntervals() {
         return Stream.of(
-            arguments(null, IllegalArgumentException.class),
-            arguments("", IllegalArgumentException.class),
-            arguments("invalid string", DateTimeParseException.class),
-            arguments(true, IllegalArgumentException.class)
-        );
+                arguments(null, IllegalArgumentException.class),
+                arguments("", IllegalArgumentException.class),
+                arguments("invalid string", DateTimeParseException.class),
+                arguments(true, IllegalArgumentException.class));
     }
 }

@@ -50,10 +50,10 @@ public class UndeployClusterDomainService {
 
     public Cluster undeploy(Cluster cluster, AuditInfo auditInfo) {
         Cluster beforeUndeploy = Cluster.builder()
-            .id(cluster.getId())
-            .lifecycleState(cluster.getLifecycleState())
-            .version(cluster.getVersion())
-            .build();
+                .id(cluster.getId())
+                .lifecycleState(cluster.getLifecycleState())
+                .version(cluster.getVersion())
+                .build();
 
         cluster.undeploy();
 
@@ -68,23 +68,20 @@ public class UndeployClusterDomainService {
 
     private void publishEvent(AuditInfo auditInfo, Cluster cluster) {
         Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.UNDEPLOY_CLUSTER,
-            cluster,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.CLUSTER_ID, cluster.getCrossId())
-            )
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                Set.of(auditInfo.environmentId()),
+                EventType.UNDEPLOY_CLUSTER,
+                cluster,
+                Map.ofEntries(
+                        entry(Event.EventProperties.USER, auditInfo.actor().userId()),
+                        entry(Event.EventProperties.CLUSTER_ID, cluster.getCrossId())));
 
         eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), cluster.getId(), event);
     }
 
     private void createAuditLog(Cluster oldCluster, Cluster newCluster, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_UNDEPLOYED)
@@ -93,7 +90,6 @@ public class UndeployClusterDomainService {
                 .newValue(newCluster)
                 .createdAt(newCluster.getUpdatedAt().atZone(TimeProvider.clock().getZone()))
                 .properties(Map.of(AuditProperties.CLUSTER, newCluster.getId()))
-                .build()
-        );
+                .build());
     }
 }

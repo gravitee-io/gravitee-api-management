@@ -18,9 +18,7 @@ package io.gravitee.apim.core.theme.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.Objects;
@@ -31,41 +29,48 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CurrentThemeDomainService {
 
-    private static final Comparator<Theme> FALLBACK_PREFERENCE = Comparator.comparing((Theme theme) ->
-        theme.isAutomationManaged() ? 1 : 0
-    ).thenComparing(Theme::getUpdatedAt, Comparator.reverseOrder());
+    private static final Comparator<Theme> FALLBACK_PREFERENCE = Comparator.comparing(
+                    (Theme theme) -> theme.isAutomationManaged() ? 1 : 0)
+            .thenComparing(Theme::getUpdatedAt, Comparator.reverseOrder());
 
     private final ThemeQueryService themeQueryService;
     private final ThemeCrudService themeCrudService;
 
     public void disablePreviousEnabledTheme(Theme newCurrentTheme) {
-        var themes = this.themeQueryService.findByThemeTypeAndEnvironmentId(newCurrentTheme.getType(), newCurrentTheme.getReferenceId());
+        var themes = this.themeQueryService.findByThemeTypeAndEnvironmentId(
+                newCurrentTheme.getType(), newCurrentTheme.getReferenceId());
 
         if (themes.isEmpty()) {
             return;
         }
 
         // Set enabled to false for currently enabled themes and update
-        themes
-            .stream()
-            .filter(theme -> !Objects.equals(theme.getId(), newCurrentTheme.getId()) && Objects.equals(theme.isEnabled(), true))
-            .forEach(theme -> {
-                theme.setEnabled(false);
-                theme.setUpdatedAt(ZonedDateTime.now());
-                this.themeCrudService.update(theme);
-            });
+        themes.stream()
+                .filter(theme -> !Objects.equals(theme.getId(), newCurrentTheme.getId())
+                        && Objects.equals(theme.isEnabled(), true))
+                .forEach(theme -> {
+                    theme.setEnabled(false);
+                    theme.setUpdatedAt(ZonedDateTime.now());
+                    this.themeCrudService.update(theme);
+                });
     }
 
     public void activate(Theme newActiveTheme) {
         if (!newActiveTheme.isEnabled()) {
-            this.themeCrudService.update(newActiveTheme.toBuilder().enabled(true).updatedAt(ZonedDateTime.now()).build());
+            this.themeCrudService.update(newActiveTheme.toBuilder()
+                    .enabled(true)
+                    .updatedAt(ZonedDateTime.now())
+                    .build());
         }
         disablePreviousEnabledTheme(newActiveTheme);
     }
 
     public void deactivate(Theme theme) {
         if (theme.isEnabled()) {
-            this.themeCrudService.update(theme.toBuilder().enabled(false).updatedAt(ZonedDateTime.now()).build());
+            this.themeCrudService.update(theme.toBuilder()
+                    .enabled(false)
+                    .updatedAt(ZonedDateTime.now())
+                    .build());
         }
     }
 
@@ -78,10 +83,11 @@ public class CurrentThemeDomainService {
     }
 
     private Optional<Theme> findFallback(Theme deactivated) {
-        return this.themeQueryService.findByThemeTypeAndEnvironmentId(deactivated.getType(), deactivated.getReferenceId())
-            .stream()
-            .filter(theme -> !Objects.equals(theme.getId(), deactivated.getId()))
-            .sorted(FALLBACK_PREFERENCE)
-            .findFirst();
+        return this.themeQueryService
+                .findByThemeTypeAndEnvironmentId(deactivated.getType(), deactivated.getReferenceId())
+                .stream()
+                .filter(theme -> !Objects.equals(theme.getId(), deactivated.getId()))
+                .sorted(FALLBACK_PREFERENCE)
+                .findFirst();
     }
 }

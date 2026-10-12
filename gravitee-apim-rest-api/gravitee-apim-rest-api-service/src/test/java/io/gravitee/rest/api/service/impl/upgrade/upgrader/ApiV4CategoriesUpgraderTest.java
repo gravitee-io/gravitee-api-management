@@ -82,7 +82,8 @@ public class ApiV4CategoriesUpgraderTest {
 
         apiV4CategoriesUpgrader.upgrade();
 
-        verify(apiRepository, times(1)).update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
+        verify(apiRepository, times(1))
+                .update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
     }
 
     @Test
@@ -165,7 +166,8 @@ public class ApiV4CategoriesUpgraderTest {
 
         apiV4CategoriesUpgrader.upgrade();
 
-        verify(apiRepository, times(1)).update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
+        verify(apiRepository, times(1))
+                .update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
     }
 
     @Test
@@ -191,7 +193,8 @@ public class ApiV4CategoriesUpgraderTest {
 
         apiV4CategoriesUpgrader.upgrade();
 
-        verify(apiRepository, times(1)).update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
+        verify(apiRepository, times(1))
+                .update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
     }
 
     @Test

@@ -40,12 +40,12 @@ public class InstancesResource extends AbstractResource {
     @GET
     @Path("{instanceId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)})
     public InstanceDetailResponse getInstanceById(@PathParam("instanceId") String instanceId) {
         return getInstanceDetailUseCase
-            .execute(new GetInstanceDetailUseCase.Input(GraviteeContext.getExecutionContext(), instanceId))
-            .instance()
-            .map(InstancesMapper.INSTANCE::map)
-            .orElseThrow(() -> new NotFoundException("Instance: " + instanceId + "not found"));
+                .execute(new GetInstanceDetailUseCase.Input(GraviteeContext.getExecutionContext(), instanceId))
+                .instance()
+                .map(InstancesMapper.INSTANCE::map)
+                .orElseThrow(() -> new NotFoundException("Instance: " + instanceId + "not found"));
     }
 }

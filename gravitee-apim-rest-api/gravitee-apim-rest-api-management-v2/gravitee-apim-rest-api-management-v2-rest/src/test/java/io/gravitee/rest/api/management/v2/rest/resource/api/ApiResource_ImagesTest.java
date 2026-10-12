@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 public class ApiResource_ImagesTest extends ApiResourceTest {
 
     private static final String PICTURE =
-        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQAAAACFI5MzAAAAMklEQVR4Xu3JsQkAIBDAwN9/aSWNheACcilzs17NPU6EFCFFSBFShBQhRUgRUoQU+U82i451ljeAPcoAAAAASUVORK5CYII=";
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQAAAACFI5MzAAAAMklEQVR4Xu3JsQkAIBDAwN9/aSWNheACcilzs17NPU6EFCFFSBFShBQhRUgRUoQU+U82i451ljeAPcoAAAAASUVORK5CYII=";
 
     @Override
     protected String contextPath() {
@@ -45,28 +45,24 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
 
     @Test
     public void should_not_get_picture_with_insufficient_rights() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
         final Response response = rootTarget("picture").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_not_update_picture_with_insufficient_rights() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
         final Response response = rootTarget("picture").request().put(Entity.text(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -121,28 +117,24 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
 
     @Test
     public void should_not_get_background_with_insufficient_rights() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
         final Response response = rootTarget("background").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_not_update_background_with_insufficient_rights() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
         final Response response = rootTarget("background").request().put(Entity.text(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

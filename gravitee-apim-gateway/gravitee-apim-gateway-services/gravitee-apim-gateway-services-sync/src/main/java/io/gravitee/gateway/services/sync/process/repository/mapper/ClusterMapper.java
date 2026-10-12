@@ -68,9 +68,11 @@ public class ClusterMapper {
                 Integer version = versionRaw != null ? ((Number) versionRaw).intValue() : null;
 
                 if ("KAFKA_CLUSTER".equals(type)) {
-                    return buildKafkaCluster(id, crossId, name, environmentId, organizationId, deployedAt, version, payload);
+                    return buildKafkaCluster(
+                            id, crossId, name, environmentId, organizationId, deployedAt, version, payload);
                 } else if ("KAFKA_VIRTUAL_CLUSTER".equals(type)) {
-                    return buildKafkaVirtualCluster(id, crossId, name, environmentId, organizationId, deployedAt, version, payload);
+                    return buildKafkaVirtualCluster(
+                            id, crossId, name, environmentId, organizationId, deployedAt, version, payload);
                 } else {
                     log.warn("Cluster type [{}] is not deployable yet, skipping cluster [{}].", type, id);
                     return null;
@@ -84,86 +86,83 @@ public class ClusterMapper {
 
     @SuppressWarnings("unchecked")
     private KafkaClusterReactableCluster buildKafkaCluster(
-        String id,
-        String crossId,
-        String name,
-        String environmentId,
-        String organizationId,
-        Date deployedAt,
-        Integer version,
-        Map<String, Object> payload
-    ) {
+            String id,
+            String crossId,
+            String name,
+            String environmentId,
+            String organizationId,
+            Date deployedAt,
+            Integer version,
+            Map<String, Object> payload) {
         List<KafkaClusterReactableCluster.KafkaClusterConnection> connections = Collections.emptyList();
         Object configuration = payload.get("configuration");
         if (configuration instanceof Map) {
             Map<String, Object> configMap = (Map<String, Object>) configuration;
             Object connectionsRaw = configMap.get("connections");
             if (connectionsRaw instanceof List) {
-                connections = ((List<Map<String, Object>>) connectionsRaw).stream()
-                    .map(connMap ->
-                        KafkaClusterReactableCluster.KafkaClusterConnection.builder()
-                            .crossId((String) connMap.get("crossId"))
-                            .name((String) connMap.get("name"))
-                            .bootstrapServers((String) connMap.get("bootstrapServers"))
-                            .security(mapSecurity(connMap.get("security")))
-                            .build()
-                    )
-                    .toList();
+                connections = ((List<Map<String, Object>>) connectionsRaw)
+                        .stream()
+                                .map(connMap -> KafkaClusterReactableCluster.KafkaClusterConnection.builder()
+                                        .crossId((String) connMap.get("crossId"))
+                                        .name((String) connMap.get("name"))
+                                        .bootstrapServers((String) connMap.get("bootstrapServers"))
+                                        .security(mapSecurity(connMap.get("security")))
+                                        .build())
+                                .toList();
             }
         }
 
         return KafkaClusterReactableCluster.builder()
-            .id(id)
-            .crossId(crossId)
-            .name(name)
-            .type(ClusterType.KAFKA_CLUSTER)
-            .environmentId(environmentId)
-            .organizationId(organizationId)
-            .deployedAt(deployedAt)
-            .version(version)
-            .connections(connections)
-            .build();
+                .id(id)
+                .crossId(crossId)
+                .name(name)
+                .type(ClusterType.KAFKA_CLUSTER)
+                .environmentId(environmentId)
+                .organizationId(organizationId)
+                .deployedAt(deployedAt)
+                .version(version)
+                .connections(connections)
+                .build();
     }
 
     @SuppressWarnings("unchecked")
     private KafkaVirtualClusterReactableCluster buildKafkaVirtualCluster(
-        String id,
-        String crossId,
-        String name,
-        String environmentId,
-        String organizationId,
-        Date deployedAt,
-        Integer version,
-        Map<String, Object> payload
-    ) {
+            String id,
+            String crossId,
+            String name,
+            String environmentId,
+            String organizationId,
+            Date deployedAt,
+            Integer version,
+            Map<String, Object> payload) {
         List<KafkaVirtualClusterReactableCluster.KafkaVirtualClusterBackend> backends = Collections.emptyList();
         Object configuration = payload.get("configuration");
         if (configuration instanceof Map) {
             Map<String, Object> configMap = (Map<String, Object>) configuration;
             Object backendsRaw = configMap.get("backends");
             if (backendsRaw instanceof List) {
-                backends = ((List<Map<String, Object>>) backendsRaw).stream()
-                    .map(backendMap ->
-                        KafkaVirtualClusterReactableCluster.KafkaVirtualClusterBackend.builder()
-                            .clusterCrossId((String) backendMap.get("clusterCrossId"))
-                            .connectionCrossId((String) backendMap.get("connectionCrossId"))
-                            .build()
-                    )
-                    .toList();
+                backends = ((List<Map<String, Object>>) backendsRaw)
+                        .stream()
+                                .map(backendMap ->
+                                        KafkaVirtualClusterReactableCluster.KafkaVirtualClusterBackend.builder()
+                                                .clusterCrossId((String) backendMap.get("clusterCrossId"))
+                                                .connectionCrossId((String) backendMap.get("connectionCrossId"))
+                                                .build())
+                                .toList();
             }
         }
 
         return KafkaVirtualClusterReactableCluster.builder()
-            .id(id)
-            .crossId(crossId)
-            .name(name)
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .environmentId(environmentId)
-            .organizationId(organizationId)
-            .deployedAt(deployedAt)
-            .version(version)
-            .backends(backends)
-            .build();
+                .id(id)
+                .crossId(crossId)
+                .name(name)
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .environmentId(environmentId)
+                .organizationId(organizationId)
+                .deployedAt(deployedAt)
+                .version(version)
+                .backends(backends)
+                .build();
     }
 
     private SecurityConfig mapSecurity(Object securityRaw) {

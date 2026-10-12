@@ -171,6 +171,7 @@ public class Api {
      * When true, allows an application to subscribe to more than one JWT/OAuth2 plan of this API (V4 only).
      */
     private boolean allowMultiJwtOauth2Subscriptions;
+
     private ApiLifecycleState apiLifecycleState = ApiLifecycleState.CREATED;
     private String background;
     private String portalNavigation;

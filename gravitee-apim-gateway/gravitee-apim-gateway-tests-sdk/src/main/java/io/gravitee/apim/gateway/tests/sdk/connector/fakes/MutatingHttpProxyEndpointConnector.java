@@ -32,27 +32,21 @@ import io.reactivex.rxjava3.core.Maybe;
 public class MutatingHttpProxyEndpointConnector extends HttpProxyEndpointConnector {
 
     public MutatingHttpProxyEndpointConnector(
-        HttpProxyEndpointConnectorConfiguration configuration,
-        HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            HttpProxyEndpointConnectorConfiguration configuration,
+            HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         super(configuration, sharedConfiguration);
     }
 
     @Override
     public Completable connect(HttpExecutionContext ctx) {
-        return ctx
-            .request()
-            .onBody(body ->
-                body
-                    .defaultIfEmpty(Buffer.buffer())
-                    .flatMapMaybe(b -> {
-                        Buffer transformed = Buffer.buffer("mutated-" + b.toString());
-                        ((MutableRequest) ctx.request()).pathInfo("/mutated-path");
-                        ctx.request().headers().set("X-Mutated", "true");
-                        ctx.request().contentLength(transformed.length());
-                        return Maybe.just(transformed);
-                    })
-            )
-            .andThen(super.connect(ctx));
+        return ctx.request()
+                .onBody(body -> body.defaultIfEmpty(Buffer.buffer()).flatMapMaybe(b -> {
+                    Buffer transformed = Buffer.buffer("mutated-" + b.toString());
+                    ((MutableRequest) ctx.request()).pathInfo("/mutated-path");
+                    ctx.request().headers().set("X-Mutated", "true");
+                    ctx.request().contentLength(transformed.length());
+                    return Maybe.just(transformed);
+                }))
+                .andThen(super.connect(ctx));
     }
 }

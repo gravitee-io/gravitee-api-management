@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -52,53 +51,51 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPlatformLogsAsAdmin() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
-        when(applicationService.findIdsByEnvironment(any(ExecutionContext.class))).thenReturn(Set.of("app1"));
-        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of("api1"));
-        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_PLATFORM,
+                        "DEFAULT",
+                        RolePermissionAction.READ))
+                .thenReturn(true);
+        when(applicationService.findIdsByEnvironment(any(ExecutionContext.class)))
+                .thenReturn(Set.of("app1"));
+        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment()))
+                .thenReturn(Set.of("api1"));
+        when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class)))
+                .thenReturn(new SearchLogResponse<>(10));
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
         verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
         verify(apiAuthorizationServiceV4).findIdsByEnvironment(GraviteeContext.getCurrentEnvironment());
 
-        verify(logsService).findPlatform(
-            any(ExecutionContext.class),
-            argThat(
-                query ->
-                    Objects.equals(query.getQuery(), "foo:bar") &&
-                    query.getTerms().size() == 2 &&
-                    query.getTerms().containsKey("application") &&
-                    query.getTerms().get("application").equals(Set.of("app1")) &&
-                    query.getTerms().containsKey("api") &&
-                    query.getTerms().get("api").equals(Set.of("api1")) &&
-                    query.getPage() == 1 &&
-                    query.getSize() == 10 &&
-                    query.getFrom() == 0 &&
-                    query.getTo() == 1 &&
-                    Objects.equals(query.getField(), "@timestamp") &&
-                    query.isOrder()
-            )
-        );
+        verify(logsService)
+                .findPlatform(
+                        any(ExecutionContext.class),
+                        argThat(query -> Objects.equals(query.getQuery(), "foo:bar")
+                                && query.getTerms().size() == 2
+                                && query.getTerms().containsKey("application")
+                                && query.getTerms().get("application").equals(Set.of("app1"))
+                                && query.getTerms().containsKey("api")
+                                && query.getTerms().get("api").equals(Set.of("api1"))
+                                && query.getPage() == 1
+                                && query.getSize() == 10
+                                && query.getFrom() == 0
+                                && query.getTo() == 1
+                                && Objects.equals(query.getField(), "@timestamp")
+                                && query.isOrder()));
     }
 
     private Response sendRequest() {
         return envTarget()
-            .queryParam("query", "foo:bar")
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-            .queryParam("from", 0)
-            .queryParam("to", 1)
-            .queryParam("field", "@timestamp")
-            .queryParam("order", true)
-            .request()
-            .get();
+                .queryParam("query", "foo:bar")
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .queryParam("from", 0)
+                .queryParam("to", 1)
+                .queryParam("field", "@timestamp")
+                .queryParam("order", true)
+                .request()
+                .get();
     }
 }

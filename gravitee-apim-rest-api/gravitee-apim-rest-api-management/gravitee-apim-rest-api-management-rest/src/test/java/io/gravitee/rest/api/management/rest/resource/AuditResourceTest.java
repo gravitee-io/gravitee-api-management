@@ -76,7 +76,8 @@ public class AuditResourceTest extends AbstractResourceTest {
         when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
         List<AuditEntity> audits = List.of(new TestAudit("audit-1"));
         Map<String, String> metadata = new HashMap<>();
-        when(auditService.search(any(), argThat(Objects::nonNull))).thenReturn(new MetadataPage<>(audits, 1, 1, 1, metadata));
+        when(auditService.search(any(), argThat(Objects::nonNull)))
+                .thenReturn(new MetadataPage<>(audits, 1, 1, 1, metadata));
 
         final Response response = envTarget().request().get();
 
@@ -88,11 +89,12 @@ public class AuditResourceTest extends AbstractResourceTest {
         when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
         List<AuditEntity> audits = List.of(new TestAudit("audit-1"));
         Map<String, String> metadata = new HashMap<>();
-        when(auditService.search(any(), argThat(o -> o != null && o.getEvents().equals(Collections.singletonList("eventId"))))).thenReturn(
-            new MetadataPage<>(audits, 1, 1, 1, metadata)
-        );
+        when(auditService.search(
+                        any(), argThat(o -> o != null && o.getEvents().equals(Collections.singletonList("eventId")))))
+                .thenReturn(new MetadataPage<>(audits, 1, 1, 1, metadata));
 
-        final Response response = envTarget().queryParam("event", "eventId").request().get();
+        final Response response =
+                envTarget().queryParam("event", "eventId").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
@@ -100,9 +102,11 @@ public class AuditResourceTest extends AbstractResourceTest {
     @Test
     public void should_filter_audits_by_encrypted() {
         when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
-        when(auditService.search(any(), argThat(Objects::nonNull))).thenReturn(new MetadataPage<>(List.of(), 1, 0, 0, new HashMap<>()));
+        when(auditService.search(any(), argThat(Objects::nonNull)))
+                .thenReturn(new MetadataPage<>(List.of(), 1, 0, 0, new HashMap<>()));
 
-        final Response response = envTarget().queryParam("encrypted", true).request().get();
+        final Response response =
+                envTarget().queryParam("encrypted", true).request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         ArgumentCaptor<AuditQuery> query = ArgumentCaptor.forClass(AuditQuery.class);
@@ -113,7 +117,8 @@ public class AuditResourceTest extends AbstractResourceTest {
     @Test
     public void should_not_filter_audits_when_encrypted_is_absent() {
         when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
-        when(auditService.search(any(), argThat(Objects::nonNull))).thenReturn(new MetadataPage<>(List.of(), 1, 0, 0, new HashMap<>()));
+        when(auditService.search(any(), argThat(Objects::nonNull)))
+                .thenReturn(new MetadataPage<>(List.of(), 1, 0, 0, new HashMap<>()));
 
         final Response response = envTarget().request().get();
 
@@ -127,7 +132,8 @@ public class AuditResourceTest extends AbstractResourceTest {
     public void should_reject_encrypted_false() {
         when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
 
-        final Response response = envTarget().queryParam("encrypted", false).request().get();
+        final Response response =
+                envTarget().queryParam("encrypted", false).request().get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -157,7 +163,8 @@ public class AuditResourceTest extends AbstractResourceTest {
         List<AuditEntity> audits = List.of(new TestAudit("audit-1"));
         Map<String, String> metadata = new HashMap<>();
 
-        when(auditService.search(any(), argThat(Objects::nonNull))).thenReturn(new MetadataPage<>(audits, 1, 1, 1, metadata));
+        when(auditService.search(any(), argThat(Objects::nonNull)))
+                .thenReturn(new MetadataPage<>(audits, 1, 1, 1, metadata));
 
         final Response response = orgTarget().request().get();
 

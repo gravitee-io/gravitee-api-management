@@ -47,18 +47,20 @@ class PolicyLoaderTest {
     @BeforeEach
     public void init() {
         ConfigurablePluginManager policyPluginManager = mock(ConfigurablePluginManager.class);
-        when(policyPluginManager.get("dummy-policy")).thenReturn(
-            new DummyPolicyPlugin("dummy-policy", DummyPolicy.class, DummyPolicyConfiguration.class, DummyPolicyContext.class)
-        );
-        when(policyPluginManager.get("dummy-reactive")).thenReturn(
-            new DummyPolicyPlugin("dummy-reactive", DummyReactivePolicy.class, DummyPolicyConfiguration.class, DummyPolicyContext.class)
-        );
+        when(policyPluginManager.get("dummy-policy"))
+                .thenReturn(new DummyPolicyPlugin(
+                        "dummy-policy", DummyPolicy.class, DummyPolicyConfiguration.class, DummyPolicyContext.class));
+        when(policyPluginManager.get("dummy-reactive"))
+                .thenReturn(new DummyPolicyPlugin(
+                        "dummy-reactive",
+                        DummyReactivePolicy.class,
+                        DummyPolicyConfiguration.class,
+                        DummyPolicyContext.class));
         policyLoader = new PolicyLoader(
-            new DefaultClassLoader(this.getClass().getClassLoader()),
-            policyPluginManager,
-            new PolicyClassLoaderFactoryImpl(),
-            new CustomComponentProvider()
-        );
+                new DefaultClassLoader(this.getClass().getClassLoader()),
+                policyPluginManager,
+                new PolicyClassLoaderFactoryImpl(),
+                new CustomComponentProvider());
     }
 
     @Test

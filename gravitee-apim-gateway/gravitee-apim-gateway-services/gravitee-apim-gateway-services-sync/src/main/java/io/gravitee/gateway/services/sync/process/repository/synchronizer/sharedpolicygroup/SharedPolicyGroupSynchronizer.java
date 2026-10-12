@@ -43,10 +43,8 @@ import lombok.CustomLog;
 public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.DEPLOY_SHARED_POLICY_GROUP);
-    private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(
-        EventType.DEPLOY_SHARED_POLICY_GROUP,
-        EventType.UNDEPLOY_SHARED_POLICY_GROUP
-    );
+    private static final Set<EventType> INCREMENTAL_EVENT_TYPES =
+            Set.of(EventType.DEPLOY_SHARED_POLICY_GROUP, EventType.UNDEPLOY_SHARED_POLICY_GROUP);
     private final LatestEventFetcher eventsFetcher;
     private final SharedPolicyGroupMapper sharedPolicyGroupMapper;
     private final DeployerFactory deployerFactory;
@@ -54,12 +52,11 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
     private final ThreadPoolExecutor syncDeployerExecutor;
 
     public SharedPolicyGroupSynchronizer(
-        final LatestEventFetcher eventsFetcher,
-        final SharedPolicyGroupMapper sharedPolicyGroupMapper,
-        final DeployerFactory deployerFactory,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            final LatestEventFetcher eventsFetcher,
+            final SharedPolicyGroupMapper sharedPolicyGroupMapper,
+            final DeployerFactory deployerFactory,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor) {
         this.eventsFetcher = eventsFetcher;
         this.sharedPolicyGroupMapper = sharedPolicyGroupMapper;
         this.deployerFactory = deployerFactory;
@@ -72,31 +69,28 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
         AtomicLong launchTime = new AtomicLong();
 
         return eventsFetcher
-            .fetchLatest(
-                from,
-                to,
-                Event.EventProperties.SHARED_POLICY_GROUP_ID,
-                environments,
-                from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES
-            )
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(this::processEvents)
-            .count()
-            .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                String logMsg = String.format(
-                    "%s shared policy groups synchronized in %sms",
-                    count,
-                    (System.currentTimeMillis() - launchTime.get())
-                );
-                if (from == -1) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
-                }
-            })
-            .ignoreElement();
+                .fetchLatest(
+                        from,
+                        to,
+                        Event.EventProperties.SHARED_POLICY_GROUP_ID,
+                        environments,
+                        from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+                .compose(this::processEvents)
+                .count()
+                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(count -> {
+                    String logMsg = String.format(
+                            "%s shared policy groups synchronized in %sms",
+                            count, (System.currentTimeMillis() - launchTime.get()));
+                    if (from == -1) {
+                        log.info(logMsg);
+                    } else {
+                        log.debug(logMsg);
+                    }
+                })
+                .ignoreElement();
     }
 
     @Override
@@ -106,108 +100,98 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
 
     private Flowable<SharedPolicyGroupReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable) {
         return eventsFlowable
-            // fetch per page
-            .flatMap(events ->
-                Flowable.just(events)
-                    .doOnNext(e -> log.debug("New shared policy group events fetch"))
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.DEPLOY_SHARED_POLICY_GROUP) {
-                            return prepareForDeployment(eventsByType);
-                        } else if (eventsByType.getKey() == EventType.UNDEPLOY_SHARED_POLICY_GROUP) {
-                            return prepareForUndeployment(eventsByType);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-            )
-            // per deployable
-            .compose(upstream -> {
-                SharedPolicyGroupDeployer sharedPolicyGroupDeployer = deployerFactory.createSharedPolicyGroupDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploySharedPolicyGroup(sharedPolicyGroupDeployer, deployable);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploySharedPolicyGroup(sharedPolicyGroupDeployer, deployable);
-                        } else {
-                            return Flowable.just(deployable);
-                        }
-                    })
-                    .sequential(bulkEvents());
-            });
+                // fetch per page
+                .flatMap(events -> Flowable.just(events)
+                        .doOnNext(e -> log.debug("New shared policy group events fetch"))
+                        .flatMapIterable(e -> e)
+                        .groupBy(Event::getType)
+                        .flatMap(eventsByType -> {
+                            if (eventsByType.getKey() == EventType.DEPLOY_SHARED_POLICY_GROUP) {
+                                return prepareForDeployment(eventsByType);
+                            } else if (eventsByType.getKey() == EventType.UNDEPLOY_SHARED_POLICY_GROUP) {
+                                return prepareForUndeployment(eventsByType);
+                            } else {
+                                return Flowable.empty();
+                            }
+                        }))
+                // per deployable
+                .compose(upstream -> {
+                    SharedPolicyGroupDeployer sharedPolicyGroupDeployer =
+                            deployerFactory.createSharedPolicyGroupDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> {
+                                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                    return deploySharedPolicyGroup(sharedPolicyGroupDeployer, deployable);
+                                } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                    return undeploySharedPolicyGroup(sharedPolicyGroupDeployer, deployable);
+                                } else {
+                                    return Flowable.just(deployable);
+                                }
+                            })
+                            .sequential(bulkEvents());
+                });
     }
 
-    private Flowable<SharedPolicyGroupReactorDeployable> prepareForDeployment(final GroupedFlowable<EventType, Event> eventsByType) {
+    private Flowable<SharedPolicyGroupReactorDeployable> prepareForDeployment(
+            final GroupedFlowable<EventType, Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(sharedPolicyGroupMapper::to)
-            .map(reactableSharedPolicyGroup ->
-                SharedPolicyGroupReactorDeployable.builder()
-                    .sharedPolicyGroupId(reactableSharedPolicyGroup.getId())
-                    .syncAction(SyncAction.DEPLOY)
-                    .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
-                    .build()
-            )
-            .buffer(bulkEvents())
-            .flatMapIterable(d -> d);
+                .flatMapMaybe(sharedPolicyGroupMapper::to)
+                .map(reactableSharedPolicyGroup -> SharedPolicyGroupReactorDeployable.builder()
+                        .sharedPolicyGroupId(reactableSharedPolicyGroup.getId())
+                        .syncAction(SyncAction.DEPLOY)
+                        .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
+                        .build())
+                .buffer(bulkEvents())
+                .flatMapIterable(d -> d);
     }
 
     private Flowable<SharedPolicyGroupReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
-        return eventsByType.flatMap(event ->
-            sharedPolicyGroupMapper
+        return eventsByType.flatMap(event -> sharedPolicyGroupMapper
                 .toId(event)
                 .flatMapPublisher(sharedPolicyGroupId -> {
                     Set<String> environments = event.getEnvironments();
-                    // Empty or null means all environments. Do not read the payload: a delete event stores the description text there.
+                    // Empty or null means all environments. Do not read the payload: a delete event stores the
+                    // description text there.
                     if (environments == null || environments.isEmpty()) {
-                        return Flowable.just(
-                            SharedPolicyGroupReactorDeployable.builder()
+                        return Flowable.just(SharedPolicyGroupReactorDeployable.builder()
                                 .syncAction(SyncAction.UNDEPLOY)
                                 .sharedPolicyGroupId(sharedPolicyGroupId)
                                 .allEnvironments(true)
-                                .build()
-                        );
+                                .build());
                     }
-                    return Flowable.fromIterable(environments).map(environmentId ->
-                        SharedPolicyGroupReactorDeployable.builder()
-                            .syncAction(SyncAction.UNDEPLOY)
-                            .sharedPolicyGroupId(sharedPolicyGroupId)
-                            .environmentId(environmentId)
-                            .build()
-                    );
-                })
-        );
+                    return Flowable.fromIterable(environments)
+                            .map(environmentId -> SharedPolicyGroupReactorDeployable.builder()
+                                    .syncAction(SyncAction.UNDEPLOY)
+                                    .sharedPolicyGroupId(sharedPolicyGroupId)
+                                    .environmentId(environmentId)
+                                    .build());
+                }));
     }
 
     private Flowable<SharedPolicyGroupReactorDeployable> deploySharedPolicyGroup(
-        SharedPolicyGroupDeployer sharedPolicyGroupDeployer,
-        final SharedPolicyGroupReactorDeployable deployable
-    ) {
+            SharedPolicyGroupDeployer sharedPolicyGroupDeployer, final SharedPolicyGroupReactorDeployable deployable) {
         return sharedPolicyGroupDeployer
-            .deploy(deployable)
-            .andThen(sharedPolicyGroupDeployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .deploy(deployable)
+                .andThen(sharedPolicyGroupDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     private Flowable<SharedPolicyGroupReactorDeployable> undeploySharedPolicyGroup(
-        final SharedPolicyGroupDeployer sharedPolicyGroupDeployer,
-        final SharedPolicyGroupReactorDeployable deployable
-    ) {
+            final SharedPolicyGroupDeployer sharedPolicyGroupDeployer,
+            final SharedPolicyGroupReactorDeployable deployable) {
         return sharedPolicyGroupDeployer
-            .undeploy(deployable)
-            .andThen(sharedPolicyGroupDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .undeploy(deployable)
+                .andThen(sharedPolicyGroupDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     protected int bulkEvents() {

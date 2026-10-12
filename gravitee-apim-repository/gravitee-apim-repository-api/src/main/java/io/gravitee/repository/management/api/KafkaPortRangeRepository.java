@@ -34,8 +34,9 @@ public interface KafkaPortRangeRepository extends CrudRepository<KafkaPortRange,
      * <p>The plan identified by {@code excludePlanId} is skipped (used when updating a plan, so the
      * plan's own row doesn't conflict with itself). Pass {@code null} to consider all rows.</p>
      */
-    List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
-        throws TechnicalException;
+    List<KafkaPortRange> findConflicting(
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+            throws TechnicalException;
 
     /**
      * Same semantics as {@link #findConflicting(String, int, int, int, String)} but acquires a
@@ -58,12 +59,8 @@ public interface KafkaPortRangeRepository extends CrudRepository<KafkaPortRange,
      * SQL Server must run the Management API against MariaDB, MySQL, or PostgreSQL.</p>
      */
     List<KafkaPortRange> findConflictingForUpdate(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) throws TechnicalException;
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+            throws TechnicalException;
 
     /**
      * Deletes every port-range row for the given API, in one transactional call. Used when an API

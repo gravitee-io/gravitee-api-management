@@ -46,15 +46,14 @@ public class AnalyticsRepositoryProbe implements Probe {
 
     @Override
     public CompletionStage<Result> check() {
-        return vertx
-            .executeBlocking(() -> {
-                try {
-                    analyticsRepository.query(new QueryContext("DEFAULT", "DEFAULT"), new CountQuery());
-                    return Result.healthy();
-                } catch (Exception ex) {
-                    return Result.unhealthy(ex);
-                }
-            })
-            .toCompletionStage();
+        return vertx.executeBlocking(() -> {
+                    try {
+                        analyticsRepository.query(new QueryContext("DEFAULT", "DEFAULT"), new CountQuery());
+                        return Result.healthy();
+                    } catch (Exception ex) {
+                        return Result.unhealthy(ex);
+                    }
+                })
+                .toCompletionStage();
     }
 }

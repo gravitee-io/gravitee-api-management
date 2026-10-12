@@ -21,16 +21,17 @@ public class CorsModelFixtures {
 
     private CorsModelFixtures() {}
 
-    private static final io.gravitee.definition.model.Cors.CorsBuilder BASE_MODEL_CORS = io.gravitee.definition.model.Cors.builder()
-        .accessControlAllowCredentials(true)
-        .accessControlAllowHeaders(Set.of("header1", "header2"))
-        .accessControlAllowMethods(Set.of("method1", "method2"))
-        .accessControlAllowOrigin(Set.of("origin1", "origin2"))
-        .enabled(true)
-        .accessControlExposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
-        .accessControlMaxAge(10)
-        .runPolicies(true)
-        .allowPrivateNetwork(true);
+    private static final io.gravitee.definition.model.Cors.CorsBuilder BASE_MODEL_CORS =
+            io.gravitee.definition.model.Cors.builder()
+                    .accessControlAllowCredentials(true)
+                    .accessControlAllowHeaders(Set.of("header1", "header2"))
+                    .accessControlAllowMethods(Set.of("method1", "method2"))
+                    .accessControlAllowOrigin(Set.of("origin1", "origin2"))
+                    .enabled(true)
+                    .accessControlExposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
+                    .accessControlMaxAge(10)
+                    .runPolicies(true)
+                    .allowPrivateNetwork(true);
 
     public static io.gravitee.definition.model.Cors aModelCors() {
         return BASE_MODEL_CORS.build();

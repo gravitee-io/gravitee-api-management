@@ -61,7 +61,8 @@ public class WSDLToOpenAPIConverterElPlaceholderTest {
         assertThat(addOp.getRequestBody()).isNotNull();
         assertThat(addOp.getRequestBody().getRequired()).isTrue();
 
-        Schema<?> schema = addOp.getRequestBody().getContent().get("application/json").getSchema();
+        Schema<?> schema =
+                addOp.getRequestBody().getContent().get("application/json").getSchema();
         assertThat(schema).isNotNull();
         assertThat(schema.getType()).isEqualTo("object");
 

@@ -41,14 +41,14 @@ class ImportDefinitionPageDomainServiceTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String USER = "user";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORGANIZATION_ID)
-        .environmentId(ENVIRONMENT_ID)
-        .actor(AuditActor.builder().userId(USER).build())
-        .build();
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .actor(AuditActor.builder().userId(USER).build())
+            .build();
     private static final Instant INSTANT_NOW = Instant.parse("2025-11-12T10:15:30Z");
 
     private static final ImportDefinitionPageDomainServiceTestInitializer initializer =
-        new ImportDefinitionPageDomainServiceTestInitializer();
+            new ImportDefinitionPageDomainServiceTestInitializer();
     private ImportDefinitionPageDomainService service;
 
     @BeforeEach
@@ -65,22 +65,23 @@ class ImportDefinitionPageDomainServiceTest {
 
     @Test
     void should_create_new_page() {
-        var pageToCreate = PageFixtures.aPage().toBuilder().createdAt(null).updatedAt(null).build();
+        var pageToCreate =
+                PageFixtures.aPage().toBuilder().createdAt(null).updatedAt(null).build();
 
         assertThat(initializer.pageCrudServiceInMemory.storage()).isEmpty();
 
         service.upsertPages(API_ID, List.of(pageToCreate), AUDIT_INFO);
 
         assertThat(initializer.pageCrudServiceInMemory.storage())
-            .hasSize(1)
-            .first()
-            .satisfies(createdPage -> {
-                assertThat(createdPage.getId()).isEqualTo(pageToCreate.getId());
-                assertThat(createdPage.getReferenceType()).isEqualTo(Page.ReferenceType.API);
-                assertThat(createdPage.getReferenceId()).isEqualTo(API_ID);
-                assertThat(createdPage.getCreatedAt()).isEqualTo(INSTANT_NOW);
-                assertThat(createdPage.getUpdatedAt()).isEqualTo(INSTANT_NOW);
-            });
+                .hasSize(1)
+                .first()
+                .satisfies(createdPage -> {
+                    assertThat(createdPage.getId()).isEqualTo(pageToCreate.getId());
+                    assertThat(createdPage.getReferenceType()).isEqualTo(Page.ReferenceType.API);
+                    assertThat(createdPage.getReferenceId()).isEqualTo(API_ID);
+                    assertThat(createdPage.getCreatedAt()).isEqualTo(INSTANT_NOW);
+                    assertThat(createdPage.getUpdatedAt()).isEqualTo(INSTANT_NOW);
+                });
     }
 
     @Test
@@ -89,52 +90,56 @@ class ImportDefinitionPageDomainServiceTest {
         var storedId = "stored-page-id";
         var wrongImportedId = "generated-import-id";
         var createdAt = Instant.parse("2020-10-12T10:15:30Z");
-        var existingInDb = PageFixtures.aPage()
-            .toBuilder()
-            .id(storedId)
-            .crossId(crossId)
-            .createdAt(Date.from(createdAt))
-            .updatedAt(Date.from(createdAt))
-            .content("old")
-            .build();
+        var existingInDb = PageFixtures.aPage().toBuilder()
+                .id(storedId)
+                .crossId(crossId)
+                .createdAt(Date.from(createdAt))
+                .updatedAt(Date.from(createdAt))
+                .content("old")
+                .build();
         initializer.pageCrudServiceInMemory.createDocumentationPage(existingInDb);
         initializer.pageQueryServiceInMemory.initWith(List.of(existingInDb));
 
-        var importedWithWrongId = existingInDb.toBuilder().id(wrongImportedId).content("new body").build();
+        var importedWithWrongId =
+                existingInDb.toBuilder().id(wrongImportedId).content("new body").build();
         service.upsertPages(API_ID, List.of(importedWithWrongId), AUDIT_INFO);
 
         assertThat(initializer.pageCrudServiceInMemory.storage())
-            .hasSize(1)
-            .first()
-            .satisfies(p -> {
-                assertThat(p.getId()).isEqualTo(storedId);
-                assertThat(p.getCrossId()).isEqualTo(crossId);
-                assertThat(p.getContent()).isEqualTo("new body");
-                assertThat(p.getUpdatedAt()).isEqualTo(INSTANT_NOW);
-            });
+                .hasSize(1)
+                .first()
+                .satisfies(p -> {
+                    assertThat(p.getId()).isEqualTo(storedId);
+                    assertThat(p.getCrossId()).isEqualTo(crossId);
+                    assertThat(p.getContent()).isEqualTo("new body");
+                    assertThat(p.getUpdatedAt()).isEqualTo(INSTANT_NOW);
+                });
     }
 
     @Test
     void should_update_new_page() {
         var createdAt = Instant.parse("2020-10-12T10:15:30Z");
-        var pageToUpdate = PageFixtures.aPage().toBuilder().createdAt(Date.from(createdAt)).updatedAt(null).build();
+        var pageToUpdate = PageFixtures.aPage().toBuilder()
+                .createdAt(Date.from(createdAt))
+                .updatedAt(null)
+                .build();
         initializer.pageCrudServiceInMemory.createDocumentationPage(pageToUpdate);
         initializer.pageQueryServiceInMemory.initWith(List.of(pageToUpdate));
 
         assertThat(initializer.pageCrudServiceInMemory.storage()).hasSize(1);
         var update = "update";
-        service.upsertPages(API_ID, List.of(pageToUpdate.toBuilder().content("update").build()), AUDIT_INFO);
+        service.upsertPages(
+                API_ID, List.of(pageToUpdate.toBuilder().content("update").build()), AUDIT_INFO);
 
         assertThat(initializer.pageCrudServiceInMemory.storage())
-            .hasSize(1)
-            .first()
-            .satisfies(updatedPage -> {
-                assertThat(updatedPage.getId()).isEqualTo(pageToUpdate.getId());
-                assertThat(updatedPage.getReferenceType()).isEqualTo(Page.ReferenceType.API);
-                assertThat(updatedPage.getReferenceId()).isEqualTo(API_ID);
-                assertThat(updatedPage.getCreatedAt()).isEqualTo(createdAt);
-                assertThat(updatedPage.getUpdatedAt()).isEqualTo(INSTANT_NOW);
-                assertThat(updatedPage.getContent()).isEqualTo(update);
-            });
+                .hasSize(1)
+                .first()
+                .satisfies(updatedPage -> {
+                    assertThat(updatedPage.getId()).isEqualTo(pageToUpdate.getId());
+                    assertThat(updatedPage.getReferenceType()).isEqualTo(Page.ReferenceType.API);
+                    assertThat(updatedPage.getReferenceId()).isEqualTo(API_ID);
+                    assertThat(updatedPage.getCreatedAt()).isEqualTo(createdAt);
+                    assertThat(updatedPage.getUpdatedAt()).isEqualTo(INSTANT_NOW);
+                    assertThat(updatedPage.getContent()).isEqualTo(update);
+                });
     }
 }

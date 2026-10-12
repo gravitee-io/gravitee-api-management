@@ -58,7 +58,8 @@ public class CommandMongoRepositoryCustomImpl implements CommandMongoRepositoryC
             query.addCriteria(where("from").ne(criteria.getNotFrom()));
         }
 
-        if (criteria.getOrganizationId() != null && !criteria.getOrganizationId().isEmpty()) {
+        if (criteria.getOrganizationId() != null
+                && !criteria.getOrganizationId().isEmpty()) {
             query.addCriteria(where("organizationId").is(criteria.getOrganizationId()));
         }
 

@@ -96,7 +96,8 @@ public class ApplicationService_FindByIdsTest {
     private ClientRegistrationService clientRegistrationService;
 
     @Mock
-    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService
+            clientCertificateCrudService;
 
     @BeforeEach
     public void setUp() {
@@ -112,12 +113,13 @@ public class ApplicationService_FindByIdsTest {
         when(app2.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
         doReturn(primaryOwnerRole)
-            .when(roleService)
-            .findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.APPLICATION);
+                .when(roleService)
+                .findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.APPLICATION);
 
         doReturn("role-id").when(primaryOwnerRole).getId();
 
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(primaryOwners);
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(primaryOwners);
     }
 
     @AfterEach
@@ -129,57 +131,70 @@ public class ApplicationService_FindByIdsTest {
     public void shouldFindByIds() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
-            .environmentIds(Set.of(executionContext.getEnvironmentId()))
-            .build();
+                .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
+                .environmentIds(Set.of(executionContext.getEnvironmentId()))
+                .build();
         // Should return both the applications by Ids irrespective of status
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+                .when(applicationRepository)
+                .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
 
         assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
+        assertEquals(
+                APPLICATION_IDS,
+                applications.stream().map(ApplicationListItem::getId).toList());
     }
 
     @Test
     public void shouldFindByIdsWithDuplicatedIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
-            .environmentIds(Set.of(executionContext.getEnvironmentId()))
-            .build();
+                .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
+                .environmentIds(Set.of(executionContext.getEnvironmentId()))
+                .build();
 
-        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2))
+                .when(applicationRepository)
+                .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(
-            executionContext,
-            List.of("id-app-1", "id-app-1", "id-app-2")
-        );
+        final Set<ApplicationListItem> applications =
+                applicationService.findByIds(executionContext, List.of("id-app-1", "id-app-1", "id-app-2"));
 
         assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
+        assertEquals(
+                APPLICATION_IDS,
+                applications.stream().map(ApplicationListItem::getId).toList());
     }
 
     @Test
     public void shouldFindByIdsWithNoEnvironmentCriteria() throws TechnicalException {
         ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
-        ApplicationCriteria criteria = ApplicationCriteria.builder().restrictedToIds(Sets.newHashSet(APPLICATION_IDS)).build();
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
+                .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
+                .build();
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+                .when(applicationRepository)
+                .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
 
         assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
+        assertEquals(
+                APPLICATION_IDS,
+                applications.stream().map(ApplicationListItem::getId).toList());
     }
 
     @Test
     public void shouldFindByIdsWithEmptySet() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, Collections.emptySet());
+        final Set<ApplicationListItem> applications =
+                applicationService.findByIds(executionContext, Collections.emptySet());
 
         assertNotNull(applications);
         assertTrue(applications.isEmpty());
@@ -191,18 +206,20 @@ public class ApplicationService_FindByIdsTest {
         assertThrows(TechnicalManagementException.class, () -> {
             ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             ApplicationCriteria criteria = ApplicationCriteria.builder()
-                .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
-                .environmentIds(Set.of(executionContext.getEnvironmentId()))
-                .build();
-            doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+                    .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
+                    .environmentIds(Set.of(executionContext.getEnvironmentId()))
+                    .build();
+            doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+                    .when(applicationRepository)
+                    .search(criteria, null);
 
-            final Set<ApplicationListItem> applications = applicationService.findByIds(
-                GraviteeContext.getExecutionContext(),
-                APPLICATION_IDS
-            );
+            final Set<ApplicationListItem> applications =
+                    applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
 
             assertNotNull(applications);
-            assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
+            assertEquals(
+                    APPLICATION_IDS,
+                    applications.stream().map(ApplicationListItem::getId).toList());
         });
     }
 

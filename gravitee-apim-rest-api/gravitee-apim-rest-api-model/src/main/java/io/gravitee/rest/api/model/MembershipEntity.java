@@ -75,31 +75,28 @@ public class MembershipEntity {
     }
 
     public String toString() {
-        return (
-            "Membership{" +
-            "id='" +
-            id +
-            '\'' +
-            ", memberId='" +
-            memberId +
-            '\'' +
-            ", memberType='" +
-            memberType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", role='" +
-            roleId +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("Membership{" + "id='"
+                + id
+                + '\''
+                + ", memberId='"
+                + memberId
+                + '\''
+                + ", memberType='"
+                + memberType
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType='"
+                + referenceType
+                + '\''
+                + ", role='"
+                + roleId
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

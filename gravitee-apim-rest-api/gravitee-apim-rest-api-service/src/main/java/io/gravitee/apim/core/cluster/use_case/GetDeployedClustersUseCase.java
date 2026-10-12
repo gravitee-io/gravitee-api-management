@@ -43,10 +43,7 @@ public class GetDeployedClustersUseCase {
 
     public Output execute(Input input) {
         List<Event> events = eventLatestQueryService.findAllByTypeAndEnvironments(
-            Set.of(EventType.DEPLOY_CLUSTER),
-            Set.of(input.environmentId()),
-            Event.EventProperties.CLUSTER_ID
-        );
+                Set.of(EventType.DEPLOY_CLUSTER), Set.of(input.environmentId()), Event.EventProperties.CLUSTER_ID);
 
         var stream = events.stream().map(this::toDeployedCluster);
         if (input.type() != null) {
@@ -65,23 +62,24 @@ public class GetDeployedClustersUseCase {
             if (cluster.getType() == ClusterType.KAFKA_CLUSTER && cluster.getConfiguration() != null) {
                 KafkaClusterConfiguration config = cluster.getKafkaClusterConfiguration(objectMapper);
                 if (config.connections() != null) {
-                    connections = config
-                        .connections()
-                        .stream()
-                        .map(c -> DeployedCluster.DeployedClusterConnection.builder().crossId(c.crossId()).name(c.name()).build())
-                        .collect(Collectors.toList());
+                    connections = config.connections().stream()
+                            .map(c -> DeployedCluster.DeployedClusterConnection.builder()
+                                    .crossId(c.crossId())
+                                    .name(c.name())
+                                    .build())
+                            .collect(Collectors.toList());
                 }
             }
 
             return DeployedCluster.builder()
-                .crossId(cluster.getCrossId())
-                .name(cluster.getName())
-                .description(cluster.getDescription())
-                .type(cluster.getType())
-                .deployedAt(cluster.getDeployedAt())
-                .version(cluster.getVersion())
-                .connections(connections)
-                .build();
+                    .crossId(cluster.getCrossId())
+                    .name(cluster.getName())
+                    .description(cluster.getDescription())
+                    .type(cluster.getType())
+                    .deployedAt(cluster.getDeployedAt())
+                    .version(cluster.getVersion())
+                    .connections(connections)
+                    .build();
         } catch (Exception e) {
             throw new RuntimeException("Failed to deserialize deployed cluster from event payload", e);
         }

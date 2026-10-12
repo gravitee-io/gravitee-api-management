@@ -47,7 +47,8 @@ public abstract class ObservabilityFilterDataPortContractTest {
 
     @Test
     void should_list_the_distinct_values_of_a_keyword_filter() {
-        givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null)));
+        givenKeywordValues(
+                "ENTRYPOINT", List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null)));
 
         var page = port().listKeywordValues("ENTRYPOINT", null, null, null, 1, 10, Set.of());
 
@@ -58,9 +59,11 @@ public abstract class ObservabilityFilterDataPortContractTest {
     @Test
     void should_narrow_values_by_a_case_insensitive_substring_of_value_or_label() {
         givenKeywordValues(
-            "API",
-            List.of(new FilterValue("api-1", "Petstore"), new FilterValue("api-2", "Weather"), new FilterValue("pet-3", "Other"))
-        );
+                "API",
+                List.of(
+                        new FilterValue("api-1", "Petstore"),
+                        new FilterValue("api-2", "Weather"),
+                        new FilterValue("pet-3", "Other")));
 
         var page = port().listKeywordValues("API", "PET", null, null, 1, 10, Set.of());
 
@@ -70,7 +73,9 @@ public abstract class ObservabilityFilterDataPortContractTest {
 
     @Test
     void should_paginate_values_one_based_and_report_the_total() {
-        givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("a", null), new FilterValue("b", null), new FilterValue("c", null)));
+        givenKeywordValues(
+                "ENTRYPOINT",
+                List.of(new FilterValue("a", null), new FilterValue("b", null), new FilterValue("c", null)));
 
         var secondPage = port().listKeywordValues("ENTRYPOINT", null, null, null, 2, 2, Set.of());
 
@@ -91,12 +96,13 @@ public abstract class ObservabilityFilterDataPortContractTest {
         givenLabels("API", Map.of("api-1", "Petstore", "api-2", "Weather"));
         givenLabels("APPLICATION", Map.of("app-1", "Mobile"));
 
-        List<ResolvedLabels> resolved = port().resolveLabels(
-            List.of(new ResolveRequest("API", List.of("api-1", "unknown")), new ResolveRequest("APPLICATION", List.of("app-1")))
-        );
+        List<ResolvedLabels> resolved = port().resolveLabels(List.of(
+                new ResolveRequest("API", List.of("api-1", "unknown")),
+                new ResolveRequest("APPLICATION", List.of("app-1"))));
 
         assertThat(resolved)
-            .extracting(ResolvedLabels::filterName, ResolvedLabels::labels)
-            .containsExactly(tuple("API", Map.of("api-1", "Petstore")), tuple("APPLICATION", Map.of("app-1", "Mobile")));
+                .extracting(ResolvedLabels::filterName, ResolvedLabels::labels)
+                .containsExactly(
+                        tuple("API", Map.of("api-1", "Petstore")), tuple("APPLICATION", Map.of("app-1", "Mobile")));
     }
 }

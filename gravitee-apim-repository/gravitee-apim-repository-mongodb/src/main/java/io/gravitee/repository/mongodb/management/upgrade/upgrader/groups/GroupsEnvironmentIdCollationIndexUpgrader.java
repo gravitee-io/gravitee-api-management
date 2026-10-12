@@ -31,9 +31,14 @@ public class GroupsEnvironmentIdCollationIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         Collation collation = Collation.builder()
-            .locale(Locale.ENGLISH.getLanguage())
-            .collationStrength(CollationStrength.SECONDARY)
-            .build();
-        return Index.builder().collection("groups").name("name_collation_1").key("name", ascending()).collation(collation).build();
+                .locale(Locale.ENGLISH.getLanguage())
+                .collationStrength(CollationStrength.SECONDARY)
+                .build();
+        return Index.builder()
+                .collection("groups")
+                .name("name_collation_1")
+                .key("name", ascending())
+                .collation(collation)
+                .build();
     }
 }

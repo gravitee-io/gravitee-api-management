@@ -28,7 +28,8 @@ public class ApplicationMembersSearchCriteriaMapperTest {
 
     @Test
     public void should_map_display_name_filter() {
-        var input = new ApplicationMembersSearchInput().filters(new ApplicationMembersSearchFilters().displayName("john"));
+        var input =
+                new ApplicationMembersSearchInput().filters(new ApplicationMembersSearchFilters().displayName("john"));
 
         var criteria = mapper.toSearchCriteria(input);
 

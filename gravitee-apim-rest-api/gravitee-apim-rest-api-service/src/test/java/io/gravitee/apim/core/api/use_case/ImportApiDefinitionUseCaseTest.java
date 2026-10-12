@@ -133,59 +133,72 @@ class ImportApiDefinitionUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
+        importDefinitionCreateDomainServiceTestInitializer =
+                new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
 
-        useCase = new ImportApiDefinitionUseCase(apiCrudService, importDefinitionCreateDomainServiceTestInitializer.initialize());
+        useCase = new ImportApiDefinitionUseCase(
+                apiCrudService, importDefinitionCreateDomainServiceTestInitializer.initialize());
 
-        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(
-            List.of(
+        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService.initWith(List.of(
                 new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                ),
-                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
-        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
-            List.of(
-                BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email(USER_EMAIL).build(),
-                BaseUserEntity.builder().id("NEW-USER-ID").firstname("Jane1").lastname("Doe1").email(USER_EMAIL).build()
-            )
-        );
+                        Key.API_PRIMARY_OWNER_MODE.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        ApiPrimaryOwnerMode.USER.name()),
+                new Parameter(
+                        Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                        ENVIRONMENT_ID,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
+        importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(List.of(
+                BaseUserEntity.builder()
+                        .id(USER_ID)
+                        .firstname("Jane")
+                        .lastname("Doe")
+                        .email(USER_EMAIL)
+                        .build(),
+                BaseUserEntity.builder()
+                        .id("NEW-USER-ID")
+                        .firstname("Jane1")
+                        .lastname("Doe1")
+                        .email(USER_EMAIL)
+                        .build()));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.auditCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.flowCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.groupQueryService,
-            importDefinitionCreateDomainServiceTestInitializer.membershipCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.metadataCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.notificationConfigCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.pageCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.pageRevisionCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.parametersQueryService,
-            importDefinitionCreateDomainServiceTestInitializer.planCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.roleQueryService,
-            importDefinitionCreateDomainServiceTestInitializer.userCrudService,
-            importDefinitionCreateDomainServiceTestInitializer.workflowCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.auditCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.flowCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.groupQueryService,
+                        importDefinitionCreateDomainServiceTestInitializer.membershipCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.metadataCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.notificationConfigCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.pageCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.pageRevisionCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.parametersQueryService,
+                        importDefinitionCreateDomainServiceTestInitializer.planCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.roleQueryService,
+                        importDefinitionCreateDomainServiceTestInitializer.userCrudService,
+                        importDefinitionCreateDomainServiceTestInitializer.workflowCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @ParameterizedTest(name = "Test for API import with {0} definition version")
-    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            names = {"V2"})
     void should_not_allow_import_with_api_definition_version(DefinitionVersion definitionVersion) {
         // Given
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().definitionVersion(definitionVersion).build())
-            .build();
+                .apiExport(
+                        ApiExport.builder().definitionVersion(definitionVersion).build())
+                .build();
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
+        var throwable = catchThrowable(
+                () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiDefinitionVersionNotSupportedException.class);
@@ -196,11 +209,15 @@ class ImportApiDefinitionUseCaseTest {
         // Given
         apiCrudService.initWith(List.of(Api.builder().id(EXISTING_API_ID).build()));
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().id(EXISTING_API_ID).definitionVersion(DefinitionVersion.V4).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .id(EXISTING_API_ID)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .build())
+                .build();
 
         // When
-        var throwable = catchThrowable(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
+        var throwable = catchThrowable(
+                () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiAlreadyExistsException.class);
@@ -211,27 +228,18 @@ class ImportApiDefinitionUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            when(
-                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            ).thenAnswer(invocation -> invocation.getArgument(0));
+            when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService
+                            .validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
         }
 
         @Test
         void should_create_a_new_api_resolving_and_auto_creating_groups_by_name() {
             importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
-                List.of(
-                    fixtures.core.model.GroupFixtures.aGroup("developers-id")
-                        .toBuilder()
-                        .name("Developers")
-                        .environmentId(ENVIRONMENT_ID)
-                        .build()
-                )
-            );
+                    List.of(fixtures.core.model.GroupFixtures.aGroup("developers-id").toBuilder()
+                            .name("Developers")
+                            .environmentId(ENVIRONMENT_ID)
+                            .build()));
 
             var importDefinition = anApiProxyImportDefinition();
             final String customId = "a-custom-id";
@@ -242,56 +250,46 @@ class ImportApiDefinitionUseCaseTest {
 
             var createdApi = apiCrudService.get(customId);
             assertThat(createdApi.getGroups()).hasSize(2).contains("developers-id");
-            assertThat(
-                importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(ENVIRONMENT_ID, Set.of("Helios"))
-            ).hasSize(1);
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(
+                            ENVIRONMENT_ID, Set.of("Helios")))
+                    .hasSize(1);
         }
 
         @Test
         void should_not_create_missing_groups_when_api_validation_fails() {
             // Given: mock validation to throw an exception
-            when(
-                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            ).thenThrow(new ValidationDomainException("Invalid listener configuration"));
+            when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService
+                            .validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenThrow(new ValidationDomainException("Invalid listener configuration"));
 
             var importDefinition = anApiProxyImportDefinition();
             importDefinition.getApiExport().setGroups(Set.of("NewGroup1", "NewGroup2"));
 
             // When: import fails due to validation
-            var throwable = catchThrowable(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
+            var throwable = catchThrowable(
+                    () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
 
             // Then: validation error is thrown
             assertThat(throwable).isInstanceOf(ValidationDomainException.class);
 
             // And: no groups were created (deferred group resolution prevents orphaned groups)
-            assertThat(
-                importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(
-                    ENVIRONMENT_ID,
-                    Set.of("NewGroup1", "NewGroup2")
-                )
-            ).isEmpty();
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(
+                            ENVIRONMENT_ID, Set.of("NewGroup1", "NewGroup2")))
+                    .isEmpty();
         }
 
         @Test
         void should_preserve_validation_added_groups_when_import_has_no_groups() {
             // Given: validation adds default groups (e.g., API_CREATE groups, primary-owner group)
             var validationAddedGroupId = "default-api-create-group-id";
-            when(
-                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            ).thenAnswer(invocation -> {
-                var api = (io.gravitee.apim.core.api.model.Api) invocation.getArgument(0);
-                return api.toBuilder().groups(Set.of(validationAddedGroupId)).build();
-            });
+            when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService
+                            .validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        var api = (io.gravitee.apim.core.api.model.Api) invocation.getArgument(0);
+                        return api.toBuilder()
+                                .groups(Set.of(validationAddedGroupId))
+                                .build();
+                    });
 
             var importDefinition = anApiProxyImportDefinition();
             final String customId = "api-no-groups";
@@ -311,26 +309,19 @@ class ImportApiDefinitionUseCaseTest {
             // Given: existing group to resolve + validation adds a default group
             var validationAddedGroupId = "primary-owner-group-id";
             importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
-                List.of(
-                    fixtures.core.model.GroupFixtures.aGroup("developers-id")
-                        .toBuilder()
-                        .name("Developers")
-                        .environmentId(ENVIRONMENT_ID)
-                        .build()
-                )
-            );
-            when(
-                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            ).thenAnswer(invocation -> {
-                var api = (io.gravitee.apim.core.api.model.Api) invocation.getArgument(0);
-                // Validation adds primary-owner group (simulating GROUP type primary owner)
-                return api.toBuilder().groups(Set.of(validationAddedGroupId)).build();
-            });
+                    List.of(fixtures.core.model.GroupFixtures.aGroup("developers-id").toBuilder()
+                            .name("Developers")
+                            .environmentId(ENVIRONMENT_ID)
+                            .build()));
+            when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService
+                            .validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> {
+                        var api = (io.gravitee.apim.core.api.model.Api) invocation.getArgument(0);
+                        // Validation adds primary-owner group (simulating GROUP type primary owner)
+                        return api.toBuilder()
+                                .groups(Set.of(validationAddedGroupId))
+                                .build();
+                    });
 
             var importDefinition = anApiProxyImportDefinition();
             final String customId = "api-with-merged-groups";
@@ -365,16 +356,12 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                                Collections.emptySet()));
             });
         }
 
@@ -385,11 +372,11 @@ class ImportApiDefinitionUseCaseTest {
             importDefinition.getApiExport().setId(customId);
 
             io.gravitee.apim.core.membership.model.PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity.builder()
-                .id(USER_ID)
-                .type(PrimaryOwnerEntity.Type.USER)
-                .email(USER_EMAIL)
-                .displayName("Jane Doe")
-                .build();
+                    .id(USER_ID)
+                    .type(PrimaryOwnerEntity.Type.USER)
+                    .email(USER_EMAIL)
+                    .displayName("Jane Doe")
+                    .build();
             importDefinition.getApiExport().setPrimaryOwner(primaryOwner);
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
 
@@ -401,16 +388,12 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                                Collections.emptySet()));
             });
         }
 
@@ -421,11 +404,11 @@ class ImportApiDefinitionUseCaseTest {
             importDefinition.getApiExport().setId(customId);
 
             io.gravitee.apim.core.membership.model.PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity.builder()
-                .id("NEW-USER-ID2")
-                .type(PrimaryOwnerEntity.Type.USER)
-                .email(USER_EMAIL)
-                .displayName("Jane2 Doe2")
-                .build();
+                    .id("NEW-USER-ID2")
+                    .type(PrimaryOwnerEntity.Type.USER)
+                    .email(USER_EMAIL)
+                    .displayName("Jane2 Doe2")
+                    .build();
             importDefinition.getApiExport().setPrimaryOwner(primaryOwner);
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
 
@@ -437,39 +420,34 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                                Collections.emptySet()));
             });
         }
 
         @Test
         void should_mark_the_creation_audit_when_the_definition_declares_an_encrypted_property() {
             var definition = anApiProxyImportDefinition();
-            var importDefinition = definition
-                .toBuilder()
-                .apiExport(
-                    definition
-                        .getApiExport()
-                        .toBuilder()
-                        .properties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()))
-                        .build()
-                )
-                .build();
+            var importDefinition = definition.toBuilder()
+                    .apiExport(definition.getApiExport().toBuilder()
+                            .properties(List.of(Property.builder()
+                                    .key("secret")
+                                    .value("ciphertext")
+                                    .encrypted(true)
+                                    .build()))
+                            .build())
+                    .build();
 
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
 
             assertThat(importDefinitionCreateDomainServiceTestInitializer.auditCrudService.storage())
-                .filteredOn(audit -> audit.getEvent().equals("API_CREATED"))
-                .singleElement()
-                .satisfies(audit -> assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true"));
+                    .filteredOn(audit -> audit.getEvent().equals("API_CREATED"))
+                    .singleElement()
+                    .satisfies(audit -> assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true"));
         }
 
         @Test
@@ -488,47 +466,41 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                                Collections.emptySet()));
             });
         }
 
         @Test
         void should_create_a_new_api_with_metadata() {
             // Given
-            importDefinitionCreateDomainServiceTestInitializer.metadataCrudService.initWith(
-                List.of(
-                    Metadata.builder()
-                        .key("support-email-key")
-                        .format(Metadata.MetadataFormat.MAIL)
-                        .name("metadata-name")
-                        .value("metadata-value")
-                        .referenceId(API_ID)
-                        .referenceType(Metadata.ReferenceType.API)
-                        .build()
-                )
-            );
+            importDefinitionCreateDomainServiceTestInitializer.metadataCrudService.initWith(List.of(Metadata.builder()
+                    .key("support-email-key")
+                    .format(Metadata.MetadataFormat.MAIL)
+                    .name("metadata-name")
+                    .value("metadata-value")
+                    .referenceId(API_ID)
+                    .referenceType(Metadata.ReferenceType.API)
+                    .build()));
             var metadataToCreate = NewApiMetadata.builder()
-                .format(Metadata.MetadataFormat.BOOLEAN)
-                .key("metadata-boolean")
-                .name("metadata-boolean")
-                .value("false")
-                .build();
+                    .format(Metadata.MetadataFormat.BOOLEAN)
+                    .key("metadata-boolean")
+                    .name("metadata-boolean")
+                    .value("false")
+                    .build();
             var metadataToUpdate = NewApiMetadata.builder()
-                .format(Metadata.MetadataFormat.MAIL)
-                .key("support-email-key")
-                .name("metadata-name-updated")
-                .value("metadata-value-updated")
-                .build();
-            var importDefinition = anApiProxyImportDefinition().toBuilder().metadata(Set.of(metadataToCreate, metadataToUpdate)).build();
+                    .format(Metadata.MetadataFormat.MAIL)
+                    .key("support-email-key")
+                    .name("metadata-name-updated")
+                    .value("metadata-value-updated")
+                    .build();
+            var importDefinition = anApiProxyImportDefinition().toBuilder()
+                    .metadata(Set.of(metadataToCreate, metadataToUpdate))
+                    .build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -537,42 +509,39 @@ class ImportApiDefinitionUseCaseTest {
             var expectedApi = expectedProxyApi();
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
-                var apiMetadataCreated = importDefinitionCreateDomainServiceTestInitializer.metadataCrudService
-                    .storage()
-                    .stream()
-                    .filter(metadata -> metadata.getReferenceId().equals(API_ID))
-                    .collect(Collectors.toSet());
-                soft
-                    .assertThat(apiMetadataCreated)
-                    .extracting(Metadata::getKey, Metadata::getFormat, Metadata::getName, Metadata::getValue)
-                    .contains(
-                        tuple(
-                            metadataToCreate.getKey(),
-                            metadataToCreate.getFormat(),
-                            metadataToCreate.getName(),
-                            metadataToCreate.getValue()
-                        ),
-                        tuple(
-                            metadataToUpdate.getKey(),
-                            metadataToUpdate.getFormat(),
-                            metadataToUpdate.getName(),
-                            metadataToUpdate.getValue()
-                        )
-                    );
+                var apiMetadataCreated =
+                        importDefinitionCreateDomainServiceTestInitializer.metadataCrudService.storage().stream()
+                                .filter(metadata -> metadata.getReferenceId().equals(API_ID))
+                                .collect(Collectors.toSet());
+                soft.assertThat(apiMetadataCreated)
+                        .extracting(Metadata::getKey, Metadata::getFormat, Metadata::getName, Metadata::getValue)
+                        .contains(
+                                tuple(
+                                        metadataToCreate.getKey(),
+                                        metadataToCreate.getFormat(),
+                                        metadataToCreate.getName(),
+                                        metadataToCreate.getValue()),
+                                tuple(
+                                        metadataToUpdate.getKey(),
+                                        metadataToUpdate.getFormat(),
+                                        metadataToUpdate.getName(),
+                                        metadataToUpdate.getValue()));
             });
         }
 
         @Test
         void should_create_a_new_api_with_a_plan() {
             // Given
-            var plan = PlanWithFlowsFixtures.aPlanWithFlows()
-                .toBuilder()
-                .referenceId(API_ID)
-                .environmentId(ENVIRONMENT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .planDefinitionHttpV4(PlanWithFlowsFixtures.aPlanWithFlows().getPlanDefinitionHttpV4().toBuilder().tags(TAGS).build())
-                .build();
-            var importDefinition = anApiProxyImportDefinition().toBuilder().plans(Set.of(plan)).build();
+            var plan = PlanWithFlowsFixtures.aPlanWithFlows().toBuilder()
+                    .referenceId(API_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .planDefinitionHttpV4(PlanWithFlowsFixtures.aPlanWithFlows().getPlanDefinitionHttpV4().toBuilder()
+                            .tags(TAGS)
+                            .build())
+                    .build();
+            var importDefinition =
+                    anApiProxyImportDefinition().toBuilder().plans(Set.of(plan)).build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -582,18 +551,15 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedApi = expectedProxyApi();
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
 
-                var createdPlans = importDefinitionCreateDomainServiceTestInitializer.planCrudService
-                    .storage()
-                    .stream()
-                    .filter(p -> p.getReferenceId().equals(API_ID))
-                    .collect(Collectors.toSet());
-                var expectedPlan = plan
-                    .toBuilder()
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .needRedeployAt(Date.from(INSTANT_NOW))
-                    .apiType(ApiType.PROXY)
-                    .build();
+                var createdPlans = importDefinitionCreateDomainServiceTestInitializer.planCrudService.storage().stream()
+                        .filter(p -> p.getReferenceId().equals(API_ID))
+                        .collect(Collectors.toSet());
+                var expectedPlan = plan.toBuilder()
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .needRedeployAt(Date.from(INSTANT_NOW))
+                        .apiType(ApiType.PROXY)
+                        .build();
                 soft.assertThat(createdPlans).containsExactly(expectedPlan);
             });
         }
@@ -602,7 +568,9 @@ class ImportApiDefinitionUseCaseTest {
         void should_create_a_new_api_with_a_page() {
             // Given
             var page = PageFixtures.aPage().toBuilder().referenceId(null).build();
-            var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
+            var importDefinition = anApiProxyImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
 
@@ -611,18 +579,15 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedApi = expectedProxyApi();
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
 
-                var createPages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService
-                    .storage()
-                    .stream()
-                    .filter(p -> p.getReferenceId().equals(API_ID))
-                    .collect(Collectors.toSet());
-                var expectedPage = page
-                    .toBuilder()
-                    .referenceId(API_ID)
-                    .crossId(API_ID)
-                    .createdAt(Date.from(INSTANT_NOW))
-                    .updatedAt(Date.from(INSTANT_NOW))
-                    .build();
+                var createPages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage().stream()
+                        .filter(p -> p.getReferenceId().equals(API_ID))
+                        .collect(Collectors.toSet());
+                var expectedPage = page.toBuilder()
+                        .referenceId(API_ID)
+                        .crossId(API_ID)
+                        .createdAt(Date.from(INSTANT_NOW))
+                        .updatedAt(Date.from(INSTANT_NOW))
+                        .build();
                 soft.assertThat(createPages).containsExactly(expectedPage);
             });
         }
@@ -631,103 +596,116 @@ class ImportApiDefinitionUseCaseTest {
         @NullSource
         @EmptySource
         void should_throw_an_error_when_name_is_not_valid(String name) {
-            var page = PageFixtures.aPage().toBuilder().name(name).referenceId(null).build();
-            var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name(name)
+                    .referenceId(null)
+                    .build();
+            var importDefinition = anApiProxyImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
         }
 
         @Test
         void should_throw_error_if_markdown_content_is_unsafe() {
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("page name")
-                .content(getNotSafe())
-                .referenceId(null)
-                .type(Page.Type.MARKDOWN)
-                .build();
-            var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("page name")
+                    .content(getNotSafe())
+                    .referenceId(null)
+                    .type(Page.Type.MARKDOWN)
+                    .build();
+            var importDefinition = anApiProxyImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage(
-                    "API imported with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
-                );
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage("API imported with error:\n"
+                            + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]");
         }
 
         @Test
         void should_throw_error_if_swagger_content_is_unsafe() {
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("page name")
-                .content(getNotSafe())
-                .referenceId(null)
-                .type(Page.Type.SWAGGER)
-                .build();
-            var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("page name")
+                    .content(getNotSafe())
+                    .referenceId(null)
+                    .type(Page.Type.SWAGGER)
+                    .build();
+            var importDefinition = anApiProxyImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage(
+                            "API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
         }
 
         @Test
         void should_throw_error_if_parent_is_not_a_folder() {
             var parentId = "parent-id";
 
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("new name")
-                .content("")
-                .parentId(parentId)
-                .type(Page.Type.MARKDOWN)
-                .referenceId(API_ID)
-                .referenceType(Page.ReferenceType.API)
-                .build();
-            var importDefinition = anApiProxyImportDefinition()
-                .toBuilder()
-                .pages(List.of(page, Page.builder().id(parentId).type(Page.Type.MARKDOWN).name("page name").build()))
-                .build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("new name")
+                    .content("")
+                    .parentId(parentId)
+                    .type(Page.Type.MARKDOWN)
+                    .referenceId(API_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .build();
+            var importDefinition = anApiProxyImportDefinition().toBuilder()
+                    .pages(List.of(
+                            page,
+                            Page.builder()
+                                    .id(parentId)
+                                    .type(Page.Type.MARKDOWN)
+                                    .name("page name")
+                                    .build()))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
         }
 
         @Test
         void should_throw_error_when_name_is_not_unique() {
-            importDefinitionCreateDomainServiceTestInitializer.pageQueryService.initWith(
-                List.of(
-                    Page.builder()
-                        .name("page name")
-                        .type(Page.Type.MARKDOWN)
-                        .referenceId("api-id")
-                        .referenceType(Page.ReferenceType.API)
-                        .build()
-                )
-            );
+            importDefinitionCreateDomainServiceTestInitializer.pageQueryService.initWith(List.of(Page.builder()
+                    .name("page name")
+                    .type(Page.Type.MARKDOWN)
+                    .referenceId("api-id")
+                    .referenceType(Page.ReferenceType.API)
+                    .build()));
 
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("page name")
-                .content(getNotSafe())
-                .referenceId(null)
-                .type(Page.Type.SWAGGER)
-                .build();
-            var importDefinition = anApiProxyImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("page name")
+                    .content(getNotSafe())
+                    .referenceId(null)
+                    .type(Page.Type.SWAGGER)
+                    .build();
+            var importDefinition = anApiProxyImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO))).isInstanceOf(
-                ValidationDomainException.class
-            );
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
         void should_create_a_new_api_with_a_media() {
             // Given
             var mediaList = List.of(MediaFixtures.aMedia());
-            var importDefinition = anApiProxyImportDefinition().toBuilder().apiMedia(mediaList).build();
+            var importDefinition =
+                    anApiProxyImportDefinition().toBuilder().apiMedia(mediaList).build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -735,24 +713,23 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedProxyApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1)).createMedias(
-                mediaList,
-                API_ID,
-                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)
-            );
+            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1))
+                    .createMedias(mediaList, API_ID, new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
         }
 
         @Test
         void should_create_a_new_api_with_a_member() {
             // Given
-            var members = Set.of(
-                ApiMember.builder()
+            var members = Set.of(ApiMember.builder()
                     .displayName("member")
                     .id("member-id")
-                    .roles(List.of(ApiMemberRole.builder().name("role").scope(RoleScope.API).build()))
-                    .build()
-            );
-            var importDefinition = anApiProxyImportDefinition().toBuilder().members(members).build();
+                    .roles(List.of(ApiMemberRole.builder()
+                            .name("role")
+                            .scope(RoleScope.API)
+                            .build()))
+                    .build());
+            var importDefinition =
+                    anApiProxyImportDefinition().toBuilder().members(members).build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -760,7 +737,8 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedProxyApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1)).createMembers(members, API_ID);
+            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1))
+                    .createMembers(members, API_ID);
         }
     }
 
@@ -769,14 +747,9 @@ class ImportApiDefinitionUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            when(
-                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            ).thenAnswer(invocation -> invocation.getArgument(0));
+            when(importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService
+                            .validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
         }
 
         @Test
@@ -801,16 +774,12 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                                Collections.emptySet()));
             });
         }
 
@@ -830,47 +799,41 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                                Collections.emptySet()));
             });
         }
 
         @Test
         void should_create_a_new_api_with_metadata() {
             // Given
-            importDefinitionCreateDomainServiceTestInitializer.metadataCrudService.initWith(
-                List.of(
-                    Metadata.builder()
-                        .key("support-email-key")
-                        .format(Metadata.MetadataFormat.MAIL)
-                        .name("metadata-name")
-                        .value("metadata-value")
-                        .referenceId(API_ID)
-                        .referenceType(Metadata.ReferenceType.API)
-                        .build()
-                )
-            );
+            importDefinitionCreateDomainServiceTestInitializer.metadataCrudService.initWith(List.of(Metadata.builder()
+                    .key("support-email-key")
+                    .format(Metadata.MetadataFormat.MAIL)
+                    .name("metadata-name")
+                    .value("metadata-value")
+                    .referenceId(API_ID)
+                    .referenceType(Metadata.ReferenceType.API)
+                    .build()));
             var metadataToCreate = NewApiMetadata.builder()
-                .format(Metadata.MetadataFormat.BOOLEAN)
-                .key("metadata-boolean")
-                .name("metadata-boolean")
-                .value("false")
-                .build();
+                    .format(Metadata.MetadataFormat.BOOLEAN)
+                    .key("metadata-boolean")
+                    .name("metadata-boolean")
+                    .value("false")
+                    .build();
             var metadataToUpdate = NewApiMetadata.builder()
-                .format(Metadata.MetadataFormat.MAIL)
-                .key("support-email-key")
-                .name("metadata-name-updated")
-                .value("metadata-value-updated")
-                .build();
-            var importDefinition = anApiNativeImportDefinition().toBuilder().metadata(Set.of(metadataToCreate, metadataToUpdate)).build();
+                    .format(Metadata.MetadataFormat.MAIL)
+                    .key("support-email-key")
+                    .name("metadata-name-updated")
+                    .value("metadata-value-updated")
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .metadata(Set.of(metadataToCreate, metadataToUpdate))
+                    .build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -879,45 +842,43 @@ class ImportApiDefinitionUseCaseTest {
             var expectedApi = expectedNativeApi();
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
-                var apiMetadataCreated = importDefinitionCreateDomainServiceTestInitializer.metadataCrudService
-                    .storage()
-                    .stream()
-                    .filter(metadata -> metadata.getReferenceId().equals(API_ID))
-                    .collect(Collectors.toSet());
-                soft
-                    .assertThat(apiMetadataCreated)
-                    .extracting(Metadata::getKey, Metadata::getFormat, Metadata::getName, Metadata::getValue)
-                    .contains(
-                        tuple(
-                            metadataToCreate.getKey(),
-                            metadataToCreate.getFormat(),
-                            metadataToCreate.getName(),
-                            metadataToCreate.getValue()
-                        ),
-                        tuple(
-                            metadataToUpdate.getKey(),
-                            metadataToUpdate.getFormat(),
-                            metadataToUpdate.getName(),
-                            metadataToUpdate.getValue()
-                        )
-                    );
+                var apiMetadataCreated =
+                        importDefinitionCreateDomainServiceTestInitializer.metadataCrudService.storage().stream()
+                                .filter(metadata -> metadata.getReferenceId().equals(API_ID))
+                                .collect(Collectors.toSet());
+                soft.assertThat(apiMetadataCreated)
+                        .extracting(Metadata::getKey, Metadata::getFormat, Metadata::getName, Metadata::getValue)
+                        .contains(
+                                tuple(
+                                        metadataToCreate.getKey(),
+                                        metadataToCreate.getFormat(),
+                                        metadataToCreate.getName(),
+                                        metadataToCreate.getValue()),
+                                tuple(
+                                        metadataToUpdate.getKey(),
+                                        metadataToUpdate.getFormat(),
+                                        metadataToUpdate.getName(),
+                                        metadataToUpdate.getValue()));
             });
         }
 
         @Test
         void should_create_a_new_api_with_a_plan() {
             // Given
-            var plan = PlanWithFlowsFixtures.aNativePlanWithFlows()
-                .toBuilder()
-                .referenceId(API_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API)
-                .environmentId(ENVIRONMENT_ID)
-                .definitionVersion(PlanWithFlowsFixtures.aNativePlanWithFlows().getDefinitionVersion())
-                .planDefinitionNativeV4(
-                    PlanWithFlowsFixtures.aNativePlanWithFlows().getPlanDefinitionNativeV4().toBuilder().tags(TAGS).build()
-                )
-                .build();
-            var importDefinition = anApiNativeImportDefinition().toBuilder().plans(Set.of(plan)).build();
+            var plan = PlanWithFlowsFixtures.aNativePlanWithFlows().toBuilder()
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
+                    .environmentId(ENVIRONMENT_ID)
+                    .definitionVersion(
+                            PlanWithFlowsFixtures.aNativePlanWithFlows().getDefinitionVersion())
+                    .planDefinitionNativeV4(
+                            PlanWithFlowsFixtures.aNativePlanWithFlows().getPlanDefinitionNativeV4().toBuilder()
+                                    .tags(TAGS)
+                                    .build())
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .plans(Set.of(plan))
+                    .build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -927,18 +888,15 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedApi = expectedNativeApi();
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
 
-                var createdPlans = importDefinitionCreateDomainServiceTestInitializer.planCrudService
-                    .storage()
-                    .stream()
-                    .filter(p -> p.getApiId().equals(API_ID))
-                    .collect(Collectors.toSet());
-                var expectedPlan = plan
-                    .toBuilder()
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .needRedeployAt(Date.from(INSTANT_NOW))
-                    .apiType(ApiType.NATIVE)
-                    .build();
+                var createdPlans = importDefinitionCreateDomainServiceTestInitializer.planCrudService.storage().stream()
+                        .filter(p -> p.getApiId().equals(API_ID))
+                        .collect(Collectors.toSet());
+                var expectedPlan = plan.toBuilder()
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .needRedeployAt(Date.from(INSTANT_NOW))
+                        .apiType(ApiType.NATIVE)
+                        .build();
                 soft.assertThat(createdPlans).containsExactly(expectedPlan);
             });
         }
@@ -946,8 +904,13 @@ class ImportApiDefinitionUseCaseTest {
         @Test
         void should_create_a_new_api_with_a_page() {
             // Given
-            var page = PageFixtures.aPage().toBuilder().referenceId(null).crossId(API_CROSS_ID).build();
-            var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .referenceId(null)
+                    .crossId(API_CROSS_ID)
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
 
@@ -956,18 +919,15 @@ class ImportApiDefinitionUseCaseTest {
                 var expectedApi = expectedNativeApi();
                 soft.assertThat(apiCrudService.storage()).contains(expectedApi);
 
-                var createPages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService
-                    .storage()
-                    .stream()
-                    .filter(p -> p.getReferenceId().equals(API_ID))
-                    .collect(Collectors.toSet());
-                var expectedPage = page
-                    .toBuilder()
-                    .referenceId(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .createdAt(Date.from(INSTANT_NOW))
-                    .updatedAt(Date.from(INSTANT_NOW))
-                    .build();
+                var createPages = importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage().stream()
+                        .filter(p -> p.getReferenceId().equals(API_ID))
+                        .collect(Collectors.toSet());
+                var expectedPage = page.toBuilder()
+                        .referenceId(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .createdAt(Date.from(INSTANT_NOW))
+                        .updatedAt(Date.from(INSTANT_NOW))
+                        .build();
                 soft.assertThat(createPages).containsExactly(expectedPage);
             });
         }
@@ -976,103 +936,117 @@ class ImportApiDefinitionUseCaseTest {
         @NullSource
         @EmptySource
         void should_throw_an_error_when_name_is_not_valid(String name) {
-            var page = PageFixtures.aPage().toBuilder().name(name).referenceId(null).build();
-            var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name(name)
+                    .referenceId(null)
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage("API imported with error:\n" + "- (Pages) Page name must not be null or empty");
         }
 
         @Test
         void should_throw_error_if_markdown_content_is_unsafe() {
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("page name")
-                .content(getNotSafe())
-                .referenceId(null)
-                .type(Page.Type.MARKDOWN)
-                .build();
-            var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("page name")
+                    .content(getNotSafe())
+                    .referenceId(null)
+                    .type(Page.Type.MARKDOWN)
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage(
-                    "API imported with error:\n" + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]"
-                );
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage("API imported with error:\n"
+                            + "- (Pages) The page content does not follow security policy: [Tag not allowed: script]");
         }
 
         @Test
         void should_throw_error_if_swagger_content_is_unsafe() {
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("page name")
-                .content(getNotSafe())
-                .referenceId(null)
-                .type(Page.Type.SWAGGER)
-                .build();
-            var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("page name")
+                    .content(getNotSafe())
+                    .referenceId(null)
+                    .type(Page.Type.SWAGGER)
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage(
+                            "API imported with error:\n" + "- (Pages) Invalid Open Api content Malformed descriptor");
         }
 
         @Test
         void should_throw_error_if_parent_is_not_a_folder() {
             var parentId = "parent-id";
 
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("new name")
-                .content("")
-                .parentId(parentId)
-                .type(Page.Type.MARKDOWN)
-                .referenceId(API_ID)
-                .referenceType(Page.ReferenceType.API)
-                .build();
-            var importDefinition = anApiNativeImportDefinition()
-                .toBuilder()
-                .pages(List.of(page, Page.builder().id(parentId).type(Page.Type.MARKDOWN).name("page name").build()))
-                .build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("new name")
+                    .content("")
+                    .parentId(parentId)
+                    .type(Page.Type.MARKDOWN)
+                    .referenceId(API_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .pages(List.of(
+                            page,
+                            Page.builder()
+                                    .id(parentId)
+                                    .type(Page.Type.MARKDOWN)
+                                    .name("page name")
+                                    .build()))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
-                .isInstanceOf(ApiImportedWithErrorException.class)
-                .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ApiImportedWithErrorException.class)
+                    .hasMessage("API imported with error:\n" + "- (Pages) Page parent must be a FOLDER.");
         }
 
         @Test
         void should_throw_error_when_name_is_not_unique() {
-            importDefinitionCreateDomainServiceTestInitializer.pageQueryService.initWith(
-                List.of(
-                    Page.builder()
-                        .name("page name")
-                        .type(Page.Type.MARKDOWN)
-                        .referenceId("api-id")
-                        .referenceType(Page.ReferenceType.API)
-                        .build()
-                )
-            );
+            importDefinitionCreateDomainServiceTestInitializer.pageQueryService.initWith(List.of(Page.builder()
+                    .name("page name")
+                    .type(Page.Type.MARKDOWN)
+                    .referenceId("api-id")
+                    .referenceType(Page.ReferenceType.API)
+                    .build()));
 
-            var page = PageFixtures.aPage()
-                .toBuilder()
-                .name("page name")
-                .content(getNotSafe())
-                .referenceId(null)
-                .type(Page.Type.SWAGGER)
-                .build();
-            var importDefinition = anApiNativeImportDefinition().toBuilder().pages(List.of(page)).build();
+            var page = PageFixtures.aPage().toBuilder()
+                    .name("page name")
+                    .content(getNotSafe())
+                    .referenceId(null)
+                    .type(Page.Type.SWAGGER)
+                    .build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .pages(List.of(page))
+                    .build();
 
-            assertThatThrownBy(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO))).isInstanceOf(
-                ValidationDomainException.class
-            );
+            assertThatThrownBy(
+                            () -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)))
+                    .isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
         void should_create_a_new_api_with_a_media() {
             // Given
             var mediaList = List.of(MediaFixtures.aMedia());
-            var importDefinition = anApiNativeImportDefinition().toBuilder().apiMedia(mediaList).build();
+            var importDefinition = anApiNativeImportDefinition().toBuilder()
+                    .apiMedia(mediaList)
+                    .build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -1080,24 +1054,23 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedNativeApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1)).createMedias(
-                mediaList,
-                API_ID,
-                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)
-            );
+            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1))
+                    .createMedias(mediaList, API_ID, new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
         }
 
         @Test
         void should_create_a_new_api_with_a_member() {
             // Given
-            var members = Set.of(
-                ApiMember.builder()
+            var members = Set.of(ApiMember.builder()
                     .displayName("member")
                     .id("member-id")
-                    .roles(List.of(ApiMemberRole.builder().name("role").scope(RoleScope.API).build()))
-                    .build()
-            );
-            var importDefinition = anApiNativeImportDefinition().toBuilder().members(members).build();
+                    .roles(List.of(ApiMemberRole.builder()
+                            .name("role")
+                            .scope(RoleScope.API)
+                            .build()))
+                    .build());
+            var importDefinition =
+                    anApiNativeImportDefinition().toBuilder().members(members).build();
 
             // When
             useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
@@ -1105,7 +1078,8 @@ class ImportApiDefinitionUseCaseTest {
             // Then
             var expectedApi = expectedNativeApi();
             assertThat(apiCrudService.storage()).contains(expectedApi);
-            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1)).createMembers(members, API_ID);
+            verify(importDefinitionCreateDomainServiceTestInitializer.apiImportDomainService, times(1))
+                    .createMembers(members, API_ID);
         }
     }
 
@@ -1115,90 +1089,101 @@ class ImportApiDefinitionUseCaseTest {
 
     private static ApiExport anApiProxyExport() {
         return ApiExport.builder()
-            .id(null)
-            .apiVersion("1.0.0")
-            .analytics(Analytics.builder().enabled(false).build())
-            .allowedInApiProducts(true)
-            .background(null)
-            .categories(null)
-            .crossId(API_CROSS_ID)
-            .description("My Api description")
-            .definitionVersion(DefinitionVersion.V4)
-            .disableMembershipNotifications(false)
-            .endpointGroups(anEndpointGroup())
-            .groups(null)
-            .labels(List.of("label-1"))
-            .listeners(List.of(HttpListener.builder().paths(List.of(new Path())).build()))
-            .name("My Api")
-            .originContext(new OriginContext.Management())
-            .picture(null)
-            .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
-            .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-            .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-            .tags(TAGS)
-            .type(ApiType.PROXY)
-            .flowExecution(new FlowExecution())
-            .build();
+                .id(null)
+                .apiVersion("1.0.0")
+                .analytics(Analytics.builder().enabled(false).build())
+                .allowedInApiProducts(true)
+                .background(null)
+                .categories(null)
+                .crossId(API_CROSS_ID)
+                .description("My Api description")
+                .definitionVersion(DefinitionVersion.V4)
+                .disableMembershipNotifications(false)
+                .endpointGroups(anEndpointGroup())
+                .groups(null)
+                .labels(List.of("label-1"))
+                .listeners(List.of(
+                        HttpListener.builder().paths(List.of(new Path())).build()))
+                .name("My Api")
+                .originContext(new OriginContext.Management())
+                .picture(null)
+                .properties(List.of(
+                        Property.builder().key("prop-key").value("prop-value").build()))
+                .resources(List.of(Resource.builder()
+                        .name("resource-name")
+                        .type("resource-type")
+                        .enabled(true)
+                        .build()))
+                .responseTemplates(Map.of(
+                        "DEFAULT",
+                        Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+                .tags(TAGS)
+                .type(ApiType.PROXY)
+                .flowExecution(new FlowExecution())
+                .build();
     }
 
     private Api expectedProxyApi() {
-        return aProxyApiV4()
-            .toBuilder()
-            .apiDefinitionHttpV4(
-                ApiDefinitionFixtures.anApiV4()
-                    .toBuilder()
-                    .analytics(Analytics.builder().enabled(false).build())
-                    .apiVersion("1.0.0")
-                    .endpointGroups(anEndpointGroup())
-                    .id(API_ID)
-                    .name("My Api")
-                    .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
-                    .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-                    .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-                    .tags(Set.of("tag"))
-                    .flowExecution(new FlowExecution())
-                    .allowedInApiProducts(true)
-                    .build()
-            )
-            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .background(null)
-            .categories(null)
-            .crossId(API_CROSS_ID)
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .deployedAt(null)
-            .description("My Api description")
-            .disableMembershipNotifications(false)
-            .environmentId(ENVIRONMENT_ID)
-            .groups(null)
-            .id(API_ID)
-            .labels(List.of("label-1"))
-            .lifecycleState(Api.LifecycleState.STOPPED)
-            .originContext(new OriginContext.Management())
-            .picture(null)
-            .type(ApiType.PROXY)
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .visibility(Api.Visibility.PRIVATE)
-            .build();
+        return aProxyApiV4().toBuilder()
+                .apiDefinitionHttpV4(ApiDefinitionFixtures.anApiV4().toBuilder()
+                        .analytics(Analytics.builder().enabled(false).build())
+                        .apiVersion("1.0.0")
+                        .endpointGroups(anEndpointGroup())
+                        .id(API_ID)
+                        .name("My Api")
+                        .properties(List.of(Property.builder()
+                                .key("prop-key")
+                                .value("prop-value")
+                                .build()))
+                        .resources(List.of(Resource.builder()
+                                .name("resource-name")
+                                .type("resource-type")
+                                .enabled(true)
+                                .build()))
+                        .responseTemplates(Map.of(
+                                "DEFAULT",
+                                Map.of(
+                                        "*.*",
+                                        ResponseTemplate.builder()
+                                                .statusCode(200)
+                                                .build())))
+                        .tags(Set.of("tag"))
+                        .flowExecution(new FlowExecution())
+                        .allowedInApiProducts(true)
+                        .build())
+                .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+                .background(null)
+                .categories(null)
+                .crossId(API_CROSS_ID)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .deployedAt(null)
+                .description("My Api description")
+                .disableMembershipNotifications(false)
+                .environmentId(ENVIRONMENT_ID)
+                .groups(null)
+                .id(API_ID)
+                .labels(List.of("label-1"))
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .originContext(new OriginContext.Management())
+                .picture(null)
+                .type(ApiType.PROXY)
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .visibility(Api.Visibility.PRIVATE)
+                .build();
     }
 
     private static List<EndpointGroup> anEndpointGroup() {
-        return List.of(
-            EndpointGroup.builder()
+        return List.of(EndpointGroup.builder()
                 .name("default-group")
                 .type("http-proxy")
                 .sharedConfiguration("{}")
-                .endpoints(
-                    List.of(
-                        Endpoint.builder()
-                            .name("default-endpoint")
-                            .type("http-proxy")
-                            .inheritConfiguration(true)
-                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                            .build()
-                    )
-                )
-                .build()
-        );
+                .endpoints(List.of(Endpoint.builder()
+                        .name("default-endpoint")
+                        .type("http-proxy")
+                        .inheritConfiguration(true)
+                        .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                        .build()))
+                .build());
     }
 
     private static ImportDefinition anApiNativeImportDefinition() {
@@ -1207,95 +1192,100 @@ class ImportApiDefinitionUseCaseTest {
 
     private static ApiExport anApiNativeExport() {
         return ApiExport.builder()
-            .id(null)
-            .apiVersion("1.0.0")
-            .analytics(Analytics.builder().enabled(false).build())
-            .background(null)
-            .categories(null)
-            .crossId(API_CROSS_ID)
-            .description("My Api description")
-            .definitionVersion(DefinitionVersion.V4)
-            .disableMembershipNotifications(false)
-            .endpointGroups(aNativeEndpointGroup())
-            .listeners(aNativeListener())
-            .groups(null)
-            .labels(List.of("label-1"))
-            .name("My Api")
-            .originContext(new OriginContext.Management())
-            .picture(null)
-            .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
-            .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-            .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-            .tags(TAGS)
-            .type(ApiType.NATIVE)
-            .build();
+                .id(null)
+                .apiVersion("1.0.0")
+                .analytics(Analytics.builder().enabled(false).build())
+                .background(null)
+                .categories(null)
+                .crossId(API_CROSS_ID)
+                .description("My Api description")
+                .definitionVersion(DefinitionVersion.V4)
+                .disableMembershipNotifications(false)
+                .endpointGroups(aNativeEndpointGroup())
+                .listeners(aNativeListener())
+                .groups(null)
+                .labels(List.of("label-1"))
+                .name("My Api")
+                .originContext(new OriginContext.Management())
+                .picture(null)
+                .properties(List.of(
+                        Property.builder().key("prop-key").value("prop-value").build()))
+                .resources(List.of(Resource.builder()
+                        .name("resource-name")
+                        .type("resource-type")
+                        .enabled(true)
+                        .build()))
+                .responseTemplates(Map.of(
+                        "DEFAULT",
+                        Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+                .tags(TAGS)
+                .type(ApiType.NATIVE)
+                .build();
     }
 
     private Api expectedNativeApi() {
-        return aNativeApi()
-            .toBuilder()
-            .apiDefinitionNativeV4(
-                ApiDefinitionFixtures.aNativeApiV4()
-                    .toBuilder()
-                    .apiVersion("1.0.0")
-                    .endpointGroups(aNativeEndpointGroup())
-                    .listeners(aNativeListener())
-                    .id(API_ID)
-                    .name("My Api")
-                    .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
-                    .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-                    .tags(Set.of("tag"))
-                    .build()
-            )
-            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .background(null)
-            .categories(null)
-            .crossId(API_CROSS_ID)
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .deployedAt(null)
-            .description("My Api description")
-            .disableMembershipNotifications(false)
-            .environmentId(ENVIRONMENT_ID)
-            .groups(null)
-            .id(API_ID)
-            .labels(List.of("label-1"))
-            .lifecycleState(Api.LifecycleState.STOPPED)
-            .originContext(new OriginContext.Management())
-            .picture(null)
-            .type(ApiType.NATIVE)
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .visibility(Api.Visibility.PRIVATE)
-            .build();
+        return aNativeApi().toBuilder()
+                .apiDefinitionNativeV4(ApiDefinitionFixtures.aNativeApiV4().toBuilder()
+                        .apiVersion("1.0.0")
+                        .endpointGroups(aNativeEndpointGroup())
+                        .listeners(aNativeListener())
+                        .id(API_ID)
+                        .name("My Api")
+                        .properties(List.of(Property.builder()
+                                .key("prop-key")
+                                .value("prop-value")
+                                .build()))
+                        .resources(List.of(Resource.builder()
+                                .name("resource-name")
+                                .type("resource-type")
+                                .enabled(true)
+                                .build()))
+                        .tags(Set.of("tag"))
+                        .build())
+                .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+                .background(null)
+                .categories(null)
+                .crossId(API_CROSS_ID)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .deployedAt(null)
+                .description("My Api description")
+                .disableMembershipNotifications(false)
+                .environmentId(ENVIRONMENT_ID)
+                .groups(null)
+                .id(API_ID)
+                .labels(List.of("label-1"))
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .originContext(new OriginContext.Management())
+                .picture(null)
+                .type(ApiType.NATIVE)
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .visibility(Api.Visibility.PRIVATE)
+                .build();
     }
 
     private static List<NativeEndpointGroup> aNativeEndpointGroup() {
-        return List.of(
-            NativeEndpointGroup.builder()
+        return List.of(NativeEndpointGroup.builder()
                 .name("Kafka")
                 .type("kafka")
                 .sharedConfiguration("{}")
-                .endpoints(
-                    List.of(
-                        NativeEndpoint.builder()
-                            .name("default-endpoint")
-                            .type("http-proxy")
-                            .inheritConfiguration(true)
-                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                            .build()
-                    )
-                )
-                .build()
-        );
+                .endpoints(List.of(NativeEndpoint.builder()
+                        .name("default-endpoint")
+                        .type("http-proxy")
+                        .inheritConfiguration(true)
+                        .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                        .build()))
+                .build());
     }
 
     private static List<NativeListener> aNativeListener() {
-        return List.of(
-            KafkaListener.builder()
+        return List.of(KafkaListener.builder()
                 .host("127.0.0.1")
                 .port(9092)
-                .entrypoints(List.of(NativeEntrypoint.builder().type("kafka").configuration("{}").build()))
-                .build()
-        );
+                .entrypoints(List.of(NativeEntrypoint.builder()
+                        .type("kafka")
+                        .configuration("{}")
+                        .build()))
+                .build());
     }
 
     private String getNotSafe() {

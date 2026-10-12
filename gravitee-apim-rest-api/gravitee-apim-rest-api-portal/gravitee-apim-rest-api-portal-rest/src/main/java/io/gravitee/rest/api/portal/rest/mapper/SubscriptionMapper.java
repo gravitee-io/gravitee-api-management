@@ -30,7 +30,7 @@ import org.slf4j.Logger;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class})
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 

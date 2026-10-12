@@ -64,9 +64,9 @@ public class AlertTriggerConverterTest {
         when(alertTriggerEntity.getDescription()).thenReturn("description");
         when(alertTriggerEntity.isEnabled()).thenReturn(true);
         when(alertTriggerEntity.isTemplate()).thenReturn(false);
-        when(alertTriggerEntity.getEventRules()).thenReturn(
-            List.of(buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE"))
-        );
+        when(alertTriggerEntity.getEventRules())
+                .thenReturn(List.of(
+                        buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE")));
 
         when(objectMapper.writeValueAsString(alertTriggerEntity)).thenReturn("alertTriggerEntity in json format");
 
@@ -93,12 +93,12 @@ public class AlertTriggerConverterTest {
         newAlertTriggerEntity.setEnabled(true);
         newAlertTriggerEntity.setTemplate(false);
         newAlertTriggerEntity.setEventRules(
-            List.of(buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE"))
-        );
+                List.of(buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE")));
 
         when(objectMapper.writeValueAsString(newAlertTriggerEntity)).thenReturn("NewAlertTriggerEntity in json format");
 
-        AlertTrigger alertTrigger = converter.toAlertTrigger(GraviteeContext.getExecutionContext(), newAlertTriggerEntity);
+        AlertTrigger alertTrigger =
+                converter.toAlertTrigger(GraviteeContext.getExecutionContext(), newAlertTriggerEntity);
 
         assertEquals("DEFAULT", alertTrigger.getEnvironmentId());
         assertEquals("APPLICATION", alertTrigger.getReferenceType());
@@ -118,12 +118,13 @@ public class AlertTriggerConverterTest {
         updateAlertTriggerEntity.setDescription("description");
         updateAlertTriggerEntity.setEnabled(true);
         updateAlertTriggerEntity.setEventRules(
-            List.of(buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE"))
-        );
+                List.of(buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE")));
 
-        when(objectMapper.writeValueAsString(updateAlertTriggerEntity)).thenReturn("UpdateAlertTriggerEntity in json format");
+        when(objectMapper.writeValueAsString(updateAlertTriggerEntity))
+                .thenReturn("UpdateAlertTriggerEntity in json format");
 
-        AlertTrigger alertTrigger = converter.toAlertTrigger(GraviteeContext.getExecutionContext(), updateAlertTriggerEntity);
+        AlertTrigger alertTrigger =
+                converter.toAlertTrigger(GraviteeContext.getExecutionContext(), updateAlertTriggerEntity);
 
         assertEquals("DEFAULT", alertTrigger.getEnvironmentId());
         assertEquals("INFO", alertTrigger.getSeverity());
@@ -146,13 +147,11 @@ public class AlertTriggerConverterTest {
         alertTrigger.setEnabled(true);
         alertTrigger.setTemplate(false);
         alertTrigger.setDefinition(
-            "{\"id\":\"id\",\"name\":null,\"description\":\"description\",\"type\":null,\"definition\":null,\"enabled\":true,\"referenceType\":\"APPLICATION\",\"referenceId\":\"application-id\",\"createdAt\":null,\"updatedAt\":null,\"severity\":\"INFO\",\"parentId\":null,\"eventRules\":null,\"template\":false,\"environmentId\":\"env-id\",\"source\":\"source\"}"
-        );
+                "{\"id\":\"id\",\"name\":null,\"description\":\"description\",\"type\":null,\"definition\":null,\"enabled\":true,\"referenceType\":\"APPLICATION\",\"referenceId\":\"application-id\",\"createdAt\":null,\"updatedAt\":null,\"severity\":\"INFO\",\"parentId\":null,\"eventRules\":null,\"template\":false,\"environmentId\":\"env-id\",\"source\":\"source\"}");
         alertTrigger.setEventRules(List.of(buildAlertEventRule(API_CREATE), buildAlertEventRule(APPLICATION_CREATE)));
 
-        when(objectMapper.readValue(anyString(), any(Trigger.class.getClass()))).thenAnswer(i ->
-            new ObjectMapper().readValue((String) i.getArgument(0), Trigger.class)
-        );
+        when(objectMapper.readValue(anyString(), any(Trigger.class.getClass())))
+                .thenAnswer(i -> new ObjectMapper().readValue((String) i.getArgument(0), Trigger.class));
 
         AlertTriggerEntity alertTriggerEntity = converter.toAlertTriggerEntity(alertTrigger);
 
@@ -168,11 +167,13 @@ public class AlertTriggerConverterTest {
     }
 
     private void assertEventRulesEntities(List<String> events, List<AlertEventRuleEntity> eventRules) {
-        assertTrue(events.containsAll(eventRules.stream().map(AlertEventRuleEntity::getEvent).collect(Collectors.toList())));
+        assertTrue(events.containsAll(
+                eventRules.stream().map(AlertEventRuleEntity::getEvent).collect(Collectors.toList())));
     }
 
     private void assertEventRules(List<AlertEventType> events, List<AlertEventRule> eventRules) {
-        assertTrue(events.containsAll(eventRules.stream().map(AlertEventRule::getEvent).collect(Collectors.toList())));
+        assertTrue(events.containsAll(
+                eventRules.stream().map(AlertEventRule::getEvent).collect(Collectors.toList())));
     }
 
     private AlertEventRuleEntity buildAlertEventRuleEntity(String event) {

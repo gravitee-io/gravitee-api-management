@@ -60,15 +60,15 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         portalNavigationItemDomainService = new PortalNavigationItemDomainService(
-            crudService,
-            queryService,
-            pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            apiCrudService,
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(queryService, crudService)
-        );
-        useCase = new CreateDefaultPortalNavigationItemsUseCase(portalNavigationItemDomainService, pageContentCrudService, queryService);
+                crudService,
+                queryService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                apiCrudService,
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiOwnedNavigationDomainService(queryService, crudService));
+        useCase = new CreateDefaultPortalNavigationItemsUseCase(
+                portalNavigationItemDomainService, pageContentCrudService, queryService);
     }
 
     @Test
@@ -79,11 +79,10 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         // Then
         final var items = queryService.storage();
 
-        final var guidesFolder = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Guides"))
-            .findFirst()
-            .get();
+        final var guidesFolder = items.stream()
+                .filter(item -> item.getTitle().equals("Guides"))
+                .findFirst()
+                .get();
         assertThat(guidesFolder).isNotNull();
         assertThat(guidesFolder).isInstanceOf(PortalNavigationFolder.class);
         assertThat(guidesFolder.getParentId()).isNull();
@@ -92,27 +91,26 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(guidesFolder.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         assertThat(guidesFolder.getPublished()).isTrue();
 
-        final var gettingStartedPage = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Getting started"))
-            .findFirst()
-            .get();
+        final var gettingStartedPage = items.stream()
+                .filter(item -> item.getTitle().equals("Getting started"))
+                .findFirst()
+                .get();
         assertThat(gettingStartedPage).isNotNull();
         assertThat(gettingStartedPage).isInstanceOf(PortalNavigationPage.class);
         assertThat(gettingStartedPage.getParentId()).isEqualTo(guidesFolder.getId());
         assertThat(gettingStartedPage.getTitle()).isEqualTo("Getting started");
-        assertThat(((PortalNavigationPage) gettingStartedPage).getPortalPageContentId()).isNotNull();
+        assertThat(((PortalNavigationPage) gettingStartedPage).getPortalPageContentId())
+                .isNotNull();
         assertThat(gettingStartedPage.getOrder()).isEqualTo(0);
         assertThat(gettingStartedPage.getOrganizationId()).isEqualTo(guidesFolder.getOrganizationId());
         assertThat(gettingStartedPage.getEnvironmentId()).isEqualTo(guidesFolder.getEnvironmentId());
         assertThat(gettingStartedPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         assertThat(gettingStartedPage.getPublished()).isTrue();
 
-        final var coreConceptsFolder = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Core concepts"))
-            .findFirst()
-            .get();
+        final var coreConceptsFolder = items.stream()
+                .filter(item -> item.getTitle().equals("Core concepts"))
+                .findFirst()
+                .get();
         assertThat(coreConceptsFolder).isNotNull();
         assertThat(coreConceptsFolder).isInstanceOf(PortalNavigationFolder.class);
         assertThat(coreConceptsFolder.getParentId()).isEqualTo(guidesFolder.getId());
@@ -121,11 +119,10 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(coreConceptsFolder.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         assertThat(coreConceptsFolder.getPublished()).isTrue();
 
-        final var authPage = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Authentication"))
-            .findFirst()
-            .get();
+        final var authPage = items.stream()
+                .filter(item -> item.getTitle().equals("Authentication"))
+                .findFirst()
+                .get();
         assertThat(authPage).isNotNull();
         assertThat(authPage).isInstanceOf(PortalNavigationPage.class);
         assertThat(authPage.getParentId()).isEqualTo(coreConceptsFolder.getId());
@@ -137,34 +134,32 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         assertThat(authPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         assertThat(authPage.getPublished()).isTrue();
 
-        final var firstCallPage = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Making your first API call"))
-            .findFirst()
-            .get();
+        final var firstCallPage = items.stream()
+                .filter(item -> item.getTitle().equals("Making your first API call"))
+                .findFirst()
+                .get();
         assertThat(firstCallPage).isNotNull();
         assertThat(firstCallPage).isInstanceOf(PortalNavigationPage.class);
         assertThat(firstCallPage.getParentId()).isEqualTo(coreConceptsFolder.getId());
         assertThat(firstCallPage.getTitle()).isEqualTo("Making your first API call");
-        assertThat(((PortalNavigationPage) firstCallPage).getPortalPageContentId()).isNotNull();
+        assertThat(((PortalNavigationPage) firstCallPage).getPortalPageContentId())
+                .isNotNull();
         assertThat(firstCallPage.getOrder()).isEqualTo(1);
         assertThat(firstCallPage.getOrganizationId()).isEqualTo(coreConceptsFolder.getOrganizationId());
         assertThat(firstCallPage.getEnvironmentId()).isEqualTo(coreConceptsFolder.getEnvironmentId());
         assertThat(firstCallPage.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         assertThat(firstCallPage.getPublished()).isTrue();
 
-        final var docsLink = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Docs"))
-            .findFirst()
-            .get();
+        final var docsLink = items.stream()
+                .filter(item -> item.getTitle().equals("Docs"))
+                .findFirst()
+                .get();
         assertThat(docsLink).isNotNull();
         assertThat(docsLink).isInstanceOf(PortalNavigationLink.class);
         assertThat(docsLink.getParentId()).isNull();
         assertThat(docsLink.getTitle()).isEqualTo("Docs");
-        assertThat(((PortalNavigationLink) docsLink).getUrl()).isEqualTo(
-            "https://documentation.gravitee.io/apim/developer-portal/new-developer-portal"
-        );
+        assertThat(((PortalNavigationLink) docsLink).getUrl())
+                .isEqualTo("https://documentation.gravitee.io/apim/developer-portal/new-developer-portal");
         assertThat(docsLink.getOrder()).isEqualTo(1);
         assertThat(docsLink.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         assertThat(docsLink.getPublished()).isTrue();
@@ -178,11 +173,10 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         // Then
         final var items = queryService.storage();
 
-        final var homePage = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Home Page"))
-            .findFirst()
-            .orElse(null);
+        final var homePage = items.stream()
+                .filter(item -> item.getTitle().equals("Home Page"))
+                .findFirst()
+                .orElse(null);
 
         assertThat(homePage).isNotNull();
         assertThat(homePage).isInstanceOf(PortalNavigationPage.class);
@@ -213,12 +207,10 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         // Given: a previous run failed right after creating the "Guides" folder (matches APIM-14865:
         // the classloader-fragile template loader threw on the very next call, leaving only "Guides").
         useCase.execute(ORG_ID, ENV_ID);
-        final var guidesFolder = queryService
-            .storage()
-            .stream()
-            .filter(item -> item.getTitle().equals("Guides"))
-            .findFirst()
-            .get();
+        final var guidesFolder = queryService.storage().stream()
+                .filter(item -> item.getTitle().equals("Guides"))
+                .findFirst()
+                .get();
         queryService.storage().removeIf(item -> !item.getTitle().equals("Guides"));
         pageContentCrudService.storage().clear();
 
@@ -227,18 +219,21 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
 
         // Then
         final var items = queryService.storage();
-        assertThat(items.stream().filter(item -> item.getTitle().equals("Guides"))).hasSize(1);
-        assertThat(items.stream().filter(item -> item.getId().equals(guidesFolder.getId()))).hasSize(1);
-        assertThat(items.stream().map(PortalNavigationItem::getTitle)).containsExactlyInAnyOrder(
-            "Guides",
-            "Getting started",
-            "Core concepts",
-            "Authentication",
-            "Making your first API call",
-            "Docs",
-            "Home Page"
-        );
-        assertThat(items.stream().filter(item -> item.getType() == PortalNavigationItemType.PAGE)).hasSize(4);
+        assertThat(items.stream().filter(item -> item.getTitle().equals("Guides")))
+                .hasSize(1);
+        assertThat(items.stream().filter(item -> item.getId().equals(guidesFolder.getId())))
+                .hasSize(1);
+        assertThat(items.stream().map(PortalNavigationItem::getTitle))
+                .containsExactlyInAnyOrder(
+                        "Guides",
+                        "Getting started",
+                        "Core concepts",
+                        "Authentication",
+                        "Making your first API call",
+                        "Docs",
+                        "Home Page");
+        assertThat(items.stream().filter(item -> item.getType() == PortalNavigationItemType.PAGE))
+                .hasSize(4);
         assertThat(pageContentCrudService.storage()).hasSize(4);
     }
 
@@ -257,20 +252,19 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         // Then: a proper "Guides" FOLDER was created alongside the colliding page (left untouched),
         // and the folder's children were correctly parented under the new folder.
         final var items = queryService.storage();
-        assertThat(items.stream().filter(item -> item.getId().equals(collidingPage.getId()))).hasSize(1);
+        assertThat(items.stream().filter(item -> item.getId().equals(collidingPage.getId())))
+                .hasSize(1);
 
-        final var guidesFolder = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Guides") && item.getType() == PortalNavigationItemType.FOLDER)
-            .findFirst()
-            .get();
+        final var guidesFolder = items.stream()
+                .filter(item -> item.getTitle().equals("Guides") && item.getType() == PortalNavigationItemType.FOLDER)
+                .findFirst()
+                .get();
         assertThat(guidesFolder.getId()).isNotEqualTo(collidingPage.getId());
 
-        final var gettingStartedPage = items
-            .stream()
-            .filter(item -> item.getTitle().equals("Getting started"))
-            .findFirst()
-            .get();
+        final var gettingStartedPage = items.stream()
+                .filter(item -> item.getTitle().equals("Getting started"))
+                .findFirst()
+                .get();
         assertThat(gettingStartedPage.getParentId()).isEqualTo(guidesFolder.getId());
     }
 
@@ -291,7 +285,8 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         }
 
         // Then
-        assertThat(queryService.storage().stream().map(PortalNavigationItem::getTitle)).contains("Home Page", "Getting started");
+        assertThat(queryService.storage().stream().map(PortalNavigationItem::getTitle))
+                .contains("Home Page", "Getting started");
         assertThat(pageContentCrudService.storage()).hasSize(4);
     }
 }

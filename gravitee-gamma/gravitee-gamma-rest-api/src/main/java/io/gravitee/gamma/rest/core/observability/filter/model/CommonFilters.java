@@ -36,8 +36,8 @@ public final class CommonFilters {
     /** Names owned by the host (static + extensible) — modules cannot ship a filter with these names. */
     public static Set<String> names() {
         return Stream.concat(
-            Arrays.stream(StaticFilters.values()).map(StaticFilters::filterName),
-            Arrays.stream(ExtensibleFilters.values()).map(ExtensibleFilters::filterName)
-        ).collect(Collectors.toUnmodifiableSet());
+                        Arrays.stream(StaticFilters.values()).map(StaticFilters::filterName),
+                        Arrays.stream(ExtensibleFilters.values()).map(ExtensibleFilters::filterName))
+                .collect(Collectors.toUnmodifiableSet());
     }
 }

@@ -27,11 +27,13 @@ public class GetApiForPortalUseCase {
     private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
 
     public Output execute(Input input) {
-        boolean visible = visibilityDomainService.isApiVisibleToUser(input.environmentId(), input.apiId(), input.userId());
+        boolean visible =
+                visibilityDomainService.isApiVisibleToUser(input.environmentId(), input.apiId(), input.userId());
         return new Output(visible);
     }
 
-    public record Input(String environmentId, String apiId, @Nullable String userId) {}
+    public record Input(
+            String environmentId, String apiId, @Nullable String userId) {}
 
     public record Output(boolean visible) {}
 }

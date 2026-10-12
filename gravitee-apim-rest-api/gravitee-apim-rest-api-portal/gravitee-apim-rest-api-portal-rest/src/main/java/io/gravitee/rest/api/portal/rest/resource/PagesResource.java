@@ -61,36 +61,35 @@ public class PagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPages(
-        @HeaderParam("Accept-Language") String acceptLang,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("homepage") Boolean homepage,
-        @QueryParam("parent") String parent
-    ) {
+            @HeaderParam("Accept-Language") String acceptLang,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("homepage") Boolean homepage,
+            @QueryParam("parent") String parent) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Stream<Page> pageStream = pageService
-            .search(
-                GraviteeContext.getCurrentEnvironment(),
-                new PageQuery.Builder().homepage(homepage).published(true).build(),
-                acceptedLocale
-            )
-            .stream()
-            .filter(pageEntity -> accessControlService.canAccessPageFromPortal(executionContext, pageEntity))
-            .map(pageMapper::convert)
-            .map(this::addPageLink);
+                .search(
+                        GraviteeContext.getCurrentEnvironment(),
+                        new PageQuery.Builder()
+                                .homepage(homepage)
+                                .published(true)
+                                .build(),
+                        acceptedLocale)
+                .stream()
+                .filter(pageEntity -> accessControlService.canAccessPageFromPortal(executionContext, pageEntity))
+                .map(pageMapper::convert)
+                .map(this::addPageLink);
 
         final List<Page> pages;
         if (parent != null) {
             pages = new ArrayList<>();
             final Map<String, Page> pagesMap = pageStream.collect(Collectors.toMap(Page::getId, page -> page));
-            pagesMap
-                .values()
-                .forEach(page -> {
-                    List<String> ancestors = this.getAncestors(pagesMap, page);
-                    if (ancestors.contains(parent)) {
-                        pages.add(page);
-                    }
-                });
+            pagesMap.values().forEach(page -> {
+                List<String> ancestors = this.getAncestors(pagesMap, page);
+                if (ancestors.contains(parent)) {
+                    pages.add(page);
+                }
+            });
         } else {
             pages = pageStream.collect(Collectors.toList());
         }
@@ -119,11 +118,8 @@ public class PagesResource extends AbstractResource {
     }
 
     private Page addPageLink(Page page) {
-        return page.links(
-            pageMapper.computePageLinks(
+        return page.links(pageMapper.computePageLinks(
                 PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getId()),
-                PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())
-            )
-        );
+                PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())));
     }
 }

@@ -57,11 +57,12 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenReturn(
-                new ImportApplicationCRDUseCase.Output(
-                    ApplicationCRDStatus.builder().id("application-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
-                )
-            );
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class)))
+                    .thenReturn(new ImportApplicationCRDUseCase.Output(ApplicationCRDStatus.builder()
+                            .id("application-id")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
         }
 
         @Test
@@ -84,7 +85,8 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
             var oauth = input.getValue().crd().getSettings().getOauth();
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(oauth.getAdditionalClientMetadata()).containsExactly(Map.entry("software_id", "template-app-id"));
+                soft.assertThat(oauth.getAdditionalClientMetadata())
+                        .containsExactly(Map.entry("software_id", "template-app-id"));
                 soft.assertThat(oauth.getApplicationType()).isEqualTo("web");
                 soft.assertThat(oauth.getGrantTypes()).containsExactly("authorization_code");
             });
@@ -92,12 +94,16 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_guid() {
-            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenAnswer(call -> {
-                ImportApplicationCRDUseCase.Input input = call.getArgument(0, ImportApplicationCRDUseCase.Input.class);
-                return new ImportApplicationCRDUseCase.Output(
-                    ApplicationCRDStatus.builder().id(input.crd().getId()).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
-                );
-            });
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class)))
+                    .thenAnswer(call -> {
+                        ImportApplicationCRDUseCase.Input input =
+                                call.getArgument(0, ImportApplicationCRDUseCase.Input.class);
+                        return new ImportApplicationCRDUseCase.Output(ApplicationCRDStatus.builder()
+                                .id(input.crd().getId())
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .build());
+                    });
 
             var state = expectEntity("application-with-uuid.json", false, true);
             SoftAssertions.assertSoftly(soft -> {
@@ -116,9 +122,9 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_hrid() {
-            when(validateApplicationCRDDomainService.validateAndSanitize(any(ValidateApplicationCRDDomainService.Input.class))).thenAnswer(
-                call -> Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(validateApplicationCRDDomainService.validateAndSanitize(
+                            any(ValidateApplicationCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
             var state = expectEntity("application-with-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
@@ -131,13 +137,11 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_error_no_hrid() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", dryRun)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("application-with-no-hrid.json")))
-            ) {
+                    .put(Entity.json(readJSON("application-with-no-hrid.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
@@ -148,14 +152,15 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenReturn(
-                new ImportApplicationCRDUseCase.Output(
-                    ApplicationCRDStatus.builder().id("application-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
-                )
-            );
-            when(validateApplicationCRDDomainService.validateAndSanitize(any(ValidateApplicationCRDDomainService.Input.class))).thenAnswer(
-                call -> Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class)))
+                    .thenReturn(new ImportApplicationCRDUseCase.Output(ApplicationCRDStatus.builder()
+                            .id("application-id")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
+            when(validateApplicationCRDDomainService.validateAndSanitize(
+                            any(ValidateApplicationCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
         }
 
         @Test
@@ -190,7 +195,8 @@ class ApplicationsResourceTest extends AbstractResourceTest {
             if (ignoreGroups != null) {
                 target = target.queryParam("ignoreGroups", ignoreGroups);
             }
-            try (var response = target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
+            try (var response =
+                    target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
         }
@@ -210,14 +216,12 @@ class ApplicationsResourceTest extends AbstractResourceTest {
     }
 
     private ApplicationState expectEntity(String spec, boolean dryRun, boolean hridContainsUUID) {
-        try (
-            var response = rootTarget()
+        try (var response = rootTarget()
                 .queryParam("dryRun", dryRun)
                 .queryParam("hridContainsUUID", hridContainsUUID)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .put(Entity.json(readJSON(spec)))
-        ) {
+                .put(Entity.json(readJSON(spec)))) {
             assertThat(response.getStatus()).isEqualTo(200);
             return response.readEntity(ApplicationState.class);
         }

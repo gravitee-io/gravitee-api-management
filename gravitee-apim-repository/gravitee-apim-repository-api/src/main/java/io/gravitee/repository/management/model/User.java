@@ -127,36 +127,33 @@ public class User {
 
     @Override
     public String toString() {
-        return (
-            "User{" +
-            "id='" +
-            id +
-            '\'' +
-            ", organizationId='" +
-            organizationId +
-            '\'' +
-            ", source='" +
-            source +
-            '\'' +
-            ", sourceId='" +
-            sourceId +
-            '\'' +
-            ", firstname='" +
-            firstname +
-            '\'' +
-            ", lastname='" +
-            lastname +
-            '\'' +
-            ", mail='" +
-            email +
-            '\'' +
-            ", status='" +
-            status +
-            '\'' +
-            ", loginCount='" +
-            loginCount +
-            '\'' +
-            '}'
-        );
+        return ("User{" + "id='"
+                + id
+                + '\''
+                + ", organizationId='"
+                + organizationId
+                + '\''
+                + ", source='"
+                + source
+                + '\''
+                + ", sourceId='"
+                + sourceId
+                + '\''
+                + ", firstname='"
+                + firstname
+                + '\''
+                + ", lastname='"
+                + lastname
+                + '\''
+                + ", mail='"
+                + email
+                + '\''
+                + ", status='"
+                + status
+                + '\''
+                + ", loginCount='"
+                + loginCount
+                + '\''
+                + '}');
     }
 }

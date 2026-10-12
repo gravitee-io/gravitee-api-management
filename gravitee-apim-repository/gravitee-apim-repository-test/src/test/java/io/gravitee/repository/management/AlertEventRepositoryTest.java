@@ -83,14 +83,18 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldDelete() throws Exception {
         int nbAlertsBeforeDeletion = (int) alertEventRepository
-            .search(new AlertEventCriteria.Builder().build(), new PageableBuilder().pageNumber(0).pageSize(10).build())
-            .getTotalElements();
+                .search(
+                        new AlertEventCriteria.Builder().build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build())
+                .getTotalElements();
 
         alertEventRepository.delete("an-alert-to-update");
 
         int nbAlertsAfterDeletion = (int) alertEventRepository
-            .search(new AlertEventCriteria.Builder().build(), new PageableBuilder().pageNumber(0).pageSize(10).build())
-            .getTotalElements();
+                .search(
+                        new AlertEventCriteria.Builder().build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build())
+                .getTotalElements();
 
         assertEquals(nbAlertsBeforeDeletion - 1, nbAlertsAfterDeletion);
     }
@@ -98,9 +102,8 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByAlert() throws Exception {
         final Page<AlertEvent> pageEvents = alertEventRepository.search(
-            new AlertEventCriteria.Builder().alert("alert-parent-id2").build(),
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                new AlertEventCriteria.Builder().alert("alert-parent-id2").build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
         assertNotNull(pageEvents);
         assertEquals(1, pageEvents.getTotalElements());
@@ -127,20 +130,22 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldDeleteAll() throws Exception {
         long before = alertEventRepository
-            .search(
-                new AlertEventCriteria.Builder().alert("alert-id-to-delete").build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-            )
-            .getTotalElements();
+                .search(
+                        new AlertEventCriteria.Builder()
+                                .alert("alert-id-to-delete")
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build())
+                .getTotalElements();
 
         alertEventRepository.deleteAll("alert-id-to-delete");
 
         long after = alertEventRepository
-            .search(
-                new AlertEventCriteria.Builder().alert("alert-id-to-delete").build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-            )
-            .getTotalElements();
+                .search(
+                        new AlertEventCriteria.Builder()
+                                .alert("alert-id-to-delete")
+                                .build(),
+                        new PageableBuilder().pageNumber(0).pageSize(10).build())
+                .getTotalElements();
 
         assertEquals(2, before, "2 before");
         assertEquals(0, after, "0 after");
@@ -148,18 +153,23 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldCountWithCriteria() {
-        long count = alertEventRepository.count(
-            new AlertEventCriteria.Builder().alert("alert-parent-id").from(1439022010900L).to(1439022010999L).build()
-        );
+        long count = alertEventRepository.count(new AlertEventCriteria.Builder()
+                .alert("alert-parent-id")
+                .from(1439022010900L)
+                .to(1439022010999L)
+                .build());
         assertEquals(1, count);
     }
 
     @Test
     public void shouldSearchWithCriteria() {
         Page<AlertEvent> result = alertEventRepository.search(
-            new AlertEventCriteria.Builder().alert("alert-parent-id").from(1439022010900L).to(1439022010999L).build(),
-            null
-        );
+                new AlertEventCriteria.Builder()
+                        .alert("alert-parent-id")
+                        .from(1439022010900L)
+                        .to(1439022010999L)
+                        .build(),
+                null);
         assertEquals(1, result.getTotalElements());
         assertEquals("an-alert-to-update", result.getContent().get(0).getId());
     }

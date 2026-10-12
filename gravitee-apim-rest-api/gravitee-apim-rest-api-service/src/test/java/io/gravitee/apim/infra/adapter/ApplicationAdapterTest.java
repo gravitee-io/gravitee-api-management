@@ -40,21 +40,21 @@ class ApplicationAdapterTest {
     @Test
     public void should_convert_application_to_application_entity() {
         final Application toConvert = Application.builder()
-            .id("app-id")
-            .name("app-name")
-            .description("app-description")
-            .domain("app-domain")
-            .type(ApplicationType.SIMPLE)
-            .status(ApplicationStatus.ACTIVE)
-            .picture("app-id")
-            .background("app-id")
-            .groups(Set.of("group-1", "group-2"))
-            .createdAt(Date.from(Instant.now()))
-            .updatedAt(Date.from(Instant.now()))
-            .disableMembershipNotifications(true)
-            .apiKeyMode(ApiKeyMode.EXCLUSIVE)
-            .origin(Origin.MANAGEMENT)
-            .build();
+                .id("app-id")
+                .name("app-name")
+                .description("app-description")
+                .domain("app-domain")
+                .type(ApplicationType.SIMPLE)
+                .status(ApplicationStatus.ACTIVE)
+                .picture("app-id")
+                .background("app-id")
+                .groups(Set.of("group-1", "group-2"))
+                .createdAt(Date.from(Instant.now()))
+                .updatedAt(Date.from(Instant.now()))
+                .disableMembershipNotifications(true)
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .origin(Origin.MANAGEMENT)
+                .build();
 
         BaseApplicationEntity applicationEntity = ApplicationAdapter.INSTANCE.toEntity(toConvert);
 
@@ -63,14 +63,17 @@ class ApplicationAdapterTest {
         assertThat(applicationEntity.getDescription()).isEqualTo(toConvert.getDescription());
         assertThat(applicationEntity.getDomain()).isEqualTo(toConvert.getDomain());
         assertThat(applicationEntity.getType()).isEqualTo(toConvert.getType().name());
-        assertThat(applicationEntity.getStatus()).isEqualTo(toConvert.getStatus().name());
+        assertThat(applicationEntity.getStatus())
+                .isEqualTo(toConvert.getStatus().name());
         assertThat(applicationEntity.getPicture()).isEqualTo(toConvert.getPicture());
         assertThat(applicationEntity.getBackground()).isEqualTo(toConvert.getBackground());
         assertThat(applicationEntity.getGroups()).isEqualTo(toConvert.getGroups());
         assertThat(applicationEntity.getCreatedAt()).isEqualTo(toConvert.getCreatedAt());
         assertThat(applicationEntity.getUpdatedAt()).isEqualTo(toConvert.getUpdatedAt());
-        assertThat(applicationEntity.isDisableMembershipNotifications()).isEqualTo(toConvert.isDisableMembershipNotifications());
-        assertThat(applicationEntity.getApiKeyMode().name()).isEqualTo(toConvert.getApiKeyMode().name());
+        assertThat(applicationEntity.isDisableMembershipNotifications())
+                .isEqualTo(toConvert.isDisableMembershipNotifications());
+        assertThat(applicationEntity.getApiKeyMode().name())
+                .isEqualTo(toConvert.getApiKeyMode().name());
         assertThat(applicationEntity.getOrigin()).isEqualTo(toConvert.getOrigin());
     }
 
@@ -82,21 +85,21 @@ class ApplicationAdapterTest {
     @Test
     public void should_convert_application_to_application_entity_null_fields() {
         final Application toConvert = Application.builder()
-            .id("app-id")
-            .name("app-name")
-            .description("app-description")
-            .domain("app-domain")
-            .type(null)
-            .status(null)
-            .picture("app-id")
-            .background("app-id")
-            .groups(null)
-            .createdAt(Date.from(Instant.now()))
-            .updatedAt(Date.from(Instant.now()))
-            .disableMembershipNotifications(true)
-            .apiKeyMode(null)
-            .origin(null)
-            .build();
+                .id("app-id")
+                .name("app-name")
+                .description("app-description")
+                .domain("app-domain")
+                .type(null)
+                .status(null)
+                .picture("app-id")
+                .background("app-id")
+                .groups(null)
+                .createdAt(Date.from(Instant.now()))
+                .updatedAt(Date.from(Instant.now()))
+                .disableMembershipNotifications(true)
+                .apiKeyMode(null)
+                .origin(null)
+                .build();
 
         BaseApplicationEntity applicationEntity = ApplicationAdapter.INSTANCE.toEntity(toConvert);
 
@@ -111,7 +114,8 @@ class ApplicationAdapterTest {
         assertThat(applicationEntity.getGroups()).isEqualTo(toConvert.getGroups());
         assertThat(applicationEntity.getCreatedAt()).isEqualTo(toConvert.getCreatedAt());
         assertThat(applicationEntity.getUpdatedAt()).isEqualTo(toConvert.getUpdatedAt());
-        assertThat(applicationEntity.isDisableMembershipNotifications()).isEqualTo(toConvert.isDisableMembershipNotifications());
+        assertThat(applicationEntity.isDisableMembershipNotifications())
+                .isEqualTo(toConvert.isDisableMembershipNotifications());
         assertThat(applicationEntity.getApiKeyMode()).isNull();
         assertThat(applicationEntity.getOrigin()).isEqualTo(Origin.MANAGEMENT);
     }

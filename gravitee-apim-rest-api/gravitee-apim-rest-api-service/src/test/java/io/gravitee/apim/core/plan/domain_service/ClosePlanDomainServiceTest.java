@@ -94,11 +94,11 @@ class ClosePlanDomainServiceTest {
     @BeforeEach
     void setUp() {
         service = new ClosePlanDomainService(
-            planCrudService,
-            subscriptionQueryService,
-            closeSubscriptionDomainService,
-            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-        );
+                planCrudService,
+                subscriptionQueryService,
+                closeSubscriptionDomainService,
+                new AuditDomainService(
+                        auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()));
     }
 
     @AfterEach
@@ -116,22 +116,17 @@ class ClosePlanDomainServiceTest {
 
         // Then
         assertThat(planCrudService.storage().get(0))
-            .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
-            .isEqualTo(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .planDefinitionHttpV4(
-                        PlanFixtures.HttpV4.anApiKey()
-                            .getPlanDefinitionHttpV4()
-                            .toBuilder()
-                            .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
-                            .build()
-                    )
-                    .closedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .needRedeployAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
-                    .build()
-            );
+                .usingRecursiveComparison(
+                        RecursiveComparisonConfiguration.builder().build())
+                .isEqualTo(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                        .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                                .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
+                                .build())
+                        .closedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .needRedeployAt(Date.from(
+                                INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
+                        .build());
     }
 
     @Test
@@ -144,28 +139,32 @@ class ClosePlanDomainServiceTest {
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(plan.getReferenceId())
-                    .user(USER_ID)
-                    .properties(Map.of("PLAN", plan.getId()))
-                    .event(PlanAuditEvent.PLAN_CLOSED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(plan.getReferenceId())
+                        .user(USER_ID)
+                        .properties(Map.of("PLAN", plan.getId()))
+                        .event(PlanAuditEvent.PLAN_CLOSED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = { "CLOSED", "REJECTED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            mode = EnumSource.Mode.EXCLUDE,
+            names = {"CLOSED", "REJECTED"})
     void should_close_active_subscriptions_before_closing_plan(SubscriptionEntity.Status status) {
         // Given
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
-        var subscription = SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build();
+        var subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                .planId(plan.getId())
+                .status(status)
+                .build();
         givenExistingSubscriptions(subscription);
 
         // When
@@ -173,60 +172,61 @@ class ClosePlanDomainServiceTest {
 
         // Then
         verify(closeSubscriptionDomainService).closeSubscription(eq(subscription.getId()), eq(AUDIT_INFO));
-        assertThat(planCrudService.storage().get(0).getPlanStatus()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
+        assertThat(planCrudService.storage().get(0).getPlanStatus())
+                .isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.INCLUDE, names = { "CLOSED", "REJECTED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            mode = EnumSource.Mode.INCLUDE,
+            names = {"CLOSED", "REJECTED"})
     void should_close_plan_without_touching_inactive_subscriptions(SubscriptionEntity.Status status) {
         // Given
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
-        givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
+        givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder()
+                .planId(plan.getId())
+                .status(status)
+                .build());
 
         // When
         service.close(plan.getId(), AUDIT_INFO);
 
         // Then
         verifyNoInteractions(closeSubscriptionDomainService);
-        assertThat(planCrudService.storage().get(0).getPlanStatus()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
+        assertThat(planCrudService.storage().get(0).getPlanStatus())
+                .isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
     }
 
     @Test
     void should_still_close_plan_when_subscription_close_fails() {
         // Given
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
-        var subscription = SubscriptionFixtures.aSubscription()
-            .toBuilder()
-            .planId(plan.getId())
-            .status(SubscriptionEntity.Status.ACCEPTED)
-            .build();
+        var subscription = SubscriptionFixtures.aSubscription().toBuilder()
+                .planId(plan.getId())
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build();
         givenExistingSubscriptions(subscription);
         doThrow(new RuntimeException("downstream failure"))
-            .when(closeSubscriptionDomainService)
-            .closeSubscription(eq(subscription.getId()), eq(AUDIT_INFO));
+                .when(closeSubscriptionDomainService)
+                .closeSubscription(eq(subscription.getId()), eq(AUDIT_INFO));
 
         // When — should not propagate the exception
         service.close(plan.getId(), AUDIT_INFO);
 
         // Then — plan is still closed despite the subscription failure
-        assertThat(planCrudService.storage().get(0).getPlanStatus()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
+        assertThat(planCrudService.storage().get(0).getPlanStatus())
+                .isEqualTo(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED);
     }
 
     @Test
     void should_throw_when_plan_already_closed() {
         // Given
-        var plan = givenExistingPlan(
-            PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4.anApiKey()
-                        .getPlanDefinitionHttpV4()
-                        .toBuilder()
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
                         .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
-                        .build()
-                )
-                .build()
-        );
+                        .build())
+                .build());
 
         // When
         var throwable = org.assertj.core.api.Assertions.catchThrowable(() -> service.close(plan.getId(), AUDIT_INFO));

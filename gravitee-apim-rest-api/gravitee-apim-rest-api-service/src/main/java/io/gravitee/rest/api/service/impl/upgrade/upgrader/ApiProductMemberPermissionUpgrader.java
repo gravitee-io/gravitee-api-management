@@ -43,7 +43,8 @@ public class ApiProductMemberPermissionUpgrader implements Upgrader {
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public ApiProductMemberPermissionUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public ApiProductMemberPermissionUpgrader(
+            RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -51,12 +52,10 @@ public class ApiProductMemberPermissionUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    ensureApiProductRolesHaveMemberPermission(executionContext);
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                ensureApiProductRolesHaveMemberPermission(executionContext);
+            });
             return true;
         });
     }
@@ -64,15 +63,19 @@ public class ApiProductMemberPermissionUpgrader implements Upgrader {
     private void ensureApiProductRolesHaveMemberPermission(ExecutionContext executionContext) {
         String orgId = executionContext.getOrganizationId();
         roleService
-            .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), orgId)
-            .ifPresent(role -> addMemberPermissionIfMissing(executionContext, role, ROLE_API_PRODUCT_OWNER.getPermissions()));
+                .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), orgId)
+                .ifPresent(role ->
+                        addMemberPermissionIfMissing(executionContext, role, ROLE_API_PRODUCT_OWNER.getPermissions()));
         roleService
-            .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), orgId)
-            .ifPresent(role -> addMemberPermissionIfMissing(executionContext, role, ROLE_API_PRODUCT_USER.getPermissions()));
-        roleService.createOrUpdateSystemRole(executionContext, PRIMARY_OWNER, API_PRODUCT, ApiProductPermission.values(), orgId);
+                .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), orgId)
+                .ifPresent(role ->
+                        addMemberPermissionIfMissing(executionContext, role, ROLE_API_PRODUCT_USER.getPermissions()));
+        roleService.createOrUpdateSystemRole(
+                executionContext, PRIMARY_OWNER, API_PRODUCT, ApiProductPermission.values(), orgId);
     }
 
-    private void addMemberPermissionIfMissing(ExecutionContext executionContext, RoleEntity role, Map<String, char[]> expectedPermissions) {
+    private void addMemberPermissionIfMissing(
+            ExecutionContext executionContext, RoleEntity role, Map<String, char[]> expectedPermissions) {
         if (expectedPermissions == null) {
             return;
         }

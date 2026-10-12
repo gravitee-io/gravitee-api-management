@@ -66,7 +66,8 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnEmpty_withAnalyticsTenantAndNoCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.FALSE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
 
             String[] cluster = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
             assertNotNull(cluster);
@@ -77,8 +78,10 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withNoAnalyticsTenantAndCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("");
 
@@ -91,11 +94,14 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withOneAnalyticsTenantAndCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("(tenant:\\\"europe\\\")");
-            when(configuration.getCrossClusterMapping()).thenReturn(Collections.singletonMap("europe", "europeCluster"));
+            when(configuration.getCrossClusterMapping())
+                    .thenReturn(Collections.singletonMap("europe", "europeCluster"));
 
             String[] cluster = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
             assertNotNull(cluster);
@@ -106,11 +112,14 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withOneAnalyticsTenantAndClusterWithoutParenthesis() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("tenant:\\\"europe\\\"");
-            when(configuration.getCrossClusterMapping()).thenReturn(Collections.singletonMap("europe", "europeCluster"));
+            when(configuration.getCrossClusterMapping())
+                    .thenReturn(Collections.singletonMap("europe", "europeCluster"));
 
             String[] cluster = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
             assertNotNull(cluster);
@@ -121,11 +130,14 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withOneAnalyticsTenantAndClusterWithoutParenthesisAndPlan() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("tenant:\\\"europe\\\" AND plan:1234");
-            when(configuration.getCrossClusterMapping()).thenReturn(Collections.singletonMap("europe", "europeCluster"));
+            when(configuration.getCrossClusterMapping())
+                    .thenReturn(Collections.singletonMap("europe", "europeCluster"));
 
             String[] cluster = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
             assertNotNull(cluster);
@@ -136,11 +148,14 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withOneAnalyticsTenantAndClusterWithoutParenthesisAndPlanReverse() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("plan:1234 AND tenant:\\\"europe\\\"");
-            when(configuration.getCrossClusterMapping()).thenReturn(Collections.singletonMap("europe", "europeCluster"));
+            when(configuration.getCrossClusterMapping())
+                    .thenReturn(Collections.singletonMap("europe", "europeCluster"));
 
             String[] cluster = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
             assertNotNull(cluster);
@@ -151,8 +166,10 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withTwoAnalyticsTenantAndCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("(tenant:\\\"europe\\\" OR \\\"india\\\")");
             Map<String, String> config = new HashMap<>();
@@ -176,9 +193,8 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnEmpty_withHealthCheckTenantAndNoCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.FALSE);
-            io.gravitee.repository.healthcheck.query.AbstractQuery query = mock(
-                io.gravitee.repository.healthcheck.query.AbstractQuery.class
-            );
+            io.gravitee.repository.healthcheck.query.AbstractQuery query =
+                    mock(io.gravitee.repository.healthcheck.query.AbstractQuery.class);
 
             String[] cluster = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
             assertNotNull(cluster);
@@ -189,10 +205,10 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withNoHealthCheckTenantAndCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.healthcheck.query.AbstractQuery query = mock(
-                io.gravitee.repository.healthcheck.query.AbstractQuery.class
-            );
-            io.gravitee.repository.healthcheck.query.QueryFilter qf = mock(io.gravitee.repository.healthcheck.query.QueryFilter.class);
+            io.gravitee.repository.healthcheck.query.AbstractQuery query =
+                    mock(io.gravitee.repository.healthcheck.query.AbstractQuery.class);
+            io.gravitee.repository.healthcheck.query.QueryFilter qf =
+                    mock(io.gravitee.repository.healthcheck.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("");
 
@@ -205,11 +221,14 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withOneHealthCheckTenantAndCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("tenant:(europe)");
-            when(configuration.getCrossClusterMapping()).thenReturn(Collections.singletonMap("europe", "europeCluster"));
+            when(configuration.getCrossClusterMapping())
+                    .thenReturn(Collections.singletonMap("europe", "europeCluster"));
 
             String[] cluster = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
             assertNotNull(cluster);
@@ -220,8 +239,10 @@ public class ClusterUtilsTest {
         @Test
         public void shouldReturnCluster_withTwoHealthCheckTenantAndCluster() {
             when(configuration.hasCrossClusterMapping()).thenReturn(Boolean.TRUE);
-            io.gravitee.repository.analytics.query.AbstractQuery query = mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
-            io.gravitee.repository.analytics.query.QueryFilter qf = mock(io.gravitee.repository.analytics.query.QueryFilter.class);
+            io.gravitee.repository.analytics.query.AbstractQuery query =
+                    mock(io.gravitee.repository.analytics.query.AbstractQuery.class);
+            io.gravitee.repository.analytics.query.QueryFilter qf =
+                    mock(io.gravitee.repository.analytics.query.QueryFilter.class);
             when(query.query()).thenReturn(qf);
             when(qf.filter()).thenReturn("tenant:(europe OR india)");
             Map<String, String> config = new HashMap<>();

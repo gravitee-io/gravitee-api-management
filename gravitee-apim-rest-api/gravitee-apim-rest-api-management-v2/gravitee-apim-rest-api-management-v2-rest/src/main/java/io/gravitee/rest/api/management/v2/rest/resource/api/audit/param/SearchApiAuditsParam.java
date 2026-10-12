@@ -51,7 +51,8 @@ public class SearchApiAuditsParam implements TimeInterval {
             return false;
         }
         if (!encrypted) {
-            throw new BadRequestException("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
+            throw new BadRequestException(
+                    "Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
         }
         return true;
     }

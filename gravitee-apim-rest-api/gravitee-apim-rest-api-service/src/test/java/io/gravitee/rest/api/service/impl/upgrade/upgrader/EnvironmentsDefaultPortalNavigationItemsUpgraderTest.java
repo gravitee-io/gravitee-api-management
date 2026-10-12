@@ -52,11 +52,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
 
     private static final Environment ANOTHER_ENVIRONMENT = Environment.builder()
-        .id("ANOTHER_ENVIRONMENT")
-        .hrids(List.of("another environment"))
-        .name("another environment")
-        .organizationId("ANOTHER_ORG")
-        .build();
+            .id("ANOTHER_ENVIRONMENT")
+            .hrids(List.of("another environment"))
+            .name("another environment")
+            .organizationId("ANOTHER_ORG")
+            .build();
 
     @Mock
     EnvironmentRepository environmentRepository;
@@ -72,10 +72,7 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
     @BeforeEach
     public void setUp() {
         upgrader = new EnvironmentsDefaultPortalNavigationItemsUpgrader(
-            environmentRepository,
-            createDefaultPortalNavigationItemsUseCase,
-            portalNavigationItemsQueryService
-        );
+                environmentRepository, createDefaultPortalNavigationItemsUseCase, portalNavigationItemsQueryService);
     }
 
     @Test
@@ -103,16 +100,17 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
     @SneakyThrows
     void should_create_default_portal_page_for_both_environments_when_neither_has_a_homepage() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
-        when(portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(any(), eq(PortalArea.HOMEPAGE))).thenReturn(
-            List.of()
-        );
+        when(portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
+                        any(), eq(PortalArea.HOMEPAGE)))
+                .thenReturn(List.of());
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<String> captorOrgId = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> captorEnvId = ArgumentCaptor.forClass(String.class);
 
-        verify(createDefaultPortalNavigationItemsUseCase, times(2)).execute(captorOrgId.capture(), captorEnvId.capture());
+        verify(createDefaultPortalNavigationItemsUseCase, times(2))
+                .execute(captorOrgId.capture(), captorEnvId.capture());
         assertThat(captorOrgId.getAllValues()).containsExactlyInAnyOrder("DEFAULT", "ANOTHER_ORG");
         assertThat(captorEnvId.getAllValues()).containsExactlyInAnyOrder("DEFAULT", "ANOTHER_ENVIRONMENT");
     }
@@ -124,15 +122,13 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
         // its "Guides" folder on purpose, this upgrader must not touch it. ANOTHER_ENVIRONMENT has no
         // homepage yet, so it should still be repaired.
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
-        when(
-            portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(eq("DEFAULT"), eq(PortalArea.HOMEPAGE))
-        ).thenReturn(List.of(PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-000000000999", "Home Page", null)));
-        when(
-            portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
-                eq("ANOTHER_ENVIRONMENT"),
-                eq(PortalArea.HOMEPAGE)
-            )
-        ).thenReturn(List.of());
+        when(portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
+                        eq("DEFAULT"), eq(PortalArea.HOMEPAGE)))
+                .thenReturn(List.of(
+                        PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-000000000999", "Home Page", null)));
+        when(portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
+                        eq("ANOTHER_ENVIRONMENT"), eq(PortalArea.HOMEPAGE)))
+                .thenReturn(List.of());
 
         assertThat(upgrader.upgrade()).isTrue();
 

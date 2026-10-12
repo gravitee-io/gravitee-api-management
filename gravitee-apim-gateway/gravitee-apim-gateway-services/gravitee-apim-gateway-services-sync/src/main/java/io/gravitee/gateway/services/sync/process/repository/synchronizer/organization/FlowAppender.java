@@ -46,22 +46,19 @@ public class FlowAppender {
     }
 
     private void filterFlows(final ReactableOrganization reactableOrganization) {
-        List<Flow> filteredFlows = reactableOrganization
-            .getFlows()
-            .stream()
-            .filter(flow -> {
-                List<Consumer> consumers = flow.getConsumers();
-                if (consumers != null && !consumers.isEmpty()) {
-                    Set<String> flowTags = consumers
-                        .stream()
-                        .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
-                        .map(Consumer::getConsumerId)
-                        .collect(Collectors.toSet());
-                    return gatewayConfiguration.hasMatchingTags(flowTags);
-                }
-                return true;
-            })
-            .collect(Collectors.toList());
+        List<Flow> filteredFlows = reactableOrganization.getFlows().stream()
+                .filter(flow -> {
+                    List<Consumer> consumers = flow.getConsumers();
+                    if (consumers != null && !consumers.isEmpty()) {
+                        Set<String> flowTags = consumers.stream()
+                                .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
+                                .map(Consumer::getConsumerId)
+                                .collect(Collectors.toSet());
+                        return gatewayConfiguration.hasMatchingTags(flowTags);
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
         reactableOrganization.setFlows(filteredFlows);
     }
 }

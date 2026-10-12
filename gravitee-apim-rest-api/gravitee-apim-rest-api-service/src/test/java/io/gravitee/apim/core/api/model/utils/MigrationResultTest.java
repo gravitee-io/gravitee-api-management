@@ -62,7 +62,8 @@ class MigrationResultTest {
         // Then
         assertThat(result.value()).isNull();
 
-        assertThat(result.issues()).contains(new Issue("Mapping failed", State.IMPOSSIBLE), new Issue("Test issue", State.CAN_BE_FORCED));
+        assertThat(result.issues())
+                .contains(new Issue("Mapping failed", State.IMPOSSIBLE), new Issue("Test issue", State.CAN_BE_FORCED));
         assertThat(result.state()).isEqualTo(State.IMPOSSIBLE);
     }
 
@@ -121,10 +122,9 @@ class MigrationResultTest {
         void should_return_highest_state_weight_from_issues() {
             // Given
             Collection<Issue> issues = List.of(
-                new Issue("Issue 1", State.MIGRATABLE),
-                new Issue("Issue 2", State.CAN_BE_FORCED),
-                new Issue("Issue 3", State.MIGRATED)
-            );
+                    new Issue("Issue 1", State.MIGRATABLE),
+                    new Issue("Issue 2", State.CAN_BE_FORCED),
+                    new Issue("Issue 3", State.MIGRATED));
             MigrationResult<String> result = new MigrationResult<>("test", issues);
 
             // When & Then
@@ -185,7 +185,9 @@ class MigrationResultTest {
 
         // Then
         assertThat(mappedResult.value()).isEqualTo(4);
-        assertThat(mappedResult.issues()).extracting(Issue::message).containsExactlyInAnyOrder("Original issue", "Mapped issue");
+        assertThat(mappedResult.issues())
+                .extracting(Issue::message)
+                .containsExactlyInAnyOrder("Original issue", "Mapped issue");
         assertThat(mappedResult.state()).isEqualTo(State.MIGRATED);
     }
 

@@ -36,9 +36,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcIdentityProviderActivationRepository
-    extends JdbcAbstractRepository<IdentityProviderActivation>
-    implements IdentityProviderActivationRepository {
+public class JdbcIdentityProviderActivationRepository extends JdbcAbstractRepository<IdentityProviderActivation>
+        implements IdentityProviderActivationRepository {
 
     JdbcIdentityProviderActivationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "identity_provider_activations");
@@ -47,32 +46,32 @@ public class JdbcIdentityProviderActivationRepository
     @Override
     protected JdbcObjectMapper<IdentityProviderActivation> buildOrm() {
         return JdbcObjectMapper.builder(IdentityProviderActivation.class, this.tableName)
-            .addColumn("identity_provider_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, IdentityProviderActivationReferenceType.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("identity_provider_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, IdentityProviderActivationReferenceType.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
     public Optional<IdentityProviderActivation> findById(
-        String identityProviderId,
-        String referenceId,
-        IdentityProviderActivationReferenceType referenceType
-    ) throws TechnicalException {
-        log.debug("JdbcIdentityProviderActivationRepository.findById({}, {}, {})", identityProviderId, referenceId, referenceType);
-        try {
-            final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
-                "select" +
-                    " identity_provider_id, reference_id, reference_type, created_at " +
-                    " from " +
-                    this.tableName +
-                    " where identity_provider_id = ? and reference_id = ? and reference_type= ?",
-                getOrm().getRowMapper(),
+            String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
+            throws TechnicalException {
+        log.debug(
+                "JdbcIdentityProviderActivationRepository.findById({}, {}, {})",
                 identityProviderId,
                 referenceId,
-                referenceType.name()
-            );
+                referenceType);
+        try {
+            final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
+                    "select" + " identity_provider_id, reference_id, reference_type, created_at "
+                            + " from "
+                            + this.tableName
+                            + " where identity_provider_id = ? and reference_id = ? and reference_type= ?",
+                    getOrm().getRowMapper(),
+                    identityProviderId,
+                    referenceId,
+                    referenceType.name());
             return identityProviderActivations.stream().findFirst();
         } catch (final Exception ex) {
             final String error = "Failed to find identityProviderActivation by id";
@@ -86,9 +85,9 @@ public class JdbcIdentityProviderActivationRepository
         log.debug("JdbcIdentityProviderActivationRepository.findAll()");
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
-                "select" + " identity_provider_id, reference_id, reference_type, created_at " + " from " + this.tableName,
-                getOrm().getRowMapper()
-            );
+                    "select" + " identity_provider_id, reference_id, reference_type, created_at " + " from "
+                            + this.tableName,
+                    getOrm().getRowMapper());
             return new HashSet<>(identityProviderActivations);
         } catch (final Exception ex) {
             final String error = "Failed to find all identityProviderActivations";
@@ -98,18 +97,17 @@ public class JdbcIdentityProviderActivationRepository
     }
 
     @Override
-    public Set<IdentityProviderActivation> findAllByIdentityProviderId(String identityProviderId) throws TechnicalException {
+    public Set<IdentityProviderActivation> findAllByIdentityProviderId(String identityProviderId)
+            throws TechnicalException {
         log.debug("JdbcIdentityProviderActivationRepository.findAllByIdentityProviderId({})", identityProviderId);
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
-                "select" +
-                    " identity_provider_id, reference_id, reference_type, created_at " +
-                    " from " +
-                    this.tableName +
-                    " where identity_provider_id = ?",
-                getOrm().getRowMapper(),
-                identityProviderId
-            );
+                    "select" + " identity_provider_id, reference_id, reference_type, created_at "
+                            + " from "
+                            + this.tableName
+                            + " where identity_provider_id = ?",
+                    getOrm().getRowMapper(),
+                    identityProviderId);
             return new HashSet<>(identityProviderActivations);
         } catch (final Exception ex) {
             final String error = "Failed to find all identityProviderActivations by identity_provider_id";
@@ -120,21 +118,20 @@ public class JdbcIdentityProviderActivationRepository
 
     @Override
     public Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(
-        String referenceId,
-        IdentityProviderActivationReferenceType referenceType
-    ) throws TechnicalException {
-        log.debug("JdbcIdentityProviderActivationRepository.findAllByIdentityProviderId({}, {})", referenceId, referenceType);
+            String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+        log.debug(
+                "JdbcIdentityProviderActivationRepository.findAllByIdentityProviderId({}, {})",
+                referenceId,
+                referenceType);
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
-                "select" +
-                    " identity_provider_id, reference_id, reference_type, created_at " +
-                    " from " +
-                    this.tableName +
-                    " where reference_id = ? and reference_type= ?",
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name()
-            );
+                    "select" + " identity_provider_id, reference_id, reference_type, created_at "
+                            + " from "
+                            + this.tableName
+                            + " where reference_id = ? and reference_type= ?",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name());
             return new HashSet<>(identityProviderActivations);
         } catch (final Exception ex) {
             final String error = "Failed to find all identityProviderActivations by reference";
@@ -144,15 +141,16 @@ public class JdbcIdentityProviderActivationRepository
     }
 
     @Override
-    public IdentityProviderActivation create(IdentityProviderActivation identityProviderActivation) throws TechnicalException {
+    public IdentityProviderActivation create(IdentityProviderActivation identityProviderActivation)
+            throws TechnicalException {
         log.debug("JdbcIdentityProviderActivationRepository.create({})", identityProviderActivation);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(identityProviderActivation));
             return findById(
-                identityProviderActivation.getIdentityProviderId(),
-                identityProviderActivation.getReferenceId(),
-                identityProviderActivation.getReferenceType()
-            ).orElse(null);
+                            identityProviderActivation.getIdentityProviderId(),
+                            identityProviderActivation.getReferenceId(),
+                            identityProviderActivation.getReferenceType())
+                    .orElse(null);
         } catch (final Exception ex) {
             final String error = "Failed to create identityProviderActivation";
             log.error(error, ex);
@@ -161,16 +159,21 @@ public class JdbcIdentityProviderActivationRepository
     }
 
     @Override
-    public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
-        throws TechnicalException {
-        log.debug("JdbcIdentityProviderActivationRepository.delete({}, {}, {})", identityProviderId, referenceId, referenceType);
-        try {
-            jdbcTemplate.update(
-                "delete from " + this.tableName + " where identity_provider_id = ? and reference_id = ? and reference_type = ? ",
+    public void delete(
+            String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
+            throws TechnicalException {
+        log.debug(
+                "JdbcIdentityProviderActivationRepository.delete({}, {}, {})",
                 identityProviderId,
                 referenceId,
-                referenceType.name()
-            );
+                referenceType);
+        try {
+            jdbcTemplate.update(
+                    "delete from " + this.tableName
+                            + " where identity_provider_id = ? and reference_id = ? and reference_type = ? ",
+                    identityProviderId,
+                    referenceId,
+                    referenceType.name());
         } catch (final Exception ex) {
             final String error = "Failed to delete identityProviderActivation";
             log.error(error, ex);
@@ -182,7 +185,8 @@ public class JdbcIdentityProviderActivationRepository
     public void deleteByIdentityProviderId(String identityProviderId) throws TechnicalException {
         log.debug("JdbcIdentityProviderActivationRepository.deleteByIdentityProviderId({})", identityProviderId);
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where identity_provider_id = ? ", identityProviderId);
+            jdbcTemplate.update(
+                    "delete from " + this.tableName + " where identity_provider_id = ? ", identityProviderId);
         } catch (final Exception ex) {
             final String error = "Failed to delete identityProviderActivations by identityProvider id";
             log.error(error, ex);
@@ -191,15 +195,17 @@ public class JdbcIdentityProviderActivationRepository
     }
 
     @Override
-    public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType)
-        throws TechnicalException {
-        log.debug("JdbcIdentityProviderActivationRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+    public void deleteByReferenceIdAndReferenceType(
+            String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+        log.debug(
+                "JdbcIdentityProviderActivationRepository.deleteByReferenceIdAndReferenceType({}, {})",
+                referenceId,
+                referenceType);
         try {
             jdbcTemplate.update(
-                "delete from " + this.tableName + " where reference_id = ? and reference_type = ? ",
-                referenceId,
-                referenceType.name()
-            );
+                    "delete from " + this.tableName + " where reference_id = ? and reference_type = ? ",
+                    referenceId,
+                    referenceType.name());
         } catch (final Exception ex) {
             final String error = "Failed to delete identityProviderActivations by reference";
             log.error(error, ex);

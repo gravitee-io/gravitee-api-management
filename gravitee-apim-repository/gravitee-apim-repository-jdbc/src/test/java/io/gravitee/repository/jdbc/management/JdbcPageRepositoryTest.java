@@ -37,7 +37,11 @@ public class JdbcPageRepositoryTest {
         repository.unsetHomepage(List.of("id1", "id2"));
 
         // Then
-        verify(jdbcTemplate).update(eq("update from prefix_pages where page_id  in (? , ? ) set homepage = false"), eq("id1"), eq("id2"));
+        verify(jdbcTemplate)
+                .update(
+                        eq("update from prefix_pages where page_id  in (? , ? ) set homepage = false"),
+                        eq("id1"),
+                        eq("id2"));
     }
 
     @SneakyThrows

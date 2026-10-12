@@ -94,13 +94,12 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
 
     @Override
     public Completable addOrUpdateEntity(
-        String environmentId,
-        String uid,
-        Map<String, Object> attributes,
-        List<String> parents,
-        Set<String> targetPdpIds,
-        long updatedAt
-    ) {
+            String environmentId,
+            String uid,
+            Map<String, Object> attributes,
+            List<String> parents,
+            Set<String> targetPdpIds,
+            long updatedAt) {
         JsonObject command = new JsonObject().put("op", OP_ADD_OR_UPDATE_ENTITY).put("uid", uid);
         if (attributes != null && !attributes.isEmpty()) {
             command.put("attributes", new JsonObject(attributes));
@@ -114,28 +113,26 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     @Override
     public Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds) {
         return routeForget(
-            environmentId,
-            new JsonObject().put("op", OP_REMOVE_ENTITY).put("uid", uid),
-            expandWildcard(environmentId, targetPdpIds),
-            uid
-        );
+                environmentId,
+                new JsonObject().put("op", OP_REMOVE_ENTITY).put("uid", uid),
+                expandWildcard(environmentId, targetPdpIds),
+                uid);
     }
 
     @Override
     public Completable addOrUpdatePolicy(
-        String environmentId,
-        String docId,
-        String name,
-        String policyText,
-        Set<String> targetPdpIds,
-        long updatedAt,
-        String revision
-    ) {
+            String environmentId,
+            String docId,
+            String name,
+            String policyText,
+            Set<String> targetPdpIds,
+            long updatedAt,
+            String revision) {
         JsonObject command = new JsonObject()
-            .put("op", OP_ADD_OR_UPDATE_POLICY)
-            .put("docId", docId)
-            .put("name", name)
-            .put("policyText", policyText);
+                .put("op", OP_ADD_OR_UPDATE_POLICY)
+                .put("docId", docId)
+                .put("name", name)
+                .put("policyText", policyText);
         if (revision != null) {
             command.put("revision", revision);
         }
@@ -145,25 +142,26 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     @Override
     public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
         return routeForget(
-            environmentId,
-            new JsonObject().put("op", OP_REMOVE_POLICY).put("docId", docId),
-            expandWildcard(environmentId, targetPdpIds),
-            docId
-        );
+                environmentId,
+                new JsonObject().put("op", OP_REMOVE_POLICY).put("docId", docId),
+                expandWildcard(environmentId, targetPdpIds),
+                docId);
     }
 
     @Override
     public Completable addOrUpdateSchema(
-        String environmentId,
-        String docId,
-        String name,
-        String schemaText,
-        Set<String> targetPdpIds,
-        long updatedAt
-    ) {
+            String environmentId,
+            String docId,
+            String name,
+            String schemaText,
+            Set<String> targetPdpIds,
+            long updatedAt) {
         // The PDP consumer reads docId and schemaText and nothing else; name stays on the deployable
         // for gateway-side logging.
-        JsonObject command = new JsonObject().put("op", OP_ADD_OR_UPDATE_SCHEMA).put("docId", docId).put("schemaText", schemaText);
+        JsonObject command = new JsonObject()
+                .put("op", OP_ADD_OR_UPDATE_SCHEMA)
+                .put("docId", docId)
+                .put("schemaText", schemaText);
         Set<String> scopes = expandWildcardWithoutBootstrap(environmentId, targetPdpIds);
         warnOnceIfWildcardReachesNothing(environmentId, docId, targetPdpIds, scopes, updatedAt);
         return routeGated(environmentId, command, scopes, docId, updatedAt);
@@ -172,11 +170,10 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     @Override
     public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
         return routeForget(
-            environmentId,
-            new JsonObject().put("op", OP_REMOVE_SCHEMA).put("docId", docId),
-            expandWildcardWithoutBootstrap(environmentId, targetPdpIds),
-            docId
-        );
+                environmentId,
+                new JsonObject().put("op", OP_REMOVE_SCHEMA).put("docId", docId),
+                expandWildcardWithoutBootstrap(environmentId, targetPdpIds),
+                docId);
     }
 
     @Override
@@ -217,34 +214,36 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
             // armed by a mutation that completes after this point stay pending for the next commit.
             Set<RevisionRef> sealing = pendingByAddress.remove(address);
             JsonObject c = new JsonObject().put("op", OP_COMMIT);
-            return vertx
-                .eventBus()
-                .<JsonObject>rxRequest(address, c, deliveryOptions)
-                .flatMapCompletable(this::verifyCommitReply)
-                // Commit sealed the generation: the marks are now durable, drop the snapshot without rolling back.
-                .doOnComplete(() -> commitAttempts.remove(address))
-                .onErrorComplete(t -> {
-                    int attempts = commitAttempts.merge(address, 1, Integer::sum);
-                    if (attempts > MAX_COMMIT_ATTEMPTS) {
-                        commitAttempts.remove(address);
-                        // Give up: the staged mutations were never sealed, so roll back their revision marks —
-                        // otherwise the gate suppresses the re-stage forever and the scope stays uncommitted.
-                        forgetPending(sealing);
+            return vertx.eventBus()
+                    .<JsonObject>rxRequest(address, c, deliveryOptions)
+                    .flatMapCompletable(this::verifyCommitReply)
+                    // Commit sealed the generation: the marks are now durable, drop the snapshot without rolling back.
+                    .doOnComplete(() -> commitAttempts.remove(address))
+                    .onErrorComplete(t -> {
+                        int attempts = commitAttempts.merge(address, 1, Integer::sum);
+                        if (attempts > MAX_COMMIT_ATTEMPTS) {
+                            commitAttempts.remove(address);
+                            // Give up: the staged mutations were never sealed, so roll back their revision marks —
+                            // otherwise the gate suppresses the re-stage forever and the scope stays uncommitted.
+                            forgetPending(sealing);
+                            log.warn(
+                                    "Abandoning authz PDP commit to address [{}] after {} attempts; rolled back {} unsealed revision(s) so they re-stage next cycle",
+                                    address,
+                                    attempts - 1,
+                                    sealing == null ? 0 : sealing.size());
+                            return true;
+                        }
+                        // Re-arm the address AND keep owning the unsealed marks so the next cycle's commit retries
+                        // and can still roll them back if it ultimately gives up.
+                        rearmPending(address, sealing);
+                        touched.add(address);
                         log.warn(
-                            "Abandoning authz PDP commit to address [{}] after {} attempts; rolled back {} unsealed revision(s) so they re-stage next cycle",
-                            address,
-                            attempts - 1,
-                            sealing == null ? 0 : sealing.size()
-                        );
+                                "Authz PDP commit to address [{}] failed (attempt {}), will retry next cycle",
+                                address,
+                                attempts,
+                                t);
                         return true;
-                    }
-                    // Re-arm the address AND keep owning the unsealed marks so the next cycle's commit retries
-                    // and can still roll them back if it ultimately gives up.
-                    rearmPending(address, sealing);
-                    touched.add(address);
-                    log.warn("Authz PDP commit to address [{}] failed (attempt {}), will retry next cycle", address, attempts, t);
-                    return true;
-                });
+                    });
         });
     }
 
@@ -259,10 +258,13 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         if (refs == null || refs.isEmpty()) {
             return;
         }
-        pendingByAddress.computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet()).addAll(refs);
+        pendingByAddress
+                .computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet())
+                .addAll(refs);
     }
 
-    private Completable routeGated(String environmentId, JsonObject command, Set<String> scopes, String docId, long updatedAt) {
+    private Completable routeGated(
+            String environmentId, JsonObject command, Set<String> scopes, String docId, long updatedAt) {
         if (scopes.isEmpty()) {
             return Completable.complete();
         }
@@ -275,19 +277,16 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
                 continue;
             }
             String address = addressFor(environmentId, scope);
-            sends.add(
-                vertx
-                    .eventBus()
+            sends.add(vertx.eventBus()
                     .<JsonObject>rxRequest(address, command, deliveryOptions)
                     .ignoreElement()
                     .doOnComplete(() -> {
                         revisions.markApplied(environmentId, scope, docId, updatedAt);
                         pendingByAddress
-                            .computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet())
-                            .add(new RevisionRef(environmentId, scope, docId));
+                                .computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet())
+                                .add(new RevisionRef(environmentId, scope, docId));
                         touched.add(address);
-                    })
-            );
+                    }));
         }
         return Completable.merge(sends);
     }
@@ -307,16 +306,13 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
                 revisions.forget(environmentId, scope, docId);
                 continue;
             }
-            sends.add(
-                vertx
-                    .eventBus()
+            sends.add(vertx.eventBus()
                     .<JsonObject>rxRequest(address, command, deliveryOptions)
                     .ignoreElement()
                     .doOnComplete(() -> {
                         revisions.forget(environmentId, scope, docId);
                         touched.add(address);
-                    })
-            );
+                    }));
         }
         return Completable.merge(sends);
     }
@@ -325,11 +321,9 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     // engine with it are exactly its hostedByBase bucket — no need to scan every environment's scopes and
     // compare addresses.
     private boolean appliedOnAnotherScope(String environmentId, String scope, Set<String> removedScopes, String docId) {
-        return hostedScopes
-            .hostedOnEngine(environmentId, scope)
-            .stream()
-            .filter(other -> !removedScopes.contains(other))
-            .anyMatch(other -> revisions.isApplied(environmentId, other, docId));
+        return hostedScopes.hostedOnEngine(environmentId, scope).stream()
+                .filter(other -> !removedScopes.contains(other))
+                .anyMatch(other -> revisions.isApplied(environmentId, other, docId));
     }
 
     // "*" means every engine in the environment. On a given node that is the set of scopes the node
@@ -361,22 +355,16 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     // cycle for its whole duration and an ungated warning would repeat with it. Only the publish path warns:
     // an empty expansion on removal simply means there is nothing to remove.
     private void warnOnceIfWildcardReachesNothing(
-        String environmentId,
-        String docId,
-        Set<String> targetPdpIds,
-        Set<String> expanded,
-        long updatedAt
-    ) {
+            String environmentId, String docId, Set<String> targetPdpIds, Set<String> expanded, long updatedAt) {
         if (!expanded.isEmpty() || targetPdpIds == null || !targetPdpIds.contains(WILDCARD)) {
             return;
         }
         if (revisions.shouldApply(environmentId, WILDCARD, docId, updatedAt)) {
             revisions.markApplied(environmentId, WILDCARD, docId, updatedAt);
             log.warn(
-                "Authz schema '{}' targets every named engine of environment [{}], which hosts none, so it reaches nothing",
-                docId,
-                environmentId
-            );
+                    "Authz schema '{}' targets every named engine of environment [{}], which hosts none, so it reaches nothing",
+                    docId,
+                    environmentId);
         }
     }
 
@@ -397,7 +385,8 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         JsonObject body = reply.body();
         Long gen = body != null ? body.getLong("commitGeneration") : null;
         if (gen == null) {
-            return Completable.error(new IllegalStateException("Authz PDP commit reply missing 'commitGeneration': " + body));
+            return Completable.error(
+                    new IllegalStateException("Authz PDP commit reply missing 'commitGeneration': " + body));
         }
         log.debug("Authz engine commit landed, commitGeneration={}", gen);
         return Completable.complete();

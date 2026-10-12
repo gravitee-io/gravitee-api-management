@@ -34,11 +34,8 @@ public interface IntegrationRepository {
      * Search integration that correspond to integrationIds or have one of group
      */
     Page<Integration> findAllByEnvironmentAndGroups(
-        String environmentId,
-        Collection<String> integrationIds,
-        Collection<String> groups,
-        Pageable pageable
-    ) throws TechnicalException;
+            String environmentId, Collection<String> integrationIds, Collection<String> groups, Pageable pageable)
+            throws TechnicalException;
 
     /**
      * Delete integration by environmentId
@@ -49,7 +46,10 @@ public interface IntegrationRepository {
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
     Integration create(final Integration integration) throws TechnicalException;
+
     Integration update(final Integration integration) throws TechnicalException;
+
     Optional<Integration> findByIntegrationId(String id) throws TechnicalException;
+
     void delete(String id) throws TechnicalException;
 }

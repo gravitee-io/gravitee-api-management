@@ -29,7 +29,8 @@ import lombok.RequiredArgsConstructor;
  * dependencies on its parent.
  */
 @RequiredArgsConstructor
-public class SourceConfigurationRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
+public class SourceConfigurationRule
+        implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
 
     private final Consumer<PortalNavigationItemSource> sourceConfigurationValidator;
 
@@ -49,7 +50,8 @@ public class SourceConfigurationRule implements CreatePortalNavigationItemValida
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         sourceConfigurationValidator.accept(toUpdate.getSource());
     }
 }

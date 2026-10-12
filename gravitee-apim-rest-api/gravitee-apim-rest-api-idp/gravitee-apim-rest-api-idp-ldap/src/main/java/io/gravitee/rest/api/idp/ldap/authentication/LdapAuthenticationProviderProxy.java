@@ -31,7 +31,8 @@ class LdapAuthenticationProviderProxy extends LdapAuthenticationProvider {
         super(authenticator);
     }
 
-    public LdapAuthenticationProviderProxy(LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator) {
+    public LdapAuthenticationProviderProxy(
+            LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator) {
         super(authenticator, authoritiesPopulator);
     }
 

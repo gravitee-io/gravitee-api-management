@@ -35,7 +35,8 @@ import java.util.Set;
  *
  * @author GraviteeSource Team
  */
-public record DashboardContent(String title, String description, List<DashboardFilter> filters, TimeRange timeRange, JsonNode widgets) {
+public record DashboardContent(
+        String title, String description, List<DashboardFilter> filters, TimeRange timeRange, JsonNode widgets) {
     /** React keys and grid identities on the frontend — a duplicate breaks rendering, so reject early. */
     private static final int MAX_WIDGETS = 50;
 
@@ -83,7 +84,8 @@ public record DashboardContent(String title, String description, List<DashboardF
         if (timeRange == null) {
             return;
         }
-        if (timeRange.type() == TimeRangeType.RELATIVE && (timeRange.period() == null || timeRange.period().isBlank())) {
+        if (timeRange.type() == TimeRangeType.RELATIVE
+                && (timeRange.period() == null || timeRange.period().isBlank())) {
             throw new InvalidDashboardException("A relative time range requires a period");
         }
         if (timeRange.type() == TimeRangeType.ABSOLUTE) {

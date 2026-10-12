@@ -37,26 +37,24 @@ public class ApiPolicyManager extends DefaultPolicyManager {
     private final Reactable reactable;
 
     public ApiPolicyManager(
-        final boolean legacyMode,
-        final DefaultClassLoader classLoader,
-        final Reactable reactable,
-        final PolicyFactory policyFactory,
-        final PolicyConfigurationFactory policyConfigurationFactory,
-        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        final PolicyClassLoaderFactory policyClassLoaderFactory,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ComponentProvider componentProvider
-    ) {
+            final boolean legacyMode,
+            final DefaultClassLoader classLoader,
+            final Reactable reactable,
+            final PolicyFactory policyFactory,
+            final PolicyConfigurationFactory policyConfigurationFactory,
+            final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            final PolicyClassLoaderFactory policyClassLoaderFactory,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ComponentProvider componentProvider) {
         super(
-            legacyMode,
-            classLoader,
-            policyFactory,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            resourceLifecycleManager,
-            componentProvider
-        );
+                legacyMode,
+                classLoader,
+                policyFactory,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                resourceLifecycleManager,
+                componentProvider);
         this.reactable = reactable;
     }
 

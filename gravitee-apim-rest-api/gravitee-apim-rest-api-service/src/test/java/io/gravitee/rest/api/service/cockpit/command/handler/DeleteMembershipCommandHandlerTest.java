@@ -71,14 +71,14 @@ public class DeleteMembershipCommandHandlerTest {
         UserEntity user = new UserEntity();
         user.setId(UUID.random().toString());
         DeleteMembershipCommandPayload membershipPayload = DeleteMembershipCommandPayload.builder()
-            .userId("cockpit-user#1")
-            .organizationId("orga#1")
-            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
-            .referenceId("env#1")
-            .build();
-        when(userService.findBySource(membershipPayload.organizationId(), COCKPIT_SOURCE, membershipPayload.userId(), false)).thenReturn(
-            user
-        );
+                .userId("cockpit-user#1")
+                .organizationId("orga#1")
+                .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+                .referenceId("env#1")
+                .build();
+        when(userService.findBySource(
+                        membershipPayload.organizationId(), COCKPIT_SOURCE, membershipPayload.userId(), false))
+                .thenReturn(user);
 
         DeleteMembershipCommand command = new DeleteMembershipCommand(membershipPayload);
 
@@ -86,29 +86,31 @@ public class DeleteMembershipCommandHandlerTest {
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        verify(membershipService).deleteReferenceMember(
-            argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-            eq(MembershipReferenceType.ENVIRONMENT),
-            eq("env#1"),
-            eq(MembershipMemberType.USER),
-            eq(user.getId())
-        );
+        verify(membershipService)
+                .deleteReferenceMember(
+                        argThat(executionContext ->
+                                executionContext.getOrganizationId().equals("orga#1")),
+                        eq(MembershipReferenceType.ENVIRONMENT),
+                        eq("env#1"),
+                        eq(MembershipMemberType.USER),
+                        eq(user.getId()));
     }
 
     @Test
     public void should_handle_with_unknown_user() throws InterruptedException {
         DeleteMembershipCommandPayload membershipPayload = DeleteMembershipCommandPayload.builder()
-            .userId("cockpit-user#1")
-            .organizationId("orga#1")
-            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
-            .referenceId("env#1")
-            .build();
+                .userId("cockpit-user#1")
+                .organizationId("orga#1")
+                .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+                .referenceId("env#1")
+                .build();
 
-        when(userService.findBySource(membershipPayload.organizationId(), COCKPIT_SOURCE, membershipPayload.userId(), false)).thenThrow(
-            new UserNotFoundException(membershipPayload.userId())
-        );
+        when(userService.findBySource(
+                        membershipPayload.organizationId(), COCKPIT_SOURCE, membershipPayload.userId(), false))
+                .thenThrow(new UserNotFoundException(membershipPayload.userId()));
 
         DeleteMembershipCommand command = new DeleteMembershipCommand(membershipPayload);
 
@@ -116,7 +118,8 @@ public class DeleteMembershipCommandHandlerTest {
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
 
         verifyNoInteractions(membershipService);
     }
@@ -124,11 +127,11 @@ public class DeleteMembershipCommandHandlerTest {
     @Test
     public void should_handle_with_wrong_reference_type() throws InterruptedException {
         DeleteMembershipCommandPayload membershipPayload = DeleteMembershipCommandPayload.builder()
-            .userId("cockpit-user#1")
-            .organizationId("orga#1")
-            .referenceType("BAD_REF_TYPE")
-            .referenceId("env#1")
-            .build();
+                .userId("cockpit-user#1")
+                .organizationId("orga#1")
+                .referenceType("BAD_REF_TYPE")
+                .referenceId("env#1")
+                .build();
 
         DeleteMembershipCommand command = new DeleteMembershipCommand(membershipPayload);
 
@@ -136,7 +139,8 @@ public class DeleteMembershipCommandHandlerTest {
 
         obs.await();
         obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR));
 
         verifyNoInteractions(userService);
         verifyNoInteractions(membershipService);

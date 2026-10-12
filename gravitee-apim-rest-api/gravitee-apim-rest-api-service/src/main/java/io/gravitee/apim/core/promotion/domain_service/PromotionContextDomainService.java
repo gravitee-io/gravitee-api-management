@@ -54,13 +54,12 @@ public class PromotionContextDomainService {
     private final JsonMapper jsonMapper;
 
     public PromotionContextDomainService(
-        PromotionCrudService promotionCrudService,
-        PromotionQueryService promotionQueryService,
-        ApiQueryService apiQueryService,
-        ApiCrudService apiCrudService,
-        EnvironmentCrudService environmentCrudService,
-        JsonMapper jsonMapper
-    ) {
+            PromotionCrudService promotionCrudService,
+            PromotionQueryService promotionQueryService,
+            ApiQueryService apiQueryService,
+            ApiCrudService apiCrudService,
+            EnvironmentCrudService environmentCrudService,
+            JsonMapper jsonMapper) {
         this.promotionCrudService = promotionCrudService;
         this.promotionQueryService = promotionQueryService;
         this.apiQueryService = apiQueryService;
@@ -70,11 +69,10 @@ public class PromotionContextDomainService {
     }
 
     public record PromotionContext(
-        Promotion promotion,
-        DefinitionVersion expectedDefinitionVersion,
-        Api existingPromotedApi,
-        String targetEnvId
-    ) {}
+            Promotion promotion,
+            DefinitionVersion expectedDefinitionVersion,
+            Api existingPromotedApi,
+            String targetEnvId) {}
 
     /*
      * Validates the promotion before applying it.
@@ -100,7 +98,11 @@ public class PromotionContextDomainService {
             }
         }
 
-        return new PromotionContext(promotion, expectedDefinitionVersion, resolved.map(ResolvedApi::api).orElse(null), targetEnvId);
+        return new PromotionContext(
+                promotion,
+                expectedDefinitionVersion,
+                resolved.map(ResolvedApi::api).orElse(null),
+                targetEnvId);
     }
 
     /** How the API already living in the target environment was identified. */
@@ -135,12 +137,11 @@ public class PromotionContextDomainService {
      * result for the definition version guard, so widening it there would reject promotions that used to succeed.
      */
     private Optional<ResolvedApi> resolveTargetApi(
-        Promotion promotion,
-        String crossId,
-        String targetEnvId,
-        DefinitionVersion expectedDefinitionVersion,
-        boolean isAccepted
-    ) {
+            Promotion promotion,
+            String crossId,
+            String targetEnvId,
+            DefinitionVersion expectedDefinitionVersion,
+            boolean isAccepted) {
         var byCrossId = apiQueryService.findByEnvironmentIdAndCrossId(targetEnvId, crossId);
         if (byCrossId.isPresent()) {
             return byCrossId.map(api -> new ResolvedApi(api, Resolution.CROSS_ID));
@@ -157,26 +158,24 @@ public class PromotionContextDomainService {
         }
 
         return findApiPromotedInPreviousPromotion(previousPromotions, targetEnvId)
-            .map(api -> new ResolvedApi(api, Resolution.PROMOTION_HISTORY))
-            // Context-path scan walks every V2/V4 API in the environment. Reject does not use the resolved
-            // API, so skip it — every upgrading environment is in this state until each API is re-promoted.
-            .or(() ->
-                isAccepted
-                    ? findApiOwningTheContextPath(promotion, targetEnvId).map(api -> new ResolvedApi(api, Resolution.CONTEXT_PATH))
-                    : Optional.empty()
-            )
-            .map(resolvedApi -> {
-                log.info(
-                    "Promotion [{}]: no API with crossId [{}] in environment [{}], updating API [{}] (crossId [{}]) resolved by {}",
-                    promotion.getId(),
-                    crossId,
-                    targetEnvId,
-                    resolvedApi.api().getId(),
-                    resolvedApi.api().getCrossId(),
-                    resolvedApi.strategy()
-                );
-                return resolvedApi;
-            });
+                .map(api -> new ResolvedApi(api, Resolution.PROMOTION_HISTORY))
+                // Context-path scan walks every V2/V4 API in the environment. Reject does not use the resolved
+                // API, so skip it — every upgrading environment is in this state until each API is re-promoted.
+                .or(() -> isAccepted
+                        ? findApiOwningTheContextPath(promotion, targetEnvId)
+                                .map(api -> new ResolvedApi(api, Resolution.CONTEXT_PATH))
+                        : Optional.empty())
+                .map(resolvedApi -> {
+                    log.info(
+                            "Promotion [{}]: no API with crossId [{}] in environment [{}], updating API [{}] (crossId [{}]) resolved by {}",
+                            promotion.getId(),
+                            crossId,
+                            targetEnvId,
+                            resolvedApi.api().getId(),
+                            resolvedApi.api().getCrossId(),
+                            resolvedApi.strategy());
+                    return resolvedApi;
+                });
     }
 
     /** Accepted promotions of the same source API into the same target environment, excluding the one being processed. */
@@ -186,33 +185,29 @@ public class PromotionContextDomainService {
         }
 
         var previousPromotions = promotionQueryService
-            .search(
-                new PromotionQueryService.PromotionQuery(
-                    promotion.getApiId(),
-                    Set.of(promotion.getTargetEnvCockpitId()),
-                    Set.of(PromotionStatus.ACCEPTED),
-                    // Include accepted rows with a null target_api_id — those are the upgrade-path history.
-                    null
-                )
-            )
-            .getContent();
+                .search(new PromotionQueryService.PromotionQuery(
+                        promotion.getApiId(),
+                        Set.of(promotion.getTargetEnvCockpitId()),
+                        Set.of(PromotionStatus.ACCEPTED),
+                        // Include accepted rows with a null target_api_id — those are the upgrade-path history.
+                        null))
+                .getContent();
 
-        return previousPromotions
-            .stream()
-            // The query cannot exclude the promotion being processed.
-            .filter(previous -> !Objects.equals(previous.getId(), promotion.getId()))
-            .toList();
+        return previousPromotions.stream()
+                // The query cannot exclude the promotion being processed.
+                .filter(previous -> !Objects.equals(previous.getId(), promotion.getId()))
+                .toList();
     }
 
     private Optional<Api> findApiPromotedInPreviousPromotion(List<Promotion> previousPromotions, String targetEnvId) {
-        return previousPromotions
-            .stream()
-            .filter(previous -> previous.getTargetApiId() != null && !previous.getTargetApiId().isBlank())
-            .max(Comparator.comparing(Promotion::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
-            .map(Promotion::getTargetApiId)
-            .flatMap(apiCrudService::findById)
-            // A targetApiId must never make us update an API we cannot prove lives in the target environment.
-            .filter(api -> targetEnvId.equals(api.getEnvironmentId()));
+        return previousPromotions.stream()
+                .filter(previous -> previous.getTargetApiId() != null
+                        && !previous.getTargetApiId().isBlank())
+                .max(Comparator.comparing(Promotion::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .map(Promotion::getTargetApiId)
+                .flatMap(apiCrudService::findById)
+                // A targetApiId must never make us update an API we cannot prove lives in the target environment.
+                .filter(api -> targetEnvId.equals(api.getEnvironmentId()));
     }
 
     /**
@@ -242,21 +237,19 @@ public class PromotionContextDomainService {
             });
         }
 
-        var conflictingApiIds = ApiPathIndex.scanPaths(pathsByApiId, null, candidatePaths)
-            .stream()
-            .map(ApiPathIndex.Conflict::apiId)
-            .distinct()
-            .toList();
+        var conflictingApiIds = ApiPathIndex.scanPaths(pathsByApiId, null, candidatePaths).stream()
+                .map(ApiPathIndex.Conflict::apiId)
+                .distinct()
+                .toList();
 
         if (conflictingApiIds.size() != 1) {
             if (conflictingApiIds.size() > 1) {
                 log.warn(
-                    "Promotion [{}]: {} APIs of environment [{}] conflict with the promoted context paths {}, not resolving a target",
-                    promotion.getId(),
-                    conflictingApiIds.size(),
-                    targetEnvId,
-                    candidatePaths
-                );
+                        "Promotion [{}]: {} APIs of environment [{}] conflict with the promoted context paths {}, not resolving a target",
+                        promotion.getId(),
+                        conflictingApiIds.size(),
+                        targetEnvId,
+                        candidatePaths);
             }
             return Optional.empty();
         }
@@ -264,11 +257,10 @@ public class PromotionContextDomainService {
         var apiId = conflictingApiIds.getFirst();
         if (!ownsEveryPromotedPathExactly(pathsByApiId.getOrDefault(apiId, List.of()), candidatePaths)) {
             log.warn(
-                "Promotion [{}]: API [{}] overlaps the promoted context paths {} but does not own them exactly, not resolving a target",
-                promotion.getId(),
-                apiId,
-                candidatePaths
-            );
+                    "Promotion [{}]: API [{}] overlaps the promoted context paths {} but does not own them exactly, not resolving a target",
+                    promotion.getId(),
+                    apiId,
+                    candidatePaths);
             return Optional.empty();
         }
 
@@ -277,27 +269,20 @@ public class PromotionContextDomainService {
 
     /** Host + path only; {@code overrideAccess} is not part of identity. */
     private static boolean ownsEveryPromotedPathExactly(List<Path> existingPaths, List<Path> promotedPaths) {
-        return promotedPaths
-            .stream()
-            .allMatch(promoted ->
-                existingPaths
-                    .stream()
-                    .anyMatch(
-                        existing ->
-                            Objects.equals(existing.getHost(), promoted.getHost()) && Objects.equals(existing.getPath(), promoted.getPath())
-                    )
-            );
+        return promotedPaths.stream()
+                .allMatch(promoted -> existingPaths.stream()
+                        .anyMatch(existing -> Objects.equals(existing.getHost(), promoted.getHost())
+                                && Objects.equals(existing.getPath(), promoted.getPath())));
     }
 
     private Stream<Api> searchPathBearingApis(String targetEnvId) {
         return apiQueryService.search(
-            ApiSearchCriteria.builder()
-                .environmentId(targetEnvId)
-                .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                .build(),
-            null,
-            ApiFieldFilter.builder().pictureExcluded(true).build()
-        );
+                ApiSearchCriteria.builder()
+                        .environmentId(targetEnvId)
+                        .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                        .build(),
+                null,
+                ApiFieldFilter.builder().pictureExcluded(true).build());
     }
 
     /**
@@ -312,25 +297,18 @@ public class PromotionContextDomainService {
             }
 
             var paths = new ArrayList<Path>();
-            apiNode
-                .path("listeners")
-                .forEach(listener ->
-                    listener
-                        .path("paths")
-                        .forEach(path -> {
-                            var pathValue = path.path("path");
-                            if (!pathValue.isMissingNode() && !pathValue.isNull()) {
-                                var host = path.path("host");
-                                paths.add(
-                                    Path.builder()
-                                        .host(host.isMissingNode() || host.isNull() ? null : host.asText())
-                                        .path(pathValue.asText())
-                                        .build()
-                                        .sanitize()
-                                );
-                            }
-                        })
-                );
+            apiNode.path("listeners")
+                    .forEach(listener -> listener.path("paths").forEach(path -> {
+                        var pathValue = path.path("path");
+                        if (!pathValue.isMissingNode() && !pathValue.isNull()) {
+                            var host = path.path("host");
+                            paths.add(Path.builder()
+                                    .host(host.isMissingNode() || host.isNull() ? null : host.asText())
+                                    .path(pathValue.asText())
+                                    .build()
+                                    .sanitize());
+                        }
+                    }));
             return paths;
         } catch (Exception e) {
             log.warn("Could not extract context paths from promotion [{}] definition", promotion.getId(), e);
@@ -360,9 +338,11 @@ public class PromotionContextDomainService {
                 }
             }
 
-            throw new IllegalStateException("Could not find crossId in promotion " + promotion.getId() + " API definition");
+            throw new IllegalStateException(
+                    "Could not find crossId in promotion " + promotion.getId() + " API definition");
         } catch (Exception e) {
-            throw new TechnicalManagementException("An error occurred while trying to extract crossId from promotion " + promotion.getId());
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to extract crossId from promotion " + promotion.getId());
         }
     }
 
@@ -381,8 +361,7 @@ public class PromotionContextDomainService {
             }
         } catch (Exception e) {
             throw new TechnicalManagementException(
-                "An error occurred while try to parse promotion definition version " + promotion.getId()
-            );
+                    "An error occurred while try to parse promotion definition version " + promotion.getId());
         }
 
         throw new IllegalStateException("Could not determine definition version for promotion " + promotion.getId());

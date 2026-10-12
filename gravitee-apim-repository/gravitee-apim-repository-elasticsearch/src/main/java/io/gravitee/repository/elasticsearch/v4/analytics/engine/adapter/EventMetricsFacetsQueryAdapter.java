@@ -47,12 +47,13 @@ public class EventMetricsFacetsQueryAdapter {
         // A bucketed query cannot carry a per-metric doc-type; see requireSingleDocType.
         measuresAdapter.requireSingleDocType(query.metrics(), "facets");
         return new JsonObject()
-            .put("size", 0)
-            .put("query", measuresAdapter.adaptQuery(query))
-            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), true));
+                .put("size", 0)
+                .put("query", measuresAdapter.adaptQuery(query))
+                .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), true));
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit, boolean docTypeHoisted) {
+    public JsonObject adaptFacets(
+            List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit, boolean docTypeHoisted) {
         if (facets != null && facets.size() > 1) {
             throw new UnsupportedOperationException("Native event metrics support a single facet, got: " + facets);
         }
@@ -63,7 +64,8 @@ public class EventMetricsFacetsQueryAdapter {
         return aggs;
     }
 
-    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> facets, Integer limit, boolean docTypeHoisted) {
+    public JsonObject adaptFacets(
+            MetricMeasuresQuery metric, List<Facet> facets, Integer limit, boolean docTypeHoisted) {
         var measures = adaptMeasures(metric, docTypeHoisted);
         if (facets == null || facets.isEmpty()) {
             return measures;
@@ -105,15 +107,14 @@ public class EventMetricsFacetsQueryAdapter {
             // The average is a bucket_script, and Elasticsearch cannot order a terms aggregation by a
             // pipeline aggregation. Fail rather than emit a query whose ranking would silently be
             // something else — a widget claiming "slowest operations" must not be ordered by volume.
-            throw new UnsupportedOperationException(
-                "Cannot sort buckets by the derived average of " +
-                    metric.metric() +
-                    ": Elasticsearch cannot order terms by a pipeline aggregation"
-            );
+            throw new UnsupportedOperationException("Cannot sort buckets by the derived average of " + metric.metric()
+                    + ": Elasticsearch cannot order terms by a pipeline aggregation");
         }
         var order = new JsonObject();
         for (var sort : metric.sorts()) {
-            order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+            order.put(
+                    AggregationAdapter.adaptName(metric.metric(), sort.measure()),
+                    sort.order().name().toLowerCase());
         }
         terms.put("order", order);
     }

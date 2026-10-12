@@ -46,33 +46,33 @@ public class SearchAverageMessagesPerRequestQueryAdapter {
 
     private static JsonObject buildAverageMessagesPerRequestPerEntrypointAggregate() {
         return JsonObject.of(
-            ENTRYPOINTS_AGG,
-            JsonObject.of(
-                // Group by entrypoint id (already filtered by <connector-type: entrypoint>
-                "terms",
-                JsonObject.of(FIELD, "connector-id", "size", ENTRYPOINT_BUCKETS),
-                "aggs",
+                ENTRYPOINTS_AGG,
                 JsonObject.of(
-                    // Compute count of messages for an entrypoint
-                    MESSAGES_COUNT,
-                    JsonObject.of("sum", JsonObject.of(FIELD, "count-increment")),
-                    // Compute count of distinct requests
-                    DISTINCT_REQUESTS_COUNT,
-                    JsonObject.of("cardinality", JsonObject.of(FIELD, "request-id")),
-                    // Compute average messages per request thanks to previously computed messages_count and distinct_requests_count
-                    AVG_MESSAGES_PER_REQUEST,
-                    JsonObject.of(
-                        "bucket_script",
+                        // Group by entrypoint id (already filtered by <connector-type: entrypoint>
+                        "terms",
+                        JsonObject.of(FIELD, "connector-id", "size", ENTRYPOINT_BUCKETS),
+                        "aggs",
                         JsonObject.of(
-                            "buckets_path",
-                            JsonObject.of("req_count", DISTINCT_REQUESTS_COUNT, "msg_count", MESSAGES_COUNT),
-                            "script",
-                            "params.msg_count / params.req_count"
-                        )
-                    )
-                )
-            )
-        );
+                                // Compute count of messages for an entrypoint
+                                MESSAGES_COUNT,
+                                JsonObject.of("sum", JsonObject.of(FIELD, "count-increment")),
+                                // Compute count of distinct requests
+                                DISTINCT_REQUESTS_COUNT,
+                                JsonObject.of("cardinality", JsonObject.of(FIELD, "request-id")),
+                                // Compute average messages per request thanks to previously computed messages_count and
+                                // distinct_requests_count
+                                AVG_MESSAGES_PER_REQUEST,
+                                JsonObject.of(
+                                        "bucket_script",
+                                        JsonObject.of(
+                                                "buckets_path",
+                                                JsonObject.of(
+                                                        "req_count",
+                                                        DISTINCT_REQUESTS_COUNT,
+                                                        "msg_count",
+                                                        MESSAGES_COUNT),
+                                                "script",
+                                                "params.msg_count / params.req_count")))));
     }
 
     private static JsonObject buildElasticQuery(AverageMessagesPerRequestQuery query) {

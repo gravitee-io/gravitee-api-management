@@ -41,7 +41,8 @@ class NavigationPathTest {
 
     @Test
     void descend_appends_child_segment() {
-        assertThat(new NavigationPath("/docs", null).descend("getting-started").path()).isEqualTo("/docs/getting-started");
+        assertThat(new NavigationPath("/docs", null).descend("getting-started").path())
+                .isEqualTo("/docs/getting-started");
     }
 
     @Test
@@ -51,7 +52,8 @@ class NavigationPathTest {
 
     @Test
     void descend_clears_display_name() {
-        assertThat(new NavigationPath("/docs", "Documentation").descend("api").displayName()).isNull();
+        assertThat(new NavigationPath("/docs", "Documentation").descend("api").displayName())
+                .isNull();
     }
 
     @Test

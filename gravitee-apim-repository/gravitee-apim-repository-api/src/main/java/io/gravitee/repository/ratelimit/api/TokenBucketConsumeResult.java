@@ -26,4 +26,5 @@ import java.io.Serializable;
  *                              supplied {@code now} when tokens already remain
  * @author GraviteeSource Team
  */
-public record TokenBucketConsumeResult(boolean allowed, long remainingTokens, long nextAvailableAtMillis) implements Serializable {}
+public record TokenBucketConsumeResult(boolean allowed, long remainingTokens, long nextAvailableAtMillis)
+        implements Serializable {}

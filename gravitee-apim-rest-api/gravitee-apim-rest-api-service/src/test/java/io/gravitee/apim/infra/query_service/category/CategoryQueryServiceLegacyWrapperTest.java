@@ -54,14 +54,22 @@ class CategoryQueryServiceLegacyWrapperTest {
 
         @Test
         void should_return_category() {
-            when(categoryService.findById(CAT_ID, ENVIRONMENT_ID)).thenReturn(
-                CategoryEntity.builder().id(CAT_ID).key(CAT_KEY).name(CAT_NAME).build()
-            );
+            when(categoryService.findById(CAT_ID, ENVIRONMENT_ID))
+                    .thenReturn(CategoryEntity.builder()
+                            .id(CAT_ID)
+                            .key(CAT_KEY)
+                            .name(CAT_NAME)
+                            .build());
 
             var optional = service.findByIdOrKey(CAT_ID, ENVIRONMENT_ID);
 
             verify(categoryService, times(1)).findById(CAT_ID, ENVIRONMENT_ID);
-            Assertions.assertThat(optional).hasValue(Category.builder().id(CAT_ID).key(CAT_KEY).name(CAT_NAME).build());
+            Assertions.assertThat(optional)
+                    .hasValue(Category.builder()
+                            .id(CAT_ID)
+                            .key(CAT_KEY)
+                            .name(CAT_NAME)
+                            .build());
         }
 
         @Test

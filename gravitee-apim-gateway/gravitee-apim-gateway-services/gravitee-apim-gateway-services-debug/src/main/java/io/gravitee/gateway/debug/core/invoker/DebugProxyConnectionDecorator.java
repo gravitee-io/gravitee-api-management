@@ -17,9 +17,6 @@ package io.gravitee.gateway.debug.core.invoker;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
-import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.core.logging.LimitedLoggableProxyConnection;
-import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

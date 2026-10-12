@@ -26,7 +26,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.springframework.expression.spel.SpelEvaluationException;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiTemplateVariableProviderTest {
@@ -57,19 +56,13 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_provide_api_properties_in_EL() {
-        var apiDefinition = anApiV2()
-            .toBuilder()
-            .properties(
-                Properties.builder()
-                    .propertiesList(
-                        List.of(
-                            Property.builder().key("prop1").value("value1").build(),
-                            Property.builder().key("prop2").value("value2").build()
-                        )
-                    )
-                    .build()
-            )
-            .build();
+        var apiDefinition = anApiV2().toBuilder()
+                .properties(Properties.builder()
+                        .propertiesList(List.of(
+                                Property.builder().key("prop1").value("value1").build(),
+                                Property.builder().key("prop2").value("value2").build()))
+                        .build())
+                .build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#properties[prop1]}", String.class).test().assertValue("value1");
@@ -80,19 +73,13 @@ class ApiTemplateVariableProviderTest {
 
     @Test
     void should_return_no_value_when_evaluate_unknown_api_properties_in_EL() {
-        var apiDefinition = anApiV2()
-            .toBuilder()
-            .properties(
-                Properties.builder()
-                    .propertiesList(
-                        List.of(
-                            Property.builder().key("prop1").value("value1").build(),
-                            Property.builder().key("prop2").value("value2").build()
-                        )
-                    )
-                    .build()
-            )
-            .build();
+        var apiDefinition = anApiV2().toBuilder()
+                .properties(Properties.builder()
+                        .propertiesList(List.of(
+                                Property.builder().key("prop1").value("value1").build(),
+                                Property.builder().key("prop2").value("value2").build()))
+                        .build())
+                .build();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
         engine.eval("{#properties[unknown]}", String.class).test().assertNoValues();
@@ -104,35 +91,29 @@ class ApiTemplateVariableProviderTest {
         var apiDefinition = anApiV2();
 
         TemplateEngine engine = buildTemplateEngine(apiDefinition);
-        engine
-            .eval("{#properties[prop2]}", String.class)
-            .test()
-            .assertError(e -> {
-                assertThat(e)
+        engine.eval("{#properties[prop2]}", String.class).test().assertError(e -> {
+            assertThat(e)
                     .isInstanceOf(ExpressionEvaluationException.class)
                     .hasCauseInstanceOf(IllegalArgumentException.class)
                     .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
-                return true;
-            });
-        engine
-            .eval("{#api.properties[prop1]}", String.class)
-            .test()
-            .assertError(e -> {
-                assertThat(e)
+            return true;
+        });
+        engine.eval("{#api.properties[prop1]}", String.class).test().assertError(e -> {
+            assertThat(e)
                     .isInstanceOf(ExpressionEvaluationException.class)
                     .hasCauseInstanceOf(IllegalArgumentException.class)
                     .hasStackTraceContaining(
-                        "Expression: #api.properties[prop1] failed with message Cannot invoke \"io.gravitee.definition.model.Properties.getValues()\" because the return value of \"io.gravitee.definition.model.Api.getProperties()\" is null"
-                    );
+                            "Expression: #api.properties[prop1] failed with message Cannot invoke \"io.gravitee.definition.model.Properties.getValues()\" because the return value of \"io.gravitee.definition.model.Api.getProperties()\" is null");
 
-                return true;
-            });
+            return true;
+        });
     }
 
     private static TemplateEngine buildTemplateEngine(io.gravitee.definition.model.Api apiDefinition) {
         var engine = TemplateEngine.templateEngine();
-        var apiContextProvider = new ApiTemplateVariableProvider(new io.gravitee.gateway.handlers.api.definition.Api(apiDefinition));
+        var apiContextProvider =
+                new ApiTemplateVariableProvider(new io.gravitee.gateway.handlers.api.definition.Api(apiDefinition));
         apiContextProvider.provide(engine.getTemplateContext());
         return engine;
     }

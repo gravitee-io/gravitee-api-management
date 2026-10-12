@@ -47,18 +47,19 @@ public class UserNotificationsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List user's notifications")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's notifications",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalNotificationPageResult.class))
-    )
+            responseCode = "200",
+            description = "User's notifications",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalNotificationPageResult.class)))
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public PortalNotificationPageResult getUserNotifications() {
-        List<PortalNotificationEntity> notifications = portalNotificationService
-            .findByUser(getAuthenticatedUser())
-            .stream()
-            .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt))
-            .collect(Collectors.toList());
+        List<PortalNotificationEntity> notifications =
+                portalNotificationService.findByUser(getAuthenticatedUser()).stream()
+                        .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt))
+                        .collect(Collectors.toList());
 
         return new PortalNotificationPageResult(notifications);
     }
@@ -82,12 +83,11 @@ public class UserNotificationsResource extends AbstractResource {
     public Response deleteUserNotification(@PathParam("notification") String notificationId) {
         // Check that notification exists and belongs to user
         List<PortalNotificationEntity> userNotifications = portalNotificationService.findByUser(getAuthenticatedUser());
-        userNotifications
-            .stream()
-            .map(PortalNotificationEntity::getId)
-            .filter(id -> id.equalsIgnoreCase(notificationId))
-            .findAny()
-            .orElseThrow(() -> new PortalNotificationNotFoundException(notificationId));
+        userNotifications.stream()
+                .map(PortalNotificationEntity::getId)
+                .filter(id -> id.equalsIgnoreCase(notificationId))
+                .findAny()
+                .orElseThrow(() -> new PortalNotificationNotFoundException(notificationId));
 
         portalNotificationService.delete(notificationId);
         return Response.status(Response.Status.NO_CONTENT).build();

@@ -33,20 +33,25 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { CorsMapper.class, RequestValidationMapper.class, EndpointMapper.class, EntrypointMapper.class })
+@Mapper(uses = {CorsMapper.class, RequestValidationMapper.class, EndpointMapper.class, EntrypointMapper.class})
 public interface ListenerMapper {
     ListenerMapper INSTANCE = Mappers.getMapper(ListenerMapper.class);
 
     io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener httpListener);
+
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener subscriptionListener);
+
     io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener tcpListener);
+
     io.gravitee.rest.api.management.v2.rest.model.KafkaListener map(KafkaListener kafkaListener);
 
     @Mapping(target = "pathMappingsPattern", source = "pathMappings", qualifiedByName = "toPathMappingsPattern")
     HttpListener map(io.gravitee.rest.api.management.v2.rest.model.HttpListener listener);
 
     SubscriptionListener map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener listener);
+
     TcpListener map(io.gravitee.rest.api.management.v2.rest.model.TcpListener listener);
+
     KafkaListener map(io.gravitee.rest.api.management.v2.rest.model.KafkaListener listener);
 
     ListenerType map(io.gravitee.rest.api.management.v2.rest.model.ListenerType listenerType);
@@ -56,84 +61,93 @@ public interface ListenerMapper {
         if (Objects.isNull(pathMappings)) {
             return null;
         }
-        return pathMappings.stream().collect(Collectors.toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(pathMapping)));
+        return pathMappings.stream()
+                .collect(Collectors.toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(pathMapping)));
     }
 
     @Named("toHttpListeners")
-    default List<Listener> mapToListenerEntityV4List(List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {
+    default List<Listener> mapToListenerEntityV4List(
+            List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {
         if (Objects.isNull(listeners)) {
             return new ArrayList<>();
         }
-        return listeners
-            .stream()
-            .map(listener -> {
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.HttpListener) {
-                    return this.map(listener.getHttpListener());
-                }
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener) {
-                    return this.map(listener.getSubscriptionListener());
-                }
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.TcpListener) {
-                    return this.map(listener.getTcpListener());
-                }
-                return null;
-            })
-            .collect(Collectors.toList());
+        return listeners.stream()
+                .map(listener -> {
+                    if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.HttpListener) {
+                        return this.map(listener.getHttpListener());
+                    }
+                    if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener) {
+                        return this.map(listener.getSubscriptionListener());
+                    }
+                    if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.TcpListener) {
+                        return this.map(listener.getTcpListener());
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList());
     }
 
     @Named("fromHttpListeners")
-    default List<io.gravitee.rest.api.management.v2.rest.model.Listener> mapFromListenerEntityV4List(List<Listener> listeners) {
+    default List<io.gravitee.rest.api.management.v2.rest.model.Listener> mapFromListenerEntityV4List(
+            List<Listener> listeners) {
         if (Objects.isNull(listeners)) {
             return new ArrayList<>();
         }
 
-        return listeners
-            .stream()
-            .map(listener -> {
-                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((HttpListener) listener));
-                }
-                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.SUBSCRIPTION) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((SubscriptionListener) listener));
-                }
-                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.TCP) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((TcpListener) listener));
-                }
-                return null;
-            })
-            .collect(Collectors.toList());
+        return listeners.stream()
+                .map(listener -> {
+                    if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                this.map((HttpListener) listener));
+                    }
+                    if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.SUBSCRIPTION) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                this.map((SubscriptionListener) listener));
+                    }
+                    if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.TCP) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                this.map((TcpListener) listener));
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList());
     }
 
     @Named("toNativeListeners")
-    default List<NativeListener> mapToNativeListenerV4List(List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {
+    default List<NativeListener> mapToNativeListenerV4List(
+            List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {
         if (Objects.isNull(listeners)) {
             return new ArrayList<>();
         }
-        return listeners
-            .stream()
-            .map(listener -> {
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.KafkaListener) {
-                    return this.map(listener.getKafkaListener());
-                }
-                return null;
-            })
-            .collect(Collectors.toList());
+        return listeners.stream()
+                .map(listener -> {
+                    if (listener.getActualInstance()
+                            instanceof io.gravitee.rest.api.management.v2.rest.model.KafkaListener) {
+                        return this.map(listener.getKafkaListener());
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList());
     }
 
     @Named("fromNativeListeners")
-    default List<io.gravitee.rest.api.management.v2.rest.model.Listener> mapFromNativeListenerV4List(List<NativeListener> listeners) {
+    default List<io.gravitee.rest.api.management.v2.rest.model.Listener> mapFromNativeListenerV4List(
+            List<NativeListener> listeners) {
         if (Objects.isNull(listeners)) {
             return new ArrayList<>();
         }
 
-        return listeners
-            .stream()
-            .map(listener -> {
-                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.KAFKA) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((KafkaListener) listener));
-                }
-                return null;
-            })
-            .collect(Collectors.toList());
+        return listeners.stream()
+                .map(listener -> {
+                    if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.KAFKA) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(
+                                this.map((KafkaListener) listener));
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList());
     }
 }

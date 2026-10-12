@@ -56,7 +56,8 @@ public class AccessPointMapperTest {
         assertThat(reactableAccessPointMapped.getId()).isEqualTo(accessPoint.getId());
         assertThat(reactableAccessPointMapped.getEnvironmentId()).isEqualTo(accessPoint.getReferenceId());
         assertThat(reactableAccessPointMapped.getHost()).isEqualTo(accessPoint.getHost());
-        assertThat(reactableAccessPointMapped.getTarget().name()).isEqualTo(accessPoint.getTarget().name());
+        assertThat(reactableAccessPointMapped.getTarget().name())
+                .isEqualTo(accessPoint.getTarget().name());
     }
 
     @Test

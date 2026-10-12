@@ -20,7 +20,6 @@ import static java.util.Collections.emptyList;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.rest.api.model.*;
@@ -31,8 +30,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.ApplicationContext;
@@ -60,7 +57,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     @Override
-    public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+    public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+            throws IOException {
         jsonGenerator.writeStartObject();
 
         if (apiEntity.getName() != null) {
@@ -76,7 +74,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
         if (!this.version().getVersion().startsWith("1.")) {
             if (apiEntity.getExecutionMode() != null) {
-                jsonGenerator.writeObjectField("execution_mode", apiEntity.getExecutionMode().getLabel());
+                jsonGenerator.writeObjectField(
+                        "execution_mode", apiEntity.getExecutionMode().getLabel());
             } else {
                 jsonGenerator.writeObjectField("execution_mode", ExecutionMode.V3.getLabel());
             }
@@ -107,7 +106,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
 
         if (apiEntity.getFlowMode() != null) {
-            jsonGenerator.writeObjectField("flow_mode", apiEntity.getFlowMode().toString().toUpperCase());
+            jsonGenerator.writeObjectField(
+                    "flow_mode", apiEntity.getFlowMode().toString().toUpperCase());
         }
 
         if (apiEntity.getServices() != null && !apiEntity.getServices().isEmpty()) {
@@ -123,7 +123,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
 
         if (apiEntity.getProperties() != null && apiEntity.getProperties().getValues() != null) {
-            jsonGenerator.writeObjectField("properties", apiEntity.getProperties().getProperties());
+            jsonGenerator.writeObjectField(
+                    "properties", apiEntity.getProperties().getProperties());
         } else {
             jsonGenerator.writeObjectField("properties", emptyList());
         }
@@ -154,33 +155,35 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
                     Set<GroupEntity> apiGroupEntities = groupService.findByIds(apiEntity.getGroups());
                     jsonGenerator.writeObjectField(
-                        "groups",
-                        apiGroupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet())
-                    );
+                            "groups",
+                            apiGroupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet()));
                 }
             }
 
             // members
             if (!filteredFieldsList.contains("members")) {
                 Set<MemberEntity> memberEntities = applicationContext
-                    .getBean(MembershipService.class)
-                    .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiEntity.getId());
+                        .getBean(MembershipService.class)
+                        .getMembersByReference(
+                                GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiEntity.getId());
                 List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
                 if (memberEntities != null) {
                     final UserService userService = applicationContext.getBean(UserService.class);
-                    memberEntities
-                        .stream()
-                        .filter(m -> m.getType() == MembershipMemberType.USER)
-                        .forEach(m -> {
-                            UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), m.getId());
-                            if (userEntity != null) {
-                                Member member = new Member();
-                                member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
-                                member.setSource(userEntity.getSource());
-                                member.setSourceId(userEntity.getSourceId());
-                                members.add(member);
-                            }
-                        });
+                    memberEntities.stream()
+                            .filter(m -> m.getType() == MembershipMemberType.USER)
+                            .forEach(m -> {
+                                UserEntity userEntity =
+                                        userService.findById(GraviteeContext.getExecutionContext(), m.getId());
+                                if (userEntity != null) {
+                                    Member member = new Member();
+                                    member.setRoles(m.getRoles().stream()
+                                            .map(RoleEntity::getId)
+                                            .collect(Collectors.toList()));
+                                    member.setSource(userEntity.getSource());
+                                    member.setSourceId(userEntity.getSourceId());
+                                    members.add(member);
+                                }
+                            });
                 }
                 jsonGenerator.writeObjectField("members", members);
             }
@@ -191,37 +194,33 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             // pages
             if (!filteredFieldsList.contains("pages")) {
                 List<PageEntity> pages = applicationContext
-                    .getBean(PageService.class)
-                    .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiEntity.getId()).build(), true);
+                        .getBean(PageService.class)
+                        .search(
+                                GraviteeContext.getCurrentEnvironment(),
+                                new PageQuery.Builder().api(apiEntity.getId()).build(),
+                                true);
 
                 if (this.version().getVersion().equals("3.0")) {
-                    pages = pages
-                        .stream()
-                        .filter(
-                            pageEntity ->
-                                !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
-                                !pageEntity.getType().equals(PageType.ASCIIDOC.name())
-                        )
-                        .collect(Collectors.toList());
+                    pages = pages.stream()
+                            .filter(pageEntity -> !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name())
+                                    && !pageEntity.getType().equals(PageType.ASCIIDOC.name()))
+                            .collect(Collectors.toList());
                 } else if (this.version().getVersion().equals("3.7")) {
-                    pages = pages
-                        .stream()
-                        .filter(pageEntity -> !pageEntity.getType().equals(PageType.ASCIIDOC.name()))
-                        .collect(Collectors.toList());
+                    pages = pages.stream()
+                            .filter(pageEntity -> !pageEntity.getType().equals(PageType.ASCIIDOC.name()))
+                            .collect(Collectors.toList());
                 }
 
                 // Replace group id by group name in access control list, skipping stale refs to deleted groups
                 pages.forEach(pageEntity -> {
                     if (pageEntity.getAccessControls() != null) {
-                        pageEntity.setAccessControls(
-                            pageEntity
-                                .getAccessControls()
-                                .stream()
-                                .filter(accessControlEntity ->
-                                    accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name())
-                                )
+                        pageEntity.setAccessControls(pageEntity.getAccessControls().stream()
+                                .filter(accessControlEntity -> accessControlEntity
+                                        .getReferenceType()
+                                        .equals(AccessControlReferenceType.GROUP.name()))
                                 .map(accessControlEntity -> {
-                                    String groupName = resolveGroupName(groupService, groupIdNameMap, accessControlEntity.getReferenceId());
+                                    String groupName = resolveGroupName(
+                                            groupService, groupIdNameMap, accessControlEntity.getReferenceId());
                                     if (groupName == null) {
                                         return null;
                                     }
@@ -229,13 +228,13 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                     return accessControlEntity;
                                 })
                                 .filter(Objects::nonNull)
-                                .collect(Collectors.toSet())
-                        );
+                                .collect(Collectors.toSet()));
                     }
                 });
 
                 jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
-                List<MediaEntity> apiMedia = applicationContext.getBean(MediaService.class).findAllByApiId(apiEntity.getId());
+                List<MediaEntity> apiMedia =
+                        applicationContext.getBean(MediaService.class).findAllByApiId(apiEntity.getId());
                 if (apiMedia != null && !apiMedia.isEmpty()) {
                     jsonGenerator.writeObjectField("apiMedia", apiMedia);
                 }
@@ -244,24 +243,19 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             // plans
             if (!filteredFieldsList.contains("plans")) {
                 Set<PlanEntity> plans = applicationContext
-                    .getBean(PlanService.class)
-                    .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+                        .getBean(PlanService.class)
+                        .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
                 Set<PlanEntity> plansToAdd = plans == null
-                    ? Collections.emptySet()
-                    : plans
-                        .stream()
-                        .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
-                        .collect(Collectors.toSet());
+                        ? Collections.emptySet()
+                        : plans.stream()
+                                .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
+                                .collect(Collectors.toSet());
                 plansToAdd.forEach(p -> {
                     if (p.getExcludedGroups() != null) {
-                        p.setExcludedGroups(
-                            p
-                                .getExcludedGroups()
-                                .stream()
+                        p.setExcludedGroups(p.getExcludedGroups().stream()
                                 .map(groupId -> resolveGroupName(groupService, groupIdNameMap, groupId))
                                 .filter(Objects::nonNull)
-                                .collect(Collectors.toList())
-                        );
+                                .collect(Collectors.toList()));
                     }
                 });
                 jsonGenerator.writeObjectField("plans", plansToAdd);
@@ -270,8 +264,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             // metadata
             if (!filteredFieldsList.contains("metadata")) {
                 List<ApiMetadataEntity> apiMetadata = applicationContext
-                    .getBean(ApiMetadataService.class)
-                    .findAllByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+                        .getBean(ApiMetadataService.class)
+                        .findAllByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
                 if (apiMetadata != null && !apiMetadata.isEmpty()) {
                     jsonGenerator.writeObjectField("metadata", apiMetadata);
                 }
@@ -284,13 +278,16 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
      * Returns null if the group no longer exists. computeIfAbsent is unsafe here because it
      * does not memoize null mappings, which would re-trigger findById for every stale ref.
      */
-    private static String resolveGroupName(GroupService groupService, Map<String, String> groupIdNameMap, String groupId) {
+    private static String resolveGroupName(
+            GroupService groupService, Map<String, String> groupIdNameMap, String groupId) {
         if (groupIdNameMap.containsKey(groupId)) {
             return groupIdNameMap.get(groupId);
         }
         String name;
         try {
-            name = groupService.findById(GraviteeContext.getExecutionContext(), groupId).getName();
+            name = groupService
+                    .findById(GraviteeContext.getExecutionContext(), groupId)
+                    .getName();
         } catch (GroupNotFoundException e) {
             log.warn("Group [{}] no longer exists, skipping from export", groupId);
             name = null;

@@ -37,7 +37,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<PageRevision> implements PageRevisionRepository {
+public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<PageRevision>
+        implements PageRevisionRepository {
 
     JdbcPageRevisionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "page_revisions");
@@ -46,14 +47,14 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
     @Override
     protected JdbcObjectMapper<PageRevision> buildOrm() {
         return JdbcObjectMapper.builder(PageRevision.class, this.tableName, "page_id")
-            .addColumn("page_id", Types.NVARCHAR, String.class)
-            .addColumn("revision", Types.INTEGER, int.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("hash", Types.NVARCHAR, String.class)
-            .addColumn("contributor", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("page_id", Types.NVARCHAR, String.class)
+                .addColumn("revision", Types.INTEGER, int.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("hash", Types.NVARCHAR, String.class)
+                .addColumn("contributor", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -61,8 +62,8 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
         String rowCountSql = "SELECT count(1) AS row_count FROM " + this.tableName;
         int total = jdbcTemplate.queryForObject(rowCountSql, (rs, rowNum) -> rs.getInt(1));
 
-        String querySql =
-            getOrm().getSelectAllSql() + " ORDER BY page_id, revision " + createPagingClause(pageable.pageSize(), pageable.from());
+        String querySql = getOrm().getSelectAllSql() + " ORDER BY page_id, revision "
+                + createPagingClause(pageable.pageSize(), pageable.from());
         List<PageRevision> revisions = jdbcTemplate.query(querySql, getOrm().getRowMapper());
 
         return new Page<>(revisions, pageable.pageNumber(), revisions.size(), total);
@@ -73,11 +74,10 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
         log.debug("JdbcPageRevisionRepository.findById({}, {})", pageId, revision);
         try {
             final List<PageRevision> items = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where page_id = ? and revision = ?",
-                getOrm().getRowMapper(),
-                pageId,
-                revision
-            );
+                    getOrm().getSelectAllSql() + " where page_id = ? and revision = ?",
+                    getOrm().getRowMapper(),
+                    pageId,
+                    revision);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find page revision by id", ex);
@@ -102,10 +102,9 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
         log.debug("JdbcPageRevisionRepository.findAllByPageId({})", pageId);
         try {
             List<PageRevision> result = jdbcTemplate.query(
-                "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc",
-                getOrm().getRowMapper(),
-                pageId
-            );
+                    "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc",
+                    getOrm().getRowMapper(),
+                    pageId);
             log.debug("JdbcPageRevisionRepository.findLastByPageId({}) = {}", pageId, result);
             return result;
         } catch (final Exception ex) {
@@ -119,10 +118,10 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
         log.debug("JdbcPageRevisionRepository.findLastByPageId({})", pageId);
         try {
             List<PageRevision> rows = jdbcTemplate.query(
-                "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc " + createPagingClause(1, 0),
-                getOrm().getRowMapper(),
-                pageId
-            );
+                    "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc "
+                            + createPagingClause(1, 0),
+                    getOrm().getRowMapper(),
+                    pageId);
             Optional<PageRevision> result = rows.stream().findFirst();
             log.debug("JdbcPageRevisionRepository.findLastByPageId({}) = {}", pageId, result);
             return result;
@@ -137,20 +136,18 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
         log.debug("JdbcPageRevisionRepository.deleteByPageId({})", pageId);
         try {
             List<PageRevision> result = jdbcTemplate.query(
-                "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc",
-                getOrm().getRowMapper(),
-                pageId
-            );
+                    "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc",
+                    getOrm().getRowMapper(),
+                    pageId);
 
             if (!result.isEmpty()) {
                 jdbcTemplate.update("delete from " + this.tableName + " where page_id = ?", pageId);
             }
 
             log.debug("JdbcPageRevisionRepository.delete({}) - Done", pageId);
-            return result
-                .stream()
-                .map(p -> p.getPageId() + ":" + p.getRevision())
-                .toList();
+            return result.stream()
+                    .map(p -> p.getPageId() + ":" + p.getRevision())
+                    .toList();
         } catch (final Exception ex) {
             log.error("Failed to delete page revision by id: {}", pageId, ex);
             throw new TechnicalException("Failed to delete page revision by page id", ex);

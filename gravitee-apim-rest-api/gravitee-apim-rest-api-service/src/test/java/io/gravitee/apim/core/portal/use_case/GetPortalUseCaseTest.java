@@ -39,10 +39,10 @@ import org.junit.jupiter.api.Test;
 class GetPortalUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
@@ -74,7 +74,9 @@ class GetPortalUseCaseTest {
         var unknownId = PortalId.of("00000000-0000-0000-0000-0000000000ff");
         var throwable = catchThrowable(() -> useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, unknownId)));
 
-        assertThat(throwable).isInstanceOf(PortalNotFoundException.class).hasMessage("Portal [ " + unknownId + " ] not found");
+        assertThat(throwable)
+                .isInstanceOf(PortalNotFoundException.class)
+                .hasMessage("Portal [ " + unknownId + " ] not found");
     }
 
     @Test
@@ -83,12 +85,13 @@ class GetPortalUseCaseTest {
         portalCrudService.initWith(List.of(portal));
 
         var otherEnvAudit = AuditInfo.builder()
-            .organizationId("organization-id")
-            .environmentId("other-env")
-            .actor(AuditActor.builder().userId("user-id").build())
-            .build();
+                .organizationId("organization-id")
+                .environmentId("other-env")
+                .actor(AuditActor.builder().userId("user-id").build())
+                .build();
 
-        var throwable = catchThrowable(() -> useCase.execute(new GetPortalUseCase.Input(otherEnvAudit, portal.getId())));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new GetPortalUseCase.Input(otherEnvAudit, portal.getId())));
 
         assertThat(throwable).isInstanceOf(PortalNotFoundException.class);
     }
@@ -96,7 +99,8 @@ class GetPortalUseCaseTest {
     @Test
     void should_return_persisted_navigation_paths() {
         var navigation = List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", "B"));
-        var portal = PortalFixtures.aPortal().withNavigationStructure(PortalNavigationStructure.ofTopNavbar(navigation));
+        var portal =
+                PortalFixtures.aPortal().withNavigationStructure(PortalNavigationStructure.ofTopNavbar(navigation));
         portalCrudService.initWith(List.of(portal));
 
         var output = useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, portal.getId()));

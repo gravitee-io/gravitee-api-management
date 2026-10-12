@@ -158,8 +158,8 @@ class ApiServicesMigrationTest {
         var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
         assertThrows(NullPointerException.class, () -> get(result));
         assertThat(result.issues())
-            .map(MigrationResult.Issue::message)
-            .containsExactly(MigrationWarnings.HEALTHCHECK_ASSERTION.formatted("endpoint : testEndpoint"));
+                .map(MigrationResult.Issue::message)
+                .containsExactly(MigrationWarnings.HEALTHCHECK_ASSERTION.formatted("endpoint : testEndpoint"));
         assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.IMPOSSIBLE);
     }
 
@@ -224,10 +224,10 @@ class ApiServicesMigrationTest {
         config.setSpecification("JSON");
         config.setUrl("https://example.com/api");
         DynamicPropertyService v2DynamicPropertyService = DynamicPropertyService.builder()
-            .schedule("*/5 * * * * *")
-            .provider(DynamicPropertyProvider.HTTP)
-            .configuration(config)
-            .build();
+                .schedule("*/5 * * * * *")
+                .provider(DynamicPropertyProvider.HTTP)
+                .configuration(config)
+                .build();
 
         // Act
         var result = apiServicesMigration.convert(v2DynamicPropertyService, null, null);
@@ -238,12 +238,9 @@ class ApiServicesMigrationTest {
             assertThat(v4.getType()).isEqualTo("http-dynamic-properties");
             assertThat(v4.getConfiguration()).isNotNull();
             assertThat(
-                v4
-                    .getConfiguration()
-                    .equals(
-                        "{\"schedule\":\"*/5 * * * * *\",\"headers\":[{\"name\":\"key\",\"value\":\"value\"}],\"method\":\"GET\",\"systemProxy\":true,\"transformation\":\"JSON\",\"url\":\"https://example.com/api\"}"
-                    )
-            );
+                    v4.getConfiguration()
+                            .equals(
+                                    "{\"schedule\":\"*/5 * * * * *\",\"headers\":[{\"name\":\"key\",\"value\":\"value\"}],\"method\":\"GET\",\"systemProxy\":true,\"transformation\":\"JSON\",\"url\":\"https://example.com/api\"}"));
         });
     }
 }

@@ -54,40 +54,35 @@ public class NotificationConfig {
 
     public static NotificationConfig defaultMailNotificationConfigForApiProduct(String apiProductId) {
         return defaultMailNotificationConfigFor(
-            HookScope.API_PRODUCT.name(),
-            apiProductId,
-            "${(apiProduct.primaryOwner.email)!''}",
-            Arrays.stream(ApiProductHook.values()).map(Enum::name).sorted().toList()
-        );
-    }
-
-    private static NotificationConfig defaultMailNotificationConfigFor(String referenceType, String referenceId, String recipientConfig) {
-        return defaultMailNotificationConfigFor(
-            referenceType,
-            referenceId,
-            recipientConfig,
-            Arrays.stream(ApiHook.values()).map(Enum::name).sorted().toList()
-        );
+                HookScope.API_PRODUCT.name(),
+                apiProductId,
+                "${(apiProduct.primaryOwner.email)!''}",
+                Arrays.stream(ApiProductHook.values()).map(Enum::name).sorted().toList());
     }
 
     private static NotificationConfig defaultMailNotificationConfigFor(
-        String referenceType,
-        String referenceId,
-        String recipientConfig,
-        List<String> hooks
-    ) {
+            String referenceType, String referenceId, String recipientConfig) {
+        return defaultMailNotificationConfigFor(
+                referenceType,
+                referenceId,
+                recipientConfig,
+                Arrays.stream(ApiHook.values()).map(Enum::name).sorted().toList());
+    }
+
+    private static NotificationConfig defaultMailNotificationConfigFor(
+            String referenceType, String referenceId, String recipientConfig, List<String> hooks) {
         var now = TimeProvider.now();
         return NotificationConfig.builder()
-            .type(Type.GENERIC)
-            .id(UuidString.generateRandom())
-            .name("Default Mail Notifications")
-            .referenceType(referenceType)
-            .referenceId(referenceId)
-            .notifier("default-email")
-            .config(recipientConfig)
-            .hooks(hooks)
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+                .type(Type.GENERIC)
+                .id(UuidString.generateRandom())
+                .name("Default Mail Notifications")
+                .referenceType(referenceType)
+                .referenceId(referenceId)
+                .notifier("default-email")
+                .config(recipientConfig)
+                .hooks(hooks)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 }

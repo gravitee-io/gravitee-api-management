@@ -73,6 +73,7 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
      * the normalization and the acceptor lookup. See {@link #timestampNs()}.
      */
     protected long timestampNs = System.nanoTime();
+
     protected String remoteAddress;
     protected String localAddress;
     protected SSLSession sslSession;
@@ -225,12 +226,14 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
         String currentPath = path();
         if (this.contextPath != null && currentPath != null) {
             if (!currentPath.endsWith("/") && this.contextPath.endsWith("/")) {
-                final String contextPathWithoutTrailingSlash = this.contextPath.substring(0, this.contextPath.length() - 1);
+                final String contextPathWithoutTrailingSlash =
+                        this.contextPath.substring(0, this.contextPath.length() - 1);
                 if (currentPath.equals(contextPathWithoutTrailingSlash)) {
                     currentPath += "/";
                 }
             }
-            this.path = currentPath.replaceFirst(Pattern.quote(this.contextPath), Matcher.quoteReplacement(contextPath));
+            this.path =
+                    currentPath.replaceFirst(Pattern.quote(this.contextPath), Matcher.quoteReplacement(contextPath));
         }
         this.contextPath = contextPath;
         updatePathInfoFromContextPath(contextPath);

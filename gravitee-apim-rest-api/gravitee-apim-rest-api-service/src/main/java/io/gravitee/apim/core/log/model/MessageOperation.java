@@ -27,7 +27,8 @@ public enum MessageOperation {
     SUBSCRIBE("subscribe"),
     PUBLISH("publish");
 
-    private static final Map<String, MessageOperation> LABELS_MAP = Map.of(SUBSCRIBE.label, SUBSCRIBE, PUBLISH.label, PUBLISH);
+    private static final Map<String, MessageOperation> LABELS_MAP =
+            Map.of(SUBSCRIBE.label, SUBSCRIBE, PUBLISH.label, PUBLISH);
 
     private final String label;
 

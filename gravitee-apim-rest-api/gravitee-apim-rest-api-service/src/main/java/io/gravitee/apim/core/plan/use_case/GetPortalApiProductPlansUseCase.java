@@ -29,9 +29,8 @@ public class GetPortalApiProductPlansUseCase {
     private final PortalApiProductPlanDomainService portalApiProductPlanDomainService;
 
     public Output execute(Input input) {
-        return new Output(
-            portalApiProductPlanDomainService.findAccessiblePlans(input.environmentId(), input.apiProductId(), input.viewerContext())
-        );
+        return new Output(portalApiProductPlanDomainService.findAccessiblePlans(
+                input.environmentId(), input.apiProductId(), input.viewerContext()));
     }
 
     public record Input(String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {}

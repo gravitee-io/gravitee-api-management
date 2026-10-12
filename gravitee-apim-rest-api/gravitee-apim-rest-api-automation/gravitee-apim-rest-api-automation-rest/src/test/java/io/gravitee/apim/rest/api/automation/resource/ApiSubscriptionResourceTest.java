@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 
 import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.ApiFixtures;
-import fixtures.core.model.ApplicationFixture;
 import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -44,7 +43,6 @@ import jakarta.ws.rs.core.MediaType;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.UUID;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -90,66 +88,45 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         @Test
         void should_get_subscription_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
 
-                subscriptionCrudService.initWith(
-                    List.of(
-                        SubscriptionFixtures.aSubscription()
-                            .toBuilder()
-                            .id(
-                                HRIDToUUID.subscription()
-                                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                    .api(API_HRID)
-                                    .subscription(HRID)
-                                    .id()
-                            )
-                            .referenceId(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(API_HRID).id())
-                            .applicationId(
-                                HRIDToUUID.application()
-                                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                    .hrid(APPLICATION_HRID)
-                                    .id()
-                            )
-                            .planId(
-                                HRIDToUUID.plan()
-                                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                    .api(API_HRID)
-                                    .plan(PLAN_HRID)
-                                    .id()
-                            )
-                            .build()
-                    )
-                );
-                applicationCrudService.initWith(
-                    List.of(
-                        ApplicationModelFixtures.anApplicationEntity()
-                            .toBuilder()
-                            .id(
-                                HRIDToUUID.application()
-                                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                    .hrid(APPLICATION_HRID)
-                                    .id()
-                            )
-                            .hrid(APPLICATION_HRID)
-                            .build()
-                    )
-                );
+                subscriptionCrudService.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                        .id(HRIDToUUID.subscription()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .api(API_HRID)
+                                .subscription(HRID)
+                                .id())
+                        .referenceId(HRIDToUUID.api()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .hrid(API_HRID)
+                                .id())
+                        .applicationId(HRIDToUUID.application()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .hrid(APPLICATION_HRID)
+                                .id())
+                        .planId(HRIDToUUID.plan()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .api(API_HRID)
+                                .plan(PLAN_HRID)
+                                .id())
+                        .build()));
+                applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                        .id(HRIDToUUID.application()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .hrid(APPLICATION_HRID)
+                                .id())
+                        .hrid(APPLICATION_HRID)
+                        .build()));
 
-                planCrudService.initWith(
-                    List.of(
-                        PlanFixtures.aPlanHttpV4()
-                            .toBuilder()
-                            .id(
-                                HRIDToUUID.plan()
-                                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                    .api(API_HRID)
-                                    .plan(PLAN_HRID)
-                                    .id()
-                            )
-                            .hrid(PLAN_HRID)
-                            .build()
-                    )
-                );
+                planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                        .id(HRIDToUUID.plan()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .api(API_HRID)
+                                .plan(PLAN_HRID)
+                                .id())
+                        .hrid(PLAN_HRID)
+                        .build()));
 
                 var state = expectEntity(HRID);
                 SoftAssertions.assertSoftly(soft -> {
@@ -166,24 +143,24 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         @Test
         void should_get_subscription_from_known_guid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
 
-                subscriptionCrudService.initWith(
-                    List.of(
-                        SubscriptionFixtures.aSubscription()
-                            .toBuilder()
-                            .id(SUBSCRIPTION_ID)
-                            .referenceId(API_HRID)
-                            .applicationId(APPLICATION_HRID)
-                            .planId(PLAN_HRID)
-                            .build()
-                    )
-                );
-                applicationCrudService.initWith(
-                    List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build())
-                );
+                subscriptionCrudService.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                        .id(SUBSCRIPTION_ID)
+                        .referenceId(API_HRID)
+                        .applicationId(APPLICATION_HRID)
+                        .planId(PLAN_HRID)
+                        .build()));
+                applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                        .id(APPLICATION_HRID)
+                        .hrid(APPLICATION_HRID)
+                        .build()));
 
-                planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_HRID).hrid(PLAN_HRID).build()));
+                planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                        .id(PLAN_HRID)
+                        .hrid(PLAN_HRID)
+                        .build()));
 
                 var state = expectEntity(SUBSCRIPTION_ID, true);
                 SoftAssertions.assertSoftly(soft -> {
@@ -214,14 +191,12 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         }
 
         private SubscriptionState expectEntity(String hrid, boolean legacy) {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("hridContainsUUID", legacy)
                     .path(hrid)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .get()
-            ) {
+                    .get()) {
                 return response.readEntity(SubscriptionState.class);
             }
         }
@@ -233,51 +208,56 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         @Test
         void should_delete_subscription_and_return_no_content() {
             String applicationId = HRIDToUUID.application()
-                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                .hrid(APPLICATION_HRID)
-                .id();
-            String apiId = HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(API_HRID).id();
-            subscriptionCrudService.initWith(
-                List.of(
-                    SubscriptionFixtures.aSubscription()
-                        .toBuilder()
-                        .id(
-                            HRIDToUUID.subscription()
-                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                .api(API_HRID)
-                                .subscription(HRID)
-                                .id()
-                        )
-                        .referenceId(apiId)
-                        .applicationId(applicationId)
-                        .planId(
-                            HRIDToUUID.plan().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).api(API_HRID).plan(PLAN_HRID).id()
-                        )
-                        .build()
-                )
-            );
-            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
+                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                    .hrid(APPLICATION_HRID)
+                    .id();
+            String apiId = HRIDToUUID.api()
+                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                    .hrid(API_HRID)
+                    .id();
+            subscriptionCrudService.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                    .id(HRIDToUUID.subscription()
+                            .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                            .api(API_HRID)
+                            .subscription(HRID)
+                            .id())
+                    .referenceId(apiId)
+                    .applicationId(applicationId)
+                    .planId(HRIDToUUID.plan()
+                            .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                            .api(API_HRID)
+                            .plan(PLAN_HRID)
+                            .id())
+                    .build()));
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder()
+                    .id(applicationId)
+                    .hrid(APPLICATION_HRID)
+                    .build()));
 
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(apiId)
+                    .hrid(API_HRID)
+                    .build()));
             expectNoContent(HRID);
         }
 
         @Test
         void should_delete_subscription_and_return_no_content_known_guid() {
-            subscriptionCrudService.initWith(
-                List.of(
-                    SubscriptionFixtures.aSubscription()
-                        .toBuilder()
-                        .id(SUBSCRIPTION_ID)
-                        .referenceId(API_HRID)
-                        .applicationId(APPLICATION_HRID)
-                        .planId(PLAN_HRID)
-                        .build()
-                )
-            );
-            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build()));
+            subscriptionCrudService.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                    .id(SUBSCRIPTION_ID)
+                    .referenceId(API_HRID)
+                    .applicationId(APPLICATION_HRID)
+                    .planId(PLAN_HRID)
+                    .build()));
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder()
+                    .id(APPLICATION_HRID)
+                    .hrid(APPLICATION_HRID)
+                    .build()));
 
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_HRID).hrid(API_HRID).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(API_HRID)
+                    .hrid(API_HRID)
+                    .build()));
             expectNoContent(SUBSCRIPTION_ID, true);
         }
 
@@ -291,14 +271,12 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         }
 
         private void expectNoContent(String hrid, boolean legacy) {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("hridContainsUUID", legacy)
                     .queryParam("hridContainsApiUUID", legacy)
                     .path(hrid)
                     .request()
-                    .delete()
-            ) {
+                    .delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }
@@ -315,58 +293,55 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         @Test
         void should_handle_put_delete_put_lifecycle() {
-            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class))).thenReturn(
-                new ImportSubscriptionCRDUseCase.Output(
-                    SubscriptionCRDStatus.builder()
-                        .id(
-                            HRIDToUUID.subscription()
-                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                .api(API_HRID)
-                                .subscription(HRID)
-                                .id()
-                        )
-                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
-                        .status(ACCEPTED.name())
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .build()
-                )
-            );
+            when(importSubscriptionCRDUseCase.execute(any(ImportSubscriptionCRDUseCase.Input.class)))
+                    .thenReturn(new ImportSubscriptionCRDUseCase.Output(SubscriptionCRDStatus.builder()
+                            .id(HRIDToUUID.subscription()
+                                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                    .api(API_HRID)
+                                    .subscription(HRID)
+                                    .id())
+                            .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                            .status(ACCEPTED.name())
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
 
             String applicationId = HRIDToUUID.application()
-                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                .hrid(APPLICATION_HRID)
-                .id();
-            String apiId = HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid(API_HRID).id();
-            subscriptionCrudService.initWith(
-                List.of(
-                    SubscriptionFixtures.aSubscription()
-                        .toBuilder()
-                        .id(
-                            HRIDToUUID.subscription()
-                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
-                                .api(API_HRID)
-                                .subscription(HRID)
-                                .id()
-                        )
-                        .referenceId(apiId)
-                        .applicationId(applicationId)
-                        .planId(
-                            HRIDToUUID.plan().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).api(API_HRID).plan(PLAN_HRID).id()
-                        )
-                        .build()
-                )
-            );
-            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).hrid(APPLICATION_HRID).build()));
+                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                    .hrid(APPLICATION_HRID)
+                    .id();
+            String apiId = HRIDToUUID.api()
+                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                    .hrid(API_HRID)
+                    .id();
+            subscriptionCrudService.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                    .id(HRIDToUUID.subscription()
+                            .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                            .api(API_HRID)
+                            .subscription(HRID)
+                            .id())
+                    .referenceId(apiId)
+                    .applicationId(applicationId)
+                    .planId(HRIDToUUID.plan()
+                            .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                            .api(API_HRID)
+                            .plan(PLAN_HRID)
+                            .id())
+                    .build()));
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder()
+                    .id(applicationId)
+                    .hrid(APPLICATION_HRID)
+                    .build()));
 
-            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(apiId).hrid(API_HRID).build()));
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(apiId)
+                    .hrid(API_HRID)
+                    .build()));
             // PUT: create/update subscription
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("subscription-with-hrid.json")))
-            ) {
+                    .put(Entity.json(readJSON("subscription-with-hrid.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
 
@@ -376,12 +351,10 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             }
 
             // PUT again: should succeed (restore + update at domain service level)
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("subscription-with-hrid.json")))
-            ) {
+                    .put(Entity.json(readJSON("subscription-with-hrid.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
         }
@@ -389,6 +362,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID + "/subscriptions";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID
+                + "/subscriptions";
     }
 }

@@ -23,5 +23,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 
 public interface ApiProductSearchService {
-    Page<ApiProduct> search(ExecutionContext executionContext, QueryBuilder<IndexableApiProduct> queryBuilder, Pageable pageable);
+    Page<ApiProduct> search(
+            ExecutionContext executionContext, QueryBuilder<IndexableApiProduct> queryBuilder, Pageable pageable);
 }

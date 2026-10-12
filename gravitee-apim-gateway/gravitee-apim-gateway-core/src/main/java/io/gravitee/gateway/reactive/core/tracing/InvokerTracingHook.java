@@ -47,7 +47,9 @@ public class InvokerTracingHook extends TracingHook implements ProcessorHook, Ch
 
     protected void endSpan(final String id, final HttpExecutionContext ctx) {
         Span span = getSpan(ctx, id);
-        span.withAttribute(SPAN_ENDPOINT_ID_ATTR, ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID));
+        span.withAttribute(
+                SPAN_ENDPOINT_ID_ATTR,
+                ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID));
         putSpan(id, ctx, span);
         super.endSpan(id, ctx);
     }

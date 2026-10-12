@@ -57,9 +57,13 @@ class EnvironmentInstancesResourceTest extends AbstractResourceTest {
     public void init() {
         GraviteeContext.setCurrentEnvironment(FAKE_ENVIRONMENT_ID);
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT_ID)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID))
+                .thenReturn(environmentEntity);
     }
 
     @Override
@@ -72,32 +76,33 @@ class EnvironmentInstancesResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_instance_details() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_INSTANCE,
-                ENVIRONMENT_ID,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_INSTANCE,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         var instanceId = "instance-id";
         var hostname = "foo.example.com";
         var ip = "42.42.42.1";
-        instanceQueryService.initWith(
-            List.of(Instance.builder().id(instanceId).hostname(hostname).ip(ip).environments(Set.of(ENVIRONMENT_ID)).build())
-        );
+        instanceQueryService.initWith(List.of(Instance.builder()
+                .id(instanceId)
+                .hostname(hostname)
+                .ip(ip)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .build()));
 
         final Response response = rootTarget().path(instanceId).request().get();
 
         MAPIAssertions.assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(InstanceDetailResponse.class)
-            .satisfies(instanceDetail -> {
-                assertThat(instanceDetail.getHostname()).isEqualTo(hostname);
-                assertThat(instanceDetail.getIp()).isEqualTo(ip);
-                assertThat(instanceDetail.getId()).isEqualTo(instanceId);
-            });
+                .hasStatus(OK_200)
+                .asEntity(InstanceDetailResponse.class)
+                .satisfies(instanceDetail -> {
+                    assertThat(instanceDetail.getHostname()).isEqualTo(hostname);
+                    assertThat(instanceDetail.getIp()).isEqualTo(ip);
+                    assertThat(instanceDetail.getId()).isEqualTo(instanceId);
+                });
     }
 
     @Test
@@ -105,9 +110,12 @@ class EnvironmentInstancesResourceTest extends AbstractResourceTest {
         var instanceId = "instance-id";
         var hostname = "foo.example.com";
         var ip = "42.42.42.1";
-        instanceQueryService.initWith(
-            List.of(Instance.builder().id(instanceId).hostname(hostname).ip(ip).environments(Set.of(ENVIRONMENT_ID)).build())
-        );
+        instanceQueryService.initWith(List.of(Instance.builder()
+                .id(instanceId)
+                .hostname(hostname)
+                .ip(ip)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .build()));
 
         final Response response = rootTarget().path("not-existing-id").request().get();
 

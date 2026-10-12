@@ -65,11 +65,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ClassicCategoriesMigrationUpgraderTest {
 
     private static final Environment ANOTHER_ENVIRONMENT = Environment.builder()
-        .id("ANOTHER_ENVIRONMENT")
-        .hrids(List.of("another environment"))
-        .name("another environment")
-        .organizationId("ANOTHER_ORG")
-        .build();
+            .id("ANOTHER_ENVIRONMENT")
+            .hrids(List.of("another environment"))
+            .name("another environment")
+            .organizationId("ANOTHER_ORG")
+            .build();
 
     @Mock
     EnvironmentRepository environmentRepository;
@@ -84,28 +84,27 @@ class ClassicCategoriesMigrationUpgraderTest {
     final PortalCategoryCrudServiceInMemory portalCategoryCrudService = new PortalCategoryCrudServiceInMemory();
 
     final List<PortalNavigationItem> portalNavigationItemsStorage = new ArrayList<>();
-    final PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(
-        portalNavigationItemsStorage
-    );
-    final PortalNavigationItemsCrudServiceInMemory portalNavigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory(
-        portalNavigationItemsStorage
-    );
+    final PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService =
+            new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsStorage);
+    final PortalNavigationItemsCrudServiceInMemory portalNavigationItemCrudService =
+            new PortalNavigationItemsCrudServiceInMemory(portalNavigationItemsStorage);
 
     private ClassicCategoriesMigrationUpgrader upgrader;
 
     @BeforeEach
     void setUp() {
-        var portalCategoryDomainService = new PortalCategoryDomainService(portalCategoryCrudService, portalCategoryQueryService);
-        var createPortalCategoryUseCase = new CreatePortalCategoryUseCase(portalCategoryDomainService, portalCategoryCrudService);
+        var portalCategoryDomainService =
+                new PortalCategoryDomainService(portalCategoryCrudService, portalCategoryQueryService);
+        var createPortalCategoryUseCase =
+                new CreatePortalCategoryUseCase(portalCategoryDomainService, portalCategoryCrudService);
         upgrader = new ClassicCategoriesMigrationUpgrader(
-            environmentRepository,
-            categoryRepository,
-            apiRepository,
-            portalCategoryQueryService,
-            createPortalCategoryUseCase,
-            portalNavigationItemsQueryService,
-            portalNavigationItemCrudService
-        );
+                environmentRepository,
+                categoryRepository,
+                apiRepository,
+                portalCategoryQueryService,
+                createPortalCategoryUseCase,
+                portalNavigationItemsQueryService,
+                portalNavigationItemCrudService);
         lenient().when(apiRepository.search(any(), any(ApiFieldFilter.class))).thenReturn(List.of());
     }
 
@@ -134,54 +133,59 @@ class ClassicCategoriesMigrationUpgraderTest {
     @SneakyThrows
     void should_migrate_classic_categories_mapping_name_to_title_and_forcing_visible_true() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(
-            Set.of(
-                Category.builder()
-                    .id("classic-category-id")
-                    .environmentId(Environment.DEFAULT.getId())
-                    .name("News")
-                    .description("News category")
-                    .hidden(true)
-                    .picture("base64-picture")
-                    .page("documentation-page-id")
-                    .build()
-            )
-        );
+        when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                .thenReturn(Set.of(Category.builder()
+                        .id("classic-category-id")
+                        .environmentId(Environment.DEFAULT.getId())
+                        .name("News")
+                        .description("News category")
+                        .hidden(true)
+                        .picture("base64-picture")
+                        .page("documentation-page-id")
+                        .build()));
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        assertThat(portalCategoryCrudService.storage())
-            .hasSize(1)
-            .first()
-            .satisfies(created -> {
-                assertThat(created.getEnvironmentId()).isEqualTo(Environment.DEFAULT.getId());
-                assertThat(created.getTitle()).isEqualTo("News");
-                assertThat(created.getDescription()).isEqualTo("News category");
-                assertThat(created.isVisible()).isTrue();
-            });
+        assertThat(portalCategoryCrudService.storage()).hasSize(1).first().satisfies(created -> {
+            assertThat(created.getEnvironmentId()).isEqualTo(Environment.DEFAULT.getId());
+            assertThat(created.getTitle()).isEqualTo("News");
+            assertThat(created.getDescription()).isEqualTo("News category");
+            assertThat(created.isVisible()).isTrue();
+        });
     }
 
     @Test
     @SneakyThrows
     void should_reuse_existing_portal_category_by_title_instead_of_creating_a_duplicate() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
-        when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(
-            Set.of(Category.builder().id("classic-category-id").name("News").description("News category").build())
-        );
-        when(categoryRepository.findAllByEnvironment(ANOTHER_ENVIRONMENT.getId())).thenReturn(
-            Set.of(Category.builder().id("another-classic-category-id").name("Finance").description("Finance category").build())
-        );
+        when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                .thenReturn(Set.of(Category.builder()
+                        .id("classic-category-id")
+                        .name("News")
+                        .description("News category")
+                        .build()));
+        when(categoryRepository.findAllByEnvironment(ANOTHER_ENVIRONMENT.getId()))
+                .thenReturn(Set.of(Category.builder()
+                        .id("another-classic-category-id")
+                        .name("Finance")
+                        .description("Finance category")
+                        .build()));
         // A Portal Next category titled "News" already exists for DEFAULT - either this upgrader
         // already migrated it on a prior (partially failed) run, or an admin created it by hand.
-        var existingPortalCategory = PortalCategory.create(Environment.DEFAULT.getId(), "News", "Pre-existing description", true);
+        var existingPortalCategory =
+                PortalCategory.create(Environment.DEFAULT.getId(), "News", "Pre-existing description", true);
         portalCategoryQueryService.initWith(List.of(existingPortalCategory));
         portalCategoryCrudService.initWith(List.of(existingPortalCategory));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(portalCategoryCrudService.storage()).hasSize(2);
-        assertThat(portalCategoryCrudService.storage()).extracting(PortalCategory::getId).contains(existingPortalCategory.getId());
-        assertThat(portalCategoryCrudService.storage()).extracting(PortalCategory::getTitle).containsExactlyInAnyOrder("News", "Finance");
+        assertThat(portalCategoryCrudService.storage())
+                .extracting(PortalCategory::getId)
+                .contains(existingPortalCategory.getId());
+        assertThat(portalCategoryCrudService.storage())
+                .extracting(PortalCategory::getTitle)
+                .containsExactlyInAnyOrder("News", "Finance");
     }
 
     @Test
@@ -197,20 +201,23 @@ class ClassicCategoriesMigrationUpgraderTest {
         void should_assign_new_portal_category_to_navigation_item_of_api_matched_by_classic_category_id() {
             when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
             var classicCategory = Category.builder()
-                .id("classic-category-id")
-                .key("classic-key")
-                .environmentId(Environment.DEFAULT.getId())
-                .name("News")
-                .description("News category")
-                .build();
-            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(Set.of(classicCategory));
-            when(apiRepository.search(any(), any(ApiFieldFilter.class))).thenReturn(
-                List.of(
-                    Api.builder().id("api-1").environmentId(Environment.DEFAULT.getId()).categories(Set.of("classic-category-id")).build()
-                )
-            );
+                    .id("classic-category-id")
+                    .key("classic-key")
+                    .environmentId(Environment.DEFAULT.getId())
+                    .name("News")
+                    .description("News category")
+                    .build();
+            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                    .thenReturn(Set.of(classicCategory));
+            when(apiRepository.search(any(), any(ApiFieldFilter.class)))
+                    .thenReturn(List.of(Api.builder()
+                            .id("api-1")
+                            .environmentId(Environment.DEFAULT.getId())
+                            .categories(Set.of("classic-category-id"))
+                            .build()));
             var existingCategoryId = PortalCategoryId.random();
-            var navApi = PortalNavigationItemFixtures.anApi("api-1", PortalVisibility.PUBLIC, new ArrayList<>(List.of(existingCategoryId)));
+            var navApi = PortalNavigationItemFixtures.anApi(
+                    "api-1", PortalVisibility.PUBLIC, new ArrayList<>(List.of(existingCategoryId)));
             navApi.setEnvironmentId(Environment.DEFAULT.getId());
             portalNavigationItemsStorage.add(navApi);
 
@@ -225,16 +232,20 @@ class ClassicCategoriesMigrationUpgraderTest {
         void should_assign_new_portal_category_to_navigation_item_of_api_matched_by_classic_category_key() {
             when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
             var classicCategory = Category.builder()
-                .id("classic-category-id")
-                .key("classic-key")
-                .environmentId(Environment.DEFAULT.getId())
-                .name("News")
-                .description("News category")
-                .build();
-            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(Set.of(classicCategory));
-            when(apiRepository.search(any(), any(ApiFieldFilter.class))).thenReturn(
-                List.of(Api.builder().id("api-1").environmentId(Environment.DEFAULT.getId()).categories(Set.of("classic-key")).build())
-            );
+                    .id("classic-category-id")
+                    .key("classic-key")
+                    .environmentId(Environment.DEFAULT.getId())
+                    .name("News")
+                    .description("News category")
+                    .build();
+            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                    .thenReturn(Set.of(classicCategory));
+            when(apiRepository.search(any(), any(ApiFieldFilter.class)))
+                    .thenReturn(List.of(Api.builder()
+                            .id("api-1")
+                            .environmentId(Environment.DEFAULT.getId())
+                            .categories(Set.of("classic-key"))
+                            .build()));
             var navApi = PortalNavigationItemFixtures.anApi("api-1", PortalVisibility.PUBLIC, new ArrayList<>());
             navApi.setEnvironmentId(Environment.DEFAULT.getId());
             portalNavigationItemsStorage.add(navApi);
@@ -250,21 +261,19 @@ class ClassicCategoriesMigrationUpgraderTest {
         void should_not_fail_when_no_navigation_item_exists_for_an_api_in_the_classic_category() {
             when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
             var classicCategory = Category.builder()
-                .id("classic-category-id")
-                .environmentId(Environment.DEFAULT.getId())
-                .name("News")
-                .description("News category")
-                .build();
-            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(Set.of(classicCategory));
-            when(apiRepository.search(any(), any(ApiFieldFilter.class))).thenReturn(
-                List.of(
-                    Api.builder()
-                        .id("api-without-nav-item")
-                        .environmentId(Environment.DEFAULT.getId())
-                        .categories(Set.of("classic-category-id"))
-                        .build()
-                )
-            );
+                    .id("classic-category-id")
+                    .environmentId(Environment.DEFAULT.getId())
+                    .name("News")
+                    .description("News category")
+                    .build();
+            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                    .thenReturn(Set.of(classicCategory));
+            when(apiRepository.search(any(), any(ApiFieldFilter.class)))
+                    .thenReturn(List.of(Api.builder()
+                            .id("api-without-nav-item")
+                            .environmentId(Environment.DEFAULT.getId())
+                            .categories(Set.of("classic-category-id"))
+                            .build()));
 
             assertThat(upgrader.upgrade()).isTrue();
 
@@ -281,18 +290,19 @@ class ClassicCategoriesMigrationUpgraderTest {
         void should_return_false_and_let_a_retry_reconcile_without_recreating_already_migrated_categories() {
             when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
             var newsCategory = Category.builder()
-                .id("cat-news")
-                .environmentId(Environment.DEFAULT.getId())
-                .name("News")
-                .description("News category")
-                .build();
+                    .id("cat-news")
+                    .environmentId(Environment.DEFAULT.getId())
+                    .name("News")
+                    .description("News category")
+                    .build();
             var financeCategory = Category.builder()
-                .id("cat-finance")
-                .environmentId(Environment.DEFAULT.getId())
-                .name("Finance")
-                .description("Finance category")
-                .build();
-            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(Set.of(newsCategory, financeCategory));
+                    .id("cat-finance")
+                    .environmentId(Environment.DEFAULT.getId())
+                    .name("Finance")
+                    .description("Finance category")
+                    .build();
+            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                    .thenReturn(Set.of(newsCategory, financeCategory));
 
             // Simulates a technical failure creating exactly one of the two categories, regardless of
             // iteration order over the Set.
@@ -300,7 +310,8 @@ class ClassicCategoriesMigrationUpgraderTest {
             PortalCategoryCrudService flakyCrudService = new PortalCategoryCrudService() {
                 @Override
                 public PortalCategory create(PortalCategory portalCategory) {
-                    if (financeCreationShouldFail.get() && portalCategory.getTitle().equals("Finance")) {
+                    if (financeCreationShouldFail.get()
+                            && portalCategory.getTitle().equals("Finance")) {
                         throw new IllegalStateException("simulated technical failure");
                     }
                     return portalCategoryCrudService.create(portalCategory);
@@ -324,14 +335,13 @@ class ClassicCategoriesMigrationUpgraderTest {
             var flakyDomainService = new PortalCategoryDomainService(flakyCrudService, portalCategoryQueryService);
             var flakyCreateUseCase = new CreatePortalCategoryUseCase(flakyDomainService, flakyCrudService);
             var flakyUpgrader = new ClassicCategoriesMigrationUpgrader(
-                environmentRepository,
-                categoryRepository,
-                apiRepository,
-                portalCategoryQueryService,
-                flakyCreateUseCase,
-                portalNavigationItemsQueryService,
-                portalNavigationItemCrudService
-            );
+                    environmentRepository,
+                    categoryRepository,
+                    apiRepository,
+                    portalCategoryQueryService,
+                    flakyCreateUseCase,
+                    portalNavigationItemsQueryService,
+                    portalNavigationItemCrudService);
 
             assertThat(flakyUpgrader.upgrade()).isFalse();
             assertThat(portalCategoryCrudService.storage()).hasSize(1);
@@ -347,8 +357,8 @@ class ClassicCategoriesMigrationUpgraderTest {
 
             assertThat(portalCategoryCrudService.storage()).hasSize(2);
             assertThat(portalCategoryCrudService.storage())
-                .extracting(PortalCategory::getTitle)
-                .containsExactlyInAnyOrder("News", "Finance");
+                    .extracting(PortalCategory::getTitle)
+                    .containsExactlyInAnyOrder("News", "Finance");
         }
     }
 
@@ -359,9 +369,12 @@ class ClassicCategoriesMigrationUpgraderTest {
         @SneakyThrows
         void should_not_create_duplicate_portal_categories_when_upgrade_runs_twice() {
             when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(
-                Set.of(Category.builder().id("classic-category-id").name("News").description("News category").build())
-            );
+            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                    .thenReturn(Set.of(Category.builder()
+                            .id("classic-category-id")
+                            .name("News")
+                            .description("News category")
+                            .build()));
 
             assertThat(upgrader.upgrade()).isTrue();
             assertThat(portalCategoryCrudService.storage()).hasSize(1);
@@ -382,17 +395,19 @@ class ClassicCategoriesMigrationUpgraderTest {
         void should_not_duplicate_category_assignment_on_navigation_items_when_upgrade_runs_twice() {
             when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
             var classicCategory = Category.builder()
-                .id("classic-category-id")
-                .environmentId(Environment.DEFAULT.getId())
-                .name("News")
-                .description("News category")
-                .build();
-            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(Set.of(classicCategory));
-            when(apiRepository.search(any(), any(ApiFieldFilter.class))).thenReturn(
-                List.of(
-                    Api.builder().id("api-1").environmentId(Environment.DEFAULT.getId()).categories(Set.of("classic-category-id")).build()
-                )
-            );
+                    .id("classic-category-id")
+                    .environmentId(Environment.DEFAULT.getId())
+                    .name("News")
+                    .description("News category")
+                    .build();
+            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId()))
+                    .thenReturn(Set.of(classicCategory));
+            when(apiRepository.search(any(), any(ApiFieldFilter.class)))
+                    .thenReturn(List.of(Api.builder()
+                            .id("api-1")
+                            .environmentId(Environment.DEFAULT.getId())
+                            .categories(Set.of("classic-category-id"))
+                            .build()));
             var navApi = PortalNavigationItemFixtures.anApi("api-1", PortalVisibility.PUBLIC, new ArrayList<>());
             navApi.setEnvironmentId(Environment.DEFAULT.getId());
             portalNavigationItemsStorage.add(navApi);

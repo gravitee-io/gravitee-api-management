@@ -59,11 +59,10 @@ public class HttpPolicyFactoryTest {
     public void shouldCreateConditionalExecutablePolicyIfCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
         final Policy policy = cut.create(
-            StreamType.ON_REQUEST,
-            fakePolicyManifest(),
-            policyConfiguration,
-            fakePolicyMetadata("execution-condition")
-        );
+                StreamType.ON_REQUEST,
+                fakePolicyManifest(),
+                policyConfiguration,
+                fakePolicyMetadata("execution-condition"));
 
         assertTrue(policy instanceof ConditionalExecutablePolicy);
     }
@@ -71,7 +70,8 @@ public class HttpPolicyFactoryTest {
     @Test
     public void shouldNotCreateConditionalExecutablePolicyIfNullCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
-        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyManifest(), policyConfiguration, fakePolicyMetadata(null));
+        final Policy policy =
+                cut.create(StreamType.ON_REQUEST, fakePolicyManifest(), policyConfiguration, fakePolicyMetadata(null));
 
         assertTrue(policy instanceof ExecutablePolicy);
         assertFalse(policy instanceof ConditionalExecutablePolicy);
@@ -80,17 +80,24 @@ public class HttpPolicyFactoryTest {
     @Test
     public void shouldNotCreateConditionalExecutablePolicyIfEmptyCondition() {
         final PolicyConfiguration policyConfiguration = mock(PolicyConfiguration.class);
-        final Policy policy = cut.create(StreamType.ON_REQUEST, fakePolicyManifest(), policyConfiguration, fakePolicyMetadata(""));
+        final Policy policy =
+                cut.create(StreamType.ON_REQUEST, fakePolicyManifest(), policyConfiguration, fakePolicyMetadata(""));
 
         assertTrue(policy instanceof ExecutablePolicy);
         assertFalse(policy instanceof ConditionalExecutablePolicy);
     }
 
     private PolicyManifest fakePolicyManifest() {
-        return new PolicyManifestBuilder().setId("dummy-policy").setPolicy(DummyPolicy.class).setMethods(Map.of()).build();
+        return new PolicyManifestBuilder()
+                .setId("dummy-policy")
+                .setPolicy(DummyPolicy.class)
+                .setMethods(Map.of())
+                .build();
     }
 
     private PolicyMetadata fakePolicyMetadata(String condition) {
-        return condition != null ? new PolicyMetadata("dummy-policy", "{}", condition) : new PolicyMetadata("dummy-policy", "{}");
+        return condition != null
+                ? new PolicyMetadata("dummy-policy", "{}", condition)
+                : new PolicyMetadata("dummy-policy", "{}");
     }
 }

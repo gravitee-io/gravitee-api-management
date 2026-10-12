@@ -35,26 +35,21 @@ public class InMemoryTokenBucketRateLimitRepository implements TokenBucketRateLi
 
     @Override
     public Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
-    ) {
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<TokenBucket> supplier) {
         return Single.fromCallable(() -> {
             TokenBucketConsumeResult[] result = new TokenBucketConsumeResult[1];
             buckets.compute(key, (k, existing) -> {
-                TokenBucket bucket = existing != null ? existing : TokenBucketCalculator.newFullBucket(supplier.get(), capacity, nowMillis);
+                TokenBucket bucket = existing != null
+                        ? existing
+                        : TokenBucketCalculator.newFullBucket(supplier.get(), capacity, nowMillis);
                 result[0] = TokenBucketCalculator.refillAndTryConsume(
-                    bucket,
-                    tokensRequested,
-                    refillRate,
-                    refillPeriodMillis,
-                    capacity,
-                    nowMillis
-                );
+                        bucket, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis);
                 return bucket;
             });
             return result[0];

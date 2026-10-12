@@ -49,9 +49,8 @@ public class PortalNavigationItemRootIdUpgrader implements Upgrader {
     private final PortalNavigationItemRepository portalNavigationItemRepository;
 
     public PortalNavigationItemRootIdUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy PortalNavigationItemRepository portalNavigationItemRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy PortalNavigationItemRepository portalNavigationItemRepository) {
         this.environmentRepository = environmentRepository;
         this.portalNavigationItemRepository = portalNavigationItemRepository;
     }
@@ -75,16 +74,13 @@ public class PortalNavigationItemRootIdUpgrader implements Upgrader {
 
     private void migrateEnvironment(String organizationId, String environmentId) throws TechnicalException {
         List<PortalNavigationItem> items = new ArrayList<>(
-            portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId)
-        );
+                portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId));
         if (items.isEmpty()) {
             return;
         }
 
-        List<PortalNavigationItem> roots = items
-            .stream()
-            .filter(item -> item.getParentId() == null)
-            .toList();
+        List<PortalNavigationItem> roots =
+                items.stream().filter(item -> item.getParentId() == null).toList();
         Deque<PortalNavigationItem> queue = new ArrayDeque<>(roots);
         items.removeAll(roots);
 
@@ -103,22 +99,20 @@ public class PortalNavigationItemRootIdUpgrader implements Upgrader {
                 updatedCount++;
             }
 
-            List<PortalNavigationItem> children = items
-                .stream()
-                .filter(child -> item.getId().equals(child.getParentId()))
-                .toList();
+            List<PortalNavigationItem> children = items.stream()
+                    .filter(child -> item.getId().equals(child.getParentId()))
+                    .toList();
             queue.addAll(children);
             items.removeAll(children);
         }
 
         if (!items.isEmpty()) {
-            List<String> unresolvedIds = items.stream().map(PortalNavigationItem::getId).toList();
+            List<String> unresolvedIds =
+                    items.stream().map(PortalNavigationItem::getId).toList();
             throw new TechnicalException(
-                "Unable to resolve rootId for portal navigation items in environment " +
-                    environmentId +
-                    ". Unresolved item ids: " +
-                    String.join(", ", unresolvedIds)
-            );
+                    "Unable to resolve rootId for portal navigation items in environment " + environmentId
+                            + ". Unresolved item ids: "
+                            + String.join(", ", unresolvedIds));
         }
 
         log.debug("Updated {} portal navigation items for environment {}", updatedCount, environmentId);

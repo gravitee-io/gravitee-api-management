@@ -29,21 +29,22 @@ public class EntrypointPluginQueryServiceLegacyWrapper implements EntrypointPlug
 
     private final EntrypointConnectorPluginService entrypointConnectorPluginService;
 
-    public EntrypointPluginQueryServiceLegacyWrapper(EntrypointConnectorPluginService entrypointConnectorPluginService) {
+    public EntrypointPluginQueryServiceLegacyWrapper(
+            EntrypointConnectorPluginService entrypointConnectorPluginService) {
         this.entrypointConnectorPluginService = entrypointConnectorPluginService;
     }
 
     @Override
     public Set<ConnectorPlugin> findBySupportedApi(ApiType apiType) {
-        return entrypointConnectorPluginService
-            .findBySupportedApi(apiType)
-            .stream()
-            .map(ConnectorPluginAdapter.INSTANCE::map)
-            .collect(Collectors.toSet());
+        return entrypointConnectorPluginService.findBySupportedApi(apiType).stream()
+                .map(ConnectorPluginAdapter.INSTANCE::map)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<ConnectorPlugin> findAll() {
-        return entrypointConnectorPluginService.findAll().stream().map(ConnectorPluginAdapter.INSTANCE::map).collect(Collectors.toSet());
+        return entrypointConnectorPluginService.findAll().stream()
+                .map(ConnectorPluginAdapter.INSTANCE::map)
+                .collect(Collectors.toSet());
     }
 }

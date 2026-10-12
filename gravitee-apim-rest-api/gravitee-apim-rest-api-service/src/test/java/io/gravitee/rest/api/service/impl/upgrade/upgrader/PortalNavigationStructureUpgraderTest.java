@@ -64,7 +64,8 @@ class PortalNavigationStructureUpgraderTest {
 
         ArgumentCaptor<Portal> captor = ArgumentCaptor.forClass(Portal.class);
         verify(portalRepository).update(captor.capture());
-        assertThat(captor.getValue().getPortalNavigation()).isEqualTo("{\"TOP_NAVBAR\":[{\"path\":\"/a\"},{\"path\":\"/b\"}]}");
+        assertThat(captor.getValue().getPortalNavigation())
+                .isEqualTo("{\"TOP_NAVBAR\":[{\"path\":\"/a\"},{\"path\":\"/b\"}]}");
     }
 
     @Test
@@ -109,11 +110,11 @@ class PortalNavigationStructureUpgraderTest {
 
     private static Portal portal(String portalNavigation) {
         return Portal.builder()
-            .id("portal-id")
-            .environmentId("env")
-            .organizationId("org")
-            .name("name")
-            .portalNavigation(portalNavigation)
-            .build();
+                .id("portal-id")
+                .environmentId("env")
+                .organizationId("org")
+                .name("name")
+                .portalNavigation(portalNavigation)
+                .build();
     }
 }

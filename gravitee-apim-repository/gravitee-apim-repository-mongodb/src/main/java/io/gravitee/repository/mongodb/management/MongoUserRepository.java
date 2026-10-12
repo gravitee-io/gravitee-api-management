@@ -91,7 +91,8 @@ public class MongoUserRepository implements UserRepository {
             return null;
         }
         Map<String, String> encoded = new HashMap<>(claims.size());
-        claims.forEach((key, value) -> encoded.put(new String(Base64.getEncoder().encode(key.getBytes())), value));
+        claims.forEach(
+                (key, value) -> encoded.put(new String(Base64.getEncoder().encode(key.getBytes())), value));
         return encoded;
     }
 
@@ -100,7 +101,8 @@ public class MongoUserRepository implements UserRepository {
             return null;
         }
         Map<String, String> decoded = new HashMap<>(claims.size());
-        claims.forEach((key, value) -> decoded.put(new String(Base64.getDecoder().decode(key)), value));
+        claims.forEach(
+                (key, value) -> decoded.put(new String(Base64.getDecoder().decode(key)), value));
         return decoded;
     }
 
@@ -167,7 +169,9 @@ public class MongoUserRepository implements UserRepository {
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("Delete users by organizationId: {}", organizationId);
         try {
-            final var users = internalUserRepo.deleteByOrganizationId(organizationId).stream().map(UserMongo::getId).toList();
+            final var users = internalUserRepo.deleteByOrganizationId(organizationId).stream()
+                    .map(UserMongo::getId)
+                    .toList();
             log.debug("Delete users by organizationId: {} - Done", organizationId);
             return users;
         } catch (Exception ex) {
@@ -245,7 +249,10 @@ public class MongoUserRepository implements UserRepository {
         userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
         userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
         userMongo.setIsServiceAccount(user.getIsServiceAccount());
-        userMongo.setRegistrationOrigin(user.getRegistrationOrigin() == null ? null : user.getRegistrationOrigin().name());
+        userMongo.setRegistrationOrigin(
+                user.getRegistrationOrigin() == null
+                        ? null
+                        : user.getRegistrationOrigin().name());
         userMongo.setIdpClaims(encodeClaimKeys(user.getIdpClaims()));
         UserMongo userUpdated = internalUserRepo.save(userMongo);
         return toModel(userUpdated);

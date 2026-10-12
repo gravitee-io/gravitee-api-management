@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
@@ -33,7 +32,6 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Component
 public class KeyMapper {
 
@@ -62,7 +60,8 @@ public class KeyMapper {
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
         if (application.getApiKeyMode() != null) {
-            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
+            application.setApiKeyMode(
+                    ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
         }
         return application;
     }

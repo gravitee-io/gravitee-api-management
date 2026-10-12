@@ -17,7 +17,6 @@ package io.gravitee.apim.infra.domain_service.resource;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 
-import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;

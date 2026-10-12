@@ -37,13 +37,17 @@ public class ListApiDocumentationUseCase {
 
     public Output execute(Input input) {
         var items = apiOwnedNavigationDomainService.findOwnedItems(input.environmentId(), input.apiId());
-        items.stream().map(PortalNavigationItem::getSource).filter(Objects::nonNull).forEach(sourceDomainService::removeSensitiveData);
+        items.stream()
+                .map(PortalNavigationItem::getSource)
+                .filter(Objects::nonNull)
+                .forEach(sourceDomainService::removeSensitiveData);
 
-        var publications = apiOwnedNavigationDomainService
-            .findStandaloneListings(input.environmentId(), input.apiId())
-            .stream()
-            .map(listing -> new Publication(listing, queryService.findByIdAndEnvironmentId(input.environmentId(), listing.getParentId())))
-            .toList();
+        var publications =
+                apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId()).stream()
+                        .map(listing -> new Publication(
+                                listing,
+                                queryService.findByIdAndEnvironmentId(input.environmentId(), listing.getParentId())))
+                        .toList();
 
         return new Output(items, publications);
     }

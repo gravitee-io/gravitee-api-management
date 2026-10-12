@@ -56,7 +56,8 @@ public interface V4EmulationEngineService {
         CREATION_ONLY("creation_only"),
         NO("no");
 
-        private static final Map<String, DefaultMode> BY_LABEL = Map.of(YES.label, YES, CREATION_ONLY.label, CREATION_ONLY, NO.label, NO);
+        private static final Map<String, DefaultMode> BY_LABEL =
+                Map.of(YES.label, YES, CREATION_ONLY.label, CREATION_ONLY, NO.label, NO);
         private final String label;
 
         DefaultMode(final String label) {

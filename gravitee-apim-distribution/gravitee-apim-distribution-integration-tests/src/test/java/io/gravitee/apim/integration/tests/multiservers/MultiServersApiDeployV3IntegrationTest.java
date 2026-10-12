@@ -32,8 +32,8 @@ public class MultiServersApiDeployV3IntegrationTest extends AbstractMultiServers
     @Test
     @DeployApi("/apis/http/api.json")
     @Override
-    void should_get_200_when_calling_on_both_first_and_second_servers(HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig)
-        throws InterruptedException {
+    void should_get_200_when_calling_on_both_first_and_second_servers(
+            HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig) throws InterruptedException {
         super.should_get_200_when_calling_on_both_first_and_second_servers(httpClient, gatewayConfig);
     }
 
@@ -41,9 +41,7 @@ public class MultiServersApiDeployV3IntegrationTest extends AbstractMultiServers
     @DeployApi("/apis/http/api-single-server.json")
     @Override
     void should_get_200_when_calling_on_second_server_and_404_on_first_server(
-        HttpClient httpClient,
-        GatewayDynamicConfig.Config gatewayConfig
-    ) throws InterruptedException {
+            HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig) throws InterruptedException {
         super.should_get_200_when_calling_on_second_server_and_404_on_first_server(httpClient, gatewayConfig);
     }
 }

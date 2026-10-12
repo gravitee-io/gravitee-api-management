@@ -66,22 +66,20 @@ public class Flow extends AbstractFlow {
     @Override
     public List<Plugin> getPlugins() {
         return Stream.of(
-            computePlugins(this.request),
-            computePlugins(this.response),
-            computePlugins(this.publish),
-            computePlugins(this.subscribe)
-        )
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+                        computePlugins(this.request),
+                        computePlugins(this.response),
+                        computePlugins(this.publish),
+                        computePlugins(this.subscribe))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     @JsonIgnore
     public Optional<Selector> selectorByType(SelectorType type) {
         if (selectors != null) {
-            return selectors
-                .stream()
-                .filter(selector -> selector.getType() == type)
-                .findFirst();
+            return selectors.stream()
+                    .filter(selector -> selector.getType() == type)
+                    .findFirst();
         }
 
         return Optional.empty();

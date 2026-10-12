@@ -24,8 +24,13 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface PortalListingRepository extends CrudRepository<PortalListing, String> {
-    Optional<PortalListing> findByIdAndEnvironmentId(final String portalListingId, final String environmentId) throws TechnicalException;
-    List<PortalListing> findAllByPortalIdAndEnvironmentId(final String portalId, final String environmentId) throws TechnicalException;
+    Optional<PortalListing> findByIdAndEnvironmentId(final String portalListingId, final String environmentId)
+            throws TechnicalException;
+
+    List<PortalListing> findAllByPortalIdAndEnvironmentId(final String portalId, final String environmentId)
+            throws TechnicalException;
+
     void deleteByEnvironmentId(final String environmentId) throws TechnicalException;
+
     void deleteByOrganizationId(final String organizationId) throws TechnicalException;
 }

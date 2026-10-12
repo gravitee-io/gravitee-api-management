@@ -28,7 +28,11 @@ import java.util.List;
  */
 public interface UserMetadataService {
     UserMetadataEntity create(ExecutionContext executionContext, NewUserMetadataEntity metadata);
+
     UserMetadataEntity update(ExecutionContext executionContext, UpdateUserMetadataEntity metadata);
+
     List<UserMetadataEntity> findAllByUserId(String userId);
-    void deleteAllByCustomFieldId(ExecutionContext executionContext, String key, String refId, CustomUserFieldReferenceType refType);
+
+    void deleteAllByCustomFieldId(
+            ExecutionContext executionContext, String key, String refId, CustomUserFieldReferenceType refType);
 }

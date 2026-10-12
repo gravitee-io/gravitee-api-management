@@ -128,8 +128,8 @@ class GammaModuleServiceTest {
         when(gammaModuleManager.get("unknown")).thenReturn(null);
 
         assertThatThrownBy(() -> service.getById("unknown"))
-            .isInstanceOf(GammaModuleNotFoundException.class)
-            .hasMessageContaining("unknown");
+                .isInstanceOf(GammaModuleNotFoundException.class)
+                .hasMessageContaining("unknown");
     }
 
     // -- getResourceClass() --
@@ -210,7 +210,13 @@ class GammaModuleServiceTest {
     // -- path traversal --
 
     @ParameterizedTest(name = "should reject path traversal: {0}")
-    @ValueSource(strings = { "../secret.txt", "assets/../../secret.txt", "../../../../../../etc/passwd", "../ui/../../../etc/shadow" })
+    @ValueSource(
+            strings = {
+                "../secret.txt",
+                "assets/../../secret.txt",
+                "../../../../../../etc/passwd",
+                "../ui/../../../etc/shadow"
+            })
     void should_return_400_for_path_traversal(String maliciousPath) throws IOException {
         GammaModulePlugin module = aModule("chat", "Chat", "1.0.0");
         when(gammaModuleManager.get("chat")).thenReturn(module);
@@ -225,14 +231,13 @@ class GammaModuleServiceTest {
 
     static Stream<Arguments> asset_content_type_cases() {
         return Stream.of(
-            Arguments.of("app.js", "text/javascript"),
-            Arguments.of("app.mjs", "application/javascript"),
-            Arguments.of("style.css", "text/css"),
-            Arguments.of("icon.svg", "image/svg+xml"),
-            Arguments.of("font.woff", "font/woff"),
-            Arguments.of("font.woff2", "font/woff2"),
-            Arguments.of("data.xyz", "application/octet-stream")
-        );
+                Arguments.of("app.js", "text/javascript"),
+                Arguments.of("app.mjs", "application/javascript"),
+                Arguments.of("style.css", "text/css"),
+                Arguments.of("icon.svg", "image/svg+xml"),
+                Arguments.of("font.woff", "font/woff"),
+                Arguments.of("font.woff2", "font/woff2"),
+                Arguments.of("data.xyz", "application/octet-stream"));
     }
 
     @ParameterizedTest(name = "should resolve {0} to {1}")
@@ -241,7 +246,7 @@ class GammaModuleServiceTest {
         GammaModulePlugin module = aModule("chat", "Chat", "1.0.0");
         when(gammaModuleManager.get("chat")).thenReturn(module);
         Path uiDir = Files.createDirectories(module.path().resolve("ui"));
-        Files.write(uiDir.resolve(filename), new byte[] { 0 });
+        Files.write(uiDir.resolve(filename), new byte[] {0});
 
         Response response = service.getAsset("chat", filename);
 
@@ -256,8 +261,10 @@ class GammaModuleServiceTest {
         for (String ext : GammaModuleService.CONTENT_TYPES.keySet()) {
             String jdkType = URLConnection.guessContentTypeFromName("file." + ext);
             assertThat(jdkType)
-                .as("Extension '%s' is already resolved by the JDK to '%s' and should be removed from CONTENT_TYPES", ext, jdkType)
-                .isNull();
+                    .as(
+                            "Extension '%s' is already resolved by the JDK to '%s' and should be removed from CONTENT_TYPES",
+                            ext, jdkType)
+                    .isNull();
         }
     }
 
@@ -312,43 +319,41 @@ class GammaModuleServiceTest {
             }
         };
 
-        return new GammaModulePlugin(
-            new Plugin() {
-                @Override
-                public String id() {
-                    return id;
-                }
-
-                @Override
-                public String clazz() {
-                    return null;
-                }
-
-                @Override
-                public String type() {
-                    return GammaModulePlugin.PLUGIN_TYPE;
-                }
-
-                @Override
-                public Path path() {
-                    return path;
-                }
-
-                @Override
-                public PluginManifest manifest() {
-                    return manifest;
-                }
-
-                @Override
-                public java.net.URL[] dependencies() {
-                    return new java.net.URL[0];
-                }
-
-                @Override
-                public boolean deployed() {
-                    return true;
-                }
+        return new GammaModulePlugin(new Plugin() {
+            @Override
+            public String id() {
+                return id;
             }
-        );
+
+            @Override
+            public String clazz() {
+                return null;
+            }
+
+            @Override
+            public String type() {
+                return GammaModulePlugin.PLUGIN_TYPE;
+            }
+
+            @Override
+            public Path path() {
+                return path;
+            }
+
+            @Override
+            public PluginManifest manifest() {
+                return manifest;
+            }
+
+            @Override
+            public java.net.URL[] dependencies() {
+                return new java.net.URL[0];
+            }
+
+            @Override
+            public boolean deployed() {
+                return true;
+            }
+        });
     }
 }

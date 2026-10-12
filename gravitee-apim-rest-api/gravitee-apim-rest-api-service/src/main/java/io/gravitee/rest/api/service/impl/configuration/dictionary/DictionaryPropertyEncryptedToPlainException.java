@@ -36,13 +36,10 @@ public class DictionaryPropertyEncryptedToPlainException extends AbstractValidat
 
     @Override
     public String getMessage() {
-        return (
-            "Dictionary property [" +
-            propertyKey +
-            "] on dictionary [" +
-            dictionaryId +
-            "] is already encrypted; it cannot be made plain again. Renew it with a new value instead."
-        );
+        return ("Dictionary property [" + propertyKey
+                + "] on dictionary ["
+                + dictionaryId
+                + "] is already encrypted; it cannot be made plain again. Renew it with a new value instead.");
     }
 
     @Override

@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +65,10 @@ import org.testcontainers.utility.DockerImageName;
  * @author GraviteeSource Team
  */
 @ComponentScan(
-    basePackages = { "io.gravitee.repository.mongodb" },
-    excludeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = MongoUpgraderConfiguration.class) }
-)
+        basePackages = {"io.gravitee.repository.mongodb"},
+        excludeFilters = {
+            @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = MongoUpgraderConfiguration.class)
+        })
 @Import(EncryptionEnabledCondition.class)
 @EnableMongoRepositories
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
@@ -81,7 +81,8 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     @Inject
     private MongoDBContainer mongoDBContainer;
 
-    public MongoTestRepositoryConfiguration(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
+    public MongoTestRepositoryConfiguration(
+            ConfigurableEnvironment environment, ApplicationContext applicationContext) {
         super(environment, applicationContext);
         environment.getPropertySources().addFirst(new PropertiesPropertySource("graviteeTest", graviteeProperties()));
     }
@@ -115,9 +116,12 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     @Bean(destroyMethod = "stop")
     public MongoDBContainer mongoDBContainer() {
         MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:" + mongoVersion));
-        mongoDb.withCommand("--replSet", "docker-rs", "--setParameter", "notablescan=true").start();
+        mongoDb.withCommand("--replSet", "docker-rs", "--setParameter", "notablescan=true")
+                .start();
 
-        LOG.info("Running tests with MongoDB version: {}", getMongoFullVersion(mongoDb.getContainerInfo().getConfig().getEnv()));
+        LOG.info(
+                "Running tests with MongoDB version: {}",
+                getMongoFullVersion(mongoDb.getContainerInfo().getConfig().getEnv()));
 
         return mongoDb;
     }
@@ -147,9 +151,8 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     public ReactiveMongoOperations indexReactiveMongoOperations() {
         try {
             return new ReactiveMongoTemplate(
-                com.mongodb.reactivestreams.client.MongoClients.create(mongoDBContainer.getReplicaSetUrl()),
-                getDatabaseName()
-            );
+                    com.mongodb.reactivestreams.client.MongoClients.create(mongoDBContainer.getReplicaSetUrl()),
+                    getDatabaseName());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -166,10 +169,10 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
 
     private String getMongoFullVersion(String[] containerEnvs) {
         return Arrays.stream(containerEnvs)
-            .filter(env -> env.startsWith("MONGO_VERSION="))
-            .findFirst()
-            .map(env -> env.split("=")[1])
-            .orElse("");
+                .filter(env -> env.startsWith("MONGO_VERSION="))
+                .findFirst()
+                .map(env -> env.split("=")[1])
+                .orElse("");
     }
 
     @Bean
@@ -183,17 +186,18 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
 
         String collectionName = environment.getProperty("management.mongodb.encryption.keyVault.collectionName");
         ClientEncryptionSettings.Builder builder = ClientEncryptionSettings.builder()
-            // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
-            .keyVaultNamespace("test.test_prefix_" + collectionName)
-            .keyVaultMongoClientSettings(
-                MongoClientSettings.builder().applyConnectionString(new ConnectionString(mongoDBContainer.getReplicaSetUrl())).build()
-            )
-            .kmsProviders(kmsProviders);
+                // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
+                .keyVaultNamespace("test.test_prefix_" + collectionName)
+                .keyVaultMongoClientSettings(MongoClientSettings.builder()
+                        .applyConnectionString(new ConnectionString(mongoDBContainer.getReplicaSetUrl()))
+                        .build())
+                .kmsProviders(kmsProviders);
 
         ClientEncryption clientEncryption = ClientEncryptions.create(builder.build());
 
         // Initialize the Data Encryption Key if not already existing.
-        String keyAlternativeName = environment.getProperty("management.mongodb.encryption.keyVault.keyAlternativeName");
+        String keyAlternativeName =
+                environment.getProperty("management.mongodb.encryption.keyVault.keyAlternativeName");
 
         BsonDocument keyByAltName = clientEncryption.getKeyByAltName(keyAlternativeName);
         if (keyByAltName == null) {

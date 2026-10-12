@@ -44,7 +44,10 @@ public class HTTPTimeSeriesQueryAdapter {
     }
 
     private JsonObject json(TimeSeriesQuery query) {
-        return new JsonObject().put("size", 0).put("query", boolAdapter.adaptForHTTP(query)).put("aggs", adaptTimeSeries(query));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", boolAdapter.adaptForHTTP(query))
+                .put("aggs", adaptTimeSeries(query));
     }
 
     public JsonObject adaptTimeSeries(TimeSeriesQuery query) {
@@ -58,7 +61,9 @@ public class HTTPTimeSeriesQueryAdapter {
     public JsonObject adaptTimeSeries(MetricMeasuresQuery metric, TimeSeriesQuery query) {
         var dateHistogram = DateHistogramAdapter.adapt(query.interval(), query.timeRange());
         if (query.facets() != null && !query.facets().isEmpty()) {
-            dateHistogram.put("aggs", facetsQueryAdapter.adaptFacets(List.of(metric), query.facets(), query.limit(), query.ranges()));
+            dateHistogram.put(
+                    "aggs",
+                    facetsQueryAdapter.adaptFacets(List.of(metric), query.facets(), query.limit(), query.ranges()));
         } else {
             dateHistogram.put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
         }
